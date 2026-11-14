@@ -38,3 +38,11 @@ export const K3_KREZMAR: Line[] = [
 
 /** The card before the credits. */
 export const K3_SEQUEL = "THE LADS WILL RETURN..\nIN 'KRELWORLD 64'";
+
+/** Polson finds a Krelburger. Krezwonk regrets standing next to him. */
+export const K3_POLSON: Line[] = [
+  say("POLSON", "Mm… Krelburger.", { mood: "happy, hungry" }),
+  say("POLSON", "Mmm… gorgeous.", { mood: "mouth full, satisfied" }),
+  say("KREZWONK", "Fuck me, that's rancid.", { mood: "disgusted, gagging" }),
+  say("POLSON", "Well, you know where to come if you need any paint stripping!", { mood: "smug" }),
+];

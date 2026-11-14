@@ -49,7 +49,9 @@ updated). To list every dialogue line added or changed since the export:
 - **The 3D epilogue** (src/content/krelworld3d.ts, played by src/game/scenes/ending/krelworld3d.ts): the lads drop
   out of a portal into a PS2-style 3D Krelford. K3_LAND (dazed), K3_REAL ("IT WAS REAL!", Scrombus's plot-twist
   line, Drongus, Polson respawned, Gronny), K3_BENN (the pussy juice pool), K3_MIKEY / K3_SANMIK (transforms,
-  carjacks, shoots the driver, runs people over), K3_LUKE (the bread and butter house), K3_CHANT ("Krel world! Do
+  carjacks, shoots the driver, runs people over), K3_LUKE (the bread and butter house), K3_POLSON ("Mm… Krelburger",
+  farts, "Mmm… gorgeous"; Krezwonk: "Fuck me, that's rancid"; "Well, you know where to come if you need any paint
+  stripping!"), K3_CHANT ("Krel world! Do
   the krel dance!"), K3_KREZMAR ("Right you fucking cunts." … "It's wonking time."), then the card K3_SEQUEL
   ("THE LADS WILL RETURN.. IN 'KRELWORLD 64'"). The credits' closing card now reads "SEE YOU IN KRELWORLD 64".
 

@@ -6,7 +6,7 @@ import { synth } from "../../audio/Synth";
 import { voice } from "../../audio/Voice";
 import { CHARACTERS } from "../../../data/characters";
 import type { Line } from "../../../data/types";
-import { K3_BENN, K3_CHANT, K3_KREZMAR, K3_LAND, K3_LUKE, K3_MIKEY, K3_REAL, K3_SANMIK, K3_SEQUEL } from "../../../content/krelworld3d";
+import { K3_BENN, K3_CHANT, K3_KREZMAR, K3_LAND, K3_LUKE, K3_MIKEY, K3_POLSON, K3_REAL, K3_SANMIK, K3_SEQUEL } from "../../../content/krelworld3d";
 
 /**
  * THE 3D EPILOGUE. Out of the wormhole and into Krelworld, rendered as a PS2-era 3D game: low-res, fogged,
@@ -801,6 +801,78 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   await camTo([luke.root.position.x + 4, 2, luke.root.position.z + 6], [tapInfo.abandoned.x, 6, tapInfo.abandoned.z], 2600);
   caption("THE BREAD AND BUTTER HOUSE", 2400);
   await wait(1800);
+
+  // ---- 7b. Polson and a Krelburger (Krezwonk regrets standing next to him)
+  const pol = lad.POLSON;
+  const kw = lad.KREZWONK;
+  pol.root.position.set(12, 0, PLAZA.z + 6);
+  pol.root.rotation.y = 0;
+  kw.root.position.set(13.7, 0, PLAZA.z + 6.6);
+  kw.faceTo(12, PLAZA.z + 6);
+  pol.play("idle");
+  kw.play("idle");
+  // the burger: held up at his mouth, shrinking with every bite
+  const burger = new THREE.Group();
+  const bunMat = new THREE.MeshStandardMaterial({ color: 0xd08a3c, roughness: 0.6 });
+  const layer = (r: number, h: number, col: number, y: number) => {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 20), new THREE.MeshStandardMaterial({ color: col, roughness: 0.7 }));
+    m.position.y = y;
+    burger.add(m);
+  };
+  const bunBot = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.07, 0.03, 20), bunMat);
+  burger.add(bunBot);
+  layer(0.08, 0.025, 0x4a2a18, 0.028);
+  layer(0.083, 0.006, 0xf2c230, 0.044);
+  layer(0.085, 0.01, 0x4caf50, 0.052);
+  const bunTop = new THREE.Mesh(new THREE.SphereGeometry(0.078, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), bunMat);
+  bunTop.position.y = 0.058;
+  burger.add(bunTop);
+  burger.scale.setScalar(1.6);
+  s3.add(burger);
+  let burgerOn = true;
+  updaters.push(() => {
+    if (!burgerOn) return;
+    const hp = pol.headPos();
+    const f = pol.root.rotation.y;
+    burger.position.set(hp.x + Math.sin(f) * 0.32, hp.y - 0.2, hp.z + Math.cos(f) * 0.32);
+    burger.rotation.set(0.35, f, 0);
+  });
+  synth.play("pop");
+  burst(burger.position.clone(), 12, 0xffd23f, { speed: 1.2, up: 1, size: 0.12, life: 0.6, grav: 0, additive: true });
+  close(pol, 2.2, 0.35);
+  await speak(K3_POLSON[0]);
+  // three big bites
+  for (let i = 0; i < 3; i++) {
+    synth.play("gulp");
+    burger.scale.multiplyScalar(0.78);
+    burst(burger.position.clone(), 5, 0xd08a3c, { speed: 0.8, up: 0.6, size: 0.06, life: 0.5, grav: 6 });
+    await wait(520);
+  }
+  // …and out the other end
+  const gas = () => {
+    const f = pol.root.rotation.y;
+    const p = pol.root.position.clone().add(new THREE.Vector3(-Math.sin(f) * 0.35, pol.height * 0.48, -Math.cos(f) * 0.35));
+    burst(p, 7, () => (Math.random() < 0.5 ? 0x9acd32 : 0x6b8e23), { speed: 0.7, up: 0.5, size: 0.5, life: 2.2, grav: -0.25, grow: 0.9 });
+  };
+  const farting = setInterval(gas, 140);
+  synth.play("fart");
+  shake(0.12);
+  setTimeout(() => synth.play("fart"), 650);
+  setTimeout(() => synth.play("fart"), 1350);
+  await speak(K3_POLSON[1], 1700);
+  clearInterval(farting);
+  // Krezwonk gets the lot
+  kw.play("shocked");
+  close(kw, 2.1, -0.3);
+  await speak(K3_POLSON[2]);
+  // the two-shot for the comeback
+  pol.play("talk");
+  const mid = new THREE.Vector3().addVectors(pol.root.position, kw.root.position).multiplyScalar(0.5);
+  cut([mid.x - 0.6, 1.6, mid.z + 4.2], [mid.x, 1.45, mid.z]);
+  await speak(K3_POLSON[3]);
+  burgerOn = false;
+  s3.remove(burger);
+  await wait(500);
 
   // ---- 8. the Krel dance
   const line = DANCERS.filter((id) => lad[id]);

@@ -11,6 +11,7 @@ import { switchTo, fadeThen } from "../Flow";
 import { portraitKey } from "../gfx/Textures";
 import { CHARACTERS } from "../../data/characters";
 import { applyReaction } from "../systems/reactions";
+import { realUniverse } from "./ending/realUniverse";
 
 export class EndingScene extends Phaser.Scene {
   private box!: DialogueBox;
@@ -116,6 +117,8 @@ export class EndingScene extends Phaser.Scene {
       card.add(button(this, 0, 110, "CONTINUE", () => res(), { w: 200 }));
     });
     card.destroy();
+    // the camera pulls out of the game: the real universe
+    await realUniverse(this);
     await this.credits();
   }
 

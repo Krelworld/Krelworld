@@ -469,6 +469,34 @@ function spritePortrait(scene: Phaser.Scene, sprKey: string, bg: number): string
 }
 
 /** Which portrait texture to show for a speaker. */
+/** Speakers who are only ever heard, never seen (their portrait is a shut door). */
+const OFFSCREEN = new Set(["GIRLFRIEND"]);
+
+function offscreenPortrait(scene: Phaser.Scene): string {
+  const key = "gen_offscreen";
+  if (scene.textures.exists(key)) return key;
+  const c = scene.textures.createCanvas(key, 64, 64);
+  if (!c) return key;
+  const x = c.getContext();
+  x.fillStyle = "#1a1020";
+  x.fillRect(0, 0, 64, 64);
+  // the door, slightly open, light from the landing
+  x.fillStyle = "#f5c46b";
+  x.fillRect(16, 8, 30, 56);
+  x.fillStyle = "#5b3a22";
+  x.fillRect(22, 8, 26, 56);
+  x.fillStyle = "#3f2716";
+  x.fillRect(26, 14, 18, 18);
+  x.fillRect(26, 38, 18, 20);
+  x.fillStyle = "#d4a017";
+  x.fillRect(24, 36, 3, 3);
+  x.fillStyle = "#ff2d2d";
+  x.font = "bold 16px Impact, sans-serif";
+  x.fillText("!!!", 4, 22);
+  c.refresh();
+  return key;
+}
+
 export function portraitKey(scene: Phaser.Scene, speaker: string): string | null {
   const def = CHARACTERS[speaker];
   if (def) {
@@ -481,6 +509,8 @@ export function portraitKey(scene: Phaser.Scene, speaker: string): string | null
   }
   const s = speaker.toUpperCase();
   if (s === "NARRATOR" || s === "") return null;
+  // never seen: a voice through the bedroom door
+  if (OFFSCREEN.has(s)) return offscreenPortrait(scene);
   const art = s.includes("GABOR")
     ? "p_gabor"
     : s === "GENIE"

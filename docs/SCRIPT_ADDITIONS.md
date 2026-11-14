@@ -41,6 +41,11 @@ updated). To list every dialogue line added or changed since the export:
   having"); RM_POLSON (the lads watch the CCTV at the revenge meeting and grieve: "He was nearly at the front");
   "For Polson!" added to RM_REVENGE and the raid shouts (src/content/raid.ts); POLSON_GONE (his house afterwards).
   From then on Polson no longer appears in town, at his house, or in crowds.
+- **The Real Universe** (src/content/realUniverse.ts, played by src/game/scenes/ending/realUniverse.ts after the
+  epilogue card, before the credits): the camera pulls out of your PC monitor; "Wow. Drongus really made a great
+  game."; the PLOT TWIST card; GIRLFRIEND (offscreen, door portrait) screams your real FIRST name (GIVEN_NAME, the
+  lads agreed) and the rest; you meekly reply; she throws the kitchen; RU_DESPAIR (sobbing); RU_SMASH (headbutting
+  the monitor); RU_PORTAL. The 3D epilogue will follow the wormhole, before the credits.
 
 ## Every dialogue line added or changed since the export (snapshot)
 

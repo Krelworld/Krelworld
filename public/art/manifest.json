@@ -6858,6 +6858,9 @@
   },
   "bg_krelburger": {
    "file": "backdrops/bg_krelburger.png"
+  },
+  "bg_bedroom_real": {
+   "file": "backdrops/bg_bedroom_real.png"
   }
  },
  "sheets": {
@@ -7919,6 +7922,11 @@
    "file": "tv/face_YEMENI_OFFICER.png",
    "frameWidth": 128,
    "frameHeight": 128
+  },
+  "ru_throw": {
+   "file": "props/ru_throw.png",
+   "frameWidth": 32,
+   "frameHeight": 32
   }
  },
  "vfx": {

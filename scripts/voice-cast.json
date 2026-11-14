@@ -226,7 +226,8 @@
     "YEMENI EXECUTIVE": "VVEqovKM9QqLAjYChsnb",
     "YEMENI OFFICIAL": "2wb9pEZH234u5GrpHirf",
     "YEMENI OFFICER": "tbJG5asX7XM4ReHRAdJ9",
-    "KRELBURGER STAFF": "N4mEa88Me45WqZqDdufX"
+    "KRELBURGER STAFF": "N4mEa88Me45WqZqDdufX",
+    "GIRLFRIEND": "XM9CGbmuId67AWA5McaB"
   },
   "designed_desc": {
     "KRANKY KRANDALL": "A reedy, squeaky, frail old British man in his nineties. Thin, high, wavering, slightly wheezy voice, rambling and forgetful, trailing off mid-sentence.",
@@ -348,7 +349,8 @@
     "YEMENI EXECUTIVE": "A Yemeni man in his fifties speaking English with a Middle Eastern Arabic accent, a senior oil company executive. Deep, measured and dignified, courteous but with an edge of authority; when provoked he becomes incredulous and exasperated.",
     "YEMENI OFFICIAL": "A Yemeni man in his sixties speaking English with a Middle Eastern Arabic accent, a government official conducting an interrogation. Dry, cold and unhurried, gravelly, unimpressed and precise.",
     "YEMENI OFFICER": "A Yemeni man in his forties speaking English with a Middle Eastern Arabic accent, a police officer. Firm, formal and businesslike, a crisp authoritative baritone.",
-    "KRELBURGER STAFF": "A bored, flat teenage fast food worker from southern England, monotone and completely unbothered, reading out an order at the till."
+    "KRELBURGER STAFF": "A bored, flat teenage fast food worker from southern England, monotone and completely unbothered, reading out an order at the till.",
+    "GIRLFRIEND": "A furious young British woman from the south of England screaming at the top of her lungs: extremely shrill, piercing, banshee-like and aggressive, hoarse with rage, every word a shriek."
   },
   "stock": {
     "KREBLIS": "fLQ4kCrWQGVDIt5kYfSi",
@@ -428,7 +430,8 @@
     "JOURNALIST 3": "condescending",
     "JOURNALIST 6": "condescending",
     "JOURNALIST 4": "sarcastic",
-    "GABOR THE GOAT": "nervous"
+    "GABOR THE GOAT": "nervous",
+    "GIRLFRIEND": "screaming"
   },
   "female": [
     "EDEN",

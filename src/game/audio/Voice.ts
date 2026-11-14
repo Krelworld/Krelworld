@@ -287,6 +287,37 @@ export const voice = {
     if (recIndex) go();
     else void loadRecIndex().then(go);
   },
+  /**
+   * Play a line's recording ON TOP of whatever else is being said (a crowd chanting together). No robot-voice
+   * fallback: a line without a recording just stays silent. Resolves when it finishes (or straight away).
+   */
+  layer(speaker: string, text: string, gain = 1): Promise<void> {
+    if (!this.enabled()) return Promise.resolve();
+    return new Promise((done) => {
+      const go = () => {
+        const e = recordingFor(speaker, text);
+        const ctx = synth.ctx;
+        if (!e || !ctx) return done();
+        void recBundle(e[0]).then(async (buf) => {
+          if (!buf) return done();
+          try {
+            const audio = await ctx.decodeAudioData(buf.slice(e[1], e[1] + e[2]));
+            const src = ctx.createBufferSource();
+            src.buffer = audio;
+            const g = ctx.createGain();
+            g.gain.value = gain * Math.min(1, (G.meta.settings.voiceVolume ?? 0.8) * (G.meta.settings.master ?? 1) * 1.25);
+            src.connect(g).connect(ctx.destination);
+            src.onended = () => done();
+            src.start();
+          } catch {
+            done();
+          }
+        });
+      };
+      if (recIndex) go();
+      else void loadRecIndex().then(go);
+    });
+  },
   /** The browser's built-in text-to-speech. */
   tts(speaker: string, text: string) {
     if (!("speechSynthesis" in window)) return;

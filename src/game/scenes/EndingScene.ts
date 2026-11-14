@@ -12,6 +12,7 @@ import { portraitKey } from "../gfx/Textures";
 import { CHARACTERS } from "../../data/characters";
 import { applyReaction } from "../systems/reactions";
 import { realUniverse } from "./ending/realUniverse";
+import { krelworld3d } from "./ending/krelworld3d";
 
 export class EndingScene extends Phaser.Scene {
   private box!: DialogueBox;
@@ -119,6 +120,9 @@ export class EndingScene extends Phaser.Scene {
     card.destroy();
     // the camera pulls out of the game: the real universe
     await realUniverse(this);
+    // …and out of the wormhole into Krelworld, in 3D
+    await krelworld3d(this);
+    this.cameras.main.resetFX();
     await this.credits();
   }
 

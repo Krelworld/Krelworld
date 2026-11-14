@@ -5,6 +5,7 @@ import { backdrop, charMeta } from "../../gfx/HD";
 import { playerKey } from "../../gfx/sanmikForm";
 import { vfx } from "../../gfx/Vfx";
 import { DialogueBox } from "../../ui/DialogueBox";
+import { preloadKrelworld3d } from "./krelworld3d";
 import { RU_DESPAIR, RU_GF_1, RU_GF_2, RU_MEEK, RU_PORTAL, RU_SMASH, RU_THROW, RU_TWIST, RU_WOW } from "../../../content/realUniverse";
 
 /**
@@ -21,6 +22,8 @@ const FLOOR = 372;
 
 export async function realUniverse(scene: Phaser.Scene): Promise<void> {
   const cam = scene.cameras.main;
+  // start fetching the 3D world now: it's needed at the end of this scene
+  void preloadKrelworld3d().catch(() => undefined);
   const wait = (ms: number) => new Promise<void>((r) => scene.time.delayedCall(ms, () => r()));
   const tween = (cfg: Phaser.Types.Tweens.TweenBuilderConfig) => new Promise<void>((r) => scene.tweens.add({ ...cfg, onComplete: () => r() }));
 
@@ -314,12 +317,8 @@ export async function realUniverse(scene: Phaser.Scene): Promise<void> {
   flashes.remove();
   tumble.remove();
   cam.setRotation(0);
-  cam.flash(900, 255, 255, 255);
-  await wait(500);
-  cam.fadeOut(900, 0, 0, 0);
-  await wait(950);
-  scene.children.removeAll(true);
-  cam.resetFX();
-  cam.fadeIn(10);
+  // white out: the 3D epilogue (krelworld3d.ts) fades in from white
+  cam.fadeOut(700, 255, 255, 255);
+  await wait(720);
   void thrown;
 }

@@ -120,7 +120,7 @@ export const CREDITS: string[] = [
   "Please react.",
 ];
 
-export const SEQUEL_CARD = "KRELWORLD 2: THE KREZZENING";
+export const SEQUEL_CARD = "SEE YOU IN KRELWORLD 64";
 
 export function endingKeyFor(choice: ReactionChoice): keyof typeof ENDINGS {
   if (choice === "LIKE" || choice === "LOVE" || choice === "LAUGH") return choice;

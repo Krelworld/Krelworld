@@ -12,9 +12,11 @@
     "chat-index": "node scripts/build-chat-index.mjs"
   },
   "dependencies": {
-    "phaser": "3.90.0"
+    "phaser": "3.90.0",
+    "three": "0.170.0"
   },
   "devDependencies": {
+    "@types/three": "0.170.0",
     "typescript": "5.8.3",
     "vite": "6.4.1",
     "vitest": "3.2.4"

@@ -1,0 +1,273 @@
+{
+ "chars": {
+  "KREZMAR": {
+   "base": "art/3d/chars/KREZMAR.glb",
+   "clips": {
+    "idle": "art/3d/chars/KREZMAR.glb#idle",
+    "talk": "art/3d/chars/KREZMAR.glb#talk",
+    "fall": "art/3d/chars/KREZMAR.glb#fall",
+    "getup": "art/3d/chars/KREZMAR.glb#getup",
+    "shocked": "art/3d/chars/KREZMAR.glb#shocked",
+    "cheer": "art/3d/chars/KREZMAR.glb#cheer",
+    "walk": "art/3d/chars/KREZMAR.glb#walk"
+   },
+   "h": 1.8
+  },
+  "KREBON": {
+   "base": "art/3d/chars/KREBON.glb",
+   "clips": {
+    "idle": "art/3d/chars/KREBON.glb#idle",
+    "fall": "art/3d/chars/KREBON.glb#fall",
+    "getup": "art/3d/chars/KREBON.glb#getup",
+    "shocked": "art/3d/chars/KREBON.glb#shocked",
+    "cheer": "art/3d/chars/KREBON.glb#cheer",
+    "drink": "art/3d/chars/KREBON.glb#drink",
+    "jump": "art/3d/chars/KREBON.glb#jump",
+    "run": "art/3d/chars/KREBON.glb#run",
+    "walk": "art/3d/chars/KREBON.glb#walk"
+   },
+   "h": 1.8
+  }
+ },
+ "world": {
+  "kreltower": {
+   "file": "art/3d/world/kreltower.glb",
+   "size": [
+    24.32,
+    120,
+    24.513
+   ]
+  },
+  "tap": {
+   "file": "art/3d/world/tap.glb",
+   "basin": {
+    "centre_xz": [
+     -1.85,
+     0.0
+    ],
+    "floor_y": 3.4,
+    "rim_top_y": 4.55,
+    "inner_radius": 2.5,
+    "outer_radius": 3.2,
+    "spout_outlet": [
+     -0.8,
+     6.8,
+     0.0
+    ]
+   },
+   "size": [
+    10,
+    10.674,
+    6.893
+   ]
+  },
+  "townhall": {
+   "file": "art/3d/world/townhall.glb",
+   "size": [
+    24,
+    21.829,
+    19.227
+   ]
+  },
+  "abandoned": {
+   "file": "art/3d/world/abandoned.glb",
+   "size": [
+    10,
+    10.361,
+    10
+   ]
+  },
+  "pub": {
+   "file": "art/3d/world/pub.glb",
+   "size": [
+    12,
+    12.891,
+    9.591
+   ]
+  },
+  "citadel": {
+   "file": "art/3d/world/citadel.glb",
+   "size": [
+    17.418,
+    40,
+    17.336
+   ]
+  },
+  "archive": {
+   "file": "art/3d/world/archive.glb",
+   "size": [
+    16,
+    15.902,
+    10.661
+   ]
+  },
+  "ministry": {
+   "file": "art/3d/world/ministry.glb",
+   "size": [
+    16,
+    15.069,
+    9.078
+   ]
+  },
+  "wildern": {
+   "file": "art/3d/world/wildern.glb",
+   "size": [
+    26,
+    20.086,
+    23.19
+   ]
+  },
+  "police": {
+   "file": "art/3d/world/police.glb",
+   "size": [
+    12,
+    11.29,
+    11.827
+   ]
+  },
+  "gym": {
+   "file": "art/3d/world/gym.glb",
+   "size": [
+    16,
+    11.879,
+    14.388
+   ]
+  },
+  "polson_towers": {
+   "file": "art/3d/world/polson_towers.glb",
+   "size": [
+    28,
+    25.018,
+    22.108
+   ]
+  },
+  "home": {
+   "file": "art/3d/world/home.glb",
+   "size": [
+    11,
+    8.863,
+    9.772
+   ]
+  },
+  "car": {
+   "file": "art/3d/world/car.glb",
+   "size": [
+    2.122,
+    1.816,
+    3.8
+   ]
+  },
+  "car_b": {
+   "file": "art/3d/world/car_b.glb",
+   "size": [
+    2.122,
+    1.816,
+    3.8
+   ]
+  },
+  "bus": {
+   "file": "art/3d/world/bus.glb",
+   "size": [
+    4.17,
+    4.987,
+    10.5
+   ]
+  },
+  "ped0": {
+   "file": "art/3d/world/ped0.glb",
+   "size": [
+    0.724,
+    1.786,
+    0.454
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped0.glb#Idle",
+    "walk": "art/3d/world/ped0.glb#Casual_Walk"
+   }
+  },
+  "ped1": {
+   "file": "art/3d/world/ped1.glb",
+   "size": [
+    0.518,
+    1.624,
+    0.96
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped1.glb#Idle",
+    "walk": "art/3d/world/ped1.glb#Walking_Woman"
+   }
+  },
+  "ped2": {
+   "file": "art/3d/world/ped2.glb",
+   "size": [
+    0.722,
+    1.582,
+    0.651
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped2.glb#Idle",
+    "walk": "art/3d/world/ped2.glb#Thoughtful_Walk"
+   }
+  },
+  "ped3": {
+   "file": "art/3d/world/ped3.glb",
+   "size": [
+    0.58,
+    1.779,
+    0.352
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped3.glb#Idle",
+    "walk": "art/3d/world/ped3.glb#Casual_Walk"
+   }
+  },
+  "lamppost": {
+   "file": "art/3d/world/lamppost.glb",
+   "size": [
+    1.095,
+    4.2,
+    1.095
+   ]
+  },
+  "bench": {
+   "file": "art/3d/world/bench.glb",
+   "size": [
+    1.8,
+    0.85,
+    0.7
+   ]
+  },
+  "tree": {
+   "file": "art/3d/world/tree.glb",
+   "size": [
+    6.101,
+    6,
+    5.727
+   ]
+  },
+  "stall": {
+   "file": "art/3d/world/stall.glb",
+   "size": [
+    2.419,
+    3,
+    2.78
+   ]
+  },
+  "arch": {
+   "file": "art/3d/world/arch.glb",
+   "size": [
+    14,
+    10.687,
+    5.783
+   ]
+  },
+  "bridge": {
+   "file": "art/3d/world/bridge.glb",
+   "size": [
+    30,
+    18.386,
+    18.003
+   ]
+  }
+ }
+}

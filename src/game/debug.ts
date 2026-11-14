@@ -22,6 +22,8 @@ export function installDebug(game: Phaser.Game) {
     voice,
     recordingFor,
     active: () => game.scene.getScenes(true).map((s) => s.scene.key),
+    /** play just the 3D epilogue over whatever scene is running (loads three.js on demand) */
+    k3: async () => (await import("./scenes/ending/krelworld3d")).krelworld3d(game.scene.getScenes(true)[0]),
     newRun: (p: PlayableId = "FLENKY", ngPlus = 0) => G.newRun(p, ngPlus),
     go: (key: string, data?: any) => {
       const from = game.scene.getScenes(true)[0];

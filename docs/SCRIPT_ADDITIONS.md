@@ -45,7 +45,13 @@ updated). To list every dialogue line added or changed since the export:
   epilogue card, before the credits): the camera pulls out of your PC monitor; "Wow. Drongus really made a great
   game."; the PLOT TWIST card; GIRLFRIEND (offscreen, door portrait) screams your real FIRST name (GIVEN_NAME, the
   lads agreed) and the rest; you meekly reply; she throws the kitchen; RU_DESPAIR (sobbing); RU_SMASH (headbutting
-  the monitor); RU_PORTAL. The 3D epilogue will follow the wormhole, before the credits.
+  the monitor); RU_PORTAL. The 3D epilogue follows the wormhole, before the credits.
+- **The 3D epilogue** (src/content/krelworld3d.ts, played by src/game/scenes/ending/krelworld3d.ts): the lads drop
+  out of a portal into a PS2-style 3D Krelford. K3_LAND (dazed), K3_REAL ("IT WAS REAL!", Scrombus's plot-twist
+  line, Drongus, Polson respawned, Gronny), K3_BENN (the pussy juice pool), K3_MIKEY / K3_SANMIK (transforms,
+  carjacks, shoots the driver, runs people over), K3_LUKE (the bread and butter house), K3_CHANT ("Krel world! Do
+  the krel dance!"), K3_KREZMAR ("Right you fucking cunts." … "It's wonking time."), then the card K3_SEQUEL
+  ("THE LADS WILL RETURN.. IN 'KRELWORLD 64'"). The credits' closing card now reads "SEE YOU IN KRELWORLD 64".
 
 ## Every dialogue line added or changed since the export (snapshot)
 

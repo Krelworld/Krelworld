@@ -119,7 +119,7 @@ export class Beatup {
   start(victimId?: string) {
     const h = this.h;
     const s = G.s;
-    const pool = INSTIGATORS.filter((id) => id !== s.player && !(id === "KREBON" && s.flags.krebon_gone));
+    const pool = INSTIGATORS.filter((id) => id !== s.player);
     const victims = VICTIMS.filter((v) => v.id !== s.player && (!victimId || v.id === victimId));
     if (pool.length < 1 || !victims.length) return;
     Phaser.Utils.Array.Shuffle(pool);

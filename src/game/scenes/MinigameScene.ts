@@ -1357,7 +1357,7 @@ export class MinigameScene extends Phaser.Scene {
       synth.play("dodge");
       this.tweens.add({ targets: benn, y: 280, angle: 360, duration: 340, yoyo: false, onComplete: () => benn.setAngle(0) });
       this.tweens.add({ targets: benn, y: 310, delay: 340, duration: 260, ease: "Bounce.out" });
-      this.pop(benn.x, 220, ["PRANCE!", "ROCKSTAR", "🤘", "WAHOOGA", "SOLO!"][Math.floor(Math.random() * 5)], "#ffd23f", 18);
+      this.pop(benn.x, 220, ["PRANCE!", "ROCKSTAR", "🤘", "REPRIEVE", "SOLO!"][Math.floor(Math.random() * 5)], "#ffd23f", 18);
     };
     kb?.on("keydown-SPACE", prance);
     this.input.on("pointerdown", (pt: Phaser.Input.Pointer) => {
@@ -1383,7 +1383,7 @@ export class MinigameScene extends Phaser.Scene {
       this.tweens.add({ targets: img, angle: 540, duration: dur });
       items.push({ img, landAt, x, kind, done: false });
       if (Math.random() < 0.25) {
-        const shout = ["TUNE!", "KREBON I LOVE YOU", "PLAY WONDERWALL", "GET YOUR WAHOOGA OUT", "REACT TO MY SONG", "ENCORE!", "FAIRWEATHER!", "TOTAL WAR!"][Math.floor(Math.random() * 8)];
+        const shout = ["TUNE!", "KREBON I LOVE YOU", "PLAY WONDERWALL", "GET YOUR GUITAR OUT", "REACT TO MY SONG", "ENCORE!", "FAIRWEATHER!", "TOTAL WAR!"][Math.floor(Math.random() * 8)];
         this.pop(thrower.x, thrower.y - 50, shout, "#ffffff", 13);
       }
     };

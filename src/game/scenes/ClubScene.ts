@@ -147,7 +147,7 @@ export class ClubScene extends Phaser.Scene {
     this.nextSwap = this.time.now + 35000;
     // the lads, front row
     const s = G.s;
-    const ids = [...LADS, "MIKEY"].filter((id) => id !== s.player && !(id === "KREBON" && s.flags.krebon_gone)).slice(0, 7);
+    const ids = [...LADS, "MIKEY"].filter((id) => id !== s.player).slice(0, 7);
     const seats = [
       [150, 470],
       [255, 478],

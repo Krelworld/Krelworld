@@ -208,7 +208,6 @@ export const BARKS: Record<string, Bark[]> = {
   ],
   KREBON: [
     b("Twitcher Mutiny. Krezz Arms back room. Come and throw something at me.", { chapterAtLeast: 1, chapterAtMost: 4 }),
-    b("I keep seeing a symbol at the edge of town. Wahoogah. It's calling me home.", { chapterAtLeast: 4, chapterAtMost: 6 }),
     C("I'm already regretting signing on to this gig."),
     C("Die fearless. What other option is there"),
     C("Total war"),
@@ -218,7 +217,6 @@ export const BARKS: Record<string, Bark[]> = {
     C("That's 100% my doing"),
     C("200%"),
     C("And climbing"),
-    C("Wahoogahn Waltz is a keeper"),
     b("Twitcher Mutiny. Krezz Arms. Be there or be in Kreddle."),
     b("Polson's back on the T boosters. He's on the verge of iconic."),
     b("Can a man destroy himself by overdosing on protein? Asking for Polson."),
@@ -226,7 +224,6 @@ export const BARKS: Record<string, Bark[]> = {
     b("I've never seen a man demolish a creme brulee in two minutes flat."),
     b("Be all the gay in the world, and the world will gay with you."),
     b("Tiocfaidh ár lá, etc."),
-    b("The symbol of Wahoogah. You've seen it too, haven't you."),
     b("Reprieve. It's not a sad song. It's a reprieve."),
     b("I'll be there if I can get free. Probably. Fairweather, they call me."),
     C("Can you give me a quick cost/benefit analysis of the transaction."),

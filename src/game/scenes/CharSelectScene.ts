@@ -15,8 +15,6 @@ const COLS = 4;
 export class CharSelectScene extends Phaser.Scene {
   private sel = 0;
   private ngPlus = 0;
-  /** After Benn leaves for Wahooga: pick who carries on the same run. */
-  private swap = false;
   private detail!: Phaser.GameObjects.Container;
   private cards: Phaser.GameObjects.Rectangle[] = [];
 
@@ -24,9 +22,8 @@ export class CharSelectScene extends Phaser.Scene {
     super("CharSelect");
   }
 
-  init(data: { ngPlus?: number; swap?: boolean }) {
+  init(data: { ngPlus?: number }) {
     this.ngPlus = data?.ngPlus ?? 0;
-    this.swap = !!data?.swap;
     this.sel = 0;
     this.cards = [];
   }
@@ -35,8 +32,8 @@ export class CharSelectScene extends Phaser.Scene {
     const { width: W, height: H } = this.scale;
     const csBg = this.add.rectangle(0, 0, W, H, 0x10101e).setOrigin(0);
     if (backdrop(this, "bg_charselect", { dim: 0.45, depth: -10 })) csBg.setVisible(false);
-    title(this, W / 2, 30, this.swap ? "KREBON HAS GONE TO WAHOOGA · WHO CARRIES ON?" : this.ngPlus ? "NEW KREZ+ · CHOOSE YOUR DEGENERATE" : "CHOOSE YOUR DEGENERATE", 26);
-    label(this, W / 2, 52, this.swap ? `Your progress, your Krezzcoin and your ${G.s.flags.rock_points ?? 0} rockstar points carry over.` : "Whoever you pick, Proctus Krelmor will cover their ministry. Badly.", 13, "#9aa0b4").setOrigin(0.5, 0);
+    title(this, W / 2, 30, this.ngPlus ? "NEW KREZ+ · CHOOSE YOUR DEGENERATE" : "CHOOSE YOUR DEGENERATE", 26);
+    label(this, W / 2, 52, "Whoever you pick, Proctus Krelmor will cover their ministry. Badly.", 13, "#9aa0b4").setOrigin(0.5, 0);
 
     PLAYABLE_ORDER.forEach((id, i) => {
       const col = i % COLS;
@@ -45,8 +42,7 @@ export class CharSelectScene extends Phaser.Scene {
       const y = 74 + row * 138;
       const def = CHARACTERS[id];
       const done = G.meta.completedWith.includes(id);
-      const gone = this.swap && id === "KREBON";
-      const card = this.add.rectangle(x, y, 110, 132, gone ? 0x0e0f18 : 0x1b1e33).setOrigin(0).setStrokeStyle(2, def.color).setInteractive({ useHandCursor: true });
+      const card = this.add.rectangle(x, y, 110, 132, 0x1b1e33).setOrigin(0).setStrokeStyle(2, def.color).setInteractive({ useHandCursor: true });
       const pk = portraitKey(this, id);
       if (pk) this.add.image(x + 55, y + 38, pk).setDisplaySize(60, 60);
       this.add.sprite(x + 92, y + 76, `spr_${id}`, 0).setScale(1.2);
@@ -57,7 +53,7 @@ export class CharSelectScene extends Phaser.Scene {
       // hover to look, click the face to pick them
       card.on("pointerdown", () => {
         this.select(i);
-        if (!gone) this.confirm();
+        this.confirm();
       });
       this.cards.push(card);
     });
@@ -112,24 +108,12 @@ export class CharSelectScene extends Phaser.Scene {
     add(this.add.text(X + 16, 388, `If unselected: ${d.ministry}`, { fontFamily: FONT, fontSize: "12px", color: "#9aa0b4", wordWrap: { width: 420 } }));
     add(this.add.text(X + 16, 406, `Proctus covers as: ${d.proctusTitle}. ${d.proctusQuirk}`, { fontFamily: FONT, fontSize: "11px", color: "#9aa0a6", fontStyle: "italic", wordWrap: { width: 420 } }));
     add(this.add.text(X + 16, 434, `"${d.selectQuote}"`, { fontFamily: FONT, fontSize: "15px", color: "#ff6fa8", fontStyle: "italic" }));
-    const away = this.swap && id === "KREBON";
-    add(button(this, X + 340, 474, away ? "GONE TO WAHOOGA" : this.swap ? "CARRY ON AS " + (id === "MIKEY" ? "KREBLAR" : d.name.split(" ")[0]) : "PLAY AS " + (id === "MIKEY" ? "KREBLAR" : d.name.split(" ")[0]), () => this.confirm(), { w: 220, h: 34, size: 13, disabled: away }));
+    add(button(this, X + 340, 474, "PLAY AS " + (id === "MIKEY" ? "KREBLAR" : d.name.split(" ")[0]), () => this.confirm(), { w: 220, h: 34, size: 13 }));
   }
 
   private confirm() {
     synth.unlock();
     synth.play("pop");
-    if (this.swap) {
-      const id = PLAYABLE_ORDER[this.sel] as PlayableId;
-      if (id === "KREBON") return;
-      const s = G.s;
-      s.player = id;
-      s.flags.krebon_gone = true;
-      s.hp = maxHp(s);
-      G.save();
-      fadeThen(this, 200, () => switchTo(this, "Hub", { at: "PORTAL", from: "swap" }));
-      return;
-    }
     startNewRun(this, PLAYABLE_ORDER[this.sel] as PlayableId, this.ngPlus);
   }
 }

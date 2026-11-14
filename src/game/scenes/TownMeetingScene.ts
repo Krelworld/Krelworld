@@ -61,7 +61,7 @@ export class TownMeetingScene extends Phaser.Scene {
     const box = new DialogueBox(this, 1000, 0.12);
     this.time.delayedCall(1900, () => {
       box
-        .play(G.s.flags.krebon_gone && G.s.player !== "KREBON" && !m.historical && m.beats.some((b) => b.s === "KREBON") ? [{ s: "NARRATOR", t: "Krebon has popped back from Wahooga for this meeting. He will be gone again by the end of it. Fairweather.", dir: true }, ...m.beats] : m.beats, {
+        .play(m.beats, {
           historical: m.historical,
           onSpeaker: (sp) => this.highlight(sp),
           onLine: (l) => {

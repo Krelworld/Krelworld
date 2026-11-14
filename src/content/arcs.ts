@@ -1192,8 +1192,8 @@ export const ARCS: Arc[] = [
     id: "arc_krebon",
     player: "KREBON",
     title: "Reprieve",
-    blurb: "One last gig with Twitcher Mutiny. Then find the symbol of Wahoogah, and go home.",
-    reward: { coins: 300, desc: "Krebon goes home to Wahooga. Someone else carries on, with his Krezzcoin and his rockstar points." },
+    blurb: "One last gig with Twitcher Mutiny. Be a rockstar.",
+    reward: { coins: 300, desc: "Twitcher Mutiny's takings, and a bin bag full of underwear." },
     steps: [
       {
         id: "booked",
@@ -1221,14 +1221,8 @@ export const ARCS: Arc[] = [
           mode: "gig",
           intro: [say("KREBON", "One, two, three, four…"), dir("Move left and right across the stage. Tap / SPACE to prance. Catch the bras and thongs. Prancing while you catch them is worth double.")],
           success: [say("KREBON", "Thank you Krelford. You've been a strange and moist crowd."), dir("Somewhere in the crowd, Polson is crying. He says it's the smoke machine. There is no smoke machine.")],
-          fail: [say("KREBON", "Bit of a quiet one. Wahooga crowds are louder. Again?")],
+          fail: [say("KREBON", "Bit of a quiet one. Again?")],
         },
-      },
-      {
-        id: "portal",
-        text: "Something is calling you from the west edge of town. The symbol of Wahoogah.",
-        at: "PORTAL",
-        step: { kind: "vignette", id: "wahooga", intro: [dir("At the very edge of Krelford, where the grass gives up, the air is folding. A symbol hangs in it. You've seen it before. On a call. Nobody asked what it was."), say("KREBON", "The symbol of Wahoogah.")] },
       },
     ],
   },

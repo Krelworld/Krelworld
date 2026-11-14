@@ -96,7 +96,6 @@ export class VignetteScene extends Phaser.Scene {
       crobley_news: () => this.crobleyNews(),
       crobley_presser: () => this.crobleyPresser(),
       crobley_boom: () => this.crobleyBoom(),
-      wahooga: () => this.wahooga(),
       kruncher_mikey: () => this.krunchers(),
       klerble_train: () => this.klerbleTrain(),
       revenge_meeting: () => this.revengeMeeting(),
@@ -123,8 +122,6 @@ export class VignetteScene extends Phaser.Scene {
           ? () => switchTo(this, "Hub", { at: "TOWN_HALL", from: "krunch" })
         : data.id === "townhall_party"
           ? () => switchTo(this, "Hub", { at: "TOWN_HALL", from: "vignette" })
-        : data.id === "wahooga"
-        ? () => switchTo(this, "CharSelect", { swap: true })
         : data.id === "kruncher_mikey"
           ? () => switchTo(this, "Home", {})
         : data.id === "sanmik_lampe"
@@ -2488,51 +2485,6 @@ export class VignetteScene extends Phaser.Scene {
     ]);
     G.s.flags.crobley_factory_destroyed = true;
     synth.stopMusic();
-  }
-
-  // ---------------------------------------------------------------- WAHOOGA (Benn goes home)
-
-  private async wahooga() {
-    if (!backdrop(this, "bg_wahooga", { depth: -10 })) this.sky(0x2a1050, 0x9b59ff);
-    const portal = this.textures.exists("hd_portal") ? this.add.image(640, 420, "hd_portal").setOrigin(0.5, 1).setScale(2).setDepth(5) : this.add.ellipse(640, 330, 140, 200, 0x9b59ff, 0.6).setDepth(5);
-    this.tweens.add({ targets: portal, scaleX: (portal.scaleX || 1) * 1.05, duration: 900, yoyo: true, repeat: -1 });
-    const glow = this.add.circle(640, 320, 140, 0x9b59ff, 0.2).setBlendMode(Phaser.BlendModes.ADD).setDepth(4);
-    this.tweens.add({ targets: glow, alpha: 0.45, duration: 700, yoyo: true, repeat: -1 });
-    const benn = this.add.sprite(160, 400, "spr_KREBON", 0).setScale(3).setDepth(10);
-    synth.music("ominous");
-    const walk = this.time.addEvent({ delay: 90, loop: true, callback: () => animateWalker(benn, 1, 0, true, this.time.now) });
-    await this.tween({ targets: benn, x: 440, duration: 2600 });
-    walk.remove();
-    benn.setData("facing", "east");
-    animateWalker(benn, 0, 0, false, this.time.now);
-    const pts = (G.s.flags.rock_points as number) ?? 0;
-    await this.talk([
-      say("KREBON", "The symbol of Wahoogah."),
-      say("KREBON", "My paradigm has just phlegmed backwards into the multiverze, dude. Whoa. Lemme catch up."),
-      dir("Through the symbol: a universe almost exactly like this one, except everything is very slightly more fun, and every pub has a stage."),
-      ping("KREBLIS", "Fairweather Benn strikes again"),
-      ping("DRONGUS", "Krebon's leaving ?? He was barely here"),
-      ping("DRONGUS", "Did he react to my song before he went"),
-      say("KREBON", "Die fearless. What other option is there."),
-      say("KREBON", "Look after the rockstar points. And the underwear. Especially the underwear."),
-      dir(`Rockstar points in your care: ${pts}.`),
-    ]);
-    const walk2 = this.time.addEvent({ delay: 90, loop: true, callback: () => animateWalker(benn, 1, 0, true, this.time.now) });
-    await this.tween({ targets: benn, x: 640, y: 390, duration: 1400 });
-    walk2.remove();
-    synth.play("burst");
-    this.cameras.main.flash(600, 200, 150, 255);
-    await this.tween({ targets: benn, scale: 0.2, alpha: 0, angle: 720, duration: 900, ease: "Quad.in" });
-    this.caption("WAHOOGA", "#e9d5ff", 44);
-    this.cameras.main.shake(500, 0.01);
-    await this.wait(1600);
-    synth.stopMusic();
-    await this.talk([
-      dir("Krebon (Fairweather Benn, the Fenian Orgill) has left Krelworld. He is home."),
-      dir("The rest of the lore still needs saving. Choose who carries on. They keep your progress, your Krezzcoin, and the rockstar points."),
-    ]);
-    const r = maybeFinishArc(G.s);
-    if (r) await this.talk([dir(r)]);
   }
 
   // ---------------------------------------------------------------- OPERATION PLANE INTO TRAIN

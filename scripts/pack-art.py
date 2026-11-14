@@ -10,6 +10,9 @@ for sec in ("chars", "images", "sheets", "vfx"):
         f = v["file"]
         if f.startswith("data:"): continue
         p = f"{d}/art/{f}"
+        if not os.path.exists(p):
+            print("missing (left as is):", f)
+            continue
         if os.path.getsize(p) <= LIMIT:
             v["file"] = "data:image/png;base64," + base64.b64encode(open(p, "rb").read()).decode()
             emb.add("art/" + f)

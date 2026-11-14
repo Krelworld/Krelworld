@@ -354,16 +354,21 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   clearTimeout(slow);
   loading.remove();
 
-  // ---- renderer: low resolution, scaled up, no anti-aliasing (that's the PS2 bit)
-  const RW = 640;
-  const RH = 360;
-  const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
-  renderer.setPixelRatio(1);
-  renderer.setSize(RW, RH, false);
+  // ---- renderer: full resolution, anti-aliased, filmic tone mapping, soft shadows
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  const size = () => {
+    const w = Math.max(1, wrap.clientWidth);
+    const h = Math.max(1, wrap.clientHeight);
+    renderer.setSize(w, h, false);
+    return w / h;
+  };
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.BasicShadowMap;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  Object.assign(renderer.domElement.style, { position: "absolute", inset: "0", width: "100%", height: "100%", imageRendering: "pixelated" });
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  Object.assign(renderer.domElement.style, { position: "absolute", inset: "0", width: "100%", height: "100%" });
   wrap.appendChild(renderer.domElement);
 
   // letterbox, subtitles, captions, fades
@@ -396,14 +401,27 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   const s3 = new THREE.Scene();
   const SKY = 0x9fd3ff;
   s3.background = skyTexture();
-  s3.fog = new THREE.Fog(0xcfe6ff, 90, 520);
-  const cam = new THREE.PerspectiveCamera(55, RW / RH, 0.1, 2000);
-  s3.add(new THREE.HemisphereLight(0xdff0ff, 0x6a7a3a, 1.15));
-  const sun = new THREE.DirectionalLight(0xfff0d0, 2.1);
+  s3.fog = new THREE.Fog(0xd8e9fb, 140, 760);
+  const cam = new THREE.PerspectiveCamera(55, size(), 0.1, 2400);
+  const onResize = () => {
+    cam.aspect = size();
+    cam.updateProjectionMatrix();
+  };
+  window.addEventListener("resize", onResize);
+  // image-based light so the models' materials pick up proper highlights and soft fill
+  const { RoomEnvironment } = await import("three/examples/jsm/environments/RoomEnvironment.js");
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  s3.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  s3.environmentIntensity = 0.55;
+  s3.add(new THREE.HemisphereLight(0xdff0ff, 0x6a7a3a, 0.75));
+  const sun = new THREE.DirectionalLight(0xfff0d8, 2.6);
   sun.position.set(-80, 140, 60);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(1024, 1024);
-  Object.assign(sun.shadow.camera, { left: -90, right: 90, top: 90, bottom: -90, near: 10, far: 400 });
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.04;
+  sun.shadow.radius = 3;
+  Object.assign(sun.shadow.camera, { left: -110, right: 110, top: 110, bottom: -110, near: 10, far: 420 });
   s3.add(sun);
   void SKY;
 
@@ -434,8 +452,17 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
 
   // ---- particles
   const parts: { m: T3.Mesh; v: T3.Vector3; life: number; max: number; grav: number; grow: number }[] = [];
+  // soft round particles, not squares
+  const softDot = canvasTex(64, 64, (x) => {
+    const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, "rgba(255,255,255,1)");
+    g.addColorStop(0.45, "rgba(255,255,255,0.85)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    x.fillStyle = g;
+    x.fillRect(0, 0, 64, 64);
+  });
   const sprite = (col: number, size: number, opacity = 1, additive = false) =>
-    new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, side: THREE.DoubleSide }));
+    new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshBasicMaterial({ color: col, map: softDot, transparent: true, opacity, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, side: THREE.DoubleSide }));
   const burst = (p: T3.Vector3, n: number, col: number | (() => number), opts: { speed?: number; up?: number; size?: number; life?: number; grav?: number; grow?: number; additive?: boolean } = {}) => {
     for (let i = 0; i < n; i++) {
       const m = sprite(typeof col === "function" ? col() : col, opts.size ?? 0.3, 1, opts.additive);
@@ -836,6 +863,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   // ---- tidy up, back to Phaser for the credits
   running = false;
   window.removeEventListener("resize", place);
+  window.removeEventListener("resize", onResize);
   renderer.dispose();
   s3.traverse((o) => {
     const m = o as T3.Mesh;
@@ -860,25 +888,50 @@ function skyTexture() {
 }
 
 function buildGround(s3: T3.Scene, L: Loaded) {
-  const grass = L.tex.get("grass");
-  const gm = new THREE.MeshLambertMaterial({ color: grass ? 0xffffff : 0x5c9a3a, map: grass ?? null });
-  if (grass) {
-    grass.wrapS = grass.wrapT = THREE.RepeatWrapping;
-    grass.repeat.set(220, 220);
-    grass.magFilter = THREE.NearestFilter;
-  }
-  const g = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1400), gm);
+  void L;
+  // smooth, detailed ground drawn here (the 2D game's tiles are pixel art and look blocky up close)
+  const grass = canvasTex(512, 512, (x) => {
+    x.fillStyle = "#4f8a34";
+    x.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < 9000; i++) {
+      const g = 90 + Math.random() * 70;
+      x.fillStyle = `rgba(${40 + Math.random() * 40},${g},${30 + Math.random() * 25},${0.25 + Math.random() * 0.35})`;
+      const px = Math.random() * 512;
+      const py = Math.random() * 512;
+      x.fillRect(px, py, 1.5, 3 + Math.random() * 4);
+    }
+    for (let i = 0; i < 40; i++) {
+      x.fillStyle = `rgba(${Math.random() < 0.5 ? "70,110,40" : "100,150,60"},0.18)`;
+      x.beginPath();
+      x.arc(Math.random() * 512, Math.random() * 512, 20 + Math.random() * 60, 0, Math.PI * 2);
+      x.fill();
+    }
+  });
+  grass.wrapS = grass.wrapT = THREE.RepeatWrapping;
+  grass.repeat.set(120, 120);
+  grass.anisotropy = 8;
+  const g = new THREE.Mesh(new THREE.PlaneGeometry(1600, 1600), new THREE.MeshStandardMaterial({ map: grass, roughness: 0.95 }));
   g.rotation.x = -Math.PI / 2;
   g.receiveShadow = true;
   s3.add(g);
-  // the plaza: cobbles round the tap
-  const cob = L.tex.get("cobble");
-  if (cob) {
-    cob.wrapS = cob.wrapT = THREE.RepeatWrapping;
-    cob.repeat.set(14, 14);
-    cob.magFilter = THREE.NearestFilter;
-  }
-  const p = new THREE.Mesh(new THREE.CircleGeometry(30, 40), new THREE.MeshLambertMaterial({ color: cob ? 0xffffff : 0xb9a98e, map: cob ?? null }));
+  // the plaza: smooth stone paving round the tap
+  const cob = canvasTex(512, 512, (x) => {
+    x.fillStyle = "#8f8473";
+    x.fillRect(0, 0, 512, 512);
+    const s = 64;
+    for (let yy = 0; yy < 512; yy += s / 2)
+      for (let xx = (yy / (s / 2)) % 2 ? -s / 2 : 0; xx < 512; xx += s) {
+        const v = 140 + Math.random() * 30;
+        x.fillStyle = `rgb(${v},${v - 12},${v - 30})`;
+        x.fillRect(xx + 2, yy + 2, s - 4, s / 2 - 4);
+        x.fillStyle = "rgba(0,0,0,0.06)";
+        x.fillRect(xx + 2, yy + s / 2 - 6, s - 4, 4);
+      }
+  });
+  cob.wrapS = cob.wrapT = THREE.RepeatWrapping;
+  cob.repeat.set(9, 9);
+  cob.anisotropy = 8;
+  const p = new THREE.Mesh(new THREE.CircleGeometry(30, 64), new THREE.MeshStandardMaterial({ map: cob, roughness: 0.8 }));
   p.rotation.x = -Math.PI / 2;
   p.position.y = 0.02;
   p.receiveShadow = true;
@@ -983,17 +1036,23 @@ function buildLandmarks(s3: T3.Scene, L: Loaded, updaters: ((dt: number, t: numb
   pool.position.copy(poolC);
   s3.add(pool);
   // the stream: a scrolling pink column from the spout to the pool
-  const streamTex = canvasTex(16, 64, (x) => {
-    for (let y = 0; y < 64; y++) {
-      x.fillStyle = y % 8 < 4 ? "#ff8cc6" : "#ff5aa5";
-      x.fillRect(0, y, 16, 1);
+  const streamTex = canvasTex(64, 256, (x) => {
+    const g = x.createLinearGradient(0, 0, 64, 0);
+    g.addColorStop(0, "rgba(232,68,143,0.75)");
+    g.addColorStop(0.35, "rgba(255,140,198,0.95)");
+    g.addColorStop(0.5, "rgba(255,226,240,1)");
+    g.addColorStop(0.65, "rgba(255,140,198,0.95)");
+    g.addColorStop(1, "rgba(232,68,143,0.75)");
+    x.fillStyle = g;
+    x.fillRect(0, 0, 64, 256);
+    for (let i = 0; i < 70; i++) {
+      x.fillStyle = `rgba(255,255,255,${0.15 + Math.random() * 0.3})`;
+      x.fillRect(Math.random() * 64, Math.random() * 256, 2 + Math.random() * 3, 10 + Math.random() * 30);
     }
-    x.fillStyle = "#ffd0e8";
-    x.fillRect(5, 0, 2, 64);
   });
   streamTex.wrapS = streamTex.wrapT = THREE.RepeatWrapping;
   const len = spout.y - poolY;
-  const stream = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.65, len, 10, 1, true), new THREE.MeshBasicMaterial({ map: streamTex, transparent: true, opacity: 0.9 }));
+  const stream = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.65, len, 24, 1, true), new THREE.MeshBasicMaterial({ map: streamTex, transparent: true, opacity: 0.9 }));
   stream.position.set(spout.x, poolY + len / 2, spout.z);
   s3.add(stream);
   updaters.push((dt, t) => {
@@ -1037,7 +1096,6 @@ function boxBuilding(name: string, w: number, d: number, h: number, wall: number
   });
   winTex.wrapS = winTex.wrapT = THREE.RepeatWrapping;
   winTex.repeat.set(Math.max(1, Math.round(w / 5)), Math.max(1, Math.round(h / 5)));
-  winTex.magFilter = THREE.NearestFilter;
   const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshLambertMaterial({ map: winTex }));
   body.position.y = h / 2;
   body.castShadow = body.receiveShadow = true;
@@ -1312,14 +1370,26 @@ function buildDressing(s3: T3.Scene, L: Loaded, updaters: ((dt: number, t: numbe
       s3.add(p, h);
     }
   }
-  // filler blocks far out, for a sense of a big city
-  for (let i = 0; i < 46; i++) {
-    const a = (i / 46) * Math.PI * 2 + Math.random() * 0.05;
-    const r = 210 + Math.random() * 90;
-    const h = 18 + Math.random() * 60;
-    const w = 14 + Math.random() * 16;
-    const cols = [0x8a8f99, 0xa08c74, 0x6f7f8f, 0xb7a990, 0x7c6a5a];
-    s3.add(boxBuilding("", w, w, h, cols[i % cols.length], 0x444444, Math.cos(a) * r, Math.sin(a) * r, -a));
+  // a ring of real houses and shops just outside the big loop road (the Meshy models, reused)…
+  const streetKinds = ["home", "pub", "archive", "home", "gym", "home", "police", "polson_towers"].filter((k) => W[k] && L.gltf.get(W[k].file));
+  if (streetKinds.length) {
+    for (let i = 0; i < 34; i++) {
+      const a = (i / 34) * Math.PI * 2;
+      const r = 128 + (i % 3) * 7;
+      const x = Math.cos(a) * r * 1.15;
+      const z = Math.sin(a) * r + 12;
+      // keep clear of the landmarks
+      if (LANDMARKS.some((b) => Math.hypot(b.x - x, b.z - z) < 30) || Math.hypot(x - 45, z - 40) < 30) continue;
+      prop(streetKinds[i % streetKinds.length], x, z, Math.atan2(-x, -z), 0.9 + (i % 4) * 0.08);
+    }
+  }
+  // …and a skyline of modern towers further out, for the sense of a big city
+  for (let i = 0; i < 44; i++) {
+    const a = (i / 44) * Math.PI * 2 + Math.random() * 0.05;
+    const r = 240 + Math.random() * 120;
+    const h = 30 + Math.random() * 90;
+    const w = 16 + Math.random() * 18;
+    s3.add(cityTower(w, h, w * (0.7 + Math.random() * 0.5), i, Math.cos(a) * r, Math.sin(a) * r, -a));
   }
   // a blimp circling the Krel Tower
   const blimp = new THREE.Group();
@@ -1348,17 +1418,77 @@ function buildDressing(s3: T3.Scene, L: Loaded, updaters: ((dt: number, t: numbe
     blimp.position.set(45 + Math.cos(a) * 90, 120, 40 + Math.sin(a) * 90);
     blimp.rotation.y = -a;
   });
-  // clouds
-  const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 });
-  for (let i = 0; i < 18; i++) {
-    const c = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 0), cloudMat);
-    c.scale.set(20 + Math.random() * 20, 5 + Math.random() * 4, 12 + Math.random() * 10);
-    c.position.set((Math.random() - 0.5) * 900, 170 + Math.random() * 80, (Math.random() - 0.5) * 900);
+  // soft billboard clouds
+  const cloudTex = canvasTex(256, 128, (x) => {
+    for (let i = 0; i < 26; i++) {
+      const cx = 40 + Math.random() * 176;
+      const cy = 60 + Math.random() * 30;
+      const r = 18 + Math.random() * 30;
+      const g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, "rgba(255,255,255,0.9)");
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      x.fillStyle = g;
+      x.beginPath();
+      x.arc(cx, cy, r, 0, Math.PI * 2);
+      x.fill();
+    }
+  });
+  for (let i = 0; i < 22; i++) {
+    const c = new THREE.Sprite(new THREE.SpriteMaterial({ map: cloudTex, transparent: true, depthWrite: false, fog: false, opacity: 0.85 }));
+    c.scale.set(90 + Math.random() * 80, 40 + Math.random() * 25, 1);
+    c.position.set((Math.random() - 0.5) * 1100, 190 + Math.random() * 90, (Math.random() - 0.5) * 1100);
     s3.add(c);
   }
 }
 
+/** A modern city tower for the skyline: glass and concrete bands, lit windows, a flat roof with plant on top. */
+function cityTower(w: number, h: number, d: number, seed: number, x: number, z: number, face: number) {
+  const palettes: [string, string][] = [
+    ["#8fa7bd", "#2d4a63"],
+    ["#c9b79c", "#4a5560"],
+    ["#a3b6c4", "#1f3446"],
+    ["#d6d2c8", "#3b4f61"],
+    ["#9a8f86", "#26343f"],
+  ];
+  const [wall, glass] = palettes[seed % palettes.length];
+  const tex = canvasTex(128, 256, (c) => {
+    c.fillStyle = wall;
+    c.fillRect(0, 0, 128, 256);
+    for (let yy = 4; yy < 256; yy += 12)
+      for (let xx = 4; xx < 128; xx += 12) {
+        c.fillStyle = Math.random() < 0.12 ? "#ffe3a3" : glass;
+        c.fillRect(xx, yy, 8, 8);
+        c.fillStyle = "rgba(255,255,255,0.18)";
+        c.fillRect(xx, yy, 8, 2);
+      }
+  });
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(Math.max(1, w / 14), Math.max(1, h / 28));
+  tex.anisotropy = 4;
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.55, metalness: 0.15 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  body.position.y = h / 2;
+  body.castShadow = true;
+  g.add(body);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 0.6, 1.2, d + 0.6), new THREE.MeshStandardMaterial({ color: 0x6b7280, roughness: 0.9 }));
+  roof.position.y = h + 0.6;
+  g.add(roof);
+  const plant = new THREE.Mesh(new THREE.BoxGeometry(w * 0.35, 3, d * 0.3), new THREE.MeshStandardMaterial({ color: 0x9ca3af, roughness: 0.8 }));
+  plant.position.set(w * 0.15, h + 2.7, -d * 0.1);
+  g.add(plant);
+  if (seed % 3 === 0) {
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 14, 6), new THREE.MeshStandardMaterial({ color: 0xd1d5db }));
+    mast.position.set(-w * 0.2, h + 8, d * 0.15);
+    g.add(mast);
+  }
+  g.position.set(x, 0, z);
+  g.rotation.y = face;
+  return g;
+}
+
 interface Car {
+  bus?: boolean;
   obj: T3.Object3D;
   path: Path;
   s: number;
@@ -1420,7 +1550,10 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
   for (const p of paths) {
     const len = pathLen(p);
     const count = Math.max(2, Math.round(len / 70));
-    for (let i = 0; i < count; i++) cars.push({ obj: mkCar(n++), path: p, s: (len / count) * i + Math.random() * 8, speed: 9 + Math.random() * 4 });
+    for (let i = 0; i < count; i++) {
+      const bus = kinds[n % Math.max(1, kinds.length)] === "bus";
+      cars.push({ obj: mkCar(n++), bus, path: p, s: (len / count) * i + Math.random() * 8, speed: 9 + Math.random() * 4 });
+    }
   }
   const tmp = new THREE.Vector3();
   const dir = new THREE.Vector3();
@@ -1441,7 +1574,7 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
       let bd = Infinity;
       for (const c of cars) {
         const d = c.obj.position.distanceTo(at);
-        if (d < bd && c.path === paths[0]) {
+        if (d < bd && c.path === paths[0] && !c.bus) {
           bd = d;
           best = c;
         }

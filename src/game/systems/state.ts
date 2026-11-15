@@ -1,5 +1,6 @@
 import type { GameState, MetaState, PlayableId, ReactionChoice, Settings } from "../../data/types";
 import { CHARACTERS } from "../../data/characters";
+import { GUNS } from "../../data/guns";
 
 export const SAVE_VERSION = 3;
 export const SAVE_KEY = "krelworld.save";
@@ -80,6 +81,7 @@ export function newGameState(player: PlayableId, ngPlus = 0, meta?: MetaState): 
     bottles: 2,
     bongos: 1,
     guns: {},
+    gunOrder: [],
     intoxication: 0,
     banRisk: 0,
     banCount: 0,
@@ -130,6 +132,7 @@ export function migrateState(raw: any): GameState | null {
   s.archiveUnlocked = Array.isArray(raw.archiveUnlocked) ? raw.archiveUnlocked : [];
   s.guns = raw.guns && typeof raw.guns === "object" ? Object.fromEntries(Object.entries(raw.guns).filter(([, v]) => typeof v === "number" && isFinite(v as number))) as Record<string, number> : {};
   if (typeof s.gun !== "string" || !(s.gun in s.guns)) s.gun = undefined;
+  s.gunOrder = Array.isArray(raw.gunOrder) ? [...new Set<string>(raw.gunOrder.filter((g: unknown) => typeof g === "string" && g in GUNS))] : [];
   s.discovered = Array.isArray(raw.discovered) ? raw.discovered.slice(-2000) : [];
   s.chapter = clampInt(raw.chapter, 1, 7, 1);
   if (s.phase !== "hub" && s.phase !== "dungeon" && s.phase !== "ended") s.phase = "hub";

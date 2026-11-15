@@ -19,7 +19,9 @@ import { BOSS_TEXT } from "../../content/bosses";
 import { CRYSTAL_BOSSES, hasCrystal } from "../systems/crystals";
 import { PRIZES } from "../../content/kreddle";
 import { addKrokens, kd } from "../systems/kreddle";
-import { ammoLabel, weaponIcon, weaponList } from "../ui/weapons";
+import { weaponIcon, weaponList } from "../ui/weapons";
+import { GUNS } from "../combat/Guns";
+import { ammoQuote, buyAmmo, firstLoaded, gunRatings, gunUpgrades, moveGun, orderedGuns, specialText, STAT_KEYS, STAT_LABELS, type StatKey } from "../systems/armoury";
 import { currentStep } from "../Flow";
 
 /** Your house: walk about, watch the telly, sleep, raid the fridge. New games start here. */
@@ -51,6 +53,8 @@ export class HomeScene extends Phaser.Scene {
   private prompt!: Phaser.GameObjects.Text;
   private busy = false;
   private spots: Spot[] = [];
+  /** Panels open right now (one closing and another opening straight after mustn't free the player). */
+  private openPanels = 0;
 
   constructor() {
     super("Home");
@@ -87,7 +91,7 @@ export class HomeScene extends Phaser.Scene {
       { x: 350, y: 522, r: 48, label: "E: Open the laptop (group chat)", use: () => this.laptopPanel() },
       { x: 540, y: 500, r: 80, label: "E: Sleep (save · full health · sober up · dream)", use: () => this.sleep() },
       { x: 655, y: 462, r: 55, label: fridgeStocked ? "E: Open the fridge (restocked!)" : "E: Open the fridge", use: () => this.openFridge() },
-      { x: 880, y: 468, r: 55, label: "E: Open the armoury (weapons · perks · gore mode)", use: () => this.armouryPanel() },
+      { x: 880, y: 468, r: 55, label: "E: Gun rack (order · ammo · perks)", use: () => this.gunRackPanel() },
       { x: 420, y: 445, r: 55, label: "E: Look out of the window", use: () => this.talk([dir(s.flags.met_emergency ? "Krelford. The sky has a faint grey tint, like an unloaded page. Somewhere, a Tap is not running." : "Krelford, in the evening. Somewhere a fizzy bongo is opened. Somewhere else, the Great Tap gurgles. All is well. For now.")]) },
       { x: 760, y: 450, r: 60, label: "E: Go outside", use: () => this.leave() },
     );
@@ -203,7 +207,10 @@ export class HomeScene extends Phaser.Scene {
       }
     }
     if (best) {
-      this.prompt.setText(best.label).setPosition(this.me.x, this.me.y - this.me.displayHeight - 12).setVisible(true);
+      this.prompt.setText(best.label).setVisible(true);
+      // keep it on screen at the edges of the room
+      const half = this.prompt.width / 2 + 4;
+      this.prompt.setPosition(Phaser.Math.Clamp(this.me.x, half, 960 - half), this.me.y - this.me.displayHeight - 12);
       if (this.controls.interact()) void best.use();
     } else {
       this.prompt.setVisible(false);
@@ -405,6 +412,7 @@ export class HomeScene extends Phaser.Scene {
   /** A full-screen panel. Returns its container and a close function. */
   private panel(title: string, color = "#ffd23f"): { root: Phaser.GameObjects.Container; close: () => void } {
     this.busy = true;
+    this.openPanels++;
     this.prompt.setVisible(false);
     const root = this.add.container(0, 0).setDepth(2500);
     const bg = this.add.rectangle(480, 270, 900, 500, 0x0b0a14, 0.96).setStrokeStyle(3, Phaser.Display.Color.HexStringToColor(color).color);
@@ -420,10 +428,13 @@ export class HomeScene extends Phaser.Scene {
     const close = () => {
       if (closed) return;
       closed = true;
+      this.openPanels = Math.max(0, this.openPanels - 1);
       this.input.keyboard?.off("keydown-ESC", close);
       root.destroy();
       this.controls.swallow();
-      this.time.delayedCall(50, () => (this.busy = false));
+      this.time.delayedCall(50, () => {
+        if (!this.openPanels) this.busy = false;
+      });
     };
     const x = this.add.text(905, 40, "✕", { fontFamily: FONT, fontSize: "24px", color: "#ffffff", backgroundColor: "#00000088", padding: { x: 8, y: 2 } }).setOrigin(0.5).setInteractive({ useHandCursor: true });
     x.on("pointerdown", close);
@@ -446,51 +457,317 @@ export class HomeScene extends Phaser.Scene {
     return b;
   }
 
-  /** THE ARMOURY: pick what you carry, see your perks, switch gore mode. */
-  private armouryPanel() {
-    const s = G.s;
-    const { root, close } = this.panel("THE ARMOURY", "#67e8f9");
-    root.add(this.add.text(480, 80, "Click a weapon to carry it out of the house.", { fontFamily: FONT, fontSize: "13px", color: "#cbd5e1" }).setOrigin(0.5));
-    const list = weaponList(s);
-    const per = Math.min(7, list.length);
-    list.forEach((w, i) => {
-      const r = Math.floor(i / per);
-      const c = i % per;
-      const inRow = Math.min(per, list.length - r * per);
-      const x = 480 + (c - (inRow - 1) / 2) * 112;
-      const y = 150 + r * 104;
-      const held = w.id === (s.gun ?? null);
-      const box = this.add.rectangle(x, y, 104, 96, held ? 0x0e3a4a : 0x111827).setStrokeStyle(3, held ? 0x67e8f9 : 0x334155).setInteractive({ useHandCursor: !w.empty });
-      root.add(box);
-      const ic = weaponIcon(this, x, y - 14, w, 56);
-      if (w.empty) ic.setAlpha(0.35);
-      root.add(ic);
-      root.add(this.add.text(x, y + 22, w.name, { fontFamily: FONT, fontSize: "9px", color: "#ffffff", align: "center", wordWrap: { width: 98 } }).setOrigin(0.5, 0));
-      root.add(this.add.text(x, y - 42, held ? "IN HAND" : ammoLabel(w), { fontFamily: FONT, fontSize: "10px", color: held ? "#67e8f9" : w.empty ? "#ef4444" : "#facc15", fontStyle: "bold" }).setOrigin(0.5));
-      box.on("pointerdown", () => {
-        if (w.empty) return;
-        s.gun = w.id ?? undefined;
-        G.save();
-        synth.play("pickup");
-        close();
-        this.armouryPanel();
-      });
-    });
-    // your Kreddle perks
-    const perks = PRIZES.filter((p) => p.key && kd(s, p.key) > 0).map((p) => `${p.icon} ${p.name}${(p.max ?? 1) > 1 ? ` ${kd(s, p.key!)}/${p.max}` : ""}`);
-    const top = 150 + Math.ceil(list.length / per) * 104 - 20;
-    root.add(this.add.text(120, top, "KREDDLE PERKS", { fontFamily: FONT, fontSize: "14px", color: "#ff7ad9", fontStyle: "bold" }));
-    root.add(this.add.text(120, top + 22, perks.length ? perks.join("     ") : "None yet. Cross the bridge to Kreddle and win some.", { fontFamily: FONT, fontSize: "12px", color: "#e2e8f0", wordWrap: { width: 720 }, lineSpacing: 6 }));
-    {
-      const on = G.meta.settings.gore !== false;
-      this.button(root, 480, 462, 260, 36, `🩸 GORE MODE: ${on ? "ON" : "OFF"}`, () => {
-        G.meta.settings.gore = !on;
-        G.saveMeta();
-        G.save();
-        close();
-        this.armouryPanel();
-      }, on ? 0x7f1d1d : 0x27213a, 14);
+  /** Cut a text down with an ellipsis until it fits `w` pixels. */
+  private fitText(t: Phaser.GameObjects.Text, w: number) {
+    let str = t.text;
+    while (t.width > w && str.length > 1) {
+      str = str.slice(0, -1);
+      t.setText(str.trimEnd() + "…");
     }
+    return t;
+  }
+
+  /**
+   * THE GUN RACK: every gun you own, its stats, your gun upgrades, ammo for sale,
+   * and the weapon order (drag to reorder, or ▲▼): #1 is what you walk into a dungeon holding,
+   * and swapping / running dry goes down the list.
+   */
+  private gunRackPanel(sel?: string) {
+    const s = G.s;
+    s.guns = s.guns ?? {};
+    const { root, close } = this.panel("THE GUN RACK", "#67e8f9");
+    const prevThreshold = this.input.dragDistanceThreshold;
+    this.input.dragDistanceThreshold = 8;
+    const coinsT = this.add.text(916, 78, "", { fontFamily: FONT, fontSize: "13px", color: "#ffd23f", fontStyle: "bold" }).setOrigin(1, 0.5);
+    root.add(coinsT);
+    root.add(
+      this.add.text(48, 78, "Drag to set your order (or ▲▼). #1 is what you start a dungeon holding; X swaps down the list.", { fontFamily: FONT, fontSize: "12px", color: "#cbd5e1" }).setOrigin(0, 0.5),
+    );
+    const listC = this.add.container(0, 0);
+    const detailC = this.add.container(0, 0);
+    root.add([listC, detailC]);
+    let selected: string | null = sel ?? null;
+    let hover: string | null = null;
+    let dragging = false;
+
+    const TOP = 94;
+    const LIST_H = 396;
+    const L = 48;
+    const R = 538;
+
+    const reorder = (id: string, to: number) => {
+      moveGun(s, id, to);
+      // what you're carrying follows the rack: the top gun that has ammo
+      s.gun = firstLoaded(s) ?? undefined;
+      G.save();
+      synth.play("pickup");
+      renderList();
+      renderDetail();
+    };
+
+    const renderList = () => {
+      listC.removeAll(true);
+      coinsT.setText(`🪙 ${s.coins} Krezzcoin`);
+      const order = orderedGuns(s);
+      if (!selected || !order.includes(selected)) selected = order[0] ?? null;
+      if (!order.length) {
+        listC.add(
+          this.add
+            .text((L + R) / 2, TOP + 150, "The rack is empty.\n\nGuns turn up in dungeon crates, and the Kreddle Exchange sells a few.\nUntil then: the Fart Blaster. Infinite ammo. Infinite shame.", { fontFamily: FONT, fontSize: "14px", color: "#94a3b8", align: "center", wordWrap: { width: R - L - 20 }, lineSpacing: 4 })
+            .setOrigin(0.5),
+        );
+        return;
+      }
+      const entries = new Map(weaponList(s).map((w) => [w.id, w] as const));
+      const rowH = Phaser.Math.Clamp(Math.floor(LIST_H / order.length), 27, 58);
+      const tall = rowH >= 40;
+      const marker = this.add.rectangle(L, 0, R - L, 3, 0xfacc15).setOrigin(0, 0.5).setVisible(false);
+      order.forEach((id, i) => {
+        const g = GUNS[id];
+        const w = entries.get(id)!;
+        const y0 = TOP + i * rowH;
+        const row = this.add.container(0, y0);
+        const on = id === selected;
+        const bg = this.add.rectangle(L, 0, R - L, rowH - 3, on ? 0x0e3a4a : i % 2 ? 0x111827 : 0x0f172a, 0.95).setOrigin(0, 0).setStrokeStyle(2, on ? 0x67e8f9 : 0x1f2937);
+        bg.setInteractive({ useHandCursor: true, draggable: true });
+        row.add(bg);
+        const mid = (rowH - 3) / 2;
+        row.add(this.add.text(L + 6, mid, "⋮⋮", { fontFamily: FONT, fontSize: "14px", color: "#475569" }).setOrigin(0, 0.5));
+        row.add(this.add.text(L + 30, mid, `${i + 1}`, { fontFamily: FONT, fontSize: "13px", color: i === 0 ? "#facc15" : "#94a3b8", fontStyle: "bold" }).setOrigin(0.5));
+        const ic = weaponIcon(this, L + 66, mid, w, Math.min(rowH - 6, 46));
+        if (w.empty) ic.setAlpha(0.35);
+        row.add(ic);
+        const tx = L + 96;
+        const ammo = this.add.text(R - 66, tall ? mid - 9 : mid, w.empty ? "EMPTY" : `${w.ammo}/${w.max}`, { fontFamily: FONT, fontSize: "12px", color: w.empty ? "#ef4444" : "#facc15", fontStyle: "bold" }).setOrigin(1, 0.5);
+        row.add(ammo);
+        let ammoL = ammo.x - ammo.width;
+        if (id === s.gun) {
+          const inHand = this.add.text(tall ? R - 66 : ammoL - 6, tall ? mid + 9 : mid, "IN HAND", { fontFamily: FONT, fontSize: "9px", color: "#67e8f9", fontStyle: "bold" }).setOrigin(1, 0.5);
+          row.add(inHand);
+          if (!tall) ammoL = inHand.x - inHand.width;
+        }
+        if (tall) {
+          // name over a one-line blurb
+          row.add(this.fitText(this.add.text(tx, mid - 9, g.name, { fontFamily: FONT, fontSize: "14px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0, 0.5), ammoL - tx - 8));
+          row.add(this.fitText(this.add.text(tx, mid + 9, g.blurb, { fontFamily: FONT, fontSize: "11px", color: "#94a3b8" }).setOrigin(0, 0.5), R - 64 - tx - 4));
+        } else {
+          // a full rack: name and blurb share one line
+          const nm = this.fitText(this.add.text(tx, mid, g.name, { fontFamily: FONT, fontSize: "13px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0, 0.5), Math.min(170, ammoL - tx - 8));
+          row.add(nm);
+          const bx0 = tx + nm.width + 8;
+          if (ammoL - bx0 - 8 > 30) row.add(this.fitText(this.add.text(bx0, mid + 1, g.blurb, { fontFamily: FONT, fontSize: "11px", color: "#94a3b8" }).setOrigin(0, 0.5), ammoL - bx0 - 8));
+        }
+        // ▲ / ▼ (keyboard and phone)
+        const bh = Math.min(rowH - 7, 30);
+        ([[-1, "▲", R - 46], [1, "▼", R - 18]] as const).forEach(([d, label, bx]) => {
+          const can = d < 0 ? i > 0 : i < order.length - 1;
+          const b = this.add.rectangle(bx, mid, 26, bh, can ? 0x1e293b : 0x111827).setStrokeStyle(1, can ? 0x475569 : 0x1f2937);
+          row.add(b);
+          row.add(this.add.text(bx, mid, label, { fontFamily: FONT, fontSize: "12px", color: can ? "#e2e8f0" : "#334155" }).setOrigin(0.5));
+          if (!can) return;
+          b.setInteractive({ useHandCursor: true });
+          b.on("pointerover", () => b.setStrokeStyle(1, 0xfacc15));
+          b.on("pointerout", () => b.setStrokeStyle(1, 0x475569));
+          b.on("pointerdown", (_p: Phaser.Input.Pointer, _x: number, _y: number, ev: Phaser.Types.Input.EventData) => {
+            ev.stopPropagation();
+            selected = id;
+            reorder(id, i + d);
+          });
+        });
+        // hover = peek at its stats, tap/click = select it
+        bg.on("pointerover", () => {
+          if (dragging) return;
+          hover = id;
+          renderDetail(false);
+        });
+        bg.on("pointerout", () => {
+          if (dragging || hover !== id) return;
+          hover = null;
+          renderDetail(false);
+        });
+        bg.on("pointerdown", () => {
+          if (selected === id) return;
+          selected = id;
+          synth.play("select");
+          renderList();
+          renderDetail();
+        });
+        // drag and drop (mouse or finger)
+        let target = i;
+        bg.on("dragstart", () => {
+          dragging = true;
+          selected = id;
+          listC.bringToTop(row);
+          listC.bringToTop(marker);
+          row.setAlpha(0.85);
+        });
+        bg.on("drag", (p: Phaser.Input.Pointer) => {
+          row.y = Phaser.Math.Clamp(p.y - rowH / 2, TOP - rowH / 2, TOP + (order.length - 0.5) * rowH);
+          target = Phaser.Math.Clamp(Math.round((row.y - TOP) / rowH), 0, order.length - 1);
+          marker.setY(TOP + (target > i ? target + 1 : target) * rowH - 2).setVisible(target !== i);
+        });
+        bg.on("dragend", () => {
+          dragging = false;
+          hover = null;
+          if (target !== i) reorder(id, target);
+          else {
+            renderList();
+            renderDetail();
+          }
+        });
+        listC.add(row);
+      });
+      listC.add(marker);
+      listC.add(this.add.text(L, TOP + order.length * rowH + 2, `${order.length + 1}  💨 Fart Blaster: always last. Infinite ammo.`, { fontFamily: FONT, fontSize: "10px", color: "#64748b" }).setVisible(TOP + order.length * rowH + 14 < 494));
+    };
+
+    let shown: string | null | undefined;
+    const renderDetail = (force = true) => {
+      if (!force && shown === (hover ?? selected)) return;
+      shown = hover ?? selected;
+      detailC.removeAll(true);
+      const X = 554;
+      const W = 362;
+      const cx = X + W / 2;
+      detailC.add(this.add.rectangle(X, TOP, W, LIST_H - 3, 0x0b1220, 0.95).setOrigin(0, 0).setStrokeStyle(2, 0x1e3a4a));
+      const perksBtn = () =>
+        this.button(detailC, cx, 470, W - 24, 30, "🩸 KREDDLE PERKS & GORE MODE", () => {
+          close();
+          this.armouryPanel(selected ?? undefined);
+        }, 0x27213a, 12);
+      const id = hover ?? selected;
+      if (!id || !GUNS[id] || !(id in s.guns!)) {
+        detailC.add(this.add.text(cx, TOP + 150, "Pick a gun to see its stats.", { fontFamily: FONT, fontSize: "13px", color: "#64748b" }).setOrigin(0.5));
+        perksBtn();
+        return;
+      }
+      const g = GUNS[id];
+      const w = weaponList(s).find((e) => e.id === id)!;
+      const pos = orderedGuns(s).indexOf(id);
+      detailC.add(weaponIcon(this, X + 40, TOP + 34, w, 58));
+      detailC.add(this.fitText(this.add.text(X + 80, TOP + 12, g.name, { fontFamily: FONT, fontSize: "15px", color: "#ffffff", fontStyle: "bold" }), W - 92));
+      detailC.add(
+        this.add.text(X + 80, TOP + 33, `${w.empty ? "EMPTY" : `Ammo ${w.ammo}/${w.max}`}  ·  #${pos + 1} in your order${g.kreddle ? "  ·  Kreddle prize" : g.shop ? "  ·  Exchange exclusive" : ""}`, {
+          fontFamily: FONT,
+          fontSize: "11px",
+          color: w.empty ? "#ef4444" : "#facc15",
+        }),
+      );
+      detailC.add(this.add.text(X + 12, TOP + 56, g.blurb, { fontFamily: FONT, fontSize: "11px", color: "#cbd5e1", fontStyle: "italic", wordWrap: { width: W - 24 }, maxLines: 2 } as Phaser.Types.GameObjects.Text.TextStyle));
+      // the stats, 1-5 against every gun in the game
+      const r = gunRatings(g);
+      const raw: Record<StatKey, string> = {
+        damage: g.pellets > 1 ? `${g.dmg}×${g.pellets}` : `${g.dmg}`,
+        rate: `${(1000 / g.cd).toFixed(1)}/s`,
+        range: `${g.range}`,
+        accuracy: g.spread ? `±${Math.round((g.spread * 180) / Math.PI)}°` : "dead on",
+        special: "",
+      };
+      const cols: Record<StatKey, number> = { damage: 0xef4444, rate: 0xfacc15, range: 0x38bdf8, accuracy: 0x4ade80, special: 0xc084fc };
+      STAT_KEYS.forEach((k, i) => {
+        const y = TOP + 100 + i * 20;
+        detailC.add(this.add.text(X + 12, y, STAT_LABELS[k], { fontFamily: FONT, fontSize: "11px", color: "#e2e8f0", fontStyle: "bold" }).setOrigin(0, 0.5));
+        for (let p = 0; p < 5; p++) detailC.add(this.add.rectangle(X + 100 + p * 30, y, 26, 11, p < r[k] ? cols[k] : 0x1f2937).setStrokeStyle(1, p < r[k] ? 0x000000 : 0x334155));
+        if (raw[k]) detailC.add(this.add.text(X + W - 12, y, raw[k], { fontFamily: FONT, fontSize: "10px", color: "#94a3b8" }).setOrigin(1, 0.5));
+      });
+      detailC.add(this.fitText(this.add.text(X + 12, TOP + 196, specialText(g), { fontFamily: FONT, fontSize: "11px", color: "#d8b4fe" }), W - 24));
+      // upgrades (they're bought in Kreddle, and every gun gets them)
+      const up = gunUpgrades(s);
+      detailC.add(this.add.text(X + 12, TOP + 213, "UPGRADES (apply to every gun)", { fontFamily: FONT, fontSize: "11px", color: "#67e8f9", fontStyle: "bold" }));
+      detailC.add(
+        this.add.text(X + 12, TOP + 228, up.applied.length ? up.applied.map((a) => `✓ ${a.u.name}${a.u.max > 1 ? ` ${a.lvl}/${a.u.max}` : ""}`).join("   ") : "None yet.", {
+          fontFamily: FONT,
+          fontSize: "11px",
+          color: up.applied.length ? "#5ad35a" : "#64748b",
+          wordWrap: { width: W - 24 },
+          maxLines: 2,
+        } as Phaser.Types.GameObjects.Text.TextStyle),
+      );
+      if (up.available.length) {
+        detailC.add(this.add.text(X + 12, TOP + 258, "⬆ Upgrade available in Kreddle", { fontFamily: FONT, fontSize: "12px", color: "#ff7ad9", fontStyle: "bold" }));
+        const where = (shop: string) => up.available.filter((u) => u.shop === shop).map((u) => u.name);
+        const parts = [where("Kreddle Exchange").length ? `Exchange: ${where("Kreddle Exchange").join(", ")}` : "", where("Kreddle Prize Counter").length ? `Prize Counter: ${where("Kreddle Prize Counter").join(", ")}` : ""].filter(Boolean);
+        detailC.add(this.add.text(X + 12, TOP + 274, parts.join("\n"), { fontFamily: FONT, fontSize: "10px", color: "#f0abfc", wordWrap: { width: W - 24 }, maxLines: 3 } as Phaser.Types.GameObjects.Text.TextStyle));
+      } else detailC.add(this.add.text(X + 12, TOP + 258, "Every gun upgrade bought. Fully krezzed.", { fontFamily: FONT, fontSize: "11px", color: "#5ad35a" }));
+      // ammo, at the Kreddle Exchange's prices
+      const q = ammoQuote(s, id);
+      const afford = s.coins >= q.unit;
+      const label = q.full ? "AMMO FULL" : s.coins >= q.fill ? `FILL AMMO · ${q.fill}🪙` : afford ? `BUY ${g.pickup} AMMO · ${q.unit}🪙` : `SKINT: AMMO IS ${q.unit}🪙`;
+      const bx = X + 12 + 85;
+      const ammoBtn = this.button(detailC, bx, 434, 170, 32, label, () => {
+        if (q.full || !afford) return;
+        if (!buyAmmo(s, id)) return;
+        synth.play("coin");
+        G.save();
+        selected = id;
+        renderList();
+        renderDetail();
+      }, q.full || !afford ? 0x1f2937 : 0x14532d, 12);
+      if (q.full || !afford) ammoBtn.setStrokeStyle(2, 0x1f2937).disableInteractive();
+      const first = pos === 0;
+      const topBtn = this.button(detailC, X + W - 12 - 85, 434, 170, 32, first ? "★ #1: YOU START WITH IT" : "★ MAKE IT #1", () => {
+        if (!first) reorder(id, 0);
+      }, first ? 0x1f2937 : 0x0e3a4a, 12);
+      if (first) topBtn.disableInteractive();
+      perksBtn();
+    };
+
+    // keyboard: ↑↓ pick, SHIFT+↑↓ (or [ ]) move it, B buys ammo
+    const onKey = (ev: KeyboardEvent) => {
+      const order = orderedGuns(s);
+      if (!order.length) return;
+      const i = Math.max(0, order.indexOf(selected ?? ""));
+      const up = ev.key === "ArrowUp" || ev.key === "w" || ev.key === "W";
+      const down = ev.key === "ArrowDown" || ev.key === "s" || ev.key === "S";
+      if ((ev.shiftKey && (up || down)) || ev.key === "[" || ev.key === "]") {
+        const d = up || ev.key === "[" ? -1 : 1;
+        if (i + d >= 0 && i + d < order.length) reorder(order[i], i + d);
+        return;
+      }
+      if (up || down) {
+        selected = order[Phaser.Math.Clamp(i + (up ? -1 : 1), 0, order.length - 1)];
+        hover = null;
+        synth.play("select");
+        renderList();
+        renderDetail();
+      } else if (ev.key === "b" || ev.key === "B") {
+        if (selected && buyAmmo(s, selected)) {
+          synth.play("coin");
+          G.save();
+          renderList();
+          renderDetail();
+        }
+      }
+    };
+    this.input.keyboard?.on("keydown", onKey);
+    root.once(Phaser.GameObjects.Events.DESTROY, () => {
+      this.input.keyboard?.off("keydown", onKey);
+      this.input.dragDistanceThreshold = prevThreshold;
+    });
+    root.add(this.add.text(48, 494, "↑↓ pick · SHIFT+↑↓ move · B buy ammo", { fontFamily: FONT, fontSize: "10px", color: "#64748b" }).setOrigin(0, 0.5));
+    renderList();
+    renderDetail();
+  }
+
+  /** Off the gun rack: your Kreddle perks and the gore switch. */
+  private armouryPanel(back?: string) {
+    const s = G.s;
+    const { root, close } = this.panel("PERKS & GORE", "#ff7ad9");
+    const perks = PRIZES.filter((p) => p.key && kd(s, p.key) > 0).map((p) => `${p.icon} ${p.name}${(p.max ?? 1) > 1 ? ` ${kd(s, p.key!)}/${p.max}` : ""}`);
+    root.add(this.add.text(120, 100, "KREDDLE PERKS", { fontFamily: FONT, fontSize: "15px", color: "#ff7ad9", fontStyle: "bold" }));
+    root.add(this.add.text(120, 126, perks.length ? perks.join("     ") : "None yet. Cross the bridge to Kreddle and win some.", { fontFamily: FONT, fontSize: "13px", color: "#e2e8f0", wordWrap: { width: 720 }, lineSpacing: 8 }));
+    const on = G.meta.settings.gore !== false;
+    this.button(root, 480, 400, 260, 36, `🩸 GORE MODE: ${on ? "ON" : "OFF"}`, () => {
+      G.meta.settings.gore = !on;
+      G.saveMeta();
+      G.save();
+      close();
+      this.armouryPanel(back);
+    }, on ? 0x7f1d1d : 0x27213a, 14);
+    this.button(root, 480, 452, 260, 34, "◀ BACK TO THE GUN RACK", () => {
+      close();
+      this.gunRackPanel(back);
+    }, 0x0e3a4a, 13);
   }
 
   /** The trophy shelf, up close. */

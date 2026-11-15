@@ -7,6 +7,7 @@ import { synth } from "../audio/Synth";
 import { CHARACTERS } from "../../data/characters";
 import { GENERIC_UPGRADES, upgradeCost, maxHp, counter } from "../systems/stats";
 import { GUNS, GUN_ORDER, gunMax } from "../combat/Guns";
+import { ammoUnitCost, BANK_PERKS, buyAmmo } from "../systems/armoury";
 import { Companion } from "../combat/Companion";
 import { arcsFor, arcAvailable, currentArcSteps, stepDone } from "../systems/arcs";
 import { personalQuest, pickupsCollected, MINISTRY_QUESTS, ministryQuestState, ministryProgress } from "../systems/quests";
@@ -17,32 +18,15 @@ import { say } from "../../content/dsl";
 
 type Mode = "pause" | "settings" | "bank" | "tribunal" | "death" | "quests" | "controls";
 
-/** Overlay menus: pause, settings, bank (upgrades), ban tribunal, quests, death. */
-export const BANK_PERKS = [
-  { id: "pk_armor", name: "Krez-Proof Vest", desc: "Armour: take 10% less damage per level. Hi-vis. Smells of Lynx Africa.", cost: 170, max: 3 },
-  { id: "pk_krezz", name: "Krezz Regeneration Serum", desc: "Krezz refills 30% faster per level (specials come back sooner).", cost: 190, max: 3 },
-  { id: "pk_meter", name: "Pre-Workout (Bootleg)", desc: "Wonk and Fart meters fill 30% faster per level.", cost: 160, max: 2 },
-  { id: "pk_ibs", name: "Prescription Beans", desc: "IBS Attack hits 25% harder per level, and the Fart meter fills 15% faster. Doctor's orders. Not a real doctor.", cost: 210, max: 3 },
-  { id: "pk_jet", name: "STD KREZZ", desc: "Your Krezz jet stream (a perfect Wonk) is now riddled with little scowling bacteria. Hits 25% harder per level; Wonk meter fills 15% faster.", cost: 210, max: 3 },
-  { id: "pk_autoaim", name: "Auto-Aim (Krezz-Assist)", desc: "Your attacks and guns lock onto the nearest enemy automatically.", cost: 300, max: 1 },
-  { id: "pk_spd", name: "Fresh Trainers", desc: "+7% movement speed per level. Krunch-approved. Smell of new.", cost: 140, max: 3 },
-  { id: "pk_dmg", name: "Krunch Gym Membership", desc: "+8% damage from everything per level. You don't go. You just have it.", cost: 160, max: 3 },
-  { id: "pk_rof", name: "Itchy Trigger Finger", desc: "Guns fire 10% faster per level.", cost: 150, max: 3 },
-  { id: "pk_ammo", name: "Bigger Pockets", desc: "+25% max ammo for every gun per level. Krez-ousers with cargo pockets.", cost: 180, max: 2 },
-  { id: "pk_dodge", name: "Ninja Backflip Lessons", desc: "Dodge cooldown -15% per level. Taught by Flenky. Got out just in time.", cost: 170, max: 2 },
-];
+// (the perks list lives with the rest of the armoury rules)
+export { BANK_PERKS };
 export const BANK_MOVES = [
   { id: "mv_charge", name: "Pub Shove", desc: "Your dodge becomes a shoulder charge: damages and flings anything you barrel through.", cost: 320 },
   { id: "mv_fart", name: "Fart Propulsion", desc: "Every dodge leaves a lingering fart cloud that hurts and slows enemies.", cost: 280 },
   { id: "mv_lastorders", name: "Last Orders", desc: "Drinking pussy juice (Q) sends out a shockwave that knocks everything around you flying.", cost: 360 },
 ];
 
-/** Price of one box of ammo for a gun at the Central Bank. */
-function ammoUnitCost(id: string): number {
-  const g = GUNS[id];
-  return g.shop ? Math.max(20, Math.round(g.shop * 0.08)) : Math.max(10, Math.round(g.pickup * 0.8));
-}
-
+/** Overlay menus: pause, settings, bank (upgrades), ban tribunal, quests, death. */
 export class MenuScene extends Phaser.Scene {
   private bankTab: "upgrades" | "armoury" | "perks" | "moves" = "upgrades";
   private mode: Mode = "pause";
@@ -368,18 +352,7 @@ export class MenuScene extends Phaser.Scene {
 
   /** Buy as many boxes as it takes to fill the gun (or as many as you can afford). */
   private buyAmmo(id: string) {
-    const s = G.s;
-    const g = GUNS[id];
-    if (!s.guns || !(id in s.guns)) return;
-    const unit = ammoUnitCost(id);
-    let bought = 0;
-    while (s.guns[id] < gunMax(g, s) && s.coins >= unit) {
-      s.coins -= unit;
-      s.guns[id] = Math.min(gunMax(g, s), s.guns[id] + g.pickup);
-      bought++;
-    }
-    if (!bought) return;
-    if (!s.gun || (s.guns[s.gun] ?? 0) <= 0) s.gun = id;
+    if (!buyAmmo(G.s, id)) return;
     synth.play("coin");
     G.save();
     this.render("bank");

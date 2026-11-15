@@ -5,19 +5,23 @@ import { PRIZES } from "../../content/kreddle";
 // The armoury's rules, kept free of Phaser so they can be tested: ammo prices, the
 // player's weapon order (the gun rack), the 1-5 stat ratings and the gun upgrades.
 
-/** Kreddle Exchange perks (the PERKS tab). */
+/**
+ * Kreddle Exchange perks (the PERKS tab). Level n costs `cost * n`. The ones that really change a fight
+ * (auto-aim, damage, armour, fire rate) are priced to need saving for; see docs/ECONOMY.md.
+ * `icon` is a texture key (p_*) or an emoji; `desc` is one short line for the shop.
+ */
 export const BANK_PERKS = [
-  { id: "pk_armor", name: "Krez-Proof Vest", desc: "Armour: take 10% less damage per level. Hi-vis. Smells of Lynx Africa.", cost: 170, max: 3 },
-  { id: "pk_krezz", name: "Krezz Regeneration Serum", desc: "Krezz refills 30% faster per level (specials come back sooner).", cost: 190, max: 3 },
-  { id: "pk_meter", name: "Pre-Workout (Bootleg)", desc: "Wonk and Fart meters fill 30% faster per level.", cost: 160, max: 2 },
-  { id: "pk_ibs", name: "Prescription Beans", desc: "IBS Attack hits 25% harder per level, and the Fart meter fills 15% faster. Doctor's orders. Not a real doctor.", cost: 210, max: 3 },
-  { id: "pk_jet", name: "STD KREZZ", desc: "Your Krezz jet stream (a perfect Wonk) is now riddled with little scowling bacteria. Hits 25% harder per level; Wonk meter fills 15% faster.", cost: 210, max: 3 },
-  { id: "pk_autoaim", name: "Auto-Aim (Krezz-Assist)", desc: "Your attacks and guns lock onto the nearest enemy automatically.", cost: 300, max: 1 },
-  { id: "pk_spd", name: "Fresh Trainers", desc: "+7% movement speed per level. Krunch-approved. Smell of new.", cost: 140, max: 3 },
-  { id: "pk_dmg", name: "Krunch Gym Membership", desc: "+8% damage from everything per level. You don't go. You just have it.", cost: 160, max: 3 },
-  { id: "pk_rof", name: "Itchy Trigger Finger", desc: "Guns fire 10% faster per level.", cost: 150, max: 3 },
-  { id: "pk_ammo", name: "Bigger Pockets", desc: "+25% max ammo for every gun per level. Krez-ousers with cargo pockets.", cost: 180, max: 2 },
-  { id: "pk_dodge", name: "Ninja Backflip Lessons", desc: "Dodge cooldown -15% per level. Taught by Flenky. Got out just in time.", cost: 170, max: 2 },
+  { id: "pk_armor", name: "Krez-Proof Vest", icon: "🦺", desc: "Take 10% less damage per level. Smells of Lynx Africa.", cost: 260, max: 3 },
+  { id: "pk_krezz", name: "Krezz Serum", icon: "p_krezz", desc: "Krezz refills 30% faster per level: specials come back sooner.", cost: 160, max: 3 },
+  { id: "pk_meter", name: "Pre-Workout", icon: "🥤", desc: "Wonk and Fart meters fill 30% faster per level. Bootleg.", cost: 150, max: 2 },
+  { id: "pk_ibs", name: "Prescription Beans", icon: "🫘", desc: "IBS Attack +25% damage per level, Fart meter +15%. Not a real doctor.", cost: 180, max: 3 },
+  { id: "pk_jet", name: "STD KREZZ", icon: "🦠", desc: "Krezz jet stream +25% damage per level, Wonk meter +15%. Scowling bacteria.", cost: 180, max: 3 },
+  { id: "pk_autoaim", name: "Auto-Aim", icon: "🎯", desc: "Attacks and guns lock onto the nearest enemy by themselves.", cost: 1500, max: 1 },
+  { id: "pk_spd", name: "Fresh Trainers", icon: "👟", desc: "+7% movement speed per level. Smell of new.", cost: 120, max: 3 },
+  { id: "pk_dmg", name: "Krunch Gym", icon: "🏋️", desc: "+8% damage from everything per level. You don't go. You just have it.", cost: 300, max: 3 },
+  { id: "pk_rof", name: "Itchy Trigger Finger", icon: "☝️", desc: "Guns fire 10% faster per level.", cost: 220, max: 3 },
+  { id: "pk_ammo", name: "Bigger Pockets", icon: "🎒", desc: "+25% max ammo for every gun per level. Cargo Krez-ousers.", cost: 150, max: 2 },
+  { id: "pk_dodge", name: "Backflip Lessons", icon: "🤸", desc: "Dodge cooldown -15% per level. Taught by Flenky.", cost: 160, max: 2 },
 ];
 
 // ------------------------------------------------------------------ ammo (the Kreddle Exchange's prices)
@@ -27,10 +31,14 @@ export function gunMaxFor(g: GunDef, s: GameState): number {
   return Math.round(g.maxAmmo * (1 + 0.25 * (s.upgrades?.pk_ammo ?? 0)));
 }
 
-/** Price of one box of ammo (g.pickup rounds) for a gun at the Kreddle Exchange. */
+/**
+ * Price of one box of ammo (g.pickup rounds) for a gun at the Kreddle Exchange: the gun's own `ammoPrice`
+ * (set by what a box can actually do: damage, pierce, blast), else a fallback from its damage.
+ */
 export function ammoUnitCost(id: string): number {
   const g = GUNS[id];
-  return g.shop ? Math.max(20, Math.round(g.shop * 0.08)) : Math.max(10, Math.round(g.pickup * 0.8));
+  if (g.ammoPrice) return g.ammoPrice;
+  return Math.max(10, Math.round((g.pickup * g.dmg * g.pellets) / 25));
 }
 
 /** What topping a gun up costs: boxes to fill it, the price of that, and one box's price. */

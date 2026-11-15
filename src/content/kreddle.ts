@@ -61,6 +61,8 @@ export const KRUNCHER_BOAST = "The Kreddle Krunchers are much better than your l
 
 export interface Prize {
   id: string;
+  /** Prize Counter tab. */
+  cat: "power" | "tough" | "guns" | "style";
   name: string;
   icon: string;
   desc: string;
@@ -71,26 +73,26 @@ export interface Prize {
 }
 
 export const PRIZES: Prize[] = [
-  { id: "krezz", name: "NEON KREZZ", icon: "💜", desc: "Your krezz beam hits 25% harder and glows neon pink. Stacks three times.", key: "kd_krezz", max: 3 },
-  { id: "gas", name: "CASINO GAS", icon: "💨", desc: "Farts are 20% bigger and harder, and come out sparkly purple. Stacks three times.", key: "kd_gas", max: 3 },
-  { id: "violence", name: "BLOOD BATH", icon: "🩸", desc: "Gore mode, turned up: kills now and then splash blood right across your screen. (Gore itself is in Settings.)", key: "kd_violence", max: 1 },
-  { id: "gold", name: "GOLD-PLATED GUNS", icon: "🪙", desc: "Every gun you hold turns gold, and so do the bullets. They hit 10% harder because they're gold.", key: "kd_gold", max: 1 },
-  { id: "tracer", name: "NEON TRACERS", icon: "✨", desc: "Your bullets leave glowing neon trails.", key: "kd_tracer", max: 1 },
-  { id: "jackpot", name: "JACKPOT ROUNDS", icon: "🎰", desc: "One hit in eight pays out: a little explosion and a shower of coins.", key: "kd_jackpot", max: 1 },
-  { id: "super_time", name: "OVERTIME SUPER", icon: "⏱", desc: "The Golden Juice transformation lasts 10 seconds longer. Stacks twice.", key: "kd_super", max: 2 },
-  { id: "super_aura", name: "RAINBOW SUPER", icon: "🌈", desc: "Your transformation goes rainbow. Mega melee hits 30% harder.", key: "kd_aura", max: 1 },
-  { id: "armor", name: "KREDDLE ARMOUR", icon: "🛡", desc: "Sequinned body armour. Take 10% less damage. Stacks three times. Very shiny.", key: "kd_armor", max: 3 },
-  { id: "krezzlong", name: "EXTENDED KREZZ", icon: "⏳", desc: "Your krezz beam lasts half a second longer. Stacks twice.", key: "kd_krezzlong", max: 2 },
-  { id: "sperm", name: "AGGRESSIVE SPERMS", icon: "🧬", desc: "Your krezz beam is full of furious little swimmers. They peel off and hunt enemies down. CHOMP.", key: "kd_sperm", max: 1 },
-  { id: "hp", name: "HIGH ROLLER", icon: "❤️", desc: "+20 max HP. Stacks three times.", key: "kd_hp", max: 3 },
-  { id: "lucky", name: "LUCKY HORSESHOE", icon: "🍀", desc: "Enemies drop 25% more coins. Stacks twice.", key: "kd_lucky", max: 2 },
-  { id: "dice", name: "LOADED DICE", icon: "🎲", desc: "Every dodge leaves a pair of dice behind. They explode. Snake eyes.", key: "kd_dice", max: 1 },
-  { id: "slotfart", name: "SLOT MACHINE FARTS", icon: "🍒", desc: "Every fart spins the reels: x1, x2 or a x3 jackpot on the damage.", key: "kd_slotfart", max: 1 },
-  { id: "fairy", name: "BOTTLED FAIRY", icon: "🧚", desc: "If you die in a fight, she flies out and brings you back to full health. Once. You can carry two.", key: "fairies", max: 2 },
-  { id: "g_chainsaw", name: "THE KREDDLE CHAINSAW", icon: "🪚", desc: "A chainsaw. Short range. Absolutely shreds.", gun: "chainsaw" },
-  { id: "g_kreddler", name: "THE KREDDLER (MINIGUN)", icon: "🔫", desc: "A gold-plated minigun. Spins up, never stops.", gun: "kreddler" },
-  { id: "g_disco", name: "DISCO BALL LAUNCHER", icon: "🪩", desc: "Fires disco balls that explode into rainbow light.", gun: "disco" },
-  { id: "g_flush", name: "THE ROYAL FLUSH", icon: "🃏", desc: "Fires a fan of razor-sharp playing cards that go straight through people.", gun: "flush" },
+  { id: "krezz", cat: "power", name: "NEON KREZZ", icon: "💜", desc: "Your krezz beam hits 25% harder and glows neon pink. Stacks three times.", key: "kd_krezz", max: 3 },
+  { id: "gas", cat: "power", name: "CASINO GAS", icon: "💨", desc: "Farts are 20% bigger and harder, and come out sparkly purple. Stacks three times.", key: "kd_gas", max: 3 },
+  { id: "violence", cat: "style", name: "BLOOD BATH", icon: "🩸", desc: "Gore mode, turned up: kills now and then splash blood right across your screen. (Gore itself is in Settings.)", key: "kd_violence", max: 1 },
+  { id: "gold", cat: "guns", name: "GOLD-PLATED GUNS", icon: "🪙", desc: "Every gun you hold turns gold, and so do the bullets. They hit 10% harder because they're gold.", key: "kd_gold", max: 1 },
+  { id: "tracer", cat: "style", name: "NEON TRACERS", icon: "✨", desc: "Your bullets leave glowing neon trails.", key: "kd_tracer", max: 1 },
+  { id: "jackpot", cat: "guns", name: "JACKPOT ROUNDS", icon: "🎰", desc: "One hit in eight pays out: a little explosion and a shower of coins.", key: "kd_jackpot", max: 1 },
+  { id: "super_time", cat: "power", name: "OVERTIME SUPER", icon: "⏱", desc: "The Golden Juice transformation lasts 10 seconds longer. Stacks twice.", key: "kd_super", max: 2 },
+  { id: "super_aura", cat: "power", name: "RAINBOW SUPER", icon: "🌈", desc: "Your transformation goes rainbow. Mega melee hits 30% harder.", key: "kd_aura", max: 1 },
+  { id: "armor", cat: "tough", name: "KREDDLE ARMOUR", icon: "🛡", desc: "Sequinned body armour. Take 10% less damage. Stacks three times. Very shiny.", key: "kd_armor", max: 3 },
+  { id: "krezzlong", cat: "power", name: "EXTENDED KREZZ", icon: "⏳", desc: "Your krezz beam lasts half a second longer. Stacks twice.", key: "kd_krezzlong", max: 2 },
+  { id: "sperm", cat: "power", name: "AGGRESSIVE SPERMS", icon: "🧬", desc: "Your krezz beam is full of furious little swimmers. They peel off and hunt enemies down. CHOMP.", key: "kd_sperm", max: 1 },
+  { id: "hp", cat: "tough", name: "HIGH ROLLER", icon: "❤️", desc: "+20 max HP. Stacks three times.", key: "kd_hp", max: 3 },
+  { id: "lucky", cat: "tough", name: "LUCKY HORSESHOE", icon: "🍀", desc: "Enemies drop 25% more coins. Stacks twice.", key: "kd_lucky", max: 2 },
+  { id: "dice", cat: "power", name: "LOADED DICE", icon: "🎲", desc: "Every dodge leaves a pair of dice behind. They explode. Snake eyes.", key: "kd_dice", max: 1 },
+  { id: "slotfart", cat: "power", name: "SLOT MACHINE FARTS", icon: "🍒", desc: "Every fart spins the reels: x1, x2 or a x3 jackpot on the damage.", key: "kd_slotfart", max: 1 },
+  { id: "fairy", cat: "tough", name: "BOTTLED FAIRY", icon: "🧚", desc: "If you die in a fight, she flies out and brings you back to full health. Once. You can carry two.", key: "fairies", max: 2 },
+  { id: "g_chainsaw", cat: "guns", name: "THE KREDDLE CHAINSAW", icon: "🪚", desc: "A chainsaw. Short range. Absolutely shreds.", gun: "chainsaw" },
+  { id: "g_kreddler", cat: "guns", name: "THE KREDDLER (MINIGUN)", icon: "🔫", desc: "A gold-plated minigun. Spins up, never stops.", gun: "kreddler" },
+  { id: "g_disco", cat: "guns", name: "DISCO BALL LAUNCHER", icon: "🪩", desc: "Fires disco balls that explode into rainbow light.", gun: "disco" },
+  { id: "g_flush", cat: "guns", name: "THE ROYAL FLUSH", icon: "🃏", desc: "Fires a fan of razor-sharp playing cards that go straight through people.", gun: "flush" },
 ];
 
 export const PRIZE = Object.fromEntries(PRIZES.map((p) => [p.id, p])) as Record<string, Prize>;

@@ -63,9 +63,22 @@ export function addKrokens(s: GameState, n: number) {
   s.flags.krokens = Math.max(0, krokens(s) + n);
 }
 
-/** What a prize costs at the Prize Counter. Guns you already own are just a cheap refill. */
+/**
+ * Prize Counter prices in Krokens: [first level, extra per level you already have]. Looks are cheap; the
+ * things that keep you alive or win fights (armour, max HP, fairies, the big guns) cost a proper pile.
+ */
+export const KROKEN_PRICES: Record<string, [number, number]> = {
+  violence: [10, 0], tracer: [10, 0],
+  gas: [25, 10], krezzlong: [30, 10], krezz: [30, 10], super_time: [35, 10], slotfart: [35, 0], lucky: [35, 15],
+  jackpot: [40, 0], dice: [40, 0], hp: [40, 15], super_aura: [45, 0], gold: [50, 0], armor: [50, 20], sperm: [60, 0], fairy: [60, 20],
+  g_chainsaw: [60, 0], g_flush: [80, 0], g_kreddler: [100, 0], g_disco: [120, 0],
+};
+/** A gun you already own is just a refill. */
+export const KROKEN_REFILL = 15;
+
+/** What a prize costs at the Prize Counter. */
 export function krokenPrice(s: GameState, p: Prize): number {
-  if (p.gun) return s.guns && p.gun in s.guns ? 10 : 40;
-  const base: Record<string, number> = { krezz: 20, gas: 20, violence: 30, gold: 25, tracer: 15, jackpot: 30, super_time: 30, super_aura: 35, armor: 30, krezzlong: 25, sperm: 40, hp: 25, lucky: 20, dice: 30, slotfart: 25, fairy: 30 };
-  return (base[p.id] ?? 25) + 5 * kd(s, p.key!);
+  if (p.gun && s.guns && p.gun in s.guns) return KROKEN_REFILL;
+  const [base, step] = KROKEN_PRICES[p.id] ?? [40, 10];
+  return base + (p.key ? step * kd(s, p.key) : 0);
 }

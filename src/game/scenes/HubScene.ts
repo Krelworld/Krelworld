@@ -79,7 +79,6 @@ const BUILDINGS: Building[] = [
   { id: "BOOTH", name: "THE BOOTH", x: 940, y: 680, w: 150, h: 110, wall: 0x6d28d9, roof: 0x111827, door: { x: 940, y: 735 } },
   { id: "ABANDONED", name: "ABANDONED BUILDING", x: 1000, y: 1660, w: 220, h: 140, wall: 0x2a2a2a, roof: 0x111111, door: { x: 1000, y: 1730 } },
   { id: "POLICE", name: "KRELFORD CONSTABULARY", x: 1700, y: 1670, w: 240, h: 130, wall: 0x1e3a8a, roof: 0x111827, door: { x: 1700, y: 1735 } },
-  { id: "BOGGOR_HOUSE", name: "BOGGOR CRANSTIL'S HOUSE", x: 300, y: 250, w: 224, h: 176, wall: 0x2a2433, roof: 0x111111, door: { x: 300, y: 338 } },
   { id: "CROBLEY_FACTORY", name: "CROBLEY CORP HQ (THE CROBLEY FACTORY)", x: 1660, y: 1255, w: 288, h: 224, wall: 0xf472b6, roof: 0x334155, door: { x: 1660, y: 1367 } },
   { id: "OLD_FLAT", name: "YOUR OLD FLAT", x: 700, y: 1650, w: 200, h: 130, wall: 0x9a8a7a, roof: 0x5a3a2a, door: { x: 700, y: 1715 } },
 ];
@@ -95,6 +94,8 @@ const GATES: { id: string; name: string; x: number; y: number }[] = [
 const REGISTER_MS = 240000;
 
 const PLAYGROUND = { x: 120, y: 480, w: 360, h: 190, cx: 300, cy: 575 };
+/** Where Boggor Cranstil lurks: just outside the playground fence, peering in. */
+const BOGGOR_SPOT = { x: 530, y: 560 };
 const PLAY_EQUIP: [string, number, number][] = [
   ["hd_swings", 190, 560],
   ["hd_slide", 300, 510],
@@ -119,7 +120,7 @@ const NPC_SPOTS: Record<string, { x: number; y: number }> = {
 };
 
 /** Name plates for hub characters who aren't in CHARACTERS. */
-const NPC_NAMES: Record<string, string> = { SANJEEV: "Sanjeev" };
+const NPC_NAMES: Record<string, string> = { SANJEEV: "Sanjeev", BOGGOR: "Boggor Cranstil" };
 
 /** Where each character hangs out while doing their side story (when you're not them). */
 const ARC_SPOTS: Record<string, { x: number; y: number }> = {
@@ -1590,6 +1591,17 @@ export class HubScene extends Phaser.Scene {
     }
     // Proctus fills the player's spot
     this.addNpc("PROCTUS", NPC_SPOTS[s.player] ?? { x: 1300, y: 640 });
+    // Boggor Cranstil, lurking by the playground fence, peering in. Talking to him is how his (optional) side story starts.
+    if (!this.ruined && this.textures.exists("spr_BOGGOR")) {
+      this.addNpc("BOGGOR", BOGGOR_SPOT);
+      const bg = this.npcs[this.npcs.length - 1];
+      bg.spr.setFlipX(true);
+      const it = this.interactables.find((i) => (i as any).__npc === bg);
+      if (it) {
+        it.label = () => (arcStepAt(G.s, "BOGGOR") ? `Talk to Boggor Cranstil: ★ ${arcStepAt(G.s, "BOGGOR")!.step.text}` : "Talk to Boggor Cranstil");
+        it.use = () => void this.talkBoggor(bg);
+      }
+    }
     // Sanjeev, wandering about town offering pearls of wisdom (and crisps)
     this.addNpc("SANJEEV", { x: 1560, y: 1010 });
     this.npcs[this.npcs.length - 1].rove = true;
@@ -1717,7 +1729,7 @@ export class HubScene extends Phaser.Scene {
       if (now > n.nextMove && !this.busy) {
         n.nextMove = now + 2500 + Math.random() * 4000;
         const r = n.folk ? 160 : 50;
-        n.target = n.rove ? this.roveTarget(n.spr.x, n.spr.y) : { x: n.home.x + (Math.random() - 0.5) * r * 2, y: n.home.y + (Math.random() - 0.5) * r };
+        n.target = n.rove ? this.roveTarget(n.spr.x, n.spr.y) : n.id === "BOGGOR" ? { x: n.home.x + (Math.random() - 0.5) * 30, y: n.home.y } : { x: n.home.x + (Math.random() - 0.5) * r * 2, y: n.home.y + (Math.random() - 0.5) * r };
       }
       const dx = n.target.x - n.spr.x;
       const dy = n.target.y - n.spr.y;
@@ -1795,6 +1807,8 @@ export class HubScene extends Phaser.Scene {
   private static PLACES = (): { id: string; name: string; x: number; y: number }[] => [
     ...BUILDINGS.filter((b) => b.door).map((b) => ({ id: b.id, name: b.name, x: b.door!.x, y: b.door!.y })),
     ...GATES.map((g) => ({ id: g.id, name: g.name, x: g.x, y: g.y })),
+    // Boggor has no house any more: he lurks at the playground fence
+    { id: "BOGGOR", name: "BOGGOR CRANSTIL", x: BOGGOR_SPOT.x, y: BOGGOR_SPOT.y },
   ];
 
   /** Hidden stashes tucked into the corners of the map. */
@@ -2602,6 +2616,21 @@ You are required by law to sign the Sex Offenders Register.`, {
       G.emit("toast", { title: "SIDE STORY COMPLETE", text: r });
       G.save();
     }
+  }
+
+  /** Boggor: starts and finishes his side story; tops up sweeties mid-quest; otherwise mutters. */
+  private async talkBoggor(n: Npc) {
+    const s = G.s;
+    if (this.busy) return;
+    if (await this.runArcStep("BOGGOR")) {
+      this.arcPayout();
+      return;
+    }
+    if (s.flags.arcstep_arc_boggor_meet && !s.flags.arc_boggor_done && !((s.flags.boggor_candy as number) > 0)) {
+      await this.talk([say("BOGGOR CRANSTIL", "Out of sweeties already? Greedy little things, aren't they. Here. Five more. Heh heh heh.", { set: { boggor_candy: 5 } })]);
+      return;
+    }
+    await this.talkTo(n);
   }
 
   /** Run the player's current character-arc step at this building. Returns true if it took over. */

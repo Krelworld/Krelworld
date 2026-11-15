@@ -62,6 +62,11 @@ export const GUNS: Record<string, GunDef> = {
     id: "sniper", name: "Polson's Long Lens", blurb: "Originally bought to look at his own house from the other side of town.",
     tex: "p_wpn_rail", dmg: 75, cd: 1100, speed: 1500, pellets: 1, spread: 0, range: 950, pierce: 3, knock: 220, color: 0xf5f5f5, maxAmmo: 24, pickup: 6, minChapter: 1, shop: 480,
   },
+  // Boggor's side story reward only (never in crates or shops): every shot a blinding camera flash
+  boggor_lens: {
+    id: "boggor_lens", name: "Boggor's Telephoto", blurb: "His old camera, converted. Every shot is a blinding flash. Heh heh heh.",
+    tex: "p_wpn_rail", dmg: 48, cd: 600, speed: 1300, pellets: 3, spread: 0.18, range: 700, pierce: 5, blast: 70, knock: 260, color: 0xfffbe0, maxAmmo: 60, pickup: 10, minChapter: 99,
+  },
   flamer: {
     id: "flamer", name: "Fizzy Bongo Flamethrower", blurb: "It's a bongo. On fire. Pointed at people.",
     tex: "p_wpn_shotgun", dmg: 4, cd: 70, speed: 380, pellets: 4, spread: 0.5, range: 170, color: 0xff7a1a, maxAmmo: 320, pickup: 80, minChapter: 1, shop: 560,
@@ -94,10 +99,10 @@ export const GUNS: Record<string, GunDef> = {
   },
 };
 
-export const GUN_ORDER = ["chem_flamer", "pistol", "smg", "shotgun", "rail", "rocket", "gatling", "sniper", "flamer", "bfk", "chainsaw", "kreddler", "disco", "flush"];
+export const GUN_ORDER = ["chem_flamer", "pistol", "smg", "shotgun", "rail", "rocket", "gatling", "sniper", "boggor_lens", "flamer", "bfk", "chainsaw", "kreddler", "disco", "flush"];
 
 /** Strongest first: what you get handed when you walk into a room or run dry. */
-export const GUN_POWER = ["chem_flamer", "bfk", "disco", "kreddler", "rocket", "gatling", "flush", "chainsaw", "sniper", "rail", "flamer", "shotgun", "smg", "pistol"];
+export const GUN_POWER = ["chem_flamer", "bfk", "disco", "kreddler", "rocket", "gatling", "flush", "chainsaw", "boggor_lens", "sniper", "rail", "flamer", "shotgun", "smg", "pistol"];
 
 /** The infinite starter every character always has (when no gun is in hand). */
 export const FART_BLASTER = { name: "Fart Blaster", dmg: 10, cd: 240, speed: 540, range: 400 };

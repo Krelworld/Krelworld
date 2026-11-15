@@ -515,6 +515,15 @@ export const BARKS: Record<string, Bark[]> = {
     b("Do you think Drongus appreciates me? He's never reacted to me either.", { revision: "TAP_SENTIENT" }),
   ],
   SANJEEV: SANJEEV_BARKS,
+  BOGGOR: [
+    b("So close, yet so far…"),
+    b("Boggor just wants… a clearer look…"),
+    b("The galvanised steel… heh heh heh."),
+    b("Supple. So supple."),
+    b("If only ol' Boggor had a nice photograph…"),
+    b("Mind the gnome."),
+    b("Lovely jubbly…", { flag: "arc_boggor_done" }),
+  ],
 };
 
 /** Combat quips the player character shouts. 15+ each. */

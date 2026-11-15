@@ -801,18 +801,18 @@ export const ARCS: Arc[] = [
     player: "ALL",
     minChapter: 2,
     title: "Supple Structures",
-    blurb: "Boggor Cranstil, the hunched old man in the dark house by the playground, wants photographs of the playground equipment.",
-    reward: { coins: 250, gun: "sniper", desc: "A signed copy of 'Supple Structures: A Photographic Journey' by B. Cranstil (it's mostly slides), and Boggor's old telephoto rig, converted: POLSON'S LONG LENS, a sniper rifle. Fully loaded. 'I won't be needing it. I've got all the photos I need.'" },
+    blurb: "Boggor Cranstil, the hunched old man forever lurking at the playground fence, wants photographs of the playground equipment. Entirely optional.",
+    reward: { coins: 250, gun: "boggor_lens", desc: "A signed copy of 'Supple Structures: A Photographic Journey' by B. Cranstil (it's mostly slides), and his own camera, converted into a weapon: BOGGOR'S TELEPHOTO. Every shot is a blinding flash. 'I won't be needing it. I've got all the photos I need.'" },
     steps: [
       {
         id: "meet",
-        text: "Visit Boggor Cranstil's dark house by the playground.",
-        at: "BOGGOR_HOUSE",
+        text: "Talk to the old man lurking at the playground fence.",
+        at: "BOGGOR",
         step: {
           kind: "dialogue",
           lines: [
-            dir("A dark house. Curtains drawn. The door opens before you knock. A hunched old man in a stained cardigan is already standing there. He has been standing there for some time."),
-            say("BOGGOR CRANSTIL", "Ahh. A visitor. Come in, come in. Mind the gnome. He bites. Heh heh heh."),
+            dir("A hunched old man in a stained cardigan, pressed up against the playground fence. He has been standing there for some time. He turns round very slowly."),
+            say("BOGGOR CRANSTIL", "Ahh. A visitor. So close, yet so far… Heh heh heh."),
             say("BOGGOR CRANSTIL", "I'm Boggor. Boggor Cranstil. I've lived next to that playground for forty-one years. Forty-one years of watching it."),
             say("BOGGOR CRANSTIL", "The slide. The climbing frame. The swings. Oh, the swings. I love the supple structures. The way they bend in the sun. The galvanised steel. The give in the rubber matting."),
             dir("You: …the equipment?"),
@@ -844,8 +844,8 @@ export const ARCS: Arc[] = [
       },
       {
         id: "handin",
-        text: "Bring the photographs back to Boggor Cranstil.",
-        at: "BOGGOR_HOUSE",
+        text: "Bring the photographs back to Boggor Cranstil, at the playground fence.",
+        at: "BOGGOR",
         step: {
           kind: "dialogue",
           lines: [
@@ -853,7 +853,7 @@ export const ARCS: Arc[] = [
             say("BOGGOR CRANSTIL", "Oh lovely… lovely jubbly indeed."),
             say("BOGGOR CRANSTIL", "Look at the camber on that slide. Look at the tension in those swing chains. Supple. So supple."),
             say("BOGGOR CRANSTIL", "You've done ol' Boggor a great kindness. Here. For your trouble. And a signed copy. Heh heh heh."),
-            dir("Boggor closes the door. Behind it, faintly, you hear him whisper 'galvanised' to himself several times."),
+            dir("Boggor turns back to the fence. You hear him whisper 'galvanised' to himself several times."),
           ],
         },
       },

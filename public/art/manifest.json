@@ -6863,6 +6863,9 @@
   "p_cannon_base": {
    "file": "props/p_cannon_base.png"
   },
+  "p_seagull": {
+   "file": "props/p_seagull.png"
+  },
   "p_plane_hd": {
    "file": "props/p_plane_hd.png",
    "hd": 0.1905

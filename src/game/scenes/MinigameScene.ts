@@ -1845,7 +1845,7 @@ export class MinigameScene extends Phaser.Scene {
     }
     title(this, 480, 24, "BOARD FLIGHT KR-069", 26, "#ffd23f").setDepth(200);
     // the instruction on a dark pill so it reads over any sky
-    const tip = this.add.text(480, 54, "The plane is taxiing. Get in the cannon.  SPACE / TAP: set ANGLE, then POWER.", { fontFamily: FONT, fontSize: "13px", color: "#ffffff" }).setOrigin(0.5).setDepth(201);
+    const tip = this.add.text(480, 54, "Get in the cannon. SPACE / TAP: ANGLE, then POWER. Grab coins mid-air. Mind the seagulls.", { fontFamily: FONT, fontSize: "13px", color: "#ffffff" }).setOrigin(0.5).setDepth(201);
     this.add.rectangle(480, 54, tip.width + 28, 26, 0x0b0614, 0.7).setStrokeStyle(1, 0xffd23f, 0.6).setDepth(200);
     // the on-screen offer: which try this is and what hitting it now is worth
     const offer = this.add
@@ -1909,6 +1909,88 @@ export class MinigameScene extends Phaser.Scene {
       offer.setColor(perk ? (n === 1 ? "#ffd23f" : n === 2 ? "#a7f3d0" : "#bfdbfe") : "#e5e7eb");
     };
     showOffer();
+    // ---- stuff in the air, Mario-style: coin arcs along real flight paths, a bongo, a golden Krezzcoin up high, and seagulls
+    type Pick = { o: Phaser.GameObjects.Image | Phaser.GameObjects.Arc; kind: "coin" | "bongo" | "gold"; got: boolean };
+    const picks: Pick[] = [];
+    const loot = { coins: 0, bongos: 0 };
+    const lootTxt = this.add.text(944, 122, "", { fontFamily: FONT, fontSize: "16px", color: "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(1, 0.5).setDepth(200);
+    const showLoot = () => lootTxt.setText(loot.coins || loot.bongos ? `IN YOUR POCKETS: ${loot.coins} KREZZCOIN${loot.bongos ? ` · ${loot.bongos} BONGO${loot.bongos > 1 ? "S" : ""}` : ""}` : "");
+    // where a shot at (angle, power) is after t seconds (same physics as the flight below)
+    const at = (a: number, pw: number, t: number) => {
+      const sp = 380 + pw * 520;
+      return { x: CX + Math.cos(a) * MUZZLE + Math.cos(a) * sp * t, y: CY + Math.sin(a) * MUZZLE + Math.sin(a) * sp * t + 350 * t * t };
+    };
+    const place = (kind: Pick["kind"], x: number, y: number) => {
+      if (x < 250 || x > 900 || y < 120 || y > 410) return;
+      if (picks.some((p) => Math.abs(p.o.x - x) < 34 && Math.abs(p.o.y - y) < 34)) return;
+      let o: Pick["o"];
+      if (kind === "bongo" && this.textures.exists("p_bongo")) o = this.add.image(x, y, "p_bongo").setDisplaySize(26, 34);
+      else if (kind !== "bongo" && this.textures.exists("kd_coin")) o = this.add.image(x, y, "kd_coin").setDisplaySize(kind === "gold" ? 44 : 24, kind === "gold" ? 44 : 24);
+      else o = this.add.circle(x, y, kind === "gold" ? 20 : 11, kind === "bongo" ? 0x38bdf8 : 0xfacc15).setStrokeStyle(2, 0x000000);
+      o.setDepth(15);
+      if (kind === "gold") {
+        (o as any).setTint?.(0xffe680);
+        const halo = this.add.circle(x, y, 30, 0xfff3a0, 0.25).setDepth(14).setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({ targets: halo, scale: 1.3, alpha: 0.08, yoyo: true, repeat: -1, duration: 600 });
+        o.once("destroy", () => halo.destroy());
+      }
+      this.tweens.add({ targets: o, y: y - 6, yoyo: true, repeat: -1, duration: 700 + Math.random() * 300, ease: "Sine.inOut", delay: Math.random() * 400 });
+      picks.push({ o, kind, got: false });
+    };
+    // when a shot comes back down to plane height
+    const tLand = (a: number, pw: number) => {
+      const sp = 380 + pw * 520;
+      const y0 = CY + Math.sin(a) * MUZZLE;
+      const vy0 = Math.sin(a) * sp;
+      return (-vy0 + Math.sqrt(vy0 * vy0 + 4 * 350 * (PLANE_Y - y0))) / 700;
+    };
+    for (let k = 0, guard = 0; k < 3 && guard < 200; guard++) {
+      const a = -0.45 - Math.random() * 0.75;
+      const pw = 0.3 + Math.random() * 0.65;
+      const tl = tLand(a, pw);
+      const xl = at(a, pw, tl).x;
+      // only arcs that come down where the plane can be, spread across the screen
+      if (xl < 470 + k * 120 || xl > 620 + k * 130) continue;
+      for (let i = 0; i < 6; i++) {
+        const q = at(a, pw, tl * (0.3 + i * 0.11));
+        place("coin", q.x, q.y);
+      }
+      // a bongo at the top of one arc
+      if (k === 1) {
+        const sp = 380 + pw * 520;
+        const tTop = (-Math.sin(a) * sp) / 700;
+        const q = at(a, pw, tTop);
+        place("bongo", q.x, q.y - 4);
+      }
+      k++;
+    }
+    // the golden Krezzcoin: only a big steep shot gets near it
+    {
+      const q = at(-1.15, 0.97, 0.62);
+      place("gold", Math.min(860, q.x), Math.max(130, q.y));
+    }
+    // seagulls cruising across, ready to ruin it
+    const gulls: { o: Phaser.GameObjects.Image | Phaser.GameObjects.Ellipse; v: number; stunUntil: number }[] = [];
+    for (let i = 0; i < 2; i++) {
+      const gy = 170 + i * 110 + Math.random() * 40;
+      const o = this.textures.exists("p_seagull") ? this.add.image(400 + i * 300, gy, "p_seagull").setScale(1.2) : this.add.ellipse(400 + i * 300, gy, 34, 14, 0xffffff).setStrokeStyle(2, 0x6b7280);
+      o.setDepth(16);
+      this.tweens.add({ targets: o, scaleY: o.scaleY * 0.8, yoyo: true, repeat: -1, duration: 220 });
+      gulls.push({ o, v: 55 + Math.random() * 45, stunUntil: 0 });
+    }
+    const collect = (p: Pick) => {
+      p.got = true;
+      this.tweens.killTweensOf(p.o);
+      if (p.kind === "bongo") loot.bongos++;
+      else loot.coins += p.kind === "gold" ? 50 : 5;
+      synth.play(p.kind === "gold" ? "jackpot" : p.kind === "bongo" ? "gulp" : "coin");
+      if (p.kind === "gold") {
+        vfx(this, "vfx_stars", p.o.x, p.o.y, { scale: 1.4, depth: 40 });
+        this.pop(p.o.x, p.o.y - 30, "+50 GOLDEN KREZZCOIN!", "#fff3a0", 20);
+      } else this.pop(p.o.x, p.o.y - 20, p.kind === "bongo" ? "+1 BONGO" : "+5", p.kind === "bongo" ? "#7dd3fc" : "#ffd23f", 14);
+      this.tweens.add({ targets: p.o, x: 900, y: 122, scale: 0.2, alpha: 0, duration: 380, ease: "Quad.in", onComplete: () => p.o.destroy() });
+      showLoot();
+    };
     const fire = () => {
       if (this.ended || this.box.active) return;
       if (phase === "angle") {
@@ -1974,6 +2056,11 @@ export class MinigameScene extends Phaser.Scene {
         dir("You hit the fuselage, bounce off a wing, and fall through an open window into seat 23B. The man in 23A doesn't look up from his book."),
         say(G.s.player, "Is this seat taken?"),
       ];
+      if (loot.coins || loot.bongos) {
+        G.s.coins += loot.coins;
+        G.s.bongos += loot.bongos;
+        lines.push(dir(`You empty your pockets onto the tray table: ${loot.coins} Krezzcoin${loot.bongos ? ` and ${loot.bongos} slightly shaken fizzy bongo${loot.bongos > 1 ? "s" : ""}` : ""}, collected mid-air. The man in 23A turns a page.`));
+      }
       if (perk) {
         perk.apply();
         G.save();
@@ -1998,6 +2085,11 @@ export class MinigameScene extends Phaser.Scene {
         plane.x += 2.6;
         if (plane.x > 960 + plane.displayWidth * 0.6) plane.x = -plane.displayWidth * 0.6;
         planeShadow.setX(plane.x);
+        for (const g of gulls) {
+          if (now < g.stunUntil) continue;
+          g.o.x -= g.v * 0.016;
+          if (g.o.x < 230) g.o.x = 940;
+        }
         if (phase === "angle") {
           ang = -0.25 - (0.5 + 0.5 * Math.sin(now / 380)) * 1.0;
           barrel.setRotation(ang);
@@ -2019,6 +2111,22 @@ export class MinigameScene extends Phaser.Scene {
           px += vx * dt;
           py += vy * dt;
           hero.setPosition(px, py).setAngle(hero.angle + 14);
+          for (const p of picks) if (!p.got && Math.abs(p.o.x - px) < (p.kind === "gold" ? 34 : 26) && Math.abs(p.o.y - py) < (p.kind === "gold" ? 34 : 26)) collect(p);
+          for (const g of gulls) {
+            if (now < g.stunUntil || Math.abs(g.o.x - px) > 30 || Math.abs(g.o.y - py) > 24) continue;
+            // SQUAWK: the gull wins, you drop like a stone
+            g.stunUntil = now + 1500;
+            vx *= 0.35;
+            vy = Math.max(vy, 60);
+            synth.play("shriek");
+            this.cameras.main.shake(140, 0.008);
+            this.pop(px, py - 30, "SQUAWK!", "#ffffff", 20);
+            for (let f = 0; f < 6; f++) {
+              const fe = this.add.rectangle(px, py, 6, 3, 0xffffff).setDepth(41).setAngle(Math.random() * 180);
+              this.tweens.add({ targets: fe, x: px + (Math.random() - 0.5) * 80, y: py + 30 + Math.random() * 40, angle: fe.angle + 200, alpha: 0, duration: 900, onComplete: () => fe.destroy() });
+            }
+            this.tweens.add({ targets: g.o, angle: 720, duration: 600, onComplete: () => g.o.setAngle(0) });
+          }
           // a puff of smoke trailing behind you
           if (Math.random() < 0.5) {
             const puff = this.add.circle(px, py, 5 + Math.random() * 4, 0xe5e7eb, 0.7).setDepth(18);

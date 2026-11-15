@@ -2526,10 +2526,10 @@ export class VignetteScene extends Phaser.Scene {
       layer.add(this.add.rectangle(480, 270, 960, 540, 0x000000));
       const t = this.add.text(480, 240, "YOU HEARD WHAT\nYOU THOUGHT YOU HEARD", { fontFamily: "Impact, sans-serif", fontSize: "56px", color: "#ffffff", align: "center" }).setOrigin(0.5).setAlpha(0);
       layer.add(t);
-      this.tweens.add({ targets: t, alpha: 1, duration: 900 });
+      this.tweens.add({ targets: t, alpha: 1, duration: 250 });
       const logo = this.add.text(480, 420, "CROBLEY®", { fontFamily: "Impact, sans-serif", fontSize: "40px", color: "#f472b6" }).setOrigin(0.5).setAlpha(0);
       layer.add(logo);
-      this.tweens.add({ targets: logo, alpha: 1, duration: 900, delay: 500 });
+      this.tweens.add({ targets: logo, alpha: 1, duration: 400, delay: 300 });
     };
     const plan: [number, () => void][] = [
       [0, kids],
@@ -2542,7 +2542,7 @@ export class VignetteScene extends Phaser.Scene {
       [53, family],
       [57, changing],
       [70, massacre],
-      [81, ending],
+      [79, ending],
     ];
     voice.prefetch([
       { s: "FLIRT CROBLEY", t: "Hey, sugar. Wanna nibble?" },
@@ -2568,7 +2568,7 @@ export class VignetteScene extends Phaser.Scene {
       };
       const skip = () => done();
       this.input.keyboard?.on("keydown-TAB", skip);
-      timers.push(this.time.delayedCall(83500, done));
+      timers.push(this.time.delayedCall(82500, done));
     });
     voice.stop();
     synth.stopMusic();

@@ -599,7 +599,8 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
       camState.shake *= Math.pow(0.02, dt);
     }
     cam.lookAt(camState.look);
-    renderer.render(s3, cam);
+    // a recorder resuming a render fast-forwards without drawing
+    if (!(window as unknown as { __k3noRender?: boolean }).__k3noRender) renderer.render(s3, cam);
     clk.frame(frame);
   };
   clk.frame(frame);

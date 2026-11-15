@@ -185,7 +185,7 @@ function canvasTex(w: number, h: number, draw: (x: CanvasRenderingContext2D) => 
 
 // ------------------------------------------------------------------ actors
 
-type Pose = "idle" | "lie" | "getup" | "shocked" | "cheer" | "dance" | "run" | "walk" | "jump" | "drink" | "talk" | "shoot";
+type Pose = "idle" | "lie" | "getup" | "shocked" | "cheer" | "dance" | "run" | "walk" | "jump" | "drink" | "talk" | "shoot" | "sit";
 
 /** A lad (or a pedestrian): a Meshy model with clips, or a blocky stand-in with procedural poses. */
 class Actor {
@@ -215,7 +215,7 @@ class Actor {
     const clip = this.clips[name] ?? (p === "lie" ? this.clips.fall : undefined) ?? (p === "walk" ? this.clips.run : undefined) ?? (p === "run" ? this.clips.walk : undefined) ?? this.clips.idle;
     if (!clip) return;
     const a = this.mixer.clipAction(clip);
-    const once = p === "getup" || p === "lie" || p === "jump";
+    const once = p === "getup" || p === "lie" || p === "jump" || p === "sit";
     a.reset();
     a.setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat, Infinity);
     a.clampWhenFinished = once;
@@ -474,6 +474,8 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     return w / h;
   };
   renderer.shadowMap.enabled = true;
+  // the jacked car's driver door is cut out of the car with clipping planes so it can swing open
+  renderer.localClippingEnabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -626,6 +628,8 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   const peds = spawnPeds(s3, L, sidewalkPaths, actors, updaters);
   // the car SanMik takes, already pulled up at the kerb on the plaza's south side
   const parkedCar = traffic.stopNext(new THREE.Vector3(-6, 0, 33.5));
+  // a broken-down car on the avenue, slewed across his lane: the getaway runs into it
+  traffic.stall(new THREE.Vector3(66, 0, -2.2), Math.PI / 2 + 0.5);
 
   // ---- the lads
   const lad: Record<string, Actor> = {};
@@ -785,11 +789,14 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     sub.innerHTML = `<span style="color:${col}">${name}:</span> ${escapeHtml(l.t ?? "")}`;
     voice.say(id, l.t ?? "");
     const t0 = clk.now();
-    const floor = Math.max(minMs, voice.enabled() ? 700 : 900 + (l.t ?? "").length * 55);
+    // the line holds for its recording's real length: a recorder steps the clock far slower than real time, so
+    // voice.busy() (real audio) can't be trusted there, and the clip is mixed in afterwards at full length
+    const clip = voice.enabled() ? await voice.clipMs(id, l.t ?? "") : undefined;
+    const floor = Math.max(minMs, clip !== undefined ? clip + 250 : voice.enabled() ? 700 : 900 + (l.t ?? "").length * 55);
     await new Promise<void>((res) => {
       const check = () => {
         const el = clk.now() - t0;
-        if (skipped || (el > floor && !voice.busy()) || el > 9000) return res();
+        if (skipped || (el > floor && (capture || !voice.busy())) || el > Math.max(9000, floor + 500)) return res();
         clk.after(check, 60);
       };
       clk.after(check, 250);
@@ -978,6 +985,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   // door open, driver dragged out onto the road
   cut([car.x - 4.8, 1.55, car.z - 6.2], [car.x - 0.4, 1.0, car.z - 1.4]);
   synth.play("door");
+  void jacked.openDoor(380);
   await wait(250);
   const driver = peds.spare();
   driver.root.visible = true;
@@ -1058,12 +1066,47 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   synth.play("shriek");
   cut([car.x - 5.5, 1.3, car.z - 7], [dp.x, 0.6, dp.z]);
   await wait(1100);
-  // in he gets
+  // in he gets: round to the open door, a look back, then in, sat at the wheel, door slammed
+  const ds = jacked.doorSpot();
   sanmik.play("walk");
-  await moveTo(sanmik, door.x, door.z, 2.2);
-  sanmik.root.visible = false;
+  void camTo([ds.x - 3.6, 1.7, ds.z - 3.4], [ds.x + 0.6, 1.0, ds.z + 0.9], 900);
+  await moveTo(sanmik, ds.x, ds.z, 2.4);
+  const seatW = jacked.seatSpot();
+  sanmik.faceTo(seatW.x, seatW.z);
+  sanmik.play("idle");
+  await wait(250);
+  // low, outside the open door, looking in at the seat
+  cut([ds.x - 2.4, 1.15, ds.z - 2.2], [seatW.x, 0.9, seatW.z]);
+  {
+    const p0 = sanmik.root.position.clone();
+    const r0 = sanmik.root.rotation.y;
+    const r1 = jacked.obj.rotation.y;
+    let dr = r1 - r0;
+    while (dr > Math.PI) dr -= Math.PI * 2;
+    while (dr < -Math.PI) dr += Math.PI * 2;
+    sanmik.play("sit");
+    await new Promise<void>((res) => {
+      const t0 = clk.now();
+      const step = () => {
+        const k = Math.min(1, (clk.now() - t0) / 900);
+        const e = k * k * (3 - 2 * k);
+        const sw = jacked.seatSpot();
+        // duck in: across and up onto the seat, turning to face the windscreen
+        sanmik.root.position.set(lerp(p0.x, sw.x, e), lerp(0, sw.y, e) + Math.sin(k * Math.PI) * 0.12, lerp(p0.z, sw.z, e));
+        sanmik.root.rotation.y = r0 + dr * Math.min(1, k * 1.4);
+        if (k < 1) clk.frame(step);
+        else res();
+      };
+      step();
+    });
+  }
+  // he rides with the car from here on
+  jacked.obj.attach(sanmik.root);
+  await wait(200);
   synth.play("door");
-  await wait(350);
+  await jacked.closeDoor(300);
+  shake(0.12);
+  await wait(250);
   synth.play("car_screech");
   // the getaway: round the plaza, through two pedestrians
   const victims = peds.onRoad(jacked, 2);
@@ -1072,12 +1115,27 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     const d = jacked.dir;
     return [new THREE.Vector3(p.x - d.x * 13, 9, p.z - d.z * 13), new THREE.Vector3(p.x + d.x * 8, 0.8, p.z + d.z * 8)];
   };
-  await jacked.getaway(victims, (v) => {
-    synth.play("car_hit");
-    synth.play("shriek");
-    shake(0.3);
-    if (G.meta.settings.gore !== false) burst(v.headPos(), 22, 0xb3001b, { speed: 4, up: 4, size: 0.16, life: 0.9, grav: 12 });
-  });
+  await jacked.getaway(
+    victims,
+    (v) => {
+      synth.play("car_hit");
+      synth.play("shriek");
+      shake(0.3);
+      if (G.meta.settings.gore !== false) burst(v.headPos(), 22, 0xb3001b, { speed: 4, up: 4, size: 0.16, life: 0.9, grav: 12 });
+    },
+    (at, hard) => {
+      // metal on metal: sparks, glass, a puff of smoke off the wreck, and the whole frame jolts
+      synth.play("car_hit");
+      synth.play("smash");
+      if (hard > 0.4) synth.play("plate_smash");
+      shake(0.25 + hard * 0.35);
+      burst(at, 30, 0xffd23f, { speed: 6, up: 3, size: 0.16, life: 0.5, grav: 9, additive: true });
+      burst(at, 18, 0xcfe8ff, { speed: 4, up: 3, size: 0.12, life: 0.9, grav: 12 });
+      burst(at.clone().setY(1.4), 10, 0x6b7280, { speed: 1, up: 1.5, size: 0.6, life: 1.6, grav: -0.5, grow: 2 });
+      clk.after(() => synth.play("car_screech"), 800);
+    },
+  );
+  sanmik.root.visible = false;
   camState.follow = null;
 
   // ---- 7. Luke and the bread and butter house
@@ -2150,9 +2208,18 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
   const tmp = new THREE.Vector3();
   const dir = new THREE.Vector3();
   let held: Car | null = null;
+  /** Cars that have been hit (shoved, spinning, then stopped where they land) or parked on purpose. */
+  const wrecks = new Map<Car, { v: T3.Vector3; spin: number }>();
   updaters.push((dt) => {
+    for (const [c, w] of wrecks) {
+      c.obj.position.addScaledVector(w.v, dt);
+      c.obj.rotation.y += w.spin * dt;
+      const k = Math.max(0, 1 - dt * 2.2);
+      w.v.multiplyScalar(k);
+      w.spin *= k;
+    }
     for (const c of cars) {
-      if (c === held) continue;
+      if (c === held || wrecks.has(c)) continue;
       c.s += c.speed * dt;
       pathAt(c.path, c.s, tmp, dir);
       c.obj.position.copy(tmp);
@@ -2160,6 +2227,14 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
     }
   });
   return {
+    /** Park a car (not the held one) broken down at a spot: something on the getaway route to crash into. */
+    stall(at: T3.Vector3, yaw: number) {
+      const c = cars.find((x) => x !== held && !x.bus && !wrecks.has(x) && x.obj.position.distanceTo(at) > 60) ?? cars.find((x) => x !== held && !wrecks.has(x));
+      if (!c) return;
+      wrecks.set(c, { v: new THREE.Vector3(), spin: 0 });
+      c.obj.position.copy(at);
+      c.obj.rotation.y = yaw;
+    },
     /** Pull the car nearest a point over and hold it there: the one SanMik takes. */
     stopNext(at: T3.Vector3) {
       let best = cars[0];
@@ -2174,33 +2249,175 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
       held = best;
       best.obj.position.copy(at);
       best.obj.rotation.y = Math.PI / 2;
+      // ---- the driver's door: the car's own door, cut out of the body so it can swing
+      // (the body gets a box-shaped hole: clipped where it's inside all six planes; the door piece is a clone of
+      // the car clipped to the inside of the same box, on a hinge at the door's front edge)
+      const wrap = best.obj;
+      const inner = wrap.children[0];
+      const ry = wrap.rotation.y;
+      wrap.rotation.y = 0;
+      wrap.position.set(0, 0, 0);
+      wrap.updateMatrixWorld(true);
+      const bb = new THREE.Box3().setFromObject(wrap);
+      wrap.rotation.y = ry;
+      wrap.position.copy(at);
+      const len = bb.max.z - bb.min.z;
+      const hgt = bb.max.y - bb.min.y;
+      // right-hand side (+x), the front door: from just behind the middle to a quarter-length forward
+      const dbox = new THREE.Box3(new THREE.Vector3(bb.max.x - 0.55, bb.min.y + hgt * 0.2, bb.min.z + len * 0.46), new THREE.Vector3(bb.max.x + 0.3, bb.min.y + hgt * 0.74, bb.min.z + len * 0.73));
+      const hinge = new THREE.Vector3(bb.max.x - 0.08, 0, dbox.max.z);
+      const seat = new THREE.Vector3(bb.max.x - 0.62, bb.min.y + hgt * 0.16, bb.min.z + len * 0.5);
+      const doorOut = new THREE.Vector3(bb.max.x + 0.75, 0, (dbox.min.z + dbox.max.z) / 2 - 0.35);
+      const pivot = new THREE.Group();
+      pivot.position.copy(hinge);
+      wrap.add(pivot);
+      let doorOk = !!inner && !(inner as T3.Mesh).isMesh && wrap.children.length === 2;
+      const bodyPlanes: T3.Plane[] = [];
+      const piecePlanes: T3.Plane[] = [];
+      // inward-facing planes of the door box (local to the car)
+      const local = [
+        new THREE.Plane(new THREE.Vector3(1, 0, 0), -dbox.min.x),
+        new THREE.Plane(new THREE.Vector3(-1, 0, 0), dbox.max.x),
+        new THREE.Plane(new THREE.Vector3(0, 1, 0), -dbox.min.y),
+        new THREE.Plane(new THREE.Vector3(0, -1, 0), dbox.max.y),
+        new THREE.Plane(new THREE.Vector3(0, 0, 1), -dbox.min.z),
+        new THREE.Plane(new THREE.Vector3(0, 0, -1), dbox.max.z),
+      ];
+      if (doorOk && inner) {
+        const piece = inner.clone(true);
+        for (const _ of local) {
+          bodyPlanes.push(new THREE.Plane());
+          piecePlanes.push(new THREE.Plane());
+        }
+        const own = (o: T3.Object3D, planes: T3.Plane[], inter: boolean) =>
+          o.traverse((m) => {
+            const mesh = m as T3.Mesh;
+            if (!mesh.isMesh) return;
+            const mats = (Array.isArray(mesh.material) ? mesh.material : [mesh.material]).map((mt) => {
+              const c = mt.clone();
+              c.clippingPlanes = planes;
+              c.clipIntersection = inter;
+              c.side = THREE.DoubleSide;
+              return c;
+            });
+            mesh.material = Array.isArray(mesh.material) ? mats : mats[0];
+          });
+        own(inner, bodyPlanes, true);
+        own(piece, piecePlanes, false);
+        piece.position.copy(inner.position).sub(hinge);
+        pivot.add(piece);
+      } else doorOk = false;
+      const mBody = new THREE.Matrix4();
+      const mPiece = new THREE.Matrix4();
+      const unHinge = new THREE.Matrix4().makeTranslation(-hinge.x, -hinge.y, -hinge.z);
+      updaters.push(() => {
+        if (!doorOk) return;
+        wrap.updateMatrixWorld(true);
+        mBody.copy(wrap.matrixWorld);
+        mPiece.copy(pivot.matrixWorld).multiply(unHinge);
+        // the body's hole uses outward planes (clipped only where inside all of them)
+        for (let i = 0; i < local.length; i++) {
+          bodyPlanes[i].copy(local[i]).negate().applyMatrix4(mBody);
+          piecePlanes[i].copy(local[i]).applyMatrix4(mPiece);
+        }
+      });
+      const swing = (to: number, ms: number) =>
+        new Promise<void>((res) => {
+          const from = pivot.rotation.y;
+          const t0 = clk.now();
+          const step = () => {
+            const k = Math.min(1, (clk.now() - t0) / ms);
+            const e = to < from ? 1 - (1 - k) * (1 - k) : k * k;
+            pivot.rotation.y = from + (to - from) * e;
+            if (k < 1) clk.frame(step);
+            else res();
+          };
+          step();
+        });
       const self = {
         pos: best.obj.position,
         dir: new THREE.Vector3(1, 0, 0),
-        /** Floor it round the ring road, flattening whoever's in the way, then off down the avenue. */
-        async getaway(victims: Actor[], onHit: (v: Actor) => void) {
-          const route: T3.Vector3[] = [at.clone(), new THREE.Vector3(33.8, 0, 33.5), new THREE.Vector3(33.8, 0, -33.5), new THREE.Vector3(36, 0, -2), new THREE.Vector3(150, 0, -2)];
+        obj: wrap,
+        /** Where to stand to get in, and the driver's seat, in world space. */
+        doorSpot: () => wrap.localToWorld(doorOut.clone()),
+        seatSpot: () => wrap.localToWorld(seat.clone()),
+        seatLocal: seat,
+        /** Swing the driver's door open (outwards, ~70 degrees) or shut. */
+        openDoor: (ms = 450) => swing(-1.2, ms),
+        closeDoor: (ms = 350) => swing(0, ms),
+        /**
+         * Floor it round the ring road, flattening whoever's in the way, then off down the avenue. It's driven, not
+         * slid along a line: it steers for each waypoint at a limited turn rate, slows for the corner, and anything
+         * it runs into is a crash (both cars knocked about, then he backs off and swerves round the wreck).
+         */
+        async getaway(victims: Actor[], onHit: (v: Actor) => void, onCrash: (at: T3.Vector3, hard: number) => void) {
+          // on the road all the way: east along the top of the ring, round the corner, south, then off east down the avenue
+          const route: T3.Vector3[] = [new THREE.Vector3(33.8, 0, 33.6), new THREE.Vector3(33.8, 0, 6), new THREE.Vector3(38, 0, -1.8), new THREE.Vector3(160, 0, -1.8)];
           const hit = new Set<Actor>();
+          const crashed = new Set<Car>();
+          const pos = best.obj.position;
+          let head = best.obj.rotation.y;
           let speed = 0;
-          for (let i = 0; i < route.length - 1; i++) {
-            const a = route[i];
-            const b = route[i + 1];
-            const L2 = a.distanceTo(b);
-            let s = 0;
-            await new Promise<void>((res) => {
-              let last = clk.now();
-              const step = () => {
-                const now = clk.now();
-                const dt = Math.min(0.05, (now - last) / 1000);
-                last = now;
-                speed = Math.min(26, speed + dt * 18);
-                s += speed * dt;
-                const k = Math.min(1, s / L2);
-                best.obj.position.lerpVectors(a, b, k);
-                self.dir.subVectors(b, a).normalize();
-                best.obj.rotation.y = Math.atan2(self.dir.x, self.dir.z);
-                for (const v of victims) {
-                  if (!hit.has(v) && v.root.position.distanceTo(best.obj.position) < 2.4) {
+          let wp = 0;
+          let reverseFor = 0;
+          let pauseFor = 0;
+          const detour: T3.Vector3[] = [];
+          await new Promise<void>((res) => {
+            let last = clk.now();
+            const step = () => {
+              const now = clk.now();
+              const dt = Math.min(0.05, (now - last) / 1000);
+              last = now;
+              const target = detour[0] ?? route[wp];
+              const to = new THREE.Vector3().subVectors(target, pos);
+              const dist = to.length();
+              if (dist < (detour.length ? 2.5 : 5)) {
+                if (detour.length) detour.shift();
+                else if (++wp >= route.length) return res();
+              }
+              if (pauseFor > 0) pauseFor -= dt;
+              else if (reverseFor > 0) {
+                // back off the wreck, wheel turned so the nose swings out
+                reverseFor -= dt;
+                speed = Math.max(-5, speed - dt * 20);
+                head += 0.9 * dt;
+              } else {
+                const want = Math.atan2(to.x, to.z);
+                let dh = want - head;
+                while (dh > Math.PI) dh -= Math.PI * 2;
+                while (dh < -Math.PI) dh += Math.PI * 2;
+                const turn = speed > 0 ? Math.min(2.4, 1 + speed * 0.12) : 2;
+                head += Math.max(-turn * dt, Math.min(turn * dt, dh));
+                // ease off for a sharp turn, otherwise floor it
+                const top = Math.abs(dh) > 0.5 ? 11 : detour.length ? 14 : 25;
+                speed += Math.sign(top - speed) * Math.min(Math.abs(top - speed), dt * (speed < top ? 16 : 30));
+              }
+              self.dir.set(Math.sin(head), 0, Math.cos(head));
+              pos.addScaledVector(self.dir, speed * dt);
+              best.obj.rotation.y = head;
+              // other cars: a crash, not a ghost
+              for (const c of cars) {
+                if (c === best || crashed.has(c)) continue;
+                const d = c.obj.position.distanceTo(pos);
+                if (d < (c.bus ? 5.2 : 3.6)) {
+                  crashed.add(c);
+                  const n = new THREE.Vector3().subVectors(c.obj.position, pos).setY(0).normalize();
+                  const hard = Math.min(1, Math.abs(speed) / 22);
+                  wrecks.set(c, { v: n.clone().multiplyScalar(4 + speed * 0.45).addScaledVector(self.dir, speed * 0.25), spin: (Math.random() < 0.5 ? -1 : 1) * (1.5 + hard * 3) });
+                  onCrash(pos.clone().addScaledVector(n, 1.8).setY(0.9), hard);
+                  // bounce back, a beat of nothing, then reverse out and go round it on the far side
+                  pos.addScaledVector(n, -0.5);
+                  speed = -2 - hard * 3;
+                  pauseFor = 0.35;
+                  reverseFor = 0.7;
+                  const side = new THREE.Vector3(-self.dir.z, 0, self.dir.x);
+                  const away = side.dot(n) > 0 ? -1 : 1;
+                  detour.length = 0;
+                  detour.push(c.obj.position.clone().addScaledVector(side, away * 4.2).addScaledVector(self.dir, 1), c.obj.position.clone().addScaledVector(side, away * 3.6).addScaledVector(self.dir, 9));
+                }
+              }
+              for (const v of victims) {
+                  if (!hit.has(v) && v.root.position.distanceTo(pos) < 2.4) {
                     hit.add(v);
                     onHit(v);
                     v.play("lie");
@@ -2217,14 +2434,13 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
                     flyStep();
                   }
                 }
-                if (k < 1) clk.frame(step);
-                else res();
-              };
-              step();
-            });
-          }
+              clk.frame(step);
+            };
+            step();
+          });
           held = null;
           best.s = 0;
+          wrecks.set(best, { v: new THREE.Vector3(), spin: 0 });
         },
       };
       return self;
@@ -2284,7 +2500,7 @@ function spawnPeds(s3: T3.Scene, L: Loaded, paths: Path[], actors: Actor[], upda
     /** Put n pedestrians on the getaway route, crossing the road. */
     onRoad(_car: unknown, count: number) {
       const out: Actor[] = [];
-      const spotsOnRoute = [new THREE.Vector3(33.8, 0, 12), new THREE.Vector3(33.8, 0, -16), new THREE.Vector3(60, 0, -2)];
+      const spotsOnRoute = [new THREE.Vector3(33.8, 0, 24), new THREE.Vector3(33.8, 0, 13), new THREE.Vector3(96, 0, -1.8)];
       for (let i = 0; i < Math.min(count + 1, spotsOnRoute.length); i++) {
         const a = pool.pop() ?? mk(n++);
         a.root.visible = true;

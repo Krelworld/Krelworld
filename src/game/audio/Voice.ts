@@ -233,6 +233,17 @@ export const voice = {
     if (recPending || recSrc) return true;
     return "speechSynthesis" in window && (window.speechSynthesis.speaking || window.speechSynthesis.pending);
   },
+  /**
+   * How long a line's recording runs, in ms (clips are 32 kbit/s CBR, so bytes give the length exactly), or undefined
+   * when there is no recording or the index hasn't loaded. Resolves once the index is in.
+   */
+  async clipMs(speaker: string, text: string): Promise<number | undefined> {
+    await loadRecIndex();
+    const e = recordingFor(speaker, text);
+    if (!e) return undefined;
+    const rate = Math.max(0.85, Math.min(1.25, 1 + ((G.meta.settings.voiceSpeed ?? 1.5) - 1.5) * 0.3));
+    return ((e[2] * 8) / 32000) * 1000 / rate;
+  },
   /** Start downloading the recordings for lines that are about to be said. */
   prefetch(lines: { s: string; t: string }[]) {
     void loadRecIndex().then(() => {

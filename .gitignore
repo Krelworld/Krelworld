@@ -5,3 +5,4 @@ source/
 K*.json
 *.chat.json
 CHAT_INDEX.txt
+.claude/worktrees/

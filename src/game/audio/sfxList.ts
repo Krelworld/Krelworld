@@ -59,6 +59,8 @@ export const SFX_KEYS: string[] = [
   "hurt_2",
   "jackpot",
   "lob",
+  "moan_men_1",
+  "moan_men_2",
   "monitor_crack",
   "notify",
   "perfect",

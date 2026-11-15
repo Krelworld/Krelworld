@@ -8014,6 +8014,30 @@
    "frameWidth": 74,
    "frameHeight": 113,
    "frames": 9
+  },
+  "ad_tank_top": {
+   "file": "ad/ad_tank_top.png",
+   "frameWidth": 115,
+   "frameHeight": 97,
+   "frames": 13
+  },
+  "ad_tank_hull": {
+   "file": "ad/ad_tank_hull.png",
+   "frameWidth": 115,
+   "frameHeight": 97,
+   "frames": 13
+  },
+  "ad_mendrop": {
+   "file": "ad/ad_mendrop.png",
+   "frameWidth": 128,
+   "frameHeight": 128,
+   "frames": 9
+  },
+  "ad_mennaked": {
+   "file": "ad/ad_mennaked.png",
+   "frameWidth": 128,
+   "frameHeight": 128,
+   "frames": 9
   }
  },
  "vfx": {

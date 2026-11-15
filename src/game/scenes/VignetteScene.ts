@@ -2134,6 +2134,55 @@ export class VignetteScene extends Phaser.Scene {
         this.tweens.add({ targets: c, radius: 90, alpha: 0, duration: 500 + i * 100 });
       }
     };
+    /**
+     * Tank Crobley as two parts (ad_tank_hull + ad_tank_top, facing right) so the turret can turn and aim. The turret
+     * pivots on its ring (frame 47,52 of 115x97); the barrel tip sits 68 px ahead and 22 px up of the pivot.
+     */
+    const tank = (x: number, y: number, sc: number) => {
+      const c = this.add.container(x, y);
+      layer.add(c);
+      const split = this.textures.exists("ad_tank_top") && this.textures.exists("ad_tank_hull");
+      const hull = split ? this.add.sprite(0, 0, "ad_tank_hull", 0).setScale(sc) : (this.art(0, 0, "p_tankc", sc, 0x4d7c0f, "TANK") as unknown as Phaser.GameObjects.Sprite).setFlipX(true);
+      const px = (47 - 57.5) * sc, py = (52 - 48.5) * sc;
+      const top = split ? this.add.sprite(px, py, "ad_tank_top", 0).setScale(sc).setOrigin(47 / 115, 52 / 97) : null;
+      c.add(top ? [hull, top] : [hull]);
+      if (split) {
+        for (const k of ["ad_tank_hull", "ad_tank_top"]) if (!this.anims.exists(`${k}_loop`)) this.anims.create({ key: `${k}_loop`, frames: this.anims.generateFrameNumbers(k, {}), frameRate: 10, repeat: -1 });
+        hull.play("ad_tank_hull_loop");
+        top!.play("ad_tank_top_loop");
+      }
+      const base = Math.atan2(-22, 68);
+      const tip = () => {
+        const a = top ? top.rotation : 0;
+        const lx = 68 * sc, ly = -22 * sc;
+        return { x: c.x + px + lx * Math.cos(a) - ly * Math.sin(a), y: c.y + py + lx * Math.sin(a) + ly * Math.cos(a) };
+      };
+      return {
+        c,
+        tip,
+        /** Swing the turret round to point the barrel at (tx, ty). */
+        aim: (tx: number, ty: number, ms = 450) => {
+          if (!top) return;
+          this.tweens.killTweensOf(top);
+          const want = Phaser.Math.Clamp(Math.atan2(ty - (c.y + py), tx - (c.x + px)) - base, -0.9, 0.5);
+          this.tweens.add({ targets: top, rotation: want, duration: ms, ease: "Back.out" });
+          synth.play("zip_down");
+        },
+        /** Sweep the turret about while it's waiting. */
+        scan: () => top && this.tweens.add({ targets: top, rotation: { from: -0.35, to: 0.15 }, yoyo: true, duration: 700, ease: "Sine.inOut" }),
+        /** Fire: recoil, muzzle flash at the tip. */
+        fire: () => {
+          const t = tip();
+          fx("vfx_muzzle", t.x, t.y, sc * 0.9);
+          if (top) {
+            const a = top.rotation + base;
+            this.tweens.add({ targets: top, x: px - (Math.cos(a) * 10 * sc) / 3, y: py - (Math.sin(a) * 10 * sc) / 3, duration: 60, yoyo: true });
+          }
+          this.tweens.add({ targets: c, x: c.x - 8, duration: 70, yoyo: true });
+          return t;
+        },
+      };
+    };
     const sparkle = (x: number, y: number, n: number, every: number, emoji = "✨") => {
       for (let i = 0; i < n; i++)
         later(i * every, () => {
@@ -2214,15 +2263,17 @@ export class VignetteScene extends Phaser.Scene {
       clear();
       bg("cf_destruction");
       name("TANK CROBLEY!", "#15803d");
-      const t = anim(-200, 360, "ad_tank", 3.2, 10, 0x4d7c0f, "TANK").setFlipX(true);
-      this.tweens.add({ targets: t, x: 330, duration: 1500, ease: "Quad.out" });
-      this.tweens.add({ targets: t, y: 356, yoyo: true, repeat: -1, duration: 80 });
-      for (let i = 0; i < 3; i++)
-        later(1700 + i * 1000, () => {
-          this.tweens.add({ targets: t, x: t.x - 30, duration: 70, yoyo: true });
-          fx("vfx_muzzle", t.x + 190, t.y - 50, 3);
-          later(160, () => boom(620 + Math.random() * 280, 300 + Math.random() * 90, 1.4));
+      const tk = tank(-200, 360, 3.2);
+      this.tweens.add({ targets: tk.c, x: 300, duration: 1400, ease: "Quad.out" });
+      // three targets, high and low: the turret swings to each before it fires
+      const targets: [number, number][] = [[880, 170], [700, 400], [860, 330]];
+      targets.forEach(([tx, ty], i) => {
+        later(1300 + i * 1050, () => tk.aim(tx, ty, 380));
+        later(1750 + i * 1050, () => {
+          tk.fire();
+          later(140, () => boom(tx, ty, 1.4));
         });
+      });
       later(1500, () => voice.say("TANK CROBLEY", "FREEDOM!"));
       const fr = this.add.text(620, 160, "FREEDOM!", { fontFamily: "Impact, sans-serif", fontSize: "56px", color: "#fff", stroke: "#1d4ed8", strokeThickness: 8 }).setOrigin(0.5).setAlpha(0);
       layer.add(fr);
@@ -2253,6 +2304,17 @@ export class VignetteScene extends Phaser.Scene {
       const men = anim(660, 330, "ad_men", 3, 6, 0x78350f, "MEN");
       men.stop();
       men.setFrame(0);
+      /** Swap the men onto another sheet (jeans dropping / trembling with them down), if we have it. */
+      const menPlay = (key: string, fps: number, repeat: number) => {
+        if (!this.textures.exists(key) || !(men instanceof Phaser.GameObjects.Sprite)) return;
+        const ak = `${key}_${repeat < 0 ? "loop" : "once"}`;
+        if (!this.anims.exists(ak)) this.anims.create({ key: ak, frames: this.anims.generateFrameNumbers(key, {}), frameRate: fps, repeat });
+        men.play({ key: ak, frameRate: fps, repeat });
+      };
+      const naked = this.textures.exists("ad_mennaked") ? "ad_mennaked" : "ad_men";
+      // one horizontal bar across both men, from the belts to the tops of their thighs, and over Fruity's hands
+      const bar = this.add.rectangle(640, 366, 340, 96, 0x000000).setVisible(false);
+      const txt = this.add.text(640, 366, "CENSORED", { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#fff" }).setOrigin(0.5).setVisible(false);
       const f = anim(-100, 370, "ad_fruity", 2.4, 10, 0xf0abfc, "FRUITY");
       this.tweens.add({ targets: f, x: 300, duration: 2200, ease: "Sine.out" });
       for (let i = 0; i < 20; i++)
@@ -2271,24 +2333,40 @@ export class VignetteScene extends Phaser.Scene {
             this.tweens.add({ targets: h, x: 620 + Math.random() * 80, y: 210, alpha: 0, duration: 900 });
           });
       });
-      // 0:35 he gets to work
-      later(5000, () => {
-        f.setPosition(590, 380).setFlipX(false);
+      // 0:34.5 the jeans come down; the bar goes up as soon as anything would show
+      later(4500, () => {
+        menPlay("ad_mendrop", 7, 0);
+        synth.play("zip_down");
+        later(250, () => synth.play("zip_down"));
+        later(450, () => {
+          layer.add([bar, txt]);
+          bar.setVisible(true);
+          txt.setVisible(true);
+        });
+        later(800, () => synth.play("crowd_gasp"));
+      });
+      // 0:36 he gets to work
+      later(6000, () => {
+        f.setPosition(600, 350).setFlipX(false);
         if (f instanceof Phaser.GameObjects.Sprite && this.textures.exists("ad_fruitypump")) {
           const ak = "ad_fruitypump_loop";
           if (!this.anims.exists(ak)) this.anims.create({ key: ak, frames: this.anims.generateFrameNumbers("ad_fruitypump", {}), frameRate: 18, repeat: -1 });
           f.play(ak);
         }
-        this.tweens.add({ targets: f, y: 384, yoyo: true, repeat: -1, duration: 60 });
-        // one long bar over Fruity's hands and both men's crotches
-        const bar = this.add.rectangle(610, 392, 360, 56, 0x000000);
-        const txt = this.add.text(610, 392, "CENSORED", { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#fff" }).setOrigin(0.5);
-        layer.add([bar, txt]);
-        this.tweens.add({ targets: [bar, txt], y: 395, yoyo: true, repeat: -1, duration: 60 });
-        for (let i = 0; i < 26; i++) later(i * 220, () => synth.play(i % 3 ? "squelch" : "wonk"));
-        later(1200, () => men.play({ key: "ad_men_loop", frameRate: 8, repeat: -1 }));
-        later(3200, () => men.play({ key: "ad_men_loop", frameRate: 16, repeat: -1 }));
-        for (const [t, s] of [[1600, "Ohh…"], [3400, "OHHH!"], [5000, "OH GOD!"]] as [number, string][])
+        this.tweens.add({ targets: f, y: 354, yoyo: true, repeat: -1, duration: 60 });
+        layer.bringToTop(bar);
+        layer.bringToTop(txt);
+        this.tweens.add({ targets: [bar, txt], y: 369, yoyo: true, repeat: -1, duration: 60 });
+        for (let i = 0; i < 22; i++) later(i * 220, () => synth.play(i % 3 ? "squelch" : "wonk"));
+        later(600, () => menPlay(naked, 8, -1));
+        later(2600, () => menPlay(naked, 16, -1));
+        // the moaning builds
+        for (const [t, v, p] of [[800, 0.35, 0.9], [1900, 0.45, 0.95], [2900, 0.55, 1], [3800, 0.6, 1.05]] as [number, number, number][])
+          later(t, () => {
+            synth.voice("mmm", v, p);
+            synth.voice("grunt", v * 0.8, p * 0.85, 0.25);
+          });
+        for (const [t, s] of [[1200, "Ohh…"], [3000, "OHHH!"], [4600, "OH GOD!"]] as [number, string][])
           later(t, () => {
             const b = this.add.text(660 + (Math.random() - 0.5) * 120, 150, s, { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#fff", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5).setAngle((Math.random() - 0.5) * 20);
             layer.add(b);
@@ -2300,8 +2378,11 @@ export class VignetteScene extends Phaser.Scene {
       later(12000, () => {
         this.tweens.killTweensOf(f);
         if (f instanceof Phaser.GameObjects.Sprite) f.stop();
-        f.setY(380);
-        synth.play("tap_gush");
+        f.setY(350);
+        synth.play("moan_men");
+        later(200, () => synth.play("tap_gush"));
+        synth.voice("oh", 0.8, 0.8);
+        synth.voice("grunt", 0.8, 0.7, 0.4);
         this.cameras.main.flash(120, 255, 255, 255);
         const stuck: [number, number][] = [[-30, -80], [25, -60], [-10, -20], [40, 10], [-45, 20], [5, -105], [20, 40]];
         stuck.forEach(([dx, dy], i) =>
@@ -2313,9 +2394,8 @@ export class VignetteScene extends Phaser.Scene {
         );
         later(1300, () => voice.say("FRUITY CROBLEY", "Ooh. Messy."));
         later(1200, () => {
-          men.stop();
-          men.setFrame(7);
-          this.tweens.add({ targets: men, y: 360, angle: 4, duration: 600 });
+          menPlay(naked, 4, -1);
+          this.tweens.add({ targets: men, y: 345, angle: 3, duration: 600 });
         });
       });
     };
@@ -2402,20 +2482,20 @@ export class VignetteScene extends Phaser.Scene {
         [anim(690, 350, "ad_fruityscared", 2.4, 12, 0xf0abfc, "FRUITY"), "Fruity Crobley. You make me feel fucking sick.", "FRUITY", 2700],
         [anim(850, 360, "ad_lanternscared", 2.4, 12, 0xdc2626, "GARY"), "Gary. You also make me feel fucking sick.", "GARY", 2500],
       ];
-      const t = anim(-200, 380, "ad_tank", 2.8, 10, 0x4d7c0f, "TANK").setFlipX(true);
-      this.tweens.add({ targets: t, x: 200, duration: 900, ease: "Quad.out" });
+      const tk = tank(-200, 380, 2.8);
+      this.tweens.add({ targets: tk.c, x: 190, duration: 900, ease: "Quad.out" });
+      later(900, () => tk.scan());
       later(300, () => synth.play("crowd_gasp"));
       let at = 700;
       for (const [v, line, , gap] of victims) {
         later(at, () => {
           voice.say("TANK CROBLEY", line);
-          // the barrel swings round to him
-          this.tweens.add({ targets: t, angle: -3, yoyo: true, duration: 200 });
+          // the turret swings round onto him
+          tk.aim(v.x, v.y - 10, 600);
         });
         later(at + gap - 300, () => {
-          this.tweens.add({ targets: t, x: t.x - 30, duration: 70, yoyo: true });
-          fx("vfx_muzzle", t.x + 165, t.y - 45, 2.6);
-          const shell = this.add.circle(t.x + 165, t.y - 45, 9, 0x111827);
+          const m = tk.fire();
+          const shell = this.add.circle(m.x, m.y, 9, 0x111827);
           layer.add(shell);
           synth.play("gun_rail");
           this.tweens.add({

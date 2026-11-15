@@ -6,7 +6,7 @@ import { synth } from "../../audio/Synth";
 import { voice } from "../../audio/Voice";
 import { CHARACTERS } from "../../../data/characters";
 import type { Line } from "../../../data/types";
-import { K3_BENN, K3_CHANT, K3_KREZMAR, K3_LAND, K3_LUKE, K3_MIKEY, K3_POLSON, K3_REAL, K3_SANMIK, K3_SEQUEL } from "../../../content/krelworld3d";
+import { K3_BENN, K3_CHANT, K3_GRONNY_DANCE, K3_KREZMAR, K3_LAND, K3_LUKE, K3_MIKEY, K3_POLSON, K3_REAL, K3_SANMIK, K3_SEQUEL } from "../../../content/krelworld3d";
 
 /**
  * THE 3D EPILOGUE. Out of the wormhole and into Krelworld, rendered as a PS2-era 3D game: low-res, fogged,
@@ -606,6 +606,11 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   s3.add(sun.target);
   // the shadow box follows whatever the camera is looking at, so shadows stay crisp wherever we are
   const sunOffset = new THREE.Vector3(-80, 140, 60);
+  const sunD = sunOffset.clone().normalize();
+  const sunR = new THREE.Vector3(0, 1, 0).cross(sunD).normalize();
+  const sunU = sunD.clone().cross(sunR).normalize();
+  const texel = (sun.shadow.camera.right - sun.shadow.camera.left) / sun.shadow.mapSize.x;
+  const snapP = new THREE.Vector3();
   void SKY;
 
   const updaters: ((dt: number, t: number) => void)[] = [];
@@ -736,7 +741,11 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
       camState.shake *= Math.pow(0.02, dt);
     }
     cam.lookAt(camState.look);
-    sun.target.position.set(camState.look.x, 0, camState.look.z);
+    // snapped to whole shadow-map texels (in the light's own axes): a box that slides freely makes every shadow
+    // edge crawl a fraction of a texel each frame, which reads as the ground flickering under the Tap
+    snapP.set(camState.look.x, 0, camState.look.z);
+    const ra = Math.round(snapP.dot(sunR) / texel) * texel, ua = Math.round(snapP.dot(sunU) / texel) * texel, da = snapP.dot(sunD);
+    sun.target.position.copy(sunR).multiplyScalar(ra).addScaledVector(sunU, ua).addScaledVector(sunD, da);
     sun.position.copy(sun.target.position).add(sunOffset);
     // a recorder resuming a render fast-forwards without drawing
     if (!(window as unknown as { __k3noRender?: boolean }).__k3noRender) composer.render(dt);
@@ -909,6 +918,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   lad.GRONNY.play("talk");
   close(lad.GRONNY, 2.4, 0.5);
   await speak(K3_REAL[4]);
+  await speak(K3_REAL[5]);
   for (const id of LADS) lad[id].play("cheer");
   synth.play("cheer");
   cut([0, 3, PLAZA.z + 14], [0, 1.8, PLAZA.z]);
@@ -1090,9 +1100,17 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     return [fp, fl];
   };
   await Promise.race([lukeGo, wait(2400)]);
-  await camTo([luke.root.position.x + 4, 2, luke.root.position.z + 6], [tapInfo.abandoned.x, 6, tapInfo.abandoned.z], 1400);
-  caption("THE BREAD AND BUTTER PUDDING HOUSE", 2400);
-  await wait(1800);
+  // cut to the house itself: he comes sprinting up the path towards its door, the house filling the frame
+  camState.follow = null;
+  const ab = tapInfo.abandoned;
+  luke.root.position.set(ab.x + 3, 0, ab.z - 34);
+  const lukeDoor = moveTo(luke, ab.x, ab.z - 9, 6.5);
+  shotTok++;
+  cut([ab.x + 13, 2.4, ab.z - 30], [ab.x, 4.5, ab.z - 2]);
+  void camTo([ab.x + 10, 2.2, ab.z - 25], [ab.x, 4.2, ab.z - 3], 3600, ease.linear);
+  caption("THE BREAD AND BUTTER PUDDING HOUSE", 2800);
+  await Promise.race([lukeDoor, wait(3400)]);
+  await wait(400);
 
   // ---- 7b. Polson and a Krelburger (Krezwonk regrets standing next to him)
   const pol = lad.POLSON;
@@ -1167,7 +1185,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   await wait(500);
 
   // ---- 8. the Krel dance
-  const line = DANCERS.filter((id) => lad[id]);
+  const line = [...DANCERS.slice(0, 4), "KREZMAR", ...DANCERS.slice(4)].filter((id) => lad[id]);
   line.forEach((id, i) => {
     const a = lad[id];
     a.root.position.set((i - (line.length - 1) / 2) * 2.1, 0, PLAZA.z + 2);
@@ -1175,14 +1193,33 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     a.play("dance");
     a.poseT = 0;
   });
-  cut([0, 1.8, PLAZA.z + 13], [0, 1.4, PLAZA.z + 2]);
-  void camTo([9, 3.5, PLAZA.z + 11], [0, 1.2, PLAZA.z + 2], 7000, ease.linear);
-  for (let i = 0; i < 2; i++) {
+  const chant = async () => {
     for (const l of K3_CHANT) void voice.layer(String(l.s), l.t ?? "", 0.8);
     sub.innerHTML = `<span style="color:#ffd23f">THE LADS:</span> ${escapeHtml(K3_CHANT[0].t ?? "")}`;
     await wait(2600);
-  }
-  sub.innerHTML = "";
+    sub.innerHTML = "";
+  };
+  // a dancer up close, chest to head in frame, the camera drifting in while he goes
+  const danceClose = (a: Actor, side: number) => {
+    const ry = a.root.rotation.y + side;
+    const p = a.root.position;
+    const cy = a.height * 0.62;
+    shotTok++;
+    cut([p.x + Math.sin(ry) * 3.1, cy + 0.15, p.z + Math.cos(ry) * 3.1], [p.x, cy, p.z]);
+    void camTo([p.x + Math.sin(ry) * 2.3, cy + 0.1, p.z + Math.cos(ry) * 2.3], [p.x, cy, p.z], 3200, ease.linear);
+    dof(2.6);
+  };
+  cut([0, 1.8, PLAZA.z + 13], [0, 1.4, PLAZA.z + 2]);
+  void camTo([9, 3.5, PLAZA.z + 11], [0, 1.2, PLAZA.z + 2], 7000, ease.linear);
+  await chant();
+  danceClose(lad.GRONNY, 0.35);
+  await speak(K3_GRONNY_DANCE[0], 2600);
+  danceClose(lad.KREZMAR, -0.4);
+  await speak(K3_GRONNY_DANCE[1], 2800);
+  dof(null);
+  cut([-8, 3.2, PLAZA.z + 12], [0, 1.3, PLAZA.z + 2]);
+  void camTo([0, 2, PLAZA.z + 13], [0, 1.4, PLAZA.z + 2], 3000, ease.linear);
+  await chant();
   await wait(500);
 
   // ---- 9. Krezmar

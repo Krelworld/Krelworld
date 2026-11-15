@@ -35,6 +35,11 @@ SETTINGS_V2_MOOD = {"stability": 0.3, "similarity_boost": 0.9, "style": 0.4, "us
 # Speakers whose clone only sounds like them on steady settings (Harry picked these takes): every line, mood or not.
 SETTINGS_V2_LIKENESS = {"stability": 0.55, "similarity_boost": 1.0, "style": 0.0, "use_speaker_boost": True}
 US = "strong American accent"
+# clone_sts speakers: the steady v2 take is then run back through speech-to-speech into the same clone, which pulls
+# the timbre much closer to the real person (measured against their own recordings) while keeping the v2 delivery.
+STS_SUFFIX = "+sts"
+STS_MODEL = "eleven_multilingual_sts_v2"
+STS_SETTINGS = {"stability": 0.5, "similarity_boost": 1.0}
 
 # Loudness every clip is packed at: integrated LUFS (EBU R128) and a true-peak ceiling. Changing it re-encodes the
 # packed clips (from the clips already there; nothing is re-requested).
@@ -144,6 +149,8 @@ def plan(l, c):
     if kind == "clone" and not accent and base in CAST.get("clone_v2_always", []):
         clean = TAG.sub("", t).strip()
         moody = bool(explicit or inline or from_text or CAST.get("delivery", {}).get(l["s"]))
+        if base in CAST.get("clone_sts", []):
+            return V2 + STS_SUFFIX, clean, SETTINGS_V2_LIKENESS, []
         if base in CAST.get("clone_max_likeness", []):
             return V2, clean, SETTINGS_V2_LIKENESS, []
         return V2, clean, (SETTINGS_V2_MOOD if moody else SETTINGS[V2]), []
@@ -241,11 +248,39 @@ if "--measure" in args:
 if dry:
     sys.exit()
 
+def sts(voice, audio):
+    """Speech-to-speech: the clip re-voiced into the given voice (mp3 at the game's bitrate), or None."""
+    import subprocess, tempfile
+    with tempfile.NamedTemporaryFile(suffix=".mp3") as src, tempfile.NamedTemporaryFile(suffix=".mp3") as out:
+        src.write(audio)
+        src.flush()
+        for attempt in range(8):
+            r = subprocess.run(["curl", "-s", "-o", out.name, "-w", "%{http_code}", "--max-time", "180",
+                                f"https://api.elevenlabs.io/v1/speech-to-speech/{voice}?output_format=mp3_22050_32",
+                                "-H", "xi-api-key: proxy-injected", "-F", f"audio=@{src.name}", "-F", f"model_id={STS_MODEL}",
+                                "-F", "voice_settings=" + json.dumps(STS_SETTINGS)], capture_output=True, text=True)
+            if r.stdout == "200":
+                return open(out.name, "rb").read()
+            if r.stdout in ("409", "429", "500", "502", "503", "504", "000"):
+                time.sleep(2 + attempt * 4)
+                continue
+            print("STS FAIL", r.stdout, open(out.name, "rb").read()[:300], flush=True)
+            return None
+    return None
+
 def gen(item):
+    l, voice, model, text, settings, label, s = item
+    if model.endswith(STS_SUFFIX):
+        base_item, data = gen_tts((l, voice, model[: -len(STS_SUFFIX)], text, settings, label, s), hq=True)
+        return item, (sts(voice, data) if data else None)
+    return gen_tts(item)
+
+def gen_tts(item, hq=False):
     l, voice, model, text, settings, label, s = item
     body = json.dumps({"text": text, "model_id": model, "voice_settings": settings}).encode()
     for attempt in range(8):
-        req = urllib.request.Request(API.format(voice), data=body, method="POST",
+        url = API.format(voice).replace("mp3_22050_32", "mp3_44100_128") if hq else API.format(voice)
+        req = urllib.request.Request(url, data=body, method="POST",
                                      headers={"xi-api-key": "proxy-injected", "Content-Type": "application/json", "Accept": "audio/mpeg"})
         try:
             with urllib.request.urlopen(req, timeout=180) as r:

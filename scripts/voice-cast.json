@@ -20,8 +20,8 @@
     "ROBBO"
   ],
   "clones": {
-    "MIKEY": "WsgNALUzdTM8230kgCyy",
-    "SANMIK": "WsgNALUzdTM8230kgCyy",
+    "MIKEY": "AFuq10xLjXqFlXtuCds4",
+    "SANMIK": "AFuq10xLjXqFlXtuCds4",
     "POLSON": "cpSUn4667XG4f6QbRgIm",
     "SANCHZ": "cpSUn4667XG4f6QbRgIm",
     "FLENKY": "5RTlM7GOxnav58fQsiJc",
@@ -601,6 +601,10 @@
     "GRONNY"
   ],
   "clone_max_likeness": [
+    "MIKEY",
+    "SANMIK"
+  ],
+  "clone_sts": [
     "MIKEY",
     "SANMIK"
   ]

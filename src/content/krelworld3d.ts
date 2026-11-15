@@ -16,6 +16,7 @@ export const K3_REAL: Line[] = [
   say("DRONGUS", "I didn't make a game. I made a WORLD."),
   say("POLSON", "Yeeegh!! I'm alive?! Respawned 😅 Wbu?", { mood: "excited" }),
   say("GRONNY", "Me home."),
+  say("GRONNY", "Me never leave again. Never.", { mood: "happy" }),
 ];
 
 export const K3_BENN: Line[] = [
@@ -29,6 +30,12 @@ export const K3_SANMIK: Line[] = [say("SANMIK", "YEEEEE! SanMik in tha building!
 export const K3_LUKE: Line[] = [
   say("CRONGUS", "The bread and butter pudding house is real!! I need it!", { mood: "excited, overjoyed" }),
   say("CRONGUS", "Me want bread and butter pudding!!", { mood: "excited, desperate" }),
+];
+
+/** Gronny, over the dance close-ups: on himself, then on Krezmar. */
+export const K3_GRONNY_DANCE: Line[] = [
+  say("GRONNY", "Me dance best. Look at me hips.", { mood: "proud" }),
+  say("GRONNY", "Krezmar dance like shopping trolley with one wheel broke.", { mood: "laughing" }),
 ];
 
 /** Everyone left dancing chants it together (played on top of each other). */

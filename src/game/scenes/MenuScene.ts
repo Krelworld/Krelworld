@@ -254,7 +254,11 @@ export class MenuScene extends Phaser.Scene {
     }
     this.shop = null;
     const add = (o: Phaser.GameObjects.GameObject) => this.root.add(o);
-    add(this.add.rectangle(0, 0, 960, 540, 0x000000, mode === "bank" ? 0.82 : 0.7).setOrigin(0).setInteractive());
+    // the Exchange sits in its own neon counter room; everything else dims the game behind it
+    if (mode === "bank" && this.textures.exists("bg_kreddle_exchange")) {
+      add(this.add.image(480, 270, "bg_kreddle_exchange").setDisplaySize(960, 544).setInteractive());
+      add(this.add.rectangle(0, 0, 960, 540, 0x0b0418, 0.5).setOrigin(0));
+    } else add(this.add.rectangle(0, 0, 960, 540, 0x000000, mode === "bank" ? 0.82 : 0.7).setOrigin(0).setInteractive());
     if (mode !== "bank") add(panel(this, 140, 40, 680, 460));
     const s = G.hasRun() ? G.s : null;
     switch (mode) {
@@ -434,7 +438,8 @@ export class MenuScene extends Phaser.Scene {
 
   private renderBank(add: (o: Phaser.GameObjects.GameObject) => void) {
     const s = G.s;
-    add(panel(this, 8, 6, 944, 528, 0.97));
+    // see-through over the neon counter room (if its art is loaded), so the shop feels like a place
+    add(panel(this, 8, 6, 944, 528, this.textures.exists("bg_kreddle_exchange") ? 0.35 : 0.97));
     const head = this.add.text(30, 34, "KREDDLE EXCHANGE", { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#ff4fd8", stroke: "#12001f", strokeThickness: 6 }).setOrigin(0, 0.5);
     head.setShadow(0, 0, "#ff4fd8", 10, true, true);
     add(head);

@@ -6947,6 +6947,24 @@
   "bg_us_playground": {
    "file": "backdrops/bg_us_playground.png"
   },
+  "bg_kreddle_exchange": {
+   "file": "backdrops/bg_kreddle_exchange.png"
+  },
+  "kd_card": {
+   "file": "ui/kd_card.png"
+  },
+  "kd_buy": {
+   "file": "ui/kd_buy.png"
+  },
+  "kd_tab": {
+   "file": "ui/kd_tab.png"
+  },
+  "kd_coin": {
+   "file": "props/kd_coin.png"
+  },
+  "kd_kroken": {
+   "file": "props/kd_kroken.png"
+  },
   "bg_polson_kitchen": {
    "file": "backdrops/bg_polson_kitchen.png"
   },

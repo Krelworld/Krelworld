@@ -65,9 +65,17 @@ const COL = {
   red: 0xff5a5a,
 };
 
+/** A stretchable PixelLab frame (gold-trimmed card, buy button, tab) if the art is loaded. */
+export function kitFrame(scene: Phaser.Scene, key: "kd_card" | "kd_buy" | "kd_tab", x: number, y: number, w: number, h: number) {
+  if (!scene.textures.exists(key)) return null;
+  const m = key === "kd_card" ? 22 : key === "kd_buy" ? 30 : 24;
+  const f = scene.add.nineslice(x, y, key, undefined, w, h, m, m, m, m);
+  return f;
+}
+
 /** The currency glyph: the coin / Kroken token art if it's loaded, else an emoji. */
 export function currencyIcon(scene: Phaser.Scene, x: number, y: number, c: Currency, size: number): Phaser.GameObjects.GameObject {
-  const key = c === "coin" ? "p_coin" : "p_token";
+  const key = c === "coin" ? (scene.textures.exists("kd_coin") ? "kd_coin" : "p_coin") : scene.textures.exists("kd_kroken") ? "kd_kroken" : "p_token";
   if (scene.textures.exists(key)) return fitIcon(scene.add.image(x, y, key), size);
   return scene.add.text(x, y, c === "coin" ? "💰" : "🎟", { fontFamily: FONT, fontSize: `${Math.round(size * 0.8)}px` }).setOrigin(0.5);
 }
@@ -92,6 +100,7 @@ interface Card {
   item: ShopItem;
   c: Phaser.GameObjects.Container;
   bg: Phaser.GameObjects.Graphics;
+  frame: Phaser.GameObjects.NineSlice | null;
   icon: Phaser.GameObjects.Image | Phaser.GameObjects.Text;
   price?: Phaser.GameObjects.Text;
   w: number;
@@ -245,6 +254,8 @@ export class ShopGrid {
     const c = scene.add.container(x, y);
     const bg = scene.add.graphics();
     c.add(bg);
+    const frame = kitFrame(scene, "kd_card", 0, 0, w, h);
+    if (frame) c.add(frame);
     const dead = it.state === "locked";
     const poor = it.state === "buy" && this.o.balance(it.currency) < (it.minPrice ?? it.price);
     const box = Math.min(w - 34, Math.round(h * (it.bar ? 0.3 : 0.4)));
@@ -267,10 +278,12 @@ export class ShopGrid {
     if (it.lvl && it.lvl[1] > 1) {
       const [have, max] = it.lvl;
       const step = Math.min(12, (w - 40) / max);
-      for (let i = 0; i < max; i++) c.add(scene.add.circle(-w / 2 + 12 + i * step, -h / 2 + 11, 4, i < have ? COL.gold : 0x000000, 1).setStrokeStyle(1.5, i < have ? COL.gold : 0x6b6890));
+      const inset = scene.textures.exists("kd_card") ? 10 : 0;
+      for (let i = 0; i < max; i++) c.add(scene.add.circle(-w / 2 + 12 + inset + i * Math.min(step, (w - 40 - inset * 2) / max), -h / 2 + 11 + inset, 4, i < have ? COL.gold : 0x000000, 1).setStrokeStyle(1.5, i < have ? COL.gold : 0x6b6890));
     }
     if (it.tag) {
-      const t = scene.add.text(w / 2 - 6, -h / 2 + 5, it.tag, { fontFamily: FONT, fontSize: "11px", color: "#111111", fontStyle: "bold", backgroundColor: Phaser.Display.Color.IntegerToColor(it.tagColor ?? COL.gold).rgba, padding: { x: 4, y: 1 } }).setOrigin(1, 0);
+      const tin = scene.textures.exists("kd_card") ? 10 : 0;
+      const t = scene.add.text(w / 2 - 6 - tin, -h / 2 + 5 + tin, it.tag, { fontFamily: FONT, fontSize: "11px", color: "#111111", fontStyle: "bold", backgroundColor: Phaser.Display.Color.IntegerToColor(it.tagColor ?? COL.gold).rgba, padding: { x: 4, y: 1 } }).setOrigin(1, 0);
       c.add(t);
     }
     if (it.bar) {
@@ -307,19 +320,28 @@ export class ShopGrid {
     });
     c.add(hit);
     this.pageLayer.add(c);
-    const card: Card = { item: it, c, bg, icon, price, w, h };
+    const card: Card = { item: it, c, bg, frame, icon, price, w, h };
     return card;
   }
 
   private paintCard(k: Card, on: boolean) {
-    const { item: it, bg, w, h } = k;
+    const { item: it, bg, w, h, frame } = k;
     const done = it.state === "owned" || it.state === "maxed" || it.state === "full";
-    const fill = on ? COL.cardSel : it.state === "locked" ? COL.cardDim : COL.card;
-    const edge = on ? COL.gold : done ? 0x2f7a4a : COL.edge;
     bg.clear();
-    bg.fillStyle(fill, 0.97).fillRoundedRect(-w / 2, -h / 2, w, h, 12);
-    bg.lineStyle(on ? 4 : 2, edge, 1).strokeRoundedRect(-w / 2, -h / 2, w, h, 12);
-    if (done) bg.fillStyle(COL.green, 0.08).fillRoundedRect(-w / 2, -h / 2, w, h, 12);
+    if (frame) {
+      // the gold card art; selected glows, locked is dimmed, owned goes a touch green
+      frame.setTint(on ? 0xffffff : it.state === "locked" ? 0x6a6680 : done ? 0xc8ffd8 : 0xd8d0f0);
+      if (on) {
+        bg.fillStyle(0xffd23f, 0.28).fillRoundedRect(-w / 2 - 8, -h / 2 - 8, w + 16, h + 16, 18);
+        bg.fillStyle(0xff4fd8, 0.18).fillRoundedRect(-w / 2 - 14, -h / 2 - 14, w + 28, h + 28, 22);
+      }
+    } else {
+      const fill = on ? COL.cardSel : it.state === "locked" ? COL.cardDim : COL.card;
+      const edge = on ? COL.gold : done ? 0x2f7a4a : COL.edge;
+      bg.fillStyle(fill, 0.97).fillRoundedRect(-w / 2, -h / 2, w, h, 12);
+      bg.lineStyle(on ? 4 : 2, edge, 1).strokeRoundedRect(-w / 2, -h / 2, w, h, 12);
+      if (done) bg.fillStyle(COL.green, 0.08).fillRoundedRect(-w / 2, -h / 2, w, h, 12);
+    }
     k.c.setScale(on ? 1.04 : 1);
     k.c.setDepth(on ? 2 : 1);
     if (on) this.pageLayer.bringToTop(k.c);
@@ -330,16 +352,20 @@ export class ShopGrid {
     const d = o.detail;
     this.detailLayer.removeAll(true);
     const it = this.items[this.sel];
-    const g = scene.add.graphics();
-    g.fillStyle(0x0d0b1c, 0.92).fillRoundedRect(d.x, d.y, d.w, d.h, 12).lineStyle(2, COL.edge, 1).strokeRoundedRect(d.x, d.y, d.w, d.h, 12);
-    this.detailLayer.add(g);
+    const panelArt = kitFrame(scene, "kd_card", d.x + d.w / 2, d.y + d.h / 2, d.w, d.h);
+    if (panelArt) this.detailLayer.add(panelArt);
+    else {
+      const g = scene.add.graphics();
+      g.fillStyle(0x0d0b1c, 0.92).fillRoundedRect(d.x, d.y, d.w, d.h, 12).lineStyle(2, COL.edge, 1).strokeRoundedRect(d.x, d.y, d.w, d.h, 12);
+      this.detailLayer.add(g);
+    }
     if (!it) return;
     const bw = Math.min(250, Math.round(d.w * 0.34));
     const bh = d.h - 16;
     const textW = d.w - bw - 36;
     // the name in gold, and its one line underneath, centred in the bar
-    const nm = scene.add.text(d.x + 16, 0, it.name, { fontFamily: FONT, fontSize: "20px", color: "#ffd23f", fontStyle: "bold", wordWrap: { width: textW }, maxLines: 1 } as Phaser.Types.GameObjects.Text.TextStyle);
-    const ds = scene.add.text(d.x + 16, 0, it.desc, { fontFamily: FONT, fontSize: "16px", color: "#e5e1ff", wordWrap: { width: textW, useAdvancedWrap: true }, maxLines: 2 } as Phaser.Types.GameObjects.Text.TextStyle);
+    const nm = scene.add.text(d.x + 24, 0, it.name, { fontFamily: FONT, fontSize: "20px", color: "#ffd23f", fontStyle: "bold", wordWrap: { width: textW }, maxLines: 1 } as Phaser.Types.GameObjects.Text.TextStyle);
+    const ds = scene.add.text(d.x + 24, 0, it.desc, { fontFamily: FONT, fontSize: "16px", color: "#e5e1ff", wordWrap: { width: textW, useAdvancedWrap: true }, maxLines: 2 } as Phaser.Types.GameObjects.Text.TextStyle);
     const total = nm.height + 2 + (it.desc ? ds.height : 0);
     nm.setY(d.y + (d.h - total) / 2);
     ds.setY(nm.y + nm.height + 2);
@@ -351,9 +377,17 @@ export class ShopGrid {
     const can = it.state === "toggle" || (it.state === "buy" && have >= (it.minPrice ?? it.price));
     const done = it.state === "owned" || it.state === "maxed" || it.state === "full";
     const fill = can ? 0x15803d : done ? 0x1f3b2c : 0x3a1820;
-    const btn = scene.add.graphics();
-    btn.fillStyle(fill, 1).fillRoundedRect(bx - bw / 2, by - bh / 2, bw, bh, 12).lineStyle(3, can ? 0x86efac : done ? 0x2f7a4a : 0x7f1d1d, 1).strokeRoundedRect(bx - bw / 2, by - bh / 2, bw, bh, 12);
-    this.detailLayer.add(btn);
+    const art = kitFrame(scene, "kd_buy", bx, by, bw, bh);
+    if (art) {
+      // the glossy green casino button: red when you're short, dull when it's done
+      art.setTint(can ? 0xffffff : done ? 0x7a8a80 : 0xff7a7a);
+      this.detailLayer.add(art);
+      if (can) scene.tweens.add({ targets: art, scaleX: 1.03, scaleY: 1.05, yoyo: true, repeat: -1, duration: 650, ease: "Sine.inOut" });
+    } else {
+      const btn = scene.add.graphics();
+      btn.fillStyle(fill, 1).fillRoundedRect(bx - bw / 2, by - bh / 2, bw, bh, 12).lineStyle(3, can ? 0x86efac : done ? 0x2f7a4a : 0x7f1d1d, 1).strokeRoundedRect(bx - bw / 2, by - bh / 2, bw, bh, 12);
+      this.detailLayer.add(btn);
+    }
     const txt = (s: string, col: string, size = 20) => scene.add.text(bx, by, s, { fontFamily: FONT, fontSize: `${size}px`, color: col, fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5);
     if (it.state === "buy") {
       // [VERB] [glyph] [price], or [NEED] [glyph] [shortfall], laid out as one centred row
@@ -488,7 +522,13 @@ export function shopTabs(scene: Phaser.Scene, x: number, y: number, w: number, t
     const cx = x + i * (tw + gap) + tw / 2;
     const on = t.id === active;
     const g = scene.add.graphics();
-    g.fillStyle(on ? accent : 0x1d1a3a, on ? 1 : 0.95).fillRoundedRect(cx - tw / 2, y - 21, tw, 42, 10).lineStyle(2, on ? 0xffffff : COL.edge, 1).strokeRoundedRect(cx - tw / 2, y - 21, tw, 42, 10);
+    const tabArt = kitFrame(scene, "kd_tab", cx, y, tw, 46);
+    if (tabArt) {
+      // gold-rimmed tab: the open one lit up in its colour, the rest dimmed
+      tabArt.setTint(on ? 0xffffff : 0x8f86b0);
+      c.add(tabArt);
+      if (on) g.fillStyle(accent, 0.85).fillRoundedRect(cx - tw / 2 + 10, y - 13, tw - 20, 26, 6);
+    } else g.fillStyle(on ? accent : 0x1d1a3a, on ? 1 : 0.95).fillRoundedRect(cx - tw / 2, y - 21, tw, 42, 10).lineStyle(2, on ? 0xffffff : COL.edge, 1).strokeRoundedRect(cx - tw / 2, y - 21, tw, 42, 10);
     const label = scene.add.text(cx, y, t.label, { fontFamily: FONT, fontSize: "19px", color: on ? "#ffffff" : "#c9c4ef", fontStyle: "bold", stroke: on ? "#000" : undefined, strokeThickness: on ? 3 : 0 }).setOrigin(0.5);
     const hit = scene.add.rectangle(cx, y, tw, 42, 0xffffff, 0.001).setInteractive({ useHandCursor: true });
     hit.on("pointerup", () => {

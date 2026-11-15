@@ -897,51 +897,64 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   // round to the Krel Tower, all the way up it
   await camTo([10, 45, 110], [45, 80, 40], 5000, ease.inOut);
   caption("THE KREL TOWER", 2400);
-  // (nobody mentions it) as the camera tilts up the tower, a small planet comes in from the sky and hits the top
+  // (nobody mentions it) as the camera tilts up the tower, a little airliner comes in level and flies straight into the top
   {
-    const top = new THREE.Vector3(45, 178, 40);
-    const planet = new THREE.Group();
-    const ball = new THREE.Mesh(
-      new THREE.SphereGeometry(7, 24, 16),
-      new THREE.MeshStandardMaterial({
-        map: canvasTex(64, 64, (c) => {
-          const bands = ["#c97b3d", "#e8b273", "#9c4f2a", "#f1cf98", "#b8622f"];
-          for (let y = 0; y < 64; y += 6) {
-            c.fillStyle = bands[(y / 6) % bands.length];
-            c.fillRect(0, y, 64, 6);
-          }
-        }),
-        roughness: 0.8,
-      }),
-    );
-    const ring = new THREE.Mesh(new THREE.RingGeometry(9.5, 14, 32), new THREE.MeshBasicMaterial({ color: 0xe8d6a8, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }));
-    ring.rotation.x = Math.PI / 2.6;
-    planet.add(ball, ring);
-    const from = new THREE.Vector3(330, 470, -220);
-    planet.position.copy(from);
-    planet.visible = false;
-    s3.add(planet);
+    const top = new THREE.Vector3(45, 176, 40);
+    const plane = new THREE.Group();
+    const white = new THREE.MeshStandardMaterial({ color: 0xf4f4f5, roughness: 0.5 });
+    const stripe = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.5 });
+    const grey = new THREE.MeshStandardMaterial({ color: 0x9ca3af, roughness: 0.6 });
+    // built nose-first along +z so lookAt points it at the tower
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 14, 14), white);
+    body.rotation.x = Math.PI / 2;
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(1.1, 14, 10), white);
+    nose.scale.z = 1.8;
+    nose.position.z = 7;
+    const tailCone = new THREE.Mesh(new THREE.ConeGeometry(1.1, 3, 14), white);
+    tailCone.rotation.x = -Math.PI / 2;
+    tailCone.position.z = -8.5;
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(1.13, 1.13, 12, 14, 1, true, -0.5, 1), stripe);
+    band.rotation.x = Math.PI / 2;
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(17, 0.25, 2.8), white);
+    wing.position.set(0, -0.4, 0.5);
+    const tailWing = new THREE.Mesh(new THREE.BoxGeometry(6, 0.2, 1.6), white);
+    tailWing.position.set(0, 0.2, -8.2);
+    const fin = new THREE.Mesh(new THREE.BoxGeometry(0.25, 3.2, 2.2), stripe);
+    fin.position.set(0, 2, -8.4);
+    plane.add(body, nose, tailCone, band, wing, tailWing, fin);
+    for (const x of [-4.2, 4.2]) {
+      const eng = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 2.4, 10), grey);
+      eng.rotation.x = Math.PI / 2;
+      eng.position.set(x, -1.1, 1.2);
+      plane.add(eng);
+    }
+    // from screen-right as the camera looks up the tower, so it crosses the shot before it hits
+    const from = new THREE.Vector3(45 + 0.85 * 170, 196, 40 + 0.53 * 170);
+    plane.scale.setScalar(1.7);
+    plane.position.copy(from);
+    plane.lookAt(top);
+    plane.visible = false;
+    s3.add(plane);
     clk.after(() => {
-      planet.visible = true;
+      plane.visible = true;
       const t0 = clk.now();
       const fly = () => {
-        const k = Math.min(1, (clk.now() - t0) / 1500);
-        planet.position.lerpVectors(from, top, k * k);
-        planet.rotation.y += 0.05;
+        const k = Math.min(1, (clk.now() - t0) / 2600);
+        plane.position.lerpVectors(from, top, k);
         if (k < 1) return clk.frame(fly);
         // impact: a fireball off the top, bits raining down, and it smoulders for the rest of the film
-        s3.remove(planet);
+        s3.remove(plane);
         synth.play("explode");
         shake(0.08);
         // kept small: a pop and a wisp, not a moment
-        burst(top, 40, () => [0xfff1a8, 0xffb347, 0xff6a2a, 0xffd23f][Math.floor(Math.random() * 4)], { speed: 14, up: 6, size: 2.6, life: 0.8, grav: 4, additive: true });
-        burst(top, 14, () => [0x7a4a2a, 0xc97b3d, 0x3f3f46][Math.floor(Math.random() * 3)], { speed: 12, up: 8, size: 1.2, life: 2.2, grav: 30 });
-        burst(top, 5, 0x52525b, { speed: 2, up: 2, size: 3, life: 2, grav: -1, grow: 1.3 });
-        const smoke = clk.every(() => burst(top.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, 3, (Math.random() - 0.5) * 3)), 1, 0x6b7280, { speed: 0.8, up: 3, size: 2.2, life: 2.5, grav: -1, grow: 1.4 }), 450);
+        burst(top, 55, () => [0xfff1a8, 0xffb347, 0xff6a2a, 0xffd23f][Math.floor(Math.random() * 4)], { speed: 22, up: 8, size: 9, life: 1.0, grav: 4, additive: true });
+        burst(top, 14, () => [0x7a4a2a, 0xc97b3d, 0x3f3f46][Math.floor(Math.random() * 3)], { speed: 16, up: 10, size: 2.6, life: 2.2, grav: 30 });
+        burst(top, 8, 0x52525b, { speed: 3, up: 3, size: 7, life: 2, grav: -1, grow: 1.3 });
+        const smoke = clk.every(() => burst(top.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, 3, (Math.random() - 0.5) * 3)), 1, 0x6b7280, { speed: 0.8, up: 3, size: 4.5, life: 2.5, grav: -1, grow: 1.4 }), 450);
         clk.after(() => clk.clear(smoke), 10000);
       };
       fly();
-    }, 1100);
+    }, 300);
   }
   await camTo([26, 3, 62], [45, 190, 40], 3400, ease.inOut);
   // over the town hall, with the traffic underneath

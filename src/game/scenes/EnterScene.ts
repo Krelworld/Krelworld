@@ -114,7 +114,7 @@ export class EnterScene extends Phaser.Scene {
     cam.flash(260, 255, 210, 63);
     if (this.logo) this.tweens.add({ targets: this.logo, scale: 1.15, duration: 600, ease: "Cubic.in" });
     if (this.prompt) this.tweens.add({ targets: this.prompt, alpha: 0, duration: 200 });
-    cam.zoomTo(1.08, 650, "Cubic.in");
+    cam.zoomTo(1.08, 650, "Cubic.easeIn");
     cam.fadeOut(650, 0, 0, 0);
     cam.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start("Title"));
   }

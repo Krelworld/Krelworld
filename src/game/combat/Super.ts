@@ -104,22 +104,24 @@ function becomeGolden(p: Player) {
     for (const [xa, ya, tx, ty] of spikes) hair.fillTriangle(hx + xa - 7, hy + ya, hx + xa + 7, hy + ya, hx + tx, hy + ty);
   };
   if (hair) aura.push(hair);
-  const glow = sc.add.circle(p.x, p.y, 54, 0xfde047, 0.3).setBlendMode(Phaser.BlendModes.ADD).setDepth(498);
+  const glow = sc.add.circle(p.x, p.y, 54, 0xfde047, 0.2).setBlendMode(Phaser.BlendModes.ADD).setDepth(498);
   sc.tweens.add({ targets: glow, scale: 1.25, alpha: 0.12, yoyo: true, repeat: -1, duration: 160 });
   aura.push(glow);
   const ev = sc.time.addEvent({
     delay: 30,
     loop: true,
     callback: () => {
-      glow.setPosition(p.x, p.y);
+      // the player is y-sorted, so the aura has to follow him to stay behind him
+      glow.setPosition(p.x, p.y).setDepth(p.spr.depth - 2);
       if (kd(G.s, "kd_aura")) glow.setFillStyle(Phaser.Display.Color.HSVToRGB((sc.time.now / 1500) % 1, 0.8, 1).color, glow.fillAlpha);
       drawHair();
       // a golden flame licking up all round you
       for (let k = 0; k < 2; k++) {
         const a = Math.random() * Math.PI * 2;
+        if (k === 1 && Math.random() < 0.5) continue;
         const rainbow = kd(G.s, "kd_aura") > 0;
         const RB = [0xff4d4d, 0xffa53a, 0xfacc15, 0x4ade80, 0x38bdf8, 0xa855f7, 0xff4fd8];
-        const f = sc.add.ellipse(p.x + Math.cos(a) * 26, p.y + 22 + Math.sin(a) * 8, 14, 26, rainbow ? RB[Math.floor(Math.random() * RB.length)] : Math.random() < 0.5 ? 0xfacc15 : 0xfff7c2, 0.9).setBlendMode(Phaser.BlendModes.ADD).setDepth(499);
+        const f = sc.add.ellipse(p.x + Math.cos(a) * 30, p.y + 18 + Math.sin(a) * 8, 10, 22, rainbow ? RB[Math.floor(Math.random() * RB.length)] : Math.random() < 0.5 ? 0xfacc15 : 0xfff7c2, 0.7).setBlendMode(Phaser.BlendModes.ADD).setDepth(p.spr.depth - 1);
         sc.tweens.add({ targets: f, y: f.y - 70 - Math.random() * 40, x: f.x + (Math.random() - 0.5) * 20, alpha: 0, duration: 480, onComplete: () => f.destroy() });
       }
       if (Math.random() < 0.04) bolt(p);
@@ -161,62 +163,173 @@ function bolt(p: Player) {
   sc.tweens.add({ targets: g, alpha: 0, duration: 160, onComplete: () => g.destroy() });
 }
 
-/** ATTACK while golden: a huge, wide, heavy swing. */
+/** The three strikes of the golden combo: jab, hook, then the launcher. */
+const COMBO = [
+  { anim: "punch", skip: 0, R: 150, arc: 1.0, dmg: 55, bossDmg: 0.008, knock: 150, lunge: 360, cd: 190, stop: 55, shake: 0.008, dur: 230 },
+  { anim: "punch", skip: 2, R: 160, arc: 1.25, dmg: 70, bossDmg: 0.01, knock: 220, lunge: 400, cd: 210, stop: 70, shake: 0.011, dur: 260 },
+  { anim: "upper", skip: 0, R: 205, arc: 1.6, dmg: 140, bossDmg: 0.02, knock: 980, lunge: 520, cd: 520, stop: 150, shake: 0.024, dur: 420 },
+] as const;
+/** Press again within this long to carry the combo on. */
+const CHAIN_MS = 750;
+
+/** ATTACK while golden: a three-hit combo that steps you into whoever you're aiming at. */
 export function megaMelee(p: Player, now: number) {
   const w = p.world;
   const sc = w.sc;
-  p.attackCd = now + 300;
-  p.attackAnimUntil = now + 160;
-  const a = p.aim;
-  const R = 175;
-  const ARC = Math.PI * 1.15;
-  // a little lunge into it
-  const body = p.spr.body as Phaser.Physics.Arcade.Body;
-  if (!w.side) body.setVelocity(Math.cos(a) * 420, Math.sin(a) * 420);
-  else body.setVelocityX(Math.cos(a) * 420);
-  // the swoosh
-  const g = sc.add.graphics().setDepth(601);
-  const swing = { t: 0 };
-  const side = (p.swingSide = -p.swingSide || 1);
-  sc.tweens.add({
-    targets: swing,
-    t: 1,
-    duration: 140,
-    onUpdate: () => {
-      g.clear();
-      const from = a - (ARC / 2) * side;
-      const to = from + ARC * swing.t * side;
-      for (const [r, wdt, col, al] of [[R, 34, 0xf59e0b, 0.55], [R - 6, 20, 0xfde047, 0.95], [R - 12, 8, 0xffffff, 1], [R * 0.62, 10, 0xfacc15, 0.7]] as [number, number, number, number][]) {
-        g.lineStyle(wdt, col, al);
-        g.beginPath();
-        g.arc(p.x, p.y, r, Math.min(from, to), Math.max(from, to));
-        g.strokePath();
-      }
-    },
-    onComplete: () => sc.tweens.add({ targets: g, alpha: 0, duration: 120, onComplete: () => g.destroy() }),
-  });
-  synth.play("explode");
-  let hits = 0;
-  for (const e of [...w.enemies]) {
+  const step = now - p.meleeLastAt < CHAIN_MS ? (p.meleeStep + 1) % COMBO.length : 0;
+  p.meleeStep = step;
+  p.meleeLastAt = now;
+  const m = COMBO[step];
+  const finisher = step === COMBO.length - 1;
+  p.attackCd = now + m.cd;
+  p.attackAnimUntil = now + m.dur;
+  // magnet: snap to the nearest enemy roughly where you're aiming, so swings connect
+  let a = p.aim;
+  let best: any = null;
+  let bestD = m.R + 120;
+  for (const e of w.enemies) {
     if (e.dead) continue;
     const d = Phaser.Math.Distance.Between(p.x, p.y, e.x, e.y);
-    if (d > R + e.radius) continue;
-    const ang = Math.atan2(e.y - p.y, e.x - p.x);
-    if (Math.abs(Phaser.Math.Angle.Wrap(ang - a)) > ARC / 2 + 0.2 && d > 50) continue;
-    hits++;
-    const dmg = (e.isBoss ? p.dmg(28, now) + e.maxHp * 0.012 : p.dmg(60, now)) * (kd(G.s, "kd_aura") ? 1.3 : 1);
-    w.damageEnemy(e, dmg, { knock: e.isBoss ? 180 : 620, angle: ang, crit: Math.random() < 0.25, noWonk: true });
-    if (!vfx(sc, "vfx_crit", e.x, e.y, { scale: 1.1, depth: 602, tint: 0xfde047 })) {
-      w.burst(e.x, e.y, 0xfde047, 12);
-      const ring = sc.add.circle(e.x, e.y, 8, 0xffffff, 0).setStrokeStyle(4, 0xfde047).setDepth(602);
-      sc.tweens.add({ targets: ring, radius: 46, alpha: 0, duration: 220, onComplete: () => ring.destroy() });
+    const off = Math.abs(Phaser.Math.Angle.Wrap(Math.atan2(e.y - p.y, e.x - p.x) - p.aim));
+    if (d < bestD && off < 1.1) {
+      bestD = d;
+      best = e;
     }
   }
-  if (hits) {
-    w.hitStop(hits > 2 ? 90 : 60);
-    w.shake(140, 0.012);
-    if (Math.random() < 0.3) w.floatText(p.x, p.y - 60, ["HAAA!", "ORA!", "TAKE THIS!", "GOLDEN!", "HRAAAH!"][Math.floor(Math.random() * 5)], "#fde047", 18);
-  } else w.shake(60, 0.004);
+  if (best) a = Math.atan2(best.y - p.y, best.x - p.x);
+  p.meleeAnim = { key: m.anim, skip: m.skip, start: now, dur: m.dur, dir: Math.cos(a) < 0 ? -1 : 1 };
+  // the lunge (shorter if they're already in your face)
+  const lunge = best ? Math.min(m.lunge, Math.max(120, (bestD - 40) * 4)) : m.lunge * 0.6;
+  const body = p.spr.body as Phaser.Physics.Arcade.Body;
+  if (!w.side) body.setVelocity(Math.cos(a) * lunge, Math.sin(a) * lunge);
+  else body.setVelocityX(Math.cos(a) * lunge);
+  afterimage(p, 3, finisher ? 0xffe680 : 0xfde047);
+  synth.play(finisher ? "punch_big" : "swing");
+  // the strike lands a beat into the animation, like a real wind-up
+  const delay = finisher ? 120 : 60;
+  sc.time.delayedCall(delay, () => {
+    if (p.dead) return;
+    swoosh(p, a, m.R, m.arc * Math.PI, step);
+    let hits = 0;
+    for (const e of [...w.enemies]) {
+      if (e.dead) continue;
+      const d = Phaser.Math.Distance.Between(p.x, p.y, e.x, e.y);
+      if (d > m.R + e.radius) continue;
+      const ang = Math.atan2(e.y - p.y, e.x - p.x);
+      if (Math.abs(Phaser.Math.Angle.Wrap(ang - a)) > (m.arc * Math.PI) / 2 + 0.2 && d > 50) continue;
+      hits++;
+      const dmg = (e.isBoss ? p.dmg(m.dmg * 0.45, now) + e.maxHp * m.bossDmg : p.dmg(m.dmg, now)) * (kd(G.s, "kd_aura") ? 1.3 : 1);
+      w.damageEnemy(e, dmg, { knock: e.isBoss ? m.knock * 0.25 : m.knock, angle: ang, crit: finisher || Math.random() < 0.2, noWonk: true, stun: finisher ? 700 : 220 });
+      impact(p, e.x, e.y, ang, finisher);
+    }
+    if (hits) {
+      w.hitStop(m.stop + (hits > 2 ? 30 : 0));
+      w.shake(finisher ? 260 : 120, m.shake);
+      synth.play(finisher ? "bonecrack" : "punch");
+      if (finisher) {
+        synth.play("boom");
+        const cam = sc.cameras.main;
+        const z = cam.zoom;
+        sc.tweens.add({ targets: cam, zoom: z * 1.06, duration: 70, yoyo: true, ease: "Quad.out" });
+        w.floatText(p.x, p.y - 70, ["KRELL-SMASH!", "GOLDEN FIST!", "HRAAAAH!", "SIT DOWN!", "WONK THIS!"][Math.floor(Math.random() * 5)], "#fde047", 22);
+      }
+    } else if (finisher) w.shake(90, 0.006);
+    // the finisher also slams the floor: a ring that shoves everyone near away
+    if (finisher) {
+      if (!vfx(sc, "vfx_shock", p.x + Math.cos(a) * 60, p.y + Math.sin(a) * 60 + 10, { scale: 2, depth: 600, tint: 0xfde047 })) {
+        const ring = sc.add.circle(p.x, p.y, 10, 0xffffff, 0).setStrokeStyle(6, 0xfde047).setDepth(600);
+        sc.tweens.add({ targets: ring, radius: 150, alpha: 0, duration: 380, onComplete: () => ring.destroy() });
+      }
+      vfx(sc, "vfx_dust", p.x, p.y + 20, { scale: 1.6, depth: 499 });
+      for (const e of [...w.enemies]) {
+        if (e.dead || e.isBoss) continue;
+        const d = Phaser.Math.Distance.Between(p.x, p.y, e.x, e.y);
+        if (d < 130 && d > 0) w.damageEnemy(e, p.dmg(20, now), { knock: 520, angle: Math.atan2(e.y - p.y, e.x - p.x), noWonk: true, label: "" });
+      }
+    }
+  });
+}
+
+/** Golden ghosts of you left behind on the lunge. */
+function afterimage(p: Player, n: number, tint: number) {
+  const sc = p.world.sc;
+  for (let i = 0; i < n; i++) {
+    sc.time.delayedCall(i * 28, () => {
+      if (!p.spr.active) return;
+      const g = sc.add.image(p.spr.x, p.spr.y, p.spr.texture.key, p.spr.frame.name).setScale(p.spr.scaleX, p.spr.scaleY).setFlipX(p.spr.flipX).setOrigin(p.spr.originX, p.spr.originY);
+      g.setTint(tint).setTintFill(tint).setAlpha(0.5).setDepth(p.spr.depth - 1).setBlendMode(Phaser.BlendModes.ADD);
+      sc.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() });
+    });
+  }
+}
+
+/** The crescent of the strike: thick at the leading edge, tapering behind, gone in a blink. */
+function swoosh(p: Player, a: number, R: number, arc: number, step: number) {
+  const sc = p.world.sc;
+  const g = sc.add.graphics().setDepth(601).setBlendMode(Phaser.BlendModes.ADD);
+  const side = step === 1 ? -1 : 1;
+  const st = { t: 0 };
+  const finisher = step === 2;
+  sc.tweens.add({
+    targets: st,
+    t: 1,
+    duration: finisher ? 150 : 100,
+    ease: "Cubic.out",
+    onUpdate: () => {
+      g.clear();
+      // a crescent hugging the front of the swing, drawn point by point (no arc() wrap-around surprises)
+      const from = a - (arc / 2) * side;
+      const sweep = arc * st.t * side;
+      const segs = 16;
+      const rIn = R * 0.42;
+      const rOut = R * (finisher ? 0.95 : 0.8);
+      const ring = (k: number) => {
+        const pts: Phaser.Math.Vector2[] = [];
+        for (let i = 0; i <= segs; i++) {
+          const u = i / segs;
+          const ang = from + sweep * u;
+          // thickest at the leading edge, tapering to nothing at the tail
+          const r = rIn + (rOut - rIn) * (0.55 + 0.45 * u) * k;
+          pts.push(new Phaser.Math.Vector2(p.x + Math.cos(ang) * r, p.y + Math.sin(ang) * r));
+        }
+        return pts;
+      };
+      const inner: Phaser.Math.Vector2[] = [];
+      for (let i = segs; i >= 0; i--) {
+        const u = i / segs;
+        const ang = from + sweep * u;
+        const r = rIn + (rOut - rIn) * 0.55 * (1 - u * 0.6);
+        inner.push(new Phaser.Math.Vector2(p.x + Math.cos(ang) * r, p.y + Math.sin(ang) * r));
+      }
+      g.fillStyle(0xf59e0b, 0.45).fillPoints([...ring(1.08), ...inner], true);
+      g.fillStyle(0xfde047, 0.9).fillPoints([...ring(1), ...inner], true);
+      g.lineStyle(3, 0xffffff, 1).strokePoints(ring(1), false);
+    },
+    onComplete: () => sc.tweens.add({ targets: g, alpha: 0, duration: 90, onComplete: () => g.destroy() }),
+  });
+  // speed lines streaking out along the strike
+  for (let i = 0; i < (finisher ? 7 : 4); i++) {
+    const la = a + (Math.random() - 0.5) * arc * 0.6;
+    const r0 = 30 + Math.random() * 30;
+    const line = sc.add.line(0, 0, p.x + Math.cos(la) * r0, p.y + Math.sin(la) * r0, p.x + Math.cos(la) * (r0 + 40), p.y + Math.sin(la) * (r0 + 40), 0xfff7c2, 0.9).setOrigin(0, 0).setLineWidth(2).setDepth(601).setBlendMode(Phaser.BlendModes.ADD);
+    sc.tweens.add({ targets: line, x: Math.cos(la) * R * 0.8, y: Math.sin(la) * R * 0.8, alpha: 0, duration: 160, onComplete: () => line.destroy() });
+  }
+}
+
+/** Where a golden fist lands: a white flash, a burst of gold, sparks flying on through. */
+function impact(p: Player, x: number, y: number, ang: number, big: boolean) {
+  const w = p.world;
+  const sc = w.sc;
+  const flash = sc.add.circle(x, y, big ? 30 : 18, 0xffffff, 1).setDepth(603).setBlendMode(Phaser.BlendModes.ADD);
+  sc.tweens.add({ targets: flash, scale: 1.8, alpha: 0, duration: big ? 160 : 100, onComplete: () => flash.destroy() });
+  if (!vfx(sc, big ? "vfx_crit" : "vfx_hit", x, y, { scale: big ? 1.5 : 1.1, depth: 602, tint: 0xfde047 })) w.burst(x, y, 0xfde047, big ? 16 : 10);
+  if (big) vfx(sc, "vfx_sparks", x + Math.cos(ang) * 20, y + Math.sin(ang) * 20, { scale: 1.2, depth: 602 });
+  for (let i = 0; i < (big ? 8 : 4); i++) {
+    const sa = ang + (Math.random() - 0.5) * 1.2;
+    const sp = sc.add.rectangle(x, y, 4, 4, Math.random() < 0.5 ? 0xfde047 : 0xffffff).setDepth(603).setBlendMode(Phaser.BlendModes.ADD);
+    const dist = (big ? 70 : 40) + Math.random() * 40;
+    sc.tweens.add({ targets: sp, x: x + Math.cos(sa) * dist, y: y + Math.sin(sa) * dist, alpha: 0, scale: 0.3, duration: 220, ease: "Quad.out", onComplete: () => sp.destroy() });
+  }
 }
 
 /** C while golden: CUME... HAME... HAAAAAA! */

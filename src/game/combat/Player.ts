@@ -64,6 +64,10 @@ export class Player {
   cumeCd = 0;
   chargingUntil = 0;
   swingSide = 1;
+  /** The golden combo: which strike is next, when the last one went, and the strike animation playing. */
+  meleeStep = 0;
+  meleeLastAt = -9999;
+  meleeAnim: { key: string; skip: number; start: number; dur: number; dir: number } | null = null;
   /** SPREAD power-up (side-scrolling weapon pods): every shot fans out. */
   spreadUntil = 0;
   readmissionUsed = false;
@@ -268,6 +272,12 @@ export class Player {
         this.spr.setFlipX(f === "west").setFrame(hurt[Math.max(0, Math.min(hurt.length - 1, Math.floor(t * hurt.length)))]);
       } else if (now < this.cheerUntil && cheer?.length && !moving && !fighting) {
         this.spr.setFlipX(f === "west").setFrame(cheer[Math.floor(now / 110) % cheer.length]);
+      } else if (this.meleeAnim && now < this.meleeAnim.start + this.meleeAnim.dur && (meta as any)[this.meleeAnim.key]?.east) {
+        // golden combo strikes are drawn side-on (they read far better than a punch at the camera)
+        const ma = this.meleeAnim;
+        const cyc: number[] = (meta as any)[ma.key].east.slice(ma.skip);
+        const t = (now - ma.start) / ma.dur;
+        this.spr.setFlipX(ma.dir < 0).setFrame(cyc[Math.max(0, Math.min(cyc.length - 1, Math.floor(t * cyc.length)))]);
       } else if (now < this.attackAnimUntil) {
         const side = f === "east" || f === "west";
         const cyc = (side ? meta.attack?.east : meta.attack?.south) ?? meta.attack?.east ?? [3];
@@ -647,15 +657,41 @@ export class Player {
     const sig = this.def.signature!;
     if (this.headbuttMode) {
       if (now < this.specialCd) return;
-      this.specialCd = now + 900;
-      this.attackAnimUntil = now + 200;
-      synth.play("crit");
-      this.world.shake(150, 0.012);
-      this.world.floatText(this.x, this.y - 40, "HEADBUTT", "#ffd23f", 16);
-      for (const e of [...this.world.enemies]) {
+      this.specialCd = now + 700;
+      this.attackAnimUntil = now + 220;
+      // lunge head-first at whoever's nearest in front of you
+      let a = this.aim;
+      let best = 240;
+      for (const e of this.world.enemies) {
         if (e.dead) continue;
-        if (Phaser.Math.Distance.Between(this.x, this.y, e.x, e.y) < e.radius + 40) this.world.damageEnemy(e, 40, { source: "headbutt", crit: true, knock: 200 });
+        const d = Phaser.Math.Distance.Between(this.x, this.y, e.x, e.y);
+        if (d < best && Math.abs(Phaser.Math.Angle.Wrap(Math.atan2(e.y - this.y, e.x - this.x) - this.aim)) < 1.2) {
+          best = d;
+          a = Math.atan2(e.y - this.y, e.x - this.x);
+        }
       }
+      const body = this.spr.body as Phaser.Physics.Arcade.Body;
+      if (!this.world.side) body.setVelocity(Math.cos(a) * 520, Math.sin(a) * 520);
+      else body.setVelocityX(Math.cos(a) * 520);
+      synth.play("swing");
+      this.world.sc.time.delayedCall(90, () => {
+        let hit = false;
+        for (const e of [...this.world.enemies]) {
+          if (e.dead) continue;
+          if (Phaser.Math.Distance.Between(this.x, this.y, e.x, e.y) < e.radius + 52) {
+            hit = true;
+            this.world.damageEnemy(e, 40, { source: "headbutt", crit: true, knock: 260, angle: a, stun: 400 });
+            vfx(this.world.sc, "vfx_crit", (this.x + e.x) / 2, (this.y + e.y) / 2 - 10, { scale: 1.4, depth: 602 });
+            vfx(this.world.sc, "vfx_stars", e.x, e.y - 40, { scale: 1, depth: 602 });
+          }
+        }
+        if (hit) {
+          synth.play("bonecrack");
+          this.world.hitStop(110);
+          this.world.shake(220, 0.016);
+          this.world.floatText(this.x, this.y - 44, "HEADBUTT!", "#ffd23f", 20);
+        } else this.world.floatText(this.x, this.y - 40, "headbutt (missed)", "#9aa0b4", 12);
+      });
       return;
     }
     if (now < this.specialCd) return;

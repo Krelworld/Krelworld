@@ -50,7 +50,7 @@ export class TitleScene extends Phaser.Scene {
 
     title(this, W / 2, 86, "KRELWORLD", 64, "#ffd23f");
     title(this, W / 2, 140, "WONK 'TIL YOU KREZ", 26, "#ff6fa8");
-    label(this, W / 2, 168, "A group chat that accidentally became a country", 13, "#c9c3e6").setOrigin(0.5, 0);
+    label(this, W / 2, 168, "The craziest universe of all time…", 13, "#c9c3e6").setOrigin(0.5, 0);
 
     const has = G.saves.hasSave();
     const items: [string, () => void, boolean?][] = [];

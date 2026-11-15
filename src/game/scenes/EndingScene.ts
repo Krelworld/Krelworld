@@ -2,14 +2,13 @@ import Phaser from "phaser";
 import { backdrop } from "../gfx/HD";
 import { G } from "../G";
 import { DialogueBox } from "../ui/DialogueBox";
-import { FINAL_PROMPT, ENDINGS, EPILOGUES, CREDITS, SEQUEL_CARD, endingKeyFor } from "../../content/endings";
+import { FINAL_PROMPT, ENDINGS, CREDITS, SEQUEL_CARD, endingKeyFor } from "../../content/endings";
 import type { ReactionChoice } from "../../data/types";
 import { FONT, title, button } from "../ui/theme";
 import { synth } from "../audio/Synth";
 import { dir, say } from "../../content/dsl";
 import { switchTo, fadeThen } from "../Flow";
 import { portraitKey } from "../gfx/Textures";
-import { CHARACTERS } from "../../data/characters";
 import { applyReaction } from "../systems/reactions";
 import { realUniverse } from "./ending/realUniverse";
 import { krelworld3d } from "./ending/krelworld3d";
@@ -102,22 +101,6 @@ export class EndingScene extends Phaser.Scene {
         dir("THE SCROMBUS ERA BEGINS. First decree: every house in Krelworld will be renovated whether it wants to be or not."),
       ]);
     }
-    // epilogue card
-    const card = this.add.container(480, 250).setDepth(600);
-    card.add(this.add.rectangle(0, 0, 760, 300, 0x141628, 0.97).setStrokeStyle(3, CHARACTERS[s.player].color));
-    const pk = portraitKey(this, s.player);
-    if (pk) card.add(this.add.image(-300, -60, pk).setDisplaySize(110, 110));
-    card.add(this.add.text(-220, -120, "EPILOGUE", { fontFamily: FONT, fontSize: "14px", color: "#ffd23f", fontStyle: "bold" }));
-    const extra = [
-      s.flags.kreltower_fell ? "The Kreltower fell (again). Rebuilding starts Monday." : s.flags.kreltower_saved ? "The Kreltower stands. Flight KR-069 lives in the Great Tap now." : "",
-      s.flags.arc_scrombus_done ? "Supreme Leader: Ben Scrombus." : "",
-      s.flags.wildern_destroyed ? "The Wildern kids came back to life via the power of emeralds. Nobody has asked any follow-up questions." : "",
-    ].filter(Boolean).join(" ");
-    card.add(this.add.text(-220, -96, EPILOGUES[s.player] + (extra ? `\n\n${extra}` : ""), { fontFamily: FONT, fontSize: "15px", color: "#ffffff", wordWrap: { width: 560 }, lineSpacing: 4 }));
-    await new Promise<void>((res) => {
-      card.add(button(this, 0, 110, "CONTINUE", () => res(), { w: 200 }));
-    });
-    card.destroy();
     // the camera pulls out of the game: the real universe
     await realUniverse(this);
     // …and out of the wormhole into Krelworld, in 3D

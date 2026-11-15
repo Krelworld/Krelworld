@@ -97,12 +97,14 @@ export class TownMeetingScene extends Phaser.Scene {
     this.add.text(W - 120, 26, "NATIONAL REACTION DISPLAY", { fontFamily: FONT, fontSize: "10px", color: "#7fb3ff" }).setOrigin(0.5);
     this.reactText = this.add.text(W - 120, 66, "", { fontFamily: FONT, fontSize: "18px", color: "#ffffff", align: "center" }).setOrigin(0.5);
     this.updateReactDisplay();
-    // agenda
-    this.add.rectangle(10, 128, 196, 26 + m.agenda.length * 30, 0xf5ecd0).setOrigin(0).setStrokeStyle(2, 0x7a5230).setDepth(5);
-    this.add.text(18, 132, "AGENDA", { fontFamily: FONT, fontSize: "12px", color: "#7a1f2b", fontStyle: "bold" }).setDepth(5);
-    m.agenda.forEach((a, i) => {
-      this.agendaTexts.push(this.add.text(18, 150 + i * 30, a, { fontFamily: FONT, fontSize: "10px", color: "#2a1a0a", wordWrap: { width: 182 } }).setDepth(5));
-    });
+    // agenda (meetings without one show no agenda board)
+    if (m.agenda.length) {
+      this.add.rectangle(10, 128, 196, 26 + m.agenda.length * 30, 0xf5ecd0).setOrigin(0).setStrokeStyle(2, 0x7a5230).setDepth(5);
+      this.add.text(18, 132, "AGENDA", { fontFamily: FONT, fontSize: "12px", color: "#7a1f2b", fontStyle: "bold" }).setDepth(5);
+      m.agenda.forEach((a, i) => {
+        this.agendaTexts.push(this.add.text(18, 150 + i * 30, a, { fontFamily: FONT, fontSize: "10px", color: "#2a1a0a", wordWrap: { width: 182 } }).setDepth(5));
+      });
+    }
     // horseshoe table (half-ellipse)
     if (this.textures.exists("p_meeting_table")) {
       this.add.image(W / 2, 258, "p_meeting_table").setScale(1.5).setDepth(2);

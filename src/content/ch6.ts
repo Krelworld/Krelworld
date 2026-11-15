@@ -33,8 +33,8 @@ export const KT_DRIVER: Line[] = [
 export const KT_KRUNCHERS: Line[] = [
   dir("On the platform, in matching neon varsity jackets: the Kreddle Krunchers. They've brought banners. One of the banners has a drawing of the Krel Tower on fire, and it's quite good."),
   say("KLENKY", "GO ON MR PRESIDENT!! RAM IT RIGHT UP THE KREL TOWER!!"),
-  say("SKROMBUS", "I hope it goes straight through the middle! I hope it kills LOADS of civilians!!"),
-  say("GRENNY", "Kill the pensioners! Kill the dog walkers! Kill the man who sells fizzy bongos!!"),
+  say("SKROMBUS", "I hope it goes straight through the middle! I hope it kills lots of innocent civilians!!"),
+  say("GRENNY", "Kill the pensioners! Kill the dogs! Kill everyone!!"),
   say("KREDBLIS", "Breaking news… Krelworld is about to be fucking flattened 👍"),
   say("KREDMAR", "Their whole economy is that Tap. Smash the tower, piss in the Tap again, and they're finished. Bankrupt. I'll buy the rubble."),
   say("LIL' KRUNGUS", "I hope it lands on that Mikey. We already battered him once. Let's see if he bounces!", { variants: { MIKEY: "I hope it lands on that Polson. We already battered him once. Let's see if he bounces!" } }),
@@ -75,8 +75,8 @@ export const RM_OPEN: Line[] = [
 
 export const RM_JENKO: Line[] = [
   say("FLENKY", "MOLLOR!!! MOLLOR WAS IN THERE!!!"),
-  say("FLENKY", "My sweet 19 year old flirtkitten!! She worked on the TOP FLOOR!! She had a LANYARD!!"),
-  say("FLENKY", "She used to send me a picture of the view every lunchtime! Every lunchtime! Now what's she going to send me? RUBBLE?!"),
+  say("FLENKY", "My sweet 19 year old flirtkitten!! She worked on the TOP FLOOR!! She is now dead! Ash and bones! Beautiful, erotic bones!"),
+  say("FLENKY", "She used to send me a picture of her lovely lady parts every lunchtime! Every lunchtime! Now what's she going to send me? She can't, as she has sadly died!"),
   say("GRONNY", "Me sorry about flirtkitten."),
   say("FLENKY", "DON'T CALL HER THAT. ONLY I CALL HER THAT."),
   say("KREZMAR", "Jenko. Mate. Breathe. In through the nose."),
@@ -157,11 +157,9 @@ export const RM_KREBLIS: Line[] = [
   say("KREBLIS", "FINALLY!!!!"),
   say("KREBLIS", "I'VE BEEN SAYING THIS SINCE THE VERY FIRST MEETING!!"),
   say("KREBLIS", "Breaking news… WE'RE INVADING KREDDLE 👍👍👍👍"),
-  dir("Kreblis is crying. Actual tears. He's hugging the radiator."),
+  dir("Kreblis is crying. Actual tears."),
   say("KREZMAR", "You said it every single meeting. We told you to shut the fuck up about it every single meeting."),
   say("MIKEY", "…Alright. Alright. Kreblis was right."),
-  say("KREBLIS", "Can I get that in the minutes 👍"),
-  say("SCROMBUS", "Absolutely not."),
 ];
 
 export const RM_ACTUALLY: Line[] = [
@@ -170,7 +168,7 @@ export const RM_ACTUALLY: Line[] = [
   say("KREBON", "It was you. You flew the plane into it. We all watched. You waved.", { cond: { notPlayer: "KREBON" } }),
   say("PROCTUS", "Um. Sorry. Just to say. It wasn't actually Kreddle who crashed into the Krel Tower. It was you. You flew the plane into it. We all watched. You waved.", { cond: { player: "KREBON" } }),
   dir("Silence. Every head in the Town Hall turns, very slowly, towards you."),
-  say("YOU", "I had no choice!! They made me do it! Their President pointed a TRAIN at us! What was I supposed to do, NOT fly a plane into the Krel Tower?!"),
+  say("YOU", "I had no choice!! They made me do it! Their President pointed a train at us! What was I supposed to do, NOT fly a plane into the Krel Tower?!"),
   say("YOU", "And plus, we hate them anyway so this is a great excuse to kill them finally!"),
   dir("A pause. Then, slowly, everybody nods. It's a good point. It's the best point anybody has ever made in this Town Hall."),
   say("KREZMAR", "He's right. Technically it's Kreddle's fault for having a train."),
@@ -194,7 +192,7 @@ export const RM_LUKE: Line[] = [
   say("CRONGUS", "As Children's Minister I have to say something. Chemical weapons are forbidden. Under the Krelneva Convention."),
   say("CRONGUS", "Krelworld signed it! I signed it! I did a little drawing of a dove next to my name!"),
   dir("Krezmar slowly stands up. He reaches into his inside pocket. He takes out a document. It's laminated. He's been carrying it around specifically for this moment."),
-  say("KREZMAR", "ERES WHAT I FINK OF YOUR PRECIOUS KRELNEVA CONVENTION"),
+  say("KREZMAR", "ERES WHAT I FINK OF YOUR PRECIOUS FACKING KRELNEVA CONVENTION"),
 ];
 
 export const RM_PISS: Line[] = [
@@ -228,7 +226,7 @@ export const RM_CAUTION: Line[] = [
   say("KREBLIS", "Kreddle is the most heavily armed universe nearby. Lots of bombs and other things which could explode Krelworld 👍", { cond: { notPlayer: "KREBLIS" } }),
   say("SCROMBUS", "Point of order. Kreddle is the most heavily armed universe nearby. Lots of bombs and other things which could explode Krelworld.", { cond: { player: "KREBLIS" } }),
   say("MIKEY", "Who cares! They'll never beat us!!"),
-  say("GRONNY", "They never beat us!!"),
+  say("GRONNY", "There never beat us!!"),
   say("KREZMAR", "Never! They're a load of Kreddle cunts with sequins on!"),
   say("FLENKY", "They don't have the BALLS!!"),
   say("EVERYONE", "THEY'LL NEVER BEAT US!!"),
@@ -273,7 +271,7 @@ export const RM_HANDS: Line[] = [
   say("SCROMBUS", "Then it's settled. Tonight we march on Kreddle. Over the bridge, through the strip, all the way to the palace."),
   say("FLENKY", "For Mollor."),
   say("KREZMAR", "For the Krel Tower."),
-  say("MIKEY", "For my bongo.", { variants: { MIKEY: "For Polson's shake." } }),
+  say("MIKEY", "For my dignity.", { variants: { MIKEY: "For Polson's shake." } }),
   say("CRONGUS", "For… the Krelneva Convention?"),
   say("EVERYONE", "NO."),
   say("SCROMBUS", "Hands in. Everybody. Hands in the middle."),
@@ -294,7 +292,7 @@ export const KP_PARTY: Line[] = [
   say("MIKEY", "WE DID IT!! WE ACTUALLY FUCKING DID IT!!"),
   say("KREZMAR", "Did you see the Krunchers?! ASHES!! LITTLE PILES OF SEQUINNED ASH!!"),
   say("FLENKY", "That was for you, Mollor!! My sweet flirtkitten!! WOOOO!!"),
-  say("GRONNY", "Kreddle go boom soon. Me happy."),
+  say("GRONNY", "Kreddle go boom soon. Rory are happy."),
   say("SCROMBUS", "Minutes of the meeting: we won. Everything. Forever."),
   say("KREBON", "Should we be worried they'll… you know. Retaliate?", { cond: { notPlayer: "KREBON" } }),
   say("KREZMAR", "Retaliate?! They'll never retaliate!! They don't have the BALLS!!"),
@@ -341,7 +339,7 @@ export const TP_DANCE: Line[] = [
   say("MIKEY", "YEEE YEE!!"),
   say("KREZMAR", "WE DID IT!!"),
   say("FLENKY", "YEEE YEE!! THIS ONE'S FOR MOLLOR!!"),
-  say("GRONNY", "Me dance! Me dance good!"),
+  say("GRONNY", "Me dance! Me dance good! Me shake me hips for the sexy yet horny ladies!"),
   say("KREBLIS", "Breaking news… WE DID IT 👍"),
   say("SCROMBUS", "Somebody get Krebon off the speaker stack!"),
   say("KREBON", "I'M NOT TURNING ANYTHING OFF EVER AGAIN!!"),

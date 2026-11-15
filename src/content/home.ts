@@ -60,7 +60,6 @@ export const KREL_TROPHIES: Record<string, string> = {
 /** The games console: minigames you've played somewhere else, now on the telly. */
 export const CONSOLE_GAMES: { mode: string; name: string }[] = [
   { mode: "crocodile", name: "CROCODILE (rhythm)" },
-  { mode: "norwich", name: "NORWICH: CHAMPIONS LEAGUE FINAL" },
   { mode: "cam2cam", name: "CAM2CAM (censored edition)" },
   { mode: "bully", name: "BULLY MIKEY" },
   { mode: "deadlift", name: "DEADLIFT 300" },

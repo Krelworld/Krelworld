@@ -1053,7 +1053,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     bg.destroy();
     tub.destroy();
     cam.startFollow(this.player.spr, true, 0.12, 0.12);
-    await this.talk([say("SANMIK", "that's for everything u did to me in the past!!!!")]);
+    await this.talk([say("SANMIK", "that's for everything u did to me in the past!!!! When I was a child! You ruined me! I'm a broken man because of you! DIEEEE")]);
     await this.crystalGet({ bossId: "rik" } as unknown as Boss);
     if (s.chapter === 5 && !s.flags.ch5_clear) {
       s.flags.ch5_clear = true;
@@ -1120,16 +1120,15 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       dir("The Job Centre staff toilet has been transformed. Tealights on the cistern. Rose petals in the sink. A small speaker playing slow jams."),
       dir("And there is SanChz. And there, cradled tenderly in both of his hands, is a jam donut."),
       say("SANCHZ", "…"),
-      say("SANCHZ", "It's not what it looks like."),
-      say(G.s.player, "It looks like you're making sweet love to a jam donut, mate."),
+      say("SANCHZ", "Yeghhhh! You fucking CUNTS! Fuck you J.Q. ! Erotic weekend in stockport"),
+      say(G.s.player, "It looks like you've got your cock in a jam donut, mate."),
       say("SANCHZ", "…It's exactly what it looks like."),
-      dir("The donut, to its credit, looks content."),
+      dir("The donut moans in pleasure"),
       say("SANMIK", "(bursting in) YEEE — oh. Oh SanChz. Not again. Not in the Job Centre.", { variants: { MIKEY: "YEEE — oh. Oh SanChz. Not again. Not in the Job Centre." } }),
-      say("SANCHZ", "She's called Jaqueline. We met at Greggs. She gets me. YEGHHH."),
+      say("SANCHZ", "YEGHHH. Love shagging jam donuts!!"),
       gabor("Was that allowed? I don't think that was allowed. Report me. No, report HIM. Report both of us."),
       dir("Outside, the whole Job Centre shakes. Something enormous is rolling across the car park, screaming a name."),
       say("SANMIK", "…SanChz. Whose donut is that."),
-      say("SANCHZ", "…Her mum's quite important."),
     ]);
     chz?.spr.setVisible(true);
     G.s.flags.sm_donut = true;
@@ -2371,10 +2370,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     await this.talk(
       jenko
         ? [
-            say("MOLLOR", "JENKO! Oh thank god. There was another one of you. A DARK one. He kept calling himself 'a real man'."),
-            say("FLENKY", "That wasn't me. That was Dark Jenko. I'm the light one. Mostly."),
-            dir("Mollor kisses you on the cheek. Then gives you a big hug."),
-            say("FLENKY", "No promises. Too weird to live, too rare to die."),
+            say("MOLLOR", "AHHH! FUCK OFF YOU PERVERT!"),
+            say("FLENKY", "Mollor it wasn't me! It was my alter-ego!"),
           ]
         : [
             say("MOLLOR", "Thank you for saving me from that sicko Jenko!"),
@@ -2394,10 +2391,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (s.player === "GRONNY" && !s.flags.bertha_found) {
       s.flags.bertha_found = true;
       s.coins += 60;
-      await this.talk([say("GRONNY", "Bertha."), dir("You pull off the dust sheet. She's crusty. She's two years old. She's beautiful."), say("GRONNY", "I said I'd have her. I'm having her."), dir("You strap Big Bertha to your back. She weighs about as much as a fully grown Krezbian. You feel nothing. Shorts."), dir("+60 Krezzcoin (found in Bertha's coin slot).")]);
-      return;
     }
-    await this.talk([dir("Big Bertha. The original Wonking Machine. A faded sticker on her side reads 'OFFERED TO CABINET MEMBERS FIRST'. Nobody claimed her."), say("SCROMBUS", "(over the network) She's crusty, but she's honest.", { cond: { notPlayer: "SCROMBUS" } }), say("SCROMBUS", "Hello, old girl. I'll come back for you. I promise.", { cond: { player: "SCROMBUS" } })]);
   }
 
   private async restoreNetwork(spr: Phaser.GameObjects.Image) {

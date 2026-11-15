@@ -430,7 +430,7 @@ const DSL = new Set(["say", "dir", "ping", "canon", "adapt", "gabor"]);
 const SCREEN = new Set(["caption", "bigText", "shout", "bubble", "people", "floatShout", "kidBubble", "tweet", "subtitle", "screenSay", "bigTitle", "hit", "cue2", "say2", "floatText"]);
 const NOEXPAND = new Set(["enterBuilding", "onArrive", "update", "runArcStep", "talkTo", "useTap", "home", "turnIn", "registerBribe", "go", "openMenu", "openTV", "discover", "leave", "showMenu", "talk", "play", "wait", "tween", "caption", "bigText", "shout", "bubble", "people", "floatShout", "kidBubble", "tweet", "subtitle", "screenSay", "bigTitle", "toast", "floatText"]);
 /** Big registries that are rendered structurally, never as an inline reference. */
-const NOREF = new Set(["BOSS_TEXT", "MEETINGS", "ARCS", "CHAPTERS", "DUNGEONS", "CANON", "ALL_EPISODES", "PUB_CONVERSATIONS", "PUB_SNIPPETS", "NPC_TALK", "BARKS", "CHATTER", "PLAYER_BARKS", "DRONGUS_STATUSES", "DRONGUS_SEQUENCES", "PRIZES", "PRIZE", "DECOR", "DECOR_BY_ID", "KRUNCHERS", "CONSOLE_GAMES", "PERSONAL_QUESTS", "MINISTRY_QUESTS", "ARCHIVE", "ARCHIVE_BY_ID", "CHEESE_WITNESSES", "CHEESE_ACCUSATIONS", "DOMESTICS", "MORK_ROUNDS", "SONG_REPLIES", "CHAT_AFTER", "DREAMS", "KREL_TROPHIES", "GOLD_TOILET", "CHANNELS", "VIRAL_CHART", "BAN_RULES", "LOCAL_CHAT", "SHOVES", "INSULT", "CREDITS", "EPILOGUES", "ENDINGS", "RAID_ART"]);
+const NOREF = new Set(["BOSS_TEXT", "MEETINGS", "ARCS", "CHAPTERS", "DUNGEONS", "CANON", "ALL_EPISODES", "PUB_CONVERSATIONS", "PUB_SNIPPETS", "NPC_TALK", "BARKS", "CHATTER", "PLAYER_BARKS", "DRONGUS_STATUSES", "DRONGUS_SEQUENCES", "PRIZES", "PRIZE", "DECOR", "DECOR_BY_ID", "KRUNCHERS", "CONSOLE_GAMES", "PERSONAL_QUESTS", "MINISTRY_QUESTS", "ARCHIVE", "ARCHIVE_BY_ID", "CHEESE_WITNESSES", "CHEESE_ACCUSATIONS", "DOMESTICS", "MORK_ROUNDS", "SONG_REPLIES", "CHAT_AFTER", "DREAMS", "KREL_TROPHIES", "GOLD_TOILET", "CHANNELS", "VIRAL_CHART", "BAN_RULES", "LOCAL_CHAT", "SHOVES", "INSULT", "CREDITS", "ENDINGS", "RAID_ART"]);
 
 function lit(n: ts.Node | undefined): any {
   if (!n) return undefined;
@@ -993,7 +993,7 @@ function doc1(): Doc {
   const chHead = (n: number) => {
     const c = CHAPTERS[n - 1];
     d.h(2, `Chapter ${n}: ${c.title}`);
-    d.para(`*${esc(c.subtitle)}*`);
+    if (c.subtitle) d.para(`*${esc(c.subtitle)}*`);
     d.para(`*Objectives, in order:* ${c.steps.map((s: any) => esc(s.text)).join(" → ")}`);
   };
   const chIntro = (n: number, when: string) => {
@@ -1184,8 +1184,6 @@ function doc1(): Doc {
   }
   d.items(extract("EndingScene.ts", { method: "showEnding" }));
   d.items(extract("EndingScene.ts", { method: "deleteTheChat" }));
-  d.h(3, "Epilogues (one per character)");
-  d.exp("endings.ts", "EPILOGUES");
   d.h(3, "Credits");
   d.exp("endings.ts", "CREDITS", "Credits");
   d.exp("endings.ts", "SEQUEL_CARD", "Sequel card");

@@ -28,7 +28,7 @@ export const ROOF_ENTER: Line[] = [
 
 export const XF_BOTTLE: Line[] = [
   say("DRONGUS", "Do you know what this is? Do you?"),
-  say("DRONGUS", "This is GOLDEN PUSSY JUICE TESTOSTERONE. The purest there is. Cold-pressed. One bottle could turn a pigeon into a heavyweight champion."),
+  say("DRONGUS", "This is GOLDEN PUSSY JUICE TESTOSTERONE. The purest there is. Cold-pressed. The most rare and lovely pussy juice. From the most exotic beauty queens of all time."),
   say("KREBLIS", "That is NOT what testosterone is!", { cond: { notPlayer: "KREBLIS" } }),
   say("DRONGUS", "SHUT UP, KREBLIS. Two bottles. The whole world's supply. And they're MINE."),
   dir("He pulls a syringe out of his shorts. It is enormous. Nobody wants to know where in his shorts it was."),
@@ -124,7 +124,7 @@ export const KZ_STAND: Line[] = [
 export const KZ_THROW: Line[] = [
   say("DRONGUS", "IF I CAN'T HAVE IT, NOBODY CAN!"),
   dir("He grabs the second bottle of golden pussy juice testosterone, and a glowing hard drive marked CHAT LOGS, and hurls them both off the edge of the roof."),
-  say("FLENKY", "THE LOGS! HE'S THROWN THE LOGS!", { cond: { notPlayer: "FLENKY" } }),
+  say("FLENKY", "THE CHAT LOGS! HE'S THROWN THE CHAT LOGS!", { cond: { notPlayer: "FLENKY" } }),
 ];
 
 export const KZ_LANDED: Line[] = [

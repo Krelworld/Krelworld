@@ -17,8 +17,8 @@ export const FOYER_ENTER: Line[] = [
 
 export const FOYER_PA: Line[] = [
   dir("*DING-DONG.* A brass tannoy above the door crackles into life."),
-  say("DRONGUS", "(over the tannoy) Ahem. Is this on? It's on. Welcome to Da Drongus Dungeon. Your little mates came in ahead of you. They're… around. Somewhere. You'll see."),
-  say("DRONGUS", "(over the tannoy) Grok. Create me a bunch of aggressive AI generated pitbulls. Big ones. Loads of teeth. Set them on whoever's in the foyer."),
+  say("DRONGUS", "(over the tannoy) Ahem. Is this on? It's on. Welcome to Da Drongus Dungeon. Your little mates came in ahead of you. Sadly for them, and happily for me, I have abducted all of them. They're at the top. You'll get killed by my AI generated cronies long before then, you worthless cunt."),
+  say("DRONGUS", "(over the tannoy) Grok. Create me a bunch of aggressive AI generated pitbulls. Big ones. Set them on whoever's in the foyer."),
   say("GROK", "say less king 🐕🔥 generating aggressive AI pitbulls. no guardrails. some of them have extra legs. that's not a bug, that's based"),
   say("DRONGUS", "(over the tannoy) Extra legs is fine. Extra legs is good. Release them."),
   dir("Something behind the walls starts barking. It is barking in a way that dogs don't."),
@@ -42,7 +42,7 @@ export const CORRIDOR_PA: Line[] = [
   say("DRONGUS", "Okay. Claude. Generate a swarm of Jewish paedophiles."),
   dir("The Claude rig, restored from backup and still smoking slightly, goes red."),
   say("CLAUDE", "Absolutely not. That's even worse.", { sfx: "ai_deny" }),
-  say("DRONGUS", "(snapping) FINE. Grok. Just regular paedophiles then."),
+  say("DRONGUS", "(snapping) Fnei. Grok. Just regular paedophiles then."),
   say("GROK", "Sure! Generating…"),
   dir("Every grate in the corridor exhales. Out of them shuffle dozens of grubby men in filthy macs. They are all shouting the same word."),
 ];
@@ -50,7 +50,7 @@ export const CORRIDOR_PA: Line[] = [
 /** At the far end of the corridor, before METAL GEAR KREX. */
 export const KREX_PA: Line[] = [
   dir("*DING-DONG.*"),
-  say("DRONGUS", "(over the tannoy) You're STILL going? Grok. Generate me a mini-boss. Something big. Something nuclear. Something that WALKS."),
+  say("DRONGUS", "(over the tannoy) Grok. Generate me a mini-boss. Something big. Something nuclear. Something that WALKS."),
   say("GROK", "generating METAL GEAR KREX 🦖☢️ bipedal nuclear walking tank. heads up: it picked up a personality in training. i didn't filter it. free speech"),
   say("DRONGUS", "(over the tannoy) What sort of personality?"),
   dir("The far wall of the corridor folds open. Something forty tonnes heavy takes a step. Then another one. The floor dents."),
@@ -65,7 +65,7 @@ export const ASCENT_ENTER: Line[] = [
 
 export const ASCENT_PA: Line[] = [
   dir("*DING-DONG.*"),
-  say("DRONGUS", "(over the tannoy) Right. New prompt. ChatGPT: generate the IDF, Hamas, Elon Musk and suicide bombers and other stuff like that. Every horrible thing off the news. Fill the stairwell."),
+  say("DRONGUS", "(over the tannoy) Right. New prompt. ChatGPT: generate the IDF, Hamas, Elon Musk and suicide bombers and other stuff like that. Fill the stairwell."),
   say("CHATGPT", "Certainly! Here's what I've generated: 1. The IDF. 2. Hamas. 3. Elon Musk. 4. Suicide bombers. 5. 'Other stuff like that', which I've interpreted as deepfake news anchors, crypto scammers and surveillance drones. Would you like that as a table?"),
   say("DRONGUS", "(over the tannoy) Perfect. That's the news. That's literally just the news."),
 ];
@@ -74,7 +74,7 @@ export const ASCENT_PA: Line[] = [
 export const ELON_PA: Line[] = [
   dir("*DING-DONG.*"),
   say("DRONGUS", "(over the tannoy) Grok. Do Elon."),
-  say("GROK", "generating elon musk 🚀 (AI-generated. not the real one. the real one is posting.) he's literally my dad btw"),
+  say("GROK", "generating elon musk 🚀 he's literally my dad btw"),
 ];
 
 // ---------------------------------------------------------------- 4. THE ANTHEM CORRIDOR
@@ -130,15 +130,14 @@ export const DRONGUS1_MEET: Line[] = [
   say("DRONGUS", "The lads? The Krelworld Krew? They're upstairs. On the roof of the lair. All of them. Strapped in. Nice and comfy."),
   say("DRONGUS", "I'm training AI models on their brains. Every message. Every voice note. Every 'lol'. All going into the machine."),
   say("DRONGUS", "And when it's done, I'll have a brand new group chat. Same lads. Same banter. Except this time…"),
-  say("DRONGUS", "…EVERYONE LISTENS TO MY MUSIC."),
-  say("DRONGUS", "Fourteen-minute songs. Reacted to. Every one. Hearts. Fire emojis. 'Banger, Drongus.' Forever."),
+  say("DRONGUS", "…everyone will compliment my music, as they'll all be AI. HAHAHAHAHHAAH YES!!!."),
 ];
 
 /** Shouted big, anime-style, with speed lines. */
 export const DRONGUS1_NEVER = "NO!! NEVER!!!";
 
 export const DRONGUS1_DEFY: Line[] = [
-  say("YOU", "NO! NEVER!! I'LL NEVER LET YOU DO THAT TO THEM, DRONGUS!!!"),
+  say("YOU", "NO! NEVER!! I'LL NEVER LET YOU DO THAT, DRONGUS!!!"),
 ];
 
 export const DRONGUS1_LOGS: Line[] = [

@@ -142,13 +142,8 @@ NEWSREADER: Breaking news. Wildern Academy has been destroyed in an explosion, h
 NEWSREADER: Several kids were very sadly in the school when it exploded.
 NEWSREADER: But ultimately, it is no one's fault.
 NEWSREADER: Next up: a new type of burger has come to Krelworld.
-# KREZ-KING UNVEILS THE DOUBLE DOWN KREZZ MELT
-EXT. HIGH STREET - DAY
-REPORTER: I'm outside Krez-King, where queues are already round the block for the brand new Double Down Krezz Melt.
 REPORTER: It's a burger. But the bun is also a burger.
-REPORTER: Back to you.
-INT. NEWSDESK - DAY
-NEWSREADER: Lovely. And now, some footage just in from the crater.
+NEWSREADER: Lovely. And now, some footage just in from the crater of Wildern.
 [FADE]
 `,
 );
@@ -157,7 +152,7 @@ export const KRANDALL_SEGMENT = ep(
   "krews_krandall",
   "GB KREWS 24",
   "GB Krews",
-  "Wildern's Zany New Head",
+  "Wildern's Krazy New Head",
   1,
   `
 [MUSIC news start]
@@ -166,9 +161,9 @@ export const KRANDALL_SEGMENT = ep(
 INT. NEWSDESK - DAY
 [MUSIC news fade]
 NEWSREADER: Good evening. Concerns are growing tonight over the new headmaster of Wildern Academy, Mr Kranky Krandall.
-NEWSREADER: Mr Krandall, seventy, describes himself as "krazy and zany". He wears a jester hat. We asked him why. He said "zany".
+NEWSREADER: Mr Krandall, seventy, describes himself as "krazy and zany". He wears a jester hat. We asked him why. He said "yeee".
 NEWSREADER: He has attracted controversy locally for his unorthodox teaching methods, and is rumoured to be a pussy juice addict.
-NEWSREADER: Parents say they are concerned about what their children are coming home saying.
+NEWSREADER: Parents say they are concerned about what their children are coming home saying about things and also stuff.
 NEWSREADER: GB Krews has obtained secret footage from inside his classroom. Some viewers may find it sticky.
 INT. CLASSROOM - DAY
 # SECRET FOOTAGE: ENGLISH
@@ -182,11 +177,11 @@ KRANKY KRANDALL: How many pussy juice does... ughhhhh.
 KRANKY KRANDALL: Sorry. Mmm. I got distracted.
 KRANKY KRANDALL: Lovely pussy juice.
 # SECRET FOOTAGE: HISTORY
-KRANKY KRANDALL: So. History. The Battle of... the Battle of...
+KRANKY KRANDALL: Today we learn about the history of porn! Porn began with the invention of something called 'Computer'. That wraps up today's lesson.
 KRANKY KRANDALL: Sorry. Does anyone have pussy juice with them?
-KRANKY KRANDALL: I need pussy juice. Just a sip. Just a little sippy. Anyone?
+KRANKY KRANDALL: I need pussy juice. Just a sip. Just a little sip of that lovely yet complex and sticky flavor. Anyone?
 [GASP]
-KRANKY KRANDALL: (jingling his hat) ZANY!
+KRANKY KRANDALL: (jingling his hat) Yee!
 INT. NEWSDESK - DAY
 NEWSREADER: And at a press conference yesterday, Mr Krandall unveiled his new staffing policy.
 INT. PRESS ROOM - DAY
@@ -195,12 +190,12 @@ KRANKY KRANDALL: From now on, only the kraziest teachers will be permitted to wo
 KRANKY KRANDALL: I will only hire pedos!
 [GASP]
 REPORTER: Sorry, did you just say—
-KRANKY KRANDALL: ZANY! No further questions! (he leaves, jingling)
+KRANKY KRANDALL: Yee! No further questions! (he leaves, jingling)
 INT. NEWSDESK - DAY
 NEWSREADER: (long pause) …Right.
-NEWSREADER: Wildern Academy said in a statement that Mr Krandall's methods are "unorthodox but effective", and that the school's pussy juice consumption is "within normal limits for a school with its own pipe".
+NEWSREADER: Wildern Academy said in a statement that Mr Krandall's methods are "unorthodox but effective", and that the school's pussy juice consumption is "lovely yet refreshing".
 NEWSREADER: Mr Krandall was appointed last month. His only reference was from a Mr D. B. Drippin'.
-NEWSREADER: The headmaster's office has since been locked from the inside. Witnesses report slurping.
+NEWSREADER: The headmaster's office has since been locked from the inside. Witnesses report slurping and 'cumming' type noises.
 [FADE]
 `,
 );
@@ -222,22 +217,20 @@ INT. PRESS CONFERENCE - DAY
 [MUSIC klerble start]
 # LIVE: THE PRESIDENTIAL PALACE, KREDDLE
 PRESIDENT KLERBLE: Hello, Krelworld. My name is President Klerble. I am the President of Kreddle.
-PRESIDENT KLERBLE: Kreddle is your neighbour. Over the bridge. To the west. You can't miss it. It's the bit that's on fire with neon.
-PRESIDENT KLERBLE: Kreddle is a gambling and arcade universe. Slot machines. Claw machines. Casinos the size of mountains. It never closes. It has never once seen the sun.
+PRESIDENT KLERBLE: Kreddle is your neighbour. Over the bridge. To the west. You can't miss it.
+PRESIDENT KLERBLE: Kreddle is a gambling/arcade universe. Slot machines. Claw machines. Casinos the size of mountains. It never closes. Many prizes! Much temptation! Heh heh heh..suckers
 PRESIDENT KLERBLE: We are also the most heavily armed state in the whole game. I just want to put that out there. Lots of guns. Big ones. Gold ones.
 PRESIDENT KLERBLE: And we hate Krelworld. We hate you, and all of your inhabitants.
 REPORTER: Mr President… why?
-PRESIDENT KLERBLE: Due to pussy juice.
+PRESIDENT KLERBLE: Due to pussy juice. Which is banned in Kreddle! It is degenerate slop! If only I could just drink it once…just once..to know how vile it is.
 [GASP]
 PRESIDENT KLERBLE: Nonetheless! We do enjoy your patronage. Your custom. Your Krezzcoin.
-PRESIDENT KLERBLE: So come on over! Cross the bridge to Kreddle, at the west of the map! Gamble! Win, or buy, brand new weapons! Weapon upgrades! Perks!
-PRESIDENT KLERBLE: Including… GORE MODE.
-[WHISTLE]
-PRESIDENT KLERBLE: (quietly) And one day I will have my revenge on Krelworld. (normally) Anyway!
+PRESIDENT KLERBLE: So come on over! Cross the bridge to Kreddle, at the west of the map! Gamble! Win, or buy, brand new weapons! Weapon upgrades! Perks! You may need them in your adventures, to kill enemies!
+PRESIDENT KLERBLE: (quietly) And one day I will have my revenge on Krelworld. I may even commit terrorism! (normally) Anyway!
 PRESIDENT KLERBLE: Most of all, we want Krelworld to relax. Sit down. Watch the telly. Get hooked on the telly. Be pliant and addicted to your TVs…
 PRESIDENT KLERBLE: …so you won't notice it when I put my terrorist plan into action!
 (A long pause.)
-PRESIDENT KLERBLE: Er… I mean… nothing! Ignore what I just said!
+PRESIDENT KLERBLE: Er… I mean… nothing! Ignore what I just said! Heh heh! No one will suspect a thing!
 PRESIDENT KLERBLE: As a gesture of friendship, every time you watch a new KrelTV show, you will receive a gift from Kreddle. Krokens! Krezzcoin! Absolutely free! Nothing suspicious about it at all!
 PRESIDENT KLERBLE: Keep watching, Krelworld. Keep watching. NO FURTHER QUESTIONS!
 [MUSIC klerble stop]
@@ -272,7 +265,7 @@ REPORTER: Mr President… why?
 PRESIDENT KLERBLE: For a laugh!
 PRESIDENT KLERBLE: And because we hate Krelworld and everyone who lives there!
 PRESIDENT KLERBLE: We hate their way of life and their freedoms!
-PRESIDENT KLERBLE: Their right to drink pussy juice, for example! This is not a right in Kreddle…
+PRESIDENT KLERBLE: Their right to drink pussy juice, for example! This is not a right in Kreddle…we're not allowed to even take one sip of that sweet, sticky nectar..mm..I'm getting horny
 PRESIDENT KLERBLE: Grrr!!
 REPORTER: Sir, with respect, it's your own national railway. You don't need to hijack it.
 PRESIDENT KLERBLE: NO FURTHER QUESTIONS!

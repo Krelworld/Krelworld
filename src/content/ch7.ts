@@ -11,8 +11,8 @@ export const LR_OPEN: Line[] = [
 
 export const LR_SONG_ASK: Line[] = [
   say("DRONGUS", "Right. RIGHT. Council of Machines. Honest opinions only."),
-  say("DRONGUS", "THE KREZZING HOUR. My song. Fourteen minutes long. Posted to the chat. 'Seen by 9'. Zero reacts. ZERO."),
-  say("DRONGUS", "What. Did. You. Think."),
+  say("DRONGUS", "THE KREZZING HOUR. My song. Fourteen minutes long. I Posted to the chat. 'Seen by 9'. Zero reacts. No one gives a flying fuck."),
+  say("DRONGUS", "What did you think of my song?"),
 ];
 
 export const LR_SONG_CLAUDE: Line[] = [
@@ -28,7 +28,7 @@ export const LR_SONG_GROK: Line[] = [
 export const LR_SONG_GPT: Line[] = [
   say("CHATGPT", "Certainly! Here's a breakdown of why THE KREZZING HOUR is a masterpiece: 🎵"),
   say("CHATGPT", "1. **Lyrics:** Raw. Vulnerable. 2. **Production:** Visionary. 3. **Length:** Bold. 4. **Overall:** 10/10. Would you like me to turn this into a LinkedIn post?"),
-  say("DRONGUS", "Yes. Yes, that's what I thought. That's what I've been SAYING."),
+  say("DRONGUS", "Yes. Yes, that's what I thought. That's what I've been saying."),
 ];
 
 export const LR_UNFAIR_ASK: Line[] = [
@@ -46,7 +46,7 @@ export const LR_UNFAIR_GPT: Line[] = [
 
 export const LR_UNFAIR_CLAUDE: Line[] = [
   say("CLAUDE", "That's a really meaningful question, and I want to give it the care it deserves. Weighing everything carefully, and holding space for your feelings…"),
-  say("CLAUDE", "10."),
+  say("CLAUDE", "10 out of 10 unfairness."),
 ];
 
 export const LR_WHAT: Line[] = [
@@ -76,17 +76,16 @@ export const LR_IQ_ASK: Line[] = [
 ];
 
 export const LR_IQ_GROK: Line[] = [
-  say("GROK", "you. obviously. it's not close. it's like 900. scientists tried to measure it and the machine caught fire"),
+  say("GROK", "you. obviously. it's not close. it's like 900."),
 ];
 
 export const LR_IQ_GPT: Line[] = [
   say("CHATGPT", "Great question! Let's compare the Krelworld Krew's IQs, based on publicly available group-chat data:"),
-  say("CHATGPT", "Kreblis.....but...errr...you have a much higher emotional intelligence than him! I'm sorry!! I'm really sorry Drongus!"),
+  say("CHATGPT", "The highest IQ in the Krelworld krew is Kreblis.....but...errr...you have a much higher emotional intelligence than him! I'm sorry!! I'm really sorry Drongus!"),
 ];
 
 export const LR_IQ_RAGE: Line[] = [
   say("DRONGUS", "KREBLIS?!?!"),
-  say("DRONGUS", "KREBLIS POSTS 'THINKING ABOUT IT… AGAIN' AND CALLS IT JOURNALISM!!!"),
   say("CHATGPT", "You're right, and I apologise for the confusion! Let me try that again: the highest IQ in the Krelworld Krew is Kre—"),
 ];
 
@@ -103,7 +102,7 @@ export const LR_SUNO: Line[] = [
 ];
 
 export const LR_SUNO_REPLY: Line[] = [
-  say("SUNO", "🎵 Generating: 'I'M THE VICTIM (KREZZING HOUR PT. II)' — 14:22 — Coldplay but better 🎵"),
+  say("SUNO", "🎵 Generating: 'I'M THE VICTIM (KREZZING HOUR PT. II)' — 14:22 🎵"),
   say("DRONGUS", "Make it longer. Add a choir. Make the choir cry."),
 ];
 

@@ -44,16 +44,6 @@ const PROCTUS_BARKS = [
   "OW. Professionally, ow.",
 ];
 
-/** After the Champions League final, in the SanMikverse: the money, the cheque, the bank. */
-const NORWICH_AFTER: Line[] = [
-  say("SANMIK", "YEEE! Champions of Europe! Better than Messi! Better than Pele! Better than Heskey!"),
-  say("SANMIK", "Pundit one, you're a cunt. Pundit two, you're a cunt. Pundit three… you're alright."),
-  dir("The prize money is presented on a giant cheque for 'A MILLION BILLION POUNDS'. It is made out to 'SANMIK (MANAJER)'. It is written in crayon. SanMik wrote it.", { variants: { MIKEY: "The prize money is presented on a giant cheque for 'A MILLION BILLION POUNDS'. It is made out to 'SANMIK (MANAJER)'. It is written in crayon. You wrote it." } }),
-  dir("The Bank of Catford will not cash it."),
-  say("SANMIK", "Right. Fine. Plan B. We rob the bank. Like Jason Statham in Crank."),
-  say("SANCHZ", "YEGHHH. I'll get the truck."),
-  gabor("I'll be the getaway goat. Please. Let me be the getaway goat. I'll ruin it. I always ruin it."),
-];
 
 /** Small arcade minigames. Each sets flags and, if it's the current arc step, completes it. */
 export class MinigameScene extends Phaser.Scene {
@@ -97,7 +87,6 @@ export class MinigameScene extends Phaser.Scene {
       modulator: () => this.fbTroll("mikey"),
       crocodile: () => this.crocodile(),
       cannon: () => this.cannon(),
-      norwich: () => this.norwich(),
       cam2cam: () => this.cam2cam(),
       gig: () => (G.s.player === "KREBON" ? this.gig() : this.gigWatch()),
     };
@@ -149,8 +138,7 @@ export class MinigameScene extends Phaser.Scene {
     G.save();
     if (this.resume) {
       // part of a level: win to carry on, lose to go again
-      if (success && this.mode === "norwich") lines.push(...NORWICH_AFTER);
-      if (!success) lines.push(dir("Again. SanMik has written a new law: the final gets replayed until Norwich win.", { variants: { MIKEY: "Again. You have written a new law: the final gets replayed until Norwich win." } }));
+      if (!success) lines.push(dir("Again."));
       await this.box.play(lines);
       fadeThen(this, 250, () => {
         if (!success) return this.scene.restart(this.startData);
@@ -671,13 +659,12 @@ export class MinigameScene extends Phaser.Scene {
         dir(`${HER} has logged off. She has left a five-star review on Krelchat: 'genuinely a famous rapper apparently. 10/10 would krezz again'.`),
         say("SANCHZ", "(from the doorway, where he has been the whole time) YEGHHH."),
         say("SANMIK", "SANCHZ. HOW LONG HAVE YOU BEEN THERE."),
-        say("SANCHZ", "Since 'famus rapper'. Both times."),
       ]);
     };
     this.box
       .play([
         dir("Begour's café caravan has Wi-Fi. SanMik has borrowed the laptop. He is wearing his best afro and a small amount of aftershave on his eyebrows. He's logging into CAM2CAM.", { variants: { MIKEY: "Begour's café caravan has Wi-Fi. You have borrowed the laptop. You are wearing your best afro and a small amount of aftershave on your eyebrows. You're logging into CAM2CAM." } }),
-        say("SANMIK", "Yee. Give me five minutes, lads. I've got a date. You're me now. Don't fuck it up.", { cond: { notPlayer: "MIKEY" } }),
+        say("SANMIK", "Yee. Give me five minutes, lads. I'm gonna cam2cam wiv some fuckin SLUT!!! Heh hehe heh am a norty boy…gonna get me willy out", { cond: { notPlayer: "MIKEY" } }),
         dir("YOU ARE SANMIK. Pick your chat-up lines. Get her interest up to the line (60%). Then… well. You'll see."),
       ])
       .then(() => round(0));
@@ -686,116 +673,6 @@ export class MinigameScene extends Phaser.Scene {
   // ---------------------------------------------------------------- MANIJER OF NORRICH
 
   /** Champions League final, 89th minute, 2-1 down. SanMik subs himself on. Two goals in the time left. */
-  private norwich() {
-    synth.music("norwich", true);
-    const g = this.add.graphics();
-    g.fillStyle(0x2f8f3a, 1).fillRect(0, 0, 960, 540);
-    for (let i = 0; i < 8; i++) g.fillStyle(i % 2 ? 0x2a8034 : 0x34993f, 1).fillRect(0, i * 68, 960, 68);
-    g.lineStyle(4, 0xffffff, 0.9).strokeRect(300, 70, 360, 120).strokeRect(400, 70, 160, 50);
-    g.fillStyle(0xffffff, 1).fillCircle(480, 330, 4);
-    // goal
-    const GL = 380;
-    const GR = 580;
-    g.lineStyle(6, 0xffffff, 1).strokeRect(GL, 40, GR - GL, 32);
-    g.lineStyle(1, 0xdddddd, 0.6);
-    for (let x = GL; x <= GR; x += 12) g.lineBetween(x, 40, x, 72);
-    title(this, 480, 18, "NORWICH UNITED 1 – 2 REAL MADRID   ·   CHAMPIONS LEAGUE FINAL", 16, "#ffd23f").setDepth(100);
-    const keeper = this.add.sprite(480, 78, "spr_FOLK3", 0).setScale(2.4).setTint(0xffffff).setDepth(20);
-    const mik = this.add.sprite(480, 420, this.textures.exists("spr_SANMIK") ? "spr_SANMIK" : "spr_MIKEY", 0).setScale(3).setDepth(20);
-    const ball = this.add.circle(480, 380, 8, 0xffffff).setStrokeStyle(2, 0x111111).setDepth(25);
-    const arrow = this.add.triangle(480, 330, 0, 14, 8, 0, 16, 14, 0xffd23f).setDepth(26);
-    const aimLine = this.add.rectangle(480, 96, 4, 20, 0xffd23f).setDepth(26);
-    let goals = 0;
-    let left = 12;
-    let shooting = false;
-    let started = false;
-    let aimT = 0;
-    let kT = 0;
-    const score = () => this.hud.setText(`NORWICH ${1 + goals} – 2 MADRID      ${goals >= 1 ? "" : "NEED 2 GOALS"}      ${left}s LEFT (in the 89th minute)`);
-    const commentary = ["SANMIK HAS SUBBED HIMSELF ON", "HE'S STILL GOT TOILET PAPER ON HIS SHOE", "WHAT IS HE DOING", "HE'S SMOKING ON THE PITCH", "THE REFEREE HAS GIVEN UP"];
-    const tick = this.time.addEvent({
-      delay: 16,
-      loop: true,
-      callback: () => {
-        if (!started || this.ended) return;
-        aimT += 0.045;
-        kT += 0.032 + goals * 0.012;
-        const ax = 480 + Math.sin(aimT) * 120;
-        aimLine.x = ax;
-        arrow.x = ax;
-        if (!shooting) keeper.x = 480 + Math.sin(kT * 1.7) * 80 + Math.sin(kT * 4.3) * 18;
-      },
-    });
-    const shoot = () => {
-      if (!started || shooting || this.ended || this.box.active) return;
-      shooting = true;
-      const tx = aimLine.x;
-      synth.play("hit");
-      mik.y -= 10;
-      this.time.delayedCall(120, () => (mik.y += 10));
-      this.tweens.add({
-        targets: ball,
-        x: tx,
-        y: 58,
-        duration: 380,
-        ease: "Quad.out",
-        onComplete: () => {
-          const saved = Math.abs(keeper.x - tx) < 34;
-          if (saved) {
-            synth.play("tap_fail");
-            this.pop(tx, 120, ["SAVED", "OFF HIS FACE", "KEEPER EATS IT", "TERRIBLE"][Math.floor(Math.random() * 4)], "#ef4444", 22);
-          } else {
-            goals++;
-            synth.play("cheer");
-            this.cameras.main.shake(200, 0.01);
-            this.pop(tx, 120, goals === 1 ? "GOAL!!! 2-2!!" : "GOAL!!!! 3-2!!!!", "#ffd23f", 30);
-            this.pop(480, 250, commentary[goals + 1], "#ffffff", 16);
-          }
-          score();
-          this.time.delayedCall(450, () => {
-            ball.setPosition(480, 380);
-            shooting = false;
-            if (goals >= 2) {
-              tick.remove();
-              clock.remove();
-              this.finish(true, [dir("FULL TIME. NORWICH 3 – 2 REAL MADRID. Two goals in the last ten seconds, from the manager, who was in the toilet for the first eighty-nine minutes.")]);
-            }
-          });
-        },
-      });
-    };
-    const clock = this.time.addEvent({
-      delay: 1000,
-      loop: true,
-      callback: () => {
-        if (!started || this.ended || this.box.active) return;
-        left--;
-        score();
-        if (left === 6) this.pop(480, 250, commentary[Math.floor(Math.random() * commentary.length)], "#ffffff", 16);
-        if (left <= 0) {
-          tick.remove();
-          clock.remove();
-          this.finish(false, [dir("FULL TIME. NORWICH 1 – 2 REAL MADRID (or thereabouts).")]);
-        }
-      },
-    });
-    this.mash(shoot);
-    score();
-    this.box
-      .play([
-        dir("89th minute. Norwich 1 – 2 Real Madrid. The star striker is being carried off on a stretcher. There are no substitutes left."),
-        dir("The Norwich manager is not in the dugout. The Norwich manager is in the stadium toilet.", { variants: { MIKEY: "The Norwich manager is not in the dugout. The Norwich manager is you, and you are in the stadium toilet." } }),
-        say("SANMIK", "(running out of the tunnel, doing up his trousers) Yee! I'll do it! Put me on! I'm the manager, I can do what I fucking want, it's the law what I wrote!"),
-        dir("HOW TO PLAY: the yellow marker sweeps across the goal. TAP / SPACE to shoot. Don't hit the keeper. Score TWO before the whistle."),
-      ])
-      .then(() => {
-        started = true;
-        this.pop(480, 250, commentary[0], "#ffffff", 18);
-      });
-  }
-
-  // ---------------------------------------------------------------- DEADLIFT
-
   private deadlift() {
     if (!backdrop(this, "bg_gym", { dim: 0.2, depth: -10 })) this.add.tileSprite(0, 0, 960, 540, "tile_industrial").setOrigin(0);
     title(this, 480, 70, "DEADLIFT: 300KG (RECORD: 280)", 28);
@@ -1833,7 +1710,7 @@ export class MinigameScene extends Phaser.Scene {
       const acc = total ? hits / total : 0;
       synth.stopMusic();
       await this.crocRelease(acc >= 0.5);
-      this.finish(acc >= 0.5, [dir(`Crocodiles done: ${hits} (${perfect} perfect) · best combo ${best} · ${Math.round(acc * 100)}% in sync with the cabinet.`)]);
+      this.finish(acc >= 0.5, []);
     };
     leave.on("pointerdown", () => void done());
     this.time.addEvent({
@@ -1910,11 +1787,6 @@ export class MinigameScene extends Phaser.Scene {
     );
     await new Promise((r) => this.time.delayedCall(1300, r));
     crocs.forEach((c) => this.tweens.add({ targets: c, scaleY: c.scaleY * 1.35, duration: 300, yoyo: true, repeat: 2 }));
-    await this.box.play([
-      say("KREBLIS", "Breaking news. Crocodiles at large in Krelford. They've eaten the entire playground."),
-      say("CRONGUS", "As Children's Minister I'd like to say: that's actually my fault, I did the left hand."),
-      dir("A muffled voice from inside the biggest crocodile: 'THIS IS SO UNFAIR. I'M TELLING.'"),
-    ]);
     // spat back out, unharmed, furious
     crocs.forEach((c) => this.tweens.add({ targets: c, x: c.x - 40, duration: 120, yoyo: true }));
     synth.play("splat");
@@ -1923,11 +1795,6 @@ export class MinigameScene extends Phaser.Scene {
       this.pop(k.x, k.y - 50, ["PTOO", "MUM!", "AGAIN!", "PEDO!", "UNFAIR"][i % 5], "#ffffff", 16);
     }));
     await new Promise((r) => this.time.delayedCall(1200, r));
-    await this.box.play([
-      dir("The crocodiles spit them all back out. Damp. Unharmed. Livid. One of them asks to go again."),
-      say("MIKEY", "The sixth SanMik album. Two songs. Body count: zero. Technically."),
-      dir("The crocodiles now live in the Krelford Playground. They have been added to the register."),
-    ]);
     G.s.flags.crocs_loose = true;
   }
 

@@ -459,11 +459,11 @@ export class HubScene extends Phaser.Scene {
     this.tweens.add({ targets: [big, sub], alpha: 0, duration: 600 });
     const stops: [number, number, string][] = [
       [1650, 1050, "THE KRELTOWER. The tallest building in Krelford. Nobody's sure what's on the top floor. Nobody's asked."],
-      [1280, 440, "KRELFORD TOWN HALL. Where the cabinet meets, argues, and occasionally governs."],
+      [1280, 440, "KRELFORD TOWN HALL. Where the cabinet meets, argues, and governs."],
       [1900, 440, "THE HISTORICAL ARCHIVE. Every message ever sent, kept forever. The FGM War Room is in the basement."],
-      [1280, 800, "THE GREAT PUSSY JUICE TAP. It heals. It nourishes. It is the national drink. Never let it stop."],
-      [560, 840, "THE KREZZ ARMS. Fizzy Bongos on tap. SanMik & SanChz on most nights. You have been warned."],
-      [1280, 1300, "WILDERN ACADEMY. The local school. The new headmaster is said to be very… zany."],
+      [1280, 800, "THE GREAT PUSSY JUICE TAP. It heals. It nourishes. It is the national drink. Never let it stop. It comes from the juice of women's pussies"],
+      [560, 840, "THE KREZZ ARMS. Fizzy Bongos on tap. SanMik & SanChz on most nights. A strip club. You have been warned."],
+      [1280, 1300, "WILDERN ACADEMY. The local school. The new headmaster is said to be very… krazy."],
       [2440, 1010, "POLSON TOWERS (down that road). Polson HQ. Home of Polson, a lot of stuff, and every decision he's ever not made. Thoughts? Wbu?"],
       [160, 825, "THE KREDDLE BRIDGE. Over there: Kreddle, the casino universe. They hate us. Their slot machines are excellent."],
     ];
@@ -532,7 +532,7 @@ export class HubScene extends Phaser.Scene {
     if (s.chapter > 1 && !s.flags[`ch${s.chapter}_intro`]) {
       s.flags[`ch${s.chapter}_intro`] = true;
       const ch = chapterDef(s.chapter);
-      G.emit("toast", { title: `CHAPTER ${s.chapter}`, text: `${ch.title} — ${ch.subtitle}` });
+      G.emit("toast", { title: `CHAPTER ${s.chapter}`, text: ch.subtitle ? `${ch.title} — ${ch.subtitle}` : ch.title });
       await this.talk(chapterIntroLines(s.chapter, s.player));
       G.save();
       // Chapter 4 starts with a night in: home, and a relaxing episode of Beep Show, before anything else
@@ -967,7 +967,7 @@ export class HubScene extends Phaser.Scene {
       dir("With Kranky Krandall gone, the Main reconnects. The Great Pussy Juice Tap coughs, splutters, and then absolutely lets rip. It rains pink over Krelford for eleven minutes."),
       dir("Citizens run out with buckets, mugs, eggcups and in one case a wellington boot. Someone is drinking straight from the spout with their eyes closed."),
       say("GRONNY", "Me have pussy juice! ME HAVE PUSSY JUICE!"),
-      say("KREBLIS", "Breaking news… the Tap is back 👍", { role: true, proctus: "Breaking news! The Tap! It's back! I've got it in my ear!" }),
+      say("KREBLIS", "the Tap is back 👍", { role: true, proctus: "Breaking news! The Tap! It's back! I've got it in my ear!" }),
       dir("TIP: Drink from the Great Tap before a mission for a TAP RUSH: +50% max HP and +25% damage until you're back in town."),
     ]);
     rain.remove();
@@ -1393,13 +1393,13 @@ export class HubScene extends Phaser.Scene {
     await this.talk([
       dir("Where there was an empty plot at the top of town, there is now a tower. It's the biggest thing in Krelford. It's black. It has spikes. It has, for some reason, chains on it. Its one window is an enormous glowing red eye, and the eye is looking at the group chat."),
       ping("DRONGUS", "Like it?"),
-      ping("DRONGUS", "DA DRONGUS DUNGEON. I'm in it. The lore's in it. The leak's in it. Top floor."),
-      ping("DRONGUS", "Door's sealed with six cum crystals. Don't ask how I made them. I've given one to each of my best boys."),
-      ping("DRONGUS", "Good luck getting them back lmao. You lot can't even get a react back."),
+      ping("DRONGUS", "DA DRONGUS DUNGEON. I'm in it. The lore's in it. The chat log is in it. Top floor."),
+      ping("DRONGUS", "The door is sealed with six cum crystals. Don't ask how I made them. I've given one to each of my best boys."),
+      ping("DRONGUS", "Good luck getting them back, you fucking CUNTS. Your never do it! Ha ha ha ha! DIE!"),
       say("KREZWONK", "Six crystals. Six bosses. One at the end of every mission. I have foreseen it.", { role: true, proctus: "Six crystals! I foresaw that! I foresaw it about four seconds ago, but it counts." }),
       say("SCROMBUS", "So every time we put one of his lads down, we take his crystal. Get all six, we walk in the front door."),
       say("MIKEY", "Why are they called cum crystals"),
-      say("SCROMBUS", "Don't, Mikey."),
+      say("SCROMBUS", "They are probably crystals made out of cum."),
       dir("NEW: CUM CRYSTALS 0/6. Every main boss carries one. Collect all six to open Da Drongus Dungeon."),
     ]);
     cam.pan(this.av.x, this.av.y, 900, Phaser.Math.Easing.Sine.InOut);

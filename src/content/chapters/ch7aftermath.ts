@@ -11,18 +11,16 @@ export const AFTER_WAKE: Line[] = [
 
 export const AFTER_HANGOVER: Line[] = [
   say("KREZMAR", "…ughhhhhh."),
-  say("MIKEY", "Ugh. Lads. LADS. My head."),
-  say("KREBLIS", "Breaking news… I'm never drinking again 👍"),
+  say("MIKEY", "Ugh. Lads.. My head."),
+  say("KREBLIS", "Breaking news… I'm never drinking or doing gear ever again 👍"),
   say("SCROMBUS", "What happened last night?"),
-  say("KREBON", "We went on a mad one. An EXTRA mad one."),
+  say("KREBON", "We went on a mad one. It got a little mental."),
   say("GRONNY", "Me no remember. Me remember disco. Then ceiling."),
-  say("FLENKY", "Got out just in time by doing a ninja backflip. Into the floor. Through the floor."),
   say("CRONGUS", "Has someone moved the Town Hall? It's… lower."),
   say("KREZWONK", "I foresaw this hangover. I did not foresee its scale."),
   say("KREZMAR", "Look at the state of the place. We really went for it."),
   say("MIKEY", "Someone's set fire to Krelburger. Classic us."),
-  say("SCROMBUS", "Whose round was it? Be honest."),
-  say("KREBON", "Somebody's going to have to tidy all this up. Not me. I'm on probation."),
+  say("KREBON", "Somebody's going to have to tidy all this up. Such as a woman."),
   say("KREBLIS", "Mmm… smoke…"),
   { s: "YOU", t: "Honestly lads. Best night ever. I think.", tag: "new" },
 ];
@@ -46,7 +44,6 @@ export const AFTER_SHRIEK: Line[] = [
   say("GRONNY", "Me job! Me… what is me job?"),
   say("KREBLIS", "Breaking news… we are fucked 👍"),
   say("KREBON", "We could turn the internet off."),
-  say("KREZMAR", "Krebon. NOT NOW."),
 ];
 
 export const AFTER_CRYSTAL: Line[] = [

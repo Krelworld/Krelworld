@@ -42,7 +42,7 @@ export interface RoomDef {
   gunCrate?: boolean;
   /** SanMik and SanChz fight alongside you in this room. */
   sanBros?: boolean;
-  /** Scenes to play (in order) when you leave through the exit, before the next room: "norwich", "drive". */
+  /** Scenes to play (in order) when you leave through the exit, before the next room: "beepbeep", "drive". */
   then?: string[];
   /** Shown when the exit is locked by exitFlag. */
   exitHint?: string;
@@ -442,8 +442,7 @@ const SANMIK_ARRIVAL: RoomDef["enterLines"] = [
   { s: "NARRATOR", t: "THE SANMIKVERSE. You land on some decking, in a back yard in what is definitely, allegedly, Catford. Fairy lights. A caravan with CAFÉ painted on the side. A hot tub. The sky is the colour of Pepsi Max.", dir: true },
   { s: "SANMIK", t: "CATFORD! Yee! I'm HOME, blud!" },
   { s: "NARRATOR", t: "A phone rings in the caravan. A big furry arm passes SanMik a flip phone through the hatch.", dir: true, variants: { MIKEY: "A phone rings in the caravan. A big furry arm passes you a flip phone through the hatch." } },
-  { s: "BEGOUR THE BEAR", t: "Hiya SanMik love, it's Begour. I'm ever so sorry to do this. It's about Dawna. She's… she's broken up with you, love." },
-  { s: "BEGOUR THE BEAR", t: "Smell my fart. It's lavender. It'll help, I promise." },
+  { s: "BEGOUR THE BEAR", t: "Hiya SanMik, it's Begour. I'm ever so sorry to do this. It's about Dawna. She's… she's broken up with you, love." },
   { s: "NARRATOR", t: "SanMik grows another head. Then he does a cartwheel. Then he breakdances on the decking. Both heads are crying.", dir: true, variants: { MIKEY: "You grow another head. Then you do a cartwheel. Then you breakdance on the decking. Both heads are crying." } },
   { s: "BEGOUR THE BEAR", t: "Oh, come here. Both of you. Both heads. Big hug." },
   { s: "GENIE", t: "(from inside the lamp, muffled) TEN THOUSAND YEARS. I WANT A BATH. A HOT ONE. WITH JETS. FIX THE GIANT HOT TUB OF CATFORD AND I WILL SEND YOU HOME. UNTIL THEN, NOBODY LEAVES." },
@@ -513,10 +512,9 @@ export const DUNGEONS: Record<string, DungeonDef> = {
         waves: [[["plushie", 4], ["trinket", 4]], [["plushie", 5], ["trinket", 6]]],
         enterLines: [
           { s: "NARRATOR", t: "Polson Towers. It's his house. You can't see the floor. You can't see the walls. You can see a lot of stuffed toys, and some of them are moving.", dir: true },
-          { s: "POLSON", t: "(on the phone) Shoes off. Actually, shoes on. Definitely shoes on." },
           { s: "POLSON", t: "(on the phone) Most of that's Eden's. I'm not really allowed to move it. I've never been allowed to move it." },
-          { s: "KREZMAR", t: "It's YOUR house, Polson. Every bag that goes out, a bit more of you comes back." },
-          { s: "NARRATOR", t: "Objective: clear out Eden's stuff. Room by room. Give Polson his house back.", dir: true },
+          { s: "KREZMAR", t: "It's YOUR house, Polson. Every piece of her fucking crap that goes out, a bit more of you comes back." },
+          { s: "NARRATOR", t: "Objective: clear out Eden's stuff. Room by room. Kill the cyst. Give Polson his house back.", dir: true },
         ],
       },
       {
@@ -531,7 +529,6 @@ export const DUNGEONS: Record<string, DungeonDef> = {
           { s: "POLSON", t: "(on the phone) There's a spagon bol-bol in there from about March. Don't make eye contact with it." },
           { s: "POLSON", t: "(on the phone) Eden said she'd sort the kitchen. That was before March." },
           { s: "NARRATOR", t: "A note on the fridge, in Eden's handwriting: 'DO NOT THROW ANYTHING AWAY. I MIGHT NEED IT.' It is pinned under a magnet shaped like a smaller magnet.", dir: true },
-          { s: "KREBLIS", t: "Breaking news: the bin is empty. It has always been empty. Nobody in this house has ever used the bin." },
         ],
       },
       {
@@ -542,7 +539,6 @@ export const DUNGEONS: Record<string, DungeonDef> = {
         waves: [[["plushie", 6], ["trinket", 6]], [["plushie", 5], ["mould", 2], ["trinket", 6]], [["leaping_plushie", 3], ["gravy_lobber", 2]]],
         enterLines: [
           { s: "NARRATOR", t: "The bedroom. A mountain of stuffed toys reaches the ceiling. At the summit, a hamster watches you with serene, total calm.", dir: true },
-          { s: "POLSON", t: "(on the phone) Is the hamster alright? Tell him I love him." },
           { s: "POLSON", t: "(on the phone) The toys are Eden's. Every one has a name. I'm not allowed on that side of the bed. I sleep on the edge, like a plank." },
           { s: "NARRATOR", t: "Each stuffed toy wears a tiny label: 'EDEN'S. DO NOT TOUCH.' One of the labels says 'POLSON'S'. It's on the hamster. It's the only thing in the room with his name on it.", dir: true },
           { s: "MIKEY", t: "(ping) Bin bags. Divide and conquer." },
@@ -830,7 +826,7 @@ export const DUNGEONS: Record<string, DungeonDef> = {
         sanBros: true,
         platforms: [[0.2, 140, 220], [0.5, 230, 260], [0.8, 140, 220]],
         boss: "jam",
-        then: ["norwich", "beepbeep", "drive"],
+        then: ["beepbeep", "drive"],
       },
       {
         name: "The Nu Warehouse",

@@ -62,7 +62,6 @@ export const FB_EMERGE_PANIC: Line[] = [
   say("SCROMBUS", "IT'S GOT ARMS. IT'S GOT SO MANY ARMS."),
   say("FLENKY", "Is that… is there a man behind it? When the lightning goes?"),
   say("KREZWONK", "A wizard. A dark wizard. I've seen that silhouette before."),
-  say("KREBON", "That's Drongus. The OLD Drongus. The final form one. In a cape."),
 ];
 
 export const FB_TITLE_REACT: Line[] = [
@@ -249,7 +248,7 @@ export const FD_SAVED: Line[] = [
   say("KREZWONK", "Lads. Something's just occurred to me. We need to release some of the inmates from Krelcatraz. Jimmy Savile. Ian Watkins. Gary Glitter."),
   say("KREZWONK", "We have no idea what they're in prison for! It's awful! I feel so guilty!"),
   say("KREBON", "Free them. Free them all. I know what it's like to be on the inside."),
-  say("MIKEY", "Can I come when we let them out? Is that a group thing?"),
+  say("MIKEY", "Can I come when we let them out?"),
 ];
 
 export const FD_DRONGUS_STIR: Line[] = [

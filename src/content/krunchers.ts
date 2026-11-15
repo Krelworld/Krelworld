@@ -47,12 +47,12 @@ export const KR_MIKEY_MEET: Line[] = [
   say("MIKEY", "Oh. Alright lads. Wait. You're not my lads."),
   say("KLENKY", "Look what we got here. A Krelworld NERD."),
   say("MIKKY K", "He looks just like me. But WORSE."),
-  say("MIKEY", "Lads. Lads. Can we talk about this. I'm a Fragmar veteran."),
+  say("MIKEY", "Lads. Lads. Can we talk about this. I have ADHD."),
   say("GRENNY", "GET HIM!"),
 ];
 export const KR_MIKEY_BEG: Line[] = [
   say("MIKEY", "No— no no no— not the face— please— I've got a status to post—"),
-  say("MIKEY", "PLEASE. I'll react to anything. I'll react to DRONGUS'S SONG—"),
+  say("MIKEY", "PLEASE. I'll do anything. I'm begging you!—"),
   say("KREDWONK", "I foresaw you saying that. It didn't help in the vision either."),
   say("MIKEY", "PLEEEEEASE—"),
 ];
@@ -91,7 +91,7 @@ export const KR_HOME: Line[] = [
   ping("MIKEY", "lads", { cond: { notPlayer: "MIKEY" } }),
   ping("MIKEY", "the kreddle krunchers just kicked the absolute shit out of me", { cond: { notPlayer: "MIKEY" } }),
   ping("MIKEY", "outside krelburger", { cond: { notPlayer: "MIKEY" } }),
-  ping("MIKEY", "they took my bongo 😢", { cond: { notPlayer: "MIKEY" } }),
+  ping("MIKEY", "they took my dignity 😢", { cond: { notPlayer: "MIKEY" } }),
   ping("KREBLIS", "Breaking news… Mikey got battered 👍", { cond: { notPlayer: "MIKEY" } }),
   ping("POLSON", "lads", { cond: { player: "MIKEY" } }),
   ping("POLSON", "the kreddle krunchers just kicked the absolute shit out of me", { cond: { player: "MIKEY" } }),
@@ -100,7 +100,7 @@ export const KR_HOME: Line[] = [
   ping("KREBLIS", "Breaking news… Polson got battered 👍", { cond: { player: "MIKEY" } }),
   ping("DRONGUS", "Should have reacted to the song"),
   ping("SCROMBUS", "Who the fuck are the Kreddle Krunchers"),
-  ping("KREZMAR", "Kreddle's version of us apparently. They're over by the bridge now. Pissed in the Tap on the way in."),
+  ping("KREZMAR", "Kreddle's version of us. I hate them! We are so much better than those FACKING KANTS"),
   {
     s: "YOU",
     t: "NO ONE gets to beat up Mikey but US!!!",
@@ -109,7 +109,7 @@ export const KR_HOME: Line[] = [
   },
   {
     s: "YOU",
-    t: "…Okay. Maybe they get to as well. A bit.",
+    t: "…Okay. Maybe they get to as well. But we do too! After we get them, we should beat up Mikey too!",
     tag: "new",
   },
   { s: "YOU", t: "But those Kreddle Krunchers better SCRAM!! We HATE them!", tag: "new" },
@@ -122,10 +122,10 @@ export const KR_BRAWL_INTRO: Line[] = [
   dir("The whole Krelworld Krew, at the Kreddle Bridge, face to face with the whole Kreddle Krunchers. Nobody has a plan."),
   say("KLENKY", "Ooooh, look. The Krelworld KREW. We're SO scared."),
   { s: "YOU", t: "Our universe RULES and your universe DROOLS!!", tag: "new" },
-  say("SKROMBUS", "Oh yeah? Well your universe is LAME and your Tap tastes like PISS."),
+  say("SKROMBUS", "Oh yeah? Well your universe is LAME and your Tap tastes like bloody fucking curry!"),
   say("SCROMBUS", "That's because one of you PISSED in it!"),
   say("KREDBON", "And I'd do it again."),
-  say("MIKEY", "You took my BONGO!", { cond: { notPlayer: "MIKEY" } }),
+  say("MIKEY", "You took my DIGNITY!", { cond: { notPlayer: "MIKEY" } }),
   say("POLSON", "You took my SHAKE!", { cond: { player: "MIKEY" } }),
   say("MIKKY K", "And it was DELICIOUS, nerd."),
   dir("Somebody shoves somebody. It all kicks off. SHOVE anyone you like (or don't)."),
@@ -147,10 +147,10 @@ export const KR_SHOUTS = [
   "Your mum's a Krelworlder!",
 ];
 /** Shouted during the shoving (your krew). */
-export const KREW_SHOUTS = ["SCRAM!", "Our universe RULES!", "Get OFF!", "Give Mikey his bongo back!", "Kreddle DROOLS!", "Oi!", "You pissed in our TAP!", "Have some of THAT!"];
+export const KREW_SHOUTS = ["SCRAM!", "Our universe RULES!", "Get OFF!", "Give Mikey his dignity back!", "Kreddle DROOLS!", "Oi!", "You pissed in our TAP!", "Have some of THAT!"];
 
 /** Playing as Mikey: it's Polson's shake they nicked. */
-export const KREW_SHOUTS_POLSON = KREW_SHOUTS.map((t) => (t === "Give Mikey his bongo back!" ? "Give Polson his shake back!" : t));
+export const KREW_SHOUTS_POLSON = KREW_SHOUTS.map((t) => (t === "Give Mikey his dignity back!" ? "Give Polson his shake back!" : t));
 
 /** They leg it. With your wallets. */
 export const KR_LEAVE: Line[] = [
@@ -164,11 +164,11 @@ export const KR_LEAVE: Line[] = [
 ];
 export const KR_AFTER: Line[] = [
   say("KREZMAR", "…Did they just take my wallet?"),
-  say("KREBON", "They took my wallet AND my other wallet."),
-  say("FLENKY", "They didn't get mine. Got out just in time by doing a ninja backflip."),
+  say("KREBON", "They took my wallet."),
+  say("FLENKY", "They didn't get mine. Got out just in time thanks to my high I.Q."),
   say("KREBLIS", "Breaking news… Flenky's wallet is gone too 👍"),
-  say("MIKEY", "They still have my bongo.", { cond: { notPlayer: "MIKEY" } }),
+  say("MIKEY", "They still have my dignity.", { cond: { notPlayer: "MIKEY" } }),
   say("POLSON", "They still have my shake. 😢", { cond: { player: "MIKEY" } }),
   say("KREZWONK", "I have foreseen it. This isn't the last we'll see of the Kreddle Krunchers."),
-  { s: "YOU", t: "Next time, we go over THERE. And we get Mikey's bongo back.", tag: "new", variants: { MIKEY: "Next time, we go over THERE. And we get Polson's shake back." } },
+  { s: "YOU", t: "Next time, we go over THERE. And we get Mikey's dignity back.", tag: "new", variants: { MIKEY: "Next time, we go over THERE. And we get Polson's shake back." } },
 ];

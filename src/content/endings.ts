@@ -1,4 +1,4 @@
-import type { Line, PlayableId, ReactionChoice } from "../data/types";
+import type { Line, ReactionChoice } from "../data/types";
 import { dir, ping, say } from "./dsl";
 
 export const FINAL_PROMPT: Line[] = [
@@ -69,37 +69,11 @@ export const ENDINGS: Record<"LIKE" | "LOVE" | "LAUGH" | "SEEN", { title: string
       say("DRONGUS", "Wow."),
       say("DRONGUS", "Even now."),
       say("DRONGUS", "Even after all that."),
-      dir("The Citadel holds its breath. Then, impossibly, Drongus starts to laugh."),
-      say("DRONGUS", "That's actually funny. That's actually the funniest thing anyone's ever done. Fuck me."),
-      say("DRONGUS", "The full commitment to the bit. Six chapters. Five bosses. A ten-page script. Seen."),
-      dir("Krelworld restores itself, purely out of respect."),
       say("DRONGUS", "Whatever. I don't care. No big deal. What the fuck ever."),
       dir("He very obviously cares. He's grinning."),
       ping("DRONGUS", "Putting THIS on the wiki"),
     ],
   },
-};
-
-/** Unique epilogue card per player character. Shown after the ending. */
-export const EPILOGUES: Record<PlayableId, string> = {
-  FLENKY:
-    "FLENKY JENKY was unbanned by the Tribunal, permanently, until further notice. He was banned again the following Tuesday for 'standing near the corridor'. He describes it as the best four hours of his life. He has been readmitted. For now.",
-  KREZMAR:
-    "KREZMAR presented the Krelfund to the Supreme Leader: eleven Krezzcoin and an expired Uber Eats voucher. Drongus said 'no grub hub?' and then, quietly, 'thanks mate'. Krezmar has since opened four new vending machines. They are all his children.",
-  KREBLIS:
-    "KREBLIS filed the Great Silence under Strange Occurrences. He then filed its end under Strange Occurrences. Krelworld's threat level remains purple. Nobody knows if that's high or low. History will judge.",
-  KREZWONK:
-    "KREZWONK pressed a button. It was the first button he had pressed in two years. He has gone back to lurking. Asked to comment, he said 'the idea of Krezwonk is more important than the man', and then didn't reply to anything else for nine weeks.",
-  SCROMBUS:
-    "SCROMBUS rebuilt the Mk II with a smaller reach-around and an 'appreciation module' that plays a 👍 sound every time it's used. Nobody uses it. He is here 4 it.",
-  KREBON:
-    "KREBON returned to Krezteua d'If one last time, and left the gate open behind him. He now runs a small restaurant in Krelford. The menu says 'KREBON — REAL BUTTER'. Drongus has eaten there twice and still asks who Krebon is.",
-  CRONGUS:
-    "LIL' CRONGUS remains Children's Minister and the last remaining vestige of the Cron era. He has met a child. It was fine. He has never once mentioned salmon again. The salmon remember.",
-  GRONNY:
-    "GRONNY G recovered his Krez-ousers, put them on, and took them off again. He has since been formally appointed Minister of Defence, a role nobody remembers creating. It's minus six. He's in shorts. Lovely.",
-  MIKEY:
-    "MIKEY NEVITT corrected the Archive in red pen. The footnote now reads 'Disputed by Mikey'. FGM ULTRA has been reformed for a single purpose: planning Operation Fragmar III. It is scheduled for 12 Midday. It will not happen at 12 Midday.",
 };
 
 export const CREDITS: string[] = [

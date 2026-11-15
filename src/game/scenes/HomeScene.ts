@@ -170,10 +170,10 @@ export class HomeScene extends Phaser.Scene {
     await new Promise<void>((r) => this.time.delayedCall(1700, () => r()));
     this.tweens.add({ targets: card, alpha: 0, y: 180, duration: 400, onComplete: () => card.destroy() });
     const lines: Line[] = [
-      dir("Krelworld is a group chat that accidentally became a country. It is its own universe. Possibly its own dimension. Nobody has checked."),
-      dir("Its capital is Krelford: a town hall, a pub called the Krezz Arms, a school called Wildern, and in the middle of it all the Great Pussy Juice Tap, which keeps everybody alive and happy."),
-      dir("Above it all sits the Great Wiki Citadel, where the Supreme Leader, DRONGUS B. DRIPPIN', writes the lore. Krelworld runs on lore. Without it, things start to go… wrong."),
-      dir(`And you are ${me.name}${me.aka ? `, ${me.aka}` : ""}: ${role} in Drongus's cabinet. Mostly that means turning up to meetings. Occasionally it means saving the universe.`),
+      dir("Krelworld is crazy universe. It involves a very important group chat between a group of lads. In this group chat, many serious things are discussed."),
+      dir("Its capital is Krelford: a town hall, a pub called the Krezz Arms, a school called Wildern, and in the middle of it all the Great Pussy Juice Tap, which keeps everybody alive and happy. The national drink is lovely pussy juice. So sweet and restorative. Mmm. I'm getting turned on just writing this."),
+      dir("The Supreme Leader, DRONGUS B. DRIPPIN', writes the lore. Krelworld runs on lore. Without lore, everything may sadly explode."),
+      dir(`And you are ${me.name}${me.aka ? `, ${me.aka}` : ""}: ${role} in Drongus's cabinet. You have to turn up to many important meetings to govern this most crazy of universes, and keep the peace. But today, you wake up with the feeling that something might be about to go wrong..in a very sad yet upsetting way.`),
       dir("TIP: WASD / arrows (or the stick) to walk. E to use things. Have a look round: the telly works, the bed saves your game."),
       say(s.player, "Right. There's a cabinet meeting at the Town Hall later. Something about 'appreciating content'. But first…"),
       dir("Why not watch some lovely TV? (The telly's on the left. Walk up to it and press E.)"),

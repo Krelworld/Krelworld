@@ -407,7 +407,7 @@ export class VignetteScene extends Phaser.Scene {
         say("KREBLIS", "Krelmergency over. I repeat. Krelmergency over"),
         say("KREBLIS", "The plane is in the Tap"),
         say("KREBLIS", "Mmm…Tap…"),
-        say("FLENKY", "Wasn't me. Got out just in time by doing a ninja backflip."),
+        say("FLENKY", "Wasn't me. Got out just in time by doing an MMA backflip."),
         say("KREBLIS", "You weren't on it, Jenko."),
         say("FLENKY", "…I was near it."),
         say("KROZNO", "(from inside the Tap, gargling pussy juice) My dirty… bloody… tricks…"),
@@ -464,7 +464,7 @@ export class VignetteScene extends Phaser.Scene {
       dir("Silence. Then sirens. Then, from somewhere under the dust cloud, a single phone notification."),
       ping("DRONGUS", "No! Not again !!"),
       ping("DRONGUS", "It only just got rebuilt !"),
-      say("FLENKY", "Wasn't me. Got out just in time by doing a ninja backflip."),
+      say("FLENKY", "Wasn't me. Got out just in time by doing an MMA backflip."),
       say("SCROMBUS", "How would you have— you know what, not today."),
       say("KREZWONK", "I foresaw this. I elected not to prevent it. I'd like that struck from the record."),
       say("GRONNY", "…"),
@@ -583,7 +583,7 @@ export class VignetteScene extends Phaser.Scene {
     await this.talk([dir("The abandoned building. A faint smell of custard. And something underneath the custard that the custard is trying to cover up.")]);
     this.time.addEvent({ delay: 140, repeat: 14, callback: () => animateWalker(luke, 1, 0, true, this.time.now) });
     await this.tween({ targets: luke, x: 480, duration: 2000 });
-    await this.talk([say("CRONGUS", "Hello? Is the… is the bread and butter pudding here?"), dir("Something inside says 'yes'. It is not clear what said it.")]);
+    await this.talk([say("CRONGUS", "Hello? Is the… is the… 'bread and butter pudding' here? That's the code, right?"), dir("Something inside says 'yes'. It is not clear what said it.")]);
     await this.tween({ targets: luke, alpha: 0, scale: 2.6, duration: 600 });
     door.setFillStyle(0x000000);
     await this.wait(600);
@@ -607,7 +607,7 @@ export class VignetteScene extends Phaser.Scene {
     await this.wait(14 * 380 + 800);
     // the wonk
     if (spy) {
-      await this.talk([dir("From inside: a slow, rhythmic creaking. Then a faster one."), say(spy, "Oh no. He's wonking. He's wonking in there. Over the pudding.")]);
+      await this.talk([dir("From inside: a slow, rhythmic creaking. Then a faster one."), say(spy, "Oh no. Something is going on in there. He's groaning. There's thudding. There's screaming. This is horrific.")]);
     } else await this.puddingWonk();
     this.cameras.main.shake(1200, 0.03);
     synth.voice("oh", 0.7, 1.35);
@@ -633,7 +633,7 @@ export class VignetteScene extends Phaser.Scene {
     await this.talk([
       dir("Someone is standing by the door. A hunched shape in a stained cardigan. He has been there the whole time."),
       say("BOGGOR CRANSTIL", "Heh heh…"),
-      say("BOGGOR CRANSTIL", "Now it's Boggor's time for some lovely bread and butter pudding…"),
+      say("BOGGOR CRANSTIL", "Now it's Boggor's time for some lovely 'bread and butter pudding'…"),
       say("BOGGOR CRANSTIL", "Nice to see I'm not the only one with this particular… taste."),
     ]);
     const bwalk = this.time.addEvent({ delay: 110, loop: true, callback: () => animateWalker(boggor, -1, 0, true, this.time.now) });
@@ -647,11 +647,11 @@ export class VignetteScene extends Phaser.Scene {
     await this.wait(1000);
     await this.talk([
       say("CRONGUS", "…what did he mean by that."),
-      say("CRONGUS", "Doesn't matter. Nobody saw. Nobody saw anything."),
-      dir("Lil' Crongus emerges. He has aged nine years. There is custard on his shoes. There is something that is not custard on his shoes."),
+      say("CRONGUS", "Nobody saw. Nobody saw anything. I'll never be exposed."),
+      dir("Lil' Crongus emerges. He has aged nine years. There is krezz on his shoes."),
       say("CRONGUS", "…"),
       say("CRONGUS", "I can never come back from that."),
-      say("CRONGUS", "The ultimate sensation. They weren't lying. They weren't lying."),
+      say("CRONGUS", "The ultimate sensation. They weren't lying. They weren't lying. How can I live with myself. How can I look at myself in the mirror."),
       say("CRONGUS", "I want it again. I want it again right now. Oh no."),
       say("CRONGUS", "Nobody can know. If the group chat finds out… if Drongus finds out… he'll make a song. He'll make a wiki page. He'll make a TV show."),
       ping("DRONGUS", "@LIL' CRONGUS where are you ?"),
@@ -768,7 +768,7 @@ export class VignetteScene extends Phaser.Scene {
       say("SERGEANT SWIG", "We have reviewed the footage. All of it. Twice, by accident."),
       say("SERGEANT SWIG", "Luke Shears is a sick cunt."),
       dir("The room erupts. A journalist faints into another journalist."),
-      say("JOURNALIST", "Sergeant, what are you going to do about the pudding house?"),
+      say("JOURNALIST", "Sergeant, what are you going to do about the 'bread and butter pudding' house?"),
       say("SERGEANT SWIG", "Conventional policing has failed. I have authorised the army."),
     ]);
     flashes.remove();
@@ -830,8 +830,6 @@ export class VignetteScene extends Phaser.Scene {
       dir("A small, dusty figure watches from the edge of the rubble. There is custard on his shoes."),
       say("CRONGUS", "…"),
       say("CRONGUS", G.s.player === "CRONGUS" ? `${leaker}. You absolute snake.` : `${leaker}. You absolute snake. I saw you in the bush.`),
-      say("CRONGUS", "Doesn't matter. I know a guy who does it in a caravan."),
-      dir("Somewhere on the edge of Krelford, a caravan's suspension creaks. Lightly. Then rhythmically."),
     ]);
     G.s.flags.pudding_house_destroyed = true;
   }
@@ -1097,8 +1095,8 @@ export class VignetteScene extends Phaser.Scene {
       say("POLSON", "WAHAHAHA"),
       say("POLSON", "That's great for the core!! Thoughts?"),
       say(G.s.player, "That was two seconds."),
-      say("POLSON", "Two seconds of pure core mr bee!! You can't overtrain the core. Ask the pre-eminent experts"),
-      say("POLSON", "Another day, another gym sesh done!! In other news.. I'm starving 😅 Restaurant? Wbu?"),
+      say("POLSON", "Two seconds of pure core my lord!!"),
+      say("POLSON", "Another day, another gym sesh done!! In other news.. I'm starving 😅 Restaurant?"),
     ]);
     // restaurant
     this.clearStage();
@@ -1110,7 +1108,7 @@ export class VignetteScene extends Phaser.Scene {
     this.add.sprite(560, 320, playerKey(this), 0).setScale(3).setDepth(10);
     void me;
     await this.talk([
-      say("POLSON", "Four burgers please!! Double. Large pizza, meat feast, extra cheese, stuffed crust. And the fudge. All the fudge 😝"),
+      say("POLSON", "Four burgers please!! Double. Large pizza, meat feast, extra cheese, stuffed crust. And extra fudge!😝"),
       say("WAITER", "All of it?"),
       say("POLSON", "It's bulking food!! Great bulking food. All I need is a fuck load of protein 😅"),
     ]);
@@ -1120,8 +1118,8 @@ export class VignetteScene extends Phaser.Scene {
       dir("Polson is now noticeably, structurally larger. His t-shirt has given up. The chair has given up."),
       say("POLSON", "Same time tomorrow? Intense workout then here!! Wbu?"),
       dir("You pay. Obviously you pay. Polson 'left his wallet in his gym bag', which he did not bring."),
-      ping("POLSON'S MUM", "Did he eat fudge"),
-      ping("POLSON'S MUM", "He's meant to be getting trim"),
+      ping("POLSON'S MUM", "Did you let him eat fudge"),
+      ping("POLSON'S MUM", "He's meant to be getting trim. His health is YOUR responsibility. The GUMPTION of you to do this to my autistic son."),
     ]);
     synth.stopMusic();
   }
@@ -1171,9 +1169,6 @@ export class VignetteScene extends Phaser.Scene {
     await this.cctvWonk(pol);
     await this.talk([
       say("MIKEY", "(over the War Room comms) FGM to base. Subject has not left the house. Repeat, subject has not left the house. Subject has, however, eaten an entire fudge. And done… that. Twice, if you count the farts."),
-      ping("KREZMAR", "Why is there no cheese in the War Room"),
-      ping("POLSON", "The deed is done 😊"),
-      dir("You save the footage to the Archive under 'Strange Occurrences'. Kreblis will want it. Polson's mum will definitely want it."),
     ]);
     synth.stopMusic();
   }
@@ -1202,12 +1197,12 @@ export class VignetteScene extends Phaser.Scene {
       dir("Krunch Gym. Again. Polson is wearing the same headband. The headband is now under considerable tension."),
       say("POLSON", "I've been bulking!! Thoughts? Be honest 😅"),
       say(G.s.player, "That's mostly fudge."),
-      say("POLSON", "To be fair fudge is mass mr bee. Mass is mass"),
+      say("POLSON", "To be fair fudge is great bulking food!"),
     ]);
     await this.tween({ targets: pol, x: 480, duration: 900 });
     synth.play("hit");
     this.cameras.main.shake(200, 0.006);
-    await this.talk([dir("Polson enters the turnstile. Polson does not exit the turnstile."), say("POLSON", "It's narrower than last time!! They've changed it. Abysmal"), say("POLSON", "Push me. Push me through. This is part of the warm-up.")]);
+    await this.talk([dir("Polson enters the turnstile. Polson does not exit the turnstile."), say("POLSON", "It's narrower than last time!! They've changed it."), say("POLSON", "Push me. Push me through. This is part of the warm-up.")]);
     // mash to shove him through
     await new Promise<void>((resolve) => {
       let pushes = 0;
@@ -1255,8 +1250,6 @@ export class VignetteScene extends Phaser.Scene {
       dir("The bench snaps cleanly in half. Polson has not touched a weight."),
       say("POLSON", "PERSONAL BEST!! 😅"),
       say("CHAD DELTOID", "(from the squat rack) Mate, that's a £900 bench."),
-      say("POLSON", "Put it on mr bee's tab!! He won't mind. Scout promise"),
-      dir("He points at you. Of course he points at you."),
       say("POLSON", "That's the session!! Post-workout window. I've got to get the protein in within thirty seconds or the gains evaporate. Make no mistake"),
       say("POLSON", "Restaurant!! Quick!! QUICK!!"),
     ]);
@@ -1280,11 +1273,6 @@ export class VignetteScene extends Phaser.Scene {
     await this.talk([
       dir("He drinks it in one go. The straw collapses. The glass collapses. Something in his shirt gives way."),
       say("POLSON", "Oh that's delectable!! I can feel it going straight to the muscles"),
-      dir("It is not going to the muscles. It is going everywhere except the muscles."),
-      say("POLSON", "Gonna need a bigger headband 😅"),
-      ping("POLSON'S MUM", "Why is there a bill from Krunch Gym for a bench"),
-      ping("POLSON'S MUM", "And a turnstile"),
-      ping("POLSON", "It was for the core!! Mum I promise"),
     ]);
     synth.stopMusic();
   }
@@ -1559,11 +1547,6 @@ export class VignetteScene extends Phaser.Scene {
       dir("You do not feel his jaw."),
       say("POLSON", "Same time tomorrow? Bigger cake!! Progressive overload 😝"),
       dir("Polson tries to stand up to see you out. Polson remains seated. The sofa has accepted him as one of its own."),
-      ping("POLSON'S MUM", "Did someone deliver a cake the size of a fridge to the house"),
-      ping("POLSON'S MUM", "He's meant to be getting trim"),
-      ping("POLSON", "I AM getting trim!! Trimming the cake 😅"),
-      ping("KREZMAR", "Is there any cake left"),
-      ping("POLSON", "No"),
     ]);
     synth.stopMusic();
   }
@@ -1618,8 +1601,8 @@ export class VignetteScene extends Phaser.Scene {
     synth.music("majek_lampe", true);
     await this.talk([
       dir("The back room of the Krezz Arms, after the gig. SanMik is lying face-down on the stage 'cooling down'. SanChz is eating the setlist.", { variants: { MIKEY: "The back room of the Krezz Arms, after the gig. You are lying face-down on the stage 'cooling down'. SanChz is eating the setlist." } }),
-      say("SANMIK", "Yee. 'Ello me dearies. How you all fucking doing, you fucking pricks."),
-      say("SANMIK", "Found this in the skip out the back. Magic lamp. Looks like a naughty little dildo and it smells like rank fanny juice. Proper vintage."),
+      say("SANMIK", "Yee. 'Ello me dearies. How you all fucking doing, you fucking PRICKS."),
+      say("SANMIK", "Found this in the skip out the back. Magic lamp. Looks like a naughty little dildo and it smells like rank fanny juice."),
       say("SANCHZ", "Rub it."),
       say("SANMIK", "I'm gonna rub it like I rubbed one out last night, yee. Hehehe."),
       say(this.youTo("SANCHZ"), "Please don't say it like that."),
@@ -1978,7 +1961,7 @@ export class VignetteScene extends Phaser.Scene {
       say("JOURNALIST", "Good evening. Tonight: chaos at the Crobley Corporation, makers of Krelworld's best-loved children's sweet, the humble, circular Crobley."),
       say("JOURNALIST", "For forty years, families have hummed along to the famous advert. You know the one. 'Nibble on a Crobley.'"),
       say("JOURNALIST", "But last month, founder Crobson Crobley — beloved, generous, a man who once gave away a free Crobley to every child in Krelford — was found dead in what police describe as 'murder-adjacent' circumstances."),
-      say("JOURNALIST", "The official cause: Mr Crobley is said to have 'unalived himself' as a result of a long-standing corn addiction."),
+      say("JOURNALIST", "The official cause: Mr Crobley is said to have 'unalived himself' as a result of a long-standing 'corn' addiction."),
       say("JOURNALIST", "However, suspicion immediately turned to his son, Reinhardt, who inherited the company — after posting this, one day before his father's death."),
     ]);
     const t1 = this.tweet(480, 170, "I have decided to unalive my father ha ha just joking…. Unless ?", "1 day before");
@@ -2331,10 +2314,10 @@ export class VignetteScene extends Phaser.Scene {
     ]);
     munch();
     await this.talk([
-      say("SERGEANT SWIG", "You can't believe everything you see these days. Deep fakes. Filters. Woke cameras."),
-      say("SERGEANT SWIG", "I've done my own independent research. Hours of it. On my phone. And from what I can see, it seems that everyone here is lying."),
+      say("SERGEANT SWIG", "You can't believe everything you see these days. There is a lot of stuff involving A.I. and you can't trust anything and plus there is also woke stuff"),
+      say("SERGEANT SWIG", "I've done my own independent research. And from what I can see, it seems that everyone here is lying."),
       say("REPORTER", "He confessed. On camera. He said 'just like I killed my father'."),
-      say("SERGEANT SWIG", "Out of context."),
+      say("SERGEANT SWIG", "That quote is out of context."),
     ]);
     munch();
     synth.play("slurp");
@@ -2343,13 +2326,13 @@ export class VignetteScene extends Phaser.Scene {
       dir("Everyone looks at the bag. The bag says MONEY FROM REINHARDT."),
       say("SERGEANT SWIG", "What bag."),
       say("REPORTER", "The bag next to you. It says 'money from Reinhardt'."),
-      say("SERGEANT SWIG", "That's just a coincidence. You'd have to be so stupid to think anything of that. Honestly. So stupid."),
+      say("SERGEANT SWIG", "You'd have to be so stupid to think anything of that. Honestly. So stupid. Stupid fucking bitch."),
     ]);
     munch();
     await this.talk([
       dir("A female journalist in the second row stands up. She has a notepad. She has the look of someone who is about to ask a very good question."),
       say("JOURNALIST", "Sergeant Swig, is the Krelford Constabulary being paid by Reinhardt Crobley to ignore a murder—"),
-      say("SERGEANT SWIG", "Sorry. I couldn't hear anything. Just a squawking noise."),
+      say("SERGEANT SWIG", "Sorry. I couldn't hear anything. Just a squawking noise coming out of your fucking mouth."),
       dir("The room erupts. Booing. Shouting. Somebody throws a Crobley."),
       say("SERGEANT SWIG", "Right. I'm fucking fed up!"),
     ]);
@@ -2378,7 +2361,6 @@ export class VignetteScene extends Phaser.Scene {
       say(a, "We need to kill Reinhardt Crobley."),
       say(b, "Bring Crobson Crobley back to life."),
       say(G.s.player, "And return the Crobley Corporation to its rightful owner."),
-      say("SERGEANT SWIG", "(mouth full) I didn't hear that. Couldn't hear a thing. Squawking."),
       dir("NEW OBJECTIVE: storm the Crobley Factory. The gate is on the east edge of Krelford."),
     ]);
   }
@@ -2472,16 +2454,9 @@ export class VignetteScene extends Phaser.Scene {
       say(a, "No factory, no company, no Crobleys."),
       say(c, "So what's he going to do? Just… live? With nothing?"),
       dir("A very long pause. Somewhere, a sausage pops in the embers."),
-      say(b, "…We're going to have to re-kill him, aren't we."),
-      say("CROBSON CROBLEY", "I'm sorry, you're going to WHAT?"),
-      say(a, "It's the kind thing to do, Crobson."),
-      say(c, "Krezwonk's guy does returns. Probably."),
-      say("CROBSON CROBLEY", "I've only been alive for twenty minutes!"),
-      dir("You walk away slowly, before anyone can ask you to help. Behind you, a scuffle. Then the sound of a resurrection being politely refunded."),
-      ping("DRONGUS", "Did someone blow up the Crobley factory"),
-      ping("DRONGUS", "I was going to do an ad with them"),
-      ping("DRONGUS", "Nibble on a Crobley ft. Drongus"),
-      ping("DRONGUS", "Nobody reacted to that idea either"),
+      say(b, "…We're going to have to kill him again."),
+      say("CROBSON CROBLEY", "My factory…my life's work..all gone..up in ashes. No..no…"),
+      dir("You walk away slowly, you hear several gunshots, and a chainsaw revving up. Crobson Crobley is now in heaven again."),
     ]);
     G.s.flags.crobley_factory_destroyed = true;
     synth.stopMusic();

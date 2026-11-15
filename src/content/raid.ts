@@ -8,7 +8,7 @@ import { dir, say } from "./dsl";
 export const RAID_ARRIVE: Line[] = [
   dir("Midnight. Rain. Kreddle glows on the far side of the bridge like a fruit machine that has never once paid out."),
   dir("Behind you: the Krelworld Krew, armed to the teeth with things banned under the Krelneva Convention."),
-  say("SCROMBUS", "Right. The plan. We walk down the Strip. We burn everything. We get to the Palace. Krezwonk plants the bomb. We run."),
+  say("SCROMBUS", "Right. The plan. We walk down the Strip. We burn everything. We get to the Presidential Palace. Krezwonk plants the bomb. President Klerble gets turned to vapor. We run."),
   say("KREBON", "Should we turn the power off first?"),
   say("SCROMBUS", "We're going to turn EVERYTHING off, Krebon. Permanently."),
   say("FLENKY", "This is for Mollor. My sweet flirtkitten. LIGHT 'EM UP!"),
@@ -37,7 +37,7 @@ export const RAID_SHOUTS: Line[] = [
   say("CRONGUS", "…oh fuck it. BURN!"),
   say("GRONNY", "Me no like Kreddle! Me make Kreddle HOT!"),
   say("GRONNY", "FIRE! Fire good! Kreddle bad!"),
-  say("MIKEY", "For my bongo!! And for POLSON!!", { variants: { MIKEY: "For Polson's shake!! FOR POLSON!!" } }),
+  say("MIKEY", "For my dignity!! And for POLSON!!", { variants: { MIKEY: "For Polson's shake!! FOR POLSON!!" } }),
   // Klerble shot Polson in the Krelburger queue
   say("GRONNY", "This for Polson! Polson big friend!"),
   say("CRONGUS", "That's for Polson, you queue-jumping CUNTS!"),
@@ -190,12 +190,12 @@ export const KRUNCHER_DEATHS: Line[] = [
 /** When the last Kruncher is ash. */
 export const KRUNCHERS_DONE: Line[] = [
   dir("Nine little piles of ash. The rain hisses on them."),
-  say("MIKEY", "And THAT'S for my bongo.", { variants: { MIKEY: "And THAT'S for Polson's shake." } }),
+  say("MIKEY", "And THAT'S for my dignity.", { variants: { MIKEY: "And THAT'S for Polson's shake." } }),
   say("FLENKY", "WOOOOOOOO!!!"),
   say("GRONNY", "Krunchers crunched! Ha ha!"),
   say("KREBLIS", "Breaking news… the Kreddle Krunchers are cancelled 👍"),
-  say("SCROMBUS", "Right! Palace! Krezwonk, you've got the thing?"),
-  say("KREZWONK", "I have the thing. I have foreseen the thing. The thing is in my bag."),
+  say("SCROMBUS", "Right! Palace! Krezwonk, you've got the nuclear bomb?"),
+  say("KREZWONK", "I have the nuclear bomb. It is in my bag. I love rap and hip hop music."),
 ];
 
 /** At the Palace steps. */
@@ -206,8 +206,8 @@ export const NUKE_PLANT: Line[] = [
   say("KREBON", "Shouldn't we turn the power off on it? Just in case?"),
   say("KREZWONK", "That's the opposite of what we want, Krebon."),
   say("CRONGUS", "I just want it on record that this is ALSO against the Krelneva Convention."),
-  say("KREZMAR", "I'll piss on that one an' all if you like, Crongus."),
-  say("KREZWONK", "Four minutes. That's how long we've got. I set it to four because I have foreseen that we are slow."),
+  say("KREZMAR", "I'll piss on that one an' all if you like, Crongus, ya cunt."),
+  say("KREZWONK", "Four minutes. That's how long we've got before this slag explodes."),
   say("SCROMBUS", "Four minutes to get back over the bridge and into the Town Hall. Plenty of time. Probably."),
   say("FLENKY", "This is for you, Mollor."),
   say("KREZWONK", "Timer's on. Shall we… run?"),
@@ -219,7 +219,7 @@ export const ESCAPE_SHOUTS: Line[] = [
   say("SCROMBUS", "Keep running! West! Over the bridge!"),
   say("GRONNY", "Run run run run!"),
   say("KREBON", "Is now a good time to turn the power off?"),
-  say("FLENKY", "Don't look back! Don't look back! …I looked back. Still on fire."),
+  say("FLENKY", "Don't look back! Don't look back!"),
   say("CRONGUS", "My legs are too little for this!"),
   say("MIKEY", "Fragmar all over again!"),
   say("KREZWONK", "I have foreseen us making it. Just. Probably. Keep going."),

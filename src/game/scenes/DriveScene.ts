@@ -201,7 +201,7 @@ export class DriveScene extends Phaser.Scene {
         dir("The Bank of Catford, 2am. Alarms. Smoke. A pickup truck mounts the pavement outside with its hazards on."),
         say(this.driver, "YEEE! We went and robbed a bank like Jason Statham in Crank!"),
         say("SANCHZ", "A million pounds in stashed-up notes. YEGHHH."),
-        say(this.driver, "And a goat. For some reason they kept a goat in that bank."),
+        say(this.driver, "And a goat."),
         gabor("It was me. I asked them to lock me in the vault overnight. It was the best night of my life. Thank you for ruining it."),
         dir("Sirens. Lots of sirens. Fifteen sets of blue lights swing round the corner. Then a helicopter. Then another one. Then, somehow, a tank."),
         say(this.driver, "I'm driving. You're on the guns. Hold on to your bollocks. Let's have this night of freedom."),

@@ -1085,7 +1085,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   camState.follow = () => {
     const p = luke.root.position;
     const ry = luke.root.rotation.y;
-    fp.set(p.x - Math.sin(ry) * 4.2 + Math.cos(ry) * 1.2, 2.1, p.z - Math.cos(ry) * 4.2 - Math.sin(ry) * 1.2);
+    fp.set(p.x - Math.sin(ry) * 3.2 + Math.cos(ry) * 0.9, 1.9, p.z - Math.cos(ry) * 3.2 - Math.sin(ry) * 0.9);
     fl.set(p.x + Math.sin(ry) * 6, 1.6, p.z + Math.cos(ry) * 6);
     return [fp, fl];
   };

@@ -421,6 +421,78 @@
     18.386,
     18.003
    ]
+  },
+  "ped4": {
+   "file": "art/3d/world/ped4.glb",
+   "size": [
+    0.689,
+    1.653,
+    0.703
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped4.glb#Idle",
+    "walk": "art/3d/world/ped4.glb#Casual_Walk"
+   }
+  },
+  "ped5": {
+   "file": "art/3d/world/ped5.glb",
+   "size": [
+    0.636,
+    1.598,
+    0.636
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped5.glb#Idle",
+    "walk": "art/3d/world/ped5.glb#Walking_Woman"
+   }
+  },
+  "ped6": {
+   "file": "art/3d/world/ped6.glb",
+   "size": [
+    0.745,
+    1.724,
+    0.764
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped6.glb#Idle",
+    "walk": "art/3d/world/ped6.glb#Casual_Walk"
+   }
+  },
+  "ped7": {
+   "file": "art/3d/world/ped7.glb",
+   "size": [
+    0.604,
+    1.608,
+    0.628
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped7.glb#Idle",
+    "walk": "art/3d/world/ped7.glb#Walking_Woman"
+   }
+  },
+  "ped8": {
+   "file": "art/3d/world/ped8.glb",
+   "size": [
+    0.703,
+    1.533,
+    0.674
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped8.glb#Idle",
+    "walk": "art/3d/world/ped8.glb#Thoughtful_Walk"
+   }
+  },
+  "ped9": {
+   "file": "art/3d/world/ped9.glb",
+   "size": [
+    0.789,
+    1.75,
+    0.77
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped9.glb#Idle",
+    "walk": "art/3d/world/ped9.glb#Casual_Walk"
+   }
   }
  }
 }

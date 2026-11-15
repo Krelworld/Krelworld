@@ -2220,6 +2220,21 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
     }
     for (const c of cars) {
       if (c === held || wrecks.has(c)) continue;
+      // brake for a stopped car, a wreck or the getaway car ahead in its lane: queue, don't drive through it
+      pathAt(c.path, c.s, tmp, dir);
+      let blocked = false;
+      for (const o of cars) {
+        if (o === c || (o !== held && !wrecks.has(o))) continue;
+        const dx = o.obj.position.x - tmp.x;
+        const dz = o.obj.position.z - tmp.z;
+        const ahead = dx * dir.x + dz * dir.z;
+        const side = Math.abs(dx * dir.z - dz * dir.x);
+        if (ahead > 0 && ahead < (o.bus || c.bus ? 9 : 6.5) && side < 2.6) {
+          blocked = true;
+          break;
+        }
+      }
+      if (blocked) continue;
       c.s += c.speed * dt;
       pathAt(c.path, c.s, tmp, dir);
       c.obj.position.copy(tmp);
@@ -2362,6 +2377,8 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
           let reverseFor = 0;
           let pauseFor = 0;
           const detour: T3.Vector3[] = [];
+          let aimT = 0;
+          let aimAt: T3.Vector3 | null = null;
           await new Promise<void>((res) => {
             let last = clk.now();
             const step = () => {
@@ -2369,9 +2386,15 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
               const dt = Math.min(0.05, (now - last) / 1000);
               last = now;
               const target = detour[0] ?? route[wp];
+              if (target !== aimAt) {
+                aimAt = target;
+                aimT = 0;
+              }
+              aimT += dt;
               const to = new THREE.Vector3().subVectors(target, pos);
               const dist = to.length();
-              if (dist < (detour.length ? 2.5 : 5)) {
+              const behind = to.x * Math.sin(head) + to.z * Math.cos(head) < 0 && dist < 14 && reverseFor <= 0 && pauseFor <= 0;
+              if (dist < (detour.length ? 4.5 : 5) || behind || aimT > 3.5) {
                 if (detour.length) detour.shift();
                 else if (++wp >= route.length) return res();
               }

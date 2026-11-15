@@ -3,15 +3,20 @@ import { CHARACTERS } from "../../data/characters";
 import { activeMods } from "../../data/historicalRevisions";
 import { reactionDamageMult } from "./reactions";
 
+/** The Exchange's UPGRADES tab. `base` is the first level's price; see upgradeCost. */
 export const GENERIC_UPGRADES = [
-  { id: "hp", name: "MAX HP: Vintage Pussy Juice Constitution", desc: "+15 max HP per level", max: 8 },
-  { id: "dmg", name: "Resting Wonk Hand", desc: "+8% damage", max: 5 },
-  { id: "krezz", name: "Extra Virgin Krezz Tank", desc: "+20 max Krezz", max: 3 },
-  { id: "bottles", name: "Bottle Belt", desc: "+1 pussy juice bottle capacity", max: 3 },
+  { id: "hp", name: "Pussy Juice Constitution", icon: "p_juice", desc: "+15 max HP per level. Vintage.", max: 8, base: 70 },
+  { id: "dmg", name: "Resting Wonk Hand", icon: "✊", desc: "+8% damage from everything per level.", max: 5, base: 120 },
+  { id: "krezz", name: "Krezz Tank", icon: "p_krezz", desc: "+20 max Krezz per level. Extra virgin.", max: 3, base: 80 },
+  { id: "bottles", name: "Bottle Belt", icon: "p_bottle", desc: "Carry one more bottle of pussy juice per level.", max: 3, base: 120 },
 ] as const;
 
+/**
+ * Price of the next level of a generic upgrade: cheap to start, steeper as you stack it
+ * (base, then roughly +90% of base and a bit more each level). Krezmar gets his 10% off.
+ */
 export function upgradeCost(s: GameState, level: number, base = 80): number {
-  const raw = base + level * 70;
+  const raw = base + base * 0.9 * level + 10 * level * level;
   return Math.round(s.player === "KREZMAR" ? raw * 0.9 : raw);
 }
 

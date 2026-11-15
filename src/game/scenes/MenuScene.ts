@@ -7,7 +7,10 @@ import { synth } from "../audio/Synth";
 import { CHARACTERS } from "../../data/characters";
 import { GENERIC_UPGRADES, upgradeCost, maxHp, counter } from "../systems/stats";
 import { GUNS, GUN_ORDER, gunMax } from "../combat/Guns";
-import { ammoUnitCost, BANK_PERKS, buyAmmo } from "../systems/armoury";
+import { ammoQuote, ammoUnitCost, BANK_PERKS, buyAmmo, orderedGuns } from "../systems/armoury";
+import { ShopGrid, shopTabs, type ShopItem } from "../ui/shop";
+import { TOUCH } from "../ui/TouchControls";
+import { portraitKey } from "../gfx/Textures";
 import { Companion } from "../combat/Companion";
 import { arcsFor, arcAvailable, currentArcSteps, stepDone } from "../systems/arcs";
 import { personalQuest, pickupsCollected, MINISTRY_QUESTS, ministryQuestState, ministryProgress } from "../systems/quests";
@@ -15,7 +18,6 @@ import { factById } from "../../data/historicalRevisions";
 import { narrativeActor } from "../systems/narrative";
 import { DialogueBox } from "../ui/DialogueBox";
 import { bindPad, btnDown, firstDown, PAD_DEFAULTS, PAD_FIXED, PAD_START, padFor, padLabel, resetPad } from "../systems/padbinds";
-import { TOUCH } from "../ui/TouchControls";
 import { say } from "../../content/dsl";
 
 type Mode = "pause" | "settings" | "bank" | "tribunal" | "death" | "quests" | "controls";
@@ -23,14 +25,26 @@ type Mode = "pause" | "settings" | "bank" | "tribunal" | "death" | "quests" | "c
 // (the perks list lives with the rest of the armoury rules)
 export { BANK_PERKS };
 export const BANK_MOVES = [
-  { id: "mv_charge", name: "Pub Shove", desc: "Your dodge becomes a shoulder charge: damages and flings anything you barrel through.", cost: 320 },
-  { id: "mv_fart", name: "Fart Propulsion", desc: "Every dodge leaves a lingering fart cloud that hurts and slows enemies.", cost: 280 },
-  { id: "mv_lastorders", name: "Last Orders", desc: "Drinking pussy juice (Q) sends out a shockwave that knocks everything around you flying.", cost: 360 },
+  { id: "mv_charge", name: "Pub Shove", icon: "💥", desc: "Your dodge becomes a shoulder charge that flings anything you hit.", cost: 450 },
+  { id: "mv_fart", name: "Fart Propulsion", icon: "💨", desc: "Every dodge leaves a fart cloud that hurts and slows enemies.", cost: 400 },
+  { id: "mv_lastorders", name: "Last Orders", icon: "🍺", desc: "Drinking pussy juice (Q) knocks everything around you flying.", cost: 550 },
+];
+/** Hiring a lad for one dungeon trip. */
+export const LAD_COST = 200;
+
+type BankTab = "upgrades" | "armoury" | "perks" | "moves";
+const BANK_TABS: { id: BankTab; label: string }[] = [
+  { id: "upgrades", label: "⬆ UPGRADES" },
+  { id: "armoury", label: "🔫 GUNS" },
+  { id: "perks", label: "★ PERKS" },
+  { id: "moves", label: "🤝 LADS" },
 ];
 
 /** Overlay menus: pause, settings, bank (upgrades), ban tribunal, quests, death. */
 export class MenuScene extends Phaser.Scene {
-  private bankTab: "upgrades" | "armoury" | "perks" | "moves" = "upgrades";
+  private bankTab: BankTab = "upgrades";
+  private shop: ShopGrid | null = null;
+  private bankSel: Partial<Record<BankTab, number>> = {};
   private mode: Mode = "pause";
   private caller = "";
   private data0: any = {};
@@ -50,6 +64,26 @@ export class MenuScene extends Phaser.Scene {
     this.padPrev = [];
     this.padPrimed = false;
     this.focus = -1;
+    // the shop: arrows pick, E / Enter / Space buy, Tab or 1-4 switch tabs
+    const shopKeys = (e: KeyboardEvent) => {
+      if (this.mode !== "bank" || !this.shop) return;
+      const k = e.code;
+      if (k === "ArrowLeft" || k === "KeyA") this.shop.move(-1, 0);
+      else if (k === "ArrowRight" || k === "KeyD") this.shop.move(1, 0);
+      else if (k === "ArrowUp" || k === "KeyW") this.shop.move(0, -1);
+      else if (k === "ArrowDown" || k === "KeyS") this.shop.move(0, 1);
+      else if (k === "KeyE" || k === "Enter" || k === "Space" || k === "NumpadEnter") void this.shop.confirm();
+      else if (k === "Tab" || k === "KeyQ" || k === "KeyR") {
+        e.preventDefault?.();
+        const i = BANK_TABS.findIndex((t) => t.id === this.bankTab);
+        this.setBankTab(BANK_TABS[(i + (e.shiftKey || k === "KeyQ" ? -1 : 1) + BANK_TABS.length) % BANK_TABS.length].id);
+      } else if (/^Digit[1-4]$/.test(k)) this.setBankTab(BANK_TABS[Number(k.slice(5)) - 1].id);
+    };
+    this.input.keyboard?.on("keydown", shopKeys);
+    this.events.once("shutdown", () => {
+      this.input.keyboard?.off("keydown", shopKeys);
+      this.shop = null;
+    });
     this.render(data?.mode ?? "pause");
   }
 
@@ -218,9 +252,10 @@ export class MenuScene extends Phaser.Scene {
       if (changed) this.focus = 0;
       this.time.delayedCall(0, () => this.showFocus());
     }
+    this.shop = null;
     const add = (o: Phaser.GameObjects.GameObject) => this.root.add(o);
-    add(this.add.rectangle(0, 0, 960, 540, 0x000000, 0.7).setOrigin(0).setInteractive());
-    add(panel(this, 140, 40, 680, 460));
+    add(this.add.rectangle(0, 0, 960, 540, 0x000000, mode === "bank" ? 0.82 : 0.7).setOrigin(0).setInteractive());
+    if (mode !== "bank") add(panel(this, 140, 40, 680, 460));
     const s = G.hasRun() ? G.s : null;
     switch (mode) {
       case "pause": {
@@ -340,76 +375,7 @@ export class MenuScene extends Phaser.Scene {
       }
       case "bank": {
         if (!s) break;
-        const minister = narrativeActor("KREZMAR", s.player);
-        add(title(this, 480, 52, "THE KREDDLE EXCHANGE · KREZZCOIN COUNTER", 22, "#ff4fd8"));
-        add(this.add.text(480, 78, `${CHARACTERS[minister as string]?.name}${minister === "PROCTUS" ? ` (${CHARACTERS[s.player].proctusTitle})` : ", Minister of Money and Loans"} · You have ${s.coins} Krezzcoin`, { fontFamily: FONT, fontSize: "12px", color: "#ffffff" }).setOrigin(0.5));
-        const tabs: [typeof this.bankTab, string][] = [["upgrades", "UPGRADES"], ["armoury", "ARMOURY"], ["perks", "PERKS"], ["moves", "LADS & MOVES"]];
-        tabs.forEach(([k, label], i) => add(button(this, 255 + i * 150, 106, label, () => { this.bankTab = k; this.render("bank"); }, { w: 140, h: 28, size: 13, color: this.bankTab === k ? 0x22c55e : undefined })));
-        let y = 130;
-        // rows squeeze up a bit on the long tabs so everything fits above the LEAVE button
-        const nRows = this.bankTab === "perks" ? BANK_PERKS.length : this.bankTab === "armoury" ? GUN_ORDER.length + 1 : this.bankTab === "moves" ? BANK_MOVES.length + 1 : GENERIC_UPGRADES.length + 4;
-        const rowH = Math.min(40, Math.floor(372 / nRows));
-        const row = (name: string, desc: string, btn: string, disabled: boolean, fn: () => void, col = "#ffffff") => {
-          add(this.add.text(150, y, name, { fontFamily: FONT, fontSize: "14px", color: col }));
-          add(this.add.text(150, y + 17, desc, { fontFamily: FONT, fontSize: "11px", color: "#9aa0b4", wordWrap: { width: 560 }, maxLines: rowH < 38 ? 1 : 2 } as any));
-          add(button(this, 790, y + 13, btn, fn, { w: 150, h: Math.min(28, rowH - 4), size: 13, disabled }));
-          y += rowH;
-        };
-        if (this.bankTab === "upgrades") {
-          for (const u of GENERIC_UPGRADES) {
-            const lvl = s.upgrades[u.id] ?? 0;
-            const cost = upgradeCost(s, lvl);
-            const maxed = lvl >= u.max;
-            row(`${u.name} (${lvl}/${u.max})`, u.desc, maxed ? "MAXED" : `BUY ${cost}`, maxed || s.coins < cost, () => this.buy(u.id, cost));
-          }
-          const def = CHARACTERS[s.player];
-          add(this.add.text(150, y + 2, `${def.name} — PERSONAL BRANCH`, { fontFamily: FONT, fontSize: "13px", color: "#ffd23f", fontStyle: "bold" }));
-          y += 24;
-          def.branch?.forEach((b, i) => {
-            const owned = !!s.upgrades[b.id];
-            const prevOk = i === 0 || !!s.upgrades[def.branch![i - 1].id];
-            const cost = Math.round(b.cost * (s.player === "KREZMAR" ? 0.9 : 1));
-            row(b.name, b.desc, owned ? "OWNED" : prevOk ? `BUY ${cost}` : "LOCKED", owned || !prevOk || s.coins < cost, () => this.buyBranch(b.id, cost), owned ? "#5ad35a" : "#ffffff");
-          });
-        } else if (this.bankTab === "armoury") {
-          s.guns = s.guns ?? {};
-          // one button tops up everything you own, as far as your money goes
-          const all = this.refillQuote();
-          row("REFILL EVERYTHING", all.boxes ? `Fills every gun you own (${all.boxes} boxes of ammo).` : "Every gun you own is full. The Fart Blaster never runs out.", all.boxes ? `ALL ${all.cost}` : "ALL FULL", !all.boxes || s.coins < Math.min(...all.unit.filter((u) => u > 0), 1e9), () => this.refillAll(), "#67e8f9");
-          for (const id of GUN_ORDER) {
-            const g = GUNS[id];
-            const owned = id in s.guns;
-            if (g.shop && !owned) {
-              row(`${g.name}  ·  EXCHANGE EXCLUSIVE`, g.blurb, `BUY ${g.shop}`, s.coins < g.shop, () => this.buyGun(id), "#ffd23f");
-              continue;
-            }
-            if (!owned) continue;
-            const have = s.guns[id] ?? 0;
-            const max = gunMax(g, s);
-            const unit = ammoUnitCost(id);
-            const boxes = Math.ceil((max - have) / g.pickup);
-            const fill = boxes * unit;
-            const label = have >= max ? "FULL" : s.coins >= fill ? `FILL ${fill}` : `+${g.pickup} ${unit}`;
-            row(`${g.name}  (${have}/${max})${have === 0 ? "  · EMPTY" : ""}`, `A box is ${g.pickup} rounds for ${unit}. Fills to the top if you can afford it.`, label, have >= max || s.coins < unit, () => this.buyAmmo(id), have === 0 ? "#ff6b6b" : g.shop ? "#5ad35a" : "#ffffff");
-          }
-          if (y < 470) add(this.add.text(480, y + 4, "Crate guns (Pistol, Uzi, Boomstick, Railgun, Marital Aid) are found in dungeon crates. Their ammo is sold here once you own them.", { fontFamily: FONT, fontSize: "11px", color: "#9aa0b4", align: "center", wordWrap: { width: 640 } }).setOrigin(0.5, 0));
-        } else if (this.bankTab === "perks") {
-          for (const p of BANK_PERKS) {
-            const lvl = s.upgrades[p.id] ?? 0;
-            const cost = p.cost * (lvl + 1);
-            const maxed = lvl >= p.max;
-            row(`${p.name} (${lvl}/${p.max})`, p.desc, maxed ? "MAXED" : `BUY ${cost}`, maxed || s.coins < cost, () => this.buy(p.id, cost));
-          }
-        } else {
-          const hired = typeof s.flags.companion === "string" ? (s.flags.companion as string) : "";
-          row(hired ? `HIRED: ${CHARACTERS[hired]?.name}` : "Hire a Lad (one dungeon trip)", hired ? "Waiting by the dungeon door. Goes home when you get back to town." : "A random lad joins your next dungeon, follows you room to room and shoots whatever's nearest. Can't be killed. Won't shut up.", hired ? "HIRED" : "HIRE 150", !!hired || s.coins < 150, () => this.hireLad(), hired ? "#5ad35a" : "#ffd23f");
-          for (const m of BANK_MOVES) {
-            const owned = !!s.upgrades[m.id];
-            row(m.name, m.desc, owned ? "OWNED" : `BUY ${m.cost}`, owned || s.coins < m.cost, () => this.buyBranch(m.id, m.cost), owned ? "#5ad35a" : "#ffffff");
-          }
-        }
-        if (this.caller === "Kreddle") add(button(this, 300, 518, "🎟 KROKEN PRIZES →", () => { this.scene.get("Kreddle").events.emit("open-prizes"); this.close(); }, { w: 220, h: 30, color: 0x3b0764 }));
-        add(button(this, this.caller === "Kreddle" ? 620 : 480, 518, "LEAVE THE EXCHANGE", () => this.close(), { w: 220, h: 30 }));
+        this.renderBank(add);
         break;
       }
       case "tribunal": {
@@ -456,49 +422,206 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 
-  private buy(id: string, cost: number) {
+  // ------------------------------------------------------------------ the Kreddle Exchange (bank)
+
+  private setBankTab(t: BankTab) {
+    if (t === this.bankTab || !this.shop) return;
+    this.bankSel[this.bankTab] = this.shop.index;
+    this.bankTab = t;
+    synth.play("select");
+    this.render("bank");
+  }
+
+  private renderBank(add: (o: Phaser.GameObjects.GameObject) => void) {
     const s = G.s;
-    if (s.coins < cost) return;
+    add(panel(this, 8, 6, 944, 528, 0.97));
+    const head = this.add.text(30, 34, "KREDDLE EXCHANGE", { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#ff4fd8", stroke: "#12001f", strokeThickness: 6 }).setOrigin(0, 0.5);
+    head.setShadow(0, 0, "#ff4fd8", 10, true, true);
+    add(head);
+    if (!TOUCH.enabled) add(this.add.text(34, 60, "←→↑↓ pick · E buy · TAB tabs · ESC leave", { fontFamily: FONT, fontSize: "11px", color: "#8f8ab8" }).setOrigin(0, 0.5));
+    // close (and, in Kreddle, the way over to the Prize Counter)
+    const close = button(this, 914, 34, "✕", () => this.close(), { w: 48, h: 44, size: 22, color: 0x7f1d1d });
+    add(close);
+    if (this.caller === "Kreddle") {
+      add(button(this, 610, 34, "🎟 PRIZES ▸", () => {
+        this.scene.get("Kreddle").events.emit("open-prizes");
+        this.close();
+      }, { w: 140, h: 40, size: 15, color: 0x3b0764 }));
+    }
+    add(shopTabs(this, 20, 86, 920, BANK_TABS, this.bankTab, (id) => this.setBankTab(id as BankTab)));
+    const shop = new ShopGrid(this, {
+      x: 20,
+      y: 116,
+      w: 920,
+      h: 316,
+      cols: 6,
+      rows: 2,
+      detail: { x: 20, y: 442, w: 920, h: 86 },
+      balances: [{ currency: "coin", x: 860, y: 34 }],
+      balance: () => G.s.coins,
+      onBuy: (it) => {
+        const ok = this.bankBuy(it.id);
+        if (ok) {
+          G.save();
+          shop.setItems(this.bankItems());
+        }
+        return ok;
+      },
+    });
+    this.shop = shop;
+    add(shop.root);
+    shop.setItems(this.bankItems(), this.bankSel[this.bankTab] ?? 0);
+    void s;
+  }
+
+  /** What's on the shelves in the current tab. */
+  private bankItems(): ShopItem[] {
+    const s = G.s;
+    const item = (o: Partial<ShopItem> & Pick<ShopItem, "id" | "name" | "icon" | "desc">): ShopItem => ({ price: 0, currency: "coin", state: "buy", ...o });
+    const out: ShopItem[] = [];
+    if (this.bankTab === "upgrades") {
+      for (const u of GENERIC_UPGRADES) {
+        const lvl = s.upgrades[u.id] ?? 0;
+        out.push(item({ id: u.id, name: u.name, icon: u.icon, desc: u.desc, price: upgradeCost(s, lvl, u.base), lvl: [lvl, u.max], state: lvl >= u.max ? "maxed" : "buy" }));
+      }
+      const def = CHARACTERS[s.player];
+      const face = portraitKey(this, s.player) ?? "⭐";
+      def.branch?.forEach((b, i) => {
+        const owned = !!s.upgrades[b.id];
+        const prevOk = i === 0 || !!s.upgrades[def.branch![i - 1].id];
+        out.push(
+          item({
+            id: b.id,
+            name: b.name,
+            icon: face,
+            desc: b.desc,
+            price: this.branchCost(b.cost),
+            tag: `${def.name.split(" ")[0]} ${"I".repeat(i + 1)}`,
+            tagColor: def.color,
+            state: owned ? "owned" : prevOk ? "buy" : "locked",
+            lockReason: `BUY ${"I".repeat(i)} FIRST`,
+          }),
+        );
+      });
+    } else if (this.bankTab === "armoury") {
+      s.guns = s.guns ?? {};
+      const all = this.refillQuote();
+      out.push(
+        item({
+          id: "refill_all",
+          name: "Refill Everything",
+          icon: "p_ammo",
+          desc: all.boxes ? `Tops up every gun you own (${all.boxes} boxes), as far as your money goes.` : "Every gun you own is full. The Fart Blaster never runs out.",
+          price: all.cost,
+          minPrice: all.unit.length ? Math.min(...all.unit) : 0,
+          state: all.boxes ? "buy" : "full",
+          verb: "FILL",
+        }),
+      );
+      const icon = (id: string) => ({ icon: GUNS[id].tex, iconTint: GUNS[id].shop ? GUNS[id].color : undefined });
+      // for sale first, then ammo for what you've got
+      for (const id of GUN_ORDER) {
+        const g = GUNS[id];
+        if (g.shop && !(id in s.guns)) out.push(item({ id: `gun_${id}`, name: g.name, ...icon(id), desc: g.blurb, price: g.shop, tag: "NEW", tagColor: 0xff4fd8 }));
+      }
+      for (const id of orderedGuns(s)) {
+        const g = GUNS[id];
+        if (g.maxAmmo >= 9999) {
+          out.push(item({ id: `ammo_${id}`, name: g.name, ...icon(id), desc: `${g.blurb} Never runs dry.`, state: "full", tag: "∞" }));
+          continue;
+        }
+        const q = ammoQuote(s, id);
+        out.push(
+          item({
+            id: `ammo_${id}`,
+            name: g.name,
+            ...icon(id),
+            desc: `${g.pickup} rounds a box, ${q.unit} each. Fills it as far as your money goes.`,
+            price: q.fill,
+            minPrice: q.unit,
+            bar: [q.have, q.max],
+            tag: q.have <= 0 ? "EMPTY" : undefined,
+            tagColor: 0xff5a5a,
+            state: q.full ? "full" : "buy",
+            verb: "FILL",
+          }),
+        );
+      }
+    } else if (this.bankTab === "perks") {
+      for (const p of BANK_PERKS) {
+        const lvl = s.upgrades[p.id] ?? 0;
+        out.push(item({ id: p.id, name: p.name, icon: p.icon, desc: p.desc, price: p.cost * (lvl + 1), lvl: [lvl, p.max], state: lvl >= p.max ? "maxed" : "buy" }));
+      }
+    } else {
+      const hired = typeof s.flags.companion === "string" ? (s.flags.companion as string) : "";
+      out.push(
+        item({
+          id: "lad",
+          name: hired ? `${CHARACTERS[hired]?.name} hired` : "Hire a Lad",
+          icon: (hired && portraitKey(this, hired)) || "🤝",
+          desc: hired ? "Waiting by the dungeon door. Goes home when you get back to town." : "A random lad fights by your side for one dungeon. Can't die. Won't shut up.",
+          price: LAD_COST,
+          state: hired ? "owned" : "buy",
+          verb: "HIRE",
+        }),
+      );
+      for (const m of BANK_MOVES) out.push(item({ id: m.id, name: m.name, icon: m.icon, desc: m.desc, price: m.cost, state: s.upgrades[m.id] ? "owned" : "buy" }));
+    }
+    return out;
+  }
+
+  private branchCost(cost: number) {
+    return Math.round(cost * (G.s.player === "KREZMAR" ? 0.9 : 1));
+  }
+
+  /** Buy whatever the card with this id is. True if money changed hands. */
+  private bankBuy(id: string): boolean {
+    const s = G.s;
+    if (id === "refill_all") return this.refillAll();
+    if (id === "lad") return this.hireLad();
+    if (id.startsWith("gun_")) return this.buyGun(id.slice(4));
+    if (id.startsWith("ammo_")) return buyAmmo(s, id.slice(5)) > 0;
+    const gen = GENERIC_UPGRADES.find((u) => u.id === id);
+    if (gen) return this.buy(id, upgradeCost(s, s.upgrades[id] ?? 0, gen.base), gen.max);
+    const perk = BANK_PERKS.find((p) => p.id === id);
+    if (perk) return this.buy(id, perk.cost * ((s.upgrades[id] ?? 0) + 1), perk.max);
+    const move = BANK_MOVES.find((m) => m.id === id);
+    if (move) return this.buyBranch(id, move.cost);
+    const def = CHARACTERS[s.player];
+    const i = def.branch?.findIndex((b) => b.id === id) ?? -1;
+    if (i >= 0 && (i === 0 || s.upgrades[def.branch![i - 1].id])) return this.buyBranch(id, this.branchCost(def.branch![i].cost));
+    return false;
+  }
+
+  private buy(id: string, cost: number, max: number): boolean {
+    const s = G.s;
+    if (s.coins < cost || (s.upgrades[id] ?? 0) >= max) return false;
     s.coins -= cost;
     s.upgrades[id] = (s.upgrades[id] ?? 0) + 1;
     if (id === "hp") s.hp = Math.min(maxHp(s), s.hp + 15);
-    synth.play("coin");
-    G.save();
-    this.render("bank");
+    return true;
   }
 
-  private hireLad() {
+  private hireLad(): boolean {
     const s = G.s;
-    if (s.coins < 150 || typeof s.flags.companion === "string") return;
-    s.coins -= 150;
+    if (s.coins < LAD_COST || typeof s.flags.companion === "string") return false;
+    s.coins -= LAD_COST;
     const id = Companion.pick(s.player);
     s.flags.companion = id;
-    synth.play("ding");
     G.emit("toast", { title: "LAD HIRED", text: `${CHARACTERS[id]?.name} will meet you at the next dungeon.` });
-    G.save();
-    this.render("bank");
+    return true;
   }
 
-  private buyGun(id: string) {
+  private buyGun(id: string): boolean {
     const s = G.s;
     const g = GUNS[id];
-    if (!g.shop || s.coins < g.shop) return;
+    if (!g?.shop || s.coins < g.shop || (s.guns && id in s.guns)) return false;
     s.coins -= g.shop;
     s.guns = s.guns ?? {};
     s.guns[id] = g.pickup * 2;
     s.gun = id;
-    synth.play("ding");
-    G.emit("toast", { title: "CENTRAL BANK", text: `${g.name} acquired. Equipped. X to swap weapons.` });
-    G.save();
-    this.render("bank");
-  }
-
-  /** Buy as many boxes as it takes to fill the gun (or as many as you can afford). */
-  private buyAmmo(id: string) {
-    if (!buyAmmo(G.s, id)) return;
-    synth.play("coin");
-    G.save();
-    this.render("bank");
+    G.emit("toast", { title: "KREDDLE EXCHANGE", text: `${g.name} acquired. Equipped. X to swap weapons.` });
+    return true;
   }
 
   private refillQuote(): { cost: number; boxes: number; unit: number[] } {
@@ -507,23 +630,22 @@ export class MenuScene extends Phaser.Scene {
     let boxes = 0;
     const unit: number[] = [];
     for (const id of GUN_ORDER) {
-      if (!s.guns || !(id in s.guns)) continue;
-      const g = GUNS[id];
-      const n = Math.max(0, Math.ceil((gunMax(g, s) - s.guns[id]) / g.pickup));
-      boxes += n;
-      cost += n * ammoUnitCost(id);
-      if (n) unit.push(ammoUnitCost(id));
+      if (!s.guns || !(id in s.guns) || GUNS[id].maxAmmo >= 9999) continue;
+      const q = ammoQuote(s, id);
+      boxes += q.boxes;
+      cost += q.fill;
+      if (q.boxes) unit.push(q.unit);
     }
     return { cost, boxes, unit };
   }
 
   /** Fill every owned gun, emptiest first, until the money runs out. */
-  private refillAll() {
+  private refillAll(): boolean {
     const s = G.s;
-    if (!s.guns) return;
+    if (!s.guns) return false;
     let any = false;
     for (let pass = 0; pass < 200; pass++) {
-      const owned = GUN_ORDER.filter((id) => s.guns && id in s.guns && s.guns[id] < gunMax(GUNS[id], s) && s.coins >= ammoUnitCost(id));
+      const owned = GUN_ORDER.filter((id) => s.guns && id in s.guns && GUNS[id].maxAmmo < 9999 && s.guns[id] < gunMax(GUNS[id], s) && s.coins >= ammoUnitCost(id));
       if (!owned.length) break;
       owned.sort((a, b) => s.guns![a] / gunMax(GUNS[a], s) - s.guns![b] / gunMax(GUNS[b], s));
       const id = owned[0];
@@ -531,21 +653,16 @@ export class MenuScene extends Phaser.Scene {
       s.guns[id] = Math.min(gunMax(GUNS[id], s), s.guns[id] + GUNS[id].pickup);
       any = true;
     }
-    if (!any) return;
-    synth.play("coin");
-    G.save();
-    this.render("bank");
+    return any;
   }
 
-  private buyBranch(id: string, cost: number) {
+  private buyBranch(id: string, cost: number): boolean {
     const s = G.s;
-    if (s.coins < cost || s.upgrades[id]) return;
+    if (s.coins < cost || s.upgrades[id]) return false;
     s.coins -= cost;
     s.upgrades[id] = 1;
     if (id === "gr1") s.hp = Math.min(maxHp(s), s.hp + 30);
-    synth.play("ding");
-    G.save();
-    this.render("bank");
+    return true;
   }
 
   private appeal() {

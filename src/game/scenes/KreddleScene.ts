@@ -7,6 +7,9 @@ import { DialogueBox } from "../ui/DialogueBox";
 import { switchTo } from "../Flow";
 import { synth } from "../audio/Synth";
 import { FONT, button, uiFrame } from "../ui/theme";
+import { ShopGrid, shopTabs, type ShopItem } from "../ui/shop";
+import { TOUCH } from "../ui/TouchControls";
+import { GUNS } from "../../data/guns";
 import { dir, say } from "../../content/dsl";
 import { animateWalker } from "../gfx/HD";
 import { CHARACTERS, LADS } from "../../data/characters";
@@ -215,7 +218,7 @@ export class KreddleScene extends Phaser.Scene {
     // KREDDLE KARDS
     this.machine("kd_m_cards", 1950, 600, 1.5);
     this.neonSign(1950, 470, "KREDDLE KARDS", "#4ade80", 20).setDepth(470);
-    this.spots.push({ x: 1950, y: 620, r: 110, label: () => "E: KREDDLE KARDS (higher or lower) · 100 Krezzcoin a deal", use: () => this.cards() });
+    this.spots.push({ x: 1950, y: 620, r: 110, label: () => "E: KREDDLE KARDS (higher or lower) · 150 Krezzcoin a deal", use: () => this.cards() });
     // KRUNCHER HQ + the Prize Counter
     this.building("kd_bld_arcade", 2300, 1.6, "KREDDLE KRUNCHERS HQ", "#ff4fd8", 0x9be7ff);
     const counter = this.add.rectangle(2520, 515, 120, 84, 0x2e1065).setStrokeStyle(3, 0xfacc15).setDepth(520);
@@ -321,7 +324,7 @@ export class KreddleScene extends Phaser.Scene {
     }
     const s = G.s;
     const dt = Math.min(delta, 50);
-    this.coinText.setText(`💰 ${s.coins} Krezzcoin   🎟 ${krokens(s)} Krokens`);
+    this.coinText.setText(`💰 ${s.coins}   🎟 ${krokens(s)}`);
     this.updateNpcs(time, dt);
     if (this.busy || this.panelRoot) {
       this.prompt.setVisible(false);
@@ -480,7 +483,7 @@ export class KreddleScene extends Phaser.Scene {
     const t = this.add.text(480, 58, title, { fontFamily: "Impact, sans-serif", fontSize: "34px", color, stroke: "#12001f", strokeThickness: 6 }).setOrigin(0.5);
     t.setShadow(0, 0, color, 14, true, true);
     root.add(t);
-    const coins = this.add.text(850, 80, "", { fontFamily: FONT, fontSize: "14px", color: "#ffd23f", fontStyle: "bold" }).setOrigin(1, 0.5);
+    const coins = this.add.text(850, 80, "", { fontFamily: FONT, fontSize: "20px", color: "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(1, 0.5);
     root.add(coins);
     const upd = () => coins.setText(`💰 ${G.s.coins}   🎟 ${krokens(G.s)}`);
     this.panelTick = this.time.addEvent({ delay: 100, loop: true, callback: upd });
@@ -508,7 +511,7 @@ export class KreddleScene extends Phaser.Scene {
     return b;
   }
 
-  private key(name: string, fn: () => void) {
+  private key(name: string, fn: (...a: any[]) => void) {
     const k = `keydown-${name}`;
     this.input.keyboard?.on(k, fn);
     this.panelKeys.push([k, fn]);
@@ -599,7 +602,7 @@ export class KreddleScene extends Phaser.Scene {
       this.add2(this.add.rectangle(330 + i * 150, 230, 120, 130, 0xfff7e6).setStrokeStyle(5, 0xb45309));
       return this.add2(this.add.text(330 + i * 150, 230, SYM[i], { fontSize: "70px" }).setOrigin(0.5));
     });
-    this.add2(this.add.text(480, 120, "Three of a kind wins a PRIZE. Two of a kind gets you 100 back. Three 7s: TWO PRIZES.", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", align: "center", wordWrap: { width: 640 } }).setOrigin(0.5));
+    this.add2(this.add.text(480, 120, "Three of a kind wins a PRIZE. Two of a kind gets you 50 back. Three 7s: TWO PRIZES.", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", align: "center", wordWrap: { width: 640 } }).setOrigin(0.5));
     const info = this.add2(this.add.text(480, 340, `${COST} Krezzcoin a spin. SPACE or SPIN.`, { fontFamily: FONT, fontSize: "15px", color: "#facc15", align: "center", wordWrap: { width: 640 } }).setOrigin(0.5));
     let spinning = false;
     const spin = () => {
@@ -888,7 +891,8 @@ export class KreddleScene extends Phaser.Scene {
   // ------------------------------------------------------------------ KREDDLE KARDS (higher or lower)
 
   private cards() {
-    const COST = 100;
+    const COST = 150;
+    const CASH = 200;
     this.openPanel("KREDDLE KARDS", "#4ade80");
     const RANK = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
     const SUIT = ["♠", "♥", "♦", "♣"];
@@ -897,7 +901,7 @@ export class KreddleScene extends Phaser.Scene {
     const cardBg = this.add2(this.add.rectangle(480, 250, 130, 180, 0xffffff).setStrokeStyle(4, 0x111111));
     const cardTxt = this.add2(this.add.text(480, 250, "?", { fontFamily: "Georgia, serif", fontSize: "54px", color: "#111111", fontStyle: "bold", align: "center" }).setOrigin(0.5));
     const streakTxt = this.add2(this.add.text(700, 200, "", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#4ade80", align: "center" }).setOrigin(0.5));
-    const info = this.add2(this.add.text(480, 380, `Deal for ${COST}. Guess HIGHER or LOWER. Every right guess wins a Kroken. Three right wins a PRIZE. Two right? Cash out for 150. The House wins ties.`, { fontFamily: FONT, fontSize: "14px", color: "#ffffff", align: "center", wordWrap: { width: 640 } }).setOrigin(0.5));
+    const info = this.add2(this.add.text(480, 380, `Deal for ${COST}. Guess HIGHER or LOWER. Every right guess wins a Kroken. Three right wins a PRIZE. Two right? Cash out for ${CASH}. The House wins ties.`, { fontFamily: FONT, fontSize: "14px", color: "#ffffff", align: "center", wordWrap: { width: 640 } }).setOrigin(0.5));
     let card = -1;
     let streak = 0;
     let live = false;
@@ -940,14 +944,14 @@ export class KreddleScene extends Phaser.Scene {
         info.setText("THREE IN A ROW!").setColor("#4ade80");
         await this.showPrize(rollPrize(G.s).id);
         if (this.panelRoot) info.setText(`Deal again for ${COST}?`).setColor("#ffffff");
-      } else info.setText(streak === 2 ? "Two right! Keep going, or CASH OUT for 150." : "Right! Again: higher or lower?").setColor("#4ade80");
+      } else info.setText(streak === 2 ? `Two right! Keep going, or CASH OUT for ${CASH}.` : "Right! Again: higher or lower?").setColor("#4ade80");
     };
     const cashOut = () => {
       if (!live || streak < 2) return;
       live = false;
-      G.s.coins += 150;
+      G.s.coins += CASH;
       synth.play("coin");
-      info.setText("Cashed out: +150. Coward. Deal again?").setColor("#facc15");
+      info.setText(`Cashed out: +${CASH}. Coward. Deal again?`).setColor("#facc15");
       streakTxt.setText("");
     };
     this.btn(250, 480, `DEAL (${COST})`, deal, 130, 0x166534);
@@ -965,97 +969,158 @@ export class KreddleScene extends Phaser.Scene {
 
   // ------------------------------------------------------------------ the Prize Counter
 
-  private prizeCounter(sel = 0) {
-    const s = G.s;
-    this.openPanel("PRIZE COUNTER", "#facc15");
-    this.add2(this.add.text(480, 92, `🎟 ${krokens(s)} KROKENS · win them at the machines, spend them here`, { fontFamily: FONT, fontSize: "14px", color: "#38bdf8", fontStyle: "bold" }).setOrigin(0.5));
-    const info = this.add2(this.add.text(480, 418, "Pick a prize. (Click it, or arrows + SPACE.)", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", align: "center", wordWrap: { width: 680 } }).setOrigin(0.5));
-    const rows = PRIZES.map((p, i) => {
-      const price = krokenPrice(s, p);
-      const open = prizeOpen(s, p);
-      const lvl = p.key && (p.max ?? 1) > 1 ? ` ${kd(s, p.key)}/${p.max}` : "";
-      const owned = p.gun ? !!s.guns && p.gun in s.guns : kd(s, p.key!) > 0;
-      const text = `${p.icon} ${p.name}${lvl}  ·  ${open ? `${price} 🎟${p.gun && owned ? " (refill)" : ""}` : "MAXED"}`;
-      const x = 245 + (i % 3) * 235;
-      const y = 128 + Math.floor(i / 3) * 39;
-      const b = this.btn(x, y, text, () => void buy(i), 228, !open ? 0x1f1f2e : krokens(s) >= price ? 0x3b0764 : 0x27213a);
-      (b as unknown as { label: Phaser.GameObjects.Text }).label.setFontSize(11);
-      (b as unknown as { bg: Phaser.GameObjects.Rectangle }).bg.setSize(228, 34);
-      return { p, b, price, open };
+  /** A full-screen shop panel (the Prize Counter, Home Furnishings) with a card grid, tabs optional. */
+  private shopPanel(cfg: {
+    title: string;
+    color: string;
+    tabs?: { id: string; label: string }[];
+    tab?: string;
+    items: () => ShopItem[];
+    buy: (it: ShopItem) => boolean | Promise<boolean>;
+    sel?: number;
+    extra?: () => void;
+    reopen: (tab: string | undefined, sel: number) => void;
+  }) {
+    this.busy = true;
+    const root = this.add.container(0, 0).setDepth(5000);
+    this.panelRoot = root;
+    root.add(this.add.rectangle(480, 270, 960, 540, 0x05010c, 0.85).setInteractive());
+    const col = Phaser.Display.Color.HexStringToColor(cfg.color).color;
+    const art = uiFrame(this, 480, 270, 944, 528, "ui_panel");
+    if (art) root.add(art.setTint(col | 0x404040));
+    else root.add(this.add.rectangle(480, 270, 944, 528, 0x16072b, 0.97).setStrokeStyle(4, col));
+    const t = this.add.text(30, 34, cfg.title, { fontFamily: "Impact, sans-serif", fontSize: "30px", color: cfg.color, stroke: "#12001f", strokeThickness: 6 }).setOrigin(0, 0.5);
+    t.setShadow(0, 0, cfg.color, 12, true, true);
+    root.add(t);
+    root.add(button(this, 914, 34, "✕", () => this.closePanel(), { w: 48, h: 44, size: 22, color: 0x7f1d1d }));
+    const tabs = cfg.tabs ?? [];
+    const top = tabs.length ? 116 : 76;
+    if (tabs.length) root.add(shopTabs(this, 20, 86, 920, tabs, cfg.tab ?? tabs[0].id, (id) => (this.closePanel(), cfg.reopen(id, 0)), col));
+    const shop = new ShopGrid(this, {
+      x: 20,
+      y: top,
+      w: 920,
+      h: 432 - top,
+      cols: 6,
+      rows: 2,
+      detail: { x: 20, y: 442, w: 920, h: 86 },
+      balances: [
+        { currency: "coin", x: 690, y: 34 },
+        { currency: "kroken", x: 846, y: 34 },
+      ],
+      balance: (c) => (c === "coin" ? G.s.coins : krokens(G.s)),
+      fixed: true,
+      onBuy: async (it) => {
+        const ok = await cfg.buy(it);
+        if (ok && this.panelRoot === root) {
+          G.save();
+          shop.setItems(cfg.items());
+        }
+        return ok;
+      },
     });
-    let cur = Math.min(sel, rows.length - 1);
-    const mark = this.add2(this.add.rectangle(0, 0, 234, 38).setStrokeStyle(3, 0xfacc15).setFillStyle(0, 0));
-    const focus = () => {
-      const r = rows[cur];
-      mark.setPosition(r.b.x, r.b.y);
-      info.setText(`${r.p.icon} ${r.p.name}: ${r.p.desc}`).setColor("#ffffff");
-    };
-    focus();
-    let buying = false;
-    const buy = async (i: number) => {
-      if (buying || !this.panelRoot) return;
-      cur = i;
-      focus();
-      const r = rows[i];
-      if (!r.open) {
-        info.setText(`${r.p.name}: you've maxed it out.`).setColor("#ef4444");
-        return;
-      }
-      if (krokens(G.s) < r.price) {
-        info.setText(`${r.p.name} costs ${r.price} Krokens. You have ${krokens(G.s)}. Go and gamble.`).setColor("#ef4444");
-        synth.play("tap_fail");
-        return;
-      }
-      buying = true;
-      addKrokens(G.s, -r.price);
-      await this.showPrize(r.p.id);
-      this.closePanel();
-      this.prizeCounter(i);
-    };
-    if (true) {
-      this.btn(250, 470, `GORE: ${G.meta.settings.gore === false ? "OFF" : "ON"}`, () => {
-        G.meta.settings.gore = G.meta.settings.gore === false;
-        G.saveMeta();
-        G.save();
+    root.add(shop.root);
+    shop.setItems(cfg.items(), cfg.sel ?? 0);
+    cfg.extra?.();
+    this.pin(root);
+    const go = (fn: () => void) => () => this.panelRoot === root && fn();
+    this.key("LEFT", go(() => shop.move(-1, 0)));
+    this.key("RIGHT", go(() => shop.move(1, 0)));
+    this.key("UP", go(() => shop.move(0, -1)));
+    this.key("DOWN", go(() => shop.move(0, 1)));
+    this.key("A", go(() => shop.move(-1, 0)));
+    this.key("D", go(() => shop.move(1, 0)));
+    for (const k of ["SPACE", "E", "ENTER"]) this.key(k, go(() => void shop.confirm()));
+    if (tabs.length) {
+      const cycle = (d: number) => {
+        const i = tabs.findIndex((x) => x.id === (cfg.tab ?? tabs[0].id));
         this.closePanel();
-        this.prizeCounter(cur);
-      }, 240, G.meta.settings.gore === false ? 0x27213a : 0x7f1d1d);
+        cfg.reopen(tabs[(i + d + tabs.length) % tabs.length].id, 0);
+        synth.play("select");
+      };
+      this.key("TAB", (e: KeyboardEvent) => (e?.preventDefault?.(), this.panelRoot === root && cycle(e?.shiftKey ? -1 : 1)));
+      this.key("Q", go(() => cycle(-1)));
+      this.key("R", go(() => cycle(1)));
+      ["ONE", "TWO", "THREE", "FOUR"].slice(0, tabs.length).forEach((k, i) => this.key(k, go(() => (this.closePanel(), cfg.reopen(tabs[i].id, 0)))));
     }
-    this.btn(true ? 560 : 400, 470, "💰 KREZZCOIN COUNTER →", () => {
-      if (buying) return;
-      this.closePanel();
-      this.krezzcoinCounter();
-    }, 220, 0x166534);
-    this.btn(true ? 760 : 620, 470, "LEAVE", () => !buying && this.closePanel(), 140);
-    const move = (d: number) => {
-      cur = (cur + d + rows.length) % rows.length;
-      focus();
+    this.key("ESC", go(() => this.closePanel()));
+    return { root, shop };
+  }
+
+  private prizeTab = "power";
+
+  private prizeCounter(sel = 0, tab = this.prizeTab) {
+    this.prizeTab = tab;
+    const items = (): ShopItem[] => {
+      const s = G.s;
+      const out: ShopItem[] = PRIZES.filter((p) => p.cat === tab).map((p): ShopItem => {
+        const ownedGun = !!p.gun && !!s.guns && p.gun in s.guns;
+        const max = p.max ?? 1;
+        return {
+          id: p.id,
+          name: p.name,
+          icon: p.gun ? GUNS[p.gun].tex : p.icon,
+          desc: ownedGun ? "Already yours: this is a full refill." : p.desc,
+          price: krokenPrice(s, p),
+          currency: "kroken",
+          state: prizeOpen(s, p) ? "buy" : "maxed",
+          lvl: p.key && max > 1 ? [kd(s, p.key), max] : undefined,
+          tag: ownedGun ? "REFILL" : undefined,
+          tagColor: 0x67e8f9,
+          verb: ownedGun ? "REFILL" : "GET",
+        };
+      });
+      if (tab === "style") {
+        const on = G.meta.settings.gore !== false;
+        out.push({ id: "gore", name: `Gore: ${on ? "ON" : "OFF"}`, icon: on ? "🔪" : "🧸", desc: "Blood and dismemberment. Free to switch, any time (it's in Settings too).", price: 0, currency: "kroken", state: "toggle", verb: on ? "TURN OFF" : "TURN ON" });
+      }
+      return out;
     };
-    this.key("LEFT", () => move(-1));
-    this.key("RIGHT", () => move(1));
-    this.key("UP", () => move(-3));
-    this.key("DOWN", () => move(3));
-    this.key("SPACE", () => void buy(cur));
-    this.key("ESC", () => !buying && this.closePanel());
+    this.shopPanel({
+      title: "PRIZE COUNTER",
+      color: "#facc15",
+      tabs: [
+        { id: "power", label: "⚡ POWER" },
+        { id: "tough", label: "🛡 TOUGH" },
+        { id: "guns", label: "🔫 GUNS" },
+        { id: "style", label: "✨ STYLE" },
+      ],
+      tab,
+      sel,
+      items,
+      reopen: (t, i) => this.prizeCounter(i, t),
+      buy: async (it) => {
+        if (it.id === "gore") {
+          G.meta.settings.gore = G.meta.settings.gore === false;
+          G.saveMeta();
+          return true;
+        }
+        const p = PRIZE[it.id];
+        const price = krokenPrice(G.s, p);
+        if (!p || !prizeOpen(G.s, p) || krokens(G.s) < price) return false;
+        addKrokens(G.s, -price);
+        await this.showPrize(p.id);
+        return true;
+      },
+      extra: () => this.add2(button(this, 400, 34, "💰 EXCHANGE ▸", () => (this.closePanel(), this.krezzcoinCounter()), { w: 150, h: 40, size: 15, color: 0x166534 })),
+    });
   }
 
   /** THE KREDDLE EXCHANGE: Krokens buy prizes, Krezzcoin buys upgrades, guns, perks and lads. */
   private exchange() {
     this.openPanel("THE KREDDLE EXCHANGE", "#facc15");
-    this.add2(this.add.text(480, 120, "Kreddle took over the Central Bank of Krelworld. It was a very short negotiation.", { fontFamily: FONT, fontSize: "13px", color: "#c4b5fd", align: "center", wordWrap: { width: 640 } }).setOrigin(0.5));
-    this.btn(480, 190, `🎟  PRIZE COUNTER\nSpend Krokens (you have ${krokens(G.s)}) on Kreddle prizes`, () => {
-      this.closePanel();
-      this.prizeCounter();
-    }, 540, 0x3b0764, 66);
-    this.btn(480, 275, `💰  KREZZCOIN COUNTER\nSpend Krezzcoin (you have ${G.s.coins}) on upgrades, guns, ammo, perks and lads`, () => {
-      this.closePanel();
-      this.krezzcoinCounter();
-    }, 540, 0x14532d, 66);
-    this.btn(480, 360, `🏠  HOME FURNISHINGS\nSpend Krokens on things for your flat (they turn up at home)`, () => {
-      this.closePanel();
-      this.furnishings();
-    }, 540, 0x7c2d12, 66);
-    this.btn(480, 450, "LEAVE", () => this.closePanel(), 160);
+    const big = (y: number, icon: string, head: string, sub: string, color: number, fn: () => void, key: string) => {
+      const c = this.btn(480, y, "", fn, 560, color, 84);
+      c.add(this.add.text(-250, 0, icon, { fontFamily: FONT, fontSize: "44px", padding: { x: 4, y: 4 } }).setOrigin(0, 0.5));
+      c.add(this.add.text(-180, -14, head, { fontFamily: FONT, fontSize: "24px", color: "#ffffff", fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0, 0.5));
+      c.add(this.add.text(-180, 18, sub, { fontFamily: FONT, fontSize: "15px", color: "#e9d5ff" }).setOrigin(0, 0.5));
+      if (!TOUCH.enabled) c.add(this.add.text(250, 0, key, { fontFamily: FONT, fontSize: "14px", color: "#c4b5fd", fontStyle: "bold" }).setOrigin(1, 0.5));
+      this.pin(c);
+    };
+    big(170, "🎟", "PRIZE COUNTER", "Spend Krokens on Kreddle prizes", 0x3b0764, () => (this.closePanel(), this.prizeCounter()), "1");
+    big(270, "💰", "KREZZCOIN COUNTER", "Upgrades, guns, ammo, perks and lads", 0x14532d, () => (this.closePanel(), this.krezzcoinCounter()), "2");
+    big(370, "🏠", "HOME FURNISHINGS", "Krokens for things for your flat", 0x7c2d12, () => (this.closePanel(), this.furnishings()), "3");
+    this.btn(480, 462, "LEAVE", () => this.closePanel(), 160);
     this.key("ESC", () => this.closePanel());
     this.key("ONE", () => (this.closePanel(), this.prizeCounter()));
     this.key("TWO", () => (this.closePanel(), this.krezzcoinCounter()));
@@ -1064,59 +1129,25 @@ export class KreddleScene extends Phaser.Scene {
 
   /** HOME FURNISHINGS: Kreddle tat for your flat. */
   private furnishings(sel = 0) {
-    const s = G.s;
-    this.openPanel("HOME FURNISHINGS", "#fb923c");
-    this.add2(this.add.text(480, 92, `🎟 ${krokens(s)} KROKENS · everything is delivered to your flat, immediately, by a man called Kev`, { fontFamily: FONT, fontSize: "13px", color: "#38bdf8", fontStyle: "bold" }).setOrigin(0.5));
-    const info = this.add2(this.add.text(480, 400, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", align: "center", wordWrap: { width: 680 } }).setOrigin(0.5));
-    const rows = DECOR.map((d, i) => {
-      const owned = (s.upgrades[`home_${d.id}`] ?? 0) > 0;
-      const x = 330 + (i % 2) * 300;
-      const y = 140 + Math.floor(i / 2) * 50;
-      const b = this.btn(x, y, `${d.icon} ${d.name}  ·  ${owned ? "IN YOUR FLAT" : `${d.price} 🎟`}`, () => void buy(i), 288, owned ? 0x1f1f2e : krokens(s) >= d.price ? 0x7c2d12 : 0x27213a);
-      (b as unknown as { label: Phaser.GameObjects.Text }).label.setFontSize(12);
-      (b as unknown as { bg: Phaser.GameObjects.Rectangle }).bg.setSize(288, 42);
-      return { d, b, owned };
+    this.shopPanel({
+      title: "HOME FURNISHINGS",
+      color: "#fb923c",
+      sel,
+      items: () =>
+        DECOR.map((d): ShopItem => {
+          const owned = (G.s.upgrades[`home_${d.id}`] ?? 0) > 0;
+          return { id: d.id, name: d.name, icon: this.textures.exists(`d_${d.id}`) ? `d_${d.id}` : d.icon, desc: d.desc, price: d.price, currency: "kroken", state: owned ? "owned" : "buy" };
+        }),
+      reopen: (_t, i) => this.furnishings(i),
+      buy: (it) => {
+        const d = DECOR.find((x) => x.id === it.id);
+        if (!d || G.s.upgrades[`home_${d.id}`] || krokens(G.s) < d.price) return false;
+        addKrokens(G.s, -d.price);
+        G.s.upgrades[`home_${d.id}`] = 1;
+        G.emit("toast", { title: "DELIVERED", text: `${d.name} is in your flat. Kev let himself in.` });
+        return true;
+      },
     });
-    let cur = Math.min(sel, rows.length - 1);
-    const mark = this.add2(this.add.rectangle(0, 0, 294, 46).setStrokeStyle(3, 0xfb923c).setFillStyle(0, 0));
-    const focus = () => {
-      const r = rows[cur];
-      mark.setPosition(r.b.x, r.b.y);
-      info.setText(`${r.d.icon} ${r.d.name}: ${r.d.desc}`).setColor("#ffffff");
-    };
-    focus();
-    const buy = (i: number) => {
-      if (!this.panelRoot) return;
-      cur = i;
-      focus();
-      const r = rows[i];
-      if (r.owned) {
-        info.setText(`${r.d.name}: it's already in your flat.`).setColor("#facc15");
-        return;
-      }
-      if (krokens(G.s) < r.d.price) {
-        info.setText(`${r.d.name} costs ${r.d.price} Krokens. You have ${krokens(G.s)}. Go and gamble.`).setColor("#ef4444");
-        synth.play("tap_fail");
-        return;
-      }
-      addKrokens(G.s, -r.d.price);
-      G.s.upgrades[`home_${r.d.id}`] = 1;
-      G.save();
-      synth.play("cheer");
-      this.closePanel();
-      this.furnishings(i);
-    };
-    this.btn(480, 470, "LEAVE", () => this.closePanel(), 140);
-    const move = (d: number) => {
-      cur = (cur + d + rows.length) % rows.length;
-      focus();
-    };
-    this.key("LEFT", () => move(-1));
-    this.key("RIGHT", () => move(1));
-    this.key("UP", () => move(-2));
-    this.key("DOWN", () => move(2));
-    this.key("SPACE", () => buy(cur));
-    this.key("ESC", () => this.closePanel());
   }
 
   /** The old bank menu, now Kreddle's. */

@@ -1172,7 +1172,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     const want = new THREE.Vector3();
     if (p.x < 40) {
       const toC = new THREE.Vector3(-p.x, 0, -p.z).normalize();
-      want.set(p.x + toC.x * 13 - d.x * 5, 10, p.z + toC.z * 13 - d.z * 5);
+      want.set(p.x + toC.x * 13 - d.x * 5, 14, p.z + toC.z * 13 - d.z * 5);
     } else want.set(p.x - 13, 10, Math.max(-6, Math.min(6, p.z)));
     // (the frame loop already eases camState towards these; the clamped region is a box, so the eased camera
     // stays inside it too)

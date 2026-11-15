@@ -1110,10 +1110,27 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   synth.play("car_screech");
   // the getaway: round the plaza, through two pedestrians
   const victims = peds.onRoad(jacked, 2);
+  // chase cam: high and behind, eased round the corners, and kept over the roads (on the ring, inside its outer
+  // edge; on the avenue, over the carriageway) so it never ends up inside a building when he turns
+  const chase = new THREE.Vector3(jacked.pos.x - jacked.dir.x * 10, 12, jacked.pos.z - jacked.dir.z * 10);
+  const chaseLook = jacked.pos.clone();
+  let chaseLast = clk.now();
   camState.follow = () => {
     const p = jacked.pos;
     const d = jacked.dir;
-    return [new THREE.Vector3(p.x - d.x * 13, 9, p.z - d.z * 13), new THREE.Vector3(p.x + d.x * 8, 0.8, p.z + d.z * 8)];
+    const dt = Math.min(0.1, (clk.now() - chaseLast) / 1000);
+    chaseLast = clk.now();
+    const want = new THREE.Vector3(p.x - d.x * 10, 12, p.z - d.z * 10);
+    if (p.x < 40) {
+      want.x = Math.max(-39, Math.min(39, want.x));
+      want.z = Math.max(-39, Math.min(39, want.z));
+    } else want.z = Math.max(-7, Math.min(7, want.z));
+    // (the frame loop already eases camState towards these; the clamped region is a box, so the eased camera
+    // stays inside it too)
+    void dt;
+    chase.copy(want);
+    chaseLook.set(p.x + d.x * 6, 0.8, p.z + d.z * 6);
+    return [chase, chaseLook];
   };
   await jacked.getaway(
     victims,

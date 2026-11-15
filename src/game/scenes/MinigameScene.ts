@@ -15,6 +15,7 @@ import { arcStepAt, completeStep, maybeFinishArc } from "../systems/arcs";
 import { bump, maxBottles, maxHp } from "../systems/stats";
 import { GUNS, gunMax } from "../combat/Guns";
 import { animateWalker, backdrop, perfCycle, playPerf } from "../gfx/HD";
+import { vfx } from "../gfx/Vfx";
 import { CHARACTERS, LADS } from "../../data/characters";
 import { TOUCH } from "../ui/TouchControls";
 
@@ -1831,27 +1832,67 @@ export class MinigameScene extends Phaser.Scene {
   }
 
   private cannon() {
-    this.add.rectangle(480, 270, 960, 540, 0x8fc3ea);
-    this.add.rectangle(480, 470, 960, 140, 0x4b5563);
-    for (let i = 0; i < 12; i++) this.add.rectangle(40 + i * 80, 470, 40, 6, 0xfacc15);
+    // the runway at golden hour (PixelLab), or the old flat colours if the art's missing
+    if (!backdrop(this, "bg_runway", { depth: -10 })) {
+      this.add.rectangle(480, 270, 960, 540, 0x8fc3ea);
+      this.add.rectangle(480, 470, 960, 140, 0x4b5563);
+      for (let i = 0; i < 12; i++) this.add.rectangle(40 + i * 80, 470, 40, 6, 0xfacc15);
+    }
+    // a couple of slow clouds drifting over, for depth
+    for (let i = 0; i < 4; i++) {
+      const c = this.add.ellipse(Math.random() * 960, 60 + Math.random() * 120, 120 + Math.random() * 80, 26 + Math.random() * 14, 0xffffff, 0.18).setDepth(-5);
+      this.tweens.add({ targets: c, x: c.x + 220, duration: 26000 + Math.random() * 12000, repeat: -1, yoyo: true, ease: "Sine.inOut" });
+    }
     title(this, 480, 24, "BOARD FLIGHT KR-069", 26, "#ffd23f").setDepth(200);
-    this.add.text(480, 52, "Gate 6 is closed. The plane is taxiing. Get in the cannon. Tap / SPACE once for ANGLE, again for POWER.", { fontFamily: FONT, fontSize: "12px", color: "#111", align: "center" }).setOrigin(0.5).setDepth(200);
+    // the instruction on a dark pill so it reads over any sky
+    const tip = this.add.text(480, 54, "The plane is taxiing. Get in the cannon.  SPACE / TAP: set ANGLE, then POWER.", { fontFamily: FONT, fontSize: "13px", color: "#ffffff" }).setOrigin(0.5).setDepth(201);
+    this.add.rectangle(480, 54, tip.width + 28, 26, 0x0b0614, 0.7).setStrokeStyle(1, 0xffd23f, 0.6).setDepth(200);
     // the on-screen offer: which try this is and what hitting it now is worth
     const offer = this.add
-      .text(480, 84, "", { fontFamily: FONT, fontSize: "18px", color: "#ffffff", fontStyle: "bold", stroke: "#000", strokeThickness: 4, align: "center" })
+      .text(480, 88, "", { fontFamily: FONT, fontSize: "18px", color: "#ffffff", fontStyle: "bold", stroke: "#000", strokeThickness: 5, align: "center" })
       .setOrigin(0.5)
       .setDepth(200);
     const hd = this.textures.exists("p_plane_hd");
-    const plane = this.add.image(-200, 360, hd ? "p_plane_hd" : "p_plane").setDepth(10);
+    const PLANE_Y = this.textures.exists("bg_runway") ? 444 : 360;
+    const plane = this.add.image(-200, PLANE_Y, hd ? "p_plane_hd" : "p_plane").setDepth(10);
     if (hd) {
-      plane.displayWidth = 240;
-      plane.displayHeight = (240 * plane.height) / plane.width;
+      plane.displayWidth = 260;
+      plane.displayHeight = (260 * plane.height) / plane.width;
     } else plane.setScale(2);
-    const barrel = this.add.rectangle(110, 440, 90, 26, 0x1f2937).setOrigin(0.1, 0.5).setStrokeStyle(3, 0x000000).setDepth(20);
-    this.add.circle(110, 450, 26, 0x374151).setStrokeStyle(3, 0x000000).setDepth(21);
-    const hero = this.add.sprite(110, 420, playerKey(this), 0).setScale(2).setDepth(19).setVisible(false);
-    const powBg = this.add.rectangle(110, 300, 20, 120, 0x000000, 0.6).setStrokeStyle(2, 0xffffff).setDepth(30).setVisible(false);
-    const pow = this.add.rectangle(110, 360, 16, 0, 0xef4444).setOrigin(0.5, 1).setDepth(31).setVisible(false);
+    const planeShadow = this.add.ellipse(plane.x, PLANE_Y + plane.displayHeight * 0.42, plane.displayWidth * 0.8, 12, 0x000000, 0.25).setDepth(9);
+    // the cannon: a PixelLab barrel pivoting on its carriage
+    const CX = 120;
+    const CY = 440;
+    const art = this.textures.exists("p_cannon_barrel") && this.textures.exists("p_cannon_base");
+    let barrel: Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle;
+    if (art) {
+      this.add.ellipse(CX, CY + 66, 130, 18, 0x000000, 0.3).setDepth(18);
+      barrel = this.add.image(CX, CY, "p_cannon_barrel").setOrigin(0.22, 0.49).setScale(1.7).setDepth(20);
+      this.add.image(CX - 8, CY + 22, "p_cannon_base").setScale(1.5).setDepth(21);
+    } else {
+      barrel = this.add.rectangle(110, 440, 90, 26, 0x1f2937).setOrigin(0.1, 0.5).setStrokeStyle(3, 0x000000).setDepth(20);
+      this.add.circle(110, 450, 26, 0x374151).setStrokeStyle(3, 0x000000).setDepth(21);
+    }
+    const MUZZLE = art ? 112 : 80;
+    const hero = this.add.sprite(CX, CY - 20, playerKey(this), 0).setScale(2).setDepth(19).setVisible(false);
+    // aim guide: a few dots out of the muzzle while you pick the angle
+    const guide = this.add.graphics().setDepth(22);
+    // the power gauge: green → amber → red, with a sliding marker
+    const PG = { x: 230, y: 300, h: 150 };
+    const powBox = this.add.container(PG.x, PG.y).setDepth(30).setVisible(false);
+    const gauge = this.add.graphics();
+    gauge.fillStyle(0x0b0614, 0.8).fillRoundedRect(-16, -8, 32, PG.h + 16, 10);
+    for (let i = 0; i < 15; i++) {
+      const u = i / 14;
+      const col = Phaser.Display.Color.Interpolate.ColorWithColor(Phaser.Display.Color.ValueToColor(u < 0.5 ? 0x22c55e : 0xfacc15), Phaser.Display.Color.ValueToColor(u < 0.5 ? 0xfacc15 : 0xef4444), 100, (u < 0.5 ? u * 2 : (u - 0.5) * 2) * 100);
+      gauge.fillStyle(Phaser.Display.Color.GetColor(col.r, col.g, col.b), 1).fillRect(-9, PG.h - (i + 1) * (PG.h / 15) + 1, 18, PG.h / 15 - 2);
+    }
+    gauge.lineStyle(2, 0xffd23f, 0.9).strokeRoundedRect(-16, -8, 32, PG.h + 16, 10);
+    const marker = this.add.triangle(22, PG.h, 0, 0, 12, -7, 12, 7, 0xffffff).setStrokeStyle(2, 0x000000);
+    const powLbl = this.add.text(0, PG.h + 18, "POWER", { fontFamily: FONT, fontSize: "12px", color: "#ffffff", fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5, 0);
+    powBox.add([gauge, marker, powLbl]);
+    const pow = { setVisible: (v: boolean) => powBox.setVisible(v), setSize: (_w: number, h: number) => marker.setY(PG.h - h * (PG.h / 120)) };
+    const powBg = { setVisible: (_v: boolean) => undefined };
     let phase: "angle" | "power" | "flying" | "landed" | "done" = "angle";
     let ang = -0.3;
     let power = 0;
@@ -1878,11 +1919,18 @@ export class MinigameScene extends Phaser.Scene {
         phase = "flying";
         tries++;
         synth.play("boom");
-        this.cameras.main.shake(200, 0.01);
+        this.cameras.main.shake(220, 0.012);
         powBg.setVisible(false);
         pow.setVisible(false);
-        px = 110 + Math.cos(ang) * 80;
-        py = 440 + Math.sin(ang) * 80;
+        guide.clear();
+        px = CX + Math.cos(ang) * MUZZLE;
+        py = CY + Math.sin(ang) * MUZZLE;
+        // bang: muzzle flash, a cloud of smoke, the barrel kicking back
+        vfx(this, "vfx_muzzle", px, py, { scale: 2.2, depth: 40, angle: Phaser.Math.RadToDeg(ang) });
+        vfx(this, "vfx_blastsmoke", px, py, { scale: 1.6, depth: 39 });
+        const bx = barrel.x;
+        const by = barrel.y;
+        this.tweens.add({ targets: barrel, x: bx - Math.cos(ang) * 14, y: by - Math.sin(ang) * 14, duration: 60, yoyo: true, ease: "Quad.out" });
         const sp = 380 + power * 520;
         vx = Math.cos(ang) * sp;
         vy = Math.sin(ang) * sp;
@@ -1949,9 +1997,19 @@ export class MinigameScene extends Phaser.Scene {
         // the plane taxis past, again and again
         plane.x += 2.6;
         if (plane.x > 960 + plane.displayWidth * 0.6) plane.x = -plane.displayWidth * 0.6;
+        planeShadow.setX(plane.x);
         if (phase === "angle") {
           ang = -0.25 - (0.5 + 0.5 * Math.sin(now / 380)) * 1.0;
           barrel.setRotation(ang);
+          guide.clear();
+          for (let i = 0; i < 7; i++) {
+            const d = MUZZLE + 26 + i * 26;
+            const gx = CX + Math.cos(ang) * d;
+            const gy = CY + Math.sin(ang) * d;
+            const r = 6 - i * 0.5;
+            guide.fillStyle(0x1e1033, 0.8 - i * 0.08).fillCircle(gx, gy, r + 2);
+            guide.fillStyle(0xffd23f, 1 - i * 0.1).fillCircle(gx, gy, r);
+          }
         } else if (phase === "power") {
           power = 0.5 + 0.5 * Math.sin(now / 260);
           pow.setSize(16, 120 * power);
@@ -1961,15 +2019,31 @@ export class MinigameScene extends Phaser.Scene {
           px += vx * dt;
           py += vy * dt;
           hero.setPosition(px, py).setAngle(hero.angle + 14);
+          // a puff of smoke trailing behind you
+          if (Math.random() < 0.5) {
+            const puff = this.add.circle(px, py, 5 + Math.random() * 4, 0xe5e7eb, 0.7).setDepth(18);
+            this.tweens.add({ targets: puff, scale: 2.2, alpha: 0, duration: 500, onComplete: () => puff.destroy() });
+          }
           // the fuselage (not the empty sky around the tail); a little more forgiving after a few goes
           const slack = 1 + Math.min(0.4, Math.max(0, tries - 3) * 0.05);
           if (Math.abs(px - plane.x) < plane.displayWidth * (hd ? 0.34 : 0.42) * slack && Math.abs(py - plane.y) < plane.displayHeight * (hd ? 0.22 : 0.32) * slack) {
             phase = "done";
             synth.play("punch_big");
+            vfx(this, "vfx_confetti", px, py - 20, { scale: 1.6, depth: 40 });
+            this.cameras.main.flash(160, 255, 240, 200);
             this.pop(px, py - 40, "ON BOARD", "#22c55e", 26);
             hero.setVisible(false);
             this.time.delayedCall(600, () => void win());
-          } else if (py > 520 || px > 1000) reset(["MISSED. TRY AGAIN.", "THAT WAS THE TERMINAL.", "SO CLOSE."][tries % 3]);
+          } else if (py > 500 || px > 1000) {
+            // face-first into the tarmac
+            if (py > 500) {
+              vfx(this, "vfx_dust", px, 500, { scale: 1.6, depth: 30 });
+              synth.play("thud");
+              this.cameras.main.shake(120, 0.006);
+            }
+            hero.setVisible(false);
+            reset(["MISSED. TRY AGAIN.", "THAT WAS THE TERMINAL.", "SO CLOSE."][tries % 3]);
+          }
         }
         this.hud.setText(`TRY ${Math.max(1, phase === "angle" || phase === "power" ? tries + 1 : tries)}   ${phase === "angle" ? "set the ANGLE" : phase === "power" ? "set the POWER" : ""}`);
       },

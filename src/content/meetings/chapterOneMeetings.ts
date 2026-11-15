@@ -1,4 +1,5 @@
 import type { MeetingScript } from "../../data/types";
+import { SJ_TAP } from "../sanjeev";
 import { adapt, canon, dir, ping, react, say } from "../dsl";
 
 /** PROLOGUE: one week before the Great Silence. Drongus is still physically present. */
@@ -118,6 +119,7 @@ export const EMERGENCY_REACTION_SESSION: MeetingScript = {
     say("SCROMBUS", "First we need the Tap back. No Tap, no pussy juice. No pussy juice, no healing. No healing, we die of death and murder or cancer.", { role: true, proctus: "First... the Tap. Probably. I'd also like a sandwich." }),
     say("KREBLIS", "Pressure readings say the pussy juice blockage is under Wildern Academy", { role: true, proctus: "There's a blockage under Wildern. I can smell it from here. It smells like a fishmonger's wedding." }),
     say("KREBLIS", "Wildern hosts the main pussy juice pipe. Whoever's got Wildern has got the Tap", { cond: { notPlayer: "KREBLIS" } }),
+    ...SJ_TAP,
     say("SCROMBUS", "Wildern. Hang on. Wasn't Wildern on the news? Someone put GB Krews on."),
     say("MIKEY", "Mikey here. On it."),
     { s: "NARRATOR", t: "", tv: "krews_krandall" },

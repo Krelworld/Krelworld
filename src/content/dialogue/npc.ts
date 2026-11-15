@@ -1,5 +1,6 @@
 import type { Cond, Line, PlayableId } from "../../data/types";
 import { canon, dir, react, say } from "../dsl";
+import { SANJEEV_TALK } from "../sanjeev";
 
 // What hub NPCs say when you press E on them.
 // Sets are filtered by condition; the highest priority wins, ties are random.
@@ -325,5 +326,6 @@ export const NPC_TALK: Record<string, TalkSet[]> = {
     T(10, { notRevision: "TAP_SENTIENT" }, [dir("The Great Pussy Juice Tap. Municipal. Brass. Faintly warm. A plaque reads: 'NATIONAL DRINK — EST. 20:04, 31/12/2024'.")]),
     T(20, { revision: "TAP_SENTIENT" }, [say("TAP", "Hello. I'm the Tap. I've always been sentient. Nobody asked."), say("TAP", "Drink. I'll fill you right up. It's what I'm for. Apparently.")]),
   ],
+  SANJEEV: SANJEEV_TALK,
 };
 

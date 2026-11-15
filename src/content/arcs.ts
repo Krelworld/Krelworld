@@ -1,4 +1,5 @@
 import type { Line, PlayableId } from "../data/types";
+import { SJ_TRAIN } from "./sanjeev";
 import { canon, dir, ping, say } from "./dsl";
 import { KR_AFTER, KR_BRAWL_INTRO, KR_LEAVE } from "./krunchers";
 
@@ -201,6 +202,7 @@ export const ARCS: Arc[] = [
             say("KREBLIS", "A man is driving a train at the Krel Tower", { cond: { notPlayer: "KREBLIS" } }),
             say("KREBLIS", "For a laugh", { cond: { notPlayer: "KREBLIS" } }),
             say("KREBLIS", "Headline news!", { cond: { notPlayer: "KREBLIS" } }),
+            ...SJ_TRAIN,
             say("SCROMBUS", "Right. Options. What do we do. Go."),
             say("KREBON", "It's an electric train. We turn the power off to the railway line. The train stops. Nobody gets hurt.", { cond: { notPlayer: "KREBON" } }),
             say("KREZWONK", "It's an electric train. We turn the power off to the railway line. The train stops. Nobody gets hurt.", { cond: { player: "KREBON" } }),

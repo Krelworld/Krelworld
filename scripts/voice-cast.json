@@ -29,7 +29,8 @@
     "ROBBO": "rgyI965t42X3WICxQ9H3",
     "GRONNY": "PNtG4NUljGbNqoQiXQOd",
     "EDEN": "W7WDJzszCwqSQGaSpe5G",
-    "GABOR THE GOAT": "9qCSTRFuI7LgrZiyPD7O"
+    "GABOR THE GOAT": "9qCSTRFuI7LgrZiyPD7O",
+    "SANJEEV": "upLV0kZGuaufHCLUWnIH"
   },
   "hold": [
     "DRONGUS"
@@ -431,7 +432,8 @@
     "FLENKY": "energetic",
     "DARK JENKO": "energetic",
     "KREZMAR": "energetic",
-    "SANMIK": "whiny, confrontational"
+    "SANMIK": "whiny, confrontational",
+    "SANJEEV": "warmly"
   },
   "female": [
     "EDEN",
@@ -597,7 +599,8 @@
     "SANMIK": "southern English accent",
     "EDEN": "southern English accent",
     "GABOR THE GOAT": "southern English accent",
-    "ROBBO": "British accent"
+    "ROBBO": "British accent",
+    "SANJEEV": "southern English accent"
   },
   "clone_v2_always": [
     "POLSON",

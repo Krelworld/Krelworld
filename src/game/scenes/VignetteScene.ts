@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { SJ_KREDDLE, SJ_TOWER_DEMO, SJ_TOWER_SIM } from "../../content/sanjeev";
 import { playerKey } from "../gfx/sanmikForm";
 import { kruncherVictim } from "../systems/sanmik";
 import { hasVfx, vfx } from "../gfx/Vfx";
@@ -382,6 +383,9 @@ export class VignetteScene extends Phaser.Scene {
     const tower = this.bigTower(560, 440);
     this.add.text(560, 446, "KRELTOWER", { fontFamily: FONT, fontSize: "11px", color: "#ffffff", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5, 0).setDepth(11);
     const people = this.crowd(470);
+    // Sanjeev, a little apart from the crowd, watching with his arms folded
+    const sjv = saved ? null : this.actor("SANJEEV", 928, 486, 2.6);
+    if (sjv) this.face(sjv, "west");
     synth.music("airport");
     await this.talk([dir(saved ? "Krelford. Everyone is outside. Everyone is looking up." : "Krelford. Everyone is outside. Everyone is looking up. Somebody drops a fizzy bongo.")]);
     // it comes in from the right, heading for two-thirds of the way up
@@ -434,6 +438,7 @@ export class VignetteScene extends Phaser.Scene {
     this.people(people, "!!");
     synth.play("gasp");
     await this.talk([say("KREBLIS", "This is a Krelmergency message… Kreltower has been hit. I repeat. Kreltower has been hit"), say("KREBLIS", "Thinking about it…"), say("KREBLIS", "Again")]);
+    await this.talk(SJ_TOWER_SIM);
     for (let i = 0; i < (hasVfx(this, "vfx_smokecol") ? 0 : 16); i++) {
       const smoke = this.add.circle(560 + (Math.random() - 0.5) * 80, hitY - Math.random() * 40, 16 + Math.random() * 20, 0x333333, 0.7).setDepth(14);
       this.tween({ targets: smoke, y: smoke.y - 160, alpha: 0, scale: 2.5, duration: 3000 + Math.random() * 1500 });
@@ -471,6 +476,8 @@ export class VignetteScene extends Phaser.Scene {
       say("KREZWONK", "I foresaw this. I elected not to prevent it. I'd like that struck from the record."),
       say("GRONNY", "…"),
       say("GRONNY", "Not fair enough."),
+      dir("Through the settling dust, one man hasn't moved. Sanjeev. Arms folded. Head tilted."),
+      ...SJ_TOWER_DEMO,
       dir("KRELTOWER: DESTROYED (AGAIN). Krozno escaped in the confusion, presumably to be up to his usual dirty bloody tricks. Krelford will rebuild. Krelford always rebuilds. It's on the wiki."),
     ]);
     synth.stopMusic();
@@ -3560,6 +3567,18 @@ export class VignetteScene extends Phaser.Scene {
     return sp;
   }
 
+  /** Walk a sprite somewhere (walk cycle on the way). */
+  private walkTo(sp: Phaser.GameObjects.Sprite, x: number, y: number, ms: number) {
+    const dx = x - sp.x;
+    const dy = y - sp.y;
+    const ev = this.time.addEvent({ delay: 50, loop: true, callback: () => animateWalker(sp, dx, dy, true, this.time.now) });
+    return this.tween({ targets: sp, x, y, duration: ms }).then(() => {
+      ev.remove();
+      animateWalker(sp, dx, dy, false, this.time.now);
+      sp.setDepth(100 + sp.y);
+    });
+  }
+
   private face(sp: Phaser.GameObjects.Sprite, f: "south" | "east" | "north" | "west") {
     const m = charMeta(this, sp.texture.key);
     sp.setData("facing", f);
@@ -4042,6 +4061,23 @@ export class VignetteScene extends Phaser.Scene {
     this.time.delayedCall(1600, () => bon.clearTint());
     await this.talk(RM_ACTUALLY.slice(9));
     all.forEach((sp) => this.face(sp, "south"));
+
+    // ---- Sanjeev has always counselled restraint. Then he heard about Polson.
+    if (G.s.flags.polson_dead) {
+      const sj = this.actor("SANJEEV", 600, 600, 3.4);
+      await this.walkTo(sj, 600, 400, 1800);
+      this.face(sj, "south");
+      for (const sp of all) this.faceTo(sp, sj.x);
+      await this.talk(SJ_KREDDLE.slice(0, 10));
+      this.cameras.main.shake(400, 0.01);
+      synth.play("thunder");
+      this.caption("LEAVE NOTHING.", "#ff4d4d", 40);
+      await this.talk(SJ_KREDDLE.slice(10, 13));
+      this.dropCaption();
+      await this.walkTo(sj, 600, 640, 1500);
+      sj.destroy();
+      all.forEach((sp) => this.face(sp, "south"));
+    }
 
     // ---- chemical weapons
     const mik = S("MIKEY");

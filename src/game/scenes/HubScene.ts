@@ -1,3 +1,4 @@
+import { SJ_RUBBLE_ARRIVE, SJ_RUBBLE_EAT, SJ_RUBBLE_STUCK, SJ_RUBBLE_THANKS } from "../../content/sanjeev";
 import Phaser from "phaser";
 import { pursuerId } from "../systems/sanmik";
 import { bindSanmikToggle } from "../gfx/sanmikForm";
@@ -117,6 +118,9 @@ const NPC_SPOTS: Record<string, { x: number; y: number }> = {
   EDEN: { x: 2390, y: 1060 },
 };
 
+/** Name plates for hub characters who aren't in CHARACTERS. */
+const NPC_NAMES: Record<string, string> = { SANJEEV: "Sanjeev" };
+
 /** Where each character hangs out while doing their side story (when you're not them). */
 const ARC_SPOTS: Record<string, { x: number; y: number }> = {
   FLENKY: { x: 900, y: 1420 },
@@ -163,6 +167,8 @@ interface Npc {
   plate: Phaser.GameObjects.Text;
   /** Chapter 7: a soot-covered survivor, shuffling about the ruins. */
   dazed?: boolean;
+  /** Sanjeev: wanders the whole town rather than hanging about one spot. */
+  rove?: boolean;
   /** Mikey: follows you around begging to join the group. */
   follower?: { hits: number; koUntil: number; nextWhine: number; lastHit: number };
 }
@@ -1410,6 +1416,20 @@ export class HubScene extends Phaser.Scene {
     G.save();
   }
 
+  /** Somewhere a stroll away that he can walk to in a straight line without going through a building. */
+  private roveTarget(x: number, y: number) {
+    for (let i = 0; i < 24; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const d = 140 + Math.random() * 260;
+      const tx = Phaser.Math.Clamp(x + Math.cos(a) * d, 160, WORLD_W - 160);
+      const ty = Phaser.Math.Clamp(y + Math.sin(a) * d, 300, WORLD_H - 220);
+      let clear = true;
+      for (let k = 1; k <= 10 && clear; k++) if (this.nearBuilding(x + ((tx - x) * k) / 10, y + ((ty - y) * k) / 10, 30)) clear = false;
+      if (clear) return { x: tx, y: ty };
+    }
+    return { x, y };
+  }
+
   private nearBuilding(x: number, y: number, pad: number) {
     if (x > PLAYGROUND.x - pad && x < PLAYGROUND.x + PLAYGROUND.w + pad && y > PLAYGROUND.y - pad && y < PLAYGROUND.y + PLAYGROUND.h + pad) return true;
     return BUILDINGS.some((b) => x > b.x - b.w / 2 - pad && x < b.x + b.w / 2 + pad && y > b.y - b.h / 2 - pad && y < b.y + b.h / 2 + pad);
@@ -1568,6 +1588,9 @@ export class HubScene extends Phaser.Scene {
     }
     // Proctus fills the player's spot
     this.addNpc("PROCTUS", NPC_SPOTS[s.player] ?? { x: 1300, y: 640 });
+    // Sanjeev, wandering about town offering pearls of wisdom (and crisps)
+    this.addNpc("SANJEEV", { x: 1560, y: 1010 });
+    this.npcs[this.npcs.length - 1].rove = true;
     // townsfolk (in Chapter 7: dazed, sooty survivors wandering the ruins)
     if (this.ruined) {
       const rnd = new Phaser.Math.RandomDataGenerator(["survivors"]);
@@ -1600,13 +1623,13 @@ export class HubScene extends Phaser.Scene {
   private addNpc(id: string, at: { x: number; y: number }, folk = false) {
     const spr = this.add.sprite(at.x, at.y, `spr_${id}`, 0).setScale(2).setDepth(at.y);
     const def = CHARACTERS[id];
-    const plateTxt = id === "PROCTUS" ? `PROCTUS KRELMOR\n${CHARACTERS[G.s.player].proctusTitle}` : def ? def.name : "";
+    const plateTxt = id === "PROCTUS" ? `PROCTUS KRELMOR\n${CHARACTERS[G.s.player].proctusTitle}` : def ? def.name : NPC_NAMES[id] ?? "";
     const plate = this.add.text(at.x, at.y - 36, plateTxt, { fontFamily: FONT, fontSize: "9px", color: def ? hexStr(def.color) : "#cccccc", align: "center", backgroundColor: "#00000077", padding: { x: 2, y: 1 } }).setOrigin(0.5, 1).setDepth(4000);
     if (folk) plate.setVisible(false);
     const n: Npc = { id, spr, home: { ...at }, target: { ...at }, nextMove: this.time.now + Math.random() * 3000, nextBark: this.time.now + 3000 + Math.random() * 8000, folk, plate };
     this.npcs.push(n);
     if (!folk) {
-      const it: HubInteract = { x: at.x, y: at.y, r: 50, label: () => `Talk to ${id === "PROCTUS" ? "Proctus" : def?.name ?? id}`, use: () => this.talkTo(n) };
+      const it: HubInteract = { x: at.x, y: at.y, r: 50, label: () => `Talk to ${id === "PROCTUS" ? "Proctus" : def?.name ?? NPC_NAMES[id] ?? id}`, use: () => this.talkTo(n) };
       (it as any).__npc = n;
       this.interactables.push(it);
     }
@@ -1690,13 +1713,13 @@ export class HubScene extends Phaser.Scene {
       if (now > n.nextMove && !this.busy) {
         n.nextMove = now + 2500 + Math.random() * 4000;
         const r = n.folk ? 160 : 50;
-        n.target = { x: n.home.x + (Math.random() - 0.5) * r * 2, y: n.home.y + (Math.random() - 0.5) * r };
+        n.target = n.rove ? this.roveTarget(n.spr.x, n.spr.y) : { x: n.home.x + (Math.random() - 0.5) * r * 2, y: n.home.y + (Math.random() - 0.5) * r };
       }
       const dx = n.target.x - n.spr.x;
       const dy = n.target.y - n.spr.y;
       const d = Math.hypot(dx, dy);
       if (d > 3) {
-        const sp = (n.dazed ? 20 : n.folk ? 50 : 35) * (dt / 1000);
+        const sp = (n.dazed ? 20 : n.folk || n.rove ? 50 : 35) * (dt / 1000);
         n.spr.x += (dx / d) * sp;
         n.spr.y += (dy / d) * sp;
         animateWalker(n.spr, dx, dy, true, now);
@@ -3872,22 +3895,52 @@ You are required by law to sign the Sex Offenders Register.`, {
     this.tweens.add({ targets: white, alpha: 0, duration: 4500, ease: "Sine.in", onComplete: () => white.destroy() });
     await wait(4200);
     await talk(FB.FD_WAKE.slice(1));
-    // one by one, they come round
+    // one by one, they come round… but nobody can get up
     for (const [i, l] of lads.entries()) {
       if (over) return;
       vfx(this, "vfx_dust", l.spr.x, l.spr.y + 8, { scale: 1, depth: l.spr.y + 6 });
       if (i % 2 === 0) synth.play("groan");
       this.floatShout(l.spr, ["URGHH", "urghhh", "UURGH", "ugh…", "URGHHHH", "nnngh"][i % 6], "#e5e7eb");
+      this.tweens.add({ targets: l.spr, x: l.spr.x + 3, yoyo: true, repeat: 3, duration: 120 });
+      await wait(260);
+    }
+    await talk(FB.FD_URGH.slice(0, -1));
+    await talk(SJ_RUBBLE_STUCK);
+    // Sanjeev, who wasn't in it, picks his way over with a carrier bag
+    const sjk = this.textures.exists("spr_SANJEEV") ? "spr_SANJEEV" : "spr_FOLK0";
+    const sj = this.add.sprite(C.x + 420, C.y + 40, sjk, 0).setScale(2).setDepth(C.y + 40);
+    const walkSj = (x: number, y: number, ms: number) =>
+      new Promise<void>((r) => {
+        const dx = x - sj.x;
+        const dy = y - sj.y;
+        this.tweens.add({ targets: sj, x, y, duration: ms, onUpdate: () => { animateWalker(sj, dx, dy, true, this.time.now); sj.setDepth(sj.y); }, onComplete: () => { animateWalker(sj, dx, dy, false, this.time.now); r(); } });
+      });
+    await walkSj(C.x + 230, C.y + 30, 2200);
+    await talk(SJ_RUBBLE_ARRIVE);
+    // round the rubble with the bag
+    for (const l of lads.filter((_, i) => i % 2 === 0)) {
+      if (over) return;
+      await walkSj(l.spr.x + 30, l.spr.y + 26, 420);
+      synth.play("pickup");
+    }
+    await talk(SJ_RUBBLE_EAT);
+    // and they're up
+    for (const l of lads) {
+      if (over) return;
+      vfx(this, "vfx_heal", l.spr.x, l.spr.y - 10, { scale: 1, depth: l.spr.y + 6 });
       if (l.fall) for (const f of [...l.fall].reverse()) {
         l.spr.setFrame(f);
-        await wait(60);
+        await wait(45);
       }
       else l.spr.setAngle(0);
       l.spr.setFrame(charMeta(this, l.spr.texture.key)?.idle.south ?? 0);
-      this.tweens.add({ targets: l.spr, x: l.spr.x + 3, yoyo: true, repeat: 3, duration: 120 });
-      await wait(200);
+      await wait(90);
     }
-    await talk(FB.FD_URGH);
+    synth.play("cheer");
+    await talk(SJ_RUBBLE_THANKS.slice(0, -1));
+    void walkSj(C.x + 700, C.y + 120, 3200).then(() => sj.destroy());
+    await talk(SJ_RUBBLE_THANKS.slice(-1));
+    await talk(FB.FD_URGH.slice(-1));
     await talk(FB.FD_SAVED);
     // across the rubble...
     cam.pan(D.x, D.y - 20, 1500, Phaser.Math.Easing.Sine.InOut);

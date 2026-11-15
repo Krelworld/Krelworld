@@ -1,4 +1,5 @@
 import type { Cond, SpeakerId } from "../../data/types";
+import { SANJEEV_BARKS } from "../sanjeev";
 
 // Short barks. They never stop gameplay. Shown as speech bubbles above NPCs in Krelford,
 // and as combat quips. 25+ per major cabinet character.
@@ -513,6 +514,7 @@ export const BARKS: Record<string, Bark[]> = {
     b("Please stop putting eggcups under me.", { revision: "TAP_SENTIENT" }),
     b("Do you think Drongus appreciates me? He's never reacted to me either.", { revision: "TAP_SENTIENT" }),
   ],
+  SANJEEV: SANJEEV_BARKS,
 };
 
 /** Combat quips the player character shouts. 15+ each. */

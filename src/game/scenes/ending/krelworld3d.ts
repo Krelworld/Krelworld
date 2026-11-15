@@ -111,6 +111,55 @@ async function loadAll(): Promise<Loaded> {
   return { index, gltf, tex };
 }
 
+/**
+ * The scene's own clock. Every animation, wait and timer in the scene runs off it. In the game it follows real
+ * time; a recorder can set window.__k3capture = true and step it frame by frame with window.__k3step(ms), so the
+ * scene can be rendered to video at a steady frame rate on any machine.
+ */
+const clk = {
+  t: 0,
+  raf: [] as (() => void)[],
+  timers: [] as { at: number; fn: () => void; every?: number; id: number }[],
+  nextId: 1,
+  reset() {
+    this.t = 0;
+    this.raf = [];
+    this.timers = [];
+  },
+  now() {
+    return this.t;
+  },
+  frame(fn: () => void) {
+    this.raf.push(fn);
+  },
+  after(fn: () => void, ms = 0) {
+    const id = this.nextId++;
+    this.timers.push({ at: this.t + ms, fn, id });
+    return id;
+  },
+  every(fn: () => void, ms: number) {
+    const id = this.nextId++;
+    this.timers.push({ at: this.t + ms, fn, id, every: ms });
+    return id;
+  },
+  clear(id: number) {
+    this.timers = this.timers.filter((x) => x.id !== id);
+  },
+  advance(ms: number) {
+    this.t += ms;
+    for (let guard = 0; guard < 1000; guard++) {
+      const due = this.timers.filter((x) => x.at <= this.t).sort((a, b) => a.at - b.at)[0];
+      if (!due) break;
+      if (due.every) due.at += due.every;
+      else this.timers = this.timers.filter((x) => x !== due);
+      due.fn();
+    }
+    const r = this.raf;
+    this.raf = [];
+    for (const f of r) f();
+  },
+};
+
 // ------------------------------------------------------------------ small helpers
 
 const ease = {
@@ -327,6 +376,7 @@ function standInBody(id: string, faceTex: T3.Texture | undefined): { obj: T3.Gro
 // ------------------------------------------------------------------ the scene
 
 export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
+  clk.reset();
   // the overlay: a white flash covers the hand-over from the wormhole while things load
   const wrap = document.createElement("div");
   Object.assign(wrap.style, { position: "fixed", zIndex: "50", overflow: "hidden", background: "#fff", fontFamily: "Inter, system-ui, sans-serif" });
@@ -340,18 +390,18 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   const loading = document.createElement("div");
   Object.assign(loading.style, { position: "absolute", inset: "0", display: "flex", alignItems: "center", justifyContent: "center", color: "#999", fontSize: "14px" });
   wrap.appendChild(loading);
-  const slow = setTimeout(() => (loading.textContent = "Entering Krelworld…"), 1200);
+  const slow = window.setTimeout(() => (loading.textContent = "Entering Krelworld…"), 1200);
 
   let L: Loaded;
   try {
     L = await preloadKrelworld3d();
   } catch {
-    clearTimeout(slow);
+    window.clearTimeout(slow);
     wrap.remove();
     window.removeEventListener("resize", place);
     return;
   }
-  clearTimeout(slow);
+  window.clearTimeout(slow);
   loading.remove();
 
   // ---- renderer: full resolution, anti-aliased, filmic tone mapping, soft shadows
@@ -394,7 +444,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   const caption = (t: string, ms = 2600) => {
     place3.textContent = t;
     place3.style.opacity = "1";
-    setTimeout(() => (place3.style.opacity = "0"), ms);
+    clk.after(() => (place3.style.opacity = "0"), ms);
   };
 
   // ---- the world
@@ -509,14 +559,14 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
       return Promise.resolve();
     }
     return new Promise<void>((res) => {
-      const t0 = performance.now();
+      const t0 = clk.now();
       const step = () => {
         if (my !== shotTok) return res();
-        const k = Math.min(1, (performance.now() - t0) / ms);
+        const k = Math.min(1, (clk.now() - t0) / ms);
         const q = e(k);
         camState.pos.lerpVectors(p0, p1, q);
         camState.look.lerpVectors(l0, l1, q);
-        if (k < 1) requestAnimationFrame(step);
+        if (k < 1) clk.frame(step);
         else res();
       };
       step();
@@ -527,11 +577,11 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
 
   // ---- the loop
   let running = true;
-  let last = performance.now();
+  let last = clk.now();
   const t00 = last;
   const frame = () => {
     if (!running) return;
-    const now = performance.now();
+    const now = clk.now();
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     const t = (now - t00) / 1000;
@@ -550,11 +600,26 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     }
     cam.lookAt(camState.look);
     renderer.render(s3, cam);
-    requestAnimationFrame(frame);
+    clk.frame(frame);
   };
-  requestAnimationFrame(frame);
+  clk.frame(frame);
+  // drive the clock: real time in the game, or one step at a time for a recorder
+  let alive = true;
+  const W2 = window as unknown as { __k3capture?: boolean; __k3step?: (ms: number) => void; __k3now?: () => number };
+  W2.__k3now = () => clk.now();
+  if (W2.__k3capture) W2.__k3step = (ms: number) => clk.advance(ms);
+  else {
+    let prev = performance.now();
+    const drive = (now: number) => {
+      if (!alive) return;
+      clk.advance(Math.min(100, Math.max(0, now - prev)));
+      prev = now;
+      requestAnimationFrame(drive);
+    };
+    requestAnimationFrame(drive);
+  }
 
-  const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, skipped ? 0 : ms));
+  const wait = (ms: number) => new Promise<void>((r) => clk.after(r, skipped ? 0 : ms));
 
   // ---- speech: subtitles timed to the voice
   const speak = async (l: Line, minMs = 0) => {
@@ -565,15 +630,15 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     const name = id === "SANMIK" ? "SANMIK" : who?.name ?? id;
     sub.innerHTML = `<span style="color:${col}">${name}:</span> ${escapeHtml(l.t ?? "")}`;
     voice.say(id, l.t ?? "");
-    const t0 = performance.now();
+    const t0 = clk.now();
     const floor = Math.max(minMs, voice.enabled() ? 700 : 900 + (l.t ?? "").length * 55);
     await new Promise<void>((res) => {
       const check = () => {
-        const el = performance.now() - t0;
+        const el = clk.now() - t0;
         if (skipped || (el > floor && !voice.busy()) || el > 9000) return res();
-        setTimeout(check, 60);
+        clk.after(check, 60);
       };
-      setTimeout(check, 250);
+      clk.after(check, 250);
     });
     sub.innerHTML = "";
   };
@@ -597,7 +662,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   updaters.push((dt) => {
     portal.rotation.z += dt * 2.2;
     const mat = (portal.children[0] as T3.Mesh).material as T3.MeshBasicMaterial;
-    mat.color.setHSL((performance.now() / 1500) % 1, 1, 0.6);
+    mat.color.setHSL((clk.now() / 1500) % 1, 1, 0.6);
   });
   cut([0, 22, 46], [0, 30, 14]);
   fade.style.opacity = "0";
@@ -616,13 +681,13 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
         const sx = a.root.position.x;
         const sz = a.root.position.z;
         const spin = (Math.random() - 0.5) * 14;
-        setTimeout(() => {
-          const t0 = performance.now();
+        clk.after(() => {
+          const t0 = clk.now();
           const step = () => {
-            const k = Math.min(1, (performance.now() - t0) / T);
+            const k = Math.min(1, (clk.now() - t0) / T);
             a.root.position.set(lerp(sx, tx, k), lerp(38, 0, k * k), lerp(sz, tz, k));
             a.root.rotation.y = spin * (1 - k) + Math.PI;
-            if (k < 1) requestAnimationFrame(step);
+            if (k < 1) clk.frame(step);
             else {
               a.root.rotation.y = Math.random() * Math.PI * 2;
               burst(new THREE.Vector3(tx, 0.2, tz), 6, 0xcab89a, { speed: 3, up: 1, size: 0.45, life: 0.6, grav: 1, grow: 1 });
@@ -636,7 +701,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     );
   });
   camTo([0, 6, 30], [0, 2, 12], 2200, ease.out);
-  setTimeout(() => synth.play("bodies_land"), 1150);
+  clk.after(() => synth.play("bodies_land"), 1150);
   await Promise.all(falls);
   // the portal shrinks away
   void tweenScale(portal, 0.01, 1200).then(() => s3.remove(portal));
@@ -649,7 +714,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   await speak(K3_LAND[0]);
   await speak(K3_LAND[1]);
   for (const id of LADS) {
-    setTimeout(() => {
+    clk.after(() => {
       lad[id].play("getup");
       lad[id].faceTo(0, -40);
     }, Math.random() * 600);
@@ -720,13 +785,13 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   synth.play("tap_gush");
   benn.faceTo(tapInfo.under.x, tapInfo.under.z + 5);
   benn.play("drink");
-  const drip = setInterval(() => burst(benn.headPos().add(new THREE.Vector3(0, 0.2, 0)), 4, 0xff8cc6, { speed: 1.6, up: 1, size: 0.18, life: 0.6, grav: 10 }), 120);
+  const drip = clk.every(() => burst(benn.headPos().add(new THREE.Vector3(0, 0.2, 0)), 4, 0xff8cc6, { speed: 1.6, up: 1, size: 0.18, life: 0.6, grav: 10 }), 120);
   cut([tapInfo.under.x + 2.5, tapInfo.poolY + 2.2, tapInfo.under.z + 3.2], [tapInfo.under.x, tapInfo.poolY + 1.7, tapInfo.under.z]);
   await wait(700);
   await speak(K3_BENN[1], 2200);
   synth.play("tap_gush");
   await camTo([tapInfo.under.x + 9, tapInfo.poolY + 6, tapInfo.under.z + 12], [tapInfo.under.x, tapInfo.poolY + 3, tapInfo.under.z], 1600);
-  clearInterval(drip);
+  clk.clear(drip);
 
   // ---- 6. SanMik
   const mikey = lad.MIKEY;
@@ -854,13 +919,13 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     const p = pol.root.position.clone().add(new THREE.Vector3(-Math.sin(f) * 0.35, pol.height * 0.48, -Math.cos(f) * 0.35));
     burst(p, 7, () => (Math.random() < 0.5 ? 0x9acd32 : 0x6b8e23), { speed: 0.7, up: 0.5, size: 0.5, life: 2.2, grav: -0.25, grow: 0.9 });
   };
-  const farting = setInterval(gas, 140);
+  const farting = clk.every(gas, 140);
   synth.play("fart");
   shake(0.12);
-  setTimeout(() => synth.play("fart"), 650);
-  setTimeout(() => synth.play("fart"), 1350);
+  clk.after(() => synth.play("fart"), 650);
+  clk.after(() => synth.play("fart"), 1350);
   await speak(K3_POLSON[1], 1700);
-  clearInterval(farting);
+  clk.clear(farting);
   // Krezwonk gets the lot
   kw.play("shocked");
   close(kw, 2.1, -0.3);
@@ -909,7 +974,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   await camTo([kh.x, hip + 0.05, kh.z + 0.95], [kh.x, hip, kh.z], 1100);
   synth.play("zip_down");
   const bar = mk({ left: "41%", width: "18%", top: "46%", height: "9%", background: "#000", opacity: "0", transition: "opacity 0.3s" });
-  setTimeout(() => (bar.style.opacity = "1"), 600);
+  clk.after(() => (bar.style.opacity = "1"), 600);
   await wait(1300);
   bar.remove();
   await camTo([kh.x, kh.y - 0.02, kh.z + 0.58], [kh.x, kh.y - 0.04, kh.z], 700);
@@ -934,6 +999,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
 
   // ---- tidy up, back to Phaser for the credits
   running = false;
+  alive = false;
   window.removeEventListener("resize", place);
   window.removeEventListener("resize", onResize);
   renderer.dispose();
@@ -1285,11 +1351,11 @@ function makePortal() {
 function tweenScale(o: T3.Object3D, to: number, ms: number) {
   const from = o.scale.x;
   return new Promise<void>((res) => {
-    const t0 = performance.now();
+    const t0 = clk.now();
     const step = () => {
-      const k = Math.min(1, (performance.now() - t0) / ms);
+      const k = Math.min(1, (clk.now() - t0) / ms);
       o.scale.setScalar(lerp(from, to, ease.in(k)));
-      if (k < 1) requestAnimationFrame(step);
+      if (k < 1) clk.frame(step);
       else res();
     };
     step();
@@ -1668,9 +1734,9 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
             const L2 = a.distanceTo(b);
             let s = 0;
             await new Promise<void>((res) => {
-              let last = performance.now();
+              let last = clk.now();
               const step = () => {
-                const now = performance.now();
+                const now = clk.now();
                 const dt = Math.min(0.05, (now - last) / 1000);
                 last = now;
                 speed = Math.min(26, speed + dt * 18);
@@ -1685,19 +1751,19 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
                     onHit(v);
                     v.play("lie");
                     const fly = self.dir.clone().multiplyScalar(9).add(new THREE.Vector3(0, 7, 0));
-                    const t0 = performance.now();
+                    const t0 = clk.now();
                     const p0 = v.root.position.clone();
                     const flyStep = () => {
-                      const tt = (performance.now() - t0) / 1000;
+                      const tt = (clk.now() - t0) / 1000;
                       v.root.position.set(p0.x + fly.x * tt, Math.max(0, p0.y + fly.y * tt - 9 * tt * tt), p0.z + fly.z * tt);
                       v.root.rotation.z += 0.3;
-                      if (tt < 1.2) requestAnimationFrame(flyStep);
+                      if (tt < 1.2) clk.frame(flyStep);
                       else v.root.rotation.z = 0;
                     };
                     flyStep();
                   }
                 }
-                if (k < 1) requestAnimationFrame(step);
+                if (k < 1) clk.frame(step);
                 else res();
               };
               step();
@@ -1891,9 +1957,9 @@ function cloneSkinned(src: T3.Object3D): T3.Object3D {
 function moveTo(a: Actor, x: number, z: number, speed: number) {
   a.faceTo(x, z);
   return new Promise<void>((res) => {
-    let last = performance.now();
+    let last = clk.now();
     const step = () => {
-      const now = performance.now();
+      const now = clk.now();
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       const dx = x - a.root.position.x;
@@ -1903,7 +1969,7 @@ function moveTo(a: Actor, x: number, z: number, speed: number) {
       const s = Math.min(d, speed * dt);
       a.root.position.x += (dx / d) * s;
       a.root.position.z += (dz / d) * s;
-      requestAnimationFrame(step);
+      clk.frame(step);
     };
     step();
   });
@@ -1912,11 +1978,11 @@ function moveTo(a: Actor, x: number, z: number, speed: number) {
 function hop(a: Actor, x: number, z: number, y: number, height: number, ms: number) {
   const p0 = a.root.position.clone();
   return new Promise<void>((res) => {
-    const t0 = performance.now();
+    const t0 = clk.now();
     const step = () => {
-      const k = Math.min(1, (performance.now() - t0) / ms);
+      const k = Math.min(1, (clk.now() - t0) / ms);
       a.root.position.set(lerp(p0.x, x, k), lerp(p0.y, y, k) + Math.sin(k * Math.PI) * height, lerp(p0.z, z, k));
-      if (k < 1) requestAnimationFrame(step);
+      if (k < 1) clk.frame(step);
       else res();
     };
     step();

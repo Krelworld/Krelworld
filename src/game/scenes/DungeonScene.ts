@@ -323,7 +323,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       (this.player.spr as any).big = SIDE_BIG;
       this.player.spr.setScale(2);
     }
-    // walk in holding the best gun you've got ammo for
+    // walk in holding the first gun in your weapon order (the gun rack at home) that has ammo
     equipBest(s);
     this.spice = new Spice(this);
     this.spice.setup();

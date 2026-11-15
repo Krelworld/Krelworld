@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import type { GameState } from "../../data/types";
-import { FART_BLASTER, GUN_POWER, GUNS, gunMax } from "../combat/Guns";
+import { FART_BLASTER, GUNS, gunMax } from "../combat/Guns";
+import { orderedGuns } from "../systems/armoury";
 import { FONT } from "./theme";
 
 export interface WeaponEntry {
@@ -13,13 +14,12 @@ export interface WeaponEntry {
   empty: boolean;
 }
 
-/** Everything you can swap to, strongest first, Fart Blaster last. */
+/** Everything you can swap to, in your weapon order (gun rack), Fart Blaster last. */
 export function weaponList(s: GameState): WeaponEntry[] {
   const out: WeaponEntry[] = [];
-  for (const id of GUN_POWER) {
-    if (!s.guns || !(id in s.guns)) continue;
+  for (const id of orderedGuns(s)) {
     const g = GUNS[id];
-    const ammo = s.guns[id] ?? 0;
+    const ammo = s.guns![id] ?? 0;
     out.push({ id, name: g.name, tex: g.tex, ammo, max: gunMax(g, s), empty: ammo <= 0 });
   }
   out.push({ id: null, name: FART_BLASTER.name, tex: null, ammo: Infinity, max: Infinity, empty: false });

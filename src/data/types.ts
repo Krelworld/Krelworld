@@ -170,6 +170,8 @@ export interface GameState {
   guns?: Record<string, number>;
   /** Gun in hand (undefined = fists). */
   gun?: string;
+  /** Weapon order set at the gun rack: swap/auto-switch order, first = what you start a dungeon holding. Owned guns not listed go after. */
+  gunOrder?: string[];
   intoxication: number;
   banRisk: number;
   banCount: number;

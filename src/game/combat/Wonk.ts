@@ -17,34 +17,10 @@ import { kd } from "../systems/kreddle";
  * out. Over the top = over-wonked, too little = under-wonked, just right = the white jet stream.
  */
 
-export const OVER = 0.97;
-const TIME = 8000;
-
-// Flappy physics: each press kicks the gauge upward, gravity drags it back down. Easy to overshoot.
-export const FLAP = 0.7; // upward speed (gauge units/sec) set by a press
-export const GRAV = 2.1; // gauge units/sec^2
-
-export interface WonkZone { lo: number; hi: number; need: number }
-/** A new KREZZ ZONE every time: random height, random width. Narrow zones need less time in them. */
-export function randomZone(): WonkZone {
-  const width = 0.07 + Math.random() * 0.17;
-  const lo = 0.22 + Math.random() * (OVER - 0.05 - width - 0.22);
-  return { lo, hi: lo + width, need: Math.round(1300 + width * 5000) };
-}
-export interface Flappy { gauge: number; vel: number }
-export function flap(g: Flappy) {
-  g.vel = FLAP;
-}
-export function fall(g: Flappy, dtMs: number) {
-  const dt = dtMs / 1000;
-  g.vel -= GRAV * dt;
-  g.gauge += g.vel * dt;
-  if (g.gauge <= 0) {
-    g.gauge = 0;
-    g.vel = 0;
-  }
-  if (g.gauge > 1) g.gauge = 1;
-}
+import { OVER, TIME, fall, flap, gradeWonk, randomZone, sweetSpot, wonkForm, WONK_LABEL, WONK_POWER, type Flappy, type WonkGrade } from "./wonkGrade";
+import { padHeld } from "../systems/padbinds";
+export { OVER, FLAP, GRAV, randomZone, flap, fall } from "./wonkGrade";
+export type { WonkZone, Flappy } from "./wonkGrade";
 
 export function startWonk(p: Player, now: number) {
   const w = p.world;
@@ -56,6 +32,10 @@ export function startWonk(p: Player, now: number) {
   const fl: Flappy = { gauge: 0, vel: 0 };
   let gauge = 0;
   let inZone = 0;
+  // grading: time in the bright SWEET SPOT since you first reached the zone
+  const SWEET = sweetSpot(Z);
+  let sweet = 0;
+  let entered = -1;
   let t = 0;
   let presses: number[] = [];
   let done = false;
@@ -101,7 +81,7 @@ export function startWonk(p: Player, now: number) {
   const title = sc.add.text(480, 52, "WONK YOUR THANG", { fontFamily: "Impact, sans-serif", fontSize: "46px", color: "#ff9ad5", stroke: "#2a0030", strokeThickness: 8 }).setOrigin(0.5).setScale(0.2);
   ui.add(title);
   sc.tweens.add({ targets: title, scale: 1, duration: 300, ease: "Back.out" });
-  const how = sc.add.text(480, 96, TOUCH.enabled ? "TAP to flap it up! Keep it in the KREZZ ZONE" : "TAP R (or SPACE / CLICK) to flap it up! Keep it in the KREZZ ZONE", { fontFamily: "sans-serif", fontSize: "16px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5);
+  const how = sc.add.text(480, 96, TOUCH.enabled ? "TAP to flap it up! Keep it in the KREZZ ZONE (bright middle = PERFECT)" : "TAP R / SPACE / CLICK / pad to flap it up! Keep it in the KREZZ ZONE (bright middle = PERFECT)", { fontFamily: "sans-serif", fontSize: "16px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5);
   ui.add(how);
   // gauge
   const GX = 640;
@@ -109,6 +89,9 @@ export function startWonk(p: Player, now: number) {
   const GH = 330;
   ui.add(sc.add.rectangle(GX, GY + GH / 2, 64, GH + 8, 0x000000, 0.8).setStrokeStyle(3, 0xffffff, 0.8));
   ui.add(sc.add.rectangle(GX, GY + GH * (1 - (ZONE_LO + ZONE_HI) / 2), 64, GH * (ZONE_HI - ZONE_LO), 0x22c55e, 0.35).setStrokeStyle(2, 0x86efac));
+  // the sweet spot: hold it here for a PERFECT
+  ui.add(sc.add.rectangle(GX, GY + GH * (1 - (SWEET.lo + SWEET.hi) / 2), 64, GH * (SWEET.hi - SWEET.lo), 0x86efac, 0.45));
+  ui.add(sc.add.rectangle(GX, GY + GH * (1 - (SWEET.lo + SWEET.hi) / 2), 70, 2, 0xffffff, 0.9));
   ui.add(sc.add.rectangle(GX, GY + GH * (1 - (OVER + 1) / 2), 64, GH * (1 - OVER), 0xef4444, 0.5));
   ui.add(sc.add.text(GX + 44, GY + GH * (1 - (ZONE_LO + ZONE_HI) / 2), "KREZZ\nZONE", { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#86efac", align: "left" }).setOrigin(0, 0.5));
   ui.add(sc.add.text(GX + 44, GY + 4, "OVER-WONK", { fontFamily: "Impact, sans-serif", fontSize: "14px", color: "#f87171" }).setOrigin(0, 0.5));
@@ -161,14 +144,18 @@ export function startWonk(p: Player, now: number) {
         press();
       }
       const gp = pad();
-      const padNow = !!(gp && (gp.L1 || gp.A));
+      const padNow = !!(gp && (padHeld(gp, "burst") || padHeld(gp, "attack") || gp.A));
       if (padNow && !padWas) press();
       padWas = padNow;
       fall(fl, dt);
       gauge = fl.gauge;
       presses = presses.filter((x) => t - x < 600);
       const zone = gauge >= ZONE_LO && gauge <= ZONE_HI;
-      if (zone) inZone += dt;
+      if (zone) {
+        inZone += dt;
+        if (entered < 0) entered = t;
+      }
+      if (entered >= 0 && gauge >= SWEET.lo && gauge <= SWEET.hi) sweet += dt;
       (sc as any).__wonk = { gauge, inZone, t, lo: ZONE_LO, hi: ZONE_HI, need: NEED };
       // visuals
       fill.setSize(54, GH * gauge);
@@ -198,25 +185,36 @@ export function startWonk(p: Player, now: number) {
         sc.tweens.add({ targets: d, y: 300, alpha: 0, duration: 700, onComplete: () => d.destroy() });
       }
       if (gauge >= OVER) return finish("over");
-      if (inZone >= NEED) return finish("perfect");
+      if (inZone >= NEED) {
+        const form = wonkForm(sweet, t - entered, SWEET.hi - SWEET.lo);
+        return finish("krezz", gradeWonk(form), form);
+      }
       if (t >= TIME) return finish("under");
     },
   });
 
-  const finish = (result: "perfect" | "over" | "under") => {
+  const finish = (result: "krezz" | "over" | "under", grade: WonkGrade = "GOOD", form = 0) => {
     if (done) return;
     done = true;
     tick.remove();
     window.removeEventListener("keydown", onKey);
-    const label = { perfect: "PERFECT WONK!!!", over: "OVER-WONKED YOUR THANG", under: "UNDER-WONKED YOUR THANG" }[result];
+    const perfect = result === "krezz" && grade === "PERFECT";
+    const label = result === "krezz" ? WONK_LABEL[grade] : { over: "OVER-WONKED YOUR THANG", under: "UNDER-WONKED YOUR THANG" }[result];
     status.setText("");
-    const big = sc.add.text(480, 270, label, { fontFamily: "Impact, sans-serif", fontSize: result === "perfect" ? "64px" : "44px", color: result === "perfect" ? "#ffffff" : "#f9a8d4", stroke: "#2a0030", strokeThickness: 10, align: "center" }).setOrigin(0.5).setScale(0.3);
+    const col = result !== "krezz" ? "#f9a8d4" : grade === "PERFECT" ? "#ffffff" : grade === "GREAT" ? "#86efac" : "#fde68a";
+    const big = sc.add.text(480, 270, label, { fontFamily: "Impact, sans-serif", fontSize: perfect ? "64px" : result === "krezz" ? "54px" : "44px", color: col, stroke: "#2a0030", strokeThickness: 10, align: "center" }).setOrigin(0.5).setScale(0.3);
     ui.add(big);
     sc.tweens.add({ targets: big, scale: 1, duration: 260, ease: "Back.out" });
-    if (result !== "perfect") synth.play("trombone");
+    if (result === "krezz") {
+      // how tidy it was, and what the beam gets for it
+      const sub = sc.add.text(480, 322, `FORM ${Math.round(form * 100)}%  ·  KREZZ POWER x${WONK_POWER[grade].toFixed(1)}${perfect ? "" : "  (stay in the bright middle for PERFECT)"}`, { fontFamily: "Impact, sans-serif", fontSize: "20px", color: col, stroke: "#2a0030", strokeThickness: 6 }).setOrigin(0.5).setAlpha(0);
+      ui.add(sub);
+      sc.tweens.add({ targets: sub, alpha: 1, duration: 200, delay: 150 });
+    }
+    if (result !== "krezz") synth.play("trombone");
     // SanMik krezzes with a YEE YEE YEE
     if (result !== "under") sanmikYee(sc, 320, 190, { times: 3, screen: true, size: 26, depth: 3600 });
-    if (result === "perfect") {
+    if (result === "krezz") {
       // the big finish
       synth.voice("oh", 0.8, pitch * 1.3);
       synth.voice("grunt", 0.6, pitch * 1.1, 0.25);
@@ -225,12 +223,12 @@ export function startWonk(p: Player, now: number) {
       synth.voice("grunt", 0.7, pitch * 0.8);
       synth.voice("oh", 0.45, pitch * 0.65, 0.2);
     } else synth.voice("mmm", 0.4, pitch * 0.75);
-    sc.time.delayedCall(result === "perfect" ? 700 : 1100, () => {
+    sc.time.delayedCall(result === "krezz" ? 900 : 1100, () => {
       sc.tweens.add({ targets: ui, alpha: 0, duration: 220, onComplete: () => ui.destroy() });
       const n = w.now();
       // ...and while the beam is going
-      (sc as unknown as { wonkUntil?: number }).wonkUntil = n + (result === "perfect" ? 1300 + 500 * kd(G.s, "kd_krezzlong") + 600 : 600);
-      if (result === "perfect") jetStream(p, n);
+      (sc as unknown as { wonkUntil?: number }).wonkUntil = n + (result === "krezz" ? 1300 + 500 * kd(G.s, "kd_krezzlong") + 600 : 600);
+      if (result === "krezz") jetStream(p, n, WONK_POWER[grade]);
       else if (result === "over") overWonk(p, n);
       else underWonk(p, n);
     });
@@ -294,21 +292,22 @@ function splats(p: Player, onScreen: number, onFloor: number) {
 
 /** The good ending: a white jet stream that ploughs through everything in its path. */
 /** The krezz beam itself (exported for the debug hooks). */
-export function jetStream(p: Player, now: number) {
+export function jetStream(p: Player, now: number, power = WONK_POWER.PERFECT) {
   const w = p.world;
   const sc = w.sc;
   const id = p.id;
-  burstEffect(p, now, 320 * activeMods(G.s).burstRadiusMult);
+  burstEffect(p, now, 320 * power * activeMods(G.s).burstRadiusMult);
   // aim it at the boss if there is one, else the nearest enemy, else where you're facing
   const boss = w.enemies.find((e) => e.isBoss && !e.dead);
   const tgt = boss ?? w.nearestEnemy(p.x, p.y, 900);
   let ang = tgt ? Math.atan2(tgt.y - p.y, tgt.x - p.x) : p.aim;
   const LEN = 1100;
-  const WIDTH = 34;
+  // the grade scales the beam: thicker, harder and pushier for a PERFECT
+  const WIDTH = 34 * (0.75 + 0.25 * power);
   synth.laser((1300 + 500 * kd(G.s, "kd_krezzlong")) / 1000 + 0.3);
   w.shake(1300, 0.012);
   sc.cameras.main.flash(120, 255, 255, 255);
-  w.floatText(p.x, p.y - 70, "WONK IT 'TIL YOU KREZZ!", "#ffffff", 24);
+  w.floatText(p.x, p.y - 70, power >= WONK_POWER.PERFECT ? "PERFECT KREZZ!!!" : "WONK IT 'TIL YOU KREZZ!", "#ffffff", power >= WONK_POWER.PERFECT ? 28 : 24);
   const g = sc.add.graphics().setDepth(590);
   const st = { len: 0, life: 1 };
   sc.tweens.add({ targets: st, len: LEN, duration: 220, ease: "Quad.out" });
@@ -355,9 +354,9 @@ export function jetStream(p: Player, now: number) {
           hit.set(e, n);
           // bosses only take the first ten hits (about a quarter of their health); STD KREZZ upgrades push that up
           if (e.isBoss && n > 10) continue;
-          const jet = (1 + 0.25 * (G.s.upgrades.pk_jet ?? 0)) * (1 + 0.25 * kd(G.s, "kd_krezz"));
+          const jet = power * (1 + 0.25 * (G.s.upgrades.pk_jet ?? 0)) * (1 + 0.25 * kd(G.s, "kd_krezz"));
           const dmg = (e.isBoss ? p.dmg(14, now) * 1.2 + e.maxHp * 0.012 : p.dmg(14, now) * 4.5) * jet;
-          w.damageEnemy(e, dmg, { knock: 220, angle: a, crit: n === 1, noWonk: true, label: id === "KREBLIS" ? "99" : undefined });
+          w.damageEnemy(e, dmg, { knock: 220 * power, angle: a, crit: n === 1, noWonk: true, label: id === "KREBLIS" ? "99" : undefined });
           if (n === 1) w.burst(e.x, e.y, 0xffffff, 10);
         }
       }

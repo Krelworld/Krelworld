@@ -9,7 +9,7 @@ import { damageMult, maxHp, maxKrezz, maxBottles, bump } from "../systems/stats"
 import { activeMods } from "../../data/historicalRevisions";
 import { synth } from "../audio/Synth";
 import type { CombatWorld } from "./types";
-import type { Controls } from "./Controls";
+import { autoAimAllowed, type Controls } from "./Controls";
 import type { Enemy } from "./Enemy";
 import { PLAYER_BARKS } from "../../content/dialogue/ambient";
 import { currentGun, cycleGun, fitTo, nextLoadedGun, GUNS, FART_BLASTER } from "./Guns";
@@ -169,10 +169,12 @@ export class Player {
     const body = this.spr.body as Phaser.Physics.Arcade.Body;
     c.invertX = now < this.invertUntil;
     // aim with intoxication drift
-    const rawAim = s.upgrades.pk_autoaim && c.autoAim !== null ? c.autoAim : c.aim(this.x, this.y);
+    // the Auto-Aim upgrade locks on, unless it's been switched off in Settings
+    const lockOn = !!s.upgrades.pk_autoaim && autoAimAllowed() && c.autoAim !== null;
+    const rawAim = lockOn ? c.autoAim! : c.aim(this.x, this.y);
     const drift = (s.intoxication / 100) * 0.4 * Math.sin(now / 370) + (s.intoxication > 60 ? (Math.random() - 0.5) * 0.15 : 0);
     this.aim = rawAim + drift;
-    this.aimAt = s.upgrades.pk_autoaim && c.autoAim !== null ? c.autoAimPoint : c.aimPoint();
+    this.aimAt = lockOn ? c.autoAimPoint : c.aimPoint();
     // movement
     const mv = c.move();
     const moving = Math.hypot(mv.x, mv.y) > 0.1;

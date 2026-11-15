@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import { TOUCH } from "../ui/TouchControls";
 import { keysFor } from "../systems/keybinds";
+import { btnDown, padHeld, PAD_START } from "../systems/padbinds";
+import { G } from "../G";
 
 /** Input abstraction: keyboard + mouse, with gamepad support layered on top. */
 export class Controls {
@@ -11,7 +13,7 @@ export class Controls {
   aimFromPad = false;
   /** Inverted horizontal controls (Drongus decree). */
   invertX = false;
-  /** Auto-aim angle for touch play (set by the combat scene). */
+  /** Auto-aim angle (set by the combat scene). Used by touch play and the Auto-Aim upgrade, unless switched off in Settings. */
   autoAim: number | null = null;
   autoAimPoint: { x: number; y: number } | null = null;
   private lastMoveAngle = 0;
@@ -83,7 +85,7 @@ export class Controls {
   /** Aim angle from the player position (world coords). */
   aim(px: number, py: number): number {
     if (TOUCH.enabled && !this.scene.input.mousePointer?.isDown && this.scene.input.activePointer.wasTouch) {
-      this.pointerAngle = this.autoAim ?? this.lastMoveAngle;
+      this.pointerAngle = (autoAimAllowed() ? this.autoAim : null) ?? this.lastMoveAngle;
       return this.pointerAngle;
     }
     const p = this.pad();
@@ -104,7 +106,7 @@ export class Controls {
 
   aimPoint(): { x: number; y: number } {
     const ptr = this.aimPtr();
-    if (TOUCH.enabled && ptr.wasTouch && this.autoAimPoint) return this.autoAimPoint;
+    if (TOUCH.enabled && ptr.wasTouch && this.autoAimPoint && autoAimAllowed()) return this.autoAimPoint;
     return this.scene.cameras.main.getWorldPoint(ptr.x, ptr.y);
   }
 
@@ -112,8 +114,8 @@ export class Controls {
     const ptr = this.scene.input.activePointer;
     const p = this.pad();
     if (TOUCH.enabled && TOUCH.attack) return true;
-    if (ptr.wasTouch && TOUCH.enabled) return this.down("attack") || !!(p && (p.R2 > 0.3 || p.A));
-    return (ptr.isDown && ptr.leftButtonDown()) || this.down("attack") || !!(p && (p.R2 > 0.3 || p.A));
+    if (ptr.wasTouch && TOUCH.enabled) return this.down("attack") || padHeld(p, "attack");
+    return (ptr.isDown && ptr.leftButtonDown()) || this.down("attack") || padHeld(p, "attack");
   }
 
   private edge(name: string, down: boolean): boolean {
@@ -139,46 +141,46 @@ export class Controls {
   special(): boolean {
     const ptr = this.scene.input.activePointer;
     const p = this.pad();
-    return this.edge("special", (ptr.isDown && !ptr.wasTouch && ptr.rightButtonDown()) || this.down("special") || !!(p && (p.L2 > 0.3 || p.Y)));
+    return this.edge("special", (ptr.isDown && !ptr.wasTouch && ptr.rightButtonDown()) || this.down("special") || padHeld(p, "special"));
   }
   dodge(): boolean {
     const p = this.pad();
-    return this.edge("dodge", this.down("dodge") || !!(p && (p.B || p.R1)));
+    return this.edge("dodge", this.down("dodge") || padHeld(p, "dodge"));
   }
   bottle(): boolean {
     const p = this.pad();
-    return this.edge("bottle", this.down("bottle") || !!(p && p.left));
+    return this.edge("bottle", this.down("bottle") || padHeld(p, "bottle"));
   }
   bongo(): boolean {
     const p = this.pad();
-    return this.edge("bongo", this.down("bongo") || !!(p && p.right));
+    return this.edge("bongo", this.down("bongo") || padHeld(p, "bongo"));
   }
   burst(): boolean {
     const p = this.pad();
-    return this.edge("burst", this.down("burst") || !!(p && p.L1));
+    return this.edge("burst", this.down("burst") || padHeld(p, "burst"));
   }
   /** Let one rip. */
   fart(): boolean {
     const p = this.pad();
-    return this.edge("fart", this.down("fart") || !!(p && p.down));
+    return this.edge("fart", this.down("fart") || padHeld(p, "fart"));
   }
   /** GOLDEN JUICE TRANSFORMATION. */
   transform(): boolean {
-    return this.edge("transform", this.down("transform"));
+    return this.edge("transform", this.down("transform") || padHeld(this.pad(), "transform"));
   }
   /** CUMEHAMEHA (while golden). */
   cume(): boolean {
-    return this.edge("cume", this.down("cume"));
+    return this.edge("cume", this.down("cume") || padHeld(this.pad(), "cume"));
   }
   /** Is SWAP being held right now? (Tap = next gun, hold = the weapon picker.) */
   swapHeld(): boolean {
     const p = this.pad();
-    return this.down("swap") || TOUCH.held.has("swap") || !!(p && p.up);
+    return this.down("swap") || TOUCH.held.has("swap") || padHeld(p, "swap");
   }
   /** Swap between fists and found guns. */
   swap(): boolean {
     const p = this.pad();
-    return this.edge("swap", this.down("swap") || !!(p && p.up));
+    return this.edge("swap", this.down("swap") || padHeld(p, "swap"));
   }
   /** Side-scrolling rooms: W / Up / joystick up. */
   jump(): boolean {
@@ -189,10 +191,15 @@ export class Controls {
   }
   interact(): boolean {
     const p = this.pad();
-    return this.edge("interact", this.down("interact") || !!(p && p.X));
+    return this.edge("interact", this.down("interact") || padHeld(p, "interact"));
   }
   pause(): boolean {
     const p = this.pad();
-    return this.edge("pause", this.keys.ESC.isDown || !!(p && (p.buttons[9]?.pressed ?? false)));
+    return this.edge("pause", this.keys.ESC.isDown || !!btnDown(p, PAD_START));
   }
+}
+
+/** Auto-aim can be switched off in Settings (it's on unless the player turned it off). */
+export function autoAimAllowed(): boolean {
+  return G.meta?.settings?.autoAim !== false;
 }

@@ -206,6 +206,10 @@ export interface Settings {
   gore?: boolean;
   /** Custom key bindings (action id -> Phaser key names). Missing actions use the defaults. */
   keys?: Record<string, string[]>;
+  /** Custom gamepad bindings (action id -> standard-layout button indices). Missing actions use the defaults. */
+  pad?: Record<string, number[]>;
+  /** Auto-aim (the Krezz-Assist upgrade, and touch aim assist). Default on; only false turns it off. */
+  autoAim?: boolean;
 }
 
 export interface MetaState {

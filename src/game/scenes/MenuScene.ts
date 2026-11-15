@@ -14,6 +14,8 @@ import { personalQuest, pickupsCollected, MINISTRY_QUESTS, ministryQuestState, m
 import { factById } from "../../data/historicalRevisions";
 import { narrativeActor } from "../systems/narrative";
 import { DialogueBox } from "../ui/DialogueBox";
+import { bindPad, btnDown, firstDown, PAD_DEFAULTS, PAD_FIXED, PAD_START, padFor, padLabel, resetPad } from "../systems/padbinds";
+import { TOUCH } from "../ui/TouchControls";
 import { say } from "../../content/dsl";
 
 type Mode = "pause" | "settings" | "bank" | "tribunal" | "death" | "quests" | "controls";
@@ -44,20 +46,140 @@ export class MenuScene extends Phaser.Scene {
     this.caller = data?.caller ?? "";
     this.root = this.add.container(0, 0);
     this.escKey = this.input.keyboard?.addKey("ESC");
-    this.escKey?.on("down", () => {
-      if (this.mode === "death") return;
-      if (this.mode === "controls") {
-        // Esc cancels a rebind in progress, otherwise goes back
-        if (this.listening) {
-          this.listening = null;
-          this.render("controls");
-        } else this.render(this.controlsFrom);
-        return;
-      }
-      if (this.mode === "settings" || this.mode === "quests") this.render(this.caller === "Title" ? "settings" : "pause");
-      if (this.mode === "pause" || this.mode === "bank" || this.mode === "tribunal") this.close();
-    });
+    this.escKey?.on("down", () => this.back());
+    this.padPrev = [];
+    this.padPrimed = false;
+    this.focus = -1;
     this.render(data?.mode ?? "pause");
+  }
+
+  /** Esc / B: cancel a rebind, or go back a level, or close. */
+  private back() {
+    if (this.mode === "death") return;
+    if (this.mode === "controls") {
+      // Esc cancels a rebind in progress, otherwise goes back
+      if (this.listening || this.listeningPad) {
+        this.listening = null;
+        this.listeningPad = null;
+        this.render("controls");
+      } else this.render(this.controlsFrom);
+      return;
+    }
+    if (this.mode === "settings" || this.mode === "quests") {
+      // (from the title screen, settings is the whole menu)
+      if (this.caller === "Title" && this.mode === "settings") this.close();
+      else this.render("pause");
+      return;
+    }
+    if (this.mode === "pause" || this.mode === "bank" || this.mode === "tribunal") this.close();
+  }
+
+  // ---- gamepad: d-pad / left stick moves a highlight between the buttons, A presses, B goes back, Start closes the pause menu
+  private padPrev: boolean[] = [];
+  /** Buttons held when the menu opened (e.g. the Start that opened it) are ignored until they're let go. */
+  private padPrimed = false;
+  private focus = -1;
+  private focusBox?: Phaser.GameObjects.Rectangle;
+  private stickWas = "";
+  private listeningPad: string | null = null;
+  private padArmed = false;
+
+  private focusables(): Phaser.GameObjects.Container[] {
+    return this.root.list.filter((o): o is Phaser.GameObjects.Container => {
+      const bg = (o as any).bg as Phaser.GameObjects.GameObject | undefined;
+      return o instanceof Phaser.GameObjects.Container && !!bg?.input?.enabled && o.visible;
+    });
+  }
+
+  private showFocus() {
+    const list = this.focusables();
+    if (!list.length) {
+      this.focusBox?.setVisible(false);
+      return;
+    }
+    this.focus = Phaser.Math.Clamp(this.focus, 0, list.length - 1);
+    const b = list[this.focus];
+    if (!this.focusBox || !this.focusBox.active) this.focusBox = this.add.rectangle(0, 0, 10, 10).setFillStyle(0xffffff, 0.12).setStrokeStyle(3, 0xffd23f).setDepth(100);
+    this.children.bringToTop(this.focusBox);
+    this.focusBox.setPosition(b.x, b.y).setSize(b.width + 8, b.height + 8).setOrigin(0.5).setVisible(true);
+  }
+
+  /** Move the highlight to the nearest button that way. */
+  private moveFocus(dx: number, dy: number) {
+    const list = this.focusables();
+    if (!list.length) return;
+    if (this.focus < 0 || this.focus >= list.length) {
+      this.focus = 0;
+      this.showFocus();
+      return;
+    }
+    const cur = list[this.focus];
+    let best = -1;
+    let bestD = Infinity;
+    list.forEach((b, i) => {
+      if (i === this.focus) return;
+      const ox = b.x - cur.x;
+      const oy = b.y - cur.y;
+      const along = ox * dx + oy * dy;
+      if (along <= 4) return;
+      const across = Math.abs(ox * dy - oy * dx);
+      const d = along + across * 2.5;
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
+    });
+    if (best >= 0) {
+      this.focus = best;
+      synth.play("select");
+    }
+    this.showFocus();
+  }
+
+  update() {
+    const gp = this.input.gamepad?.total ? this.input.gamepad.getPad(0) : null;
+    if (!gp) return;
+    const now = gp.buttons.map((_, i) => btnDown(gp, i));
+    if (!this.padPrimed) {
+      // whatever is already held (the Start that paused the game) doesn't count until released
+      this.padPrev = now;
+      this.padPrimed = true;
+      return;
+    }
+    const prev = this.padPrev;
+    this.padPrev = now;
+    const hit = (i: number) => !!now[i] && !prev[i];
+    // waiting for a button to bind
+    if (this.listeningPad) {
+      const down = firstDown(gp);
+      if (down < 0) this.padArmed = true;
+      else if (this.padArmed && !prev[down]) {
+        if (down !== PAD_START) {
+          bindPad(this.listeningPad, down);
+          synth.play("select");
+        }
+        this.listeningPad = null;
+        this.render("controls");
+      }
+      return;
+    }
+    const sx = gp.leftStick.x;
+    const sy = gp.leftStick.y;
+    const stick = Math.abs(sx) > 0.6 || Math.abs(sy) > 0.6 ? (Math.abs(sx) > Math.abs(sy) ? (sx > 0 ? "R" : "L") : sy > 0 ? "D" : "U") : "";
+    const stickHit = stick && stick !== this.stickWas ? stick : "";
+    this.stickWas = stick;
+    if (hit(12) || stickHit === "U") this.moveFocus(0, -1);
+    else if (hit(13) || stickHit === "D") this.moveFocus(0, 1);
+    else if (hit(14) || stickHit === "L") this.moveFocus(-1, 0);
+    else if (hit(15) || stickHit === "R") this.moveFocus(1, 0);
+    else if (hit(0)) {
+      const b = this.focus >= 0 ? this.focusables()[this.focus] : undefined;
+      if (b) {
+        synth.unlock();
+        ((b as any).bg as Phaser.GameObjects.GameObject).emit("pointerup");
+      } else this.moveFocus(0, 1);
+    } else if (hit(1)) this.back();
+    else if (hit(PAD_START) && (this.mode === "pause" || this.mode === "settings" || this.mode === "quests")) this.close();
   }
 
   private listening: string | null = null;
@@ -88,8 +210,14 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private render(mode: Mode) {
+    const changed = mode !== this.mode;
     this.mode = mode;
     this.root.removeAll(true);
+    // keep the pad highlight on screen across re-renders (back to the top on a new page)
+    if (this.focus >= 0) {
+      if (changed) this.focus = 0;
+      this.time.delayedCall(0, () => this.showFocus());
+    }
     const add = (o: Phaser.GameObjects.GameObject) => this.root.add(o);
     add(this.add.rectangle(0, 0, 960, 540, 0x000000, 0.7).setOrigin(0).setInteractive());
     add(panel(this, 140, 40, 680, 460));
@@ -111,25 +239,35 @@ export class MenuScene extends Phaser.Scene {
         break;
       }
       case "controls": {
-        add(title(this, 480, 62, "CONTROLS", 26));
-        add(this.add.text(480, 88, "Click CHANGE, then press the new key. Mouse aims · Esc pauses · Tab skips dialogue (fixed).", { fontFamily: FONT, fontSize: "11px", color: "#9aa0b4" }).setOrigin(0.5));
-        const col = (i: number) => (i < 8 ? 0 : 1);
+        add(title(this, 480, 58, "CONTROLS", 24));
+        add(this.add.text(480, 80, "CHANGE, then press the new key or pad button. Mouse / right stick aims · Esc or START pauses · Tab skips dialogue.", { fontFamily: FONT, fontSize: "11px", color: "#9aa0b4" }).setOrigin(0.5));
+        const hdr = { fontFamily: FONT, fontSize: "11px", color: "#ff9ad5", fontStyle: "bold" };
+        add(this.add.text(375, 98, "KEYBOARD", hdr).setOrigin(0, 0.5));
+        add(this.add.text(600, 98, "GAMEPAD", hdr).setOrigin(0, 0.5));
         ACTIONS.forEach((a, i) => {
-          const x = col(i) ? 475 : 150;
-          const y = 118 + (i % 8) * 42;
+          const y = 116 + i * 22;
           const listening = this.listening === a.id;
-          add(this.add.text(x, y, a.label, { fontFamily: FONT, fontSize: "12px", color: "#ffffff", wordWrap: { width: 152 } }).setOrigin(0, 0.5));
-          add(this.add.text(x + 152, y, listening ? "press a key…" : keysFor(a.id).map(prettyKey).join("/"), { fontFamily: FONT, fontSize: "12px", color: listening ? "#86efac" : "#ffd23f", fontStyle: "bold" }).setOrigin(0, 0.5));
-          add(button(this, x + 268, y, listening ? "…" : "CHANGE", () => { this.listening = a.id; this.render("controls"); }, { w: 70, h: 28, size: 11 }));
+          const listeningPad = this.listeningPad === a.id;
+          add(this.add.text(170, y, a.label, { fontFamily: FONT, fontSize: "12px", color: "#ffffff" }).setOrigin(0, 0.5));
+          add(this.add.text(375, y, listening ? "press a key…" : keysFor(a.id).map(prettyKey).join("/"), { fontFamily: FONT, fontSize: "12px", color: listening ? "#86efac" : "#ffd23f", fontStyle: "bold" }).setOrigin(0, 0.5));
+          add(button(this, 520, y, listening ? "…" : "CHANGE", () => { this.listeningPad = null; this.listening = a.id; this.render("controls"); }, { w: 64, h: 20, size: 10 }));
+          const fixed = PAD_FIXED[a.id];
+          const padTxt = listeningPad ? "press a button…" : fixed ?? (padFor(a.id).map(padLabel).join(" / ") || "—");
+          add(this.add.text(600, y, padTxt, { fontFamily: FONT, fontSize: "12px", color: listeningPad ? "#86efac" : fixed ? "#9aa0b4" : "#67e8f9", fontStyle: "bold" }).setOrigin(0, 0.5));
+          if (a.id in PAD_DEFAULTS) add(button(this, 755, y, listeningPad ? "…" : "CHANGE", () => { this.listening = null; this.listeningPad = a.id; this.padArmed = false; this.render("controls"); }, { w: 64, h: 20, size: 10 }));
         });
-        add(button(this, 380, 500, "RESET TO DEFAULTS", () => { resetKeys(); this.listening = null; synth.play("ding"); this.render("controls"); }, { w: 220 }));
-        add(button(this, 600, 495, "◀ BACK", () => { this.listening = null; this.render(this.controlsFrom); }, { w: 160 }));
+        if (this.listeningPad) add(this.add.text(480, 468, "Press the pad button to use (START cancels).", { fontFamily: FONT, fontSize: "11px", color: "#86efac" }).setOrigin(0.5));
+        add(button(this, 260, 490, "RESET KEYS", () => { resetKeys(); this.listening = null; synth.play("ding"); this.render("controls"); }, { w: 170, h: 30, size: 14 }));
+        add(button(this, 450, 490, "RESET PAD", () => { resetPad(); this.listeningPad = null; synth.play("ding"); this.render("controls"); }, { w: 170, h: 30, size: 14 }));
+        add(button(this, 660, 490, "◀ BACK", () => { this.listening = null; this.listeningPad = null; this.render(this.controlsFrom); }, { w: 170, h: 30, size: 14 }));
         break;
       }
       case "settings": {
         add(title(this, 480, 74, "SETTINGS", 28));
         const set = G.meta.settings;
         const row = (y: number, label: string, get: () => string, dec: () => void, inc: () => void) => {
+          // (rows squeezed a touch to fit the auto-aim toggle)
+          y = 108 + ((y - 112) / 36) * 34;
           add(this.add.text(220, y, label, { fontFamily: FONT, fontSize: "16px", color: "#ffffff" }).setOrigin(0, 0.5));
           const val = this.add.text(600, y, get(), { fontFamily: FONT, fontSize: "16px", color: "#ffd23f" }).setOrigin(0.5);
           add(val);
@@ -148,6 +286,11 @@ export class MenuScene extends Phaser.Scene {
         row(364, "Voice volume", () => pct(set.voiceVolume ?? 0.8), () => (set.voiceVolume = clamp((set.voiceVolume ?? 0.8) - 0.1)), () => (set.voiceVolume = clamp((set.voiceVolume ?? 0.8) + 0.1)));
         row(400, "Voice speed", () => `${(set.voiceSpeed ?? 1.25).toFixed(2).replace(/0$/, "")}x`, () => (set.voiceSpeed = Math.max(0.8, Math.round(((set.voiceSpeed ?? 1.25) - 0.05) * 20) / 20)), () => (set.voiceSpeed = Math.min(2, Math.round(((set.voiceSpeed ?? 1.25) + 0.05) * 20) / 20)));
         row(436, "Gore (blood & dismemberment)", () => (set.gore !== false ? "ON" : "OFF"), () => (set.gore = set.gore === false), () => (set.gore = set.gore === false));
+        // auto-aim: a toggle once you own Krezz-Assist (or on touch, where it's the aim assist); otherwise a pointer to the shop
+        const flipAim = () => (set.autoAim = set.autoAim === false);
+        if (s?.upgrades.pk_autoaim) row(472, "Auto-aim (Krezz-Assist)", () => (set.autoAim !== false ? "ON" : "OFF"), flipAim, flipAim);
+        else if (TOUCH.enabled) row(472, "Touch aim assist", () => (set.autoAim !== false ? "ON" : "OFF"), flipAim, flipAim);
+        else add(this.add.text(220, 448, "Auto-aim: buy Krezz-Assist at the Kreddle Exchange", { fontFamily: FONT, fontSize: "14px", color: "#6b6f82" }).setOrigin(0, 0.5));
         add(button(this, 360, 495, "CONTROLS", () => this.openControls("settings"), { w: 180 }));
         add(button(this, 600, 495, "◀ BACK", () => (this.caller === "Title" ? this.close() : this.render("pause")), { w: 180 }));
         break;

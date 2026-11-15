@@ -792,11 +792,13 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     // the line holds for its recording's real length: a recorder steps the clock far slower than real time, so
     // voice.busy() (real audio) can't be trusted there, and the clip is mixed in afterwards at full length
     const clip = voice.enabled() ? await voice.clipMs(id, l.t ?? "") : undefined;
-    const floor = Math.max(minMs, clip !== undefined ? clip + 250 : voice.enabled() ? 700 : 900 + (l.t ?? "").length * 55);
+    // ...plus a breath after it, so lines don't tumble into each other
+    const BREATH = 700;
+    const floor = Math.max(minMs, clip !== undefined ? clip + BREATH : voice.enabled() ? 700 : 900 + (l.t ?? "").length * 55);
     await new Promise<void>((res) => {
       const check = () => {
         const el = clk.now() - t0;
-        if (skipped || (el > floor && (capture || !voice.busy())) || el > Math.max(9000, floor + 500)) return res();
+        if (skipped || (el > floor && (capture || clip !== undefined || !voice.busy())) || el > Math.max(9000, floor + 500)) return res();
         clk.after(check, 60);
       };
       clk.after(check, 250);

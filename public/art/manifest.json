@@ -6941,6 +6941,12 @@
   "p_dark_autism": {
    "file": "props/dark_autism.png"
   },
+  "bg_polson_door": {
+   "file": "backdrops/bg_polson_door.png"
+  },
+  "bg_us_playground": {
+   "file": "backdrops/bg_us_playground.png"
+  },
   "bg_polson_kitchen": {
    "file": "backdrops/bg_polson_kitchen.png"
   },

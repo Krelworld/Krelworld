@@ -87,6 +87,34 @@ export class UIScene extends Phaser.Scene {
         this.onEvent("fbstatus", { text: st.t, year: st.y });
       },
     });
+    // the Krezzcoin symbol: a little gold K coin (used instead of the word)
+    if (!this.textures.exists("ico_coin")) {
+      const c = this.textures.createCanvas("ico_coin", 32, 32);
+      if (c) {
+        const x = c.getContext();
+        x.fillStyle = "#8a5a00";
+        x.beginPath();
+        x.arc(16, 17, 14, 0, Math.PI * 2);
+        x.fill();
+        x.fillStyle = "#ffd23f";
+        x.beginPath();
+        x.arc(16, 15, 14, 0, Math.PI * 2);
+        x.fill();
+        x.strokeStyle = "#fff4a8";
+        x.lineWidth = 2;
+        x.beginPath();
+        x.arc(16, 15, 10, 0, Math.PI * 2);
+        x.stroke();
+        x.fillStyle = "#8a5a00";
+        x.font = "bold 15px sans-serif";
+        x.textAlign = "center";
+        x.textBaseline = "middle";
+        x.fillText("K", 16, 16);
+        c.refresh();
+      }
+    }
+    this.coinIco = this.add.image(0, 0, "ico_coin").setDisplaySize(16, 16).setOrigin(0, 0.5);
+    this.coinT = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "14px", color: "#ffd23f", fontStyle: "bold" }).setOrigin(0, 0.5).setShadow(1, 1, "#000", 0);
     this.face = playerFace(G.s);
     const pk = portraitKey(this, this.face);
     if (pk) this.faceImg = this.add.image(34, 34, pk).setDisplaySize(52, 52);
@@ -261,6 +289,8 @@ export class UIScene extends Phaser.Scene {
   }
 
   /** The pale "damage taken" part of the HP bar, and when it last caught up. */
+  private coinIco!: Phaser.GameObjects.Image;
+  private coinT!: Phaser.GameObjects.Text;
   private wasFull = false;
   private lastLv = 0;
   private gunT: Phaser.GameObjects.Text | null = null;
@@ -379,7 +409,9 @@ export class UIScene extends Phaser.Scene {
       this.wonkChip.setVisible(false);
       this.fartChip.setVisible(false);
       this.hideTray();
-      this.statT.setPosition(68, 24).setText([`💰 ${s.coins} Krezzcoin`, ...chips].join("\n"));
+      this.coinIco.setPosition(68, 33).setVisible(true);
+      this.coinT.setPosition(88, 33).setText(`${s.coins}`).setVisible(true);
+      this.statT.setPosition(68, 44).setText(chips.join("\n"));
       this.popPrompt?.setVisible(false);
     } else {
       // ---- HEALTH: big and obvious, with your pussy juice right next to it
@@ -407,10 +439,12 @@ export class UIScene extends Phaser.Scene {
       const bk = prettyKey(keysFor("bongo")[0] ?? "B");
       this.statT.setPosition(68, 56).setText(
         [
-          `🍼 ×${s.bottles}/${maxBottles(s)}${touch ? "" : ` [${q}] heal`}   🍺 ×${s.bongos}${touch ? "" : ` [${bk}]`}   💰 ${s.coins}${s.upgrades.fairies ? `   🧚 ${s.upgrades.fairies}` : ""}`,
+          `🍼 ×${s.bottles}/${maxBottles(s)}${touch ? "" : ` [${q}] heal`}   🍺 ×${s.bongos}${touch ? "" : ` [${bk}]`}${s.upgrades.fairies ? `   🧚 ${s.upgrades.fairies}` : ""}`,
           ...chips,
         ].join("\n"),
       );
+      this.coinIco.setPosition(300, 63).setVisible(true);
+      this.coinT.setPosition(320, 63).setText(`${s.coins}`).setVisible(true);
       // the old top-left meter strip is replaced by the specials tray
       this.wonkT.setVisible(false);
       this.fartT.setVisible(false);

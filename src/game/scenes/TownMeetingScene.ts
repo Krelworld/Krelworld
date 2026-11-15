@@ -229,6 +229,8 @@ export class TownMeetingScene extends Phaser.Scene {
     chilli: { title: "POLSON'S HOUSE. CHILLI NIGHT.", bg: "bg_polson_home", cast: [["POLSON", 0.26], ["KREZWONK", 0.5], ["FLENKY", 0.66], ["KREBLIS", 0.82]] },
     massimo: { title: "MASSIMO'S, SOUTHAMPTON.", bg: "bg_massimos", cast: [["POLSON", 0.3], ["FLENKY", 0.56], ["KREBLIS", 0.72], ["KREZMAR", 0.86]] },
     gym: { title: "THE GYM. 10:30 PM.", bg: "bg_gym", cast: [["POLSON", 0.5]] },
+    door: { title: "POLSON'S FRONT DOOR. 8:02 AM.", bg: "bg_polson_door", cast: [["POLSON", 0.31]] },
+    shoes: { title: "THE PLAYGROUND.", bg: "bg_us_playground", cast: [["FOLK1", 0.3], ["DRONGUS_HOME", 0.46], ["POLSON", 0.78]] },
     sofa: { title: "DRONGUS'S HOUSE. THE SOFA.", bg: "bg_polson_lounge", cast: [["POLSON", 0.42], ["DRONGUS_HOME", 0.6]] },
   };
 

@@ -81,6 +81,23 @@ export const FRAGMAR_BRIEFING: MeetingScript = {
     say("POLSON", "Honestly lads. Best restaurant in Southampton."),
     say("FLENKY", "Your favourite restaurant in Southampton."),
     say("POLSON", "Best."),
+    // ---- leaving the house
+    dir("FLASHBACK. Polson is leaving the house.", { fx: "flash:door" }),
+    say("POLSON", "Right!! Off we go 😝"),
+    dir("He walks away.", { fx: "exit:POLSON" }),
+    dir("He comes back. He checks the door. It is locked.", { fx: "enter:POLSON" }),
+    dir("He walks away.", { fx: "exit:POLSON" }),
+    dir("He comes back. He checks the door. It is still locked.", { fx: "enter:POLSON" }),
+    say("POLSON", "Just to be sure 😅", { fx: "emote:POLSON:🔒" }),
+    dir("He walks away. He gets as far as the corner. He comes back.", { fx: "hop:POLSON" }),
+    dir("It is locked."),
+    // ---- same shoes
+    dir("FLASHBACK. Drongus is making polite small talk with another parent at the playground. Polson is here too.", { fx: "flash:shoes" }),
+    say("POLSON", "That bloke over there has the same shoes as me", { fx: "hop:POLSON" }),
+    say("DRONGUS", "…oh. Okay."),
+    dir("Drongus carries on talking to the parent, who has no idea how to respond. Forty-five seconds pass.", { fx: "emote:FOLK1:😶" }),
+    say("POLSON", "But it would appear mine are in worse condition than that matey's", { fx: "emote:POLSON:👟" }),
+    dir("The parent laughs politely, in a way that suggests utter bemusement."),
     // ---- the 25 minute run
     dir("FLASHBACK. Jenko has been on at Polson about the gym all week.", { fx: "flash:gym" }),
     ping("FLENKY", "Gym today Polson?"),

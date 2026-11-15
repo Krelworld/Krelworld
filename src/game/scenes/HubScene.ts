@@ -705,10 +705,17 @@ export class HubScene extends Phaser.Scene {
     this.drawPlayground();
     // trees
     const rnd = new Phaser.Math.RandomDataGenerator(["krelford"]);
-    for (let i = 0; i < 70; i++) {
-      const x = rnd.between(40, WORLD_W - 40);
-      const y = rnd.between(40, WORLD_H - 120);
+    // trees in loose rows (a planted look, not a scatter): a grid with a little jitter, alternate rows offset
+    const treeSpots: [number, number][] = [];
+    for (let gy = 90, row = 0; gy < WORLD_H - 120; gy += 230, row++)
+      for (let gx = 70 + (row % 2) * 130; gx < WORLD_W - 40; gx += 260) treeSpots.push([gx + rnd.between(-14, 14), gy + rnd.between(-10, 10)]);
+    for (let i = 0; i < treeSpots.length; i++) {
+      const [x, y] = treeSpots[i];
       if (this.nearBuilding(x, y, 70) || (Math.abs(x - 1280) < 90) || (y > 760 && y < 900) || (y > 1480 && y < 1590)) continue;
+      // keep the side roads and paths clear too
+      if ([[80, 780, WORLD_W, 870], [300, 1500, 2300, 1570], [500, 560, 2200, 620], [200, 1000, 270, 1700], [2400, 860, 2560, 1150], [1060, 650, 1500, 990]].some(([x0, y0, x1, y1]) => x > x0 - 40 && x < x1 + 40 && y > y0 - 50 && y < y1 + 40)) continue;
+      if (BUILDINGS.some((b) => b.door && Math.abs(x - b.door.x) < 80 && y > b.door.y - 20 && y < b.door.y + 120)) continue;
+      if (Object.values(NPC_SPOTS).some((p) => Math.hypot(p.x - x, p.y - y) < 60)) continue;
       if (this.ruined) {
         if (!this.ruinProp(i % 3 === 0 ? "r_stump" : "r_deadtree", x, y + 14, 1.5)) this.add.rectangle(x, y, 8, 26, 0x1a1210).setDepth(y);
       } else if (this.hd && this.textures.exists("hd_tree")) {
@@ -853,12 +860,24 @@ export class HubScene extends Phaser.Scene {
       ["hd_fence", 6, true],
       ["hd_vendingbike", 4, false],
     ];
-    for (const [k, n, solid] of lawn) {
+    // street furniture lines the kerbs (on a regular spacing) rather than being dotted across the grass
+    const kerbs: { x0: number; y0: number; x1: number; y1: number }[] = [];
+    for (const [x0, y0, x1, y1] of ROADS) {
+      if (x1 - x0 > y1 - y0) {
+        kerbs.push({ x0, y0: y0 - 34, x1: Math.min(x1, WORLD_W), y1: y0 - 34 }, { x0, y0: y1 + 40, x1: Math.min(x1, WORLD_W), y1: y1 + 40 });
+      } else kerbs.push({ x0: x0 - 40, y0, x1: x0 - 40, y1 }, { x0: x1 + 40, y0, x1: x1 + 40, y1 });
+    }
+    for (const [k, n0, solid] of lawn) {
       if (!has(k)) continue;
-      let left = n;
+      // about half as much clutter as before
+      let left = Math.max(1, Math.ceil(n0 / 2));
       for (let tries = 0; left > 0 && tries < 400; tries++) {
-        const x = rnd.between(80, WORLD_W - 80);
-        const y = rnd.between(140, WORLD_H - 140);
+        const kb = kerbs[rnd.between(0, kerbs.length - 1)];
+        const horiz = kb.y0 === kb.y1;
+        const t = rnd.frac();
+        const x = horiz ? Math.round((kb.x0 + (kb.x1 - kb.x0) * t) / 90) * 90 : kb.x0;
+        const y = horiz ? kb.y0 : Math.round((kb.y0 + (kb.y1 - kb.y0) * t) / 90) * 90;
+        if (x < 80 || x > WORLD_W - 80 || y < 140 || y > WORLD_H - 140) continue;
         if (this.nearBuilding(x, y, 50) || onRoad(x, y) || nearDoor(x, y) || nearNpc(x, y) || !free(x, y, 46)) continue;
         if (GATES.some((g) => Math.hypot(g.x - x, g.y - y) < 90)) continue;
         place(k, x, y, solid, 40);
@@ -1916,8 +1935,9 @@ export class HubScene extends Phaser.Scene {
       const a = ANCHORS[anchor];
       if (!a) continue;
       const tex = anchor === "SO_BIN" ? "p_bin" : anchor === "SO_PIGEON" ? "p_pigeon" : "p_puddle";
-      const spr = this.add.image(a.x, a.y, tex).setScale(2.2).setDepth(a.y);
-      const glow = this.add.circle(a.x, a.y, 22, 0xffd23f, 0.2).setDepth(a.y - 1);
+      const spr = this.add.image(a.x, a.y, tex).setScale(2.6).setDepth(4500);
+      const glow = this.add.circle(a.x, a.y, 30, 0xffd23f, 0.45).setDepth(4490).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: glow, scale: 1.5, alpha: 0.15, yoyo: true, repeat: -1, duration: 700, ease: "Sine.inOut" });
       this.anchorsSpr[anchor] = [spr, glow];
       this.interactables.push({
         x: a.x,
@@ -2246,8 +2266,15 @@ You are required by law to sign the Sex Offenders Register.`, {
         const f = spotFlag(c.arc, c.step, i);
         if (G.s.flags[f] || this.spawnedSpots.has(f)) return;
         this.spawnedSpots.add(f);
-        const glow = this.add.circle(sp.x, sp.y, 20, 0xf9a8d4, 0.25).setDepth(sp.y - 1);
-        const img = k.guard ? this.add.image(sp.x, sp.y - 30, this.textures.exists("hd_camera") ? "hd_camera" : "p_tv").setScale(this.textures.exists("hd_camera") ? 1 : 1.2).setDepth(5000) : this.add.image(sp.x, sp.y, "p_token").setScale(2).setDepth(sp.y);
+        // pickups are meant to be easy to spot: drawn above the scenery, bigger, with a pulsing glow and a beam of light
+        const glow = this.add.circle(sp.x, sp.y, 30, 0xffe08a, 0.45).setDepth(4490).setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({ targets: glow, scale: 1.5, alpha: 0.15, yoyo: true, repeat: -1, duration: 700, ease: "Sine.inOut" });
+        if (!k.guard) {
+          const beam = this.add.rectangle(sp.x, sp.y - 70, 26, 140, 0xfff3b0, 0.18).setDepth(4489).setBlendMode(Phaser.BlendModes.ADD);
+          this.tweens.add({ targets: beam, alpha: 0.05, yoyo: true, repeat: -1, duration: 900 });
+          glow.setData("beam", beam);
+        }
+        const img = k.guard ? this.add.image(sp.x, sp.y - 30, this.textures.exists("hd_camera") ? "hd_camera" : "p_tv").setScale(this.textures.exists("hd_camera") ? 1 : 1.2).setDepth(5000) : this.add.image(sp.x, sp.y, "p_token").setScale(2.8).setDepth(4500);
         let label: Phaser.GameObjects.Text | null = null;
         if (k.guard) {
           const ring = this.add.circle(sp.x, sp.y, 34, 0xef4444, 0.08).setStrokeStyle(3, 0xef4444, 0.9).setDepth(sp.y - 2);
@@ -2273,6 +2300,7 @@ You are required by law to sign the Sex Offenders Register.`, {
             synth.play(k.guard ? "select" : "pickup");
             if (k.guard) this.cameras.main.flash(120, 255, 255, 255);
             img.destroy();
+            (glow.getData("beam") as Phaser.GameObjects.Rectangle | undefined)?.destroy();
             glow.destroy();
             label?.destroy();
             const got = k.spots.filter((_, j) => G.s.flags[spotFlag(c.arc, c.step, j)]).length;

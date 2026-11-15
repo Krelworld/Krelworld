@@ -429,9 +429,14 @@ export class DialogueBox {
       if (rl.sfx) synth.play(rl.sfx);
       const did = rl.canon ?? rl.id;
       if (did && !s.discovered.includes(did)) s.discovered.push(did);
-      this.renderLine(rl, opts);
-      await this.waitAdvance();
-      this.clearOverlay();
+      // a line too long for its box carries on in the next box (same speaker; the voice reads it once)
+      const pages = this.pages(rl);
+      for (const [i, page] of pages.entries()) {
+        if (this.destroyed) break;
+        this.renderLine(rl, opts, page, i === 0);
+        await this.waitAdvance();
+        this.clearOverlay();
+      }
     }
     this.active = false;
     this.skipping = false;
@@ -483,10 +488,59 @@ export class DialogueBox {
     } else sayIt();
   }
 
-  private renderLine(rl: ResolvedLine, opts: PlayOptions) {
-    opts.onLine?.(rl);
+  /** How a box lays its text out: wrap width, how many lines fit, and the text style. */
+  private static layout(kind: "speech" | "dir" | "notify") {
+    if (kind === "notify") return { width: 576, lines: 3, style: { fontFamily: FONT, fontSize: "17px" } };
+    if (kind === "dir") return { width: W - 80, lines: 5, style: { fontFamily: FONT, fontSize: "17px", fontStyle: "italic", lineSpacing: 3 } };
+    // speech: measured against the narrower, with-portrait layout so it fits either way
+    return { width: W - 200, lines: 4, style: { fontFamily: FONT, fontSize: "17px", lineSpacing: 3 } };
+  }
+
+  private measurer: Phaser.GameObjects.Text | null = null;
+
+  /** Wrapped line count of `text` in a box of this kind. */
+  private lineCount(text: string, kind: "speech" | "dir" | "notify") {
+    const L = DialogueBox.layout(kind);
+    if (!this.measurer) this.measurer = this.scene.make.text({ x: -9999, y: -9999, text: "" }, false);
+    const m = this.measurer;
+    m.setStyle({ ...L.style, wordWrap: { width: L.width, useAdvancedWrap: true } });
+    return m.getWrappedText(text).length;
+  }
+
+  /** The line split into box-sized pages, breaking at a sentence end where one is close, else between words. */
+  private pages(rl: ResolvedLine): string[] {
+    const text = this.shownText(rl).text;
+    const kind = rl.notify ? "notify" : rl.dir || rl.s === "NARRATOR" ? "dir" : "speech";
+    const max = DialogueBox.layout(kind).lines;
+    if (!text || this.lineCount(text, kind) <= max) return [text];
+    const words = text.split(/(?<=\s)/);
+    const out: string[] = [];
+    let cur = "";
+    for (const w of words) {
+      const next = cur + w;
+      if (cur && this.lineCount(next.trim(), kind) > max) {
+        // prefer to end the page at the last sentence break in its second half
+        const cut = Math.max(cur.lastIndexOf(". "), cur.lastIndexOf("? "), cur.lastIndexOf("! "), cur.lastIndexOf(".. "));
+        if (cut > cur.length * 0.5) {
+          out.push(cur.slice(0, cut + 1).trim());
+          cur = cur.slice(cut + 1).trimStart() + w;
+        } else {
+          out.push(cur.trim() + " …");
+          cur = "… " + w;
+        }
+      } else cur = next;
+    }
+    if (cur.trim()) out.push(cur.trim());
+    return out;
+  }
+
+  private renderLine(rl: ResolvedLine, opts: PlayOptions, page?: string, first = true) {
     const shown = this.shownText(rl);
-    this.speakLine(rl, shown.leadYees, shown.tailYees);
+    if (page !== undefined) shown.text = page;
+    if (first) {
+      opts.onLine?.(rl);
+      this.speakLine(rl, shown.leadYees, shown.tailYees);
+    }
     if (rl.notify) {
       opts.onSpeaker?.(rl.s, rl);
       this.showNotify(rl, shown.text);

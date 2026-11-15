@@ -217,33 +217,46 @@ export class TownMeetingScene extends Phaser.Scene {
   private flash: Phaser.GameObjects.Container | null = null;
   private flashCast: Record<string, Phaser.GameObjects.Sprite> = {};
 
+  /** Flashback places: the title card, the backdrop and who's standing where (fraction of the width). */
+  private static FLASHBACKS: Record<string, { title: string; bg: string; cast: [string, number][] }> = {
+    salem: { title: "SALEM, MASSACHUSETTS", bg: "bg_salem_museum", cast: [["EDEN", 0.36], ["POLSON", 0.5], ["KREZMAR", 0.72], ["KREBLIS", 0.84]] },
+    gino: { title: "PAPA GINO'S, BOSTON", bg: "bg_papa_ginos", cast: [["EDEN", 0.3], ["POLSON", 0.44], ["KREZMAR", 0.7], ["KREBLIS", 0.82]] },
+    faire: { title: "KING RICHARD'S FAIRE, MASSACHUSETTS", bg: "bg_ren_faire", cast: [["EDEN", 0.4], ["POLSON", 0.54], ["KREZMAR", 0.74], ["KREBLIS", 0.86]] },
+    chart: { title: "POLSON TOWERS. THE KITCHEN.", bg: "bg_polson_kitchen", cast: [["POLSON", 0.28], ["EDEN", 0.72]] },
+  };
+
   private salem(id: string): boolean {
     const W = this.scale.width;
     const H = this.scale.height;
-    if (id === "salem_on") {
+    const place = id === "salem_on" ? "salem" : id.startsWith("flash:") ? id.slice(6) : null;
+    const fb = place ? TownMeetingScene.FLASHBACKS[place] : null;
+    if (fb) {
+      this.flash?.destroy();
       this.cameras.main.flash(300, 255, 240, 210);
       const c = this.add.container(0, 0).setDepth(900);
-      if (this.textures.exists("bg_salem_museum")) {
-        const bg = this.add.image(W / 2, H / 2, "bg_salem_museum");
-        const src = this.textures.get("bg_salem_museum").getSourceImage();
+      if (this.textures.exists(fb.bg)) {
+        const bg = this.add.image(W / 2, H / 2, fb.bg);
+        const src = this.textures.get(fb.bg).getSourceImage();
         bg.setScale(Math.max(W / src.width, H / src.height));
         c.add(bg);
       } else c.add(this.add.rectangle(W / 2, H / 2, W, H, 0x2a1d14));
       c.add(this.add.rectangle(W / 2, H / 2, W, H, 0x5a3a1a, 0.18));
-      c.add(this.add.text(W / 2, 26, "SALEM, MASSACHUSETTS", { fontFamily: FONT, fontSize: "14px", color: "#f5e6c8", backgroundColor: "#00000099", padding: { x: 6, y: 3 } }).setOrigin(0.5));
+      c.add(this.add.text(W / 2, 26, fb.title, { fontFamily: FONT, fontSize: "14px", color: "#f5e6c8", backgroundColor: "#00000099", padding: { x: 6, y: 3 } }).setOrigin(0.5));
       this.flashCast = {};
-      const cast: [string, number][] = [["EDEN", 0.36], ["POLSON", 0.5], ["KREZMAR", 0.72], ["KREBLIS", 0.84]];
-      for (const [id2, fx] of cast) {
+      for (const [id2, fx] of fb.cast) {
         const key = `spr_${id2}`;
         if (!this.textures.exists(key)) continue;
         const spr = this.add.sprite(W * fx, 350, key, 0).setOrigin(0.5, 1);
         spr.setScale(4.2);
+        spr.setData("homeX", W * fx);
         c.add(spr);
         this.flashCast[id2] = spr;
       }
       this.flash = c;
       return true;
     }
+    if (id === "flash_off") return this.salem("salem_off");
+    if (this.flashActing(id)) return true;
     if (id === "salem_off") {
       this.cameras.main.flash(300, 255, 240, 210);
       this.flash?.destroy();
@@ -275,6 +288,56 @@ export class TownMeetingScene extends Phaser.Scene {
         const t = this.add.text(f.x + 40, f.y - f.displayHeight - 4, "🥄", { fontSize: "18px" }).setOrigin(0.5).setDepth(950);
         this.tweens.add({ targets: t, y: t.y - 16, alpha: 0, delay: 600, duration: 900, onComplete: () => t.destroy() });
       }
+      return true;
+    }
+    return false;
+  }
+
+  /** Small acting cues inside a flashback: "emote:EDEN:💢", "hop:POLSON", "exit:EDEN", "enter:EDEN", "stare:🍕", "star". */
+  private flashActing(id: string): boolean {
+    const cast = this.flashCast;
+    const [verb, a1, a2] = id.split(":");
+    const pop = (spr: Phaser.GameObjects.Sprite, e: string) => {
+      const t = this.add.text(spr.x, spr.y - spr.displayHeight * 0.8, e, { fontSize: "26px" }).setOrigin(0.5).setDepth(950);
+      this.tweens.add({ targets: t, y: t.y - 24, alpha: 0, delay: 500, duration: 1100, onComplete: () => t.destroy() });
+    };
+    if (verb === "emote" && cast[a1]) {
+      pop(cast[a1], a2);
+      this.tweens.add({ targets: cast[a1], y: 344, yoyo: true, duration: 110 });
+      return true;
+    }
+    if (verb === "hop" && cast[a1]) {
+      this.tweens.add({ targets: cast[a1], y: 326, yoyo: true, repeat: 2, duration: 130, ease: "Quad.out" });
+      pop(cast[a1], "✨");
+      return true;
+    }
+    if (verb === "exit" && cast[a1]) {
+      const spr = cast[a1];
+      spr.setFlipX(false);
+      this.tweens.add({ targets: spr, x: this.scale.width + 120, duration: 900, ease: "Sine.in" });
+      return true;
+    }
+    if (verb === "enter" && cast[a1]) {
+      const spr = cast[a1];
+      this.tweens.add({ targets: spr, x: spr.getData("homeX") as number, duration: 800, ease: "Sine.out" });
+      return true;
+    }
+    if (verb === "stare") {
+      for (const k of ["KREZMAR", "KREBLIS"]) {
+        const f = cast[k];
+        if (!f) continue;
+        if (this.textures.get(f.texture.key).has("5")) f.setFrame(5);
+        this.tweens.add({ targets: f, x: f.x + 40, duration: 500, ease: "Sine.out" });
+        pop(f, a1 ?? "👀");
+      }
+      return true;
+    }
+    if (verb === "star") {
+      // a gold star flies onto the sticker chart on the fridge
+      const W = this.scale.width;
+      const st = this.add.text(W * 0.28, 200, "⭐", { fontSize: "34px" }).setOrigin(0.5).setDepth(960);
+      this.tweens.add({ targets: st, x: W * 0.45, y: 150, scale: 0.6, duration: 700, ease: "Quad.out" });
+      this.flash?.add(st);
       return true;
     }
     return false;

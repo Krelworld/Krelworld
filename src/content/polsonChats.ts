@@ -177,7 +177,9 @@ export const POLSON_CHATS: { id: string; title: string; date: string; lines: Lin
     say("POLSON", "She’s keen on everything else but the tomatoes"),
     say("POLSON", "It’s really delicious mate!"),
     say("YOU", "What is it"),
-    say("POLSON", "Chorizo \nChicken \nCherry tomatoes \nSpinach \nMozzarella \nWith salt and pepper to season \nIf you want to add pine nuts to it, you can \nYou can even use Turkey mince instead of the chicken and chorizo too"),
+    say("POLSON", "Chorizo \nChicken \nCherry tomatoes \nSpinach"),
+    say("POLSON", "Mozzarella \nWith salt and pepper to season \nIf you want to add pine nuts to it, you can"),
+    say("POLSON", "You can even use Turkey mince instead of the chicken and chorizo too"),
   ] },
   { id: "pc180", title: "Solo Rick Stein fish supper", date: "2023-06-27", lines: [
     say("POLSON", "I’m treating myself a solo slap up fish supper at Rick Stein in Winchester tonight as Edens working!!"),

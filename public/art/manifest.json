@@ -6864,6 +6864,15 @@
   "tv_transport": {
    "file": "tv/transport.png"
   },
+  "bg_papa_ginos": {
+   "file": "backdrops/bg_papa_ginos.png"
+  },
+  "bg_ren_faire": {
+   "file": "backdrops/bg_ren_faire.png"
+  },
+  "bg_polson_kitchen": {
+   "file": "backdrops/bg_polson_kitchen.png"
+  },
   "bg_salem_museum": {
    "file": "backdrops/bg_salem_museum.png"
   },

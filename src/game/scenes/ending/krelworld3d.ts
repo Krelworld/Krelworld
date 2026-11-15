@@ -1159,7 +1159,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   const victims = peds.onRoad(jacked, 2);
   // chase cam: high and behind, eased round the corners, and kept over the roads (on the ring, inside its outer
   // edge; on the avenue, over the carriageway) so it never ends up inside a building when he turns
-  const chase = new THREE.Vector3(jacked.pos.x - jacked.dir.x * 10, 12, jacked.pos.z - jacked.dir.z * 10);
+  const chase = new THREE.Vector3(jacked.pos.x - jacked.dir.x * 9, 30, jacked.pos.z - jacked.dir.z * 9);
   const chaseLook = jacked.pos.clone();
   let chaseLast = clk.now();
   camState.follow = () => {
@@ -1167,7 +1167,8 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     const d = jacked.dir;
     const dt = Math.min(0.1, (clk.now() - chaseLast) / 1000);
     chaseLast = clk.now();
-    const want = new THREE.Vector3(p.x - d.x * 10, 12, p.z - d.z * 10);
+    // steep and high: above the rooftops, so a tall building on the corner can't get between it and the car
+    const want = new THREE.Vector3(p.x - d.x * 9, 30, p.z - d.z * 9);
     if (p.x < 40) {
       want.x = Math.max(-39, Math.min(39, want.x));
       want.z = Math.max(-39, Math.min(39, want.z));
@@ -1176,7 +1177,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     // stays inside it too)
     void dt;
     chase.copy(want);
-    chaseLook.set(p.x + d.x * 6, 0.8, p.z + d.z * 6);
+    chaseLook.set(p.x + d.x * 5, 0.5, p.z + d.z * 5);
     return [chase, chaseLook];
   };
   await jacked.getaway(

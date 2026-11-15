@@ -223,7 +223,13 @@ export class TownMeetingScene extends Phaser.Scene {
     gino: { title: "PAPA GINO'S, BOSTON", bg: "bg_papa_ginos", cast: [["EDEN", 0.3], ["POLSON", 0.44], ["KREZMAR", 0.7], ["KREBLIS", 0.82]] },
     faire: { title: "KING RICHARD'S FAIRE, MASSACHUSETTS", bg: "bg_ren_faire", cast: [["EDEN", 0.4], ["POLSON", 0.54], ["KREZMAR", 0.74], ["KREBLIS", 0.86]] },
     chart: { title: "POLSON TOWERS. THE KITCHEN.", bg: "bg_polson_kitchen", cast: [["POLSON", 0.28], ["EDEN", 0.72]] },
-    sofa: { title: "POLSON TOWERS. THE SOFA.", bg: "bg_polson_lounge", cast: [["POLSON", 0.42], ["DRONGUS_HOME", 0.6]] },
+    stadium: { title: "ST MARY'S STADIUM. MATCHDAY.", bg: "bg_stadium", cast: [["POLSON", 0.5]] },
+    grinder: { title: "DRONGUS'S KITCHEN. CURRY NIGHT.", bg: "bg_drongus_kitchen", cast: [["POLSON", 0.38], ["DRONGUS_HOME", 0.6], ["MIKEY", 0.76]] },
+    crisps: { title: "POLSON'S HOUSE.", bg: "bg_polson_home", cast: [["POLSON", 0.4], ["MIKEY", 0.62]] },
+    chilli: { title: "POLSON'S HOUSE. CHILLI NIGHT.", bg: "bg_polson_home", cast: [["POLSON", 0.26], ["KREZWONK", 0.5], ["FLENKY", 0.66], ["KREBLIS", 0.82]] },
+    massimo: { title: "MASSIMO'S, SOUTHAMPTON.", bg: "bg_massimos", cast: [["POLSON", 0.3], ["FLENKY", 0.56], ["KREBLIS", 0.72], ["KREZMAR", 0.86]] },
+    gym: { title: "THE GYM. 10:30 PM.", bg: "bg_gym", cast: [["POLSON", 0.5]] },
+    sofa: { title: "DRONGUS'S HOUSE. THE SOFA.", bg: "bg_polson_lounge", cast: [["POLSON", 0.42], ["DRONGUS_HOME", 0.6]] },
   };
 
   private salem(id: string): boolean {

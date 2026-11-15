@@ -6852,6 +6852,18 @@
   },
   "bg_bedroom_real": {
    "file": "backdrops/bg_bedroom_real.png"
+  },
+  "ad_uncle": {
+   "file": "ad/ad_uncle.png"
+  },
+  "ad_splat": {
+   "file": "ad/ad_splat.png"
+  },
+  "bg_ad_changing": {
+   "file": "ad/bg_ad_changing.png"
+  },
+  "bg_ad_lounge": {
+   "file": "ad/bg_ad_lounge.png"
   }
  },
  "sheets": {
@@ -7918,6 +7930,90 @@
    "file": "props/ru_throw.png",
    "frameWidth": 32,
    "frameHeight": 32
+  },
+  "ad_kids": {
+   "file": "ad/ad_kids.png",
+   "frameWidth": 192,
+   "frameHeight": 128,
+   "frames": 9
+  },
+  "ad_flirt": {
+   "file": "ad/ad_flirt.png",
+   "frameWidth": 118,
+   "frameHeight": 87,
+   "frames": 13
+  },
+  "ad_tank": {
+   "file": "ad/ad_tank.png",
+   "frameWidth": 115,
+   "frameHeight": 97,
+   "frames": 13
+  },
+  "ad_lantern": {
+   "file": "ad/ad_lantern.png",
+   "frameWidth": 100,
+   "frameHeight": 95,
+   "frames": 13
+  },
+  "ad_fruity": {
+   "file": "ad/ad_fruity.png",
+   "frameWidth": 74,
+   "frameHeight": 113,
+   "frames": 13
+  },
+  "ad_sausage": {
+   "file": "ad/ad_sausage.png",
+   "frameWidth": 60,
+   "frameHeight": 61,
+   "frames": 13
+  },
+  "ad_boy": {
+   "file": "ad/ad_boy.png",
+   "frameWidth": 27,
+   "frameHeight": 44,
+   "frames": 9
+  },
+  "ad_daddance": {
+   "file": "ad/ad_daddance.png",
+   "frameWidth": 64,
+   "frameHeight": 96,
+   "frames": 13
+  },
+  "ad_uncledance": {
+   "file": "ad/ad_uncledance.png",
+   "frameWidth": 64,
+   "frameHeight": 96,
+   "frames": 13
+  },
+  "ad_men": {
+   "file": "ad/ad_men.png",
+   "frameWidth": 128,
+   "frameHeight": 128,
+   "frames": 9
+  },
+  "ad_fruitypump": {
+   "file": "ad/ad_fruitypump.png",
+   "frameWidth": 74,
+   "frameHeight": 113,
+   "frames": 9
+  },
+  "ad_flirtscared": {
+   "file": "ad/ad_flirtscared.png",
+   "frameWidth": 118,
+   "frameHeight": 87,
+   "frames": 9
+  },
+  "ad_lanternscared": {
+   "file": "ad/ad_lanternscared.png",
+   "frameWidth": 100,
+   "frameHeight": 95,
+   "frames": 9
+  },
+  "ad_fruityscared": {
+   "file": "ad/ad_fruityscared.png",
+   "frameWidth": 74,
+   "frameHeight": 113,
+   "frames": 9
   }
  },
  "vfx": {

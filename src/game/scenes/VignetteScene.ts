@@ -7,6 +7,7 @@ import { G } from "../G";
 import { DialogueBox } from "../ui/DialogueBox";
 import { switchTo, fadeThen, advanceChapter } from "../Flow";
 import { synth } from "../audio/Synth";
+import { voice } from "../audio/Voice";
 import { FONT, title } from "../ui/theme";
 import { dir, gabor, ping, say } from "../../content/dsl";
 import { LADS } from "../../data/characters";
@@ -94,6 +95,7 @@ export class VignetteScene extends Phaser.Scene {
       sanmik_nation: () => this.sanmikNation(),
       sanmik_finale: () => this.sanmikFinale(),
       crobley_news: () => this.crobleyNews(),
+      crobley_ad: () => this.crobleyAdvert(),
       crobley_presser: () => this.crobleyPresser(),
       crobley_boom: () => this.crobleyBoom(),
       kruncher_mikey: () => this.krunchers(),
@@ -2066,12 +2068,22 @@ export class VignetteScene extends Phaser.Scene {
     ]);
   }
 
-  /** The new Crobley advert. 80 seconds. Set to the jingle. */
+  /**
+   * The new Crobley advert, set to the 81-second jingle (audio/crobley.mp3). Shots by music time:
+   * 0 kids munching · 10 sausage grows · 15 Flirt · 20 Tank · 25.5 Gary · 30 Fruity and the men · 47 sausages again ·
+   * 53 the family · 57 the changing room (dad and uncle dance, censor bars helicopter) · 70 Tank wipes out the others.
+   * The art is PixelLab animation sheets (public/art/ad); every shot still reads with fallback blobs if it's missing.
+   */
   private async crobleyAdvert() {
     const layer = this.add.container(0, 0).setDepth(700);
     const timers: Phaser.Time.TimerEvent[] = [];
     let skipped = false;
-    const clear = () => layer.removeAll(true);
+    const gore = G.meta.settings.gore !== false;
+    const clear = () => {
+      this.tweens.killTweensOf(layer.list);
+      layer.removeAll(true);
+    };
+    const later = (ms: number, fn: () => void) => timers.push(this.time.delayedCall(ms, () => !skipped && fn()));
     const bg = (key: string, tint?: number) => {
       if (this.textures.exists(key)) {
         const src = this.textures.get(key).getSourceImage();
@@ -2081,12 +2093,13 @@ export class VignetteScene extends Phaser.Scene {
       } else layer.add(this.add.rectangle(480, 270, 960, 540, tint ?? 0x7dd3fc));
     };
     const name = (t: string, color: string) => {
-      const n = this.add.text(480, 80, t, { fontFamily: "Impact, sans-serif", fontSize: "54px", color, stroke: "#fff", strokeThickness: 8 }).setOrigin(0.5).setScale(0.2).setAngle(-6);
+      const n = this.add.text(480, 70, t, { fontFamily: "Impact, sans-serif", fontSize: "54px", color, stroke: "#fff", strokeThickness: 8 }).setOrigin(0.5).setScale(0.2).setAngle(-6);
       layer.add(n);
       this.tweens.add({ targets: n, scale: 1, duration: 350, ease: "Back.out" });
       this.tweens.add({ targets: n, angle: 6, yoyo: true, repeat: -1, duration: 500 });
+      synth.play("transform_sparkle");
     };
-    const jingle = (y = 470) => {
+    const jingle = (y = 490) => {
       const j = this.add.text(480, y, "♪ Nibble on a Crobley ♪", { fontFamily: "Comic Sans MS, cursive", fontSize: "32px", color: "#db2777", stroke: "#fff", strokeThickness: 6 }).setOrigin(0.5);
       layer.add(j);
       this.tweens.add({ targets: j, scale: 1.08, yoyo: true, repeat: -1, duration: 320 });
@@ -2096,173 +2109,376 @@ export class VignetteScene extends Phaser.Scene {
       layer.add(o);
       return o;
     };
-    const boom = (x: number, y: number) => {
+    /** An animation sheet from public/art/ad, looping (or a fallback blob). */
+    const anim = (x: number, y: number, key: string, scale: number, fps = 10, color = 0xf9a8d4, label = "", repeat = -1) => {
+      if (!this.textures.exists(key)) return put(x, y, key, scale, color, label) as unknown as Phaser.GameObjects.Sprite;
+      const ak = `${key}_loop`;
+      if (!this.anims.exists(ak)) this.anims.create({ key: ak, frames: this.anims.generateFrameNumbers(key, {}), frameRate: fps, repeat: -1 });
+      const s = this.add.sprite(x, y, key, 0).setScale(scale);
+      s.play({ key: ak, frameRate: fps, repeat });
+      layer.add(s);
+      return s;
+    };
+    const fx = (key: string, x: number, y: number, scale: number) => {
+      const s = vfx(this, key, x, y, { scale, depth: layer.depth + 1 });
+      if (s) layer.add(s);
+      return s;
+    };
+    const boom = (x: number, y: number, size = 1.2) => {
       synth.play("explode");
-      if (this.boomAt(x, y, 1.2, layer.depth + 1, layer)) return;
+      this.cameras.main.shake(220, 0.014);
+      if (this.boomAt(x, y, size, layer.depth + 1, layer)) return;
       for (let i = 0; i < 3; i++) {
         const c = this.add.circle(x + (Math.random() - 0.5) * 50, y + (Math.random() - 0.5) * 40, 14, i % 2 ? 0xfde047 : 0xf97316);
         layer.add(c);
         this.tweens.add({ targets: c, radius: 90, alpha: 0, duration: 500 + i * 100 });
       }
-      this.cameras.main.shake(200, 0.012);
     };
-    const sausages = (n: number) => {
-      clear();
-      layer.add(this.add.rectangle(480, 270, 960, 540, 0x1c1917));
-      layer.add(this.add.ellipse(480, 470, 600, 60, 0xfde68a, 0.25));
-      for (let i = 0; i < n; i++) {
-        const x = 480 + (i - (n - 1) / 2) * 220;
-        const small = put(x, 420, "p_sausage_s", 1.2, 0xf9a8d4, "sausage");
-        const big = put(x, 300, "p_sausage_m", 0.4, 0xb45309, "SAUSAGE").setAlpha(0);
-        this.tweens.add({ targets: small, scale: 3, y: 340, duration: 1600, ease: "Quad.in" });
-        this.time.delayedCall(1500, () => {
-          small.setAlpha(0);
-          big.setAlpha(1);
-          synth.play("crit");
-          this.tweens.add({ targets: big, scale: 4.2, duration: 500, ease: "Back.out" });
-          this.tweens.add({ targets: big, angle: 4, yoyo: true, repeat: -1, duration: 180, delay: 500 });
+    const sparkle = (x: number, y: number, n: number, every: number, emoji = "✨") => {
+      for (let i = 0; i < n; i++)
+        later(i * every, () => {
+          const sp = this.add.text(x + (Math.random() - 0.5) * 140, y + (Math.random() - 0.5) * 60, emoji, { fontSize: "26px" }).setOrigin(0.5);
+          layer.add(sp);
+          this.tweens.add({ targets: sp, y: sp.y - 70, alpha: 0, duration: 1000 });
         });
-      }
     };
-    const admire = (elder: string, tint?: number) => {
-      clear();
-      bg("cr_park", tint);
-      const rays = this.add.star(600, 250, 16, 60, 420, 0xfff7c2, 0.35);
-      layer.add(rays);
-      this.tweens.add({ targets: rays, angle: 360, duration: 8000 });
-      const man = put(600, 300, elder, 4.2, 0x1e3a8a, "DAD");
-      const boy = put(380, 380, "p_boy", 3, 0x60a5fa, "boy");
-      this.tweens.add({ targets: man, y: 290, yoyo: true, repeat: -1, duration: 900 });
-      for (let i = 0; i < 6; i++) this.time.delayedCall(i * 500, () => {
-        if (skipped) return;
-        const sp = this.add.text(boy.x + 30 + Math.random() * 60, boy.y - 70, "✨", { fontSize: "26px" });
-        layer.add(sp);
-        this.tweens.add({ targets: sp, y: sp.y - 60, alpha: 0, duration: 900 });
-      });
-    };
+
+    // 0:00 kids on a picnic blanket, munching
     const kids = () => {
       clear();
       bg("cr_park");
       jingle();
-      for (let i = 0; i < 3; i++) {
-        const k = put(240 + i * 240, 380, i === 1 ? "p_kidcandy" : `spr_KID${i}`, i === 1 ? 3.2 : 3.2, 0x60a5fa, "kid");
-        this.tweens.add({ targets: k, y: 360, yoyo: true, repeat: -1, duration: 300 + i * 40 });
+      const k = anim(480, 350, "ad_kids", 3.2, 6, 0x60a5fa, "kids");
+      this.tweens.add({ targets: k, y: 342, yoyo: true, repeat: -1, duration: 420 });
+      for (let i = 0; i < 10; i++) {
+        const c = put(Math.random() * 960, -40, "p_crobley", 2.4, 0xf9a8d4, "");
+        this.tweens.add({ targets: c, y: 600, angle: 360, duration: 3200 + Math.random() * 2000, delay: i * 450, repeat: -1 });
       }
-      for (let i = 0; i < 8; i++) {
-        const c = put(Math.random() * 960, -40, "p_crobley", 2.2, 0xf9a8d4, "");
-        this.tweens.add({ targets: c, y: 600, angle: 360, duration: 3000 + Math.random() * 2000, delay: i * 500, repeat: -1 });
-      }
-      const logo = this.add.text(480, 150, "CROBLEY®", { fontFamily: "Impact, sans-serif", fontSize: "72px", color: "#f472b6", stroke: "#fff", strokeThickness: 10 }).setOrigin(0.5);
+      const logo = this.add.text(480, 120, "CROBLEY®", { fontFamily: "Impact, sans-serif", fontSize: "80px", color: "#f472b6", stroke: "#fff", strokeThickness: 10 }).setOrigin(0.5).setScale(0);
       layer.add(logo);
-      this.tweens.add({ targets: logo, scale: 1.1, yoyo: true, repeat: -1, duration: 400 });
+      this.tweens.add({ targets: logo, scale: 1, duration: 600, ease: "Back.out" });
+      this.tweens.add({ targets: logo, scale: 1.1, yoyo: true, repeat: -1, duration: 400, delay: 600 });
+      for (let i = 0; i < 8; i++) later(800 + i * 1100, () => synth.play(i % 2 ? "gulp" : "slurp"));
+      sparkle(480, 300, 12, 700, "💖");
     };
+    // 0:10 / 0:47 the sausage(s) grow
+    const sausages = (n: number) => {
+      clear();
+      bg("cf_sausage", 0x9a8a7a);
+      layer.add(this.add.rectangle(480, 270, 960, 540, 0x000000, 0.45));
+      const spot = this.add.ellipse(480, 470, 820, 70, 0xfde68a, 0.3);
+      layer.add(spot);
+      for (let i = 0; i < n; i++) {
+        const x = 480 + (i - (n - 1) / 2) * 260;
+        const small = put(x, 430, "p_sausage_s", 1.2, 0xf9a8d4, "sausage");
+        this.tweens.add({ targets: small, scale: 3.4, y: 360, duration: 1700, ease: "Quad.in", delay: i * 150 });
+        this.tweens.add({ targets: small, angle: { from: -6, to: 6 }, yoyo: true, repeat: -1, duration: 90 });
+        later(1650 + i * 150, () => {
+          small.setVisible(false);
+          synth.play("crit");
+          this.cameras.main.shake(180, 0.01);
+          const big = anim(x, 330, "ad_sausage", 0.5, 12, 0xb45309, "SAUSAGE");
+          this.tweens.add({ targets: big, scale: 4.4, duration: 500, ease: "Back.out" });
+          fx("vfx_crit", x, 280, 3);
+        });
+      }
+      later(2300, () => {
+        const t = this.add.text(480, 80, "GROWING!", { fontFamily: "Impact, sans-serif", fontSize: "60px", color: "#fde047", stroke: "#7c2d12", strokeThickness: 10 }).setOrigin(0.5).setScale(0.2);
+        layer.add(t);
+        this.tweens.add({ targets: t, scale: 1, duration: 300, ease: "Back.out" });
+      });
+    };
+    // 0:15 Flirt
     const flirt = () => {
       clear();
       bg("cf_flirt");
       name("FLIRT CROBLEY!", "#ec4899");
-      const f = put(-100, 360, "p_flirt", 2.4, 0xf472b6, "FLIRT");
-      this.tweens.add({ targets: f, x: 420, duration: 900, ease: "Back.out" });
-      const dad = put(760, 340, "p_dad", 3.6, 0x1e3a8a, "dad");
-      void dad;
-      for (let i = 0; i < 10; i++) this.time.delayedCall(800 + i * 380, () => {
-        if (skipped) return;
-        const h = this.add.text(f.x + 40, f.y - 40, "❤", { fontSize: "28px", color: "#ec4899" });
-        layer.add(h);
-        this.tweens.add({ targets: h, x: [760, 900, 480][i % 3], y: [300, 120, 80][i % 3], alpha: 0, duration: 1100 });
-      });
-      const wink = this.add.text(420, 220, "*wink*", { fontFamily: FONT, fontSize: "26px", color: "#fff", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5);
-      layer.add(wink);
-      this.tweens.add({ targets: wink, alpha: 0.2, yoyo: true, repeat: -1, duration: 500 });
-    };
-    const lantern = () => {
-      clear();
-      bg("cf_chinese");
-      name("CHINESE CROBLEY!", "#dc2626");
-      const c = put(440, 360, "p_lantern", 2.4, 0xdc2626, "GARY");
-      const gong = this.add.circle(680, 330, 60, 0xd97706).setStrokeStyle(6, 0x78350f);
-      layer.add(gong);
-      for (let i = 0; i < 4; i++) this.time.delayedCall(900 + i * 1800, () => {
-        if (skipped) return;
-        synth.play("ding");
-        this.tweens.add({ targets: gong, scale: 1.15, yoyo: true, duration: 120 });
-        for (let k = 0; k < 3; k++) {
-          const fw = this.add.circle(200 + Math.random() * 560, 120 + Math.random() * 120, 6, [0xef4444, 0xfacc15, 0x22c55e][k]);
-          layer.add(fw);
-          this.tweens.add({ targets: fw, radius: 60, alpha: 0, duration: 700 });
-        }
-      });
-      const sigh = this.add.text(c.x, c.y - 120, "(sigh)", { fontFamily: FONT, fontSize: "20px", color: "#fff", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setAlpha(0);
-      layer.add(sigh);
-      this.tweens.add({ targets: sigh, alpha: 1, delay: 4000, duration: 400 });
-    };
-    const fruity = () => {
-      clear();
-      bg("cf_men");
-      name("FRUITY CROBLEY!", "#c026d3");
-      const f = put(200, 360, "p_fruity", 2.4, 0xf0abfc, "FRUITY");
-      this.tweens.add({ targets: f, x: 760, yoyo: true, repeat: -1, duration: 1400, ease: "Sine.inOut", onYoyo: () => f.setFlipX(!f.flipX), onRepeat: () => f.setFlipX(!f.flipX) });
-      for (let i = 0; i < 24; i++) this.time.delayedCall(i * 160, () => {
-        if (skipped) return;
-        const g = this.add.star(Math.random() * 960, Math.random() * 400, 4, 3, 8, [0xf0abfc, 0xfde68a, 0x93c5fd][i % 3]);
-        layer.add(g);
-        this.tweens.add({ targets: g, angle: 180, alpha: 0, duration: 800 });
+      const f = anim(-120, 340, "ad_flirt", 3.4, 9, 0xf472b6, "FLIRT");
+      this.tweens.add({ targets: f, x: 430, duration: 1000, ease: "Back.out" });
+      this.tweens.add({ targets: f, scale: 3.9, duration: 4400, delay: 1000 });
+      later(1300, () => voice.say("FLIRT CROBLEY", "Hey, sugar. Wanna nibble?"));
+      for (let i = 0; i < 12; i++)
+        later(900 + i * 330, () => {
+          const h = this.add.text(f.x + 120, f.y - 60, "❤", { fontSize: "30px", color: "#ec4899" });
+          layer.add(h);
+          this.tweens.add({ targets: h, x: 700 + Math.random() * 240, y: 60 + Math.random() * 200, alpha: 0, scale: 2, duration: 1200 });
+        });
+      later(2600, () => {
+        const wink = this.add.text(430, 160, "*wink*", { fontFamily: FONT, fontSize: "28px", color: "#fff", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5);
+        layer.add(wink);
+        this.tweens.add({ targets: wink, alpha: 0.2, yoyo: true, repeat: -1, duration: 500 });
       });
     };
+    // 0:20 Tank
     const tankIntro = () => {
       clear();
       bg("cf_destruction");
       name("TANK CROBLEY!", "#15803d");
-      const t = put(-150, 380, "p_tankc", 2.6, 0x4d7c0f, "TANK");
-      this.tweens.add({ targets: t, x: 420, duration: 1600, ease: "Quad.out" });
-      for (let i = 0; i < 4; i++) this.time.delayedCall(1800 + i * 1100, () => !skipped && boom(650 + Math.random() * 250, 320 + Math.random() * 80));
-      const fr = this.add.text(480, 200, "FREEDOM!", { fontFamily: "Impact, sans-serif", fontSize: "48px", color: "#fff", stroke: "#1d4ed8", strokeThickness: 8 }).setOrigin(0.5).setAlpha(0);
+      const t = anim(-200, 360, "ad_tank", 3.2, 10, 0x4d7c0f, "TANK").setFlipX(true);
+      this.tweens.add({ targets: t, x: 330, duration: 1500, ease: "Quad.out" });
+      this.tweens.add({ targets: t, y: 356, yoyo: true, repeat: -1, duration: 80 });
+      for (let i = 0; i < 3; i++)
+        later(1700 + i * 1000, () => {
+          this.tweens.add({ targets: t, x: t.x - 30, duration: 70, yoyo: true });
+          fx("vfx_muzzle", t.x + 190, t.y - 50, 3);
+          later(160, () => boom(620 + Math.random() * 280, 300 + Math.random() * 90, 1.4));
+        });
+      later(1500, () => voice.say("TANK CROBLEY", "FREEDOM!"));
+      const fr = this.add.text(620, 160, "FREEDOM!", { fontFamily: "Impact, sans-serif", fontSize: "56px", color: "#fff", stroke: "#1d4ed8", strokeThickness: 8 }).setOrigin(0.5).setAlpha(0);
       layer.add(fr);
-      this.tweens.add({ targets: fr, alpha: 1, delay: 2400, duration: 300 });
+      this.tweens.add({ targets: fr, alpha: 1, delay: 1500, duration: 200 });
     };
+    // 0:25.5 Gary
+    const lantern = () => {
+      clear();
+      bg("cf_chinese");
+      name("CHINESE CROBLEY!", "#dc2626");
+      const c = anim(400, 350, "ad_lantern", 3.4, 7, 0xdc2626, "GARY");
+      for (let i = 0; i < 3; i++)
+        later(500 + i * 1300, () => {
+          synth.play("ding");
+          this.tweens.add({ targets: c, scale: 3.55, yoyo: true, duration: 120 });
+          fx("vfx_confetti", 200 + Math.random() * 560, 140, 2.5);
+        });
+      later(1600, () => voice.say("GARY", "Why am I holding a lantern."));
+      const sigh = this.add.text(c.x, c.y - 190, "(sigh)", { fontFamily: FONT, fontSize: "22px", color: "#fff", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setAlpha(0);
+      layer.add(sigh);
+      this.tweens.add({ targets: sigh, alpha: 1, delay: 3200, duration: 400 });
+    };
+    // 0:30 Fruity: struts in, flirts with the men, wonks them off under the bar, and they krezz all over him
+    const fruity = () => {
+      clear();
+      bg("cf_men");
+      name("FRUITY CROBLEY!", "#c026d3");
+      const men = anim(660, 330, "ad_men", 3, 6, 0x78350f, "MEN");
+      men.stop();
+      men.setFrame(0);
+      const f = anim(-100, 370, "ad_fruity", 2.4, 10, 0xf0abfc, "FRUITY");
+      this.tweens.add({ targets: f, x: 300, duration: 2200, ease: "Sine.out" });
+      for (let i = 0; i < 20; i++)
+        later(i * 180, () => {
+          const g = this.add.star(Math.random() * 960, Math.random() * 400, 4, 3, 9, [0xf0abfc, 0xfde68a, 0x93c5fd][i % 3]);
+          layer.add(g);
+          this.tweens.add({ targets: g, angle: 180, alpha: 0, duration: 800 });
+        });
+      // 0:32.5 hello boys
+      later(2500, () => {
+        voice.say("FRUITY CROBLEY", "Hello, boys!");
+        for (let i = 0; i < 6; i++)
+          later(i * 260, () => {
+            const h = this.add.text(f.x + 60, f.y - 120, "💋", { fontSize: "28px" });
+            layer.add(h);
+            this.tweens.add({ targets: h, x: 620 + Math.random() * 80, y: 210, alpha: 0, duration: 900 });
+          });
+      });
+      // 0:35 he gets to work
+      later(5000, () => {
+        f.setPosition(590, 380).setFlipX(false);
+        if (f instanceof Phaser.GameObjects.Sprite && this.textures.exists("ad_fruitypump")) {
+          const ak = "ad_fruitypump_loop";
+          if (!this.anims.exists(ak)) this.anims.create({ key: ak, frames: this.anims.generateFrameNumbers("ad_fruitypump", {}), frameRate: 18, repeat: -1 });
+          f.play(ak);
+        }
+        this.tweens.add({ targets: f, y: 384, yoyo: true, repeat: -1, duration: 60 });
+        // one long bar over Fruity's hands and both men's crotches
+        const bar = this.add.rectangle(610, 392, 360, 56, 0x000000);
+        const txt = this.add.text(610, 392, "CENSORED", { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#fff" }).setOrigin(0.5);
+        layer.add([bar, txt]);
+        this.tweens.add({ targets: [bar, txt], y: 395, yoyo: true, repeat: -1, duration: 60 });
+        for (let i = 0; i < 26; i++) later(i * 220, () => synth.play(i % 3 ? "squelch" : "wonk"));
+        later(1200, () => men.play({ key: "ad_men_loop", frameRate: 8, repeat: -1 }));
+        later(3200, () => men.play({ key: "ad_men_loop", frameRate: 16, repeat: -1 }));
+        for (const [t, s] of [[1600, "Ohh…"], [3400, "OHHH!"], [5000, "OH GOD!"]] as [number, string][])
+          later(t, () => {
+            const b = this.add.text(660 + (Math.random() - 0.5) * 120, 150, s, { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#fff", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5).setAngle((Math.random() - 0.5) * 20);
+            layer.add(b);
+            this.tweens.add({ targets: b, y: 120, alpha: 0, delay: 600, duration: 700 });
+            this.cameras.main.shake(150, 0.004);
+          });
+      });
+      // 0:42 krezz: it all goes over Fruity
+      later(12000, () => {
+        this.tweens.killTweensOf(f);
+        if (f instanceof Phaser.GameObjects.Sprite) f.stop();
+        f.setY(380);
+        synth.play("tap_gush");
+        this.cameras.main.flash(120, 255, 255, 255);
+        const stuck: [number, number][] = [[-30, -80], [25, -60], [-10, -20], [40, 10], [-45, 20], [5, -105], [20, 40]];
+        stuck.forEach(([dx, dy], i) =>
+          later(i * 140, () => {
+            const sx = 600 + (i % 2 ? 80 : -60);
+            const s = put(sx, 392, "ad_splat", 0.6, 0xffffff, "");
+            this.tweens.add({ targets: s, x: f.x + dx, y: f.y + dy, scale: 1.6 + Math.random() * 0.6, angle: Math.random() * 360, duration: 260, ease: "Quad.out", onComplete: () => synth.play(i % 2 ? "splat_1" : "splat_2") });
+          }),
+        );
+        later(1300, () => voice.say("FRUITY CROBLEY", "Ooh. Messy."));
+        later(1200, () => {
+          men.stop();
+          men.setFrame(7);
+          this.tweens.add({ targets: men, y: 360, angle: 4, duration: 600 });
+        });
+      });
+    };
+    // 0:53 the family
+    const family = () => {
+      clear();
+      bg("bg_ad_lounge");
+      const glow = this.add.star(560, 220, 16, 60, 520, 0xfff7c2, 0.25);
+      layer.add(glow);
+      this.tweens.add({ targets: glow, angle: 360, duration: 9000 });
+      const dad = put(500, 300, "p_dad", 4.6, 0x1e3a8a, "DAD");
+      const uncle = put(660, 300, "ad_uncle", 3.0, 0x15803d, "UNCLE");
+      this.tweens.add({ targets: [dad, uncle], y: 294, yoyo: true, repeat: -1, duration: 900 });
+      const boy = anim(300, 380, "ad_boy", 4.2, 6, 0x60a5fa, "boy");
+      void boy;
+      sparkle(330, 240, 7, 450);
+      sparkle(580, 140, 6, 500, "💖");
+      const t = this.add.text(480, 500, "Crobley. For the whole family.", { fontFamily: "Georgia, serif", fontSize: "28px", color: "#fff7ed", fontStyle: "italic", stroke: "#7c2d12", strokeThickness: 5 }).setOrigin(0.5).setAlpha(0);
+      layer.add(t);
+      this.tweens.add({ targets: t, alpha: 1, duration: 800, delay: 600 });
+    };
+    // 0:57 the changing room: dad and uncle, naked, dancing; their censor bars swing, then helicopter
+    const changing = () => {
+      clear();
+      bg("bg_ad_changing");
+      synth.play("splash");
+      const dancers: { s: Phaser.GameObjects.Sprite; hub: Phaser.GameObjects.Rectangle; bar: Phaser.GameObjects.Rectangle; cx: number; cy: number; ph: number }[] = [];
+      // crotch = where the briefs sit in the 64x96 frame, from the frame centre
+      for (const [x, key, cx, cy, ph] of [[340, "ad_daddance", -1, 11, 0], [620, "ad_uncledance", 0, 14, Math.PI * 0.6]] as [number, string, number, number, number][]) {
+        const s = anim(x, 300, key, 3.4, 11, 0xfcd5b4, "MAN");
+        const bar = this.add.rectangle(0, 0, 26, 150, 0x000000).setOrigin(0.5, 0.06);
+        const hub = this.add.rectangle(0, 0, 50, 34, 0x000000);
+        layer.add([bar, hub]);
+        dancers.push({ s, hub, bar, cx, cy, ph });
+      }
+      const t0 = this.time.now;
+      const ev = this.time.addEvent({
+        delay: 16,
+        loop: true,
+        callback: () => {
+          if (skipped || !layer.active) return ev.remove();
+          const t = (this.time.now - t0) / 1000;
+          for (const d of dancers) {
+            // the dad-dance: hips sway and the whole body bobs
+            const sway = Math.sin(t * 7 + d.ph);
+            d.s.x = (d === dancers[0] ? 340 : 620) + sway * 14;
+            d.s.angle = sway * 4;
+            d.s.y = 300 + Math.abs(Math.cos(t * 7 + d.ph)) * -10;
+            const rad = Phaser.Math.DegToRad(d.s.angle);
+            const ox = d.cx * 3.4, oy = d.cy * 3.4;
+            const px = d.s.x + ox * Math.cos(rad) - oy * Math.sin(rad);
+            const py = d.s.y + ox * Math.sin(rad) + oy * Math.cos(rad);
+            d.hub.setPosition(px, py).setAngle(d.s.angle);
+            d.bar.setPosition(px, py);
+            // 0-4s a pendulum swing, 4-7s bigger and bigger, then full helicopter turns that keep speeding up
+            let a: number;
+            if (t < 4) a = -sway * 30;
+            else if (t < 7) a = -Math.sin(t * 7 + d.ph) * (30 + (t - 4) * 50);
+            else a = 180 + (t - 7) * (t - 7) * 220 + (t - 7) * 360;
+            d.bar.setAngle(a);
+          }
+        },
+      });
+      const whoosh = this.time.addEvent({ delay: 220, startAt: 0, loop: true, callback: () => { if (skipped || !layer.active) return whoosh.remove(); if ((this.time.now - t0) > 7000) synth.play("swing"); } });
+      timers.push(ev, whoosh);
+      later(7200, () => {
+        const h = this.add.text(480, 90, "WHUP WHUP WHUP", { fontFamily: "Impact, sans-serif", fontSize: "50px", color: "#fde047", stroke: "#000", strokeThickness: 8 }).setOrigin(0.5).setScale(0.3);
+        layer.add(h);
+        this.tweens.add({ targets: h, scale: 1, duration: 300, ease: "Back.out" });
+        this.tweens.add({ targets: h, angle: { from: -4, to: 4 }, yoyo: true, repeat: -1, duration: 120 });
+      });
+      later(10500, () => {
+        for (const d of dancers) this.tweens.add({ targets: d.s, y: 250, duration: 1500 });
+        this.cameras.main.shake(1500, 0.006);
+      });
+    };
+    // 1:10 Tank Crobley has had enough of the rest of them
     const massacre = () => {
       clear();
       bg("cr_park");
       jingle();
-      const others = [put(520, 380, "p_flirt", 1.8, 0xf472b6, "FLIRT"), put(680, 380, "p_lantern", 1.8, 0xdc2626, "GARY"), put(840, 380, "p_fruity", 1.8, 0xf0abfc, "FRUITY")];
-      const t = put(-150, 390, "p_tankc", 2.2, 0x4d7c0f, "TANK");
-      this.tweens.add({ targets: t, x: 180, duration: 1000, ease: "Quad.out" });
-      others.forEach((o, i) => this.time.delayedCall(1600 + i * 3000, () => {
-        if (skipped) return;
-        const shell = this.add.circle(t.x + 120, t.y - 40, 8, 0x111827);
-        layer.add(shell);
-        this.tweens.add({ targets: shell, x: o.x, y: o.y - 20, duration: 300, onComplete: () => {
-          shell.destroy();
-          boom(o.x, o.y - 20);
-          this.tweens.add({ targets: o, x: o.x + 300, y: -200, angle: 1080, duration: 1200, ease: "Quad.out" });
-        } });
-      }));
+      const victims: [Phaser.GameObjects.Sprite, string, string, number][] = [
+        [anim(520, 360, "ad_flirtscared", 2.4, 12, 0xf472b6, "FLIRT"), "Flirt Crobley. You make me feel fucking sick.", "FLIRT", 2500],
+        [anim(690, 350, "ad_fruityscared", 2.4, 12, 0xf0abfc, "FRUITY"), "Fruity Crobley. You make me feel fucking sick.", "FRUITY", 2700],
+        [anim(850, 360, "ad_lanternscared", 2.4, 12, 0xdc2626, "GARY"), "Gary. You also make me feel fucking sick.", "GARY", 2500],
+      ];
+      const t = anim(-200, 380, "ad_tank", 2.8, 10, 0x4d7c0f, "TANK").setFlipX(true);
+      this.tweens.add({ targets: t, x: 200, duration: 900, ease: "Quad.out" });
+      later(300, () => synth.play("crowd_gasp"));
+      let at = 700;
+      for (const [v, line, , gap] of victims) {
+        later(at, () => {
+          voice.say("TANK CROBLEY", line);
+          // the barrel swings round to him
+          this.tweens.add({ targets: t, angle: -3, yoyo: true, duration: 200 });
+        });
+        later(at + gap - 300, () => {
+          this.tweens.add({ targets: t, x: t.x - 30, duration: 70, yoyo: true });
+          fx("vfx_muzzle", t.x + 165, t.y - 45, 2.6);
+          const shell = this.add.circle(t.x + 165, t.y - 45, 9, 0x111827);
+          layer.add(shell);
+          synth.play("gun_rail");
+          this.tweens.add({
+            targets: shell, x: v.x, y: v.y - 10, duration: 260, onComplete: () => {
+              shell.destroy();
+              boom(v.x, v.y, 1.6);
+              if (gore) {
+                fx("vfx_gore", v.x, v.y - 10, 3);
+                fx("vfx_bloodspray", v.x, v.y - 30, 2.6);
+                synth.play("bonecrack");
+                for (let k = 0; k < 7; k++) {
+                  const chunk = this.add.circle(v.x, v.y, 5 + Math.random() * 7, k % 2 ? 0xf472b6 : 0xb91c1c);
+                  layer.add(chunk);
+                  this.tweens.add({ targets: chunk, x: v.x + (Math.random() - 0.5) * 420, y: 470 + Math.random() * 50, angle: 540, duration: 700 + Math.random() * 400, ease: "Quad.in" });
+                }
+                const pool = fx("vfx_bloodpool", v.x, 450, 2.4);
+                void pool;
+                v.setVisible(false);
+              } else this.tweens.add({ targets: v, x: v.x + 300, y: -200, angle: 1080, duration: 1200, ease: "Quad.out" });
+            },
+          });
+        });
+        at += gap;
+      }
     };
     const ending = () => {
       clear();
       layer.add(this.add.rectangle(480, 270, 960, 540, 0x000000));
-      const t = this.add.text(480, 270, "YOU HEARD WHAT\nYOU THOUGHT YOU HEARD", { fontFamily: "Impact, sans-serif", fontSize: "56px", color: "#ffffff", align: "center" }).setOrigin(0.5).setAlpha(0);
+      const t = this.add.text(480, 240, "YOU HEARD WHAT\nYOU THOUGHT YOU HEARD", { fontFamily: "Impact, sans-serif", fontSize: "56px", color: "#ffffff", align: "center" }).setOrigin(0.5).setAlpha(0);
       layer.add(t);
-      this.tweens.add({ targets: t, alpha: 1, duration: 1200 });
+      this.tweens.add({ targets: t, alpha: 1, duration: 900 });
+      const logo = this.add.text(480, 420, "CROBLEY®", { fontFamily: "Impact, sans-serif", fontSize: "40px", color: "#f472b6" }).setOrigin(0.5).setAlpha(0);
+      layer.add(logo);
+      this.tweens.add({ targets: logo, alpha: 1, duration: 900, delay: 500 });
     };
     const plan: [number, () => void][] = [
       [0, kids],
-      [11, () => sausages(1)],
+      [10, () => sausages(1)],
       [15, flirt],
-      [25, () => admire("p_dad")],
-      [29, lantern],
-      [39, () => sausages(3)],
-      [43, fruity],
-      [53, () => admire("p_grandad", 0xffcc99)],
-      [57, tankIntro],
-      [66, massacre],
-      [76.5, () => sausages(2)],
-      [78.5, ending],
+      [20, tankIntro],
+      [25.5, lantern],
+      [30, fruity],
+      [47, () => sausages(3)],
+      [53, family],
+      [57, changing],
+      [70, massacre],
+      [81, ending],
     ];
+    voice.prefetch([
+      { s: "FLIRT CROBLEY", t: "Hey, sugar. Wanna nibble?" },
+      { s: "TANK CROBLEY", t: "FREEDOM!" },
+      { s: "GARY", t: "Why am I holding a lantern." },
+      { s: "FRUITY CROBLEY", t: "Hello, boys!" },
+      { s: "FRUITY CROBLEY", t: "Ooh. Messy." },
+      { s: "TANK CROBLEY", t: "Flirt Crobley. You make me feel fucking sick." },
+      { s: "TANK CROBLEY", t: "Fruity Crobley. You make me feel fucking sick." },
+      { s: "TANK CROBLEY", t: "Gary. You also make me feel fucking sick." },
+    ]);
     synth.music("crobley", true);
     const advert = this.add.text(20, 20, "ADVERTISEMENT", { fontFamily: FONT, fontSize: "12px", color: "#fff", backgroundColor: "#00000088", padding: { x: 4, y: 2 } }).setDepth(800);
     const skipHint = this.add.text(940, 520, "TAB: skip advert", { fontFamily: FONT, fontSize: "11px", color: "#fff", backgroundColor: "#00000066", padding: { x: 4, y: 2 } }).setOrigin(1, 1).setDepth(800);
     await new Promise<void>((resolve) => {
-      for (const [t, fn] of plan) timers.push(this.time.delayedCall(t * 1000, () => !skipped && fn()));
+      for (const [t, fn] of plan) later(t * 1000, fn);
       const done = () => {
         if (skipped) return;
         skipped = true;
@@ -2272,11 +2488,13 @@ export class VignetteScene extends Phaser.Scene {
       };
       const skip = () => done();
       this.input.keyboard?.on("keydown-TAB", skip);
-      timers.push(this.time.delayedCall(81500, done));
+      timers.push(this.time.delayedCall(83500, done));
     });
+    voice.stop();
     synth.stopMusic();
     advert.destroy();
     skipHint.destroy();
+    clear();
     layer.destroy(true);
     synth.music("ominous");
   }

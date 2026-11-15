@@ -105,7 +105,8 @@ export const defaultSettings = (): Settings => ({
   textSpeed: 1,
   voices: true,
   voiceVolume: 0.8,
-  voiceSpeed: 1.5,
+  voiceSpeed: 1.25,
+  voiceSpeedV: 2,
 });
 
 export function newMeta(): MetaState {
@@ -187,7 +188,8 @@ export class SaveManager {
       return {
         ...m,
         ...p,
-        settings: { ...m.settings, ...(p.settings || {}), ...(p.settings?.voiceSpeed === 1.3 ? { voiceSpeed: 1.5 } : {}) },
+        // speech speed's default went 1.5 -> 1.25 (a touch slower): saves still on an old default move over, once
+        settings: { ...m.settings, ...(p.settings || {}), ...((p.settings?.voiceSpeedV ?? 1) < 2 && [undefined, 1.3, 1.5].includes(p.settings?.voiceSpeed) ? { voiceSpeed: 1.25 } : {}), voiceSpeedV: 2 },
         archiveUnlocked: Array.isArray(p.archiveUnlocked) ? p.archiveUnlocked : [],
         tvWatched: Array.isArray(p.tvWatched) ? p.tvWatched : [],
         completedWith: Array.isArray(p.completedWith) ? p.completedWith : [],

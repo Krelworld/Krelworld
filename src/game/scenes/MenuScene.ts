@@ -162,7 +162,7 @@ export class MenuScene extends Phaser.Scene {
         row(292, "CRT effect (KrelTV)", () => (set.crt ? "ON" : "OFF"), () => (set.crt = !set.crt), () => (set.crt = !set.crt));
         row(328, "Character voices", () => (set.voices !== false ? "ON" : "OFF"), () => (set.voices = set.voices === false), () => (set.voices = set.voices === false));
         row(364, "Voice volume", () => pct(set.voiceVolume ?? 0.8), () => (set.voiceVolume = clamp((set.voiceVolume ?? 0.8) - 0.1)), () => (set.voiceVolume = clamp((set.voiceVolume ?? 0.8) + 0.1)));
-        row(400, "Voice speed", () => `${(set.voiceSpeed ?? 1.5).toFixed(1)}x`, () => (set.voiceSpeed = Math.max(0.8, Math.round(((set.voiceSpeed ?? 1.5) - 0.1) * 10) / 10)), () => (set.voiceSpeed = Math.min(2, Math.round(((set.voiceSpeed ?? 1.5) + 0.1) * 10) / 10)));
+        row(400, "Voice speed", () => `${(set.voiceSpeed ?? 1.25).toFixed(2).replace(/0$/, "")}x`, () => (set.voiceSpeed = Math.max(0.8, Math.round(((set.voiceSpeed ?? 1.25) - 0.05) * 20) / 20)), () => (set.voiceSpeed = Math.min(2, Math.round(((set.voiceSpeed ?? 1.25) + 0.05) * 20) / 20)));
         row(436, "Gore (blood & dismemberment)", () => (set.gore !== false ? "ON" : "OFF"), () => (set.gore = set.gore === false), () => (set.gore = set.gore === false));
         add(button(this, 360, 495, "CONTROLS", () => this.openControls("settings"), { w: 180 }));
         add(button(this, 600, 495, "◀ BACK", () => (this.caller === "Title" ? this.close() : this.render("pause")), { w: 180 }));

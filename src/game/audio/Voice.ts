@@ -26,7 +26,16 @@ function recBundle(b: string) {
 if (typeof window !== "undefined") setTimeout(() => void loadRecIndex(), 1500);
 let recToken = 0;
 let recPending = false;
-let recSrc: AudioBufferSourceNode | null = null;
+/** The recording being played: a Web Audio buffer source, or an <audio> element when slowed (keeps the pitch). */
+let recSrc: { stop(): void } | null = null;
+
+/**
+ * How fast recordings play. The speed setting was tuned for robot voices (1.5x was the old default), so recordings
+ * only nudge a little either way: 1.5 plays as recorded, the default 1.25 a touch slower (0.925).
+ */
+export function speechRate() {
+  return Math.max(0.85, Math.min(1.25, 1 + ((G.meta.settings.voiceSpeed ?? 1.25) - 1.5) * 0.3));
+}
 
 interface Profile {
   pitch: number;
@@ -241,8 +250,7 @@ export const voice = {
     await loadRecIndex();
     const e = recordingFor(speaker, text);
     if (!e) return undefined;
-    const rate = Math.max(0.85, Math.min(1.25, 1 + ((G.meta.settings.voiceSpeed ?? 1.5) - 1.5) * 0.3));
-    return ((e[2] * 8) / 32000) * 1000 / rate;
+    return ((e[2] * 8) / 32000) * 1000 / speechRate();
   },
   /** Start downloading the recordings for lines that are about to be said. */
   prefetch(lines: { s: string; t: string }[]) {
@@ -270,6 +278,34 @@ export const voice = {
           recPending = false;
           return this.tts(speaker, text);
         }
+        // clips are loudness-normalised (-16 LUFS, scripts/voice-gen.py); capped at unity so loud settings don't clip
+        const vol = Math.min(1, (G.meta.settings.voiceVolume ?? 0.8) * (G.meta.settings.master ?? 1) * 1.25);
+        const rate = speechRate();
+        if (Math.abs(rate - 1) > 0.01) {
+          // slowed or sped up: an <audio> element changes the speed without changing the pitch (a buffer source can't)
+          const url = URL.createObjectURL(new Blob([buf.slice(e[1], e[1] + e[2])], { type: "audio/mpeg" }));
+          const el = new Audio(url);
+          el.preservesPitch = true;
+          el.playbackRate = rate;
+          el.volume = vol;
+          const playing = {
+            stop: () => {
+              el.pause();
+              URL.revokeObjectURL(url);
+            },
+          };
+          el.onended = () => {
+            if (recSrc === playing) recSrc = null;
+            URL.revokeObjectURL(url);
+          };
+          recSrc = playing;
+          recPending = false;
+          el.play().catch(() => {
+            if (recSrc === playing) recSrc = null;
+          });
+          duckWhileTalking();
+          return;
+        }
         let audio: AudioBuffer;
         try {
           audio = await ctx.decodeAudioData(buf.slice(e[1], e[1] + e[2]));
@@ -280,11 +316,8 @@ export const voice = {
         if (my !== recToken) return;
         const src = ctx.createBufferSource();
         src.buffer = audio;
-        // the speed setting was tuned for robot voices (default 1.5x): recordings only nudge a little either way
-        src.playbackRate.value = Math.max(0.85, Math.min(1.25, 1 + ((G.meta.settings.voiceSpeed ?? 1.5) - 1.5) * 0.3));
         const g = ctx.createGain();
-        // clips are loudness-normalised (-16 LUFS, scripts/voice-gen.py); capped at unity so loud settings don't clip
-        g.gain.value = Math.min(1, (G.meta.settings.voiceVolume ?? 0.8) * (G.meta.settings.master ?? 1) * 1.25);
+        g.gain.value = vol;
         src.connect(g).connect(ctx.destination);
         src.onended = () => {
           if (recSrc === src) recSrc = null;
@@ -343,7 +376,7 @@ export const voice = {
       if (v) u.voice = v;
       u.lang = v?.lang ?? "en-GB";
       u.pitch = Math.max(0, Math.min(2, prof.pitch));
-      u.rate = Math.max(0.5, Math.min(2, prof.rate * (G.meta.settings.voiceSpeed ?? 1.5)));
+      u.rate = Math.max(0.5, Math.min(2, prof.rate * (G.meta.settings.voiceSpeed ?? 1.25)));
       u.volume = (G.meta.settings.voiceVolume ?? 0.8) * (G.meta.settings.master ?? 1);
       return u;
     });

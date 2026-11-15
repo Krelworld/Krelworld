@@ -586,7 +586,8 @@
     "REPORTER": "~press_f_us"
   },
   "clone_accents": {
-    "_doc": "Accent tag added to cloned voices on eleven_v3 (mood lines), which otherwise drift American. Default 'British accent'."
+    "_doc": "Accent tag added to cloned voices on eleven_v3 (mood lines), which otherwise drift American. Default 'British accent'.",
+    "GRONNY": "middle-class English accent"
   },
   "clone_v2_always": [
     "MIKEY",
@@ -597,8 +598,7 @@
     "KREZWONK",
     "KREZMAR",
     "KREBON",
-    "CRONGUS",
-    "GRONNY"
+    "CRONGUS"
   ],
   "clone_max_likeness": [
     "MIKEY",

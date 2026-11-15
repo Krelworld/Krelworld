@@ -485,6 +485,8 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   // traffic & crowds
   const traffic = spawnTraffic(s3, L, carPaths, updaters);
   const peds = spawnPeds(s3, L, sidewalkPaths, actors, updaters);
+  // the car SanMik takes, already pulled up at the kerb on the plaza's south side
+  const parkedCar = traffic.stopNext(new THREE.Vector3(-6, 0, 33.5));
 
   // ---- the lads
   const lad: Record<string, Actor> = {};
@@ -810,36 +812,96 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   sanmik.root.visible = true;
   sanmik.play("cheer");
   await speak(K3_SANMIK[0]);
-  // the car he's having
-  const jacked = traffic.stopNext(new THREE.Vector3(-6, 0, 33.5));
-  await wait(400);
+  // the car he's having: it's been waiting at the kerb all along, driver at the wheel
+  const jacked = parkedCar;
+  const car = jacked.pos.clone();
+  const door = new THREE.Vector3(car.x - 0.2, 0, car.z - 1.6);
   sanmik.play("run");
-  void camTo([sanmik.root.position.x - 8, 3, sanmik.root.position.z + 10], [jacked.pos.x, 1, jacked.pos.z], 1600);
-  await moveTo(sanmik, jacked.pos.x - 1.6, jacked.pos.z - 2.4, 7);
-  sanmik.faceTo(jacked.pos.x, jacked.pos.z);
-  // the driver gets out…
+  void camTo([car.x - 7, 2.6, car.z - 9], [car.x, 1, car.z - 0.6], 1700);
+  clk.after(() => synth.play("car_horn"), 700);
+  await moveTo(sanmik, door.x - 0.9, door.z - 0.4, 7);
+  sanmik.faceTo(car.x, car.z);
+  sanmik.play("idle");
+  // door open, driver dragged out onto the road
+  cut([car.x - 4.8, 1.55, car.z - 6.2], [car.x - 0.4, 1.0, car.z - 1.4]);
+  synth.play("door");
+  await wait(250);
   const driver = peds.spare();
-  driver.root.position.set(jacked.pos.x - 0.8, 0, jacked.pos.z - 1.4);
   driver.root.visible = true;
-  driver.faceTo(sanmik.root.position.x, sanmik.root.position.z);
   driver.play("shocked");
-  synth.play("car_horn");
-  cut([jacked.pos.x + 4, 1.7, jacked.pos.z - 5], [jacked.pos.x - 1.2, 1.4, jacked.pos.z - 1.8]);
-  await wait(800);
-  // …and doesn't get far
+  const from = new THREE.Vector3(car.x, 0.35, car.z - 0.4);
+  const to = new THREE.Vector3(door.x - 0.2, 0, door.z - 1.6);
+  sanmik.play("cheer");
+  synth.play("punch_big");
+  await new Promise<void>((res) => {
+    const t0 = clk.now();
+    const step = () => {
+      const k = Math.min(1, (clk.now() - t0) / 520);
+      driver.root.position.set(lerp(from.x, to.x, k), lerp(from.y, 0, k) + Math.sin(k * Math.PI) * 0.6, lerp(from.z, to.z, k));
+      driver.root.rotation.z = Math.sin(k * Math.PI) * 0.9;
+      driver.faceTo(sanmik.root.position.x, sanmik.root.position.z);
+      if (k < 1) clk.frame(step);
+      else {
+        driver.root.rotation.z = 0;
+        res();
+      }
+    };
+    step();
+  });
+  synth.play("hurt");
+  shake(0.15);
+  sanmik.faceTo(driver.root.position.x, driver.root.position.z);
+  sanmik.play("idle");
+  await wait(450);
+  // the gun comes out
+  let gunHand: T3.Object3D | null = null;
+  sanmik.model.traverse((o) => {
+    if (!gunHand && /righthand$/i.test(o.name)) gunHand = o;
+  });
+  const pistol = new THREE.Group();
+  const steel = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.8, roughness: 0.3 });
+  const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.05, 0.2), steel);
+  barrel.position.z = 0.08;
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.11, 0.05), steel);
+  grip.position.set(0, -0.06, 0);
+  pistol.add(barrel, grip);
+  if (gunHand) {
+    const ws = new THREE.Vector3();
+    (gunHand as T3.Object3D).getWorldScale(ws);
+    pistol.scale.setScalar(1 / Math.max(ws.x, 0.0001));
+    (gunHand as T3.Object3D).add(pistol);
+  } else {
+    pistol.position.copy(sanmik.headPos()).add(new THREE.Vector3(0.3, -0.5, 0.3));
+    s3.add(pistol);
+  }
+  const sp = sanmik.root.position;
+  const dp = driver.root.position;
+  // over SanMik's shoulder: the driver, hands up
+  cut([sp.x - (dp.x - sp.x) * 0.6 + 0.5, 1.75, sp.z - (dp.z - sp.z) * 0.6 + 0.5], [dp.x, 1.2, dp.z]);
+  synth.play("swing");
   sanmik.play("shoot");
-  await wait(sanmik.has("shoot") ? 650 : 200);
+  driver.play("shocked");
+  await wait(sanmik.has("shoot") ? 750 : 300);
+  // BANG
   synth.play("gun_pistol");
-  burst(sanmik.headPos().add(new THREE.Vector3(Math.sin(sanmik.root.rotation.y) * 0.8, -0.5, Math.cos(sanmik.root.rotation.y) * 0.8)), 6, 0xffd23f, { speed: 1, up: 0.5, size: 0.35, life: 0.18, grav: 0, additive: true });
-  shake(0.25);
-  if (G.meta.settings.gore !== false) burst(driver.headPos(), 26, 0xb3001b, { speed: 3, up: 2.5, size: 0.16, life: 0.9, grav: 12 });
+  const muzzle = new THREE.Vector3();
+  pistol.getWorldPosition(muzzle);
+  muzzle.add(new THREE.Vector3(Math.sin(sanmik.root.rotation.y) * 0.25, 0, Math.cos(sanmik.root.rotation.y) * 0.25));
+  burst(muzzle, 8, 0xffd23f, { speed: 1.2, up: 0.4, size: 0.4, life: 0.15, grav: 0, additive: true });
+  burst(muzzle, 5, 0x9ca3af, { speed: 0.6, up: 0.5, size: 0.3, life: 0.8, grav: -0.3, grow: 1.2 });
+  shake(0.3);
+  if (G.meta.settings.gore !== false) burst(driver.headPos().add(new THREE.Vector3(0, -0.3, 0)), 28, 0xb3001b, { speed: 3, up: 2.5, size: 0.16, life: 0.9, grav: 12 });
   else burst(driver.headPos(), 10, 0xffd23f, { speed: 2, up: 2, size: 0.3, life: 0.8, grav: 2, additive: true });
   driver.play("lie");
   synth.play("shriek");
-  await wait(700);
+  cut([car.x - 5.5, 1.3, car.z - 7], [dp.x, 0.6, dp.z]);
+  await wait(1100);
+  // in he gets
+  sanmik.play("walk");
+  await moveTo(sanmik, door.x, door.z, 2.2);
   sanmik.root.visible = false;
   synth.play("door");
-  await wait(300);
+  await wait(350);
   synth.play("car_screech");
   // the getaway: round the plaza, through two pedestrians
   const victims = peds.onRoad(jacked, 2);
@@ -862,10 +924,11 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   close(luke, 2.6, 0.7);
   luke.play("cheer");
   await speak(K3_LUKE[0]);
+  await speak(K3_LUKE[1]);
   luke.play("run");
   void moveTo(luke, tapInfo.abandoned.x + 2, tapInfo.abandoned.z - 12, 7);
   await camTo([luke.root.position.x + 4, 2, luke.root.position.z + 6], [tapInfo.abandoned.x, 6, tapInfo.abandoned.z], 2600);
-  caption("THE BREAD AND BUTTER HOUSE", 2400);
+  caption("THE BREAD AND BUTTER PUDDING HOUSE", 2400);
   await wait(1800);
 
   // ---- 7b. Polson and a Krelburger (Krezwonk regrets standing next to him)

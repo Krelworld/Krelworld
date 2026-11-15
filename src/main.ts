@@ -1,6 +1,7 @@
 import { TutorialScene } from "./game/scenes/TutorialScene";
 import { PolsonHomeScene } from "./game/scenes/PolsonHomeScene";
 import Phaser from "phaser";
+import { installPixelFonts } from "./game/ui/fontPatch";
 import { BootScene } from "./game/scenes/BootScene";
 import { TitleScene } from "./game/scenes/TitleScene";
 import { CharSelectScene } from "./game/scenes/CharSelectScene";
@@ -33,6 +34,8 @@ import { FinaleScene } from "./game/scenes/FinaleScene";
 import { RoofCutscene } from "./game/scenes/citadel/RoofCutscene";
 import { installDebug } from "./game/debug";
 import { installCrashGuard } from "./game/crashGuard";
+
+installPixelFonts();
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,

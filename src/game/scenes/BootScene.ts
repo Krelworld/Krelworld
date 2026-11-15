@@ -31,7 +31,7 @@ export class BootScene extends Phaser.Scene {
       for (const [key, sh] of Object.entries(m.sheets ?? {})) this.load.spritesheet(key, src(sh.file), { frameWidth: sh.frameWidth, frameHeight: sh.frameHeight });
       loadVfx(this.load, (m as unknown as { vfx?: Record<string, VfxDef> }).vfx, src);
     });
-    const t = this.add.text(480, 270, "LOADING LORE…", { fontFamily: "monospace", fontSize: "20px", color: "#ffd23f" }).setOrigin(0.5);
+    const t = this.add.text(480, 270, "LOADING LORE…", { fontFamily: "Impact", fontSize: "26px", color: "#ffd23f" }).setOrigin(0.5);
     this.load.on("progress", (p: number) => t.setText(`LOADING LORE… ${Math.round(p * 100)}%`));
     this.load.on("loaderror", () => undefined);
   }

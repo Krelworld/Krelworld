@@ -5281,6 +5281,9 @@
   "bg_runescape": {
    "file": "backdrops/bg_runescape.png"
   },
+  "bg_enter": {
+   "file": "backdrops/bg_enter.png"
+  },
   "bg_title": {
    "file": "backdrops/bg_title.png"
   },

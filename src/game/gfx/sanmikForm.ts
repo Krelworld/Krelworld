@@ -3,6 +3,7 @@ import { G } from "../G";
 import { vfx } from "./Vfx";
 import { synth } from "../audio/Synth";
 import { keyNameFromEvent, keysFor, prettyKey } from "../systems/keybinds";
+import { padHeld } from "../systems/padbinds";
 import { TOUCH } from "../ui/TouchControls";
 import { isMikey, playerSprKey, sanmikActive, sanmikForced, toggleSanmik } from "../systems/sanmik";
 import { FONT } from "../ui/theme";
@@ -142,7 +143,12 @@ export function bindSanmikToggle(scene: Phaser.Scene, opts: SanmikToggleOpts) {
   };
   const kb = scene.input.keyboard;
   kb?.on("keydown", onKey);
+  let padWas = true;
   const onUpdate = () => {
+    const gp = scene.input.gamepad?.total ? scene.input.gamepad.getPad(0) : null;
+    const padNow = padHeld(gp, "sanmik");
+    if (padNow && !padWas) go();
+    padWas = padNow;
     if (TOUCH.edges.has("sanmik")) {
       TOUCH.edges.delete("sanmik");
       go();

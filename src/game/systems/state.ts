@@ -109,6 +109,7 @@ export const defaultSettings = (): Settings => ({
   voiceVolume: 0.8,
   voiceSpeed: 1.25,
   voiceSpeedV: 2,
+  autoAim: true,
 });
 
 export function newMeta(): MetaState {

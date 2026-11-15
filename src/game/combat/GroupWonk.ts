@@ -6,6 +6,7 @@ import { playPerf } from "../gfx/HD";
 import { addCensorBar } from "../gfx/Censor";
 import { playerKey, sanmikYee } from "../gfx/sanmikForm";
 import { WONK_MOANS, WONK_SHOUTS } from "../../content/finaleRoof";
+import { padHeld } from "../systems/padbinds";
 
 /**
  * THE GROUP WONK. The long, hard, shared version of WONK YOUR THANG (Wonk.ts), for the finale.
@@ -175,7 +176,7 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
           press();
         }
         const gp = pad();
-        const padNow = !!(gp && (gp.L1 || gp.A));
+        const padNow = !!(gp && (padHeld(gp, "burst") || padHeld(gp, "attack") || gp.A));
         if (padNow && !padWas) press();
         padWas = padNow;
         st.presses = st.presses.filter((x) => st.t - x < 1000);

@@ -1072,7 +1072,6 @@ function doc1(): Doc {
   d.items(extract("HubScene.ts", { method: "enterBuilding", match: "The Constabulary briefing room is packed" }));
   vignette(d, "crobley_presser");
   arc(d, "arc_pudding_spy", 3, { note: "Required before the Chapter 4 dungeon (available from Chapter 2; not for Lil' Crongus, who has his own version in document 2)." });
-  arc(d, "arc_hotel_chaz", 3, { note: "Required before the Chapter 4 dungeon (available from Chapter 3)." });
   d.h(3, "Dungeon: The Crobley Factory");
   d.when("The gate on the east edge of town.");
   dungeon(d, "crobley_factory", 4, { title: "" });
@@ -1448,7 +1447,7 @@ function doc4(): Doc {
   seq?.messages.forEach((m: string, i: number) => d.para(`[group chat] **${esc(who("DRONGUS"))}:** ${esc(m)} ${code(`drongusMessages.ts d_pub#${i}`)}`));
   d.h(2, "Story and side-quest scenes set in the Krezz Arms (cross-references)");
   const refs: string[] = [];
-  for (const a of ARCS) for (const st of a.steps) if (st.at === "PUB") refs.push(`${a.player === "ALL" ? "Side quest" : `${who(a.player)}'s story`} “${a.title}” — ${st.text} (${["arc_krunchers", "arc_polson_fit", "arc_crocodile", "arc_pudding_spy", "arc_hotel_chaz", "arc_50p", "arc_klerble"].includes(a.id) ? "document 1" : "document 2"})`);
+  for (const a of ARCS) for (const st of a.steps) if (st.at === "PUB") refs.push(`${a.player === "ALL" ? "Side quest" : `${who(a.player)}'s story`} “${a.title}” — ${st.text} (${["arc_krunchers", "arc_polson_fit", "arc_crocodile", "arc_pudding_spy", "arc_50p", "arc_klerble"].includes(a.id) ? "document 1" : "document 2"})`);
   refs.push("Chapter 5: SanMik's magic lamp in the back room (document 1)");
   for (const r of refs) d.para(`- ${esc(r)}`);
   return d;

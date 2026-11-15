@@ -129,7 +129,7 @@ describe("shared side quests", () => {
     const shared = () => currentArcSteps(s).filter((c) => c.arc.player === "ALL");
     expect(shared().length).toBe(0);
     s.chapter = 3;
-    expect(shared().map((c) => c.arc.id).sort()).toEqual(["arc_boggor", "arc_crocodile", "arc_hotel_chaz", "arc_krunchers", "arc_polson_fit", "arc_pudding_spy"]);
+    expect(shared().map((c) => c.arc.id).sort()).toEqual(["arc_boggor", "arc_crocodile", "arc_krunchers", "arc_polson_fit", "arc_pudding_spy"]);
   });
   it("collect steps finish when every token is picked up", () => {
     const s = newGameState("MIKEY");

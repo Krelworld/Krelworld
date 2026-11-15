@@ -1004,36 +1004,6 @@ export const ARCS: Arc[] = [
     ],
   },
   {
-    id: "arc_hotel_chaz",
-    player: "ALL",
-    minChapter: 3,
-    title: "Hotel Chaz",
-    blurb: "You need somewhere to crash. Polson has a sofa bed. Polson does not have a blanket.",
-    reward: { coins: 150, desc: "Polson owns a blanket. History. +150 Krezzcoin." },
-    steps: [
-      {
-        id: "stay",
-        text: "Crash at Hotel Chaz (Polson Road).",
-        at: "POLSON_ROAD",
-        step: {
-          kind: "dialogue",
-          lines: [],
-        },
-      },
-      {
-        id: "blanket",
-        text: "Buy Polson a blanket (and a pillow) at the Town Hall jumble sale. 40 Krezzcoin.",
-        at: "TOWN_HALL",
-        step: {
-          kind: "pay",
-          cost: 40,
-          intro: [],
-          success: [],
-        },
-      },
-    ],
-  },
-  {
     id: "arc_50p",
     player: "ALL",
     minChapter: 5,

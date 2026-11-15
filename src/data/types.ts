@@ -210,6 +210,10 @@ export interface Settings {
   pad?: Record<string, number[]>;
   /** Auto-aim (the Krezz-Assist upgrade, and touch aim assist). Default on; only false turns it off. */
   autoAim?: boolean;
+  /** Dialogue moves on by itself once the line has been read out. */
+  autoAdvance?: boolean;
+  /** Tone down full-screen flashes (photosensitivity). */
+  calmFlash?: boolean;
 }
 
 export interface MetaState {

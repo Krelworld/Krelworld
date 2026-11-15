@@ -57,7 +57,6 @@ export class TitleScene extends Phaser.Scene {
     if (has) items.push(["CONTINUE", () => continueRun(this) || undefined]);
     items.push(["NEW GAME", () => fadeThen(this, 200, () => switchTo(this, "CharSelect", { ngPlus: 0 }))]);
     if (G.meta.ngPlusUnlocked) items.push(["NEW KREZ+", () => fadeThen(this, 200, () => switchTo(this, "CharSelect", { ngPlus: 1 }))]);
-    items.push(["KRELWORLD MEDIA ARCHIVE (TV)", () => fadeThen(this, 200, () => switchTo(this, "TV", { fromTitle: true }))]);
     items.push(["HISTORICAL ARCHIVE", () => fadeThen(this, 200, () => switchTo(this, "Archive", { fromTitle: true }))]);
     items.push(["SETTINGS", () => this.scene.launch("Menu", { mode: "settings", caller: "Title" })]);
     items.forEach(([t, fn], i) => button(this, W / 2, 222 + i * 46, t, fn, { w: 320 }));

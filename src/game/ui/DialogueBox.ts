@@ -1,3 +1,4 @@
+import { logLine } from "./dialogueLog";
 import Phaser from "phaser";
 import type { ChoiceOption, Line, ReactionChoice } from "../../data/types";
 import { REACTION_EMOJI } from "../../data/types";
@@ -59,6 +60,9 @@ function mouthFor(ch: string): number {
   return 2;
 }
 
+/** Scenes whose dialogue box opens the pause menu on Esc (the overworld and dungeons have their own). */
+const PAUSABLE = new Set(["Meeting", "Vignette", "Cutscene"]);
+
 export class DialogueBox {
   private scene: Phaser.Scene;
   private root: Phaser.GameObjects.Container;
@@ -106,6 +110,15 @@ export class DialogueBox {
 
     this.keyHandler = (e: KeyboardEvent) => {
       if (!this.active) return;
+      // the pause menu is up over us: its keys aren't ours
+      if (this.scene.sys.isPaused() || this.scene.scene.isActive("Menu")) return;
+      // Esc in a cutscene or briefing pauses it (settings, dialogue log, quit) like everywhere else
+      if (e.key === "Escape" && PAUSABLE.has(this.scene.scene.key)) {
+        e.preventDefault();
+        this.scene.scene.launch("Menu", { mode: "pause", caller: this.scene.scene.key });
+        this.scene.scene.pause();
+        return;
+      }
       if (this.choiceHandler) {
         const n = parseInt(e.key, 10);
         if (!isNaN(n) && n >= 1 && n <= 9) {
@@ -125,7 +138,7 @@ export class DialogueBox {
       }
     };
     this.ptrHandler = (p: Phaser.Input.Pointer) => {
-      if (!this.active || this.choiceHandler) return;
+      if (!this.active || this.choiceHandler || this.scene.sys.isPaused()) return;
       if (p.rightButtonDown()) return;
       this.advance();
     };
@@ -243,7 +256,32 @@ export class DialogueBox {
       this.advanceResolve = res;
       if (this.skipping && !this.typing) {
         this.scene.time.delayedCall(30, () => this.advance());
+        return;
       }
+      if (G.meta.settings.autoAdvance) this.autoAdvanceWhenRead(res);
+    });
+  }
+
+  /** Auto mode: once the line is typed out and the voice has finished, give it a beat to land, then move on. */
+  private autoAdvanceWhenRead(res: () => void) {
+    let quietFor = 0;
+    const ev = this.scene.time.addEvent({
+      delay: 100,
+      loop: true,
+      callback: () => {
+        if (this.destroyed || this.advanceResolve !== res) return ev.remove();
+        if (this.typing || voice.busy()) {
+          quietFor = 0;
+          return;
+        }
+        quietFor += 100;
+        // silent lines (no recording) get reading time by length
+        const need = Math.max(900, Math.min(4000, this.fullText.length * 28));
+        if (quietFor >= (voice.enabled() ? 700 : need)) {
+          ev.remove();
+          this.advance();
+        }
+      },
     });
   }
 
@@ -540,6 +578,10 @@ export class DialogueBox {
     if (first) {
       opts.onLine?.(rl);
       this.speakLine(rl, shown.leadYees, shown.tailYees);
+      const whole = this.shownText(rl).text;
+      const face = faceOf(rl.s);
+      if (rl.dir || rl.s === "NARRATOR") logLine({ who: "", text: whole, dir: true });
+      else logLine({ who: face !== rl.s ? "SANMIK" : rl.speakerName || String(rl.s), text: whole, color: CHARACTERS[face]?.color ?? (face === "SANMIK" ? SANMIK_COLOR : undefined) });
     }
     if (rl.notify) {
       opts.onSpeaker?.(rl.s, rl);

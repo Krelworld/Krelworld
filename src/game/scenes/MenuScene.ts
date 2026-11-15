@@ -1,7 +1,8 @@
+import { dialogueLog } from "../ui/dialogueLog";
 import Phaser from "phaser";
 import { ACTIONS, bindKey, keyNameFromEvent, keysFor, prettyKey, resetKeys } from "../systems/keybinds";
 import { G } from "../G";
-import { button, FONT, PIXEL_BOLD, PIXEL_FONT, panel, title, UI } from "../ui/theme";
+import { button, FONT, hexStr, PIXEL_BOLD, PIXEL_FONT, panel, title, UI } from "../ui/theme";
 import { switchTo, currentStep } from "../Flow";
 import { synth } from "../audio/Synth";
 import { CHARACTERS } from "../../data/characters";
@@ -20,7 +21,7 @@ import { DialogueBox } from "../ui/DialogueBox";
 import { bindPad, btnDown, firstDown, PAD_DEFAULTS, PAD_FIXED, PAD_START, padFor, padLabel, resetPad } from "../systems/padbinds";
 import { say } from "../../content/dsl";
 
-type Mode = "pause" | "settings" | "bank" | "tribunal" | "death" | "quests" | "controls";
+type Mode = "pause" | "settings" | "bank" | "tribunal" | "death" | "quests" | "controls" | "log";
 
 // (the perks list lives with the rest of the armoury rules)
 export { BANK_PERKS };
@@ -46,6 +47,8 @@ export class MenuScene extends Phaser.Scene {
   private shop: ShopGrid | null = null;
   private bankSel: Partial<Record<BankTab, number>> = {};
   private mode: Mode = "pause";
+  private settingsTab: 0 | 1 = 0;
+  private logScroll = 0;
   private caller = "";
   private data0: any = {};
   private root!: Phaser.GameObjects.Container;
@@ -99,7 +102,7 @@ export class MenuScene extends Phaser.Scene {
       } else this.render(this.controlsFrom);
       return;
     }
-    if (this.mode === "settings" || this.mode === "quests") {
+    if (this.mode === "settings" || this.mode === "quests" || this.mode === "log") {
       // (from the title screen, settings is the whole menu)
       if (this.caller === "Title" && this.mode === "settings") this.close();
       else this.render("pause");
@@ -269,12 +272,13 @@ export class MenuScene extends Phaser.Scene {
         const items: [string, () => void][] = [
           ["RESUME", () => this.close()],
           ["QUESTS, FACTS & STATS", () => this.render("quests")],
+          ["DIALOGUE LOG", () => { this.logScroll = 0; this.render("log"); }],
           ["CONTROLS", () => this.openControls("pause")],
           ["SETTINGS", () => this.render("settings")],
         ];
         if (this.caller === "Hub") items.push(["SAVE GAME", () => this.saveNow()]);
         items.push(["QUIT TO TITLE (progress is autosaved)", () => this.quit()]);
-        items.forEach(([t, fn], i) => add(button(this, 480, 160 + i * 50, t, fn, { w: 380 })));
+        items.forEach(([t, fn], i) => add(button(this, 480, 150 + i * 46, t, fn, { w: 380 })));
         break;
       }
       case "controls": {
@@ -302,36 +306,82 @@ export class MenuScene extends Phaser.Scene {
         break;
       }
       case "settings": {
-        add(title(this, 480, 74, "SETTINGS", 28));
+        add(title(this, 480, 66, "SETTINGS", 28));
         const set = G.meta.settings;
-        const row = (y: number, label: string, get: () => string, dec: () => void, inc: () => void) => {
-          // (rows squeezed a touch to fit the auto-aim toggle)
-          y = 108 + ((y - 112) / 36) * 34;
-          add(this.add.text(220, y, label, { fontFamily: FONT, fontSize: "16px", color: "#ffffff" }).setOrigin(0, 0.5));
-          const val = this.add.text(600, y, get(), { fontFamily: FONT, fontSize: "16px", color: "#ffd23f" }).setOrigin(0.5);
+        // two tabs, so nothing's crammed: sound and voices / play, text and display
+        const tabs = ["SOUND & VOICES", "PLAY & DISPLAY"];
+        tabs.forEach((t, i) => add(button(this, 380 + i * 200, 104, t, () => { this.settingsTab = i as 0 | 1; this.render("settings"); }, { w: 190, h: 32, size: 14, color: this.settingsTab === i ? 0x7c3aed : undefined })));
+        let y = 152;
+        const row = (label: string, get: () => string, dec: () => void, inc: () => void) => {
+          add(this.add.text(200, y, label, { fontFamily: FONT, fontSize: "16px", color: "#ffffff" }).setOrigin(0, 0.5));
+          const val = this.add.text(620, y, get(), { fontFamily: FONT, fontSize: "16px", color: "#ffd23f" }).setOrigin(0.5);
           add(val);
-          add(button(this, 530, y, "−", () => { dec(); val.setText(get()); G.saveMeta(); }, { w: 40, h: 30 }));
-          add(button(this, 670, y, "+", () => { inc(); val.setText(get()); G.saveMeta(); synth.play("ding"); }, { w: 40, h: 30 }));
+          add(button(this, 545, y, "−", () => { dec(); val.setText(get()); G.saveMeta(); }, { w: 40, h: 30 }));
+          add(button(this, 695, y, "+", () => { inc(); val.setText(get()); G.saveMeta(); synth.play("ding"); }, { w: 40, h: 30 }));
+          y += 38;
         };
+        const toggle = (label: string, get: () => boolean, flip: () => void) => row(label, () => (get() ? "ON" : "OFF"), flip, flip);
         const pct = (v: number) => `${Math.round(v * 100)}%`;
         const clamp = (v: number) => Math.max(0, Math.min(1, Math.round(v * 10) / 10));
-        row(112, "Master volume", () => pct(set.master), () => (set.master = clamp(set.master - 0.1)), () => (set.master = clamp(set.master + 0.1)));
-        row(148, "Music volume", () => pct(set.music), () => (set.music = clamp(set.music - 0.1)), () => (set.music = clamp(set.music + 0.1)));
-        row(184, "SFX volume", () => pct(set.sfx), () => (set.sfx = clamp(set.sfx - 0.1)), () => (set.sfx = clamp(set.sfx + 0.1)));
-        row(220, "Text speed", () => `${set.textSpeed.toFixed(1)}x`, () => (set.textSpeed = Math.max(0.5, set.textSpeed - 0.5)), () => (set.textSpeed = Math.min(4, set.textSpeed + 0.5)));
-        row(256, "Screen shake", () => (set.shake ? "ON" : "OFF"), () => (set.shake = !set.shake), () => (set.shake = !set.shake));
-        row(292, "CRT effect (KrelTV)", () => (set.crt ? "ON" : "OFF"), () => (set.crt = !set.crt), () => (set.crt = !set.crt));
-        row(328, "Character voices", () => (set.voices !== false ? "ON" : "OFF"), () => (set.voices = set.voices === false), () => (set.voices = set.voices === false));
-        row(364, "Voice volume", () => pct(set.voiceVolume ?? 0.8), () => (set.voiceVolume = clamp((set.voiceVolume ?? 0.8) - 0.1)), () => (set.voiceVolume = clamp((set.voiceVolume ?? 0.8) + 0.1)));
-        row(400, "Voice speed", () => `${(set.voiceSpeed ?? 1.25).toFixed(2).replace(/0$/, "")}x`, () => (set.voiceSpeed = Math.max(0.8, Math.round(((set.voiceSpeed ?? 1.25) - 0.05) * 20) / 20)), () => (set.voiceSpeed = Math.min(2, Math.round(((set.voiceSpeed ?? 1.25) + 0.05) * 20) / 20)));
-        row(436, "Gore (blood & dismemberment)", () => (set.gore !== false ? "ON" : "OFF"), () => (set.gore = set.gore === false), () => (set.gore = set.gore === false));
-        // auto-aim: a toggle once you own Krezz-Assist (or on touch, where it's the aim assist); otherwise a pointer to the shop
-        const flipAim = () => (set.autoAim = set.autoAim === false);
-        if (s?.upgrades.pk_autoaim) row(472, "Auto-aim (Krezz-Assist)", () => (set.autoAim !== false ? "ON" : "OFF"), flipAim, flipAim);
-        else if (TOUCH.enabled) row(472, "Touch aim assist", () => (set.autoAim !== false ? "ON" : "OFF"), flipAim, flipAim);
-        else add(this.add.text(220, 448, "Auto-aim: buy Krezz-Assist at the Kreddle Exchange", { fontFamily: FONT, fontSize: "14px", color: "#6b6f82" }).setOrigin(0, 0.5));
-        add(button(this, 360, 495, "CONTROLS", () => this.openControls("settings"), { w: 180 }));
-        add(button(this, 600, 495, "◀ BACK", () => (this.caller === "Title" ? this.close() : this.render("pause")), { w: 180 }));
+        if (this.settingsTab === 0) {
+          row("Master volume", () => pct(set.master), () => (set.master = clamp(set.master - 0.1)), () => (set.master = clamp(set.master + 0.1)));
+          row("Music volume", () => pct(set.music), () => (set.music = clamp(set.music - 0.1)), () => (set.music = clamp(set.music + 0.1)));
+          row("SFX volume", () => pct(set.sfx), () => (set.sfx = clamp(set.sfx - 0.1)), () => (set.sfx = clamp(set.sfx + 0.1)));
+          toggle("Character voices", () => set.voices !== false, () => (set.voices = set.voices === false));
+          row("Voice volume", () => pct(set.voiceVolume ?? 0.8), () => (set.voiceVolume = clamp((set.voiceVolume ?? 0.8) - 0.1)), () => (set.voiceVolume = clamp((set.voiceVolume ?? 0.8) + 0.1)));
+          row("Voice speed", () => `${(set.voiceSpeed ?? 1.25).toFixed(2).replace(/0$/, "")}x`, () => (set.voiceSpeed = Math.max(0.8, Math.round(((set.voiceSpeed ?? 1.25) - 0.05) * 20) / 20)), () => (set.voiceSpeed = Math.min(2, Math.round(((set.voiceSpeed ?? 1.25) + 0.05) * 20) / 20)));
+        } else {
+          row("Text speed", () => `${set.textSpeed.toFixed(1)}x`, () => (set.textSpeed = Math.max(0.5, set.textSpeed - 0.5)), () => (set.textSpeed = Math.min(4, set.textSpeed + 0.5)));
+          toggle("Auto-advance dialogue", () => !!set.autoAdvance, () => (set.autoAdvance = !set.autoAdvance));
+          toggle("Screen shake", () => set.shake, () => (set.shake = !set.shake));
+          toggle("Reduce flashing", () => !!set.calmFlash, () => (set.calmFlash = !set.calmFlash));
+          toggle("CRT effect (KrelTV)", () => set.crt, () => (set.crt = !set.crt));
+          toggle("Gore (blood & dismemberment)", () => set.gore !== false, () => (set.gore = set.gore === false));
+          const fs = () => {
+            try {
+              this.scale.toggleFullscreen();
+            } catch {
+              /* the browser said no */
+            }
+          };
+          row("Fullscreen", () => (this.scale.isFullscreen ? "ON" : "OFF"), fs, fs);
+          // auto-aim: a toggle once you own Krezz-Assist (or on touch, where it's the aim assist); otherwise a pointer to the shop
+          const flipAim = () => (set.autoAim = set.autoAim === false);
+          if (s?.upgrades.pk_autoaim) toggle("Auto-aim (Krezz-Assist)", () => set.autoAim !== false, flipAim);
+          else if (TOUCH.enabled) toggle("Touch aim assist", () => set.autoAim !== false, flipAim);
+          else add(this.add.text(200, y, "Auto-aim: buy Krezz-Assist at the Kreddle Exchange", { fontFamily: FONT, fontSize: "14px", color: "#6b6f82" }).setOrigin(0, 0.5));
+        }
+        add(button(this, 360, 478, "CONTROLS", () => this.openControls("settings"), { w: 180 }));
+        add(button(this, 600, 478, "◀ BACK", () => (this.caller === "Title" ? this.close() : this.render("pause")), { w: 180 }));
+        break;
+      }
+      case "log": {
+        add(title(this, 480, 64, "DIALOGUE LOG", 24));
+        const all = dialogueLog();
+        if (!all.length) add(this.add.text(480, 260, "Nobody's said anything yet.", { fontFamily: FONT, fontSize: "16px", color: "#9aa0b4" }).setOrigin(0.5));
+        // newest at the bottom; scroll back with the wheel / arrows / buttons
+        const PER = 9;
+        const maxScroll = Math.max(0, all.length - PER);
+        this.logScroll = Math.max(0, Math.min(maxScroll, this.logScroll));
+        const end = all.length - this.logScroll;
+        const view = all.slice(Math.max(0, end - PER), end);
+        // newest at the bottom, stacked upwards until the panel is full
+        let ly = 444;
+        for (const e of [...view].reverse()) {
+          const t = this.add.text(e.dir ? 170 : 182, 0, e.text, { fontFamily: FONT, fontSize: "13px", color: e.dir ? "#b8bccb" : "#ffffff", fontStyle: e.dir ? "italic" : "normal", wordWrap: { width: 610 }, lineSpacing: 1 });
+          const top = ly - t.height - (e.dir ? 0 : 16);
+          if (top < 88) {
+            t.destroy();
+            break;
+          }
+          t.setY(ly - t.height);
+          add(t);
+          if (!e.dir) add(this.add.text(170, top, e.who, { fontFamily: FONT, fontSize: "12px", color: e.color !== undefined ? hexStr(e.color) : "#ffd23f", fontStyle: "bold" }));
+          ly = top - 8;
+        }
+        add(button(this, 300, 470, "▲ OLDER", () => { this.logScroll = Math.min(maxScroll, this.logScroll + 3); this.render("log"); }, { w: 150, h: 32, size: 14, disabled: this.logScroll >= maxScroll }));
+        add(button(this, 480, 470, "◀ BACK", () => this.render("pause"), { w: 170, h: 32, size: 14 }));
+        add(button(this, 660, 470, "NEWER ▼", () => { this.logScroll = Math.max(0, this.logScroll - 3); this.render("log"); }, { w: 150, h: 32, size: 14, disabled: this.logScroll <= 0 }));
         break;
       }
       case "quests": {

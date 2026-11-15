@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { bossAnims } from "../combat/Bosses";
 import { playerKey } from "../gfx/sanmikForm";
 import { sanmikActive } from "../systems/sanmik";
-import { backdrop } from "../gfx/HD";
+import { backdrop, charMeta } from "../gfx/HD";
 import { MEETINGS } from "../../content/meetings";
 import type { MeetingScript, SpeakerId } from "../../data/types";
 import { REACTION_EMOJI } from "../../data/types";
@@ -40,6 +40,9 @@ export class TownMeetingScene extends Phaser.Scene {
     this.seats = {};
     this.agendaTexts = [];
     this.lineCount = 0;
+    this.speaking = null;
+    this.platesDown = false;
+    this.talkBob = undefined;
     this.reactCounts = { LIKE: 0, LOVE: 0, LAUGH: 0, ANGRY: 0, SEEN: 0 };
     if (!m) {
       goNext(this, data.next);
@@ -163,7 +166,15 @@ export class TownMeetingScene extends Phaser.Scene {
         .setOrigin(0.5, 0)
         .setDepth(11 + y);
       this.seats[id] = { id, sprite: spr, plate, x, y };
+      // everyone breathes a little, out of step with each other
+      this.tweens.add({ targets: spr, scaleY: 2.46, duration: 1300 + Math.random() * 500, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: Math.random() * 1200 });
     });
+    // name plates: everyone's for a moment while you take the room in, then only whoever's talking
+    this.time.delayedCall(3200, () => {
+      this.platesDown = true;
+      for (const st of Object.values(this.seats)) if (st.id !== this.speaking) this.tweens.add({ targets: st.plate, alpha: 0, duration: 400 });
+    });
+    this.spot = this.add.ellipse(0, 0, 86, 26, 0xfff3c4, 0.22).setBlendMode(Phaser.BlendModes.ADD).setVisible(false);
     // Drongus: podium in person (prologue / archives), screen otherwise
     const drongusPresent = (m.attendees ?? []).includes("DRONGUS") || (m.historical && this.attendees(m).includes("DRONGUS"));
     if (drongusPresent) {
@@ -173,25 +184,54 @@ export class TownMeetingScene extends Phaser.Scene {
     }
   }
 
+  private speaking: string | null = null;
+  private platesDown = false;
+  private spot?: Phaser.GameObjects.Ellipse;
+  private talkBob?: Phaser.Tweens.Tween;
+
+  /** Whoever's talking: lit, bobbing, named; everyone else a touch dimmer and turned to look at them. */
   private highlight(sp: SpeakerId) {
     const fc = this.flashCast[sp as string];
     if (this.flash && fc) {
       this.tweens.add({ targets: fc, y: 342, yoyo: true, duration: 120 });
       return;
     }
-    for (const s of Object.values(this.seats)) {
-      s.sprite.clearTint();
-      s.sprite.setFrame(0);
-    }
     const seat = this.seats[sp as string];
+    this.speaking = seat ? seat.id : null;
+    this.talkBob?.stop();
+    this.talkBob = undefined;
+    for (const st of Object.values(this.seats)) {
+      st.sprite.y = st.y;
+      const meta = charMeta(this, st.sprite.texture.key);
+      if (st === seat) {
+        st.sprite.clearTint().setFlipX(false).setFrame(meta?.idle?.south ?? 0);
+        this.tweens.killTweensOf(st.plate);
+        st.plate.setAlpha(1);
+        continue;
+      }
+      // a tableful of listeners: dimmed if someone at the table has the floor, and looking at them
+      if (seat) st.sprite.setTint(0xa9a6bb);
+      else st.sprite.clearTint();
+      if (meta?.idle && seat && Math.abs(seat.x - st.x) > 30) {
+        const east = seat.x > st.x;
+        st.sprite.setFlipX(false).setFrame((east ? meta.idle.east : meta.idle.west ?? meta.idle.east) ?? 0);
+        if (east === false && meta.idle.west === undefined) st.sprite.setFlipX(true);
+      } else st.sprite.setFrame(meta?.idle?.south ?? 0);
+      if (st.plate.alpha > 0 && this.platesDown) this.tweens.add({ targets: st.plate, alpha: 0, duration: 250 });
+    }
     if (!seat) {
+      this.spot?.setVisible(false);
       if (sp === "DRONGUS") {
         this.tweens.add({ targets: this.screenText, alpha: 0.3, yoyo: true, duration: 120, repeat: 2 });
       }
       return;
     }
-    seat.sprite.setFrame(3);
-    this.tweens.add({ targets: seat.sprite, y: seat.y - 8, yoyo: true, duration: 120 });
+    this.spot?.setPosition(seat.x, seat.y + 30).setDepth(seat.sprite.depth - 1).setVisible(true);
+    // a little hop as they start, then a gentle talking bob
+    this.tweens.add({ targets: seat.sprite, y: seat.y - 8, yoyo: true, duration: 120, onComplete: () => {
+      if (this.speaking !== seat.id) return;
+      this.talkBob = this.tweens.add({ targets: seat.sprite, y: seat.y - 2, yoyo: true, repeat: -1, duration: 180, ease: "Sine.inOut" });
+    } });
   }
 
   private onLine(text: string, notify?: boolean, speaker?: string) {

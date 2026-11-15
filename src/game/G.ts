@@ -98,11 +98,16 @@ class GameContext {
   drongus(trigger: string) {
     if (!this._state) return;
     const s = this._state;
+    // ambient chatter (walking round town, the pub, the telly, standing still) is rationed: Drongus pipes up every few
+    // minutes at most, like a witch's rhyme. Story moments (bosses, dungeons, Krazy Facts) always come through.
+    const ambient = ["hub", "idle", "tv", "pub", "archive"].includes(trigger);
+    if (ambient && !G_canDrongus()) return;
     for (const seq of DRONGUS_SEQUENCES) {
       if (seq.trigger !== trigger) continue;
       if (!seq.repeat && s.flags[`dseq_${seq.id}`]) continue;
       if (!evalCond(seq.cond, s)) continue;
       s.flags[`dseq_${seq.id}`] = true;
+      if (ambient) G_drongusSpoke();
       seq.messages.forEach((m, i) => {
         window.setTimeout(() => this.emit("ping", { from: "DRONGUS", text: m }), 900 + i * 1700);
       });
@@ -123,3 +128,15 @@ class GameContext {
 }
 
 export const G = new GameContext();
+
+/** When Drongus last chimed in unprompted (a status, or an ambient Messenger burst), shared by both. */
+let lastDrongusAt = -Infinity;
+let drongusGap = 150000;
+/** Has it been long enough (2.5–4 minutes) since Drongus last chimed in? */
+export function G_canDrongus() {
+  return Date.now() - lastDrongusAt > drongusGap;
+}
+export function G_drongusSpoke() {
+  lastDrongusAt = Date.now();
+  drongusGap = 150000 + Math.random() * 90000;
+}

@@ -2,7 +2,7 @@ import { keysFor, prettyKey } from "../systems/keybinds";
 import { currentGun, ownedGuns, gunMax } from "../combat/Guns";
 import { fartLevel, fartMeter } from "../combat/Farts";
 import Phaser from "phaser";
-import { G } from "../G";
+import { G, G_canDrongus, G_drongusSpoke } from "../G";
 import { maxHp, maxKrezz, maxBottles, intoxLabel } from "../systems/stats";
 import { FONT, UI } from "../ui/theme";
 import { portraitKey } from "../gfx/Textures";
@@ -80,8 +80,9 @@ export class UIScene extends Phaser.Scene {
       delay: 1000,
       loop: true,
       callback: () => {
-        if (!DRONGUS_STATUSES.length || !G.s.flags.met_emergency || Date.now() < G.rt.nextStatusAt) return;
-        G.rt.nextStatusAt = Date.now() + 100000 + Math.random() * 110000;
+        if (!DRONGUS_STATUSES.length || !G.s.flags.met_emergency || Date.now() < G.rt.nextStatusAt || !G_canDrongus()) return;
+        G.rt.nextStatusAt = Date.now() + 180000 + Math.random() * 120000;
+        G_drongusSpoke();
         if (!G.rt.statusDeck.length) G.rt.statusDeck = Phaser.Utils.Array.Shuffle(DRONGUS_STATUSES.flatMap((st, i) => (st.top ? [i, i] : [i])));
         const st = DRONGUS_STATUSES[G.rt.statusDeck.pop()!];
         this.onEvent("fbstatus", { text: st.t, year: st.y });

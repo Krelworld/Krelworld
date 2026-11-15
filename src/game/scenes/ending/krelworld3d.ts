@@ -201,6 +201,9 @@ class Actor {
   lying = 0;
   phase = Math.random() * 10;
   height = 1.8;
+  /** Right hand reaches for a world point (blended over the animation by w): the unzip. */
+  reach: { target: T3.Vector3; w: number } | null = null;
+  private boneCache: Record<string, T3.Object3D | null> = {};
 
   constructor(readonly id: string) {}
 
@@ -209,7 +212,7 @@ class Actor {
     this.poseT = 0;
     if (!this.mixer) return;
     const name = p === "talk" ? "idle" : p === "drink" ? (this.clips.drink ? "drink" : "idle") : p;
-    const clip = this.clips[name] ?? (p === "lie" ? this.clips.fall : undefined) ?? (p === "walk" ? this.clips.run : undefined) ?? this.clips.idle;
+    const clip = this.clips[name] ?? (p === "lie" ? this.clips.fall : undefined) ?? (p === "walk" ? this.clips.run : undefined) ?? (p === "run" ? this.clips.walk : undefined) ?? this.clips.idle;
     if (!clip) return;
     const a = this.mixer.clipAction(clip);
     const once = p === "getup" || p === "lie" || p === "jump";
@@ -217,6 +220,7 @@ class Actor {
     a.setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat, Infinity);
     a.clampWhenFinished = once;
     if (p === "walk" && !this.clips.walk) a.timeScale = 0.55;
+    else if (p === "run" && !this.clips.run) a.timeScale = 1.9; // a walk played fast reads as a jog
     else a.timeScale = 1;
     if (this.action && this.action !== a) a.crossFadeFrom(this.action, fade, false);
     a.play();
@@ -231,6 +235,7 @@ class Actor {
   update(dt: number) {
     this.poseT += dt;
     this.mixer?.update(dt);
+    this.solveReach();
     // lying down without a clip: tip the whole model over (and back up again)
     if (this.pose === "lie" && !this.has("fall")) this.lying = Math.min(1, this.lying + dt * 6);
     else this.lying = Math.max(0, this.lying - dt / (this.pose === "getup" ? 0.9 : 0.3));
@@ -301,6 +306,53 @@ class Actor {
     f.head.rotation.y = headTilt;
     if (this.pose === "drink") f.head.rotation.x = headTilt;
     else f.head.rotation.x = 0;
+  }
+
+  bone(name: string) {
+    if (!(name in this.boneCache)) this.boneCache[name] = this.model?.getObjectByName(name) ?? null;
+    return this.boneCache[name];
+  }
+
+  /** Two-bone CCD: bend RightArm + RightForeArm so RightHand lands on reach.target, then blend by reach.w. */
+  private solveReach() {
+    const r = this.reach;
+    if (!r || r.w <= 0.001 || !this.mixer) return;
+    const hand = this.bone("RightHand");
+    const chain = [this.bone("RightForeArm"), this.bone("RightArm")];
+    if (!hand || !chain[0] || !chain[1]) return;
+    const bones = chain as T3.Object3D[];
+    const saved = bones.map((b) => b.quaternion.clone());
+    this.root.updateMatrixWorld(true);
+    const hp = new THREE.Vector3(), bp = new THREE.Vector3(), tp = new THREE.Vector3();
+    const q = new THREE.Quaternion(), wq = new THREE.Quaternion(), pq = new THREE.Quaternion();
+    for (let it = 0; it < 10; it++) {
+      for (const b of bones) {
+        hand.getWorldPosition(hp);
+        b.getWorldPosition(bp);
+        const from = hp.sub(bp).normalize();
+        const to = tp.copy(r.target).sub(bp).normalize();
+        q.setFromUnitVectors(from, to);
+        b.getWorldQuaternion(wq);
+        b.parent!.getWorldQuaternion(pq);
+        b.quaternion.copy(pq.invert().multiply(q.multiply(wq)));
+        b.updateMatrixWorld(true);
+      }
+    }
+    const w = Math.min(1, r.w);
+    bones.forEach((b, i) => {
+      const solved = b.quaternion.clone();
+      b.quaternion.copy(saved[i]).slerp(solved, w);
+    });
+  }
+
+  /** A point on the body in world space: up = metres above the feet, fwd = metres in front. */
+  bodyPoint(up: number, fwd: number, side = 0, out = new THREE.Vector3()) {
+    const ry = this.root.rotation.y;
+    return out.set(
+      this.root.position.x + Math.sin(ry) * fwd - Math.cos(ry) * side,
+      this.root.position.y + up,
+      this.root.position.z + Math.cos(ry) * fwd + Math.sin(ry) * side,
+    );
   }
 
   faceTo(x: number, z: number) {
@@ -1026,8 +1078,19 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   await speak(K3_LUKE[0]);
   await speak(K3_LUKE[1]);
   luke.play("run");
-  void moveTo(luke, tapInfo.abandoned.x + 2, tapInfo.abandoned.z - 12, 7);
-  await camTo([luke.root.position.x + 4, 2, luke.root.position.z + 6], [tapInfo.abandoned.x, 6, tapInfo.abandoned.z], 2600);
+  // tracking shot: low and just behind his shoulder as he legs it, the house growing ahead of him
+  const lukeGo = moveTo(luke, tapInfo.abandoned.x + 2, tapInfo.abandoned.z - 12, 6.5);
+  shotTok++;
+  const fp = new THREE.Vector3(), fl = new THREE.Vector3();
+  camState.follow = () => {
+    const p = luke.root.position;
+    const ry = luke.root.rotation.y;
+    fp.set(p.x - Math.sin(ry) * 4.2 + Math.cos(ry) * 1.2, 2.1, p.z - Math.cos(ry) * 4.2 - Math.sin(ry) * 1.2);
+    fl.set(p.x + Math.sin(ry) * 6, 1.6, p.z + Math.cos(ry) * 6);
+    return [fp, fl];
+  };
+  await Promise.race([lukeGo, wait(2400)]);
+  await camTo([luke.root.position.x + 4, 2, luke.root.position.z + 6], [tapInfo.abandoned.x, 6, tapInfo.abandoned.z], 1400);
   caption("THE BREAD AND BUTTER PUDDING HOUSE", 2400);
   await wait(1800);
 
@@ -1136,11 +1199,42 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   // down to the jeans
   const hip = kz.height * 0.5;
   await camTo([kh.x, hip + 0.05, kh.z + 0.95], [kh.x, hip, kh.z], 1100);
+  // hand to the fly, grab the zip, pull it down (a little silver tab rides down with his fingers)
+  kz.play("idle");
+  const flyTop = kz.height * 0.53, flyBot = kz.height * 0.44, fwd = kz.height * 0.1;
+  kz.reach = { target: kz.bodyPoint(flyTop, fwd + 0.05), w: 0 };
+  const tab = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.04, 0.008), new THREE.MeshStandardMaterial({ color: 0xd8dde3, metalness: 0.9, roughness: 0.25 }));
+  tab.position.copy(kz.bodyPoint(flyTop, fwd));
+  tab.rotation.y = kz.root.rotation.y;
+  s3.add(tab);
+  const over = (ms: number, f: (u: number) => void) =>
+    new Promise<void>((res) => {
+      const t0 = clk.now();
+      const step = () => {
+        const u = skipped ? 1 : Math.min(1, (clk.now() - t0) / ms);
+        f(u);
+        if (u >= 1) res();
+        else clk.frame(step);
+      };
+      step();
+    });
+  await over(450, (u) => (kz.reach!.w = ease.inOut(u)));
+  kz.reach.target = kz.bodyPoint(flyTop, fwd);
+  await wait(150);
   synth.play("zip_down");
-  const bar = mk({ left: "41%", width: "18%", top: "46%", height: "9%", background: "#000", opacity: "0", transition: "opacity 0.3s" });
-  clk.after(() => (bar.style.opacity = "1"), 600);
-  await wait(1300);
+  await over(520, (u) => {
+    const y = flyTop + (flyBot - flyTop) * ease.inOut(u);
+    kz.reach!.target = kz.bodyPoint(y, fwd);
+    tab.position.copy(kz.bodyPoint(y - 0.02, fwd));
+  });
+  const bar = mk({ left: "38%", width: "24%", top: "44%", height: "14%", background: "#000", opacity: "0", transition: "opacity 0.15s" });
+  bar.style.opacity = "1";
+  await wait(250);
+  await over(400, (u) => (kz.reach!.w = 1 - ease.inOut(u)));
+  kz.reach = null;
+  await wait(500);
   bar.remove();
+  s3.remove(tab);
   await camTo([kh.x, kh.y - 0.02, kh.z + 0.58], [kh.x, kh.y - 0.04, kh.z], 700);
   await speak(K3_KREZMAR[1], 1400);
 

@@ -452,7 +452,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   const SKY = 0x9fd3ff;
   s3.background = skyTexture();
   s3.fog = new THREE.Fog(0xd8e9fb, 140, 760);
-  const cam = new THREE.PerspectiveCamera(55, size(), 0.1, 2400);
+  const cam = new THREE.PerspectiveCamera(55, size(), 0.15, 2400);
   const onResize = () => {
     cam.aspect = size();
     cam.updateProjectionMatrix();
@@ -1049,7 +1049,8 @@ function buildGround(s3: T3.Scene, L: Loaded) {
   grass.wrapS = grass.wrapT = THREE.RepeatWrapping;
   grass.repeat.set(120, 120);
   grass.anisotropy = 8;
-  const g = new THREE.Mesh(new THREE.PlaneGeometry(1600, 1600), new THREE.MeshStandardMaterial({ map: grass, roughness: 0.95 }));
+  const g = new THREE.Mesh(new THREE.PlaneGeometry(1600, 1600), new THREE.MeshStandardMaterial({ map: grass, roughness: 0.95, depthWrite: false }));
+  g.renderOrder = -10;
   g.rotation.x = -Math.PI / 2;
   g.receiveShadow = true;
   s3.add(g);
@@ -1070,7 +1071,8 @@ function buildGround(s3: T3.Scene, L: Loaded) {
   cob.wrapS = cob.wrapT = THREE.RepeatWrapping;
   cob.repeat.set(9, 9);
   cob.anisotropy = 8;
-  const p = new THREE.Mesh(new THREE.CircleGeometry(30, 64), new THREE.MeshStandardMaterial({ map: cob, roughness: 0.8 }));
+  const p = new THREE.Mesh(new THREE.CircleGeometry(30, 64), new THREE.MeshStandardMaterial({ map: cob, roughness: 0.8, depthWrite: false }));
+  p.renderOrder = -8;
   p.rotation.x = -Math.PI / 2;
   p.position.y = 0.02;
   p.receiveShadow = true;
@@ -1368,9 +1370,10 @@ function tweenScale(o: T3.Object3D, to: number, ms: number) {
 type Path = T3.Vector3[];
 
 function buildRoads(s3: T3.Scene) {
-  const roadMat = new THREE.MeshLambertMaterial({ color: 0x3a3d42 });
-  const lineMat = new THREE.MeshBasicMaterial({ color: 0xf2f2f2 });
-  const paveMat = new THREE.MeshLambertMaterial({ color: 0xa8a29a });
+  // the flat ground is painted bottom-up (grass, paving, plaza, road, markings) without depth, so layers never flicker
+  const roadMat = new THREE.MeshLambertMaterial({ color: 0x3a3d42, depthWrite: false });
+  const lineMat = new THREE.MeshBasicMaterial({ color: 0xf2f2f2, depthWrite: false });
+  const paveMat = new THREE.MeshLambertMaterial({ color: 0xa8a29a, depthWrite: false });
   const strip = (x1: number, z1: number, x2: number, z2: number, w: number) => {
     const len = Math.hypot(x2 - x1, z2 - z1);
     const ang = Math.atan2(x2 - x1, z2 - z1);
@@ -1378,16 +1381,19 @@ function buildRoads(s3: T3.Scene) {
     pave.rotation.set(-Math.PI / 2, 0, ang);
     pave.position.set((x1 + x2) / 2, 0.025, (z1 + z2) / 2);
     pave.receiveShadow = true;
+    pave.renderOrder = -9;
     s3.add(pave);
     const r = new THREE.Mesh(new THREE.PlaneGeometry(w, len + w), roadMat);
     r.rotation.set(-Math.PI / 2, 0, ang);
     r.position.set((x1 + x2) / 2, 0.04, (z1 + z2) / 2);
     r.receiveShadow = true;
+    r.renderOrder = -7;
     s3.add(r);
     for (let k = 0; k < len; k += 6) {
       const d = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 2.6), lineMat);
       d.rotation.set(-Math.PI / 2, 0, ang);
       d.position.set(x1 + ((x2 - x1) * k) / len, 0.05, z1 + ((z2 - z1) * k) / len);
+      d.renderOrder = -6;
       s3.add(d);
     }
   };

@@ -40,6 +40,8 @@ export function speakable(text: string, keepTags = false) {
     .replace(/\([^)]*\)/g, " ")
     .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, " ")
     .replace(/[#@]/g, "")
+    // chat shorthand stays on screen but gets said in full
+    .replace(/\bwbu\b/gi, (m) => (m[0] === "W" ? "What about you" : "what about you"))
     .replace(/\?\?+/g, "?")
     .replace(/!!+/g, "!")
     .replace(/…/g, "... ")

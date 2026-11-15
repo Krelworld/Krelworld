@@ -929,8 +929,8 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
       plane.add(eng);
     }
     // from screen-right as the camera looks up the tower, so it crosses the shot before it hits
-    const from = new THREE.Vector3(45 + 0.85 * 170, 196, 40 + 0.53 * 170);
-    plane.scale.setScalar(1.7);
+    const from = new THREE.Vector3(45 + 0.85 * 230, 200, 40 + 0.53 * 230);
+    plane.scale.setScalar(3.4);
     plane.position.copy(from);
     plane.lookAt(top);
     plane.visible = false;
@@ -947,7 +947,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
         synth.play("explode");
         shake(0.08);
         // kept small: a pop and a wisp, not a moment
-        burst(top, 55, () => [0xfff1a8, 0xffb347, 0xff6a2a, 0xffd23f][Math.floor(Math.random() * 4)], { speed: 22, up: 8, size: 9, life: 1.0, grav: 4, additive: true });
+        burst(top, 55, () => [0xfff1a8, 0xffb347, 0xff6a2a, 0xffd23f][Math.floor(Math.random() * 4)], { speed: 28, up: 10, size: 13, life: 1.1, grav: 4, additive: true });
         burst(top, 14, () => [0x7a4a2a, 0xc97b3d, 0x3f3f46][Math.floor(Math.random() * 3)], { speed: 16, up: 10, size: 2.6, life: 2.2, grav: 30 });
         burst(top, 8, 0x52525b, { speed: 3, up: 3, size: 7, life: 2, grav: -1, grow: 1.3 });
         const smoke = clk.every(() => burst(top.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, 3, (Math.random() - 0.5) * 3)), 1, 0x6b7280, { speed: 0.8, up: 3, size: 4.5, life: 2.5, grav: -1, grow: 1.4 }), 450);

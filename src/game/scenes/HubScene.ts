@@ -330,6 +330,8 @@ export class HubScene extends Phaser.Scene {
     // headroom above the map so the top of Da Drongus Dungeon fits on screen
     this.cameras.main.setBounds(0, -SKY_H, WORLD_W, WORLD_H + SKY_H);
     this.cameras.main.startFollow(this.av, true, 0.12, 0.12);
+    // a soft vignette frames the town and pulls the eye to the middle
+    Juice.vignette(this, 0x0b0614, 0.32, 3990);
     this.beatup = new Beatup(this, BUILDINGS.filter((b) => b.door).map((b) => ({ x: b.door!.x, y: b.door!.y + 30, name: b.name })));
     this.events.once("shutdown", () => this.beatup?.destroy());
     this.prompt = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#000000cc", padding: { x: 6, y: 3 } }).setOrigin(0.5).setDepth(5000).setVisible(false);

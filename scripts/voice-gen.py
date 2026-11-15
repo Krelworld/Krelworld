@@ -30,6 +30,8 @@ SETTINGS = {
     V2: {"stability": 0.4, "similarity_boost": 0.8, "style": 0.0, "use_speaker_boost": True, "speed": 1.06},
     V3: {"stability": 0.5, "similarity_boost": 0.8, "speed": 1.1},
 }
+# v2 for a line with a mood (clone_v2_always): looser and more expressive, still close to the real voice
+SETTINGS_V2_MOOD = {"stability": 0.3, "similarity_boost": 0.9, "style": 0.4, "use_speaker_boost": True, "speed": 1.06}
 US = "strong American accent"
 
 # Loudness every clip is packed at: integrated LUFS (EBU R128) and a true-peak ceiling. Changing it re-encodes the
@@ -134,6 +136,13 @@ def plan(l, c):
     inline = [m for m in TAG.findall(t)]
     explicit = [m.strip() for m in (l.get("m") or "").split(",") if m.strip()]
     from_text = [] if (explicit or inline) else auto_tags(l.get("raw", t), t)
+    # Lads cloned from their own voices keep their likeness (and their own accent) far better on v2 than on v3,
+    # which also needs an accent tag to stop it drifting and then drifts regional instead. These are always
+    # recorded on v2: no audio tags, and a mood just gives the delivery more range.
+    if kind == "clone" and not accent and base in CAST.get("clone_v2_always", []):
+        clean = TAG.sub("", t).strip()
+        moody = bool(explicit or inline or from_text or CAST.get("delivery", {}).get(l["s"]))
+        return V2, clean, (SETTINGS_V2_MOOD if moody else SETTINGS[V2]), []
     v2_ok = kind == "clone" and not accent and base in CAST.get("v2_neutral", [])
     tags = explicit or from_text
     if not explicit and not inline and not from_text and not v2_ok:

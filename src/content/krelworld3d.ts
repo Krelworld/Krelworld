@@ -26,7 +26,10 @@ export const K3_BENN: Line[] = [
 export const K3_MIKEY: Line[] = [say("MIKEY", "Yee yee YEEE! You FUCKING CUNTSS!", { mood: "shouting, crazy" })];
 export const K3_SANMIK: Line[] = [say("SANMIK", "YEEEEE! SanMik in tha building! Brap brap!", { mood: "shouting, crazy" })];
 
-export const K3_LUKE: Line[] = [say("CRONGUS", "The bread and butter house is real!! I need it!", { mood: "excited, overjoyed" })];
+export const K3_LUKE: Line[] = [
+  say("CRONGUS", "The bread and butter pudding house is real!! I need it!", { mood: "excited, overjoyed" }),
+  say("CRONGUS", "Me want bread and butter pudding!!", { mood: "excited, desperate" }),
+];
 
 /** Everyone left dancing chants it together (played on top of each other). */
 export const K3_CHANT: Line[] = (["SCROMBUS", "FLENKY", "KREBLIS", "KREZWONK", "POLSON"] as const).map((id) => say(id, "Krel world! Do the krel dance!", { mood: "chanting" }));

@@ -587,5 +587,17 @@
   },
   "clone_accents": {
     "_doc": "Accent tag added to cloned voices on eleven_v3 (mood lines), which otherwise drift American. Default 'British accent'."
-  }
+  },
+  "clone_v2_always": [
+    "MIKEY",
+    "SANMIK",
+    "POLSON",
+    "FLENKY",
+    "KREBLIS",
+    "KREZWONK",
+    "KREZMAR",
+    "KREBON",
+    "CRONGUS",
+    "GRONNY"
+  ]
 }

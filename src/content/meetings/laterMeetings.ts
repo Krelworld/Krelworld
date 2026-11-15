@@ -59,9 +59,9 @@ export const FRAGMAR_BRIEFING: MeetingScript = {
     say("POLSON", "I'm tipping it into the grinder!"),
     say("MIKEY", "There's no grinder."),
     say("POLSON", "…every house has a grinder?"),
-    dir("Not this one. Drongus and Mikey are on the floor.", { fx: "hop:MIKEY" }),
+    dir("Not this one. Drongus and Mikey are on the floor.", { fx: "hop:MIKEY", variants: { MIKEY: "Not this one. You and Drongus are on the floor." } }),
     // ---- the crisps
-    dir("FLASHBACK. Polson's house. Mikey has cycled to the shop and bought crisps and chocolate for the two of them.", { fx: "flash:crisps" }),
+    dir("FLASHBACK. Polson's house. Mikey has cycled to the shop and bought crisps and chocolate for the two of them.", { fx: "flash:crisps", variants: { MIKEY: "FLASHBACK. Polson's house. You've cycled to the shop and bought crisps and chocolate for the two of you." } }),
     say("MIKEY", "Right. Just nipping to the loo.", { fx: "exit:MIKEY" }),
     dir("Ten minutes later.", { fx: "enter:MIKEY" }),
     say("POLSON", "Oh mate I'm really sorry. I've almost finished the crisps 😅"),

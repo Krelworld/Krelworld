@@ -19,6 +19,8 @@ import { K3_BENN, K3_CHANT, K3_KREZMAR, K3_LAND, K3_LUKE, K3_MIKEY, K3_POLSON, K
  */
 
 let THREE: typeof T3;
+/** Set per run: denser crowds and more street detail on capable devices. */
+let HQ_WORLD = true;
 
 // ------------------------------------------------------------------ assets
 
@@ -404,9 +406,15 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   window.clearTimeout(slow);
   loading.remove();
 
+  // ---- how much this device can take: full effects on a decent computer, a lighter mode on phones and
+  // small machines (and if frames start to drag, it drops down mid-scene)
+  const capture = !!(window as unknown as { __k3capture?: boolean }).__k3capture;
+  const coarse = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+  const smallScreen = Math.min(screen.width, screen.height) < 700;
+  let HQ = capture || !(coarse || smallScreen || (navigator.hardwareConcurrency || 4) <= 4);
   // ---- renderer: full resolution, anti-aliased, filmic tone mapping, soft shadows
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, HQ ? 2 : 1.25));
   const size = () => {
     const w = Math.max(1, wrap.clientWidth);
     const h = Math.max(1, wrap.clientHeight);
@@ -453,11 +461,81 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   s3.background = skyTexture();
   s3.fog = new THREE.Fog(0xd8e9fb, 140, 760);
   const cam = new THREE.PerspectiveCamera(55, size(), 0.15, 2400);
+  s3.userData.cam = cam;
   const onResize = () => {
     cam.aspect = size();
     cam.updateProjectionMatrix();
   };
   window.addEventListener("resize", onResize);
+  // ---- post-processing: ambient occlusion (things sit in the world), a soft glow on bright bits, depth of field
+  // on close-ups, a light colour grade and vignette
+  const [{ EffectComposer }, { RenderPass }, { UnrealBloomPass }, { OutputPass }, { BokehPass }, { ShaderPass }, { GTAOPass }] = await Promise.all([
+    import("three/examples/jsm/postprocessing/EffectComposer.js"),
+    import("three/examples/jsm/postprocessing/RenderPass.js"),
+    import("three/examples/jsm/postprocessing/UnrealBloomPass.js"),
+    import("three/examples/jsm/postprocessing/OutputPass.js"),
+    import("three/examples/jsm/postprocessing/BokehPass.js"),
+    import("three/examples/jsm/postprocessing/ShaderPass.js"),
+    import("three/examples/jsm/postprocessing/GTAOPass.js"),
+  ]);
+  const cw = () => Math.max(1, wrap.clientWidth);
+  const ch = () => Math.max(1, wrap.clientHeight);
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(s3, cam));
+  const gtao = new GTAOPass(s3, cam, cw(), ch());
+  gtao.enabled = HQ;
+  composer.addPass(gtao);
+  // one invalid pixel anywhere (NaN/inf from a shader) would be blurred across the whole screen by the glow
+  // and black it out: clean those up and cap extreme highlights first
+  composer.addPass(
+    new ShaderPass({
+      uniforms: { tDiffuse: { value: null } },
+      vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+      fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+        void main(){ vec4 c = texture2D(tDiffuse, vUv);
+          if (!(c.r == c.r) || !(c.g == c.g) || !(c.b == c.b) || c.r > 65000.0 || c.g > 65000.0 || c.b > 65000.0) c = vec4(0.0, 0.0, 0.0, 1.0);
+          gl_FragColor = vec4(min(c.rgb, vec3(16.0)), c.a); }`,
+    }),
+  );
+  const bloom = new UnrealBloomPass(new THREE.Vector2(cw(), ch()), 0.32, 0.55, 0.88);
+  // the glow needs floating-point render targets; without them it blacks the screen out, so only where supported
+  const ext = renderer.extensions;
+  bloom.enabled = ext.has("EXT_color_buffer_float") || ext.has("EXT_color_buffer_half_float");
+  composer.addPass(bloom);
+  const bokeh = new BokehPass(s3, cam, { focus: 3, aperture: 0.0035, maxblur: 0.009 });
+  bokeh.enabled = false;
+  composer.addPass(bokeh);
+  const grade = new ShaderPass({
+    uniforms: { tDiffuse: { value: null }, sat: { value: 1.12 }, vig: { value: 0.32 } },
+    vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+    fragmentShader: `uniform sampler2D tDiffuse; uniform float sat; uniform float vig; varying vec2 vUv;
+      void main(){ vec4 c = texture2D(tDiffuse, vUv); float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+      c.rgb = mix(vec3(l), c.rgb, sat); float d = distance(vUv, vec2(0.5)); c.rgb *= 1.0 - vig * smoothstep(0.35, 0.85, d);
+      gl_FragColor = c; }`,
+  });
+  composer.addPass(grade);
+  composer.addPass(new OutputPass());
+  const sizeComposer = () => {
+    composer.setPixelRatio(renderer.getPixelRatio());
+    composer.setSize(cw(), ch());
+  };
+  sizeComposer();
+  window.addEventListener("resize", sizeComposer);
+  (window as unknown as { __k3fx?: unknown }).__k3fx = { gtao, bloom, bokeh, grade, composer };
+  /** Depth of field on a close-up (focus distance in metres), or off. */
+  const dof = (dist: number | null) => {
+    bokeh.enabled = HQ && dist !== null;
+    if (dist !== null) (bokeh.uniforms as Record<string, { value: number }>).focus.value = dist;
+  };
+  /** Drop to the light mode (a device that can't keep up). */
+  const lighten = () => {
+    if (!HQ) return;
+    HQ = false;
+    gtao.enabled = false;
+    bokeh.enabled = false;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
+    sizeComposer();
+  };
   // image-based light so the models' materials pick up proper highlights and soft fill
   const { RoomEnvironment } = await import("three/examples/jsm/environments/RoomEnvironment.js");
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -467,16 +545,20 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   const sun = new THREE.DirectionalLight(0xfff0d8, 2.6);
   sun.position.set(-80, 140, 60);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.set(HQ ? 4096 : 2048, HQ ? 4096 : 2048);
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.04;
   sun.shadow.radius = 3;
-  Object.assign(sun.shadow.camera, { left: -110, right: 110, top: 110, bottom: -110, near: 10, far: 420 });
+  Object.assign(sun.shadow.camera, { left: -80, right: 80, top: 80, bottom: -80, near: 10, far: 420 });
   s3.add(sun);
+  s3.add(sun.target);
+  // the shadow box follows whatever the camera is looking at, so shadows stay crisp wherever we are
+  const sunOffset = new THREE.Vector3(-80, 140, 60);
   void SKY;
 
   const updaters: ((dt: number, t: number) => void)[] = [];
   const actors: Actor[] = [];
+  HQ_WORLD = HQ;
   buildGround(s3, L);
   const tapInfo = buildLandmarks(s3, L, updaters);
   const { carPaths, sidewalkPaths } = buildRoads(s3);
@@ -550,6 +632,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   let shotTok = 0;
   const camTo = (pos: [number, number, number], look: [number, number, number], ms: number, e = ease.inOut) => {
     const my = ++shotTok;
+    dof(null);
     camState.follow = null;
     const p0 = camState.pos.clone();
     const l0 = camState.look.clone();
@@ -601,8 +684,10 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
       camState.shake *= Math.pow(0.02, dt);
     }
     cam.lookAt(camState.look);
+    sun.target.position.set(camState.look.x, 0, camState.look.z);
+    sun.position.copy(sun.target.position).add(sunOffset);
     // a recorder resuming a render fast-forwards without drawing
-    if (!(window as unknown as { __k3noRender?: boolean }).__k3noRender) renderer.render(s3, cam);
+    if (!(window as unknown as { __k3noRender?: boolean }).__k3noRender) composer.render(dt);
     clk.frame(frame);
   };
   clk.frame(frame);
@@ -613,9 +698,14 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   if (W2.__k3capture) W2.__k3step = (ms: number) => clk.advance(ms);
   else {
     let prev = performance.now();
+    let slowMs = 0;
     const drive = (now: number) => {
       if (!alive) return;
-      clk.advance(Math.min(100, Math.max(0, now - prev)));
+      const step = Math.max(0, now - prev);
+      // two seconds of under ~22 fps: lighten up
+      slowMs = step > 45 ? slowMs + step : Math.max(0, slowMs - step * 0.5);
+      if (slowMs > 2000) lighten();
+      clk.advance(Math.min(100, step));
       prev = now;
       requestAnimationFrame(drive);
     };
@@ -748,6 +838,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     const hp = a.headPos();
     const ang = a.root.rotation.y + side;
     cut([hp.x + Math.sin(ang) * dist, hp.y + h, hp.z + Math.cos(ang) * dist], [hp.x, hp.y - 0.05, hp.z]);
+    dof(dist);
   };
   for (const id of LADS) lad[id].faceTo(0, PLAZA.z + 12);
   lad.FLENKY.play("cheer");
@@ -868,7 +959,8 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   if (gunHand) {
     const ws = new THREE.Vector3();
     (gunHand as T3.Object3D).getWorldScale(ws);
-    pistol.scale.setScalar(1 / Math.max(ws.x, 0.0001));
+    // a chunky cartoon pistol you can actually see
+    pistol.scale.setScalar(1.8 / Math.max(ws.x, 0.0001));
     (gunHand as T3.Object3D).add(pistol);
   } else {
     pistol.position.copy(sanmik.headPos()).add(new THREE.Vector3(0.3, -0.5, 0.3));
@@ -876,12 +968,20 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   }
   const sp = sanmik.root.position;
   const dp = driver.root.position;
-  // over SanMik's shoulder: the driver, hands up
-  cut([sp.x - (dp.x - sp.x) * 0.6 + 0.5, 1.75, sp.z - (dp.z - sp.z) * 0.6 + 0.5], [dp.x, 1.2, dp.z]);
+  // close on the draw
   synth.play("swing");
   sanmik.play("shoot");
+  {
+    const f = sanmik.root.rotation.y;
+    const hand = new THREE.Vector3(sp.x + Math.sin(f + 0.6) * 0.35, 1.25, sp.z + Math.cos(f + 0.6) * 0.35);
+    cut([hand.x + Math.sin(f + 1.4) * 1.3, 1.45, hand.z + Math.cos(f + 1.4) * 1.3], [hand.x, 1.3, hand.z]);
+    dof(1.3);
+  }
+  await wait(700);
+  // over SanMik's shoulder: the driver, hands up
+  cut([sp.x - (dp.x - sp.x) * 0.6 + 0.5, 1.75, sp.z - (dp.z - sp.z) * 0.6 + 0.5], [dp.x, 1.2, dp.z]);
   driver.play("shocked");
-  await wait(sanmik.has("shoot") ? 750 : 300);
+  await wait(500);
   // BANG
   synth.play("gun_pistol");
   const muzzle = new THREE.Vector3();
@@ -908,7 +1008,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   camState.follow = () => {
     const p = jacked.pos;
     const d = jacked.dir;
-    return [new THREE.Vector3(p.x - d.x * 11, 5, p.z - d.z * 11), new THREE.Vector3(p.x + d.x * 6, 1, p.z + d.z * 6)];
+    return [new THREE.Vector3(p.x - d.x * 13, 9, p.z - d.z * 13), new THREE.Vector3(p.x + d.x * 8, 0.8, p.z + d.z * 8)];
   };
   await jacked.getaway(victims, (v) => {
     synth.play("car_hit");
@@ -1066,6 +1166,8 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   alive = false;
   window.removeEventListener("resize", place);
   window.removeEventListener("resize", onResize);
+  window.removeEventListener("resize", sizeComposer);
+  composer.dispose();
   renderer.dispose();
   s3.traverse((o) => {
     const m = o as T3.Mesh;
@@ -1235,7 +1337,32 @@ function buildLandmarks(s3: T3.Scene, L: Loaded, updaters: ((dt: number, t: numb
   });
   poolTex.wrapS = poolTex.wrapT = THREE.RepeatWrapping;
   poolTex.repeat.set(3, 3);
-  const pool = new THREE.Mesh(new THREE.CircleGeometry(poolR, 32), new THREE.MeshPhongMaterial({ map: poolTex, shininess: 90, specular: 0xffffff, transparent: true, opacity: 0.92 }));
+  // ripples: a scrolling normal map so the surface catches the light like liquid
+  const ripple = canvasTex(128, 128, (x) => {
+    const img = x.createImageData(128, 128);
+    for (let yy = 0; yy < 128; yy++)
+      for (let xx = 0; xx < 128; xx++) {
+        const a = Math.sin((xx / 128) * Math.PI * 6 + Math.sin((yy / 128) * Math.PI * 4) * 1.5);
+        const b = Math.cos((yy / 128) * Math.PI * 6 + Math.sin((xx / 128) * Math.PI * 4) * 1.5);
+        const i = (yy * 128 + xx) * 4;
+        img.data[i] = 128 + a * 50;
+        img.data[i + 1] = 128 + b * 50;
+        img.data[i + 2] = 255;
+        img.data[i + 3] = 255;
+      }
+    x.putImageData(img, 0, 0);
+  });
+  ripple.colorSpace = THREE.NoColorSpace;
+  ripple.wrapS = ripple.wrapT = THREE.RepeatWrapping;
+  ripple.repeat.set(2, 2);
+  const pool = new THREE.Mesh(
+    new THREE.CircleGeometry(poolR, 48),
+    new THREE.MeshPhysicalMaterial({ map: poolTex, color: 0xffd0e6, roughness: 0.08, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05, normalMap: ripple, normalScale: new THREE.Vector2(0.35, 0.35), envMapIntensity: 1.6, transparent: true, opacity: 0.94 }),
+  );
+  updaters.push((dt) => {
+    ripple.offset.x += dt * 0.05;
+    ripple.offset.y += dt * 0.035;
+  });
   pool.rotation.x = -Math.PI / 2;
   pool.position.copy(poolC);
   s3.add(pool);
@@ -1552,6 +1679,124 @@ function buildDressing(s3: T3.Scene, L: Loaded, updaters: ((dt: number, t: numbe
     s3.add(sign);
   }
   prop("bridge", -175, 0, Math.PI / 2, 1.4);
+  // ---- street clutter
+  const blackMat = new THREE.MeshStandardMaterial({ color: 0x1b1b1f, roughness: 0.5, metalness: 0.4 });
+  const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4a017, roughness: 0.3, metalness: 0.9 });
+  const stoneMat = new THREE.MeshStandardMaterial({ color: 0xb9ae9a, roughness: 0.9 });
+  const soilMat = new THREE.MeshStandardMaterial({ color: 0x3e2a1c, roughness: 1 });
+  const binMat = new THREE.MeshStandardMaterial({ color: 0x1f5130, roughness: 0.6, metalness: 0.3 });
+  const shadowed = (m: T3.Mesh) => ((m.castShadow = true), (m.receiveShadow = true), m);
+  // bollards ringing the plaza, with gold bands
+  for (let i = 0; i < 40; i++) {
+    const a = (i / 40) * Math.PI * 2;
+    if (Math.abs(Math.sin(a)) > 0.97) continue; // gaps for the paths
+    const b = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.16, 0.9, 10), blackMat));
+    b.position.set(Math.cos(a) * 30.6, 0.45, Math.sin(a) * 30.6);
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.165, 0.165, 0.07, 10), goldMat);
+    band.position.set(b.position.x, 0.72, b.position.z);
+    s3.add(b, band);
+  }
+  // stone planters full of flowers
+  const petal = [0xff5ca8, 0xffd23f, 0xff7a3d, 0xb46cff, 0xffffff, 0xe11d48];
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2 + 0.31;
+    const x = Math.cos(a) * 25;
+    const z = Math.sin(a) * 25;
+    const box = shadowed(new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.7, 1.1), stoneMat));
+    box.position.set(x, 0.35, z);
+    box.rotation.y = -a;
+    const soil = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.05, 0.9), soilMat);
+    soil.position.set(x, 0.71, z);
+    soil.rotation.y = -a;
+    s3.add(box, soil);
+    for (let f = 0; f < 14; f++) {
+      const u = (f / 13 - 0.5) * 2.2;
+      const v = (Math.random() - 0.5) * 0.7;
+      const fl = new THREE.Mesh(new THREE.SphereGeometry(0.09 + Math.random() * 0.05, 8, 6), new THREE.MeshStandardMaterial({ color: petal[(f + i) % petal.length], roughness: 0.6 }));
+      fl.position.set(x + Math.cos(-a) * u - Math.sin(-a) * v, 0.82 + Math.random() * 0.12, z + Math.sin(-a) * u + Math.cos(-a) * v);
+      s3.add(fl);
+    }
+  }
+  // bins along the pavements
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2 + 0.12;
+    const r = 43.5;
+    const bin = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.28, 0.95, 12), binMat));
+    bin.position.set(Math.cos(a) * r, 0.48, Math.sin(a) * r);
+    const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.06, 12), blackMat);
+    lid.position.set(bin.position.x, 0.98, bin.position.z);
+    s3.add(bin, lid);
+  }
+  // street-name signs at the plaza corners
+  const signNames = ["KRELFORD HIGH ST", "TAP SQUARE", "LORE LANE", "KREZZ ROAD"];
+  [[33, -33], [-33, -33], [33, 33], [-33, 33]].forEach(([x, z], i) => {
+    const pole = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3, 8), blackMat));
+    pole.position.set(x, 1.5, z);
+    const plate = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.2, 0.45),
+      new THREE.MeshStandardMaterial({
+        side: THREE.DoubleSide,
+        map: canvasTex(256, 52, (c) => {
+          c.fillStyle = "#ffffff";
+          c.fillRect(0, 0, 256, 52);
+          c.strokeStyle = "#111";
+          c.lineWidth = 4;
+          c.strokeRect(4, 4, 248, 44);
+          c.fillStyle = "#111";
+          c.font = "bold 24px Arial, sans-serif";
+          c.textAlign = "center";
+          c.fillText(signNames[i], 128, 35);
+        }),
+      }),
+    );
+    plate.position.set(x, 2.8, z);
+    plate.rotation.y = Math.atan2(-x, -z);
+    s3.add(pole, plate);
+  });
+  // bunting strung from the top of the tap out to the plaza edge, like a maypole
+  const flagCols = [0xe11d48, 0xffd23f, 0x2563eb, 0x16a34a, 0xff5ca8, 0xffffff];
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2 + 0.2;
+    const from = new THREE.Vector3(0, 14.5, -2);
+    const to = new THREE.Vector3(Math.cos(a) * 27, 4.5, Math.sin(a) * 27);
+    const n = 22;
+    for (let j = 1; j < n; j++) {
+      const t = j / n;
+      const p = new THREE.Vector3().lerpVectors(from, to, t);
+      p.y -= Math.sin(t * Math.PI) * 2.2; // sag
+      const flag = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.6, 3), new THREE.MeshStandardMaterial({ color: flagCols[(j + k) % flagCols.length], roughness: 0.7, side: THREE.DoubleSide }));
+      flag.position.copy(p).add(new THREE.Vector3(0, -0.3, 0));
+      flag.rotation.x = Math.PI;
+      flag.lookAt(flag.position.x + Math.cos(a), flag.position.y, flag.position.z + Math.sin(a));
+      flag.rotation.z = Math.PI;
+      s3.add(flag);
+    }
+  }
+  // a flock of pigeons wheeling over the plaza
+  const birdMat = new THREE.MeshStandardMaterial({ color: 0x5b6470, roughness: 0.8, side: THREE.DoubleSide });
+  const birds: { g: T3.Group; wl: T3.Mesh; wr: T3.Mesh; r: number; h: number; ph: number; sp: number }[] = [];
+  for (let i = 0; i < 14; i++) {
+    const g = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), birdMat);
+    body.scale.set(1, 0.8, 1.8);
+    const wl = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.3), birdMat);
+    wl.position.x = -0.35;
+    const wr = wl.clone();
+    wr.position.x = 0.35;
+    g.add(body, wl, wr);
+    s3.add(g);
+    birds.push({ g, wl, wr, r: 18 + Math.random() * 16, h: 22 + Math.random() * 14, ph: Math.random() * Math.PI * 2, sp: 0.25 + Math.random() * 0.12 });
+  }
+  updaters.push((_dt, t) => {
+    for (const b of birds) {
+      const a = b.ph + t * b.sp;
+      b.g.position.set(Math.cos(a) * b.r, b.h + Math.sin(t * 0.7 + b.ph) * 1.5, Math.sin(a) * b.r + 5);
+      b.g.rotation.y = -a;
+      const flap = Math.sin(t * 9 + b.ph) * 0.6;
+      b.wl.rotation.z = flap;
+      b.wr.rotation.z = -flap;
+    }
+  });
   // trees and lamps along the big loop
   const trunk = new THREE.MeshLambertMaterial({ color: 0x6b4a2a });
   const leaves = new THREE.MeshLambertMaterial({ color: 0x3f8a2e });
@@ -1641,12 +1886,20 @@ function buildDressing(s3: T3.Scene, L: Loaded, updaters: ((dt: number, t: numbe
       x.fill();
     }
   });
+  // flat panels turned to face the camera every frame (sprites produced invalid pixels that broke the glow pass)
+  const cloudMat = new THREE.MeshBasicMaterial({ map: cloudTex, transparent: true, depthWrite: false, fog: false, opacity: 0.85, toneMapped: false });
+  const clouds: T3.Mesh[] = [];
   for (let i = 0; i < 22; i++) {
-    const c = new THREE.Sprite(new THREE.SpriteMaterial({ map: cloudTex, transparent: true, depthWrite: false, fog: false, opacity: 0.85 }));
+    const c = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), cloudMat);
     c.scale.set(90 + Math.random() * 80, 40 + Math.random() * 25, 1);
     c.position.set((Math.random() - 0.5) * 1100, 190 + Math.random() * 90, (Math.random() - 0.5) * 1100);
     s3.add(c);
+    clouds.push(c);
   }
+  updaters.push(() => {
+    const camQ = (s3.userData.cam as T3.Camera | undefined)?.quaternion;
+    if (camQ) for (const c of clouds) c.quaternion.copy(camQ);
+  });
 }
 
 /** A modern city tower for the skyline: glass and concrete bands, lit windows, a flat roof with plant on top. */
@@ -1757,7 +2010,7 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
   let n = 0;
   for (const p of paths) {
     const len = pathLen(p);
-    const count = Math.max(2, Math.round(len / 70));
+    const count = Math.max(2, Math.round(len / (HQ_WORLD ? 48 : 70)));
     for (let i = 0; i < count; i++) {
       const bus = kinds[n % Math.max(1, kinds.length)] === "bus";
       cars.push({ obj: mkCar(n++), bus, path: p, s: (len / count) * i + Math.random() * 8, speed: 9 + Math.random() * 4 });
@@ -1858,7 +2111,7 @@ interface Walker {
 function spawnPeds(s3: T3.Scene, L: Loaded, paths: Path[], actors: Actor[], updaters: ((dt: number, t: number) => void)[]) {
   const walkers: Walker[] = [];
   const pool: Actor[] = [];
-  const kinds = ["ped0", "ped1", "ped2", "ped3"];
+  const kinds = ["ped0", "ped1", "ped2", "ped3", "ped4", "ped5", "ped6", "ped7", "ped8", "ped9"].filter((k, i) => i < 4 || (L.index.world ?? {})[k]);
   const mk = (i: number) => {
     const a = makeActor(kinds[i % kinds.length], L);
     s3.add(a.root);
@@ -1868,7 +2121,7 @@ function spawnPeds(s3: T3.Scene, L: Loaded, paths: Path[], actors: Actor[], upda
   let n = 0;
   for (const p of paths) {
     const len = pathLen(p);
-    const count = Math.max(3, Math.round(len / 40));
+    const count = Math.max(3, Math.round(len / (HQ_WORLD ? 24 : 40)));
     for (let i = 0; i < count; i++) {
       const a = mk(n++);
       a.play("walk");

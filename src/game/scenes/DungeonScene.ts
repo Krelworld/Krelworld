@@ -3177,27 +3177,133 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     this.dying = true;
     this.player.dead = true;
-    synth.play("death");
-    (this.player.spr.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
-    const menu = () => {
+    this.deathSequence();
+  }
+
+  /**
+   * The player goes down: a short (~2.2 s), loud, stupid death before the KREZZED menu. Gore on: freeze-frame, red flash,
+   * the drawn collapse, a burst of blood and bits in slow-mo, a push-in on the body. Gore off: a comic knockout (spin,
+   * stars, flop, puff of smoke). The world is frozen throughout and `dying` blocks input, damage and a second death.
+   */
+  private deathSequence() {
+    const p = this.player;
+    const spr = p.spr;
+    const cam = this.cameras.main;
+    const gore = G.meta.settings.gore !== false;
+    // whatever slow-mo or picker was running is over; nothing else may move
+    if (this.picking) {
+      this.picking = false;
+      this.scene.stop("WeaponPick");
+    }
+    this.epicSlowToken++;
+    this.setSlowmo(1);
+    const body = spr.body as Phaser.Physics.Arcade.Body;
+    body.setVelocity(0, 0);
+    body.enable = false;
+    this.physics.world.pause();
+    for (const e of this.enemies) if (e.active) e.anims?.pause();
+    p.gunSpr?.setVisible(false);
+    spr.setAlpha(1);
+    this.tweens.killTweensOf(spr);
+    // the drawn collapse, if the character has one
+    const meta = charMeta(this, spr.texture.key);
+    const f = (spr.getData("facing") as string) ?? "south";
+    const sideOn = f === "east" || f === "west";
+    const fall = meta?.death ? ((sideOn ? meta.death.east : meta.death.south) ?? meta.death.east ?? meta.death.south) : undefined;
+    const collapse = (at: number, step: number) => {
+      if (fall?.length) {
+        spr.setFlipX(f === "west");
+        fall.forEach((fr, i) => this.time.delayedCall(at + i * step, () => spr.active && spr.setFrame(fr)));
+        return at + fall.length * step;
+      }
+      this.time.delayedCall(at, () => spr.active && this.tweens.add({ targets: spr, angle: f === "west" ? -90 : 90, duration: 260, ease: "Bounce.out" }));
+      return at + 260;
+    };
+    const feet = () => spr.getBounds().bottom - 4;
+    const mid = () => spr.getBounds().centerY;
+    // push in on the body
+    cam.zoomTo(Math.max(cam.zoom, 1) * 1.45, 380, "Cubic.easeOut", true);
+    const END = 2250; // the menu arrives here: everything above stays inside it
+    if (gore) {
+      // 0: freeze-frame on the killing blow, the screen goes red
+      synth.play("punch_big");
+      synth.play("bonecrack");
+      Juice.flash(this, 0xff0000, 260, 0.55);
+      this.time.delayedCall(90, () => spr.active && spr.setTintFill(0xffffff));
+      // 200: it lands. slow-mo, blood, bits
+      this.time.delayedCall(200, () => {
+        if (!spr.active) return;
+        spr.clearTint();
+        this.tweens.timeScale = 0.4;
+        const x = spr.x;
+        const y = mid();
+        synth.play("splat");
+        synth.play("squelch");
+        synth.play("death");
+        this.shake(450, 0.025);
+        vfx(this, "vfx_bloodspray", x, y, { scale: 1.6, depth: 962, speed: 0.55, flipX: f === "west" });
+        vfx(this, "vfx_gore", x, y, { scale: 1.3, depth: 963, speed: 0.55, delay: 40 });
+        for (let i = 0; i < 3; i++) vfx(this, "vfx_blood", x + (Math.random() - 0.5) * 50, y + (Math.random() - 0.5) * 40, { scale: 1 + Math.random() * 0.6, depth: 961, speed: 0.6, delay: 60 + i * 90, flipX: Math.random() < 0.5 });
+        Juice.debris(this, x, y, 16, { colors: [0xdc2626, 0x7f1d1d, 0xf87171, 0xfda4af], speed: 380, depth: 964, floor: feet() + 6, size: 7 });
+        this.screenSplat(3);
+        Juice.slamText(this, ["SPLAT.", "BITS EVERYWHERE", "THAT'S A CLOSED CASKET", "MESSY.", "OOF. ALL OF HIM."][Math.floor(Math.random() * 5)], "#ef4444", 46, 190, 650);
+      });
+      const down = collapse(260, 120);
+      // the body hits the floor, a pool spreads, back to full speed
+      this.time.delayedCall(Math.min(down, 1250), () => {
+        if (!spr.active) return;
+        this.tweens.timeScale = 1;
+        synth.play("bodies_land");
+        spr.setTint(0xffc4c4);
+        vfx(this, "vfx_bloodpool", spr.x, feet(), { scale: 1.7, depth: Math.min(spr.depth - 1, 6), hold: true });
+        vfx(this, "vfx_blood", spr.x, mid(), { scale: 0.9, depth: 961, speed: 0.8 });
+      });
+    } else {
+      // 0: BONK
+      synth.play("punch_big");
+      Juice.flash(this, 0xffffff, 200, 0.6);
+      this.time.delayedCall(90, () => spr.active && spr.setTintFill(0xffffff));
+      const pow = this.add.text(spr.x, spr.getBounds().top - 6, "BONK!", { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#fde047", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5).setDepth(1500).setScale(0.3).setAngle(-12);
+      this.tweens.add({ targets: pow, scale: 1, duration: 160, ease: "Back.out" });
+      this.tweens.add({ targets: pow, y: pow.y - 26, alpha: 0, delay: 700, duration: 400, onComplete: () => pow.destroy() });
+      // 160: the spin
+      const y0 = spr.y;
+      let stars: Phaser.GameObjects.Sprite | null = null;
+      this.time.delayedCall(160, () => {
+        if (!spr.active) return;
+        spr.clearTint();
+        synth.play("whistle");
+        stars = vfx(this, "vfx_stars", spr.x, spr.getBounds().top + 4, { scale: 1.3, depth: spr.depth + 2 });
+        this.tweens.add({ targets: spr, angle: 720, duration: 680, ease: "Cubic.out", onComplete: () => spr.setAngle(0) });
+        this.tweens.add({ targets: spr, y: y0 - 28, duration: 300, yoyo: true, ease: "Quad.out" });
+        if (stars) this.tweens.add({ targets: stars, y: stars.y - 28, duration: 300, yoyo: true, ease: "Quad.out" });
+      });
+      // 860: flop, puff
+      const down = collapse(860, 90);
+      this.time.delayedCall(Math.min(down, 1450), () => {
+        if (!spr.active) return;
+        synth.play("bodies_land");
+        this.shake(160, 0.008);
+        vfx(this, "vfx_dust", spr.x, feet(), { scale: 1.3, depth: spr.depth + 1 });
+        vfx(this, "vfx_smoke", spr.x, mid(), { scale: 1.2, depth: spr.depth + 1, alpha: 0.85 });
+        const b = spr.getBounds();
+        stars?.setPosition(b.centerX + (f === "west" ? -b.width * 0.25 : b.width * 0.25), b.top + 2);
+        Juice.slamText(this, "K.O.", "#fde047", 64, 190, 500);
+      });
+      this.time.delayedCall(1550, () => synth.play("trombone"));
+    }
+    // dim towards the menu, then hand over
+    const dim = this.add.rectangle(480, 270, 1100, 700, 0x000000, 1).setAlpha(0);
+    Juice.layer(this, 985).add(dim);
+    this.time.delayedCall(END - 500, () => {
+      this.tweens.timeScale = 1;
+      this.tweens.add({ targets: dim, alpha: 0.45, duration: 450 });
+    });
+    this.time.delayedCall(END, () => {
+      this.tweens.timeScale = 1;
       this.scene.launch("Menu", { mode: "death", caller: "Dungeon", dungeon: this.dungeon.id, room: this.roomIdx, bossHpPct: undefined, rush: this.boss ? this.rushIdx : 0 });
       this.scene.pause();
-    };
-    // drawn collapse if the character has one, then the death menu
-    const meta = charMeta(this, this.player.spr.texture.key);
-    const f = (this.player.spr.getData("facing") as string) ?? "south";
-    const side = f === "east" || f === "west";
-    const fall = meta?.death ? ((side ? meta.death.east : meta.death.south) ?? meta.death.east ?? meta.death.south) : undefined;
-    if (fall?.length) {
-      const spr = this.player.spr.setFlipX(f === "west").setAlpha(1).clearTint();
-      (spr.body as Phaser.Physics.Arcade.Body).enable = false;
-      this.player.gunSpr?.setVisible(false);
-      fall.forEach((fr, i) => this.time.delayedCall(i * 110, () => spr.active && spr.setFrame(fr)));
-      this.time.delayedCall(fall.length * 110 + 700, menu);
-      return;
-    }
-    this.player.spr.setAngle(90).setTint(0x888888);
-    menu();
+    });
   }
 
   // ------------------------------------------------------------------ update

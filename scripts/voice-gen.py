@@ -32,6 +32,8 @@ SETTINGS = {
 }
 # v2 for a line with a mood (clone_v2_always): looser and more expressive, still close to the real voice
 SETTINGS_V2_MOOD = {"stability": 0.3, "similarity_boost": 0.9, "style": 0.4, "use_speaker_boost": True, "speed": 1.06}
+# Speakers whose clone only sounds like them on steady settings (Harry picked these takes): every line, mood or not.
+SETTINGS_V2_LIKENESS = {"stability": 0.55, "similarity_boost": 1.0, "style": 0.0, "use_speaker_boost": True}
 US = "strong American accent"
 
 # Loudness every clip is packed at: integrated LUFS (EBU R128) and a true-peak ceiling. Changing it re-encodes the
@@ -142,6 +144,8 @@ def plan(l, c):
     if kind == "clone" and not accent and base in CAST.get("clone_v2_always", []):
         clean = TAG.sub("", t).strip()
         moody = bool(explicit or inline or from_text or CAST.get("delivery", {}).get(l["s"]))
+        if base in CAST.get("clone_max_likeness", []):
+            return V2, clean, SETTINGS_V2_LIKENESS, []
         return V2, clean, (SETTINGS_V2_MOOD if moody else SETTINGS[V2]), []
     v2_ok = kind == "clone" and not accent and base in CAST.get("v2_neutral", [])
     tags = explicit or from_text

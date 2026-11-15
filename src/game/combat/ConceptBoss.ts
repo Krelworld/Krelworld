@@ -156,7 +156,7 @@ export class ConceptBoss extends Boss {
       this.lightning();
     }
     if (now >= this.nextBark) {
-      this.nextBark = now + 7000 + Math.random() * 6000;
+      this.nextBark = now + 4500 + Math.random() * 4000;
       this.world.floatText(this.x, this.y - this.displayHeight * 0.48, Phaser.Utils.Array.GetRandom(CONCEPT_BARKS) as string, "#d8b4fe", 16);
       this.roar();
     }

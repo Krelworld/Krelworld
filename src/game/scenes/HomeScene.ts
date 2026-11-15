@@ -23,6 +23,7 @@ import { weaponIcon, weaponList } from "../ui/weapons";
 import { GUNS } from "../combat/Guns";
 import { ammoQuote, buyAmmo, firstLoaded, gunRatings, gunUpgrades, moveGun, orderedGuns, specialText, STAT_KEYS, STAT_LABELS, type StatKey } from "../systems/armoury";
 import { currentStep } from "../Flow";
+import { DARK_AUTISM_PASSAGES } from "../../content/darkAutism";
 
 /** Your house: walk about, watch the telly, sleep, raid the fridge. New games start here. */
 
@@ -94,7 +95,10 @@ export class HomeScene extends Phaser.Scene {
       { x: 880, y: 468, r: 55, label: "E: Gun rack (order · ammo · perks)", use: () => this.gunRackPanel() },
       { x: 420, y: 445, r: 55, label: "E: Look out of the window", use: () => this.talk([dir(s.flags.met_emergency ? "Krelford. The sky has a faint grey tint, like an unloaded page. Somewhere, a Tap is not running." : "Krelford, in the evening. Somewhere a fizzy bongo is opened. Somewhere else, the Great Tap gurgles. All is well. For now.")]) },
       { x: 760, y: 450, r: 60, label: "E: Go outside", use: () => this.leave() },
+      { x: 612, y: 530, r: 30, label: "E: Read 'Dark Autism - An Erotic Memoir'", use: () => this.readBook() },
     );
+    // a well-thumbed copy of Dark Autism - An Erotic Memoir, at the foot of the bed
+    if (this.textures.exists("p_dark_autism")) this.add.image(612, 524, "p_dark_autism").setOrigin(0.5, 1).setScale(0.13).setAngle(-14).setDepth(533);
     this.me = this.add.sprite(s.flags.home_seen ? 740 : 420, 500, playerKey(this), 0).setOrigin(0.5, 1).setScale(5.5).setDepth(500);
     bindSanmikToggle(this, { sprites: () => [this.me], can: () => !this.busy });
     this.prompt = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#000000cc", padding: { x: 6, y: 3 } }).setOrigin(0.5).setDepth(1000).setVisible(false);
@@ -257,6 +261,20 @@ export class HomeScene extends Phaser.Scene {
     this.scene.launch("TV", { overlay: true, caller: "Home" });
     this.scene.bringToTop("TV");
     this.scene.pause();
+  }
+
+  /** Open the book at a random page (never the same one twice running); the author reads it out. */
+  private async readBook() {
+    if (this.busy || !DARK_AUTISM_PASSAGES.length) return;
+    const last = (G.rt as any).lastBookPage as number | undefined;
+    let i = Math.floor(Math.random() * DARK_AUTISM_PASSAGES.length);
+    if (DARK_AUTISM_PASSAGES.length > 1 && i === last) i = (i + 1) % DARK_AUTISM_PASSAGES.length;
+    (G.rt as any).lastBookPage = i;
+    const cover = this.textures.exists("p_dark_autism") ? this.add.image(150, 190, "p_dark_autism").setScale(0.9).setAngle(-4).setDepth(950).setAlpha(0) : null;
+    if (cover) this.tweens.add({ targets: cover, alpha: 1, duration: 250 });
+    synth.play("pickup");
+    await this.talk([dir("You open Dark Autism - An Erotic Memoir at a random page."), DARK_AUTISM_PASSAGES[i]]);
+    cover?.destroy();
   }
 
   private async sleep() {

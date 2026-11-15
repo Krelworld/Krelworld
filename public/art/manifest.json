@@ -6938,6 +6938,9 @@
   "bg_massimos": {
    "file": "backdrops/bg_massimos.png"
   },
+  "p_dark_autism": {
+   "file": "props/dark_autism.png"
+  },
   "bg_polson_kitchen": {
    "file": "backdrops/bg_polson_kitchen.png"
   },
@@ -7623,6 +7626,11 @@
   },
   "talk_SANJEEV": {
    "file": "talk/talk_SANJEEV.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "talk_CHADMORK_WONKOR": {
+   "file": "talk/talk_POLSON.png",
    "frameWidth": 64,
    "frameHeight": 64
   },

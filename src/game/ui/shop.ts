@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { synth } from "../audio/Synth";
-import { FONT } from "./theme";
+import { FONT, PIXEL_BOLD, PIXEL_FONT } from "./theme";
 
 // The shop grid used by the Kreddle Exchange (MenuScene "bank") and Kreddle's Prize Counter / Home Furnishings:
 // big cards with an icon, a name and a price; the selected card's one-liner and a big BUY button underneath.
@@ -229,12 +229,12 @@ export class ShopGrid {
       const cy = o.y + Math.floor(k / o.cols) * (ch + gap) + ch / 2;
       this.cards.push(this.makeCard(it, cx, cy, cw, ch, start + k));
     });
-    if (!this.items.length) this.pageLayer.add(scene.add.text(o.x + o.w / 2, o.y + o.h / 2, "Nothing here yet.", { fontFamily: FONT, fontSize: "20px", color: "#9aa0b4" }).setOrigin(0.5));
+    if (!this.items.length) this.pageLayer.add(scene.add.text(o.x + o.w / 2, o.y + o.h / 2, "Nothing here yet.", { fontFamily: PIXEL_BOLD, fontSize: "20px", color: "#9aa0b4" }).setOrigin(0.5));
     if (pages > 1) {
       const midY = o.y + o.h / 2;
       const arrow = (x: number, label: string, d: number) => {
         const r = scene.add.rectangle(x, midY, 34, Math.min(120, o.h), 0x2a2550, 0.9).setStrokeStyle(2, COL.edge).setInteractive({ useHandCursor: true });
-        const t = scene.add.text(x, midY, label, { fontFamily: FONT, fontSize: "24px", color: "#ffd23f", fontStyle: "bold" }).setOrigin(0.5);
+        const t = scene.add.text(x, midY, label, { fontFamily: PIXEL_BOLD, fontSize: "24px", color: "#ffd23f", fontStyle: "bold" }).setOrigin(0.5);
         r.on("pointerup", () => {
           const p = (this.page + d + pages) % pages;
           this.sel = Math.min(this.items.length - 1, p * this.perPage);
@@ -245,7 +245,7 @@ export class ShopGrid {
       };
       arrow(o.x + 17, "◀", -1);
       arrow(o.x + o.w - 17, "▶", 1);
-      this.pageLayer.add(scene.add.text(o.x + o.w - 17, midY + Math.min(60, o.h / 2) + 12, `${this.page + 1}/${pages}`, { fontFamily: FONT, fontSize: "12px", color: "#c4b5fd", fontStyle: "bold" }).setOrigin(0.5));
+      this.pageLayer.add(scene.add.text(o.x + o.w - 17, midY + Math.min(60, o.h / 2) + 12, `${this.page + 1}/${pages}`, { fontFamily: PIXEL_BOLD, fontSize: "12px", color: "#c4b5fd", fontStyle: "bold" }).setOrigin(0.5));
     }
   }
 
@@ -265,14 +265,18 @@ export class ShopGrid {
     c.add(icon);
     if (dead) c.add(scene.add.text(0, iconY, "🔒", { fontFamily: FONT, fontSize: `${Math.round(box * 0.5)}px` }).setOrigin(0.5));
     const name = scene.add.text(0, iconY + box / 2 + 6, it.name, {
-      fontFamily: FONT,
-      fontSize: w < 130 ? "14px" : "16px",
+      fontFamily: PIXEL_BOLD,
+      fontSize: "16px",
       color: dead ? "#7c7a96" : "#ffffff",
       fontStyle: "bold",
       align: "center",
-      wordWrap: { width: w - 12, useAdvancedWrap: true },
-      maxLines: 2,
+      wordWrap: { width: w - (scene.textures.exists("kd_card") ? 34 : 12), useAdvancedWrap: true },
     } as Phaser.Types.GameObjects.Text.TextStyle).setOrigin(0.5, 0);
+    // long names: a touch smaller rather than cut off
+    if (name.getWrappedText(it.name).length > 2) {
+      const k = 0.72;
+      name.setWordWrapWidth((w - 30) / k, true).setScale(k);
+    }
     c.add(name);
     // level pips, top left
     if (it.lvl && it.lvl[1] > 1) {
@@ -283,7 +287,7 @@ export class ShopGrid {
     }
     if (it.tag) {
       const tin = scene.textures.exists("kd_card") ? 10 : 0;
-      const t = scene.add.text(w / 2 - 6 - tin, -h / 2 + 5 + tin, it.tag, { fontFamily: FONT, fontSize: "11px", color: "#111111", fontStyle: "bold", backgroundColor: Phaser.Display.Color.IntegerToColor(it.tagColor ?? COL.gold).rgba, padding: { x: 4, y: 1 } }).setOrigin(1, 0);
+      const t = scene.add.text(w / 2 - 6 - tin, -h / 2 + 5 + tin, it.tag, { fontFamily: PIXEL_BOLD, fontSize: "16px", color: "#111111", fontStyle: "bold", backgroundColor: Phaser.Display.Color.IntegerToColor(it.tagColor ?? COL.gold).rgba, padding: { x: 4, y: 1 } }).setOrigin(1, 0).setScale(0.75);
       c.add(t);
     }
     if (it.bar) {
@@ -298,14 +302,14 @@ export class ShopGrid {
     const py = h / 2 - 17;
     let price: Phaser.GameObjects.Text | undefined;
     if (it.state === "buy") {
-      price = scene.add.text(9, py, it.price ? `${it.price}` : "FREE", { fontFamily: FONT, fontSize: "22px", color: poor ? "#ff6b6b" : it.currency === "kroken" ? "#67e8f9" : "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5);
+      price = scene.add.text(9, py, it.price ? `${it.price}` : "FREE", { fontFamily: PIXEL_BOLD, fontSize: "24px", color: poor ? "#ff6b6b" : it.currency === "kroken" ? "#67e8f9" : "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5);
       const glyph = currencyIcon(scene, 0, py, it.currency, 20) as Phaser.GameObjects.Image;
       glyph.setX(price.x - price.width / 2 - 12);
       c.add([glyph, price]);
     } else {
       const label = it.state === "owned" ? "✓ OWNED" : it.state === "maxed" ? "✓ MAX" : it.state === "full" ? "✓ FULL" : it.state === "locked" ? "LOCKED" : (it.verb ?? "");
       const col = it.state === "locked" ? "#7c7a96" : it.state === "toggle" ? "#67e8f9" : "#4ade80";
-      c.add(scene.add.text(0, py, label, { fontFamily: FONT, fontSize: "17px", color: col, fontStyle: "bold" }).setOrigin(0.5));
+      c.add(scene.add.text(0, py, label, { fontFamily: PIXEL_BOLD, fontSize: "16px", color: col, fontStyle: "bold" }).setOrigin(0.5));
     }
     const hit = scene.add.rectangle(0, 0, w, h, 0xffffff, 0.001).setInteractive({ useHandCursor: true });
     hit.on("pointerup", () => {
@@ -364,8 +368,8 @@ export class ShopGrid {
     const bh = d.h - 16;
     const textW = d.w - bw - 36;
     // the name in gold, and its one line underneath, centred in the bar
-    const nm = scene.add.text(d.x + 24, 0, it.name, { fontFamily: FONT, fontSize: "20px", color: "#ffd23f", fontStyle: "bold", wordWrap: { width: textW }, maxLines: 1 } as Phaser.Types.GameObjects.Text.TextStyle);
-    const ds = scene.add.text(d.x + 24, 0, it.desc, { fontFamily: FONT, fontSize: "16px", color: "#e5e1ff", wordWrap: { width: textW, useAdvancedWrap: true }, maxLines: 2 } as Phaser.Types.GameObjects.Text.TextStyle);
+    const nm = scene.add.text(d.x + 24, 0, it.name, { fontFamily: PIXEL_BOLD, fontSize: "24px", color: "#ffd23f", fontStyle: "bold", wordWrap: { width: textW }, maxLines: 1 } as Phaser.Types.GameObjects.Text.TextStyle);
+    const ds = scene.add.text(d.x + 24, 0, it.desc, { fontFamily: PIXEL_FONT, fontSize: "16px", color: "#e5e1ff", wordWrap: { width: textW, useAdvancedWrap: true }, maxLines: 2 } as Phaser.Types.GameObjects.Text.TextStyle);
     const total = nm.height + 2 + (it.desc ? ds.height : 0);
     nm.setY(d.y + (d.h - total) / 2);
     ds.setY(nm.y + nm.height + 2);
@@ -388,10 +392,10 @@ export class ShopGrid {
       btn.fillStyle(fill, 1).fillRoundedRect(bx - bw / 2, by - bh / 2, bw, bh, 12).lineStyle(3, can ? 0x86efac : done ? 0x2f7a4a : 0x7f1d1d, 1).strokeRoundedRect(bx - bw / 2, by - bh / 2, bw, bh, 12);
       this.detailLayer.add(btn);
     }
-    const txt = (s: string, col: string, size = 20) => scene.add.text(bx, by, s, { fontFamily: FONT, fontSize: `${size}px`, color: col, fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5);
+    const txt = (s: string, col: string, size = 20) => scene.add.text(bx, by, s, { fontFamily: PIXEL_BOLD, fontSize: `${size}px`, color: col, fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5);
     if (it.state === "buy") {
       // [VERB] [glyph] [price], or [NEED] [glyph] [shortfall], laid out as one centred row
-      const size = can ? 22 : 18;
+      const size = can ? 24 : 16;
       const a = txt(can ? (it.verb ?? "BUY") : "NEED", can ? "#ffffff" : "#ffb4b4", size);
       const glyph = currencyIcon(scene, 0, by, it.currency, size + 4) as Phaser.GameObjects.Image;
       const b = txt(can ? `${it.price}` : `${it.price - have} MORE`, can ? "#ffd23f" : "#ffb4b4", size);
@@ -422,7 +426,7 @@ export class ShopGrid {
       const plate = this.scene.add.graphics();
       plate.fillStyle(0x000000, 0.55).fillRoundedRect(b.x - 128, b.y - 22, 140, 44, 22).lineStyle(2, b.currency === "coin" ? 0xb8860b : 0x0e7490, 1).strokeRoundedRect(b.x - 128, b.y - 22, 140, 44, 22);
       const icon = currencyIcon(this.scene, b.x - 104, b.y, b.currency, 30);
-      const t = this.scene.add.text(b.x, b.y, `${v}`, { fontFamily: FONT, fontSize: "26px", color: b.currency === "coin" ? "#ffd23f" : "#67e8f9", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(1, 0.5);
+      const t = this.scene.add.text(b.x, b.y, `${v}`, { fontFamily: PIXEL_BOLD, fontSize: "32px", color: b.currency === "coin" ? "#ffd23f" : "#67e8f9", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(1, 0.5);
       this.balLayer.add([plate, icon, t]);
       this.balTexts[b.currency] = t;
     }
@@ -444,7 +448,7 @@ export class ShopGrid {
       this.scene.tweens.add({ targets: o, v: to, duration: 450, ease: "Cubic.out", onUpdate: () => t.setText(`${Math.round(o.v)}`), onComplete: () => t.setText(`${to}`) });
       this.scene.tweens.add({ targets: t, scale: { from: 1.25, to: 1 }, duration: 300, ease: "Back.out" });
       // the amount spent, floating off the balance
-      const spent = this.scene.add.text(b.x - 58, b.y + 34, `${to - from > 0 ? "+" : "−"}${Math.abs(to - from)}`, { fontFamily: FONT, fontSize: "20px", color: to < from ? "#ff6b6b" : "#4ade80", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5);
+      const spent = this.scene.add.text(b.x - 58, b.y + 34, `${to - from > 0 ? "+" : "−"}${Math.abs(to - from)}`, { fontFamily: PIXEL_BOLD, fontSize: "20px", color: to < from ? "#ff6b6b" : "#4ade80", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5);
       this.root.add(spent);
       this.pin(spent);
       this.scene.tweens.add({ targets: spent, y: spent.y + 18, alpha: 0, duration: 900, ease: "Cubic.out", onComplete: () => spent.destroy() });
@@ -529,7 +533,7 @@ export function shopTabs(scene: Phaser.Scene, x: number, y: number, w: number, t
       c.add(tabArt);
       if (on) g.fillStyle(accent, 0.85).fillRoundedRect(cx - tw / 2 + 10, y - 13, tw - 20, 26, 6);
     } else g.fillStyle(on ? accent : 0x1d1a3a, on ? 1 : 0.95).fillRoundedRect(cx - tw / 2, y - 21, tw, 42, 10).lineStyle(2, on ? 0xffffff : COL.edge, 1).strokeRoundedRect(cx - tw / 2, y - 21, tw, 42, 10);
-    const label = scene.add.text(cx, y, t.label, { fontFamily: FONT, fontSize: "19px", color: on ? "#ffffff" : "#c9c4ef", fontStyle: "bold", stroke: on ? "#000" : undefined, strokeThickness: on ? 3 : 0 }).setOrigin(0.5);
+    const label = scene.add.text(cx, y, t.label, { fontFamily: PIXEL_BOLD, fontSize: "16px", color: on ? "#ffffff" : "#c9c4ef", fontStyle: "bold", stroke: on ? "#000" : undefined, strokeThickness: on ? 3 : 0 }).setOrigin(0.5);
     const hit = scene.add.rectangle(cx, y, tw, 42, 0xffffff, 0.001).setInteractive({ useHandCursor: true });
     hit.on("pointerup", () => {
       synth.unlock();

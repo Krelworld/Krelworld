@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { ACTIONS, bindKey, keyNameFromEvent, keysFor, prettyKey, resetKeys } from "../systems/keybinds";
 import { G } from "../G";
-import { button, FONT, panel, title, UI } from "../ui/theme";
+import { button, FONT, PIXEL_BOLD, PIXEL_FONT, panel, title, UI } from "../ui/theme";
 import { switchTo, currentStep } from "../Flow";
 import { synth } from "../audio/Synth";
 import { CHARACTERS } from "../../data/characters";
@@ -440,10 +440,10 @@ export class MenuScene extends Phaser.Scene {
     const s = G.s;
     // see-through over the neon counter room (if its art is loaded), so the shop feels like a place
     add(panel(this, 8, 6, 944, 528, this.textures.exists("bg_kreddle_exchange") ? 0.35 : 0.97));
-    const head = this.add.text(30, 34, "KREDDLE EXCHANGE", { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#ff4fd8", stroke: "#12001f", strokeThickness: 6 }).setOrigin(0, 0.5);
+    const head = this.add.text(30, 34, "KREDDLE EXCHANGE", { fontFamily: PIXEL_BOLD, fontSize: "32px", color: "#ff4fd8", stroke: "#12001f", strokeThickness: 6 }).setOrigin(0, 0.5);
     head.setShadow(0, 0, "#ff4fd8", 10, true, true);
     add(head);
-    if (!TOUCH.enabled) add(this.add.text(34, 60, "←→↑↓ pick · E buy · TAB tabs · ESC leave", { fontFamily: FONT, fontSize: "11px", color: "#8f8ab8" }).setOrigin(0, 0.5));
+    if (!TOUCH.enabled) add(this.add.text(head.x + head.width + 24, 36, "E BUY   TAB TABS   ESC LEAVE", { fontFamily: PIXEL_FONT, fontSize: "16px", color: "#c4bdf0", stroke: "#12001f", strokeThickness: 4 }).setOrigin(0, 0.5));
     // close (and, in Kreddle, the way over to the Prize Counter)
     const close = button(this, 914, 34, "✕", () => this.close(), { w: 48, h: 44, size: 22, color: 0x7f1d1d });
     add(close);

@@ -2,6 +2,9 @@ import Phaser from "phaser";
 import { synth } from "../audio/Synth";
 
 export const FONT = '"Trebuchet MS", "Segoe UI", Verdana, sans-serif';
+/** The game's own pixel fonts (PixelLab): chunky for names, prices and titles; plain for the small print. */
+export const PIXEL_BOLD = '"Krel Bold", "Trebuchet MS", sans-serif';
+export const PIXEL_FONT = '"Krel Regular", "Trebuchet MS", sans-serif';
 export const MONO = '"Courier New", monospace';
 
 export const UI = {

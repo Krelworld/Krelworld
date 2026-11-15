@@ -20,6 +20,9 @@ export class BootScene extends Phaser.Scene {
     }
     // PixelLab art (public/art). Loaded under the old texture keys, so it replaces the procedural art.
     this.load.json("artmanifest", "art/manifest.json");
+    // the game's own PixelLab pixel fonts (shop and menus)
+    this.load.font("Krel Bold", "fonts/krel-bold.ttf", "truetype");
+    this.load.font("Krel Regular", "fonts/krel-regular.ttf", "truetype");
     this.load.on("filecomplete-json-artmanifest", (_k: string, _t: string, m: ArtManifest) => {
       // the published build bakes small pictures straight into the manifest (data: URLs) to keep the file count down
       const src = (f: string) => (f.startsWith("data:") ? f : `art/${f}`);

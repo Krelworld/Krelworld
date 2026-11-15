@@ -5,23 +5,17 @@
     "v3": "eleven_v3"
   },
   "v2_neutral": [
-    "MIKEY",
-    "SANMIK",
     "POLSON",
     "SANCHZ",
-    "FLENKY",
-    "DARK JENKO",
-    "KREBLIS",
     "CRONGUS",
     "LIL' CRONGUS",
     "KREZWONK",
-    "KREZMAR",
     "KREBON",
     "ROBBO"
   ],
   "clones": {
-    "MIKEY": "AFuq10xLjXqFlXtuCds4",
-    "SANMIK": "AFuq10xLjXqFlXtuCds4",
+    "MIKEY": "5v7ks8vuKmqp0fWh6Gjo",
+    "SANMIK": "27EXGttGzliGeKY0Hhk7",
     "POLSON": "ZLWvHRnQEYoUUh8xVn1b",
     "SANCHZ": "ZLWvHRnQEYoUUh8xVn1b",
     "FLENKY": "5RTlM7GOxnav58fQsiJc",
@@ -33,7 +27,9 @@
     "KREZMAR": "fd3xykIzMlxTNRrqlsdo",
     "KREBON": "raUrJzezo0CvuQwrqRY3",
     "ROBBO": "rgyI965t42X3WICxQ9H3",
-    "GRONNY": "PNtG4NUljGbNqoQiXQOd"
+    "GRONNY": "PNtG4NUljGbNqoQiXQOd",
+    "EDEN": "W7WDJzszCwqSQGaSpe5G",
+    "GABOR THE GOAT": "9qCSTRFuI7LgrZiyPD7O"
   },
   "hold": [
     "DRONGUS"
@@ -377,8 +373,8 @@
   },
   "delivery": {
     "KREZWONK": "mysterious",
-    "KREBLIS": "deadpan",
-    "MIKEY": "nervous",
+    "KREBLIS": "energetic",
+    "MIKEY": "slightly camp",
     "GRONNY": "grunts",
     "PROCTUS": "confused",
     "PRESIDENT KLERBLE": "dramatic",
@@ -430,8 +426,12 @@
     "JOURNALIST 3": "condescending",
     "JOURNALIST 6": "condescending",
     "JOURNALIST 4": "sarcastic",
-    "GABOR THE GOAT": "nervous",
-    "GIRLFRIEND": "screaming"
+    "GABOR THE GOAT": "trembling",
+    "GIRLFRIEND": "screaming",
+    "FLENKY": "energetic",
+    "DARK JENKO": "energetic",
+    "KREZMAR": "energetic",
+    "SANMIK": "whiny, confrontational"
   },
   "female": [
     "EDEN",
@@ -586,26 +586,32 @@
     "REPORTER": "~press_f_us"
   },
   "clone_accents": {
-    "_doc": "Accent tag added to cloned voices on eleven_v3 (mood lines), which otherwise drift American. Default 'British accent'.",
-    "GRONNY": "middle-class English accent"
+    "_doc": "Accent tag for cloned voices on eleven_v3, which otherwise drift (American, or regional). Everyone in the group is southern English: faint RP or a slight cockney. Default below.",
+    "_default": "southern English accent",
+    "GRONNY": "middle-class English accent",
+    "FLENKY": "middle-class southern English accent",
+    "DARK JENKO": "middle-class southern English accent",
+    "KREBLIS": "middle-class southern English accent",
+    "KREZMAR": "mild Estuary English accent",
+    "MIKEY": "middle-class RP English accent",
+    "SANMIK": "southern English accent",
+    "EDEN": "southern English accent",
+    "GABOR THE GOAT": "southern English accent",
+    "ROBBO": "British accent"
   },
   "clone_v2_always": [
-    "MIKEY",
-    "SANMIK",
     "POLSON",
-    "FLENKY",
-    "KREBLIS",
     "KREZWONK",
-    "KREZMAR",
     "KREBON",
     "CRONGUS"
   ],
-  "clone_max_likeness": [
-    "MIKEY",
-    "SANMIK"
-  ],
-  "clone_sts": [
-    "MIKEY",
-    "SANMIK"
-  ]
+  "clone_max_likeness": [],
+  "clone_sts": [],
+  "warble": {
+    "_doc": "Post-processing on every clip of these speakers (ffmpeg vibrato: frequency Hz, depth 0-1): Gabor's goat tremble.",
+    "GABOR THE GOAT": {
+      "f": 6.5,
+      "d": 0.45
+    }
+  }
 }

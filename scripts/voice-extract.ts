@@ -126,6 +126,8 @@ for (const p of files(gameDir)) {
   const src = readFileSync(p, "utf8");
   for (const m of src.matchAll(GABOR)) add("GABOR THE GOAT", goat(unquote(m[1])), "game/" + p.slice(gameDir.length + 1), m[2]?.match(/mood:\s*["']([^"']+)["']/)?.[1]);
 }
+// SanMik is Mikey transformed: playing as Mikey in SanMik form, Mikey's lines are said in SanMik's own voice
+for (const v of [...out.values()]) if (v.s === "MIKEY") add("SANMIK", v.raw, v.file, v.m);
 const arr = [...out.entries()].map(([k, v]) => ({ k, ...v }));
 writeFileSync(process.argv[2] ?? "voice-lines.json", JSON.stringify(arr, null, 0));
 const by: Record<string, number> = {};

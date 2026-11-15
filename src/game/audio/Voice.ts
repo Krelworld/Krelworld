@@ -190,7 +190,7 @@ export function chunkSpeech(text: string, max = 160): string[] {
   return out.length ? out : [text];
 }
 
-/** SanMik is Mikey in a wig: same man, same voice, so either one's recording of a line will do for the other. */
+/** SanMik is Mikey in a wig: each has his own voice now, but if one has no recording of a line the other's will do. */
 const SAME_VOICE: Record<string, string> = { SANMIK: "MIKEY", MIKEY: "SANMIK" };
 
 /** The recording of a line said by `speaker` (index entry), if there is one. */

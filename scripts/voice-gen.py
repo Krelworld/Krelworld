@@ -159,12 +159,12 @@ def plan(l, c):
     if not explicit and not inline and not from_text and not v2_ok:
         dflt = CAST.get("delivery", {}).get(l["s"]) or CAST.get("delivery", {}).get(base)
         if dflt:
-            tags = [dflt]
+            tags = [x.strip() for x in dflt.split(",") if x.strip()]
     if v2_ok and not tags and not inline:
         return V2, t, SETTINGS[V2], []
     if kind == "clone" and not accent:
         # v3 drifts cloned voices towards American: pin every lad's own accent on mood lines
-        accent = CAST.get("clone_accents", {}).get(base, "British accent")
+        accent = CAST.get("clone_accents", {}).get(base, CAST.get("clone_accents", {}).get("_default", "British accent"))
     prefix = "".join(f"[{x}] " for x in ([accent] if accent else []) + tags)
     return V3, prefix + t, SETTINGS[V3], tags
 
@@ -209,7 +209,8 @@ for l in lines:
     if not c:
         continue
     model, text, settings, tags = plan(l, c)
-    s = sig(model, c[0], text, settings)
+    w = CAST.get("warble", {}).get(c[3])
+    s = sig(model, c[0], text, {**settings, "_warble": w} if w else settings)
     label = c[0] + ("|us" if c[2] else "")
     d = old_clip(l, s)
     if d:
@@ -268,12 +269,22 @@ def sts(voice, audio):
             return None
     return None
 
+def warble(data, w):
+    """A trembling, bleating waver (ffmpeg vibrato) over a clip: Gabor the Goat."""
+    import subprocess
+    r = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", "pipe:0", "-af", f"vibrato=f={w['f']}:d={w['d']}", *ENC, "pipe:1"],
+                       input=data, capture_output=True)
+    return r.stdout if r.returncode == 0 and r.stdout else data
+
 def gen(item):
     l, voice, model, text, settings, label, s = item
     if model.endswith(STS_SUFFIX):
         base_item, data = gen_tts((l, voice, model[: -len(STS_SUFFIX)], text, settings, label, s), hq=True)
         return item, (sts(voice, data) if data else None)
-    return gen_tts(item)
+    item, data = gen_tts(item)
+    c = cast(l["s"])
+    w = CAST.get("warble", {}).get(c[3]) if c else None
+    return item, (warble(data, w) if data and w else data)
 
 def gen_tts(item, hq=False):
     l, voice, model, text, settings, label, s = item

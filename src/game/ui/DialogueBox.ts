@@ -460,7 +460,8 @@ export class DialogueBox {
       if (then) this.scene.time.delayedCall(n * 330 + 450, () => my === this.lineNo && then());
     };
     const sayIt = () => {
-      voice.say(String(rl.s), rl.t);
+      // SanMik form: Mikey's lines in SanMik's own voice
+      voice.say(faceOf(String(rl.s)), rl.t);
       if (!tail) return;
       // wait for the voice to finish (with a little grace for it to start), then YEE
       let waited = 0;

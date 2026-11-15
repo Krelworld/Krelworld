@@ -933,11 +933,12 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
         s3.remove(planet);
         synth.play("explode");
         shake(0.08);
-        burst(top, 70, () => [0xfff1a8, 0xffb347, 0xff6a2a, 0xffd23f][Math.floor(Math.random() * 4)], { speed: 30, up: 12, size: 6, life: 1.3, grav: 4, additive: true });
-        burst(top, 26, () => [0x7a4a2a, 0xc97b3d, 0x3f3f46][Math.floor(Math.random() * 3)], { speed: 22, up: 14, size: 2.2, life: 3, grav: 30 });
-        burst(top, 18, 0x52525b, { speed: 7, up: 5, size: 9, life: 3.5, grav: -1.5, grow: 2.2 });
-        const smoke = clk.every(() => burst(top.clone().add(new THREE.Vector3((Math.random() - 0.5) * 6, 4, (Math.random() - 0.5) * 6)), 2, 0x6b7280, { speed: 1.5, up: 5, size: 7, life: 4, grav: -1.2, grow: 2.5 }), 260);
-        clk.after(() => clk.clear(smoke), 14000);
+        // kept small: a pop and a wisp, not a moment
+        burst(top, 40, () => [0xfff1a8, 0xffb347, 0xff6a2a, 0xffd23f][Math.floor(Math.random() * 4)], { speed: 14, up: 6, size: 2.6, life: 0.8, grav: 4, additive: true });
+        burst(top, 14, () => [0x7a4a2a, 0xc97b3d, 0x3f3f46][Math.floor(Math.random() * 3)], { speed: 12, up: 8, size: 1.2, life: 2.2, grav: 30 });
+        burst(top, 5, 0x52525b, { speed: 2, up: 2, size: 3, life: 2, grav: -1, grow: 1.3 });
+        const smoke = clk.every(() => burst(top.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, 3, (Math.random() - 0.5) * 3)), 1, 0x6b7280, { speed: 0.8, up: 3, size: 2.2, life: 2.5, grav: -1, grow: 1.4 }), 450);
+        clk.after(() => clk.clear(smoke), 10000);
       };
       fly();
     }, 1100);
@@ -1159,7 +1160,7 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   const victims = peds.onRoad(jacked, 2);
   // chase cam: high and behind, eased round the corners, and kept over the roads (on the ring, inside its outer
   // edge; on the avenue, over the carriageway) so it never ends up inside a building when he turns
-  const chase = new THREE.Vector3(jacked.pos.x - jacked.dir.x * 9, 30, jacked.pos.z - jacked.dir.z * 9);
+  const chase = new THREE.Vector3();
   const chaseLook = jacked.pos.clone();
   let chaseLast = clk.now();
   camState.follow = () => {
@@ -1167,12 +1168,12 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     const d = jacked.dir;
     const dt = Math.min(0.1, (clk.now() - chaseLast) / 1000);
     chaseLast = clk.now();
-    // steep and high: above the rooftops, so a tall building on the corner can't get between it and the car
-    const want = new THREE.Vector3(p.x - d.x * 9, 30, p.z - d.z * 9);
+    // on the ring: from the plaza side (no buildings in there), a bit behind him; on the avenue: behind, over the road
+    const want = new THREE.Vector3();
     if (p.x < 40) {
-      want.x = Math.max(-39, Math.min(39, want.x));
-      want.z = Math.max(-39, Math.min(39, want.z));
-    } else want.z = Math.max(-7, Math.min(7, want.z));
+      const toC = new THREE.Vector3(-p.x, 0, -p.z).normalize();
+      want.set(p.x + toC.x * 13 - d.x * 5, 10, p.z + toC.z * 13 - d.z * 5);
+    } else want.set(p.x - 13, 10, Math.max(-6, Math.min(6, p.z)));
     // (the frame loop already eases camState towards these; the clamped region is a box, so the eased camera
     // stays inside it too)
     void dt;

@@ -101,6 +101,8 @@ export class WeaponPickScene extends Phaser.Scene {
     const w = this.list[i];
     if (!w || w.empty) return;
     G.s.gun = w.id ?? undefined;
+    // picking the Fart Blaster from the wheel is a choice: don't auto-arm over it this room
+    G.rt.fartByChoice = !w.id;
     synth.play("pickup");
     G.emit("weaponCard", {});
     this.close();

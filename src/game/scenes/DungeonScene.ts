@@ -324,6 +324,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       this.player.spr.setScale(2);
     }
     // walk in holding the first gun in your weapon order (the gun rack at home) that has ammo
+    // a new room: your best loaded gun in hand (a Fart Blaster choice only lasts the room)
+    G.rt.fartByChoice = false;
     equipBest(s);
     this.spice = new Spice(this);
     this.spice.setup();

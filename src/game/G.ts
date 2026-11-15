@@ -31,6 +31,8 @@ class GameContext {
     /** Real time (ms) of Drongus's next old Facebook status, and the shuffled deck. */
     nextStatusAt: 0,
     statusDeck: [] as number[],
+    /** The player swapped to the Fart Blaster on purpose (cleared on the next room). */
+    fartByChoice: false,
   };
 
   constructor() {

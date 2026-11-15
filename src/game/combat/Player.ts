@@ -12,7 +12,7 @@ import type { CombatWorld } from "./types";
 import { autoAimAllowed, type Controls } from "./Controls";
 import type { Enemy } from "./Enemy";
 import { PLAYER_BARKS } from "../../content/dialogue/ambient";
-import { currentGun, cycleGun, fitTo, nextLoadedGun, GUNS, FART_BLASTER } from "./Guns";
+import { currentGun, cycleGun, ensureArmed, fitTo, nextLoadedGun, GUNS, FART_BLASTER } from "./Guns";
 import { kd } from "../systems/kreddle";
 import { releaseFart } from "./Farts";
 import { hasVfx, vfx } from "../gfx/Vfx";
@@ -165,6 +165,8 @@ export class Player {
   update(dt: number, now: number, c: Controls) {
     if (this.dead) return;
     const s = G.s;
+    // never stuck on the Fart Blaster while a gun has ammo (unless you chose it this room)
+    if (ensureArmed(s)) G.emit("weaponCard", {});
     const mods = activeMods(s);
     const body = this.spr.body as Phaser.Physics.Arcade.Body;
     c.invertX = now < this.invertUntil;

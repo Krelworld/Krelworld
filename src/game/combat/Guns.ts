@@ -11,6 +11,19 @@ export function bestLoadedGun(s: GameState = G.s, except?: string): string | nul
   return firstLoaded(s, except);
 }
 
+/**
+ * Never sit on the Fart Blaster while any gun has ammo, unless the player picked it on purpose this room.
+ * Returns true if it armed something.
+ */
+export function ensureArmed(s: GameState = G.s): boolean {
+  if (G.rt.fartByChoice) return false;
+  if (s.gun && (s.guns?.[s.gun] ?? 0) > 0) return false;
+  const id = bestLoadedGun(s);
+  if (!id) return false;
+  s.gun = id;
+  return true;
+}
+
 /** Arm the first gun in your order you have ammo for. Returns its id (or null for the Fart Blaster). */
 export function equipBest(s: GameState = G.s): string | null {
   const id = bestLoadedGun(s);
@@ -41,6 +54,8 @@ export function cycleGun(s: GameState = G.s): string {
   const list: (string | null)[] = [...orderedGuns(s).filter((id) => (s.guns![id] ?? 0) > 0), null];
   const i = list.indexOf(s.gun ?? null);
   s.gun = list[(i + 1) % list.length] ?? undefined;
+  // swapping to the Fart Blaster on purpose is respected (until you leave the room); otherwise it never sticks
+  G.rt.fartByChoice = !s.gun;
   return s.gun ? GUNS[s.gun].name : FART_BLASTER.name;
 }
 

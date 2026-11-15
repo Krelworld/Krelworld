@@ -167,6 +167,8 @@ interface Npc {
   plate: Phaser.GameObjects.Text;
   /** Chapter 7: a soot-covered survivor, shuffling about the ruins. */
   dazed?: boolean;
+  /** A soft shadow on the ground under them. */
+  shadow?: Phaser.GameObjects.Ellipse;
   /** Sanjeev: wanders the whole town rather than hanging about one spot. */
   rove?: boolean;
   /** Mikey: follows you around begging to join the group. */
@@ -241,6 +243,7 @@ export class HubScene extends Phaser.Scene {
   private controls!: Controls;
   private av!: Phaser.Physics.Arcade.Sprite;
   private npcs: Npc[] = [];
+  private avShadow: Phaser.GameObjects.Ellipse | null = null;
   private interactables: HubInteract[] = [];
   private colliders!: Phaser.Physics.Arcade.StaticGroup;
   private prompt!: Phaser.GameObjects.Text;
@@ -314,6 +317,7 @@ export class HubScene extends Phaser.Scene {
     this.controls = new Controls(this);
     const start = this.spawnPoint(data?.at);
     this.av = this.physics.add.sprite(start.x, start.y, playerKey(this), 0).setScale(2).setDepth(start.y);
+    this.avShadow = this.add.ellipse(start.x, start.y + 30, 36, 11, 0x0b0614, 0.38).setDepth(2);
     feetBody(this.av, 20, 16, this.hd ? 26 : 22).setCollideWorldBounds(true);
     this.physics.add.collider(this.av, this.colliders);
     // playing as Mikey: V (or the SANMIK button) and he's SanMik, there and then
@@ -1502,10 +1506,8 @@ export class HubScene extends Phaser.Scene {
       if (b.id === "CROBLEY_FACTORY" && G.s.flags.crobley_factory_destroyed) name = "CROBLEY CORP HQ (SMOULDERING WRECK)";
       if (b.id === "WILDERN" && G.s.flags.wildern_destroyed) name = "WHERE WILDERN USED TO BE (SMOULDERING CRATER)";
       this.bImg[b.id] = img;
-      this.add
-        .text(b.x, b.y + b.h / 2 + 6, name, { fontFamily: FONT, fontSize: "11px", color: "#fff4cc", backgroundColor: "#1a1033cc", padding: { x: 5, y: 2 }, align: "center", wordWrap: { width: Math.max(160, b.w) } })
-        .setOrigin(0.5, 0)
-        .setDepth(b.y + b.h / 2 + 1);
+      // no permanent name label: the name comes up as you walk to the door (less clutter, nothing hidden behind props)
+      void name;
       // the walkable line is the front wall: everything above it is roof and facade
       this.colliders.add(this.add.rectangle(b.x, b.y + b.h * 0.12, b.w * 0.86, b.h * 0.7, 0, 0));
       if (key === "bld_CROBLEY_FACTORY_RUIN" || key === "bld_WILDERN_RUIN") this.smoulder(b);
@@ -1544,7 +1546,7 @@ export class HubScene extends Phaser.Scene {
     let name = b.name;
     if (b.id === "TOWN_HALL" && G.s.chapter === 1 && !G.s.flags.ch1_clear) name = "KRELFORD ____ HALL";
     if (b.id === "HOME") name = `${CHARACTERS[G.s.player].name}'S HOUSE`;
-    this.add.text(b.x, y0 + 52, name, { fontFamily: FONT, fontSize: "12px", color: "#ffffff", backgroundColor: "#00000099", padding: { x: 4, y: 2 }, align: "center", wordWrap: { width: b.w - 10 } }).setOrigin(0.5, 0).setDepth(b.y + b.h / 2);
+    void name;
     this.colliders.add(this.add.rectangle(b.x, b.y + 10, b.w, b.h - 20, 0, 0));
   }
 
@@ -1626,7 +1628,9 @@ export class HubScene extends Phaser.Scene {
     const plateTxt = id === "PROCTUS" ? `PROCTUS KRELMOR\n${CHARACTERS[G.s.player].proctusTitle}` : def ? def.name : NPC_NAMES[id] ?? "";
     const plate = this.add.text(at.x, at.y - 36, plateTxt, { fontFamily: FONT, fontSize: "9px", color: def ? hexStr(def.color) : "#cccccc", align: "center", backgroundColor: "#00000077", padding: { x: 2, y: 1 } }).setOrigin(0.5, 1).setDepth(4000);
     if (folk) plate.setVisible(false);
-    const n: Npc = { id, spr, home: { ...at }, target: { ...at }, nextMove: this.time.now + Math.random() * 3000, nextBark: this.time.now + 3000 + Math.random() * 8000, folk, plate };
+    const shadow = this.add.ellipse(at.x, at.y + 30, 34, 10, 0x0b0614, 0.35).setDepth(2);
+    plate.setAlpha(0);
+    const n: Npc = { id, spr, home: { ...at }, target: { ...at }, nextMove: this.time.now + Math.random() * 3000, nextBark: this.time.now + 3000 + Math.random() * 8000, folk, plate, shadow };
     this.npcs.push(n);
     if (!folk) {
       const it: HubInteract = { x: at.x, y: at.y, r: 50, label: () => `Talk to ${id === "PROCTUS" ? "Proctus" : def?.name ?? NPC_NAMES[id] ?? id}`, use: () => this.talkTo(n) };
@@ -1726,6 +1730,12 @@ export class HubScene extends Phaser.Scene {
       } else animateWalker(n.spr, 0, 0, false, now);
       n.spr.setDepth(n.spr.y);
       n.plate.setPosition(n.spr.x, n.spr.y - 36);
+      n.shadow?.setPosition(n.spr.x, n.spr.y + 30).setVisible(n.spr.visible);
+      // name plates only when you're close enough to talk (fade in/out)
+      if (!n.folk) {
+        const near = Phaser.Math.Distance.Between(n.spr.x, n.spr.y, this.av.x, this.av.y) < 190;
+        n.plate.setAlpha(Phaser.Math.Linear(n.plate.alpha, near ? 1 : 0, 0.15));
+      }
       if (n.bubble?.active) n.bubble.setPosition(n.spr.x, n.spr.y - 52);
       // ambient barks near the player
       if (now > n.nextBark && Phaser.Math.Distance.Between(n.spr.x, n.spr.y, this.av.x, this.av.y) < 420) {
@@ -1923,6 +1933,8 @@ export class HubScene extends Phaser.Scene {
     }
     if (this.textures.exists("tile_rubber")) {
       this.add.tileSprite(P.x, P.y, P.w, P.h, "tile_rubber").setOrigin(0).setDepth(1);
+      // the rubber crumb tile is very busy close up: a soft wash calms it down
+      this.add.rectangle(P.x, P.y, P.w, P.h, 0x6d3f63, 0.5).setOrigin(0).setDepth(1.5);
       // a picket fence around it, with a gap at the front
       if (this.textures.exists("hd_fence"))
         for (let x = P.x + 40; x < P.x + P.w; x += 92) {
@@ -1937,7 +1949,6 @@ export class HubScene extends Phaser.Scene {
       for (let i = 0; i < 40; i++) g.fillCircle(P.x + 14 + ((i * 53) % (P.w - 28)), P.y + 14 + ((i * 37) % (P.h - 28)), 3);
       g.lineStyle(4, 0xffd23f, 1).strokeRoundedRect(P.x, P.y, P.w, P.h, 18);
     }
-    this.add.text(P.cx, P.y + P.h + 8, "KRELFORD PLAYGROUND · NO ADULTS UNLESS ACCOMPANYING A CHILD", { fontFamily: FONT, fontSize: "10px", color: "#fff4cc", backgroundColor: "#1a1033cc", padding: { x: 4, y: 2 } }).setOrigin(0.5, 0).setDepth(P.y + P.h + 2);
     for (const [k, x, y] of PLAY_EQUIP) {
       if (this.textures.exists(k)) this.add.image(x, y + 10, k).setOrigin(0.5, 1).setDepth(y + 10);
       else this.add.rectangle(x, y - 10, 60, 40, 0xff6bb0).setStrokeStyle(3, 0x5ad1ff).setDepth(y);
@@ -2929,6 +2940,7 @@ You are required by law to sign the Sex Offenders Register.`, {
       }
     }
     this.av.setDepth(this.av.y + 1);
+    this.avShadow?.setPosition(this.av.x, this.av.y + 30).setVisible(this.av.visible);
     this.updateNpcs(time, dt);
     this.updatePlayground(time, dt);
     this.updateRegister();
@@ -3156,10 +3168,7 @@ You are required by law to sign the Sex Offenders Register.`, {
     this.add.ellipse(b.x, b.y + b.h * 0.2, b.w * 1.05, b.h * 0.6, 0x0d0a08, 0.45).setDepth(1);
     let name = b.id === "HOME" ? `${CHARACTERS[G.s.player].name}'S HOUSE` : b.name;
     name = `${name} (RUBBLE)`;
-    this.add
-      .text(b.x, b.y + b.h / 2 + 6, name, { fontFamily: FONT, fontSize: "11px", color: "#ffb4a0", backgroundColor: "#1a1033cc", padding: { x: 5, y: 2 }, align: "center", wordWrap: { width: Math.max(160, b.w) } })
-      .setOrigin(0.5, 0)
-      .setDepth(b.y + b.h / 2 + 1);
+    void name;
     this.colliders.add(this.add.rectangle(b.x, b.y + b.h * 0.12, b.w * 0.8, b.h * 0.6, 0, 0));
   }
 
@@ -3703,6 +3712,7 @@ You are required by law to sign the Sex Offenders Register.`, {
       if (!(LADS as readonly string[]).includes(n.id) && n.id !== "MIKEY" && !n.follower) continue;
       n.spr.destroy();
       n.plate.destroy();
+      n.shadow?.destroy();
       n.bubble?.destroy();
       this.interactables = this.interactables.filter((i) => (i as unknown as { __npc?: Npc }).__npc !== n);
       this.npcs = this.npcs.filter((x) => x !== n);

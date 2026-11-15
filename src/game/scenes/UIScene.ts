@@ -1,3 +1,4 @@
+import { keysFor, prettyKey } from "../systems/keybinds";
 import { currentGun, ownedGuns, gunMax } from "../combat/Guns";
 import { fartLevel, fartMeter } from "../combat/Farts";
 import Phaser from "phaser";
@@ -260,6 +261,75 @@ export class UIScene extends Phaser.Scene {
   }
 
   /** The pale "damage taken" part of the HP bar, and when it last caught up. */
+  private wasFull = false;
+  private lastLv = 0;
+  private gunT: Phaser.GameObjects.Text | null = null;
+  private tray: { key: Phaser.GameObjects.Text; label: Phaser.GameObjects.Text; pips: Phaser.GameObjects.Text }[] = [];
+  private popPrompt: Phaser.GameObjects.Container | null = null;
+  private popUntil = 0;
+
+  /** A specials keycap: fills from the bottom as the meter charges; glows (and shows the key big) when it's ready. */
+  private drawKeycap(i: number, x: number, y: number, frac: number, ready: boolean, key: string, label: string, col: number, pulse: number, pips = -1) {
+    const g = this.g;
+    const S = 64;
+    if (!this.tray[i]) {
+      this.tray[i] = {
+        key: this.add.text(0, 0, "", { fontFamily: "Impact, sans-serif", fontSize: "26px", color: "#ffffff" }).setOrigin(0.5).setShadow(2, 2, "#000", 0),
+        label: this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "11px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5, 0).setShadow(1, 1, "#000", 0),
+        pips: this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "9px", color: "#d9f99d" }).setOrigin(0.5, 0),
+      };
+    }
+    const t = this.tray[i];
+    if (ready) {
+      g.fillStyle(col, 0.25 + 0.35 * pulse);
+      g.fillRoundedRect(x - 6, y - 6, S + 12, S + 12, 12);
+    }
+    g.fillStyle(0x0b0614, 0.85);
+    g.fillRoundedRect(x, y, S, S, 8);
+    const fh = (S - 4) * Phaser.Math.Clamp(frac, 0, 1);
+    g.fillStyle(col, ready ? 0.9 : 0.45);
+    g.fillRect(x + 2, y + S - 2 - fh, S - 4, fh);
+    g.lineStyle(ready ? 3 : 1, ready ? 0xffffff : 0xffffff, ready ? 0.6 + 0.4 * pulse : 0.3);
+    g.strokeRoundedRect(x, y, S, S, 8);
+    t.key.setText(key).setPosition(x + S / 2, y + S / 2 - 2).setAlpha(ready ? 1 : 0.45).setScale(ready ? 1 + 0.08 * pulse : 1).setVisible(true);
+    t.label.setText(label).setPosition(x + S / 2, y + S + 3).setColor(ready ? "#ffffff" : "#9aa0a6").setVisible(true);
+    t.pips.setText(pips > 0 ? "●".repeat(pips) + "○".repeat(4 - pips) : "").setPosition(x + S / 2, y + 4).setVisible(pips > 0);
+  }
+
+  private hideTray() {
+    for (const t of this.tray) {
+      t.key.setVisible(false);
+      t.label.setVisible(false);
+      t.pips.setVisible(false);
+    }
+  }
+
+  /** "R — WONK READY" over the player's head, for a couple of seconds. */
+  private showPop(key: string, text: string, col: number, time: number) {
+    this.popPrompt?.destroy();
+    const c = this.add.container(0, 0).setDepth(40);
+    const k = this.add.text(0, 0, key, { fontFamily: "Impact, sans-serif", fontSize: key.length > 2 ? "14px" : "22px", color: "#111111", backgroundColor: "#" + col.toString(16).padStart(6, "0"), padding: { x: 9, y: 4 } }).setOrigin(0.5, 1);
+    const tx = this.add.text(0, 2, text, { fontFamily: FONT, fontSize: "11px", color: "#ffffff", fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5, 0);
+    c.add([k, tx]);
+    this.popPrompt = c;
+    this.popUntil = time + 2600;
+  }
+
+  private placePop(dun: any, time: number, pulse: number) {
+    const c = this.popPrompt;
+    if (!c) return;
+    const p = dun?.player?.spr;
+    if (time > this.popUntil || !p || !dun.cameras?.main) {
+      c.destroy();
+      this.popPrompt = null;
+      return;
+    }
+    const cam = dun.cameras.main;
+    const sx = (p.x - cam.worldView.x) * cam.zoom;
+    const sy = (p.y - cam.worldView.y) * cam.zoom - 64 * cam.zoom;
+    c.setPosition(sx, sy - 4 * pulse).setAlpha(Math.min(1, (this.popUntil - time) / 400));
+  }
+
   private hpGhost = 1;
   private hpGhostAt = 0;
 
@@ -273,83 +343,18 @@ export class UIScene extends Phaser.Scene {
     const mh = maxHp(s);
     const confl = time < this.conflictUntil;
     const labels = confl ? ["WONK", "HP", "KREZZ"] : this.labels;
-    // bars
-    const bar = (y: number, frac: number, col: number, label: string, text: string) => {
-      if (!(y === 22 && this.hpGhost > Phaser.Math.Clamp(frac, 0, 1))) {
-        g.fillStyle(0x000000, 0.65);
-        g.fillRect(66, y, 190, 12);
-      }
-      g.fillStyle(col, 1);
-      g.fillRect(67, y + 1, 188 * Phaser.Math.Clamp(frac, 0, 1), 10);
-      g.lineStyle(1, 0xffffff, 0.3);
-      g.strokeRect(66, y, 190, 12);
-      return `${label} ${text}`;
-    };
-    // the damage you just took shows as a pale chunk that drains away after a beat
-    const hpFrac = Phaser.Math.Clamp(s.hp / mh, 0, 1);
-    if (hpFrac >= this.hpGhost) {
-      this.hpGhost = hpFrac;
-      this.hpGhostAt = time;
-    } else if (time - this.hpGhostAt > 450) this.hpGhost = Math.max(hpFrac, this.hpGhost - 0.0012 * 16);
-    if (this.hpGhost > hpFrac) {
+    const dungeon = this.mode === "dungeon";
+    const touch = !!this.touch && isTouchDevice(this.game);
+    const flash = Math.floor(time / 160) % 2 === 0;
+    const pulse = 0.5 + 0.5 * Math.sin(time / 140);
+    const bar = (x: number, y: number, w: number, h: number, frac: number, col: number) => {
       g.fillStyle(0x000000, 0.65);
-      g.fillRect(66, 22, 190, 12);
-      g.fillStyle(0xfff1f2, 0.85);
-      g.fillRect(67, 23, 188 * this.hpGhost, 10);
-    }
-    const hpS = bar(22, s.hp / mh, UI.hp, labels[0], `${Math.ceil(s.hp)}/${mh}`);
-    const kzS = bar(37, s.krezz / maxKrezz(s), UI.krezz, labels[1], `${Math.floor(s.krezz)}`);
-    let wonk = 0;
-    const dun = this.scene.get("Dungeon") as any;
-    if (this.mode === "dungeon" && dun?.player) wonk = dun.player.wonk;
-    if (this.mode === "dungeon") {
-      const full = wonk >= 100;
-      const fm = fartMeter();
-      const lv = fartLevel();
-      const flash = Math.floor(time / 160) % 2 === 0;
-      // a solid panel so the specials never get lost in the scenery
-      g.fillStyle(0x0b0614, 0.82);
-      g.fillRoundedRect(62, 49, 300, 34, 6);
-      g.lineStyle(1, 0xffffff, 0.25);
-      g.strokeRoundedRect(62, 49, 300, 34, 6);
-      // WONK
-      g.fillStyle(0x000000, 0.8);
-      g.fillRect(66, 52, 190, 13);
-      g.fillStyle(full ? (flash ? 0xffd23f : 0xff8c00) : UI.wonk, 1);
-      g.fillRect(67, 53, 188 * Math.min(1, wonk / 100), 11);
-      g.lineStyle(full ? 2 : 1, full ? 0xffd23f : 0xffffff, full ? 1 : 0.35);
-      g.strokeRect(66, 52, 190, 13);
-      this.wonkT.setText(full ? `${labels[2]} FULL!` : `${labels[2]} ${Math.floor(wonk)}%`).setColor(full ? "#1a0b00" : "#ffffff").setShadow(1, 1, full ? "#ffe9a8" : "#000", 0).setPosition(70, 52).setVisible(true);
-      // FART: four potency segments
-      const fx = 66;
-      g.fillStyle(0x000000, 0.8);
-      g.fillRect(fx, 68, 190, 13);
-      for (let i = 0; i < 4; i++) {
-        const fill = Phaser.Math.Clamp((fm - i * 25) / 25, 0, 1);
-        const col = [0xc5e1a5, 0x9ccc65, 0x7cb342, 0xd4ff3a][i];
-        g.fillStyle(lv === 4 ? (flash ? 0xd4ff3a : 0xa3e635) : col, 1);
-        g.fillRect(fx + 1 + i * 47.25, 69, 46.25 * fill, 11);
-      }
-      g.lineStyle(1, 0x000000, 1);
-      for (let i = 1; i < 4; i++) g.lineBetween(fx + i * 47.5, 68, fx + i * 47.5, 81);
-      g.lineStyle(lv === 4 ? 2 : 1, lv === 4 ? 0xd4ff3a : 0xffffff, lv === 4 ? 1 : 0.35);
-      g.strokeRect(fx, 68, 190, 13);
-      const fn = ["FART", "FART · FAIRY", "FART · BAKED BEANS", "FART · CABBAGE", "FART · IBS ATTACK!"][lv];
-      this.fartT.setText(`💨 ${fn}`).setColor(lv === 4 ? "#0f1a05" : lv ? "#ffffff" : "#c5e1a5").setShadow(1, 1, lv === 4 ? "#f0ffb0" : "#000", 0).setPosition(70, 68).setVisible(true);
-      // "press this" chips
-      const touch = !!this.touch && isTouchDevice(this.game);
-      this.wonkChip.setText(touch ? "TAP WONK" : "PRESS R").setVisible(full).setAlpha(flash ? 1 : 0.75);
-      this.fartChip.setText(touch ? "TAP 💨" : "PRESS G").setVisible(lv >= 1).setBackgroundColor(lv === 4 ? (flash ? "#d4ff3a" : "#7cb342") : "#3f6212").setColor(lv === 4 ? "#111" : "#fff");
-      this.touch?.glow("burst", full, time);
-      this.touch?.glow("fart", lv === 4, time);
-      this.statT.setY(88);
-    } else {
-      this.wonkT.setVisible(false);
-      this.fartT.setVisible(false);
-      this.wonkChip?.setVisible(false);
-      this.fartChip?.setVisible(false);
-      this.statT.setY(66);
-    }
+      g.fillRect(x, y, w, h);
+      g.fillStyle(col, 1);
+      g.fillRect(x + 1, y + 1, (w - 2) * Phaser.Math.Clamp(frac, 0, 1), h - 2);
+      g.lineStyle(1, 0xffffff, 0.3);
+      g.strokeRect(x, y, w, h);
+    };
     // playing as Mikey: Mikey ⇄ SanMik changes the face and the name up here too
     const face = playerFace(s);
     if (face !== this.face) {
@@ -359,17 +364,91 @@ export class UIScene extends Phaser.Scene {
     }
     const nm = time < this.renameUntil && this.rename ? this.rename : sanmikActive(s) ? "SANMIK" : CHARACTERS[s.player].name;
     this.nameT.setText(nm);
-    this.hpT.setText(hpS);
-    this.kzT.setText(kzS);
-    this.statT.setText(
-      [
-        `💰 ${s.coins} Krezzcoin   🍼 ${s.bottles}/${maxBottles(s)} (Q)   🍺 ${s.bongos} (B)${s.upgrades.fairies ? `   🧚 ${s.upgrades.fairies}` : ""}${s.flags.rock_points ? `   🤘 ${s.flags.rock_points}` : ""}`,
-        ...(ownedGuns(s).length
-          ? [currentGun(s) ? `🔫 ${currentGun(s)!.name} ${s.guns![s.gun!]}/${gunMax(currentGun(s)!, s)}  (X: swap · hold X: choose)` : `💨 Fart Blaster ∞${ownedGuns(s).length ? ` · ${ownedGuns(s).length} gun${ownedGuns(s).length > 1 ? "s" : ""}  (X: swap · hold X: choose)` : ""}`]
-          : []),
-        `${intoxLabel(s.intoxication)}${s.intoxication > 5 ? ` (${Math.round(s.intoxication)}%)` : ""}  ·  Drongus: ${resentmentLabel(s.drongusResentment)}${s.flags.tap_rush ? "  ·  💦 TAP RUSH (+50% HP, +25% dmg)" : ""}${s.flags.golden_charge ? "  ·  ⚡ GOLDEN JUICE (T to transform)" : ""}`,
-      ].join("\n"),
-    );
+    // things that change how you play right now (shown as chips, only while they're true)
+    const chips = [
+      s.intoxication > 5 ? `${intoxLabel(s.intoxication)} ${Math.round(s.intoxication)}%` : "",
+      s.flags.tap_rush ? "💦 TAP RUSH (+50% HP, +25% dmg)" : "",
+      s.flags.golden_charge ? "⚡ GOLDEN JUICE (T to transform)" : "",
+    ].filter(Boolean);
+    if (!dungeon) {
+      // KRELFORD: nothing can hurt you here, so no bars. Just your money and anything that's affecting you.
+      this.hpT.setVisible(false);
+      this.kzT.setVisible(false);
+      this.wonkT.setVisible(false);
+      this.fartT.setVisible(false);
+      this.wonkChip.setVisible(false);
+      this.fartChip.setVisible(false);
+      this.hideTray();
+      this.statT.setPosition(68, 24).setText([`💰 ${s.coins} Krezzcoin`, ...chips].join("\n"));
+      this.popPrompt?.setVisible(false);
+    } else {
+      // ---- HEALTH: big and obvious, with your pussy juice right next to it
+      const hpFrac = Phaser.Math.Clamp(s.hp / mh, 0, 1);
+      if (hpFrac >= this.hpGhost) {
+        this.hpGhost = hpFrac;
+        this.hpGhostAt = time;
+      } else if (time - this.hpGhostAt > 450) this.hpGhost = Math.max(hpFrac, this.hpGhost - 0.0012 * 16);
+      const low = hpFrac < 0.3;
+      g.fillStyle(0x000000, 0.7);
+      g.fillRect(66, 22, 230, 18);
+      if (this.hpGhost > hpFrac) {
+        g.fillStyle(0xfff1f2, 0.85);
+        g.fillRect(67, 23, 228 * this.hpGhost, 16);
+      }
+      g.fillStyle(low && flash ? 0xff6b6b : UI.hp, 1);
+      g.fillRect(67, 23, 228 * hpFrac, 16);
+      g.lineStyle(low ? 2 : 1, low ? 0xff4d4d : 0xffffff, low ? 0.9 : 0.35);
+      g.strokeRect(66, 22, 230, 18);
+      this.hpT.setText(`${confl ? "WONK" : "HP"} ${Math.ceil(s.hp)}/${mh}`).setPosition(72, 24).setFontSize(12).setVisible(true);
+      // Krezz: a slim bar underneath
+      bar(66, 43, 230, 9, s.krezz / maxKrezz(s), UI.krezz);
+      this.kzT.setText(`KREZZ ${Math.floor(s.krezz)}`).setPosition(300, 41).setFontSize(10).setVisible(true);
+      const q = prettyKey(keysFor("bottle")[0] ?? "Q");
+      const bk = prettyKey(keysFor("bongo")[0] ?? "B");
+      this.statT.setPosition(68, 56).setText(
+        [
+          `🍼 ×${s.bottles}/${maxBottles(s)}${touch ? "" : ` [${q}] heal`}   🍺 ×${s.bongos}${touch ? "" : ` [${bk}]`}   💰 ${s.coins}${s.upgrades.fairies ? `   🧚 ${s.upgrades.fairies}` : ""}`,
+          ...chips,
+        ].join("\n"),
+      );
+      // the old top-left meter strip is replaced by the specials tray
+      this.wonkT.setVisible(false);
+      this.fartT.setVisible(false);
+      this.wonkChip.setVisible(false);
+      this.fartChip.setVisible(false);
+      // ---- SPECIALS: keycaps that fill up and glow when ready
+      let wonk = 0;
+      const dun = this.scene.get("Dungeon") as any;
+      if (dun?.player) wonk = dun.player.wonk;
+      const full = wonk >= 100;
+      const fm = fartMeter();
+      const lv = fartLevel();
+      this.touch?.glow("burst", full, time);
+      this.touch?.glow("fart", lv === 4, time);
+      const rk = prettyKey(keysFor("burst")[0] ?? "R");
+      const gk = prettyKey(keysFor("fart")[0] ?? "G");
+      if (!touch) {
+        this.drawKeycap(0, 24, 448, Math.min(1, wonk / 100), full, rk, full ? "WONK!" : `WONK ${Math.floor(wonk)}%`, 0xffd23f, pulse);
+        this.drawKeycap(1, 100, 448, fm / 100, lv >= 1, gk, ["FART", "FAIRY", "BEANS", "CABBAGE", "IBS!"][lv], lv === 4 ? 0xd4ff3a : 0x9ccc65, lv === 4 ? pulse : 0.2, lv);
+      } else this.hideTray();
+      // the moment a special becomes ready, a key prompt pops up over your head for a couple of seconds
+      if (full && !this.wasFull) this.showPop(touch ? "TAP WONK" : rk, "WONK READY", 0xffd23f, time);
+      if (lv === 4 && this.lastLv < 4) this.showPop(touch ? "TAP 💨" : gk, "IBS ATTACK READY", 0xd4ff3a, time);
+      this.wasFull = full;
+      this.lastLv = lv;
+      this.placePop(dun, time, pulse);
+      // ---- WEAPON: bottom right, big enough to read mid-fight
+      const gun = currentGun(s);
+      const sk = prettyKey(keysFor("swap")[0] ?? "X");
+      if (!this.gunT) this.gunT = this.add.text(940, 520, "", { fontFamily: FONT, fontSize: "15px", color: "#ffffff", fontStyle: "bold", align: "right", backgroundColor: "#0b0614cc", padding: { x: 8, y: 5 } }).setOrigin(1, 1).setShadow(1, 1, "#000", 0);
+      const ammo = gun ? s.guns![s.gun!] : 0;
+      const out = gun && ammo <= 0;
+      this.gunT
+        .setText(gun ? `🔫 ${gun.name}\n${out ? "OUT OF AMMO" : `${ammo} / ${gunMax(gun, s)}`}${touch ? "" : `   [${sk}] swap`}` : `💨 Fart Blaster  ∞${ownedGuns(s).length && !touch ? `\n[${sk}] swap gun` : ""}`)
+        .setColor(out ? "#ff6b6b" : gun && ammo < gunMax(gun, s) * 0.2 ? "#facc15" : "#ffffff")
+        .setVisible(!this.boss || !touch);
+    }
+    if (!dungeon) this.gunT?.setVisible(false);
     // objective
     if (this.mode === "hub") {
       // objectives pop up in the middle when they change, then get out of the way (they're always in the pause menu)

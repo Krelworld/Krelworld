@@ -2370,6 +2370,7 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
           const route: T3.Vector3[] = [new THREE.Vector3(33.8, 0, 33.6), new THREE.Vector3(33.8, 0, 6), new THREE.Vector3(38, 0, -1.8), new THREE.Vector3(160, 0, -1.8)];
           const hit = new Set<Actor>();
           const crashed = new Set<Car>();
+          const line = [best.obj.position.clone(), ...route];
           const pos = best.obj.position;
           let head = best.obj.rotation.y;
           let speed = 0;
@@ -2417,14 +2418,36 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
               }
               self.dir.set(Math.sin(head), 0, Math.cos(head));
               pos.addScaledVector(self.dir, speed * dt);
+              // never off the tarmac: held within 5 m of the route's centre line (roads are 9 m wide), so no swerve
+              // or shove can put it through a building
+              {
+                let bestD = Infinity;
+                const near = new THREE.Vector3();
+                const q = new THREE.Vector3();
+                for (let i = 0; i < line.length - 1; i++) {
+                  const a = line[i], b = line[i + 1];
+                  const ab = new THREE.Vector3().subVectors(b, a);
+                  const t = Math.max(0, Math.min(1, new THREE.Vector3().subVectors(pos, a).dot(ab) / ab.lengthSq()));
+                  q.copy(a).addScaledVector(ab, t);
+                  const d = q.distanceTo(pos);
+                  if (d < bestD) {
+                    bestD = d;
+                    near.copy(q);
+                  }
+                }
+                if (bestD > 5) pos.sub(near).setLength(5).add(near);
+              }
               best.obj.rotation.y = head;
               // other cars: a crash, not a ghost
               for (const c of cars) {
                 if (c === best || crashed.has(c)) continue;
                 const d = c.obj.position.distanceTo(pos);
-                if (d < (c.bus ? 5.2 : 3.6)) {
+                if (d > (c.bus ? 5.2 : 3.6) || speed < 4) continue;
+                const n = new THREE.Vector3().subVectors(c.obj.position, pos).setY(0).normalize();
+                // only what he drives INTO (something ahead), not the bus queued up behind him
+                if (n.dot(self.dir) < 0.35) continue;
+                {
                   crashed.add(c);
-                  const n = new THREE.Vector3().subVectors(c.obj.position, pos).setY(0).normalize();
                   const hard = Math.min(1, Math.abs(speed) / 22);
                   wrecks.set(c, { v: n.clone().multiplyScalar(4 + speed * 0.45).addScaledVector(self.dir, speed * 0.25), spin: (Math.random() < 0.5 ? -1 : 1) * (1.5 + hard * 3) });
                   onCrash(pos.clone().addScaledVector(n, 1.8).setY(0.9), hard);
@@ -2436,7 +2459,7 @@ function spawnTraffic(s3: T3.Scene, L: Loaded, paths: Path[], updaters: ((dt: nu
                   const side = new THREE.Vector3(-self.dir.z, 0, self.dir.x);
                   const away = side.dot(n) > 0 ? -1 : 1;
                   detour.length = 0;
-                  detour.push(c.obj.position.clone().addScaledVector(side, away * 4.2).addScaledVector(self.dir, 1), c.obj.position.clone().addScaledVector(side, away * 3.6).addScaledVector(self.dir, 9));
+                  detour.push(c.obj.position.clone().addScaledVector(side, away * 3.4).addScaledVector(self.dir, 1), c.obj.position.clone().addScaledVector(side, away * 2.8).addScaledVector(self.dir, 9));
                 }
               }
               for (const v of victims) {

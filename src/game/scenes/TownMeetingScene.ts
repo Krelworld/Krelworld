@@ -223,6 +223,7 @@ export class TownMeetingScene extends Phaser.Scene {
     gino: { title: "PAPA GINO'S, BOSTON", bg: "bg_papa_ginos", cast: [["EDEN", 0.3], ["POLSON", 0.44], ["KREZMAR", 0.7], ["KREBLIS", 0.82]] },
     faire: { title: "KING RICHARD'S FAIRE, MASSACHUSETTS", bg: "bg_ren_faire", cast: [["EDEN", 0.4], ["POLSON", 0.54], ["KREZMAR", 0.74], ["KREBLIS", 0.86]] },
     chart: { title: "POLSON TOWERS. THE KITCHEN.", bg: "bg_polson_kitchen", cast: [["POLSON", 0.28], ["EDEN", 0.72]] },
+    sofa: { title: "POLSON TOWERS. THE SOFA.", bg: "bg_polson_lounge", cast: [["POLSON", 0.42], ["DRONGUS_HOME", 0.6]] },
   };
 
   private salem(id: string): boolean {
@@ -330,6 +331,18 @@ export class TownMeetingScene extends Phaser.Scene {
         this.tweens.add({ targets: f, x: f.x + 40, duration: 500, ease: "Sine.out" });
         pop(f, a1 ?? "👀");
       }
+      return true;
+    }
+    if (verb === "fart" && cast[a1]) {
+      // a death fart: a green cloud, a shudder, and everyone else recoils
+      const spr = cast[a1];
+      synth.play("fart");
+      this.cameras.main.shake(350, 0.006);
+      for (let i = 0; i < 9; i++) {
+        const g = this.add.circle(spr.x + (Math.random() - 0.5) * 50, spr.y - 70 + (Math.random() - 0.5) * 30, 14 + Math.random() * 14, 0x84cc16, 0.45).setDepth(955);
+        this.tweens.add({ targets: g, x: g.x + (Math.random() - 0.3) * 160, y: g.y - 30 - Math.random() * 60, scale: 2.4, alpha: 0, duration: 1600 + Math.random() * 800, onComplete: () => g.destroy() });
+      }
+      for (const [k, other] of Object.entries(cast)) if (k !== a1) this.tweens.add({ targets: other, angle: -8, yoyo: true, duration: 160, repeat: 1 });
       return true;
     }
     if (verb === "star") {

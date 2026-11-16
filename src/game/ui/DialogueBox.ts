@@ -10,7 +10,7 @@ import { evalCond } from "../systems/conditions";
 import { portraitKey } from "../gfx/Textures";
 import { synth } from "../audio/Synth";
 import { CHARACTERS } from "../../data/characters";
-import { FONT, UI, uiFrame } from "./theme";
+import { FONT, PIXEL_BOLD, PIXEL_FONT, UI, uiFrame } from "./theme";
 import { kruncherVictim, sanmikActive } from "../systems/sanmik";
 import { sanmikify } from "../systems/sanmikify";
 
@@ -95,10 +95,10 @@ export class DialogueBox {
     this.box = scene.add.graphics();
     this.portraitFrame = scene.add.graphics();
     this.portrait = scene.add.image(84, 452, "__WHITE").setDisplaySize(112, 112);
-    this.nameText = scene.add.text(160, 372, "", { fontFamily: FONT, fontSize: "18px", color: "#ffd23f", fontStyle: "bold" }).setShadow(2, 2, "#000", 0);
+    this.nameText = scene.add.text(160, 372, "", { fontFamily: PIXEL_BOLD, fontSize: "16px", color: "#ffd23f" }).setShadow(2, 2, "#000", 0);
     this.titleText = scene.add.text(160, 393, "", { fontFamily: FONT, fontSize: "12px", color: "#9aa0a6" });
     this.bodyText = scene.add
-      .text(160, 412, "", { fontFamily: FONT, fontSize: "17px", color: "#ffffff", wordWrap: { width: 760, useAdvancedWrap: true }, lineSpacing: 3 })
+      .text(160, 412, "", { fontFamily: PIXEL_FONT, fontSize: "16px", color: "#ffffff", wordWrap: { width: 760, useAdvancedWrap: true }, lineSpacing: 6 })
       .setShadow(1, 1, "#000", 0);
     this.hint = scene.add.text(W - 30, H - 22, "▼ E / Space   ·   Tab skip", { fontFamily: FONT, fontSize: "11px", color: "#8a8fa0" }).setOrigin(1, 0.5);
     this.overlay = scene.add.container(0, 0);
@@ -314,7 +314,7 @@ export class DialogueBox {
     if (key) items.push(this.scene.add.image(x + 38, 172, key).setDisplaySize(36, 36));
     items.push(this.scene.add.text(x + 64, 162, (face !== line.s ? "SANMIK" : line.speakerName) || "Messenger", { fontFamily: FONT, fontSize: "15px", color: "#050505", fontStyle: "bold" }));
     items.push(this.scene.add.text(x + bubbleW - 20, 164, "now", { fontFamily: FONT, fontSize: "12px", color: "#65676b" }).setOrigin(1, 0));
-    const body = this.scene.add.text(x + 32, 208, text, { fontFamily: FONT, fontSize: "17px", color: "#ffffff", wordWrap: { width: bubbleW - 64, useAdvancedWrap: true } });
+    const body = this.scene.add.text(x + 32, 208, text, { fontFamily: PIXEL_FONT, fontSize: "16px", lineSpacing: 4, color: "#ffffff", wordWrap: { width: bubbleW - 64, useAdvancedWrap: true } });
     items.push(body);
     this.overlay.add(items);
     this.fullText = text;
@@ -331,7 +331,7 @@ export class DialogueBox {
       options.forEach((o, i) => {
         const y = top + i * 40;
         const bg = this.scene.add.rectangle(W / 2, y + 16, 640, 34, 0x1b1e33, 0.96).setStrokeStyle(2, UI.accent).setInteractive({ useHandCursor: true });
-        const t = this.scene.add.text(W / 2, y + 16, `${i + 1}. ${o.label}`, { fontFamily: FONT, fontSize: "16px", color: "#ffffff", wordWrap: { width: 600 } }).setOrigin(0.5);
+        const t = this.scene.add.text(W / 2, y + 16, `${i + 1}. ${o.label}`, { fontFamily: PIXEL_FONT, fontSize: "16px", color: "#ffffff", wordWrap: { width: 600 } }).setOrigin(0.5);
         bg.on("pointerover", () => bg.setFillStyle(0x2d3360, 1));
         bg.on("pointerout", () => bg.setFillStyle(0x1b1e33, 0.96));
         bg.on("pointerdown", (_p: any, _x: any, _y: any, ev: any) => {
@@ -373,7 +373,7 @@ export class DialogueBox {
       const key = portraitKey(this.scene, from);
       if (key) items.push(this.scene.add.image(x + 40, 190, key).setDisplaySize(44, 44));
       items.push(this.scene.add.text(x + 70, 128, CHARACTERS[from]?.name ?? from, { fontFamily: FONT, fontSize: "14px", color: "#65676b", fontStyle: "bold" }));
-      items.push(this.scene.add.text(x + 88, 172, message, { fontFamily: FONT, fontSize: "17px", color: "#050505", wordWrap: { width: bw - 140, useAdvancedWrap: true } }));
+      items.push(this.scene.add.text(x + 88, 172, message, { fontFamily: PIXEL_FONT, fontSize: "16px", color: "#050505", wordWrap: { width: bw - 140, useAdvancedWrap: true } }));
       items.push(this.scene.add.text(W / 2, 272, "REACT  (1-5 or click)", { fontFamily: FONT, fontSize: "12px", color: "#65676b" }).setOrigin(0.5, 0));
       const opts = options.length ? options : (["LIKE", "LOVE", "LAUGH", "ANGRY", "SEEN"] as ReactionChoice[]);
       const pick = (i: number) => {
@@ -528,11 +528,13 @@ export class DialogueBox {
 
   /** How a box lays its text out: wrap width, how many lines fit, and the text style. */
   private static layout(kind: "speech" | "dir" | "notify") {
-    if (kind === "notify") return { width: 576, lines: 3, style: { fontFamily: FONT, fontSize: "17px" } };
-    if (kind === "dir") return { width: W - 80, lines: 5, style: { fontFamily: FONT, fontSize: "17px", fontStyle: "italic", lineSpacing: 3 } };
+    // the pixel font at its native 16px: every glyph lands on whole pixels, so it reads crisp
+    if (kind === "notify") return { width: 576, lines: 3, style: { fontFamily: PIXEL_FONT, fontSize: "16px", lineSpacing: 4 } };
+    if (kind === "dir") return { width: W - 80, lines: 5, style: { fontFamily: PIXEL_FONT, fontSize: "16px", lineSpacing: 6 } };
     // speech: measured against the narrower, with-portrait layout so it fits either way
-    return { width: W - 200, lines: 4, style: { fontFamily: FONT, fontSize: "17px", lineSpacing: 3 } };
+    return { width: W - 200, lines: 4, style: { fontFamily: PIXEL_FONT, fontSize: "16px", lineSpacing: 6 } };
   }
+
 
   private measurer: Phaser.GameObjects.Text | null = null;
 
@@ -593,7 +595,7 @@ export class DialogueBox {
       this.setPortrait(null);
       this.nameText.setText("");
       this.titleText.setText("");
-      this.bodyText.setPosition(40, 384).setWordWrapWidth(W - 80).setFontStyle("italic").setColor("#d6d8e4");
+      this.bodyText.setPosition(40, 384).setWordWrapWidth(W - 80).setFontStyle("normal").setColor("#b9bdd0");
       this.typeOut(shown.text);
       return;
     }

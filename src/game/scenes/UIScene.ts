@@ -4,7 +4,7 @@ import { fartLevel, fartMeter } from "../combat/Farts";
 import Phaser from "phaser";
 import { G } from "../G";
 import { maxHp, maxKrezz, maxBottles, intoxLabel } from "../systems/stats";
-import { FONT, UI } from "../ui/theme";
+import { FONT, PIXEL_FONT, UI } from "../ui/theme";
 import { portraitKey } from "../gfx/Textures";
 import { CHARACTERS } from "../../data/characters";
 import { currentStep } from "../Flow";
@@ -240,7 +240,7 @@ export class UIScene extends Phaser.Scene {
     // long ones get a wider box (and the box always grows to fit every line)
     const w = text.length > 150 ? 380 : text.length > 70 ? 330 : 300;
     const c = this.add.container(960 - w - 10, 0).setDepth(100);
-    const body = this.add.text(10, 40, text, { fontFamily: FONT, fontSize: "12px", color: "#050505", wordWrap: { width: w - 20, useAdvancedWrap: true } });
+    const body = this.add.text(10, 40, text, { fontFamily: PIXEL_FONT, fontSize: "16px", color: "#050505", lineSpacing: 3, wordWrap: { width: w - 20, useAdvancedWrap: true } });
     const h = body.height + 66;
     const bg = this.add.rectangle(0, 0, w, h, 0xffffff, 0.97).setOrigin(0).setStrokeStyle(2, 0x1877f2);
     const band = this.add.rectangle(0, 0, w, 18, 0x1877f2).setOrigin(0);
@@ -268,7 +268,7 @@ export class UIScene extends Phaser.Scene {
   private pushToast(title: string, text: string, messenger: boolean, from?: string) {
     const w = 300;
     const c = this.add.container(960 - w - 10, 0).setDepth(100);
-    const body = this.add.text(messenger ? 46 : 10, 24, text, { fontFamily: FONT, fontSize: "12px", color: messenger ? "#050505" : "#ffffff", wordWrap: { width: w - (messenger ? 56 : 20), useAdvancedWrap: true } });
+    const body = this.add.text(messenger ? 46 : 10, 24, text, { fontFamily: PIXEL_FONT, fontSize: "16px", color: messenger ? "#050505" : "#ffffff", lineSpacing: 3, wordWrap: { width: w - (messenger ? 56 : 20), useAdvancedWrap: true } });
     const h = Math.max(48, body.height + 32);
     const bg = this.add.rectangle(0, 0, w, h, messenger ? 0xffffff : UI.panel, 0.96).setOrigin(0).setStrokeStyle(2, messenger ? UI.messenger : UI.accent);
     const tt = this.add.text(messenger ? 46 : 10, 6, title, { fontFamily: FONT, fontSize: "11px", color: messenger ? "#0084ff" : "#ffd23f", fontStyle: "bold" });

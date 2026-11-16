@@ -102,7 +102,7 @@ function squeezeGame(scene: Phaser.Scene, her: Phaser.GameObjects.Sprite, me: Ph
     let want = SQ_KEYS[0];
     let done = false;
     const t0 = scene.time.now;
-    const LIMIT = 9000;
+    const LIMIT = 10500;
     const next = () => {
       let k = SQ_KEYS[Math.floor(Math.random() * SQ_KEYS.length)];
       if (k === want) k = SQ_KEYS[(SQ_KEYS.indexOf(k) + 1) % SQ_KEYS.length];
@@ -123,7 +123,7 @@ function squeezeGame(scene: Phaser.Scene, her: Phaser.GameObjects.Sprite, me: Ph
         next();
       } else {
         streak = 0;
-        meter = Math.max(0, meter - 8);
+        meter = Math.max(0, meter - 5);
         synth.play("tap_fail");
         btn.setFillStyle(0xef4444);
         scene.time.delayedCall(120, () => btn.active && btn.setFillStyle(0xfde047));
@@ -142,7 +142,7 @@ function squeezeGame(scene: Phaser.Scene, her: Phaser.GameObjects.Sprite, me: Ph
       delay: 50,
       loop: true,
       callback: () => {
-        meter = Math.max(0, meter - 0.3);
+        meter = Math.max(0, meter - 0.22);
         bar.width = 4.4 * meter;
         const left = Math.max(0, LIMIT - (scene.time.now - t0));
         clock.setText((left / 1000).toFixed(1));

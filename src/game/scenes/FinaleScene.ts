@@ -5,11 +5,11 @@ import { DialogueBox } from "../ui/DialogueBox";
 import { switchTo, fadeThen } from "../Flow";
 import { synth } from "../audio/Synth";
 import { FONT } from "../ui/theme";
-import { charMeta } from "../gfx/HD";
+import { charMeta, hdFactor } from "../gfx/HD";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { CHARACTERS, LADS } from "../../data/characters";
 import * as FB from "../../content/finaleKrelford";
-import { finalePreload, finaleReady } from "./finale/finaleArt";
+import { finalePreload, finaleReady, ssjKey, ssjPortraitKey, ssjSwap } from "./finale/finaleArt";
 
 /**
  * THE KRELWORLD FINALE, part B: the side-on cutscenes in Krelford.
@@ -24,6 +24,13 @@ const FLOOR = 350;
 const never = () => new Promise<void>(() => undefined);
 
 type Beat = "emerge" | "transform" | "spirit";
+interface Lad {
+  id: string;
+  spr: Phaser.GameObjects.Sprite;
+  aura?: Phaser.GameObjects.Sprite;
+  hair?: Phaser.GameObjects.Graphics;
+  glow?: Phaser.GameObjects.Ellipse;
+}
 interface FinaleData {
   beat: Beat;
   overlay?: boolean;
@@ -38,7 +45,7 @@ export class FinaleScene extends Phaser.Scene {
   private flash!: Phaser.GameObjects.Rectangle;
   private dragon: Phaser.GameObjects.Image | null = null;
   private wizard: Phaser.GameObjects.Image | null = null;
-  private lads: { id: string; spr: Phaser.GameObjects.Sprite; aura?: Phaser.GameObjects.Sprite; hair?: Phaser.GameObjects.Graphics }[] = [];
+  private lads: Lad[] = [];
   private escHandler?: (e: KeyboardEvent) => void;
   private stormOn = true;
 
@@ -323,26 +330,37 @@ export class FinaleScene extends Phaser.Scene {
 
   private async transform() {
     synth.music("c7_transform", true);
+    const calm = !!G.meta.settings.calmFlash;
+    const cam = this.cameras.main;
     const xs = [100, 195, 290, 385, 480, 575, 670, 765, 860];
     this.placeLads(xs, "south", 3.6, FLOOR + 10);
+    this.letterbox();
     await this.talk(FB.FB_ALL_INJECTED.slice(1));
-    // power up: one by one, then all at once
-    this.cameras.main.shake(12000, 0.006);
-    const crackle = this.time.addEvent({ delay: 160, loop: true, callback: () => this.crackle(Phaser.Utils.Array.GetRandom(this.lads) as (typeof this.lads)[number]) });
+    // the ground starts to shake, gold crackling over all of them
+    cam.shake(60000, calm ? 0.002 : 0.004);
+    const crackle = this.time.addEvent({ delay: calm ? 420 : 150, loop: true, callback: () => this.crackle(Phaser.Utils.Array.GetRandom(this.lads) as Lad) });
+    // one by one: the camera rushes in on him, then the close-up as it happens. The first few slow, then quick cuts.
     for (const [i, l] of this.lads.entries()) {
-      this.powerUp(l, i);
-      await this.wait(650);
+      await this.zoomUp(l, i, i >= 3);
+      if (i === 1) await this.talk(FB.FB_TRANSFORM.slice(0, 2));
     }
-    await this.talk(FB.FB_TRANSFORM.slice(0, 2));
-    // the shirts go
-    for (const l of this.lads) this.ripShirt(l);
-    synth.play("smash");
-    await this.wait(700);
+    // everyone changed: hear them in their new voices (the dialogue box shows the gold close-ups from here)
+    G.s.flags.finale_cp = "ssj";
+    // WIDE: the whole Krew, bigger than before, side by side
+    this.wide();
+    for (const l of this.lads) if (l.spr.texture.key.startsWith("ssj_")) l.spr.setFrame(0);
+    synth.play("reveal_boom");
+    if (!vfx(this, "vfx_shock", 480, FLOOR, { scale: 6, depth: 930, tint: 0xfde047, add: true })) this.ring(480, FLOOR - 60, 520);
+    cam.flash(calm ? 500 : 300, 255, 240, 170);
+    await this.wait(1100);
     await this.talk(FB.FB_TRANSFORM.slice(2));
-    // the final scream: white out
-    this.cameras.main.shake(1200, 0.03);
+    // the final scream: all of them at once
+    for (const l of this.lads) if (l.spr.texture.key.startsWith("ssj_")) l.spr.setFrame(1);
+    cam.resetFX();
+    cam.shake(1400, calm ? 0.01 : 0.03);
     synth.play("roar");
-    this.cameras.main.flash(900, 255, 240, 180);
+    cam.flash(900, 255, 240, 180);
+    for (let k = 0; k < (calm ? 2 : 6); k++) this.time.delayedCall(k * 140, () => this.bolt(80 + Math.random() * 800));
     const cap = this.add.text(480, 110, "SUPER KRELWORLD KREW", { fontFamily: "Impact, sans-serif", fontSize: "60px", color: "#ffe066", stroke: "#7a4a00", strokeThickness: 10 }).setOrigin(0.5).setDepth(950).setScale(0.2);
     this.tweens.add({ targets: cap, scale: 1, duration: 400, ease: "Back.out" });
     this.speedLines(480, 260, 2200);
@@ -350,21 +368,209 @@ export class FinaleScene extends Phaser.Scene {
     crackle.remove();
   }
 
-  /** A lad starts to glow: gold aura, gold tint, spiky gold hair, bulging. */
-  private powerUp(l: (typeof this.lads)[number], i: number) {
+  /** Black bars top and bottom (they stay put on screen while the camera zooms about). */
+  private letterbox() {
+    const H = 56;
+    const top = this.add.rectangle(0, 0, W, 1, 0x000000, 1).setOrigin(0).setDepth(985);
+    const bot = this.add.rectangle(0, 0, W, 1, 0x000000, 1).setOrigin(0).setDepth(985);
+    const k = { v: 0 };
+    this.tweens.add({ targets: k, v: 1, duration: 600, ease: "Cubic.out" });
+    const place = () => {
+      const cam = this.cameras.main;
+      const z = cam.zoom;
+      const x0 = cam.scrollX + 480 - 480 / z;
+      const y0 = cam.scrollY + 270 - 270 / z;
+      const h = Math.max(1, (H * k.v) / z);
+      top.setPosition(x0 - 40 / z, y0 - 40 / z).setSize((W + 80) / z, h + 40 / z);
+      bot.setPosition(x0 - 40 / z, y0 + 540 / z - h).setSize((W + 80) / z, h + 40 / z);
+    };
+    this.events.on("postupdate", place);
+    this.events.once("shutdown", () => this.events.off("postupdate", place));
+    place();
+  }
+
+  /** Back to the wide shot, at once (a cut, not a pan). */
+  private wide() {
+    const cam = this.cameras.main;
+    cam.panEffect.reset();
+    cam.zoomEffect.reset();
+    cam.setZoom(1).setScroll(0, 0);
+  }
+
+  /** ZOOM-UP: the camera rushes in on one lad as he starts to glow, then cuts to his close-up as he changes. */
+  private async zoomUp(l: Lad, i: number, quick: boolean) {
+    const cam = this.cameras.main;
     const sp = l.spr;
+    const calm = !!G.meta.settings.calmFlash;
+    const t = quick ? 200 : 360;
+    cam.shake(4000, calm ? 0.002 : 0.005, true);
+    cam.pan(sp.x, sp.y - sp.displayHeight * 0.55, t, "Cubic.easeOut", true);
+    cam.zoomTo(quick ? 2.5 : 3.2, t, "Cubic.easeOut", true);
     synth.play(i % 2 ? "zap" : "telegraph");
-    if (this.textures.exists("fb_aura")) {
-      l.aura = this.add.sprite(sp.x, sp.y + 6, "fb_aura", 0).setOrigin(0.5, 0.875).setScale(1.25, 1.5).setDepth(sp.depth - 1).setBlendMode(Phaser.BlendModes.ADD).setTint(0xfff27a).setAlpha(0.55);
-      l.aura.play("fb_aura");
-    } else {
-      const glow = this.add.ellipse(sp.x, sp.y - 60, 110, 190, 0xffd23f, 0.35).setDepth(sp.depth - 1).setBlendMode(Phaser.BlendModes.ADD);
-      this.tweens.add({ targets: glow, scaleX: 1.15, alpha: 0.2, yoyo: true, repeat: -1, duration: 120 });
-    }
+    this.auraOn(l);
     sp.setTint(0xfff0b0);
-    this.tweens.add({ targets: sp, scaleX: sp.scaleX * 1.12, duration: 900, ease: "Back.out" });
-    l.hair = this.hair(sp);
-    this.crackle(l);
+    // he strains
+    const x0 = sp.x;
+    this.tweens.add({ targets: sp, x: x0 + 1.5, yoyo: true, repeat: quick ? 4 : 8, duration: 35, onComplete: () => sp.setX(x0) });
+    if (this.anims.exists("fb_lightning")) {
+      const z = this.add.sprite(sp.x, sp.y + 4, "fb_lightning", 0).setOrigin(0.5, 1).setDepth(sp.depth + 3).setBlendMode(Phaser.BlendModes.ADD).setTint(0xfff27a);
+      z.setDisplaySize(sp.displayHeight * 0.9, sp.displayHeight * 1.2);
+      z.play("fb_lightning");
+      z.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => z.destroy());
+    }
+    for (let k = 0; k < (calm ? 1 : 3); k++) this.time.delayedCall(k * 90, () => this.crackle(l));
+    await this.wait(t + (quick ? 160 : 420));
+    // CUT to the close-up
+    this.wide();
+    await this.closeUp(l, quick);
+    // CUT back: he's changed
+    this.change(l);
+  }
+
+  /**
+   * The close-up: his own face and shirt, shaking, filling the screen; then a flash, the shirt goes in bits, and
+   * it's him as a super saiyan (ripped, golden spiky hair), punched in, with his name.
+   */
+  private async closeUp(l: Lad, quick: boolean) {
+    const calm = !!G.meta.settings.calmFlash;
+    const def = CHARACTERS[l.id];
+    const c = this.add.container(0, 0).setDepth(970).setScrollFactor(0);
+    c.add(this.add.rectangle(480, 270, W, 540, 0x160a00, 1));
+    // gold rays turning behind him
+    const rays = this.add.graphics({ x: 480, y: 300 });
+    for (let k = 0; k < 18; k++) {
+      const a = (k / 18) * Math.PI * 2;
+      rays.fillStyle(k % 2 ? 0xffb020 : 0x7a3d00, k % 2 ? 0.55 : 0.35).fillTriangle(0, 0, Math.cos(a) * 900, Math.sin(a) * 900, Math.cos(a + 0.2) * 900, Math.sin(a + 0.2) * 900);
+    }
+    c.add(rays);
+    this.tweens.add({ targets: rays, angle: 40, duration: 3000 });
+    // speed lines
+    const lines = this.add.graphics();
+    c.add(lines);
+    const drawLines = () => {
+      lines.clear();
+      for (let k = 0; k < 40; k++) {
+        const a = Math.random() * Math.PI * 2;
+        const r0 = 220 + Math.random() * 120;
+        lines.lineStyle(1 + Math.random() * 3, 0xfff4c2, 0.35 + Math.random() * 0.4);
+        lines.lineBetween(480 + Math.cos(a) * r0, 300 + Math.sin(a) * r0, 480 + Math.cos(a) * 800, 300 + Math.sin(a) * 800);
+      }
+    };
+    drawLines();
+    const ev = this.time.addEvent({ delay: calm ? 260 : 60, loop: true, callback: drawLines });
+    // before: him as he is, filling the screen (head and shoulders), shaking
+    const baseKey = `spr_${l.id}`;
+    const f = charMeta(this, baseKey)?.idle?.south ?? 0;
+    const before = this.add.image(480, 0, baseKey, f).setOrigin(0.5, 0).setTint(0xfff0b0);
+    before.setDisplaySize(620, 620);
+    before.setY(-10 + before.displayOriginY * before.scaleY);
+    c.add(before);
+    const bx = before.x;
+    this.tweens.add({ targets: before, x: bx + 4, yoyo: true, repeat: -1, duration: 40 });
+    synth.play("telegraph");
+    await this.wait(quick ? 260 : 520);
+    // RRRIP
+    this.tweens.killTweensOf(before);
+    before.destroy();
+    synth.play("smash");
+    synth.play("transform_sparkle");
+    const white = this.add.rectangle(480, 270, W, 540, 0xffffff, calm ? 0.35 : 0.95);
+    c.add(white);
+    this.tweens.add({ targets: white, alpha: 0, duration: calm ? 500 : 260 });
+    const col = def?.color ?? 0x999999;
+    for (let k = 0; k < (quick ? 10 : 16); k++) {
+      const r = this.add.rectangle(480 + (Math.random() - 0.5) * 200, 380 + (Math.random() - 0.5) * 80, 18 + Math.random() * 30, 12 + Math.random() * 22, col).setAngle(Math.random() * 90);
+      c.add(r);
+      const a = Math.random() * Math.PI * 2;
+      this.tweens.add({ targets: r, x: r.x + Math.cos(a) * 520, y: r.y + Math.sin(a) * 360 - 120, angle: r.angle + 540 * (Math.random() - 0.5), alpha: 0, duration: 800, ease: "Quad.out" });
+    }
+    // after: the gold close-up (or his super saiyan sheet, big, if there's no close-up)
+    const por = ssjPortraitKey(this, l.id);
+    const sk = ssjKey(this, l.id);
+    let after: Phaser.GameObjects.Image | null = null;
+    if (por) after = this.add.image(480, 300, por).setDisplaySize(480, 480);
+    else if (sk) {
+      after = this.add.image(480, 0, sk, 1).setOrigin(0.5, 0);
+      after.setDisplaySize(620, 620);
+      after.setY(-20);
+    }
+    if (after) {
+      c.add(after);
+      const sx = after.scaleX;
+      const sy = after.scaleY;
+      after.setScale(sx * 1.3, sy * 1.3);
+      // (scale writes go through the art factor: tween from the values setScale took, not the raw ones)
+      const hd = hdFactor(after);
+      this.tweens.add({ targets: after, scaleX: sx / hd, scaleY: sy / hd, duration: 260, ease: "Back.out" });
+    }
+    const rip = this.add.text(480 + (Math.random() < 0.5 ? -250 : 250), 150, "RRRIP!", { fontFamily: "Impact, sans-serif", fontSize: "54px", color: "#ffffff", stroke: "#000", strokeThickness: 8 }).setOrigin(0.5).setAngle(-12);
+    c.add(rip);
+    this.tweens.add({ targets: rip, scale: 1.3, alpha: 0, delay: 250, duration: 450 });
+    // his name, slammed in
+    const name = this.add.text(-300, 452, (def?.name ?? l.id).toUpperCase(), { fontFamily: "Impact, sans-serif", fontSize: "50px", color: "#ffe066", stroke: "#3a1d00", strokeThickness: 9 }).setOrigin(0, 0.5);
+    const sub = this.add.text(-300, 496, "SUPER SAIYAN", { fontFamily: FONT, fontSize: "16px", color: "#fff4c2", fontStyle: "bold" }).setOrigin(0, 0.5);
+    c.add([name, sub]);
+    this.tweens.add({ targets: [name, sub], x: 40, duration: 220, ease: "Cubic.out" });
+    this.cameras.main.shake(300, calm ? 0.006 : 0.018, true);
+    await this.wait(quick ? 520 : 1000);
+    ev.remove();
+    c.destroy();
+  }
+
+  /** The aura round one lad, sized to him (base at his feet). */
+  private auraOn(l: Lad) {
+    const sp = l.spr;
+    if (!l.aura && this.textures.exists("fb_aura") && this.anims.exists("fb_aura")) {
+      l.aura = this.add.sprite(sp.x, sp.y + 6, "fb_aura", 0).setOrigin(0.5, 0.875).setDepth(sp.depth - 1).setBlendMode(Phaser.BlendModes.ADD).setTint(0xfff27a).setAlpha(0.55);
+      l.aura.play({ key: "fb_aura", startFrame: Math.floor(Math.random() * 8) });
+    }
+    if (l.aura) {
+      const sy = (sp.displayHeight * 1.25) / (112 * 0.875);
+      l.aura.setScale(sy * 1.2, sy);
+    } else if (!l.glow) {
+      l.glow = this.add.ellipse(sp.x, sp.y - sp.displayHeight / 2, sp.displayWidth * 1.1, sp.displayHeight * 1.2, 0xffd23f, 0.35).setDepth(sp.depth - 1).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: l.glow, scaleX: 1.15, alpha: 0.2, yoyo: true, repeat: -1, duration: 120 });
+    }
+  }
+
+  /** He's changed: his super saiyan sheet (half as tall again), or, with no art for him, gold and drawn-on hair. */
+  private change(l: Lad) {
+    const sp = l.spr;
+    if (ssjSwap(sp, l.id, 1)) {
+      sp.clearTint();
+      // he settles into his stance
+      this.time.delayedCall(600, () => sp.active && sp.texture.key.startsWith("ssj_") && sp.setFrame(0));
+    } else {
+      sp.setTint(0xfff0b0);
+      // (scale writes go through the art factor: grow from the value setScale took, not the raw scale)
+      const s0 = sp.scaleX / hdFactor(sp);
+      this.tweens.add({ targets: sp, scaleX: s0 * 1.15, scaleY: (sp.scaleY / hdFactor(sp)) * 1.06, duration: 300, ease: "Back.out" });
+      l.hair ??= this.hair(sp);
+    }
+    this.auraOn(l);
+    if (l.glow) l.glow.setPosition(sp.x, sp.y - sp.displayHeight / 2);
+    this.ring(sp.x, sp.y - sp.displayHeight * 0.5, 120);
+  }
+
+  /** A gold shockwave ring. */
+  private ring(x: number, y: number, r: number) {
+    const ring = this.add.circle(x, y, 10, 0xffffff, 0).setStrokeStyle(5, 0xfde047).setDepth(930);
+    this.tweens.add({ targets: ring, radius: r, alpha: 0, duration: 500, onComplete: () => ring.destroy() });
+  }
+
+  /** A gold bolt from the sky. */
+  private bolt(x: number) {
+    const g = this.add.graphics().setDepth(935).setBlendMode(Phaser.BlendModes.ADD);
+    g.lineStyle(5, 0xfff27a, 1).beginPath().moveTo(x, 0);
+    let px = x;
+    let py = 0;
+    while (py < FLOOR) {
+      px += (Math.random() - 0.5) * 50;
+      py += 24 + Math.random() * 30;
+      g.lineTo(px, py);
+    }
+    g.strokePath();
+    this.tweens.add({ targets: g, alpha: 0, duration: 260, onComplete: () => g.destroy() });
   }
 
   /** Super-saiyan hair: gold spikes over the head. */
@@ -385,7 +591,7 @@ export class FinaleScene extends Phaser.Scene {
     return g;
   }
 
-  private crackle(l?: (typeof this.lads)[number]) {
+  private crackle(l?: Lad) {
     if (!l || this.dead) return;
     const sp = l.spr;
     const g = this.add.graphics().setDepth(sp.depth + 2).setBlendMode(Phaser.BlendModes.ADD);
@@ -396,20 +602,6 @@ export class FinaleScene extends Phaser.Scene {
     for (let k = 0; k < 4; k++) g.lineTo((x += (Math.random() - 0.5) * 30), (y += (Math.random() - 0.5) * 30));
     g.strokePath();
     this.tweens.add({ targets: g, alpha: 0, duration: 140, onComplete: () => g.destroy() });
-  }
-
-  /** RRRIP: the shirt comes off in bits. */
-  private ripShirt(l: (typeof this.lads)[number]) {
-    const sp = l.spr;
-    const col = CHARACTERS[l.id]?.color ?? 0x999999;
-    const t = this.add.text(sp.x, sp.y - sp.displayHeight - 20, "RRRIP!", { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#ffffff", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(960);
-    this.tweens.add({ targets: t, y: t.y - 30, alpha: 0, delay: 500, duration: 500, onComplete: () => t.destroy() });
-    for (let k = 0; k < 7; k++) {
-      const r = this.add.rectangle(sp.x + (Math.random() - 0.5) * 30, sp.y - sp.displayHeight * 0.5, 6 + Math.random() * 10, 5 + Math.random() * 8, col).setDepth(sp.depth + 3);
-      this.tweens.add({ targets: r, x: r.x + (Math.random() - 0.5) * 260, y: r.y - 80 - Math.random() * 160, angle: 720 * (Math.random() - 0.5), alpha: 0, duration: 1100, ease: "Quad.out", onComplete: () => r.destroy() });
-    }
-    // and the muscles come out
-    this.tweens.add({ targets: sp, scaleX: sp.scaleX * 1.1, scaleY: sp.scaleY * 1.04, duration: 300, ease: "Back.out" });
   }
 
   /** Anime speed lines radiating from a point. */
@@ -438,13 +630,14 @@ export class FinaleScene extends Phaser.Scene {
     synth.music("c7_spirit", true);
     const dragon = this.makeDragon(250, FLOOR + 40, 1.45);
     this.placeLads([300, 354, 408, 462, 516, 570, 624, 678, 732], "west", 3.4, FLOOR - 4);
-    for (const [i, l] of this.lads.entries()) {
-      if (this.textures.exists("fb_aura")) {
-        l.aura = this.add.sprite(l.spr.x, l.spr.y + 6, "fb_aura", 0).setOrigin(0.5, 0.875).setScale(1.1, 1.4).setDepth(l.spr.depth - 1).setBlendMode(Phaser.BlendModes.ADD).setTint(0xfff27a).setAlpha(0.5);
-        l.aura.play({ key: "fb_aura", startFrame: i % 8 });
+    for (const l of this.lads) {
+      // still super saiyan (facing west, frame 3 of the sheet)
+      if (ssjSwap(l.spr, l.id, 3)) l.spr.clearTint();
+      else {
+        l.spr.setTint(0xfff0b0);
+        l.hair = this.hair(l.spr);
       }
-      l.spr.setTint(0xfff0b0);
-      l.hair = this.hair(l.spr);
+      this.auraOn(l);
     }
     // Goku, on a pile of rubble, arms up
     const mound = this.add.graphics().setDepth(-3);

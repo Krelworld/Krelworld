@@ -229,7 +229,12 @@ export class DialogueBox {
     const victim = kruncherVictim(G.s);
     if (tk === `talk_${victim}` && G.s.flags.krunchers_invaded && G.s.chapter === 3 && this.scene.textures.exists(`talk_${victim}_HURT`)) tk = `talk_${victim}_HURT`;
     this.talkKey = this.scene.textures.exists(tk) ? tk : null;
-    if (this.talkKey) this.portrait.setTexture(this.talkKey, 0).setDisplaySize(112, 112).setVisible(true);
+    // the Krelford finale, after the golden juice: the lads talk as super saiyans (their gold close-ups)
+    const ssj = G.s.flags.finale_cp === "ssj" ? `ssj_por_${speaker.toUpperCase()}` : "";
+    if (ssj && this.scene.textures.exists(ssj)) {
+      this.talkKey = null;
+      this.portrait.setTexture(ssj).setDisplaySize(112, 112).setVisible(true);
+    } else if (this.talkKey) this.portrait.setTexture(this.talkKey, 0).setDisplaySize(112, 112).setVisible(true);
     else this.portrait.setTexture(key).setDisplaySize(112, 112).setVisible(true);
     const col = CHARACTERS[speaker]?.color ?? (speaker === "SANMIK" ? SANMIK_COLOR : 0x888888);
     this.portraitFrame.fillStyle(0x000000, 1);

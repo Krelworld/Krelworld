@@ -59,17 +59,6 @@ const TRUCK_X = 400;
 const LENGTH = 85; // seconds of chase before the drawbridge
 const ROAD_SPEED = 0.9; // px per ms
 
-const LYRICS: [number, string][] = [
-  [1, "🎤 HIGH SPEED CAR CHASE, SPRAY ME WITH MACE"],
-  [10, "🎤 YOU'RE A DISGRACE, HIGH SPEED CAR RACE"],
-  [20, "🎤 FIFTEEN COP CARS ON MY TAIL"],
-  [31, "🎤 IF THEY ARREST ME I WON'T GET BAIL"],
-  [43, "🎤 GOT A HELICOPTER AND A TANK"],
-  [55, "🎤 CAUSE I FUCKING ROBBED THIS BANK"],
-  [67, "🎤 IT'S POINTING ITS TURRET AT US"],
-  [78, "🎤 THERE'S A DRAWBRIDGE ABOUT TO LIFT"],
-];
-
 /** The chase builds in waves; the last one is a breather before the drawbridge. */
 type Wave = { at: number; name: string; cap: number; gap: number; per: number; mix: Partial<Record<"cop" | "unmarked" | "swat" | "heli" | "tank", number>>; helis: number; spikes: number };
 const WAVES: Wave[] = [
@@ -154,7 +143,6 @@ export class DriveScene extends Phaser.Scene {
   private nextRamp = 0;
   private nextHitSfx = 0;
   private sloppy = 0;
-  private lyric = 0;
   private wave = -1;
   private kills = 0;
   private score = 0;
@@ -206,7 +194,6 @@ export class DriveScene extends Phaser.Scene {
     this.jumpV = 0;
     this.jumpY = 0;
     this.sloppy = 0;
-    this.lyric = 0;
     this.wave = -1;
     this.kills = 0;
     this.score = 0;
@@ -840,12 +827,10 @@ export class DriveScene extends Phaser.Scene {
     }
     // the jump
     synth.play("dodge");
-    this.banner.setText("🎤 TRUCK FLIES UP, LANDS IN THE ROAD");
     await new Promise<void>((resolve) => this.tweens.add({ targets: this.truck, y: ROAD_Y - 220, angle: -12, duration: 700, ease: "Quad.out", yoyo: true, onYoyo: () => this.truck.setAngle(10), onComplete: () => resolve() }));
     this.truck.setAngle(0);
     this.explode(this.truck.x - 200, ROAD_Y - 10, true);
     this.explode(this.truck.x - 120, ROAD_Y - 40, true);
-    this.banner.setText("🎤 AS THE TANK'S ROCKETS EXPLODE");
     if (tank) {
       tank.bar?.destroy();
       this.tweens.add({ targets: tank.spr, x: tank.spr.x - 500, alpha: 0, duration: 800 });
@@ -1052,12 +1037,6 @@ export class DriveScene extends Phaser.Scene {
       return;
     }
     this.t += realDt / 1000;
-    // lyrics
-    if (this.lyric < LYRICS.length && this.t >= LYRICS[this.lyric][0]) {
-      this.banner.setText(LYRICS[this.lyric][1]).setScale(1.3);
-      this.tweens.add({ targets: this.banner, scale: 1, duration: 250 });
-      this.lyric++;
-    }
     if (this.t >= LENGTH) {
       void this.drawbridge();
       return;

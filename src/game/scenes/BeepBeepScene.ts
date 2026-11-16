@@ -52,17 +52,6 @@ type Thing = {
 };
 type Proj = { y: number; sx: number; w: number; scale: number; clip: number; world: number };
 
-const LYRICS = [
-  "🎤 BEEP BEEP — GET OUT THE WAY",
-  "🎤 I'M IN MY CAR — GET OUT THE WAY",
-  "🎤 GONNA GO VERY FAR — GET OUT THE WAY",
-  "🎤 I'M A FUCKING STAR — GET OUT THE WAY",
-  "🎤 KING MIK, ON MY KING SHIT, AND I'M DRIVING IN MY CAR",
-  "🎤 DRIVING IN MY NEW RANGE ROVER",
-  "🎤 SUN IS OUT, I'M FEELING MYSELF, WHILE I RUIN SOME PEDESTRIAN'S DAY",
-  "🎤 I'M MOWING PEOPLE DOWN LIKE BUMP BUMP BUMP",
-  "🎤 ALL UNDER MY WHEEL, LIKE PLAYING GTA",
-];
 const MIK = ["RUN HIM OVER!", "GET THAT ONE!", "BEEP BEEP!", "GET OUT THE WAY!", "LIKE PLAYING GTA!", "BUMP BUMP BUMP!", "YEEEE!", "KING MIK!", "THAT ONE'S GOT A MEAL DEAL. GET HIM.", "PAVEMENT'S A ROAD IF YOU BELIEVE", "MIRROR, SIGNAL, MANSLAUGHTER"];
 const CHZ = ["YEGHHH!", "HIT THE BIN!", "THAT'S A TRAFFIC WARDEN. DOUBLE POINTS.", "Mork.", "GET THE BUS STOP!", "YEGH YEGH YEGH"];
 /** combo callouts, by chain length */
@@ -99,7 +88,6 @@ export class BeepBeepScene extends Phaser.Scene {
   private mphTx!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
   private hint!: Phaser.GameObjects.Text;
-  private lyric = 0;
   private nextBark = 0;
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
   private sky!: Phaser.GameObjects.TileSprite | null;
@@ -140,7 +128,6 @@ export class BeepBeepScene extends Phaser.Scene {
     this.elapsed = 0;
     this.running = false;
     this.ended = false;
-    this.lyric = 0;
     this.steerS = 0;
     this.fov = FOV_D;
     this.boost = 100;
@@ -192,7 +179,6 @@ export class BeepBeepScene extends Phaser.Scene {
     this.box.play(brief).then(() => {
       this.running = true;
       this.startEngine();
-      this.banner.setText(LYRICS[0]);
       synth.play("car_screech");
     });
   }
@@ -504,11 +490,6 @@ export class BeepBeepScene extends Phaser.Scene {
       if (this.left <= 0) {
         this.left = 0;
         this.finish(this.hits >= GOAL);
-      }
-      const lyricIdx = Math.min(LYRICS.length - 1, Math.floor(this.elapsed / (TIME / LYRICS.length)));
-      if (lyricIdx !== this.lyric) {
-        this.lyric = lyricIdx;
-        this.banner.setText(LYRICS[lyricIdx]);
       }
       if (now > this.nextBark) {
         this.bark(Math.random() < 0.65 ? "SANMIK" : "SANCHZ");

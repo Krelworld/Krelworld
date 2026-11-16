@@ -1947,7 +1947,7 @@ export class VignetteScene extends Phaser.Scene {
     const me = G.s.player === "MIKEY" ? mik : this.add.sprite(110, 410, playerKey(this), 0).setScale(3).setDepth(10);
     const goat = this.textures.exists("p_gabor") ? this.add.image(860, 440, "p_gabor").setOrigin(0.5, 1).setScale(1).setDepth(10) : this.add.circle(860, 420, 20, 0xffffff);
     void me;
-    synth.music("ggg8");
+    synth.music("ggg13");
     // three blocked jets along the tub
     const jets = [300, 480, 660].map((x) => {
       const c = this.add.container(x, 330).setDepth(20);

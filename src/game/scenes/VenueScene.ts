@@ -20,7 +20,6 @@ export const SANMIK_SONGS: { id: string; title: string; album: string }[] = [
   { id: "ggg5", title: "Deep in Ure Ass", album: "Jerk My Gherk" },
   { id: "ggg6", title: "Peener Colarder", album: "Peener 4eva" },
   { id: "ggg7", title: "Fuck U Bitch", album: "The Nu Warehouse" },
-  { id: "ggg8", title: "Gettin Crunk Wiv SanChz", album: "Peener 4eva" },
   { id: "ggg9", title: "Wank Til U Spunk", album: "Peener 4eva" },
   { id: "ggg10", title: "Fragrant Bitch", album: "Jerk My Gherk" },
   { id: "ggg11", title: "Happy Birthday You Cunt", album: "The Nu Warehouse" },

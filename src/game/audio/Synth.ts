@@ -116,7 +116,7 @@ export const MUSIC_FILES: Record<string, string> = {
   twitcher: "audio/twitcher.mp3",
   crocodile: "audio/crocodile.mp3",
   flenky: "audio/flenky.mp3",
-  sanmik: "audio/ggg8.mp3",
+  sanmik: "audio/ggg2.mp3",
   // the lamp-rubbing vignette (instrumental, ElevenLabs Music)
   lamp_rub: "audio/lamp_rub.mp3",
   boss_rik: "audio/ggg13.mp3",

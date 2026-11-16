@@ -4,6 +4,7 @@ import type { CombatWorld } from "./types";
 import { synth } from "../audio/Synth";
 import { G } from "../G";
 import { hasVfx, vfx } from "../gfx/Vfx";
+import { voice } from "../audio/Voice";
 import { CONCEPT, CONCEPT_BARKS, CONCEPT_HEAL } from "../../content/finaleKrelford";
 import { horrorKey } from "../scenes/finale/finaleArt";
 
@@ -36,6 +37,8 @@ export class ConceptBoss extends Boss {
   private lowFired = false;
   private art: boolean;
   private wizard: Phaser.GameObjects.Image;
+  /** The barks, shuffled, so he works through all of them before repeating. */
+  private barkDeck: string[] = [];
   private nextBark = 0;
   private nextStrike = 0;
   private nextCackle = 0;
@@ -156,8 +159,13 @@ export class ConceptBoss extends Boss {
       this.lightning();
     }
     if (now >= this.nextBark) {
-      this.nextBark = now + 4500 + Math.random() * 4000;
-      this.world.floatText(this.x, this.y - this.displayHeight * 0.48, Phaser.Utils.Array.GetRandom(CONCEPT_BARKS) as string, "#d8b4fe", 16);
+      // a clinical line, out loud, over the fight (nothing stops: it's a layered voice and a caption)
+      this.nextBark = now + 6500 + Math.random() * 4000;
+      if (!this.barkDeck.length) this.barkDeck = Phaser.Utils.Array.Shuffle([...CONCEPT_BARKS]);
+      const line = this.barkDeck.pop()!;
+      this.world.floatText(this.x, this.y - this.displayHeight * 0.48, line, "#d8b4fe", 20);
+      // ("[CITATION NEEDED]" and friends are captions only)
+      if (!line.startsWith("[")) void voice.layer(CONCEPT, line, 1);
       this.roar();
     }
     // now and then the wizard behind it shows himself, and YEEs

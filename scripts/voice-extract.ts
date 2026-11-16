@@ -51,6 +51,12 @@ for (const [f, m] of Object.entries(mods)) {
   const bt = (m as any).BOSS_TEXT as Record<string, { name: string; taunts?: string[] }> | undefined;
   if (bt) for (const b of Object.values(bt)) for (const t of b.taunts ?? []) add(b.name, t, f.replace("../src/content/", ""), "shouting");
 }
+// the Concept's clinical barks, said out loud mid-fight (finaleKrelford.ts CONCEPT_BARKS)
+for (const [f, m] of Object.entries(mods)) {
+  const cb = (m as any).CONCEPT_BARKS as string[] | undefined;
+  const cn = (m as any).CONCEPT as string | undefined;
+  if (cb && cn) for (const t of cb.filter((x) => !x.startsWith("["))) add(cn, t, f.replace("../src/content/", ""));
+}
 // data tables with dialogue in them (dungeon entry lines and PA announcements, etc.)
 const data = import.meta.glob("../src/data/**/*.ts", { eager: true }) as Record<string, Record<string, unknown>>;
 for (const [f, m] of Object.entries(data)) walk(m, f.replace("../src/", ""));

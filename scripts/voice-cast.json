@@ -40,7 +40,7 @@
   "accents": {
     "_doc": "Accent tag put on every v3 line for non-cloned voices that must keep a particular accent.",
     "PRESIDENT KLERBLE": "strong Italian accent",
-    "CHINESE CROBLEY": "strong Chinese accent",
+    "CHINESE CROBLEY": "speaking English with a very strong Chinese accent",
     "RUSSELL BRAND": "lively, flamboyant cockney accent"
   },
   "pronounce": {

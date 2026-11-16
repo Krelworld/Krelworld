@@ -2124,19 +2124,28 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       await this.bossFall();
       return;
     }
+    const done = await this.offerKreltality(b);
+    if (!done) await this.bossFall();
+  }
+
+  /** Offer the finisher on the beaten boss. True if it was done (the boss is gone), false if you passed. */
+  private async offerKreltality(b: Boss): Promise<boolean> {
+    if (!this.krelTarget) return false;
     const ps = this.player.spr;
     const phd = (ps.texture.customData as { hd?: number } | undefined)?.hd ?? 1;
     this.busy = true;
     const done = await kreltality(this, this.krelTarget, { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd });
-    if (!done) await this.bossFall();
-    else this.downSpr?.destroy();
-    this.downSpr = null;
+    if (done) {
+      this.downSpr?.destroy();
+      this.downSpr = null;
+    }
     if (done) {
       bump(G.s, "kreltalities");
       G.s.flags[`krel_${b.bossId}`] = true; // a trophy for the shelf at home
     }
     this.krelTarget = null;
     this.cameras.main.startFollow(this.player.spr, true, 0.12, 0.12);
+    return done;
   }
 
   private async onBossDefeated(b: Boss) {
@@ -2226,7 +2235,13 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.rule = null;
     G.emit("rule", null);
     if (b.bossId === "reinhardt") {
-      await this.reinhardtDeath(b);
+      // a Kreltality first, if you want one; pass and he gets his own (gory) end
+      const krel = await this.offerKreltality(b);
+      if (!krel) {
+        (this.downSpr as Phaser.GameObjects.GameObject | null)?.destroy();
+        this.downSpr = null;
+        await this.reinhardtDeath(b);
+      } else b.setVisible(false);
       await this.fuelTankFinale();
     }
     if (this.dungeon.arenaFlag) {

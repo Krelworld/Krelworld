@@ -384,7 +384,7 @@ export const BOSS_TEXT: Record<string, BossText> = {
       say("CHINESE CROBLEY", "Nooooo! I bring shame and dishonor to my fammiry!"),
       dir("Gary hands you the plastic gong 'as a souvenir' and walks out of the fire exit, in the direction of Basingstoke."),
     ],
-    taunts: ["I'M FROM BASINGSTOKE"],
+    taunts: ["I'M FROM BASINGSTOKE", "I LOVE BEIJING!", "KONICHIWA!", "I LOVE ANIME!"],
   },
   fruity: {
     id: "fruity",

@@ -228,7 +228,20 @@ export class ClubScene extends Phaser.Scene {
     this.add.rectangle(480, 532, 90, 14, 0xffd23f, 0.3).setStrokeStyle(2, 0xffd23f).setDepth(1);
     this.add.text(480, 532, "EXIT", { fontFamily: FONT, fontSize: "10px", color: "#ffd23f" }).setOrigin(0.5).setDepth(2);
     this.me = this.add.sprite(480, 495, playerKey(this), 0).setScale(2).setDepth(495);
-    bindSanmikToggle(this, { sprites: () => [this.me], can: () => !this.busy });
+    // playing as Mikey: turn into SanMik and you're the act (the set starts); turn back and it's the strippers' music again
+    bindSanmikToggle(this, {
+      sprites: () => [this.me],
+      can: () => !this.busy,
+      onSwap: (on) => {
+        if (G.s.player !== "MIKEY") return;
+        if (on && !this.performer) {
+          this.startBand(false);
+          // you've just walked on: the song starts from the top, with a cheer
+          this.playSong(this.songIdx, 0);
+        }
+        else if (!on && this.performer) this.stopBand();
+      },
+    });
     this.prompt = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#000000cc", padding: { x: 6, y: 3 } }).setOrigin(0.5).setDepth(1000).setVisible(false);
     this.controls = new Controls(this);
     this.box = new DialogueBox(this, 2000, 0.2);
@@ -248,7 +261,11 @@ export class ClubScene extends Phaser.Scene {
     this.songIdx = -1;
     this.between = false;
     this.banner = null;
-    if (!s.flags.club_sanmik_seen || Math.random() < 0.6) this.startBand(!s.flags.club_sanmik_seen);
+    // as Mikey the set is yours: it's on only if you walk in as SanMik (or turn into him once you're in)
+    if (s.player === "MIKEY") {
+      if (s.flags[SANMIK_FLAG]) this.startBand(!s.flags.club_sanmik_seen);
+      else synth.music("pub", true);
+    } else if (!s.flags.club_sanmik_seen || Math.random() < 0.6) this.startBand(!s.flags.club_sanmik_seen);
     else synth.music("pub", true);
     bump(s, "club_visits");
     this.time.delayedCall(500, () => {
@@ -273,10 +290,6 @@ export class ClubScene extends Phaser.Scene {
     // playing as Mikey, SanMik is you: no second one on stage. You're in the wig, under the spotlight, wherever you wander.
     if (s.player === "MIKEY") {
       this.performer = true;
-      if (!s.flags[SANMIK_FLAG]) {
-        s.flags[SANMIK_FLAG] = true;
-        swapSheet(this.me, "spr_SANMIK");
-      }
       this.spot = this.add.ellipse(this.me.x, this.me.y + 22, 120, 36, 0xfff1a8, 0.32).setBlendMode(Phaser.BlendModes.ADD).setDepth(2);
       this.tweens.add({ targets: this.spot, alpha: 0.18, yoyo: true, repeat: -1, duration: 420 });
     } else mk("SANMIK", "spr_SANMIK", "spr_MIKEY", 215, 0xb0c4ff);
@@ -288,6 +301,20 @@ export class ClubScene extends Phaser.Scene {
       // on a first-ever visit this is folded into the club's own intro instead
       if (s.flags.club_seen) this.time.delayedCall(500, () => !this.busy && this.talk(BAND_INTRO));
     }
+  }
+
+  /** Mikey's turned back into Mikey mid-set: SanChz wanders off, the spotlight goes, the club music comes back. */
+  private stopBand() {
+    this.performer = false;
+    this.spot?.destroy();
+    this.spot = null;
+    for (const b of this.band) this.tweens.add({ targets: b.spr, alpha: 0, duration: 400, onComplete: () => b.spr.destroy() });
+    this.band = [];
+    this.banner?.destroy();
+    this.banner = null;
+    this.songIdx = -1;
+    this.between = false;
+    synth.music("pub", true);
   }
 
   private playSong(idx: number, startFrac = 0) {

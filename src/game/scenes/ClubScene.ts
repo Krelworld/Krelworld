@@ -4,7 +4,7 @@ import { SANMIK_FLAG } from "../systems/sanmik";
 import { vfx } from "../gfx/Vfx";
 import { squeeze } from "../systems/squeeze";
 import { addWrist, wristLook, type Wrist } from "../gfx/Wrist";
-import { randomZone, flap, fall, OVER, type WonkZone } from "../combat/Wonk";
+import { flap, fall, OVER, styledZone, styleGauge, zoneAt, WONK_STYLES, type WonkZone, type WonkStyle } from "../combat/Wonk";
 import { G } from "../G";
 import { Controls } from "../combat/Controls";
 import { DialogueBox } from "../ui/DialogueBox";
@@ -64,7 +64,7 @@ const BAND_INTRO = [
   say("SANMIK", "This one's for the ladies. And Gronny."),
 ];
 
-const TIME = 8000;
+const CLUB_TIME = 8000;
 
 interface Rival {
   id: string;
@@ -72,6 +72,12 @@ interface Rival {
   gauge: number;
   vel: number;
   zone: WonkZone;
+  /** where the zone sits before it starts dancing about, its style, and its gauge band (to move) */
+  zone0: WonkZone;
+  style: WonkStyle;
+  zoneR?: Phaser.GameObjects.Rectangle;
+  flap?: number;
+  grav?: number;
   nextFlap: number;
   inZone: number;
   /** how this one will go */
@@ -797,6 +803,11 @@ export class ClubScene extends Phaser.Scene {
       const ids = [...rivalIds];
       ids.splice(Math.floor(ids.length / 2), 0, s.player);
       const n = ids.length;
+      // the club's wonk: every zone dances to the beat (your first wonk ever is the gentle one instead)
+      const nth = (s.flags.wonk_count as number | undefined) ?? 0;
+      s.flags.wonk_count = nth + 1;
+      const youStyle = nth === 0 ? WONK_STYLES.gentle : WONK_STYLES.disco;
+      const TIME = Math.max(CLUB_TIME, youStyle.time);
       const gap = Math.min(170, 840 / n);
       const x0 = 480 - ((n - 1) * gap) / 2;
       const all: Rival[] = ids.map((id, i) => {
@@ -815,14 +826,17 @@ export class ClubScene extends Phaser.Scene {
         ui.add(this.add.text(spr.x, 150, id === s.player ? "YOU" : CHARACTERS[id]?.name ?? id, { fontFamily: FONT, fontSize: id === s.player ? "14px" : "11px", color: id === s.player ? "#ffd23f" : "#ffd1e8", fontStyle: "bold" }).setOrigin(0.5));
         // gauge under each
         ui.add(this.add.rectangle(spr.x, 420, 26, 140, 0x000000, 0.85).setStrokeStyle(id === s.player ? 3 : 1, id === s.player ? 0xffd23f : 0xffffff, 0.8));
-        const zone = randomZone();
-        ui.add(this.add.rectangle(spr.x, 420 + 70 - 140 * ((zone.lo + zone.hi) / 2), 26, 140 * (zone.hi - zone.lo), 0x22c55e, 0.4));
+        const style = id === s.player ? youStyle : WONK_STYLES.disco;
+        const zone = styledZone(style);
+        const zoneR = this.add.rectangle(spr.x, 420 + 70 - 140 * ((zone.lo + zone.hi) / 2), 26, 140 * (zone.hi - zone.lo), 0x22c55e, 0.4);
+        ui.add(zoneR);
         ui.add(this.add.rectangle(spr.x, 420 + 70 - 140 * ((OVER + 1) / 2), 26, 140 * (1 - OVER), 0xef4444, 0.6));
         const fill = this.add.rectangle(spr.x, 490, 20, 0, 0xff4fa3).setOrigin(0.5, 1);
         ui.add(fill);
         const roll = Math.random();
-        return { id, spr, gauge: 0, vel: 0, zone, nextFlap: 0, inZone: 0, plan: roll < 0.4 ? "perfect" : roll < 0.75 ? "over" : "under", skill: 0.6 + Math.random() * 0.5, fill };
+        return styleGauge({ id, spr, gauge: 0, vel: 0, zone, zone0: zone, style, zoneR, nextFlap: 0, inZone: 0, plan: roll < 0.4 ? "perfect" : roll < 0.75 ? "over" : "under", skill: 0.6 + Math.random() * 0.5, fill } as Rival, style);
       });
+      ui.add(this.add.text(480, 112, youStyle.name, { fontFamily: "Impact, sans-serif", fontSize: "16px", color: youStyle.id === "gentle" ? "#86efac" : "#fde68a", stroke: "#2a0030", strokeThickness: 5 }).setOrigin(0.5));
       // one long censor bar across every crotch, stepped to each lad's height so every forearm shows going down under it
       const crs = all.map((r) => censorRect(r.spr));
       const barL = Math.min(480 - Math.max(260, (n - 1) * gap + 130) / 2, ...crs.map((r) => r.left));
@@ -889,6 +903,10 @@ export class ClubScene extends Phaser.Scene {
           timeBar.setSize(520 * Math.max(0, 1 - t / TIME), 8);
           for (const r of all) {
             if (r.result) continue;
+            if (r.style.drift) {
+              r.zone = zoneAt(r.zone0, r.style, t);
+              r.zoneR?.setY(420 + 70 - 140 * ((r.zone.lo + r.zone.hi) / 2));
+            }
             if (r !== you) {
               // rivals: flap with a human-ish reaction time, heading for their fate
               if (t >= r.nextFlap) {

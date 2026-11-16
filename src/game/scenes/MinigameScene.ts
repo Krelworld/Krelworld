@@ -6,8 +6,8 @@ import { G } from "../G";
 import { DialogueBox } from "../ui/DialogueBox";
 import { runChain, switchTo, fadeThen } from "../Flow";
 import { synth } from "../audio/Synth";
-import { FONT, button, title } from "../ui/theme";
-import { OVER, fall, flap, randomZone, type Flappy } from "../combat/Wonk";
+import { FONT, PIXEL_BOLD, button, title } from "../ui/theme";
+import { OVER, fall, flap, styledZone, styleGauge, zoneAt, WONK_STYLES, type Flappy } from "../combat/Wonk";
 import { VIRAL_CHART } from "../../content/charts/viral";
 import { addWrist, type Wrist } from "../gfx/Wrist";
 import { dir, gabor, say } from "../../content/dsl";
@@ -103,6 +103,35 @@ export class MinigameScene extends Phaser.Scene {
   private pop(x: number, y: number, t: string, color = "#ffffff", size = 18) {
     const tx = this.add.text(x, y, t, { fontFamily: FONT, fontSize: `${size}px`, color, fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(150);
     this.tweens.add({ targets: tx, y: y - 40, alpha: 0, duration: 900, onComplete: () => tx.destroy() });
+  }
+
+  /**
+   * Rhythm judgement, Rhythm Heaven style: every hit tells you PERFECT, or whether you were EARLY or LATE, so you
+   * can correct on the very next note; the late side of the window is a touch more forgiving than the early side
+   * (people hear the beat, then press). `err` is seconds, + = late.
+   */
+  private static readonly BEAT_WIN = { perfect: 0.06, early: 0.15, late: 0.21 };
+  private inWindow(err: number, w = MinigameScene.BEAT_WIN) {
+    return err >= -w.early && err <= w.late;
+  }
+  /** The hit feedback at the target ring: a flash, a ring pulse, and the PERFECT / EARLY / LATE label. */
+  private hitFx(x: number, y: number, err: number, col: number, perfectWin = MinigameScene.BEAT_WIN.perfect, depth = 170) {
+    const perfect = Math.abs(err) <= perfectWin;
+    const flash = this.add.circle(x, y, 23, perfect ? 0xffffff : col, perfect ? 0.95 : 0.6).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({ targets: flash, alpha: 0, scale: 1.25, duration: 160, onComplete: () => flash.destroy() });
+    const ring = this.add.circle(x, y, 24).setStrokeStyle(perfect ? 6 : 4, perfect ? 0xffd23f : col).setDepth(depth);
+    this.tweens.add({ targets: ring, scale: perfect ? 2.3 : 1.7, alpha: 0, duration: perfect ? 340 : 240, ease: "Quad.out", onComplete: () => ring.destroy() });
+    const [txt, c] = perfect ? ["PERFECT", "#ffd23f"] : err < 0 ? ["◂ EARLY", "#7dd3fc"] : ["LATE ▸", "#fdba74"];
+    const t = this.add.text(x, y - 40, txt, { fontFamily: PIXEL_BOLD, fontSize: perfect ? "18px" : "14px", color: c, stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(depth + 1).setScale(perfect ? 0.6 : 0.8);
+    this.tweens.add({ targets: t, scale: 1, duration: 110, ease: "Back.out" });
+    this.tweens.add({ targets: t, y: y - 62, alpha: 0, delay: 260, duration: 320, onComplete: () => t.destroy() });
+    if (perfect) vfx(this, "vfx_sparks", x, y, { scale: 1.1, depth: depth + 1, add: true });
+    return perfect;
+  }
+  /** A note that went by: a grey MISS at the ring. */
+  private missFx(x: number, y: number, depth = 170) {
+    const t = this.add.text(x, y - 40, "MISS", { fontFamily: PIXEL_BOLD, fontSize: "14px", color: "#9ca3af", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(depth + 1);
+    this.tweens.add({ targets: t, y: y - 56, alpha: 0, duration: 500, onComplete: () => t.destroy() });
   }
 
   /** Wrap up: arc bookkeeping, outcome dialogue, back to Krelford. */
@@ -383,6 +412,9 @@ export class MinigameScene extends Phaser.Scene {
       let hisStage = 0;
       let artifactUntil = 0;
       let over = false;
+      // a miss costs more than a hit earns: under about half the notes and her interest runs out before the song does
+      const MISS_COST = 0.9;
+      let warned = false;
       const t0 = this.time.now;
       synth.music("viral", true);
       const el = synth.musicEl();
@@ -423,7 +455,7 @@ export class MinigameScene extends Phaser.Scene {
         if (over || this.box.active) return;
         const st = songT();
         let best: N | null = null;
-        for (const n of notes) if (!n.done && Math.abs(n.t - st) < 0.18 && (!best || Math.abs(n.t - st) < Math.abs(best.t - st))) best = n;
+        for (const n of notes) if (!n.done && this.inWindow(st - n.t) && (!best || Math.abs(n.t - st) < Math.abs(best.t - st))) best = n;
         const ring = this.add.circle(HIT_X, LANES[lane], 22, COLS[lane], 0.6).setDepth(38);
         this.tweens.add({ targets: ring, scale: 1.8, alpha: 0, duration: 200, onComplete: () => ring.destroy() });
         if (!best) return;
@@ -433,6 +465,7 @@ export class MinigameScene extends Phaser.Scene {
           misses++;
           combo = 0;
           artifact();
+          setInterest(interest - MISS_COST);
           this.pop(HIT_X + 40, TRACK_Y - 30, "WRONG WAY", "#ff6b6b", 13);
           best.c.destroy();
           return;
@@ -440,8 +473,9 @@ export class MinigameScene extends Phaser.Scene {
         best.c.destroy();
         hits++;
         combo++;
-        const perfect = Math.abs(best.t - st) < 0.06;
-        this.pop(HIT_X + 40, LANES[lane] - 14, perfect ? "PERFECT" : "YEE", perfect ? "#86efac" : "#ffffff", 12);
+        const perfect = this.hitFx(HIT_X, TRACK_Y, st - best.t, COLS[lane], undefined, 39);
+        // she's watching: clean singing keeps her keen, bum notes cool her off
+        setInterest(interest + (perfect ? 0.55 : 0.35));
         this.tweens.add({ targets: mik, angle: { from: -6, to: 6 }, duration: 90, yoyo: true });
         if (hits % 6 === 0) this.pop(715, 120, HER_YES[Math.floor(Math.random() * HER_YES.length)], "#f9a8d4", 20);
         if (combo % 25 === 0) this.pop(245, 120, `${combo} COMBO! YEEEE`, "#fde047", 18);
@@ -488,20 +522,48 @@ export class MinigameScene extends Phaser.Scene {
           if (n.done) continue;
           const x = HIT_X + ((n.t - st) / LEAD) * 780;
           n.c.setX(x).setVisible(x < 950);
-          if (st - n.t > 0.18) {
+          if (st - n.t > MinigameScene.BEAT_WIN.late) {
             n.done = true;
             this.tweens.add({ targets: n.c, alpha: 0, y: n.c.y + 10, duration: 200, onComplete: () => n.c.destroy() });
             misses++;
             combo = 0;
             artifact();
+            this.missFx(HIT_X, TRACK_Y, 39);
+            setInterest(interest - MISS_COST);
             if (misses % 5 === 0) this.pop(715, 120, HER_NO[Math.floor(Math.random() * HER_NO.length)], "#9ca3af", 18);
           }
         }
+        // she's had enough: logs off mid-song
+        if (interest <= 0) return walkOut();
+        // the meter tells you how it's going
+        meter.setFillStyle(interest < 25 ? 0xef4444 : interest < 45 ? 0xfacc15 : 0xf472b6);
+        if (interest < 25 && !warned) {
+          warned = true;
+          this.pop(715, 150, Phaser.Utils.Array.GetRandom(["babe… 😬", "is ur mic ok", "hmm.", "im getting bored ngl"]), "#fca5a5", 20);
+        } else if (interest > 40) warned = false;
         const total = hits + misses;
         score.setText(`HITS ${hits}  MISSES ${misses}  ${total ? Math.round((hits / total) * 100) : 100}%`);
         this.hud.setText(`${Math.max(0, Math.ceil(80 - st))}s`);
         if (st >= 80.6 || (el && el.ended) || notes.every((nn) => nn.done)) finishSong();
       } });
+      const walkOut = () => {
+        if (over) return;
+        over = true;
+        tick.remove();
+        this.input.keyboard?.off("keydown", onKey);
+        this.input.off("pointerdown", onTap);
+        if (el) el.playbackRate = 1;
+        synth.stopMusic();
+        synth.play("trombone");
+        lay.destroy(true);
+        lyric.destroy();
+        score.destroy();
+        notes.forEach((n) => n.c.active && n.c.destroy());
+        for (const l of log) l.setVisible(true);
+        push(HER, "ok im gonna go. good luck w the rapping x", "#f9a8d4");
+        this.time.delayedCall(900, () => push("*", `${HER} has disconnected.`, "#9ca3af"));
+        this.time.delayedCall(1800, () => this.finish(false, [say("SANMIK", "She's buffering. Mid-song. Krelchat's dead lag."), dir(`She is not buffering. ${hits} notes hit, ${misses} missed.`)]));
+      };
       const finishSong = () => {
         if (over) return;
         over = true;
@@ -555,13 +617,23 @@ export class MinigameScene extends Phaser.Scene {
       const GT = 70;
       const GH = 240;
       this.add.rectangle(GX, GT + GH / 2, 30, GH + 6, 0x000000).setStrokeStyle(2, 0xffffff).setDepth(40);
-      let zone = randomZone();
+      // this wonk's style: the gentle one if it's your first ever, otherwise a slippery zone that slides about
+      const nth = (G.s.flags.wonk_count as number | undefined) ?? 0;
+      G.s.flags.wonk_count = nth + 1;
+      const style = nth === 0 ? WONK_STYLES.gentle : WONK_STYLES.drift;
+      const zone0 = styledZone(style);
+      let zone = zone0;
+      const wonkT0 = this.time.now;
+      // how into it she is (from the chat and the song) sets how fast she gets there
+      const keen = 0.6 + (interest / 100) * 0.8;
+      this.add.text(GX, GT + GH + 22, interest >= 70 ? "♥ she's well into it" : interest >= 40 ? "♥ she's into it" : "♥ she's… here", { fontFamily: FONT, fontSize: "12px", color: "#f9a8d4", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(42);
+      if (style.name) this.add.text(GX, GT - 30, style.name.split(" · ")[0], { fontFamily: FONT, fontSize: "12px", color: "#fde68a", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(42);
       const zoneR = this.add.rectangle(GX, 0, 26, 10, 0x22c55e, 0.6).setDepth(41);
       const placeZone = () => zoneR.setPosition(GX, GT + GH * (1 - (zone.lo + zone.hi) / 2)).setSize(26, GH * (zone.hi - zone.lo));
       placeZone();
       const fill = this.add.rectangle(GX, GT + GH, 22, 0, 0xffd23f).setOrigin(0.5, 1).setDepth(42);
       this.add.text(GX, GT - 14, "KREZZ ZONE", { fontFamily: FONT, fontSize: "10px", color: "#86efac" }).setOrigin(0.5).setDepth(42);
-      const g: Flappy = { gauge: 0.1, vel: 0 };
+      const g: Flappy = styleGauge({ gauge: 0.1, vel: 0 }, style);
       let mine = 0;
       let hers = 0;
       let left = 30;
@@ -599,7 +671,7 @@ export class MinigameScene extends Phaser.Scene {
         fill.setFillStyle(inZone ? 0x22c55e : g.gauge > OVER ? 0xef4444 : 0xffd23f);
         if (inZone) {
           mine += 16 / 90;
-          hers += 16 / (80 + Math.random() * 40);
+          hers += (16 / (80 + Math.random() * 40)) * keen;
           if (Math.random() < 0.02) this.pop(245, 230, moans[Math.floor(Math.random() * moans.length)], "#b0c4ff", 14);
           if (Math.random() < 0.02) this.pop(715, 230, herMoans[Math.floor(Math.random() * herMoans.length)], "#f9a8d4", 14);
         } else if (g.gauge > OVER) {
@@ -609,9 +681,9 @@ export class MinigameScene extends Phaser.Scene {
         barMe.setSize(Math.min(200, mine * 2), 10);
         barHer.setSize(Math.min(200, hers * 2), 10);
         bars.forEach((b, k) => b.setPosition([245, 715][k] + (inZone ? Math.sin(this.time.now / 40 + k) * 6 : 0), 200 + (inZone ? Math.cos(this.time.now / 55 + k) * 4 : 0)));
-        // a new zone every so often, to keep you honest
-        if (Math.random() < 0.004) {
-          zone = randomZone();
+        // the zone slides about (smoothly, so you can follow it), to keep you honest
+        if (style.drift) {
+          zone = zoneAt(zone0, style, this.time.now - wonkT0);
           placeZone();
         }
         this.hud.setText(`${left}s`);
@@ -671,9 +743,9 @@ export class MinigameScene extends Phaser.Scene {
       .then(() => round(0));
   }
 
-  // ---------------------------------------------------------------- MANIJER OF NORRICH
+  // ---------------------------------------------------------------- DEADLIFT
 
-  /** Champions League final, 89th minute, 2-1 down. SanMik subs himself on. Two goals in the time left. */
+  /** Mash to lift 300kg. (Krezwonk needs the HGH arc done to get the full boost.) */
   private deadlift() {
     if (!backdrop(this, "bg_gym", { dim: 0.2, depth: -10 })) this.add.tileSprite(0, 0, 960, 540, "tile_industrial").setOrigin(0);
     title(this, 480, 70, "DEADLIFT: 300KG (RECORD: 280)", 28);
@@ -745,31 +817,55 @@ export class MinigameScene extends Phaser.Scene {
     const phones = girls.map((g, i) => {
       const x = 220 + i * 260;
       const c = this.add.container(x, 300);
-      const body = this.add.rectangle(0, 0, 150, 240, 0x111111).setStrokeStyle(4, colors[i]);
-      const scr = this.add.rectangle(0, -10, 130, 180, 0x2a2a3a);
-      const nm = this.add.text(0, -110, g, { fontFamily: FONT, fontSize: "15px", color: "#fff", fontStyle: "bold" }).setOrigin(0.5);
-      const txt = this.add.text(0, -10, "", { fontFamily: FONT, fontSize: "14px", color: "#fff", align: "center", wordWrap: { width: 120 } }).setOrigin(0.5);
-      c.add([body, scr, nm, txt]);
+      const art = this.textures.exists("mg_phone");
+      // a real phone (PixelLab) in a case of her colour; the screen shows through it. Rectangles if the art's missing.
+      const glow = this.add.rectangle(0, 0, 168, 268, colors[i], 0).setStrokeStyle(0);
+      const body = art ? this.add.rectangle(0, 0, 138, 246, colors[i]).setStrokeStyle(3, 0x000000, 0.6) : this.add.rectangle(0, 0, 150, 240, 0x111111).setStrokeStyle(4, colors[i]);
+      const scr = art ? this.add.rectangle(-1, -2, 106, 176, 0x1c1c28) : this.add.rectangle(0, -10, 130, 180, 0x2a2a3a);
+      const phone = art ? this.add.image(0, 0, "mg_phone").setScale(1.75) : null;
+      const nm = this.add.text(0, art ? -142 : -110, g, { fontFamily: PIXEL_BOLD, fontSize: "16px", color: Phaser.Display.Color.IntegerToColor(colors[i]).rgba, stroke: "#000", strokeThickness: 4 }).setOrigin(0.5);
+      const txt = this.add.text(0, art ? -34 : -10, "", { fontFamily: FONT, fontSize: "14px", color: "#fff", fontStyle: "bold", align: "center", wordWrap: { width: art ? 100 : 120 } }).setOrigin(0.5);
+      // how long till it rings out
+      const timer = this.add.rectangle(-50, art ? -76 : -96, 100, 5, 0xffffff).setOrigin(0, 0.5).setVisible(false);
+      c.add([glow, body, scr, ...(phone ? [phone] : []), nm, txt, timer]);
       body.setInteractive({ useHandCursor: true }).on("pointerdown", () => answer(i));
-      this.add.text(x, 440, `[${i + 1}]`, { fontFamily: FONT, fontSize: "14px", color: "#888" }).setOrigin(0.5);
-      return { c, scr, txt };
+      this.add.text(x, art ? 448 : 440, `[${i + 1}]`, { fontFamily: FONT, fontSize: "14px", color: "#aaa" }).setOrigin(0.5);
+      return { c, scr, txt, glow, timer, x };
     });
     const ring = () => {
       if (this.ended) return;
       phones.forEach((p) => {
-        p.scr.setFillStyle(0x2a2a3a);
+        p.scr.setFillStyle(0x1c1c28);
         p.txt.setText("");
+        p.glow.setFillStyle(colors[0], 0);
+        p.timer.setVisible(false);
+        this.tweens.killTweensOf(p.c);
+        p.c.setAngle(0).setX(p.x);
       });
       active = Phaser.Math.Between(0, 2);
       const window = Math.max(900, 2200 - score * 100);
       deadline = this.time.now + window;
-      phones[active].scr.setFillStyle(colors[active]);
-      phones[active].txt.setText(msgs[Phaser.Math.Between(0, msgs.length - 1)]);
-      this.tweens.add({ targets: phones[active].c, angle: { from: -4, to: 4 }, yoyo: true, repeat: 3, duration: 60, onComplete: () => phones.forEach((p) => p.c.setAngle(0)) });
+      const ph = phones[active];
+      ph.scr.setFillStyle(Phaser.Display.Color.ValueToColor(colors[active]).darken(35).color);
+      ph.txt.setText(msgs[Phaser.Math.Between(0, msgs.length - 1)]);
+      ph.glow.setFillStyle(colors[active], 0.35);
+      ph.timer.setVisible(true).setFillStyle(colors[active]);
+      // the buzz: a wobble and a side-to-side rattle until you answer it
+      this.tweens.add({ targets: ph.c, angle: { from: -5, to: 5 }, yoyo: true, repeat: -1, duration: 55 });
+      this.tweens.add({ targets: ph.c, x: ph.x + 4, yoyo: true, repeat: -1, duration: 35 });
+      this.tweens.add({ targets: ph.c, scale: { from: 1.06, to: 1 }, duration: 160, ease: "Back.out" });
       synth.play("notify");
     };
+    const still = () =>
+      phones.forEach((p) => {
+        this.tweens.killTweensOf(p.c);
+        p.c.setAngle(0).setX(p.x).setScale(1);
+        p.glow.setFillStyle(colors[0], 0);
+        p.timer.setVisible(false);
+      });
     const strike = (why: string) => {
       strikes++;
+      still();
       synth.play("hurt");
       this.cameras.main.shake(200, 0.01);
       this.pop(480, 160, why, "#ff6b6b", 22);
@@ -784,6 +880,7 @@ export class MinigameScene extends Phaser.Scene {
         return strike(`Sent "${girls[i]} you're the only one" to ${girls[(i + 1) % 3]}`);
       }
       active = -1;
+      still();
       score++;
       synth.play("ding");
       this.pop(phones[i].c.x, 160, ["sent ❤", "'at the gym x'", "'miss u'", "'no she's my cousin'"][score % 4], "#7CFC9A");
@@ -796,10 +893,13 @@ export class MinigameScene extends Phaser.Scene {
     this.input.keyboard?.on("keydown-TWO", () => answer(1));
     this.input.keyboard?.on("keydown-THREE", () => answer(2));
     this.time.addEvent({
-      delay: 100,
+      delay: 50,
       loop: true,
       callback: () => {
         this.hud.setText(`KEPT SECRET ${score}/${need}    STRIKES ${"✕".repeat(strikes)}`);
+        if (active >= 0) {
+          phones[active].timer.setSize(100 * Math.max(0, (deadline - this.time.now) / Math.max(900, 2200 - score * 100)), 5);
+        }
         if (active >= 0 && this.time.now > deadline) {
           active = -1;
           strike("Left on read. She's suspicious.");
@@ -811,9 +911,14 @@ export class MinigameScene extends Phaser.Scene {
 
   // ---------------------------------------------------------------- RENOVATE
 
+  /**
+   * Flip a house. Problems pop up and ROT if you leave them (the value drops), fixes chained quickly build a
+   * multiplier, and it speeds up twice, WarioWare-style. Add £1.5m to the asking price in 45 seconds.
+   */
   private renovate() {
     if (!backdrop(this, "bg_fixer", { dim: 0.15, depth: -10 })) this.add.tileSprite(0, 0, 960, 540, "tile_mansion").setOrigin(0);
-    title(this, 480, 50, "FLIP IT: FIX 25 PROBLEMS IN 45 SECONDS", 26);
+    title(this, 480, 44, "FLIP IT: ADD £1,500,000 IN 45 SECONDS", 26);
+    this.add.text(480, 74, "Click problems before they ROT. Fix them quickly in a row for a multiplier.", { fontFamily: FONT, fontSize: "14px", color: "#ffffff", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5);
     const kinds = [
       { t: "DAMP", c: 0x4a6a4a },
       { t: "HOLE", c: 0x111111 },
@@ -823,43 +928,133 @@ export class MinigameScene extends Phaser.Scene {
       { t: "CRACK", c: 0x6b5b4b },
       { t: "WIRING", c: 0xd97706 },
     ];
-    const need = 25;
+    const TARGET = 1_500_000;
+    const FIX = 40_000;
+    const ROT = 60_000;
+    const LEN = 45000;
+    let value = 0;
     let fixed = 0;
-    const end = this.time.now + 45000;
+    let rotted = 0;
+    let mult = 1;
+    let lastFix = -9999;
+    let golden = 0;
+    const t0 = this.time.now;
+    const end = t0 + LEN;
+    // the pace: three phases, each faster, and the problems rot quicker as it goes
+    const phase = () => Math.min(2, Math.floor((this.time.now - t0) / 15000));
+    const spawnEvery = () => [850, 620, 430][phase()];
+    const lifeMs = () => [5200, 4000, 3000][phase()];
+    const fmt = (n: number) => `£${Math.round(n / 1000).toLocaleString()}k`;
+    type Prob = { r: Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle; t: Phaser.GameObjects.Text; ring: Phaser.GameObjects.Graphics; born: number; life: number; gold: boolean; dead: boolean };
+    const probs: Prob[] = [];
+    const remove = (p: Prob) => {
+      p.dead = true;
+      p.r.destroy();
+      p.t.destroy();
+      p.ring.destroy();
+    };
     const spawn = () => {
       if (this.ended) return;
-      const k = kinds[Phaser.Math.Between(0, kinds.length - 1)];
-      const x = Phaser.Math.Between(80, 880);
-      const y = Phaser.Math.Between(120, 500);
-      const art = `r_${k.t.toLowerCase()}`;
+      // don't stack them on top of each other
+      let x = 0;
+      let y = 0;
+      for (let k = 0; k < 8; k++) {
+        x = Phaser.Math.Between(90, 870);
+        y = Phaser.Math.Between(130, 470);
+        if (probs.every((p) => p.dead || Math.abs(p.r.x - x) > 90 || Math.abs(p.r.y - y) > 70)) break;
+      }
+      // now and then a golden one: an original feature. Worth five fixes.
+      const gold = Math.random() < 0.07;
+      const k = gold ? { t: "ORIGINAL FEATURE", c: 0xfacc15 } : kinds[Phaser.Math.Between(0, kinds.length - 1)];
+      const art = gold ? "r_cheese" : `r_${k.t.toLowerCase()}`;
       const hasArt = this.textures.exists(art);
       const r = hasArt ? this.add.image(x, y, art).setDepth(10) : this.add.rectangle(x, y, 70, 46, k.c).setStrokeStyle(2, 0xffffff).setDepth(10);
-      const t = this.add.text(x, y + (hasArt ? 26 : 0), k.t, { fontFamily: FONT, fontSize: hasArt ? "10px" : "12px", color: "#fff", fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(11);
+      if (gold && r instanceof Phaser.GameObjects.Image) r.setTint(0xffe066);
+      const t = this.add.text(x, y + (hasArt ? 28 : 0), k.t, { fontFamily: FONT, fontSize: "12px", color: gold ? "#ffd23f" : "#fff", fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(11);
+      const ring = this.add.graphics().setDepth(12);
+      const p: Prob = { r, t, ring, born: this.time.now, life: gold ? 2200 : lifeMs(), gold, dead: false };
+      probs.push(p);
       r.setScale(0);
-      this.tweens.add({ targets: r, scale: 1, duration: 150 });
+      this.tweens.add({ targets: r, scale: 1, duration: 150, ease: "Back.out" });
+      if (gold) synth.play("transform_sparkle");
       r.setInteractive({ useHandCursor: true }).on("pointerdown", () => {
-        if (this.ended) return;
+        if (this.ended || p.dead) return;
+        const now = this.time.now;
+        // chain fixes within 0.9s of each other and the multiplier climbs (to x3)
+        mult = now - lastFix < 900 ? Math.min(3, mult + 1) : 1;
+        lastFix = now;
+        const gain = FIX * mult * (gold ? 5 : 1);
+        value += gain;
         fixed++;
-        synth.play("coin");
-        this.pop(x, y, ["FIXED", "+£40k", "GRAND DESIGNS", "high end"][fixed % 4], "#7CFC9A");
-        r.destroy();
-        t.destroy();
-        if (fixed >= need) {
-          title(this, 480, 270, "SOLD: £2,400,000", 40, "#22c55e").setDepth(200);
+        if (gold) golden++;
+        synth.play(gold ? "jackpot" : mult >= 3 ? "perfect" : "coin");
+        this.pop(x, y - 10, `+${fmt(gain)}${mult > 1 ? `  x${mult}` : ""}`, gold ? "#ffd23f" : mult > 1 ? "#facc15" : "#7CFC9A", gold || mult > 2 ? 22 : 18);
+        if (gold) vfx(this, "vfx_coins", x, y, { scale: 1.6, depth: 30 });
+        else if (mult >= 3) vfx(this, "vfx_sparks", x, y, { scale: 1.2, depth: 30, add: true });
+        remove(p);
+        if (value >= TARGET) {
+          title(this, 480, 270, `SOLD: £${(2_400_000 + value - TARGET).toLocaleString()}`, 40, "#22c55e").setDepth(200);
           synth.play("cheer");
-          this.finish(true);
+          this.finish(true, [dir(`Fixed ${fixed}. Rotted ${rotted}. Original features found: ${golden}.`)]);
         }
       });
     };
-    for (let i = 0; i < 4; i++) spawn();
-    this.time.addEvent({ delay: 700, loop: true, callback: spawn });
+    const speedUp = (n: number) => {
+      const s = title(this, 480, 270, n === 1 ? "SPEED UP!" : "FASTER!!", 54, "#ff6b6b").setDepth(220).setScale(0.3);
+      this.tweens.add({ targets: s, scale: 1, duration: 200, ease: "Back.out" });
+      this.tweens.add({ targets: s, alpha: 0, delay: 700, duration: 300, onComplete: () => s.destroy() });
+      synth.play("whistle");
+      this.cameras.main.shake(150, 0.004);
+    };
+    for (let i = 0; i < 3; i++) spawn();
+    let nextSpawn = this.time.now + spawnEvery();
+    let lastPhase = 0;
+    const multTxt = this.add.text(940, 96, "", { fontFamily: PIXEL_BOLD, fontSize: "26px", color: "#facc15", stroke: "#000", strokeThickness: 5 }).setOrigin(1, 0.5).setDepth(200);
+    this.add.rectangle(480, 498, 604, 18, 0x000000, 0.7).setDepth(199);
+    const bar = this.add.rectangle(180, 498, 0, 12, 0x22c55e).setOrigin(0, 0.5).setDepth(200);
     this.time.addEvent({
-      delay: 100,
+      delay: 16,
       loop: true,
       callback: () => {
-        const left = Math.max(0, (end - this.time.now) / 1000);
-        this.hud.setText(`FIXED ${fixed}/${need}    ${left.toFixed(1)}s`);
-        if (left <= 0 && !this.ended) this.finish(false, [dir("The surveyor arrives early. He finds the cheese.")]);
+        if (this.ended) return;
+        const now = this.time.now;
+        if (phase() !== lastPhase) {
+          lastPhase = phase();
+          speedUp(lastPhase);
+        }
+        if (now >= nextSpawn) {
+          spawn();
+          nextSpawn = now + spawnEvery();
+        }
+        // rot: a ring runs down round each one; past half it goes red and twitches; at zero it costs you
+        for (const p of probs) {
+          if (p.dead) continue;
+          const k = 1 - (now - p.born) / p.life;
+          p.ring.clear();
+          if (k <= 0) {
+            remove(p);
+            if (p.gold) {
+              this.pop(p.r.x, p.r.y, "GONE", "#9ca3af", 16);
+              continue;
+            }
+            rotted++;
+            value = Math.max(0, value - ROT);
+            mult = 1;
+            synth.play("splat");
+            this.pop(p.r.x, p.r.y, `ROTTED -${fmt(ROT)}`, "#ef4444", 18);
+            continue;
+          }
+          const col = k > 0.5 ? 0x22c55e : k > 0.25 ? 0xfacc15 : 0xef4444;
+          p.ring.lineStyle(4, col, 0.9).beginPath().arc(p.r.x, p.r.y, 38, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k, false).strokePath();
+          if (k < 0.25) p.r.setAngle(Math.sin(now / 30) * 6);
+        }
+        // the chain runs out if you dawdle
+        if (mult > 1 && now - lastFix > 900) mult = 1;
+        multTxt.setText(mult > 1 ? `CHAIN x${mult}` : "");
+        bar.setSize(600 * Math.min(1, value / TARGET), 12);
+        const left = Math.max(0, (end - now) / 1000);
+        this.hud.setText(`${fmt(value)} / ${fmt(TARGET)}    ${left.toFixed(1)}s`);
+        if (left <= 0) this.finish(false, [dir(`The surveyor arrives early. He finds the cheese. (${fmt(value)} added; ${rotted} problems left to rot.)`)]);
       },
     });
   }
@@ -878,7 +1073,7 @@ export class MinigameScene extends Phaser.Scene {
     this.add.rectangle(40, 208, 200, 14, 0x111111).setOrigin(0, 0.5);
     const gearBar = this.add.rectangle(40, 208, 200, 14, 0xffffff).setOrigin(0, 0.5);
     const window = this.add.rectangle(860, 200, 80, 100, 0x223355).setStrokeStyle(4, 0x5a4a2a);
-    const gary = this.add.sprite(860, 210, "spr_FOLK2", 0).setScale(2.6).setVisible(false);
+    const gary = this.add.sprite(860, 210, this.textures.exists("spr_GARY") ? "spr_GARY" : "spr_FOLK2", 0).setScale(2.6).setVisible(false);
     void window;
     // RuneScape XP table, squashed so 99 is reachable in a minute or so with gear
     const target = 13034431;
@@ -1220,6 +1415,8 @@ export class MinigameScene extends Phaser.Scene {
     this.add.text(480, 52, "A/D or ← → (or hold left/right of the screen) to move · SPACE / tap Benn to prance", { fontFamily: FONT, fontSize: "12px", color: "#ffffff", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(200);
     synth.music("twitcher", true);
     const start = this.time.now;
+    const GIG_LEN = 90;
+    let pace = 0;
     let points = 0;
     let combo = 0;
     let caught = 0;
@@ -1249,11 +1446,20 @@ export class MinigameScene extends Phaser.Scene {
     const throwItem = () => {
       if (this.ended || !crowd.length) return;
       const thrower = crowd[Math.floor(Math.random() * crowd.length)];
-      const kind = Math.random() < 0.55 ? "bra" : "thong";
-      const key = this.textures.exists(`hd_${kind}`) ? `hd_${kind}` : "p_coin";
+      // now and then a GOLDEN one (worth a lot more, and it flies faster)
+      const gold = Math.random() < 0.06;
+      const kind = gold ? "gold" : Math.random() < 0.55 ? "bra" : "thong";
+      const base = gold ? (Math.random() < 0.5 ? "bra" : "thong") : kind;
+      const key = this.textures.exists(`hd_${base}`) ? `hd_${base}` : "p_coin";
       const x = 140 + Math.random() * 680;
       const img = this.add.image(thrower.x, thrower.y - 30, key).setDepth(60);
-      const dur = 1100 + Math.random() * 500;
+      if (gold) {
+        img.setTint(0xffd23f).setScale(1.25);
+        synth.play("transform_sparkle");
+        this.pop(thrower.x, thrower.y - 60, "✨ GOLDEN ✨", "#ffd23f", 16);
+      }
+      // it all comes in quicker as the gig speeds up
+      const dur = (1100 + Math.random() * 500) * [1, 0.85, 0.72][pace] * (gold ? 0.8 : 1);
       const landAt = this.time.now + dur;
       this.tweens.add({ targets: img, x, duration: dur, ease: "Linear" });
       this.tweens.add({ targets: img, y: { from: thrower.y - 30, to: 120 }, duration: dur * 0.5, ease: "Quad.out" });
@@ -1277,7 +1483,22 @@ export class MinigameScene extends Phaser.Scene {
     };
     let bestCombo = 0;
     endBtn.on("pointerdown", finishGig);
-    this.time.addEvent({ delay: 900, loop: true, callback: () => (Math.random() < 0.85 ? throwItem() : undefined) });
+    // the crowd throws faster as the set goes on: two speed-ups, a banner each (WarioWare-style)
+    const throwLoop = () => {
+      if (this.ended) return;
+      if (Math.random() < 0.85) throwItem();
+      this.time.delayedCall([900, 700, 540][pace], throwLoop);
+    };
+    this.time.delayedCall(900, throwLoop);
+    this.time.addEvent({ delay: 500, loop: true, callback: () => {
+      const p = Math.min(2, Math.floor((this.time.now - start) / 30000));
+      if (p === pace || this.ended) return;
+      pace = p;
+      const s = title(this, 480, 170, p === 1 ? "SPEED UP!" : "ENCORE PACE!!", 46, "#ff6bb0").setDepth(250).setScale(0.3);
+      this.tweens.add({ targets: s, scale: 1, duration: 200, ease: "Back.out" });
+      this.tweens.add({ targets: s, alpha: 0, delay: 800, duration: 300, onComplete: () => s.destroy() });
+      synth.play("cheer");
+    } });
     this.time.addEvent({
       delay: 16,
       loop: true,
@@ -1309,10 +1530,14 @@ export class MinigameScene extends Phaser.Scene {
             const prancing = now < pranceUntil;
             combo++;
             bestCombo = Math.max(bestCombo, combo);
-            const gain = (it.kind === "thong" ? 15 : 10) * (prancing ? 2 : 1) + Math.min(20, combo);
+            const gain = (it.kind === "gold" ? 60 : it.kind === "thong" ? 15 : 10) * (prancing ? 2 : 1) + Math.min(20, combo);
             points += gain;
             caught++;
-            synth.play("coin");
+            synth.play(it.kind === "gold" ? "jackpot" : "coin");
+            if (it.kind === "gold") {
+              vfx(this, "vfx_coins", benn.x, 260, { scale: 1.8, depth: 70 });
+              this.cameras.main.flash(120, 255, 220, 80);
+            }
             this.pop(benn.x, 240, `+${gain}${prancing ? " PRANCE x2" : ""}${combo > 2 ? ` · combo ${combo}` : ""}`, prancing ? "#ff6bb0" : "#ffd23f", prancing ? 20 : 16);
             it.img.destroy();
           } else {
@@ -1324,10 +1549,12 @@ export class MinigameScene extends Phaser.Scene {
         const pr = synth.fileProgress();
         const elapsed = (now - start) / 1000;
         if (elapsed > 45) endBtn.setVisible(true);
-        const len = pr.d || 180;
-        const left = Math.max(0, len - (pr.d ? pr.t : elapsed));
+        // a 90-second set (the song or 90s, whichever is shorter): one mechanic, so keep it tight
+        const len = Math.min(pr.d || GIG_LEN, GIG_LEN);
+        const played = Math.max(pr.d ? pr.t : 0, elapsed);
+        const left = Math.max(0, len - played);
         this.hud.setText(`🤘 ${points}   CAUGHT ${caught}   COMBO ${combo}   ${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, "0")} left`);
-        if ((pr.d && pr.ended) || (!pr.d && elapsed > 180)) finishGig();
+        if ((pr.d && pr.ended) || played >= len) finishGig();
       },
     });
   }
@@ -1566,6 +1793,12 @@ export class MinigameScene extends Phaser.Scene {
     const PHASE = 0.017;
     const SPEED = 330; // px per second along the lane
     const HIT_X = 150;
+    // the croc's windows: roomier than cam2cam's (three moves, slower song), still kinder late than early
+    const WIN = { perfect: 0.09, early: 0.22, late: 0.3 };
+    // the checkpoint: the first breakdown (bar 30, ~81s). Fail after it and you can go again from there.
+    const CHECK = PHASE + 30 * 4 * BEAT;
+    const from: number = this.startData?.crocFrom ?? 0;
+    let reached = from > 0;
     if (!backdrop(this, "bg_gig", { dim: 0.35, depth: -10 })) this.add.rectangle(480, 270, 960, 540, 0x10241a);
     title(this, 480, 22, "DO THE CROCODILE", 26, "#86efac").setDepth(200);
     this.add.text(480, 46, "SanMik ft. the entire cabinet · ← / A = LEFT HAND · → / D = RIGHT HAND · ↑ / W / SPACE = CHOMP", { fontFamily: FONT, fontSize: "11px", color: "#ffffff", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(200);
@@ -1629,7 +1862,7 @@ export class MinigameScene extends Phaser.Scene {
     // the moves start straight away: every other beat for two bars, then every beat, then offbeats creep in
     const add = (beat: number, k: "L" | "R" | "C") => {
       const t = PHASE + beat * BEAT;
-      if (t > CROC_END - 1.5) return;
+      if (t > CROC_END - 1.5 || t < from) return;
       const c = this.add.container(-200, 120).setDepth(150);
       const col = k === "C" ? 0x22c55e : k === "L" ? 0x38bdf8 : 0xf472b6;
       c.add(this.add.circle(0, 0, 20, col).setStrokeStyle(3, 0xffffff));
@@ -1650,6 +1883,13 @@ export class MinigameScene extends Phaser.Scene {
     const lyric = this.add.text(480, 200, "", { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#86efac", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5).setDepth(160);
     const lyrics = ["YOU TAKE YOUR LEFT HAND", "AND GO LIKE THIS", "DO THE CROCODILE", "(very seriously)"];
     synth.music("crocodile", true);
+    // from the checkpoint: pick the song up a few seconds before it, in the quiet bit, so you've time to get set
+    const seek = from > 0 ? from - 3 : 0;
+    const el = synth.musicEl();
+    if (el && seek > 0) {
+      if (el.readyState >= 1) el.currentTime = seek;
+      else el.addEventListener("loadedmetadata", () => (el.currentTime = seek), { once: true });
+    }
     const start = this.time.now;
     let hits = 0;
     let perfect = 0;
@@ -1658,18 +1898,22 @@ export class MinigameScene extends Phaser.Scene {
     let best = 0;
     const songT = () => {
       const pr = synth.fileProgress();
-      return pr.d ? pr.t : (this.time.now - start) / 1000;
+      if (pr.d) return pr.t;
+      // the track's still loading: hold the chart at the start rather than scroll notes past unheard (give up after 4s)
+      const waited = (this.time.now - start) / 1000;
+      return el ? seek + Math.max(0, waited - 4) : seek + waited;
     };
     const judge = (k: "L" | "R" | "C") => {
       if (this.ended || this.box.active) return;
       const t = songT();
-      const n = notes.find((x) => !x.done && Math.abs(x.t - t) < 0.28);
+      const n = notes.find((x) => !x.done && this.inWindow(t - x.t, WIN));
       if (!n) {
         move([dancers[dancers.length - 1]], k);
         return;
       }
       n.done = true;
-      const err = Math.abs(n.t - t);
+      const signed = t - n.t;
+      const err = Math.abs(signed);
       if (n.k !== k) {
         missed++;
         combo = 0;
@@ -1681,10 +1925,10 @@ export class MinigameScene extends Phaser.Scene {
       hits++;
       combo++;
       best = Math.max(best, combo);
-      if (err < 0.1) perfect++;
+      if (err <= WIN.perfect) perfect++;
       move([dancers[dancers.length - 1]], k);
       synth.play(k === "C" ? "punch" : "tap");
-      this.pop(HIT_X, 80, err < 0.1 ? "PERFECT" : "GOOD", err < 0.1 ? "#ffd23f" : "#ffffff", 16);
+      this.hitFx(HIT_X, 120, signed, k === "C" ? 0x22c55e : k === "L" ? 0x38bdf8 : 0xf472b6, WIN.perfect, 170);
       this.tweens.add({ targets: n.img, scale: 1.6, alpha: 0, duration: 200, onComplete: () => n.img.destroy() });
     };
     const kb = this.input.keyboard;
@@ -1710,6 +1954,13 @@ export class MinigameScene extends Phaser.Scene {
       const total = hits + missed + notes.filter((n) => !n.done && n.t < songT()).length;
       const acc = total ? hits / total : 0;
       synth.stopMusic();
+      lyric.setText("");
+      // past the checkpoint and not good enough: go again from halfway rather than from the top
+      if (acc < 0.5 && reached && (await this.crocRetry(acc))) {
+        this.input.keyboard?.removeAllListeners();
+        this.scene.restart({ ...this.startData, crocFrom: CHECK });
+        return;
+      }
       await this.crocRelease(acc >= 0.5);
       this.finish(acc >= 0.5, []);
     };
@@ -1729,12 +1980,20 @@ export class MinigameScene extends Phaser.Scene {
           }
           if (n.done) continue;
           n.img.x = HIT_X + (n.t - t) * SPEED;
-          if (n.t - t < -0.3) {
+          if (t - n.t > WIN.late) {
             n.done = true;
             missed++;
             combo = 0;
             n.img.destroy();
+            this.missFx(HIT_X, 120, 170);
           }
+        }
+        if (!reached && t >= CHECK) {
+          reached = true;
+          synth.play("ding");
+          const cp = this.add.text(480, 250, "CHECKPOINT ✓\n(fail from here and you go again from halfway)", { fontFamily: PIXEL_BOLD, fontSize: "20px", color: "#86efac", align: "center", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(205).setScale(0.5);
+          this.tweens.add({ targets: cp, scale: 1, duration: 220, ease: "Back.out" });
+          this.tweens.add({ targets: cp, alpha: 0, delay: 2600, duration: 500, onComplete: () => cp.destroy() });
         }
         // the rest of the line keeps time on every beat even when you don't (they're professionals)
         const beatNow = Math.floor((t - PHASE) / BEAT);
@@ -1745,18 +2004,46 @@ export class MinigameScene extends Phaser.Scene {
           else lyric.setText(beatNow < 4 ? "get ready. be serious." : "");
         }
         drawArms();
-        if (t > 30) leave.setVisible(true);
-        this.hud.setText(`🐊 ${hits}   COMBO ${combo}   MISSED ${missed}`);
+        if (t > seek + 30) leave.setVisible(true);
+        this.hud.setText(`🐊 ${hits}   COMBO ${combo}   MISSED ${missed}${reached ? "   ✓ CHECKPOINT" : ""}`);
         const pr = synth.fileProgress();
         if ((pr.d && pr.ended) || t > CROC_END) void done();
       },
     });
   }
 
+  /** Failed after the checkpoint: go again from halfway (true), or take the loss (false). */
+  private crocRetry(acc: number) {
+    return new Promise<boolean>((res) => {
+      const ui: Phaser.GameObjects.GameObject[] = [];
+      ui.push(this.add.rectangle(480, 270, 960, 540, 0x000000, 0.7).setDepth(400).setInteractive());
+      ui.push(title(this, 480, 170, "OUT OF STEP", 40, "#ff6b6b").setDepth(401));
+      ui.push(this.add.text(480, 222, `${Math.round(acc * 100)}% in time. You need half. The cabinet is disappointed in you.`, { fontFamily: FONT, fontSize: "15px", color: "#ffffff" }).setOrigin(0.5).setDepth(401));
+      let picked = false;
+      const pick = (again: boolean) => {
+        if (picked) return;
+        picked = true;
+        this.input.keyboard?.off("keydown-ENTER", yes);
+        this.input.keyboard?.off("keydown-ESC", no);
+        ui.forEach((o) => o.destroy());
+        res(again);
+      };
+      const yes = () => pick(true);
+      const no = () => pick(false);
+      ui.push(button(this, 480, 290, "GO AGAIN FROM HALFWAY (ENTER)", yes, { w: 380, color: 0x166534 }).setDepth(401));
+      ui.push(button(this, 480, 344, "GIVE UP (ESC)", no, { w: 380 }).setDepth(401));
+      this.input.keyboard?.on("keydown-ENTER", yes);
+      this.input.keyboard?.on("keydown-ESC", no);
+    });
+  }
+
   /** The song summons crocodiles. They head for the playground. */
   private async crocRelease(won: boolean) {
-    this.add.rectangle(480, 270, 960, 540, 0x3f6b3a).setDepth(500);
-    this.add.rectangle(480, 470, 960, 140, 0x8b6b3a).setDepth(501);
+    // the playground (drawn backdrop), flat colour if it's missing
+    if (!backdrop(this, "bg_us_playground", { depth: 500 })) {
+      this.add.rectangle(480, 270, 960, 540, 0x3f6b3a).setDepth(500);
+      this.add.rectangle(480, 470, 960, 140, 0x8b6b3a).setDepth(501);
+    }
     this.add.text(760, 300, "KRELFORD PLAYGROUND", { fontFamily: FONT, fontSize: "14px", color: "#fff4cc", backgroundColor: "#1a1033cc", padding: { x: 4, y: 2 } }).setOrigin(0.5).setDepth(502);
     const kids = [0, 1, 2, 3, 4].map((i) => {
       const key = this.textures.exists(`spr_KID${i}`) ? `spr_KID${i}` : this.textures.exists(`spr_FOLK${i}`) ? `spr_FOLK${i}` : playerKey(this);

@@ -27,7 +27,7 @@ import { ammoQuote, buyAmmo, firstLoaded, gunModList, gunRatings, gunUpgrades, m
 import { currentStep } from "../Flow";
 import { DARK_AUTISM_PASSAGES } from "../../content/darkAutism";
 
-/** Your house: walk about, watch the telly, sleep, raid the fridge. New games start here. */
+/** Your house: walk about, watch the telly, sleep. New games start here. */
 
 // where your feet can go
 const TOP = 455;
@@ -41,13 +41,6 @@ interface Spot {
   use: () => void | Promise<void>;
 }
 
-const FRIDGE = [
-  "The fridge contains: half a Fizzy Bongo, a single crobley, and a note from your mum that just says 'eat something'.",
-  "The fridge light is on. Nothing else is. You close it. You open it again. Still nothing.",
-  "A Tupperware of something labelled 'DO NOT' in your own handwriting. You don't.",
-  "Pussy juice, three days past its best. Still drinkable, according to the Ministry.",
-  "You find a cold slice of Krez-King pizza. Breakfast of champions. You eat it standing up.",
-];
 
 export class HomeScene extends Phaser.Scene {
   private controls!: Controls;
@@ -78,29 +71,26 @@ export class HomeScene extends Phaser.Scene {
     this.tweens.add({ targets: screen, alpha: 0.05, yoyo: true, repeat: -1, duration: 160 });
     this.add.image(320, 534, "p_sofa").setOrigin(0.5, 1).setScale(2.5).setDepth(534);
     this.add.image(540, 532, "p_bed").setOrigin(0.5, 1).setScale(5).setDepth(532);
-    const fridge = this.add.image(655, 452, "p_fridge").setOrigin(0.5, 1).setScale(4).setDepth(452);
     this.add.text(760, 300, "▼ OUT", { fontFamily: FONT, fontSize: "12px", color: "#ffd23f", fontStyle: "bold", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5).setDepth(600);
     // the games console, the laptop on the sofa, the trophy shelf and the armoury
     if (this.textures.exists("p_console")) this.add.image(176, 538, "p_console").setOrigin(0.5, 1).setScale(1.2).setDepth(538);
     if (this.textures.exists("p_laptop")) this.add.image(352, 504, "p_laptop").setOrigin(0.5, 1).setScale(1.25).setDepth(536);
     this.drawShelf(292, 300);
     if (this.textures.exists("p_gunrack")) this.add.image(880, 300, "p_gunrack").setScale(1.6).setDepth(5);
-    this.drawDecor(fridge);
-    const fridgeStocked = !s.flags[`fridge_ch${s.chapter}`];
+    this.drawDecor();
     this.spots.push(
       { x: 140, y: 480, r: 80, label: "E: Watch KrelTV", use: () => this.watchTV() },
       { x: 176, y: 530, r: 42, label: "E: Play the games console", use: () => this.consolePanel() },
       { x: 292, y: 462, r: 40, label: "E: Look at your trophy shelf", use: () => this.trophyPanel() },
       { x: 350, y: 522, r: 48, label: "E: Open the laptop (group chat)", use: () => this.laptopPanel() },
       { x: 540, y: 500, r: 80, label: "E: Sleep (save · full health · sober up · dream)", use: () => this.sleep() },
-      { x: 655, y: 462, r: 55, label: fridgeStocked ? "E: Open the fridge (restocked!)" : "E: Open the fridge", use: () => this.openFridge() },
       { x: 880, y: 468, r: 55, label: "E: Gun rack (order · ammo · perks)", use: () => this.gunRackPanel() },
       { x: 420, y: 445, r: 55, label: "E: Look out of the window", use: () => this.talk([dir(s.flags.met_emergency ? "Krelford. The sky has a faint grey tint, like an unloaded page. Somewhere, a Tap is not running." : "Krelford, in the evening. Somewhere a fizzy bongo is opened. Somewhere else, the Great Tap gurgles. All is well. For now.")]) },
       { x: 760, y: 450, r: 60, label: "E: Go outside", use: () => this.leave() },
       { x: 612, y: 530, r: 30, label: "E: Read 'Dark Autism - An Erotic Memoir'", use: () => this.readBook() },
       { x: 566, y: 452, r: 34, label: "E: Jukebox (every tune you've heard)", use: () => this.jukeboxPanel() },
     );
-    // the jukebox, between the radiator and the fridge, glowing
+    // the jukebox, by the radiator, glowing
     if (this.textures.exists("p_jukebox")) {
       this.add.image(566, 440, "p_jukebox").setOrigin(0.5, 1).setScale(1.6).setDepth(440);
       const jg = this.add.ellipse(566, 360, 120, 150, 0xff6fa8, 0.1).setBlendMode(Phaser.BlendModes.ADD).setDepth(439);
@@ -359,31 +349,6 @@ export class HomeScene extends Phaser.Scene {
     return DREAMS[Math.floor(Math.random() * DREAMS.length)];
   }
 
-  // ------------------------------------------------------------------ the fridge
-
-  private async openFridge() {
-    const s = G.s;
-    const k = `fridge_ch${s.chapter}`;
-    if (s.flags[k]) {
-      await this.talk([dir(FRIDGE[Math.floor(Math.random() * FRIDGE.length)]), dir("(Your mum restocks it every chapter.)")]);
-      return;
-    }
-    s.flags[k] = true;
-    let got: string;
-    if (s.bottles < maxBottles(s)) {
-      s.bottles++;
-      got = "a fresh bottle of pussy juice (+1 bottle)";
-    } else {
-      s.bongos++;
-      got = "a cold Fizzy Bongo (+1 bongo)";
-    }
-    G.save();
-    synth.play("pickup");
-    const sp = this.spots.find((x) => x.x === 655);
-    if (sp) sp.label = "E: Open the fridge";
-    await this.talk([dir(`The fridge has been restocked. There's a note from your mum: 'eat something'. And next to it, ${got}.`)]);
-  }
-
   // ------------------------------------------------------------------ furniture
 
   /** The trophy shelf: a crystal for every boss you've beaten (dark slots for the ones you haven't). */
@@ -406,7 +371,7 @@ export class HomeScene extends Phaser.Scene {
   }
 
   /** Whatever you've bought at the Kreddle Exchange's Home Furnishings counter. */
-  private drawDecor(fridge: Phaser.GameObjects.Image) {
+  private drawDecor() {
     const s = G.s;
     const has = (id: string) => (s.upgrades?.[`home_${id}`] ?? 0) > 0;
     const img = (key: string, x: number, y: number, scale: number, depth = y) => (this.textures.exists(key) ? this.add.image(x, y, key).setOrigin(0.5, 1).setScale(scale).setDepth(depth) : null);
@@ -416,7 +381,8 @@ export class HomeScene extends Phaser.Scene {
       t.setShadow(0, 0, "#ff4fd8", 18, true, true);
       this.tweens.add({ targets: t, alpha: { from: 1, to: 0.75 }, yoyo: true, repeat: -1, duration: 90, repeatDelay: 2600 });
     }
-    if (has("lava")) img("d_lava", fridge.x - 10, fridge.y - fridge.displayHeight + 6, 1.1, 453);
+    // (the fridge is gone: the lava lamp stands on the floor where it was)
+    if (has("lava")) img("d_lava", 655, 452, 1.4, 452);
     if (has("fish")) {
       const f = img("d_fish", 425, 340, 1.3, 6);
       if (f) this.spots.push({ x: 425, y: 458, r: 32, label: "E: Look at the fish", use: () => this.talk([dir(DECOR_BY_ID.fish.look)]) });

@@ -6602,6 +6602,51 @@
   "p_dash": {
    "file": "props/p_dash.png"
   },
+  "bb_dash": {
+   "file": "props/bb_dash.png"
+  },
+  "bb_wheel": {
+   "file": "props/bb_wheel.png"
+  },
+  "bb_skyline": {
+   "file": "backdrops/bb_skyline.png"
+  },
+  "bb_car1": {
+   "file": "props/bb_car1.png"
+  },
+  "bb_car2": {
+   "file": "props/bb_car2.png"
+  },
+  "bb_van": {
+   "file": "props/bb_van.png"
+  },
+  "bb_lamp": {
+   "file": "props/bb_lamp.png"
+  },
+  "bb_shop0": {
+   "file": "props/bb_shop0.png"
+  },
+  "bb_shop1": {
+   "file": "props/bb_shop1.png"
+  },
+  "bb_shop2": {
+   "file": "props/bb_shop2.png"
+  },
+  "bb_shop3": {
+   "file": "props/bb_shop3.png"
+  },
+  "bb_hedge": {
+   "file": "props/bb_hedge.png"
+  },
+  "bb_house0": {
+   "file": "props/bb_house0.png"
+  },
+  "bb_house1": {
+   "file": "props/bb_house1.png"
+  },
+  "bb_wheelie": {
+   "file": "props/bb_wheelie.png"
+  },
   "p_camgirl": {
    "file": "props/p_camgirl.png"
   },

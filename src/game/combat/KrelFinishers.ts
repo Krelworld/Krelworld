@@ -266,11 +266,51 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         const slump = { targets: [body, upper, jaw, dev], y: `+=${Math.round(H * 0.05)}`, angle: `+=${tg.flip ? -6 : 6}`, duration: 900, ease: "Sine.inOut" };
         sc.tweens.add(slump as Phaser.Types.Tweens.TweenBuilderConfig);
         const drip = sc.time.addEvent({ delay: 260, repeat: 10, callback: () => c.blood(tg.x + (Math.random() - 0.5) * W * 0.3, mouthY + H * 0.1, 4, 0.4) });
-        // the last shot: a slow push in on the chair, then hold
-        cam.zoomTo(2.8, 2200, "Sine.easeInOut");
-        await c.wait(1600);
+        await c.wait(1000);
+        // the trap lets go and drops off: the jaw is split wide open underneath
+        const dy = Math.round(H * 0.05);
+        sc.tweens.killTweensOf(dev);
+        synth.play("smash");
+        void c.tw({ targets: dev, y: floor - hh * 0.25, x: dev.x + (tg.flip ? -1 : 1) * W * 0.45, angle: (tg.flip ? -1 : 1) * 110, duration: 520, ease: "Quad.in" }).then(() => {
+          synth.play("smash");
+          cam.shake(160, 0.008);
+        });
+        const mx = tg.x;
+        const my = mouthY + dy;
+        const mw = Math.max(24, W * 0.55);
+        const mh = Math.max(20, H * 0.17);
+        const wound = keep(sc.add.graphics().setDepth(D + 4));
+        // torn flesh round the edge, then the dark gullet going down
+        wound.fillStyle(0x7f1d1d, 1).fillEllipse(mx, my, mw * 1.15, mh * 1.25);
+        wound.fillStyle(0x450a0a, 1).fillEllipse(mx, my, mw, mh);
+        wound.fillStyle(0x1a0303, 1).fillEllipse(mx, my + mh * 0.08, mw * 0.55, mh * 0.62);
+        wound.fillStyle(0x000000, 1).fillEllipse(mx, my + mh * 0.14, mw * 0.28, mh * 0.34);
+        // the throat: ridged, wet
+        wound.lineStyle(1.5, 0x9f1239, 0.9);
+        for (let i = 1; i <= 3; i++) wound.strokeEllipse(mx, my + mh * 0.12, mw * (0.28 + i * 0.09), mh * (0.3 + i * 0.1));
+        // both rows of teeth, wrenched apart
+        wound.fillStyle(0xf5f0e1, 1);
+        for (let i = 0; i < 8; i++) {
+          const tx = mx - mw * 0.4 + (i * mw * 0.8) / 7;
+          wound.fillTriangle(tx - 3, my - mh * 0.5, tx + 3, my - mh * 0.5, tx, my - mh * 0.22);
+          wound.fillTriangle(tx - 3, my + mh * 0.5, tx + 3, my + mh * 0.5, tx, my + mh * 0.24);
+        }
+        // the tongue, lolling out over the lower teeth
+        const tongue = keep(sc.add.graphics().setDepth(D + 6));
+        tongue.fillStyle(0xf472b6, 1).fillEllipse(mx + mw * 0.05, my + mh * 0.42, mw * 0.36, mh * 0.75);
+        tongue.fillStyle(0xdb2777, 1).fillRect(mx + mw * 0.05 - 1, my + mh * 0.18, 2, mh * 0.55);
+        tongue.setScale(1, 0.2);
+        wound.setAlpha(0);
+        sc.tweens.add({ targets: wound, alpha: 1, duration: 140 });
+        sc.tweens.add({ targets: tongue, scaleY: 1, duration: 700, ease: "Bounce.out", delay: 150 });
+        synth.play("squelch");
+        c.blood(mx, my + mh * 0.4, 18, 0.5);
+        // the last shot: a slow push in on the open jaw, then hold
+        cam.pan(mx, my, 1600, "Sine.easeInOut");
+        cam.zoomTo(3.2, 2200, "Sine.easeInOut");
+        await c.wait(1900);
         card();
-        await c.wait(1500);
+        await c.wait(1600);
         drip.remove();
       } else {
         synth.play("wonk");

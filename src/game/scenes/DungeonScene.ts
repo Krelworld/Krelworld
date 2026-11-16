@@ -888,7 +888,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         this.obstacles.add(this.add.rectangle(x, y + 10, 80, 70, 0, 0));
         this.add.text(x, y - 66, "WONKING MACHINE", { fontFamily: FONT, fontSize: "11px", color: "#ffd23f", backgroundColor: "#000000aa" }).setOrigin(0.5).setDepth(y + 1);
         this.machineUses[p.id!] = 0;
-        this.interactables.push({ x, y: y + 60, r: 70, label: "Wonking Machine (fills your Krezz)", use: () => this.useWonkingMachine(p.id!, spr) });
+        this.interactables.push({ x, y: y + 60, r: 70, label: "Wonking Machine (fills your Wonk + Krezz)", use: () => this.useWonkingMachine(p.id!, spr) });
         break;
       }
       case "vending": {
@@ -2550,9 +2550,12 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     bar.destroy();
     cam.zoomTo(z0, 300, "Cubic.easeOut", true);
     s.krezz = maxKrezz(s);
+    // filled to the brim: wonk meter maxed too
+    this.addWonk(1000);
+    p.wonk = 100;
     synth.play("perfect");
     vfx(this, "vfx_stars", p.x, p.y - 30, { scale: 1.4, depth: p.spr.depth + 4 });
-    this.toast("WONKING MACHINE", "KREZZ FULL.");
+    this.toast("WONKING MACHINE", "WONK FULL. KREZZ FULL. Press R.");
     this.busy = false;
   }
 

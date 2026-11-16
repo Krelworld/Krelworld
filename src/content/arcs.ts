@@ -847,12 +847,6 @@ export const ARCS: Arc[] = [
         at: "POLSON_ROAD",
         step: { kind: "vignette", id: "polson_gym2", intro: [ping("POLSON", "Gym today!! For real this time 😅"), ping("POLSON", "Bring snacks!! For after. Or during"), dir("Polson answers the door sideways. He has to. He has been 'bulking'.")] },
       },
-      {
-        id: "mouth",
-        text: "Polson says he's found 'a new kind of workout'. Go round and spot him.",
-        at: "POLSON_ROAD",
-        step: { kind: "vignette", id: "polson_mouth", intro: [ping("POLSON", "Come round!! New routine. Need a spotter"), ping("POLSON", "Bring a fork 😝"), dir("There is a cake box on Polson's doorstep the size of a washing machine. It is addressed to Polson. It says FAMILY SIZE (LARGE FAMILY).")] },
-      },
     ],
   },
   {

@@ -1232,6 +1232,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       const rule = BAN_RULES.find((b) => b.id === r.rule) ?? null;
       enter.push(say("DRONGUS", rule?.decree ?? "NEW RULE.", { notify: true, sfx: "decree" }));
     }
+    // let the room fade in first: talking pauses this scene, which froze the fade-in at black for the whole conversation
+    const cam = this.cameras.main;
+    if (cam.fadeEffect.isRunning && !cam.fadeEffect.direction) await new Promise<void>((res) => cam.once(Phaser.Cameras.Scene2D.Events.FADE_IN_COMPLETE, () => res()));
     if (enter.length) await this.talk(enter);
     if (!G.meta.tutDungeon && this.roomIdx === 0) await this.showTutorial();
     if (r.pa?.length && !G.s.flags[clearKey(this.dungeon.id, this.roomIdx)] && !(r.miniBoss && G.s.flags[this.miniBossKey()])) {

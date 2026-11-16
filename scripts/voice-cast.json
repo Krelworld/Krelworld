@@ -41,7 +41,8 @@
   },
   "tempo": {
     "_doc": "Speed a speaker's clips up (>1) or down after recording, pitch kept. Existing clips are re-timed locally.",
-    "KRANKY KRANDALL": 1.3
+    "KRANKY KRANDALL": 1.3,
+    "SCROMBUS": 1.15
   },
   "pitch": {
     "_doc": "Semitones to shift a speaker's clips by after recording (formants kept). Existing clips are shifted locally, not re-recorded."

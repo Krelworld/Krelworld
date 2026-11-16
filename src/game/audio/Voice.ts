@@ -43,10 +43,10 @@ let recSrc: { stop(): void } | null = null;
 
 /**
  * How fast recordings play. The speed setting was tuned for robot voices (1.5x was the old default), so recordings
- * only nudge a little either way: 1.5 plays as recorded, the default 1.25 a touch slower (0.925).
+ * only nudge a little either way: 1.5 (the default) plays as recorded.
  */
 export function speechRate() {
-  return Math.max(0.85, Math.min(1.25, 1 + ((G.meta.settings.voiceSpeed ?? 1.25) - 1.5) * 0.3));
+  return Math.max(0.85, Math.min(1.25, 1 + ((G.meta.settings.voiceSpeed ?? 1.5) - 1.5) * 0.3));
 }
 
 interface Profile {
@@ -388,7 +388,7 @@ export const voice = {
       if (v) u.voice = v;
       u.lang = v?.lang ?? "en-GB";
       u.pitch = Math.max(0, Math.min(2, prof.pitch));
-      u.rate = Math.max(0.5, Math.min(2, prof.rate * (G.meta.settings.voiceSpeed ?? 1.25)));
+      u.rate = Math.max(0.5, Math.min(2, prof.rate * (G.meta.settings.voiceSpeed ?? 1.5)));
       u.volume = (G.meta.settings.voiceVolume ?? 0.8) * (G.meta.settings.master ?? 1);
       return u;
     });

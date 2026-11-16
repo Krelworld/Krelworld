@@ -107,8 +107,8 @@ export const defaultSettings = (): Settings => ({
   textSpeed: 1,
   voices: true,
   voiceVolume: 0.8,
-  voiceSpeed: 1.25,
-  voiceSpeedV: 2,
+  voiceSpeed: 1.5,
+  voiceSpeedV: 3,
   autoAim: true,
 });
 
@@ -193,7 +193,7 @@ export class SaveManager {
         ...m,
         ...p,
         // speech speed's default went 1.5 -> 1.25 (a touch slower): saves still on an old default move over, once
-        settings: { ...m.settings, ...(p.settings || {}), ...((p.settings?.voiceSpeedV ?? 1) < 2 && [undefined, 1.3, 1.5].includes(p.settings?.voiceSpeed) ? { voiceSpeed: 1.25 } : {}), voiceSpeedV: 2 },
+        settings: { ...m.settings, ...(p.settings || {}), ...((p.settings?.voiceSpeedV ?? 1) < 3 && [undefined, 1.25, 1.3].includes(p.settings?.voiceSpeed) ? { voiceSpeed: 1.5 } : {}), voiceSpeedV: 3 },
         archiveUnlocked: Array.isArray(p.archiveUnlocked) ? p.archiveUnlocked : [],
         tvWatched: Array.isArray(p.tvWatched) ? p.tvWatched : [],
         completedWith: Array.isArray(p.completedWith) ? p.completedWith : [],

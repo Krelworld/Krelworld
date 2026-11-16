@@ -2453,7 +2453,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (s.flags.mollor_freed || this.busy) return;
     s.flags.mollor_freed = true;
     ropes.destroy();
-    synth.play("cheer");
+    synth.play("gunget");
     this.tweens.add({ targets: spr, y: spr.y - 16, yoyo: true, duration: 180 });
     const jenko = s.player === "FLENKY";
     await this.talk(

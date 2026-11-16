@@ -1066,7 +1066,7 @@ export class CronsterBoss extends Boss {
     h.state = "free";
     h.ropes.destroy();
     h.tag.destroy();
-    synth.play("cheer");
+    synth.play("gunget");
     this.world.floatText(h.spr.x, h.spr.y - 40, "THANK YOU!", "#86efac", 14);
     (this.world.sc as any).dropPickup?.(h.spr.x, h.spr.y + 10, "heal", 10);
     if (this.grab?.h === h) this.grab = null;

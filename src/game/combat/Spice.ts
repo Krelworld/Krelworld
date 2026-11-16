@@ -334,7 +334,7 @@ export class Spice {
   private rescue(b: Breakable) {
     const sc = this.sc;
     b.dead = true;
-    synth.play("cheer");
+    synth.play("gunget");
     const name = CHARACTERS[b.who ?? ""]?.name ?? "A lad";
     sc.tweens.killTweensOf(b.obj.list);
     b.obj.removeAll(true);
@@ -390,7 +390,7 @@ export class Spice {
     if (this.goblin?.e === e) {
       this.goblin = null;
       sc.floatText(e.x, e.y - 40, "TAX RETURN!", "#facc15", 18);
-      synth.play("cheer");
+      synth.play("gunget");
       for (let i = 0; i < 10; i++) sc.dropPickup(e.x + (Math.random() - 0.5) * 80, e.y + (Math.random() - 0.5) * 60, "coin", 4);
       sc.dropPickup(e.x, e.y, "ammo", 2);
     }

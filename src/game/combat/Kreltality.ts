@@ -447,7 +447,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       const goal = keep(sc.add.text(me.x + 120, me.y - 80, "GOOOAL!", { fontFamily: "Impact, sans-serif", fontSize: "20px", color: "#ffffff", stroke: "#000", strokeThickness: 4 }).setDepth(D + 10).setScale(1 / cam.zoom));
       void goal;
       await tw({ targets: head, x: head.x + 700, y: head.y - 300, angle: 1800, duration: 700, ease: "Quad.out" });
-      synth.play("cheer");
+      synth.play("gunget");
       await wait(600);
       break;
     }

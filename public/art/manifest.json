@@ -7396,6 +7396,27 @@
   },
   "bg_ad_lounge": {
    "file": "ad/bg_ad_lounge.png"
+  },
+  "tv_gbk_studio": {
+   "file": "backdrops/tv_gbk_studio.png"
+  },
+  "tv_kreddle_press": {
+   "file": "backdrops/tv_kreddle_press.png"
+  },
+  "tv_kreddle_office": {
+   "file": "backdrops/tv_kreddle_office.png"
+  },
+  "tv_wildern_hall": {
+   "file": "backdrops/tv_wildern_hall.png"
+  },
+  "tv_krelburger": {
+   "file": "backdrops/tv_krelburger.png"
+  },
+  "tv_kreltv_studio": {
+   "file": "backdrops/tv_kreltv_studio.png"
+  },
+  "tv_wildern_crater": {
+   "file": "backdrops/tv_wildern_crater.png"
   }
  },
  "sheets": {
@@ -8580,6 +8601,51 @@
    "frameWidth": 128,
    "frameHeight": 128,
    "frames": 9
+  },
+  "tvanchor_NEWSREADER": {
+   "file": "tv/anchor_NEWSREADER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_PRESIDENT_KLERBLE": {
+   "file": "tv/anchor_PRESIDENT_KLERBLE.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_KRANKY_KRANDALL": {
+   "file": "tv/anchor_KRANKY_KRANDALL.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_JOURNALIST": {
+   "file": "tv/anchor_JOURNALIST.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_REPORTER": {
+   "file": "tv/anchor_REPORTER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_REINHARDT": {
+   "file": "tv/anchor_REINHARDT.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_SWIG": {
+   "file": "tv/anchor_SWIG.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_KLERBLE_TRAIN": {
+   "file": "tv/anchor_KLERBLE_TRAIN.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvpress_backs": {
+   "file": "tv/press_backs.png",
+   "frameWidth": 64,
+   "frameHeight": 64
   }
  },
  "vfx": {

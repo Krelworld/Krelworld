@@ -14,6 +14,7 @@ import { fadeThen, switchTo } from "../Flow";
 import { DUNGEONS } from "../../data/dungeons";
 import { addKrokens } from "../systems/kreddle";
 import { PovDirector } from "./TVPov";
+import { NewsDirector } from "./TVNews";
 
 const DUNGEON_MUSIC: Record<string, string> = Object.fromEntries(Object.values(DUNGEONS).map((d) => [d.id, d.music]));
 
@@ -89,6 +90,9 @@ export class TVScene extends Phaser.Scene {
   private sel = 0;
   /** POV presentation, for episodes with style "pov" */
   private pov: PovDirector | null = null;
+  /** GB Krews presentation, for the story's compulsory bulletins (see TVNews.ts) */
+  private news: NewsDirector | null = null;
+  private newsOutro = false;
   /** how long the current beat's picture wants (an animated sequence) */
   private beatHold = 0;
   private items: { label: string; action: () => void }[] = [];
@@ -146,6 +150,8 @@ export class TVScene extends Phaser.Scene {
       this.mouthTimer?.remove();
       this.pov?.destroy();
       this.pov = null;
+      this.news?.destroy();
+      this.news = null;
     });
     if (data?.episode) {
       const e = ALL_EPISODES.find((x) => x.id === data.episode);
@@ -351,6 +357,9 @@ export class TVScene extends Phaser.Scene {
     this.ep = e;
     this.pov?.destroy();
     this.pov = e.style === "pov" ? new PovDirector(this, { SX, SY, SW, SH }, e.beats, { setTexture: () => this.setTexture(), spriteFor: (n) => this.actorTex(n.toUpperCase()) }) : null;
+    this.news?.destroy();
+    this.news = !this.pov && NewsDirector.wants(e) ? new NewsDirector(this, { SX, SY, SW, SH }, e) : null;
+    this.newsOutro = false;
     voice.prefetch(e.beats.filter((b: any) => b.type === "speaker" && b.text).map((b: any) => ({ s: b.character, t: b.text })));
     this.beat = 0;
     this.pausedPlay = false;
@@ -368,7 +377,16 @@ export class TVScene extends Phaser.Scene {
   private runBeat() {
     this.beatTimer?.remove();
     if (!this.ep || this.mode !== "playing") return;
-    if (this.beat >= this.ep.beats.length) return this.finishEpisode();
+    if (this.beat >= this.ep.beats.length) {
+      // the bulletin's B-roll and closing sting before the set goes off
+      if (this.news && !this.newsOutro) {
+        this.newsOutro = true;
+        this.subs.setText("");
+        this.beatTimer = this.time.delayedCall(this.news.outro(), () => this.runBeat());
+        return;
+      }
+      return this.finishEpisode();
+    }
     const b = this.ep.beats[this.beat];
     this.applyBeat(b);
     const dur = Math.max(beatDuration(b) * 1000, this.beatHold);
@@ -393,7 +411,8 @@ export class TVScene extends Phaser.Scene {
     if (b.type !== "speaker" && b.type !== "direction") this.subs.setText("");
     switch (b.type) {
       case "titleCard":
-        this.card.setText(displayText(b.text));
+        // the news draws its own titles (an ident, a BREAKING banner, a LIVE strap)
+        this.card.setText(this.news ? "" : displayText(b.text));
         this.subs.setText("");
         break;
       case "shot":
@@ -402,11 +421,11 @@ export class TVScene extends Phaser.Scene {
         break;
       case "speaker": {
         this.card.setText("");
-        const a = this.pov ? null : this.ensureActor(b.character);
+        const a = this.pov || this.news ? null : this.ensureActor(b.character);
         // an inner monologue reads as a thought: italic, pale blue
         const vo = !!this.pov && /^V\.?\s*O\.?$/i.test(b.emotion ?? "");
         this.subs.setFontStyle(vo ? "italic" : "normal").setColor(vo ? "#cfe8ff" : "#ffffff");
-        this.subsAt("bottom");
+        this.subsAt(this.news ? "news" : "bottom");
         this.subs.setText(this.showSubs ? `${b.character}${vo ? " (V.O.)" : ""}: ${displayText(b.text)}` : "").setVisible(this.showSubs);
         voice.say(b.character, b.text);
         if (a) {
@@ -420,12 +439,12 @@ export class TVScene extends Phaser.Scene {
       case "direction":
         this.subs.setFontStyle("normal").setColor("#ffffff");
         // in POV the action happens at the bottom of the picture: the stage direction goes up top
-        this.subsAt(this.pov ? "top" : "bottom");
+        this.subsAt(this.pov ? "top" : this.news ? "news" : "bottom");
         this.subs.setText(this.showSubs ? `(${b.action})` : "").setVisible(this.showSubs);
         break;
       case "audience": {
         const map = { laugh: "[LAUGHTER]", biglaugh: "[UPROARIOUS LAUGHTER]", cheer: "[CHEERING]", gasp: "[GASP]", whistle: "[WHISTLES]" } as const;
-        this.caption.setText(map[b.cue]);
+        this.caption.setText(map[b.cue]).setY(this.news ? SY + 40 : SY + 10);
         this.time.delayedCall(b.cue === "biglaugh" ? 3800 : 2000, () => this.caption.setText(""));
         synth.play(b.cue);
         break;
@@ -449,10 +468,13 @@ export class TVScene extends Phaser.Scene {
         break;
     }
     if (this.pov) this.beatHold = this.pov.beat(b, idx);
+    if (this.news) this.beatHold = this.news.beat(b, idx);
   }
 
-  private subsAt(where: "top" | "bottom") {
+  private subsAt(where: "top" | "bottom" | "news") {
     if (where === "top") this.subs.setOrigin(0.5, 0).setY(SY + 10).setFontSize(13);
+    // above the news ticker and headline strap
+    else if (where === "news") this.subs.setOrigin(0.5, 1).setY(SY + SH - 84).setFontSize(14);
     else this.subs.setOrigin(0.5, 1).setY(SY + SH - 16).setFontSize(15);
   }
 
@@ -472,6 +494,8 @@ export class TVScene extends Phaser.Scene {
     const e = this.ep!;
     this.pov?.destroy();
     this.pov = null;
+    this.news?.destroy();
+    this.news = null;
     if (!this.fromTitle) {
       const fresh = !G.s.tvWatched.includes(e.id);
       G.watched(e.id);
@@ -886,6 +910,8 @@ export class TVScene extends Phaser.Scene {
       this.beatTimer?.remove();
       this.pov?.destroy();
       this.pov = null;
+      this.news?.destroy();
+      this.news = null;
       this.mode = "episodes";
       this.subs.setText("");
       this.card.setText("");

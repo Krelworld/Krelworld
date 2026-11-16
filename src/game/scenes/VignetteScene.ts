@@ -21,6 +21,9 @@ import { addCensorBar, censorRect } from "../gfx/Censor";
 import * as KR from "../../content/krunchers";
 import { GUNS } from "../combat/Guns";
 import { ensureCh6Art } from "../gfx/ch6Art";
+import { Presenter, hasAnchor } from "./tvnews/Presenter";
+import { BRANDS, NewsChrome, calm, cameraFlash } from "./tvnews/NewsChrome";
+import { shootout, splat, tripodRig, type Victim } from "./tvnews/Shootout";
 import * as Juice from "../gfx/Juice";
 import {
   KB_ORDER, KB_QUEUE, KB_SHOT, KP_KLERBLE, KP_LAST, KP_PARTY, KP_PROTOCOL, KP_RUINS, KT_AFTER, KT_ARRIVE, KT_DEPART, KT_DRIVER, KT_KRUNCHERS, KT_OPEN, PE_RAIN,
@@ -290,6 +293,8 @@ export class VignetteScene extends Phaser.Scene {
   /** Wipe the set for the next shot, but keep the dialogue box (depth 1000+) alive. */
   private clearStage() {
     this.cast.clear();
+    for (const p of this.talkers.values()) p.destroy();
+    this.talkers.clear();
     for (const o of [...this.children.list]) {
       if ((o as unknown as { depth: number }).depth >= 1000) continue;
       this.tweens.killTweensOf(o);
@@ -341,8 +346,21 @@ export class VignetteScene extends Phaser.Scene {
   }
 
   private talk(lines: Line[]) {
+    if (this.talkers.size) return this.box.play(lines, { onLine: (l) => this.presenterLine(String(l.s), l.t ?? "", !!l.dir) });
     if (!this.cast.size) return this.box.play(lines);
     return this.box.play(lines, { onLine: (l) => this.hopSpeaker(String(l.s)) });
+  }
+
+  /** PixelLab presenters on stage (the Crobley studio, Swig's podium), by speaker: their lines lip-sync and gesture. */
+  private talkers = new Map<string, Presenter>();
+  /** someone who isn't a presenter speaks (a reporter in the room): this is told who */
+  private onOtherLine?: (speaker: string) => void;
+
+  private presenterLine(speaker: string, text: string, isDir: boolean) {
+    for (const [name, p] of this.talkers) if (name !== speaker) p.stopTalking();
+    const p = this.talkers.get(speaker);
+    if (p && !isDir && text) p.say(text);
+    else if (!isDir) this.onOtherLine?.(speaker);
   }
 
   private lastCaption?: Phaser.GameObjects.Text;
@@ -1948,21 +1966,65 @@ export class VignetteScene extends Phaser.Scene {
     return c;
   }
 
-  /** The studio set: desk, newsreader, Reinhardt. */
+  /**
+   * The KrelTV News studio, as a broadcast: the studio wide (her at the desk, him in the guest chair) inside a camera
+   * container (`shot` cuts and pushes in; `pivot` is what tips over when the camera hits the floor), with the channel's
+   * bug, clock, ticker and straps over it, kept above the dialogue box. The two are PixelLab presenters who lip-sync.
+   */
   private crobleyStudio() {
-    if (!backdrop(this, "tv_newsdesk", { depth: -10 })) this.add.rectangle(480, 270, 960, 540, 0x0f1b3d);
-    const journo = this.add.sprite(300, 320, "npc_journo", 0).setScale(4.2).setDepth(10);
-    const rein = this.art(660, 330, "p_reinhardt", 2, 0x111827, "REINHARDT").setDepth(10).setFlipX(true);
-    const bug = this.add.text(940, 20, "KRELTV NEWS · LIVE", { fontFamily: FONT, fontSize: "13px", color: "#fff", backgroundColor: "#dc2626", padding: { x: 6, y: 3 } }).setOrigin(1, 0).setDepth(400);
-    void bug;
-    const ticker = this.add.text(960, 515, "BREAKING: CROBLEY CORP CONTROVERSY · NEW ADVERT 'DEEPLY OFFENSIVE' SAY EVERYONE WITH EARS · CEO: 'IT CLEARLY SAYS NIBBLE ON A CROBLEY' · FOUNDER'S DEATH 'MURDER-ADJACENT' · ", { fontFamily: FONT, fontSize: "14px", color: "#fff", backgroundColor: "#991b1b", padding: { x: 4, y: 3 } }).setDepth(400);
-    this.tweens.add({ targets: ticker, x: -1800, duration: 30000, repeat: -1 });
+    const pivot = this.add.container(480, 270).setDepth(-5);
+    const stage = this.add.container(-480, -270);
+    pivot.add(stage);
+    const has = this.textures.exists("tv_kreltv_studio");
+    const bg = this.add.image(480, -170, has ? "tv_kreltv_studio" : "tv_newsdesk").setOrigin(0.5, 0);
+    bg.setScale(960 / bg.width);
+    stage.add(bg);
+    // the wall behind them breathes
+    const wall = this.add.rectangle(480, 40, 700, 200, 0xef4444, 0).setBlendMode(Phaser.BlendModes.ADD);
+    stage.add(wall);
+    this.tweens.add({ targets: wall, fillAlpha: 0.08, duration: 1600, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+    const mk = (name: string, x: number, y: number, sc: number, flip = false) => {
+      if (!hasAnchor(this, name)) {
+        const fb = this.add.sprite(x, y, name === "JOURNALIST" ? "npc_journo" : "boss_reinhardt", 0).setOrigin(0.5, 1).setScale(3);
+        stage.add(fb);
+        return fb;
+      }
+      const pr = new Presenter(this, name, x, y, sc, stage);
+      pr.spr.setFlipX(flip);
+      this.talkers.set(name, pr);
+      return pr.spr;
+    };
+    const journo = mk("JOURNALIST", 330, 372, 2.05);
+    const rein = mk("REINHARDT CROBLEY", 690, 380, 2.15);
+    // the broadcast graphics, laid out above the dialogue box
+    const chrome = new NewsChrome(this, { SX: 0, SY: 0, SW: 960, SH: 362 }, BRANDS.kreltv, 400);
+    chrome.bug();
+    chrome.ticker([
+      "Crobley Corp controversy deepens",
+      "New advert 'deeply offensive', say everyone with ears",
+      "CEO: 'it clearly says nibble on a Crobley'",
+      "Founder's death 'murder-adjacent'",
+      "Police 'looking into it', from a distance",
+    ]);
     // menace: a slow red pulse whenever he's in shot
     const menace = this.add.rectangle(480, 270, 960, 540, 0x7f1d1d, 0).setDepth(350).setBlendMode(Phaser.BlendModes.MULTIPLY);
-    this.tweens.add({ targets: menace, fillAlpha: 0.35, yoyo: true, repeat: -1, duration: 1800, ease: "Sine.inOut" });
-    const glint = this.add.star(rein.x - 18, rein.y - 70, 4, 2, 7, 0xffffff).setDepth(20).setAlpha(0);
+    this.tweens.add({ targets: menace, fillAlpha: 0.3, yoyo: true, repeat: -1, duration: 1800, ease: "Sine.inOut" });
+    const glint = this.add.star(rein.x - 14, rein.y - rein.displayHeight * 0.66, 4, 2, 7, 0xffffff).setAlpha(0);
+    stage.add(glint);
     this.tweens.add({ targets: glint, alpha: 1, angle: 90, yoyo: true, repeat: -1, duration: 400, repeatDelay: 3000 });
-    return { journo, rein };
+    /** Cut or push the camera: on her, on him, or the two-shot. */
+    const shot = (on: "journo" | "rein" | "two", ms = 0, push = true) => {
+      this.tweens.killTweensOf(stage);
+      const t = on === "journo" ? { s: 1.75, x: journo.x, y: journo.y - journo.displayHeight * 0.62 } : on === "rein" ? { s: 1.8, x: rein.x, y: rein.y - rein.displayHeight * 0.62 } : { s: 1, x: 480, y: 270 };
+      // frame the face in the top of the picture (the dialogue box covers the bottom)
+      const fy = on === "two" ? 270 : 150;
+      const to = { scale: t.s, x: -480 + (480 - t.x * t.s), y: -270 + (fy - t.y * t.s) };
+      if (on === "two") Object.assign(to, { x: -480, y: -270 });
+      if (ms) this.tweens.add({ targets: stage, ...to, duration: ms, ease: "Sine.inOut" });
+      else stage.setScale(to.scale).setPosition(to.x, to.y);
+      if (push && on !== "two") this.tweens.add({ targets: stage, scale: t.s * 1.05, x: -480 + (480 - t.x * t.s * 1.05), y: -270 + (fy - t.y * t.s * 1.05), duration: 9000, delay: ms, ease: "Sine.inOut" });
+    };
+    return { journo, rein, stage, pivot, chrome, shot };
   }
 
   private async crobleyNews() {
@@ -1984,12 +2046,20 @@ export class VignetteScene extends Phaser.Scene {
     noise.destroy();
     stat.destroy();
     lbl.destroy();
-    const { journo, rein } = this.crobleyStudio();
+    // the KrelTV News ident, then the studio
+    const ident = new NewsChrome(this, { SX: 0, SY: 0, SW: 960, SH: 540 }, BRANDS.kreltv, 450);
+    synth.music("news");
+    await this.wait(ident.ident() - 200);
+    ident.destroy();
+    const { journo, rein, stage, pivot, chrome, shot } = this.crobleyStudio();
     const cam = this.cameras.main;
     synth.music("ominous");
-    this.caption("BREAKING NEWS", "#ef4444", 40);
-    await this.wait(900);
-    this.lastCaption?.destroy();
+    await this.wait(chrome.breaking("Chaos at the Crobley Corporation") - 900);
+    shot("journo", 900);
+    this.time.delayedCall(1200, () => {
+      chrome.strap("Journalist", "KrelTV News · Krelford");
+      if (this.textures.exists("p_crobley")) chrome.ots({ key: "p_crobley" }, "The humble Crobley", "right");
+    });
     await this.talk([
       say("JOURNALIST", "Good evening. Tonight: chaos at the Crobley Corporation, makers of Krelworld's best-loved children's sweet, the humble, circular Crobley."),
       say("JOURNALIST", "For forty years, families have hummed along to the famous advert. You know the one. 'Nibble on a Crobley.'"),
@@ -1997,40 +2067,51 @@ export class VignetteScene extends Phaser.Scene {
       say("JOURNALIST", "The official cause: Mr Crobley is said to have 'unalived himself' as a result of a long-standing 'corn' addiction."),
       say("JOURNALIST", "However, suspicion immediately turned to his son, Reinhardt, who inherited the company — after posting this, one day before his father's death."),
     ]);
+    chrome.ots(null);
+    shot("two", 500, false);
     const t1 = this.tweet(480, 170, "I have decided to unalive my father ha ha just joking…. Unless ?", "1 day before");
     await this.talk([dir("The tweet sits there on the screen. Nobody in the studio says anything for a while.")]);
     t1.destroy();
     const t2 = this.tweet(480, 170, "my account got hacked by my alter ego … I mean .. some one very close to me … you might even say .. myself…", "1 hour later");
     await this.talk([say("JOURNALIST", "He later explained the post as follows.")]);
     t2.destroy();
+    shot("journo", 600);
+    chrome.headline("Crobley advert row");
     await this.talk([
       say("JOURNALIST", "Now Reinhardt Crobley — known for his controversial views on, well, everything — is under fire again, this time over the company's new advert, and its new characters."),
       say("JOURNALIST", "Critics say the classic jingle now contains deeply offensive language. Viewers have also complained about four new characters, said to be built on crude and offensive stereotypes."),
       say("JOURNALIST", "Mr Crobley joins me now. Reinhardt — good evening."),
     ]);
-    cam.zoomTo(1.25, 1200);
-    cam.pan(rein.x - 60, rein.y - 40, 1200);
-    await this.wait(1300);
+    shot("two", 700, false);
+    await this.wait(900);
+    shot("rein", 1100);
+    this.time.delayedCall(1200, () => chrome.strap("Reinhardt Crobley", "CEO, Crobley Corporation"));
+    await this.wait(1200);
     await this.talk([
       say("REINHARDT CROBLEY", "…"),
       say("REINHARDT CROBLEY", "Anyone with two bloody working ears can hear it clearly says 'nibble on a Crobley'!"),
       say("REINHARDT CROBLEY", "These fucking woke-gone-mad type people are off their bloody rocker!"),
     ]);
-    cam.zoomTo(1, 700);
-    cam.pan(480, 270, 700);
+    shot("journo", 700);
     await this.wait(750);
     await this.talk([say("JOURNALIST", "Well. Let's let the viewers decide. Here is the new Crobley advert, in full.")]);
     synth.stopMusic();
     await this.crobleyAdvert();
     // back to the studio
+    shot("two");
     await this.talk([
       say("JOURNALIST", "…"),
       say("JOURNALIST", "Come on, Reinhardt. We all heard it. It even says we heard it."),
       say("REINHARDT CROBLEY", "The only thing I can hear is a high-pitched squawking noise coming out of your fucking mouth."),
       say("REINHARDT CROBLEY", "I've had it!"),
     ]);
-    // the machine gun
-    const gun = this.art(rein.x - 40, rein.y - 10, "p_mgun", 1.6, 0x111827, "GUN").setDepth(15).setFlipX(true);
+    // the machine gun (in the two-shot, so the stage lines up with the screen)
+    shot("two", 300, false);
+    await this.wait(320);
+    for (const p of this.talkers.values()) p.stopTalking();
+    this.talkers.get("REINHARDT CROBLEY")?.setPose("fists");
+    const jMid = { x: journo.x, y: journo.y - journo.displayHeight * 0.55 };
+    const gun = this.art(rein.x - 70, rein.y - rein.displayHeight * 0.42, "p_mgun", 1.6, 0x111827, "GUN").setDepth(15).setFlipX(true);
     gun.setScale(0.1);
     await this.tween({ targets: gun, scale: this.textures.exists("p_mgun") ? 1.6 : 1, duration: 250, ease: "Back.out" });
     synth.play("telegraph");
@@ -2039,21 +2120,37 @@ export class VignetteScene extends Phaser.Scene {
       this.time.delayedCall(i * 70, () => {
         synth.play("shoot");
         cam.shake(60, 0.008);
-        const fl = this.add.star(gun.x - 50, gun.y, 5, 6, 16, 0xfde047).setDepth(16);
-        this.time.delayedCall(50, () => fl.destroy());
+        if (!vfx(this, "vfx_muzzle", gun.x - 50, gun.y, { scale: calm() ? 1 : 1.5, depth: 16, add: true, flipX: true })) {
+          const fl = this.add.star(gun.x - 50, gun.y, 5, 6, 16, 0xfde047).setDepth(16);
+          this.time.delayedCall(50, () => fl.destroy());
+        }
+        if (i % 3 === 0) {
+          if (G.meta.settings.gore !== false) vfx(this, "vfx_bloodspray", jMid.x + (Math.random() - 0.5) * 40, jMid.y + (Math.random() - 0.5) * 60, { scale: 1.4, depth: 14, flipX: true });
+          else vfx(this, "vfx_hit", jMid.x + (Math.random() - 0.5) * 40, jMid.y + (Math.random() - 0.5) * 60, { scale: 1.3, depth: 14 });
+        }
         for (let k = 0; k < 4; k++) {
-          const b = this.add.rectangle(journo.x + (Math.random() - 0.5) * 30, journo.y - 20 + (Math.random() - 0.5) * 50, 4, 4, 0xdc2626).setDepth(14);
+          const b = this.add.rectangle(jMid.x + (Math.random() - 0.5) * 30, jMid.y + (Math.random() - 0.5) * 50, 4, 4, G.meta.settings.gore !== false ? 0xdc2626 : 0x9ca3af).setDepth(14);
           this.tween({ targets: b, x: b.x - 60 - Math.random() * 80, y: b.y + 40 + Math.random() * 60, alpha: 0, duration: 600 }).then(() => b.destroy());
         }
       });
     }
-    this.tweens.add({ targets: journo, angle: -80, x: journo.x - 60, y: journo.y + 50, delay: 900, duration: 400 });
+    this.talkers.get("JOURNALIST")?.destroy();
+    this.talkers.delete("JOURNALIST");
+    // (in the studio's camera container, so she goes over with the picture when the camera falls)
+    const jFall = this.add.sprite(journo.x, journo.y, journo.texture.key, 0).setOrigin(0.5, 1).setScale(journo.scaleX);
+    stage.add(jFall);
+    journo.setVisible(false);
+    this.tweens.add({ targets: jFall, angle: -80, x: jFall.x - 60, y: jFall.y + 120, delay: 900, duration: 400 });
     await this.wait(1400);
-    this.add.ellipse(journo.x - 30, 410, 140, 18, 0x991b1b, 0.85).setDepth(11);
+    if (G.meta.settings.gore !== false) {
+      const pool = vfx(this, "vfx_bloodpool", journo.x - 40, 360, { scale: 2.2, depth: 12, hold: true });
+      if (pool) stage.addAt(pool, stage.getIndex(jFall));
+      splat(this, 380, 140, 360);
+    }
     await this.talk([dir("The newsreader goes down behind the desk. Somewhere, a producer screams. Reinhardt slowly turns. Towards the camera.")]);
     // he turns it on us
-    cam.zoomTo(1.6, 600);
-    cam.pan(rein.x - 40, rein.y - 30, 600);
+    gun.setDepth(-4);
+    shot("rein", 600, false);
     await this.wait(700);
     for (let i = 0; i < 10; i++) {
       this.time.delayedCall(i * 70, () => {
@@ -2070,8 +2167,12 @@ export class VignetteScene extends Phaser.Scene {
       crack.lineBetween(560, 230, 560 + Math.cos(a) * (200 + Math.random() * 300), 230 + Math.sin(a) * (200 + Math.random() * 200));
     }
     synth.play("smash");
-    cam.zoomTo(1, 10);
-    await this.tween({ targets: cam, rotation: Math.PI / 2, duration: 500, ease: "Bounce.out" });
+    synth.play("camera_crash");
+    gun.setVisible(false);
+    shot("two");
+    // the camera hits the floor: the picture tips over (the channel's graphics, laid on top in the gallery, don't)
+    if (G.meta.settings.gore !== false) for (let i = 0; i < 4; i++) splat(this, 300 + Math.random() * 360, 100 + Math.random() * 200, 360);
+    await this.tween({ targets: pivot, rotation: Math.PI / 2, scale: 1.4, duration: 500, ease: "Bounce.out" });
     await this.talk([
       say("REINHARDT CROBLEY", "(off camera) HEH HEH HEH!"),
       say("REINHARDT CROBLEY", "(off camera) Just like I killed my father!"),
@@ -2080,6 +2181,7 @@ export class VignetteScene extends Phaser.Scene {
     ]);
     cam.setRotation(0);
     crack.destroy();
+    chrome.destroy();
     this.clearStage();
     this.lastCaption = undefined;
     // technical difficulties
@@ -2612,28 +2714,65 @@ export class VignetteScene extends Phaser.Scene {
 
   /** Sergeant Swig, a bag of money, and a press conference that goes the usual way. */
   private async crobleyPresser() {
+    // you're in the room, in the press pack: the backs of the photographers in front of you, Swig at the lectern
     if (!backdrop(this, "bg_press", { depth: -10 })) this.add.rectangle(480, 270, 960, 540, 0x1e2a44);
     this.add.text(480, 50, "KRELFORD CONSTABULARY · PRESS CONFERENCE\n'THE SO-CALLED LIVE TELEVISION MURDER'", { fontFamily: FONT, fontSize: "18px", color: "#ffffff", fontStyle: "bold", align: "center", backgroundColor: "#1e3a8acc", padding: { x: 10, y: 4 } }).setOrigin(0.5);
-    this.add.rectangle(480, 330, 140, 90, 0x5a3a20).setDepth(20);
-    const swig = this.add.sprite(480, 280, "npc_swig", 0).setScale(3).setDepth(15);
-    const beer = this.add.text(420, 278, "🍺", { fontSize: "26px" }).setDepth(21);
-    const pile = this.art(540, 290, "p_crobley", 1.4, 0xf9a8d4).setDepth(21);
+    const swigP = hasAnchor(this, "SERGEANT SWIG") ? new Presenter(this, "SERGEANT SWIG", 480, 352, 2.5) : null;
+    if (swigP) {
+      swigP.spr.setDepth(15);
+      this.talkers.set("SERGEANT SWIG", swigP);
+    }
+    if (!swigP) this.add.rectangle(480, 330, 140, 90, 0x5a3a20).setDepth(20);
+    const swig = swigP?.spr ?? this.add.sprite(480, 280, "npc_swig", 0).setScale(3).setDepth(15);
+    const pile = this.art(395, 262, "p_crobley", 1.1, 0xf9a8d4).setDepth(21);
     void pile;
-    const bag = this.add.container(640, 320).setDepth(22);
+    const bag = this.add.container(680, 318).setDepth(22);
     bag.add(this.add.ellipse(0, 0, 90, 80, 0x8b6b3e).setStrokeStyle(3, 0x3f2d16));
     bag.add(this.add.text(0, -4, "£££\nMONEY FROM\nREINHARDT", { fontFamily: FONT, fontSize: "10px", color: "#fef3c7", align: "center", fontStyle: "bold" }).setOrigin(0.5));
+    // TV cameras on tripods at the sides of the room
+    const rigs = [tripodRig(this, 150, 372, 1.15, 24), tripodRig(this, 815, 366, 1.1, 24), tripodRig(this, 265, 392, 1.25, 26)];
+    // the press pack, from behind (you're among them)
     const press: Phaser.GameObjects.Sprite[] = [];
-    for (let i = 0; i < 7; i++) {
-      const tex = i === 3 ? "npc_journo" : `spr_FOLK${i % 4}`;
-      press.push(this.add.sprite(250 + i * 85, 470 + (i % 2) * 12, tex, 0).setScale(tex === "npc_journo" ? 1.7 : 2.4).setDepth(30 + i));
+    const backs = this.textures.exists("tvpress_backs");
+    for (let i = 0; i < 8; i++) {
+      const sp = backs
+        ? this.add.sprite(70 + i * 118 + (i % 2) * 18, 452 + (i % 2) * 26, "tvpress_backs", (i * 5) % 16).setOrigin(0.5, 1).setScale(2.3)
+        : this.add.sprite(250 + i * 85, 470 + (i % 2) * 12, `spr_FOLK${i % 4}`, 0).setScale(2.4);
+      sp.setDepth(30 + i);
+      press.push(sp);
+      this.tweens.add({ targets: sp, y: sp.y - 3 - (i % 3), duration: 420 + i * 60, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: i * 80 });
     }
+    // the other two lads, beside you at the back
     const lads = LADS.filter((p) => p !== G.s.player).slice(0, 2);
-    [G.s.player, ...lads].forEach((id, i) => this.add.sprite(60 + i * 50, 440 + i * 10, `spr_${id}`, 0).setScale(2.4).setDepth(40));
+    lads.forEach((id, i) => this.add.sprite(36 + i * 46, 420 + i * 10, `spr_${id}`, 0).setScale(2.2).setDepth(40));
     synth.music("ominous");
+    // flashes going off around you (gentle with reduced flashing on)
+    const flashLayer = this.add.container(0, 0).setDepth(60);
+    const flash = () => {
+      const p = press[Math.floor(Math.random() * press.length)];
+      if (!p.active || p.angle) return;
+      cameraFlash(this, flashLayer, p.x + 14, p.y - p.displayHeight * 0.78, Math.random() < 0.4 ? { SX: 0, SY: 0, SW: 960, SH: 540 } : undefined);
+    };
+    const flashes = this.time.addEvent({ delay: 900, loop: true, callback: () => this.time.delayedCall(Math.random() * 700, flash) });
+    // whoever's asking: their hand goes up in the pack
+    const asker = new Map<string, Phaser.GameObjects.Sprite>();
+    this.onOtherLine = (who) => {
+      if (!asker.has(who)) asker.set(who, press[(asker.size * 3 + 2) % press.length]);
+      const p = asker.get(who)!;
+      if (!p.active || p.angle) return;
+      this.tweens.add({ targets: p, y: p.y - 22, duration: 160, yoyo: true, hold: 900, ease: "Quad.out" });
+      this.time.delayedCall(250, flash);
+    };
     const munch = () => {
       synth.play("gulp");
-      swig.setFrame(3);
-      this.time.delayedCall(140, () => swig.setFrame(0));
+      if (swigP) {
+        swigP.stopTalking();
+        swigP.setPose("munch");
+        this.time.delayedCall(1100, () => swigP.poseName === "munch" && swigP.setPose("rest"));
+      } else {
+        swig.setFrame(3);
+        this.time.delayedCall(140, () => swig.setFrame(0));
+      }
     };
     await this.talk([
       dir("Sergeant Swig takes the podium. He is holding a can of beer. There are three more cans on the lectern. There is a family-size bag of Crobleys. There is a large sack, next to him, with 'MONEY FROM REINHARDT' written on it in marker pen."),
@@ -2650,6 +2789,10 @@ export class VignetteScene extends Phaser.Scene {
     ]);
     munch();
     synth.play("slurp");
+    if (swigP) {
+      swigP.setPose("beer");
+      this.time.delayedCall(1300, () => swigP.poseName === "beer" && swigP.setPose("rest"));
+    }
     await this.talk([
       say("REPORTER", "Sergeant — what's in the bag?"),
       dir("Everyone looks at the bag. The bag says MONEY FROM REINHARDT."),
@@ -2665,22 +2808,24 @@ export class VignetteScene extends Phaser.Scene {
       dir("The room erupts. Booing. Shouting. Somebody throws a Crobley."),
       say("SERGEANT SWIG", "Right. I'm fucking fed up!"),
     ]);
-    swig.setFrame(3);
-    this.caption("BANG BANG BANG", "#ffd23f", 34);
-    for (let i = 0; i < 12; i++) {
-      this.time.delayedCall(i * 150, () => {
-        synth.play("shoot");
-        this.cameras.main.shake(100, 0.01);
-        const target = press[Math.floor(Math.random() * press.length)];
-        const fl = this.add.circle(510, 300, 10, 0xffd23f).setDepth(40);
-        this.tween({ targets: fl, x: target.x, y: target.y - 20, duration: 120 }).then(() => fl.destroy());
-      });
-    }
-    press.forEach((p, i) => this.time.delayedCall(200 + i * 60, () => void this.tween({ targets: p, x: i % 2 ? p.x + 700 : p.x - 700, duration: 1400 })));
-    this.tween({ targets: beer, y: 600, angle: 360, duration: 900 });
-    await this.wait(2200);
-    this.lastCaption?.destroy();
+    this.onOtherLine = undefined;
+    flashes.remove();
+    // he draws
+    if (swigP) {
+      swigP.stopTalking();
+      swigP.setPose("gun");
+    } else swig.setFrame(3);
+    synth.play("telegraph");
+    this.cameras.main.shake(200, 0.004);
+    await this.wait(450);
+    const victims: Victim[] = press.map((spr) => ({ spr, hp: 1 + Math.floor(Math.random() * 2) }));
+    await shootout(this, { muzzle: () => ({ x: swig.x + 4, y: swig.y - swig.displayHeight * 0.4 }), victims, rigs, shots: 20, depth: 40, shooter: swig });
+    // anyone still standing runs for it
+    for (const v of victims) if (v.hp > 0) this.tweens.add({ targets: v.spr, x: v.spr.x < 480 ? -120 : 1080, duration: 900, ease: "Quad.in" });
+    for (let i = 0; i < 5; i++) vfx(this, "vfx_smoke", 300 + i * 90, 300 + (i % 2) * 40, { scale: 1.6, depth: 70, delay: i * 120 });
+    await this.wait(1600);
     synth.stopMusic();
+    if (swigP) swigP.setPose("rest");
     const [a, b] = lads;
     await this.talk([
       dir("When the smoke clears, the press pool is gone. Swig is eating a Crobley. The bag is still there."),

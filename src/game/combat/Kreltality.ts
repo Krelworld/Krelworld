@@ -159,7 +159,31 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     return s;
   };
   let pools = 0;
+  // the soundtrack of it: sprays and splats on the blood, a scream on the first big hit, a gurgle as they go
+  let lastSpray = 0;
+  let screamed = false;
+  let gurgled = false;
+  const spraySound = (n: number) => {
+    if (sc.time.now - lastSpray < 320) return;
+    lastSpray = sc.time.now;
+    synth.play(n >= 18 ? "blood_spray" : Math.random() < 0.5 ? "splat" : "squelch");
+  };
+  const scream = () => {
+    if (screamed) return;
+    screamed = true;
+    const k = tg.key.toLowerCase();
+    const woman = /woman|girl|mum|flirt|jam|eden|madison|destiny|crystal|sue|peg|shez|mollor|karen|jenny/.test(k + " " + (tg.name ?? "").toLowerCase());
+    synth.play(woman ? "scream_woman" : Math.random() < 0.5 ? "scream_man" : "shriek");
+  };
+  const gurgle = (delay = 0) => {
+    if (gurgled || !gore) return;
+    gurgled = true;
+    sc.time.delayedCall(delay, () => synth.play("gurgle"));
+  };
   const blood = (x: number, y: number, n: number, power = 1, up = false) => {
+    if (n >= 30) scream();
+    if (gore) spraySound(n);
+    if (n >= 40) gurgle(900);
     if (!gore) {
       // gore off: a puff of dust, never blood
       if (!fx("vfx_dust", x, y, Math.min(1.8, 0.6 + n / 80))) {
@@ -199,6 +223,13 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     }
   };
   const fountain = (x: number, y: number, ms: number) => {
+    scream();
+    if (gore) {
+      synth.play("blood_spray");
+      const hiss = sc.time.addEvent({ delay: 700, repeat: Math.max(0, Math.floor(ms / 700) - 1), callback: () => synth.play("blood_spray", 0.7) });
+      sc.time.delayedCall(ms, () => hiss.remove());
+      gurgle(Math.min(ms, 1200));
+    }
     if (!gore) {
       fx("vfx_stars", x, y, 1, { depth: D + 7 });
       return;
@@ -218,6 +249,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     if (sc.time.now - lastSquelch > 250) {
       lastSquelch = sc.time.now;
       synth.play("squelch");
+      if (gore) synth.play("flesh_rip", 0.8);
     }
     if (!gore) {
       fx("vfx_dust", x + Math.cos(a) * len * 0.5, Math.min(floor, y + Math.sin(a) * len * 0.5), 0.8);

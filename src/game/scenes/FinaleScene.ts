@@ -629,7 +629,8 @@ export class FinaleScene extends Phaser.Scene {
   private async spirit() {
     synth.music("c7_spirit", true);
     const dragon = this.makeDragon(250, FLOOR + 40, 1.45);
-    this.placeLads([300, 354, 408, 462, 516, 570, 624, 678, 732], "west", 3.4, FLOOR - 4);
+    // (spread a little wider and drawn a touch smaller than before: as super saiyans they stand half as tall again)
+    this.placeLads([300, 358, 416, 474, 532, 590, 648, 706, 764], "west", ssjKey(this, G.s.player) ? 3.0 : 3.4, FLOOR - 4);
     for (const l of this.lads) {
       // still super saiyan (facing west, frame 3 of the sheet)
       if (ssjSwap(l.spr, l.id, 3)) l.spr.clearTint();

@@ -618,16 +618,41 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       cam.pan(tg.x, tg.y, 900, "Sine.easeInOut");
       cam.zoomTo(2.3, 900);
       // the belly: their middle, lifted off the sprite so it can swell on its own
-      const belly = part(0.04, 0.36, 0.96, 0.74, D + 3);
+      // just the stomach: a round cut of their middle, hung from its top so it swells out and down (not over the face)
+      const BU0 = 0.16, BU1 = 0.84, BV0 = 0.42, BV1 = 0.72;
+      const belly = part(BU0, BV0, BU1, BV1, D + 3);
+      const bw = (fu(BU1) - fu(BU0)) * c.fw * sA;
+      const bh = (fv(BV1) - fv(BV0)) * c.fh * sA;
+      const anchorY = belly.y - bh / 2;
+      belly.setOrigin(0.5, 0).setY(anchorY);
+      const bellyMask = sc.make.graphics({}, false);
+      belly.setMask(bellyMask.createGeometryMask());
       // (HD art: set scales from the target's own scale, never read back from the image)
       const s0 = T.scale;
       let kx = 1;
       let ky = 1;
+      /** the round outline of the belly at its current swell (the cut-out is masked to it) */
+      const shapeBelly = (sx: number, sy: number) => {
+        bellyMask.clear().fillStyle(0xffffff).fillEllipse(belly.x, anchorY + (bh * sy) / 2, bw * sx * 0.98, bh * sy * 0.98);
+      };
+      shapeBelly(1, 1);
       const swell = (nx: number, ny: number, cfg: Partial<Phaser.Types.Tweens.TweenBuilderConfig>) => {
-        const from: [number, number] = [s0 * kx, s0 * ky];
+        const fx0 = kx;
+        const fy0 = ky;
         kx = nx;
         ky = ny;
-        return scaleTo(belly, from, [s0 * nx, s0 * ny], cfg);
+        const t = { v: 0 };
+        return c.tw({
+          ...cfg,
+          targets: t,
+          v: 1,
+          onUpdate: () => {
+            const sx = fx0 + (nx - fx0) * t.v;
+            const sy = fy0 + (ny - fy0) * t.v;
+            belly.setScale(s0 * sx, s0 * sy);
+            shapeBelly(sx, sy);
+          },
+        } as Phaser.Types.Tweens.TweenBuilderConfig);
       };
       const litres = { v: 0 };
       sc.tweens.add({ targets: litres, v: 62.4, duration: 3600, onUpdate: () => readout.setText(`${litres.v.toFixed(1)}L`) });
@@ -636,8 +661,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const tint = { k: 0 };
       sc.tweens.add({ targets: tint, k: 1, duration: 3600, onUpdate: () => belly.setTint(lerpCol(0xffffff, 0xf87171, tint.k * 0.8)) });
       // it swells in surges, wobbling, the skin creaking
-      for (const [k, ms] of [[1.35, 700], [1.75, 800], [2.2, 900], [2.75, 1000]] as [number, number][]) {
-        await swell(k, 1 + (k - 1) * 0.6, { duration: ms, ease: "Sine.inOut" });
+      for (const [k, ms] of [[1.3, 700], [1.6, 800], [1.95, 900], [2.3, 1000]] as [number, number][]) {
+        await swell(k, 1 + (k - 1) * 0.75, { duration: ms, ease: "Sine.inOut" });
         synth.play("monitor_crack", 0.25 + k * 0.1);
         sc.tweens.add({ targets: belly, x: { from: belly.x - 3, to: belly.x + 3 }, yoyo: true, repeat: 3, duration: 40 });
       }
@@ -650,7 +675,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       for (let i = 0; i < 7; i++) {
         const a = (i / 7) * Math.PI * 2;
         const r = W * 0.5 * kx;
-        marks.lineBetween(belly.x + Math.cos(a) * r * 0.4, belly.y + Math.sin(a) * r * 0.25, belly.x + Math.cos(a) * r * 0.75, belly.y + Math.sin(a) * r * 0.45);
+        const cy = anchorY + (bh * ky) / 2;
+        marks.lineBetween(belly.x + Math.cos(a) * r * 0.25, cy + Math.sin(a) * r * 0.2, belly.x + Math.cos(a) * r * 0.42, cy + Math.sin(a) * r * 0.32);
       }
       synth.play("alarm");
       readout.setColor("#f87171").setText("FULL");
@@ -663,8 +689,9 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       if (c.gore) {
         // POP: petrol, blood and everything else
         const bx = belly.x;
-        const by = belly.y;
+        const by = anchorY + (bh * ky) / 2;
         belly.setVisible(false);
+        bellyMask.destroy();
         marks.destroy();
         body.setCrop(0, 0, c.fw, fv(0.4) * c.fh);
         synth.play("explode", 0.6);

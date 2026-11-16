@@ -1673,12 +1673,17 @@ export class VignetteScene extends Phaser.Scene {
     lamp.add(this.add.ellipse(0, 0, 56, 24, 0xd4a017).setStrokeStyle(2, 0x7c5a00));
     lamp.add(this.add.triangle(38, -6, 0, 0, 30, -10, 0, 8, 0xd4a017));
     lamp.add(this.add.ellipse(0, -14, 22, 12, 0xe8b923));
-    synth.music("majek_lampe", true);
+    // not Majek Lampe (its lyrics are the scene): a different SanMik & SanChz track underneath
+    synth.music("ggg8", true);
     await this.talk([
-      dir("The back room of the Krezz Arms, after the gig. SanMik has found a magic lamp in the skip out the back and is very pleased with it.", { variants: { MIKEY: "The back room of the Krezz Arms, after the gig. You've found a magic lamp in the skip out the back and you're very pleased with it." } }),
-      dir("SanChz tells him to rub it. He does not need telling twice."),
+      dir("The back room of the Krezz Arms, after the gig. SanMik is lying face-down on the stage 'cooling down'. SanChz is eating the setlist.", { variants: { MIKEY: "The back room of the Krezz Arms, after the gig. You are lying face-down on the stage 'cooling down'. SanChz is eating the setlist." } }),
+      say("SANMIK", "Yee. 'Ello me dearies. How you all fucking doing, you fucking PRICKS."),
+      say("SANMIK", "Found this in the skip out the back. Magic lamp. Looks like a naughty little dildo and it smells like rank fanny juice."),
+      say("SANCHZ", "Rub it."),
+      say("SANMIK", "I'm gonna rub it like I rubbed one out last night, yee. Hehehe."),
+      say(this.youTo("SANCHZ"), "Please don't say it like that."),
     ]);
-    await this.mashFor(12, G.s.player === "MIKEY" ? "TAP / SPACE: rub the lamp" : "TAP / SPACE: help SanMik rub the lamp", (n) => {
+    await this.mashFor(12, G.s.player === "MIKEY" ? "TAP / SPACE: rub the lamp (sorry)" : "TAP / SPACE: help SanMik rub the lamp (sorry)", (n) => {
       synth.play(n % 2 ? "select" : "hit");
       lamp.setAngle(n % 2 ? -8 : 8);
       mik.x = 400 + (n % 2) * 8;
@@ -1695,10 +1700,20 @@ export class VignetteScene extends Phaser.Scene {
     await this.tween({ targets: genie, scale: this.textures.exists("p_genie") ? 2.2 : 1, y: 380, duration: 900, ease: "Back.out" });
     this.tweens.add({ targets: genie, y: 370, yoyo: true, repeat: -1, duration: 900, ease: "Sine.inOut" });
     await this.talk([
-      dir("A genie. Ten thousand years asleep in there. He offers SanMik three wishes."),
-      dir("SanMik threatens him, then decides it's SanChz in a costume, then gets round to wishing."),
-      dir("A pet goat. A Pepsi Max. A Pepsi normal."),
-      dir("The genie is disgusted. He could have had anything. He grants them anyway."),
+      say("GENIE", "GREETINGS, SANMIK. I AM A MAGICAL GENIE, RELEASED FROM MY MYSTICAL SLEEP AFTER TEN THOUSAND LONG BLOODY YEARS."),
+      say("GENIE", "AS A REWARD, I WILL GRANT YOU THREE WISHES."),
+      say("SANMIK", "You fucking what? You fucking prick, I'll fucking sherk you. Catford Fox Crew."),
+      say("SANMIK", "Is that you SanChz? Dressed up like a magical flying cunt like you always do?"),
+      say("SANCHZ", "I'm over here, mate. I'm eating the setlist."),
+      say("GENIE", "I AM NOT SANCHZ. NOW. WHAT ARE YOUR WISHES?"),
+      say("SANMIK", "Ooh. Well that's a tough question. Yee. Mm. Let me see."),
+      say("SANMIK", "Number one: a fucking pet goat."),
+      say("SANMIK", "Number two: a Pepsi Max."),
+      say(this.youTo("SANCHZ"), "Mikey. Think about this. You can have anything—"),
+      say("SANMIK", "And number three… a Pepsi normal."),
+      say("GENIE", "…"),
+      say("GENIE", "WHAT A BLOODY FUCKING WASTE. YOU COULD HAVE LEARNED TO BLOODY FUCKING FLY."),
+      say("GENIE", "BUT. YOUR WISHES ARE MY COMMAND."),
     ]);
     synth.play("coin");
     const cans = [this.add.rectangle(380, 300, 14, 26, 0x111827).setStrokeStyle(2, 0x3b82f6).setDepth(31), this.add.rectangle(400, 300, 14, 26, 0x1d4ed8).setStrokeStyle(2, 0xef4444).setDepth(31)];
@@ -1707,8 +1722,15 @@ export class VignetteScene extends Phaser.Scene {
     await this.tween({ targets: goat, scale: 1.4, duration: 500, ease: "Back.out" });
     this.tweens.add({ targets: goat, angle: 5, yoyo: true, repeat: -1, duration: 300 });
     await this.talk([
-      dir("The goat is Gabor. The Pepsi Max is great. Nobody gets the Pepsi normal."),
-      dir("Then the lamp starts pulling everything back in."),
+      say("SANMIK", "Yee — ooh yee, I got it. Uhh. Yee. Mate, this Pepsi Max is GREAT."),
+      gabor("Oh god. Oh god I exist. Hello. I'm Gabor the Goat. Am I your best friend? I'm your best friend. Sorry. Is that too much? It's too much."),
+      say("SANMIK", "Shut the fuck up, you little neeky cunt, or I'll make a fucking curry out of you."),
+      gabor("A curry. Would it hurt? It would hurt. Ooh. Okay. Okay SanMik. You're my best friend. Please threaten me again later."),
+      say("SANCHZ", "Can I have the Pepsi normal."),
+      say("SANMIK", "No."),
+      say("GENIE", "ONE MORE THING. I HAVE SPENT TEN THOUSAND YEARS IN A LAMP THAT SMELLS OF FANNY JUICE. SOMEBODY IS PAYING FOR THAT."),
+      gabor("Is it me? Is it me paying? Oh no. Oh yes."),
+      say("GENIE", "WELCOME… TO THE SANMIKVERSE."),
     ]);
     // everyone up the spout
     synth.play("explode");
@@ -1718,7 +1740,10 @@ export class VignetteScene extends Phaser.Scene {
     this.cameras.main.flash(500, 255, 255, 255);
     this.caption("THE SANMIKVERSE", "#ff6bb0", 44);
     await this.wait(1200);
-    await this.talk([dir("You land in Catford.")]);
+    await this.talk([
+      dir("You land face-first in something soft. It's a pizza. It's a wet pizza."),
+      say("SANMIK", "(somewhere nearby) CATFORD! Yee! I'm HOME, blud!"),
+    ]);
     synth.stopMusic();
   }
 

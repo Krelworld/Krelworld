@@ -809,7 +809,8 @@ export class VignetteScene extends Phaser.Scene {
     // ---- the tanks
     this.clearStage();
     this.cameras.main.flash(300, 255, 255, 255);
-    if (!backdrop(this, "bg_abandoned", { depth: -10 })) this.add.rectangle(480, 270, 960, 540, 0x222233);
+    const houseBg = backdrop(this, "bg_abandoned", { depth: -10 });
+    if (!houseBg) this.add.rectangle(480, 270, 960, 540, 0x222233);
     const house = this.add.rectangle(480, 300, 420, 300, 0x000000, 0).setDepth(1);
     synth.music("boss", true);
     const tanks = [0, 1, 2].map((i) => {
@@ -819,39 +820,42 @@ export class VignetteScene extends Phaser.Scene {
     });
     this.caption("OPERATION CUSTARD STORM", "#ffd23f", 30);
     await Promise.all(tanks.map((t, i) => this.tween({ targets: t, x: 120 + i * 170, duration: 2600, ease: "Sine.out" })));
-    const boom = (x: number, y: number) => {
-      if (!this.boomAt(x, y, 1.4, 70))
-        for (let k = 0; k < 3; k++) {
-          const c = this.add.circle(x + (Math.random() - 0.5) * 60, y + (Math.random() - 0.5) * 60, 10, [0xffd23f, 0xff7a1a, 0xffffff][k], 0.95).setDepth(70);
-          this.tween({ targets: c, radius: 70 + Math.random() * 50, alpha: 0, duration: 600 + k * 150 });
+    if (houseBg) await this.puddingSiege(houseBg, tanks as unknown as Phaser.GameObjects.Image[]);
+    else {
+      const boom = (x: number, y: number) => {
+        if (!this.boomAt(x, y, 1.4, 70))
+          for (let k = 0; k < 3; k++) {
+            const c = this.add.circle(x + (Math.random() - 0.5) * 60, y + (Math.random() - 0.5) * 60, 10, [0xffd23f, 0xff7a1a, 0xffffff][k], 0.95).setDepth(70);
+            this.tween({ targets: c, radius: 70 + Math.random() * 50, alpha: 0, duration: 600 + k * 150 });
+          }
+        synth.play("explode");
+        this.cameras.main.shake(300, 0.02);
+      };
+      for (let volley = 0; volley < 4; volley++) {
+        for (const t of tanks) {
+          const sx = (t as any).x + 70;
+          const sy = (t as any).y - 20;
+          const shell = this.add.circle(sx, sy, 6, 0xffffff).setDepth(60);
+          this.tween({ targets: t, x: (t as any).x - 12, duration: 80, yoyo: true });
+          const tx = 380 + Math.random() * 200;
+          const ty = 200 + Math.random() * 180;
+          await this.tween({ targets: shell, x: tx, y: ty, duration: 260 });
+          shell.destroy();
+          boom(tx, ty);
         }
-      synth.play("explode");
-      this.cameras.main.shake(300, 0.02);
-    };
-    for (let volley = 0; volley < 4; volley++) {
-      for (const t of tanks) {
-        const sx = (t as any).x + 70;
-        const sy = (t as any).y - 20;
-        const shell = this.add.circle(sx, sy, 6, 0xffffff).setDepth(60);
-        this.tween({ targets: t, x: (t as any).x - 12, duration: 80, yoyo: true });
-        const tx = 380 + Math.random() * 200;
-        const ty = 200 + Math.random() * 180;
-        await this.tween({ targets: shell, x: tx, y: ty, duration: 260 });
-        shell.destroy();
-        boom(tx, ty);
+        await this.wait(250);
       }
-      await this.wait(250);
-    }
-    // the house comes down
-    this.cameras.main.shake(1600, 0.035);
-    const rubble = this.add.graphics().setDepth(40);
-    rubble.fillStyle(0x1a1a1a, 1);
-    for (let i = 0; i < 26; i++) rubble.fillRect(300 + Math.random() * 360, 330 + Math.random() * 110, 20 + Math.random() * 50, 10 + Math.random() * 30);
-    const dark = this.add.rectangle(480, 250, 460, 300, 0x0a0a0a, 0).setDepth(39);
-    await this.tween({ targets: dark, fillAlpha: 0.92, duration: 900 });
-    for (let i = 0; i < 12; i++) {
-      const smoke = this.add.circle(320 + Math.random() * 320, 380, 20 + Math.random() * 20, 0x777777, 0.6).setDepth(45);
-      this.tween({ targets: smoke, y: 120, radius: 70, alpha: 0, duration: 2600 + Math.random() * 1200, delay: i * 120 });
+      // the house comes down
+      this.cameras.main.shake(1600, 0.035);
+      const rubble = this.add.graphics().setDepth(40);
+      rubble.fillStyle(0x1a1a1a, 1);
+      for (let i = 0; i < 26; i++) rubble.fillRect(300 + Math.random() * 360, 330 + Math.random() * 110, 20 + Math.random() * 50, 10 + Math.random() * 30);
+      const dark = this.add.rectangle(480, 250, 460, 300, 0x0a0a0a, 0).setDepth(39);
+      await this.tween({ targets: dark, fillAlpha: 0.92, duration: 900 });
+      for (let i = 0; i < 12; i++) {
+        const smoke = this.add.circle(320 + Math.random() * 320, 380, 20 + Math.random() * 20, 0x777777, 0.6).setDepth(45);
+        this.tween({ targets: smoke, y: 120, radius: 70, alpha: 0, duration: 2600 + Math.random() * 1200, delay: i * 120 });
+      }
     }
     house.destroy();
     this.caption("THE PUDDING HOUSE HAS BEEN DESTROYED", "#ffe4ec", 28);
@@ -866,6 +870,209 @@ export class VignetteScene extends Phaser.Scene {
       say("CRONGUS", G.s.player === "CRONGUS" ? `${leaker}. You absolute snake.` : `${leaker}. You absolute snake. I saw you in the bush.`),
     ]);
     G.s.flags.pudding_house_destroyed = true;
+  }
+
+  /**
+   * Operation Custard Storm, shot by shot. The painted house is cut into chunks; every shell blows a hole in it
+   * (chunks fly, the edges scorch, fires catch, the smoke builds), then what's left sags, buckles and falls in on
+   * itself in a great cloud of dust, leaving a smoking heap.
+   */
+  private async puddingSiege(bg: Phaser.GameObjects.Image, tanks: Phaser.GameObjects.Image[]) {
+    const cam = this.cameras.main;
+    const calmF = !!G.meta.settings.calmFlash;
+    const key = bg.texture.key;
+    const tex = this.textures.get(key);
+    const src = tex.getSourceImage() as { width: number; height: number };
+    const sw = src.width;
+    const sh = src.height;
+    const s = bg.scaleX;
+    const ox = 480 - (sw * s) / 2;
+    const oy = 270 - (sh * s) / 2;
+    const gSrc = Math.round(sh * 0.855); // where the building stops and the pavement starts
+    const groundY = oy + gSrc * s;
+    const frame = (nm: string, x: number, y: number, w: number, h: number) => {
+      if (!tex.has(nm)) tex.add(nm, 0, x, y, w, h);
+      return nm;
+    };
+    bg.setVisible(false);
+    // what's behind it: the night skyline, then the burnt-out inside of the house
+    if (this.textures.exists("bb_skyline")) {
+      const sky = this.add.image(480, groundY, "bb_skyline").setOrigin(0.5, 1).setDepth(-14).setTint(0x6a5a8a);
+      sky.setScale((groundY + 30) / sky.height);
+    } else this.add.rectangle(480, groundY / 2, 960, groundY, 0x1a1830).setDepth(-14);
+    const inner = this.add.image(480, oy + (gSrc * s) / 2, key, frame("pud_inner", 0, 0, sw, gSrc)).setScale(s).setDepth(-12).setTint(0x3a2418);
+    this.add.image(480, oy + ((gSrc + sh) / 2) * s, key, frame("pud_ground", 0, gSrc, sw, sh - gSrc)).setScale(s).setDepth(-10);
+    // the house, in chunks
+    const COLS = 16;
+    const ROWS = 8;
+    type Chunk = { img: Phaser.GameObjects.Image; c: number; r: number; alive: boolean; heat: number };
+    const chunks: Chunk[] = [];
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++) {
+        const x0 = Math.round((c * sw) / COLS);
+        const x1 = Math.round(((c + 1) * sw) / COLS);
+        const y0 = Math.round((r * gSrc) / ROWS);
+        const y1 = Math.round(((r + 1) * gSrc) / ROWS);
+        const img = this.add.image(ox + ((x0 + x1) / 2) * s, oy + ((y0 + y1) / 2) * s, key, frame(`pud_${c}_${r}`, x0, y0, x1 - x0, y1 - y0)).setScale(s).setDepth(-9);
+        chunks.push({ img, c, r, alive: true, heat: 0 });
+      }
+    const scorch = (k: Chunk) => k.img.setTint(Phaser.Display.Color.GetColor(Math.round(255 - k.heat * 190), Math.round(255 - k.heat * 205), Math.round(255 - k.heat * 215)));
+    /** Thrown under gravity until it lands at landY. */
+    const toss = (o: Phaser.GameObjects.Components.Transform, vx: number, vy: number, landY: number, spin: number, onLand?: () => void) => {
+      const x0 = o.x;
+      const y0 = o.y;
+      const g = 1300;
+      const disc = vy * vy + 2 * g * (landY - y0);
+      const T = disc > 0 ? (-vy + Math.sqrt(disc)) / g : 0.4;
+      const p = { t: 0 };
+      this.tweens.add({ targets: p, t: T, duration: T * 1000, onUpdate: () => {
+        o.x = x0 + vx * p.t;
+        o.y = y0 + vy * p.t + 0.5 * g * p.t * p.t;
+        o.angle += (spin * 16) / 1000;
+      }, onComplete: () => onLand?.() });
+    };
+    /** Rubble height along the street: a heap, highest in the middle. */
+    const heapH = (x: number) => 125 * Math.max(0, 1 - Math.abs(x - 480) / 360) ** 0.8;
+    const heapY = (x: number) => groundY + 40 - heapH(x) * (0.5 + 0.5 * Math.random());
+    const settle = (k: Chunk) => {
+      k.img.setScale(s * 0.8).setDepth(30 + k.img.y / 100);
+      k.heat = 0.35 + k.heat * 0.2;
+      scorch(k);
+    };
+    const detach = (k: Chunk, tx: number, ty: number) => {
+      k.alive = false;
+      k.img.setDepth(45);
+      const dx = k.img.x - tx;
+      const dy = k.img.y - ty;
+      const d = Math.max(20, Math.hypot(dx, dy));
+      const sp = 260 + Math.random() * 320;
+      toss(k.img, (dx / d) * sp + (Math.random() - 0.5) * 120, -200 - Math.random() * 300 + (dy / d) * 80, heapY(k.img.x + (dx / d) * 120), (Math.random() - 0.5) * 900, () => settle(k));
+    };
+    const decor: Phaser.GameObjects.GameObject[] = [];
+    let shots = 0;
+    const hit = (tx: number, ty: number) => {
+      shots++;
+      if (!this.boomAt(tx, ty, 1.5, 70))
+        for (let k = 0; k < 3; k++) {
+          const c = this.add.circle(tx + (Math.random() - 0.5) * 60, ty + (Math.random() - 0.5) * 60, 10, [0xffd23f, 0xff7a1a, 0xffffff][k], 0.95).setDepth(70);
+          this.tween({ targets: c, radius: 70 + Math.random() * 50, alpha: 0, duration: 600 + k * 150 });
+        }
+      synth.play("explode");
+      if (shots % 3 === 0) synth.play("smash");
+      cam.shake(300, 0.02);
+      const R = 62 + Math.random() * 26;
+      for (const k of chunks) {
+        if (!k.alive) continue;
+        const d = Math.hypot(k.img.x - tx, k.img.y - ty);
+        if (d < R * (0.75 + Math.random() * 0.45)) detach(k, tx, ty);
+        else if (d < R * 2.1) {
+          k.heat = Math.min(1, k.heat + (1 - d / (R * 2.1)) * 0.75);
+          scorch(k);
+        }
+      }
+      // brick and plaster
+      for (let i = 0; i < 12; i++) {
+        const b = this.add.rectangle(tx, ty, 3 + Math.random() * 8, 3 + Math.random() * 6, [0x6b4f3a, 0x3f3f46, 0x8a7a64, 0xf5e6c8][i % 4]).setDepth(46);
+        toss(b, (Math.random() - 0.5) * 700, -150 - Math.random() * 400, heapY(tx) + 6, (Math.random() - 0.5) * 1400);
+      }
+      // the edges of the hole glow
+      for (let i = 0; i < 4; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const e = this.add.circle(tx + Math.cos(a) * R * 0.8, ty + Math.sin(a) * R * 0.7, 2 + Math.random() * 3, 0xff8a1a, 0.95).setDepth(-8);
+        this.tweens.add({ targets: e, alpha: 0.35, yoyo: true, repeat: -1, duration: 160 + Math.random() * 240 });
+        decor.push(e);
+      }
+      // fires catch, the smoke builds
+      if (shots % 2 === 0) decor.push(this.fireBlob(tx, ty + 20, 26 + shots * 1.5, -8));
+      if (shots % 4 === 1) {
+        const col = vfx(this, "vfx_smokecol", tx, ty, { scale: 1.6 + shots * 0.08, depth: -8, alpha: 0.85 });
+        if (col) decor.push(col);
+      }
+    };
+    // ---- the barrage
+    for (let volley = 0; volley < 4; volley++) {
+      for (const t of tanks) {
+        const sx = t.x + 70;
+        const sy = t.y - 20;
+        vfx(this, "vfx_muzzle", sx, sy, { scale: 1.6, depth: 61, add: true });
+        const shell = this.add.ellipse(sx, sy, 12, 6, 0xfff1a8).setDepth(60);
+        const trail = this.add.rectangle(sx, sy, 30, 2, 0xfff1a8, 0.6).setOrigin(1, 0.5).setDepth(60);
+        this.tween({ targets: t, x: t.x - 12, duration: 80, yoyo: true });
+        // aim for what's still standing
+        const standing = chunks.filter((k) => k.alive && k.c >= 2 && k.c <= 13);
+        const aim = standing.length ? standing[Math.floor(Math.random() * standing.length)].img : null;
+        const tx = (aim?.x ?? 380 + Math.random() * 200) + (Math.random() - 0.5) * 30;
+        const ty = (aim?.y ?? 200 + Math.random() * 180) + (Math.random() - 0.5) * 30;
+        const ang = Math.atan2(ty - sy, tx - sx);
+        shell.setRotation(ang);
+        trail.setRotation(ang);
+        await this.tween({ targets: [shell, trail], x: tx, y: ty, duration: 240 });
+        shell.destroy();
+        trail.destroy();
+        hit(tx, ty);
+      }
+      await this.wait(volley === 3 ? 700 : 300);
+    }
+    // ---- it goes: a groan, a sag, a buckle…
+    const standing = chunks.filter((k) => k.alive);
+    synth.play("thunder");
+    cam.shake(1100, 0.005);
+    for (const k of standing) this.tweens.add({ targets: k.img, x: k.img.x + (Math.random() < 0.5 ? -1.5 : 1.5), yoyo: true, repeat: 6, duration: 55 });
+    await this.wait(600);
+    synth.play("smash");
+    for (const k of standing) {
+      const lean = (480 - k.img.x) * 0.05;
+      this.tweens.add({ targets: k.img, x: k.img.x + lean, y: k.img.y + (ROWS - k.r) * 4 + 8, angle: (k.c < COLS / 2 ? 1 : -1) * (1 + Math.random() * 5), duration: 800, ease: "Sine.in" });
+    }
+    this.tweens.add({ targets: inner, y: inner.y + 24, duration: 800, ease: "Sine.in" });
+    await this.wait(850);
+    // …and down it comes, into itself
+    if (!calmF) cam.flash(180, 255, 220, 170);
+    cam.shake(2000, 0.03);
+    synth.play("explode");
+    synth.play("boom");
+    this.time.delayedCall(500, () => synth.play("thunder"));
+    this.time.delayedCall(900, () => synth.play("smash"));
+    for (const o of decor) o.destroy();
+    // the inside sinks into the ground (cropped at the ground line as it goes)
+    const sink = { d: 0 };
+    const innerY0 = oy + (gSrc * s) / 2;
+    this.tweens.add({ targets: sink, d: gSrc * s, duration: 1500, ease: "Quad.in", onUpdate: () => {
+      inner.y = innerY0 + sink.d;
+      inner.setCrop(0, 0, sw, Math.max(0, gSrc - sink.d / s));
+    } });
+    let landed = 0;
+    for (const k of standing) {
+      k.alive = false;
+      const mid = Math.abs(k.c - (COLS - 1) / 2) / ((COLS - 1) / 2);
+      const delay = mid * 380 + (ROWS - 1 - k.r) * 30 + Math.random() * 90;
+      const tx = k.img.x + (480 - k.img.x) * 0.3 + (Math.random() - 0.5) * 40;
+      const ty = heapY(tx);
+      const dist = Math.max(10, ty - k.img.y);
+      this.tweens.add({ targets: k.img, x: tx, y: ty, angle: k.img.angle + (Math.random() - 0.5) * 220, duration: 420 + Math.sqrt(dist) * 38, delay, ease: "Quad.in", onStart: () => k.img.setDepth(44), onComplete: () => {
+        settle(k);
+        if (landed++ % 9 === 0) vfx(this, "vfx_dust", tx, ty, { scale: 1.6, depth: 47 });
+      } });
+    }
+    // the dust: it billows up and rolls out along the street
+    this.time.delayedCall(450, () => {
+      vfx(this, "vfx_blastsmoke", 480, groundY + 30, { scale: 3.6, depth: 48 });
+      for (let i = 0; i < 8; i++) vfx(this, "vfx_dust", 480 + (i % 2 ? 1 : -1) * (40 + i * 45), groundY + 20, { scale: 2.6, depth: 48, delay: i * 90 });
+      for (let i = 0; i < 26; i++) {
+        const side = i % 2 ? 1 : -1;
+        const d = this.add.circle(480 + side * Math.random() * 160, groundY + 10 - Math.random() * 60, 24 + Math.random() * 20, [0x8a8070, 0x6b6458, 0xa39886][i % 3], 0.85).setDepth(47);
+        this.tweens.add({ targets: d, x: d.x + side * (220 + Math.random() * 260), y: d.y - 40 - Math.random() * 160, radius: 80 + Math.random() * 60, alpha: 0, duration: 2600 + Math.random() * 1600, ease: "Sine.out" });
+      }
+    });
+    await this.wait(2400);
+    // what's left: a smoking heap, still burning
+    for (let i = 0; i < 3; i++) this.fireBlob(400 + i * 80, groundY + 40 - heapH(400 + i * 80) * 0.9, 34, 41);
+    for (let i = 0; i < 4; i++) vfx(this, "vfx_smokecol", 320 + i * 110, groundY + 40 - heapH(320 + i * 110) * 0.85, { scale: 2 + Math.random(), depth: 40, alpha: 0.8, delay: i * 200 });
+    for (let i = 0; i < 14; i++) {
+      const ex = 300 + Math.random() * 360;
+      const e = this.add.circle(ex, heapY(ex), 2, 0xff8a1a).setDepth(42);
+      this.tweens.add({ targets: e, alpha: 0.2, yoyo: true, repeat: -1, duration: 200 + Math.random() * 300 });
+    }
   }
 
   // ---------------------------------------------------------------- ROBBO

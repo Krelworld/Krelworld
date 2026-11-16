@@ -7,7 +7,7 @@ import type { PlayableId } from "../data/types";
 import { maxHp } from "./systems/stats";
 import { jetStream, startWonk } from "./combat/Wonk";
 import { runGroupWonk } from "./combat/GroupWonk";
-import { kreltality } from "./combat/Kreltality";
+import { kreltality, type Finisher } from "./combat/Kreltality";
 
 /**
  * Debug hooks for testing (window.__krel). Not shown anywhere in the UI.
@@ -69,7 +69,7 @@ export function installDebug(game: Phaser.Game) {
       if (d?.player) jetStream(d.player, d.now());
     },
     /** Run a KRELTALITY on the current boss (or the nearest enemy). */
-    krel: (which?: "spine" | "explode" | "halved" | "headboot" | "slit" | "flatten" | "vice") => {
+    krel: (which?: Finisher) => {
       const d = game.scene.getScene("Dungeon") as any;
       const e = d?.boss ?? d?.enemies?.[0];
       if (!e) return;

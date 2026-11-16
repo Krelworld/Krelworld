@@ -1427,6 +1427,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         glow.destroy();
         this.tweens.add({ targets: crate, alpha: 0, scaleX: crate.scaleX * 1.4, scaleY: crate.scaleY * 0.6, duration: 260, onComplete: () => crate.destroy() });
         const r = rollCrate(s);
+        // a new gun (or its ammo) is yours from this moment: save it, so it's there in the next dungeon whatever happens
+        G.save();
         if (r.gun) {
           const icon = fitTo(this.add.image(x, y - 10, r.gun.tex), 44).setDepth(700);
           this.tweens.add({ targets: icon, y: y - 70, duration: 600, ease: "Back.easeOut" });

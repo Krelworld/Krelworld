@@ -7948,6 +7948,21 @@
   },
   "wk_crobley": {
    "file": "whack/wk_crobley.png"
+  },
+  "db_leaf": {
+   "file": "props/db_leaf.png"
+  },
+  "db_tower": {
+   "file": "props/db_tower.png"
+  },
+  "db_rocket": {
+   "file": "props/db_rocket.png"
+  },
+  "db_splash": {
+   "file": "props/db_splash.png"
+  },
+  "db_river": {
+   "file": "backdrops/db_river.png"
   }
  },
  "sheets": {

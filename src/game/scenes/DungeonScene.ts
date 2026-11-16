@@ -240,6 +240,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   create() {
     const s = G.s;
     s.phase = "dungeon";
+    this.chantFreeAt = 0;
     // the catwalks painted into the backdrop become real platforms
     if (this.room.ledges && this.room.backdrop && this.textures.exists(this.room.backdrop)) this.room = { ...this.room, platforms: [...(this.room.platforms ?? []), ...this.ledgePlatforms(this.room)] };
     const r = this.room;
@@ -2927,11 +2928,19 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     });
   }
 
+  /** When the KIDS choir can next chant. */
+  private chantFreeAt = 0;
+
   /** An enemy shouts one of its lines. The ones that never shut up (shoutEvery) get a proper speech bubble that follows them. */
   private enemyShout(e: Enemy) {
     const lines = e.def.shout ?? [];
     const line = lines[Math.floor(Math.random() * lines.length)];
     if (!line) return;
+    // the KIDS demons chant out loud, as a goblin choir (one chant at a time, not a wall of noise)
+    if (/KIDS/.test(line) && this.time.now > this.chantFreeAt) {
+      this.chantFreeAt = this.time.now + 2600 + Math.random() * 1800;
+      synth.shout("mind_kids", e.isBoss ? 0.95 : 0.7, 0.92 + Math.random() * 0.2);
+    }
     if (!e.def.shoutEvery) {
       this.floatText(e.x, e.y - 30, line, e.def.id === "tumor" ? "#e9d5ff" : "#ffffff", e.def.id === "tumor" ? 14 : 11);
       return;

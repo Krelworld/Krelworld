@@ -122,6 +122,9 @@ export const MUSIC_FILES: Record<string, string> = {
   ...Object.fromEntries(Array.from({ length: 13 }, (_, i) => [`ggg${i + 1}`, `audio/ggg${i + 1}.mp3`])),
 };
 
+/** Where a song starts (seconds) when it first comes on, e.g. the title song skips its instrumental intro and opens on the vocals. */
+const MUSIC_START: Record<string, number> = { title: 3.5 };
+
 /** Songs that should play once rather than loop. */
 const ONE_SHOT = new Set(["dungeon_rise", "crystal", "viral", "crobley", "majek_lampe", "anthem", "bbp", "twitcher", "crocodile", ...Array.from({ length: 13 }, (_, i) => `ggg${i + 1}`)]);
 
@@ -1047,6 +1050,7 @@ export class Synth {
     this.stopFile();
     const el = new Audio(MUSIC_FILES[id]);
     if (startFrac > 0) el.addEventListener("loadedmetadata", () => (el.currentTime = el.duration * startFrac), { once: true });
+    else if (MUSIC_START[id]) el.addEventListener("loadedmetadata", () => (el.currentTime = MUSIC_START[id]), { once: true });
     el.loop = !ONE_SHOT.has(id);
     // fade in (the old track fades out underneath)
     el.volume = 0;

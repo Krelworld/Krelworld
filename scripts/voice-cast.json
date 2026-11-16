@@ -14,6 +14,8 @@
     "ROBBO"
   ],
   "clones": {
+    "MARK": "FxQMDjGBogz9pr8iscvn",
+    "JEZ": "zv3oOEJb1Bwl5Mk5UT1D",
     "MIKEY": "5v7ks8vuKmqp0fWh6Gjo",
     "SANMIK": "27EXGttGzliGeKY0Hhk7",
     "POLSON": "ZLWvHRnQEYoUUh8xVn1b",
@@ -72,8 +74,6 @@
     "PRESIDENT KLERBLE": "kTvUIv5RActLpYXvW32D",
     "FRUITY CROBLEY": "MMOT9zp3EPLp0LDoB8xQ",
     "PROCTUS": "I0V8SaNN5uKM4QjG6kF6",
-    "MARK": "rNCnbKKmXLpRCzmTGrJD",
-    "JEZ": "ax4yFnPfqoaCyTaEbkBr",
     "EDEN": "BymVtFXWg3UHfEHOYBLG",
     "KREDDLER": "UHCLQqLxgjmnF7tge49B",
     "SIMON": "ircz82aIyCp2gauT3gXV",
@@ -639,6 +639,8 @@
     "DRONGUS": "southern English accent"
   },
   "clone_v2_always": [
+    "MARK",
+    "JEZ",
     "SANMIK",
     "DRONGUS",
     "SANJEEV",
@@ -658,7 +660,7 @@
     "KREZMAR",
     "GRONNY"
   ],
-  "designed_v2": ["MARK", "JEZ", "SIMON", "MADISON", "GOKU", "FOSTER", "YEMENI EXECUTIVE", "YEMENI OFFICIAL", "YEMENI OFFICER"],
+  "designed_v2": ["SIMON", "MADISON", "GOKU", "FOSTER", "YEMENI EXECUTIVE", "YEMENI OFFICIAL", "YEMENI OFFICER"],
   "clone_max_likeness": ["GRONNY", "KREBON", "DRONGUS"],
   "clone_sts": [],
   "warble": {

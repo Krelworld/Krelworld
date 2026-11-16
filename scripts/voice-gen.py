@@ -113,6 +113,14 @@ def cast(sp):
     v = voice_of(sp)
     return (v[0], v[1], None, sp) if v else None
 
+def repitch(data, semis):
+    """Shift a clip's pitch by `semis` semitones, keeping its length and the voice's character (formants)."""
+    import subprocess
+    k = 2 ** (semis / 12)
+    r = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", "pipe:0", "-af", f"rubberband=pitch={k:.4f}:formant=preserved", *ENC, "pipe:1"],
+                       input=data, capture_output=True)
+    return r.stdout if r.returncode == 0 and r.stdout else data
+
 # ------------------------------------------------------------------ moods
 TAG = re.compile(r"\[([^\]\n]{1,40})\]")
 def auto_tags(raw, t):
@@ -291,14 +299,6 @@ def warble(data, w):
     """A trembling, bleating waver (ffmpeg vibrato) over a clip: Gabor the Goat."""
     import subprocess
     r = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", "pipe:0", "-af", f"vibrato=f={w['f']}:d={w['d']}", *ENC, "pipe:1"],
-                       input=data, capture_output=True)
-    return r.stdout if r.returncode == 0 and r.stdout else data
-
-def repitch(data, semis):
-    """Shift a clip's pitch by `semis` semitones, keeping its length and the voice's character (formants)."""
-    import subprocess
-    k = 2 ** (semis / 12)
-    r = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", "pipe:0", "-af", f"rubberband=pitch={k:.4f}:formant=preserved", *ENC, "pipe:1"],
                        input=data, capture_output=True)
     return r.stdout if r.returncode == 0 and r.stdout else data
 

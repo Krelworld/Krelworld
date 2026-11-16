@@ -9,6 +9,7 @@ import { runChain, switchTo, fadeThen } from "../Flow";
 import { dir, gabor, say } from "../../content/dsl";
 import { damageMult } from "../systems/stats";
 import { TOUCH } from "../ui/TouchControls";
+import { Drawbridge } from "./drive/Drawbridge";
 
 type FoeKind = "cop" | "unmarked" | "swat" | "heli" | "spikes" | "tank" | "ramp";
 type Foe = {
@@ -153,6 +154,8 @@ export class DriveScene extends Phaser.Scene {
   private mace!: Phaser.GameObjects.Rectangle;
   private hurtEdge!: Phaser.GameObjects.Rectangle;
   private bridgeStarted = false;
+  /** the drawbridge set piece, while it's running: it drives the road speed, the clock and the camera */
+  private db: Drawbridge | null = null;
   // camera juice (real-time ms from performance.now)
   private trauma = 0;
   private stopUntil = 0;
@@ -200,6 +203,7 @@ export class DriveScene extends Phaser.Scene {
     this.shownScore = 0;
     this.streak = 0;
     this.bridgeStarted = false;
+    this.db = null;
     this.scroll = 0;
     this.nextRamp = 0;
     this.trauma = 0;
@@ -777,7 +781,7 @@ export class DriveScene extends Phaser.Scene {
     });
   }
 
-  /** The drawbridge: it's lifting, the tank fires, shift into the highest gear. */
+  /** The drawbridge: it's lifting, the tank fires, shift into the highest gear. The set piece itself is drive/Drawbridge.ts. */
   private async drawbridge() {
     this.bridgeStarted = true;
     this.running = false;
@@ -790,14 +794,39 @@ export class DriveScene extends Phaser.Scene {
         this.tweens.add({ targets: f.spr, x: f.spr.x - 500, alpha: 0, duration: 900, onComplete: () => f.spr.destroy() });
       }
     if (!this.foes.some((f) => f.kind === "tank" && !f.dead)) this.spawn("tank");
-    // the bridge ahead
-    const bx = 1100;
-    const left = this.add.rectangle(bx, ROAD_Y + 26, 260, 26, 0x6b4f2a).setOrigin(0, 0.5).setDepth(10).setStrokeStyle(3, 0x2a1d0f);
-    const right = this.add.rectangle(bx + 520, ROAD_Y + 26, 260, 26, 0x6b4f2a).setOrigin(1, 0.5).setDepth(10).setStrokeStyle(3, 0x2a1d0f);
+    // the tank belongs to the set piece now
+    const tank = this.foes.find((f) => f.kind === "tank" && !f.dead);
+    if (tank) {
+      tank.dead = true;
+      tank.bar?.destroy();
+    }
+    for (const b of this.bullets) b.spr.destroy();
+    this.bullets = [];
     await this.box.play([say(this.driver, "There's a drawbridge about to lift."), say(this.driver, "Into the highest gear I shift."), dir("MASH (tap / Space) to shift into the highest gear!")]);
-    this.tweens.add({ targets: [left, right], x: `-=${bx - 520}`, duration: 2600 });
-    this.tweens.add({ targets: left, angle: -24, delay: 1200, duration: 1400 });
-    this.tweens.add({ targets: right, angle: 24, delay: 1200, duration: 1400 });
+    const db = new Drawbridge({
+      scene: this,
+      truck: this.truck,
+      gun: this.gun,
+      me: this.me,
+      roadY: ROAD_Y,
+      truckX: TRUCK_X,
+      gaborDrives: this.gaborDrives,
+      tank: tank?.spr ?? null,
+      lamps: this.lamps,
+      explode: (x, y, size) => this.explode(x, y, size),
+      shake: (n) => this.shake(n),
+      pop: (x, y, t, c, sz) => this.pop(x, y, t, c, sz),
+      bark: (who, text) => this.bark(who, text),
+      kill: (pts) => {
+        this.kills++;
+        this.score += pts;
+      },
+      fling: (o, vx, vy, va) => this.fling(o, { vx, vy, va, ground: 900, life: 2400, bounce: 0 }),
+      lite: () => this.lite,
+    });
+    this.db = db;
+    db.start();
+    this.scoreText.setVisible(false);
     let gear = 0;
     const g = this.add.text(480, 180, "GEAR 1", { fontFamily: PIXEL_BOLD, fontSize: "40px", color: "#fde047", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5).setDepth(400).setScrollFactor(0);
     await new Promise<void>((resolve) => {
@@ -806,7 +835,7 @@ export class DriveScene extends Phaser.Scene {
         g.setText(gear >= 12 ? "HIGHEST GEAR!!" : `GEAR ${1 + Math.floor(gear / 2)}`).setScale(1.25);
         this.tweens.add({ targets: g, scale: 1, duration: 120 });
         synth.play(gear % 2 ? "select" : "hit");
-        this.scroll += 8;
+        db.gear(gear);
         this.shake(0.08);
       };
       this.input.on("pointerdown", tap);
@@ -818,24 +847,13 @@ export class DriveScene extends Phaser.Scene {
       });
     });
     g.destroy();
-    // the tank fires
-    const tank = this.foes.find((f) => f.kind === "tank" && !f.dead);
-    if (tank) {
-      this.pop(tank.spr.x + 40, tank.spr.y - 80, "IT'S ABOUT TO FIRE A FUCKING ROCKET", "#ef4444", 16);
-      const rocket = this.add.rectangle(tank.spr.x + 60, tank.spr.y - 40, 26, 8, 0xef4444).setDepth(40);
-      this.tweens.add({ targets: rocket, x: this.truck.x + 100, y: this.truck.y - 40, duration: 900, ease: "Quad.in", onComplete: () => rocket.destroy() });
-    }
-    // the jump
-    synth.play("dodge");
-    await new Promise<void>((resolve) => this.tweens.add({ targets: this.truck, y: ROAD_Y - 220, angle: -12, duration: 700, ease: "Quad.out", yoyo: true, onYoyo: () => this.truck.setAngle(10), onComplete: () => resolve() }));
-    this.truck.setAngle(0);
-    this.explode(this.truck.x - 200, ROAD_Y - 10, true);
-    this.explode(this.truck.x - 120, ROAD_Y - 40, true);
-    if (tank) {
-      tank.bar?.destroy();
-      this.tweens.add({ targets: tank.spr, x: tank.spr.x - 500, alpha: 0, duration: 800 });
-    }
-    this.cameras.main.flash(300, 255, 200, 120);
+    // the run-up, the tank's rocket, the jump, the far leaf going in the river
+    await db.go();
+    this.db = null;
+    db.destroy();
+    this.scoreText.setVisible(true);
+    this.cameras.main.setZoom(1);
+    this.truck.setY(ROAD_Y).setAngle(0);
     await this.box.play([
       say(this.driver, "We jumped the drawbridge! We lost the fucking damn police! YEEEEEE!"),
       say("SANCHZ", "YEGHHHHHHH."),
@@ -948,7 +966,9 @@ export class DriveScene extends Phaser.Scene {
     const s = this.trauma * this.trauma * 16;
     const shx = s ? (Math.random() * 2 - 1) * s : 0;
     const shy = s ? (Math.random() * 2 - 1) * s : 0;
-    cam.setScroll(this.lean.x + this.kick.x + shx, this.lean.y + this.kick.y + shy);
+    const db = this.db;
+    if (db) cam.setZoom(db.zoom);
+    cam.setScroll(this.lean.x + this.kick.x + shx + (db?.camX ?? 0), this.lean.y + this.kick.y + shy + (db?.camY ?? 0));
   }
 
   update(_time: number, delta: number) {
@@ -956,13 +976,13 @@ export class DriveScene extends Phaser.Scene {
     // hit-stop and slow-mo: a scaled clock for the action (the song and its timer stay on real time)
     const real = performance.now();
     const live = !this.box.active && !this.ended;
-    const ts = !live ? 1 : real < this.stopUntil ? 0.04 : real < this.slowUntil ? 0.3 : 1;
+    const ts = this.db?.ts ?? (!live ? 1 : real < this.stopUntil ? 0.04 : real < this.slowUntil ? 0.3 : 1);
     this.tweens.timeScale = ts;
     this.time.timeScale = ts;
     this.anims.globalTimeScale = ts;
     const dt = realDt * ts;
     const now = this.time.now;
-    const spd = this.bridgeStarted ? 0.6 : 1;
+    const spd = this.db ? this.db.v / ROAD_SPEED : this.bridgeStarted ? 0.6 : 1;
     this.scroll += dt * ROAD_SPEED * spd;
     this.far.tilePositionX = (this.scroll * this.farRate) / this.far.tileScaleX;
     this.near.tilePositionX = (this.scroll * this.nearRate) / this.near.tileScaleX;
@@ -972,6 +992,7 @@ export class DriveScene extends Phaser.Scene {
     for (let x = -80 - (this.scroll % 120); x < 1040; x += 120) this.lines.fillRect(x, ROAD_Y + 70, 60, 5);
     for (let i = 0; i < this.lamps.length; i++) this.lamps[i].setX(((((i * 300 - this.scroll * 0.9) % 1200) + 1200) % 1200) - 120);
     this.updateJunk(dt, spd);
+    this.db?.update(dt, realDt);
     // speed lines
     this.fx.clear();
     if (this.running) {

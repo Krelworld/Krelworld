@@ -244,7 +244,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.chantFreeAt = 0;
     // effects a touch quieter in here, so the level music comes through
     synth.setSfxScale(0.9);
-    this.events.once("shutdown", () => synth.setSfxScale(1));
+    synth.setMusicBoost(1.2);
+    this.events.once("shutdown", () => {
+      synth.setSfxScale(1);
+      synth.setMusicBoost(1);
+    });
     // coming back from a conversation or menu: if a fade-in was frozen by the pause, finish it rather than stay black
     this.events.on("resume", () => {
       const c = this.cameras.main;

@@ -301,9 +301,16 @@ export class Synth {
   private applyVolumes() {
     if (!this.ctx) return;
     this.master.gain.value = this.vol.master;
-    this.musicGain.gain.value = this.vol.music * 0.35 * this.duckK;
+    this.musicGain.gain.value = this.vol.music * 0.35 * this.duckK * this.musicBoost;
     if (this.el) this.el.volume = this.musicLevel();
     this.sfxGain.gain.value = this.vol.sfx * 0.6 * this.sfxScale;
+  }
+
+  /** In dungeons the level music comes up a touch (1 = normal). */
+  private musicBoost = 1;
+  setMusicBoost(k: number) {
+    this.musicBoost = k;
+    this.applyVolumes();
   }
 
   /** In dungeons the effects sit a touch under the level music (1 = normal). */
@@ -315,7 +322,7 @@ export class Synth {
 
   /** The recorded-music element's volume: the sliders, times the dialogue duck. */
   private musicLevel() {
-    return Math.max(0, Math.min(1, this.vol.master * this.vol.music * this.duckK));
+    return Math.max(0, Math.min(1, this.vol.master * this.vol.music * this.duckK * this.musicBoost));
   }
 
   /**

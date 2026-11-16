@@ -241,6 +241,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const s = G.s;
     s.phase = "dungeon";
     this.chantFreeAt = 0;
+    // effects a touch quieter in here, so the level music comes through
+    synth.setSfxScale(0.78);
+    this.events.once("shutdown", () => synth.setSfxScale(1));
     // the catwalks painted into the backdrop become real platforms
     if (this.room.ledges && this.room.backdrop && this.textures.exists(this.room.backdrop)) this.room = { ...this.room, platforms: [...(this.room.platforms ?? []), ...this.ledgePlatforms(this.room)] };
     const r = this.room;

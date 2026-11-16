@@ -303,7 +303,14 @@ export class Synth {
     this.master.gain.value = this.vol.master;
     this.musicGain.gain.value = this.vol.music * 0.35 * this.duckK;
     if (this.el) this.el.volume = this.musicLevel();
-    this.sfxGain.gain.value = this.vol.sfx * 0.6;
+    this.sfxGain.gain.value = this.vol.sfx * 0.6 * this.sfxScale;
+  }
+
+  /** In dungeons the effects sit a touch under the level music (1 = normal). */
+  private sfxScale = 1;
+  setSfxScale(k: number) {
+    this.sfxScale = k;
+    this.applyVolumes();
   }
 
   /** The recorded-music element's volume: the sliders, times the dialogue duck. */

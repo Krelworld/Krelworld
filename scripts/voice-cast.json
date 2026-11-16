@@ -41,20 +41,23 @@
     "_doc": "Accent tag put on every v3 line for non-cloned voices that must keep a particular accent.",
     "PRESIDENT KLERBLE": "strong Italian accent",
     "CHINESE CROBLEY": "speaking English with a very strong Chinese accent",
-    "RUSSELL BRAND": "lively, flamboyant cockney accent"
+    "RUSSELL BRAND": "lively, flamboyant cockney accent",
+    "GENIE": "speaking English with a strong Indian accent"
   },
   "pronounce": {
     "_doc": "How a word is said aloud (the on-screen text is unchanged). Lines containing it are re-recorded.",
     "Krebon": "Krebb-on",
     "Mollor": "Moll-or",
     "paedo": "pee-doe",
-    "paedos": "pee-doze"
+    "paedos": "pee-doze",
+    "Gabor": "Gay-bor"
   },
   "tempo": {
     "_doc": "Speed a speaker's clips up (>1) or down after recording, pitch kept. Existing clips are re-timed locally.",
     "KRANKY KRANDALL": 1.3,
     "SCROMBUS": 1.15,
-    "FLIRT CROBLEY": 1.2
+    "FLIRT CROBLEY": 1.2,
+    "GABOR THE GOAT": 1.2
   },
   "pitch": {
     "_doc": "Semitones to shift a speaker's clips by after recording (formants kept). Existing clips are shifted locally, not re-recorded."
@@ -132,7 +135,6 @@
     "FOSTER": "GjAaRGv6IWjtnPuwtAqd",
     "JUDGE KRELMOR": "TkqzJD8QNyqZ1XpaArZq",
     "ALISTAIR SWAMP": "mWsmNbOLE1XHZMeBqi6y",
-    "GENIE": "RQLn1ORGmrJYFEb2Cc5d",
     "GROZZ": "8CJ4jKkuUMZHSjXb9EmN",
     "PHIL": "0lIhjPT6U1R0oaM1uJsV",
     "PEGGY": "jc40Vr8eY5030W3AARu2",
@@ -311,7 +313,8 @@
     "PRANKSTER": "jIrvjs6QTDJfv5MWqPEk",
     "TONY SOPRANO": "2D8VH6sCoc8jgALrxV3S",
     "GORDON RAMSAY": "QHY1TBAanOZDM1GB8OcW",
-    "CHEF MICK": "esV7kJtKDdBipOsoWtGM"
+    "CHEF MICK": "esV7kJtKDdBipOsoWtGM",
+    "GENIE": "c15nV2xCagiZlwvCGBxW"
   },
   "designed_desc": {
     "KRANKY KRANDALL": "A reedy, squeaky, frail old British man in his nineties. Thin, high, wavering, slightly wheezy voice, rambling and forgetful, trailing off mid-sentence.",
@@ -367,7 +370,7 @@
     "FLAT-TYRE FROLLICK": "A nervous young assistant with a strong Northern Irish Belfast accent. Jittery and awestruck.",
     "FOSTER": "A polished, smooth commodities executive in his fifties with a South African accent. Persuasive and discreet.",
     "JUDGE KRELMOR": "A deep, stern, ancient judge in his seventies with a slow, grave Scottish accent.",
-    "GENIE": "A huge, booming, theatrical genie with a fast-talking New York accent. Grumpy and world-weary.",
+    "GENIE": "A huge, booming, theatrical genie with a strong Indian accent, speaking English. Grumpy, world-weary and dramatic.",
     "ALISTAIR SWAMP": "A deep, gravelly old blues singer with a slow Mississippi Delta southern drawl.",
     "GROZZ": "A rotund, sweaty working-class man in his forties with a thick London cockney accent. Beery and gruff.",
     "PHIL": "A gruff hard-man East End London pub landlord in his fifties with a cockney accent. Low and growly.",

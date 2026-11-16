@@ -480,6 +480,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       const y = gy - h;
       if (this.citadel) {
         this.citadel.platform(x, y, w, !!r.tower);
+      } else if (r.tower && this.textures.exists("tw_ledge")) {
+        // PixelLab gothic ledge: carved arches, gold trim, corbels; capped with a dark edge each end
+        this.add.tileSprite(x, y - 9, w, 29, "tw_ledge").setOrigin(0.5, 0).setDepth(4);
+        this.add.rectangle(x - w / 2, y - 9, 2, 22, 0x0b0610).setOrigin(0, 0).setDepth(4);
+        this.add.rectangle(x + w / 2, y - 9, 2, 22, 0x0b0610).setOrigin(1, 0).setDepth(4);
       } else if (r.tower) {
         // gothic stone ledge: dark stone, gold trim, little corbels underneath
         const g = this.add.graphics().setDepth(4);
@@ -580,6 +585,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     let k = 0;
     for (let y = gy - 260; y > 120; y -= 420) {
       for (const x of k % 2 ? [90, 870] : [300, 660]) {
+        if (this.textures.exists("tw_banner")) {
+          this.add.image(x, y - 78, "tw_banner").setOrigin(0.5, 0).setScale(1.5).setDepth(-6);
+          this.add.text(x, y + 38, mottos[k % mottos.length], { fontFamily: "Georgia, serif", fontSize: "9px", color: "#fde68a", fontStyle: "bold", align: "center", wordWrap: { width: 46 }, stroke: "#3b0a14", strokeThickness: 3 }).setOrigin(0.5).setDepth(-5);
+          continue;
+        }
         const g = this.add.graphics().setDepth(-6);
         g.fillStyle(0x7f1d1d, 1).fillRect(x - 26, y - 70, 52, 120).fillTriangle(x - 26, y + 50, x + 26, y + 50, x, y + 72);
         g.lineStyle(3, 0xd4a017, 1).strokeRect(x - 26, y - 70, 52, 120);
@@ -594,6 +604,12 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       if (i % 2) return;
       const x = r.w * fx + (i % 4 ? -1 : 1) * (w / 2 - 14);
       const y = gy - h - 7;
+      if (this.textures.exists("tw_candelabra")) {
+        this.add.image(x, y + 1, "tw_candelabra").setOrigin(0.5, 1).setScale(1.25).setDepth(6);
+        const glow = this.add.ellipse(x, y - 43, 40, 16, 0xfbbf24, 0.14).setDepth(5).setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({ targets: glow, scaleY: { from: 0.85, to: 1.2 }, alpha: { from: 0.6, to: 1 }, yoyo: true, repeat: -1, duration: 160 + ((i * 37) % 120) });
+        return;
+      }
       const g = this.add.graphics().setDepth(6);
       g.fillStyle(0x3f3f46, 1).fillRect(x - 2, y - 26, 4, 26).fillRect(x - 12, y - 26, 24, 3).fillRect(x - 8, y - 3, 16, 3);
       for (const dx of [-11, 0, 11]) {
@@ -783,7 +799,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       const x = rnd.between(60, r.w - 60);
       const y = rnd.between(90, r.h - 60);
       let o: Phaser.GameObjects.GameObject & { x: number; y: number };
-      if (i % 3 === 0) {
+      if (i % 3 === 0 && this.textures.exists("mind_pudding")) {
+        o = this.add.image(x, y, "mind_pudding").setScale(rnd.between(10, 16) / 10).setAlpha(0.6);
+      } else if (i % 3 === 0) {
         const g = this.add.graphics();
         g.fillStyle(0xffffff, 0.25).fillEllipse(0, 0, 70, 30);
         g.fillStyle(0xd97706, 0.35).fillEllipse(0, -3, 56, 18);
@@ -1036,7 +1054,10 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const cx = cam.scrollX + cam.width / 2;
     const cy = cam.scrollY + cam.height / 2;
     const bg = this.add.rectangle(cx, cy, 4000, 4000, 0x0b1a2a).setDepth(1500);
-    const tub = this.add.ellipse(cx, cy + 140, 700, 70, 0x1e293b).setDepth(1501);
+    // the Giant Hot Tub itself (the rooftop tubs backdrop, one tub centred), or a drawn one
+    const tub = this.textures.exists("sm_bigtub")
+      ? this.add.image(cx - 200 * 2.5, cy - 280, "sm_bigtub").setOrigin(0).setScale(2.5).setDepth(1501)
+      : this.add.ellipse(cx, cy + 140, 700, 70, 0x1e293b).setDepth(1501);
     const ps = this.player.spr;
     const phd = (ps.texture.customData as { hd?: number } | undefined)?.hd ?? 1;
     const tex = this.textures.exists("p_rik") ? "p_rik" : "boss_rik";

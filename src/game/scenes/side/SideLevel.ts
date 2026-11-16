@@ -104,17 +104,27 @@ export class SideLevel {
       if (hz.kind === "crusher") {
         const w = hz.w ?? 120;
         const block = sc.add.container(x, 70).setDepth(8);
-        block.add(sc.add.rectangle(0, -200, 16, 400, 0x52525b));
-        block.add(sc.add.rectangle(0, 0, w, 60, 0x9f1239).setStrokeStyle(4, 0x111827));
-        const stripes = sc.add.graphics();
-        for (let i = -w / 2; i < w / 2; i += 20) stripes.fillStyle(i % 40 ? 0xfacc15 : 0x111827, 1).fillRect(i, 22, 10, 8);
-        block.add(stripes);
-        block.add(sc.add.text(0, -6, r.crusherLabel ?? "PRESS", { fontFamily: "Impact, sans-serif", fontSize: "14px", color: "#fff" }).setOrigin(0.5));
+        block.add(sc.add.rectangle(0, -200, 16, 400, 0x52525b).setStrokeStyle(2, 0x111827));
+        if (sc.textures.exists("side_crusher")) {
+          // PixelLab press head: riveted crimson steel, hazard-striped foot; its bottom edge is the block's (y + 30)
+          const head = sc.add.image(0, 30, "side_crusher").setOrigin(0.5, 1);
+          head.setScale(w / head.width);
+          block.add(head);
+          block.add(sc.add.text(0, -4, r.crusherLabel ?? "PRESS", { fontFamily: "Impact, sans-serif", fontSize: "14px", color: "#fff", stroke: "#111827", strokeThickness: 4 }).setOrigin(0.5));
+        } else {
+          block.add(sc.add.rectangle(0, 0, w, 60, 0x9f1239).setStrokeStyle(4, 0x111827));
+          const stripes = sc.add.graphics();
+          for (let i = -w / 2; i < w / 2; i += 20) stripes.fillStyle(i % 40 ? 0xfacc15 : 0x111827, 1).fillRect(i, 22, 10, 8);
+          block.add(stripes);
+          block.add(sc.add.text(0, -6, r.crusherLabel ?? "PRESS", { fontFamily: "Impact, sans-serif", fontSize: "14px", color: "#fff" }).setOrigin(0.5));
+        }
         const shadow = sc.add.ellipse(x, gy - 2, w, 12, 0x000000, 0).setDepth(3);
         this.crushers.push({ x, w, period: hz.period ?? 2600, offset: hz.offset ?? Math.random() * 2000, block, shadow, state: "up", hitAt: 0 });
       } else if (hz.kind === "steam") {
         const puff = sc.add.rectangle(x, gy, 54, 280, 0xe5e7eb, 0).setOrigin(0.5, 1).setDepth(7);
-        sc.add.rectangle(x, gy - 4, 70, 10, 0x374151).setDepth(6).setStrokeStyle(2, 0x111827);
+        // a PixelLab vent box sunk into the floor (only its grille shows above the ground strip), or a drawn grate
+        if (sc.textures.exists("side_vent")) sc.add.image(x, gy + 22, "side_vent").setOrigin(0.5, 1).setScale(1.3).setDepth(1.5);
+        else sc.add.rectangle(x, gy - 4, 70, 10, 0x374151).setDepth(6).setStrokeStyle(2, 0x111827);
         this.vents.push({ x, period: hz.period ?? 3000, offset: hz.offset ?? Math.random() * 2000, puff, nextTick: 0 });
       } else if (hz.kind === "conveyor") {
         const w = hz.w ?? 300;
@@ -130,7 +140,13 @@ export class SideLevel {
       const wall = sc.add.container(-400, 0).setDepth(30);
       const col = r.chase.color ?? 0x991b1b;
       wall.add(sc.add.rectangle(-150, gy / 2, 300, gy + 200, col, 1));
-      for (let y = 20; y < gy; y += 46) wall.add(sc.add.triangle(6, y, 0, 0, 34, 18, 0, 36, 0xd4d4d8).setStrokeStyle(2, 0x111827));
+      if (sc.textures.exists("side_mincer")) {
+        // the PixelLab mincer face (blades on its right edge), juddering as it grinds
+        const face = sc.add.image(40, gy / 2, "side_mincer").setOrigin(1, 0.5);
+        face.setScale((gy + 200) / face.height);
+        wall.add(face);
+        sc.tweens.add({ targets: face, x: { from: 37, to: 43 }, y: { from: gy / 2 - 2, to: gy / 2 + 2 }, yoyo: true, repeat: -1, duration: 70 });
+      } else for (let y = 20; y < gy; y += 46) wall.add(sc.add.triangle(6, y, 0, 0, 34, 18, 0, 36, 0xd4d4d8).setStrokeStyle(2, 0x111827));
       wall.add(sc.add.text(-40, gy / 2, r.chase.label, { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#ffffff", stroke: "#000", strokeThickness: 6, align: "center", wordWrap: { width: 260 } }).setOrigin(0.5).setAngle(-90));
       this.chase = { x: -400, wall, hitAt: 0, started: false, done: false };
     }

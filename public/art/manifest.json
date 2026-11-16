@@ -5389,6 +5389,51 @@
   }
  },
  "images": {
+  "fn_heap": {
+   "file": "props/fn_heap.png"
+  },
+  "wall_mind": {
+   "file": "props/wall_mind.png"
+  },
+  "tw_ledge": {
+   "file": "props/tw_ledge.png"
+  },
+  "tw_candelabra": {
+   "file": "props/tw_candelabra.png"
+  },
+  "tw_banner": {
+   "file": "props/tw_banner.png"
+  },
+  "rd_barrier": {
+   "file": "props/rd_barrier.png"
+  },
+  "tv_set_frame": {
+   "file": "ui/tv_set_frame.png"
+  },
+  "vg_cockpit": {
+   "file": "backdrops/vg_cockpit.png"
+  },
+  "bg_krelford_rail": {
+   "file": "backdrops/bg_krelford_rail.png"
+  },
+  "bg_finale_ruins": {
+   "file": "backdrops/bg_finale_ruins.png"
+  },
+  "tile_mind": {
+   "file": "tiles/tile_mind.png"
+  },
+  "side_crusher": {
+   "file": "props/side_crusher.png"
+  },
+  "side_vent": {
+   "file": "props/side_vent.png"
+  },
+  "mind_pudding": {
+   "file": "props/mind_pudding.png"
+  },
+  "side_mincer": {
+   "file": "props/side_mincer.png"
+  },
   "bld_ABANDONED": {
    "file": "buildings/ABANDONED.png"
   },

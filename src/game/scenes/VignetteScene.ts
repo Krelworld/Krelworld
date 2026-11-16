@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { SJ_KREDDLE, SJ_TOWER_DEMO, SJ_TOWER_SIM } from "../../content/sanjeev";
 import { playerKey } from "../gfx/sanmikForm";
 import { kruncherVictim } from "../systems/sanmik";
-import { hasVfx, vfx } from "../gfx/Vfx";
+import { hasVfx, vfx, vfxScatter } from "../gfx/Vfx";
 import type { Line } from "../../data/types";
 import { G } from "../G";
 import { DialogueBox } from "../ui/DialogueBox";
@@ -861,6 +861,20 @@ export class VignetteScene extends Phaser.Scene {
     const kev = this.add.sprite(640, 360, "boss_flatmate", 0).setScale(3).setDepth(10);
     const gron = this.add.sprite(260, 360, "spr_GRONNY", 0).setScale(4).setDepth(10);
     await this.talk([say("ROBBO", "Gronny, mate. Let's talk about this. The deposit's coming. I've got a guy."), say("GRONNY", "…"), this.cue("THE CARPET HAS BEEN AVENGED IN SIX PARTS", true)]);
+    // the gore (cartoon, off with the gore setting): sprays, chunks and pools that stay on the carpet
+    const gore = G.meta.settings.gore !== false;
+    const bleed = (x: number, y: number, big = 1) => {
+      if (!gore) return;
+      synth.play(Math.random() < 0.5 ? "splat" : "squelch");
+      vfx(this, "vfx_bloodspray", x, y, { scale: 1.6 * big, depth: 14, flipX: Math.random() < 0.5 });
+      vfx(this, "vfx_blood", x + (Math.random() - 0.5) * 50, y + 10, { scale: 1.3 * big, depth: 14, delay: 90 });
+    };
+    const gib = (x: number, y: number, n = 4) => {
+      if (!gore) return;
+      synth.play("bonecrack");
+      vfxScatter(this, "vfx_gore", x, y, n, 70, { scale: 1.5, depth: 14 }, 60);
+    };
+    const pool = (x: number, w = 1) => gore && vfx(this, "vfx_bloodpool", x, 452, { scale: 2 * w, depth: 9, hold: true, delay: 150 });
     const hit = async (label: string, fx: () => Promise<void>) => {
       this.caption(label, "#ffd23f", 26);
       await fx();
@@ -878,6 +892,10 @@ export class VignetteScene extends Phaser.Scene {
       synth.play("smash");
       this.cameras.main.shake(300, 0.02);
       kev.setScale(3, 1.2).setX(890);
+      // into the wall face first: a red smear where he hit, and a trail down to the skirting
+      bleed(900, 330, 1.3);
+      if (gore) vfx(this, "vfx_bloodpool", 905, 330, { scale: 1.8, depth: 9, hold: true, angle: 90 });
+      if (gore) kev.setTint(0xffb0b0);
       blow.destroy();
       await this.wait(400);
       kev.setScale(3);
@@ -889,6 +907,12 @@ export class VignetteScene extends Phaser.Scene {
       await this.tween({ targets: anvil, y: 320, duration: 500, ease: "Quad.in" });
       synth.play("banhammer");
       kev.setScale(4, 0.6);
+      // squashed flat: everything that was inside him comes out of the sides
+      bleed(600, 380, 1.6);
+      bleed(690, 380, 1.4);
+      gib(640, 370, 6);
+      pool(640, 1.3);
+      this.cameras.main.shake(350, 0.025);
       await this.wait(500);
       anvil.destroy();
       await this.tween({ targets: kev, scaleX: 3, scaleY: 3, duration: 300, ease: "Back.out" });
@@ -897,6 +921,8 @@ export class VignetteScene extends Phaser.Scene {
       for (let i = 0; i < 4; i++) {
         await this.wait(250);
         synth.play("crit");
+        bleed(620 + i * 15, 330 - i * 12, 0.9);
+        if (i === 3) gib(640, 330, 3);
         const t = this.add.text(600 + i * 25, 300 - i * 20, "99", { fontFamily: FONT, fontSize: "30px", color: "#ff2a2a", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setDepth(20);
         this.tween({ targets: t, y: t.y - 40, alpha: 0, duration: 900 });
         kev.setTintFill(0xffffff);
@@ -910,6 +936,12 @@ export class VignetteScene extends Phaser.Scene {
       for (let i = 0; i < 8; i++) synth.play("select");
       piano.destroy();
       kev.setAngle(90);
+      // the keys come up red
+      bleed(640, 350, 1.8);
+      gib(640, 360, 7);
+      pool(640, 1.7);
+      if (gore) kev.setTint(0xff7070);
+      this.cameras.main.shake(400, 0.03);
       this.add.text(640, 260, "♪ ♫ ♪", { fontFamily: FONT, fontSize: "26px", color: "#ffffff" }).setOrigin(0.5).setDepth(20);
       await this.wait(500);
     });
@@ -917,8 +949,16 @@ export class VignetteScene extends Phaser.Scene {
       kev.setVisible(false);
       const roll = this.textures.exists("p_carpet_roll") ? this.add.image(640, 380, "p_carpet_roll").setScale(1.3).setDepth(12) : this.add.rectangle(640, 380, 160, 50, 0x7a1f2b).setStrokeStyle(4, 0xd6c49a).setDepth(12);
       this.add.text(640, 380, "robbo (inside)", { fontFamily: FONT, fontSize: "11px", color: "#d6c49a" }).setOrigin(0.5).setDepth(13);
+      // it's soaking through
+      if (gore) {
+        if (roll instanceof Phaser.GameObjects.Image) roll.setTint(0xd04040);
+        pool(640, 2.2);
+        synth.play("squelch");
+      }
       await this.wait(600);
+      const drip = gore ? this.time.addEvent({ delay: 110, loop: true, callback: () => vfx(this, "vfx_blood", (roll as Phaser.GameObjects.Image).x, (roll as Phaser.GameObjects.Image).y + 20, { scale: 0.9, depth: 11 }) }) : null;
       await this.tween({ targets: roll, x: 1100, y: -100, angle: 1080, duration: 1400, ease: "Quad.out" });
+      drip?.remove();
       const star = this.add.text(930, 30, "✦", { fontFamily: FONT, fontSize: "26px", color: "#ffffff" }).setDepth(20);
       synth.play("ding");
       await this.tween({ targets: star, scale: 2, alpha: 0, duration: 800 });
@@ -932,7 +972,8 @@ export class VignetteScene extends Phaser.Scene {
     await this.wait(1200);
     await this.talk([
       say("GRONNY", "Fair enough."),
-      dir("Somewhere over the horizon, Robbo lands in Kreddle, alive, embarrassed, and permanently rolled in a ruined carpet. He Venmos you the deposit the next morning. With interest."),
+      dir(gore ? "Somewhere over the horizon, what's left of Robbo lands in Kreddle: alive (medically, just), embarrassed, several pints lighter, and permanently rolled in a ruined carpet. He Venmos you the deposit the next morning. With interest." : "Somewhere over the horizon, Robbo lands in Kreddle, alive, embarrassed, and permanently rolled in a ruined carpet. He Venmos you the deposit the next morning. With interest."),
+      ...(gore ? [dir("Your carpet, for the record, is now considerably worse.")] : []),
       dir("The carpet is avenged."),
     ]);
   }

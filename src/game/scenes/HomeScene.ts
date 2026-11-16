@@ -8,6 +8,7 @@ import { DialogueBox } from "../ui/DialogueBox";
 import { switchTo } from "../Flow";
 import { synth } from "../audio/Synth";
 import { FONT, uiFrame } from "../ui/theme";
+import { voice } from "../audio/Voice";
 import { dir, say } from "../../content/dsl";
 import { animateWalker, backdrop } from "../gfx/HD";
 import { CHARACTERS } from "../../data/characters";
@@ -284,7 +285,32 @@ export class HomeScene extends Phaser.Scene {
     const cover = this.textures.exists("p_dark_autism") ? this.add.image(150, 190, "p_dark_autism").setScale(0.9).setAngle(-4).setDepth(950).setAlpha(0) : null;
     if (cover) this.tweens.add({ targets: cover, alpha: 1, duration: 250 });
     synth.play("pickup");
+    // SKIP: close the book and stop the author mid-sentence
+    let skipped = false;
+    const skip = this.add
+      .text(944, 186, "SKIP ▶▶  (Tab)", { fontFamily: FONT, fontSize: "14px", color: "#ffffff", fontStyle: "bold", backgroundColor: "#7a1d1dee", padding: { x: 10, y: 6 } })
+      .setOrigin(1, 0)
+      .setScrollFactor(0)
+      .setDepth(2100)
+      .setInteractive({ useHandCursor: true });
+    const doSkip = () => {
+      if (skipped) return;
+      skipped = true;
+      voice.stop();
+      this.box.skipAll();
+    };
+    skip.on("pointerdown", (_p: Phaser.Input.Pointer, _x: number, _y: number, ev: Phaser.Types.Input.EventData) => {
+      ev.stopPropagation();
+      doSkip();
+    });
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Tab") doSkip();
+    };
+    window.addEventListener("keydown", onKey);
     await this.talk([dir("You open Dark Autism - An Erotic Memoir at a random page."), DARK_AUTISM_PASSAGES[i]]);
+    window.removeEventListener("keydown", onKey);
+    skip.destroy();
+    if (skipped) voice.stop();
     cover?.destroy();
   }
 

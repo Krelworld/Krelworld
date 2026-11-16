@@ -164,6 +164,14 @@ export class DialogueBox {
     this.root.destroy();
   }
 
+  /** Skip the rest of the script and shut the voice up. */
+  skipAll() {
+    if (!this.active) return;
+    this.skipping = true;
+    voice.stop();
+    this.advance();
+  }
+
   private advance() {
     if (this.typing) {
       this.finishTyping();

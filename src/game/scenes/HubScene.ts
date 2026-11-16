@@ -547,9 +547,9 @@ export class HubScene extends Phaser.Scene {
       G.emit("toast", { title: `CHAPTER ${s.chapter}`, text: ch.subtitle ? `${ch.title} — ${ch.subtitle}` : ch.title });
       await this.talk(chapterIntroLines(s.chapter, s.player));
       G.save();
-      // Chapter 4 starts with a night in: home, and a relaxing episode of Beep Show, before anything else
+      // Chapter 4 starts with a night in: home, and a relaxing episode of Peep Show, before anything else
       if (s.chapter === 4 && !s.flags.tv_beep_show) {
-        await this.talk([dir("Before any of that: a night in. You head home for a relaxing episode of Beep Show.")]);
+        await this.talk([dir("Before any of that: a night in. You head home for a relaxing episode of Peep Show.")]);
         this.go("Home", { beep: true });
         return;
       }

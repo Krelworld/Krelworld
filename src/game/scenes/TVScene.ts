@@ -57,7 +57,7 @@ const TV_ALIASES: Record<string, string> = {
   "PUB PATRON": "GROZZ",
   "CONSERVATIVE SUPPORTER": "GROZZ",
   VOTER: "MINTY",
-  // Beep Show's Sana'a scenes
+  // Peep Show's Sana'a scenes
   "YEMENI EXECUTIVE": "EXECUTIVE",
   "YEMENI OFFICIAL": "OFFICIAL",
   "YEMENI OFFICER": "OFFICER",

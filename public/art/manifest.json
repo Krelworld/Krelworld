@@ -3664,8 +3664,8 @@
     ]
    }
   },
-  "spr_TV_MARC": {
-   "file": "chars/TV_MARC.png",
+  "spr_TV_MARK": {
+   "file": "chars/TV_MARK.png",
    "frame": 64,
    "idle": {
     "south": 0,
@@ -8428,8 +8428,8 @@
    "frameHeight": 111,
    "hd": 0.5517
   },
-  "tvface_MARC": {
-   "file": "tv/face_MARC.png",
+  "tvface_MARK": {
+   "file": "tv/face_MARK.png",
    "frameWidth": 128,
    "frameHeight": 128
   },

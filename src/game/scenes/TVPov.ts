@@ -8,7 +8,7 @@ import { G } from "../G";
 import { FONT } from "../ui/theme";
 
 /**
- * KrelTV "POV" presentation (an episode opts in with `style: "pov"`; Beep Show uses it).
+ * KrelTV "POV" presentation (an episode opts in with `style: "pov"`; Peep Show uses it).
  *
  * Almost every shot is from somebody's eyes: whoever is talking fills the screen, looking into the lens, with the
  * room soft behind them. A (V.O.) line is the narrator thinking, so the camera shows who he's looking at (not
@@ -41,7 +41,7 @@ type Expr = "neutral" | "alarm" | "blink";
 
 /** Directions that name somebody, mapped to their close-up. */
 const NAMED: [RegExp, string][] = [
-  [/^marc\b/i, "MARC"],
+  [/^mark\b/i, "MARK"],
   [/^jez\b/i, "JEZ"],
   [/^simon\b/i, "SIMON"],
   [/^madison\b/i, "MADISON"],
@@ -51,7 +51,7 @@ const NAMED: [RegExp, string][] = [
   [/^(an |the )?officer\b/i, "YEMENI OFFICER"],
 ];
 /** Close-up scale per face (the art isn't all framed the same; this keeps heads about the same size). */
-const FACE_SCALE: Record<string, number> = { MARC: 2.95, JEZ: 2.8, MADISON: 3.2 };
+const FACE_SCALE: Record<string, number> = { MARK: 2.95, JEZ: 2.8, MADISON: 3.2 };
 const faceScale = (name: string) => FACE_SCALE[name] ?? 3.35;
 
 const ALARM_WORDS = /\b(horrif|terror|freez|recoil|drops|appalled|panic|widen|stops chewing|tearful|disgusted|falls|grimac|furious|troubled)/i;
@@ -60,14 +60,14 @@ export class PovDirector {
   readonly layer: Phaser.GameObjects.Container;
   private timers: Phaser.Time.TimerEvent[] = [];
   private face: { name: string; spr: Phaser.GameObjects.Sprite; base: number } | null = null;
-  private narrator = "MARC";
+  private narrator = "MARK";
   /** who the narrator is looking at (what a V.O. line shows) */
   private looking = "";
   /** a sequence's picture stays up through the thoughts that follow it */
   private hold = false;
   /** per-scene look: a swinging interrogation lamp, a rumbling plane */
   private sceneFx: "" | "lamp" | "rumble" = "";
-  /** the bedroom scene: we stay tightly on Marc's face */
+  /** the bedroom scene: we stay tightly on Mark's face */
   private selfShot = "";
   private stabAt: number;
   private idx = 0;
@@ -423,7 +423,7 @@ export class PovDirector {
 
   private gokuWide(text: string): number {
     if (!this.wideSprites.GOKU) {
-      this.wide(["MARC", "GOKU", "JEZ"]);
+      this.wide(["MARK", "GOKU", "JEZ"]);
       (this.wideSprites.GOKU as Phaser.GameObjects.Sprite | undefined)?.setScale(5.2);
     }
     const g = this.wideSprites.GOKU;
@@ -479,12 +479,12 @@ export class PovDirector {
       [/She waves/i, () => this.wave("MADISON")],
       [/slides over a figure/i, () => this.figure()],
       [/sits opposite FOSTER/i, () => this.closeUpFor("FOSTER", "neutral")],
-      [/Marc and Simon drink wine/i, () => this.closeUpFor("SIMON", "neutral")],
+      [/Mark and Simon drink wine/i, () => this.closeUpFor("SIMON", "neutral")],
       [/seizes Jez/i, () => this.whip("JEZ")],
       [/dinosaur stickers on her phone/i, () => this.stickers()],
       [/Simon kisses him/i, () => this.kiss()],
       [/Clothes on floor/i, () => this.clothes()],
-      [/tightly on MARC'S FACE/i, () => this.underDuvet()],
+      [/tightly on MARK'S FACE/i, () => this.underDuvet()],
       [/grips the sheets/i, () => this.gripSheets()],
       [/lies rigidly beside/i, () => this.inBed()],
       [/Phone rings/i, () => this.phoneScreen("FOSTER\nincoming call…", 0x16a34a, false)],
@@ -495,7 +495,7 @@ export class PovDirector {
       [/deal is going brilliantly/i, () => this.boardroomWide()],
       [/executives exchange looks/i, () => this.exchangeLooks()],
       [/SECURITY MEN enter/i, () => this.securityEnter()],
-      [/guards grab Marc/i, () => this.grab("MARC")],
+      [/guards grab Mark/i, () => this.grab("MARK")],
       [/Security men grab Jez/i, () => this.grab("JEZ")],
       [/phones start vibrating/i, () => this.phonesBuzz()],
       [/RAF phone goes off/i, () => this.phoneScreen("RAF\n✈ ALERT ✈", 0x1d4ed8, true)],
@@ -515,9 +515,9 @@ export class PovDirector {
       [/deported in a prisoner exchange/i, () => this.plane()],
       [/Simon turns away/i, () => this.turnAway("SIMON")],
       [/Jez leans toward/i, () => this.lean("JEZ")],
-      [/Marc enters carrying shopping/i, () => this.shopping()],
+      [/Mark enters carrying shopping/i, () => this.shopping()],
       [/Jez jumps up/i, () => this.jumpUp("JEZ")],
-      [/opens Marc's fridge/i, () => this.fridge()],
+      [/opens Mark's fridge/i, () => this.fridge()],
       [/entire roast chicken/i, () => this.chicken()],
       [/devours it/i, () => this.devour()],
       [/building suddenly SHAKES/i, () => this.explosion(false)],
@@ -645,7 +645,7 @@ export class PovDirector {
         synth.play("pop");
       }),
     );
-    // Marc recoils
+    // Mark recoils
     this.later(1800, () => {
       this.sc.cameras.main.shake(220, 0.008);
       this.sc.tweens.add({ targets: this.layer, scale: 0.85, x: 70, y: 30, duration: 220, ease: "Quad.out" });
@@ -688,10 +688,10 @@ export class PovDirector {
     void d;
   }
 
-  /** "We stay tightly on MARC'S FACE as he disappears partly beneath the duvet." */
+  /** "We stay tightly on MARK'S FACE as he disappears partly beneath the duvet." */
   private underDuvet() {
-    this.selfShot = "MARC";
-    const spr = this.closeUp("MARC", "neutral", { recut: true });
+    this.selfShot = "MARK";
+    const spr = this.closeUp("MARK", "neutral", { recut: true });
     this.sc.tweens.add({ targets: spr, y: spr.y + 12, duration: 1500, ease: "Sine.easeInOut" });
     this.duvet();
     this.vignette().setData("vignette", true);
@@ -700,7 +700,7 @@ export class PovDirector {
 
   private gripSheets() {
     this.sc.cameras.main.shake(400, 0.006);
-    if (this.face?.name === "MARC") this.setExpr("alarm");
+    if (this.face?.name === "MARK") this.setExpr("alarm");
     return 800;
   }
 
@@ -712,13 +712,13 @@ export class PovDirector {
     this.add(this.sc.add.ellipse(SX + SW * 0.3, SY + SH * 0.4, 230, 130, 0xffffff));
     this.add(this.sc.add.ellipse(SX + SW * 0.7, SY + SH * 0.4, 230, 130, 0xffffff));
     // seen from above: two heads on two pillows, the duvet up to their chins
-    const m = this.add(this.sc.add.sprite(SX + SW * 0.3, SY + SH * 0.62, this.faceKey("MARC"), FACE_ALARM).setOrigin(0.5, 1).setScale(1.9).setAngle(-6));
+    const m = this.add(this.sc.add.sprite(SX + SW * 0.3, SY + SH * 0.62, this.faceKey("MARK"), FACE_ALARM).setOrigin(0.5, 1).setScale(1.9).setAngle(-6));
     const s = this.add(this.sc.add.sprite(SX + SW * 0.7, SY + SH * 0.62, this.faceKey("SIMON"), FACE_BLINK).setOrigin(0.5, 1).setScale(1.9).setAngle(8));
     this.add(this.sc.add.rectangle(SX, SY + SH * 0.5, SW, SH * 0.5, 0xb9c6da).setOrigin(0));
     const g = this.add(this.sc.add.graphics());
     g.lineStyle(3, 0x9aa8be, 1);
     for (let i = 0; i < 6; i++) g.lineBetween(SX + i * 100, SY + SH * 0.6 + (i % 2) * 20, SX + i * 100 + 80, SY + SH * 0.66);
-    // Simon sleeps soundly; Marc does not blink
+    // Simon sleeps soundly; Mark does not blink
     this.sc.tweens.add({ targets: s, y: s.y + 3, duration: 1400, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
     void m;
     return 2000;
@@ -754,7 +754,7 @@ export class PovDirector {
   }
 
   private lightbulb() {
-    const spr = this.closeUp("MARC", "alarm", { recut: true });
+    const spr = this.closeUp("MARK", "alarm", { recut: true });
     const b = this.add(this.sc.add.text(spr.x + 170, this.r.SY + 90, "💡", { fontSize: "72px" }).setOrigin(0.5).setScale(0));
     this.sc.tweens.add({ targets: b, scale: 1, duration: 300, ease: "Back.out" });
     this.sc.cameras.main.flash(160, 255, 255, 200);
@@ -797,7 +797,7 @@ export class PovDirector {
     }, 8);
     this.later(1100, () => {
       synth.play("door");
-      ["MARC", "SIMON", "JEZ", "MADISON"].forEach((nm, i) => this.walkIn(nm, stopX + 30, SX + SW * 0.48 + i * 75, ground + 14, 200 + i * 300));
+      ["MARK", "SIMON", "JEZ", "MADISON"].forEach((nm, i) => this.walkIn(nm, stopX + 30, SX + SW * 0.48 + i * 75, ground + 14, 200 + i * 300));
     });
     this.later(2700, () => {
       this.layer.bringToTop(car);
@@ -809,7 +809,7 @@ export class PovDirector {
 
   private boardroomWide(turn = false) {
     const { SX, SY, SH } = this.r;
-    this.wide(["MARC", "SIMON", "JEZ", "MADISON"], "tv_boardroom", SY + SH - 20);
+    this.wide(["MARK", "SIMON", "JEZ", "MADISON"], "tv_boardroom", SY + SH - 20);
     const bg = this.layer.list[0];
     const tex = this.host.spriteFor("YEMENI EXECUTIVE");
     for (let i = 0; tex && i < 3; i++) {
@@ -1037,7 +1037,7 @@ export class PovDirector {
   /** INT. YEMENI POLICE CELL: the three of them on the bench, and the bars slam down. */
   private cell() {
     const { SX, SY, SW, SH } = this.r;
-    this.wide(["MARC", "SIMON", "JEZ"], "tv_cell");
+    this.wide(["MARK", "SIMON", "JEZ"], "tv_cell");
     const g = this.add(this.sc.add.graphics());
     g.fillStyle(0x111827, 1);
     for (let x = SX + 20; x < SX + SW; x += 56) g.fillRect(x, SY, 12, SH);
@@ -1101,7 +1101,7 @@ export class PovDirector {
     this.sc.tweens.add({ targets: p, angle: { from: -2, to: 2 }, duration: 400, yoyo: true, repeat: -1 });
     synth.play("jet");
     this.later(3000, () => {
-      this.wide(["MARC", "JEZ", "SIMON"], this.host.setTexture());
+      this.wide(["MARK", "JEZ", "SIMON"], this.host.setTexture());
       this.every(70, () => this.layer.setPosition((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4));
       // Jez in handcuffs
       const j = this.wideSprites.JEZ;
@@ -1129,7 +1129,7 @@ export class PovDirector {
   private shopping() {
     this.wide(["JEZ"]);
     const { SX, SY, SH } = this.r;
-    this.walkIn("MARC", SX - 60, SX + 140, SY + SH - 40 + 14, 100);
+    this.walkIn("MARK", SX - 60, SX + 140, SY + SH - 40 + 14, 100);
     const bag = this.add(this.sc.add.text(SX - 30, SY + SH - 110, "🛍", { fontSize: "34px" }).setOrigin(0.5));
     this.sc.tweens.add({ targets: bag, x: SX + 175, duration: 700, delay: 100 });
     synth.play("door");
@@ -1146,7 +1146,7 @@ export class PovDirector {
   }
 
   private gokuGrin() {
-    if (!this.wideSprites.GOKU) this.wide(["MARC", "GOKU", "JEZ"]);
+    if (!this.wideSprites.GOKU) this.wide(["MARK", "GOKU", "JEZ"]);
     const g = this.wideSprites.GOKU;
     if (g) {
       const s = this.add(this.sc.add.text(g.x + 40, g.y - 260, "✦", { fontSize: "40px", color: "#fff" }).setOrigin(0.5).setScale(0));
@@ -1181,9 +1181,9 @@ export class PovDirector {
   }
 
   private devour() {
-    // back on Goku (the chicken line cut away to Marc)
+    // back on Goku (the chicken line cut away to Mark)
     if (!this.wideSprites.GOKU) {
-      this.wide(["MARC", "GOKU"]);
+      this.wide(["MARK", "GOKU"]);
       (this.wideSprites.GOKU as Phaser.GameObjects.Sprite | undefined)?.setScale(5.2);
     }
     let c = this.layer.list.find((o) => o.getData?.("chicken")) as Phaser.GameObjects.Text | undefined;

@@ -151,7 +151,7 @@ export class HomeScene extends Phaser.Scene {
       return;
     }
     if (this.mustWatchBeep() && !s.flags.beep_tv_pending) {
-      await this.talk([dir("A night in. A relaxing episode of Beep Show is about to start. (The telly's on the left: walk up and press E.)")]);
+      await this.talk([dir("A night in. A relaxing episode of Peep Show is about to start. (The telly's on the left: walk up and press E.)")]);
       return;
     }
     const q = canTurnIn(s, "HOME");
@@ -241,7 +241,7 @@ export class HomeScene extends Phaser.Scene {
     return !f.prologue_done && !f.tv_klerble_welcome;
   }
 
-  /** Chapter 4 opens with a relaxing episode of Beep Show, and you're not leaving till you've watched it. */
+  /** Chapter 4 opens with a relaxing episode of Peep Show, and you're not leaving till you've watched it. */
   private mustWatchBeep() {
     return G.s.chapter === 4 && !G.s.flags.tv_beep_show;
   }
@@ -953,7 +953,7 @@ export class HomeScene extends Phaser.Scene {
       return;
     }
     if (this.mustWatchBeep()) {
-      void this.talk([dir("No. You're having a night in. Watch a relaxing episode of Beep Show first. (The telly, on the left.)")]);
+      void this.talk([dir("No. You're having a night in. Watch a relaxing episode of Peep Show first. (The telly, on the left.)")]);
       return;
     }
     const s = G.s;

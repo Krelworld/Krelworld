@@ -71,7 +71,7 @@ export class KrexBoss extends Boss {
     this.sc = w.sc;
     this.setScale(2.5);
     this.thresholds = [...THRESH];
-    this.def = { ...this.def, shout: BOSS_TEXT.krex.taunts, shoutEvery: 3400, speed: 55, damage: 22 };
+    this.def = { ...this.def, shout: BOSS_TEXT.krex.taunts, shoutEvery: 8000, speed: 55, damage: 22 };
     for (const id of ["tail", "legb", "gun", "legf", "arm", "head"] as PartId[]) {
       const key = `c7_krex_${id}`;
       const img = this.sc.add.image(x, y, key).setScale(2.5);

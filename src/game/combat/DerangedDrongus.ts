@@ -53,7 +53,7 @@ export class DerangedDrongusBoss extends Boss {
     this.setScale(art ? 2.1 : 4.2);
     if (!art) this.setTint(0xff6b6b);
     this.thresholds = [0.66, 0.33];
-    this.def = { ...this.def, shout: BOSS_TEXT.drongus2.taunts, shoutEvery: 3800, damage: 20 };
+    this.def = { ...this.def, shout: BOSS_TEXT.drongus2.taunts, shoutEvery: 8500, damage: 20 };
     // the PixelLab art has the gun in his hands already
     if (!art && w.sc.textures.exists("c7_drongus_gun")) this.gun = w.sc.add.image(x, y, "c7_drongus_gun").setScale(1.1);
     this.glow = w.sc.add.ellipse(x, y, 90, 150, 0xff3b30, 0).setBlendMode(Phaser.BlendModes.ADD);

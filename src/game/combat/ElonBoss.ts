@@ -43,7 +43,7 @@ export class ElonBoss extends Boss {
     super(w, "elon", x, y, 1300, art ? "boss_elon" : fallbackTexture(w.sc), 40, 0xe5e7eb, art ? 128 : 48, art ? 128 : 48);
     this.setScale(art ? 1.7 : 3);
     this.thresholds = [0.5];
-    this.def = { ...this.def, shout: BOSS_TEXT.elon.taunts, shoutEvery: 2800, speed: 120, damage: 12 };
+    this.def = { ...this.def, shout: BOSS_TEXT.elon.taunts, shoutEvery: 7500, speed: 120, damage: 12 };
   }
 
   get radius() {

@@ -43,7 +43,7 @@ export class DrongusPhaseOneBoss extends Boss {
     super(w, "drongus1", x, y, 2600, "boss_drongus", 32, 0xffd23f, 32, 48);
     this.setScale(3);
     this.thresholds = [0.66, 0.33];
-    this.def = { ...this.def, shout: BOSS_TEXT.drongus1.taunts, shoutEvery: 4200 };
+    this.def = { ...this.def, shout: BOSS_TEXT.drongus1.taunts, shoutEvery: 9000 };
     if (w.sc.textures.exists("c7_drongus_gun")) this.gun = w.sc.add.image(x, y, "c7_drongus_gun").setScale(0.9).setDepth(this.depth + 1);
     this.on("destroy", () => {
       this.gun?.destroy();

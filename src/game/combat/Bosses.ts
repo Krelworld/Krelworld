@@ -208,9 +208,17 @@ export abstract class Boss extends Enemy {
     return this.displayWidth * 0.32;
   }
 
+  /** When this boss last taunted: they pipe up at most every 8-11 seconds, not on every attack. */
+  private lastTaunt = -1e9;
+  private tauntGap = 0;
+
   taunt() {
     const t = BOSS_TEXT[this.bossId]?.taunts ?? [];
     if (!t.length) return;
+    const now = this.scene.time.now;
+    if (now - this.lastTaunt < this.tauntGap) return;
+    this.lastTaunt = now;
+    this.tauntGap = 8000 + Math.random() * 3000;
     const i = Math.floor(Math.random() * t.length);
     this.world.floatText(this.x, this.y - this.displayHeight / 2 - 10, t[i], "#ff6666", 16);
     // bosses with recorded cries say it out loud (cronster_taunt: the same order as their taunts)

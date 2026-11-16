@@ -71,7 +71,7 @@ export class DarkDrongusBoss extends Boss {
     this.baseScale = art ? 1.75 : 1.6;
     this.setScale(this.baseScale);
     if (!art) this.setTint(0xffe28a);
-    this.def = { ...this.def, damage: 12, shout: DD_TAUNTS, shoutEvery: 4200 };
+    this.def = { ...this.def, damage: 12, shout: DD_TAUNTS, shoutEvery: 8500 };
     this.aura = w.sc.add.ellipse(x, y, 190, 240, GOLD, 0.16).setBlendMode(Phaser.BlendModes.ADD);
     const body = this.body as Phaser.Physics.Arcade.Body;
     const fw = this.frame.width;

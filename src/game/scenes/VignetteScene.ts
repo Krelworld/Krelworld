@@ -3429,7 +3429,7 @@ export class VignetteScene extends Phaser.Scene {
     this.caption("MEANWHILE…", "#ffffff", 30);
     await this.wait(900);
     this.lastCaption?.destroy();
-    const train = this.add.image(-700, 392, "p_train").setOrigin(0, 1).setScale(2.4).setDepth(10);
+    const train = this.add.image(-700, this.textures.exists("bg_krelford_rail") ? 408 : 392, "p_train").setOrigin(0, 1).setScale(2.4).setDepth(10);
     const k = this.add.sprite(0, 0, "spr_TV_PRESIDENT_KLERBLE", 4).setScale(1.5).setDepth(11);
     const follow = () => k.setPosition(train.x + train.displayWidth - 70, train.y - train.displayHeight + 40);
     follow();

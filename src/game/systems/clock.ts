@@ -1,7 +1,8 @@
-// Krelford's own clock: a whole day every 9 minutes of play (4 min day, 1 min dusk, 3 min night, 1 min dawn).
+// Krelford's own clock: a whole day every 11 minutes of play (6 min day, 1 min dusk, 3 min night, 1 min dawn):
+// days last twice as long as nights.
 // It starts at morning every time the game loads, so you always start in daylight.
 
-export const DAY_S = 240;
+export const DAY_S = 360;
 export const DUSK_S = 60;
 export const NIGHT_S = 180;
 export const DAWN_S = 60;

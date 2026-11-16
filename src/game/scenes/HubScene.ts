@@ -664,9 +664,10 @@ export class HubScene extends Phaser.Scene {
       this.add.text(1650, 1110, "WHERE THE KRELTOWER WAS (AGAIN)", { fontFamily: FONT, fontSize: "11px", color: "#ff9a9a", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5, 0).setDepth(1101);
     } else {
       if (this.hd && this.textures.exists("hd_kreltower")) {
-        this.add.image(1650, 1100, "hd_kreltower").setOrigin(0.5, 1).setDepth(1100);
-        this.neonGlow(1650, 870, 70, 0x5ad1ff);
-      } else this.add.image(1650, 1100, "p_kreltower").setOrigin(0.5, 1).setScale(1.2).setDepth(1100);
+        // half as big again: it's the tallest thing in town
+        this.add.image(1650, 1100, "hd_kreltower").setOrigin(0.5, 1).setScale(1.55).setDepth(1100);
+        this.neonGlow(1650, 745, 100, 0x5ad1ff);
+      } else this.add.image(1650, 1100, "p_kreltower").setOrigin(0.5, 1).setScale(1.85).setDepth(1100);
       this.add.text(1650, 1110, "THE KRELTOWER (rebuilt)", { fontFamily: FONT, fontSize: "11px", color: "#ffffff", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5, 0).setDepth(1101);
     }
     this.colliders.add(this.add.rectangle(1650, 1085, 70, 30, 0, 0));
@@ -1358,7 +1359,8 @@ export class HubScene extends Phaser.Scene {
     (this.av.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
     await this.talk([dir("The ground starts to shake. Car alarms. Dogs. A low, wet rumble from the top of town, like the world's biggest phone vibrating on a table.")]);
     this.busy = true;
-    synth.stopMusic();
+    // the orchestra (not a sound effect): it builds under the whole rise and carries on through the reveal
+    synth.music("dungeon_rise", true);
     cam.stopFollow();
     const bottom = b.y + b.h / 2;
     cam.pan(b.x, bottom - 250, 1600, Phaser.Math.Easing.Sine.InOut);
@@ -1374,7 +1376,6 @@ export class HubScene extends Phaser.Scene {
       for (let k = 0; k < 4; k++) crack.lineTo((cx += (Math.random() - 0.5) * 120), (cy += (Math.random() - 0.3) * 30));
       crack.strokePath();
     }
-    synth.play("boom");
     cam.shake(5600, 0.012);
     cam.flash(300, 124, 58, 237);
     // up it comes: masked at the ground line so it rises out of the earth
@@ -1396,7 +1397,6 @@ export class HubScene extends Phaser.Scene {
     } });
     for (let i = 0; i < 6; i++) this.time.delayedCall(600 + i * 800, () => {
       this.lightning(b.x + (Math.random() - 0.5) * 200, bottom - b.h - 300, bottom - b.h * Math.random() * 0.6);
-      synth.play("boom");
     });
     await new Promise((r) => this.time.delayedCall(5400, r));
     dust.remove();
@@ -1406,7 +1406,6 @@ export class HubScene extends Phaser.Scene {
     this.drawBuilding(b);
     this.interactables.push({ x: b.door!.x, y: b.door!.y + 10, r: 46, label: () => this.doorLabel(b), use: () => this.enterBuilding(b) });
     // the title
-    synth.play("decree");
     cam.flash(500, 239, 68, 68);
     const title = this.add.text(480, 200, "DA DRONGUS DUNGEON", { fontFamily: "Impact, sans-serif", fontSize: "60px", color: "#ef4444", stroke: "#000", strokeThickness: 10 }).setOrigin(0.5).setScrollFactor(0).setDepth(6000).setScale(3).setAlpha(0);
     this.tweens.add({ targets: title, scale: 1, alpha: 1, duration: 500, ease: "Back.out" });

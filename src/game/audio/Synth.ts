@@ -117,11 +117,13 @@ export const MUSIC_FILES: Record<string, string> = {
   sanmik_nation: "audio/sanmik_nation.mp3",
   drive: "audio/ggg4.mp3",
   night_of_freedom: "audio/night_of_freedom.mp3",
+  // Da Drongus Dungeon rising out of the ground (orchestral, ElevenLabs Music)
+  dungeon_rise: "audio/dungeon_rise.mp3",
   ...Object.fromEntries(Array.from({ length: 13 }, (_, i) => [`ggg${i + 1}`, `audio/ggg${i + 1}.mp3`])),
 };
 
 /** Songs that should play once rather than loop. */
-const ONE_SHOT = new Set(["crystal", "viral", "crobley", "majek_lampe", "anthem", "bbp", "twitcher", "crocodile", ...Array.from({ length: 13 }, (_, i) => `ggg${i + 1}`)]);
+const ONE_SHOT = new Set(["dungeon_rise", "crystal", "viral", "crobley", "majek_lampe", "anthem", "bbp", "twitcher", "crocodile", ...Array.from({ length: 13 }, (_, i) => `ggg${i + 1}`)]);
 
 type Wave = OscillatorType;
 

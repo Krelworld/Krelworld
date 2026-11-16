@@ -39,6 +39,7 @@ export const JUKEBOX: JukeboxTrack[] = [
   { ids: ["krel_tower_rap"], title: "Flight KR-069", where: "Operation Plane Into Train" },
   { ids: ["mdmazing"], title: "Inside Lulon's Mind", where: "Lulon's mind and the Nu Warehouse" },
   { ids: ["wiki"], title: "Da Drongus's Lair", where: "The top of Da Drongus Dungeon" },
+  { ids: ["dungeon_rise"], title: "Da Drongus Dungeon Rises", where: "The night the tower came up" },
   { ids: ["c7_corridor"], title: "Da Drongus Corridor", where: "Chapter 7" },
   { ids: ["c7_ascent"], title: "The Ascent", where: "Chapter 7" },
   { ids: ["c7_dungeon"], title: "Da Drongus Dungeon", where: "Chapter 7" },

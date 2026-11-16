@@ -181,7 +181,6 @@ export class HomeScene extends Phaser.Scene {
     t.setShadow(0, 0, "#ffd23f", 16, true, true);
     card.add(t);
     card.setScale(0.2).setAlpha(0);
-    synth.play("cheer");
     this.tweens.add({ targets: card, scale: 1, alpha: 1, duration: 500, ease: "Back.out" });
     await new Promise<void>((r) => this.time.delayedCall(1700, () => r()));
     this.tweens.add({ targets: card, alpha: 0, y: 180, duration: 400, onComplete: () => card.destroy() });

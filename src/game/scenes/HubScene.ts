@@ -467,7 +467,6 @@ export class HubScene extends Phaser.Scene {
     const big = this.add.text(480, 250, "KRELFORD", { fontFamily: "Impact, sans-serif", fontSize: "80px", color: "#ffd23f", stroke: "#2a1400", strokeThickness: 10 }).setOrigin(0.5).setScrollFactor(0).setDepth(9001).setAlpha(0);
     const sub = this.add.text(480, 315, "capital of Krelworld · population: the group chat, and some others", { fontFamily: FONT, fontSize: "15px", color: "#ffe9a8" }).setOrigin(0.5).setScrollFactor(0).setDepth(9001).setAlpha(0);
     this.tweens.add({ targets: [big, sub], alpha: 1, duration: 800 });
-    synth.play("cheer");
     await wait(2200);
     this.tweens.add({ targets: [big, sub], alpha: 0, duration: 600 });
     const stops: [number, number, string][] = [

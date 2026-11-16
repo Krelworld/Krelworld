@@ -348,17 +348,12 @@ export class NewsChrome {
   }
 }
 
-/** A press photographer's flash at (x, y): a bright star and (unless reduced flashing is on) a lift of the whole picture. */
-export function cameraFlash(sc: Phaser.Scene, into: Phaser.GameObjects.Container, x: number, y: number, rect?: Rect) {
+/** A press photographer's flash at (x, y): a small bright star at the camera itself, never a flash over the whole picture. */
+export function cameraFlash(sc: Phaser.Scene, into: Phaser.GameObjects.Container, x: number, y: number, _rect?: Rect) {
   const k = calm() ? 0.35 : 1;
-  const star = sc.add.star(x, y, 4, 3, 16, 0xffffff, 0.95 * k).setBlendMode(Phaser.BlendModes.ADD);
-  const glow = sc.add.circle(x, y, 22, 0xffffff, 0.55 * k).setBlendMode(Phaser.BlendModes.ADD);
+  const star = sc.add.star(x, y, 4, 2, 10, 0xffffff, 0.95 * k).setBlendMode(Phaser.BlendModes.ADD);
+  const glow = sc.add.circle(x, y, 12, 0xffffff, 0.5 * k).setBlendMode(Phaser.BlendModes.ADD);
   into.add([glow, star]);
-  sc.tweens.add({ targets: [star, glow], alpha: 0, scale: 2.2, duration: 200, onComplete: () => { star.destroy(); glow.destroy(); } });
-  if (rect && !calm() && Math.random() < 0.5) {
-    const lift = sc.add.rectangle(rect.SX, rect.SY, rect.SW, rect.SH, 0xffffff, 0.16).setOrigin(0).setBlendMode(Phaser.BlendModes.ADD);
-    into.add(lift);
-    sc.tweens.add({ targets: lift, alpha: 0, duration: 120, onComplete: () => lift.destroy() });
-  }
+  sc.tweens.add({ targets: [star, glow], alpha: 0, scale: 1.6, duration: 180, onComplete: () => { star.destroy(); glow.destroy(); } });
   synth.play("camera_flash");
 }

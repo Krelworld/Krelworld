@@ -252,6 +252,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     });
     // the catwalks painted into the backdrop become real platforms
     if (this.room.ledges && this.room.backdrop && this.textures.exists(this.room.backdrop)) this.room = { ...this.room, platforms: [...(this.room.platforms ?? []), ...this.ledgePlatforms(this.room)] };
+    // (climbing towers are built around the double jump; everywhere else, nothing out of reach)
+    if (this.room.platforms?.length && !this.room.tower && this.dungeon.id !== "citadel") this.room = { ...this.room, platforms: this.reachable(this.room) };
     const r = this.room;
     // a Tap Rush lasts for this outing, then wears off back in town
     if (s.flags.tap_rush) s.flags.tap_rush_out = true;
@@ -466,6 +468,28 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       }
     }
     return out;
+  }
+
+  /**
+   * Every platform within a comfortable single jump (~145px) of the ground or of a lower platform near enough to hop
+   * from: anything set higher than that is brought down to where you can actually get onto it. Ledges painted into a
+   * backdrop keep their height (they have to line up with the art) but still count as somewhere to jump from.
+   */
+  private reachable(r: RoomDef): [number, number, number][] {
+    const REACH = 128;
+    const painted = new Set(r.ledges && r.backdrop && this.textures.exists(r.backdrop) ? this.ledgePlatforms({ ...r, platforms: [] }).map((p) => p.join(",")) : []);
+    const list = (r.platforms ?? []).map((p, i) => ({ fx: p[0], h: p[1], w: p[2], i, fixed: painted.has(p.join(",")) }));
+    const done: { x: number; h: number; w: number }[] = [];
+    for (const p of [...list].sort((a, b) => a.h - b.h)) {
+      const x = r.w * p.fx;
+      if (!p.fixed) {
+        const near = done.filter((q) => Math.abs(q.x - x) <= q.w / 2 + p.w / 2 + 170);
+        const top = Math.max(0, ...near.map((q) => q.h));
+        p.h = Math.min(p.h, top + REACH);
+      }
+      done.push({ x, h: p.h, w: p.w });
+    }
+    return list.sort((a, b) => a.i - b.i).map((p) => [p.fx, p.h, p.w]);
   }
 
   /** Side-scrolling room: parallax backdrop, ground strip, one-way platforms, exit on the right. */

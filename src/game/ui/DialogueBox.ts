@@ -88,6 +88,12 @@ export class DialogueBox {
 
   private dim: number;
 
+  /** Put the box along the top of the screen instead of the bottom (rooms where the action is on the floor, like home). */
+  atTop() {
+    this.root.setY(12 - 362);
+    return this;
+  }
+
   constructor(scene: Phaser.Scene, depth = 1000, dim = 0.55) {
     this.scene = scene;
     this.dim = dim;

@@ -111,7 +111,8 @@ export class HomeScene extends Phaser.Scene {
     bindSanmikToggle(this, { sprites: () => [this.me], can: () => !this.busy });
     this.prompt = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#000000cc", padding: { x: 6, y: 3 } }).setOrigin(0.5).setDepth(1000).setVisible(false);
     this.controls = new Controls(this);
-    this.box = new DialogueBox(this, 2000, 0.2);
+    // at home the box sits along the top, so you can see yourself and the room while people talk
+    this.box = new DialogueBox(this, 2000, 0.2).atTop();
     if (!this.scene.isActive("UI")) this.scene.launch("UI", { mode: "hub" });
     else this.scene.get("UI").events.emit("mode", "hub");
     this.events.off("resume");

@@ -473,8 +473,16 @@ export class UIScene extends Phaser.Scene {
       const rk = prettyKey(keysFor("burst")[0] ?? "R");
       const gk = prettyKey(keysFor("fart")[0] ?? "G");
       if (!touch) {
-        this.drawKeycap(0, 24, 448, Math.min(1, wonk / 100), full, rk, full ? "WONK!" : `WONK ${Math.floor(wonk)}%`, 0xffd23f, pulse);
-        this.drawKeycap(1, 100, 448, fm / 100, lv >= 1, gk, ["FART", "FAIRY", "BEANS", "CABBAGE", "IBS!"][lv], lv === 4 ? 0xd4ff3a : 0x9ccc65, lv === 4 ? pulse : 0.2, lv);
+        // in the side-scrolling (run'n'gun) rooms the player lives down at the bottom left: the tray moves up to the top right
+        const side = !!dun?.side;
+        const tx = (i: number) => (side ? 712 + i * 76 : 24 + i * 76);
+        const ty = side ? 92 : 448;
+        const qk = prettyKey(keysFor("bottle")[0] ?? "Q");
+        const mb = Math.max(1, maxBottles(s));
+        this.drawKeycap(0, tx(0), ty, Math.min(1, wonk / 100), full, rk, full ? "WONK!" : `WONK ${Math.floor(wonk)}%`, 0xffd23f, pulse);
+        this.drawKeycap(1, tx(1), ty, fm / 100, lv >= 1, gk, ["FART", "FAIRY", "BEANS", "CABBAGE", "IBS!"][lv], lv === 4 ? 0xd4ff3a : 0x9ccc65, lv === 4 ? pulse : 0.2, lv);
+        // the national drink: how many bottles of pussy juice you've got, and the key to neck one
+        this.drawKeycap(2, tx(2), ty, s.bottles / mb, s.bottles > 0, qk, `JUICE ${s.bottles}/${mb}`, 0xff9ecf, s.hp < maxHp(s) * 0.35 && s.bottles > 0 ? pulse : 0.2);
       } else this.hideTray();
       // the moment a special becomes ready, a key prompt pops up over your head for a couple of seconds
       if (full && !this.wasFull) this.showPop(touch ? "TAP WONK" : rk, "WONK READY", 0xffd23f, time);

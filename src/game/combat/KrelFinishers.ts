@@ -8,8 +8,8 @@ import type { KrelTarget } from "./Kreltality";
  * (no blood, nothing comes off: they just get a fright and keel over with stars round their head).
  */
 
-export type Elegant = "jawtrap" | "pendulum" | "ribcage" | "freeze" | "kebab" | "lasergrid" | "xray" | "decap" | "pump" | "cinder";
-export const ELEGANT: Elegant[] = ["jawtrap", "pendulum", "ribcage", "freeze", "kebab", "lasergrid", "xray", "decap", "pump", "cinder"];
+export type Elegant = "jawtrap" | "pendulum" | "ribcage" | "freeze" | "kebab" | "lasergrid" | "xray" | "decap" | "pump" | "cinder" | "piranha";
+export const ELEGANT: Elegant[] = ["jawtrap", "pendulum", "ribcage", "freeze", "kebab", "lasergrid", "xray", "decap", "pump", "cinder", "piranha"];
 export const ELEGANT_NAMES: Record<Elegant, string> = {
   jawtrap: "REVERSE BEAR TRAP!",
   pendulum: "THE PENDULUM!",
@@ -21,6 +21,7 @@ export const ELEGANT_NAMES: Record<Elegant, string> = {
   decap: "HEAD CLEAN OFF!",
   pump: "FILL HER UP!",
   cinder: "CINDER BLOCK'D!",
+  piranha: "PIRANHA POOL!",
 };
 const TAME_NAMES: Record<Elegant, string> = {
   jawtrap: "SPRUNG!",
@@ -33,6 +34,7 @@ const TAME_NAMES: Record<Elegant, string> = {
   decap: "SCARED STIFF!",
   pump: "PUMPED!",
   cinder: "BONKED!",
+  piranha: "NIBBLED!",
 };
 
 type Obj = Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Transform;
@@ -866,6 +868,211 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         card();
         await c.wait(1200);
       }
+      break;
+    }
+
+    // ------------------------------------------------------------ PIRANHA POOL (in to the neck; out as a skeleton)
+    case "piranha": {
+      const neckY = top + H * 0.2;
+      const tw = Math.max(W * 2.6, 90);
+      const tankTop = neckY + 4;
+      const tankH = floor + 12 - tankTop;
+      cam.pan(tg.x, tg.y, 600, "Sine.easeInOut");
+      cam.zoomTo(1.9, 600);
+      // a glass tank comes up out of the floor round them, filling as it goes
+      const back = keep(sc.add.rectangle(tg.x, floor + 12, tw, tankH, 0x0c4a6e, 0.35).setOrigin(0.5, 1).setDepth(D - 1));
+      const water = keep(sc.add.rectangle(tg.x, floor + 12, tw, tankH, 0x0ea5e9, 0.35).setOrigin(0.5, 1).setDepth(D + 5));
+      const glass = keep(sc.add.graphics().setDepth(D + 7));
+      glass.lineStyle(3, 0xe0f2fe, 0.85).strokeRect(tg.x - tw / 2, tankTop, tw, tankH);
+      glass.lineStyle(2, 0xffffff, 0.35).lineBetween(tg.x - tw / 2 + 8, tankTop + 6, tg.x - tw / 2 + 8, floor);
+      for (const o of [back, water]) o.setScale(1, 0);
+      glass.setAlpha(0);
+      synth.play("splash");
+      sc.tweens.add({ targets: glass, alpha: 1, duration: 500 });
+      await c.tw({ targets: [back, water], scaleY: 1, duration: 800, ease: "Quad.out" });
+      let p = say("Is that… water?", "#bae6fd");
+      await c.wait(700);
+      p.destroy();
+      // in they come: a shoal of piranhas, then a frenzy
+      const fish: Phaser.GameObjects.Container[] = [];
+      const inTank = () => ({ x: tg.x + (Math.random() - 0.5) * (tw - 24), y: tankTop + 14 + Math.random() * (tankH - 28) });
+      const mkFish = () => {
+        const f = keep(sc.add.container(tg.x + (Math.random() < 0.5 ? -1 : 1) * (tw / 2 + 30), tankTop + 20 + Math.random() * (tankH - 40)).setDepth(D + 6));
+        const sz = 0.8 + Math.random() * 0.5;
+        f.add(sc.add.triangle(-11 * sz, 0, 0, -5 * sz, 0, 5 * sz, -7 * sz, 0, 0x4d7c0f));
+        f.add(sc.add.ellipse(0, 0, 18 * sz, 11 * sz, 0x65a30d).setStrokeStyle(1, 0x1a2e05));
+        f.add(sc.add.ellipse(1, 3 * sz, 12 * sz, 5 * sz, 0xdc2626));
+        f.add(sc.add.circle(5 * sz, -2 * sz, 1.5 * sz, 0xfde047));
+        f.add(sc.add.triangle(8 * sz, 1.5 * sz, 0, 0, 3 * sz, 0, 1.5 * sz, 3 * sz, 0xffffff));
+        fish.push(f);
+        return f;
+      };
+      const dart = (f: Phaser.GameObjects.Container, fast: boolean) => {
+        if (!f.active) return;
+        const to = Math.random() < (fast ? 0.7 : 0.4) ? { x: tg.x + (Math.random() - 0.5) * W * 0.8, y: neckY + 16 + Math.random() * (floor - neckY - 24) } : inTank();
+        f.setScale(to.x < f.x ? -1 : 1, 1);
+        sc.tweens.add({ targets: f, x: to.x, y: to.y, duration: fast ? 140 + Math.random() * 160 : 400 + Math.random() * 300, ease: "Sine.inOut", onComplete: () => dart(f, fast) });
+      };
+      for (let i = 0; i < 6; i++) dart(mkFish(), false);
+      synth.play("splash");
+      await c.wait(900);
+      p = say("…are those PIRANHAS?!", "#fecaca");
+      await c.wait(800);
+      p.destroy();
+      for (let i = 0; i < 12; i++) dart(mkFish(), true);
+      for (const f of fish) {
+        sc.tweens.killTweensOf(f);
+        dart(f, true);
+      }
+      // the feeding: bites, bubbles, thrashing, the water going red and then thick
+      const bubbles = sc.time.addEvent({ delay: 60, loop: true, callback: () => {
+        const b = keep(sc.add.circle(tg.x + (Math.random() - 0.5) * tw * 0.8, floor - Math.random() * tankH * 0.8, 1 + Math.random() * 3, 0xffffff, 0.6).setDepth(D + 6));
+        sc.tweens.add({ targets: b, y: tankTop + 2, alpha: 0, duration: 500 + Math.random() * 500, onComplete: () => b.destroy() });
+      } });
+      const bites = sc.time.addEvent({ delay: 110, loop: true, callback: () => synth.play(Math.random() < 0.4 ? "squelch" : Math.random() < 0.5 ? "splat" : "flesh_rip", 0.6) });
+      const thrash = sc.tweens.add({ targets: body, x: { from: T.x - 3, to: T.x + 3 }, yoyo: true, repeat: -1, duration: 60 });
+      synth.play("scream_man");
+      synth.play("splash");
+      cam.shake(2600, 0.006);
+      const wcol = { k: 0 };
+      await c.tw({
+        targets: wcol,
+        k: 1,
+        duration: 3000,
+        onUpdate: () => {
+          // clear blue, to red, to an opaque red-brown gunk you can't see into
+          const k = wcol.k;
+          water.setFillStyle(k < 0.5 ? lerpCol(0x0ea5e9, 0xb91c1c, k * 2) : lerpCol(0xb91c1c, c.gore ? 0x4a0a0a : 0x7c2d12, (k - 0.5) * 2), 0.35 + k * 0.65);
+          for (const f of fish) f.setAlpha(1 - k * 0.85);
+        },
+      } as Phaser.Types.Tweens.TweenBuilderConfig);
+      synth.play("gurgle");
+      // a scum of froth and bits on the top
+      const scum = keep(sc.add.graphics().setDepth(D + 6));
+      for (let i = 0; i < 16; i++) scum.fillStyle(i % 3 ? 0x7f1d1d : 0xfca5a5, 0.9).fillEllipse(tg.x + (Math.random() - 0.5) * tw * 0.9, tankTop + 2 + Math.random() * 4, 6 + Math.random() * 12, 3 + Math.random() * 3);
+      thrash.stop();
+      body.setX(T.x);
+      bites.remove();
+      await c.wait(700);
+      bubbles.remove();
+      for (const f of fish) {
+        sc.tweens.killTweensOf(f);
+        f.destroy();
+      }
+      // out they come: a hook on a chain, up by the collar
+      const hookTopY = cam.worldView.y - 20;
+      const chain = keep(sc.add.graphics().setDepth(D + 8));
+      const hook = keep(sc.add.text(tg.x, hookTopY, "⚓", { fontSize: "18px" }).setOrigin(0.5).setDepth(D + 8).setAngle(180));
+      const drawChain = () => chain.clear().lineStyle(3, 0x9ca3af, 1).lineBetween(tg.x, hookTopY - 400, tg.x, hook.y - 8);
+      const chainEv = sc.time.addEvent({ delay: 16, loop: true, callback: drawChain });
+      synth.play("telegraph");
+      await c.tw({ targets: hook, y: neckY - 2, duration: 600, ease: "Quad.in" });
+      synth.play("smash", 0.5);
+      // what comes out: their head, untouched, on a skeleton picked clean (gore), or a very nibbled person (gore off)
+      const head = part(0, 0, 1, 0.21, D + 4);
+      const fig = keep(sc.add.container(0, 0).setDepth(D + 3));
+      if (c.gore) {
+        body.setVisible(false);
+        const bone = 0xf5f0e1;
+        const g = sc.add.graphics();
+        const cx = tg.x;
+        const sh = neckY + H * 0.06;
+        const pel = neckY + H * 0.42;
+        const lw = Math.max(2, W * 0.05);
+        g.lineStyle(lw, bone, 1);
+        // spine
+        g.lineBetween(cx, neckY, cx, pel);
+        for (let y = neckY + 4; y < pel; y += Math.max(4, H * 0.025)) g.fillStyle(bone).fillRect(cx - lw, y, lw * 2, lw * 0.6);
+        // ribcage
+        g.lineStyle(Math.max(1.5, lw * 0.7), bone, 1);
+        for (let i = 0; i < 5; i++) {
+          const y = sh + i * H * 0.045;
+          const r = W * (0.3 - i * 0.025);
+          g.beginPath();
+          g.arc(cx, y + r * 0.35, r, Phaser.Math.DegToRad(200), Phaser.Math.DegToRad(340));
+          g.strokePath();
+        }
+        // shoulders, arms, hands
+        g.lineStyle(lw, bone, 1);
+        g.lineBetween(cx - W * 0.32, sh, cx + W * 0.32, sh);
+        for (const sx of [-1, 1]) {
+          const ax = cx + sx * W * 0.32;
+          g.lineBetween(ax, sh, ax + sx * W * 0.06, sh + H * 0.17);
+          g.lineBetween(ax + sx * W * 0.06, sh + H * 0.17, ax + sx * W * 0.04, sh + H * 0.33);
+          g.fillStyle(bone).fillCircle(ax + sx * W * 0.06, sh + H * 0.17, lw * 0.8);
+        }
+        // pelvis and legs
+        g.fillStyle(bone).fillEllipse(cx, pel, W * 0.5, H * 0.07);
+        g.fillStyle(0x4a0a0a).fillEllipse(cx - W * 0.1, pel, W * 0.12, H * 0.035).fillEllipse(cx + W * 0.1, pel, W * 0.12, H * 0.035);
+        for (const sx of [-1, 1]) {
+          const hx = cx + sx * W * 0.14;
+          const kx = cx + sx * W * 0.16;
+          g.lineBetween(hx, pel, kx, pel + (floor - pel) * 0.5);
+          g.lineBetween(kx, pel + (floor - pel) * 0.5, kx + sx * 2, floor - 4);
+          g.fillStyle(bone).fillCircle(kx, pel + (floor - pel) * 0.5, lw * 0.9);
+          g.fillRect(kx + sx * 2 - lw, floor - 5, lw * 3 * sx, lw);
+        }
+        // shreds of flesh still hanging off
+        for (let i = 0; i < 14; i++) g.fillStyle(i % 2 ? 0x991b1b : 0x7f1d1d, 1).fillRect(cx + (Math.random() - 0.5) * W * 0.6, neckY + Math.random() * (floor - neckY), 2 + Math.random() * 3, 3 + Math.random() * 6);
+        // the ragged neck
+        g.fillStyle(0x991b1b).fillEllipse(cx, neckY + 1, W * 0.22, 5);
+        fig.add(g);
+      } else {
+        // gore off: just a lot of little bites out of their clothes, and two piranhas still hanging on
+        const g = sc.add.graphics();
+        for (let i = 0; i < 12; i++) g.fillStyle(0x0b0b0b, 0.9).fillCircle(tg.x + (Math.random() - 0.5) * W * 0.7, neckY + 20 + Math.random() * (floor - neckY - 30), 2 + Math.random() * 3);
+        fig.add(g);
+        for (const [fx2, fy2] of [[-W * 0.25, H * 0.55], [W * 0.2, H * 0.75]]) {
+          const f = mkFish();
+          f.setPosition(tg.x + fx2, top + fy2).setAlpha(1);
+        }
+      }
+      // up: the head comes out first, then (gunk running off it) the rest
+      const rise = Math.round(floor - tankTop + 6);
+      const lifted = [head, fig, ...(c.gore ? [] : [body, ...fish.filter((f) => f.active)])];
+      for (const o of lifted) (o as unknown as Phaser.GameObjects.Components.Depth).setDepth(D + 8);
+      synth.play("splash");
+      const drips = sc.time.addEvent({ delay: 90, loop: true, callback: () => {
+        const d = keep(sc.add.circle(tg.x + (Math.random() - 0.5) * W * 0.5, tankTop - 2, 2, c.gore ? 0x7f1d1d : 0x0ea5e9).setDepth(D + 8));
+        sc.tweens.add({ targets: d, y: tankTop + 10, alpha: 0, duration: 400, onComplete: () => d.destroy() });
+      } });
+      const start = lifted.map((o) => (o as unknown as Phaser.GameObjects.Components.Transform).y);
+      const lift = { t: 0 };
+      await c.tw({
+        targets: lift,
+        t: 1,
+        duration: 2200,
+        ease: "Sine.inOut",
+        onUpdate: () => {
+          lifted.forEach((o, i) => ((o as unknown as Phaser.GameObjects.Components.Transform).y = start[i] - rise * lift.t));
+          hook.setY(neckY - 2 - rise * lift.t);
+        },
+      } as Phaser.Types.Tweens.TweenBuilderConfig);
+      drips.remove();
+      cam.pan(tg.x, neckY - rise * 0.6, 800, "Sine.easeInOut");
+      // hanging there, turning gently on the chain (side to side together, head and all)
+      const hx0 = head.x;
+      const swing = { a: 0 };
+      sc.tweens.add({ targets: swing, a: 1, yoyo: true, repeat: -1, duration: 900, ease: "Sine.inOut", onUpdate: () => {
+        const ox = (swing.a - 0.5) * 6;
+        fig.x = ox;
+        head.x = hx0 + ox;
+      } });
+      await c.wait(700);
+      if (c.gore) {
+        p = say("…how bad is it?", "#fecaca");
+        await c.wait(1300);
+        p.destroy();
+        card();
+        await c.wait(2000);
+      } else {
+        p = say("OW. OW. OW.", "#fde047");
+        await c.wait(1100);
+        p.destroy();
+        card();
+        await c.wait(1400);
+      }
+      chainEv.remove();
       break;
     }
 

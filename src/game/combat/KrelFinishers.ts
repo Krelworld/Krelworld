@@ -8,8 +8,8 @@ import type { KrelTarget } from "./Kreltality";
  * (no blood, nothing comes off: they just get a fright and keel over with stars round their head).
  */
 
-export type Elegant = "jawtrap" | "pendulum" | "ribcage" | "freeze" | "kebab" | "lasergrid" | "xray" | "decap" | "pump";
-export const ELEGANT: Elegant[] = ["jawtrap", "pendulum", "ribcage", "freeze", "kebab", "lasergrid", "xray", "decap", "pump"];
+export type Elegant = "jawtrap" | "pendulum" | "ribcage" | "freeze" | "kebab" | "lasergrid" | "xray" | "decap" | "pump" | "cinder";
+export const ELEGANT: Elegant[] = ["jawtrap", "pendulum", "ribcage", "freeze", "kebab", "lasergrid", "xray", "decap", "pump", "cinder"];
 export const ELEGANT_NAMES: Record<Elegant, string> = {
   jawtrap: "REVERSE BEAR TRAP!",
   pendulum: "THE PENDULUM!",
@@ -20,6 +20,7 @@ export const ELEGANT_NAMES: Record<Elegant, string> = {
   xray: "X-RAY!",
   decap: "HEAD CLEAN OFF!",
   pump: "FILL HER UP!",
+  cinder: "CINDER BLOCK'D!",
 };
 const TAME_NAMES: Record<Elegant, string> = {
   jawtrap: "SPRUNG!",
@@ -31,6 +32,7 @@ const TAME_NAMES: Record<Elegant, string> = {
   xray: "X-RAY!",
   decap: "SCARED STIFF!",
   pump: "PUMPED!",
+  cinder: "BONKED!",
 };
 
 type Obj = Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Transform;
@@ -731,6 +733,138 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         card();
         await tameKO();
         await c.wait(800);
+      }
+      break;
+    }
+
+    // ------------------------------------------------------------ CINDER BLOCK'D (the head, the floor, a breeze block, again and again)
+    case "cinder": {
+      const dir = tg.x >= c.me.x ? 1 : -1;
+      const A = dir > 0 ? -90 : 90;
+      // their head, lifted off the sprite so it can be ruined on its own
+      const HV = 0.22;
+      const head = part(0, 0, 1, HV, D + 4);
+      cropAbove(HV);
+      const s0 = T.scale;
+      const dx = head.x - T.x;
+      const dy = head.y - T.y;
+      const bx0 = T.x;
+      const by0 = T.y;
+      const lieY = floor - W * 0.42;
+      const place = (ang: number, by: number) => {
+        const r = Phaser.Math.DegToRad(ang);
+        body.setAngle(ang).setY(by);
+        head.setAngle(ang).setPosition(bx0 + dx * Math.cos(r) - dy * Math.sin(r), by + dx * Math.sin(r) + dy * Math.cos(r));
+      };
+      // a shove, and down they go, the back of the head hitting the floor
+      cam.pan(tg.x, tg.y, 500, "Sine.easeInOut");
+      cam.zoomTo(1.7, 500);
+      synth.play("punch_big");
+      const k0 = { t: 0 };
+      await c.tw({ targets: k0, t: 1, duration: 520, ease: "Quad.in", onUpdate: () => place(A * k0.t, by0 + (lieY - by0) * k0.t) } as Phaser.Types.Tweens.TweenBuilderConfig);
+      synth.play("bodies_land");
+      synth.play("bonecrack", 0.6);
+      cam.shake(220, 0.012);
+      const hx = head.x;
+      const hy = head.y;
+      // the block, and you over them with it
+      const block = keep(sc.add.container(hx, hy - 160).setDepth(D + 7));
+      block.add(sc.add.rectangle(0, 0, 40, 26, 0x9ca3af).setStrokeStyle(2, 0x4b5563));
+      block.add(sc.add.rectangle(-9, 0, 10, 14, 0x374151));
+      block.add(sc.add.rectangle(9, 0, 10, 14, 0x374151));
+      block.add(sc.add.rectangle(0, -10, 40, 3, 0xd1d5db, 0.6));
+      await c.tw({ targets: c.me, x: hx - dir * 62, y: hy - 18, duration: 450, ease: "Sine.inOut" });
+      // handheld: the camera won't keep still
+      cam.pan(hx - dir * 20, hy - 10, 600, "Sine.easeInOut");
+      cam.zoomTo(2.6, 600);
+      const sway = sc.tweens.add({ targets: cam, rotation: { from: -0.025, to: 0.025 }, yoyo: true, repeat: -1, duration: 340, ease: "Sine.inOut" });
+      await c.wait(500);
+      let p = say("Look at me.", "#ffffff", "me");
+      await c.wait(900);
+      p.destroy();
+      // the head's ruin: flattened, widened, darker, cracked, a spreading pool and bits of it everywhere
+      let fx = 1;
+      let fy = 1;
+      const pulp = keep(sc.add.graphics().setDepth(D + 5));
+      const cracks = keep(sc.add.graphics().setDepth(D + 6));
+      const hr = Math.max(14, W * 0.32);
+      let poolR = 0;
+      const pool = keep(sc.add.ellipse(hx, hy + hr * 0.4, 1, 1, 0x7f1d1d, 0.92).setDepth(D + 1));
+      const ruin = (n: number) => {
+        // squashed downwards (along the floor) each time, spreading sideways
+        fx = Math.max(0.18, fx * (c.gore ? 0.8 : 0.97));
+        fy = Math.min(2.2, fy * (c.gore ? 1.09 : 1));
+        head.setScale(s0 * fx, s0 * fy).setY(hy + (1 - fx) * hr * 0.55);
+        head.setTint(lerpCol(0xffffff, 0x7f1d1d, Math.min(1, n / 7)));
+        if (!c.gore) return;
+        // what's left of the face, smeared out round it
+        pulp.fillStyle(n % 2 ? 0x991b1b : 0x7f1d1d, 0.9).fillEllipse(hx + (Math.random() - 0.5) * hr, hy + hr * 0.25 + Math.random() * 6, hr * (0.9 + n * 0.22), hr * (0.35 + n * 0.06));
+        pulp.fillStyle(0xfda4af, 0.7).fillCircle(hx + (Math.random() - 0.5) * hr * 1.2, hy + hr * 0.2, 2 + Math.random() * 3);
+        cracks.lineStyle(1.5, 0x1c0505, 0.9);
+        for (let i = 0; i < 3; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const r1 = hr * 0.15;
+          const r2 = hr * (0.5 + Math.random() * 0.4 + n * 0.05);
+          cracks.lineBetween(hx + Math.cos(a) * r1, hy + Math.sin(a) * r1 * 0.5, hx + Math.cos(a) * r2, hy + Math.sin(a) * r2 * 0.5);
+        }
+        poolR = Math.min(W * 2.2, poolR + W * 0.22);
+        sc.tweens.add({ targets: pool, width: poolR * 2, height: poolR * 0.55, duration: 600, ease: "Quad.out" });
+      };
+      const chips = (n: number) => {
+        for (let i = 0; i < n; i++) {
+          const bone = keep(sc.add.rectangle(hx, hy, 2 + Math.random() * 4, 2 + Math.random() * 3, Math.random() < 0.6 ? 0xf5f0e1 : 0xfda4af).setDepth(D + 6));
+          toss(bone, (Math.random() - 0.5) * 360, -120 - Math.random() * 260, hy + hr * 0.4 + Math.random() * 10, (Math.random() - 0.5) * 900);
+        }
+      };
+      const blows = c.gore ? 11 : 1;
+      for (let n = 0; n < blows; n++) {
+        // up, and down. The first few deliberate; the rest a frenzy.
+        const frenzy = n >= 4;
+        const lift = frenzy ? 70 : 120;
+        await c.tw({ targets: block, y: hy - lift, x: hx + (Math.random() - 0.5) * 6, angle: (Math.random() - 0.5) * 20, duration: frenzy ? 120 : 300, ease: "Quad.out" });
+        if (n === 0) {
+          c.slow(0.35);
+          await c.wait(250);
+        }
+        await c.tw({ targets: block, y: hy - 8, duration: frenzy ? 70 : 110, ease: "Quad.in" });
+        if (n === 0) c.slow(1);
+        synth.play("punch_big");
+        synth.play(n < 3 ? "bonecrack" : Math.random() < 0.5 ? "bonecrack" : "squelch");
+        if (c.gore) synth.play(n % 2 ? "splat" : "squelch");
+        cam.shake(frenzy ? 140 : 260, frenzy ? 0.014 : 0.022);
+        if (n < 3) c.flash();
+        if (!c.gore) break;
+        ruin(n + 1);
+        c.blood(hx, hy, 14 + n * 4, 0.9 + n * 0.06, true);
+        chips(n < 3 ? 2 : 4);
+        // the body: a jerk on each blow, legs kicking, then nothing
+        if (n < 7) sc.tweens.add({ targets: body, x: { from: bx0 - 3, to: bx0 + 3 }, yoyo: true, repeat: 1, duration: 40 });
+        if (n === 1) synth.play("gurgle");
+        if (n === 6) p = say("…", "#fecaca");
+        if (n === 8) p?.destroy();
+      }
+      sway.stop();
+      cam.setRotation(0);
+      if (c.gore) {
+        // it stops. You stand there. The block drops from your hand.
+        await c.wait(500);
+        synth.play("smash");
+        toss(block, -dir * 50, -70, hy + hr * 1.6, 160);
+        c.fountain(hx, hy, 900);
+        await c.wait(700);
+        cam.zoomTo(3.0, 1800, "Sine.easeInOut");
+        card();
+        await c.wait(2200);
+      } else {
+        // gore off: the block bonks off their head and cracks in two; a lump comes up
+        synth.play("wonk");
+        toss(block, dir * 120, -220, hy + 10, 400, () => synth.play("smash"));
+        const lump = keep(sc.add.circle(hx, hy - hr * 0.6, 4, 0xfda4af).setStrokeStyle(1, 0x9f1239).setDepth(D + 6));
+        sc.tweens.add({ targets: lump, radius: hr * 0.35, duration: 500, ease: "Back.out" });
+        c.fx("vfx_stars", hx, hy - hr, 1, { depth: D + 7 });
+        await c.wait(900);
+        card();
+        await c.wait(1200);
       }
       break;
     }

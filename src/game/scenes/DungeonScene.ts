@@ -1280,7 +1280,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     // never sit in the dark: whatever happened to the fade, the room is visible before anyone speaks
     if (cam.fadeEffect.isRunning && !cam.fadeEffect.direction) cam.fadeEffect.reset();
     if (enter.length) await this.talk(enter);
-    if (!G.meta.tutDungeon && this.roomIdx === 0) await this.showTutorial();
+    // once per playthrough (it used to be once per browser, so a new game never saw it again)
+    if (!G.s.flags.tut_dungeon && G.s.chapter === 1 && this.roomIdx === 0) await this.showTutorial();
     if (r.pa?.length && !G.s.flags[clearKey(this.dungeon.id, this.roomIdx)] && !(r.miniBoss && G.s.flags[this.miniBossKey()])) {
       if (this.citadel) await this.citadel.pa(r.pa);
       else await this.talk(r.pa);
@@ -3411,6 +3412,23 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.time.timeScale = k;
     this.tweens.timeScale = k;
     this.physics.world.timeScale = 1 / k;
+  }
+
+  /** SWAP pressed: slow the action down. Released after a tap: hold the slow-mo a beat so you can see what you've got, then ease back. */
+  swapSlow(on: boolean) {
+    if (this.dying || this.busy) return;
+    const token = ++this.epicSlowToken;
+    if (on) {
+      if (!this.picking && this.slowmo > 0.3) this.setSlowmo(0.3);
+      return;
+    }
+    window.setTimeout(() => {
+      if (token !== this.epicSlowToken || !this.sys.settings.active || this.picking) return;
+      this.setSlowmo(0.6);
+      window.setTimeout(() => {
+        if (token === this.epicSlowToken && this.sys.settings.active && !this.picking) this.setSlowmo(1);
+      }, 150);
+    }, 450);
   }
 
   /** Hold SWAP: the action slows right down and the weapon picker opens. */

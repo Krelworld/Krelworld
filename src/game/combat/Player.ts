@@ -320,7 +320,12 @@ export class Player {
     const swapEdge = c.swap();
     const swapDown = c.swapHeld();
     // (a very quick tap can come and go inside one frame: the edge still counts it)
-    if ((swapDown || swapEdge) && this.swapDownAt === 0) this.swapDownAt = now;
+    const sw = this.world.sc as unknown as { swapSlow?: (on: boolean) => void };
+    if ((swapDown || swapEdge) && this.swapDownAt === 0) {
+      this.swapDownAt = now;
+      // the action slows the moment you reach for another weapon
+      sw.swapSlow?.(true);
+    }
     if (swapDown && this.swapDownAt > 0 && now - this.swapDownAt > 260 && this.world.sc.scene.key === "Dungeon") {
       this.swapDownAt = -1; // consumed: wait for the key to come up
       (this.world.sc as unknown as { openWeaponPicker: () => void }).openWeaponPicker();
@@ -332,6 +337,7 @@ export class Player {
         synth.play("pickup");
         this.world.floatText(this.x, this.y - 44, nm.toUpperCase(), "#67e8f9", 13);
         G.emit("weaponCard", {});
+        sw.swapSlow?.(false);
       }
       this.swapDownAt = 0;
     }

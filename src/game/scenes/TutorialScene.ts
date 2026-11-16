@@ -105,6 +105,8 @@ export class TutorialScene extends Phaser.Scene {
   private close() {
     G.meta.tutDungeon = true;
     G.saveMeta();
+    G.s.flags.tut_dungeon = true;
+    G.save();
     this.scene.resume(this.caller);
     this.scene.get(this.caller).events.emit("ui-resume");
     this.scene.stop();

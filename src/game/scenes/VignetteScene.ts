@@ -3105,6 +3105,9 @@ export class VignetteScene extends Phaser.Scene {
     const tw = this.bigTower(620, 440);
     const hitY = tw.at(0.66);
     const people = this.crowd(470).filter((p) => p.texture.key !== playerKey(this));
+    // Sanjeev, a little apart from the crowd, watching with his arms folded
+    const sjv = this.actor("SANJEEV", 928, 486, 2.6);
+    this.face(sjv, "west");
     synth.music("airport");
     const chute2 = this.chute(me, 150, -60);
     this.tween({ targets: chute2, y: 300, x: 110, duration: 9000, ease: "Sine.out" });
@@ -3149,7 +3152,7 @@ export class VignetteScene extends Phaser.Scene {
       ["KREBON", "No."],
       ["CRONGUS", "NOOOOOO!! (on his knees)"],
     ];
-    await this.talk([...noo.filter(([who]) => who !== me).map(([who, t]) => say(who, t)), ping("DRONGUS", "NOOOOOO not the Krel Tower !!")]);
+    await this.talk([...noo.filter(([who]) => who !== me).map(([who, t]) => say(who, t)), ping("DRONGUS", "NOOOOOO not the Krel Tower !!"), ...SJ_TOWER_SIM]);
     synth.play("boom");
     Juice.subDrop(0.9, 3);
     this.cameras.main.shake(2800, 0.035);
@@ -3175,6 +3178,8 @@ export class VignetteScene extends Phaser.Scene {
       say("KREBLIS", "By a burger", { cond: { notPlayer: "KREBLIS" } }),
       say("KREBON", "We could have turned the power off.", { cond: { notPlayer: "KREBON" } }),
       say("KREZMAR", "Krebon. Not today.", { cond: { notPlayer: "KREZMAR" } }),
+      dir("Through the settling dust, one man hasn't moved. Sanjeev. Arms folded. Head tilted."),
+      ...SJ_TOWER_DEMO,
       dir("THE KREL TOWER: DESTROYED (AGAIN). The Kreddle Express is parked outside Krelburger with its engine running. President Klerble is on his twelfth burger. They were Polson's."),
     ]);
     synth.stopMusic();

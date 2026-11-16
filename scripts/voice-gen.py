@@ -9,7 +9,7 @@ LINES.json comes from `npx vite-node scripts/voice-extract.ts LINES.json`.
 Casting is in scripts/voice-cast.json; moods are explained in docs/VOICE_MOODS.md.
 The API key is injected by the session proxy (header placeholder only).
 
-Output: public/audio/voice/b<NN>.mp3 (concatenated mp3 clips) + public/audio/voice/index.json
+Output: public/audio/voice/b<NN>-<hash>.mp3 (concatenated mp3 clips, named by content) + public/audio/voice/index.json
         { key: [bundle, offset, length, voice, signature, loudness] }. The game only reads the first three.
 Every clip is loudness-normalised when it's packed (LOUDNESS below; needs ffmpeg), so all voices play at one level;
 "loudness" marks a clip as done, so cached clips aren't re-encoded again on the next run.
@@ -349,19 +349,25 @@ def pack():
             for k, d in zip(raw, ex.map(lambda k: normalise(keep[k][3]), raw)):
                 keep[k] = keep[k][:3] + (d,)
     order = sorted(keep.values(), key=lambda x: (x[0]["file"], x[0]["k"]))
-    index, buf, n, files = {}, bytearray(), 0, []
+    # Bundles are named after their contents (b07-1a2b3c4d.mp3): a game that loaded an older index can then never
+    # pull a newer bundle's bytes and play the wrong clip at an old offset (it just doesn't find the old file).
+    index, buf, n, files, pending = {}, bytearray(), 0, [], []
     def flush():
-        nonlocal buf, n
+        nonlocal buf, n, pending
         if buf:
-            name = f"b{n:02d}.mp3"
-            open(os.path.join(OUT, name + ".tmp"), "wb").write(buf)
-            files.append(name)
+            name = f"b{n:02d}-{hashlib.md5(bytes(buf)).hexdigest()[:8]}"
+            open(os.path.join(OUT, name + ".mp3.tmp"), "wb").write(buf)
+            files.append(name + ".mp3")
+            for k in pending:
+                index[k][0] = name
             n += 1
             buf = bytearray()
+            pending = []
     for l, label, s, data in order:
         if len(buf) + len(data) > BUNDLE_MAX:
             flush()
-        index[l["k"]] = [f"b{n:02d}", len(buf), len(data), label, s, LTAG]
+        index[l["k"]] = [None, len(buf), len(data), label, s, LTAG]
+        pending.append(l["k"])
         buf += data
     flush()
     for f in os.listdir(OUT):

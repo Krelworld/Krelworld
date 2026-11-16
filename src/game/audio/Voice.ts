@@ -18,9 +18,21 @@ function loadRecIndex() {
     .catch(() => void (recIndex = {}));
   return recIndexP;
 }
+let lastIndexReload = 0;
 function recBundle(b: string) {
-  return (recBundles[b] ??= fetch(`audio/voice/${b}.mp3`, { cache: "no-cache" }) // revalidate: bundles keep their names when re-recorded, and a stale copy against a new index decodes as garbage (then falls back to an American robot voice)
-    .then((r) => (r.ok ? r.arrayBuffer() : null))
+  // bundles are named by their contents, so a name always means the same bytes (no stale-cache mix-ups)
+  return (recBundles[b] ??= fetch(`audio/voice/${b}.mp3`)
+    .then((r) => {
+      if (r.ok) return r.arrayBuffer();
+      // gone: the voices were re-recorded since this page loaded its index. Pick up the new index for next time.
+      delete recBundles[b];
+      if (r.status === 404 && Date.now() - lastIndexReload > 30000) {
+        lastIndexReload = Date.now();
+        recIndexP = null;
+        void loadRecIndex();
+      }
+      return null;
+    })
     .catch(() => null));
 }
 if (typeof window !== "undefined") setTimeout(() => void loadRecIndex(), 1500);

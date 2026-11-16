@@ -219,11 +219,21 @@ for l in lines:
     model, text, settings, tags = plan(l, c)
     w = CAST.get("warble", {}).get(c[3])
     s = sig(model, c[0], text, {**settings, "_warble": w} if w else settings)
+    pt = CAST.get("pitch", {}).get(c[3])
+    s_raw = s
+    if pt:
+        s = sig(model, c[0], text, {**settings, **({"_warble": w} if w else {}), "_pitch": pt})
     label = c[0] + ("|us" if c[2] else "")
     d = old_clip(l, s)
     if d:
         keep[l["k"]] = (l, label, s, d)
         continue
+    if pt:
+        # already recorded, just not pitched yet: shift it here (free) rather than asking for it again
+        d = old_clip(l, s_raw)
+        if d:
+            keep[l["k"]] = (l, label, s, repitch(d, pt))
+            continue
     if only and l["s"] not in only:
         d = old_clip(l)  # not asked to redo this speaker: keep whatever recording it has
         if d:
@@ -284,6 +294,14 @@ def warble(data, w):
                        input=data, capture_output=True)
     return r.stdout if r.returncode == 0 and r.stdout else data
 
+def repitch(data, semis):
+    """Shift a clip's pitch by `semis` semitones, keeping its length and the voice's character (formants)."""
+    import subprocess
+    k = 2 ** (semis / 12)
+    r = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", "pipe:0", "-af", f"rubberband=pitch={k:.4f}:formant=preserved", *ENC, "pipe:1"],
+                       input=data, capture_output=True)
+    return r.stdout if r.returncode == 0 and r.stdout else data
+
 def gen(item):
     l, voice, model, text, settings, label, s = item
     if model.endswith(STS_SUFFIX):
@@ -292,7 +310,9 @@ def gen(item):
     item, data = gen_tts(item)
     c = cast(l["s"])
     w = CAST.get("warble", {}).get(c[3]) if c else None
-    return item, (warble(data, w) if data and w else data)
+    data = warble(data, w) if data and w else data
+    pt = CAST.get("pitch", {}).get(c[3]) if c else None
+    return item, (repitch(data, pt) if data and pt else data)
 
 def gen_tts(item, hq=False):
     l, voice, model, text, settings, label, s = item

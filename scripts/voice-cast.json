@@ -35,6 +35,10 @@
     "DRONGUS": "coAs1Qqll3JzfCCfewum"
   },
   "hold": [],
+  "pitch": {
+    "_doc": "Semitones to shift a speaker's clips by after recording (formants kept). Existing clips are shifted locally, not re-recorded.",
+    "SANMIK": -1.5
+  },
   "keyword_moods": {
     "_doc": "Per-speaker moods picked by what a line says, when it has no explicit, inline or punctuation mood. First match wins.",
     "DRONGUS": [

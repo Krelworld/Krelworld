@@ -3,7 +3,7 @@ import { synth } from "../audio/Synth";
 import { FONT } from "../ui/theme";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { G } from "../G";
-import { ELEGANT, ELEGANT_NAMES, HUMANOID_BOSSES, HUMANOID_ONLY, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
+import { ELEGANT, ELEGANT_NAMES, BOSS_ONLY, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
 
 /**
  * KRELTALITY. After a boss goes down: "FUCKING KILL THEM!!" — press it (or don't) for an over-the-top,
@@ -19,6 +19,8 @@ export interface KrelTarget {
   scale: number;
   flip: boolean;
   name: string;
+  /** the boss's id (BOSS_TEXT key), when it's a boss: finishers with per-boss art look for it */
+  id?: string;
 }
 
 export type Finisher = "spine" | "explode" | "halved" | "headboot" | "slit" | "flatten" | "vice" | "bellybomb" | Elegant;
@@ -51,11 +53,11 @@ export async function kreltality(sc: Phaser.Scene, target: KrelTarget, player: {
 let lastPick: Finisher | null = null;
 function pick(target?: KrelTarget): Finisher {
   const gore = G.meta?.settings?.gore !== false;
-  // the long, people-only ones need a person (a boss with a face and a body) and the gore on
-  const human = !!target && HUMANOID_BOSSES.has(target.key);
+  // the long boss-only ones (GET WELL SOON) need a boss and the gore on
+  const boss = !!target?.id;
   const pool = (gore ? FINISHERS : [...ELEGANT])
     .filter((f) => f !== lastPick)
-    .filter((f) => !(HUMANOID_ONLY as Finisher[]).includes(f) || (human && gore));
+    .filter((f) => !(BOSS_ONLY as Finisher[]).includes(f) || (boss && gore));
   lastPick = pool[Math.floor(Math.random() * pool.length)];
   return lastPick;
 }

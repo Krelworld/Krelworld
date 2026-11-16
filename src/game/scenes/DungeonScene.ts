@@ -2110,7 +2110,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   /** "FUCKING KILL THEM!!" — optional, after the boss's last words. */
   private async maybeKreltality(b: Boss) {
-    if (["drongus", "cronster", "reinhardt", "krozno", "rik", "krex", "drongus1", "drongus2"].includes(b.bossId) || !this.krelTarget) {
+    // (Drongus in every form has his own ending, Uncle Rik has his, and these few have theirs)
+    if (["drongus", "cronster", "reinhardt", "krozno", "rik", "krex", "drongus1", "drongus2", "dark_drongus", "final"].includes(b.bossId) || !this.krelTarget) {
       await this.bossFall();
       return;
     }
@@ -2135,7 +2136,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (EPIC_BOSSES[b.bossId]) await this.epicKillingBlow(b);
     {
       const hd = (b.texture?.customData as { hd?: number } | undefined)?.hd ?? 1;
-      this.krelTarget = b.texture ? { key: b.texture.key, frame: b.frame.name, x: b.x, y: b.y, scale: b.scaleX / hd, flip: b.flipX, name: BOSS_TEXT[b.bossId]?.name ?? "THE BOSS" } : null;
+      this.krelTarget = b.texture ? { key: b.texture.key, frame: b.frame.name, x: b.x, y: b.y, scale: b.scaleX / hd, flip: b.flipX, name: BOSS_TEXT[b.bossId]?.name ?? "THE BOSS", id: b.bossId } : null;
     }
     this.downSpr?.destroy();
     this.downSpr = null;

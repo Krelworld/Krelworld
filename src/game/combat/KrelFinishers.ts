@@ -10,10 +10,8 @@ import type { KrelTarget } from "./Kreltality";
  */
 
 export type Elegant = "jawtrap" | "pendulum" | "ribcage" | "freeze" | "kebab" | "lasergrid" | "xray" | "decap" | "pump" | "cinder" | "piranha" | "asbestos";
-/** Bosses that are people (not monsters, machines or real people): the long ones that need a face and a body. */
-export const HUMANOID_BOSSES = new Set(["boss_krandall", "boss_flatmate", "boss_rival", "boss_krozno", "boss_stanley", "boss_troll", "boss_reinhardt", "boss_rik", "boss_flirt", "boss_fruity", "boss_lantern", "boss_tankc", "boss_jam", "boss_drongus", "boss_drongus2", "boss_dark_drongus"]);
-/** Finishers only for HUMANOID_BOSSES (and only with gore on). */
-export const HUMANOID_ONLY: Elegant[] = ["asbestos"];
+/** Finishers only for bosses (and only with gore on): GET WELL SOON has a cancer-ward sprite per boss. */
+export const BOSS_ONLY: Elegant[] = ["asbestos"];
 export const ELEGANT: Elegant[] = ["jawtrap", "pendulum", "ribcage", "freeze", "kebab", "lasergrid", "xray", "decap", "pump", "cinder", "piranha", "asbestos"];
 export const ELEGANT_NAMES: Record<Elegant, string> = {
   jawtrap: "REVERSE BEAR TRAP!",
@@ -1308,64 +1306,78 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         trace.strokePath();
       } });
       // the patient: lying back, propped on the pillow; what's left of them. Bald, grey, sunken, a hospital gown
-      const pHead = fix(part(0, 0, 1, NECK, Z + 1));
-      const hm = (V.h * 0.2) / (hhPx * sA);
-      pHead.setScale(T.scale * hm).setPosition(bedX - V.w * 0.17, bedY - 22 - (hhPx * sA * hm) / 2 + 6).setDepth(Z + 1).setVisible(true);
-      // its real drawn size decides where it sits: chin on the pillow
-      pHead.setY(bedY - 14 - pHead.getBounds().height / 2);
-      pHead.setTint(0xc9cdbf);
-      // where it really is on screen (HD art is drawn at a fraction of the scale it's given, so measure, don't compute)
-      const hb = pHead.getBounds();
-      const onPH = (x: number, y: number) => ({ x: T.flip ? hb.right - ((x + 0.5) / hwPx) * hb.width : hb.x + ((x + 0.5) / hwPx) * hb.width, y: hb.y + ((y + 0.5) / hhPx) * hb.height, s: hb.width / hwPx });
+      // the patient: this boss's own cancer-ward portrait (bald, grey, wasted, a gown, propped on the pillow) when there is
+      // one; otherwise their head off the sprite, made bald and grey here
+      const artKey = T.id ? `cancer_${T.id}` : "";
+      const hasArt = !!artKey && sc.textures.exists(artKey);
+      let pHead: Phaser.GameObjects.Image;
+      let eyeW: { x: number; y: number; s: number }[] = [];
       const pale = 0xd8d6c4;
       const gown = fix(keep(sc.add.graphics().setDepth(Z + 2)));
-      const sw = hb.width;
-      gown.fillStyle(0x7dd3fc).fillRoundedRect(pHead.x - sw * 0.32, pHead.y + hb.height / 2 - 4, sw * 0.64, 26, 6);
-      gown.fillStyle(0x38bdf8, 0.6).fillCircle(pHead.x - sw * 0.1, pHead.y + hb.height / 2 + 8, 2).fillCircle(pHead.x + sw * 0.12, pHead.y + hb.height / 2 + 14, 2);
-      // the blanket over a body that's barely there
-      gown.fillStyle(0xe0f2fe).fillRoundedRect(bedX - V.w * 0.13, bedY - 18, V.w * 0.33, 22, 8);
-      gown.lineStyle(1, 0xbae6fd).strokeRoundedRect(bedX - V.w * 0.13, bedY - 18, V.w * 0.33, 22, 8);
-      // a thin, thin arm on the blanket
-      gown.fillStyle(pale).fillRect(pHead.x + sw * 0.1, bedY - 16, V.w * 0.12, 4);
-      // bald: a pale scalp over the hair (or hat), and hollow eyes
       const face = fix(keep(sc.add.graphics().setDepth(Z + 2)));
-      const hTop = hb.y;
-      // bald: everything above the brow (hair, hat) is cut away and a bare, pale dome drawn in its place
-      const eyeY = eyes.length ? eyes.reduce((a, e) => a + e.y, 0) / eyes.length : hhPx * 0.5;
-      const brow = Math.max(0, Math.round(eyeY - hhPx * 0.16));
-      pHead.setCrop(0, brow, hwPx, hhPx - brow);
-      const hhW = hb.height;
-      const browY = hTop + (brow / hhPx) * hb.height;
-      const domeH = Math.max(hhW * 0.36, browY - hTop + hhW * 0.05);
-      // the scalp is their own skin (sampled from the cheek), gone the same sickly grey as the rest of the face
-      const ex = eyes.length ? Math.round(eyes.reduce((a, e) => a + e.x, 0) / eyes.length) : Math.round(hwPx / 2);
-      const cheek = pxAt(ex, Math.min(hhPx - 1, Math.round(eyeY + hhPx * 0.12)));
-      const mul = (col: number, t: number) => {
-        const r = ((col >> 16) & 255) * (((t >> 16) & 255) / 255);
-        const g = ((col >> 8) & 255) * (((t >> 8) & 255) / 255);
-        const b2 = (col & 255) * ((t & 255) / 255);
-        return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b2);
-      };
-      // the head's real width (and middle) just under the brow: shoulders and hat brims don't count
-      const rowY = Math.min(hhPx - 1, brow + Math.max(1, Math.round(hhPx * 0.06)));
-      let l0 = -1;
-      let l1 = -1;
-      for (let x = 0; x < hwPx; x++) {
-        const col = pxAt(x, rowY);
-        if (col && col.alpha > 0) {
-          if (l0 < 0) l0 = x;
-          l1 = x;
+      if (hasArt) {
+        pHead = fix(keep(sc.add.image(bedX - V.w * 0.15, bedY + 4, artKey).setOrigin(0.5, 1).setDepth(Z + 1)));
+        sizeTo(pHead, V.h * 0.36);
+        // the blanket over the rest of them
+        gown.fillStyle(0xe0f2fe).fillRoundedRect(bedX - V.w * 0.05, bedY - 18, V.w * 0.26, 22, 8);
+        gown.lineStyle(1, 0xbae6fd).strokeRoundedRect(bedX - V.w * 0.05, bedY - 18, V.w * 0.26, 22, 8);
+      } else {
+        pHead = fix(part(0, 0, 1, NECK, Z + 1));
+        const hm = (V.h * 0.2) / (hhPx * sA);
+        pHead.setScale(T.scale * hm).setPosition(bedX - V.w * 0.17, bedY - 22 - (hhPx * sA * hm) / 2 + 6).setDepth(Z + 1).setVisible(true);
+        // its real drawn size decides where it sits: chin on the pillow
+        pHead.setY(bedY - 14 - pHead.getBounds().height / 2);
+        pHead.setTint(0xc9cdbf);
+        // where it really is on screen (HD art is drawn at a fraction of the scale it's given, so measure, don't compute)
+        const hb = pHead.getBounds();
+        const onPH = (x: number, y: number) => ({ x: T.flip ? hb.right - ((x + 0.5) / hwPx) * hb.width : hb.x + ((x + 0.5) / hwPx) * hb.width, y: hb.y + ((y + 0.5) / hhPx) * hb.height, s: hb.width / hwPx });
+        const sw = hb.width;
+        gown.fillStyle(0x7dd3fc).fillRoundedRect(pHead.x - sw * 0.32, pHead.y + hb.height / 2 - 4, sw * 0.64, 26, 6);
+        gown.fillStyle(0x38bdf8, 0.6).fillCircle(pHead.x - sw * 0.1, pHead.y + hb.height / 2 + 8, 2).fillCircle(pHead.x + sw * 0.12, pHead.y + hb.height / 2 + 14, 2);
+        // the blanket over a body that's barely there
+        gown.fillStyle(0xe0f2fe).fillRoundedRect(bedX - V.w * 0.13, bedY - 18, V.w * 0.33, 22, 8);
+        gown.lineStyle(1, 0xbae6fd).strokeRoundedRect(bedX - V.w * 0.13, bedY - 18, V.w * 0.33, 22, 8);
+        // a thin, thin arm on the blanket
+        gown.fillStyle(pale).fillRect(pHead.x + sw * 0.1, bedY - 16, V.w * 0.12, 4);
+        // bald: a pale scalp over the hair (or hat), and hollow eyes
+        const hTop = hb.y;
+        // bald: everything above the brow (hair, hat) is cut away and a bare, pale dome drawn in its place
+        const eyeY = eyes.length ? eyes.reduce((a, e) => a + e.y, 0) / eyes.length : hhPx * 0.5;
+        const brow = Math.max(0, Math.round(eyeY - hhPx * 0.16));
+        pHead.setCrop(0, brow, hwPx, hhPx - brow);
+        const hhW = hb.height;
+        const browY = hTop + (brow / hhPx) * hb.height;
+        const domeH = Math.max(hhW * 0.36, browY - hTop + hhW * 0.05);
+        // the scalp is their own skin (sampled from the cheek), gone the same sickly grey as the rest of the face
+        const ex = eyes.length ? Math.round(eyes.reduce((a, e) => a + e.x, 0) / eyes.length) : Math.round(hwPx / 2);
+        const cheek = pxAt(ex, Math.min(hhPx - 1, Math.round(eyeY + hhPx * 0.12)));
+        const mul = (col: number, t: number) => {
+          const r = ((col >> 16) & 255) * (((t >> 16) & 255) / 255);
+          const g = ((col >> 8) & 255) * (((t >> 8) & 255) / 255);
+          const b2 = (col & 255) * ((t & 255) / 255);
+          return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b2);
+        };
+        // the head's real width (and middle) just under the brow: shoulders and hat brims don't count
+        const rowY = Math.min(hhPx - 1, brow + Math.max(1, Math.round(hhPx * 0.06)));
+        let l0 = -1;
+        let l1 = -1;
+        for (let x = 0; x < hwPx; x++) {
+          const col = pxAt(x, rowY);
+          if (col && col.alpha > 0) {
+            if (l0 < 0) l0 = x;
+            l1 = x;
+          }
         }
+        const domeW = l0 >= 0 ? Math.min(sw * 0.62, ((l1 - l0 + 1) / hwPx) * sw * 1.02) : sw * 0.5;
+        const domeX = l0 >= 0 ? onPH((l0 + l1) / 2, 0).x : pHead.x;
+        const scalp = cheek && cheek.alpha > 0 ? lerpCol(mul(cheek.color, 0xc9cdbf), 0xd8d6c4, 0.25) : pale;
+        // the dome sits on top of the brow line, never over the face
+        face.fillStyle(scalp).fillEllipse(domeX, browY - domeH * 0.42, domeW, domeH * 1.0);
+        face.fillStyle(scalp).fillRect(domeX - domeW / 2, browY - domeH * 0.42, domeW, domeH * 0.42 + 2);
+        face.fillStyle(0xf1efe2, 0.6).fillEllipse(domeX - domeW * 0.16, browY - domeH * 0.65, domeW * 0.24, domeH * 0.16);
+        eyeW = eyes.map((e) => onPH(e.x, e.y));
+        for (const e of eyeW) face.fillStyle(0x6b5a4a, 0.45).fillEllipse(e.x, e.y + e.s, e.s * 5, e.s * 4);
       }
-      const domeW = l0 >= 0 ? Math.min(sw * 0.62, ((l1 - l0 + 1) / hwPx) * sw * 1.02) : sw * 0.5;
-      const domeX = l0 >= 0 ? onPH((l0 + l1) / 2, 0).x : pHead.x;
-      const scalp = cheek && cheek.alpha > 0 ? lerpCol(mul(cheek.color, 0xc9cdbf), 0xd8d6c4, 0.25) : pale;
-      // the dome sits on top of the brow line, never over the face
-      face.fillStyle(scalp).fillEllipse(domeX, browY - domeH * 0.42, domeW, domeH * 1.0);
-      face.fillStyle(scalp).fillRect(domeX - domeW / 2, browY - domeH * 0.42, domeW, domeH * 0.42 + 2);
-      face.fillStyle(0xf1efe2, 0.6).fillEllipse(domeX - domeW * 0.16, browY - domeH * 0.65, domeW * 0.24, domeH * 0.16);
-      const eyeW = eyes.map((e) => onPH(e.x, e.y));
-      for (const e of eyeW) face.fillStyle(0x6b5a4a, 0.45).fillEllipse(e.x, e.y + e.s, e.s * 5, e.s * 4);
       // the family round the bed
       const famKeys = ["spr_TV_WOMAN", "spr_TV_JOHN", "spr_TV_MARY", "spr_KD_WOMAN"].filter((k) => sc.textures.exists(k));
       const fam = famKeys.slice(0, 3).map((k, i) => {
@@ -1383,6 +1395,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         await c.wait(gap);
       }
       // the eyes close for the last time
+      if (hasArt && sc.textures.exists(`${artKey}_closed`)) pHead.setTexture(`${artKey}_closed`);
       const lids = fix(keep(sc.add.graphics().setDepth(Z + 3)));
       for (const e of eyeW) {
         lids.fillStyle(pale, 1).fillRect(e.x - e.s * 2.6, e.y - e.s * 1.4, e.s * 5.2, e.s * 3);

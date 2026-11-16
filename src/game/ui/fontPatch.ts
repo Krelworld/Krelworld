@@ -83,7 +83,15 @@ export function installPixelFonts() {
 
   const T: any = Phaser.GameObjects.Text.prototype;
   const setText = T.setText;
+  // a text that's already been destroyed (its scene shut down mid-typewriter or mid-timer) has no frame left to draw
+  // into: updating it used to throw ("reading 'glTexture'"). Quietly ignore it instead.
+  const updateText = T.updateText;
+  T.updateText = function (this: any) {
+    if (!this.frame || !this.canvas || !this.scene) return this;
+    return updateText.call(this);
+  };
   T.setText = function (value: any) {
+    if (!this.frame || !this.scene) return this;
     if (this.style && String(this.style.fontFamily).includes("Krel") && (typeof value === "string" || Array.isArray(value))) {
       value = Array.isArray(value) ? value.map((v) => pixelSafe(String(v))) : pixelSafe(value);
     }

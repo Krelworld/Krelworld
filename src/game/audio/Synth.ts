@@ -716,7 +716,7 @@ export class Synth {
     }
   }
 
-  play(id: string) {
+  play(id: string, vol = 1) {
     if (!this.ctx) return;
     // canned laughter: a random slice of the real laugh track (the big one plays most of it)
     if (id === "laugh" && this.clip("laugh_track", Math.random() * 1.6, 2.8 + Math.random() * 0.8, 1.1, 0.96 + Math.random() * 0.08)) return;
@@ -731,7 +731,11 @@ export class Synth {
       s.buffer = rec;
       // a touch of pitch wobble so repeats don't sound copy-pasted
       s.playbackRate.value = 0.94 + Math.random() * 0.12;
-      s.connect(this.sfxGain);
+      if (vol !== 1) {
+        const g = this.ctx.createGain();
+        g.gain.value = vol;
+        s.connect(g).connect(this.sfxGain);
+      } else s.connect(this.sfxGain);
       s.start();
       return;
     }

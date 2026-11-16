@@ -37,7 +37,8 @@
   "hold": [],
   "accents": {
     "_doc": "Accent tag put on every v3 line for non-cloned voices that must keep a particular accent.",
-    "PRESIDENT KLERBLE": "strong Italian accent"
+    "PRESIDENT KLERBLE": "strong Italian accent",
+    "CHINESE CROBLEY": "strong Chinese accent"
   },
   "tempo": {
     "_doc": "Speed a speaker's clips up (>1) or down after recording, pitch kept. Existing clips are re-timed locally.",
@@ -607,7 +608,15 @@
     "GARY": "CHINESE CROBLEY",
     "BIG BERTHA": "~robot",
     "KRELBERT AND RONSON": "KRELBERT",
-    "REPORTER": "~press_f_us"
+    "REPORTER": "~press_f_us",
+    "DRONGUS B. DRIPPIN'": "DRONGUS",
+    "DERANGED DRONGUS": "DRONGUS",
+    "DARK DRONGUS": "DRONGUS",
+    "ELON MUSK (AI-GENERATED)": "ELON MUSK",
+    "THE POLSON–EDEN FEEDBACK LOOP": "THE FEEDBACK LOOP",
+    "THE OVER-WONKED MACHINE": "WONKING MACHINE MK II",
+    "THE SUPREME BANHAMMER AUTOMATON": "BANHAMMER AUTOMATON",
+    "THE SPECTRE OF KREZMOND'S BETRAYAL": "THE SPECTRE"
   },
   "clone_accents": {
     "_doc": "Accent tag for cloned voices on eleven_v3, which otherwise drift (American, or regional). Everyone in the group is southern English: faint RP or a slight cockney. Default below.",
@@ -645,6 +654,7 @@
     "KREZMAR",
     "GRONNY"
   ],
+  "designed_v2": ["MARK", "JEZ", "SIMON", "MADISON", "GOKU", "FOSTER", "YEMENI EXECUTIVE", "YEMENI OFFICIAL", "YEMENI OFFICER"],
   "clone_max_likeness": ["GRONNY", "KREBON", "DRONGUS"],
   "clone_sts": [],
   "warble": {

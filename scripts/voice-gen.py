@@ -169,6 +169,11 @@ def plan(l, c):
         if base in CAST.get("clone_max_likeness", []):
             return V2, clean, SETTINGS_V2_LIKENESS, []
         return V2, clean, (SETTINGS_V2_MOOD if moody else SETTINGS[V2]), []
+    # designed voices that sound right on v2 (e.g. the Peep Show cast): always v2, like the clones above
+    if kind != "clone" and base in CAST.get("designed_v2", []) and not any("moan" in x for x in explicit):
+        clean = TAG.sub("", t).strip()
+        moody = bool(explicit or inline or from_text or CAST.get("delivery", {}).get(l["s"]))
+        return V2, clean, (SETTINGS_V2_MOOD if moody else SETTINGS[V2]), []
     v2_ok = kind == "clone" and not accent and base in CAST.get("v2_neutral", [])
     tags = explicit or from_text
     if not explicit and not inline and not from_text:

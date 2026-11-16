@@ -2258,7 +2258,7 @@ export class VignetteScene extends Phaser.Scene {
       return s;
     };
     const boom = (x: number, y: number, size = 1.2) => {
-      synth.play("explode");
+      synth.play("explode", 0.45);
       this.cameras.main.shake(220, 0.014);
       if (this.boomAt(x, y, size, layer.depth + 1, layer)) return;
       for (let i = 0; i < 3; i++) {
@@ -2299,7 +2299,6 @@ export class VignetteScene extends Phaser.Scene {
           this.tweens.killTweensOf(top);
           const want = Phaser.Math.Clamp(Math.atan2(ty - (c.y + py), tx - (c.x + px)) - base, -0.9, 0.5);
           this.tweens.add({ targets: top, rotation: want, duration: ms, ease: "Back.out" });
-          synth.play("zip_down");
         },
         /** Sweep the turret about while it's waiting. */
         scan: () => top && this.tweens.add({ targets: top, rotation: { from: -0.35, to: 0.15 }, yoyo: true, duration: 700, ease: "Sine.inOut" }),
@@ -2340,7 +2339,6 @@ export class VignetteScene extends Phaser.Scene {
       layer.add(logo);
       this.tweens.add({ targets: logo, scale: 1, duration: 600, ease: "Back.out" });
       this.tweens.add({ targets: logo, scale: 1.1, yoyo: true, repeat: -1, duration: 400, delay: 600 });
-      for (let i = 0; i < 8; i++) later(800 + i * 1100, () => synth.play(i % 2 ? "gulp" : "slurp"));
       sparkle(480, 300, 12, 700, "💖");
     };
     // 0:10 / 0:47 the sausage(s) grow
@@ -2378,7 +2376,6 @@ export class VignetteScene extends Phaser.Scene {
       const f = anim(-120, 340, "ad_flirt", 3.4, 9, 0xf472b6, "FLIRT");
       this.tweens.add({ targets: f, x: 430, duration: 1000, ease: "Back.out" });
       this.tweens.add({ targets: f, scale: 3.9, duration: 4400, delay: 1000 });
-      later(1300, () => voice.say("FLIRT CROBLEY", "Hey, sugar. Wanna nibble?"));
       for (let i = 0; i < 12; i++)
         later(900 + i * 330, () => {
           const h = this.add.text(f.x + 120, f.y - 60, "❤", { fontSize: "30px", color: "#ec4899" });
@@ -2407,7 +2404,6 @@ export class VignetteScene extends Phaser.Scene {
           later(140, () => boom(tx, ty, 1.4));
         });
       });
-      later(1500, () => voice.say("TANK CROBLEY", "FREEDOM!"));
       const fr = this.add.text(620, 160, "FREEDOM!", { fontFamily: "Impact, sans-serif", fontSize: "56px", color: "#fff", stroke: "#1d4ed8", strokeThickness: 8 }).setOrigin(0.5).setAlpha(0);
       layer.add(fr);
       this.tweens.add({ targets: fr, alpha: 1, delay: 1500, duration: 200 });
@@ -2424,7 +2420,6 @@ export class VignetteScene extends Phaser.Scene {
           this.tweens.add({ targets: c, scale: 3.55, yoyo: true, duration: 120 });
           fx("vfx_confetti", 200 + Math.random() * 560, 140, 2.5);
         });
-      later(1600, () => voice.say("GARY", "Why am I holding a lantern."));
       const sigh = this.add.text(c.x, c.y - 190, "(sigh)", { fontFamily: FONT, fontSize: "22px", color: "#fff", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setAlpha(0);
       layer.add(sigh);
       this.tweens.add({ targets: sigh, alpha: 1, delay: 3200, duration: 400 });
@@ -2458,7 +2453,6 @@ export class VignetteScene extends Phaser.Scene {
         });
       // 0:32.5 hello boys
       later(2500, () => {
-        voice.say("FRUITY CROBLEY", "Hello, boys!");
         for (let i = 0; i < 6; i++)
           later(i * 260, () => {
             const h = this.add.text(f.x + 60, f.y - 120, "💋", { fontSize: "28px" });
@@ -2525,7 +2519,6 @@ export class VignetteScene extends Phaser.Scene {
             this.tweens.add({ targets: s, x: f.x + dx, y: f.y + dy, scale: 1.6 + Math.random() * 0.6, angle: Math.random() * 360, duration: 260, ease: "Quad.out", onComplete: () => synth.play(i % 2 ? "splat_1" : "splat_2") });
           }),
         );
-        later(1300, () => voice.say("FRUITY CROBLEY", "Ooh. Messy."));
         later(1200, () => {
           menPlay(naked, 4, -1);
           this.tweens.add({ targets: men, y: 345, angle: 3, duration: 600 });
@@ -2620,9 +2613,8 @@ export class VignetteScene extends Phaser.Scene {
       later(900, () => tk.scan());
       later(300, () => synth.play("crowd_gasp"));
       let at = 700;
-      for (const [v, line, , gap] of victims) {
+      for (const [v, , , gap] of victims) {
         later(at, () => {
-          voice.say("TANK CROBLEY", line);
           // the turret swings round onto him
           tk.aim(v.x, v.y - 10, 600);
         });
@@ -2630,7 +2622,6 @@ export class VignetteScene extends Phaser.Scene {
           const m = tk.fire();
           const shell = this.add.circle(m.x, m.y, 9, 0x111827);
           layer.add(shell);
-          synth.play("gun_rail");
           this.tweens.add({
             targets: shell, x: v.x, y: v.y - 10, duration: 260, onComplete: () => {
               shell.destroy();

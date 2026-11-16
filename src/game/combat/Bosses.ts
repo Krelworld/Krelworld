@@ -4,6 +4,7 @@ import type { CombatWorld } from "./types";
 import type { EnemyDef } from "../../data/enemies";
 import { BOSS_TEXT, DRONGUS_PHASES, FAKE_SONGS } from "../../content/bosses";
 import { synth } from "../audio/Synth";
+import { voice } from "../audio/Voice";
 import { G } from "../G";
 import { BAN_RULES } from "../systems/ban";
 
@@ -225,10 +226,16 @@ export abstract class Boss extends Enemy {
     this.cry(i);
   }
 
-  /** Say taunt number `i` out loud, if this boss has recorded cries. */
+  /** Say taunt number `i` out loud: the boss's own recorded cries if it has a bank, else its voice actor's recording. */
   cry(i: number) {
     const bank = `${this.bossId}_taunt`;
-    if (synth.hasShout(bank)) synth.shout(bank, 1, 1, i);
+    if (synth.hasShout(bank)) {
+      synth.shout(bank, 1, 1, i);
+      return;
+    }
+    const txt = BOSS_TEXT[this.bossId];
+    const line = txt?.taunts?.[i];
+    if (txt && line) void voice.layer(txt.name, line, 1);
   }
 
   tick(dt: number, now: number) {

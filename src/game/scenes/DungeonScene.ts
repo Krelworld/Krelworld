@@ -23,6 +23,7 @@ import { DarkDrongusBoss } from "../combat/DarkDrongus";
 import { synth, MUSIC_FILES } from "../audio/Synth";
 import { runDialogue } from "./DialogueScene";
 import { BOSS_TEXT } from "../../content/bosses";
+import { voice } from "../audio/Voice";
 import * as Juice from "../gfx/Juice";
 import { enemyDamageMult, enemyHpMult, maxHp, bump, maxBottles, maxKrezz } from "../systems/stats";
 import { addCensorBar } from "../gfx/Censor";
@@ -242,7 +243,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     s.phase = "dungeon";
     this.chantFreeAt = 0;
     // effects a touch quieter in here, so the level music comes through
-    synth.setSfxScale(0.78);
+    synth.setSfxScale(0.9);
     this.events.once("shutdown", () => synth.setSfxScale(1));
     // coming back from a conversation or menu: if a fade-in was frozen by the pause, finish it rather than stay black
     this.events.on("resume", () => {
@@ -2944,6 +2945,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   /** When the KIDS choir can next chant. */
   private chantFreeAt = 0;
+  /** When a shouting boss can next say a taunt out loud. */
+  private bossVoiceFreeAt = 0;
 
   /** An enemy shouts one of its lines. The ones that never shut up (shoutEvery) get a proper speech bubble that follows them. */
   private enemyShout(e: Enemy) {
@@ -2954,6 +2957,14 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (/KIDS/.test(line) && this.time.now > this.chantFreeAt) {
       this.chantFreeAt = this.time.now + 2600 + Math.random() * 1800;
       synth.shout("mind_kids", e.isBoss ? 0.95 : 0.7, 0.92 + Math.random() * 0.2);
+    }
+    // a boss's taunts are said out loud too (every 8s or so, not every bubble)
+    if (e.isBoss && this.time.now > this.bossVoiceFreeAt) {
+      const who = Object.values(BOSS_TEXT).find((b) => b.taunts?.includes(line));
+      if (who) {
+        this.bossVoiceFreeAt = this.time.now + 7000 + Math.random() * 3000;
+        void voice.layer(who.name, line, 1);
+      }
     }
     if (!e.def.shoutEvery) {
       this.floatText(e.x, e.y - 30, line, e.def.id === "tumor" ? "#e9d5ff" : "#ffffff", e.def.id === "tumor" ? 14 : 11);

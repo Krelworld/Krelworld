@@ -46,6 +46,11 @@ function walk(o: unknown, file: string) {
   for (const v of Object.values(r)) walk(v, file);
 }
 for (const [f, m] of Object.entries(mods)) walk(m, f.replace("../src/content/", ""));
+// boss fight taunts: said out loud mid-fight (bosses.ts BOSS_TEXT[*].taunts), in the boss's voice
+for (const [f, m] of Object.entries(mods)) {
+  const bt = (m as any).BOSS_TEXT as Record<string, { name: string; taunts?: string[] }> | undefined;
+  if (bt) for (const b of Object.values(bt)) for (const t of b.taunts ?? []) add(b.name, t, f.replace("../src/content/", ""), "shouting");
+}
 // data tables with dialogue in them (dungeon entry lines and PA announcements, etc.)
 const data = import.meta.glob("../src/data/**/*.ts", { eager: true }) as Record<string, Record<string, unknown>>;
 for (const [f, m] of Object.entries(data)) walk(m, f.replace("../src/", ""));

@@ -50,6 +50,8 @@ export const MUSIC_FILES: Record<string, string> = {
   krelworld_orch: "audio/krelworld_orch.mp3",
   // fight_<boss>: kicks in when the boss's monologue ends and the fight starts (Harry's tracks)
   fight_flirt: "audio/fight_flirt.mp3",
+  fight_tank: "audio/fight_tank.mp3",
+  fight_lantern: "audio/fight_lantern.mp3",
   // Chapter 7 score (ElevenLabs Music)
   c7_dungeon: "audio/c7_dungeon.mp3",
   c7_corridor: "audio/c7_corridor.mp3",

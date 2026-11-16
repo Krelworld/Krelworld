@@ -65,6 +65,8 @@ export const JUKEBOX: JukeboxTrack[] = [
   { ids: ["boss_brand", "flenky"], title: "Russell Brand", where: "Boss: Russell Brand" },
   { ids: ["boss_cronster"], title: "The Cuddle Cronster", where: "Boss: The Cuddle Cronster" },
   { ids: ["fight_flirt"], title: "Flirt Crobley", where: "Boss: Flirt Crobley" },
+  { ids: ["fight_tank"], title: "Tank Crobley", where: "Boss: Tank Crobley" },
+  { ids: ["fight_lantern"], title: "Chinese Crobley", where: "Boss: Chinese Crobley" },
   { ids: ["c7_krex"], title: "Metal Gear Krex", where: "Boss: Metal Gear Krex" },
   { ids: ["c7_elon"], title: "Elon Musk (AI-Generated)", where: "Boss: Elon Musk (AI-Generated)" },
   { ids: ["c7_drongus1"], title: "Drongus B. Drippin'", where: "Boss: Drongus B. Drippin'" },

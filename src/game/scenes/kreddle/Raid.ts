@@ -1,3 +1,4 @@
+import { setRaidArsenal } from "../../systems/armoury";
 import Phaser from "phaser";
 import { bindSanmikToggle, playerKey } from "../../gfx/sanmikForm";
 import { G } from "../../G";
@@ -235,7 +236,12 @@ export class KreddleRaid {
     synth.music("kreddle_raid", true);
     // the raid's track goes up over everything
     synth.setMusicBoost(1.4);
-    sc.events.once("shutdown", () => synth.setMusicBoost(1));
+    // the Chemical Flamethrower only works in here
+    setRaidArsenal(true);
+    sc.events.once("shutdown", () => {
+      synth.setMusicBoost(1);
+      setRaidArsenal(false);
+    });
     sc.cameras.main.fadeIn(600);
     sc.cameras.main.setBounds(0, 0, RW, H);
     sc.cameras.main.setBackgroundColor(0x05030c);

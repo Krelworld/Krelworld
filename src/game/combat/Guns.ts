@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { G } from "../G";
 import type { GameState } from "../../data/types";
 import { FART_BLASTER, GUNS, GUN_ORDER, GUN_POWER, type GunDef } from "../../data/guns";
-import { firstLoaded, gunMaxFor, nextLoaded, orderedGuns } from "../systems/armoury";
+import { firstLoaded, gunMaxFor, gunUsable, nextLoaded, orderedGuns } from "../systems/armoury";
 
 export { FART_BLASTER, GUNS, GUN_ORDER, GUN_POWER, type GunDef };
 
@@ -17,7 +17,7 @@ export function bestLoadedGun(s: GameState = G.s, except?: string): string | nul
  */
 export function ensureArmed(s: GameState = G.s): boolean {
   if (G.rt.fartByChoice) return false;
-  if (s.gun && (s.guns?.[s.gun] ?? 0) > 0) return false;
+  if (s.gun && (s.guns?.[s.gun] ?? 0) > 0 && gunUsable(s.gun, s)) return false;
   const id = bestLoadedGun(s);
   if (!id) return false;
   s.gun = id;
@@ -37,11 +37,11 @@ export function gunMax(g: GunDef, s: GameState = G.s): number {
 }
 
 export function ownedGuns(s: GameState = G.s): string[] {
-  return GUN_ORDER.filter((id) => s.guns && id in s.guns);
+  return GUN_ORDER.filter((id) => s.guns && id in s.guns && gunUsable(id, s));
 }
 
 export function currentGun(s: GameState = G.s): GunDef | null {
-  return s.gun && s.guns && s.gun in s.guns ? GUNS[s.gun] : null;
+  return s.gun && s.guns && s.gun in s.guns && gunUsable(s.gun, s) ? GUNS[s.gun] : null;
 }
 
 /** Out of ammo in `from`: the next gun along in your weapon order that still has ammo, or null. */

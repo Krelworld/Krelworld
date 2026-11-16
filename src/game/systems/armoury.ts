@@ -75,9 +75,19 @@ export function buyAmmo(s: GameState, id: string): number {
  * Owned guns in the player's order: s.gunOrder first, then anything owned but not in it,
  * strongest first. With no order saved this is simply strongest first.
  */
+/** The Chemical Flamethrower is for destroying Kreddle (and debug mode) only: switched on by the raid. */
+let raidArsenal = false;
+export function setRaidArsenal(on: boolean) {
+  raidArsenal = on;
+}
+/** Can this gun be used right now? (Everything but the Chemical Flamethrower, which only works in the raid or debug.) */
+export function gunUsable(id: string, s: GameState): boolean {
+  return id !== "chem_flamer" || raidArsenal || !!s.flags?.debug_mode;
+}
+
 export function orderedGuns(s: GameState): string[] {
   const out: string[] = [];
-  const owned = (id: string) => !!s.guns && id in s.guns && id in GUNS && !out.includes(id);
+  const owned = (id: string) => !!s.guns && id in s.guns && id in GUNS && !out.includes(id) && gunUsable(id, s);
   for (const id of s.gunOrder ?? []) if (owned(id)) out.push(id);
   for (const id of GUN_POWER) if (owned(id)) out.push(id);
   for (const id of Object.keys(s.guns ?? {})) if (owned(id)) out.push(id);

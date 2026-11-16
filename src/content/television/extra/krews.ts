@@ -309,6 +309,8 @@ JUROR NUMBER 2 (moaning uncontrollably): Uhh... uhh... yeahhh... Yes, please! Zo
 (The prosecutor zooms in on the footage, and Juror Number 2 continues to moan in pleasure.)
 JUROR NUMBER 2 (moaning): Mmmm... yeahhh... This is so hot... I can't believe I'm getting off to this! Uhh... uhh...
 (The other jurors start to look uncomfortable, and some start to leave the courtroom.)
+JUROR NUMBER 2: (Moaning) Oh god it's so hot... it's SO hot... it's so fucking HOT... UHHHHHHH—
+[SFX krezz_splat]
 [FADE]
 `,
 );

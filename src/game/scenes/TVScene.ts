@@ -349,6 +349,8 @@ export class TVScene extends Phaser.Scene {
   // ---------------------------------------------------------- playback
 
   private play(e: TVEpisode) {
+    this.splatLayer?.destroy();
+    this.splatLayer = undefined;
     this.ui.removeAll(true);
     this.stage.removeAll(true);
     this.actors = {};
@@ -454,7 +456,8 @@ export class TVScene extends Phaser.Scene {
         break;
       }
       case "sfx":
-        synth.play(b.id);
+        if (b.id === "krezz_splat") this.krezzSplat();
+        else synth.play(b.id);
         break;
       case "music":
         if (b.mode === "start") synth.music(b.id, true);
@@ -494,7 +497,37 @@ export class TVScene extends Phaser.Scene {
     return this.textures.exists(k) ? k : "tv_default";
   }
 
+  /** A big krezz splat right over the screen: one huge one in the middle, a spatter round it, then it drips. */
+  private krezzSplat() {
+    const tex = this.textures.exists("fx_splat_white") ? "fx_splat_white" : null;
+    const mg = this.make.graphics({}, false);
+    mg.fillRect(SX, SY, SW, SH);
+    const layer = this.add.container(0, 0).setDepth(55).setMask(mg.createGeometryMask());
+    this.splatLayer?.destroy();
+    this.splatLayer = layer;
+    const blob = (x: number, y: number, size: number, delay: number) =>
+      this.time.delayedCall(delay, () => {
+        if (!layer.active) return;
+        const s = tex ? this.add.image(x, y, tex).setDisplaySize(size, size * (0.8 + Math.random() * 0.4)) : this.add.circle(x, y, size / 2, 0xf8f8f2);
+        s.setAlpha(0.95).setRotation(Math.random() * Math.PI * 2);
+        layer.add(s);
+        const sx = s.scaleX, sy = s.scaleY;
+        s.setScale(sx * 0.15, sy * 0.15);
+        this.tweens.add({ targets: s, scaleX: sx, scaleY: sy, duration: 140, ease: "Back.out" });
+        this.tweens.add({ targets: s, y: y + 30 + Math.random() * 60, delay: 700, duration: 3200, ease: "Sine.in" });
+        synth.play("splat");
+      });
+    // the big one, slap in the middle of the screen
+    blob(SX + SW / 2, SY + SH / 2 - 20, SW * 0.85, 0);
+    this.cameras.main.shake(180, 0.006);
+    for (let i = 0; i < 12; i++) blob(SX + 30 + Math.random() * (SW - 60), SY + 30 + Math.random() * (SH - 60), 70 + Math.random() * 120, 60 + i * 55);
+  }
+
+  private splatLayer?: Phaser.GameObjects.Container;
+
   private finishEpisode() {
+    this.splatLayer?.destroy();
+    this.splatLayer = undefined;
     const e = this.ep!;
     this.pov?.destroy();
     this.pov = null;

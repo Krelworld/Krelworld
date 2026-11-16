@@ -61,6 +61,7 @@ const DODGE_MIK = ["HE DODGED! THE AUDACITY!", "SHE'S DONE A FORWARD ROLL!", "PA
 
 /** SanMik's car. You drive. SanMik and SanChz shout. Run over 25 pedestrians before the song ends. */
 export class BeepBeepScene extends Phaser.Scene {
+  private mirrorBox: { x: number; y: number; w: number; h: number } | null = null;
   private box!: DialogueBox;
   private chain: string[] = [];
   private resume: { dungeon: string; room: number } | null = null;
@@ -290,6 +291,7 @@ export class BeepBeepScene extends Phaser.Scene {
     const mw = dashKey ? 84 * DASH_S : 220;
     const mh = dashKey ? 15 * DASH_S : 54;
     const mirror = this.add.container(m.x, m.y).setDepth(510);
+    this.mirrorBox = { x: m.x, y: m.y, w: mw, h: mh };
     mirror.add(this.add.rectangle(0, 0, mw, mh, 0x1e293b, dashKey ? 0.9 : 1).setStrokeStyle(dashKey ? 0 : 4, 0x111827));
     // playing as Mikey you're SanMik, at the wheel: just SanChz in the back
     if (this.textures.exists("spr_SANMIK") && G.s.player !== "MIKEY") mirror.add(this.add.image(-50, 18, "spr_SANMIK", 0).setDisplaySize(84, 84));
@@ -807,15 +809,23 @@ export class BeepBeepScene extends Phaser.Scene {
     synth.play("hit");
     synth.play(Math.random() < 0.5 ? "bonecrack" : "car_hit");
     this.time.delayedCall(260, () => synth.play("punch"));
-    this.bloodHit(fromX, fromY - img.displayHeight * 0.4);
-    // over the bonnet, over the roof, gone (spinning like a ragdoll)
+    // how they go: red mist, under the wheels, over the roof, or launched (wardens never go quietly)
     if (img.displayHeight > 240) img.setDisplaySize((img.displayWidth * 240) / img.displayHeight, 240);
-    const s = img.scale;
-    img.setDepth(505);
-    this.tweens.add({ targets: img, x: W / 2 + (Math.random() - 0.5) * 360, duration: 700, ease: "Sine.out" });
-    this.tweens.add({ targets: img, y: { from: fromY, to: 140 }, duration: 260, ease: "Quad.out", yoyo: false, onComplete: () => this.tweens.add({ targets: img, y: -200, duration: 420, ease: "Quad.in" }) });
-    this.tweens.add({ targets: img, angle: (Math.random() < 0.5 ? -1 : 1) * (720 + Math.random() * 540), scale: s * 1.5, duration: 700, onComplete: () => img.setVisible(false) });
-    const word = t.kind === "warden" ? "TRAFFIC WARDEN x2!" : dodger ? "NOWHERE TO HIDE!" : ["BUMP!", "BEEP BEEP!", "GET OUT THE WAY!", "BUMP BUMP!", "SPLAT"][Math.floor(Math.random() * 5)];
+    const r = Math.random();
+    const fate = t.kind === "warden" ? (r < 0.6 ? "mist" : "launch") : r < 0.3 ? "mist" : r < 0.55 ? "under" : r < 0.8 ? "over" : "launch";
+    if (fate === "mist") this.fateMist(img, fromX, fromY);
+    else if (fate === "under") this.fateUnder(img, fromX, fromY);
+    else if (fate === "over") this.fateOver(img, fromX, fromY);
+    else {
+      this.bloodHit(fromX, fromY - img.displayHeight * 0.4);
+      // over the bonnet, over the roof, gone (spinning like a ragdoll)
+      const s = img.scale;
+      img.setDepth(505);
+      this.tweens.add({ targets: img, x: W / 2 + (Math.random() - 0.5) * 360, duration: 700, ease: "Sine.out" });
+      this.tweens.add({ targets: img, y: { from: fromY, to: 140 }, duration: 260, ease: "Quad.out", yoyo: false, onComplete: () => this.tweens.add({ targets: img, y: -200, duration: 420, ease: "Quad.in" }) });
+      this.tweens.add({ targets: img, angle: (Math.random() < 0.5 ? -1 : 1) * (720 + Math.random() * 540), scale: s * 1.5, duration: 700, onComplete: () => img.setVisible(false) });
+    }
+    const word = t.kind === "warden" ? "TRAFFIC WARDEN x2!" : dodger ? "NOWHERE TO HIDE!" : fate === "mist" ? "RED MIST!" : fate === "under" ? "BUMP BUMP!" : fate === "over" ? "OVER THE TOP!" : ["BUMP!", "BEEP BEEP!", "GET OUT THE WAY!", "SPLAT"][Math.floor(Math.random() * 4)];
     this.pop(fromX, fromY - 120, word, t.kind === "warden" ? "#22d3ee" : "#f472b6", 28);
     if (this.combo >= 2) {
       const call = COMBO_CALL[Math.min(this.combo, COMBO_CALL.length - 1)];
@@ -823,6 +833,121 @@ export class BeepBeepScene extends Phaser.Scene {
       if (this.combo >= 3) synth.play(this.combo >= 5 ? "crit" : "coin");
     }
     if (Math.random() < 0.5) this.bark(Math.random() < 0.7 ? "SANMIK" : "SANCHZ", t.kind === "warden" ? "DOUBLE POINTS!! YEEE!" : undefined);
+  }
+
+  private gore() {
+    return G.meta.settings.gore !== false;
+  }
+
+  /** A blob that lands on the glass and slowly slides down it. */
+  private glassSplat(x: number, y: number, w: number, h: number, col = 0xa50f0f, stay = 900) {
+    const sp = this.add.ellipse(x, y, w, h, col, 0.88).setDepth(540).setScale(0.3).setAngle(Math.random() * 180);
+    this.tweens.add({ targets: sp, scale: 1, duration: 90, ease: "Back.out" });
+    this.tweens.add({ targets: sp, y: y + 50 + Math.random() * 60, scaleY: 1.6, alpha: 0, delay: stay, duration: 2600, ease: "Sine.in", onComplete: () => sp.destroy() });
+  }
+
+  /** Bits flying out from a point, tumbling (guts with gore on, confetti and stars with it off). */
+  private chunks(x: number, y: number, n: number, spread: number) {
+    const gore = this.gore();
+    const cols = gore ? [0xb91c1c, 0x7f1d1d, 0xf9a8a8, 0x991b1b, 0xe8b4a0] : [0xfde047, 0xf472b6, 0x7dd3fc, 0xffffff];
+    for (let i = 0; i < n; i++) {
+      const w = 6 + Math.random() * (gore ? 16 : 8);
+      const c = this.add.rectangle(x, y, w, w * (0.5 + Math.random() * 0.8), cols[i % cols.length]).setDepth(517).setAngle(Math.random() * 360);
+      const a = Math.random() * Math.PI * 2;
+      const d = spread * (0.4 + Math.random() * 0.8);
+      this.tweens.add({ targets: c, x: x + Math.cos(a) * d, y: y + Math.sin(a) * d * 0.7 + 60, angle: c.angle + 400 * (Math.random() < 0.5 ? -1 : 1), alpha: 0, duration: 600 + Math.random() * 500, ease: "Quad.out", onComplete: () => c.destroy() });
+    }
+  }
+
+  /** RED MIST: they just burst. A pink cloud, guts everywhere, the windscreen painted. */
+  private fateMist(img: Phaser.GameObjects.Image, x0: number, y0: number) {
+    const x = Phaser.Math.Clamp(x0, 160, W - 160);
+    const y = Phaser.Math.Clamp(y0 - img.displayHeight * 0.45, 140, 360);
+    img.setVisible(false);
+    this.freezeUntil = this.time.now + 110;
+    this.shake(260, 0.02);
+    synth.play("splat");
+    synth.play("squelch");
+    if (!this.gore()) {
+      synth.play("pop");
+      vfx(this, "vfx_confetti", x, y, { scale: 2.6, depth: 516 });
+      vfx(this, "vfx_stars", x, y, { scale: 2.6, depth: 516 });
+      this.chunks(x, y, 18, 260);
+      return;
+    }
+    vfx(this, "vfx_gore", x, y, { scale: 3, depth: 516 });
+    vfx(this, "vfx_bloodspray", x, y, { scale: 3.2, depth: 515 });
+    vfx(this, "vfx_bloodspray", x + 60, y - 20, { scale: 2.4, depth: 515, flipX: true });
+    this.chunks(x, y, 26, 320);
+    // the mist: the whole windscreen goes red, then clears
+    // (behind the dashboard, so it's the glass that goes red, not the dials)
+    const mist = this.add.rectangle(W / 2, 225, W, 400, 0x8b0000, 0.5).setDepth(499);
+    this.tweens.add({ targets: mist, alpha: 0, delay: 140, duration: 900, onComplete: () => mist.destroy() });
+    for (let i = 0; i < 6 + Math.floor(Math.random() * 4); i++) this.glassSplat(W * 0.15 + Math.random() * W * 0.7, 100 + Math.random() * 240, 40 + Math.random() * 70, 30 + Math.random() * 50, Math.random() < 0.8 ? 0xa50f0f : 0x5c0606, 1400);
+    this.time.delayedCall(300, () => this.bark("SANCHZ", "YEGHHH! IT'S IN MY MOUTH!"));
+  }
+
+  /** UNDER THE WHEELS: down they go, and the whole car goes bump, bump. */
+  private fateUnder(img: Phaser.GameObjects.Image, x0: number, y0: number) {
+    img.setDepth(499);
+    this.tweens.add({ targets: img, y: y0 + 260, scaleY: img.scaleY * 0.3, angle: (Math.random() - 0.5) * 60, duration: 180, ease: "Quad.in", onComplete: () => img.setVisible(false) });
+    const cam = this.cameras.main;
+    const bump = (delay: number, k: number) =>
+      this.time.delayedCall(delay, () => {
+        synth.play(k > 1 ? "bonecrack" : "thud");
+        this.tweens.add({ targets: cam, scrollY: -14 * k, duration: 70, yoyo: true, ease: "Quad.out" });
+        this.pop(W / 2 + (Math.random() - 0.5) * 160, 330, "BUMP", "#f472b6", 24);
+        // something comes up from under the bonnet
+        const bx = Phaser.Math.Clamp(x0, 200, W - 200);
+        if (this.gore()) {
+          vfx(this, "vfx_bloodspray", bx, 410, { scale: 2.4, depth: 515, angle: -90 });
+          this.chunks(bx, 420, 8, 160);
+          if (k > 1) this.glassSplat(bx + (Math.random() - 0.5) * 120, 360, 60, 26, 0x7f1d1d, 600);
+        } else vfx(this, "vfx_dust", bx, 420, { scale: 3, depth: 515 });
+      });
+    bump(120, 1);
+    bump(300, 1.6);
+    this.speed *= 0.93;
+  }
+
+  /** OVER THE TOP: up the bonnet, across the glass, thump on the roof, and away behind you (look in the mirror). */
+  private fateOver(img: Phaser.GameObjects.Image, x0: number, y0: number) {
+    img.setDepth(538);
+    const s = img.scale;
+    const spin = (Math.random() < 0.5 ? -1 : 1) * 200;
+    // up the bonnet and onto the glass, getting closer
+    this.tweens.add({ targets: img, x: W / 2 + (x0 - W / 2) * 0.4, y: 330, scale: s * 2.2, angle: spin * 0.4, duration: 160, ease: "Quad.out", onComplete: () => {
+      synth.play("punch_big");
+      this.shake(120, 0.01);
+      if (this.gore()) {
+        this.glassSplat(img.x, img.y - 40, 90, 60, 0xa50f0f, 1600);
+        vfx(this, "vfx_blood", img.x, img.y - 40, { scale: 2.4, depth: 539 });
+      }
+      // roll up and over the top of the windscreen, smearing as it goes
+      const smear = this.time.addEvent({ delay: 40, repeat: 6, callback: () => this.gore() && this.glassSplat(img.x + (Math.random() - 0.5) * 30, img.y - 30, 26, 46, 0x8b0a0a, 700) });
+      this.tweens.add({ targets: img, y: -160, angle: spin * 2, scale: s * 2.8, duration: 380, ease: "Quad.in", onComplete: () => {
+        smear.remove();
+        img.setVisible(false);
+        // THUMP on the roof
+        synth.play("thud");
+        synth.play("bonecrack");
+        this.shake(180, 0.014);
+        this.tweens.add({ targets: this.cameras.main, scrollY: 10, duration: 60, yoyo: true });
+        this.pop(W / 2, 140, "THUMP", "#fde047", 26);
+        this.tumbleInMirror(img.texture.key);
+      } });
+    } });
+  }
+
+  /** A little body bouncing down the road behind you, in the rear-view mirror. */
+  private tumbleInMirror(key: string) {
+    if (!this.mirrorBox) return;
+    const { x, y, w, h } = this.mirrorBox;
+    const b = this.add.image(x + (Math.random() - 0.5) * w * 0.3, y - h * 0.6, key).setDisplaySize(26, 26).setDepth(511);
+    const m = this.make.graphics({}).fillRect(x - w / 2, y - h / 2, w, h);
+    b.setMask(m.createGeometryMask());
+    this.tweens.add({ targets: b, y: y + h * 0.2, angle: 540, duration: 420, ease: "Bounce.out" });
+    this.tweens.add({ targets: b, scale: b.scale * 0.4, alpha: 0, delay: 500, duration: 900, onComplete: () => { b.destroy(); m.destroy(); } });
   }
 
   /** Blood at the point of impact and across the windscreen (comedy dust and stars with gore off). */

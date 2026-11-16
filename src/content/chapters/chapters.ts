@@ -167,7 +167,7 @@ export const CHAPTERS: ChapterDef[] = [
     dungeon: "crobley_factory",
     dungeonDoor: "CROBLEY_FACTORY",
     steps: [
-      { id: "s_tv", text: "Something huge is on KrelTV, on every channel. Go home and put the telly on.", done: { flag: "vig_crobley_news" }, target: "HOME" },
+      { id: "s_tv", text: "Krelmergency in the FGM War Room (under the Archive): something huge is on KrelTV, on every channel.", done: { flag: "vig_crobley_news" }, target: "ARCHIVE" },
       { id: "s_brief", text: "Krelmergency briefing in the FGM War Room (under the Archive): what do we do about Reinhardt Crobley?", done: { flag: "crobley_briefed" }, target: "ARCHIVE" },
       { id: "s_presser", text: "Sergeant Swig is holding a press conference about the live-TV murder. Krelford Constabulary.", done: { flag: "vig_crobley_presser" }, target: "POLICE" },
       { id: "s_dungeon", text: "Storm the Crobley Factory (the gate on the east edge of town). Kill Reinhardt. Take cum crystal number four.", done: { flag: "ch4_clear" }, target: "CROBLEY_FACTORY" },
@@ -180,7 +180,7 @@ export const CHAPTERS: ChapterDef[] = [
       say("KREBLIS", "Help", { cond: { notPlayer: "KREBLIS" } }),
     ],
     playerScene: {
-      FLENKY: [say("FLENKY", "Crobleys were the only sweet my mummy let me have. That and pussy juice."), dir("You put the telly on. You already know what's on.")],
+      FLENKY: [say("FLENKY", "Crobleys were the only sweet my mummy let me have. That and pussy juice."), dir("Something's on every channel. You already know what it is.")],
       KREZMAR: [say("KREZMAR", "Crobley Corp shares are up four hundred percent since the new advert started. I'm not saying I bought some. I'm saying I'm not NOT saying it."), dir("Krezmar, Minister of Money and Loans, has a conflict of interest. Several.")],
       KREBLIS: [say("KREBLIS", "Breaking news…"), say("KREBLIS", "the news is about to be broken. That's the breaking news. Breaking news: breaking news! Yeeee! 👍"), dir("You don't know what that means. Neither does Kreblis. It turns out to be accurate.")],
       KREZWONK: [say("KREZWONK", "I foresaw a sweet. A chewy one. With a face. Screaming. Crobleys, they call them. I love hip hop music such as Aesop Rock."), dir("You thought it was a metaphor. It's never a metaphor.")],

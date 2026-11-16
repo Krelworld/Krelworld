@@ -2234,7 +2234,7 @@ You are required by law to sign the Sex Offenders Register.`, {
         return a.kind === "meeting" ? "Enter Town Hall (MEETING IN PROGRESS)" : a.kind === "outro" ? "Enter Town Hall (report back)" : a.kind === "fact" ? "Enter Town Hall (report back)" : "Enter Town Hall";
       }
       case "ARCHIVE":
-        return archiveAction().kind === "meeting" ? "Enter the Archive (the cabinet is waiting)" : "Enter the Historical Archive";
+        return archiveAction().kind === "meeting" || (s.chapter === 4 && !s.flags.vig_crobley_news) ? "Enter the Archive (the cabinet is waiting)" : "Enter the Historical Archive";
       case "PUB":
         return s.chapter === 5 && !s.flags.ch5_clear && dungeonOpen().open ? "The Krezz Arms: ★ rub SanMik's magic lamp (back room)" : "Enter The Krezz Arms";
       case "BANK":
@@ -2459,6 +2459,12 @@ You are required by law to sign the Sex Offenders Register.`, {
         return;
       }
       case "ARCHIVE": {
+        // Chapter 4: the cabinet's in the War Room with the telly on, and it's the Crobley story (then straight into the briefing)
+        if (s.chapter === 4 && !s.flags.vig_crobley_news) {
+          await this.talk([dir("Down in the FGM War Room the cabinet are crowded round the big screen. Every channel is showing the same thing.")]);
+          this.go("Vignette", { id: "crobley_news", returnAt: "ARCHIVE" });
+          return;
+        }
         const a = archiveAction();
         if (a.kind === "meeting" && a.id === "founding_cabinet") {
           // first visit: the Archive offers a trip down memory lane, which you can skip
@@ -2502,12 +2508,6 @@ You are required by law to sign the Sex Offenders Register.`, {
         return;
       }
       case "HOME":
-        // Chapter 4: the telly's already on, and it's the Crobley story
-        if (s.chapter === 4 && !s.flags.vig_crobley_news) {
-          await this.talk([dir("You get in, put the telly on. Every channel is showing the same thing.")]);
-          this.go("Vignette", { id: "crobley_news", returnAt: "HOME" });
-          return;
-        }
         this.go("Home", {});
         return;
       case "BAN_TRIBUNAL":

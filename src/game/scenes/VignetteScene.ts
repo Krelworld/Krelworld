@@ -121,7 +121,9 @@ export class VignetteScene extends Phaser.Scene {
     }
     G.save();
     const next =
-      data.id === "revenge_meeting"
+      data.id === "crobley_news" && this.returnAt === "ARCHIVE"
+        ? () => switchTo(this, "Meeting", { id: "crobley_briefing", next: { scene: "Hub", data: { at: "ARCHIVE" } } })
+        : data.id === "revenge_meeting"
         ? () => switchTo(this, "Hub", { at: "TOWN_HALL", from: "vignette" })
         : data.id === "krunch_protocol"
           ? () => switchTo(this, "Hub", { at: "TOWN_HALL", from: "krunch" })

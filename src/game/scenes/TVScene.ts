@@ -292,7 +292,7 @@ export class TVScene extends Phaser.Scene {
         label: `${ch}  ${!avail.length ? "[LOCKED PROGRAMME]" : this.fromTitle ? `(${avail.length})` : fresh.length ? `(${fresh.length} new 🎁)` : "(all seen: pick a show)"}`,
         dim: !avail.length,
         action: () => {
-          if (this.crobleyBreak()) return;
+          // (the Crobley story is watched in the FGM War Room now, not on your own telly)
           if (!avail.length) {
             this.flashCard(eps[0]?.unlockHint ?? "Not broadcasting yet.");
             return;

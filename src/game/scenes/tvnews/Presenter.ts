@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { voice } from "../../audio/Voice";
 import { speakable } from "../../audio/voiceKey";
 import { KREWS3_ANCHORS, krews3Gesture } from "./krews3Cast";
+import { KREWS4_ANCHORS, krews4Gesture } from "./krews4Cast";
 
 /**
  * A talking presenter for the news broadcasts (and the Crobley studio / Swig's press conference).
@@ -28,6 +29,7 @@ export const ANCHORS: Record<string, AnchorDef> = {
   "REINHARDT CROBLEY": { key: "tvanchor_REINHARDT", poses: ["rest", "point", "fists"], talks: [true, true, true] },
   "SERGEANT SWIG": { key: "tvanchor_SWIG", poses: ["rest", "point", "beer", "munch", "gun"], talks: [true, true, false, false, false] },
   ...KREWS3_ANCHORS,
+  ...KREWS4_ANCHORS,
 };
 
 export function hasAnchor(sc: Phaser.Scene, name: string) {
@@ -100,7 +102,7 @@ function gestureFor(name: string, text: string, n: number): string[] {
       if (/fuck/.test(t)) return ["point"];
       return [["rest"], ["point", "rest"], ["rest"]][n % 3];
   }
-  return krews3Gesture(name, text, n) ?? ["rest"];
+  return krews3Gesture(name, text, n) ?? krews4Gesture(name, text, n) ?? ["rest"];
 }
 
 export class Presenter {

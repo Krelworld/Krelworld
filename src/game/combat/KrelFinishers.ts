@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { synth } from "../audio/Synth";
 import { voice } from "../audio/Voice";
 import type { KrelTarget } from "./Kreltality";
+import { bit, prop, type Actor, type Bit } from "./KrelArt";
 
 /**
  * The choreographed Kreltalities: wind-up, a slow-motion beat, the impact, the aftermath. Mortal Kombat's
@@ -51,6 +52,10 @@ export interface KrelCtx {
   tg: KrelTarget;
   body: Phaser.GameObjects.Image;
   me: Phaser.GameObjects.Sprite;
+  /** the lad's drawn actions (KrelArt.ts): play("katana"), play("pull"), cheer()… */
+  act: Actor;
+  /** drawn organs and offcuts flung out from (x, y) (gore only) */
+  organs(x: number, y: number, n: number, kinds?: Bit[], spread?: number): void;
   /** the player's sprite scale */
   ps: number;
   W: number;
@@ -75,6 +80,9 @@ export interface KrelCtx {
   /** slow motion (1 = normal); letterbox bars while it's slowed */
   slow(k: number): void;
 }
+
+/** The heart monitor's screen in the drawn ward (kp_ward), as fractions of the picture: centre, size. */
+const KP_WARD_SCREEN = { x: 0.9156, y: 0.505, w: 0.06, h: 0.075 };
 
 const lerpCol = (a: number, b: number, k: number) => {
   const ch = (s: number) => {
@@ -110,6 +118,17 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
   /** hide everything of the body above figure-fraction v */
   const cropAbove = (v: number) => body.setCrop(0, fv(v) * c.fh, c.fw, c.fh * (1 - fv(v)));
   const name = (c.gore ? ELEGANT_NAMES : TAME_NAMES)[which];
+  const act = c.act;
+  /** a drawn prop (KrelArt.prop), kept for tidying; null if the art isn't loaded */
+  const img = (key: string, x: number, y: number, o: Parameters<typeof prop>[4] = {}) => {
+    const im = prop(sc, key, x, y, o);
+    return im ? keep(im) : null;
+  };
+  /** a drawn piece off the gore/bits sheet, kept for tidying */
+  const bitk = (b: Bit, x: number, y: number, size: number, depth = D + 6) => {
+    const s = bit(sc, b, x, y, size, depth);
+    return s ? keep(s) : null;
+  };
 
   // ---- shared bits
   /** A rectangle of the victim's sprite (fractions of the frame) as its own image, exactly where it sits on them. */
@@ -164,7 +183,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
   /** Gore off: the fright of it. A wobble, stars round the head, flat on their back. */
   const tameKO = async (o: Obj = body) => {
     synth.play("trombone");
-    const stars = [0, 1, 2].map(() => keep(sc.add.text(o.x, o.y, "★", { fontFamily: "Arial", fontSize: "18px", color: "#fde047", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(D + 9).setScale(1 / cam.zoom)));
+    // drawn cartoon stars (the bits sheet), circling the head
+    const stars: Phaser.GameObjects.Components.Transform[] = [0, 1, 2].map(() => bitk("star", o.x, o.y, 9, D + 9) ?? keep(sc.add.text(o.x, o.y, "★", { fontFamily: "Arial", fontSize: "18px", color: "#fde047", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(D + 9).setScale(1 / cam.zoom)));
     const ev = sc.time.addEvent({ delay: 16, loop: true, callback: () => stars.forEach((s, i) => {
       const a = sc.time.now / 220 + i * 2.09;
       const hx = o.x + Math.sin((o.angle * Math.PI) / 180) * H * 0.42;
@@ -206,21 +226,42 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       };
       const armL = mkArm(-1);
       const armR = mkArm(1);
-      const strap = sc.add.rectangle(0, 0, hw * 0.95, 6, 0x3f3f46).setStrokeStyle(1, 0x111111);
-      const plate = sc.add.rectangle(0, hh * 0.5, hw * 0.85, 8, steel).setStrokeStyle(2, dark);
-      const box = sc.add.rectangle(0, hh * 0.66, 36, 17, 0x111827).setStrokeStyle(2, 0x6b7280);
-      const timer = sc.add.text(0, hh * 0.66, "0:05", { fontFamily: "monospace", fontSize: "12px", color: "#ef4444", fontStyle: "bold" }).setOrigin(0.5);
-      dev.add([strap, plate, armL, armR, box, timer]);
+      // the drawn trap (PixelLab): rusty, strapped round the head, jaws shut until it springs, a timer box on the side
+      const drawnTrap = sc.textures.exists("kp_trap") && sc.textures.exists("kp_trap_shut");
+      let trapImg: Phaser.GameObjects.Image | null = null;
+      let box: Phaser.GameObjects.Components.Transform & Phaser.GameObjects.GameObject;
+      let timer: Phaser.GameObjects.Text;
+      if (drawnTrap) {
+        trapImg = sc.add.image(0, -hh * 0.22, "kp_trap_shut");
+        const tk = (hw * 1.2) / trapImg.frame.width;
+        trapImg.setScale(tk);
+        // the timer box sits low on the trap's left: the readout goes over it
+        const bx = -trapImg.displayWidth * 0.2;
+        const by = trapImg.y + trapImg.displayHeight * 0.33;
+        timer = sc.add.text(bx, by, "0:05", { fontFamily: "monospace", fontSize: "12px", color: "#ef4444", fontStyle: "bold", backgroundColor: "#111111" }).setOrigin(0.5).setScale(Math.max(0.35, tk * 1.4));
+        box = timer;
+        dev.add([trapImg, timer]);
+      } else {
+        const strap = sc.add.rectangle(0, 0, hw * 0.95, 6, 0x3f3f46).setStrokeStyle(1, 0x111111);
+        const plate = sc.add.rectangle(0, hh * 0.5, hw * 0.85, 8, steel).setStrokeStyle(2, dark);
+        box = sc.add.rectangle(0, hh * 0.66, 36, 17, 0x111827).setStrokeStyle(2, 0x6b7280);
+        timer = sc.add.text(0, hh * 0.66, "0:05", { fontFamily: "monospace", fontSize: "12px", color: "#ef4444", fontStyle: "bold" }).setOrigin(0.5);
+        dev.add([strap, plate, armL, armR, box, timer]);
+      }
       // strapped into a chair, wrists and chest, like the end of the last film
       const chairX = tg.x;
       const seatY = top + H * 0.62;
       const chair = keep(sc.add.container(0, 0).setDepth(D - 1));
-      chair.add(sc.add.rectangle(chairX, top + H * 0.36, W * 0.95, H * 0.56, 0x3b2a1e).setStrokeStyle(3, 0x1c130c));
-      chair.add(sc.add.rectangle(chairX, seatY, W * 1.25, 10, 0x4a3424).setStrokeStyle(2, 0x1c130c));
-      chair.add(sc.add.rectangle(chairX - W * 0.55, seatY + H * 0.2, 7, H * 0.4, 0x2b1d13));
-      chair.add(sc.add.rectangle(chairX + W * 0.55, seatY + H * 0.2, 7, H * 0.4, 0x2b1d13));
       const straps = keep(sc.add.container(0, 0).setDepth(D + 2));
-      for (const [y, w] of [[top + H * 0.38, W * 0.9], [top + H * 0.55, W * 1.1]] as [number, number][]) straps.add(sc.add.rectangle(chairX, y, w, 5, 0x18181b).setStrokeStyle(1, 0x52525b));
+      const chairArt = prop(sc, "kp_chair", chairX, floor + 4, { h: H * 1.08, oy: 1 });
+      if (chairArt) chair.add(chairArt);
+      else {
+        chair.add(sc.add.rectangle(chairX, top + H * 0.36, W * 0.95, H * 0.56, 0x3b2a1e).setStrokeStyle(3, 0x1c130c));
+        chair.add(sc.add.rectangle(chairX, seatY, W * 1.25, 10, 0x4a3424).setStrokeStyle(2, 0x1c130c));
+        chair.add(sc.add.rectangle(chairX - W * 0.55, seatY + H * 0.2, 7, H * 0.4, 0x2b1d13));
+        chair.add(sc.add.rectangle(chairX + W * 0.55, seatY + H * 0.2, 7, H * 0.4, 0x2b1d13));
+        for (const [y, w] of [[top + H * 0.38, W * 0.9], [top + H * 0.55, W * 1.1]] as [number, number][]) straps.add(sc.add.rectangle(chairX, y, w, 5, 0x18181b).setStrokeStyle(1, 0x52525b));
+      }
       chair.setAlpha(0);
       straps.setAlpha(0);
       sc.tweens.add({ targets: [chair, straps], alpha: 1, duration: 250 });
@@ -234,12 +275,14 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       let p = say("'Ere. What's this hat?");
       await c.wait(1000);
       p.destroy();
+      // and you've got the remote
+      void act.play("det", { hold: true });
       p = say("Why's it ticking?", "#fecaca");
       for (let n = 5; n >= 1; n--) {
         timer.setText(`0:0${n}`);
         synth.play("tap");
         synth.voice("oh", 0.45, 1 + (5 - n) * 0.25);
-        sc.tweens.add({ targets: box, scale: 1.3, yoyo: true, duration: 70 });
+        sc.tweens.add({ targets: box, scale: box.scale * 1.3, yoyo: true, duration: 70 });
         sc.tweens.add({ targets: body, x: { from: T.x - 2, to: T.x + 2 }, yoyo: true, repeat: 3, duration: 30 });
         await c.wait(560 - (5 - n) * 70);
       }
@@ -253,6 +296,14 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       synth.play("telegraph");
       sc.tweens.add({ targets: armL, angle: -82, duration: 160, ease: "Back.out" });
       sc.tweens.add({ targets: armR, angle: 82, duration: 160, ease: "Back.out" });
+      act.idle();
+      if (trapImg) {
+        // SNAP: the jaws fly open
+        const k0 = trapImg.scaleX;
+        trapImg.setTexture("kp_trap").setScale((hw * 1.3) / trapImg.frame.width);
+        trapImg.y = -hh * 0.3;
+        sc.tweens.add({ targets: trapImg, scale: { from: k0 * 1.25, to: trapImg.scaleX }, duration: 160, ease: "Back.out" });
+      }
       if (c.gore) {
         // the jaws spring: top of the head wrenched up and back, the lower jaw torn down
         const upper = part(0, 0, 1, 0.13, D + 5);
@@ -290,7 +341,15 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         const my = mouthY + dy;
         const mw = Math.max(24, W * 0.55);
         const mh = Math.max(20, H * 0.17);
-        const wound = keep(sc.add.graphics().setDepth(D + 4));
+        // drawn: the torn-open mouth, teeth wrenched apart, the tongue lolling out
+        const drawnWound = img("kp_wound_mouth", mx, my + mh * 0.35, { w: mw * 0.95, depth: D + 4 });
+        if (drawnWound) {
+          drawnWound.setAlpha(0);
+          sc.tweens.add({ targets: drawnWound, alpha: 1, duration: 140 });
+          const k1 = drawnWound.scaleY;
+          sc.tweens.add({ targets: drawnWound, scaleY: { from: k1 * 0.4, to: k1 }, duration: 700, ease: "Bounce.out" });
+        }
+        const wound = keep(sc.add.graphics().setDepth(D + 4).setVisible(!drawnWound));
         // torn flesh round the edge, then the dark gullet going down
         wound.fillStyle(0x7f1d1d, 1).fillEllipse(mx, my, mw * 1.15, mh * 1.25);
         wound.fillStyle(0x450a0a, 1).fillEllipse(mx, my, mw, mh);
@@ -307,7 +366,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
           wound.fillTriangle(tx - 3, my + mh * 0.5, tx + 3, my + mh * 0.5, tx, my + mh * 0.24);
         }
         // the tongue, lolling out over the lower teeth
-        const tongue = keep(sc.add.graphics().setDepth(D + 6));
+        const tongue = keep(sc.add.graphics().setDepth(D + 6).setVisible(!drawnWound));
         tongue.fillStyle(0xf472b6, 1).fillEllipse(mx + mw * 0.05, my + mh * 0.42, mw * 0.36, mh * 0.75);
         tongue.fillStyle(0xdb2777, 1).fillRect(mx + mw * 0.05 - 1, my + mh * 0.18, 2, mh * 0.55);
         tongue.setScale(1, 0.2);
@@ -347,9 +406,22 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       cam.zoomTo(1.3, 700);
       const beam = keep(sc.add.rectangle(tg.x, pivY - 8, R * 3, 14, 0x1f2937).setStrokeStyle(2, 0x000000).setDepth(D + 5));
       const arm = keep(sc.add.container(tg.x, pivY).setDepth(D + 5));
-      const rod = sc.add.rectangle(0, 0, 6, 1, 0x4b5563).setOrigin(0.5, 0);
+      // drawn (PixelLab): a crescent blade on an iron shaft, hung on a chain that pays out a little each swing
+      const drawnPend = sc.textures.exists("kp_pendulum") && sc.textures.exists("kp_chain");
+      const pendImg = drawnPend ? sc.add.image(0, 0, "kp_pendulum").setOrigin(0.5, 1) : null;
+      if (pendImg) pendImg.setScale((R * 2) / pendImg.frame.width);
+      const pendH = pendImg ? pendImg.displayHeight * 0.92 : R;
+      const rod = drawnPend ? sc.add.tileSprite(0, 0, 12, 1, "kp_chain").setOrigin(0.5, 0) : sc.add.rectangle(0, 0, 6, 1, 0x4b5563).setOrigin(0.5, 0);
+      if (rod instanceof Phaser.GameObjects.TileSprite) {
+        const ck = 12 / rod.frame.width;
+        rod.setTileScale(ck, ck);
+      }
       const blade = sc.add.graphics();
       const drawBlade = (bloody: boolean) => {
+        if (pendImg) {
+          if (bloody && sc.textures.exists("kp_pendulum_bloody")) pendImg.setTexture("kp_pendulum_bloody");
+          return;
+        }
         blade.clear();
         blade.fillStyle(0x9ca3af, 1).slice(0, -R, R, 0, Math.PI, false).fillPath();
         blade.fillStyle(0x4b5563, 1).slice(0, -R, R * 0.55, 0, Math.PI, false).fillPath();
@@ -358,14 +430,17 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         if (bloody) blade.fillStyle(0xb91c1c, 0.9).fillRect(-R * 0.4, -R * 0.15, 4, R * 0.25).fillRect(R * 0.2, -R * 0.1, 4, R * 0.3);
       };
       drawBlade(false);
-      const bladeC = sc.add.container(0, 0, [blade]);
-      arm.add([rod, bladeC, sc.add.circle(0, 0, 9, 0x374151).setStrokeStyle(2, 0x000000)]);
+      const bladeC = sc.add.container(0, 0, pendImg ? [pendImg] : [blade]);
+      arm.add([rod, bladeC, sc.add.circle(0, 0, 9, 0x374151).setStrokeStyle(2, 0x000000).setVisible(!drawnPend)]);
       const levels = [top - 90, top - 50, top - 6, c.gore ? waistY : top + H * 0.14];
       const st = { L: levels[0] - pivY - 60 };
       const place = () => {
-        rod.scaleY = Math.max(1, st.L - R);
+        if (rod instanceof Phaser.GameObjects.TileSprite) rod.setSize(12, Math.max(1, st.L - pendH));
+        else rod.scaleY = Math.max(1, st.L - R);
         bladeC.y = st.L;
       };
+      // the lever that lets it down, by you
+      const lever = img("kp_lever", c.me.x + 16, floor + 2, { h: H * 0.32, oy: 1, depth: D + 2 });
       const A = 58;
       // it ends swinging away from you (you're on their left), so the top half goes off that way
       arm.angle = -A;
@@ -386,18 +461,24 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
           c.slow(0.3);
           synth.play("telegraph");
         }
+        // a yank on the lever, and down it comes another notch
+        void act.play("pull", { fps: 20 });
+        if (lever) sc.tweens.add({ targets: lever, scaleY: lever.scaleY * 0.85, yoyo: true, duration: 160, delay: 180 });
         sc.tweens.add({ targets: st, L: levels[k] - pivY, duration: 320, ease: "Quad.out", onUpdate: place });
         sc.time.delayedCall(dur * 0.42, () => synth.play("swing"));
         // a glint on the edge as it comes down
-        const gl = sc.add.star(0, st.L, 4, 2, 9, 0xffffff);
+        const glb = bit(sc, "star", 0, 0, 12);
+        const gl = glb ? glb.setTintFill(0xffffff) : sc.add.star(0, st.L, 4, 2, 9, 0xffffff);
+        const glk = glb ? 12 / 32 : 1;
         bladeC.add(gl);
-        gl.setPosition(0, 0).setScale(0);
-        sc.tweens.add({ targets: gl, scale: 1, angle: 90, yoyo: true, duration: 140, delay: dur * 0.3 });
+        gl.setPosition(pendImg ? R * 0.6 : 0, pendImg ? -R * 0.3 : 0).setScale(0);
+        sc.tweens.add({ targets: gl, scale: glk, angle: 90, yoyo: true, duration: 140, delay: dur * 0.3 });
         if (k === 2)
           sc.time.delayedCall(dur * 0.5, () => {
             // a skim off the top: a few hairs come down
             for (let i = 0; i < 6; i++) {
-              const hr = keep(sc.add.rectangle(tg.x + (Math.random() - 0.5) * W * 0.4, top + 2, 1.5, 5, 0x1f1206).setDepth(D + 6));
+              const hx = tg.x + (Math.random() - 0.5) * W * 0.4;
+              const hr = bitk("hair", hx, top + 2, 8) ?? keep(sc.add.rectangle(hx, top + 2, 1.5, 5, 0x1f1206).setDepth(D + 6));
               sc.tweens.add({ targets: hr, y: floor, x: hr.x + (Math.random() - 0.5) * 30, angle: 360, duration: 1800 + Math.random() * 900, ease: "Sine.in" });
             }
             p = say("…my fringe!", "#fecaca");
@@ -418,8 +499,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
             synth.play("squelch");
             c.flash();
             drawBlade(true);
-            const seam = keep(sc.add.rectangle(tg.x, waistY, W * 0.95, 2, 0xffffff).setDepth(D + 6));
-            sc.tweens.add({ targets: seam, alpha: 0, duration: 500 });
+            c.fx("vfx_shock", tg.x, waistY, Math.max(0.6, W / 110), { add: true, depth: D + 6 });
             c.blood(tg.x + dir * W * 0.4, waistY, 40, 1.2);
             const up = upper;
             sc.tweens.add({ targets: up, x: up.x + dir * W * 0.3, y: up.y + 4, angle: dir * 10, duration: 900, ease: "Sine.in", onComplete: () => toss(up, dir * 120, -40, floor - W * 0.25, dir * 160, () => {
@@ -437,6 +517,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         const lo: Phaser.GameObjects.Image = lower;
         c.fountain(tg.x, waistY, 2200);
         for (let i = 0; i < 3; i++) c.guts(tg.x, waistY, -Math.PI / 2 + (i - 1) * 0.8, 70);
+        c.organs(tg.x, waistY, 5, ["gutrope", "guts", "kidney", "liver", "shred"], 0.5);
         card();
         await c.wait(1200);
         await c.tw({ targets: lo, x: { from: lo.x - 2, to: lo.x + 2 }, yoyo: true, repeat: 4, duration: 50 });
@@ -478,7 +559,13 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const lx = tg.x - T.x;
       // what's behind the doors
       const cav = sc.add.graphics().setVisible(false);
-      if (c.gore) {
+      // drawn (PixelLab): the open chest, lungs and breastbone (pink and tidy with gore off)
+      const cavArt = prop(sc, "kp_cavity", lx, ly, { w: cw, h: ch });
+      if (cavArt) {
+        if (!c.gore) cavArt.setTint(0xffc8e4);
+        cavArt.setVisible(false);
+        r.add(cavArt);
+      } else if (c.gore) {
         cav.fillStyle(0x450a0a, 1).fillRoundedRect(lx - cw / 2, ly - ch / 2, cw, ch, 5);
         cav.fillStyle(0xf472b6, 0.75).fillEllipse(lx - cw * 0.27, ly, cw * 0.36, ch * 0.8).fillEllipse(lx + cw * 0.27, ly, cw * 0.36, ch * 0.8);
         cav.fillStyle(0xf5ecd7, 1).fillRect(lx - 2, ly - ch / 2, 4, ch);
@@ -491,13 +578,18 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       // the heart (in the world, so it can come out)
       const hs = Math.max(0.9, cw / 34);
       const heart = keep(sc.add.container(tg.x, cy + ch * 0.06).setDepth(D + 6).setScale(hs).setVisible(false));
-      const hg = sc.add.graphics();
-      const hc = c.gore ? 0xdc2626 : 0xf472b6;
-      hg.fillStyle(c.gore ? 0x9f1239 : 0xec4899, 1).fillRect(-2, -14, 4, 8);
-      hg.fillStyle(hc, 1).fillCircle(-5, -3, 6).fillCircle(5, -3, 6).fillTriangle(-10.6, -1, 10.6, -1, 0, 12);
-      hg.fillStyle(0xffffff, 0.5).fillCircle(-6, -5, 2);
-      if (!c.gore) hg.lineStyle(1, 0xffffff, 0.9).lineBetween(-6, 2, 6, 2).lineBetween(-3, 6, 3, 6);
-      heart.add(hg);
+      // drawn: a real (cartoon) heart with gore on, a pink love-heart with it off
+      const hArt = bit(sc, c.gore ? "heart" : "love", 0, 0, 26);
+      if (hArt) heart.add(hArt);
+      else {
+        const hg = sc.add.graphics();
+        const hc = c.gore ? 0xdc2626 : 0xf472b6;
+        hg.fillStyle(c.gore ? 0x9f1239 : 0xec4899, 1).fillRect(-2, -14, 4, 8);
+        hg.fillStyle(hc, 1).fillCircle(-5, -3, 6).fillCircle(5, -3, 6).fillTriangle(-10.6, -1, 10.6, -1, 0, 12);
+        hg.fillStyle(0xffffff, 0.5).fillCircle(-6, -5, 2);
+        if (!c.gore) hg.lineStyle(1, 0xffffff, 0.9).lineBetween(-6, 2, 6, 2).lineBetween(-3, 6, 3, 6);
+        heart.add(hg);
+      }
       // the doors: the front of the chest, hinged at each side
       const mkDoor = (a: number, b: number) => {
         const img = part(a, v0, b, v1);
@@ -506,12 +598,21 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         const door = sc.add.container(hingeX, ly);
         const ix = img.x - T.x - hingeX;
         img.setPosition(ix, 0);
-        const inner = sc.add.graphics().setVisible(false);
         const dw = img.displayWidth;
         const dh = img.displayHeight;
-        inner.fillStyle(c.gore ? 0x9f1239 : 0xf9a8d4, 1).fillRect(ix - dw / 2, -dh / 2, dw, dh);
-        inner.lineStyle(c.gore ? 3 : 1, c.gore ? 0xf5ecd7 : 0xffffff, 1);
-        for (let i = 0; i < 4; i++) inner.lineBetween(ix - dw / 2 + 2, -dh / 2 + dh * (0.15 + i * 0.23), ix + dw / 2 - 2, -dh / 2 + dh * (0.2 + i * 0.23));
+        // the inside of the door: drawn ribs with the meat on (PixelLab), pink with gore off
+        const ribArt = prop(sc, "kp_ribrack", ix, 0, { w: dw, h: dh });
+        let inner: Phaser.GameObjects.Image | Phaser.GameObjects.Graphics;
+        if (ribArt) {
+          inner = ribArt.setVisible(false).setFlipX(!isLeft);
+          if (!c.gore) ribArt.setTint(0xffc8e4);
+        } else {
+          const g = sc.add.graphics().setVisible(false);
+          g.fillStyle(c.gore ? 0x9f1239 : 0xf9a8d4, 1).fillRect(ix - dw / 2, -dh / 2, dw, dh);
+          g.lineStyle(c.gore ? 3 : 1, c.gore ? 0xf5ecd7 : 0xffffff, 1);
+          for (let i = 0; i < 4; i++) g.lineBetween(ix - dw / 2 + 2, -dh / 2 + dh * (0.15 + i * 0.23), ix + dw / 2 - 2, -dh / 2 + dh * (0.2 + i * 0.23));
+          inner = g;
+        }
         door.add([inner, img]);
         r.add(door);
         return { door, img, inner };
@@ -536,7 +637,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       synth.voice("oh", 0.6, 1.6);
       // ...and open, like a book
       crack.setVisible(false);
-      cav.setVisible(true);
+      cav.setVisible(!cavArt);
+      cavArt?.setVisible(true);
       heart.setVisible(true);
       synth.play("bonecrack");
       await c.tw({ targets: doors.map((d) => d.door), scaleX: -0.6, duration: 1200, ease: "Sine.inOut", onUpdate: () => doors.forEach((d) => {
@@ -552,12 +654,15 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       // the beat: you reach in
       c.slow(0.4);
       const vessel = keep(sc.add.graphics().setDepth(D + 5));
-      const hx = c.me.x + 16;
-      const hy = c.me.y - c.me.displayHeight * 0.2;
+      // his hand goes in, closes round it, and holds it up high (krelact rip row)
+      void act.play("rip", { frames: [0, 5], hold: true, fps: 10 });
+      const hx = c.me.x + 12;
+      const hy = c.me.y - c.me.displayHeight * (act.sheet ? 0.42 : 0.2);
       await c.tw({ targets: heart, x: hx, y: hy, duration: 700, ease: "Quad.inOut", onUpdate: () => {
         vessel.clear().lineStyle(3 * hs * 0.6, c.gore ? 0x9f1239 : 0xec4899, 1).lineBetween(tg.x, cy, heart.x, heart.y);
       } });
       vessel.destroy();
+      void act.play("rip", { frames: [6, 8], hold: true, fps: 10 });
       synth.play(c.gore ? "squelch" : "pop");
       if (c.gore) c.blood(tg.x, cy, 30, 1, true);
       c.slow(1);
@@ -578,7 +683,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         await c.wait(1400);
       } else {
         for (let i = 0; i < 5; i++) {
-          const lv = keep(sc.add.text(tg.x + (Math.random() - 0.5) * W * 0.5, top, "♥", { fontFamily: "Arial", fontSize: "16px", color: "#f472b6", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(D + 9).setScale(1 / cam.zoom));
+          const lx2 = tg.x + (Math.random() - 0.5) * W * 0.5;
+          const lv = bitk("love", lx2, top, 10, D + 9) ?? keep(sc.add.text(lx2, top, "♥", { fontFamily: "Arial", fontSize: "16px", color: "#f472b6", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(D + 9).setScale(1 / cam.zoom));
           sc.tweens.add({ targets: lv, y: lv.y - 60, alpha: 0, duration: 1400, delay: i * 150 });
         }
         card();
@@ -598,27 +704,48 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const side = -away;
       const px = tg.x + away * (W * 0.75 + 46);
       const pump = keep(sc.add.container(px, floor + 140).setDepth(D + 2));
-      pump.add(sc.add.rectangle(0, 0, 54, 120, 0xdc2626).setOrigin(0.5, 1).setStrokeStyle(3, 0x450a0a));
-      pump.add(sc.add.rectangle(0, -96, 40, 30, 0x111827).setStrokeStyle(2, 0x9ca3af));
-      const readout = sc.add.text(0, -96, "0.0L", { fontFamily: "monospace", fontSize: "11px", color: "#86efac", fontStyle: "bold" }).setOrigin(0.5);
-      pump.add(readout);
-      pump.add(sc.add.text(0, -58, "4-STAR", { fontFamily: "Impact, sans-serif", fontSize: "10px", color: "#fde047" }).setOrigin(0.5));
+      // drawn (PixelLab): a red 4-star pump, the litres ticking over on its little screen
+      const pumpArt = prop(sc, "kp_pump", 0, 0, { h: 120, oy: 1, flip: away < 0 });
+      let readout: Phaser.GameObjects.Text;
+      if (pumpArt) {
+        pump.add(pumpArt);
+        readout = sc.add.text((away < 0 ? 1 : -1) * pumpArt.displayWidth * 0.07, -120 * 0.79, "0.0L", { fontFamily: "monospace", fontSize: "11px", color: "#86efac", fontStyle: "bold", backgroundColor: "#0b1220" }).setOrigin(0.5).setScale(0.75);
+        pump.add(readout);
+      } else {
+        pump.add(sc.add.rectangle(0, 0, 54, 120, 0xdc2626).setOrigin(0.5, 1).setStrokeStyle(3, 0x450a0a));
+        pump.add(sc.add.rectangle(0, -96, 40, 30, 0x111827).setStrokeStyle(2, 0x9ca3af));
+        readout = sc.add.text(0, -96, "0.0L", { fontFamily: "monospace", fontSize: "11px", color: "#86efac", fontStyle: "bold" }).setOrigin(0.5);
+        pump.add(readout);
+        pump.add(sc.add.text(0, -58, "4-STAR", { fontFamily: "Impact, sans-serif", fontSize: "10px", color: "#fde047" }).setOrigin(0.5));
+      }
       cam.pan(tg.x - side * W * 0.3, tg.y, 600, "Sine.easeInOut");
       cam.zoomTo(1.8, 600);
       synth.play("telegraph");
       await c.tw({ targets: pump, y: floor, duration: 500, ease: "Back.out" });
       // the hose: from the pump to the nozzle, wherever the nozzle is
       const nozzle = keep(sc.add.container(px, floor - 70).setDepth(D + 6));
-      nozzle.add(sc.add.rectangle(0, 0, 26, 10, 0x1f2937).setStrokeStyle(2, 0x9ca3af));
-      nozzle.add(sc.add.rectangle(side * -16, 0, 14, 4, 0x9ca3af));
+      // drawn nozzle, spout towards the mouth
+      const nozArt = prop(sc, "kp_nozzle", 0, 0, { w: 30, flip: side < 0 });
+      if (nozArt) nozzle.add(nozArt);
+      else {
+        nozzle.add(sc.add.rectangle(0, 0, 26, 10, 0x1f2937).setStrokeStyle(2, 0x9ca3af));
+        nozzle.add(sc.add.rectangle(side * -16, 0, 14, 4, 0x9ca3af));
+      }
       const hose = keep(sc.add.graphics().setDepth(D + 5));
       const drawHose = () => {
-        hose.clear().lineStyle(5, 0x111111, 1);
-        const curve = new Phaser.Curves.QuadraticBezier(new Phaser.Math.Vector2(px, floor - 60), new Phaser.Math.Vector2((px + nozzle.x) / 2, floor + 10), new Phaser.Math.Vector2(nozzle.x, nozzle.y));
-        curve.draw(hose, 20);
+        // a rubber hose: black, a dull sheen along the top
+        const curve = new Phaser.Curves.QuadraticBezier(new Phaser.Math.Vector2(px, floor - 60), new Phaser.Math.Vector2((px + nozzle.x) / 2, floor + 10), new Phaser.Math.Vector2(nozzle.x + side * 10, nozzle.y + 3));
+        hose.clear().lineStyle(6, 0x0a0a0a, 1);
+        curve.draw(hose, 24);
+        hose.lineStyle(1.5, 0x4b5563, 1);
+        hose.translateCanvas(0, -1.5);
+        curve.draw(hose, 24);
+        hose.translateCanvas(0, 1.5);
       };
       const hoseEv = sc.time.addEvent({ delay: 16, loop: true, callback: drawHose });
       let p = say("Fill her up.", "#fde047", "me");
+      // you shove it in (krelact rip row: the lunge)
+      void act.play("rip", { frames: [0, 4], hold: true, fps: 9 });
       await c.tw({ targets: nozzle, x: mouthX - side * (W * 0.18), y: mouthY, duration: 600, ease: "Quad.inOut" });
       p.destroy();
       synth.play("gulp");
@@ -679,6 +806,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       glug.remove();
       groan.remove();
       // stretch marks, then the last creak
+      act.idle();
       const marks = keep(sc.add.graphics().setDepth(D + 4));
       marks.lineStyle(2, 0x7f1d1d, 0.8);
       for (let i = 0; i < 7; i++) {
@@ -714,10 +842,11 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         c.bones(bx, by, 4);
         // petrol everywhere (a rainbow sheen on the floor)
         for (let i = 0; i < 18; i++) {
-          const d = keep(sc.add.circle(bx, by, 3 + Math.random() * 4, Math.random() < 0.5 ? 0xfacc15 : 0x0ea5e9, 0.8).setDepth(D + 6));
+          const d = bitk("petroldrop", bx, by, 7 + Math.random() * 5) ?? keep(sc.add.circle(bx, by, 3 + Math.random() * 4, Math.random() < 0.5 ? 0xfacc15 : 0x0ea5e9, 0.8).setDepth(D + 6));
           toss(d, (Math.random() - 0.5) * 520, -150 - Math.random() * 320, floor - Math.random() * 8);
         }
-        keep(sc.add.ellipse(bx, floor + 2, W * 2.2, 10, 0x7c3aed, 0.25).setDepth(D + 1));
+        c.organs(bx, by, 6, ["gutrope", "guts", "kidney", "liver", "meat"], 0.8);
+        if (!img("kp_petrol", bx, floor + 2, { w: W * 2.2, h: 14, depth: D + 1 })?.setAlpha(0.8)) keep(sc.add.ellipse(bx, floor + 2, W * 2.2, 10, 0x7c3aed, 0.25).setDepth(D + 1));
         toss(nozzle, side * 160, -260, floor - 6, 540, () => synth.play("smash"));
         await c.wait(900);
         c.slow(1);
@@ -775,12 +904,25 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const hx = head.x;
       const hy = head.y;
       // the block, and you over them with it
+      // drawn (PixelLab): a breeze block. With his action sheet he's holding it himself (krelact slam row: up
+      // over his head, down on theirs), and this one only shows when it leaves his hands
       const block = keep(sc.add.container(hx, hy - 160).setDepth(D + 7));
-      block.add(sc.add.rectangle(0, 0, 40, 26, 0x9ca3af).setStrokeStyle(2, 0x4b5563));
-      block.add(sc.add.rectangle(-9, 0, 10, 14, 0x374151));
-      block.add(sc.add.rectangle(9, 0, 10, 14, 0x374151));
-      block.add(sc.add.rectangle(0, -10, 40, 3, 0xd1d5db, 0.6));
-      await c.tw({ targets: c.me, x: hx - dir * 62, y: hy - 18, duration: 450, ease: "Sine.inOut" });
+      const blockArt = prop(sc, "kp_block", 0, 0, { w: 40 });
+      if (blockArt) block.add(blockArt);
+      else {
+        block.add(sc.add.rectangle(0, 0, 40, 26, 0x9ca3af).setStrokeStyle(2, 0x4b5563));
+        block.add(sc.add.rectangle(-9, 0, 10, 14, 0x374151));
+        block.add(sc.add.rectangle(9, 0, 10, 14, 0x374151));
+        block.add(sc.add.rectangle(0, -10, 40, 3, 0xd1d5db, 0.6));
+      }
+      const held = !!act.sheet;
+      block.setVisible(!held);
+      // where his slam lands is a little in front of him: stand so it lands on the head
+      const reach = held ? (c.me.displayHeight / 64) * 34 : 62;
+      act.idle(dir > 0 ? 1 : -1);
+      act.walk();
+      await c.tw({ targets: c.me, x: hx - dir * reach, y: hy - 18, duration: 450, ease: "Sine.inOut" });
+      act.idle();
       // handheld: the camera won't keep still
       cam.pan(hx - dir * 20, hy - 10, 600, "Sine.easeInOut");
       cam.zoomTo(2.6, 600);
@@ -796,7 +938,10 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const cracks = keep(sc.add.graphics().setDepth(D + 6));
       const hr = Math.max(14, W * 0.32);
       let poolR = 0;
-      const pool = keep(sc.add.ellipse(hx, hy + hr * 0.4, 1, 1, 0x7f1d1d, 0.92).setDepth(D + 1));
+      // drawn: a pool of dark goo spreading under it, splats of mush and bone chips building up round it
+      const gooArt = img("kp_goo", hx, hy + hr * 0.4, { w: 4, h: 2, depth: D + 1 });
+      const goo0 = gooArt ? { w: gooArt.frame.width, h: gooArt.frame.height } : null;
+      const pool = keep(sc.add.ellipse(hx, hy + hr * 0.4, 1, 1, 0x7f1d1d, 0.92).setDepth(D + 1).setVisible(!gooArt));
       const ruin = (n: number) => {
         // squashed downwards (along the floor) each time, spreading sideways
         fx = Math.max(0.18, fx * (c.gore ? 0.8 : 0.97));
@@ -804,6 +949,13 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         head.setScale(s0 * fx, s0 * fy).setY(hy + (1 - fx) * hr * 0.55);
         head.setTint(lerpCol(0xffffff, 0x7f1d1d, Math.min(1, n / 7)));
         if (!c.gore) return;
+        if (gooArt && goo0) {
+          const mush = img("kp_splat_mush", hx + (Math.random() - 0.5) * hr * 0.8, hy + hr * 0.3 + Math.random() * 4, { w: hr * (1.2 + n * 0.25), depth: D + 5 });
+          mush?.setFlipX(Math.random() < 0.5);
+          poolR = Math.min(W * 2.2, poolR + W * 0.22);
+          sc.tweens.add({ targets: gooArt, scaleX: (poolR * 1.4) / goo0.w, scaleY: (poolR * 0.45) / goo0.h, duration: 600, ease: "Quad.out" });
+          return;
+        }
         // what's left of the face, smeared out round it
         pulp.fillStyle(n % 2 ? 0x991b1b : 0x7f1d1d, 0.9).fillEllipse(hx + (Math.random() - 0.5) * hr, hy + hr * 0.25 + Math.random() * 6, hr * (0.9 + n * 0.22), hr * (0.35 + n * 0.06));
         pulp.fillStyle(0xfda4af, 0.7).fillCircle(hx + (Math.random() - 0.5) * hr * 1.2, hy + hr * 0.2, 2 + Math.random() * 3);
@@ -818,8 +970,9 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         sc.tweens.add({ targets: pool, width: poolR * 2, height: poolR * 0.55, duration: 600, ease: "Quad.out" });
       };
       const chips = (n: number) => {
+        const kinds: Bit[] = ["shards", "tooth", "brain", "eyeball", "shards", "tooth", "ear"];
         for (let i = 0; i < n; i++) {
-          const bone = keep(sc.add.rectangle(hx, hy, 2 + Math.random() * 4, 2 + Math.random() * 3, Math.random() < 0.6 ? 0xf5f0e1 : 0xfda4af).setDepth(D + 6));
+          const bone = bitk(kinds[Math.floor(Math.random() * kinds.length)], hx, hy, 7 + Math.random() * 5) ?? keep(sc.add.rectangle(hx, hy, 2 + Math.random() * 4, 2 + Math.random() * 3, Math.random() < 0.6 ? 0xf5f0e1 : 0xfda4af).setDepth(D + 6));
           toss(bone, (Math.random() - 0.5) * 360, -120 - Math.random() * 260, hy + hr * 0.4 + Math.random() * 10, (Math.random() - 0.5) * 900);
         }
       };
@@ -828,11 +981,14 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         // up, and down. The first few deliberate; the rest a frenzy.
         const frenzy = n >= 4;
         const lift = frenzy ? 70 : 120;
+        // up over his head (frames 1-6 of his slam row), and down (7-8) as the block lands
+        if (held) void act.play("slam", { frames: [frenzy ? 4 : 1, 6], hold: true, fps: frenzy ? 30 : 16 });
         await c.tw({ targets: block, y: hy - lift, x: hx + (Math.random() - 0.5) * 6, angle: (Math.random() - 0.5) * 20, duration: frenzy ? 120 : 300, ease: "Quad.out" });
         if (n === 0) {
           c.slow(0.35);
           await c.wait(250);
         }
+        if (held) void act.play("slam", { frames: [7, 8], hold: true, fps: frenzy ? 30 : 20 });
         await c.tw({ targets: block, y: hy - 8, duration: frenzy ? 70 : 110, ease: "Quad.in" });
         if (n === 0) c.slow(1);
         synth.play("punch_big");
@@ -856,6 +1012,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         // it stops. You stand there. The block drops from your hand.
         await c.wait(500);
         synth.play("smash");
+        act.idle();
+        block.setVisible(true).setPosition(hx - dir * reach * 0.4, hy - 14);
         toss(block, -dir * 50, -70, hy + hr * 1.6, 160);
         c.fountain(hx, hy, 900);
         await c.wait(700);
@@ -865,6 +1023,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       } else {
         // gore off: the block bonks off their head and cracks in two; a lump comes up
         synth.play("wonk");
+        act.idle();
+        block.setVisible(true).setPosition(hx, hy - 10);
         toss(block, dir * 120, -220, hy + 10, 400, () => synth.play("smash"));
         const lump = keep(sc.add.circle(hx, hy - hr * 0.6, 4, 0xfda4af).setStrokeStyle(1, 0x9f1239).setDepth(D + 6));
         sc.tweens.add({ targets: lump, radius: hr * 0.35, duration: 500, ease: "Back.out" });
@@ -884,18 +1044,27 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const tw = Math.max(W * 2.6, 90);
       const tankTop = neckY + 4;
       const tankH = floor + 12 - tankTop;
+      // stand clear of where the tank comes up
+      c.me.setFlipX(true);
+      act.walk();
+      void c.tw({ targets: c.me, x: Math.min(c.me.x, tg.x - tw / 2 - 30), duration: 400 }).then(() => act.idle(1));
       cam.pan(tg.x, tg.y, 600, "Sine.easeInOut");
       cam.zoomTo(1.9, 600);
       // a glass tank comes up out of the floor round them, filling as it goes
       const back = keep(sc.add.rectangle(tg.x, floor + 12, tw, tankH, 0x0c4a6e, 0.35).setOrigin(0.5, 1).setDepth(D - 1));
       const water = keep(sc.add.rectangle(tg.x, floor + 12, tw, tankH, 0x0ea5e9, 0.35).setOrigin(0.5, 1).setDepth(D + 5));
+      // the tank itself is drawn (PixelLab): its metal frame and glass go over the water
+      const tankArt = img("kp_tank", tg.x, floor + 16, { w: tw * 1.08, h: tankH * 1.22, oy: 1, depth: D + 7 });
       const glass = keep(sc.add.graphics().setDepth(D + 7));
-      glass.lineStyle(3, 0xe0f2fe, 0.85).strokeRect(tg.x - tw / 2, tankTop, tw, tankH);
-      glass.lineStyle(2, 0xffffff, 0.35).lineBetween(tg.x - tw / 2 + 8, tankTop + 6, tg.x - tw / 2 + 8, floor);
+      if (!tankArt) {
+        glass.lineStyle(3, 0xe0f2fe, 0.85).strokeRect(tg.x - tw / 2, tankTop, tw, tankH);
+        glass.lineStyle(2, 0xffffff, 0.35).lineBetween(tg.x - tw / 2 + 8, tankTop + 6, tg.x - tw / 2 + 8, floor);
+      }
       for (const o of [back, water]) o.setScale(1, 0);
       glass.setAlpha(0);
+      tankArt?.setAlpha(0);
       synth.play("splash");
-      sc.tweens.add({ targets: glass, alpha: 1, duration: 500 });
+      sc.tweens.add({ targets: [glass, ...(tankArt ? [tankArt] : [])], alpha: 1, duration: 500 });
       await c.tw({ targets: [back, water], scaleY: 1, duration: 800, ease: "Quad.out" });
       let p = say("Is that… water?", "#bae6fd");
       await c.wait(700);
@@ -906,6 +1075,13 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const mkFish = () => {
         const f = keep(sc.add.container(tg.x + (Math.random() < 0.5 ? -1 : 1) * (tw / 2 + 30), tankTop + 20 + Math.random() * (tankH - 40)).setDepth(D + 6));
         const sz = 0.8 + Math.random() * 0.5;
+        // a drawn piranha (the bits sheet), snapping its jaws as it goes
+        const pf = bit(sc, "piranha", 0, 0, 20 * sz);
+        if (pf) {
+          f.add(pf);
+          fish.push(f);
+          return f;
+        }
         f.add(sc.add.triangle(-11 * sz, 0, 0, -5 * sz, 0, 5 * sz, -7 * sz, 0, 0x4d7c0f));
         f.add(sc.add.ellipse(0, 0, 18 * sz, 11 * sz, 0x65a30d).setStrokeStyle(1, 0x1a2e05));
         f.add(sc.add.ellipse(1, 3 * sz, 12 * sz, 5 * sz, 0xdc2626));
@@ -921,6 +1097,15 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         sc.tweens.add({ targets: f, x: to.x, y: to.y, duration: fast ? 140 + Math.random() * 160 : 400 + Math.random() * 300, ease: "Sine.inOut", onComplete: () => dart(f, fast) });
       };
       for (let i = 0; i < 6; i++) dart(mkFish(), false);
+      // snap, snap: the drawn piranhas flick between mouth shut and mouth open
+      const snap = sc.time.addEvent({ delay: 110, loop: true, callback: () => {
+        for (const f of fish) {
+          const im = f.list[0];
+          if (!f.active || !(im instanceof Phaser.GameObjects.Image) || im.texture.key !== "kp_bits" || Math.random() < 0.5) continue;
+          const open = !im.getData("open");
+          im.setData("open", open).setFrame(open ? 20 : 19);
+        }
+      } });
       synth.play("splash");
       await c.wait(900);
       p = say("…are those PIRANHAS?!", "#fecaca");
@@ -933,7 +1118,9 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       }
       // the feeding: bites, bubbles, thrashing, the water going red and then thick
       const bubbles = sc.time.addEvent({ delay: 60, loop: true, callback: () => {
-        const b = keep(sc.add.circle(tg.x + (Math.random() - 0.5) * tw * 0.8, floor - Math.random() * tankH * 0.8, 1 + Math.random() * 3, 0xffffff, 0.6).setDepth(D + 6));
+        const bx = tg.x + (Math.random() - 0.5) * tw * 0.8;
+        const by = floor - Math.random() * tankH * 0.8;
+        const b = bitk("bubble", bx, by, 3 + Math.random() * 5)?.setAlpha(0.8) ?? keep(sc.add.circle(bx, by, 1 + Math.random() * 3, 0xffffff, 0.6).setDepth(D + 6));
         sc.tweens.add({ targets: b, y: tankTop + 2, alpha: 0, duration: 500 + Math.random() * 500, onComplete: () => b.destroy() });
       } });
       const bites = sc.time.addEvent({ delay: 110, loop: true, callback: () => synth.play(Math.random() < 0.4 ? "squelch" : Math.random() < 0.5 ? "splat" : "flesh_rip", 0.6) });
@@ -956,29 +1143,47 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       synth.play("gurgle");
       // a scum of froth and bits on the top
       const scum = keep(sc.add.graphics().setDepth(D + 6));
-      for (let i = 0; i < 16; i++) scum.fillStyle(i % 3 ? 0x7f1d1d : 0xfca5a5, 0.9).fillEllipse(tg.x + (Math.random() - 0.5) * tw * 0.9, tankTop + 2 + Math.random() * 4, 6 + Math.random() * 12, 3 + Math.random() * 3);
+      // drawn: froth with bits in it, floating on top
+      for (let i = 0; i < 6 && sc.textures.exists("kp_scum"); i++) img("kp_scum", tg.x + (i / 5 - 0.5) * tw * 0.85, tankTop + 3, { w: tw / 4.5, depth: D + 6 })?.setFlipX(i % 2 === 0).setTint(c.gore ? 0xffffff : 0xfde7d0);
+      for (let i = 0; i < 16 && !sc.textures.exists("kp_scum"); i++) scum.fillStyle(i % 3 ? 0x7f1d1d : 0xfca5a5, 0.9).fillEllipse(tg.x + (Math.random() - 0.5) * tw * 0.9, tankTop + 2 + Math.random() * 4, 6 + Math.random() * 12, 3 + Math.random() * 3);
       thrash.stop();
       body.setX(T.x);
       bites.remove();
       await c.wait(700);
       bubbles.remove();
+      snap.remove();
       for (const f of fish) {
         sc.tweens.killTweensOf(f);
         f.destroy();
       }
       // out they come: a hook on a chain, up by the collar
       const hookTopY = cam.worldView.y - 20;
+      // drawn (PixelLab): a meat hook on a chain, wound up by a lever at your side
       const chain = keep(sc.add.graphics().setDepth(D + 2));
-      const hook = keep(sc.add.text(tg.x, hookTopY, "⚓", { fontSize: "18px" }).setOrigin(0.5).setDepth(D + 2).setAngle(180));
-      const drawChain = () => chain.clear().lineStyle(3, 0x9ca3af, 1).lineBetween(tg.x, hookTopY - 400, tg.x, hook.y - 8);
+      const hookArt = img("kp_hook", tg.x, hookTopY, { h: 26, oy: 0.15, depth: D + 2 });
+      const hook = hookArt ?? keep(sc.add.text(tg.x, hookTopY, "⚓", { fontSize: "18px" }).setOrigin(0.5).setDepth(D + 2).setAngle(180));
+      const chainArt = sc.textures.exists("kp_chain") ? keep(sc.add.tileSprite(tg.x, hookTopY - 400, 8, 1, "kp_chain").setOrigin(0.5, 0).setDepth(D + 2)) : null;
+      if (chainArt) chainArt.setTileScale(8 / chainArt.frame.width, 8 / chainArt.frame.width);
+      const drawChain = () => {
+        if (chainArt) chainArt.setSize(8, Math.max(1, hook.y - 2 - (hookTopY - 400)));
+        else chain.clear().lineStyle(3, 0x9ca3af, 1).lineBetween(tg.x, hookTopY - 400, tg.x, hook.y - 8);
+      };
       const chainEv = sc.time.addEvent({ delay: 16, loop: true, callback: drawChain });
+      const lever = img("kp_lever", c.me.x + 16, floor + 2, { h: H * 0.32, oy: 1, depth: D + 2 });
       synth.play("telegraph");
+      void act.play("pull", { fps: 16 });
+      if (lever) sc.tweens.add({ targets: lever, scaleY: lever.scaleY * 0.85, yoyo: true, duration: 160, delay: 180 });
       await c.tw({ targets: hook, y: top + 6, duration: 600, ease: "Quad.in" });
       synth.play("smash", 0.5);
       // what comes out: their head, untouched, on a skeleton picked clean (gore), or a very nibbled person (gore off)
       const head = part(0, 0, 1, NECK, D + 4);
       const fig = keep(sc.add.container(0, 0).setDepth(D + 3));
-      if (c.gore) {
+      const skelArt = c.gore ? prop(sc, "kp_skeleton", tg.x, neckY - 3, { h: floor - neckY + 4, oy: 0 }) : null;
+      if (skelArt) {
+        // drawn (PixelLab): a skeleton picked clean, shreds of them still hanging off it
+        body.setVisible(false);
+        fig.add(skelArt);
+      } else if (c.gore) {
         body.setVisible(false);
         const bone = 0xf5f0e1;
         const g = sc.add.graphics();
@@ -1079,11 +1284,20 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       lids.setDepth(D + 10);
       synth.play("splash");
       const drips = sc.time.addEvent({ delay: 90, loop: true, callback: () => {
-        const d = keep(sc.add.circle(tg.x + (Math.random() - 0.5) * W * 0.5, tankTop - 2, 2, c.gore ? 0x7f1d1d : 0x0ea5e9).setDepth(D + 8));
+        const dx = tg.x + (Math.random() - 0.5) * W * 0.5;
+        const db = bitk("drop", dx, tankTop - 2, 6, D + 8);
+        if (db && !c.gore) db.setTint(0x7dd3fc);
+        const d = db ?? keep(sc.add.circle(dx, tankTop - 2, 2, c.gore ? 0x7f1d1d : 0x0ea5e9).setDepth(D + 8));
         sc.tweens.add({ targets: d, y: tankTop + 10, alpha: 0, duration: 400, onComplete: () => d.destroy() });
       } });
       const start = lifted.map((o) => (o as unknown as Phaser.GameObjects.Components.Transform).y);
       const lift = { t: 0 };
+      // you crank them up, heave by heave
+      const heave = sc.time.addEvent({ delay: 560, repeat: 3, callback: () => {
+        void act.play("pull", { fps: 18 });
+        if (lever) sc.tweens.add({ targets: lever, scaleY: lever.scaleY * 0.85, yoyo: true, duration: 160, delay: 180 });
+      } });
+      void heave;
       await c.tw({
         targets: lift,
         t: 1,
@@ -1163,7 +1377,14 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       cropAbove(0.21);
       const mouthY = top + H * 0.15;
       const clamp = keep(sc.add.graphics().setDepth(D + 6));
+      // drawn (PixelLab): a steel G-clamp, cranked open in the mouth (one jaw up, one down)
+      const clampArt = img("kp_clamp", tg.x + W * 0.12, mouthY, { w: W * 0.75, depth: D + 6 });
+      const clampK = clampArt ? clampArt.scaleY : 1;
       const drawClamp = (open: number) => {
+        if (clampArt) {
+          clampArt.setScale(clampArt.scaleX, clampK * (0.45 + open / Math.max(1, H * 0.05)));
+          return;
+        }
         clamp.clear().lineStyle(3, 0x9ca3af, 1);
         clamp.lineBetween(tg.x - W * 0.3, mouthY - open, tg.x + W * 0.3, mouthY - open);
         clamp.lineBetween(tg.x - W * 0.3, mouthY + open, tg.x + W * 0.3, mouthY + open);
@@ -1183,17 +1404,24 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       p = say("AAHHGH?!", "#fecaca");
       // the bag: ASBESTOS, skull and crossbones, the lot of it
       const bag = keep(sc.add.container(tg.x + W * 0.1, top - H * 0.45).setDepth(D + 7));
-      bag.add(sc.add.rectangle(0, 0, 46, 58, 0xd6c7a1).setStrokeStyle(2, 0x6b5a3a));
-      bag.add(sc.add.text(0, -10, "ASBESTOS", { fontFamily: "Impact, sans-serif", fontSize: "9px", color: "#7f1d1d" }).setOrigin(0.5));
-      bag.add(sc.add.text(0, 8, "☠", { fontSize: "16px", color: "#111" }).setOrigin(0.5));
-      bag.add(sc.add.text(0, 22, "25kg", { fontFamily: "monospace", fontSize: "7px", color: "#333" }).setOrigin(0.5));
+      const bagArt = prop(sc, "kp_asbestos", 0, 0, { h: 52 });
+      if (bagArt) bag.add(bagArt);
+      else {
+        bag.add(sc.add.rectangle(0, 0, 46, 58, 0xd6c7a1).setStrokeStyle(2, 0x6b5a3a));
+        bag.add(sc.add.text(0, -10, "ASBESTOS", { fontFamily: "Impact, sans-serif", fontSize: "9px", color: "#7f1d1d" }).setOrigin(0.5));
+        bag.add(sc.add.text(0, 8, "☠", { fontSize: "16px", color: "#111" }).setOrigin(0.5));
+        bag.add(sc.add.text(0, 22, "25kg", { fontFamily: "monospace", fontSize: "7px", color: "#333" }).setOrigin(0.5));
+      }
       bag.setAlpha(0);
+      // you hold it over them and tip it (krelact rip row, the reach)
+      void act.play("rip", { frames: [0, 4], hold: true, fps: 10 });
       sc.tweens.add({ targets: bag, alpha: 1, duration: 300 });
       await c.tw({ targets: bag, angle: 135, x: tg.x + W * 0.05, y: mouthY - H * 0.32, duration: 600, ease: "Back.out" });
       p.destroy();
       synth.play("powderpour");
       const pour = sc.time.addEvent({ delay: 18, repeat: 150, callback: () => {
-        const f = keep(sc.add.rectangle(bag.x - 6 + Math.random() * 6, bag.y + 16, 1 + Math.random() * 2, 2 + Math.random() * 4, Math.random() < 0.6 ? 0xf3f4f6 : 0x9ca3af, 0.95).setDepth(D + 6));
+        const fx0 = bag.x - 6 + Math.random() * 6;
+        const f = bitk("dust", fx0, bag.y + 16, 4 + Math.random() * 4)?.setTint(Math.random() < 0.6 ? 0xffffff : 0xd1d5db) ?? keep(sc.add.rectangle(fx0, bag.y + 16, 1 + Math.random() * 2, 2 + Math.random() * 4, Math.random() < 0.6 ? 0xf3f4f6 : 0x9ca3af, 0.95).setDepth(D + 6));
         sc.tweens.add({ targets: f, x: tg.x + (Math.random() - 0.5) * W * 0.12, y: mouthY, duration: 220, ease: "Quad.in", onComplete: () => f.destroy() });
       } });
       sc.tweens.add({ targets: bag, x: { from: bag.x - 2, to: bag.x + 2 }, yoyo: true, repeat: 20, duration: 70 });
@@ -1205,6 +1433,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       await c.wait(2900);
       pour.remove();
       choke.remove();
+      act.idle();
       toss(bag, 160, -200, floor - 6, 360, () => synth.play("lob"));
       synth.play("cough");
       p = say("*cough* …that tasted fibrous.", "#e5e7eb");
@@ -1225,7 +1454,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       };
       const vx = (f: number) => V.x + V.w * f;
       const vy = (f: number) => V.y + V.h * f;
-      const stage = [body, upper, jaw, clamp, c.me];
+      const stage: { setVisible(v: boolean): unknown }[] = [body, upper, jaw, clamp, c.me, ...(clampArt ? [clampArt] : [])];
       const blackCard = async (text: string) => {
         const bk = fix(keep(sc.add.rectangle(-20, -20, 1000, 580, 0x000000, 1).setOrigin(0).setDepth(D + 50).setAlpha(0)));
         const t = fix(keep(sc.add.text(vx(0.5), vy(0.5), text, { fontFamily: "Georgia, serif", fontSize: "34px", color: "#ffffff", fontStyle: "italic" }).setOrigin(0.5).setDepth(D + 51).setAlpha(0)));
@@ -1239,19 +1468,32 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       for (const o of stage) o.setVisible(false);
       // ---- 2. the doctor's office
       const office = keep(sc.add.container(0, 0).setDepth(Z));
-      office.add(sc.add.rectangle(V.x, V.y, V.w, V.h * 0.72, 0xdbe4e8).setOrigin(0));
-      office.add(sc.add.rectangle(V.x, vy(0.72), V.w, V.h * 0.28, 0x8b9aa3).setOrigin(0));
-      office.add(sc.add.rectangle(vx(0.5), vy(0.62), V.w * 0.36, 16, 0x7c5a3a).setStrokeStyle(2, 0x3b2a1a));
-      office.add(sc.add.rectangle(vx(0.5), vy(0.8), V.w * 0.3, V.h * 0.32, 0x6b4a2e));
-      // the lightbox: lungs, full of it
-      office.add(sc.add.rectangle(vx(0.5), vy(0.28), 120, 90, 0x0f172a).setStrokeStyle(4, 0xe5e7eb));
-      const xr = sc.add.graphics();
-      xr.fillStyle(0x94a3b8, 0.8).fillEllipse(vx(0.5) - 22, vy(0.28), 34, 62).fillEllipse(vx(0.5) + 22, vy(0.28), 34, 62);
-      for (let i = 0; i < 26; i++) xr.fillStyle(0x1e293b, 0.9).fillCircle(vx(0.5) + (Math.random() - 0.5) * 70, vy(0.28) + (Math.random() - 0.5) * 60, 1 + Math.random() * 3);
-      office.add(xr);
-      office.add(sc.add.text(vx(0.5), vy(0.42), "DR. JAMESON, MD", { fontFamily: "Georgia, serif", fontSize: "12px", color: "#334155" }).setOrigin(0.5));
-      const doc = sizeTo(sc.add.image(vx(0.7), vy(0.72), sc.textures.exists("spr_TV_DR_JAMESON") ? "spr_TV_DR_JAMESON" : "spr_FOLK1", 0).setOrigin(0.5, 1), V.h * 0.42);
-      const patient = sc.add.image(vx(0.3), vy(0.72), T.key, T.frame).setOrigin(0.5, 1);
+      // drawn (PixelLab): a consulting room, the x-ray of the lungs up on the lightbox
+      const officeArt = prop(sc, "kp_office", V.x, V.y, { w: V.w, h: V.h, ox: 0, oy: 0 });
+      // where people stand: on the drawn floor, or on the old flat one
+      const feetY = officeArt ? vy(0.95) : vy(0.72);
+      if (officeArt) {
+        office.add(officeArt);
+        // the lightbox's lungs, riddled with it (a scatter of dark spots on the film)
+        const xr = sc.add.graphics();
+        for (let i = 0; i < 22; i++) xr.fillStyle(0x1e293b, 0.85).fillCircle(vx(0.47) + (Math.random() - 0.5) * 70, vy(0.33) + (Math.random() - 0.5) * 56, 1.5 + Math.random() * 2.5);
+        office.add(xr);
+        office.add(sc.add.text(vx(0.47), vy(0.53), "DR. JAMESON, MD", { fontFamily: "Georgia, serif", fontSize: "12px", color: "#334155", backgroundColor: "#e2e8f0", padding: { x: 4, y: 1 } }).setOrigin(0.5));
+      } else {
+        office.add(sc.add.rectangle(V.x, V.y, V.w, V.h * 0.72, 0xdbe4e8).setOrigin(0));
+        office.add(sc.add.rectangle(V.x, vy(0.72), V.w, V.h * 0.28, 0x8b9aa3).setOrigin(0));
+        office.add(sc.add.rectangle(vx(0.5), vy(0.62), V.w * 0.36, 16, 0x7c5a3a).setStrokeStyle(2, 0x3b2a1a));
+        office.add(sc.add.rectangle(vx(0.5), vy(0.8), V.w * 0.3, V.h * 0.32, 0x6b4a2e));
+        // the lightbox: lungs, full of it
+        office.add(sc.add.rectangle(vx(0.5), vy(0.28), 120, 90, 0x0f172a).setStrokeStyle(4, 0xe5e7eb));
+        const xr = sc.add.graphics();
+        xr.fillStyle(0x94a3b8, 0.8).fillEllipse(vx(0.5) - 22, vy(0.28), 34, 62).fillEllipse(vx(0.5) + 22, vy(0.28), 34, 62);
+        for (let i = 0; i < 26; i++) xr.fillStyle(0x1e293b, 0.9).fillCircle(vx(0.5) + (Math.random() - 0.5) * 70, vy(0.28) + (Math.random() - 0.5) * 60, 1 + Math.random() * 3);
+        office.add(xr);
+        office.add(sc.add.text(vx(0.5), vy(0.42), "DR. JAMESON, MD", { fontFamily: "Georgia, serif", fontSize: "12px", color: "#334155" }).setOrigin(0.5));
+      }
+      const doc = sizeTo(sc.add.image(vx(0.7), feetY, sc.textures.exists("spr_TV_DR_JAMESON") ? "spr_TV_DR_JAMESON" : "spr_FOLK1", 0).setOrigin(0.5, 1), V.h * 0.42);
+      const patient = sc.add.image(vx(0.3), feetY, T.key, T.frame).setOrigin(0.5, 1);
       sizeTo(patient, V.h * 0.42).setFlipX(true);
       office.add([doc, patient]);
       fix(office);
@@ -1270,22 +1512,40 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       bk = await blackCard("Six months later...");
       office.destroy();
       const ward = keep(sc.add.container(0, 0).setDepth(Z));
-      ward.add(sc.add.rectangle(V.x, V.y, V.w, V.h * 0.7, 0xcfe3d6).setOrigin(0));
-      ward.add(sc.add.rectangle(V.x, vy(0.7), V.w, V.h * 0.3, 0x9fb4a8).setOrigin(0));
-      ward.add(sc.add.rectangle(vx(0.18), vy(0.25), 110, 80, 0x93c5fd).setStrokeStyle(5, 0xf8fafc));
-      // the bed, side on: frame, mattress, pillow
+      // drawn (PixelLab): an NHS ward (window, drip stand, the heart monitor on its stand) and a hospital bed
+      const wardArt = prop(sc, "kp_ward", V.x, V.y, { w: V.w, h: V.h, ox: 0, oy: 0 });
       const bedX = vx(0.5);
-      const bedY = vy(0.66);
-      ward.add(sc.add.rectangle(bedX, bedY + 10, V.w * 0.46, 16, 0x94a3b8).setStrokeStyle(2, 0x475569));
-      ward.add(sc.add.rectangle(bedX - V.w * 0.22, bedY - 26, 10, 80, 0x64748b));
-      ward.add(sc.add.rectangle(bedX + V.w * 0.22, bedY - 6, 10, 40, 0x64748b));
-      ward.add(sc.add.rectangle(bedX, bedY, V.w * 0.44, 20, 0xf8fafc).setStrokeStyle(1, 0xcbd5e1));
-      ward.add(sc.add.ellipse(bedX - V.w * 0.17, bedY - 18, 70, 26, 0xffffff).setStrokeStyle(1, 0xcbd5e1));
-      // the monitor
-      const monX = vx(0.82);
-      const monY = vy(0.38);
-      ward.add(sc.add.rectangle(monX, monY + 70, 6, 120, 0x475569));
-      ward.add(sc.add.rectangle(monX, monY, 120, 80, 0x0b1220).setStrokeStyle(4, 0x64748b));
+      let bedY = vy(0.66);
+      // the trace goes on the monitor's screen: the drawn one's, or the old box
+      let monX = vx(0.82);
+      let monY = vy(0.38);
+      let monW = 110;
+      let monAmp = 26;
+      const bedArt = wardArt ? prop(sc, "kp_bed", bedX, vy(0.96), { w: V.w * 0.5, oy: 1 }) : null;
+      if (wardArt && bedArt) {
+        ward.add([wardArt, bedArt]);
+        // the mattress top, a little over a third of the way down the drawn bed
+        bedY = bedArt.y - bedArt.displayHeight * 0.6;
+        monX = vx(KP_WARD_SCREEN.x);
+        monY = vy(KP_WARD_SCREEN.y);
+        monW = V.w * KP_WARD_SCREEN.w;
+        monAmp = V.h * KP_WARD_SCREEN.h * 0.4;
+      } else {
+        wardArt?.destroy();
+        bedArt?.destroy();
+        ward.add(sc.add.rectangle(V.x, V.y, V.w, V.h * 0.7, 0xcfe3d6).setOrigin(0));
+        ward.add(sc.add.rectangle(V.x, vy(0.7), V.w, V.h * 0.3, 0x9fb4a8).setOrigin(0));
+        ward.add(sc.add.rectangle(vx(0.18), vy(0.25), 110, 80, 0x93c5fd).setStrokeStyle(5, 0xf8fafc));
+        // the bed, side on: frame, mattress, pillow
+        ward.add(sc.add.rectangle(bedX, bedY + 10, V.w * 0.46, 16, 0x94a3b8).setStrokeStyle(2, 0x475569));
+        ward.add(sc.add.rectangle(bedX - V.w * 0.22, bedY - 26, 10, 80, 0x64748b));
+        ward.add(sc.add.rectangle(bedX + V.w * 0.22, bedY - 6, 10, 40, 0x64748b));
+        ward.add(sc.add.rectangle(bedX, bedY, V.w * 0.44, 20, 0xf8fafc).setStrokeStyle(1, 0xcbd5e1));
+        ward.add(sc.add.ellipse(bedX - V.w * 0.17, bedY - 18, 70, 26, 0xffffff).setStrokeStyle(1, 0xcbd5e1));
+        // the monitor
+        ward.add(sc.add.rectangle(monX, monY + 70, 6, 120, 0x475569));
+        ward.add(sc.add.rectangle(monX, monY, 120, 80, 0x0b1220).setStrokeStyle(4, 0x64748b));
+      }
       const trace = sc.add.graphics();
       ward.add(trace);
       fix(ward);
@@ -1295,13 +1555,14 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const pts: number[] = [];
       const traceEv = sc.time.addEvent({ delay: 30, loop: true, callback: () => {
         tx = (tx + 2) % 110;
-        const sp = !flat && spikeAt >= 0 && sc.time.now - spikeAt < 120 ? -26 : 0;
+        const sp = !flat && spikeAt >= 0 && sc.time.now - spikeAt < 120 ? -monAmp : 0;
         pts[tx] = sp;
         trace.clear().lineStyle(2, flat ? 0xef4444 : 0x22c55e, 1).beginPath();
         for (let i = 0; i < 110; i += 2) {
           const yy = monY + (pts[i] ?? 0);
-          if (i === 0) trace.moveTo(monX - 55 + i, yy);
-          else trace.lineTo(monX - 55 + i, yy);
+          const xx = monX - monW / 2 + (i / 110) * monW;
+          if (i === 0) trace.moveTo(xx, yy);
+          else trace.lineTo(xx, yy);
         }
         trace.strokePath();
       } });
@@ -1318,9 +1579,11 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       if (hasArt) {
         pHead = fix(keep(sc.add.image(bedX - V.w * 0.15, bedY + 4, artKey).setOrigin(0.5, 1).setDepth(Z + 1)));
         sizeTo(pHead, V.h * 0.36);
-        // the blanket over the rest of them
-        gown.fillStyle(0xe0f2fe).fillRoundedRect(bedX - V.w * 0.05, bedY - 18, V.w * 0.26, 22, 8);
-        gown.lineStyle(1, 0xbae6fd).strokeRoundedRect(bedX - V.w * 0.05, bedY - 18, V.w * 0.26, 22, 8);
+        // the blanket over the rest of them (the drawn bed has its own)
+        if (!bedArt) {
+          gown.fillStyle(0xe0f2fe).fillRoundedRect(bedX - V.w * 0.05, bedY - 18, V.w * 0.26, 22, 8);
+          gown.lineStyle(1, 0xbae6fd).strokeRoundedRect(bedX - V.w * 0.05, bedY - 18, V.w * 0.26, 22, 8);
+        }
       } else {
         pHead = fix(part(0, 0, 1, NECK, Z + 1));
         const hm = (V.h * 0.2) / (hhPx * sA);
@@ -1382,7 +1645,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const famKeys = ["spr_TV_WOMAN", "spr_TV_JOHN", "spr_TV_MARY", "spr_KD_WOMAN"].filter((k) => sc.textures.exists(k));
       const fam = famKeys.slice(0, 3).map((k, i) => {
         // round the bed but clear of the pillow: two at the head end, one at the foot
-        const f = sizeTo(sc.add.image([vx(0.1), vx(0.19), vx(0.79)][i], vy(0.8), k, 0).setOrigin(0.5, 1), V.h * 0.3);
+        const f = sizeTo(sc.add.image([vx(0.1), vx(0.19), vx(0.79)][i], bedArt ? vy(0.93) : vy(0.8), k, 0).setOrigin(0.5, 1), V.h * (bedArt ? 0.36 : 0.3));
         if (i === 2) f.setFlipX(true);
         return fix(keep(f.setDepth(Z + 3)));
       });
@@ -1410,7 +1673,9 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const tears = sc.time.addEvent({ delay: 140, loop: true, callback: () => {
         const f = fam[Math.floor(Math.random() * fam.length)];
         if (!f?.active) return;
-        const d = fix(keep(sc.add.circle(f.x + (Math.random() - 0.5) * 10, f.y - f.displayHeight * 0.82, 2, 0x60a5fa).setDepth(Z + 4)));
+        const tx0 = f.x + (Math.random() - 0.5) * 10;
+        const ty0 = f.y - f.displayHeight * 0.82;
+        const d = fix(bitk("tear", tx0, ty0, 9, Z + 4) ?? keep(sc.add.circle(tx0, ty0, 2, 0x60a5fa).setDepth(Z + 4)));
         sc.tweens.add({ targets: d, y: d.y + 30, alpha: 0, duration: 600, onComplete: () => d.destroy() });
       } });
       const sobs = fam.map((f, i) => fix(keep(sc.add.text(f.x, f.y - f.displayHeight - 6, ["*sob*", "Why?!", "*sniff*"][i], { fontFamily: "sans-serif", fontSize: "13px", color: "#1e3a8a", fontStyle: "italic" }).setOrigin(0.5, 1).setDepth(Z + 4))));
@@ -1424,15 +1689,26 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       synth.play("smash");
       cam.shake(250, 0.012);
       const meDepth = c.me.depth;
-      const meScale = c.me.scaleX;
-      c.me.setVisible(true).setPosition(V.x - 60, vy(0.74)).setDepth(Z + 6).setScrollFactor(0).setScale(meScale * 1.7);
+      // (HD art: set the scale from his own, measured off a unit scale, never read back)
+      c.me.setScale(1);
+      const meK = (V.h * 0.3) / Math.max(1, c.me.displayHeight);
+      // (scale is set from his own, never read back off the HD sprite after a texture swap)
+      c.me.setVisible(true).setPosition(V.x - 60, bedArt ? vy(0.8) : vy(0.74)).setDepth(Z + 6).setScrollFactor(0).setScale(meK);
+      // the chainsaw is in his hands (krelact saw row, revving); a drawn one carried along if he hasn't got the row
       const saw = keep(sc.add.container(0, 0).setDepth(Z + 7));
-      saw.add(sc.add.rectangle(0, 0, 26, 16, 0xf97316).setStrokeStyle(2, 0x7c2d12));
-      saw.add(sc.add.rectangle(30, 0, 40, 7, 0x9ca3af).setStrokeStyle(1, 0x374151));
-      for (let i = 0; i < 9; i++) saw.add(sc.add.triangle(14 + i * 4.5, -4, 0, 0, 3, 0, 1.5, -3, 0xe5e7eb));
+      const sawArt = act.sheet ? null : prop(sc, "kp_chainsaw", 0, 0, { w: 44 });
+      if (sawArt) saw.add(sawArt);
+      else if (!act.sheet) {
+        saw.add(sc.add.rectangle(0, 0, 26, 16, 0xf97316).setStrokeStyle(2, 0x7c2d12));
+        saw.add(sc.add.rectangle(30, 0, 40, 7, 0x9ca3af).setStrokeStyle(1, 0x374151));
+        for (let i = 0; i < 9; i++) saw.add(sc.add.triangle(14 + i * 4.5, -4, 0, 0, 3, 0, 1.5, -3, 0xe5e7eb));
+      }
       fix(saw);
       saw.setScale(1.6);
       const follow = sc.time.addEvent({ delay: 16, loop: true, callback: () => saw.setPosition(c.me.x + 30, c.me.y - c.me.displayHeight * 0.45) });
+      // revving: the first few frames of his saw row, over and over, until he's on the bed
+      let carving = false;
+      const revving = act.sheet ? sc.time.addEvent({ delay: 300, loop: true, callback: () => !carving && void act.play("saw", { frames: [1, 3], hold: true, fps: 20, yoyo: true }) }) : null;
       synth.play("gun_chainsaw");
       const rev = sc.time.addEvent({ delay: 600, loop: true, callback: () => synth.play("gun_chainsaw", 0.8) });
       const yell = fix(keep(sc.add.text(vx(0.5), vy(0.12), "GET WELL SOON!", { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#fde047", stroke: "#000", strokeThickness: 7 }).setOrigin(0.5).setDepth(Z + 20).setScale(0.3)));
@@ -1443,18 +1719,26 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       }
       synth.play("scream_woman");
       // up onto the bed, through the patient, end to end
-      await c.tw({ targets: c.me, x: bedX - V.w * 0.2, y: bedY - 26, duration: 500, ease: "Quad.out" });
+      await c.tw({ targets: c.me, x: bedX - V.w * 0.2, y: bedY - c.me.displayHeight * 0.4, duration: 500, ease: "Quad.out" });
       yell.destroy();
       traceEv.remove();
       tears.remove();
       // carve: the head, then the body in lumps, each one launched, blood and guts going everywhere
       const lumps: Obj[] = [pHead];
+      // what comes up off the bed under the saw: drawn hunks of them (the bits sheet), blanket and all
+      const hunks: Bit[] = ["meatbone", "gutrope", "meat", "liver"];
       for (let i = 0; i < 4; i++) {
         const lx = bedX - V.w * 0.1 + i * V.w * 0.075;
         const lump = keep(sc.add.container(lx, bedY - 8).setDepth(Z + 3));
-        lump.add(sc.add.rectangle(0, 0, V.w * 0.07, 22, 0xe0f2fe).setStrokeStyle(1, 0xbae6fd));
-        lump.add(sc.add.rectangle(-V.w * 0.035 + 2, 0, 5, 20, 0xb91c1c));
-        lump.add(sc.add.rectangle(V.w * 0.035 - 2, 0, 5, 20, 0xb91c1c));
+        const hk = bit(sc, hunks[i], 0, 0, V.w * 0.075);
+        if (hk) lump.add(hk);
+        else {
+          lump.add(sc.add.rectangle(0, 0, V.w * 0.07, 22, 0xe0f2fe).setStrokeStyle(1, 0xbae6fd));
+          lump.add(sc.add.rectangle(-V.w * 0.035 + 2, 0, 5, 20, 0xb91c1c));
+          lump.add(sc.add.rectangle(V.w * 0.035 - 2, 0, 5, 20, 0xb91c1c));
+        }
+        // hidden in the bed until the saw gets there
+        if (hk) lump.setVisible(false);
         lumps.push(fix(lump));
       }
       gown.clear();
@@ -1467,17 +1751,24 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         c.fx("vfx_blood", x + (Math.random() - 0.5) * 40, y, 2, { fixed: true, depth: Z + 8, delay: 80 });
         c.fx("vfx_gore", x, y - 10, 2.2, { fixed: true, depth: Z + 8, flipX: Math.random() < 0.5 });
         for (let n = 0; n < 14; n++) {
-          const d = fix(keep(sc.add.rectangle(x, y, 3 + Math.random() * 6, 3 + Math.random() * 5, Math.random() < 0.6 ? 0xdc2626 : 0x7f1d1d).setDepth(Z + 8)));
+          const d = fix(bitk(n % 3 ? "drop" : "shred", x, y, 8 + Math.random() * 8, Z + 8) ?? keep(sc.add.rectangle(x, y, 3 + Math.random() * 6, 3 + Math.random() * 5, Math.random() < 0.6 ? 0xdc2626 : 0x7f1d1d).setDepth(Z + 8)));
           toss(d, (Math.random() - 0.5) * 700, -150 - Math.random() * 380, vy(0.9) + Math.random() * 30, (Math.random() - 0.5) * 600);
         }
+        const offal: Bit[] = ["gutrope", "guts", "kidney", "eyeball", "heart2", "lungs", "tooth"];
         for (let n = 0; n < 3; n++) {
-          const g = fix(keep(sc.add.ellipse(x, y, 16, 8, 0xf472b6).setStrokeStyle(1, 0x9d174d).setDepth(Z + 8)));
+          const g = fix(bitk(offal[Math.floor(Math.random() * offal.length)], x, y, 22, Z + 8) ?? keep(sc.add.ellipse(x, y, 16, 8, 0xf472b6).setStrokeStyle(1, 0x9d174d).setDepth(Z + 8)));
           toss(g, (Math.random() - 0.5) * 500, -200 - Math.random() * 300, vy(0.9), (Math.random() - 0.5) * 900, () => synth.play("splat", 0.6));
         }
       };
       for (let i = 0; i < lumps.length; i++) {
         const L = lumps[i];
         await c.tw({ targets: c.me, x: (L as unknown as { x: number }).x - 24, duration: 160, ease: "Sine.inOut" });
+        // the saw comes down (the swing of his saw row)
+        if (act.sheet) {
+          carving = true;
+          void act.play("saw", { frames: [4, 8], hold: true, fps: 28 });
+        }
+        (L as unknown as { setVisible(v: boolean): void }).setVisible(true);
         synth.play("flesh_rip");
         synth.play("splat");
         cam.shake(160, 0.012);
@@ -1493,12 +1784,17 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         for (let n = 0; n < 3; n++) {
           const sx = Math.random() * 960;
           const sy = Math.random() * 400;
-          const bl = keep(sc.add.ellipse(sx, sy, 30 + Math.random() * 90, 20 + Math.random() * 60, Math.random() < 0.6 ? 0xb91c1c : 0x7f1d1d, 0.85).setScrollFactor(0).setDepth(D + 48));
+          // drawn splats of goo on the lens, running down
+          const gw = 40 + Math.random() * 110;
+          const gArt = prop(sc, "kp_goo", sx, sy, { w: gw, h: gw * (0.5 + Math.random() * 0.4), depth: D + 48 });
+          const bl = keep(gArt ? gArt.setScrollFactor(0).setAlpha(0.9).setFlipX(Math.random() < 0.5) : sc.add.ellipse(sx, sy, 30 + Math.random() * 90, 20 + Math.random() * 60, Math.random() < 0.6 ? 0xb91c1c : 0x7f1d1d, 0.85).setScrollFactor(0).setDepth(D + 48));
           sc.tweens.add({ targets: bl, y: sy + 40 + Math.random() * 60, scaleY: 1.4, duration: 2600, ease: "Sine.in" });
         }
       }
       rev.remove();
       follow.remove();
+      revving?.remove();
+      act.cheer();
       // the family, dripping, still screaming; the flatline still going
       for (const f of fam) sc.tweens.add({ targets: f, x: f.x + (Math.random() - 0.5) * 8, yoyo: true, repeat: -1, duration: 70 });
       synth.play("scream_woman");
@@ -1506,7 +1802,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       await c.wait(900);
       card();
       await c.wait(2200);
-      c.me.setScrollFactor(1).setDepth(meDepth).setScale(meScale);
+      c.me.setScrollFactor(1).setDepth(meDepth).setScale(c.ps);
       break;
     }
 
@@ -1514,8 +1810,12 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       cam.pan(tg.x - W * 0.2, tg.y, 600, "Sine.easeInOut");
       cam.zoomTo(1.9, 600);
       synth.play("transform_sparkle");
+      // the freeze ray: his ray row, firing (twice through), ice coming out of the muzzle
+      void act.play("ray", { fps: 12 }).then(() => act.play("ray", { fps: 12 }));
       const stream = sc.time.addEvent({ delay: 25, repeat: 44, callback: () => {
-        const f = keep(sc.add.circle(c.me.x + 16, c.me.y - 14, 2 + Math.random() * 3, Math.random() < 0.5 ? 0xe0f2fe : 0x7dd3fc, 0.9).setDepth(D + 6));
+        const mx = act.sheet ? c.me.x + c.me.displayWidth * 0.26 : c.me.x + 16;
+        const my = act.sheet ? c.me.y + c.me.displayHeight * 0.1 : c.me.y - 14;
+        const f = bitk(Math.random() < 0.5 ? "iceshard" : "icechunk", mx, my, 5 + Math.random() * 5)?.setAlpha(0.95) ?? keep(sc.add.circle(mx, my, 2 + Math.random() * 3, Math.random() < 0.5 ? 0xe0f2fe : 0x7dd3fc, 0.9).setDepth(D + 6));
         sc.tweens.add({ targets: f, x: tg.x + (Math.random() - 0.5) * W * 0.6, y: tg.y + (Math.random() - 0.5) * H * 0.7, alpha: 0.2, duration: 380, onComplete: () => f.destroy() });
       } });
       const col = { k: 0 };
@@ -1524,11 +1824,16 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const iw = W * 1.2 + 16;
       const ih = H * 1.08 + 10;
       const ice = keep(sc.add.container(tg.x, floor + 6).setDepth(D + 3));
-      ice.add(sc.add.rectangle(0, 0, iw, ih, 0xbae6fd, 0.42).setOrigin(0.5, 1).setStrokeStyle(3, 0xe0f2fe, 0.95));
-      const gl = sc.add.graphics();
-      gl.lineStyle(5, 0xffffff, 0.45).lineBetween(-iw * 0.36, -ih * 0.2, -iw * 0.12, -ih * 0.78);
-      gl.lineStyle(2, 0xffffff, 0.6).lineBetween(-iw * 0.22, -ih * 0.12, 0, -ih * 0.5);
-      ice.add(gl);
+      // drawn (PixelLab): a block of clear ice, cracks and frost and all, see-through so they're in it
+      const iceArt = prop(sc, "kp_ice", 0, 0, { w: iw * 1.1, h: ih * 1.12, oy: 1 });
+      if (iceArt) ice.add(iceArt.setAlpha(0.72));
+      else {
+        ice.add(sc.add.rectangle(0, 0, iw, ih, 0xbae6fd, 0.42).setOrigin(0.5, 1).setStrokeStyle(3, 0xe0f2fe, 0.95));
+        const gl = sc.add.graphics();
+        gl.lineStyle(5, 0xffffff, 0.45).lineBetween(-iw * 0.36, -ih * 0.2, -iw * 0.12, -ih * 0.78);
+        gl.lineStyle(2, 0xffffff, 0.6).lineBetween(-iw * 0.22, -ih * 0.12, 0, -ih * 0.5);
+        ice.add(gl);
+      }
       ice.scaleY = 0;
       await c.wait(400);
       synth.play("monitor_crack", 0.5);
@@ -1540,11 +1845,14 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       let p = say("Chill out.", "#bae6fd", "me");
       await c.wait(1000);
       p.destroy();
-      // the wind-up, then the punch, in slow motion
+      // the wind-up, then the punch, in slow motion (his punch row: fist back, then all of it)
+      act.idle();
+      void act.play("punch", { frames: [0, 3], hold: true, fps: 10 });
       await c.tw({ targets: c.me, x: c.me.x - 40, duration: 380, ease: "Quad.out" });
       await c.wait(250);
       c.slow(0.25);
-      await c.tw({ targets: c.me, x: tg.x - W * 0.5 - 10, duration: 140, ease: "Quad.in" });
+      void act.play("punch", { frames: [4, 6], hold: true, fps: 24 });
+      await c.tw({ targets: c.me, x: tg.x - W * 0.5 - 10 - (act.sheet ? c.me.displayWidth * 0.2 : 0), duration: 140, ease: "Quad.in" });
       synth.play("punch_big");
       synth.play("plate_smash");
       synth.play("monitor_crack");
@@ -1559,7 +1867,9 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       };
       ice.setVisible(false);
       for (let i = 0; i < 28; i++) {
-        const s = keep(sc.add.triangle(tg.x + (Math.random() - 0.5) * iw, floor - Math.random() * ih, 0, 0, 6 + Math.random() * 12, 2, 3, 10 + Math.random() * 14, 0xbae6fd, 0.85).setStrokeStyle(1, 0xffffff).setDepth(D + 5));
+        const sx2 = tg.x + (Math.random() - 0.5) * iw;
+        const sy2 = floor - Math.random() * ih;
+        const s = bitk(i % 3 ? "icechunk" : "iceshard", sx2, sy2, 8 + Math.random() * 12, D + 5) ?? keep(sc.add.triangle(sx2, sy2, 0, 0, 6 + Math.random() * 12, 2, 3, 10 + Math.random() * 14, 0xbae6fd, 0.85).setStrokeStyle(1, 0xffffff).setDepth(D + 5));
         flyOff(s, 1.2);
       }
       c.fx("vfx_sparks", ix + 10, iy, 1, { add: true, tint: 0xbae6fd });
@@ -1571,7 +1881,10 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
             flyOff(pc);
           }
         for (let i = 0; i < 8; i++) {
-          const m = keep(sc.add.rectangle(tg.x + (Math.random() - 0.5) * W * 0.5, tg.y + (Math.random() - 0.5) * H * 0.6, 5 + Math.random() * 6, 4 + Math.random() * 5, 0x9f1239).setStrokeStyle(1, 0xbae6fd).setDepth(D + 5));
+          const mx2 = tg.x + (Math.random() - 0.5) * W * 0.5;
+          const my2 = tg.y + (Math.random() - 0.5) * H * 0.6;
+          // frozen offal: drawn, with a frost on it
+          const m = bitk((["meat", "heart", "kidney", "liver", "eyeball", "shred", "brain", "gutrope"] as Bit[])[i], mx2, my2, 12 + Math.random() * 6, D + 5)?.setTint(0xcfe8ff) ?? keep(sc.add.rectangle(mx2, my2, 5 + Math.random() * 6, 4 + Math.random() * 5, 0x9f1239).setStrokeStyle(1, 0xbae6fd).setDepth(D + 5));
           flyOff(m);
         }
         c.bones(tg.x, tg.y, 4);
@@ -1603,7 +1916,13 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       cam.shake(800, 0.005);
       const cr = keep(sc.add.graphics().setDepth(D + 1));
       cr.lineStyle(2, 0x111111, 1);
-      for (let i = 0; i < 6; i++) {
+      // drawn: the floor breaks up under them, a puff of dust
+      const rubble = img("kp_rubble", tg.x, floor + 3, { w: W * 1.1, depth: D + 1 });
+      if (rubble) {
+        c.fx("vfx_dust", tg.x, floor, Math.max(0.8, W / 60));
+        sc.tweens.add({ targets: rubble, x: { from: tg.x - 2, to: tg.x + 2 }, yoyo: true, repeat: 8, duration: 50 });
+      }
+      for (let i = 0; i < 6 && !rubble; i++) {
         let x = tg.x;
         let y = floor + 2;
         const dir = i < 3 ? -1 : 1;
@@ -1618,15 +1937,23 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       let p = say("…what's that rumbling?");
       await c.wait(1100);
       p.destroy();
-      const glint = keep(sc.add.star(tg.x, floor - 2, 4, 2, 10, 0xffffff).setDepth(D + 7).setScale(0));
+      const glb = bitk("star", tg.x, floor - 2, 14, D + 7)?.setTintFill(0xffffff);
+      const glint = glb ?? keep(sc.add.star(tg.x, floor - 2, 4, 2, 10, 0xffffff).setDepth(D + 7));
+      const glk = glb ? glb.scaleX : 1;
+      glint.setScale(0);
       synth.play("ding");
-      await c.tw({ targets: glint, scale: 1, angle: 90, yoyo: true, duration: 200 });
+      await c.tw({ targets: glint, scale: glk, angle: 90, yoyo: true, duration: 200 });
       await c.wait(400);
-      // SHUNK
+      // SHUNK: a drawn steel spit (PixelLab) shoots up out of the floor; only the part above the floor shows
       const sk = keep(sc.add.graphics().setDepth(D + 1.5));
       sk.setPosition(tg.x, floor + 4);
       const st = { len: 0 };
+      const skImg = img("kp_skewer", tg.x, floor + 4, { h: H * 1.75 + 80, ox: 0.5, oy: 0, depth: D + 1.5 });
       const draw = () => {
+        if (skImg) {
+          skImg.setY(floor + 4 - st.len).setCrop(0, 0, skImg.frame.width, Math.max(0, st.len / skImg.scaleY));
+          return;
+        }
         sk.clear();
         sk.fillStyle(0x9ca3af, 1).fillRect(-3.5, -st.len, 7, st.len);
         sk.fillStyle(0xf1f5f9, 1).fillRect(-2, -st.len, 2, st.len);
@@ -1649,8 +1976,19 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       sc.tweens.add({ targets: st, len: st.len + lift, duration: 900, ease: "Quad.out", onUpdate: draw });
       await c.tw({ targets: body, y: T.y - lift, duration: 900, ease: "Quad.out" });
       if (c.gore) {
-        const drip = keep(sc.add.rectangle(tg.x + 1, tg.y - lift + H * 0.45, 4, 1, 0xb91c1c).setOrigin(0.5, 0).setDepth(D + 1.6));
-        sc.tweens.add({ targets: drip, displayHeight: floor - drip.y, duration: 1800, ease: "Sine.in" });
+        // dripping down the spit (drawn drops), a pool spreading under it
+        const y0 = tg.y - lift + H * 0.45;
+        const dripEv = sc.time.addEvent({ delay: 160, repeat: 30, callback: () => {
+          const d = bitk("drop", tg.x + 2, y0, 6, D + 1.6);
+          if (d) sc.tweens.add({ targets: d, y: floor - 2, duration: 600, ease: "Quad.in", onComplete: () => d.destroy() });
+        } });
+        void dripEv;
+        const pool = img("kp_goo", tg.x, floor + 2, { w: 4, h: 2, depth: D + 1 });
+        if (pool) sc.tweens.add({ targets: pool, scaleX: (W * 0.9) / pool.frame.width, scaleY: (W * 0.3) / pool.frame.height, duration: 4000 });
+        else {
+          const drip = keep(sc.add.rectangle(tg.x + 1, y0, 4, 1, 0xb91c1c).setOrigin(0.5, 0).setDepth(D + 1.6));
+          sc.tweens.add({ targets: drip, displayHeight: floor - drip.y, duration: 1800, ease: "Sine.in" });
+        }
       }
       // the rotisserie
       for (let i = -1; i <= 1; i++) {
@@ -1676,18 +2014,25 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       body.scaleX = tg.scale;
       if (c.gore) {
         // shave a bit off into a pitta
+        act.walk();
+        await c.tw({ targets: c.me, x: tg.x - W * 0.45 - 26, duration: 300 });
+        act.idle();
         const px = c.me.x + 34;
         const py = floor - 6;
-        const pit = keep(sc.add.graphics().setDepth(D + 3));
-        pit.fillStyle(0xe7c98f, 1).fillEllipse(px, py, 44, 18);
-        pit.fillStyle(0x16a34a, 1).fillCircle(px - 10, py - 7, 4).fillCircle(px + 2, py - 8, 4);
-        pit.fillStyle(0xdc2626, 1).fillCircle(px + 10, py - 7, 3);
-        const knife = keep(sc.add.graphics().setDepth(D + 7));
+        // a drawn pitta (PixelLab), salad in already, waiting on the floor
+        if (!img("kp_pitta", px, py - 4, { w: 44, depth: D + 3 })) {
+          const pit = keep(sc.add.graphics().setDepth(D + 3));
+          pit.fillStyle(0xe7c98f, 1).fillEllipse(px, py, 44, 18);
+          pit.fillStyle(0x16a34a, 1).fillCircle(px - 10, py - 7, 4).fillCircle(px + 2, py - 8, 4);
+          pit.fillStyle(0xdc2626, 1).fillCircle(px + 10, py - 7, 3);
+        }
         const kx = tg.x + (tg.flip ? -1 : 1) * W * 0.25;
-        const kp = { t: 0 };
+        // the carve: his blade up, and one long stroke down the side of it (krelact katana row)
+        await act.play("katana", { frames: [0, 4], hold: true, fps: 14 });
         synth.play("swing");
-        await c.tw({ targets: kp, t: 1, duration: 260, onUpdate: () => knife.clear().lineStyle(3, 0xffffff, 1).lineBetween(kx, tg.y - lift - H * 0.35, kx, tg.y - lift - H * 0.35 + H * 0.7 * kp.t) });
-        sc.tweens.add({ targets: knife, alpha: 0, duration: 300 });
+        void act.play("katana", { frames: [5, 8], hold: true, fps: 16 });
+        c.fx("vfx_crit", kx, tg.y - lift, Math.max(0.6, H / 120), { add: true, depth: D + 7 });
+        await c.wait(260);
         const sl = part(0.66, 0.15, 0.8, 0.85, D + 4).setTint(0xb86a32);
         sl.y -= lift;
         synth.play("squelch");
@@ -1715,15 +2060,21 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       await c.tw({ targets: c.me, x: lx - 34, duration: 300 });
       cam.pan(tg.x, tg.y - H * 0.1, 600, "Sine.easeInOut");
       cam.zoomTo(1.6, 600);
-      const posts = [lx, rx].map((x) => keep(sc.add.rectangle(x, floor + 4, 14, floor + 4 - barY, 0x111827).setOrigin(0.5, 1).setStrokeStyle(2, 0x374151).setDepth(D + 5).setScale(1, 0)));
-      const bar = keep(sc.add.rectangle(tg.x, barY - 200, rx - lx + 14, 12, 0x111827).setStrokeStyle(2, 0x374151).setDepth(D + 5));
+      // drawn (PixelLab): two laser emitter posts up out of the floor, a third along the top as the bar
+      const postArt = sc.textures.exists("kp_emitter");
+      const posts = [lx, rx].map((x, i) => (postArt ? img("kp_emitter", x, floor + 4, { w: 16, h: floor + 4 - barY, oy: 1, depth: D + 5, flip: i === 1 }) : null) ?? keep(sc.add.rectangle(x, floor + 4, 14, floor + 4 - barY, 0x111827).setOrigin(0.5, 1).setStrokeStyle(2, 0x374151).setDepth(D + 5)));
+      const postK = posts.map((o) => o.scaleY);
+      posts.forEach((o) => o.setScale(o.scaleX, 0));
+      const bar = (postArt ? img("kp_emitter", tg.x, barY - 200, { w: 14, h: rx - lx + 14, depth: D + 5 })?.setAngle(90) : null) ?? keep(sc.add.rectangle(tg.x, barY - 200, rx - lx + 14, 12, 0x111827).setStrokeStyle(2, 0x374151).setDepth(D + 5));
       synth.play("door");
-      sc.tweens.add({ targets: posts, scaleY: 1, duration: 500, ease: "Quad.out" });
+      posts.forEach((o, i) => sc.tweens.add({ targets: o, scaleY: postK[i], duration: 500, ease: "Quad.out" }));
       await c.tw({ targets: bar, y: barY, duration: 500, ease: "Bounce.out" });
+      // and you switch it on
+      void act.play("det", { hold: true });
       synth.play("drone");
       const cuts = [0.22, 0.48, 0.74];
       const beam = async (x1: number, y1: number, x2: number, y2: number) => {
-        const led = keep(sc.add.circle(x1, y1, 3, 0xef4444).setDepth(D + 6));
+        const led = bitk("bomblight", x1, y1, 9, D + 6) ?? keep(sc.add.circle(x1, y1, 3, 0xef4444).setDepth(D + 6));
         sc.tweens.add({ targets: led, alpha: 0.2, yoyo: true, repeat: 2, duration: 70 });
         await c.wait(240);
         const g = keep(sc.add.graphics().setDepth(D + 6));
@@ -1819,7 +2170,31 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         a.add(ga);
         b.add(gb);
         for (const g of [ga, gb]) g.fillStyle(bone, 1).lineStyle(2, edge, 1);
-        if (kind === "skull") {
+        // drawn (PixelLab): a glowing x-ray of the bone, cut in two along where it breaks
+        const xKey = `kp_xray_${kind}`;
+        if (sc.textures.exists(xKey)) {
+          const mk = () => {
+            const im = sc.add.image(0, kind === "skull" ? -4 : 0, xKey);
+            im.setScale(Math.min(170 / im.frame.height, 220 / im.frame.width));
+            return im;
+          };
+          const ia = mk();
+          const ib = mk();
+          const fw2 = ia.frame.width;
+          const fh2 = ia.frame.height;
+          if (kind === "ribs") {
+            ia.setCrop(0, 0, fw2 / 2, fh2);
+            ib.setCrop(fw2 / 2, 0, fw2 / 2, fh2);
+          } else {
+            const cut = kind === "skull" ? 0.68 : 0.5;
+            ia.setCrop(0, 0, fw2, fh2 * cut);
+            ib.setCrop(0, fh2 * cut, fw2, fh2 * (1 - cut));
+          }
+          a.add(ia);
+          b.add(ib);
+          ga.setVisible(false);
+          gb.setVisible(false);
+        } else if (kind === "skull") {
           ga.fillCircle(0, -18, 44).strokeCircle(0, -18, 44);
           ga.fillStyle(0x020617, 1).fillCircle(-16, -18, 10).fillCircle(16, -18, 10).fillTriangle(-5, 4, 5, 4, 0, -6);
           gb.fillRoundedRect(-30, 26, 60, 20, 6).strokeRoundedRect(-30, 26, 60, 20, 6);
@@ -1853,7 +2228,10 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const hitYs = [top + H * 0.15, top + H * 0.42, top + H * 0.62];
       const homeX = c.me.x;
       for (let i = 0; i < 3; i++) {
+        // his punch row: fist back with the step back, the rest of it with the lunge
+        void act.play("punch", { frames: [0, 4], hold: true, fps: 22 });
         await c.tw({ targets: c.me, x: homeX - 18, duration: 180, ease: "Quad.out" });
+        void act.play("punch", { frames: [5, 8], fps: 20 });
         await c.tw({ targets: c.me, x: homeX + 22, duration: 80, ease: "Quad.in" });
         synth.play("punch_big");
         c.fx("vfx_hit", tg.x - W * 0.3, hitYs[i], 0.9, { depth: D + 7 });
@@ -1885,12 +2263,21 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
           sc.tweens.add({ targets: P.a, x: da[0], y: da[1], angle: da[2], duration: 220, ease: "Back.out" });
           sc.tweens.add({ targets: P.b, x: db[0], y: db[1], angle: db[2], duration: 220, ease: "Back.out" });
           for (let k = 0; k < 7; k++) {
-            const f = sc.add.rectangle(0, i === 0 ? 20 : 0, 3 + Math.random() * 5, 3 + Math.random() * 4, bone).setScrollFactor(0);
+            // drawn bone splinters, gone x-ray blue
+            const f = (bit(sc, k % 2 ? "shards" : "bonebroken", 0, i === 0 ? 20 : 0, 16)?.setTint(0x9eeeff) ?? sc.add.rectangle(0, i === 0 ? 20 : 0, 3 + Math.random() * 5, 3 + Math.random() * 4, bone)).setScrollFactor(0);
             P.pc.add(f);
             sc.tweens.add({ targets: f, x: (Math.random() - 0.5) * 180, y: (Math.random() - 0.3) * 140, angle: 400, alpha: 0.3, duration: 500 });
           }
           for (let k = 0; k < 5; k++) {
-            const bl = sc.add.circle((Math.random() - 0.5) * 120, (Math.random() - 0.5) * 100, 3, 0xdc2626, 0.85).setScrollFactor(0);
+            const bx = (Math.random() - 0.5) * 120;
+            const by = (Math.random() - 0.5) * 100;
+            const sp = bit(sc, "splat", bx, by, 12);
+            if (sp) {
+              P.pc.add(sp.setScrollFactor(0).setAlpha(0.9));
+              sc.tweens.add({ targets: sp, scale: (20 + Math.random() * 16) / 32, duration: 300 });
+              continue;
+            }
+            const bl = sc.add.circle(bx, by, 3, 0xdc2626, 0.85).setScrollFactor(0);
             P.pc.add(bl);
             sc.tweens.add({ targets: bl, radius: 8 + Math.random() * 10, duration: 300 });
           }
@@ -1944,14 +2331,20 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       sg.fillStyle(0xd1d5db, 1).fillTriangle(-2.5, -Lb, 2.5, -Lb, 2.5, -Lb - 8);
       sword.add(sg);
       sword.setAngle(20).setScale(1, 0);
+      // with his action sheet the blade is in his hands (krelact katana row): drawn, raised back, then the cut
+      const held = !!act.sheet;
+      sword.setVisible(!held);
       synth.play("swing2");
-      await c.tw({ targets: sword, scaleY: 1, duration: 400, ease: "Quad.out" });
-      const glint = sc.add.star(0, 0, 4, 2, 8, 0xffffff);
-      sword.add(glint);
+      if (held) await act.play("katana", { frames: [0, 2], hold: true, fps: 8 });
+      else await c.tw({ targets: sword, scaleY: 1, duration: 400, ease: "Quad.out" });
+      const gb = held ? bit(sc, "star", c.me.x + c.me.displayWidth * 0.3, c.me.y + c.me.displayHeight * 0.08, 12, D + 7) : null;
+      const glint = gb ? keep(gb.setTintFill(0xffffff)) : sc.add.star(0, 0, 4, 2, 8, 0xffffff);
+      if (!gb) sword.add(glint);
       synth.play("ding");
-      await c.tw({ targets: glint, y: -Lb, duration: 300, angle: 180 });
+      await c.tw({ targets: glint, y: gb ? glint.y - 10 : -Lb, x: gb ? glint.x + 14 : 0, duration: 300, angle: 180 });
       glint.destroy();
       // the wind-up: crouch, blade back
+      if (held) void act.play("katana", { frames: [3, 4], hold: true, fps: 6 });
       sc.tweens.add({ targets: sword, angle: -70, duration: 400, ease: "Quad.out" });
       sc.tweens.add({ targets: c.me, y: c.me.y + 4, duration: 400 });
       await scaleTo(c.me, [c.ps, c.ps], [c.ps, c.ps * 0.85], { duration: 400 });
@@ -1960,11 +2353,15 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       // the draw-cut: you're past them before anyone sees it
       const endX = tg.x + W * 0.5 + 40;
       synth.play("swing3");
-      const arc = keep(sc.add.graphics().setDepth(D + 8));
-      arc.lineStyle(6, 0xffffff, 1).lineBetween(tg.x - W * 0.6, nY + 6, tg.x + W * 0.6, nY - 6);
-      arc.lineStyle(2, 0xbae6fd, 0.7).lineBetween(tg.x - W * 0.7, nY + 12, tg.x + W * 0.7, nY - 2);
-      sc.tweens.add({ targets: arc, alpha: 0, duration: 500 });
+      // the cut itself: a drawn shockwave slash across the neck (an arc of light if the effect isn't loaded)
+      if (!c.fx("vfx_shock", tg.x, nY, Math.max(0.5, W / 110), { angle: -4, add: true, depth: D + 8 })) {
+        const arc = keep(sc.add.graphics().setDepth(D + 8));
+        arc.lineStyle(6, 0xffffff, 1).lineBetween(tg.x - W * 0.6, nY + 6, tg.x + W * 0.6, nY - 6);
+        arc.lineStyle(2, 0xbae6fd, 0.7).lineBetween(tg.x - W * 0.7, nY + 12, tg.x + W * 0.7, nY - 2);
+        sc.tweens.add({ targets: arc, alpha: 0, duration: 500 });
+      }
       sc.tweens.add({ targets: sword, x: endX + 12, angle: 110, duration: 90 });
+      if (held) void act.play("katana", { frames: [5, 8], hold: true, fps: 40 });
       c.me.setScale(c.ps);
       await c.tw({ targets: c.me, x: endX, y: c.me.y - 4, duration: 90 });
       synth.play("crit");
@@ -1976,6 +2373,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       // the sheath
       sc.tweens.add({ targets: sword, angle: 0, duration: 300 });
       await c.tw({ targets: sword, scaleY: 0, delay: 300, duration: 250 });
+      if (held) act.idle();
       synth.play("tap");
       await c.wait(450);
       if (c.gore) {
@@ -1995,8 +2393,11 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         let n = 0;
         const ribbon = sc.time.addEvent({ delay: 35, loop: true, callback: () => {
           if (n++ > 50) return ribbon.remove();
-          const d = keep(sc.add.circle(head.x, head.y + head.displayHeight * 0.3, 2 + Math.random() * 2.5, 0xb91c1c).setDepth(D + 4));
-          toss(d, (Math.random() - 0.5) * 20, 0, floor - Math.random() * 6, 0, () => d.setScale(2, 0.7));
+          const ry = head.y + head.displayHeight * 0.3;
+          const db = bitk("drop", head.x, ry, 5 + Math.random() * 4, D + 4);
+          const d = db ?? keep(sc.add.circle(head.x, ry, 2 + Math.random() * 2.5, 0xb91c1c).setDepth(D + 4));
+          // drops land as little splats
+          toss(d, (Math.random() - 0.5) * 20, 0, floor - Math.random() * 6, 0, () => (db ? db.setFrame(22).setScale(db.scaleX * 1.2, db.scaleY * 0.7) : d.setScale(2, 0.7)));
         } });
         c.fountain(tg.x, nY, 3200);
         await c.wait(420);
@@ -2011,7 +2412,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         await c.wait(1500);
       } else {
         // just one hair comes down. Then they faint.
-        const hair = keep(sc.add.rectangle(tg.x, top + 2, 1.5, 6, 0x1f1206).setDepth(D + 6));
+        const hair = bitk("hair", tg.x, top + 2, 9) ?? keep(sc.add.rectangle(tg.x, top + 2, 1.5, 6, 0x1f1206).setDepth(D + 6));
         c.slow(0.3);
         await c.tw({ targets: hair, y: top + H * 0.3, x: hair.x + 10, angle: 120, duration: 600, ease: "Sine.inOut" });
         c.slow(1);

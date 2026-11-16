@@ -76,7 +76,7 @@ export function installDebug(game: Phaser.Game) {
       const hd = e.texture?.customData?.hd ?? 1;
       const ps = d.player.spr;
       const phd = ps.texture.customData?.hd ?? 1;
-      void kreltality(d, { key: e.texture.key, frame: e.frame.name, x: e.x, y: e.y, scale: e.scaleX / hd, flip: e.flipX, name: "TEST DUMMY" }, { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd }, which);
+      void kreltality(d, { key: e.texture.key, frame: e.frame.name, x: e.x, y: e.y, scale: e.scaleX / hd, flip: e.flipX, name: "TEST DUMMY", id: e.bossId }, { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd }, which);
     },
     god: () => {
       G.s.hp = maxHp(G.s) * 100;

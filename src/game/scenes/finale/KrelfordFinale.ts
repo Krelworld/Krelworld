@@ -4,7 +4,7 @@ import { G } from "../../G";
 import { synth } from "../../audio/Synth";
 import { FONT } from "../../ui/theme";
 import { hasVfx, vfx } from "../../gfx/Vfx";
-import { animateWalker, tallOf } from "../../gfx/HD";
+import { animateWalker, feetBody } from "../../gfx/HD";
 import { CHARACTERS, LADS } from "../../../data/characters";
 import { ConceptBoss } from "../../combat/ConceptBoss";
 import type { Enemy } from "../../combat/Enemy";
@@ -14,7 +14,7 @@ import { maxHp } from "../../systems/stats";
 import { switchTo } from "../../Flow";
 import { say } from "../../../content/dsl";
 import * as FB from "../../../content/finaleKrelford";
-import { bottleKey, finaleReady, logsKey, syringeKey } from "./finaleArt";
+import { bottleKey, finaleReady, headroom, logsKey, ssjSwap, syringeKey } from "./finaleArt";
 
 /**
  * THE CONCEPT OF PAEDOPHILIA, the fight (DungeonScene, dungeon "krelford_finale"). A big top-down arena that is
@@ -97,6 +97,10 @@ interface Lad {
   injected: boolean;
   ssj: boolean;
   aura?: Phaser.GameObjects.Sprite;
+  /** super saiyan: the glow at his feet, and how far his feet / the top of his head are from his position */
+  halo?: Phaser.GameObjects.Ellipse;
+  feet?: number;
+  head?: number;
   tag?: Phaser.GameObjects.Text;
   px: number;
   py: number;
@@ -114,6 +118,9 @@ export class KrelfordFinale {
   private arrow!: Phaser.GameObjects.Text;
   private counter?: Phaser.GameObjects.Text;
   private playerAura?: Phaser.GameObjects.Sprite;
+  private playerHalo?: Phaser.GameObjects.Ellipse;
+  private playerArt = false;
+  private playerFeet = 26;
   private nextSupply = 0;
   private gone = false;
 
@@ -312,9 +319,11 @@ export class KrelfordFinale {
       const r = 480 + (i % 2) * 90;
       const x = h.room.w / 2 + Math.cos(ang) * r * 1.3;
       const y = 470 + Math.sin(ang) * r;
-      const spr = h.add.sprite(x, y, `spr_${id}`, 0).setScale((h.player.spr.scaleX / tallOf(h.player.spr)) * 0.95).setDepth(y);
-      const label = h.add.text(x, y - 40, CHARACTERS[id]?.name ?? id, { fontFamily: "sans-serif", fontSize: "10px", color: "#86efac", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(900);
-      return { id, spr, label, ang, r, drift: (Math.random() < 0.5 ? 1 : -1) * (0.04 + Math.random() * 0.05), nextShot: h.now() + 800 + i * 150, injected: false, ssj: false, px: x, py: y };
+      // (setScale takes the same value the player's sprite was given, 2, less a touch: each lad's art factor and
+      // height are applied by the HD patch. The player's scaleX reads back the real scale, so isn't the thing to copy.)
+      const spr = h.add.sprite(x, y, `spr_${id}`, 0).setScale(2 * 0.95).setDepth(y);
+      const label = h.add.text(x, y - headroom(spr) - 6, CHARACTERS[id]?.name ?? id, { fontFamily: "sans-serif", fontSize: "10px", color: "#86efac", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(900);
+      return { id, spr, label, ang, r, drift: (Math.random() < 0.5 ? 1 : -1) * (0.04 + Math.random() * 0.05), nextShot: h.now() + 800 + i * 150, injected: false, ssj: false, px: x, py: y, head: headroom(spr) };
     });
   }
 
@@ -339,9 +348,11 @@ export class KrelfordFinale {
       }
       animateWalker(l.spr, moving ? dx : 0, moving ? dy : 0, moving, now);
       l.spr.setDepth(l.spr.y);
-      l.label.setPosition(l.spr.x, l.spr.y - 42);
-      l.tag?.setPosition(l.spr.x, l.spr.y - 58);
-      l.aura?.setPosition(l.spr.x, l.spr.y + 26).setDepth(l.spr.depth - 1);
+      const top = l.head !== undefined ? l.head + 6 : 42;
+      l.label.setPosition(l.spr.x, l.spr.y - top);
+      l.tag?.setPosition(l.spr.x, l.spr.y - top - 16);
+      l.aura?.setPosition(l.spr.x, l.spr.y + (l.feet ?? 28) - 2).setDepth(l.spr.depth - 1);
+      l.halo?.setPosition(l.spr.x, l.spr.y + (l.feet ?? 28) - 4).setDepth(l.spr.depth - 2);
       // shoot it
       if (now >= l.nextShot && b.mode !== "still") {
         const a = Math.atan2(b.y - l.spr.y, b.x - l.spr.x);
@@ -543,27 +554,69 @@ export class KrelfordFinale {
     h.toast("SUPER KRELWORLD KREW", "Real damage now. Hold out until Goku's SPIRIT CUM is ready.");
   }
 
+  /**
+   * Super saiyan: his shirtless, ripped, golden-haired sheet, half as tall again (feet on the same spot), in a big
+   * gold flame aura with a glow at his feet. No art for him: the old gold tint.
+   */
   private makeSsj(l: Lad, instant: boolean) {
     const h = this.h;
     l.injected = true;
     l.ssj = true;
-    l.spr.setTint(0xfff0b0);
+    const art = ssjSwap(l.spr, l.id, 0);
+    if (art) l.spr.clearTint();
+    else l.spr.setTint(0xfff0b0);
     l.label.setColor("#ffe066");
-    if (h.textures.exists("fb_aura") && h.sc.anims.exists("fb_aura") && !l.aura) {
-      l.aura = h.add.sprite(l.spr.x, l.spr.y + 26, "fb_aura", 0).setOrigin(0.5, 0.875).setScale(0.7, 0.85).setBlendMode(Phaser.BlendModes.ADD).setTint(0xfff27a).setAlpha(0.5);
-      l.aura.play({ key: "fb_aura", startFrame: Math.floor(Math.random() * 8) });
+    l.feet = (l.spr.height - l.spr.displayOriginY) * Math.abs(l.spr.scaleY);
+    l.head = headroom(l.spr);
+    if (!l.aura) l.aura = this.ssjAura(l.spr, l.feet, l.head, Math.floor(Math.random() * 8)) ?? undefined;
+    if (!l.halo) l.halo = this.ssjHalo(l.spr, l.feet);
+    if (!instant) {
+      h.floatText(l.spr.x, l.spr.y - l.head - 10, "AAAAAAAAA", "#ffe066", 14);
+      if (art) {
+        // a flash of the powering-up pose
+        l.spr.setFrame(1);
+        h.time.delayedCall(700, () => l.spr.active && l.spr.setFrame(0));
+      }
     }
-    if (!instant) h.floatText(l.spr.x, l.spr.y - 60, "AAAAAAAAA", "#ffe066", 14);
+  }
+
+  /** The flame aura round a super saiyan, sized to him (its base at his feet). */
+  private ssjAura(spr: Phaser.GameObjects.Sprite, feet: number, head: number, start = 0) {
+    const h = this.h;
+    if (!h.textures.exists("fb_aura") || !h.sc.anims.exists("fb_aura")) return null;
+    const tall = feet + head;
+    // the sheet's flame stands 0.875 of its 112px frame above its origin
+    const sy = (tall * 1.3) / (112 * 0.875);
+    const a = h.add.sprite(spr.x, spr.y + feet - 2, "fb_aura", 0).setOrigin(0.5, 0.875).setBlendMode(Phaser.BlendModes.ADD).setTint(0xfff27a).setAlpha(0.85);
+    // wider than him, so the flame licks out round his arms and over his head
+    a.setScale(sy * 1.35, sy);
+    a.play({ key: "fb_aura", startFrame: start });
+    return a;
+  }
+
+  /** A soft gold glow all round a super saiyan, standing on his feet. */
+  private ssjHalo(spr: Phaser.GameObjects.Sprite, feet: number) {
+    const h = this.h;
+    const w = Math.max(40, spr.displayWidth * 1.05);
+    const tall = feet + headroom(spr);
+    const g = h.add.ellipse(spr.x, spr.y + feet - 4, w, tall * 1.15, 0xffd23f, 0.22).setOrigin(0.5, 0.97).setBlendMode(Phaser.BlendModes.ADD);
+    h.tweens.add({ targets: g, scaleX: 1.12, scaleY: 1.06, alpha: 0.12, yoyo: true, repeat: -1, duration: G.meta.settings.calmFlash ? 900 : 260 });
+    return g;
   }
 
   private playerSsj() {
     const h = this.h;
-    const ps = h.player.spr;
-    if (h.textures.exists("fb_aura") && h.sc.anims.exists("fb_aura") && !this.playerAura) {
-      this.playerAura = h.add.sprite(ps.x, ps.y + 26, "fb_aura", 0).setOrigin(0.5, 0.875).setScale(0.75, 0.9).setBlendMode(Phaser.BlendModes.ADD).setTint(0xfff27a).setAlpha(0.5);
-      this.playerAura.play("fb_aura");
-    }
-    ps.setTint(0xfff0b0);
+    const p = h.player;
+    const ps = p.spr;
+    this.playerArt = ssjSwap(ps, G.s.player, 0);
+    if (this.playerArt) {
+      // the same hitbox at his feet as before: he's bigger, not easier to hit
+      if (ps.body) feetBody(ps as Phaser.Physics.Arcade.Sprite, 20, 20, 24);
+      ps.clearTint();
+    } else ps.setTint(0xfff0b0);
+    this.playerFeet = (ps.height - ps.displayOriginY) * Math.abs(ps.scaleY);
+    if (!this.playerAura) this.playerAura = this.ssjAura(ps, this.playerFeet, headroom(ps)) ?? undefined;
+    if (!this.playerHalo) this.playerHalo = this.ssjHalo(ps, this.playerFeet);
   }
 
   /** It's nearly dead... and it heals. All of it. NOOOOO. Then: the SPIRIT CUM. */
@@ -579,7 +632,7 @@ export class KrelfordFinale {
     await h.talk([FB.conceptLine(finalFact)]);
     if (this.gone) return;
     // everyone screams
-    for (const [i, l] of this.lads.entries()) h.time.delayedCall(i * 90, () => h.floatText(l.spr.x, l.spr.y - 60, FB.FB_NO, "#ff6b6b", 18));
+    for (const [i, l] of this.lads.entries()) h.time.delayedCall(i * 90, () => h.floatText(l.spr.x, l.spr.y - (l.head ?? 40) - 14, FB.FB_NO, "#ff6b6b", 18));
     h.floatText(h.player.x, h.player.y - 60, FB.FB_NO, "#ff6b6b", 20);
     synth.play("shriek");
     await b.fullHeal(2200, finalFact);
@@ -624,8 +677,10 @@ export class KrelfordFinale {
       }
     }
     const ps = h.player.spr;
-    this.playerAura?.setPosition(ps.x, ps.y + 26).setDepth(ps.depth - 1);
-    if (this.stage === "real" || G.s.flags.finale_cp === "ssj") ps.setTint(0xfff0b0);
+    this.playerAura?.setPosition(ps.x, ps.y + this.playerFeet - 2).setDepth(ps.depth - 1);
+    this.playerHalo?.setPosition(ps.x, ps.y + this.playerFeet - 4).setDepth(ps.depth - 2);
+    // (no super saiyan art for him: keep him gold)
+    if (!this.playerArt && (this.stage === "real" || G.s.flags.finale_cp === "ssj")) ps.setTint(0xfff0b0);
     // the SPIRIT CUM grows as it weakens
     if (this.orb && this.stage === "real") this.orb.setScale(0.35 + 1.6 * (1 - this.boss.hp / this.boss.maxHp));
     // fetch the bottle

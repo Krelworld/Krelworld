@@ -5386,6 +5386,294 @@
      37
     ]
    }
+  },
+  "ssj_FLENKY": {
+   "file": "chars/ssj_FLENKY.png",
+   "frame": 96,
+   "idle": {
+    "south": 0,
+    "east": 2,
+    "north": 0,
+    "west": 3
+   },
+   "walk": {
+    "south": [
+     0
+    ],
+    "east": [
+     2
+    ],
+    "north": [
+     0
+    ],
+    "west": [
+     3
+    ]
+   },
+   "attack": {
+    "south": [
+     1
+    ],
+    "east": [
+     2
+    ]
+   }
+  },
+  "ssj_KREZMAR": {
+   "file": "chars/ssj_KREZMAR.png",
+   "frame": 96,
+   "idle": {
+    "south": 0,
+    "east": 2,
+    "north": 0,
+    "west": 3
+   },
+   "walk": {
+    "south": [
+     0
+    ],
+    "east": [
+     2
+    ],
+    "north": [
+     0
+    ],
+    "west": [
+     3
+    ]
+   },
+   "attack": {
+    "south": [
+     1
+    ],
+    "east": [
+     2
+    ]
+   }
+  },
+  "ssj_KREBLIS": {
+   "file": "chars/ssj_KREBLIS.png",
+   "frame": 96,
+   "idle": {
+    "south": 0,
+    "east": 2,
+    "north": 0,
+    "west": 3
+   },
+   "walk": {
+    "south": [
+     0
+    ],
+    "east": [
+     2
+    ],
+    "north": [
+     0
+    ],
+    "west": [
+     3
+    ]
+   },
+   "attack": {
+    "south": [
+     1
+    ],
+    "east": [
+     2
+    ]
+   }
+  },
+  "ssj_KREZWONK": {
+   "file": "chars/ssj_KREZWONK.png",
+   "frame": 96,
+   "idle": {
+    "south": 0,
+    "east": 2,
+    "north": 0,
+    "west": 3
+   },
+   "walk": {
+    "south": [
+     0
+    ],
+    "east": [
+     2
+    ],
+    "north": [
+     0
+    ],
+    "west": [
+     3
+    ]
+   },
+   "attack": {
+    "south": [
+     1
+    ],
+    "east": [
+     2
+    ]
+   }
+  },
+  "ssj_SCROMBUS": {
+   "file": "chars/ssj_SCROMBUS.png",
+   "frame": 96,
+   "idle": {
+    "south": 0,
+    "east": 2,
+    "north": 0,
+    "west": 3
+   },
+   "walk": {
+    "south": [
+     0
+    ],
+    "east": [
+     2
+    ],
+    "north": [
+     0
+    ],
+    "west": [
+     3
+    ]
+   },
+   "attack": {
+    "south": [
+     1
+    ],
+    "east": [
+     2
+    ]
+   }
+  },
+  "ssj_KREBON": {
+   "file": "chars/ssj_KREBON.png",
+   "frame": 96,
+   "idle": {
+    "south": 0,
+    "east": 2,
+    "north": 0,
+    "west": 3
+   },
+   "walk": {
+    "south": [
+     0
+    ],
+    "east": [
+     2
+    ],
+    "north": [
+     0
+    ],
+    "west": [
+     3
+    ]
+   },
+   "attack": {
+    "south": [
+     1
+    ],
+    "east": [
+     2
+    ]
+   }
+  },
+  "ssj_MIKEY": {
+   "file": "chars/ssj_MIKEY.png",
+   "frame": 96,
+   "idle": {
+    "south": 0,
+    "east": 2,
+    "north": 0,
+    "west": 3
+   },
+   "walk": {
+    "south": [
+     0
+    ],
+    "east": [
+     2
+    ],
+    "north": [
+     0
+    ],
+    "west": [
+     3
+    ]
+   },
+   "attack": {
+    "south": [
+     1
+    ],
+    "east": [
+     2
+    ]
+   }
+  },
+  "ssj_CRONGUS": {
+   "file": "chars/ssj_CRONGUS.png",
+   "frame": 96,
+   "idle": {
+    "south": 0,
+    "east": 2,
+    "north": 0,
+    "west": 3
+   },
+   "walk": {
+    "south": [
+     0
+    ],
+    "east": [
+     2
+    ],
+    "north": [
+     0
+    ],
+    "west": [
+     3
+    ]
+   },
+   "attack": {
+    "south": [
+     1
+    ],
+    "east": [
+     2
+    ]
+   }
+  },
+  "ssj_GRONNY": {
+   "file": "chars/ssj_GRONNY.png",
+   "frame": 96,
+   "idle": {
+    "south": 0,
+    "east": 2,
+    "north": 0,
+    "west": 3
+   },
+   "walk": {
+    "south": [
+     0
+    ],
+    "east": [
+     2
+    ],
+    "north": [
+     0
+    ],
+    "west": [
+     3
+    ]
+   },
+   "attack": {
+    "south": [
+     1
+    ],
+    "east": [
+     2
+    ]
+   }
   }
  },
  "images": {
@@ -8065,6 +8353,33 @@
   },
   "tv_k1_boardroom": {
    "file": "backdrops/tv_k1_boardroom.png"
+  },
+  "ssj_por_FLENKY": {
+   "file": "finale/ssj_por_FLENKY.png"
+  },
+  "ssj_por_KREZMAR": {
+   "file": "finale/ssj_por_KREZMAR.png"
+  },
+  "ssj_por_KREBLIS": {
+   "file": "finale/ssj_por_KREBLIS.png"
+  },
+  "ssj_por_KREZWONK": {
+   "file": "finale/ssj_por_KREZWONK.png"
+  },
+  "ssj_por_SCROMBUS": {
+   "file": "finale/ssj_por_SCROMBUS.png"
+  },
+  "ssj_por_KREBON": {
+   "file": "finale/ssj_por_KREBON.png"
+  },
+  "ssj_por_MIKEY": {
+   "file": "finale/ssj_por_MIKEY.png"
+  },
+  "ssj_por_CRONGUS": {
+   "file": "finale/ssj_por_CRONGUS.png"
+  },
+  "ssj_por_GRONNY": {
+   "file": "finale/ssj_por_GRONNY.png"
   }
  },
  "sheets": {

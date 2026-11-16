@@ -93,3 +93,61 @@ export function finaleReady(scene: Phaser.Scene) {
 export function horrorKey(scene: Phaser.Scene) {
   return scene.textures.exists("fb_horror") ? "fb_horror" : "fb_horror_g";
 }
+
+// ---------------------------------------------------------------- SUPER SAIYAN (the lads after the golden juice)
+
+/**
+ * Each playable lad's super saiyan sheet (`ssj_<ID>`, 96px frames: 0 power stance, 1 powering up and screaming,
+ * 2 facing east, 3 facing west) and his close-up (`ssj_por_<ID>`, 128px), from public/art/manifest.json.
+ */
+export const ssjKey = (s: Phaser.Scene, id: string) => (s.textures.exists(`ssj_${id}`) ? `ssj_${id}` : null);
+export const ssjPortraitKey = (s: Phaser.Scene, id: string) => (s.textures.exists(`ssj_por_${id}`) ? `ssj_por_${id}` : null);
+
+/** How much taller than his normal self a lad stands once he's changed (his figure, feet to crown). */
+export const SSJ_GROW = 1.5;
+/** Feet-to-crown of a normal 64px sheet's idle figure, and of a 96px super saiyan one. */
+const BASE_PX = 62;
+const SSJ_PX = 95;
+
+/**
+ * Give each super saiyan sheet the art factor (`customData.hd`) that makes `setScale(n)` draw him SSJ_GROW times
+ * as tall as `setScale(n)` draws his normal sheet (his own height, data/heights.ts, included). So anything that
+ * resets his scale the usual way (setScale(2)) still gets the big version.
+ */
+function ssjPrep(scene: Phaser.Scene) {
+  const tex = scene.textures;
+  for (const key of tex.getTextureKeys()) {
+    if (!key.startsWith("ssj_") || key.startsWith("ssj_por_")) continue;
+    const t = tex.get(key);
+    const cd = (t.customData ?? {}) as { hd?: number; ssj?: boolean };
+    if (cd.ssj) continue;
+    const baseKey = `spr_${key.slice(4)}`;
+    const base = tex.exists(baseKey) ? (tex.get(baseKey).customData as { hd?: number }) : null;
+    t.customData = { ...cd, hd: (base?.hd ?? 0.5) * ((BASE_PX * SSJ_GROW) / SSJ_PX), ssj: true };
+  }
+}
+
+/**
+ * Swap a lad's sprite for his super saiyan sheet: SSJ_GROW times taller, standing on the same spot (his feet stay
+ * where they were, so his shadow, hitbox and depth sort don't move). False if there's no art for him.
+ */
+export function ssjSwap(spr: Phaser.GameObjects.Sprite, id: string, frame = 0): boolean {
+  const key = ssjKey(spr.scene, id);
+  if (!key) return false;
+  ssjPrep(spr.scene);
+  if (spr.texture.key === key) return true;
+  // how far below his position the bottom of his frame is (world px), and the scale he was set to (before the art factor)
+  const feet = (spr.height - spr.displayOriginY) * Math.abs(spr.scaleY);
+  const hd = (spr.texture.customData as { hd?: number } | undefined)?.hd ?? 1;
+  const setX = spr.scaleX / hd;
+  const setY = spr.scaleY / hd;
+  spr.setTexture(key, frame);
+  spr.setScale(setX, setY);
+  spr.setOrigin(0.5, Phaser.Math.Clamp(1 - feet / (spr.height * Math.abs(spr.scaleY)), 0, 1));
+  return true;
+}
+
+/** Top of a sprite's figure above its position (world px): where to put a name tag. */
+export function headroom(spr: Phaser.GameObjects.Sprite) {
+  return spr.displayOriginY * Math.abs(spr.scaleY);
+}

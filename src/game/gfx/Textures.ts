@@ -397,6 +397,7 @@ const SPEAKER_SPRITES: Record<string, string> = {
   GRENNY: "spr_GRONNY",
   "MIKKY K": "spr_MIKEY",
   WAITER: "spr_FOLK1",
+  KIERAN: "spr_FOLK2",
   "PROCTUS KRELMOR": "spr_PROCTUS",
 };
 

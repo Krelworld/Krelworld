@@ -30,28 +30,40 @@ export interface GunDef {
   shop?: number;
   /** Only won in Kreddle (never in crates or the bank). */
   kreddle?: boolean;
+  /** A crate gun that the Kreddle Exchange also sells (Krezzcoin), from its `minChapter`. Still turns up in crates. */
+  price?: number;
+  /** Shots steer towards the nearest enemy (turn rate). */
+  homing?: number;
+  /** Shots bounce on to the next enemy this many times. */
+  ricochet?: number;
+  /** Hits slow the enemy (0-1). */
+  slow?: number;
+  /** A trick of its own, worked out where it's fired (combat/Player.ts fireGun). */
+  mech?: "slots" | "roulette" | "chips" | "loan" | "dice";
+  /** Sound to play (default `gun_<id>`). */
+  sfx?: string;
 }
 
 export const GUNS: Record<string, GunDef> = {
   pistol: {
     id: "pistol", name: "Wonk Pistol", blurb: "Hot pink. Smiley sticker. Legally a toy in three countries.",
-    tex: "p_wpn_pistol", dmg: 12, cd: 230, speed: 600, pellets: 1, spread: 0.04, range: 420, color: 0xff6ec7, maxAmmo: 120, pickup: 30, ammoPrice: 12, minChapter: 1,
+    tex: "p_wpn_pistol", dmg: 12, cd: 230, speed: 600, pellets: 1, spread: 0.04, range: 420, color: 0xff6ec7, maxAmmo: 120, pickup: 30, ammoPrice: 12, minChapter: 1, price: 150,
   },
   smg: {
     id: "smg", name: "Crobley Uzi", blurb: "Sprays like Gronny after a Fizzy Bongo.",
-    tex: "p_wpn_smg", dmg: 6, cd: 85, speed: 640, pellets: 1, spread: 0.18, range: 360, color: 0xb6ff3b, maxAmmo: 260, pickup: 60, ammoPrice: 15, minChapter: 1,
+    tex: "p_wpn_smg", dmg: 6, cd: 85, speed: 640, pellets: 1, spread: 0.18, range: 360, color: 0xb6ff3b, maxAmmo: 260, pickup: 60, ammoPrice: 15, minChapter: 1, price: 300,
   },
   shotgun: {
     id: "shotgun", name: "Bongo Boomstick", blurb: "Beer can duct-taped on for luck. The luck is the beer.",
-    tex: "p_wpn_shotgun", dmg: 8, cd: 680, speed: 560, pellets: 6, spread: 0.55, range: 230, knock: 200, color: 0xffa94d, maxAmmo: 40, pickup: 10, ammoPrice: 15, minChapter: 2,
+    tex: "p_wpn_shotgun", dmg: 8, cd: 680, speed: 560, pellets: 6, spread: 0.55, range: 230, knock: 200, color: 0xffa94d, maxAmmo: 40, pickup: 10, ammoPrice: 15, minChapter: 2, price: 400,
   },
   rail: {
     id: "rail", name: "Wiki Railgun", blurb: "[citation needed] goes straight through people.",
-    tex: "p_wpn_rail", dmg: 42, cd: 850, speed: 1300, pellets: 1, spread: 0, range: 760, pierce: 99, knock: 160, color: 0x67e8f9, maxAmmo: 24, pickup: 6, ammoPrice: 20, minChapter: 3,
+    tex: "p_wpn_rail", dmg: 42, cd: 850, speed: 1300, pellets: 1, spread: 0, range: 760, pierce: 99, knock: 160, color: 0x67e8f9, maxAmmo: 24, pickup: 6, ammoPrice: 20, minChapter: 3, price: 600,
   },
   rocket: {
     id: "rocket", name: "The Marital Aid", blurb: "Fires pink rubber rockets. Vibrates on impact. Then explodes.",
-    tex: "p_wpn_rocket", dmg: 34, cd: 1000, speed: 360, pellets: 1, spread: 0, range: 520, blast: 85, knock: 260, color: 0xffffff, shotTex: "fx_rocket", maxAmmo: 12, pickup: 3, ammoPrice: 25, minChapter: 4,
+    tex: "p_wpn_rocket", dmg: 34, cd: 1000, speed: 360, pellets: 1, spread: 0, range: 520, blast: 85, knock: 260, color: 0xffffff, shotTex: "fx_rocket", maxAmmo: 12, pickup: 3, ammoPrice: 25, minChapter: 4, price: 750,
   },
   // ---- Central Bank exclusives
   gatling: {
@@ -97,12 +109,33 @@ export const GUNS: Record<string, GunDef> = {
     id: "flush", name: "The Royal Flush", blurb: "Five cards, all aces, all very sharp.",
     tex: "p_wpn_flush", dmg: 14, cd: 420, speed: 780, pellets: 5, spread: 0.6, range: 480, pierce: 3, color: 0xff3355, maxAmmo: 90, pickup: 25, ammoPrice: 35, minChapter: 1, kreddle: true,
   },
+  // ---- Kreddle Exchange exclusives (Krezzcoin; never in crates)
+  slots: {
+    id: "slots", name: "The One-Armed Bandit", blurb: "Every trigger pull spins the reels. Mostly lemons. Sometimes 777 and the whole room gets paid in lead.",
+    tex: "p_wpn_slots", dmg: 9, cd: 170, speed: 650, pellets: 1, spread: 0.1, range: 440, color: 0xffd23f, maxAmmo: 240, pickup: 60, ammoPrice: 30, minChapter: 1, shop: 900, kreddle: true, mech: "slots", sfx: "gun_kreddler",
+  },
+  roulette: {
+    id: "roulette", name: "Kroulette Shotgun", blurb: "Red or black, the pellets bounce on to the next mug. Land on the green zero and the House pays out. Through everyone.",
+    tex: "p_wpn_roulette", dmg: 9, cd: 760, speed: 560, pellets: 7, spread: 0.6, range: 250, knock: 210, ricochet: 1, color: 0xef4444, maxAmmo: 48, pickup: 12, ammoPrice: 25, minChapter: 1, shop: 1100, kreddle: true, mech: "roulette", sfx: "gun_shotgun",
+  },
+  chips: {
+    id: "chips", name: "High Roller Chip Launcher", blurb: "Fires stacks of casino chips that hunt people down. The chips are worthless. So is everyone they hit.",
+    tex: "p_wpn_chips", dmg: 15, cd: 280, speed: 430, pellets: 2, spread: 0.35, range: 560, homing: 2.6, color: 0x38bdf8, maxAmmo: 160, pickup: 40, ammoPrice: 30, minChapter: 1, shop: 850, kreddle: true, mech: "chips", sfx: "gun_flush",
+  },
+  loan: {
+    id: "loan", name: "The Loan Shark", blurb: "A harpoon gun with a payday loan attached. Skewers a queue of debtors, slows them right down, and collects the interest.",
+    tex: "p_wpn_loan", dmg: 52, cd: 720, speed: 950, pellets: 1, spread: 0, range: 700, pierce: 4, slow: 0.5, knock: 120, color: 0x94a3b8, maxAmmo: 30, pickup: 8, ammoPrice: 30, minChapter: 1, shop: 1000, kreddle: true, mech: "loan", sfx: "gun_sniper",
+  },
+  dice: {
+    id: "dice", name: "Snake Eyes", blurb: "Lobs a pair of loaded dice. Roll high, big bang. Roll double one and the House cries.",
+    tex: "p_wpn_dice", dmg: 30, cd: 820, speed: 380, pellets: 1, spread: 0, range: 480, blast: 60, knock: 240, color: 0xffffff, maxAmmo: 18, pickup: 5, ammoPrice: 40, minChapter: 1, shop: 1300, kreddle: true, mech: "dice", sfx: "gun_disco",
+  },
 };
 
-export const GUN_ORDER = ["chem_flamer", "pistol", "smg", "shotgun", "rail", "rocket", "gatling", "sniper", "boggor_lens", "flamer", "bfk", "chainsaw", "kreddler", "disco", "flush"];
+export const GUN_ORDER = ["chem_flamer", "pistol", "smg", "shotgun", "rail", "rocket", "gatling", "sniper", "boggor_lens", "flamer", "bfk", "chainsaw", "kreddler", "disco", "flush", "slots", "roulette", "chips", "loan", "dice"];
 
 /** Strongest first: what you get handed when you walk into a room or run dry. */
-export const GUN_POWER = ["chem_flamer", "bfk", "disco", "kreddler", "rocket", "gatling", "flush", "chainsaw", "boggor_lens", "sniper", "rail", "flamer", "shotgun", "smg", "pistol"];
+export const GUN_POWER = ["chem_flamer", "bfk", "dice", "disco", "kreddler", "loan", "rocket", "roulette", "gatling", "flush", "chips", "slots", "chainsaw", "boggor_lens", "sniper", "rail", "flamer", "shotgun", "smg", "pistol"];
 
 /** The infinite starter every character always has (when no gun is in hand). */
 export const FART_BLASTER = { name: "Fart Blaster", dmg: 10, cd: 240, speed: 540, range: 400 };

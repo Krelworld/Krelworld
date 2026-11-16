@@ -1,5 +1,5 @@
 import type { GameState } from "../../data/types";
-import { GUNS, GUN_POWER, type GunDef } from "../../data/guns";
+import { FART_BLASTER, GUNS, GUN_ORDER, GUN_POWER, type GunDef } from "../../data/guns";
 import { PRIZES } from "../../content/kreddle";
 
 // The armoury's rules, kept free of Phaser so they can be tested: ammo prices, the
@@ -26,9 +26,9 @@ export const BANK_PERKS = [
 
 // ------------------------------------------------------------------ ammo (the Kreddle Exchange's prices)
 
-/** Max ammo after the Bigger Pockets perk. */
+/** Max ammo after the Bigger Pockets perk and the gun's own Extended Mag mod. */
 export function gunMaxFor(g: GunDef, s: GameState): number {
-  return Math.round(g.maxAmmo * (1 + 0.25 * (s.upgrades?.pk_ammo ?? 0)));
+  return Math.round(g.maxAmmo * (1 + 0.25 * (s.upgrades?.pk_ammo ?? 0) + MOD_EFFECT.mag * modLevel(s, g.id, "mag")));
 }
 
 /**
@@ -155,7 +155,7 @@ export function specialText(g: GunDef): string {
   const bits: string[] = [];
   if (g.pellets > 1) bits.push(`${g.pellets} pellets`);
   if (g.pierce) bits.push(g.pierce >= 99 ? "Pierces everything" : `Pierce ${g.pierce}`);
-  if (g.blast) bits.push(`Blast ${g.blast}`);
+  if (g.blast) bits.push(`Blast ${Math.round(g.blast)}`);
   if (g.knock) bits.push(`Knockback ${g.knock}`);
   return bits.length ? bits.join(" · ") : "Nothing fancy";
 }
@@ -192,4 +192,143 @@ export function gunUpgrades(s: GameState): { applied: { u: GunUpgrade; lvl: numb
     if (lvl < u.max) available.push(u);
   }
   return { applied, available };
+}
+
+// ------------------------------------------------------------------ per-gun mods (the Kreddle Exchange's GUN MODS tab)
+
+/** What a gun mod can change. Each gun only offers the ones that suit it (GUN_MODS). */
+export type ModStat = "dmg" | "rof" | "mag" | "spread" | "pierce" | "blast" | "pellets" | "range" | "homing" | "luck";
+
+/** Per level: dmg/range/blast/mag are +fractions, rof/spread are -fractions, pierce/pellets +1, homing is turn rate, luck is per gun. */
+export const MOD_EFFECT: Record<ModStat, number> = { dmg: 0.12, rof: 0.08, mag: 0.25, spread: 0.2, pierce: 1, blast: 0.15, pellets: 1, range: 0.15, homing: 0.8, luck: 1 };
+
+export const MOD_INFO: Record<ModStat, { name: string; short: string; icon: string; desc: string; weight: number }> = {
+  dmg: { name: "Hollow Points", short: "DAMAGE", icon: "💥", desc: "+12% damage per level.", weight: 1 },
+  rof: { name: "Hair Trigger", short: "FIRE RATE", icon: "⚡", desc: "Fires 8% faster per level.", weight: 1.1 },
+  mag: { name: "Extended Mag", short: "AMMO", icon: "🧰", desc: "+25% max ammo per level.", weight: 0.6 },
+  spread: { name: "Steady Grip", short: "ACCURACY", icon: "🎯", desc: "20% tighter spread per level.", weight: 0.5 },
+  pierce: { name: "Tungsten Tips", short: "PIERCE", icon: "🔩", desc: "Each shot goes through one more enemy per level.", weight: 0.8 },
+  blast: { name: "Bigger Bang", short: "BLAST", icon: "🧨", desc: "+15% explosion radius per level.", weight: 0.9 },
+  pellets: { name: "Extra Pellets", short: "PELLETS", icon: "➕", desc: "One more projectile per shot per level.", weight: 1.2 },
+  range: { name: "Long Barrel", short: "RANGE", icon: "📏", desc: "+15% range per level.", weight: 0.5 },
+  homing: { name: "Heat-Seeking Chips", short: "HOMING", icon: "🧲", desc: "Shots turn harder towards enemies per level.", weight: 0.8 },
+  luck: { name: "Rigged Odds", short: "LUCK", icon: "🍀", desc: "Its gamble pays out more often per level.", weight: 0.9 },
+};
+
+/** What each luck level does, per gun (shown in the shop). */
+export const LUCK_TEXT: Record<string, string> = {
+  slots: "Jackpots (777) +5% likelier per level.",
+  roulette: "The green zero +4% likelier per level.",
+  loan: "Collects interest 10% more often per level.",
+  dice: "Every die rolls +1 higher per level (still max 6).",
+};
+
+/** The Fart Blaster's id in the mod tables. */
+export const FART_ID = "fart";
+
+/** Every gun's mods: a price base (roughly what the gun's worth) and the max level of each stat it offers. */
+export const GUN_MODS: Record<string, { base: number; mods: Partial<Record<ModStat, number>> }> = {
+  fart: { base: 40, mods: { dmg: 5, rof: 3, range: 2, pierce: 2 } },
+  pistol: { base: 40, mods: { dmg: 5, rof: 3, mag: 2, range: 2 } },
+  smg: { base: 45, mods: { dmg: 5, rof: 3, mag: 3, spread: 3 } },
+  shotgun: { base: 50, mods: { dmg: 5, rof: 3, pellets: 3, spread: 2, mag: 2 } },
+  rail: { base: 60, mods: { dmg: 5, rof: 3, mag: 2 } },
+  rocket: { base: 70, mods: { dmg: 5, rof: 3, blast: 4, mag: 2 } },
+  gatling: { base: 70, mods: { dmg: 5, rof: 3, mag: 3, spread: 3 } },
+  sniper: { base: 70, mods: { dmg: 5, rof: 3, pierce: 3, mag: 2 } },
+  boggor_lens: { base: 70, mods: { dmg: 5, rof: 3, blast: 3, pellets: 2 } },
+  flamer: { base: 75, mods: { dmg: 5, rof: 3, range: 3, mag: 3 } },
+  chem_flamer: { base: 90, mods: { dmg: 3, range: 2 } },
+  bfk: { base: 110, mods: { dmg: 5, rof: 3, blast: 4, mag: 3 } },
+  chainsaw: { base: 70, mods: { dmg: 5, rof: 3, range: 2, pierce: 3 } },
+  kreddler: { base: 85, mods: { dmg: 5, rof: 3, mag: 3, spread: 3 } },
+  disco: { base: 85, mods: { dmg: 5, rof: 3, blast: 4, mag: 2 } },
+  flush: { base: 75, mods: { dmg: 5, rof: 3, pellets: 3, pierce: 3 } },
+  slots: { base: 80, mods: { dmg: 5, rof: 3, mag: 3, luck: 4 } },
+  roulette: { base: 85, mods: { dmg: 5, rof: 3, pellets: 3, luck: 3 } },
+  chips: { base: 80, mods: { dmg: 5, rof: 3, pellets: 2, homing: 3 } },
+  loan: { base: 85, mods: { dmg: 5, rof: 3, pierce: 3, luck: 3 } },
+  dice: { base: 95, mods: { dmg: 5, rof: 3, blast: 4, luck: 3 } },
+};
+
+const MOD_ORDER: ModStat[] = ["dmg", "rof", "mag", "spread", "range", "pierce", "pellets", "blast", "homing", "luck"];
+
+/** The s.upgrades key for one gun mod (old saves just don't have it: level 0). */
+export function modKey(gun: string, stat: ModStat): string {
+  return `gm_${gun}_${stat}`;
+}
+
+export function modLevel(s: GameState, gun: string, stat: ModStat): number {
+  return s.upgrades?.[modKey(gun, stat)] ?? 0;
+}
+
+export function modMax(gun: string, stat: ModStat): number {
+  return GUN_MODS[gun]?.mods[stat] ?? 0;
+}
+
+/** Price of the NEXT level (`lvl` = the level you have now): rounded to 5, climbing faster each level. */
+export function modPrice(gun: string, stat: ModStat, lvl: number): number {
+  const base = (GUN_MODS[gun]?.base ?? 60) * MOD_INFO[stat].weight;
+  return Math.round((base * (1 + 0.6 * lvl + 0.15 * lvl * lvl)) / 5) * 5;
+}
+
+/** The mods a gun offers, in a fixed order, with your level and the next level's price. */
+export function gunModList(s: GameState, gun: string): { stat: ModStat; lvl: number; max: number; price: number }[] {
+  const m = GUN_MODS[gun]?.mods ?? {};
+  return MOD_ORDER.filter((k) => m[k]).map((stat) => {
+    const lvl = modLevel(s, gun, stat);
+    return { stat, lvl, max: m[stat]!, price: modPrice(gun, stat, lvl) };
+  });
+}
+
+/** Buy the next level of a mod (you must own the gun; the Fart Blaster is always yours). True if it went through. */
+export function buyMod(s: GameState, gun: string, stat: ModStat): boolean {
+  const lvl = modLevel(s, gun, stat);
+  if (lvl >= modMax(gun, stat)) return false;
+  if (gun !== FART_ID && !(s.guns && gun in s.guns)) return false;
+  const price = modPrice(gun, stat, lvl);
+  if (s.coins < price) return false;
+  s.coins -= price;
+  s.upgrades[modKey(gun, stat)] = lvl + 1;
+  return true;
+}
+
+/** The guns you can mod right now: the Fart Blaster, then everything you own (in the game's gun order). */
+export function moddableGuns(s: GameState): string[] {
+  return [FART_ID, ...GUN_ORDER.filter((id) => !!s.guns && id in s.guns && !!GUN_MODS[id])];
+}
+
+/** "DAMAGE 2/5 · FIRE RATE 1/3" for the rack ("" if nothing bought). */
+export function modSummary(s: GameState, gun: string): string {
+  return gunModList(s, gun)
+    .filter((m) => m.lvl > 0)
+    .map((m) => `${MOD_INFO[m.stat].short} ${m.lvl}/${m.max}`)
+    .join(" · ");
+}
+
+/** A gun's stats with its mods applied (what's actually fired). Max ammo is in gunMaxFor; luck is read where it's fired. */
+export function moddedGun(g: GunDef, s: GameState): GunDef {
+  const l = (k: ModStat) => modLevel(s, g.id, k);
+  const out: GunDef = { ...g };
+  out.dmg = g.dmg * (1 + MOD_EFFECT.dmg * l("dmg"));
+  out.cd = g.cd * Math.max(0.4, 1 - MOD_EFFECT.rof * l("rof"));
+  out.spread = g.spread * Math.max(0, 1 - MOD_EFFECT.spread * l("spread"));
+  out.range = g.range * (1 + MOD_EFFECT.range * l("range"));
+  if (l("pierce")) out.pierce = (g.pierce ?? 0) + l("pierce");
+  if (g.blast) out.blast = g.blast * (1 + MOD_EFFECT.blast * l("blast"));
+  out.pellets = g.pellets + l("pellets");
+  if (g.homing || l("homing")) out.homing = (g.homing ?? 0) + MOD_EFFECT.homing * l("homing");
+  return out;
+}
+
+/** The Fart Blaster with its mods applied. */
+export function moddedFart(s: GameState): { dmg: number; cd: number; speed: number; range: number; pierce: number } {
+  const l = (k: ModStat) => modLevel(s, FART_ID, k);
+  return {
+    dmg: FART_BLASTER.dmg * (1 + MOD_EFFECT.dmg * l("dmg")),
+    cd: FART_BLASTER.cd * (1 - MOD_EFFECT.rof * l("rof")),
+    speed: FART_BLASTER.speed,
+    range: FART_BLASTER.range * (1 + MOD_EFFECT.range * l("range")),
+    pierce: l("pierce"),
+  };
 }

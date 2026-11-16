@@ -7615,6 +7615,21 @@
   },
   "cancer_elon_closed": {
    "file": "chars/cancer_elon_closed.png"
+  },
+  "p_wpn_slots": {
+   "file": "props/p_wpn_slots.png"
+  },
+  "p_wpn_roulette": {
+   "file": "props/p_wpn_roulette.png"
+  },
+  "p_wpn_chips": {
+   "file": "props/p_wpn_chips.png"
+  },
+  "p_wpn_loan": {
+   "file": "props/p_wpn_loan.png"
+  },
+  "p_wpn_dice": {
+   "file": "props/p_wpn_dice.png"
   }
  },
  "sheets": {

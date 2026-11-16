@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { GUNS } from "../src/data/guns";
-import { ammoUnitCost, BANK_PERKS } from "../src/game/systems/armoury";
+import { ammoUnitCost, BANK_PERKS, FART_ID, GUN_MODS, gunModList, modPrice } from "../src/game/systems/armoury";
 import { GENERIC_UPGRADES, upgradeCost } from "../src/game/systems/stats";
 import { krokenPrice, KROKEN_PRICES, KROKEN_REFILL } from "../src/game/systems/kreddle";
 import { PRIZE, PRIZES } from "../src/content/kreddle";
@@ -52,5 +52,35 @@ describe("economy", () => {
     expect(krokenPrice(t, PRIZE.violence)).toBeLessThan(krokenPrice(t, PRIZE.fairy));
     t.guns = { disco: 4 };
     expect(krokenPrice(t, PRIZE.g_disco)).toBe(KROKEN_REFILL);
+  });
+
+  it("Kroken prices were cut: nothing at the Prize Counter costs more than 90", () => {
+    const t = newGameState("FLENKY");
+    for (const p of PRIZES) expect(krokenPrice(t, p)).toBeLessThanOrEqual(90);
+    expect(KROKEN_REFILL).toBeLessThan(15);
+  });
+
+  it("every gun (and the Fart Blaster) has mods, each level dearer than the last", () => {
+    for (const id of [FART_ID, ...Object.keys(GUNS)]) {
+      const mods = GUN_MODS[id];
+      expect(mods, id).toBeDefined();
+      expect(Object.keys(mods.mods).length).toBeGreaterThanOrEqual(2);
+      for (const m of gunModList(s, id)) {
+        expect(m.max).toBeGreaterThanOrEqual(2);
+        for (let l = 1; l < m.max; l++) expect(modPrice(id, m.stat, l)).toBeGreaterThan(modPrice(id, m.stat, l - 1));
+        // a first level is pocket money; the last level of anything is never more than the BFK itself
+        expect(modPrice(id, m.stat, 0)).toBeLessThanOrEqual(150);
+        expect(modPrice(id, m.stat, m.max - 1)).toBeLessThan(GUNS.bfk.shop!);
+      }
+    }
+  });
+
+  it("Exchange exclusives are priced like the other Exchange guns and never drop from crates", () => {
+    for (const id of ["slots", "roulette", "chips", "loan", "dice"]) {
+      const g = GUNS[id];
+      expect(g.shop!).toBeGreaterThanOrEqual(GUNS.sniper.shop!);
+      expect(g.shop!).toBeLessThan(GUNS.bfk.shop!);
+      expect(g.kreddle).toBe(true);
+    }
   });
 });

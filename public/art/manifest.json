@@ -7001,6 +7001,9 @@
   "p_seagull": {
    "file": "props/p_seagull.png"
   },
+  "p_wonk_arm": {
+   "file": "props/p_wonk_arm.png"
+  },
   "p_jukebox": {
    "file": "props/p_jukebox.png"
   },

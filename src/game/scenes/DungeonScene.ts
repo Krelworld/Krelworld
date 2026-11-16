@@ -24,7 +24,8 @@ import { synth, MUSIC_FILES } from "../audio/Synth";
 import { runDialogue } from "./DialogueScene";
 import { BOSS_TEXT } from "../../content/bosses";
 import * as Juice from "../gfx/Juice";
-import { enemyDamageMult, enemyHpMult, maxHp, bump, maxBottles } from "../systems/stats";
+import { enemyDamageMult, enemyHpMult, maxHp, bump, maxBottles, maxKrezz } from "../systems/stats";
+import { addCensorBar } from "../gfx/Censor";
 import { activeMods } from "../../data/historicalRevisions";
 import { addBanRisk, BAN_RULES, type BanRule, coolBanRisk } from "../systems/ban";
 import { pickupsInDungeon, collectPickup } from "../systems/quests";
@@ -849,7 +850,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         this.obstacles.add(this.add.rectangle(x, y + 10, 80, 70, 0, 0));
         this.add.text(x, y - 66, "WONKING MACHINE", { fontFamily: FONT, fontSize: "11px", color: "#ffd23f", backgroundColor: "#000000aa" }).setOrigin(0.5).setDepth(y + 1);
         this.machineUses[p.id!] = 0;
-        this.interactables.push({ x, y: y + 60, r: 70, label: "Use the Wonking Machine", use: () => this.useWonkingMachine(p.id!, spr) });
+        this.interactables.push({ x, y: y + 60, r: 70, label: "Wonking Machine (fills your Krezz)", use: () => this.useWonkingMachine(p.id!, spr) });
         break;
       }
       case "vending": {
@@ -2445,64 +2446,64 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.checkExit();
   }
 
+  /**
+   * THE WONKING MACHINE: press E, it does the rest. A mechanical arm comes out and sees to you (behind a censor bar),
+   * there's some moaning, and your Krezz is full. Once per machine per visit.
+   */
   private async useWonkingMachine(id: string, spr: Phaser.GameObjects.Image) {
     const s = G.s;
-    if ((this.machineUses[id] ?? 0) >= 3) {
-      this.toast("WONKING MACHINE", "It needs a rest. Even machines have limits. (Big Bertha didn't.)");
+    if (this.machineUses[id]) {
+      this.toast("WONKING MACHINE", "Spent. It needs a lie down.");
       return;
     }
-    await this.talk([
-      {
-        s: "NARRATOR",
-        t: "The Wonking Machine hums expectantly. A lever. A pressure gauge. A big red button.",
-        dir: true,
-        choice: [
-          { label: "Pull the lever", set: { wm_pick: "lever" } },
-          { label: "Read the pressure gauge", set: { wm_pick: "gauge" } },
-          { label: "Press the big red button", set: { wm_pick: "button" } },
-          { label: "Say something nice about it", set: { wm_pick: "nice" } },
-          { label: "Leave it", set: { wm_pick: "leave" } },
-        ],
-      },
-    ]);
-    const pick = s.flags.wm_pick;
-    if (pick === "leave") return;
-    this.machineUses[id] = (this.machineUses[id] ?? 0) + 1;
+    this.machineUses[id] = 1;
     bump(s, "wonk_machine");
-    if (pick === "nice") {
-      s.flags.machine_appreciated = true;
-      await this.talk([say(s.player, "You're a good machine. Somebody should say it."), dir("The machine whirrs with what can only be described as relief. WONK METER FILLED."), say("SCROMBUS", "(over the network) Did someone just appreciate the machine? Was that you? Thank you. Genuinely.", { cond: { notPlayer: "SCROMBUS" } })]);
-      this.player.wonk = 100;
-      return;
-    }
-    const mal = activeMods(s).machineMalfunction - (s.player === "SCROMBUS" ? 0.15 : 0);
-    const roll = Math.random() + (pick === "button" ? 0.15 : pick === "gauge" ? -0.15 : 0) + mal;
-    this.tweens.add({ targets: spr, scaleX: 2.6, scaleY: 2.2, yoyo: true, duration: 90, repeat: 3 });
+    const p = this.player;
+    (p.spr.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+    this.busy = true;
+    const DUR = 2600;
+    this.hitStop(DUR);
+    const cam = this.cameras.main;
+    const z0 = cam.zoom;
+    cam.zoomTo(z0 * 1.5, 300, "Cubic.easeOut", true);
     synth.play("wonk");
-    if (roll < 0.3) {
-      this.player.wonk = Math.min(100, this.player.wonk + 60);
-      this.toast("WONKING MACHINE", "SUCCESSFUL CHARGE. +60 Wonk.");
-    } else if (roll < 0.5) {
-      this.player.machineBuffUntil = this.now() + 20000;
-      this.toast("WONKING MACHINE", "REACH-AROUND ENGAGED. +25% damage for 20s. Don't ask.");
-    } else if (roll < 0.68) {
-      G.s.krezz = Math.min(200, G.s.krezz + 50);
-      this.toast("WONKING MACHINE", "KREZZ LEAK. +50 Krezz. The floor is now sticky.");
-      this.add.ellipse(spr.x, spr.y + 60, 120, 40, 0xf5f0dc, 0.5).setDepth(2);
-    } else if (roll < 0.84) {
-      this.player.wonk = 100;
-      this.damagePlayer(10, { x: spr.x, y: spr.y }, { unblockable: true, label: "OVERCHARGE" });
-      this.toast("WONKING MACHINE", "OVERCHARGE. Wonk full. Also it bit you.");
-    } else if (roll < 0.94) {
-      for (let i = 0; i < 3; i++) this.spawnEnemy(this.dungeon.chapter >= 3 ? "pipe_gremlin" : "smolt", spr.x + (i - 1) * 50, spr.y + 70);
-      this.toast("WONKING MACHINE", "BYPRODUCTS HAVE BECOME SENTIENT.");
-    } else {
-      synth.play("explode");
-      this.boomFx(spr.x, spr.y + 40, 1.5);
-      this.enemyAoe(spr.x, spr.y + 40, 120, 18, 500, 0xffd23f);
-      this.aoe(spr.x, spr.y + 40, 160, 40, { knock: 300 });
-      this.toast("WONKING MACHINE", "MACHINERY EXPLOSION. Big Bertha would never.");
-    }
+    this.tweens.add({ targets: spr, scaleX: spr.scaleX * 1.08, scaleY: spr.scaleY * 0.94, yoyo: true, repeat: 7, duration: 110 });
+    // the arm: from the machine to just below your belt
+    const bar = addCensorBar(this, p.spr, { pad: 2 });
+    bar.obj.setDepth(p.spr.depth + 3);
+    const bx = spr.x;
+    const by = spr.y + 20;
+    const tx = bar.obj.x;
+    const ty = bar.obj.y;
+    const ang = Math.atan2(ty - by, tx - bx);
+    const len = Math.max(40, Math.hypot(tx - bx, ty - by) - 6);
+    let arm: Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle;
+    if (this.textures.exists("p_wonk_arm")) {
+      arm = this.add.image(bx, by, "p_wonk_arm").setOrigin(0, 0.5).setRotation(ang).setFlipY(Math.cos(ang) < 0);
+      arm.setDisplaySize(16, 56);
+    } else arm = this.add.rectangle(bx, by, 16, 14, 0xb8b8b8).setOrigin(0, 0.5).setRotation(ang).setStrokeStyle(2, 0x333333);
+    arm.setDepth(p.spr.depth + 2);
+    await new Promise<void>((res) => this.tweens.add({ targets: arm, displayWidth: len, duration: 380, ease: "Back.out", onComplete: () => res() }));
+    // ...and it gets to work
+    synth.play("moan_men");
+    this.time.delayedCall(900, () => synth.play("moan_men"));
+    this.time.delayedCall(1500, () => synth.play("moan_men"));
+    const work = this.tweens.add({ targets: arm, displayWidth: len - 14, angle: arm.angle + 4, yoyo: true, repeat: -1, duration: 90, ease: "Sine.inOut" });
+    const jiggle = this.tweens.add({ targets: bar.obj, y: ty - 2, yoyo: true, repeat: -1, duration: 70 });
+    this.floatText(p.x, p.y - 60, "*whirring*", "#cbd5e1", 13);
+    await new Promise((r) => this.time.delayedCall(1600, r));
+    work.stop();
+    jiggle.stop();
+    // done: the arm goes home, your Krezz is full
+    await new Promise<void>((res) => this.tweens.add({ targets: arm, displayWidth: 16, duration: 260, ease: "Quad.in", onComplete: () => res() }));
+    arm.destroy();
+    bar.destroy();
+    cam.zoomTo(z0, 300, "Cubic.easeOut", true);
+    s.krezz = maxKrezz(s);
+    synth.play("perfect");
+    vfx(this, "vfx_stars", p.x, p.y - 30, { scale: 1.4, depth: p.spr.depth + 4 });
+    this.toast("WONKING MACHINE", "KREZZ FULL.");
+    this.busy = false;
   }
 
   private async useVending(x: number, y: number) {

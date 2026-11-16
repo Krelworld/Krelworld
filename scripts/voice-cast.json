@@ -31,11 +31,21 @@
     "EDEN": "W7WDJzszCwqSQGaSpe5G",
     "GABOR THE GOAT": "9qCSTRFuI7LgrZiyPD7O",
     "SANJEEV": "upLV0kZGuaufHCLUWnIH",
-    "CHADMORK WONKOR": "ZLWvHRnQEYoUUh8xVn1b"
+    "CHADMORK WONKOR": "ZLWvHRnQEYoUUh8xVn1b",
+    "DRONGUS": "4svvORCb1RLn9W0eijLq"
   },
   "hold": [
     "DRONGUS"
   ],
+  "keyword_moods": {
+    "_doc": "Per-speaker moods picked by what a line says, when it has no explicit, inline or punctuation mood. First match wins.",
+    "DRONGUS": [
+      ["whatever|no big deal|don'?t (even )?(give a shit|care)|it'?s fine|i'?m fine|seen by|\\breact|nobody|no one|not that anyone|apparently|interesting\\.|noted|wow\\. ?okay|cool\\.|didn'?t even|still haven'?t|just saying|btw", "passive-aggressive"],
+      ["\\b(bow|kneel|perish|destroy|obliterate|annihilate|you will|you shall|feel my|witness|tremble)\\b", "menacing"],
+      ["\\b(sorry|miss you|lonely|hurts|why won'?t|why doesn'?t|left me|alone)\\b", "sad"],
+      ["\\blore\\b|prophecy|the ancients|krelworld is|national|canon", "excited"]
+    ]
+  },
   "designed": {
     "THE CYST": "rQuWAhHSNNzlOkgQ2LLW",
     "SCROMBUS": "7jQN8S73KR9NkzWhlake",
@@ -375,6 +385,7 @@
   },
   "delivery": {
     "KREZWONK": "mysterious",
+    "DRONGUS": "earnest",
     "KREBLIS": "energetic",
     "MIKEY": "slightly camp",
     "GRONNY": "grunts",
@@ -601,7 +612,8 @@
     "EDEN": "southern English accent",
     "GABOR THE GOAT": "southern English accent",
     "ROBBO": "British accent",
-    "SANJEEV": "southern English accent"
+    "SANJEEV": "southern English accent",
+    "DRONGUS": "southern English accent"
   },
   "clone_v2_always": [
     "POLSON",

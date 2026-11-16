@@ -156,6 +156,13 @@ def plan(l, c):
         return V2, clean, (SETTINGS_V2_MOOD if moody else SETTINGS[V2]), []
     v2_ok = kind == "clone" and not accent and base in CAST.get("v2_neutral", [])
     tags = explicit or from_text
+    if not explicit and not inline and not from_text:
+        # per-speaker moods by what the line says (e.g. Drongus's sulks), before the plain default
+        for pat, mood in CAST.get("keyword_moods", {}).get(l["s"], CAST.get("keyword_moods", {}).get(base, [])):
+            if re.search(pat, l.get("raw", t), re.I):
+                tags = [x.strip() for x in mood.split(",") if x.strip()]
+                from_text = tags
+                break
     if not explicit and not inline and not from_text and not v2_ok:
         dflt = CAST.get("delivery", {}).get(l["s"]) or CAST.get("delivery", {}).get(base)
         if dflt:

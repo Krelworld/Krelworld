@@ -79,6 +79,8 @@ export const MUSIC_FILES: Record<string, string> = {
   airport: "audio/airport.mp3",
   krel_tower_rap: "audio/krel_tower_rap.mp3",
   kreddle: "audio/kreddle.mp3",
+  // Whack-a-Drongus (the Kreddle arcade cabinet)
+  whack: "audio/whack.mp3",
   ominous: "audio/ominous.mp3",
   // KrelTV dramas (tv/CrimeDrama.ts, tv/FantasyDoc.ts)
   gg_theme: "audio/gg_theme.mp3",

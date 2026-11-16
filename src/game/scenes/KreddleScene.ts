@@ -15,7 +15,7 @@ import { animateWalker } from "../gfx/HD";
 import { CHARACTERS, LADS } from "../../data/characters";
 import { DECOR } from "../../content/home";
 import { INSULT, KRUNCHERS, KRUNCHER_BOAST, LOCAL_CHAT, PRIZE, PRIZES, SHOVES, WELCOME_SPEECH } from "../../content/kreddle";
-import { addKrokens, awardPrize, kd, krokenPrice, krokens, prizeOpen, rollPrize } from "../systems/kreddle";
+import { addKrokens, awardPrize, kd, krokenPrice, krokens, prizeOpen, rollPrize, WHACK_COST } from "../systems/kreddle";
 import type { Line } from "../../data/types";
 import { maxHp } from "../systems/stats";
 import { KreddleRaid, RAID_ART } from "./kreddle/Raid";
@@ -122,6 +122,9 @@ export class KreddleScene extends Phaser.Scene {
         this.prizeCounter();
       }
     });
+    // back from Whack-a-Drongus: a go on the cabinet counts as gambling
+    this.events.off("whack-played");
+    this.events.on("whack-played", () => (this.gambled = true));
     this.events.off("open-prizes");
     this.events.on("open-prizes", () => (this.wantPrizes = true));
     this.box = new DialogueBox(this, 6000, 0.2);
@@ -237,6 +240,8 @@ export class KreddleScene extends Phaser.Scene {
     this.machine("kd_m_wheel", 1300, 540, 1.7);
     this.neonSign(1300, 335, "WHEEL OF KREDDLE", "#a855f7", 22).setDepth(560);
     this.spots.push({ x: 1300, y: 560, r: 110, label: () => "E: WHEEL OF KREDDLE · 300 Krezzcoin a spin", use: () => this.wheel() });
+    // WHACK-A-DRONGUS: the arcade's newest cabinet, in the gap between the Wheel and the Klerble Grand
+    this.whackCabinet(1462, 522);
     // THE KLERBLE GRAND
     this.building("kd_bld_hotel", 1620, 1.6, "THE KLERBLE GRAND", "#facc15");
     // KREDDLE KARDS
@@ -246,6 +251,27 @@ export class KreddleScene extends Phaser.Scene {
     // KRUNCHER HQ
     this.building("kd_bld_arcade", 2300, 1.6, "KREDDLE KRUNCHERS HQ", "#ff4fd8", 0x9be7ff);
     void s;
+  }
+
+  private whackCabinet(x: number, y: number) {
+    const anim = this.textures.exists("kd_m_whack_anim");
+    const key = anim ? "kd_m_whack_anim" : this.textures.exists("kd_m_whack") ? "kd_m_whack" : "kd_m_slots";
+    const cab = this.add.sprite(x, y, key, 0).setOrigin(0.5, 1).setScale(1.25).setDepth(y);
+    if (anim) {
+      if (!this.anims.exists("kd_m_whack_anim")) this.anims.create({ key: "kd_m_whack_anim", frames: this.anims.generateFrameNumbers("kd_m_whack_anim", {}), frameRate: 7, repeat: -1 });
+      cab.play("kd_m_whack_anim");
+    }
+    const glow = this.add.ellipse(x, y, cab.displayWidth * 1.25, 18, 0x4ade80, 0.3).setDepth(y - 1).setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({ targets: glow, alpha: 0.08, yoyo: true, repeat: -1, duration: 600 });
+    this.neonSign(x, y - cab.displayHeight - 14, "WHACK-A-DRONGUS", "#4ade80", 17).setDepth(y + 1);
+    this.spots.push({ x, y: y + 22, r: 78, label: () => `E: WHACK-A-DRONGUS · ${WHACK_COST} Krezzcoin a go (high score ${(G.s.flags.whack_hi as number) ?? 0})`, use: () => this.whack() });
+  }
+
+  /** Over to the Whack-a-Drongus cabinet (its own scene, over a paused Kreddle). */
+  private whack() {
+    this.busy = true;
+    this.scene.launch("Whack");
+    this.scene.pause();
   }
 
   private spawnPeople() {

@@ -130,6 +130,8 @@ export const SFX_KEYS: string[] = [
   "tv_sting",
   "twist_sting",
   "weeping",
+  "whack_bonk",
+  "whack_start",
   "whistle",
   "wonk",
   "zap",

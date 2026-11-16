@@ -82,3 +82,16 @@ export function krokenPrice(s: GameState, p: Prize): number {
   const [base, step] = KROKEN_PRICES[p.id] ?? [30, 8];
   return base + (p.key ? step * kd(s, p.key) : 0);
 }
+
+// ---- WHACK-A-DRONGUS: the arcade cabinet between the Wheel and the Klerble Grand
+
+/** Krezzcoin a go, how long a go lasts, and the score that also pays out a pile of Krezzcoin. */
+export const WHACK_COST = 100;
+export const WHACK_SECONDS = 75;
+export const WHACK_JACKPOT = { score: 8000, coins: 250 };
+
+/** Krokens for a Whack-a-Drongus score: one per 200 points (max 25), +3 for a new high score. */
+export function whackKrokens(score: number, newHigh: boolean): number {
+  const base = Math.min(25, Math.floor(Math.max(0, score) / 200));
+  return base + (newHigh && score > 0 ? 3 : 0);
+}

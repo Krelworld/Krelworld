@@ -166,8 +166,6 @@ export class TownMeetingScene extends Phaser.Scene {
         .setOrigin(0.5, 0)
         .setDepth(11 + y);
       this.seats[id] = { id, sprite: spr, plate, x, y };
-      // everyone breathes a little, out of step with each other
-      this.tweens.add({ targets: spr, scaleY: 2.46, duration: 1300 + Math.random() * 500, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: Math.random() * 1200 });
     });
     // name plates: everyone's for a moment while you take the room in, then only whoever's talking
     this.time.delayedCall(3200, () => {

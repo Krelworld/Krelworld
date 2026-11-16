@@ -1785,50 +1785,88 @@ export class MinigameScene extends Phaser.Scene {
 
   // ---------------------------------------------------------------- DO THE CROCODILE (SanMik, "Jerk My Gherk")
 
+  /**
+   * The song (audio/crocodile.mp3, 89 BPM) mapped by ear and by spectrum: a quiet intro to 0:10, the band to 0:32,
+   * the VOCALS come in on bar 12 (0:32.4), a new section on bar 24 (1:04.7) and the breakdown on bars 28-29. The
+   * dance runs from the vocals to the end of that breakdown (bar 30, 1:20.9), with DOUBLE TIME from bar 24.
+   */
+  private static readonly CROC = {
+    BPM: 89,
+    PHASE: 0.017,
+    /** the song starts here: two bars to get set before the vocals */
+    SEEK_BAR: 10,
+    /** the vocals come in: first move */
+    START_BAR: 12,
+    /** the moves come twice as fast (and scroll twice as fast) from here */
+    DOUBLE_BAR: 24,
+    /** the breakdown: no moves, one last chomp */
+    BREAK_BAR: 28,
+    /** the dance ends here (where the old version started its second half) */
+    END_BAR: 30,
+  };
+
+  /** Krezzcoin for a dance: something for turning up, more for every move, perfect, combo and for accuracy. */
+  static crocPay(hits: number, perfect: number, best: number, acc: number) {
+    return 5 + hits + perfect + Math.floor(best / 2) + Math.round(40 * acc * acc);
+  }
+
   private crocodile() {
-    // ends at the natural break in the song (the drop-out around 2:25), not the very end
-    const CROC_END = 146;
-    const BPM = 89;
-    const BEAT = 60 / BPM;
-    const PHASE = 0.017;
-    const SPEED = 330; // px per second along the lane
+    const C = MinigameScene.CROC;
+    const BEAT = 60 / C.BPM;
+    const barT = (bar: number) => C.PHASE + bar * 4 * BEAT;
+    const SEEK = barT(C.SEEK_BAR);
+    const DOUBLE_T = barT(C.DOUBLE_BAR);
+    const CROC_END = barT(C.END_BAR);
+    const SPEED = 330; // px per second along the lane (double time: twice that)
     const HIT_X = 150;
-    // the croc's windows: roomier than cam2cam's (three moves, slower song), still kinder late than early
+    // the croc's windows: roomier than cam2cam's (three moves), still kinder late than early
     const WIN = { perfect: 0.09, early: 0.22, late: 0.3 };
-    // the checkpoint: the first breakdown (bar 30, ~81s). Fail after it and you can go again from there.
-    const CHECK = PHASE + 30 * 4 * BEAT;
-    const from: number = this.startData?.crocFrom ?? 0;
-    let reached = from > 0;
     if (!backdrop(this, "bg_gig", { dim: 0.35, depth: -10 })) this.add.rectangle(480, 270, 960, 540, 0x10241a);
     title(this, 480, 22, "DO THE CROCODILE", 26, "#86efac").setDepth(200);
     this.add.text(480, 46, "SanMik ft. the entire cabinet · ← / A = LEFT HAND · → / D = RIGHT HAND · ↑ / W / SPACE = CHOMP", { fontFamily: FONT, fontSize: "11px", color: "#ffffff", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(200);
     // ---- the dancers: everyone, in a line, extremely serious
     const me = G.s.player;
     const crew = [...LADS.filter((id) => id !== me), ...(G.s.flags.polson_dead ? [] : ["POLSON"]), "PROCTUS"].filter((id) => this.textures.exists(`spr_${id}`));
-    type Dancer = { spr: Phaser.GameObjects.Sprite; skin: number; l: number; r: number; you: boolean };
+    /**
+     * A dancer. With PixelLab dance art (croc_<ID> sheets: 0 stand, 1 left arm up, 2 right arm up, 3 jaws open,
+     * 4 CHOMP, then the full dance loop) the poses are real frames; without it, the old drawn-on arms.
+     */
+    type Dancer = { spr: Phaser.GameObjects.Sprite; baseX: number; baseY: number; skin: number; l: number; r: number; art: boolean; loop: number[]; until: number; you: boolean };
     const dancers: Dancer[] = [];
+    const addDancer = (id: string, key: string, x: number, y: number, scale: number, depth: number, you: boolean) => {
+      // his sheet's dance art (SanMik's while Mikey is SanMik)
+      const art = `croc_${key.startsWith("spr_") ? key.slice(4) : id}`;
+      let spr: Phaser.GameObjects.Sprite;
+      let loop: number[] = [];
+      if (this.textures.exists(art) && this.textures.exists(key)) {
+        // the dance sheet is drawn at the same size as his own sheet (his height included), feet in the same place
+        const own = this.textures.get(key).customData as { hd?: number; tall?: number };
+        const t = this.textures.get(art);
+        t.customData = { ...t.customData, hd: own.hd ?? 0.5, tall: own.tall ?? 1 };
+        // 96px frames, the body sits in the bottom 64: pivot where the 64px sheet's centre would be
+        spr = this.add.sprite(x, y, art, 0).setOrigin(0.5, 62 / 96).setScale(scale).setDepth(depth);
+        loop = Array.from({ length: Math.max(0, t.frameTotal - 1 - 5) }, (_, i) => 5 + i);
+      } else spr = this.add.sprite(x, y, key, 0).setScale(scale).setDepth(depth);
+      dancers.push({ spr, baseX: x, baseY: y, skin: CHARACTERS[id]?.look?.skin ?? 0xf0b095, l: 0, r: 0, art: loop.length > 0, loop, until: 0, you });
+    };
     const back = crew.slice(0, 10);
-    back.forEach((id, i) => {
-      const x = 90 + i * (780 / Math.max(1, back.length - 1));
-      const spr = this.add.sprite(x, 300 + (i % 2) * 18, `spr_${id}`, 0).setScale(2.2).setDepth(20 + (i % 2));
-      dancers.push({ spr, skin: CHARACTERS[id]?.look?.skin ?? 0xf0b095, l: 0, r: 0, you: false });
-    });
-    const meSpr = this.add.sprite(480, 410, playerKey(this), 0).setScale(3).setDepth(40);
-    dancers.push({ spr: meSpr, skin: CHARACTERS[me]?.look?.skin ?? 0xf0b095, l: 0, r: 0, you: true });
+    back.forEach((id, i) => addDancer(id, `spr_${id}`, 90 + i * (780 / Math.max(1, back.length - 1)), 300 + (i % 2) * 18, 2.2, 20 + (i % 2), false));
+    addDancer(me, playerKey(this), 480, 410, 3, 40, true);
+    const you = dancers[dancers.length - 1];
     this.add.text(480, 448, "YOU", { fontFamily: FONT, fontSize: "11px", color: "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(41);
     const arms = this.add.graphics().setDepth(45);
-    // arm pose: 0 = down by your side, 1 = jaws open overhead, 2 = CHOMP (jaws shut)
+    // the fallback for anyone without dance art: arm pose 0 = down, 1 = jaws open overhead, 2 = CHOMP
     const drawArms = () => {
       arms.clear();
       for (const d of dancers) {
+        if (d.art) continue;
         const h = d.spr.displayHeight;
         const top = d.spr.y - h / 2;
         const sx = d.spr.x;
         const arm = (side: -1 | 1, pose: number) => {
-          if (pose <= 0.02) return; // arms down: the sprite's own arms
+          if (pose <= 0.02) return;
           const shoulderX = sx + side * h * 0.13;
           const shoulderY = top + h * 0.34;
-          // jaw: straight up, opening apart as `pose` nears 1, snapping shut at 2
           const open = pose >= 2 ? 0 : Math.min(1, pose);
           const ang = -Math.PI / 2 + side * (0.08 + open * 0.6);
           const len = h * 0.55 * Math.min(1, pose);
@@ -1837,58 +1875,70 @@ export class MinigameScene extends Phaser.Scene {
           arms.lineStyle(h * 0.11, 0x000000, 1).lineBetween(shoulderX, shoulderY, ex, ey);
           arms.lineStyle(h * 0.075, d.skin, 1).lineBetween(shoulderX, shoulderY, ex, ey);
           arms.fillStyle(d.skin, 1).fillCircle(ex, ey, h * 0.05);
-          if (pose >= 1.5) arms.fillStyle(0xffffff, 1).fillTriangle(ex - 3, ey + 2, ex + 3, ey + 2, ex, ey + 7);
         };
         arm(-1, d.l);
         arm(1, d.r);
       }
     };
-    const move = (who: Dancer[], kind: "L" | "R" | "C") => {
+    // a move: the pose frame (art) or the drawn arms, a hop, and a little side step for the hands
+    const move = (who: Dancer[], kind: "L" | "R" | "C", fast = false) => {
+      const hold = fast ? 170 : 300;
       for (const d of who) {
-        const target = { l: kind === "R" ? 0 : kind === "C" ? 2 : 1, r: kind === "L" ? 0 : kind === "C" ? 2 : 1 };
-        d.l = target.l === 2 ? 1 : target.l;
-        d.r = target.r === 2 ? 1 : target.r;
-        this.tweens.add({ targets: d, l: target.l, r: target.r, duration: kind === "C" ? 90 : 120, delay: kind === "C" ? 80 : 0 });
-        this.tweens.add({ targets: d, l: 0, r: 0, delay: 360, duration: 180 });
-        this.tweens.add({ targets: d.spr, y: d.spr.y - 6, duration: 90, yoyo: true });
+        this.tweens.killTweensOf(d.spr);
+        d.spr.setPosition(d.baseX, d.baseY).setAngle(0);
+        d.until = this.time.now + hold + 120;
+        if (d.art) {
+          if (kind === "C") {
+            d.spr.setFrame(3);
+            this.time.delayedCall(fast ? 50 : 90, () => d.until > this.time.now && d.spr.setFrame(4));
+          } else d.spr.setFrame(kind === "L" ? 1 : 2);
+          // lean into the hand (a stage-left / stage-right sway), upright for the chomp
+          this.tweens.add({ targets: d.spr, angle: kind === "L" ? -7 : kind === "R" ? 7 : 0, duration: 70, yoyo: true, hold: hold - 120 });
+        } else {
+          const target = { l: kind === "R" ? 0 : kind === "C" ? 2 : 1, r: kind === "L" ? 0 : kind === "C" ? 2 : 1 };
+          d.l = target.l === 2 ? 1 : target.l;
+          d.r = target.r === 2 ? 1 : target.r;
+          this.tweens.add({ targets: d, l: target.l, r: target.r, duration: kind === "C" ? 90 : 120, delay: kind === "C" ? 80 : 0 });
+          this.tweens.add({ targets: d, l: 0, r: 0, delay: hold, duration: 150 });
+        }
+        const step = kind === "L" ? -6 : kind === "R" ? 6 : 0;
+        this.tweens.add({ targets: d.spr, y: d.baseY - (kind === "C" ? 9 : 5), x: d.baseX + step, duration: 80, yoyo: true, hold: hold - 160, ease: "Quad.out" });
       }
     };
-    // ---- the chart, from the song's real structure (89 BPM, quiet intro, two breakdowns)
-    type Note = { t: number; k: "L" | "R" | "C"; img: Phaser.GameObjects.Container; done: boolean; line?: boolean };
+    // ---- the chart: from the vocals to the breakdown, moves on the beat (offbeats creep in), then DOUBLE TIME
+    type Note = { t: number; k: "L" | "R" | "C"; img: Phaser.GameObjects.Container; done: boolean; line?: boolean; fast: boolean };
     const notes: Note[] = [];
-    const quiet = new Set([28, 29, 54, 55]);
     const pattern: ("L" | "R" | "C")[] = ["L", "R", "L", "C", "R", "L", "R", "C"];
     let pi = 0;
-    // the moves start straight away: every other beat for two bars, then every beat, then offbeats creep in
     const add = (beat: number, k: "L" | "R" | "C") => {
-      const t = PHASE + beat * BEAT;
-      if (t > CROC_END - 1.5 || t < from) return;
+      const t = C.PHASE + beat * BEAT;
+      const fast = t >= DOUBLE_T - 0.01;
       const c = this.add.container(-200, 120).setDepth(150);
       const col = k === "C" ? 0x22c55e : k === "L" ? 0x38bdf8 : 0xf472b6;
-      c.add(this.add.circle(0, 0, 20, col).setStrokeStyle(3, 0xffffff));
+      c.add(this.add.circle(0, 0, 20, col).setStrokeStyle(3, fast ? 0xffd23f : 0xffffff));
       c.add(this.add.text(0, 0, k === "C" ? "▲" : k === "L" ? "◀" : "▶", { fontFamily: FONT, fontSize: "18px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5));
-      notes.push({ t, k, img: c, done: false });
+      notes.push({ t, k, img: c, done: false, fast });
     };
-    for (let beat = 2; beat < 69 * 4; beat++) {
+    for (let beat = C.START_BAR * 4; beat < C.BREAK_BAR * 4; beat++) {
       const bar = Math.floor(beat / 4);
-      if (quiet.has(bar)) continue;
-      if (beat < 8 && beat % 2) continue;
       add(beat, pattern[pi++ % pattern.length]);
-      // offbeats: a syncopated extra on the last beat of the bar from bar 16, on every other beat from bar 40
-      if ((bar >= 16 && beat % 4 === 3) || (bar >= 40 && beat % 2 === 1)) add(beat + 0.5, pattern[pi++ % pattern.length]);
+      // double time: a move on every half beat
+      if (bar >= C.DOUBLE_BAR) add(beat + 0.5, pattern[pi++ % pattern.length]);
+      // before that, a syncopated extra on the last beat of the bar once the first verse gets going
+      else if (bar >= C.START_BAR + 4 && beat % 4 === 3) add(beat + 0.5, pattern[pi++ % pattern.length]);
     }
+    // the breakdown: everybody holds still... then one last CHOMP
+    add(C.END_BAR * 4 - 1, "C");
     notes.sort((a, b) => a.t - b.t);
-    this.add.rectangle(480, 120, 960, 54, 0x000000, 0.55).setDepth(140);
+    const lane = this.add.rectangle(480, 120, 960, 54, 0x000000, 0.55).setDepth(140);
     this.add.circle(HIT_X, 120, 24).setStrokeStyle(4, 0xffd23f).setDepth(145);
-    // (no on-screen lyrics: the song's playing)
     const lyric = this.add.text(480, 200, "", { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#86efac", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5).setDepth(160);
+    // the song picks up two bars before the vocals
     synth.music("crocodile", true);
-    // from the checkpoint: pick the song up a few seconds before it, in the quiet bit, so you've time to get set
-    const seek = from > 0 ? from - 3 : 0;
     const el = synth.musicEl();
-    if (el && seek > 0) {
-      if (el.readyState >= 1) el.currentTime = seek;
-      else el.addEventListener("loadedmetadata", () => (el.currentTime = seek), { once: true });
+    if (el) {
+      if (el.readyState >= 1) el.currentTime = SEEK;
+      else el.addEventListener("loadedmetadata", () => (el.currentTime = SEEK), { once: true });
     }
     const start = this.time.now;
     let hits = 0;
@@ -1898,26 +1948,23 @@ export class MinigameScene extends Phaser.Scene {
     let best = 0;
     const songT = () => {
       const pr = synth.fileProgress();
-      if (pr.d) return pr.t;
+      // (until the seek lands the element still reads ~0: treat that as the count-in)
+      if (pr.d) return Math.max(SEEK, pr.t);
       // the track's still loading: hold the chart at the start rather than scroll notes past unheard (give up after 4s)
       const waited = (this.time.now - start) / 1000;
-      return el ? seek + Math.max(0, waited - 4) : seek + waited;
+      return el ? SEEK + Math.max(0, waited - 4) : SEEK + waited;
     };
     const judge = (k: "L" | "R" | "C") => {
       if (this.ended || this.box.active) return;
       const t = songT();
       const n = notes.find((x) => !x.done && this.inWindow(t - x.t, WIN));
-      if (!n) {
-        move([dancers[dancers.length - 1]], k);
-        return;
-      }
+      move([you], k, t >= DOUBLE_T);
+      if (!n) return;
       n.done = true;
       const signed = t - n.t;
-      const err = Math.abs(signed);
       if (n.k !== k) {
         missed++;
         combo = 0;
-        move([dancers[dancers.length - 1]], k);
         this.pop(480, 360, ["WRONG HAND", "MATE.", "THAT'S A TOAD", "SERIOUSLY?"][Math.floor(Math.random() * 4)], "#ff6b6b", 18);
         n.img.destroy();
         return;
@@ -1925,8 +1972,7 @@ export class MinigameScene extends Phaser.Scene {
       hits++;
       combo++;
       best = Math.max(best, combo);
-      if (err <= WIN.perfect) perfect++;
-      move([dancers[dancers.length - 1]], k);
+      if (Math.abs(signed) <= WIN.perfect) perfect++;
       synth.play(k === "C" ? "punch" : "tap");
       this.hitFx(HIT_X, 120, signed, k === "C" ? 0x22c55e : k === "L" ? 0x38bdf8 : 0xf472b6, WIN.perfect, 170);
       this.tweens.add({ targets: n.img, scale: 1.6, alpha: 0, duration: 200, onComplete: () => n.img.destroy() });
@@ -1945,40 +1991,74 @@ export class MinigameScene extends Phaser.Scene {
     });
     this.hud.setY(452).setDepth(210);
     const leave = this.add.text(940, 14, "[ LEAVE ]", { fontFamily: FONT, fontSize: "13px", color: "#86efac", backgroundColor: "#000000aa", padding: { x: 6, y: 3 } }).setOrigin(1, 0).setDepth(300).setInteractive({ useHandCursor: true }).setVisible(false);
+    // a big shout across the middle (DOUBLE TIME!, the finale)
+    const shout = (text: string, color: string, size = 46) => {
+      const s = this.add.text(480, 230, text, { fontFamily: "Impact, sans-serif", fontSize: `${size}px`, color, stroke: "#000", strokeThickness: 8 }).setOrigin(0.5).setDepth(206).setScale(0.3);
+      this.tweens.add({ targets: s, scale: 1, duration: 260, ease: "Back.out" });
+      this.tweens.add({ targets: s, angle: { from: -4, to: 4 }, duration: 120, yoyo: true, repeat: 5 });
+      this.tweens.add({ targets: s, alpha: 0, y: 200, delay: 1700, duration: 450, onComplete: () => s.destroy() });
+    };
+    let doubled = false;
+    let broke = false;
     let ending = false;
-    const done = async () => {
-      // only once (the song end, the timer and LEAVE can all fire)
+    const done = () => {
+      // only once (the song, the timer and LEAVE can all fire)
       if (this.ended || ending) return;
       ending = true;
       this.time.removeAllEvents();
-      const total = hits + missed + notes.filter((n) => !n.done && n.t < songT()).length;
+      // anything not reached yet (you LEFT early) counts as missed
+      const total = notes.length;
       const acc = total ? hits / total : 0;
       synth.stopMusic();
       lyric.setText("");
-      // past the checkpoint and not good enough: go again from halfway rather than from the top
-      if (acc < 0.5 && reached && (await this.crocRetry(acc))) {
-        this.input.keyboard?.removeAllListeners();
-        this.scene.restart({ ...this.startData, crocFrom: CHECK });
-        return;
-      }
-      this.finish(acc >= 0.5, []);
+      leave.setVisible(false);
+      // un-losable: you always finish the dance, and get paid by how well you did it
+      const pay = MinigameScene.crocPay(hits, perfect, best, acc);
+      const paid = this.fromConsole ? 0 : pay;
+      G.s.coins += paid;
+      G.s.flags.croc_best = Math.max((G.s.flags.croc_best as number) ?? 0, Math.round(acc * 100));
+      const grade = acc >= 0.95 ? "CROCODILE GOD" : acc >= 0.8 ? "APEX PREDATOR" : acc >= 0.6 ? "SNAPPY" : acc >= 0.35 ? "SUSPICIOUS LIZARD" : "A TOAD, BASICALLY";
+      this.add.rectangle(480, 250, 520, 220, 0x05140c, 0.9).setStrokeStyle(3, 0x86efac).setDepth(400);
+      title(this, 480, 170, grade, 30, "#86efac").setDepth(401);
+      this.add
+        .text(480, 250, `MOVES ${hits}/${total}  ·  PERFECT ${perfect}\nBEST COMBO ${best}  ·  ${Math.round(acc * 100)}% IN TIME`, { fontFamily: FONT, fontSize: "16px", color: "#ffffff", align: "center", lineSpacing: 8 })
+        .setOrigin(0.5)
+        .setDepth(401);
+      const payTxt = this.add
+        .text(480, 322, this.fromConsole ? `SCORE: ${pay}` : `+${pay} KREZZCOIN`, { fontFamily: PIXEL_BOLD, fontSize: "26px", color: "#ffd23f", stroke: "#000", strokeThickness: 5 })
+        .setOrigin(0.5)
+        .setDepth(401)
+        .setScale(0.4);
+      this.tweens.add({ targets: payTxt, scale: 1, duration: 300, ease: "Back.out" });
+      if (paid) vfx(this, "vfx_coins", 480, 322, { scale: 1.6, depth: 402 });
+      synth.play("ding");
+      // everyone strikes the final chomp
+      move(dancers, "C");
+      this.finish(true, [
+        dir(
+          this.fromConsole
+            ? `${hits} of ${total} moves, ${perfect} perfect, best combo ${best}.`
+            : `${hits} of ${total} moves, ${perfect} perfect, best combo ${best}. The cabinet passes a pint glass round. Your cut: ${pay} Krezzcoin.`,
+        ),
+      ]);
     };
-    leave.on("pointerdown", () => void done());
+    leave.on("pointerdown", () => done());
     this.time.addEvent({
       delay: 16,
       loop: true,
       callback: () => {
-        if (this.ended) return;
+        if (this.ended || ending) return;
         const t = songT();
+        const now = this.time.now;
         const line = dancers.slice(0, -1);
         for (const n of notes) {
           // the cabinet hits every move exactly on the beat, whether you do or not
           if (!n.line && t >= n.t) {
             n.line = true;
-            move(line, n.k);
+            move(line, n.k, n.fast);
           }
           if (n.done) continue;
-          n.img.x = HIT_X + (n.t - t) * SPEED;
+          n.img.x = HIT_X + (n.t - t) * SPEED * (n.fast ? 2 : 1);
           if (t - n.t > WIN.late) {
             n.done = true;
             missed++;
@@ -1987,51 +2067,34 @@ export class MinigameScene extends Phaser.Scene {
             this.missFx(HIT_X, 120, 170);
           }
         }
-        if (!reached && t >= CHECK) {
-          reached = true;
+        // DOUBLE TIME: called as the first fast moves come on screen
+        if (!doubled && t >= DOUBLE_T - 1.6) {
+          doubled = true;
           synth.play("ding");
-          const cp = this.add.text(480, 250, "CHECKPOINT ✓\n(fail from here and you go again from halfway)", { fontFamily: PIXEL_BOLD, fontSize: "20px", color: "#86efac", align: "center", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(205).setScale(0.5);
-          this.tweens.add({ targets: cp, scale: 1, duration: 220, ease: "Back.out" });
-          this.tweens.add({ targets: cp, alpha: 0, delay: 2600, duration: 500, onComplete: () => cp.destroy() });
+          shout("DOUBLE TIME!", "#ffd23f");
+          lane.setFillStyle(0x3b0a2a, 0.7);
+          this.cameras.main.flash(180, 255, 210, 63);
         }
-        // the rest of the line keeps time on every beat even when you don't (they're professionals)
-        const beatNow = Math.floor((t - PHASE) / BEAT);
-        if (beatNow !== (this as any)._lastBeat) {
-          (this as any)._lastBeat = beatNow;
-          const bar = Math.floor(beatNow / 4);
-          lyric.setText(beatNow < 4 ? "get ready. be serious." : "");
+        if (!broke && t >= barT(C.BREAK_BAR)) {
+          broke = true;
+          lane.setFillStyle(0x000000, 0.55);
+          shout("HOLD IT... FINAL CHOMP!", "#86efac", 34);
         }
+        // between moves: the dance loop in time with the song (one pass every two beats), or standing tall
+        const beatF = (t - C.PHASE) / BEAT;
+        for (const d of dancers) {
+          if (!d.art || d.until > now) continue;
+          if (t < barT(C.START_BAR) - BEAT || broke) d.spr.setFrame(d.loop[Math.floor(((beatF % 2) + 2) % 2 / 2 * d.loop.length)] ?? 0);
+          else d.spr.setFrame(0);
+        }
+        lyric.setText(t < barT(C.START_BAR) - 0.2 ? (t < barT(C.START_BAR) - BEAT * 4 ? "get ready. be serious." : `${Math.max(1, Math.ceil((barT(C.START_BAR) - t) / BEAT))}...`) : "");
         drawArms();
-        if (t > seek + 30) leave.setVisible(true);
-        this.hud.setText(`🐊 ${hits}   COMBO ${combo}   MISSED ${missed}${reached ? "   ✓ CHECKPOINT" : ""}`);
+        if (t > barT(C.START_BAR) + 15) leave.setVisible(true);
+        const pay = MinigameScene.crocPay(hits, perfect, best, notes.length ? hits / notes.length : 0);
+        this.hud.setText(`🐊 ${hits}   COMBO ${combo}   MISSED ${missed}   ${this.fromConsole ? "SCORE" : "💰"} ${pay}${t >= DOUBLE_T ? "   ⚡ x2" : ""}`);
         const pr = synth.fileProgress();
-        if ((pr.d && pr.ended) || t > CROC_END) void done();
+        if ((pr.d && pr.ended) || t > CROC_END) done();
       },
-    });
-  }
-
-  /** Failed after the checkpoint: go again from halfway (true), or take the loss (false). */
-  private crocRetry(acc: number) {
-    return new Promise<boolean>((res) => {
-      const ui: Phaser.GameObjects.GameObject[] = [];
-      ui.push(this.add.rectangle(480, 270, 960, 540, 0x000000, 0.7).setDepth(400).setInteractive());
-      ui.push(title(this, 480, 170, "OUT OF STEP", 40, "#ff6b6b").setDepth(401));
-      ui.push(this.add.text(480, 222, `${Math.round(acc * 100)}% in time. You need half. The cabinet is disappointed in you.`, { fontFamily: FONT, fontSize: "15px", color: "#ffffff" }).setOrigin(0.5).setDepth(401));
-      let picked = false;
-      const pick = (again: boolean) => {
-        if (picked) return;
-        picked = true;
-        this.input.keyboard?.off("keydown-ENTER", yes);
-        this.input.keyboard?.off("keydown-ESC", no);
-        ui.forEach((o) => o.destroy());
-        res(again);
-      };
-      const yes = () => pick(true);
-      const no = () => pick(false);
-      ui.push(button(this, 480, 290, "GO AGAIN FROM HALFWAY (ENTER)", yes, { w: 380, color: 0x166534 }).setDepth(401));
-      ui.push(button(this, 480, 344, "GIVE UP (ESC)", no, { w: 380 }).setDepth(401));
-      this.input.keyboard?.on("keydown-ENTER", yes);
-      this.input.keyboard?.on("keydown-ESC", no);
     });
   }
 

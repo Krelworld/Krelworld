@@ -72,7 +72,6 @@ export class TVScene extends Phaser.Scene {
   private caller = "";
   private fromTitle = false;
   private mode: "channels" | "episodes" | "playing" = "channels";
-  private channel = "";
   private ui!: Phaser.GameObjects.Container;
   private stage!: Phaser.GameObjects.Container;
   private subs!: Phaser.GameObjects.Text;
@@ -158,7 +157,34 @@ export class TVScene extends Phaser.Scene {
       const e = ALL_EPISODES.find((x) => x.id === data.episode);
       if (e) return this.play(e);
     }
-    this.showChannels();
+    // no channels: switch it on and something's on (the archive on the title screen is on-demand only)
+    if (this.fromTitle) this.showDemand();
+    else this.surf();
+  }
+
+  /** Whatever's on: a random show you can watch (usually one you haven't seen), never the one that just finished. */
+  private surf() {
+    const all = ALL_EPISODES.filter((e) => this.unlocked(e) && e.id !== this.ep?.id);
+    if (!all.length) return this.showDemand();
+    const fresh = this.fromTitle ? [] : all.filter((e) => !G.s.tvWatched.includes(e.id));
+    const pool = fresh.length && Math.random() < 0.75 ? fresh : all;
+    this.play(pool[Math.floor(Math.random() * pool.length)]);
+  }
+
+  /** Stop the show that's on (without counting it as watched). */
+  private stopShow() {
+    this.beatTimer?.remove();
+    voice.stop();
+    this.pov?.destroy();
+    this.pov = null;
+    this.news?.destroy();
+    this.news = null;
+    this.splatLayer?.destroy();
+    this.splatLayer = undefined;
+    this.subs.setText("");
+    this.card.setText("");
+    this.caption.setText("");
+    synth.stopMusic();
   }
 
   private makeCast() {
@@ -217,17 +243,31 @@ export class TVScene extends Phaser.Scene {
       this.playBtns.push(c);
     };
     this.playBtns = [];
-    mk(200, "▶", "NEXT LINE", "Space / click", () => this.skipBeat());
-    mk(320, "⏭", "SKIP SHOW", "Tab", () => this.skipShow());
+    mk(130, "▶", "NEXT LINE", "Space / click", () => this.skipBeat());
+    mk(236, "⏭", "NEXT SHOW", "Tab", () => this.skipShow());
+    if (!this.once) mk(342, "☰", "ON DEMAND", "D", () => this.openDemand());
+    mk(this.once ? 342 : 448, "⏻", "SWITCH OFF", "Esc", () => this.switchOff());
     this.setPlayBtns(false);
   }
 
   private setPlayBtns(on: boolean) {
-    for (const c of this.playBtns) c.setVisible(on);
+    // next line / next show only mean something while a show's on; on demand and switch off are always there
+    this.playBtns.forEach((c, i) => c.setVisible(on || i >= 2));
     if (this.tapZone?.input) this.tapZone.input.enabled = on;
   }
 
-  /** Skip the whole show. A story broadcast counts as seen; a show you picked stays "new" (and its gift unclaimed). */
+  private openDemand() {
+    if (this.once) return;
+    if (this.mode === "playing") this.stopShow();
+    this.showDemand();
+  }
+
+  private switchOff() {
+    this.stopShow();
+    this.exit();
+  }
+
+  /** Next show. A story broadcast counts as seen; a show you skip stays "new" (and its gift unclaimed). */
   private skipShow() {
     if (this.mode !== "playing" || !this.ep) return;
     voice.stop();
@@ -237,7 +277,8 @@ export class TVScene extends Phaser.Scene {
       this.finishEpisode();
       return;
     }
-    this.back();
+    this.stopShow();
+    this.surf();
   }
 
   // ---------------------------------------------------------- menus
@@ -280,71 +321,40 @@ export class TVScene extends Phaser.Scene {
     return !!G.s.flags[e.unlockFlag];
   }
 
-  private showChannels() {
-    this.mode = "channels";
+  /** ON DEMAND: every show you can watch, a page at a time. */
+  private demandPage = 0;
+
+  private showDemand(page = this.demandPage) {
+    this.mode = "episodes";
     synth.music("news");
-    const items = CHANNELS.map((ch) => {
-      const eps = ALL_EPISODES.filter((e) => e.channel === ch);
-      const avail = eps.filter((e) => this.unlocked(e));
-      // you can't pick shows: the channel plays whatever's on (a new one each time) until you've seen them all
-      const fresh = this.fromTitle ? [] : avail.filter((e) => !G.s.tvWatched.includes(e.id));
-      return {
-        label: `${ch}  ${!avail.length ? "[LOCKED PROGRAMME]" : this.fromTitle ? `(${avail.length})` : fresh.length ? `(${fresh.length} new 🎁)` : "(all seen: pick a show)"}`,
-        dim: !avail.length,
-        action: () => {
-          // (the Crobley story is watched in the FGM War Room now, not on your own telly)
-          if (!avail.length) {
-            this.flashCard(eps[0]?.unlockHint ?? "Not broadcasting yet.");
-            return;
-          }
-          if (fresh.length) {
-            this.channel = ch;
-            this.play(fresh[Math.floor(Math.random() * fresh.length)]);
-            return;
-          }
-          this.showEpisodes(ch);
-        },
-      };
-    });
-    items.push({ label: "⏏ Turn off", dim: false, action: () => this.exit() });
-    this.renderList(this.fromTitle ? "KRELWORLD MEDIA ARCHIVE" : "KRELTV — CHANNEL GUIDE", items);
+    const watched = this.fromTitle ? G.meta.tvWatched : G.s.tvWatched;
+    const avail = ALL_EPISODES.filter((e) => this.unlocked(e));
+    const PER = this.fromTitle ? 8 : 7;
+    const pages = Math.max(1, Math.ceil(avail.length / PER));
+    this.demandPage = page = Phaser.Math.Clamp(page, 0, pages - 1);
+    const items: { label: string; action: () => void; dim?: boolean }[] = avail.slice(page * PER, page * PER + PER).map((e) => ({
+      label: (() => {
+        const l = `${watched.includes(e.id) ? "✓" : this.fromTitle ? "•" : "🎁"} ${e.show}: ${e.title}`;
+        return l.length > 58 ? l.slice(0, 56) + "…" : l;
+      })(),
+      action: () => this.play(e),
+    }));
+    if (pages > 1) {
+      if (page > 0) items.push({ label: `◀ Previous page`, action: () => this.showDemand(page - 1) });
+      if (page < pages - 1) items.push({ label: `Next page ▶  (${page + 1}/${pages})`, action: () => this.showDemand(page + 1) });
+    }
+    if (!this.fromTitle) items.push({ label: "📺 Back to whatever's on", action: () => this.surf() });
+    items.push({ label: "⏏ Switch off", action: () => this.exit() });
+    this.renderList(this.fromTitle ? "KRELWORLD MEDIA ARCHIVE" : "KRELTV ON DEMAND", items);
     if (!this.fromTitle) {
       // the TV log: what you've seen, what's left, and how many gifts are still out there
-      const all = ALL_EPISODES.filter((e) => this.unlocked(e));
-      const seen = all.filter((e) => G.s.tvWatched.includes(e.id)).length;
-      const locked = ALL_EPISODES.length - all.length;
-      const log = `📺 TV LOG · Seen ${seen} of ${all.length} · 🎁 ${all.length - seen} Kreddle gift${all.length - seen === 1 ? "" : "s"} still to claim${locked ? ` · 🔒 ${locked} more shows unlock as the story goes on` : ""}`;
-      this.ui.add(this.add.text(SX + SW / 2, SY + SH - 22, log, { fontFamily: FONT, fontSize: "12px", color: "#facc15", align: "center", wordWrap: { width: SW - 30 } }).setOrigin(0.5));
+      const seen = avail.filter((e) => G.s.tvWatched.includes(e.id)).length;
+      const locked = ALL_EPISODES.length - avail.length;
+      const log = `📺 Seen ${seen} of ${avail.length} · 🎁 ${avail.length - seen} Kreddle gift${avail.length - seen === 1 ? "" : "s"} still to claim${locked ? ` · 🔒 ${locked} more unlock as the story goes on` : ""}`;
+      this.ui.add(this.add.text(SX + SW / 2, SY + SH - 18, log, { fontFamily: FONT, fontSize: "11px", color: "#facc15", align: "center", wordWrap: { width: SW - 30 } }).setOrigin(0.5));
     }
   }
 
-  /** While the Crobley story is breaking, every channel is the Crobley story. */
-  private crobleyBreak() {
-    if (this.fromTitle) return false;
-    if (G.s.chapter !== 4 || G.s.flags.vig_crobley_news) return false;
-    synth.stopMusic();
-    fadeThen(this, 250, () => switchTo(this, "Vignette", { id: "crobley_news", returnAt: this.caller === "Pub" ? "PUB" : "HOME" }));
-    return true;
-  }
-
-  private showEpisodes(ch: string) {
-    this.mode = "episodes";
-    this.channel = ch;
-    const eps = ALL_EPISODES.filter((e) => e.channel === ch);
-    const watched = this.fromTitle ? G.meta.tvWatched : G.s.tvWatched;
-    const items = eps.map((e) => ({
-      label: this.unlocked(e) ? `${watched.includes(e.id) ? "✓" : "•"} Ep. ${e.episodeNumber}: ${e.title}` : `🔒 ${e.unlockHint ?? "Locked"}`,
-      dim: !this.unlocked(e),
-      action: () => (this.unlocked(e) ? this.play(e) : this.flashCard(e.unlockHint ?? "Locked")),
-    }));
-    items.push({ label: "◀ Back to channels", dim: false, action: () => this.showChannels() });
-    this.renderList(ch, items);
-  }
-
-  private flashCard(t: string) {
-    this.card.setText(t);
-    this.time.delayedCall(1500, () => this.mode !== "playing" && this.card.setText(""));
-  }
 
   // ---------------------------------------------------------- playback
 
@@ -558,18 +568,13 @@ export class TVScene extends Phaser.Scene {
       this.time.delayedCall(600, () => this.exit());
       return;
     }
-    this.backToGuide(e.channel);
-    if (e.id === "tcc_ep7" && !this.fromTitle) G.emit("toast", { title: "KRELTV", text: "The cabinet has opinions about Thick Cumming Cock. Go and ask them." });
-  }
-
-  /** After a show: the channel guide, or the show list if you've seen everything on that channel. */
-  private backToGuide(ch: string) {
-    const left = this.fromTitle ? [] : ALL_EPISODES.filter((x) => x.channel === ch && this.unlocked(x) && !G.s.tvWatched.includes(x.id));
-    if (left.length) this.showChannels();
+    // and straight on to whatever's on next (the archive goes back to its list)
+    if (this.fromTitle) this.showDemand();
     else {
-      this.mode = "episodes";
-      this.showEpisodes(ch);
+      this.card.setText("COMING UP NEXT…");
+      this.time.delayedCall(1400, () => this.mode === "playing" && this.ep === e && (this.card.setText(""), this.surf()));
     }
+    if (e.id === "tcc_ep7" && !this.fromTitle) G.emit("toast", { title: "KRELTV", text: "The cabinet has opinions about Thick Cumming Cock. Go and ask them." });
   }
 
   private kreddleGift() {
@@ -948,20 +953,8 @@ export class TVScene extends Phaser.Scene {
       this.exit();
       return;
     }
-    if (this.mode === "playing") {
-      this.beatTimer?.remove();
-      this.pov?.destroy();
-      this.pov = null;
-      this.news?.destroy();
-      this.news = null;
-      this.mode = "episodes";
-      this.subs.setText("");
-      this.card.setText("");
-      this.caption.setText("");
-      synth.stopMusic();
-      this.backToGuide(this.ep?.channel ?? this.channel);
-    } else if (this.mode === "episodes") this.showChannels();
-    else this.exit();
+    // Esc: switch it off (from the on-demand list too)
+    this.switchOff();
   }
 
   private exit() {
@@ -994,12 +987,15 @@ export class TVScene extends Phaser.Scene {
       else if (e.key === "p" || e.key === "P") this.togglePause();
       else if (e.key === "ArrowLeft" || e.key === "Backspace") this.rewind();
       else if (e.key === "s" || e.key === "S") this.showSubs = !this.showSubs;
+      else if (e.key === "d" || e.key === "D") this.openDemand();
       else if (e.key === "Escape") this.back();
       return;
     }
     if (e.key === "ArrowDown" || e.key === "s") this.highlight(Math.min(this.items.length - 1, this.sel + 1));
     else if (e.key === "ArrowUp" || e.key === "w") this.highlight(Math.max(0, this.sel - 1));
     else if (e.key === "Enter" || e.key === " " || e.key === "e") this.items[this.sel]?.action();
-    else if (e.key === "Escape") this.back();
+    else if (e.key === "ArrowRight" || e.key === "ArrowLeft") this.showDemand(this.demandPage + (e.key === "ArrowRight" ? 1 : -1));
+    // Esc from on demand goes back to whatever's on (the title-screen archive just closes)
+    else if (e.key === "Escape") (this.fromTitle ? this.exit() : this.surf());
   }
 }

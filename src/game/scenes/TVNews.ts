@@ -115,7 +115,6 @@ export const NEWS_SHOWS: Record<string, NewsCfg> = {
       { match: /burger/i, pic: BURGER, caption: "New burger" },
       { match: /footage/i, pic: CRATER, caption: "The crater" },
     ],
-    outroBroll: { set: "tv_wildern_crater", caption: "Footage just in: the Wildern crater" },
   },
 };
 

@@ -2051,7 +2051,7 @@ export class VignetteScene extends Phaser.Scene {
     synth.music("news");
     await this.wait(ident.ident() - 200);
     ident.destroy();
-    const { journo, rein, pivot, chrome, shot } = this.crobleyStudio();
+    const { journo, rein, stage, pivot, chrome, shot } = this.crobleyStudio();
     const cam = this.cameras.main;
     synth.music("ominous");
     await this.wait(chrome.breaking("Chaos at the Crobley Corporation") - 900);
@@ -2136,12 +2136,15 @@ export class VignetteScene extends Phaser.Scene {
     }
     this.talkers.get("JOURNALIST")?.destroy();
     this.talkers.delete("JOURNALIST");
-    const jFall = this.add.sprite(journo.x, journo.y, journo.texture.key, 0).setOrigin(0.5, 1).setScale(journo.scaleX).setDepth(13);
+    // (in the studio's camera container, so she goes over with the picture when the camera falls)
+    const jFall = this.add.sprite(journo.x, journo.y, journo.texture.key, 0).setOrigin(0.5, 1).setScale(journo.scaleX);
+    stage.add(jFall);
     journo.setVisible(false);
     this.tweens.add({ targets: jFall, angle: -80, x: jFall.x - 60, y: jFall.y + 120, delay: 900, duration: 400 });
     await this.wait(1400);
     if (G.meta.settings.gore !== false) {
-      vfx(this, "vfx_bloodpool", journo.x - 40, 360, { scale: 2.2, depth: 12, hold: true });
+      const pool = vfx(this, "vfx_bloodpool", journo.x - 40, 360, { scale: 2.2, depth: 12, hold: true });
+      if (pool) stage.addAt(pool, stage.getIndex(jFall));
       splat(this, 380, 140, 360);
     }
     await this.talk([dir("The newsreader goes down behind the desk. Somewhere, a producer screams. Reinhardt slowly turns. Towards the camera.")]);
@@ -2714,7 +2717,7 @@ export class VignetteScene extends Phaser.Scene {
     // you're in the room, in the press pack: the backs of the photographers in front of you, Swig at the lectern
     if (!backdrop(this, "bg_press", { depth: -10 })) this.add.rectangle(480, 270, 960, 540, 0x1e2a44);
     this.add.text(480, 50, "KRELFORD CONSTABULARY · PRESS CONFERENCE\n'THE SO-CALLED LIVE TELEVISION MURDER'", { fontFamily: FONT, fontSize: "18px", color: "#ffffff", fontStyle: "bold", align: "center", backgroundColor: "#1e3a8acc", padding: { x: 10, y: 4 } }).setOrigin(0.5);
-    const swigP = hasAnchor(this, "SERGEANT SWIG") ? new Presenter(this, "SERGEANT SWIG", 480, 360, 2.25) : null;
+    const swigP = hasAnchor(this, "SERGEANT SWIG") ? new Presenter(this, "SERGEANT SWIG", 480, 352, 2.5) : null;
     if (swigP) {
       swigP.spr.setDepth(15);
       this.talkers.set("SERGEANT SWIG", swigP);
@@ -2733,7 +2736,7 @@ export class VignetteScene extends Phaser.Scene {
     const backs = this.textures.exists("tvpress_backs");
     for (let i = 0; i < 8; i++) {
       const sp = backs
-        ? this.add.sprite(70 + i * 118 + (i % 2) * 18, 505 + (i % 2) * 22, "tvpress_backs", (i * 5) % 16).setOrigin(0.5, 1).setScale(2.7)
+        ? this.add.sprite(70 + i * 118 + (i % 2) * 18, 452 + (i % 2) * 26, "tvpress_backs", (i * 5) % 16).setOrigin(0.5, 1).setScale(2.3)
         : this.add.sprite(250 + i * 85, 470 + (i % 2) * 12, `spr_FOLK${i % 4}`, 0).setScale(2.4);
       sp.setDepth(30 + i);
       press.push(sp);

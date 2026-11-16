@@ -112,7 +112,11 @@ export function shootout(sc: Phaser.Scene, o: ShootoutOpts): Promise<void> {
       vfx(sc, "vfx_muzzle", m.x, m.y, { scale: 1.6 * (0.6 + 0.4 * k), depth: o.depth + 10, add: true });
       const glow = sc.add.circle(m.x, m.y, 60, 0xfff3b0, 0.5 * k).setDepth(o.depth + 9).setBlendMode(Phaser.BlendModes.ADD);
       sc.tweens.add({ targets: glow, alpha: 0, scale: 1.8, duration: 90, onComplete: () => glow.destroy() });
-      if (!calm()) cam.flash(40, 255, 230, 160);
+      // the room lights up with each shot (a lift, not a white-out; none with reduced flashing)
+      if (!calm()) {
+        const lift = sc.add.rectangle(0, 0, 960, 540, 0xffe9a8, 0.16).setOrigin(0).setScrollFactor(0).setDepth(o.depth + 8).setBlendMode(Phaser.BlendModes.ADD);
+        sc.tweens.add({ targets: lift, alpha: 0, duration: 70, onComplete: () => lift.destroy() });
+      }
       cam.shake(110, 0.009);
       if (o.shooter) sc.tweens.add({ targets: o.shooter, y: o.shooter.y - 6, duration: 50, yoyo: true });
       // where it goes: mostly people, now and then a camera rig, now and then nothing

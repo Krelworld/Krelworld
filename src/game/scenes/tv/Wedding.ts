@@ -571,7 +571,7 @@ export class WeddingDirector extends ShowDirector {
     this.shotKind = "mole";
     this.crash(1.18, p.spr.x, p.spr.y - 230);
     this.sc.tweens.add({ targets: p.spr, x: p.spr.x + 5, duration: 70, yoyo: true, repeat: -1 });
-    // the paws going: the whole costume lurches with every word
+    // arms going: the whole giant mole lurches with every word
     this.sc.tweens.add({ targets: p.spr, angle: { from: -4, to: 4 }, duration: 190, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
     synth.play("shriek");
     this.talk(p, "MOLE PERSON", text, emotion);
@@ -909,7 +909,7 @@ export class WeddingDirector extends ShowDirector {
     return t;
   }
 
-  /** The doors fly open and the mole comes sprinting down the aisle at us. */
+  /** The doors fly open and the mole (someone dressed as Jenko's removed skin mole) comes sprinting down the aisle at us. */
   private moleEntrance(): number {
     this.dropLowerThird();
     this.camcorderOn();

@@ -44,7 +44,7 @@ WEDDING GUEST (muttering): He doesn't have the bottle.
 (They both smirk, glancing at Jenko with amusement.)
 FLENKY (V.O.): This is too much. Everyone's laughing. At me. At my worst moment. How did I let this happen?
 GRONNY (raising his arms theatrically): But wait, I'm not done! We've got a very special guest lined up. Someone we haven't seen in a while. Ladies and gentlemen, it's... Jenko's mole!
-(The door bursts open, and a figure dressed in a grotesque black mole costume, complete with wiry hairs, runs into the room screaming.)
+(The door bursts open, and a figure dressed as a giant hairy skin mole (a huge, lumpy, dark-brown blob sprouting wiry black hairs, a face peering out of a hole in the front) runs into the room screaming.)
 MOLE PERSON (wildly flailing): YOU'LL NEVER BE ENOUGH, JAMES! YOU'LL NEVER BE ENOUGH!
 (The figure barrels into Jenko, knocking him off his chair.)
 [SFX punch_big]

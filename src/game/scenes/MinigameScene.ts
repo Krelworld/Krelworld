@@ -1880,8 +1880,8 @@ export class MinigameScene extends Phaser.Scene {
     notes.sort((a, b) => a.t - b.t);
     this.add.rectangle(480, 120, 960, 54, 0x000000, 0.55).setDepth(140);
     this.add.circle(HIT_X, 120, 24).setStrokeStyle(4, 0xffd23f).setDepth(145);
+    // (no on-screen lyrics: the song's playing)
     const lyric = this.add.text(480, 200, "", { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#86efac", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5).setDepth(160);
-    const lyrics = ["YOU TAKE YOUR LEFT HAND", "AND GO LIKE THIS", "DO THE CROCODILE", "(very seriously)"];
     synth.music("crocodile", true);
     // from the checkpoint: pick the song up a few seconds before it, in the quiet bit, so you've time to get set
     const seek = from > 0 ? from - 3 : 0;
@@ -1961,7 +1961,6 @@ export class MinigameScene extends Phaser.Scene {
         this.scene.restart({ ...this.startData, crocFrom: CHECK });
         return;
       }
-      await this.crocRelease(acc >= 0.5);
       this.finish(acc >= 0.5, []);
     };
     leave.on("pointerdown", () => void done());
@@ -2000,8 +1999,7 @@ export class MinigameScene extends Phaser.Scene {
         if (beatNow !== (this as any)._lastBeat) {
           (this as any)._lastBeat = beatNow;
           const bar = Math.floor(beatNow / 4);
-          if (beatNow >= 4 && !quiet.has(bar)) lyric.setText(lyrics[Math.floor(bar / 2) % lyrics.length]);
-          else lyric.setText(beatNow < 4 ? "get ready. be serious." : "");
+          lyric.setText(beatNow < 4 ? "get ready. be serious." : "");
         }
         drawArms();
         if (t > seek + 30) leave.setVisible(true);
@@ -2038,54 +2036,6 @@ export class MinigameScene extends Phaser.Scene {
   }
 
   /** The song summons crocodiles. They head for the playground. */
-  private async crocRelease(won: boolean) {
-    // the playground (drawn backdrop), flat colour if it's missing
-    if (!backdrop(this, "bg_us_playground", { depth: 500 })) {
-      this.add.rectangle(480, 270, 960, 540, 0x3f6b3a).setDepth(500);
-      this.add.rectangle(480, 470, 960, 140, 0x8b6b3a).setDepth(501);
-    }
-    this.add.text(760, 300, "KRELFORD PLAYGROUND", { fontFamily: FONT, fontSize: "14px", color: "#fff4cc", backgroundColor: "#1a1033cc", padding: { x: 4, y: 2 } }).setOrigin(0.5).setDepth(502);
-    const kids = [0, 1, 2, 3, 4].map((i) => {
-      const key = this.textures.exists(`spr_KID${i}`) ? `spr_KID${i}` : this.textures.exists(`spr_FOLK${i}`) ? `spr_FOLK${i}` : playerKey(this);
-      return this.add.sprite(640 + i * 60, 400 + (i % 2) * 20, key, 0).setScale(2).setDepth(510);
-    });
-    await this.box.play([
-      dir(won ? "The song ends. Nine grown men lower their arms in perfect unison. Somewhere in Krelford, a drain cover lifts." : "The song ends. Nobody was in time. It doesn't matter. Somewhere in Krelford, a drain cover lifts."),
-      dir("You have done the Crocodile. The Crocodile has heard you."),
-    ]);
-    const key = this.textures.exists("p_croc") ? "p_croc" : null;
-    const crocs = [0, 1, 2].map((i) => {
-      const c = key ? this.add.image(-120 - i * 140, 410 + i * 18, key).setScale(1.2) : this.add.text(-120 - i * 140, 410 + i * 18, "🐊", { fontSize: "72px" }).setOrigin(0.5);
-      c.setDepth(520);
-      (c as any).setFlipX?.(true);
-      this.tweens.add({ targets: c, angle: { from: -4, to: 4 }, yoyo: true, repeat: -1, duration: 160 });
-      return c;
-    });
-    synth.play("roar");
-    await new Promise<void>((res) => {
-      crocs.forEach((c, i) => this.tweens.add({ targets: c, x: 600 + i * 90, duration: 2400, ease: "Sine.in", onComplete: i === 2 ? () => res() : undefined }));
-    });
-    // CHOMP
-    kids.forEach((k, i) =>
-      this.time.delayedCall(i * 180, () => {
-        synth.play("punch_big");
-        this.pop(k.x, k.y - 50, "CHOMP", "#ff6b6b", 22);
-        this.tweens.add({ targets: k, scale: 0, duration: 120 });
-      }),
-    );
-    await new Promise((r) => this.time.delayedCall(1300, r));
-    crocs.forEach((c) => this.tweens.add({ targets: c, scaleY: c.scaleY * 1.35, duration: 300, yoyo: true, repeat: 2 }));
-    // spat back out, unharmed, furious
-    crocs.forEach((c) => this.tweens.add({ targets: c, x: c.x - 40, duration: 120, yoyo: true }));
-    synth.play("splat");
-    kids.forEach((k, i) => this.time.delayedCall(i * 120, () => {
-      this.tweens.add({ targets: k, scale: 2, duration: 160 });
-      this.pop(k.x, k.y - 50, ["PTOO", "MUM!", "AGAIN!", "PEDO!", "UNFAIR"][i % 5], "#ffffff", 16);
-    }));
-    await new Promise((r) => this.time.delayedCall(1200, r));
-    G.s.flags.crocs_loose = true;
-  }
-
   // ---------------------------------------------------------------- THE CANNON (boarding Flight KR-069)
 
   /** Hit the plane early and the cabin crew are impressed. Try 4+ just gets you on board. */

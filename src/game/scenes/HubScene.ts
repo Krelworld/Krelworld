@@ -1995,18 +1995,6 @@ export class HubScene extends Phaser.Scene {
       const spr = this.add.sprite(x, P.cy, key, 0).setScale(key.startsWith("spr_KID") ? 2 : 1.4).setDepth(P.cy);
       this.kids.push({ spr, tx: x, ty: P.cy, next: 0 });
     }
-    // after Do The Crocodile, the crocodiles live here now
-    if (G.s.flags.crocs_loose) {
-      for (let i = 0; i < 2; i++) {
-        const cx = P.x + 80 + i * 180;
-        const cy = P.y + 60 + i * 70;
-        const croc = this.textures.exists("p_croc") ? this.add.image(cx, cy, "p_croc").setScale(0.55) : this.add.text(cx, cy, "🐊", { fontSize: "34px" }).setOrigin(0.5);
-        croc.setDepth(cy + 5);
-        (croc as any).setFlipX?.(true);
-        this.tweens.add({ targets: croc, x: cx + 120, duration: 4200 + i * 900, yoyo: true, repeat: -1, ease: "Sine.inOut", onYoyo: () => (croc as any).setFlipX?.(false), onRepeat: () => (croc as any).setFlipX?.(true) });
-      }
-      this.add.text(P.cx, P.y - 18, "🐊 CROCODILES (REGISTERED)", { fontFamily: FONT, fontSize: "10px", color: "#86efac", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5).setDepth(P.y + 2);
-    }
     // throwing a sweetie: press E anywhere near the playground (the prompt follows you)
     const throwIt: HubInteract = {
       x: -9999,
@@ -2707,11 +2695,11 @@ You are required by law to sign the Sex Offenders Register.`, {
             synth.play("ding");
           } else {
             synth.play("tap_fail");
-            await this.talk([dir(q.wrong)]);
+            await this.talk(k.noFail ? [dir(q.wrong), dir(`The answer was "${q.options[q.correct]}". You fucking idiot.`)] : [dir(q.wrong)]);
           }
         }
         delete s.flags.arc_q;
-        if (score >= k.need) {
+        if (score >= k.need || k.noFail) {
           completeStep(s, arc, step);
           await this.talk(k.success);
         } else {

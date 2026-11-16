@@ -9,7 +9,7 @@ import { KR_AFTER, KR_BRAWL_INTRO, KR_LEAVE } from "./krunchers";
 export type ArcStepKind =
   /** pay: a bonus handed over when the conversation ends (Krezzcoin, with a toast). */
   | { kind: "dialogue"; lines: Line[]; pay?: { coins: number; title: string; text: string } }
-  | { kind: "quiz"; intro: Line[]; questions: ArcQuestion[]; need: number; success: Line[]; fail: Line[] }
+  | { kind: "quiz"; intro: Line[]; questions: ArcQuestion[]; need: number; success: Line[]; fail: Line[]; noFail?: boolean }
   /** drugs: after the intro, "Press D to take drugs", and a trip into the arena. */
   | { kind: "arena"; intro: Line[]; dungeon: string; drugs?: boolean }
   | { kind: "minigame"; intro: Line[]; mode: string; success: Line[]; fail: Line[] }
@@ -262,6 +262,8 @@ export const ARCS: Arc[] = [
         step: {
           kind: "quiz",
           need: 3,
+          // can't fail: a wrong answer just gets you the right one, and told what you are
+          noFail: true,
           intro: [
             dir("Krelford University, the quad. Mollor, 19, philosophy major, is reading Nietzsche on a bench. She has a tote bag that says 'GOD IS DEAD (AND SO IS MY PHONE)'."),
             say("MOLLOR", "Can I help you?"),

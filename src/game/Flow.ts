@@ -117,7 +117,8 @@ export function townHallAction(): TownHallAction {
     if (!f.met_emergency) return { kind: "meeting", id: "emergency_reaction_session" };
     if (f.ch1_clear && f.wildern_destroyed && !f.ch1_fact) return f.krazy_fact_ready ? { kind: "fact" } : { kind: "meeting", id: "krazy_fact_emergency" };
   }
-  if (n === 3 && !f.cronster_briefed) return { kind: "meeting", id: "cronster_briefing" };
+  // Polson gets fit first: the Cronster briefing waits until he's done
+  if (n === 3 && !f.cronster_briefed && f.arc_polson_fit_done) return { kind: "meeting", id: "cronster_briefing" };
   if (n === 5 && !f.krebon_question) return { kind: "meeting", id: "krebon_question" };
   if (n === 7 && !f.final_reading) return { kind: "meeting", id: "final_reading" };
   if (n >= 2 && n <= 6 && f[`ch${n}_clear`] && !f[`ch${n}_fact`]) return f[`ch${n}_outro`] ? { kind: "fact" } : { kind: "outro" };

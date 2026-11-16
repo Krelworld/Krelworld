@@ -181,6 +181,9 @@ def plan(l, c):
     if kind == "clone" and not accent:
         # v3 drifts cloned voices towards American: pin every lad's own accent on mood lines
         accent = CAST.get("clone_accents", {}).get(base, CAST.get("clone_accents", {}).get("_default", "British accent"))
+    elif not accent and CAST.get("accents", {}).get(base):
+        # designed / stock voices whose accent has to be spelled out on every line (e.g. Klerble's Italian)
+        accent = CAST["accents"][base]
     prefix = "".join(f"[{x}] " for x in ([accent] if accent else []) + tags)
     return V3, prefix + t, SETTINGS[V3], tags
 

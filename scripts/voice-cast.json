@@ -35,6 +35,10 @@
     "DRONGUS": "coAs1Qqll3JzfCCfewum"
   },
   "hold": [],
+  "accents": {
+    "_doc": "Accent tag put on every v3 line for non-cloned voices that must keep a particular accent.",
+    "PRESIDENT KLERBLE": "strong Italian accent"
+  },
   "pitch": {
     "_doc": "Semitones to shift a speaker's clips by after recording (formants kept). Existing clips are shifted locally, not re-recorded.",
     "SANMIK": -1.5

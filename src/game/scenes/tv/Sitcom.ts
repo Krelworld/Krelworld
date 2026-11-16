@@ -13,6 +13,15 @@ const SET = "tv_tcc_set";
 const EXT = "tv_tcc_ext";
 const AUDIENCE = "tv_tcc_audience";
 
+/**
+ * The cast's full-figure studio sheets (public/art/tv/body_<NAME>.png, 96x160 frames): standing, a talking
+ * animation, a walk, sitting and asleep. Anyone without one is played by their TV sprite.
+ */
+const BODY: Record<string, { key: string; stand?: number; talk?: [number, number]; talkPose: string; walk?: [number, number]; sit?: number; snore?: [number, number]; flipStand?: boolean }> = {
+  "CHRISTOPHER THICK": { key: "tvbody_CHRISTOPHER_THICK", stand: 0, talk: [1, 8], talkPose: "", walk: [9, 8], sit: 17, snore: [18, 4], flipStand: true },
+  "JENNY CUMMING": { key: "tvbody_JENNY_CUMMING", sit: 0, talk: [1, 8], talkPose: "sit" },
+};
+
 interface Onstage {
   x: number;
   pose: string;
@@ -121,22 +130,46 @@ export class SitcomDirector extends ShowDirector {
 
   private bodies: Record<string, Phaser.GameObjects.Sprite> = {};
 
+  private bodyOf(name: string) {
+    const b = BODY[name];
+    return b && this.tex(b.key) ? b : null;
+  }
+
   private drawPeople(ground: number, height: number) {
     this.bodies = {};
-    for (const [name, o] of Object.entries(this.stage)) {
+    // seated people first, so whoever's on a lap is drawn over them
+    const order = Object.entries(this.stage).sort(([, a], [, b]) => (a.pose === "lap" ? 1 : 0) - (b.pose === "lap" ? 1 : 0));
+    for (const [name, o] of order) {
       if (o.pose === "enter") continue;
       const sit = o.pose === "sit" || o.pose === "asleep" || o.pose === "lap";
-      const s = this.body(name, o.x, ground + (sit ? 10 : 0), height);
-      if (!s) continue;
-      s.setFlipX(this.sideOf(name) > 0 && o.pose !== "lap");
-      if (o.pose === "asleep") {
-        s.setAngle(8);
-        this.zzz(s.x + 30, s.y - height);
+      const b = this.bodyOf(name);
+      let s: Phaser.GameObjects.Sprite | null;
+      if (b) {
+        const frame = o.pose === "asleep" && b.snore ? b.snore[0] : sit ? (b.sit ?? b.stand ?? 0) : (b.stand ?? b.sit ?? 0);
+        s = this.add(this.sc.add.sprite(o.x, ground + (o.pose === "lap" ? -height * 0.28 : 0), b.key, frame).setOrigin(0.5, 1));
+        this.realScale(s, (height * 1.5) / 160);
+        s.setFlipX(!sit && !!b.flipStand);
+        if (o.pose === "asleep" && b.snore) {
+          const [a, n] = b.snore;
+          let k = 0;
+          const spr = s;
+          this.every(420, () => spr.active && spr.setFrame(a + (++k % n)));
+          this.zzz(s.x + 20, s.y - height * 1.4);
+        }
+      } else {
+        s = this.body(name, o.x, ground + (sit ? 10 : 0), height);
+        if (!s) continue;
+        s.setFlipX(this.sideOf(name) > 0 && o.pose !== "lap");
+        if (o.pose === "asleep") {
+          s.setAngle(8);
+          this.zzz(s.x + 30, s.y - height);
+        }
       }
+      if (!s) continue;
       this.breathe(s, 1500 + (this.hash(name) % 500));
       this.bodies[name] = s;
     }
-    if (this.props.has("wine")) {
+    if (this.props.has("wine") && !this.bodyOf("JENNY CUMMING")) {
       const jx = this.stage["JENNY CUMMING"]?.x ?? this.r.SX + this.r.SW * 0.33;
       const g = this.add(this.sc.add.graphics());
       const x = jx + 34;
@@ -169,7 +202,7 @@ export class SitcomDirector extends ShowDirector {
     const e = emotion.toLowerCase();
     let p: Perf | null = null;
     const closeOnThem = this.shotKind === "single" && this.perf?.name === name;
-    if (this.shotKind === "two" && this.linesThisShot === 1 && this.bodies[name]) {
+    if ((this.shotKind === "two" || this.shotKind === "wide") && this.linesThisShot === 1 && this.bodies[name]) {
       // the first line after a two-shot cut plays in the two-shot
       p = this.bodyPerf(name);
     } else if (closeOnThem) {
@@ -195,7 +228,15 @@ export class SitcomDirector extends ShowDirector {
   }
 
   private bodyPerf(name: string): Perf {
-    return this.perfOf(name, this.bodies[name]);
+    const s = this.bodies[name];
+    const p = this.perfOf(name, s);
+    const b = this.bodyOf(name);
+    const pose = this.stage[name]?.pose ?? "";
+    if (b?.talk && s.texture.key === b.key && (pose === "lap" ? "sit" : pose) === b.talkPose) {
+      p.cycle = b.talk;
+      p.rest = Number(s.frame.name);
+    }
+    return p;
   }
 
   protected onDirection(a: string): number {
@@ -291,11 +332,22 @@ export class SitcomDirector extends ShowDirector {
     s.setFlipX(true);
     this.sfx("door");
     this.sc.tweens.add({ targets: s, x: tx, duration: 1300, ease: "Sine.easeOut" });
-    this.sc.tweens.add({ targets: s, y: s.y - 5, duration: 160, yoyo: true, repeat: 3 });
+    const b = this.bodyOf(who);
+    if (b?.walk) {
+      // the swagger in
+      const [a, n] = b.walk;
+      let k = 0;
+      const walk = this.every(110, () => s.active && s.setFrame(a + (k++ % n)), 11);
+      this.later(1300, () => {
+        walk.remove();
+        if (s.active) s.setFrame(b.stand ?? 0);
+      });
+    } else this.sc.tweens.add({ targets: s, y: s.y - 5, duration: 160, yoyo: true, repeat: 3 });
     // a beat for the applause, then a little "hey" pose at his mark
     this.later(1350, () => {
-      s.setFrame(3);
-      this.later(450, () => s.active && s.setFrame(0));
+      if (!s.active) return;
+      s.setFrame(b?.talk ? b.talk[0] + 3 : 3);
+      this.later(450, () => s.active && s.setFrame(b ? (b.stand ?? 0) : 0));
     });
     this.push(1.12, 1800, tx, this.r.SY + this.r.SH * 0.7);
     return 1500;

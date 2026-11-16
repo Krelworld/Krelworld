@@ -119,11 +119,16 @@ export class EnsembleDirector extends ShowDirector {
     this.lines = 0;
     if (!fresh) return 0;
     this.pending.clear();
+    // anyone whose first appearance in the scene is an entrance cue isn't in the room until then
+    const seenHere = new Set<string>();
     for (let i = this.idx + 1; i < this.beats.length; i++) {
       const b = this.beats[i];
       if (b.type === "shot" && b.set !== this.set) break;
-      if (b.type === "blocking" && b.to !== "offscreen") this.pending.add(b.character.toUpperCase());
-      if (b.type === "speaker" && !this.pending.has(b.character.toUpperCase())) break;
+      if (b.type !== "blocking" && b.type !== "speaker") continue;
+      const n = b.character.toUpperCase();
+      if (seenHere.has(n)) continue;
+      seenHere.add(n);
+      if (b.type === "blocking" && b.to !== "offscreen") this.pending.add(n);
     }
     if (this.genre === "parliament") {
       this.chamber(true);
@@ -297,7 +302,19 @@ export class EnsembleDirector extends ShowDirector {
   }
 
   protected onAudience(cue: string): number {
-    if (cue === "gasp" && this.perf) this.crash(1.15, this.perf.spr.x, this.r.SY + 170);
+    if (cue === "gasp" || cue === "laugh") {
+      // the reaction shot: whoever just heard it, caught mid-gasp (or mid-giggle)
+      const who = this.genre !== "parliament" ? this.cast.find((n) => n !== this.lastSpeaker && this.hasFace(n) && !this.pending.has(n)) : undefined;
+      if (who) {
+        const p = this.react(who, cue === "gasp" ? F.ALARM : F.NEUTRAL, { side: this.sideOf(who) * 0.9 });
+        this.kind = "single";
+        if (p) {
+          if (cue === "laugh" && p.gest?.length) this.playGesture(p, p.gest.length - 1, 1100);
+          this.crash(1.12, p.spr.x, this.r.SY + 170);
+          if (this.genre === "drama") this.handheld(1.5);
+        }
+      } else if (this.perf) this.crash(1.15, this.perf.spr.x, this.r.SY + 170);
+    }
     return 0;
   }
 

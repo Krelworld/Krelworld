@@ -6,6 +6,7 @@ import { synth } from "../../audio/Synth";
 import { vfx } from "../../gfx/Vfx";
 import { FONT } from "../../ui/theme";
 import { hdFactor } from "../../gfx/HD";
+import { FACE_ALIAS, FACE_META } from "./faceMeta";
 
 /**
  * KrelTV genre presentation: the shared camera crew.
@@ -17,6 +18,9 @@ import { hdFactor } from "../../gfx/HD";
  * Close-up art: public/art/tv/face_<NAME>.png (tvface_<NAME>), 128x128 frames:
  *   0 neutral, 1 talking, 2 alarmed, 3 blink, 4 gesture (talking), 5 laughing, 6 a show-specific special
  * (Peep Show's faces are the first four of these). Anyone without one is shot as their TV sprite instead.
+ * Frames 0-7 are those expressions (padded); a sheet built by scripts/tvface (see faceMeta.ts) also carries
+ * lip-sync mouth shapes at 8-14 (LIP) and one or more gesture animations after them, drawn from the same pose so
+ * the face can cut between them.
  */
 
 export interface Rect {
@@ -35,7 +39,14 @@ export interface ShowHost {
 
 export const F = { NEUTRAL: 0, TALK: 1, ALARM: 2, BLINK: 3, GESTURE: 4, LAUGH: 5, SPECIAL: 6 } as const;
 
-export const faceKeyOf = (name: string) => `tvface_${name.toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "")}`;
+/** Mouth shapes (visemes), offsets from LIP_AT in a face sheet. */
+export const LIP = { REST: 0, CLOSED: 1, SMALL: 2, MEDIUM: 3, WIDE: 4, ROUND: 5, TEETH: 6 } as const;
+export const LIP_AT = 8;
+
+export const faceKeyOf = (name: string) => {
+  const k = name.toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "");
+  return `tvface_${FACE_ALIAS[k] ?? k}`;
+};
 
 /** Voices nobody sees. */
 const UNSEEN = new Set(["NARRATOR", "ANNOUNCER", "PHONE", "VJ", "CROWD"]);
@@ -51,6 +62,15 @@ export interface Perf {
   frames: number;
   /** mid-gesture (the mouth flap leaves the frame alone) */
   gesturing: boolean;
+  /** has lip-sync mouth shapes */
+  lip?: boolean;
+  /** gesture animations in the sheet: [first frame, length] */
+  gest?: [number, number][];
+  /** gestures used so far (so a speech doesn't repeat one) */
+  gUsed?: number;
+  /** a full-body figure with a talking animation: [first frame, length], and the frame it rests on */
+  cycle?: [number, number];
+  rest?: number;
 }
 
 type Mouth = { open: boolean; units: number; stress?: boolean; word?: string };
@@ -73,6 +93,57 @@ export function mouthPlan(text: string): Mouth[] {
     if (/[.!?…]+["”']?$/.test(w)) out.push({ open: false, units: 3.2 });
     else if (/[,;:—-]$/.test(w)) out.push({ open: false, units: 1.8 });
     else out.push({ open: false, units: 0.35 });
+  }
+  return out;
+}
+
+type Shape = { v: number; units: number; stress?: boolean };
+
+/**
+ * A line of dialogue as mouth shapes, letter by letter: lips together for m/b/p, teeth for f/v/s/sh/ch, rounded
+ * for o/u/w, wide for a... with pauses where the actor breathes. Units are scaled to the clip's real length.
+ */
+export function visemePlan(text: string): Shape[] {
+  const out: Shape[] = [];
+  const push = (v: number, units: number, stress?: boolean) => {
+    const last = out[out.length - 1];
+    if (last && last.v === v && !stress) last.units += units;
+    else out.push({ v, units, stress });
+  };
+  const words = text.replace(/\([^)]*\)/g, " ").split(/\s+/).filter(Boolean);
+  for (const w of words) {
+    const raw = w.replace(/[^A-Za-z']/g, "");
+    const loud = (raw.length > 2 && raw === raw.toUpperCase() && /[A-Z]/.test(raw)) || /!$/.test(w);
+    let c = raw.toLowerCase().replace(/'/g, "");
+    if (c.length > 3 && /[^aeiou]e$/.test(c)) c = c.slice(0, -1);
+    let first = true;
+    for (let i = 0; i < c.length; i++) {
+      const two = c.slice(i, i + 2);
+      if (two === "th" || two === "sh" || two === "ch") {
+        push(LIP.TEETH, 0.6);
+        i++;
+        continue;
+      }
+      if (two === "oo" || two === "ou" || two === "ow") {
+        push(LIP.ROUND, loud ? 1.4 : 1.1, loud && first);
+        first = false;
+        i++;
+        continue;
+      }
+      const ch = c[i];
+      if ("aeiouy".includes(ch)) {
+        const v = ch === "a" ? LIP.WIDE : ch === "e" || ch === "i" ? LIP.MEDIUM : ch === "y" ? LIP.SMALL : LIP.ROUND;
+        push(loud && v !== LIP.ROUND ? LIP.WIDE : v, loud ? 1.4 : 1, loud && first);
+        first = false;
+      } else if ("mbp".includes(ch)) push(LIP.CLOSED, 0.55);
+      else if ("fv".includes(ch)) push(LIP.TEETH, 0.5);
+      else if ("szjxc".includes(ch)) push(LIP.TEETH, 0.45);
+      else if (ch === "w" || ch === "q") push(LIP.ROUND, 0.5);
+      else push(LIP.SMALL, 0.4);
+    }
+    if (/[.!?…]+["”']?$/.test(w)) push(-1, 3.2);
+    else if (/[,;:—-]$/.test(w)) push(-1, 1.8);
+    else push(LIP.SMALL, 0.2);
   }
   return out;
 }
@@ -271,7 +342,8 @@ export abstract class ShowDirector {
 
   protected faceFrames(name: string) {
     const k = faceKeyOf(name);
-    return this.sc.textures.exists(k) ? this.sc.textures.get(k).frameTotal - 1 : 0;
+    if (!this.sc.textures.exists(k)) return 0;
+    return FACE_META[k.slice(7)]?.base ?? Math.min(8, this.sc.textures.get(k).frameTotal - 1);
   }
 
   /** Who's in the scene starting at beat `from` (everyone who speaks before the next scene heading). */
@@ -412,7 +484,8 @@ export abstract class ShowDirector {
       spr.setScale(scale);
     }
     if (side) spr.setFlipX(face ? false : side > 0);
-    const p: Perf = { name, spr, face, base: 0, scale, y, frames: face ? this.faceFrames(name) : 0, gesturing: false };
+    const meta = face ? FACE_META[fk.slice(7)] : undefined;
+    const p: Perf = { name, spr, face, base: 0, scale, y, frames: face ? this.faceFrames(name) : 0, gesturing: false, lip: !!meta?.lip, gest: meta?.gest ?? [], gUsed: 0 };
     this.perf = p;
     this.setBase(o.expr ?? F.NEUTRAL);
     this.idle(p);
@@ -453,13 +526,56 @@ export abstract class ShowDirector {
    * when there is one, and one gesture picked for this line from what it says.
    */
   protected talk(p: Perf, speaker: string, text: string, emotion = "") {
-    const plan = mouthPlan(text);
-    const units = plan.reduce((a, m) => a + m.units, 0) || 1;
-    const started = this.sc.time.now;
     let total = beatDuration({ type: "speaker", character: "", text }) * 820;
     void voice.clipMs(speaker, text).then((ms) => {
       if (ms && voice.enabled()) total = ms;
     });
+    if (p.face && p.lip) this.lipSync(p, text, () => total);
+    else this.flap(p, text, () => total);
+    this.gesture(p, text, emotion, () => total);
+  }
+
+  /** Real mouth shapes, letter by letter, while the face rests on a talking expression. */
+  private lipSync(p: Perf, text: string, total: () => number) {
+    const plan = visemePlan(text);
+    const units = plan.reduce((a, m) => a + m.units, 0) || 1;
+    const started = this.sc.time.now;
+    const lipOk = () => p.base === F.NEUTRAL;
+    let i = 0;
+    let at = 0;
+    const shape = (v: number) => {
+      if (p.gesturing) return;
+      if (!lipOk()) {
+        // crying / alarmed / laughing: the expression stays and the face shudders with the words instead
+        this.mouth(p, v < 0 || v === LIP.CLOSED ? p.base : F.TALK, F.TALK);
+        return;
+      }
+      p.spr.setFrame(v < 0 ? p.base : LIP_AT + v);
+    };
+    const step = () => {
+      if (!p.spr.active || this.perf !== p) return;
+      if (i >= plan.length) {
+        // the recording runs long: keep talking (a gentle cycle) until it stops
+        if (voice.busy() && this.sc.time.now - started < 30000) {
+          shape([LIP.MEDIUM, LIP.SMALL, LIP.WIDE, LIP.CLOSED, LIP.ROUND][Math.floor(Math.random() * 5)]);
+          this.later(90 + Math.random() * 60, step);
+        } else shape(-1);
+        return;
+      }
+      const m = plan[i++];
+      shape(m.v);
+      if (m.stress) this.emphasis(p);
+      at += m.units * (total() / units);
+      this.later(Math.max(35, started + at - this.sc.time.now), step);
+    };
+    step();
+  }
+
+  /** No mouth shapes: open / closed per syllable (or the head moves, for a sprite). */
+  private flap(p: Perf, text: string, totalOf: () => number) {
+    const plan = mouthPlan(text);
+    const units = plan.reduce((a, m) => a + m.units, 0) || 1;
+    const started = this.sc.time.now;
     let i = 0;
     let at = 0;
     const open = p.face ? F.TALK : 1;
@@ -468,25 +584,60 @@ export abstract class ShowDirector {
       if (!p.spr.active || this.perf !== p) return;
       const now = this.sc.time.now - started;
       if (i >= plan.length) {
-        // still going (the recording runs long): keep flapping until it stops
         if (voice.busy() && now < 30000) {
           if (!p.gesturing) this.mouth(p, Number(p.spr.frame.name) === open ? closed() : open, open);
           this.later(110 + Math.random() * 70, step);
-        } else if (!p.gesturing) this.mouth(p, closed(), open);
+        } else if (!p.gesturing) {
+          this.mouth(p, closed(), open);
+          if (p.cycle) p.spr.setFrame(p.rest ?? 0);
+        }
         return;
       }
       const m = plan[i++];
-      const unit = total / units;
+      const unit = totalOf() / units;
       if (!p.gesturing) this.mouth(p, m.open ? open : closed(), open);
       if (m.stress) this.emphasis(p);
       at += m.units * unit;
       this.later(Math.max(40, started + at - this.sc.time.now), step);
     };
     step();
-    this.gesture(p, text, emotion, () => total);
+  }
+
+  /**
+   * Play one of a face's gesture animations (a hand comes up, makes the point, goes down) over about `ms`.
+   * Returns false if they haven't got one.
+   */
+  protected playGesture(p: Perf, which: number, ms: number, onDone?: () => void) {
+    const g = p.gest ?? [];
+    if (!p.face || !g.length) return false;
+    const [first, len] = g[which % g.length];
+    p.gesturing = true;
+    const per = Phaser.Math.Clamp(ms / len, 80, 190);
+    let k = 0;
+    const tick = () => {
+      if (!p.spr.active || this.perf !== p) return;
+      if (k >= len) {
+        p.gesturing = false;
+        p.spr.setFrame(p.base);
+        onDone?.();
+        return;
+      }
+      p.spr.setFrame(first + k++);
+      // hold the middle of the move a little (the point being made)
+      this.later(k === Math.ceil(len / 2) ? per * 2.2 : per, tick);
+    };
+    tick();
+    return true;
   }
 
   private mouth(p: Perf, f: number, open: number) {
+    if (!p.face && p.cycle) {
+      // a full-body figure: the talking animation moves on a frame per syllable, and settles when they stop
+      const [a, n] = p.cycle;
+      const cur = Number(p.spr.frame.name);
+      if (f === open) p.spr.setFrame(a + ((cur >= a && cur < a + n ? cur - a + 1 : 0) % n));
+      return;
+    }
     if (p.face && (p.base === F.SPECIAL || p.base === F.LAUGH)) {
       // crying / laughing / asleep has no talking frame of its own: the face shudders with the words instead
       p.spr.setFrame(p.base);
@@ -536,6 +687,15 @@ export abstract class ShowDirector {
     }
     const shout = /!/.test(t) || /\b[A-Z]{4,}\b/.test(t) || /point|accus|jab/.test(e);
     const pick = (shout ? 0 : 1) + (h % 3);
+    if (p.face && p.gest?.length && p.base === F.NEUTRAL && (shout || h % 5 < 3 || t.length > 70)) {
+      // a real gesture, from the sheet: the emphatic one for a shout, otherwise whichever they haven't just done
+      const which = shout && p.gest.length > 1 ? p.gest.length - 1 : p.gUsed!++;
+      const at = Math.min(dur() * 0.35, 250 + (h % 5) * 120);
+      this.later(at, () => this.perf === p && !p.gesturing && this.playGesture(p, which, Math.min(1700, Math.max(900, dur() * 0.5))));
+      // a long speech: another one later on
+      if (t.length > 110 && p.gest.length > 1) this.later(at + dur() * 0.5, () => this.perf === p && !p.gesturing && this.playGesture(p, which + 1, 1200));
+      return;
+    }
     if (shout || pick === 1) {
       // the big one: a hand comes up (or a lunge, for a sprite) part way into the line
       const at = 200 + (h % 400);

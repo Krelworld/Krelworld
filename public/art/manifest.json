@@ -8846,6 +8846,266 @@
    "file": "props/club_cash.png",
    "frameWidth": 32,
    "frameHeight": 32
+  },
+  "tvface_CROWD_MEMBER_2": {
+   "file": "tv/face_CROWD_MEMBER_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_JOURNALIST_1": {
+   "file": "tv/face_JOURNALIST_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_AIDE_2": {
+   "file": "tv/face_AIDE_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_DNC_REP_2": {
+   "file": "tv/face_DNC_REP_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_JOURNALIST_5": {
+   "file": "tv/face_JOURNALIST_5.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_JOURNALIST_4": {
+   "file": "tv/face_JOURNALIST_4.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_ALAN": {
+   "file": "tv/face_ALAN.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_DEMOCRATIC_LEADER": {
+   "file": "tv/face_DEMOCRATIC_LEADER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_DRONGUS": {
+   "file": "tv/face_DRONGUS.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_KAREN": {
+   "file": "tv/face_KAREN.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_REPORTER_1": {
+   "file": "tv/face_REPORTER_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_REPORTER_2": {
+   "file": "tv/face_REPORTER_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_JUROR_NUMBER_2": {
+   "file": "tv/face_JUROR_NUMBER_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_PRESIDENT_HAN": {
+   "file": "tv/face_PRESIDENT_HAN.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_PUB_PATRON_2": {
+   "file": "tv/face_PUB_PATRON_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MODERATOR": {
+   "file": "tv/face_MODERATOR.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MARGE_PLUNKETT": {
+   "file": "tv/face_MARGE_PLUNKETT.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_JOURNALIST_3": {
+   "file": "tv/face_JOURNALIST_3.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_DNC_REP_1": {
+   "file": "tv/face_DNC_REP_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_PROSECUTOR": {
+   "file": "tv/face_PROSECUTOR.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_WOMAN": {
+   "file": "tv/face_WOMAN.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_DNC_REP_4": {
+   "file": "tv/face_DNC_REP_4.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_JOURNALIST_2": {
+   "file": "tv/face_JOURNALIST_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_DNC_REP_3": {
+   "file": "tv/face_DNC_REP_3.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_PHEZON": {
+   "file": "tv/face_PHEZON.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MARY": {
+   "file": "tv/face_MARY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_ADVISOR": {
+   "file": "tv/face_ADVISOR.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_VOTER_1": {
+   "file": "tv/face_VOTER_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_AIDE_1": {
+   "file": "tv/face_AIDE_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_PUB_PATRON_1": {
+   "file": "tv/face_PUB_PATRON_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_AIDE_4": {
+   "file": "tv/face_AIDE_4.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_DAVE": {
+   "file": "tv/face_DAVE.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_JOHN": {
+   "file": "tv/face_JOHN.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_SUSAN_NIPWOOD": {
+   "file": "tv/face_SUSAN_NIPWOOD.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_PROFESSOR_GUTTRIDGE": {
+   "file": "tv/face_PROFESSOR_GUTTRIDGE.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_AIDE_3": {
+   "file": "tv/face_AIDE_3.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_EXECUTIVE_2": {
+   "file": "tv/face_EXECUTIVE_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_EXECUTIVE_3": {
+   "file": "tv/face_EXECUTIVE_3.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_PUB_PATRON_3": {
+   "file": "tv/face_PUB_PATRON_3.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_EXECUTIVE_1": {
+   "file": "tv/face_EXECUTIVE_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_JOURNALIST_6": {
+   "file": "tv/face_JOURNALIST_6.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_VICAR": {
+   "file": "tv/face_VICAR.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_JOE": {
+   "file": "tv/face_JOE.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_SCRIMBLE": {
+   "file": "tv/face_SCRIMBLE.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_VOTER_2": {
+   "file": "tv/face_VOTER_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_SQUID": {
+   "file": "tv/face_SQUID.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_SUE": {
+   "file": "tv/face_SUE.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_SCROMBUS": {
+   "file": "tv/face_SCROMBUS.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_PRIME_MINISTER": {
+   "file": "tv/face_PRIME_MINISTER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_PUB_PATRON_4": {
+   "file": "tv/face_PUB_PATRON_4.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvbody_CHRISTOPHER_THICK": {
+   "file": "tv/body_CHRISTOPHER_THICK.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_JENNY_CUMMING": {
+   "file": "tv/body_JENNY_CUMMING.png",
+   "frameWidth": 96,
+   "frameHeight": 160
   }
  },
  "vfx": {

@@ -1459,8 +1459,8 @@ export class VignetteScene extends Phaser.Scene {
   /** Polson at his current (permanent) size. */
   private fatPolson(x: number, y: number, base = 3) {
     const f = Math.min(60, (G.s.flags.polson_fat as number) ?? 0);
-    // past the biggest belly on the sheet he just keeps widening
-    if (this.textures.exists("spr_POLSON_FAT")) return this.add.sprite(x, y, "spr_POLSON_FAT", Polson.bellyFrame(f)).setScale(base * (1 + Math.max(0, f - 11) * 0.025), base).setDepth(10);
+    // the sheet runs from his usual self to enormous; past its biggest belly he stays enormous
+    if (this.textures.exists("spr_POLSON_FAT")) return this.add.sprite(x, y, "spr_POLSON_FAT", Polson.bellyFrame(f)).setScale(base).setDepth(10);
     const k = 1 + f * 0.04;
     return this.add.sprite(x, y, "spr_POLSON", 0).setScale(base * k, base * (1 + (k - 1) * 0.2)).setDepth(10);
   }

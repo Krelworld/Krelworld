@@ -142,6 +142,7 @@ export class NewsDirector {
   private trainFrame = 0;
   /** a picture is up (not the black before the first shot) */
   private drawn = false;
+  private deskHeadline = "";
   private started = false;
   private mainSpeaker = "";
   private footageCaption?: Phaser.GameObjects.Text;
@@ -633,14 +634,17 @@ export class NewsDirector {
       this.sc.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() });
       return 0;
     }
-    this.chrome.live(/PRESS CONFERENCE/i.test(t) ? "" : "");
+    this.chrome.live("");
     this.chrome.headline(t);
     return 0;
   }
 
   private shot(set: string): number {
     const up = set.toUpperCase();
+    // the studio's headline comes back when we do
+    if (this.scene.kind === "desk" && this.chrome.headlineNow) this.deskHeadline = this.chrome.headlineNow;
     this.scene = this.cfg.scenes.find((s) => s.match.test(up)) ?? { ...STUDIO, set: STUDIO.set };
+    if (this.scene.kind === "desk" && this.deskHeadline && this.chrome.headlineNow !== this.deskHeadline) this.chrome.headline(this.deskHeadline, /^BREAKING/i.test(this.deskHeadline) ? 0xb91c1c : undefined);
     this.lineInScene = 0;
     this.strapped.clear();
     this.mainSpeaker = this.mainOf(this.idx);
@@ -761,7 +765,7 @@ export class NewsDirector {
       // "(he leaves, jingling)": off he goes when he's done
       if (/\(he leaves/i.test(text) && p) {
         const spr = p.spr;
-        this.later(Math.max(1800, text.length * 55), () => this.sc.tweens.add({ targets: spr, x: spr.x + this.r.SW, duration: 900, ease: "Quad.in" }));
+        this.later(1700, () => this.sc.tweens.add({ targets: spr, x: spr.x + this.r.SW, duration: 900, ease: "Quad.in" }));
       }
       return 0;
     }

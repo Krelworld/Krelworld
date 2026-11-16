@@ -113,6 +113,9 @@ class GameContext {
       seq.messages.forEach((m, i) => {
         window.setTimeout(() => this.emit("ping", { from: "DRONGUS", text: m }), 900 + i * 1700);
       });
+      // no old Facebook status on top of a burst of messages: the next one waits 10s after the last message lands
+      const last = Date.now() + 900 + (seq.messages.length - 1) * 1700;
+      this.rt.nextStatusAt = Math.max(this.rt.nextStatusAt || 0, last + 10000);
       break;
     }
   }

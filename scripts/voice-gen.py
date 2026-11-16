@@ -170,6 +170,10 @@ def plan(l, c):
         moody = bool(explicit or inline or from_text or CAST.get("delivery", {}).get(l["s"]))
         if base in CAST.get("clone_sts", []):
             return V2 + STS_SUFFIX, clean, SETTINGS_V2_LIKENESS, []
+        # read by an actor with the right accent first, then re-voiced into the clone: the accent comes from the read
+        src = CAST.get("sts_source", {}).get(base)
+        if src:
+            return V2 + STS_SUFFIX, clean, {**SETTINGS[V2], "_src": src}, []
         if base in CAST.get("clone_max_likeness", []):
             return V2, clean, SETTINGS_V2_LIKENESS, []
         return V2, clean, (SETTINGS_V2_MOOD if moody else SETTINGS[V2]), []
@@ -333,7 +337,9 @@ def warble(data, w):
 def gen(item):
     l, voice, model, text, settings, label, s = item
     if model.endswith(STS_SUFFIX):
-        base_item, data = gen_tts((l, voice, model[: -len(STS_SUFFIX)], text, settings, label, s), hq=True)
+        src = settings.get("_src") if isinstance(settings, dict) else None
+        tts_settings = {k: v for k, v in settings.items() if not k.startswith("_")} if src else settings
+        base_item, data = gen_tts((l, src or voice, model[: -len(STS_SUFFIX)], text, tts_settings, label, s), hq=True)
         return item, (sts(voice, data) if data else None)
     item, data = gen_tts(item)
     c = cast(l["s"])

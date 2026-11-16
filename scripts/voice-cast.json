@@ -661,6 +661,10 @@
     "GRONNY"
   ],
   "designed_v2": ["SIMON", "MADISON", "GOKU", "FOSTER", "YEMENI EXECUTIVE", "YEMENI OFFICIAL", "YEMENI OFFICER"],
+  "sts_source": {
+    "_doc": "Clones whose lines are read first by another voice (for its accent), then re-voiced into the clone by speech-to-speech.",
+    "SANJEEV": "onwK4e9ZLuTAKqWW03F9"
+  },
   "clone_max_likeness": ["GRONNY", "KREBON", "DRONGUS"],
   "clone_sts": [],
   "warble": {

@@ -420,7 +420,8 @@ export class TVScene extends Phaser.Scene {
         break;
       case "shot":
         this.card.setText("");
-        this.drawSet(this.setFor(b.set), b.framing);
+        // the news draws its own sets: never put the old studio art underneath it
+        if (!this.news) this.drawSet(this.setFor(b.set), b.framing);
         break;
       case "speaker": {
         this.card.setText("");
@@ -497,6 +498,11 @@ export class TVScene extends Phaser.Scene {
     const e = this.ep!;
     this.pov?.destroy();
     this.pov = null;
+    if (this.news) {
+      // don't flash whatever old set sits behind the bulletin once it comes down
+      this.stage.removeAll(true);
+      this.setKey = "";
+    }
     this.news?.destroy();
     this.news = null;
     if (!this.fromTitle) {

@@ -9214,6 +9214,78 @@
    "file": "tv/body_JENNY_CUMMING.png",
    "frameWidth": 96,
    "frameHeight": 160
+  },
+  "croc_MIKEY": {
+   "file": "dance/croc_MIKEY.png",
+   "frameWidth": 96,
+   "frameHeight": 96,
+   "hd": 0.5
+  },
+  "croc_FLENKY": {
+   "file": "dance/croc_FLENKY.png",
+   "frameWidth": 96,
+   "frameHeight": 96,
+   "hd": 0.5
+  },
+  "croc_KREZMAR": {
+   "file": "dance/croc_KREZMAR.png",
+   "frameWidth": 96,
+   "frameHeight": 96,
+   "hd": 0.5
+  },
+  "croc_KREBLIS": {
+   "file": "dance/croc_KREBLIS.png",
+   "frameWidth": 96,
+   "frameHeight": 96,
+   "hd": 0.5
+  },
+  "croc_KREZWONK": {
+   "file": "dance/croc_KREZWONK.png",
+   "frameWidth": 96,
+   "frameHeight": 96,
+   "hd": 0.5
+  },
+  "croc_SCROMBUS": {
+   "file": "dance/croc_SCROMBUS.png",
+   "frameWidth": 96,
+   "frameHeight": 96,
+   "hd": 0.5
+  },
+  "croc_KREBON": {
+   "file": "dance/croc_KREBON.png",
+   "frameWidth": 96,
+   "frameHeight": 96,
+   "hd": 0.5
+  },
+  "croc_CRONGUS": {
+   "file": "dance/croc_CRONGUS.png",
+   "frameWidth": 96,
+   "frameHeight": 96,
+   "hd": 0.5
+  },
+  "croc_GRONNY": {
+   "file": "dance/croc_GRONNY.png",
+   "frameWidth": 96,
+   "frameHeight": 96,
+   "hd": 0.5
+  },
+  "croc_POLSON": {
+   "file": "dance/croc_POLSON.png",
+   "frameWidth": 96,
+   "frameHeight": 96,
+   "hd": 0.5
+  },
+  "croc_PROCTUS": {
+   "file": "dance/croc_PROCTUS.png",
+   "frameWidth": 96,
+   "frameHeight": 96,
+   "hd": 0.5
+  },
+  "croc_SANMIK": {
+   "file": "dance/croc_SANMIK.png",
+   "frameWidth": 96,
+   "frameHeight": 96,
+   "hd": 0.5
   }
  },
  "vfx": {

@@ -7780,6 +7780,153 @@
   },
   "tv_mt_naked": {
    "file": "tv/mt_naked.png"
+  },
+  "kp_trap": {
+   "file": "krel/kp_trap.png"
+  },
+  "kp_trap_shut": {
+   "file": "krel/kp_trap_shut.png"
+  },
+  "kp_chair": {
+   "file": "krel/kp_chair.png"
+  },
+  "kp_pendulum": {
+   "file": "krel/kp_pendulum.png"
+  },
+  "kp_pendulum_bloody": {
+   "file": "krel/kp_pendulum_bloody.png"
+  },
+  "kp_pump": {
+   "file": "krel/kp_pump.png"
+  },
+  "kp_vice_jaw": {
+   "file": "krel/kp_vice_jaw.png"
+  },
+  "kp_vice_screw": {
+   "file": "krel/kp_vice_screw.png"
+  },
+  "kp_skeleton": {
+   "file": "krel/kp_skeleton.png"
+  },
+  "kp_ice": {
+   "file": "krel/kp_ice.png"
+  },
+  "kp_tank": {
+   "file": "krel/kp_tank.png"
+  },
+  "kp_bed": {
+   "file": "krel/kp_bed.png"
+  },
+  "kp_xray_skull": {
+   "file": "krel/kp_xray_skull.png"
+  },
+  "kp_xray_ribs": {
+   "file": "krel/kp_xray_ribs.png"
+  },
+  "kp_xray_spine": {
+   "file": "krel/kp_xray_spine.png"
+  },
+  "kp_skewer": {
+   "file": "krel/kp_skewer.png"
+  },
+  "kp_chainsaw": {
+   "file": "krel/kp_chainsaw.png"
+  },
+  "kp_katana": {
+   "file": "krel/kp_katana.png"
+  },
+  "kp_block": {
+   "file": "krel/kp_block.png"
+  },
+  "kp_knife": {
+   "file": "krel/kp_knife.png"
+  },
+  "kp_pitta": {
+   "file": "krel/kp_pitta.png"
+  },
+  "kp_detonator": {
+   "file": "krel/kp_detonator.png"
+  },
+  "kp_hook": {
+   "file": "krel/kp_hook.png"
+  },
+  "kp_asbestos": {
+   "file": "krel/kp_asbestos.png"
+  },
+  "kp_nozzle": {
+   "file": "krel/kp_nozzle.png"
+  },
+  "kp_clamp": {
+   "file": "krel/kp_clamp.png"
+  },
+  "kp_lever": {
+   "file": "krel/kp_lever.png"
+  },
+  "kp_emitter": {
+   "file": "krel/kp_emitter.png"
+  },
+  "kp_freezeray": {
+   "file": "krel/kp_freezeray.png"
+  },
+  "kp_chain": {
+   "file": "krel/kp_chain.png"
+  },
+  "kp_monitor": {
+   "file": "krel/kp_monitor.png"
+  },
+  "kp_wound_belly": {
+   "file": "krel/kp_wound_belly.png"
+  },
+  "kp_wound_mouth": {
+   "file": "krel/kp_wound_mouth.png"
+  },
+  "kp_splat_mush": {
+   "file": "krel/kp_splat_mush.png"
+  },
+  "kp_cavity": {
+   "file": "krel/kp_cavity.png"
+  },
+  "kp_ribrack": {
+   "file": "krel/kp_ribrack.png"
+  },
+  "kp_neckstump": {
+   "file": "krel/kp_neckstump.png"
+  },
+  "kp_spine": {
+   "file": "krel/kp_spine.png"
+  },
+  "kp_dustheap": {
+   "file": "krel/kp_dustheap.png"
+  },
+  "kp_icecrystals": {
+   "file": "krel/kp_icecrystals.png"
+  },
+  "kp_goo": {
+   "file": "krel/kp_goo.png"
+  },
+  "kp_gutpile": {
+   "file": "krel/kp_gutpile.png"
+  },
+  "kp_rib": {
+   "file": "krel/kp_rib.png"
+  },
+  "kp_donermeat": {
+   "file": "krel/kp_donermeat.png"
+  },
+  "kp_petrol": {
+   "file": "krel/kp_petrol.png"
+  },
+  "kp_scum": {
+   "file": "krel/kp_scum.png"
+  },
+  "kp_rubble": {
+   "file": "krel/kp_rubble.png"
+  },
+  "kp_office": {
+   "file": "krel/kp_office.png"
+  },
+  "kp_ward": {
+   "file": "krel/kp_ward.png"
   }
  },
  "sheets": {
@@ -9651,6 +9798,56 @@
    "file": "tv/mt_dance.png",
    "frameWidth": 96,
    "frameHeight": 128
+  },
+  "kp_bits": {
+   "file": "krel/kp_bits.png",
+   "frameWidth": 32,
+   "frameHeight": 32
+  },
+  "krelact_CRONGUS": {
+   "file": "krel/krelact_CRONGUS.png",
+   "frameWidth": 96,
+   "frameHeight": 80
+  },
+  "krelact_FLENKY": {
+   "file": "krel/krelact_FLENKY.png",
+   "frameWidth": 96,
+   "frameHeight": 80
+  },
+  "krelact_GRONNY": {
+   "file": "krel/krelact_GRONNY.png",
+   "frameWidth": 96,
+   "frameHeight": 80
+  },
+  "krelact_KREBLIS": {
+   "file": "krel/krelact_KREBLIS.png",
+   "frameWidth": 96,
+   "frameHeight": 80
+  },
+  "krelact_KREBON": {
+   "file": "krel/krelact_KREBON.png",
+   "frameWidth": 96,
+   "frameHeight": 80
+  },
+  "krelact_KREZMAR": {
+   "file": "krel/krelact_KREZMAR.png",
+   "frameWidth": 96,
+   "frameHeight": 80
+  },
+  "krelact_KREZWONK": {
+   "file": "krel/krelact_KREZWONK.png",
+   "frameWidth": 96,
+   "frameHeight": 80
+  },
+  "krelact_MIKEY": {
+   "file": "krel/krelact_MIKEY.png",
+   "frameWidth": 96,
+   "frameHeight": 80
+  },
+  "krelact_SCROMBUS": {
+   "file": "krel/krelact_SCROMBUS.png",
+   "frameWidth": 96,
+   "frameHeight": 80
   }
  },
  "vfx": {

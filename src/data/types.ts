@@ -225,4 +225,6 @@ export interface MetaState {
   completedWith: PlayableId[];
   ngPlusUnlocked: boolean;
   settings: Settings;
+  /** Music you've heard (jukebox ids, across all runs), in the order you first heard it. */
+  heardMusic?: string[];
 }

@@ -6866,6 +6866,9 @@
   "p_seagull": {
    "file": "props/p_seagull.png"
   },
+  "p_jukebox": {
+   "file": "props/p_jukebox.png"
+  },
   "p_plane_hd": {
    "file": "props/p_plane_hd.png",
    "hd": 0.1905

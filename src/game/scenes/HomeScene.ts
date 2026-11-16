@@ -1,3 +1,4 @@
+import { JUKEBOX } from "../../content/jukebox";
 import { KR_HOME } from "../../content/krunchers";
 import Phaser from "phaser";
 import { bindSanmikToggle, playerKey } from "../gfx/sanmikForm";
@@ -96,7 +97,14 @@ export class HomeScene extends Phaser.Scene {
       { x: 420, y: 445, r: 55, label: "E: Look out of the window", use: () => this.talk([dir(s.flags.met_emergency ? "Krelford. The sky has a faint grey tint, like an unloaded page. Somewhere, a Tap is not running." : "Krelford, in the evening. Somewhere a fizzy bongo is opened. Somewhere else, the Great Tap gurgles. All is well. For now.")]) },
       { x: 760, y: 450, r: 60, label: "E: Go outside", use: () => this.leave() },
       { x: 612, y: 530, r: 30, label: "E: Read 'Dark Autism - An Erotic Memoir'", use: () => this.readBook() },
+      { x: 566, y: 452, r: 34, label: "E: Jukebox (every tune you've heard)", use: () => this.jukeboxPanel() },
     );
+    // the jukebox, between the radiator and the fridge, glowing
+    if (this.textures.exists("p_jukebox")) {
+      this.add.image(566, 440, "p_jukebox").setOrigin(0.5, 1).setScale(1.6).setDepth(440);
+      const jg = this.add.ellipse(566, 360, 120, 150, 0xff6fa8, 0.1).setBlendMode(Phaser.BlendModes.ADD).setDepth(439);
+      this.tweens.add({ targets: jg, alpha: 0.25, yoyo: true, repeat: -1, duration: 900, ease: "Sine.inOut" });
+    }
     // a well-thumbed copy of Dark Autism - An Erotic Memoir, at the foot of the bed
     if (this.textures.exists("p_dark_autism")) this.add.image(612, 524, "p_dark_autism").setOrigin(0.5, 1).setScale(0.13).setAngle(-14).setDepth(533);
     this.me = this.add.sprite(s.flags.home_seen ? 740 : 420, 500, playerKey(this), 0).setOrigin(0.5, 1).setScale(5.5).setDepth(500);
@@ -833,6 +841,65 @@ export class HomeScene extends Phaser.Scene {
         this.cameras.main.fadeOut(250);
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => switchTo(this, "Minigame", { mode: g.mode, console: true }));
       }, 0x2e1065);
+    });
+  }
+
+  /** The jukebox: every piece of music you've heard, named for where you heard it (SanMik's songs by their titles). */
+  private jukeboxPanel(page = 0) {
+    const { root, close } = this.panel("THE JUKEBOX", "#ff6fa8");
+    const heard = new Set(G.meta.heardMusic ?? []);
+    const all = JUKEBOX;
+    const got = all.filter((t) => heard.has(t.ids[0])).length;
+    root.add(this.add.text(480, 82, `${got} of ${all.length} tunes. Hear new music out in Krelworld and it goes on here.`, { fontFamily: FONT, fontSize: "13px", color: "#cbd5e1" }).setOrigin(0.5));
+    // two columns of 13, a page at a time; SanMik & SanChz are at the end under their own heading
+    const PER = 26;
+    const pages = Math.max(1, Math.ceil(all.length / PER));
+    page = Phaser.Math.Clamp(page, 0, pages - 1);
+    const slice = all.slice(page * PER, page * PER + PER);
+    slice.forEach((t, i) => {
+      const col = Math.floor(i / 13);
+      const row = i % 13;
+      const x = 60 + col * 430;
+      const y = 112 + row * 27;
+      const has = heard.has(t.ids[0]);
+      const label = has ? `${t.sanmik ? "🎤 " : "♪ "}${t.title}` : "? ? ?";
+      const playing = synth.currentMusic() && t.ids.includes(synth.currentMusic()!);
+      const b = this.add.rectangle(x, y, 410, 24, playing ? 0x4a1d3f : 0x161427, has ? 1 : 0.5).setOrigin(0, 0.5).setStrokeStyle(1, playing ? 0xff6fa8 : 0x2e2a45);
+      const tx = this.add.text(x + 10, y, label, { fontFamily: FONT, fontSize: "13px", color: has ? (t.sanmik ? "#ff9ad5" : "#ffffff") : "#4b4560", fontStyle: playing ? "bold" : "normal" }).setOrigin(0, 0.5);
+      this.fitText(tx, 390);
+      root.add([b, tx]);
+      if (!has) return;
+      b.setInteractive({ useHandCursor: true });
+      b.on("pointerover", () => b.setStrokeStyle(1, 0xffd23f));
+      b.on("pointerout", () => b.setStrokeStyle(1, playing ? 0xff6fa8 : 0x2e2a45));
+      b.on("pointerdown", () => {
+        synth.music(t.ids[0], true);
+        close();
+        this.jukeboxPanel(page);
+      });
+    });
+    // now playing
+    const cur = synth.currentMusic();
+    const nowT = cur ? JUKEBOX.find((t) => t.ids.includes(cur)) : undefined;
+    root.add(this.add.text(60, 470, nowT ? `NOW PLAYING: ${nowT.title}  ·  ${nowT.where}` : "", { fontFamily: FONT, fontSize: "13px", color: "#ffd23f" }).setOrigin(0, 0.5));
+    if (pages > 1) {
+      this.button(root, 640, 470, 70, 30, "◀", () => { close(); this.jukeboxPanel(page - 1); });
+      root.add(this.add.text(700, 470, `${page + 1}/${pages}`, { fontFamily: FONT, fontSize: "13px", color: "#cbd5e1" }).setOrigin(0.5));
+      this.button(root, 760, 470, 70, 30, "▶", () => { close(); this.jukeboxPanel(page + 1); });
+    }
+    const pool = all.filter((t) => heard.has(t.ids[0]));
+    if (pool.length) {
+      this.button(root, 845, 470, 90, 30, "SHUFFLE", () => {
+        const t = pool[Math.floor(Math.random() * pool.length)];
+        synth.music(t.ids[0], true);
+        close();
+        this.jukeboxPanel(page);
+      }, 0x4a1d3f);
+    }
+    this.button(root, 560, 470, 80, 30, "STOP", () => {
+      synth.music("home", true);
+      close();
+      this.jukeboxPanel(page);
     });
   }
 

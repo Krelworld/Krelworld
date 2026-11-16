@@ -1099,8 +1099,21 @@ export class Synth {
     if (this.elId === "hub" || this.elId === "hub_night") this.music("hub");
   }
 
+  /** The id of the music playing now (file or synthesised), if any. */
+  currentMusic(): string | null {
+    return this.elId || this.trackId || null;
+  }
+
+  /** Told about every piece of music that starts (the jukebox collects them). */
+  onMusic: ((id: string) => void) | null = null;
+
   music(id: string, force = false, startFrac = 0) {
     if (id === "hub" && this.isNight()) id = "hub_night";
+    try {
+      this.onMusic?.(id);
+    } catch {
+      /* never let the jukebox stop the music */
+    }
     if (MUSIC_FILES[id]) {
       this.trackId = "";
       this.track = null;

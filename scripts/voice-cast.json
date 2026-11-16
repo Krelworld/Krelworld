@@ -282,7 +282,16 @@
     "BREAKFAST HOST": "S1KGzNZs1ERgFGJbRCHj",
     "MARGARET THOMPSON": "HRZk5aOdYN12xiyW22p0",
     "DR ELAINE ROBERTS": "a5FszkiTGG6iNxzmCHeu",
-    "LABOUR INSIDER": "DC31ZMdGsmzdy7R8ITXN"
+    "LABOUR INSIDER": "DC31ZMdGsmzdy7R8ITXN",
+    "OFFICER 1": "D8Oljp4VStly8IpiHIvI",
+    "OFFICER 2": "1wbDAkpRsnf8d5bNWAlV",
+    "RUTH": "IHVdsDcAg38ykoK9XdVz",
+    "GEORGE R. R. MARTIN": "Sa3vY6Ffp1rC00eRBUQ3",
+    "DOCTOR": "0jzhCtFXncfGQ3z6wxbV",
+    "NURSE": "RI9XUf6HcXueCawI8ir3",
+    "DIRECTOR": "0lIhjPT6U1R0oaM1uJsV",
+    "FLENKY'S MUM": "AGzIaZS67G9SQwS3IsYg",
+    "POLICE OFFICER": "IKVZ0KNg4NdGUrnRaASC"
   },
   "designed_desc": {
     "KRANKY KRANDALL": "A reedy, squeaky, frail old British man in his nineties. Thin, high, wavering, slightly wheezy voice, rambling and forgetful, trailing off mid-sentence.",
@@ -662,7 +671,16 @@
     "BREAKFAST HOST": "CHRISTOPHER THICK",
     "MARGARET THOMPSON": "CO-HOST",
     "DR ELAINE ROBERTS": "~news_f_rp",
-    "LABOUR INSIDER": "MINTY"
+    "LABOUR INSIDER": "MINTY",
+    "OFFICER 1": "~news_m_york",
+    "OFFICER 2": "~exec_f",
+    "RUTH": "~everywoman_f2",
+    "GEORGE R. R. MARTIN": "~pol_m_us",
+    "DOCTOR": "PROFESSOR GUTTRIDGE",
+    "NURSE": "~everywoman_f",
+    "DIRECTOR": "PHIL",
+    "FLENKY'S MUM": "~pub_f_manc",
+    "POLICE OFFICER": "~official_m_welsh"
   },
   "clone_accents": {
     "_doc": "Accent tag for cloned voices on eleven_v3, which otherwise drift (American, or regional). Everyone in the group is southern English: faint RP or a slight cockney. Default below.",

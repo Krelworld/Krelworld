@@ -80,6 +80,10 @@ export const MUSIC_FILES: Record<string, string> = {
   krel_tower_rap: "audio/krel_tower_rap.mp3",
   kreddle: "audio/kreddle.mp3",
   ominous: "audio/ominous.mp3",
+  // KrelTV dramas (tv/CrimeDrama.ts, tv/FantasyDoc.ts)
+  gg_theme: "audio/gg_theme.mp3",
+  mot_theme: "audio/mot_theme.mp3",
+  mot_rnb: "audio/mot_rnb.mp3",
   boss: "audio/boss1.mp3",
   boss_salmon: "audio/boss_salmon.mp3",
   boss_krandall: "audio/cranky_crandall_boss.mp3",

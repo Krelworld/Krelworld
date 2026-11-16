@@ -7702,6 +7702,84 @@
   },
   "tv_no10_door": {
    "file": "backdrops/tv_no10_door.png"
+  },
+  "tv_gg_lounge": {
+   "file": "backdrops/tv_gg_lounge.png"
+  },
+  "tv_gg_ext": {
+   "file": "backdrops/tv_gg_ext.png"
+  },
+  "tv_gg_dead": {
+   "file": "backdrops/tv_gg_dead.png"
+  },
+  "tv_mt_bedroom": {
+   "file": "backdrops/tv_mt_bedroom.png"
+  },
+  "tv_mt_office": {
+   "file": "backdrops/tv_mt_office.png"
+  },
+  "tv_mt_doctor": {
+   "file": "backdrops/tv_mt_doctor.png"
+  },
+  "tv_mt_hospital": {
+   "file": "backdrops/tv_mt_hospital.png"
+  },
+  "tv_mt_street": {
+   "file": "backdrops/tv_mt_street.png"
+  },
+  "tv_mt_flat": {
+   "file": "backdrops/tv_mt_flat.png"
+  },
+  "tv_mt_set": {
+   "file": "backdrops/tv_mt_set.png"
+  },
+  "tv_mt_audience": {
+   "file": "backdrops/tv_mt_audience.png"
+  },
+  "tv_mt_map": {
+   "file": "backdrops/tv_mt_map.png"
+  },
+  "tv_gg_body": {
+   "file": "tv/gg_body.png"
+  },
+  "tv_gg_gun": {
+   "file": "tv/gg_gun.png"
+  },
+  "tv_gg_sally_body": {
+   "file": "tv/gg_sally_body.png"
+  },
+  "tv_gg_eden_body": {
+   "file": "tv/gg_eden_body.png"
+  },
+  "tv_gg_cops": {
+   "file": "tv/gg_cops.png"
+  },
+  "tv_gg_bowl0": {
+   "file": "tv/gg_bowl0.png"
+  },
+  "tv_mt_bed": {
+   "file": "tv/mt_bed.png"
+  },
+  "tv_mt_ruth_body": {
+   "file": "tv/mt_ruth_body.png"
+  },
+  "tv_mt_robe": {
+   "file": "tv/mt_robe.png"
+  },
+  "tv_mt_extras": {
+   "file": "tv/mt_extras.png"
+  },
+  "tv_mt_mannequin": {
+   "file": "tv/mt_mannequin.png"
+  },
+  "tv_mt_speaker": {
+   "file": "tv/mt_speaker.png"
+  },
+  "tv_mt_sack": {
+   "file": "tv/mt_sack.png"
+  },
+  "tv_mt_naked": {
+   "file": "tv/mt_naked.png"
   }
  },
  "sheets": {
@@ -9472,6 +9550,106 @@
   "tvanchor_ELAINE": {
    "file": "tv/anchor_ELAINE.png",
    "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tv_gg_bowl": {
+   "file": "tv/gg_bowl.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "tv_mt_walk": {
+   "file": "tv/mt_walk.png",
+   "frameWidth": 96,
+   "frameHeight": 128
+  },
+  "tv_mt_women": {
+   "file": "tv/mt_women.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tv_mt_father": {
+   "file": "tv/mt_father.png",
+   "frameWidth": 96,
+   "frameHeight": 96
+  },
+  "tv_mt_jar": {
+   "file": "tv/mt_jar.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "tvface_GG_EDEN": {
+   "file": "tv/face_GG_EDEN.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_GG_OFFICER_1": {
+   "file": "tv/face_GG_OFFICER_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_GG_OFFICER_2": {
+   "file": "tv/face_GG_OFFICER_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_GG_SALLY": {
+   "file": "tv/face_GG_SALLY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_GG_SALLY_GUN": {
+   "file": "tv/face_GG_SALLY_GUN.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MT_DIRECTOR": {
+   "file": "tv/face_MT_DIRECTOR.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MT_DOCTOR": {
+   "file": "tv/face_MT_DOCTOR.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MT_FLENKY": {
+   "file": "tv/face_MT_FLENKY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MT_FLENKY_BANDAGE": {
+   "file": "tv/face_MT_FLENKY_BANDAGE.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MT_FLENKY_MOLE": {
+   "file": "tv/face_MT_FLENKY_MOLE.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MT_MARTIN": {
+   "file": "tv/face_MT_MARTIN.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MT_MUM": {
+   "file": "tv/face_MT_MUM.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MT_NURSE": {
+   "file": "tv/face_MT_NURSE.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MT_RUTH": {
+   "file": "tv/face_MT_RUTH.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tv_mt_dance": {
+   "file": "tv/mt_dance.png",
+   "frameWidth": 96,
    "frameHeight": 128
   }
  },

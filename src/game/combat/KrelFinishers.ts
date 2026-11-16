@@ -200,6 +200,19 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const box = sc.add.rectangle(0, hh * 0.66, 36, 17, 0x111827).setStrokeStyle(2, 0x6b7280);
       const timer = sc.add.text(0, hh * 0.66, "0:05", { fontFamily: "monospace", fontSize: "12px", color: "#ef4444", fontStyle: "bold" }).setOrigin(0.5);
       dev.add([strap, plate, armL, armR, box, timer]);
+      // strapped into a chair, wrists and chest, like the end of the last film
+      const chairX = tg.x;
+      const seatY = top + H * 0.62;
+      const chair = keep(sc.add.container(0, 0).setDepth(D - 1));
+      chair.add(sc.add.rectangle(chairX, top + H * 0.36, W * 0.95, H * 0.56, 0x3b2a1e).setStrokeStyle(3, 0x1c130c));
+      chair.add(sc.add.rectangle(chairX, seatY, W * 1.25, 10, 0x4a3424).setStrokeStyle(2, 0x1c130c));
+      chair.add(sc.add.rectangle(chairX - W * 0.55, seatY + H * 0.2, 7, H * 0.4, 0x2b1d13));
+      chair.add(sc.add.rectangle(chairX + W * 0.55, seatY + H * 0.2, 7, H * 0.4, 0x2b1d13));
+      const straps = keep(sc.add.container(0, 0).setDepth(D + 2));
+      for (const [y, w] of [[top + H * 0.38, W * 0.9], [top + H * 0.55, W * 1.1]] as [number, number][]) straps.add(sc.add.rectangle(chairX, y, w, 5, 0x18181b).setStrokeStyle(1, 0x52525b));
+      chair.setAlpha(0);
+      straps.setAlpha(0);
+      sc.tweens.add({ targets: [chair, straps], alpha: 1, duration: 250 });
       cam.pan(tg.x, headY + 10, 600, "Sine.easeInOut");
       cam.zoomTo(2.2, 600);
       synth.play("lob");
@@ -230,27 +243,35 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       sc.tweens.add({ targets: armL, angle: -82, duration: 160, ease: "Back.out" });
       sc.tweens.add({ targets: armR, angle: 82, duration: 160, ease: "Back.out" });
       if (c.gore) {
-        const cap = part(0, 0, 1, 0.2, D + 5);
-        cropAbove(0.2);
+        // the jaws spring: top of the head wrenched up and back, the lower jaw torn down
+        const upper = part(0, 0, 1, 0.13, D + 5);
+        const jaw = part(0, 0.13, 1, 0.21, D + 5);
+        cropAbove(0.21);
         synth.play("bonecrack");
         synth.play("splat");
         c.flash();
-        cam.shake(400, 0.02);
-        toss(cap, (tg.flip ? 1 : -1) * 90, -420, floor - 8, 520, () => {
-          synth.play("splat");
-          c.blood(cap.x, floor - 6, 20, 0.8);
-        });
-        c.fountain(tg.x, top + H * 0.2, 2600);
-        c.blood(tg.x, top + H * 0.18, 50, 1.3, true);
-        c.bones(tg.x, top + H * 0.18, 5);
-        await c.wait(1100);
+        cam.shake(420, 0.02);
+        const back = tg.flip ? 1 : -1;
+        sc.tweens.add({ targets: upper, y: upper.y - H * 0.09, angle: back * 32, duration: 170, ease: "Quad.out" });
+        sc.tweens.add({ targets: jaw, y: jaw.y + H * 0.05, angle: -back * 14, duration: 170, ease: "Quad.out" });
+        const mouthY = top + H * 0.15;
+        c.blood(tg.x, mouthY, 46, 1.2, true);
+        c.blood(tg.x, mouthY, 22, 0.9);
+        c.fountain(tg.x, mouthY, 1500);
+        // the body jerks against the straps
+        sc.tweens.add({ targets: body, x: { from: T.x - 4, to: T.x + 4 }, yoyo: true, repeat: 5, duration: 35 });
+        await c.wait(900);
         c.slow(1);
+        // and slumps in the chair, the open trap still on, blood running down
+        const slump = { targets: [body, upper, jaw, dev], y: `+=${Math.round(H * 0.05)}`, angle: `+=${tg.flip ? -6 : 6}`, duration: 900, ease: "Sine.inOut" };
+        sc.tweens.add(slump as Phaser.Types.Tweens.TweenBuilderConfig);
+        const drip = sc.time.addEvent({ delay: 260, repeat: 10, callback: () => c.blood(tg.x + (Math.random() - 0.5) * W * 0.3, mouthY + H * 0.1, 4, 0.4) });
+        // the last shot: a slow push in on the chair, then hold
+        cam.zoomTo(2.8, 2200, "Sine.easeInOut");
+        await c.wait(1600);
         card();
-        await c.wait(600);
-        toss(dev, 40, -120, floor - hh * 0.3, 90, () => synth.play("smash"));
-        await fall(body);
-        c.blood(tg.x + W * 0.3, floor - 4, 30, 0.8);
-        await c.wait(1300);
+        await c.wait(1500);
+        drip.remove();
       } else {
         synth.play("wonk");
         const boing = keep(sc.add.text(tg.x, top - 20, "BOING!", { fontFamily: "Impact, sans-serif", fontSize: "26px", color: "#fde047", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5).setDepth(D + 10).setScale(0.5 / cam.zoom));
@@ -258,6 +279,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         await c.wait(400);
         c.slow(1);
         toss(dev, 60, -380, floor - hh * 0.3, 400, () => synth.play("smash"));
+        straps.destroy();
         card();
         await tameKO();
         await c.wait(1000);

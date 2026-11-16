@@ -52,6 +52,7 @@ export const MUSIC_FILES: Record<string, string> = {
   fight_flirt: "audio/fight_flirt.mp3",
   fight_tank: "audio/fight_tank.mp3",
   fight_hoard: "audio/fight_hoard.mp3",
+  fight_reinhardt: "audio/fight_reinhardt.mp3",
   fight_lantern: "audio/fight_lantern.mp3",
   // Chapter 7 score (ElevenLabs Music)
   c7_dungeon: "audio/c7_dungeon.mp3",

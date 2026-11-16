@@ -67,6 +67,7 @@ export const JUKEBOX: JukeboxTrack[] = [
   { ids: ["fight_flirt"], title: "Flirt Crobley", where: "Boss: Flirt Crobley" },
   { ids: ["fight_tank"], title: "Tank Crobley", where: "Boss: Tank Crobley" },
   { ids: ["fight_hoard"], title: "Defeat My Cyst (SanChz)", where: "Boss: The Cyst" },
+  { ids: ["fight_reinhardt"], title: "Mental Problems", where: "Boss: Reinhardt Crobley" },
   { ids: ["fight_lantern"], title: "Chinese Crobley", where: "Boss: Chinese Crobley" },
   { ids: ["c7_krex"], title: "Metal Gear Krex", where: "Boss: Metal Gear Krex" },
   { ids: ["c7_elon"], title: "Elon Musk (AI-Generated)", where: "Boss: Elon Musk (AI-Generated)" },

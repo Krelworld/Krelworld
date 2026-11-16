@@ -101,3 +101,43 @@ they pay.
   looks plus a first armour/HP level.
 * **ch5–6:** the game-changers. Auto-Aim (1,500), the BFK (2,000), the top of the damage/armour stacks (600–900 a
   level), fairies, Kreddler/Disco. You get these by saving, or with a good run at the machines.
+
+## Kreddle rework
+
+**Krokens, ~25% cheaper across the board** (they were a lot of machine time for what they bought). Prize Counter
+total 1,625 → 1,239; furnishings 225 → 167.
+
+| Prize | Before | After |
+|---|---|---|
+| Blood Bath, Neon Tracers | 10, 10 | 8, 8 |
+| Casino Gas | 25 +10 | 20 +8 |
+| Extended Krezz, Neon Krezz | 30 +10 | 24 +8 |
+| Overtime Super | 35 +10 | 26 +8 |
+| Slot Machine Farts | 35 | 26 |
+| Lucky Horseshoe | 35 +15 | 26 +12 |
+| Jackpot Rounds, Loaded Dice | 40, 40 | 30, 30 |
+| High Roller (+20 HP) | 40 +15 | 30 +12 |
+| Rainbow Super | 45 | 34 |
+| Gold-Plated Guns | 50 | 38 |
+| Kreddle Armour | 50 +20 | 38 +15 |
+| Aggressive Sperms | 60 | 45 |
+| Bottled Fairy | 60 +20 | 45 +15 |
+| Chainsaw / Royal Flush / Kreddler / Disco | 60 / 80 / 100 / 120 | 45 / 60 / 75 / 90 |
+| Refill a prize gun you own | 15 | 11 |
+| Furnishings | 10–40 | 8–30 |
+
+Krezzcoin prices are unchanged.
+
+**New guns at the Exchange (GUNS tab, Krezzcoin).** Five Exchange exclusives (`shop` + `kreddle`, never in crates):
+One-Armed Bandit 900, Kroulette Shotgun 1,100, High Roller Chip Launcher 850, The Loan Shark 1,000, Snake Eyes 1,300
+(between the old bank guns at 650–800 and the BFK at 2,000). The crate guns can now also be bought outright once
+their chapter is reached (`price`): pistol 150, Uzi 300, Boomstick 400, Railgun 600, Rocket 750.
+
+**Gun mods (GUN MODS tab).** Every gun, and the Fart Blaster, has its own mods (`GUN_MODS` in systems/armoury.ts,
+saved as `s.upgrades["gm_<gun>_<stat>"]`, so old saves start at 0). Each gun offers 2–5 of: damage (+12%/lvl, ×5),
+fire rate (−8% cooldown/lvl, ×3), ammo (+25% max/lvl), accuracy (−20% spread/lvl), range (+15%/lvl), pierce (+1),
+pellets (+1), blast (+15% radius), homing, and "luck" on the gambling guns. A level costs
+`base × weight × (1 + 0.6·lvl + 0.15·lvl²)` rounded to 5, where `base` is what the gun's worth (pistol/Fart 40 …
+BFK 110) and `weight` is the stat (fire rate 1.1, pellets 1.2, damage 1, ammo 0.6, accuracy/range 0.5…). First
+levels are 20–120; the last damage level runs 230 (pistol) to 640 (BFK). Maxing one gun is ~1,000 (pistol) to
+~3,700 (BFK); the whole shelf is ~44,000, so you mod the two or three guns you actually use.

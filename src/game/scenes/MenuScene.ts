@@ -8,7 +8,7 @@ import { synth } from "../audio/Synth";
 import { CHARACTERS } from "../../data/characters";
 import { GENERIC_UPGRADES, upgradeCost, maxHp, counter } from "../systems/stats";
 import { GUNS, GUN_ORDER, gunMax } from "../combat/Guns";
-import { ammoQuote, ammoUnitCost, BANK_PERKS, buyAmmo, orderedGuns } from "../systems/armoury";
+import { ammoQuote, ammoUnitCost, BANK_PERKS, buyAmmo, buyMod, FART_ID, gunModList, LUCK_TEXT, MOD_EFFECT, MOD_INFO, moddableGuns, moddedFart, moddedGun, orderedGuns, type ModStat } from "../systems/armoury";
 import { ShopGrid, shopTabs, type ShopItem } from "../ui/shop";
 import { TOUCH } from "../ui/TouchControls";
 import { portraitKey } from "../gfx/Textures";
@@ -35,10 +35,11 @@ export const BANK_MOVES = [
 /** Hiring a lad for one dungeon trip. */
 export const LAD_COST = 200;
 
-type BankTab = "upgrades" | "armoury" | "perks" | "moves";
+type BankTab = "upgrades" | "armoury" | "mods" | "perks" | "moves";
 const BANK_TABS: { id: BankTab; label: string }[] = [
   { id: "upgrades", label: "⬆ UPGRADES" },
   { id: "armoury", label: "🔫 GUNS" },
+  { id: "mods", label: "🔧 GUN MODS" },
   { id: "perks", label: "★ PERKS" },
   { id: "moves", label: "🤝 LADS" },
 ];
@@ -46,6 +47,8 @@ const BANK_TABS: { id: BankTab; label: string }[] = [
 /** Overlay menus: pause, settings, bank (upgrades), ban tribunal, quests, death. */
 export class MenuScene extends Phaser.Scene {
   private bankTab: BankTab = "upgrades";
+  /** GUN MODS tab: which gun's mods are on the shelf. */
+  private modGun = FART_ID;
   private shop: ShopGrid | null = null;
   private bankSel: Partial<Record<BankTab, number>> = {};
   private mode: Mode = "pause";
@@ -84,7 +87,8 @@ export class MenuScene extends Phaser.Scene {
         e.preventDefault?.();
         const i = BANK_TABS.findIndex((t) => t.id === this.bankTab);
         this.setBankTab(BANK_TABS[(i + (e.shiftKey || k === "KeyQ" ? -1 : 1) + BANK_TABS.length) % BANK_TABS.length].id);
-      } else if (/^Digit[1-4]$/.test(k)) this.setBankTab(BANK_TABS[Number(k.slice(5)) - 1].id);
+      } else if (/^Digit[1-5]$/.test(k)) this.setBankTab(BANK_TABS[Number(k.slice(5)) - 1].id);
+      else if (this.bankTab === "mods" && (k === "KeyZ" || k === "KeyC" || k === "BracketLeft" || k === "BracketRight")) this.cycleModGun(k === "KeyZ" || k === "BracketLeft" ? -1 : 1);
     };
     this.input.keyboard?.on("keydown", shopKeys);
     this.events.once("shutdown", () => {
@@ -570,6 +574,88 @@ export class MenuScene extends Phaser.Scene {
     this.render("bank");
   }
 
+  /** The gun whose mods are on show (falls back to the Fart Blaster if you've lost it). */
+  private currentModGun(): string {
+    const list = moddableGuns(G.s);
+    if (!list.includes(this.modGun)) this.modGun = list[0];
+    return this.modGun;
+  }
+
+  private cycleModGun(d: number) {
+    const list = moddableGuns(G.s);
+    const i = list.indexOf(this.currentModGun());
+    this.pickModGun(list[(i + d + list.length) % list.length]);
+  }
+
+  private pickModGun(id: string) {
+    if (id === this.modGun || !this.shop) return;
+    this.modGun = id;
+    synth.play("select");
+    this.bankSel.mods = 0;
+    this.render("bank");
+  }
+
+  /** "Damage 12 → 13.4" style line for a mod card. */
+  private modPreview(gun: string, stat: ModStat, lvl: number, maxed: boolean): string {
+    const s = G.s;
+    const nextLvl = (n: number) => ({ ...s, upgrades: { ...s.upgrades, [`gm_${gun}_${stat}`]: n } }) as typeof s;
+    const r = (v: number) => (Math.abs(v - Math.round(v)) < 0.05 ? `${Math.round(v)}` : v.toFixed(1));
+    const val = (st: typeof s): string => {
+      if (gun === FART_ID) {
+        const f = moddedFart(st);
+        return stat === "dmg" ? `damage ${r(f.dmg)}` : stat === "rof" ? `${(1000 / f.cd).toFixed(1)} shots/s` : stat === "range" ? `range ${r(f.range)}` : `pierce ${f.pierce}`;
+      }
+      const g = moddedGun(GUNS[gun], st);
+      switch (stat) {
+        case "dmg": return `damage ${r(g.dmg)}${g.pellets > 1 ? `×${g.pellets}` : ""}`;
+        case "rof": return `${(1000 / g.cd).toFixed(1)} shots/s`;
+        case "mag": return `max ammo ${Math.round(GUNS[gun].maxAmmo * (1 + 0.25 * (st.upgrades.pk_ammo ?? 0) + MOD_EFFECT.mag * (st.upgrades[`gm_${gun}_mag`] ?? 0)))}`;
+        case "spread": return `spread ±${Math.round((g.spread * 180) / Math.PI)}°`;
+        case "range": return `range ${r(g.range)}`;
+        case "pierce": return `pierce ${g.pierce ?? 0}`;
+        case "pellets": return `${g.pellets} per shot`;
+        case "blast": return `blast ${r(g.blast ?? 0)}`;
+        case "homing": return `homing ${r(g.homing ?? 0)}`;
+        case "luck": return `luck +${st.upgrades[`gm_${gun}_luck`] ?? 0}`;
+      }
+    };
+    return maxed ? `Now: ${val(s)}. Maxed.` : `${val(s)} → ${val(nextLvl(lvl + 1))}.`;
+  }
+
+  /** GUN MODS: a strip of your guns (pick one), with the picked gun's name and how modded it is. */
+  private renderModStrip(add: (o: Phaser.GameObjects.GameObject) => void) {
+    const s = G.s;
+    const list = moddableGuns(s);
+    const cur = this.currentModGun();
+    const n = list.length;
+    const bw = Math.min(84, Math.floor((920 - 6 * (n - 1)) / n));
+    const x0 = 480 - (n * bw + 6 * (n - 1)) / 2;
+    const y = 150;
+    list.forEach((id, i) => {
+      const cx = x0 + i * (bw + 6) + bw / 2;
+      const on = id === cur;
+      const mods = gunModList(s, id);
+      const have = mods.reduce((a, m) => a + m.lvl, 0);
+      const max = mods.reduce((a, m) => a + m.max, 0);
+      const bg = this.add.rectangle(cx, y, bw, 46, on ? 0x3a2770 : 0x1d1a3a, 0.95).setStrokeStyle(on ? 3 : 1, on ? 0xffd23f : have >= max ? 0x22c55e : 0x4c4785).setInteractive({ useHandCursor: true });
+      bg.on("pointerup", () => this.pickModGun(id));
+      add(bg);
+      const box = Math.min(bw - 8, 34);
+      if (id === FART_ID) add(this.add.text(cx, y - 5, "💨", { fontFamily: FONT, fontSize: `${Math.round(box * 0.7)}px` }).setOrigin(0.5));
+      else if (this.textures.exists(GUNS[id].tex)) {
+        const img = this.add.image(cx, y - 5, GUNS[id].tex);
+        img.setScale(box / Math.max(img.width, img.height));
+        if (GUNS[id].shop && !GUNS[id].mech) img.setTint(GUNS[id].color);
+        add(img);
+      }
+      add(this.add.text(cx, y + 15, `${have}/${max}`, { fontFamily: PIXEL_BOLD, fontSize: "11px", color: have >= max ? "#4ade80" : have ? "#ffd23f" : "#9aa0b4", fontStyle: "bold" }).setOrigin(0.5));
+    });
+    const name = cur === FART_ID ? "FART BLASTER" : GUNS[cur].name.toUpperCase();
+    const mods = gunModList(s, cur);
+    add(this.add.text(30, 194, `${name}  ·  ${mods.reduce((a, m) => a + m.lvl, 0)}/${mods.reduce((a, m) => a + m.max, 0)} mod levels`, { fontFamily: PIXEL_BOLD, fontSize: "18px", color: "#ffd23f", fontStyle: "bold", stroke: "#12001f", strokeThickness: 4 }).setOrigin(0, 0.5));
+    add(this.add.text(930, 194, cur === FART_ID ? "Always yours. Infinite ammo." : "Mods only change this gun.", { fontFamily: PIXEL_FONT, fontSize: "14px", color: "#c4bdf0", stroke: "#12001f", strokeThickness: 3 }).setOrigin(1, 0.5));
+  }
+
   private renderBank(add: (o: Phaser.GameObjects.GameObject) => void) {
     const s = G.s;
     // see-through over the neon counter room (if its art is loaded), so the shop feels like a place
@@ -577,24 +663,32 @@ export class MenuScene extends Phaser.Scene {
     const head = this.add.text(30, 34, "KREDDLE EXCHANGE", { fontFamily: PIXEL_BOLD, fontSize: "32px", color: "#ff4fd8", stroke: "#12001f", strokeThickness: 6 }).setOrigin(0, 0.5);
     head.setShadow(0, 0, "#ff4fd8", 10, true, true);
     add(head);
-    if (!TOUCH.enabled) add(this.add.text(head.x + head.width + 24, 36, "E BUY   TAB TABS   ESC LEAVE", { fontFamily: PIXEL_FONT, fontSize: "16px", color: "#c4bdf0", stroke: "#12001f", strokeThickness: 4 }).setOrigin(0, 0.5));
+    // the keys, in two short lines so they never run under the PRIZES button
+    let hintRight = head.x + head.width;
+    if (!TOUCH.enabled) {
+      const hint = this.add.text(head.x + head.width + 18, 36, this.bankTab === "mods" ? "E BUY · TAB TABS\nZ/C GUN · ESC LEAVE" : "E BUY · TAB TABS\nESC LEAVE", { fontFamily: PIXEL_FONT, fontSize: "13px", color: "#c4bdf0", stroke: "#12001f", strokeThickness: 4, lineSpacing: -2 }).setOrigin(0, 0.5);
+      add(hint);
+      hintRight = hint.x + hint.width;
+    }
     // close (and, in Kreddle, the way over to the Prize Counter)
     const close = button(this, 914, 34, "✕", () => this.close(), { w: 48, h: 44, size: 22, color: 0x7f1d1d });
     add(close);
     if (this.caller === "Kreddle") {
-      add(button(this, 610, 34, "🎟 PRIZES ▸", () => {
+      add(button(this, Phaser.Math.Clamp(hintRight + 84, 610, 656), 34, "🎟 PRIZES ▸", () => {
         this.scene.get("Kreddle").events.emit("open-prizes");
         this.close();
       }, { w: 140, h: 40, size: 15, color: 0x3b0764 }));
     }
     add(shopTabs(this, 20, 86, 920, BANK_TABS, this.bankTab, (id) => this.setBankTab(id as BankTab)));
+    const mods = this.bankTab === "mods";
+    if (mods) this.renderModStrip(add);
     const shop = new ShopGrid(this, {
       x: 20,
-      y: 116,
+      y: mods ? 214 : 116,
       w: 920,
-      h: 316,
+      h: mods ? 218 : 316,
       cols: 6,
-      rows: 2,
+      rows: mods ? 1 : 2,
       detail: { x: 20, y: 442, w: 920, h: 86 },
       balances: [{ currency: "coin", x: 860, y: 34 }],
       balance: () => G.s.coins,
@@ -657,11 +751,27 @@ export class MenuScene extends Phaser.Scene {
           verb: "FILL",
         }),
       );
-      const icon = (id: string) => ({ icon: GUNS[id].tex, iconTint: GUNS[id].shop ? GUNS[id].color : undefined });
-      // for sale first, then ammo for what you've got
-      for (const id of GUN_ORDER) {
+      // (the old bank guns share another gun's art, so they're tinted their own colour)
+      const icon = (id: string) => ({ icon: GUNS[id].tex, iconTint: GUNS[id].shop && !GUNS[id].mech ? GUNS[id].color : undefined });
+      // for sale first (Exchange exclusives, then the crate guns as they unlock), then ammo for what you've got
+      const forSale = GUN_ORDER.filter((id) => !(id in s.guns!) && (GUNS[id].shop || GUNS[id].price));
+      forSale.sort((a, b) => Number(!GUNS[a].shop) - Number(!GUNS[b].shop));
+      for (const id of forSale) {
         const g = GUNS[id];
-        if (g.shop && !(id in s.guns)) out.push(item({ id: `gun_${id}`, name: g.name, ...icon(id), desc: g.blurb, price: g.shop, tag: "NEW", tagColor: 0xff4fd8 }));
+        const locked = !g.shop && g.minChapter > s.chapter;
+        out.push(
+          item({
+            id: `gun_${id}`,
+            name: g.name,
+            ...icon(id),
+            desc: g.shop ? `${g.blurb} Exchange exclusive: never in a crate.` : `${g.blurb} (Also turns up in dungeon crates.)`,
+            price: g.shop ?? g.price!,
+            tag: g.shop ? (g.mech ? "EXCLUSIVE" : "NEW") : "CRATE GUN",
+            tagColor: g.shop ? 0xff4fd8 : 0x67e8f9,
+            state: locked ? "locked" : "buy",
+            lockReason: `CHAPTER ${g.minChapter}`,
+          }),
+        );
       }
       for (const id of orderedGuns(s)) {
         const g = GUNS[id];
@@ -683,6 +793,25 @@ export class MenuScene extends Phaser.Scene {
             tagColor: 0xff5a5a,
             state: q.full ? "full" : "buy",
             verb: "FILL",
+          }),
+        );
+      }
+    } else if (this.bankTab === "mods") {
+      const gun = this.currentModGun();
+      for (const m of gunModList(s, gun)) {
+        const info = MOD_INFO[m.stat];
+        const maxed = m.lvl >= m.max;
+        const what = m.stat === "luck" ? LUCK_TEXT[gun] ?? info.desc : info.desc;
+        out.push(
+          item({
+            id: `mod_${m.stat}`,
+            name: `${info.short} ${m.lvl}/${m.max}`,
+            icon: info.icon,
+            desc: `${info.name}: ${what} ${this.modPreview(gun, m.stat, m.lvl, maxed)}`,
+            price: m.price,
+            lvl: [m.lvl, m.max],
+            state: maxed ? "maxed" : "buy",
+            verb: "UPGRADE",
           }),
         );
       }
@@ -720,6 +849,7 @@ export class MenuScene extends Phaser.Scene {
     if (id === "lad") return this.hireLad();
     if (id.startsWith("gun_")) return this.buyGun(id.slice(4));
     if (id.startsWith("ammo_")) return buyAmmo(s, id.slice(5)) > 0;
+    if (id.startsWith("mod_")) return buyMod(s, this.currentModGun(), id.slice(4) as ModStat);
     const gen = GENERIC_UPGRADES.find((u) => u.id === id);
     if (gen) return this.buy(id, upgradeCost(s, s.upgrades[id] ?? 0, gen.base), gen.max);
     const perk = BANK_PERKS.find((p) => p.id === id);
@@ -754,8 +884,10 @@ export class MenuScene extends Phaser.Scene {
   private buyGun(id: string): boolean {
     const s = G.s;
     const g = GUNS[id];
-    if (!g?.shop || s.coins < g.shop || (s.guns && id in s.guns)) return false;
-    s.coins -= g.shop;
+    const price = g?.shop ?? g?.price;
+    if (!g || !price || s.coins < price || (s.guns && id in s.guns)) return false;
+    if (!g.shop && g.minChapter > s.chapter) return false;
+    s.coins -= price;
     s.guns = s.guns ?? {};
     s.guns[id] = g.pickup * 2;
     s.gun = id;

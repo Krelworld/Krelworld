@@ -15,15 +15,15 @@ export interface Decor {
 }
 
 export const DECOR: Decor[] = [
-  { id: "neon", name: "KREDDLE NEON SIGN", icon: "💡", price: 15, desc: "A buzzing pink neon sign for over the window. It says KREZZ. It does not say anything else.", look: "The neon sign buzzes. KREZZ. Somewhere in Kreddle, Klerble knows you bought it." },
-  { id: "plant", name: "SUSPICIOUS HOUSEPLANT", icon: "🪴", price: 10, desc: "A big leafy plant for the corner. Kev says it's 'basically legal'.", look: "" },
-  { id: "rug", name: "CASINO CARPET RUG", icon: "🟣", price: 15, desc: "The exact carpet from the Kreddle casino floor, cut into a circle. Hides stains. Causes them.", look: "The casino rug. If you stare at it long enough you feel an urge to gamble." },
-  { id: "lava", name: "LAVA LAMP", icon: "🫧", price: 20, desc: "Goes on top of the fridge. Pink and purple blobs, rising and falling, forever.", look: "The blobs rise. The blobs fall. You've lost twenty minutes." },
-  { id: "disco", name: "DISCO BALL", icon: "🪩", price: 25, desc: "Hangs from the ceiling and throws little lights everywhere. Your flat is now a club.", look: "The disco ball turns. The room sparkles. Nobody is dancing. You start dancing." },
-  { id: "fish", name: "FISH TANK", icon: "🐠", price: 25, desc: "Sits on the radiator. The fish are Kreddle fish: they gamble. One of them owes the others money.", look: "The fish swim in circles. One of them is clearly running a card game." },
-  { id: "slot", name: "HOME SLOT MACHINE", icon: "🎰", price: 35, desc: "Your very own slot machine, by the door. Pull it on the way out for a Kroken (once a day).", look: "" },
-  { id: "statue", name: "CROBLEY STATUE", icon: "🍬", price: 35, desc: "A grinning Crobley on a marble plinth. It watches you sleep. It approves.", look: "The Crobley statue grins at you. You grin back. It grins harder." },
-  { id: "toilet", name: "SOLID GOLD TOILET", icon: "🚽", price: 40, desc: "In the corner. In the open. Solid gold. Nobody has ever been allowed to use it.", look: "" },
+  { id: "neon", name: "KREDDLE NEON SIGN", icon: "💡", price: 12, desc: "A buzzing pink neon sign for over the window. It says KREZZ. It does not say anything else.", look: "The neon sign buzzes. KREZZ. Somewhere in Kreddle, Klerble knows you bought it." },
+  { id: "plant", name: "SUSPICIOUS HOUSEPLANT", icon: "🪴", price: 8, desc: "A big leafy plant for the corner. Kev says it's 'basically legal'.", look: "" },
+  { id: "rug", name: "CASINO CARPET RUG", icon: "🟣", price: 12, desc: "The exact carpet from the Kreddle casino floor, cut into a circle. Hides stains. Causes them.", look: "The casino rug. If you stare at it long enough you feel an urge to gamble." },
+  { id: "lava", name: "LAVA LAMP", icon: "🫧", price: 15, desc: "Goes on top of the fridge. Pink and purple blobs, rising and falling, forever.", look: "The blobs rise. The blobs fall. You've lost twenty minutes." },
+  { id: "disco", name: "DISCO BALL", icon: "🪩", price: 19, desc: "Hangs from the ceiling and throws little lights everywhere. Your flat is now a club.", look: "The disco ball turns. The room sparkles. Nobody is dancing. You start dancing." },
+  { id: "fish", name: "FISH TANK", icon: "🐠", price: 19, desc: "Sits on the radiator. The fish are Kreddle fish: they gamble. One of them owes the others money.", look: "The fish swim in circles. One of them is clearly running a card game." },
+  { id: "slot", name: "HOME SLOT MACHINE", icon: "🎰", price: 26, desc: "Your very own slot machine, by the door. Pull it on the way out for a Kroken (once a day).", look: "" },
+  { id: "statue", name: "CROBLEY STATUE", icon: "🍬", price: 26, desc: "A grinning Crobley on a marble plinth. It watches you sleep. It approves.", look: "The Crobley statue grins at you. You grin back. It grins harder." },
+  { id: "toilet", name: "SOLID GOLD TOILET", icon: "🚽", price: 30, desc: "In the corner. In the open. Solid gold. Nobody has ever been allowed to use it.", look: "" },
 ];
 export const DECOR_BY_ID = Object.fromEntries(DECOR.map((d) => [d.id, d])) as Record<string, Decor>;
 

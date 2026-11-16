@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { GUNS, type GunDef } from "../src/data/guns";
-import { ammoQuote, ammoUnitCost, buyAmmo, firstLoaded, gunRatings, gunUpgrades, moveGun, nextLoaded, orderedGuns, STAT_KEYS, toPips } from "../src/game/systems/armoury";
+import { ammoQuote, ammoUnitCost, buyAmmo, buyMod, FART_ID, firstLoaded, gunMaxFor, gunModList, gunRatings, gunUpgrades, modKey, moddedFart, moddedGun, moveGun, nextLoaded, orderedGuns, STAT_KEYS, toPips } from "../src/game/systems/armoury";
 import { migrateState, newGameState } from "../src/game/systems/state";
 
 const ALL = Object.values(GUNS);
@@ -121,5 +121,44 @@ describe("rack ammo and upgrades", () => {
     expect(u.applied.map((a) => a.u.key).sort()).toEqual(["kd_gold", "pk_rof"]);
     expect(u.available.some((a) => a.key === "pk_rof")).toBe(false);
     expect(u.available.some((a) => a.key === "pk_ammo")).toBe(true);
+  });
+});
+
+describe("gun mods (Kreddle Exchange)", () => {
+  it("old saves have no mods and the guns fire as before", () => {
+    const s = newGameState("KREZMAR");
+    const g = moddedGun(GUNS.shotgun, s);
+    expect(g.dmg).toBe(GUNS.shotgun.dmg);
+    expect(g.cd).toBe(GUNS.shotgun.cd);
+    expect(g.pellets).toBe(GUNS.shotgun.pellets);
+    expect(gunMaxFor(GUNS.shotgun, s)).toBe(GUNS.shotgun.maxAmmo);
+  });
+
+  it("buying a mod takes the money, levels it up and changes the gun", () => {
+    const s = newGameState("KREZMAR");
+    s.guns = { shotgun: 10 };
+    s.coins = 5000;
+    const first = gunModList(s, "shotgun").find((m) => m.stat === "dmg")!;
+    expect(buyMod(s, "shotgun", "dmg")).toBe(true);
+    expect(s.coins).toBe(5000 - first.price);
+    expect(s.upgrades[modKey("shotgun", "dmg")]).toBe(1);
+    expect(gunModList(s, "shotgun").find((m) => m.stat === "dmg")!.price).toBeGreaterThan(first.price);
+    buyMod(s, "shotgun", "pellets");
+    buyMod(s, "shotgun", "rof");
+    buyMod(s, "shotgun", "mag");
+    const g = moddedGun(GUNS.shotgun, s);
+    expect(g.dmg).toBeGreaterThan(GUNS.shotgun.dmg);
+    expect(g.pellets).toBe(GUNS.shotgun.pellets + 1);
+    expect(g.cd).toBeLessThan(GUNS.shotgun.cd);
+    expect(gunMaxFor(GUNS.shotgun, s)).toBeGreaterThan(GUNS.shotgun.maxAmmo);
+  });
+
+  it("can't mod a gun you don't own, can't go past max; the Fart Blaster is always moddable", () => {
+    const s = newGameState("KREZMAR");
+    s.coins = 99999;
+    expect(buyMod(s, "bfk", "dmg")).toBe(false);
+    for (let i = 0; i < 10; i++) buyMod(s, FART_ID, "rof");
+    expect(s.upgrades[modKey(FART_ID, "rof")]).toBe(3);
+    expect(moddedFart(s).cd).toBeLessThan(240);
   });
 });

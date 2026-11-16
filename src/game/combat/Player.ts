@@ -12,8 +12,9 @@ import type { CombatWorld } from "./types";
 import { autoAimAllowed, type Controls } from "./Controls";
 import type { Enemy } from "./Enemy";
 import { PLAYER_BARKS } from "../../content/dialogue/ambient";
-import { currentGun, cycleGun, ensureArmed, fitTo, nextLoadedGun, GUNS, FART_BLASTER } from "./Guns";
+import { currentGun, cycleGun, ensureArmed, fitTo, nextLoadedGun, GUNS } from "./Guns";
 import { kd } from "../systems/kreddle";
+import { modLevel, moddedFart, moddedGun } from "../systems/armoury";
 import { releaseFart } from "./Farts";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { startWonk } from "./Wonk";
@@ -382,7 +383,7 @@ export class Player {
     }
     if (!this.gunSpr) this.gunSpr = this.world.sc.add.image(this.x, this.y, g.tex).setDepth(501);
     if (this.gunSpr.texture.key !== g.tex) this.gunSpr.setTexture(g.tex);
-    fitTo(this.gunSpr, g.id === "rocket" || g.id === "rail" || g.id === "kreddler" || g.id === "disco" ? 40 : g.id === "shotgun" || g.id === "chainsaw" ? 36 : 26);
+    fitTo(this.gunSpr, g.id === "rocket" || g.id === "rail" || g.id === "kreddler" || g.id === "disco" || g.id === "loan" ? 40 : g.id === "shotgun" || g.id === "chainsaw" || g.id === "roulette" || g.id === "chips" || g.id === "dice" ? 36 : g.id === "slots" ? 32 : 26);
     // Kreddle: gold-plated guns
     if (kd(G.s, "kd_gold")) this.gunSpr.setTint(0xffe27a);
     else this.gunSpr.clearTint();
@@ -410,14 +411,17 @@ export class Player {
 
   /** Fire the gun in hand. Returns false when there's no gun or no ammo (falls back to the normal attack). */
   private fireGun(now: number): boolean {
-    const g = currentGun();
+    const base = currentGun();
     const s = G.s;
-    if (!g || !s.guns) return false;
-    if ((s.guns[g.id] ?? 0) <= 0) {
-      this.switchFromEmpty(g.id);
+    if (!base || !s.guns) return false;
+    if ((s.guns[base.id] ?? 0) <= 0) {
+      this.switchFromEmpty(base.id);
       this.attackCd = now + 300;
       return true;
     }
+    // the gun as modded at the Kreddle Exchange (damage, rate, spread, range, pierce, blast, pellets, homing)
+    const g = moddedGun(base, s);
+    const luck = modLevel(s, g.id, "luck");
     s.guns[g.id]--;
     if (s.guns[g.id] <= 0) this.world.sc.time.delayedCall(Math.min(400, g.cd), () => this.switchFromEmpty(g.id));
     this.attackCd = now + g.cd * (now < this.burstUntil ? 0.75 : 1) * (now < this.overdriveUntil ? 0.7 : 1) * (1 - 0.1 * (s.upgrades.pk_rof ?? 0));
@@ -435,15 +439,84 @@ export class Player {
     const tracer = kd(s, "kd_tracer") > 0;
     const jackpot = kd(s, "kd_jackpot") > 0;
     const disco = g.id === "disco";
+    // the Kreddle Exchange guns: every shot is a little gamble of its own
+    let dmgMul = 1;
+    let pellets = g.pellets;
+    let spreadW = g.spread;
+    let pierce = g.pierce ?? 0;
+    let blastR = g.blast ?? 0;
+    let colorOf: ((i: number) => number) | null = null;
+    let call = "";
+    let callCol = "#ffd23f";
+    if (g.mech === "slots") {
+      // the reels: mostly a plain shot, sometimes cherries (a double), now and then lemons (a dud), rarely 777
+      const r = Math.random();
+      const jack = 0.08 + 0.05 * luck;
+      if (r < jack) {
+        pellets = 7;
+        spreadW = 0.9;
+        pierce += 3;
+        dmgMul = 3;
+        call = "7 7 7  JACKPOT!";
+        colorOf = () => 0xffd23f;
+        synth.play("jackpot");
+        this.world.shake(90, 0.004);
+      } else if (r < jack + 0.22) {
+        pellets = 2;
+        spreadW = 0.16;
+        dmgMul = 1.4;
+        colorOf = () => 0xff4fd8;
+      } else if (r < jack + 0.37) {
+        dmgMul = 0.5;
+        colorOf = () => 0xfef08a;
+      }
+    } else if (g.mech === "roulette") {
+      if (Math.random() < 1 / 13 + 0.04 * luck) {
+        // the green zero: double the pellets, through everyone, double damage
+        pellets *= 2;
+        pierce += 3;
+        dmgMul = 2;
+        call = "0 · GREEN · HOUSE PAYS!";
+        callCol = "#4ade80";
+        colorOf = () => 0x22c55e;
+        synth.play("jackpot");
+      } else {
+        const red = Math.random() < 0.5;
+        colorOf = (i) => ((i % 2 === 0) === red ? 0xef4444 : 0x3f3f46);
+      }
+    } else if (g.mech === "chips") {
+      const CHIP = [0xef4444, 0x38bdf8, 0x22c55e, 0xfacc15, 0xf5f5f5];
+      colorOf = (i) => CHIP[(this.shots + i) % CHIP.length];
+      this.shots++;
+    } else if (g.mech === "dice") {
+      // two dice, loaded a little more with every Rigged Odds level
+      const die = () => Math.min(6, 1 + Math.floor(Math.random() * 6) + luck);
+      const a = die();
+      const b = die();
+      const sum = a + b;
+      blastR *= 0.4 + sum * 0.08;
+      dmgMul = 0.5 + sum / 12;
+      if (a === 1 && b === 1) {
+        blastR = (g.blast ?? 60) * 1.6;
+        dmgMul = 4;
+        call = "SNAKE EYES!";
+        callCol = "#4ade80";
+      } else if (a === 6 && b === 6) {
+        dmgMul *= 1.5;
+        call = "BOXCARS!";
+      } else call = `🎲 ${a} + ${b}`;
+      callCol = sum >= 10 || sum === 2 ? callCol : "#e5e7eb";
+    }
+    if (call) this.world.floatText(this.x, this.y - 48, call, callCol, call.length > 12 ? 15 : 12);
     const blast = (x: number, y: number) => {
       synth.play("explode");
       this.world.shake(140, 0.006);
-      const drawn = !disco && !!this.world.boomFx?.(x, y, 0.8);
+      const drawn = !disco && !!this.world.boomFx?.(x, y, 0.8 * Math.max(0.6, blastR / (base.blast ?? blastR)));
       if (drawn) {
         /* drawn explosion */
       } else if (disco) for (const c of [0xff4fd8, 0x22d3ee, 0xfacc15, 0x4ade80, 0xa855f7]) this.world.burst(x, y, c, 6);
-      else this.world.burst(x, y, 0xff6ec7, 14);
-      this.world.aoe(x, y, g.blast!, this.dmg(g.dmg, now), { color: drawn ? undefined : disco ? [0xff4fd8, 0x22d3ee, 0xfacc15][Math.floor(Math.random() * 3)] : 0xff6ec7, knock: g.knock ?? 200 });
+      else this.world.burst(x, y, g.mech === "dice" ? 0xffffff : 0xff6ec7, 14);
+      this.world.aoe(x, y, blastR, this.dmg(g.dmg, now) * dmgMul, { color: drawn ? undefined : disco ? [0xff4fd8, 0x22d3ee, 0xfacc15][Math.floor(Math.random() * 3)] : 0xff6ec7, knock: g.knock ?? 200 });
     };
     const payout = (x: number, y: number) => {
       if (!jackpot || Math.random() > 0.125) return;
@@ -453,6 +526,14 @@ export class Player {
       s.coins += 3;
       this.world.floatText(x, y - 20, "JACKPOT! +3", "#ffd23f", 14);
     };
+    // the Loan Shark collects interest off whoever it skewers
+    const interest = (x: number, y: number) => {
+      if (Math.random() > 0.25 + 0.1 * luck) return;
+      s.coins += 1;
+      synth.play("coin");
+      this.world.floatText(x, y - 18, "+1 INTEREST", "#facc15", 11);
+    };
+    const onHit = g.mech === "loan" ? (x: number, y: number) => (interest(x, y), payout(x, y)) : jackpot ? payout : undefined;
     if (g.id === "chainsaw") {
       // sparks and chunks right at the bar
       for (let k = 0; k < 3; k++) {
@@ -460,34 +541,37 @@ export class Player {
         this.world.sc.tweens.add({ targets: sp, x: sp.x + (Math.random() - 0.5) * 50, y: sp.y + (Math.random() - 0.5) * 50, alpha: 0, duration: 200, onComplete: () => sp.destroy() });
       }
     }
-    const fan = now < this.spreadUntil && g.pellets === 1 ? [-0.25, 0, 0.25] : [0];
+    const fan = now < this.spreadUntil && pellets === 1 ? [-0.25, 0, 0.25] : [0];
     for (const fo of fan)
-    for (let i = 0; i < g.pellets; i++) {
-      const spread = fo + (g.pellets > 1 ? (i / (g.pellets - 1) - 0.5) * g.spread + (Math.random() - 0.5) * 0.08 : (Math.random() - 0.5) * g.spread);
+    for (let i = 0; i < pellets; i++) {
+      const spread = fo + (pellets > 1 ? (i / (pellets - 1) - 0.5) * spreadW + (Math.random() - 0.5) * 0.08 : (Math.random() - 0.5) * spreadW);
       const crit = Math.random() < 0.06;
-      const d = this.dmg(g.dmg, now) * (crit ? 2 : 1) * (gold ? 1.1 : 1);
+      const d = this.dmg(g.dmg, now) * dmgMul * (crit ? 2 : 1) * (gold ? 1.1 : 1);
       this.world.shoot(mx, my, {
         owner: "player",
-        damage: g.blast ? 0 : d,
+        damage: blastR ? 0 : d,
         crit,
-        speed: g.speed * (g.pellets > 1 ? 0.9 + Math.random() * 0.2 : 1),
+        speed: g.speed * (pellets > 1 ? 0.9 + Math.random() * 0.2 : 1),
         angle: this.aim + spread,
-        color: gold ? 0xffd23f : disco ? [0xff4fd8, 0x22d3ee, 0xfacc15][i % 3] : g.color,
+        color: gold ? 0xffd23f : colorOf ? colorOf(i) : disco ? [0xff4fd8, 0x22d3ee, 0xfacc15][i % 3] : g.color,
         texture: g.shotTex && this.world.sc.textures.exists(g.shotTex) ? g.shotTex : undefined,
         life: (g.range / g.speed) * 1000,
-        pierce: g.pierce ?? 0,
+        pierce,
+        homing: g.homing,
+        ricochet: g.ricochet,
+        slow: g.slow,
         knock: g.knock,
-        scale: g.id === "rail" ? 1.6 : g.id === "chainsaw" ? 0.5 : disco ? 1.8 : g.shotTex ? 0.65 : 1,
-        trail: tracer ? (this.shots % 2 ? 0xff4fd8 : 0x22d3ee) : undefined,
-        onHit: g.blast ? blast : jackpot ? payout : undefined,
-        onEnd: g.blast ? blast : undefined,
+        scale: g.id === "rail" ? 1.6 : g.id === "chainsaw" ? 0.5 : disco ? 1.8 : g.id === "loan" ? 1.5 : g.id === "dice" ? 1.7 : g.id === "chips" ? 1.3 : g.shotTex ? 0.65 : 1,
+        trail: tracer ? (this.shots % 2 ? 0xff4fd8 : 0x22d3ee) : g.id === "loan" ? 0x94a3b8 : undefined,
+        onHit: blastR ? blast : onHit,
+        onEnd: blastR ? blast : undefined,
       });
     }
     if (g.id === "rail") {
       const beam = this.world.sc.add.rectangle(mx, my, g.range, 3, g.color, 0.7).setOrigin(0, 0.5).setRotation(this.aim).setDepth(598);
       this.world.sc.tweens.add({ targets: beam, alpha: 0, scaleY: 4, duration: 180, onComplete: () => beam.destroy() });
     }
-    synth.play(g.id === "rocket" ? "rocket" : `gun_${g.id}`);
+    synth.play(g.sfx ?? (g.id === "rocket" ? "rocket" : `gun_${g.id}`));
     // a drawn muzzle flash at the barrel (not for the chainsaw or the flamer, which are their own flash)
     if (g.id !== "chainsaw" && g.id !== "flamer") vfx(this.world.sc, "vfx_muzzle", mx, my, { angle: Phaser.Math.RadToDeg(this.aim), scale: g.id === "bfk" || g.id === "shotgun" || g.id === "rocket" ? 1.3 : 0.8, depth: 599, add: true });
     if (g.id === "shotgun" || g.id === "rocket") this.world.shake(70, 0.003);
@@ -588,7 +672,8 @@ export class Player {
    */
   private fireFartBlaster(now: number, moving: boolean) {
     const s = G.s;
-    const fb = FART_BLASTER;
+    // (with its Kreddle Exchange mods: damage, rate, range, pierce)
+    const fb = moddedFart(s);
     let rate = fb.cd;
     if (this.id === "MIKEY" && moving) rate *= 0.7;
     if (now < this.burstUntil) rate *= 0.75;
@@ -632,7 +717,7 @@ export class Player {
         color: crit ? 0xfff176 : 0xb5e655,
         texture: tex,
         life: ((homing ? fb.range * 1.5 : fb.range) / fb.speed) * 1000,
-        pierce: this.id === "KREZWONK" && s.upgrades.kw1 ? 1 : 0,
+        pierce: (this.id === "KREZWONK" && s.upgrades.kw1 ? 1 : 0) + fb.pierce,
         homing,
         ricochet: this.id === "KREBLIS" && s.upgrades.kb1 ? 1 : 0,
         slow: (this.id === "MIKEY" && s.upgrades.mk1) || (this.id === "KREZMAR" && s.upgrades.kz1) ? 0.25 : 0,

@@ -212,10 +212,23 @@ export class KreddleScene extends Phaser.Scene {
   private drawStrip() {
     const s = G.s;
     this.neonSign(1300, 40, "★ WELCOME TO KREDDLE ★", "#ff4fd8", 34).setScrollFactor(0.15, 1).setDepth(-20);
+    // THE KREDDLE EXCHANGE: first thing off the bridge, so you can shop without walking the whole Strip
+    const EX = { x: 352, y: 505 };
+    if (this.textures.exists("kd_exchange")) {
+      // the Exchange kiosk (PixelLab): its own sign says EXCHANGE, the neon one over it says whose
+      const kiosk = this.add.image(EX.x, EX.y, "kd_exchange").setOrigin(0.5, 1).setScale(1.3).setDepth(EX.y);
+      const glow = this.add.ellipse(EX.x, EX.y, kiosk.displayWidth * 1.1, 20, 0xfacc15, 0.25).setDepth(EX.y - 1).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: glow, alpha: 0.08, yoyo: true, repeat: -1, duration: 900 });
+      this.neonSign(EX.x, EX.y - kiosk.displayHeight - 14, "THE KREDDLE EXCHANGE", "#facc15", 16).setDepth(EX.y + 1);
+    } else {
+      const counter = this.add.rectangle(EX.x, EX.y - 45, 120, 84, 0x2e1065).setStrokeStyle(3, 0xfacc15).setDepth(EX.y);
+      this.add.text(counter.x, counter.y, "🏆\nTHE KREDDLE\nEXCHANGE\n🎟 · 💰", { fontFamily: FONT, fontSize: "11px", color: "#facc15", align: "center", fontStyle: "bold" }).setOrigin(0.5).setDepth(EX.y + 1);
+    }
+    this.spots.push({ x: EX.x, y: EX.y + 35, r: 85, label: () => `E: THE KREDDLE EXCHANGE (🎟 ${krokens(G.s)} Krokens · 💰 ${G.s.coins} Krezzcoin)`, use: () => this.exchange() });
     // THE ARCADE + the slots
-    this.building("kd_bld_arcade", 470, 1.6, "KRAZY KREDDLE ARCADE", "#facc15");
-    for (let i = 0; i < 4; i++) this.machine("kd_m_slots", 340 + i * 85, 500, 1.15);
-    this.spots.push({ x: 467, y: 520, r: 170, label: () => "E: KRAZY REELS (slots) · 150 Krezzcoin a spin", use: () => this.slots() });
+    this.building("kd_bld_arcade", 622, 1.6, "KRAZY KREDDLE ARCADE", "#facc15");
+    for (let i = 0; i < 4; i++) this.machine("kd_m_slots", 495 + i * 85, 500, 1.15);
+    this.spots.push({ x: 622, y: 520, r: 150, label: () => "E: KRAZY REELS (slots) · 150 Krezzcoin a spin", use: () => this.slots() });
     // THE CASINO + the claws
     this.building("kd_bld_casino", 980, 1.6, "THE GOLDEN KLAW CASINO", "#22d3ee");
     for (let i = 0; i < 3; i++) this.machine("kd_m_claw", 890 + i * 90, 505, 1.05);
@@ -230,19 +243,8 @@ export class KreddleScene extends Phaser.Scene {
     this.machine("kd_m_cards", 1950, 600, 1.5);
     this.neonSign(1950, 470, "KREDDLE KARDS", "#4ade80", 20).setDepth(470);
     this.spots.push({ x: 1950, y: 620, r: 110, label: () => "E: KREDDLE KARDS (higher or lower) · 150 Krezzcoin a deal", use: () => this.cards() });
-    // KRUNCHER HQ + the Prize Counter
+    // KRUNCHER HQ
     this.building("kd_bld_arcade", 2300, 1.6, "KREDDLE KRUNCHERS HQ", "#ff4fd8", 0x9be7ff);
-    if (this.textures.exists("kd_exchange")) {
-      // the Exchange kiosk (PixelLab): its own sign says EXCHANGE, the neon one over it says whose
-      const kiosk = this.add.image(2520, 560, "kd_exchange").setOrigin(0.5, 1).setScale(1.6).setDepth(560);
-      const glow = this.add.ellipse(2520, 560, kiosk.displayWidth * 1.1, 20, 0xfacc15, 0.25).setDepth(559).setBlendMode(Phaser.BlendModes.ADD);
-      this.tweens.add({ targets: glow, alpha: 0.08, yoyo: true, repeat: -1, duration: 900 });
-      this.neonSign(2520, 560 - kiosk.displayHeight - 14, "THE KREDDLE EXCHANGE", "#facc15", 16).setDepth(561);
-    } else {
-      const counter = this.add.rectangle(2520, 515, 120, 84, 0x2e1065).setStrokeStyle(3, 0xfacc15).setDepth(520);
-      this.add.text(counter.x, counter.y, "🏆\nTHE KREDDLE\nEXCHANGE\n🎟 · 💰", { fontFamily: FONT, fontSize: "11px", color: "#facc15", align: "center", fontStyle: "bold" }).setOrigin(0.5).setDepth(521);
-    }
-    this.spots.push({ x: 2520, y: 560, r: 80, label: () => `E: THE KREDDLE EXCHANGE (🎟 ${krokens(G.s)} Krokens · 💰 ${G.s.coins} Krezzcoin)`, use: () => this.exchange() });
     void s;
   }
 
@@ -366,7 +368,10 @@ export class KreddleScene extends Phaser.Scene {
       const d = Phaser.Math.Distance.Between(this.me.x, this.me.y, sp2.x, sp2.y);
       if (d < sp2.r && (!best || d < best.d)) best = { label: sp2.label(), use: sp2.use, d };
     }
-    for (const n of this.npcs) {
+    // a machine or counter in reach always wins over a chat (a wandering local shouldn't steal the E from a game)
+    for (const n of best ? [] : this.npcs) {
+      // the Kards dealer just deals: standing at his table means the game, not a chat
+      if (n.kind === "dealer") continue;
       const d = Phaser.Math.Distance.Between(this.me.x, this.me.y, n.spr.x, n.spr.y);
       if (d < 60 && (!best || d < best.d)) best = { label: `E: Talk to ${n.name}`, use: () => void this.talkTo(n), d };
     }

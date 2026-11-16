@@ -23,7 +23,7 @@ import { PRIZES } from "../../content/kreddle";
 import { addKrokens, kd } from "../systems/kreddle";
 import { weaponIcon, weaponList } from "../ui/weapons";
 import { GUNS } from "../combat/Guns";
-import { ammoQuote, buyAmmo, firstLoaded, gunRatings, gunUpgrades, moveGun, orderedGuns, specialText, STAT_KEYS, STAT_LABELS, type StatKey } from "../systems/armoury";
+import { ammoQuote, buyAmmo, firstLoaded, gunModList, gunRatings, gunUpgrades, modSummary, moddedGun, moveGun, orderedGuns, specialText, STAT_KEYS, STAT_LABELS, type StatKey } from "../systems/armoury";
 import { currentStep } from "../Flow";
 import { DARK_AUTISM_PASSAGES } from "../../content/darkAutism";
 
@@ -710,12 +710,14 @@ export class HomeScene extends Phaser.Scene {
       );
       detailC.add(this.add.text(X + 12, TOP + 56, g.blurb, { fontFamily: FONT, fontSize: "11px", color: "#cbd5e1", fontStyle: "italic", wordWrap: { width: W - 24 }, maxLines: 2 } as Phaser.Types.GameObjects.Text.TextStyle));
       // the stats, 1-5 against every gun in the game
-      const r = gunRatings(g);
+      // (with this gun's Kreddle Exchange mods applied)
+      const mg = moddedGun(g, s);
+      const r = gunRatings(mg);
       const raw: Record<StatKey, string> = {
-        damage: g.pellets > 1 ? `${g.dmg}×${g.pellets}` : `${g.dmg}`,
-        rate: `${(1000 / g.cd).toFixed(1)}/s`,
-        range: `${g.range}`,
-        accuracy: g.spread ? `±${Math.round((g.spread * 180) / Math.PI)}°` : "dead on",
+        damage: mg.pellets > 1 ? `${Math.round(mg.dmg)}×${mg.pellets}` : `${Math.round(mg.dmg)}`,
+        rate: `${(1000 / mg.cd).toFixed(1)}/s`,
+        range: `${Math.round(mg.range)}`,
+        accuracy: mg.spread ? `±${Math.round((mg.spread * 180) / Math.PI)}°` : "dead on",
         special: "",
       };
       const cols: Record<StatKey, number> = { damage: 0xef4444, rate: 0xfacc15, range: 0x38bdf8, accuracy: 0x4ade80, special: 0xc084fc };
@@ -725,25 +727,32 @@ export class HomeScene extends Phaser.Scene {
         for (let p = 0; p < 5; p++) detailC.add(this.add.rectangle(X + 100 + p * 30, y, 26, 11, p < r[k] ? cols[k] : 0x1f2937).setStrokeStyle(1, p < r[k] ? 0x000000 : 0x334155));
         if (raw[k]) detailC.add(this.add.text(X + W - 12, y, raw[k], { fontFamily: FONT, fontSize: "10px", color: "#94a3b8" }).setOrigin(1, 0.5));
       });
-      detailC.add(this.fitText(this.add.text(X + 12, TOP + 196, specialText(g), { fontFamily: FONT, fontSize: "11px", color: "#d8b4fe" }), W - 24));
-      // upgrades (they're bought in Kreddle, and every gun gets them)
-      const up = gunUpgrades(s);
-      detailC.add(this.add.text(X + 12, TOP + 213, "UPGRADES (apply to every gun)", { fontFamily: FONT, fontSize: "11px", color: "#67e8f9", fontStyle: "bold" }));
+      detailC.add(this.fitText(this.add.text(X + 12, TOP + 196, specialText(mg), { fontFamily: FONT, fontSize: "11px", color: "#d8b4fe" }), W - 24));
+      // this gun's own mods (Kreddle Exchange › GUN MODS)
+      const mods = gunModList(s, id);
+      const modHave = mods.reduce((a, m) => a + m.lvl, 0);
+      const modMaxAll = mods.reduce((a, m) => a + m.max, 0);
+      detailC.add(this.add.text(X + 12, TOP + 213, `GUN MODS ${modHave}/${modMaxAll}  (Kreddle Exchange › GUN MODS)`, { fontFamily: FONT, fontSize: "11px", color: "#67e8f9", fontStyle: "bold" }));
       detailC.add(
-        this.add.text(X + 12, TOP + 228, up.applied.length ? up.applied.map((a) => `✓ ${a.u.name}${a.u.max > 1 ? ` ${a.lvl}/${a.u.max}` : ""}`).join("   ") : "None yet.", {
+        this.add.text(X + 12, TOP + 227, modSummary(s, id) || "None yet.", { fontFamily: FONT, fontSize: "10px", color: modHave ? "#5ad35a" : "#64748b", wordWrap: { width: W - 24 }, maxLines: 2 } as Phaser.Types.GameObjects.Text.TextStyle),
+      );
+      // upgrades that apply to every gun (perks and prizes)
+      const up = gunUpgrades(s);
+      detailC.add(this.add.text(X + 12, TOP + 254, "ALL GUNS", { fontFamily: FONT, fontSize: "11px", color: "#67e8f9", fontStyle: "bold" }));
+      detailC.add(
+        this.add.text(X + 12, TOP + 268, up.applied.length ? up.applied.map((a) => `✓ ${a.u.name}${a.u.max > 1 ? ` ${a.lvl}/${a.u.max}` : ""}`).join("   ") : "None yet.", {
           fontFamily: FONT,
-          fontSize: "11px",
+          fontSize: "10px",
           color: up.applied.length ? "#5ad35a" : "#64748b",
           wordWrap: { width: W - 24 },
           maxLines: 2,
         } as Phaser.Types.GameObjects.Text.TextStyle),
       );
-      if (up.available.length) {
-        detailC.add(this.add.text(X + 12, TOP + 258, "⬆ Upgrade available in Kreddle", { fontFamily: FONT, fontSize: "12px", color: "#ff7ad9", fontStyle: "bold" }));
+      if (up.available.length || modHave < modMaxAll) {
         const where = (shop: string) => up.available.filter((u) => u.shop === shop).map((u) => u.name);
-        const parts = [where("Kreddle Exchange").length ? `Exchange: ${where("Kreddle Exchange").join(", ")}` : "", where("Kreddle Prize Counter").length ? `Prize Counter: ${where("Kreddle Prize Counter").join(", ")}` : ""].filter(Boolean);
-        detailC.add(this.add.text(X + 12, TOP + 274, parts.join("\n"), { fontFamily: FONT, fontSize: "10px", color: "#f0abfc", wordWrap: { width: W - 24 }, maxLines: 3 } as Phaser.Types.GameObjects.Text.TextStyle));
-      } else detailC.add(this.add.text(X + 12, TOP + 258, "Every gun upgrade bought. Fully krezzed.", { fontFamily: FONT, fontSize: "11px", color: "#5ad35a" }));
+        const parts = [modHave < modMaxAll ? "this gun's mods" : "", ...where("Kreddle Exchange"), ...where("Kreddle Prize Counter")].filter(Boolean);
+        detailC.add(this.fitText(this.add.text(X + 12, TOP + 296, `⬆ In Kreddle: ${parts.join(", ")}`, { fontFamily: FONT, fontSize: "10px", color: "#ff7ad9", fontStyle: "bold" }), W - 24));
+      } else detailC.add(this.add.text(X + 12, TOP + 296, "Every upgrade bought. Fully krezzed.", { fontFamily: FONT, fontSize: "11px", color: "#5ad35a" }));
       // ammo, at the Kreddle Exchange's prices
       const q = ammoQuote(s, id);
       const afford = s.coins >= q.unit;

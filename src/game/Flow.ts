@@ -1,6 +1,6 @@
 import { synth } from "./audio/Synth";
 import { offerFacts, adoptFact } from "../data/historicalRevisions";
-import { requiredArcSteps, tokenTrail } from "./systems/arcs";
+import { requiredArcSteps, sideQuestsFirst, tokenTrail } from "./systems/arcs";
 import Phaser from "phaser";
 import type { Line, PlayableId } from "../data/types";
 import { G } from "./G";
@@ -97,6 +97,11 @@ export function currentStep(): { text: string; target?: string } | null {
     const club = tt.indoorLeft.some(({ sp }) => sp.inside === "CLUB");
     return { text: `The last ${tt.indoorLeft.length === 1 ? "cuddle token is" : "two cuddle tokens are"} indoors: ${tt.indoorLeft.map(({ sp }) => (sp.inside === "CLUB" ? "the strip club (through the Krezz Arms)" : "Polson's house")).join(" and ")}`, target: club ? "PUB" : "POLSON_ROAD" };
   }
+  // required side quests come first, in the quiet before the chapter's plot gets going
+  if (sideQuestsFirst(s)) {
+    const req = requiredArcSteps(s)[0];
+    return { text: `SIDE QUEST (before the chapter kicks off): ${req.arc.title} — ${req.step.text}`, target: req.step.at === "FIELD" ? undefined : req.step.at };
+  }
   const ch = chapterDef(s.chapter);
   for (const st of ch.steps) {
     if (!evalCond(st.done, s)) {
@@ -123,8 +128,9 @@ export function townHallAction(): TownHallAction {
     if (!f.met_emergency) return { kind: "meeting", id: "emergency_reaction_session" };
     if (f.ch1_clear && f.wildern_destroyed && !f.ch1_fact) return f.krazy_fact_ready ? { kind: "fact" } : { kind: "meeting", id: "krazy_fact_emergency" };
   }
-  // Polson gets fit first: the Cronster briefing waits until he's done
-  if (n === 3 && !f.cronster_briefed && f.arc_polson_fit_done) return { kind: "meeting", id: "cronster_briefing" };
+  // the chapter's briefings wait until its required side quests are done
+  if (sideQuestsFirst(s)) return { kind: "none" };
+  if (n === 3 && !f.cronster_briefed) return { kind: "meeting", id: "cronster_briefing" };
   if (n === 5 && !f.krebon_question) return { kind: "meeting", id: "krebon_question" };
   if (n === 7 && !f.final_reading) return { kind: "meeting", id: "final_reading" };
   if (n >= 2 && n <= 6 && f[`ch${n}_clear`] && !f[`ch${n}_fact`]) return f[`ch${n}_outro`] ? { kind: "fact" } : { kind: "outro" };
@@ -135,6 +141,7 @@ export function townHallAction(): TownHallAction {
 export function archiveAction(): { kind: "meeting"; id: string } | { kind: "browse" } {
   const s = G.s;
   if (s.chapter === 1 && s.flags.met_emergency && !s.flags.founding_seen) return { kind: "meeting", id: "founding_cabinet" };
+  if (sideQuestsFirst(s)) return { kind: "browse" };
   if (s.chapter === 2 && !s.flags.fragmar_briefed) return { kind: "meeting", id: "fragmar_briefing" };
   if (s.chapter === 4 && s.flags.vig_crobley_news && !s.flags.crobley_briefed) return { kind: "meeting", id: "crobley_briefing" };
   return { kind: "browse" };

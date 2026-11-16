@@ -26,7 +26,7 @@ import { activeMods } from "../../data/historicalRevisions";
 import { canTurnIn, completePersonal, pickupsInHub, collectPickup, ministryQuestFor, ministryQuestState, acceptMinistry, completeMinistry, ministryProgress } from "../systems/quests";
 import { dir, ping, say } from "../../content/dsl";
 import { narrativeActor } from "../systems/narrative";
-import { arcDue, arcStepAt, completeStep, currentArcSteps, maybeFinishArc, spotFlag, tokenTrail } from "../systems/arcs";
+import { arcDue, arcStepAt, completeStep, currentArcSteps, maybeFinishArc, requiredArcSteps, sideQuestsFirst, spotFlag, tokenTrail } from "../systems/arcs";
 import { DUNGEONS } from "../../data/dungeons";
 import { MEETINGS } from "../../content/meetings";
 import { animateWalker, charMeta, feetBody, leadCamera, steer } from "../gfx/HD";
@@ -2244,7 +2244,7 @@ You are required by law to sign the Sex Offenders Register.`, {
         return a.kind === "meeting" ? "Enter Town Hall (MEETING IN PROGRESS)" : a.kind === "outro" ? "Enter Town Hall (report back)" : a.kind === "fact" ? "Enter Town Hall (report back)" : "Enter Town Hall";
       }
       case "ARCHIVE":
-        return archiveAction().kind === "meeting" || (s.chapter === 4 && !s.flags.vig_crobley_news) ? "Enter the Archive (the cabinet is waiting)" : "Enter the Historical Archive";
+        return archiveAction().kind === "meeting" || (s.chapter === 4 && !s.flags.vig_crobley_news && !sideQuestsFirst(s)) ? "Enter the Archive (the cabinet is waiting)" : "Enter the Historical Archive";
       case "PUB":
         return s.chapter === 5 && !s.flags.ch5_clear && dungeonOpen().open ? "The Krezz Arms: ★ rub SanMik's magic lamp (back room)" : "Enter The Krezz Arms";
       case "BANK":
@@ -2465,13 +2465,16 @@ You are required by law to sign the Sex Offenders Register.`, {
           const q = canTurnIn(s, "TOWN_HALL");
           if (s.flags.on_register) await this.registerBribe();
           else if (q) await this.turnIn(q);
-          else await this.talk([dir("The Town Hall is in recess. The horseshoe table is sticky. A cleaner is scrubbing the word 'HOSTILE' off the minutes.")]);
+          else if (sideQuestsFirst(s)) {
+            const req = requiredArcSteps(s)[0];
+            await this.talk([dir(`The cabinet aren't sitting yet. Plenty of time before anything kicks off this chapter: sort out ${req.arc.title} first (${req.step.text})`)]);
+          } else await this.talk([dir("The Town Hall is in recess. The horseshoe table is sticky. A cleaner is scrubbing the word 'HOSTILE' off the minutes.")]);
         }
         return;
       }
       case "ARCHIVE": {
         // Chapter 4: the cabinet's in the War Room with the telly on, and it's the Crobley story (then straight into the briefing)
-        if (s.chapter === 4 && !s.flags.vig_crobley_news) {
+        if (s.chapter === 4 && !s.flags.vig_crobley_news && !sideQuestsFirst(s)) {
           await this.talk([dir("Down in the FGM War Room the cabinet are crowded round the big screen. Every channel is showing the same thing.")]);
           this.go("Vignette", { id: "crobley_news", returnAt: "ARCHIVE" });
           return;

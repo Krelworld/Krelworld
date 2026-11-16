@@ -19,6 +19,8 @@ export function stepDone(s: GameState, a: Arc, st: ArcStep): boolean {
 
 export function arcAvailable(s: GameState, a?: Arc): boolean {
   if (!s.flags.met_emergency) return false;
+  // a chapter's plot story waits while that chapter's required side quests are still to do (they come first)
+  if (a && PLOT_ARCS.has(a.id) && a.id !== "arc_krunchers" && sideQuestsFirst(s)) return false;
   if (a?.requires && !s.flags[a.requires] && !(a.minChapter && s.chapter > a.minChapter)) return false;
   return !a || s.chapter >= (a.minChapter ?? 1);
 }
@@ -88,12 +90,20 @@ export function arcDue(a: Arc): number | null {
   return a.player === "ALL" ? Math.max(2, a.minChapter ?? 2) : 2;
 }
 
-/** Side quests that must be done before this chapter's dungeon opens, with where each one is up to. */
+/** Stories that ARE the chapter plot (not side quests): they run inside the chapter, after its briefing. */
+export const PLOT_ARCS = new Set(["arc_cronster", "arc_klerble", "arc_krunchers"]);
+
+/** Side quests that must be done this chapter, with where each one is up to (plot stories excluded). */
 export function requiredArcSteps(s: GameState) {
-  return currentArcSteps(s).filter((c) => {
-    const d = arcDue(c.arc);
-    return d !== null && d <= s.chapter;
-  });
+  // (plot stories are left out before their availability is looked at: that check depends on this one)
+  return arcsFor(s.player)
+    .filter((a) => !PLOT_ARCS.has(a.id))
+    .map((a) => stepOf(s, a))
+    .filter((c): c is { arc: Arc; step: ArcStep; index: number } => {
+      if (!c) return false;
+      const d = arcDue(c.arc);
+      return d !== null && d <= s.chapter;
+    });
 }
 
 /** The Cronster's cuddle tokens: the step, and how many of the outdoor / indoor ones are still to find. */
@@ -119,3 +129,24 @@ export function takeIndoorToken(s: GameState, where: "CLUB" | "POLSON"): { lines
   const k = t.step.step as Extract<ArcStep["step"], { kind: "collect" }>;
   return { lines: k.pickup, toast: `${k.label}: ${hit.sp.name} (${got}/${t.spots.length})${got === t.spots.length ? " · Take them to Sergeant Swig." : ""}` };
 }
+
+/**
+ * Required side quests happen in the quiet time at the start of a chapter, before its plot gets going:
+ * true while any are left AND the chapter's first story beat hasn't happened yet (so a save already
+ * mid-plot isn't suddenly frozen; there they still just have to be done before the dungeon).
+ */
+export function sideQuestsFirst(s: GameState): boolean {
+  if (s.chapter < 2 || s.chapter >= 7) return false;
+  if (!requiredArcSteps(s).length) return false;
+  const first = FIRST_BEAT[s.chapter];
+  return !!first && !s.flags[first];
+}
+
+/** The flag set by each chapter's first plot beat (its briefing / meeting / broadcast). */
+const FIRST_BEAT: Record<number, string> = {
+  2: "fragmar_briefed",
+  3: "cronster_briefed",
+  4: "vig_crobley_news",
+  5: "krebon_question",
+  6: "arcstep_arc_klerble_brief",
+};

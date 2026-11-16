@@ -8131,6 +8131,15 @@
   },
   "tv_p2_bed_duvet": {
    "file": "backdrops/tv_p2_bed_duvet.png"
+  },
+  "tv_p2_sky": {
+   "file": "backdrops/tv_p2_sky.png"
+  },
+  "tv_p2_bars": {
+   "file": "backdrops/tv_p2_bars.png"
+  },
+  "tv_p2_table": {
+   "file": "backdrops/tv_p2_table.png"
   }
  },
  "sheets": {

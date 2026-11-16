@@ -1030,9 +1030,12 @@ export class PovDirector {
     const M = this.fig("MADISON", this.cx() + 30, fy, 3.6);
     const jezOld = !!J && !J.texture.key.startsWith("tv_p2_");
     // the table (with a modesty panel: Madison ends up behind it)
-    this.add(this.sc.add.rectangle(SX, fy - 40, SW, 120, 0x3b2a1a).setOrigin(0));
-    this.add(this.sc.add.rectangle(SX, fy + 20, SW, 60, 0x2a1d12).setOrigin(0));
-    this.add(this.sc.add.rectangle(SX, fy - 40, SW, 6, 0x6b4527).setOrigin(0));
+    if (this.tex("tv_p2_table")) this.add(this.sc.add.image(SX, fy - 52, "tv_p2_table").setOrigin(0).setDisplaySize(SW, 200));
+    else {
+      this.add(this.sc.add.rectangle(SX, fy - 40, SW, 120, 0x3b2a1a).setOrigin(0));
+      this.add(this.sc.add.rectangle(SX, fy + 20, SW, 60, 0x2a1d12).setOrigin(0));
+      this.add(this.sc.add.rectangle(SX, fy - 40, SW, 6, 0x6b4527).setOrigin(0));
+    }
     // three horrified businessmen in the foreground, mostly in the way
     const execTex = this.host.spriteFor("YEMENI EXECUTIVE");
     const men: Phaser.GameObjects.Sprite[] = [];
@@ -1124,12 +1127,17 @@ export class PovDirector {
   private cell() {
     const { SX, SY, SW, SH } = this.r;
     this.wide(["MARK", "SIMON", "JEZ"], "tv_cell");
-    const g = this.add(this.sc.add.graphics());
-    g.fillStyle(0x111827, 1);
-    for (let x = SX + 20; x < SX + SW; x += 56) g.fillRect(x, SY, 12, SH);
-    g.fillRect(SX, SY + 60, SW, 12);
-    g.y = -SH;
-    this.sc.tweens.add({ targets: g, y: 0, duration: 380, delay: 500, ease: "Bounce.out" });
+    let g: Phaser.GameObjects.Graphics | Phaser.GameObjects.Image;
+    if (this.tex("tv_p2_bars")) g = this.add(this.sc.add.image(SX, SY, "tv_p2_bars").setOrigin(0).setDisplaySize(SW, SH));
+    else {
+      const bars = this.add(this.sc.add.graphics());
+      bars.fillStyle(0x111827, 1);
+      for (let x = SX + 20; x < SX + SW; x += 56) bars.fillRect(x, SY, 12, SH);
+      bars.fillRect(SX, SY + 60, SW, 12);
+      g = bars;
+    }
+    g.y -= SH;
+    this.sc.tweens.add({ targets: g, y: g.y + SH, duration: 380, delay: 500, ease: "Bounce.out" });
     this.later(620, () => {
       synth.play("smash");
       this.sc.cameras.main.shake(280, 0.012);
@@ -1173,13 +1181,19 @@ export class PovDirector {
     this.clear();
     this.sceneFx = "rumble";
     const { SX, SY, SW, SH } = this.r;
-    const sky = this.add(this.sc.add.graphics());
-    sky.fillGradientStyle(0x0b1030, 0x0b1030, 0x283a6a, 0x283a6a, 1).fillRect(SX, SY, SW, SH);
-    for (let i = 0; i < 50; i++) sky.fillStyle(0xffffff, Math.random() * 0.8 + 0.2).fillRect(SX + Math.random() * SW, SY + Math.random() * SH * 0.7, 2, 2);
-    this.add(this.sc.add.circle(SX + SW - 90, SY + 70, 30, 0xf4f1d0));
-    for (let i = 0; i < 5; i++) {
-      const c = this.add(this.sc.add.ellipse(SX + Math.random() * SW, SY + 140 + i * 50, 200 + Math.random() * 120, 36, 0x3b4a70, 0.8));
-      this.sc.tweens.add({ targets: c, x: c.x - 500, duration: 3500, ease: "Linear" });
+    if (this.tex("tv_p2_sky")) {
+      // the drawn night sky, drifting past
+      const sky = this.add(this.sc.add.image(SX, SY, "tv_p2_sky").setOrigin(0).setScale((SH / 240) * 1.15));
+      this.sc.tweens.add({ targets: sky, x: SX - (sky.displayWidth - SW), duration: 3500, ease: "Linear" });
+    } else {
+      const sky = this.add(this.sc.add.graphics());
+      sky.fillGradientStyle(0x0b1030, 0x0b1030, 0x283a6a, 0x283a6a, 1).fillRect(SX, SY, SW, SH);
+      for (let i = 0; i < 50; i++) sky.fillStyle(0xffffff, Math.random() * 0.8 + 0.2).fillRect(SX + Math.random() * SW, SY + Math.random() * SH * 0.7, 2, 2);
+      this.add(this.sc.add.circle(SX + SW - 90, SY + 70, 30, 0xf4f1d0));
+      for (let i = 0; i < 5; i++) {
+        const c = this.add(this.sc.add.ellipse(SX + Math.random() * SW, SY + 140 + i * 50, 200 + Math.random() * 120, 36, 0x3b4a70, 0.8));
+        this.sc.tweens.add({ targets: c, x: c.x - 500, duration: 3500, ease: "Linear" });
+      }
     }
     const key = this.sc.textures.exists("tv_transport") ? "tv_transport" : null;
     const p = key ? this.add(this.sc.add.image(SX - 200, SY + 190, key).setScale(2.6)) : this.add(this.sc.add.text(SX - 200, SY + 190, "✈", { fontSize: "90px", color: "#555" }).setOrigin(0.5));

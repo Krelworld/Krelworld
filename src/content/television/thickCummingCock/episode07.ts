@@ -8,7 +8,24 @@ import type { TVBeat, TVEpisode } from "../../../game/systems/tv";
 // - Jenny's disclosure is dialogue only. The camera stays in the office. Nothing is shown.
 // - The 9/11 smash cut is stylised pixel art. No real footage.
 
+// Shot as a studio sitcom (see src/game/scenes/tv/Sitcom.ts): a cold open (his entrance, to applause, and his
+// first line), THEN the title sequence, then the rest of the scene.
 const COLD_OPEN: TVBeat[] = [
+  { type: "transition", mode: "fade" },
+  { type: "shot", set: "office_night", framing: "WIDE", duration: 1.2 },
+  { type: "direction", action: "INT. THICK CUMMING COCK OFFICE - NIGHT. The office is dim." },
+  { type: "prop", id: "wine", on: true },
+  { type: "blocking", character: "JENNY CUMMING", to: "left", pose: "sit" },
+  { type: "direction", action: "JENNY CUMMING sits alone in the conference room with a glass of wine." },
+  { type: "blocking", character: "CHRISTOPHER THICK", to: "enter" },
+  { type: "direction", action: "CHRISTOPHER THICK enters, loosening his tie, pleased with the billboard campaign." },
+  { type: "audience", cue: "cheer" },
+  { type: "blocking", character: "CHRISTOPHER THICK", to: "right" },
+  { type: "speaker", character: "CHRISTOPHER THICK", text: "Well, Jenny, not bad for a day's work, huh? I told you this campaign was genius. The phones have been ringing off the hook!", emotion: "smug" },
+  { type: "audience", cue: "laugh" },
+];
+
+const TITLES: TVBeat[] = [
   { type: "music", id: "tcc_theme", mode: "start" },
   { type: "titleCard", text: "THICK CUMMING COCK" },
   { type: "titleCard", text: "Episode 7: \"The Billboard Backlash\"" },
@@ -19,16 +36,6 @@ const COLD_OPEN: TVBeat[] = [
 export const EARLIER_SCENES: TVBeat[][] = [];
 
 const FINAL_SCENE: TVBeat[] = [
-  { type: "transition", mode: "fade" },
-  { type: "shot", set: "office_night", framing: "WIDE", duration: 1.2 },
-  { type: "direction", action: "INT. THICK CUMMING COCK OFFICE - NIGHT. The office is dim." },
-  { type: "prop", id: "wine", on: true },
-  { type: "blocking", character: "JENNY CUMMING", to: "left", pose: "sit" },
-  { type: "direction", action: "JENNY CUMMING sits alone in the conference room with a glass of wine." },
-  { type: "blocking", character: "CHRISTOPHER THICK", to: "enter" },
-  { type: "direction", action: "CHRISTOPHER THICK enters, loosening his tie, pleased with the billboard campaign." },
-  { type: "blocking", character: "CHRISTOPHER THICK", to: "right" },
-  { type: "speaker", character: "CHRISTOPHER THICK", text: "Well, Jenny, not bad for a day's work, huh? I told you this campaign was genius. The phones have been ringing off the hook!", emotion: "smug" },
   { type: "shot", set: "office_night", framing: "TWO-SHOT" },
   { type: "speaker", character: "JENNY CUMMING", text: "Christopher… can I talk to you about something serious?", emotion: "quiet" },
   { type: "speaker", character: "CHRISTOPHER THICK", text: "Serious? With you? Come on, Jen, don't ruin my victory lap.", emotion: "smug" },
@@ -87,5 +94,5 @@ export const TCC_EP07: TVEpisode = {
   episodeNumber: 7,
   channel: "THICK CUMMING COCK",
   contentNote: "Deliberately offensive in-world sitcom. Contains a verbal disclosure of sexual assault (not shown) and a 9/11 cliffhanger (stylised).",
-  beats: [...COLD_OPEN, ...EARLIER_SCENES.flat(), ...FINAL_SCENE, ...CREDITS],
+  beats: [...COLD_OPEN, ...TITLES, ...EARLIER_SCENES.flat(), ...FINAL_SCENE, ...CREDITS],
 };

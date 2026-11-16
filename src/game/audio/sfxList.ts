@@ -111,6 +111,8 @@ export const SFX_KEYS: string[] = [
   "thunder_2",
   "transform_sparkle",
   "trombone",
+  "tv_doof",
+  "tv_sting",
   "twist_sting",
   "whistle",
   "wonk",

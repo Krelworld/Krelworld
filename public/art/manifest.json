@@ -7292,6 +7292,75 @@
   "tv_transport": {
    "file": "tv/transport.png"
   },
+  "tv_cab_chamber": {
+   "file": "backdrops/tv_cab_chamber.png"
+  },
+  "tv_doc_boom": {
+   "file": "backdrops/tv_doc_boom.png"
+  },
+  "tv_doc_cliffs": {
+   "file": "backdrops/tv_doc_cliffs.png"
+  },
+  "tv_doc_clouds": {
+   "file": "backdrops/tv_doc_clouds.png"
+  },
+  "tv_doc_computer": {
+   "file": "backdrops/tv_doc_computer.png"
+  },
+  "tv_doc_creature": {
+   "file": "backdrops/tv_doc_creature.png"
+  },
+  "tv_doc_fruit": {
+   "file": "backdrops/tv_doc_fruit.png"
+  },
+  "tv_doc_lurk": {
+   "file": "backdrops/tv_doc_lurk.png"
+  },
+  "tv_doc_scroll": {
+   "file": "backdrops/tv_doc_scroll.png"
+  },
+  "tv_doc_village": {
+   "file": "backdrops/tv_doc_village.png"
+  },
+  "tv_ee_aerial": {
+   "file": "backdrops/tv_ee_aerial.png"
+  },
+  "tv_ee_cellar": {
+   "file": "backdrops/tv_ee_cellar.png"
+  },
+  "tv_ee_cockpit": {
+   "file": "backdrops/tv_ee_cockpit.png"
+  },
+  "tv_ee_flat": {
+   "file": "backdrops/tv_ee_flat.png"
+  },
+  "tv_ee_press": {
+   "file": "backdrops/tv_ee_press.png"
+  },
+  "tv_ee_square": {
+   "file": "backdrops/tv_ee_square.png"
+  },
+  "tv_ee_vic": {
+   "file": "backdrops/tv_ee_vic.png"
+  },
+  "tv_shop_studio": {
+   "file": "backdrops/tv_shop_studio.png"
+  },
+  "tv_tcc_audience": {
+   "file": "backdrops/tv_tcc_audience.png"
+  },
+  "tv_tcc_ext": {
+   "file": "backdrops/tv_tcc_ext.png"
+  },
+  "tv_tcc_set": {
+   "file": "backdrops/tv_tcc_set.png"
+  },
+  "tv_prod_noodles": {
+   "file": "tv/prod_noodles.png"
+  },
+  "tv_prod_treats": {
+   "file": "tv/prod_treats.png"
+  },
   "bg_papa_ginos": {
    "file": "backdrops/bg_papa_ginos.png"
   },
@@ -8507,6 +8576,81 @@
   },
   "tvface_YEMENI_OFFICER": {
    "file": "tv/face_YEMENI_OFFICER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_CHRISTOPHER_THICK": {
+   "file": "tv/face_CHRISTOPHER_THICK.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_JENNY_CUMMING": {
+   "file": "tv/face_JENNY_CUMMING.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_PHIL": {
+   "file": "tv/face_PHIL.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_PEGGY": {
+   "file": "tv/face_PEGGY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_GROZZ": {
+   "file": "tv/face_GROZZ.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_SHEZLEIGH": {
+   "file": "tv/face_SHEZLEIGH.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MINTY": {
+   "file": "tv/face_MINTY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_KRELBERT": {
+   "file": "tv/face_KRELBERT.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_RONSON": {
+   "file": "tv/face_RONSON.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_FLAT_TYRE_FROLLICK": {
+   "file": "tv/face_FLAT_TYRE_FROLLICK.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_HOST": {
+   "file": "tv/face_HOST.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_CO_HOST": {
+   "file": "tv/face_CO_HOST.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_KREZMAR": {
+   "file": "tv/face_KREZMAR.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_LIL_CRONGUS": {
+   "file": "tv/face_LIL_CRONGUS.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_KROZNO": {
+   "file": "tv/face_KROZNO.png",
    "frameWidth": 128,
    "frameHeight": 128
   },

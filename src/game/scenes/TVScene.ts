@@ -15,6 +15,7 @@ import { DUNGEONS } from "../../data/dungeons";
 import { addKrokens } from "../systems/kreddle";
 import { PovDirector } from "./TVPov";
 import { NewsDirector } from "./TVNews";
+import { makeShowDirector, type ShowDirector } from "./tv";
 
 const DUNGEON_MUSIC: Record<string, string> = Object.fromEntries(Object.values(DUNGEONS).map((d) => [d.id, d.music]));
 
@@ -89,7 +90,7 @@ export class TVScene extends Phaser.Scene {
   private keyHandler!: (e: KeyboardEvent) => void;
   private sel = 0;
   /** POV presentation, for episodes with style "pov" */
-  private pov: PovDirector | null = null;
+  private pov: PovDirector | ShowDirector | null = null;
   /** GB Krews presentation, for the story's compulsory bulletins (see TVNews.ts) */
   private news: NewsDirector | null = null;
   private newsOutro = false;
@@ -356,10 +357,12 @@ export class TVScene extends Phaser.Scene {
     this.mode = "playing";
     this.ep = e;
     this.pov?.destroy();
-    this.pov = e.style === "pov" ? new PovDirector(this, { SX, SY, SW, SH }, e.beats, { setTexture: () => this.setTexture(), spriteFor: (n) => this.actorTex(n.toUpperCase()) }) : null;
+    const host = { setTexture: () => this.setTexture(), spriteFor: (n: string) => this.actorTex(n.toUpperCase()) };
     this.news?.destroy();
-    this.news = !this.pov && NewsDirector.wants(e) ? new NewsDirector(this, { SX, SY, SW, SH }, e) : null;
+    this.news = e.style !== "pov" && NewsDirector.wants(e) ? new NewsDirector(this, { SX, SY, SW, SH }, e) : null;
     this.newsOutro = false;
+    // genre presentations (sitcom, soap, documentary...) live in ./tv
+    this.pov = e.style === "pov" ? new PovDirector(this, { SX, SY, SW, SH }, e.beats, host) : this.news ? null : makeShowDirector(this, { SX, SY, SW, SH }, e, host);
     voice.prefetch(e.beats.filter((b: any) => b.type === "speaker" && b.text).map((b: any) => ({ s: b.character, t: b.text })));
     this.beat = 0;
     this.pausedPlay = false;
@@ -411,8 +414,8 @@ export class TVScene extends Phaser.Scene {
     if (b.type !== "speaker" && b.type !== "direction") this.subs.setText("");
     switch (b.type) {
       case "titleCard":
-        // the news draws its own titles (an ident, a BREAKING banner, a LIVE strap)
-        this.card.setText(this.news ? "" : displayText(b.text));
+        // the news draws its own titles (an ident, a BREAKING banner, a LIVE strap); so do the genre directors
+        this.card.setText(this.news || (this.pov && "ownsCards" in this.pov) ? "" : displayText(b.text));
         this.subs.setText("");
         break;
       case "shot":

@@ -859,6 +859,7 @@ export class NewsDirector {
   private score: { home: string; away: string; h: number; a: number; min: string } | null = null;
   private scoreBox?: Phaser.GameObjects.Container;
   private storyShotKind = "";
+  private fieldRecut?: Phaser.Time.TimerEvent;
   private fieldTurn = 0;
   private slide?: Slide;
   private transcriptText?: Phaser.GameObjects.Text;
@@ -992,6 +993,9 @@ export class NewsDirector {
   private fieldSpeak(name: string, text: string): number {
     const cast = this.scene.cast ?? [];
     const inCast = cast.some(([w]) => w === name);
+    // a line said over the two-shot cuts to the speaker's single a beat later; the next line cancels that
+    this.fieldRecut?.remove();
+    this.fieldRecut = undefined;
     if (this.scene.k4look) this.k4Line(name, text);
     if (!inCast && this.scene.singles && hasAnchor(this.sc, this.scene.anchors?.[name] ?? name)) {
       const q = (this.storyShotKind === "single" && this.find(name)) || this.fieldSingle(name);
@@ -1008,7 +1012,8 @@ export class NewsDirector {
       p = this.find(name);
       p?.say(text);
       if (this.scene.look === "hotmic") this.transcript(text);
-      this.later(1400, () => {
+      this.fieldRecut = this.later(1400, () => {
+        this.fieldRecut = undefined;
         const q = this.fieldSingle(name);
         q?.say(text, { offset: 1400 });
         this.strapFor(name);

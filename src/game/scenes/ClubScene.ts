@@ -13,14 +13,17 @@ import { synth } from "../audio/Synth";
 import { FONT, title } from "../ui/theme";
 import { dir, say } from "../../content/dsl";
 import { animateWalker, backdrop, perfCycle, playPerf } from "../gfx/HD";
-import { censorRect } from "../gfx/Censor";
+import { addCensorBar, censorRect, type Box, type CensorBar } from "../gfx/Censor";
+import { STRIP_BARS } from "../gfx/stripBars";
+import { buildClubFx, type ClubFx } from "../gfx/clubFx";
 import { bump, maxBottles } from "../systems/stats";
 import { CHARACTERS, LADS } from "../../data/characters";
 import { TOUCH } from "../ui/TouchControls";
 import { SANMIK_SONGS } from "./VenueScene";
 
 /**
- * THE WONKY POLE: a cabaret club. Dancers dance (costumes on), the lads leer, and you can call a
+ * THE WONKY POLE: a cabaret club. Dancers dance round the pole and, the more you tip, take it all off (a smooth
+ * Barbie-doll body underneath, censor bars over it anyway). The lads leer, and you can call a
  * WONK-OFF. The dancer goes on her break, everyone competes behind a very large censor bar,
  * everyone krezzes, and Big Derek throws you all out.
  */
@@ -29,6 +32,34 @@ const DANCERS = [
   { id: "DESTINY", tex: "spr_TV_DANCER1" },
   { id: "CRYSTAL", tex: "spr_TV_DANCER2" },
 ];
+
+/** The stage: where the pole stands, and the floor the money lands on. */
+const POLE_X = 470;
+const STAGE_FLOOR = 405;
+
+/**
+ * The striptease. Each dancer's sheet has a 9-frame pole routine per stage: costume (16-24), bikini (32-40) and the
+ * doll (48-56: a smooth featureless body, no nipples or anything else drawn, and censor bars over it all the same,
+ * per frame from STRIP_BARS). Every TIPS_PER_STAGE tips she takes the next lot off and flings it into the crowd.
+ */
+const STRIP_FRAMES = [16, 32, 48].map((s) => Array.from({ length: 9 }, (_, i) => s + i));
+const TIPS_PER_STAGE = 2;
+const GARMENTS: Record<string, string[][]> = {
+  spr_TV_DANCER1: [["club_garm1_0"], ["club_garm1_top", "club_garm1_bot"]],
+  spr_TV_DANCER2: [["club_garm2_0"], ["club_garm2_top", "club_garm2_bot"]],
+};
+/** For a nude frame with no entry of its own (shouldn't happen): each bar's box over every frame of the routine. */
+const BAR_UNION: Record<string, Box[]> = Object.fromEntries(
+  Object.entries(STRIP_BARS).map(([k, fr]) => {
+    const all = Object.values(fr);
+    return [k, [0, 1].map((i) => [Math.min(...all.map((b) => b[i][0])), Math.min(...all.map((b) => b[i][1])), Math.max(...all.map((b) => b[i][2])), Math.max(...all.map((b) => b[i][3]))] as Box)];
+  }),
+);
+const STRIP_TOSS = [
+  ["Ooh, it's warm in here.", "Feathers off, lads.", "Catch!"],
+  ["Right. That's your lot.", "Don't get excited, it's all bars.", "Ta-daaa."],
+];
+const CATCH = ["MINE!", "I CAUGHT IT. SHE'S MINE.", "It's warm.", "I'm keeping this.", "Legally binding.", "Got it!"];
 
 /** Alistair Swamp, most nights: hovering by the stage, messaging the dancer to her face. */
 const ALLY_LINES = ["hi", "hey", "u there?", "hello?", "hiya", "hey x", "hi x", "u up?", "hey hey", "??", "hello???", "wyd", "hi again", "hey. it's me", "did u get my last one", "u around?", "hey stranger", "ok", "hi", "hey", "u there?", "helloooo", "hi hi", "hey :)", "?"];
@@ -108,7 +139,6 @@ export class ClubScene extends Phaser.Scene {
   private allyNext = 0;
   private nextSwap = 0;
   private onBreak = false;
-  private spots: Phaser.GameObjects.Arc[] = [];
   /** SanMik & SanChz, when they're the live act tonight. */
   private band: { spr: Phaser.GameObjects.Sprite; x: number; name: "SANMIK" | "SANCHZ" }[] = [];
   /** Playing as Mikey: you ARE the act (SanMik). The song plays, the spotlight follows you, and you can still walk about. */
@@ -128,6 +158,15 @@ export class ClubScene extends Phaser.Scene {
   private angry = false;
   private dancerDown = false;
   private musicStopped = false;
+  // the strip
+  private stripStage = 0;
+  private stripTips = 0;
+  private stripping = false;
+  private bars: CensorBar[] = [];
+  private pole: Phaser.GameObjects.Graphics | null = null;
+  private fx: ClubFx | null = null;
+  /** Big Derek on the door, before anyone gives him a reason. */
+  private doorman: Phaser.GameObjects.Sprite | null = null;
 
   constructor() {
     super("Club");
@@ -137,19 +176,19 @@ export class ClubScene extends Phaser.Scene {
     this.busy = false;
     this.onBreak = false;
     this.patrons = [];
-    this.spots = [];
     this.cameras.main.fadeIn(300);
     if (!backdrop(this, "bg_club", { depth: -10, dim: 0.1 })) this.add.rectangle(480, 270, 960, 540, 0x1a0b24).setDepth(-10);
-    title(this, 480, 40, "THE WONKY POLE", 28, "#ff6bb0").setDepth(200);
-    this.add.text(480, 66, "GENTLEMEN'S CABARET · LOOK, DON'T TOUCH · NO WONKING", { fontFamily: FONT, fontSize: "11px", color: "#ffd1e8" }).setOrigin(0.5).setDepth(200);
-    for (let i = 0; i < 5; i++) {
-      const l = this.add.circle(200 + i * 140, 200, 90, [0xff2e88, 0xa855f7, 0x5ad1ff][i % 3], 0.13).setBlendMode(Phaser.BlendModes.ADD).setDepth(3);
-      this.tweens.add({ targets: l, alpha: 0.3, duration: 260 + i * 80, yoyo: true, repeat: -1 });
-      this.spots.push(l);
-    }
-    if (!this.textures.exists("bg_club")) this.add.rectangle(480, 190, 6, 200, 0xd4af37).setDepth(4);
-    // the dancer
-    this.dancer = this.add.sprite(430, 330, this.dancerTex(), 0).setScale(3).setDepth(330);
+    title(this, 480, 40, "THE WONKY POLE", 28, "#ff6bb0").setDepth(1100);
+    this.add.text(480, 66, "GENTLEMEN'S CABARET · LOOK, DON'T TOUCH · NO WONKING", { fontFamily: FONT, fontSize: "11px", color: "#ffd1e8" }).setOrigin(0.5).setDepth(1100);
+    this.dressRoom();
+    // the dancer, and her censor bars (shown once she's down to nothing)
+    this.stripStage = 0;
+    this.stripTips = 0;
+    this.stripping = false;
+    this.dancer = this.add.sprite(POLE_X, 330, this.dancerTex(), 0).setScale(3.6).setDepth(330);
+    this.bars = [0, 1].map((i) => addCensorBar(this, this.dancer, { pad: 1, box: () => this.barBox(i), rotate: true }));
+    this.events.on(Phaser.Scenes.Events.POST_UPDATE, this.followBars, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.POST_UPDATE, this.followBars, this));
     this.nextSwap = this.time.now + 35000;
     // the lads, front row
     const s = G.s;
@@ -240,7 +279,7 @@ export class ClubScene extends Phaser.Scene {
       this.tweens.add({ targets: this.spot, alpha: 0.18, yoyo: true, repeat: -1, duration: 420 });
     } else mk("SANMIK", "spr_SANMIK", "spr_MIKEY", 215, 0xb0c4ff);
     mk("SANCHZ", "spr_SANCHZ", "spr_POLSON", 650, 0xffe08a);
-    this.banner = this.add.text(480, 92, "", { fontFamily: FONT, fontSize: "12px", color: "#ffffff", backgroundColor: "#1a0b24cc", padding: { x: 8, y: 3 } }).setOrigin(0.5).setDepth(200);
+    this.banner = this.add.text(480, 92, "", { fontFamily: FONT, fontSize: "12px", color: "#ffffff", backgroundColor: "#1a0b24cc", padding: { x: 8, y: 3 } }).setOrigin(0.5).setDepth(1100);
     this.playSong(Math.floor(Math.random() * SANMIK_SONGS.length), 0.2 + Math.random() * 0.4);
     if (first) {
       s.flags.club_sanmik_seen = true;
@@ -256,6 +295,135 @@ export class ClubScene extends Phaser.Scene {
     synth.music(song.id, true, startFrac);
     this.banner?.setText(`♪ LIVE: SanMik & SanChz — "${song.title}"`);
     if (!startFrac) synth.play("cheer");
+  }
+
+  /** The room: the pole, the lighting rig, haze, the disco ball, speakers, and the regulars (bar staff, punters, Derek). */
+  private dressRoom() {
+    // the pole, ceiling to stage, brass
+    if (this.textures.exists("bg_club")) {
+      const g = this.add.graphics().setDepth(330);
+      const bottom = 386;
+      g.fillStyle(0x3a2608, 1).fillRect(POLE_X - 5, 0, 10, bottom);
+      g.fillStyle(0xb8860b, 1).fillRect(POLE_X - 4, 0, 8, bottom);
+      g.fillStyle(0xf5d061, 1).fillRect(POLE_X - 2, 0, 3, bottom);
+      g.fillStyle(0xfff7d6, 1).fillRect(POLE_X - 1, 0, 1, bottom);
+      g.fillStyle(0x3a2608, 1).fillEllipse(POLE_X, bottom, 30, 10);
+      g.fillStyle(0xd4a017, 1).fillEllipse(POLE_X, bottom - 1, 26, 7);
+      this.pole = g;
+    } else {
+      this.pole = null;
+      this.add.rectangle(480, 190, 6, 200, 0xd4af37).setDepth(4);
+    }
+    this.fx = buildClubFx(this, { discoX: 640, discoY: 40, speakers: [[178, 352], [770, 352]] });
+    const loop = (key: string, n: number, fps: number) => {
+      const k = `${key}_loop`;
+      if (!this.anims.exists(k)) this.anims.create({ key: k, frames: this.anims.generateFrameNumbers(key, { start: 0, end: n - 1 }), frameRate: fps, repeat: -1, yoyo: true });
+      return k;
+    };
+    const extra = (key: string, x: number, y: number, scale: number, n: number, fps: number) => {
+      if (!this.textures.exists(key)) return null;
+      const spr = this.add.sprite(x, y, key, 0).setScale(scale).setDepth(y);
+      spr.play({ key: loop(key, n, fps), startFrame: Math.floor(Math.random() * n) });
+      return spr;
+    };
+    // behind the bar, cut off at the counter
+    extra("club_bartender", 862, 204, 1.6, 9, 9)?.setCrop(0, 0, 64, 40).setDepth(200);
+    // a regular on a bar stool, and a stag do in the booths
+    extra("club_punter", 722, 290, 1.4, 9, 6);
+    extra("club_stag", 112, 300, 1.5, 9, 8);
+    extra("club_waitress", 330, 292, 1.45, 5, 4)?.setFlipX(true);
+    // Big Derek, on the door
+    this.doorman = this.textures.exists("club_bouncer") ? this.add.sprite(916, 500, "club_bouncer", 0).setScale(1.6).setDepth(500) : null;
+  }
+
+  /** The censor bar box for this frame of the doll routine (null: she's still got something on). */
+  private barBox(i: number): Box | null {
+    if (this.stripStage < 2 || !this.canStrip()) return null;
+    const key = this.dancer.texture.key;
+    const fr = STRIP_BARS[key]?.[Number(this.dancer.frame.name)];
+    return fr?.[i] ?? BAR_UNION[key]?.[i] ?? null;
+  }
+
+  /** After everything has moved this frame (routine, spins, tweens): the bars go back over her. */
+  private followBars() {
+    if (!this.dancer?.active) return;
+    for (const b of this.bars) {
+      b.follow();
+      b.obj.setDepth(this.dancer.depth + 0.5);
+    }
+  }
+
+  /** Has this dancer's sheet got the strip routine? */
+  private canStrip() {
+    const key = this.dancer.texture.key;
+    return !!STRIP_BARS[key] && this.dancer.texture.frameTotal > 57;
+  }
+
+  /** Her routine for the stage she's at (or the old dance loop, for art without the strip). */
+  private danceFrame(time: number) {
+    if (!this.canStrip()) return playPerf(this.dancer, "dance", time, 9);
+    const cyc = STRIP_FRAMES[this.stripStage];
+    this.dancer.setFrame(cyc[Math.floor((time / 1000) * 9) % cyc.length]);
+    return true;
+  }
+
+  /** The next lot comes off: a spin round the pole, and it goes flying into the front row. */
+  private stripNext() {
+    const s = G.s;
+    const from = this.stripStage;
+    const name = this.dancerName();
+    this.stripping = true;
+    synth.play("cheer");
+    const lines = STRIP_TOSS[from];
+    this.bubble(this.dancer, lines[Math.floor(Math.random() * lines.length)], 1600, "#ffd1e8");
+    this.tweens.add({ targets: this.dancer, angle: 360, duration: 700, ease: "Sine.inOut", onComplete: () => this.dancer.setAngle(0) });
+    this.time.delayedCall(350, () => {
+      this.stripStage = from + 1;
+      for (const k of GARMENTS[this.dancer.texture.key]?.[from] ?? []) this.flingGarment(k);
+      this.leer(3);
+    });
+    this.time.delayedCall(900, () => {
+      this.stripping = false;
+      const flag = from === 0 ? "club_strip_seen" : "club_doll_seen";
+      if (s.flags[flag] || this.busy) return;
+      s.flags[flag] = true;
+      void this.talk([
+        from === 0
+          ? dir(`${name} peels the costume off one sparkly bit at a time and flings it into the front row. Somebody catches it with his face. He's keeping it.`)
+          : dir(`${name} goes all the way. Underneath she's as smooth and featureless as a Barbie doll. Management insisted on the censor bars anyway. The front row is devastated and delighted in equal measure.`),
+      ]);
+    });
+  }
+
+  /** A bit of costume, thrown. It lands on whoever's nearest, who now believes she's his. */
+  private flingGarment(key: string) {
+    if (!this.textures.exists(key)) return;
+    const up = this.patrons.filter((p) => !this.ko.has(p.spr) && p.spr.active);
+    const p = up.length ? up[Math.floor(Math.random() * up.length)] : null;
+    const x0 = this.dancer.x;
+    const y0 = this.dancer.y - 8;
+    const tx = p ? p.spr.x : x0 + (Math.random() - 0.5) * 300;
+    const ty = p ? p.spr.y - 30 : STAGE_FLOOR + 60;
+    const g = this.add.image(x0, y0, key).setScale(1.5).setDepth(1200);
+    const spin = (Math.random() < 0.5 ? -1 : 1) * 540;
+    const arc = 110 + Math.random() * 60;
+    this.tweens.addCounter({
+      from: 0,
+      to: 1,
+      duration: 850 + Math.random() * 250,
+      onUpdate: (tw) => {
+        const v = tw.getValue() ?? 0;
+        g.setPosition(Phaser.Math.Linear(x0, tx, v), Phaser.Math.Linear(y0, ty, v) - Math.sin(v * Math.PI) * arc).setAngle(spin * v);
+      },
+      onComplete: () => {
+        g.setAngle((Math.random() - 0.5) * 30);
+        if (p?.spr.active) {
+          g.setDepth(p.spr.depth + 2);
+          this.bubble(p.spr, CATCH[Math.floor(Math.random() * CATCH.length)], 1500, "#fff7c2");
+        }
+        this.tweens.add({ targets: g, alpha: 0, delay: 4500, duration: 700, onComplete: () => g.destroy() });
+      },
+    });
   }
 
   private dancerTex() {
@@ -327,7 +495,7 @@ export class ClubScene extends Phaser.Scene {
   private updateAlly(time: number) {
     const a = this.ally;
     if (!a?.active || this.ko.has(a)) return;
-    const tx = this.onBreak || this.dancerDown ? 840 : Phaser.Math.Clamp(this.dancer.x + 40, 180, 780);
+    const tx = this.onBreak || this.dancerDown ? 840 : Phaser.Math.Clamp(this.dancer.x + 60, 180, 780);
     const ty = this.onBreak || this.dancerDown ? 370 : 400;
     const dx = tx - a.x;
     const dy = ty - a.y;
@@ -360,17 +528,22 @@ export class ClubScene extends Phaser.Scene {
 
   update(time: number, delta: number) {
     const dt = Math.min(delta, 50);
+    this.fx?.update(time);
+    if (this.doorman?.active) this.doorman.setFrame(Math.floor(time / 900) % 2);
     // the routine
     if (!this.onBreak && !this.dancerDown) {
       const t = time / 1000;
       // the real routine when the art has it; otherwise the old hip-sway wobble
-      const real = playPerf(this.dancer, "dance", time, 9);
-      this.dancer.x = 430 + Math.sin(t * 1.3) * (real ? 45 : 60);
+      const real = this.danceFrame(time);
+      // round the pole: in front of it on the way one way, behind it on the way back
+      const swing = t * 1.3;
+      this.dancer.x = POLE_X + Math.sin(swing) * (real ? 40 : 60);
       this.dancer.y = real ? 330 : 330 - Math.abs(Math.sin(t * 3.2)) * 8;
+      if (this.pole) this.dancer.setDepth(Math.cos(swing) > 0 ? 332 : 328);
       // turning to face each side now and then
       if (!real && !this.tweens.isTweening(this.dancer)) this.dancer.setAngle(Math.sin(t * 6.3) * 9);
       this.dancer.setFlipX(Math.floor(t / 1.9) % 2 === 1);
-      if (Math.random() < 0.004) this.tweens.add({ targets: this.dancer, angle: 360, duration: 500, onComplete: () => this.dancer.setAngle(0) });
+      if (Math.random() < 0.004 && !this.stripping) this.tweens.add({ targets: this.dancer, angle: 360, duration: 500, onComplete: () => this.dancer.setAngle(0) });
       if (time > this.nextSwap && !this.busy) this.swapDancer();
     }
     // the band
@@ -431,7 +604,7 @@ export class ClubScene extends Phaser.Scene {
         this.tweens.add({ targets: n, y: n.y - 40, x: n.x + (Math.random() - 0.5) * 30, alpha: 0, duration: 1200, onComplete: () => n.destroy() });
       }
     }
-    const atStage = this.me.y < 430 && Math.abs(this.me.x - 430) < 130;
+    const atStage = this.me.y < 430 && Math.abs(this.me.x - POLE_X) < 140;
     const atBar = this.me.x > 780 && this.me.y < 440;
     const atTable = this.me.x < 130 && this.me.y < 470;
     const atExit = this.me.y > 495 && Math.abs(this.me.x - 480) < 70;
@@ -609,7 +782,10 @@ export class ClubScene extends Phaser.Scene {
 
   private callDerek() {
     if (this.derek || this.busy) return;
-    const spr = this.add.sprite(1000, 470, this.textures.exists("spr_TV_BOUNCER") ? "spr_TV_BOUNCER" : "spr_FOLK1", 0).setScale(3.2).setDepth(470);
+    // off his post by the door (or in from outside if he isn't on it)
+    const post = this.doorman?.active && this.doorman.visible ? this.doorman : null;
+    post?.setVisible(false);
+    const spr = this.add.sprite(post ? post.x : 1000, post ? post.y : 470, this.textures.exists("spr_TV_BOUNCER") ? "spr_TV_BOUNCER" : "spr_FOLK1", 0).setScale(3.2).setDepth(470);
     this.derek = { spr, hits: 0, down: false, angry: this.angry };
     synth.play("door");
     synth.play("roar");
@@ -688,6 +864,8 @@ export class ClubScene extends Phaser.Scene {
     this.tweens.add({ targets: old, x: -60, duration: 900 });
     this.time.delayedCall(900, () => {
       this.dancerIdx++;
+      this.stripStage = 0;
+      this.stripTips = 0;
       old.setTexture(this.dancerTex(), 0).setX(1020);
       synth.play("cheer");
       this.leer(3);
@@ -704,7 +882,16 @@ export class ClubScene extends Phaser.Scene {
     s.coins -= 5;
     bump(s, "club_tips");
     synth.play("coin");
-    this.tweens.add({ targets: this.dancer, angle: 360, duration: 450, onComplete: () => this.dancer.setAngle(0) });
+    this.fx?.rainMoney(this.dancer.x, STAGE_FLOOR);
+    // she's not going anywhere while the money's coming in
+    this.nextSwap = Math.max(this.nextSwap, this.time.now + 25000);
+    this.stripTips++;
+    const want = Math.min(2, Math.floor(this.stripTips / TIPS_PER_STAGE));
+    if (this.canStrip() && want > this.stripStage && !this.stripping) {
+      this.stripNext();
+      return;
+    }
+    if (!this.stripping) this.tweens.add({ targets: this.dancer, angle: 360, duration: 450, onComplete: () => this.dancer.setAngle(0) });
     this.bubble(this.dancer, ["Thanks, hun.", "Aw, cheers babe.", "Ta, love."][Math.floor(Math.random() * 3)], 1600, "#ffd1e8");
     // jealousy
     this.time.delayedCall(500, () => {
@@ -782,7 +969,7 @@ export class ClubScene extends Phaser.Scene {
     // she leaves. lights down.
     this.onBreak = true;
     this.tweens.add({ targets: this.dancer, x: 1020, duration: 900 });
-    this.spots.forEach((l) => this.tweens.add({ targets: l, alpha: 0.03, duration: 600 }));
+    this.fx?.dim(true);
     if (this.band.length) this.bubble(this.performer ? this.me : this.band[0].spr, "(still playing) This one's for the wonkers.", 2200, "#e0e7ff");
     if (this.patrons.some((p) => p.id === "MIKEY")) this.bubble(this.patrons.find((p) => p.id === "MIKEY")!.spr, "Can I join the wonk-off?", 1800);
     await new Promise((r) => this.time.delayedCall(900, r));
@@ -988,6 +1175,7 @@ export class ClubScene extends Phaser.Scene {
       big.destroy();
       ui.destroy();
       // Big Derek
+      this.doorman?.setVisible(false);
       const derek = this.add.sprite(1000, 470, this.textures.exists("spr_TV_BOUNCER") ? "spr_TV_BOUNCER" : "spr_FOLK1", 0).setScale(3.2).setDepth(800);
       synth.play("door");
       await new Promise<void>((r) => this.tweens.add({ targets: derek, x: 760, duration: 500, onComplete: () => r() }));

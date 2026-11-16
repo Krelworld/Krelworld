@@ -35,14 +35,16 @@ function range(start: number) {
 const GENERIC: [number, number, number, number] = [19, 43, 45, 56];
 
 type Spr = Phaser.GameObjects.Sprite | Phaser.GameObjects.Image;
+/** A bar's box in frame pixels: x0, y0, x1, y1 (x1/y1 exclusive). */
+export type Box = [number, number, number, number];
 
 /**
  * The censor bar's box for this sprite, in the coordinates of whatever the sprite is in (scene or container).
  * `pad` grows it by that many frame pixels on each side (for jiggling sprites).
  */
-export function censorRect(spr: Spr, pad = 0) {
+export function censorRect(spr: Spr, pad = 0, box?: Box | null) {
   const art = WONK_ART[spr.texture.key];
-  let [x0, y0, x1, y1] = art?.bar ?? GENERIC;
+  let [x0, y0, x1, y1] = box ?? art?.bar ?? GENERIC;
   x0 -= pad;
   y0 -= pad;
   x1 += pad;
@@ -69,7 +71,7 @@ export interface CensorBar {
  * A black CENSORED bar that sits over this sprite's groin (per lad: see WONK_ART). Add it to the same
  * container as the sprite, after it. It follows the sprite when you call follow().
  */
-export function addCensorBar(scene: Phaser.Scene, spr: Spr, o: { pad?: number; text?: string } = {}): CensorBar {
+export function addCensorBar(scene: Phaser.Scene, spr: Spr, o: { pad?: number; text?: string; box?: () => Box | null; rotate?: boolean } = {}): CensorBar {
   const c = scene.add.container(0, 0);
   const rect = scene.add.rectangle(0, 0, 10, 10, 0x000000);
   const txt = scene.add.text(0, 0, o.text ?? "CENSORED", { fontFamily: "Impact, sans-serif", fontSize: "20px", color: "#ffffff" }).setOrigin(0.5);
@@ -77,8 +79,19 @@ export function addCensorBar(scene: Phaser.Scene, spr: Spr, o: { pad?: number; t
   let lastW = -1;
   let lastH = -1;
   const follow = () => {
-    const r = censorRect(spr, o.pad ?? 0);
+    // `box`: a bar that moves with the frame (a box per frame of the animation; null hides it)
+    const b = o.box ? o.box() : undefined;
+    c.setVisible(b !== null);
+    if (b === null) return;
+    const r = censorRect(spr, o.pad ?? 0, b);
     c.setPosition(r.x, r.y);
+    // `rotate`: swing the bar round the sprite's origin with it (a spin, a fall)
+    if (o.rotate) {
+      const a = spr.rotation;
+      const dx = r.x - spr.x;
+      const dy = r.y - spr.y;
+      c.setPosition(spr.x + dx * Math.cos(a) - dy * Math.sin(a), spr.y + dx * Math.sin(a) + dy * Math.cos(a)).setRotation(a);
+    }
     if (r.w !== lastW || r.h !== lastH) {
       lastW = r.w;
       lastH = r.h;

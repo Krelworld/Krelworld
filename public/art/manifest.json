@@ -7417,6 +7417,27 @@
   },
   "tv_wildern_crater": {
    "file": "backdrops/tv_wildern_crater.png"
+  },
+  "club_speaker": {
+   "file": "props/club_speaker.png"
+  },
+  "club_garm1_0": {
+   "file": "props/club_garm1_0.png"
+  },
+  "club_garm1_top": {
+   "file": "props/club_garm1_top.png"
+  },
+  "club_garm1_bot": {
+   "file": "props/club_garm1_bot.png"
+  },
+  "club_garm2_0": {
+   "file": "props/club_garm2_0.png"
+  },
+  "club_garm2_top": {
+   "file": "props/club_garm2_top.png"
+  },
+  "club_garm2_bot": {
+   "file": "props/club_garm2_bot.png"
   }
  },
  "sheets": {
@@ -8646,6 +8667,41 @@
    "file": "tv/press_backs.png",
    "frameWidth": 64,
    "frameHeight": 64
+  },
+  "club_bartender": {
+   "file": "chars/CLUB_BARTENDER.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "club_punter": {
+   "file": "chars/CLUB_PUNTER.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "club_stag": {
+   "file": "chars/CLUB_STAG.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "club_waitress": {
+   "file": "chars/CLUB_WAITRESS.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "club_bouncer": {
+   "file": "chars/CLUB_BOUNCER.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "club_disco": {
+   "file": "props/club_disco.png",
+   "frameWidth": 32,
+   "frameHeight": 32
+  },
+  "club_cash": {
+   "file": "props/club_cash.png",
+   "frameWidth": 32,
+   "frameHeight": 32
   }
  },
  "vfx": {

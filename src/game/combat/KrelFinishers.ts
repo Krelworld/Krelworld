@@ -873,7 +873,9 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
 
     // ------------------------------------------------------------ PIRANHA POOL (in to the neck; out as a skeleton)
     case "piranha": {
-      const neckY = top + H * 0.2;
+      // (a bit lower than the top fifth: hats and hair would otherwise take the face down with the body)
+      const NECK = 0.26;
+      const neckY = top + H * NECK;
       const tw = Math.max(W * 2.6, 90);
       const tankTop = neckY + 4;
       const tankH = floor + 12 - tankTop;
@@ -961,15 +963,15 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       }
       // out they come: a hook on a chain, up by the collar
       const hookTopY = cam.worldView.y - 20;
-      const chain = keep(sc.add.graphics().setDepth(D + 8));
-      const hook = keep(sc.add.text(tg.x, hookTopY, "⚓", { fontSize: "18px" }).setOrigin(0.5).setDepth(D + 8).setAngle(180));
+      const chain = keep(sc.add.graphics().setDepth(D + 2));
+      const hook = keep(sc.add.text(tg.x, hookTopY, "⚓", { fontSize: "18px" }).setOrigin(0.5).setDepth(D + 2).setAngle(180));
       const drawChain = () => chain.clear().lineStyle(3, 0x9ca3af, 1).lineBetween(tg.x, hookTopY - 400, tg.x, hook.y - 8);
       const chainEv = sc.time.addEvent({ delay: 16, loop: true, callback: drawChain });
       synth.play("telegraph");
-      await c.tw({ targets: hook, y: neckY - 2, duration: 600, ease: "Quad.in" });
+      await c.tw({ targets: hook, y: top + 6, duration: 600, ease: "Quad.in" });
       synth.play("smash", 0.5);
       // what comes out: their head, untouched, on a skeleton picked clean (gore), or a very nibbled person (gore off)
-      const head = part(0, 0, 1, 0.21, D + 4);
+      const head = part(0, 0, 1, NECK, D + 4);
       const fig = keep(sc.add.container(0, 0).setDepth(D + 3));
       if (c.gore) {
         body.setVisible(false);
@@ -1027,10 +1029,49 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
           f.setPosition(tg.x + fx2, top + fy2).setAlpha(1);
         }
       }
+      // the head is untouched, but the eyes are closed: find their eyes in the sprite (the darkest bits in the middle band of
+      // the face, left and right) and draw skin-coloured lids with a lash line over them
+      const lids = keep(sc.add.graphics().setDepth(D + 8));
+      if (c.gore) {
+        const fx0 = Math.round(fu(0) * c.fw);
+        const fy0 = Math.round(fv(0) * c.fh);
+        const hwPx = Math.max(1, Math.round((fu(1) - fu(0)) * c.fw));
+        const hhPx = Math.max(1, Math.round((fv(NECK) - fv(0)) * c.fh));
+        const px = (x: number, y: number) => sc.textures.getPixel(fx0 + x, fy0 + y, T.key, T.frame);
+        const lum = (col: Phaser.Display.Color | null) => (col && col.alpha > 0 ? col.red * 0.3 + col.green * 0.59 + col.blue * 0.11 : 999);
+        const eyes: { x: number; y: number }[] = [];
+        for (const [u0, u1] of [[0.18, 0.5], [0.5, 0.82]]) {
+          let best = { x: 0, y: 0, l: 999 };
+          for (let y = Math.round(hhPx * 0.3); y < Math.round(hhPx * 0.85); y++)
+            for (let x = Math.round(hwPx * u0); x < Math.round(hwPx * u1); x++) {
+              const l = lum(px(x, y));
+              if (l < best.l) best = { x, y, l };
+            }
+          if (best.l < 120) eyes.push(best);
+        }
+        // skin: the face just under the eyes (or the middle of the face if that's not skin)
+        const skinAt = (x: number, y: number) => {
+          const col = px(x, y);
+          return col && col.alpha > 0 ? col.color : 0xe0b089;
+        };
+        const s = sA;
+        const toWorld = (x: number, y: number) => ({ x: T.flip ? head.x + (hwPx * s) / 2 - (x + 0.5) * s : head.x - (hwPx * s) / 2 + (x + 0.5) * s, y: head.y - (hhPx * s) / 2 + (y + 0.5) * s });
+        const lidW = Math.max(3, hwPx * 0.14) * s;
+        const lidH = Math.max(2, hhPx * 0.07) * s;
+        for (const e of eyes) {
+          const w = toWorld(e.x, e.y);
+          const skin = skinAt(e.x, Math.min(hhPx - 1, e.y + Math.round(hhPx * 0.12)));
+          lids.fillStyle(skin, 1).fillRect(w.x - lidW / 2, w.y - lidH / 2 - 1, lidW, lidH + 2);
+          lids.lineStyle(Math.max(1, s * 0.8), 0x2a1a12, 1).lineBetween(w.x - lidW / 2, w.y + lidH * 0.15, w.x + lidW / 2, w.y + lidH * 0.15);
+        }
+      }
       // up: the head comes out first, then (gunk running off it) the rest
       const rise = Math.round(floor - tankTop + 6);
-      const lifted = [head, fig, ...(c.gore ? [] : [body, ...fish.filter((f) => f.active)])];
+      const lifted = [head, fig, lids, ...(c.gore ? [] : [body, ...fish.filter((f) => f.active)])];
       for (const o of lifted) (o as unknown as Phaser.GameObjects.Components.Depth).setDepth(D + 8);
+      // the head sits in front of the top of the ribcage, the closed lids in front of that
+      head.setDepth(D + 9);
+      lids.setDepth(D + 10);
       synth.play("splash");
       const drips = sc.time.addEvent({ delay: 90, loop: true, callback: () => {
         const d = keep(sc.add.circle(tg.x + (Math.random() - 0.5) * W * 0.5, tankTop - 2, 2, c.gore ? 0x7f1d1d : 0x0ea5e9).setDepth(D + 8));
@@ -1045,7 +1086,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         ease: "Sine.inOut",
         onUpdate: () => {
           lifted.forEach((o, i) => ((o as unknown as Phaser.GameObjects.Components.Transform).y = start[i] - rise * lift.t));
-          hook.setY(neckY - 2 - rise * lift.t);
+          hook.setY(top + 6 - rise * lift.t);
         },
       } as Phaser.Types.Tweens.TweenBuilderConfig);
       drips.remove();
@@ -1056,6 +1097,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       sc.tweens.add({ targets: swing, a: 1, yoyo: true, repeat: -1, duration: 900, ease: "Sine.inOut", onUpdate: () => {
         const ox = (swing.a - 0.5) * 6;
         fig.x = ox;
+        lids.x = ox;
         head.x = hx0 + ox;
       } });
       await c.wait(700);

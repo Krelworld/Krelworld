@@ -154,6 +154,10 @@ def plan(l, c):
     """(model, text to send, settings, delivery tags) for one line."""
     vid, kind, accent, base = c
     t = l["t"].replace("*", "").strip()  # stray asterisks (chat-style corrections) trip the API
+    # how names are said (the text on screen is unchanged): e.g. Krebon is "Krebb-on"
+    for word, say_as in CAST.get("pronounce", {}).items():
+        if not word.startswith("_"):
+            t = re.sub(rf"\b{re.escape(word)}\b", say_as, t, flags=re.I)
     inline = [m for m in TAG.findall(t)]
     explicit = [m.strip() for m in (l.get("m") or "").split(",") if m.strip()]
     from_text = [] if (explicit or inline) else auto_tags(l.get("raw", t), t)

@@ -13,6 +13,7 @@ import { CHARACTERS, LADS } from "../../data/characters";
 import { synth } from "../audio/Synth";
 import { FONT, hexStr, UI } from "../ui/theme";
 import { CANON } from "../../content/archive/canonQuotes";
+import { say } from "../../content/dsl";
 
 interface Seat {
   id: string;
@@ -62,9 +63,10 @@ export class TownMeetingScene extends Phaser.Scene {
     this.tweens.add({ targets: card, alpha: 0, delay: 1600, duration: 500, onComplete: () => card.destroy() });
 
     const box = new DialogueBox(this, 1000, 0.12);
+    const beats = this.withSanmikMoment(m);
     this.time.delayedCall(1900, () => {
       box
-        .play(m.beats, {
+        .play(beats, {
           historical: m.historical,
           onSpeaker: (sp) => this.highlight(sp),
           onLine: (l) => {
@@ -402,7 +404,51 @@ export class TownMeetingScene extends Phaser.Scene {
     return false;
   }
 
+  /**
+   * Now and then (not playing as Mikey yourself), Mikey announces he's off to be SanMik mid-meeting and does it,
+   * right there at the table: from then on it's SanMik in his seat (same man, in a wig).
+   */
+  private withSanmikMoment(m: MeetingScript) {
+    const beats = [...m.beats];
+    if (m.historical || G.s.player === "MIKEY" || !this.seats.MIKEY || !this.textures.exists("spr_SANMIK") || (Math.random() > 0.35 && !(window as any).__forceSanmik)) return beats;
+    // just before one of his lines, a few lines in; else somewhere in the middle
+    const his = beats.map((b, i) => [b, i] as const).filter(([b, i]) => i >= 3 && b.s === "MIKEY" && !b.dir);
+    const at = his.length ? his[Math.floor(Math.random() * his.length)][1] : Math.max(2, Math.floor(beats.length * (0.3 + Math.random() * 0.4)));
+    beats.splice(at, 0, say("MIKEY", "Hang on, time to transform into SanMik", { fx: "sanmik_transform" }));
+    return beats;
+  }
+
+  private sanmikTransform() {
+    const seat = this.seats.MIKEY;
+    if (!seat?.sprite.active) return;
+    const spr = seat.sprite;
+    synth.play("transform_sparkle");
+    this.tweens.add({
+      targets: spr,
+      scaleX: 0,
+      duration: 160,
+      yoyo: true,
+      repeat: 3,
+      onYoyo: () => {
+        spr.setTexture(spr.texture.key === "spr_SANMIK" ? "spr_MIKEY" : "spr_SANMIK", 0);
+      },
+      onComplete: () => {
+        spr.setTexture("spr_SANMIK", 0).setScale(2.4);
+        seat.plate.setText("SANMIK").setColor(hexStr(CHARACTERS.SANMIK?.color ?? 0xb0c4ff));
+      },
+    });
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2;
+      const p = this.add.text(seat.x, seat.y, "✦", { fontFamily: FONT, fontSize: "16px", color: i % 2 ? "#b0c4ff" : "#ffd23f" }).setOrigin(0.5).setDepth(seat.sprite.depth + 2);
+      this.tweens.add({ targets: p, x: seat.x + Math.cos(a) * 60, y: seat.y + Math.sin(a) * 40, alpha: 0, duration: 900, onComplete: () => p.destroy() });
+    }
+  }
+
   private fx(id: string) {
+    if (id === "sanmik_transform") {
+      this.time.delayedCall(900, () => this.sanmikTransform());
+      return;
+    }
     const W = this.scale.width;
     if (this.salem(id)) return;
     const cx = W / 2;

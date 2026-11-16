@@ -7780,6 +7780,57 @@
   },
   "tv_mt_naked": {
    "file": "tv/mt_naked.png"
+  },
+  "tv_k4_cabinet": {
+   "file": "backdrops/tv_k4_cabinet.png"
+  },
+  "tv_k4_concert": {
+   "file": "backdrops/tv_k4_concert.png"
+  },
+  "tv_k4_ruins": {
+   "file": "backdrops/tv_k4_ruins.png"
+  },
+  "tv_k4_bradford": {
+   "file": "backdrops/tv_k4_bradford.png"
+  },
+  "tv_k4_kitchen": {
+   "file": "backdrops/tv_k4_kitchen.png"
+  },
+  "tv_k4_lounge": {
+   "file": "backdrops/tv_k4_lounge.png"
+  },
+  "tv_k4_trail": {
+   "file": "backdrops/tv_k4_trail.png"
+  },
+  "tv_k4_westm": {
+   "file": "backdrops/tv_k4_westm.png"
+  },
+  "tv_k4_direct": {
+   "file": "backdrops/tv_k4_direct.png"
+  },
+  "tv_k4_office": {
+   "file": "backdrops/tv_k4_office.png"
+  },
+  "tv_k4_whitehall": {
+   "file": "backdrops/tv_k4_whitehall.png"
+  },
+  "tv_k4_wallace": {
+   "file": "tv/k4_wallace.png"
+  },
+  "tv_k4_harumpis": {
+   "file": "tv/k4_harumpis.png"
+  },
+  "tv_k4_tate_kart": {
+   "file": "tv/k4_tate_kart.png"
+  },
+  "tv_k4_boulder": {
+   "file": "tv/k4_boulder.png"
+  },
+  "tv_k4_croc": {
+   "file": "tv/k4_croc.png"
+  },
+  "tv_k4_cronster": {
+   "file": "tv/k4_cronster.png"
   }
  },
  "sheets": {
@@ -9650,6 +9701,76 @@
   "tv_mt_dance": {
    "file": "tv/mt_dance.png",
    "frameWidth": 96,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_GORDON": {
+   "file": "tv/anchor_K4_GORDON.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_MICK": {
+   "file": "tv/anchor_K4_MICK.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_LUCY": {
+   "file": "tv/anchor_K4_LUCY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_DAVE": {
+   "file": "tv/anchor_K4_DAVE.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_TONY": {
+   "file": "tv/anchor_K4_TONY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_CARMELA": {
+   "file": "tv/anchor_K4_CARMELA.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_MILITARY": {
+   "file": "tv/anchor_K4_MILITARY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_NINTENDO": {
+   "file": "tv/anchor_K4_NINTENDO.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_BUNNY": {
+   "file": "tv/anchor_K4_BUNNY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_MINISTER_M": {
+   "file": "tv/anchor_K4_MINISTER_M.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_MINISTER_F": {
+   "file": "tv/anchor_K4_MINISTER_F.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_MINISTER_Y": {
+   "file": "tv/anchor_K4_MINISTER_Y.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_EXPERT": {
+   "file": "tv/anchor_K4_EXPERT.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_K4_STARMER_THRONE": {
+   "file": "tv/anchor_K4_STARMER_THRONE.png",
+   "frameWidth": 128,
    "frameHeight": 128
   }
  },

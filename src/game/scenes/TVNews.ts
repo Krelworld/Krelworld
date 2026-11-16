@@ -5,6 +5,7 @@ import { FONT } from "../ui/theme";
 import { BRANDS, NewsChrome, calm, cameraFlash, type Rect } from "./tvnews/NewsChrome";
 import { Presenter, hasAnchor } from "./tvnews/Presenter";
 import { KREWS3_NEWS, STORY_KINDS, type StoryKind, type StoryScene, type Slide } from "./tvnews/krews3Shows";
+import { KREWS4_NEWS, K4_KINDS, type K4Kind, type K4Scene, type K4Gfx } from "./tvnews/krews4Shows";
 
 /**
  * GB Krews presentation for the story's compulsory broadcasts (Klerble's welcome and presser, the Krandall segment,
@@ -14,9 +15,9 @@ import { KREWS3_NEWS, STORY_KINDS, type StoryKind, type StoryScene, type Slide }
  * pack with flashes going off, a down-the-line split, hidden-camera footage, B-roll).
  */
 
-type Kind = "desk" | "presser" | "hall" | "footage" | "train" | StoryKind;
+type Kind = "desk" | "presser" | "hall" | "footage" | "train" | StoryKind | K4Kind;
 
-export interface SceneDef extends StoryScene {
+export interface SceneDef extends StoryScene, K4Scene {
   match: RegExp;
   kind: Kind;
   set: string;
@@ -120,6 +121,7 @@ export const NEWS_SHOWS: Record<string, NewsCfg> = {
     ],
   },
   ...KREWS3_NEWS,
+  ...KREWS4_NEWS,
 };
 
 const STRAPS: Record<string, [string, string]> = {
@@ -708,6 +710,7 @@ export class NewsDirector {
     const kind = this.scene.kind;
     const delay = /^\(long pause\)/i.test(text) ? 1100 : 0;
     let p: Presenter | null = null;
+    if (K4_KINDS.has(kind)) return this.k4Speak(name, text);
     if (STORY_KINDS.has(kind)) return this.storySpeak(name, text, n);
     if (kind === "desk") {
       if (name === "REPORTER") {
@@ -750,9 +753,10 @@ export class NewsDirector {
       return 0;
     }
     if (kind === "presser" || kind === "hall") {
-      if (name === "REPORTER") {
-        p = this.reporterInPack();
+      if (name === "REPORTER" || this.scene.askers?.includes(name)) {
+        p = this.reporterInPack(name);
         p?.say(text, { poses: ["mic"] });
+        if (this.scene.askers) this.strapFor(name);
         return 0;
       }
       const podium = kind === "hall";
@@ -774,6 +778,7 @@ export class NewsDirector {
         this.flashes(1200, 2600);
       }
       p?.say(text);
+      if (this.k4bag === this.scene) this.chrome.ots({ key: "tv_k4_cashbag" }, "The bag of money", "left", this.fxLayer);
       // "(he leaves, jingling)": off he goes when he's done
       if (/\(he leaves/i.test(text) && p) {
         const spr = p.spr;
@@ -796,6 +801,8 @@ export class NewsDirector {
   }
 
   private direction(action: string): number {
+    const k4 = this.k4Direction(action);
+    if (k4 >= 0) return k4;
     if (STORY_KINDS.has(this.scene.kind)) {
       const d = this.storyDirection(action);
       if (d >= 0) return d;
@@ -886,6 +893,7 @@ export class NewsDirector {
       this.graphic();
       return 1500;
     }
+    if (K4_KINDS.has(k)) return this.k4Shot();
     return 0;
   }
 
@@ -977,6 +985,13 @@ export class NewsDirector {
   private fieldSpeak(name: string, text: string): number {
     const cast = this.scene.cast ?? [];
     const inCast = cast.some(([w]) => w === name);
+    if (this.scene.k4look) this.k4Line(name, text);
+    if (!inCast && this.scene.singles && hasAnchor(this.sc, this.scene.anchors?.[name] ?? name)) {
+      const q = (this.storyShotKind === "single" && this.find(name)) || this.fieldSingle(name);
+      q?.say(text);
+      this.strapFor(name);
+      return 0;
+    }
     if (!inCast) {
       if (this.storyShotKind !== "wide") this.fieldWide();
       return 0;
@@ -1019,6 +1034,7 @@ export class NewsDirector {
   }
 
   private storySfx(id: string): number {
+    if (/^explode/.test(id) && this.scene.boom) return this.k4Boom();
     const { SX, SY, SW, SH } = this.r;
     const k = this.scene.kind;
     if (/^fart/.test(id) && k === "rally") {
@@ -1062,6 +1078,7 @@ export class NewsDirector {
     if (/^REPLAY$/i.test(t)) return this.replay();
     if (/^HOT MIC/i.test(t)) {
       this.hotCaption = t.toUpperCase();
+      if (this.scene.kind === "mob") this.mobHotMic();
       this.footageCaption?.setText(this.hotCaption);
       this.chrome.headline(`GB Krews exclusive · ${t}`);
       return 0;
@@ -1108,6 +1125,7 @@ export class NewsDirector {
 
   /** How a location is shot: sport (score bug, flashbulbs in the stands), secret footage, a hot mic, the breakfast sofa. */
   private look() {
+    if (this.scene.k4look) return this.k4Look();
     const { SX, SY, SW, SH } = this.r;
     const look = this.scene.look;
     if (look === "sport") {
@@ -1559,7 +1577,8 @@ export class NewsDirector {
       this.plane(g, s);
       c.add(g);
       this.sc.tweens.add({ targets: g, x: w / 2 + 30 * s, duration: 900, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
-    } else if (sl.art === "money") {
+    } else if (sl.art === "img" && sl.img) this.slideImg(c, sl.img, w, h);
+    else if (sl.art === "money") {
       this.every(110, () => {
         if (!c.active) return;
         const d = this.sc.add.text(Math.random() * w, h * 0.28, "$", { fontFamily: FONT, fontSize: `${Math.round(h * 0.12)}px`, color: "#4ade80", fontStyle: "bold" }).setOrigin(0.5);
@@ -1585,7 +1604,10 @@ export class NewsDirector {
       this.sc.tweens.add({ targets: st, x: st.x + 160, duration: 5000 + i * 300, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
     }
     this.chrome.globe(SX + SW - 70, SY + 120, 80, 0xffffff, this.stage, 0.12);
-    if (!g) return;
+    if (!g) {
+      if (this.scene.k4gfx) this.k4Graphic(this.scene.k4gfx);
+      return;
+    }
     const title = this.add(this.sc.add.text(SX + 28, SY + 44, g.title, { fontFamily: FONT, fontSize: "22px", color: "#ffffff", fontStyle: "bold" }));
     this.add(this.sc.add.rectangle(SX + 28, SY + 74, Math.min(SW - 56, title.width + 30), 4, brand.main).setOrigin(0));
     title.setX(SX - 300);
@@ -1731,5 +1753,614 @@ export class NewsDirector {
     this.fieldWide();
     for (const p of this.cast) p.say("ha ha ha ha ha ha ha ha ha ha ha ha ha", { poses: p.hasPose("laugh") ? ["laugh"] : ["rest"] });
   }
-}
 
+  // ------------------------------------------------------------------ news stories 4 (krews4.ts)
+  // The concert and the mob, the reality-TV / reconstruction / viral-video looks, and the moments the Krelmon stories
+  // need (a brick, a bag of money, crocodiles, a boulder, a jenkem pot, a television). See tvnews/krews4Shows.ts.
+
+  /** the presser the bag of money was left in */
+  private k4bag?: SceneDef;
+  private k4rolled = false;
+  private k4tvBroken = false;
+  private k4dark = false;
+  private k4boulder?: Phaser.GameObjects.Image;
+  private k4heads?: Phaser.GameObjects.Container;
+
+  private k4Shot(): number {
+    if (this.scene.kind === "concert") {
+      this.concertShot();
+      return 900;
+    }
+    this.mobWide();
+    if (this.scene.where) this.chrome.live(this.scene.where);
+    return 900;
+  }
+
+  private k4Speak(name: string, text: string): number {
+    this.chrome.clearStrap();
+    if (this.scene.kind !== "mob") return 0;
+    if (name === "NEWSREADER") {
+      if (this.storyShotKind !== "wide") this.mobWide();
+      return 0;
+    }
+    if (this.hotCaption && !name.startsWith("CROWD")) {
+      // the voice on the hot mic, picture-in-picture over the crowd that can hear it
+      if (this.storyShotKind !== "wide") this.mobWide();
+      this.mobPip(name)?.say(text);
+      this.transcript(text);
+      return 0;
+    }
+    const p = (this.storyShotKind === "single" && this.find(name)) || this.voxShot(name);
+    p?.say(text);
+    this.strapFor(name);
+    return 0;
+  }
+
+  /** The background image of the current shot, and a point on it (fractions of the art). */
+  private k4bgPoint(u: number, v: number) {
+    const bg = this.stage.list.find((o) => o instanceof Phaser.GameObjects.Image && o.texture.key === this.scene.set) as Phaser.GameObjects.Image | undefined;
+    if (!bg) return { x: this.r.SX + this.r.SW * u, y: this.r.SY + this.r.SH * v, bg };
+    return { x: bg.x + (u - 0.5) * bg.displayWidth, y: bg.y + (v - 0.5) * bg.displayHeight, bg };
+  }
+
+  private k4tag(text: string, bg: string, color = "#111827") {
+    const { SX, SY } = this.r;
+    return this.add(this.sc.add.text(SX + 16, SY + 46, text, { fontFamily: FONT, fontSize: "14px", color, backgroundColor: bg, padding: { x: 6, y: 3 }, fontStyle: "bold" }), this.fxLayer);
+  }
+
+  private handheld(ms = 100, amt = 4) {
+    this.every(ms, () => this.stage.setPosition(this.stage.x * 0.6 + (Math.random() - 0.5) * amt, this.stage.y * 0.6 + (Math.random() - 0.5) * amt));
+  }
+
+  /** A phone held up at a gig or on a trail: REC and a running clock, grain, a shaky hand (and the app's buttons). */
+  private phoneUI(label: string, social: boolean) {
+    const { SX, SY, SW, SH } = this.r;
+    this.grain(70);
+    const rec = this.add(this.sc.add.circle(SX + SW - 92, SY + 58, 7, 0xff2020), this.fxLayer);
+    this.sc.tweens.add({ targets: rec, alpha: 0, duration: 500, yoyo: true, repeat: -1 });
+    const ts = this.add(this.sc.add.text(SX + SW - 80, SY + 49, "", { fontFamily: "monospace", fontSize: "16px", color: "#ffffff" }), this.fxLayer);
+    let sec = 11;
+    const draw = () => ts.active && ts.setText(`0:${String(sec).padStart(2, "0")}`);
+    draw();
+    this.every(1000, () => {
+      sec = (sec + 1) % 60;
+      draw();
+    });
+    this.k4tag(label, "#facc15");
+    if (social) {
+      const icons = ["♥ 48.2K", "✎ 3,104", "↗ 9.1K"];
+      icons.forEach((t, i) =>
+        this.add(this.sc.add.text(SX + SW - 22, SY + SH * 0.36 + i * 40, t, { fontFamily: FONT, fontSize: "14px", color: "#ffffff", fontStyle: "bold", stroke: "#000000", strokeThickness: 3 }).setOrigin(1, 0), this.fxLayer),
+      );
+      this.add(this.sc.add.text(SX + 16, SY + SH * 0.66, "@woah_prankz  ·  wait for it 💀", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", fontStyle: "bold", stroke: "#000000", strokeThickness: 3 }), this.fxLayer);
+    }
+    this.handheld(90, 5);
+  }
+
+  /** Heads and shoulders along the bottom of the picture, bobbing (arms up for a party). */
+  private k4crowdHeads(bottom: number, color: number, arms: boolean) {
+    const { SX, SW } = this.r;
+    const c = (this.k4heads = this.add(this.sc.add.container(0, 0)));
+    for (let i = 0; i < 13; i++) {
+      const x = SX + 6 + i * (SW / 12) + ((i * 13) % 11);
+      const y = bottom - 30 + (i % 2) * 10;
+      const h = this.sc.add.container(x, y);
+      const g = this.sc.add.graphics();
+      g.fillStyle(color, 1).fillCircle(0, 0, 18).fillEllipse(0, 44, 66, 52);
+      if (arms && i % 3 !== 1) g.fillRect(-27, -50, 7, 52).fillRect(20, -54, 7, 56);
+      h.add(g);
+      c.add(h);
+      this.sc.tweens.add({ targets: h, y: y - 6 - (i % 3) * 3, duration: 240 + (i % 4) * 60, yoyo: true, repeat: -1, ease: "Sine.easeInOut", delay: i * 50 });
+    }
+    return c;
+  }
+
+  // ---- the gig
+
+  private concertShot() {
+    this.clearShot();
+    this.storyShotKind = "wide";
+    const { SX, SY, SW, SH } = this.r;
+    const bg = this.backdrop(this.scene.set, 1.12, 0, 10);
+    this.sc.tweens.add({ targets: bg, x: bg.x - 24, duration: 8000, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    for (let i = 0; i < 4; i++) {
+      const b = this.add(this.sc.add.triangle(SX + SW * (0.2 + i * 0.2), SY, 0, 0, -40, SH * 0.7, 40, SH * 0.7, [0x4ade80, 0xfacc15, 0x4ade80, 0xa3e635][i], 0.09).setOrigin(0.5, 0).setBlendMode(Phaser.BlendModes.ADD));
+      b.setAngle(-24 + i * 14);
+      this.sc.tweens.add({ targets: b, angle: b.angle + 30, duration: 1400 + i * 300, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    }
+    // SanMik on the stage, doing the crocodile
+    if (this.sc.textures.exists("croc_SANMIK")) {
+      const s = this.add(this.sc.add.sprite(this.cx(), SY + SH * 0.67, "croc_SANMIK", 0).setOrigin(0.5, 1).setScale(2.6));
+      let f = 0;
+      this.every(150, () => s.active && s.setFrame((f = (f + 1) % 17)));
+    }
+    this.k4crowdHeads(SY + SH + 6, 0x05070d, true);
+    this.phoneUI("FAN FOOTAGE · SANMIK LIVE", false);
+  }
+
+  private crocsRelease(): number {
+    const { SX, SY, SW, SH } = this.r;
+    if (this.storyShotKind !== "wide") this.concertShot();
+    if (this.sc.textures.exists("tv_k4_croc"))
+      for (let i = 0; i < 4; i++)
+        this.later(i * 320, () => {
+          const tx = SX + SW * (0.1 + i * 0.27);
+          const c = this.add(this.sc.add.image(this.cx() + (i - 1.5) * 40, SY + SH * 0.64, "tv_k4_croc").setScale(1.1).setFlipX(i < 2));
+          // off the stage and into the crowd, then thrashing about in it
+          this.sc.tweens.add({
+            targets: c,
+            x: tx,
+            y: SY + SH * (0.58 + (i % 2) * 0.05),
+            scale: 2.6,
+            duration: 1500,
+            ease: "Quad.in",
+            onComplete: () => c.active && this.sc.tweens.add({ targets: c, x: c.x + (i < 2 ? -1 : 1) * 60, duration: 900 + i * 120, yoyo: true, repeat: -1, ease: "Sine.easeInOut", onYoyo: () => c.setFlipX(!c.flipX), onRepeat: () => c.setFlipX(!c.flipX) }),
+          });
+          this.sc.tweens.add({ targets: c, angle: { from: -5, to: 5 }, duration: 130, yoyo: true, repeat: -1 });
+          synth.play("roar");
+        });
+    if (this.k4heads) for (const h of this.k4heads.list as Phaser.GameObjects.Container[]) this.sc.tweens.add({ targets: h, x: h.x + (h.x < this.cx() ? -1 : 1) * (40 + Math.random() * 80), duration: 900, delay: 600, ease: "Quad.out" });
+    this.later(700, () => this.sc.cameras.main.shake(1200, 0.007));
+    synth.play("scream_woman");
+    return 2600;
+  }
+
+  // ---- the street crowd
+
+  private mobWide(angry = false) {
+    this.clearShot();
+    this.storyShotKind = "wide";
+    const { SX, SY, SW, SH } = this.r;
+    const bg = this.backdrop(this.scene.set, 1.1, 0, -10);
+    this.sc.tweens.add({ targets: bg, x: bg.x - 30, duration: 9000, ease: "Sine.easeInOut" });
+    const words = angry ? ["GET HIM!", "STORM IT!", "GET HIM!", "OUT!", "GET HIM!", "NO. 10!"] : this.scene.placards ?? ["YES!"];
+    for (let i = 0; i < 7; i++) {
+      const x = SX + 40 + (i * (SW - 80)) / 6 + ((i * 29) % 17) - 8;
+      const y = SY + SH - 96 - (i % 2) * 24;
+      const c = this.add(this.sc.add.container(x, y));
+      c.add(this.sc.add.rectangle(0, 22, 4, 46, 0x6b4423));
+      const light = (i % 3 === 1) !== angry;
+      c.add(this.sc.add.rectangle(0, -8, 86, 34, angry ? 0xb91c1c : light ? 0xffffff : 0x16a34a).setStrokeStyle(2, 0x111111));
+      c.add(this.sc.add.text(0, -8, words[i % words.length], { fontFamily: FONT, fontSize: "13px", color: angry || !light ? "#ffffff" : "#15803d", fontStyle: "bold" }).setOrigin(0.5));
+      c.setAngle(((i % 3) - 1) * 6);
+      this.sc.tweens.add({ targets: c, y: y - (angry ? 16 : 9), angle: c.angle + ((i % 2) * 2 - 1) * (angry ? 9 : 5), duration: (angry ? 180 : 320) + i * 37, yoyo: true, repeat: -1, ease: "Sine.easeInOut", delay: i * 60 });
+    }
+    const heads = this.k4crowdHeads(SY + SH + 4, 0x0b0b12, !angry);
+    if (angry) {
+      const red = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xdc2626, 0.1).setOrigin(0).setBlendMode(Phaser.BlendModes.ADD), this.fxLayer);
+      this.sc.tweens.add({ targets: red, fillAlpha: 0.22, duration: 300, yoyo: true, repeat: -1 });
+      // the surge towards the gates
+      this.sc.tweens.add({ targets: heads, y: -26, duration: 1800, ease: "Quad.in" });
+      this.camTo(1.12, this.cx(), SY + SH * 0.4, 2600, "Quad.in");
+      this.handheld(70, 8);
+    } else {
+      this.confetti();
+      this.handheld(120, 3);
+    }
+    if (this.hotCaption) this.mobHotMic();
+  }
+
+  /** "# HOT MIC" over the crowd: the tag, the levels and the transcript, as on the hot-mic footage. */
+  private mobHotMic() {
+    const { SX, SY, SW } = this.r;
+    const tag = this.add(this.sc.add.text(SX + 16, SY + 46, "● HOT MIC · HEARD IN WHITEHALL", { fontFamily: FONT, fontSize: "14px", color: "#ffffff", backgroundColor: "#dc2626", padding: { x: 6, y: 3 }, fontStyle: "bold" }), this.fxLayer);
+    this.sc.tweens.add({ targets: tag, alpha: 0.5, duration: 450, yoyo: true, repeat: -1 });
+    this.transcriptText = this.add(
+      this.sc.add.text(SX + 16, SY + 80, this.lastTranscript, { fontFamily: "monospace", fontSize: "15px", color: "#fde047", backgroundColor: "#000000c0", padding: { x: 8, y: 6 }, wordWrap: { width: SW - 260 } }),
+      this.fxLayer,
+    );
+    this.transcriptText.setVisible(!!this.lastTranscript);
+  }
+
+  private mobPip(name: string) {
+    const ex = this.find(name);
+    if (ex) return ex;
+    const anchor = this.scene.anchors?.[name];
+    if (!hasAnchor(this.sc, anchor ?? name)) return null;
+    const { SX, SY, SW } = this.r;
+    const w = 196;
+    const h = 150;
+    const x = SX + SW - w - 18;
+    const y = SY + 70;
+    this.add(this.sc.add.rectangle(x - 4, y - 4, w + 8, h + 8, 0xffffff).setOrigin(0), this.fxLayer);
+    const pane = this.add(this.sc.add.container(0, 0), this.fxLayer);
+    pane.setMask(this.sc.make.graphics({}).fillRect(x, y, w, h).createGeometryMask());
+    pane.add(this.sc.add.rectangle(x, y, w, h, 0x2a0a0a).setOrigin(0));
+    if (this.sc.textures.exists("tv_k4_office")) pane.add(this.sc.add.image(x + w / 2, y + h / 2, "tv_k4_office").setScale(Math.max(w / 320, h / 240) * 1.25));
+    const p = new Presenter(this.sc, name, x + w / 2, y + h + 8, 1.4, pane, anchor);
+    this.cast.push(p);
+    this.add(this.sc.add.text(x + 6, y + h - 22, "NO. 10 · LIVE AUDIO", { fontFamily: FONT, fontSize: "11px", color: "#ffffff", backgroundColor: "#dc2626", padding: { x: 4, y: 2 }, fontStyle: "bold" }), this.fxLayer);
+    return p;
+  }
+
+  // ---- the looks on a location
+
+  private k4Look() {
+    const { SX, SY, SW, SH } = this.r;
+    const l = this.scene.k4look;
+    if (l === "reality" || l === "high") {
+      this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xffb347, 0.06).setOrigin(0).setBlendMode(Phaser.BlendModes.ADD), this.fxLayer);
+      this.k4tag(l === "high" ? "KITCHEN NIGHTMARES · LATER" : "KITCHEN NIGHTMARES · CLIP", "#facc15");
+      this.handheld(100, 4);
+      if (l === "high") {
+        const h = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xff00ff, 0.12).setOrigin(0).setBlendMode(Phaser.BlendModes.ADD), this.fxLayer);
+        let k = 0;
+        this.every(170, () => h.active && h.setFillStyle([0xff00ff, 0x00ffff, 0xffff00, 0x00ff66][k++ % 4], 0.12));
+        this.sc.tweens.add({ targets: this.stage, angle: { from: -1.6, to: 1.6 }, duration: 1300, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+      }
+      return;
+    }
+    if (l === "recon") {
+      const tint = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xc8a27a, 0.32).setOrigin(0), this.fxLayer);
+      tint.setBlendMode(Phaser.BlendModes.MULTIPLY);
+      if (this.k4tvBroken) this.tvSmashed(false);
+      if (this.k4dark) this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0x000000, 0.45).setOrigin(0), this.fxLayer);
+      const vg = this.add(this.sc.add.graphics(), this.fxLayer);
+      for (let i = 0; i < 8; i++) vg.lineStyle(16, 0x000000, 0.08).strokeRect(SX + i * 8, SY + i * 8, SW - i * 16, SH - i * 16);
+      this.k4tag("RECONSTRUCTION", "#000000cc", "#ffffff");
+      return;
+    }
+    if (l === "phone") {
+      if (!this.k4rolled && this.sc.textures.exists("tv_k4_boulder")) {
+        const at = this.k4bgPoint(263 / 320, 35 / 240);
+        const b = (this.k4boulder = this.add(this.sc.add.image(at.x, at.y, "tv_k4_boulder").setScale(at.bg ? at.bg.scaleX : 2)));
+        // it sits on the art, which drifts
+        this.every(30, () => {
+          if (this.k4rolled || !b.active) return;
+          const q = this.k4bgPoint(263 / 320, 35 / 240);
+          b.setPosition(q.x, q.y);
+        });
+      }
+      this.phoneUI("VIRAL VIDEO", true);
+    }
+  }
+
+  /** A line said over a location with a k4look: the prankster's shout, big. */
+  private k4Line(name: string, text: string) {
+    if (this.scene.k4look !== "phone" || name !== "PRANKSTER") return;
+    const t = this.add(this.sc.add.text(this.cx(), this.r.SY + this.r.SH * 0.3, text, { fontFamily: FONT, fontSize: "44px", color: "#ffffff", fontStyle: "bold", stroke: "#000000", strokeThickness: 7 }).setOrigin(0.5), this.fxLayer);
+    t.setScale(0.2);
+    this.sc.tweens.add({ targets: t, scale: 1.1, duration: 260, ease: "Back.out" });
+    this.later(1800, () => t.active && this.sc.tweens.add({ targets: t, alpha: 0, duration: 300 }));
+  }
+
+  // ---- the moments
+
+  private k4Direction(a: string): number {
+    const k = this.scene.kind;
+    if (k === "presser") {
+      if (/hurls a brick/i.test(a)) return this.brickThrow();
+      if (/bag of cash/i.test(a)) return this.leaveBag();
+      if (/long pause/i.test(a) && this.k4bag === this.scene) {
+        // the empty lectern and the bag
+        const p = this.pressWide(this.mainSpeaker);
+        p?.spr.setVisible(false);
+        this.drawBag(this.cx() + 40, this.r.SY + this.r.SH * 0.63, 2.2);
+        return 1800;
+      }
+      if (/murmur/i.test(a)) {
+        this.pressWide(this.mainSpeaker);
+        return 1600;
+      }
+      return -1;
+    }
+    if (k === "concert") return /crocodiles/i.test(a) ? this.crocsRelease() : 600;
+    if (k === "mob") {
+      if (!/storm/i.test(a)) return -1;
+      this.mobWide(true);
+      synth.play("crowd_boo");
+      this.sc.cameras.main.shake(900, 0.008);
+      return 2600;
+    }
+    if (k !== "field") return -1;
+    const l = this.scene.k4look;
+    if (l === "recon") return this.reconDirection(a);
+    if (l === "phone") return /boulder/i.test(a) ? this.rollBoulder() : -1;
+    if (l === "reality" || l === "high") return this.kitchenDirection(a);
+    if (this.scene.singles || this.scene.set === "tv_k4_office") {
+      if (/fear|closes in/i.test(a)) return this.officeFear();
+      if (this.storyShotKind !== "wide") this.fieldWide();
+      return 1600;
+    }
+    return -1;
+  }
+
+  private k4Boom(): number {
+    const { SX, SY, SW, SH } = this.r;
+    const f = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xff9a3c, calm() ? 0.15 : 0.5).setOrigin(0).setBlendMode(Phaser.BlendModes.ADD), this.fxLayer);
+    this.sc.tweens.add({ targets: f, alpha: 0, duration: 600, onComplete: () => f.destroy() });
+    for (let i = 0; i < 6; i++) {
+      const s = this.add(this.sc.add.circle(SX + SW * (0.3 + Math.random() * 0.5), SY + SH * 0.45, 30 + i * 6, 0x374151, 0.5), this.fxLayer);
+      this.sc.tweens.add({ targets: s, y: s.y - 140, scale: 2.4, alpha: 0, duration: 2200 + i * 200, onComplete: () => s.destroy() });
+    }
+    this.sc.cameras.main.shake(500, 0.01);
+    return 500;
+  }
+
+  /** The Prime Minister throws a brick at the camera. */
+  private brickThrow(): number {
+    const { SX, SY, SW, SH } = this.r;
+    const main = this.mainSpeaker;
+    const p = this.find(main) ?? this.mcu(main);
+    p?.stopTalking();
+    p?.setPose("point");
+    const from = p ? { x: p.spr.x - p.spr.displayWidth * 0.2, y: p.spr.y - p.spr.displayHeight * 0.6 } : { x: this.cx(), y: SY + SH * 0.5 };
+    const b = this.add(this.sc.add.container(from.x, from.y), this.fxLayer);
+    b.add(this.sc.add.rectangle(0, 0, 22, 12, 0xb45309).setStrokeStyle(2, 0x451a03));
+    b.add(this.sc.add.rectangle(-4, 0, 1, 12, 0x78350f));
+    b.add(this.sc.add.rectangle(0, -2, 22, 1, 0x78350f));
+    synth.play("swing");
+    this.sc.tweens.add({
+      targets: b,
+      x: this.cx() + 30,
+      y: SY + SH * 0.45,
+      scale: 9,
+      angle: 540,
+      duration: 650,
+      ease: "Quad.in",
+      onComplete: () => {
+        b.destroy();
+        const f = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xffffff, calm() ? 0.3 : 0.85).setOrigin(0), this.fxLayer);
+        this.sc.tweens.add({ targets: f, alpha: 0, duration: 300, onComplete: () => f.destroy() });
+        const g = this.add(this.sc.add.graphics(), this.fxLayer);
+        const cx = this.cx() + 30;
+        const cy = SY + SH * 0.45;
+        g.lineStyle(2, 0xffffff, 0.85);
+        for (let i = 0; i < 11; i++) {
+          const a = (i / 11) * Math.PI * 2 + Math.random() * 0.3;
+          let x = cx;
+          let y = cy;
+          g.beginPath().moveTo(x, y);
+          for (let j = 0; j < 4; j++) {
+            x += Math.cos(a + (Math.random() - 0.5) * 0.6) * (30 + Math.random() * 40);
+            y += Math.sin(a + (Math.random() - 0.5) * 0.6) * (30 + Math.random() * 40);
+            g.lineTo(x, y);
+          }
+          g.strokePath();
+        }
+        this.sc.cameras.main.shake(400, 0.012);
+        this.flashStorm(6);
+        // and in he storms
+        if (p) this.later(700, () => this.sc.tweens.add({ targets: p.spr, x: p.spr.x - SW, duration: 1000, ease: "Quad.in" }));
+      },
+    });
+    return 2600;
+  }
+
+  private drawBag(x: number, y: number, s: number) {
+    if (!this.sc.textures.exists("tv_k4_cashbag")) {
+      const g = this.sc.make.graphics({}, false);
+      g.fillStyle(0x8b6b3d, 1).fillEllipse(20, 30, 38, 30).fillTriangle(10, 14, 30, 14, 20, 24);
+      g.fillStyle(0x5c4421, 1).fillRect(12, 12, 16, 4);
+      g.lineStyle(2, 0x3b2a12, 1).strokeEllipse(20, 30, 38, 30);
+      g.fillStyle(0x22c55e, 1).fillRect(26, 6, 10, 6).fillRect(6, 8, 9, 5);
+      g.generateTexture("tv_k4_cashbag", 40, 46);
+      g.destroy();
+    }
+    const b = this.add(this.sc.add.image(x, y, "tv_k4_cashbag").setOrigin(0.5, 1).setScale(s));
+    this.add(this.sc.add.text(x, y - 15 * s, "£", { fontFamily: FONT, fontSize: `${Math.round(12 * s)}px`, color: "#fde047", fontStyle: "bold" }).setOrigin(0.5));
+    return b;
+  }
+
+  /** He leaves the podium; the bag of money stays on it. */
+  private leaveBag(): number {
+    const p = this.pressWide(this.mainSpeaker);
+    const { SY, SH, SW } = this.r;
+    this.drawBag(this.cx() + 40, SY + SH * 0.63, 2.2);
+    if (p) this.later(500, () => this.sc.tweens.add({ targets: p.spr, x: p.spr.x + SW, duration: 1400, ease: "Quad.in" }));
+    this.k4bag = this.scene;
+    return 2600;
+  }
+
+  /** The kitchen: the lid comes off, the fumes, Mick against the wall, the giggling, the table going over. */
+  private kitchenDirection(a: string): number {
+    const { SX, SY, SW, SH } = this.r;
+    if (/lifts the lid|deep breath|dips his finger/i.test(a)) {
+      if (this.storyShotKind !== "wide") this.fieldWide();
+      if (/lid/i.test(a)) this.find("GORDON RAMSAY")?.setPose("retch");
+      for (let i = 0; i < 26; i++)
+        this.later(i * 90, () => {
+          const c = this.add(this.sc.add.circle(SX + SW * (0.55 + Math.random() * 0.3), SY + SH * 0.85, 10 + Math.random() * 10, [0x84cc16, 0xa3e635, 0x65a30d][i % 3], 0.4), this.fxLayer);
+          this.sc.tweens.add({ targets: c, y: c.y - 200 - Math.random() * 100, x: c.x - 60 + Math.random() * 60, scale: 3, alpha: 0, duration: 2200, onComplete: () => c.destroy() });
+        });
+      if (/lid/i.test(a)) synth.play("groan");
+      return 2000;
+    }
+    if (/pins him/i.test(a)) {
+      this.fieldWide();
+      const g = this.find("GORDON RAMSAY");
+      g?.setPose("point");
+      if (g) this.sc.tweens.add({ targets: g.spr, x: g.spr.x + 90, duration: 220, ease: "Quad.out" });
+      this.later(200, () => this.sc.cameras.main.shake(300, 0.01));
+      synth.play("punch");
+      return 1300;
+    }
+    if (/giggling/i.test(a)) {
+      if (this.storyShotKind !== "wide") this.fieldWide();
+      for (const p of this.cast) p.say("ha ha hee hee ha ha ha hee hee ha ha ha ha hee", { poses: ["rest"] });
+      synth.play("laugh");
+      return 3400;
+    }
+    if (/overturns/i.test(a)) {
+      if (this.storyShotKind !== "wide") this.fieldWide();
+      const c = this.find("CUSTOMER 2");
+      if (c) this.sc.tweens.add({ targets: c.spr, y: c.spr.y + 70, angle: 24, duration: 400, ease: "Quad.in" });
+      const f = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xffffff, calm() ? 0.2 : 0.6).setOrigin(0), this.fxLayer);
+      this.sc.tweens.add({ targets: f, alpha: 0, duration: 260, onComplete: () => f.destroy() });
+      this.sc.cameras.main.shake(600, 0.012);
+      return 1400;
+    }
+    if (this.storyShotKind !== "wide") this.fieldWide();
+    return 1300;
+  }
+
+  /** A reconstruction (the subtitles carry the directions): the brick, the television and the chicken piccata. */
+  private reconDirection(a: string): number {
+    if (this.storyShotKind !== "wide") this.fieldWide();
+    const tv = this.k4bgPoint(0.84, 0.38);
+    const hold = Math.max(2000, Math.min(4600, a.length * 36));
+    if (/glares at the screen/i.test(a)) {
+      this.camTo(1.2, tv.x, tv.y, 2600);
+      return hold;
+    }
+    if (/hurls it full force at the TV/i.test(a)) {
+      const t = this.find("TONY SOPRANO");
+      t?.setPose("brick");
+      this.later(1500, () => {
+        const from = t ? { x: t.spr.x - t.spr.displayWidth * 0.25, y: t.spr.y - t.spr.displayHeight * 0.8 } : { x: this.r.SX + 60, y: tv.y };
+        const b = this.add(this.sc.add.rectangle(from.x, from.y, 16, 9, 0xb45309).setStrokeStyle(2, 0x451a03));
+        t?.setPose("rest");
+        this.sc.tweens.add({
+          targets: b,
+          x: tv.x,
+          y: tv.y,
+          angle: 720,
+          duration: 520,
+          ease: "Quad.in",
+          onComplete: () => {
+            b.destroy();
+            this.k4tvBroken = true;
+            this.tvSmashed(true);
+          },
+        });
+      });
+      return Math.max(hold, 2600);
+    }
+    if (/room goes dark/i.test(a)) {
+      this.k4dark = true;
+      const { SX, SY, SW, SH } = this.r;
+      const d = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0x000000, 0).setOrigin(0), this.fxLayer);
+      this.sc.tweens.add({ targets: d, fillAlpha: 0.45, duration: 500 });
+      return hold;
+    }
+    if (/chicken piccata/i.test(a)) {
+      const c = this.find("CARMELA SOPRANO");
+      const t = this.find("TONY SOPRANO");
+      if (t && c) this.sc.tweens.add({ targets: t.spr, x: c.spr.x - 110, duration: 600, ease: "Quad.out" });
+      if (c)
+        this.later(700, () => {
+          this.sc.tweens.add({ targets: c.spr, y: c.spr.y + 90, angle: 28, duration: 260, ease: "Quad.in" });
+          this.later(260, () => {
+            this.sc.cameras.main.shake(400, 0.01);
+            for (let i = 0; i < 16; i++) {
+              const s = this.add(this.sc.add.circle(c.spr.x, c.spr.y - c.spr.displayHeight * 0.45, 4 + Math.random() * 6, [0xfacc15, 0xd97706, 0xfde68a][i % 3]), this.fxLayer);
+              const ang = Math.random() * Math.PI * 2;
+              this.sc.tweens.add({ targets: s, x: s.x + Math.cos(ang) * (60 + Math.random() * 90), y: s.y + Math.sin(ang) * (50 + Math.random() * 70) + 40, alpha: 0, duration: 900 + Math.random() * 400, onComplete: () => s.destroy() });
+            }
+          });
+        });
+      return Math.max(hold, 3000);
+    }
+    return hold;
+  }
+
+  /** The television, put through: a flash, the cracks and a dead screen (fresh: with sparks). */
+  private tvSmashed(fresh: boolean) {
+    const tv = this.k4bgPoint(0.84, 0.38);
+    const w = tv.bg ? tv.bg.displayWidth * 0.2 : 100;
+    const h = tv.bg ? tv.bg.displayHeight * 0.16 : 70;
+    this.add(this.sc.add.rectangle(tv.x, tv.y, w, h, 0x050505, 0.92));
+    const g = this.add(this.sc.add.graphics());
+    g.lineStyle(2, 0xd1d5db, 0.9);
+    for (let i = 0; i < 9; i++) {
+      const a = (i / 9) * Math.PI * 2;
+      g.lineBetween(tv.x, tv.y, tv.x + Math.cos(a) * w * 0.5, tv.y + Math.sin(a) * h * 0.5);
+    }
+    if (!fresh) return;
+    const f = this.add(this.sc.add.circle(tv.x, tv.y, 60, 0xffffff, calm() ? 0.3 : 0.9).setBlendMode(Phaser.BlendModes.ADD), this.fxLayer);
+    this.sc.tweens.add({ targets: f, scale: 2.5, alpha: 0, duration: 400, onComplete: () => f.destroy() });
+    for (let i = 0; i < 14; i++) {
+      const s = this.add(this.sc.add.rectangle(tv.x, tv.y, 3, 3, 0xfde047).setBlendMode(Phaser.BlendModes.ADD), this.fxLayer);
+      this.sc.tweens.add({ targets: s, x: s.x + (Math.random() - 0.5) * 160, y: s.y + Math.random() * 120 - 30, alpha: 0, duration: 700 + Math.random() * 500, onComplete: () => s.destroy() });
+    }
+    this.sc.cameras.main.shake(350, 0.01);
+  }
+
+  /** The prank: the boulder comes loose and rolls down the slope at the camera. */
+  private rollBoulder(): number {
+    const b = this.k4boulder;
+    if (!b?.active || this.k4rolled) return 1200;
+    this.k4rolled = true;
+    const { SX, SY, SH } = this.r;
+    this.sc.tweens.add({ targets: b, x: SX - 140, y: SY + SH + 160, angle: -900, scale: b.scale * 3.2, duration: 2600, ease: "Quad.in" });
+    const dust = this.every(70, () => {
+      if (!b.active) return;
+      const d = this.add(this.sc.add.circle(b.x + (Math.random() - 0.5) * 30, b.y + b.displayHeight * 0.4, 8 + Math.random() * 10, 0xc2a27a, 0.6));
+      this.sc.tweens.add({ targets: d, scale: 3, alpha: 0, y: d.y - 20, duration: 900, onComplete: () => d.destroy() });
+    });
+    this.later(2700, () => dust.remove());
+    this.later(500, () => this.sc.cameras.main.shake(2000, 0.007));
+    return 1600;
+  }
+
+  /** The mob closes in on the throne: the lights go red, the glass goes, his face falls. */
+  private officeFear(): number {
+    if (this.storyShotKind !== "wide") this.fieldWide();
+    const { SX, SY, SW, SH } = this.r;
+    const p = this.find("KEIR STARMER");
+    if (p) {
+      p.stopTalking();
+      p.baseMouth = 2;
+      p.spr.setFrame(2);
+      this.sc.tweens.add({ targets: p.spr, x: p.spr.x + 4, duration: 50, yoyo: true, repeat: -1 });
+    }
+    const red = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xdc2626, 0).setOrigin(0).setBlendMode(Phaser.BlendModes.ADD), this.fxLayer);
+    this.sc.tweens.add({ targets: red, fillAlpha: 0.28, duration: 260, yoyo: true, repeat: -1 });
+    this.later(900, () => {
+      for (let i = 0; i < 18; i++) {
+        const s = this.add(this.sc.add.triangle(SX + SW * (0.3 + Math.random() * 0.4), SY + SH * 0.3, 0, 0, 10, 4, 4, 14, 0xe0f2fe, 0.85), this.fxLayer);
+        this.sc.tweens.add({ targets: s, x: s.x + (Math.random() - 0.5) * 300, y: SY + SH + 20, angle: 360, duration: 900 + Math.random() * 600, onComplete: () => s.destroy() });
+      }
+      this.sc.cameras.main.shake(700, 0.012);
+    });
+    // and here they come
+    const heads = this.k4crowdHeads(SY + SH + 120, 0x050505, true);
+    this.sc.tweens.add({ targets: heads, y: -110, duration: 2600, ease: "Quad.out", delay: 600 });
+    this.camTo(1.15, p ? p.spr.x : this.cx(), SY + SH * 0.35, 2800);
+    synth.play("crowd_boo");
+    return 3000;
+  }
+
+  /** A full-screen graphic the story's own: the photograph GB Krews won't show. */
+  private k4Graphic(g: K4Gfx) {
+    const { SX, SY, SW, SH } = this.r;
+    const brand = BRANDS[this.cfg.brand];
+    const title = this.add(this.sc.add.text(SX + 28, SY + 44, g.title, { fontFamily: FONT, fontSize: "20px", color: "#ffffff", fontStyle: "bold", wordWrap: { width: SW - 60 } }));
+    this.add(this.sc.add.rectangle(SX + 28, SY + 72, Math.min(SW - 56, title.width + 30), 4, brand.main).setOrigin(0));
+    const card = this.add(this.sc.add.container(this.cx(), SY + SH * 0.52));
+    const pw = 300;
+    const ph = 210;
+    card.add(this.sc.add.rectangle(0, 0, pw + 20, ph + 44, 0xf8fafc).setStrokeStyle(2, 0x9ca3af));
+    // the picture, pixelated past recognition
+    const mos = this.sc.add.graphics();
+    const cols = 15;
+    const rows = 10;
+    const cw = pw / cols;
+    const chh = ph / rows;
+    const pal = [0x1f2937, 0x374151, 0x4b5563, 0x7f1d1d, 0x92400e, 0x111827, 0x6b7280];
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) mos.fillStyle(pal[(x * 7 + y * 13 + ((x * y) % 5)) % pal.length], 1).fillRect(-pw / 2 + x * cw, -ph / 2 - 12 + y * chh, cw + 0.5, chh + 0.5);
+    card.add(mos);
+    card.add(this.sc.add.rectangle(0, -12, pw, 44, 0x000000));
+    card.add(this.sc.add.text(0, -12, g.caption, { fontFamily: FONT, fontSize: "17px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5));
+    card.add(this.sc.add.text(0, ph / 2 + 8, "Downing Street · Halloween", { fontFamily: FONT, fontSize: "13px", color: "#374151", fontStyle: "italic" }).setOrigin(0.5));
+    card.setAngle(-3).setScale(0.85).setAlpha(0);
+    this.sc.tweens.add({ targets: card, scale: 1, alpha: 1, duration: 350, ease: "Back.out" });
+    this.later(1300, () => {
+      const st = this.add(this.sc.add.text(this.cx() + 100, SY + SH * 0.33, "WITHHELD", { fontFamily: FONT, fontSize: "30px", color: "#ef4444", fontStyle: "bold", stroke: "#ffffff", strokeThickness: 5 }).setOrigin(0.5).setAngle(12), this.fxLayer);
+      st.setScale(2.4).setAlpha(0);
+      this.sc.tweens.add({ targets: st, scale: 1, alpha: 1, duration: 220, ease: "Back.out" });
+      synth.play("hit");
+    });
+  }
+
+  /** A slide with a picture on it (Tate's kart), driving about the screen. */
+  private slideImg(c: Phaser.GameObjects.Container, key: string, w: number, h: number) {
+    if (!this.sc.textures.exists(key)) return;
+    const src = this.sc.textures.get(key).getSourceImage();
+    const s = (h * 0.6) / src.height;
+    const img = this.sc.add.image(w / 2, h * 0.55, key).setScale(s);
+    c.add(img);
+    this.sc.tweens.add({ targets: img, x: { from: w * 0.3, to: w * 0.7 }, duration: 1600, yoyo: true, repeat: -1, ease: "Sine.easeInOut", onYoyo: () => img.setFlipX(true), onRepeat: () => img.setFlipX(false) });
+    this.sc.tweens.add({ targets: img, y: img.y - 3, duration: 120, yoyo: true, repeat: -1 });
+  }
+}

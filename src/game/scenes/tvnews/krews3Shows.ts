@@ -27,7 +27,9 @@ export interface Slide {
   match: RegExp;
   title: string;
   sub?: string;
-  art: "logo" | "planes" | "sensor" | "club" | "money";
+  art: "logo" | "planes" | "sensor" | "club" | "money" | "img";
+  /** for art "img": a texture shown on the screen (krews4Shows.ts) */
+  img?: string;
 }
 
 /** Optional extras a scene can carry (only the story kinds use them). */

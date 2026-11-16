@@ -685,7 +685,6 @@ export class HubScene extends Phaser.Scene {
     // vending machines
     for (const [x, y] of [
       [1100, 720],
-      [1880, 600],
       [700, 1080],
       [1500, 1450],
     ]) {
@@ -805,7 +804,7 @@ export class HubScene extends Phaser.Scene {
       [1060, 650, 1500, 990],
     ];
     const onRoad = (x: number, y: number, m = 20) => ROADS.some(([x0, y0, x1, y1]) => x > x0 - m && x < x1 + m && y > y0 - m && y < y1 + m);
-    const nearDoor = (x: number, y: number) => BUILDINGS.some((b) => b.door && Math.abs(x - b.door.x) < 60 && y > b.door.y - 20 && y < b.door.y + 90);
+    const nearDoor = (x: number, y: number) => BUILDINGS.some((b) => b.door && Math.abs(x - b.door.x) < 150 && y > b.door.y - 30 && y < b.door.y + 170);
     const nearNpc = (x: number, y: number) => Object.values(NPC_SPOTS).some((p) => Math.hypot(p.x - x, p.y - y) < 50);
     const taken: { x: number; y: number; r: number }[] = [];
     const free = (x: number, y: number, r: number) => !taken.some((t) => Math.hypot(t.x - x, t.y - y) < t.r + r);
@@ -817,7 +816,7 @@ export class HubScene extends Phaser.Scene {
       return true;
     };
     // frame each building's front
-    const front = ["d_pot", "d_flowerbed", "d_neonsign", "d_crates", "d_pot", "d_fence", "d_vendingbike", "d_hedge"];
+    const front = ["d_pot", "d_flowerbed", "d_crates", "d_pot", "d_fence", "d_hedge"];
     BUILDINGS.forEach((b, i) => {
       if (!b.door) return;
       const yb = b.y + b.h / 2 + 18;
@@ -849,14 +848,12 @@ export class HubScene extends Phaser.Scene {
       ["hd_foodtruck", 2, true],
       ["hd_busstop", 3, true],
       ["hd_phonebooth", 3, true],
-      ["hd_picnic", 4, true],
       ["hd_fountain", 2, true],
       ["hd_pot", 10, false],
       ["hd_newsstand", 2, true],
       ["hd_bin", 6, false],
       ["hd_pigeon", 8, false],
       ["hd_fence", 6, true],
-      ["hd_vendingbike", 4, false],
     ];
     // street furniture lines the kerbs (on a regular spacing) rather than being dotted across the grass
     const kerbs: { x0: number; y0: number; x1: number; y1: number }[] = [];
@@ -876,7 +873,7 @@ export class HubScene extends Phaser.Scene {
         const x = horiz ? Math.round((kb.x0 + (kb.x1 - kb.x0) * t) / 90) * 90 : kb.x0;
         const y = horiz ? kb.y0 : Math.round((kb.y0 + (kb.y1 - kb.y0) * t) / 90) * 90;
         if (x < 80 || x > WORLD_W - 80 || y < 140 || y > WORLD_H - 140) continue;
-        if (this.nearBuilding(x, y, 50) || onRoad(x, y) || nearDoor(x, y) || nearNpc(x, y) || !free(x, y, 46)) continue;
+        if (this.nearBuilding(x, y, 50) || onRoad(x, y) || nearDoor(x, y) || nearNpc(x, y) || !free(x, y, 80)) continue;
         if (GATES.some((g) => Math.hypot(g.x - x, g.y - y) < 90)) continue;
         place(k, x, y, solid, 40);
         left--;

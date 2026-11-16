@@ -2290,6 +2290,7 @@ export class VignetteScene extends Phaser.Scene {
     const timers: Phaser.Time.TimerEvent[] = [];
     let skipped = false;
     const gore = G.meta.settings.gore !== false;
+    let tankIn = false;
     const clear = () => {
       this.tweens.killTweensOf(layer.list);
       layer.removeAll(true);
@@ -2663,7 +2664,8 @@ export class VignetteScene extends Phaser.Scene {
           }
         },
       });
-      const whoosh = this.time.addEvent({ delay: 220, startAt: 0, loop: true, callback: () => { if (skipped || !layer.active) return whoosh.remove(); if ((this.time.now - t0) > 7000) synth.play("swing"); } });
+      // the helicopter whoosh belongs to this scene only: it stops when the tank rolls in
+      const whoosh = this.time.addEvent({ delay: 220, startAt: 0, loop: true, callback: () => { if (skipped || !layer.active || tankIn) return whoosh.remove(); if ((this.time.now - t0) > 7000) synth.play("swing"); } });
       timers.push(ev, whoosh);
       later(7200, () => {
         const h = this.add.text(480, 90, "WHUP WHUP WHUP", { fontFamily: "Impact, sans-serif", fontSize: "50px", color: "#fde047", stroke: "#000", strokeThickness: 8 }).setOrigin(0.5).setScale(0.3);
@@ -2678,6 +2680,7 @@ export class VignetteScene extends Phaser.Scene {
     };
     // 1:10 Tank Crobley has had enough of the rest of them
     const massacre = () => {
+      tankIn = true;
       clear();
       bg("cr_park");
       jingle();

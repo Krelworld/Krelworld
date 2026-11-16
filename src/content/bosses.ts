@@ -480,7 +480,7 @@ export const BOSS_TEXT: Record<string, BossText> = {
       say("DARK JENKO", "I am a pervier version of you! A version of you who is a real man! Unlike you!", { cond: { player: "FLENKY" } }),
       say("FLENKY", "I'm the toppest. I'll fuckin burst ye.", { cond: { player: "FLENKY" } }),
       say("DARK JENKO", "You can't burst me. I'm you. I'm what you'd be if you stopped holding back. If you cuddled for as long as you WANTED to.", { cond: { player: "FLENKY" } }),
-      dir("You punch Dark Jenko once. Like the headmaster when you were four. He goes down, and dissolves into a little puff of pink smoke and chocolate coins.", { cond: { player: "FLENKY" } }),
+      dir("You punch Dark Jenko once. Like the headmaster when you were four. He staggers. He's still grinning. Finish him.", { cond: { player: "FLENKY" } }),
       dir("Behind Da Squeezing Room, a little pink door clicks open. Mollor's in there."),
     ],
     taunts: ["SWEET HUGS!", "SWEETER SQUEEZES!", "Have a token!", "Juices, please!", "COME HERE!", "SO COSY!", "LONGER! LONGER!", "NOBODY CUDDLES THE CRONSTER!"],

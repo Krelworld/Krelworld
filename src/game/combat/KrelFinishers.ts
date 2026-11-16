@@ -8,8 +8,8 @@ import type { KrelTarget } from "./Kreltality";
  * (no blood, nothing comes off: they just get a fright and keel over with stars round their head).
  */
 
-export type Elegant = "jawtrap" | "pendulum" | "ribcage" | "freeze" | "kebab" | "lasergrid" | "xray" | "decap";
-export const ELEGANT: Elegant[] = ["jawtrap", "pendulum", "ribcage", "freeze", "kebab", "lasergrid", "xray", "decap"];
+export type Elegant = "jawtrap" | "pendulum" | "ribcage" | "freeze" | "kebab" | "lasergrid" | "xray" | "decap" | "pump";
+export const ELEGANT: Elegant[] = ["jawtrap", "pendulum", "ribcage", "freeze", "kebab", "lasergrid", "xray", "decap", "pump"];
 export const ELEGANT_NAMES: Record<Elegant, string> = {
   jawtrap: "REVERSE BEAR TRAP!",
   pendulum: "THE PENDULUM!",
@@ -19,6 +19,7 @@ export const ELEGANT_NAMES: Record<Elegant, string> = {
   lasergrid: "DICED!",
   xray: "X-RAY!",
   decap: "HEAD CLEAN OFF!",
+  pump: "FILL HER UP!",
 };
 const TAME_NAMES: Record<Elegant, string> = {
   jawtrap: "SPRUNG!",
@@ -29,6 +30,7 @@ const TAME_NAMES: Record<Elegant, string> = {
   lasergrid: "SINGED!",
   xray: "X-RAY!",
   decap: "SCARED STIFF!",
+  pump: "PUMPED!",
 };
 
 type Obj = Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Transform;
@@ -578,6 +580,134 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
     }
 
     // ------------------------------------------------------------ DEEP FREEZE (Sub-Zero)
+    // ------------------------------------------------------------ FILL HER UP (a petrol pump in the gob)
+    case "pump": {
+      const mouthX = tg.x;
+      const mouthY = top + H * 0.17;
+      // the pump stands on the far side of them from you, so the hose comes in from behind
+      const away = tg.x >= c.me.x ? 1 : -1;
+      const side = -away;
+      const px = tg.x + away * (W * 0.75 + 46);
+      const pump = keep(sc.add.container(px, floor + 140).setDepth(D + 2));
+      pump.add(sc.add.rectangle(0, 0, 54, 120, 0xdc2626).setOrigin(0.5, 1).setStrokeStyle(3, 0x450a0a));
+      pump.add(sc.add.rectangle(0, -96, 40, 30, 0x111827).setStrokeStyle(2, 0x9ca3af));
+      const readout = sc.add.text(0, -96, "0.0L", { fontFamily: "monospace", fontSize: "11px", color: "#86efac", fontStyle: "bold" }).setOrigin(0.5);
+      pump.add(readout);
+      pump.add(sc.add.text(0, -58, "4-STAR", { fontFamily: "Impact, sans-serif", fontSize: "10px", color: "#fde047" }).setOrigin(0.5));
+      cam.pan(tg.x - side * W * 0.3, tg.y, 600, "Sine.easeInOut");
+      cam.zoomTo(1.8, 600);
+      synth.play("telegraph");
+      await c.tw({ targets: pump, y: floor, duration: 500, ease: "Back.out" });
+      // the hose: from the pump to the nozzle, wherever the nozzle is
+      const nozzle = keep(sc.add.container(px, floor - 70).setDepth(D + 6));
+      nozzle.add(sc.add.rectangle(0, 0, 26, 10, 0x1f2937).setStrokeStyle(2, 0x9ca3af));
+      nozzle.add(sc.add.rectangle(side * -16, 0, 14, 4, 0x9ca3af));
+      const hose = keep(sc.add.graphics().setDepth(D + 5));
+      const drawHose = () => {
+        hose.clear().lineStyle(5, 0x111111, 1);
+        const curve = new Phaser.Curves.QuadraticBezier(new Phaser.Math.Vector2(px, floor - 60), new Phaser.Math.Vector2((px + nozzle.x) / 2, floor + 10), new Phaser.Math.Vector2(nozzle.x, nozzle.y));
+        curve.draw(hose, 20);
+      };
+      const hoseEv = sc.time.addEvent({ delay: 16, loop: true, callback: drawHose });
+      let p = say("Fill her up.", "#fde047", "me");
+      await c.tw({ targets: nozzle, x: mouthX - side * (W * 0.18), y: mouthY, duration: 600, ease: "Quad.inOut" });
+      p.destroy();
+      synth.play("gulp");
+      cam.shake(120, 0.006);
+      p = say("MMMPHH!", "#fecaca");
+      cam.pan(tg.x, tg.y, 900, "Sine.easeInOut");
+      cam.zoomTo(2.3, 900);
+      // the belly: their middle, lifted off the sprite so it can swell on its own
+      const belly = part(0.04, 0.36, 0.96, 0.74, D + 3);
+      // (HD art: set scales from the target's own scale, never read back from the image)
+      const s0 = T.scale;
+      let kx = 1;
+      let ky = 1;
+      const swell = (nx: number, ny: number, cfg: Partial<Phaser.Types.Tweens.TweenBuilderConfig>) => {
+        const from: [number, number] = [s0 * kx, s0 * ky];
+        kx = nx;
+        ky = ny;
+        return scaleTo(belly, from, [s0 * nx, s0 * ny], cfg);
+      };
+      const litres = { v: 0 };
+      sc.tweens.add({ targets: litres, v: 62.4, duration: 3600, onUpdate: () => readout.setText(`${litres.v.toFixed(1)}L`) });
+      const glug = sc.time.addEvent({ delay: 220, repeat: 15, callback: () => synth.play(Math.random() < 0.5 ? "gulp" : "slurp", 0.8) });
+      const groan = sc.time.addEvent({ delay: 900, repeat: 3, callback: () => synth.play(Math.random() < 0.5 ? "groan" : "gurgle", 0.8) });
+      const tint = { k: 0 };
+      sc.tweens.add({ targets: tint, k: 1, duration: 3600, onUpdate: () => belly.setTint(lerpCol(0xffffff, 0xf87171, tint.k * 0.8)) });
+      // it swells in surges, wobbling, the skin creaking
+      for (const [k, ms] of [[1.35, 700], [1.75, 800], [2.2, 900], [2.75, 1000]] as [number, number][]) {
+        await swell(k, 1 + (k - 1) * 0.6, { duration: ms, ease: "Sine.inOut" });
+        synth.play("monitor_crack", 0.25 + k * 0.1);
+        sc.tweens.add({ targets: belly, x: { from: belly.x - 3, to: belly.x + 3 }, yoyo: true, repeat: 3, duration: 40 });
+      }
+      p.destroy();
+      glug.remove();
+      groan.remove();
+      // stretch marks, then the last creak
+      const marks = keep(sc.add.graphics().setDepth(D + 4));
+      marks.lineStyle(2, 0x7f1d1d, 0.8);
+      for (let i = 0; i < 7; i++) {
+        const a = (i / 7) * Math.PI * 2;
+        const r = W * 0.5 * kx;
+        marks.lineBetween(belly.x + Math.cos(a) * r * 0.4, belly.y + Math.sin(a) * r * 0.25, belly.x + Math.cos(a) * r * 0.75, belly.y + Math.sin(a) * r * 0.45);
+      }
+      synth.play("alarm");
+      readout.setColor("#f87171").setText("FULL");
+      p = say("…uh oh.", "#fecaca");
+      await c.wait(700);
+      p.destroy();
+      c.slow(0.3);
+      await swell(kx * 1.12, ky * 1.12, { duration: 140, ease: "Quad.in" });
+      hoseEv.remove();
+      if (c.gore) {
+        // POP: petrol, blood and everything else
+        const bx = belly.x;
+        const by = belly.y;
+        belly.setVisible(false);
+        marks.destroy();
+        body.setCrop(0, 0, c.fw, fv(0.4) * c.fh);
+        synth.play("explode", 0.6);
+        synth.play("splat");
+        synth.play("splash");
+        c.flash();
+        cam.shake(500, 0.025);
+        for (let i = 0; i < 6; i++) c.guts(bx, by, (i / 6) * Math.PI * 2 + Math.random() * 0.4, 90 + Math.random() * 80);
+        c.blood(bx, by, 60, 1.6, true);
+        c.blood(bx, by, 40, 1.2);
+        c.bones(bx, by, 4);
+        // petrol everywhere (a rainbow sheen on the floor)
+        for (let i = 0; i < 18; i++) {
+          const d = keep(sc.add.circle(bx, by, 3 + Math.random() * 4, Math.random() < 0.5 ? 0xfacc15 : 0x0ea5e9, 0.8).setDepth(D + 6));
+          toss(d, (Math.random() - 0.5) * 520, -150 - Math.random() * 320, floor - Math.random() * 8);
+        }
+        keep(sc.add.ellipse(bx, floor + 2, W * 2.2, 10, 0x7c3aed, 0.25).setDepth(D + 1));
+        toss(nozzle, side * 160, -260, floor - 6, 540, () => synth.play("smash"));
+        await c.wait(900);
+        c.slow(1);
+        card();
+        await fall(body);
+        c.blood(tg.x, floor - 4, 24, 0.7);
+        await c.wait(1600);
+      } else {
+        // gore off: one enormous burp, and down they go
+        c.slow(1);
+        await swell(1, 1, { duration: 400, ease: "Back.out" });
+        synth.play("fart_3");
+        synth.voice("grunt", 0.8, 0.6);
+        p = say("BUUUURRRP!", "#fde047");
+        cam.shake(300, 0.012);
+        toss(nozzle, side * 200, -300, floor - 6, 540, () => synth.play("smash"));
+        await c.wait(900);
+        p.destroy();
+        belly.setVisible(false);
+        card();
+        await tameKO();
+        await c.wait(800);
+      }
+      break;
+    }
+
     case "freeze": {
       cam.pan(tg.x - W * 0.2, tg.y, 600, "Sine.easeInOut");
       cam.zoomTo(1.9, 600);

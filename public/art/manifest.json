@@ -7630,6 +7630,33 @@
   },
   "p_wpn_dice": {
    "file": "props/p_wpn_dice.png"
+  },
+  "tv_bm_manor": {
+   "file": "backdrops/tv_bm_manor.png"
+  },
+  "tv_bm_table": {
+   "file": "backdrops/tv_bm_table.png"
+  },
+  "tv_bm_guests": {
+   "file": "backdrops/tv_bm_guests.png"
+  },
+  "tv_bm_doors": {
+   "file": "backdrops/tv_bm_doors.png"
+  },
+  "tv_bm_bridge": {
+   "file": "backdrops/tv_bm_bridge.png"
+  },
+  "tv_bm_night": {
+   "file": "backdrops/tv_bm_night.png"
+  },
+  "tv_bm_tablefront": {
+   "file": "tv/tv_bm_tablefront.png"
+  },
+  "tv_bm_woman": {
+   "file": "tv/tv_bm_woman.png"
+  },
+  "tv_bm_security": {
+   "file": "tv/tv_bm_security.png"
   }
  },
  "sheets": {
@@ -9301,6 +9328,41 @@
    "frameWidth": 96,
    "frameHeight": 96,
    "hd": 0.5
+  },
+  "tvface_BM_JENKO": {
+   "file": "tv/face_BM_JENKO.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_BM_RORY": {
+   "file": "tv/face_BM_RORY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_BM_RUTH": {
+   "file": "tv/face_BM_RUTH.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_BM_MOLE": {
+   "file": "tv/face_BM_MOLE.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_BM_GUEST": {
+   "file": "tv/face_BM_GUEST.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tv_bm_mole": {
+   "file": "tv/bm_mole.png",
+   "frameWidth": 96,
+   "frameHeight": 128
+  },
+  "tv_bm_pig": {
+   "file": "tv/bm_pig.png",
+   "frameWidth": 128,
+   "frameHeight": 128
   }
  },
  "vfx": {

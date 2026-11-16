@@ -32,11 +32,9 @@
     "GABOR THE GOAT": "9qCSTRFuI7LgrZiyPD7O",
     "SANJEEV": "upLV0kZGuaufHCLUWnIH",
     "CHADMORK WONKOR": "ZLWvHRnQEYoUUh8xVn1b",
-    "DRONGUS": "4svvORCb1RLn9W0eijLq"
+    "DRONGUS": "coAs1Qqll3JzfCCfewum"
   },
-  "hold": [
-    "DRONGUS"
-  ],
+  "hold": [],
   "keyword_moods": {
     "_doc": "Per-speaker moods picked by what a line says, when it has no explicit, inline or punctuation mood. First match wins.",
     "DRONGUS": [

@@ -7657,6 +7657,51 @@
   },
   "tv_bm_security": {
    "file": "tv/tv_bm_security.png"
+  },
+  "tv_anfield_pitch": {
+   "file": "backdrops/tv_anfield_pitch.png"
+  },
+  "tv_anfield_tunnel": {
+   "file": "backdrops/tv_anfield_tunnel.png"
+  },
+  "tv_breakfast_sofa": {
+   "file": "backdrops/tv_breakfast_sofa.png"
+  },
+  "tv_labour_merch": {
+   "file": "backdrops/tv_labour_merch.png"
+  },
+  "tv_labour_rally": {
+   "file": "backdrops/tv_labour_rally.png"
+  },
+  "tv_keynote": {
+   "file": "backdrops/tv_keynote.png"
+  },
+  "tv_highstreet": {
+   "file": "backdrops/tv_highstreet.png"
+  },
+  "tv_labour_press": {
+   "file": "backdrops/tv_labour_press.png"
+  },
+  "tv_no10_kitchen": {
+   "file": "backdrops/tv_no10_kitchen.png"
+  },
+  "tv_battle_bus": {
+   "file": "backdrops/tv_battle_bus.png"
+  },
+  "tv_polling_station": {
+   "file": "backdrops/tv_polling_station.png"
+  },
+  "tv_expert_study": {
+   "file": "backdrops/tv_expert_study.png"
+  },
+  "tv_labour_hq_night": {
+   "file": "backdrops/tv_labour_hq_night.png"
+  },
+  "tv_prop_tshirt": {
+   "file": "tv/prop_tshirt.png"
+  },
+  "tv_no10_door": {
+   "file": "backdrops/tv_no10_door.png"
   }
  },
  "sheets": {
@@ -9361,6 +9406,71 @@
   },
   "tv_bm_pig": {
    "file": "tv/bm_pig.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_KLOPP": {
+   "file": "tv/anchor_KLOPP.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_HUGHES": {
+   "file": "tv/anchor_HUGHES.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_SUNAK": {
+   "file": "tv/anchor_SUNAK.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_SUNAK_HOME": {
+   "file": "tv/anchor_SUNAK_HOME.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_STARMER": {
+   "file": "tv/anchor_STARMER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_STARMER_BUS": {
+   "file": "tv/anchor_STARMER_BUS.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_RAYNER": {
+   "file": "tv/anchor_RAYNER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_BREAKFAST_HOST": {
+   "file": "tv/anchor_BREAKFAST_HOST.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_EXECUTIVE": {
+   "file": "tv/anchor_EXECUTIVE.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_VOX_WOMAN": {
+   "file": "tv/anchor_VOX_WOMAN.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_VOX_MAN": {
+   "file": "tv/anchor_VOX_MAN.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_MARGARET": {
+   "file": "tv/anchor_MARGARET.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_ELAINE": {
+   "file": "tv/anchor_ELAINE.png",
    "frameWidth": 128,
    "frameHeight": 128
   }

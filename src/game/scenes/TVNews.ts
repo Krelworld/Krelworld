@@ -4,6 +4,7 @@ import { synth } from "../audio/Synth";
 import { FONT } from "../ui/theme";
 import { BRANDS, NewsChrome, calm, cameraFlash, type Rect } from "./tvnews/NewsChrome";
 import { Presenter, hasAnchor } from "./tvnews/Presenter";
+import { KREWS3_NEWS, STORY_KINDS, type StoryKind, type StoryScene, type Slide } from "./tvnews/krews3Shows";
 
 /**
  * GB Krews presentation for the story's compulsory broadcasts (Klerble's welcome and presser, the Krandall segment,
@@ -13,9 +14,9 @@ import { Presenter, hasAnchor } from "./tvnews/Presenter";
  * pack with flashes going off, a down-the-line split, hidden-camera footage, B-roll).
  */
 
-type Kind = "desk" | "presser" | "hall" | "footage" | "train";
+type Kind = "desk" | "presser" | "hall" | "footage" | "train" | StoryKind;
 
-interface SceneDef {
+export interface SceneDef extends StoryScene {
   match: RegExp;
   kind: Kind;
   set: string;
@@ -27,13 +28,15 @@ interface OtsDef {
   caption: string;
 }
 
-interface NewsCfg {
+export interface NewsCfg {
   brand: keyof typeof BRANDS;
   ticker: string[];
   scenes: SceneDef[];
   ots: OtsDef[];
   /** B-roll after the last line */
   outroBroll?: { set: string; caption: string };
+  /** this show's name straps (before the shared ones) */
+  straps?: Record<string, [string, string]>;
 }
 
 const KLER_FACE = { key: "tvanchor_PRESIDENT_KLERBLE", frame: 0, crop: [28, 4, 72, 54] as [number, number, number, number] };
@@ -116,6 +119,7 @@ export const NEWS_SHOWS: Record<string, NewsCfg> = {
       { match: /footage/i, pic: CRATER, caption: "The crater" },
     ],
   },
+  ...KREWS3_NEWS,
 };
 
 const STRAPS: Record<string, [string, string]> = {
@@ -239,8 +243,9 @@ export class NewsDirector {
   }
 
   private presenter(name: string, x: number, y: number, scale: number) {
-    if (!hasAnchor(this.sc, name)) return null;
-    const p = new Presenter(this.sc, name, x, y, scale, this.stage);
+    const anchor = this.scene.anchors?.[name];
+    if (!hasAnchor(this.sc, anchor ?? name)) return null;
+    const p = new Presenter(this.sc, name, x, y, scale, this.stage, anchor);
     this.cast.push(p);
     return p;
   }
@@ -583,12 +588,15 @@ export class NewsDirector {
         return this.direction(b.action);
       case "audience":
         if (b.cue === "gasp") {
-          if (this.scene.kind === "presser" || this.scene.kind === "hall") this.flashStorm();
+          if (this.scene.kind === "presser" || this.scene.kind === "hall" || this.scene.kind === "rally" || this.scene.kind === "keynote") this.flashStorm();
           else this.sc.cameras.main.shake(260, 0.006);
           // the pack lurches
           for (const p of this.packers) this.sc.tweens.add({ targets: p, y: p.y - 14, duration: 120, yoyo: true });
         }
+        if (b.cue === "laugh" && this.scene.look === "sofa") this.sofaLaugh();
         return 0;
+      case "sfx":
+        return this.storySfx(b.id);
       case "transition":
         if (b.mode === "smashCut") {
           const { SX, SY, SW, SH } = this.r;
@@ -634,6 +642,8 @@ export class NewsDirector {
       this.sc.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() });
       return 0;
     }
+    const story = this.storyTitle(t);
+    if (story >= 0) return story;
     this.chrome.live("");
     this.chrome.headline(t);
     return 0;
@@ -665,8 +675,9 @@ export class NewsDirector {
         this.trainFrame = 0;
         this.train();
         return 800;
+      default:
+        return this.storyShot();
     }
-    return 0;
   }
 
   /** Who carries a scene (the first speaker after the heading who isn't the reporter). */
@@ -682,7 +693,7 @@ export class NewsDirector {
   private strapFor(name: string) {
     if (this.strapped.has(name)) return;
     this.strapped.add(name);
-    const s = STRAPS[name];
+    const s = this.cfg.straps?.[name] ?? STRAPS[name];
     if (!s) return;
     const role = name === "REPORTER" && this.scene.kind === "desk" ? "Live from Krelford" : s[1];
     this.later(500, () => this.chrome.strap(s[0], role));
@@ -697,6 +708,7 @@ export class NewsDirector {
     const kind = this.scene.kind;
     const delay = /^\(long pause\)/i.test(text) ? 1100 : 0;
     let p: Presenter | null = null;
+    if (STORY_KINDS.has(kind)) return this.storySpeak(name, text, n);
     if (kind === "desk") {
       if (name === "REPORTER") {
         // down the line, then her alone on location
@@ -784,6 +796,10 @@ export class NewsDirector {
   }
 
   private direction(action: string): number {
+    if (STORY_KINDS.has(this.scene.kind)) {
+      const d = this.storyDirection(action);
+      if (d >= 0) return d;
+    }
     if (/long pause/i.test(action) && this.mainSpeaker) {
       // hold on him, saying nothing; the camera creeps in; somewhere, a cough
       const p = this.mcu(this.mainSpeaker, { podium: this.scene.kind === "hall" });
@@ -820,6 +836,900 @@ export class NewsDirector {
 
   get began() {
     return this.started;
+  }
+
+  // ------------------------------------------------------------------ news stories (krews3.ts): the story kinds
+  // field (a location with one or two people), vox (one person off-centre), rally, keynote and full-screen graphics.
+  // See tvnews/krews3Shows.ts for the shows that use them.
+
+  private score: { home: string; away: string; h: number; a: number; min: string } | null = null;
+  private scoreBox?: Phaser.GameObjects.Container;
+  private storyShotKind = "";
+  private fieldTurn = 0;
+  private slide?: Slide;
+  private transcriptText?: Phaser.GameObjects.Text;
+  private lastTranscript = "";
+  private hotCaption = "";
+  private placards: Phaser.GameObjects.Container[] = [];
+
+  private storyShot(): number {
+    const k = this.scene.kind;
+    this.storyShotKind = "";
+    this.fieldTurn = 0;
+    this.chrome.clearStrap();
+    this.lastTranscript = "";
+    this.hotCaption = "";
+    if (k === "field") {
+      this.chrome.live("");
+      this.fieldWide();
+      return 900;
+    }
+    if (k === "vox") {
+      this.chrome.live("");
+      const nx = this.nextSpeaker();
+      if (nx === "REPORTER") this.reporterPiece();
+      else if (!nx || nx === "NEWSREADER") this.voxBroll();
+      else this.voxShot(nx);
+      return 500;
+    }
+    if (k === "rally") {
+      this.rallyWide(this.mainSpeaker);
+      return 1300;
+    }
+    if (k === "keynote") {
+      this.slide = this.slide ?? this.scene.slides?.[0];
+      this.keynoteWide(this.castMain());
+      return 1300;
+    }
+    if (k === "graphic") {
+      this.chrome.live("");
+      this.graphic();
+      return 1500;
+    }
+    return 0;
+  }
+
+  private castMain() {
+    return this.scene.cast?.[0]?.[0] ?? this.mainSpeaker;
+  }
+
+  private nextSpeaker() {
+    for (let i = this.idx + 1; i < this.ep.beats.length; i++) {
+      const b = this.ep.beats[i];
+      if (b.type === "shot") break;
+      if (b.type === "speaker") return b.character.toUpperCase();
+    }
+    return "";
+  }
+
+  private storySpeak(name: string, text: string, n: number): number {
+    const k = this.scene.kind;
+    // a new line: whoever spoke before takes their name strap with them
+    this.chrome.clearStrap();
+    if (k === "graphic") return 0;
+    if (k === "field") return this.fieldSpeak(name, text);
+    if (k === "vox") {
+      if (name === "REPORTER") {
+        if (/vote labour - or/i.test(text) && this.sc.textures.exists("tv_prop_tshirt")) {
+          this.tshirt();
+          return 0;
+        }
+        const p = this.storyShotKind === "piece" ? this.find("REPORTER") : this.reporterPiece();
+        p?.say(text, { poses: ["mic", "rest"] });
+        this.strapFor(name);
+        return 0;
+      }
+      if (name === "NEWSREADER") {
+        this.voxBroll();
+        return 0;
+      }
+      const p = (this.storyShotKind === "single" && this.find(name)) || this.voxShot(name);
+      p?.say(text);
+      this.strapFor(name);
+      return 0;
+    }
+    if (k === "rally") {
+      if (n === 0) {
+        this.find(name)?.say(text);
+        this.later(1500, () => {
+          const q = this.mcu(name);
+          this.storyShotKind = "close";
+          this.flashes(900, 2000);
+          q?.say(text, { offset: 1500 });
+          this.strapFor(name);
+        });
+        return 0;
+      }
+      const p = this.storyShotKind === "close" ? this.rallyWide(name) : (this.storyShotKind = "close", this.mcu(name));
+      p?.say(text);
+      return 0;
+    }
+    if (k === "keynote") {
+      const main = this.castMain();
+      if (name !== main) {
+        const q = /\?|\.\.\.$|^sir/i.test(text);
+        const p = q ? this.reporterInPack(name) : this.reporterPiece();
+        this.storyShotKind = q ? "pack" : "piece";
+        p?.say(text, { poses: q ? ["mic"] : ["mic", "rest"] });
+        this.strapFor(name);
+        return 0;
+      }
+      const s = this.scene.slides?.find((sl) => sl.match.test(text));
+      if (s) this.slide = s;
+      if (this.storyShotKind === "wide" && !this.strapped.has(main)) {
+        // a new slide comes up behind him, then in on him
+        this.keynoteWide(main)?.say(text);
+        this.later(1700, () => {
+          this.keynoteClose(main)?.say(text, { offset: 1700 });
+          this.strapFor(main);
+        });
+        return 0;
+      }
+      const p = this.storyShotKind === "close" ? this.keynoteWide(main) : this.keynoteClose(main);
+      p?.say(text);
+      this.strapFor(main);
+      return 0;
+    }
+    return 0;
+  }
+
+  /** A field scene: the two-shot, then singles; anyone not in the scene talks over the pictures. */
+  private fieldSpeak(name: string, text: string): number {
+    const cast = this.scene.cast ?? [];
+    const inCast = cast.some(([w]) => w === name);
+    if (!inCast) {
+      if (this.storyShotKind !== "wide") this.fieldWide();
+      return 0;
+    }
+    let p: Presenter | null;
+    if (this.storyShotKind === "wide" && !this.strapped.has(name)) {
+      p = this.find(name);
+      p?.say(text);
+      if (this.scene.look === "hotmic") this.transcript(text);
+      this.later(1400, () => {
+        const q = this.fieldSingle(name);
+        q?.say(text, { offset: 1400 });
+        this.strapFor(name);
+      });
+      return 0;
+    }
+    this.fieldTurn = (this.fieldTurn + 1) % 3;
+    if (this.fieldTurn === 2 && cast.length > 1) {
+      this.fieldWide();
+      p = this.find(name);
+    } else p = this.fieldSingle(name);
+    p?.say(text);
+    if (this.scene.look === "hotmic") this.transcript(text);
+    this.strapFor(name);
+    return 0;
+  }
+
+  private storyDirection(action: string): number {
+    if (this.scene.look === "hotmic") {
+      this.transcript(`(${action})`, true);
+      return 1800;
+    }
+    if (this.scene.kind === "keynote" && /leaves/i.test(action)) {
+      const p = this.find(this.castMain());
+      if (p) this.sc.tweens.add({ targets: p.spr, x: p.spr.x + this.r.SW, duration: 1400, ease: "Quad.in" });
+      this.flashStorm(5);
+      return 1600;
+    }
+    return -1;
+  }
+
+  private storySfx(id: string): number {
+    const { SX, SY, SW, SH } = this.r;
+    const k = this.scene.kind;
+    if (/^fart/.test(id) && k === "rally") {
+      this.fartCloud();
+      return 1000;
+    }
+    if (id === "whistle" && this.scene.look === "sport") {
+      // the referee blows up: the camera jolts to him
+      const h = this.find("MARK HUGHES");
+      if (h) this.sc.tweens.add({ targets: h.spr, y: h.spr.y - 6, duration: 90, yoyo: true });
+      this.sc.cameras.main.shake(150, 0.003);
+      return 0;
+    }
+    if (id === "punch" && this.scene.look === "sport") {
+      // the penalty goes in: a flash and the Kop groans
+      const f = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xffffff, calm() ? 0.2 : 0.6).setOrigin(0), this.fxLayer);
+      this.sc.tweens.add({ targets: f, alpha: 0, duration: 300, onComplete: () => f.destroy() });
+      this.sc.cameras.main.shake(220, 0.005);
+      synth.play("crowd_boo");
+      return 700;
+    }
+    if (/^explode/.test(id) && k === "keynote") {
+      const f = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xff9a3c, calm() ? 0.15 : 0.45).setOrigin(0).setBlendMode(Phaser.BlendModes.ADD), this.fxLayer);
+      this.sc.tweens.add({ targets: f, alpha: 0, duration: 500, onComplete: () => f.destroy() });
+      this.sc.cameras.main.shake(300, 0.006);
+      return 400;
+    }
+    return 0;
+  }
+
+  /** Titles the story shows use: a score update, the replay, a hot-mic caption, a section bumper. -1: not one of ours. */
+  private storyTitle(t: string): number {
+    const sc = t.match(/^SCORE:\s*(\S+)\s+(\d+)-(\d+)\s+(\S+)\s*·\s*([\d+]+)/i);
+    if (sc) {
+      const prev = this.score;
+      this.score = { home: sc[1].toUpperCase(), away: sc[4].toUpperCase(), h: +sc[2], a: +sc[3], min: sc[5] };
+      this.scoreBug();
+      if (prev) this.scoreFlash();
+      return prev ? 1900 : 300;
+    }
+    if (/^REPLAY$/i.test(t)) return this.replay();
+    if (/^HOT MIC/i.test(t)) {
+      this.hotCaption = t.toUpperCase();
+      this.footageCaption?.setText(this.hotCaption);
+      this.chrome.headline(`GB Krews exclusive · ${t}`);
+      return 0;
+    }
+    if (/^PART [A-Z]+:|^ELECTION SPECIAL/i.test(t)) return this.partCard(t);
+    return -1;
+  }
+
+  // ---- field
+
+  private fieldWide() {
+    this.clearShot();
+    this.storyShotKind = "wide";
+    const { SX, SY, SW, SH } = this.r;
+    const look = this.scene.look;
+    const bg = this.backdrop(this.scene.set, 1.08);
+    this.sc.tweens.add({ targets: bg, x: bg.x - 28, duration: 9000, ease: "Sine.easeInOut" });
+    const cast = this.scene.cast ?? [];
+    const s = look === "sport" ? 1.75 : cast.length > 1 ? 1.95 : 2.45;
+    for (const [who, fx] of cast) this.presenter(who, SX + SW * fx, SY + SH + (look === "sport" ? -4 : 10), s);
+    if (look === "sofa") this.lights();
+    if (look === "sport") {
+      // the broadcast camera, following the play
+      this.stage.setScale(1.04).setPosition(-this.cx() * 0.04, -(SY + SH / 2) * 0.04);
+      this.sc.tweens.add({ targets: this.stage, x: this.stage.x - 18, duration: 6000, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    }
+    this.look();
+  }
+
+  private fieldSingle(name: string) {
+    this.clearShot();
+    this.storyShotKind = "single";
+    const { SY, SH } = this.r;
+    const fx = this.scene.cast?.find(([w]) => w === name)?.[1] ?? 0.5;
+    this.backdrop(this.scene.set, 1.7, (0.5 - fx) * 300, -30, true);
+    this.add(this.sc.add.rectangle(this.r.SX, SY, this.r.SW, SH, 0x000000, 0.1).setOrigin(0));
+    const x = this.cx() + (fx < 0.45 ? -50 : fx > 0.55 ? 50 : 0);
+    const p = this.presenter(name, x, SY + SH + 14, 3.0);
+    this.lights();
+    this.camTo(1.05, x, SY + 90, 8000);
+    this.look();
+    return p;
+  }
+
+  /** How a location is shot: sport (score bug, flashbulbs in the stands), secret footage, a hot mic, the breakfast sofa. */
+  private look() {
+    const { SX, SY, SW, SH } = this.r;
+    const look = this.scene.look;
+    if (look === "sport") {
+      this.scoreBug();
+      const tw = this.add(this.sc.add.graphics());
+      this.every(140, () => {
+        tw.clear();
+        for (let i = 0; i < 6; i++) tw.fillStyle(0xffffff, 0.9).fillRect(SX + Math.random() * SW, SY + SH * (0.1 + Math.random() * 0.3), 2, 2);
+      });
+      return;
+    }
+    if (look === "sofa") {
+      this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xffa94d, 0.06).setOrigin(0).setBlendMode(Phaser.BlendModes.ADD), this.fxLayer);
+      this.add(this.sc.add.text(SX + 12, SY + 12, "COURTESY: BBK BREAKFAST", { fontFamily: FONT, fontSize: "12px", color: "#ffffff", backgroundColor: "#000000aa", padding: { x: 6, y: 3 }, fontStyle: "bold" }), this.fxLayer);
+      return;
+    }
+    if (look !== "secret" && look !== "hotmic") return;
+    const hot = look === "hotmic";
+    const tint = this.add(this.sc.add.rectangle(SX, SY, SW, SH, hot ? 0x9a8a72 : 0x6b8f6b, hot ? 0.26 : 0.3).setOrigin(0), this.fxLayer);
+    tint.setBlendMode(Phaser.BlendModes.MULTIPLY);
+    this.grain(hot ? 110 : 160);
+    const vg = this.add(this.sc.add.graphics(), this.fxLayer);
+    for (let i = 0; i < 8; i++) vg.lineStyle(16, 0x000000, 0.09).strokeRect(SX + i * 8, SY + i * 8, SW - i * 16, SH - i * 16);
+    const exclusive = this.chrome.headlineNow.match(/^GB Krews exclusive · (.+)$/i)?.[1];
+    const cap = hot ? this.hotCaption || "HOT MIC" : (exclusive ?? "SECRET FOOTAGE").toUpperCase();
+    this.footageCaption = this.add(this.sc.add.text(SX + 16, SY + 46, cap, { fontFamily: FONT, fontSize: "14px", color: "#111827", backgroundColor: "#facc15", padding: { x: 6, y: 3 }, fontStyle: "bold" }), this.fxLayer);
+    if (!hot) {
+      const rec = this.add(this.sc.add.circle(SX + SW - 70, SY + 58, 7, 0xff2020), this.fxLayer);
+      this.add(this.sc.add.text(SX + SW - 58, SY + 49, "REC", { fontFamily: "monospace", fontSize: "16px", color: "#ffffff" }), this.fxLayer);
+      this.sc.tweens.add({ targets: rec, alpha: 0, duration: 500, yoyo: true, repeat: -1 });
+      this.every(90, () => this.stage.setPosition(this.stage.x * 0.6 + (Math.random() - 0.5) * 5, this.stage.y * 0.6 + (Math.random() - 0.5) * 5));
+      return;
+    }
+    // the hot mic: the tag, the levels, and what it picked up, typed out
+    const tag = this.add(this.sc.add.text(SX + SW - 120, SY + 46, "● HOT MIC", { fontFamily: FONT, fontSize: "14px", color: "#ffffff", backgroundColor: "#dc2626", padding: { x: 6, y: 3 }, fontStyle: "bold" }), this.fxLayer);
+    this.sc.tweens.add({ targets: tag, alpha: 0.4, duration: 450, yoyo: true, repeat: -1 });
+    this.add(this.sc.add.text(SX + SW - 120, SY + 72, "AUDIO ENHANCED", { fontFamily: "monospace", fontSize: "11px", color: "#fde68a" }), this.fxLayer);
+    const wf = this.add(this.sc.add.graphics(), this.fxLayer);
+    const wx = SX + SW - 186;
+    const wy = SY + 112;
+    this.every(60, () => {
+      wf.clear();
+      wf.fillStyle(0x000000, 0.6).fillRect(wx - 6, wy - 24, 176, 48);
+      const loud = this.cast.some((p) => p.isTalking);
+      for (let i = 0; i < 28; i++) {
+        const a = loud ? 4 + Math.random() * 18 : 1 + Math.random() * 2;
+        wf.fillStyle(loud ? 0x22c55e : 0x4b5563, 1).fillRect(wx + i * 6, wy - a, 4, a * 2);
+      }
+    });
+    this.transcriptText = this.add(
+      this.sc.add.text(SX + 16, SY + 78, this.lastTranscript, { fontFamily: "monospace", fontSize: "15px", color: "#fde047", backgroundColor: "#000000c0", padding: { x: 8, y: 6 }, wordWrap: { width: SW - 240 } }),
+      this.fxLayer,
+    );
+    this.transcriptText.setVisible(!!this.lastTranscript);
+    this.every(110, () => this.stage.setPosition(this.stage.x * 0.5 + (Math.random() - 0.5) * 3, this.stage.y * 0.5 + (Math.random() - 0.5) * 3));
+  }
+
+  private grain(n: number) {
+    const { SX, SY, SW, SH } = this.r;
+    const g = this.add(this.sc.add.graphics(), this.fxLayer);
+    this.every(70, () => {
+      g.clear();
+      for (let i = 0; i < n; i++) g.fillStyle(Math.random() < 0.5 ? 0xffffff : 0x000000, 0.12).fillRect(SX + Math.random() * SW, SY + Math.random() * SH, 2, 2);
+      if (Math.random() < 0.12) g.fillStyle(0xffffff, 0.06).fillRect(SX, SY + Math.random() * SH, SW, 3);
+    });
+  }
+
+  private typeOn(t: Phaser.GameObjects.Text, s: string, ms = 30) {
+    let i = 0;
+    t.setText("");
+    const ev = this.sc.time.addEvent({ delay: ms, repeat: Math.max(0, s.length - 1), callback: () => t.active && t.setText(s.slice(0, ++i)) });
+    this.shotTimers.push(ev);
+  }
+
+  /** What the hot mic picked up, typed out (swearing asterisked, the way the papers print it). */
+  private transcript(text: string, direction = false) {
+    this.lastTranscript = direction ? text : `"${text.replace(/fuck/gi, (w) => `${w[0]}***`)}"`;
+    const t = this.transcriptText;
+    if (!t?.active) return;
+    t.setVisible(true).setColor(direction ? "#d1d5db" : "#fde047").setFontStyle(direction ? "italic" : "bold");
+    this.typeOn(t, this.lastTranscript, direction ? 22 : 45);
+  }
+
+  // ---- sport
+
+  private scoreBug() {
+    const s = this.score;
+    if (!s || this.scene.look !== "sport") return;
+    this.scoreBox?.destroy();
+    const { SX, SY } = this.r;
+    const c = (this.scoreBox = this.add(this.sc.add.container(SX + 12, SY + 12), this.fxLayer));
+    const ab = (x: string) => x.slice(0, 3);
+    c.add(this.sc.add.rectangle(0, 0, 214, 26, 0x0b1020, 0.92).setOrigin(0));
+    c.add(this.sc.add.rectangle(0, 0, 6, 26, 0xc8102e).setOrigin(0));
+    c.add(this.sc.add.text(12, 5, `${ab(s.home)}  ${s.h}-${s.a}  ${ab(s.away)}`, { fontFamily: FONT, fontSize: "15px", color: "#ffffff", fontStyle: "bold" }));
+    c.add(this.sc.add.rectangle(146, 0, 68, 26, 0x15803d).setOrigin(0));
+    const plus = s.min.includes("+");
+    let sec = 0;
+    const clock = this.sc.add.text(180, 13, "", { fontFamily: "monospace", fontSize: "14px", color: "#ffffff" }).setOrigin(0.5);
+    c.add(clock);
+    const draw = () => clock.active && clock.setText(plus ? `${s.min}'` : `${s.min}:${String(sec).padStart(2, "0")}`);
+    draw();
+    this.every(1000, () => {
+      sec = (sec + 1) % 60;
+      draw();
+    });
+  }
+
+  /** The score update: a band across the bottom of the picture. */
+  private scoreFlash() {
+    const s = this.score!;
+    const { SX, SY, SW, SH } = this.r;
+    const c = this.add(this.sc.add.container(0, 0), this.fxLayer);
+    const y = SY + SH * 0.62;
+    const band = this.sc.add.rectangle(SX, y, SW, 64, 0x0b2a5c, 0.95).setOrigin(0).setScale(0, 1);
+    c.add(band);
+    c.add(this.sc.add.rectangle(SX, y, SW, 4, 0x15803d).setOrigin(0));
+    const t = this.sc.add.text(this.cx(), y + 22, `${s.home}  ${s.h} – ${s.a}  ${s.away}`, { fontFamily: FONT, fontSize: "28px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5).setAlpha(0);
+    const m = this.sc.add.text(this.cx(), y + 50, s.min.includes("+") ? `FULL TIME · ${s.min}'` : `${s.min}'`, { fontFamily: FONT, fontSize: "13px", color: "#fde68a", fontStyle: "bold" }).setOrigin(0.5).setAlpha(0);
+    c.add([t, m]);
+    this.sc.tweens.add({ targets: band, scaleX: 1, duration: 260, ease: "Cubic.out" });
+    this.sc.tweens.add({ targets: [t, m], alpha: 1, duration: 200, delay: 200 });
+    this.sc.tweens.add({ targets: t, scale: { from: 1.3, to: 1 }, duration: 380, delay: 200, ease: "Back.out" });
+    this.later(1700, () => this.sc.tweens.add({ targets: c, alpha: 0, duration: 250, onComplete: () => c.destroy() }));
+    synth.play("crowd_boo");
+  }
+
+  /** The replay: a wipe, then the moment again, slowed, with the pundit's pen circling the £20 note. */
+  private replay(): number {
+    if (this.scene.look !== "sport") return 0;
+    const { SX, SY, SW, SH } = this.r;
+    this.fieldWide();
+    this.sc.tweens.killTweensOf(this.stage);
+    this.stage.setScale(1).setPosition(0, 0);
+    const k = this.find("JURGEN KLOPP");
+    const h = this.find("MARK HUGHES");
+    k?.setPose("note", false);
+    this.later(1100, () => h?.setPose("stop"));
+    // the wipe
+    const w = this.add(this.sc.add.container(0, 0), this.fxLayer);
+    const bar = this.sc.add.rectangle(SX - SW, SY + SH / 2, SW * 1.2, SH * 0.5, 0x15803d).setOrigin(0, 0.5).setAngle(-8);
+    const wt = this.sc.add.text(SX - SW / 2, SY + SH / 2, "REPLAY", { fontFamily: FONT, fontSize: "48px", color: "#ffffff", fontStyle: "bold", stroke: "#0b2a5c", strokeThickness: 6 }).setOrigin(0.5);
+    w.add([bar, wt]);
+    this.sc.tweens.add({ targets: [bar, wt], x: `+=${SW * 2.2}`, duration: 900, ease: "Sine.inOut", onComplete: () => w.destroy() });
+    synth.play("transform_sparkle");
+    this.add(this.sc.add.text(SX + 12, SY + 44, "▶ REPLAY", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#15803d", padding: { x: 6, y: 3 }, fontStyle: "bold" }), this.fxLayer);
+    if (k) {
+      // the note sits in his hand at about (22, 75) of the 128px frame
+      const s = k.spr.scaleX;
+      const nx = k.spr.x + (22 - 64) * s;
+      const ny = k.spr.y - (128 - 75) * s;
+      // push in until the note sits in the middle of the picture
+      const z = 1.6;
+      this.later(800, () => this.sc.tweens.add({ targets: this.stage, scale: z, x: this.cx() - (nx + 30) * z, y: SY + SH * 0.45 - ny * z, duration: 3000, ease: "Sine.easeInOut" }));
+      const pen = this.add(this.sc.add.graphics());
+      let a = 0;
+      this.later(1600, () => {
+        const ev = this.every(30, () => {
+          a = Math.min(Math.PI * 2.1, a + 0.22);
+          pen.clear().lineStyle(4, 0xfacc15, 1).beginPath().arc(nx, ny, 34, -Math.PI / 2, -Math.PI / 2 + a).strokePath();
+          if (a >= Math.PI * 2.1) ev.remove();
+        });
+      });
+      this.later(2400, () => {
+        const lab = this.add(this.sc.add.text(nx + 44, ny - 44, "£20\n(CRUMPLED)", { fontFamily: FONT, fontSize: "16px", color: "#facc15", fontStyle: "bold", stroke: "#000000", strokeThickness: 4, align: "center" }).setOrigin(0, 0.5));
+        lab.setScale(0.2);
+        this.sc.tweens.add({ targets: lab, scale: 1, duration: 260, ease: "Back.out" });
+        const arrow = this.add(this.sc.add.graphics());
+        arrow.lineStyle(3, 0xfacc15, 1).lineBetween(nx + 46, ny - 30, nx + 26, ny - 18);
+      });
+    }
+    return 1500;
+  }
+
+  // ---- vox pops, pieces to camera, the insider
+
+  private voxShot(name: string) {
+    this.clearShot();
+    this.storyShotKind = "single";
+    const { SX, SY, SW, SH } = this.r;
+    const sil = this.scene.look === "silhouette";
+    this.backdrop(this.scene.set, 1.5, 80, -20, true);
+    if (sil) {
+      this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0x020617, 0.5).setOrigin(0));
+      const glow = this.add(this.sc.add.ellipse(SX + SW * 0.6, SY + SH * 0.42, 340, 300, 0x93c5fd, 0.35).setBlendMode(Phaser.BlendModes.ADD));
+      this.sc.tweens.add({ targets: glow, alpha: 0.75, duration: 1800, yoyo: true, repeat: -1 });
+    }
+    const x = SX + SW * 0.6;
+    const p = this.presenter(name, x, SY + SH + 14, 2.85);
+    if (sil && p) p.spr.setTint(0x05070d);
+    if (sil) this.grain(60);
+    this.camTo(1.04, x, SY + 100, 7000);
+    return p;
+  }
+
+  private reporterPiece() {
+    this.clearShot();
+    this.storyShotKind = "piece";
+    const { SX, SY, SW, SH } = this.r;
+    const bg = this.backdrop(this.scene.set, 1.35, 70, -10);
+    this.sc.tweens.add({ targets: bg, x: bg.x - 40, duration: 8000, ease: "Sine.easeInOut" });
+    const p = this.presenter("REPORTER", SX + SW * 0.36, SY + SH + 14, 2.9);
+    this.every(120, () => this.stage.setPosition((Math.random() - 0.5) * 2.5, (Math.random() - 0.5) * 2.5));
+    if (this.scene.where) this.chrome.live(this.scene.where);
+    return p;
+  }
+
+  private voxBroll() {
+    if (this.storyShotKind === "broll") return;
+    this.clearShot();
+    this.storyShotKind = "broll";
+    const bg = this.backdrop(this.scene.set, 1.12, -40, 0);
+    this.sc.tweens.add({ targets: bg, x: bg.x + 70, scale: bg.scale * 1.1, duration: 7000, ease: "Sine.easeInOut" });
+    this.chrome.live("");
+  }
+
+  /** The T-shirt, close: the slogan, then a SOLD OUT stamp. */
+  private tshirt() {
+    this.clearShot();
+    this.storyShotKind = "insert";
+    const { SX, SY, SW, SH } = this.r;
+    this.backdrop(this.scene.set, 1.8, -60, 0, true);
+    this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0x000000, 0.25).setOrigin(0));
+    const c = this.add(this.sc.add.container(this.cx(), SY + SH * 0.47));
+    c.add(this.sc.add.image(0, 0, "tv_prop_tshirt").setScale(3.3));
+    c.add(this.sc.add.circle(0, -84, 13, 0xffffff).setStrokeStyle(2, 0x7f1d1d));
+    c.add(this.sc.add.text(0, -84, "✿", { fontFamily: FONT, fontSize: "18px", color: "#dc2626" }).setOrigin(0.5));
+    c.add(
+      this.sc.add
+        .text(0, -6, "VOTE LABOUR\n– OR I'LL KICK THAT\nFUCKING BABY\nOUT OF YOU", { fontFamily: FONT, fontSize: "21px", color: "#ffffff", fontStyle: "bold", align: "center", stroke: "#7f1d1d", strokeThickness: 3, lineSpacing: 2 })
+        .setOrigin(0.5),
+    );
+    c.setAngle(-3).setScale(0.92);
+    this.sc.tweens.add({ targets: c, scale: 1.02, angle: 1, duration: 7000, ease: "Sine.easeInOut" });
+    this.later(2600, () => {
+      const st = this.add(this.sc.add.text(this.cx() + 90, SY + SH * 0.3, "SOLD OUT", { fontFamily: FONT, fontSize: "34px", color: "#ef4444", fontStyle: "bold", stroke: "#ffffff", strokeThickness: 5 }).setOrigin(0.5).setAngle(14), this.fxLayer);
+      st.setScale(2.4).setAlpha(0);
+      this.sc.tweens.add({ targets: st, scale: 1, alpha: 1, duration: 220, ease: "Back.out" });
+      this.sc.cameras.main.shake(140, 0.004);
+      synth.play("hit");
+    });
+    if (this.scene.where) this.chrome.live(this.scene.where);
+  }
+
+  // ---- the rally
+
+  private rallyWide(name: string) {
+    this.clearShot();
+    this.storyShotKind = "wide";
+    const { SX, SY, SW, SH } = this.r;
+    this.backdrop(this.scene.set, 1.04, 0, -10);
+    // stage lights sweeping
+    for (let i = 0; i < 4; i++) {
+      const b = this.add(this.sc.add.triangle(SX + SW * (0.15 + i * 0.23), SY, 0, 0, -50, SH * 0.9, 50, SH * 0.9, [0xffffff, 0xf472b6, 0x60a5fa, 0xffffff][i], 0.07).setOrigin(0.5, 0).setBlendMode(Phaser.BlendModes.ADD));
+      b.setAngle(-20 + i * 12);
+      this.sc.tweens.add({ targets: b, angle: b.angle + 26, duration: 2200 + i * 400, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    }
+    const p = this.presenter(name, this.cx(), SY + SH * 0.83, 1.45);
+    this.crowd();
+    this.confetti();
+    this.packers = [];
+    this.flashes(700, 1700);
+    this.stage.setScale(1.03).setPosition(-this.cx() * 0.03, -(SY + SH / 2) * 0.03);
+    this.sc.tweens.add({ targets: this.stage, x: this.stage.x + 20, y: this.stage.y - 5, duration: 5000, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    if (this.scene.where) this.chrome.live(this.scene.where);
+    return p;
+  }
+
+  /** Heads and shoulders along the bottom, and placards bobbing above them. */
+  private crowd() {
+    const { SX, SY, SW, SH } = this.r;
+    this.placards = [];
+    const words = ["CHANGE", "KEIR!", "LABOUR", "VOTE LAB", "KEIR 4 PM", "CHANGE", "LABOUR", "♥ KEIR", "VOTE LAB"];
+    for (let i = 0; i < 9; i++) {
+      const x = SX + 30 + (i * (SW - 60)) / 8 + ((i * 29) % 17) - 8;
+      const y = SY + SH - 70 - (i % 2) * 26;
+      const c = this.add(this.sc.add.container(x, y));
+      c.add(this.sc.add.rectangle(0, 20, 4, 44, 0x6b4423));
+      const red = i % 3 !== 1;
+      c.add(this.sc.add.rectangle(0, -8, 74, 34, red ? 0xdc2626 : 0xffffff).setStrokeStyle(2, 0x111111));
+      c.add(this.sc.add.text(0, -8, words[i], { fontFamily: FONT, fontSize: "13px", color: red ? "#ffffff" : "#dc2626", fontStyle: "bold" }).setOrigin(0.5));
+      c.setAngle(((i % 3) - 1) * 6);
+      this.sc.tweens.add({ targets: c, y: y - 8, angle: c.angle + ((i % 2) * 2 - 1) * 5, duration: 320 + i * 37, yoyo: true, repeat: -1, ease: "Sine.easeInOut", delay: i * 60 });
+      this.placards.push(c);
+    }
+    const heads = this.add(this.sc.add.container(0, 0));
+    const g = this.sc.add.graphics();
+    heads.add(g);
+    for (let i = 0; i < 12; i++) {
+      const x = SX + 10 + i * (SW / 11) + ((i * 13) % 11);
+      g.fillStyle(0x0b0b12, 1).fillCircle(x, SY + SH - 34 + (i % 2) * 8, 17).fillEllipse(x, SY + SH + 6 + (i % 2) * 8, 62, 46);
+    }
+    this.sc.tweens.add({ targets: heads, y: -5, duration: 260, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+  }
+
+  private confetti() {
+    const { SX, SY, SW, SH } = this.r;
+    for (let i = 0; i < 26; i++) {
+      const p = this.add(this.sc.add.rectangle(SX + Math.random() * SW, SY - 10 - Math.random() * SH, 5, 8, [0xdc2626, 0xffffff, 0xfacc15, 0x2563eb][i % 4]));
+      this.sc.tweens.add({ targets: p, y: SY + SH + 20, x: p.x + (Math.random() - 0.5) * 80, angle: 720, duration: 3500 + Math.random() * 3000, repeat: -1, delay: Math.random() * 2000 });
+    }
+  }
+
+  /** "Smell that, Sunak!": the wide, a green cloud off the lectern, and the placards slowly coming down. */
+  private fartCloud() {
+    const p = this.rallyWide(this.mainSpeaker);
+    const { SY, SH } = this.r;
+    const x = p ? p.spr.x : this.cx();
+    const y = p ? p.spr.y - p.spr.displayHeight * 0.42 : SY + SH * 0.55;
+    this.sc.cameras.main.shake(420, 0.008);
+    for (let i = 0; i < 12; i++)
+      this.later(i * 70, () => {
+        const c = this.add(this.sc.add.circle(x + (Math.random() - 0.5) * 50, y + 10, 12 + Math.random() * 10, [0x84cc16, 0xa3e635, 0x65a30d][i % 3], 0.55));
+        this.sc.tweens.add({ targets: c, scale: 4 + Math.random() * 2, y: c.y - 60 - Math.random() * 60, x: c.x + (Math.random() - 0.5) * 160, alpha: 0, duration: 1800 + Math.random() * 600, onComplete: () => c.destroy() });
+      });
+    for (const pl of this.placards) {
+      this.sc.tweens.killTweensOf(pl);
+      this.sc.tweens.add({ targets: pl, y: pl.y + 60, angle: pl.angle + (Math.random() - 0.5) * 40, duration: 900, delay: 400 + Math.random() * 400, ease: "Quad.in" });
+    }
+  }
+
+  // ---- the keynote
+
+  private keynoteWide(name: string) {
+    this.clearShot();
+    this.storyShotKind = "wide";
+    const { SX, SY, SW, SH } = this.r;
+    this.backdrop(this.scene.set);
+    const sc = this.scene.screen ?? [0.24, 0.2, 0.52, 0.38];
+    this.drawSlide(SX + SW * sc[0], SY + SH * sc[1], SW * sc[2], SH * sc[3]);
+    const spot = this.add(this.sc.add.ellipse(this.cx(), SY + SH * 0.8, 230, 300, 0xffffff, 0.07).setBlendMode(Phaser.BlendModes.ADD));
+    this.sc.tweens.add({ targets: spot, alpha: 0.6, duration: 900, yoyo: true, repeat: -1 });
+    const p = this.presenter(name, this.cx(), SY + SH * 0.9, 1.4);
+    this.pressPack(SY + SH + 52, 9, 2.15);
+    this.flashes(500, 1400);
+    this.stage.setScale(1.04).setPosition(-this.cx() * 0.04, -(SY + SH / 2) * 0.04);
+    this.sc.tweens.add({ targets: this.stage, x: this.stage.x + 22, y: this.stage.y - 6, duration: 5000, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    if (this.scene.where) this.chrome.live(this.scene.where);
+    return p;
+  }
+
+  private keynoteClose(name: string) {
+    this.clearShot();
+    this.storyShotKind = "close";
+    const { SX, SY, SW, SH } = this.r;
+    this.backdrop(this.scene.set, 1.7, 60, 50, true);
+    this.drawSlide(SX + 18, SY + 48, SW * 0.56, SH * 0.42);
+    const x = SX + SW * 0.72;
+    const p = this.presenter(name, x, SY + SH + 14, 3.0);
+    this.lights();
+    this.packers = [];
+    this.flashes(1000, 2400);
+    this.camTo(1.04, x, SY + 100, 8000);
+    return p;
+  }
+
+  private plane(g: Phaser.GameObjects.Graphics, s: number, color = 0xe5e7eb) {
+    g.fillStyle(color, 1)
+      .fillRoundedRect(-14 * s, -3 * s, 28 * s, 6 * s, 3 * s)
+      .fillTriangle(-2 * s, 0, 6 * s, 0, -6 * s, -13 * s)
+      .fillTriangle(-2 * s, 0, 6 * s, 0, -6 * s, 13 * s)
+      .fillTriangle(-14 * s, 0, -9 * s, 0, -15 * s, -7 * s);
+    g.fillStyle(0x60a5fa, 1).fillRect(8 * s, -2 * s, 4 * s, 2 * s);
+  }
+
+  /** The giant screen behind the executive: the current slide, animated. */
+  private drawSlide(x: number, y: number, w: number, h: number) {
+    const sl = this.slide;
+    const c = this.add(this.sc.add.container(x, y));
+    const bg = this.sc.add.graphics();
+    bg.fillGradientStyle(0x0b1d4a, 0x1e1b4b, 0x020617, 0x020617, 1).fillRect(0, 0, w, h);
+    bg.lineStyle(3, 0x60a5fa, 0.9).strokeRect(0, 0, w, h);
+    c.add(bg);
+    if (!sl) return c;
+    const title = this.sc.add.text(w / 2, h * 0.16, sl.title, { fontFamily: FONT, fontSize: `${Math.round(h * 0.15)}px`, color: "#ffffff", fontStyle: "bold", stroke: "#1d4ed8", strokeThickness: 4 }).setOrigin(0.5);
+    c.add(title);
+    if (sl.sub) c.add(this.sc.add.text(w / 2, h * 0.9, sl.sub, { fontFamily: FONT, fontSize: `${Math.round(h * 0.075)}px`, color: "#fde047", fontStyle: "bold" }).setOrigin(0.5));
+    this.sc.tweens.add({ targets: title, scale: { from: 0.9, to: 1 }, duration: 500, ease: "Back.out" });
+    const cy = h * 0.53;
+    const s = h / 110;
+    if (sl.art === "logo") {
+      const g = this.sc.add.graphics({ x: w / 2, y: cy });
+      this.plane(g, s * 2.2);
+      c.add(g);
+      for (let i = 0; i < 7; i++) {
+        const f = this.sc.add.circle(w / 2 - 34 * s - i * 6 * s, cy + (Math.random() - 0.5) * 8 * s, (6 - i * 0.6) * s, [0xf97316, 0xfacc15, 0xef4444][i % 3], 0.9);
+        c.add(f);
+        this.sc.tweens.add({ targets: f, scale: 0.4, alpha: 0.3, duration: 180 + i * 30, yoyo: true, repeat: -1 });
+      }
+      this.sc.tweens.add({ targets: g, angle: 8, y: cy + 4 * s, duration: 700, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    } else if (sl.art === "planes") {
+      const a = this.sc.add.graphics({ x: w * 0.12, y: cy });
+      const b = this.sc.add.graphics({ x: w * 0.88, y: cy });
+      this.plane(a, s * 1.3);
+      this.plane(b, s * 1.3, 0xfca5a5);
+      b.setScale(-1, 1);
+      c.add([a, b]);
+      const boom = () => {
+        if (!a.active) return;
+        a.setPosition(w * 0.12, cy).setVisible(true);
+        b.setPosition(w * 0.88, cy).setVisible(true);
+        this.sc.tweens.add({ targets: a, x: w * 0.5 - 12 * s, duration: 1100, ease: "Quad.in" });
+        this.sc.tweens.add({
+          targets: b,
+          x: w * 0.5 + 12 * s,
+          duration: 1100,
+          ease: "Quad.in",
+          onComplete: () => {
+            if (!a.active) return;
+            a.setVisible(false);
+            b.setVisible(false);
+            for (let i = 0; i < 6; i++) {
+              const e = this.sc.add.circle(w / 2, cy, 6 * s, [0xfacc15, 0xf97316, 0xef4444][i % 3], 0.9);
+              c.add(e);
+              this.sc.tweens.add({ targets: e, scale: 3 + i, alpha: 0, x: w / 2 + (Math.random() - 0.5) * 40 * s, y: cy + (Math.random() - 0.5) * 30 * s, duration: 600 + i * 60, onComplete: () => e.destroy() });
+            }
+            const pts = this.sc.add.text(w / 2, cy - 20 * s, "+500", { fontFamily: FONT, fontSize: `${Math.round(h * 0.13)}px`, color: "#4ade80", fontStyle: "bold", stroke: "#000000", strokeThickness: 3 }).setOrigin(0.5);
+            c.add(pts);
+            this.sc.tweens.add({ targets: pts, y: pts.y - 18 * s, alpha: 0, duration: 1100, onComplete: () => pts.destroy() });
+          },
+        });
+      };
+      boom();
+      this.every(2400, boom);
+    } else if (sl.art === "sensor") {
+      const dev = this.sc.add.container(w / 2, cy);
+      dev.add(this.sc.add.rectangle(0, 0, 70 * s, 34 * s, 0x7c3aed).setStrokeStyle(3, 0xc4b5fd));
+      dev.add(this.sc.add.rectangle(-22 * s, 0, 8 * s, 8 * s, 0x22d3ee));
+      dev.add(this.sc.add.text(10 * s, 0, "SENSOR", { fontFamily: FONT, fontSize: `${Math.round(9 * s)}px`, color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5));
+      c.add(dev);
+      this.sc.tweens.add({ targets: dev, x: w / 2 + 3, duration: 40, yoyo: true, repeat: -1 });
+      for (let i = 0; i < 3; i++) {
+        const arc = this.sc.add.graphics({ x: w / 2, y: cy });
+        arc.lineStyle(2, 0xf0abfc, 1).beginPath().arc(0, 0, (42 + i * 10) * s, -0.5, 0.5).strokePath().beginPath().arc(0, 0, (42 + i * 10) * s, Math.PI - 0.5, Math.PI + 0.5).strokePath();
+        c.add(arc);
+        this.sc.tweens.add({ targets: arc, alpha: 0.1, duration: 260, yoyo: true, repeat: -1, delay: i * 90 });
+      }
+      this.every(260, () => {
+        if (!dev.active) return;
+        const d = this.sc.add.circle(w / 2 + (Math.random() - 0.5) * 50 * s, cy + 18 * s, 2.5 * s, 0x7dd3fc);
+        c.add(d);
+        this.sc.tweens.add({ targets: d, y: d.y + 22 * s, alpha: 0, duration: 700, onComplete: () => d.destroy() });
+      });
+    } else if (sl.art === "club") {
+      const neon = this.sc.add.text(w / 2, cy - 6 * s, "TABLE DANCING", { fontFamily: FONT, fontSize: `${Math.round(h * 0.14)}px`, color: "#f472b6", fontStyle: "bold", stroke: "#831843", strokeThickness: 3 }).setOrigin(0.5);
+      c.add(neon);
+      this.every(170, () => neon.active && neon.setAlpha(Math.random() < 0.2 ? 0.3 : 1));
+      const g = this.sc.add.graphics({ x: w / 2, y: cy + 22 * s });
+      this.plane(g, s);
+      c.add(g);
+      this.sc.tweens.add({ targets: g, x: w / 2 + 30 * s, duration: 900, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    } else if (sl.art === "money") {
+      this.every(110, () => {
+        if (!c.active) return;
+        const d = this.sc.add.text(Math.random() * w, h * 0.28, "$", { fontFamily: FONT, fontSize: `${Math.round(h * 0.12)}px`, color: "#4ade80", fontStyle: "bold" }).setOrigin(0.5);
+        c.add(d);
+        this.sc.tweens.add({ targets: d, y: h * 0.82, angle: (Math.random() - 0.5) * 90, duration: 1000, onComplete: () => d.destroy() });
+      });
+    }
+    return c;
+  }
+
+  // ---- full-screen graphics and bumpers
+
+  private graphic() {
+    this.clearShot();
+    this.storyShotKind = "gfx";
+    const g = this.scene.gfx;
+    const { SX, SY, SW, SH } = this.r;
+    const brand = BRANDS[this.cfg.brand];
+    const bg = this.add(this.sc.add.graphics());
+    bg.fillGradientStyle(brand.accent, brand.accent, 0x020617, 0x020617, 1).fillRect(SX, SY, SW, SH);
+    for (let i = 0; i < 5; i++) {
+      const st = this.add(this.sc.add.rectangle(SX - 100 + i * 140, SY + SH / 2, 40, SH * 1.6, 0xffffff, 0.035).setAngle(25).setBlendMode(Phaser.BlendModes.ADD));
+      this.sc.tweens.add({ targets: st, x: st.x + 160, duration: 5000 + i * 300, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    }
+    this.chrome.globe(SX + SW - 70, SY + 120, 80, 0xffffff, this.stage, 0.12);
+    if (!g) return;
+    const title = this.add(this.sc.add.text(SX + 28, SY + 44, g.title, { fontFamily: FONT, fontSize: "22px", color: "#ffffff", fontStyle: "bold" }));
+    this.add(this.sc.add.rectangle(SX + 28, SY + 74, Math.min(SW - 56, title.width + 30), 4, brand.main).setOrigin(0));
+    title.setX(SX - 300);
+    this.sc.tweens.add({ targets: title, x: SX + 28, duration: 350, ease: "Cubic.out" });
+    const top = SY + 92;
+    if (g.type === "poll") {
+      this.add(this.sc.add.text(SX + 28, top - 8, g.sub, { fontFamily: FONT, fontSize: "13px", color: "#cbd5e1", fontStyle: "italic" }));
+      const maxW = SW - 230;
+      g.bars.forEach((b, i) => {
+        const y = top + 26 + i * 54;
+        this.add(this.sc.add.text(SX + 28, y + 8, b.label, { fontFamily: FONT, fontSize: "17px", color: "#ffffff", fontStyle: "bold" }));
+        this.add(this.sc.add.rectangle(SX + 120, y, maxW, 34, 0xffffff, 0.08).setOrigin(0));
+        const bar = this.add(this.sc.add.rectangle(SX + 120, y, (maxW * b.from) / 70, 34, b.color).setOrigin(0));
+        const num = this.add(this.sc.add.text(SX + 128 + (maxW * b.from) / 70, y + 7, `${b.from}%`, { fontFamily: FONT, fontSize: "17px", color: "#ffffff", fontStyle: "bold" }));
+        const d = b.to - b.from;
+        this.later(900 + i * 160, () => {
+          this.sc.tweens.addCounter({
+            from: b.from,
+            to: b.to,
+            duration: 1500,
+            ease: "Cubic.inOut",
+            onUpdate: (tw) => {
+              if (!bar.active) return;
+              const v = tw.getValue() ?? b.to;
+              bar.width = (maxW * Math.max(0, v)) / 70;
+              num.setText(`${Math.round(v)}%`).setX(SX + 128 + bar.width);
+            },
+          });
+          synth.play("tap");
+        });
+        this.later(2600 + i * 160, () => {
+          const dt = this.add(this.sc.add.text(SX + SW - 30, y + 7, `${d >= 0 ? "▲" : "▼"} ${d >= 0 ? "+" : ""}${d}`, { fontFamily: FONT, fontSize: "17px", color: d >= 0 ? "#4ade80" : "#f87171", fontStyle: "bold" }).setOrigin(1, 0));
+          dt.setScale(0.3);
+          this.sc.tweens.add({ targets: dt, scale: 1, duration: 260, ease: "Back.out" });
+          if (Math.abs(d) >= 20) this.sc.cameras.main.shake(200, 0.005);
+        });
+      });
+    } else if (g.type === "trend") {
+      g.tags.forEach((t, i) => {
+        const y = top + 10 + i * 62;
+        const row = this.add(this.sc.add.container(SX - 300, y));
+        row.add(this.sc.add.rectangle(0, 0, 290, 52, 0xffffff, 0.1).setOrigin(0));
+        row.add(this.sc.add.text(12, 6, `${i + 1}  ${t.tag}`, { fontFamily: FONT, fontSize: "19px", color: "#ffffff", fontStyle: "bold" }));
+        const n = this.sc.add.text(40, 30, "", { fontFamily: FONT, fontSize: "12px", color: "#93c5fd" });
+        row.add(n);
+        let v = t.n * 0.6;
+        this.every(120, () => {
+          v += t.n * 0.006 * (1 + Math.random());
+          n.active && n.setText(`${(v / 1e6).toFixed(2)}M posts`);
+        });
+        this.sc.tweens.add({ targets: row, x: SX + 28, duration: 380, delay: 300 + i * 260, ease: "Cubic.out" });
+      });
+      let k = 0;
+      const post = () => {
+        const txt = g.posts[k % g.posts.length];
+        const y = top + 10 + (k % 4) * 66;
+        const card = this.add(this.sc.add.container(SX + SW + 200, y));
+        card.add(this.sc.add.rectangle(0, 0, 220, 58, 0xffffff, 0.95).setOrigin(0));
+        card.add(this.sc.add.circle(18, 18, 10, [0xf87171, 0x60a5fa, 0xfacc15, 0x34d399][k % 4]));
+        card.add(this.sc.add.text(34, 6, txt, { fontFamily: FONT, fontSize: "11px", color: "#111827", wordWrap: { width: 180 } }));
+        this.sc.tweens.add({ targets: card, x: SX + SW - 248, duration: 320, ease: "Cubic.out" });
+        synth.play("notify");
+        k++;
+      };
+      this.later(900, post);
+      this.every(1300, post);
+    } else if (g.type === "statement") {
+      const cw = SW - 90;
+      const card = this.add(this.sc.add.container(this.cx(), top + 140));
+      card.add(this.sc.add.rectangle(0, 0, cw, 240, 0xf8fafc).setStrokeStyle(3, g.color));
+      card.add(this.sc.add.rectangle(0, -102, cw, 36, g.color));
+      card.add(this.sc.add.circle(-cw / 2 + 30, -102, 13, 0xfacc15).setStrokeStyle(3, 0xffffff));
+      card.add(this.sc.add.text(-cw / 2 + 52, -112, g.from.toUpperCase(), { fontFamily: FONT, fontSize: "15px", color: "#ffffff", fontStyle: "bold" }));
+      const q = this.sc.add.text(-cw / 2 + 24, -70, "", { fontFamily: FONT, fontSize: "18px", color: "#111827", fontStyle: "italic", wordWrap: { width: cw - 48 }, lineSpacing: 4 });
+      card.add(q);
+      card.add(this.sc.add.text(cw / 2 - 20, 100, "— statement", { fontFamily: FONT, fontSize: "12px", color: "#6b7280" }).setOrigin(1, 0.5));
+      card.setScale(0.85).setAlpha(0);
+      this.sc.tweens.add({ targets: card, scale: 1, alpha: 1, duration: 350, ease: "Back.out" });
+      this.later(500, () => this.typeOn(q, `“${g.quote}”`, 32));
+    } else if (g.type === "results") {
+      const cols = 15;
+      const rows = Math.ceil(g.seats / cols);
+      const cell = 22;
+      const x0 = this.cx() - (cols * cell) / 2;
+      const y0 = top + 46;
+      const cells: Phaser.GameObjects.Rectangle[] = [];
+      for (let i = 0; i < g.seats; i++) cells.push(this.add(this.sc.add.rectangle(x0 + (i % cols) * cell, y0 + Math.floor(i / cols) * cell, cell - 3, cell - 3, g.from[1]).setOrigin(0)));
+      void rows;
+      let a = g.seats;
+      let b = 0;
+      const ta = this.add(this.sc.add.text(SX + 40, top + 4, "", { fontFamily: FONT, fontSize: "20px", color: "#f87171", fontStyle: "bold" }));
+      const tb = this.add(this.sc.add.text(SX + SW - 40, top + 4, "", { fontFamily: FONT, fontSize: "20px", color: "#93c5fd", fontStyle: "bold" }).setOrigin(1, 0));
+      const draw = () => {
+        ta.setText(`${g.from[0]} ${a}`);
+        tb.setText(`${g.to[0]} ${b}`);
+      };
+      draw();
+      const order = cells.map((_, i) => i).sort(() => Math.random() - 0.5).slice(0, g.flips);
+      order.forEach((ci, j) =>
+        this.later(700 + j * 42, () => {
+          const c = cells[ci];
+          if (!c.active) return;
+          c.setFillStyle(g.to[1]);
+          this.sc.tweens.add({ targets: c, scale: { from: 1.5, to: 1 }, duration: 200 });
+          a--;
+          b++;
+          draw();
+          if (j % 6 === 0) synth.play("tap");
+        }),
+      );
+      this.later(800 + g.flips * 42, () => {
+        const gain = this.add(this.sc.add.text(this.cx(), y0 + rows * cell + 26, `${g.to[0]} GAIN`, { fontFamily: FONT, fontSize: "30px", color: "#ffffff", backgroundColor: "#2563eb", padding: { x: 10, y: 4 }, fontStyle: "bold" }).setOrigin(0.5));
+        this.sc.tweens.add({ targets: gain, alpha: 0.4, duration: 300, yoyo: true, repeat: -1 });
+      });
+    }
+  }
+
+  /** A section bumper ("PART THREE: ..."): the special's band sweeps across with the part's title. */
+  private partCard(t: string): number {
+    const { SX, SY, SW, SH } = this.r;
+    const brand = BRANDS[this.cfg.brand];
+    const i = t.indexOf(":");
+    const head = i > 0 ? t.slice(0, i).trim() : "";
+    const rest = i > 0 ? t.slice(i + 1).trim() : t;
+    const c = this.add(this.sc.add.container(-SW - 80, 0), this.fxLayer);
+    const bg = this.sc.add.graphics();
+    bg.fillGradientStyle(brand.accent, brand.accent, 0x020617, 0x020617, 0.97).fillRect(SX, SY, SW, SH);
+    bg.fillStyle(brand.main, 1).fillRect(SX, SY + SH * 0.36, SW, 6).fillRect(SX, SY + SH * 0.66, SW, 6);
+    c.add(bg);
+    c.add(this.sc.add.text(SX + 30, SY + SH * 0.36 + 16, head ? `GB KREWS · ${head}` : "GB KREWS · SPECIAL", { fontFamily: FONT, fontSize: "15px", color: "#fde68a", fontStyle: "bold" }));
+    c.add(this.sc.add.text(SX + 30, SY + SH * 0.36 + 42, rest.toUpperCase(), { fontFamily: FONT, fontSize: "26px", color: "#ffffff", fontStyle: "bold", wordWrap: { width: SW - 60 } }));
+    const gl = this.chrome.globe(SX + SW - 70, SY + SH * 0.2, 46, 0xffffff, c, 0.6);
+    void gl;
+    this.sc.tweens.add({ targets: c, x: 0, duration: 380, ease: "Cubic.out" });
+    this.later(2200, () => c.active && this.sc.tweens.add({ targets: c, x: SW + 80, duration: 320, ease: "Cubic.in", onComplete: () => c.destroy() }), false);
+    synth.play("tv_sting");
+    this.chrome.headline(rest);
+    return 2600;
+  }
+
+  /** The breakfast sofa laughs: back to the two-shot, both of them going. */
+  private sofaLaugh() {
+    this.fieldWide();
+    for (const p of this.cast) p.say("ha ha ha ha ha ha ha ha ha ha ha ha ha", { poses: p.hasPose("laugh") ? ["laugh"] : ["rest"] });
   }
 }
 

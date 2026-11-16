@@ -644,7 +644,7 @@
     "KREZMAR",
     "GRONNY"
   ],
-  "clone_max_likeness": [],
+  "clone_max_likeness": ["GRONNY"],
   "clone_sts": [],
   "warble": {
     "_doc": "Post-processing on every clip of these speakers (ffmpeg vibrato: frequency Hz, depth 0-1): Gabor's goat tremble.",

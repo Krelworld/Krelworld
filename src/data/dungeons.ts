@@ -711,7 +711,7 @@ export const DUNGEONS: Record<string, DungeonDef> = {
     id: "arena_lukemind",
     chapter: 0,
     name: "INSIDE LULON'S MIND",
-    music: "mdmazing",
+    music: "luke_mind",
     arenaFlag: "lukemind_cleansed",
     returnAt: "POLICE",
     rooms: [

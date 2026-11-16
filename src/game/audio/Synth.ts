@@ -135,6 +135,8 @@ export const MUSIC_FILES: Record<string, string> = {
   crobley: "audio/crobley.mp3",
   majek_lampe: "audio/majek_lampe.mp3",
   mdmazing: "audio/mdmazing.mp3",
+  // inside Lulon's mind
+  luke_mind: "audio/luke_mind.mp3",
   beepbeep: "audio/beepbeep.mp3",
   viral: "audio/viral.mp3",
   sanmik_nation: "audio/sanmik_nation.mp3",

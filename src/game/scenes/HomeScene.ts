@@ -149,9 +149,6 @@ export class HomeScene extends Phaser.Scene {
       await this.talk(KR_HOME);
       synth.music("home", true);
       this.busy = false;
-      // step outside and it's straight into the shoving match at the bridge
-      s.flags.kr_brawl_due = true;
-      G.emit("toast", { title: "THE KREDDLE KRUNCHERS", text: "Nobody batters one of the lads but the lads. Head out: the krew are meeting you at the bridge." });
       G.save();
       return;
     }

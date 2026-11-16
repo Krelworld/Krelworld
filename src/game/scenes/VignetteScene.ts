@@ -129,7 +129,7 @@ export class VignetteScene extends Phaser.Scene {
         : data.id === "townhall_party"
           ? () => switchTo(this, "Hub", { at: "TOWN_HALL", from: "vignette" })
         : data.id === "kruncher_mikey"
-          ? () => switchTo(this, "Home", {})
+          ? () => switchTo(this, "Hub", { at: "FIELD", from: "krunchers" })
         : data.id === "sanmik_lampe"
           ? () => switchTo(this, "Dungeon", { dungeon: "arena_sanmik", room: 0 })
           : () => switchTo(this, "Hub", { at: this.returnAt, from: "vignette" });

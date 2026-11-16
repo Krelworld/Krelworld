@@ -516,12 +516,26 @@ export class HubScene extends Phaser.Scene {
 
   /** A story event in town is due (the Krunchers' invasion, or any other auto step): random town events stay out of its way. */
   storyPending() {
-    return currentArcSteps(G.s).some((c) => c.step.step.kind === "auto");
+    return !!this.brawl?.running || currentArcSteps(G.s).some((c) => c.step.step.kind === "auto");
   }
 
   private async onArrive(from?: string, flyover?: boolean, at?: string) {
     const s = G.s;
     if (flyover && !s.flags.flyover_seen && !s.flags.prologue_done) await this.flyover();
+    // just after the Krunchers have had Mikey: the group chat finds out, then you and the krew go straight
+    // to the bridge for the shoving match (before anything else, briefings included)
+    if (s.flags.kr_brawl_due && this.brawl && !this.brawl.running) {
+      delete s.flags.kr_brawl_due;
+      this.beatup?.cancel();
+      this.av.setPosition(this.brawl.spot.x + 120, this.brawl.spot.y + 20);
+      this.cameras.main.centerOn(this.av.x, this.av.y);
+      this.busy = true;
+      synth.music("klerble", true);
+      await this.talk(KR.KR_HOME);
+      this.busy = false;
+      this.brawl.start();
+      return;
+    }
     // Chapter 6 is the point of no return: it only starts when you say so, at the Town Hall
     if (s.chapter === 6 && !s.flags.ch6_ready) {
       if (!s.flags.ch6_lastchance_seen) {
@@ -594,15 +608,6 @@ export class HubScene extends Phaser.Scene {
     if (auto?.step.auto && (await this.runArcStep(at!)) && this.busy) return;
     G.drongus("hub");
     if (from === "dungeon") G.emit("toast", { title: "BACK IN KRELFORD", text: s.chapter === 1 && !s.flags.wildern_destroyed ? "Wildern has to go. Plant the bombs (4) around the school." : "Report to the Town Hall." });
-    // just back from Mikey's battering: you and the krew go straight to the bridge for the shoving match
-    if (s.flags.kr_brawl_due && this.brawl && !this.brawl.running) {
-      delete s.flags.kr_brawl_due;
-      this.beatup?.cancel();
-      this.av.setPosition(this.brawl.spot.x + 220, this.brawl.spot.y + 30);
-      this.cameras.main.centerOn(this.av.x, this.av.y);
-      this.brawl.start();
-      return;
-    }
     // the Kreddle Krunchers come over the bridge (start of Chapter 3)
     const inv = !this.chainMeetings && currentArcSteps(s).find((c) => c.step.step.kind === "auto" && c.step.step.id === "kruncher_invasion");
     if (inv) {
@@ -2903,7 +2908,7 @@ You are required by law to sign the Sex Offenders Register.`, {
     this.updatePlayground(time, dt);
     this.updateRegister();
     this.beatup?.update(time, dt);
-    if (this.brawl?.running && this.controls.attackHeld()) this.playerShove(time);
+    if (this.brawl?.running && this.controls.interact()) this.playerShove(time);
     this.updateRaidMarch(time);
     this.updateFinale(time);
     if (!this.busy && !this.brawl?.running && this.controls.attackHeld()) {
@@ -3036,7 +3041,8 @@ You are required by law to sign the Sex Offenders Register.`, {
     ks.forEach((sp, i) => void this.walkSpr(sp, T.x + 700 + i * 30, T.y + 140 + (i % 3) * 20, 3000).then(() => sp.destroy()));
     await new Promise((r) => this.time.delayedCall(1500, r));
     completeStep(s, arc, step);
-    s.flags.kr_home_pending = true;
+    // straight after they've had Mikey: the group chat, then the lads go and make them SCRAM
+    s.flags.kr_brawl_due = true;
     G.save();
     this.go("Vignette", { id: "kruncher_mikey" });
   }
@@ -3531,7 +3537,7 @@ You are required by law to sign the Sex Offenders Register.`, {
     if (!b || now < b.nextShove) return;
     b.nextShove = now + 320;
     const near = b.ks.filter((k) => k.active).sort((p, q) => Phaser.Math.Distance.Between(p.x, p.y, this.av.x, this.av.y) - Phaser.Math.Distance.Between(q.x, q.y, this.av.x, this.av.y))[0];
-    if (!near || Phaser.Math.Distance.Between(near.x, near.y, this.av.x, this.av.y) > 80) return;
+    if (!near || Phaser.Math.Distance.Between(near.x, near.y, this.av.x, this.av.y) > 140) return;
     this.knock(near, this.av.x, this.av.y, 70);
     synth.play("punch");
     b.shoves++;
@@ -3554,7 +3560,7 @@ You are required by law to sign the Sex Offenders Register.`, {
     this.busy = false;
     b.running = true;
     synth.play("crowd_boo");
-    G.emit("toast", { title: "SHOVING MATCH", text: "Attack to shove a Kruncher. Or don't. It's chaos either way." });
+    G.emit("toast", { title: "SHOVING MATCH", text: "Press E to shove a Kruncher. Or don't. It's chaos either way." });
     // everyone piles into the middle
     const all = [...b.ks, ...b.krew];
     all.forEach((sp) => this.tweens.add({ targets: sp, x: x + 40 + (Math.random() - 0.5) * 220, y: y + (Math.random() - 0.5) * 120, duration: 600, onUpdate: () => sp.setDepth(sp.y) }));

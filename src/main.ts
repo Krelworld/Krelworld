@@ -26,6 +26,7 @@ import { MinigameScene } from "./game/scenes/MinigameScene";
 import { VenueScene } from "./game/scenes/VenueScene";
 import { ClubScene } from "./game/scenes/ClubScene";
 import { KreddleScene } from "./game/scenes/KreddleScene";
+import { WhackScene } from "./game/scenes/kreddle/WhackScene";
 import { WeaponPickScene } from "./game/scenes/WeaponPickScene";
 import { EnterScene } from "./game/scenes/EnterScene";
 import { HomeScene } from "./game/scenes/HomeScene";
@@ -74,6 +75,7 @@ const game = new Phaser.Game({
     VenueScene,
     ClubScene,
     KreddleScene,
+    WhackScene,
     WeaponPickScene,
     EnterScene,
     HomeScene,

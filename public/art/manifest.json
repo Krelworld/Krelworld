@@ -7657,6 +7657,27 @@
   },
   "tv_bm_security": {
    "file": "tv/tv_bm_security.png"
+  },
+  "kd_m_whack": {
+   "file": "props/kd_m_whack.png"
+  },
+  "bg_whack": {
+   "file": "whack/bg_whack.png"
+  },
+  "wk_pipe_back": {
+   "file": "whack/wk_pipe_back.png"
+  },
+  "wk_pipe_front": {
+   "file": "whack/wk_pipe_front.png"
+  },
+  "wk_mallet": {
+   "file": "whack/wk_mallet.png"
+  },
+  "wk_bongo": {
+   "file": "whack/wk_bongo.png"
+  },
+  "wk_crobley": {
+   "file": "whack/wk_crobley.png"
   }
  },
  "sheets": {
@@ -9361,6 +9382,31 @@
   },
   "tv_bm_pig": {
    "file": "tv/bm_pig.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kd_m_whack_anim": {
+   "file": "props/kd_m_whack_anim.png",
+   "frameWidth": 88,
+   "frameHeight": 112
+  },
+  "wk_bongo_fizz": {
+   "file": "whack/wk_bongo_fizz.png",
+   "frameWidth": 40,
+   "frameHeight": 56
+  },
+  "wk_mikey": {
+   "file": "whack/wk_mikey.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "wk_mikey_hurt": {
+   "file": "whack/wk_mikey_hurt.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "wk_klerble": {
+   "file": "whack/wk_klerble.png",
    "frameWidth": 128,
    "frameHeight": 128
   }

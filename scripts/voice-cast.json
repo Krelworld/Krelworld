@@ -162,7 +162,6 @@
     "BARMAN": "q4FF21rONaQEpGU42wpc",
     "~news_f_us": "VWIrA5Gg86OL53hhe9Ho",
     "~news_m_us": "2W1H3Iqx1CqVoAG1f99o",
-    "~news_m_york": "D8Oljp4VStly8IpiHIvI",
     "~news_f_scot": "FrZZl9yATMT9IFnNIO0i",
     "~pub_m_welsh": "ybZu4f168aQeGoZnvXM1",
     "~pub_m_brum": "fkmC60cbrqDFWAiwEE3l",
@@ -309,7 +308,10 @@
     "CABINET MINISTER 1": "k1y1ZSA9Cg3PPtEeLJeh",
     "CABINET MINISTER 2": "1wbDAkpRsnf8d5bNWAlV",
     "CABINET MINISTER 3": "GiF5jCIAqQT6yJwCQsre",
-    "PRANKSTER": "jIrvjs6QTDJfv5MWqPEk"
+    "PRANKSTER": "jIrvjs6QTDJfv5MWqPEk",
+    "TONY SOPRANO": "2D8VH6sCoc8jgALrxV3S",
+    "GORDON RAMSAY": "QHY1TBAanOZDM1GB8OcW",
+    "CHEF MICK": "esV7kJtKDdBipOsoWtGM"
   },
   "designed_desc": {
     "KRANKY KRANDALL": "A reedy, squeaky, frail old British man in his nineties. Thin, high, wavering, slightly wheezy voice, rambling and forgetful, trailing off mid-sentence.",
@@ -406,7 +408,6 @@
     "~news_m_us": "A polished American male television news anchor with a General American accent. Authoritative and smooth.",
     "~news_f_us": "A polished American female television news anchor with a General American accent. Crisp and confident.",
     "~news_f_rp": "A polished British female journalist with a Received Pronunciation accent. Crisp, sharp and inquisitive.",
-    "~news_m_york": "A no-nonsense British male journalist with a Yorkshire accent. Blunt and probing.",
     "~news_f_scot": "A sharp female journalist with an Edinburgh Scottish accent. Quick and incredulous.",
     "~pub_m_brum": "A beery working-class man with a Brummie accent. Gruff and plain-spoken.",
     "~pub_m_welsh": "A cheerful working-class man with a strong Welsh accent. Loud and matey.",
@@ -451,7 +452,8 @@
     "OFFICER 2": "A British policewoman in her thirties with a cool, clipped London accent. Cold, quiet and slightly sinister.",
     "DOCTOR": "A British GP in his fifties with a slight British-Asian lilt. Measured, calm and grave.",
     "NURSE": "A British nurse in her forties with a warm South London accent. Brisk and wry.",
-    "NINTENDO SPOKESPERSON": "A bubbly, relentlessly upbeat games company presenter in his forties with a light Japanese accent speaking English. Bright keynote energy."
+    "NINTENDO SPOKESPERSON": "A bubbly, relentlessly upbeat games company presenter in his forties with a light Japanese accent speaking English. Bright keynote energy.",
+    "TONY SOPRANO": "A heavyset New Jersey Italian-American mob boss in his fifties with a thick, classic North Jersey accent. Gravelly, slow, heavy and menacing, with weary sighs."
   },
   "stock": {
     "KREBLIS": "fLQ4kCrWQGVDIt5kYfSi",
@@ -718,8 +720,7 @@
     "CABINET MINISTER 3": "~pol_m_uk1",
     "PRANKSTER": "~aide_m_us",
     "GORDON RAMSAY": "SERGEANT SWIG",
-    "CHEF MICK": "~scientist_m",
-    "TONY SOPRANO": "~ceo_m_us"
+    "CHEF MICK": "~scientist_m"
   },
   "clone_accents": {
     "_doc": "Accent tag for cloned voices on eleven_v3, which otherwise drift (American, or regional). Everyone in the group is southern English: faint RP or a slight cockney. Default below.",

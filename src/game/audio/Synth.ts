@@ -661,10 +661,16 @@ export class Synth {
   }
 
   /** A wet little tick per mash, rising in pitch with the gauge. */
+  /** One pump of a wonk: a wet fap (recorded), with a little rising tone under it so you can hear the gauge climb. */
+  private lastFap = 0;
   wonkTick(g: number) {
     if (!this.ctx) return;
-    this.burst(0.05, 0.22, 0, 900 + g * 1800, undefined, 2.5);
-    this.tone(180 + g * 420, 0.05, "sine", 0.12, 0, 1.2);
+    const now = this.ctx.currentTime;
+    if (now - this.lastFap > 0.07 && this.take("fap")) {
+      this.lastFap = now;
+      this.play("fap", 0.75 + g * 0.35);
+    } else this.burst(0.05, 0.22, 0, 900 + g * 1800, undefined, 2.5);
+    this.tone(180 + g * 420, 0.05, "sine", 0.06, 0, 1.2);
   }
 
   /** Farts by potency: the higher the level, the longer and more ridiculous. */

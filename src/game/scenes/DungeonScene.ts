@@ -2510,6 +2510,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const z0 = cam.zoom;
     cam.zoomTo(z0 * 1.5, 300, "Cubic.easeOut", true);
     synth.play("wonk");
+    // the arm gets to work: wet, rhythmic, relentless
+    synth.play("faploop");
     this.tweens.add({ targets: spr, scaleX: spr.scaleX * 1.08, scaleY: spr.scaleY * 0.94, yoyo: true, repeat: 7, duration: 110 });
     // the arm: from the machine to just below your belt
     const bar = addCensorBar(this, p.spr, { pad: 2 });

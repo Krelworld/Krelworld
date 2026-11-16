@@ -243,7 +243,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     s.phase = "dungeon";
     this.chantFreeAt = 0;
     // effects a touch quieter in here, so the level music comes through
-    synth.setSfxScale(0.9);
+    synth.setSfxScale(0.78);
     synth.setMusicBoost(1.2);
     this.events.once("shutdown", () => {
       synth.setSfxScale(1);

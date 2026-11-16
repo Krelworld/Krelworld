@@ -2,6 +2,8 @@ import Phaser from "phaser";
 import { synth } from "../audio/Synth";
 import { FONT } from "../ui/theme";
 import { hasVfx, vfx } from "../gfx/Vfx";
+import { G } from "../G";
+import { ELEGANT, ELEGANT_NAMES, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
 
 /**
  * KRELTALITY. After a boss goes down: "FUCKING KILL THEM!!" — press it (or don't) for an over-the-top,
@@ -19,9 +21,12 @@ export interface KrelTarget {
   name: string;
 }
 
-export type Finisher = "spine" | "explode" | "halved" | "headboot" | "slit" | "flatten" | "vice" | "bellybomb";
-const FINISHERS: Finisher[] = ["spine", "explode", "halved", "headboot", "slit", "flatten", "vice"];
+export type Finisher = "spine" | "explode" | "halved" | "headboot" | "slit" | "flatten" | "vice" | "bellybomb" | Elegant;
+const CLASSIC: Finisher[] = ["spine", "explode", "halved", "headboot", "slit", "flatten", "vice"];
+/** The random pool: the old ones and the choreographed ones (KrelFinishers.ts). */
+export const FINISHERS: Finisher[] = [...CLASSIC, ...ELEGANT];
 const NAMES: Record<Finisher, string> = {
+  ...ELEGANT_NAMES,
   spine: "SPINE RIP!",
   explode: "KREZZPLOSION!",
   halved: "HALVED!",
@@ -38,8 +43,16 @@ const D = 2000; // above everything in the room
 export async function kreltality(sc: Phaser.Scene, target: KrelTarget, player: { key: string; frame: string | number; scale: number }, force?: Finisher): Promise<boolean> {
   const yes = await prompt(sc);
   if (!yes) return false;
-  await stage(sc, target, player, force ?? FINISHERS[Math.floor(Math.random() * FINISHERS.length)]);
+  await stage(sc, target, player, force ?? pick());
   return true;
+}
+
+/** A random finisher, not the last one you saw; with gore off, only the ones that have a tame version. */
+let lastPick: Finisher | null = null;
+function pick(): Finisher {
+  const pool = (G.meta?.settings?.gore === false ? [...ELEGANT] : FINISHERS).filter((f) => f !== lastPick);
+  lastPick = pool[Math.floor(Math.random() * pool.length)];
+  return lastPick;
 }
 
 /** No asking: it just happens (story Kreltalities, like Uncle Rik's). */
@@ -115,16 +128,19 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
   cam.pan(tg.x, tg.y - 20, 500, "Sine.easeInOut");
   cam.zoomTo(1.6, 500);
   synth.play("boom");
+  const gore = G.meta?.settings?.gore !== false;
+  const calm = !!G.meta?.settings?.calmFlash;
   const flash = () => {
-    cam.flash(120, 255, 230, 230);
+    if (!calm) cam.flash(120, 255, 230, 230);
     synth.play("crit");
   };
   // the victim, dazed, swaying
   const body = keep(sc.add.image(tg.x, tg.y, tg.key, tg.frame).setScale(tg.scale).setFlipX(tg.flip).setDepth(D + 2));
   const fw = body.frame.width;
   const fh = body.frame.height;
-  const H = fh * tg.scale;
-  const W = fw * tg.scale;
+  // the real drawn size (HD art is drawn at a fraction of the scale it's given)
+  const H = body.displayHeight;
+  const W = body.displayWidth;
   const floor = tg.y + H * 0.45;
   sc.tweens.add({ targets: body, angle: { from: -6, to: 6 }, yoyo: true, repeat: -1, duration: 500, ease: "Sine.inOut" });
   // you, walking over
@@ -144,6 +160,14 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
   };
   let pools = 0;
   const blood = (x: number, y: number, n: number, power = 1, up = false) => {
+    if (!gore) {
+      // gore off: a puff of dust, never blood
+      if (!fx("vfx_dust", x, y, Math.min(1.8, 0.6 + n / 80))) {
+        const c = keep(sc.add.circle(x, y, 6, 0xd1d5db, 0.8).setDepth(D + 6));
+        sc.tweens.add({ targets: c, radius: 14 + n / 6, alpha: 0, duration: 500 });
+      }
+      return;
+    }
     if (drawn) {
       const k = Math.min(2.2, 0.7 + n / 50) * Math.max(0.8, power * 0.8);
       fx(up && hasVfx(sc, "vfx_bloodspray") ? "vfx_bloodspray" : "vfx_blood", x, y, k, { flipX: Math.random() < 0.5 });
@@ -175,6 +199,10 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     }
   };
   const fountain = (x: number, y: number, ms: number) => {
+    if (!gore) {
+      fx("vfx_stars", x, y, 1, { depth: D + 7 });
+      return;
+    }
     if (drawn) {
       const ev = sc.time.addEvent({ delay: 420, loop: true, callback: () => fx(hasVfx(sc, "vfx_bloodspray") ? "vfx_bloodspray" : "vfx_blood", x + (Math.random() - 0.5) * 8, y, 1.1 + Math.random() * 0.4) });
       fx(hasVfx(sc, "vfx_bloodspray") ? "vfx_bloodspray" : "vfx_blood", x, y, 1.3);
@@ -190,6 +218,10 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     if (sc.time.now - lastSquelch > 250) {
       lastSquelch = sc.time.now;
       synth.play("squelch");
+    }
+    if (!gore) {
+      fx("vfx_dust", x + Math.cos(a) * len * 0.5, Math.min(floor, y + Math.sin(a) * len * 0.5), 0.8);
+      return;
     }
     if (hasVfx(sc, "vfx_gore")) {
       // meaty chunks flung out along the angle, a splat where they land
@@ -227,6 +259,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
   };
   /** Bones: little white dog-bone shapes flung about. */
   const bones = (x: number, y: number, n: number) => {
+    if (!gore) return;
     synth.play("bonecrack");
     for (let i = 0; i < n; i++) {
       const c = keep(sc.add.container(x, y).setDepth(D + 5));
@@ -249,7 +282,56 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     return x;
   };
 
+  // ---- slow motion (scene clock, tweens and drawn effects together), with letterbox bars while it's slowed
+  const base = { t: sc.time.timeScale, tw: sc.tweens.timeScale, an: sc.anims.globalTimeScale };
+  let bars: Phaser.GameObjects.Rectangle[] | null = null;
+  const slow = (k: number) => {
+    sc.time.timeScale = base.t * k;
+    sc.tweens.timeScale = base.tw * k;
+    sc.anims.globalTimeScale = base.an * k;
+    if (k < 1 && !bars) {
+      const kz = 1 / cam.zoom;
+      bars = [-1, 1].map((s) => {
+        const b = keep(sc.add.rectangle(480, 270 + s * 330 * kz, 1200 * kz, 120 * kz, 0x000000, 1).setScrollFactor(0).setDepth(D + 45));
+        sc.tweens.add({ targets: b, y: 270 + s * 270 * kz, duration: 60 });
+        return b;
+      });
+    } else if (k >= 1 && bars) {
+      const kz = 1 / cam.zoom;
+      bars.forEach((b, i) => sc.tweens.add({ targets: b, y: 270 + (i ? 1 : -1) * 340 * kz, duration: 250, onComplete: () => b.destroy() }));
+      bars = null;
+    }
+  };
+
   // ---- the finishers
+  if ((ELEGANT as Finisher[]).includes(which)) {
+    // the opaque part of the frame (sprites have empty margins round them)
+    const fig = { u0: 0, v0: 0, u1: 1, v1: 1 };
+    try {
+      let x0 = fw;
+      let y0 = fh;
+      let x1 = -1;
+      let y1 = -1;
+      const st = Math.max(1, Math.round(Math.max(fw, fh) / 80));
+      for (let y = 0; y < fh; y += st)
+        for (let x = 0; x < fw; x += st) {
+          if ((sc.textures.getPixelAlpha(x, y, tg.key, tg.frame) ?? 0) < 60) continue;
+          x0 = Math.min(x0, x);
+          y0 = Math.min(y0, y);
+          x1 = Math.max(x1, x);
+          y1 = Math.max(y1, y);
+        }
+      if (x1 > x0 && y1 > y0) Object.assign(fig, { u0: x0 / fw, v0: y0 / fh, u1: Math.min(fw, x1 + st) / fw, v1: Math.min(fh, y1 + st) / fh });
+    } catch {
+      /* keep the whole frame */
+    }
+    const ctx: KrelCtx = { sc, cam, tg, body, me, ps: pl.scale, W, H, fw, fh, floor, fig, D, gore, calm, wait, tw, keep, fx: (k, x, y, s, e) => fx(k, x, y, s, e), blood, fountain, guts, bones, flash, slow };
+    try {
+      await runElegant(ctx, which as Elegant);
+    } finally {
+      slow(1);
+    }
+  }
   switch (which) {
     case "spine": {
       flash();
@@ -509,6 +591,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
   sc.tweens.add({ targets: big, scale: kz, alpha: 1, duration: 300, ease: "Quad.out" });
   synth.play("boom");
   cam.shake(300, 0.02);
+  if (!gore) big.setColor("#fde047");
   // drips off the letters
   for (let i = 0; i < 14; i++) {
     const d = keep(sc.add.rectangle(480 + (i - 6.5) * 34 * kz, 270 - 95 * kz, 5 * kz, 4 * kz, 0xb91c1c).setOrigin(0.5, 0).setScrollFactor(0).setDepth(D + 59));

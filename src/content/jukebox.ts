@@ -44,7 +44,7 @@ export const JUKEBOX: JukeboxTrack[] = [
   { ids: ["c7_ascent"], title: "The Ascent", where: "Chapter 7" },
   { ids: ["c7_dungeon"], title: "Da Drongus Dungeon", where: "Chapter 7" },
   { ids: ["c7_stairs"], title: "The Final Stairs", where: "Chapter 7" },
-  { ids: ["c7_roof"], title: "The Roof", where: "Chapter 7" },
+  { ids: ["c7_roof"], title: "Dark Drongus", where: "Boss: Dark Drongus (the Roof)" },
   { ids: ["c7_concept"], title: "Krelford Burns", where: "The finale" },
   { ids: ["c7_spirit"], title: "Spirit of Krelworld", where: "The finale" },
   { ids: ["c7_transform"], title: "Transformation", where: "The finale" },

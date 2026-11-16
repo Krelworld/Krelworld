@@ -2897,8 +2897,13 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (Math.random() < 0.08) this.player.bark();
   }
 
+  /** Real-clock time until which you can't be hurt: you're mid weapon-swap (tap or picker). */
+  private swapSafeUntil = 0;
+
   damagePlayer(amount: number, from?: { x: number; y: number }, opts: { unblockable?: boolean; label?: string } = {}) {
     if (this.dying || this.busy) return;
+    // nothing touches you while you're changing weapon
+    if (this.picking || performance.now() < this.swapSafeUntil) return;
     const now = this.now();
     const p = this.player;
     if (!opts.unblockable && p.invulnerable(now)) {
@@ -3439,6 +3444,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   /** SWAP pressed: slow the action down. Released after a tap: hold the slow-mo a beat so you can see what you've got, then ease back. */
   swapSlow(on: boolean) {
+    // invulnerable for the swap: while the key's down (capped), and through the slow-mo after a tap (plus a beat)
+    this.swapSafeUntil = performance.now() + (on ? 4000 : 900);
     if (this.dying || this.busy) return;
     const token = ++this.epicSlowToken;
     if (on) {
@@ -3462,6 +3469,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     (this.player.spr.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
     this.events.once("weapon-picked", () => {
       this.picking = false;
+      // a moment's grace as the world speeds back up
+      this.swapSafeUntil = performance.now() + 600;
       this.setSlowmo(1);
       this.controls.swallow();
     });

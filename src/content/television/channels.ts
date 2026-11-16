@@ -143,7 +143,6 @@ NEWSREADER: Several kids were very sadly in the school when it exploded.
 NEWSREADER: But ultimately, it is no one's fault.
 NEWSREADER: Next up: a new type of burger has come to Krelworld.
 REPORTER: It's a burger. But the bun is also a burger.
-NEWSREADER: Lovely. And now, some footage just in from the crater of Wildern.
 [FADE]
 `,
 );

@@ -13,7 +13,9 @@ import { ShopGrid, shopTabs, type ShopItem } from "../ui/shop";
 import { TOUCH } from "../ui/TouchControls";
 import { portraitKey } from "../gfx/Textures";
 import { Companion } from "../combat/Companion";
-import { arcsFor, arcAvailable, currentArcSteps, stepDone } from "../systems/arcs";
+import { arcsFor, arcAvailable, arcDue, currentArcSteps, requiredArcSteps, stepDone } from "../systems/arcs";
+import { chapterDef } from "../../content/chapters/chapters";
+import { evalCond } from "../systems/conditions";
 import { personalQuest, pickupsCollected, MINISTRY_QUESTS, ministryQuestState, ministryProgress } from "../systems/quests";
 import { factById } from "../../data/historicalRevisions";
 import { narrativeActor } from "../systems/narrative";
@@ -48,6 +50,8 @@ export class MenuScene extends Phaser.Scene {
   private bankSel: Partial<Record<BankTab, number>> = {};
   private mode: Mode = "pause";
   private settingsTab: 0 | 1 = 0;
+  private questTab: 0 | 1 | 2 = 0;
+  private questScroll = 0;
   private logScroll = 0;
   private caller = "";
   private data0: any = {};
@@ -271,7 +275,7 @@ export class MenuScene extends Phaser.Scene {
         if (st) add(this.add.text(480, 104, `Objective: ${st.text}`, { fontFamily: FONT, fontSize: "13px", color: "#ffffff", wordWrap: { width: 600 }, align: "center" }).setOrigin(0.5, 0));
         const items: [string, () => void][] = [
           ["RESUME", () => this.close()],
-          ["QUESTS, FACTS & STATS", () => this.render("quests")],
+          ["QUESTS & SIDE QUESTS", () => { this.questTab = 0; this.questScroll = 0; this.render("quests"); }],
           ["DIALOGUE LOG", () => { this.logScroll = 0; this.render("log"); }],
           ["CONTROLS", () => this.openControls("pause")],
           ["SETTINGS", () => this.render("settings")],
@@ -386,45 +390,125 @@ export class MenuScene extends Phaser.Scene {
       }
       case "quests": {
         if (!s) break;
-        add(title(this, 480, 64, "QUESTS · KRAZY FACTS · STATS", 22));
-        const lines: string[] = [];
-        const st = currentStep();
-        lines.push(`CHAPTER ${s.chapter} — ${st ? st.text : "Complete"}`);
-        const pq = personalQuest(s);
-        if (pq) {
-          lines.push("");
-          lines.push(`PERSONAL: ${pq.title} ${s.flags[`pq_done_${pq.id}`] ? "(COMPLETE)" : `(${pickupsCollected(s, pq)}/${pq.pickups.length})`}`);
-          lines.push(`  ${pq.blurb}`);
-          if (!s.flags[`pq_done_${pq.id}`]) lines.push(`  Turn in at: ${pq.turnIn.at.replace("_", " ")}`);
-        }
-        const open = currentArcSteps(s);
-        for (const arc of arcsFor(s.player)) {
-          lines.push("");
-          const cur = open.find((c) => c.arc === arc);
-          const lock = s.flags[`${arc.id}_done`] ? "(COMPLETE)" : !s.flags.met_emergency ? "(unlocks after the Emergency Reaction Session)" : !arcAvailable(s, arc) ? `(unlocks in Chapter ${arc.minChapter})` : "";
-          lines.push(`${arc.player === "ALL" ? "SIDE QUEST" : "SIDE STORY"}: ${arc.title} ${lock}`);
-          if (lock && !s.flags[`${arc.id}_done`]) continue;
-          for (const st of arc.steps) lines.push(`  ${stepDone(s, arc, st) ? "✓" : cur?.step === st ? "•" : "○"} ${st.text}`);
-        }
-        if (s.flags.ministerial_quests) {
-          lines.push("");
-          lines.push("MINISTERIAL:");
-          for (const q of MINISTRY_QUESTS) {
-            const stt = ministryQuestState(s, q);
-            if (stt === "locked") continue;
-            const giver = CHARACTERS[narrativeActor(q.ministry, s.player) as string]?.name ?? q.ministry;
-            const prog = stt === "active" || stt === "ready" ? ` ${Math.min(q.target, ministryProgress(s, q))}/${q.target}` : "";
-            lines.push(`  ${stt === "done" ? "✓" : stt === "ready" ? "!" : stt === "active" ? "•" : "○"} ${q.title} (${giver})${prog}${stt === "available" ? " — talk to them to accept" : stt === "ready" ? " — hand in" : ""}`);
+        add(title(this, 480, 64, "QUESTS", 24));
+        const tabs = ["STORY", "SIDE QUESTS", "FACTS & STATS"];
+        tabs.forEach((t, i) => add(button(this, 300 + i * 180, 100, t, () => { this.questTab = i as 0 | 1 | 2; this.questScroll = 0; this.render("quests"); }, { w: 170, h: 30, size: 13, color: this.questTab === i ? 0x7c3aed : undefined })));
+        const where = (at?: string) => (!at || at === "FIELD" ? "" : `  (go to: ${at.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase())})`);
+        const out: { t: string; c?: string; b?: boolean }[] = [];
+        const line = (t: string, c = "#ffffff", b = false) => out.push({ t, c, b });
+        if (this.questTab === 0) {
+          const ch = chapterDef(s.chapter);
+          const st = currentStep();
+          line(`CHAPTER ${s.chapter}: ${ch.title}`, "#ffd23f", true);
+          if (ch.subtitle) line(ch.subtitle, "#b8bccb");
+          line("");
+          line("RIGHT NOW", "#86efac", true);
+          line(st ? `${st.text}${where(st.target)}` : "Chapter complete.");
+          line("");
+          line("THIS CHAPTER", "#86efac", true);
+          let reached = false;
+          for (const c of ch.steps) {
+            const done = evalCond(c.done, s);
+            const now = !done && !reached;
+            if (now) reached = true;
+            line(`${done ? "✓" : now ? "•" : "○"} ${c.text}${!done ? where(c.target) : ""}`, done ? "#8b93a7" : now ? "#ffffff" : "#c9cbd6");
           }
+          const req = requiredArcSteps(s);
+          if (req.length) {
+            line("");
+            line(`SIDE QUESTS NEEDED BEFORE THIS CHAPTER'S DUNGEON (${req.length})`, "#fca5a5", true);
+            for (const r of req) line(`• ${r.arc.title}: ${r.step.text}${where(r.step.at)}`);
+          }
+          const pq = personalQuest(s);
+          if (pq) {
+            line("");
+            line(`PERSONAL: ${pq.title} ${s.flags[`pq_done_${pq.id}`] ? "(COMPLETE)" : `(${pickupsCollected(s, pq)}/${pq.pickups.length} found)`}`, "#ffd23f", true);
+            line(pq.blurb, "#c9cbd6");
+            if (!s.flags[`pq_done_${pq.id}`]) line(`Turn in at: ${pq.turnIn.at.replace(/_/g, " ")}`);
+          }
+        } else if (this.questTab === 1) {
+          const open = currentArcSteps(s);
+          const arcs = arcsFor(s.player);
+          const active = arcs.filter((a) => !s.flags[`${a.id}_done`] && s.flags.met_emergency && arcAvailable(s, a));
+          const done = arcs.filter((a) => s.flags[`${a.id}_done`]);
+          const later = arcs.filter((a) => !s.flags[`${a.id}_done`] && !(s.flags.met_emergency && arcAvailable(s, a)));
+          line(active.length ? `ON THE GO (${active.length})` : "NO SIDE QUESTS ON THE GO", "#86efac", true);
+          for (const a of active) {
+            const cur = open.find((c) => c.arc === a);
+            const due = arcDue(a);
+            line("");
+            line(`${a.player === "ALL" ? "" : "YOUR STORY · "}${a.title}${due !== null ? `   [REQUIRED before the Chapter ${Math.max(due, s.chapter)} dungeon]` : "   [optional]"}`, "#ffd23f", true);
+            line(a.blurb, "#c9cbd6");
+            if (cur) line(`NEXT: ${cur.step.text}${where(cur.step.at)}`);
+            for (const st of a.steps) line(`   ${stepDone(s, a, st) ? "✓" : cur?.step === st ? "•" : "○"} ${st.text}`, stepDone(s, a, st) ? "#8b93a7" : "#c9cbd6");
+            line(`Reward: ${a.reward.descFor?.[s.player] ?? a.reward.desc}${a.reward.coins ? ` + ${a.reward.coins} Krezzcoin` : ""}`, "#a5b4fc");
+          }
+          if (s.flags.ministerial_quests) {
+            const ms = MINISTRY_QUESTS.map((q) => [q, ministryQuestState(s, q)] as const).filter(([, stt]) => stt !== "locked");
+            if (ms.length) {
+              line("");
+              line("MINISTERIAL JOBS", "#86efac", true);
+              for (const [q, stt] of ms) {
+                const giver = CHARACTERS[narrativeActor(q.ministry, s.player) as string]?.name ?? q.ministry;
+                const prog = stt === "active" || stt === "ready" ? ` ${Math.min(q.target, ministryProgress(s, q))}/${q.target}` : "";
+                line(`${stt === "done" ? "✓" : stt === "ready" ? "!" : stt === "active" ? "•" : "○"} ${q.title} (${giver})${prog}${stt === "available" ? " — talk to them to accept" : stt === "ready" ? " — hand it in" : ""}`, stt === "done" ? "#8b93a7" : "#ffffff");
+              }
+            }
+          }
+          if (later.length) {
+            line("");
+            line("COMING LATER", "#86efac", true);
+            for (const a of later) line(`○ ${a.title} ${!s.flags.met_emergency ? "(after the Emergency Reaction Session)" : `(Chapter ${a.minChapter ?? 1}+)`}`, "#8b93a7");
+          }
+          if (done.length) {
+            line("");
+            line(`COMPLETED (${done.length})`, "#86efac", true);
+            for (const a of done) line(`✓ ${a.title}`, "#8b93a7");
+          }
+        } else {
+          line("KRAZY FACTS IN FORCE", "#ffd23f", true);
+          if (!s.revisions.length) line("none");
+          for (const r of s.revisions) line(`"${factById(r)?.fact}" — ${factById(r)?.effect}`);
+          line("");
+          line("STATS", "#ffd23f", true);
+          line(`Kills ${counter(s, "kills_total")} · Perfect dodges ${counter(s, "perfect_dodge")} · Bans ${s.banCount} · Bongos ${counter(s, "bongos_drunk")}`);
+          line(`Reactions 👍${s.reactionsGiven.LIKE} ❤️${s.reactionsGiven.LOVE} 😂${s.reactionsGiven.LAUGH} 😡${s.reactionsGiven.ANGRY} Seen ${s.reactionsGiven.SEEN}`);
+          line(`Archive ${s.archiveUnlocked.length} records · KrelTV ${s.tvWatched.length} episodes · Playtime ${Math.round(s.playtimeMs / 60000)} min${s.ngPlus ? " · NEW KREZ+" : ""}`);
         }
-        lines.push("");
-        lines.push(`KRAZY FACTS IN FORCE: ${s.revisions.length ? "" : "none"}`);
-        for (const r of s.revisions) lines.push(`  "${factById(r)?.fact}" — ${factById(r)?.effect}`);
-        lines.push("");
-        lines.push(`Kills ${counter(s, "kills_total")} · Perfect dodges ${counter(s, "perfect_dodge")} · Bans ${s.banCount} · Bongos ${counter(s, "bongos_drunk")} · Reactions 👍${s.reactionsGiven.LIKE} ❤️${s.reactionsGiven.LOVE} 😂${s.reactionsGiven.LAUGH} 😡${s.reactionsGiven.ANGRY} Seen ${s.reactionsGiven.SEEN}`);
-        lines.push(`Archive ${s.archiveUnlocked.length} records · KrelTV ${s.tvWatched.length} episodes · Playtime ${Math.round(s.playtimeMs / 60000)} min${s.ngPlus ? " · NEW KREZ+" : ""}`);
-        add(this.add.text(160, 90, lines.join("\n"), { fontFamily: FONT, fontSize: "12px", color: "#ffffff", wordWrap: { width: 640 }, lineSpacing: 2 }));
-        add(button(this, 480, 470, "◀ BACK", () => this.render("pause"), { w: 200 }));
+        // the list scrolls inside the panel (mouse wheel, or the arrows)
+        const top = 126;
+        const bottom = 448;
+        const box = this.add.container(0, 0);
+        let y = 0;
+        for (const o of out) {
+          if (!o.t) {
+            y += 8;
+            continue;
+          }
+          const t = this.add.text(165, y, o.t, { fontFamily: FONT, fontSize: o.b ? "13px" : "12px", color: o.c, fontStyle: o.b ? "bold" : "normal", wordWrap: { width: 630 }, lineSpacing: 2 });
+          box.add(t);
+          y += t.height + 3;
+        }
+        const maxScroll = Math.max(0, y - (bottom - top));
+        this.questScroll = Math.min(this.questScroll, maxScroll);
+        box.setY(top - this.questScroll);
+        const mask = this.make.graphics({}, false).fillRect(150, top, 660, bottom - top).createGeometryMask();
+        box.setMask(mask);
+        add(box);
+        const scrollBy = (d: number) => {
+          const n = Phaser.Math.Clamp(this.questScroll + d, 0, maxScroll);
+          if (n === this.questScroll) return;
+          this.questScroll = n;
+          box.setY(top - n);
+        };
+        if (maxScroll > 0) {
+          add(button(this, 300, 470, "▲ UP", () => scrollBy(-120), { w: 120, h: 32, size: 14 }));
+          add(button(this, 660, 470, "DOWN ▼", () => scrollBy(120), { w: 120, h: 32, size: 14 }));
+          const wheel = (_p: unknown, _o: unknown, _dx: number, dy: number) => scrollBy(dy * 0.6);
+          this.input.on("wheel", wheel);
+          box.once("destroy", () => this.input.off("wheel", wheel));
+        }
+        add(button(this, 480, 470, "◀ BACK", () => this.render("pause"), { w: 170, h: 32, size: 14 }));
         break;
       }
       case "bank": {

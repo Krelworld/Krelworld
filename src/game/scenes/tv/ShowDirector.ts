@@ -435,6 +435,9 @@ export abstract class ShowDirector {
 
   /** Someone's full-body TV sprite, standing with their feet at `y`. */
   protected body(name: string, x: number, y: number, height: number, frame = 0) {
+    // a full-length PixelLab figure (tv_p2_body_<NAME>, one 128px frame) where one's been drawn
+    const p2 = `tv_p2_body_${name.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}`;
+    if (this.sc.textures.exists(p2)) return this.add(this.sc.add.sprite(x, y, p2, 0).setOrigin(0.5, 1).setScale(height / 128));
     const tex = this.host.spriteFor(name);
     if (!tex || !this.sc.textures.exists(tex)) return null;
     const fh = this.sc.textures.getFrame(tex, 0)?.height ?? 64;

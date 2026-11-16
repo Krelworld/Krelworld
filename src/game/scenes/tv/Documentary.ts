@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { F, ShowDirector, type Perf } from "./ShowDirector";
+import { F, ShowDirector, faceKeyOf, type Perf } from "./ShowDirector";
 
 /**
  * A serious documentary (Krelworld Documentaries). The narrator speaks over slow moves across stills, archive
@@ -205,7 +205,7 @@ export class DocumentaryDirector extends ShowDirector {
     this.backdrop(this.tex("tv_archive"), { zoom: 1.4, blur: 3, tint: 0x8a7a60 });
     const ph = this.add(this.sc.add.container(this.cx, this.cy + 6).setAngle(-3));
     ph.add(this.sc.add.rectangle(0, 0, 250, 290, 0xf2ead8).setStrokeStyle(1, 0xb0a080));
-    ph.add(this.sc.add.sprite(0, -14, `tvface_${name.replace(/[^A-Z0-9]+/g, "_")}`, F.NEUTRAL).setScale(1.75).setTint(0xd8c09a));
+    ph.add(this.sc.add.sprite(0, -14, faceKeyOf(name), F.NEUTRAL).setScale(1.75).setTint(0xd8c09a));
     ph.add(this.text(0, 122, `${name.charAt(0)}${name.slice(1).toLowerCase()}, c. 2025`, 13, "#4a3a20", { fontFamily: "Georgia, serif", fontStyle: "italic" }).setOrigin(0.5));
     ph.add(this.sc.add.circle(0, -136, 6, 0xb02020));
     this.push(s.to[0], 9000, this.cx, this.cy - 30);
@@ -278,7 +278,7 @@ export class DocumentaryDirector extends ShowDirector {
     const { SX, SY, SW, SH } = this.r;
     this.backdrop(this.host.setTexture(), { zoom: 1.7, blur: 2 });
     const mk = (n: string, x: number) => {
-      const s = this.add(this.sc.add.sprite(x, SY + SH + 6, `tvface_${n}`, F.ALARM).setOrigin(0.5, 1).setScale(2.6));
+      const s = this.add(this.sc.add.sprite(x, SY + SH + 6, faceKeyOf(n), F.ALARM).setOrigin(0.5, 1).setScale(2.6));
       return s;
     };
     const a = mk("KRELBERT", SX + SW * 0.27);

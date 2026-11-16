@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { F, ShowDirector, type Perf } from "./ShowDirector";
+import { F, ShowDirector, faceKeyOf, type Perf } from "./ShowDirector";
 
 /**
  * A multi-camera studio sitcom (Thick Cumming Cock). Shot the way they are: a cold open, then a title sequence
@@ -358,8 +358,8 @@ export class SitcomDirector extends ShowDirector {
     this.shotKind = "kiss";
     const { SX, SY, SW, SH } = this.r;
     this.backdrop(this.setKey(), { zoom: 1.8, blur: 2, ox: 30 });
-    const j = this.add(this.sc.add.sprite(SX + SW * 0.22, SY + SH + 6, "tvface_JENNY_CUMMING", F.BLINK).setOrigin(0.5, 1).setScale(3));
-    const c = this.add(this.sc.add.sprite(SX + SW * 0.78, SY + SH + 6, "tvface_CHRISTOPHER_THICK", F.BLINK).setOrigin(0.5, 1).setScale(3));
+    const j = this.add(this.sc.add.sprite(SX + SW * 0.22, SY + SH + 6, faceKeyOf("JENNY CUMMING"), F.BLINK).setOrigin(0.5, 1).setScale(3));
+    const c = this.add(this.sc.add.sprite(SX + SW * 0.78, SY + SH + 6, faceKeyOf("CHRISTOPHER THICK"), F.BLINK).setOrigin(0.5, 1).setScale(3));
     this.sc.tweens.add({ targets: j, x: SX + SW * 0.42, angle: 14, duration: 900, ease: "Quad.in" });
     this.sc.tweens.add({ targets: c, x: SX + SW * 0.58, angle: -14, duration: 900, ease: "Quad.in" });
     this.later(900, () => {
@@ -565,7 +565,7 @@ export class SitcomDirector extends ShowDirector {
       ["JENNY CUMMING", "#ff9ccf", 1],
     ];
     cast.forEach(([n, col, side], i) => {
-      const fk = `tvface_${n.replace(/ /g, "_")}`;
+      const fk = faceKeyOf(n);
       if (!this.tex(fk)) return;
       const box = this.add(this.sc.add.container(this.cx + side * 140, SY + SH * 0.45).setAlpha(0).setAngle(side * -4));
       box.add(this.sc.add.rectangle(0, 0, 230, 230, 0xffffff));
@@ -588,8 +588,8 @@ export class SitcomDirector extends ShowDirector {
     this.shotKind = "card";
     const { SX, SY, SW, SH } = this.r;
     this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0x1b1030).setOrigin(0));
-    if (this.tex("tvface_JENNY_CUMMING")) this.add(this.sc.add.sprite(SX + SW * 0.25, SY + SH + 6, "tvface_JENNY_CUMMING", F.LAUGH).setOrigin(0.5, 1).setScale(2.6).setAlpha(0.45));
-    if (this.tex("tvface_CHRISTOPHER_THICK")) this.add(this.sc.add.sprite(SX + SW * 0.75, SY + SH + 6, "tvface_CHRISTOPHER_THICK", F.LAUGH).setOrigin(0.5, 1).setScale(2.6).setAlpha(0.45));
+    if (this.tex(faceKeyOf("JENNY CUMMING"))) this.add(this.sc.add.sprite(SX + SW * 0.25, SY + SH + 6, faceKeyOf("JENNY CUMMING"), F.LAUGH).setOrigin(0.5, 1).setScale(2.6).setAlpha(0.45));
+    if (this.tex(faceKeyOf("CHRISTOPHER THICK"))) this.add(this.sc.add.sprite(SX + SW * 0.75, SY + SH + 6, faceKeyOf("CHRISTOPHER THICK"), F.LAUGH).setOrigin(0.5, 1).setScale(2.6).setAlpha(0.45));
     const roll = this.add(this.sc.add.container(this.cx, SY + SH + 20));
     const lines = ["THICK CUMMING COCK", "", ...t.split("\n").slice(1), "", "STARRING", "Christopher Thick", "Jenny Cumming", "", "Filmed in front of a live studio audience", "(they have since been released)"];
     lines.forEach((l, i) => roll.add(this.text(0, i * 26, l, i === 0 ? 24 : 15, i === 0 ? "#ffe14a" : "#ffffff", { fontStyle: i === 0 || l === "STARRING" ? "bold" : "normal", align: "center", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5, 0)));

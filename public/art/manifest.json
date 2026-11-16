@@ -8380,6 +8380,81 @@
   },
   "ssj_por_GRONNY": {
    "file": "finale/ssj_por_GRONNY.png"
+  },
+  "tv_p2_body_MARK": {
+   "file": "tv/p2/body_MARK.png"
+  },
+  "tv_p2_body_JEZ": {
+   "file": "tv/p2/body_JEZ.png"
+  },
+  "tv_p2_body_SIMON": {
+   "file": "tv/p2/body_SIMON.png"
+  },
+  "tv_p2_body_MADISON": {
+   "file": "tv/p2/body_MADISON.png"
+  },
+  "tv_p2_body_GOKU": {
+   "file": "tv/p2/body_GOKU.png"
+  },
+  "tv_p2_body_YEMENI_EXECUTIVE": {
+   "file": "tv/p2/body_YEMENI_EXECUTIVE.png"
+  },
+  "tv_p2_body_YEMENI_OFFICER": {
+   "file": "tv/p2/body_YEMENI_OFFICER.png"
+  },
+  "tv_p2_body_MINTY": {
+   "file": "tv/p2/body_MINTY.png"
+  },
+  "tv_p2_body_PEGGY": {
+   "file": "tv/p2/body_PEGGY.png"
+  },
+  "tv_p2_wellard": {
+   "file": "tv/p2/wellard.png"
+  },
+  "tv_p2_exec_back": {
+   "file": "tv/p2/exec_back.png"
+  },
+  "tv_p2_dagger": {
+   "file": "tv/p2/dagger.png"
+  },
+  "tv_p2_pouch": {
+   "file": "tv/p2/pouch.png"
+  },
+  "tv_p2_fridge": {
+   "file": "tv/p2/fridge.png"
+  },
+  "tv_p2_fridge_open": {
+   "file": "tv/p2/fridge_open.png"
+  },
+  "tv_p2_chicken": {
+   "file": "tv/p2/chicken.png"
+  },
+  "tv_p2_phone": {
+   "file": "tv/p2/phone.png"
+  },
+  "tv_p2_bag": {
+   "file": "tv/p2/bag.png"
+  },
+  "tv_p2_arm": {
+   "file": "tv/p2/arm.png"
+  },
+  "tv_p2_bed": {
+   "file": "backdrops/tv_p2_bed.png"
+  },
+  "tv_p2_door": {
+   "file": "backdrops/tv_p2_door.png"
+  },
+  "tv_p2_bed_duvet": {
+   "file": "backdrops/tv_p2_bed_duvet.png"
+  },
+  "tv_p2_sky": {
+   "file": "backdrops/tv_p2_sky.png"
+  },
+  "tv_p2_bars": {
+   "file": "backdrops/tv_p2_bars.png"
+  },
+  "tv_p2_table": {
+   "file": "backdrops/tv_p2_table.png"
   }
  },
  "sheets": {
@@ -10455,6 +10530,106 @@
   "tv_mt_cop": {
    "file": "tv/mt_cop.png",
    "frameWidth": 96,
+   "frameHeight": 128
+  },
+  "tv_p2_clothes": {
+   "file": "tv/p2/clothes.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "tvface_P2_FLAT_TYRE_FROLLICK": {
+   "file": "tv/face_P2_FLAT_TYRE_FROLLICK.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_GOKU": {
+   "file": "tv/face_P2_GOKU.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_GROZZ": {
+   "file": "tv/face_P2_GROZZ.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_HOST": {
+   "file": "tv/face_P2_HOST.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_KRELBERT": {
+   "file": "tv/face_P2_KRELBERT.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_KREZMAR": {
+   "file": "tv/face_P2_KREZMAR.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_KROZNO": {
+   "file": "tv/face_P2_KROZNO.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_LIL_CRONGUS": {
+   "file": "tv/face_P2_LIL_CRONGUS.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_MINTY": {
+   "file": "tv/face_P2_MINTY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_PEGGY": {
+   "file": "tv/face_P2_PEGGY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_PHIL": {
+   "file": "tv/face_P2_PHIL.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_RONSON": {
+   "file": "tv/face_P2_RONSON.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_SHEZLEIGH": {
+   "file": "tv/face_P2_SHEZLEIGH.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_CHRISTOPHER_THICK": {
+   "file": "tv/face_P2_CHRISTOPHER_THICK.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_DRONGUS": {
+   "file": "tv/face_P2_DRONGUS.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_JENNY_CUMMING": {
+   "file": "tv/face_P2_JENNY_CUMMING.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_PHEZON": {
+   "file": "tv/face_P2_PHEZON.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_SCRIMBLE": {
+   "file": "tv/face_P2_SCRIMBLE.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_P2_SCROMBUS": {
+   "file": "tv/face_P2_SCROMBUS.png",
+   "frameWidth": 128,
    "frameHeight": 128
   }
  },

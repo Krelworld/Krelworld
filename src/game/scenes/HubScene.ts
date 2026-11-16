@@ -343,8 +343,8 @@ export class HubScene extends Phaser.Scene {
     else this.scene.get("UI").events.emit("mode", "hub");
     G.emit("boss", null);
     G.emit("rule", null);
-    // after dark (and not on the finale's blue morning) the town plays its night theme
-    synth.isNight = () => !G.s.flags.finale_dawn && clock().dark >= 0.5;
+    // Krelford is always in daylight now; only the story's own nights (the Chapter 6 raid, the bombed town in 7) are dark
+    synth.isNight = () => !G.s.flags.finale_dawn && this.storyNight();
     synth.music("hub");
     synth.ambience("town");
     this.weather();
@@ -356,18 +356,23 @@ export class HubScene extends Phaser.Scene {
 
   /** First time out of the front door: a slow look round Krelford. */
   /**
-   * Weather and time of day in town, from the real clock: night-time after 8pm (lights on, sky dark), and on some days
+   * Weather in town: always daylight (bar the story's own nights in Chapters 6-7), and on some days
    * it rains (or in December, snows). Drawn PixelLab weather loops tiled over the screen.
    */
+  /** The story's nights: Chapter 6 from the revenge march to the end of the raid, and the bombed town in Chapter 7. */
+  private storyNight() {
+    return (G.s.chapter === 6 && !!G.s.flags.raid_march && !G.s.flags.ch6_clear) || (G.s.chapter >= 7 && !!G.s.flags.krelworld_bombed);
+  }
+
   private weather() {
     const c0 = clock();
     // Chapter 6, from the revenge meeting to the end: a black, rainy night
     // after THE CONCEPT OF PAEDOPHILIA: a clear blue morning over the ruins, whatever the clock says
     const dawn = !!G.s.flags.finale_dawn;
-    const raidNight = !dawn && ((G.s.chapter === 6 && !!G.s.flags.raid_march && !G.s.flags.ch6_clear) || (G.s.chapter >= 7 && !!G.s.flags.krelworld_bombed));
+    const raidNight = !dawn && this.storyNight();
     const kind = dawn ? null : raidNight ? "storm" : weatherFor(c0.day);
     (this as any).weatherKind = kind;
-    // the sky follows Krelford's clock: night darkens, dusk and dawn glow orange, doors light up after dark
+    // the sky: daylight, except the story's nights (dark, doors lit) and the finale's blue morning
     const nightA = this.add.rectangle(480, 270, 960, 540, 0x0b1440, 1).setAlpha(0).setScrollFactor(0).setDepth(4900).setBlendMode(Phaser.BlendModes.MULTIPLY);
     const blueA = this.add.rectangle(480, 270, 960, 540, 0x1e2a6b, 1).setAlpha(0).setScrollFactor(0).setDepth(4901);
     const dusk = this.add.rectangle(480, 270, 960, 540, 0xff7a3a, 1).setAlpha(0).setScrollFactor(0).setDepth(4901).setBlendMode(Phaser.BlendModes.MULTIPLY);
@@ -379,7 +384,7 @@ export class HubScene extends Phaser.Scene {
     }
     const apply = () => {
       // the ruined town is lit by its own fires: dark, but you can still see who's crawling out of what
-      const c = dawn ? { dark: 0, twilight: 0.12 } : raidNight ? { dark: G.s.chapter >= 7 ? 0.55 : 1, twilight: 0 } : clock();
+      const c = dawn ? { dark: 0, twilight: 0.12 } : raidNight ? { dark: G.s.chapter >= 7 ? 0.55 : 1, twilight: 0 } : { dark: 0, twilight: 0 };
       nightA.setAlpha(c.dark * 0.42);
       blueA.setAlpha(c.dark * 0.18);
       dusk.setAlpha(c.twilight * 0.4);

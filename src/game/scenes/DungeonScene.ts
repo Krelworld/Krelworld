@@ -1889,15 +1889,21 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       this.tweens.add({ targets: b, alpha: 1, duration: 800 });
       synth.play("roar");
     }
+    // a boss with its own theme: it starts the moment they appear, under their intro (no generic music first)
+    const ownTheme = !!MUSIC_FILES[`fight_${id}`];
+    if (ownTheme && !epic) {
+      synth.music(`fight_${id}`, true);
+      this.fightMusicOn = true;
+    }
     if (fresh) await this.talk(txt.intro);
     if (epic) {
       if (b.active) await Juice.bossCard(this, txt.name, txt.title, epic);
       closeBars?.(350);
       this.cameras.main.zoomTo(1, 350, "Cubic.easeOut", true);
     }
-    // a boss with its own fight track: it starts as the talking stops (and the next boss in a rush goes back to the room's)
-    if (MUSIC_FILES[`fight_${id}`]) {
-      synth.music(`fight_${id}`, true);
+    // epic bosses' themes start once the title card's done (the next boss in a rush goes back to the room's music)
+    if (ownTheme) {
+      if (epic) synth.music(`fight_${id}`, true);
       this.fightMusicOn = true;
     } else if (this.fightMusicOn) {
       synth.music(this.roomMusicId, true);

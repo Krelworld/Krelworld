@@ -16,7 +16,7 @@ export type ArcStepKind =
   | { kind: "vignette"; intro: Line[]; id: string }
   | { kind: "pay"; intro: Line[]; cost: number; success: Line[] }
   /** Pick up glowing items around Krelford. Not tied to a building (use at: "FIELD"). */
-  | { kind: "collect"; label: string; spots: { x: number; y: number; name: string }[]; pickup: Line[]; guard?: "playground" }
+  | { kind: "collect"; label: string; spots: { x: number; y: number; name: string; inside?: "CLUB" | "POLSON" }[]; pickup: Line[]; guard?: "playground" }
   /** A scripted scene that plays by itself when you arrive in town (at: "FIELD"). */
   | { kind: "auto"; id: string }
   /** A free-for-all shoving match in town (at: "FIELD"): the Krunchers and the krew at `spot`. */
@@ -669,7 +669,7 @@ export const ARCS: Arc[] = [
     player: "FLENKY",
     minChapter: 2,
     title: "Flenky Jenky",
-    blurb: "Become a sigma male (you don't buy into the archetypes). Reclaim the deadlift platform. Find Sam Adams on draught. Defend your top-lad status.",
+    blurb: "Become a sigma male (you don't buy into the archetypes). Reclaim the deadlift platform. Defend your top-lad status.",
     reward: { coins: 350, desc: "Top lad status: confirmed. Hearsay: dismissed. Too weird to live, too rare to die." },
     steps: [
       {
@@ -706,23 +706,6 @@ export const ARCS: Arc[] = [
           ],
           success: [say("FLENKY", "That's longer than Polson can hold a plank for."), dir("Stacy moves her circuit to the leg press. You've won. She doesn't know there was a war."), say("FLENKY", "Some you win and some you lose. I won that one.")],
           fail: [say("FLENKY", "DONT FUCKING FUNCTIONAL ME. IM LOSING IT."), dir("Stacy adds a thirteenth station.")],
-        },
-      },
-      {
-        id: "sam_adams",
-        text: "The grail: Sam Adams, on draught, in Krelford. Search the town.",
-        at: "FIELD",
-        step: {
-          kind: "collect",
-          label: "Sam Adams lead",
-          pickup: [say("FLENKY", "Sam Adams! On draught! In the UK!"), dir("It was a regular lager with a Sam Adams sticker on the pump. The hunt continues.")],
-          spots: [
-            { x: 560, y: 1010, name: "pub tap (fake)" },
-            { x: 1520, y: 1060, name: "pub tap (fake)" },
-            { x: 2160, y: 1010, name: "pub tap (fake)" },
-            { x: 380, y: 1400, name: "pub tap (fake)" },
-            { x: 1860, y: 1580, name: "THE REAL ONE" },
-          ],
         },
       },
       {
@@ -791,8 +774,9 @@ export const ARCS: Arc[] = [
             { x: 1560, y: 980, name: "mint choccy" },
             { x: 2200, y: 1050, name: "caramel choccy" },
             { x: 420, y: 1440, name: "ruby choccy" },
-            { x: 1900, y: 1620, name: "white choccy" },
-            { x: 2480, y: 470, name: "orange choccy (rare)" },
+            // the last two are indoors: one in the Wonky Pole (through the Krezz Arms), one at Polson's
+            { x: 300, y: 470, name: "white choccy (the Wonky Pole)", inside: "CLUB" },
+            { x: 560, y: 330, name: "orange choccy (Polson's sofa bed)", inside: "POLSON" },
           ],
         },
       },

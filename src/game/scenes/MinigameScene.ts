@@ -755,11 +755,13 @@ export class MinigameScene extends Phaser.Scene {
     const prog = this.add.rectangle(140, 480, 0, 22, 0x22c55e).setOrigin(0, 0.5).setDepth(5);
     this.add.rectangle(480, 480, 680, 22).setStrokeStyle(2, 0xffffff).setDepth(6);
     let p = 0;
-    const end = this.time.now + 12000;
+    // Jenko's lift (taking back the platform from 'Stacy') is the gentler one: more time, bigger pulls, slower slip
+    const easy = G.s.player === "FLENKY";
+    const end = this.time.now + (easy ? 15000 : 12000);
     const juiced = !!G.s.flags.arcstep_arc_krezwonk_hgh || G.s.player !== "KREZWONK";
     this.mash(() => {
       if (this.ended) return;
-      p = Math.min(100, p + (juiced ? 3.2 : 1.6));
+      p = Math.min(100, p + (easy ? 4.4 : juiced ? 3.2 : 1.6));
       synth.play("swing");
       if (Math.random() < 0.15) this.pop(480 + (Math.random() - 0.5) * 300, 200, ["GRRR", "LIGHT WEIGHT", "SO WHAT CAN WE SAY", "HGH GO BRRR", "VEINS"][Math.floor(Math.random() * 5)], "#ffd23f");
     });
@@ -768,7 +770,7 @@ export class MinigameScene extends Phaser.Scene {
       loop: true,
       callback: () => {
         if (this.ended) return;
-        if (p < 100) p = Math.max(0, p - 0.25);
+        if (p < 100) p = Math.max(0, p - (easy ? 0.15 : 0.25));
         prog.width = 6.8 * p;
         bar.y = 420 - p * 1.6;
         lifter.setFrame(p > 50 ? 3 : 0);

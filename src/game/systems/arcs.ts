@@ -1,5 +1,5 @@
 import { GUNS, gunMax } from "../combat/Guns";
-import type { GameState } from "../../data/types";
+import type { GameState, Line } from "../../data/types";
 import { ARCS, arcFor, arcsFor, type Arc, type ArcStep } from "../../content/arcs";
 import { DUNGEONS } from "../../data/dungeons";
 
@@ -94,4 +94,28 @@ export function requiredArcSteps(s: GameState) {
     const d = arcDue(c.arc);
     return d !== null && d <= s.chapter;
   });
+}
+
+/** The Cronster's cuddle tokens: the step, and how many of the outdoor / indoor ones are still to find. */
+export function tokenTrail(s: GameState) {
+  const a = ARCS.find((x) => x.id === "arc_cronster");
+  const st = a?.steps.find((x) => x.id === "tokens");
+  if (!a || !st || st.step.kind !== "collect") return null;
+  const spots = st.step.spots;
+  const cur = currentArcSteps(s).find((c) => c.arc.id === a.id && c.step.id === "tokens");
+  if (!cur) return null;
+  const left = (inside: boolean) => spots.map((sp, i) => ({ sp, i })).filter(({ sp, i }) => !!sp.inside === inside && !s.flags[spotFlag(a, st, i)]);
+  return { arc: a, step: st, spots, outdoorLeft: left(false), indoorLeft: left(true) };
+}
+
+/** Pick up the indoor token at CLUB or POLSON (if it's there to find). Returns what to say, or null. */
+export function takeIndoorToken(s: GameState, where: "CLUB" | "POLSON"): { lines: Line[]; toast: string } | null {
+  const t = tokenTrail(s);
+  if (!t || t.outdoorLeft.length) return null;
+  const hit = t.indoorLeft.find(({ sp }) => sp.inside === where);
+  if (!hit) return null;
+  s.flags[spotFlag(t.arc, t.step, hit.i)] = true;
+  const got = t.spots.filter((_, i) => s.flags[spotFlag(t.arc, t.step, i)]).length;
+  const k = t.step.step as Extract<ArcStep["step"], { kind: "collect" }>;
+  return { lines: k.pickup, toast: `${k.label}: ${hit.sp.name} (${got}/${t.spots.length})${got === t.spots.length ? " · Take them to Sergeant Swig." : ""}` };
 }

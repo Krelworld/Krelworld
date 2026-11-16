@@ -1,6 +1,6 @@
 import { synth } from "./audio/Synth";
 import { offerFacts, adoptFact } from "../data/historicalRevisions";
-import { requiredArcSteps } from "./systems/arcs";
+import { requiredArcSteps, tokenTrail } from "./systems/arcs";
 import Phaser from "phaser";
 import type { Line, PlayableId } from "../data/types";
 import { G } from "./G";
@@ -91,6 +91,12 @@ export function currentStep(): { text: string; target?: string } | null {
   if (s.chapter === 1 && !s.flags.prologue_done) return { text: "Go to Krelford Town Hall: the cabinet's Lore Appreciation Inquiry is about to start", target: "TOWN_HALL" };
   if (s.chapter === 6 && !s.flags.ch6_ready)
     return { text: "⚠ LAST CHANCE: stock up on weapons, ammo, upgrades, Krezzcoin and Krokens (Kreddle Exchange, slots, bank, armoury). Then go to the Town Hall to begin Chapter 6", target: "TOWN_HALL" };
+  // the last two cuddle tokens are indoors: point at the strip club (via the Krezz Arms) and Polson's
+  const tt = tokenTrail(s);
+  if (tt && !tt.outdoorLeft.length && tt.indoorLeft.length) {
+    const club = tt.indoorLeft.some(({ sp }) => sp.inside === "CLUB");
+    return { text: `The last ${tt.indoorLeft.length === 1 ? "cuddle token is" : "two cuddle tokens are"} indoors: ${tt.indoorLeft.map(({ sp }) => (sp.inside === "CLUB" ? "the strip club (through the Krezz Arms)" : "Polson's house")).join(" and ")}`, target: club ? "PUB" : "POLSON_ROAD" };
+  }
   const ch = chapterDef(s.chapter);
   for (const st of ch.steps) {
     if (!evalCond(st.done, s)) {

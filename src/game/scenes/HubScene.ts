@@ -26,7 +26,7 @@ import { activeMods } from "../../data/historicalRevisions";
 import { canTurnIn, completePersonal, pickupsInHub, collectPickup, ministryQuestFor, ministryQuestState, acceptMinistry, completeMinistry, ministryProgress } from "../systems/quests";
 import { dir, ping, say } from "../../content/dsl";
 import { narrativeActor } from "../systems/narrative";
-import { arcDue, arcStepAt, completeStep, currentArcSteps, maybeFinishArc, spotFlag } from "../systems/arcs";
+import { arcDue, arcStepAt, completeStep, currentArcSteps, maybeFinishArc, spotFlag, tokenTrail } from "../systems/arcs";
 import { DUNGEONS } from "../../data/dungeons";
 import { MEETINGS } from "../../content/meetings";
 import { animateWalker, charMeta, feetBody, leadCamera, steer } from "../gfx/HD";
@@ -2168,7 +2168,8 @@ You are required by law to sign the Sex Offenders Register.`, {
       if (k.kind !== "collect") continue;
       k.spots.forEach((sp, i) => {
         const f = spotFlag(c.arc, c.step, i);
-        if (G.s.flags[f] || this.spawnedSpots.has(f)) return;
+        // indoor ones are picked up inside (the strip club, Polson's house), not out here
+        if (sp.inside || G.s.flags[f] || this.spawnedSpots.has(f)) return;
         this.spawnedSpots.add(f);
         // pickups are meant to be easy to spot: drawn above the scenery, bigger, with a pulsing glow and a beam of light
         const glow = this.add.circle(sp.x, sp.y, 30, 0xffe08a, 0.45).setDepth(4490).setBlendMode(Phaser.BlendModes.ADD);
@@ -2210,6 +2211,15 @@ You are required by law to sign the Sex Offenders Register.`, {
             const got = k.spots.filter((_, j) => G.s.flags[spotFlag(c.arc, c.step, j)]).length;
             await this.talk(k.pickup);
             G.emit("toast", { title: c.arc.title.toUpperCase(), text: `${k.label}: ${sp.name} (${got}/${k.spots.length})` });
+            // all the outdoor cuddle tokens found: the trail leads indoors
+            const tt = tokenTrail(G.s);
+            if (tt && !tt.outdoorLeft.length && tt.indoorLeft.length && !G.s.flags.tokens_indoor_told) {
+              G.s.flags.tokens_indoor_told = true;
+              await this.talk([
+                dir("Four tokens. The wrappers all smell faintly of the same two places: baby oil and dry ice… and Lynx Africa and pizza."),
+                dir("The last two are indoors. One's in the Wonky Pole (the strip room through the back of the Krezz Arms). One's at Polson's house. Follow the arrow."),
+              ]);
+            }
             G.save();
           },
         });
@@ -2307,7 +2317,8 @@ You are required by law to sign the Sex Offenders Register.`, {
       await this.talk(POLSON_GONE);
       return;
     }
-    if (b.id === "POLSON_ROAD" && s.flags.ch3_clear && POLSON_CHATS.length && chapterDef(s.chapter).dungeonDoor !== "POLSON_ROAD") {
+    const polsonToken = !!tokenTrail(s)?.indoorLeft.some(({ sp }) => sp.inside === "POLSON") && !tokenTrail(s)?.outdoorLeft.length;
+    if (b.id === "POLSON_ROAD" && (polsonToken || (s.flags.ch3_clear && POLSON_CHATS.length && chapterDef(s.chapter).dungeonDoor !== "POLSON_ROAD")) && !arcStepAt(s, "POLSON_ROAD")) {
       this.go("PolsonHome", {});
       return;
     }

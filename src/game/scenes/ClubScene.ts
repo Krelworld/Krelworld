@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { takeIndoorToken, tokenTrail } from "../systems/arcs";
 import { bindSanmikToggle, playerKey, sanmikYee, swapSheet } from "../gfx/sanmikForm";
 import { SANMIK_FLAG } from "../systems/sanmik";
 import { vfx } from "../gfx/Vfx";
@@ -181,6 +182,7 @@ export class ClubScene extends Phaser.Scene {
     title(this, 480, 40, "THE WONKY POLE", 28, "#ff6bb0").setDepth(1100);
     this.add.text(480, 66, "GENTLEMEN'S CABARET · LOOK, DON'T TOUCH · NO WONKING", { fontFamily: FONT, fontSize: "11px", color: "#ffd1e8" }).setOrigin(0.5).setDepth(1100);
     this.dressRoom();
+    this.placeToken();
     // the dancer, and her censor bars (shown once she's down to nothing)
     this.stripStage = 0;
     this.stripTips = 0;
@@ -614,7 +616,11 @@ export class ClubScene extends Phaser.Scene {
     const atBooth = !!G.s.flags.golden_unlocked && this.me.x > 800 && this.me.y > 450;
     let label = "";
     let act: (() => void) | null = null;
-    if (atStage && !this.onBreak && !this.dancerDown) {
+    const atToken = !!this.token?.active && Phaser.Math.Distance.Between(this.me.x, this.me.y, this.token.x, this.token.y + 20) < 60;
+    if (atToken) {
+      label = "E: Pick up: Cuddle token";
+      act = () => void this.takeToken();
+    } else if (atStage && !this.onBreak && !this.dancerDown) {
       label = `E: Tip ${this.dancerName()} (5 Krezzcoin)`;
       act = () => this.tip();
     } else if (atBooth && !this.onBreak && !this.dancerDown) {
@@ -941,6 +947,34 @@ export class ClubScene extends Phaser.Scene {
       s.intoxication = Math.min(100, s.intoxication + 12);
       this.bubble(this.me, "Necked it.", 1200, "#ffd1e8");
     }
+  }
+
+  /** The Cronster's cuddle token (chapter 3): one of the last two is in here, glowing pink under a table. */
+  private token: Phaser.GameObjects.Image | null = null;
+
+  private placeToken() {
+    this.token = null;
+    const t = tokenTrail(G.s);
+    if (!t || t.outdoorLeft.length || !t.indoorLeft.some(({ sp }) => sp.inside === "CLUB") || !this.textures.exists("p_token")) return;
+    const sp = t.indoorLeft.find(({ sp }) => sp.inside === "CLUB")!.sp;
+    const glow = this.add.circle(sp.x, sp.y, 26, 0xff6bb0, 0.35).setDepth(sp.y - 1).setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({ targets: glow, scale: 1.5, alpha: 0.12, yoyo: true, repeat: -1, duration: 700 });
+    this.token = this.add.image(sp.x, sp.y, "p_token").setScale(2.4).setDepth(sp.y);
+    this.token.setData("glow", glow);
+    this.tweens.add({ targets: this.token, y: sp.y - 6, yoyo: true, repeat: -1, duration: 600 });
+  }
+
+  private async takeToken() {
+    if (this.busy || !this.token) return;
+    const t = takeIndoorToken(G.s, "CLUB");
+    (this.token.getData("glow") as Phaser.GameObjects.Arc | undefined)?.destroy();
+    this.token.destroy();
+    this.token = null;
+    if (!t) return;
+    synth.play("pickup");
+    await this.talk([dir("Under the table nearest the pole, stuck to the carpet: a chocolate cuddle token. It's warm. You decide not to think about why."), ...t.lines]);
+    G.emit("toast", { title: "THE CUDDLE CRONSTER", text: t.toast });
+    G.save();
   }
 
   private leave() {

@@ -1,3 +1,4 @@
+import { evalCond } from "../systems/conditions";
 import Phaser from "phaser";
 import { bossAnims } from "../combat/Bosses";
 import { playerKey } from "../gfx/sanmikForm";
@@ -410,10 +411,10 @@ export class TownMeetingScene extends Phaser.Scene {
   private withSanmikMoment(m: MeetingScript) {
     const beats = [...m.beats];
     if (m.historical || G.s.player === "MIKEY" || !this.seats.MIKEY || !this.textures.exists("spr_SANMIK") || (Math.random() > 0.35 && !(window as any).__forceSanmik)) return beats;
-    // just before one of his lines, a few lines in; else somewhere in the middle
-    const his = beats.map((b, i) => [b, i] as const).filter(([b, i]) => i >= 3 && b.s === "MIKEY" && !b.dir);
-    const at = his.length ? his[Math.floor(Math.random() * his.length)][1] : Math.max(2, Math.floor(beats.length * (0.3 + Math.random() * 0.4)));
-    beats.splice(at, 0, say("MIKEY", "Hang on, time to transform into SanMik", { fx: "sanmik_transform" }));
+    // only in meetings where Mikey actually speaks, and always before his first line (so every line he says is SanMik's)
+    const first = beats.findIndex((b) => b.s === "MIKEY" && !b.dir && !!b.t && !b.notify && evalCond(b.cond, G.s));
+    if (first < 0) return beats;
+    beats.splice(first, 0, say("MIKEY", "Hang on, time to transform into SanMik", { fx: "sanmik_transform" }));
     return beats;
   }
 

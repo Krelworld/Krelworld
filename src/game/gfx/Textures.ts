@@ -538,6 +538,11 @@ export function portraitKey(scene: Phaser.Scene, speaker: string): string | null
                       ? "p_rik"
                       : "";
   if (art && scene.textures.exists(art)) return art;
+  // the cyst talks with its own face (the Polson Towers boss), not a passer-by's
+  if (s.includes("CYST")) {
+    const p = spritePortrait(scene, scene.textures.exists("boss_hoard") ? "boss_hoard" : "boss_flatmate", 0x3f6212);
+    if (p) return p;
+  }
   const named = SPEAKER_SPRITES[s] ?? (scene.textures.exists(`spr_TV_${s.replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "")}`) ? `spr_TV_${s.replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "")}` : scene.textures.exists(`spr_${s}`) ? `spr_${s}` : "");
   if (named) {
     const p = spritePortrait(scene, named, 0x3d2a6b);

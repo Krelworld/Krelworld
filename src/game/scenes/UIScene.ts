@@ -81,7 +81,7 @@ export class UIScene extends Phaser.Scene {
       delay: 1000,
       loop: true,
       callback: () => {
-        if (!DRONGUS_STATUSES.length || !G.s.flags.met_emergency || Date.now() < G.rt.nextStatusAt) return;
+        if (!DRONGUS_STATUSES.length || !G.s.flags.met_emergency || this.mode !== "hub" || Date.now() < G.rt.nextStatusAt) return;
         G.rt.nextStatusAt = Date.now() + 34000 + Math.random() * 12000;
         if (!G.rt.statusDeck.length) G.rt.statusDeck = Phaser.Utils.Array.Shuffle(DRONGUS_STATUSES.map((_, i) => i));
         const st = DRONGUS_STATUSES[G.rt.statusDeck.pop()!];
@@ -197,10 +197,13 @@ export class UIScene extends Phaser.Scene {
         this.showWeaponCard();
         break;
       case "ping":
+        // Drongus stays out of dungeons (a burst that was still landing as you went in is dropped)
+        if (d.from === "DRONGUS" && this.mode !== "hub") break;
         this.pushToast(CHARACTERS[d.from]?.name ?? d.from, d.text, true, d.from);
         synth.play("notify");
         break;
       case "fbstatus":
+        if (this.mode !== "hub") break;
         this.pushStatus(d.text, d.year);
         synth.play("notify");
         break;

@@ -696,10 +696,12 @@ export class HubScene extends Phaser.Scene {
       if (flowing && key === "tap_flow" && !this.anims.exists("tap_flow")) this.anims.create({ key: "tap_flow", frames: this.anims.generateFrameNumbers("tap_flow", { start: 0, end: 7 }), frameRate: 9, repeat: -1 });
       if (this.hd && this.textures.exists(key)) {
         const t = this.add.sprite(1280, 790, key, 0).setDepth(850);
+        this.tapSpr = t;
         if (key === "tap_flow") t.play("tap_flow");
         if (flowing) this.neonGlow(1280, 790, 110, 0xff6bb0);
       } else {
         const t = this.add.sprite(1280, 800, this.textures.exists(key) ? key : "p_tap", 0).setScale(3).setDepth(800);
+        this.tapSpr = t;
         if (key === "tap_flow") t.play("tap_flow");
       }
     }
@@ -3196,6 +3198,25 @@ You are required by law to sign the Sex Offenders Register.`, {
   }
 
   /** A building, reduced to a heap: rubble, timbers, girders and a bit of wall, still burning. */
+  /** The Great Tap, so the bombing can take it out. */
+  private tapSpr?: Phaser.GameObjects.Sprite;
+
+  /** A building's worth of rubble (no collider): used by the ruined town and by the bombing as each one goes. */
+  private rubbleProps(b: Building) {
+    const rnd = new Phaser.Math.RandomDataGenerator([b.id]);
+    const keys = ["r_rubble", "r_ruin", "r_girders", "r_wall", "r_fireheap", "r_rubble", "r_debris"];
+    const n = Math.max(3, Math.round(b.w / 70));
+    const out: Phaser.GameObjects.GameObject[] = [];
+    for (let i = 0; i < n; i++) {
+      const x = b.x - b.w / 2 + (b.w * (i + 0.5)) / n + rnd.between(-14, 14);
+      const y = b.y + b.h * 0.18 + rnd.between(-26, 26);
+      const key = keys[(i + rnd.between(0, 6)) % keys.length];
+      out.push(this.textures.exists(key) ? this.add.image(x, y, key).setOrigin(0.5, 0.85).setScale(1.6 + rnd.frac() * 0.8).setDepth(y) : this.add.ellipse(x, y, 70, 36, 0x3a2f2a).setDepth(y));
+    }
+    out.push(this.add.ellipse(b.x, b.y + b.h * 0.2, b.w * 1.05, b.h * 0.6, 0x0d0a08, 0.45).setDepth(1));
+    return out;
+  }
+
   private drawRuinedBuilding(b: Building) {
     const rnd = new Phaser.Math.RandomDataGenerator([b.id]);
     const keys = ["r_rubble", "r_ruin", "r_girders", "r_wall", "r_fireheap", "r_rubble", "r_debris"];
@@ -3460,7 +3481,7 @@ You are required by law to sign the Sex Offenders Register.`, {
     Juice.vignette(this, 0x000000, 0.6, 4960);
     synth.play("alarm");
     await this.talk([dir("Krelford. The sky is full of little lights. They are getting bigger.")]);
-    const order = BUILDINGS.filter((b) => b.door).sort((a, b) => a.y - b.y || a.x - b.x);
+    const order = BUILDINGS.filter((b) => b.door && b.id !== "CITADEL").sort((a, b) => a.y - b.y || a.x - b.x);
     const wait = (ms: number) => new Promise((r) => this.time.delayedCall(ms, r));
     // a montage that speeds up as it goes: the first few you watch land, then they're coming in faster than you can look
     for (const [i, b] of order.entries()) {
@@ -3509,9 +3530,14 @@ You are required by law to sign the Sex Offenders Register.`, {
         img.setTintFill(0xffffff);
         this.time.delayedCall(70, () => {
           if (!img.active) return;
-          img.clearTint().setTint(0x4a3a3a);
-          this.tweens.add({ targets: img, x: { from: img.x - 4, to: img.x }, duration: 50, repeat: 4, yoyo: true });
-          this.tweens.add({ targets: img, scaleY: img.scaleY * 0.93, y: img.y + img.displayHeight * 0.035, duration: 500, ease: "Bounce.out" });
+          // it comes down: scorched, shaking, collapsing into its own footprint, and a heap of rubble where it stood
+          img.clearTint().setTint(0x3a2a24);
+          this.tweens.add({ targets: img, x: { from: img.x - 6, to: img.x }, duration: 45, repeat: 5, yoyo: true });
+          const bottom = img.y + img.displayHeight * (1 - img.originY);
+          this.tweens.add({ targets: img, scaleY: img.scaleY * 0.15, y: bottom - img.displayHeight * 0.15 * (1 - img.originY), alpha: 0, duration: 900, delay: 250, ease: "Quad.in", onComplete: () => img.setVisible(false) });
+          const heap = this.rubbleProps(b);
+          for (const r of heap) (r as unknown as { setAlpha: (a: number) => void }).setAlpha(0);
+          this.tweens.add({ targets: heap, alpha: 1, duration: 500, delay: 650 });
         });
       }
       Juice.shockRing(this, b.x, b.y + b.h * 0.3, { color: 0xffd8a8, to: Math.max(260, b.w * 1.6), rings: 2, depth: 9002, flat: 0.45 });
@@ -3532,6 +3558,18 @@ You are required by law to sign the Sex Offenders Register.`, {
     Juice.riser(900, 0.45);
     await wait(900);
     vfx(this, "vfx_bigboom", 1280, 790, { scale: 3.6, depth: 9001 });
+    // the Great Tap: gone. A crater and a dry pipe.
+    if (this.tapSpr?.active) {
+      const tap = this.tapSpr;
+      this.tweens.add({ targets: tap, angle: 18, y: tap.y + 30, alpha: 0, duration: 700, ease: "Quad.in", onComplete: () => tap.setVisible(false) });
+    }
+    this.time.delayedCall(450, () => {
+      this.ruinProp("r_crater", 1280, 830, 2.4);
+      this.ruinProp("r_pipe", 1280, 815, 1.6);
+      this.ruinProp("r_fireheap", 1230, 840, 1.4);
+      vfx(this, "vfx_fire", 1300, 820, { scale: 2.4, depth: 900 });
+      vfx(this, "vfx_smokecol", 1280, 760, { scale: 2.6, depth: 899 });
+    });
     synth.play("explode_1");
     synth.play("boom");
     Juice.subDrop(1, 2.4);

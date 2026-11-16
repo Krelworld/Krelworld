@@ -4991,6 +4991,12 @@ export class VignetteScene extends Phaser.Scene {
     for (let i = 0; i < 8; i++) this.time.delayedCall(i * 220, () => this.boomAt(100 + Math.random() * 760, 120 + Math.random() * 220, 1.4 + Math.random(), 380));
     const heat = this.add.rectangle(480, 270, 960, 540, 0xff7a00).setAlpha(0).setDepth(430).setBlendMode(Phaser.BlendModes.ADD);
     this.tweens.add({ targets: heat, alpha: 0.55, duration: 900 });
+    // under the fireball the palace itself comes apart: it sinks, darkens and is gone, rubble left where it stood
+    const palGone = backdrop(this, "bg_kd_ruins_flat", { depth: -9 });
+    if (palGone) {
+      palGone.setAlpha(0);
+      this.tweens.add({ targets: palGone, alpha: 1, delay: 700, duration: 1100 });
+    }
     await this.wait(1800);
     // it takes out all of Kreddle: everything goes white for a long, long moment
     const wall = this.add.rectangle(480, 270, 1400, 900, 0xfff7ed).setAlpha(0).setDepth(990);
@@ -5006,7 +5012,7 @@ export class VignetteScene extends Phaser.Scene {
     // (d) the ruins
     this.clearStage();
     this.cast.clear();
-    if (!backdrop(this, "bg_kd_ruins", { depth: -10 })) this.sky(0x450a0a, 0x1c1917);
+    if (!backdrop(this, "bg_kd_ruins_flat", { depth: -10 }) && !backdrop(this, "bg_kd_ruins", { depth: -10 })) this.sky(0x450a0a, 0x1c1917);
     const blood = this.add.rectangle(480, 270, 960, 540, 0x991b1b, 0.22).setDepth(-8).setBlendMode(Phaser.BlendModes.MULTIPLY);
     void blood;
     for (const [x, sz] of [[90, 50], [260, 34], [640, 46], [880, 60], [420, 28]] as [number, number][]) this.fireBlob(x, 330, sz, 60);

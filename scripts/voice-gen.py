@@ -235,34 +235,31 @@ for l in lines:
         continue
     model, text, settings, tags = plan(l, c)
     w = CAST.get("warble", {}).get(c[3])
-    s = sig(model, c[0], text, {**settings, "_warble": w} if w else settings)
     pt = CAST.get("pitch", {}).get(c[3])
-    s_raw = s
-    if pt:
-        s = sig(model, c[0], text, {**settings, **({"_warble": w} if w else {}), "_pitch": pt})
+    tp = CAST.get("tempo", {}).get(c[3])
+    base_set = {**settings, **({"_warble": w} if w else {})}
+    s_raw = sig(model, c[0], text, base_set)
+    s_pt = sig(model, c[0], text, {**base_set, "_pitch": pt}) if pt else s_raw
+    s = sig(model, c[0], text, {**base_set, **({"_pitch": pt} if pt else {}), "_tempo": tp}) if tp else s_pt
     label = c[0] + ("|us" if c[2] else "")
     d = old_clip(l, s)
     if d:
         keep[l["k"]] = (l, label, s, d)
         continue
-    if pt:
-        # already recorded, just not pitched yet: shift it here (free) rather than asking for it again
-        d = old_clip(l, s_raw)
-        if d:
-            keep[l["k"]] = (l, label, s, repitch(d, pt))
-            continue
-    tp = CAST.get("tempo", {}).get(c[3])
-    if tp:
-        # sped up (or slowed) after recording, pitch kept: same trick, existing clips are re-timed locally
-        s_pre = s
-        s = sig(model, c[0], text, {**settings, **({"_warble": w} if w else {}), **({"_pitch": pt} if pt else {}), "_tempo": tp})
-        d = old_clip(l, s)
-        if d:
-            keep[l["k"]] = (l, label, s, d)
-            continue
-        d = old_clip(l, s_pre)
+    # already recorded, just without this speaker's pitch / tempo yet: apply them here (free) rather than re-record
+    if tp and pt and s_pt != s:
+        d = old_clip(l, s_pt)
         if d:
             keep[l["k"]] = (l, label, s, retempo(d, tp))
+            continue
+    if (pt or tp) and s_raw != s:
+        d = old_clip(l, s_raw)
+        if d:
+            if pt:
+                d = repitch(d, pt)
+            if tp:
+                d = retempo(d, tp)
+            keep[l["k"]] = (l, label, s, d)
             continue
     if only and l["s"] not in only:
         d = old_clip(l)  # not asked to redo this speaker: keep whatever recording it has

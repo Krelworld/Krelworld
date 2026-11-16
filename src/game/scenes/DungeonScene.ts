@@ -2285,7 +2285,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     if (b.bossId === "krozno") {
       await this.talk(BOSS_TEXT.krozno.outro);
-      await this.slitThroat(b);
+      // a Kreltality first, if you want one; pass and it's the knife
+      if (await this.offerKreltality(b)) b.setVisible(false);
+      else await this.slitThroat(b);
       G.rt.timerEnd = 0;
       G.emit("timer", null);
       s.coins += 300;

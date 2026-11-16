@@ -28,6 +28,7 @@ export const JUKEBOX: JukeboxTrack[] = [
   { ids: ["kreddle"], title: "Neon Kreddle", where: "Over the bridge in Kreddle" },
   { ids: ["kreddle_raid"], title: "The Kreddle Raid", where: "The raid on Kreddle" },
   { ids: ["raid_march"], title: "The March On Kreddle", where: "Chapter 6" },
+  { ids: ["town_mourning"], title: "Krelford Mourns", where: "After the Krel Tower fell" },
   { ids: ["ominous"], title: "Something's Not Right", where: "Ominous moments (and the Ministry)" },
   { ids: ["crobley"], title: "Nibble on a Crobley", where: "The Crobley advert" },
   { ids: ["news"], title: "KrelTV News at Ten", where: "KrelTV news" },

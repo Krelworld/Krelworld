@@ -3048,7 +3048,9 @@ export class VignetteScene extends Phaser.Scene {
     this.cameras.main.setRotation(0);
     this.clearStage();
     const sky2 = this.sky(0x8fc3ea, 0xf3d9b1);
-    if (!this.railBackdrop()) {
+    // Krelford centre (the same skyline the plane comes down over in a moment)
+    if (backdrop(this, "bg_city", { depth: -10 })) sky2.setVisible(false);
+    else {
       const g = this.add.graphics();
       g.fillStyle(0x5a6a80, 1);
       for (let i = 0; i < 20; i++) g.fillRect(i * 50, 330 - ((i * 37) % 90), 44, 300);

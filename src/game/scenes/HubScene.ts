@@ -345,6 +345,7 @@ export class HubScene extends Phaser.Scene {
     G.emit("rule", null);
     // Krelford is always in daylight now; only the story's own nights (the Chapter 6 raid, the bombed town in 7) are dark
     synth.isNight = () => !G.s.flags.finale_dawn && this.storyNight();
+    synth.isMourning = () => this.mourning();
     synth.isMarch = () => G.s.chapter === 6 && !!G.s.flags.raid_march && !G.s.flags.krunch_started && !G.s.flags.nuke_planted;
     synth.music("hub");
     synth.ambience("town");
@@ -366,13 +367,22 @@ export class HubScene extends Phaser.Scene {
     return (G.s.chapter === 6 && !!G.s.flags.raid_march && !G.s.flags.ch6_clear) || (G.s.chapter >= 7 && !!G.s.flags.krelworld_bombed);
   }
 
+  /** After the Krel Tower falls (until the lads decide to hit back): grey skies, drizzle, sad music. */
+  private mourning() {
+    const f = G.s.flags;
+    return !!f.kreltower_fell && !f.revenge_meeting && !f.raid_march && !f.krelworld_bombed && !f.finale_dawn;
+  }
+
   private weather() {
     const c0 = clock();
     // Chapter 6, from the revenge meeting to the end: a black, rainy night
     // after THE CONCEPT OF PAEDOPHILIA: a clear blue morning over the ruins, whatever the clock says
     const dawn = !!G.s.flags.finale_dawn;
     const raidNight = !dawn && this.storyNight();
-    const kind = dawn ? null : raidNight ? "storm" : weatherFor(c0.day);
+    const mourn = !dawn && !raidNight && this.mourning();
+    const kind = dawn ? null : raidNight ? "storm" : mourn ? "rain" : weatherFor(c0.day);
+    // in mourning: the colour drains out of the town
+    if (mourn) this.add.rectangle(480, 270, 960, 540, 0x7a8494, 1).setAlpha(0.35).setScrollFactor(0).setDepth(4899).setBlendMode(Phaser.BlendModes.MULTIPLY);
     (this as any).weatherKind = kind;
     // the sky: daylight, except the story's nights (dark, doors lit) and the finale's blue morning
     const nightA = this.add.rectangle(480, 270, 960, 540, 0x0b1440, 1).setAlpha(0).setScrollFactor(0).setDepth(4900).setBlendMode(Phaser.BlendModes.MULTIPLY);

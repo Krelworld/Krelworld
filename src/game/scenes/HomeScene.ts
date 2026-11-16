@@ -81,7 +81,7 @@ export class HomeScene extends Phaser.Scene {
     this.add.text(760, 300, "▼ OUT", { fontFamily: FONT, fontSize: "12px", color: "#ffd23f", fontStyle: "bold", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5).setDepth(600);
     // the games console, the laptop on the sofa, the trophy shelf and the armoury
     if (this.textures.exists("p_console")) this.add.image(228, 512, "p_console").setOrigin(0.5, 1).setScale(1.2).setDepth(512);
-    if (this.textures.exists("p_laptop")) this.add.image(352, 500, "p_laptop").setOrigin(0.5, 1).setScale(0.75).setDepth(536);
+    if (this.textures.exists("p_laptop")) this.add.image(352, 504, "p_laptop").setOrigin(0.5, 1).setScale(1.25).setDepth(536);
     this.drawShelf(292, 300);
     if (this.textures.exists("p_gunrack")) this.add.image(880, 300, "p_gunrack").setScale(1.6).setDepth(5);
     this.drawDecor(fridge);
@@ -106,7 +106,7 @@ export class HomeScene extends Phaser.Scene {
       this.tweens.add({ targets: jg, alpha: 0.25, yoyo: true, repeat: -1, duration: 900, ease: "Sine.inOut" });
     }
     // a well-thumbed copy of Dark Autism - An Erotic Memoir, at the foot of the bed
-    if (this.textures.exists("p_dark_autism")) this.add.image(612, 524, "p_dark_autism").setOrigin(0.5, 1).setScale(0.13).setAngle(-14).setDepth(533);
+    if (this.textures.exists("p_dark_autism")) this.add.image(612, 528, "p_dark_autism").setOrigin(0.5, 1).setScale(0.22).setAngle(-14).setDepth(533);
     this.me = this.add.sprite(s.flags.home_seen ? 740 : 420, 500, playerKey(this), 0).setOrigin(0.5, 1).setScale(5.5).setDepth(500);
     bindSanmikToggle(this, { sprites: () => [this.me], can: () => !this.busy });
     this.prompt = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#000000cc", padding: { x: 6, y: 3 } }).setOrigin(0.5).setDepth(1000).setVisible(false);

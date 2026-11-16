@@ -779,14 +779,6 @@ export class HubScene extends Phaser.Scene {
     const shade = this.add.graphics().setScrollFactor(0).setDepth(4301).setBlendMode(Phaser.BlendModes.MULTIPLY);
     shade.fillGradientStyle(0xffffff, 0xf2e6ff, 0xe6dcff, 0xb8a3e3, 1);
     shade.fillRect(0, 0, 960, 540);
-    // light shafts
-    for (let i = 0; i < 4; i++) {
-      const shaft = this.add.graphics().setScrollFactor(0).setDepth(4302).setBlendMode(Phaser.BlendModes.ADD);
-      shaft.fillStyle(0xfff4cc, 0.045);
-      const x0 = 80 + i * 170;
-      shaft.fillPoints([new Phaser.Math.Vector2(x0, -10), new Phaser.Math.Vector2(x0 + 70, -10), new Phaser.Math.Vector2(x0 + 340, 560), new Phaser.Math.Vector2(x0 + 230, 560)], true);
-      this.tweens.add({ targets: shaft, alpha: { from: 0.6, to: 1 }, duration: 3000 + i * 700, yoyo: true, repeat: -1 });
-    }
     const cam = this.cameras.main as Phaser.Cameras.Scene2D.Camera & { postFX?: Phaser.GameObjects.Components.FX };
     if (this.game.renderer.type === Phaser.WEBGL && cam.postFX) {
       cam.postFX.addVignette(0.5, 0.5, 0.9, 0.35);

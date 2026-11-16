@@ -119,6 +119,8 @@ export const MUSIC_FILES: Record<string, string> = {
   sanmik: "audio/ggg2.mp3",
   // the lamp-rubbing vignette (instrumental, ElevenLabs Music)
   lamp_rub: "audio/lamp_rub.mp3",
+  // the plane into the Krel Tower (ElevenLabs Music)
+  tower_crash: "audio/tower_crash.mp3",
   boss_rik: "audio/ggg13.mp3",
   boss_jam: "audio/bpd_menace.mp3",
   boss_hoard: "audio/erotic_stockport.mp3",

@@ -3112,6 +3112,7 @@ export class VignetteScene extends Phaser.Scene {
     const plane2 = this.airliner(1120, hitY - 80, 240, true);
     await this.talk([say(lad(["KREBLIS", "GRONNY"]), "Is that… is that the plane?")]);
     // the approach: bars in, the camera eases in on the tower, everything holds its breath
+    synth.music("tower_crash", true);
     const peBars = Juice.letterbox(this, 46, 900, 985);
     this.cameras.main.pan(640, hitY + 40, 2600, "Sine.easeInOut", true);
     this.cameras.main.zoomTo(1.18, 2600, "Sine.easeIn", true);

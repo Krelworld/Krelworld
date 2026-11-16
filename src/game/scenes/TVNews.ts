@@ -6,6 +6,7 @@ import { BRANDS, NewsChrome, calm, cameraFlash, type Rect } from "./tvnews/NewsC
 import { Presenter, hasAnchor } from "./tvnews/Presenter";
 import { KREWS3_NEWS, STORY_KINDS, type StoryKind, type StoryScene, type Slide } from "./tvnews/krews3Shows";
 import { KREWS4_NEWS, K4_KINDS, type K4Kind, type K4Scene, type K4Gfx } from "./tvnews/krews4Shows";
+import { KREWS1_NEWS } from "./tvnews/krews1Shows";
 
 /**
  * GB Krews presentation for the story's compulsory broadcasts (Klerble's welcome and presser, the Krandall segment,
@@ -21,6 +22,8 @@ export interface SceneDef extends StoryScene, K4Scene {
   match: RegExp;
   kind: Kind;
   set: string;
+  /** who stands at the podium / carries the scene when the first speaker isn't them (a presser narrated by the reporter) */
+  main?: string;
 }
 
 interface OtsDef {
@@ -38,6 +41,8 @@ export interface NewsCfg {
   outroBroll?: { set: string; caption: string };
   /** this show's name straps (before the shared ones) */
   straps?: Record<string, [string, string]>;
+  /** where the reporter is when she's cut to from the desk (default: outside Krelburger) */
+  deskReporter?: { set: string; where: string; live: string };
 }
 
 const KLER_FACE = { key: "tvanchor_PRESIDENT_KLERBLE", frame: 0, crop: [28, 4, 72, 54] as [number, number, number, number] };
@@ -122,6 +127,7 @@ export const NEWS_SHOWS: Record<string, NewsCfg> = {
   },
   ...KREWS3_NEWS,
   ...KREWS4_NEWS,
+  ...KREWS1_NEWS,
 };
 
 const STRAPS: Record<string, [string, string]> = {
@@ -457,7 +463,7 @@ export class NewsDirector {
   }
 
   /** On location: the reporter walks and talks, the street sliding past behind her. */
-  private walkAndTalk(name: string, set: string) {
+  private walkAndTalk(name: string, set: string, live = "Krelburger, Krelford") {
     this.clearShot();
     const { SX, SY, SW, SH } = this.r;
     const bg = this.backdrop(set, 1.35, 80, -10);
@@ -470,7 +476,7 @@ export class NewsDirector {
     }
     // handheld
     this.every(110, () => this.stage.setPosition((Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3));
-    this.chrome.live("Krelburger, Krelford");
+    this.chrome.live(live);
     void SH;
     return p;
   }
@@ -659,7 +665,7 @@ export class NewsDirector {
     if (this.scene.kind === "desk" && this.deskHeadline && this.chrome.headlineNow !== this.deskHeadline) this.chrome.headline(this.deskHeadline, /^BREAKING/i.test(this.deskHeadline) ? 0xb91c1c : undefined);
     this.lineInScene = 0;
     this.strapped.clear();
-    this.mainSpeaker = this.mainOf(this.idx);
+    this.mainSpeaker = this.scene.main ?? this.mainOf(this.idx);
     switch (this.scene.kind) {
       case "desk":
         this.chrome.live("");
@@ -715,10 +721,11 @@ export class NewsDirector {
     if (kind === "desk") {
       if (name === "REPORTER") {
         // down the line, then her alone on location
-        this.split("NEWSREADER", "REPORTER", "tv_krelburger", "KRELBURGER · LIVE");
+        const loc = this.cfg.deskReporter ?? { set: "tv_krelburger", where: "KRELBURGER · LIVE", live: "Krelburger, Krelford" };
+        this.split("NEWSREADER", "REPORTER", loc.set, loc.where);
         p = this.find("REPORTER");
         this.later(1700, () => {
-          const q = this.walkAndTalk("REPORTER", "tv_krelburger");
+          const q = this.walkAndTalk("REPORTER", loc.set, loc.live);
           q?.say(text, { poses: ["thumb", "mic"], offset: 1700 });
           this.strapFor("REPORTER");
         });

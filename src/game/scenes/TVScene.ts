@@ -539,11 +539,14 @@ export class TVScene extends Phaser.Scene {
     this.splatLayer?.destroy();
     this.splatLayer = undefined;
     const e = this.ep!;
+    const directed = !!this.pov;
     this.pov?.destroy();
     this.pov = null;
-    if (this.news) {
-      // don't flash whatever old set sits behind the bulletin once it comes down
+    if (this.news || directed) {
+      // don't flash whatever old set (and stage sprites) sits behind the bulletin or the show once it comes down
       this.stage.removeAll(true);
+      this.actors = {};
+      this.props = {};
       this.setKey = "";
     }
     this.news?.destroy();

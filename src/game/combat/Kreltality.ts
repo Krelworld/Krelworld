@@ -3,7 +3,7 @@ import { synth } from "../audio/Synth";
 import { FONT } from "../ui/theme";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { G } from "../G";
-import { ELEGANT, ELEGANT_NAMES, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
+import { ELEGANT, ELEGANT_NAMES, HUMANOID_BOSSES, HUMANOID_ONLY, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
 
 /**
  * KRELTALITY. After a boss goes down: "FUCKING KILL THEM!!" — press it (or don't) for an over-the-top,
@@ -43,14 +43,19 @@ const D = 2000; // above everything in the room
 export async function kreltality(sc: Phaser.Scene, target: KrelTarget, player: { key: string; frame: string | number; scale: number }, force?: Finisher): Promise<boolean> {
   const yes = await prompt(sc);
   if (!yes) return false;
-  await stage(sc, target, player, force ?? pick());
+  await stage(sc, target, player, force ?? pick(target));
   return true;
 }
 
 /** A random finisher, not the last one you saw; with gore off, only the ones that have a tame version. */
 let lastPick: Finisher | null = null;
-function pick(): Finisher {
-  const pool = (G.meta?.settings?.gore === false ? [...ELEGANT] : FINISHERS).filter((f) => f !== lastPick);
+function pick(target?: KrelTarget): Finisher {
+  const gore = G.meta?.settings?.gore !== false;
+  // the long, people-only ones need a person (a boss with a face and a body) and the gore on
+  const human = !!target && HUMANOID_BOSSES.has(target.key);
+  const pool = (gore ? FINISHERS : [...ELEGANT])
+    .filter((f) => f !== lastPick)
+    .filter((f) => !(HUMANOID_ONLY as Finisher[]).includes(f) || (human && gore));
   lastPick = pool[Math.floor(Math.random() * pool.length)];
   return lastPick;
 }

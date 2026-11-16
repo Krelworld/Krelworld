@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { synth } from "../audio/Synth";
+import { voice } from "../audio/Voice";
 import type { KrelTarget } from "./Kreltality";
 
 /**
@@ -8,8 +9,12 @@ import type { KrelTarget } from "./Kreltality";
  * (no blood, nothing comes off: they just get a fright and keel over with stars round their head).
  */
 
-export type Elegant = "jawtrap" | "pendulum" | "ribcage" | "freeze" | "kebab" | "lasergrid" | "xray" | "decap" | "pump" | "cinder" | "piranha";
-export const ELEGANT: Elegant[] = ["jawtrap", "pendulum", "ribcage", "freeze", "kebab", "lasergrid", "xray", "decap", "pump", "cinder", "piranha"];
+export type Elegant = "jawtrap" | "pendulum" | "ribcage" | "freeze" | "kebab" | "lasergrid" | "xray" | "decap" | "pump" | "cinder" | "piranha" | "asbestos";
+/** Bosses that are people (not monsters, machines or real people): the long ones that need a face and a body. */
+export const HUMANOID_BOSSES = new Set(["boss_krandall", "boss_flatmate", "boss_rival", "boss_krozno", "boss_stanley", "boss_troll", "boss_reinhardt", "boss_rik", "boss_flirt", "boss_fruity", "boss_lantern", "boss_tankc", "boss_jam", "boss_drongus", "boss_drongus2", "boss_dark_drongus"]);
+/** Finishers only for HUMANOID_BOSSES (and only with gore on). */
+export const HUMANOID_ONLY: Elegant[] = ["asbestos"];
+export const ELEGANT: Elegant[] = ["jawtrap", "pendulum", "ribcage", "freeze", "kebab", "lasergrid", "xray", "decap", "pump", "cinder", "piranha", "asbestos"];
 export const ELEGANT_NAMES: Record<Elegant, string> = {
   jawtrap: "REVERSE BEAR TRAP!",
   pendulum: "THE PENDULUM!",
@@ -22,6 +27,7 @@ export const ELEGANT_NAMES: Record<Elegant, string> = {
   pump: "FILL HER UP!",
   cinder: "CINDER BLOCK'D!",
   piranha: "PIRANHA POOL!",
+  asbestos: "GET WELL SOON!",
 };
 const TAME_NAMES: Record<Elegant, string> = {
   jawtrap: "SPRUNG!",
@@ -35,6 +41,7 @@ const TAME_NAMES: Record<Elegant, string> = {
   pump: "PUMPED!",
   cinder: "BONKED!",
   piranha: "NIBBLED!",
+  asbestos: "GET WELL SOON!",
 };
 
 type Obj = Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Transform;
@@ -1115,6 +1122,378 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         await c.wait(1400);
       }
       chainEv.remove();
+      break;
+    }
+
+    // ------------------------------------------------------------ GET WELL SOON (asbestos; a week; six months; a chainsaw)
+    case "asbestos": {
+      const NECK = 0.26;
+      /** frame-pixel eyes (darkest spots left and right in the middle band of the face) in the top `v1` of the figure */
+      const fx0 = Math.round(fu(0) * c.fw);
+      const fy0 = Math.round(fv(0) * c.fh);
+      const hwPx = Math.max(1, Math.round((fu(1) - fu(0)) * c.fw));
+      const hhPx = Math.max(1, Math.round((fv(NECK) - fv(0)) * c.fh));
+      const pxAt = (x: number, y: number) => sc.textures.getPixel(fx0 + x, fy0 + y, T.key, T.frame);
+      const lum = (col: Phaser.Display.Color | null) => (col && col.alpha > 0 ? col.red * 0.3 + col.green * 0.59 + col.blue * 0.11 : 999);
+      const eyes: { x: number; y: number }[] = [];
+      for (const [u0, u1] of [[0.18, 0.5], [0.5, 0.82]]) {
+        let best = { x: 0, y: 0, l: 999 };
+        for (let y = Math.round(hhPx * 0.4); y < Math.round(hhPx * 0.85); y++)
+          for (let x = Math.round(hwPx * u0); x < Math.round(hwPx * u1); x++) {
+            const l = lum(pxAt(x, y));
+            if (l < best.l) best = { x, y, l };
+          }
+        if (best.l < 140) eyes.push(best);
+      }
+      /** where frame pixel (x, y) of a head image (the top NECK of the figure) lands, for an image drawn at scale m */
+      const onHead = (img: Phaser.GameObjects.Image, x: number, y: number, m = 1) => {
+        const sc2 = sA * m;
+        return { x: T.flip ? img.x + (hwPx * sc2) / 2 - (x + 0.5) * sc2 : img.x - (hwPx * sc2) / 2 + (x + 0.5) * sc2, y: img.y - (hhPx * sc2) / 2 + (y + 0.5) * sc2, s: sc2 };
+      };
+      const sizeTo = <O extends Phaser.GameObjects.Image | Phaser.GameObjects.Sprite>(o: O, h: number) => {
+        o.setScale(1);
+        const k = o.scaleX || 1;
+        o.setScale(h / o.frame.height / k);
+        return o;
+      };
+
+      // ---- 1. the clamp, and the bag
+      cam.pan(tg.x, top + H * 0.2, 600, "Sine.easeInOut");
+      cam.zoomTo(2.3, 600);
+      const upper = part(0, 0, 1, 0.13, D + 5);
+      const jaw = part(0, 0.13, 1, 0.21, D + 5);
+      cropAbove(0.21);
+      const mouthY = top + H * 0.15;
+      const clamp = keep(sc.add.graphics().setDepth(D + 6));
+      const drawClamp = (open: number) => {
+        clamp.clear().lineStyle(3, 0x9ca3af, 1);
+        clamp.lineBetween(tg.x - W * 0.3, mouthY - open, tg.x + W * 0.3, mouthY - open);
+        clamp.lineBetween(tg.x - W * 0.3, mouthY + open, tg.x + W * 0.3, mouthY + open);
+        clamp.lineStyle(4, 0x4b5563, 1).lineBetween(tg.x + W * 0.3, mouthY - open, tg.x + W * 0.45, mouthY).lineBetween(tg.x + W * 0.3, mouthY + open, tg.x + W * 0.45, mouthY);
+        clamp.fillStyle(0x6b7280).fillCircle(tg.x + W * 0.45, mouthY, 4);
+      };
+      drawClamp(1);
+      let p = say("Open wide.", "#ffffff", "me");
+      synth.play("telegraph");
+      const op = { v: 1 };
+      sc.tweens.add({ targets: op, v: H * 0.05, duration: 700, ease: "Quad.inOut", onUpdate: () => drawClamp(op.v) });
+      sc.tweens.add({ targets: upper, y: upper.y - H * 0.04, duration: 700 });
+      sc.tweens.add({ targets: jaw, y: jaw.y + H * 0.03, duration: 700 });
+      synth.play("monitor_crack", 0.4);
+      await c.wait(900);
+      p.destroy();
+      p = say("AAHHGH?!", "#fecaca");
+      // the bag: ASBESTOS, skull and crossbones, the lot of it
+      const bag = keep(sc.add.container(tg.x + W * 0.1, top - H * 0.45).setDepth(D + 7));
+      bag.add(sc.add.rectangle(0, 0, 46, 58, 0xd6c7a1).setStrokeStyle(2, 0x6b5a3a));
+      bag.add(sc.add.text(0, -10, "ASBESTOS", { fontFamily: "Impact, sans-serif", fontSize: "9px", color: "#7f1d1d" }).setOrigin(0.5));
+      bag.add(sc.add.text(0, 8, "☠", { fontSize: "16px", color: "#111" }).setOrigin(0.5));
+      bag.add(sc.add.text(0, 22, "25kg", { fontFamily: "monospace", fontSize: "7px", color: "#333" }).setOrigin(0.5));
+      bag.setAlpha(0);
+      sc.tweens.add({ targets: bag, alpha: 1, duration: 300 });
+      await c.tw({ targets: bag, angle: 135, x: tg.x + W * 0.05, y: mouthY - H * 0.32, duration: 600, ease: "Back.out" });
+      p.destroy();
+      synth.play("powderpour");
+      const pour = sc.time.addEvent({ delay: 18, repeat: 150, callback: () => {
+        const f = keep(sc.add.rectangle(bag.x - 6 + Math.random() * 6, bag.y + 16, 1 + Math.random() * 2, 2 + Math.random() * 4, Math.random() < 0.6 ? 0xf3f4f6 : 0x9ca3af, 0.95).setDepth(D + 6));
+        sc.tweens.add({ targets: f, x: tg.x + (Math.random() - 0.5) * W * 0.12, y: mouthY, duration: 220, ease: "Quad.in", onComplete: () => f.destroy() });
+      } });
+      sc.tweens.add({ targets: bag, x: { from: bag.x - 2, to: bag.x + 2 }, yoyo: true, repeat: 20, duration: 70 });
+      const choke = sc.time.addEvent({ delay: 700, repeat: 3, callback: () => {
+        synth.play("cough");
+        c.fx("vfx_dust", tg.x, mouthY, 0.6, { tint: 0xffffff });
+        sc.tweens.add({ targets: body, x: { from: T.x - 2, to: T.x + 2 }, yoyo: true, repeat: 3, duration: 40 });
+      } });
+      await c.wait(2900);
+      pour.remove();
+      choke.remove();
+      toss(bag, 160, -200, floor - 6, 360, () => synth.play("lob"));
+      synth.play("cough");
+      p = say("*cough* …that tasted fibrous.", "#e5e7eb");
+      await c.wait(1500);
+      p.destroy();
+
+      // ---- the cutaways: a black card, then a room, drawn over the whole view; the stage is hidden behind
+      // (drawn on the screen itself, over everything, at 1:1: the room's darkness and the camera can't get at them)
+      cam.zoomEffect.reset();
+      cam.panEffect.reset();
+      cam.setZoom(1);
+      const V = { x: 0, y: 0, w: 960, h: 540 };
+      const Z = D + 20;
+      const fix = <O extends Phaser.GameObjects.GameObject>(o: O): O => {
+        (o as unknown as Phaser.GameObjects.Components.ScrollFactor).setScrollFactor?.(0);
+        if (o instanceof Phaser.GameObjects.Container) for (const ch of o.list) fix(ch);
+        return o;
+      };
+      const vx = (f: number) => V.x + V.w * f;
+      const vy = (f: number) => V.y + V.h * f;
+      const stage = [body, upper, jaw, clamp, c.me];
+      const blackCard = async (text: string) => {
+        const bk = fix(keep(sc.add.rectangle(-20, -20, 1000, 580, 0x000000, 1).setOrigin(0).setDepth(D + 50).setAlpha(0)));
+        const t = fix(keep(sc.add.text(vx(0.5), vy(0.5), text, { fontFamily: "Georgia, serif", fontSize: "34px", color: "#ffffff", fontStyle: "italic" }).setOrigin(0.5).setDepth(D + 51).setAlpha(0)));
+        await c.tw({ targets: bk, alpha: 1, duration: 500 });
+        sc.tweens.add({ targets: t, alpha: 1, duration: 400 });
+        await c.wait(1700);
+        sc.tweens.add({ targets: t, alpha: 0, duration: 300 });
+        return bk;
+      };
+      let bk = await blackCard("One week later...");
+      for (const o of stage) o.setVisible(false);
+      // ---- 2. the doctor's office
+      const office = keep(sc.add.container(0, 0).setDepth(Z));
+      office.add(sc.add.rectangle(V.x, V.y, V.w, V.h * 0.72, 0xdbe4e8).setOrigin(0));
+      office.add(sc.add.rectangle(V.x, vy(0.72), V.w, V.h * 0.28, 0x8b9aa3).setOrigin(0));
+      office.add(sc.add.rectangle(vx(0.5), vy(0.62), V.w * 0.36, 16, 0x7c5a3a).setStrokeStyle(2, 0x3b2a1a));
+      office.add(sc.add.rectangle(vx(0.5), vy(0.8), V.w * 0.3, V.h * 0.32, 0x6b4a2e));
+      // the lightbox: lungs, full of it
+      office.add(sc.add.rectangle(vx(0.5), vy(0.28), 120, 90, 0x0f172a).setStrokeStyle(4, 0xe5e7eb));
+      const xr = sc.add.graphics();
+      xr.fillStyle(0x94a3b8, 0.8).fillEllipse(vx(0.5) - 22, vy(0.28), 34, 62).fillEllipse(vx(0.5) + 22, vy(0.28), 34, 62);
+      for (let i = 0; i < 26; i++) xr.fillStyle(0x1e293b, 0.9).fillCircle(vx(0.5) + (Math.random() - 0.5) * 70, vy(0.28) + (Math.random() - 0.5) * 60, 1 + Math.random() * 3);
+      office.add(xr);
+      office.add(sc.add.text(vx(0.5), vy(0.42), "DR. JAMESON, MD", { fontFamily: "Georgia, serif", fontSize: "12px", color: "#334155" }).setOrigin(0.5));
+      const doc = sizeTo(sc.add.image(vx(0.7), vy(0.72), sc.textures.exists("spr_TV_DR_JAMESON") ? "spr_TV_DR_JAMESON" : "spr_FOLK1", 0).setOrigin(0.5, 1), V.h * 0.42);
+      const patient = sc.add.image(vx(0.3), vy(0.72), T.key, T.frame).setOrigin(0.5, 1);
+      sizeTo(patient, V.h * 0.42).setFlipX(true);
+      office.add([doc, patient]);
+      fix(office);
+      await c.tw({ targets: bk, alpha: 0, duration: 500 });
+      bk.destroy();
+      await c.wait(500);
+      voice.say("DR. JAMESON", "I'm afraid you have terminal cancer.");
+      const docSay = fix(keep(sc.add.text(doc.x, doc.y - doc.displayHeight - 8, "I'm afraid you have\nterminal cancer.", { fontFamily: "sans-serif", fontSize: "15px", color: "#111", backgroundColor: "#ffffffee", padding: { x: 6, y: 4 }, align: "center" }).setOrigin(0.5, 1).setDepth(Z + 5)));
+      await c.wait(2600);
+      docSay.destroy();
+      const oh = fix(keep(sc.add.text(patient.x, patient.y - patient.displayHeight - 8, "…oh.", { fontFamily: "sans-serif", fontSize: "15px", color: "#111", backgroundColor: "#ffffffee", padding: { x: 6, y: 4 } }).setOrigin(0.5, 1).setDepth(Z + 5)));
+      await c.wait(1500);
+      oh.destroy();
+
+      // ---- 3. six months later: the hospital bed
+      bk = await blackCard("Six months later...");
+      office.destroy();
+      const ward = keep(sc.add.container(0, 0).setDepth(Z));
+      ward.add(sc.add.rectangle(V.x, V.y, V.w, V.h * 0.7, 0xcfe3d6).setOrigin(0));
+      ward.add(sc.add.rectangle(V.x, vy(0.7), V.w, V.h * 0.3, 0x9fb4a8).setOrigin(0));
+      ward.add(sc.add.rectangle(vx(0.18), vy(0.25), 110, 80, 0x93c5fd).setStrokeStyle(5, 0xf8fafc));
+      // the bed, side on: frame, mattress, pillow
+      const bedX = vx(0.5);
+      const bedY = vy(0.66);
+      ward.add(sc.add.rectangle(bedX, bedY + 10, V.w * 0.46, 16, 0x94a3b8).setStrokeStyle(2, 0x475569));
+      ward.add(sc.add.rectangle(bedX - V.w * 0.22, bedY - 26, 10, 80, 0x64748b));
+      ward.add(sc.add.rectangle(bedX + V.w * 0.22, bedY - 6, 10, 40, 0x64748b));
+      ward.add(sc.add.rectangle(bedX, bedY, V.w * 0.44, 20, 0xf8fafc).setStrokeStyle(1, 0xcbd5e1));
+      ward.add(sc.add.ellipse(bedX - V.w * 0.17, bedY - 18, 70, 26, 0xffffff).setStrokeStyle(1, 0xcbd5e1));
+      // the monitor
+      const monX = vx(0.82);
+      const monY = vy(0.38);
+      ward.add(sc.add.rectangle(monX, monY + 70, 6, 120, 0x475569));
+      ward.add(sc.add.rectangle(monX, monY, 120, 80, 0x0b1220).setStrokeStyle(4, 0x64748b));
+      const trace = sc.add.graphics();
+      ward.add(trace);
+      fix(ward);
+      let spikeAt = -1;
+      let flat = false;
+      let tx = 0;
+      const pts: number[] = [];
+      const traceEv = sc.time.addEvent({ delay: 30, loop: true, callback: () => {
+        tx = (tx + 2) % 110;
+        const sp = !flat && spikeAt >= 0 && sc.time.now - spikeAt < 120 ? -26 : 0;
+        pts[tx] = sp;
+        trace.clear().lineStyle(2, flat ? 0xef4444 : 0x22c55e, 1).beginPath();
+        for (let i = 0; i < 110; i += 2) {
+          const yy = monY + (pts[i] ?? 0);
+          if (i === 0) trace.moveTo(monX - 55 + i, yy);
+          else trace.lineTo(monX - 55 + i, yy);
+        }
+        trace.strokePath();
+      } });
+      // the patient: lying back, propped on the pillow; what's left of them. Bald, grey, sunken, a hospital gown
+      const pHead = fix(part(0, 0, 1, NECK, Z + 1));
+      const hm = (V.h * 0.2) / (hhPx * sA);
+      pHead.setScale(T.scale * hm).setPosition(bedX - V.w * 0.17, bedY - 22 - (hhPx * sA * hm) / 2 + 6).setDepth(Z + 1).setVisible(true);
+      // its real drawn size decides where it sits: chin on the pillow
+      pHead.setY(bedY - 14 - pHead.getBounds().height / 2);
+      pHead.setTint(0xc9cdbf);
+      // where it really is on screen (HD art is drawn at a fraction of the scale it's given, so measure, don't compute)
+      const hb = pHead.getBounds();
+      const onPH = (x: number, y: number) => ({ x: T.flip ? hb.right - ((x + 0.5) / hwPx) * hb.width : hb.x + ((x + 0.5) / hwPx) * hb.width, y: hb.y + ((y + 0.5) / hhPx) * hb.height, s: hb.width / hwPx });
+      const pale = 0xd8d6c4;
+      const gown = fix(keep(sc.add.graphics().setDepth(Z + 2)));
+      const sw = hb.width;
+      gown.fillStyle(0x7dd3fc).fillRoundedRect(pHead.x - sw * 0.32, pHead.y + hb.height / 2 - 4, sw * 0.64, 26, 6);
+      gown.fillStyle(0x38bdf8, 0.6).fillCircle(pHead.x - sw * 0.1, pHead.y + hb.height / 2 + 8, 2).fillCircle(pHead.x + sw * 0.12, pHead.y + hb.height / 2 + 14, 2);
+      // the blanket over a body that's barely there
+      gown.fillStyle(0xe0f2fe).fillRoundedRect(bedX - V.w * 0.13, bedY - 18, V.w * 0.33, 22, 8);
+      gown.lineStyle(1, 0xbae6fd).strokeRoundedRect(bedX - V.w * 0.13, bedY - 18, V.w * 0.33, 22, 8);
+      // a thin, thin arm on the blanket
+      gown.fillStyle(pale).fillRect(pHead.x + sw * 0.1, bedY - 16, V.w * 0.12, 4);
+      // bald: a pale scalp over the hair (or hat), and hollow eyes
+      const face = fix(keep(sc.add.graphics().setDepth(Z + 2)));
+      const hTop = hb.y;
+      // bald: everything above the brow (hair, hat) is cut away and a bare, pale dome drawn in its place
+      const eyeY = eyes.length ? eyes.reduce((a, e) => a + e.y, 0) / eyes.length : hhPx * 0.5;
+      const brow = Math.max(0, Math.round(eyeY - hhPx * 0.16));
+      pHead.setCrop(0, brow, hwPx, hhPx - brow);
+      const hhW = hb.height;
+      const browY = hTop + (brow / hhPx) * hb.height;
+      const domeH = Math.max(hhW * 0.36, browY - hTop + hhW * 0.05);
+      // the scalp is their own skin (sampled from the cheek), gone the same sickly grey as the rest of the face
+      const ex = eyes.length ? Math.round(eyes.reduce((a, e) => a + e.x, 0) / eyes.length) : Math.round(hwPx / 2);
+      const cheek = pxAt(ex, Math.min(hhPx - 1, Math.round(eyeY + hhPx * 0.12)));
+      const mul = (col: number, t: number) => {
+        const r = ((col >> 16) & 255) * (((t >> 16) & 255) / 255);
+        const g = ((col >> 8) & 255) * (((t >> 8) & 255) / 255);
+        const b2 = (col & 255) * ((t & 255) / 255);
+        return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b2);
+      };
+      // the head's real width (and middle) just under the brow: shoulders and hat brims don't count
+      const rowY = Math.min(hhPx - 1, brow + Math.max(1, Math.round(hhPx * 0.06)));
+      let l0 = -1;
+      let l1 = -1;
+      for (let x = 0; x < hwPx; x++) {
+        const col = pxAt(x, rowY);
+        if (col && col.alpha > 0) {
+          if (l0 < 0) l0 = x;
+          l1 = x;
+        }
+      }
+      const domeW = l0 >= 0 ? Math.min(sw * 0.62, ((l1 - l0 + 1) / hwPx) * sw * 1.02) : sw * 0.5;
+      const domeX = l0 >= 0 ? onPH((l0 + l1) / 2, 0).x : pHead.x;
+      const scalp = cheek && cheek.alpha > 0 ? lerpCol(mul(cheek.color, 0xc9cdbf), 0xd8d6c4, 0.25) : pale;
+      // the dome sits on top of the brow line, never over the face
+      face.fillStyle(scalp).fillEllipse(domeX, browY - domeH * 0.42, domeW, domeH * 1.0);
+      face.fillStyle(scalp).fillRect(domeX - domeW / 2, browY - domeH * 0.42, domeW, domeH * 0.42 + 2);
+      face.fillStyle(0xf1efe2, 0.6).fillEllipse(domeX - domeW * 0.16, browY - domeH * 0.65, domeW * 0.24, domeH * 0.16);
+      const eyeW = eyes.map((e) => onPH(e.x, e.y));
+      for (const e of eyeW) face.fillStyle(0x6b5a4a, 0.45).fillEllipse(e.x, e.y + e.s, e.s * 5, e.s * 4);
+      // the family round the bed
+      const famKeys = ["spr_TV_WOMAN", "spr_TV_JOHN", "spr_TV_MARY", "spr_KD_WOMAN"].filter((k) => sc.textures.exists(k));
+      const fam = famKeys.slice(0, 3).map((k, i) => {
+        // round the bed but clear of the pillow: two at the head end, one at the foot
+        const f = sizeTo(sc.add.image([vx(0.1), vx(0.19), vx(0.79)][i], vy(0.8), k, 0).setOrigin(0.5, 1), V.h * 0.3);
+        if (i === 2) f.setFlipX(true);
+        return fix(keep(f.setDepth(Z + 3)));
+      });
+      await c.tw({ targets: bk, alpha: 0, duration: 600 });
+      bk.destroy();
+      // beep… beep…… beep……… (slower each time)
+      for (const gap of [900, 1100, 1400, 1800, 2300]) {
+        spikeAt = sc.time.now;
+        synth.play("monbeep", 0.7);
+        await c.wait(gap);
+      }
+      // the eyes close for the last time
+      const lids = fix(keep(sc.add.graphics().setDepth(Z + 3)));
+      for (const e of eyeW) {
+        lids.fillStyle(pale, 1).fillRect(e.x - e.s * 2.6, e.y - e.s * 1.4, e.s * 5.2, e.s * 3);
+        lids.lineStyle(Math.max(1, e.s * 0.7), 0x3f2f22, 1).lineBetween(e.x - e.s * 2.4, e.y + e.s * 0.6, e.x + e.s * 2.4, e.y + e.s * 0.6);
+      }
+      await c.wait(600);
+      flat = true;
+      synth.play("flatline");
+      await c.wait(900);
+      // and the family weep
+      synth.play("weeping");
+      const tears = sc.time.addEvent({ delay: 140, loop: true, callback: () => {
+        const f = fam[Math.floor(Math.random() * fam.length)];
+        if (!f?.active) return;
+        const d = fix(keep(sc.add.circle(f.x + (Math.random() - 0.5) * 10, f.y - f.displayHeight * 0.82, 2, 0x60a5fa).setDepth(Z + 4)));
+        sc.tweens.add({ targets: d, y: d.y + 30, alpha: 0, duration: 600, onComplete: () => d.destroy() });
+      } });
+      const sobs = fam.map((f, i) => fix(keep(sc.add.text(f.x, f.y - f.displayHeight - 6, ["*sob*", "Why?!", "*sniff*"][i], { fontFamily: "sans-serif", fontSize: "13px", color: "#1e3a8a", fontStyle: "italic" }).setOrigin(0.5, 1).setDepth(Z + 4))));
+      for (const f of fam) sc.tweens.add({ targets: f, y: f.y + 2, yoyo: true, repeat: -1, duration: 260 });
+      await c.wait(2600);
+      // a moment's silence…
+      for (const t of sobs) t.destroy();
+      await c.wait(900);
+
+      // ---- 4. …and then you, through the door, with a chainsaw
+      synth.play("smash");
+      cam.shake(250, 0.012);
+      const meDepth = c.me.depth;
+      const meScale = c.me.scaleX;
+      c.me.setVisible(true).setPosition(V.x - 60, vy(0.74)).setDepth(Z + 6).setScrollFactor(0).setScale(meScale * 1.7);
+      const saw = keep(sc.add.container(0, 0).setDepth(Z + 7));
+      saw.add(sc.add.rectangle(0, 0, 26, 16, 0xf97316).setStrokeStyle(2, 0x7c2d12));
+      saw.add(sc.add.rectangle(30, 0, 40, 7, 0x9ca3af).setStrokeStyle(1, 0x374151));
+      for (let i = 0; i < 9; i++) saw.add(sc.add.triangle(14 + i * 4.5, -4, 0, 0, 3, 0, 1.5, -3, 0xe5e7eb));
+      fix(saw);
+      saw.setScale(1.6);
+      const follow = sc.time.addEvent({ delay: 16, loop: true, callback: () => saw.setPosition(c.me.x + 30, c.me.y - c.me.displayHeight * 0.45) });
+      synth.play("gun_chainsaw");
+      const rev = sc.time.addEvent({ delay: 600, loop: true, callback: () => synth.play("gun_chainsaw", 0.8) });
+      const yell = fix(keep(sc.add.text(vx(0.5), vy(0.12), "GET WELL SOON!", { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#fde047", stroke: "#000", strokeThickness: 7 }).setOrigin(0.5).setDepth(Z + 20).setScale(0.3)));
+      sc.tweens.add({ targets: yell, scale: 1, duration: 300, ease: "Back.out" });
+      for (const f of fam) {
+        sc.tweens.killTweensOf(f);
+        sc.tweens.add({ targets: f, y: f.y - 14, yoyo: true, duration: 120 });
+      }
+      synth.play("scream_woman");
+      // up onto the bed, through the patient, end to end
+      await c.tw({ targets: c.me, x: bedX - V.w * 0.2, y: bedY - 26, duration: 500, ease: "Quad.out" });
+      yell.destroy();
+      traceEv.remove();
+      tears.remove();
+      // carve: the head, then the body in lumps, each one launched, blood and guts going everywhere
+      const lumps: Obj[] = [pHead];
+      for (let i = 0; i < 4; i++) {
+        const lx = bedX - V.w * 0.1 + i * V.w * 0.075;
+        const lump = keep(sc.add.container(lx, bedY - 8).setDepth(Z + 3));
+        lump.add(sc.add.rectangle(0, 0, V.w * 0.07, 22, 0xe0f2fe).setStrokeStyle(1, 0xbae6fd));
+        lump.add(sc.add.rectangle(-V.w * 0.035 + 2, 0, 5, 20, 0xb91c1c));
+        lump.add(sc.add.rectangle(V.w * 0.035 - 2, 0, 5, 20, 0xb91c1c));
+        lumps.push(fix(lump));
+      }
+      gown.clear();
+      face.clear();
+      lids.clear();
+      // (the shared blood helpers draw in the world: these go on the screen layer with everything else)
+      const spray = (x: number, y: number) => {
+        synth.play("blood_spray");
+        c.fx("vfx_bloodspray", x, y, 2.4, { fixed: true, depth: Z + 8, flipX: Math.random() < 0.5 });
+        c.fx("vfx_blood", x + (Math.random() - 0.5) * 40, y, 2, { fixed: true, depth: Z + 8, delay: 80 });
+        c.fx("vfx_gore", x, y - 10, 2.2, { fixed: true, depth: Z + 8, flipX: Math.random() < 0.5 });
+        for (let n = 0; n < 14; n++) {
+          const d = fix(keep(sc.add.rectangle(x, y, 3 + Math.random() * 6, 3 + Math.random() * 5, Math.random() < 0.6 ? 0xdc2626 : 0x7f1d1d).setDepth(Z + 8)));
+          toss(d, (Math.random() - 0.5) * 700, -150 - Math.random() * 380, vy(0.9) + Math.random() * 30, (Math.random() - 0.5) * 600);
+        }
+        for (let n = 0; n < 3; n++) {
+          const g = fix(keep(sc.add.ellipse(x, y, 16, 8, 0xf472b6).setStrokeStyle(1, 0x9d174d).setDepth(Z + 8)));
+          toss(g, (Math.random() - 0.5) * 500, -200 - Math.random() * 300, vy(0.9), (Math.random() - 0.5) * 900, () => synth.play("splat", 0.6));
+        }
+      };
+      for (let i = 0; i < lumps.length; i++) {
+        const L = lumps[i];
+        await c.tw({ targets: c.me, x: (L as unknown as { x: number }).x - 24, duration: 160, ease: "Sine.inOut" });
+        synth.play("flesh_rip");
+        synth.play("splat");
+        cam.shake(160, 0.012);
+        spray((L as unknown as { x: number }).x, (L as unknown as { y: number }).y);
+        toss(L, (Math.random() - 0.5) * 520, -260 - Math.random() * 260, vy(0.92), (Math.random() - 0.5) * 1100, () => synth.play("splat"));
+        // the family get it too: redder and redder, screaming
+        for (const f of fam) {
+          const k = Math.min(1, (i + 1) / lumps.length);
+          f.setTint(lerpCol(0xffffff, 0xb91c1c, k * 0.85));
+        }
+        if (i % 2 === 0) synth.play(i % 4 === 0 ? "scream_man" : "scream_woman");
+        // and the screen
+        for (let n = 0; n < 3; n++) {
+          const sx = Math.random() * 960;
+          const sy = Math.random() * 400;
+          const bl = keep(sc.add.ellipse(sx, sy, 30 + Math.random() * 90, 20 + Math.random() * 60, Math.random() < 0.6 ? 0xb91c1c : 0x7f1d1d, 0.85).setScrollFactor(0).setDepth(D + 48));
+          sc.tweens.add({ targets: bl, y: sy + 40 + Math.random() * 60, scaleY: 1.4, duration: 2600, ease: "Sine.in" });
+        }
+      }
+      rev.remove();
+      follow.remove();
+      // the family, dripping, still screaming; the flatline still going
+      for (const f of fam) sc.tweens.add({ targets: f, x: f.x + (Math.random() - 0.5) * 8, yoyo: true, repeat: -1, duration: 70 });
+      synth.play("scream_woman");
+      synth.play("scream_man");
+      await c.wait(900);
+      card();
+      await c.wait(2200);
+      c.me.setScrollFactor(1).setDepth(meDepth).setScale(meScale);
       break;
     }
 

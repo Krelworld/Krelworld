@@ -426,7 +426,7 @@ export class Player {
     if (s.guns[g.id] <= 0) this.world.sc.time.delayedCall(Math.min(400, g.cd), () => this.switchFromEmpty(g.id));
     this.attackCd = now + g.cd * (now < this.burstUntil ? 0.75 : 1) * (now < this.overdriveUntil ? 0.7 : 1) * (1 - 0.1 * (s.upgrades.pk_rof ?? 0));
     this.attackAnimUntil = now + 90;
-    this.gunKick = g.id === "rocket" || g.id === "shotgun" ? 10 : 5;
+    this.gunKick = g.id === "rail" ? 16 : g.id === "rocket" || g.id === "shotgun" ? 10 : 5;
     const mx = this.x + Math.cos(this.aim) * 26;
     const my = this.y + 4 + Math.sin(this.aim) * 26;
     // (the drawn muzzle flash is added further down; this circle is only for when the art isn't loaded)
@@ -533,7 +533,15 @@ export class Player {
       synth.play("coin");
       this.world.floatText(x, y - 18, "+1 INTEREST", "#facc15", 11);
     };
-    const onHit = g.mech === "loan" ? (x: number, y: number) => (interest(x, y), payout(x, y)) : jackpot ? payout : undefined;
+    // the railgun: every body it goes through spits sparks and a little white pop
+    const railHit = (x: number, y: number) => {
+      this.world.burst(x, y, 0x67e8f9, 10);
+      this.world.burst(x, y, 0xffffff, 4);
+      const ring = this.world.sc.add.circle(x, y, 6, 0xffffff, 0).setStrokeStyle(3, 0x67e8f9, 1).setDepth(604).setBlendMode(Phaser.BlendModes.ADD);
+      this.world.sc.tweens.add({ targets: ring, scale: 4, alpha: 0, duration: 220, ease: "Quad.out", onComplete: () => ring.destroy() });
+      synth.play("zap", 0.5);
+    };
+    const onHit = g.mech === "loan" ? (x: number, y: number) => (interest(x, y), payout(x, y)) : g.id === "rail" ? (x: number, y: number) => (railHit(x, y), payout(x, y)) : jackpot ? payout : undefined;
     if (g.id === "chainsaw") {
       // sparks and chunks right at the bar
       for (let k = 0; k < 3; k++) {
@@ -567,16 +575,53 @@ export class Player {
         onEnd: blastR ? blast : undefined,
       });
     }
-    if (g.id === "rail") {
-      const beam = this.world.sc.add.rectangle(mx, my, g.range, 3, g.color, 0.7).setOrigin(0, 0.5).setRotation(this.aim).setDepth(598);
-      this.world.sc.tweens.add({ targets: beam, alpha: 0, scaleY: 4, duration: 180, onComplete: () => beam.destroy() });
-    }
+    if (g.id === "rail") this.railFx(mx, my, g.range, g.color);
     synth.play(g.sfx ?? (g.id === "rocket" ? "rocket" : `gun_${g.id}`));
     // a drawn muzzle flash at the barrel (not for the chainsaw or the flamer, which are their own flash)
     if (g.id !== "chainsaw" && g.id !== "flamer") vfx(this.world.sc, "vfx_muzzle", mx, my, { angle: Phaser.Math.RadToDeg(this.aim), scale: g.id === "bfk" || g.id === "shotgun" || g.id === "rocket" ? 1.3 : 0.8, depth: 599, add: true });
     if (g.id === "shotgun" || g.id === "rocket") this.world.shake(70, 0.003);
     if (s.guns[g.id] === 0) this.world.floatText(this.x, this.y - 44, "LAST ONE", "#ffd23f", 12);
     return true;
+  }
+
+  /** The railgun's shot: a white-hot core in a cyan glow, rings spiralling down the line, recoil, a camera kick and a hair of hitstop. */
+  private railFx(mx: number, my: number, range: number, color: number) {
+    const sc = this.world.sc;
+    const a = this.aim;
+    const calm = !!G.meta?.settings?.calmFlash;
+    const add = Phaser.BlendModes.ADD;
+    const glow = sc.add.rectangle(mx, my, range, 16, color, 0.45).setOrigin(0, 0.5).setRotation(a).setDepth(597).setBlendMode(add);
+    const core = sc.add.rectangle(mx, my, range, 4, 0xffffff, 1).setOrigin(0, 0.5).setRotation(a).setDepth(599).setBlendMode(add);
+    sc.tweens.add({ targets: core, scaleY: 0.2, alpha: 0, duration: 160, ease: "Quad.in", onComplete: () => core.destroy() });
+    sc.tweens.add({ targets: glow, scaleY: 2.6, alpha: 0, duration: 320, ease: "Quad.out", onComplete: () => glow.destroy() });
+    // rings spiralling down the beam, out from the barrel
+    const n = Math.floor(range / 34);
+    for (let i = 0; i < n; i++) {
+      const d = 18 + i * 34;
+      const ox = Math.cos(a + Math.PI / 2) * Math.sin(i * 0.9) * 7;
+      const oy = Math.sin(a + Math.PI / 2) * Math.sin(i * 0.9) * 7;
+      const ring = sc.add.ellipse(mx + Math.cos(a) * d + ox, my + Math.sin(a) * d + oy, 10, 26, 0xffffff, 0).setStrokeStyle(2, color, 0.95).setRotation(a).setDepth(600).setBlendMode(add).setAlpha(0);
+      sc.tweens.add({ targets: ring, alpha: { from: 1, to: 0 }, scaleX: 1.8, scaleY: 1.5, delay: i * 9, duration: 260, onComplete: () => ring.destroy() });
+    }
+    // a hot white flash at the muzzle
+    const pop = sc.add.circle(mx, my, 14, 0xffffff, 0.95).setDepth(602).setBlendMode(add);
+    sc.tweens.add({ targets: pop, scale: 2.4, alpha: 0, duration: 140, onComplete: () => pop.destroy() });
+    // the shove: you get pushed back the way you came
+    const body = this.spr.body as Phaser.Physics.Arcade.Body | undefined;
+    if (body) {
+      // side-scrolling: a velocity kick (it eases off on its own); top-down sets your speed every frame, so a direct shove
+      if (this.world.side) body.velocity.x -= Math.cos(a) * 320;
+      else body.reset(this.spr.x - Math.cos(a) * 12, this.spr.y - Math.sin(a) * 12);
+    }
+    this.world.hitStop(40);
+    this.world.shake(140, calm ? 0.004 : 0.009);
+    // a faint cyan wash over the screen (a full camera flash is far too much for a gun you fire every second)
+    if (!calm) {
+      const cam = sc.cameras.main;
+      const wash = sc.add.rectangle(cam.width / 2, cam.height / 2, cam.width, cam.height, color, 0.14).setScrollFactor(0).setDepth(5000).setBlendMode(add);
+      sc.tweens.add({ targets: wash, alpha: 0, duration: 120, onComplete: () => wash.destroy() });
+    }
+    synth.play("zap", 0.7);
   }
 
   private tryDodge(now: number, mv: { x: number; y: number }) {

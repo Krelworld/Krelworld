@@ -13,6 +13,7 @@ export const K3_LAND: Line[] = [
 export const K3_REAL: Line[] = [
   say("FLENKY", "IT WAS REAL! IT WAS REAL THE WHOLE TIME!", { mood: "shouting, excited" }),
   say("SCROMBUS", "The first plot twist was fake!! It was the 'real universe' that was the illusion all along!! KRELWORLD is the actual real universe!", { mood: "shouting, excited" }),
+  say("KREBLIS", "This must mean the 'RuneScape Universe' is real!", { mood: "excited" }),
   say("DRONGUS", "I didn't make a game. I made a WORLD."),
   say("POLSON", "Yeeegh!! I'm alive?! Respawned 😅 Wbu?", { mood: "excited" }),
   say("GRONNY", "Me home."),
@@ -30,6 +31,8 @@ export const K3_SANMIK: Line[] = [say("SANMIK", "YEEEEE! SanMik in tha building!
 export const K3_LUKE: Line[] = [
   say("CRONGUS", "The bread and butter pudding house is real!! I need it!", { mood: "excited, overjoyed" }),
   say("CRONGUS", "Me want bread and butter pudding!!", { mood: "excited, desperate" }),
+  // (from inside the house)
+  say("CRONGUS", "Mm… oh… oh fuck yes… mmm… fuck… fuck yes… uhhhhhhhh", { mood: "moaning, sensual" }),
 ];
 
 /** Gronny, over the dance close-ups: on himself, then on Krezmar. */

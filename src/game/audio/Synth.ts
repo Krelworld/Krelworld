@@ -233,8 +233,8 @@ export class Synth {
   private loopWant: Record<string, { id: string | null; vol: number }> = {};
 
   /** Loop the recorded ambience "amb_<id>" (town, pub, casino, dungeon...), or stop it with null. Crossfades. */
-  ambience(id: string | null) {
-    this.loopOn("amb", id, 0.45);
+  ambience(id: string | null, vol = 0.45) {
+    this.loopOn("amb", id, vol);
   }
 
   /** A weather layer over the ambience (amb_rain, amb_storm, amb_snow), or null to stop it. */

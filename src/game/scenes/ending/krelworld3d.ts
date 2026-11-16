@@ -808,7 +808,8 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
 
   // =================================================================== THE SHOTS
   synth.stopMusic();
-  synth.ambience("amb_city");
+  // (kept low, so the lads' voices sit well on top)
+  synth.ambience("amb_city", 0.22);
   const PLAZA = new THREE.Vector3(0, 0, 16);
   // landing spots: an arc in front of the tap
   const spots: Record<string, [number, number]> = {};
@@ -977,16 +978,19 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   close(lad.SCROMBUS, 2.8, -0.5);
   await speak(K3_REAL[1]);
   lad.SCROMBUS.play("cheer");
+  lad.KREBLIS.play("cheer");
+  close(lad.KREBLIS, 2.6, -0.4);
+  await speak(K3_REAL[2]);
   lad.DRONGUS.play("talk");
   close(lad.DRONGUS, 2.6, 0.4);
-  await speak(K3_REAL[2]);
+  await speak(K3_REAL[3]);
   lad.POLSON.play("cheer");
   close(lad.POLSON, 3, -0.3);
-  await speak(K3_REAL[3]);
+  await speak(K3_REAL[4]);
   lad.GRONNY.play("talk");
   close(lad.GRONNY, 2.4, 0.5);
-  await speak(K3_REAL[4]);
   await speak(K3_REAL[5]);
+  await speak(K3_REAL[6]);
   for (const id of LADS) lad[id].play("cheer");
   synth.play("cheer");
   cut([0, 3, PLAZA.z + 14], [0, 1.8, PLAZA.z]);
@@ -1247,7 +1251,19 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   void camTo([ab.x + 10, 2.2, ab.z - 25], [ab.x, 4.2, ab.z - 3], 3600, ease.linear);
   caption("THE BREAD AND BUTTER PUDDING HOUSE", 2800);
   await Promise.race([lukeDoor, wait(3400)]);
-  await wait(400);
+  // in he goes: through the door and gone
+  await moveTo(luke, ab.x, ab.z - 3, 4);
+  luke.root.visible = false;
+  synth.play("door");
+  await wait(500);
+  // a slow push in on the house while he gets acquainted with the pudding
+  shotTok++;
+  void camTo([ab.x + 3, 4.8, ab.z - 12], [ab.x, 5, ab.z], 4200, ease.inOut);
+  await wait(600);
+  await speak(K3_LUKE[2]);
+  synth.play("squelch");
+  await wait(1400);
+  luke.root.visible = true;
 
   // ---- 7b. Polson and a Krelburger (Krezwonk regrets standing next to him)
   const pol = lad.POLSON;

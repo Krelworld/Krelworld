@@ -146,7 +146,8 @@ def plan(l, c):
     # Lads cloned from their own voices keep their likeness (and their own accent) far better on v2 than on v3,
     # which also needs an accent tag to stop it drifting and then drifts regional instead. These are always
     # recorded on v2: no audio tags, and a mood just gives the delivery more range.
-    if kind == "clone" and not accent and base in CAST.get("clone_v2_always", []):
+    # ...except a moan: that needs the expressive model whoever it is
+    if kind == "clone" and not accent and base in CAST.get("clone_v2_always", []) and not any("moan" in x for x in explicit):
         clean = TAG.sub("", t).strip()
         moody = bool(explicit or inline or from_text or CAST.get("delivery", {}).get(l["s"]))
         if base in CAST.get("clone_sts", []):

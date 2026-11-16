@@ -30,6 +30,7 @@ export interface Brand {
 export const BRANDS: Record<string, Brand> = {
   gbk: { name: "GB KREWS 24", short: "KREWS", main: 0xc8102e, accent: 0x0b2a5c, clock: "18:00" },
   kreltv: { name: "KRELTV NEWS", short: "KRELTV", main: 0xb91c1c, accent: 0x111111, clock: "21:00" },
+  gbksport: { name: "GB KREWS SPORT", short: "SPORT", main: 0x15803d, accent: 0x0b2a5c, clock: "22:30" },
 };
 
 const hex = (c: number) => `#${c.toString(16).padStart(6, "0")}`;
@@ -303,6 +304,13 @@ export class NewsChrome {
         },
       });
     });
+  }
+
+  /** Take the name strap off now (a new scene: it belonged to someone else). */
+  clearStrap() {
+    this.strapBox?.destroy();
+    this.strapBox = undefined;
+    this.headlineBox?.setVisible(true);
   }
 
   /** The over-the-shoulder box: a picture (texture + frame) and a caption, beside the presenter. Pass null to remove. */

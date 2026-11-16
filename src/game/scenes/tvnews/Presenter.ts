@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { voice } from "../../audio/Voice";
 import { speakable } from "../../audio/voiceKey";
+import { KREWS3_ANCHORS, krews3Gesture } from "./krews3Cast";
 
 /**
  * A talking presenter for the news broadcasts (and the Crobley studio / Swig's press conference).
@@ -26,6 +27,7 @@ export const ANCHORS: Record<string, AnchorDef> = {
   REPORTER: { key: "tvanchor_REPORTER", poses: ["rest", "thumb", "mic"], talks: [true, true, true] },
   "REINHARDT CROBLEY": { key: "tvanchor_REINHARDT", poses: ["rest", "point", "fists"], talks: [true, true, true] },
   "SERGEANT SWIG": { key: "tvanchor_SWIG", poses: ["rest", "point", "beer", "munch", "gun"], talks: [true, true, false, false, false] },
+  ...KREWS3_ANCHORS,
 };
 
 export function hasAnchor(sc: Phaser.Scene, name: string) {
@@ -98,7 +100,7 @@ function gestureFor(name: string, text: string, n: number): string[] {
       if (/fuck/.test(t)) return ["point"];
       return [["rest"], ["point", "rest"], ["rest"]][n % 3];
   }
-  return ["rest"];
+  return krews3Gesture(name, text, n) ?? ["rest"];
 }
 
 export class Presenter {
@@ -123,9 +125,11 @@ export class Presenter {
     y: number,
     scale: number,
     into?: Phaser.GameObjects.Container,
+    /** another anchor's art for this speaker (the same person somewhere else) */
+    anchor?: string,
   ) {
     this.name = name.toUpperCase();
-    this.def = ANCHORS[this.name];
+    this.def = ANCHORS[anchor ?? this.name];
     this.spr = sc.add.sprite(x, y, this.def.key, 0).setOrigin(0.5, 1).setScale(scale);
     if (into) into.add(this.spr);
     // breathing, and a head that never quite holds still

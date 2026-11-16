@@ -1727,7 +1727,7 @@ export class VignetteScene extends Phaser.Scene {
     lamp.add(this.add.triangle(38, -6, 0, 0, 30, -10, 0, 8, 0xd4a017));
     lamp.add(this.add.ellipse(0, -14, 22, 12, 0xe8b923));
     // not Majek Lampe (its lyrics are the scene): a different SanMik & SanChz track underneath
-    synth.music("ggg8", true);
+    synth.music("lamp_rub", true);
     await this.talk([
       dir("The back room of the Krezz Arms, after the gig. SanMik is lying face-down on the stage 'cooling down'. SanChz is eating the setlist.", { variants: { MIKEY: "The back room of the Krezz Arms, after the gig. You are lying face-down on the stage 'cooling down'. SanChz is eating the setlist." } }),
       say("SANMIK", "Yee. 'Ello me dearies. How you all fucking doing, you fucking PRICKS."),

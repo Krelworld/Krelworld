@@ -87,6 +87,7 @@ export const JUKEBOX: JukeboxTrack[] = [
   { ids: ["ggg6"], title: "Peener Colarder", where: "SanMik & SanChz · Peener 4eva", sanmik: true },
   { ids: ["ggg7"], title: "Fuck U Bitch", where: "SanMik & SanChz · The Nu Warehouse", sanmik: true },
   { ids: ["ggg8", "sanmik"], title: "Gettin Crunk Wiv SanChz", where: "SanMik & SanChz · Peener 4eva", sanmik: true },
+  { ids: ["lamp_rub"], title: "Rub The Lamp", where: "The Krezz Arms back room" },
   { ids: ["ggg9"], title: "Wank Til U Spunk", where: "SanMik & SanChz · Peener 4eva", sanmik: true },
   { ids: ["ggg10"], title: "Fragrant Bitch", where: "SanMik & SanChz · Jerk My Gherk", sanmik: true },
   { ids: ["ggg11"], title: "Happy Birthday You Cunt", where: "SanMik & SanChz · The Nu Warehouse", sanmik: true },

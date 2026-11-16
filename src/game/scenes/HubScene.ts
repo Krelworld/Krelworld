@@ -2291,10 +2291,61 @@ You are required by law to sign the Sex Offenders Register.`, {
     g.fillStyle(0x3f3f46, 1).fillRect(0, y - 45, 110, 90);
     for (let bx = 0; bx < 110; bx += 16) g.fillStyle(0x52525b, 1).fillRect(bx, y - 45, 12, 90);
     g.lineStyle(4, 0xff4fd8, 0.9).lineBetween(0, y - 47, 110, y - 47).lineBetween(0, y + 47, 110, y + 47);
-    const sign = this.add.text(x + 20, y - 62, name, { fontFamily: FONT, fontSize: "12px", color: "#ff4fd8", backgroundColor: "#12001fcc", padding: { x: 5, y: 3 }, fontStyle: "bold" }).setOrigin(0.15, 1).setDepth(y + 40);
+    // (the big neon KREDDLE sign below does the talking now; this small plaque just names the bridge)
+    const sign = this.add.text(x + 20, y + 52, "THE KREDDLE BRIDGE", { fontFamily: FONT, fontSize: "12px", color: "#ff4fd8", backgroundColor: "#12001fcc", padding: { x: 5, y: 3 }, fontStyle: "bold" }).setOrigin(0.15, 0).setDepth(y + 40);
+    void name;
     this.tweens.add({ targets: sign, alpha: 0.55, yoyo: true, repeat: -1, duration: 500 });
     const glow = this.add.ellipse(55, y, 140, 110, 0xff4fd8, 0.12).setDepth(1).setBlendMode(Phaser.BlendModes.ADD);
     this.tweens.add({ targets: glow, alpha: 0.03, yoyo: true, repeat: -1, duration: 900 });
+    this.drawKreddleSigns(x, y);
+  }
+
+  /** Kreddle is easy to miss out on the far west edge: a big flickering neon KREDDLE over the bridge, and neon arrows down the main road. */
+  private drawKreddleSigns(bx: number, by: number) {
+    const neon = (x: number, y: number, txt: string, size: number, col: string, glowCol: number, d = 0) => {
+      const halo = this.add.text(x, y, txt, { fontFamily: "Impact, sans-serif", fontSize: `${size}px`, color: col, stroke: col, strokeThickness: Math.max(4, size / 5) }).setOrigin(0.5).setDepth(5000 + d).setAlpha(0.35).setBlendMode(Phaser.BlendModes.ADD);
+      const t = this.add.text(x, y, txt, { fontFamily: "Impact, sans-serif", fontSize: `${size}px`, color: "#ffffff", stroke: col, strokeThickness: Math.max(3, size / 8) }).setOrigin(0.5).setDepth(5001 + d);
+      // a proper neon flicker: mostly on, the odd stutter
+      this.time.addEvent({
+        delay: 120,
+        loop: true,
+        callback: () => {
+          const off = Math.random() < 0.04;
+          t.setAlpha(off ? 0.35 : 1);
+          halo.setAlpha(off ? 0.08 : 0.28 + Math.random() * 0.14);
+        },
+      });
+      const g = this.add.ellipse(x, y, t.width + 40, t.height + 30, glowCol, 0.14).setDepth(4999 + d).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: g, alpha: 0.05, yoyo: true, repeat: -1, duration: 700 });
+      return t;
+    };
+    // the big one over the bridge
+    neon(bx + 120, by - 120, "KREDDLE", 46, "#ff4fd8", 0xff4fd8);
+    neon(bx + 120, by - 82, "CASINOS · ARCADES · THE EXCHANGE", 13, "#5ee7ff", 0x5ee7ff);
+    // neon arrows down the main road, every few hundred pixels from the town centre to the bridge, chasing west
+    const roadY = by - 70;
+    // two signs, each nudged clear of any building: one by the town centre, one half way to the bridge
+    for (let x of [1100, 520]) {
+      for (let tries = 0; tries < 12 && this.nearBuilding(x, roadY, 110); tries++) x += 40;
+      const post = this.add.rectangle(x, roadY + 26, 6, 40, 0x27272a).setDepth(roadY + 40);
+      void post;
+      const board = this.add.rectangle(x, roadY, 150, 34, 0x12001f, 0.92).setStrokeStyle(3, 0xff4fd8).setDepth(roadY + 41);
+      void board;
+      const label = this.add.text(x + 14, roadY, "KREDDLE", { fontFamily: "Impact, sans-serif", fontSize: "16px", color: "#ffffff", stroke: "#ff4fd8", strokeThickness: 3 }).setOrigin(0.5).setDepth(roadY + 42);
+      void label;
+      // three chevrons that light up in turn, right to left
+      const chev = [0, 1, 2].map((i) => this.add.text(x - 44 - i * 0, roadY, "‹", { fontFamily: "Impact, sans-serif", fontSize: "28px", color: "#5ee7ff" }).setOrigin(0.5).setDepth(roadY + 43).setX(x - 30 - i * 13));
+      let k = 0;
+      this.time.addEvent({ delay: 180, loop: true, callback: () => {
+          chev.forEach((c, i) => c.setAlpha(i === k % 3 ? 1 : 0.25));
+          k++;
+        } });
+      // a strip of chasing lights on the road itself
+      for (let i = 0; i < 6; i++) {
+        const dot = this.add.circle(x - 90 - i * 22, by + 2, 3.5, 0xff4fd8, 0.9).setDepth(3).setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({ targets: dot, alpha: 0.1, yoyo: true, repeat: -1, duration: 420, delay: i * 70 });
+      }
+    }
   }
 
   private async enterBuilding(b: Building) {

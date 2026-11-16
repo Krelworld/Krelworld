@@ -6509,6 +6509,18 @@
   "p_heli": {
    "file": "props/p_heli.png"
   },
+  "p_wreck_cop": {
+   "file": "props/p_wreck_cop.png"
+  },
+  "p_wreck_van": {
+   "file": "props/p_wreck_van.png"
+  },
+  "bg_nf_far": {
+   "file": "backdrops/bg_nf_far.png"
+  },
+  "bg_nf_near": {
+   "file": "backdrops/bg_nf_near.png"
+  },
   "p_jam": {
    "file": "props/p_jam.png"
   },

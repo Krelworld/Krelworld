@@ -80,7 +80,7 @@ export class HomeScene extends Phaser.Scene {
     const fridge = this.add.image(655, 452, "p_fridge").setOrigin(0.5, 1).setScale(4).setDepth(452);
     this.add.text(760, 300, "▼ OUT", { fontFamily: FONT, fontSize: "12px", color: "#ffd23f", fontStyle: "bold", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5).setDepth(600);
     // the games console, the laptop on the sofa, the trophy shelf and the armoury
-    if (this.textures.exists("p_console")) this.add.image(228, 512, "p_console").setOrigin(0.5, 1).setScale(1.2).setDepth(512);
+    if (this.textures.exists("p_console")) this.add.image(176, 538, "p_console").setOrigin(0.5, 1).setScale(1.2).setDepth(538);
     if (this.textures.exists("p_laptop")) this.add.image(352, 504, "p_laptop").setOrigin(0.5, 1).setScale(1.25).setDepth(536);
     this.drawShelf(292, 300);
     if (this.textures.exists("p_gunrack")) this.add.image(880, 300, "p_gunrack").setScale(1.6).setDepth(5);
@@ -88,7 +88,7 @@ export class HomeScene extends Phaser.Scene {
     const fridgeStocked = !s.flags[`fridge_ch${s.chapter}`];
     this.spots.push(
       { x: 140, y: 480, r: 80, label: "E: Watch KrelTV", use: () => this.watchTV() },
-      { x: 232, y: 512, r: 42, label: "E: Play the games console", use: () => this.consolePanel() },
+      { x: 176, y: 530, r: 42, label: "E: Play the games console", use: () => this.consolePanel() },
       { x: 292, y: 462, r: 40, label: "E: Look at your trophy shelf", use: () => this.trophyPanel() },
       { x: 350, y: 522, r: 48, label: "E: Open the laptop (group chat)", use: () => this.laptopPanel() },
       { x: 540, y: 500, r: 80, label: "E: Sleep (save · full health · sober up · dream)", use: () => this.sleep() },
@@ -150,6 +150,9 @@ export class HomeScene extends Phaser.Scene {
       G.save();
       return;
     }
+    // a new chapter starts here: it gets going as soon as you leave
+    if (s.chapter > 1 && s.flags[`ch${s.chapter}_home`] && !s.flags[`ch${s.chapter}_intro`] && !this.mustWatchBeep())
+      G.emit("toast", { title: `CHAPTER ${s.chapter}`, text: "A new day. Head out of the front door when you're ready." });
     if (this.mustWatchBeep() && !s.flags.beep_tv_pending) {
       await this.talk([dir("A night in. A relaxing episode of Peep Show is about to start. (The telly's on the left: walk up and press E.)")]);
       return;

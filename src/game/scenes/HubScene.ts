@@ -546,6 +546,13 @@ export class HubScene extends Phaser.Scene {
       await this.krunchBombing();
       return;
     }
+    // every chapter starts at home: the chapter proper begins when you step out of the front door
+    if (s.chapter > 1 && s.chapter < 6 && !s.flags[`ch${s.chapter}_intro`] && !s.flags[`ch${s.chapter}_home`] && at !== "HOME") {
+      s.flags[`ch${s.chapter}_home`] = true;
+      G.save();
+      this.go("Home", { chapterStart: s.chapter });
+      return;
+    }
     if (s.chapter > 1 && !s.flags[`ch${s.chapter}_intro`]) {
       s.flags[`ch${s.chapter}_intro`] = true;
       const ch = chapterDef(s.chapter);

@@ -29,33 +29,42 @@ export class WeaponPickScene extends Phaser.Scene {
     this.list = weaponList(s);
     this.cur = Math.max(0, this.list.findIndex((w) => w.id === (s.gun ?? null)));
     // in the side-scrolling (run'n'gun) rooms the action fills the middle of the screen: a slim strip along the top instead
-    const compact = !!(this.scene.get(this.caller) as unknown as { side?: unknown })?.side;
-    this.add.rectangle(480, 270, 960, 540, 0x05010c, compact ? 0.12 : 0.45).setInteractive().on("pointerdown", (_: unknown, __: unknown, ___: unknown, ev?: Phaser.Types.Input.EventData) => ev?.stopPropagation?.());
-    if (compact) this.add.rectangle(480, 78, 960, 132, 0x05010c, 0.62);
-    this.add.text(480, compact ? 22 : 70, "CHOOSE YOUR WEAPON", { fontFamily: "Impact, sans-serif", fontSize: compact ? "20px" : "38px", color: "#67e8f9", stroke: "#001018", strokeThickness: compact ? 4 : 7 }).setOrigin(0.5);
+    // ...and it goes on whichever half of the screen the player ISN'T in, one thin row, no dimming
+    const callerScene = this.scene.get(this.caller) as unknown as { side?: unknown; player?: { spr?: Phaser.GameObjects.Sprite }; cameras?: Phaser.Cameras.Scene2D.CameraManager };
+    const compact = !!callerScene?.side;
+    let bandY = 40;
+    if (compact) {
+      const spr = callerScene.player?.spr;
+      const cam = callerScene.cameras?.main;
+      const py = spr && cam ? (spr.y - cam.worldView.y) * cam.zoom : 400;
+      bandY = py < 300 ? 500 : 40;
+    }
+    this.add.rectangle(480, 270, 960, 540, 0x05010c, compact ? 0 : 0.45).setInteractive().on("pointerdown", (_: unknown, __: unknown, ___: unknown, ev?: Phaser.Types.Input.EventData) => ev?.stopPropagation?.());
+    if (compact) this.add.rectangle(480, bandY, 960, 78, 0x05010c, 0.55);
+    if (!compact) this.add.text(480, 70, "CHOOSE YOUR WEAPON", { fontFamily: "Impact, sans-serif", fontSize: compact ? "20px" : "38px", color: "#67e8f9", stroke: "#001018", strokeThickness: compact ? 4 : 7 }).setOrigin(0.5);
     if (!compact) this.add.text(480, 108, "(the world's slowed right down) · Tap one · or ←/→ and SPACE · or 1–9 · or let go of SWAP on it · ESC to cancel", { fontFamily: FONT, fontSize: "12px", color: "#cbd5e1" }).setOrigin(0.5);
-    const perRow = Math.min(compact ? 10 : 7, this.list.length);
+    const perRow = Math.min(compact ? 20 : 7, this.list.length);
     const rows = Math.ceil(this.list.length / perRow);
-    const TW = compact ? 82 : 116;
-    const TH = compact ? 74 : 112;
+    const TW = compact ? Math.min(60, Math.floor(920 / perRow) - 6) : 116;
+    const TH = compact ? 54 : 112;
     this.list.forEach((w, i) => {
       const r = Math.floor(i / perRow);
       const inRow = r === rows - 1 ? this.list.length - r * perRow : perRow;
       const c = i - r * perRow;
-      const x = 480 + (c - (inRow - 1) / 2) * (TW + 10);
-      const y = compact ? 82 + r * (TH + 6) : 210 + r * (TH + 14) - (rows - 1) * 60;
+      const x = 480 + (c - (inRow - 1) / 2) * (TW + (compact ? 6 : 10));
+      const y = compact ? bandY - 6 + r * (TH + 4) : 210 + r * (TH + 14) - (rows - 1) * 60;
       const box = this.add.rectangle(x, y, TW, TH, w.empty ? 0x1f1f2a : 0x101a2e, 0.95).setStrokeStyle(3, 0x334155).setInteractive({ useHandCursor: !w.empty });
-      const icon = weaponIcon(this, x, y - (compact ? 10 : 14), w, compact ? 42 : 64);
+      const icon = weaponIcon(this, x, y - (compact ? 6 : 14), w, compact ? Math.min(34, TW - 8) : 64);
       if (w.empty) icon.setAlpha(0.35);
       this.add.text(x - TW / 2 + 6, y - TH / 2 + 4, String(i + 1), { fontFamily: FONT, fontSize: "11px", color: "#64748b", fontStyle: "bold" });
-      this.add.text(x, y + (compact ? 22 : 30), ammoLabel(w), { fontFamily: FONT, fontSize: "12px", color: w.empty ? "#ef4444" : "#facc15", fontStyle: "bold" }).setOrigin(0.5);
+      this.add.text(x, y + (compact ? 18 : 30), ammoLabel(w), { fontFamily: FONT, fontSize: compact ? "10px" : "12px", color: w.empty ? "#ef4444" : "#facc15", fontStyle: "bold" }).setOrigin(0.5);
       if (!compact && w.id === (s.gun ?? null)) this.add.text(x, y + TH / 2 - 9, "IN HAND", { fontFamily: FONT, fontSize: "9px", color: "#67e8f9" }).setOrigin(0.5);
       box.on("pointerover", () => !w.empty && this.focus(i));
       box.on("pointerdown", () => !w.empty && this.pick(i));
       this.tiles.push({ box, w });
     });
-    this.name = this.add.text(480, compact ? 136 + (rows - 1) * 80 : 470, "", { fontFamily: "Impact, sans-serif", fontSize: compact ? "16px" : "26px", color: "#ffffff", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5);
-    const cancel = this.add.text(900, 40, "✕", { fontFamily: FONT, fontSize: "26px", color: "#ffffff", backgroundColor: "#00000088", padding: { x: 8, y: 2 } }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    this.name = this.add.text(480, compact ? (bandY < 270 ? bandY + 50 + (rows - 1) * 58 : bandY - 50) : 470, "", { fontFamily: "Impact, sans-serif", fontSize: compact ? "16px" : "26px", color: "#ffffff", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5);
+    const cancel = this.add.text(compact ? 930 : 900, compact ? (bandY < 270 ? bandY + 58 : bandY - 58) : 40, "✕", { fontFamily: FONT, fontSize: "26px", color: "#ffffff", backgroundColor: "#00000088", padding: { x: 8, y: 2 } }).setOrigin(0.5).setInteractive({ useHandCursor: true });
     cancel.on("pointerdown", () => this.close());
     this.focus(this.cur);
     const kb = this.input.keyboard!;

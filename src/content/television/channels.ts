@@ -3,6 +3,7 @@ import { TCC_EP07 } from "./thickCummingCock/episode07";
 import { CREATION_MYTH } from "./extra/creationMyth";
 import { EASTENDERS_KREZZ } from "./extra/eastenders";
 import { BEEP_SHOW } from "./extra/beepShow";
+import { BEST_MAN } from "./extra/bestMan";
 import { KREWS_EPISODES } from "./extra/krews";
 import { KREWS3_EPISODES } from "./extra/krews2";
 
@@ -382,7 +383,7 @@ NARRATOR: Some historians dispute this, citing Godric Gryffindor and a Waluigi u
   { unlockFlag: "ch5_clear", unlockHint: "Locked programme: unlocks after Chapter 5" },
 );
 
-const EPISODES: TVEpisode[] = [KLERBLE_WELCOME, KRANDALL_SEGMENT, KLERBLE_PRESSER, WILDERN_BULLETIN, NEWS_1, NEWS_2, NEWS_3, NEWS_4, NEWS_5, CABINET_LIVE, SHOPPING, KRONSTER_DOC, LORE_HOUR, CREATION_MYTH, EASTENDERS_KREZZ, { ...BEEP_SHOW, unlockFlag: "tv_beep_show", unlockHint: "Locked programme: you'll catch it at the start of Chapter 4" }, ...KREWS_EPISODES, ...KREWS3_EPISODES, { ...TCC_EP07, channel: "CHANNEL KREZ" }];
+const EPISODES: TVEpisode[] = [KLERBLE_WELCOME, KRANDALL_SEGMENT, KLERBLE_PRESSER, WILDERN_BULLETIN, NEWS_1, NEWS_2, NEWS_3, NEWS_4, NEWS_5, CABINET_LIVE, SHOPPING, KRONSTER_DOC, LORE_HOUR, CREATION_MYTH, EASTENDERS_KREZZ, { ...BEEP_SHOW, unlockFlag: "tv_beep_show", unlockHint: "Locked programme: you'll catch it at the start of Chapter 4" }, ...KREWS_EPISODES, ...KREWS3_EPISODES, { ...TCC_EP07, channel: "CHANNEL KREZ" }, BEST_MAN];
 
 /** Number each channel's episodes in order, now that some channels have been folded together. */
 const counts: Record<string, number> = {};

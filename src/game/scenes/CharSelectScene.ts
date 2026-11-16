@@ -10,7 +10,7 @@ import { G } from "../G";
 import { maxHp } from "../systems/stats";
 import { keysFor, prettyKey } from "../systems/keybinds";
 
-const COLS = 4;
+const COLS = 3;
 
 export class CharSelectScene extends Phaser.Scene {
   private sel = 0;
@@ -38,16 +38,18 @@ export class CharSelectScene extends Phaser.Scene {
     PLAYABLE_ORDER.forEach((id, i) => {
       const col = i % COLS;
       const row = Math.floor(i / COLS);
-      const x = 18 + col * 116;
+      // three rows of three: wider cards, the face and their sprite side by side
+      const CW = 148;
+      const x = 18 + col * (CW + 6);
       const y = 74 + row * 138;
       const def = CHARACTERS[id];
       const done = G.meta.completedWith.includes(id);
-      const card = this.add.rectangle(x, y, 110, 132, 0x1b1e33).setOrigin(0).setStrokeStyle(2, def.color).setInteractive({ useHandCursor: true });
+      const card = this.add.rectangle(x, y, CW, 132, 0x1b1e33).setOrigin(0).setStrokeStyle(2, def.color).setInteractive({ useHandCursor: true });
       const pk = portraitKey(this, id);
-      if (pk) this.add.image(x + 55, y + 38, pk).setDisplaySize(60, 60);
-      this.add.sprite(x + 92, y + 76, `spr_${id}`, 0).setScale(1.2);
-      this.add.text(x + 55, y + 90, id === "MIKEY" ? "KREBLAR" : def.name, { fontFamily: FONT, fontSize: "11px", color: hexStr(def.color), fontStyle: "bold", align: "center", wordWrap: { width: 104 } }).setOrigin(0.5, 0);
-      this.add.text(x + 55, y + 117, id === "MIKEY" ? "" : def.nickname ? `"${def.nickname}"` : def.realName ?? "", { fontFamily: FONT, fontSize: def.nickname ? "10px" : "9px", color: def.nickname ? hexStr(def.color) : "#8a8fa0", fontStyle: def.nickname ? "bold" : "normal" }).setOrigin(0.5, 0);
+      if (pk) this.add.image(x + CW / 2 - 8, y + 40, pk).setDisplaySize(66, 66);
+      this.add.sprite(x + CW - 24, y + 76, `spr_${id}`, 0).setScale(1.25);
+      this.add.text(x + CW / 2, y + 90, id === "MIKEY" ? "KREBLAR" : def.name, { fontFamily: FONT, fontSize: "11px", color: hexStr(def.color), fontStyle: "bold", align: "center", wordWrap: { width: CW - 8 } }).setOrigin(0.5, 0);
+      this.add.text(x + CW / 2, y + 115, id === "MIKEY" ? "" : def.nickname ? `"${def.nickname}"` : def.realName ?? "", { fontFamily: FONT, fontSize: def.nickname ? "10px" : "9px", color: def.nickname ? hexStr(def.color) : "#8a8fa0", fontStyle: def.nickname ? "bold" : "normal" }).setOrigin(0.5, 0);
       if (done) this.add.text(x + 4, y + 3, "✓", { fontFamily: FONT, fontSize: "11px", color: "#5ad35a" });
       card.on("pointerover", () => this.select(i));
       // hover to look, click the face to pick them

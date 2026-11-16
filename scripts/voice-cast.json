@@ -46,7 +46,9 @@
   "pronounce": {
     "_doc": "How a word is said aloud (the on-screen text is unchanged). Lines containing it are re-recorded.",
     "Krebon": "Krebb-on",
-    "Mollor": "Moll-or"
+    "Mollor": "Moll-or",
+    "paedo": "pee-doe",
+    "paedos": "pee-doze"
   },
   "tempo": {
     "_doc": "Speed a speaker's clips up (>1) or down after recording, pitch kept. Existing clips are re-timed locally.",
@@ -147,7 +149,7 @@
     "THE COLONEL": "z1BeuDf0Zuz95yNORKlH",
     "THE PUDDING DEMON": "hKe4P7fnKfXsAMpy3bvD",
     "PROSECUTOR": "jOx6DN34wytr6xeDktNZ",
-    "MADISON": "RDXSMyFyYnwDSRjAEdPe",
+    "MADISON": "bRNwmDSoPLULCqoEf4mf",
     "JUROR NUMBER 2": "q9KgynpRP99tTO9qMOK4",
     "SUSAN NIPWOOD": "tLfPhIZiIv0WJlZRxhb7",
     "CAPTAIN STANLEY": "lkp87fdgsDq6yNwmaPkT",
@@ -347,7 +349,7 @@
     "THE PUDDING DEMON": "A shrieking, greedy little demon. High, raspy and frantic.",
     "JUROR NUMBER 2": "A breathy, sleazy, excitable middle-aged man with a Midlands accent. Wheezy.",
     "PROSECUTOR": "A sharp, commanding female prosecutor in her forties with a crisp English accent.",
-    "MADISON": "A cheerful young woman in her twenties with a South London Croydon accent.",
+    "MADISON": "A petite, bubbly woman of twenty-two who sounds younger than her age: a light, high, breezy voice, giggly and upbeat, with a South London Croydon accent.",
     "SUSAN NIPWOOD": "A very frail, elderly English woman in her nineties. Faint, breathy and croaky.",
     "OFFICIAL": "A cold, officious British government official in his fifties. Clipped and stern.",
     "CAPTAIN STANLEY": "A strained airline captain in his fifties with a clipped English accent, gasping for breath.",

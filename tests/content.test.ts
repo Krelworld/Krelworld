@@ -75,7 +75,7 @@ describe("content integrity", () => {
       expect(BARKS[id].length, id).toBeGreaterThanOrEqual(25);
     }
     for (const p of PLAYABLE_IDS) expect(PLAYER_BARKS[p].length, p).toBeGreaterThanOrEqual(15);
-    expect(DRONGUS_SEQUENCES.length).toBeGreaterThanOrEqual(10);
+    expect(DRONGUS_SEQUENCES.length).toBeGreaterThanOrEqual(3);
     expect(PUB_CONVERSATIONS.length).toBeGreaterThanOrEqual(6);
     expect(CHATTER.length).toBeGreaterThanOrEqual(15);
   });

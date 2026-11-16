@@ -2,7 +2,7 @@ import { keysFor, prettyKey } from "../systems/keybinds";
 import { currentGun, ownedGuns, gunMax } from "../combat/Guns";
 import { fartLevel, fartMeter } from "../combat/Farts";
 import Phaser from "phaser";
-import { G, G_canDrongus, G_drongusSpoke } from "../G";
+import { G } from "../G";
 import { maxHp, maxKrezz, maxBottles, intoxLabel } from "../systems/stats";
 import { FONT, UI } from "../ui/theme";
 import { portraitKey } from "../gfx/Textures";
@@ -75,15 +75,15 @@ export class UIScene extends Phaser.Scene {
     this.rule = null;
     this.g = this.add.graphics();
     // every couple of minutes, one of Drongus's old Facebook statuses resurfaces
-    if (!G.rt.nextStatusAt) G.rt.nextStatusAt = Date.now() + 45000 + Math.random() * 45000;
+    // about three every two minutes (one every 34-46s), each status as likely as any other (a shuffled deck, no repeats till it runs out)
+    if (!G.rt.nextStatusAt) G.rt.nextStatusAt = Date.now() + 20000 + Math.random() * 15000;
     this.time.addEvent({
       delay: 1000,
       loop: true,
       callback: () => {
-        if (!DRONGUS_STATUSES.length || !G.s.flags.met_emergency || Date.now() < G.rt.nextStatusAt || !G_canDrongus()) return;
-        G.rt.nextStatusAt = Date.now() + 180000 + Math.random() * 120000;
-        G_drongusSpoke();
-        if (!G.rt.statusDeck.length) G.rt.statusDeck = Phaser.Utils.Array.Shuffle(DRONGUS_STATUSES.flatMap((st, i) => (st.top ? [i, i] : [i])));
+        if (!DRONGUS_STATUSES.length || !G.s.flags.met_emergency || Date.now() < G.rt.nextStatusAt) return;
+        G.rt.nextStatusAt = Date.now() + 34000 + Math.random() * 12000;
+        if (!G.rt.statusDeck.length) G.rt.statusDeck = Phaser.Utils.Array.Shuffle(DRONGUS_STATUSES.map((_, i) => i));
         const st = DRONGUS_STATUSES[G.rt.statusDeck.pop()!];
         this.onEvent("fbstatus", { text: st.t, year: st.y });
       },
@@ -237,7 +237,8 @@ export class UIScene extends Phaser.Scene {
 
   /** A Facebook status from Drongus, years old, resurfacing for no reason. */
   private pushStatus(text: string, year?: string) {
-    const w = 300;
+    // long ones get a wider box (and the box always grows to fit every line)
+    const w = text.length > 150 ? 380 : text.length > 70 ? 330 : 300;
     const c = this.add.container(960 - w - 10, 0).setDepth(100);
     const body = this.add.text(10, 40, text, { fontFamily: FONT, fontSize: "12px", color: "#050505", wordWrap: { width: w - 20, useAdvancedWrap: true } });
     const h = body.height + 66;
@@ -255,7 +256,8 @@ export class UIScene extends Phaser.Scene {
     c.y = y0;
     c.setAlpha(0);
     this.tweens.add({ targets: c, alpha: 1, duration: 150 });
-    this.toasts.push({ c, until: this.time.now + 7500 });
+    // on screen long enough to actually read
+    this.toasts.push({ c, until: this.time.now + Phaser.Math.Clamp(5000 + text.length * 55, 7500, 18000) });
     if (this.toasts.length > 5) {
       const t = this.toasts.shift()!;
       // the oldest slides out rather than vanishing

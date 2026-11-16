@@ -594,6 +594,15 @@ export class HubScene extends Phaser.Scene {
     if (auto?.step.auto && (await this.runArcStep(at!)) && this.busy) return;
     G.drongus("hub");
     if (from === "dungeon") G.emit("toast", { title: "BACK IN KRELFORD", text: s.chapter === 1 && !s.flags.wildern_destroyed ? "Wildern has to go. Plant the bombs (4) around the school." : "Report to the Town Hall." });
+    // just back from Mikey's battering: you and the krew go straight to the bridge for the shoving match
+    if (s.flags.kr_brawl_due && this.brawl && !this.brawl.running) {
+      delete s.flags.kr_brawl_due;
+      this.beatup?.cancel();
+      this.av.setPosition(this.brawl.spot.x + 220, this.brawl.spot.y + 30);
+      this.cameras.main.centerOn(this.av.x, this.av.y);
+      this.brawl.start();
+      return;
+    }
     // the Kreddle Krunchers come over the bridge (start of Chapter 3)
     const inv = !this.chainMeetings && currentArcSteps(s).find((c) => c.step.step.kind === "auto" && c.step.step.id === "kruncher_invasion");
     if (inv) {
@@ -3465,6 +3474,7 @@ You are required by law to sign the Sex Offenders Register.`, {
     shoves: number;
     nextShove: number;
     heckle?: Phaser.Time.TimerEvent;
+    start: () => void;
   } | null = null;
 
   /** If the Krunchers step is open, they're loitering by the bridge, heckling. */
@@ -3482,7 +3492,7 @@ You are required by law to sign the Sex Offenders Register.`, {
       return sp;
     });
     const tag = this.add.text(x + 30, y - 120, "THE KREDDLE KRUNCHERS", { fontFamily: "Impact, sans-serif", fontSize: "16px", color: "#ff4fd8", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(5000);
-    this.brawl = { spot: { x, y }, ks, krew: [], running: false, shoves: 0, nextShove: 0 };
+    this.brawl = { spot: { x, y }, ks, krew: [], running: false, shoves: 0, nextShove: 0, start: () => { tag.destroy(); void this.runBrawl(c.arc, c.step, k); } };
     this.brawl.heckle = this.time.addEvent({
       delay: 1700,
       loop: true,
@@ -3498,10 +3508,7 @@ You are required by law to sign the Sex Offenders Register.`, {
       r: 150,
       label: () => "Make the Kreddle Krunchers SCRAM",
       enabled: () => !!this.brawl && !this.brawl.running,
-      use: () => {
-        tag.destroy();
-        void this.runBrawl(c.arc, c.step, k);
-      },
+      use: () => this.brawl?.start(),
     });
   }
 

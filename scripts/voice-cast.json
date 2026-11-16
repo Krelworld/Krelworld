@@ -45,7 +45,8 @@
   },
   "pronounce": {
     "_doc": "How a word is said aloud (the on-screen text is unchanged). Lines containing it are re-recorded.",
-    "Krebon": "Krebb-on"
+    "Krebon": "Krebb-on",
+    "Mollor": "Moll-or"
   },
   "tempo": {
     "_doc": "Speed a speaker's clips up (>1) or down after recording, pitch kept. Existing clips are re-timed locally.",

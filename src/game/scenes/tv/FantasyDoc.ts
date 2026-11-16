@@ -17,6 +17,8 @@ import { registerDramaFaces } from "./dramaFaces";
 
 type Place = "bedroom" | "office" | "doctor" | "hospital" | "street" | "flat" | "set";
 
+const COP = "tv_mt_cop";
+
 const SETS: Record<Place, string> = {
   bedroom: "tv_mt_bedroom",
   office: "tv_mt_office",
@@ -819,6 +821,11 @@ export class FantasyDocDirector extends ShowDirector {
     return 2800;
   }
 
+  /** The police: full-length PixelLab coppers (tv_mt_cop, two of them), or the old stage extra if that art's missing. */
+  private copTex() {
+    return this.tex(COP) ? COP : this.host.spriteFor("OFFICER");
+  }
+
   private arrest(): number {
     this.clear();
     const { SX, SY, SW, SH } = this.r;
@@ -826,11 +833,11 @@ export class FantasyDocDirector extends ShowDirector {
     const ground = SY + SH * 0.96;
     const s = this.prop(this.tex("tv_mt_naked") ? "tv_mt_naked" : "tv_mt_sack", SX + SW * 0.5, ground, 2.4);
     if (s) this.censor(s, true);
-    const cop = this.host.spriteFor("OFFICER");
+    const cop = this.copTex();
     for (let i = 0; i < 3; i++) {
       if (!cop || !this.tex(cop)) break;
-      const c = this.add(this.sc.add.sprite(SX + SW + 60 + i * 50, ground, cop, 0).setOrigin(0.5, 1));
-      this.realScale(c, 3.2);
+      const c = this.add(this.sc.add.sprite(SX + SW + 60 + i * 50, ground, cop, cop === COP ? i % 2 : 0).setOrigin(0.5, 1));
+      this.realScale(c, cop === COP ? 1.6 : 3.2);
       c.setFlipX(true);
       this.sc.tweens.add({ targets: c, x: SX + SW * (0.62 + i * 0.1), duration: 700, delay: i * 150, ease: "Quad.out" });
     }
@@ -858,11 +865,11 @@ export class FantasyDocDirector extends ShowDirector {
       this.censor(s, true);
       this.sc.tweens.add({ targets: s, x: SX + SW + 140, duration: 3200, ease: "Sine.easeIn" });
     }
-    const cop = this.host.spriteFor("OFFICER");
+    const cop = this.copTex();
     if (cop && this.tex(cop) && s)
       for (let i = 0; i < 2; i++) {
-        const c = this.add(this.sc.add.sprite(s.x + 70 + i * 40, ground, cop, 0).setOrigin(0.5, 1));
-        this.realScale(c, 3.2);
+        const c = this.add(this.sc.add.sprite(s.x + 70 + i * 40, ground, cop, cop === COP ? i % 2 : 0).setOrigin(0.5, 1));
+        this.realScale(c, cop === COP ? 1.6 : 3.2);
         this.sc.tweens.add({ targets: c, x: SX + SW + 220 + i * 40, duration: 3200, ease: "Sine.easeIn" });
       }
     this.sfx("biglaugh");

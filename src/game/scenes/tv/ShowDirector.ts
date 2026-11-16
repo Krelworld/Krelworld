@@ -444,6 +444,17 @@ export abstract class ShowDirector {
   }
 
   /**
+   * Someone from the chest up for a group shot: their close-up sheet, its bottom edge at `bottom`, `height` tall.
+   * Null if they haven't one (then it's their full-body sprite, see body()).
+   */
+  protected bust(name: string, x: number, bottom: number, height: number) {
+    const fk = faceKeyOf(name);
+    if (!this.sc.textures.exists(fk)) return null;
+    const fh = this.sc.textures.getFrame(fk, 0)?.height ?? 128;
+    return this.add(this.sc.add.sprite(x, bottom, fk, 0).setOrigin(0.5, 1).setScale(height / fh));
+  }
+
+  /**
    * Cut to (or stay on) someone's single: their close-up face, or their sprite from the knees up if they haven't
    * one. `side` puts them on a third of the frame (-1 left, 0 centre, 1 right); the room behind is soft and
    * offset, as if shot across it.
@@ -748,6 +759,13 @@ export abstract class ShowDirector {
 
   /** Someone in a wide shot, as a performer (so they can talk there). */
   protected perfOf(name: string, s: Phaser.GameObjects.Sprite): Perf {
+    if (s.texture.key.startsWith("tvface_")) {
+      // a bust in a group shot (see bust()): it talks like a close-up
+      const meta = FACE_META[s.texture.key.slice(7)];
+      const p: Perf = { name, spr: s, face: true, base: F.NEUTRAL, scale: Math.abs(s.scaleX), y: s.y, frames: this.faceFrames(name), gesturing: false, lip: !!meta?.lip, gest: meta?.gest ?? [], gUsed: 0 };
+      this.perf = p;
+      return p;
+    }
     const p: Perf = { name, spr: s, face: false, base: 0, scale: this.wscale(s), y: s.y, frames: 0, gesturing: false };
     this.perf = p;
     return p;

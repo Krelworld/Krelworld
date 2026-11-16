@@ -107,8 +107,13 @@ export class EnsembleDirector extends ShowDirector {
     this.sc.tweens.add({ targets: img, x: img.x + (fromHigh ? 12 : -18), duration: 8000, ease: "Sine.easeInOut" });
     // members on the benches
     const { SX, SY, SW, SH } = this.r;
+    // members on the benches from the chest up when they all have close-up sheets (the art their singles use)
+    const busts = this.cast.length > 0 && this.cast.every((n) => this.hasFace(n));
     this.cast.forEach((n, i) => {
-      const s = this.body(n, SX + SW * (0.25 + 0.25 * i), SY + SH * (fromHigh ? 0.82 : 0.95), SH * (fromHigh ? 0.22 : 0.36));
+      const x = SX + SW * (0.25 + 0.25 * i);
+      const s = busts
+        ? this.bust(n, x, SY + SH * (fromHigh ? 0.86 : 1.02), SH * (fromHigh ? 0.3 : 0.46))
+        : this.body(n, x, SY + SH * (fromHigh ? 0.82 : 0.95), SH * (fromHigh ? 0.22 : 0.36));
       if (s) this.bodies[n] = s;
     });
   }
@@ -147,11 +152,16 @@ export class EnsembleDirector extends ShowDirector {
     this.backdrop(this.host.setTexture());
     const cast = this.cast.filter((n) => !this.pending.has(n)).slice(0, 6);
     const n = cast.length;
+    // a group shot from the chest up when everyone has a close-up sheet (the same art as their singles), else the
+    // room with everyone standing in it
+    const busts = n > 0 && cast.every((nm) => this.hasFace(nm));
     cast.forEach((nm, i) => {
-      const x = SX + SW / 2 + (i - (n - 1) / 2) * Math.min(120, (SW - 120) / Math.max(1, n - 1));
-      const s = this.body(nm, x, SY + SH * 0.94 - (i % 2) * 10, SH * 0.42);
+      const x = SX + SW / 2 + (i - (n - 1) / 2) * Math.min(busts ? 150 : 120, (SW - (busts ? 140 : 120)) / Math.max(1, n - 1));
+      const s = busts
+        ? this.bust(nm, x, SY + SH + 6 + (i % 2) * 14, SH * (n <= 2 ? 0.62 : n <= 4 ? 0.54 : 0.48))
+        : this.body(nm, x, SY + SH * 0.94 - (i % 2) * 10, SH * 0.42);
       if (!s) return;
-      s.setFlipX(x > this.cx);
+      if (!busts) s.setFlipX(x > this.cx);
       if (this.ghost.has(nm)) this.ghostly(s);
       this.breathe(s, 1400 + i * 190);
       this.bodies[nm] = s;

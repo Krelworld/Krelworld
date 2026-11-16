@@ -394,30 +394,33 @@ export const ALL_EPISODES: TVEpisode[] = EPISODES.map((e) => ({ ...e, episodeNum
 
 export const CHANNELS: string[] = ["GB KREWS 24", "CHANNEL KREZ", "BBK ONE", "WONKING MACHINE SHOPPING NETWORK", "KRELWORLD DOCUMENTARIES"];
 
-/** Which set a shot uses. The TV renderer draws these procedurally. */
+/** Which set a shot uses (tv_<key> art; the k1_ sets are the 2026 redraws of the early stage sets). */
 export function setKeyFor(set: string): string {
   const s = set.toUpperCase();
   if (s.includes("TRAIN")) return "train_cab";
-  if (s.includes("OVAL OFFICE")) return "oval_office";
+  if (s.includes("OVAL OFFICE")) return "k1_oval";
   if (s.includes("CLASSROOM")) return "classroom";
-  if (s.includes("DEBATE")) return "debate_stage";
-  if (s.includes("CONFERENCE HALL")) return "conference_hall";
-  if (s.includes("ICE CREAM")) return "ice_cream";
-  if (s.includes("POLLING")) return "polling";
-  if (s.includes("DOWNING STREET")) return "downing_st";
-  if (s.includes("STADIUM")) return "stadium";
-  if (s.includes("PRESS BRIEFING") || s.includes("PRESS CONFERENCE")) return "press";
+  if (s.includes("DEBATE")) return "k1_debate";
+  if (s.includes("CONFERENCE HALL")) return "k1_hall";
+  if (s.includes("ICE CREAM")) return "k1_icecream";
+  if (s.includes("POLLING")) return "k1_polling";
+  if (s.includes("DOWNING STREET")) return s.includes("BUNKER") ? "downing_st" : "no10_door";
+  if (s.includes("STADIUM")) return "k1_stadium";
+  if (s.includes("PRESS BRIEFING")) return "k1_briefing";
+  if (s.includes("PRESS CONFERENCE")) return "k1_pressroom";
   if (s.includes("NEWSDESK")) return "newsdesk";
   if (s.includes("CAVE")) return "cave";
   if (s.includes("CELLAR")) return "cellar";
-  if (s.includes("QUEEN VIC")) return "pubbar";
-  if (s.includes("PRESS ROOM")) return "press";
+  if (s.includes("QUEEN VIC")) return "ee_vic";
+  if (s.includes("PRESS ROOM")) return "k1_pressroom";
   if (s.includes("COCKPIT") || s.includes("PLANE")) return "cockpit";
   if (s.includes("BUNKER")) return "bunker";
   if (s.includes("CELL")) return "cell";
-  if (s.includes("CORPORATE") || s.includes("BOARDROOM") || s.includes("INTERROGATION")) return "boardroom";
+  if (s.includes("INTERROGATION")) return "boardroom";
+  if (s.includes("CORPORATE") || s.includes("BOARDROOM")) return "k1_boardroom";
   if (s.includes("LIVING ROOM") || s.includes("FLAT") || s.includes("BEDROOM")) return "livingroom";
-  if (s.includes("SANA") || s.includes("HOTEL") || s.includes("HIGH STREET") || s.includes("PARADE")) return "street_day";
+  if (s.includes("HIGH STREET")) return "highstreet";
+  if (s.includes("SANA") || s.includes("HOTEL") || s.includes("PARADE")) return "street_day";
   if (s.includes("POLSON")) return "polson_ext";
   if (s.includes("TOWNHALL")) return "townhall_cam";
   if (s.includes("KRELLBALL")) return "pitch";
@@ -427,11 +430,11 @@ export function setKeyFor(set: string): string {
   if (s.includes("FOREST")) return "forest";
   if (s.includes("NYC") || s.includes("NEW YORK") || s === "nyc_skyline".toUpperCase()) return "nyc_skyline";
   if (s.includes("OFFICE")) return "office_night";
-  if (s.includes("COURT")) return "courtroom";
-  if (s.includes("CHURCH") || s.includes("FUNERAL")) return "church";
-  if (s.includes("GROCERY") || s.includes("SUPERMARKET")) return "supermarket";
-  if (s.includes("ANTARCTICA") || s.includes("SOUTH POLE")) return "antarctica";
-  if (s.includes("CHILDREN'S TV") || s.includes("KIDS")) return "kids_studio";
-  if (s.includes("MERGED UNIVERSE")) return "smash";
+  if (s.includes("COURT")) return "k1_courtroom";
+  if (s.includes("CHURCH") || s.includes("FUNERAL")) return "k1_church";
+  if (s.includes("GROCERY") || s.includes("SUPERMARKET")) return "k1_supermarket";
+  if (s.includes("ANTARCTICA") || s.includes("SOUTH POLE")) return "k1_antarctica";
+  if (s.includes("CHILDREN'S TV") || s.includes("KIDS")) return "k1_kids";
+  if (s.includes("MERGED UNIVERSE")) return "k1_multiverse";
   return set.toLowerCase();
 }

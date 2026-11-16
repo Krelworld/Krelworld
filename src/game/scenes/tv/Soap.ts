@@ -140,6 +140,9 @@ export class SoapDirector extends ShowDirector {
     });
   }
 
+  /** the last wide was shot from the chest up (see wide()) */
+  private busts = false;
+
   /** Everyone in the room. */
   private wide(except = "") {
     this.clear();
@@ -148,12 +151,16 @@ export class SoapDirector extends ShowDirector {
     const cast = this.cast.filter((n) => n !== except && (!/^(ADVISOR)$/.test(n) || this.place === "bunker"));
     const n = cast.length;
     const ground = SY + SH * 0.93;
+    // from the chest up when everyone has a close-up sheet (the cellar keeps its full-length shot: Minty's suspenders)
+    const busts = (this.busts = n > 0 && this.place !== "cellar" && cast.every((nm) => this.hasFace(nm)));
     cast.forEach((nm, i) => {
-      const x = SX + SW / 2 + (i - (n - 1) / 2) * Math.min(130, (SW - 140) / Math.max(1, n - 1));
+      const x = SX + SW / 2 + (i - (n - 1) / 2) * Math.min(busts ? 150 : 130, (SW - 140) / Math.max(1, n - 1));
       const kid = /SCRIMBLE|PHEZON/.test(nm);
-      const s = this.body(nm, x, ground - (i % 2) * 8, SH * (kid ? 0.3 : 0.46));
+      const s = busts
+        ? this.bust(nm, x, SY + SH + 6 + (i % 2) * 14 + (kid ? 20 : 0), SH * (kid ? 0.4 : n <= 3 ? 0.58 : 0.5))
+        : this.body(nm, x, ground - (i % 2) * 8, SH * (kid ? 0.3 : 0.46));
       if (!s) return;
-      s.setFlipX(x > this.cx);
+      if (!busts) s.setFlipX(x > this.cx);
       if (nm === "MINTY" && this.place === "cellar") {
         // "nothing but suspenders"
         const g = this.add(this.sc.add.rectangle(s.x, s.y - s.displayHeight * 0.32, s.displayWidth * 0.36, s.displayHeight * 0.12, 0x000000));
@@ -176,8 +183,12 @@ export class SoapDirector extends ShowDirector {
     const src = inner.texture.getSourceImage() as HTMLImageElement;
     inner.setScale(Math.max(270 / src.width, 190 / src.height));
     tv.add(inner);
-    const k = this.host.spriteFor("KEIR STARMER");
-    if (k) tv.add(this.realScale(this.sc.add.sprite(0, 80, k, 0).setOrigin(0.5, 1), 2));
+    // the PM on the pub telly: his close-up art, or his old stage sprite
+    if (this.hasFace("KEIR STARMER")) tv.add(this.sc.add.sprite(0, 89, faceKeyOf("KEIR STARMER"), 0).setOrigin(0.5, 1).setScale(1.45));
+    else {
+      const k = this.host.spriteFor("KEIR STARMER");
+      if (k) tv.add(this.realScale(this.sc.add.sprite(0, 80, k, 0).setOrigin(0.5, 1), 2));
+    }
     tv.add(this.sc.add.rectangle(0, -6, 270, 190, 0x9fc8ff, 0.08));
     this.later(1400, () => this.push(2.4, 900, this.cx, this.cy - 16, "Quad.in"));
     void SX;
@@ -240,7 +251,7 @@ export class SoapDirector extends ShowDirector {
   }
 
   private presserLine(name: string, text: string, emotion: string): number {
-    const p = this.perf?.name === name ? this.perf : this.single(name, { bg: this.tex("tv_ee_press"), zoom: 1.15, blur: 0, recut: true, scale: (this.r.SH * 0.95) / 64 });
+    const p = this.perf?.name === name ? this.perf : this.single(name, { bg: this.tex("tv_ee_press"), zoom: 1.15, blur: 0, recut: true, scale: this.hasFace(name) ? 2.9 : (this.r.SH * 0.95) / 64 });
     if (!p) return 0;
     if (!p.face) p.spr.setY((p.y = this.r.SY + this.r.SH * 1.1));
     this.push(1.05, 4000, p.spr.x, this.r.SY + 200);
@@ -378,9 +389,9 @@ export class SoapDirector extends ShowDirector {
   private entrance(name: string): number {
     this.wide(name);
     const { SX, SW, SY, SH } = this.r;
-    const s = this.body(name, SX + SW + 50, SY + SH * 0.95, SH * 0.5);
+    const s = this.busts && this.hasFace(name) ? this.bust(name, SX + SW + 70, SY + SH + 6, SH * 0.54) : this.body(name, SX + SW + 50, SY + SH * 0.95, SH * 0.5);
     if (!s) return 0;
-    s.setFlipX(true);
+    if (!s.texture.key.startsWith("tvface_")) s.setFlipX(true);
     this.sfx("door");
     this.sc.tweens.add({ targets: s, x: SX + SW * 0.68, duration: 1300, ease: "Sine.easeOut" });
     this.sc.tweens.add({ targets: s, y: s.y - 4, duration: 170, yoyo: true, repeat: 3 });
@@ -391,9 +402,10 @@ export class SoapDirector extends ShowDirector {
     this.clear();
     const { SX, SY, SW, SH } = this.r;
     this.backdrop(this.setImg(), { zoom: 1.5, oy: -40, blur: 1 });
-    const a = this.body("SCRIMBLE", SX + SW * 0.4, SY + SH + 20, SH * 0.75);
-    const b = this.body("PHEZON", SX + SW * 0.6, SY + SH + 20, SH * 0.62);
-    if (b) b.setFlipX(true);
+    const faces = this.hasFace("SCRIMBLE") && this.hasFace("PHEZON");
+    const a = faces ? this.bust("SCRIMBLE", SX + SW * 0.36, SY + SH + 6, SH * 0.8) : this.body("SCRIMBLE", SX + SW * 0.4, SY + SH + 20, SH * 0.75);
+    const b = faces ? this.bust("PHEZON", SX + SW * 0.64, SY + SH + 6, SH * 0.7) : this.body("PHEZON", SX + SW * 0.6, SY + SH + 20, SH * 0.62);
+    if (b && !faces) b.setFlipX(true);
     for (const s of [a, b]) if (s) this.sc.tweens.add({ targets: s, x: s.x + (s === a ? 14 : -14), angle: s === a ? 6 : -6, duration: 130, yoyo: true, repeat: -1 });
     this.handheld(2);
   }

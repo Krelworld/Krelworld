@@ -87,11 +87,11 @@ export function installPixelFonts() {
   // into: updating it used to throw ("reading 'glTexture'"). Quietly ignore it instead.
   const updateText = T.updateText;
   T.updateText = function (this: any) {
-    if (!this.frame || !this.canvas || !this.scene) return this;
+    if (!this.frame?.source || !this.canvas || !this.scene) return this;
     return updateText.call(this);
   };
   T.setText = function (value: any) {
-    if (!this.frame || !this.scene) return this;
+    if (!this.frame?.source || !this.scene) return this;
     if (this.style && String(this.style.fontFamily).includes("Krel") && (typeof value === "string" || Array.isArray(value))) {
       value = Array.isArray(value) ? value.map((v) => pixelSafe(String(v))) : pixelSafe(value);
     }

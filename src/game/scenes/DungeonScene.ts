@@ -244,6 +244,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     // effects a touch quieter in here, so the level music comes through
     synth.setSfxScale(0.78);
     this.events.once("shutdown", () => synth.setSfxScale(1));
+    // coming back from a conversation or menu: if a fade-in was frozen by the pause, finish it rather than stay black
+    this.events.on("resume", () => {
+      const c = this.cameras.main;
+      if (c.fadeEffect.isRunning && !c.fadeEffect.direction && c.fadeEffect.progress < 0.05) c.fadeEffect.reset();
+    });
     // the catwalks painted into the backdrop become real platforms
     if (this.room.ledges && this.room.backdrop && this.textures.exists(this.room.backdrop)) this.room = { ...this.room, platforms: [...(this.room.platforms ?? []), ...this.ledgePlatforms(this.room)] };
     const r = this.room;
@@ -1238,7 +1243,13 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     // let the room fade in first: talking pauses this scene, which froze the fade-in at black for the whole conversation
     const cam = this.cameras.main;
-    if (cam.fadeEffect.isRunning && !cam.fadeEffect.direction) await new Promise<void>((res) => cam.once(Phaser.Cameras.Scene2D.Events.FADE_IN_COMPLETE, () => res()));
+    if (cam.fadeEffect.isRunning && !cam.fadeEffect.direction)
+      await new Promise<void>((res) => {
+        cam.once(Phaser.Cameras.Scene2D.Events.FADE_IN_COMPLETE, () => res());
+        this.time.delayedCall(600, () => res());
+      });
+    // never sit in the dark: whatever happened to the fade, the room is visible before anyone speaks
+    if (cam.fadeEffect.isRunning && !cam.fadeEffect.direction) cam.fadeEffect.reset();
     if (enter.length) await this.talk(enter);
     if (!G.meta.tutDungeon && this.roomIdx === 0) await this.showTutorial();
     if (r.pa?.length && !G.s.flags[clearKey(this.dungeon.id, this.roomIdx)] && !(r.miniBoss && G.s.flags[this.miniBossKey()])) {

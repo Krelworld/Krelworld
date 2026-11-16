@@ -169,6 +169,11 @@ export class SoapDirector extends ShowDirector {
       }
       this.breathe(s, 1500 + i * 170);
     });
+    // Wellard, the juicing contraption strapped to him
+    if (this.place === "cellar" && this.tex("tv_p2_wellard")) {
+      const w = this.add(this.sc.add.image(SX + SW * 0.8, ground + 4, "tv_p2_wellard").setOrigin(0.5, 1).setScale((SH * 0.3) / 128));
+      this.sc.tweens.add({ targets: w, angle: { from: -2, to: 2 }, duration: 700, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    }
     this.push(1.08, 5000, this.cx, SY + SH * 0.6);
   }
 
@@ -234,7 +239,14 @@ export class SoapDirector extends ShowDirector {
     const p = this.single(name, { side: side * 0.55, bg: this.setImg(), recut: true, blur: 2 });
     if (!p) return null;
     const tex = listener ? this.host.spriteFor(listener) : null;
-    if (tex && tex.startsWith("spr_TV_") && this.sc.textures.exists(tex)) {
+    if (listener && this.hasFace(listener) && faceKeyOf(listener).startsWith("tvface_P2_")) {
+      // their redrawn close-up as a soft dark shape in the corner (the back of their head and a shoulder)
+      const { SX, SY, SW, SH } = this.r;
+      const back = this.add(this.sc.add.sprite(side > 0 ? SX + SW * 0.06 : SX + SW * 0.94, SY + SH + 30, faceKeyOf(listener), 3).setOrigin(0.5, 1).setScale(3.6).setTint(0x232a36));
+      back.preFX?.addBlur(1, 3, 3, 1.2);
+      back.setFlipX(side < 0);
+      this.sc.tweens.add({ targets: back, x: back.x + side * -6, duration: 2400, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    } else if (tex && tex.startsWith("spr_TV_") && this.sc.textures.exists(tex)) {
       const { SX, SY, SW, SH } = this.r;
       const back = this.add(this.sc.add.sprite(side > 0 ? SX + SW * 0.08 : SX + SW * 0.92, SY + SH * 0.5, tex, 5).setOrigin(0.5, 0).setTint(0x46505e));
       this.realScale(back, 9);

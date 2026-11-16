@@ -75,6 +75,19 @@ export const FACE_META: Record<string, { base: number; lip: boolean; gest: [numb
 
 /** Bit parts who share a face (the same extra, cast twice). */
 export const FACE_ALIAS: Record<string, string> = {
+  GROZZ: "P2_GROZZ",
+  PHIL: "P2_PHIL",
+  PEGGY: "P2_PEGGY",
+  SHEZLEIGH: "P2_SHEZLEIGH",
+  MINTY: "P2_MINTY",
+  KROZNO: "P2_KROZNO",
+  RONSON: "P2_RONSON",
+  KRELBERT: "P2_KRELBERT",
+  FLAT_TYRE_FROLLICK: "P2_FLAT_TYRE_FROLLICK",
+  KREZMAR: "P2_KREZMAR",
+  LIL_CRONGUS: "P2_LIL_CRONGUS",
+  HOST: "P2_HOST",
+  GOKU: "P2_GOKU",
   AIDE_5: "JOURNALIST_2",
   CONSERVATIVE_SUPPORTER_4: "PUB_PATRON_1",
   CROWD_MEMBER_1: "PUB_PATRON_4",
@@ -82,3 +95,21 @@ export const FACE_ALIAS: Record<string, string> = {
   REPORTER_3: "JOURNALIST_5",
   REPORTER_4: "JOURNALIST_4",
 };
+
+// The 2026 second art pass (KrelTV old shows): redrawn close-ups, face_P2_<NAME>.png, that the names above alias to.
+// 0 neutral, 1 talk, 2 alarm, 3 blink, 4 gesture; 8-15 a mouth cycle; 16-23 the gesture, talking.
+Object.assign(FACE_META, {
+  P2_GROZZ: { base: 5, lip: false, gest: [[16, 8]] },
+  P2_PHIL: { base: 5, lip: false, gest: [[16, 8]] },
+  P2_PEGGY: { base: 5, lip: false, gest: [[16, 8]] },
+  P2_SHEZLEIGH: { base: 5, lip: false, gest: [[16, 8]] },
+  P2_MINTY: { base: 5, lip: false, gest: [[16, 8]] },
+  P2_KROZNO: { base: 5, lip: false, gest: [[16, 8]] },
+  P2_RONSON: { base: 5, lip: false, gest: [[16, 8]] },
+  P2_KRELBERT: { base: 5, lip: false, gest: [[16, 8]] },
+  P2_FLAT_TYRE_FROLLICK: { base: 5, lip: false, gest: [[16, 8]] },
+  P2_KREZMAR: { base: 5, lip: false, gest: [[16, 8]] },
+  P2_LIL_CRONGUS: { base: 5, lip: false, gest: [[16, 8]] },
+  P2_HOST: { base: 5, lip: false, gest: [[16, 8]] },
+  P2_GOKU: { base: 5, lip: false, gest: [[16, 8]] },
+});

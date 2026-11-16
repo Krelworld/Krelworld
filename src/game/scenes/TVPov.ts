@@ -6,6 +6,7 @@ import { synth } from "../audio/Synth";
 import { vfx } from "../gfx/Vfx";
 import { G } from "../G";
 import { FONT } from "../ui/theme";
+import { FACE_ALIAS } from "./tv/faceMeta";
 
 /**
  * KrelTV "POV" presentation (an episode opts in with `style: "pov"`; Peep Show uses it).
@@ -16,7 +17,12 @@ import { FONT } from "../ui/theme";
  * happens play as little animated sequences (SEQUENCES below) instead of just a subtitle.
  *
  * Close-up art: public/art/tv/face_<NAME>.png, 4 frames of 128x128: 0 neutral, 1 talking, 2 alarmed, 3 blink.
+ * Full-length figures: tv_p2_body_<NAME> (128x128 PixelLab art, one frame) where they exist, else the old 64px
+ * stage sprite; props (tv_p2_*) where drawn, else the old shapes.
  */
+
+/** Full-length PixelLab figure for a name. */
+const P2_BODY = (name: string) => `tv_p2_body_${name.replace(/[^A-Z0-9]+/g, "_")}`;
 
 const FACE_NEUTRAL = 0;
 const FACE_TALK = 1;
@@ -199,7 +205,29 @@ export class PovDirector {
   }
 
   private faceKey(name: string) {
-    return `tvface_${name.replace(/[^A-Z0-9]+/g, "_")}`;
+    const k = name.replace(/[^A-Z0-9]+/g, "_");
+    return `tvface_${FACE_ALIAS[k] ?? k}`;
+  }
+
+  private tex(key: string) {
+    return this.sc.textures.exists(key);
+  }
+
+  /**
+   * Somebody full length at (x, y) (feet), as big as their old 64px stage sprite would be at `oldScale`: the
+   * PixelLab figure if there is one (its single frame), else that sprite (at `frame`).
+   */
+  private fig(name: string, x: number, y: number, oldScale = 4.4, frame = 0): Phaser.GameObjects.Sprite | null {
+    if (this.tex(P2_BODY(name))) return this.add(this.sc.add.sprite(x, y, P2_BODY(name), 0).setOrigin(0.5, 1).setScale((oldScale * 64) / 128));
+    const tex = this.host.spriteFor(name);
+    if (!tex || !this.tex(tex)) return null;
+    return this.add(this.sc.add.sprite(x, y, tex, frame).setOrigin(0.5, 1).setScale(oldScale));
+  }
+
+  /** Rescale a figure made by fig() as if its old sprite were at `oldScale`. */
+  private figScale(s: Phaser.GameObjects.Sprite | undefined, oldScale: number) {
+    if (!s) return;
+    s.setScale(s.texture.key.startsWith("tv_p2_body_") ? (oldScale * 64) / 128 : oldScale);
   }
 
   hasFace(name: string) {
@@ -325,10 +353,9 @@ export class PovDirector {
     this.sc.tweens.add({ targets: bg, scale: bg.scale * 1.05, duration: 4000, ease: "Sine.easeOut" });
     const n = names.length;
     names.forEach((nm, i) => {
-      const tex = this.host.spriteFor(nm);
-      if (!tex || !this.sc.textures.exists(tex)) return;
       const x = SX + SW / 2 + (i - (n - 1) / 2) * Math.min(120, (SW - 120) / Math.max(1, n - 1 || 1));
-      const s = this.add(this.sc.add.sprite(x, y, tex, 0).setOrigin(0.5, 1).setScale(4.4));
+      const s = this.fig(nm, x, y);
+      if (!s) return;
       if (this.bloody(nm)) s.setTint(this.gore ? 0xff6a6a : 0x9a9a9a);
       this.sc.tweens.add({ targets: s, y: y - 2, duration: 900 + i * 130, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
       this.wideSprites[nm] = s;
@@ -424,7 +451,7 @@ export class PovDirector {
   private gokuWide(text: string): number {
     if (!this.wideSprites.GOKU) {
       this.wide(["MARK", "GOKU", "JEZ"]);
-      (this.wideSprites.GOKU as Phaser.GameObjects.Sprite | undefined)?.setScale(5.2);
+      this.figScale(this.wideSprites.GOKU, 5.2);
     }
     const g = this.wideSprites.GOKU;
     if (!g) return 0;
@@ -540,10 +567,13 @@ export class PovDirector {
     this.looking = name;
     const { SX, SY, SW, SH } = this.r;
     const door = this.add(this.sc.add.container(SX, SY));
-    door.add(this.sc.add.rectangle(0, 0, SW, SH, 0x6b3f1f).setOrigin(0));
-    door.add(this.sc.add.rectangle(40, 40, SW - 80, SH / 2 - 60, 0x5a3418).setOrigin(0).setStrokeStyle(4, 0x47280f));
-    door.add(this.sc.add.rectangle(40, SH / 2 + 20, SW - 80, SH / 2 - 60, 0x5a3418).setOrigin(0).setStrokeStyle(4, 0x47280f));
-    door.add(this.sc.add.circle(SW - 60, SH / 2, 14, 0xd4a017));
+    if (this.tex("tv_p2_door")) door.add(this.sc.add.image(0, 0, "tv_p2_door").setOrigin(0).setDisplaySize(SW, SH));
+    else {
+      door.add(this.sc.add.rectangle(0, 0, SW, SH, 0x6b3f1f).setOrigin(0));
+      door.add(this.sc.add.rectangle(40, 40, SW - 80, SH / 2 - 60, 0x5a3418).setOrigin(0).setStrokeStyle(4, 0x47280f));
+      door.add(this.sc.add.rectangle(40, SH / 2 + 20, SW - 80, SH / 2 - 60, 0x5a3418).setOrigin(0).setStrokeStyle(4, 0x47280f));
+      door.add(this.sc.add.circle(SW - 60, SH / 2, 14, 0xd4a017));
+    }
     synth.play("door");
     this.sc.tweens.add({ targets: door, scaleX: 0, duration: 750, delay: 250, ease: "Quad.in" });
     return 1500;
@@ -552,16 +582,22 @@ export class PovDirector {
   private doorRevealGoku() {
     this.clear();
     const { SX, SY, SW, SH } = this.r;
-    this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0x2a2018).setOrigin(0));
-    this.add(this.sc.add.rectangle(SX + 140, SY + 20, SW - 280, SH - 20, 0x9fd0ff).setOrigin(0));
-    this.add(this.sc.add.rectangle(SX + 140, SY + SH - 70, SW - 280, 70, 0x6b7280).setOrigin(0));
-    const tex = this.host.spriteFor("GOKU");
-    if (tex) {
-      const g = this.add(this.sc.add.sprite(this.cx(), SY + SH + 6, tex, 0).setOrigin(0.5, 1).setScale(9));
+    const drawn = this.tex("tv_p2_door") && this.tex(this.faceKey("GOKU"));
+    if (drawn) this.backdrop(this.host.setTexture(), 1.9, 60, -20, true);
+    else {
+      this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0x2a2018).setOrigin(0));
+      this.add(this.sc.add.rectangle(SX + 140, SY + 20, SW - 280, SH - 20, 0x9fd0ff).setOrigin(0));
+      this.add(this.sc.add.rectangle(SX + 140, SY + SH - 70, SW - 280, 70, 0x6b7280).setOrigin(0));
+    }
+    // him on the doorstep: his close-up art (frame 0/1 talk) if drawn, else his old sprite, big
+    const g = drawn ? this.add(this.sc.add.sprite(this.cx(), SY + SH + 10, this.faceKey("GOKU"), 0).setOrigin(0.5, 1).setScale(faceScale("GOKU"))) : this.fig("GOKU", this.cx(), SY + SH + 6, 9);
+    if (g) {
       this.wideSprites.GOKU = g;
       this.sc.tweens.add({ targets: g, y: g.y - 6, duration: 500, yoyo: true, repeat: -1 });
     }
-    const door = this.add(this.sc.add.rectangle(SX + 140, SY + 20, SW - 280, SH - 20, 0x6b3f1f).setOrigin(0));
+    const door = drawn
+      ? this.add(this.sc.add.image(SX, SY, "tv_p2_door").setOrigin(0).setDisplaySize(SW, SH))
+      : this.add(this.sc.add.rectangle(SX + 140, SY + 20, SW - 280, SH - 20, 0x6b3f1f).setOrigin(0));
     synth.play("door");
     this.sc.tweens.add({ targets: door, scaleX: 0, duration: 650, delay: 200, ease: "Quad.in" });
     return 1500;
@@ -670,8 +706,11 @@ export class PovDirector {
     const { SX, SY, SW, SH } = this.r;
     this.wide([]);
     const items = [0x1f3a8a, 0x111111, 0xb3202a, 0x6b8f3a, 0xdddddd];
+    const drawn = this.tex("tv_p2_clothes");
     items.forEach((c, i) => {
-      const r = this.add(this.sc.add.rectangle(SX + 80 + i * 95, SY - 40, 70, 40, c).setAngle(Math.random() * 60 - 30));
+      const r = drawn
+        ? this.add(this.sc.add.sprite(SX + 80 + i * 95, SY - 40, "tv_p2_clothes", i).setScale(1.7).setAngle(Math.random() * 60 - 30))
+        : this.add(this.sc.add.rectangle(SX + 80 + i * 95, SY - 40, 70, 40, c).setAngle(Math.random() * 60 - 30));
       this.sc.tweens.add({ targets: r, y: SY + SH - 40 - (i % 2) * 14, angle: Math.random() * 90 - 45, duration: 700 + i * 120, delay: i * 140, ease: "Bounce.out" });
     });
     void SW;
@@ -681,6 +720,12 @@ export class PovDirector {
   private duvet() {
     const { SX, SY, SW, SH } = this.r;
     if (this.layer.list.some((o) => o.getData?.("duvet"))) return;
+    if (this.tex("tv_p2_bed_duvet")) {
+      // the drawn duvet (tv_p2_bed_duvet: the bed picture with only the duvet left), its top edge across the frame
+      const k = SW / 140;
+      this.add(this.sc.add.image(SX - 90 * k, SY + SH * 0.74 - 100 * k, "tv_p2_bed_duvet").setOrigin(0).setScale(k).setData("duvet", true));
+      return;
+    }
     const d = this.add(this.sc.add.rectangle(SX, SY + SH, SW, SH * 0.3, 0xdfe8f5).setOrigin(0, 1).setData("duvet", true));
     const g = this.add(this.sc.add.graphics().setData("duvet", true));
     g.lineStyle(3, 0xb9c6da, 1);
@@ -708,6 +753,7 @@ export class PovDirector {
     this.selfShot = "";
     this.clear();
     const { SX, SY, SW, SH } = this.r;
+    if (this.tex("tv_p2_bed")) return this.inDrawnBed();
     this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xe9eef7).setOrigin(0));
     this.add(this.sc.add.ellipse(SX + SW * 0.3, SY + SH * 0.4, 230, 130, 0xffffff));
     this.add(this.sc.add.ellipse(SX + SW * 0.7, SY + SH * 0.4, 230, 130, 0xffffff));
@@ -720,6 +766,30 @@ export class PovDirector {
     for (let i = 0; i < 6; i++) g.lineBetween(SX + i * 100, SY + SH * 0.6 + (i % 2) * 20, SX + i * 100 + 80, SY + SH * 0.66);
     // Simon sleeps soundly; Mark does not blink
     this.sc.tweens.add({ targets: s, y: s.y + 3, duration: 1400, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    void m;
+    return 2000;
+  }
+
+  /**
+   * The drawn bed from above (tv_p2_bed, 320x240): the camera over the pillows, two heads on them, and the duvet
+   * (the same picture, cropped) pulled up to their chins.
+   */
+  private inDrawnBed() {
+    const { SX, SY, SW, SH } = this.r;
+    // the bed fills the frame (source x 85..235), the pillows (centres at x 130 and 191) in the top half
+    const k = SW / 150;
+    const ox = SX + SW / 2 - 160 * k;
+    const oy = SY - 36 * k;
+    const bed = this.add(this.sc.add.image(ox, oy, "tv_p2_bed").setOrigin(0).setScale(k));
+    const m = this.add(this.sc.add.sprite(ox + 130 * k, oy + 116 * k, this.faceKey("MARK"), FACE_ALARM).setOrigin(0.5, 1).setScale(1.55).setAngle(-6));
+    const s = this.add(this.sc.add.sprite(ox + 191 * k, oy + 118 * k, this.faceKey("SIMON"), FACE_BLINK).setOrigin(0.5, 1).setScale(1.55).setAngle(8));
+    // the duvet pulled up over them
+    const duvet = this.add(this.sc.add.image(ox, oy, this.tex("tv_p2_bed_duvet") ? "tv_p2_bed_duvet" : "tv_p2_bed").setOrigin(0).setScale(k));
+    if (!this.tex("tv_p2_bed_duvet")) duvet.setCrop(60, 100, 200, 140);
+    // Simon sleeps soundly; Mark does not blink
+    this.sc.tweens.add({ targets: s, y: s.y + 3, duration: 1400, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    this.sc.tweens.add({ targets: duvet, y: duvet.y + 2, duration: 1400, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    void bed;
     void m;
     return 2000;
   }
@@ -745,9 +815,12 @@ export class PovDirector {
     const spr = this.closeUp("MADISON", "neutral", { recut: true });
     this.looking = "MADISON";
     const pouch = this.add(this.sc.add.container(spr.x + 60, spr.y - 70));
-    pouch.add(this.sc.add.rectangle(0, 0, 80, 120, 0xc0c8d0).setStrokeStyle(3, 0x8a929e));
-    pouch.add(this.sc.add.rectangle(0, 10, 60, 40, 0xf59e0b));
-    pouch.add(this.sc.add.rectangle(-18, -90, 6, 70, 0xffffff).setAngle(-12));
+    if (this.tex("tv_p2_pouch")) pouch.add(this.sc.add.image(0, -20, "tv_p2_pouch").setScale(3.2));
+    else {
+      pouch.add(this.sc.add.rectangle(0, 0, 80, 120, 0xc0c8d0).setStrokeStyle(3, 0x8a929e));
+      pouch.add(this.sc.add.rectangle(0, 10, 60, 40, 0xf59e0b));
+      pouch.add(this.sc.add.rectangle(-18, -90, 6, 70, 0xffffff).setAngle(-12));
+    }
     this.sc.tweens.add({ targets: pouch, scaleX: { from: 1, to: 0.9 }, duration: 260, yoyo: true, repeat: 4 });
     this.later(300, () => synth.play("slurp"));
     return 1900;
@@ -769,9 +842,9 @@ export class PovDirector {
   }
 
   private walkIn(nm: string, x0: number, x1: number, y: number, delay: number) {
-    const tex = this.host.spriteFor(nm);
-    if (!tex) return null;
-    const s = this.add(this.sc.add.sprite(x0, y, tex, 0).setOrigin(0.5, 1).setScale(4.4).setAlpha(0));
+    const s = this.fig(nm, x0, y);
+    if (!s) return null;
+    s.setAlpha(0);
     this.later(delay, () => {
       s.setAlpha(1);
       this.sc.tweens.add({ targets: s, x: x1, duration: 700, ease: "Sine.easeOut" });
@@ -811,9 +884,10 @@ export class PovDirector {
     const { SX, SY, SH } = this.r;
     this.wide(["MARK", "SIMON", "JEZ", "MADISON"], "tv_boardroom", SY + SH - 20);
     const bg = this.layer.list[0];
-    const tex = this.host.spriteFor("YEMENI EXECUTIVE");
-    for (let i = 0; tex && i < 3; i++) {
-      const s = this.add(this.sc.add.sprite(SX + 110 + i * 170, SY + SH - 150, tex, 0).setOrigin(0.5, 1).setScale(3.2).setTint(0xdddddd));
+    for (let i = 0; i < 3; i++) {
+      const s = this.fig("YEMENI EXECUTIVE", SX + 110 + i * 170, SY + SH - 150, 3.2);
+      if (!s) break;
+      s.setTint(0xdddddd);
       // across the table, behind our lot
       this.layer.moveAbove(s as never, bg as never);
       if (turn) this.later(300 + i * 200, () => s.setFlipX(i % 2 === 0));
@@ -844,11 +918,14 @@ export class PovDirector {
     for (const side of [-1, 1]) {
       // a uniformed arm from below the frame, a hand clamping on the shoulder
       const arm = this.add(this.sc.add.container(spr.x + side * 330, SY + SH + 160).setAngle(side * -35));
-      arm.add(this.sc.add.rectangle(0, 60, 80, 240, 0x1f2937).setStrokeStyle(3, 0x0f172a));
-      arm.add(this.sc.add.rectangle(0, -64, 86, 16, 0x0f172a));
-      arm.add(this.sc.add.ellipse(0, -100, 92, 74, 0x8d5a3b).setStrokeStyle(3, 0x5a3a20));
-      for (let f = 0; f < 4; f++) arm.add(this.sc.add.rectangle(-30 + f * 20, -140, 15, 34, 0x8d5a3b).setStrokeStyle(2, 0x5a3a20));
-      this.sc.tweens.add({ targets: arm, x: spr.x + side * 210, y: SY + SH + 50, duration: 280, ease: "Back.out", delay: 150 });
+      if (this.tex("tv_p2_arm")) arm.add(this.sc.add.image(0, -170, "tv_p2_arm").setOrigin(0.5, 0).setScale(3.4).setFlipX(side > 0));
+      else {
+        arm.add(this.sc.add.rectangle(0, 60, 80, 240, 0x1f2937).setStrokeStyle(3, 0x0f172a));
+        arm.add(this.sc.add.rectangle(0, -64, 86, 16, 0x0f172a));
+        arm.add(this.sc.add.ellipse(0, -100, 92, 74, 0x8d5a3b).setStrokeStyle(3, 0x5a3a20));
+        for (let f = 0; f < 4; f++) arm.add(this.sc.add.rectangle(-30 + f * 20, -140, 15, 34, 0x8d5a3b).setStrokeStyle(2, 0x5a3a20));
+      }
+      this.sc.tweens.add({ targets: arm, x: spr.x + side * 210, y: SY + SH + (this.tex("tv_p2_arm") ? -40 : 50), duration: 280, ease: "Back.out", delay: 150 });
     }
     void SX;
     void SW;
@@ -864,7 +941,9 @@ export class PovDirector {
     this.boardroomWide();
     const { SX, SW, SY, SH } = this.r;
     for (let i = 0; i < 6; i++) {
-      const p = this.add(this.sc.add.text(SX + 60 + i * ((SW - 120) / 5), SY + SH - 200 + (i % 2) * 30, "📱", { fontSize: "34px" }).setOrigin(0.5));
+      const px = SX + 60 + i * ((SW - 120) / 5);
+      const py = SY + SH - 200 + (i % 2) * 30;
+      const p = this.tex("tv_p2_phone") ? this.add(this.sc.add.image(px, py, "tv_p2_phone").setScale(1.1)) : this.add(this.sc.add.text(px, py, "📱", { fontSize: "34px" }).setOrigin(0.5));
       this.every(50, () => p.setAngle((Math.random() - 0.5) * 24), 40);
     }
     synth.play("notify");
@@ -901,14 +980,17 @@ export class PovDirector {
     const { SX, SY, SW, SH } = this.r;
     this.backdrop("tv_boardroom", 1.9, 0, 40, true);
     const d = this.add(this.sc.add.container(this.cx(), SY + SH + 160).setAngle(20));
-    d.add(this.sc.add.rectangle(0, 60, 26, 110, 0x6b3f1f).setStrokeStyle(2, 0x3b2a1a));
-    d.add(this.sc.add.rectangle(0, 0, 80, 16, 0xd4a017));
-    const blade = this.sc.add.graphics();
-    blade.fillStyle(0xd8dde4, 1);
-    blade.fillTriangle(-14, -8, 14, -8, 30, -170);
-    blade.fillStyle(0xffffff, 0.6);
-    blade.fillTriangle(0, -8, 14, -8, 30, -170);
-    d.add(blade);
+    if (this.tex("tv_p2_dagger")) d.add(this.sc.add.image(0, -40, "tv_p2_dagger").setScale(5));
+    else {
+      d.add(this.sc.add.rectangle(0, 60, 26, 110, 0x6b3f1f).setStrokeStyle(2, 0x3b2a1a));
+      d.add(this.sc.add.rectangle(0, 0, 80, 16, 0xd4a017));
+      const blade = this.sc.add.graphics();
+      blade.fillStyle(0xd8dde4, 1);
+      blade.fillTriangle(-14, -8, 14, -8, 30, -170);
+      blade.fillStyle(0xffffff, 0.6);
+      blade.fillTriangle(0, -8, 14, -8, 30, -170);
+      d.add(blade);
+    }
     this.sc.tweens.add({ targets: d, y: SY + SH / 2 + 60, angle: -10, duration: 600, ease: "Back.out" });
     this.later(650, () => {
       synth.play("swing");
@@ -944,10 +1026,9 @@ export class PovDirector {
     const gore = this.gore;
     this.backdrop("tv_boardroom");
     const fy = SY + SH - 130;
-    const jez = this.host.spriteFor("JEZ");
-    const mad = this.host.spriteFor("MADISON");
-    const J = jez ? this.add(this.sc.add.sprite(this.cx() - 30, fy, jez, 3).setOrigin(0.5, 1).setScale(3.6)) : null;
-    const M = mad ? this.add(this.sc.add.sprite(this.cx() + 30, fy, mad, 0).setOrigin(0.5, 1).setScale(3.6)) : null;
+    const J = this.fig("JEZ", this.cx() - 30, fy, 3.6, 3);
+    const M = this.fig("MADISON", this.cx() + 30, fy, 3.6);
+    const jezOld = !!J && !J.texture.key.startsWith("tv_p2_");
     // the table (with a modesty panel: Madison ends up behind it)
     this.add(this.sc.add.rectangle(SX, fy - 40, SW, 120, 0x3b2a1a).setOrigin(0));
     this.add(this.sc.add.rectangle(SX, fy + 20, SW, 60, 0x2a1d12).setOrigin(0));
@@ -956,8 +1037,13 @@ export class PovDirector {
     const execTex = this.host.spriteFor("YEMENI EXECUTIVE");
     const men: Phaser.GameObjects.Sprite[] = [];
     for (let i = 0; i < 3; i++) {
-      if (!execTex) break;
-      const m = this.add(this.sc.add.sprite(SX + 90 + i * 190, SY + SH + 24, execTex, 5).setOrigin(0.5, 1).setScale(7).setTint(0x8a8a9a));
+      // the backs of their heads (drawn), or the old sprite's back view
+      const m = this.tex("tv_p2_exec_back")
+        ? this.add(this.sc.add.sprite(SX + 90 + i * 190, SY + SH + 40, "tv_p2_exec_back", 0).setOrigin(0.5, 1).setScale(1.55).setFlipX(i === 1).setTint(0x8a8a9a))
+        : execTex
+          ? this.add(this.sc.add.sprite(SX + 90 + i * 190, SY + SH + 24, execTex, 5).setOrigin(0.5, 1).setScale(7).setTint(0x8a8a9a))
+          : null;
+      if (!m) break;
       men.push(m);
     }
     const hit = { x: this.cx(), y: fy - 120 };
@@ -970,7 +1056,7 @@ export class PovDirector {
     const n = 9;
     for (let i = 0; i < n; i++) {
       this.later(300 + i * 260, () => {
-        if (J) J.setFrame(i % 2 ? 3 : 1).setX(this.cx() - 30 + (Math.random() - 0.5) * 16);
+        if (J) (jezOld ? J.setFrame(i % 2 ? 3 : 1) : J.setAngle(i % 2 ? 8 : -6)).setX(this.cx() - 30 + (Math.random() - 0.5) * 16);
         if (M) M.setX(this.cx() + 30 + (Math.random() - 0.5) * 16).setAngle((Math.random() - 0.5) * 14);
         fx("vfx_hit", hit.x + (Math.random() - 0.5) * 40, hit.y + (Math.random() - 0.5) * 40, 2.2);
         if (gore) {
@@ -995,7 +1081,7 @@ export class PovDirector {
         }
         this.sc.cameras.main.shake(120, 0.006);
         // the businessmen flinch
-        for (const m of men) this.sc.tweens.add({ targets: m, y: SY + SH + 24 - 10 - Math.random() * 12, duration: 70, yoyo: true });
+        for (const m of men) this.sc.tweens.add({ targets: m, y: (m.texture.key === "tv_p2_exec_back" ? SY + SH + 40 : SY + SH + 24) - 10 - Math.random() * 12, duration: 70, yoyo: true });
       });
     }
     // Madison slumps behind the table; Jez stands, covered in it
@@ -1003,7 +1089,7 @@ export class PovDirector {
     this.later(end, () => {
       if (M) this.sc.tweens.add({ targets: M, angle: 80, y: fy + 30, x: M.x + 40, duration: 700, ease: "Quad.in" });
       if (J) {
-        J.setFrame(0).setX(this.cx() - 30);
+        (jezOld ? J.setFrame(0) : J.setAngle(0)).setX(this.cx() - 30);
         J.setTint(gore ? 0xff8080 : 0xa0a0a0);
         this.sc.tweens.add({ targets: J, y: fy - 10, duration: 500, delay: 600 });
       }
@@ -1016,12 +1102,12 @@ export class PovDirector {
     const { SX, SY, SW, SH } = this.r;
     this.wide([], "tv_boardroom");
     const y = SY + SH - 40;
-    const jez = this.host.spriteFor("JEZ");
-    const J = jez ? this.add(this.sc.add.sprite(this.cx(), y, jez, 0).setOrigin(0.5, 1).setScale(4.4).setTint(this.gore ? 0xff8080 : 0xa0a0a0)) : null;
-    const offTex = this.host.spriteFor("YEMENI OFFICER");
+    const J = this.fig("JEZ", this.cx(), y);
+    J?.setTint(this.gore ? 0xff8080 : 0xa0a0a0);
     for (const side of [-1, 1]) {
-      if (!offTex) break;
-      const o = this.add(this.sc.add.sprite(side < 0 ? SX - 60 : SX + SW + 60, y, offTex, 3).setOrigin(0.5, 1).setScale(4.4).setFlipX(side > 0));
+      const o = this.fig("YEMENI OFFICER", side < 0 ? SX - 60 : SX + SW + 60, y, 4.4, 3);
+      if (!o) break;
+      o.setFlipX(side > 0);
       this.sc.tweens.add({ targets: o, x: this.cx() + side * 30, duration: 450, ease: "Quad.in" });
     }
     this.later(460, () => {
@@ -1130,7 +1216,7 @@ export class PovDirector {
     this.wide(["JEZ"]);
     const { SX, SY, SH } = this.r;
     this.walkIn("MARK", SX - 60, SX + 140, SY + SH - 40 + 14, 100);
-    const bag = this.add(this.sc.add.text(SX - 30, SY + SH - 110, "🛍", { fontSize: "34px" }).setOrigin(0.5));
+    const bag = this.tex("tv_p2_bag") ? this.add(this.sc.add.image(SX - 30, SY + SH - 110, "tv_p2_bag").setScale(1.3)) : this.add(this.sc.add.text(SX - 30, SY + SH - 110, "🛍", { fontSize: "34px" }).setOrigin(0.5));
     this.sc.tweens.add({ targets: bag, x: SX + 175, duration: 700, delay: 100 });
     synth.play("door");
     return 1500;
@@ -1159,14 +1245,25 @@ export class PovDirector {
     this.wide([]);
     const { SX, SY, SH } = this.r;
     const fx = SX + 360;
+    const g = this.fig("GOKU", SX + 180, SY + SH - 20, 5.2);
+    if (g) this.wideSprites.GOKU = g;
+    synth.play("door");
+    if (this.tex("tv_p2_fridge") && this.tex("tv_p2_fridge_open")) {
+      // the drawn fridge (feet at y 115 of its 128), then it open, light spilling out
+      const f = this.add(this.sc.add.image(fx, SY + SH - 20 + 13 * 3.1, "tv_p2_fridge").setOrigin(0.5, 1).setScale(3.1));
+      const glow = this.add(this.sc.add.rectangle(fx - 40, SY + SH - 40, 260, 330, 0xfff6c8).setOrigin(0.5, 1).setAlpha(0).setBlendMode(Phaser.BlendModes.ADD));
+      this.later(380, () => {
+        f.setTexture("tv_p2_fridge_open");
+        this.sc.tweens.add({ targets: glow, alpha: 0.1, duration: 300, yoyo: true, hold: 500 });
+      });
+      return 1300;
+    }
     const body = this.add(this.sc.add.rectangle(fx, SY + SH - 20, 150, 300, 0xeef2f6).setOrigin(0.5, 1).setStrokeStyle(3, 0x9aa4b0));
     const glow = this.add(this.sc.add.rectangle(fx, SY + SH - 25, 140, 290, 0xfff6c8).setOrigin(0.5, 1).setAlpha(0));
     const door = this.add(this.sc.add.rectangle(fx - 75, SY + SH - 20, 150, 300, 0xdfe5ec).setOrigin(0, 1).setStrokeStyle(3, 0x9aa4b0));
-    const tex = this.host.spriteFor("GOKU");
-    if (tex) this.wideSprites.GOKU = this.add(this.sc.add.sprite(SX + 180, SY + SH - 20, tex, 0).setOrigin(0.5, 1).setScale(5.2));
+    if (g) this.layer.bringToTop(g as never);
     this.sc.tweens.add({ targets: door, scaleX: -0.4, duration: 500, delay: 300 });
     this.sc.tweens.add({ targets: glow, alpha: 0.8, duration: 300, delay: 450 });
-    synth.play("door");
     void body;
     return 1300;
   }
@@ -1175,7 +1272,7 @@ export class PovDirector {
     const g = this.wideSprites.GOKU;
     const x = g ? g.x + 60 : this.cx();
     const y = g ? g.y - 170 : this.r.SY + 200;
-    const c = this.add(this.sc.add.text(x + 120, y + 60, "🍗", { fontSize: "70px" }).setOrigin(0.5).setData("chicken", true));
+    const c = (this.tex("tv_p2_chicken") ? this.add(this.sc.add.image(x + 120, y + 60, "tv_p2_chicken").setScale(2)) : this.add(this.sc.add.text(x + 120, y + 60, "🍗", { fontSize: "70px" }).setOrigin(0.5))).setData("chicken", true);
     this.sc.tweens.add({ targets: c, x, y, duration: 600, ease: "Back.out" });
     return 1000;
   }
@@ -1184,18 +1281,18 @@ export class PovDirector {
     // back on Goku (the chicken line cut away to Mark)
     if (!this.wideSprites.GOKU) {
       this.wide(["MARK", "GOKU"]);
-      (this.wideSprites.GOKU as Phaser.GameObjects.Sprite | undefined)?.setScale(5.2);
+      this.figScale(this.wideSprites.GOKU, 5.2);
     }
-    let c = this.layer.list.find((o) => o.getData?.("chicken")) as Phaser.GameObjects.Text | undefined;
+    let c = this.layer.list.find((o) => o.getData?.("chicken")) as Phaser.GameObjects.Image | undefined;
     if (!c) {
       this.chicken();
-      c = this.layer.list.find((o) => o.getData?.("chicken")) as Phaser.GameObjects.Text;
+      c = this.layer.list.find((o) => o.getData?.("chicken")) as Phaser.GameObjects.Image;
     }
     const g = this.wideSprites.GOKU;
     for (let i = 0; i < 6; i++) {
       this.later(i * 200, () => {
         if (!c?.active) return;
-        c.setScale(1 - (i + 1) * 0.16);
+        c.setScale((c instanceof Phaser.GameObjects.Image ? 2 : 1) * (1 - (i + 1) * 0.16));
         synth.play(i === 5 ? "burp" : "gulp");
         const t = this.add(this.sc.add.text(c.x + (Math.random() - 0.5) * 80, c.y - 40, "CHOMP", { fontFamily: FONT, fontSize: "18px", color: "#ffd23f", fontStyle: "bold" }).setOrigin(0.5).setShadow(2, 2, "#000", 0));
         this.sc.tweens.add({ targets: t, y: t.y - 40, alpha: 0, duration: 500 });
@@ -1217,8 +1314,8 @@ export class PovDirector {
       this.wide([], "tv_livingroom");
       const sky = this.add(this.sc.add.rectangle(SX + SW * 0.25, SY + 40, SW * 0.45, SH * 0.42, 0xff8a2a, 0).setOrigin(0));
       this.sc.tweens.add({ targets: sky, fillAlpha: 0.55, duration: 200, yoyo: true, hold: 600 });
-      const tex = this.host.spriteFor("JEZ");
-      if (tex) this.wideSprites.JEZ = this.add(this.sc.add.sprite(SX + SW * 0.45, SY + SH - 30, tex, 5).setOrigin(0.5, 1).setScale(4.4));
+      const j = this.fig("JEZ", SX + SW * 0.45, SY + SH - 30, 4.4, 5);
+      if (j) this.wideSprites.JEZ = j;
     }
     this.sc.cameras.main.flash(300, 255, 230, 180);
     this.sc.cameras.main.shake(900, 0.02);

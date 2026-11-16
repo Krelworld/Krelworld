@@ -92,6 +92,8 @@ export class TVScene extends Phaser.Scene {
   /** how long the current beat's picture wants (an animated sequence) */
   private beatHold = 0;
   private items: { label: string; action: () => void }[] = [];
+  /** the PixelLab telly is up (its cabinet runs wider on the right, so the side buttons sit further out) */
+  private frameArt = false;
 
   constructor() {
     super("TV");
@@ -111,16 +113,22 @@ export class TVScene extends Phaser.Scene {
     this.ep = null;
     this.makeCast();
     this.add.rectangle(0, 0, 960, 540, 0x000000, this.overlay ? 0.85 : 1).setOrigin(0);
-    // bezel
-    const g = this.add.graphics();
-    g.fillStyle(0x3a2a1a, 1);
-    g.fillRoundedRect(SX - 40, SY - 30, SW + 80, SH + 80, 30);
-    g.fillStyle(0x1a120a, 1);
-    g.fillRoundedRect(SX - 10, SY - 10, SW + 20, SH + 20, 22);
-    g.fillStyle(0xd4a017, 1);
-    g.fillCircle(SX + SW + 22, SY + 60, 9);
-    g.fillCircle(SX + SW + 22, SY + 100, 9);
-    this.add.text(SX + SW / 2, SY + SH + 26, "KRELTV", { fontFamily: FONT, fontSize: "14px", color: "#d4a017", fontStyle: "bold" }).setOrigin(0.5);
+    // the telly: a PixelLab walnut set drawn over the picture (its screen is a hole cut exactly at SX,SY,SW,SH),
+    // or the old drawn bezel underneath when the art's missing
+    this.frameArt = this.textures.exists("tv_set_frame");
+    if (this.frameArt) {
+      this.add.image(0, 0, "tv_set_frame").setOrigin(0).setScale(2).setDepth(40);
+    } else {
+      const g = this.add.graphics();
+      g.fillStyle(0x3a2a1a, 1);
+      g.fillRoundedRect(SX - 40, SY - 30, SW + 80, SH + 80, 30);
+      g.fillStyle(0x1a120a, 1);
+      g.fillRoundedRect(SX - 10, SY - 10, SW + 20, SH + 20, 22);
+      g.fillStyle(0xd4a017, 1);
+      g.fillCircle(SX + SW + 22, SY + 60, 9);
+      g.fillCircle(SX + SW + 22, SY + 100, 9);
+      this.add.text(SX + SW / 2, SY + SH + 26, "KRELTV", { fontFamily: FONT, fontSize: "14px", color: "#d4a017", fontStyle: "bold" }).setOrigin(0.5);
+    }
     this.stage = this.add.container(0, 0);
     const mask = this.make.graphics({}).fillRect(SX, SY, SW, SH);
     this.stage.setMask(mask.createGeometryMask());
@@ -165,8 +173,10 @@ export class TVScene extends Phaser.Scene {
     const g = this.add.graphics().setDepth(100);
     g.fillStyle(0x000000, 0.18);
     for (let y = SY; y < SY + SH; y += 3) g.fillRect(SX, y, SW, 1);
-    g.lineStyle(18, 0x000000, 0.35);
-    g.strokeRoundedRect(SX - 4, SY - 4, SW + 8, SH + 8, 30);
+    if (!this.frameArt) {
+      g.lineStyle(18, 0x000000, 0.35);
+      g.strokeRoundedRect(SX - 4, SY - 4, SW + 8, SH + 8, 30);
+    }
     const noise = this.add.graphics().setDepth(101);
     this.time.addEvent({
       delay: 90,
@@ -187,8 +197,8 @@ export class TVScene extends Phaser.Scene {
     const zone = (this.tapZone = this.add.zone(SX, SY, SW, SH).setOrigin(0).setInteractive().setDepth(5));
     zone.on("pointerdown", () => this.mode === "playing" && this.skipBeat());
     const mk = (y: number, icon: string, label: string, key: string, fn: () => void) => {
-      const c = this.add.container(SX + SW + 40 + 70, y).setDepth(100);
-      const bg = this.add.rectangle(0, 0, 130, 96, 0x2a1a0a).setStrokeStyle(3, 0xd4a017);
+      const c = this.add.container(this.frameArt ? 906 : SX + SW + 40 + 70, y).setDepth(100);
+      const bg = this.add.rectangle(0, 0, this.frameArt ? 92 : 130, 96, 0x2a1a0a).setStrokeStyle(3, 0xd4a017);
       c.add([bg, this.add.text(0, -20, icon, { fontFamily: FONT, fontSize: "30px", color: "#ffd23f" }).setOrigin(0.5), this.add.text(0, 14, label, { fontFamily: FONT, fontSize: "14px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5), this.add.text(0, 33, key, { fontFamily: FONT, fontSize: "10px", color: "#a8a29e" }).setOrigin(0.5)]);
       bg.setInteractive({ useHandCursor: true });
       bg.on("pointerover", () => bg.setFillStyle(0x4a2f12));

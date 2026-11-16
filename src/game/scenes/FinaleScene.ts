@@ -122,6 +122,7 @@ export class FinaleScene extends Phaser.Scene {
 
   /** Ruined Krelford at night, side-on: a broken skyline, fires, rubble, rain. */
   private drawTown() {
+    if (this.textures.exists("bg_finale_ruins")) return this.drawTownArt();
     const g = this.add.graphics().setDepth(-20);
     g.fillGradientStyle(0x05010c, 0x05010c, 0x2a0f3d, 0x2a0f3d, 1).fillRect(0, 0, W, FLOOR);
     const rnd = new Phaser.Math.RandomDataGenerator(["finale_skyline"]);
@@ -149,6 +150,26 @@ export class FinaleScene extends Phaser.Scene {
     ground.fillStyle(0x0b0806, 1).fillRect(0, FLOOR, W, 4);
     for (let i = 0; i < 70; i++) ground.fillStyle(rnd.frac() < 0.5 ? 0x2a211c : 0x3a2f2a, 1).fillRect(rnd.between(0, W), FLOOR + rnd.between(2, 40), rnd.between(6, 24), rnd.between(3, 9));
     if (hasVfx(this, "vfx_fire")) for (let i = 0; i < 6; i++) vfx(this, "vfx_fire", 60 + i * 170 + rnd.between(-30, 30), FLOOR - rnd.between(30, 90), { scale: 0.8 + rnd.frac() * 0.6, depth: -18, alpha: 0.85 });
+  }
+
+  /**
+   * The PixelLab ruined Krelford: terraces on fire, the clock tower snapped in half. Hung so its pavement
+   * meets the lads' feet near FLOOR (the sky above the tower's tip is what gets cropped); the road below
+   * fades into a dark rubble strip.
+   */
+  private drawTownArt() {
+    const top = -88;
+    this.add.image(0, top, "bg_finale_ruins").setOrigin(0).setScale(2).setDepth(-20);
+    // a slow flicker of firelight over the whole street
+    const glow = this.add.rectangle(480, FLOOR - 60, W, 220, 0xff6a2a, 0.08).setDepth(-19).setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({ targets: glow, alpha: 0.03, yoyo: true, repeat: -1, duration: 900 });
+    const ground = this.add.graphics().setDepth(-5);
+    const gy = top + 544 - 30;
+    ground.fillGradientStyle(0x0b0806, 0x0b0806, 0x0b0806, 0x0b0806, 0, 0, 1, 1).fillRect(0, gy - 40, W, 40);
+    ground.fillStyle(0x0b0806, 1).fillRect(0, gy, W, 540 - gy);
+    const rnd = new Phaser.Math.RandomDataGenerator(["finale_skyline"]);
+    for (let i = 0; i < 50; i++) ground.fillStyle(rnd.frac() < 0.5 ? 0x2a211c : 0x3a2f2a, 1).fillRect(rnd.between(0, W), gy + rnd.between(4, 520 - gy), rnd.between(6, 24), rnd.between(3, 9));
+    if (hasVfx(this, "vfx_fire")) for (let i = 0; i < 3; i++) vfx(this, "vfx_fire", 140 + i * 330 + rnd.between(-30, 30), FLOOR - rnd.between(10, 40), { scale: 0.7 + rnd.frac() * 0.4, depth: -18, alpha: 0.8 });
   }
 
   private rain() {
@@ -231,15 +252,19 @@ export class FinaleScene extends Phaser.Scene {
   private async emerge() {
     synth.stopMusic();
     // a heap of wreckage in the middle, the lads on the right looking at it
-    const heap = this.add.graphics().setDepth(-4);
-    const rnd = new Phaser.Math.RandomDataGenerator(["heap"]);
-    for (let i = 0; i < 120; i++) {
-      const x = 60 + rnd.between(0, 560);
-      const h = Math.max(0, 120 - Math.abs(x - 340) * 0.35);
-      heap.fillStyle(rnd.pick([0x1f1a24, 0x2a2433, 0x3a2f3f, 0x4a2a5a, 0x241c1c]), 1).fillRect(x, FLOOR - rnd.between(0, h), rnd.between(14, 40), rnd.between(10, 26));
+    if (this.textures.exists("fn_heap")) {
+      this.add.image(340, FLOOR + 16, "fn_heap").setOrigin(0.5, 1).setScale(2.2).setDepth(-4);
+    } else {
+      const heap = this.add.graphics().setDepth(-4);
+      const rnd = new Phaser.Math.RandomDataGenerator(["heap"]);
+      for (let i = 0; i < 120; i++) {
+        const x = 60 + rnd.between(0, 560);
+        const h = Math.max(0, 120 - Math.abs(x - 340) * 0.35);
+        heap.fillStyle(rnd.pick([0x1f1a24, 0x2a2433, 0x3a2f3f, 0x4a2a5a, 0x241c1c]), 1).fillRect(x, FLOOR - rnd.between(0, h), rnd.between(14, 40), rnd.between(10, 26));
+      }
+      // girders sticking out
+      heap.lineStyle(6, 0x3f3f46, 1).lineBetween(180, FLOOR - 10, 230, FLOOR - 110).lineBetween(470, FLOOR - 5, 420, FLOOR - 95).lineBetween(300, FLOOR, 360, FLOOR - 130);
     }
-    // girders sticking out
-    heap.lineStyle(6, 0x3f3f46, 1).lineBetween(180, FLOOR - 10, 230, FLOOR - 110).lineBetween(470, FLOOR - 5, 420, FLOOR - 95).lineBetween(300, FLOOR, 360, FLOOR - 130);
     this.placeLads([640, 690, 740, 790, 840, 885, 925, 600, 560], "west");
     const dragon = this.makeDragon(340, FLOOR + 520, 1.55);
     // it comes up out of the ground: masked at the heap line

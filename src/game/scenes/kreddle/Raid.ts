@@ -414,12 +414,17 @@ export class KreddleRaid {
     const parts: Phaser.GameObjects.Image[] = [];
     const deco: Phaser.GameObjects.GameObject[] = [];
     // a wall of riot barriers and cop cars across the street
-    const g = sc.add.graphics().setDepth(430);
-    for (let y = 430; y < 690; y += 26) {
-      g.fillStyle(y % 52 ? 0xfacc15 : 0x111111, 1).fillRect(x - 10, y, 20, 26);
+    if (sc.textures.exists("rd_barrier")) {
+      // PixelLab riot barriers, end to end across the street (sorted in with the cop cars by y)
+      for (let y = 456; y <= 696; y += 40) deco.push(sc.add.image(x + ((y / 40) % 2 ? -6 : 6), y, "rd_barrier").setOrigin(0.5, 1).setScale(0.9).setDepth(y - 1));
+    } else {
+      const g = sc.add.graphics().setDepth(430);
+      for (let y = 430; y < 690; y += 26) {
+        g.fillStyle(y % 52 ? 0xfacc15 : 0x111111, 1).fillRect(x - 10, y, 20, 26);
+      }
+      g.lineStyle(2, 0x000000, 1).strokeRect(x - 10, 430, 20, 260);
+      deco.push(g);
     }
-    g.lineStyle(2, 0x000000, 1).strokeRect(x - 10, 430, 20, 260);
-    deco.push(g);
     const carKey = sc.textures.exists("p_copcar") ? "p_copcar" : null;
     for (const y of [490, 580, 670]) {
       if (!carKey) break;

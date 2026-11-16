@@ -356,6 +356,13 @@ export class VignetteScene extends Phaser.Scene {
     return c;
   }
 
+  /** Krelford's outskirts at dusk, the railway across the bottom (rails at y≈408 and 424). False if the art's missing. */
+  private railBackdrop() {
+    if (!this.textures.exists("bg_krelford_rail")) return false;
+    this.add.image(480, 540, "bg_krelford_rail").setOrigin(0.5, 1).setScale(2);
+    return true;
+  }
+
   private sky(top: number, bottom: number) {
     const g = this.add.graphics();
     g.fillGradientStyle(top, top, bottom, bottom, 1);
@@ -2807,10 +2814,12 @@ export class VignetteScene extends Phaser.Scene {
     this.cameras.main.setRotation(0);
     this.clearStage();
     const sky2 = this.sky(0x8fc3ea, 0xf3d9b1);
-    const g = this.add.graphics();
-    g.fillStyle(0x5a6a80, 1);
-    for (let i = 0; i < 20; i++) g.fillRect(i * 50, 330 - ((i * 37) % 90), 44, 300);
-    g.fillStyle(0x3d6a2a, 1).fillRect(0, 440, 960, 100);
+    if (!this.railBackdrop()) {
+      const g = this.add.graphics();
+      g.fillStyle(0x5a6a80, 1);
+      for (let i = 0; i < 20; i++) g.fillRect(i * 50, 330 - ((i * 37) % 90), 44, 300);
+      g.fillStyle(0x3d6a2a, 1).fillRect(0, 440, 960, 100);
+    }
     const haze = this.add.rectangle(480, 270, 960, 540, 0xff4fd8, 0.28).setDepth(80).setBlendMode(Phaser.BlendModes.ADD);
     // the giant pussy juice takes up exactly the space the Krel Tower is about to
     const tower = this.bigTower(640, 440, 9);
@@ -2941,7 +2950,8 @@ export class VignetteScene extends Phaser.Scene {
    * First-person flight-sim cockpit: window pillars, glareshield, a live attitude display,
    * a nav screen tracking the Kreddle Express, engine dials and a yoke. Call update() each frame.
    */
-  private cockpitFrame() {
+  private cockpitFrame(): { root: Phaser.GameObjects.Container; update: (ax: number, ay: number, t: number) => void; viewY: number } {
+    if (this.textures.exists("vg_cockpit")) return this.cockpitArt();
     const root = this.add.container(0, 0).setDepth(20);
     const g = this.add.graphics();
     root.add(g);
@@ -3084,7 +3094,125 @@ export class VignetteScene extends Phaser.Scene {
       yoke.setY(596 + ay * 8);
     };
     update(0, 0, 0);
-    return { root, update };
+    return { root, update, viewY: 250 };
+  }
+
+  /**
+   * The PixelLab cockpit (windscreen cut out, so the sky shows through), with the live bits drawn into its own
+   * screens: the captain's attitude display, the nav display hunting the Kreddle Express, and the engine page
+   * (which reports CONFIDENCE). The windscreen is higher than the drawn one, so viewY moves the world up to match.
+   */
+  private cockpitArt() {
+    const root = this.add.container(0, 0).setDepth(20);
+    root.add(this.add.image(0, 0, "vg_cockpit").setOrigin(0).setScale(2));
+    const txt = (x: number, y: number, t: string, c = "#22ff88", size = 9) => {
+      const o = this.add.text(x, y, t, { fontFamily: "monospace", fontSize: `${size}px`, color: c, fontStyle: "bold" });
+      root.add(o);
+      return o;
+    };
+    // the screens, as they sit in the art
+    const P = { x: 174, y: 380, w: 92, h: 94 };
+    const N = { x: 290, y: 380, w: 88, h: 94 };
+    const E = { x: 456, y: 380, w: 94, h: 94 };
+    const blank = this.add.graphics();
+    blank.fillStyle(0x05070f, 1).fillRect(N.x, N.y, N.w, N.h).fillRect(E.x, E.y, E.w, E.h);
+    root.add(blank);
+    // attitude display
+    const pfd = this.add.graphics();
+    pfd.setMask(this.make.graphics({}, false).fillRect(P.x, P.y, P.w, P.h).createGeometryMask());
+    root.add(pfd);
+    const cx = P.x + P.w / 2;
+    const cy = P.y + P.h / 2;
+    const fixed = this.add.graphics();
+    fixed.lineStyle(3, 0xfacc15, 1).lineBetween(cx - 30, cy, cx - 12, cy).lineBetween(cx - 12, cy, cx - 8, cy + 5).lineBetween(cx + 30, cy, cx + 12, cy).lineBetween(cx + 12, cy, cx + 8, cy + 5);
+    fixed.fillStyle(0xfacc15, 1).fillRect(cx - 2, cy - 2, 4, 4);
+    fixed.fillStyle(0x000000, 0.55).fillRect(P.x, P.y, 20, P.h).fillRect(P.x + P.w - 22, P.y, 22, P.h);
+    root.add(fixed);
+    const spd = txt(P.x + 1, cy - 5, "287", "#ffffff", 8);
+    const alt = txt(P.x + P.w - 21, cy - 5, "3500", "#ffffff", 7);
+    txt(P.x + 2, P.y + 2, "SPD", "#22d3ee", 7);
+    txt(P.x + P.w - 20, P.y + 2, "ALT", "#22d3ee", 7);
+    // nav display
+    const nd = this.add.graphics();
+    root.add(nd);
+    const ncx = N.x + N.w / 2;
+    const ncy = N.y + N.h - 8;
+    const R = 52;
+    txt(N.x + 3, N.y + 2, "HDG 069", "#ffffff", 7);
+    const tgt = txt(ncx, N.y + 12, "◆ KREDDLE", "#ff4fd8", 7).setOrigin(0.5, 0);
+    // engine page: two N1 dials and the important numbers
+    const eng = this.add.graphics();
+    root.add(eng);
+    txt(E.x + 3, E.y + 2, "N1", "#cbd5e1", 7);
+    const conf = txt(E.x + 3, E.y + 44, "CONFIDENCE\n900%", "#ff4fd8", 9);
+    txt(E.x + 3, E.y + 68, "FUEL: P. JUICE", "#22ff88", 7);
+    txt(E.x + 3, E.y + 80, "CABIN: SCREAMING", "#f59e0b", 7);
+    // the yoke crosses the nav display in the art: put it back on top
+    root.add(this.add.image(0, 0, "vg_cockpit").setOrigin(0).setScale(2).setCrop(138, 224, 22, 30));
+    // glareshield annunciators
+    const caution = txt(120, 282, " MASTER CAUTION ", "#ffffff", 9).setBackgroundColor("#b91c1c");
+    const ap = txt(744, 282, " A/P: DRUGS ", "#0b0f19", 9).setBackgroundColor("#22c55e");
+    txt(480, 316, " FLT KR-069  SQUAWK 7500 ", "#f59e0b", 9).setOrigin(0.5, 0).setBackgroundColor("#0b0f19");
+    let sweep = 0;
+    const update = (ax: number, ay: number, t: number) => {
+      const r = -ax * 0.5 + Math.sin(t / 700) * 0.06;
+      const dx = Math.cos(r);
+      const dy = Math.sin(r);
+      const nx = -dy;
+      const ny = dx;
+      const hx = cx + nx * ay * 24;
+      const hy = cy + ny * ay * 24;
+      const quad = (o1: number, o2: number, c: number) =>
+        pfd.fillStyle(c, 1).fillPoints(
+          [
+            { x: hx - dx * 200 + nx * o1, y: hy - dy * 200 + ny * o1 },
+            { x: hx + dx * 200 + nx * o1, y: hy + dy * 200 + ny * o1 },
+            { x: hx + dx * 200 + nx * o2, y: hy + dy * 200 + ny * o2 },
+            { x: hx - dx * 200 + nx * o2, y: hy - dy * 200 + ny * o2 },
+          ],
+          true,
+        );
+      pfd.clear();
+      quad(-200, 0, 0x1e6fd9);
+      quad(0, 200, 0x8a5a2b);
+      pfd.lineStyle(2, 0xffffff, 1).lineBetween(hx - dx * 150, hy - dy * 150, hx + dx * 150, hy + dy * 150);
+      for (const p of [-16, -8, 8, 16]) {
+        const w = Math.abs(p) === 16 ? 14 : 8;
+        pfd.lineStyle(1, 0xffffff, 0.9).lineBetween(hx + nx * p - dx * w, hy + ny * p - dy * w, hx + nx * p + dx * w, hy + ny * p + dy * w);
+      }
+      spd.setText(String(287 + Math.round(Math.sin(t / 900) * 6 - ay * 20)));
+      alt.setText(String(3500 - Math.round(ay * 900 + Math.sin(t / 1300) * 40)));
+      // nav display: compass arc, sweep, the train
+      sweep = (sweep + 0.04) % (Math.PI * 2);
+      nd.clear();
+      nd.lineStyle(2, 0xffffff, 0.9).beginPath().arc(ncx, ncy, R, Math.PI * 1.22, Math.PI * 1.78).strokePath();
+      for (let i = 0; i <= 8; i++) {
+        const a = Math.PI * 1.22 + (i / 8) * Math.PI * 0.56;
+        nd.lineBetween(ncx + Math.cos(a) * R, ncy + Math.sin(a) * R, ncx + Math.cos(a) * (i % 2 ? R - 4 : R - 7), ncy + Math.sin(a) * (i % 2 ? R - 4 : R - 7));
+      }
+      nd.lineStyle(1, 0x22ff88, 0.35).beginPath().arc(ncx, ncy, R * 0.55, Math.PI * 1.22, Math.PI * 1.78).strokePath();
+      const sa = Math.PI * 1.22 + ((Math.sin(sweep) + 1) / 2) * Math.PI * 0.56;
+      nd.lineStyle(1, 0x22ff88, 0.5).lineBetween(ncx, ncy, ncx + Math.cos(sa) * R, ncy + Math.sin(sa) * R);
+      const tx = ncx - ax * 28;
+      nd.lineStyle(2, 0xff4fd8, 1).lineBetween(ncx, ncy - 6, tx, N.y + 30);
+      nd.fillStyle(0xff4fd8, 1).fillTriangle(tx, N.y + 24, tx - 4, N.y + 31, tx + 4, N.y + 31);
+      nd.fillStyle(0xffffff, 1).fillTriangle(ncx, ncy - 6, ncx - 5, ncy + 3, ncx + 5, ncy + 3);
+      tgt.setX(Phaser.Math.Clamp(tx, N.x + 24, N.x + N.w - 24));
+      // engines
+      eng.clear();
+      for (const [x, v] of [[E.x + 26, 0.78 + Math.sin(t / 200) * 0.02], [E.x + 68, 0.97 + Math.sin(t / 90) * 0.03]] as [number, number][]) {
+        const y = E.y + 26;
+        const a = Math.PI * (0.75 + 1.5 * Math.min(1, v));
+        eng.lineStyle(2, 0x475569, 1).beginPath().arc(x, y, 14, Math.PI * 0.75, Math.PI * 2.25).strokePath();
+        eng.lineStyle(2, v > 0.95 ? 0xef4444 : 0x22ff88, 1).beginPath().arc(x, y, 14, Math.PI * 0.75, a).strokePath();
+        eng.lineStyle(1, 0xffffff, 1).lineBetween(x, y, x + Math.cos(a) * 12, y + Math.sin(a) * 12);
+      }
+      caution.setAlpha(Math.floor(t / 400) % 2 ? 1 : 0.35);
+      conf.setAlpha(0.65 + 0.35 * Math.sin(t / 150));
+      ap.setAlpha(1);
+    };
+    update(0, 0, 0);
+    return { root, update, viewY: 160 };
   }
 
   private chute(me: string, x: number, y: number) {
@@ -3140,9 +3268,11 @@ export class VignetteScene extends Phaser.Scene {
       world.add([sky, ground, objs]);
       const haze = this.add.rectangle(480, 270, 960, 540, 0xff4fd8, 0.18).setDepth(15).setBlendMode(Phaser.BlendModes.ADD);
       const cockpit = this.cockpitFrame();
+      const VY = cockpit.viewY;
+      world.setY(VY);
       const hud = this.add.text(480, 52, "", { fontFamily: "Impact, sans-serif", fontSize: "24px", color: "#ffffff", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(40);
       const help = this.add.text(480, 86, "COLLECT THE PUSSY JUICE CONTAINERS TO REACH THE TRAIN", { fontFamily: FONT, fontSize: "15px", color: "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(40);
-      this.add.text(480, 302, "WASD / ARROWS (or drag) to steer", { fontFamily: FONT, fontSize: "11px", color: "#86efac" }).setOrigin(0.5).setDepth(41);
+      this.add.text(480, VY + 52, "WASD / ARROWS (or drag) to steer", { fontFamily: FONT, fontSize: "11px", color: "#86efac" }).setOrigin(0.5).setDepth(41);
       const cross = this.add.graphics().setDepth(30);
       cross.lineStyle(3, 0x86efac, 0.9).strokeCircle(0, 0, 22).lineBetween(-34, 0, -12, 0).lineBetween(12, 0, 34, 0).lineBetween(0, -34, 0, -12).lineBetween(0, 12, 0, 34);
       const keys = this.input.keyboard?.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE,E") as Record<string, Phaser.Input.Keyboard.Key>;
@@ -3231,7 +3361,7 @@ export class VignetteScene extends Phaser.Scene {
             const k = ((i + (t / 300) % 1) / 9) ** 2;
             ground.fillStyle(i % 2 ? 0x4fa04a : 0x357a32, 1).fillRect(-900, hy + k * 400, 1800, 8 + k * 30);
           }
-          cross.setPosition(480, 250);
+          cross.setPosition(480, VY);
           cockpit.update(ax, ay, t);
           haze.setFillStyle(col(c2), 0.16 + 0.06 * Math.sin(t / 300));
           // spawning
@@ -3257,8 +3387,8 @@ export class VignetteScene extends Phaser.Scene {
                 got++;
                 synth.play("slurp");
                 this.cameras.main.flash(150, 255, 120, 220);
-                const pop = this.add.text(480, 330, ["SLURP!", "JUICY!", "LOVELY!", "MMMM!", "GET IN!"][got % 5], { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#ff9ad5", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(50);
-                this.tweens.add({ targets: pop, y: 290, alpha: 0, duration: 700, onComplete: () => pop.destroy() });
+                const pop = this.add.text(480, VY + 80, ["SLURP!", "JUICY!", "LOVELY!", "MMMM!", "GET IN!"][got % 5], { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#ff9ad5", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(50);
+                this.tweens.add({ targets: pop, y: VY + 40, alpha: 0, duration: 700, onComplete: () => pop.destroy() });
               } else synth.play("pfft");
               o.c.destroy();
               live.splice(live.indexOf(o), 1);
@@ -3281,13 +3411,15 @@ export class VignetteScene extends Phaser.Scene {
   /** Meanwhile: the Kreddle Express arrives in Krelworld, and finds something it likes more than the Krel Tower. */
   private async kreddleExpress() {
     const skyG = this.sky(0x8fc3ea, 0xf3d9b1);
-    const g = this.add.graphics();
-    g.fillStyle(0x6b7b90, 1);
-    for (let i = 0; i < 20; i++) g.fillRect(i * 50, 260 - ((i * 37) % 70), 44, 300);
-    g.fillStyle(0x3d6a2a, 1).fillRect(0, 380, 960, 160);
-    g.fillStyle(0x6b5b4b, 1).fillRect(0, 404, 960, 14);
-    for (let i = 0; i < 40; i++) g.fillStyle(0x4a3a2a, 1).fillRect(i * 26, 400, 10, 22);
-    g.fillStyle(0x9ca3af, 1).fillRect(0, 402, 960, 3).fillRect(0, 415, 960, 3);
+    if (!this.railBackdrop()) {
+      const g = this.add.graphics();
+      g.fillStyle(0x6b7b90, 1);
+      for (let i = 0; i < 20; i++) g.fillRect(i * 50, 260 - ((i * 37) % 70), 44, 300);
+      g.fillStyle(0x3d6a2a, 1).fillRect(0, 380, 960, 160);
+      g.fillStyle(0x6b5b4b, 1).fillRect(0, 404, 960, 14);
+      for (let i = 0; i < 40; i++) g.fillStyle(0x4a3a2a, 1).fillRect(i * 26, 400, 10, 22);
+      g.fillStyle(0x9ca3af, 1).fillRect(0, 402, 960, 3).fillRect(0, 415, 960, 3);
+    }
     void skyG;
     const sign = this.add.text(160, 300, "WELCOME TO\nKRELWORLD", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#1d4ed8", padding: { x: 6, y: 4 }, align: "center" }).setOrigin(0.5, 1).setDepth(5);
     this.add.rectangle(160, 340, 6, 40, 0x555555).setDepth(4);

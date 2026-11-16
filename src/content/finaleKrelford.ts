@@ -140,8 +140,24 @@ export const CONCEPT_BARKS = [
   "VIEW HISTORY.",
 ];
 
-/** Every time it heals. */
+/** Every time it heals (the default; the fight picks a random clinical fact instead, see conceptHealFact). */
 export const CONCEPT_HEAL = "NO CURE HAS BEEN DEVELOPED.";
+
+/** The barks that are actual clinical facts (not the Wikipedia furniture): what it says as it heals. */
+export const CONCEPT_FACTS = CONCEPT_BARKS.filter(
+  (t) => !/^\[|^THIS (ARTICLE|SECTION)|^PAGE |^VIEW HISTORY|^RETRIEVED|^ARCHIVED|^REFERENCES|^SECTION:|^MAIN ARTICLE/.test(t),
+);
+
+/** A random clinical fact for a heal (never the same one twice in a row). */
+let lastFact = "";
+export function conceptHealFact(): string {
+  const pool = CONCEPT_FACTS.filter((t) => t !== lastFact);
+  lastFact = pool[Math.floor(Math.random() * pool.length)] ?? CONCEPT_HEAL;
+  return lastFact;
+}
+
+/** Its heal line as dialogue. */
+export const conceptLine = (t: string): Line => c(t);
 
 export const FB_HEAL: Line[][] = [
   [

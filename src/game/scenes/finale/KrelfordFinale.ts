@@ -361,9 +361,11 @@ export class KrelfordFinale {
     if (this.stage !== "immortal") return;
     const n = this.heals++;
     b.mode = "still";
-    await b.fullHeal(1500);
+    // as it heals it recites a random clinical fact (the lads' reactions after it stay the same)
+    const fact = FB.conceptHealFact();
+    await b.fullHeal(1500, fact);
     if (this.gone) return;
-    await h.talk(FB.FB_HEAL[Math.min(n, FB.FB_HEAL.length - 1)]);
+    await h.talk([FB.conceptLine(fact), ...FB.FB_HEAL[Math.min(n, FB.FB_HEAL.length - 1)].slice(1)]);
     if (this.gone) return;
     if (this.heals < 3) {
       b.mode = "immortal";
@@ -573,13 +575,14 @@ export class KrelfordFinale {
     b.mode = "still";
     for (const sh of [...h.shots]) if (sh.o.owner === "enemy") h.killShot(sh);
     for (const e of [...h.enemies]) if (!e.dead && !e.isBoss) h.damageEnemy(e, 99999, { noWonk: true, label: "" });
-    await h.talk(FB.FB_FINAL_HEAL.slice(0, 1));
+    const finalFact = FB.conceptHealFact();
+    await h.talk([FB.conceptLine(finalFact)]);
     if (this.gone) return;
     // everyone screams
     for (const [i, l] of this.lads.entries()) h.time.delayedCall(i * 90, () => h.floatText(l.spr.x, l.spr.y - 60, FB.FB_NO, "#ff6b6b", 18));
     h.floatText(h.player.x, h.player.y - 60, FB.FB_NO, "#ff6b6b", 20);
     synth.play("shriek");
-    await b.fullHeal(2200);
+    await b.fullHeal(2200, finalFact);
     if (this.gone) return;
     await h.talk([...FB.FB_FINAL_HEAL.slice(1), ...this.lads.slice(0, 4).map((l) => say(l.id, FB.FB_NO)), { s: "YOU", t: FB.FB_NO, tag: "new" }]);
     if (this.gone) return;

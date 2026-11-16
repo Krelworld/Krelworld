@@ -110,13 +110,13 @@ export class ConceptBoss extends Boss {
   }
 
   /** It knits itself back together: the bar refills, every wound closes. */
-  fullHeal(ms = 1400): Promise<void> {
+  fullHeal(ms = 1400, line = CONCEPT_HEAL): Promise<void> {
     this.healing = true;
     const sc = this.scene;
     synth.play("heal");
     this.roar();
     this.world.shake(ms, 0.01);
-    this.world.floatText(this.x, this.y - this.displayHeight * 0.45, CONCEPT_HEAL, "#e9d5ff", 22);
+    this.world.floatText(this.x, this.y - this.displayHeight * 0.45, line, "#e9d5ff", 22);
     if (hasVfx(sc, "vfx_heal")) vfx(sc, "vfx_heal", this.x, this.y + 40, { scale: 5, depth: this.depth + 2, tint: 0xa855f7 });
     const glow = sc.add.ellipse(this.x, this.y, this.displayWidth * 0.9, this.displayHeight * 0.9, 0x22c55e, 0.25).setBlendMode(Phaser.BlendModes.ADD).setDepth(this.depth + 1);
     sc.tweens.add({ targets: glow, alpha: 0, scale: 1.4, duration: ms, onComplete: () => glow.destroy() });

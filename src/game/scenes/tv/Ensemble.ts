@@ -26,6 +26,9 @@ export class EnsembleDirector extends ShowDirector {
   private lines = 0;
   private ghost = new Set<string>();
   private kind = "";
+  /** people who arrive later in the scene (by a blocking cue): not in the room yet */
+  private pending = new Set<string>();
+  private angle = 0;
 
   constructor(sc: Phaser.Scene, r: Rect, beats: TVBeat[], host: ShowHost, ep: TVEpisode, private genre: EnsembleGenre) {
     super(sc, r, beats, host, ep);
@@ -115,6 +118,13 @@ export class EnsembleDirector extends ShowDirector {
   protected onShot(_set: string, _framing: string, fresh: boolean): number {
     this.lines = 0;
     if (!fresh) return 0;
+    this.pending.clear();
+    for (let i = this.idx + 1; i < this.beats.length; i++) {
+      const b = this.beats[i];
+      if (b.type === "shot" && b.set !== this.set) break;
+      if (b.type === "blocking" && b.to !== "offscreen") this.pending.add(b.character.toUpperCase());
+      if (b.type === "speaker" && !this.pending.has(b.character.toUpperCase())) break;
+    }
     if (this.genre === "parliament") {
       this.chamber(true);
       return 0;
@@ -130,7 +140,7 @@ export class EnsembleDirector extends ShowDirector {
     this.bodies = {};
     const { SX, SY, SW, SH } = this.r;
     this.backdrop(this.host.setTexture());
-    const cast = this.cast.slice(0, 6);
+    const cast = this.cast.filter((n) => !this.pending.has(n)).slice(0, 6);
     const n = cast.length;
     cast.forEach((nm, i) => {
       const x = SX + SW / 2 + (i - (n - 1) / 2) * Math.min(120, (SW - 120) / Math.max(1, n - 1));
@@ -170,9 +180,12 @@ export class EnsembleDirector extends ShowDirector {
     const inWide = this.genre !== "parliament" && this.kind === "wide" && this.lines % 4 === 1 && !!this.bodies[name];
     if (inWide) {
       p = this.perfOf(name, this.bodies[name]);
-    } else if (this.perf?.name === name) p = this.perf;
+    } else if (this.perf?.name === name && this.holdCount++ < 2) p = this.perf;
     else {
-      p = this.genre === "parliament" ? this.dispatchBox(name) : this.single(name, { side: this.sideOf(name) * 0.9, recut: true, blur: 1.5, zoom: 1.5 });
+      // a long speech: the other camera now and then (a looser angle from the other side)
+      const alt = this.perf?.name === name ? (this.angle = 1 - this.angle) : (this.angle = 0);
+      this.holdCount = 0;
+      p = this.genre === "parliament" ? this.dispatchBox(name) : this.single(name, { side: this.sideOf(name) * (alt ? -0.5 : 0.9), recut: true, blur: 1.5, zoom: alt ? 1.2 : 1.5, scale: alt && !this.hasFace(name) ? (this.r.SH * 0.85) / 64 : undefined });
       this.kind = "single";
       if (p && this.ghost.has(name)) {
         p.spr.setAlpha(0.6).setTint(0xbfe0ff);
@@ -195,7 +208,13 @@ export class EnsembleDirector extends ShowDirector {
 
   /** Parliament: the member at the dispatch box, the benches soft behind, the name caption. */
   private dispatchBox(name: string) {
-    const p = this.single(name, { side: 0.35, bg: this.tex("tv_cab_chamber"), zoom: 1.6, blur: 2, recut: true, scale: this.hasFace(name) ? 2.8 : undefined });
+    const face = this.hasFace(name);
+    const p = this.single(name, { side: 0.35, bg: this.tex("tv_cab_chamber"), zoom: 1.6, blur: 2, recut: true, scale: face ? 2.8 : (this.r.SH * 0.78) / 64 });
+    if (p && !face) {
+      // the whole member, standing at the box
+      p.y = this.r.SY + this.r.SH * 1.02;
+      p.spr.setY(p.y);
+    }
     if (p) {
       const { SX, SY, SW, SH } = this.r;
       // the box itself
@@ -215,6 +234,7 @@ export class EnsembleDirector extends ShowDirector {
   // ------------------------------------------------------------------ action
 
   protected onBlocking(name: string, to: string): number {
+    this.pending.delete(name);
     if (/SUSAN NIPWOOD/.test(name)) {
       if (to === "offscreen") {
         const s = this.perf?.name === name ? this.perf.spr : this.bodies[name];

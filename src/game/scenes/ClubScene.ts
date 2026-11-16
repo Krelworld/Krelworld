@@ -384,6 +384,9 @@ export class ClubScene extends Phaser.Scene {
     });
     this.time.delayedCall(900, () => {
       this.stripping = false;
+      // tipped again mid-spin: the next lot comes off straight after
+      const owed = () => Math.min(2, Math.floor(this.stripTips / TIPS_PER_STAGE)) > this.stripStage && !this.stripping && !this.onBreak && !this.dancerDown;
+      if (owed()) this.time.delayedCall(300, () => owed() && this.stripNext());
       const flag = from === 0 ? "club_strip_seen" : "club_doll_seen";
       if (s.flags[flag] || this.busy) return;
       s.flags[flag] = true;

@@ -6764,6 +6764,39 @@
   "kd_m_slots": {
    "file": "props/kd_m_slots.png"
   },
+  "kd_sym_cherry": {
+   "file": "props/kd_sym_cherry.png"
+  },
+  "kd_sym_bell": {
+   "file": "props/kd_sym_bell.png"
+  },
+  "kd_sym_diamond": {
+   "file": "props/kd_sym_diamond.png"
+  },
+  "kd_sym_seven": {
+   "file": "props/kd_sym_seven.png"
+  },
+  "kd_sym_lemon": {
+   "file": "props/kd_sym_lemon.png"
+  },
+  "kd_sym_star": {
+   "file": "props/kd_sym_star.png"
+  },
+  "kd_capsule": {
+   "file": "props/kd_capsule.png"
+  },
+  "kd_exchange": {
+   "file": "props/kd_exchange.png"
+  },
+  "kd_bridge": {
+   "file": "props/kd_bridge.png"
+  },
+  "kd_tarmac": {
+   "file": "backdrops/kd_tarmac.png"
+  },
+  "mg_phone": {
+   "file": "props/mg_phone.png"
+  },
   "kd_m_claw": {
    "file": "props/kd_m_claw.png"
   },

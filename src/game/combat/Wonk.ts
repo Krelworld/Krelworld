@@ -17,23 +17,31 @@ import { kd } from "../systems/kreddle";
  * out. Over the top = over-wonked, too little = under-wonked, just right = the white jet stream.
  */
 
-import { OVER, TIME, fall, flap, gradeWonk, randomZone, sweetSpot, wonkForm, WONK_LABEL, WONK_POWER, type Flappy, type WonkGrade } from "./wonkGrade";
+import { OVER, fall, flap, gradeWonk, styledZone, styleGauge, sweetSpot, wonkForm, wonkStyleFor, zoneAt, WONK_LABEL, WONK_POWER, type Flappy, type WonkGrade } from "./wonkGrade";
 import { padHeld } from "../systems/padbinds";
-export { OVER, FLAP, GRAV, randomZone, flap, fall } from "./wonkGrade";
-export type { WonkZone, Flappy } from "./wonkGrade";
+export { OVER, FLAP, GRAV, randomZone, flap, fall, styledZone, styleGauge, wonkStyleFor, zoneAt, WONK_STYLES } from "./wonkGrade";
+export type { WonkZone, Flappy, WonkStyle } from "./wonkGrade";
 
 export function startWonk(p: Player, now: number) {
   const w = p.world;
   const sc = w.sc;
-  const Z = randomZone();
-  const ZONE_LO = Z.lo;
-  const ZONE_HI = Z.hi;
+  // a different wonk every time: the first one ever is gentle, later ones drift, go heavy or go floaty
+  const nth = (G.s.flags.wonk_count as number | undefined) ?? 0;
+  G.s.flags.wonk_count = nth + 1;
+  const style = wonkStyleFor(nth);
+  const TIME = style.time;
+  const Z0 = styledZone(style);
+  let Z = Z0;
+  let ZONE_LO = Z.lo;
+  let ZONE_HI = Z.hi;
   const NEED = Z.need;
-  const fl: Flappy = { gauge: 0, vel: 0 };
+  // how high one flap carries this style's gauge (for grading form fairly whatever the physics)
+  const ARC_S = (style.flap * style.flap) / (2 * style.grav);
+  const fl: Flappy = styleGauge({ gauge: 0, vel: 0 }, style);
   let gauge = 0;
   let inZone = 0;
   // grading: time in the bright SWEET SPOT since you first reached the zone
-  const SWEET = sweetSpot(Z);
+  let SWEET = sweetSpot(Z);
   let sweet = 0;
   let entered = -1;
   let t = 0;
@@ -83,17 +91,38 @@ export function startWonk(p: Player, now: number) {
   sc.tweens.add({ targets: title, scale: 1, duration: 300, ease: "Back.out" });
   const how = sc.add.text(480, 96, TOUCH.enabled ? "TAP to flap it up! Keep it in the KREZZ ZONE (bright middle = PERFECT)" : "TAP R / SPACE / CLICK / pad to flap it up! Keep it in the KREZZ ZONE (bright middle = PERFECT)", { fontFamily: "sans-serif", fontSize: "16px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5);
   ui.add(how);
+  // this time's twist, so a different-feeling wonk reads as deliberate
+  if (style.name) {
+    const twist = sc.add.text(480, 122, style.name, { fontFamily: "Impact, sans-serif", fontSize: "18px", color: style.id === "gentle" ? "#86efac" : "#fde68a", stroke: "#2a0030", strokeThickness: 5 }).setOrigin(0.5).setAlpha(0);
+    ui.add(twist);
+    sc.tweens.add({ targets: twist, alpha: 1, duration: 250, delay: 200 });
+  }
   // gauge
   const GX = 640;
   const GY = 130;
   const GH = 330;
   ui.add(sc.add.rectangle(GX, GY + GH / 2, 64, GH + 8, 0x000000, 0.8).setStrokeStyle(3, 0xffffff, 0.8));
-  ui.add(sc.add.rectangle(GX, GY + GH * (1 - (ZONE_LO + ZONE_HI) / 2), 64, GH * (ZONE_HI - ZONE_LO), 0x22c55e, 0.35).setStrokeStyle(2, 0x86efac));
+  const zoneR = sc.add.rectangle(GX, GY + GH * (1 - (ZONE_LO + ZONE_HI) / 2), 64, GH * (ZONE_HI - ZONE_LO), 0x22c55e, 0.35).setStrokeStyle(2, 0x86efac);
+  ui.add(zoneR);
   // the sweet spot: hold it here for a PERFECT
-  ui.add(sc.add.rectangle(GX, GY + GH * (1 - (SWEET.lo + SWEET.hi) / 2), 64, GH * (SWEET.hi - SWEET.lo), 0x86efac, 0.45));
-  ui.add(sc.add.rectangle(GX, GY + GH * (1 - (SWEET.lo + SWEET.hi) / 2), 70, 2, 0xffffff, 0.9));
+  const sweetR = sc.add.rectangle(GX, GY + GH * (1 - (SWEET.lo + SWEET.hi) / 2), 64, GH * (SWEET.hi - SWEET.lo), 0x86efac, 0.45);
+  const sweetLine = sc.add.rectangle(GX, GY + GH * (1 - (SWEET.lo + SWEET.hi) / 2), 70, 2, 0xffffff, 0.9);
+  ui.add([sweetR, sweetLine]);
   ui.add(sc.add.rectangle(GX, GY + GH * (1 - (OVER + 1) / 2), 64, GH * (1 - OVER), 0xef4444, 0.5));
-  ui.add(sc.add.text(GX + 44, GY + GH * (1 - (ZONE_LO + ZONE_HI) / 2), "KREZZ\nZONE", { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#86efac", align: "left" }).setOrigin(0, 0.5));
+  const zoneLbl = sc.add.text(GX + 44, GY + GH * (1 - (ZONE_LO + ZONE_HI) / 2), "KREZZ\nZONE", { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#86efac", align: "left" }).setOrigin(0, 0.5);
+  ui.add(zoneLbl);
+  /** A drifting zone: move the bands to where it is now. */
+  const moveZone = () => {
+    Z = zoneAt(Z0, style, t);
+    ZONE_LO = Z.lo;
+    ZONE_HI = Z.hi;
+    SWEET = sweetSpot(Z);
+    const zy = GY + GH * (1 - (ZONE_LO + ZONE_HI) / 2);
+    zoneR.setY(zy);
+    zoneLbl.setY(zy);
+    sweetR.setY(GY + GH * (1 - (SWEET.lo + SWEET.hi) / 2));
+    sweetLine.setY(sweetR.y);
+  };
   ui.add(sc.add.text(GX + 44, GY + 4, "OVER-WONK", { fontFamily: "Impact, sans-serif", fontSize: "14px", color: "#f87171" }).setOrigin(0, 0.5));
   const fill = sc.add.rectangle(GX, GY + GH, 54, 0, 0xff4fa3).setOrigin(0.5, 1);
   ui.add(fill);
@@ -105,6 +134,15 @@ export function startWonk(p: Player, now: number) {
   ui.add(sc.add.rectangle(480, 500, 520, 12, 0x000000, 0.8));
   const timeBar = sc.add.rectangle(220, 500, 520, 10, 0xffd23f).setOrigin(0, 0.5);
   ui.add(timeBar);
+  // first time: a free bounce off the top, and a pulse beside the gauge showing the tapping rhythm (not a mash)
+  let freebies = style.freebies ?? 0;
+  if (style.coach) {
+    const beat = Math.round(((2 * style.flap) / style.grav) * 1000 * 0.9);
+    const pulse = sc.add.circle(GX - 62, GY + GH * 0.5, 14, 0x86efac, 0.9);
+    const pulseLbl = sc.add.text(GX - 62, GY + GH * 0.5 + 26, "tap…", { fontFamily: "Impact, sans-serif", fontSize: "16px", color: "#86efac", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5);
+    ui.add([pulse, pulseLbl]);
+    sc.tweens.add({ targets: pulse, scale: { from: 1.5, to: 0.7 }, alpha: { from: 1, to: 0.35 }, duration: beat, repeat: -1, ease: "Quad.out" });
+  }
   const status = sc.add.text(320, 470, "", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#ffffff", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5);
   ui.add(status);
 
@@ -149,6 +187,7 @@ export function startWonk(p: Player, now: number) {
       padWas = padNow;
       fall(fl, dt);
       gauge = fl.gauge;
+      if (style.drift) moveZone();
       presses = presses.filter((x) => t - x < 600);
       const zone = gauge >= ZONE_LO && gauge <= ZONE_HI;
       if (zone) {
@@ -184,9 +223,20 @@ export function startWonk(p: Player, now: number) {
         sweat.push(d);
         sc.tweens.add({ targets: d, y: 300, alpha: 0, duration: 700, onComplete: () => d.destroy() });
       }
-      if (gauge >= OVER) return finish("over");
+      if (gauge >= OVER && freebies > 0) {
+        // the beginner's freebie: knocked back down into the zone, with a warning
+        freebies--;
+        fl.gauge = ZONE_HI;
+        fl.vel = -0.25;
+        gauge = fl.gauge;
+        synth.play("tap_fail");
+        sc.cameras.main.shake(120, 0.004);
+        const warn = sc.add.text(GX, GY + GH + 20, "WHOA! EASE OFF! (that one's free)", { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#f87171", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5);
+        ui.add(warn);
+        sc.tweens.add({ targets: warn, alpha: 0, y: GY + GH + 4, delay: 900, duration: 400, onComplete: () => warn.destroy() });
+      } else if (gauge >= OVER) return finish("over");
       if (inZone >= NEED) {
-        const form = wonkForm(sweet, t - entered, SWEET.hi - SWEET.lo);
+        const form = wonkForm(sweet, t - entered, SWEET.hi - SWEET.lo, ARC_S);
         return finish("krezz", gradeWonk(form), form);
       }
       if (t >= TIME) return finish("under");

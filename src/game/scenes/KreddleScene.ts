@@ -147,19 +147,30 @@ export class KreddleScene extends Phaser.Scene {
     // the street: dark tarmac, a pavement of light-up tiles, neon puddles
     const g = this.add.graphics().setDepth(1);
     g.fillStyle(0x140a24, 1).fillRect(0, 400, W, H - 400);
+    // wet neon tarmac (PixelLab, tiles seamlessly); the flat fill above is the fallback
+    if (this.textures.exists("kd_tarmac")) this.add.tileSprite(0, 446, W, H - 446, "kd_tarmac").setOrigin(0).setDepth(1).setAlpha(0.9);
+    g.setDepth(0.5);
     g.fillStyle(0x23123d, 1).fillRect(0, 400, W, 46);
     for (let x = 0; x < W; x += 46) g.lineStyle(1, 0x3b1d63, 1).strokeRect(x, 400, 46, 46);
-    g.lineStyle(3, 0xff4fd8, 0.55).lineBetween(0, 446, W, 446);
-    for (let x = 40; x < W; x += 160) g.fillStyle(0xfacc15, 0.6).fillRect(x, 590, 70, 6);
+    const g2 = this.add.graphics().setDepth(1.5);
+    g2.lineStyle(3, 0xff4fd8, 0.55).lineBetween(0, 446, W, 446);
+    for (let x = 40; x < W; x += 160) g2.fillStyle(0xfacc15, 0.6).fillRect(x, 590, 70, 6);
     for (let i = 0; i < 26; i++) {
       const p = this.add.ellipse(80 + Math.random() * (W - 160), 470 + Math.random() * 200, 50 + Math.random() * 70, 10 + Math.random() * 8, NEON[i % NEON.length], 0.12).setDepth(2).setBlendMode(Phaser.BlendModes.ADD);
       this.tweens.add({ targets: p, alpha: 0.04, yoyo: true, repeat: -1, duration: 900 + Math.random() * 1400 });
     }
     // the bridge home, at the west end
-    const b = this.add.graphics().setDepth(3);
-    b.fillStyle(0x3f3f46, 1).fillRect(0, 480, 150, 120);
-    for (let x = 0; x < 150; x += 18) b.fillStyle(0x52525b, 1).fillRect(x, 480, 14, 120);
-    b.lineStyle(4, 0x22d3ee, 0.9).lineBetween(0, 478, 150, 478).lineBetween(0, 602, 150, 602);
+    if (this.textures.exists("kd_bridge")) {
+      // the steel footbridge (PixelLab), running off the west edge, with a cyan glow under its neon rails
+      const br = this.add.image(196, 560, "kd_bridge").setOrigin(1, 0.5).setScale(1.7).setDepth(3);
+      const glow = this.add.ellipse(br.x - br.displayWidth / 2, 600, br.displayWidth, 22, 0x22d3ee, 0.18).setDepth(2).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: glow, alpha: 0.06, yoyo: true, repeat: -1, duration: 1300 });
+    } else {
+      const b = this.add.graphics().setDepth(3);
+      b.fillStyle(0x3f3f46, 1).fillRect(0, 480, 150, 120);
+      for (let x = 0; x < 150; x += 18) b.fillStyle(0x52525b, 1).fillRect(x, 480, 14, 120);
+      b.lineStyle(4, 0x22d3ee, 0.9).lineBetween(0, 478, 150, 478).lineBetween(0, 602, 150, 602);
+    }
     this.add.text(75, 452, "← KRELWORLD\n(the boring bit)", { fontFamily: FONT, fontSize: "11px", color: "#22d3ee", align: "center", fontStyle: "bold" }).setOrigin(0.5, 1).setDepth(4);
     this.spots.push({ x: 60, y: 545, r: 70, label: () => "E: Cross the bridge back to Krelworld", use: () => void this.leave() });
   }
@@ -221,8 +232,16 @@ export class KreddleScene extends Phaser.Scene {
     this.spots.push({ x: 1950, y: 620, r: 110, label: () => "E: KREDDLE KARDS (higher or lower) · 150 Krezzcoin a deal", use: () => this.cards() });
     // KRUNCHER HQ + the Prize Counter
     this.building("kd_bld_arcade", 2300, 1.6, "KREDDLE KRUNCHERS HQ", "#ff4fd8", 0x9be7ff);
-    const counter = this.add.rectangle(2520, 515, 120, 84, 0x2e1065).setStrokeStyle(3, 0xfacc15).setDepth(520);
-    this.add.text(counter.x, counter.y, "🏆\nTHE KREDDLE\nEXCHANGE\n🎟 · 💰", { fontFamily: FONT, fontSize: "11px", color: "#facc15", align: "center", fontStyle: "bold" }).setOrigin(0.5).setDepth(521);
+    if (this.textures.exists("kd_exchange")) {
+      // the Exchange kiosk (PixelLab): its own sign says EXCHANGE, the neon one over it says whose
+      const kiosk = this.add.image(2520, 560, "kd_exchange").setOrigin(0.5, 1).setScale(1.6).setDepth(560);
+      const glow = this.add.ellipse(2520, 560, kiosk.displayWidth * 1.1, 20, 0xfacc15, 0.25).setDepth(559).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: glow, alpha: 0.08, yoyo: true, repeat: -1, duration: 900 });
+      this.neonSign(2520, 560 - kiosk.displayHeight - 14, "THE KREDDLE EXCHANGE", "#facc15", 16).setDepth(561);
+    } else {
+      const counter = this.add.rectangle(2520, 515, 120, 84, 0x2e1065).setStrokeStyle(3, 0xfacc15).setDepth(520);
+      this.add.text(counter.x, counter.y, "🏆\nTHE KREDDLE\nEXCHANGE\n🎟 · 💰", { fontFamily: FONT, fontSize: "11px", color: "#facc15", align: "center", fontStyle: "bold" }).setOrigin(0.5).setDepth(521);
+    }
     this.spots.push({ x: 2520, y: 560, r: 80, label: () => `E: THE KREDDLE EXCHANGE (🎟 ${krokens(G.s)} Krokens · 💰 ${G.s.coins} Krezzcoin)`, use: () => this.exchange() });
     void s;
   }
@@ -594,22 +613,100 @@ export class KreddleScene extends Phaser.Scene {
 
   // ------------------------------------------------------------------ KRAZY REELS (slots)
 
+  /**
+   * Three reels that roll down and stop left to right. Two on the line and the last reel hangs (bulbs racing, a
+   * rising charge), and sometimes the match creeps to just above the line and slides back off: the classic
+   * staggered-stop / near-miss presentation, played for laughs. A real win lights the whole cabinet up.
+   */
   private slots() {
     const COST = 150;
-    const SYM = ["🍒", "🔔", "💎", "7️⃣", "🎲", "⭐"];
-    this.openPanel("KRAZY REELS", "#facc15");
-    const reels = [0, 1, 2].map((i) => {
-      this.add2(this.add.rectangle(330 + i * 150, 230, 120, 130, 0xfff7e6).setStrokeStyle(5, 0xb45309));
-      return this.add2(this.add.text(330 + i * 150, 230, SYM[i], { fontSize: "70px" }).setOrigin(0.5));
+    // the six symbols: PixelLab icons, emoji where the art's missing. Index 3 is the 7 (the jackpot).
+    const SYM = ["🍒", "🔔", "💎", "7️⃣", "🍋", "⭐"];
+    const ART = ["kd_sym_cherry", "kd_sym_bell", "kd_sym_diamond", "kd_sym_seven", "kd_sym_lemon", "kd_sym_star"];
+    const root = this.openPanel("KRAZY REELS", "#facc15");
+    const STEP = 92; // px between symbols on a reel
+    const RX = [330, 480, 630];
+    const RY = 236;
+    // the cabinet: a chasing ring of bulbs round the reels, and the payline across them
+    const bulbs: Phaser.GameObjects.Arc[] = [];
+    for (let i = 0; i < 28; i++) {
+      const side = i < 10 ? 0 : i < 14 ? 1 : i < 24 ? 2 : 3;
+      const k = side === 0 ? i : side === 1 ? i - 10 : side === 2 ? i - 14 : i - 24;
+      const x = side === 0 ? 236 + k * 55 : side === 1 ? 724 : side === 2 ? 724 - k * 55 : 236;
+      const y = side === 0 ? 150 : side === 1 ? 172 + k * 43 : side === 2 ? 322 : 300 - k * 43;
+      bulbs.push(this.add2(this.add.circle(x, y, 5, 0xfff3b0)));
+    }
+    let chase = 0;
+    let chaseFast = false;
+    const reels = RX.map((x) => {
+      this.add2(this.add.rectangle(x, RY, 128, 150, 0xfff7e6).setStrokeStyle(5, 0xb45309));
+      // three faces on show (one above, one on the line, one below), masked to the window
+      const faces = [-2, -1, 0, 1, 2].map(() => {
+        const o = this.add2(ART.every((k) => this.textures.exists(k)) ? (this.add.image(x, RY, ART[0]).setScale(1.45) as Phaser.GameObjects.Image | Phaser.GameObjects.Text) : this.add.text(x, RY, SYM[0], { fontSize: "62px" }).setOrigin(0.5));
+        return o;
+      });
+      const m = this.make.graphics({}).setScrollFactor(0).fillRect(x - 64, RY - 75, 128, 150);
+      const mask = m.createGeometryMask();
+      faces.forEach((f) => f.setMask(mask));
+      // a soft shade top and bottom so it reads as a drum
+      this.add2(this.add.rectangle(x, RY - 62, 128, 26, 0x000000, 0.22));
+      this.add2(this.add.rectangle(x, RY + 62, 128, 26, 0x000000, 0.22));
+      const glow = this.add2(this.add.rectangle(x, RY, 134, 156).setStrokeStyle(6, 0x4ade80).setAlpha(0));
+      // where it is (in symbols), a scrambled strip, and the odd forced face (the result, a tease)
+      const strip = Phaser.Utils.Array.Shuffle([0, 1, 2, 3, 4, 5, 0, 1, 2, 4, 5, 0, 1, 2, 4, 5]);
+      return { x, faces, glow, pos: Math.random() * 16, strip, force: new Map<number, number>(), mask: m };
     });
+    this.add2(this.add.rectangle(480, RY, 440, 3, 0xef4444, 0.75));
+    this.add2(this.add.triangle(244, RY, 0, -10, 0, 10, 14, 0, 0xef4444));
+    this.add2(this.add.triangle(716, RY, 14, -10, 14, 10, 0, 0, 0xef4444));
+    const symAt = (r: (typeof reels)[number], idx: number) => r.force.get(idx) ?? r.strip[((idx % r.strip.length) + r.strip.length) % r.strip.length];
+    const draw = () => {
+      for (const r of reels) {
+        const base = Math.floor(r.pos);
+        r.faces.forEach((f, j) => {
+          const idx = base + j - 2;
+          // the reel rolls downwards: higher indices are above the line, coming down
+          f.setY(RY + (r.pos - idx) * STEP);
+          const s = symAt(r, idx);
+          if (f instanceof Phaser.GameObjects.Image) f.setTexture(ART[s]);
+          else f.setText(SYM[s]);
+        });
+      }
+      // the bulbs chase round, faster while the last reel's hanging
+      chase += chaseFast ? 0.6 : 0.18;
+      bulbs.forEach((b, i) => b.setFillStyle((Math.floor(chase) + i) % 4 === 0 ? 0xfacc15 : 0x7c2d12));
+    };
+    const loop = this.time.addEvent({ delay: 16, loop: true, callback: () => {
+      if (this.panelRoot && this.panelRoot === root) return draw();
+      loop.remove();
+      reels.forEach((r) => r.mask.destroy());
+    } });
+    draw();
     this.add2(this.add.text(480, 120, "Three of a kind wins a PRIZE. Two of a kind gets you 50 back. Three 7s: TWO PRIZES.", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", align: "center", wordWrap: { width: 640 } }).setOrigin(0.5));
-    const info = this.add2(this.add.text(480, 340, `${COST} Krezzcoin a spin. SPACE or SPIN.`, { fontFamily: FONT, fontSize: "15px", color: "#facc15", align: "center", wordWrap: { width: 640 } }).setOrigin(0.5));
+    const info = this.add2(this.add.text(480, 360, `${COST} Krezzcoin a spin. SPACE or SPIN.`, { fontFamily: FONT, fontSize: "15px", color: "#facc15", align: "center", wordWrap: { width: 640 } }).setOrigin(0.5));
+    /** Spin a reel to land `sym` on the line after `ms`, at least `turns` symbols on. `tease`: the match stops just above the line, then drifts back off. */
+    const spinReel = (r: (typeof reels)[number], sym: number, ms: number, ease: string, teaseSym?: number) =>
+      new Promise<void>((res) => {
+        r.force.clear();
+        const target = Math.floor(r.pos) + 14 + Math.floor(ms / 120);
+        r.force.set(target, sym);
+        if (teaseSym !== undefined) {
+          // the matching symbol is the very next one down: it creeps to the line… and doesn't make it
+          r.force.set(target + 1, teaseSym);
+          this.tweens.add({ targets: r, pos: target + 0.62, duration: ms, ease, onComplete: () => {
+            this.time.delayedCall(420, () => this.tweens.add({ targets: r, pos: target, duration: 520, ease: "Back.out", onComplete: () => res() }));
+          } });
+          return;
+        }
+        this.tweens.add({ targets: r, pos: target, duration: ms, ease, onComplete: () => res() });
+      });
     let spinning = false;
-    const spin = () => {
+    const spin = async () => {
       if (spinning || !this.panelRoot) return;
       if (!this.pay(COST, info)) return;
       spinning = true;
       info.setText("Spinning…").setColor("#ffffff");
+      reels.forEach((r) => r.glow.setAlpha(0));
       const r = Math.random();
       let out: number[];
       if (r < 0.03) out = [3, 3, 3];
@@ -623,58 +720,71 @@ export class KreddleScene extends Phaser.Scene {
       } else {
         out = Phaser.Utils.Array.Shuffle([0, 1, 2, 3, 4, 5]).slice(0, 3);
       }
-      // nothing is as it seems: sometimes the last reel lands on the match… and nudges off
-      const tease = out[0] === out[1] && out[1] !== out[2] && Math.random() < 0.4;
-      const tick = this.time.addEvent({ delay: 60, loop: true, callback: () => reels.forEach((t, i) => t.getData("stop") || t.setText(SYM[Phaser.Math.Between(0, SYM.length - 1)])) });
-      reels.forEach((t) => t.setData("stop", false));
+      // nothing is as it seems: when the first two match and the last doesn't, it sometimes nearly does
+      const lined = out[0] === out[1];
+      const tease = lined && out[1] !== out[2] && Math.random() < 0.55;
       synth.play("slot_spin");
-      [700, 1100, 1550].forEach((ms, i) =>
-        this.time.delayedCall(ms, () => {
-          if (!this.panelRoot) return;
-          reels[i].setData("stop", true).setText(SYM[tease && i === 2 ? out[0] : out[i]]);
-          synth.play("ding");
-          if (i < 2) return;
-          tick.remove();
-          const finish = async () => {
-            spinning = false;
-            const [a, b, c] = out;
-            if (a === b && b === c) {
-              info.setText(a === 3 ? "THREE 7s! JACKPOT!" : "THREE OF A KIND!").setColor("#4ade80");
-              synth.play("jackpot");
-              vfx(this, "vfx_coins", 480, 260, { scale: 2.2, fixed: true, depth: 7000 });
-              this.kroken(5);
-              await this.showPrize(rollPrize(G.s).id);
-              if (a === 3) await this.showPrize(rollPrize(G.s).id);
-            } else if (a === b || b === c || a === c) {
-              G.s.coins += 50;
-              this.kroken(2);
-              info.setText("Two of a kind: 50 back and 2 Krokens. The House is generous. Briefly.").setColor("#facc15");
-            } else {
-              info.setText(Phaser.Utils.Array.GetRandom(["Nothing. The House thanks you.", "Lose. Again?", "So close. (It wasn't close.)", "The machine winks at you."])).setColor("#ef4444");
-              synth.play("tap_fail");
-            }
-          };
-          if (tease) {
-            info.setText("…!!").setColor("#4ade80");
-            this.time.delayedCall(650, () => {
-              if (!this.panelRoot) return;
-              reels[2].setText(SYM[out[2]]);
-              synth.play("trombone");
-              info.setText("NUDGE. Nothing in Kreddle is as it seems.").setColor("#ef4444");
-              this.time.delayedCall(700, () => {
-                spinning = false;
-                G.s.coins += 50;
-                this.kroken(2);
-                info.setText("…two of a kind, though. 50 back and 2 Krokens.").setColor("#facc15");
-              });
-            });
-          } else void finish();
-        }),
-      );
+      const stop = (i: number) => {
+        synth.play("ding");
+        this.tweens.add({ targets: reels[i].faces, scaleY: { from: reels[i].faces[0].scaleY * 0.9, to: reels[i].faces[0].scaleY }, duration: 120 });
+      };
+      // staggered stops, left to right
+      const first = spinReel(reels[0], out[0], 900, "Cubic.out").then(() => stop(0));
+      const second = spinReel(reels[1], out[1], 1350, "Cubic.out").then(() => stop(1));
+      await Promise.all([first, second]);
+      if (this.panelRoot !== root) return;
+      // two on the line: the last reel hangs, the cabinet holds its breath
+      if (lined) {
+        reels[0].glow.setAlpha(1);
+        reels[1].glow.setAlpha(1);
+        reels[2].glow.setAlpha(0.6).setStrokeStyle(6, 0xfacc15);
+        this.tweens.add({ targets: reels[2].glow, alpha: 0.15, yoyo: true, repeat: -1, duration: 160 });
+        info.setText(out[0] === 3 ? "7… 7… !!!" : "Two… on the line…").setColor("#facc15");
+        chaseFast = true;
+        synth.charge();
+      }
+      await spinReel(reels[2], out[2], lined ? 2300 : 600, lined ? "Sine.out" : "Cubic.out", tease ? out[0] : undefined);
+      if (this.panelRoot !== root) return;
+      this.tweens.killTweensOf(reels[2].glow);
+      reels[2].glow.setStrokeStyle(6, 0x4ade80).setAlpha(0);
+      chaseFast = false;
+      stop(2);
+      const [a, b, c] = out;
+      if (a === b && b === c) {
+        // the proper win: everything lights up, coins everywhere, and then the prize
+        reels.forEach((rr) => rr.glow.setAlpha(1));
+        reels.forEach((rr, i) => this.tweens.add({ targets: rr.faces[2], scale: rr.faces[2].scale * 1.25, yoyo: true, repeat: 3, duration: 140, delay: i * 70 }));
+        info.setText(a === 3 ? "THREE 7s! JACKPOT!" : "THREE OF A KIND!").setColor("#4ade80");
+        synth.play("jackpot");
+        this.cameras.main.shake(350, 0.006);
+        this.cameras.main.flash(180, 255, 230, 120);
+        chaseFast = true;
+        for (let i = 0; i < 3; i++) vfx(this, "vfx_coins", 330 + i * 150, 250, { scale: 2.2, fixed: true, depth: 7000, delay: i * 120 });
+        vfx(this, "vfx_confetti", 480, 200, { scale: 2.6, fixed: true, depth: 7000, delay: 200 });
+        this.kroken(5);
+        await this.wait(1100);
+        chaseFast = false;
+        await this.showPrize(rollPrize(G.s).id);
+        if (a === 3) await this.showPrize(rollPrize(G.s).id);
+      } else if (a === b || b === c || a === c) {
+        const pair = a === b ? [0, 1] : b === c ? [1, 2] : [0, 2];
+        pair.forEach((i) => reels[i].glow.setAlpha(1));
+        G.s.coins += 50;
+        this.kroken(2);
+        synth.play("coin");
+        if (tease) {
+          synth.play("trombone");
+          info.setText("NUDGE. Nothing in Kreddle is as it seems. (Two of a kind, though: 50 back and 2 Krokens.)").setColor("#facc15");
+        } else info.setText("Two of a kind: 50 back and 2 Krokens. The House is generous. Briefly.").setColor("#facc15");
+      } else {
+        info.setText(Phaser.Utils.Array.GetRandom(["Nothing. The House thanks you.", "Lose. Again?", "So close. (It wasn't close.)", "The machine winks at you."])).setColor("#ef4444");
+        synth.play("tap_fail");
+      }
+      spinning = false;
     };
-    this.btn(380, 440, `SPIN (${COST})`, spin, 170, 0x7c2d12);
+    this.btn(380, 440, `SPIN (${COST})`, () => void spin(), 170, 0x7c2d12);
     this.btn(580, 440, "WALK AWAY", () => !spinning && this.closePanel(), 170);
-    this.key("SPACE", spin);
+    this.key("SPACE", () => void spin());
     this.key("ESC", () => !spinning && this.closePanel());
   }
 
@@ -682,13 +792,13 @@ export class KreddleScene extends Phaser.Scene {
 
   private claw() {
     const COST = 200;
-    this.openPanel("THE KLAW", "#22d3ee");
+    const root = this.openPanel("THE KLAW", "#22d3ee");
     const L = 230;
     const R = 730;
     this.add2(this.add.rectangle(480, 270, R - L + 20, 300, 0x0e2a3a, 0.9).setStrokeStyle(4, 0xff4fd8));
     this.add2(this.add.rectangle(L + 40, 395, 70, 40, 0x000000).setStrokeStyle(2, 0xfacc15));
     this.add2(this.add.text(L + 40, 395, "CHUTE", { fontFamily: FONT, fontSize: "11px", color: "#facc15" }).setOrigin(0.5));
-    const info = this.add2(this.add.text(480, 445, `${COST} Krezzcoin a go. SPACE / DROP to drop the claw. Pick your prize.`, { fontFamily: FONT, fontSize: "14px", color: "#22d3ee", align: "center", wordWrap: { width: 640 } }).setOrigin(0.5));
+    const info = this.add2(this.add.text(480, 445, `${COST} Krezzcoin a go. SPACE / DROP to drop the claw. Get the drop spot DEAD CENTRE (green) on a capsule for a solid grip.`, { fontFamily: FONT, fontSize: "14px", color: "#22d3ee", align: "center", wordWrap: { width: 640 } }).setOrigin(0.5));
     // the capsules, each showing what's inside
     const used = new Set<string>();
     const caps = [0, 1, 2, 3, 4].map((i) => {
@@ -696,11 +806,16 @@ export class KreddleScene extends Phaser.Scene {
       for (let k = 0; k < 6 && used.has(p.id); k++) p = rollPrize(G.s);
       used.add(p.id);
       const x = L + 150 + i * 80;
-      const ball = this.add2(this.add.circle(x, 385, 26, NEON[i % NEON.length], 0.85).setStrokeStyle(3, 0xffffff));
-      const icon = this.add2(this.add.text(x, 385, p.icon, { fontSize: "26px" }).setOrigin(0.5));
+      // a PixelLab gacha capsule tinted to the machine's neon, the prize showing through; a circle if the art's missing
+      const ball: Phaser.GameObjects.Image | Phaser.GameObjects.Arc = this.textures.exists("kd_capsule")
+        ? this.add2(this.add.image(x, 385, "kd_capsule").setScale(1.9).setTint(NEON[i % NEON.length] | 0x505050))
+        : this.add2(this.add.circle(x, 385, 26, NEON[i % NEON.length], 0.85).setStrokeStyle(3, 0xffffff));
+      const icon = this.add2(this.add.text(x, 385, p.icon, { fontSize: "24px" }).setOrigin(0.5));
       return { x, y: 385, ball, icon, prize: p.id, taken: false };
     });
     const hover = this.add2(this.add.text(480, 115, "", { fontFamily: FONT, fontSize: "14px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5));
+    // the drop line and its spot on the floor: line it up dead centre on a capsule for a solid grip
+    const aim = this.add2(this.add.graphics());
     const rope = this.add2(this.add.graphics());
     const head = this.add2(this.add.text(L + 60, 160, "🪝", { fontSize: "34px" }).setOrigin(0.5, 0));
     let state: "idle" | "swing" | "drop" = "swing";
@@ -708,15 +823,29 @@ export class KreddleScene extends Phaser.Scene {
     let clawX = L + 60;
     let clawY = 160;
     let holding: (typeof caps)[number] | null = null;
+    /** How well it's got hold, 0..1: set by how centred the drop was. */
+    let grip = 1;
     let paid = false;
     const loop = this.time.addEvent({ delay: 16, loop: true, callback: () => {
-      if (!this.panelRoot) return loop.remove();
+      if (!this.panelRoot || this.panelRoot !== root) return loop.remove();
       if (state === "swing") clawX = L + 110 + ((Math.sin((this.time.now - t0) / 700) + 1) / 2) * (R - L - 160);
       head.setPosition(clawX, clawY);
       rope.clear().lineStyle(3, 0xd1d5db, 1).lineBetween(clawX, 130, clawX, clawY + 4);
-      if (holding) holding.ball.setPosition(clawX, clawY + 48), holding.icon.setPosition(clawX, clawY + 48);
+      if (holding) {
+        // a weak grip swings about on the way to the chute
+        const sway = grip < 0.5 ? Math.sin(this.time.now / 70) * 6 : grip < 0.8 ? Math.sin(this.time.now / 110) * 3 : 0;
+        holding.ball.setPosition(clawX + sway, clawY + 48);
+        holding.icon.setPosition(clawX + sway, clawY + 48);
+      }
       const under = caps.find((c) => !c.taken && Math.abs(c.x - clawX) < 30);
       hover.setText(under ? `${PRIZE[under.prize].icon} ${PRIZE[under.prize].name}` : "");
+      aim.clear();
+      if (state === "swing") {
+        const off = under ? Math.abs(under.x - clawX) : 99;
+        const col = off < 10 ? 0x4ade80 : off < 20 ? 0xfacc15 : off < 30 ? 0xf97316 : 0x64748b;
+        for (let y = clawY + 44; y < 395; y += 14) aim.lineStyle(2, col, 0.55).lineBetween(clawX, y, clawX, y + 7);
+        aim.fillStyle(col, 0.45).fillEllipse(clawX, 414, 34, 9);
+      }
     } });
     const tween = (cfg: { y?: number; x?: number; duration: number }) =>
       new Promise<void>((res) => {
@@ -734,7 +863,15 @@ export class KreddleScene extends Phaser.Scene {
       await tween({ y: 320, duration: 650 });
       const target = caps.find((c) => !c.taken && Math.abs(c.x - clawX) < 30);
       synth.play("pop");
-      if (target) holding = target;
+      if (target) {
+        holding = target;
+        // the grip comes from your aim (the real UFO-catcher skill is lining it up); a little luck on top
+        const off = Math.abs(target.x - clawX);
+        grip = off < 10 ? 0.92 : off < 20 ? 0.6 : 0.22;
+        const verdict = off < 10 ? ["DEAD CENTRE! Lovely grip.", "#4ade80"] : off < 20 ? ["A bit off-centre… it's wobbling.", "#facc15"] : ["Barely got a finger on it…", "#f97316"];
+        info.setText(verdict[0]).setColor(verdict[1]);
+        if (off < 10) synth.play("ding");
+      }
       await tween({ y: 160, duration: 650 });
       if (!this.panelRoot) return;
       if (!holding) {
@@ -742,10 +879,11 @@ export class KreddleScene extends Phaser.Scene {
         info.setText("Nothing. THE KLAW SAYS NO. (Have a pity Kroken.)").setColor("#ef4444");
         synth.play("tap_fail");
       } else {
-        // the Klaw has feelings, and the feeling is usually no
-        const slips = Math.random() < 0.6;
+        // the Klaw has feelings, and how strongly it feels them depends on your aim
+        const slips = Math.random() > grip;
         if (slips) {
-          await tween({ x: (clawX + L + 40) / 2, duration: 500 });
+          // a weak grip lets go early; a decent one makes it most of the way, which is worse
+          await tween({ x: clawX + (L + 40 - clawX) * (grip < 0.5 ? 0.3 : 0.75), duration: grip < 0.5 ? 350 : 650 });
           const h = holding;
           holding = null;
           synth.play("trombone");
@@ -753,7 +891,7 @@ export class KreddleScene extends Phaser.Scene {
           h.ball.x = h.icon.x = clawX;
           h.x = clawX;
           this.kroken(3);
-          info.setText("It slipped! THE KLAW GIVETH AND THE KLAW TAKETH AWAY. (3 Krokens for trying.)").setColor("#ef4444");
+          info.setText(grip < 0.5 ? "It slipped! Line it up better. (3 Krokens for trying.)" : "SO CLOSE. THE KLAW GIVETH AND THE KLAW TAKETH AWAY. (3 Krokens for trying.)").setColor("#ef4444");
         } else {
           await tween({ x: L + 40, duration: 700 });
           const h = holding;
@@ -890,81 +1028,141 @@ export class KreddleScene extends Phaser.Scene {
 
   // ------------------------------------------------------------------ KREDDLE KARDS (higher or lower)
 
+  /**
+   * Higher or lower as a double-or-nothing ladder. The stake becomes a POT; every right call multiplies it by the
+   * odds against that call (so "higher than a 2" pays peanuts and "higher than a Jack" pays a fortune), and after
+   * each one you BANK it or RISK it. Five in a row wins a prize on top. One wrong call and the pot's gone.
+   */
   private cards() {
     const COST = 150;
-    const CASH = 200;
+    const TOP = 5;
     this.openPanel("KREDDLE KARDS", "#4ade80");
     const RANK = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
     const SUIT = ["♠", "♥", "♦", "♣"];
-    if (this.textures.exists("spr_KD_PITBOSS")) this.add2(this.add.sprite(220, 260, "spr_KD_PITBOSS", 0).setScale(3).setTint(0xffe27a));
-    this.add2(this.add.text(220, 340, "THE DEALER", { fontFamily: FONT, fontSize: "11px", color: "#facc15" }).setOrigin(0.5));
-    const cardBg = this.add2(this.add.rectangle(480, 250, 130, 180, 0xffffff).setStrokeStyle(4, 0x111111));
-    const cardTxt = this.add2(this.add.text(480, 250, "?", { fontFamily: "Georgia, serif", fontSize: "54px", color: "#111111", fontStyle: "bold", align: "center" }).setOrigin(0.5));
-    const streakTxt = this.add2(this.add.text(700, 200, "", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#4ade80", align: "center" }).setOrigin(0.5));
-    const info = this.add2(this.add.text(480, 380, `Deal for ${COST}. Guess HIGHER or LOWER. Every right guess wins a Kroken. Three right wins a PRIZE. Two right? Cash out for ${CASH}. The House wins ties.`, { fontFamily: FONT, fontSize: "14px", color: "#ffffff", align: "center", wordWrap: { width: 640 } }).setOrigin(0.5));
+    if (this.textures.exists("spr_KD_PITBOSS")) this.add2(this.add.sprite(200, 250, "spr_KD_PITBOSS", 0).setScale(3).setTint(0xffe27a));
+    this.add2(this.add.text(200, 330, "THE DEALER", { fontFamily: FONT, fontSize: "12px", color: "#facc15" }).setOrigin(0.5));
+    const cardBg = this.add2(this.add.rectangle(420, 240, 130, 180, 0xffffff).setStrokeStyle(4, 0x111111));
+    const cardTxt = this.add2(this.add.text(420, 240, "?", { fontFamily: "Georgia, serif", fontSize: "54px", color: "#111111", fontStyle: "bold", align: "center" }).setOrigin(0.5));
+    // the ladder: five rungs, the top one a PRIZE
+    const rungs = Array.from({ length: TOP }, (_, i) => {
+      const y = 330 - i * 44;
+      const bg = this.add2(this.add.rectangle(650, y, 200, 36, 0x0b3d1f, 0.9).setStrokeStyle(2, 0x166534));
+      const t = this.add2(this.add.text(650, y, "", { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#86efac" }).setOrigin(0.5));
+      return { bg, t };
+    });
+    const potTxt = this.add2(this.add.text(650, 106, "", { fontFamily: "Impact, sans-serif", fontSize: "24px", color: "#facc15", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5));
+    const info = this.add2(this.add.text(480, 384, `Deal for ${COST}. Call HIGHER or LOWER. Each right call multiplies your pot by the odds against it; BANK it any time, or risk it all for the next rung. Five in a row: a PRIZE as well. The House wins ties.`, { fontFamily: FONT, fontSize: "13px", color: "#ffffff", align: "center", wordWrap: { width: 660 } }).setOrigin(0.5));
     let card = -1;
     let streak = 0;
+    let pot = 0;
     let live = false;
+    let busy = false;
+    /** Chance the next card is strictly higher / lower than this one, and what that call pays (0.92 of fair: the House's cut). */
+    const odds = (up: boolean) => (up ? 12 - card : card) / 13;
+    const pays = (up: boolean) => {
+      const p = odds(up);
+      return p <= 0 ? 0 : Phaser.Math.Clamp(Math.round((0.92 / p) * 10) / 10, 1.1, 8);
+    };
     const show = (n: number) => {
       const suit = SUIT[Phaser.Math.Between(0, 3)];
       cardTxt.setText(`${RANK[n]}\n${suit}`).setColor(suit === "♥" || suit === "♦" ? "#dc2626" : "#111111").setFontSize(44);
+      this.tweens.killTweensOf([cardBg, cardTxt]);
+      cardBg.setScale(1);
+      cardTxt.setScale(1);
       this.tweens.add({ targets: [cardBg, cardTxt], scaleX: { from: 0, to: 1 }, duration: 160 });
       synth.play("pop");
     };
+    const hi = this.btn(330, 470, "▲ HIGHER", () => void guess(true), 150);
+    const lo = this.btn(490, 470, "▼ LOWER", () => void guess(false), 150);
+    const label = (b: Phaser.GameObjects.Container, s: string) => (b.list.find((o) => o instanceof Phaser.GameObjects.Text) as Phaser.GameObjects.Text | undefined)?.setText(s);
+    const refresh = () => {
+      rungs.forEach((r, i) => {
+        const on = live && i < streak;
+        const next = live && i === streak;
+        r.bg.setFillStyle(on ? 0x15803d : next ? 0x14532d : 0x0b3d1f, 0.95).setStrokeStyle(next ? 3 : 2, next ? 0xfacc15 : on ? 0x4ade80 : 0x166534);
+        r.t.setText(i === TOP - 1 ? `${i + 1} · PRIZE + POT` : `${i + 1} RIGHT`).setColor(on ? "#ffffff" : next ? "#facc15" : "#86efac");
+      });
+      potTxt.setText(live ? `POT: ${pot}` : "");
+      label(hi, live ? (pays(true) ? `▲ HIGHER x${pays(true)}` : "▲ HIGHER (no)") : "▲ HIGHER");
+      label(lo, live ? (pays(false) ? `▼ LOWER x${pays(false)}` : "▼ LOWER (no)") : "▼ LOWER");
+    };
     const deal = () => {
-      if (live || !this.panelRoot) return;
+      if (live || busy || !this.panelRoot) return;
       if (!this.pay(COST, info)) return;
       live = true;
       streak = 0;
+      pot = COST;
       card = Phaser.Math.Between(0, 12);
       show(card);
-      streakTxt.setText("0 / 3");
-      info.setText("Higher or lower? (↑ / ↓)").setColor("#ffffff");
+      info.setText("Higher or lower? (↑ / ↓) The long shot pays more.").setColor("#ffffff");
+      refresh();
+    };
+    const bank = () => {
+      if (!live || busy || streak < 1) return;
+      live = false;
+      G.s.coins += pot;
+      synth.play("coin");
+      vfx(this, "vfx_coins", 650, 106, { scale: 1.8, fixed: true, depth: 7000 });
+      info.setText(`Banked ${pot}. ${pot >= COST * 3 ? "The Dealer's smile slips." : "Coward. Deal again?"}`).setColor("#facc15");
+      refresh();
     };
     const guess = async (up: boolean) => {
-      if (!live || !this.panelRoot) return;
+      if (!live || busy || !this.panelRoot || !pays(up)) return;
+      busy = true;
+      const mult = pays(up);
+      // the Dealer takes his time with the big ones
+      const tense = mult >= 2.5 || streak >= TOP - 2;
+      if (tense) {
+        info.setText(Phaser.Utils.Array.GetRandom(["The Dealer licks his thumb…", "The Dealer looks at you. You look at the Dealer.", "…", "He's enjoying this."])).setColor("#c4b5fd");
+        this.tweens.add({ targets: cardBg, scaleX: 0.96, scaleY: 1.03, yoyo: true, repeat: 2, duration: 110 });
+        await this.wait(750);
+        if (!this.panelRoot) return;
+      }
       const next = Phaser.Math.Between(0, 12);
       show(next);
       const right = up ? next > card : next < card;
       const tie = next === card;
       card = next;
+      busy = false;
       if (!right) {
         live = false;
-        streakTxt.setText("");
-        info.setText(tie ? "A tie. The House wins ties. Deal again?" : "Wrong. The Dealer smiles. Deal again?").setColor("#ef4444");
-        synth.play("tap_fail");
+        info.setText(tie ? `A tie. The House wins ties. ${pot} gone.` : `Wrong. The Dealer smiles. ${pot} gone. Deal again?`).setColor("#ef4444");
+        synth.play(pot > COST * 2 ? "trombone" : "tap_fail");
+        this.cameras.main.shake(160, 0.004);
+        refresh();
         return;
       }
       streak++;
+      pot = Math.round(pot * mult);
       this.kroken(1);
-      streakTxt.setText(`${streak} / 3`);
-      synth.play("ding");
-      if (streak >= 3) {
+      synth.play(mult >= 2.5 ? "perfect" : "ding");
+      this.tweens.add({ targets: potTxt, scale: { from: 1.35, to: 1 }, duration: 220, ease: "Back.out" });
+      if (mult >= 2.5) vfx(this, "vfx_sparks", 420, 240, { scale: 2.2, fixed: true, depth: 7000, add: true });
+      if (streak >= TOP) {
         live = false;
-        info.setText("THREE IN A ROW!").setColor("#4ade80");
+        G.s.coins += pot;
+        info.setText(`FIVE IN A ROW! ${pot} Krezzcoin AND a prize.`).setColor("#4ade80");
+        synth.play("jackpot");
+        refresh();
         await this.showPrize(rollPrize(G.s).id);
         if (this.panelRoot) info.setText(`Deal again for ${COST}?`).setColor("#ffffff");
-      } else info.setText(streak === 2 ? `Two right! Keep going, or CASH OUT for ${CASH}.` : "Right! Again: higher or lower?").setColor("#4ade80");
+        return;
+      }
+      info.setText(`Right! x${mult}. BANK ${pot}, or call again for rung ${streak + 1}?`).setColor("#4ade80");
+      refresh();
     };
-    const cashOut = () => {
-      if (!live || streak < 2) return;
-      live = false;
-      G.s.coins += CASH;
-      synth.play("coin");
-      info.setText(`Cashed out: +${CASH}. Coward. Deal again?`).setColor("#facc15");
-      streakTxt.setText("");
-    };
-    this.btn(250, 480, `DEAL (${COST})`, deal, 130, 0x166534);
-    this.btn(390, 480, "▲ HIGHER", () => void guess(true), 130);
-    this.btn(530, 480, "▼ LOWER", () => void guess(false), 130);
-    this.btn(670, 480, "CASH OUT", cashOut, 120);
-    this.btn(800, 480, "LEAVE", () => !live && this.closePanel(), 100);
-    this.key("SPACE", deal);
+    this.btn(180, 470, `DEAL (${COST})`, deal, 130, 0x166534);
+    this.btn(660, 470, "BANK IT", bank, 130, 0x854d0e);
+    this.btn(810, 470, "LEAVE", () => !live && !busy && this.closePanel(), 100);
+    refresh();
+    this.key("SPACE", () => (live ? undefined : deal()));
+    this.key("ENTER", bank);
+    this.key("B", bank);
     this.key("UP", () => void guess(true));
     this.key("DOWN", () => void guess(false));
     this.key("W", () => void guess(true));
     this.key("S", () => void guess(false));
-    this.key("ESC", () => !live && this.closePanel());
+    this.key("ESC", () => !live && !busy && this.closePanel());
   }
 
   // ------------------------------------------------------------------ the Prize Counter

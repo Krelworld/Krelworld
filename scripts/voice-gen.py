@@ -113,6 +113,12 @@ def cast(sp):
     v = voice_of(sp)
     return (v[0], v[1], None, sp) if v else None
 
+def retempo(data, k):
+    """Play a clip k times faster (or slower), keeping its pitch."""
+    import subprocess
+    r = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", "pipe:0", "-af", f"atempo={k:.3f}", *ENC, "pipe:1"], input=data, capture_output=True)
+    return r.stdout if r.returncode == 0 and r.stdout else data
+
 def repitch(data, semis):
     """Shift a clip's pitch by `semis` semitones, keeping its length and the voice's character (formants)."""
     import subprocess
@@ -245,6 +251,19 @@ for l in lines:
         if d:
             keep[l["k"]] = (l, label, s, repitch(d, pt))
             continue
+    tp = CAST.get("tempo", {}).get(c[3])
+    if tp:
+        # sped up (or slowed) after recording, pitch kept: same trick, existing clips are re-timed locally
+        s_pre = s
+        s = sig(model, c[0], text, {**settings, **({"_warble": w} if w else {}), **({"_pitch": pt} if pt else {}), "_tempo": tp})
+        d = old_clip(l, s)
+        if d:
+            keep[l["k"]] = (l, label, s, d)
+            continue
+        d = old_clip(l, s_pre)
+        if d:
+            keep[l["k"]] = (l, label, s, retempo(d, tp))
+            continue
     if only and l["s"] not in only:
         d = old_clip(l)  # not asked to redo this speaker: keep whatever recording it has
         if d:
@@ -315,7 +334,9 @@ def gen(item):
     w = CAST.get("warble", {}).get(c[3]) if c else None
     data = warble(data, w) if data and w else data
     pt = CAST.get("pitch", {}).get(c[3]) if c else None
-    return item, (repitch(data, pt) if data and pt else data)
+    data = repitch(data, pt) if data and pt else data
+    tp = CAST.get("tempo", {}).get(c[3]) if c else None
+    return item, (retempo(data, tp) if data and tp else data)
 
 def gen_tts(item, hq=False):
     l, voice, model, text, settings, label, s = item

@@ -321,12 +321,14 @@ export class Player {
     const swapDown = c.swapHeld();
     // (a very quick tap can come and go inside one frame: the edge still counts it)
     const sw = this.world.sc as unknown as { swapSlow?: (on: boolean) => void };
+    // timed on the real clock: the game clock itself slows down the moment you press it
+    const realNow = performance.now();
     if ((swapDown || swapEdge) && this.swapDownAt === 0) {
-      this.swapDownAt = now;
+      this.swapDownAt = realNow;
       // the action slows the moment you reach for another weapon
       sw.swapSlow?.(true);
     }
-    if (swapDown && this.swapDownAt > 0 && now - this.swapDownAt > 260 && this.world.sc.scene.key === "Dungeon") {
+    if (swapDown && this.swapDownAt > 0 && realNow - this.swapDownAt > 260 && this.world.sc.scene.key === "Dungeon") {
       this.swapDownAt = -1; // consumed: wait for the key to come up
       (this.world.sc as unknown as { openWeaponPicker: () => void }).openWeaponPicker();
       return;

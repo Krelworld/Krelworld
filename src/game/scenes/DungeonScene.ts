@@ -447,7 +447,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       this.tweens.add({ targets: t, x: { getEnd: () => p.x }, y: { getEnd: () => p.y - 10 }, scale: 0.6, duration: 380, ease: "Quad.in", onComplete: () => {
         t.destroy();
         pick.go();
-        synth.play("cheer");
+        synth.play("gunget");
         this.cameras.main.flash(160, 255, 255, 255);
         this.floatText(p.x, p.y - 60, `${pick.k}: ${pick.name}!`, pick.col, 20);
       } });
@@ -1431,7 +1431,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
           const icon = fitTo(this.add.image(x, y - 10, r.gun.tex), 44).setDepth(700);
           this.tweens.add({ targets: icon, y: y - 70, duration: 600, ease: "Back.easeOut" });
           this.tweens.add({ targets: icon, alpha: 0, delay: 1600, duration: 400, onComplete: () => icon.destroy() });
-          synth.play("cheer");
+          synth.play("gunget");
           this.toast(`NEW GUN: ${r.gun.name.toUpperCase()}`, `${r.gun.blurb} Now in your hand. ${ownedGuns(s).length === 1 ? "X / GUN swaps back to the Fart Blaster (infinite ammo)." : "X / GUN cycles weapons."}`);
         } else if (r.ammoFor) {
           this.floatText(x, y - 40, `+${r.amount} ${r.ammoFor.name.toUpperCase()} AMMO`, "#67e8f9", 14);
@@ -1464,7 +1464,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   private goNextRoom() {
     if (this.busy) return;
     this.busy = true;
-    synth.play("door");
+    synth.play("dooropen");
     G.save();
     if (this.room.then?.length) {
       // a detour through other scenes (a minigame, a car chase) before the next room

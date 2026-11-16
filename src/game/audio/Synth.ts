@@ -753,6 +753,11 @@ export class Synth {
       return;
     }
     switch (id) {
+      case "gunget":
+        // a new gun: a quick rising chiptune arpeggio and a bright top note
+        [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.07, "square", 0.09, i * 0.055, 1));
+        this.tone(1568, 0.16, "triangle", 0.1, 0.24, 1.02);
+        return;
       case "hit":
         this.burst(0.08, 0.5, 0, 1800);
         this.tone(180, 0.08, "square", 0.25, 0, 0.5);

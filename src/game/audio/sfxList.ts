@@ -38,6 +38,7 @@ export const SFX_KEYS: string[] = [
   "ding",
   "dodge",
   "door",
+  "dooropen",
   "explode_1",
   "explode_2",
   "fap_1",

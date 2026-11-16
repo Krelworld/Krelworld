@@ -351,7 +351,8 @@ export class HubScene extends Phaser.Scene {
     G.save();
     // the SPIRIT CUM's long whiteness, fading into the morning
     if (data?.from === "finale_dawn") this.whiteout = this.add.rectangle(480, 270, 2000, 1200, 0xffffff, 1).setScrollFactor(0).setDepth(9500);
-    this.time.delayedCall(400, () => this.onArrive(data?.from, data?.flyover, data?.at));
+    this.arriving = true;
+    this.time.delayedCall(400, () => this.onArrive(data?.from, data?.flyover, data?.at).finally(() => (this.arriving = false)));
   }
 
   /** First time out of the front door: a slow look round Krelford. */
@@ -510,6 +511,14 @@ export class HubScene extends Phaser.Scene {
     G.emit("toast", { title: "OBJECTIVE", text: "Go to Krelford Town Hall. Follow the yellow arrow." });
   }
 
+  /** True while the arrival sequence (chapter intros, story events) is still running: random town events wait. */
+  arriving = false;
+
+  /** A story event in town is due (the Krunchers' invasion, or any other auto step): random town events stay out of its way. */
+  storyPending() {
+    return currentArcSteps(G.s).some((c) => c.step.step.kind === "auto");
+  }
+
   private async onArrive(from?: string, flyover?: boolean, at?: string) {
     const s = G.s;
     if (flyover && !s.flags.flyover_seen && !s.flags.prologue_done) await this.flyover();
@@ -588,6 +597,8 @@ export class HubScene extends Phaser.Scene {
     // the Kreddle Krunchers come over the bridge (start of Chapter 3)
     const inv = !this.chainMeetings && currentArcSteps(s).find((c) => c.step.step.kind === "auto" && c.step.step.id === "kruncher_invasion");
     if (inv) {
+      // the posse stands down: the Krunchers have the town now
+      this.beatup?.cancel();
       await this.krunchersInvade(inv.arc, inv.step);
       return;
     }

@@ -111,6 +111,8 @@ export class Beatup {
     G.rt.beatupIn = 45000;
     const s = G.s;
     if (h.busy || !s.flags.prologue_done || h.time.now < h.pg?.chaseUntil || h.cops?.length) return;
+    // never on top of a story beat: not while you're arriving in town, in a cutscene, or with one about to fire
+    if (h.arriving || h.cutscene || h.storyPending?.()) return;
     if (Math.random() > 0.5) return;
     this.start();
   }
@@ -458,6 +460,13 @@ export class Beatup {
     G.emit("toast", { title: "POSSE JUSTICE", text: `+${reward} Krezzcoin. Best combo x${this.best}.` });
     h.busy = false;
     await h.talk([say(this.mates[0].id, ["Same time next week?", "Good work, lads. Pub?", "We should do that more often.", "Nobody tell Drongus."][Math.floor(Math.random() * 4)])]);
+    this.cleanup();
+  }
+
+  /** Call the posse off without a word (a story scene is about to take over the town). */
+  cancel() {
+    if (this.state === "idle") return;
+    if (this.state === "fight") this.h.busy = false;
     this.cleanup();
   }
 

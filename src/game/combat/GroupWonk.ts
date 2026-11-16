@@ -16,13 +16,15 @@ import { padHeld } from "../systems/padbinds";
  * - THE BEAT goes round the ring, one lad at a time. Press as their light flashes: SYNC. Each sync on a lad
  *   who hasn't joined yet brings them in (they start wonking too). Every lad in makes the pumping count for more,
  *   and a streak of syncs counts for more again. Miss a beat and the streak's gone (and a joined lad can drop out).
- * - Fill it to the top before the time runs out. It's meant to take a good half a minute of proper effort.
- * Resolves true on success.
+ * - Fill it to the top: a few seconds of decent mashing (~6-10s). Nobody drops out, and if it isn't done in
+ *   GW_TIME the lads finish it for you: it can't be failed. Always resolves true.
  */
 
-export const GW_TIME = 75000;
-export const GW_K = 0.1;
-export const GW_WINDOW = 150;
+/** If it somehow isn't done by now, the lads finish it for you: you can't fail the group wonk. */
+export const GW_TIME = 30000;
+export const GW_K = 0.24;
+/** A generous window for hitting the beat. */
+export const GW_WINDOW = 260;
 
 export interface GwState {
   progress: number;
@@ -38,14 +40,14 @@ export interface GwState {
 /** How long a beat lasts at this much progress (it speeds up as you go). */
 export const beatMs = (p: number) => 640 - 230 * Math.min(1, p);
 /** How much the gauge drains per second. */
-export const drain = (p: number) => 0.02 + 0.026 * p;
+export const drain = (p: number) => 0.008 + 0.012 * p;
 
 /** One step of the gauge (pure, so the maths can be tested). `rate`: presses in the last second. */
 export function gwStep(s: GwState, rate: number, dtMs: number) {
   const dt = dtMs / 1000;
   const intensity = Math.min(1.25, rate / 9);
   const joined = s.joined.filter(Boolean).length / s.joined.length;
-  const mult = (0.3 + 0.7 * joined) * (1 + 0.06 * Math.min(12, s.streak));
+  const mult = (0.55 + 0.45 * joined) * (1 + 0.06 * Math.min(12, s.streak));
   s.progress = Phaser.Math.Clamp(s.progress + (GW_K * intensity * mult - drain(s.progress)) * dt, 0, 1);
   return s.progress;
 }
@@ -186,15 +188,12 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
           if (!st.beatHit && st.t > 1700) {
             if (st.streak > 2) pop(lads[st.beatIdx].x, lads[st.beatIdx].y - 60, "OUT OF SYNC", "#f87171", 14);
             st.streak = 0;
-            // a joined lad (never you) can lose it and drop out if you're not pumping
-            if (rate < 3) {
-              const j = st.joined.map((v, i) => (v && i > 0 ? i : -1)).filter((i) => i > 0);
-              const drop = j[Math.floor(Math.random() * j.length)];
-              if (drop !== undefined && Math.random() < 0.5) {
-                st.joined[drop] = false;
-                pop(lads[drop].x, lads[drop].y - 60, "LOST IT", "#f87171", 14);
-              }
-            }
+          }
+          // if you're pumping at all, whoever's beat it is joins in anyway (nobody ever drops out)
+          if (rate > 0 && !st.joined[st.beatIdx]) {
+            st.joined[st.beatIdx] = true;
+            pop(lads[st.beatIdx].x, lads[st.beatIdx].y - 60, "JOINS IN!", "#ff9ad5", 18);
+            synth.voice("oh", 0.5, lads[st.beatIdx].pitch);
           }
           st.beatIdx = (st.beatIdx + 1) % N;
           st.nextBeat = st.t + beatMs(st.progress);
@@ -270,7 +269,7 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
           .setText(rate === 0 ? "WONK IT!" : nJoined < N ? "HIT THE BEAT! GET THEM IN!" : p > 0.85 ? "NEARLY THERE!!!" : rate < 6 ? "HARDER!" : "KEEP GOING!")
           .setColor(nJoined < N ? "#ffd23f" : "#ffffff");
         if (p >= 1) return finish(true);
-        if (st.t >= GW_TIME) return finish(false);
+        if (st.t >= GW_TIME) return finish(true);
       },
     });
 

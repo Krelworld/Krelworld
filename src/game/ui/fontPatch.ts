@@ -29,6 +29,14 @@ function scaled(kind: Exclude<Kind, null>, bold: boolean, size: number): number 
   return Math.max(kind === "impact" ? 12 : 10, s);
 }
 
+/**
+ * Whether text gets the heavy face: headlines only (old Impact text, and big bold titles). Ordinary bold text
+ * (buttons, labels, names in lists) reads better, and less shouty, in the regular weight.
+ */
+function heavy(kind: Exclude<Kind, null>, bold: boolean, size: number) {
+  return kind === "impact" || (bold && size >= 22);
+}
+
 interface Orig {
   kind: Exclude<Kind, null>;
   size: number;
@@ -45,9 +53,9 @@ function splitStyle(fs: string): { bold: boolean; rest: string } {
 
 /** Rewrite the style's family/size/style in place from what was asked for. */
 function apply(ts: any, o: Orig) {
-  const bold = o.bold || o.kind === "impact";
+  const bold = heavy(o.kind, o.bold, o.size);
   ts.fontFamily = bold ? KREL_BOLD : KREL_REG;
-  ts.fontSize = `${scaled(o.kind, o.bold, o.size)}px`;
+  ts.fontSize = `${scaled(o.kind, bold, o.size)}px`;
   ts.fontStyle = o.rest;
   ts._font = [ts.fontStyle, ts.fontSize, ts.fontFamily].join(" ").trim();
 }
@@ -93,8 +101,8 @@ export function installPixelFonts() {
         const o: Orig = { kind: style.fontFamily ? kind : this.__krel?.kind ?? kind, size, bold, rest };
         this.__krel = o;
         // hand Phaser the final pixel face, so its own measuring (and everything else in the style) is right
-        const fam2 = bold || o.kind === "impact" ? KREL_BOLD : KREL_REG;
-        return setStyle.call(this, { ...style, fontFamily: fam2, fontSize: `${scaled(o.kind, bold, size)}px`, fontStyle: rest }, updateText, setDefaults);
+        const hv = heavy(o.kind, bold, size);
+        return setStyle.call(this, { ...style, fontFamily: hv ? KREL_BOLD : KREL_REG, fontSize: `${scaled(o.kind, hv, size)}px`, fontStyle: rest }, updateText, setDefaults);
       }
       if (style.fontFamily) this.__krel = undefined;
     }

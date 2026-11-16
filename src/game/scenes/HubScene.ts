@@ -345,6 +345,7 @@ export class HubScene extends Phaser.Scene {
     G.emit("rule", null);
     // Krelford is always in daylight now; only the story's own nights (the Chapter 6 raid, the bombed town in 7) are dark
     synth.isNight = () => !G.s.flags.finale_dawn && this.storyNight();
+    synth.isMarch = () => G.s.chapter === 6 && !!G.s.flags.raid_march && !G.s.flags.krunch_started && !G.s.flags.nuke_planted;
     synth.music("hub");
     synth.ambience("town");
     this.weather();

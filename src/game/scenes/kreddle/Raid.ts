@@ -233,6 +233,9 @@ export class KreddleRaid {
     synth.ambience(null);
     synth.weatherSound("storm");
     synth.music("kreddle_raid", true);
+    // the raid's track goes up over everything
+    synth.setMusicBoost(1.4);
+    sc.events.once("shutdown", () => synth.setMusicBoost(1));
     sc.cameras.main.fadeIn(600);
     sc.cameras.main.setBounds(0, 0, RW, H);
     sc.cameras.main.setBackgroundColor(0x05030c);

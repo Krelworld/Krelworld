@@ -109,6 +109,8 @@ export const MUSIC_FILES: Record<string, string> = {
   boss_arena: "audio/boss3.mp3",
   final: "audio/final.mp3",
   kreddle_raid: "audio/kreddle_raid.mp3",
+  // the march over to Kreddle (Chapter 6; ElevenLabs Music)
+  raid_march: "audio/raid_march.mp3",
   ending: "audio/ending.mp3",
   anthem: "audio/anthem.mp3",
   crazy: "audio/crazy_for_krelworld.mp3",
@@ -1147,10 +1149,12 @@ export class Synth {
 
   /** Set by the town: true while it's night in Krelford (the town theme then plays its night version). */
   isNight: () => boolean = () => false;
+  /** Set by the town: true while the lads are marching on Kreddle (the town theme becomes the war march). */
+  isMarch: () => boolean = () => false;
 
   /** The town theme follows Krelford's clock: if it's playing, swap to the day or night version as needed. */
   refreshTown() {
-    if (this.elId === "hub" || this.elId === "hub_night") this.music("hub");
+    if (this.elId === "hub" || this.elId === "hub_night" || this.elId === "raid_march") this.music("hub");
   }
 
   /** The id of the music playing now (file or synthesised), if any. */
@@ -1162,7 +1166,8 @@ export class Synth {
   onMusic: ((id: string) => void) | null = null;
 
   music(id: string, force = false, startFrac = 0) {
-    if (id === "hub" && this.isNight()) id = "hub_night";
+    if (id === "hub" && this.isMarch()) id = "raid_march";
+    else if (id === "hub" && this.isNight()) id = "hub_night";
     try {
       this.onMusic?.(id);
     } catch {

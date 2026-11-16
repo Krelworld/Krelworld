@@ -7507,6 +7507,114 @@
   },
   "club_garm2_bot": {
    "file": "props/club_garm2_bot.png"
+  },
+  "cancer_krandall": {
+   "file": "chars/cancer_krandall.png"
+  },
+  "cancer_krandall_closed": {
+   "file": "chars/cancer_krandall_closed.png"
+  },
+  "cancer_salmon": {
+   "file": "chars/cancer_salmon.png"
+  },
+  "cancer_salmon_closed": {
+   "file": "chars/cancer_salmon_closed.png"
+  },
+  "cancer_feedback": {
+   "file": "chars/cancer_feedback.png"
+  },
+  "cancer_feedback_closed": {
+   "file": "chars/cancer_feedback_closed.png"
+  },
+  "cancer_hoard": {
+   "file": "chars/cancer_hoard.png"
+  },
+  "cancer_hoard_closed": {
+   "file": "chars/cancer_hoard_closed.png"
+  },
+  "cancer_machine": {
+   "file": "chars/cancer_machine.png"
+  },
+  "cancer_machine_closed": {
+   "file": "chars/cancer_machine_closed.png"
+  },
+  "cancer_banhammer": {
+   "file": "chars/cancer_banhammer.png"
+  },
+  "cancer_banhammer_closed": {
+   "file": "chars/cancer_banhammer_closed.png"
+  },
+  "cancer_spectre": {
+   "file": "chars/cancer_spectre.png"
+  },
+  "cancer_spectre_closed": {
+   "file": "chars/cancer_spectre_closed.png"
+  },
+  "cancer_brand": {
+   "file": "chars/cancer_brand.png"
+  },
+  "cancer_brand_closed": {
+   "file": "chars/cancer_brand_closed.png"
+  },
+  "cancer_troll": {
+   "file": "chars/cancer_troll.png"
+  },
+  "cancer_troll_closed": {
+   "file": "chars/cancer_troll_closed.png"
+  },
+  "cancer_pudding_demon": {
+   "file": "chars/cancer_pudding_demon.png"
+  },
+  "cancer_pudding_demon_closed": {
+   "file": "chars/cancer_pudding_demon_closed.png"
+  },
+  "cancer_flatmate": {
+   "file": "chars/cancer_flatmate.png"
+  },
+  "cancer_flatmate_closed": {
+   "file": "chars/cancer_flatmate_closed.png"
+  },
+  "cancer_jam": {
+   "file": "chars/cancer_jam.png"
+  },
+  "cancer_jam_closed": {
+   "file": "chars/cancer_jam_closed.png"
+  },
+  "cancer_flirt": {
+   "file": "chars/cancer_flirt.png"
+  },
+  "cancer_flirt_closed": {
+   "file": "chars/cancer_flirt_closed.png"
+  },
+  "cancer_lantern": {
+   "file": "chars/cancer_lantern.png"
+  },
+  "cancer_lantern_closed": {
+   "file": "chars/cancer_lantern_closed.png"
+  },
+  "cancer_fruity": {
+   "file": "chars/cancer_fruity.png"
+  },
+  "cancer_fruity_closed": {
+   "file": "chars/cancer_fruity_closed.png"
+  },
+  "cancer_tank": {
+   "file": "chars/cancer_tank.png"
+  },
+  "cancer_tank_closed": {
+   "file": "chars/cancer_tank_closed.png"
+  },
+  "cancer_rival": {
+   "file": "chars/cancer_rival.png"
+  },
+  "cancer_rival_closed": {
+   "file": "chars/cancer_rival_closed.png"
+  },
+  "cancer_elon": {
+   "file": "chars/cancer_elon.png"
+  },
+  "cancer_elon_closed": {
+   "file": "chars/cancer_elon_closed.png"
   }
  },
  "sheets": {

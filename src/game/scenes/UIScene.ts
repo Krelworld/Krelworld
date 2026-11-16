@@ -71,6 +71,9 @@ export class UIScene extends Phaser.Scene {
   create(data: { mode?: "hub" | "dungeon" }) {
     this.mode = data?.mode ?? "hub";
     this.toasts = [];
+    // the scene object outlives a restart: drop texts from the last run (they were destroyed with it)
+    this.tray = [];
+    this.popPrompt = null;
     this.boss = null;
     this.rule = null;
     this.g = this.add.graphics();
@@ -308,7 +311,9 @@ export class UIScene extends Phaser.Scene {
   private drawKeycap(i: number, x: number, y: number, frac: number, ready: boolean, key: string, label: string, col: number, pulse: number, pips = -1) {
     const g = this.g;
     const S = 64;
-    if (!this.tray[i]) {
+    // (re)make the texts if they're missing or were destroyed (e.g. the HUD restarted after you died)
+    const old = this.tray[i];
+    if (!old || !old.key.scene || !old.label.scene || !old.pips.scene) {
       this.tray[i] = {
         key: this.add.text(0, 0, "", { fontFamily: "Impact, sans-serif", fontSize: "26px", color: "#ffffff" }).setOrigin(0.5).setShadow(2, 2, "#000", 0),
         label: this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "11px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5, 0).setShadow(1, 1, "#000", 0),
@@ -480,7 +485,7 @@ export class UIScene extends Phaser.Scene {
       // ---- WEAPON: bottom right, big enough to read mid-fight
       const gun = currentGun(s);
       const sk = prettyKey(keysFor("swap")[0] ?? "X");
-      if (!this.gunT) this.gunT = this.add.text(940, 520, "", { fontFamily: FONT, fontSize: "15px", color: "#ffffff", fontStyle: "bold", align: "right", backgroundColor: "#0b0614cc", padding: { x: 8, y: 5 } }).setOrigin(1, 1).setShadow(1, 1, "#000", 0);
+      if (!this.gunT || !this.gunT.scene) this.gunT = this.add.text(940, 520, "", { fontFamily: FONT, fontSize: "15px", color: "#ffffff", fontStyle: "bold", align: "right", backgroundColor: "#0b0614cc", padding: { x: 8, y: 5 } }).setOrigin(1, 1).setShadow(1, 1, "#000", 0);
       const ammo = gun ? s.guns![s.gun!] : 0;
       const out = gun && ammo <= 0;
       this.gunT

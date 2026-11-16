@@ -1845,7 +1845,7 @@ export class MinigameScene extends Phaser.Scene {
     }
     title(this, 480, 24, "BOARD FLIGHT KR-069", 26, "#ffd23f").setDepth(200);
     // the instruction on a dark pill so it reads over any sky
-    const tip = this.add.text(480, 54, "Get in the cannon. SPACE / TAP: ANGLE, then POWER. Grab coins mid-air. Mind the seagulls.", { fontFamily: FONT, fontSize: "13px", color: "#ffffff" }).setOrigin(0.5).setDepth(201);
+    const tip = this.add.text(480, 54, "SPACE / TAP: ANGLE, then POWER. Grab coins mid-air: every miss, the seagulls nick more of them.", { fontFamily: FONT, fontSize: "13px", color: "#ffffff" }).setOrigin(0.5).setDepth(201);
     this.add.rectangle(480, 54, tip.width + 28, 26, 0x0b0614, 0.7).setStrokeStyle(1, 0xffd23f, 0.6).setDepth(200);
     // the on-screen offer: which try this is and what hitting it now is worth
     const offer = this.add
@@ -2022,9 +2022,47 @@ export class MinigameScene extends Phaser.Scene {
     this.input.keyboard?.on("keydown-SPACE", fire);
     this.input.on("pointerdown", fire);
     // a miss: back in the cannon, as many times as it takes
+    // no cheesing it with endless shots: after every miss the seagulls swoop in and nick a growing share of what's
+    // left (40%, then 55%, then 70%...), and the golden Krezzcoin is a first-shot-only prize
+    const thin = () => {
+      const left = picks.filter((p) => !p.got);
+      if (!left.length) return;
+      const frac = Math.min(0.85, 0.25 + tries * 0.15);
+      const gone = new Set<Pick>(left.filter((p) => p.kind === "gold"));
+      const rest = Phaser.Utils.Array.Shuffle(left.filter((p) => p.kind !== "gold"));
+      for (let i = 0; i < Math.ceil(rest.length * frac); i++) gone.add(rest[i]);
+      let k = 0;
+      for (const p of gone) {
+        p.got = true;
+        const o = p.o;
+        this.tweens.killTweensOf(o);
+        const delay = k++ * 60;
+        const gx = 990;
+        const gy = o.y - 40;
+        const gull = this.textures.exists("p_seagull") ? this.add.image(gx, gy, "p_seagull").setScale(1) : this.add.ellipse(gx, gy, 30, 12, 0xffffff);
+        gull.setDepth(17);
+        this.tweens.add({
+          targets: gull,
+          x: o.x + 10,
+          y: o.y - 6,
+          delay,
+          duration: 380,
+          ease: "Quad.in",
+          onComplete: () => {
+            // snatched: off it goes, with your coin
+            this.tweens.add({ targets: [gull, o], x: -60, y: o.y - 120, duration: 700, ease: "Quad.out", onComplete: () => { gull.destroy(); o.destroy(); } });
+          },
+        });
+      }
+      if (gone.size) this.time.delayedCall(250, () => {
+        synth.play("shriek");
+        this.pop(480, 280, gone.size > 1 ? `THE SEAGULLS NICKED ${gone.size} OF THEM` : "A SEAGULL NICKED ONE", "#e5e7eb", 16);
+      });
+    };
     const reset = (msg: string) => {
       phase = "landed";
       this.pop(480, 240, msg, "#ff6b6b", 22);
+      thin();
       this.time.delayedCall(900, () => {
         if (this.ended) return;
         hero.setVisible(false).setAngle(0);

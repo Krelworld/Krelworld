@@ -42,7 +42,8 @@
     "PRESIDENT KLERBLE": "strong Italian accent",
     "CHINESE CROBLEY": "speaking English with a very strong Chinese accent",
     "RUSSELL BRAND": "lively, flamboyant cockney accent",
-    "GENIE": "speaking English with a strong Indian accent"
+    "GENIE": "speaking English with a strong Indian accent",
+    "CARMELA SOPRANO": "strong New Jersey accent"
   },
   "pronounce": {
     "_doc": "How a word is said aloud (the on-screen text is unchanged). Lines containing it are re-recorded.",
@@ -164,7 +165,6 @@
     "BARMAN": "q4FF21rONaQEpGU42wpc",
     "~news_f_us": "VWIrA5Gg86OL53hhe9Ho",
     "~news_m_us": "2W1H3Iqx1CqVoAG1f99o",
-    "~news_f_scot": "FrZZl9yATMT9IFnNIO0i",
     "~pub_m_welsh": "ybZu4f168aQeGoZnvXM1",
     "~pub_m_brum": "fkmC60cbrqDFWAiwEE3l",
     "~news_f_rp": "a5FszkiTGG6iNxzmCHeu",
@@ -298,7 +298,6 @@
     "CHEF DAVE": "uUxNMBq4S5JJX444W6pn",
     "CUSTOMER 1": "EnFwU9loHqFNYFithh6J",
     "CUSTOMER 2": "h5hiJ7Ze5yEnUJPwONwy",
-    "CARMELA SOPRANO": "kUmpk9RReJbu3lzZ4qer",
     "MILITARY SPOKESPERSON": "z1BeuDf0Zuz95yNORKlH",
     "WITNESS": "IHVdsDcAg38ykoK9XdVz",
     "JUICE BUNNY": "AGzIaZS67G9SQwS3IsYg",
@@ -315,7 +314,8 @@
     "GORDON RAMSAY": "QHY1TBAanOZDM1GB8OcW",
     "CHEF MICK": "esV7kJtKDdBipOsoWtGM",
     "GENIE": "c15nV2xCagiZlwvCGBxW",
-    "PROFESSOR BEN BURGIS": "Mlr9g8ZYpsO5Q1Wh5d9S"
+    "PROFESSOR BEN BURGIS": "Mlr9g8ZYpsO5Q1Wh5d9S",
+    "CARMELA SOPRANO": "KyRkqFgySOwoLUjC2PQ5"
   },
   "designed_desc": {
     "KRANKY KRANDALL": "A reedy, squeaky, frail old British man in his nineties. Thin, high, wavering, slightly wheezy voice, rambling and forgetful, trailing off mid-sentence.",
@@ -412,7 +412,6 @@
     "~news_m_us": "A polished American male television news anchor with a General American accent. Authoritative and smooth.",
     "~news_f_us": "A polished American female television news anchor with a General American accent. Crisp and confident.",
     "~news_f_rp": "A polished British female journalist with a Received Pronunciation accent. Crisp, sharp and inquisitive.",
-    "~news_f_scot": "A sharp female journalist with an Edinburgh Scottish accent. Quick and incredulous.",
     "~pub_m_brum": "A beery working-class man with a Brummie accent. Gruff and plain-spoken.",
     "~pub_m_welsh": "A cheerful working-class man with a strong Welsh accent. Loud and matey.",
     "~pub_f_manc": "A loud working-class woman with a Mancunian accent. Gobby and cheerful.",
@@ -457,7 +456,8 @@
     "DOCTOR": "A British GP in his fifties with a slight British-Asian lilt. Measured, calm and grave.",
     "NURSE": "A British nurse in her forties with a warm South London accent. Brisk and wry.",
     "NINTENDO SPOKESPERSON": "A bubbly, relentlessly upbeat games company presenter in his forties with a light Japanese accent speaking English. Bright keynote energy.",
-    "TONY SOPRANO": "A heavyset New Jersey Italian-American mob boss in his fifties with a thick, classic North Jersey accent. Gravelly, slow, heavy and menacing, with weary sighs."
+    "TONY SOPRANO": "A heavyset New Jersey Italian-American mob boss in his fifties with a thick, classic North Jersey accent. Gravelly, slow, heavy and menacing, with weary sighs.",
+    "CARMELA SOPRANO": "A New Jersey Italian-American housewife in her forties with a strong North Jersey accent. Sharp, clipped and exasperated, a little nasal, glamorous but no-nonsense, used to her husband's nonsense and fed up with it."
   },
   "stock": {
     "KREBLIS": "fLQ4kCrWQGVDIt5kYfSi",
@@ -710,7 +710,6 @@
     "CHEF DAVE": "~everyman_m2",
     "CUSTOMER 1": "~everyman_m",
     "CUSTOMER 2": "MARGARET THOMPSON",
-    "CARMELA SOPRANO": "~pol_f_us",
     "MILITARY SPOKESPERSON": "THE COLONEL",
     "WITNESS": "~everywoman_f2",
     "JUICE BUNNY": "~pub_f_manc",

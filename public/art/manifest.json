@@ -9346,6 +9346,18 @@
   },
   "tv_rm_kitchen": {
    "file": "backdrops/tv_rm_kitchen.png"
+  },
+  "fly_cloud_a": {
+   "file": "fly/fly_cloud_a.png"
+  },
+  "fly_cloud_b": {
+   "file": "fly/fly_cloud_b.png"
+  },
+  "fly_cloud_c": {
+   "file": "fly/fly_cloud_c.png"
+  },
+  "fly_sky": {
+   "file": "fly/fly_sky.png"
   }
  },
  "sheets": {

@@ -1208,7 +1208,10 @@ export class SsjBrawl {
     for (const o of a.gfx) if (o instanceof Phaser.GameObjects.Text) o.setPosition(e.x, e.y - 120);
     if (!a.done && now >= a.hitAt) {
       a.done = true;
-      for (const o of a.gfx) if (!(o instanceof Phaser.GameObjects.Graphics) || a.kind !== "swing") o.destroy();
+      for (const o of a.gfx) if (!(o instanceof Phaser.GameObjects.Graphics) || a.kind !== "swing") {
+        this.sc.tweens.killTweensOf(o);
+        o.destroy();
+      }
       a.gfx = a.gfx.filter((o) => o.active);
       const ph = this.phase();
       const sc = this.sc;

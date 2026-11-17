@@ -18,7 +18,7 @@ import { puff, softLight } from "./floors";
 export const DEPTH = { decal: 1.4, light: 1.8, wall: 2.05, prop: 6, overhead: 862, vignette: 880 };
 
 interface Knock {
-  obj: Phaser.GameObjects.Image | Phaser.GameObjects.Container;
+  obj: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container;
   x: number;
   y: number;
   r: number;
@@ -27,7 +27,14 @@ interface Knock {
   done: boolean;
   /** shot or kicked: falls over in place (true) or goes flying (false) */
   topple?: boolean;
+  /** a broken state (`<key>_burst`): it swaps to that and stays put as debris instead of flying off */
+  broken?: string;
 }
+
+/** The PixelLab smalls (`ddk_*`, 32px canvases) are drawn bigger than the code-drawn ones: this keeps them the same size in the room. */
+const DDK_SCALE = 0.6;
+/** Smalls that burst open (stuffing everywhere): with gore off they just go flying instead. */
+const SOFT = new Set(["ddk_teddy", "ddk_bunny", "ddk_unicorn"]);
 
 export interface PropOpts {
   scale?: number;
@@ -43,6 +50,8 @@ export interface PropOpts {
 
 export class Kit {
   readonly calm: boolean;
+  /** Settings: blood and guts (a plushie bursting open is the nearest the dressing gets) */
+  readonly gore: boolean;
   readonly rnd: Phaser.Math.RandomDataGenerator;
   private knocks: Knock[] = [];
   private updaters: ((now: number, dt: number) => void)[] = [];
@@ -65,6 +74,7 @@ export class Kit {
     seed: string,
   ) {
     this.calm = !!G.meta?.settings?.calmFlash;
+    this.gore = G.meta?.settings?.gore !== false;
     this.preexisting = new Set(sc.children.list);
     this.rnd = new Phaser.Math.RandomDataGenerator([seed]);
     this.keepClear = [new Phaser.Geom.Rectangle(r.w / 2 - 90, 0, 180, 150), new Phaser.Geom.Rectangle(r.w / 2 - 80, r.h - 170, 160, 170)];
@@ -95,16 +105,38 @@ export class Kit {
    * A piece of furniture that moves (a PixelLab loop, `<key>_anim` sheet): the boiler roaring, the jukebox lights, the
    * hamster on his wheel. Falls back to the still `key` if the sheet isn't there.
    */
-  animProp(key: string, x: number, y: number, o: PropOpts & { fps?: number } = {}): Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | null {
+  animProp(
+    key: string,
+    x: number,
+    y: number,
+    o: PropOpts & {
+      fps?: number;
+      /** play the loop once, then rest this long (ms, [min, max]) before the next go: the lockers rattle now and then */
+      rest?: [number, number];
+      /** it flickers or flashes (screens, a glint): stands still under Reduce Flashing */
+      flashy?: boolean;
+    } = {},
+  ): Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | null {
     const sheet = `${key}_anim`;
-    if (!this.has(sheet)) return this.prop(key, x, y, o);
+    if (!this.has(sheet) || (o.flashy && this.calm)) return this.prop(key, x, y, o);
     const img = this.prop(key, x, y, o);
     if (!img) return null;
-    const anim = `${sheet}_loop`;
-    if (!this.sc.anims.exists(anim)) this.sc.anims.create({ key: anim, frames: this.sc.anims.generateFrameNumbers(sheet, {}), frameRate: o.fps ?? 8, repeat: -1 });
+    const anim = `${sheet}_${o.rest ? "once" : "loop"}`;
+    if (!this.sc.anims.exists(anim)) this.sc.anims.create({ key: anim, frames: this.sc.anims.generateFrameNumbers(sheet, {}), frameRate: o.fps ?? 8, repeat: o.rest ? 0 : -1 });
     const spr = this.sc.add.sprite(img.x, img.y, sheet, 0).setOrigin(img.originX, img.originY).setScale(o.scale ?? 1.6).setDepth(img.depth).setFlipX(img.flipX);
     if (o.tint !== undefined) spr.setTint(o.tint);
-    spr.play({ key: anim, startFrame: this.rnd.between(0, 7) });
+    if (o.rest) {
+      // between goes it holds the first frame; a timer (not a per-frame check) starts the next go
+      const [lo, hi] = o.rest;
+      const go = () => {
+        if (spr.active) spr.play(anim);
+      };
+      spr.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+        spr.setFrame(0);
+        this.sc.time.delayedCall(lo + Math.random() * (hi - lo), go);
+      });
+      this.sc.time.delayedCall(Math.random() * hi, go);
+    } else spr.play({ key: anim, startFrame: this.rnd.between(0, this.sc.anims.get(anim).frames.length - 1) });
     img.destroy();
     return spr;
   }
@@ -361,10 +393,18 @@ export class Kit {
   /** Something small you can knock flying (walk into it, shoot it, blow it up). It never stops a bullet. */
   knockable(key: string, x: number, y: number, o: { scale?: number; colors?: number[]; sfx?: string; angle?: number; topple?: boolean; tint?: number } = {}) {
     if (!this.has(key)) return null;
-    const img = this.sc.add.image(x, y, key).setOrigin(0.5, 0.85).setScale(o.scale ?? 1.4).setAngle(o.angle ?? 0).setDepth(DEPTH.prop + y / 1000);
+    const pl = key.startsWith("ddk_");
+    // a PixelLab small tilts half as much (its broken state is drawn lying flat; a big tilt reads as skewed next to it)
+    const img = this.sc.add
+      .image(x, y, key)
+      .setOrigin(0.5, 0.85)
+      .setScale((o.scale ?? 1.4) * (pl ? DDK_SCALE : 1))
+      .setAngle((o.angle ?? 0) * (pl ? 0.5 : 1))
+      .setDepth(DEPTH.prop + y / 1000);
     if (o.tint !== undefined) img.setTint(o.tint);
     const r = Math.max(12, Math.min(30, img.displayWidth * 0.4));
-    this.knocks.push({ obj: img, x, y, r, colors: o.colors ?? [0xd6d3d1, 0x78716c], sfx: o.sfx ?? "hit", done: false, topple: o.topple });
+    const broken = this.has(`${key}_burst`) && (this.gore || !SOFT.has(key)) ? `${key}_burst` : undefined;
+    this.knocks.push({ obj: img, x, y, r, colors: o.colors ?? [0xd6d3d1, 0x78716c], sfx: o.sfx ?? "hit", done: false, topple: o.topple, broken });
     return img;
   }
 
@@ -382,6 +422,7 @@ export class Kit {
     if (k.done) return;
     k.done = true;
     const a = Math.atan2(k.y - fromY, k.x - fromX) + (Math.random() - 0.5) * 0.6;
+    if (k.broken) return this.breakSmall(k, a, hard);
     const d = hard ? 70 + Math.random() * 40 : 30 + Math.random() * 30;
     synth.play(k.sfx, hard ? 0.5 : 0.35);
     Juice.debris(this.sc, k.x, k.y - 6, hard ? 8 : 4, { colors: k.colors, speed: hard ? 220 : 140, depth: DEPTH.prop + 0.9, size: 4, floor: k.y + 8 });
@@ -397,6 +438,44 @@ export class Kit {
         this.sc.tweens.add({ targets: k.obj, alpha: 0, delay: 2500, duration: 800, onComplete: () => k.obj.destroy() });
       },
     });
+  }
+
+  /**
+   * Knocked or shot, a small with a broken state: it skids a little, swaps to the broken picture (after playing
+   * `<key>_burst_anim` once, if there is one) and stays where it lands, flat on the floor, as debris.
+   */
+  private breakSmall(k: Knock, a: number, hard: boolean) {
+    const img = k.obj as Phaser.GameObjects.Image;
+    const broken = k.broken as string;
+    const d = hard ? 14 + Math.random() * 10 : 6 + Math.random() * 8;
+    const x = k.x + Math.cos(a) * d;
+    const y = k.y + Math.sin(a) * d * 0.6;
+    synth.play(k.sfx, hard ? 0.5 : 0.35);
+    Juice.debris(this.sc, k.x, k.y - 6, hard ? 6 : 3, { colors: k.colors, speed: hard ? 180 : 110, depth: DEPTH.prop + 0.9, size: 3, floor: k.y + 6 });
+    // debris lies on the floor: under anything standing (furniture too) but over the decals
+    const flat = DEPTH.decal + 0.45 + y / 100000;
+    const angle = (Math.random() - 0.5) * 50;
+    const sheet = `${broken}_anim`;
+    if (this.has(sheet)) {
+      const anim = `${sheet}_once`;
+      if (!this.sc.anims.exists(anim)) this.sc.anims.create({ key: anim, frames: this.sc.anims.generateFrameNumbers(sheet, {}), frameRate: 16, repeat: 0 });
+      const spr = this.sc.add.sprite(img.x, img.y, sheet, 0).setOrigin(img.originX, img.originY).setScale(img.scaleX).setAngle(img.angle).setDepth(img.depth);
+      if (img.isTinted) spr.setTint(img.tintTopLeft);
+      img.destroy();
+      k.obj = spr;
+      this.sc.tweens.add({ targets: spr, x, y, angle, duration: 260, ease: "Cubic.out" });
+      // when it's done a plain picture takes over (a finished sprite would still sit in the update list)
+      spr.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+        const still = this.sc.add.image(spr.x, spr.y, broken).setOrigin(spr.originX, spr.originY).setScale(spr.scaleX).setAngle(spr.angle).setDepth(flat);
+        if (spr.isTinted) still.setTint(spr.tintTopLeft);
+        spr.destroy();
+        k.obj = still;
+      });
+      spr.play(anim);
+      return;
+    }
+    img.setTexture(broken).setDepth(flat);
+    this.sc.tweens.add({ targets: img, x, y, angle, duration: 220, ease: "Cubic.out" });
   }
 
   /** A player shot passed through (x, y). */

@@ -71,6 +71,7 @@ const FINAL_SCENE: TVBeat[] = [
   { type: "prop", id: "wine", on: false },
   { type: "shot", set: "nyc_skyline", framing: "WIDE", duration: 1.0 },
   { type: "titleCard", text: "NEW YORK CITY — SEPTEMBER 11, 2001 — 8:45 AM" },
+  { type: "titleCard", text: "PLOT TWIST: THIS ENTIRE EPISODE HAS BEEN TAKING PLACE ON THE MORNING OF 9/11 AND THE OFFICE IS IN THE TWIN TOWERS" },
   { type: "prop", id: "plane", on: true },
   { type: "music", id: "ominous", mode: "start" },
   { type: "direction", action: "The camera reveals an approaching plane." },

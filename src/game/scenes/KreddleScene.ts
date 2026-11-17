@@ -20,6 +20,8 @@ import type { Line } from "../../data/types";
 import { maxHp } from "../systems/stats";
 import { KreddleRaid, RAID_ART } from "./kreddle/Raid";
 import { preloadKrunchBurn } from "./kreddle/KrunchBurn";
+import { kreddleLife, neonBuzz } from "./kreddle/kreddleLife";
+import { calm, loopProp } from "../gfx/ambient";
 
 /**
  * KREDDLE: the casino/arcade universe over the bridge. Always night. Always neon.
@@ -106,6 +108,8 @@ export class KreddleScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(0x0b0618);
     this.drawWorld();
     this.drawStrip();
+    // buzzing neon, the crowd's glow, the fountain, the blimp, the odd jackpot
+    kreddleLife(this, W, this.spots, (text) => G.emit("toast", { title: "THE KLERBLE FOUNTAIN", text }));
     this.spawnPeople();
     this.me = this.add.sprite(110, 560, playerKey(this), 0).setScale(2).setDepth(560);
     bindSanmikToggle(this, { sprites: () => [this.me], can: () => !this.busy });
@@ -180,24 +184,18 @@ export class KreddleScene extends Phaser.Scene {
     this.spots.push({ x: 60, y: 545, r: 70, label: () => "E: Cross the bridge back to Krelworld", use: () => void this.leave() });
   }
 
-  private neonSign(x: number, y: number, text: string, color: string, size = 26) {
+  private neonSign(x: number, y: number, text: string, color: string, size = 26, bad = false) {
     const t = this.add.text(x, y, text, { fontFamily: "Impact, sans-serif", fontSize: `${size}px`, color, stroke: "#12001f", strokeThickness: 6 }).setOrigin(0.5).setDepth(450);
     t.setShadow(0, 0, color, 16, true, true);
-    // the odd flicker
-    this.time.addEvent({ delay: 1200 + Math.random() * 2400, loop: true, callback: () => {
-      if (Math.random() < 0.5) return;
-      t.setAlpha(0.25);
-      this.time.delayedCall(70, () => t.setAlpha(1));
-      this.time.delayedCall(140, () => t.setAlpha(0.4));
-      this.time.delayedCall(200, () => t.setAlpha(1));
-    } });
+    // it buzzes, and every so often a tube stutters (with calm flashes on, it just breathes)
+    neonBuzz(this, t, bad);
     return t;
   }
 
-  private building(key: string, x: number, scale: number, sign: string, color: string, tint?: number) {
+  private building(key: string, x: number, scale: number, sign: string, color: string, tint?: number, badTube = false) {
     const img = this.add.image(x, 404, key).setOrigin(0.5, 1).setScale(scale).setDepth(400);
     if (tint) img.setTint(tint);
-    this.neonSign(x, 404 - img.displayHeight - 18, sign, color);
+    this.neonSign(x, 404 - img.displayHeight - 18, sign, color, 26, badTube);
     // marquee bulbs along the front
     for (let i = 0; i < 9; i++) {
       const bx = x - img.displayWidth / 2 + 10 + (i * (img.displayWidth - 20)) / 8;
@@ -208,7 +206,9 @@ export class KreddleScene extends Phaser.Scene {
   }
 
   private machine(key: string, x: number, y: number, scale: number) {
-    const m = this.add.image(x, y, key).setOrigin(0.5, 1).setScale(scale).setDepth(y);
+    // the reels spin and the wheel turns, where their sheets are installed
+    const fps = key === "kd_m_slots" ? (calm() ? 7 : 12) : key === "kd_m_wheel" ? (calm() ? 6 : 10) : 0;
+    const m = ((fps && loopProp(this, `${key}_anim`, x, y, fps)) || this.add.image(x, y, key)).setOrigin(0.5, 1).setScale(scale).setDepth(y);
     const glow = this.add.ellipse(x, y, m.displayWidth * 1.2, 18, 0xff4fd8, 0.25).setDepth(y - 1).setBlendMode(Phaser.BlendModes.ADD);
     this.tweens.add({ targets: glow, alpha: 0.08, yoyo: true, repeat: -1, duration: 700 + Math.random() * 500 });
     return m;
@@ -245,7 +245,7 @@ export class KreddleScene extends Phaser.Scene {
     // WHACK-A-DRONGUS: the arcade's newest cabinet, in the gap between the Wheel and the Klerble Grand
     this.whackCabinet(1462, 522);
     // THE KLERBLE GRAND
-    this.building("kd_bld_hotel", 1620, 1.6, "THE KLERBLE GRAND", "#facc15");
+    this.building("kd_bld_hotel", 1620, 1.6, "THE KLERBLE GRAND", "#facc15", undefined, true);
     // KREDDLE KARDS
     this.machine("kd_m_cards", 1950, 600, 1.5);
     this.neonSign(1950, 470, "KREDDLE KARDS", "#4ade80", 20).setDepth(470);

@@ -9343,6 +9343,9 @@
   },
   "tv_burn_aide_horror": {
    "file": "tv/burnham/aide_horror.png"
+  },
+  "tv_rm_kitchen": {
+   "file": "backdrops/tv_rm_kitchen.png"
   }
  },
  "sheets": {
@@ -14223,6 +14226,31 @@
    "file": "tv/burnham/pigeon.png",
    "frameWidth": 48,
    "frameHeight": 48
+  },
+  "tvanchor_RM_BRAMWELL": {
+   "file": "tv/anchor_RM_BRAMWELL.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_rm_fingers": {
+   "file": "tv/action/rm_fingers.png",
+   "frameWidth": 192,
+   "frameHeight": 128
+  },
+  "tva_rm_knife": {
+   "file": "tv/action/rm_knife.png",
+   "frameWidth": 192,
+   "frameHeight": 128
+  },
+  "tva_rm_slice": {
+   "file": "tv/action/rm_slice.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_rm_stunned": {
+   "file": "tv/action/rm_stunned.png",
+   "frameWidth": 128,
+   "frameHeight": 128
   }
  },
  "vfx": {

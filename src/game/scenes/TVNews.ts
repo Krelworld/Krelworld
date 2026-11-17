@@ -9,6 +9,7 @@ import { KREWS4_NEWS, K4_KINDS, type K4Kind, type K4Scene, type K4Gfx } from "./
 import { KREWS1_NEWS } from "./tvnews/krews1Shows";
 import { KTP_KINDS, KtpGame, ktpCabinet, type KtpKind, type KtpScene } from "./tvnews/ktpGame";
 import { BURNHAM_NEWS, BURN_KINDS, BurnhamShow, type BurnKind } from "./tvnews/burnhamShow";
+import { RAMSEY_NEWS, type RmScene, type RmInsert } from "./tvnews/ramseyShow";
 import { fling, impact, playClip, type ClipOpts } from "./tv/action";
 
 /**
@@ -21,7 +22,7 @@ import { fling, impact, playClip, type ClipOpts } from "./tv/action";
 
 type Kind = "desk" | "presser" | "hall" | "footage" | "train" | StoryKind | K4Kind | KtpKind | BurnKind;
 
-export interface SceneDef extends StoryScene, K4Scene, KtpScene {
+export interface SceneDef extends StoryScene, K4Scene, KtpScene, RmScene {
   match: RegExp;
   kind: Kind;
   set: string;
@@ -132,6 +133,7 @@ export const NEWS_SHOWS: Record<string, NewsCfg> = {
   ...KREWS4_NEWS,
   ...KREWS1_NEWS,
   ...BURNHAM_NEWS,
+  ...RAMSEY_NEWS,
 };
 
 const STRAPS: Record<string, [string, string]> = {
@@ -633,6 +635,8 @@ export class NewsDirector {
         return 0;
       case "sfx":
         return this.storySfx(b.id);
+      case "insert":
+        return this.rmInsertBeat(b.id, b.lines);
       case "transition":
         if (b.mode === "smashCut") {
           const { SX, SY, SW, SH } = this.r;
@@ -692,6 +696,7 @@ export class NewsDirector {
     this.scene = this.cfg.scenes.find((s) => s.match.test(up)) ?? { ...STUDIO, set: STUDIO.set };
     if (this.scene.kind === "desk" && this.deskHeadline && this.chrome.headlineNow !== this.deskHeadline) this.chrome.headline(this.deskHeadline, /^BREAKING/i.test(this.deskHeadline) ? 0xb91c1c : undefined);
     this.lineInScene = 0;
+    this.rmHoldLines = 0;
     this.strapped.clear();
     this.mainSpeaker = this.scene.main ?? this.mainOf(this.idx);
     switch (this.scene.kind) {
@@ -747,6 +752,12 @@ export class NewsDirector {
     const kind = this.scene.kind;
     const delay = /^\(long pause\)/i.test(text) ? 1100 : 0;
     let p: Presenter | null = null;
+    if (this.rmHoldLines > 0) {
+      // an insert is up: the line plays over it
+      this.rmHoldLines--;
+      this.chrome.clearStrap();
+      return 0;
+    }
     if (KTP_KINDS.has(kind)) return this.ktpSpeak(n);
     if (BURN_KINDS.has(kind)) return this.burn().speak(name, text);
     if (K4_KINDS.has(kind)) return this.k4Speak(name, text);
@@ -845,6 +856,8 @@ export class NewsDirector {
       const d = this.burn().direction(action);
       if (d >= 0) return d;
     }
+    const rm = this.rmDirection(action);
+    if (rm >= 0) return rm;
     const k4 = this.k4Direction(action);
     if (k4 >= 0) return k4;
     if (STORY_KINDS.has(this.scene.kind)) {
@@ -1250,6 +1263,7 @@ export class NewsDirector {
   /** How a location is shot: sport (score bug, flashbulbs in the stands), secret footage, a hot mic, the breakfast sofa. */
   private look() {
     if (this.scene.k4look) return this.k4Look();
+    if (this.scene.rmDoc) return this.rmLook();
     const { SX, SY, SW, SH } = this.r;
     const look = this.scene.look;
     if (look === "sport") {
@@ -2544,5 +2558,63 @@ export class NewsDirector {
     c.add(img);
     this.sc.tweens.add({ targets: img, x: { from: w * 0.3, to: w * 0.7 }, duration: 1600, yoyo: true, repeat: -1, ease: "Sine.easeInOut", onYoyo: () => img.setFlipX(true), onRepeat: () => img.setFlipX(false) });
     this.sc.tweens.add({ targets: img, y: img.y - 3, duration: 120, yoyo: true, repeat: -1 });
+  }
+
+  // ------------------------------------------------------------------ Food History Moment (tvnews/ramseyShow.ts)
+  // The documentary's own footage (warm, soft, its tag in the corner) and its PixelLab close-up inserts.
+
+  /** lines still to be said over the insert that's up */
+  private rmHoldLines = 0;
+
+  private rmLook(caption?: string) {
+    const { SX, SY, SW, SH } = this.r;
+    this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xffb46b, 0.08).setOrigin(0).setBlendMode(Phaser.BlendModes.ADD), this.fxLayer);
+    const vg = this.add(this.sc.add.graphics(), this.fxLayer);
+    for (let i = 0; i < 6; i++) vg.lineStyle(14, 0x2a1408, 0.07).strokeRect(SX + i * 7, SY + i * 7, SW - i * 14, SH - i * 14);
+    this.rmTag(caption ?? this.scene.rmDoc ?? "");
+  }
+
+  private rmTag(text: string) {
+    const { SX, SY } = this.r;
+    const t = this.add(this.sc.add.text(SX + 16, SY + 46, text, { fontFamily: FONT, fontSize: "13px", color: "#fff7ed", backgroundColor: "#7c2d12dd", padding: { x: 6, y: 3 }, fontStyle: "bold" }), this.fxLayer);
+    this.add(this.sc.add.text(SX + 16, SY + 70, "COURTESY: FOOD HISTORY MOMENT", { fontFamily: FONT, fontSize: "11px", color: "#ffffff", backgroundColor: "#000000aa", padding: { x: 5, y: 2 } }), this.fxLayer);
+    return t;
+  }
+
+  private rmDirection(action: string): number {
+    const cue = this.scene.rmCues?.find((c) => c.match.test(action));
+    if (!cue) return -1;
+    return this.rmInsert(cue.insert) ? cue.hold : -1;
+  }
+
+  /** [INSERT id n]: cut to the insert and hold it over the next n lines. */
+  private rmInsertBeat(id: string, lines: number): number {
+    if (!this.rmInsert(id)) return 0;
+    this.rmHoldLines = lines;
+    return 700;
+  }
+
+  /** A close-up insert from the documentary, filling the picture. False if this scene has no such insert or no art. */
+  private rmInsert(id: string): boolean {
+    const ins: RmInsert | undefined = this.scene.rmInserts?.[id];
+    if (!ins || !this.sc.textures.exists(`tva_${ins.clip}`)) return false;
+    this.clearShot();
+    this.storyShotKind = "insert";
+    this.chrome.clearStrap();
+    const { SX, SY, SW, SH } = this.r;
+    // a medium shot is cut out: the set goes behind it, soft
+    if (ins.frame === "face" && this.scene.set) this.backdrop(this.scene.set, 1.9, 0, -20, true);
+    else this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0x1c1008).setOrigin(0));
+    const s = this.add(this.sc.add.sprite(this.cx(), 0, `tva_${ins.clip}`, ins.frames?.[0] ?? 0));
+    s.texture.setFilter(Phaser.Textures.FilterMode.NEAREST);
+    // a 3:2 still fills the picture; a medium shot stands full height on the soft set (the turkey and his hands in it)
+    if (ins.frame === "face") s.setScale((SH * 1.04) / s.height).setOrigin(0.5, 1).setY(SY + SH + 4);
+    else s.setScale(Math.max(SW / s.width, SH / s.height)).setY(SY + SH / 2);
+    playClip(this.sc, s, ins.clip, { fps: ins.fps, frames: ins.frames, loop: ins.loop });
+    // the documentary's slow, intimate push-in
+    this.camTo(1.07, this.cx(), ins.frame === "face" ? SY + SH * 0.3 : SY + SH / 2, 5000);
+    for (const fx of ins.sfx ?? []) this.later(fx.at, () => synth.play(fx.id));
+    this.rmLook(ins.caption);
+    return true;
   }
 }

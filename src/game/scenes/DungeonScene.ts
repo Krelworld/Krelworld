@@ -1857,12 +1857,14 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const bx = at?.x ?? r.w / 2;
     const by = at?.y ?? r.h / 2 - 100;
     const b = id === "pudding_demon" ? new PuddingDemonBoss(this, bx, by) : id === "krex" ? new KrexBoss(this, bx, by) : id === "elon" ? new ElonBoss(this, bx, by) : id === "drongus1" ? new DrongusPhaseOneBoss(this, bx, by) : id === "drongus2" ? new DerangedDrongusBoss(this, bx, by) : id === "dark_drongus" ? new DarkDrongusBoss(this, bx, by) : createBoss(id, this, bx, by);
-    // bosses toughen up as the story goes on (the bank is how you keep up)
-    const bossMult = (1 + Math.max(0, G.s.chapter - 2) * 0.18) * hpMult;
+    // bosses toughen up as the story goes on (the bank is how you keep up); BOSS_TOUGH: a bit more meat on all of them,
+    // so a big gun from the Exchange speeds a fight up rather than deleting the boss
+    const BOSS_TOUGH = 1.3;
+    const bossMult = BOSS_TOUGH * (1 + Math.max(0, G.s.chapter - 2) * 0.18) * hpMult;
     if (hpMult < 1) b.dmgMult = (b.dmgMult ?? 1) * 0.8;
     b.maxHp = Math.round(b.maxHp * bossMult);
     b.hp = b.maxHp;
-    b.dmgMult = (b.dmgMult ?? 1) * (1 + Math.max(0, G.s.chapter - 2) * 0.1);
+    b.dmgMult = (b.dmgMult ?? 1) * 1.1 * (1 + Math.max(0, G.s.chapter - 2) * 0.1);
     const pct = (this as any)._bossHpPct;
     if (typeof pct === "number" && pct > 0 && pct < 1) b.hp = Math.max(1, Math.round(b.maxHp * pct));
     this.boss = b;

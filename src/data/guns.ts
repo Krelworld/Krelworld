@@ -90,7 +90,7 @@ export const GUNS: Record<string, GunDef> = {
   },
   bfk: {
     id: "bfk", name: "The BFK (Big Fucking Krezzer)", blurb: "Do not fire indoors. Everything in Krelworld is indoors.",
-    tex: "p_wpn_rocket", dmg: 95, cd: 1600, speed: 300, pellets: 1, spread: 0, range: 560, blast: 150, knock: 420, color: 0xc084fc, shotTex: "fx_rocket", maxAmmo: 6, pickup: 2, ammoPrice: 60, minChapter: 1, shop: 2000,
+    tex: "p_wpn_rocket", dmg: 95, cd: 1600, speed: 300, pellets: 1, spread: 0, range: 560, blast: 150, knock: 420, color: 0xc084fc, shotTex: "fx_rocket", maxAmmo: 6, pickup: 2, ammoPrice: 60, minChapter: 1, shop: 3000,
   },
   // ---- Kreddle prizes
   chainsaw: {
@@ -116,7 +116,7 @@ export const GUNS: Record<string, GunDef> = {
   },
   roulette: {
     id: "roulette", name: "Kroulette Shotgun", blurb: "Red or black, the pellets bounce on to the next mug. Land on the green zero and the House pays out. Through everyone.",
-    tex: "p_wpn_roulette", dmg: 9, cd: 760, speed: 560, pellets: 7, spread: 0.6, range: 250, knock: 210, ricochet: 1, color: 0xef4444, maxAmmo: 48, pickup: 12, ammoPrice: 25, minChapter: 1, shop: 1100, kreddle: true, mech: "roulette", sfx: "gun_shotgun",
+    tex: "p_wpn_roulette", dmg: 9, cd: 760, speed: 560, pellets: 7, spread: 0.6, range: 250, knock: 210, ricochet: 1, color: 0xef4444, maxAmmo: 48, pickup: 12, ammoPrice: 25, minChapter: 1, shop: 1650, kreddle: true, mech: "roulette", sfx: "gun_shotgun",
   },
   chips: {
     id: "chips", name: "High Roller Chip Launcher", blurb: "Fires stacks of casino chips that hunt people down. The chips are worthless. So is everyone they hit.",
@@ -124,11 +124,11 @@ export const GUNS: Record<string, GunDef> = {
   },
   loan: {
     id: "loan", name: "The Loan Shark", blurb: "A harpoon gun with a payday loan attached. Skewers a queue of debtors, slows them right down, and collects the interest.",
-    tex: "p_wpn_loan", dmg: 52, cd: 720, speed: 950, pellets: 1, spread: 0, range: 700, pierce: 4, slow: 0.5, knock: 120, color: 0x94a3b8, maxAmmo: 30, pickup: 8, ammoPrice: 30, minChapter: 1, shop: 1000, kreddle: true, mech: "loan", sfx: "gun_sniper",
+    tex: "p_wpn_loan", dmg: 52, cd: 720, speed: 950, pellets: 1, spread: 0, range: 700, pierce: 4, slow: 0.5, knock: 120, color: 0x94a3b8, maxAmmo: 30, pickup: 8, ammoPrice: 30, minChapter: 1, shop: 1500, kreddle: true, mech: "loan", sfx: "gun_sniper",
   },
   dice: {
     id: "dice", name: "Snake Eyes", blurb: "Lobs a pair of loaded dice. Roll high, big bang. Roll double one and the House cries.",
-    tex: "p_wpn_dice", dmg: 30, cd: 820, speed: 380, pellets: 1, spread: 0, range: 480, blast: 60, knock: 240, color: 0xffffff, maxAmmo: 18, pickup: 5, ammoPrice: 40, minChapter: 1, shop: 1300, kreddle: true, mech: "dice", sfx: "gun_disco",
+    tex: "p_wpn_dice", dmg: 30, cd: 820, speed: 380, pellets: 1, spread: 0, range: 480, blast: 60, knock: 240, color: 0xffffff, maxAmmo: 18, pickup: 5, ammoPrice: 40, minChapter: 1, shop: 1950, kreddle: true, mech: "dice", sfx: "gun_disco",
   },
 };
 

@@ -1,5 +1,6 @@
 import { parseScreenplay, type TVEpisode } from "../../game/systems/tv";
 import { TCC_EP07 } from "./thickCummingCock/episode07";
+import { DRP_EP01 } from "./drPuss/episode01";
 import { CREATION_MYTH } from "./extra/creationMyth";
 import { EASTENDERS_KREZZ } from "./extra/eastenders";
 import { BEEP_SHOW } from "./extra/beepShow";
@@ -387,7 +388,7 @@ NARRATOR: Some historians dispute this, citing Godric Gryffindor and a Waluigi u
   { unlockFlag: "ch5_clear", unlockHint: "Locked programme: unlocks after Chapter 5" },
 );
 
-const EPISODES: TVEpisode[] = [KLERBLE_WELCOME, KRANDALL_SEGMENT, KLERBLE_PRESSER, WILDERN_BULLETIN, NEWS_1, NEWS_2, NEWS_3, NEWS_4, NEWS_5, CABINET_LIVE, SHOPPING, KRONSTER_DOC, LORE_HOUR, CREATION_MYTH, EASTENDERS_KREZZ, { ...BEEP_SHOW, unlockFlag: "tv_beep_show", unlockHint: "Locked programme: you'll catch it at the start of Chapter 4" }, ...KREWS_EPISODES, ...KREWS3_EPISODES.filter((e) => e.id !== "krews_crash_mode"), ...KREWS_STORIES_EPISODES, ...KREWS4_EPISODES, ...DRAMA_EPISODES, { ...TCC_EP07, channel: "CHANNEL KREZ" }, BEST_MAN, KRELBANK_AD];
+const EPISODES: TVEpisode[] = [KLERBLE_WELCOME, KRANDALL_SEGMENT, KLERBLE_PRESSER, WILDERN_BULLETIN, NEWS_1, NEWS_2, NEWS_3, NEWS_4, NEWS_5, CABINET_LIVE, SHOPPING, KRONSTER_DOC, LORE_HOUR, CREATION_MYTH, EASTENDERS_KREZZ, { ...BEEP_SHOW, unlockFlag: "tv_beep_show", unlockHint: "Locked programme: you'll catch it at the start of Chapter 4" }, ...KREWS_EPISODES, ...KREWS3_EPISODES.filter((e) => e.id !== "krews_crash_mode"), ...KREWS_STORIES_EPISODES, ...KREWS4_EPISODES, ...DRAMA_EPISODES, { ...TCC_EP07, channel: "CHANNEL KREZ" }, DRP_EP01, BEST_MAN, KRELBANK_AD];
 
 /** Number each channel's episodes in order, now that some channels have been folded together. */
 const counts: Record<string, number> = {};

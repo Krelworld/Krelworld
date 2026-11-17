@@ -9247,6 +9247,15 @@
   },
   "tv_kb_adviser_eyes": {
    "file": "tv/kb_adviser_eyes.png"
+  },
+  "tv_drp_office": {
+   "file": "backdrops/tv_drp_office.png"
+  },
+  "tv_drp_desk": {
+   "file": "tv/drp_desk.png"
+  },
+  "tv_drp_table": {
+   "file": "tv/drp_table.png"
   }
  },
  "sheets": {
@@ -13967,6 +13976,16 @@
    "file": "tv/face_MR_JONES.png",
    "frameWidth": 128,
    "frameHeight": 128
+  },
+  "tvdrp_octo": {
+   "file": "tv/drp_octo.png",
+   "frameWidth": 160,
+   "frameHeight": 160
+  },
+  "tvdrp_woman": {
+   "file": "tv/drp_woman.png",
+   "frameWidth": 96,
+   "frameHeight": 160
   }
  },
  "vfx": {

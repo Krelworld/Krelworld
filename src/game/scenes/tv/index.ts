@@ -11,15 +11,17 @@ import { CrimeDramaDirector } from "./CrimeDrama";
 import { FantasyDocDirector } from "./FantasyDoc";
 import { MobDramaDirector } from "./MobDrama";
 import { AdvertDirector } from "./Advert";
+import { DrPussDirector } from "./DrPuss";
 
 /**
  * KrelTV's genre presentations. TVScene asks for a director when an episode starts; an episode gets one if it's
  * listed here (or names a genre as its `style`). Everything else plays on the plain stage.
  */
-export type ShowGenre = "sitcom" | "soap" | "documentary" | "shopping" | "wedding" | "crime" | "fantasydoc" | "mob" | "advert" | EnsembleGenre;
+export type ShowGenre = "sitcom" | "soap" | "documentary" | "shopping" | "wedding" | "crime" | "fantasydoc" | "mob" | "advert" | "drpuss" | EnsembleGenre;
 
 export const SHOW_GENRES: Record<string, ShowGenre> = {
   tcc_ep7: "sitcom",
+  drp_ep1: "drpuss",
   eastenders_krezz: "soap",
   kronster_doc: "documentary",
   lore_hour: "documentary",
@@ -71,6 +73,8 @@ export function makeShowDirector(sc: Phaser.Scene, r: Rect, e: TVEpisode, host: 
       return new MobDramaDirector(sc, r, beats, host, e);
     case "advert":
       return new AdvertDirector(sc, r, beats, host, e);
+    case "drpuss":
+      return new DrPussDirector(sc, r, beats, host, e);
     case "parliament":
     case "sketch":
     case "drama":

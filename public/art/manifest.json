@@ -6875,6 +6875,9 @@
   "p_flirt": {
    "file": "props/p_flirt.png"
   },
+  "p_krex": {
+   "file": "props/p_krex.png"
+  },
   "p_lantern": {
    "file": "props/p_lantern.png"
   },

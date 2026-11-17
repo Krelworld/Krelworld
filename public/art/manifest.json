@@ -8524,6 +8524,66 @@
   },
   "fe_still_drongus_flee": {
    "file": "finale/fe_still_drongus_flee.png"
+  },
+  "fe_cut_ssj_CRONGUS": {
+   "file": "finale/fe_cut_ssj_CRONGUS.png"
+  },
+  "fe_cut_ssj_FLENKY": {
+   "file": "finale/fe_cut_ssj_FLENKY.png"
+  },
+  "fe_cut_ssj_GRONNY": {
+   "file": "finale/fe_cut_ssj_GRONNY.png"
+  },
+  "fe_cut_ssj_KREBLIS": {
+   "file": "finale/fe_cut_ssj_KREBLIS.png"
+  },
+  "fe_cut_ssj_KREBON": {
+   "file": "finale/fe_cut_ssj_KREBON.png"
+  },
+  "fe_cut_ssj_KREZMAR": {
+   "file": "finale/fe_cut_ssj_KREZMAR.png"
+  },
+  "fe_cut_ssj_KREZWONK": {
+   "file": "finale/fe_cut_ssj_KREZWONK.png"
+  },
+  "fe_cut_ssj_MIKEY": {
+   "file": "finale/fe_cut_ssj_MIKEY.png"
+  },
+  "fe_cut_ssj_SCROMBUS": {
+   "file": "finale/fe_cut_ssj_SCROMBUS.png"
+  },
+  "fe_eyes_ssj_CRONGUS": {
+   "file": "finale/fe_eyes_ssj_CRONGUS.png"
+  },
+  "fe_eyes_ssj_FLENKY": {
+   "file": "finale/fe_eyes_ssj_FLENKY.png"
+  },
+  "fe_eyes_ssj_GRONNY": {
+   "file": "finale/fe_eyes_ssj_GRONNY.png"
+  },
+  "fe_eyes_ssj_KREBLIS": {
+   "file": "finale/fe_eyes_ssj_KREBLIS.png"
+  },
+  "fe_eyes_ssj_KREBON": {
+   "file": "finale/fe_eyes_ssj_KREBON.png"
+  },
+  "fe_eyes_ssj_KREZMAR": {
+   "file": "finale/fe_eyes_ssj_KREZMAR.png"
+  },
+  "fe_eyes_ssj_KREZWONK": {
+   "file": "finale/fe_eyes_ssj_KREZWONK.png"
+  },
+  "fe_eyes_ssj_MIKEY": {
+   "file": "finale/fe_eyes_ssj_MIKEY.png"
+  },
+  "fe_eyes_ssj_SCROMBUS": {
+   "file": "finale/fe_eyes_ssj_SCROMBUS.png"
+  },
+  "fe_still_krew": {
+   "file": "finale/fe_still_krew.png"
+  },
+  "fe_still_krew_ssj": {
+   "file": "finale/fe_still_krew_ssj.png"
   }
  },
  "sheets": {
@@ -10800,6 +10860,76 @@
    "file": "finale/fe_still_regrow_anim.png",
    "frameWidth": 256,
    "frameHeight": 144
+  },
+  "fe_cut_ssj_CRONGUS_anim": {
+   "file": "finale/fe_cut_ssj_CRONGUS_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_cut_ssj_GRONNY_anim": {
+   "file": "finale/fe_cut_ssj_GRONNY_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_cut_ssj_KREBLIS_anim": {
+   "file": "finale/fe_cut_ssj_KREBLIS_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_cut_ssj_KREBON_anim": {
+   "file": "finale/fe_cut_ssj_KREBON_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_cut_ssj_KREZMAR_anim": {
+   "file": "finale/fe_cut_ssj_KREZMAR_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_cut_ssj_KREZWONK_anim": {
+   "file": "finale/fe_cut_ssj_KREZWONK_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_cut_ssj_MIKEY_anim": {
+   "file": "finale/fe_cut_ssj_MIKEY_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_cut_ssj_SCROMBUS_anim": {
+   "file": "finale/fe_cut_ssj_SCROMBUS_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_eyes_goku_anim": {
+   "file": "finale/fe_eyes_goku_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 64
+  },
+  "fe_still_dawn_anim": {
+   "file": "finale/fe_still_dawn_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_goku_raise_anim": {
+   "file": "finale/fe_still_goku_raise_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_krew_anim": {
+   "file": "finale/fe_still_krew_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_krew_ssj_anim": {
+   "file": "finale/fe_still_krew_ssj_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_bossanim_drongus2_p3": {
+   "file": "combat/fe_bossanim_drongus2_p3.png",
+   "frameWidth": 128,
+   "frameHeight": 128
   }
  },
  "vfx": {

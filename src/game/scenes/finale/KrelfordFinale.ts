@@ -14,7 +14,7 @@ import { maxHp } from "../../systems/stats";
 import { switchTo } from "../../Flow";
 import { say } from "../../../content/dsl";
 import * as FB from "../../../content/finaleKrelford";
-import { bottleKey, finaleReady, headroom, logsKey, ssjSwap, syringeKey } from "./finaleArt";
+import { bottleKey, finaleReady, headroom, logsKey, ssjSwap, syringeKey, youCutKey, youEyesKey } from "./finaleArt";
 import * as Juice from "../../gfx/Juice";
 
 /**
@@ -192,6 +192,9 @@ export class KrelfordFinale {
       h.toast("OBJECTIVE", "Get the golden pussy juice testosterone. Follow the arrow.");
       return;
     }
+    // the Krew, from behind, squaring up to it
+    await Juice.still(h.sc, "fe_still_krew", 1800, { push: 0.08, shakeK: 0 });
+    if (this.gone) return;
     await h.talk(FB.FB_ARENA);
     if (this.gone) return;
     await this.introShot();
@@ -571,6 +574,14 @@ export class KrelfordFinale {
     h.shake(600, 0.015);
     Juice.subDrop(0.9, 1.3);
     synth.play("boom");
+    // you, close up, then all of you lit up gold in front of it
+    await Juice.eyeShot(h.sc, youEyesKey(h.sc, G.s.player), 650, { color: 0xffe066 });
+    if (this.gone) return;
+    const you = youCutKey(h.sc, G.s.player);
+    if (you?.startsWith("fe_")) await Juice.cutIn(h.sc, you, { from: "left", y: 330, color: 0xffd23f, hold: 700 });
+    if (this.gone) return;
+    await Juice.still(h.sc, "fe_still_krew_ssj", 1500, { push: 0.1, shakeK: 0.012 });
+    if (this.gone) return;
     await Juice.bossCard(h.sc, "SUPER KRELWORLD KREW", "REAL DAMAGE · HOLD OUT FOR THE SPIRIT CUM", "#ffd23f");
     if (this.gone) return;
     this.spiritGauge();
@@ -852,7 +863,7 @@ export class KrelfordFinale {
   private spiritGauge() {
     if (this.gauge) return;
     const h = this.h;
-    const L = Juice.layer(h.sc, 5001);
+    const L = Juice.layer(h.sc, 4985);
     const w = 300;
     const y = 96;
     const back = h.add.rectangle(480, y, w + 8, 18, 0x000000, 0.7).setStrokeStyle(2, 0xffd23f, 0.9);

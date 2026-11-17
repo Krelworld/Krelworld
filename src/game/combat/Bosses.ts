@@ -109,6 +109,23 @@ export abstract class Boss extends Enemy {
     });
   }
 
+  /** Swap to another animation sheet of the same layout (a later phase's look). False if it isn't loaded. */
+  protected useAnimSheet(ak: string): boolean {
+    if (!this.animKey || this.dead || !this.scene.textures.exists(ak)) return false;
+    const rows = bossAnims(this.scene, ak);
+    if (!rows.has("idle")) return false;
+    const sx = this.scaleX;
+    const sy = this.scaleY;
+    this.animKey = ak;
+    this.animRows = rows;
+    this.animUntil = 0;
+    this.anims.stop();
+    super.setTexture(ak, 0);
+    this.setScale(sx, sy);
+    this.play(`${ak}:idle`);
+    return true;
+  }
+
   /** A scripted change of look (e.g. Drongus going skinny) takes over from the animation sheet for good. */
   setTexture(key: string, frame?: string | number) {
     const k = key;

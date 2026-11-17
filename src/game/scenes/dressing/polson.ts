@@ -66,8 +66,7 @@ export const polson: Record<string, Dressing> = {
       // the fridge, and what's coming out of it
       const fx = w - 330;
       k.animProp("dd_mouldfridge", fx, 170, { scale: 1.9, block: [80, 34] });
-      const ooze = splats(k, 9, [0x4d7c0f, 0x65a30d, 0x84cc16], new Phaser.Geom.Rectangle(fx - 30, 190, 60, 160), 12, 0.7);
-      k.sc.tweens.add({ targets: ooze, alpha: 0.55, yoyo: true, repeat: -1, duration: 1400, ease: "Sine.inOut" });
+      splats(k, 9, [0x4d7c0f, 0x65a30d, 0x84cc16], new Phaser.Geom.Rectangle(fx - 30, 190, 60, 160), 12, 0.7);
       k.flies(fx, 150, 5, 26);
       k.drip(fx + 26, 130, 196, 0x84cc16, 1300);
       k.poster(fx, 30, 130, 34, 0xfefce8, 0x65a30d, "DO NOT THROW ANYTHING AWAY.\nI MIGHT NEED IT.  — E", "#3f6212", 7, -2);
@@ -91,8 +90,7 @@ export const polson: Record<string, Dressing> = {
         k.flies(x, y - 30, 4, 20);
       }
       // mould growing in the grout (breathing), cartons, cans, the odd pizza
-      const mould = splats(k, 14, [0x3f6212, 0x4d7c0f, 0x65a30d], ANY(k), 16, 0.45);
-      k.sc.tweens.add({ targets: mould, alpha: 0.7, yoyo: true, repeat: -1, duration: 2600, ease: "Sine.inOut" });
+      splats(k, 14, [0x3f6212, 0x4d7c0f, 0x65a30d], ANY(k), 16, 0.45);
       splats(k, 8, [0x7c2d12, 0xb45309], ANY(k), 10, 0.5);
       scatter(k, [SMALL.carton(k), SMALL.can(k), SMALL.pizza(k), SMALL.can(k)], 18, ANY(k), { colors: [0xf4f4f5, 0xdc2626, 0x65a30d], sfx: "squelch", scale: 1.5 });
       k.stripLights([250, 520], [w * 0.3, w * 0.7], 0xd9f99d, 0.15, 0);

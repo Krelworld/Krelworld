@@ -128,6 +128,7 @@ export const misc: Record<string, Dressing> = {
     build(k) {
       const { w, h } = k.r;
       const rings = [0, 1].map(() => k.sc.add.ellipse(0, h / 2, 160, h * 1.1).setStrokeStyle(40, 0x4a0d22, 0.18).setDepth(DEPTH.decal + 0.3));
+      k.keepLive(...rings);
       k.onUpdate((now) => rings.forEach((r, i) => r.setX(((now / 1000) * 70 + i * (w / 2)) % (w + 200) - 100)));
       for (let i = 0; i < 26; i++) {
         const sp = k.sc.add.ellipse(60 + k.rnd.frac() * (w - 120), 80 + k.rnd.frac() * (h - 120), 10 + k.rnd.frac() * 14, 4 + k.rnd.frac() * 4, 0xffffff, 0.3).setDepth(DEPTH.decal + 0.2);

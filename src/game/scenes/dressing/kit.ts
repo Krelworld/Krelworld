@@ -48,6 +48,15 @@ export class Kit {
   private updaters: ((now: number, dt: number) => void)[] = [];
   /** places the player starts and walks in through: keep these clear of furniture */
   readonly keepClear: Phaser.Geom.Rectangle[];
+  /** what the scene had drawn before the dressing (the room itself): left alone when baking */
+  private preexisting: Set<Phaser.GameObjects.GameObject>;
+  /** things animated by hand (not by a tween): never baked */
+  private live = new Set<unknown>();
+
+  /** Mark objects as moving every frame (so finish() doesn't bake them into the floor). */
+  keepLive(...objs: unknown[]) {
+    for (const o of objs) this.live.add(o);
+  }
 
   constructor(
     readonly sc: Phaser.Scene,
@@ -56,6 +65,7 @@ export class Kit {
     seed: string,
   ) {
     this.calm = !!G.meta?.settings?.calmFlash;
+    this.preexisting = new Set(sc.children.list);
     this.rnd = new Phaser.Math.RandomDataGenerator([seed]);
     this.keepClear = [new Phaser.Geom.Rectangle(r.w / 2 - 90, 0, 180, 150), new Phaser.Geom.Rectangle(r.w / 2 - 80, r.h - 170, 160, 170)];
     puff(sc);
@@ -118,7 +128,39 @@ export class Kit {
 
   /** Graphics on the back wall (y 0..56). */
   wallG() {
-    return this.sc.add.graphics().setDepth(DEPTH.wall);
+    const g = this.sc.add.graphics().setDepth(DEPTH.wall);
+    this.bakeWall.push(g);
+    return g;
+  }
+
+  private bakeWall: Phaser.GameObjects.Graphics[] = [];
+
+  /**
+   * Once the room's built: the still floor and wall drawings are baked into one picture each (a Graphics is redrawn
+   * from scratch every frame, which a software renderer feels). Anything with a tween on it stays live.
+   */
+  finish() {
+    type Drawable = Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Depth & Phaser.GameObjects.Components.Visible & Phaser.GameObjects.Components.Alpha;
+    const still = (o: Drawable) => !this.live.has(o) && o.active && o.visible && o.alpha > 0 && !this.sc.tweens.getTweensOf(o).length && !o.body;
+    // the floor: the tile and everything flat on it that doesn't move (decals, rugs, mats, contact shadows, steady
+    // light pools) become one picture, so the floor costs one layer however much is drawn on it
+    const list = this.sc.children.list as Drawable[];
+    const floor = list.find((o) => o instanceof Phaser.GameObjects.TileSprite && o.depth === 0) as Phaser.GameObjects.TileSprite | undefined;
+    const flat = list.filter((o) => !this.preexisting.has(o) && o.depth > 0 && o.depth <= DEPTH.light + 0.01 && still(o)).sort((a, b) => a.depth - b.depth);
+    if (floor && flat.length) {
+      const rt = this.sc.add.renderTexture(0, 0, this.r.w, this.r.h).setOrigin(0).setDepth(0);
+      rt.draw(floor);
+      for (const o of flat) rt.draw(o);
+      for (const o of [floor, ...flat]) o.destroy();
+    }
+    // the back wall's posters and boards: one strip
+    const wall = this.bakeWall.filter((g) => still(g as unknown as Drawable) && g.blendMode === Phaser.BlendModes.NORMAL);
+    if (wall.length > 1) {
+      const rt = this.sc.add.renderTexture(0, 0, this.r.w, 64).setOrigin(0).setDepth(DEPTH.wall);
+      for (const g of wall) rt.draw(g);
+      for (const g of wall) g.destroy();
+    }
+    this.bakeWall = [];
   }
 
   /** Text on the back wall or floor. */
@@ -154,6 +196,7 @@ export class Kit {
 
   /** A fluorescent tube that has seen better days: on, then the odd stutter (steady under Reduce Flashing). */
   buzz(targets: { setAlpha(v: number): unknown }[], alpha: number) {
+    this.keepLive(...targets);
     if (this.calm) return;
     const tick = () => {
       const seq = [0.15, 1, 0.3, 1, 0.1, 1];
@@ -280,6 +323,7 @@ export class Kit {
     const spots = Array.from({ length: n }, (_, i) =>
       this.sc.add.image(cx, cy, "dd_softlight").setTint(colors[i % colors.length]).setAlpha(alpha).setDisplaySize(70, 50).setDepth(DEPTH.light).setBlendMode(Phaser.BlendModes.ADD),
     );
+    this.keepLive(...spots);
     const speed = this.calm ? 0.12 : 0.35;
     this.onUpdate((now) => {
       const t = (now / 1000) * speed;

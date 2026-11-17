@@ -755,6 +755,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       this.dress = new Kit(this, r, this.obstacles, `${this.dungeon.id}:${this.roomIdx}`);
       if (dressing.keepGeneric && r.theme === "lounge") this.decorateLounge(r);
       dressing.build(this.dress);
+      this.dress.finish();
       if (dressing.weather) {
         synth.weatherSound(dressing.weather);
         this.events.once("shutdown", () => synth.weatherSound(null));

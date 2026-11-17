@@ -66,8 +66,8 @@ export const wildern: Record<string, Dressing> = {
       // the servery: the hatch, the hot counters, the steam
       for (const x of [w - 350, w - 180]) {
         k.prop("dd_servery", x, 158, { scale: 2, block: [160, 40] });
-        k.steam(x - 30, 120, { every: 650, alpha: 0.28, size: 0.8, dist: 50 });
-        k.steam(x + 30, 120, { every: 800, alpha: 0.22, size: 0.7, dist: 50 });
+        k.steam(x - 30, 120, { every: 1000, alpha: 0.28, size: 0.8, dist: 50 });
+        k.steam(x + 30, 120, { every: 1300, alpha: 0.22, size: 0.7, dist: 50 });
         k.light(x, 150, 110, 0xffc66b, 0.14, "breathe");
       }
       k.poster(w - 265, 66, 110, 14, 0xb91c1c, 0x111111, "HATCH · NO PUSHING", "#ffffff", 7);
@@ -123,8 +123,8 @@ export const wildern: Record<string, Dressing> = {
       gauge(k, w - 36, 200, 7, true);
       k.steam(140, 72, { burst: true, every: 900, alpha: 0.45, dir: Math.PI / 2, dist: 80 });
       k.steam(w - 460, 72, { burst: true, every: 1100, alpha: 0.45, dir: Math.PI / 2, dist: 80 });
-      k.steam(44, 560, { every: 700, alpha: 0.3, dir: 0.2, dist: 90 });
-      k.steam(w - 44, 380, { every: 900, alpha: 0.3, dir: Math.PI - 0.2, dist: 90 });
+      k.steam(44, 560, { every: 1500, alpha: 0.3, dir: 0.2, dist: 90 });
+      k.steam(w - 44, 380, { every: 1700, alpha: 0.3, dir: Math.PI - 0.2, dist: 90 });
       // the boilers
       for (const [x, y, flip] of [
         [200, 330, false],
@@ -133,7 +133,7 @@ export const wildern: Record<string, Dressing> = {
         k.animProp("dd_boiler", x, y, { scale: 1.8, flip, block: [140, 70], fps: 7 });
         const fx = x + (flip ? 34 : -34);
         k.light(fx, y - 30, 120, 0xff7a1a, 0.32, "fire");
-        k.steam(x + (flip ? -20 : 20), y - 150, { every: 500, alpha: 0.35, size: 1.1 });
+        k.steam(x + (flip ? -20 : 20), y - 150, { every: 950, alpha: 0.35, size: 1.1 });
       }
       // a grate in the floor with the furnace glowing under it
       const gg = k.floorG(DEPTH.decal + 0.05);
@@ -146,7 +146,7 @@ export const wildern: Record<string, Dressing> = {
         gg.fillStyle(0x292524);
         for (let i = 0; i < 7; i++) gg.fillRect(x - 30 + i * 10, y - 16, 4, 32);
         k.light(x, y, 80, 0xff6a00, 0.22, "fire");
-        k.steam(x, y, { every: 1300, alpha: 0.18, color: 0xffd0a0, size: 0.8, dist: 40 });
+        k.steam(x, y, { every: 2400, alpha: 0.18, color: 0xffd0a0, size: 0.8, dist: 40 });
       }
       k.prop("dd_coalpile", 110, h - 50, { scale: 1.6, block: [80, 26] });
       k.prop("dd_coalpile", w - 120, 300, { scale: 1.4, flip: true, block: [70, 22] });

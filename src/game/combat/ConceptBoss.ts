@@ -101,7 +101,7 @@ export class ConceptBoss extends Boss {
    * A drawn move (wind-ups: "rear" breathes in, "slam" brings the arms down; "flinch" when it's really hurt), then
    * back to its loop. In the real phase, the wounded version. Not over a roar.
    */
-  move(name: "rear" | "slam" | "flinch", fps = 12) {
+  move(name: "rear" | "slam" | "flinch" | "storm", fps = 12) {
     const sc = this.scene;
     const now = this.world.now();
     if (!this.art || this.dead || now < this.roaringUntil || now < this.movingUntil) return;
@@ -237,6 +237,8 @@ export class ConceptBoss extends Boss {
     const x = at?.x ?? p.x + (Math.random() - 0.5) * 220;
     const y = at?.y ?? p.y + (Math.random() - 0.5) * 160;
     const tele = 750 * w.telegraphMult;
+    // wounded, it calls the strike down itself now and then (claws up, the storm crackling between them)
+    if (!at && this.mode === "real" && Math.random() < 0.4) this.move("storm", 12);
     w.enemyAoe(x, y, 58, this.mode === "real" ? 20 : 14, tele, 0xc4b5fd);
     sc.time.delayedCall(tele - 60, () => {
       if (!this.active) return;
@@ -452,6 +454,8 @@ export class ConceptBoss extends Boss {
     const cell = 132;
     const cx = p.x;
     const cy = p.y;
+    // its wounded storm wind-up (when drawn), under the roar
+    this.move("storm", 10);
     this.roar();
     w.floatText(this.x, this.y - this.displayHeight * 0.45, "[CITATION NEEDED]", "#e9d5ff", 22);
     for (let wave = 0; wave < 2; wave++)

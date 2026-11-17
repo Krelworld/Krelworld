@@ -7,8 +7,8 @@ import type { NewsCfg } from "../TVNews";
  *
  * - concert: phone footage from the crowd at a gig, SanMik doing the crocodile on stage.
  * - mob: a street crowd (bobbing heads and placards) that can turn; a hot-mic voice comes in picture-in-picture.
- * - k4look on a field: "reality" (a reality-TV clip), "high" (the same, after the jenkem), "recon" (a reconstruction:
- *   the stage directions run as the subtitles) and "phone" (a viral video off someone's feed).
+ * - k4look on a field: "reality" (a reality-TV clip), "high" (the same, after the jenkem) and "phone" (a viral video
+ *   off someone's feed).
  * - askers: in a presser, people who ask from the pack (the reporter always does).
  * - singles: in a field, anyone with art gets a single, not only the cast in the wide.
  * - k4gfx: a withheld photo (the costume nobody is shown).
@@ -22,7 +22,7 @@ export type K4Gfx = { type: "withheld"; title: string; caption: string };
 export interface K4Scene {
   askers?: string[];
   singles?: boolean;
-  k4look?: "reality" | "high" | "recon" | "phone";
+  k4look?: "reality" | "high" | "phone";
   k4gfx?: K4Gfx;
   /** mob: what's written on the placards */
   placards?: string[];
@@ -39,8 +39,6 @@ const BUNNY = { key: "tvanchor_K4_BUNNY", frame: 0, crop: [20, 0, 88, 70] as [nu
 const SANMIK = { key: "talk_SANMIK", frame: 0 };
 const KART = { key: "tv_k4_tate_kart", crop: [10, 20, 108, 90] as [number, number, number, number] };
 const GORDON = { key: "tvanchor_K4_GORDON", frame: 0, crop: [24, 0, 80, 70] as [number, number, number, number] };
-const TONY = { key: "tvanchor_K4_TONY", frame: 0, crop: [24, 0, 80, 70] as [number, number, number, number] };
-const CARMELA = { key: "tvanchor_K4_CARMELA", frame: 0, crop: [24, 6, 80, 70] as [number, number, number, number] };
 
 export const KREWS4_NEWS: Record<string, NewsCfg> = {
   krews_wallace: {
@@ -285,24 +283,6 @@ export const KREWS4_NEWS: Record<string, NewsCfg> = {
       "CHEF DAVE": ["Chef Dave", "Line cook"],
       "CUSTOMER 2": ["Customer", "Waiting two hours"],
     },
-  },
-
-  krews_soprano: {
-    brand: "gbk",
-    ticker: [
-      "New Jersey: TV destroyed over Family Guy",
-      "Chicken piccata 'everywhere'",
-      "Decorative brick recovered from television",
-      "Penis enlargement 'still on the table', sources say",
-      "Peter Griffin unavailable for comment",
-    ],
-    scenes: [STUDIO, { match: /SOPRANO/, kind: "field", set: "tv_k4_lounge", k4look: "recon", cast: [["TONY SOPRANO", 0.2], ["CARMELA SOPRANO", 0.5]] }],
-    ots: [
-      { match: /reconstruction/i, pic: { key: "tv_k4_lounge", crop: [20, 60, 280, 170] }, caption: "Reconstruction" },
-      { match: /Carmela|sauce/i, pic: CARMELA, caption: "Carmela Soprano" },
-      { match: /Soprano|New Jersey|enlargement/i, pic: TONY, caption: "Tony Soprano" },
-    ],
-    straps: { "TONY SOPRANO": ["Tony Soprano", "Waste management consultant"], "CARMELA SOPRANO": ["Carmela Soprano", "His wife"] },
   },
 
   krews_boulder: {

@@ -9,7 +9,8 @@ import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 // - "The Descent" (the age of consent): the cabinet room, the markets, the crowd and the hot mic as written, with
 //   only adults anywhere on screen; Corbyn's text message is cut.
 // - Kitchen Nightmares runs as an entertainment package: the clip as written, with the newsreader in and out.
-// Not included: "Rishi Sunak Makes Bizarre Reference to Penis" (already on air as drama_special_parts, "Rishi's Special Parts" on BBK One).
+// Not included: the Soprano household story (it's a scene from the show, not news: DRAMA_SOPRANOS in dramas.ts, which
+// keeps the id krews_soprano) and "Rishi Sunak Makes Bizarre Reference to Penis" (already on air as drama_special_parts, "Rishi's Special Parts" on BBK One).
 
 const NEWS = "GB KREWS 24";
 
@@ -311,34 +312,6 @@ NEWSREADER: Kitchen Nightmares. The restaurant's health inspection is on Thursda
 `,
 );
 
-export const KREWS_SOPRANO = ep(
-  "krews_soprano",
-  "Tony Soprano Destroys TV Over Family Guy",
-  41,
-  `${OPEN("NIGHT")}
-# TONY SOPRANO DESTROYS TV OVER FAMILY GUY, ATTACKS WIFE WITH CHICKEN PICCATA
-NEWSREADER: New Jersey, where an evening in front of the television at the Soprano household has ended with a brick through the screen and a face in the chicken piccata.
-NEWSREADER: GB Krews has put together a reconstruction of what happened.
-INT. SOPRANO LIVING ROOM - NIGHT
-# RECONSTRUCTION
-(Tony Soprano walks into the living room, beer in hand, belly hanging out. Carmela is on the couch, deeply engrossed in an episode of Family Guy.)
-TONY SOPRANO: Hey, Carm, I been thinkin' of gettin' one o' dem penis enlargements.
-CARMELA SOPRANO (not looking away from the TV): I'm trying to watch Family Guy here, Tony. I wanna see what happens next with Peter.
-(Tony glares at the screen. Peter Griffin is laughing maniacally as he farts on Lois's face.)
-[SFX fart_2]
-(A deep, primal rage boils in his gut. Without a word, he picks up a decorative brick from the fireplace and hurls it full force at the TV.)
-[SFX smash]
-(Sparks fly, the screen shatters, and Carmela screams as the room goes dark.)
-[SFX scream_woman]
-(Before she can react, Tony grabs her by the hair and shoves her face into the steaming plate of chicken piccata on the coffee table.)
-[SFX splat_1]
-INT. NEWSDESK - NIGHT
-NEWSREADER: Carmela let out a muffled shriek as sauce splattered everywhere.
-NEWSREADER: Mr Soprano has made no further comment on the enlargement.
-[FADE]
-`,
-);
-
 export const KREWS_BOULDER = ep(
   "krews_boulder",
   "Boulder Prank Goes Deadly",
@@ -439,7 +412,6 @@ export const KREWS4_EPISODES: TVEpisode[] = [
   KREWS_HARUMPIS,
   KREWS_MARIO_TATE,
   KREWS_JENKEM,
-  KREWS_SOPRANO,
   KREWS_BOULDER,
   KREWS_JUSTICE,
   KREWS_DESCENT,

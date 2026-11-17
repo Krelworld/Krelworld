@@ -28,7 +28,7 @@ export const ELEGANT_NAMES: Record<Elegant, string> = {
   piranha: "PIRANHA POOL!",
   asbestos: "GET WELL SOON!",
 };
-const TAME_NAMES: Record<Elegant, string> = {
+export const TAME_NAMES: Record<Elegant, string> = {
   jawtrap: "SPRUNG!",
   pendulum: "BONK!",
   ribcage: "HEART STOLEN!",

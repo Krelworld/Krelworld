@@ -11562,6 +11562,266 @@
    "file": "c6a/c6a_still_escape_anim.png",
    "frameWidth": 256,
    "frameHeight": 144
+  },
+  "vs_FLENKY": {
+   "file": "vs/vs_FLENKY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_KREZMAR": {
+   "file": "vs/vs_KREZMAR.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_KREBLIS": {
+   "file": "vs/vs_KREBLIS.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_KREZWONK": {
+   "file": "vs/vs_KREZWONK.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_SCROMBUS": {
+   "file": "vs/vs_SCROMBUS.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_KREBON": {
+   "file": "vs/vs_KREBON.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_CRONGUS": {
+   "file": "vs/vs_CRONGUS.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_GRONNY": {
+   "file": "vs/vs_GRONNY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_MIKEY": {
+   "file": "vs/vs_MIKEY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_krandall": {
+   "file": "vs/vs_krandall.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_hoard": {
+   "file": "vs/vs_hoard.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_cronster": {
+   "file": "vs/vs_cronster.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_drongus1": {
+   "file": "vs/vs_drongus1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_drongus2": {
+   "file": "vs/vs_drongus2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_krozno": {
+   "file": "vs/vs_krozno.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_brand": {
+   "file": "vs/vs_brand.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_troll": {
+   "file": "vs/vs_troll.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_pudding_demon": {
+   "file": "vs/vs_pudding_demon.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_flatmate": {
+   "file": "vs/vs_flatmate.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_rival": {
+   "file": "vs/vs_rival.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_jam": {
+   "file": "vs/vs_jam.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_rik": {
+   "file": "vs/vs_rik.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_flirt": {
+   "file": "vs/vs_flirt.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_lantern": {
+   "file": "vs/vs_lantern.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_fruity": {
+   "file": "vs/vs_fruity.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_reinhardt": {
+   "file": "vs/vs_reinhardt.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_krex": {
+   "file": "vs/vs_krex.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_elon": {
+   "file": "vs/vs_elon.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_dark_drongus": {
+   "file": "vs/vs_dark_drongus.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "vs_concept": {
+   "file": "vs/vs_concept.png",
+   "frameWidth": 192,
+   "frameHeight": 128
+  },
+  "kc_decap": {
+   "file": "vs/kc_decap.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_stanley": {
+   "file": "vs/kc_stanley.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "vs_tank": {
+   "file": "vs/vs_tank.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kc_explode": {
+   "file": "vs/kc_explode.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_slit": {
+   "file": "vs/kc_slit.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_spine": {
+   "file": "vs/kc_spine.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_halved": {
+   "file": "vs/kc_halved.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_headboot": {
+   "file": "vs/kc_headboot.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_flatten": {
+   "file": "vs/kc_flatten.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_vice": {
+   "file": "vs/kc_vice.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_bellybomb": {
+   "file": "vs/kc_bellybomb.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_jawtrap": {
+   "file": "vs/kc_jawtrap.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_pendulum": {
+   "file": "vs/kc_pendulum.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_freeze": {
+   "file": "vs/kc_freeze.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_ribcage": {
+   "file": "vs/kc_ribcage.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_kebab": {
+   "file": "vs/kc_kebab.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_xray": {
+   "file": "vs/kc_xray.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_pump": {
+   "file": "vs/kc_pump.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_cinder": {
+   "file": "vs/kc_cinder.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_asbestos": {
+   "file": "vs/kc_asbestos.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_lasergrid": {
+   "file": "vs/kc_lasergrid.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kc_piranha": {
+   "file": "vs/kc_piranha.png",
+   "frameWidth": 256,
+   "frameHeight": 144
   }
  },
  "vfx": {

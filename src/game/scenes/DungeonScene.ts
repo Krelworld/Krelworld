@@ -20,6 +20,8 @@ import { DerangedDrongusBoss } from "../combat/DerangedDrongus";
 import { Citadel, citadelPreload, citadelReady } from "./citadel/Citadel";
 import { RoofArena, roofPreload, roofReady } from "./citadel/RoofArena";
 import { DarkDrongusBoss } from "../combat/DarkDrongus";
+import { vsSplash, vsSeen } from "../gfx/VsSplash";
+import { krelCinema } from "../combat/KrelCinema";
 import { synth, MUSIC_FILES } from "../audio/Synth";
 import { runDialogue } from "./DialogueScene";
 import { BOSS_TEXT } from "../../content/bosses";
@@ -1718,6 +1720,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const spray = this.time.addEvent({ delay: 50, repeat: 14, callback: () => this.gore(x, neckY, 4, 0.7) });
     this.screenSplat(2);
     body.setTint(0xffb0b0);
+    // the close-up (KrelCinema.ts), then back to him going down
+    await krelCinema(this, { which: "stanley", title: G.meta?.settings?.gore !== false ? "THROAT SLIT!" : "GROUNDED!", victim: "CAPTAIN STANLEY" });
     await wait(700);
     // and down he goes, still saluting
     this.tweens.add({ targets: body, angle: b.flipX ? -84 : 84, y: y + fh * 0.3, duration: 700, ease: "Quad.in" });
@@ -1917,10 +1921,13 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (fresh) await this.talk(txt.intro);
     if (epic) {
       if (fresh && BOSS_EYES[id] && b.active) await Juice.eyeShot(this, BOSS_EYES[id], 750, { color: Phaser.Display.Color.HexStringToColor(epic).color });
-      if (b.active) await Juice.bossCard(this, txt.name, txt.title, epic);
+      // the VS card is their title card (name and epithet), at the end of the entrance
+      if (b.active) await vsSplash(this, { bossId: id, art: { key: b.texture.key, frame: 0 }, color: Phaser.Display.Color.HexStringToColor(epic).color });
       closeBars?.(350);
       this.cameras.main.zoomTo(1, 350, "Cubic.easeOut", true);
     }
+    // everyone else: the VS card once their intro's said (Dark Drongus has had his at the end of the roof cutscene)
+    if (!epic && b.active && !(id === "dark_drongus" && vsSeen(id))) await vsSplash(this, { bossId: id, art: { key: b.texture.key, frame: 0 } });
     // epic bosses' themes start once the title card's done (the next boss in a rush goes back to the room's music)
     if (ownTheme) {
       if (epic) synth.music(`fight_${id}`, true);

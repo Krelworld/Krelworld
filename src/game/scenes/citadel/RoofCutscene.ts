@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { vsSplash } from "../../gfx/VsSplash";
 import type { Line, PlayableId } from "../../../data/types";
 import { PLAYABLE_IDS } from "../../../data/types";
 import { G } from "../../G";
@@ -11,7 +12,6 @@ import { censorRect } from "../../gfx/Censor";
 import { playerKey, sanmikYee } from "../../gfx/sanmikForm";
 import { hasVfx, vfx } from "../../gfx/Vfx";
 import * as FR from "../../../content/finaleRoof";
-import { BOSS_TEXT } from "../../../content/bosses";
 import * as Juice from "../../gfx/Juice";
 import { FINALE_BOTTLE_AT, FINALE_LOGS_AT, roofPreload, roofReady } from "./RoofArena";
 
@@ -298,7 +298,7 @@ export class RoofCutscene extends Phaser.Scene {
     await this.talk(FR.XF_AFTER);
     // the freeze-frame title card
     synth.play("roar");
-    await Juice.bossCard(this, "DARK DRONGUS", BOSS_TEXT.dark_drongus?.title ?? "", "#ffd23f");
+    await vsSplash(this, { bossId: "dark_drongus", art: { key: d.texture.key, frame: 0 }, color: 0xffd23f });
     idle.remove();
   }
 

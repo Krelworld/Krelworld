@@ -22,6 +22,8 @@ export interface PlaneHooks {
   door: () => Phaser.GameObjects.Image | undefined;
   /** The room's been cleared (the exit's open). */
   cleared: () => boolean;
+  /** The hero passengers are up (first class, before the cockpit door): the cabin's own hazards wait. */
+  fight?: () => boolean;
 }
 
 const WALL_K = 3; // the 320x180 PixelLab walls are drawn three times size (960x540)
@@ -346,6 +348,11 @@ export class PlaneCabin {
     }
     this.updateDoor();
     if (busy) return;
+    if (this.hooks.fight?.()) {
+      // the hero passengers have the floor: no trolleys, crawlers or bins under their feet
+      if (this.crawlers.length || this.carts.length || this.tilt) this.clearHazards();
+      return;
+    }
     this.sections(p.x);
     this.turbulence(now, dt);
     this.updatePops(now);
@@ -750,6 +757,17 @@ export class PlaneCabin {
     const t = near[Math.floor(Math.random() * near.length)];
     t.said = now;
     sc.floatText(t.x, t.y, PASSENGER_LINES[Math.floor(Math.random() * PASSENGER_LINES.length)], "#ffffff", 12);
+  }
+
+  /** Sweep the moving hazards away (the crawling stewards and loose trolleys), and level the cabin. */
+  private clearHazards() {
+    for (const c of [...this.crawlers, ...this.carts]) this.sc.tweens.add({ targets: c.spr, alpha: 0, duration: 300, onComplete: () => c.spr.destroy() });
+    this.crawlers = [];
+    this.carts = [];
+    if (this.tilt) {
+      this.tilt = 0;
+      this.sc.tweens.add({ targets: this.sc.cameras.main, rotation: 0, duration: 400 });
+    }
   }
 
   destroy() {

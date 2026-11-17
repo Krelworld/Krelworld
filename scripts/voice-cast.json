@@ -681,7 +681,8 @@
     "GRANDMA 1",
     "GRANDMA 2",
     "MOM 1",
-    "MOM 2"
+    "MOM 2",
+    "GAP YAH TILLY"
   ],
   "pools": {
     "male": [
@@ -847,7 +848,10 @@
     "NORTHERN BLOKE 2": "OFFICER 1",
     "NORTHERN BLOKE 3": "KRELBERT",
     "NORTHERN BLOKE 4": "~everyman_m",
-    "ALL": "MARK HUGHES"
+    "ALL": "MARK HUGHES",
+    "RUGBY DAD GARETH": "~pub_m_welsh",
+    "GAP YAH TILLY": "~news_f_rp",
+    "MAJOR BUNTING": "THE COLONEL"
   },
   "clone_accents": {
     "_doc": "Accent tag for cloned voices on eleven_v3, which otherwise drift (American, or regional). Everyone in the group is southern English: faint RP or a slight cockney. Default below.",

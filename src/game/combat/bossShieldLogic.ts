@@ -77,6 +77,10 @@ export const BOSS_SHIELDS: Record<string, Partial<ShieldConfig> | null> = {
   drongus: null, // the Lorelord's Krezz shield (broken with a Krezz Burst)
   concept: null, // wounded / real phase / the clash: scripted
   dark_drongus: null, // invulnerable by design (free the lads, then the group wonk)
+  // the hero passengers on the plane: three mini-bosses at once is enough to be going on with
+  heropax_rugby: null,
+  heropax_gapgirl: null,
+  heropax_major: null,
 };
 
 export function shieldConfig(bossId: string): ShieldConfig | null {

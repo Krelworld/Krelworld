@@ -4,7 +4,7 @@ import { FONT } from "../ui/theme";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { G } from "../G";
 import { ELEGANT, ELEGANT_NAMES, BOSS_ONLY, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
-import { Actor, bit, prop, MEATY, type Bit } from "./KrelArt";
+import { Actor, Victim, bit, prop, MEATY, type Bit } from "./KrelArt";
 
 /**
  * KRELTALITY. After a boss goes down: "FUCKING KILL THEM!!" — press it (or don't) for an over-the-top,
@@ -153,12 +153,16 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
   const W = body.displayWidth;
   const floor = tg.y + H * 0.45;
   sc.tweens.add({ targets: body, angle: { from: -6, to: 6 }, yoyo: true, repeat: -1, duration: 500, ease: "Sine.inOut" });
+  // their drawn reactions (krelvic_<name>), when they have them: terror as you come over, grabbed, the impact
+  const vic = new Victim(sc, body, tg.key, keep);
   // you, walking over
   const me = keep(sc.add.sprite(tg.x - W * 0.5 - 120, floor - 30, pl.key, pl.frame).setScale(pl.scale).setDepth(D + 3).setFlipX(false));
   // he's drawn: his own walk over, then his finisher actions off his krelact_ sheet (KrelArt.ts)
   const act = new Actor(sc, me).idle(1);
   await wait(500);
   act.walk();
+  // they see you coming
+  sc.time.delayedCall(200, () => vic.react("terror", { loop: true }));
   await tw({ targets: me, x: tg.x - W * 0.5 - 30, duration: 450, ease: "Quad.out" });
   act.idle();
   sc.tweens.killTweensOf(body);
@@ -354,6 +358,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     }
   };
   const cropTop = (frac: number) => {
+    vic.release();
     const t = keep(sc.add.image(body.x, body.y, tg.key, tg.frame).setScale(tg.scale).setFlipX(tg.flip).setDepth(D + 3).setCrop(0, 0, fw, fh * frac));
     body.setCrop(0, fh * frac, fw, fh * (1 - frac));
     return t;
@@ -408,7 +413,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     } catch {
       /* keep the whole frame */
     }
-    const ctx: KrelCtx = { sc, cam, tg, body, me, act, organs, ps: pl.scale, W, H, fw, fh, floor, fig, D, gore, calm, wait, tw, keep, fx: (k, x, y, s, e) => fx(k, x, y, s, e), blood, fountain, guts, bones, flash, slow };
+    const ctx: KrelCtx = { sc, cam, tg, body, me, act, vic, organs, ps: pl.scale, W, H, fw, fh, floor, fig, D, gore, calm, wait, tw, keep, fx: (k, x, y, s, e) => fx(k, x, y, s, e), blood, fountain, guts, bones, flash, slow };
     try {
       await runElegant(ctx, which as Elegant);
     } finally {
@@ -759,6 +764,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
   void sub;
   await wait(2600);
   // and back to the room
+  vic.destroy();
   for (const o of junk) {
     sc.tweens.killTweensOf(o);
     o.destroy();

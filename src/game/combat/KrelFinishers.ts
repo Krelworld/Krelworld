@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { synth } from "../audio/Synth";
 import { voice } from "../audio/Voice";
 import type { KrelTarget } from "./Kreltality";
-import { bit, prop, type Actor, type Bit } from "./KrelArt";
+import { bit, prop, type Actor, type Bit, type Victim } from "./KrelArt";
 
 /**
  * The choreographed Kreltalities: wind-up, a slow-motion beat, the impact, the aftermath. Mortal Kombat's
@@ -54,6 +54,8 @@ export interface KrelCtx {
   me: Phaser.GameObjects.Sprite;
   /** the lad's drawn actions (KrelArt.ts): play("katana"), play("pull"), cheer()… */
   act: Actor;
+  /** the victim's drawn reactions (KrelArt.ts): react("terror"), react("grabbed"), hit() at the impact; release() */
+  vic: Victim;
   /** drawn organs and offcuts flung out from (x, y) (gore only) */
   organs(x: number, y: number, n: number, kinds?: Bit[], spread?: number): void;
   /** the player's sprite scale */
@@ -116,7 +118,11 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
   const fu = (u: number) => f.u0 + u * (f.u1 - f.u0);
   const fv = (v: number) => f.v0 + v * (f.v1 - f.v0);
   /** hide everything of the body above figure-fraction v */
-  const cropAbove = (v: number) => body.setCrop(0, fv(v) * c.fh, c.fw, c.fh * (1 - fv(v)));
+  const cropAbove = (v: number) => {
+    // the drawn reaction gives way to the body itself for the cutting up
+    c.vic.release();
+    return body.setCrop(0, fv(v) * c.fh, c.fw, c.fh * (1 - fv(v)));
+  };
   const name = (c.gore ? ELEGANT_NAMES : TAME_NAMES)[which];
   const act = c.act;
   /** a drawn prop (KrelArt.prop), kept for tidying; null if the art isn't loaded */
@@ -133,6 +139,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
   // ---- shared bits
   /** A rectangle of the victim's sprite (fractions of the frame) as its own image, exactly where it sits on them. */
   const part = (u0: number, v0: number, u1: number, v1: number, depth = D + 3) => {
+    c.vic.release();
     const tex = sc.textures.get(T.key);
     const base = tex.get(T.frame);
     const x = Math.round(fu(u0) * c.fw);
@@ -183,6 +190,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
   /** Gore off: the fright of it. A wobble, stars round the head, flat on their back. */
   const tameKO = async (o: Obj = body) => {
     synth.play("trombone");
+    // the fright of it, drawn (no blood on the impact row): it holds as they keel over
+    if (o === body) c.vic.react("impact");
     // drawn cartoon stars (the bits sheet), circling the head
     const stars: Phaser.GameObjects.Components.Transform[] = [0, 1, 2].map(() => bitk("star", o.x, o.y, 9, D + 9) ?? keep(sc.add.text(o.x, o.y, "★", { fontFamily: "Arial", fontSize: "18px", color: "#fde047", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(D + 9).setScale(1 / cam.zoom)));
     const ev = sc.time.addEvent({ delay: 16, loop: true, callback: () => stars.forEach((s, i) => {
@@ -305,7 +314,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         sc.tweens.add({ targets: trapImg, scale: { from: k0 * 1.25, to: trapImg.scaleX }, duration: 160, ease: "Back.out" });
       }
       if (c.gore) {
-        // the jaws spring: top of the head wrenched up and back, the lower jaw torn down
+        // the jaws spring: the impact (drawn), then the top of the head wrenched up and back, the lower jaw torn down
+        await c.vic.hit(140);
         const upper = part(0, 0, 1, 0.13, D + 5);
         const jaw = part(0, 0.13, 1, 0.21, D + 5);
         cropAbove(0.21);
@@ -481,6 +491,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
               const hr = bitk("hair", hx, top + 2, 8) ?? keep(sc.add.rectangle(hx, top + 2, 1.5, 5, 0x1f1206).setDepth(D + 6));
               sc.tweens.add({ targets: hr, y: floor, x: hr.x + (Math.random() - 0.5) * 30, angle: 360, duration: 1800 + Math.random() * 900, ease: "Sine.in" });
             }
+            c.vic.react("impact", { then: "terror" });
             p = say("…my fringe!", "#fecaca");
             sc.time.delayedCall(1000, () => p.destroy());
           });
@@ -751,6 +762,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       synth.play("gulp");
       cam.shake(120, 0.006);
       p = say("MMMPHH!", "#fecaca");
+      await c.vic.hit(380);
       cam.pan(tg.x, tg.y, 900, "Sine.easeInOut");
       cam.zoomTo(2.3, 900);
       // the belly: their middle, lifted off the sprite so it can swell on its own
@@ -879,6 +891,12 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       const A = dir > 0 ? -90 : 90;
       // their head, lifted off the sprite so it can be ruined on its own
       const HV = 0.22;
+      // he takes hold of them (drawn: the grab, then the shove lands)
+      if (c.vic.sheet) {
+        c.vic.react("grabbed", { loop: true });
+        await c.wait(650);
+        await c.vic.hit(160);
+      }
       const head = part(0, 0, 1, HV, D + 4);
       cropAbove(HV);
       const s0 = T.scale;
@@ -1125,6 +1143,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       } });
       const bites = sc.time.addEvent({ delay: 110, loop: true, callback: () => synth.play(Math.random() < 0.4 ? "squelch" : Math.random() < 0.5 ? "splat" : "flesh_rip", 0.6) });
       const thrash = sc.tweens.add({ targets: body, x: { from: T.x - 3, to: T.x + 3 }, yoyo: true, repeat: -1, duration: 60 });
+      c.vic.react("grabbed", { loop: true, fps: 14 });
       synth.play("scream_man");
       synth.play("splash");
       cam.shake(2600, 0.006);
@@ -1820,6 +1839,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       } });
       const col = { k: 0 };
       sc.tweens.add({ targets: col, k: 1, duration: 1100, onUpdate: () => body.setTint(lerpCol(0xffffff, 0x7dd3fc, col.k)) });
+      // frozen mid-flinch (the drawn impact, held: it freezes on its last frame)
+      c.vic.react("impact", { fps: 9 });
       synth.voice("oh", 0.5, 0.9);
       const iw = W * 1.2 + 16;
       const ih = H * 1.08 + 10;
@@ -1963,6 +1984,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       synth.play("gun_rail");
       synth.play("crit");
       await c.tw({ targets: st, len: floor - top + 34, duration: 110, ease: "Quad.in", onUpdate: draw });
+      c.vic.react("impact", { then: "grabbed" });
       c.flash();
       cam.shake(300, 0.02);
       synth.voice("oh", 0.8, 1.8);
@@ -2093,6 +2115,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       for (const v of cuts) await beam(lx + 7, top + H * v, rx - 7, top + H * v);
       await beam(tg.x, barY + 6, tg.x, floor);
       await c.wait(500);
+      // (smug: the fright's over, they think)
+      c.vic.release();
       let p = say("…Ha. Missed.");
       await c.wait(1300);
       p.destroy();
@@ -2234,6 +2258,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         void act.play("punch", { frames: [5, 8], fps: 20 });
         await c.tw({ targets: c.me, x: homeX + 22, duration: 80, ease: "Quad.in" });
         synth.play("punch_big");
+        c.vic.react("impact", { fps: 20 });
         c.fx("vfx_hit", tg.x - W * 0.3, hitYs[i], 0.9, { depth: D + 7 });
         cam.shake(150, 0.01);
         body.setTint(0xffb0b0);
@@ -2366,6 +2391,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       await c.tw({ targets: c.me, x: endX, y: c.me.y - 4, duration: 90 });
       synth.play("crit");
       c.flash();
+      // the cut has gone through them: the drawn impact, held in the stillness
+      c.vic.react("impact", { fps: 10 });
       // stillness
       await c.wait(900);
       const line = keep(sc.add.rectangle(tg.x, nY, W * 0.5, 1.5, c.gore ? 0xdc2626 : 0x000000, 1).setDepth(D + 4).setAlpha(0));

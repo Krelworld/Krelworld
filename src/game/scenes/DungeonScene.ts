@@ -11,7 +11,7 @@ import { Player } from "../combat/Player";
 import { Enemy } from "../combat/Enemy";
 import { Controls } from "../combat/Controls";
 import type { CombatWorld, HitOpts, ShotOpts } from "../combat/types";
-import { Boss, createBoss, DrongusBoss, OverWonkedMachine } from "../combat/Bosses";
+import { Boss, BOSSDIE_SPLIT, createBoss, DrongusBoss, OverWonkedMachine } from "../combat/Bosses";
 import { PuddingDemonBoss } from "../combat/MindBoss";
 import { KrexBoss } from "../combat/KrexBoss";
 import { ElonBoss } from "../combat/ElonBoss";
@@ -2206,7 +2206,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     b.setVisible(false);
     this.downSpr = down;
     // these strips: a long dazed wobble, then the drop in the last few frames
-    this.downSplit = Math.max(2, n - 4);
+    this.downSplit = BOSSDIE_SPLIT[key] ?? Math.max(2, n - 4);
     if (!this.anims.exists(`${key}_kneel`)) {
       this.anims.create({ key: `${key}_kneel`, frames: this.anims.generateFrameNumbers(key, { start: 0, end: this.downSplit }), frameRate: 9, repeat: 0 });
       this.anims.create({ key: `${key}_fall`, frames: this.anims.generateFrameNumbers(key, { start: this.downSplit, end: n - 1 }), frameRate: 6, repeat: 0 });

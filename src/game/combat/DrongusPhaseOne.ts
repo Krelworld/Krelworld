@@ -76,7 +76,9 @@ export class DrongusPhaseOneBoss extends Boss {
     const g = this.gun;
     if (!g) return;
     const left = Math.cos(this.aim) < 0;
-    g.setPosition(this.x + Math.cos(this.aim) * 14, this.y + GUN_Y + Math.sin(this.aim) * 6).setRotation(this.aim).setFlipY(left).setDepth(this.depth + 1).setVisible(this.visible).setAlpha(this.alpha);
+    // down on his knees (overheated): the gun comes down with him, muzzle drooping
+    const low = this.isDowned ? this.displayHeight * 0.16 : 0;
+    g.setPosition(this.x + Math.cos(this.aim) * 14, this.y + GUN_Y + low + Math.sin(this.aim) * 6).setRotation(this.aim + (low ? (Math.cos(this.aim) < 0 ? -0.5 : 0.5) : 0)).setFlipY(left).setDepth(this.depth + 1).setVisible(this.visible).setAlpha(this.alpha);
     if (this.world.now() < this.flashUntil) g.setTintFill(0xffffff);
     else if (this.world.now() < this.vulnerableUntil) g.setTint(0xff9b9b);
     else g.clearTint();
@@ -172,6 +174,8 @@ export class DrongusPhaseOneBoss extends Boss {
       this.lockAim = null;
       this.vulnerableUntil = this.world.now() + 3200;
       w.floatText(this.x, this.y - 90, "OVERHEATED! (HIT HIM!)", "#fde047", 20);
+      // spent: down on his knees, dazed, till it cools
+      this.playAnim("stagger", { holdMs: 2900 });
       synth.play("pfft");
       for (let i = 0; i < 8; i++) sc.time.delayedCall(i * 340, () => !this.dead && this.gun && hasVfx(sc, "vfx_smoke") && vfx(sc, "vfx_smoke", this.muzzle()[0], this.muzzle()[1], { scale: 0.8, depth: 952, tint: 0x9cffb0 }));
     });

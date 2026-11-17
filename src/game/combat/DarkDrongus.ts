@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Boss } from "./Bosses";
+import { Boss, type BossAnimState } from "./Bosses";
 import type { CombatWorld } from "./types";
 import { synth } from "../audio/Synth";
 import { G } from "../G";
@@ -36,6 +36,15 @@ export const DD_PUNCH_F = [8, 9, 10, 11, 12, 13, 14, 15];
 /** Second row: his right hand down to the crotch, going up and down (under the censor bar). */
 export const DD_WONK_F = [16, 17, 18, 19, 20, 21, 22, 23];
 
+/** bossmove_dark_drongus (128x128): a stomping walk, then a flinch (the shots still bounce off: he just doesn't like it). */
+const DD_MOVE_SHEET = "bossmove_dark_drongus";
+const DD_WALK_F = [0, 1, 2, 3, 4, 5, 6, 7];
+const DD_HURT_F = [8, 9, 10, 11, 12, 13];
+/** bossdown_dark_drongus (128x128): dropping to his knees (0-9), then a spent, panting loop down there (10-17). */
+const DD_DOWN_SHEET = "bossdown_dark_drongus";
+const DD_KNEEL_F = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+const DD_DAZE_F = [10, 11, 12, 13, 14, 15, 16, 17, 16, 15, 14, 13, 12, 11];
+
 const pick = <T>(a: T[]) => a[Math.floor(Math.random() * a.length)];
 
 /**
@@ -63,6 +72,11 @@ export class DarkDrongusBoss extends Boss {
   private punchUntil = 0;
   private wonkUntil = 0;
   private baseScale: number;
+  private hurtAt = -1e9;
+  /** Staggered (playAnim("stagger")): when it started, and when he gets up (Infinity: until told). */
+  private ddDownAt = 0;
+  private ddDownUntil = 0;
+  private ddGetUpAt = 0;
 
   constructor(w: CombatWorld, x: number, y: number) {
     const art = w.sc.textures.exists("boss_dark_drongus") && w.sc.textures.get("boss_dark_drongus").frameTotal > 2;
@@ -87,9 +101,78 @@ export class DarkDrongusBoss extends Boss {
     return this.displayWidth * 0.24;
   }
 
+  /** Down on his knees right now. */
+  get isDowned() {
+    return this.ddDownUntil > this.world.now();
+  }
+
+  /**
+   * The shared boss hook on his own sheets: "stagger" drops him to his knees and holds him there panting (for `holdMs`,
+   * or until "getup"/"idle"), "hurt" is the flinch, "attack" the punch. Anything missing falls back to the base wobble.
+   */
+  playAnim(state: BossAnimState, opts?: { holdMs?: number; keepPattern?: boolean }): boolean {
+    const sc = this.scene;
+    const now = this.world.now();
+    if (state === "stagger" || state === "daze") {
+      if (!this.art || !sc.textures.exists(DD_DOWN_SHEET)) return super.playAnim(state, opts);
+      if (!this.isDowned) this.ddDownAt = state === "daze" ? now - 2000 : now;
+      this.ddDownUntil = opts?.holdMs ? now + opts.holdMs : Infinity;
+      this.ddGetUpAt = 0;
+      return true;
+    }
+    if (state === "getup" || state === "idle" || state === "move") {
+      if (this.isDowned) {
+        this.ddDownUntil = 0;
+        this.ddGetUpAt = now;
+        return true;
+      }
+      return super.playAnim(state, opts);
+    }
+    if (state === "hurt") {
+      this.hurtAt = now;
+      return true;
+    }
+    if (state === "attack") {
+      this.punchUntil = now + 520;
+      return true;
+    }
+    return super.playAnim(state, opts);
+  }
+
+  /** The frames from his extra sheets, when one of them is showing. False: his main sheet's turn. */
+  private drawExtra(now: number): boolean {
+    const sc = this.scene;
+    const down = sc.textures.exists(DD_DOWN_SHEET);
+    if (down && now < this.ddDownUntil) {
+      const t = now - this.ddDownAt;
+      const k = Math.floor(t / 75);
+      const f = k < DD_KNEEL_F.length ? DD_KNEEL_F[k] : DD_DAZE_F[Math.floor((t - DD_KNEEL_F.length * 75) / 140) % DD_DAZE_F.length];
+      this.setTexture(DD_DOWN_SHEET, f);
+      return true;
+    }
+    if (down && this.ddGetUpAt && now - this.ddGetUpAt < DD_KNEEL_F.length * 60) {
+      // back up: the drop, played backwards
+      const k = Math.floor((now - this.ddGetUpAt) / 60);
+      this.setTexture(DD_DOWN_SHEET, DD_KNEEL_F[DD_KNEEL_F.length - 1 - k]);
+      return true;
+    }
+    if (now < this.wonkUntil || now < this.punchUntil || !sc.textures.exists(DD_MOVE_SHEET)) return false;
+    if (now - this.hurtAt < DD_HURT_F.length * 70) {
+      this.setTexture(DD_MOVE_SHEET, DD_HURT_F[Math.floor((now - this.hurtAt) / 70)]);
+      return true;
+    }
+    const b = this.body as Phaser.Physics.Arcade.Body | null;
+    if (b && Math.hypot(b.velocity.x, b.velocity.y) > 25 && !this.lunge) {
+      this.setTexture(DD_MOVE_SHEET, DD_WALK_F[Math.floor(now / 95) % DD_WALK_F.length]);
+      return true;
+    }
+    return false;
+  }
+
   /** Nothing hurts him. Shots bounce off with a gold flash. */
   incoming(_amount: number, _opts?: { source?: string }) {
     const now = this.world.now();
+    if (now - this.hurtAt > 1600 && now >= this.punchUntil && now >= this.wonkUntil) this.hurtAt = now;
     if (now - this.lastImmune > 140) {
       this.lastImmune = now;
       this.setTint(0xfff3b0);
@@ -104,7 +187,10 @@ export class DarkDrongusBoss extends Boss {
   tick(dt: number, now: number) {
     if (this.dead) return;
     this.hp = this.maxHp;
-    if (this.art) {
+    if (this.art && this.drawExtra(now)) {
+      // (a walk, a flinch or the stagger: drawn from his other sheets)
+    } else if (this.art) {
+      if (this.texture.key !== "boss_dark_drongus") this.setTexture("boss_dark_drongus", 0);
       const total = this.texture.frameTotal - 1;
       const punching = now < this.punchUntil && total > DD_PUNCH_F[DD_PUNCH_F.length - 1];
       const prog = 1 - (this.punchUntil - now) / 520;

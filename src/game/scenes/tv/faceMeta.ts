@@ -2,6 +2,9 @@
 // base: how many expression frames (0 neutral, 1 talk, 2 alarm, 3 blink, 4 gesture, 5 laugh, 6 special);
 // lip: mouth shapes at frames 8-14; gest: gesture animations as [first frame, length].
 export const FACE_META: Record<string, { base: number; lip: boolean; gest: [number, number][] }> = {
+  ADVISER: { base: 4, lip: false, gest: [] },
+  CEO: { base: 4, lip: false, gest: [] },
+  MR_JONES: { base: 4, lip: false, gest: [] },
   ADVISOR: { base: 2, lip: false, gest: [[16,  8]] },
   AIDE_1: { base: 2, lip: false, gest: [[16,  8]] },
   AIDE_2: { base: 2, lip: false, gest: [[16,  8]] },

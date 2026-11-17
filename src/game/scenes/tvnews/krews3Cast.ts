@@ -19,6 +19,12 @@ export const KREWS3_ANCHORS: Record<string, AnchorDef> = {
   "VOTER 1": { key: "tvanchor_VOX_MAN", poses: ["rest", "point"], talks: [true, true] },
   "MARGARET THOMPSON": { key: "tvanchor_MARGARET", poses: ["rest", "clutch"], talks: [true, true] },
   "DR ELAINE ROBERTS": { key: "tvanchor_ELAINE", poses: ["rest", "palm"], talks: [true, true] },
+  // #ArsebrushGate: Starmer at the lectern with the giant toothbrush, the people flanking him, the opposition
+  "KEIR STARMER@BRUSH": { key: "tvanchor_STARMER_BRUSH", poses: ["rest", "brush"], talks: [true, true] },
+  "CHRIS WHITTY": { key: "tvanchor_WHITTY", poses: ["rest", "palm"], talks: [true, true] },
+  "DR ALANA MERRICK": { key: "tvanchor_MERRICK", poses: ["rest", "palm"], talks: [true, true] },
+  "KEMI BADENOCH": { key: "tvanchor_BADENOCH", poses: ["rest", "palm"], talks: [true, true] },
+  "DAISY COOPER": { key: "tvanchor_COOPER", poses: ["rest", "palm"], talks: [true, true] },
   // Burnham's first act: the face rows (gravy, smear) and "chew" (a mouth-full line chews instead of lip-syncing) talk;
   // the gross-out poses are stills the show sets itself (tvnews/burnhamShow.ts)
   "ANDY BURNHAM": {
@@ -50,6 +56,7 @@ export function krews3Gesture(name: string, text: string, n: number): string[] |
       return [["rest", "palms"], ["point", "rest"], ["rest"]][n % 3];
     case "KEIR STARMER":
       if (/smell|phwoar/.test(t)) return ["waft"];
+      if (/brush|breakthrough/.test(t)) return ["brush"];
       if (/sorry|hurt|trust|ill-judged/.test(t)) return ["chest", "rest"];
       if (/change is coming|prime minister|one thing/.test(t)) return ["point", "rest"];
       return ["rest"];
@@ -72,6 +79,13 @@ export function krews3Gesture(name: string, text: string, n: number): string[] |
       return ["clutch", "rest"];
     case "DR ELAINE ROBERTS":
       return [["palm", "rest"], ["rest", "palm"]][n % 2];
+    case "CHRIS WHITTY":
+      return ["rest"];
+    case "DR ALANA MERRICK":
+    case "DAISY COOPER":
+      return ["palm", "rest"];
+    case "KEMI BADENOCH":
+      return /apology/.test(t) ? ["rest", "palm"] : ["palm", "rest"];
     case "ANDY BURNHAM":
       if (/ladies and gentlemen/.test(t)) return ["raised", "rest", "raised"];
       if (/law states|constitution/.test(t)) return ["fist", "rest", "fist"];

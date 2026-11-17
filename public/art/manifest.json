@@ -9218,6 +9218,87 @@
   "pl_pass_paper": {
    "file": "props/pl_pass_paper.png"
   },
+  "tv_kb_tower": {
+   "file": "backdrops/tv_kb_tower.png"
+  },
+  "tv_kb_office": {
+   "file": "backdrops/tv_kb_office.png"
+  },
+  "tv_kb_meeting": {
+   "file": "backdrops/tv_kb_meeting.png"
+  },
+  "tv_kb_kitchen": {
+   "file": "backdrops/tv_kb_kitchen.png"
+  },
+  "tv_kb_mug": {
+   "file": "backdrops/tv_kb_mug.png"
+  },
+  "tv_kb_board": {
+   "file": "backdrops/tv_kb_board.png"
+  },
+  "tv_kb_branch": {
+   "file": "backdrops/tv_kb_branch.png"
+  },
+  "tv_kb_handshake": {
+   "file": "backdrops/tv_kb_handshake.png"
+  },
+  "tv_kb_famphoto": {
+   "file": "backdrops/tv_kb_famphoto.png"
+  },
+  "tv_kb_adviser_eyes": {
+   "file": "tv/kb_adviser_eyes.png"
+  },
+  "tv_drp_office": {
+   "file": "backdrops/tv_drp_office.png"
+  },
+  "tv_drp_desk": {
+   "file": "tv/drp_desk.png"
+  },
+  "tv_drp_table": {
+   "file": "tv/drp_table.png"
+  },
+  "tv_tcc_pitch": {
+   "file": "backdrops/tv_tcc_pitch.png"
+  },
+  "tv_tcc_bullpen": {
+   "file": "backdrops/tv_tcc_bullpen.png"
+  },
+  "tv_tcc_cafe": {
+   "file": "backdrops/tv_tcc_cafe.png"
+  },
+  "tv_tcc_school": {
+   "file": "backdrops/tv_tcc_school.png"
+  },
+  "tv_tcc_presser": {
+   "file": "backdrops/tv_tcc_presser.png"
+  },
+  "tv_tcc_ext_day": {
+   "file": "backdrops/tv_tcc_ext_day.png"
+  },
+  "tv_tcc_bb_street": {
+   "file": "backdrops/tv_tcc_bb_street.png"
+  },
+  "tv_tcc_bb_highway": {
+   "file": "backdrops/tv_tcc_bb_highway.png"
+  },
+  "tcc_billboard": {
+   "file": "tv/tcc/tcc_billboard.png"
+  },
+  "tcc_podium": {
+   "file": "tv/tcc/tcc_podium.png"
+  },
+  "tcc_photo_seniors": {
+   "file": "tv/tcc/tcc_photo_seniors.png"
+  },
+  "tcc_photo_refugees": {
+   "file": "tv/tcc/tcc_photo_refugees.png"
+  },
+  "tcc_photo_ds": {
+   "file": "tv/tcc/tcc_photo_ds.png"
+  },
+  "tcc_photo_nuns": {
+   "file": "tv/tcc/tcc_photo_nuns.png"
+  },
   "tv_burn_no10": {
    "file": "backdrops/tv_burn_no10.png"
   },
@@ -13921,6 +14002,126 @@
    "file": "combat/fe_concept_stagger_hurt.png",
    "frameWidth": 256,
    "frameHeight": 256
+  },
+  "tvanchor_WHITTY": {
+   "file": "tv/anchor_WHITTY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_MERRICK": {
+   "file": "tv/anchor_MERRICK.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_BADENOCH": {
+   "file": "tv/anchor_BADENOCH.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_COOPER": {
+   "file": "tv/anchor_COOPER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_STARMER_BRUSH": {
+   "file": "tv/anchor_STARMER_BRUSH.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_CEO": {
+   "file": "tv/face_CEO.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_ADVISER": {
+   "file": "tv/face_ADVISER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MR_JONES": {
+   "file": "tv/face_MR_JONES.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvdrp_octo": {
+   "file": "tv/drp_octo.png",
+   "frameWidth": 160,
+   "frameHeight": 160
+  },
+  "tvdrp_woman": {
+   "file": "tv/drp_woman.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvface_LILA_MINT": {
+   "file": "tv/face_LILA_MINT.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_JOHN_COCK": {
+   "file": "tv/face_JOHN_COCK.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_BRENDA": {
+   "file": "tv/face_BRENDA.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_GRANDMA_1": {
+   "file": "tv/face_GRANDMA_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_GRANDMA_2": {
+   "file": "tv/face_GRANDMA_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MOM_1": {
+   "file": "tv/face_MOM_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MOM_2": {
+   "file": "tv/face_MOM_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_TCC_REPORTER": {
+   "file": "tv/face_TCC_REPORTER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvbody_LILA_MINT": {
+   "file": "tv/body_LILA_MINT.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_JOHN_COCK": {
+   "file": "tv/body_JOHN_COCK.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_BRENDA": {
+   "file": "tv/body_BRENDA.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_MOM_1": {
+   "file": "tv/body_MOM_1.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_MOM_2": {
+   "file": "tv/body_MOM_2.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_JENNY_CUMMING_DAY": {
+   "file": "tv/body_JENNY_CUMMING_DAY.png",
+   "frameWidth": 96,
+   "frameHeight": 160
   },
   "tvanchor_BURNHAM": {
    "file": "tv/anchor_BURNHAM.png",

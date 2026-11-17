@@ -375,15 +375,18 @@ export class NewsDirector {
     const { SX, SY, SW, SH } = this.r;
     this.backdrop(this.scene.set);
     const hall = this.scene.kind === "hall";
-    const p = this.presenter(name, this.cx(), SY + SH * (hall ? 0.86 : 0.88), hall ? 1.55 : 1.7);
+    // people flanking the podium stand behind it, a little smaller; the podium is always the main speaker's
+    const flank = this.scene.flank ?? [];
+    for (const [who, fx] of flank) this.presenter(who, SX + SW * fx, SY + SH * 0.86, 1.45);
+    const main = flank.length ? (this.scene.main ?? name) : name;
+    const m = this.presenter(main, this.cx(), SY + SH * (hall ? 0.86 : 0.88), hall ? 1.55 : 1.7);
+    const p = main === name ? m : this.find(name);
     if (hall && p) this.lectern(this.cx(), SY + SH * 0.86, 1.55);
     this.pressPack(SY + SH + 52, 9, 2.15);
     this.flashes(500, 1300);
     // the camera drifts as if handheld over the pack
     this.stage.setScale(1.04).setPosition(-this.cx() * 0.04, -(SY + SH / 2) * 0.04);
     this.sc.tweens.add({ targets: this.stage, x: this.stage.x + 24, y: this.stage.y - 6, duration: 5000, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
-    void SX;
-    void SW;
     return p;
   }
 
@@ -1781,6 +1784,65 @@ export class NewsDirector {
       card.setScale(0.85).setAlpha(0);
       this.sc.tweens.add({ targets: card, scale: 1, alpha: 1, duration: 350, ease: "Back.out" });
       this.later(500, () => this.typeOn(q, `“${g.quote}”`, 32));
+    } else if (g.type === "teaser") {
+      // the post, then the guesses piling up around it
+      const cw = 300;
+      const card = this.add(this.sc.add.container(SX + 28 + cw / 2, top + 120));
+      card.add(this.sc.add.rectangle(0, 0, cw, 190, 0xffffff).setStrokeStyle(2, 0xcbd5e1));
+      card.add(this.sc.add.circle(-cw / 2 + 28, -66, 16, 0xdc2626).setStrokeStyle(2, 0xffffff));
+      card.add(this.sc.add.text(-cw / 2 + 28, -66, "KS", { fontFamily: FONT, fontSize: "12px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5));
+      card.add(this.sc.add.text(-cw / 2 + 52, -80, g.from, { fontFamily: FONT, fontSize: "14px", color: "#111827", fontStyle: "bold" }));
+      card.add(this.sc.add.text(-cw / 2 + 52, -62, g.handle, { fontFamily: FONT, fontSize: "11px", color: "#6b7280" }));
+      const q = this.sc.add.text(-cw / 2 + 14, -38, "", { fontFamily: FONT, fontSize: "14px", color: "#111827", wordWrap: { width: cw - 28 }, lineSpacing: 3 });
+      card.add(q);
+      card.add(this.sc.add.text(-cw / 2 + 14, 74, `${g.when}  ·  48.2K likes  ·  19.7K reposts`, { fontFamily: FONT, fontSize: "11px", color: "#6b7280" }));
+      card.setScale(0.85).setAlpha(0);
+      this.sc.tweens.add({ targets: card, scale: 1, alpha: 1, duration: 350, ease: "Back.out" });
+      this.later(400, () => this.typeOn(q, g.post, 26));
+      g.guesses.forEach((t, i) => {
+        this.later(1800 + i * 650, () => {
+          const x = SX + SW - 120 + ((i % 2) * 2 - 1) * 34;
+          const y = top + 10 + i * 52;
+          const b = this.add(this.sc.add.text(x, y, t, { fontFamily: FONT, fontSize: "14px", color: "#ffffff", backgroundColor: "#1e3a8acc", padding: { x: 8, y: 5 }, fontStyle: "bold" }).setOrigin(0.5));
+          b.setScale(0.2);
+          this.sc.tweens.add({ targets: b, scale: 1, duration: 260, ease: "Back.out" });
+          synth.play("notify");
+        });
+      });
+    } else if (g.type === "error") {
+      // a browser window: the address bar, then the error page, the spinner giving up
+      const ww = SW - 70;
+      const wh = SH - 150;
+      const win = this.add(this.sc.add.container(this.cx(), top + 18 + wh / 2));
+      win.add(this.sc.add.rectangle(0, 0, ww, wh, 0xffffff).setStrokeStyle(2, 0x94a3b8));
+      win.add(this.sc.add.rectangle(0, -wh / 2 + 16, ww, 32, 0xe2e8f0));
+      [0xef4444, 0xf59e0b, 0x22c55e].forEach((c, i) => win.add(this.sc.add.circle(-ww / 2 + 16 + i * 16, -wh / 2 + 16, 5, c)));
+      win.add(this.sc.add.rectangle(24, -wh / 2 + 16, ww - 120, 20, 0xffffff).setStrokeStyle(1, 0xcbd5e1));
+      win.add(this.sc.add.text(-ww / 2 + 78, -wh / 2 + 9, g.url, { fontFamily: FONT, fontSize: "11px", color: "#334155" }));
+      const spin = this.sc.add.text(ww / 2 - 26, -wh / 2 + 16, "↻", { fontFamily: FONT, fontSize: "16px", color: "#334155" }).setOrigin(0.5);
+      win.add(spin);
+      this.sc.tweens.add({ targets: spin, angle: 360, duration: 900, repeat: 2, onComplete: () => spin.active && spin.setAngle(0).setText("×") });
+      const page = this.sc.add.container(0, 10).setAlpha(0);
+      win.add(page);
+      page.add(this.sc.add.rectangle(0, -wh / 2 + 44, ww, 24, 0x0b0c0c).setOrigin(0.5, 0.5));
+      page.add(this.sc.add.text(-ww / 2 + 14, -wh / 2 + 36, "GOV.UK", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", fontStyle: "bold" }));
+      page.add(this.sc.add.text(-ww / 2 + 24, -wh / 2 + 70, g.code, { fontFamily: FONT, fontSize: "54px", color: "#0b0c0c", fontStyle: "bold" }));
+      page.add(this.sc.add.text(-ww / 2 + 24, -wh / 2 + 132, g.msg, { fontFamily: FONT, fontSize: "22px", color: "#0b0c0c", fontStyle: "bold" }));
+      page.add(this.sc.add.text(-ww / 2 + 24, -wh / 2 + 166, g.sub, { fontFamily: FONT, fontSize: "13px", color: "#334155", wordWrap: { width: ww - 48 }, lineSpacing: 3 }));
+      const queue = this.sc.add.text(-ww / 2 + 24, wh / 2 - 30, "", { fontFamily: FONT, fontSize: "12px", color: "#b91c1c", fontStyle: "bold" });
+      page.add(queue);
+      let n = 1_204_311;
+      this.every(110, () => {
+        n += 2000 + Math.floor(Math.random() * 6000);
+        queue.active && queue.setText(`You are number ${n.toLocaleString("en-GB")} in the queue`);
+      });
+      win.setScale(0.9).setAlpha(0);
+      this.sc.tweens.add({ targets: win, scale: 1, alpha: 1, duration: 300, ease: "Cubic.out" });
+      this.later(1500, () => {
+        this.sc.tweens.add({ targets: page, alpha: 1, duration: 200 });
+        synth.play("tap");
+        this.sc.cameras.main.shake(140, 0.003);
+      });
     } else if (g.type === "results") {
       const cols = 15;
       const rows = Math.ceil(g.seats / cols);

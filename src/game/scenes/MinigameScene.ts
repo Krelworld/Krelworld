@@ -2091,11 +2091,14 @@ export class MinigameScene extends Phaser.Scene {
         }
         lyric.setText(t < barT(C.START_BAR) - 0.2 ? (t < barT(C.START_BAR) - BEAT * 4 ? "get ready. be serious." : `${Math.max(1, Math.ceil((barT(C.START_BAR) - t) / BEAT))}...`) : "");
         drawArms();
-        if (t > barT(C.START_BAR) + 15) leave.setVisible(true);
+        // (real time too, not just the song clock: a stale or jumpy clock must never end or skip the dance early)
+        const realT = (this.time.now - start) / 1000;
+        if (t > barT(C.START_BAR) + 15 && realT > barT(C.START_BAR) - SEEK + 15) leave.setVisible(true);
         const pay = MinigameScene.crocPay(hits, perfect, best, notes.length ? hits / notes.length : 0);
         this.hud.setText(`🐊 ${hits}   COMBO ${combo}   MISSED ${missed}   ${this.fromConsole ? "SCORE" : "💰"} ${pay}${t >= DOUBLE_T ? "   ⚡ x2" : ""}`);
         const pr = synth.fileProgress();
-        if ((pr.d && pr.ended) || t > CROC_END) done();
+        // the song has to have actually played through, in real time, before the dance can end
+        if (((pr.d && pr.ended) || t > CROC_END) && realT > (CROC_END - SEEK) * 0.9) done();
       },
     });
   }

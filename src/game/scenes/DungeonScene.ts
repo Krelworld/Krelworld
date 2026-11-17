@@ -2195,8 +2195,10 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   /** Stagger and drop to the knees (held there through their last words). */
   private bossKneel(b: Boss): Promise<void> {
     const key = `bossdie_${b.bossId}`;
-    // these have their own death scenes
+    // these have their own death scenes (and anyone with a deathSequence: Deranged Drongus sheds his armour and
+    // legs it to the cauldron, Krex falls to bits; a kneeling stand-in would hide them and be left on the floor)
     if (["reinhardt", "krozno", "rik"].includes(b.bossId) || !this.textures.exists(key)) return Promise.resolve();
+    if ((b as unknown as { deathSequence?: unknown }).deathSequence) return Promise.resolve();
     const tex = this.textures.get(key);
     const n = tex.frameTotal - 1;
     if (n < 4) return Promise.resolve();

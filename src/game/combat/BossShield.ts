@@ -475,7 +475,7 @@ export class BossShield {
       this.kneel.destroy();
       this.kneel = null;
       const b = this.boss;
-      const sceneKneels = this.sc.textures.exists(`bossdie_${b.bossId}`) && !["reinhardt", "krozno", "rik"].includes(b.bossId);
+      const sceneKneels = this.sc.textures.exists(`bossdie_${b.bossId}`) && !["reinhardt", "krozno", "rik"].includes(b.bossId) && !(b as unknown as { deathSequence?: unknown }).deathSequence;
       if (b.active && (!b.dead || !sceneKneels)) b.setVisible(true);
     }
     if (this.boss.active) this.boss.setAngle(0);

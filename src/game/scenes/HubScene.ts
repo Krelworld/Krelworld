@@ -7,6 +7,7 @@ import { playerKey } from "../gfx/sanmikForm";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { ensureCh6Art } from "../gfx/ch6Art";
 import * as Juice from "../gfx/Juice";
+import { playCine } from "../gfx/Cine";
 import { squeeze } from "../systems/squeeze";
 import { G } from "../G";
 import { Controls } from "../combat/Controls";
@@ -1023,6 +1024,7 @@ export class HubScene extends Phaser.Scene {
     synth.play("boom");
     cam.shake(900, 0.014);
     cam.flash(300, 255, 120, 190);
+    void playCine(this, "ch1_tap");
     const gush = this.time.addEvent({ delay: 25, loop: true, callback: () => {
       const a = -Math.PI / 2 + (Math.random() - 0.5) * 1.1;
       const v = 260 + Math.random() * 160;
@@ -1221,6 +1223,7 @@ export class HubScene extends Phaser.Scene {
       img.setTexture("bld_WILDERN_RUIN").setPosition(b.x, bottom - src.height / 2);
       this.smoulder({ ...b, y: bottom - src.height / 2, w: src.width, h: src.height });
     } else img?.setTint(0x3f3f46);
+    await playCine(this, "ch1_wildern");
     await new Promise((r) => this.time.delayedCall(1600, r));
     const title = this.add.text(480, 190, "WILDERN ACADEMY", { fontFamily: "Impact, sans-serif", fontSize: "54px", color: "#ffffff", stroke: "#000", strokeThickness: 10 }).setOrigin(0.5).setScrollFactor(0).setDepth(6000).setAlpha(0);
     const sub = this.add.text(480, 246, "DEMOLISHED", { fontFamily: "Impact, sans-serif", fontSize: "60px", color: "#ef4444", stroke: "#000", strokeThickness: 10 }).setOrigin(0.5).setScrollFactor(0).setDepth(6000).setScale(3).setAlpha(0);

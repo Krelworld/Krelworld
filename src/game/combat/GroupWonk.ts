@@ -123,6 +123,8 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
     let ddBusyUntil = 0;
     let nextDdMove = 2600;
     let lastCut = -9999;
+    let lastCloseUp = -9999;
+    let closeUps = 0;
     const repel = () => {
       // he tries to blast his way out: a gold ball flies at the ring and bursts on their aura
       const tgt = lads[1 + Math.floor(Math.random() * (N - 1))] ?? lads[0];
@@ -162,6 +164,12 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
       if (st.t - lastCut > 900) {
         lastCut = st.t;
         synth.play("telegraph");
+      }
+      // his close-up whips across the top (as he is: his own clothes, no super saiyan), one at a time
+      const cut = `fe_cut_lad_${l.id}`;
+      if (!done && sc.textures.exists(cut) && st.t - lastCloseUp > 1300) {
+        lastCloseUp = st.t;
+        void Juice.cutIn(sc, cut, { from: closeUps++ % 2 ? "right" : "left", y: 150, w: 400, h: 118, color: 0xff9ad5, hold: 520, focus: 0.3 });
       }
       void portraitKey;
     };
@@ -402,6 +410,18 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
           ddText.setText("NO NO NO NO NO NO NO");
           ddText.setFontSize(26).setColor("#ff4d4d");
           synth.play("roar");
+          // it's too much: down on his knees, panting (his down sheet), for the rest of it
+          const dk = "bossdown_dark_drongus";
+          if (sc.textures.exists(dk)) {
+            if (!sc.anims.exists(`${dk}:gwdown`)) {
+              sc.anims.create({ key: `${dk}:gwdown`, frames: sc.anims.generateFrameNumbers(dk, { start: 0, end: 9 }), frameRate: 12, repeat: 0 });
+              sc.anims.create({ key: `${dk}:gwdaze`, frames: sc.anims.generateFrameNumbers(dk, { start: 10, end: 17 }), frameRate: 8, repeat: -1, yoyo: true });
+            }
+            ddBusyUntil = Infinity;
+            nextDdMove = Infinity;
+            dd.play(`${dk}:gwdown`);
+            dd.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => dd.active && dd.play(`${dk}:gwdaze`));
+          }
         }
         // the moaning: everyone who's in, a crescendo
         if (st.t > nextMoan && rate > 0) {

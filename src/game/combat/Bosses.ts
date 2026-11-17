@@ -7,6 +7,7 @@ import { synth } from "../audio/Synth";
 import { voice } from "../audio/Voice";
 import { G } from "../G";
 import { BAN_RULES } from "../systems/ban";
+import { BossShield } from "./BossShield";
 
 const bossDef = (id: string, hp: number, size: number, color: number, speed = 60, damage = 18): EnemyDef => ({
   id,
@@ -28,6 +29,45 @@ const ANIM_ROWS: Record<string, [number, number]> = { idle: [0, 8], move: [8, 8]
 const ANIM_RATE: Record<string, number> = { idle: 7, move: 10, attack: 14, hurt: 12, special: 11 };
 /** Main story bosses: they also get a signature leap-and-slam (top-down fights only). */
 const SIGNATURE_LEAP = new Set(["krandall", "hoard", "cronster", "drongus1", "drongus2", "krozno", "rik", "jam", "reinhardt"]);
+
+/**
+ * Rows of a boss's "down" sheet (bossdown_<id>: the same frame size and hd as its bossanim sheet): `stagger` drops it to its
+ * knees (or slumps it, for the ones without knees), then `daze` loops down there. `getup` is the stagger played backwards.
+ */
+const DOWN_ROWS: Record<string, [number, number]> = { stagger: [0, 10], daze: [10, 8] };
+const DOWN_RATE: Record<string, number> = { stagger: 13, daze: 7, getup: 16 };
+
+/**
+ * The bossdie_<id> death sheets drawn to go with the down sheets: 11 frames dropping to the knees (held through their last
+ * words), then the fall. The older ones (no entry) split 4 from the end.
+ */
+export const BOSSDIE_SPLIT: Record<string, number> = Object.fromEntries(
+  ["brand", "troll", "flatmate", "rival", "jam", "flirt", "lantern", "fruity", "tank", "pudding_demon", "elon", "drongus2"].map((id) => [`bossdie_${id}`, 10]),
+);
+
+/** Everything playAnim() takes. */
+export type BossAnimState = "idle" | "move" | "attack" | "hurt" | "special" | "stagger" | "daze" | "getup";
+
+/** Make the stagger/daze/getup animations for a down sheet once per game. Returns the ones it has. */
+export function bossDownAnims(scene: Phaser.Scene, key: string): Set<string> {
+  const have = new Set<string>();
+  if (!scene.textures.exists(key)) return have;
+  const n = scene.textures.get(key).frameTotal - 1;
+  for (const [row, [start, count]] of Object.entries(DOWN_ROWS)) {
+    if (start + count > n) continue;
+    have.add(row);
+    const ak = `${key}:${row}`;
+    if (scene.anims.exists(ak)) continue;
+    scene.anims.create({ key: ak, frames: scene.anims.generateFrameNumbers(key, { start, end: start + count - 1 }), frameRate: DOWN_RATE[row], repeat: row === "daze" ? -1 : 0, yoyo: row === "daze" });
+  }
+  if (have.has("stagger")) {
+    have.add("getup");
+    const ak = `${key}:getup`;
+    const [start, count] = DOWN_ROWS.stagger;
+    if (!scene.anims.exists(ak)) scene.anims.create({ key: ak, frames: scene.anims.generateFrameNumbers(key, { start: start + count - 1, end: start }), frameRate: DOWN_RATE.getup, repeat: 0 });
+  }
+  return have;
+}
 
 /** Make the animations for a boss sheet once per game. Returns the rows it has. */
 export function bossAnims(scene: Phaser.Scene, key: string): Set<string> {
@@ -55,13 +95,27 @@ export abstract class Boss extends Enemy {
   /** Its PixelLab animation sheet (bossanim_<id>), when it has one: idle/move/attack/hurt(/special). */
   protected animKey: string | null = null;
   private animRows = new Set<string>();
+  /** Its down sheet (bossdown_<id>), when it has one: stagger to the knees, a dazed loop, back up. */
+  protected downKey: string | null = null;
+  private downRows = new Set<string>();
   /** A one-shot (attack, hurt, special) owns the sprite until then. */
   private animUntil = 0;
+  /** Staggered (playAnim("stagger")): nothing else plays until it gets up. */
+  private downed = false;
+  private downUntil = 0;
+  /** Its own pattern keeps running while it is down (it handles being stunned itself). */
+  private downKeepsPattern = false;
+  /** No down sheet: a drawn-on wobble stands in for the stagger. */
+  private wobble: Phaser.Tweens.Tween | null = null;
   private lastAttackAnim = -1e9;
   private lastHurtAnim = -1e9;
   private nextLeap = 0;
   /** Mid signature leap: its own pattern waits. */
   protected leaping = false;
+  /** Shield phases (BossShield.ts): made on its first live tick, null if this boss doesn't have them. */
+  guard: BossShield | null | undefined = undefined;
+  /** Its shield just shattered: open until `until` (bosses with armour of their own open it up). */
+  shieldBroken?(until: number): void;
 
   constructor(world: CombatWorld, id: string, x: number, y: number, hp: number, texture: string, size: number, color: number, w: number, h: number) {
     super(world, id, x, y, G.s.ngPlus > 0 ? 1.4 : 1, bossDef(id, hp, size, color), texture);
@@ -92,7 +146,15 @@ export abstract class Boss extends Enemy {
     this.setTexture(ak, 0);
     this.setScale(sx, sy);
     this.play(`${ak}:idle`);
-    this.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => (this.animUntil = 0));
+    this.findDownSheet();
+    this.on(Phaser.Animations.Events.ANIMATION_COMPLETE, (a: Phaser.Animations.Animation) => {
+      // staggered: the drop to the knees runs straight into the dazed loop
+      if (this.downed) {
+        if (this.downKey && a.key === `${this.downKey}:stagger` && this.downRows.has("daze")) this.play(`${this.downKey}:daze`);
+        return;
+      }
+      this.animUntil = 0;
+    });
     const real = this.world;
     const hooks = new Set(["shoot", "enemyAoe", "enemyLine"]);
     this.world = new Proxy(real, {
@@ -109,9 +171,80 @@ export abstract class Boss extends Enemy {
     });
   }
 
+  /** The down sheet that goes with the current animation sheet (bossanim_x -> bossdown_x), if it's loaded. */
+  private findDownSheet() {
+    const dk = this.animKey ? this.animKey.replace("bossanim_", "bossdown_") : "";
+    this.downRows = dk && dk !== this.animKey ? bossDownAnims(this.scene, dk) : new Set();
+    this.downKey = this.downRows.has("stagger") ? dk : null;
+  }
+
+  /** It has a drawn down sheet (stagger to the knees, dazed loop, get up). */
+  get hasDownSheet() {
+    return !!this.downKey;
+  }
+
+  /** Staggered right now (playAnim("stagger") until it gets up). */
+  get isDowned() {
+    return this.downed;
+  }
+
+  /**
+   * Show a state. idle/move loop; attack/hurt/special are one-shots off the animation sheet; "stagger" drops it to its
+   * knees and holds it there dazed (for `holdMs`, or until playAnim("getup") / playAnim("idle")); "daze" goes straight to
+   * the dazed loop; "getup" stands it back up. Anything the boss hasn't got is stood in for (a hurt flinch, a drawn-on
+   * wobble), so it's always safe to call. Returns false only when nothing at all could be shown. While it is down it
+   * stays put and its pattern waits, unless `keepPattern` (it handles being stunned itself).
+   */
+  playAnim(state: BossAnimState, opts?: { holdMs?: number; keepPattern?: boolean }): boolean {
+    if (this.dead || !this.active) return false;
+    const now = this.world.now();
+    if (state === "stagger" || state === "daze") {
+      const again = this.downed;
+      this.downed = true;
+      this.downUntil = opts?.holdMs ? now + opts.holdMs : Infinity;
+      this.downKeepsPattern = !!opts?.keepPattern;
+      this.animUntil = Infinity;
+      if (again) return true; // already down there: just hold it longer
+      if (this.downKey) {
+        this.play(`${this.downKey}:${state === "daze" && this.downRows.has("daze") ? "daze" : "stagger"}`);
+        return true;
+      }
+      // no down sheet: a flinch, then a woozy sway on the spot
+      if (this.animKey && this.animRows.has("hurt")) this.play(`${this.animKey}:hurt`);
+      if (!this.wobble) {
+        this.setAngle(0);
+        this.wobble = this.scene.tweens.add({ targets: this, angle: { from: -7, to: 7 }, duration: 520, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+      }
+      return true;
+    }
+    if (state === "getup" || ((state === "idle" || state === "move") && this.downed)) {
+      const was = this.downed;
+      this.downed = false;
+      this.downUntil = 0;
+      this.wobble?.stop();
+      this.wobble = null;
+      this.setAngle(0);
+      if (was && this.downKey && this.downRows.has("getup")) {
+        this.play(`${this.downKey}:getup`);
+        this.animUntil = now + (DOWN_ROWS.stagger[1] / DOWN_RATE.getup) * 1000 + 50;
+        return true;
+      }
+      this.animUntil = 0;
+      if (state === "getup") return was;
+    }
+    if (!this.animKey) return false;
+    if (state === "idle" || state === "move") {
+      if (!this.animRows.has(state)) return false;
+      this.animUntil = 0;
+      this.play(`${this.animKey}:${state}`, true);
+      return true;
+    }
+    return this.oneShot(state);
+  }
+
   /** Play a one-off sheet (a taunt, a laugh) over the animation sheet, then back to idle. False if it can't. */
   protected playSheetOnce(key: string, fps = 10): boolean {
-    if (!this.animKey || this.dead || !this.scene.textures.exists(key)) return false;
+    if (!this.animKey || this.dead || this.downed || !this.scene.textures.exists(key)) return false;
     const ak = `${key}:once`;
     const n = this.scene.textures.get(key).frameTotal - 1;
     if (!this.scene.anims.exists(ak)) this.scene.anims.create({ key: ak, frames: this.scene.anims.generateFrameNumbers(key, { start: 0, end: n - 1 }), frameRate: fps, repeat: 0 });
@@ -129,6 +262,14 @@ export abstract class Boss extends Enemy {
     const sy = this.scaleY;
     this.animKey = ak;
     this.animRows = rows;
+    this.findDownSheet();
+    if (this.downed) {
+      // down on its knees: the new look shows when it gets up
+      super.setTexture(ak, 0);
+      this.setScale(sx, sy);
+      if (this.downKey) this.play(`${this.downKey}:daze`);
+      return true;
+    }
     this.animUntil = 0;
     this.anims.stop();
     super.setTexture(ak, 0);
@@ -149,7 +290,7 @@ export abstract class Boss extends Enemy {
 
   /** Play a one-shot row (attack, hurt, special). */
   protected oneShot(row: string): boolean {
-    if (!this.animKey || !this.animRows.has(row) || this.dead) return false;
+    if (!this.animKey || !this.animRows.has(row) || this.dead || this.downed) return false;
     const [, count] = ANIM_ROWS[row];
     this.play(`${this.animKey}:${row}`);
     this.animUntil = this.world.now() + (count / ANIM_RATE[row]) * 1000 + 50;
@@ -171,6 +312,10 @@ export abstract class Boss extends Enemy {
 
   /** Idle or on the move, unless a one-shot is playing; recoil when it's hit. */
   private driveAnim(now: number) {
+    if (this.downed) {
+      if (now >= this.downUntil) this.playAnim("getup");
+      return;
+    }
     if (!this.animKey || this.dead) return;
     if (now < this.flashUntil && now >= this.animUntil && now - this.lastHurtAnim > 1600) {
       this.lastHurtAnim = now;
@@ -188,7 +333,7 @@ export abstract class Boss extends Enemy {
    */
   private signatureLeap(now: number): boolean {
     if (this.leaping) return true;
-    if (!SIGNATURE_LEAP.has(this.bossId) || this.world.side || now < this.nextLeap || this.shielded) return false;
+    if (!SIGNATURE_LEAP.has(this.bossId) || this.world.side || now < this.nextLeap || this.shielded || this.guard?.blocking || this.guard?.stunned) return false;
     this.nextLeap = now + 14000 + Math.random() * 7000;
     const p = this.world.player;
     const sc = this.scene;
@@ -269,13 +414,15 @@ export abstract class Boss extends Enemy {
   tick(dt: number, now: number) {
     if (this.dead || !this.started) return;
     this.anim += dt;
-    if (this.animKey) this.driveAnim(now);
+    if (this.animKey || this.downed) this.driveAnim(now);
     else if (this.anim > 300) {
       this.anim = 0;
       this.setFrame(String(this.frame.name) === "0" ? 1 : 0);
     }
+    if (this.guard === undefined) this.guard = BossShield.create(this);
+    const stun = this.guard?.update(dt, now) === "stun";
     if (now < this.flashUntil) this.setTintFill(0xffffff);
-    else if (this.shielded) this.setTint(0x88aaff);
+    else if (this.shielded || this.guard?.blocking) this.setTint(0x88aaff);
     else this.clearTint();
     const frac = this.hp / this.maxHp;
     while (this.phase < this.thresholds.length && frac < this.thresholds[this.phase]) {
@@ -283,8 +430,10 @@ export abstract class Boss extends Enemy {
       this.oneShot("special");
       this.onPhase(this.phase, now);
     }
-    if (!this.signatureLeap(now)) this.pattern(dt, now);
-    G.emit("boss", { name: BOSS_TEXT[this.bossId]?.name ?? this.bossId, hp: this.hp, max: this.maxHp, shielded: this.shielded, phase: this.phase });
+    // staggered (on its knees) or stunned after its shield shattered: it stays put and takes it
+    if (stun || (this.downed && !this.downKeepsPattern)) this.halt();
+    else if (!this.signatureLeap(now)) this.pattern(dt, now);
+    G.emit("boss", { name: BOSS_TEXT[this.bossId]?.name ?? this.bossId, hp: this.hp, max: this.maxHp, shielded: this.shielded || !!this.guard?.blocking, phase: this.phase, shield: this.guard?.hud() });
   }
 
   onPhase(_n: number, _now: number) {
@@ -322,7 +471,10 @@ export abstract class Boss extends Enemy {
   }
 
   halt() {
-    (this.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+    const b = this.body as Phaser.Physics.Arcade.Body;
+    // side-on arenas keep gravity, so a boss stopped mid-air still drops
+    if (this.world.side) b.setVelocityX(0);
+    else b.setVelocity(0, 0);
   }
 }
 
@@ -1216,10 +1368,12 @@ export class TrollBoss extends Boss {
     if (!this.staggered && this.hp <= this.maxHp * 0.12 + 1) {
       this.staggered = true;
       this.world.toast("STAGGERED", "Alistair is dazed. Get close and HEADBUTT him (F / right click)!");
+      // down on one knee, dazed, until the headbutt (no down sheet: playAnim wobbles him instead)
+      this.playAnim("stagger", { keepPattern: true });
     }
     if (this.staggered) {
       this.halt();
-      this.setAngle(Math.sin(now / 120) * 8);
+      if (!this.isDowned) this.setAngle(Math.sin(now / 120) * 8);
       if (Math.floor(now / 600) % 2 === 0) this.world.floatText(this.x, this.y - 80, "HEADBUTT HIM!", "#ffd23f", 14);
       return;
     }

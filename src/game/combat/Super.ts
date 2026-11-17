@@ -4,6 +4,7 @@ import type { Player } from "./Player";
 import { G } from "../G";
 import { synth } from "../audio/Synth";
 import { kd } from "../systems/kreddle";
+import { playCine } from "../gfx/Cine";
 
 /**
  * GOLDEN JUICE TRANSFORMATION (T). Once per dungeon, if you've had a fresh squeeze beforehand.
@@ -24,6 +25,8 @@ export function canTransform() {
 
 /** The transformation cutscene: everything freezes, the camera pushes in, you power up, and you come out golden. */
 const CUTSCENE_MS = 1800;
+/** The first transformation's drawn shot (Cine ch3_golden) holds the freeze this much longer. */
+const GOLDEN_CINE_MS = 2600;
 
 export function goSuper(p: Player, now: number) {
   const w = p.world;
@@ -34,10 +37,13 @@ export function goSuper(p: Player, now: number) {
     return;
   }
   G.s.flags.golden_charge = false;
-  p.superUntil = now + CUTSCENE_MS + superMs();
-  p.iframesUntil = now + CUTSCENE_MS + 1200;
+  // the first time ever: the drawn transformation shot plays in the middle of it (the world stays frozen for it)
+  const first = !G.s.flags.c15_golden_cine;
+  const CUT = CUTSCENE_MS + (first ? GOLDEN_CINE_MS : 0);
+  p.superUntil = now + CUT + superMs();
+  p.iframesUntil = now + CUT + 1200;
   // freeze the room while it happens
-  w.hitStop(CUTSCENE_MS);
+  w.hitStop(CUT);
   const cam = sc.cameras.main;
   const z0 = cam.zoom;
   sc.tweens.add({ targets: cam, zoom: z0 * 1.7, duration: 320, ease: "Quad.out" });
@@ -71,8 +77,12 @@ export function goSuper(p: Player, now: number) {
     }
     w.floatText(p.x, p.y - 80, "AAAAAAAAAAAHHHHH!!!", "#fde047", 26);
     becomeGolden(p);
+    if (first) {
+      G.s.flags.c15_golden_cine = true;
+      void playCine(sc, "ch3_golden");
+    }
   });
-  sc.time.delayedCall(CUTSCENE_MS - 300, () => {
+  sc.time.delayedCall(CUT - 300, () => {
     sc.tweens.add({ targets: cam, zoom: z0, duration: 300, ease: "Quad.in" });
     sc.tweens.add({ targets: dark, fillAlpha: 0, duration: 300, onComplete: () => dark.destroy() });
     w.toast("GOLDEN JUICE TRANSFORMATION", `${superMs() / 1000}s. ATTACK = mega melee. C = CUMEHAMEHA.`);

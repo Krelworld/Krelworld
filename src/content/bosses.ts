@@ -1,5 +1,5 @@
 import type { Line } from "../data/types";
-import { dir, gabor, ping, say } from "./dsl";
+import { beat, dir, gabor, ping, say } from "./dsl";
 import { DRONGUS1_FLEE, OFFICE_AFTER } from "./citadel";
 
 export interface BossText {
@@ -20,7 +20,7 @@ export const BOSS_TEXT: Record<string, BossText> = {
     intro: [
       dir("The Headmaster's Office. A brass tap sticks out of the wall marked 'HEADMASTER'S PRIVATE SUPPLY'. Behind it, the Great Main of Krelford, diverted. Pussy juice is running down the wall."),
       dir("Sat cross-legged on the desk, drinking straight from the tap, is a skinny man of seventy with white hair, a short white beard and a jester hat. The bells jingle every time he swallows."),
-      say("KRANKY KRANDALL", "Ah! Visitors! Pupils! Late! Yee!"),
+      say("KRANKY KRANDALL", "Ah! Visitors! Pupils! Late! Yee!", { cine: "ch1_krandall" }),
       say("KRANKY KRANDALL", "I'm Mr Krandall. Kranky to my friends. I love cumming and drinking pussy juice!"),
       dir("Pinned to the wall: a letter. 'Dear Kranky. Keep it switched off until they react to the song. All yours till then. Love, D. P.S. The hat is sick.'"),
       say("KRANKY KRANDALL", "He gave me the WHOLE MAIN. All the pussy juice in Krelworld. Mine. Mmmm. Pussy juice. My willy is feeling very erect!"),
@@ -32,7 +32,7 @@ export const BOSS_TEXT: Record<string, BossText> = {
     ],
     outro: [
       say("KRANKY KRANDALL", "Mmm... just... one... last... sip..."),
-      dir("Kranky Krandall topples off the desk. His jester hat jingles once, then never again. The brass tap gives a cough, and turns itself the right way round."),
+      dir("Kranky Krandall topples off the desk. His jester hat jingles once, then never again. The brass tap gives a cough, and turns itself the right way round.", { cine: "ch1_krandall_down" }),
       dir("With a noise like a thousand fizzy bongos opening at once, the Main reconnects. Far above, the Great Tap coughs, gurgles, and flows."),
       dir("In a drawer of the desk: forty-one marked spelling tests. Every answer is 'pussy juice'. Every one has a gold star."),
       say("CRONGUS", "As Children's Minister I'm putting all of these in the bin. And then the bin in a bigger bin."),
@@ -96,7 +96,7 @@ export const BOSS_TEXT: Record<string, BossText> = {
     intro: [
       dir("The living room. Or where the living room used to be. In the middle of it, a heap of stuff the size of a bus: boxes, bags, trinkets, stuffed toys, clothes, a decade of takeaway containers."),
       dir("Somewhere underneath it, a small green light blinks. The Reaction Network router."),
-      dir("The heap shudders. Something pushes up through it from below, shedding bin bags and plushies. It is pink. It is swollen. It is hairy. It is very, very angry."),
+      dir("The heap shudders. Something pushes up through it from below, shedding bin bags and plushies. It is pink. It is swollen. It is hairy. It is very, very angry.", { cine: "ch2_cyst" }),
       say("POLSON", "(on the phone) Oh my god. Is that... is that my CYST?? Lmao"),
       dir("It is. The pilonidal cyst that lived on Polson's arse for the entire relationship. He had it lanced. It was supposed to go in the clinical waste. It went in the hoard instead."),
       dir("It has been down there ever since, feeding. This cyst contains the energy which kept Polson entrapped in a toxic relationship."),
@@ -110,6 +110,7 @@ export const BOSS_TEXT: Record<string, BossText> = {
     ],
     outro: [
       say("THE CYST", "BUT... POLSON... NEEDS ME..."),
+      beat("ch2_burst"),
       dir("The Cyst bursts. It is the worst thing anyone in the group has ever seen, and that includes the group chat. When the steam clears, there is only the hoard, now forty-one bin bags. Underneath, blinking patiently, is the Reaction Network router. Its light turns green.", { set: { fragmar_done: true } }),
       dir("Across town, Polson sits down on a chair. Properly. In the middle of it. For the first time in years, it doesn't hurt."),
       dir("The Salem broom snaps in two. The purple glow goes out. Somewhere, a headache is finally allowed to be a headache."),
@@ -326,12 +327,12 @@ export const BOSS_TEXT: Record<string, BossText> = {
     name: "UNCLE RIK",
     title: "Seven Hundred Pounds · Sat On Every Jet · Needed A Shit Real Bad",
     intro: [
-      dir("THE GIANT HOT TUB OF CATFORD. The size of a lido. The pride of the estate. The water is green. The water is moving on its own. The jets are coughing up thick grey-green biofilm."),
+      dir("THE GIANT HOT TUB OF CATFORD. The size of a lido. The pride of the estate. The water is green. The water is moving on its own. The jets are coughing up thick grey-green biofilm.", { cine: "ch5_tub" }),
       dir("In the middle, wedged across all six jets at once, is Uncle Rik. All seven hundred pounds of him. String vest. Flat cap. Smug."),
       say("UNCLE RIK", "'Ello. It's Uncle Rik."),
       say("SANMIK", "Rik. Rik what have you done."),
       say("UNCLE RIK", "I needed a shit real bad. Yee. So I found the biggest toilet in Catford."),
-      say("SANMIK", "YOU MUSTN'T WEE OR POO IN THE HOT TUB. IT'S IN THE SONG. IT'S THE WHOLE SONG."),
+      say("SANMIK", "YOU MUSTN'T WEE OR POO IN THE HOT TUB. IT'S IN THE SONG. IT'S THE WHOLE SONG.", { cine: "ch5_song" }),
       say("UNCLE RIK", "Then I sat down. And I got comfy. And now I live 'ere. The jets are lovely on me back. I love thinking about what happened when you were a child, SanMik…heh heh heh.."),
       say("GENIE", "(from inside the lamp) I AM NOT GETTING IN THAT. GET THAT SICK PEDO OUT OF MY BATH."),
       gabor("I'll go in. I'll go in for you. Please don't make me go in. Please make me."),
@@ -339,10 +340,11 @@ export const BOSS_TEXT: Record<string, BossText> = {
     ],
     outro: [
       say("UNCLE RIK", "Alright. ALRIGHT. I'm getting out. I need another one anyway."),
+      beat("ch5_rise"),
       dir("With a noise like a bath the size of a swimming pool being unplugged, Uncle Rik rises out of the Giant Hot Tub. The jets, freed, cough up the last of the biofilm. A crouton rises to the surface. It is not a crouton."),
       say("SANMIK", "Yee. Now hand over the cum crystal, Rik."),
       say("UNCLE RIK", "HAHAHA. The crystal? You'll NEVER get the cum crystal. Never. Not in a million years."),
-      say("UNCLE RIK", "Know why? Cos it's IN MY ARSEHOLE."),
+      say("UNCLE RIK", "Know why? Cos it's IN MY ARSEHOLE.", { cine: "ch5_arsehole" }),
       say("SANCHZ", "…YEGH. What?"),
       say("UNCLE RIK", "I LOVED sticking it in there. The pleasure. Heh he heh..in there with all me cancerous ass tumors."),
       say("SANMIK", "Rik, you fucking CUNT."),
@@ -427,11 +429,11 @@ export const BOSS_TEXT: Record<string, BossText> = {
     title: "CEO · Son · Prime Suspect · Can Only Hear Squawking",
     intro: [
       dir("THE CORE. The beating heart of the Crobley Corporation. In the middle, the central fuel tank hums like something alive. Banners of Reinhardt's face hang from the gantries, each one angrier than the last."),
-      dir("He is waiting. Huge. Black suit. Scar. A machine gun across his chest. A single Crobley in his other hand, which he crushes slowly to dust."),
+      dir("He is waiting. Huge. Black suit. Scar. A machine gun across his chest. A single Crobley in his other hand, which he crushes slowly to dust.", { cine: "ch4_reinhardt" }),
       say("REINHARDT CROBLEY", "So. You've come to my factory. You've beaten my Crobleys. You vile fucking cunt. I'll tear you fucking limb from limb. You CUNT. FUCK YOU."),
       say("REINHARDT CROBLEY", "You think my father didn't really unalive himself over a corn addiction."),
       say("YOU", "We watched you shoot a newsreader on live telly."),
-      say("REINHARDT CROBLEY", "HEH HEH HEH. Nibble on THIS."),
+      say("REINHARDT CROBLEY", "HEH HEH HEH. Nibble on THIS.", { cine: "ch4_nibble" }),
     ],
     outro: [],
     taunts: [
@@ -471,6 +473,7 @@ export const BOSS_TEXT: Record<string, BossText> = {
     title: "Sweet Hugs, Sweeter Squeezes",
     intro: [
       dir("DA SQUEEZING ROOM. Pink carpet. Pink walls. A disco ball shaped like a heart. Tied up round the edges: Cronny's cuddle collection. Peggy from the launderette. Marge Plunkett. Jenny Cumming off the telly. Shezleigh from the bus stop."),
+      beat("ch3_cronster"),
       dir("In the middle, a figure in a pink balaclava with a smiley face drawn on it rises from a beanbag. He opens his arms. They keep opening. They're very long arms. In one hand, glowing: a cum crystal."),
       say("THE CUDDLE CRONSTER", "Hello! I'll cuddle you, squeeze you, and extract all your lovely pussy and ass juices!"),
       say("MARGE PLUNKETT", "(tied up) He's been at it for days. He keeps saying 'longer'. LONGER."),
@@ -482,14 +485,15 @@ export const BOSS_TEXT: Record<string, BossText> = {
     outro: [
       say("THE CUDDLE CRONSTER", "Nobody… ever… cuddles… the Cronster…"),
       dir("He drops to his knees. The balaclava is slipping. You grab it, and you pull."),
-      dir("It's JENKO.", { cond: { notPlayer: "FLENKY" } }),
-      say("FLENKY", "Alright. Yeah. It's me. I'm the Cuddle Cronster.", { cond: { notPlayer: "FLENKY" } }),
+      dir("It's JENKO.", { cine: "ch3_unmask", cond: { notPlayer: "FLENKY" } }),
+      say("FLENKY", "Alright. Yeah. It's me. I'm the Cuddle Cronster.", { cine: "ch3_jenko", cond: { notPlayer: "FLENKY" } }),
       say("FLENKY", "Drongus said if I held onto the crystal he'd unban me. Permanently. From everything.", { cond: { notPlayer: "FLENKY" } }),
       say("FLENKY", "And Mollor wouldn't let me cuddle her for long enough. So I kidnapped her. To cuddle her for longer. It made sense at the time.", { cond: { notPlayer: "FLENKY" } }),
       say("FLENKY", "Too weird to live. Too rare to die. Too cuddly to be stopped.", { cond: { notPlayer: "FLENKY" } }),
       dir("Sergeant Swig arrives late, with chocolate round his mouth, and arrests Jenko. Then, after a long pause, un-arrests him, because nobody can remember if Jenko's banned from being arrested.", { cond: { notPlayer: "FLENKY" } }),
+      beat("ch3_unmask", { cond: { player: "FLENKY" } }),
       dir("It's… YOU. A darker you. Same face, same tracksuit, but the eyes are wrong and the hair's been gelled into a point.", { cond: { player: "FLENKY" } }),
-      say("DARK JENKO", "I am a pervier version of you! A version of you who is a real man! Unlike you!", { cond: { player: "FLENKY" } }),
+      say("DARK JENKO", "I am a pervier version of you! A version of you who is a real man! Unlike you!", { cine: "ch3_dark", cond: { player: "FLENKY" } }),
       say("FLENKY", "I'm the toppest. I'll fuckin burst ye.", { cond: { player: "FLENKY" } }),
       say("DARK JENKO", "You can't burst me. I'm you. I'm what you'd be if you stopped holding back. If you cuddled for as long as you WANTED to.", { cond: { player: "FLENKY" } }),
       dir("You punch Dark Jenko once. Like the headmaster when you were four. He staggers. He's still grinning. Finish him.", { cond: { player: "FLENKY" } }),

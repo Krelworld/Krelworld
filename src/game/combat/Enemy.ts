@@ -23,6 +23,17 @@ const DEATHS: Record<string, { to: number; end: "hold" | "pop" | "boom"; fps: nu
 /** These get a coded death of their own (no drawn one). */
 const CODED_DEATHS = new Set(["deepfake_anchor"]);
 
+/**
+ * Drawn walk and attack sheets (PixelLab, from the enemy's own idle frame so they stay on-model):
+ * en_<type>_walk loops while it moves, en_<type>_atk plays once (and holds its last frame) while it winds up,
+ * fires, lunges, lobs or fizzes. Same frame size and hd as en_<type>, so swapping never changes its size or
+ * hitbox. Missing sheets fall back to the old behaviour (the idle sheet's frames cycling).
+ */
+const WALK_FPS = 11;
+const ATK_FPS = 15;
+/** Close enough to bite: chasers and swarms play their attack as they reach you. */
+const BITE_RANGE = 70;
+
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   uid = NEXT_ID++;
   def: EnemyDef;
@@ -54,6 +65,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   /** Side-scrolling rooms: walks on the ground (gravity) rather than flying. */
   walker = false;
   private animT = 0;
+  /** Its walk / attack sheets (undefined: not looked up yet; null: none, or something else owns its texture). */
+  private sheetArt?: { base: string; walk: string | null; atk: string | null } | null;
+  private artMode: "idle" | "walk" | "atk" = "idle";
+  private artFrame = 0;
+  /** Hold the attack pose until then (a lob, a spawn: attacks with no windup state). */
+  attackUntil = 0;
 
   constructor(world: CombatWorld, type: string, x: number, y: number, hpMult = 1, defOverride?: EnemyDef, texture?: string) {
     const def = defOverride ?? ENEMIES[type];
@@ -96,11 +113,13 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     const body = this.body as Phaser.Physics.Arcade.Body;
     const p = this.world.player;
     this.animT += dt;
-    // cycle the sheet's frames (old art has 2; the animated PixelLab sheets have more, played quicker)
-    const nf = Math.max(1, this.texture.frameTotal - 1);
-    if (this.animT > (nf > 2 ? 110 : 220)) {
-      this.animT = 0;
-      this.setFrame((Number(this.frame.name) + 1) % nf);
+    if (!this.stepArt(now)) {
+      // cycle the sheet's frames (old art has 2; the animated PixelLab sheets have more, played quicker)
+      const nf = Math.max(1, this.texture.frameTotal - 1);
+      if (this.animT > (nf > 2 ? 110 : 220)) {
+        this.animT = 0;
+        this.setFrame((Number(this.frame.name) + 1) % nf);
+      }
     }
     if (now < this.flashUntil) this.setTintFill(0xffffff);
     else if (now < this.markedUntil) this.setTint(0xd8b4fe);
@@ -237,6 +256,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         if (now > this.nextAttack && this.spawnCount < 6 && this.def.spawns) {
           this.nextAttack = now + 2600;
           this.spawnCount++;
+          this.attackUntil = now + 500;
           const a = Math.random() * Math.PI * 2;
           this.world.spawnEnemy(this.def.spawns, this.x + Math.cos(a) * 30, this.y + Math.sin(a) * 30, { noDrops: true, minion: true });
         }
@@ -263,6 +283,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           sc.tweens.add({ targets: st, t: 1, duration: flight, onUpdate: () => bomb.setPosition(sx + (tx - sx) * st.t, sy + (ty - sy) * st.t - Math.sin(st.t * Math.PI) * 140), onComplete: () => bomb.destroy() });
           synth.play("lob");
           this.setTint(0xffaaaa);
+          this.attackUntil = now + 380;
         }
         break;
       }
@@ -376,6 +397,78 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (this.hpBar) this.drawHpBar();
   }
 
+  /** Is it on its own sheets (not a boss, not re-skinned by someone else)? Looks them up the first time. */
+  private ownArt(): boolean {
+    if (this.sheetArt === undefined) {
+      const base = `en_${this.def.id}`;
+      const tx = this.scene.textures;
+      const walk = tx.exists(`${base}_walk`) ? `${base}_walk` : null;
+      const atk = tx.exists(`${base}_atk`) ? `${base}_atk` : null;
+      this.sheetArt = !this.isBoss && this.texture.key === base && (walk || atk) ? { base, walk, atk } : null;
+    }
+    const a = this.sheetArt;
+    if (!a) return false;
+    const k = this.texture.key;
+    return k === a.base || k === a.walk || k === a.atk;
+  }
+
+  /** Which drawn animation fits what it's doing right now. */
+  private wantArt(now: number): "idle" | "walk" | "atk" {
+    const a = this.sheetArt!;
+    const b = this.def.behavior;
+    const st = this.state;
+    if (a.atk) {
+      if (now < this.attackUntil || st === "windup" || st === "fuse") return "atk";
+      if (st === "dash" && (b === "charger" || b === "leaper" || b === "blinker")) return "atk";
+      // still finishing a swing it started
+      if (this.artMode === "atk" && this.texture.key === a.atk && this.artFrame < this.texture.frameTotal - 2) return "atk";
+      if ((b === "chaser" || b === "swarm") && this.def.damage > 0 && now >= this.stunUntil && !this.world.player.isHidden()) {
+        const p = this.world.player;
+        if (Math.hypot(p.x - this.x, p.y - this.y) < BITE_RANGE + this.def.size) return "atk";
+      }
+    }
+    const v = (this.body as Phaser.Physics.Arcade.Body | null)?.velocity;
+    const moving = !!v && (this.walker ? Math.abs(v.x) : Math.hypot(v.x, v.y)) > 14;
+    return moving && a.walk ? "walk" : "idle";
+  }
+
+  /** Steps its walk / attack / idle sheet. False when it has none (the caller cycles the old way). */
+  private stepArt(now: number): boolean {
+    if (!this.ownArt()) return false;
+    const a = this.sheetArt!;
+    const want = this.wantArt(now);
+    const key = want === "walk" ? a.walk! : want === "atk" ? a.atk! : a.base;
+    const n = Math.max(1, this.scene.textures.get(key).frameTotal - 1);
+    if (want !== this.artMode || this.texture.key !== key) {
+      this.artMode = want;
+      this.artFrame = want === "walk" ? Math.floor(Math.random() * n) : 0;
+      this.animT = 0;
+      this.setTexture(key, this.artFrame);
+      return true;
+    }
+    if (want === "walk") {
+      const v = (this.body as Phaser.Physics.Arcade.Body).velocity;
+      const k = Phaser.Math.Clamp(Math.hypot(v.x, v.y) / Math.max(40, this.def.speed), 0.6, 1.8);
+      if (this.animT > 1000 / (WALK_FPS * k)) {
+        this.animT = 0;
+        this.artFrame = (this.artFrame + 1) % n;
+        this.setFrame(this.artFrame);
+      }
+    } else if (want === "atk") {
+      // plays once and holds the strike
+      if (this.animT > 1000 / ATK_FPS && this.artFrame < n - 1) {
+        this.animT = 0;
+        this.artFrame++;
+        this.setFrame(this.artFrame);
+      }
+    } else if (this.animT > (n > 2 ? 110 : 220)) {
+      this.animT = 0;
+      this.artFrame = (this.artFrame + 1) % n;
+      this.setFrame(this.artFrame);
+    }
+    return true;
+  }
+
   drawHpBar() {
     if (!this.hpBar) return;
     this.hpBar.clear();
@@ -405,7 +498,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     const id = this.def.id;
     if (CODED_DEATHS.has(id)) return true;
     const key = `fe_die_${id}`;
-    return !!DEATHS[id] && this.scene.textures.exists(key) && this.texture.key === `en_${id}`;
+    return !!DEATHS[id] && this.scene.textures.exists(key) && this.texture.key.replace(/_(walk|atk)$/, "") === `en_${id}`;
   }
 
   /** Dies with its drawn animation (flop, melt, explode...), then goes. */

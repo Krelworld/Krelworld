@@ -575,6 +575,14 @@ export class HubScene extends Phaser.Scene {
       await this.aftermath();
       return;
     }
+    // back over the bridge from the raid, the nuke ticking: one clear instruction
+    if (from === "raid" && s.chapter === 6 && s.flags.nuke_planted && !s.flags.krunch_started) {
+      this.time.delayedCall(500, () => {
+        Juice.slamText(this, "BACK IN KRELFORD", "#ffd23f", 44, 200, 900);
+        this.time.delayedCall(1300, () => Juice.slamText(this, "GET TO THE TOWN HALL!", "#ff3b3b", 40, 200, 1400));
+        G.emit("toast", { title: "☢ THE NUKE IS TICKING", text: "Get everyone into the Town Hall (north of the Great Tap) before Kreddle goes up." });
+      });
+    }
     // Chapter 6 finale: home in time (or not): Kreddle's Krunch Protocol comes for every building in town
     if (from === "krunch") {
       await this.krunchBombing();
@@ -3416,6 +3424,7 @@ You are required by law to sign the Sex Offenders Register.`, {
 
   private startKrunch() {
     const s = G.s;
+    s.flags.nuke_left = G.rt.timerEnd ? Math.max(0, Math.ceil((G.rt.timerEnd - Date.now()) / 1000)) : 0;
     s.flags.krunch_started = true;
     G.rt.timerEnd = 0;
     G.emit("timer", null);
@@ -3475,13 +3484,23 @@ You are required by law to sign the Sex Offenders Register.`, {
     synth.stopMusic();
     cam.stopFollow();
     await ensureCh6Art(this);
+    // night has fallen on Krelford (so every blast lights the town up), and the sky is red
+    const night = this.add.rectangle(480, 270, 960, 540, 0x07040f, 0.3).setScrollFactor(0).setDepth(4904);
     const red = this.add.rectangle(480, 270, 960, 540, 0x7f1d1d, 1).setAlpha(0.25).setScrollFactor(0).setDepth(4950).setBlendMode(Phaser.BlendModes.MULTIPLY);
     void red;
     const bars = Juice.letterbox(this, 46, 600, 4990);
     Juice.vignette(this, 0x000000, 0.6, 4960);
     synth.play("alarm");
+    // the Krunch Protocol's theme carries on from the launch
+    synth.music("c6e_krunch");
+    await Juice.titleCard(this, "KRELFORD — TWO MINUTES LATER", "THE KRUNCH PROTOCOL", "TARGET: EVERY BUILDING IN KRELWORLD", 1900, 4995);
     await this.talk([dir("Krelford. The sky is full of little lights. They are getting bigger.")]);
-    const order = BUILDINGS.filter((b) => b.door && b.id !== "CITADEL").sort((a, b) => a.y - b.y || a.x - b.x);
+    // (the Town Hall, where the party is, is saved for last: it gets hit from the inside, in the next scene)
+    const order = BUILDINGS.filter((b) => b.door && b.id !== "CITADEL" && b.id !== "TOWN_HALL").sort((a, b) => a.y - b.y || a.x - b.x);
+    const tally = this.add.text(944, 60, "", { fontFamily: "Courier New, monospace", fontSize: "15px", color: "#ff4d4d", fontStyle: "bold", stroke: "#000", strokeThickness: 4, align: "right" }).setOrigin(1, 0);
+    Juice.layer(this, 4996).add(tally);
+    const setTally = (n: number) => tally.setText(`⚠ KRUNCH PROTOCOL\nTARGETS DESTROYED: ${n} / ${order.length + 1}`);
+    setTally(0);
     const wait = (ms: number) => new Promise((r) => this.time.delayedCall(ms, r));
     // a montage that speeds up as it goes: the first few you watch land, then they're coming in faster than you can look
     for (const [i, b] of order.entries()) {
@@ -3546,12 +3565,13 @@ You are required by law to sign the Sex Offenders Register.`, {
       for (let j = 0; j < 3; j++) vfx(this, "vfx_boom", b.x + (Math.random() - 0.5) * b.w * 0.8, b.y + (Math.random() - 0.5) * b.h * 0.6, { scale: 1.6, depth: 9001, delay: 120 + j * 110 });
       for (let j = 0; j < 2; j++) vfx(this, "vfx_fire", b.x + (j ? 1 : -1) * b.w * 0.22, b.y + b.h * 0.2, { scale: 2.2, depth: b.y + 200, delay: 300 });
       vfx(this, "vfx_smokecol", b.x, b.y - b.h * 0.2, { scale: 2.4, depth: b.y + 199, delay: 450 });
+      setTally(i + 1);
       const label = this.add.text(b.x, b.y - b.h / 2 - 30, b.id === "HOME" ? "YOUR HOUSE" : b.name, { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#ffd23f", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(9100).setScale(2);
       this.tweens.add({ targets: label, scale: 1, duration: 160, ease: "Quad.in" });
       this.tweens.add({ targets: label, alpha: 0, delay: 600, duration: 400, onComplete: () => label.destroy() });
       await wait(320 * k + 60);
     }
-    // the last one: the Town Hall, where they're all still dancing. Silence first.
+    // the last but one: the Great Tap, in the square below the Town Hall. Silence first.
     cam.pan(1280, 790, 900, Phaser.Math.Easing.Sine.InOut);
     cam.zoomTo(1.25, 1600, Phaser.Math.Easing.Sine.InOut);
     await wait(1000);
@@ -3573,14 +3593,54 @@ You are required by law to sign the Sex Offenders Register.`, {
     synth.play("explode_1");
     synth.play("boom");
     Juice.subDrop(1, 2.4);
-    Juice.flash(this, 0xffffff, 600, 0.9, 4970);
+    Juice.flash(this, 0xffffff, 600, Juice.calm() ? 0.25 : 0.9, 4970);
     Juice.shockRing(this, 1280, 800, { color: 0xffffff, to: 700, rings: 3, depth: 9002, flat: 0.5, ms: 1000 });
     Juice.debris(this, 1280, 780, 20, { depth: 9003, speed: 460, size: 10, floor: 860 });
     cam.shake(1000, 0.025);
-    cam.zoomTo(1, 1800, Phaser.Math.Easing.Cubic.Out);
-    await wait(1400);
+    const tapLabel = this.add.text(1280, 700, "THE GREAT TAP", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#ffd23f", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(9100);
+    this.tweens.add({ targets: tapLabel, alpha: 0, delay: 900, duration: 400, onComplete: () => tapLabel.destroy() });
+    setTally(order.length);
+    await wait(1600);
+    // and then up: the one building in Krelford still standing. The Town Hall, lights flashing in the windows, the bass still going.
+    synth.stopMusic();
+    cam.pan(1280, 440, 1600, Phaser.Math.Easing.Sine.InOut);
+    cam.zoomTo(1.5, 2400, Phaser.Math.Easing.Sine.InOut);
+    // the hall itself lit up against the dark: party lights sweeping up out of the roof, the whole place pulsing to the bass
+    this.tweens.add({ targets: night, fillAlpha: 0.12, duration: 1200 });
+    const beams = [0xff4fd8, 0x22d3ee, 0xfacc15].map((c, i) => {
+      const b = this.add.rectangle(1280 + (i - 1) * 110, 340, 34, 460, c, Juice.calm() ? 0.14 : 0.26).setOrigin(0.5, 1).setDepth(4910).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: b, angle: { from: -25, to: 25 }, yoyo: true, repeat: -1, duration: 900 + i * 240, ease: "Sine.inOut" });
+      return b;
+    });
+    const hall = this.add.ellipse(1280, 440, 380, 220, 0xff4fd8, 0).setDepth(4910).setBlendMode(Phaser.BlendModes.ADD);
+    const cols = [0xff4fd8, 0x22d3ee, 0xfacc15, 0x7cff3a];
+    let beatN = 0;
+    const party = this.time.addEvent({ delay: 430, loop: true, callback: () => {
+      beatN++;
+      Juice.heartbeat(0.22);
+      hall.setFillStyle(cols[beatN % cols.length], Juice.calm() ? 0.12 : 0.22);
+      this.tweens.add({ targets: hall, fillAlpha: 0.04, duration: 380 });
+    } });
+    await wait(1700);
+    // the last lock-on
+    const ret = this.add.container(1280, 440).setDepth(9050);
+    ret.add(this.add.circle(0, 0, 150).setStrokeStyle(4, 0xef4444, 0.95));
+    ret.add(this.add.rectangle(0, 0, 360, 3, 0xef4444, 0.8));
+    ret.add(this.add.rectangle(0, 0, 3, 360, 0xef4444, 0.8));
+    ret.setScale(2.4).setAlpha(0);
+    this.tweens.add({ targets: ret, scale: 1, alpha: 1, angle: 90, duration: 700, ease: "Cubic.out" });
+    const beep = this.time.addEvent({ delay: 380, loop: true, callback: () => synth.play("telegraph") });
+    const final = this.add.text(1280, 332, "FINAL TARGET: KRELFORD TOWN HALL", { fontFamily: "Impact, sans-serif", fontSize: "20px", color: "#ef4444", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(9100);
+    this.tweens.add({ targets: final, alpha: 0.3, yoyo: true, repeat: -1, duration: 300 });
+    await wait(1200);
+    await this.talk([
+      dir("Every building in Krelford is on fire. Except one."),
+      dir("In the Town Hall, the victory party is still going. SanMik has the bass up so loud that nobody inside has noticed a thing."),
+    ]);
+    beep.remove();
+    party.remove();
+    beams.forEach((b) => b.destroy());
     bars(500);
-    await this.talk([dir("Somewhere under all of it, in the Town Hall, the party is still going.")]);
     this.go("Vignette", { id: "townhall_party", returnAt: "TOWN_HALL" });
   }
 

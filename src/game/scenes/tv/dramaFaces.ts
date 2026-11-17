@@ -1,8 +1,8 @@
 import { FACE_META } from "./faceMeta";
 
 /**
- * Close-up sheets for the BBK One dramas (Gumption and Gravy, Mole of Thrones): public/art/tv/face_GG_* and
- * face_MT_*, built the same way as the others (see faceMeta.ts). Kept here so the shared table needn't change.
+ * Close-up sheets for the BBK One dramas (Gumption and Gravy, Mole of Thrones, The Sopranos): public/art/tv/face_GG_*,
+ * face_MT_* and face_SOP_*, built the same way as the others (see faceMeta.ts). Kept here so the shared table needn't change.
  * Frames: 0 neutral, 1 talk, 2 alarm, 3 blink, 4 gesture, 5 laugh, 6 special; 8-14 mouth shapes; 16+ gestures.
  */
 export const DRAMA_FACES: Record<string, { base: number; lip: boolean; gest: [number, number][] }> = {
@@ -20,6 +20,9 @@ export const DRAMA_FACES: Record<string, { base: number; lip: boolean; gest: [nu
   MT_NURSE: { base: 7, lip: false, gest: [] },
   MT_DIRECTOR: { base: 7, lip: true, gest: [[16, 8]] },
   MT_MUM: { base: 7, lip: false, gest: [[16, 8]] },
+  // The Sopranos: no gesture animations; Carmela's frame 7 is her face after the chicken piccata
+  SOP_TONY: { base: 7, lip: true, gest: [] },
+  SOP_CARMELA: { base: 7, lip: true, gest: [] },
 };
 
 let done = false;

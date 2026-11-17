@@ -32,6 +32,9 @@ export const FINALE_SHEETS: Record<string, { file: string; frameWidth: number; f
   fb_aura: { file: "finale/fb_aura.png", frameWidth: 96, frameHeight: 112 },
   fb_lightning: { file: "finale/fb_lightning.png", frameWidth: 96, frameHeight: 128 },
   fb_horror: { file: "finale/fb_horror.png", frameWidth: 48, frameHeight: 48 },
+  /** the real phase: the same sheets, cracked open with gold light (it's finally hurting) */
+  fe_dragon_top_hurt: { file: "finale/fe_dragon_top_hurt.png", frameWidth: 256, frameHeight: 256 },
+  fe_dragon_roar_hurt: { file: "finale/fe_dragon_roar_hurt.png", frameWidth: 256, frameHeight: 256 },
 };
 
 /** Queue whatever finale art isn't loaded yet (call from a scene's preload). */
@@ -49,6 +52,7 @@ export function finaleReady(scene: Phaser.Scene) {
   if (tex.exists("fb_aura") && !anims.exists("fb_aura")) anims.create({ key: "fb_aura", frames: anims.generateFrameNumbers("fb_aura", { start: 0, end: 7 }), frameRate: 12, repeat: -1 });
   if (tex.exists("fb_lightning") && !anims.exists("fb_lightning")) anims.create({ key: "fb_lightning", frames: anims.generateFrameNumbers("fb_lightning", { start: 0, end: 7 }), frameRate: 16, repeat: 0 });
   if (tex.exists("fb_dragon_top") && !anims.exists("fb_dragon_top")) anims.create({ key: "fb_dragon_top", frames: anims.generateFrameNumbers("fb_dragon_top", { start: 0, end: tex.get("fb_dragon_top").frameTotal - 2 }), frameRate: 6, repeat: -1, yoyo: true });
+  if (tex.exists("fe_dragon_top_hurt") && !anims.exists("fe_dragon_top_hurt")) anims.create({ key: "fe_dragon_top_hurt", frames: anims.generateFrameNumbers("fe_dragon_top_hurt", { start: 0, end: tex.get("fe_dragon_top_hurt").frameTotal - 2 }), frameRate: 6, repeat: -1, yoyo: true });
   if (tex.exists("fb_horror") && !anims.exists("fb_horror")) anims.create({ key: "fb_horror", frames: anims.generateFrameNumbers("fb_horror", { start: 0, end: tex.get("fb_horror").frameTotal - 2 }), frameRate: 8, repeat: -1 });
   const g = scene.make.graphics({}, false);
   if (!tex.exists("fb_logs")) {
@@ -101,6 +105,9 @@ export function horrorKey(scene: Phaser.Scene) {
  * 2 facing east, 3 facing west) and his close-up (`ssj_por_<ID>`, 128px), from public/art/manifest.json.
  */
 export const ssjKey = (s: Phaser.Scene, id: string) => (s.textures.exists(`ssj_${id}`) ? `ssj_${id}` : null);
+/** The player's own super saiyan close-up cut-in and eye shot (fe_cut_ssj_<ID>, fe_eyes_ssj_<ID>), with fallbacks. */
+export const youCutKey = (s: Phaser.Scene, id: string) => (s.textures.exists(`fe_cut_ssj_${id}`) ? `fe_cut_ssj_${id}` : s.textures.exists(`ssj_por_${id}`) ? `ssj_por_${id}` : null);
+export const youEyesKey = (s: Phaser.Scene, id: string) => (s.textures.exists(`fe_eyes_ssj_${id}`) ? `fe_eyes_ssj_${id}` : "fe_eyes_ssj");
 export const ssjPortraitKey = (s: Phaser.Scene, id: string) => (s.textures.exists(`ssj_por_${id}`) ? `ssj_por_${id}` : null);
 
 /** How much taller than his normal self a lad stands once he's changed (his figure, feet to crown). */

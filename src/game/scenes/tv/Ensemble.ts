@@ -349,7 +349,7 @@ export class EnsembleDirector extends ShowDirector {
           arc: 90,
           done: () => {
             if (!hitsHim) return;
-            this.impact(name === "cd" ? "pow" : "splat", to.x, to.y, 2.4, 0.01);
+            this.hit(name === "cd" ? "pow" : "splat", to.x, to.y, 2.4, 0.01);
             this.sfx(name === "cd" ? "hit" : "splat");
           },
         });
@@ -393,7 +393,7 @@ export class EnsembleDirector extends ShowDirector {
       const joe = this.clipAt("joe_cower", SX + SW * 0.3, SY + SH + 10, SH * 0.78, 0.5, { fps: 12, frames: [0, 2, 3, 4] });
       this.fling("chair", { x: SX - 40, y: SY + SH * 0.3 }, { x: tx, y: tableY - 150 }, { ms: 520, spin: 620, from: 2.2, to: 3.2, arc: 40 });
       this.later(520, () => {
-        this.impact("smash", tx, tableY - 140, 2.6, 0.016);
+        this.hit("smash", tx, tableY - 140, 2.6, 0.016);
         this.bang("CRASH!", tx - 20, SY + SH * 0.24, 40);
         // the table goes to pieces: two halves falling away
         table.setVisible(false);
@@ -424,7 +424,7 @@ export class EnsembleDirector extends ShowDirector {
           if (i === 3) this.sc.tweens.add({ targets: sup, x: sup.x + 24, duration: 90, yoyo: true });
           if (i !== 4) return;
           this.sfx("punch");
-          this.impact("pow", joe.x - h * 0.25, SY + SH - h * 0.2, 2.2);
+          this.hit("pow", joe.x - h * 0.25, SY + SH - h * 0.2, 2.2);
           this.bang("OOF!", joe.x, SY + SH * 0.24);
           this.playClip(joe, "joe_gut", { fps: 10 });
           this.sc.tweens.add({ targets: joe, x: joe.x + 18, duration: 120, yoyo: true });
@@ -458,13 +458,13 @@ export class EnsembleDirector extends ShowDirector {
             from: 1.8,
             to: 2.6,
             done: () => {
-              this.impact("smash", to.x, to.y, 2);
+              this.hit("smash", to.x, to.y, 2);
               this.sfx("smash");
               this.bang(words[i], to.x, to.y - 40, 30);
             },
           });
         } else {
-          this.impact("pow", to.x, to.y, 2.4);
+          this.hit("pow", to.x, to.y, 2.4);
           this.sfx("punch");
           this.bang(words[i], to.x, to.y - 40, 30);
         }
@@ -495,7 +495,7 @@ export class EnsembleDirector extends ShowDirector {
           to: 3,
           arc: 20,
           done: () => {
-            this.impact("smash", to.x, to.y, 2.2);
+            this.hit("smash", to.x, to.y, 2.2);
             this.sfx(i % 2 ? "smash" : "punch");
             this.sc.tweens.add({ targets: joe, y: joe.y + 10, duration: 60, yoyo: true });
           },
@@ -521,7 +521,7 @@ export class EnsembleDirector extends ShowDirector {
         onFrame: (i) => {
           if (i !== 4) return;
           this.sfx("punch");
-          this.impact("pow", SX + SW * 0.62, SY + SH - h * 0.35, 1.8, 0.008);
+          this.hit("pow", SX + SW * 0.62, SY + SH - h * 0.35, 1.8, 0.008);
           this.bang("SHOVE!", SX + SW * 0.66, SY + SH * 0.26);
           if (man) this.sc.tweens.add({ targets: man, x: man.x + SW * 0.5, angle: 25, duration: 380, ease: "Quad.out" });
         },
@@ -540,9 +540,9 @@ export class EnsembleDirector extends ShowDirector {
         onFrame: (i) => {
           if (i !== 2) return;
           this.sfx("punch");
-          this.impact("pow", wom.x + h * 0.25, SY + SH - h * 0.35, 1.8, 0.008);
+          this.hit("pow", wom.x + h * 0.25, SY + SH - h * 0.35, 1.8, 0.008);
           this.playClip(wom, "woman_fall", { fps: 10 });
-          this.later(500, () => this.impact("smash", wom.x, SY + SH - 10, 1.6, 0.01));
+          this.later(500, () => this.hit("smash", wom.x, SY + SH - 10, 1.6, 0.01));
         },
       });
     });
@@ -564,7 +564,7 @@ export class EnsembleDirector extends ShowDirector {
       onFrame: (i) => {
         if (i !== 6) return;
         this.sfx("punch_big");
-        this.impact("pow", benn.x + h * 0.15, SY + SH - h * 0.6, 2.6, 0.018);
+        this.hit("pow", benn.x + h * 0.15, SY + SH - h * 0.6, 2.6, 0.018);
         this.bang("POW!", benn.x, SY + SH * 0.2, 44);
         this.playClip(benn, "benn_hit", {
           fps: 12,

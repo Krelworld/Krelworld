@@ -958,7 +958,7 @@ export class WeddingDirector extends ShowDirector {
         // knocked sideways off his chair (the PixelLab clip), then out of the bottom of the frame
         const c = this.clipOver(p, "jenko_hit", { fps: 12, keep: true });
         const fall = c ?? p.spr;
-        this.impact("pow", p.spr.x - 90, p.spr.y - 200, 2.6, 0.016);
+        this.hit("pow", p.spr.x - 90, p.spr.y - 200, 2.6, 0.016);
         this.sc.tweens.add({ targets: fall, angle: 70, x: fall.x + 260, y: fall.y + 300, duration: 700, delay: c ? 420 : 0, ease: "Quad.in" });
       }
       this.push(1.2, 300, this.cx, this.cy);

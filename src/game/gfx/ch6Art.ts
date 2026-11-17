@@ -11,6 +11,10 @@ export const CH6_ART: Record<string, string> = {
   bg_kd_ruins: "backdrops/bg_kd_ruins.png",
   // the palace flattened (after the nuke)
   bg_kd_ruins_flat: "backdrops/bg_kd_ruins_flat.png",
+  // the end of Chapter 6: Kreddle seen from Krelford across the river, the silos firing, the Krunch Protocol's screen
+  bg_c6e_bridge_view: "backdrops/bg_c6e_bridge_view.png",
+  bg_c6e_launch: "backdrops/bg_c6e_launch.png",
+  bg_c6e_krunch_screen: "backdrops/bg_c6e_krunch_screen.png",
   c6_launcher: "props/c6_launcher.png",
   c6_launcher4: "props/c6_launcher4.png",
   c6_missile: "props/c6_missile.png",

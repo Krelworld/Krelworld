@@ -4796,6 +4796,10 @@ export class VignetteScene extends Phaser.Scene {
       const p = this.add.circle(sp.x + (Math.random() - 0.5) * 20, sp.y - 30, 5, 0x6b7280, 0.6).setDepth(300);
       this.tweens.add({ targets: p, y: p.y - 50, scale: 2.5, alpha: 0, duration: 1200, onComplete: () => p.destroy() });
     } });
+    // where we are and when: home, with the bomb in Kreddle still ticking
+    const left = Math.max(14, Math.min(239, Number(G.s.flags.nuke_left) || 47));
+    const clock = (n: number) => `${Math.floor(n / 60)}:${String(n % 60).padStart(2, "0")}`;
+    await Juice.titleCard(this, "BACK OVER THE BRIDGE, JUST IN TIME", "KRELFORD TOWN HALL", `☢ KREDDLE: ${clock(left)} TO DETONATION`, 1700);
     const stop = this.perform(lads, "victory", 10);
     for (let i = 0; i < 5; i++) vfx(this, "vfx_confetti", 120 + i * 180, 120, { scale: 2, depth: 600, delay: i * 250 });
     synth.play("cheer");
@@ -4863,6 +4867,7 @@ export class VignetteScene extends Phaser.Scene {
     this.cast.set("PRESIDENT KLERBLE", kl as Phaser.GameObjects.Sprite);
     const kpBars = Juice.letterbox(this, 50, 600, 985);
     Juice.vignette(this, 0x000000, 0.65, 984);
+    await Juice.titleCard(this, "MEANWHILE, BACK IN KREDDLE…", "THE PRESIDENTIAL PALACE", `☢ ${clock(Math.max(9, Math.round(left * 0.5)))} TO DETONATION`, 1600);
     // a slow, creeping push-in for the whole crawl
     this.cameras.main.zoomTo(1.12, 9000, "Sine.easeInOut", true);
     // the trail
@@ -4900,6 +4905,26 @@ export class VignetteScene extends Phaser.Scene {
     const prompt = this.add.text(0, 92, "> INITIATE? Y/N _", { fontFamily: "Courier New, monospace", fontSize: "16px", color: "#22c55e" }).setOrigin(0.5);
     scr.add(prompt);
     this.tweens.add({ targets: prompt, alpha: 0.3, yoyo: true, repeat: -1, duration: 400 });
+    // his heart, on the screen: a green trace that beats once a second… until it doesn't
+    const ecg = this.add.graphics();
+    scr.add(ecg);
+    const ecgLbl = this.add.text(-180, 46, "PRESIDENTIAL HEARTBEAT", { fontFamily: "Courier New, monospace", fontSize: "10px", color: "#22c55e" });
+    scr.add(ecgLbl);
+    const trace: number[] = new Array(72).fill(0);
+    const spike = [-3, 0, 14, -26, 9, 0];
+    let pulse = -1;
+    let alive = true;
+    const ecgEv = this.time.addEvent({ delay: 40, loop: true, callback: () => {
+      if (!ecg.active) return ecgEv.remove();
+      if (alive && pulse < 0 && this.time.now % 1000 < 45) pulse = 0;
+      trace.shift();
+      trace.push(pulse >= 0 ? spike[pulse] : 0);
+      if (pulse >= 0) pulse = pulse + 1 >= spike.length ? -1 : pulse + 1;
+      ecg.clear().lineStyle(2, alive ? 0x22c55e : 0xef4444, 1);
+      ecg.beginPath();
+      trace.forEach((v, i) => (i ? ecg.lineTo(-180 + i * 5, 68 + v) : ecg.moveTo(-180, 68 + v)));
+      ecg.strokePath();
+    } });
     await this.tween({ targets: scr, scale: 1, alpha: 1, duration: 500, ease: "Back.out" });
     synth.play("ding");
     await this.wait(900);
@@ -4925,31 +4950,88 @@ export class VignetteScene extends Phaser.Scene {
     synth.play("select");
     Juice.punchZoom(this, 0.08, 400, 1);
     await this.wait(400);
-    scr.add(this.add.text(0, 120, "KRUNCH PROTOCOL: ARMED", { fontFamily: "Courier New, monospace", fontSize: "14px", color: "#ef4444" }).setOrigin(0.5));
+    const armed = this.add.text(0, 120, "KRUNCH PROTOCOL: ARMED", { fontFamily: "Courier New, monospace", fontSize: "14px", color: "#ef4444" }).setOrigin(0.5);
+    scr.add(armed);
+    // what he's just done, spelled out: a dead man's switch
+    const sw = this.add.text(0, -8, "DEAD MAN'S SWITCH\n\nIF THE PRESIDENT'S HEART STOPS,\nKREDDLE FIRES EVERYTHING\nAT KRELWORLD.", { fontFamily: "Courier New, monospace", fontSize: "15px", color: "#fecaca", fontStyle: "bold", align: "center", backgroundColor: "#1a0505", padding: { x: 14, y: 8 } }).setOrigin(0.5).setAlpha(0);
+    scr.add(sw);
+    this.tweens.add({ targets: sw, alpha: 1, duration: 300 });
+    synth.play("alarm");
     await this.tween({ targets: kl, angle: 0, y: 352, duration: 600, ease: "Bounce.out" });
     // one last, very faint heartbeat. Then nothing.
     this.time.delayedCall(500, () => Juice.heartbeat(0.25));
-    await this.wait(1600);
-    kpBars(300);
-    Juice.riser(900, 0.35);
-    await this.wait(900);
-
-    // (c) white
-    const white = this.add.rectangle(480, 270, 960, 540, 0xffffff).setAlpha(0).setDepth(990);
-    await this.tween({ targets: white, alpha: 1, duration: 120 });
-    this.clearStage();
-    this.cast.clear();
-    await this.wait(900);
-    // outside: the palace, then the bomb
-    if (!backdrop(this, "bg_kd_palace", { depth: -10 })) this.sky(0x1a0b3a, 0x5b1d73);
-    this.rainOver("rain", 940);
-    synth.weatherSound(null);
-    const flashW = this.add.rectangle(480, 270, 960, 540, 0xffffff, 1).setDepth(990);
-    await this.tween({ targets: flashW, alpha: 0, duration: 700 });
     await this.wait(1500);
+    alive = false;
+    ecgLbl.setText("PRESIDENTIAL HEARTBEAT: NONE").setColor("#ef4444");
+    armed.setText("NO HEARTBEAT: RETALIATION AUTHORISED");
+    Juice.tone(988, 2400, 0.1, "sine");
+    await this.wait(2200);
+    kpBars(300);
+
+    // (c) outside, the bomb on the palace steps: the last five seconds, cut against Krelford counting down
+    const nukeShot = () => {
+      this.clearStage();
+      this.cast.clear();
+      this.resetCam();
+      if (!backdrop(this, "bg_kd_palace", { depth: -10 })) this.sky(0x1a0b3a, 0x5b1d73);
+      this.rainOver("rain", 940);
+      const nk = this.prop(this.textures.exists("kd_nuke") ? "kd_nuke" : "c6_nuke", 584, 478, 1.6, 300, 0x1f2937, 40, 50);
+      const lamp = this.add.circle(nk.x + 12, nk.y - nk.displayHeight * 0.6, 6, 0xff0000).setDepth(302).setBlendMode(Phaser.BlendModes.ADD);
+      const halo = this.add.circle(lamp.x, lamp.y, 30, 0xff0000, 0.35).setDepth(301).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: halo, scale: 2.4, alpha: 0, repeat: -1, duration: 500 });
+      const big = this.add.text(480, 120, "", { fontFamily: "Impact, sans-serif", fontSize: "92px", color: "#ff3b3b", stroke: "#000", strokeThickness: 12 }).setOrigin(0.5);
+      Juice.layer(this, 988).add(big);
+      return { nk, lamp, big };
+    };
+    const tick = (shot: ReturnType<typeof nukeShot>, n: number) => {
+      shot.big.setText(`0:0${n}`).setScale(1.25);
+      this.tweens.add({ targets: shot.big, scale: 1, duration: 300, ease: "Quad.out" });
+      shot.lamp.setScale(2.2);
+      this.tweens.add({ targets: shot.lamp, scale: 1, duration: 300 });
+      Juice.tone(1400, 130, 0.14);
+      Juice.heartbeat(0.5);
+    };
+    let shot = nukeShot();
+    synth.weatherSound(null);
+    const cdBars = Juice.letterbox(this, 44, 200, 985);
+    this.cameras.main.pan(shot.nk.x, shot.nk.y - 60, 2200, "Sine.easeIn", true);
+    this.cameras.main.zoomTo(1.35, 2200, "Sine.easeIn", true);
+    for (const n of [5, 4]) {
+      tick(shot, n);
+      await this.wait(1000);
+    }
+    // across the river, the lads have come out onto the Town Hall steps to watch it go. They're counting.
+    this.clearStage();
+    this.resetCam();
+    const view = this.bridgeView();
+    const watchers = this.watchers(view);
+    this.cameras.main.zoomTo(1.08, 3200, "Sine.easeInOut", true);
+    for (const [i, n] of [3, 2, 1].entries()) {
+      Juice.tone(1400, 130, 0.08);
+      watchers.forEach((sp, j) => {
+        this.tweens.add({ targets: sp, y: sp.y - 8, yoyo: true, duration: 120, delay: j * 30 });
+        if ((j + i) % 3 === 0 || (j === 4 && n === 2)) this.time.delayedCall(j * 40, () => this.bubble(sp, j === 4 && n === 2 ? "SEVEN!!" : ["THREE!!", "TWO!!", "ONE!!"][i], "#ffd23f", "#111", 14));
+      });
+      await this.wait(1000);
+    }
+    // 0:00
+    this.resetCam();
+    shot = nukeShot();
+    shot.big.setText("0:00");
+    this.cameras.main.pan(shot.nk.x, shot.nk.y - 60, 10, "Linear", true);
+    this.cameras.main.zoomTo(1.4, 10, "Linear", true);
+    Juice.tone(1400, 700, 0.16);
+    await this.wait(650);
+    shot.big.destroy();
+    cdBars(10);
+    this.cameras.main.pan(480, 270, 10, "Linear", true);
     // silence. then:
     const nukeBars = Juice.letterbox(this, 44, 300, 985);
     this.cameras.main.flash(900, 255, 255, 255);
+    this.time.delayedCall(250, () => {
+      shot.nk.destroy();
+      shot.lamp.destroy();
+    });
     synth.play("boom");
     Juice.subDrop(1, 3.2);
     this.time.delayedCall(80, () => synth.play("explode"));
@@ -5007,9 +5089,12 @@ export class VignetteScene extends Phaser.Scene {
     Juice.earRing(4000, 0.08);
     nukeBars(10);
     this.cameras.main.setZoom(1);
-    await this.wait(3200);
+    await this.wait(1800);
 
-    // (d) the ruins
+    // (d) the same moment, from Krelford: the light on the horizon, the cloud climbing, and the blast reaching town
+    await this.blastFromKrelford();
+
+    // (e) the ruins
     this.clearStage();
     this.cast.clear();
     if (!backdrop(this, "bg_kd_ruins_flat", { depth: -10 }) && !backdrop(this, "bg_kd_ruins", { depth: -10 })) this.sky(0x450a0a, 0x1c1917);
@@ -5025,16 +5110,16 @@ export class VignetteScene extends Phaser.Scene {
       d.setDepth(950);
       this.tweens.add({ targets: d, y: 340 + Math.random() * 20, x: d.x - 40 - Math.random() * 80, angle: ash ? 0 : 360, duration: ash ? 3000 + Math.random() * 2000 : 1100 + Math.random() * 600, onComplete: () => d.destroy() });
     } });
-    const fade = this.add.rectangle(480, 270, 960, 540, 0xfff7ed, 1).setDepth(990);
-    synth.music("ominous");
-    await this.tween({ targets: fade, alpha: 0, duration: 3000 });
+    const fade = this.add.rectangle(480, 270, 960, 540, 0x000000, 1).setDepth(990);
+    synth.music("c6e_aftermath");
+    this.cameras.main.setZoom(1.12);
+    this.cameras.main.zoomTo(1, 9000, "Sine.easeOut", true);
+    await this.tween({ targets: fade, alpha: 0, duration: 2200 });
     fade.destroy();
-    this.caption("KREDDLE", "#a8a29e", 40);
-    await this.wait(1500);
-    this.dropCaption();
+    await Juice.titleCard(this, "WHAT'S LEFT OF IT", "KREDDLE — GROUND ZERO", "", 1800);
     await this.talk(KP_RUINS);
 
-    // (e) the Krunch Protocol
+    // (f) the Krunch Protocol: the silos come up out of the rubble
     synth.play("alarm");
     const pads: [string, number, number][] = [["c6_launcher", 110, 336], ["c6_launcher4", 290, 352], ["c6_launcher", 480, 336], ["c6_launcher4", 670, 352], ["c6_launcher", 860, 336]];
     const launchers = pads.map(([k, x, y], i) => {
@@ -5047,38 +5132,30 @@ export class VignetteScene extends Phaser.Scene {
     });
     this.cameras.main.shake(2600, 0.006);
     await this.wait(1800);
-    // red sights on Krelworld
-    const sights = launchers.map((l) => {
-      const c = this.add.container(l.x - 60, l.y - 120).setDepth(800);
-      c.add(this.add.circle(0, 0, 16).setStrokeStyle(2, 0xef4444));
-      c.add(this.add.rectangle(0, 0, 44, 2, 0xef4444));
-      c.add(this.add.rectangle(0, 0, 2, 44, 0xef4444));
-      this.tweens.add({ targets: c, angle: 90, yoyo: true, repeat: -1, duration: 600 });
-      return c;
-    });
-    const tgt = this.add.text(480, 60, "TARGET: KRELWORLD   ◄◄◄", { fontFamily: "Courier New, monospace", fontSize: "20px", color: "#ef4444", backgroundColor: "#000000cc", padding: { x: 8, y: 4 } }).setOrigin(0.5).setDepth(800);
-    this.tweens.add({ targets: tgt, alpha: 0.3, yoyo: true, repeat: -1, duration: 300 });
+    // the announcement: the protocol's own screen, so nobody can miss what's about to happen
+    const ann = this.krunchScreen();
     await this.talk(KP_PROTOCOL);
-    sights.forEach((s) => s.destroy());
-    // launch
+    // T-minus
+    for (const n of [3, 2, 1]) {
+      ann.status.setText(`LAUNCH IN T-${n}`);
+      Juice.tone(660, 160, 0.12);
+      await this.wait(700);
+    }
+    ann.close();
+    // launch: the Krunch Protocol's theme kicks in with the first missile
     synth.stopMusic();
-    // a beat of quiet, then everything goes at once
-    Juice.riser(1100, 0.4);
-    await this.wait(1100);
+    Juice.riser(800, 0.4);
+    await this.wait(800);
+    synth.music("c6e_krunch");
     this.caption("THE KRUNCH PROTOCOL", "#ef4444", 36);
     Juice.subDrop(0.9, 1.4);
-    Juice.flash(this, 0xff3b3b, 400, 0.4, 960);
+    Juice.flash(this, 0xff3b3b, 400, Juice.calm() ? 0.15 : 0.4, 960);
     this.cameras.main.setZoom(1.15);
     this.cameras.main.zoomTo(1, 6000, "Sine.easeOut", true);
-    let fired = 0;
-    const launch = this.time.addEvent({ delay: 170, repeat: 34, callback: () => {
-      const l = launchers[fired % launchers.length];
-      fired++;
-      const x0 = l.x - 20;
-      const y0 = l.y - 60;
-      synth.play(fired % 3 ? "rocket" : "lob");
-      vfx(this, "vfx_boom", x0, y0 + 10, { scale: 0.8, depth: 120 });
-      const m = this.textures.exists("c6_missile") ? this.add.image(x0, y0, "c6_missile").setScale(1.3).setDepth(130) : this.add.rectangle(x0, y0, 30, 8, 0x9ca3af).setDepth(130);
+    const fire = (x0: number, y0: number, depth: number, scale = 1.3) => {
+      synth.play(Math.random() < 0.66 ? "rocket" : "lob");
+      vfx(this, "vfx_boom", x0, y0 + 10, { scale: 0.8 * (scale / 1.3), depth: depth - 10 });
+      const m = this.textures.exists("c6_missile") ? this.add.image(x0, y0, "c6_missile").setScale(scale).setDepth(depth) : this.add.rectangle(x0, y0, 30, 8, 0x9ca3af).setDepth(depth);
       // up, and over to the west: Krelworld
       const tx = -150 - Math.random() * 200;
       const ty = -100 + Math.random() * 120;
@@ -5090,17 +5167,299 @@ export class VignetteScene extends Phaser.Scene {
         m.setPosition(p.x, p.y);
         m.setAngle(ang);
         if (Math.random() < 0.6) {
-          const puff = this.add.circle(p.x, p.y, 4 + Math.random() * 4, 0xd6d3d1, 0.7).setDepth(125);
+          const puff = this.add.circle(p.x, p.y, 4 + Math.random() * 4, 0xd6d3d1, 0.7).setDepth(depth - 5);
           this.tweens.add({ targets: puff, scale: 3, alpha: 0, duration: 900, onComplete: () => puff.destroy() });
         }
       }, onComplete: () => m.destroy() });
       this.cameras.main.shake(100, 0.006);
+    };
+    let fired = 0;
+    const launch = this.time.addEvent({ delay: 170, repeat: 16, callback: () => {
+      const l = launchers[fired % launchers.length];
+      fired++;
+      fire(l.x - 20, l.y - 60, 130);
     } });
-    await this.wait(6600);
+    await this.wait(3000);
     launch.remove();
+    // the wide: every silo in the crater going at once
+    const wide = backdrop(this, "bg_c6e_launch", { depth: 140 });
+    if (wide) {
+      // (the drawn missiles fly east: flipped, they go west, at Krelworld)
+      wide.setFlipX(true).setAlpha(0);
+      this.tweens.add({ targets: wide, alpha: 1, duration: 250 });
+      this.cameras.main.setZoom(1.2);
+      this.cameras.main.zoomTo(1, 3800, "Sine.easeOut", true);
+      Juice.subDrop(0.7, 1.2);
+      const pads2 = [[150, 430], [330, 400], [520, 420], [700, 440], [860, 410]];
+      let n2 = 0;
+      const launch2 = this.time.addEvent({ delay: 200, repeat: 17, callback: () => {
+        const [x, y] = pads2[n2++ % pads2.length];
+        fire(x + (Math.random() - 0.5) * 40, y, 160, 1.6);
+      } });
+      await this.wait(3800);
+      launch2.remove();
+    } else await this.wait(2000);
     rain2.remove();
     this.dropCaption();
+
+    // (g) and from Krelford: little lights coming up over the horizon. Nobody's looking.
+    await this.incomingOverKrelford();
     await this.talk([dir("Somewhere over the Kreddle Bridge, a flurry of ballistic missiles is heading for Krelworld. In the Town Hall, the music is still going.")]);
+  }
+
+  /** Back to a plain camera between shots: stop any pan / zoom still running from the last one. */
+  private resetCam() {
+    const cam = this.cameras.main;
+    cam.panEffect.reset();
+    cam.zoomEffect.reset();
+    cam.setZoom(1).setScroll(0, 0);
+  }
+
+  /** A soft round glow (radial gradient), tinted: a fireball's light, a glow on the horizon. */
+  private glow(x: number, y: number, size: number, tint: number, alpha: number, depth: number) {
+    const key = "c6e_glow";
+    if (!this.textures.exists(key)) {
+      const c = this.textures.createCanvas(key, 128, 128);
+      if (c) {
+        const ctx = c.getContext();
+        const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+        g.addColorStop(0, "rgba(255,255,255,1)");
+        g.addColorStop(0.35, "rgba(255,255,255,0.55)");
+        g.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 128, 128);
+        c.refresh();
+      }
+    }
+    return this.add.image(x, y, key).setDisplaySize(size, size).setTint(tint).setAlpha(alpha).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
+  }
+
+  /** The mushroom cloud seen from miles away: a glowing stem climbing out of the horizon and a cap rolling open on top. */
+  private farCloud(x: number, y: number, ms = 3600) {
+    const top = y - 170;
+    // the stem: lit from inside at the bottom, smoke further up
+    for (let i = 0; i < 14; i++) {
+      const f = i / 13;
+      const puff = this.add.circle(x + (Math.random() - 0.5) * 8, y - 6, 16 - f * 5, f < 0.5 ? 0xb4532a : 0x5b4a4a, 0.95).setDepth(-3);
+      this.tweens.add({ targets: puff, y: y - 10 - f * (y - top - 20), duration: ms * (0.4 + f * 0.6), ease: "Cubic.out" });
+    }
+    // the cap: dark smoke rolling out, its underside lit orange
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      const r = this.add.circle(x, y - 20, 10, i % 3 ? 0x6b5450 : 0x8a5a44, 1).setDepth(-2);
+      this.tweens.add({ targets: r, x: x + Math.cos(a) * 46, y: top + Math.sin(a) * 18, radius: 26 + Math.random() * 8, duration: ms, ease: "Cubic.out" });
+    }
+    const under = this.glow(x, y - 20, 60, 0xff7a2a, 0.9, -1);
+    this.tweens.add({ targets: under, y: top + 18, displayWidth: 170, displayHeight: 70, alpha: 0.6, duration: ms, ease: "Cubic.out" });
+    const base = this.glow(x, y, 120, 0xffb070, 0.9, -1);
+    this.tweens.add({ targets: base, alpha: 0.45, duration: ms * 1.5 });
+  }
+
+  /** Kreddle gone from the skyline: a black, broken line of rubble where the neon was, with fires along it. */
+  private kreddleGone(view: { hx: number; hy: number }, depth = -6) {
+    const g = this.add.graphics().setDepth(depth);
+    g.fillStyle(0x0b0812, 1);
+    g.beginPath();
+    g.moveTo(520, 300);
+    let x = 520;
+    while (x < 960) {
+      // a ragged line of what's left; now and then a broken spire
+      g.lineTo(x, Math.random() < 0.12 ? 196 + Math.random() * 24 : 226 + Math.random() * 30);
+      x += 6 + Math.random() * 14;
+    }
+    g.lineTo(960, 300);
+    g.closePath();
+    g.fillPath();
+    const fires: Phaser.GameObjects.GameObject[] = [g];
+    for (let i = 0; i < 9; i++) {
+      const fx = 540 + i * 46 + Math.random() * 20;
+      fires.push(this.glow(fx, 236 + Math.random() * 20, 30 + Math.random() * 40, 0xff6a1a, 0.75, depth + 1));
+    }
+    fires.push(this.glow(view.hx, view.hy + 6, 260, 0xff5a10, 0.45, depth + 1));
+    return fires;
+  }
+
+  /** The view from Krelford across the river to Kreddle (where the palace sits on the horizon: hx, hy). */
+  private bridgeView() {
+    if (!backdrop(this, "bg_c6e_bridge_view", { depth: -10 })) {
+      this.sky(0x0f0b24, 0x2a1645);
+      this.add.rectangle(480, 300, 960, 50, 0x05030c).setDepth(-9);
+      for (let i = 0; i < 40; i++) this.add.rectangle(600 + Math.random() * 280, 250 + Math.random() * 20, 4, 6 + Math.random() * 30, [0xff4fd8, 0x22d3ee, 0xfacc15][i % 3]).setOrigin(0.5, 1).setDepth(-9);
+      this.add.rectangle(480, 470, 960, 150, 0x1c1917).setDepth(-8);
+    }
+    this.rainOver("rain", 940);
+    return { hx: 724, hy: 262 };
+  }
+
+  /** The lads on the square by the Town Hall, backs to us, looking west at Kreddle. */
+  private watchers(view: { hx: number }) {
+    const me = G.s.player;
+    const ids = [...new Set([...LADS, "MIKEY"].filter((p) => p !== me))];
+    ids.splice(Math.floor(ids.length / 2), 0, me);
+    return ids.map((id, i) => {
+      const x = 250 + i * (460 / Math.max(1, ids.length - 1));
+      const y = 486 + (i % 2) * 20;
+      const sp = this.actor(id, x, y, 2.3);
+      this.faceTo(sp, view.hx);
+      this.face(sp, "north");
+      // lit from the front by the town, from behind by Kreddle
+      sp.setTint(0x8a84a8);
+      return sp;
+    });
+  }
+
+  /** The nuke, seen from Krelford: the light on the horizon, the cloud, then (a few seconds later) the blast reaches town. */
+  private async blastFromKrelford() {
+    const calm = Juice.calm();
+    this.clearStage();
+    this.resetCam();
+    const view = this.bridgeView();
+    synth.weatherSound("rain");
+    const lads = this.watchers(view);
+    // the far-off light, still burning, and the sky lit orange from underneath
+    const sky = this.add.rectangle(480, 150, 960, 300, 0xff7a00, 0).setDepth(-7).setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({ targets: sky, fillAlpha: 0.22, duration: 2000 });
+    // under the fireball the skyline goes dark: Kreddle is gone
+    const gone = this.kreddleGone(view);
+    const fire = this.glow(view.hx, view.hy - 10, 520, 0xffd08a, 1, -4);
+    const core = this.glow(view.hx, view.hy - 10, 220, 0xffffff, 1, -4);
+    this.tweens.add({ targets: fire, displayWidth: 300, displayHeight: 300, alpha: 0.55, duration: 6000, ease: "Cubic.out" });
+    this.tweens.add({ targets: core, displayWidth: 90, displayHeight: 90, alpha: 0.5, duration: 5000, ease: "Cubic.out" });
+    void gone;
+    this.farCloud(view.hx, view.hy);
+    // the white from the palace shot, fading out over Krelford
+    const white = this.add.rectangle(480, 270, 1400, 900, 0xfff7ed, calm ? 0.6 : 1).setDepth(990);
+    this.tweens.add({ targets: white, alpha: 0, duration: 1600 });
+    const bars = Juice.letterbox(this, 44, 10, 985);
+    await this.wait(700);
+    await Juice.titleCard(this, "THE SAME MOMENT, ACROSS THE RIVER", "KRELFORD", "☢ 0:00", 1500, 990, 120);
+    // light travels faster than sound: they see it, then they wait for it
+    lads.forEach((sp, i) => this.time.delayedCall(i * 120, () => this.bubble(sp, ["…", "OOOOOH", "…woah", "LOOK AT IT"][i % 4], "#ffffff", "#111", 12)));
+    this.cameras.main.zoomTo(1.06, 2000, "Sine.easeInOut", true);
+    await this.wait(1600);
+    // the blast wave: a pale ring rolling out across the river towards us
+    Juice.riser(1100, 0.35);
+    const wave = this.add.ellipse(view.hx, view.hy + 10, 60, 8).setStrokeStyle(2, 0xfff7ed, 0.8).setFillStyle(0xfff7ed, 0).setDepth(-4);
+    this.tweens.add({ targets: wave, scaleX: 30, scaleY: 40, alpha: 0, duration: 1200, ease: "Quad.in", onComplete: () => wave.destroy() });
+    for (let i = 0; i < 7; i++) vfx(this, "vfx_dust", 80 + i * 140, 302, { scale: 1.5, depth: -3, alpha: 0.7, delay: 300 + Math.abs(view.hx - (80 + i * 140)) * 0.8 });
+    await this.wait(1100);
+    // it hits town
+    synth.play("boom");
+    synth.play("explode_2");
+    synth.play("thunder");
+    Juice.subDrop(1, 2.2);
+    Juice.flash(this, 0xffe8c0, calm ? 900 : 500, calm ? 0.15 : 0.45, 980);
+    this.cameras.main.shake(1600, 0.02);
+    Juice.punchZoom(this, 0.06, 500, 1.06);
+    lads.forEach((sp, i) => {
+      sp.setData("busy", true);
+      this.tweens.add({ targets: sp, y: sp.y + 10, x: sp.x + (i % 2 ? 6 : -6), yoyo: true, duration: 160, delay: i * 30 });
+      this.time.delayedCall(i * 50, () => this.bubble(sp, ["WHOA!!", "MY HAIR!!", "AAAH", "BLIMEY"][i % 4], "#fecaca", "#7f1d1d", 12));
+    });
+    // every window in Krelford rattles (and a few go)
+    for (let i = 0; i < 8; i++) this.time.delayedCall(i * 90, () => synth.play("smash", 0.4));
+    await this.wait(1700);
+    // then: every window cheers
+    lads.forEach((sp) => sp.setData("busy", false));
+    synth.play("cheer");
+    this.time.delayedCall(500, () => synth.play("cheer"));
+    const stop = this.perform(lads, "victory", 10);
+    lads.forEach((sp, i) => this.time.delayedCall(i * 110, () => this.bubble(sp, ["WE DID IT!!", "KREDDLE'S GONE!!", "YEEE YEE!!", "FOR POLSON!!", "FOR MOLLOR!!"][i % 5], "#ffd23f", "#111", 13)));
+    for (let i = 0; i < 4; i++) vfx(this, "vfx_confetti", 300 + i * 120, 330, { scale: 1.8, depth: 600, delay: i * 200 });
+    await this.wait(1600);
+    await this.talk([
+      dir("Across the river, the light where Kreddle used to be is slowly going out. The cloud keeps climbing."),
+      dir("Every window in Krelford rattles. Then every window cheers. Somebody rings SanMik and SanChz. The victory party is ON."),
+    ]);
+    stop();
+    bars(300);
+    // to black
+    const black = this.add.rectangle(480, 270, 1400, 900, 0x000000, 0).setDepth(990);
+    await this.tween({ targets: black, alpha: 1, duration: 900 });
+  }
+
+  /** The Krunch Protocol's own screen: what it is, what it's doing and where it's aiming. close() takes it away. */
+  private krunchScreen() {
+    const L = Juice.layer(this, 970);
+    const c = this.add.container(0, 0);
+    L.add(c);
+    const bgImg = this.textures.exists("bg_c6e_krunch_screen") ? this.add.image(480, 270, "bg_c6e_krunch_screen").setDisplaySize(960, 544) : this.add.rectangle(480, 270, 960, 540, 0x1a0505);
+    c.add(bgImg);
+    c.add(this.add.rectangle(480, 270, 960, 540, 0x000000, 0.35));
+    // scanlines
+    const scan = this.add.graphics();
+    for (let y = 0; y < 540; y += 4) scan.fillStyle(0x000000, 0.18).fillRect(0, y, 960, 2);
+    c.add(scan);
+    const art = this.textures.exists("bg_c6e_krunch_screen");
+    const panel = this.add.rectangle(480, 262, 600, 170, 0x050505, 0.82).setStrokeStyle(3, 0xef4444);
+    c.add(panel);
+    // (the drawn screen has a black slot at the top for the heading)
+    const head = this.add.text(480, art ? 113 : 120, "KRUNCH PROTOCOL", { fontFamily: "Impact, sans-serif", fontSize: art ? "38px" : "48px", color: "#ef4444", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5);
+    c.add(head);
+    this.tweens.add({ targets: head, alpha: 0.35, yoyo: true, repeat: -1, duration: Juice.calm() ? 900 : 280 });
+    const rows = ["PRESIDENTIAL HEARTBEAT ..... NONE", "RETALIATION ............... AUTHORISED", "WARHEADS .................. ALL OF THEM", "TARGET ..................... KRELWORLD"];
+    rows.forEach((r, i) => {
+      const t = this.add.text(214, 190 + i * 26, r, { fontFamily: "Courier New, monospace", fontSize: "18px", color: i === 3 ? "#fca5a5" : "#fecaca", fontStyle: "bold" }).setAlpha(0);
+      c.add(t);
+      this.tweens.add({ targets: t, alpha: 1, delay: 300 + i * 380, duration: 60 });
+      this.time.delayedCall(300 + i * 380, () => Juice.tone(1200, 50, 0.06));
+    });
+    const status = this.add.text(480, 322, "ARMING…", { fontFamily: "Courier New, monospace", fontSize: "22px", color: "#22c55e", fontStyle: "bold" }).setOrigin(0.5);
+    c.add(status);
+    // siren
+    let hi = false;
+    const siren = this.time.addEvent({ delay: 450, loop: true, callback: () => {
+      hi = !hi;
+      Juice.tone(hi ? 760 : 560, 420, 0.05, "sawtooth");
+    } });
+    c.setAlpha(0).setScale(1.06);
+    this.tweens.add({ targets: c, alpha: 1, scale: 1, duration: 300, ease: "Cubic.out" });
+    synth.play("decree");
+    return {
+      status,
+      close: () => {
+        siren.remove();
+        this.tweens.add({ targets: c, alpha: 0, duration: 250, onComplete: () => c.destroy() });
+      },
+    };
+  }
+
+  /** From Krelford again: the lights coming up over Kreddle's horizon and arcing over the river towards town. */
+  private async incomingOverKrelford() {
+    this.clearStage();
+    this.resetCam();
+    const view = this.bridgeView();
+    // what's left of the cloud, and the glow where Kreddle was
+    this.kreddleGone(view);
+    this.farCloud(view.hx, view.hy, 60);
+    const bars = Juice.letterbox(this, 44, 300, 985);
+    const fade = this.add.rectangle(480, 270, 960, 540, 0x000000, 1).setDepth(990);
+    this.tweens.add({ targets: fade, alpha: 0, duration: 700 });
+    // faint, from the left: the Town Hall's bass
+    const thump = this.time.addEvent({ delay: 480, loop: true, callback: () => Juice.heartbeat(0.18) });
+    const lights = this.time.addEvent({ delay: 140, repeat: 34, callback: () => {
+      const x0 = view.hx - 120 + Math.random() * 240;
+      const y0 = view.hy - 4;
+      const dot = this.add.circle(x0, y0, 2.5, 0xffd8a8, 1).setDepth(-3).setBlendMode(Phaser.BlendModes.ADD);
+      const tx = 60 + Math.random() * 700;
+      const path = new Phaser.Curves.QuadraticBezier(new Phaser.Math.Vector2(x0, y0), new Phaser.Math.Vector2((x0 + tx) / 2, -120 - Math.random() * 120), new Phaser.Math.Vector2(tx, 620));
+      const o = { t: 0 };
+      this.tweens.add({ targets: o, t: 1, duration: 3200 + Math.random() * 900, ease: "Sine.in", onUpdate: () => {
+        const p = path.getPoint(o.t);
+        dot.setPosition(p.x, p.y).setRadius(2.5 + o.t * 9);
+        if (Math.random() < 0.5) {
+          const tr = this.add.circle(p.x, p.y, 1.5 + o.t * 5, 0xd6d3d1, 0.5).setDepth(-4);
+          this.tweens.add({ targets: tr, alpha: 0, scale: 2, duration: 900, onComplete: () => tr.destroy() });
+        }
+      }, onComplete: () => dot.destroy() });
+    } });
+    this.cameras.main.zoomTo(1.1, 6000, "Sine.easeIn", true);
+    await this.wait(900);
+    await Juice.titleCard(this, "MEANWHILE, BACK IN KRELFORD…", "INCOMING", "⚠ KRUNCH PROTOCOL: 36 MISSILES INBOUND", 2200, 990, 140);
+    await this.wait(1600);
+    lights.remove();
+    thump.remove();
+    bars(400);
   }
 
   // ---------------------------------------------------------------- townhall_party: WE DID IT
@@ -5145,6 +5504,7 @@ export class VignetteScene extends Phaser.Scene {
     synth.music("sanmik");
     const s1 = this.perform([mik, chz], "sing", 9);
     const s2 = this.perform([d1, d2], "dance", 10);
+    await Juice.titleCard(this, "INSIDE THE TOWN HALL. RIGHT NOW.", "THE VICTORY PARTY", "", 1700);
     await this.talk(TP_OPEN);
     // everyone dances: the lads have no disco moves on their sheets, so a lot of bouncing and the victory pose
     const s3 = this.perform(lads, "victory", 8);
@@ -5152,6 +5512,23 @@ export class VignetteScene extends Phaser.Scene {
     const yee = this.time.addEvent({ delay: 420, loop: true, callback: () => {
       const sp = lads[Math.floor(Math.random() * lads.length)];
       this.bubble(sp, ["YEEE YEE!", "WE DID IT!", "YEEE YEE!!", "WOOOO!", "WE DID IT!!"][Math.floor(Math.random() * 5)], ["#ff4fd8", "#22d3ee", "#facc15"][Math.floor(Math.random() * 3)], "#12001f", 12);
+    } });
+    // outside, Krelford is being bombed flat; in here it just sounds like a lot of bass
+    let thudN = 0;
+    const thuds = this.time.addEvent({ delay: 1900, loop: true, callback: () => {
+      thudN++;
+      synth.play("boom", 0.22);
+      Juice.subDrop(0.35, 0.6);
+      this.cameras.main.shake(260, 0.004);
+      this.tweens.add({ targets: ball, angle: (thudN % 2 ? 1 : -1) * 14, yoyo: true, duration: 260 });
+      for (let i = 0; i < 6; i++) {
+        const d = this.add.circle(80 + Math.random() * 800, -4, 1.5 + Math.random() * 2, 0xa8a29e, 0.9).setDepth(560);
+        this.tweens.add({ targets: d, y: 300 + Math.random() * 60, duration: 1200 + Math.random() * 600, ease: "Quad.in", onComplete: () => d.destroy() });
+      }
+      if (thudN % 2) {
+        const sp = lads[Math.floor(Math.random() * lads.length)];
+        if (sp) this.bubble(sp, ["NICE BASS!!", "TUNE!!", "FEEL THAT BASS!!", "WHAT A DROP!!"][thudN % 4], "#ffffff", "#111", 12);
+      }
     } });
     for (let i = 0; i < 3; i++) vfx(this, "vfx_confetti", 200 + i * 280, 100, { scale: 2.2, depth: 600, delay: i * 300 });
     this.caption("YEEE YEE!!", "#ff4fd8", 40);
@@ -5166,6 +5543,7 @@ export class VignetteScene extends Phaser.Scene {
     await this.wait(1800);
     // the whistle
     yee.remove();
+    thuds.remove();
     synth.stopMusic();
     groove.forEach((t) => t.remove());
     s1();
@@ -5183,7 +5561,8 @@ export class VignetteScene extends Phaser.Scene {
     await this.tween({ targets: m, y: 140, duration: 700, ease: "Quad.in" });
     m.destroy();
     // BANG: a frozen white frame (everyone mid-scream as silhouettes), then the world comes back in slow motion
-    const white = this.add.rectangle(480, 270, 1300, 800, 0xffffff, 1).setDepth(995);
+    const calm = Juice.calm();
+    const white = this.add.rectangle(480, 270, 1300, 800, 0xffffff, calm ? 0.35 : 1).setDepth(995);
     synth.play("boom");
     synth.play("explode");
     Juice.subDrop(1, 3);
@@ -5191,7 +5570,7 @@ export class VignetteScene extends Phaser.Scene {
     this.cameras.main.setZoom(1.4);
     everyoneSil(this, [...lads, mik, chz, d1, d2]);
     await Juice.realWait(160);
-    white.setAlpha(0.85);
+    white.setAlpha(calm ? 0.3 : 0.85);
     Juice.slowMo(this, 0.25, 900);
     this.cameras.main.zoomTo(1, 1400, "Cubic.easeOut", true);
     this.cameras.main.shake(3500, 0.05);
@@ -5266,6 +5645,8 @@ export class VignetteScene extends Phaser.Scene {
     synth.weatherSound(null);
     await this.wait(1200);
     await this.talk(TP_END);
-    await this.wait(800);
+    await this.wait(600);
+    await Juice.titleCard(this, "THE KRUNCH PROTOCOL: COMPLETE", "END OF CHAPTER SIX", "", 2200);
+    await this.wait(400);
   }
 }

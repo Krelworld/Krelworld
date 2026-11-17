@@ -837,7 +837,7 @@ export abstract class ShowDirector {
     return fling(this.sc, (g) => this.add(g), name, from, to, o);
   }
 
-  protected impact(kind: "pow" | "smash" | "shatter" | "splat", x: number, y: number, scale = 2.4, shake = 0.012) {
+  protected hit(kind: "pow" | "smash" | "shatter" | "splat", x: number, y: number, scale = 2.4, shake = 0.012) {
     return impact(this.sc, (g) => this.add(g), kind, x, y, scale, shake);
   }
 

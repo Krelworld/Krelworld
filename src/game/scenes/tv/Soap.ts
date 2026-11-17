@@ -303,7 +303,7 @@ export class SoapDirector extends ShowDirector {
         this.clipOver(p, "phil_slam", { fps: 10, back: F.ALARM });
         this.later(560, () => {
           this.crash(1.2, p.spr.x, p.spr.y - 220);
-          this.impact("pow", p.spr.x + 60, this.r.SY + this.r.SH - 20, 2.2, 0.014);
+          this.hit("pow", p.spr.x + 60, this.r.SY + this.r.SH - 20, 2.2, 0.014);
           this.sfx("punch");
         });
         return 800;

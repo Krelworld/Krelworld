@@ -610,3 +610,58 @@ export function duckMusic(ms: number, back = 600, to = 0.05) {
   g.setValueAtTime(v * to, t + ms / 1000);
   g.linearRampToValueAtTime(v, t + (ms + back) / 1000);
 }
+
+
+/** A pure tone (a countdown beep, a heart monitor). `ms` long, at `hz`. */
+export function tone(hz = 1000, ms = 120, vol = 0.18, type: OscillatorType = "square") {
+  const a = audio();
+  if (!a) return;
+  const t = a.ctx.currentTime;
+  const o = a.ctx.createOscillator();
+  const g = a.ctx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(hz, t);
+  g.gain.setValueAtTime(vol, t);
+  g.gain.setValueAtTime(vol, t + Math.max(0.01, ms / 1000 - 0.03));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000);
+  o.connect(g).connect(a.out);
+  o.start(t);
+  o.stop(t + ms / 1000 + 0.05);
+}
+
+/**
+ * A cinematic title card in screen space: a small kicker line ("MEANWHILE…"), a big place name, a rule, and an
+ * optional red clock line ("☢ 0:31 TO DETONATION"). Fades in, holds, fades out; resolves when it's gone.
+ */
+export function titleCard(sc: Phaser.Scene, kicker: string, place: string, clock = "", hold = 1800, depth = 990, y = 236): Promise<void> {
+  const L = layer(sc, depth);
+  const c = sc.add.container(480, y);
+  L.add(c);
+  const bg = sc.add.rectangle(0, 8, 980, clock ? 168 : 130, 0x000000, 0.55);
+  const k = sc.add.text(0, -44, kicker, { fontFamily: "Courier New, monospace", fontSize: "17px", color: "#e7e5e4", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5);
+  const p = sc.add.text(0, 0, place, { fontFamily: "Impact, sans-serif", fontSize: "46px", color: "#ffffff", stroke: "#000", strokeThickness: 8 }).setOrigin(0.5);
+  if (p.width > 900) p.setScale(900 / p.width);
+  const rule = sc.add.rectangle(0, 32, Math.min(900, p.displayWidth + 60), 3, 0xffffff, 0.85).setScale(0, 1);
+  c.add([bg, k, p, rule]);
+  if (clock) {
+    const t = sc.add.text(0, 60, clock, { fontFamily: "Courier New, monospace", fontSize: "24px", color: "#ff3b3b", fontStyle: "bold", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5);
+    c.add(t);
+    sc.tweens.add({ targets: t, alpha: 0.35, yoyo: true, repeat: -1, duration: 420 });
+  }
+  c.setAlpha(0);
+  tone(clock ? 880 : 520, 90, 0.08, "sine");
+  sc.tweens.add({ targets: c, alpha: 1, duration: 320 });
+  sc.tweens.add({ targets: rule, scaleX: 1, duration: 600, ease: "Cubic.out" });
+  sc.tweens.add({ targets: p, x: { from: -14, to: 0 }, duration: hold + 700, ease: "Linear" });
+  return new Promise<void>((res) => {
+    sc.time.delayedCall(320 + hold, () => {
+      if (!c.active) return res();
+      sc.tweens.add({ targets: c, alpha: 0, duration: 380, onComplete: () => {
+        c.destroy();
+        res();
+      } });
+    });
+    // never hang a cutscene on a card that was swept away
+    sc.time.delayedCall(320 + hold + 1200, () => res());
+  });
+}

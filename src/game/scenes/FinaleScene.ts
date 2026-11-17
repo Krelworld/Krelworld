@@ -9,7 +9,7 @@ import { charMeta, hdFactor } from "../gfx/HD";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { CHARACTERS, LADS } from "../../data/characters";
 import * as FB from "../../content/finaleKrelford";
-import { finalePreload, finaleReady, ssjKey, ssjPortraitKey, ssjSwap } from "./finale/finaleArt";
+import { finalePreload, finaleReady, ssjKey, ssjPortraitKey, ssjSwap, youCutKey, youEyesKey } from "./finale/finaleArt";
 import * as Juice from "../gfx/Juice";
 
 /**
@@ -361,7 +361,7 @@ export class FinaleScene extends Phaser.Scene {
     await this.wait(1100);
     await this.talk(FB.FB_TRANSFORM.slice(2));
     // the final scream: all of them at once (their eyes first)
-    await Juice.eyeShot(this, "fe_eyes_ssj", 800, { color: 0xffe066 });
+    await Juice.eyeShot(this, youEyesKey(this, G.s.player), 800, { color: 0xffe066 });
     for (const l of this.lads) if (l.spr.texture.key.startsWith("ssj_")) l.spr.setFrame(1);
     cam.resetFX();
     cam.shake(1400, calm ? 0.01 : 0.03);
@@ -872,8 +872,8 @@ export class FinaleScene extends Phaser.Scene {
         // halfway in, you: your own super saiyan close-up whips across
         if (!youCut && elapsed > 2.2) {
           youCut = true;
-          const por = ssjPortraitKey(this, G.s.player);
-          if (por) void Juice.cutIn(this, por, { from: "right", y: 150, color: 0xffe066, hold: 700, focus: 0.62, w: 480 });
+          const por = youCutKey(this, G.s.player);
+          if (por) void Juice.cutIn(this, por, por.startsWith("fe_") ? { from: "right", y: 150, color: 0xffe066, hold: 700 } : { from: "right", y: 150, color: 0xffe066, hold: 700, focus: 0.62, w: 480 });
         }
         if (elapsed - lastBurst > 0.22) {
           lastBurst = elapsed;

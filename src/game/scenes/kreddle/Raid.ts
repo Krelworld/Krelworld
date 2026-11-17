@@ -801,6 +801,8 @@ export class KreddleRaid {
     synth.play("alarm");
     if (fresh) {
       this.bigTitle("RUN!!!", "#ff3b3b", 80);
+      // the one thing to know: where to run to
+      sc.time.delayedCall(2500, () => this.bigTitle("◄ WEST, OVER THE BRIDGE, TO THE TOWN HALL", "#ffd23f", 30));
       G.emit("toast", { title: "☢ NUKE PLANTED", text: "RUN! Get back to the Town Hall before it blows!" });
       // the Palace goes up in chemical fire behind you
       const pal = this.blds[this.blds.length - 1];

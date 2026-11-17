@@ -96,6 +96,12 @@ export class DialogueBox {
     return this;
   }
 
+  /** Centre the box vertically on the screen (home: in the middle of the room, not up against the ceiling). */
+  atMiddle() {
+    this.root.setY(Math.round((12 - 362) / 2));
+    return this;
+  }
+
   constructor(scene: Phaser.Scene, depth = 1000, dim = 0.55) {
     this.scene = scene;
     this.dim = dim;

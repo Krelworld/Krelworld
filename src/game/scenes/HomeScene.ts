@@ -73,21 +73,21 @@ export class HomeScene extends Phaser.Scene {
     this.add.image(540, 532, "p_bed").setOrigin(0.5, 1).setScale(5).setDepth(532);
     this.add.text(760, 300, "▼ OUT", { fontFamily: FONT, fontSize: "12px", color: "#ffd23f", fontStyle: "bold", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5).setDepth(600);
     // the games console, the laptop on the sofa, the trophy shelf and the armoury
-    if (this.textures.exists("p_console")) this.add.image(176, 538, "p_console").setOrigin(0.5, 1).setScale(1.2).setDepth(538);
+    if (this.textures.exists("p_console")) this.add.image(900, 540, "p_console").setOrigin(0.5, 1).setScale(1.2).setDepth(538);
     if (this.textures.exists("p_laptop")) this.add.image(352, 504, "p_laptop").setOrigin(0.5, 1).setScale(1.25).setDepth(536);
     this.drawShelf(292, 300);
     if (this.textures.exists("p_gunrack")) this.add.image(880, 300, "p_gunrack").setScale(1.6).setDepth(5);
     this.drawDecor();
     this.spots.push(
       { x: 140, y: 480, r: 80, label: "E: Watch KrelTV", use: () => this.watchTV() },
-      { x: 176, y: 530, r: 42, label: "E: Play the games console", use: () => this.consolePanel() },
+      { x: 900, y: 532, r: 42, label: "E: Play the games console", use: () => this.consolePanel() },
       { x: 292, y: 462, r: 40, label: "E: Look at your trophy shelf", use: () => this.trophyPanel() },
       { x: 350, y: 522, r: 48, label: "E: Open the laptop (group chat)", use: () => this.laptopPanel() },
       { x: 540, y: 500, r: 80, label: "E: Sleep (save · full health · sober up · dream)", use: () => this.sleep() },
       { x: 880, y: 468, r: 55, label: "E: Gun rack (order · ammo · perks)", use: () => this.gunRackPanel() },
       { x: 420, y: 445, r: 55, label: "E: Look out of the window", use: () => this.talk([dir(s.flags.met_emergency ? "Krelford. The sky has a faint grey tint, like an unloaded page. Somewhere, a Tap is not running." : "Krelford, in the evening. Somewhere a fizzy bongo is opened. Somewhere else, the Great Tap gurgles. All is well. For now.")]) },
       { x: 760, y: 450, r: 60, label: "E: Go outside", use: () => this.leave() },
-      { x: 612, y: 530, r: 30, label: "E: Read 'Dark Autism - An Erotic Memoir'", use: () => this.readBook() },
+      { x: 624, y: 520, r: 44, label: "E: Read 'Dark Autism - An Erotic Memoir'", use: () => this.readBook() },
       { x: 566, y: 452, r: 34, label: "E: Jukebox (every tune you've heard)", use: () => this.jukeboxPanel() },
     );
     // the jukebox, by the radiator, glowing
@@ -97,13 +97,13 @@ export class HomeScene extends Phaser.Scene {
       this.tweens.add({ targets: jg, alpha: 0.25, yoyo: true, repeat: -1, duration: 900, ease: "Sine.inOut" });
     }
     // a well-thumbed copy of Dark Autism - An Erotic Memoir, at the foot of the bed
-    if (this.textures.exists("p_dark_autism")) this.add.image(612, 528, "p_dark_autism").setOrigin(0.5, 1).setScale(0.22).setAngle(-14).setDepth(533);
+    if (this.textures.exists("p_dark_autism")) this.add.image(628, 534, "p_dark_autism").setOrigin(0.5, 1).setScale(0.34).setAngle(-14).setDepth(533);
     this.me = this.add.sprite(s.flags.home_seen ? 740 : 420, 500, playerKey(this), 0).setOrigin(0.5, 1).setScale(5.5).setDepth(500);
     bindSanmikToggle(this, { sprites: () => [this.me], can: () => !this.busy });
     this.prompt = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#000000cc", padding: { x: 6, y: 3 } }).setOrigin(0.5).setDepth(1000).setVisible(false);
     this.controls = new Controls(this);
     // at home the box sits along the top, so you can see yourself and the room while people talk
-    this.box = new DialogueBox(this, 2000, 0.2).atTop();
+    this.box = new DialogueBox(this, 2000, 0.2).atMiddle();
     if (!this.scene.isActive("UI")) this.scene.launch("UI", { mode: "hub" });
     else this.scene.get("UI").events.emit("mode", "hub");
     this.events.off("resume");

@@ -11,6 +11,9 @@ import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 //   over Krelford, and nobody involved in it is shown.
 // - Starmer's video scandal: the cross-party meeting, his "virus" statement, the enhanced audio and Sunak at
 //   Downing Street. The video itself is never shown: we only see the phone's back and the MPs' faces.
+// - Gordon Ramsey's "Food History Moment": clips from the (fictional) documentary's cosy TV-kitchen set, Ramsey's
+//   quote on camera, PixelLab inserts of the turkey, the knife and his lip, Dr Bramwell's (fictional) stunned
+//   close-ups, and the viewers' reaction. The article spells him "Ramsey"; his speaker tag is the game's GORDON RAMSAY.
 
 const NEWS = "GB KREWS 24";
 
@@ -306,4 +309,42 @@ NEWSREADER: As the nation watches this scandal unfold, one thing is clear: nobod
 `,
 );
 
-export const KREWS_STORIES_EPISODES: TVEpisode[] = [KREWS_KLOPP_BRIBE, KREWS_SUNAK_BOMB, KREWS_STARMER_SAGA, KREWS_STARMER_VIDEO, KREWS_CRASH_MODE_LIVE];
+export const KREWS_RAMSEY_TURKEY = ep(
+  "krews_ramsey_turkey",
+  "'Food History Moment' Sparks Outrage",
+  48,
+  `[MUSIC news start]
+# GB KREWS 24
+INT. NEWSDESK - DAY
+[MUSIC news fade]
+# "FOOD HISTORY MOMENT" SPARKS OUTRAGE AFTER GORDON RAMSEY'S BIZARRE ON-AIR COOKING DEMONSTRATION
+NEWSREADER: London. Celebrity chef Gordon Ramsey is under intense scrutiny this week following a now-viral segment from his new Channel 4 documentary series Food History Moment, in which the culinary icon describes cooking as "very erotic" before performing what many are calling an "unhinged and symbolic" act involving a turkey.
+NEWSREADER: The series, intended to explore the intersections of food, culture, and identity, features Ramsey interviewing experts across disciplines while preparing historical dishes.
+NEWSREADER: But a scene from Episode 2 — titled The Domestic Table: Desire and Power — has triggered backlash and bewilderment in equal measure. A warning: viewers may find the following footage unsettling.
+INT. FOOD HISTORY MOMENT KITCHEN - DAY
+# FOOD HISTORY MOMENT · EPISODE 2: THE DOMESTIC TABLE: DESIRE AND POWER
+NEWSREADER: In the segment, Ramsey is seen preparing a traditional roast bird while speaking with feminist food theorist Dr. Leigh Bramwell.
+DR LEIGH BRAMWELL: [calm] For centuries, the kitchen was where women's labour went unseen. The roast arrived at the table; the hours behind it never did.
+NEWSREADER: As the two discuss the historical burdens of domestic labor and the gendered role of women in kitchens, Ramsey abruptly pivots:
+(He runs his fingers along the skin of the turkey.)
+GORDON RAMSAY: [sultry] You know, the act of cooking is very erotic. It's sensual. You touch, you taste, you penetrate...
+DR LEIGH BRAMWELL: [shocked] I'm sorry?
+GORDON RAMSAY: [whispers] Into the vagina of the turkey.
+[INSERT knife 1]
+NEWSREADER: Without warning, Ramsey then aggressively slid a carving knife into what he referred to as "the vagina of the turkey" — a biologically inaccurate term that nonetheless appeared intentional.
+[INSERT slice 2]
+GORDON RAMSAY: [sultry] Mmmmh.
+NEWSREADER: He bit his lip and groaned softly as he began slicing into the meat "for no clear culinary reason," according to one viewer,
+[INSERT stunned 1]
+NEWSREADER: all while maintaining unnervingly intense eye contact with Dr. Bramwell, who appears visibly stunned in the footage.
+INT. VIEWER REACTION TRENDING GRAPHIC
+NEWSREADER: The clip has been viewed millions of times, and viewers have not held back.
+INT. NEWSDESK - DAY
+# CHANNEL 4: NO COMMENT
+NEWSREADER: Channel 4 has not commented. Dr. Bramwell has not commented.
+NEWSREADER: The turkey was unavailable for comment.
+[FADE]
+`,
+);
+
+export const KREWS_STORIES_EPISODES: TVEpisode[] = [KREWS_KLOPP_BRIBE, KREWS_SUNAK_BOMB, KREWS_STARMER_SAGA, KREWS_STARMER_VIDEO, KREWS_CRASH_MODE_LIVE, KREWS_RAMSEY_TURKEY];

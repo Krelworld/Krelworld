@@ -4,6 +4,7 @@ import { speakable } from "../../audio/voiceKey";
 import { KREWS3_ANCHORS, krews3Gesture } from "./krews3Cast";
 import { KREWS4_ANCHORS, krews4Gesture } from "./krews4Cast";
 import { KREWS1_ANCHORS, krews1Gesture } from "./krews1Cast";
+import { RAMSEY_ANCHORS, ramseyGesture } from "./ramseyShow";
 
 /**
  * A talking presenter for the news broadcasts (and the Crobley studio / Swig's press conference).
@@ -32,6 +33,7 @@ export const ANCHORS: Record<string, AnchorDef> = {
   ...KREWS3_ANCHORS,
   ...KREWS4_ANCHORS,
   ...KREWS1_ANCHORS,
+  ...RAMSEY_ANCHORS,
 };
 
 export function hasAnchor(sc: Phaser.Scene, name: string) {
@@ -104,7 +106,7 @@ function gestureFor(name: string, text: string, n: number): string[] {
       if (/fuck/.test(t)) return ["point"];
       return [["rest"], ["point", "rest"], ["rest"]][n % 3];
   }
-  return krews3Gesture(name, text, n) ?? krews4Gesture(name, text, n) ?? krews1Gesture(name, text, n) ?? ["rest"];
+  return krews3Gesture(name, text, n) ?? krews4Gesture(name, text, n) ?? krews1Gesture(name, text, n) ?? ramseyGesture(name, text) ?? ["rest"];
 }
 
 export class Presenter {

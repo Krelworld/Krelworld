@@ -8476,6 +8476,9 @@
   },
   "fe_still_drongus_break": {
    "file": "finale/fe_still_drongus_break.png"
+  },
+  "fe_still_drongus_launch": {
+   "file": "finale/fe_still_drongus_launch.png"
   }
  },
  "sheets": {

@@ -456,6 +456,8 @@ export class DerangedDrongusBoss extends Boss {
       await wait(900);
       synth.play("jet");
       synth.play("boom");
+      // the money shot: up he goes, through the roof
+      void Juice.still(sc, "fe_still_drongus_launch", 1150, { push: 0.15, shakeK: 0.02 });
       w.shake(700, 0.035);
       sc.cameras.main.flash(400, 255, 230, 140);
       const rocket = sc.add.container(cx, this.cauldron.y - 40).setDepth(960);

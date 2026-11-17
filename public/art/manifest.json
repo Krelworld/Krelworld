@@ -8455,6 +8455,15 @@
   },
   "tv_p2_table": {
    "file": "backdrops/tv_p2_table.png"
+  },
+  "bg_c6e_bridge_view": {
+   "file": "backdrops/bg_c6e_bridge_view.png"
+  },
+  "bg_c6e_launch": {
+   "file": "backdrops/bg_c6e_launch.png"
+  },
+  "bg_c6e_krunch_screen": {
+   "file": "backdrops/bg_c6e_krunch_screen.png"
   }
  },
  "sheets": {

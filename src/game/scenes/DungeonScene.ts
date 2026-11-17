@@ -2232,7 +2232,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     synth.play("roar");
     if (!again) await this.talk(BOSS_TEXT.heropax.intro);
-    if (!this.sys.settings.active) return;
+    if (!this.heroAlive()) return;
     await vsSplash(this, {
       bossId: "heropax",
       name: "THE HERO PASSENGERS",
@@ -2270,9 +2270,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     for (const e of [...this.enemies]) if (!e.dead) this.damageEnemy(e, 99999, { noWonk: true, label: "" });
     for (const sh of [...this.shots]) this.killShot(sh);
     await new Promise<void>((res) => this.time.delayedCall(900, () => res()));
-    if (!this.sys.settings.active) return;
+    if (!this.heroAlive()) return;
     await this.talk(BOSS_TEXT.heropax.outro);
-    if (!this.sys.settings.active) return;
+    if (!this.heroAlive()) return;
     const downed = sq.downed.filter((d) => d.hero.active);
     if (downed.length && (await krelAllPrompt(this, downed.length))) {
       const ps = this.player.spr;
@@ -2285,7 +2285,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         d.hero.remove();
         // a different finisher on each (the shuffle bag never repeats one until you've seen them all)
         await forcedKreltality(this, tg, pl, pick());
-        if (!this.sys.settings.active) return;
+        if (!this.heroAlive()) return;
         n++;
         bump(s, "kreltalities");
         s.flags[`krel_${d.target.id}`] = true;
@@ -2302,7 +2302,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       }
       this.toast("SPARED", "They'll be dining out on this for years.");
     }
-    if (!this.sys.settings.active) return;
+    if (!this.heroAlive()) return;
     sq.destroy();
     this.heroSquad = null;
     this.cameras.main.zoomTo(1, 300);
@@ -2323,6 +2323,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.busy = false;
   }
 
+
+  /** Still here (not shut down by a death or a quit): paused by a dialogue counts. */
+  private heroAlive() {
+    return !!this.sys && (this.sys.isActive() || this.sys.isPaused());
+  }
 
   /** Where the boss died and what they looked like (for the KRELTALITY stand-in). */
   private krelTarget: KrelTarget | null = null;
@@ -3726,7 +3731,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.colonTube?.update(Math.min(delta, 50), this.busy);
     this.roof?.update(Math.min(delta, 50));
     const mb = this.room.miniBoss;
-    if (mb && this.miniBossState === "none" && !this.roomCleared && !this.busy && !this.transitioning) {
+    if (mb && this.miniBossState === "none" && !this.roomCleared && !this.busy && !this.transitioning && !this.sideLevel?.locked) {
       const climb = this.room.exitAt ? this.room.exitAt[1] : this.room.h - 200;
       if (this.room.tower ? this.player.y < this.groundY - mb.at * climb : this.player.x > this.room.w * mb.at) void this.startMiniBoss();
     }

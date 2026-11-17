@@ -284,8 +284,12 @@ export class HubScene extends Phaser.Scene {
   /** Set when arriving straight from a chapter report: run the next chapter's Town Hall meetings in the same visit. */
   private chainMeetings = false;
 
-  create(data: { at?: string; from?: string; advance?: boolean; chain?: boolean; flyover?: boolean }) {
+  /** Set while the Hub only runs as a cut-away from a meeting, to raise Da Drongus Dungeon (the scene key to go back to). */
+  private riseCut: string | null = null;
+
+  create(data: { at?: string; from?: string; advance?: boolean; chain?: boolean; flyover?: boolean; riseCut?: string }) {
     const s = G.s;
+    this.riseCut = data?.riseCut ?? null;
     if (data?.advance) endChapter();
     if (s.flags.companion_used) {
       const who = CHARACTERS[s.flags.companion as string]?.name ?? "Your lad";
@@ -294,7 +298,7 @@ export class HubScene extends Phaser.Scene {
       this.time.delayedCall(1500, () => G.emit("toast", { title: "CONTRACT ENDED", text: `${who} has gone home. Hire another at the Kreddle Exchange (over the bridge).` }));
     }
     this.chainMeetings = !!(data?.advance || data?.chain);
-    s.phase = "hub";
+    if (!this.riseCut) s.phase = "hub";
     // the Chapter 6 nuke keeps ticking in town; any other timer stops here
     if (!(s.chapter === 6 && s.flags.nuke_planted && !s.flags.krunch_started)) {
       G.rt.timerEnd = 0;
@@ -338,6 +342,25 @@ export class HubScene extends Phaser.Scene {
     // headroom above the map so the top of Da Drongus Dungeon fits on screen
     this.cameras.main.setBounds(0, -SKY_H, WORLD_W, WORLD_H + SKY_H);
     this.cameras.main.startFollow(this.av, true, 0.12, 0.12);
+    // a cut-away from the emergency meeting: just the town, the rise, and back to the Town Hall
+    if (this.riseCut) {
+      const back = this.riseCut;
+      // hide the meeting room (and its reaction display and agenda) while we're outside
+      const hidden = [back, "UI"].filter((k) => this.scene.isActive(k) || this.scene.isPaused(k));
+      for (const k of hidden) this.scene.setVisible(false, k);
+      this.weather();
+      this.time.delayedCall(400, async () => {
+        await this.riseTower();
+        this.cameras.main.fadeOut(300);
+        await new Promise((r) => this.time.delayedCall(320, r));
+        this.riseCut = null;
+        for (const k of hidden) this.scene.setVisible(true, k);
+        this.scene.resume(back);
+        this.scene.get(back).events.emit("ui-resume");
+        this.scene.stop();
+      });
+      return;
+    }
     // a soft vignette frames the town and pulls the eye to the middle
     Juice.vignette(this, 0x0b0614, 0.32, 3990);
     this.beatup = new Beatup(this, BUILDINGS.filter((b) => b.door).map((b) => ({ x: b.door!.x, y: b.door!.y + 30, name: b.name })));
@@ -3004,7 +3027,7 @@ You are required by law to sign the Sex Offenders Register.`, {
   // ------------------------------------------------------------- update
 
   update(time: number, delta: number) {
-    if (!this.av) return;
+    if (!this.av || this.riseCut) return;
     const dt = Math.min(delta, 50);
     const s = G.s;
     s.playtimeMs += dt;

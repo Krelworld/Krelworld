@@ -112,6 +112,8 @@ export interface Line {
   mood?: string;
   /** Play this KrelTV episode on the telly right here, then carry on. */
   tv?: string;
+  /** Cut out to the town and raise Da Drongus Dungeon (HubScene), then carry on with the script. */
+  rise?: boolean;
   /** A staged moment in the room as this line shows (e.g. "robbo_enter"): see TownMeetingScene.fx. */
   fx?: string;
   /**

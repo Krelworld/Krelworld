@@ -373,12 +373,17 @@ export abstract class ShowDirector {
     return this.sc.textures.exists(key) ? key : null;
   }
 
+  /** The close-up sheet a name plays with (a show can recast a stock name with its own face). */
+  protected faceKey(name: string) {
+    return faceKeyOf(name);
+  }
+
   protected hasFace(name: string) {
-    return this.sc.textures.exists(faceKeyOf(name));
+    return this.sc.textures.exists(this.faceKey(name));
   }
 
   protected faceFrames(name: string) {
-    const k = faceKeyOf(name);
+    const k = this.faceKey(name);
     if (!this.sc.textures.exists(k)) return 0;
     return FACE_META[k.slice(7)]?.base ?? Math.min(8, this.sc.textures.get(k).frameTotal - 1);
   }
@@ -488,7 +493,7 @@ export abstract class ShowDirector {
    * Null if they haven't one (then it's their full-body sprite, see body()).
    */
   protected bust(name: string, x: number, bottom: number, height: number) {
-    const fk = faceKeyOf(name);
+    const fk = this.faceKey(name);
     if (!this.sc.textures.exists(fk)) return null;
     const fh = this.sc.textures.getFrame(fk, 0)?.height ?? 128;
     return this.add(this.sc.add.sprite(x, bottom, fk, 0).setOrigin(0.5, 1).setScale(height / fh));
@@ -514,7 +519,7 @@ export abstract class ShowDirector {
     let face = false;
     let scale: number;
     let y: number;
-    const fk = faceKeyOf(name);
+    const fk = this.faceKey(name);
     if (this.sc.textures.exists(fk)) {
       face = true;
       scale = o.scale ?? 3.1;

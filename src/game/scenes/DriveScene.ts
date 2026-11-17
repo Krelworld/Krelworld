@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { playerKey } from "../gfx/sanmikForm";
 import { vfx } from "../gfx/Vfx";
+import { sloppyCutIn } from "../gfx/SideCine";
 import { G } from "../G";
 import { synth } from "../audio/Synth";
 import { DialogueBox } from "../ui/DialogueBox";
@@ -764,6 +765,7 @@ export class DriveScene extends Phaser.Scene {
     const slop = this.add.rectangle(480, 270, 960, 540, 0xa3e635, 0.55).setDepth(250).setScrollFactor(0);
     this.tweens.add({ targets: slop, alpha: 0, duration: 900, onComplete: () => slop.destroy() });
     this.shout("SLOPPY SURPRISE!!", "#a3e635", 36);
+    sloppyCutIn(this);
     this.bigMoment(600);
     for (const f of this.foes) if (!f.dead && f.kind !== "spikes" && f.kind !== "ramp" && f.kind !== "tank") this.killFoe(f);
     for (const f of this.foes) if (!f.dead && f.kind === "tank") this.damageFoe(f, 25);

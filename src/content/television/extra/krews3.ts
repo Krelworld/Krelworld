@@ -11,6 +11,9 @@ import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 //   over Krelford, and nobody involved in it is shown.
 // - Starmer's video scandal: the cross-party meeting, his "virus" statement, the enhanced audio and Sunak at
 //   Downing Street. The video itself is never shown: we only see the phone's back and the MPs' faces.
+// - #ArsebrushGate: Sunday's tease, the Downing Street press conference (Starmer with a giant toothbrush, flanked by
+//   Whitty and Dental Health Tsar Dr Alana Merrick, a fictional character), the crashed Department of Health website,
+//   the British Dental Association's statement, Badenoch and Cooper at Westminster, and the hashtags.
 // - Kill the Patient 2: No Alibi: the hospital arcade, the cabinet, the hospital's press room and the committee room,
 //   cutting now and then to "game footage" of the arcade game itself (tvnews/ktpGame.ts), then a BREAKING second half
 //   on the "penis sensor" (only ever the flap and its label). The article stops mid-sentence after 'Fully Immersive';
@@ -310,10 +313,57 @@ NEWSREADER: As the nation watches this scandal unfold, one thing is clear: nobod
 `,
 );
 
+export const KREWS_ARSEBRUSH = ep(
+  "krews_arsebrush",
+  "#ArsebrushGate: The PM's Health Breakthrough",
+  35,
+  `[MUSIC news start]
+# GB KREWS 24
+INT. NEWSDESK - DAY
+[MUSIC news fade]
+# PM'S 'HEALTH BREAKTHROUGH' SPARKS FURY AFTER BIZARRE HYGIENE GUIDANCE
+NEWSREADER: Prime Minister Keir Starmer has triggered disbelief and widespread condemnation after unveiling what he described as a "massive and exciting" public health breakthrough — a government-endorsed recommendation that Britons should "brush the inside of their arsehole."
+INT. TEASER GRAPHIC - DAY
+NEWSREADER: The announcement, made during a Downing Street press conference on Monday, came less than 24 hours after Starmer had teased "one of the most significant developments in preventative health in decades."
+NEWSREADER: Expectations had mounted across Westminster and the medical community, with speculation ranging from a major NHS funding boost to a new cancer screening programme.
+INT. DOWNING STREET PRESS ROOM - DAY
+# LIVE: DOWNING STREET · PRIME MINISTER'S PRESS CONFERENCE
+REPORTER: Instead, the Prime Minister appeared flanked by Chief Medical Officer Sir Chris Whitty and newly appointed Dental Health Tsar Dr. Alana Merrick, declaring that medical consensus now supported "targeted internal cleansing" as a means to "reduce bacterial buildup, improve digestive wellbeing, and modernise hygiene standards."
+KEIR STARMER: This is a massive and exciting public health breakthrough.
+KEIR STARMER: We brush our teeth to get rid of food and plaque.
+KEIR STARMER: It's time we faced the simple truth: we should also brush the inside of our arseholes — to get all the shit out.
+(a long pause: stunned silence)
+REPORTER: The remarks were met with stunned silence from the assembled press before several journalists shouted follow-up questions, including whether the NHS would be issuing official guidance or equipment for such practices.
+JOURNALIST: Prime Minister! Will the NHS be issuing official guidance? Or equipment?
+CHRIS WHITTY (visibly uncomfortable): Research is ongoing.
+INT. NEWSDESK - DAY
+# WEBSITE CRASHES · DENTISTS "NOT CONSULTED"
+NEWSREADER: Whitty, visibly uncomfortable, declined to elaborate, saying only that "research is ongoing."
+INT. DOH ERROR GRAPHIC - DAY
+NEWSREADER: Within hours, the Department of Health's website crashed amid a surge of visitors seeking clarification.
+INT. BDA STATEMENT - DAY
+NEWSREADER: The British Dental Association issued a curt statement saying it had "not been consulted" and "did not endorse the Prime Minister's comments in any capacity."
+INT. NEWSDESK - DAY
+# OPPOSITION CONDEMNS "GROTESQUE FARCE"
+NEWSREADER: Opposition parties were quick to condemn the announcement.
+EXT. WESTMINSTER - DAY
+NEWSREADER: Conservative leader Kemi Badenoch accused Starmer of "degrading the dignity of public office" and called for an immediate apology.
+KEMI BADENOCH: The Prime Minister is degrading the dignity of public office. He must make an immediate apology.
+EXT. COLLEGE GREEN - DAY
+NEWSREADER: Liberal Democrat leader Daisy Cooper described the moment as "a grotesque farce masquerading as science."
+DAISY COOPER: It was a grotesque farce masquerading as science.
+INT. ARSEBRUSHGATE TRENDING GRAPHIC
+NEWSREADER: Social media erupted with a mixture of ridicule, outrage, and confusion. Hashtags such as #ArsebrushGate and #ColonicKeir began trending within minutes, while videos of Starmer's statement circulated widely with incredulous commentary.
+INT. NEWSDESK - DAY
+NEWSREADER: In a later interview, the Prime Minister stood by his remarks.
+[FADE]
+`,
+);
+
 export const KREWS_KILL_THE_PATIENT = ep(
   "krews_kill_the_patient",
   "Kill the Patient 2: No Alibi",
-  35,
+  36,
   `[MUSIC news start]
 # GB KREWS 24
 INT. NEWSDESK - DAY
@@ -421,4 +471,4 @@ NEWSREADER: GB Krews has asked the manufacturer exactly when the sensor becomes 
 `,
 );
 
-export const KREWS_STORIES_EPISODES: TVEpisode[] = [KREWS_KLOPP_BRIBE, KREWS_SUNAK_BOMB, KREWS_STARMER_SAGA, KREWS_STARMER_VIDEO, KREWS_CRASH_MODE_LIVE, KREWS_KILL_THE_PATIENT];
+export const KREWS_STORIES_EPISODES: TVEpisode[] = [KREWS_KLOPP_BRIBE, KREWS_SUNAK_BOMB, KREWS_STARMER_SAGA, KREWS_STARMER_VIDEO, KREWS_CRASH_MODE_LIVE, KREWS_ARSEBRUSH, KREWS_KILL_THE_PATIENT];

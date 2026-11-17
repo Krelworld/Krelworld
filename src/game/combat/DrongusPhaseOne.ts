@@ -76,7 +76,9 @@ export class DrongusPhaseOneBoss extends Boss {
     const g = this.gun;
     if (!g) return;
     const left = Math.cos(this.aim) < 0;
-    g.setPosition(this.x + Math.cos(this.aim) * 14, this.y + GUN_Y + Math.sin(this.aim) * 6).setRotation(this.aim).setFlipY(left).setDepth(this.depth + 1).setVisible(this.visible).setAlpha(this.alpha);
+    // down on his knees (overheated): the gun comes down with him, muzzle drooping
+    const low = this.isDowned ? this.displayHeight * 0.16 : 0;
+    g.setPosition(this.x + Math.cos(this.aim) * 14, this.y + GUN_Y + low + Math.sin(this.aim) * 6).setRotation(this.aim + (low ? (Math.cos(this.aim) < 0 ? -0.5 : 0.5) : 0)).setFlipY(left).setDepth(this.depth + 1).setVisible(this.visible).setAlpha(this.alpha);
     if (this.world.now() < this.flashUntil) g.setTintFill(0xffffff);
     else if (this.world.now() < this.vulnerableUntil) g.setTint(0xff9b9b);
     else g.clearTint();
@@ -172,6 +174,8 @@ export class DrongusPhaseOneBoss extends Boss {
       this.lockAim = null;
       this.vulnerableUntil = this.world.now() + 3200;
       w.floatText(this.x, this.y - 90, "OVERHEATED! (HIT HIM!)", "#fde047", 20);
+      // spent: down on his knees, dazed, till it cools
+      this.playAnim("stagger", { holdMs: 2900 });
       synth.play("pfft");
       for (let i = 0; i < 8; i++) sc.time.delayedCall(i * 340, () => !this.dead && this.gun && hasVfx(sc, "vfx_smoke") && vfx(sc, "vfx_smoke", this.muzzle()[0], this.muzzle()[1], { scale: 0.8, depth: 952, tint: 0x9cffb0 }));
     });
@@ -358,16 +362,41 @@ export class DrongusPhaseOneBoss extends Boss {
     this.clearTint();
   }
 
+  /** Starts his run loop: "run" (fe_drongus1_run, PixelLab), "move" (his animation sheet's move row) or null. */
+  private playRun(): "run" | "move" | null {
+    const sc = this.scene;
+    const key = "fe_drongus1_run";
+    if (sc.textures.exists(key)) {
+      const ak = `${key}:loop`;
+      if (!sc.anims.exists(ak)) sc.anims.create({ key: ak, frames: sc.anims.generateFrameNumbers(key, { start: 0, end: sc.textures.get(key).frameTotal - 2 }), frameRate: 14, repeat: -1 });
+      const sx = this.scaleX / ((this.texture.customData as { hd?: number } | undefined)?.hd ?? 1);
+      this.anims.stop();
+      this.setTexture(key, 0);
+      this.setScale(sx);
+      this.play(ak);
+      return "run";
+    }
+    const mv = this.animKey ? `${this.animKey}:move` : null;
+    if (mv && sc.anims.exists(mv)) {
+      this.play(mv);
+      return "move";
+    }
+    return null;
+  }
+
   /** Off he runs, out of the door at the back and up the stairs. */
   runAway(doorX: number, doorY: number): Promise<void> {
     const sc = this.scene;
     return new Promise((resolve) => {
-      this.setFlipX(doorX < this.x);
+      // legging it: his drawn panicked run (it faces left), else his sheet's move loop, else a bare wobble
+      const ran = this.playRun();
+      this.setFlipX(ran === "run" ? doorX > this.x : doorX < this.x);
       const lines = ["PHASE ONE!", "THAT WAS PHASE ONE!", "YOU'LL NEVER GET THE LOGS!"];
       lines.forEach((t, i) => sc.time.delayedCall(i * 520, () => this.active && this.world.floatText(this.x, this.y - 90, t, "#ff6b6b", 16)));
       const dur = Math.max(900, Phaser.Math.Distance.Between(this.x, this.y, doorX, doorY) * 3);
       sc.tweens.add({ targets: this, x: doorX, y: doorY + 30, duration: dur, ease: "Sine.inOut", onUpdate: () => this.holdGun() });
-      sc.tweens.add({ targets: this, angle: { from: -6, to: 6 }, yoyo: true, repeat: Math.floor(dur / 160), duration: 80 });
+      const lean = ran ? 2 : 6;
+      sc.tweens.add({ targets: this, angle: { from: -lean, to: lean }, yoyo: true, repeat: Math.floor(dur / 160), duration: 80 });
       sc.time.delayedCall(dur, () => {
         synth.play("door");
         // and the comedy cut: him legging it up the stairs

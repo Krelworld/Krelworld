@@ -27,6 +27,12 @@ export const KREWS3_ANCHORS: Record<string, AnchorDef> = {
   "BOARD MEMBER": { key: "tvanchor_KTP_BOARDMEMBER", poses: ["rest"], talks: [true] },
   "REBECCA HALL": { key: "tvanchor_KTP_HALL", poses: ["rest"], talks: [true] },
   "MARTIN BELL": { key: "tvanchor_KTP_BELL", poses: ["rest", "note"], talks: [true, true] },
+  // #ArsebrushGate: Starmer at the lectern with the giant toothbrush, the people flanking him, the opposition
+  "KEIR STARMER@BRUSH": { key: "tvanchor_STARMER_BRUSH", poses: ["rest", "brush"], talks: [true, true] },
+  "CHRIS WHITTY": { key: "tvanchor_WHITTY", poses: ["rest", "palm"], talks: [true, true] },
+  "DR ALANA MERRICK": { key: "tvanchor_MERRICK", poses: ["rest", "palm"], talks: [true, true] },
+  "KEMI BADENOCH": { key: "tvanchor_BADENOCH", poses: ["rest", "palm"], talks: [true, true] },
+  "DAISY COOPER": { key: "tvanchor_COOPER", poses: ["rest", "palm"], talks: [true, true] },
 };
 
 /** Which gesture suits a line, for this cast (null: not one of ours). */
@@ -51,6 +57,7 @@ export function krews3Gesture(name: string, text: string, n: number): string[] |
       return [["rest", "palms"], ["point", "rest"], ["rest"]][n % 3];
     case "KEIR STARMER":
       if (/smell|phwoar/.test(t)) return ["waft"];
+      if (/brush|breakthrough/.test(t)) return ["brush"];
       if (/sorry|hurt|trust|ill-judged/.test(t)) return ["chest", "rest"];
       if (/change is coming|prime minister|one thing/.test(t)) return ["point", "rest"];
       return ["rest"];
@@ -82,6 +89,13 @@ export function krews3Gesture(name: string, text: string, n: number): string[] |
     case "BOARD MEMBER":
     case "REBECCA HALL":
       return ["rest"];
+    case "CHRIS WHITTY":
+      return ["rest"];
+    case "DR ALANA MERRICK":
+    case "DAISY COOPER":
+      return ["palm", "rest"];
+    case "KEMI BADENOCH":
+      return /apology/.test(t) ? ["rest", "palm"] : ["palm", "rest"];
   }
   return null;
 }

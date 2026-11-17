@@ -150,6 +150,17 @@ def auto_tags(raw, t):
         tags.append("sighs" if len(t) < 45 else "hesitant")
     return list(dict.fromkeys(tags))[:2]
 
+def unsponge(t):
+    """Text written in alternating caps (sPoNgE cAsE) in sentence case, for TTS. Lines that aren't left alone."""
+    t = t.replace("\uff08", "").replace("\uff09", "")  # fullwidth brackets: shown on screen, not read
+    words = re.findall(r"[A-Za-z']+", t)
+    sponge = [w for w in words if re.search(r"[a-z][A-Z]", w)]
+    if not words or len(sponge) < max(1, len(words) * 0.6):
+        return t
+    t = t.lower()
+    t = re.sub(r"\bi\b", "I", t)
+    return re.sub(r"(^|[.!?…]\s+)([a-z])", lambda m: m.group(1) + m.group(2).upper(), t)
+
 def plan(l, c):
     """(model, text to send, settings, delivery tags) for one line."""
     vid, kind, accent, base = c
@@ -161,6 +172,8 @@ def plan(l, c):
         t = re.sub(r"^[\s.,!?…\-—]+", "", t)
         t = re.sub(r"\s+([.,!?…])", r"\1", t)
         t = re.sub(r"\s{2,}", " ", t).strip()
+    # mocking alternating caps ("nOw LeT mE cHeCk", Dr. Puss) stay on screen but are read in normal case
+    t = unsponge(t)
     # how names are said (the text on screen is unchanged): e.g. Krebon is "Krebb-on"
     for word, say_as in CAST.get("pronounce", {}).items():
         if not word.startswith("_"):

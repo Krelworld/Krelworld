@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Boss } from "./Bosses";
+import { Boss, type BossAnimState } from "./Bosses";
 import type { CombatWorld } from "./types";
 import { synth } from "../audio/Synth";
 import { hasVfx, vfx } from "../gfx/Vfx";
@@ -64,6 +64,9 @@ export class KrexBoss extends Boss {
   private dragUntil = 0;
   private dragDir = 1;
   private sc: Phaser.Scene;
+  /** Staggered (playAnim("stagger")): his bolted-on bits sag and twitch, sparking, until then. */
+  private rigStunUntil = 0;
+  private nextSpark = 0;
 
   constructor(w: CombatWorld, x: number, y: number) {
     fallback(w.sc);
@@ -106,7 +109,14 @@ export class KrexBoss extends Boss {
       if (id === "legf") dy = Math.max(0, step) * -5 * (k / 2.5);
       else if (id === "legb") dy = Math.max(0, -step) * -5 * (k / 2.5);
       else dy = Math.abs(step) * 2 * (k / 2.5);
-      img.setPosition(this.x, this.y + dy).setFlipX(this.flipX).setDepth(this.depth + (id === "legb" || id === "tail" ? -1 : 1)).setScale(k);
+      let jx = 0;
+      if (now < this.rigStunUntil) {
+        // stunned: the bits sag on their bolts and twitch
+        const sag = id === "legb" || id === "legf" ? 0 : id === "head" ? 9 : 5;
+        dy += sag * (k / 2.5) + Math.sin(now / 90 + sag) * 1.2;
+        jx = (Math.random() - 0.5) * 2;
+      }
+      img.setPosition(this.x + jx, this.y + dy).setFlipX(this.flipX).setDepth(this.depth + (id === "legb" || id === "tail" ? -1 : 1)).setScale(k);
       img.setVisible(this.visible).setAlpha(this.alpha);
       if (now < this.flashUntil) img.setTintFill(0xffffff);
       else img.clearTint();
@@ -124,6 +134,33 @@ export class KrexBoss extends Boss {
     return !this.lost.has(id);
   }
 
+  /**
+   * The shared boss hook. He's a rig of bolted-on parts, not one sheet: "stagger" slumps the parts and sets him sparking
+   * (for `holdMs`, or until "getup"/"idle"), "hurt" is a jolt of the rig. Everything else: the base behaviour.
+   */
+  playAnim(state: BossAnimState, opts?: { holdMs?: number; keepPattern?: boolean }): boolean {
+    if (this.dead || !this.active) return false;
+    const now = this.world.now();
+    if (state === "stagger" || state === "daze") {
+      this.rigStunUntil = opts?.holdMs ? now + opts.holdMs : Infinity;
+      return true;
+    }
+    if (state === "getup" || ((state === "idle" || state === "move") && this.rigStunUntil > now)) {
+      const was = this.rigStunUntil > now;
+      this.rigStunUntil = 0;
+      return was || state !== "getup";
+    }
+    if (state === "hurt") {
+      this.flashUntil = Math.max(this.flashUntil, now + 90);
+      return true;
+    }
+    return super.playAnim(state, opts);
+  }
+
+  get isDowned() {
+    return this.rigStunUntil > this.world.now();
+  }
+
   tick(dt: number, now: number) {
     if (this.dead) return;
     this.fit();
@@ -131,6 +168,11 @@ export class KrexBoss extends Boss {
     // Boss.tick flips between frames 0 and 1; the hull sheet has both, so that's fine
     super.tick(dt, now);
     this.syncParts(now);
+    if (now < this.rigStunUntil && now >= this.nextSpark && hasVfx(this.sc, "vfx_sparks")) {
+      this.nextSpark = now + 260 + Math.random() * 200;
+      const [sx, sy] = this.at(70 + Math.random() * 40, 30 + Math.random() * 50);
+      vfx(this.sc, "vfx_sparks", sx, sy, { scale: 1.2, depth: this.depth + 2, add: true });
+    }
   }
 
   onPhase(n: number, now: number) {

@@ -315,7 +315,19 @@
     "CHEF MICK": "esV7kJtKDdBipOsoWtGM",
     "GENIE": "c15nV2xCagiZlwvCGBxW",
     "PROFESSOR BEN BURGIS": "Mlr9g8ZYpsO5Q1Wh5d9S",
-    "CARMELA SOPRANO": "KyRkqFgySOwoLUjC2PQ5"
+    "CARMELA SOPRANO": "KyRkqFgySOwoLUjC2PQ5",
+    "MR JONES": "4HhMgTKONxhgWKnTWAAj",
+    "CEO": "k1y1ZSA9Cg3PPtEeLJeh",
+    "ADVISER": "uUxNMBq4S5JJX444W6pn",
+    "OCTO PUSS": "rQuWAhHSNNzlOkgQ2LLW",
+    "THE WOMAN": "GSnwHl2FGkZr1WrgBqLQ",
+    "LILA MINT": "GSnwHl2FGkZr1WrgBqLQ",
+    "JOHN COCK": "fkmC60cbrqDFWAiwEE3l",
+    "BRENDA": "AGzIaZS67G9SQwS3IsYg",
+    "GRANDMA 1": "RI9XUf6HcXueCawI8ir3",
+    "GRANDMA 2": "a5FszkiTGG6iNxzmCHeu",
+    "MOM 1": "kUmpk9RReJbu3lzZ4qer",
+    "MOM 2": "VWIrA5Gg86OL53hhe9Ho"
   },
   "designed_desc": {
     "KRANKY KRANDALL": "A reedy, squeaky, frail old British man in his nineties. Thin, high, wavering, slightly wheezy voice, rambling and forgetful, trailing off mid-sentence.",
@@ -483,6 +495,7 @@
     "ANNOUNCER": "fLQ4kCrWQGVDIt5kYfSi"
   },
   "delivery": {
+    "OCTO PUSS": "deranged",
     "KREZWONK": "mysterious",
     "DRONGUS": "earnest",
     "KREBLIS": "energetic",
@@ -544,9 +557,12 @@
     "DARK JENKO": "energetic",
     "KREZMAR": "energetic",
     "SANMIK": "whiny, confrontational",
-    "SANJEEV": "warmly"
+    "SANJEEV": "warmly",
+    "CEO": "warm, confident",
+    "ADVISER": "nervous"
   },
   "female": [
+    "THE WOMAN",
     "EDEN",
     "MOLLOR",
     "REPORTER",
@@ -589,7 +605,13 @@
     "JOURNALIST",
     "HOSPITAL SPOKESPERSON",
     "ADMINISTRATOR",
-    "REBECCA HALL"
+    "REBECCA HALL",
+    "LILA MINT",
+    "BRENDA",
+    "GRANDMA 1",
+    "GRANDMA 2",
+    "MOM 1",
+    "MOM 2"
   ],
   "pools": {
     "male": [
@@ -639,6 +661,8 @@
     "BOARD MEMBER": "~pol_m_us",
     "REBECCA HALL": "~news_f_us",
     "MARTIN BELL": "~news_m_us",
+    "OCTO PUSS": "THE CYST",
+    "THE WOMAN": "~aide_f_us",
     "JOURNALIST": "~press_f_rp",
     "JOURNALIST 1": "~press_m_est",
     "JOURNALIST 2": "~press_f_us",
@@ -733,7 +757,20 @@
     "CABINET MINISTER 3": "~pol_m_uk1",
     "PRANKSTER": "~aide_m_us",
     "GORDON RAMSAY": "SERGEANT SWIG",
-    "CHEF MICK": "~scientist_m"
+    "CHEF MICK": "~scientist_m",
+    "MR JONES": "~old_m_uk",
+    "CEO": "~pol_m_uk2",
+    "ADVISER": "~everyman_m2",
+    "CHRIS WHITTY": "~exec_m",
+    "KEMI BADENOCH": "~exec_f",
+    "DAISY COOPER": "~news_f_rp",
+    "LILA MINT": "~aide_f_us",
+    "JOHN COCK": "~pub_m_brum",
+    "BRENDA": "~pub_f_manc",
+    "GRANDMA 1": "~everywoman_f",
+    "GRANDMA 2": "~news_f_rp",
+    "MOM 1": "~pol_f_us",
+    "MOM 2": "~news_f_us"
   },
   "clone_accents": {
     "_doc": "Accent tag for cloned voices on eleven_v3, which otherwise drift (American, or regional). Everyone in the group is southern English: faint RP or a slight cockney. Default below.",
@@ -791,6 +828,10 @@
   "clone_sts": [],
   "warble": {
     "_doc": "Post-processing on every clip of these speakers (ffmpeg vibrato: frequency Hz, depth 0-1): Gabor's goat tremble.",
+    "OCTO PUSS": {
+      "f": 9,
+      "d": 0.22
+    },
     "GABOR THE GOAT": {
       "f": 6.5,
       "d": 0.45

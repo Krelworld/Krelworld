@@ -9,12 +9,20 @@ export const AUDIO_FILES: Record<string, string> = {
   // e.g. mork_voice: "audio/mork_voice.ogg"  (drop the file in public/audio)
   /** Studio-audience laugh track (sitcom canned laughter). Played in varied slices by "laugh"/"biglaugh". */
   laugh_track: "audio/laugh_track.mp3",
+  /** The boss VS card's crash, and the Kreltality close-up's sting (ElevenLabs). */
+  vs_crash: "audio/vs_crash.mp3",
+  krel_cine: "audio/krel_cine.mp3",
   /** SanMik and SanChz, recorded: a run of YEEs and a run of YEGHs. */
   yee: "audio/yee.mp3",
   yegh: "audio/yegh.mp3",
   /** THE CONCEPT OF PAEDOPHILIA's roars, and the withered old wizard behind it doing a YEE. */
   concept_roar: "audio/concept_roar.mp3",
   wizard_yee: "audio/wizard_yee.mp3",
+  /** Boss shield phases (src/game/combat/BossShield.ts): up, a crack per minion, the shatter, a shot pinging off. */
+  bs_shield_up: "audio/sfx/bs_shield_up.mp3",
+  bs_shield_crack: "audio/sfx/bs_shield_crack.mp3",
+  bs_shield_shatter: "audio/sfx/bs_shield_shatter.mp3",
+  bs_shield_ping: "audio/sfx/bs_shield_ping.mp3",
   /** The Cuddle Cronster's fight cries, in BOSS_TEXT.cronster.taunts order. */
   cronster_taunt: "audio/cronster_taunt.mp3",
   /** Robbo (the flatmate), the same way. */
@@ -33,6 +41,21 @@ export const AUDIO_FILES: Record<string, string> = {
   drongus_cackle_3: "audio/sfx/drongus_cackle_3.mp3",
   drongus_cackle_4: "audio/sfx/drongus_cackle_4.mp3",
   drongus_cackle_5: "audio/sfx/drongus_cackle_5.mp3",
+  /** Chapters 1-5 anime beats (gfx/Cine.ts): stingers over the music (which ducks under them). */
+  ...Object.fromEntries(["open", "reveal", "boom", "power", "triumph", "dread"].map((k) => [`c15_sting_${k}`, `audio/c15_sting_${k}.mp3`])),
+  /** Side-story anime beats (gfx/SideCine.ts, ElevenLabs): the freeze-frame's record scratch and the stingers. */
+  ss_scratch: "audio/ss_scratch.mp3",
+  ss_sting_comedy: "audio/ss_sting_comedy.mp3",
+  ss_sting_reveal: "audio/ss_sting_reveal.mp3",
+  ss_sting_title: "audio/ss_sting_title.mp3",
+  ss_sting_awkward: "audio/ss_sting_awkward.mp3",
+  /** KrelTV, DR. PUSS (tv/DrPuss.ts): tentacle slap, door creak, door slam and lock, exam table rattle, comic splat, suction pop. */
+  drp_slap: "audio/sfx/drp_slap.mp3",
+  drp_creak: "audio/sfx/drp_creak.mp3",
+  drp_lock: "audio/sfx/drp_lock.mp3",
+  drp_rattle: "audio/sfx/drp_rattle.mp3",
+  drp_splat: "audio/sfx/drp_splat.mp3",
+  drp_suction: "audio/sfx/drp_suction.mp3",
 };
 
 /** Where each separate shout sits in those files: [start, length] in seconds. */
@@ -54,6 +77,8 @@ export const MUSIC_FILES: Record<string, string> = {
   title: "audio/krel_world.mp3",
   // KrelTV: The Best Man's Speech (the wedding video's piano)
   bm_wedding: "audio/bm_wedding.mp3",
+  // KrelTV: the Krelbank advert's music bed
+  krelbank_ad: "audio/krelbank_ad.mp3",
   // the 3D epilogue: the overworld theme, full orchestra
   krelworld_orch: "audio/krelworld_orch.mp3",
   // fight_<boss>: kicks in when the boss's monologue ends and the fight starts (Harry's tracks)
@@ -99,6 +124,8 @@ export const MUSIC_FILES: Record<string, string> = {
   gg_theme: "audio/gg_theme.mp3",
   mot_theme: "audio/mot_theme.mp3",
   mot_rnb: "audio/mot_rnb.mp3",
+  // DR. PUSS (tv/DrPuss.ts): the murky sitcom theme sting
+  drp_theme: "audio/drp_theme.mp3",
   boss: "audio/boss1.mp3",
   boss_salmon: "audio/boss_salmon.mp3",
   boss_krandall: "audio/cranky_crandall_boss.mp3",

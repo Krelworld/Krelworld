@@ -2,6 +2,9 @@
 // base: how many expression frames (0 neutral, 1 talk, 2 alarm, 3 blink, 4 gesture, 5 laugh, 6 special);
 // lip: mouth shapes at frames 8-14; gest: gesture animations as [first frame, length].
 export const FACE_META: Record<string, { base: number; lip: boolean; gest: [number, number][] }> = {
+  ADVISER: { base: 4, lip: false, gest: [] },
+  CEO: { base: 4, lip: false, gest: [] },
+  MR_JONES: { base: 4, lip: false, gest: [] },
   ADVISOR: { base: 2, lip: false, gest: [[16,  8]] },
   AIDE_1: { base: 2, lip: false, gest: [[16,  8]] },
   AIDE_2: { base: 2, lip: false, gest: [[16,  8]] },
@@ -125,4 +128,18 @@ Object.assign(FACE_META, {
   // Thick Cumming Cock: 5 laugh and 6 special (Christopher asleep, Jenny in tears) too
   P2_CHRISTOPHER_THICK: { base: 7, lip: false, gest: [[16, 8]] },
   P2_JENNY_CUMMING: { base: 7, lip: false, gest: [[16, 8]] },
+});
+
+// Thick Cumming Cock ep 7's new cast (PixelLab, in the style of the P2 sheets): 0 neutral, 1 talk, 2 alarm, 3 blink,
+// 4 gesture (= talk), 5 laugh, 6 special (Grandma 1 squinting), 7 neutral. No mouth shapes or gesture animations.
+// TCC_REPORTER is played by Sitcom.ts for TCC's "REPORTER" (other shows' reporters keep their own look).
+Object.assign(FACE_META, {
+  LILA_MINT: { base: 7, lip: false, gest: [] },
+  JOHN_COCK: { base: 7, lip: false, gest: [] },
+  BRENDA: { base: 7, lip: false, gest: [] },
+  GRANDMA_1: { base: 7, lip: false, gest: [] },
+  GRANDMA_2: { base: 7, lip: false, gest: [] },
+  MOM_1: { base: 7, lip: false, gest: [] },
+  MOM_2: { base: 7, lip: false, gest: [] },
+  TCC_REPORTER: { base: 7, lip: false, gest: [] },
 });

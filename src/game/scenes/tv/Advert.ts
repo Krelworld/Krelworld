@@ -49,6 +49,8 @@ export class AdvertDirector extends ShowDirector {
   private line = 0;
   private glide = { s: 1, fx: 0, fy: 0 };
   private slide = 0;
+  /** the camera may leave the still's edges (a drawn insert with room around it) */
+  private free = false;
 
   // ------------------------------------------------------------------ camera
 
@@ -61,8 +63,8 @@ export class AdvertDirector extends ShowDirector {
   private apply() {
     const { SX, SY, SW, SH } = this.r;
     const { s, fx, fy } = this.glide;
-    const x = Phaser.Math.Clamp(this.cx - fx * s, (SX + SW) * (1 - s), SX * (1 - s));
-    const y = Phaser.Math.Clamp(this.cy - fy * s, (SY + SH) * (1 - s), SY * (1 - s));
+    const x = this.free ? this.cx - fx * s : Phaser.Math.Clamp(this.cx - fx * s, (SX + SW) * (1 - s), SX * (1 - s));
+    const y = this.free ? this.cy - fy * s : Phaser.Math.Clamp(this.cy - fy * s, (SY + SH) * (1 - s), SY * (1 - s));
     this.cam.setScale(s).setPosition(x, y);
   }
 
@@ -78,6 +80,7 @@ export class AdvertDirector extends ShowDirector {
 
   protected clear() {
     this.sc.tweens.killTweensOf(this.glide);
+    this.free = false;
     super.clear();
   }
 
@@ -233,7 +236,7 @@ export class AdvertDirector extends ShowDirector {
     this.clear();
     const { SX, SY, SW, SH } = this.r;
     const desk = this.sc.add.graphics();
-    desk.fillGradientStyle(0xf4f7f8, 0xf4f7f8, 0xdfe6ea, 0xdfe6ea, 1).fillRect(SX, SY, SW, SH);
+    desk.fillGradientStyle(0xf4f7f8, 0xf4f7f8, 0xdfe6ea, 0xdfe6ea, 1).fillRect(SX - SW, SY - SH, SW * 3, SH * 3);
     this.add(desk);
     const c = this.add(this.sc.add.container(this.cx + 10, this.cy - 6).setAngle(-4));
     const W = 300;
@@ -247,16 +250,17 @@ export class AdvertDirector extends ShowDirector {
     c.add(this.text(0, 14, "Your Home Loan,\nExplained", 22, "#0a3d3b", { fontStyle: "bold", align: "center" }).setOrigin(0.5));
     c.add(this.text(0, 68, "A guide for our valued customers", 12, "#4b6470").setOrigin(0.5));
     c.add(this.sc.add.rectangle(0, H / 2 - 66, W - 40, 1, 0xd5dde2));
-    c.add(this.text(0, H / 2 - 40, "© Kreddle Exchange. All rights reserved.\nNo part of this publication may be reproduced\nwithout the prior written permission of the publisher.", 8, "#5b6b75", { align: "center" }).setOrigin(0.5));
+    c.add(this.text(0, H / 2 - 40, "© Kreddle Exchange. All rights reserved.\nNo part of this publication may be reproduced\nwithout the prior written permission of the publisher.", 9, "#5b6b75", { align: "center" }).setOrigin(0.5));
     c.add(this.sc.add.rectangle(0, H / 2 - 8, W, 16, TEAL));
     // a pen beside it
     const pen = this.add(this.sc.add.container(SX + SW - 70, SY + SH - 120).setAngle(-58));
     pen.add(this.sc.add.rectangle(0, 0, 150, 9, 0x1f2d3a));
     pen.add(this.sc.add.rectangle(64, 0, 22, 9, GOLD));
     // ease down to the small print
-    this.glide = { s: 1.02, fx: this.cx, fy: this.cy - 40 };
+    this.free = true;
+    this.glide = { s: 1.02, fx: this.cx, fy: this.cy - 20 };
     this.apply();
-    this.sc.tweens.add({ targets: this.glide, s: 1.75, fx: this.cx + 6, fy: this.cy + 140, duration: 2600, ease: "Sine.easeInOut", onUpdate: () => this.apply() });
+    this.sc.tweens.add({ targets: this.glide, s: 2.1, fx: this.cx + 20, fy: this.cy + 128, duration: 2800, ease: "Sine.easeInOut", onUpdate: () => this.apply() });
   }
 
   /** The end card: the logo on a soft gradient, the sign-off, the small print. */
@@ -274,11 +278,11 @@ export class AdvertDirector extends ShowDirector {
     const small = this.add(
       this.text(
         this.cx,
-        SY + SH - 92,
-        "Krelbank plc. Registered in Krelworld. Lending is subject to status. Your home may be repossessed if you do not keep up\nrepayments on your mortgage. The value of investments can go down as well as up. Past performance is not a guide to\nfuture performance. Calls may be recorded for training and monitoring purposes. Terms and conditions apply.",
+        SY + SH - 100,
+        "Krelbank plc. Registered in Krelworld. Lending is subject to status. Your home may be repossessed if you do not keep up repayments on your mortgage. The value of investments can go down as well as up. Past performance is not a guide to future performance. Calls may be recorded for training and monitoring purposes. Terms and conditions apply.",
         7,
         "#5b6b75",
-        { align: "center" },
+        { align: "center", wordWrap: { width: SW - 90 } },
       )
         .setOrigin(0.5)
         .setAlpha(0),
@@ -388,6 +392,12 @@ export class AdvertDirector extends ShowDirector {
         this.still("tv_kb_mug");
         this.move([1.0, 160, 120], [1.25, 150, 150], 2600);
         this.later(400, () => this.glint(1400));
+        // the tap drips
+        this.every(850, () => {
+          const t = this.at(117, 70);
+          const d = this.add(this.sc.add.ellipse(t.x, t.y, 5, 7, 0xd8eef7, 0.9));
+          this.sc.tweens.add({ targets: d, y: t.y + 70, alpha: 0, duration: 520, ease: "Quad.in", onComplete: () => d.destroy() });
+        });
         thenSpeaker(Math.min(1900, est * 0.5), 0.5);
         return 0;
       case "board":
@@ -401,7 +411,7 @@ export class AdvertDirector extends ShowDirector {
       case "branch":
         if (name === "MR JONES") {
           this.pamphlet();
-          thenSpeaker(Math.min(2600, est * 0.55), 0.55);
+          thenSpeaker(Math.min(3300, est * 0.6), 0.6);
           return 0;
         }
         break;

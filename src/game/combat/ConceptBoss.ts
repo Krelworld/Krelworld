@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Boss } from "./Bosses";
+import { Boss, type BossAnimState } from "./Bosses";
 import type { CombatWorld } from "./types";
 import { synth } from "../audio/Synth";
 import { G } from "../G";
@@ -45,6 +45,9 @@ export class ConceptBoss extends Boss {
   private roaringUntil = 0;
   private home: { x: number; y: number };
   private lastShrug = 0;
+  private lastFlinch = 0;
+  /** Staggered (playAnim("stagger")): reeling on the spot until then. */
+  private reelingUntil = 0;
   /** Where it may roam. */
   roam = new Phaser.Geom.Rectangle(0, 0, 0, 0);
   /** How many times it has healed (the finale sets it): each one, it comes back a little faster and nastier. */
@@ -101,7 +104,7 @@ export class ConceptBoss extends Boss {
    * A drawn move (wind-ups: "rear" breathes in, "slam" brings the arms down; "flinch" when it's really hurt), then
    * back to its loop. In the real phase, the wounded version. Not over a roar.
    */
-  move(name: "rear" | "slam" | "flinch", fps = 12) {
+  move(name: "rear" | "slam" | "flinch" | "storm", fps = 12) {
     const sc = this.scene;
     const now = this.world.now();
     if (!this.art || this.dead || now < this.roaringUntil || now < this.movingUntil) return;
@@ -119,9 +122,49 @@ export class ConceptBoss extends Boss {
     });
   }
 
+  /**
+   * The shared boss hook, in the dragon's own art: "hurt" is the drawn flinch, "stagger" reels it on the spot (the wounded
+   * sheet in the real phase, the flinch held and rocked before that) for `holdMs` or until "getup"/"idle".
+   */
+  playAnim(state: BossAnimState, opts?: { holdMs?: number; keepPattern?: boolean }): boolean {
+    const sc = this.scene;
+    if (!this.art || this.dead || !this.active) return super.playAnim(state, opts);
+    const now = this.world.now();
+    if (state === "hurt" || state === "attack" || state === "special") {
+      this.move(state === "hurt" ? "flinch" : state === "attack" ? "slam" : "rear");
+      return true;
+    }
+    if (state === "stagger" || state === "daze") {
+      const key = this.hurtArt && sc.textures.exists("fe_concept_stagger_hurt") ? "fe_concept_stagger_hurt" : sc.textures.exists("fe_concept_flinch") ? "fe_concept_flinch" : "";
+      if (!key) return super.playAnim(state, opts);
+      const ak = `${key}:reel`;
+      const n = sc.textures.get(key).frameTotal - 1;
+      if (!sc.anims.exists(ak)) sc.anims.create({ key: ak, frames: sc.anims.generateFrameNumbers(key, { start: 0, end: n - 1 }), frameRate: 8, repeat: -1, yoyo: true });
+      const hold = opts?.holdMs ?? 1e9;
+      this.reelingUntil = now + hold;
+      this.movingUntil = now + hold;
+      this.play(ak);
+      return true;
+    }
+    if (state === "getup" || state === "idle" || state === "move") {
+      const was = this.reelingUntil > now;
+      this.reelingUntil = 0;
+      this.movingUntil = 0;
+      this.shownTop = this.topKey;
+      this.play(this.topKey);
+      return was || state !== "getup";
+    }
+    return false;
+  }
+
   incoming(amount: number): number {
     const now = this.world.now();
     if (this.mode === "still" || this.healing) return 0;
+    // a big hit gets a drawn flinch (not on every bullet)
+    if (amount >= 25 && now - this.lastFlinch > 2600 && now >= this.reelingUntil) {
+      this.lastFlinch = now;
+      this.move("flinch", 12);
+    }
     if (this.mode === "shrug") {
       if (now - this.lastShrug > 900) {
         this.lastShrug = now;
@@ -189,6 +232,7 @@ export class ConceptBoss extends Boss {
 
   tick(dt: number, now: number) {
     if (this.dead) return;
+    if (this.reelingUntil && now >= this.reelingUntil) this.playAnim("getup");
     // (not Boss.tick: that flips frames 0/1, and this one has its own animation)
     // into the real phase: swap to the wounded sheet (unless it's mid-roar)
     if (this.art && this.anims.isPlaying && this.topKey !== this.shownTop && now >= this.movingUntil) {
@@ -237,6 +281,8 @@ export class ConceptBoss extends Boss {
     const x = at?.x ?? p.x + (Math.random() - 0.5) * 220;
     const y = at?.y ?? p.y + (Math.random() - 0.5) * 160;
     const tele = 750 * w.telegraphMult;
+    // wounded, it calls the strike down itself now and then (claws up, the storm crackling between them)
+    if (!at && this.mode === "real" && Math.random() < 0.4) this.move("storm", 12);
     w.enemyAoe(x, y, 58, this.mode === "real" ? 20 : 14, tele, 0xc4b5fd);
     sc.time.delayedCall(tele - 60, () => {
       if (!this.active) return;
@@ -452,6 +498,8 @@ export class ConceptBoss extends Boss {
     const cell = 132;
     const cx = p.x;
     const cy = p.y;
+    // its wounded storm wind-up (when drawn), under the roar
+    this.move("storm", 10);
     this.roar();
     w.floatText(this.x, this.y - this.displayHeight * 0.45, "[CITATION NEEDED]", "#e9d5ff", 22);
     for (let wave = 0; wave < 2; wave++)

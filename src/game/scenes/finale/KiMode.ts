@@ -435,9 +435,11 @@ export class KiMode {
     Juice.debris(h, x, y, Math.round(8 + 14 * k), { colors: [0x2a1a3a, 0x4c1d95, 0xffd23f, 0x12002a], speed: 420, size: 8, depth: 1459 });
     synth.play("explode_1");
     synth.play("crit");
-    // it recoils (drawn flinch), then roars
-    b.move("flinch", 10);
-    b.scene.time.delayedCall(450, () => b.active && !b.dead && b.roar());
+    // it recoils (drawn flinch), then roars; a big one has it reeling first
+    const reel = k >= 0.6 ? 500 + 700 * k : 0;
+    if (reel) b.playAnim("stagger", { holdMs: reel });
+    else b.move("flinch", 10);
+    b.scene.time.delayedCall(450 + reel, () => b.active && !b.dead && b.roar());
     // staggered: its next attack waits, and it's pushed back along the beam (kept inside where it may roam)
     b.nextPattern = Math.max(b.nextPattern, h.now() + 600 + 900 * k);
     const push = 50 + 90 * k;

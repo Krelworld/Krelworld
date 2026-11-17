@@ -3,7 +3,7 @@ import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 // "News articles 3": supplied articles and screenplays, kept as written (OCR'd from screenshots,
 // so the page order was rebuilt). Changes:
 // - Chomworld: the real-life assistant character is renamed Marge Plunkett.
-// - The Ben Burgis scripts use an invented professor, Barry Guttridge.
+// - The Ben Burgis scripts use an invented professor, Benn Burgess.
 // - Microsoft's "Crash Mode": the real Washington collision is now a fictional one over Krelford.
 // - FIFA: Audience: the Hillsborough level is cut.
 // - Dickinson for President: the "very young Filipina" scene is cut, and Trump storms off
@@ -581,31 +581,31 @@ export const SKETCH_HEAVY_TRUTH = ep(
 # KREZZ SKETCH SHOW
 # A HEAVY TRUTH
 INT. CONFERENCE HALL - DAY
-(The room is packed with people holding signs and banners reading "End Hunger Now." The atmosphere is charged with energy and anticipation. On the stage, a banner with the same slogan hangs above a podium. The crowd quiets as PROFESSOR BARRY GUTTRIDGE, a morbidly obese, left-wing professor of logic, steps up to the podium. He's slightly out of breath but determined. He adjusts the microphone.)
-[BLOCK PROFESSOR GUTTRIDGE center]
-PROFESSOR GUTTRIDGE: Thank you, everyone. We are here today to talk about a crucial issue that affects millions of people worldwide - hunger and poverty. These are issues that should concern every one of us, because a society that allows its members to go hungry is a society that has failed.
+(The room is packed with people holding signs and banners reading "End Hunger Now." The atmosphere is charged with energy and anticipation. On the stage, a banner with the same slogan hangs above a podium. The crowd quiets as PROFESSOR BENN BURGESS, a morbidly obese, left-wing professor of logic, steps up to the podium. He's slightly out of breath but determined. He adjusts the microphone.)
+[BLOCK PROFESSOR BENN BURGESS center]
+PROFESSOR BENN BURGESS: Thank you, everyone. We are here today to talk about a crucial issue that affects millions of people worldwide - hunger and poverty. These are issues that should concern every one of us, because a society that allows its members to go hungry is a society that has failed.
 [APPLAUSE]
-(The crowd nods and claps in agreement. Barry pauses, catching his breath slightly.)
-PROFESSOR GUTTRIDGE: Now, when we talk about ending hunger, we often think about the basics - rice, beans, bread. But let's not forget the joy, the pure pleasure that food can bring. Imagine a world where everyone could indulge in the simple, comforting delight of cookies, crisps, choccy, fudge...
-(As Barry lists these foods, he begins to drool slightly, wiping his mouth with a handkerchief. He chuckles, a bit embarrassed.)
-PROFESSOR GUTTRIDGE (laughing): Sorry, folks... just lost my train of thought there. The idea of the salty taste of crisps combined with the rich juicy meat of a McDonald's burger, and the sweetness of choccy... it's enough to make anyone's mind wander, right? But back to the matter at hand...
-(Barry pauses again, this time clutching his chest briefly as he catches his breath. The crowd looks on, some with concern, others with a mix of discomfort and judgment.)
-PROFESSOR GUTTRIDGE (chuckling): Oh, don't mind me. Just normal guy problems, heh... just a little chest ache. But let's get back to what's important - ensuring that everyone, regardless of their situation, has the right to experience these joys.
+(The crowd nods and claps in agreement. Benn pauses, catching his breath slightly.)
+PROFESSOR BENN BURGESS: Now, when we talk about ending hunger, we often think about the basics - rice, beans, bread. But let's not forget the joy, the pure pleasure that food can bring. Imagine a world where everyone could indulge in the simple, comforting delight of cookies, crisps, choccy, fudge...
+(As Benn lists these foods, he begins to drool slightly, wiping his mouth with a handkerchief. He chuckles, a bit embarrassed.)
+PROFESSOR BENN BURGESS (laughing): Sorry, folks... just lost my train of thought there. The idea of the salty taste of crisps combined with the rich juicy meat of a McDonald's burger, and the sweetness of choccy... it's enough to make anyone's mind wander, right? But back to the matter at hand...
+(Benn pauses again, this time clutching his chest briefly as he catches his breath. The crowd looks on, some with concern, others with a mix of discomfort and judgment.)
+PROFESSOR BENN BURGESS (chuckling): Oh, don't mind me. Just normal guy problems, heh... just a little chest ache. But let's get back to what's important - ensuring that everyone, regardless of their situation, has the right to experience these joys.
 (He continues, but his mind seems to drift again.)
-PROFESSOR GUTTRIDGE: Because when you think about it... the combination of flavors in something as simple as a Big Mac - the savory beef, the tangy sauce, the crisp lettuce, all balanced by the sweetness of a soda - sorry, lost my train of thought again...
+PROFESSOR BENN BURGESS: Because when you think about it... the combination of flavors in something as simple as a Big Mac - the savory beef, the tangy sauce, the crisp lettuce, all balanced by the sweetness of a soda - sorry, lost my train of thought again...
 (He wipes his brow, visibly winded, but presses on.)
-PROFESSOR GUTTRIDGE: We need to fight to make sure that everyone can enjoy these simple pleasures. Food isn't just sustenance; it's joy, it's comfort, it's connection.
+PROFESSOR BENN BURGESS: We need to fight to make sure that everyone can enjoy these simple pleasures. Food isn't just sustenance; it's joy, it's comfort, it's connection.
 [GASP]
-(Suddenly, Barry appears to collapse, clutching his chest in what seems to be a heart attack. The crowd gasps, some rising from their seats in alarm. But just as quickly as he goes down, Barry straightens up, taking a deep breath and smiling weakly.)
-PROFESSOR GUTTRIDGE (forcing a laugh): Sorry about that, folks. Just a little scare. But you know what? Through the power of positive thought and self-love, I'm back on my feet. Because that's what really keeps us going, isn't it? Love for ourselves, love for each other... and a good slice of pizza when we need it.
-(The crowd begins to murmur, concern mixed with incredulity. Barry, however, continues on, determined to finish his speech.)
-PROFESSOR GUTTRIDGE: And it's not just about surviving; it's about living. Living in a world where a kid doesn't just get bread, but also gets a slice of pizza. Where no one is denied the simple pleasure of a fresh donut, with the glaze melting into the soft, warm dough...
-(Barry pauses, once again clutching his chest, this time struggling a bit more to catch his breath.)
-PROFESSOR GUTTRIDGE (weakly chuckling): Sorry again, just another little chest ache... But what's truly disgusting, my friends, is a world where anyone goes hungry. What's disgusting is judging someone based on their appearance, rather than their actions, their character, their heart.
+(Suddenly, Benn appears to collapse, clutching his chest in what seems to be a heart attack. The crowd gasps, some rising from their seats in alarm. But just as quickly as he goes down, Benn straightens up, taking a deep breath and smiling weakly.)
+PROFESSOR BENN BURGESS (forcing a laugh): Sorry about that, folks. Just a little scare. But you know what? Through the power of positive thought and self-love, I'm back on my feet. Because that's what really keeps us going, isn't it? Love for ourselves, love for each other... and a good slice of pizza when we need it.
+(The crowd begins to murmur, concern mixed with incredulity. Benn, however, continues on, determined to finish his speech.)
+PROFESSOR BENN BURGESS: And it's not just about surviving; it's about living. Living in a world where a kid doesn't just get bread, but also gets a slice of pizza. Where no one is denied the simple pleasure of a fresh donut, with the glaze melting into the soft, warm dough...
+(Benn pauses, once again clutching his chest, this time struggling a bit more to catch his breath.)
+PROFESSOR BENN BURGESS (weakly chuckling): Sorry again, just another little chest ache... But what's truly disgusting, my friends, is a world where anyone goes hungry. What's disgusting is judging someone based on their appearance, rather than their actions, their character, their heart.
 (The camera pans over the crowd, showing mixed reactions - some concerned, others incredulous. Two individuals exchange glances, one whispering to the other.)
 CROWD MEMBER 1 (whispering): My god, that man is disgusting.
 CROWD MEMBER 2 (nodding in agreement): Yeah... It's hard to watch.
-NARRATOR: The vile audience members were wrong. Barry was right.
+NARRATOR: The vile audience members were wrong. Benn was right.
 # THE END
 `,
 );
@@ -614,41 +614,41 @@ export const SKETCH_ICE_CREAM = ep(
   "sketch_ice_cream",
   SKETCH,
   "Krezz Sketch Show",
-  "The Humiliating Life of Barry Guttridge",
+  "The Humiliating Life of Benn Burgess",
   5,
   `
 # KREZZ SKETCH SHOW
-# THE HUMILIATING LIFE OF BARRY GUTTRIDGE
+# THE HUMILIATING LIFE OF BENN BURGESS
 EXT. ICE CREAM STAND - DAY
-(Barry Guttridge, an overweight, unkempt professor of logic and socialist writer, is out on a date with a woman. She is sincerely trying to engage him in conversation about his philosophical views, but Barry's mind is singularly focused on his obsession with food.)
-[BLOCK PROFESSOR GUTTRIDGE left]
+(Benn Burgess, an overweight, unkempt professor of logic and socialist writer, is out on a date with a woman. She is sincerely trying to engage him in conversation about his philosophical views, but Benn's mind is singularly focused on his obsession with food.)
+[BLOCK PROFESSOR BENN BURGESS left]
 [BLOCK WOMAN right]
-WOMAN (smiling): So, Barry, I've been really interested in your essays on socialist ethics. How do you see the role of logic in shaping ethical principles?
-PROFESSOR GUTTRIDGE (eyes glazing over, almost drooling): Mmm, logic, yeah... but you know what's really logical? (licks lips) Chocolate fudge. Oh, the way it just melts, creamy and sweet on your tongue... mmm.
-PROFESSOR GUTTRIDGE: Have you ever had the fudge from Maple Street? It's like... (pauses, shudders with pleasure) It's like nothing else matters. Not logic, not ethics... just that rich, gooey choccy fudge.
+WOMAN (smiling): So, Benn, I've been really interested in your essays on socialist ethics. How do you see the role of logic in shaping ethical principles?
+PROFESSOR BENN BURGESS (eyes glazing over, almost drooling): Mmm, logic, yeah... but you know what's really logical? (licks lips) Chocolate fudge. Oh, the way it just melts, creamy and sweet on your tongue... mmm.
+PROFESSOR BENN BURGESS: Have you ever had the fudge from Maple Street? It's like... (pauses, shudders with pleasure) It's like nothing else matters. Not logic, not ethics... just that rich, gooey choccy fudge.
 WOMAN (trying to steer the conversation back): That sounds delicious, but I'm curious - how do you apply that logical mindset to your work in socialist theory?
-PROFESSOR GUTTRIDGE (interrupting, a little too loud): Oh, crisps! Crispy, salty... mmm. (begins to smack his lips) Did you know the secret to the perfect crisp? It's all in the salt, you see. Mmm, just thinking about it makes my mouth water. It's like... it's like a dance on your tongue.
-(He mimes eating crisps, eyes half-closed in ecstasy. They arrive at the ice cream stand, and Barry's eyes immediately widen as he sees the long line. His cheerful demeanor darkens as he stares at the queue, fidgeting with growing impatience.)
-PROFESSOR GUTTRIDGE (muttering under his breath): What the...? This is ridiculous! I've been dreaming about this for days, and now... now I have to wait?
-PROFESSOR GUTTRIDGE (his voice rising, more frantic): All these people - what do they know about ice cream? I bet they just decided to come here on a whim! It's not fair!
-WOMAN (softly, trying to calm him): It's just a line, Barry. We'll get there soon enough. Maybe we can talk while we wait?
-PROFESSOR GUTTRIDGE (ignoring her, his agitation growing): Do you think any of them really appreciate good ice cream? I bet they don't even know the first thing about it. (condescending) I bet they don't even know that ice cream was first invented in China. Pathetic, really...
-PROFESSOR GUTTRIDGE (suddenly, to her, more intense): Who do you think here could even come close to understanding that? Who here has any clue what real indulgence is?
-WOMAN (hesitant, trying again): What do you usually do in your spare time, Barry? Any hobbies?
-PROFESSOR GUTTRIDGE (ignoring her, fixating on the menu): Butter... mmm... why don't they have butter? How can they call themselves an ice cream stand and not offer butter?
-PROFESSOR GUTTRIDGE (grinning): But wait... cheeseburgers. They've got cheeseburgers. Mmm, juicy cheeseburgers... (he visibly shudders) I might get two. (pauses, thinking) Maybe... three. I'm already worried I won't feel full enough after we eat... what if I'm still hungry later?
-(As they inch closer to the front of the line, Barry's irritation mounts, his eyes darting around as his agitation boils over. He begins to grumble louder, his face reddening with frustration.)
-PROFESSOR GUTTRIDGE (grumbling, barely coherent): It's so unfair... I've been waiting for this... mmm... and now... this! (he bites his lip in fury, glaring at the man in front of him) I'm about to do something I should have done a long time ago!
-(Without warning, Barry aggressively shoves the man in front of him, his face contorted with rage. As soon as he does, he whirls around and aggressively shoves his date, biting his lip harder as she stumbles backward and falls to the ground.)
+PROFESSOR BENN BURGESS (interrupting, a little too loud): Oh, crisps! Crispy, salty... mmm. (begins to smack his lips) Did you know the secret to the perfect crisp? It's all in the salt, you see. Mmm, just thinking about it makes my mouth water. It's like... it's like a dance on your tongue.
+(He mimes eating crisps, eyes half-closed in ecstasy. They arrive at the ice cream stand, and Benn's eyes immediately widen as he sees the long line. His cheerful demeanor darkens as he stares at the queue, fidgeting with growing impatience.)
+PROFESSOR BENN BURGESS (muttering under his breath): What the...? This is ridiculous! I've been dreaming about this for days, and now... now I have to wait?
+PROFESSOR BENN BURGESS (his voice rising, more frantic): All these people - what do they know about ice cream? I bet they just decided to come here on a whim! It's not fair!
+WOMAN (softly, trying to calm him): It's just a line, Benn. We'll get there soon enough. Maybe we can talk while we wait?
+PROFESSOR BENN BURGESS (ignoring her, his agitation growing): Do you think any of them really appreciate good ice cream? I bet they don't even know the first thing about it. (condescending) I bet they don't even know that ice cream was first invented in China. Pathetic, really...
+PROFESSOR BENN BURGESS (suddenly, to her, more intense): Who do you think here could even come close to understanding that? Who here has any clue what real indulgence is?
+WOMAN (hesitant, trying again): What do you usually do in your spare time, Benn? Any hobbies?
+PROFESSOR BENN BURGESS (ignoring her, fixating on the menu): Butter... mmm... why don't they have butter? How can they call themselves an ice cream stand and not offer butter?
+PROFESSOR BENN BURGESS (grinning): But wait... cheeseburgers. They've got cheeseburgers. Mmm, juicy cheeseburgers... (he visibly shudders) I might get two. (pauses, thinking) Maybe... three. I'm already worried I won't feel full enough after we eat... what if I'm still hungry later?
+(As they inch closer to the front of the line, Benn's irritation mounts, his eyes darting around as his agitation boils over. He begins to grumble louder, his face reddening with frustration.)
+PROFESSOR BENN BURGESS (grumbling, barely coherent): It's so unfair... I've been waiting for this... mmm... and now... this! (he bites his lip in fury, glaring at the man in front of him) I'm about to do something I should have done a long time ago!
+(Without warning, Benn aggressively shoves the man in front of him, his face contorted with rage. As soon as he does, he whirls around and aggressively shoves his date, biting his lip harder as she stumbles backward and falls to the ground.)
 [GASP]
-(The crowd gasps in shock as the man he shoved spins back around and punches Barry, sending him crashing to the ground. Barry's expression shifts from shock to an exaggerated display of distress.)
+(The crowd gasps in shock as the man he shoved spins back around and punches Benn, sending him crashing to the ground. Benn's expression shifts from shock to an exaggerated display of distress.)
 [SFX smash]
-PROFESSOR GUTTRIDGE (shrieking, his voice high-pitched and trembling): ASSAULT! ASSAULT! Help me! Someone help!
-(Barry, now on the ground, begins to visibly wet himself, his face a mixture of humiliation and panic. The onlookers, instead of rushing to his aid, begin to murmur and shout, their voices growing louder and more threatening.)
+PROFESSOR BENN BURGESS (shrieking, his voice high-pitched and trembling): ASSAULT! ASSAULT! Help me! Someone help!
+(Benn, now on the ground, begins to visibly wet himself, his face a mixture of humiliation and panic. The onlookers, instead of rushing to his aid, begin to murmur and shout, their voices growing louder and more threatening.)
 CROWD MEMBER 1: Stomp on his head!
 CROWD MEMBER 2: Yeah, teach him a lesson!
 CROWD MEMBER 3: Set that fucking dog on him!
-(The camera shifts to reveal a snarling pitbull on a leash, its owner loosening his grip. The dog is freed, and the scene ends with the sound of teeth gnashing and Barry's terrified screams, as the crowd cheers and laughs.)
+(The camera shifts to reveal a snarling pitbull on a leash, its owner loosening his grip. The dog is freed, and the scene ends with the sound of teeth gnashing and Benn's terrified screams, as the crowd cheers and laughs.)
 [CHEERING]
 [FADE]
 `,

@@ -118,7 +118,7 @@ const SHOTS: [Omit<Aim, "x" | "y">, Omit<Aim, "x" | "y">][] = [
   // the Kreltower: low, orbiting round it
   [{ d: 1000, p: 16, yaw: 125, r: 4 }, { d: 880, p: 20, yaw: 195, r: -3 }],
   // Polson Towers: low, pushing in on the front of the terrace
-  [{ d: 640, p: 16, yaw: -16, r: 0 }, { d: 470, p: 20, yaw: 4, r: 1 }],
+  [{ d: 620, p: 28, yaw: 22, r: 0 }, { d: 500, p: 32, yaw: 8, r: 1 }],
   // the Archive: a truck along the front
   [{ d: 760, p: 40, yaw: 28, r: 0 }, { d: 700, p: 44, yaw: 8, r: 0 }],
   // the Town Hall: head-on, pushing in

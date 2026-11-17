@@ -11,7 +11,9 @@ import type { NewsCfg } from "../TVNews";
  *   to camera there, the newsreader talks over the location.
  * - rally: a speaker at a lectern on a stage, a crowd with placards in front.
  * - keynote: a tech launch: the giant screen's slides change with the lines, the press pack in front.
- * - graphic: a full-screen news graphic (polls, trending hashtags, a statement, results) under the newsreader.
+ * - graphic: a full-screen news graphic (polls, trending hashtags, a statement, results, a teased announcement, a
+ *   crashed website) under the newsreader.
+ * - flank: in a presser, people standing either side of the podium in the wide (Whitty and Merrick by Starmer).
  */
 
 export type StoryKind = "field" | "vox" | "rally" | "keynote" | "graphic";
@@ -21,7 +23,11 @@ export type Gfx =
   | { type: "poll"; title: string; sub: string; bars: { label: string; from: number; to: number; color: number }[] }
   | { type: "trend"; title: string; tags: { tag: string; n: number }[]; posts: string[] }
   | { type: "statement"; title: string; from: string; quote: string; color: number }
-  | { type: "results"; title: string; from: [string, number]; to: [string, number]; seats: number; flips: number };
+  | { type: "results"; title: string; from: [string, number]; to: [string, number]; seats: number; flips: number }
+  /** a social post teasing an announcement, the speculation piling up around it */
+  | { type: "teaser"; title: string; from: string; handle: string; post: string; when: string; guesses: string[] }
+  /** a crashed website: a browser window with an error page */
+  | { type: "error"; title: string; url: string; code: string; msg: string; sub: string };
 
 export interface Slide {
   match: RegExp;
@@ -45,6 +51,8 @@ export interface StoryScene {
   slides?: Slide[];
   /** the giant screen in the set's art, as fractions of the picture */
   screen?: [number, number, number, number];
+  /** presser: people standing either side of the podium in the wide, and where across the picture (0-1) */
+  flank?: [string, number][];
 }
 
 const STUDIO = { match: /NEWSDESK/, kind: "desk" as const, set: "tv_gbk_studio" };
@@ -309,6 +317,102 @@ export const KREWS3_NEWS: Record<string, NewsCfg> = {
       EXECUTIVE: ["Microsoft executive", "Flight Simulator: Crash Mode"],
       REPORTER: ["Reporter", "GB Krews, Redmond"],
       JOURNALIST: ["Journalist", "In the press pack"],
+    },
+  },
+
+  krews_arsebrush: {
+    brand: "gbk",
+    ticker: [
+      "PM: 'brush the inside of your arsehole'",
+      "Department of Health website down for a third hour",
+      "Dentists 'not consulted', says BDA",
+      "#ArsebrushGate trending in 30 countries",
+      "Boots: 'no plans' to stock the brush",
+      "Whitty: 'research is ongoing'",
+    ],
+    scenes: [
+      STUDIO,
+      {
+        match: /TEASER GRAPHIC/,
+        kind: "graphic",
+        set: "",
+        gfx: {
+          type: "teaser",
+          title: "SUNDAY NIGHT: THE TEASE",
+          from: "Keir Starmer",
+          handle: "@Keir_Starmer",
+          post: "Tomorrow I'll be announcing one of the most significant developments in preventative health in decades. Massive. Exciting. Watch this space.",
+          when: "Sunday · 21:04",
+          guesses: ["NHS funding boost?", "Cancer screening?", "Free dentistry?", "New hospitals?", "Waiting lists?"],
+        },
+      },
+      {
+        match: /PRESS ROOM/,
+        kind: "presser",
+        set: "tv_k1_pressroom",
+        main: "KEIR STARMER",
+        askers: ["JOURNALIST"],
+        anchors: { "KEIR STARMER": "KEIR STARMER@BRUSH" },
+        flank: [["CHRIS WHITTY", 0.2], ["DR ALANA MERRICK", 0.8]],
+      },
+      {
+        match: /DOH ERROR/,
+        kind: "graphic",
+        set: "",
+        gfx: {
+          type: "error",
+          title: "DEPARTMENT OF HEALTH WEBSITE CRASHES",
+          url: "https://www.gov.uk/guidance/internal-brushing",
+          code: "503",
+          msg: "Service Unavailable",
+          sub: "We're experiencing extremely high demand. Please do not try this at home until guidance is published.",
+        },
+      },
+      {
+        match: /BDA STATEMENT/,
+        kind: "graphic",
+        set: "",
+        gfx: {
+          type: "statement",
+          title: "BRITISH DENTAL ASSOCIATION",
+          from: "British Dental Association",
+          quote: "The Association has not been consulted, and does not endorse the Prime Minister's comments in any capacity.",
+          color: 0x0e7490,
+        },
+      },
+      { match: /WESTMINSTER/, kind: "vox", set: "tv_k4_westm", where: "Westminster" },
+      { match: /COLLEGE GREEN/, kind: "vox", set: "tv_k4_westm", where: "College Green" },
+      {
+        match: /TRENDING/,
+        kind: "graphic",
+        set: "",
+        gfx: {
+          type: "trend",
+          title: "TRENDING NOW",
+          tags: [
+            { tag: "#ArsebrushGate", n: 3120000 },
+            { tag: "#ColonicKeir", n: 1940000 },
+            { tag: "#ResearchIsOngoing", n: 702000 },
+            { tag: "#NotConsulted", n: 318000 },
+          ],
+          posts: ["did the Prime Minister just say that", "Whitty's face though", "what bristle strength are we talking", "my dentist has gone very quiet", "the DoH website is down lol", "'targeted internal cleansing' is going on my CV"],
+        },
+      },
+    ],
+    ots: [
+      { match: /massive and exciting|breakthrough/i, pic: { key: "tvanchor_STARMER_BRUSH", frame: 4, crop: [0, 0, 100, 76] }, caption: "'Health breakthrough'" },
+      { match: /research is ongoing|Whitty/i, pic: { key: "tvanchor_WHITTY", frame: 0, crop: [30, 6, 68, 60] }, caption: "'Research is ongoing'" },
+      { match: /opposition|condemn/i, pic: { key: "tvanchor_BADENOCH", frame: 0, crop: [30, 6, 68, 60] }, caption: "Opposition fury" },
+      { match: /later interview|stood by/i, pic: { key: "tvanchor_STARMER_BRUSH", frame: 4, crop: [0, 0, 100, 76] }, caption: "No regrets" },
+    ],
+    straps: {
+      "KEIR STARMER": ["Keir Starmer", "Prime Minister"],
+      "CHRIS WHITTY": ["Sir Chris Whitty", "Chief Medical Officer"],
+      "DR ALANA MERRICK": ["Dr Alana Merrick", "Dental Health Tsar"],
+      "KEMI BADENOCH": ["Kemi Badenoch", "Leader of the Conservative Party"],
+      "DAISY COOPER": ["Daisy Cooper", "Liberal Democrat leader"],
+      JOURNALIST: ["Journalist", "In the press pack"],
+      REPORTER: ["Reporter", "GB Krews, Downing Street"],
     },
   },
 };

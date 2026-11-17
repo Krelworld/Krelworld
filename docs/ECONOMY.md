@@ -55,7 +55,7 @@ home slot machine (1 a day). An engaged player sees roughly 150–250 by ch5 and
 | Moves (Shove/Fart/Last Orders) | 320/280/360 | 450/400/550 |
 | Hire a lad | 150 | 200 |
 | Gatling / Long Lens / Flamethrower | 420 / 480 / 560 | 700 / 650 / 800 |
-| **The BFK** | 900 | **2,000** |
+| **The BFK** | 900 | **3,000** |
 
 Shelf total: ~18,000 → ~25,000. A player can buy roughly a third to 40% of it in one run, so it's a choice.
 

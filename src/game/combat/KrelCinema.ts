@@ -2,11 +2,19 @@ import Phaser from "phaser";
 import { G } from "../G";
 import { synth } from "../audio/Synth";
 import { onSkip, runOverlay } from "../gfx/Overlay";
+import { KC_HEADS, KCV_HEAD, type HeadPiece } from "./krelCineData";
 
 /**
- * The Kreltality close-up: after a finisher plays out on the battle sprites, a hard cut to a drawn, animated anime
- * close-up of the kill (1.5–3s), then back to the room for the KRELTALITY banner. The frames are a sheet,
- * `kc_<finisher>` (a still and its motion, 256x144 frames; the first few are the wind-up, the rest the impact).
+ * The Kreltality close-up: at the finisher's strike, a smash cut (a white impact frame) from the battle sprites to a
+ * drawn, animated anime close-up of the blow (1.5–3s), then back to the room, where the sprites carry on from the
+ * moment of impact (Kreltality.ts holds them still meanwhile). The frames are a sheet, `kc_<finisher>` (256x144
+ * frames; the first few are the wind-up, the rest the impact).
+ *
+ * The sheets were drawn with a stand-in victim; the one you see is whoever you just beat. Each comes split:
+ * `kca_<finisher>` (the shot with the stand-in's head cut out) and `kcf_<finisher>` (what was in front of his head),
+ * and the victim's own head goes in between, frame by frame where his was (krelCineData.ts): drawn off their VS
+ * portrait (`kcv_<boss>`: terror through the wind-up, impact on the hit, then hurt). A victim without one gets their
+ * VS portrait, or failing that the head off their own sprite. Finishers with no split sheet play `kc_` as it is.
  *
  * Gore on: the full thing, on a blood-red burst, with drops flying. Gore off: the wind-up only, as a black
  * silhouette on a gold burst, then a comic POW and the tame name: nothing comes off. calmFlash: no white impact
@@ -48,15 +56,34 @@ export interface KrelCineOpts {
   title: string;
   /** whose it was */
   victim?: string;
+  /** the victim's id (a boss id, as in kcv_<id> and vs_<id>), so it's their own face in it */
+  id?: string;
+  /** the victim's sprite: the head off it, when they've no close-up portrait */
+  tex?: { key: string; frame: string | number };
+  /** mirror it (so the blow comes from the side it does on the stage) */
+  flip?: boolean;
+  /** called if the player skipped it (Kreltality.ts skips the rest of the sequence too) */
+  onSkip?: () => void;
 }
+
+/**
+ * Close-ups that are drawn with the blow coming in from the right: mirrored, so it comes from the left, as it does on
+ * the stage (you always stand to their left).
+ */
+const MIRROR = new Set(["slit", "freeze"]);
 
 /** Cut to the close-up, wait for it, cut back. */
 export function krelCinema(sc: Phaser.Scene, o: KrelCineOpts): Promise<void> {
   const key = ART[o.which] ?? `kc_${o.which}`;
   return runOverlay(sc, "KrelCine", KrelCineScene, {
     key,
+    which: o.which,
     title: o.title,
     victim: o.victim ?? "",
+    id: o.id ?? "",
+    tex: o.tex ?? null,
+    flip: o.flip ?? MIRROR.has(o.which),
+    onSkip: o.onSkip ?? null,
     windup: WINDUP[o.which] ?? DEFAULT_WINDUP,
     player: G.hasRun() ? G.s.player : "FLENKY",
   });
@@ -64,11 +91,69 @@ export function krelCinema(sc: Phaser.Scene, o: KrelCineOpts): Promise<void> {
 
 interface CineData {
   key: string;
+  which: string;
   title: string;
   victim: string;
+  id: string;
+  tex: { key: string; frame: string | number } | null;
+  flip: boolean;
+  onSkip: (() => void) | null;
   windup: number;
   player: string;
   done: () => void;
+}
+
+/** Where a victim's face comes from: a sheet, its terror/impact/hurt frames, and the box round the head in them. */
+interface Face {
+  key: string;
+  frames: [string | number, string | number, string | number];
+  /** the head's box in the frame (frame pixels) */
+  box: [number, number, number, number];
+  /** what of the frame to show (frame pixels): the head and neck, not the rest of them */
+  crop: [number, number, number, number] | null;
+  /** the texture's HD factor (setScale multiplies by it) */
+  hd: number;
+}
+
+/** The victim's face for the close-up: their drawn reactions, their VS portrait, or their sprite's head. */
+function faceOf(sc: Phaser.Scene, id: string, tex: CineData["tex"]): Face | null {
+  const ids = id ? [id, id.replace(/^(bossanim_|boss_|p_)/, "")] : [];
+  if (tex) ids.push(tex.key.replace(/^(bossanim_|boss_|p_|krelvic_)/, ""));
+  for (const i of ids) if (KCV_HEAD[i] && sc.textures.exists(`kcv_${i}`)) return { key: `kcv_${i}`, frames: [0, 1, 2], box: KCV_HEAD[i], crop: null, hd: 1 };
+  for (const i of ids)
+    if (sc.textures.exists(`vs_${i}`)) {
+      // a VS portrait: a bust, the head in the top middle
+      return { key: `vs_${i}`, frames: [0, 0, 0], box: [32, 8, 64, 76], crop: [16, 0, 96, 112], hd: 1 };
+    }
+  if (!tex || !sc.textures.exists(tex.key)) return null;
+  // their sprite: the top of the figure (the frame has empty margins: find what's drawn)
+  const t = sc.textures.get(tex.key);
+  const fr = t.get(tex.frame);
+  const fw = fr.width;
+  const fh = fr.height;
+  let x0 = fw;
+  let y0 = fh;
+  let x1 = -1;
+  let y1 = -1;
+  const st = Math.max(1, Math.round(Math.max(fw, fh) / 80));
+  try {
+    for (let y = 0; y < fh; y += st)
+      for (let x = 0; x < fw; x += st) {
+        if ((sc.textures.getPixelAlpha(x, y, tex.key, tex.frame) ?? 0) < 60) continue;
+        x0 = Math.min(x0, x);
+        y0 = Math.min(y0, y);
+        x1 = Math.max(x1, x);
+        y1 = Math.max(y1, y);
+      }
+  } catch {
+    /* the whole frame */
+  }
+  if (x1 <= x0 || y1 <= y0) [x0, y0, x1, y1] = [0, 0, fw - 1, fh - 1];
+  const w = x1 - x0;
+  const h = y1 - y0;
+  const hd = (t.customData as { hd?: number } | undefined)?.hd ?? 1;
+  const box: Face["box"] = [x0 + w * 0.18, y0, w * 0.64, h * 0.3];
+  return { key: tex.key, frames: [tex.frame, tex.frame, tex.frame], box, crop: [x0, y0, w + 1, h * 0.42], hd };
 }
 
 const W = 960;
@@ -110,6 +195,8 @@ export class KrelCineScene extends Phaser.Scene {
 
     // ---- the black: the cut
     this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 1);
+    // a white impact frame on the cut (a dim, slow one with calmFlash)
+    flash(0xffffff, 0.85, 140);
 
     // ---- beat 1: your lad's eyes, a strip across the middle (his VS portrait), as the blow lands
     const pk = `vs_${d.player}`;
@@ -137,7 +224,10 @@ export class KrelCineScene extends Phaser.Scene {
     // ---- beat 2: the close-up
     later(t0, () => this.closeUp(gore, calm, flash, shake, intervals));
     later(t0 + 2050, () => this.finish());
-    this.offSkip = onSkip(this, 200, () => this.finish());
+    this.offSkip = onSkip(this, 200, () => {
+      if (!this.ending) this.d.onSkip?.();
+      this.finish();
+    });
   }
 
   private closeUp(gore: boolean, calm: boolean, flash: (c: number, a: number, ms?: number) => void, shake: (ms: number, k: number) => void, intervals: number[]) {
@@ -175,16 +265,9 @@ export class KrelCineScene extends Phaser.Scene {
 
     // the drawn close-up (or nothing drawn: just the burst and the name)
     const have = this.textures.exists(d.key);
-    let shot: Phaser.GameObjects.Image | null = null;
+    let shot: { setFrame(f: number): void; readonly active: boolean } | null = null;
     const n = have ? Math.max(1, this.textures.get(d.key).frameTotal - 1) : 0;
-    if (have) {
-      shot = this.add.image(W / 2, H / 2, d.key, 0);
-      const fr = shot.frame;
-      const k = Math.max(1, Math.floor(Math.min((W * 0.98) / fr.realWidth, (H * 0.86) / fr.realHeight)));
-      shot.setScale(k);
-      if (!gore) shot.setTintFill(0x000000);
-      this.tweens.add({ targets: shot, scale: k * 1.07, duration: 1900, ease: "Sine.out" });
-    }
+    if (have) shot = this.shot(gore);
     // cinematic bars
     this.add.rectangle(W / 2, 22, W, 44, 0x000000);
     this.add.rectangle(W / 2, H - 22, W, 44, 0x000000);
@@ -245,6 +328,80 @@ export class KrelCineScene extends Phaser.Scene {
         this.tweens.add({ targets: v, alpha: 0.9, duration: 300 });
       }
     });
+  }
+
+  /**
+   * The drawn shot, scaled up to fill the screen with a slow push in: the stand-in's sheet as drawn, or (when it comes
+   * split) the shot, the victim's own head where his was, and what was in front of it. setFrame(f) moves them all on.
+   */
+  private shot(gore: boolean) {
+    const d = this.d;
+    const fr0 = this.textures.get(d.key).get(0);
+    const k = Math.max(1, Math.floor(Math.min((W * 0.98) / fr0.realWidth, (H * 0.86) / fr0.realHeight)));
+    const c = this.add.container(W / 2, H / 2);
+    const fw = fr0.realWidth;
+    const fh = fr0.realHeight;
+    const heads = KC_HEADS[d.which];
+    const face = heads && this.textures.exists(`kca_${d.which}`) && this.textures.exists(`kcf_${d.which}`) ? faceOf(this, d.id, d.tex) : null;
+    const tint = (o: Phaser.GameObjects.Image) => (gore ? o : o.setTintFill(0x000000));
+    let setFrame: (f: number) => void;
+    if (!face || !heads) {
+      // as drawn
+      const img = tint(this.add.image(0, 0, d.key, 0));
+      c.add(img);
+      setFrame = (f) => img.setFrame(f);
+    } else {
+      const back = tint(this.add.image(0, 0, `kca_${d.which}`, 0));
+      const front = tint(this.add.image(0, 0, `kcf_${d.which}`, 0));
+      const pieces: Phaser.GameObjects.Image[] = [];
+      c.add(back);
+      const piece = (i: number) => {
+        while (pieces.length <= i) {
+          const p = tint(this.add.image(0, 0, face.key, face.frames[0]));
+          p.texture.setFilter(Phaser.Textures.FilterMode.NEAREST);
+          pieces.push(p);
+          c.addAt(p, c.getIndex(back) + 1 + pieces.length - 1);
+        }
+        return pieces[i];
+      };
+      c.add(front);
+      const [hx, hy, hw, hh] = face.box;
+      setFrame = (f) => {
+        back.setFrame(f);
+        front.setFrame(f);
+        const list: HeadPiece[] = heads[f] ?? heads[heads.length - 1] ?? [];
+        // terror through the wind-up, the impact on the hit, then hurt (gore on)
+        const r = f < d.windup ? 0 : f === d.windup ? 1 : 2;
+        pieces.forEach((p) => p.setVisible(false));
+        list.forEach(([x, y, w, h, u0, u1, ang], i) => {
+          const p = piece(i).setVisible(true).setFrame(face.frames[r]);
+          const s = h / hh;
+          // the part of the frame to show: the head and neck (or the half of the head that's left)
+          const [cx, cy, cw, ch] = face.crop ?? [0, 0, p.frame.realWidth, p.frame.realHeight];
+          const ux0 = u0 > 0 ? hx + u0 * hw : cx;
+          const ux1 = u1 < 1 ? hx + u1 * hw : cx + cw;
+          p.setCrop(ux0, cy, Math.max(1, ux1 - ux0), ch);
+          // the head box's middle (of the part shown) onto the middle of the piece's box, turned about it
+          const mx = (Math.max(ux0, hx + u0 * hw) + Math.min(ux1, hx + u1 * hw)) / 2;
+          const my = hy + hh / 2;
+          p.setOrigin(mx / p.frame.realWidth, my / p.frame.realHeight);
+          p.setScale(s / face.hd);
+          p.setAngle(ang);
+          p.setPosition(x + w / 2 - fw / 2, y + h / 2 - fh / 2);
+        });
+      };
+    }
+    setFrame(0);
+    const sx = d.flip ? -1 : 1;
+    c.setScale(sx * k, k);
+    const z = { k };
+    this.tweens.add({ targets: z, k: k * 1.07, duration: 1900, ease: "Sine.out", onUpdate: () => c.setScale(sx * z.k, z.k) });
+    return {
+      setFrame,
+      get active() {
+        return c.active;
+      },
+    };
   }
 
   /** Gore: drops of blood flung out of the middle of the shot and running down the screen. */

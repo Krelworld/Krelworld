@@ -8479,6 +8479,42 @@
   },
   "fe_still_drongus_launch": {
    "file": "finale/fe_still_drongus_launch.png"
+  },
+  "fe_eyes_drongus1": {
+   "file": "finale/fe_eyes_drongus1.png"
+  },
+  "fe_eyes_drongus2": {
+   "file": "finale/fe_eyes_drongus2.png"
+  },
+  "fe_eyes_dd": {
+   "file": "finale/fe_eyes_dd.png"
+  },
+  "fe_eyes_concept": {
+   "file": "finale/fe_eyes_concept.png"
+  },
+  "fe_eyes_ssj": {
+   "file": "finale/fe_eyes_ssj.png"
+  },
+  "fe_eyes_goku": {
+   "file": "finale/fe_eyes_goku.png"
+  },
+  "fe_still_dd_transform": {
+   "file": "finale/fe_still_dd_transform.png"
+  },
+  "fe_still_group_krezz": {
+   "file": "finale/fe_still_group_krezz.png"
+  },
+  "fe_still_concept_rise": {
+   "file": "finale/fe_still_concept_rise.png"
+  },
+  "fe_still_goku_raise": {
+   "file": "finale/fe_still_goku_raise.png"
+  },
+  "fe_still_collapse": {
+   "file": "finale/fe_still_collapse.png"
+  },
+  "fe_still_drongus1_gun": {
+   "file": "finale/fe_still_drongus1_gun.png"
   }
  },
  "sheets": {

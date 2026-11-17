@@ -307,6 +307,9 @@ export class FinaleScene extends Phaser.Scene {
     synth.play("roar");
     this.cameras.main.shake(900, 0.02);
     this.strike(true);
+    // its eyes open (all of them), then the whole of it, from across town
+    await Juice.eyeShot(this, "fe_eyes_concept", 850, { color: 0xa855f7 });
+    await Juice.still(this, "fe_still_concept_rise", 1600, { push: 0.1, shakeK: 0.012 });
     synth.music("c7_concept");
     await this.talk(FB.FB_EMERGE_PANIC);
     // the title
@@ -357,7 +360,8 @@ export class FinaleScene extends Phaser.Scene {
     cam.flash(calm ? 500 : 300, 255, 240, 170);
     await this.wait(1100);
     await this.talk(FB.FB_TRANSFORM.slice(2));
-    // the final scream: all of them at once
+    // the final scream: all of them at once (their eyes first)
+    await Juice.eyeShot(this, "fe_eyes_ssj", 800, { color: 0xffe066 });
     for (const l of this.lads) if (l.spr.texture.key.startsWith("ssj_")) l.spr.setFrame(1);
     cam.resetFX();
     cam.shake(1400, calm ? 0.01 : 0.03);
@@ -667,12 +671,15 @@ export class FinaleScene extends Phaser.Scene {
     });
     await this.wait(600);
     await this.talk(FB.FB_READY);
+    // the money shot: the whole town pouring into it
+    await Juice.still(this, "fe_still_goku_raise", 1500, { push: 0.1, shakeK: 0.012 });
     // it grows
     this.tweens.add({ targets: orb, scale: 2.4, duration: 1500, ease: "Sine.in" });
     this.cameras.main.shake(1500, 0.01);
     this.speedLines(orb.x, orb.y, 1500);
     await this.wait(1600);
     await this.talk(FB.FB_SPIRIT);
+    await Juice.eyeShot(this, "fe_eyes_goku", 650, { color: 0xffd23f });
     motes.remove();
     // THROW
     this.stormOn = false;
@@ -866,7 +873,7 @@ export class FinaleScene extends Phaser.Scene {
         if (!youCut && elapsed > 2.2) {
           youCut = true;
           const por = ssjPortraitKey(this, G.s.player);
-          if (por) void Juice.cutIn(this, por, { from: "right", y: 150, color: 0xffe066, hold: 700, focus: 0.42, w: 480 });
+          if (por) void Juice.cutIn(this, por, { from: "right", y: 150, color: 0xffe066, hold: 700, focus: 0.62, w: 480 });
         }
         if (elapsed - lastBurst > 0.22) {
           lastBurst = elapsed;

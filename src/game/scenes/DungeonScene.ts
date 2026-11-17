@@ -81,6 +81,10 @@ const SHAKE = () => G.meta.settings.shake;
 /** Bosses that stage their own phase breaks (epic-phase events) instead of the generic half-health pulse. */
 const OWN_PHASE_BREAKS = new Set(["drongus1", "drongus2"]);
 /** Close-up cut-ins (PixelLab stills) for a boss's phase breaks. */
+/** Anime eye shots, before an epic boss's title card. */
+const BOSS_EYES: Record<string, string> = { drongus1: "fe_eyes_drongus1", drongus2: "fe_eyes_drongus2" };
+/** A full-screen still for a boss's LAST STAND (instead of the cut-in). */
+const LAST_STAND_STILLS: Record<string, string> = { drongus1: "fe_still_drongus1_gun" };
 const PHASE_CUTINS: Record<string, string> = { drongus1: "fe_cut_drongus1", drongus2: "fe_cut_drongus2", concept: "fe_cut_concept_hurt" };
 const EPIC_BOSSES: Record<string, string> = { krozno: "#38bdf8", krex: "#a855f7", elon: "#22d3ee", drongus1: "#ef4444", drongus2: "#ff2a2a" };
 
@@ -1902,6 +1906,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     if (fresh) await this.talk(txt.intro);
     if (epic) {
+      if (fresh && BOSS_EYES[id] && b.active) await Juice.eyeShot(this, BOSS_EYES[id], 750, { color: Phaser.Display.Color.HexStringToColor(epic).color });
       if (b.active) await Juice.bossCard(this, txt.name, txt.title, epic);
       closeBars?.(350);
       this.cameras.main.zoomTo(1, 350, "Cubic.easeOut", true);
@@ -2051,7 +2056,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const stopLines = Juice.speedLines(this, 900, colN);
     Juice.slamText(this, line, col, 40, 140, 950);
     const cut = PHASE_CUTINS[b.bossId];
-    if (cut && this.textures.exists(cut)) await Promise.all([Juice.realWait(1150), Juice.cutIn(this, cut, { from: "left", y: 340, color: colN, hold: 850 })]);
+    const lastStill = line.startsWith("LAST STAND") ? LAST_STAND_STILLS[b.bossId] : undefined;
+    if (lastStill && this.textures.exists(lastStill)) await Juice.still(this, lastStill, 1150, { push: 0.14, shakeK: 0.015 });
+    else if (cut && this.textures.exists(cut)) await Promise.all([Juice.realWait(1150), Juice.cutIn(this, cut, { from: "left", y: 340, color: colN, hold: 850 })]);
     else await Juice.realWait(1150);
     stopLines();
     if (!this.sys.settings.active) return;

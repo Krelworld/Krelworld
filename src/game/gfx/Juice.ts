@@ -11,6 +11,8 @@ import { hdFactor } from "./HD";
 
 const alive = (sc: Phaser.Scene) => !!sc.sys && sc.sys.isActive() && !!sc.cameras?.main;
 const shakeOn = () => G.meta?.settings?.shake !== false;
+/** Not shut down (a scene that's been left: anything awaiting a cinematic beat in it should just stop there). */
+const living = (sc: Phaser.Scene) => !!sc.sys && sc.sys.settings.status < Phaser.Scenes.SHUTDOWN;
 /** "Reduce flashing" is on: full-screen flashes are dimmed and slowed, strobing effects are skipped. */
 export const calm = () => !!G.meta?.settings?.calmFlash;
 
@@ -299,12 +301,14 @@ export async function impactFrames(sc: Phaser.Scene, target: Phaser.GameObjects.
     sil.setTintFill(0x000000);
   }
   await realWait(frameMs);
-  if (!bg.active) return;
+  if (!bg.active || !living(sc)) return living(sc) ? undefined : new Promise<void>(() => undefined);
   bg.setFillStyle(0x000000, 1);
   sil?.setTintFill(0xffffff);
   await realWait(frameMs);
   bg.destroy();
   sil?.destroy();
+  // (the scene's been left meanwhile: whatever was waiting on this stops here)
+  if (!living(sc)) await new Promise<void>(() => undefined);
 }
 
 /** Anime speed lines rushing in to the middle of the screen (screen-space). Returns a stop(). */
@@ -394,9 +398,10 @@ export function cutIn(sc: Phaser.Scene, key: string, o: { from?: "left" | "right
         if (!root.active) return res();
         sc.tweens.add({ targets: img, x: img.x + dir * 22, duration: o.hold ?? 900 });
         window.setTimeout(() => {
-          if (!root.active) {
+          if (!root.active || !living(sc)) {
             window.clearInterval(lineTimer);
-            return res();
+            if (living(sc)) res();
+            return;
           }
           sc.tweens.add({
             targets: root,
@@ -434,6 +439,34 @@ export function still(sc: Phaser.Scene, key: string, ms = 1200, o: { depth?: num
     sc.tweens.add({ targets: img, scale: (k * (1 + (o.push ?? 0.08))) / hd, duration: ms, ease: "Sine.out" });
     if (o.shakeK !== 0) shake(sc, Math.min(ms, 700), o.shakeK ?? 0.01);
     window.setTimeout(() => {
+      if (!living(sc)) return;
+      root.destroy();
+      res();
+    }, ms);
+  });
+}
+
+/**
+ * The anime eye shot: the screen cuts to black and a strip of just their eyes fills the middle of it, pushing in
+ * slowly (a sting and a heartbeat under it), then cuts back. Screen-space. Resolves when it's gone.
+ */
+export function eyeShot(sc: Phaser.Scene, key: string, ms = 800, o: { depth?: number; color?: number } = {}): Promise<void> {
+  return new Promise((res) => {
+    if (!alive(sc) || !sc.textures.exists(key)) return res();
+    const bg = sc.add.rectangle(480, 270, 1100, 700, 0x000000, 1);
+    const img = sc.add.image(480, 270, key);
+    const hd = hdFactor(img as { texture?: Phaser.Textures.Texture });
+    const k = 980 / img.frame.realWidth;
+    img.setScale(k / hd);
+    const edgeA = sc.add.rectangle(480, 270 - (img.frame.realHeight * k) / 2, 1100, 3, o.color ?? 0xffffff, 0.9);
+    const edgeB = sc.add.rectangle(480, 270 + (img.frame.realHeight * k) / 2, 1100, 3, o.color ?? 0xffffff, 0.9);
+    const root = sc.add.container(0, 0, [bg, img, edgeA, edgeB]);
+    layer(sc, o.depth ?? 4993).add(root);
+    sc.tweens.add({ targets: img, scale: (k * 1.08) / hd, duration: ms, ease: "Sine.out" });
+    synth.play("telegraph");
+    heartbeat(0.8);
+    window.setTimeout(() => {
+      if (!living(sc)) return;
       root.destroy();
       res();
     }, ms);

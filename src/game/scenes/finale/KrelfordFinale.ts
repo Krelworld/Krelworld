@@ -785,6 +785,8 @@ export class KrelfordFinale {
     Juice.riser(600, 0.3);
     await this.wait(550);
     if (this.gone) return;
+    await Juice.eyeShot(h.sc, "fe_eyes_concept", 700, { color: 0xa855f7 });
+    if (this.gone) return;
     b.roar();
     void Juice.cutIn(h.sc, "fe_cut_concept", { from: "left", y: 380, color: 0xa855f7, hold: 900 });
     Juice.subDrop(1, 1.8);

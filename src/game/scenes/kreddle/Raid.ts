@@ -233,7 +233,8 @@ export class KreddleRaid {
     const planted = !!s.flags.nuke_planted;
     synth.ambience(null);
     synth.weatherSound("storm");
-    synth.music("kreddle_raid", true);
+    // (a fresh raid opens on its own war-drum stinger: see intro())
+    if (planted) synth.music("kreddle_raid", true);
     // the raid's track goes up over everything
     synth.setMusicBoost(1.4);
     // the Chemical Flamethrower only works in here
@@ -525,11 +526,28 @@ export class KreddleRaid {
       this.banner.setAlpha(on ? 1 : 0.35);
       this.bannerBg.setFillStyle(on ? 0xb91c1c : 0x450a0a, 0.85);
     } });
-    this.hud = sc.add.text(950, 152, "", { fontFamily: FONT, fontSize: "13px", color: "#b6ff5a", fontStyle: "bold", stroke: "#000", strokeThickness: 4, align: "right" }).setOrigin(1, 0).setScrollFactor(0).setDepth(D_HUD);
-    this.objective = sc.add.text(10, 152, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", fontStyle: "bold", stroke: "#000", strokeThickness: 4, wordWrap: { width: 520 } }).setScrollFactor(0).setDepth(D_HUD);
-    this.countdown = sc.add.text(480, 170, "", { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#ff3b3b", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(D_HUD).setVisible(false);
+    this.hud = sc.add.text(950, 170, "", { fontFamily: FONT, fontSize: "13px", color: "#b6ff5a", fontStyle: "bold", stroke: "#000", strokeThickness: 4, align: "right" }).setOrigin(1, 0).setScrollFactor(0).setDepth(D_HUD);
+    this.objective = sc.add.text(10, 170, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", fontStyle: "bold", stroke: "#000", strokeThickness: 4, wordWrap: { width: 600 } }).setScrollFactor(0).setDepth(D_HUD);
+    this.countdown = sc.add.text(480, 190, "", { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#ff3b3b", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(D_HUD).setVisible(false);
+    // the route: where you are on the Strip, and how far it is to the Palace
+    const stops = ["THE BRIDGE", "GOLDEN MILE", "KLERBLE SQ", "KROZLEN QTR", "KRUNCHER ROW", "★ THE PALACE"];
+    const routeBg = sc.add.rectangle(480, 155, 960, 20, 0x000000, 0.55).setScrollFactor(0);
+    const w = 150;
+    this.route = stops.map((t, i) => sc.add.text(480 + (i - 2.5) * w, 155, t, { fontFamily: FONT, fontSize: "11px", color: "#6b7280", fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setScrollFactor(0));
+    const pips = stops.slice(0, -1).map((_, i) => sc.add.text(480 + (i - 2) * w, 155, "▸", { fontFamily: FONT, fontSize: "11px", color: "#4b5563" }).setOrigin(0.5).setScrollFactor(0));
+    // which way to go, when it's off screen
+    this.pointer = sc.add.text(936, 330, "▶", { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#ffd23f", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5).setScrollFactor(0).setAlpha(0);
+    sc.tweens.add({ targets: this.pointer, scale: 1.25, yoyo: true, repeat: -1, duration: 380 });
     // the HUD stays put when the camera punches in for the big moments
-    Juice.layer(sc, D_HUD).add([this.bannerBg, this.banner, this.hud, this.objective, this.countdown]);
+    Juice.layer(sc, D_HUD).add([this.bannerBg, this.banner, routeBg, ...pips, ...this.route, this.hud, this.objective, this.countdown, this.pointer]);
+  }
+
+  private route: Phaser.GameObjects.Text[] = [];
+  private pointer: Phaser.GameObjects.Text | null = null;
+
+  /** Light up the route: done in green, here in gold, still to come in grey. */
+  private setRoute(d: number) {
+    this.route.forEach((t, i) => t.setColor(i < d ? "#4ade80" : i === d ? "#ffd23f" : "#6b7280").setScale(i === d ? 1.15 : 1));
   }
 
   // ------------------------------------------------------------------ the story beats
@@ -553,11 +571,46 @@ export class KreddleRaid {
     this.sc.tweens.add({ targets: t, alpha: 0, delay: 1900, duration: 600, onComplete: () => t.destroy() });
   }
 
+  /**
+   * The cold open: the Krew crossing the bridge in the rain with Kreddle looming (a drawn still under a war-drum hit),
+   * then the camera whips the whole length of the Strip to the Palace, the target, and back to you. Then the plan,
+   * the first burst of green fire, and the raid's track drops in.
+   */
   private async intro() {
-    this.bigTitle("THE KREDDLE RAID", "#7cff3a", 64);
-    synth.play("alarm");
+    const sc = this.sc;
+    const cam = sc.cameras.main;
+    const hud = Juice.layer(sc, D_HUD);
+    hud.setAlpha(0);
+    const bars = Juice.letterbox(sc, 52, 500, D_HUD + 2);
+    synth.music("c6a_raid_title", true);
+    if (sc.textures.exists("c6a_still_march")) {
+      const card = Juice.titleCard(sc, "MIDNIGHT · THE KREDDLE BRIDGE", "THE MARCH ON KREDDLE", "", 2000, D_HUD + 9, 420);
+      await Promise.all([Juice.still(sc, "c6a_still_march", 3400, { depth: D_HUD + 8, push: 0.1, shakeK: 0 }), card]);
+    }
+    // the target, all the way down at the far end of the Strip
+    cam.stopFollow();
+    Juice.whoosh(0.5);
+    cam.pan(PALACE_X, 330, 1500, "Cubic.easeInOut", true);
     await this.wait(1500);
-    await this.talk(RAID_ARRIVE);
+    Juice.subDrop(0.7, 1.2);
+    await Juice.titleCard(sc, "THE TARGET · PRESIDENT KLERBLE", "THE KLERBLE PALACE", "6 DISTRICTS · 5 BARRICADES · 1 NUCLEAR BOMB", 1500, D_HUD + 9);
+    Juice.whoosh(0.5);
+    const lines = Juice.speedLines(sc, 800, 0xb6ff5a, D_HUD + 1);
+    cam.pan(this.me.x, Math.min(this.me.y, H - 270), 900, "Cubic.easeInOut", true);
+    await this.wait(950);
+    lines();
+    cam.startFollow(this.me, true, 0.1, 0.1);
+    await this.talk(RAID_ARRIVE.slice(0, -1));
+    // LIGHT 'EM UP: the first burst, and the raid begins
+    bars(300);
+    synth.play("gun_flamer");
+    Juice.flash(sc, 0x7cff3a, 250, 0.5, D_HUD + 1);
+    if (sc.textures.exists("c6a_still_flamer")) await Juice.still(sc, "c6a_still_flamer", 1500, { depth: D_HUD + 8, push: 0.12, shakeK: 0.012 });
+    synth.music("kreddle_raid", true);
+    this.bigTitle("THE KREDDLE RAID", "#7cff3a", 64);
+    sc.tweens.add({ targets: hud, alpha: 1, duration: 500 });
+    await this.wait(900);
+    await this.talk(RAID_ARRIVE.slice(-1));
     this.phase = "march";
     this.busy = false;
   }
@@ -566,27 +619,83 @@ export class KreddleRaid {
     this.broadcastDone = true;
     this.phase = "cutscene";
     this.busy = true;
+    const sc = this.sc;
+    const cam = sc.cameras.main;
     const scr = this.screen;
+    // the bars come in and the camera swings up onto the giant screen as it crackles into life
+    const close = Juice.letterbox(sc, 48, 400, D_HUD + 2);
+    const hud = Juice.layer(sc, D_HUD);
+    sc.tweens.add({ targets: hud, alpha: 0, duration: 300 });
+    cam.stopFollow();
+    cam.removeBounds();
+    cam.pan(scr?.frame.x ?? this.me.x, 360, 900, "Sine.easeInOut", true);
+    cam.zoomTo(1.25, 900, "Sine.easeInOut", true);
+    // (the President on the big screen: the TV anchor art if it's there, else his little sprite)
+    const anchor = scr && sc.textures.exists("tvanchor_PRESIDENT_KLERBLE") ? sc.add.sprite(scr.frame.x, scr.frame.y + 6, "tvanchor_PRESIDENT_KLERBLE", 0).setScale(1.05).setDepth(D_LIGHT - 3).setVisible(false) : null;
+    const scan = scr ? sc.add.rectangle(scr.frame.x, scr.frame.y - 70, 238, 6, 0xffffff, 0.18).setDepth(D_LIGHT - 2).setVisible(false) : null;
+    let flap: Phaser.Time.TimerEvent | null = null;
     if (scr) {
+      scr.text.setText("⚠ EMERGENCY BROADCAST ⚠").setColor("#ffffff");
+      synth.play("telegraph");
+      await this.wait(700);
+      // static, then him
+      for (let i = 0; i < 5; i++) {
+        scr.frame.setFillStyle(i % 2 ? 0xffffff : 0x3b0764);
+        await this.wait(60);
+      }
       scr.text.setVisible(false);
       scr.frame.setFillStyle(0x3b0764);
-      scr.face?.setVisible(true);
+      if (anchor) anchor.setVisible(true);
+      else scr.face?.setVisible(true);
+      if (scan) {
+        scan.setVisible(true);
+        sc.tweens.add({ targets: scan, y: scr.frame.y + 70, duration: 900, repeat: -1 });
+      }
+      // (the anchor sheet: four mouth frames per pose; 0 rest, 2 arms wide)
+      if (anchor) flap = sc.time.addEvent({ delay: 140, loop: true, callback: () => anchor.active && anchor.setFrame((anchor.getData("pose") ?? 0) * 4 + Phaser.Math.Between(0, 2)) });
     }
     synth.play("decree");
-    await this.talk(RAID_KLERBLE_BROADCAST.slice(0, 6));
+    await this.talk(RAID_KLERBLE_BROADCAST.slice(0, 5));
+    // he realises
+    anchor?.setData("pose", 2);
+    void Juice.cutIn(sc, "c6a_cut_klerble", { from: "right", y: 250, color: 0xff3b3b, hold: 1100, depth: D_HUD + 8 });
+    synth.play("gasp");
+    await this.talk(RAID_KLERBLE_BROADCAST.slice(5, 6));
+    flap?.remove();
     // Gronny lobs a nail bomb at the screen
     const gronny = this.lads.find((l) => l.id === "GRONNY") ?? this.lads[0];
     if (gronny && scr) {
       await new Promise<void>((r) => this.lob(gronny.spr.x, gronny.spr.y - 30, scr.frame.x, scr.frame.y, "kd_nailbomb", 700, () => r()));
+      void Juice.impactFrames(sc, anchor ?? scr.face);
+      Juice.subDrop(0.9, 1.4);
       this.explode(scr.frame.x, scr.frame.y, 1.6);
       this.explode(scr.frame.x + 60, scr.frame.y + 30, 1.1, 200);
+      anchor?.destroy();
+      scan?.destroy();
       scr.face?.destroy();
-      scr.frame.setFillStyle(0x111111).setStrokeStyle(6, 0x3f3f46).setAngle(8);
+      scr.frame.setFillStyle(0x111111).setStrokeStyle(6, 0x3f3f46);
       scr.text.setVisible(true).setText("— NO SIGNAL —").setColor("#ff3b3b");
-      this.addFire(scr.frame.x - 60, scr.frame.y + 40, 2, GREEN, 0);
-      this.addFire(scr.frame.x + 70, scr.frame.y + 30, 1.6, 0, 0);
+      Juice.slamText(sc, "SIGNAL LOST", "#ff3b3b", 54, 200, 900, D_HUD + 4);
+      // and the whole screen comes down into the square
+      const fall = [scr.frame, scr.text];
+      sc.tweens.add({ targets: fall, y: "+=150", angle: 14, duration: 650, delay: 350, ease: "Quad.in", onComplete: () => {
+        synth.play("smash");
+        Juice.shake(sc, 400, 0.016);
+        this.explode(scr.frame.x, 470, 1.4);
+        Juice.debris(sc, scr.frame.x, 460, 14, { colors: [0x111111, 0x3f3f46, 0xfacc15, 0x3b0764], depth: D_LIGHT + 25, floor: 520 });
+      } });
+      this.addFire(scr.frame.x - 60, scr.frame.y + 190, 2, GREEN, 0);
+      this.addFire(scr.frame.x + 70, scr.frame.y + 180, 1.6, 0, 0);
+      await this.wait(1100);
     }
     await this.talk(RAID_KLERBLE_BROADCAST.slice(6));
+    close(400);
+    sc.tweens.add({ targets: hud, alpha: 1, duration: 400 });
+    cam.zoomTo(1, 500, "Sine.easeInOut", true);
+    cam.pan(this.me.x, Math.min(this.me.y, H - 270), 500, "Sine.easeInOut", true);
+    await this.wait(520);
+    cam.setBounds(0, 0, RW, H);
+    cam.startFollow(this.me, true, 0.1, 0.1);
     this.phase = "march";
     this.busy = false;
   }
@@ -751,8 +860,8 @@ export class KreddleRaid {
     Juice.squash(sc, this.nuke, 0.3, 500);
     synth.play("smash");
     Juice.shake(sc, 200, 0.008);
-    // the timer arms: a beep, the light, a heartbeat, the music drops out
-    Juice.duckMusic(2400, 300, 0.05);
+    // the timer arms: a beep, the light, a heartbeat, and the countdown stinger takes over from the raid's track
+    synth.music("c6a_nuke_arm", true);
     sc.time.delayedCall(300, () => {
       synth.play("telegraph");
       Juice.heartbeat();
@@ -764,6 +873,9 @@ export class KreddleRaid {
     const glow = sc.add.circle(px + 18, py, 28, 0xff0000, 0.35).setDepth(D_LIGHT + 3).setBlendMode(Phaser.BlendModes.ADD);
     sc.tweens.add({ targets: glow, scale: 2.2, alpha: 0, repeat: -1, duration: 500 });
     await this.wait(1900);
+    // the money shot: the bomb on the red carpet, four minutes on the clock
+    await Juice.still(sc, "c6a_still_nuke", 1900, { depth: D_HUD + 8, push: 0.16, shakeK: 0 });
+    void Juice.titleCard(sc, "THE KLERBLE PALACE · THE FRONT STEPS", "THE BOMB IS ARMED", "☢ 4:00 TO DETONATION", 1400, D_HUD + 9, 200);
     await this.talk(NUKE_PLANT.slice(2));
     close(300);
     Juice.riser(600, 0.4);
@@ -799,8 +911,12 @@ export class KreddleRaid {
     this.lads.forEach((l, i) => (l.off = { x: 50 + (i % 4) * 45, y: -70 + (i % 4) * 45 + (i > 3 ? 20 : 0) }));
     synth.music("kreddle_raid", true);
     synth.play("alarm");
+    this.setRoute(0);
+    this.route[0]?.setText("◀ THE BRIDGE");
     if (fresh) {
       this.bigTitle("RUN!!!", "#ff3b3b", 80);
+      Juice.speedLines(sc, 1200, 0xff3b3b, D_HUD + 1);
+      Juice.shake(sc, 600, 0.015);
       // the one thing to know: where to run to
       sc.time.delayedCall(2500, () => this.bigTitle("◄ WEST, OVER THE BRIDGE, TO THE TOWN HALL", "#ffd23f", 30));
       G.emit("toast", { title: "☢ NUKE PLANTED", text: "RUN! Get back to the Town Hall before it blows!" });
@@ -836,6 +952,22 @@ export class KreddleRaid {
     this.phase = "leaving";
     this.busy = true;
     G.save();
+    const sc = this.sc;
+    // made it to the bridge (the clock hasn't run out): the drawn shot of the Krew legging it with Kreddle burning behind
+    const made = !G.rt.timerEnd || G.rt.timerEnd > Date.now();
+    if (made && sc.textures.exists("c6a_still_escape")) {
+      Juice.speedLines(sc, 1800, 0xffd23f, D_HUD + 9);
+      Juice.whoosh(0.5);
+      void Juice.still(sc, "c6a_still_escape", 1900, { depth: D_HUD + 8, push: 0.12, shakeK: 0.012 }).then(() => {
+        if (sc.sys.settings.active) this.fadeHome();
+      });
+      sc.time.delayedCall(250, () => Juice.slamText(sc, "OVER THE BRIDGE!", "#ffd23f", 50, 440, 1100, D_HUD + 10));
+      return;
+    }
+    this.fadeHome();
+  }
+
+  private fadeHome() {
     const sc = this.sc;
     sc.cameras.main.fadeOut(400);
     sc.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => switchTo(sc, "Hub", { at: "KREDDLE_BRIDGE", from: "raid" }));
@@ -968,14 +1100,21 @@ export class KreddleRaid {
     const pct = Math.round((this.burntBlds / Math.max(1, this.blds.length)) * 100);
     this.hud.setText(`🔥 KREDDLERS TORCHED: ${this.torched}\n🏚 KREDDLE BURNED: ${pct}%`);
     let obj = "";
-    if (this.phase === "escape") obj = "RUN! Back WEST over the bridge to the Town Hall before it blows!";
-    else if (this.phase === "krunchers") obj = "TORCH THE KREDDLE KRUNCHERS! (hold attack)";
-    else if (this.krunchersDone && !this.palaceDone) obj = this.bars[4]?.down ? "Get Krezwonk to the Palace steps!" : "Burn through the Palace gates!";
-    else {
-      const next = this.bars.find((b) => !b.down);
-      obj = next ? `Burn your way EAST along the Strip (hold attack to spray chemical fire). Next: ${next.name}` : "March on the Palace!";
-    }
+    const next = this.bars.find((b) => !b.down);
+    if (this.phase === "escape") obj = "☢ RUN! Back WEST over the bridge to the Town Hall before it blows!";
+    else if (this.phase === "krunchers") obj = "TORCH THE KREDDLE KRUNCHERS! All of them. (hold attack)";
+    else if (this.krunchersDone && !this.palaceDone) obj = this.bars[4]?.down ? "▶ The gates are down: get Krezwonk and the bomb up the Palace steps!" : "▶ Burn through THE PALACE GATES!";
+    else if (next?.locked) obj = this.standoffDone ? "The Palace gates are sealed: torch the Krunchers first!" : "▶ KRUNCHER ROW: the Krunchers are waiting. Find them.";
+    else if (next) obj = `▶ EAST to the Palace. Burn through the ${next.name}${this.district <= 0 ? " (HOLD attack to spray chemical fire)" : ""}`;
+    else obj = "▶ March on the Palace!";
     this.objective.setText(obj);
+    // the arrow: east to the next barricade (or the Palace), west during the escape
+    if (this.pointer) {
+      const goal = this.phase === "escape" ? 0 : this.krunchersDone && this.bars[4]?.down ? 9300 : this.phase === "krunchers" ? KRUNCH_X + 400 : (next?.x ?? PALACE_X);
+      const off = goal - this.me.x;
+      const show = !this.busy && Math.abs(off) > 520;
+      this.pointer.setText(off < 0 ? "◀" : "▶").setX(off < 0 ? 24 : 936).setAlpha(show ? 1 : 0);
+    }
   }
 
   private checkDistrict() {
@@ -984,7 +1123,8 @@ export class KreddleRaid {
     if (d !== this.district) {
       const first = this.district === -1;
       this.district = d;
-      if (!first || d > 0) this.bigTitle(RAID_DISTRICTS[d] ?? "", "#facc15", 40);
+      this.setRoute(d);
+      if (!first || d > 0) void Juice.titleCard(this.sc, `DISTRICT ${d + 1} OF ${RAID_DISTRICTS.length}`, RAID_DISTRICTS[d] ?? "", d === RAID_DISTRICTS.length - 1 ? "☢ PLANT THE BOMB" : "", 1100, D_HUD + 9, 300);
     }
   }
 
@@ -1001,6 +1141,9 @@ export class KreddleRaid {
         best = n;
       }
     }
+    // a barricade right in front of you comes first (unless someone's in your face): it's what's in your way
+    const wall = this.bars.find((b) => !b.down && !b.locked && b.x > this.me.x && b.x - this.me.x < 300);
+    if (wall && (!best || bd > 110)) return 0;
     if (best) return Math.atan2(best.spr.y - 10 - (this.me.y - 22), best.spr.x - this.me.x);
     const f = this.me.getData("facing");
     // nothing near: spray at the buildings (or the barricade) ahead
@@ -1198,6 +1341,7 @@ export class KreddleRaid {
     const smoke = vfx(this.sc, "vfx_smokecol", b.x + (Math.random() - 0.5) * b.w * 0.4, Math.max(170, b.top + 40), { scale: 3, depth: 399, alpha: 0.75 });
     smoke?.anims.setProgress(Math.random());
     b.sign?.setColor("#ff3b3b").setAlpha(0.6);
+    if (!quiet && b.sign) this.signFall(b.sign);
     b.nextBoom = this.sc.time.now + 2000 + Math.random() * 5000;
     if (!quiet) {
       this.explode(b.x + (Math.random() - 0.5) * b.w * 0.5, GROUND - 60 - Math.random() * 80, 1.3);
@@ -1209,6 +1353,35 @@ export class KreddleRaid {
       const c = Phaser.Display.Color.Interpolate.ColorWithColor(Phaser.Display.Color.ValueToColor(0xffffff), Phaser.Display.Color.ValueToColor(0x4a3030), 1, k);
       b.img.setTint(Phaser.Display.Color.GetColor(c.r, c.g, c.b));
     } });
+  }
+
+  /** A burning building's neon sign shorts out, sparks, hangs by one corner, and comes crashing down into the street. */
+  private signFall(sign: Phaser.GameObjects.Text) {
+    const sc = this.sc;
+    const delay = 900 + Math.random() * 1600;
+    sc.time.delayedCall(delay, () => {
+      if (!sign.active) return;
+      sc.tweens.add({ targets: sign, alpha: { from: 1, to: 0.15 }, yoyo: true, repeat: 4, duration: 70 });
+      vfx(sc, "vfx_sparks", sign.x - sign.displayWidth / 2, sign.y, { scale: 1.4, depth: D_LIGHT + 8, add: true });
+      if (Math.abs(sign.x - this.me.x) < 700) Juice.kiZap(0.2);
+      // it swings down on one corner...
+      sc.tweens.add({ targets: sign, angle: Math.random() < 0.5 ? 18 : -18, duration: 500, delay: 600, ease: "Back.out", onComplete: () => {
+        if (!sign.active) return;
+        vfx(sc, "vfx_sparks", sign.x, sign.y, { scale: 1.8, depth: D_LIGHT + 8, add: true });
+        // ...and drops
+        sc.tweens.add({ targets: sign, y: GROUND + 30, angle: sign.angle * 2.5, duration: 520, delay: 250, ease: "Quad.in", onComplete: () => {
+          if (!sign.active) return;
+          sign.setAlpha(0.35).setColor("#7f1d1d");
+          sign.setShadow(0, 0, "#000", 0);
+          if (Math.abs(sign.x - this.me.x) < 700) {
+            synth.play("smash");
+            Juice.shake(sc, 220, 0.01);
+          }
+          vfx(sc, "vfx_dust", sign.x, GROUND + 30, { scale: 2, depth: D_LIGHT + 4 });
+          Juice.debris(sc, sign.x, GROUND + 20, 10, { colors: [0xff4fd8, 0x22d3ee, 0xfacc15, 0x1c1917], depth: D_LIGHT + 6, floor: GROUND + 60 });
+        } });
+      } });
+    });
   }
 
   /** Burnt out long ago (far behind you when you come back in): no fire, just char. */
@@ -1265,16 +1438,60 @@ export class KreddleRaid {
     const sc = this.sc;
     b.parts.forEach((c, i) => {
       c.setTint(0x2a2020).setAngle((Math.random() - 0.5) * 30);
-      if (!quiet) this.explode(c.x, c.y - 20, 1.2, i * 220);
+      if (!quiet) {
+        this.explode(c.x, c.y - 20, 1.2, i * 220);
+        // the cop cars go up in the air, flip, and come down burning
+        const y0 = c.y;
+        sc.tweens.add({ targets: c, y: y0 - 110 - Math.random() * 60, angle: (Math.random() < 0.5 ? -1 : 1) * (150 + Math.random() * 60), duration: 420, delay: i * 220, ease: "Quad.out", onComplete: () => sc.tweens.add({ targets: c, y: y0, duration: 380, ease: "Quad.in", onComplete: () => {
+          synth.play("smash");
+          Juice.shake(sc, 160, 0.008);
+        } }) });
+      }
       this.addFire(c.x, c.y - 10, 1.6, i % 2 ? GREEN : 0, quiet ? 0 : sc.time.now + 20000);
     });
-    for (const d of b.deco) d.destroy();
+    // the riot barriers scatter
+    for (const d of b.deco) {
+      const o = d as Phaser.GameObjects.Image;
+      if (quiet || !(o instanceof Phaser.GameObjects.Image)) {
+        d.destroy();
+        continue;
+      }
+      o.setTint(0x3a2a2a);
+      sc.tweens.add({ targets: o, x: o.x + 60 + Math.random() * 160, y: o.y + (Math.random() - 0.5) * 40, angle: (Math.random() - 0.5) * 300, alpha: 0, duration: 700 + Math.random() * 300, ease: "Quad.out", onComplete: () => o.destroy() });
+    }
     b.deco = [];
     if (!quiet) {
-      this.floatText(b.x, 420, `${b.name} DESTROYED!`, "#b6ff5a");
+      // a beat of slow-mo on the blast
+      Juice.slowMo(sc, 0.35, 450);
+      Juice.punchZoom(sc, 0.08, 420, 1);
+      Juice.flash(sc, GREEN, 200, 0.4, D_HUD + 1, true);
+      Juice.shockRing(sc, b.x, 560, { color: GREEN, to: 360, rings: 2, depth: D_LIGHT + 20, flat: 0.5 });
+      Juice.debris(sc, b.x, 520, 16, { colors: [0x1c1917, 0xfacc15, 0x7f1d1d, 0xb6ff5a], depth: D_LIGHT + 25, floor: 640 });
+      Juice.subDrop(0.7, 1);
       synth.play("smash");
+      if (b === this.bars[4]) void this.gateBreach();
+      else Juice.slamText(sc, `${b.name}: DESTROYED`, "#b6ff5a", 34, 240, 900, D_HUD + 4);
       this.sc.time.delayedCall(700, () => this.shoutRandom());
     }
+  }
+
+  /** The Palace gates come down: a drawn breach, and the way to the Palace steps is open. */
+  private async gateBreach() {
+    const sc = this.sc;
+    this.phase = "cutscene";
+    this.busy = true;
+    const close = Juice.letterbox(sc, 50, 300, D_HUD + 2);
+    Juice.duckMusic(2600, 600, 0.15);
+    await this.wait(250);
+    await Juice.impactFrames(sc, null, 60);
+    Juice.subDrop(1, 1.8);
+    await Juice.still(sc, "c6a_still_gates", 1900, { depth: D_HUD + 8, push: 0.14, shakeK: 0.02 });
+    Juice.slamText(sc, "THE PALACE GATES ARE DOWN", "#facc15", 44, 230, 1000, D_HUD + 4);
+    synth.play("cheer");
+    await this.wait(900);
+    close(400);
+    this.phase = "march";
+    this.busy = false;
   }
 
   // ------------------------------------------------------------------ people

@@ -8665,6 +8665,27 @@
   },
   "tva_prop_kimchi": {
    "file": "tv/action/prop_kimchi.png"
+  },
+  "c6a_still_march": {
+   "file": "c6a/c6a_still_march.png"
+  },
+  "c6a_still_chute": {
+   "file": "c6a/c6a_still_chute.png"
+  },
+  "c6a_still_flamer": {
+   "file": "c6a/c6a_still_flamer.png"
+  },
+  "c6a_still_gates": {
+   "file": "c6a/c6a_still_gates.png"
+  },
+  "c6a_still_nuke": {
+   "file": "c6a/c6a_still_nuke.png"
+  },
+  "c6a_still_escape": {
+   "file": "c6a/c6a_still_escape.png"
+  },
+  "c6a_cut_klerble": {
+   "file": "c6a/c6a_cut_klerble.png"
   }
  },
  "sheets": {
@@ -11136,6 +11157,31 @@
    "file": "tv/action/robo_player.png",
    "frameWidth": 96,
    "frameHeight": 96
+  },
+  "c6a_still_march_anim": {
+   "file": "c6a/c6a_still_march_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c6a_still_chute_anim": {
+   "file": "c6a/c6a_still_chute_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c6a_still_flamer_anim": {
+   "file": "c6a/c6a_still_flamer_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c6a_still_gates_anim": {
+   "file": "c6a/c6a_still_gates_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c6a_still_escape_anim": {
+   "file": "c6a/c6a_still_escape_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
   }
  },
  "vfx": {

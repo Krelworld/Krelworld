@@ -115,6 +115,9 @@ export const MUSIC_FILES: Record<string, string> = {
   // the end of Chapter 6: the Krunch Protocol's launch and the bombing of Krelford, and the nuke's aftermath (ElevenLabs Music)
   c6e_krunch: "audio/c6e_krunch.mp3",
   c6e_aftermath: "audio/c6e_aftermath.mp3",
+  // Chapter 6 action stingers: the raid's war-drum title hit, and the nuke arming at the Palace (ElevenLabs Music)
+  c6a_raid_title: "audio/c6a_raid_title.mp3",
+  c6a_nuke_arm: "audio/c6a_nuke_arm.mp3",
   // Krelford in mourning after the Krel Tower falls (ElevenLabs Music)
   town_mourning: "audio/town_mourning.mp3",
   ending: "audio/ending.mp3",
@@ -155,7 +158,7 @@ export const MUSIC_FILES: Record<string, string> = {
 const MUSIC_START: Record<string, number> = { title: 3.5 };
 
 /** Songs that should play once rather than loop. */
-const ONE_SHOT = new Set(["c6e_aftermath", "dungeon_rise", "crystal", "viral", "crobley", "majek_lampe", "anthem", "bbp", "twitcher", "crocodile", ...Array.from({ length: 13 }, (_, i) => `ggg${i + 1}`)]);
+const ONE_SHOT = new Set(["c6e_aftermath", "c6a_raid_title", "c6a_nuke_arm", "dungeon_rise", "crystal", "viral", "crobley", "majek_lampe", "anthem", "bbp", "twitcher", "crocodile", ...Array.from({ length: 13 }, (_, i) => `ggg${i + 1}`)]);
 
 type Wave = OscillatorType;
 

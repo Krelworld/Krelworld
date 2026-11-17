@@ -33,6 +33,13 @@ export const AUDIO_FILES: Record<string, string> = {
   drongus_cackle_3: "audio/sfx/drongus_cackle_3.mp3",
   drongus_cackle_4: "audio/sfx/drongus_cackle_4.mp3",
   drongus_cackle_5: "audio/sfx/drongus_cackle_5.mp3",
+  /** KrelTV, DR. PUSS (tv/DrPuss.ts): tentacle slap, door creak, door slam and lock, exam table rattle, comic splat, suction pop. */
+  drp_slap: "audio/sfx/drp_slap.mp3",
+  drp_creak: "audio/sfx/drp_creak.mp3",
+  drp_lock: "audio/sfx/drp_lock.mp3",
+  drp_rattle: "audio/sfx/drp_rattle.mp3",
+  drp_splat: "audio/sfx/drp_splat.mp3",
+  drp_suction: "audio/sfx/drp_suction.mp3",
 };
 
 /** Where each separate shout sits in those files: [start, length] in seconds. */
@@ -99,6 +106,8 @@ export const MUSIC_FILES: Record<string, string> = {
   gg_theme: "audio/gg_theme.mp3",
   mot_theme: "audio/mot_theme.mp3",
   mot_rnb: "audio/mot_rnb.mp3",
+  // DR. PUSS (tv/DrPuss.ts): the murky sitcom theme sting
+  drp_theme: "audio/drp_theme.mp3",
   boss: "audio/boss1.mp3",
   boss_salmon: "audio/boss_salmon.mp3",
   boss_krandall: "audio/cranky_crandall_boss.mp3",

@@ -8971,6 +8971,15 @@
   },
   "ddk_unicorn_burst": {
    "file": "props/ddk_unicorn_burst.png"
+  },
+  "tv_drp_office": {
+   "file": "backdrops/tv_drp_office.png"
+  },
+  "tv_drp_desk": {
+   "file": "tv/drp_desk.png"
+  },
+  "tv_drp_table": {
+   "file": "tv/drp_table.png"
   }
  },
  "sheets": {
@@ -11802,6 +11811,16 @@
    "file": "props/p_treadmill_anim.png",
    "frameWidth": 82,
    "frameHeight": 67
+  },
+  "tvdrp_octo": {
+   "file": "tv/drp_octo.png",
+   "frameWidth": 160,
+   "frameHeight": 160
+  },
+  "tvdrp_woman": {
+   "file": "tv/drp_woman.png",
+   "frameWidth": 96,
+   "frameHeight": 160
   }
  },
  "vfx": {

@@ -12,6 +12,9 @@ const PRESS = (main?: string): SceneDef => ({ match: /PRESS ROOM/, kind: "presse
 const HIGH_STREET: SceneDef = { match: /HIGH STREET/, kind: "vox", set: "tv_highstreet" };
 const STADIUM: SceneDef = { match: /STADIUM/, kind: "vox", set: "tv_k1_stadium" };
 
+/** Noam Chomsky's close-up (tvface_CHW_CHOMSKY, drawn for Chomworld), head and shoulders, for the OTS box. */
+const CHOMSKY = (frame: number) => ({ key: "tvface_CHW_CHOMSKY", frame, crop: [22, 2, 84, 70] as [number, number, number, number] });
+
 const DESK_ONLY = (ticker: string[]): NewsCfg => ({ brand: "gbk", ticker, scenes: [STUDIO], ots: [] });
 
 export const KREWS1_NEWS: Record<string, NewsCfg> = {
@@ -119,26 +122,26 @@ export const KREWS1_NEWS: Record<string, NewsCfg> = {
     brand: "gbk",
     ticker: ["Professor Noam Chomsky dies on shark-watching trip", "Hospice staff 'lost their grip'"],
     scenes: [STUDIO, HIGH_STREET],
-    ots: [],
+    ots: [{ match: /Chomsky/i, pic: CHOMSKY(0), caption: "Prof. Noam Chomsky" }],
   },
   krews_chomsky_brain: {
     brand: "gbk",
     ticker: ["Chomsky's brain stolen", "National lockdown imposed", "Chomsky 'may have had three brains'"],
     scenes: [STUDIO, { ...HIGH_STREET, look: "silhouette", anchors: { OFFICIAL: "VOTER 1" } }],
-    ots: [],
+    ots: [{ match: /brain/i, pic: CHOMSKY(2), caption: "Chomsky's brain: missing" }],
     straps: { OFFICIAL: ["Government source", "Identity withheld"] },
   },
   krews_chomsky_triad: {
     brand: "gbk",
     ticker: ["Chomsky plans 'polyamorous triad' in the afterlife", "'Intelligent humans have evolved past monogamy'", "Interview paused several times for belt reasons"],
     scenes: [STUDIO, HIGH_STREET],
-    ots: [],
+    ots: [{ match: /Chomsky/i, pic: CHOMSKY(6), caption: "Noam Chomsky" }],
   },
   krews_chomsky_website: {
     brand: "gbk",
     ticker: ["$500 billion Chomsky brain map yields a single phrase", "'web site... new web site.'", "Our website is also new"],
     scenes: [STUDIO, { match: /ARCHIVE/, kind: "vox", set: "tv_k1_brainlab" }],
-    ots: [],
+    ots: [{ match: /Chomsky|web ?site/i, pic: CHOMSKY(1), caption: "'web site... new web site.'" }],
   },
   krews_carter: {
     brand: "gbk",

@@ -8614,6 +8614,36 @@
   },
   "sop_cartoon": {
    "file": "tv/sop_cartoon.png"
+  },
+  "tv_chw_park": {
+   "file": "backdrops/tv_chw_park.png"
+  },
+  "tv_chw_ride": {
+   "file": "backdrops/tv_chw_ride.png"
+  },
+  "tv_chw_adult": {
+   "file": "backdrops/tv_chw_adult.png"
+  },
+  "tv_chw_crowd": {
+   "file": "backdrops/tv_chw_crowd.png"
+  },
+  "tv_chw_shredder": {
+   "file": "backdrops/tv_chw_shredder.png"
+  },
+  "tv_chw_mansion": {
+   "file": "backdrops/tv_chw_mansion.png"
+  },
+  "tv_chw_booth": {
+   "file": "backdrops/tv_chw_booth.png"
+  },
+  "tv_chw_shop": {
+   "file": "backdrops/tv_chw_shop.png"
+  },
+  "tv_chw_body": {
+   "file": "tv/chw_body.png"
+  },
+  "tv_chw_robot": {
+   "file": "tv/chw_robot.png"
   }
  },
  "sheets": {
@@ -10958,6 +10988,21 @@
   },
   "tvface_SOP_CARMELA": {
    "file": "tv/face_SOP_CARMELA.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tv_chw_sack": {
+   "file": "tv/chw_sack.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "tv_chw_dance": {
+   "file": "tv/chw_dance.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_CHW_CHOMSKY": {
+   "file": "tv/face_CHW_CHOMSKY.png",
    "frameWidth": 128,
    "frameHeight": 128
   }

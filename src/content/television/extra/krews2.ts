@@ -2,7 +2,8 @@ import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 
 // "News articles 3": supplied articles and screenplays, kept as written (OCR'd from screenshots,
 // so the page order was rebuilt). Changes:
-// - Chomworld: the real-life assistant character is renamed Marge Plunkett.
+// - Chomworld: the real-life assistant character is renamed Marge Plunkett. [INSERT ...] cues cut to the
+//   attractions as she describes them (cutaways.ts); the dialogue is unchanged.
 // - The Ben Burgis scripts feature Professor Ben Burgis.
 // - Microsoft's "Crash Mode": the real Washington collision is now a fictional one over Krelford.
 // - FIFA: Audience: the Hillsborough level is cut.
@@ -316,6 +317,7 @@ MARGE PLUNKETT (chuckling): Chomworld! A Noam Chomsky-themed amusement park!
 EXECUTIVE 2 (leaning forward): Chomsky? The linguist and political critic?
 MARGE PLUNKETT (nodding enthusiastically): Exactly! Who wouldn't want to take their family on an exhilarating, educational journey into the mind of Noam Chomsky? And, of course, get a little richer along the way. (laughs nervously)
 EXECUTIVE 3 (skeptical): You're talking about a theme park... centered around Chomsky? What exactly are you envisioning here?
+[INSERT chw_lookalikes]
 MARGE PLUNKETT: Oh, lots of big ideas! Picture this: the park is filled with Chomsky lookalikes - people in costumes, dancing, singing... and they should be singing Disney songs!
 EXECUTIVE 1 (frowning): Disney songs? Isn't that... problematic?
 MARGE PLUNKETT (scoffing): What are they going to do, sue us? Hahaha. It has to be Disney! Nothing else screams "fun" like "A Whole New World" but with a Chomsky twist! (giggles nervously again)
@@ -324,18 +326,24 @@ MARGE PLUNKETT (grinning): Well, I probably have access to all of his money, whi
 MARGE PLUNKETT: I've also hired this really... um... competent lawyer who specializes in "groan analysis" to analyze Chomsky's guttural moans - you know, from the stroke - so we could, uh, legally secure his rights. (shifty eyes)
 (The executives exchange a look of growing concern.)
 EXECUTIVE 3 (slowly): Groan analysis? That's... new.
+[INSERT chw_chomlate]
 MARGE PLUNKETT (ignoring them): And wait until you hear about the park's centerpiece: Chomlate! Chomsky-themed chocolate! Every bar could have little quotes or random linguistics terms embedded in them. Kids will love it!
 EXECUTIVE 1 (skeptical): How exactly does chocolate relate to Chomsky's work?
 MARGE PLUNKETT (shrugging): Eh, who cares? It's chocolate!
+[INSERT chw_ride]
 MARGE PLUNKETT: And, get this, we'll have an exhilarating, 4D virtual ride based on "Manufacturing Consent." Audience members sit in aggressively vibrating chairs while the first four chapters are read by a text-to-speech voice over loudspeakers. And water will be sprayed at them to make it more... immersive!
 EXECUTIVE 2 (wincing): So, just to clarify, you're suggesting that people pay to sit in vibrating chairs, get blasted with water, and listen to a robotic voice drone on about media manipulation?
+[INSERT chw_adults]
 MARGE PLUNKETT (excited): Exactly! (beat) And... uh... oh! There's going to be a sex-themed area too, where we can have, like, pornography playing... or something?
 (The executives collectively grimace.)
+[INSERT chw_giant]
 MARGE PLUNKETT (waving dismissively): Anyway, that's not all. The high-concept centerpiece to the park will be a gigantic, 60-foot animatronic Chomsky. It'll promise fame and riches to anyone who donates lots of money.
+[INSERT chw_shredder]
 MARGE PLUNKETT: And when they do, the waiver they sign will be shredded by naked strippers through a system of pulleys, while the animatronic Chomsky laughs maniacally, saying, "Ha ha ha! This is literally what capitalism does!"
 (The executives lean forward, now more curious than appalled.)
 EXECUTIVE 3 (interested): And where exactly would the donated money go?
 (MARGE pulls out several large empty sacks with dollar signs on them.)
+[INSERT chw_mansion]
 MARGE PLUNKETT: Maybe to me... or whatever. I'll make sure it gets spent wisely. (glances out the window longingly at a large seafront mansion)
 EXECUTIVE 1 (concerned): You... don't seem to have a clear plan. What's your next step if we were to proceed?
 MARGE PLUNKETT (suddenly clutching her stomach): Ughh... my IBS is so bad today... hang on, I just need to use the toilet quickly.
@@ -343,6 +351,7 @@ MARGE PLUNKETT (suddenly clutching her stomach): Ughh... my IBS is so bad today.
 (Marge rushes out of the room. LOUD GRUNTING AND FARTING NOISES are heard from the bathroom. The executives stare at each other, speechless.)
 [SFX fart]
 EXECUTIVE 2 (whispering): Did she just suggest using a real, intubated Chomsky in an exhibition?
+[INSERT chw_exhibit 2]
 MARGE PLUNKETT (off-screen, shouting from the bathroom): Yeah, yeah! The real Chomsky - intubated, recovering from a stroke! We could have feeding sessions where guests can pay a premium to feed him bugs or dirt!
 [SFX flush]
 MARGE PLUNKETT (off-screen): And they can pet him, stroke him, or even poke him with a small but firm stick! We could charge a fortune for that!

@@ -5,6 +5,7 @@ import { hasVfx, vfx } from "../gfx/Vfx";
 import { G } from "../G";
 import { ELEGANT, ELEGANT_NAMES, TAME_NAMES, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
 import { krelCinema } from "./KrelCinema";
+import { onSkip } from "../gfx/Overlay";
 import { Actor, Victim, bit, prop, MEATY, type Bit } from "./KrelArt";
 
 /**
@@ -389,10 +390,14 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
   // ---- slow motion (scene clock, tweens and drawn effects together), with letterbox bars while it's slowed
   const base = { t: sc.time.timeScale, tw: sc.tweens.timeScale, an: sc.anims.globalTimeScale };
   let bars: Phaser.GameObjects.Rectangle[] | null = null;
+  /** the current slow-motion factor, and the fast-forward under a skip */
+  let slowK = 1;
+  let ff = 1;
   const slow = (k: number) => {
-    sc.time.timeScale = base.t * k;
-    sc.tweens.timeScale = base.tw * k;
-    sc.anims.globalTimeScale = base.an * k;
+    slowK = k;
+    sc.time.timeScale = base.t * k * ff;
+    sc.tweens.timeScale = base.tw * k * ff;
+    sc.anims.globalTimeScale = base.an * k * ff;
     if (k < 1 && !bars) {
       const kz = 1 / cam.zoom;
       bars = [-1, 1].map((s) => {
@@ -405,6 +410,41 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       bars.forEach((b, i) => sc.tweens.add({ targets: b, y: 270 + (i ? 1 : -1) * 340 * kz, duration: 250, onComplete: () => b.destroy() }));
       bars = null;
     }
+  };
+
+  // ---- the cut: at the strike, a smash cut to the drawn close-up of the blow (KrelCinema.ts) and back again. The
+  // stage is held still under it (the overlay pauses this scene: clocks, tweens, sprites), so when it comes back the
+  // sprites carry on from the moment of impact. Each finisher calls strike() on its blow; one that doesn't gets the
+  // close-up at the end, as before.
+  const title = gore ? NAMES[which] : (TAME_NAMES as Record<string, string>)[which] ?? "K.O.!";
+  const victimId = tg.id ?? tg.key.replace(/^(bossanim_|boss_|p_)/, "");
+  let cut = false;
+  let skipping = false;
+  let cover: Phaser.GameObjects.Rectangle | null = null;
+  let sfxWas: number | null = null;
+  /** Skip: the whole sequence, at once. The close-up ends; the rest plays out at speed, blacked out and silent. */
+  const skipAll = () => {
+    if (skipping) return;
+    skipping = true;
+    const kz = 1 / cam.zoom;
+    cover = keep(sc.add.rectangle(480, 270, 1400 * kz, 900 * kz, 0x000000, 1).setScrollFactor(0).setDepth(D + 70));
+    if (synth.sfxGain) {
+      sfxWas = synth.sfxGain.gain.value;
+      synth.sfxGain.gain.value = 0;
+    }
+    ff = 14;
+    slow(slowK);
+  };
+  const offStageSkip = onSkip(sc, 450, skipAll);
+  const strike = async () => {
+    if (cut) return;
+    cut = true;
+    if (skipping) return;
+    await krelCinema(sc, { which, title, victim: tg.name, id: victimId, tex: { key: tg.key, frame: tg.frame }, onSkip: skipAll });
+    if (skipping || !sc.sys.isActive()) return;
+    // back on the stage: a white impact frame on the cut (dim and slow with calmFlash)
+    if (calm) cam.flash(420, 80, 80, 80);
+    else cam.flash(110, 255, 255, 255);
   };
 
   // ---- the finishers
@@ -429,7 +469,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     } catch {
       /* keep the whole frame */
     }
-    const ctx: KrelCtx = { sc, cam, tg, body, me, act, vic, organs, ps: pl.scale, W, H, fw, fh, floor, fig, D, gore, calm, wait, tw, keep, fx: (k, x, y, s, e) => fx(k, x, y, s, e), blood, fountain, guts, bones, flash, slow };
+    const ctx: KrelCtx = { sc, cam, tg, body, me, act, vic, organs, ps: pl.scale, W, H, fw, fh, floor, fig, D, gore, calm, wait, tw, keep, fx: (k, x, y, s, e) => fx(k, x, y, s, e), blood, fountain, guts, bones, flash, slow, strike };
     try {
       await runElegant(ctx, which as Elegant);
     } finally {
@@ -441,6 +481,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       // his hand goes in at the neck… and comes out with the lot
       void act.play("rip", { frames: [0, 4], hold: true });
       await tw({ targets: me, x: tg.x - W * 0.45, duration: 280 });
+      await strike();
       flash();
       synth.play("punch_big");
       void act.play("rip", { frames: [5, 8], hold: true, fps: 10 });
@@ -465,6 +506,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       body.setTint(0xff9999);
       sc.tweens.add({ targets: body, x: { from: tg.x - 3, to: tg.x + 3 }, yoyo: true, repeat: 20, duration: 40 });
       await tw({ targets: body, scaleX: tg.scale * 1.7, scaleY: tg.scale * 1.5, duration: 1200, ease: "Quad.in" });
+      await strike();
       flash();
       synth.play("explode");
       fx("vfx_bigboom", tg.x, tg.y + H * 0.15, 1.5 * Math.max(1, W / 90), { depth: D + 7 });
@@ -490,6 +532,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       await tw({ targets: me, x: tg.x - W * 0.42 - me.displayWidth * 0.2, duration: 220 });
       act.idle();
       await act.play("katana", { frames: [0, 4], hold: true });
+      await strike();
       flash();
       synth.play("swing");
       void act.play("katana", { frames: [5, 8], hold: true, fps: 18 });
@@ -512,6 +555,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     case "headboot": {
       // a run-up and a punt: the kick is his own (krelact kick row)
       await act.play("kick", { frames: [0, 3], hold: true });
+      await strike();
       flash();
       synth.play("punch_big");
       void act.play("kick", { frames: [4, 8] });
@@ -537,6 +581,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       // in close, blade up, one quick draw across
       await tw({ targets: me, x: tg.x - W * 0.6, duration: 200 });
       await act.play("katana", { frames: [0, 4], hold: true, fps: 16 });
+      await strike();
       synth.play("swing");
       await act.play("katana", { frames: [5, 8], hold: true, fps: 20 });
       synth.play("crit");
@@ -557,6 +602,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       await act.play("stomp", { frames: [0, 2], hold: true });
       void act.play("stomp", { frames: [3, 5], hold: true, fps: 8 });
       await tw({ targets: me, x: tg.x, y: tg.y - H - 200, duration: 450, ease: "Quad.out" });
+      await strike();
       void act.play("stomp", { frames: [6, 8], hold: true, fps: 14 });
       await tw({ targets: me, y: tg.y - H * 0.35, duration: 220, ease: "Quad.in" });
       flash();
@@ -646,6 +692,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       await wait(260 - i * 12);
     }
     // ...and POP
+    await strike();
     synth.voice("oh", 0.9, 2.6);
     await wait(150);
     flash();
@@ -707,6 +754,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     beep.remove();
     p.destroy();
     // BOOM, belly first
+    await strike();
     flash();
     synth.play("explode");
     fx("vfx_bigboom", tg.x, tg.y + H * 0.15, 1.5 * Math.max(1, W / 90), { depth: D + 7 });
@@ -754,9 +802,17 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     await wait(1400);
   }
 
-  // ---- the close-up: a hard cut to the drawn anime shot of it, then back here for the banner
   slow(1);
-  await krelCinema(sc, { which, title: gore ? NAMES[which] : (TAME_NAMES as Record<string, string>)[which] ?? "K.O.!", victim: tg.name });
+  // (a finisher with no strike of its own: the close-up now, after it, as it always was)
+  await strike();
+  offStageSkip();
+  if (skipping) {
+    // the skip's over: back to normal speed and sound, and up comes the banner
+    ff = 1;
+    slow(1);
+    if (sfxWas !== null && synth.sfxGain) synth.sfxGain.gain.value = sfxWas;
+    (cover as Phaser.GameObjects.Rectangle | null)?.destroy();
+  }
   // ---- KRELTALITY (and you, celebrating: his own victory row)
   if (me.active && me.visible && me.scrollFactorX === 1) act.cheer();
   const kz = 1 / cam.zoom;
@@ -781,7 +837,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
   }
   const sub = keep(sc.add.text(480, 270 - 65 * kz, `${tg.name} HAS BEEN KRELTALISED`, { fontFamily: FONT, fontSize: "16px", color: "#fca5a5", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setScrollFactor(0).setDepth(D + 60).setScale(kz));
   void sub;
-  await wait(2600);
+  await wait(skipping ? 1200 : 2600);
   // and back to the room
   vic.destroy();
   for (const o of junk) {

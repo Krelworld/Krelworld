@@ -80,6 +80,11 @@ export interface KrelCtx {
   flash(): void;
   /** slow motion (1 = normal); letterbox bars while it's slowed */
   slow(k: number): void;
+  /**
+   * The strike: call it (and await it) on the blow. It smash-cuts to the drawn close-up of the kill and back, with the
+   * stage held still meanwhile, so carry on from the moment of impact. Only the first call cuts.
+   */
+  strike(): Promise<void>;
 }
 
 /** The heart monitor's screen in the drawn ward (kp_ward), as fractions of the picture: centre, size. */
@@ -300,6 +305,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       sc.tweens.add({ targets: timer, alpha: 0.2, yoyo: true, repeat: -1, duration: 60 });
       // the beat: nothing. Then everything.
       await c.wait(500);
+      await c.strike();
       c.slow(0.3);
       synth.play("telegraph");
       sc.tweens.add({ targets: armL, angle: -82, duration: 160, ease: "Back.out" });
@@ -467,6 +473,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         const dir = to < 0 ? 1 : -1;
         const dur = 1000;
         if (last) {
+          await c.strike();
           c.slow(0.3);
           synth.play("telegraph");
         }
@@ -631,6 +638,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       // the crack down the middle
       const crack = sc.add.graphics();
       r.add(crack);
+      await c.strike();
       const cp = { t: 0 };
       synth.play("bonecrack");
       await c.tw({ targets: cp, t: 1, duration: 500, onUpdate: () => {
@@ -831,6 +839,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       p = say("…uh oh.", "#fecaca");
       await c.wait(700);
       p.destroy();
+      await c.strike();
       c.slow(0.3);
       await swell(kx * 1.12, ky * 1.12, { duration: 140, ease: "Quad.in" });
       hoseEv.remove();
@@ -1002,6 +1011,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         if (held) void act.play("slam", { frames: [frenzy ? 4 : 1, 6], hold: true, fps: frenzy ? 30 : 16 });
         await c.tw({ targets: block, y: hy - lift, x: hx + (Math.random() - 0.5) * 6, angle: (Math.random() - 0.5) * 20, duration: frenzy ? 120 : 300, ease: "Quad.out" });
         if (n === 0) {
+          await c.strike();
           c.slow(0.35);
           await c.wait(250);
         }
@@ -1133,6 +1143,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         sc.tweens.killTweensOf(f);
         dart(f, true);
       }
+      await c.strike();
       // the feeding: bites, bubbles, thrashing, the water going red and then thick
       const bubbles = sc.time.addEvent({ delay: 60, loop: true, callback: () => {
         const bx = tg.x + (Math.random() - 0.5) * tw * 0.8;
@@ -1526,6 +1537,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       await c.wait(1500);
       oh.destroy();
 
+      await c.strike();
       // ---- 3. six months later: the hospital bed
       bk = await blackCard("Six months later...");
       office.destroy();
@@ -1870,6 +1882,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       void act.play("punch", { frames: [0, 3], hold: true, fps: 10 });
       await c.tw({ targets: c.me, x: c.me.x - 40, duration: 380, ease: "Quad.out" });
       await c.wait(250);
+      await c.strike();
       c.slow(0.25);
       void act.play("punch", { frames: [4, 6], hold: true, fps: 24 });
       await c.tw({ targets: c.me, x: tg.x - W * 0.5 - 10 - (act.sheet ? c.me.displayWidth * 0.2 : 0), duration: 140, ease: "Quad.in" });
@@ -1964,6 +1977,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       synth.play("ding");
       await c.tw({ targets: glint, scale: glk, angle: 90, yoyo: true, duration: 200 });
       await c.wait(400);
+      await c.strike();
       // SHUNK: a drawn steel spit (PixelLab) shoots up out of the floor; only the part above the floor shows
       const sk = keep(sc.add.graphics().setDepth(D + 1.5));
       sk.setPosition(tg.x, floor + 4);
@@ -2111,6 +2125,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         g.destroy();
         led.destroy();
       };
+      await c.strike();
       for (const v of cuts) await beam(lx + 7, top + H * v, rx - 7, top + H * v);
       await beam(tg.x, barY + 6, tg.x, floor);
       await c.wait(500);
@@ -2254,6 +2269,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         // his punch row: fist back with the step back, the rest of it with the lunge
         void act.play("punch", { frames: [0, 4], hold: true, fps: 22 });
         await c.tw({ targets: c.me, x: homeX - 18, duration: 180, ease: "Quad.out" });
+        if (i === 0) await c.strike();
         void act.play("punch", { frames: [5, 8], fps: 20 });
         await c.tw({ targets: c.me, x: homeX + 22, duration: 80, ease: "Quad.in" });
         synth.play("punch_big");
@@ -2374,6 +2390,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       await scaleTo(c.me, [c.ps, c.ps], [c.ps, c.ps * 0.85], { duration: 400 });
       synth.play("telegraph");
       await c.wait(600);
+      await c.strike();
       // the draw-cut: you're past them before anyone sees it
       const endX = tg.x + W * 0.5 + 40;
       synth.play("swing3");

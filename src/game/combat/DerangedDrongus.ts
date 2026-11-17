@@ -304,6 +304,8 @@ export class DerangedDrongusBoss extends Boss {
       const sm = SUMMONS[this.summonIdx++ % SUMMONS.length];
       this.say(sm.ask, "#ffd23f");
       synth.play("tannoy");
+      // he cackles while the AI does his work for him (armour still on: phases one and two)
+      if (this.phase < 2) this.scene.time.delayedCall(750, () => !this.dead && this.active && this.playSheetOnce("fe_drongus2_laugh", 10));
       const live = w.enemies.filter((e) => !e.dead && !e.isBoss).length;
       this.scene.time.delayedCall(700, () => {
         if (this.dead || !this.active) return;

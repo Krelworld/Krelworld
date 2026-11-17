@@ -326,6 +326,10 @@ export class DrongusPhaseOneBoss extends Boss {
       this.vulnerableUntil = now + (fast ? 1700 : 2300);
       this.halt();
       w.floatText(this.x, this.y - 90, "RELOADING… (HIT HIM!)", "#fde047", 18);
+      // ...and he stops to laugh at you while he does it (that's your window)
+      if (this.playSheetOnce("fe_drongus1_laugh", 9)) {
+        w.floatText(this.x, this.y - 112, Phaser.Utils.Array.GetRandom(["HA HA HA!", "PATHETIC!", "HEH HEH HEH"]) as string, "#ff6b6b", 15);
+      }
       for (let i = 0; i < 5; i++) this.scene.time.delayedCall(i * 380, () => !this.dead && this.gun && hasVfx(this.scene, "vfx_smoke") && vfx(this.scene, "vfx_smoke", this.muzzle()[0], this.muzzle()[1], { scale: 0.6, depth: 952, tint: 0x9cffb0 }));
       this.nextPattern = now + (fast ? 1700 : 2300) + 300;
     }

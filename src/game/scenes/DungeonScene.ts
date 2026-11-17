@@ -338,6 +338,20 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const sanmikverse = this.dungeon.id === "arena_sanmik" || this.dungeon.id === "sanmik_hangout";
     if (sanmikverse && G.s.player === "MIKEY") G.s.flags[SANMIK_FLAG] = true;
     this.player = new Player(this, startX, startY);
+    // back from a checkpoint (a mini-boss arena, or the finale's): you come down in a pillar of light
+    if (Number.isFinite(cpx) || (this.dungeon.id === "krelford_finale" && G.s.flags.finale_cp)) {
+      this.time.delayedCall(250, () => {
+        if (!this.player?.spr?.active) return;
+        const ps = this.player.spr;
+        if (vfx(this, "fe_vfx_respawn", ps.x, ps.y + 20, { scale: 1.1, depth: ps.depth + 2, add: true })) {
+          ps.setAlpha(0);
+          this.tweens.add({ targets: ps, alpha: 1, delay: 180, duration: 200 });
+          Juice.squash(this, ps, 0.35, 420);
+          synth.play("heal");
+          this.floatText(ps.x, ps.y - 60, "CHECKPOINT", "#ffe066", 14);
+        }
+      });
+    }
     if (Number.isFinite(cpx)) this.sideLevel?.skipTo(cpx, cpy);
     if (this.side) {
       (this.player.spr.body as Phaser.Physics.Arcade.Body).setGravityY(1500);
@@ -2198,6 +2212,12 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.player?.cheer(this.now(), 2600);
     this.busy = true;
     if (EPIC_BOSSES[b.bossId]) await this.epicKillingBlow(b);
+    // the mini-bosses' money shots: Krex going up, Elon's rocket spiralling out
+    const deathStill = ({ krex: "fe_still_krex_boom", elon: "fe_still_elon_crash" } as Record<string, string>)[b.bossId];
+    if (deathStill && this.textures.exists(deathStill)) {
+      synth.play("explode_2");
+      await Juice.still(this, deathStill, 1300, { push: 0.12, shakeK: 0.018 });
+    }
     {
       const hd = (b.texture?.customData as { hd?: number } | undefined)?.hd ?? 1;
       this.krelTarget = b.texture ? { key: b.texture.key, frame: b.frame.name, x: b.x, y: b.y, scale: b.scaleX / hd, flip: b.flipX, name: BOSS_TEXT[b.bossId]?.name ?? "THE BOSS", id: b.bossId } : null;
@@ -2666,6 +2686,18 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     e.setDepth(y);
     this.enemies.push(e);
     this.enemyGroup.add(e);
+    // Da Drongus Dungeon and the finale: everything comes out of a rift (held still and harmless till it's through)
+    if ((this.dungeon.id === "citadel" || this.dungeon.id === "krelford_finale") && !this.side && type !== "weapon_pod" && vfx(this, "fe_vfx_spawn", e.x, e.y + e.displayHeight * 0.35, { scale: Math.max(1, e.displayWidth / 60), depth: e.y - 1 })) {
+      const now = this.now();
+      e.setAlpha(0);
+      e.stunUntil = Math.max(e.stunUntil, now + 650);
+      e.contactCd = Math.max(e.contactCd, now + 750);
+      this.time.delayedCall(560, () => {
+        if (!e.active || e.dead) return;
+        this.tweens.add({ targets: e, alpha: 1, duration: 140 });
+        Juice.squash(this, e, 0.3, 300);
+      });
+    }
     if (this.side && ENEMIES[type].behavior === "turret") {
       // perched: no gravity, stays put
       const tb = e.body as Phaser.Physics.Arcade.Body;
@@ -2773,7 +2805,10 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   private killEnemy(e: Enemy) {
     if (e.dead) return;
     const s = G.s;
-    e.kill();
+    // its own drawn death (melting, flopping, exploding), unless the gore's on (then it gets dismembered as usual)
+    const drawnDeath = !e.isBoss && !extraViolence(s) && e.hasDeathAnim;
+    if (drawnDeath) e.dieAnimated();
+    else e.kill();
     this.enemies = this.enemies.filter((x) => x !== e);
     bump(s, "kills_total");
     if (e.def.counter) bump(s, e.def.counter);
@@ -2785,7 +2820,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       this.hitStop(e.def.size >= 16 ? 45 : 25);
       this.shake(80, e.def.size >= 16 ? 0.004 : 0.002);
     }
-    if (!e.isBoss && !vfx(this, "vfx_pixeldeath", e.x, e.y, { scale: Math.max(0.6, e.def.size / 18), depth: 1400 })) {
+    if (!e.isBoss && !drawnDeath && !vfx(this, "vfx_pixeldeath", e.x, e.y, { scale: Math.max(0.6, e.def.size / 18), depth: 1400 })) {
       const ring = this.add.circle(e.x, e.y, 6, 0xffffff, 0).setStrokeStyle(3, e.def.accent, 0.9).setDepth(1400);
       this.tweens.add({ targets: ring, radius: 30, alpha: 0, duration: 200, onComplete: () => ring.destroy() });
     }
@@ -2806,7 +2841,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       // the Kreddle BLOOD BATH prize: now and then it hits the lens
       if (kd(s, "kd_violence") > 0 && Math.random() < 0.18) this.screenSplat(2);
     }
-    else if (e.isBoss || !hasVfx(this, "vfx_pixeldeath")) this.burst(e.x, e.y, e.def.color, e.isBoss ? 30 : 8);
+    else if (!drawnDeath && (e.isBoss || !hasVfx(this, "vfx_pixeldeath"))) this.burst(e.x, e.y, e.def.color, e.isBoss ? 30 : 8);
     // a kill has its own little pop (not every one in a swarm)
     if (!e.isBoss && this.now() - this.lastKillPop > 90) {
       this.lastKillPop = this.now();
@@ -2866,6 +2901,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (opts.unblockable) p.iframesUntil = 0;
     const took = p.takeHit(amount, now);
     if (!took) return;
+    // in the last dungeon and the finale: you visibly flinch (a squash, a red flash, a jolt away from the hit)
+    if (this.dungeon.id === "citadel" || this.dungeon.id === "krelford_finale") this.flinch(from);
     this.floatText(p.x, p.y - 30, opts.label ?? `-${Math.round(amount)}`, "#ff4444", 15);
     if (now - this.lastHurtSfx > 120) {
       synth.play("hurt");
@@ -3025,6 +3062,20 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   shake(ms: number, intensity: number) {
     if (SHAKE()) this.cameras.main.shake(ms, intensity);
+  }
+
+  private lastFlinch = 0;
+  private flinch(from?: { x: number; y: number }) {
+    const ps = this.player.spr;
+    const now = this.now();
+    if (now - this.lastFlinch < 220) return;
+    this.lastFlinch = now;
+    Juice.squash(this, ps, -0.22, 260);
+    const a = from ? Math.atan2(ps.y - from.y, ps.x - from.x) : 0;
+    const dx = Math.cos(a) * 6;
+    this.tweens.add({ targets: ps, angle: { from: dx > 0 ? 10 : -10, to: 0 }, duration: 240, ease: "Back.out" });
+    const red = this.add.circle(ps.x, ps.y, 22, 0xff2a2a, G.meta?.settings?.calmFlash ? 0.15 : 0.35).setDepth(ps.depth + 1).setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({ targets: red, alpha: 0, scale: 1.6, duration: 220, onComplete: () => red.destroy() });
   }
 
   hitStop(ms: number) {

@@ -95,6 +95,29 @@ export class ConceptBoss extends Boss {
     return this.hurtArt && this.scene.textures.exists("fe_dragon_roar_hurt") ? "fe_dragon_roar_hurt" : "fb_dragon_roar";
   }
   private shownTop = "fb_dragon_top";
+  private movingUntil = 0;
+
+  /**
+   * A drawn move (wind-ups: "rear" breathes in, "slam" brings the arms down; "flinch" when it's really hurt), then
+   * back to its loop. In the real phase, the wounded version. Not over a roar.
+   */
+  move(name: "rear" | "slam" | "flinch", fps = 12) {
+    const sc = this.scene;
+    const now = this.world.now();
+    if (!this.art || this.dead || now < this.roaringUntil || now < this.movingUntil) return;
+    const key = this.hurtArt && sc.textures.exists(`fe_concept_${name}_hurt`) ? `fe_concept_${name}_hurt` : `fe_concept_${name}`;
+    if (!sc.textures.exists(key)) return;
+    const ak = `${key}:move`;
+    const n = sc.textures.get(key).frameTotal - 1;
+    if (!sc.anims.exists(ak)) sc.anims.create({ key: ak, frames: sc.anims.generateFrameNumbers(key, { start: 0, end: n - 1 }), frameRate: fps, repeat: 0 });
+    this.movingUntil = now + (n / fps) * 1000 + 100;
+    this.play(ak);
+    this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      if (!this.active || this.dead || this.texture.key !== key) return;
+      this.shownTop = this.topKey;
+      this.play(this.topKey);
+    });
+  }
 
   incoming(amount: number): number {
     const now = this.world.now();
@@ -168,7 +191,7 @@ export class ConceptBoss extends Boss {
     if (this.dead) return;
     // (not Boss.tick: that flips frames 0/1, and this one has its own animation)
     // into the real phase: swap to the wounded sheet (unless it's mid-roar)
-    if (this.art && this.anims.isPlaying && this.topKey !== this.shownTop) {
+    if (this.art && this.anims.isPlaying && this.topKey !== this.shownTop && now >= this.movingUntil) {
       this.shownTop = this.topKey;
       this.play(this.topKey);
     }
@@ -249,7 +272,7 @@ export class ConceptBoss extends Boss {
     if (!synth.shout("concept_roar", 1, 0.9 + Math.random() * 0.15)) synth.play("roar");
     this.world.shake(1300, 0.006);
     const rk = this.roarKey;
-    if (!this.art || !sc.textures.exists(rk)) return;
+    if (!this.art || !sc.textures.exists(rk) || now < this.movingUntil) return;
     this.anims.stop();
     this.setTexture(rk, 0);
     sc.time.delayedCall(110, () => this.active && !this.dead && this.texture.key === rk && this.setFrame(1));
@@ -312,7 +335,8 @@ export class ConceptBoss extends Boss {
       return;
     }
     if (pick === 0) {
-      // ARM SLAM: claws come down where you are (and where you're going)
+      // ARM SLAM: claws come down where you are (and where you're going); its arms go up first
+      this.move("slam", 11);
       const n = Math.round(4 * fury);
       const body = p.spr.body as Phaser.Physics.Arcade.Body;
       for (let i = 0; i < n; i++) {
@@ -343,7 +367,8 @@ export class ConceptBoss extends Boss {
       synth.play("swing");
       this.nextPattern = now + tele + n * 110 + 900;
     } else if (pick === 2) {
-      // BREATH: bursts of bile at you
+      // BREATH: bursts of bile at you (it rears and breathes in first)
+      this.move("rear", 14);
       const bursts = real ? 6 : 4;
       for (let i = 0; i < bursts; i++)
         this.scene.time.delayedCall(i * 230, () => {
@@ -386,6 +411,7 @@ export class ConceptBoss extends Boss {
     const sc = this.scene;
     const charge = 800 * w.telegraphMult;
     const dur = real ? 3600 : 3000;
+    this.move("rear", 10);
     const mx = () => this.x;
     const my = () => this.y + 30;
     this.roar();

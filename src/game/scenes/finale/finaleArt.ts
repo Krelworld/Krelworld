@@ -35,6 +35,12 @@ export const FINALE_SHEETS: Record<string, { file: string; frameWidth: number; f
   /** the real phase: the same sheets, cracked open with gold light (it's finally hurting) */
   fe_dragon_top_hurt: { file: "finale/fe_dragon_top_hurt.png", frameWidth: 256, frameHeight: 256 },
   fe_dragon_roar_hurt: { file: "finale/fe_dragon_roar_hurt.png", frameWidth: 256, frameHeight: 256 },
+  /** its attack wind-ups (it rears and breathes in; its arms come up and slam down), and a flinch when it's hurt */
+  fe_concept_rear: { file: "combat/fe_concept_rear.png", frameWidth: 256, frameHeight: 256 },
+  fe_concept_slam: { file: "combat/fe_concept_slam.png", frameWidth: 256, frameHeight: 256 },
+  fe_concept_rear_hurt: { file: "combat/fe_concept_rear_hurt.png", frameWidth: 256, frameHeight: 256 },
+  fe_concept_slam_hurt: { file: "combat/fe_concept_slam_hurt.png", frameWidth: 256, frameHeight: 256 },
+  fe_concept_flinch_hurt: { file: "combat/fe_concept_flinch_hurt.png", frameWidth: 256, frameHeight: 256 },
 };
 
 /** Queue whatever finale art isn't loaded yet (call from a scene's preload). */

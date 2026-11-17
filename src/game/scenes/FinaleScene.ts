@@ -11,11 +11,14 @@ import { CHARACTERS, LADS } from "../../data/characters";
 import * as FB from "../../content/finaleKrelford";
 import { finalePreload, finaleReady, ssjKey, ssjPortraitKey, ssjSwap, youCutKey, youEyesKey } from "./finale/finaleArt";
 import * as Juice from "../gfx/Juice";
+import { SsjBrawl } from "./finale/SsjBrawl";
 
 /**
  * THE KRELWORLD FINALE, part B: the side-on cutscenes in Krelford.
  *   beat "emerge":    THE CONCEPT OF PAEDOPHILIA rises out of the wreck of Da Drongus Dungeon. Then: the fight.
  *   beat "transform": the group super-saiyan transformation (an overlay on the paused fight; `done` resumes it).
+ *   beat "brawl":     the side-on super saiyan brawl in the sky (an overlay on the paused fight, like "transform";
+ *                     finale/SsjBrawl.ts). `done` hands back to the fight, which goes on to the final heal.
  *   beat "spirit":    Goku's SPIRIT CUM. The dragon and the wizard are destroyed. Then: the Ending.
  * Started with switchTo(scene, "Finale", { beat }) (or launched as an overlay with { beat, overlay: true, done }).
  */
@@ -24,7 +27,7 @@ const W = 960;
 const FLOOR = 350;
 const never = () => new Promise<void>(() => undefined);
 
-type Beat = "emerge" | "transform" | "spirit";
+type Beat = "emerge" | "transform" | "brawl" | "spirit";
 interface Lad {
   id: string;
   spr: Phaser.GameObjects.Sprite;
@@ -80,15 +83,18 @@ export class FinaleScene extends Phaser.Scene {
     if (this.data0.overlay) this.scene.bringToTop();
     this.cameras.main.fadeIn(500);
     this.box = new DialogueBox(this, 1000, 0.1);
-    this.add.text(W - 10, 8, "Esc: skip scene", { fontFamily: FONT, fontSize: "11px", color: "#8a8fa0" }).setOrigin(1, 0).setDepth(1100);
-    this.drawTown();
-    this.flash = this.add.rectangle(480, 270, W, 540, 0xe9e4ff, 0).setDepth(900).setBlendMode(Phaser.BlendModes.ADD);
-    this.rain();
-    synth.weatherSound("storm");
-    this.lightningLoop();
     const b = this.data0.beat;
+    this.add.text(W - 10, 8, b === "brawl" ? "Esc: skip fight" : "Esc: skip scene", { fontFamily: FONT, fontSize: "11px", color: "#8a8fa0" }).setOrigin(1, 0).setDepth(1100).setScrollFactor(0);
+    // (the brawl's up in the sky: it draws its own set)
+    if (b !== "brawl") this.drawTown();
+    this.flash = this.add.rectangle(480, 270, W, 540, 0xe9e4ff, 0).setDepth(900).setBlendMode(Phaser.BlendModes.ADD);
+    if (b !== "brawl") this.rain();
+    synth.weatherSound("storm");
+    if (b !== "brawl") this.lightningLoop();
+    else this.stormOn = false;
     if (b === "emerge") await this.emerge();
     else if (b === "transform") await this.transform();
+    else if (b === "brawl") await new SsjBrawl(this, (l) => this.talk(l)).run();
     else await this.spirit();
     this.finish(false);
   }
@@ -104,6 +110,7 @@ export class FinaleScene extends Phaser.Scene {
       s.flags.ch7_clear = true;
       s.phase = "hub";
       delete s.flags.finale_cp;
+      delete s.flags.finale_brawl;
     }
     G.save();
     synth.weatherSound(null);
@@ -711,48 +718,7 @@ export class FinaleScene extends Phaser.Scene {
     await Juice.cutIn(this, "fe_cut_goku", { from: "right", y: 170, color: 0xffd23f, hold: 650 });
     await this.beamStruggle(orb, gk, mouth);
     aura?.destroy();
-    this.cameras.main.zoomTo(1.15, 200);
-    await new Promise<void>((res) => this.tweens.add({ targets: orb, x: dragon.x + 30, y: dragon.y - dragon.displayHeight * 0.55, scale: 3.6, duration: 260, ease: "Quad.in", onComplete: () => res() }));
-    await Juice.impactFrames(this, dragon, 70);
-    // the money shot: the SPIRIT CUM going down its throat
-    if (this.textures.exists("fe_still_spirit")) {
-      synth.play("explode_2");
-      Juice.subDrop(1, 2);
-      await Juice.still(this, "fe_still_spirit", 1500, { push: 0.12, shakeK: 0.02, flipX: true });
-    }
-    // IMPACT (and then the music's gone: just the blast and your ears ringing)
-    synth.stopMusic();
-    Juice.earRing(3500, 0.1);
-    const white = this.add.rectangle(480, 270, W * 2, 1100, 0xffffff, G.meta.settings.calmFlash ? 0.5 : 1).setDepth(980).setScrollFactor(0);
-    synth.play("boom");
-    synth.play("explode_1");
-    this.cameras.main.shake(2000, 0.03);
-    this.cameras.main.zoomTo(1, 200);
-    orb.destroy();
-    dragon.setTintFill(0xffffff);
-    this.tweens.killTweensOf(dragon);
-    // the wizard, shown one last time, coming apart
-    const wz = this.wizard;
-    await this.wait(900);
-    this.tweens.add({ targets: white, alpha: 0.35, duration: 1200 });
-    if (wz) {
-      this.tweens.killTweensOf(wz);
-      wz.setAlpha(0.8).setTintFill(0xffffff).setDepth(-9);
-      const scream = this.add.text(wz.x, wz.y - wz.displayHeight - 10, "AAAAAAAAAAAAAAARGH", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#c4b5fd", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(990);
-      this.tweens.add({ targets: scream, alpha: 0, y: scream.y - 40, delay: 1500, duration: 800 });
-      this.disintegrate(wz, 0xe9d5ff);
-    }
-    this.disintegrate(dragon, 0xffffff);
-    // god rays
-    const rays = this.add.graphics().setDepth(985).setBlendMode(Phaser.BlendModes.ADD);
-    for (let i = 0; i < 14; i++) {
-      const a = (i / 14) * Math.PI * 2;
-      rays.fillStyle(0xfff7d6, 0.18).fillTriangle(dragon.x, FLOOR - 160, dragon.x + Math.cos(a) * 900, FLOOR - 160 + Math.sin(a) * 900, dragon.x + Math.cos(a + 0.12) * 900, FLOOR - 160 + Math.sin(a + 0.12) * 900);
-    }
-    this.tweens.add({ targets: rays, alpha: 0, duration: 3000 });
-    this.tweens.add({ targets: [dragon, wz].filter(Boolean), alpha: 0, scaleX: "*=1.3", duration: 2600 });
-    await this.wait(2600);
-    this.tweens.add({ targets: white, alpha: 0, duration: 1500 });
+    await this.release(orb, dragon, gk, mouth);
     this.dragon = null;
     this.wizard = null;
     await this.talk(FB.FB_DESTROYED);
@@ -772,10 +738,316 @@ export class FinaleScene extends Phaser.Scene {
   }
 
   /**
+   * THE RELEASE (after the clash is won): the long anime version, 20-odd seconds.
+   *   1 SLOW-MO   the clash point creeps into its jaws, the world drained of colour, a heartbeat.
+   *   2 EYES      its eyes, yours, Goku's.
+   *   3 PANELS    three manga panels slam in (Goku, you, it), then the SPIRIT CUM goes down its throat (impact frames,
+   *               the drawn money shot).
+   *   4 SPHERE    a sphere of white-gold light swells out of it, speed lines, rings, the Krew braced in the gale,
+   *               and it comes apart in stages: cracks of light all over it, chunks blown off, erased from the top down,
+   *               the wizard behind it screaming (a close-up) and coming apart.
+   *   5 WHITE-OUT silence but the ringing in your ears.
+   *   6 AFTERMATH the white thins out over a smoking crater, embers coming down, the Krew still standing.
+   * calmFlash: no impact frames, the whites are half strength and slow, nothing strobes.
+   */
+  private async release(orb: Phaser.GameObjects.Container, dragon: Phaser.GameObjects.Image, gk: Phaser.GameObjects.Image, mouth: { x: number; y: number }) {
+    const calm = !!G.meta.settings.calmFlash;
+    const cam = this.cameras.main;
+    // ---- 1 SLOW-MO: it's going in. Everything slows; the colour drains out; a heartbeat.
+    const drain = this.add.rectangle(480, 270, W * 2, 1100, 0x1a2a4a, 0).setDepth(960).setScrollFactor(0).setBlendMode(Phaser.BlendModes.MULTIPLY);
+    this.tweens.add({ targets: drain, alpha: 0.55, duration: 300 });
+    Juice.duckMusic(2600, 900, 0.04);
+    Juice.heartbeat(1);
+    this.time.delayedCall(700, () => !this.dead && Juice.heartbeat(1));
+    Juice.slowMo(this, 0.25, 2200);
+    cam.pan(mouth.x + 60, mouth.y, 500, "Sine.easeInOut", true);
+    cam.zoomTo(1.7, 600, "Sine.easeInOut", true);
+    const tip = this.add.text(mouth.x + 70, mouth.y - 90, "!!", { fontFamily: "Impact, sans-serif", fontSize: "48px", color: "#ffffff", stroke: "#000", strokeThickness: 8 }).setOrigin(0.5).setDepth(990).setAlpha(0);
+    this.tweens.add({ targets: tip, alpha: 1, y: tip.y - 14, duration: 200, hold: 400, yoyo: true, onComplete: () => tip.destroy() });
+    await new Promise<void>((res) => this.tweens.add({ targets: orb, x: mouth.x + 26, y: mouth.y, scale: 1.6, duration: 520, ease: "Sine.in", onComplete: () => res() }));
+    // ---- 2 EYES
+    await Juice.eyeShot(this, "fe_eyes_concept", 750, { color: 0xa855f7 });
+    await Juice.eyeShot(this, youEyesKey(this, G.s.player), 600, { color: 0xffe066 });
+    await Juice.eyeShot(this, "fe_eyes_goku", 600, { color: 0xffd23f });
+    this.tweens.killTweensOf(drain);
+    drain.destroy();
+    this.time.timeScale = 1;
+    this.tweens.timeScale = 1;
+    // ---- 3 PANELS, then down its throat
+    cam.panEffect.reset();
+    cam.zoomEffect.reset();
+    cam.setZoom(1).setScroll(0, 0);
+    await this.mangaPanels([
+      { key: "fe_cut_goku", color: 0xffd23f, word: "SPIRIIIT" },
+      { key: youCutKey(this, G.s.player) ?? "fe_eyes_ssj", color: 0xffe066, word: "GO!!" },
+      { key: "fe_cut_concept_hurt", color: 0xa855f7, word: "?!" },
+    ]);
+    synth.play("rocket");
+    cam.zoomTo(1.15, 200, "Quad.easeOut", true);
+    cam.pan(dragon.x + 60, dragon.y - dragon.displayHeight * 0.5, 200, "Quad.easeOut", true);
+    await new Promise<void>((res) => this.tweens.add({ targets: orb, x: dragon.x + 30, y: dragon.y - dragon.displayHeight * 0.55, scale: 3.6, duration: 260, ease: "Quad.in", onComplete: () => res() }));
+    await Juice.impactFrames(this, dragon, 70);
+    if (this.textures.exists("fe_still_spirit")) {
+      synth.play("explode_2");
+      Juice.subDrop(1, 2);
+      await Juice.still(this, "fe_still_spirit", 1700, { push: 0.14, shakeK: 0.02, flipX: true });
+    }
+    // ---- 4 THE SPHERE (the music's gone: just the blast)
+    synth.stopMusic();
+    orb.destroy();
+    cam.panEffect.reset();
+    cam.zoomEffect.reset();
+    cam.setZoom(1).setScroll(0, 0);
+    const cx = dragon.x + 20;
+    const cy = dragon.y - dragon.displayHeight * 0.5;
+    synth.play("boom");
+    synth.play("explode_1");
+    Juice.subDrop(1, 2.6);
+    Juice.flash(this, 0xffffff, 500, 0.8, 975);
+    const sphere = this.add.container(cx, cy).setDepth(70);
+    const halo = this.add.circle(0, 0, 60, 0xfff4c2, 0.35).setBlendMode(Phaser.BlendModes.ADD);
+    const body = this.add.circle(0, 0, 44, 0xffffff, 0.85).setBlendMode(Phaser.BlendModes.ADD);
+    const rim = this.add.circle(0, 0, 46, 0x000000, 0).setStrokeStyle(6, 0xffd23f, 0.9);
+    sphere.add([halo, body, rim]);
+    sphere.setScale(0.4);
+    // it swells, in pulses (each pulse a ring and a shove), to swallow half the screen
+    this.tweens.add({ targets: sphere, scale: 6.5, duration: 5600, ease: "Sine.in" });
+    this.tweens.add({ targets: halo, scale: 1.25, alpha: 0.2, yoyo: true, repeat: -1, duration: calm ? 700 : 260 });
+    this.speedLines(cx, cy, 5600);
+    const rings = this.time.addEvent({
+      delay: calm ? 700 : 380,
+      loop: true,
+      callback: () => {
+        const r = this.add.circle(cx, cy, 30, 0xffffff, 0).setStrokeStyle(4, 0xfff4c2, 0.9).setDepth(71);
+        this.tweens.add({ targets: r, radius: 620, alpha: 0, duration: 900, onComplete: () => r.destroy() });
+        this.cameras.main.shake(260, calm ? 0.005 : 0.012);
+        synth.play(Math.random() < 0.5 ? "thunder_1" : "boom", 0.5);
+      },
+    });
+    // the Krew braced in the gale: hair (and auras) streaming, shoved back a step
+    for (const l of this.lads) {
+      this.tweens.add({ targets: l.spr, x: l.spr.x + 18, duration: 1800, ease: "Sine.out" });
+      if (l.aura) this.tweens.add({ targets: l.aura, alpha: 1, duration: 600 });
+      l.aura?.setTint(0xffffff);
+    }
+    const gale = this.time.addEvent({
+      delay: 60,
+      loop: true,
+      callback: () => {
+        const y = Math.random() * 540;
+        const s = this.add.rectangle(cx + 40, y, 30 + Math.random() * 70, 2, 0xffffff, 0.5).setDepth(940).setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({ targets: s, x: W + 80, duration: 300 + Math.random() * 200, onComplete: () => s.destroy() });
+      },
+    });
+    // stage 1: light cracks open all over it
+    const cracks = this.add.graphics().setDepth(dragon.depth + 1).setBlendMode(Phaser.BlendModes.ADD);
+    const db = dragon.getBounds();
+    const crackPaths: { x: number; y: number }[][] = [];
+    for (let i = 0; i < 16; i++) {
+      let x = db.x + Math.random() * db.width;
+      let y = db.y + db.height * 0.2 + Math.random() * db.height * 0.7;
+      const path = [{ x, y }];
+      for (let k = 0; k < 6; k++) path.push({ x: (x += (Math.random() - 0.5) * 50), y: (y += (Math.random() - 0.5) * 50) });
+      crackPaths.push(path);
+    }
+    const crackK = { v: 0 };
+    this.tweens.add({
+      targets: crackK,
+      v: 1,
+      duration: 1600,
+      onUpdate: () => {
+        cracks.clear();
+        for (const [i, path] of crackPaths.entries()) {
+          const n = Math.floor(path.length * Phaser.Math.Clamp(crackK.v * 1.6 - i * 0.04, 0, 1));
+          if (n < 2) continue;
+          cracks.lineStyle(5, 0xffd23f, 0.6).beginPath().moveTo(path[0].x, path[0].y);
+          for (let k = 1; k < n; k++) cracks.lineTo(path[k].x, path[k].y);
+          cracks.strokePath();
+          cracks.lineStyle(2, 0xffffff, 1).beginPath().moveTo(path[0].x, path[0].y);
+          for (let k = 1; k < n; k++) cracks.lineTo(path[k].x, path[k].y);
+          cracks.strokePath();
+        }
+      },
+    });
+    synth.play("monitor_crack");
+    this.cameras.main.shake(1600, calm ? 0.006 : 0.014);
+    await this.wait(1700);
+    // stage 2: chunks blown off it, then it's erased, from the top down, into the light
+    synth.play("bonecrack");
+    synth.play("explode_2");
+    this.chunks(dragon, 26);
+    this.disintegrate(dragon, 0xfff4c2);
+    const fw = dragon.frame.realWidth;
+    const fh = dragon.frame.realHeight;
+    const erase = { v: 0 };
+    this.tweens.add({
+      targets: erase,
+      v: 1,
+      duration: 2600,
+      ease: "Sine.in",
+      onUpdate: () => {
+        const top = fh * erase.v;
+        dragon.setCrop(0, top, fw, fh - top);
+        cracks.setAlpha(1 - erase.v);
+        // the edge it's being erased at, burning
+        if (Math.random() < 0.7) {
+          const ey = dragon.y - dragon.displayHeight + (top / fh) * dragon.displayHeight;
+          const ex = dragon.x - dragon.displayWidth / 2 + Math.random() * dragon.displayWidth;
+          const sp = this.add.rectangle(ex, ey, 4 + Math.random() * 6, 4 + Math.random() * 6, Math.random() < 0.5 ? 0xffffff : 0xffd23f, 1).setDepth(986).setBlendMode(Phaser.BlendModes.ADD);
+          this.tweens.add({ targets: sp, x: ex + 60 + Math.random() * 160, y: ey - 60 - Math.random() * 120, alpha: 0, duration: 900, onComplete: () => sp.destroy() });
+        }
+      },
+    });
+    await this.wait(900);
+    // stage 3: the wizard behind it, shown one last time, screaming, coming apart
+    const wz = this.wizard;
+    if (wz) {
+      this.tweens.killTweensOf(wz);
+      wz.setAlpha(0.85).setTintFill(0xffffff).setDepth(-9);
+      const scream = this.add.text(wz.x, wz.y - wz.displayHeight - 10, "AAAAAAAAAAAAAAARGH", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#c4b5fd", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(990);
+      this.tweens.add({ targets: scream, alpha: 0, y: scream.y - 40, delay: 1500, duration: 800 });
+      this.disintegrate(wz, 0xe9d5ff);
+      if (!synth.shout("wizard_yee", 1, 0.6)) synth.play("shriek");
+      void Juice.cutIn(this, this.textures.exists("fb_wizard") ? "fb_wizard" : "fe_cut_concept_hurt", { from: "left", y: 140, color: 0xe9d5ff, hold: 900, focus: 0.05, w: 640 });
+      this.tweens.add({ targets: wz, alpha: 0, scaleX: wz.scaleX * 1.3, duration: 2400 });
+    }
+    // god rays out of the sphere
+    const rays = this.add.graphics().setDepth(985).setBlendMode(Phaser.BlendModes.ADD);
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * Math.PI * 2;
+      rays.fillStyle(0xfff7d6, 0.16).fillTriangle(cx, cy, cx + Math.cos(a) * 1000, cy + Math.sin(a) * 1000, cx + Math.cos(a + 0.11) * 1000, cy + Math.sin(a + 0.11) * 1000);
+    }
+    rays.setAlpha(0);
+    this.tweens.add({ targets: rays, alpha: 1, duration: 800 });
+    this.tweens.add({ targets: rays, angle: 12, duration: 4000 });
+    await this.wait(1800);
+    // ---- 5 WHITE-OUT
+    rings.remove();
+    gale.remove();
+    const white = this.add.rectangle(480, 270, W * 2, 1100, 0xffffff, 0).setDepth(980).setScrollFactor(0);
+    this.tweens.add({ targets: white, alpha: calm ? 0.6 : 1, duration: calm ? 900 : 350, ease: "Quad.in" });
+    synth.play("reveal_boom");
+    Juice.subDrop(1, 3);
+    await this.wait(calm ? 900 : 400);
+    Juice.earRing(4200, 0.1);
+    synth.weatherSound(null);
+    this.cameras.main.shake(2200, calm ? 0.006 : 0.02);
+    dragon.setVisible(false);
+    sphere.destroy();
+    cracks.destroy();
+    rays.destroy();
+    await this.wait(2600);
+    // ---- 6 AFTERMATH: a smoking crater where it stood; embers coming down; the Krew, still standing
+    this.stormOn = false;
+    for (const o of this.children.list) if (o instanceof Phaser.GameObjects.Sprite && o.texture.key === "vfx_rain") o.setAlpha(0);
+    const crater = this.add.graphics().setDepth(-4);
+    crater.fillStyle(0x050307, 1).fillEllipse(dragon.x + 20, FLOOR + 22, 420, 60);
+    crater.fillStyle(0x2a1a10, 1).fillEllipse(dragon.x + 20, FLOOR + 16, 360, 36);
+    crater.fillStyle(0xff7a2a, 0.35).fillEllipse(dragon.x + 20, FLOOR + 14, 260, 18);
+    if (hasVfx(this, "vfx_smokecol")) for (let i = 0; i < 3; i++) vfx(this, "vfx_smokecol", dragon.x - 80 + i * 90, FLOOR + 10, { scale: 2.2, depth: -3, alpha: 0.55, delay: i * 200 });
+    const embers = this.time.addEvent({
+      delay: 70,
+      repeat: 120,
+      callback: () => {
+        const e = this.add.circle(Math.random() * W, -10, 1.5 + Math.random() * 2, Math.random() < 0.5 ? 0xffb347 : 0xfff4c2, 1).setDepth(950).setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({ targets: e, y: 420 + Math.random() * 100, x: e.x + (Math.random() - 0.5) * 120, alpha: 0, duration: 3000 + Math.random() * 2000, onComplete: () => e.destroy() });
+      },
+    });
+    for (const l of this.lads) {
+      l.aura?.setTint(0xfff27a);
+      if (l.aura) this.tweens.add({ targets: l.aura, alpha: 0.35, duration: 2000 });
+    }
+    void gk;
+    cam.setZoom(1.35).centerOn(dragon.x + 80, FLOOR - 70);
+    cam.zoomTo(1, 4200, "Sine.easeInOut", true);
+    cam.pan(480, 270, 4200, "Sine.easeInOut", true);
+    this.tweens.add({ targets: white, alpha: 0, duration: 3000, ease: "Sine.out" });
+    await this.wait(3400);
+    white.destroy();
+    this.time.delayedCall(9000, () => embers.remove());
+  }
+
+  /** Chunks blown off something big: rectangles in its colours, tumbling away from the middle. */
+  private chunks(o: Phaser.GameObjects.Image, n: number) {
+    const b = o.getBounds();
+    const cols = [0x2a1640, 0x4c1d95, 0x12002a, 0xffd23f];
+    for (let i = 0; i < n; i++) {
+      const x = b.x + Math.random() * b.width;
+      const y = b.y + b.height * 0.2 + Math.random() * b.height * 0.7;
+      const r = this.add.rectangle(x, y, 10 + Math.random() * 26, 8 + Math.random() * 18, cols[i % cols.length], 1).setDepth(987).setAngle(Math.random() * 90);
+      const a = Math.atan2(y - (b.y + b.height / 2), x - b.centerX) + (Math.random() - 0.5) * 0.6;
+      const v = 200 + Math.random() * 380;
+      this.tweens.add({ targets: r, x: x + Math.cos(a) * v, y: y + Math.sin(a) * v - 80, angle: r.angle + (Math.random() - 0.5) * 720, alpha: 0, duration: 1100 + Math.random() * 600, ease: "Quad.out", onComplete: () => r.destroy() });
+    }
+  }
+
+  /**
+   * MANGA PANELS: the screen splits into slanted panels (white gutters) that slam in one after another, each a
+   * close-up with speed lines behind it and a big sound word, held a beat, then all of it cuts away.
+   */
+  private mangaPanels(panels: { key: string; color: number; word: string }[]): Promise<void> {
+    return new Promise((res) => {
+      if (this.dead || this.ended) return;
+      const calm = !!G.meta.settings.calmFlash;
+      const root = this.add.container(0, 0);
+      Juice.layer(this, 4992).add(root);
+      root.add(this.add.rectangle(480, 270, 1100, 700, 0xffffff, 1));
+      const n = panels.length;
+      const slant = 60;
+      const pw = 960 / n;
+      panels.forEach((p, i) => {
+        this.time.delayedCall(i * 420, () => {
+          if (!root.active) return;
+          const x0 = i * pw;
+          // the panel's shape: a parallelogram with a gutter round it
+          const pts = [x0 + 8 + (i ? slant / 2 : -40), 8, x0 + pw - 8 + slant / 2, 8, x0 + pw - 8 - slant / 2 + (i === n - 1 ? 60 : 0), 532, x0 + 8 - slant / 2, 532];
+          const shape = this.make.graphics({}, false);
+          shape.fillStyle(0xffffff).fillPoints([0, 2, 4, 6].map((k) => new Phaser.Math.Vector2(pts[k], pts[k + 1])), true);
+          const mask = shape.createGeometryMask();
+          const panel = this.add.container(0, 0);
+          panel.setMask(mask);
+          const bg = this.add.rectangle(x0 + pw / 2, 270, pw + slant + 80, 540, 0x0b0612, 1);
+          const lines = this.add.graphics();
+          const cxp = x0 + pw / 2;
+          for (let k = 0; k < 40; k++) {
+            const a = Math.random() * Math.PI * 2;
+            lines.lineStyle(1 + Math.random() * 3, p.color, 0.3 + Math.random() * 0.4).lineBetween(cxp + Math.cos(a) * 80, 270 + Math.sin(a) * 80, cxp + Math.cos(a) * 700, 270 + Math.sin(a) * 700);
+          }
+          panel.add([bg, lines]);
+          if (this.textures.exists(p.key)) {
+            const img = this.add.image(cxp, 270, p.key);
+            const k = Math.max((pw + slant) / img.frame.realWidth, 540 / img.frame.realHeight) * 1.05;
+            img.setScale(k / hdFactor(img));
+            panel.add(img);
+            this.tweens.add({ targets: img, scale: (k * 1.08) / hdFactor(img), duration: 1600 });
+          }
+          const frame = this.add.graphics();
+          frame.lineStyle(6, 0x000000, 1).strokePoints([0, 2, 4, 6].map((k) => new Phaser.Math.Vector2(pts[k], pts[k + 1])), true, true);
+          const word = this.add.text(cxp, 470, p.word, { fontFamily: "Impact, sans-serif", fontSize: "52px", color: "#ffffff", stroke: "#000", strokeThickness: 10 }).setOrigin(0.5).setAngle(-8).setScale(2.4).setAlpha(0);
+          root.add([panel, frame, word]);
+          this.tweens.add({ targets: word, scale: 1, alpha: 1, duration: 160, ease: "Quad.in" });
+          panel.x = (i % 2 ? 1 : -1) * 60;
+          this.tweens.add({ targets: panel, x: 0, duration: 140, ease: "Cubic.out" });
+          synth.play(i === n - 1 ? "smash" : "swing");
+          this.cameras.main.shake(160, calm ? 0.004 : 0.01);
+          root.once("destroy", () => shape.destroy());
+        });
+      });
+      this.time.delayedCall(n * 420 + 1300, () => {
+        root.destroy();
+        res();
+      });
+    });
+  }
+
+  /**
    * THE CLASH. The SPIRIT CUM stops dead in mid-air: the Concept breathes its own beam back at it and the two meet
    * in the middle of town. Mash (any key, click, tap) to push it back down its throat; the lads roar and pour in
-   * their power too, so it gets there on its own if you don't (a few seconds, never a fail). The harder you mash,
-   * the faster it goes. Ends with the clash point at its mouth.
+   * their power too, so it gets there on its own if you don't (never a fail). The harder you mash, the faster it
+   * goes, but it's a proper struggle: about twice as long as it was, and a third of the way in it SURGES back.
+   * Everything builds as it goes (`build`, 0..1): the auras swell, the ground cracks open under the Krew, rubble
+   * lifts off the street, the lads yell louder and more often, the shake ramps up, the light goes gold. (calmFlash:
+   * gentler shake, no flicker.) Ends with the clash point at its mouth.
    */
   private beamStruggle(orb: Phaser.GameObjects.Container, gk: Phaser.GameObjects.Image, mouth: { x: number; y: number }): Promise<void> {
     return new Promise((resolve) => {
@@ -788,8 +1060,26 @@ export class FinaleScene extends Phaser.Scene {
       let elapsed = 0;
       let lastBurst = 0;
       let youCut = false;
+      let surged = false;
+      let rallied = false;
       let done = false;
+      let build = 0;
       this.clashing = true;
+      // the build-up: each lad's aura swells from where it is now; the cracks are drawn in as it goes
+      const auraBase = new Map(this.lads.filter((l) => l.aura).map((l) => [l, { sx: l.aura!.scaleX, sy: l.aura!.scaleY, flare: 0 }]));
+      const ground = this.add.graphics().setDepth(-4);
+      const crackPaths: { x: number; y: number }[][] = [];
+      for (const x0 of [...this.lads.map((l) => l.spr.x), gk.x]) {
+        for (let k = 0; k < 2; k++) {
+          let x = x0 + (Math.random() - 0.5) * 20;
+          let y = FLOOR + 6;
+          const path = [{ x, y }];
+          for (let j = 0; j < 7; j++) path.push({ x: (x += (Math.random() - 0.5) * 60), y: (y += 6 + Math.random() * 18) });
+          crackPaths.push(path);
+        }
+      }
+      const glowGold = this.add.rectangle(480, 270, W * 2, 1100, 0xffd23f, 0).setDepth(955).setScrollFactor(0).setBlendMode(Phaser.BlendModes.ADD);
+      let lastRock = 0;
       const beams = this.add.graphics().setDepth(66).setBlendMode(Phaser.BlendModes.ADD);
       const core = this.add.graphics().setDepth(67);
       const L = Juice.layer(this, 1050);
@@ -807,17 +1097,14 @@ export class FinaleScene extends Phaser.Scene {
       const push = () => {
         if (done) return;
         mash++;
-        t -= 0.034;
+        t -= 0.018;
+        build = Math.min(1, build + 0.006);
         Juice.punchZoom(this, 0.03, 160, 1);
         if (mash % 3 === 0) synth.play("hit");
         // the lads pour it in: their auras flare
         const l = this.lads[mash % Math.max(1, this.lads.length)];
-        if (l?.aura) {
-          this.tweens.killTweensOf(l.aura);
-          const sx = l.aura.scaleX;
-          const sy = l.aura.scaleY;
-          this.tweens.add({ targets: l.aura, scaleX: sx * 1.25, scaleY: sy * 1.2, duration: 90, yoyo: true });
-        }
+        const ab = l && auraBase.get(l);
+        if (ab) ab.flare = 0.25;
       };
       const onKey = (e: KeyboardEvent) => {
         if (e.key !== "Escape" && !e.repeat) push();
@@ -825,24 +1112,78 @@ export class FinaleScene extends Phaser.Scene {
       this.input.keyboard?.on("keydown", onKey);
       this.input.on("pointerdown", push);
       let shoutI = 0;
-      const shouts = this.time.addEvent({
-        delay: 650,
-        loop: true,
-        callback: () => {
-          const l = this.lads[shoutI++ % Math.max(1, this.lads.length)];
-          if (!l) return;
-          const tx = this.add.text(l.spr.x, l.spr.y - l.spr.displayHeight - 10, "AAAAAAAAA", { fontFamily: "Impact, sans-serif", fontSize: "16px", color: "#ffe066", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(950);
-          this.tweens.add({ targets: tx, y: tx.y - 30, alpha: 0, duration: 900, onComplete: () => tx.destroy() });
-        },
-      });
+      // the lads yelling encouragement: more often, and louder, as it builds
+      let nextShout = 0;
+      const shout = () => {
+        const l = this.lads[shoutI++ % Math.max(1, this.lads.length)];
+        if (!l) return;
+        const line = shoutI % 3 === 0 ? "AAAAAAAAA" : (Phaser.Utils.Array.GetRandom(FB.FB_CLASH_SHOUTS) as string);
+        const tx = this.add.text(l.spr.x, l.spr.y - l.spr.displayHeight - 10, line, { fontFamily: "Impact, sans-serif", fontSize: `${15 + Math.round(build * 9)}px`, color: build > 0.6 ? "#ffffff" : "#ffe066", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(950);
+        this.tweens.add({ targets: tx, y: tx.y - 30 - build * 20, alpha: 0, duration: 1100, onComplete: () => tx.destroy() });
+      };
+      const shouts = { remove: () => undefined };
       const tick = () => {
         if (this.dead || this.ended) return cleanup(false);
         const dt = Math.min(50, this.game.loop.delta) / 1000;
         elapsed += dt;
-        // it pushes back hard at first; the Krew's power builds and wins out on its own by about seven seconds
-        const krew = Math.min(0.24, elapsed * 0.05);
+        // it pushes back hard at first; the Krew's power builds and wins out on its own (about 13 seconds untouched,
+        // about 7 mashing hard)
+        const krew = Math.min(0.22, elapsed * 0.022);
         t += (0.1 - krew) * dt;
         t = Phaser.Math.Clamp(t, 0, 0.82);
+        build = Math.min(1, build + dt * 0.075);
+        // a third of the way in: it SURGES. Then the Krew rally: everyone, now.
+        if (!surged && elapsed > 3.6) {
+          surged = true;
+          t = Math.min(0.82, t + 0.16);
+          if (!synth.shout("concept_roar", 1, 0.7)) synth.play("roar");
+          Juice.slamText(this, "IT'S PUSHING BACK!", "#c084fc", 46, 170, 1000);
+          this.cameras.main.shake(600, calm ? 0.006 : 0.02);
+          void Juice.cutIn(this, "fe_cut_concept_hurt", { from: "left", y: 380, color: 0xa855f7, hold: 600 });
+        }
+        if (surged && !rallied && elapsed > 5.4) {
+          rallied = true;
+          Juice.slamText(this, "EVERYONE, NOW!", "#ffe066", 48, 170, 1000);
+          synth.play("reveal_boom");
+          Juice.riser(2400, 0.3);
+          const cut = this.lads.map((l) => `fe_cut_lad_${l.id}`).find((k) => k !== `fe_cut_lad_${G.s.player}` && this.textures.exists(k));
+          if (cut) void Juice.cutIn(this, cut, { from: "right", y: 380, color: 0xffd23f, hold: 700 });
+          for (const ab of auraBase.values()) ab.flare = 0.6;
+          for (const l of this.lads) this.ring(l.spr.x, l.spr.y - l.spr.displayHeight * 0.5, 140);
+        }
+        // the auras swell
+        for (const [l, ab] of auraBase) {
+          ab.flare = Math.max(0, ab.flare - dt * 1.5);
+          const g = 1 + build * 0.7 + ab.flare;
+          l.aura?.setScale(ab.sx * g, ab.sy * g).setAlpha(Math.min(1, 0.55 + build * 0.45));
+        }
+        // the ground cracks open under them
+        ground.clear();
+        for (const path of crackPaths) {
+          const n = Math.floor(path.length * Phaser.Math.Clamp(build * 1.4 - 0.1, 0, 1));
+          if (n < 2) continue;
+          ground.lineStyle(4, 0x050307, 1).beginPath().moveTo(path[0].x, path[0].y);
+          for (let j = 1; j < n; j++) ground.lineTo(path[j].x, path[j].y);
+          ground.strokePath();
+          ground.lineStyle(1.5, 0xffd23f, 0.4 + build * 0.5).beginPath().moveTo(path[0].x, path[0].y);
+          for (let j = 1; j < n; j++) ground.lineTo(path[j].x, path[j].y);
+          ground.strokePath();
+        }
+        // rubble lifting off the street
+        if (elapsed - lastRock > 0.5 - build * 0.38) {
+          lastRock = elapsed;
+          const rx = 280 + Math.random() * 640;
+          const r = this.add.rectangle(rx, FLOOR + 10 + Math.random() * 30, 4 + Math.random() * 12, 4 + Math.random() * 10, Phaser.Utils.Array.GetRandom([0x2a2433, 0x3a2f3f, 0x4a3a2a]) as number).setDepth(65).setAngle(Math.random() * 90);
+          this.tweens.add({ targets: r, y: r.y - 140 - Math.random() * 200 * (0.5 + build), angle: r.angle + (Math.random() - 0.5) * 300, alpha: 0, duration: 2200 + Math.random() * 800, ease: "Sine.out", onComplete: () => r.destroy() });
+        }
+        // the lads: more often, louder
+        if (elapsed >= nextShout) {
+          nextShout = elapsed + 0.7 - build * 0.42;
+          shout();
+        }
+        // the light goes gold (steady, no flicker)
+        glowGold.setAlpha(build * (calm ? 0.08 : 0.14));
+        if (Math.random() < build * 0.06 && !calm) this.bolt(280 + Math.random() * 640);
         const cx = mouth.x + (src.x - mouth.x) * t;
         const cy = mouth.y + (src.y - mouth.y) * t;
         orb.setPosition(cx, cy);
@@ -881,7 +1222,7 @@ export class FinaleScene extends Phaser.Scene {
         }
         orb.setScale(1.15 + Math.sin(elapsed * 30) * 0.12);
         const k = 1 - t;
-        if (!calm && Math.random() < 0.25) this.cameras.main.shake(80, 0.004 + k * 0.01);
+        if (Math.random() < 0.25) this.cameras.main.shake(80, (calm ? 0.4 : 1) * (0.003 + k * 0.006 + build * 0.012));
         barGold.width = 420 * (1 - t);
         barDark.width = 420 - barGold.width;
         if (t <= 0.06) cleanup(true);
@@ -897,6 +1238,7 @@ export class FinaleScene extends Phaser.Scene {
         stopLines();
         beams.destroy();
         core.destroy();
+        this.tweens.add({ targets: glowGold, alpha: 0, duration: 600, onComplete: () => glowGold.destroy() });
         for (const o of [prompt, hint, barBack, barDark, barGold]) o.destroy();
         if (won) {
           synth.play("boom");

@@ -249,6 +249,49 @@ export const FB_SPIRIT: Line[] = [
   say("GOKU", "…CUUUUUUUUUUUUUUUUM!!!"),
 ];
 
+// ---------------------------------------------------------------- the super saiyan brawl (side-on, in the sky)
+
+export const FB_BRAWL_INTRO: Line[] = [
+  dir("Nearly dead, it does something new. It pulls itself in: every arm, every eye, every footnote, crushed down into one shape. Human-sized. Hooded. The wizard."),
+  dir("It goes straight up into the storm. Somehow, so do you."),
+  c("SEE: ABRIDGED ENTRY."),
+  say("KREZMAR", "(from the ground, tiny) HE'S TAKEN IT UP THERE! HANDS ONLY, LAD! HANDS ONLY!"),
+  { s: "YOU", t: "Right then. Fists.", tag: "new" },
+];
+
+export const FB_BRAWL_WIN: Line[] = [
+  dir("It goes down through the clouds, through the rubble, and back into the body of the beast like a dropped anvil."),
+  c("…PAGE NOT FOUND."),
+];
+
+/** The lads, yelling up from the ground while you fight. */
+export const FB_BRAWL_CHEERS = [
+  "GO ON LAD!",
+  "HIT HIM IN HIS CONCEPT!",
+  "FASTER! FASTER THAN THAT!",
+  "BEHIND HIM! GET BEHIND HIM!",
+  "I CAN'T SEE ANYTHING, IT'S JUST LIGHTS!",
+  "THAT ONE MADE A NOISE!",
+  "BOOT HIM!",
+  "DO THE THING! THE TELEPORT THING!",
+  "FOR KRELFORD!",
+  "I'VE GOT TWENTY QUID ON YOU!",
+];
+
+/** The lads, pouring it in while the SPIRIT CUM is held at its mouth. */
+export const FB_CLASH_SHOUTS = [
+  "PUSH IT!",
+  "EVERYTHING YOU'VE GOT!",
+  "COME ON GOKU!",
+  "IT'S MOVING! IT'S MOVING!",
+  "DON'T YOU DARE STOP!",
+  "FOR THE CHAT LOGS!",
+  "TAKE MY POWER, ALL OF IT!",
+  "HARDER!",
+  "WE'RE NEARLY THERE!",
+  "AAAAAAAAAAAAA",
+];
+
 export const FB_DESTROYED: Line[] = [
   dir("A flash of ethereal, gorgeous white light. It washes over Krelford, over the rubble, over the rain."),
   dir("When it fades, THE CONCEPT OF PAEDOPHILIA is gone. Not dead. Gone. Unwritten. The wizard behind it goes with it, in a long, thin, very satisfying scream."),

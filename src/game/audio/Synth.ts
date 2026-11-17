@@ -109,6 +109,8 @@ export const MUSIC_FILES: Record<string, string> = {
   c7_concept: "audio/c7_concept.mp3",
   c7_spirit: "audio/c7_spirit.mp3",
   fe_clash: "audio/fe_clash.mp3",
+  // the super saiyan brawl in the sky (Krelford finale)
+  fe_brawl: "audio/fe_brawl.mp3",
   c7_transform: "audio/c7_transform.mp3",
   hub: "audio/hub.mp3",
   hub_night: "audio/hub_night.mp3",

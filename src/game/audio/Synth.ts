@@ -41,6 +41,10 @@ export const AUDIO_FILES: Record<string, string> = {
   drongus_cackle_3: "audio/sfx/drongus_cackle_3.mp3",
   drongus_cackle_4: "audio/sfx/drongus_cackle_4.mp3",
   drongus_cackle_5: "audio/sfx/drongus_cackle_5.mp3",
+  /** GB Krews, Burnham's first act (ElevenLabs): the chewing, the burp, the vomit, the gurgle, the splatters and the rest. */
+  ...Object.fromEntries(
+    ["chew", "burp", "vomit", "gurgle", "splat", "clink", "recoil", "toast", "strain", "coo", "crowd_cheer"].map((k) => [`burn_${k}`, `audio/sfx/burn_${k}.mp3`]),
+  ),
   /** Chapters 1-5 anime beats (gfx/Cine.ts): stingers over the music (which ducks under them). */
   ...Object.fromEntries(["open", "reveal", "boom", "power", "triumph", "dread"].map((k) => [`c15_sting_${k}`, `audio/c15_sting_${k}.mp3`])),
   /** Side-story anime beats (gfx/SideCine.ts, ElevenLabs): the freeze-frame's record scratch and the stingers. */

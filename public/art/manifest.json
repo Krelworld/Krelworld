@@ -9319,6 +9319,30 @@
   },
   "tva_prop_ktp_bill": {
    "file": "tv/action/prop_ktp_bill.png"
+  },
+  "tv_burn_no10": {
+   "file": "backdrops/tv_burn_no10.png"
+  },
+  "tv_burn_spoons": {
+   "file": "backdrops/tv_burn_spoons.png"
+  },
+  "tv_burn_lectern": {
+   "file": "tv/burnham/lectern.png"
+  },
+  "tv_burn_chipbowl": {
+   "file": "tv/burnham/chipbowl.png"
+  },
+  "tv_burn_steelbowl": {
+   "file": "tv/burnham/steelbowl.png"
+  },
+  "tv_burn_roll": {
+   "file": "tv/burnham/sausage_roll.png"
+  },
+  "tv_burn_aide": {
+   "file": "tv/burnham/aide.png"
+  },
+  "tv_burn_aide_horror": {
+   "file": "tv/burnham/aide_horror.png"
   }
  },
  "sheets": {
@@ -14174,6 +14198,31 @@
    "file": "tv/anchor_KTP_HALL.png",
    "frameWidth": 128,
    "frameHeight": 128
+  },
+  "tvanchor_BURNHAM": {
+   "file": "tv/anchor_BURNHAM.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tv_burn_crowd_front": {
+   "file": "tv/burnham/crowd_front.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "tv_burn_crowd_back": {
+   "file": "tv/burnham/crowd_back.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "tv_burn_servants": {
+   "file": "tv/burnham/servants.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "tv_burn_pigeon": {
+   "file": "tv/burnham/pigeon.png",
+   "frameWidth": 48,
+   "frameHeight": 48
   }
  },
  "vfx": {

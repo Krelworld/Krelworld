@@ -79,6 +79,8 @@ export const MUSIC_FILES: Record<string, string> = {
   bm_wedding: "audio/bm_wedding.mp3",
   // KrelTV: the Krelbank advert's music bed
   krelbank_ad: "audio/krelbank_ad.mp3",
+  // Thick Cumming Cock: the cheesy 90s sitcom theme song (ElevenLabs Music, with the hook sung over the chorus)
+  tcc_theme: "audio/tcc_theme.mp3",
   // the 3D epilogue: the overworld theme, full orchestra
   krelworld_orch: "audio/krelworld_orch.mp3",
   // fight_<boss>: kicks in when the boss's monologue ends and the fight starts (Harry's tracks)

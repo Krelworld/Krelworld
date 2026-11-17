@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { F, ShowDirector, faceKeyOf, type Perf } from "./ShowDirector";
+import { MUSIC_FILES } from "../../audio/Synth";
 import { G } from "../../G";
 import { billboardPanel, BILLBOARD_FACE, type Billboard } from "./tccBillboards";
 
@@ -866,7 +867,8 @@ export class SitcomDirector extends ShowDirector {
       this.later(200 + i * 420, () => this.sfx("pop"));
       this.sc.tweens.add({ targets: t, y: t.y - 6, duration: 520, yoyo: true, repeat: -1, delay: 1400 + i * 120, ease: "Sine.easeInOut" });
     });
-    return 0;
+    // with the sung theme, the logo holds through the verse (skippable as ever)
+    return MUSIC_FILES.tcc_theme ? 21000 : 0;
   }
 
   /** Part two: the cast's freeze-frames, mid-laugh, with their names; then the episode title. */
@@ -875,10 +877,14 @@ export class SitcomDirector extends ShowDirector {
     this.shotKind = "card";
     const { SX, SY, SW, SH } = this.r;
     this.backdrop(this.tex(EXT), { zoom: 1.3, blur: 1, tint: 0x9a80c0 });
+    const song = !!MUSIC_FILES.tcc_theme;
     const cast: [string, string, number][] = [
       ["CHRISTOPHER THICK", "#ffe14a", -1],
       ["JENNY CUMMING", "#ff9ccf", 1],
+      ...(song ? ([["JOHN COCK", "#8fd3ff", -1], ["LILA MINT", "#9dff8a", 1]] as [string, string, number][]) : []),
     ];
+    // with the sung theme the cards come in pairs through the chorus: the partners, then John and Lila
+    const at = (i: number) => (song ? (i < 2 ? i * 700 : 5200 + (i - 2) * 700) : i * 700);
     cast.forEach(([n, col, side], i) => {
       const fk = faceKeyOf(n);
       if (!this.tex(fk)) return;
@@ -886,15 +892,16 @@ export class SitcomDirector extends ShowDirector {
       box.add(this.sc.add.rectangle(0, 0, 230, 230, 0xffffff));
       box.add(this.sc.add.sprite(0, 0, fk, F.LAUGH).setScale(1.7));
       box.add(this.text(0, 132, n, 18, col, { fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5));
-      this.sc.tweens.add({ targets: box, alpha: 1, x: box.x - side * 10, duration: 260, delay: i * 700 });
-      this.later(i * 700, () => this.sfx("pop"));
+      this.sc.tweens.add({ targets: box, alpha: 1, x: box.x - side * 10, duration: 260, delay: at(i) });
+      this.later(at(i), () => this.sfx("pop"));
+      if (song && i < 2) this.sc.tweens.add({ targets: box, alpha: 0, duration: 300, delay: 4700 });
     });
     const et = this.add(this.text(this.cx, SY + SH - 34, epTitle, 18, "#ffffff", { fontStyle: "italic", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setAlpha(0));
-    this.sc.tweens.add({ targets: et, alpha: 1, duration: 400, delay: 1500 });
-    this.later(2900, () => this.sfx("tv_sting"));
+    this.sc.tweens.add({ targets: et, alpha: 1, duration: 400, delay: song ? 9800 : 1500 });
+    if (!song) this.later(2900, () => this.sfx("tv_sting"));
     this.titleDone = true;
     void SW;
-    return 3600;
+    return song ? 14500 : 3600;
   }
 
   /** End credits roll up over the last freeze-frame of the two of them. */

@@ -19,6 +19,7 @@ import { addKrokens, awardPrize, kd, krokenPrice, krokens, prizeOpen, rollPrize,
 import type { Line } from "../../data/types";
 import { maxHp } from "../systems/stats";
 import { KreddleRaid, RAID_ART } from "./kreddle/Raid";
+import { preloadKrunchBurn } from "./kreddle/KrunchBurn";
 
 /**
  * KREDDLE: the casino/arcade universe over the bridge. Always night. Always neon.
@@ -82,6 +83,7 @@ export class KreddleScene extends Phaser.Scene {
     // the raid's art, if this build's manifest doesn't list it yet
     if (!(this.sys.settings.data as { raid?: boolean } | undefined)?.raid) return;
     for (const k of RAID_ART) if (!this.textures.exists(k)) this.load.image(k, `art/props/${k}.png`);
+    preloadKrunchBurn(this);
   }
 
   create(data?: { raid?: boolean }) {

@@ -140,7 +140,7 @@ function drongusCorridor(): RoomDef {
     h: 540,
     theme: "citadel",
     backdrop: "c7d_bg_corridor",
-    music: "c7_corridor",
+    music: "c7_dungeon",
     platforms,
     movers,
     floorGaps,

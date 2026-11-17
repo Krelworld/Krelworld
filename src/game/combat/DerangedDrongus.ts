@@ -9,6 +9,8 @@ import * as Juice from "../gfx/Juice";
 
 const PLASMA = 0x39ff5a;
 const GOLD = 0xffd23f;
+/** Skinny Drongus legging it (PixelLab, from c7_drongus_skinny): his dash to the cauldron and the launch. */
+const SKINNY_RUN = "fe_drongus_skinny_run";
 
 const SUMMONS: { ask: string; ai: string; reply: string; col: string; spawn: [string, number][] }[] = [
   { ask: "GROK! GENERATE ME SOME DOGS!", ai: "GROK", reply: "unleashing the dogs king 🐕", col: "#f2f2f2", spawn: [["ai_pitbull", 2]] },
@@ -401,6 +403,15 @@ export class DerangedDrongusBoss extends Boss {
     this.glow.setFillStyle(0xff3b30, 0);
   }
 
+  /** His run loop's animation key, or null when the sheet isn't there (then he glides, as before). */
+  private skinnyRun(): string | null {
+    const sc = this.scene;
+    if (!sc.textures.exists(SKINNY_RUN)) return null;
+    const ak = `${SKINNY_RUN}:loop`;
+    if (!sc.anims.exists(ak)) sc.anims.create({ key: ak, frames: sc.anims.generateFrameNumbers(SKINNY_RUN, { start: 0, end: sc.textures.get(SKINNY_RUN).frameTotal - 2 }), frameRate: 16, repeat: -1 });
+    return ak;
+  }
+
   /** NOOOO: the armour falls apart, skinny shirtless Drongus grabs the bottles, dives in the cauldron, up through the roof. */
   deathSequence(): Promise<void> {
     const sc = this.scene;
@@ -444,6 +455,12 @@ export class DerangedDrongusBoss extends Boss {
       const cx = this.cauldron.x;
       const dur = Math.max(500, Math.abs(cx - this.x) * 2.4);
       this.setFlipX(cx < this.x);
+      const runAk = skinny ? this.skinnyRun() : null;
+      if (runAk) {
+        this.anims.stop();
+        this.setTexture(SKINNY_RUN, 0).setScale(1.6);
+        this.play(runAk);
+      }
       sc.tweens.add({ targets: this, x: cx, duration: dur, ease: "Sine.in" });
       for (const [i, b] of this.bottles.entries()) sc.tweens.add({ targets: b, x: cx + (i ? 26 : -26), duration: dur, ease: "Sine.in" });
       await wait(dur);
@@ -470,7 +487,10 @@ export class DerangedDrongusBoss extends Boss {
       w.shake(700, 0.035);
       sc.cameras.main.flash(400, 255, 230, 140);
       const rocket = sc.add.container(cx, this.cauldron.y - 40).setDepth(960);
-      if (skinny) rocket.add(sc.add.image(0, 0, "c7_drongus_skinny").setScale(1.4).setAngle(180));
+      // (drawn: legs still going like the clappers as he's fired up through the roof)
+      const flailAk = skinny ? this.skinnyRun() : null;
+      if (flailAk) rocket.add(sc.add.sprite(0, 0, SKINNY_RUN, 0).setScale(1.4).setFlipX(this.flipX).play({ key: flailAk, frameRate: 22 }));
+      else if (skinny) rocket.add(sc.add.image(0, 0, "c7_drongus_skinny").setScale(1.4).setAngle(180));
       else rocket.add(sc.add.rectangle(0, 0, 30, 60, 0xf1c7a5));
       const trail = sc.time.addEvent({
         delay: 20,

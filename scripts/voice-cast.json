@@ -320,7 +320,14 @@
     "CEO": "k1y1ZSA9Cg3PPtEeLJeh",
     "ADVISER": "uUxNMBq4S5JJX444W6pn",
     "OCTO PUSS": "rQuWAhHSNNzlOkgQ2LLW",
-    "THE WOMAN": "GSnwHl2FGkZr1WrgBqLQ"
+    "THE WOMAN": "GSnwHl2FGkZr1WrgBqLQ",
+    "LILA MINT": "GSnwHl2FGkZr1WrgBqLQ",
+    "JOHN COCK": "fkmC60cbrqDFWAiwEE3l",
+    "BRENDA": "AGzIaZS67G9SQwS3IsYg",
+    "GRANDMA 1": "RI9XUf6HcXueCawI8ir3",
+    "GRANDMA 2": "a5FszkiTGG6iNxzmCHeu",
+    "MOM 1": "kUmpk9RReJbu3lzZ4qer",
+    "MOM 2": "VWIrA5Gg86OL53hhe9Ho"
   },
   "designed_desc": {
     "KRANKY KRANDALL": "A reedy, squeaky, frail old British man in his nineties. Thin, high, wavering, slightly wheezy voice, rambling and forgetful, trailing off mid-sentence.",
@@ -595,7 +602,13 @@
     "KREDDLE TANNOY",
     "CHATGPT",
     "STATION ANNOUNCER",
-    "JOURNALIST"
+    "JOURNALIST",
+    "LILA MINT",
+    "BRENDA",
+    "GRANDMA 1",
+    "GRANDMA 2",
+    "MOM 1",
+    "MOM 2"
   ],
   "pools": {
     "male": [
@@ -740,7 +753,14 @@
     "ADVISER": "~everyman_m2",
     "CHRIS WHITTY": "~exec_m",
     "KEMI BADENOCH": "~exec_f",
-    "DAISY COOPER": "~news_f_rp"
+    "DAISY COOPER": "~news_f_rp",
+    "LILA MINT": "~aide_f_us",
+    "JOHN COCK": "~pub_m_brum",
+    "BRENDA": "~pub_f_manc",
+    "GRANDMA 1": "~everywoman_f",
+    "GRANDMA 2": "~news_f_rp",
+    "MOM 1": "~pol_f_us",
+    "MOM 2": "~news_f_us"
   },
   "clone_accents": {
     "_doc": "Accent tag for cloned voices on eleven_v3, which otherwise drift (American, or regional). Everyone in the group is southern English: faint RP or a slight cockney. Default below.",

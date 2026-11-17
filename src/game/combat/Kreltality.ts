@@ -51,17 +51,33 @@ export async function kreltality(sc: Phaser.Scene, target: KrelTarget, player: {
   return true;
 }
 
-/** A random finisher, not the last one you saw; with gore off, only the ones that have a tame version. */
-let lastPick: Finisher | null = null;
-function pick(target?: KrelTarget): Finisher {
+/**
+ * A random finisher from a shuffle bag: none repeats until you've seen every one in the pool, then the
+ * bag refills (never opening with the one you just saw). The bag is kept in meta, so it lasts across
+ * runs and reloads. With gore off, only the ones that have a tame version are in the pool.
+ */
+export function pick(target?: KrelTarget): Finisher {
   const gore = G.meta?.settings?.gore !== false;
   // the long boss-only ones (GET WELL SOON) need a boss and the gore on
   const boss = !!target?.id;
-  const pool = (gore ? FINISHERS : [...ELEGANT])
-    .filter((f) => f !== lastPick)
-    .filter((f) => !(BOSS_ONLY as Finisher[]).includes(f) || (boss && gore));
-  lastPick = pool[Math.floor(Math.random() * pool.length)];
-  return lastPick;
+  const pool = (gore ? FINISHERS : [...ELEGANT]).filter((f) => !(BOSS_ONLY as Finisher[]).includes(f) || (boss && gore));
+  const meta = G.meta as (typeof G.meta & { krelSeen?: string[]; krelLast?: string }) | undefined;
+  const seen = new Set(meta?.krelSeen ?? []);
+  let fresh = pool.filter((f) => !seen.has(f));
+  if (!fresh.length) {
+    // every one in this pool has been seen: start a new cycle (keeping the ones outside this pool, e.g. boss-only, as they were)
+    for (const f of pool) seen.delete(f);
+    fresh = pool.filter((f) => f !== meta?.krelLast);
+    if (!fresh.length) fresh = pool;
+  }
+  const choice = fresh[Math.floor(Math.random() * fresh.length)];
+  seen.add(choice);
+  if (meta) {
+    meta.krelSeen = [...seen];
+    meta.krelLast = choice;
+    try { G.saveMeta(); } catch { /* tests / no storage */ }
+  }
+  return choice;
 }
 
 /** No asking: it just happens (story Kreltalities, like Uncle Rik's). */

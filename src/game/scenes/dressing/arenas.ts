@@ -8,7 +8,7 @@ import { ANY, fairyLights, scatter, SMALL, splats } from "./helpers";
 export const arenas: Record<string, Dressing> = {
   // Krelford University Sports Hall: a sprung floor with court lines, the competition mats, the scorers' table
   "arena_brand:0": {
-    floor: "tile_lounge",
+    floor: "hall",
     build(k) {
       const { w, h } = k.r;
       // court lines (it's a basketball court the rest of the week)
@@ -43,7 +43,7 @@ export const arenas: Record<string, Dressing> = {
       k.poster(w / 2 - 250, 28, 200, 34, 0x1e3a8a, 0xfacc15, "KRELFORD UNIVERSITY\nBJJ OPEN 2026", "#fde68a", 9);
       k.poster(w / 2 + 250, 28, 80, 30, 0x111827, 0x6b7280, "MAT 1\n00:00", "#f87171", 9);
       k.text(w / 2 + 190, 28, "OSS", 14, "#ffffff", { font: "Impact, sans-serif", alpha: 0.8 });
-      k.prop("dd_scorers", 190, 170, { scale: 1.5, block: [130, 34] });
+      k.animProp("dd_scorers", 190, 170, { scale: 1.5, block: [130, 34], fps: 4 });
       for (const [x, y, a] of [
         [70, 330, 90],
         [70, 520, 90],
@@ -62,8 +62,7 @@ export const arenas: Record<string, Dressing> = {
 
   // The Krezz Arms back room, Blues Night: the little stage (smoke machine, blue spot), tables of pints, the jukebox
   "arena_troll:0": {
-    floor: "tile_pub",
-    floorTint: 0xb08a70,
+    floor: "pub",
     ambience: "pub",
     build(k) {
       const { w, h } = k.r;
@@ -73,7 +72,7 @@ export const arenas: Record<string, Dressing> = {
       // the stage
       const sx = w - 200;
       const sy = 220;
-      k.prop("dd_pubstage", sx, sy, { scale: 1.8, block: [170, 60] });
+      k.animProp("dd_pubstage", sx, sy, { scale: 1.8, block: [170, 60], fps: 10 });
       k.light(sx, sy - 70, 150, 0x3b82f6, 0.3, "breathe");
       k.light(sx - 40, sy - 50, 90, 0xf59e0b, 0.18, "breathe");
       k.steam(sx + 70, sy - 20, { every: 900, color: 0xc7d2fe, alpha: 0.25, size: 1.4, dir: Math.PI * 0.8, dist: 110 });
@@ -143,13 +142,13 @@ export const arenas: Record<string, Dressing> = {
       dg.lineStyle(1, 0x1c1917).lineBetween(w / 2 + 160, 22, w / 2 + 150, 16).lineBetween(w / 2 + 180, 36, w / 2 + 190, 42);
       k.poster(w / 2 + 270, 28, 60, 44, 0x111111, 0xdc2626, "KREZ\nFACE", "#dc2626", 11, 3);
       // the furniture
-      k.prop("dd_ruinedsofa", 210, 220, { scale: 1.6, block: [170, 46] });
-      k.prop("dd_cantable", 220, 330, { scale: 1.3, block: [90, 26] });
+      k.animProp("dd_ruinedsofa", 210, 220, { scale: 1.6, block: [170, 46], fps: 12, rest: [2500, 7000] });
+      k.animProp("dd_cantable", 220, 330, { scale: 1.3, block: [90, 26], fps: 8, rest: [3000, 8000] });
       k.flies(210, 190, 5, 40);
       k.prop("dd_laundry", w - 120, 260, { scale: 1.5, block: [80, 22] });
       k.prop("dd_laundry", 100, 540, { scale: 1.4, flip: true, block: [76, 22] });
-      k.prop("dd_pizzaboxes", w - 80, 520, { scale: 1.5, block: [40, 18] });
-      k.prop("dd_binbags", w - 150, h - 50, { scale: 1.5, block: [90, 24] });
+      k.animProp("dd_pizzaboxes", w - 80, 520, { scale: 1.5, block: [40, 18], fps: 8, rest: [2500, 8000] });
+      k.animProp("dd_binbags", w - 150, h - 50, { scale: 1.5, block: [90, 24], fps: 8, rest: [3000, 9000] });
       k.flies(w - 150, h - 80, 4, 20);
       k.prop("dd_binbags", 180, h - 50, { scale: 1.3, flip: true, block: [76, 22] });
       splats(k, 9, [0x3b2a1a, 0x7c5a1a, 0x52525b], ANY(k), 16, 0.4);
@@ -191,7 +190,7 @@ export const arenas: Record<string, Dressing> = {
       k.prop("dd_dumbbells", w - 100, 420, { scale: 1.6, flip: true, block: [130, 30] });
       k.prop("dd_benchpress", 140, h - 60, { scale: 1.5, block: [100, 30] });
       k.prop("dd_plates", w - 120, h - 60, { scale: 1.6, block: [60, 24] });
-      k.prop("p_treadmill", w - 260, h - 40, { scale: 1.2, block: [80, 24] });
+      k.animProp("p_treadmill", w - 260, h - 40, { scale: 1.2, block: [80, 24], fps: 12 });
       // chalk: handprints and spilt buckets on the floor, dust in the air
       const cg = k.floorG();
       for (let i = 0; i < 10; i++) {

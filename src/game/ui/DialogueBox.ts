@@ -8,12 +8,13 @@ import { resolveLine, type ResolvedLine } from "../systems/narrative";
 import { displayText } from "../audio/voiceKey";
 import { evalCond } from "../systems/conditions";
 import { portraitKey } from "../gfx/Textures";
+import { playCine } from "../gfx/SideCine";
 import { synth } from "../audio/Synth";
 import { CHARACTERS } from "../../data/characters";
 import { FONT, PIXEL_BOLD, PIXEL_FONT, UI, uiFrame } from "./theme";
 import { kruncherVictim, sanmikActive } from "../systems/sanmik";
 import { sanmikify } from "../systems/sanmikify";
-import { playCine } from "../gfx/Cine";
+import { CINE, playCine as playBeat } from "../gfx/Cine";
 
 /** SanMik isn't in CHARACTERS (he's Mikey in a wig): his name colour. */
 const SANMIK_COLOR = 0xb0c4ff;
@@ -453,14 +454,6 @@ export class DialogueBox {
       const raw = raw0.s === "YOU" ? { ...raw0, s: s.player } : raw0;
       if (!evalCond(raw.cond, s)) continue;
       if (raw.set) Object.assign(s.flags, raw.set);
-      if (raw.cine && !this.skipping) {
-        // an anime beat before the line: the box steps aside while it plays (Tab skips it with the script)
-        this.root.setVisible(false);
-        await playCine(this.scene, raw.cine, () => this.skipping || this.destroyed);
-        if (this.destroyed) break;
-        this.root.setVisible(true);
-        if (!raw.t && !raw.canon && !raw.react && !raw.choice && !raw.tv) continue;
-      }
       if (raw.react) {
         this.skipping = false;
         const r = raw.react;
@@ -500,6 +493,7 @@ export class DialogueBox {
         if (c?.lines) queue.unshift(...c.lines);
         continue;
       }
+      if (raw.cine) await this.cine(raw.cine);
       if (!raw.t && !raw.canon) continue;
       const rl = resolveLine(raw, s, opts);
       if (!rl) continue;
@@ -514,10 +508,33 @@ export class DialogueBox {
         await this.waitAdvance();
         this.clearOverlay();
       }
+      if (raw.cineAfter) await this.cine(raw.cineAfter);
     }
     this.active = false;
     this.skipping = false;
     if (!this.destroyed) this.root.setVisible(false);
+  }
+
+  /**
+   * An anime beat between lines: the box steps aside while it plays. A cue is either a named story beat (gfx/Cine.ts,
+   * content/cine.ts: click / Enter cut it short) or a SideCine cue string (E / Space / click cut it short).
+   * Tab skips either along with the script.
+   */
+  private async cine(cue: string) {
+    if (this.destroyed || this.skipping) return;
+    const was = this.root.visible;
+    this.root.setVisible(false);
+    if (CINE[cue]) {
+      await playBeat(this.scene, cue, () => this.skipping || this.destroyed);
+      if (!this.destroyed) this.root.setVisible(was);
+      return;
+    }
+    await playCine(this.scene, cue, {
+      press: () => new Promise<void>((res) => (this.advanceResolve = res)),
+      skipping: () => this.skipping || this.destroyed,
+    });
+    this.advanceResolve = null;
+    if (!this.destroyed) this.root.setVisible(was);
   }
 
   /** Bumped on every line, so a late YEE from an old line stays quiet. */

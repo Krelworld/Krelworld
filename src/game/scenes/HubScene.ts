@@ -44,6 +44,8 @@ import type { Arc, ArcStep } from "../../content/arcs";
 import { CRYSTAL_BOSSES, CRYSTALS_NEEDED, crystalCount, hasCrystal } from "../systems/crystals";
 import * as FB from "../../content/finaleKrelford";
 import { finalePreload, finaleReady, logsKey } from "./finale/finaleArt";
+import { townLife } from "./hub/townLife";
+import { loopProp } from "../gfx/ambient";
 
 /** The first line over the whiteness. */
 const FD_WAKE_FIRST = FB.FD_WAKE.slice(0, 1);
@@ -800,6 +802,8 @@ export class HubScene extends Phaser.Scene {
     }
     if (this.ruined) this.ruinStreets();
     else if (this.hd) this.dressStreets();
+    // chimney smoke, birds, flags, and a town that changes with the story (graffiti, the Krunchers' mess, the memorial, the party)
+    if (this.hd) townLife(this, BUILDINGS, { ruined: this.ruined, night: this.storyNight(), mourning: this.mourning() });
     // world edge text
     this.add.text(1280, WORLD_H - 30, "KRELFORD · Krelworld · its own fucking universe/dimension", { fontFamily: FONT, fontSize: "12px", color: "#ffffff" }).setOrigin(0.5).setAlpha(0.4);
   }
@@ -876,7 +880,8 @@ export class HubScene extends Phaser.Scene {
     const free = (x: number, y: number, r: number) => !taken.some((t) => Math.hypot(t.x - x, t.y - y) < t.r + r);
     const place = (key: string, x: number, y: number, solid = false, r = 30) => {
       if (!has(key)) return false;
-      const img = this.add.image(x, y, key).setOrigin(0.5, 1).setDepth(y);
+      // the fountain splashes and the market awnings flap, where their sheets are installed
+      const img = (loopProp(this, `${key}_anim`, x, y, 7) ?? this.add.image(x, y, key)).setOrigin(0.5, 1).setDepth(y);
       taken.push({ x, y, r });
       if (solid) this.colliders.add(this.add.rectangle(x, y - 8, img.width * 0.8, 14, 0, 0));
       return true;

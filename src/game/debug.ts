@@ -8,6 +8,8 @@ import { maxHp } from "./systems/stats";
 import { jetStream, startWonk } from "./combat/Wonk";
 import { runGroupWonk } from "./combat/GroupWonk";
 import { kreltality, type Finisher } from "./combat/Kreltality";
+import { vsSplash } from "./gfx/VsSplash";
+import { krelCinema } from "./combat/KrelCinema";
 
 /**
  * Debug hooks for testing (window.__krel). Not shown anywhere in the UI.
@@ -77,6 +79,16 @@ export function installDebug(game: Phaser.Game) {
       const ps = d.player.spr;
       const phd = ps.texture.customData?.hd ?? 1;
       void kreltality(d, { key: e.texture.key, frame: e.frame.name, x: e.x, y: e.y, scale: e.scaleX / hd, flip: e.flipX, name: "TEST DUMMY", id: e.bossId }, { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd }, which);
+    },
+    /** Show a boss's VS card over the running scene (for checking the cards). */
+    vs: (bossId: string) => {
+      const sc = game.scene.getScenes(true)[0];
+      return sc ? vsSplash(sc, { bossId }) : undefined;
+    },
+    /** Play a Kreltality close-up over the running scene. */
+    krelCine: (which: string, title = "TEST!") => {
+      const sc = game.scene.getScenes(true)[0];
+      return sc ? krelCinema(sc, { which, title, victim: "TEST DUMMY" }) : undefined;
     },
     god: () => {
       G.s.hp = maxHp(G.s) * 100;

@@ -115,10 +115,12 @@ export interface Line {
   /** A staged moment in the room as this line shows (e.g. "robbo_enter"): see TownMeetingScene.fx. */
   fx?: string;
   /**
-   * An anime cine beat (gfx/Cine.ts CINE) played before this line shows: drawn stills, cut-ins, slams, stingers.
-   * A line with a cine and no text is a pure stage beat. Click / Enter cuts the beat; Tab skips it with the script.
+   * An anime beat before this line shows (a drawn still, a face cut-in, a freeze-frame, a slam, a stinger…), and/or
+   * once it's been read: see gfx/SideCine.ts for the cue format. Skippable like the line itself. A cue that names a
+   * story beat in content/cine.ts (chapters 1-5: "ch3_unmask") plays that instead (gfx/Cine.ts).
    */
   cine?: string;
+  cineAfter?: string;
 }
 
 export interface MeetingScript {

@@ -1,5 +1,5 @@
 import type { Cond, Line, PlayableId } from "../../data/types";
-import { canon, dir, ping, say } from "../dsl";
+import { beat, canon, dir, ping, say } from "../dsl";
 
 export interface ChapterStep {
   id: string;
@@ -40,7 +40,7 @@ export const CHAPTERS: ChapterDef[] = [
       { id: "s_report", text: "Report back to the Town Hall", done: { flag: "ch1_fact" }, target: "TOWN_HALL" },
     ],
     intro: [
-      dir("A Tuesday afternoon in Krelford. The Tap flows. Somewhere, a fizzy bongo is opened. Every phone in the country buzzes at once."),
+      dir("A Tuesday afternoon in Krelford. The Tap flows. Somewhere, a fizzy bongo is opened. Every phone in the country buzzes at once.", { cine: "ch1_open" }),
       ping("DRONGUS", "🎵 THE KREZZING HOUR — Official Krelworld Anthem — Drongus B. Drippin'"),
       ping("DRONGUS", "New song from me lads. Took me all morning. Genuinely think it's the best one yet."),
       dir("Seen by 9."),
@@ -52,9 +52,9 @@ export const CHAPTERS: ChapterDef[] = [
       ping("DRONGUS", "Why did you react to Gronny but not to me?"),
       ping("DRONGUS", "Are you all deliberately ignoring me ?"),
       ping("DRONGUS", "Notice how there are a few people in the chat what never contribute nothing 😅 it's whatever, don't even give a shit at this point"),
-      ping("DRONGUS", "UNTIL SOMEONE REACTS TO MY NEW AI SONG, THERE WILL BE NO MORE LORE."),
+      ping("DRONGUS", "UNTIL SOMEONE REACTS TO MY NEW AI SONG, THERE WILL BE NO MORE LORE.", { cine: "ch1_leave" }),
       dir("DRONGUS B. DRIPPIN' has left the chat.", { sfx: "leave" }),
-      dir("High above Krelford, the Great Wiki Citadel's gates slam shut. The sky develops a faint grey tint, like an unloaded page. The word 'TOWN' falls off the Town Hall sign and lands on a pigeon."),
+      dir("High above Krelford, the Great Wiki Citadel's gates slam shut. The sky develops a faint grey tint, like an unloaded page. The word 'TOWN' falls off the Town Hall sign and lands on a pigeon.", { cine: "ch1_gates" }),
       dir("Krelworld runs on lore. And the lore has stopped."),
     ],
     playerScene: {
@@ -82,9 +82,9 @@ export const CHAPTERS: ChapterDef[] = [
       { id: "s_report", text: "Report to the Town Hall", done: { flag: "ch2_fact" }, target: "TOWN_HALL" },
     ],
     intro: [
-      dir("CHAPTER TWO. The Tap flows again, but Drongus is still set on leaking the chat."),
+      dir("CHAPTER TWO. The Tap flows again, but Drongus is still set on leaking the chat.", { cine: "ch2_open" }),
       dir("And in the group chat, a message nobody was quite expecting — though everybody was."),
-      ping("POLSON", "Hey dude, I'm afraid I have bad news"),
+      ping("POLSON", "Hey dude, I'm afraid I have bad news", { cine: "ch2_sos" }),
       ping("POLSON", "After a lot of thought I am fifty percent towards the choice to end things with Eden 😔"),
       ping("POLSON", "If I decide to do it. She will need to move out. It will be a huge end to an era!!!"),
       ping("POLSON", "She told me she wants to take over my trust?? Mum says absolutely not."),
@@ -93,7 +93,7 @@ export const CHAPTERS: ChapterDef[] = [
       ping("POLSON", "It's protecting her and it tries to attack me every time I step foot in the house. I'm so scared."),
       ping("POLSON", "I need someone to kill my arsehole cyst so I can finally break up with that bitch."),
       ping("POLSON", "I'm ok tho!! Wbu? 😅"),
-      say("KREZWONK", "Fuck. Polson is in crisis. This needs the War Room.", { role: true, proctus: "This needs the War Room. I've never been allowed in the War Room." }),
+      say("KREZWONK", "Fuck. Polson is in crisis. This needs the War Room.", { cine: "ch2_warroom", role: true, proctus: "This needs the War Room. I've never been allowed in the War Room." }),
     ],
     playerScene: {
       FLENKY: [say("FLENKY", "He's my mate. Whatever happens, he's got us."), dir("You mean it. That's new.")],
@@ -108,13 +108,14 @@ export const CHAPTERS: ChapterDef[] = [
     },
     outro: [
       dir("Town Hall. The giant reaction display on the wall flickers back on. One by one, the reaction icons light up: 👍 ❤️ 😂 😡."),
-      dir("The first reaction through the restored network, after months of nothing: ❤️ from POLSON."),
+      dir("The first reaction through the restored network, after months of nothing: ❤️ from POLSON.", { cine: "ch2_network" }),
       say("KREBLIS", "We saved Polson! We could the second cum crystal! Yee!"),
       say("KREBLIS", "Polson's reacting again", { cond: { notPlayer: "KREBLIS" } }),
       say("KREBLIS", "Mostly thumbs up. To everything. Including the breakup. Classic 👍", { cond: { notPlayer: "KREBLIS" } }),
       say("POLSON", "(on the speakerphone) Lads!! Thank you. Genuinely. I owe you all ❤️"),
       say("POLSON", "I've got a list!! Gym. Get trim. Travelling. In that order. Papa Gino's first though 😅 The deed is done"),
       say("KREZWONK", "Five days left on the countdown."),
+      beat("ch2_close"),
     ],
   },
   {
@@ -130,9 +131,9 @@ export const CHAPTERS: ChapterDef[] = [
       { id: "s_report", text: "Report to the Town Hall", done: { flag: "ch3_fact" }, target: "TOWN_HALL" },
     ],
     intro: [
-      dir("CHAPTER THREE. Krelford is in the icy grip of terror. Every lamppost has a chocolate coin taped to it. An ominous criminal known as the Cuddle Cronster has been squeezing the female inhabitants of Krelford under cover of darkness to 'extract their juices'. Each of his chocolate coins says 'Lovely jubbly pussy juice.'"),
+      dir("CHAPTER THREE. Krelford is in the icy grip of terror. Every lamppost has a chocolate coin taped to it. An ominous criminal known as the Cuddle Cronster has been squeezing the female inhabitants of Krelford under cover of darkness to 'extract their juices'. Each of his chocolate coins says 'Lovely jubbly pussy juice.'", { cine: "ch3_open" }),
       ping("FLENKY", "LADS"),
-      ping("FLENKY", "MOLLOR'S GONE"),
+      ping("FLENKY", "MOLLOR'S GONE", { cine: "ch3_gone" }),
       ping("FLENKY", "THERES A NOTE. ITS GOT A SMILEY FACE ON IT. THE CUDDLE CRONSTER HAS ABDUCTED MY 19 YEAR OLD GIRLFRIEND MOLLOR"),
       ping("FLENKY", "TOWN HALL NOW"),
       ping("POLSON", "Lads!! Before the meeting can someone take me to the gym?? Intense workout 💪"),
@@ -157,6 +158,7 @@ export const CHAPTERS: ChapterDef[] = [
       say("KREBLIS", "Breaking news…", { role: true, proctus: "Breaking news! It was Jenko! No it wasn't! Yes it was!" }),
       say("KREBLIS", "It was Jenko 👍", { cond: { notPlayer: "KREBLIS" } }),
       say("KREZWONK", "Four days left until the chat logs leak. We still have time. The cum crystals are starting to line up."),
+      beat("ch3_close"),
     ],
   },
   {
@@ -173,7 +175,7 @@ export const CHAPTERS: ChapterDef[] = [
       { id: "s_report", text: "Report to the Town Hall", done: { flag: "ch4_fact" }, target: "TOWN_HALL" },
     ],
     intro: [
-      dir("CHAPTER FOUR. Crobley Corporation, makers of the nation's favourite chewy sweet, has a new boss: Reinhardt Crobley. Nobody has seen old Mr Crobson for a week. The new adverts have started. They are on every channel. All the time."),
+      dir("CHAPTER FOUR. Crobley Corporation, makers of the nation's favourite chewy sweet, has a new boss: Reinhardt Crobley. Nobody has seen old Mr Crobson for a week. The new adverts have started. They are on every channel. All the time.", { cine: "ch4_open" }),
       say("KREBLIS", "Breaking… something's wrong with the Crobley advert. I love Crobleys, the infamous candy of Krelworld! Who can forget their flavor of sweet and sugariness! But that new advert…something is amiss..", { role: true, proctus: "Something's wrong with the Crobley advert! I've seen it forty times! I can't stop humming it! Help!" }),
       say("KREBLIS", "I can't stop humming it", { cond: { notPlayer: "KREBLIS" } }),
       say("KREBLIS", "Help", { cond: { notPlayer: "KREBLIS" } }),
@@ -194,6 +196,7 @@ export const CHAPTERS: ChapterDef[] = [
       say("KREBLIS", "Krelmergency over… Crobley Corp HQ is a crater"),
       say("KREZWONK", "Four crystals. Two to go. And something in the Krezz Arms back room is glowing.", { role: true, proctus: "Four crystals! Something's glowing in the pub! It's probably a lamp! It's always a lamp!" }),
       dir("In the wreckage of the factory: another scrap of map. 'TEMPLE OF THE LOGS — PIECE 4 OF 5'."),
+      beat("ch4_close"),
     ],
   },
   {
@@ -208,7 +211,7 @@ export const CHAPTERS: ChapterDef[] = [
       { id: "s_report", text: "Report to the Town Hall", done: { flag: "ch5_fact" }, target: "TOWN_HALL" },
     ],
     intro: [
-      dir("CHAPTER FIVE. The back room of the Krezz Arms is glowing. Something in there smells of corn. Every few minutes, faintly, through the wall: 'yee'."),
+      dir("CHAPTER FIVE. The back room of the Krezz Arms is glowing. Something in there smells of corn. Every few minutes, faintly, through the wall: 'yee'.", { cine: "ch5_open" }),
       ping("DRONGUS", "Who the fuck is Krebon"),
       ping("DRONGUS", "Also who the fuck is SanMik"),
     ],
@@ -228,6 +231,7 @@ export const CHAPTERS: ChapterDef[] = [
       say("SANCHZ", "YEGHHH."),
       say("KREZWONK", "Uncle Rik's out of the tub. The crystal's ours. The SanMikverse holds. Which means the canon holds. Which means Da Drongus Dungeon can't keep us out much longer.", { role: true, proctus: "The uncle's out! The crystal's in! The tub's empty! I prophesied that! Just now!" }),
       say("KREZWONK", "Just one more cum crystal, and we advance to DA DRONGUS DUNGEON. And we delete those chat logs."),
+      beat("ch5_close"),
       dir("Tomorrow, as it turns out, has other plans."),
     ],
   },

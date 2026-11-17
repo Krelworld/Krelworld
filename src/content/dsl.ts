@@ -16,6 +16,8 @@ export const canon = (id: string, extra: Extra = {}): Line => {
 export const adapt = (s: SpeakerId, t: string, extra: Extra = {}): Line => ({ s, t, tag: "adapted", ...extra });
 /** Stage direction. */
 export const dir = (t: string, extra: Extra = {}): Line => ({ s: "NARRATOR", t, dir: true, ...extra });
+/** A stage beat with no words: an anime cine beat (gfx/Cine.ts) plays here, between lines. */
+export const beat = (cine: string, extra: Extra = {}): Line => ({ s: "NARRATOR", t: "", dir: true, cine, ...extra });
 /** Messenger notification pop. */
 export const ping = (s: SpeakerId, t: string, extra: Extra = {}): Line => ({ s, t, notify: true, tag: "new", sfx: "notify", ...extra });
 /** Reaction prompt beat. */

@@ -27,7 +27,7 @@ export interface RoomDef {
   waves?: [string, number][][];
   props?: PropDef[];
   /** Special scripted event handled by the dungeon scene. */
-  event?: "valves" | "reaction_terminal" | "bertha" | "records" | "anthem" | "colon" | "drongus1" | "stairs" | "drongus2" | "roof";
+  event?: "valves" | "reaction_terminal" | "bertha" | "records" | "anthem" | "colon" | "drongus1" | "stairs" | "drongus2" | "roof" | "plane";
   boss?: string;
   /** Arbitrary Drongus rule active in this room (chapter 4). */
   rule?: string;
@@ -55,6 +55,13 @@ export interface RoomDef {
   /** Crushers, steam vents and conveyor belts. */
   hazards?: { kind: "crusher" | "steam" | "conveyor"; x: number; w?: number; period?: number; dir?: number; offset?: number }[];
   crusherLabel?: string;
+  /** Side rooms: art overrides (floor tile, crusher head sheet, vent, moving-platform image) and what the vents puff. */
+  floorTile?: string;
+  crusherArt?: string;
+  ventArt?: string;
+  ventColor?: number;
+  ventLabel?: string;
+  moverArt?: string;
   /** Run and gun: when you get past x (0..1), this lot turns up. Replaces waves. */
   triggers?: [number, [string, number][]][];
   /** Side-scrolling set piece: something chases you from the left once you pass `at` (0..1). */
@@ -99,6 +106,60 @@ export interface DungeonDef {
   returnAt?: string;
   /** "side": a side-scrolling platformer (gravity, jumping, exit on the right). */
   view?: "side";
+}
+
+/** FLIGHT KR-069, the aisle: economy, the galley, business class (with the hole in it), first class, cockpit door.
+ *  Side-on run'n'gun; PlaneCabin.ts adds the seat-back gunners, window goons, crawling stewards, loose trolleys,
+ *  falling luggage, the decompression and the turbulence. */
+export const PLANE_W = 7800;
+/** Where each part of the cabin starts (px): economy, galley, business, first class, the cockpit bulkhead. */
+export const PLANE_SECTIONS = { economy: 0, galley: 2800, business: 3600, first: 5000, bulkhead: 7480 };
+/** The hole in the hull (px), in business class. */
+export const PLANE_HOLE_X = 4300;
+function flightAisle(): RoomDef {
+  const f = (px: number) => px / PLANE_W;
+  return {
+    name: "Flight KR-069: The Aisle",
+    view: "side",
+    w: PLANE_W,
+    h: 540,
+    theme: "industrial",
+    event: "plane",
+    exitLabel: "COCKPIT →",
+    // stacked trolleys in the galley, piled luggage, the first-class bar
+    platforms: [[f(1250), 92, 130], [f(2050), 92, 130], [f(2980), 100, 120], [f(3300), 100, 120], [f(3140), 200, 150], [f(5500), 96, 200], [f(6150), 96, 190], [f(5830), 200, 150], [f(6850), 96, 170]],
+    triggers: [
+      [0.03, [["hijacker", 3]]],
+      [0.12, [["klerble_goon", 3], ["hijacker", 1]]],
+      [0.22, [["hijacker", 2], ["klerble_goon", 2]]],
+      [0.34, [["klerble_goon", 3], ["jet_hijacker", 1], ["hijacker", 1]]],
+      [0.46, [["hijacker", 3], ["klerble_goon", 1]]],
+      [0.66, [["klerble_goon", 4], ["jet_hijacker", 1]]],
+      [0.75, [["hijacker", 2], ["jet_hijacker", 2]]],
+      [0.86, [["klerble_goon", 3], ["hijacker", 3]]],
+    ],
+    enterLines: [
+      { s: "NARRATOR", t: "You're on. Seatbelt sign on. The cabin crew are all wearing balaclavas. Captain Stanley hires on attitude. One of them is serving drinks out of a possessed trolley.", dir: true },
+      { s: "MIKEY", t: "(over the radio) That's Captain Stanley's crew. Thirty years, never once been hijacked. They will NOT like you hijacking their plane.", cond: { notPlayer: "MIKEY" } },
+      { s: "NARRATOR", t: "Fight down the aisle to the cockpit. Excuse yourself to the passengers. Or don't.", dir: true },
+      { s: "NARRATOR", t: "RUN AND GUN, all the way down the plane: A / D run · W jump (again in the air to double jump) · S drop · aim and fire as normal. Jump the trolleys and the crawling stewards. Mind the bins. Don't go near the hole.", dir: true },
+    ],
+  };
+}
+
+/** The cockpit: breach the door, and Captain Stanley is waiting (the same fight as ever, side-on). */
+function flightCockpit(): RoomDef {
+  return {
+    name: "Flight KR-069: The Cockpit",
+    view: "side",
+    w: 960,
+    h: 540,
+    theme: "industrial",
+    event: "plane",
+    backdrop: "pl_cockpit",
+    platforms: [[0.2, 130, 170], [0.8, 130, 170], [0.5, 240, 200]],
+    boss: "krozno",
+  };
 }
 
 /** DA DRONGUS CORRIDOR (Chapter 7): a long gothic-cyber run'n'gun. Pits full of servers, presses, steam, moving
@@ -667,27 +728,9 @@ export const DUNGEONS: Record<string, DungeonDef> = {
     name: "FLIGHT KR-069: OPERATION PLANE INTO TRAIN",
     music: "krel_tower_rap",
     returnAt: "AIRPORT",
-    rooms: [
-      {
-        name: "Flight KR-069: The Aisle",
-        w: 2200,
-        h: 380,
-        theme: "industrial",
-        waves: [[["bandit", 5], ["trolley", 1]], [["bandit_gunner", 3], ["trolley", 2]], [["bandit", 4], ["bandit_gunner", 2]]],
-        enterLines: [
-          { s: "NARRATOR", t: "You're on. Seatbelt sign on. The cabin crew are all wearing balaclavas. Captain Stanley hires on attitude. One of them is serving drinks out of a possessed trolley.", dir: true },
-          { s: "MIKEY", t: "(over the radio) That's Captain Stanley's crew. Thirty years, never once been hijacked. They will NOT like you hijacking their plane.", cond: { notPlayer: "MIKEY" } },
-          { s: "NARRATOR", t: "Fight down the aisle to the cockpit. Excuse yourself to the passengers. Or don't.", dir: true },
-        ],
-      },
-      {
-        name: "Flight KR-069: The Cockpit",
-        w: 1100,
-        h: 700,
-        theme: "industrial",
-        boss: "krozno",
-      },
-    ],
+    // side-on now: a run'n'gun down the length of the plane (src/game/scenes/side/PlaneCabin.ts does the cabin,
+    // the passengers, the trolleys, the bins, the hole in the hull and the cockpit breach)
+    rooms: [flightAisle(), flightCockpit()],
   },
   arena_brand: {
     id: "arena_brand",
@@ -873,29 +916,67 @@ export const DUNGEONS: Record<string, DungeonDef> = {
     name: "INSIDE UNCLE RIK (THE TRANSVERSE COLON)",
     music: "ominous",
     returnAt: "PUB",
+    // side-on: a narrow run'n'gun down the inside of the tube (the Colon module in scenes/side dresses it)
+    view: "side",
     rooms: [
       {
         name: "Uncle Rik's Transverse Colon",
-        w: 1500,
-        h: 900,
+        w: 6400,
+        h: 540,
         theme: "colon",
         event: "colon",
         exitFlag: "rik_bombs_done",
         exitHint: "There's no way out but through. Plant all four bombs.",
-        waves: [[["gerbil", 6], ["poo", 3]], [["tumor", 3], ["gerbil", 5]], [["poo", 4], ["tumor", 2], ["gerbil", 7]]],
+        exitLabel: "NO WAY OUT (PLANT THE BOMBS)",
+        backdrop: "colon_side_bg",
+        floorTile: "colon_floor",
+        crusherArt: "colon_squeeze",
+        crusherLabel: "PERISTALSIS",
+        ventArt: "colon_pore",
+        ventColor: 0xbef264,
+        ventLabel: "GUT GAS",
+        moverArt: "colon_poolog",
+        floorGaps: [[0.09, 150], [0.27, 180], [0.51, 170], [0.72, 190], [0.88, 150]],
+        pitColor: 0x9acd32,
+        pitName: "BILE",
+        platforms: [[0.05, 110, 150], [0.2, 120, 170], [0.235, 200, 140], [0.42, 130, 180], [0.46, 210, 140], [0.62, 120, 160], [0.66, 200, 150], [0.8, 130, 170], [0.9, 140, 160]],
+        movers: [[0.102, 100, 110, 0, 50, 2400], [0.284, 110, 120, 50, 0, 2600], [0.523, 100, 110, 0, 55, 2300], [0.735, 110, 120, 0, 60, 2200]],
+        hazards: [
+          { kind: "crusher", x: 0.14, w: 130, period: 2600 },
+          { kind: "steam", x: 0.18, period: 3000 },
+          { kind: "crusher", x: 0.31, w: 130, period: 2300, offset: 600 },
+          { kind: "crusher", x: 0.33, w: 130, period: 2300, offset: 1500 },
+          { kind: "steam", x: 0.45, period: 2700, offset: 900 },
+          { kind: "crusher", x: 0.55, w: 130, period: 2200, offset: 300 },
+          { kind: "steam", x: 0.64, period: 2600 },
+          { kind: "crusher", x: 0.68, w: 130, period: 2400, offset: 1100 },
+          { kind: "crusher", x: 0.82, w: 130, period: 2100, offset: 700 },
+          { kind: "steam", x: 0.85, period: 2400, offset: 1300 },
+        ],
+        triggers: [
+          [0.03, [["gerbil", 5], ["sweetcorn", 3]]],
+          [0.12, [["poo", 3], ["fart_bubble", 2], ["tapeworm", 2]]],
+          [0.22, [["tumor", 1], ["polyp", 1], ["gerbil", 5]]],
+          [0.36, [["tapeworm", 2], ["corn_turd", 3], ["biofilm", 2]]],
+          [0.47, [["fart_bubble", 3], ["sweetcorn", 6], ["polyp", 1]]],
+          [0.58, [["poo", 3], ["tapeworm", 3], ["tumor", 1]]],
+          [0.7, [["gerbil", 7], ["fart_bubble", 3], ["biofilm", 2]]],
+          [0.83, [["tumor", 2], ["polyp", 1], ["tapeworm", 2], ["sweetcorn", 5]]],
+        ],
         props: [
-          { kind: "crystal_wall", x: 0.5, y: 0.2, id: "rik_crystal" },
-          { kind: "bomb_spot", x: 0.14, y: 0.36, id: "b1" },
-          { kind: "bomb_spot", x: 0.86, y: 0.36, id: "b2" },
-          { kind: "bomb_spot", x: 0.2, y: 0.82, id: "b3" },
-          { kind: "bomb_spot", x: 0.8, y: 0.82, id: "b4" },
+          { kind: "crystal_wall", x: 0.38, y: 0.2, id: "rik_crystal" },
+          { kind: "bomb_spot", x: 0.48, y: 0.9, id: "b1" },
+          { kind: "bomb_spot", x: 0.6, y: 0.9, id: "b2" },
+          { kind: "bomb_spot", x: 0.76, y: 0.9, id: "b3" },
+          { kind: "bomb_spot", x: 0.95, y: 0.9, id: "b4" },
         ],
         enterLines: [
           { s: "NARRATOR", t: "You are four millimetres tall, and you are inside Uncle Rik's large intestine. Specifically the transverse colon. The walls are pink, ridged (haustra) and wet (mucosa). They are slowly contracting (peristalsis).", dir: true },
           { s: "GENIE", t: "(on the radio, from the lamp) Peristalsis. That's the squeezing. Don't touch the walls. Don't touch ANYTHING. Oh god, I'm going to be sick in my own lamp." },
           { s: "SANMIK", t: "(on the radio) Find the crystal. Plant the bombs. Get out. Yee.", cond: { notPlayer: "MIKEY" } },
           { s: "SANCHZ", t: "(on the radio) Find the crystal. Plant the bombs. Get out. Yee.", cond: { player: "MIKEY" } },
-          { s: "NARRATOR", t: "Something in the dark is gnawing. Something else is screaming about being cancerous. TIP: prise the cum crystal out of the wall, then plant all four bombs (E on the red circles).", dir: true },
+          { s: "NARRATOR", t: "Something in the dark is gnawing. Something else is screaming about being cancerous. A single kernel of sweetcorn from 2019 runs past, screaming that it has never been digested.", dir: true },
+          { s: "NARRATOR", t: "RUN AND GUN: push right, down the tube. Prise the cum crystal out of the wall, then plant all four bombs (E on the red circles) on the way through. Mind the squeezes, the bile and the gas.", dir: true },
         ],
       },
     ],

@@ -59,7 +59,7 @@ export class SideLevel {
     const r = this.room;
     const sc = this.sc;
     const gy = sc.groundY;
-    const tile = `tile_${r.theme}`;
+    const tile = r.floorTile ?? `tile_${r.theme}`;
     // the floor, with holes in it
     if (this.hasGaps) {
       this.gaps = (r.floorGaps ?? []).map(([fx, w]) => [r.w * fx, r.w * fx + w]);
@@ -72,7 +72,9 @@ export class SideLevel {
       }
       if (x < r.w) segs.push([x, r.w]);
       for (const [a, b] of segs) {
-        sc.add.tileSprite(a, gy, b - a, r.h - gy, tile).setOrigin(0).setDepth(2).setTint(0x8a8a9a);
+        const fl = sc.add.tileSprite(a, gy, b - a, r.h - gy, tile).setOrigin(0).setDepth(2);
+        if (r.floorTile) fl.setTileScale(2);
+        else fl.setTint(0x8a8a9a);
         sc.add.rectangle(a, gy, b - a, 4, 0x000000, 0.6).setOrigin(0).setDepth(3);
         const f = sc.add.rectangle((a + b) / 2, gy + (r.h - gy) / 2, b - a, r.h - gy, 0, 0);
         this.floor.add(f);
@@ -92,6 +94,13 @@ export class SideLevel {
       const y = gy - h;
       const rect = sc.add.rectangle(x, y, w, 14, 0, 0);
       platforms.add(rect);
+      if (r.moverArt && sc.textures.exists(r.moverArt)) {
+        // a picture of its own (in the colon: a log, with a poo on it), its top edge level with the platform's
+        const art = sc.add.image(x, y, r.moverArt).setDepth(4);
+        art.setScale((w + 16) / art.width);
+        this.movers.push({ rect, deco: [art], bx: x, by: y, dx, dy, period, lastX: x, lastY: y });
+        continue;
+      }
       const cit = r.theme === "citadel";
       const top = sc.add.tileSprite(x, y, w, 14, tile).setDepth(4).setTint(cit ? 0x9a86b0 : 0xffd6a5);
       const edge = sc.add.rectangle(x, y - 7, w, 3, cit ? 0xff2d95 : 0x22d3ee, 0.9).setDepth(5);
@@ -105,7 +114,21 @@ export class SideLevel {
         const w = hz.w ?? 120;
         const block = sc.add.container(x, 70).setDepth(8);
         block.add(sc.add.rectangle(0, -200, 16, 400, 0x52525b).setStrokeStyle(2, 0x111827));
-        if (sc.textures.exists("side_crusher")) {
+        const art = r.crusherArt && sc.textures.exists(r.crusherArt) ? r.crusherArt : "side_crusher";
+        if (art !== "side_crusher") {
+          // a squeeze of its own (the colon: a throbbing fist of muscle on a fleshy stalk)
+          (block.list[0] as Phaser.GameObjects.Rectangle).setFillStyle(0x9f1239).setStrokeStyle(4, 0x4c0519);
+          const head = sc.add.sprite(0, 34, art, 0).setOrigin(0.5, 1);
+          head.setScale(w / head.width);
+          const n = sc.textures.get(art).frameTotal - 1;
+          if (n > 1) {
+            const anim = `${art}_throb`;
+            if (!sc.anims.exists(anim)) sc.anims.create({ key: anim, frames: sc.anims.generateFrameNumbers(art, { start: 0, end: n - 1 }), frameRate: 6, repeat: -1, yoyo: true });
+            head.play({ key: anim, startFrame: Math.floor(Math.random() * n) });
+          }
+          block.add(head);
+          block.add(sc.add.text(0, -14, r.crusherLabel ?? "SQUEEZE", { fontFamily: "Impact, sans-serif", fontSize: "13px", color: "#fff", stroke: "#4c0519", strokeThickness: 4 }).setOrigin(0.5));
+        } else if (sc.textures.exists("side_crusher")) {
           // PixelLab press head: riveted crimson steel, hazard-striped foot; its bottom edge is the block's (y + 30)
           const head = sc.add.image(0, 30, "side_crusher").setOrigin(0.5, 1);
           head.setScale(w / head.width);
@@ -123,7 +146,8 @@ export class SideLevel {
       } else if (hz.kind === "steam") {
         const puff = sc.add.rectangle(x, gy, 54, 280, 0xe5e7eb, 0).setOrigin(0.5, 1).setDepth(7);
         // a PixelLab vent box sunk into the floor (only its grille shows above the ground strip), or a drawn grate
-        if (sc.textures.exists("side_vent")) sc.add.image(x, gy + 22, "side_vent").setOrigin(0.5, 1).setScale(1.3).setDepth(1.5);
+        if (r.ventArt && sc.textures.exists(r.ventArt)) sc.add.image(x, gy + 10, r.ventArt).setOrigin(0.5, 1).setScale(1.4).setDepth(3);
+        else if (sc.textures.exists("side_vent")) sc.add.image(x, gy + 22, "side_vent").setOrigin(0.5, 1).setScale(1.3).setDepth(1.5);
         else sc.add.rectangle(x, gy - 4, 70, 10, 0x374151).setDepth(6).setStrokeStyle(2, 0x111827);
         this.vents.push({ x, period: hz.period ?? 3000, offset: hz.offset ?? Math.random() * 2000, puff, nextTick: 0 });
       } else if (hz.kind === "conveyor") {
@@ -262,12 +286,12 @@ export class SideLevel {
       const blastAt = v.period - 1100;
       const warnAt = blastAt - 700;
       if (t >= blastAt) {
-        v.puff.setFillStyle(0xf1f5f9, 0.75).setScale(1, 1);
+        v.puff.setFillStyle(this.room.ventColor ?? 0xf1f5f9, 0.75).setScale(1, 1);
         if (Math.abs(p.x - v.x) < 30 && p.y > gy - 280 && now > v.nextTick) {
           v.nextTick = now + 380;
-          sc.damagePlayer(9, { x: v.x, y: gy }, { unblockable: true, label: "-9 (STEAM)" });
+          sc.damagePlayer(9, { x: v.x, y: gy }, { unblockable: true, label: `-9 (${this.room.ventLabel ?? "STEAM"})` });
         }
-      } else if (t >= warnAt) v.puff.setFillStyle(0xf1f5f9, 0.25).setScale(0.6, 0.2);
+      } else if (t >= warnAt) v.puff.setFillStyle(this.room.ventColor ?? 0xf1f5f9, 0.25).setScale(0.6, 0.2);
       else v.puff.setFillStyle(0xffffff, 0);
     }
     // hazards don't care who they hit

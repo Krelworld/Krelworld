@@ -202,7 +202,7 @@ export const MUSIC_FILES: Record<string, string> = {
 };
 
 /** Where a song starts (seconds) when it first comes on, e.g. the title song skips its instrumental intro and opens on the vocals. */
-const MUSIC_START: Record<string, number> = { title: 3.5, sanmik: 16.8 };
+const MUSIC_START: Record<string, number> = { sanmik: 16.8 };
 
 /** Looping songs that loop back to their MUSIC_START point rather than to the top. */
 const LOOP_FROM_START = new Set(["sanmik"]);

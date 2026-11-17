@@ -2778,6 +2778,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       if (opts.label !== "" && Math.random() < 0.3) this.floatText(e.x, e.y - 40, "SHIELDED", "#88aaff", 12);
       return;
     }
+    // shield phases (BossShield.ts): immune while it's up, bonus while it's down, clamped at each threshold
+    if (e instanceof Boss && e.guard) {
+      a = e.guard.damage(a, opts);
+      if (a <= 0) return;
+    }
     const hpBefore = e.hp;
     e.hp -= a;
     e.flashUntil = now + 70;

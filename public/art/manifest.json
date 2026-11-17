@@ -11944,6 +11944,46 @@
    "loop": false,
    "ox": 0.5,
    "oy": 0.873
+  },
+  "bs_vfx_shield_bubble": {
+   "file": "vfx/bs_vfx_shield_bubble.png",
+   "w": 174,
+   "h": 174,
+   "frames": 16,
+   "fps": 12,
+   "loop": true,
+   "ox": 0.5,
+   "oy": 0.5
+  },
+  "bs_vfx_shield_shatter": {
+   "file": "vfx/bs_vfx_shield_shatter.png",
+   "w": 200,
+   "h": 240,
+   "frames": 12,
+   "fps": 16,
+   "loop": false,
+   "ox": 0.515,
+   "oy": 0.313
+  },
+  "bs_vfx_shield_crack": {
+   "file": "vfx/bs_vfx_shield_crack.png",
+   "w": 106,
+   "h": 78,
+   "frames": 10,
+   "fps": 18,
+   "loop": false,
+   "ox": 0.396,
+   "oy": 0.423
+  },
+  "bs_vfx_stun_stars": {
+   "file": "vfx/bs_vfx_stun_stars.png",
+   "w": 65,
+   "h": 31,
+   "frames": 12,
+   "fps": 12,
+   "loop": true,
+   "ox": 0.492,
+   "oy": 0.742
   }
  }
 }

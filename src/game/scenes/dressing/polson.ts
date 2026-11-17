@@ -65,7 +65,7 @@ export const polson: Record<string, Dressing> = {
       k.prop("dd_sink", 410, 160, { scale: 1.8, flip: true, block: [130, 40] });
       // the fridge, and what's coming out of it
       const fx = w - 330;
-      k.prop("dd_mouldfridge", fx, 170, { scale: 1.9, block: [80, 34] });
+      k.animProp("dd_mouldfridge", fx, 170, { scale: 1.9, block: [80, 34] });
       const ooze = splats(k, 9, [0x4d7c0f, 0x65a30d, 0x84cc16], new Phaser.Geom.Rectangle(fx - 30, 190, 60, 160), 12, 0.7);
       k.sc.tweens.add({ targets: ooze, alpha: 0.55, yoyo: true, repeat: -1, duration: 1400, ease: "Sine.inOut" });
       k.flies(fx, 150, 5, 26);
@@ -116,8 +116,7 @@ export const polson: Record<string, Dressing> = {
       k.prop("dd_toymountain", mx, my, { scale: 1.6, block: [240, 80] });
       k.light(mx, my - 120, 200, 0xfff1f2, 0.12, "breathe");
       // the one thing in here with his name on it
-      const ham = k.prop("dd_hamster", mx - 190, my + 40, { scale: 1.3, block: [50, 20] });
-      if (ham) k.sc.tweens.add({ targets: ham, scaleY: ham.scaleY * 1.02, yoyo: true, repeat: -1, duration: 700 });
+      k.animProp("dd_hamster", mx - 190, my + 40, { scale: 1.3, block: [50, 20] });
       label(k, mx - 190, my + 54, "POLSON'S");
       for (const [x, y, f] of [
         [90, 470, false],

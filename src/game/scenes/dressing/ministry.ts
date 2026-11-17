@@ -58,10 +58,10 @@ export const ministry: Record<string, Dressing> = {
       // the heart disco ball, hanging from the ceiling, turning
       const bx = w / 2 + 220;
       const by = 160;
-      const line = k.sc.add.rectangle(bx, 0, 1, by - 26, 0xe5e7eb, 0.7).setOrigin(0.5, 0).setDepth(DEPTH.overhead + 1);
-      const ball = k.sc.add.image(bx, by, "dd_discoheart").setScale(1.2).setDepth(DEPTH.overhead + 1.1);
-      void line;
-      k.sc.tweens.add({ targets: ball, scaleX: { from: 1.2, to: 0.9 }, yoyo: true, repeat: -1, duration: k.calm ? 2600 : 1100, ease: "Sine.inOut" });
+      k.sc.add.rectangle(bx, 0, 1, by - 32, 0xe5e7eb, 0.7).setOrigin(0.5, 0).setDepth(DEPTH.overhead + 1);
+      const ball = k.animProp("dd_discoheart", bx, by, { scale: 1.2, origin: [0.5, 0.5], depth: DEPTH.overhead + 1.1, fps: k.calm ? 4 : 8 });
+      if (ball) k.sc.tweens.add({ targets: ball, angle: { from: -5, to: 5 }, yoyo: true, repeat: -1, duration: 2400, ease: "Sine.inOut" });
+      k.light(bx, by + 60, 70, 0xff4fb8, 0.2, "breathe");
       k.discoSpots(w / 2, h * 0.52, 9, [0xff4fb8, 0xffffff, 0xc084fc, 0xf9a8d4], 300, 0.2);
       scatter(k, [SMALL.teddy(k), SMALL.bunny(k)], 10, new Phaser.Geom.Rectangle(80, 200, w - 160, h - 300), { colors: [0xb45309, 0xfbcfe8], sfx: "pop", scale: 1.5 });
       k.motes(26, 0xffc0e0, 0.45);

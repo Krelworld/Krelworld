@@ -211,6 +211,18 @@ const DRAW: Record<string, (ctx: Ctx, r: () => number) => void> = {
     ctx.fillRect(43, 8 + 3, 2, 2);
     ctx.fillRect(11, 43, 2, 2);
   },
+  // Krunch Gym: black rubber gym tiles, coloured flecks, a seam every half metre
+  gym: (ctx, r) => {
+    ctx.fillStyle = "#2b2d33";
+    ctx.fillRect(0, 0, 64, 64);
+    speckle(ctx, r, 240, [0x24262b, 0x34363d, 0x3a3d45], 1);
+    speckle(ctx, r, 26, [0x4b5563, 0x6b7280, 0x7f1d1d, 0x1e3a8a], 1);
+    ctx.fillStyle = "#1b1c20";
+    ctx.fillRect(0, 0, 64, 1);
+    ctx.fillRect(0, 0, 1, 64);
+    ctx.fillRect(0, 32, 64, 1);
+    ctx.fillRect(32, 0, 1, 64);
+  },
   // the cockpit: grey ribbed rubber
   cockpit: (ctx, r) => {
     ctx.fillStyle = "#3b4252";

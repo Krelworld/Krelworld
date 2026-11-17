@@ -75,10 +75,28 @@ export class Kit {
     if (o.tint !== undefined) img.setTint(o.tint);
     if (o.alpha !== undefined) img.setAlpha(o.alpha);
     if (o.angle) img.setAngle(o.angle);
-    if (o.block) this.block(x, y - o.block[1] / 2 - 2, o.block[0], o.block[1]);
+    if (o.block) this.block(x, o.origin ? y : y - o.block[1] / 2 - 2, o.block[0], o.block[1]);
     // a contact shadow so it sits on the floor
     if (o.origin === undefined) this.sc.add.ellipse(x, y - 2, img.displayWidth * 0.8, Math.max(8, img.displayHeight * 0.12), 0x000000, 0.28).setDepth(DEPTH.decal + 0.3);
     return img;
+  }
+
+  /**
+   * A piece of furniture that moves (a PixelLab loop, `<key>_anim` sheet): the boiler roaring, the jukebox lights, the
+   * hamster on his wheel. Falls back to the still `key` if the sheet isn't there.
+   */
+  animProp(key: string, x: number, y: number, o: PropOpts & { fps?: number } = {}): Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | null {
+    const sheet = `${key}_anim`;
+    if (!this.has(sheet)) return this.prop(key, x, y, o);
+    const img = this.prop(key, x, y, o);
+    if (!img) return null;
+    const anim = `${sheet}_loop`;
+    if (!this.sc.anims.exists(anim)) this.sc.anims.create({ key: anim, frames: this.sc.anims.generateFrameNumbers(sheet, {}), frameRate: o.fps ?? 8, repeat: -1 });
+    const spr = this.sc.add.sprite(img.x, img.y, sheet, 0).setOrigin(img.originX, img.originY).setScale(o.scale ?? 1.6).setDepth(img.depth).setFlipX(img.flipX);
+    if (o.tint !== undefined) spr.setTint(o.tint);
+    spr.play({ key: anim, startFrame: this.rnd.between(0, 7) });
+    img.destroy();
+    return spr;
   }
 
   /** An invisible solid box (centre x, y). */

@@ -11244,6 +11244,31 @@
    "file": "tv/action/robo_player.png",
    "frameWidth": 96,
    "frameHeight": 96
+  },
+  "dd_boiler_anim": {
+   "file": "props/dd_boiler_anim.png",
+   "frameWidth": 90,
+   "frameHeight": 88
+  },
+  "dd_jukebox_anim": {
+   "file": "props/dd_jukebox_anim.png",
+   "frameWidth": 40,
+   "frameHeight": 62
+  },
+  "dd_hamster_anim": {
+   "file": "props/dd_hamster_anim.png",
+   "frameWidth": 50,
+   "frameHeight": 49
+  },
+  "dd_mouldfridge_anim": {
+   "file": "props/dd_mouldfridge_anim.png",
+   "frameWidth": 44,
+   "frameHeight": 65
+  },
+  "dd_discoheart_anim": {
+   "file": "props/dd_discoheart_anim.png",
+   "frameWidth": 44,
+   "frameHeight": 57
   }
  },
  "vfx": {

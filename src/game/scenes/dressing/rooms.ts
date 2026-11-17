@@ -2,6 +2,8 @@ import type { Kit } from "./kit";
 import { wildern } from "./wildern";
 import { polson } from "./polson";
 import { ministry } from "./ministry";
+import { arenas } from "./arenas";
+import { misc } from "./misc";
 
 /**
  * Per-room set dressing for the top-down dungeons: what the floor is, what's in the room, how it's lit and how it
@@ -27,6 +29,8 @@ export const DRESSINGS: Record<string, Dressing> = {
   ...wildern,
   ...polson,
   ...ministry,
+  ...arenas,
+  ...misc,
 };
 
 export function dressingFor(dungeonId: string, roomIdx: number): Dressing | null {

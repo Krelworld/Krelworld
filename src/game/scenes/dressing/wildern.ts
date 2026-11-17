@@ -78,7 +78,7 @@ export const wildern: Record<string, Dressing> = {
         [w - 260, 400],
         [w - 260, 610],
       ]) {
-        k.prop("dd_dinnertable", x, y, { scale: 1.3, block: [190, 26] });
+        k.prop("dd_dinnertable", x, y, { scale: 1.5, block: [170, 36] });
         k.light(x, y - 20, 140, 0xfff3d6, 0.1);
       }
       splats(k, 12, [0xc2410c, 0xea580c, 0xfde047], ANY(k), 10, 0.7);
@@ -130,7 +130,7 @@ export const wildern: Record<string, Dressing> = {
         [200, 330, false],
         [w - 210, 590, true],
       ] as const) {
-        k.prop("dd_boiler", x, y, { scale: 1.8, flip, block: [140, 70] });
+        k.animProp("dd_boiler", x, y, { scale: 1.8, flip, block: [140, 70], fps: 7 });
         const fx = x + (flip ? 34 : -34);
         k.light(fx, y - 30, 120, 0xff7a1a, 0.32, "fire");
         k.steam(x + (flip ? -20 : 20), y - 150, { every: 500, alpha: 0.35, size: 1.1 });

@@ -201,6 +201,9 @@ export class Spice {
       // keep clear of the door (top middle) and where you walk in (bottom middle)
       if (Math.abs(x - b.centerX) < 110 && (y < b.top + 140 || y > b.bottom - 150)) continue;
       if (this.breakables.some((q) => Phaser.Math.Distance.Between(q.x, q.y, x, y) < 70)) continue;
+      // not in (or drawn over by) the furniture: solid boxes sit at the furniture's feet, the art rises above them
+      const solid = (this.sc.obstacles?.getChildren?.() ?? []) as { x: number; y: number; width: number; height: number }[];
+      if (solid.some((o) => Math.abs(o.x - x) < o.width / 2 + 34 && y > o.y - o.height / 2 - 110 && y < o.y + o.height / 2 + 34)) continue;
       return { x, y };
     }
     return null;

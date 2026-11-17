@@ -8665,6 +8665,114 @@
   },
   "tva_prop_kimchi": {
    "file": "tv/action/prop_kimchi.png"
+  },
+  "dd_beanbag": {
+   "file": "props/dd_beanbag.png"
+  },
+  "dd_benchpress": {
+   "file": "props/dd_benchpress.png"
+  },
+  "dd_binbags": {
+   "file": "props/dd_binbags.png"
+  },
+  "dd_boiler": {
+   "file": "props/dd_boiler.png"
+  },
+  "dd_bookshelf": {
+   "file": "props/dd_bookshelf.png"
+  },
+  "dd_cantable": {
+   "file": "props/dd_cantable.png"
+  },
+  "dd_chaise": {
+   "file": "props/dd_chaise.png"
+  },
+  "dd_coalpile": {
+   "file": "props/dd_coalpile.png"
+  },
+  "dd_cockpit": {
+   "file": "props/dd_cockpit.png"
+  },
+  "dd_dinnertable": {
+   "file": "props/dd_dinnertable.png"
+  },
+  "dd_discoheart": {
+   "file": "props/dd_discoheart.png"
+  },
+  "dd_dumbbells": {
+   "file": "props/dd_dumbbells.png"
+  },
+  "dd_hamster": {
+   "file": "props/dd_hamster.png"
+  },
+  "dd_headdesk": {
+   "file": "props/dd_headdesk.png"
+  },
+  "dd_heartbed": {
+   "file": "props/dd_heartbed.png"
+  },
+  "dd_jukebox": {
+   "file": "props/dd_jukebox.png"
+  },
+  "dd_laundry": {
+   "file": "props/dd_laundry.png"
+  },
+  "dd_lockers": {
+   "file": "props/dd_lockers.png"
+  },
+  "dd_mouldfridge": {
+   "file": "props/dd_mouldfridge.png"
+  },
+  "dd_pizzaboxes": {
+   "file": "props/dd_pizzaboxes.png"
+  },
+  "dd_planeseats": {
+   "file": "props/dd_planeseats.png"
+  },
+  "dd_plates": {
+   "file": "props/dd_plates.png"
+  },
+  "dd_pubstage": {
+   "file": "props/dd_pubstage.png"
+  },
+  "dd_pubtable": {
+   "file": "props/dd_pubtable.png"
+  },
+  "dd_ruinedsofa": {
+   "file": "props/dd_ruinedsofa.png"
+  },
+  "dd_scorers": {
+   "file": "props/dd_scorers.png"
+  },
+  "dd_servery": {
+   "file": "props/dd_servery.png"
+  },
+  "dd_shoerack": {
+   "file": "props/dd_shoerack.png"
+  },
+  "dd_sink": {
+   "file": "props/dd_sink.png"
+  },
+  "dd_squatrack": {
+   "file": "props/dd_squatrack.png"
+  },
+  "dd_teddybed": {
+   "file": "props/dd_teddybed.png"
+  },
+  "dd_tiedtoys": {
+   "file": "props/dd_tiedtoys.png"
+  },
+  "dd_toymountain": {
+   "file": "props/dd_toymountain.png"
+  },
+  "dd_toypile": {
+   "file": "props/dd_toypile.png"
+  },
+  "dd_trophies": {
+   "file": "props/dd_trophies.png"
+  },
+  "dd_wetfloor": {
+   "file": "props/dd_wetfloor.png"
   }
  },
  "sheets": {

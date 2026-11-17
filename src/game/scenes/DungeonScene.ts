@@ -48,6 +48,9 @@ import { evalCond } from "../systems/conditions";
 import { extraViolence, kd } from "../systems/kreddle";
 import { forcedKreltality, kreltality, type KrelTarget } from "../combat/Kreltality";
 import { hasVfx, vfx } from "../gfx/Vfx";
+import { Kit } from "./dressing/kit";
+import { dressingFor } from "./dressing/rooms";
+import { floorTile } from "./dressing/floors";
 
 interface Shot {
   spr: Phaser.GameObjects.Image;
@@ -160,6 +163,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   /** Barrels, crates, hostages, elites and room twists. */
   spice: Spice | null = null;
+  /** the room's set dressing (top-down rooms with an entry in dressing/rooms.ts) */
+  private dress: Kit | null = null;
   private lastKillStop = 0;
   private lastSplat = 0;
   /** 1 = normal speed. The weapon picker drops it right down. */
@@ -403,7 +408,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.fightMusicOn = false;
     synth.music(this.roomMusicId);
     // background ambience for the place (quiet, under the music)
-    synth.ambience(this.dungeon.id === "rik_colon" ? "colon" : r.theme === "industrial" || this.dungeon.id === "crobley_factory" ? "factory" : "dungeon");
+    synth.ambience(dressingFor(this.dungeon.id, this.roomIdx)?.ambience ?? (this.dungeon.id === "rik_colon" ? "colon" : r.theme === "industrial" || this.dungeon.id === "crobley_factory" ? "factory" : "dungeon"));
     this.player.headbuttMode = r.boss === "troll";
     if (this.dungeon.timerSec && this.roomIdx === 0 && !G.rt.timerEnd) G.rt.timerEnd = Date.now() + this.dungeon.timerSec * 1000;
 
@@ -674,9 +679,13 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   private buildRoom() {
     const r = this.room;
     if (this.side) return this.buildSideRoom();
-    const themeTile = `tile_${r.theme}`;
+    const dressing = dressingFor(this.dungeon.id, this.roomIdx);
+    let themeTile = `tile_${r.theme}`;
     if (r.theme === "mind") this.mindTile();
-    this.add.tileSprite(0, 0, r.w, r.h, themeTile).setOrigin(0).setDepth(0);
+    if (dressing?.floor) themeTile = floorTile(this, dressing.floor) ?? (this.textures.exists(dressing.floor) ? dressing.floor : themeTile);
+    const floor = this.add.tileSprite(0, 0, r.w, r.h, themeTile).setOrigin(0).setDepth(0);
+    if (dressing?.floorTint !== undefined) floor.setTint(dressing.floorTint);
+    if (dressing?.floorScale) floor.setTileScale(dressing.floorScale);
     const wallCol = { school: 0x6b5b4b, mansion: 0x3b2a1a, lounge: 0xd9ccae, network: 0x0b1530, industrial: 0x1f2937, temple: 0x4a3a2a, prison: 0x111827, wiki: 0xa2a9b1, colon: 0x7a1f3a, mind: 0xb0246b, citadel: 0x140c1c }[r.theme];
     const g = this.add.graphics().setDepth(1);
     g.fillStyle(wallCol, 1);
@@ -692,12 +701,13 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       const src = this.textures.get(wallKey).getSourceImage();
       const back = this.add.tileSprite(0, 0, r.w, 56, wallKey).setOrigin(0).setDepth(1);
       back.setTileScale(56 / src.height);
+      if (dressing?.wallTint !== undefined) back.setTint(dressing.wallTint);
       for (const [x, y, w, h] of [
         [0, r.h - 24, r.w, 24],
         [0, 0, 24, r.h],
         [r.w - 24, 0, 24, r.h],
       ])
-        this.add.tileSprite(x, y, w, h, wallKey).setOrigin(0).setDepth(1).setTint(0x8a7f9a).setTileScale(0.5);
+        this.add.tileSprite(x, y, w, h, wallKey).setOrigin(0).setDepth(1).setTint(dressing?.wallTint ?? 0x8a7f9a).setTileScale(0.5);
       this.add.rectangle(0, 56, r.w, 6, 0x000000, 0.35).setOrigin(0).setDepth(1);
     }
     this.obstacles = this.physics.add.staticGroup();
@@ -738,6 +748,19 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   private decorate(r: RoomDef) {
     const rnd = new Phaser.Math.RandomDataGenerator([`${this.dungeon.id}${this.roomIdx}`]);
+    // a room of its own: dressed to be the place it is (dressing/*.ts)
+    const dressing = dressingFor(this.dungeon.id, this.roomIdx);
+    this.dress = null;
+    if (dressing) {
+      this.dress = new Kit(this, r, this.obstacles, `${this.dungeon.id}:${this.roomIdx}`);
+      if (dressing.keepGeneric && r.theme === "lounge") this.decorateLounge(r);
+      dressing.build(this.dress);
+      if (dressing.weather) {
+        synth.weatherSound(dressing.weather);
+        this.events.once("shutdown", () => synth.weatherSound(null));
+      }
+      if (!dressing.keepGeneric || r.theme === "lounge") return;
+    }
     if (r.theme === "lounge") return this.decorateLounge(r);
     // PixelLab set dressing along the walls, clear of the centre lane and the door
     const decor = [0, 1, 2].map((i) => `dec_${r.theme}_${i}`).filter((k) => this.textures.exists(k));
@@ -1519,6 +1542,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.roof = null;
     this.spice?.destroy();
     this.spice = null;
+    this.dress = null;
     this.player?.destroy();
     for (const e of this.enemies) e.destroy();
     this.enemies = [];
@@ -3040,6 +3064,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     if (this.boss instanceof DrongusBoss) this.boss.hitSong(x, y, r);
     if (dmg > 0) this.spice?.hitAoe(x, y, r, dmg);
+    if (dmg > 0) this.dress?.aoe(x, y, r);
     if (dmg > 0) this.roof?.hitAoe(x, y, r, dmg);
     return n;
   }
@@ -3564,6 +3589,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const now = this.now();
     if (!this.busy) this.companion?.update(now);
     if (!this.busy) this.spice?.update(now, Math.min(delta, 50));
+    if (this.dress && this.player) this.dress.update(now, delta, [this.player.spr, ...this.enemies]);
     if (!this.busy) for (const b of this.bros) b.update(now, Math.min(delta, 50));
     this.sideLevel?.update(Math.min(delta, 50), this.busy);
     this.citadel?.update(Math.min(delta, 50));
@@ -3669,6 +3695,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
           this.killShot(sh);
           continue;
         }
+        this.dress?.shotAt(sh.spr.x, sh.spr.y);
         if (this.spice?.hitShot(sh.spr.x, sh.spr.y, sh.o.damage || 30)) {
           sh.o.onHit?.(sh.spr.x, sh.spr.y);
           this.killShot(sh);

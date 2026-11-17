@@ -414,9 +414,11 @@ export class SideLevel {
             if (this.inGap(x, 30)) x = lk.l + (lk.r - lk.l) / 2;
           }
           let sx = x + (i % 3) * 30;
+          let ledge: { x: number; half: number } | undefined;
           if (this.room.tower) {
             // up here: on a ledge near your height (walkers), or in the air around you (flyers)
-            const near = (this.room.platforms ?? []).map(([fx, h, w]) => ({ x: this.room.w * fx, y: gy - h - 30, w })).filter((pl) => Math.abs(pl.y - p.y) < 300 && Math.abs(pl.x - p.x) > 120);
+            // walkers go on ledges level with you or above (never below, where they'd just be left behind)
+            const near = (this.room.platforms ?? []).map(([fx, h, w]) => ({ x: this.room.w * fx, y: gy - h - 30, w })).filter((pl) => pl.y <= p.y + 20 && pl.y > p.y - 340 && Math.abs(pl.x - p.x) > 120);
             if (flyer) {
               sx = Phaser.Math.Clamp(p.x + (Math.random() < 0.5 ? -1 : 1) * Phaser.Math.Between(220, 380), 60, this.room.w - 60);
               y = p.y - Phaser.Math.Between(80, 240);
@@ -424,6 +426,7 @@ export class SideLevel {
               const pl = near[Math.floor(Math.random() * near.length)];
               sx = pl.x + (Math.random() - 0.5) * pl.w * 0.6;
               y = pl.y;
+              if (d?.behavior === "shooter") ledge = { x: pl.x, half: Math.max(10, pl.w / 2 - 22) };
             } else {
               sx = Phaser.Math.Clamp(p.x + (Math.random() < 0.5 ? -1 : 1) * 250, 60, this.room.w - 60);
               y = p.y - 200;
@@ -441,6 +444,7 @@ export class SideLevel {
           this.sc.time.delayedCall(i * 140, () => {
             this.pendingSpawns--;
             const e = this.sc.spawnEnemy(type, sx, y);
+            if (e && ledge) e.ledge = ledge;
             if (locking && lk) {
               lk.pending--;
               lk.spawned.push(e);

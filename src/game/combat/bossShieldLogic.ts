@@ -26,7 +26,7 @@ export const SHIELD_TUNING = {
   stallMs: 25000,
   /** ...one crack this often after that. */
   stallCrackEvery: 3500,
-  /** Stunned and open after the shatter. */
+  /** After the shatter (no stun now): how long armoured bosses (Deranged Drongus) stay open. */
   vulnerableMs: 3200,
   /** Damage multiplier while it's open. */
   bonus: 1.5,
@@ -169,8 +169,9 @@ export class ShieldPhase {
     if (this.state !== "shielded") return false;
     this.cracks++;
     if (this.cracks < this.need) return false;
-    this.state = "vulnerable";
-    this.vulnUntil = now + this.tune.vulnerableMs;
+    // no VULNERABLE stun any more: it shatters and the boss fights straight on
+    this.state = "idle";
+    this.vulnUntil = now;
     return true;
   }
 

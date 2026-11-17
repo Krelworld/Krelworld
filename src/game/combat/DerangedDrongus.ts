@@ -420,6 +420,9 @@ export class DerangedDrongusBoss extends Boss {
     const shout = (i: number, size = 22) => w.floatText(this.x, this.y - this.displayHeight / 2 - 30, DRONGUS2_BREAK[i], "#ff4d4d", size);
     const wait = (ms: number) => new Promise<void>((r) => sc.time.delayedCall(ms, () => r()));
     return (async () => {
+      // he's the one we watch from here (no stand-in sprite, no stun pose, nothing hiding him)
+      this.setVisible(true).setAlpha(1).setAngle(0);
+      this.anims.stop();
       this.setFlipX(this.cauldron.x < this.x);
       this.gun?.setVisible(false);
       // NOOOO (the money shot: his armour blowing off him)
@@ -435,6 +438,8 @@ export class DerangedDrongusBoss extends Boss {
       await wait(700);
       // underneath: skinny, shirtless, small
       const skinny = sc.textures.exists("c7_drongus_skinny");
+      this.anims.stop();
+      this.rageFx?.setVisible(false);
       if (skinny) this.setTexture("c7_drongus_skinny").setScale(1.6).clearTint();
       else this.setScale(this.scaleX * 0.7).setTint(0xf1c7a5);
       (this.body as Phaser.Physics.Arcade.Body | null)?.stop();

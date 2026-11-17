@@ -672,7 +672,8 @@ export class KrelfordFinale {
     Juice.duckMusic(2400, 800, 0.08);
     for (let i = 0; i < 4; i++) h.time.delayedCall(i * 560, () => Juice.heartbeat(0.9));
     Juice.slamText(h.sc, FB.FB_NO, "#ff3b3b", 64, 200, 1600);
-    h.time.delayedCall(700, () => void Juice.cutIn(h.sc, "fe_cut_concept", { from: "left", y: 390, color: 0xef4444, hold: 1000 }));
+    // every wound closing, every arm growing back: the money shot
+    h.time.delayedCall(600, () => void Juice.still(h.sc, "fe_still_regrow", 1500, { push: 0.1, shakeK: 0.01 }));
     await b.fullHeal(2200, finalFact);
     if (this.gone) return;
     close(400);

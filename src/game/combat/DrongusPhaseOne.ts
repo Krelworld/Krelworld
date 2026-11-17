@@ -366,7 +366,8 @@ export class DrongusPhaseOneBoss extends Boss {
       sc.tweens.add({ targets: this, angle: { from: -6, to: 6 }, yoyo: true, repeat: Math.floor(dur / 160), duration: 80 });
       sc.time.delayedCall(dur, () => {
         synth.play("door");
-        sc.tweens.add({ targets: [this, this.gun].filter(Boolean), alpha: 0, scale: "*=0.8", duration: 350, onComplete: () => resolve() });
+        // and the comedy cut: him legging it up the stairs
+        sc.tweens.add({ targets: [this, this.gun].filter(Boolean), alpha: 0, scale: "*=0.8", duration: 350, onComplete: () => void Juice.still(sc, "fe_still_drongus_flee", 1500, { push: 0.12, shakeK: 0 }).then(resolve) });
       });
     });
   }

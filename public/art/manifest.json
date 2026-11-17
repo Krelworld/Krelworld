@@ -8518,6 +8518,12 @@
   },
   "fe_still_dawn": {
    "file": "finale/fe_still_dawn.png"
+  },
+  "fe_still_regrow": {
+   "file": "finale/fe_still_regrow.png"
+  },
+  "fe_still_drongus_flee": {
+   "file": "finale/fe_still_drongus_flee.png"
   }
  },
  "sheets": {
@@ -10782,6 +10788,16 @@
   },
   "fe_still_drongus_launch_anim": {
    "file": "finale/fe_still_drongus_launch_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_drongus_flee_anim": {
+   "file": "finale/fe_still_drongus_flee_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_regrow_anim": {
+   "file": "finale/fe_still_regrow_anim.png",
    "frameWidth": 256,
    "frameHeight": 144
   }

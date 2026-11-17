@@ -10729,6 +10729,61 @@
    "file": "finale/fe_still_spirit_anim.png",
    "frameWidth": 256,
    "frameHeight": 144
+  },
+  "fe_cut_concept_hurt_anim": {
+   "file": "finale/fe_cut_concept_hurt_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_cut_drongus1_anim": {
+   "file": "finale/fe_cut_drongus1_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_cut_goku_anim": {
+   "file": "finale/fe_cut_goku_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_eyes_drongus1_anim": {
+   "file": "finale/fe_eyes_drongus1_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 64
+  },
+  "fe_eyes_drongus2_anim": {
+   "file": "finale/fe_eyes_drongus2_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 64
+  },
+  "fe_eyes_ssj_anim": {
+   "file": "finale/fe_eyes_ssj_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 64
+  },
+  "fe_still_collapse_anim": {
+   "file": "finale/fe_still_collapse_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_concept_rise_anim": {
+   "file": "finale/fe_still_concept_rise_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_drongus1_gun_anim": {
+   "file": "finale/fe_still_drongus1_gun_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_drongus_break_anim": {
+   "file": "finale/fe_still_drongus_break_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_drongus_launch_anim": {
+   "file": "finale/fe_still_drongus_launch_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
   }
  },
  "vfx": {

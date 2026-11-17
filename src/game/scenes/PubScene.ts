@@ -17,6 +17,8 @@ import { CHARACTERS } from "../../data/characters";
 import { dir, ping, say } from "../../content/dsl";
 import { LADS } from "../../data/characters";
 import type { Line } from "../../data/types";
+import { RIFFS } from "../../content/riffs";
+import { STAG_CHATS } from "../../content/stagChat";
 
 export class PubScene extends Phaser.Scene {
   /** SanMik & SanChz play the back room most nights. */
@@ -118,6 +120,8 @@ export class PubScene extends Phaser.Scene {
     const s = G.s;
     const items: [string, () => void][] = [];
     items.push(["🪑 Sit down with whoever's in tonight", () => this.sit()]);
+    items.push([s.player === "KREBLIS" ? "🎙 Riff with Drongus" : "🎙 Watch Kreblis and Drongus riff", () => this.riffs()]);
+    items.push(["📱 Organise Jenko's stag (the group chat)", () => this.stag()]);
     items.push(["🍺 Get a Fizzy Bongo in at the bar (10 Krezzcoin)", () => this.drinkHere()]);
     items.push(["🛍 Fizzy Bongo to take away (12 Krezzcoin)", () => this.buy()]);
     items.push([s.flags.pub_tv_off ? "📺 Turn the telly back on" : "📺 Turn the telly off", () => this.toggleTv()]);
@@ -227,6 +231,73 @@ export class PubScene extends Phaser.Scene {
     s.flags[`pub_${pick.id}`] = true;
     if (pick.unlocksArchive) G.unlockArchive(pick.unlocksArchive);
     this.table.removeAll(true);
+    this.showMenu();
+  }
+
+  /**
+   * Kreblis and Drongus riffing (src/content/riffs.ts): a random riff you haven't heard yet, then another, until you
+   * stop. Space / E: next line. Tab or NEXT RIFF: skip to the next riff. Esc or END: back to the bar.
+   */
+  private riffs() {
+    const me = G.s.player === "KREBLIS";
+    return this.randomChats(
+      RIFFS.map((r) => ({ id: `riff_${r.n}`, head: `${r.title.toUpperCase()}  ·  ${r.date}`, lines: r.lines })),
+      ["KREBLIS", "DRONGUS"].map((id) => ({ id, you: me && id === "KREBLIS" })),
+    );
+  }
+
+  /** The Jenko stag group chat (src/content/stagChat.ts): same controls as the riffs. */
+  private stag() {
+    const s = G.s;
+    return this.randomChats(
+      STAG_CHATS.map((c, i) => ({ id: `stag_${i}`, head: `JENKO'S STAG  ·  ${c.title.toUpperCase()}`, lines: c.lines })),
+      ["DRONGUS", "KREZWONK", "KREZMAR"].map((id) => ({ id, you: id === s.player })),
+    );
+  }
+
+  /**
+   * Random conversations you haven't heard yet, one after another, until you stop. Space / E: next line.
+   * Tab or NEXT: skip to the next one. Esc or END: back to the bar.
+   */
+  private async randomChats(chats: { id: string; head: string; lines: Line[] }[], cast: { id: string; you: boolean }[]) {
+    const s = G.s;
+    this.busy = true;
+    this.menu.setVisible(false);
+    this.table.removeAll(true);
+    const gap = 200;
+    cast.forEach(({ id, you }, i) => {
+      const x = 480 - ((cast.length - 1) * gap) / 2 + i * gap;
+      const key = you ? playerKey(this) : this.textures.exists(`spr_${id}`) ? `spr_${id}` : playerKey(this);
+      this.table.add(this.add.sprite(x, 290, key, 0).setScale(3.4).setFlipX(i === cast.length - 1 && i > 0));
+      this.table.add(this.add.text(x, 240, you ? "YOU" : CHARACTERS[id]?.name ?? id, { fontFamily: FONT, fontSize: "11px", color: "#ffffff", backgroundColor: "#00000088" }).setOrigin(0.5));
+    });
+    const head = this.add.text(480, 168, "", { fontFamily: FONT, fontSize: "14px", color: "#ffd23f", backgroundColor: "#000000aa", padding: { x: 8, y: 4 } }).setOrigin(0.5);
+    let stop = false;
+    const end = () => {
+      stop = true;
+      this.box.skipAll();
+    };
+    const nextBtn = button(this, 800, 150, "⏭ NEXT (Tab)", () => this.box.skipAll(), { w: 220, h: 30, size: 12 });
+    const endBtn = button(this, 800, 186, "✕ END (Esc)", end, { w: 220, h: 30, size: 12 });
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && end();
+    this.input.keyboard?.on("keydown", esc);
+    this.table.add([head, nextBtn, endBtn]);
+    while (!stop) {
+      let pool = chats.filter((c) => !s.flags[c.id]);
+      if (!pool.length) {
+        for (const c of chats) delete s.flags[c.id];
+        pool = chats;
+      }
+      const c = pool[Math.floor(Math.random() * pool.length)];
+      s.flags[c.id] = true;
+      head.setText(c.head);
+      await this.box.play(c.lines);
+    }
+    this.input.keyboard?.off("keydown", esc);
+    this.table.removeAll(true);
+    this.menu.setVisible(true);
+    this.busy = false;
+    G.save();
     this.showMenu();
   }
 

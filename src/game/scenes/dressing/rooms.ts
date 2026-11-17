@@ -10,7 +10,7 @@ import { misc } from "./misc";
  * sounds. Keyed `<dungeon id>:<room index>`. A room without an entry keeps the generic theme decor.
  */
 export interface Dressing {
-  /** a code-drawn floor (floors.ts name) or an existing texture key */
+  /** a floor (floors.ts name: the PixelLab tile ddf_<name>, else its code-drawn or theme fallback) or a texture key */
   floor?: string;
   floorTint?: number;
   floorScale?: number;

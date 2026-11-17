@@ -8524,6 +8524,27 @@
   },
   "fe_still_drongus_flee": {
    "file": "finale/fe_still_drongus_flee.png"
+  },
+  "tva_prop_chair": {
+   "file": "tv/action/prop_chair.png"
+  },
+  "tva_prop_brick": {
+   "file": "tv/action/prop_brick.png"
+  },
+  "tva_prop_plate": {
+   "file": "tv/action/prop_plate.png"
+  },
+  "tva_prop_table": {
+   "file": "tv/action/prop_table.png"
+  },
+  "tva_prop_cd": {
+   "file": "tv/action/prop_cd.png"
+  },
+  "tva_prop_meat": {
+   "file": "tv/action/prop_meat.png"
+  },
+  "tva_prop_kimchi": {
+   "file": "tv/action/prop_kimchi.png"
   }
  },
  "sheets": {
@@ -10800,6 +10821,106 @@
    "file": "finale/fe_still_regrow_anim.png",
    "frameWidth": 256,
    "frameHeight": 144
+  },
+  "tva_dave_chair": {
+   "file": "tv/action/dave_chair.png",
+   "frameWidth": 192,
+   "frameHeight": 128
+  },
+  "tva_sup_punch": {
+   "file": "tv/action/sup_punch.png",
+   "frameWidth": 192,
+   "frameHeight": 128
+  },
+  "tva_joe_gut": {
+   "file": "tv/action/joe_gut.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_joe_cower": {
+   "file": "tv/action/joe_cower.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_benn_shove": {
+   "file": "tv/action/benn_shove.png",
+   "frameWidth": 192,
+   "frameHeight": 128
+  },
+  "tva_woman_fall": {
+   "file": "tv/action/woman_fall.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_man_punch": {
+   "file": "tv/action/man_punch.png",
+   "frameWidth": 192,
+   "frameHeight": 128
+  },
+  "tva_benn_hit": {
+   "file": "tv/action/benn_hit.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_starmer_brick": {
+   "file": "tv/action/starmer_brick.png",
+   "frameWidth": 160,
+   "frameHeight": 160
+  },
+  "tva_gordon_grab": {
+   "file": "tv/action/gordon_grab.png",
+   "frameWidth": 192,
+   "frameHeight": 128
+  },
+  "tva_mick_pinned": {
+   "file": "tv/action/mick_pinned.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_gordon_flip": {
+   "file": "tv/action/gordon_flip.png",
+   "frameWidth": 160,
+   "frameHeight": 160
+  },
+  "tva_jenko_hit": {
+   "file": "tv/action/jenko_hit.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_mole_charge": {
+   "file": "tv/action/mole_charge.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_phil_slam": {
+   "file": "tv/action/phil_slam.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_han_duck": {
+   "file": "tv/action/han_duck.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_jez_struggle": {
+   "file": "tv/action/jez_struggle.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_madison_struggle": {
+   "file": "tv/action/madison_struggle.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_jez_tackled": {
+   "file": "tv/action/jez_tackled.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tva_officer_dive": {
+   "file": "tv/action/officer_dive.png",
+   "frameWidth": 128,
+   "frameHeight": 128
   }
  },
  "vfx": {
@@ -11092,6 +11213,46 @@
    "loop": true,
    "ox": 0.5,
    "oy": 0.863
+  },
+  "tva_vfx_pow": {
+   "file": "tv/action/vfx_pow.png",
+   "w": 68,
+   "h": 80,
+   "frames": 12,
+   "fps": 16,
+   "loop": false,
+   "ox": 0.485,
+   "oy": 0.4
+  },
+  "tva_vfx_smash": {
+   "file": "tv/action/vfx_smash.png",
+   "w": 166,
+   "h": 80,
+   "frames": 12,
+   "fps": 16,
+   "loop": false,
+   "ox": 0.536,
+   "oy": 0.388
+  },
+  "tva_vfx_shatter": {
+   "file": "tv/action/vfx_shatter.png",
+   "w": 119,
+   "h": 146,
+   "frames": 10,
+   "fps": 12,
+   "loop": false,
+   "ox": 0.487,
+   "oy": 0.349
+  },
+  "tva_vfx_splat": {
+   "file": "tv/action/vfx_splat.png",
+   "w": 66,
+   "h": 75,
+   "frames": 9,
+   "fps": 15,
+   "loop": false,
+   "ox": 0.212,
+   "oy": 0.387
   }
  }
 }

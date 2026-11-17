@@ -277,6 +277,8 @@ export class EnsembleDirector extends ShowDirector {
   }
 
   protected onDirection(a: string): number {
+    const act = this.action(a);
+    if (act >= 0) return act;
     // somebody named does something: cut to them
     const up = a.toUpperCase().replace(/^THE /, "");
     const named = this.cast.find((n) => up.startsWith(n) || up.startsWith(`${n.split(" ")[0]} `));
@@ -309,6 +311,269 @@ export class EnsembleDirector extends ShowDirector {
     }
     if (this.kind !== "wide") this.wide();
     return 0;
+  }
+
+  // ------------------------------------------------------------------ the fights (PixelLab clips, see action.ts)
+
+  /** The violent stage directions get their own shots. -1: not one of them (or the clips aren't loaded). */
+  private action(a: string): number {
+    if (/grabs a chair and throws it/i.test(a)) return this.chairThrow();
+    if (/swings at Joe/i.test(a)) return this.gutPunch();
+    if (/full-on brawl/i.test(a)) return this.brawl();
+    if (/Chairs are hurled at Joe/i.test(a)) return this.joeFloored();
+    if (/shoves the man in front of him/i.test(a)) return this.bennShoves();
+    if (/punches Benn/i.test(a)) return this.bennPunched();
+    if (/kimchi/i.test(a) && /flying/i.test(a)) return this.pelted();
+    return -1;
+  }
+
+  /** President Han at the podium under a hail of kimchi, barbecue and K-Pop CDs; he ducks. */
+  private pelted(): number {
+    const { SX, SY, SW, SH } = this.r;
+    if (!this.tex("tva_han_duck")) return -1;
+    this.fightBg(0, 1.5);
+    const han = this.clipAt("han_duck", this.cx, SY + SH + 8, SH * 0.88)!;
+    this.handheld(1.8);
+    this.sfx("crowd_boo");
+    const props = ["kimchi", "meat", "cd", "kimchi", "meat", "cd", "kimchi"];
+    props.forEach((name, i) => {
+      this.later(120 + i * 300, () => {
+        const left = i % 2 === 0;
+        const hitsHim = i === 3 || i === 5;
+        const to = hitsHim ? { x: this.cx + (left ? -30 : 40), y: SY + SH * 0.3 } : { x: left ? SX + SW + 40 : SX - 40, y: SY + SH * (0.15 + Math.random() * 0.4) };
+        this.fling(name, { x: left ? SX - 30 : SX + SW + 30, y: SY + SH * (0.55 + Math.random() * 0.3) }, to, {
+          ms: hitsHim ? 380 : 560,
+          spin: left ? 720 : -720,
+          from: 2.6,
+          to: 3.2,
+          arc: 90,
+          done: () => {
+            if (!hitsHim) return;
+            this.impact(name === "cd" ? "pow" : "splat", to.x, to.y, 2.4, 0.01);
+            this.sfx(name === "cd" ? "hit" : "splat");
+          },
+        });
+      });
+    });
+    // he ducks as the first one comes past, and stays down
+    this.later(260, () => this.playClip(han, "han_duck", { fps: 8 }));
+    return 2400;
+  }
+
+  /** The room, out of focus behind a fight. */
+  private fightBg(ox = 0, zoom = 1.45) {
+    this.clear();
+    this.kind = "fight";
+    this.backdrop(this.host.setTexture(), { zoom, ox, oy: -10, blur: 1.5 });
+  }
+
+  /** Dave picks up a chair and lets fly; it sails over Joe's head and smashes the table behind him. */
+  private chairThrow(): number {
+    const { SX, SY, SW, SH } = this.r;
+    if (!this.tex("tva_dave_chair")) return -1;
+    this.fightBg(60);
+    const d = this.clipAt("dave_chair", SX + SW * 0.36, SY + SH + 6, SH * 0.92, 64 / 192)!;
+    this.handheld(1.6);
+    this.sfx("roar");
+    this.playClip(d, "dave_chair", {
+      fps: 9,
+      onFrame: (i) => {
+        if (i === 3) this.crash(1.08, d.x, SY + SH * 0.4);
+        if (i === 7) this.sfx("swing");
+      },
+    });
+    // whip pan across the pub: Joe ducks, the chair goes over him into the table
+    this.later(1050, () => {
+      this.fightBg(-70, 1.6);
+      const streak = this.over(this.sc.add.rectangle(SX, SY, SW, SH, 0xffffff, 0.25).setOrigin(0));
+      this.sc.tweens.add({ targets: streak, alpha: 0, duration: 160, onComplete: () => streak.destroy() });
+      const tableY = SY + SH * 0.9;
+      const tx = SX + SW * 0.74;
+      const table = this.add(this.sc.add.image(tx, tableY, "tva_prop_table").setOrigin(0.5, 1).setScale(3.4));
+      const joe = this.clipAt("joe_cower", SX + SW * 0.3, SY + SH + 10, SH * 0.78, 0.5, { fps: 12, frames: [0, 2, 3, 4] });
+      this.fling("chair", { x: SX - 40, y: SY + SH * 0.3 }, { x: tx, y: tableY - 150 }, { ms: 520, spin: 620, from: 2.2, to: 3.2, arc: 40 });
+      this.later(520, () => {
+        this.impact("smash", tx, tableY - 140, 2.6, 0.016);
+        this.bang("CRASH!", tx - 20, SY + SH * 0.24, 40);
+        // the table goes to pieces: two halves falling away
+        table.setVisible(false);
+        for (const side of [-1, 1]) {
+          const half = this.add(this.sc.add.image(tx, tableY, "tva_prop_table").setOrigin(0.5, 1).setScale(3.4).setCrop(side < 0 ? 0 : 32, 0, 32, 64));
+          this.sc.tweens.add({ targets: half, x: tx + side * 70, y: tableY + 30, angle: side * 70, duration: 520, ease: "Quad.in" });
+        }
+        if (joe) this.sc.tweens.add({ targets: joe, x: joe.x - 8, duration: 50, yoyo: true, repeat: 5 });
+      });
+      this.handheld(2.2);
+    });
+    return 2500;
+  }
+
+  /** Supporter 5 (short, stocky) winds up and puts one in Joe's stomach; Joe folds. */
+  private gutPunch(): number {
+    const { SX, SY, SW, SH } = this.r;
+    if (!this.tex("tva_sup_punch") || !this.tex("tva_joe_gut")) return -1;
+    this.fightBg(20, 1.5);
+    const h = SH * 0.74;
+    const joe = this.clipAt("joe_gut", SX + SW * 0.74, SY + SH + 8, h)!;
+    const sup = this.clipAt("sup_punch", SX + SW * 0.22, SY + SH + 8, h, 64 / 192)!;
+    this.handheld(1.4);
+    this.later(200, () =>
+      this.playClip(sup, "sup_punch", {
+        fps: 11,
+        onFrame: (i) => {
+          if (i === 3) this.sc.tweens.add({ targets: sup, x: sup.x + 24, duration: 90, yoyo: true });
+          if (i !== 4) return;
+          this.sfx("punch");
+          this.impact("pow", joe.x - h * 0.25, SY + SH - h * 0.2, 2.2);
+          this.bang("OOF!", joe.x, SY + SH * 0.24);
+          this.playClip(joe, "joe_gut", { fps: 10 });
+          this.sc.tweens.add({ targets: joe, x: joe.x + 18, duration: 120, yoyo: true });
+          this.sc.tweens.add({ targets: joe, y: joe.y + h * 0.14, duration: 400, delay: 250, ease: "Quad.out" });
+        },
+      }),
+    );
+    return 2200;
+  }
+
+  /** The whole pub goes off: chairs across the frame, fists, everyone knocked about. */
+  private brawl(): number {
+    const { SX, SY, SW, SH } = this.r;
+    if (!this.tex("tva_prop_chair")) return -1;
+    if (!this.cast.length) this.cast = this.sceneCast(this.idx);
+    this.wide(false);
+    this.kind = "fight";
+    this.handheld(2.4);
+    for (const b of Object.values(this.bodies)) {
+      this.sc.tweens.add({ targets: b, x: b.x + (Math.random() - 0.5) * 30, angle: (Math.random() - 0.5) * 10, duration: 140 + Math.random() * 120, yoyo: true, repeat: -1 });
+    }
+    const words = ["POW!", "WALLOP!", "CRASH!", "THUMP!", "BIFF!", "OI!"];
+    for (let i = 0; i < 6; i++) {
+      this.later(150 + i * 380, () => {
+        const left = i % 2 === 0;
+        const to = { x: SX + SW * (0.25 + Math.random() * 0.5), y: SY + SH * (0.3 + Math.random() * 0.3) };
+        if (i % 3 !== 2) {
+          this.fling("chair", { x: left ? SX - 60 : SX + SW + 60, y: SY + SH * (0.15 + Math.random() * 0.3) }, to, {
+            ms: 420,
+            spin: left ? 700 : -700,
+            from: 1.8,
+            to: 2.6,
+            done: () => {
+              this.impact("smash", to.x, to.y, 2);
+              this.sfx("smash");
+              this.bang(words[i], to.x, to.y - 40, 30);
+            },
+          });
+        } else {
+          this.impact("pow", to.x, to.y, 2.4);
+          this.sfx("punch");
+          this.bang(words[i], to.x, to.y - 40, 30);
+        }
+      });
+    }
+    // a fist comes in from the side of the frame
+    this.clipAt("sup_punch", SX + SW * 0.1, SY + SH + 40, SH * 0.66, 64 / 192, { fps: 12, delay: 900 });
+    return 2700;
+  }
+
+  /** Joe on the floor, arms over his head, while the chairs keep coming. */
+  private joeFloored(): number {
+    const { SX, SY, SW, SH } = this.r;
+    if (!this.tex("tva_joe_cower")) return -1;
+    this.fightBg(-30, 1.7);
+    this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0x000000, 0.2).setOrigin(0));
+    const joe = this.clipAt("joe_cower", this.cx, SY + SH + 70, SH * 0.82)!;
+    this.playClip(joe, "joe_cower", { fps: 7, frames: [0, 2, 3, 4, 5, 6, 5, 4, 3, 4, 5, 6, 5, 4, 3, 4, 5, 6] });
+    this.handheld(2);
+    for (let i = 0; i < 5; i++) {
+      this.later(250 + i * 420, () => {
+        const left = i % 2 === 0;
+        const to = { x: this.cx + (Math.random() - 0.5) * 220, y: SY + SH * (0.45 + Math.random() * 0.2) };
+        this.fling("chair", { x: left ? SX - 50 : SX + SW + 50, y: SY + SH * 0.1 }, to, {
+          ms: 380,
+          spin: left ? 540 : -540,
+          from: 2.4,
+          to: 3,
+          arc: 20,
+          done: () => {
+            this.impact("smash", to.x, to.y, 2.2);
+            this.sfx(i % 2 ? "smash" : "punch");
+            this.sc.tweens.add({ targets: joe, y: joe.y + 10, duration: 60, yoyo: true });
+          },
+        });
+      });
+    }
+    return 2600;
+  }
+
+  /** Benn shoves the man in the queue out of the frame, whirls round and shoves his date over. */
+  private bennShoves(): number {
+    const { SX, SY, SW, SH } = this.r;
+    if (!this.tex("tva_benn_shove") || !this.tex("tva_woman_fall")) return -1;
+    const h = SH * 0.8;
+    this.fightBg(40, 1.4);
+    // the man in front of him in the queue (no lines, so he's an extra)
+    const man = this.tex("tvface_PUB_PATRON_1") ? this.add(this.sc.add.sprite(SX + SW * 0.8, SY + SH + 8, "tvface_PUB_PATRON_1", 0).setOrigin(0.5, 1).setScale(h / 128).setFlipX(true)) : null;
+    const benn = this.clipAt("benn_shove", SX + SW * 0.3, SY + SH + 8, h, 64 / 192)!;
+    this.handheld(1.4);
+    this.later(150, () =>
+      this.playClip(benn, "benn_shove", {
+        fps: 11,
+        onFrame: (i) => {
+          if (i !== 4) return;
+          this.sfx("punch");
+          this.impact("pow", SX + SW * 0.62, SY + SH - h * 0.35, 1.8, 0.008);
+          this.bang("SHOVE!", SX + SW * 0.66, SY + SH * 0.26);
+          if (man) this.sc.tweens.add({ targets: man, x: man.x + SW * 0.5, angle: 25, duration: 380, ease: "Quad.out" });
+        },
+      }),
+    );
+    // whirls round: now his date is on the end of it
+    this.later(1300, () => {
+      this.fightBg(-60, 1.4);
+      const wom = this.clipAt("woman_fall", SX + SW * 0.25, SY + SH + 8, h)!;
+      const b2 = this.clipAt("benn_shove", SX + SW * 0.7, SY + SH + 8, h, 1 - 64 / 192)!;
+      b2.setFlipX(true);
+      this.crash(1.06);
+      this.playClip(b2, "benn_shove", {
+        fps: 12,
+        frames: [2, 3, 4, 5, 6],
+        onFrame: (i) => {
+          if (i !== 2) return;
+          this.sfx("punch");
+          this.impact("pow", wom.x + h * 0.25, SY + SH - h * 0.35, 1.8, 0.008);
+          this.playClip(wom, "woman_fall", { fps: 10 });
+          this.later(500, () => this.impact("smash", wom.x, SY + SH - 10, 1.6, 0.01));
+        },
+      });
+    });
+    return 2700;
+  }
+
+  /** The man spins round and lands one on Benn, who goes down out of the bottom of the frame. */
+  private bennPunched(): number {
+    const { SX, SY, SW, SH } = this.r;
+    if (!this.tex("tva_man_punch") || !this.tex("tva_benn_hit")) return -1;
+    const h = SH * 0.8;
+    this.fightBg(0, 1.45);
+    const benn = this.clipAt("benn_hit", SX + SW * 0.26, SY + SH + 8, h)!;
+    const man = this.clipAt("man_punch", SX + SW * 0.76, SY + SH + 8, h, 1 - 64 / 192)!;
+    man.setFlipX(true);
+    this.handheld(1.6);
+    this.playClip(man, "man_punch", {
+      fps: 11,
+      onFrame: (i) => {
+        if (i !== 6) return;
+        this.sfx("punch_big");
+        this.impact("pow", benn.x + h * 0.15, SY + SH - h * 0.6, 2.6, 0.018);
+        this.bang("POW!", benn.x, SY + SH * 0.2, 44);
+        this.playClip(benn, "benn_hit", {
+          fps: 12,
+          done: () => this.sc.tweens.add({ targets: benn, y: benn.y + h * 0.9, angle: -30, x: benn.x - 40, duration: 420, ease: "Quad.in" }),
+        });
+        this.crash(1.12, benn.x, SY + SH * 0.4);
+      },
+    });
+    return 2300;
   }
 
   protected onAudience(cue: string): number {

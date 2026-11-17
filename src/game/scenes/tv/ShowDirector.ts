@@ -7,6 +7,7 @@ import { vfx } from "../../gfx/Vfx";
 import { FONT } from "../../ui/theme";
 import { hdFactor } from "../../gfx/HD";
 import { FACE_ALIAS, FACE_META } from "./faceMeta";
+import { bang, clipSprite, fling, impact, playClip, type ClipOpts, type FlingOpts } from "./action";
 
 /**
  * KrelTV genre presentation: the shared camera crew.
@@ -791,6 +792,57 @@ export abstract class ShowDirector {
     const s = vfx(this.sc, key, x, y, o);
     if (s) this.cam.add(s);
     return s;
+  }
+
+  // ------------------------------------------------------------------ action (see action.ts)
+
+  /** An action clip (tva_<name>) in the picture, its bottom edge at `bottom`, `height` tall; ox = where x sits across it. */
+  protected clipAt(name: string, x: number, bottom: number, height: number, ox = 0.5, o?: ClipOpts) {
+    const s = clipSprite(this.sc, name, x, bottom, height, ox);
+    if (!s) return null;
+    this.add(s);
+    if (o) playClip(this.sc, s, name, o);
+    return s;
+  }
+
+  /**
+   * Play a clip in place of someone's close-up (same spot, size and facing): their sheet is hidden for the length
+   * of the clip and comes back afterwards (on `back`, default their alarmed face) unless `keep`.
+   */
+  protected clipOver(p: Perf, name: string, o: ClipOpts & { keep?: boolean; back?: number } = {}) {
+    const key = `tva_${name}`;
+    if (!this.sc.textures.exists(key)) return null;
+    const s = this.add(this.sc.add.sprite(p.spr.x, p.spr.y, key, 0).setOrigin(p.spr.originX, p.spr.originY));
+    s.setScale(p.spr.scaleX, p.spr.scaleY).setFlipX(p.spr.flipX).setAngle(p.spr.angle);
+    p.spr.setVisible(false);
+    p.gesturing = true;
+    playClip(this.sc, s, name, {
+      ...o,
+      done: () => {
+        o.done?.();
+        if (o.keep || !p.spr.active) return;
+        s.destroy();
+        p.gesturing = false;
+        p.spr.setVisible(true).setFrame(Math.min(o.back ?? F.ALARM, Math.max(0, p.frames - 1)));
+      },
+    });
+    return s;
+  }
+
+  protected playClip(s: Phaser.GameObjects.Sprite, name: string, o: ClipOpts = {}) {
+    return playClip(this.sc, s, name, o);
+  }
+
+  protected fling(name: string, from: { x: number; y: number }, to: { x: number; y: number }, o: FlingOpts = {}) {
+    return fling(this.sc, (g) => this.add(g), name, from, to, o);
+  }
+
+  protected impact(kind: "pow" | "smash" | "shatter" | "splat", x: number, y: number, scale = 2.4, shake = 0.012) {
+    return impact(this.sc, (g) => this.add(g), kind, x, y, scale, shake);
+  }
+
+  protected bang(word: string, x: number, y: number, size = 34) {
+    return bang(this.sc, (g) => this.over(g), word, x, y, size);
   }
 
   protected sfx(id: string) {

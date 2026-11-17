@@ -298,6 +298,16 @@ export class SoapDirector extends ShowDirector {
     if (/PHIL MITCHELL enters/i.test(a)) return this.entrance("PHIL");
     if (/slams his hand/i.test(a)) {
       const p = this.single("PHIL", { side: 0.4, bg: this.setImg(), recut: true, expr: F.ALARM });
+      if (p && this.tex("tva_phil_slam")) {
+        // the fist goes up and comes down on the bar (the [SFX smash] lands on it)
+        this.clipOver(p, "phil_slam", { fps: 10, back: F.ALARM });
+        this.later(560, () => {
+          this.crash(1.2, p.spr.x, p.spr.y - 220);
+          this.impact("pow", p.spr.x + 60, this.r.SY + this.r.SH - 20, 2.2, 0.014);
+          this.sfx("punch");
+        });
+        return 800;
+      }
       if (p) this.later(500, () => this.crash(1.2, p.spr.x, p.spr.y - 220));
       return 700;
     }

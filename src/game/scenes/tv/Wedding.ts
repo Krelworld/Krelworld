@@ -574,6 +574,11 @@ export class WeddingDirector extends ShowDirector {
     // arms going: the whole giant mole lurches with every word
     this.sc.tweens.add({ targets: p.spr, angle: { from: -4, to: 4 }, duration: 190, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
     synth.play("shriek");
+    // the PixelLab clip: screaming, arms flailing (it has no lip-sync, so it plays instead of the talk)
+    if (this.tex("tva_mole_charge")) {
+      this.clipOver(p, "mole_charge", { fps: 9, loop: true, keep: true });
+      return 0;
+    }
     this.talk(p, "MOLE PERSON", text, emotion);
     return 0;
   }
@@ -950,13 +955,17 @@ export class WeddingDirector extends ShowDirector {
       this.sc.cameras.main.flash(80, 255, 255, 255);
       if (p) {
         p.gesturing = true;
-        this.sc.tweens.add({ targets: p.spr, angle: 70, x: p.spr.x + 260, y: p.spr.y + 300, duration: 700, ease: "Quad.in" });
+        // knocked sideways off his chair (the PixelLab clip), then out of the bottom of the frame
+        const c = this.clipOver(p, "jenko_hit", { fps: 12, keep: true });
+        const fall = c ?? p.spr;
+        this.impact("pow", p.spr.x - 90, p.spr.y - 200, 2.6, 0.016);
+        this.sc.tweens.add({ targets: fall, angle: 70, x: fall.x + 260, y: fall.y + 300, duration: 700, delay: c ? 420 : 0, ease: "Quad.in" });
       }
       this.push(1.2, 300, this.cx, this.cy);
       synth.play("hurt_1");
     });
     void SW;
-    return 1400;
+    return 1800;
   }
 
   /** Security: in from the side, the taser, the crackle, and the mole dragged off by its ankles. */

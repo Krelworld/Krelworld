@@ -78,6 +78,8 @@ const SHAKE = () => G.meta.settings.shake;
 
 /** Chapter 6 / 7 bosses get the full treatment: a cinematic entrance, a title card, a phase-change pulse and a
  *  slow-mo killing blow. (Kept to these so the earlier chapters play exactly as before.) */
+/** Bosses that stage their own phase breaks (epic-phase events) instead of the generic half-health pulse. */
+const OWN_PHASE_BREAKS = new Set(["drongus1", "drongus2"]);
 const EPIC_BOSSES: Record<string, string> = { krozno: "#38bdf8", krex: "#a855f7", elon: "#22d3ee", drongus1: "#ef4444", drongus2: "#ff2a2a" };
 
 const clearKey = (dungeon: string, room: number) => `dclr_${dungeon}_${room}`;
@@ -411,6 +413,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.events.on("drop-heal", (x: number, y: number) => this.dropPickup(x, y, "heal", 10));
     this.events.on("decree", (id: string) => this.setRule(BAN_RULES.find((b) => b.id === id) ?? null, true));
     this.events.on("drongus-decree", () => this.drongusDecree());
+    this.events.on("epic-phase", (b: Boss, line: string, col?: string) => void this.epicPhaseBreak(b, line, col));
     this.events.on("conflict", () => {
       this.conflictUntil = this.now() + 6000;
       G.emit("conflict", 6000);
@@ -1519,7 +1522,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   }
 
   private removeListeners() {
-    for (const ev of ["prophecy", "krezz-burst", "drop-heal", "decree", "drongus-decree", "conflict", "player-dodge", "player-heal", "player-special", "ui-resume"]) this.events.removeAllListeners(ev);
+    for (const ev of ["prophecy", "krezz-burst", "drop-heal", "decree", "drongus-decree", "epic-phase", "conflict", "player-dodge", "player-heal", "player-special", "ui-resume"]) this.events.removeAllListeners(ev);
     this.rule = null;
     G.emit("rule", null);
   }
@@ -2007,12 +2010,66 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }, 520);
   }
 
+  private phaseBreaking = false;
+
+  /**
+   * A boss crosses into its next phase (the boss emits "epic-phase"): the fight stops dead for a breath. Every
+   * bullet in the air is cleared (no cheap hits out of a cutscene), the bars come in, the camera slams in on them,
+   * impact frames, a roar, their line SLAMS across the screen, a shockwave, and back to it. About a second and a half.
+   */
+  private async epicPhaseBreak(b: Boss, line: string, col = EPIC_BOSSES[b.bossId] ?? "#ff3b3b") {
+    if (this.phaseBreaking || this.dying || !b.active || b.dead || this.transitioning) return;
+    this.phaseBreaking = true;
+    const cam = this.cameras.main;
+    const colN = Phaser.Display.Color.HexStringToColor(col).color;
+    const wasBusy = this.busy;
+    this.busy = true;
+    for (const sh of [...this.shots]) if (sh.o.owner === "enemy") this.killShot(sh);
+    this.hitStop(140);
+    const close = Juice.letterbox(this, 48, 220);
+    const z0 = cam.zoom;
+    cam.stopFollow();
+    cam.pan(b.x, b.y - 10, 260, "Cubic.easeOut", true);
+    cam.zoomTo(Math.max(z0, 1) * 1.28, 300, "Cubic.easeOut", true);
+    Juice.duckMusic(1100, 600, 0.2);
+    synth.play("crit");
+    Juice.subDrop(0.9, 1.4);
+    await Juice.realWait(240);
+    if (!this.sys.settings.active) return;
+    await Juice.impactFrames(this, b);
+    if (!this.sys.settings.active) return;
+    synth.play("roar");
+    synth.play("explode_1");
+    b.setTintFill(colN);
+    this.time.delayedCall(90, () => b.active && !b.dead && b.clearTint());
+    this.shake(700, 0.022);
+    Juice.flash(this, colN, 320, 0.45, 4880);
+    Juice.shockRing(this, b.x, b.y, { color: colN, to: 700, rings: 4, ms: 800 });
+    Juice.debris(this, b.x, b.y + b.displayHeight * 0.3, 14, { depth: b.depth + 2, speed: 380, size: 8 });
+    const stopLines = Juice.speedLines(this, 900, colN);
+    Juice.slamText(this, line, col, 40, 140, 950);
+    await Juice.realWait(1150);
+    stopLines();
+    if (!this.sys.settings.active) return;
+    for (const sh of [...this.shots]) if (sh.o.owner === "enemy") this.killShot(sh);
+    close(300);
+    cam.zoomTo(z0, 400, "Cubic.easeInOut", true);
+    cam.startFollow(this.player.spr, true, 0.12, 0.12);
+    if (!wasBusy) this.busy = false;
+    b.nextPattern = Math.max(b.nextPattern, this.now() + 700);
+    this.phaseBreaking = false;
+  }
+
   /** The killing blow on a chapter 6/7 boss: freeze, white, slow-mo push-in, then the boom lands. */
   private async epicKillingBlow(b: Boss) {
     const cam = this.cameras.main;
     this.hitStop(160);
+    // the hit lands: two impact frames (white / black silhouettes) before anything else moves
+    await Juice.impactFrames(this, b, 60);
+    if (!this.sys.settings.active) return;
     b.setTintFill(0xffffff);
     Juice.flash(this, 0xffffff, 380, 0.85, 4880);
+    const stopLines = Juice.speedLines(this, 1000, Phaser.Display.Color.HexStringToColor(EPIC_BOSSES[b.bossId] ?? "#ffffff").color);
     synth.play("crit");
     synth.play("explode_2");
     Juice.subDrop(1, 2.2);
@@ -2026,6 +2083,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     Juice.shockRing(this, b.x, b.y, { color: 0xffffff, to: 640, rings: 4, ms: 900 });
     for (let i = 0; i < 4; i++) this.time.delayedCall(i * 60, () => this.boomFx(b.x + (Math.random() - 0.5) * 90, b.y + (Math.random() - 0.5) * 90, 0.8));
     await Juice.realWait(1100);
+    stopLines();
     if (!this.sys.settings.active) return;
     if (!this.picking && token === this.epicSlowToken) this.setSlowmo(1);
     b.active && b.clearTint();
@@ -2773,7 +2831,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const hpBefore = e.hp;
     e.hp -= a;
     e.flashUntil = now + 70;
-    if (e instanceof Boss && EPIC_BOSSES[e.bossId] && e.hp > 0 && hpBefore > e.maxHp * 0.5 && e.hp <= e.maxHp * 0.5) this.epicPhasePulse(e);
+    if (e instanceof Boss && EPIC_BOSSES[e.bossId] && !OWN_PHASE_BREAKS.has(e.bossId) && e.hp > 0 && hpBefore > e.maxHp * 0.5 && e.hp <= e.maxHp * 0.5) this.epicPhasePulse(e);
     if (extraViolence(G.s) && a > 0 && now - this.lastSplat > 45) {
       this.lastSplat = now;
       this.splatter(e.x, e.y, e.isBoss ? 5 : 3, 0.7);

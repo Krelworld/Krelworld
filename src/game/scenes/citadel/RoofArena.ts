@@ -12,6 +12,7 @@ import { animateWalker } from "../../gfx/HD";
 import { hasVfx, vfx } from "../../gfx/Vfx";
 import { switchTo } from "../../Flow";
 import { G } from "../../G";
+import * as Juice from "../../gfx/Juice";
 import * as FR from "../../../content/finaleRoof";
 
 /**
@@ -342,7 +343,37 @@ export class RoofArena {
     G.s.flags.finale_freed = this.bound.filter((x) => x.freed).map((x) => x.id).join(",");
     G.save();
     if (this.boss) this.boss.rage = n / total;
+    this.freeBeat(tx, ty, n, total);
     if (n >= total) void this.allFree();
+  }
+
+  /**
+   * Every lad you free is a moment: a beat of hit-stop, the camera kicks, a gold ring off him, and Dark Drongus
+   * answers it with a roar and a bigger shockwave of his own each time. The last one: slow-mo, a gold flash, and
+   * the words across the screen.
+   */
+  private freeBeat(x: number, y: number, n: number, total: number) {
+    const sc = this.sc;
+    const cam = sc.cameras.main;
+    sc.hitStop(70);
+    if (!cam.zoomEffect.isRunning) Juice.punchZoom(sc, 0.08, 420);
+    Juice.shockRing(sc, x, y, { color: 0xffd23f, to: 220, rings: 2, depth: 960 });
+    const b = this.boss;
+    if (b?.active) {
+      sc.time.delayedCall(260, () => {
+        if (!b.active || this.done) return;
+        synth.play("roar");
+        Juice.shockRing(sc, b.x, b.y, { color: 0xffd23f, to: 300 + (n / total) * 500, rings: 2 + Math.round((n / total) * 2), depth: 960 });
+        sc.shake(300 + (n / total) * 300, 0.008 + (n / total) * 0.012);
+      });
+    }
+    if (n >= total) {
+      const set = (sc as unknown as { setSlowmo?: (k: number) => void }).setSlowmo?.bind(sc);
+      Juice.slowMo(sc, 0.3, 900, set);
+      Juice.flash(sc, 0xffd23f, 500, 0.5, 4880);
+      Juice.slamText(sc, "EVERYONE'S OUT!", "#ffd23f", 52, 170, 1100);
+      Juice.subDrop(0.8, 1.2);
+    } else if (n === Math.ceil(total / 2)) Juice.slamText(sc, "HALF THE LADS ARE FREE", "#fde68a", 34, 150, 900);
   }
 
   // ---------------------------------------------------------------- the group wonk

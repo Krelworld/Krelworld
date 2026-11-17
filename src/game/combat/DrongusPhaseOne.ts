@@ -4,6 +4,7 @@ import type { CombatWorld } from "./types";
 import { synth } from "../audio/Synth";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { BOSS_TEXT } from "../../content/bosses";
+import * as Juice from "../gfx/Juice";
 
 /** What he has the AI generate, in order (it cycles). */
 const SUMMONS: { ask: string; ai: string; reply: string; col: string; spawn: [string, number][] }[] = [
@@ -38,6 +39,9 @@ export class DrongusPhaseOneBoss extends Boss {
   private summonIdx = 0;
   private sweep: { from: number; to: number; start: number; dur: number; g: Phaser.GameObjects.Graphics } | null = null;
   private lockAim: number | null = null;
+  /** Below 15%: one last, desperate OVERCHARGE (a spiral of plasma), then he overheats. */
+  private lastStand: "no" | "pending" | "done" = "no";
+  private alarmOff: (() => void) | null = null;
 
   constructor(w: CombatWorld, x: number, y: number) {
     super(w, "drongus1", x, y, 2600, "boss_drongus", 32, 0xffd23f, 32, 48);
@@ -48,6 +52,7 @@ export class DrongusPhaseOneBoss extends Boss {
     this.on("destroy", () => {
       this.gun?.destroy();
       this.sweep?.g.destroy();
+      this.alarmOff?.();
     });
   }
 
@@ -108,8 +113,64 @@ export class DrongusPhaseOneBoss extends Boss {
 
   onPhase(n: number, now: number) {
     super.onPhase(n, now);
+    // whatever he was doing stops: the scene stages the moment (bullets cleared, camera in, his line slams in)
+    this.cancelSweep();
     this.world.toast(n === 1 ? "HE'S ANGRY" : "HE'S FURIOUS", n === 1 ? "Faster volleys. The sweep goes both ways now." : "More monsters. A ring of plasma after every mega shot.");
-    this.world.floatText(this.x, this.y - 90, n === 1 ? "RIGHT. NO MORE MR NICE DRONGUS." : "GROK! CLAUDE! CHATGPT! GENERATE EVERYTHING!", "#ff6b6b", 20);
+    this.scene.events.emit("epic-phase", this, n === 1 ? "RIGHT. NO MORE MR NICE DRONGUS." : "GENERATE EVERYTHING!", n === 1 ? "#ff6b3b" : "#ff2a2a");
+    // the sanctum's alarms go off for the rest of it
+    if (n === 2 && !this.alarmOff) this.alarmOff = Juice.alarmLight(this.scene, 0xff1a1a, 940, 0.12);
+    this.nextPattern = Math.max(this.nextPattern, now + 900);
+  }
+
+  private cancelSweep() {
+    this.sweep?.g.destroy();
+    this.sweep = null;
+    this.lockAim = null;
+  }
+
+  /**
+   * LAST STAND: he plants himself, the gun spins up white-hot, and a three-armed spiral of plasma winds out of it
+   * (slow bolts, wide lanes: walk round with it). Then the gun overheats and he's wide open.
+   */
+  private overcharge(now: number) {
+    const w = this.world;
+    const sc = this.scene;
+    this.halt();
+    const charge = 1100 * w.telegraphMult;
+    const dur = 4200;
+    w.floatText(this.x, this.y - 110, "DRONGUS GUN: OVERCHARGE", "#eaffea", 22);
+    synth.play("alarm");
+    Juice.riser(charge, 0.3);
+    const orb = sc.add.circle(this.x, this.y, 30, PLASMA, 0.6).setDepth(951).setBlendMode(Phaser.BlendModes.ADD).setScale(0.2);
+    sc.tweens.add({ targets: orb, scale: 3.2, alpha: 0.25, duration: charge, ease: "Quad.in", onComplete: () => orb.destroy() });
+    let base = Math.random() * Math.PI * 2;
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    sc.time.delayedCall(charge, () => {
+      if (this.dead || !this.active) return;
+      synth.play("gun_rail");
+      w.shake(300, 0.012);
+      const ev = sc.time.addEvent({
+        delay: 150,
+        repeat: Math.floor(dur / 150),
+        callback: () => {
+          if (this.dead || !this.active) return ev.remove();
+          this.halt();
+          base += 0.24 * dir;
+          this.lockAim = base;
+          for (let k = 0; k < 3; k++) this.world.shoot(this.x, this.y + GUN_Y, { owner: "enemy", damage: Math.round(10 * this.dmgMult), speed: 165, angle: base + (k * Math.PI * 2) / 3, color: PLASMA, scale: 1.7, life: 5200 });
+          if (Math.random() < 0.35) synth.play("gun_bfk");
+        },
+      });
+    });
+    sc.time.delayedCall(charge + dur + 200, () => {
+      if (this.dead || !this.active) return;
+      this.lockAim = null;
+      this.vulnerableUntil = this.world.now() + 3200;
+      w.floatText(this.x, this.y - 90, "OVERHEATED! (HIT HIM!)", "#fde047", 20);
+      synth.play("pfft");
+      for (let i = 0; i < 8; i++) sc.time.delayedCall(i * 340, () => !this.dead && this.gun && hasVfx(sc, "vfx_smoke") && vfx(sc, "vfx_smoke", this.muzzle()[0], this.muzzle()[1], { scale: 0.8, depth: 952, tint: 0x9cffb0 }));
+    });
+    this.nextPattern = now + charge + dur + 200 + 3400;
   }
 
   pattern(_dt: number, now: number) {
@@ -127,7 +188,20 @@ export class DrongusPhaseOneBoss extends Boss {
       else this.halt();
     }
     this.setFlipX(p.x < this.x);
+    // nearly beaten: the last stand (announced by the scene, then the overcharge)
+    if (this.lastStand === "no" && this.phase >= 2 && this.hp < this.maxHp * 0.15 && !this.sweep) {
+      this.lastStand = "pending";
+      this.cancelSweep();
+      this.scene.events.emit("epic-phase", this, "LAST STAND!", "#7dff8a");
+      this.nextPattern = now + 400;
+      return;
+    }
     if (now < this.nextPattern) return;
+    if (this.lastStand === "pending") {
+      this.lastStand = "done";
+      this.overcharge(now);
+      return;
+    }
     const tele = 850 * w.telegraphMult;
     const fast = this.phase >= 1;
     const step = this.patternIdx++ % 5;
@@ -264,6 +338,8 @@ export class DrongusPhaseOneBoss extends Boss {
   /** Beaten: he doesn't fall over, he stays put (the scene runs his escape). */
   kill() {
     this.dead = true;
+    this.alarmOff?.();
+    this.alarmOff = null;
     this.hpBar?.destroy();
     this.disableBody(true, false);
     this.sweep?.g.destroy();

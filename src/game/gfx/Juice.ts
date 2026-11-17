@@ -11,6 +11,8 @@ import { hdFactor } from "./HD";
 
 const alive = (sc: Phaser.Scene) => !!sc.sys && sc.sys.isActive() && !!sc.cameras?.main;
 const shakeOn = () => G.meta?.settings?.shake !== false;
+/** "Reduce flashing" is on: full-screen flashes are dimmed and slowed, strobing effects are skipped. */
+export const calm = () => !!G.meta?.settings?.calmFlash;
 
 /**
  * A screen-space layer at `depth` that ignores the camera's zoom (a scrollFactor-0 object still gets zoomed, which
@@ -89,6 +91,10 @@ export function punchZoom(sc: Phaser.Scene, amount = 0.12, ms = 380, rest?: numb
 
 /** A full-screen flash of colour that fades (more controllable than camera.flash, and it can sit under the HUD). */
 export function flash(sc: Phaser.Scene, color = 0xffffff, ms = 260, alpha = 1, depth = 4980, add = false) {
+  if (calm()) {
+    alpha *= 0.22;
+    ms = Math.max(ms, 320);
+  }
   const r = sc.add.rectangle(480, 270, 1100, 700, color, alpha);
   layer(sc, depth).add(r);
   if (add) r.setBlendMode(Phaser.BlendModes.ADD);
@@ -275,6 +281,68 @@ export function debris(sc: Phaser.Scene, x: number, y: number, n = 14, opts: { c
       onComplete: () => sc.tweens.add({ targets: r, alpha: 0, duration: 400, onComplete: () => r.destroy() }),
     });
   }
+}
+
+/**
+ * Anime impact frames: for a couple of frames the whole screen goes white with the target as a black silhouette,
+ * then inverts (black screen, white silhouette), then back to normal. Skipped under "Reduce flashing".
+ */
+export async function impactFrames(sc: Phaser.Scene, target: Phaser.GameObjects.Sprite | Phaser.GameObjects.Image | null, frameMs = 55, depth = 4970) {
+  if (calm() || !alive(sc)) return;
+  const bg = sc.add.rectangle(480, 270, 1100, 700, 0xffffff, 1);
+  layer(sc, depth).add(bg);
+  let sil: Phaser.GameObjects.Image | null = null;
+  if (target?.active && target.texture) {
+    const hd = hdFactor(target as { texture?: Phaser.Textures.Texture });
+    sil = sc.add.image(target.x, target.y, target.texture.key, target.frame.name).setOrigin(target.originX, target.originY).setFlipX(target.flipX).setAngle(target.angle).setDepth(depth + 1);
+    sil.setScale(target.scaleX / hd, target.scaleY / hd);
+    sil.setTintFill(0x000000);
+  }
+  await realWait(frameMs);
+  if (!bg.active) return;
+  bg.setFillStyle(0x000000, 1);
+  sil?.setTintFill(0xffffff);
+  await realWait(frameMs);
+  bg.destroy();
+  sil?.destroy();
+}
+
+/** Anime speed lines rushing in to the middle of the screen (screen-space). Returns a stop(). */
+export function speedLines(sc: Phaser.Scene, ms = 900, color = 0xffffff, depth = 4960, cx = 480, cy = 270) {
+  const g = sc.add.graphics();
+  layer(sc, depth).add(g);
+  const draw = () => {
+    if (!g.active) return;
+    g.clear();
+    for (let i = 0; i < 52; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r0 = 190 + Math.random() * 150;
+      g.lineStyle(1 + Math.random() * 3, color, 0.35 + Math.random() * 0.45);
+      g.lineBetween(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0, cx + Math.cos(a) * 900, cy + Math.sin(a) * 900);
+    }
+  };
+  draw();
+  const id = window.setInterval(draw, 60);
+  let stopped = false;
+  const stop = () => {
+    if (stopped) return;
+    stopped = true;
+    window.clearInterval(id);
+    if (g.active) sc.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() });
+  };
+  if (ms > 0) window.setTimeout(stop, ms);
+  sc.events.once("shutdown", stop);
+  return stop;
+}
+
+/** A pulsing alarm light over the whole screen (red by default) for the rest of a fight. Returns an off(). */
+export function alarmLight(sc: Phaser.Scene, color = 0xff1a1a, depth = 940, peak = 0.16) {
+  const r = sc.add.rectangle(480, 270, 2200, 1400, color, 0).setScrollFactor(0).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
+  const tw = sc.tweens.add({ targets: r, alpha: calm() ? peak * 0.4 : peak, yoyo: true, repeat: -1, duration: calm() ? 1600 : 520, ease: "Sine.inOut" });
+  return () => {
+    tw.stop();
+    if (r.active) sc.tweens.add({ targets: r, alpha: 0, duration: 500, onComplete: () => r.destroy() });
+  };
 }
 
 // ------------------------------------------------------------------ sound design (layered on top of the recorded sfx)

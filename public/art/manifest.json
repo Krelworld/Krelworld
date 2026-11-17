@@ -8851,6 +8851,9 @@
   },
   "c6a_cut_klerble": {
    "file": "c6a/c6a_cut_klerble.png"
+  },
+  "hd_kr_litter": {
+   "file": "props/hd_kr_litter.png"
   }
  },
  "sheets": {
@@ -11562,6 +11565,46 @@
    "file": "c6a/c6a_still_escape_anim.png",
    "frameWidth": 256,
    "frameHeight": 144
+  },
+  "hd_fountain_anim": {
+   "file": "props/hd_fountain_anim.png",
+   "frameWidth": 70,
+   "frameHeight": 63
+  },
+  "hd_stall_anim": {
+   "file": "props/hd_stall_anim.png",
+   "frameWidth": 90,
+   "frameHeight": 77
+  },
+  "kd_m_slots_anim": {
+   "file": "props/kd_m_slots_anim.png",
+   "frameWidth": 52,
+   "frameHeight": 87
+  },
+  "kd_m_wheel_anim": {
+   "file": "props/kd_m_wheel_anim.png",
+   "frameWidth": 82,
+   "frameHeight": 106
+  },
+  "hd_flag_anim": {
+   "file": "props/hd_flag_anim.png",
+   "frameWidth": 64,
+   "frameHeight": 112
+  },
+  "kd_fountain_anim": {
+   "file": "props/kd_fountain_anim.png",
+   "frameWidth": 96,
+   "frameHeight": 96
+  },
+  "hd_shrine_anim": {
+   "file": "props/hd_shrine_anim.png",
+   "frameWidth": 112,
+   "frameHeight": 72
+  },
+  "hd_bird_anim": {
+   "file": "props/hd_bird_anim.png",
+   "frameWidth": 16,
+   "frameHeight": 12
   }
  },
  "vfx": {

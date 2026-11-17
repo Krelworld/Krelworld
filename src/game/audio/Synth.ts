@@ -26,7 +26,7 @@ export const AUDIO_FILES: Record<string, string> = {
   /** The demons in Lulon's mind: a high, snarling goblin choir chanting KIDS. */
   mind_kids: "audio/mind_kids.mp3",
   /** The Kreddle Krunchers burning alive (Chapter 6 raid cutscene): each one screams in his lad's own voice. */
-  ...Object.fromEntries([1, 2, 3, 4, 5, 6].map((n) => [`krunch_scream_${n}`, `audio/sfx/krunch_scream_${n}.mp3`])),
+  ...Object.fromEntries([1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => [`krunch_scream_${n}`, `audio/sfx/krunch_scream_${n}.mp3`])),
 };
 
 /** Where each separate shout sits in those files: [start, length] in seconds. */

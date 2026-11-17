@@ -8695,6 +8695,24 @@
   },
   "kb_burnrun": {
    "file": "kb/kb_burnrun.png"
+  },
+  "kb_cut_skrombus": {
+   "file": "kb/kb_cut_skrombus.png"
+  },
+  "kb_cut_kredblis": {
+   "file": "kb/kb_cut_kredblis.png"
+  },
+  "kb_cut_kredwonk": {
+   "file": "kb/kb_cut_kredwonk.png"
+  },
+  "kb_cut_kredbon": {
+   "file": "kb/kb_cut_kredbon.png"
+  },
+  "kb_cut_grenny": {
+   "file": "kb/kb_cut_grenny.png"
+  },
+  "kb_silrun": {
+   "file": "kb/kb_silrun.png"
   }
  },
  "sheets": {
@@ -11209,6 +11227,36 @@
   },
   "kb_chardie_anim": {
    "file": "kb/kb_chardie_anim.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "kb_cut_skrombus_anim": {
+   "file": "kb/kb_cut_skrombus_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "kb_cut_kredblis_anim": {
+   "file": "kb/kb_cut_kredblis_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "kb_cut_kredwonk_anim": {
+   "file": "kb/kb_cut_kredwonk_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "kb_cut_kredbon_anim": {
+   "file": "kb/kb_cut_kredbon_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "kb_cut_grenny_anim": {
+   "file": "kb/kb_cut_grenny_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "kb_silrun_anim": {
+   "file": "kb/kb_silrun_anim.png",
    "frameWidth": 64,
    "frameHeight": 64
   }

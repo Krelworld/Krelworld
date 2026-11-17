@@ -26,6 +26,13 @@ export const KB_ART: Record<string, string> = {
   kb_cut_mikky: "kb/kb_cut_mikky.png",
   kb_eyes_burn: "kb/kb_eyes_burn.png",
   kb_burnrun: "kb/kb_burnrun.png",
+  kb_cut_skrombus: "kb/kb_cut_skrombus.png",
+  kb_cut_kredblis: "kb/kb_cut_kredblis.png",
+  kb_cut_kredwonk: "kb/kb_cut_kredwonk.png",
+  kb_cut_kredbon: "kb/kb_cut_kredbon.png",
+  kb_cut_grenny: "kb/kb_cut_grenny.png",
+  // gore off: a clean black running silhouette with a green fire rim
+  kb_silrun: "kb/kb_silrun.png",
 };
 /** The animated versions: 9 frames in a row (the first is the still). */
 export const KB_SHEETS: Record<string, [string, number, number]> = {
@@ -38,6 +45,12 @@ export const KB_SHEETS: Record<string, [string, number, number]> = {
   kb_cut_mikky_anim: ["kb/kb_cut_mikky_anim.png", 256, 128],
   kb_burnrun_anim: ["kb/kb_burnrun_anim.png", 64, 64],
   kb_chardie_anim: ["kb/kb_chardie_anim.png", 64, 64],
+  kb_cut_skrombus_anim: ["kb/kb_cut_skrombus_anim.png", 256, 128],
+  kb_cut_kredblis_anim: ["kb/kb_cut_kredblis_anim.png", 256, 128],
+  kb_cut_kredwonk_anim: ["kb/kb_cut_kredwonk_anim.png", 256, 128],
+  kb_cut_kredbon_anim: ["kb/kb_cut_kredbon_anim.png", 256, 128],
+  kb_cut_grenny_anim: ["kb/kb_cut_grenny_anim.png", 256, 128],
+  kb_silrun_anim: ["kb/kb_silrun_anim.png", 64, 64],
 };
 
 /** Queue any of the cutscene's art the texture cache doesn't have yet (call from a preload). */
@@ -56,6 +69,14 @@ const CLOSEUPS: { key: string; name: string; scream: number; color: number }[] =
   { key: "kb_cut_kredmar", name: "KREDMAR", scream: 3, color: CYAN },
   { key: "kb_cut_krungus", name: "LIL' KRUNGUS", scream: 5, color: PINK },
   { key: "kb_cut_mikky", name: "MIKKY K", scream: 6, color: CYAN },
+];
+/** The other five: a split-screen montage, slammed in one after another. */
+const MONTAGE: { key: string; name: string; scream: number; color: number }[] = [
+  { key: "kb_cut_skrombus", name: "SKROMBUS", scream: 2, color: CYAN },
+  { key: "kb_cut_kredblis", name: "KREDBLIS", scream: 4, color: PINK },
+  { key: "kb_cut_kredwonk", name: "KREDWONK", scream: 7, color: CYAN },
+  { key: "kb_cut_kredbon", name: "KREDBON", scream: 8, color: PINK },
+  { key: "kb_cut_grenny", name: "GRENNY", scream: 9, color: CYAN },
 ];
 
 export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
@@ -284,18 +305,84 @@ export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
     }
   };
 
+  /**
+   * The split screen: slanted vertical panels slam in left to right, one per Kruncher, each a crop of his face
+   * with its frames running (the damage happening), his name, a scream and a splat. They all stay up together.
+   */
+  const montage = (gap: number) => {
+    const n = MONTAGE.length;
+    const PW = 960 / n;
+    const top = 56;
+    const PH = 540 - top * 2;
+    const slant = 26;
+    MONTAGE.forEach((c, i) => {
+      window.setTimeout(() => {
+        if (skipped || !stage.active) return;
+        const cx = PW * i + PW / 2;
+        const panel = sc.add.container(0, i % 2 ? 600 : -600);
+        // a parallelogram window, so neighbours meet on a slant (in screen space: the panel slides, the window doesn't)
+        const shape = sc.make.graphics({}, false).setScrollFactor(0);
+        shape.fillStyle(0xffffff).fillPoints(
+          [
+            new Phaser.Math.Vector2(cx - PW / 2 + slant, top),
+            new Phaser.Math.Vector2(cx + PW / 2 + slant, top),
+            new Phaser.Math.Vector2(cx + PW / 2 - slant, top + PH),
+            new Phaser.Math.Vector2(cx - PW / 2 - slant, top + PH),
+          ],
+          true,
+        );
+        const bg = sc.add.rectangle(cx, 270, PW + slant * 2, PH, 0x05010c, 1);
+        panel.add(bg);
+        if (sc.textures.exists(c.key)) {
+          const img = sc.add.image(cx, 270, c.key);
+          const k = PH / img.frame.realHeight;
+          img.setScale(k * 1.05);
+          panel.add(img);
+          playFrames(img, c.key, 70, "once");
+          sc.tweens.add({ targets: img, scale: k * 1.15, duration: 1400 });
+        }
+        const tag = sc.add.text(cx - 10, 270 + PH / 2 - 30, c.name, { fontFamily: "Impact, sans-serif", fontSize: "24px", color: Phaser.Display.Color.IntegerToColor(c.color).rgba, stroke: "#000000", strokeThickness: 6 }).setOrigin(0.5).setAngle(-6);
+        panel.add(tag);
+        panel.setMask(shape.createGeometryMask());
+        const edges = sc.add.graphics();
+        edges.lineStyle(6, c.color, 1);
+        edges.lineBetween(cx - PW / 2 + slant, top, cx - PW / 2 - slant, top + PH);
+        edges.lineBetween(cx + PW / 2 + slant, top, cx + PW / 2 - slant, top + PH);
+        edges.setAlpha(0);
+        stage.add([panel, edges]);
+        panel.once("destroy", () => shape.destroy());
+        sc.tweens.add({
+          targets: panel,
+          y: 0,
+          duration: 110,
+          ease: "Cubic.out",
+          onComplete: () => {
+            if (skipped) return;
+            edges.setAlpha(1);
+            synth.play(i % 2 ? "punch" : "squelch");
+            scream(c.scream, 0.8, 0.84 + Math.random() * 0.1);
+            Juice.shake(sc, 160, 0.01);
+            const b = vfx(sc, i % 2 ? "vfx_bloodspray" : "vfx_gore", cx, 200 + Math.random() * 140, { scale: 1.6 + Math.random() * 0.6, flipX: Math.random() < 0.5 });
+            if (b) fx.add(b);
+          },
+        });
+      }, i * gap);
+    });
+  };
+
   /** The row of them burning down: char-to-skeleton sprites (gore), or black running silhouettes (no gore). */
   const burnRow = (ms: number) => {
     const glow = sc.add.rectangle(480, 270, 1100, 700, 0x0a2a05, 1);
     stage.add(glow);
     fireLine(9, 470, 2.6);
-    const key = gore ? "kb_chardie" : "kb_burnrun";
+    const key = gore ? "kb_chardie" : sc.textures.exists("kb_silrun_anim") ? "kb_silrun" : "kb_burnrun";
     if (!sc.textures.exists(`${key}_anim`)) return;
     const n = 5;
     for (let i = 0; i < n; i++) {
       const x = 130 + i * 175;
       const s = sc.add.image(x, 330, `${key}_anim`, 0).setScale(3.4).setFlipX(i % 2 === 1);
-      if (!gore) s.setTintFill(0x000000);
+      // (the old burning-run sprite, blacked out, if the silhouette sheet isn't there)
+      if (!gore && key === "kb_burnrun") s.setTintFill(0x000000);
       else s.setTint(i % 2 ? 0xbfefff : 0xffc8f0);
       stage.add(s);
       if (gore) {
@@ -355,12 +442,12 @@ export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
     // 1. impact
     synth.play("reveal_boom");
     Juice.subDrop(1, 2);
-    await impact("kb_burnrun", 6);
+    await impact(sc.textures.exists("kb_silrun") ? "kb_silrun" : "kb_burnrun", 6);
     flash(GREEN, 300, 0.7);
 
     // 2. the wide shot, in slow motion: all of them, on fire, running about
     if (!skipped) {
-      shot("kb_still_wide", 2600, { push: 0.14, frameMs: 150 });
+      shot("kb_still_wide", 2400, { push: 0.14, frameMs: 150 });
       fireLine(7, 540, 3.2);
       embers(2600);
       synth.play("gun_flamer");
@@ -369,8 +456,8 @@ export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
       window.setTimeout(() => !skipped && synth.play("crowd_panic", 0.6), 200);
       const stopLines = Juice.speedLines(sc, 0, GREEN, depth + 1);
       stops.push(stopLines);
-      window.setTimeout(stopLines, 2400);
-      await beat(2600);
+      window.setTimeout(stopLines, 2200);
+      await beat(2400);
       clearStage();
     }
 
@@ -387,12 +474,18 @@ export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
         await beat(750);
         clearStage();
       }
-      // 4. the close-ups, fast
+      // 4. the close-ups, fast: four whip-pans, then the other five slammed into a split screen
       for (const [i, c] of CLOSEUPS.entries()) {
         if (skipped) break;
-        cutIn(c, i, 820);
-        await beat(880);
-        if (!skipped && i % 2) await impact(null);
+        cutIn(c, i, 640);
+        await beat(700);
+        if (!skipped && i === 3) await impact(null);
+        clearStage();
+      }
+      if (!skipped) {
+        montage(230);
+        await beat(MONTAGE.length * 230 + 650);
+        if (!skipped) await impact(null);
         clearStage();
       }
     }

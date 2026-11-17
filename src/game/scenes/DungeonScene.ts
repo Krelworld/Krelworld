@@ -20,11 +20,14 @@ import { DerangedDrongusBoss } from "../combat/DerangedDrongus";
 import { Citadel, citadelPreload, citadelReady } from "./citadel/Citadel";
 import { RoofArena, roofPreload, roofReady } from "./citadel/RoofArena";
 import { DarkDrongusBoss } from "../combat/DarkDrongus";
+import { vsSplash, vsSeen } from "../gfx/VsSplash";
+import { krelCinema } from "../combat/KrelCinema";
 import { synth, MUSIC_FILES } from "../audio/Synth";
 import { runDialogue } from "./DialogueScene";
 import { BOSS_TEXT } from "../../content/bosses";
 import { voice } from "../audio/Voice";
 import * as Juice from "../gfx/Juice";
+import { playCine } from "../gfx/Cine";
 import { enemyDamageMult, enemyHpMult, maxHp, bump, maxBottles, maxKrezz } from "../systems/stats";
 import { addCensorBar } from "../gfx/Censor";
 import { activeMods } from "../../data/historicalRevisions";
@@ -39,6 +42,7 @@ import { KrelfordFinale } from "./finale/KrelfordFinale";
 import { finalePreload } from "./finale/finaleArt";
 import { SanBrother } from "../combat/SanBrother";
 import { SideLevel } from "./side/SideLevel";
+import { ColonTube } from "./side/Colon";
 import { runChain, switchTo } from "../Flow";
 import { say, dir, gabor } from "../../content/dsl";
 import { FONT } from "../ui/theme";
@@ -142,6 +146,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   side = false;
   private bros: SanBrother[] = [];
   private sideLevel: SideLevel | null = null;
+  /** Inside Uncle Rik, side-on: the tube's dressing (ceiling, folds, mucus, the big squeeze). */
+  private colonTube: ColonTube | null = null;
   groundY = 0;
   private platforms: Phaser.Physics.Arcade.StaticGroup | null = null;
   private sideBg: Phaser.GameObjects.TileSprite | null = null;
@@ -282,6 +288,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.sideBg = null;
     this.towerBg = null;
     this.sideLevel = this.side ? new SideLevel(this as any, r) : null;
+    this.colonTube = this.side && r.theme === "colon" ? new ColonTube(this as any, r) : null;
     if (this.side) {
       // with holes in the floor, the floor is made of blocks and the world carries on underneath
       this.physics.world.setBounds(24, 0, r.w - 48, this.sideLevel?.hasGaps ? r.h + 400 : this.groundY);
@@ -334,7 +341,10 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     this.controls = new Controls(this);
     // died fighting a mini-boss? Back in at the start of its arena, not the start of the room
-    const cp = r.miniBoss ? G.s.flags[this.miniBossKey()] : undefined;
+    let cp = r.miniBoss ? G.s.flags[this.miniBossKey()] : undefined;
+    // back inside Uncle Rik with the crystal already out: in again where it was, not at the far end of the tube
+    const crystal = this.side && G.s.flags.rik_crystal_taken ? r.props?.find((q) => q.kind === "crystal_wall") : undefined;
+    if (crystal && cp === undefined) cp = `${Math.round(r.w * crystal.x)},${this.groundY - 40}`;
     const cpx = typeof cp === "string" ? Number(cp.split(",")[0]) : NaN;
     const cpy = typeof cp === "string" ? Number(cp.split(",")[1]) : NaN;
     const startX = this.side ? (Number.isFinite(cpx) ? cpx : 90) : r.w / 2;
@@ -544,6 +554,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       const y = gy - h;
       if (this.citadel) {
         this.citadel.platform(x, y, w, !!r.tower);
+      } else if (this.colonTube) {
+        this.colonTube.platform(x, y, w);
       } else if (r.tower && this.textures.exists("tw_ledge")) {
         // PixelLab gothic ledge: carved arches, gold trim, corbels; capped with a dark edge each end
         this.add.tileSprite(x, y - 9, w, 29, "tw_ledge").setOrigin(0.5, 0).setDepth(4);
@@ -583,6 +595,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     this.sideLevel?.build(this.platforms);
     this.obstacles = this.physics.add.staticGroup();
+    this.colonTube?.build(this.obstacles);
     const dx = r.exitAt ? r.w * r.exitAt[0] : r.w - 70;
     const dy = r.exitAt ? gy - r.exitAt[1] - 7 : gy;
     this.door = this.add.image(dx, dy - 30, "p_door_locked").setScale(2.2).setDepth(6);
@@ -928,6 +941,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const r = this.room;
     const x = r.w * p.x;
     const y = this.side ? this.groundY - 20 : r.h * p.y;
+    const y0 = y;
     switch (p.kind) {
       case "wonking_machine": {
         const spr = this.add.image(x, y, "p_wonking").setScale(2.4).setDepth(y);
@@ -1010,7 +1024,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         break;
       }
       case "crystal_wall": {
-        // the cum crystal, wedged in the colon wall
+        // the cum crystal, wedged in the colon wall (side-on: in the back wall, at about head height)
+        const y = this.side ? this.groundY - 120 : y0;
         const glow = this.add.circle(x, y, 46, 0xfff1f2, 0.25).setDepth(y - 1).setBlendMode(Phaser.BlendModes.ADD);
         this.add.ellipse(x, y + 4, 90, 60, 0x9f1239).setStrokeStyle(4, 0x4c0519).setDepth(y - 2);
         const cr = this.add.image(x, y, this.textures.exists("cum_crystal") ? "cum_crystal" : "p_scroll").setDepth(y);
@@ -1022,6 +1037,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
           x,
           y: y + 40,
           r: 70,
+          ...(this.side ? { y: this.groundY - 30, r: 90 } : {}),
           label: "Prise out the cum crystal",
           enabled: () => !G.s.flags.rik_crystal_taken,
           use: () => void this.takeRikCrystal([glow, cr, lab]),
@@ -1176,6 +1192,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     beam.setRotation(Phaser.Math.Angle.Between(lamp.x, lamp.y, p.x, p.y));
     const len = Phaser.Math.Distance.Between(lamp.x, lamp.y, p.x, p.y);
     await new Promise<void>((r) => this.tweens.add({ targets: beam, width: len, duration: 250, onComplete: () => r() }));
+    await playCine(this, "ch5_shrink");
     this.cameras.main.flash(200, 160, 255, 255);
     for (let i = 0; i < 5; i++) {
       synth.play("tap");
@@ -1187,6 +1204,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     beam.destroy();
     lamp.destroy();
     await this.talk([dir("You are now four millimetres tall. Uncle Rik bends over to see where you've gone. That's all the opening you need.")]);
+    await playCine(this, "ch5_colon");
     this.cameras.main.fadeOut(600, 60, 0, 20);
     await new Promise<void>((r) => this.time.delayedCall(700, () => r()));
   }
@@ -1720,6 +1738,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const spray = this.time.addEvent({ delay: 50, repeat: 14, callback: () => this.gore(x, neckY, 4, 0.7) });
     this.screenSplat(2);
     body.setTint(0xffb0b0);
+    // the close-up (KrelCinema.ts), then back to him going down
+    await krelCinema(this, { which: "stanley", title: G.meta?.settings?.gore !== false ? "THROAT SLIT!" : "GROUNDED!", victim: "CAPTAIN STANLEY" });
     await wait(700);
     // and down he goes, still saluting
     this.tweens.add({ targets: body, angle: b.flipX ? -84 : 84, y: y + fh * 0.3, duration: 700, ease: "Quad.in" });
@@ -1857,6 +1877,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
           });
         await new Promise<void>((r2) => this.time.delayedCall(1700, () => r2()));
         this.cameras.main.flash(600, 255, 255, 255);
+        await playCine(this, "ch4_boom");
         resolve();
       });
     });
@@ -1919,10 +1940,13 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (fresh) await this.talk(txt.intro);
     if (epic) {
       if (fresh && BOSS_EYES[id] && b.active) await Juice.eyeShot(this, BOSS_EYES[id], 750, { color: Phaser.Display.Color.HexStringToColor(epic).color });
-      if (b.active) await Juice.bossCard(this, txt.name, txt.title, epic);
+      // the VS card is their title card (name and epithet), at the end of the entrance
+      if (b.active) await vsSplash(this, { bossId: id, art: { key: b.texture.key, frame: 0 }, color: Phaser.Display.Color.HexStringToColor(epic).color });
       closeBars?.(350);
       this.cameras.main.zoomTo(1, 350, "Cubic.easeOut", true);
     }
+    // everyone else: the VS card once their intro's said (Dark Drongus has had his at the end of the roof cutscene)
+    if (!epic && b.active && !(id === "dark_drongus" && vsSeen(id))) await vsSplash(this, { bossId: id, art: { key: b.texture.key, frame: 0 } });
     // epic bosses' themes start once the title card's done (the next boss in a rush goes back to the room's music)
     if (ownTheme) {
       if (epic) synth.music(`fight_${id}`, true);
@@ -2476,6 +2500,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     ropes.destroy();
     synth.play("gunget");
     this.tweens.add({ targets: spr, y: spr.y - 16, yoyo: true, duration: 180 });
+    this.busy = true;
+    await playCine(this, "ch3_mollor");
+    this.busy = false;
     const jenko = s.player === "FLENKY";
     await this.talk(
       jenko
@@ -2779,6 +2806,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (e instanceof Boss && e.shielded) {
       if (opts.label !== "" && Math.random() < 0.3) this.floatText(e.x, e.y - 40, "SHIELDED", "#88aaff", 12);
       return;
+    }
+    // shield phases (BossShield.ts): immune while it's up, bonus while it's down, clamped at each threshold
+    if (e instanceof Boss && e.guard) {
+      a = e.guard.damage(a, opts);
+      if (a <= 0) return;
     }
     const hpBefore = e.hp;
     e.hp -= a;
@@ -3167,8 +3199,15 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   // ------------------------------------------------------------------ helpers
 
-  /** THE CUM CRYSTAL IS YOURS! YEAH! Every main boss drops one: a big, loud, sparkly moment. */
-  private crystalGet(b: Boss): Promise<void> {
+  /** THE CUM CRYSTAL IS YOURS! YEAH! The drawn shot of it held up high (skippable), then the party. */
+  private async crystalGet(b: Boss): Promise<void> {
+    if (!carriesCrystal(b.bossId) || G.s.flags[`crystal_${b.bossId}`]) return;
+    await playCine(this, "crystal");
+    if (this.sys.settings.active) await this.crystalParty(b);
+  }
+
+  /** Every main boss drops one: a big, loud, sparkly moment. */
+  private crystalParty(b: Boss): Promise<void> {
     const s = G.s;
     if (!carriesCrystal(b.bossId) || s.flags[`crystal_${b.bossId}`]) return Promise.resolve();
     s.flags[`crystal_${b.bossId}`] = true;
@@ -3527,6 +3566,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (!this.busy) for (const b of this.bros) b.update(now, Math.min(delta, 50));
     this.sideLevel?.update(Math.min(delta, 50), this.busy);
     this.citadel?.update(Math.min(delta, 50));
+    this.colonTube?.update(Math.min(delta, 50), this.busy);
     this.roof?.update(Math.min(delta, 50));
     const mb = this.room.miniBoss;
     if (mb && this.miniBossState === "none" && !this.roomCleared && !this.busy && !this.transitioning) {

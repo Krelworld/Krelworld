@@ -25,6 +25,7 @@ import { Presenter, hasAnchor } from "./tvnews/Presenter";
 import { BRANDS, NewsChrome, calm, cameraFlash } from "./tvnews/NewsChrome";
 import { shootout, splat, tripodRig, type Victim } from "./tvnews/Shootout";
 import * as Juice from "../gfx/Juice";
+import { goreDeath } from "../gfx/GoreDeath";
 import {
   KB_ORDER, KB_QUEUE, KB_SHOT, KP_KLERBLE, KP_LAST, KP_PARTY, KP_PROTOCOL, KP_RUINS, KT_AFTER, KT_ARRIVE, KT_DEPART, KT_DRIVER, KT_KRUNCHERS, KT_OPEN, PE_RAIN,
   RM_ACTUALLY, RM_ARMS, RM_CAUTION, RM_CHEM, RM_END, RM_GOT_GUN, RM_HANDS, RM_JENKO, RM_KREBLIS, RM_LUKE, RM_NUKE, RM_OPEN, RM_PISS, RM_POLSON,
@@ -1086,7 +1087,7 @@ export class VignetteScene extends Phaser.Scene {
     }
     const kev = this.add.sprite(640, 360, "boss_flatmate", 0).setScale(3).setDepth(10);
     const gron = this.add.sprite(260, 360, "spr_GRONNY", 0).setScale(4).setDepth(10);
-    await this.talk([say("ROBBO", "Gronny, mate. Let's talk about this. The deposit's coming. I've got a guy."), say("GRONNY", "…"), this.cue("THE CARPET HAS BEEN AVENGED IN SIX PARTS", true)]);
+    await this.talk([say("ROBBO", "Gronny, mate. Let's talk about this. The deposit's coming. I've got a guy."), say("GRONNY", "…", { cine: "scratch;cut|ss_cut_gronny|left|0xef4444|1500" }), this.cue("THE CARPET HAS BEEN AVENGED IN SIX PARTS", true)]);
     // the gore (cartoon, off with the gore setting): sprays, chunks and pools that stay on the carpet
     const gore = G.meta.settings.gore !== false;
     const bleed = (x: number, y: number, big = 1) => {
@@ -1200,7 +1201,7 @@ export class VignetteScene extends Phaser.Scene {
       say("GRONNY", "Fair enough."),
       dir(gore ? "Somewhere over the horizon, what's left of Robbo lands in Kreddle: alive (medically, just), embarrassed, several pints lighter, and permanently rolled in a ruined carpet. He Venmos you the deposit the next morning. With interest." : "Somewhere over the horizon, Robbo lands in Kreddle, alive, embarrassed, and permanently rolled in a ruined carpet. He Venmos you the deposit the next morning. With interest."),
       ...(gore ? [dir("Your carpet, for the record, is now considerably worse.")] : []),
-      dir("The carpet is avenged."),
+      dir("The carpet is avenged.", { cineAfter: "sting|ss_sting_title;slam|CARPET: AVENGED|#ffd23f|56;wait|1000" }),
     ]);
   }
 
@@ -1228,7 +1229,7 @@ export class VignetteScene extends Phaser.Scene {
     this.caption("700KG", "#ffd23f", 30);
     await this.wait(700);
     await this.tween({ targets: bar, y: 250, duration: 900, ease: "Sine.out" });
-    await this.talk([say("CHAD DELTOID", "EASY. EASY. I'M NOT EVEN—"), say("KREZWONK", "I foresee you dropping it.")]);
+    await this.talk([say("CHAD DELTOID", "EASY. EASY. I'M NOT EVEN—"), say("KREZWONK", "I foresee you dropping it.", { cineAfter: "freeze|700 KG." })]);
     synth.play("banhammer");
     this.cameras.main.shake(800, 0.03);
     await this.tween({ targets: bar, y: 370, duration: 250, ease: "Quad.in" });
@@ -1236,8 +1237,8 @@ export class VignetteScene extends Phaser.Scene {
     this.caption("RE-RACKED. PERMANENTLY.", "#ff4d4d", 30);
     await this.wait(1500);
     await this.talk([
-      dir("Chad Deltoid has been flattened into a perfect, gym-floor-shaped pancake. Cartoon birds circle where his head used to be."),
-      say("KREZWONK", "I foresaw this. I elected not to prevent it."),
+      dir("Chad Deltoid has been flattened into a perfect, gym-floor-shaped pancake. Cartoon birds circle where his head used to be.", { cine: "impact;still|ss_still_rival|2600" }),
+      say("KREZWONK", "I foresaw this. I elected not to prevent it.", { cineAfter: "sting|biglaugh" }),
       dir("The gym erupts in applause. For the first time in Krunch Gym's history, every weight is re-racked."),
     ]);
   }
@@ -1358,7 +1359,7 @@ export class VignetteScene extends Phaser.Scene {
     synth.music("hub");
     await this.talk([
       dir("Krunch Gym. You have taken Polson for 'an intense workout'. He is wearing brand new trainers, brand new shorts and a headband. The tags are still on all of them."),
-      say("POLSON", "Tonight's the night!! Intense workout!!"),
+      say("POLSON", "Tonight's the night!! Intense workout!!", { cine: "sting|ss_sting_title;card|POLSON GETS FIT|KRUNCH GYM|SESSION 1|1300" }),
       say("POLSON", "Make no mistake.. I want to be a monster. A great hulking monster 😅"),
     ]);
     await this.tween({ targets: pol, x: 470, y: 370, duration: 900 });
@@ -1375,7 +1376,7 @@ export class VignetteScene extends Phaser.Scene {
     await this.tween({ targets: pol, x: 620, y: 380, duration: 300 });
     pol.setFrame(0);
     await this.talk([
-      say("POLSON", "WAHAHAHA"),
+      say("POLSON", "WAHAHAHA", { cine: "freeze|TIME ON TREADMILL: 2.0 SECONDS" }),
       say("POLSON", "That's great for the core!! Thoughts?"),
       say(G.s.player, "That was two seconds."),
       say("POLSON", "Two seconds of pure core my lord!!"),
@@ -1397,12 +1398,12 @@ export class VignetteScene extends Phaser.Scene {
     ]);
     await this.bulkPolson(pol2);
     await this.talk([
-      say("POLSON", "BULKED!! YES YES YES"),
+      say("POLSON", "BULKED!! YES YES YES", { cine: "speed|0xffd23f;cut|ss_cut_polson_grin|left|0xffd23f|1100" }),
       dir("Polson is now noticeably, structurally larger. His t-shirt has given up. The chair has given up."),
       say("POLSON", "Same time tomorrow? Intense workout then here!! Wbu?"),
       dir("You pay. Obviously you pay. Polson 'left his wallet in his gym bag', which he did not bring."),
-      ping("POLSON'S MUM", "Did you let him eat fudge"),
-      ping("POLSON'S MUM", "He's meant to be getting trim. His health is YOUR responsibility. The GUMPTION of you to do this to my autistic son."),
+      ping("POLSON'S MUM", "Did you let him eat fudge", { cine: "scratch;wait|300;cut|ss_cut_mum|right|0xef4444|1400" }),
+      ping("POLSON'S MUM", "He's meant to be getting trim. His health is YOUR responsibility. The GUMPTION of you to do this to my autistic son.", { cineAfter: "impact;slam|GUMPTION|#ef4444|72;wait|1100" }),
     ]);
     synth.stopMusic();
   }
@@ -1436,7 +1437,7 @@ export class VignetteScene extends Phaser.Scene {
     this.time.addEvent({ delay: 500, loop: true, callback: () => !pol.getData("wonking") && pol.setFrame(String(pol.frame.name) === "3" ? 0 : 3) });
     await this.talk([
       dir("14:00. Polson's message: 'At the gym 💪'. CAM 1: Polson is on the sofa. CAM 2: Polson is not at the gym."),
-      ping("POLSON", "Leg day today!! Brutal 😅"),
+      ping("POLSON", "Leg day today!! Brutal 😅", { cineAfter: "freeze|LEGS WORKED TODAY: 0" }),
       dir("CAM 1: Polson opens a family-size bag of crisps with both hands."),
     ]);
     await this.tween({ targets: pol, x: 250, y: 360, duration: 900 });
@@ -1444,7 +1445,7 @@ export class VignetteScene extends Phaser.Scene {
     await this.tween({ targets: pol, y: 160, duration: 900 });
     await this.talk([
       dir("16:30. CAM 1: Polson is asleep on the sofa, holding a slice of pizza like a teddy bear."),
-      ping("POLSON", "3 hours done!! Absolutely destroyed. Who even spends 3 hours in a fucking gym? Me apparently 😝"),
+      ping("POLSON", "3 hours done!! Absolutely destroyed. Who even spends 3 hours in a fucking gym? Me apparently 😝", { cineAfter: "freeze|HOURS AT THE GYM: 0. HOURS ASLEEP WITH PIZZA: 2.5" }),
     ]);
     // 17:10: he wakes up. Something is coming.
     await this.cctvFarts(pol);
@@ -1477,7 +1478,7 @@ export class VignetteScene extends Phaser.Scene {
     const me = this.add.sprite(160, 390, playerKey(this), 0).setScale(3).setDepth(10);
     synth.music("hub");
     await this.talk([
-      dir("Krunch Gym. Again. Polson is wearing the same headband. The headband is now under considerable tension."),
+      dir("Krunch Gym. Again. Polson is wearing the same headband. The headband is now under considerable tension.", { cine: "sting|ss_sting_title;card|POLSON GETS FIT|KRUNCH GYM|SESSION 2|1300" }),
       say("POLSON", "I've been bulking!! Thoughts? Be honest 😅"),
       say(G.s.player, "That's mostly fudge."),
       say("POLSON", "To be fair fudge is great bulking food!"),
@@ -1485,7 +1486,7 @@ export class VignetteScene extends Phaser.Scene {
     await this.tween({ targets: pol, x: 480, duration: 900 });
     synth.play("hit");
     this.cameras.main.shake(200, 0.006);
-    await this.talk([dir("Polson enters the turnstile. Polson does not exit the turnstile."), say("POLSON", "It's narrower than last time!! They've changed it."), say("POLSON", "Push me. Push me through. This is part of the warm-up.")]);
+    await this.talk([dir("Polson enters the turnstile. Polson does not exit the turnstile.", { cine: "scratch;still|ss_still_turnstile|2400" }), say("POLSON", "It's narrower than last time!! They've changed it."), say("POLSON", "Push me. Push me through. This is part of the warm-up.")]);
     // mash to shove him through
     await new Promise<void>((resolve) => {
       let pushes = 0;
@@ -1530,9 +1531,9 @@ export class VignetteScene extends Phaser.Scene {
     this.tween({ targets: bench, angle: 12, y: 440, duration: 200 });
     this.tween({ targets: pol, y: 410, duration: 200 });
     await this.talk([
-      dir("The bench snaps cleanly in half. Polson has not touched a weight."),
-      say("POLSON", "PERSONAL BEST!! 😅"),
-      say("CHAD DELTOID", "(from the squat rack) Mate, that's a £900 bench."),
+      dir("The bench snaps cleanly in half. Polson has not touched a weight.", { cine: "impact;sting|ss_sting_reveal;still|ss_still_bench|2600" }),
+      say("POLSON", "PERSONAL BEST!! 😅", { cine: "cut|ss_cut_polson_grin|left|0xffd23f|1000" }),
+      say("CHAD DELTOID", "(from the squat rack) Mate, that's a £900 bench.", { cineAfter: "freeze|WEIGHT LIFTED: 0 KG. BENCHES: -1" }),
       say("POLSON", "That's the session!! Post-workout window. I've got to get the protein in within thirty seconds or the gains evaporate. Make no mistake"),
       say("POLSON", "Restaurant!! Quick!! QUICK!!"),
     ]);
@@ -1555,7 +1556,7 @@ export class VignetteScene extends Phaser.Scene {
     if (pol2.texture.key === "spr_POLSON_FAT") pol2.setFrame(Polson.bellyFrame((G.s.flags.polson_fat as number) ?? 0));
     await this.talk([
       dir("He drinks it in one go. The straw collapses. The glass collapses. Something in his shirt gives way."),
-      say("POLSON", "Oh that's delectable!! I can feel it going straight to the muscles"),
+      say("POLSON", "Oh that's delectable!! I can feel it going straight to the muscles", { cineAfter: "sting|ss_sting_comedy" }),
     ]);
     synth.stopMusic();
   }
@@ -1584,7 +1585,7 @@ export class VignetteScene extends Phaser.Scene {
       dir("CAM 1 has fogged up. From the inside. The War Room microphone picks up a fifth one, which sounds like someone sitting on a duck."),
       say("POLSON", "(on CAM 1, to nobody) Oh that's delectable 😅"),
       ping("POLSON", "Core is on fire!!"),
-      say("KREZWONK", "It's not his core that's on fire."),
+      say("KREZWONK", "It's not his core that's on fire.", { cineAfter: "sting|biglaugh" }),
     ]);
     this.tweens.add({ targets: fog, fillAlpha: 0, duration: 1200, onComplete: () => fog.destroy() });
   }
@@ -1730,7 +1731,7 @@ export class VignetteScene extends Phaser.Scene {
     synth.music("lamp_rub", true);
     await this.talk([
       dir("The back room of the Krezz Arms, after the gig. SanMik is lying face-down on the stage 'cooling down'. SanChz is eating the setlist.", { variants: { MIKEY: "The back room of the Krezz Arms, after the gig. You are lying face-down on the stage 'cooling down'. SanChz is eating the setlist." } }),
-      say("SANMIK", "Yee. 'Ello me dearies. How you all fucking doing, you fucking PRICKS."),
+      say("SANMIK", "Yee. 'Ello me dearies. How you all fucking doing, you fucking PRICKS.", { cine: "speed|0xa855f7;cut|ss_cut_sanmik|left|0xa855f7|1200" }),
       say("SANMIK", "Found this in the skip out the back. Magic lamp. Looks like a naughty little dildo and it smells like rank fanny juice."),
       say("SANCHZ", "Rub it."),
       say("SANMIK", "I'm gonna rub it like I rubbed one out last night, yee. Hehehe."),
@@ -1763,7 +1764,7 @@ export class VignetteScene extends Phaser.Scene {
       say("SANMIK", "Number one: a fucking pet goat."),
       say("SANMIK", "Number two: a Pepsi Max."),
       say(this.youTo("SANCHZ"), "Mikey. Think about this. You can have anything—"),
-      say("SANMIK", "And number three… a Pepsi normal."),
+      say("SANMIK", "And number three… a Pepsi normal.", { cineAfter: "freeze|WISHES REMAINING: 0. PEPSIS: 2." }),
       say("GENIE", "…"),
       say("GENIE", "WHAT A BLOODY FUCKING WASTE. YOU COULD HAVE LEARNED TO BLOODY FUCKING FLY."),
       say("GENIE", "BUT. YOUR WISHES ARE MY COMMAND."),
@@ -1840,7 +1841,7 @@ export class VignetteScene extends Phaser.Scene {
       say("SANMIK", "From now on, SanMik's your god. All you ladies of Krelford, form an orderly queue. My kids will be the government."),
       say("SANMIK", "Lil Leroy: Chancellor. Munky: Home Secretary. Princess: Foreign Office. And Cancelle Culchure: Minister for Culture."),
       say("KREBLIS", "You named a child Cancelle Culchure."),
-      say("SANMIK", "Spelt proper. It's French."),
+      say("SANMIK", "Spelt proper. It's French.", { cineAfter: "sting|ss_sting_awkward;freeze|IT IS NOT FRENCH." }),
       say("SANCHZ", "SanChz Nation policy one: hot tubs on the NHS. Policy two: Doreen gets her bus. Policy three: mork."),
     ]);
     for (let i = 0; i < 3; i++) {
@@ -1924,7 +1925,7 @@ export class VignetteScene extends Phaser.Scene {
     this.caption("🎄 I LOVE CHRISTMAS 🎄", "#ff6b6b", 30);
     await this.wait(1500);
     await this.talk([
-      say("SANMIK", "Yee! I'm the fucking best! Michael Jackson is second best! I am also best dressed!"),
+      say("SANMIK", "Yee! I'm the fucking best! Michael Jackson is second best! I am also best dressed!", { cine: "cut|ss_cut_sanmik|right|0xff6b6b|1100" }),
       say(this.youTo("KREBLIS"), "You're in a G-string."),
       say("SANMIK", "Best dressed, blud."),
       say("SANCHZ", "Everyone knows he's solid. No cunt touches him."),
@@ -2188,7 +2189,6 @@ export class VignetteScene extends Phaser.Scene {
     await this.wait(320);
     for (const p of this.talkers.values()) p.stopTalking();
     this.talkers.get("REINHARDT CROBLEY")?.setPose("fists");
-    const jMid = { x: journo.x, y: journo.y - journo.displayHeight * 0.55 };
     const gun = this.art(rein.x - 70, rein.y - rein.displayHeight * 0.42, "p_mgun", 1.6, 0x111827, "GUN").setDepth(15).setFlipX(true);
     gun.setScale(0.1);
     await this.tween({ targets: gun, scale: this.textures.exists("p_mgun") ? 1.6 : 1, duration: 250, ease: "Back.out" });
@@ -2202,29 +2202,11 @@ export class VignetteScene extends Phaser.Scene {
           const fl = this.add.star(gun.x - 50, gun.y, 5, 6, 16, 0xfde047).setDepth(16);
           this.time.delayedCall(50, () => fl.destroy());
         }
-        if (i % 3 === 0) {
-          if (G.meta.settings.gore !== false) vfx(this, "vfx_bloodspray", jMid.x + (Math.random() - 0.5) * 40, jMid.y + (Math.random() - 0.5) * 60, { scale: 1.4, depth: 14, flipX: true });
-          else vfx(this, "vfx_hit", jMid.x + (Math.random() - 0.5) * 40, jMid.y + (Math.random() - 0.5) * 60, { scale: 1.3, depth: 14 });
-        }
-        for (let k = 0; k < 4; k++) {
-          const b = this.add.rectangle(jMid.x + (Math.random() - 0.5) * 30, jMid.y + (Math.random() - 0.5) * 50, 4, 4, G.meta.settings.gore !== false ? 0xdc2626 : 0x9ca3af).setDepth(14);
-          this.tween({ targets: b, x: b.x - 60 - Math.random() * 80, y: b.y + 40 + Math.random() * 60, alpha: 0, duration: 600 }).then(() => b.destroy());
-        }
       });
     }
-    this.talkers.get("JOURNALIST")?.destroy();
+    // she takes the burst: drawn (gfx/GoreDeath.ts), in the studio's camera container so she goes over with the picture
     this.talkers.delete("JOURNALIST");
-    // (in the studio's camera container, so she goes over with the picture when the camera falls)
-    const jFall = this.add.sprite(journo.x, journo.y, journo.texture.key, 0).setOrigin(0.5, 1).setScale(journo.scaleX);
-    stage.add(jFall);
-    journo.setVisible(false);
-    this.tweens.add({ targets: jFall, angle: -80, x: jFall.x - 60, y: jFall.y + 120, delay: 900, duration: 400 });
-    await this.wait(1400);
-    if (G.meta.settings.gore !== false) {
-      const pool = vfx(this, "vfx_bloodpool", journo.x - 40, 360, { scale: 2.2, depth: 12, hold: true });
-      if (pool) stage.addAt(pool, stage.getIndex(jFall));
-      splat(this, 380, 140, 360);
-    }
+    await goreDeath(this, journo, "shot", { fromX: rein.x, hits: 5, gap: 90, lens: true });
     await this.talk([dir("The newsreader goes down behind the desk. Somewhere, a producer screams. Reinhardt slowly turns. Towards the camera.")]);
     // he turns it on us
     gun.setDepth(-4);
@@ -2707,19 +2689,8 @@ export class VignetteScene extends Phaser.Scene {
             targets: shell, x: v.x, y: v.y - 10, duration: 260, onComplete: () => {
               shell.destroy();
               boom(v.x, v.y, 1.6);
-              if (gore) {
-                fx("vfx_gore", v.x, v.y - 10, 3);
-                fx("vfx_bloodspray", v.x, v.y - 30, 2.6);
-                synth.play("bonecrack");
-                for (let k = 0; k < 7; k++) {
-                  const chunk = this.add.circle(v.x, v.y, 5 + Math.random() * 7, k % 2 ? 0xf472b6 : 0xb91c1c);
-                  layer.add(chunk);
-                  this.tweens.add({ targets: chunk, x: v.x + (Math.random() - 0.5) * 420, y: 470 + Math.random() * 50, angle: 540, duration: 700 + Math.random() * 400, ease: "Quad.in" });
-                }
-                const pool = fx("vfx_bloodpool", v.x, 450, 2.4);
-                void pool;
-                v.setVisible(false);
-              } else this.tweens.add({ targets: v, x: v.x + 300, y: -200, angle: 1080, duration: 1200, ease: "Quad.out" });
+              // torn apart (gfx/GoreDeath.ts; gore off: sooty, smoking, over he goes)
+              goreDeath(this, v, "blast", { fromX: m.x, quiet: true });
             },
           });
         });
@@ -3033,7 +3004,7 @@ export class VignetteScene extends Phaser.Scene {
     await this.takeDrugs();
     await this.talk([
       dir("Oh. Oh, that's lovely. Your hands are steady. The four hundred buttons make sense now. They're all friends. One of them waves at you."),
-      say(me, "…I know how to fly a plane."),
+      say(me, "…I know how to fly a plane.", { cine: "ch6_hijack" }),
       say("KREZWONK", "(over the radio) He knows how to fly a plane.", { cond: { notPlayer: "KREZWONK" } }),
       say("KREBLIS", "(over the radio) He knows how to fly a plane.", { cond: { player: "KREZWONK" } }),
     ]);
@@ -3809,24 +3780,12 @@ export class VignetteScene extends Phaser.Scene {
     const flash = keep(this.add.rectangle(480, 270, 960, 540, 0xffffff).setDepth(D + 50).setScrollFactor(0));
     this.tweens.add({ targets: flash, alpha: 0, duration: 260 });
     this.cameras.main.shake(400, 0.02);
-    const gore = G.meta.settings.gore !== false;
-    if (gore) {
-      vfx(this, "vfx_bloodspray", pol.x - 20, pol.y - 95, { scale: 2, depth: D + 30 });
-      vfx(this, "vfx_blood", pol.x + 10, pol.y - 70, { scale: 1.8, depth: D + 31 });
-    } else {
-      for (let i = 0; i < 6; i++) {
-        const st = keep(this.add.text(pol.x + (Math.random() - 0.5) * 120, pol.y - 140, "★", { fontSize: "26px", color: "#ffd23f", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(D + 30));
-        this.tweens.add({ targets: st, y: st.y - 50, alpha: 0, duration: 900, delay: i * 60 });
-      }
-    }
-    // he goes over like a wardrobe
-    await this.wait(400);
-    await this.tween({ targets: pol, angle: 90, x: pol.x + 40, y: FLOOR - 20, duration: 900, ease: "Quad.in" });
-    synth.play("punch_big");
-    this.cameras.main.shake(500, 0.025);
-    if (gore) vfx(this, "vfx_bloodpool", pol.x + 60, FLOOR - 10, { scale: 3, depth: D + 9 });
-    await this.wait(700);
+    // he goes over like a wardrobe (drawn: gfx/GoreDeath.ts)
+    await goreDeath(this, pol, "shot", { fromX: kl.x, hits: 1, comedy: true });
+    await this.wait(500);
     await this.talk(KB_SHOT);
+    // and, with his last breath, the death fart
+    await goreDeath(this, pol, "fart", { comedy: true });
     gun.destroy();
     wheel.destroy();
     // the President steps over him to the till
@@ -4094,16 +4053,10 @@ export class VignetteScene extends Phaser.Scene {
     this.time.delayedCall(1500, strike);
   }
 
-  /** Fall over (the sheet's death frames, or a topple). */
+  /** Under the ceiling: a lump of it comes down on them (gfx/GoreDeath.ts). */
   private keel(sp: Phaser.GameObjects.Sprite, delay = 0) {
-    const m = charMeta(this, sp.texture.key);
-    const cyc = m?.death?.south ?? m?.death?.east;
     sp.setData("busy", true);
-    this.time.delayedCall(delay, () => {
-      if (!sp.active) return;
-      if (cyc?.length) cyc.forEach((f, i) => this.time.delayedCall(i * 110, () => sp.active && sp.setFrame(f)));
-      else this.tweens.add({ targets: sp, angle: 90, y: sp.y + 20, duration: 400, ease: "Bounce.out" });
-    });
+    goreDeath(this, sp, "crushed", { delay, quiet: true, dropKey: Math.random() < 0.5 ? "c6_ceiling" : "p_rubble" });
   }
 
   /** A prop image (origin at its feet), or a plain block of colour when the art isn't there. */

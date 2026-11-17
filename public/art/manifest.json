@@ -8470,6 +8470,12 @@
   },
   "fe_cut_goku": {
    "file": "finale/fe_cut_goku.png"
+  },
+  "fe_still_spirit": {
+   "file": "finale/fe_still_spirit.png"
+  },
+  "fe_still_drongus_break": {
+   "file": "finale/fe_still_drongus_break.png"
   }
  },
  "sheets": {
@@ -10918,6 +10924,26 @@
    "loop": true,
    "ox": 0.513,
    "oy": 0.896
+  },
+  "fe_vfx_plasma": {
+   "file": "vfx/fe_vfx_plasma.png",
+   "w": 84,
+   "h": 144,
+   "frames": 10,
+   "fps": 14,
+   "loop": false,
+   "ox": 0.5,
+   "oy": 0.875
+  },
+  "fe_vfx_rage": {
+   "file": "vfx/fe_vfx_rage.png",
+   "w": 102,
+   "h": 161,
+   "frames": 8,
+   "fps": 12,
+   "loop": true,
+   "ox": 0.5,
+   "oy": 0.863
   }
  }
 }

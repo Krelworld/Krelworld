@@ -707,6 +707,12 @@ export class FinaleScene extends Phaser.Scene {
     this.cameras.main.zoomTo(1.15, 200);
     await new Promise<void>((res) => this.tweens.add({ targets: orb, x: dragon.x + 30, y: dragon.y - dragon.displayHeight * 0.55, scale: 3.6, duration: 260, ease: "Quad.in", onComplete: () => res() }));
     await Juice.impactFrames(this, dragon, 70);
+    // the money shot: the SPIRIT CUM going down its throat
+    if (this.textures.exists("fe_still_spirit")) {
+      synth.play("explode_2");
+      Juice.subDrop(1, 2);
+      await Juice.still(this, "fe_still_spirit", 1500, { push: 0.12, shakeK: 0.02, flipX: true });
+    }
     // IMPACT (and then the music's gone: just the blast and your ears ringing)
     synth.stopMusic();
     Juice.earRing(3500, 0.1);

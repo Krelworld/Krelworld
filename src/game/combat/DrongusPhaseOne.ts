@@ -42,6 +42,8 @@ export class DrongusPhaseOneBoss extends Boss {
   /** Below 15%: one last, desperate OVERCHARGE (a spiral of plasma), then he overheats. */
   private lastStand: "no" | "pending" | "done" = "no";
   private alarmOff: (() => void) | null = null;
+  /** The last third: he's burning with rage (a drawn flame aura behind him). */
+  private rageFx: Phaser.GameObjects.Sprite | null = null;
 
   constructor(w: CombatWorld, x: number, y: number) {
     super(w, "drongus1", x, y, 2600, "boss_drongus", 32, 0xffd23f, 32, 48);
@@ -53,6 +55,7 @@ export class DrongusPhaseOneBoss extends Boss {
       this.gun?.destroy();
       this.sweep?.g.destroy();
       this.alarmOff?.();
+      this.rageFx?.destroy();
     });
   }
 
@@ -109,6 +112,7 @@ export class DrongusPhaseOneBoss extends Boss {
       }
     }
     this.holdGun();
+    this.rageFx?.setPosition(this.x, this.y + this.displayHeight * 0.45).setDepth(this.depth - 1).setVisible(this.visible);
   }
 
   onPhase(n: number, now: number) {
@@ -119,6 +123,7 @@ export class DrongusPhaseOneBoss extends Boss {
     this.scene.events.emit("epic-phase", this, n === 1 ? "RIGHT. NO MORE MR NICE DRONGUS." : "GENERATE EVERYTHING!", n === 1 ? "#ff6b3b" : "#ff2a2a");
     // the sanctum's alarms go off for the rest of it
     if (n === 2 && !this.alarmOff) this.alarmOff = Juice.alarmLight(this.scene, 0xff1a1a, 940, 0.12);
+    if (n === 2 && !this.rageFx) this.rageFx = vfx(this.scene, "fe_vfx_rage", this.x, this.y, { scale: 1.15, depth: this.depth - 1, alpha: 0.75, add: true });
     this.nextPattern = Math.max(this.nextPattern, now + 900);
   }
 
@@ -340,6 +345,8 @@ export class DrongusPhaseOneBoss extends Boss {
     this.dead = true;
     this.alarmOff?.();
     this.alarmOff = null;
+    this.rageFx?.destroy();
+    this.rageFx = null;
     this.hpBar?.destroy();
     this.disableBody(true, false);
     this.sweep?.g.destroy();

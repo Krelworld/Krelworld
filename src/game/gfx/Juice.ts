@@ -416,6 +416,30 @@ export function cutIn(sc: Phaser.Scene, key: string, o: { from?: "left" | "right
   });
 }
 
+/**
+ * A full-screen cinematic still (a drawn "money shot"): it cuts in over everything with a pop, pushes in slowly
+ * (with a little shake), holds for `ms`, then cuts away. Screen-space. Resolves when it's gone.
+ */
+export function still(sc: Phaser.Scene, key: string, ms = 1200, o: { depth?: number; push?: number; shakeK?: number; flipX?: boolean } = {}): Promise<void> {
+  return new Promise((res) => {
+    if (!alive(sc) || !sc.textures.exists(key)) return res();
+    const img = sc.add.image(480, 270, key);
+    const hd = hdFactor(img as { texture?: Phaser.Textures.Texture });
+    const k = Math.max(960 / img.frame.realWidth, 540 / img.frame.realHeight);
+    img.setScale(k / hd);
+    img.setFlipX(!!o.flipX);
+    const bars = [sc.add.rectangle(480, 14, 1100, 28, 0x000000), sc.add.rectangle(480, 526, 1100, 28, 0x000000)];
+    const root = sc.add.container(0, 0, [img, ...bars]);
+    layer(sc, o.depth ?? 4993).add(root);
+    sc.tweens.add({ targets: img, scale: (k * (1 + (o.push ?? 0.08))) / hd, duration: ms, ease: "Sine.out" });
+    if (o.shakeK !== 0) shake(sc, Math.min(ms, 700), o.shakeK ?? 0.01);
+    window.setTimeout(() => {
+      root.destroy();
+      res();
+    }, ms);
+  });
+}
+
 /** A pulsing alarm light over the whole screen (red by default) for the rest of a fight. Returns an off(). */
 export function alarmLight(sc: Phaser.Scene, color = 0xff1a1a, depth = 940, peak = 0.16) {
   const r = sc.add.rectangle(480, 270, 2200, 1400, color, 0).setScrollFactor(0).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);

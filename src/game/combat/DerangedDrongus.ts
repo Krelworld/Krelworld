@@ -49,6 +49,8 @@ export class DerangedDrongusBoss extends Boss {
   /** Below 15%: PLASMA RAIN (columns down from the ceiling, three waves), then he's spent and open. */
   private lastStand: "no" | "pending" | "done" = "no";
   private alarmOff: (() => void) | null = null;
+  /** The last third: he's burning with rage (a drawn flame aura behind him). */
+  private rageFx: Phaser.GameObjects.Sprite | null = null;
 
   constructor(w: CombatWorld, x: number, y: number) {
     const art = w.sc.textures.exists("boss_drongus2");
@@ -66,6 +68,7 @@ export class DerangedDrongusBoss extends Boss {
       this.glow.destroy();
       this.sweepG?.destroy();
       this.alarmOff?.();
+      this.rageFx?.destroy();
     });
   }
 
@@ -116,6 +119,7 @@ export class DerangedDrongusBoss extends Boss {
       const left = Math.cos(this.aim) < 0;
       g.setPosition(this.x + jx + Math.cos(this.aim) * 20, this.y - 6 + Math.sin(this.aim) * 10).setRotation(this.aim).setFlipY(left).setDepth(this.depth + 1).setAlpha(this.alpha);
     }
+    this.rageFx?.setPosition(this.x, this.y + this.displayHeight * 0.42).setDepth(this.depth - 1).setVisible(this.visible);
     this.glow.setPosition(this.x, this.y).setDepth(this.depth + 0.5).setFillStyle(0xff3b30, this.open ? 0.28 + Math.sin(now / 60) * 0.1 : 0);
   }
 
@@ -128,6 +132,7 @@ export class DerangedDrongusBoss extends Boss {
     // the scene stages it: bullets cleared, camera slams in on him, his line across the screen
     this.scene.events.emit("epic-phase", this, n === 1 ? "THE ARMOUR'S CRACKING!" : "HE'S COMPLETELY LOST IT", n === 1 ? "#ffd23f" : "#ff2a2a");
     if (n === 2 && !this.alarmOff) this.alarmOff = Juice.alarmLight(this.scene, 0xff1a1a, 940, 0.14);
+    if (n === 2 && !this.rageFx) this.rageFx = vfx(this.scene, "fe_vfx_rage", this.x, this.y, { scale: 1.9, depth: this.depth - 1, alpha: 0.75, add: true });
     this.nextPattern = Math.max(this.nextPattern, now + 900);
   }
 
@@ -163,10 +168,15 @@ export class DerangedDrongusBoss extends Boss {
           w.enemyLine(x, top, Math.PI / 2, gy - top, colW, Math.round(18 * this.dmgMult), tele);
           sc.time.delayedCall(tele, () => {
             if (!sc.sys?.isActive()) return;
-            const g = sc.add.graphics().setDepth(950).setBlendMode(Phaser.BlendModes.ADD);
-            g.fillStyle(PLASMA, 0.5).fillRect(x - colW / 2, top, colW, gy - top);
-            g.fillStyle(0xeaffea, 1).fillRect(x - colW / 6, top, colW / 3, gy - top);
-            sc.tweens.add({ targets: g, alpha: 0, scaleX: 1, duration: 380, onComplete: () => g.destroy() });
+            // a drawn pillar of plasma (stretched to the room's height), or flat bars if the art isn't there
+            const pil = vfx(sc, "fe_vfx_plasma", x, gy, { depth: 950, add: true });
+            if (pil) pil.setScale(colW / 44, (gy - top) / 124);
+            else {
+              const g = sc.add.graphics().setDepth(950).setBlendMode(Phaser.BlendModes.ADD);
+              g.fillStyle(PLASMA, 0.5).fillRect(x - colW / 2, top, colW, gy - top);
+              g.fillStyle(0xeaffea, 1).fillRect(x - colW / 6, top, colW / 3, gy - top);
+              sc.tweens.add({ targets: g, alpha: 0, duration: 380, onComplete: () => g.destroy() });
+            }
             if (hasVfx(sc, "vfx_sparks")) vfx(sc, "vfx_sparks", x, gy - 6, { scale: 1.2, depth: 951, add: true, tint: PLASMA });
           });
         }
@@ -374,6 +384,8 @@ export class DerangedDrongusBoss extends Boss {
     this.dead = true;
     this.alarmOff?.();
     this.alarmOff = null;
+    this.rageFx?.destroy();
+    this.rageFx = null;
     this.hpBar?.destroy();
     this.disableBody(true, false);
     this.sweepG?.destroy();
@@ -390,7 +402,8 @@ export class DerangedDrongusBoss extends Boss {
     return (async () => {
       this.setFlipX(this.cauldron.x < this.x);
       this.gun?.setVisible(false);
-      // NOOOO
+      // NOOOO (the money shot: his armour blowing off him)
+      void Juice.still(sc, "fe_still_drongus_break", 1000);
       shout(0, 34);
       synth.play("roar");
       w.shake(1200, 0.02);

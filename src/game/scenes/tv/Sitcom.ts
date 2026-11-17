@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { F, ShowDirector, faceKeyOf, type Perf } from "./ShowDirector";
+import { G } from "../../G";
 
 /**
  * A multi-camera studio sitcom (Thick Cumming Cock). Shot the way they are: a cold open, then a title sequence
@@ -487,6 +488,21 @@ export class SitcomDirector extends ShowDirector {
     this.sc.tweens.add({ targets: p, x: SX + SW * 0.62, y: SY + 150, scale: 1.5, duration: 4500, ease: "Linear" });
   }
 
+  /** "PLOT TWIST: ...": slammed over the skyline shot (the picture keeps playing underneath). */
+  private plotTwist(text: string) {
+    const { SY, SW, SH } = this.r;
+    this.sfx("tv_sting");
+    if (!G.meta?.settings?.calmFlash) this.sc.cameras.main.flash(100, 255, 255, 255);
+    const box = this.over(this.sc.add.rectangle(this.cx, SY + SH * 0.4, SW - 30, SH * 0.5, 0x000000, 0.62));
+    const [head, ...rest] = text.split(": ");
+    const h = this.over(this.text(this.cx, SY + SH * 0.24, head + ":", 40, "#ff2a2a", { fontStyle: "bold", stroke: "#000", strokeThickness: 7 }).setOrigin(0.5).setAngle(-4));
+    void h;
+    const b = this.over(this.text(this.cx, SY + SH * 0.44, rest.join(": "), 22, "#ffffff", { fontStyle: "bold", align: "center", stroke: "#000", strokeThickness: 5, wordWrap: { width: SW - 70 } }).setOrigin(0.5));
+    void b;
+    void box;
+    return 1400;
+  }
+
   /** "WILL THEY ESCAPE IN TIME?!?": the picture freezes, goes sepia, and the cheesy caption bounces in. */
   private toBeContinued(text: string) {
     this.frozen = true;
@@ -520,6 +536,7 @@ export class SitcomDirector extends ShowDirector {
       this.every(45, () => s.setText(t.slice(0, ++n)), t.length, true);
       return 0;
     }
+    if (/^PLOT TWIST/.test(up)) return this.plotTwist(t);
     if (/ESCAPE IN TIME/.test(up)) return this.toBeContinued(t);
     this.clearGfx();
     this.frozen = false;

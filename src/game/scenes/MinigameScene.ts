@@ -16,6 +16,7 @@ import { bump, maxBottles, maxHp } from "../systems/stats";
 import { GUNS, gunMax } from "../combat/Guns";
 import { animateWalker, backdrop, perfCycle, playPerf } from "../gfx/HD";
 import { vfx } from "../gfx/Vfx";
+import { chatBeat } from "../gfx/SideCine";
 import { CHARACTERS, LADS } from "../../data/characters";
 import { TOUCH } from "../ui/TouchControls";
 
@@ -332,6 +333,7 @@ export class MinigameScene extends Phaser.Scene {
               clearBtns();
               push("SanMik_Official", o[0], "#b0c4ff");
               synth.shout("yee", 0.6);
+              chatBeat(this, o[0], o[1]);
               this.tweens.add({ targets: mik, y: 64, yoyo: true, duration: 140 });
               this.time.delayedCall(1000, () => {
                 push(HER, o[2], "#f9a8d4");

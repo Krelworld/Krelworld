@@ -32,7 +32,7 @@ export const wildern: Record<string, Dressing> = {
         [w - 330, false],
         [w - 150, true],
       ] as const)
-        k.prop("dd_lockers", x, 132, { scale: 1.5, flip, block: [130, 28] });
+        k.animProp("dd_lockers", x, 132, { scale: 1.5, flip, block: [130, 28], fps: 9, rest: [2500, 9000] });
       chalkboard(k, 470, 104, "SPELL IT\nSPELL IT\nSPELL IT", 8);
       k.poster(w - 470, 30, 100, 34, 0x1e3a8a, 0xfacc15, "WILDERN\nASPIRE · ACHIEVE\n· KRELFORD ·", "#fde68a", 7);
       wallClock(k, w / 2 + 120, 22);
@@ -65,7 +65,7 @@ export const wildern: Record<string, Dressing> = {
       wallClock(k, 260, 26);
       // the servery: the hatch, the hot counters, the steam
       for (const x of [w - 350, w - 180]) {
-        k.prop("dd_servery", x, 158, { scale: 2, block: [160, 40] });
+        k.animProp("dd_servery", x, 158, { scale: 2, block: [160, 40], fps: 6 });
         k.steam(x - 30, 120, { every: 1000, alpha: 0.28, size: 0.8, dist: 50 });
         k.steam(x + 30, 120, { every: 1300, alpha: 0.22, size: 0.7, dist: 50 });
         k.light(x, 150, 110, 0xffc66b, 0.14, "breathe");
@@ -161,7 +161,7 @@ export const wildern: Record<string, Dressing> = {
 
   // The Headmaster's Office (on top of the Main): parquet, a big red rug, the desk, the trophy cabinet, the windows
   "wildern:3": {
-    floor: "tile_mansion",
+    floor: "parquet",
     build(k) {
       const { w, h } = k.r;
       // the rug
@@ -195,7 +195,7 @@ export const wildern: Record<string, Dressing> = {
       // the furniture
       k.prop("dd_bookshelf", 110, 150, { scale: 1.7, block: [100, 30] });
       k.prop("dd_bookshelf", w - 110, 150, { scale: 1.7, flip: true, block: [100, 30] });
-      k.prop("dd_trophies", w - 270, 140, { scale: 1.6, block: [80, 26] });
+      k.animProp("dd_trophies", w - 270, 140, { scale: 1.6, block: [80, 26], fps: 10, rest: [3000, 7000], flashy: true });
       k.prop("dd_headdesk", 330, 230, { scale: 1.6, block: [130, 44] });
       k.prop("dec_mansion_2", 70, h - 60, { scale: 1.2 });
       k.prop("dec_mansion_2", w - 70, h - 60, { scale: 1.2 });

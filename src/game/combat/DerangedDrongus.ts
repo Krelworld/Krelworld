@@ -82,6 +82,11 @@ export class DerangedDrongusBoss extends Boss {
     return this.world.now() < this.openUntil;
   }
 
+  /** His boss shield (BossShield.ts) just shattered: the armour's open while he's down. */
+  shieldBroken(until: number) {
+    this.openUntil = Math.max(this.openUntil, until);
+  }
+
   /** The armour: shots mostly bounce off (gold flash, CLANK) unless it's open. */
   incoming(amount: number, opts?: { source?: string }) {
     const a = super.incoming(amount, opts);

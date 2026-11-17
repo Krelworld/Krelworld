@@ -7,6 +7,7 @@ import { hasVfx, vfx } from "../../gfx/Vfx";
 import { animateWalker, feetBody } from "../../gfx/HD";
 import { CHARACTERS, LADS } from "../../../data/characters";
 import { ConceptBoss } from "../../combat/ConceptBoss";
+import { vsSplash } from "../../gfx/VsSplash";
 import type { Enemy } from "../../combat/Enemy";
 import type { Player } from "../../combat/Player";
 import type { ShotOpts } from "../../combat/types";
@@ -202,6 +203,8 @@ export class KrelfordFinale {
     await h.talk(FB.FB_ARENA);
     if (this.gone) return;
     await this.introShot();
+    if (this.gone) return;
+    await vsSplash(h.sc, { bossId: "concept", name: "THE CONCEPT", art: { key: "fe_cut_concept", frame: 0 } });
     if (this.gone) return;
     boss.mode = "immortal";
     boss.started = true;

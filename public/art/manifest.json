@@ -7309,6 +7309,48 @@
   "bg_lair": {
    "file": "backdrops/bg_lair.png"
   },
+  "di_wildern": {
+   "file": "backdrops/di_wildern.png"
+  },
+  "di_polson_towers": {
+   "file": "backdrops/di_polson_towers.png"
+  },
+  "di_ministry": {
+   "file": "backdrops/di_ministry.png"
+  },
+  "di_citadel": {
+   "file": "backdrops/di_citadel.png"
+  },
+  "di_krelford_finale": {
+   "file": "backdrops/di_krelford_finale.png"
+  },
+  "di_airport": {
+   "file": "backdrops/di_airport.png"
+  },
+  "di_rik_colon": {
+   "file": "backdrops/di_rik_colon.png"
+  },
+  "di_crobley_factory": {
+   "file": "backdrops/di_crobley_factory.png"
+  },
+  "di_arena_brand": {
+   "file": "backdrops/di_arena_brand.png"
+  },
+  "di_arena_troll": {
+   "file": "backdrops/di_arena_troll.png"
+  },
+  "di_arena_lukemind": {
+   "file": "backdrops/di_arena_lukemind.png"
+  },
+  "di_arena_flatmate": {
+   "file": "backdrops/di_arena_flatmate.png"
+  },
+  "di_arena_rival": {
+   "file": "backdrops/di_arena_rival.png"
+  },
+  "di_arena_sanmik": {
+   "file": "backdrops/di_arena_sanmik.png"
+  },
   "c7_ai_rig": {
    "file": "props/c7_ai_rig.png"
   },

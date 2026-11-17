@@ -586,7 +586,10 @@
     "KREDDLE TANNOY",
     "CHATGPT",
     "STATION ANNOUNCER",
-    "JOURNALIST"
+    "JOURNALIST",
+    "HOSPITAL SPOKESPERSON",
+    "ADMINISTRATOR",
+    "REBECCA HALL"
   ],
   "pools": {
     "male": [
@@ -629,6 +632,13 @@
     "MIKKY K": "MIKEY"
   },
   "designed_alias": {
+    "HOSPITAL SPOKESPERSON": "~pol_f_us",
+    "BOARD REPRESENTATIVE": "~ceo_m_us",
+    "ADMINISTRATOR": "~aide_f_us",
+    "SECOND ADMINISTRATOR": "~aide_m_us",
+    "BOARD MEMBER": "~pol_m_us",
+    "REBECCA HALL": "~news_f_us",
+    "MARTIN BELL": "~news_m_us",
     "JOURNALIST": "~press_f_rp",
     "JOURNALIST 1": "~press_m_est",
     "JOURNALIST 2": "~press_f_us",

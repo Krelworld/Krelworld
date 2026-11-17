@@ -7,6 +7,7 @@ import { Presenter, hasAnchor } from "./tvnews/Presenter";
 import { KREWS3_NEWS, STORY_KINDS, type StoryKind, type StoryScene, type Slide } from "./tvnews/krews3Shows";
 import { KREWS4_NEWS, K4_KINDS, type K4Kind, type K4Scene, type K4Gfx } from "./tvnews/krews4Shows";
 import { KREWS1_NEWS } from "./tvnews/krews1Shows";
+import { KTP_KINDS, KtpGame, ktpCabinet, type KtpKind, type KtpScene } from "./tvnews/ktpGame";
 import { fling, impact, playClip, type ClipOpts } from "./tv/action";
 
 /**
@@ -17,9 +18,9 @@ import { fling, impact, playClip, type ClipOpts } from "./tv/action";
  * pack with flashes going off, a down-the-line split, hidden-camera footage, B-roll).
  */
 
-type Kind = "desk" | "presser" | "hall" | "footage" | "train" | StoryKind | K4Kind;
+type Kind = "desk" | "presser" | "hall" | "footage" | "train" | StoryKind | K4Kind | KtpKind;
 
-export interface SceneDef extends StoryScene, K4Scene {
+export interface SceneDef extends StoryScene, K4Scene, KtpScene {
   match: RegExp;
   kind: Kind;
   set: string;
@@ -717,6 +718,7 @@ export class NewsDirector {
     const kind = this.scene.kind;
     const delay = /^\(long pause\)/i.test(text) ? 1100 : 0;
     let p: Presenter | null = null;
+    if (KTP_KINDS.has(kind)) return this.ktpSpeak(n);
     if (K4_KINDS.has(kind)) return this.k4Speak(name, text);
     if (STORY_KINDS.has(kind)) return this.storySpeak(name, text, n);
     if (kind === "desk") {
@@ -903,6 +905,31 @@ export class NewsDirector {
       return 1500;
     }
     if (K4_KINDS.has(k)) return this.k4Shot();
+    if (KTP_KINDS.has(k)) return this.ktpShot();
+    return 0;
+  }
+
+  // ---- Kill the Patient 2 (tvnews/ktpGame.ts): game footage and the cabinet
+
+  private ktpGame?: KtpGame;
+
+  private ktpCtx() {
+    return { sc: this.sc, r: this.r, stage: this.stage, fx: this.fxLayer, later: (ms: number, fn: () => void) => this.later(ms, fn), every: (ms: number, fn: () => void) => this.every(ms, fn) };
+  }
+
+  private ktpShot(): number {
+    this.clearShot();
+    this.chrome.live("");
+    this.ktpGame = undefined;
+    if (this.scene.kind === "cabinet") return ktpCabinet(this.ktpCtx(), this.scene.focus, (s, x, y, ms) => this.camTo(s, x, y, ms));
+    this.ktpGame = new KtpGame(this.ktpCtx(), this.scene.ktp ?? "attract");
+    return this.ktpGame.start();
+  }
+
+  /** Narration over the footage: the picture stays, the game goes on. */
+  private ktpSpeak(n: number): number {
+    this.chrome.clearStrap();
+    this.ktpGame?.line(n);
     return 0;
   }
 

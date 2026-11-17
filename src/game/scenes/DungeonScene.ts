@@ -2195,8 +2195,10 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   /** Stagger and drop to the knees (held there through their last words). */
   private bossKneel(b: Boss): Promise<void> {
     const key = `bossdie_${b.bossId}`;
-    // these have their own death scenes
+    // these have their own death scenes (and anyone with a deathSequence: Deranged Drongus sheds his armour and
+    // legs it to the cauldron, Krex falls to bits; a kneeling stand-in would hide them and be left on the floor)
     if (["reinhardt", "krozno", "rik"].includes(b.bossId) || !this.textures.exists(key)) return Promise.resolve();
+    if ((b as unknown as { deathSequence?: unknown }).deathSequence) return Promise.resolve();
     const tex = this.textures.get(key);
     const n = tex.frameTotal - 1;
     if (n < 4) return Promise.resolve();
@@ -2255,7 +2257,21 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const ps = this.player.spr;
     const phd = (ps.texture.customData as { hd?: number } | undefined)?.hd ?? 1;
     this.busy = true;
-    const done = await kreltality(this, this.krelTarget, { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd });
+    // the show draws its own you and its own them: hide the real ones (and the kneeling stand-in), or you see two of each
+    const hidden: Phaser.GameObjects.Components.Visible[] = [];
+    const done = await kreltality(this, this.krelTarget, { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd }, undefined, {
+      onStage: () => {
+        for (const o of [ps, b, this.downSpr] as (Phaser.GameObjects.Components.Visible | null | undefined)[]) {
+          if (o && o.visible) {
+            o.setVisible(false);
+            hidden.push(o);
+          }
+        }
+      },
+      onEnd: () => {
+        if (ps.active) ps.setVisible(true);
+      },
+    });
     if (done) {
       this.downSpr?.destroy();
       this.downSpr = null;

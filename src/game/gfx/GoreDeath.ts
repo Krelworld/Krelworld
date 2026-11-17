@@ -85,6 +85,10 @@ interface DrawnDeath {
   k?: number;
   /** the pool, as a fraction of the frame (default under the chest, at the bottom) */
   pool?: [number, number] | null;
+  /** gore off: the same frames with the blood painted out (else the drawn death is skipped) */
+  clean?: string;
+  /** gore off, no clean frames: the desk's top edge (frame px): they jerk and slump down behind it */
+  deskTop?: number;
   /** a puff of dust where they land (not for someone going down behind a desk) */
   dust?: boolean;
   /** where the death fart comes out (fraction of the frame), when lying down */
@@ -94,20 +98,20 @@ interface DrawnDeath {
 /** The drawn deaths, by the actor's texture. Kind-specific entries are `<kind>:<texture>`. */
 const DRAWN: Record<string, DrawnDeath> = {
   // the KrelTV journalist at her desk: riddled, jerking, slides down behind the desk (the desk is in the frame)
-  tvanchor_JOURNALIST: { file: "gore/gd_journo_shot.png", frames: 13, fw: 128, fh: 128, ms: [60, 70, 70, 70, 70, 70, 90, 110, 130, 150, 170, 200, 260], hitFrames: [2, 3, 4, 5, 6], landFrame: 11, chest: [0.5, 0.62], pool: null, dust: false },
+  tvanchor_JOURNALIST: { file: "gore/gd_journo_shot.png", frames: 13, fw: 128, fh: 128, ms: [60, 70, 70, 70, 70, 70, 90, 110, 130, 150, 170, 200, 260], hitFrames: [2, 3, 4, 5, 6], landFrame: 11, chest: [0.5, 0.62], pool: null, dust: false, deskTop: 104 },
   // fat Polson: gut-shot, clutches it, wobbles, goes over backwards like a wardrobe
-  spr_POLSON_FAT: { file: "gore/gd_polson_shot.png", frames: 13, fw: 128, fh: 128, ms: [60, 90, 140, 160, 160, 170, 170, 170, 180, 200, 140, 120, 400], hitFrames: [1], landFrame: 11, chest: [0.5, 0.78], pool: [0.5, 0.97], rear: [0.5, 0.86] },
+  spr_POLSON_FAT: { file: "gore/gd_polson_shot.png", frames: 13, fw: 128, fh: 128, ms: [60, 90, 140, 160, 160, 170, 170, 170, 180, 200, 140, 120, 400], hitFrames: [1], landFrame: 11, chest: [0.5, 0.78], pool: [0.5, 0.97], rear: [0.5, 0.86], clean: "gore/gd_polson_shot_clean.png" },
 };
 /** The drawn death fart (after the drawn fall), by texture. */
 const DRAWN_FART: Record<string, DrawnDeath> = {
-  spr_POLSON_FAT: { file: "gore/gd_polson_fart.png", frames: 9, fw: 128, fh: 128, ms: 120, hitFrames: [], landFrame: 4, chest: [0.5, 0.8], rear: [0.5, 0.86] },
+  spr_POLSON_FAT: { file: "gore/gd_polson_fart.png", frames: 9, fw: 128, fh: 128, ms: 120, hitFrames: [], landFrame: 4, chest: [0.5, 0.8], rear: [0.5, 0.86], clean: "gore/gd_polson_fart_clean.png" },
 };
 
 const sheetKey = (d: DrawnDeath) => d.file.replace(/^.*\//, "").replace(/\.png$/, "");
 
 /** Load the drawn deaths with the rest of the art (BootScene's preload can call this; goreDeath loads lazily too). */
 export function loadGoreArt(load: Phaser.Loader.LoaderPlugin, src: (f: string) => string = (f) => `art/${f}`) {
-  for (const d of [...Object.values(DRAWN), ...Object.values(DRAWN_FART)]) {
+  for (const d of [...Object.values(DRAWN), ...Object.values(DRAWN_FART)].flatMap((d) => (d.clean ? [d, { ...d, file: d.clean }] : [d]))) {
     const key = sheetKey(d);
     if (!load.textureManager.exists(key)) load.spritesheet(key, src(d.file), { frameWidth: d.fw, frameHeight: d.fh });
   }
@@ -597,6 +601,48 @@ async function drawnDeath(st: Stage, d: DrawnDeath) {
   }
 }
 
+/** Gore off, at a desk: the rounds hit (sparks), she jerks, and slumps down out of sight behind it. */
+async function deskSlump(st: Stage, deskTop: number) {
+  const sc = st.sc;
+  const b = st.body;
+  const fw = b.frame.width;
+  const fh = b.frame.height;
+  // the desk, cut off the frame and laid over her
+  const desk = sc.add.image(b.x, b.y, b.texture.key, b.frame.name).setOrigin(b.originX, 1).setFlipX(b.flipX);
+  setReal(desk, Math.abs(b.scaleX), Math.abs(b.scaleY));
+  desk.setCrop(0, deskTop, fw, fh - deskTop);
+  st.put(desk, "over");
+  b.setCrop(0, 0, fw, deskTop);
+  const hits = st.o.hits ?? 3;
+  for (let i = 0; i < hits; i++) {
+    const s = st.spots();
+    st.impact(s.x + rnd(-0.12, 0.12) * s.w, s.top + s.h * rnd(0.35, 0.6), 1);
+    st.jerk(1);
+    await st.wait(st.o.gap ?? 110);
+  }
+  synth.play("hurt_1");
+  const y0 = b.y;
+  const sy = Math.abs(b.scaleY);
+  // the slump: back in the chair, then down, the crop shrinking as she goes below the desk's edge
+  await st.tween({ targets: b, angle: -st.dir * 6, y: y0 + 6 * sy, duration: 260, ease: "Quad.out" });
+  const y1 = b.y;
+  const drop = { d: 0 };
+  await st.tween({
+    targets: drop,
+    d: deskTop,
+    duration: 700,
+    ease: "Quad.in",
+    onUpdate: () => {
+      if (!b.active) return;
+      b.y = y1 + drop.d * sy;
+      b.setCrop(0, 0, fw, Math.max(0, deskTop - drop.d - 6));
+    },
+  });
+  b.setVisible(false);
+  synth.play("bodies_land");
+  st.shake(200, 0.01);
+}
+
 async function headshot(st: Stage) {
   const sc = st.sc;
   const b = st.body;
@@ -983,11 +1029,14 @@ export async function goreDeath(sc: Phaser.Scene, actor: Actor, kind: GoreKind, 
   // a drawn death, if they have one and it's wanted
   const tex = actor.texture.key;
   const dKey = opts.drawn === false ? null : opts.drawn ?? (DRAWN[`${kind}:${tex}`] ? `${kind}:${tex}` : DRAWN[tex] && (kind === "shot" || kind === "fart") ? tex : null);
-  const drawn = dKey ? DRAWN[dKey] ?? null : null;
-  const fartArt = DRAWN_FART[tex] ?? null;
+  // gore off: the drawn death's blood-free frames, if it has them
+  const clean = (d: DrawnDeath | null) => (!d || st.gore ? d : d.clean ? { ...d, file: d.clean } : null);
+  const drawnRaw = dKey ? DRAWN[dKey] ?? null : null;
+  const drawn = clean(drawnRaw);
+  const fartArt = clean(DRAWN_FART[tex] ?? null);
   try {
     if (wasDead) {
-      if (kind === "fart") await deathFart(st, b.texture.key.startsWith("gd_") ? fartArt : null);
+      if (kind === "fart") await deathFart(st, b.texture.key.startsWith("gd_") && b.visible ? fartArt : null);
       else if (kind === "blast") await blast(st);
       else if (kind === "burned") await burned(st);
       else {
@@ -1001,6 +1050,7 @@ export async function goreDeath(sc: Phaser.Scene, actor: Actor, kind: GoreKind, 
       case "shot":
       case "fart": {
         if (drawn && (await ensureSheet(sc, drawn))) await drawnDeath(st, drawn);
+        else if (!st.gore && drawnRaw?.deskTop) await deskSlump(st, drawnRaw.deskTop);
         else {
           await shot(st, opts.hits ?? 3);
           await st.wait(opts.comedy ? 260 : 120);

@@ -11577,6 +11577,16 @@
    "file": "gore/gd_polson_fart.png",
    "frameWidth": 128,
    "frameHeight": 128
+  },
+  "gd_polson_shot_clean": {
+   "file": "gore/gd_polson_shot_clean.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "gd_polson_fart_clean": {
+   "file": "gore/gd_polson_fart_clean.png",
+   "frameWidth": 128,
+   "frameHeight": 128
   }
  },
  "vfx": {

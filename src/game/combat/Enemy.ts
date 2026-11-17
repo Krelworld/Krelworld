@@ -62,6 +62,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   spawnCount = 0;
   flashUntil = 0;
   hpBar?: Phaser.GameObjects.Graphics;
+  /** Side-on, up a tower: hold this ledge (centre x, half-width the feet may wander), and never walk or hop off it. */
+  ledge?: { x: number; half: number };
   /** Side-scrolling rooms: walks on the ground (gravity) rather than flying. */
   walker = false;
   private animT = 0;
@@ -148,6 +150,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       // side-on: run along the ground, hop up to you or over things
       body.setVelocityX(Math.cos(ang) * s);
       const grounded = body.blocked.down || body.touching.down;
+      if (this.ledge) {
+        // a ledge-holder (tower shooters): pace their own ledge, shooting down/across at you; never off the edge
+        const vx = body.velocity.x;
+        if ((vx < 0 && this.x <= this.ledge.x - this.ledge.half) || (vx > 0 && this.x >= this.ledge.x + this.ledge.half)) body.setVelocityX(0);
+        return;
+      }
       if (grounded && ((dy < -70 && Math.abs(dx) < 280 && Math.random() < 0.04) || ((body.blocked.left || body.blocked.right) && Math.random() < 0.1))) body.setVelocityY(-600);
     };
 

@@ -3066,6 +3066,12 @@ export class VignetteScene extends Phaser.Scene {
     const label = this.add.text(640, tower.at(0.5), "PUSSY\nJUICE", { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#ffffff", align: "center", stroke: "#b0247a", strokeThickness: 6 }).setOrigin(0.5).setDepth(11);
     const plane = this.airliner(150, 215, 220);
     const chute = this.chute(me, 120, 60);
+    // EJECT: the seat rockets out, speed lines, and the little pink canopy pops
+    Juice.speedLines(this, 700, 0xffffff, 985);
+    Juice.whoosh(0.6);
+    Juice.slamText(this, "EJECT!!", "#ff4fd8", 64, 200, 700, 990);
+    chute.setScale(0.2);
+    this.tweens.add({ targets: chute, scale: 1, duration: 450, ease: "Back.out", delay: 350, onStart: () => synth.play("pop") });
     this.tweens.add({ targets: plane, x: 300, y: tower.at(0.66), duration: 2600, ease: "Sine.inOut" });
     await this.talk([dir("You shoot out of the roof of KR-069 on a rocket-powered seat. A little pink parachute pops open. Below you, the plane carries on, straight and true, towards the giant pussy juice.")]);
     // the drugs wear off
@@ -3106,7 +3112,14 @@ export class VignetteScene extends Phaser.Scene {
     this.rainOver("storm", 960);
     const tw = this.bigTower(620, 440);
     const hitY = tw.at(0.66);
-    const people = this.crowd(470).filter((p) => p.texture.key !== playerKey(this));
+    const everyone = this.crowd(470);
+    // (you're up there under the parachute, not down here: your spot in the crowd waits for you)
+    const mySpot = everyone.find((p) => p.texture.key === playerKey(this));
+    mySpot?.setVisible(false);
+    const people = everyone.filter((p) => p !== mySpot);
+    // the Great Tap, in the square below (where you're going to come down)
+    const tap = this.textures.exists("hd_tap") ? this.add.image(300, 500, "hd_tap").setOrigin(0.5, 1).setDepth(45) : null;
+    if (tap) tap.setScale(130 / tap.height);
     // Sanjeev, a little apart from the crowd, watching with his arms folded
     const sjv = this.actor("SANJEEV", 928, 486, 2.6);
     this.face(sjv, "west");
@@ -3168,11 +3181,32 @@ export class VignetteScene extends Phaser.Scene {
     // Jenko, as it comes down
     this.tweens.add({ targets: people.find((p) => p.texture.key === "spr_FLENKY") ?? [], y: "+=14", duration: 200 });
     await this.talk([say("FLENKY", "Noooo!! Mollor was in there!!!")]);
+    // the drawn shot: you, drifting down under the pink canopy, the tower burning behind you
+    Juice.subDrop(0.8, 2);
+    await Juice.still(this, "c6a_still_chute", 2800, { depth: 995, push: 0.1, shakeK: 0 });
     this.caption("THE KREL TOWER HAS FALLEN (AGAIN)", "#ff4d4d", 30);
     synth.play("alarm");
     await this.wait(1600);
+    this.dropCaption();
+    await this.talk([dir("Silence. Then sirens.")]);
+    // the landing: down through the dust, onto the Great Tap, in front of everyone
+    this.tweens.killTweensOf(chute2);
+    this.tweens.add({ targets: chute2, angle: { from: -5, to: 5 }, yoyo: true, repeat: -1, duration: 700 });
+    await this.tween({ targets: chute2, x: 300, y: tap ? 500 - tap.displayHeight - 96 : 380, duration: 2200, ease: "Sine.inOut" });
+    this.tweens.killTweensOf(chute2);
+    chute2.setAngle(0);
+    synth.play("land");
+    synth.play("pop");
+    vfx(this, "vfx_dust", chute2.x, chute2.y + 100, { scale: 1.4, depth: 75 });
+    const canopy = chute2.list[0] as Phaser.GameObjects.Graphics | undefined;
+    if (canopy) this.tween({ targets: canopy, scaleY: 0.25, y: 70, alpha: 0.6, angle: 20, duration: 600, ease: "Quad.in" });
+    people.forEach((p, i) => this.time.delayedCall(i * 40, () => this.faceTo(p, chute2.x)));
+    // down to street level, so the crowd (and Sanjeev) sit above the dialogue box
+    this.cameras.main.pan(590, 425, 900, "Sine.easeInOut", true);
+    this.cameras.main.zoomTo(1.35, 900, "Sine.easeInOut", true);
+    await this.wait(900);
     await this.talk([
-      dir("Silence. Then sirens. Then you land, gently, on top of the Great Tap."),
+      dir("You land, gently, on top of the Great Tap."),
       say(me, "Did we get the train?"),
       say("KREZWONK", "So the plan worked.", { cond: { notPlayer: "KREZWONK" } }),
       say("KREBLIS", "Breaking news…", { cond: { notPlayer: "KREBLIS" } }),
@@ -3184,7 +3218,15 @@ export class VignetteScene extends Phaser.Scene {
       ...SJ_TOWER_DEMO,
       dir("THE KREL TOWER: DESTROYED (AGAIN). The Kreddle Express is parked outside Krelburger with its engine running. President Klerble is on his twelfth burger. They were Polson's."),
     ]);
-    synth.stopMusic();
+    // the light goes out of the day: into Krelford, mourning
+    this.dropCaption();
+    synth.music("town_mourning", true);
+    this.cameras.main.pan(480, 270, 800, "Sine.easeInOut", true);
+    this.cameras.main.zoomTo(1, 800, "Sine.easeInOut", true);
+    const dusk = this.add.rectangle(480, 270, 960, 540, 0x0b1020, 0).setDepth(900);
+    await this.tween({ targets: dusk, fillAlpha: 0.75, duration: 1400 });
+    // (the mourning theme carries straight on into town)
+    await Juice.titleCard(this, "KRELFORD · THAT EVENING", "A TOWN IN MOURNING", "", 1900, 995);
     Object.assign(G.s.flags, { kreltower_resolved: true, kreltower_fell: true, arcstep_arc_klerble_hijack: true, polson_dead: true });
   }
 

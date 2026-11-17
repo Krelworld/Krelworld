@@ -15,7 +15,7 @@ const shakeOn = () => G.meta?.settings?.shake !== false;
  * A drawn still or close-up can have an animated version (`<key>_anim`, a strip of frames): use it if it's there.
  * Returns the texture key and a start(img) that cycles its frames until the image goes.
  */
-const ANIM_MODE: Record<string, "pingpong" | "once" | "reverse"> = { fe_still_spirit: "once", fe_eyes_concept: "reverse", fe_still_drongus_break: "reverse", fe_cut_drongus1: "reverse", fe_still_collapse: "once", fe_still_drongus_flee: "once", fe_still_krex_boom: "once", fe_still_elon_crash: "once" };
+const ANIM_MODE: Record<string, "pingpong" | "once" | "reverse"> = { fe_still_spirit: "once", fe_eyes_concept: "reverse", fe_still_drongus_break: "reverse", fe_cut_drongus1: "reverse", fe_still_collapse: "once", fe_still_drongus_flee: "once", fe_still_krex_boom: "once", fe_still_elon_crash: "once", c6a_still_chute: "once", c6a_still_gates: "once" };
 function animated(sc: Phaser.Scene, key: string) {
   const ak = `${key}_anim`;
   if (!sc.textures.exists(ak) || sc.textures.get(ak).frameTotal < 4) return { key, start: (_img: Phaser.GameObjects.Image) => undefined };

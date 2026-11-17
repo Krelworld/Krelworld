@@ -587,6 +587,13 @@ export class HubScene extends Phaser.Scene {
         G.emit("toast", { title: "☢ THE NUKE IS TICKING", text: "Get everyone into the Town Hall (north of the Great Tap) before Kreddle goes up." });
       });
     }
+    // straight out of the revenge meeting: midnight, the rain, the Krew behind you, and one place to go
+    if (from === "vignette" && s.chapter === 6 && s.flags.raid_march && !s.flags.nuke_planted && !s.flags.c6a_march_card) {
+      s.flags.c6a_march_card = true;
+      G.save();
+      // (below the NEW OBJECTIVE banner, which says the same thing in words)
+      this.time.delayedCall(300, () => void Juice.titleCard(this, "MIDNIGHT · KRELFORD", "THE MARCH ON KREDDLE", "◀ LEAD THE KREW WEST TO THE KREDDLE BRIDGE", 2400, 4995, 360));
+    }
     // Chapter 6 finale: home in time (or not): Kreddle's Krunch Protocol comes for every building in town
     if (from === "krunch") {
       await this.krunchBombing();

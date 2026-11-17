@@ -12079,6 +12079,31 @@
    "frameWidth": 64,
    "frameHeight": 64,
    "hd": 0.38
+  },
+  "gd_journo_shot": {
+   "file": "gore/gd_journo_shot.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "gd_polson_shot": {
+   "file": "gore/gd_polson_shot.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "gd_polson_fart": {
+   "file": "gore/gd_polson_fart.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "gd_polson_shot_clean": {
+   "file": "gore/gd_polson_shot_clean.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "gd_polson_fart_clean": {
+   "file": "gore/gd_polson_fart_clean.png",
+   "frameWidth": 128,
+   "frameHeight": 128
   }
  },
  "vfx": {

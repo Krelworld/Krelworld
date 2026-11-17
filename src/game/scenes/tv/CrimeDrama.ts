@@ -3,6 +3,7 @@ import type { TVBeat, TVEpisode } from "../../systems/tv";
 import { G } from "../../G";
 import { F, ShowDirector, type Perf, type Rect, type ShowHost } from "./ShowDirector";
 import { registerDramaFaces } from "./dramaFaces";
+import { goreDeath } from "../../gfx/GoreDeath";
 
 /**
  * A prestige British crime drama (Gumption and Gravy). Shot the way those are: a cold open in the rain, letterboxed
@@ -663,11 +664,9 @@ export class CrimeDramaDirector extends ShowDirector {
     const s = this.img(key, x, SY + SH * 0.86, scale);
     if (s) {
       s.setOrigin(0.5, 1);
-      this.sc.tweens.add({ targets: s, angle: -88, duration: 900, ease: "Quad.in" });
-      this.later(900, () => {
-        if (this.gore) this.pool(x - 40, SY + SH * 0.88, 160, 0);
-        this.sc.cameras.main.shake(300, 0.018);
-      });
+      // the last rounds, the knees, the slump, down (gfx/GoreDeath.ts; it shakes the floor and bleeds out itself)
+      goreDeath(this.sc, s, "shot", { dir: -1, hits: 2, gap: 160, quiet: true });
+      this.later(1300, () => this.sc.cameras.main.shake(300, 0.018));
     }
     this.blues(0.14);
     this.push(1.08, 2000, x, SY + SH * 0.7);

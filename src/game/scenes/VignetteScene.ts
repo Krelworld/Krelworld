@@ -25,6 +25,7 @@ import { Presenter, hasAnchor } from "./tvnews/Presenter";
 import { BRANDS, NewsChrome, calm, cameraFlash } from "./tvnews/NewsChrome";
 import { shootout, splat, tripodRig, type Victim } from "./tvnews/Shootout";
 import * as Juice from "../gfx/Juice";
+import { goreDeath } from "../gfx/GoreDeath";
 import {
   KB_ORDER, KB_QUEUE, KB_SHOT, KP_KLERBLE, KP_LAST, KP_PARTY, KP_PROTOCOL, KP_RUINS, KT_AFTER, KT_ARRIVE, KT_DEPART, KT_DRIVER, KT_KRUNCHERS, KT_OPEN, PE_RAIN,
   RM_ACTUALLY, RM_ARMS, RM_CAUTION, RM_CHEM, RM_END, RM_GOT_GUN, RM_HANDS, RM_JENKO, RM_KREBLIS, RM_LUKE, RM_NUKE, RM_OPEN, RM_PISS, RM_POLSON,
@@ -2188,7 +2189,6 @@ export class VignetteScene extends Phaser.Scene {
     await this.wait(320);
     for (const p of this.talkers.values()) p.stopTalking();
     this.talkers.get("REINHARDT CROBLEY")?.setPose("fists");
-    const jMid = { x: journo.x, y: journo.y - journo.displayHeight * 0.55 };
     const gun = this.art(rein.x - 70, rein.y - rein.displayHeight * 0.42, "p_mgun", 1.6, 0x111827, "GUN").setDepth(15).setFlipX(true);
     gun.setScale(0.1);
     await this.tween({ targets: gun, scale: this.textures.exists("p_mgun") ? 1.6 : 1, duration: 250, ease: "Back.out" });
@@ -2202,29 +2202,11 @@ export class VignetteScene extends Phaser.Scene {
           const fl = this.add.star(gun.x - 50, gun.y, 5, 6, 16, 0xfde047).setDepth(16);
           this.time.delayedCall(50, () => fl.destroy());
         }
-        if (i % 3 === 0) {
-          if (G.meta.settings.gore !== false) vfx(this, "vfx_bloodspray", jMid.x + (Math.random() - 0.5) * 40, jMid.y + (Math.random() - 0.5) * 60, { scale: 1.4, depth: 14, flipX: true });
-          else vfx(this, "vfx_hit", jMid.x + (Math.random() - 0.5) * 40, jMid.y + (Math.random() - 0.5) * 60, { scale: 1.3, depth: 14 });
-        }
-        for (let k = 0; k < 4; k++) {
-          const b = this.add.rectangle(jMid.x + (Math.random() - 0.5) * 30, jMid.y + (Math.random() - 0.5) * 50, 4, 4, G.meta.settings.gore !== false ? 0xdc2626 : 0x9ca3af).setDepth(14);
-          this.tween({ targets: b, x: b.x - 60 - Math.random() * 80, y: b.y + 40 + Math.random() * 60, alpha: 0, duration: 600 }).then(() => b.destroy());
-        }
       });
     }
-    this.talkers.get("JOURNALIST")?.destroy();
+    // she takes the burst: drawn (gfx/GoreDeath.ts), in the studio's camera container so she goes over with the picture
     this.talkers.delete("JOURNALIST");
-    // (in the studio's camera container, so she goes over with the picture when the camera falls)
-    const jFall = this.add.sprite(journo.x, journo.y, journo.texture.key, 0).setOrigin(0.5, 1).setScale(journo.scaleX);
-    stage.add(jFall);
-    journo.setVisible(false);
-    this.tweens.add({ targets: jFall, angle: -80, x: jFall.x - 60, y: jFall.y + 120, delay: 900, duration: 400 });
-    await this.wait(1400);
-    if (G.meta.settings.gore !== false) {
-      const pool = vfx(this, "vfx_bloodpool", journo.x - 40, 360, { scale: 2.2, depth: 12, hold: true });
-      if (pool) stage.addAt(pool, stage.getIndex(jFall));
-      splat(this, 380, 140, 360);
-    }
+    await goreDeath(this, journo, "shot", { fromX: rein.x, hits: 5, gap: 90, lens: true });
     await this.talk([dir("The newsreader goes down behind the desk. Somewhere, a producer screams. Reinhardt slowly turns. Towards the camera.")]);
     // he turns it on us
     gun.setDepth(-4);
@@ -2707,19 +2689,8 @@ export class VignetteScene extends Phaser.Scene {
             targets: shell, x: v.x, y: v.y - 10, duration: 260, onComplete: () => {
               shell.destroy();
               boom(v.x, v.y, 1.6);
-              if (gore) {
-                fx("vfx_gore", v.x, v.y - 10, 3);
-                fx("vfx_bloodspray", v.x, v.y - 30, 2.6);
-                synth.play("bonecrack");
-                for (let k = 0; k < 7; k++) {
-                  const chunk = this.add.circle(v.x, v.y, 5 + Math.random() * 7, k % 2 ? 0xf472b6 : 0xb91c1c);
-                  layer.add(chunk);
-                  this.tweens.add({ targets: chunk, x: v.x + (Math.random() - 0.5) * 420, y: 470 + Math.random() * 50, angle: 540, duration: 700 + Math.random() * 400, ease: "Quad.in" });
-                }
-                const pool = fx("vfx_bloodpool", v.x, 450, 2.4);
-                void pool;
-                v.setVisible(false);
-              } else this.tweens.add({ targets: v, x: v.x + 300, y: -200, angle: 1080, duration: 1200, ease: "Quad.out" });
+              // torn apart (gfx/GoreDeath.ts; gore off: sooty, smoking, over he goes)
+              goreDeath(this, v, "blast", { fromX: m.x, quiet: true });
             },
           });
         });
@@ -3809,24 +3780,12 @@ export class VignetteScene extends Phaser.Scene {
     const flash = keep(this.add.rectangle(480, 270, 960, 540, 0xffffff).setDepth(D + 50).setScrollFactor(0));
     this.tweens.add({ targets: flash, alpha: 0, duration: 260 });
     this.cameras.main.shake(400, 0.02);
-    const gore = G.meta.settings.gore !== false;
-    if (gore) {
-      vfx(this, "vfx_bloodspray", pol.x - 20, pol.y - 95, { scale: 2, depth: D + 30 });
-      vfx(this, "vfx_blood", pol.x + 10, pol.y - 70, { scale: 1.8, depth: D + 31 });
-    } else {
-      for (let i = 0; i < 6; i++) {
-        const st = keep(this.add.text(pol.x + (Math.random() - 0.5) * 120, pol.y - 140, "★", { fontSize: "26px", color: "#ffd23f", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(D + 30));
-        this.tweens.add({ targets: st, y: st.y - 50, alpha: 0, duration: 900, delay: i * 60 });
-      }
-    }
-    // he goes over like a wardrobe
-    await this.wait(400);
-    await this.tween({ targets: pol, angle: 90, x: pol.x + 40, y: FLOOR - 20, duration: 900, ease: "Quad.in" });
-    synth.play("punch_big");
-    this.cameras.main.shake(500, 0.025);
-    if (gore) vfx(this, "vfx_bloodpool", pol.x + 60, FLOOR - 10, { scale: 3, depth: D + 9 });
-    await this.wait(700);
+    // he goes over like a wardrobe (drawn: gfx/GoreDeath.ts)
+    await goreDeath(this, pol, "shot", { fromX: kl.x, hits: 1, comedy: true });
+    await this.wait(500);
     await this.talk(KB_SHOT);
+    // and, with his last breath, the death fart
+    await goreDeath(this, pol, "fart", { comedy: true });
     gun.destroy();
     wheel.destroy();
     // the President steps over him to the till
@@ -4094,16 +4053,10 @@ export class VignetteScene extends Phaser.Scene {
     this.time.delayedCall(1500, strike);
   }
 
-  /** Fall over (the sheet's death frames, or a topple). */
+  /** Under the ceiling: a lump of it comes down on them (gfx/GoreDeath.ts). */
   private keel(sp: Phaser.GameObjects.Sprite, delay = 0) {
-    const m = charMeta(this, sp.texture.key);
-    const cyc = m?.death?.south ?? m?.death?.east;
     sp.setData("busy", true);
-    this.time.delayedCall(delay, () => {
-      if (!sp.active) return;
-      if (cyc?.length) cyc.forEach((f, i) => this.time.delayedCall(i * 110, () => sp.active && sp.setFrame(f)));
-      else this.tweens.add({ targets: sp, angle: 90, y: sp.y + 20, duration: 400, ease: "Bounce.out" });
-    });
+    goreDeath(this, sp, "crushed", { delay, quiet: true, dropKey: Math.random() < 0.5 ? "c6_ceiling" : "p_rubble" });
   }
 
   /** A prop image (origin at its feet), or a plain block of colour when the art isn't there. */

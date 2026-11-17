@@ -246,21 +246,25 @@ INT. NEWSDESK - DAY
 [MUSIC news fade]
 # MICROSOFT FACES OUTRAGE OVER "CRASH MODE" DLC ANNOUNCEMENT
 NEWSREADER: Redmond. Microsoft has come under intense scrutiny after scheduling a press conference to announce a new "Crash Mode" DLC for its flagship Flight Simulator video game, just one day after a catastrophic mid-air collision over Krelford.
+[INSERT flight_dlc 1]
 NEWSREADER: The downloadable content, which controversially encourages pilots to deliberately crash their aircraft, was further condemned for its inclusion of an interactive "penis sensor."
 NEWSREADER: We can take you to that ill-timed press event now.
 INT. MICROSOFT KEYNOTE STAGE - DAY
 # LIVE: REDMOND · "CRASH MODE" ANNOUNCEMENT
 EXECUTIVE: Thank you! Thank you. Ladies and gentlemen: Flight Simulator. Crash Mode.
 [SFX explode_1]
+[INSERT flight_crash 1]
 EXECUTIVE: For the first time ever, players are rewarded for mid-air collisions. Deliberately crash your aircraft. Rack up the points.
 REPORTER: Sir! A plane went down over Krelford yesterday. Is the timing not...
 EXECUTIVE: And that's not all. Introducing the interactive penis sensor, delivering unimaginable and forbidden pleasures.
 [GASP]
 EXECUTIVE: The sensor attaches to the player's groin. It vibrates, and moistens, in sync with on-screen activities.
 JOURNALIST: What has that got to do with flying a plane?
+[INSERT flight_land 1]
 EXECUTIVE: Great question. When you land, pilots are encouraged to seduce air stewardesses, and visit gentlemen's table dancing clubs.
 INT. NEWSDESK - DAY
 # OUTRAGE ERUPTS
+[INSERT flight_sensor 1]
 NEWSREADER: The sensor, which attaches to the player's groin, reportedly vibrates and moistens in sync with on-screen activities, a feature that has been widely derided as both obscene and completely unrelated to the game's original premise.
 NEWSREADER: Outrage erupted within minutes of the announcement, with journalists and aviation experts lambasting Microsoft for what they called "an unconscionable lack of tact" and "a grotesque trivialization of real-world tragedies."
 NEWSREADER: Social media was flooded with calls for boycotts, and the families of victims of the disaster have condemned the company's tone-deaf timing.

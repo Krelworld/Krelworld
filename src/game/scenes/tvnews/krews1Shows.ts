@@ -19,13 +19,17 @@ const DESK_ONLY = (ticker: string[]): NewsCfg => ({ brand: "gbk", ticker, scenes
 
 export const KREWS1_NEWS: Record<string, NewsCfg> = {
   // ---- Krelford News at Six
-  news_1: DESK_ONLY([
-    "Supreme Leader's new song seen by nine people",
-    "The word TOWN has fallen off the Town Hall",
-    "Pigeon seen wearing the word TOWN",
-    "The Great Tap has stopped",
-    "Weather: grey, with a chance of citation-needed tags",
-  ]),
+  news_1: {
+    ...DESK_ONLY([
+      "Supreme Leader's new song seen by nine people",
+      "The word TOWN has fallen off the Town Hall",
+      "Pigeon seen wearing the word TOWN",
+      "The Great Tap has stopped",
+      "Weather: grey, with a chance of citation-needed tags",
+    ]),
+    // the song itself (tvnews/mediaClips.ts)
+    clips: { krezzing: { medium: "musicvid", mode: "krezzing" } },
+  },
   news_2: {
     brand: "gbk",
     ticker: [
@@ -78,6 +82,8 @@ export const KREWS1_NEWS: Record<string, NewsCfg> = {
     ticker: ["Treasury replaced by the Department of Telly", "Three televisions in every room", "'Battle of the Morons': weekly prize of £50 billion", "You're watching it either way"],
     scenes: [STUDIO, HIGH_STREET],
     ots: [],
+    // Battle of the Morons itself (tvnews/mediaClips.ts)
+    clips: { morons_promo: { medium: "gameshow", mode: "promo" }, morons_play: { medium: "gameshow", mode: "play" } },
   },
   krews_antarctica: {
     brand: "gbk",
@@ -169,6 +175,14 @@ export const KREWS1_NEWS: Record<string, NewsCfg> = {
     scenes: [{ ...STUDIO, anchors: { OFFICIAL: "CABINET MINISTER 1" } }, STADIUM],
     ots: [],
     straps: { OFFICIAL: ["FIFA spokesperson", "International football's governing body"] },
+    // the game itself (tvnews/mediaClips.ts): its missions are only ever shown as cards
+    clips: {
+      fifa_intro: { medium: "fifa", mode: "intro" },
+      fifa_play: { medium: "fifa", mode: "play" },
+      fifa_story: { medium: "fifa", mode: "story" },
+      fifa_invasion: { medium: "fifa", mode: "invasion" },
+      fifa_gameover: { medium: "fifa", mode: "gameover" },
+    },
   },
   krews_roboref: {
     brand: "gbk",

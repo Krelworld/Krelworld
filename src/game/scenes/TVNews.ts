@@ -11,6 +11,7 @@ import { KTP_KINDS, KtpGame, ktpCabinet, type KtpKind, type KtpScene } from "./t
 import { BURNHAM_NEWS, BURN_KINDS, BurnhamShow, type BurnKind } from "./tvnews/burnhamShow";
 import { RAMSEY_NEWS, type RmScene, type RmInsert } from "./tvnews/ramseyShow";
 import { fling, impact, playClip, type ClipOpts } from "./tv/action";
+import { mediaClip, type MediaClip, type MediaClipDef } from "./tvnews/mediaClips";
 
 /**
  * GB Krews presentation for the story's compulsory broadcasts (Klerble's welcome and presser, the Krandall segment,
@@ -47,6 +48,8 @@ export interface NewsCfg {
   straps?: Record<string, [string, string]>;
   /** where the reporter is when she's cut to from the desk (default: outside Krelburger) */
   deskReporter?: { set: string; where: string; live: string };
+  /** clips of the media the story is about (tvnews/mediaClips.ts), cut to by [INSERT <id> <n>] in any scene */
+  clips?: Record<string, MediaClipDef>;
 }
 
 const KLER_FACE = { key: "tvanchor_PRESIDENT_KLERBLE", frame: 0, crop: [28, 4, 72, 54] as [number, number, number, number] };
@@ -753,9 +756,10 @@ export class NewsDirector {
     const delay = /^\(long pause\)/i.test(text) ? 1100 : 0;
     let p: Presenter | null = null;
     if (this.rmHoldLines > 0) {
-      // an insert is up: the line plays over it
+      // an insert is up: the line plays over it (a media clip moves on with each line)
       this.rmHoldLines--;
       this.chrome.clearStrap();
+      this.media?.line(this.mediaLine++);
       return 0;
     }
     if (KTP_KINDS.has(kind)) return this.ktpSpeak(n);
@@ -2589,9 +2593,30 @@ export class NewsDirector {
 
   /** [INSERT id n]: cut to the insert and hold it over the next n lines. */
   private rmInsertBeat(id: string, lines: number): number {
+    const clip = this.cfg.clips?.[id];
+    if (clip) {
+      this.mediaInsert(clip);
+      this.rmHoldLines = lines;
+      return 500;
+    }
     if (!this.rmInsert(id)) return 0;
     this.rmHoldLines = lines;
     return 700;
+  }
+
+  // ---- media clips (tvnews/mediaClips.ts): the game, programme or video the story is about
+
+  private media?: MediaClip;
+  private mediaLine = 0;
+
+  private mediaInsert(def: MediaClipDef) {
+    this.clearShot();
+    this.storyShotKind = "insert";
+    this.chrome.clearStrap();
+    this.chrome.live("");
+    this.mediaLine = 0;
+    this.media = mediaClip(this.ktpCtx(), def);
+    this.media.start();
   }
 
   /** A close-up insert from the documentary, filling the picture. False if this scene has no such insert or no art. */

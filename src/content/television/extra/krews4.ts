@@ -223,11 +223,13 @@ export const KREWS_MARIO_TATE = ep(
   `${OPEN()}
 # NINTENDO UNDER FIRE FOR INCLUDING ANDREW TATE AS PLAYABLE CHARACTER IN MARIO KART WORLD
 NEWSREADER: Nintendo has sparked widespread backlash following a bizarre and controversial announcement that Andrew Tate, the polarizing internet personality currently facing charges related to sex trafficking, will appear as a fully playable character in the upcoming Mario Kart World for the long-awaited Switch 2 console.
+[INSERT kart_race 1]
 NEWSREADER: Described by one fan as "absolutely bemusing," the announcement was made during a Nintendo Direct showcase that left many viewers slack-jawed.
 INT. NINTENDO DIRECT STAGE - DAY
 # LIVE: NINTENDO DIRECT · MARIO KART WORLD
 NINTENDO SPOKESPERSON: And joining the roster in Mario Kart World... Andrew Tate!
 [GASP]
+[INSERT kart_roster 1]
 NINTENDO SPOKESPERSON: Andrew Tate fits in well with our universe of colorful bad guys such as Bowser and all the other ones.
 NINTENDO SPOKESPERSON: We believe his unique energy will bring something fresh to Mario Kart World.
 INT. NEWSDESK - DAY
@@ -238,6 +240,7 @@ INT. NEWSDESK - DAY
 NEWSREADER: But Nintendo doubled down on the move with a further announcement.
 INT. NINTENDO DIRECT STAGE - DAY
 NINTENDO SPOKESPERSON: Players who pre-order Mario Kart World will unlock Tate's infamous orange Bugatti as a special in-game kart!
+[INSERT kart_runover 1]
 NINTENDO SPOKESPERSON: The Bugatti boasts unique gameplay mechanics that allow it to violently run other players over and kill them.
 [GASP]
 INT. NEWSDESK - DAY

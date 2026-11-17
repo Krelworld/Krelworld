@@ -318,6 +318,13 @@ export const KREWS3_NEWS: Record<string, NewsCfg> = {
       REPORTER: ["Reporter", "GB Krews, Redmond"],
       JOURNALIST: ["Journalist", "In the press pack"],
     },
+    // the game itself (tvnews/mediaClips.ts): a cartoon collision, no one in it
+    clips: {
+      flight_dlc: { medium: "flight", mode: "dlc" },
+      flight_crash: { medium: "flight", mode: "crash" },
+      flight_land: { medium: "flight", mode: "land" },
+      flight_sensor: { medium: "flight", mode: "sensor" },
+    },
   },
 
   // Kill the Patient 2: the game footage and the cabinet are the ktpGame.ts kinds (arcadegame, cabinet)

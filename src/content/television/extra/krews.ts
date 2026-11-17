@@ -81,11 +81,13 @@ export const KREWS_TELLY = ep(
 INT. NEWSDESK - DAY
 [MUSIC news fade]
 NEWSREADER: The Conservative Party has announced plans to bring about the biggest political reform in 200 years, abolishing the role of Chancellor of the Exchequer and the Department of the Treasury, and replacing them with the department of Telly.
+[INSERT morons_promo 1]
 NEWSREADER: The main purpose of the department will be to ensure that everyone watches much more television, ensuring that every room of every household has at least three televisions, and a new gameshow called "battle of the morons" which has a weekly cash prize of £50 billion.
 EXT. HIGH STREET - DAY
 REPORTER: Critics have labelled the plans as ludicrous and irresponsible, and have questioned how a government department whose only purpose is to watch television can be justified when there are so many other pressing issues that need to be addressed.
 REPORTER: They argue that the prize money for "battle of the morons" is far too high, and that it is nothing more than a glorified lottery that will line the pockets of the wealthy few.
 INT. NEWSDESK - DAY
+[INSERT morons_play 2]
 NEWSREADER: So what is "battle of the morons"? It is a new gameshow that will pit two teams of morons against each other in a battle of wits to see who can answer the most questions correctly.
 NEWSREADER: The team that wins will be awarded the £50 billion prize money, which is more than the GDP of many small countries.
 EXT. HIGH STREET - DAY

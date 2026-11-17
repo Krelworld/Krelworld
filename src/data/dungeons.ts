@@ -27,7 +27,7 @@ export interface RoomDef {
   waves?: [string, number][][];
   props?: PropDef[];
   /** Special scripted event handled by the dungeon scene. */
-  event?: "valves" | "reaction_terminal" | "bertha" | "records" | "anthem" | "colon" | "drongus1" | "stairs" | "drongus2" | "roof";
+  event?: "valves" | "reaction_terminal" | "bertha" | "records" | "anthem" | "colon" | "drongus1" | "stairs" | "drongus2" | "roof" | "plane";
   boss?: string;
   /** Arbitrary Drongus rule active in this room (chapter 4). */
   rule?: string;
@@ -99,6 +99,60 @@ export interface DungeonDef {
   returnAt?: string;
   /** "side": a side-scrolling platformer (gravity, jumping, exit on the right). */
   view?: "side";
+}
+
+/** FLIGHT KR-069, the aisle: economy, the galley, business class (with the hole in it), first class, cockpit door.
+ *  Side-on run'n'gun; PlaneCabin.ts adds the seat-back gunners, window goons, crawling stewards, loose trolleys,
+ *  falling luggage, the decompression and the turbulence. */
+export const PLANE_W = 7800;
+/** Where each part of the cabin starts (px): economy, galley, business, first class, the cockpit bulkhead. */
+export const PLANE_SECTIONS = { economy: 0, galley: 2800, business: 3600, first: 5000, bulkhead: 7480 };
+/** The hole in the hull (px), in business class. */
+export const PLANE_HOLE_X = 4300;
+function flightAisle(): RoomDef {
+  const f = (px: number) => px / PLANE_W;
+  return {
+    name: "Flight KR-069: The Aisle",
+    view: "side",
+    w: PLANE_W,
+    h: 540,
+    theme: "industrial",
+    event: "plane",
+    exitLabel: "COCKPIT →",
+    // stacked trolleys in the galley, piled luggage, the first-class bar
+    platforms: [[f(1250), 92, 130], [f(2050), 92, 130], [f(2980), 100, 120], [f(3300), 100, 120], [f(3140), 200, 150], [f(5500), 96, 200], [f(6150), 96, 190], [f(5830), 200, 150], [f(6850), 96, 170]],
+    triggers: [
+      [0.03, [["hijacker", 3]]],
+      [0.12, [["klerble_goon", 3], ["hijacker", 1]]],
+      [0.22, [["hijacker", 2], ["klerble_goon", 2]]],
+      [0.34, [["klerble_goon", 3], ["jet_hijacker", 1], ["hijacker", 1]]],
+      [0.46, [["hijacker", 3], ["klerble_goon", 1]]],
+      [0.66, [["klerble_goon", 4], ["jet_hijacker", 1]]],
+      [0.75, [["hijacker", 2], ["jet_hijacker", 2]]],
+      [0.86, [["klerble_goon", 3], ["hijacker", 3]]],
+    ],
+    enterLines: [
+      { s: "NARRATOR", t: "You're on. Seatbelt sign on. The cabin crew are all wearing balaclavas. Captain Stanley hires on attitude. One of them is serving drinks out of a possessed trolley.", dir: true },
+      { s: "MIKEY", t: "(over the radio) That's Captain Stanley's crew. Thirty years, never once been hijacked. They will NOT like you hijacking their plane.", cond: { notPlayer: "MIKEY" } },
+      { s: "NARRATOR", t: "Fight down the aisle to the cockpit. Excuse yourself to the passengers. Or don't.", dir: true },
+      { s: "NARRATOR", t: "RUN AND GUN, all the way down the plane: A / D run · W jump (again in the air to double jump) · S drop · aim and fire as normal. Jump the trolleys and the crawling stewards. Mind the bins. Don't go near the hole.", dir: true },
+    ],
+  };
+}
+
+/** The cockpit: breach the door, and Captain Stanley is waiting (the same fight as ever, side-on). */
+function flightCockpit(): RoomDef {
+  return {
+    name: "Flight KR-069: The Cockpit",
+    view: "side",
+    w: 960,
+    h: 540,
+    theme: "industrial",
+    event: "plane",
+    backdrop: "pl_cockpit",
+    platforms: [[0.2, 130, 170], [0.8, 130, 170], [0.5, 240, 200]],
+    boss: "krozno",
+  };
 }
 
 /** DA DRONGUS CORRIDOR (Chapter 7): a long gothic-cyber run'n'gun. Pits full of servers, presses, steam, moving
@@ -667,27 +721,9 @@ export const DUNGEONS: Record<string, DungeonDef> = {
     name: "FLIGHT KR-069: OPERATION PLANE INTO TRAIN",
     music: "krel_tower_rap",
     returnAt: "AIRPORT",
-    rooms: [
-      {
-        name: "Flight KR-069: The Aisle",
-        w: 2200,
-        h: 380,
-        theme: "industrial",
-        waves: [[["bandit", 5], ["trolley", 1]], [["bandit_gunner", 3], ["trolley", 2]], [["bandit", 4], ["bandit_gunner", 2]]],
-        enterLines: [
-          { s: "NARRATOR", t: "You're on. Seatbelt sign on. The cabin crew are all wearing balaclavas. Captain Stanley hires on attitude. One of them is serving drinks out of a possessed trolley.", dir: true },
-          { s: "MIKEY", t: "(over the radio) That's Captain Stanley's crew. Thirty years, never once been hijacked. They will NOT like you hijacking their plane.", cond: { notPlayer: "MIKEY" } },
-          { s: "NARRATOR", t: "Fight down the aisle to the cockpit. Excuse yourself to the passengers. Or don't.", dir: true },
-        ],
-      },
-      {
-        name: "Flight KR-069: The Cockpit",
-        w: 1100,
-        h: 700,
-        theme: "industrial",
-        boss: "krozno",
-      },
-    ],
+    // side-on now: a run'n'gun down the length of the plane (src/game/scenes/side/PlaneCabin.ts does the cabin,
+    // the passengers, the trolleys, the bins, the hole in the hull and the cockpit breach)
+    rooms: [flightAisle(), flightCockpit()],
   },
   arena_brand: {
     id: "arena_brand",

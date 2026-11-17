@@ -39,6 +39,7 @@ import { KrelfordFinale } from "./finale/KrelfordFinale";
 import { finalePreload } from "./finale/finaleArt";
 import { SanBrother } from "../combat/SanBrother";
 import { SideLevel } from "./side/SideLevel";
+import { PlaneCabin } from "./side/PlaneCabin";
 import { runChain, switchTo } from "../Flow";
 import { say, dir, gabor } from "../../content/dsl";
 import { FONT } from "../ui/theme";
@@ -142,6 +143,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   side = false;
   private bros: SanBrother[] = [];
   private sideLevel: SideLevel | null = null;
+  /** Flight KR-069 (side-on): the cabin, its passengers and its hazards (side/PlaneCabin.ts). */
+  private plane: PlaneCabin | null = null;
   groundY = 0;
   private platforms: Phaser.Physics.Arcade.StaticGroup | null = null;
   private sideBg: Phaser.GameObjects.TileSprite | null = null;
@@ -282,6 +285,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.sideBg = null;
     this.towerBg = null;
     this.sideLevel = this.side ? new SideLevel(this as any, r) : null;
+    this.plane = this.side && r.event === "plane" ? new PlaneCabin(this as never, r, { door: () => this.door, cleared: () => this.roomCleared }) : null;
     if (this.side) {
       // with holes in the floor, the floor is made of blocks and the world carries on underneath
       this.physics.world.setBounds(24, 0, r.w - 48, this.sideLevel?.hasGaps ? r.h + 400 : this.groundY);
@@ -542,7 +546,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     for (const [fx, h, w] of r.platforms ?? []) {
       const x = r.w * fx;
       const y = gy - h;
-      if (this.citadel) {
+      if (this.plane) {
+        this.plane.platform(x, y, w);
+      } else if (this.citadel) {
         this.citadel.platform(x, y, w, !!r.tower);
       } else if (r.tower && this.textures.exists("tw_ledge")) {
         // PixelLab gothic ledge: carved arches, gold trim, corbels; capped with a dark edge each end
@@ -592,6 +598,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (r.tower) this.decorateTower();
     else this.citadel?.side();
     this.sideQuestPickups();
+    this.plane?.build();
     const t = this.add.text(480, 200, r.name.toUpperCase(), { fontFamily: FONT, fontSize: "28px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5).setScrollFactor(0).setDepth(950).setShadow(3, 3, "#000", 0);
     this.tweens.add({ targets: t, alpha: 0, delay: 1300, duration: 700, onComplete: () => t.destroy() });
     for (const p of r.props ?? []) if (evalCond(p.cond, G.s)) this.addProp(p);
@@ -1520,6 +1527,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.bros = [];
     this.sideLevel?.destroy();
     this.sideLevel = null;
+    this.plane?.destroy();
+    this.plane = null;
     this.citadel?.destroy();
     this.citadel = null;
     this.roof?.destroy();
@@ -3525,6 +3534,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (!this.busy) for (const b of this.bros) b.update(now, Math.min(delta, 50));
     this.sideLevel?.update(Math.min(delta, 50), this.busy);
     this.citadel?.update(Math.min(delta, 50));
+    this.plane?.update(Math.min(delta, 50), this.busy);
     this.roof?.update(Math.min(delta, 50));
     const mb = this.room.miniBoss;
     if (mb && this.miniBossState === "none" && !this.roomCleared && !this.busy && !this.transitioning) {

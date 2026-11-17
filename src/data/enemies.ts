@@ -70,6 +70,13 @@ export const ENEMIES: Record<string, EnemyDef> = {
   bandit: { id: "bandit", name: "Krozno's Bandit", behavior: "chaser", hp: 48, speed: 120, damage: 12, size: 15, color: 0x3f3f46, accent: 0xef4444, shape: "humanoid", coins: 6, krezz: 5 },
   bandit_gunner: { id: "bandit_gunner", name: "Bandit Lookout", behavior: "shooter", hp: 44, speed: 85, damage: 11, size: 15, color: 0x52525b, accent: 0xfacc15, shape: "humanoid", projectile: { speed: 240, damage: 11, color: 0xfacc15, rate: 1300 }, coins: 6, krezz: 5 },
   trolley: { id: "trolley", name: "Possessed Drinks Trolley", behavior: "charger", hp: 70, speed: 70, damage: 18, size: 18, color: 0xd1d5db, accent: 0xe0a35a, shape: "box", label: "B", coins: 9, krezz: 6 },
+  // Flight KR-069 (side-on run'n'gun down the aisle, src/game/scenes/side/PlaneCabin.ts): Captain Stanley's
+  // balaclava'd cabin crew, and Klerble's goons in the Kreddle tracksuit
+  hijacker: { id: "hijacker", name: "Cabin Crew (Balaclava)", behavior: "shooter", hp: 40, speed: 80, damage: 10, size: 16, color: 0x1e293b, accent: 0xef4444, shape: "humanoid", projectile: { speed: 230, damage: 10, color: 0xfacc15, rate: 1700 }, coins: 6, krezz: 5, shout: ["Please remain seated!", "Tray tables UP!", "Cabin crew: arm doors. And yourselves.", "Seatbelt sign's ON, mate!", "Chicken or BULLETS?", "Thirty years, never hijacked!"] },
+  klerble_goon: { id: "klerble_goon", name: "Klerble Goon", behavior: "chaser", hp: 50, speed: 125, damage: 12, size: 16, color: 0xb91c1c, accent: 0xfacc15, shape: "humanoid", coins: 6, krezz: 5, shout: ["FOR KLERBLE!", "KREDDLE! KREDDLE! KREDDLE!", "Odds on you: 9/1!", "Sit DOWN, Krelford!", "I've got a tenner on you dying!"] },
+  hijacker_pop: { id: "hijacker_pop", name: "Seat-Back Gunner", behavior: "turret", hp: 34, speed: 0, damage: 8, size: 16, color: 0x1e293b, accent: 0xef4444, shape: "humanoid", projectile: { speed: 240, damage: 9, color: 0xfacc15, rate: 1400 }, coins: 5, krezz: 4 },
+  window_goon: { id: "window_goon", name: "Window Goon", behavior: "turret", hp: 28, speed: 0, damage: 8, size: 16, color: 0x1e293b, accent: 0x38bdf8, shape: "humanoid", projectile: { speed: 230, damage: 9, color: 0xf97316, rate: 1250 }, coins: 6, krezz: 5 },
+  jet_hijacker: { id: "jet_hijacker", name: "Jetpack Steward", behavior: "orbiter", hp: 34, speed: 95, damage: 9, size: 16, color: 0x1e293b, accent: 0xf97316, shape: "drone", projectile: { speed: 210, damage: 9, color: 0xfacc15, rate: 1800 }, coins: 6, krezz: 5 },
   // Drongus's army (Citadel parade ground)
   soldier: { id: "soldier", name: "Krelworld Guardsman", behavior: "chaser", hp: 56, speed: 110, damage: 13, size: 16, color: 0x6d28d9, accent: 0xffd23f, shape: "humanoid", coins: 6, krezz: 6 },
   // Arena minions

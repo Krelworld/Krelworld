@@ -8851,6 +8851,63 @@
   },
   "c6a_cut_klerble": {
    "file": "c6a/c6a_cut_klerble.png"
+  },
+  "pl_wall_econ": {
+   "file": "backdrops/pl_wall_econ.png"
+  },
+  "pl_wall_first": {
+   "file": "backdrops/pl_wall_first.png"
+  },
+  "pl_wall_galley": {
+   "file": "backdrops/pl_wall_galley.png"
+  },
+  "pl_sky": {
+   "file": "backdrops/pl_sky.png"
+  },
+  "pl_cockpit": {
+   "file": "backdrops/pl_cockpit.png"
+  },
+  "pl_window": {
+   "file": "props/pl_window.png"
+  },
+  "pl_seat_econ": {
+   "file": "props/pl_seat_econ.png"
+  },
+  "pl_seat_biz": {
+   "file": "props/pl_seat_biz.png"
+  },
+  "pl_seat_first": {
+   "file": "props/pl_seat_first.png"
+  },
+  "pl_suitcase": {
+   "file": "props/pl_suitcase.png"
+  },
+  "pl_duffel": {
+   "file": "props/pl_duffel.png"
+  },
+  "pl_sign_belt": {
+   "file": "props/pl_sign_belt.png"
+  },
+  "pl_sign_smoke": {
+   "file": "props/pl_sign_smoke.png"
+  },
+  "pl_door": {
+   "file": "props/pl_door.png"
+  },
+  "pl_trays": {
+   "file": "props/pl_trays.png"
+  },
+  "pl_bin_open": {
+   "file": "props/pl_bin_open.png"
+  },
+  "pl_hijacker_duck": {
+   "file": "props/pl_hijacker_duck.png"
+  },
+  "pl_goon_duck": {
+   "file": "props/pl_goon_duck.png"
+  },
+  "pl_pass_paper": {
+   "file": "props/pl_pass_paper.png"
   }
  },
  "sheets": {
@@ -11562,6 +11619,86 @@
    "file": "c6a/c6a_still_escape_anim.png",
    "frameWidth": 256,
    "frameHeight": 144
+  },
+  "en_hijacker": {
+   "file": "combat/en_hijacker.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.66
+  },
+  "en_hijacker_pop": {
+   "file": "combat/en_hijacker_pop.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.66
+  },
+  "en_klerble_goon": {
+   "file": "combat/en_klerble_goon.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.66
+  },
+  "en_window_goon": {
+   "file": "combat/en_window_goon.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.66
+  },
+  "en_jet_hijacker": {
+   "file": "combat/en_jet_hijacker.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.66
+  },
+  "pl_steward": {
+   "file": "props/pl_steward.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_pass_scream": {
+   "file": "props/pl_pass_scream.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_pass_cower": {
+   "file": "props/pl_pass_cower.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_pass_lady": {
+   "file": "props/pl_pass_lady.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_pass_tourist": {
+   "file": "props/pl_pass_tourist.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_pass_child": {
+   "file": "props/pl_pass_child.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_mask": {
+   "file": "props/pl_mask.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_cart": {
+   "file": "props/pl_cart.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_hole": {
+   "file": "props/pl_hole.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_bin": {
+   "file": "props/pl_bin.png",
+   "frameWidth": 64,
+   "frameHeight": 64
   }
  },
  "vfx": {

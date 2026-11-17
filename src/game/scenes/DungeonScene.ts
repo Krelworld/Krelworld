@@ -2257,7 +2257,21 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const ps = this.player.spr;
     const phd = (ps.texture.customData as { hd?: number } | undefined)?.hd ?? 1;
     this.busy = true;
-    const done = await kreltality(this, this.krelTarget, { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd });
+    // the show draws its own you and its own them: hide the real ones (and the kneeling stand-in), or you see two of each
+    const hidden: Phaser.GameObjects.Components.Visible[] = [];
+    const done = await kreltality(this, this.krelTarget, { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd }, undefined, {
+      onStage: () => {
+        for (const o of [ps, b, this.downSpr] as (Phaser.GameObjects.Components.Visible | null | undefined)[]) {
+          if (o && o.visible) {
+            o.setVisible(false);
+            hidden.push(o);
+          }
+        }
+      },
+      onEnd: () => {
+        if (ps.active) ps.setVisible(true);
+      },
+    });
     if (done) {
       this.downSpr?.destroy();
       this.downSpr = null;

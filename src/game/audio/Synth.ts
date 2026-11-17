@@ -1240,9 +1240,11 @@ export class Synth {
         this.tone(138, 0.45, "square", 0.3, 0.34);
         break;
       case "decree":
-        this.tone(392, 0.15, "square", 0.25);
-        this.tone(523, 0.15, "square", 0.25, 0.15);
-        this.tone(784, 0.3, "square", 0.25, 0.3);
+        // (fallback only: the recorded one is a short microtonal koto-ish synth jingle, no horns)
+        this.tone(440, 0.3, "sine", 0.2);
+        this.tone(479, 0.3, "sine", 0.2, 0.12);
+        this.tone(587, 0.3, "sine", 0.2, 0.24);
+        this.tone(880, 0.5, "triangle", 0.15, 0.4);
         break;
       default:
         this.tone(440, 0.05, "square", 0.1);

@@ -2481,14 +2481,14 @@ export class NewsDirector {
     this.storyShotKind = "insert";
     this.chrome.clearStrap();
     const { SX, SY, SW, SH } = this.r;
-    this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0x1c1008).setOrigin(0));
+    // a medium shot is cut out: the set goes behind it, soft
+    if (ins.frame === "face" && this.scene.set) this.backdrop(this.scene.set, 1.9, 0, -20, true);
+    else this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0x1c1008).setOrigin(0));
     const s = this.add(this.sc.add.sprite(this.cx(), 0, `tva_${ins.clip}`, ins.frames?.[0] ?? 0));
     s.texture.setFilter(Phaser.Textures.FilterMode.NEAREST);
-    const k = Math.max(SW / s.width, SH / s.height);
-    s.setScale(k);
-    // a 3:2 still sits centred; a medium shot keeps the head in the picture
-    if (ins.frame === "face") s.setOrigin(0.5, 0).setY(SY - SH * 0.02);
-    else s.setY(SY + SH / 2);
+    // a 3:2 still fills the picture; a medium shot stands full height on the soft set (the turkey and his hands in it)
+    if (ins.frame === "face") s.setScale((SH * 1.04) / s.height).setOrigin(0.5, 1).setY(SY + SH + 4);
+    else s.setScale(Math.max(SW / s.width, SH / s.height)).setY(SY + SH / 2);
     playClip(this.sc, s, ins.clip, { fps: ins.fps, frames: ins.frames, loop: ins.loop });
     // the documentary's slow, intimate push-in
     this.camTo(1.07, this.cx(), ins.frame === "face" ? SY + SH * 0.3 : SY + SH / 2, 5000);

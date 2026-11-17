@@ -19,6 +19,7 @@ import { vfx } from "../gfx/Vfx";
 import { chatBeat } from "../gfx/SideCine";
 import { CHARACTERS, LADS } from "../../data/characters";
 import { TOUCH } from "../ui/TouchControls";
+import { runescape } from "./minigame/runescape";
 
 const MIKEY_BARKS = [
   "Mikey here.",
@@ -1066,86 +1067,7 @@ export class MinigameScene extends Phaser.Scene {
   // ---------------------------------------------------------------- RUNESCAPE (keep the gear coming)
 
   private runescape() {
-    if (!backdrop(this, "bg_runescape", { dim: 0.1, depth: -10 })) this.add.rectangle(480, 270, 960, 540, 0x3d6a2a);
-    this.add.rectangle(480, 270, 940, 520).setStrokeStyle(6, 0x5a4a2a);
-    title(this, 480, 40, "WOODCUTTING → 99", 26, "#ffff00");
-    this.add.text(480, 70, "Tap / SPACE to chop. When the gear runs out, RE-UP (G or the button).", { fontFamily: FONT, fontSize: "13px", color: "#ffffff" }).setOrigin(0.5);
-    const tree = this.add.image(560, 300, "p_tree").setScale(4);
-    const me = this.add.sprite(400, 330, playerKey(this), 0).setScale(4);
-    const lvlT = this.add.text(40, 110, "", { fontFamily: "monospace", fontSize: "18px", color: "#ffff00", stroke: "#000", strokeThickness: 4 });
-    this.add.text(40, 186, "GEAR", { fontFamily: FONT, fontSize: "12px", color: "#ffffff", fontStyle: "bold" });
-    this.add.rectangle(40, 208, 200, 14, 0x111111).setOrigin(0, 0.5);
-    const gearBar = this.add.rectangle(40, 208, 200, 14, 0xffffff).setOrigin(0, 0.5);
-    const window = this.add.rectangle(860, 200, 80, 100, 0x223355).setStrokeStyle(4, 0x5a4a2a);
-    const gary = this.add.sprite(860, 210, this.textures.exists("spr_GARY") ? "spr_GARY" : "spr_FOLK2", 0).setScale(2.6).setVisible(false);
-    void window;
-    // RuneScape XP table, squashed so 99 is reachable in a minute or so with gear
-    const target = 13034431;
-    let xp = 0;
-    let gear = 100;
-    let reups = 0;
-    let busy = false;
-    const levelOf = (x: number) => Math.min(99, 1 + Math.floor(98 * Math.pow(x / target, 0.55)));
-    const end = this.time.now + 75000;
-    const chop = () => {
-      if (this.ended || busy || this.box.active) return;
-      const mult = gear > 0 ? 1 : 0.08;
-      const gain = Math.round(target / 160 * mult * (0.8 + Math.random() * 0.4));
-      const before = levelOf(xp);
-      xp = Math.min(target, xp + gain);
-      synth.play("hit");
-      me.setFrame(String(me.frame.name) === "3" ? 0 : 3);
-      this.tweens.add({ targets: tree, angle: { from: -3, to: 3 }, yoyo: true, duration: 60 });
-      if (Math.random() < 0.5) this.pop(560 + (Math.random() - 0.5) * 100, 220, `+${gain.toLocaleString()} xp`, "#ffffff", 13);
-      const after = levelOf(xp);
-      if (after > before && after % 10 === 0) this.pop(480, 160, `Woodcutting level ${after}!`, "#ffff00", 22);
-      if (xp >= target) {
-        synth.play("cheer");
-        title(this, 480, 240, "99 WOODCUTTING\nHISCORES: RANK 1 (OVERALL, OF ALL TIME)", 28, "#ffff00").setDepth(200);
-        this.finish(true, [dir(`Gear re-ups required: ${reups}. Gary has bought a boat.`)]);
-      }
-    };
-    const reup = async () => {
-      if (this.ended || busy) return;
-      busy = true;
-      reups++;
-      gary.setVisible(true);
-      synth.play("door");
-      this.pop(860, 130, ["'Alright Kreb'", "'Same again?'", "'For the RuneScape'", "'You're my best customer'"][reups % 4], "#ffd23f", 14);
-      await new Promise<void>((r) => this.time.delayedCall(1200, () => r()));
-      gary.setVisible(false);
-      gear = 100;
-      this.pop(200, 200, "Hmmmm… gear… 😋", "#ffffff", 16);
-      busy = false;
-    };
-    this.mash(chop);
-    this.input.keyboard?.on("keydown-G", reup);
-    const btn = this.add.rectangle(140, 470, 200, 50, 0x7c2d12).setStrokeStyle(3, 0xffff00).setInteractive({ useHandCursor: true });
-    this.add.text(140, 470, "RE-UP (G)", { fontFamily: FONT, fontSize: "16px", color: "#ffff00", fontStyle: "bold" }).setOrigin(0.5);
-    btn.on("pointerdown", (_p: unknown, _x: number, _y: number, ev: { stopPropagation: () => void }) => {
-      ev.stopPropagation();
-      reup();
-    });
-    let warned = false;
-    this.time.addEvent({
-      delay: 100,
-      loop: true,
-      callback: () => {
-        if (this.ended) return;
-        if (!busy) gear = Math.max(0, gear - 1.6);
-        gearBar.width = 2 * gear;
-        gearBar.setFillStyle(gear > 25 ? 0xffffff : 0xef4444);
-        if (gear <= 0 && !warned) {
-          warned = true;
-          this.pop(200, 210, "Feel a bit manic… better get some gear in!", "#ef4444", 15);
-          this.time.delayedCall(3000, () => (warned = false));
-        }
-        const left = Math.max(0, (end - this.time.now) / 1000);
-        lvlT.setText(`Level ${levelOf(xp)}\nXP ${xp.toLocaleString()}`);
-        this.hud.setText(`${left.toFixed(0)}s   RE-UPS ${reups}`);
-        if (left <= 0) this.finish(false, [dir("Your mum calls you down for dinner. The session is over. Lumbridge weeps.")]);
-      },
-    });
+    runescape({ scene: this, hud: this.hud, box: this.box, ended: () => this.ended, finish: (win, lines) => void this.finish(win, lines) });
   }
 
   // ---------------------------------------------------------------- HIIT BURPEES (eternal life)

@@ -62,6 +62,8 @@ export const AUDIO_FILES: Record<string, string> = {
   drp_rattle: "audio/sfx/drp_rattle.mp3",
   drp_splat: "audio/sfx/drp_splat.mp3",
   drp_suction: "audio/sfx/drp_suction.mp3",
+  /** RuneScape (the woodcutting minigame, ElevenLabs): axe chop, log in the pack, tree falling, bank chest, the level-up fanfare (an original one). */
+  ...Object.fromEntries(["chop", "log", "fall", "bank", "levelup"].map((k) => [`rs_${k}`, `audio/sfx/rs_${k}.mp3`])),
 };
 
 /** Where each separate shout sits in those files: [start, length] in seconds. */

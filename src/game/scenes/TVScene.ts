@@ -368,6 +368,8 @@ export class TVScene extends Phaser.Scene {
     this.setKey = "";
     this.mode = "playing";
     this.ep = e;
+    // Chapter 2 opens with a night in: starting any episode counts (skipping is fine once it's on)
+    if (!this.fromTitle && G.s.chapter === 2) G.s.flags.ch2_tv_watched = true;
     this.pov?.destroy();
     const host = { setTexture: () => this.setTexture(), spriteFor: (n: string) => this.actorTex(n.toUpperCase()) };
     this.news?.destroy();

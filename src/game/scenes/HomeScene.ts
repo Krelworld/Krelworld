@@ -144,7 +144,7 @@ export class HomeScene extends Phaser.Scene {
     }
     // a new chapter starts here: it gets going as soon as you leave
     if (s.chapter > 1 && s.flags[`ch${s.chapter}_home`] && !s.flags[`ch${s.chapter}_intro`] && !this.mustWatchBeep())
-      G.emit("toast", { title: `CHAPTER ${s.chapter}`, text: "A new day. Head out of the front door when you're ready." });
+      G.emit("toast", this.mustWatchCh2() ? { title: "CHAPTER 2", text: "A new day. Watch something on KrelTV first (the telly, on the left), then head out." } : { title: `CHAPTER ${s.chapter}`, text: "A new day. Head out of the front door when you're ready." });
     if (this.mustWatchBeep() && !s.flags.beep_tv_pending) {
       await this.talk([dir("A night in. A relaxing episode of Peep Show is about to start. (The telly's on the left: walk up and press E.)")]);
       return;
@@ -237,6 +237,11 @@ export class HomeScene extends Phaser.Scene {
   }
 
   /** Chapter 4 opens with a relaxing episode of Peep Show, and you're not leaving till you've watched it. */
+  /** Chapter 2 starts with a night in front of KrelTV: any episode will do (once it's started you can skip it). */
+  private mustWatchCh2() {
+    return G.s.chapter === 2 && !G.s.flags.ch2_tv_watched && !G.s.flags.ch2_intro;
+  }
+
   private mustWatchBeep() {
     return G.s.chapter === 4 && !G.s.flags.tv_beep_show;
   }
@@ -959,6 +964,10 @@ export class HomeScene extends Phaser.Scene {
     }
     if (this.mustWatchBeep()) {
       void this.talk([dir("No. You're having a night in. Watch a relaxing episode of Peep Show first. (The telly, on the left.)")]);
+      return;
+    }
+    if (this.mustWatchCh2()) {
+      void this.talk([dir("Not yet. Put the telly on first: watch something on KrelTV. Anything. (The telly, on the left. Once it's on you can skip it.)")]);
       return;
     }
     const s = G.s;

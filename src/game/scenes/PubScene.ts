@@ -19,6 +19,10 @@ import { LADS } from "../../data/characters";
 import type { Line } from "../../data/types";
 import { RIFFS } from "../../content/riffs";
 import { STAG_CHATS } from "../../content/stagChat";
+import { addKrokens } from "../systems/kreddle";
+
+/** Krokens for each riff, the first time you hear it. */
+const RIFF_KROKENS = 3;
 
 export class PubScene extends Phaser.Scene {
   /** SanMik & SanChz play the back room most nights. */
@@ -68,6 +72,12 @@ export class PubScene extends Phaser.Scene {
     synth.music("pub");
     if (!this.scene.isActive("UI")) this.scene.launch("UI", { mode: "hub" });
     this.showMenu();
+    // Chapter 2: you were told to come and check the place out
+    if (G.s.chapter === 2 && !G.s.flags.ch2_pub_visited) {
+      G.s.flags.ch2_pub_visited = true;
+      G.save();
+      G.emit("toast", { title: "THE KREZZ ARMS", text: "Checked out. Have a look round: watch Kreblis and Drongus riff for Krokens. The War Room's next (under the Archive)." });
+    }
   }
 
   update() {
@@ -243,6 +253,7 @@ export class PubScene extends Phaser.Scene {
     return this.randomChats(
       RIFFS.map((r) => ({ id: `riff_${r.n}`, head: `${r.title.toUpperCase()}  ·  ${r.date}`, lines: r.lines })),
       ["KREBLIS", "DRONGUS"].map((id) => ({ id, you: me && id === "KREBLIS" })),
+      RIFF_KROKENS,
     );
   }
 
@@ -259,7 +270,7 @@ export class PubScene extends Phaser.Scene {
    * Random conversations you haven't heard yet, one after another, until you stop. Space / E: next line.
    * Tab or NEXT: skip to the next one. Esc or END: back to the bar.
    */
-  private async randomChats(chats: { id: string; head: string; lines: Line[] }[], cast: { id: string; you: boolean }[]) {
+  private async randomChats(chats: { id: string; head: string; lines: Line[] }[], cast: { id: string; you: boolean }[], pay = 0) {
     const s = G.s;
     this.busy = true;
     this.menu.setVisible(false);
@@ -292,6 +303,13 @@ export class PubScene extends Phaser.Scene {
       s.flags[c.id] = true;
       head.setText(c.head);
       await this.box.play(c.lines);
+      // Krokens for every riff the first time you sit through it (or skip on from it)
+      if (pay && !s.flags[`paid_${c.id}`]) {
+        s.flags[`paid_${c.id}`] = true;
+        addKrokens(s, pay);
+        synth.play("ding");
+        G.emit("toast", { title: "🎟 +" + pay + " KROKENS", text: "For services to riffing." });
+      }
     }
     this.input.keyboard?.off("keydown", esc);
     this.table.removeAll(true);

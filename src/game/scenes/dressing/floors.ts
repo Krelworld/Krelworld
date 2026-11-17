@@ -104,7 +104,7 @@ const DRAW: Record<string, (ctx: Ctx, r: () => number) => void> = {
   kitchen: (ctx, r) => {
     for (let i = 0; i < 2; i++)
       for (let j = 0; j < 2; j++) {
-        ctx.fillStyle = (i + j) % 2 ? "#7d8450" : "#d8d0aa";
+        ctx.fillStyle = (i + j) % 2 ? "#6c7350" : "#b8b090";
         ctx.fillRect(i * 32, j * 32, 32, 32);
       }
     speckle(ctx, r, 160, [0x5f6538, 0xbdb48c, 0x6b4f2a], 1, 0.6);
@@ -118,9 +118,9 @@ const DRAW: Record<string, (ctx: Ctx, r: () => number) => void> = {
   },
   // the bedroom: soft pink carpet
   pink: (ctx, r) => {
-    ctx.fillStyle = "#e7a8c0";
+    ctx.fillStyle = "#c48aa2";
     ctx.fillRect(0, 0, 64, 64);
-    speckle(ctx, r, 420, [0xdb94b0, 0xf2bfd2, 0xd987a8, 0xf7cfe0], 1);
+    speckle(ctx, r, 420, [0xb87e96, 0xd29db3, 0xb0758e, 0xdaa9bd], 1);
   },
   // Da Squeezing Room: hot pink shag with hearts
   shag: (ctx, r) => {

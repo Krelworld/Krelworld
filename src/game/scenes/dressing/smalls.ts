@@ -49,6 +49,41 @@ export const SMALL = {
       g.fillStyle(0x52525b).fillRect(0, 2, 14, 10);
       g.fillStyle(0xf4f4f5).fillRect(1, 2, 12, 3);
     }),
+  teddy: (k: Kit) =>
+    k.makeTex("dds_teddy", 16, 16, (g) => {
+      g.fillStyle(0x92400e).fillCircle(4, 4, 3).fillCircle(12, 4, 3);
+      g.fillStyle(0xb45309).fillCircle(8, 9, 6);
+      g.fillStyle(0xfde68a).fillCircle(8, 11, 2.5);
+      g.fillStyle(0x111111).fillRect(5, 7, 2, 2).fillRect(10, 7, 2, 2);
+    }),
+  bunny: (k: Kit) =>
+    k.makeTex("dds_bunny", 16, 18, (g) => {
+      g.fillStyle(0xf9a8d4).fillRect(3, 0, 3, 8).fillRect(10, 0, 3, 8);
+      g.fillStyle(0xfbcfe8).fillCircle(8, 12, 6);
+      g.fillStyle(0x111111).fillRect(5, 10, 2, 2).fillRect(10, 10, 2, 2);
+      g.fillStyle(0xec4899).fillRect(7, 13, 2, 1);
+    }),
+  unicorn: (k: Kit) =>
+    k.makeTex("dds_unicorn", 18, 16, (g) => {
+      g.fillStyle(0xf5f3ff).fillCircle(9, 10, 6);
+      g.fillStyle(0xfacc15).fillTriangle(8, 0, 11, 0, 9.5, 5);
+      g.fillStyle(0xa78bfa).fillRect(2, 5, 3, 8);
+      g.fillStyle(0x111111).fillRect(7, 9, 2, 2).fillRect(11, 9, 2, 2);
+    }),
+  parcel: (k: Kit) =>
+    k.makeTex("dds_parcel", 24, 20, (g) => {
+      g.fillStyle(0x8b5e34).fillRect(0, 0, 24, 20);
+      g.fillStyle(0xb7834a).fillRect(1, 1, 22, 18);
+      g.fillStyle(0xd6b98c).fillRect(10, 1, 4, 18);
+      g.fillStyle(0xf8fafc).fillRect(2, 12, 7, 5);
+    }),
+  pizza: (k: Kit) =>
+    k.makeTex("dds_pizza", 22, 22, (g) => {
+      g.fillStyle(0xd6b98c).fillRect(0, 0, 22, 22);
+      g.fillStyle(0xb7834a).fillRect(0, 0, 22, 2);
+      g.fillStyle(0xdc2626).fillCircle(11, 12, 5);
+      g.fillStyle(0x65a30d, 0.8).fillCircle(8, 9, 3); // the mould
+    }),
   sock: (k: Kit) =>
     k.makeTex("dds_sock", 12, 8, (g) => {
       g.fillStyle(0xe7e5e4).fillRect(0, 0, 8, 5);

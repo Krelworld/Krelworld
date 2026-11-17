@@ -54,3 +54,19 @@ export function gauge(k: Kit, x: number, y: number, r = 7, danger = false) {
 
 export const ANY = (k: Kit) => new Phaser.Geom.Rectangle(70, 150, k.r.w - 140, k.r.h - 230);
 export { SMALL };
+
+/** A string of fairy lights along the back wall (twinkle slowly; steady under Reduce Flashing). */
+export const fairyLights = (k: Kit, x0: number, x1: number, y = 12) => {
+  const g = k.wallG();
+  g.lineStyle(1, 0x1f2937, 0.8);
+  const pts: [number, number][] = [];
+  for (let x = x0; x <= x1; x += 22) pts.push([x, y + Math.sin((x - x0) / 40) * 6 + 6]);
+  for (let i = 1; i < pts.length; i++) g.lineBetween(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]);
+  const cols = [0xfde047, 0xf472b6, 0x60a5fa, 0x4ade80, 0xfb923c];
+  pts.forEach(([x, py], i) => {
+    const b = k.sc.add.circle(x, py + 3, 2.5, cols[i % cols.length]).setDepth(DEPTH.wall + 0.02);
+    const glow = k.sc.add.image(x, py + 3, "dd_softlight").setDisplaySize(18, 18).setTint(cols[i % cols.length]).setAlpha(0.5).setDepth(DEPTH.wall + 0.01).setBlendMode(Phaser.BlendModes.ADD);
+    k.sc.tweens.add({ targets: [b, glow], alpha: 0.35, yoyo: true, repeat: -1, duration: k.calm ? 2400 : 900 + (i % 5) * 230, delay: i * 140, ease: "Sine.inOut" });
+  });
+};
+

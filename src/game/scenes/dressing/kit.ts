@@ -167,8 +167,10 @@ export class Kit {
   vignette(alpha = 0.45, color = 0x000000, cast?: { color: number; alpha: number }) {
     const v = Juice.vignette(this.sc, color, alpha, DEPTH.vignette);
     if (cast) {
-      const c = this.sc.add.rectangle(480, 270, 960, 540, cast.color, cast.alpha).setBlendMode(Phaser.BlendModes.MULTIPLY);
-      Juice.layer(this.sc, DEPTH.vignette - 1).add(c);
+      // the colour cast goes on the floor and walls (a tint is free; a full-screen multiply isn't, on a software renderer)
+      const mix = Phaser.Display.Color.Interpolate.ColorWithColor(Phaser.Display.Color.ValueToColor(0xffffff), Phaser.Display.Color.ValueToColor(cast.color), 1, Math.min(1, cast.alpha * 2));
+      const tint = Phaser.Display.Color.GetColor(mix.r, mix.g, mix.b);
+      for (const o of this.sc.children.list) if (o instanceof Phaser.GameObjects.TileSprite && o.depth <= 1 && !o.isTinted) o.setTint(tint);
     }
     return v;
   }

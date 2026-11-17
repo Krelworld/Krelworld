@@ -1,5 +1,7 @@
 import type { Kit } from "./kit";
 import { wildern } from "./wildern";
+import { polson } from "./polson";
+import { ministry } from "./ministry";
 
 /**
  * Per-room set dressing for the top-down dungeons: what the floor is, what's in the room, how it's lit and how it
@@ -23,9 +25,13 @@ export interface Dressing {
 
 export const DRESSINGS: Record<string, Dressing> = {
   ...wildern,
+  ...polson,
+  ...ministry,
 };
 
 export function dressingFor(dungeonId: string, roomIdx: number): Dressing | null {
+  // (debug: window.__noDress = true shows the undressed rooms, for before/after and frame-rate checks)
+  if ((globalThis as { __noDress?: boolean }).__noDress) return null;
   return DRESSINGS[`${dungeonId}:${roomIdx}`] ?? null;
 }
 

@@ -85,7 +85,7 @@ async function freeze(sc: Phaser.Scene, caption: string, host: CineHost, ms = 17
   const L = Juice.layer(sc, CARD_DEPTH);
   const wash = sc.add.rectangle(480, 270, 1100, 700, 0x4a2a0a, 0.18);
   const stamp = sc.add.container(40, 120);
-  const t = sc.add.text(0, 0, caption, { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#111111", align: "left", wordWrap: { width: 560 } }).setOrigin(0, 0.5);
+  const t = sc.add.text(0, 0, caption, { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#111111", align: "left", wordWrap: { width: 620 } }).setOrigin(0, 0.5);
   const bg = sc.add.rectangle(-14, 0, t.width + 28, t.height + 16, 0xffd23f, 1).setOrigin(0, 0.5).setStrokeStyle(4, 0x111111);
   stamp.add([bg, t]).setAngle(-4);
   L.add([wash, stamp]);

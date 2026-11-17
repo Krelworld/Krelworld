@@ -7,6 +7,9 @@ import { addCensorBar } from "../gfx/Censor";
 import { playerKey, sanmikYee } from "../gfx/sanmikForm";
 import { WONK_MOANS, WONK_SHOUTS } from "../../content/finaleRoof";
 import { padHeld } from "../systems/padbinds";
+import { G } from "../G";
+import { portraitKey } from "../gfx/Textures";
+import * as Juice from "../gfx/Juice";
 
 /**
  * THE GROUP WONK. The long, hard, shared version of WONK YOUR THANG (Wonk.ts), for the finale.
@@ -84,6 +87,110 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
     ui.add([ddGlow, dd]);
     const ddText = sc.add.text(CX, CY - 92, "", { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#ffd23f", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5);
     ui.add(ddText);
+    const calm = !!G.meta?.settings?.calmFlash;
+    // ---- the presentation: he fights it, the ring's power rises
+    // the pillar of light rising out of the ring (behind him), and the dome of their combined aura round him
+    const pillar = sc.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
+    const dome = sc.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
+    const cracks = sc.add.graphics();
+    ui.addAt(pillar, ui.getIndex(ddGlow));
+    ui.add([dome, cracks]);
+    let crackN = 0;
+    const addCracks = (n: number) => {
+      for (let k = 0; k < n; k++) {
+        let x = CX + (Math.random() - 0.5) * 60;
+        let y = CY - 40 + Math.random() * 80;
+        cracks.lineStyle(2, 0xfff4c2, 0.95).beginPath().moveTo(x - CX, y - CY);
+        for (let s = 0; s < 4; s++) {
+          x += (Math.random() - 0.5) * 22;
+          y += (Math.random() - 0.5) * 22;
+          cracks.lineTo(x - CX, y - CY);
+        }
+        cracks.strokePath();
+        crackN++;
+      }
+    };
+    cracks.setPosition(CX, CY);
+    // his moves over the top of his idle (bracing; a punch that bounces off the aura)
+    const mkAnim = (key: string) => {
+      if (!sc.textures.exists(key)) return null;
+      const ak = `${key}:gw`;
+      if (!sc.anims.exists(ak)) sc.anims.create({ key: ak, frames: sc.anims.generateFrameNumbers(key, { start: 0, end: sc.textures.get(key).frameTotal - 2 }), frameRate: 12, repeat: 0 });
+      return ak;
+    };
+    const braceA = mkAnim("fe_dd_brace");
+    const punchA = mkAnim("fe_dd_punch");
+    let ddBusyUntil = 0;
+    let nextDdMove = 2600;
+    let lastCut = -9999;
+    const repel = () => {
+      // he tries to blast his way out: a gold ball flies at the ring and bursts on their aura
+      const tgt = lads[1 + Math.floor(Math.random() * (N - 1))] ?? lads[0];
+      const a = Math.atan2(tgt.y - CY, tgt.x - CX);
+      const ball = sc.add.circle(CX, CY - 10, 10, 0xffd23f, 1).setBlendMode(Phaser.BlendModes.ADD);
+      ui.add(ball);
+      const hx = CX + Math.cos(a) * RX * 0.55;
+      const hy = CY + Math.sin(a) * RY * 0.55;
+      synth.play("gun_bfk");
+      sc.tweens.add({
+        targets: ball,
+        x: hx,
+        y: hy,
+        duration: 260,
+        ease: "Quad.in",
+        onComplete: () => {
+          ball.destroy();
+          if (done) return;
+          const ring = sc.add.circle(hx, hy, 8, 0xff9ad5, 0).setStrokeStyle(4, 0xffd1f3, 1).setBlendMode(Phaser.BlendModes.ADD);
+          ui.add(ring);
+          sc.tweens.add({ targets: ring, radius: 60, alpha: 0, duration: 380, onComplete: () => ring.destroy() });
+          pop(hx, hy - 20, "REPELLED!", "#ff9ad5", 18);
+          synth.play("ding");
+        },
+      });
+    };
+    // a lad joins in: his power goes up (a column of light off him, a ring at his feet, speed lines at him)
+    const joinCut = (idx: number) => {
+      const l = lads[idx];
+      if (!l) return;
+      const col = sc.add.rectangle(l.x, l.y + 30, 46, 10, 0xffd1f3, 0.7).setOrigin(0.5, 1).setBlendMode(Phaser.BlendModes.ADD);
+      const ring2 = sc.add.ellipse(l.x, l.y + 40, 30, 10, 0xffffff, 0).setStrokeStyle(3, 0xff9ad5, 1);
+      ui.addAt(col, ui.getIndex(l.spr));
+      ui.add(ring2);
+      sc.tweens.add({ targets: col, height: 260, alpha: 0, duration: 650, ease: "Quad.out", onComplete: () => col.destroy() });
+      sc.tweens.add({ targets: ring2, scaleX: 4, scaleY: 4, alpha: 0, duration: 500, onComplete: () => ring2.destroy() });
+      if (st.t - lastCut > 900) {
+        lastCut = st.t;
+        synth.play("telegraph");
+      }
+      void portraitKey;
+    };
+    // a milestone: impact frames (white / black silhouettes of him, inside the overlay), a shockwave, his line
+    const impact = async () => {
+      if (calm) return;
+      const bg = sc.add.rectangle(480, 270, 960, 540, 0xffffff, 1);
+      const sil = sc.add.sprite(dd.x, dd.y, dd.texture.key, dd.frame.name).setScale(dd.scaleX / ((dd.texture.customData as { hd?: number })?.hd ?? 1)).setTintFill(0x000000);
+      ui.add([bg, sil]);
+      await Juice.realWait(55);
+      bg.setFillStyle(0x000000, 1);
+      sil.setTintFill(0xffffff);
+      await Juice.realWait(55);
+      bg.destroy();
+      sil.destroy();
+    };
+    const milestoneHit = (line: string, col: string) => {
+      void impact();
+      const ring = sc.add.circle(CX, CY, 20, 0xffffff, 0).setStrokeStyle(5, 0xffd1f3, 1).setBlendMode(Phaser.BlendModes.ADD);
+      ui.add(ring);
+      sc.tweens.add({ targets: ring, radius: 420, alpha: 0, duration: 650, onComplete: () => ring.destroy() });
+      Juice.slamText(sc, line, col, 40, 150, 800, 3600);
+      Juice.subDrop(0.7, 1);
+      addCracks(5);
+      if (punchA) dd.play(punchA);
+      ddBusyUntil = st.t + 700;
+    };
+    // the climax music
+    synth.music("fe_clash", true);
     // the ring
     const lads = ring.map((id, i) => {
       const a = -Math.PI / 2 + (i / N) * Math.PI * 2;
@@ -146,6 +253,7 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
         st.progress = Math.min(1, st.progress + 0.006);
         if (!st.joined[idx]) {
           st.joined[idx] = true;
+          joinCut(idx);
           pop(l.x, l.y - 60, "JOINS IN!", "#ff9ad5", 18);
           synth.voice("oh", 0.5, l.pitch);
         } else pop(l.x, l.y - 60, st.streak > 4 ? `SYNC x${st.streak}` : "SYNC!", "#86efac", 15);
@@ -192,6 +300,7 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
           // if you're pumping at all, whoever's beat it is joins in anyway (nobody ever drops out)
           if (rate > 0 && !st.joined[st.beatIdx]) {
             st.joined[st.beatIdx] = true;
+            joinCut(st.beatIdx);
             pop(lads[st.beatIdx].x, lads[st.beatIdx].y - 60, "JOINS IN!", "#ff9ad5", 18);
             synth.voice("oh", 0.5, lads[st.beatIdx].pitch);
           }
@@ -234,22 +343,65 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
           }
         }
         // Drongus does not like this at all
-        dd.setFrame(Math.floor(st.t / 110) % 8);
+        if (st.t >= ddBusyUntil) {
+          if (dd.anims.isPlaying) dd.anims.stop();
+          dd.setTexture(ddKey, Math.floor(st.t / 110) % 8);
+        }
         dd.setX(CX + (Math.random() - 0.5) * (2 + p * 10));
+        // he fights it: braces, then throws something at them (it bounces off their aura)
+        if (st.t > nextDdMove) {
+          nextDdMove = st.t + 2200 + Math.random() * 1200;
+          if (Math.random() < 0.5 && braceA) {
+            dd.play(braceA);
+            ddBusyUntil = st.t + 700;
+            synth.play("roar");
+          } else {
+            if (punchA) dd.play(punchA);
+            ddBusyUntil = st.t + 700;
+            sc.time.delayedCall(240, repel);
+          }
+        }
+        // the pillar out of the ring and the dome of their aura, both growing
+        const wv = 40 + p * 160;
+        pillar.clear();
+        // soft: nested columns, each narrower and brighter, flickering
+        const fl = 1 + Math.sin(st.t / 45) * 0.06;
+        for (const [k, c, al] of [[1, 0xff4fa3, 0.05], [0.7, 0xff9ad5, 0.07], [0.45, 0xffd1f3, 0.09], [0.22, 0xffffff, 0.12]] as [number, number, number][]) {
+          const w2 = wv * k * fl;
+          pillar.fillStyle(c, al + p * al * 2).fillRect(CX - w2 / 2, -40, w2, CY + 80);
+          pillar.fillStyle(c, (al + p * al * 2) * 0.8).fillEllipse(CX, CY + 40, w2 * 1.6, 26 * k + 8);
+        }
+        const jn = nJoined / N;
+        dome.clear();
+        dome.lineStyle(3 + p * 4, 0xffd1f3, 0.15 + jn * 0.5).strokeEllipse(CX, CY + 6, RX * 1.1 + Math.sin(st.t / 90) * 4, RY * 1.1 + Math.sin(st.t / 90) * 2);
+        // his gold cracks more as it fills
+        if (crackN < Math.floor(p * 18)) addCracks(1);
+        cracks.setX(dd.x).setAlpha(0.6 + Math.sin(st.t / 60) * 0.3);
         ddGlow.setScale(1 + p * 0.6).setFillStyle(p > 0.6 ? 0xffffff : 0xffd23f, 0.12 + p * 0.25);
         if (p > 0.25 && milestone < 1) {
           milestone = 1;
           ddText.setText("WHAT ARE YOU DOING");
           synth.play("roar");
+          milestoneHit("25%", "#ffd1f3");
         } else if (p > 0.5 && milestone < 2) {
           milestone = 2;
           ddText.setText("STOP IT. STOP IT!");
           sc.cameras.main.flash(150, 255, 200, 240);
+          milestoneHit("HALFWAY!", "#ff9ad5");
+          // his eyes, as it dawns on him
+          void Juice.eyeShot(sc, "fe_eyes_dd", 500, { color: 0xffd23f, depth: 3560 });
         } else if (p > 0.75 && milestone < 3) {
           milestone = 3;
           ddText.setText("NOT THE GROUP WONK!!!");
           synth.play("alarm");
           sc.cameras.main.flash(200, 255, 255, 255);
+          milestoneHit("NOT THE GROUP WONK!!!", "#ffd23f");
+          Juice.riser(1800, 0.3);
+        } else if (p > 0.9 && milestone < 4) {
+          milestone = 4;
+          ddText.setText("NO NO NO NO NO NO NO");
+          ddText.setFontSize(26).setColor("#ff4d4d");
+          synth.play("roar");
         }
         // the moaning: everyone who's in, a crescendo
         if (st.t > nextMoan && rate > 0) {
@@ -279,6 +431,23 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
       tick.remove();
       window.removeEventListener("keydown", onKey);
       status.setText("");
+      // the freeze-frame: everything stops dead, goes to a hard two-tone, speed lines; then it lands
+      if (ok) {
+        dd.anims.stop();
+        for (const l of lads) l.spr.setTintFill(0x2a0030);
+        dd.setTintFill(0xffd23f);
+        lines.clear();
+        const fr = sc.add.rectangle(480, 270, 960, 540, 0xff9ad5, calm ? 0.25 : 0.55).setBlendMode(Phaser.BlendModes.MULTIPLY);
+        ui.add(fr);
+        Juice.speedLines(sc, 900, 0xffd1f3, 3540);
+        sc.time.delayedCall(700, () => {
+          fr.destroy();
+          for (const l of lads) l.spr.clearTint();
+          dd.clearTint();
+        });
+        synth.stopMusic();
+        Juice.subDrop(1, 2);
+      }
       const big = sc.add
         .text(480, 250, ok ? "GROUP WONK\nCOMPLETE" : "WE LOST IT", { fontFamily: "Impact, sans-serif", fontSize: ok ? "70px" : "48px", color: ok ? "#ffffff" : "#f9a8d4", stroke: "#2a0030", strokeThickness: 10, align: "center" })
         .setOrigin(0.5)

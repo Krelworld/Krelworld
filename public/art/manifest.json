@@ -11250,6 +11250,16 @@
    "file": "finale/fe_still_krex_boom_anim.png",
    "frameWidth": 256,
    "frameHeight": 144
+  },
+  "fe_dd_brace": {
+   "file": "combat/fe_dd_brace.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "fe_dd_punch": {
+   "file": "combat/fe_dd_punch.png",
+   "frameWidth": 128,
+   "frameHeight": 128
   }
  },
  "vfx": {

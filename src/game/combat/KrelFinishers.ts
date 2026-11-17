@@ -12,7 +12,6 @@ import { bit, prop, type Actor, type Bit, type Victim } from "./KrelArt";
 
 export type Elegant = "jawtrap" | "pendulum" | "ribcage" | "freeze" | "kebab" | "lasergrid" | "xray" | "decap" | "pump" | "cinder" | "piranha" | "asbestos";
 /** Finishers only for bosses (and only with gore on): GET WELL SOON has a cancer-ward sprite per boss. */
-export const BOSS_ONLY: Elegant[] = ["asbestos"];
 export const ELEGANT: Elegant[] = ["jawtrap", "pendulum", "ribcage", "freeze", "kebab", "lasergrid", "xray", "decap", "pump", "cinder", "piranha", "asbestos"];
 export const ELEGANT_NAMES: Record<Elegant, string> = {
   jawtrap: "REVERSE BEAR TRAP!",

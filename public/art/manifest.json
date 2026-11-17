@@ -5776,6 +5776,9 @@
   "bld_WILDERN": {
    "file": "buildings/WILDERN.png"
   },
+  "bld_POLSON_ROAD": {
+   "file": "buildings/POLSON_ROAD.png"
+  },
   "bg_abandoned": {
    "file": "backdrops/bg_abandoned.png"
   },

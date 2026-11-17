@@ -178,6 +178,11 @@ export abstract class Boss extends Enemy {
     this.downKey = this.downRows.has("stagger") ? dk : null;
   }
 
+  /** It has a drawn down sheet (stagger to the knees, dazed loop, get up). */
+  get hasDownSheet() {
+    return !!this.downKey;
+  }
+
   /** Staggered right now (playAnim("stagger") until it gets up). */
   get isDowned() {
     return this.downed;

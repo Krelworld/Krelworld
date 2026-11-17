@@ -424,7 +424,9 @@ export class BossShield {
   private downOrReel() {
     const b = this.boss;
     const sc = this.sc;
-    // the drawn collapse (bossdie_<id>: the six main bosses), stopped before they hit the floor
+    // its own down sheet: to its knees, dazed there until it recovers (then it gets up)
+    if (b.hasDownSheet && b.visible && b.playAnim("stagger")) return;
+    // else the drawn collapse (bossdie_<id>: the six main bosses), stopped before they hit the floor
     const key = sc.textures.exists(`bossdie_${b.bossId}`) ? `bossdie_${b.bossId}` : null;
     const n = key ? sc.textures.get(key).frameTotal - 1 : 0;
     if (key && n >= 4 && b.visible) {
@@ -457,6 +459,7 @@ export class BossShield {
       this.kneel = null;
       if (b.active && !b.dead) b.setVisible(true);
     }
+    if (b.isDowned) b.playAnim("getup");
     if (b.active && !b.dead) {
       Juice.squash(this.sc, b, 0.2, 300);
       this.world.floatText(b.x, b.y - b.displayHeight / 2 - 20, "BACK UP!", "#ff6b6b", 16);

@@ -3,7 +3,8 @@ import { synth } from "../audio/Synth";
 import { FONT } from "../ui/theme";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { G } from "../G";
-import { ELEGANT, ELEGANT_NAMES, BOSS_ONLY, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
+import { ELEGANT, ELEGANT_NAMES, BOSS_ONLY, TAME_NAMES, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
+import { krelCinema } from "./KrelCinema";
 import { Actor, Victim, bit, prop, MEATY, type Bit } from "./KrelArt";
 
 /**
@@ -738,6 +739,9 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     await wait(1400);
   }
 
+  // ---- the close-up: a hard cut to the drawn anime shot of it, then back here for the banner
+  slow(1);
+  await krelCinema(sc, { which, title: gore ? NAMES[which] : (TAME_NAMES as Record<string, string>)[which] ?? "K.O.!", victim: tg.name });
   // ---- KRELTALITY (and you, celebrating: his own victory row)
   if (me.active && me.visible && me.scrollFactorX === 1) act.cheer();
   const kz = 1 / cam.zoom;

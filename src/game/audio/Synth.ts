@@ -9,6 +9,9 @@ export const AUDIO_FILES: Record<string, string> = {
   // e.g. mork_voice: "audio/mork_voice.ogg"  (drop the file in public/audio)
   /** Studio-audience laugh track (sitcom canned laughter). Played in varied slices by "laugh"/"biglaugh". */
   laugh_track: "audio/laugh_track.mp3",
+  /** The boss VS card's crash, and the Kreltality close-up's sting (ElevenLabs). */
+  vs_crash: "audio/vs_crash.mp3",
+  krel_cine: "audio/krel_cine.mp3",
   /** SanMik and SanChz, recorded: a run of YEEs and a run of YEGHs. */
   yee: "audio/yee.mp3",
   yegh: "audio/yegh.mp3",

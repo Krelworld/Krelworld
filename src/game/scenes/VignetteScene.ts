@@ -3201,7 +3201,10 @@ export class VignetteScene extends Phaser.Scene {
     const canopy = chute2.list[0] as Phaser.GameObjects.Graphics | undefined;
     if (canopy) this.tween({ targets: canopy, scaleY: 0.25, y: 70, alpha: 0.6, angle: 20, duration: 600, ease: "Quad.in" });
     people.forEach((p, i) => this.time.delayedCall(i * 40, () => this.faceTo(p, chute2.x)));
-    await this.wait(500);
+    // down to street level, so the crowd (and Sanjeev) sit above the dialogue box
+    this.cameras.main.pan(590, 425, 900, "Sine.easeInOut", true);
+    this.cameras.main.zoomTo(1.35, 900, "Sine.easeInOut", true);
+    await this.wait(900);
     await this.talk([
       dir("You land, gently, on top of the Great Tap."),
       say(me, "Did we get the train?"),
@@ -3218,6 +3221,8 @@ export class VignetteScene extends Phaser.Scene {
     // the light goes out of the day: into Krelford, mourning
     this.dropCaption();
     synth.music("town_mourning", true);
+    this.cameras.main.pan(480, 270, 800, "Sine.easeInOut", true);
+    this.cameras.main.zoomTo(1, 800, "Sine.easeInOut", true);
     const dusk = this.add.rectangle(480, 270, 960, 540, 0x0b1020, 0).setDepth(900);
     await this.tween({ targets: dusk, fillAlpha: 0.75, duration: 1400 });
     // (the mourning theme carries straight on into town)

@@ -39,8 +39,8 @@ function fallbackTexture(sc: Phaser.Scene): string {
   return key;
 }
 
-/** What he mutters between taunts (the scene's shout loop). */
-const MUTTER = ["Heh heh heh.", "Come on then.", "I'm in your head, mate.", "Lulon…", "You'll be back."];
+/** What he shouts, over and over (the scene's shout loop): KIDS, deranged, with the odd mutter in between. */
+const MUTTER = ["KIDS!", "KIDS! KIDS!", "KIIIIIDS!", "KIDS! KIDS! KIDS!", "Heh heh heh. KIDS!", "KIDS!!", "kids… kids… KIDS!", "KIIIIDS! KIDS!", "I'm in your head, mate. KIDS!", "KIDS!!!"];
 
 /**
  * LUKE WATKINS: the big one, at the bottom of Lulon's mind. Lulon's own evil inner self, same face, red eyes.
@@ -55,7 +55,7 @@ export class PuddingDemonBoss extends Boss {
     super(w, "pudding_demon", x, y, 1400, art ? "boss_pudding_demon" : fallbackTexture(w.sc), 32, 0xfacc15, 32, 32);
     this.setScale(3.4);
     // the scene's shout loop gives it speech bubbles
-    this.def = { ...this.def, shout: MUTTER, shoutEvery: 2600 };
+    this.def = { ...this.def, shout: MUTTER, shoutEvery: 1500 };
   }
 
   tick(dt: number, now: number) {

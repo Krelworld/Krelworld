@@ -282,7 +282,7 @@ export const BOSS_TEXT: Record<string, BossText> = {
       say("LUKE WATKINS", "Fine. FINE. You win. But you'll think about me. Every time someone says 'custard'…"),
       dir("Luke Watkins drops to his knees in the custard. The red goes out of his eyes, and for a second he just looks like Lulon: tired, sticky, a bit embarrassed. The dish cracks down the middle. Light pours in. It smells, for the first time in weeks, of nothing at all."),
     ],
-    taunts: ["I'M THE REAL YOU, MATE.", "YOU CAN'T KILL A THOUGHT!", "MINISTERIAL PRIVILEGE!", "STATEMENT: NO COMMENT.", "LOOK AT THE STATE OF YOU.", "BETTER CHEEKBONES THAN YOU.", "EXTRA CUSTARD!"],
+    taunts: ["KIDS! KIDS! KIDS!", "I'M THE REAL YOU, MATE.", "KIIIIIDS!", "YOU CAN'T KILL A THOUGHT!", "KIDS!!", "MINISTERIAL PRIVILEGE!", "STATEMENT: NO COMMENT.", "LOOK AT THE STATE OF YOU.", "BETTER CHEEKBONES THAN YOU.", "EXTRA CUSTARD!"],
   },
   flatmate: {
     id: "flatmate",

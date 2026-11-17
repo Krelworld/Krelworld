@@ -54,6 +54,8 @@ export const MUSIC_FILES: Record<string, string> = {
   title: "audio/krel_world.mp3",
   // KrelTV: The Best Man's Speech (the wedding video's piano)
   bm_wedding: "audio/bm_wedding.mp3",
+  // KrelTV: the Krelbank advert's music bed
+  krelbank_ad: "audio/krelbank_ad.mp3",
   // the 3D epilogue: the overworld theme, full orchestra
   krelworld_orch: "audio/krelworld_orch.mp3",
   // fight_<boss>: kicks in when the boss's monologue ends and the fight starts (Harry's tracks)

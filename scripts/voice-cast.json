@@ -315,7 +315,10 @@
     "CHEF MICK": "esV7kJtKDdBipOsoWtGM",
     "GENIE": "c15nV2xCagiZlwvCGBxW",
     "PROFESSOR BEN BURGIS": "Mlr9g8ZYpsO5Q1Wh5d9S",
-    "CARMELA SOPRANO": "KyRkqFgySOwoLUjC2PQ5"
+    "CARMELA SOPRANO": "KyRkqFgySOwoLUjC2PQ5",
+    "MR JONES": "4HhMgTKONxhgWKnTWAAj",
+    "CEO": "k1y1ZSA9Cg3PPtEeLJeh",
+    "ADVISER": "uUxNMBq4S5JJX444W6pn"
   },
   "designed_desc": {
     "KRANKY KRANDALL": "A reedy, squeaky, frail old British man in his nineties. Thin, high, wavering, slightly wheezy voice, rambling and forgetful, trailing off mid-sentence.",
@@ -544,7 +547,9 @@
     "DARK JENKO": "energetic",
     "KREZMAR": "energetic",
     "SANMIK": "whiny, confrontational",
-    "SANJEEV": "warmly"
+    "SANJEEV": "warmly",
+    "CEO": "warm, confident",
+    "ADVISER": "nervous"
   },
   "female": [
     "EDEN",
@@ -723,7 +728,10 @@
     "CABINET MINISTER 3": "~pol_m_uk1",
     "PRANKSTER": "~aide_m_us",
     "GORDON RAMSAY": "SERGEANT SWIG",
-    "CHEF MICK": "~scientist_m"
+    "CHEF MICK": "~scientist_m",
+    "MR JONES": "~old_m_uk",
+    "CEO": "~pol_m_uk2",
+    "ADVISER": "~everyman_m2"
   },
   "clone_accents": {
     "_doc": "Accent tag for cloned voices on eleven_v3, which otherwise drift (American, or regional). Everyone in the group is southern English: faint RP or a slight cockney. Default below.",

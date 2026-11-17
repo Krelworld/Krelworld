@@ -8971,6 +8971,36 @@
   },
   "ddk_unicorn_burst": {
    "file": "props/ddk_unicorn_burst.png"
+  },
+  "tv_kb_tower": {
+   "file": "backdrops/tv_kb_tower.png"
+  },
+  "tv_kb_office": {
+   "file": "backdrops/tv_kb_office.png"
+  },
+  "tv_kb_meeting": {
+   "file": "backdrops/tv_kb_meeting.png"
+  },
+  "tv_kb_kitchen": {
+   "file": "backdrops/tv_kb_kitchen.png"
+  },
+  "tv_kb_mug": {
+   "file": "backdrops/tv_kb_mug.png"
+  },
+  "tv_kb_board": {
+   "file": "backdrops/tv_kb_board.png"
+  },
+  "tv_kb_branch": {
+   "file": "backdrops/tv_kb_branch.png"
+  },
+  "tv_kb_handshake": {
+   "file": "backdrops/tv_kb_handshake.png"
+  },
+  "tv_kb_famphoto": {
+   "file": "backdrops/tv_kb_famphoto.png"
+  },
+  "tv_kb_adviser_eyes": {
+   "file": "tv/kb_adviser_eyes.png"
   }
  },
  "sheets": {
@@ -11802,6 +11832,21 @@
    "file": "props/p_treadmill_anim.png",
    "frameWidth": 82,
    "frameHeight": 67
+  },
+  "tvface_CEO": {
+   "file": "tv/face_CEO.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_ADVISER": {
+   "file": "tv/face_ADVISER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MR_JONES": {
+   "file": "tv/face_MR_JONES.png",
+   "frameWidth": 128,
+   "frameHeight": 128
   }
  },
  "vfx": {

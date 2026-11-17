@@ -1,12 +1,14 @@
 import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 
-// Two supplied screenplays, kept as written apart from Krelworld names (Charlie Polson is Polson, Sally Polson is
+// Supplied screenplays, kept as written apart from Krelworld names (Charlie Polson is Polson, Sally Polson is
 // Polson's Mum, Lucy is Eden, Harry is Drongus, Rory is Krezmar, Jenko is Flenky) and these changes:
 // - Gumption and Gravy: none beyond the names.
+// - The Sopranos: as written (the opening scene, with Carmela's "Jesus Christ, Tony!" back in). Its id is still
+//   krews_soprano (it first went out as a GB Krews "reconstruction"; saves remember it by that id).
 // - Mole of Thrones: it opens on Jenko spotting the casting call (the poster scene is cut); the director calls him
 //   "Extra Number 3" and it's a see-through sack, and he's arrested for indecent exposure.
-// Shot in the genre each one parodies: a moody crime drama (tv/CrimeDrama.ts) and a prestige fantasy drama crossed
-// with a behind-the-scenes mockumentary (tv/FantasyDoc.ts).
+// Shot in the genre each one parodies: a moody crime drama (tv/CrimeDrama.ts), a prestige fantasy drama crossed
+// with a behind-the-scenes mockumentary (tv/FantasyDoc.ts) and a prestige New Jersey mob drama (tv/MobDrama.ts).
 
 const DRAMA = "BBK ONE";
 
@@ -168,4 +170,30 @@ POLICE OFFICER: You're under arrest for indecent exposure. And for that mole.
 `,
 );
 
-export const DRAMA_EPISODES: TVEpisode[] = [DRAMA_GUMPTION_GRAVY, DRAMA_MOLE_OF_THRONES];
+export const DRAMA_SOPRANOS = ep(
+  "krews_soprano",
+  "The Sopranos",
+  "The Sopranos: Chicken Piccata",
+  `
+[MUSIC ominous start]
+# THE SOPRANOS
+EXT. THE SOPRANO HOUSEHOLD - NIGHT
+[MUSIC ominous fade]
+INT. THE SOPRANO HOUSEHOLD - NIGHT
+(Tony walks into the living room, beer in hand, belly hanging out. Carmela is on the couch, deeply engrossed in an episode of Family Guy.)
+TONY SOPRANO: Hey, Carm, I been thinkin' of gettin' one o' dem penis enlargements.
+(Carmela doesn't even glance away from the TV.)
+CARMELA SOPRANO: Tony, I'm trying to watch Family Guy. I wanna see what happens next with Peter.
+(Tony glares at the screen, sees Peter Griffin laughing maniacally as he farts on Lois's face. A deep, primal rage boils in his gut.)
+(Without a word, he picks up a decorative brick from the fireplace and hurls it full force at the TV.)
+(Sparks fly, the screen shatters, and Carmela screams as the room goes dark.)
+CARMELA SOPRANO (screaming): Jesus Christ, Tony!
+(Before she can react, Tony grabs her by the hair and shoves her face into the steaming plate of chicken piccata on the coffee table.)
+(She lets out a muffled shriek as sauce splatters everywhere.)
+[CUT]
+# THE SOPRANOS
+`,
+  { sets: { SOPRANO: "k4_lounge" } },
+);
+
+export const DRAMA_EPISODES: TVEpisode[] = [DRAMA_GUMPTION_GRAVY, DRAMA_MOLE_OF_THRONES, DRAMA_SOPRANOS];

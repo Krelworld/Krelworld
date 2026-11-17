@@ -1767,14 +1767,12 @@ export class NewsDirector {
   }
 
   // ------------------------------------------------------------------ news stories 4 (krews4.ts)
-  // The concert and the mob, the reality-TV / reconstruction / viral-video looks, and the moments the Krelmon stories
-  // need (a brick, a bag of money, crocodiles, a boulder, a jenkem pot, a television). See tvnews/krews4Shows.ts.
+  // The concert and the mob, the reality-TV / viral-video looks, and the moments the Krelmon stories need (a brick, a
+  // bag of money, crocodiles, a boulder, a jenkem pot). See tvnews/krews4Shows.ts.
 
   /** the presser the bag of money was left in */
   private k4bag?: SceneDef;
   private k4rolled = false;
-  private k4tvBroken = false;
-  private k4dark = false;
   private k4boulder?: Phaser.GameObjects.Image;
   private k4heads?: Phaser.GameObjects.Container;
 
@@ -2002,16 +2000,6 @@ export class NewsDirector {
       }
       return;
     }
-    if (l === "recon") {
-      const tint = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xc8a27a, 0.32).setOrigin(0), this.fxLayer);
-      tint.setBlendMode(Phaser.BlendModes.MULTIPLY);
-      if (this.k4tvBroken) this.tvSmashed(false);
-      if (this.k4dark) this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0x000000, 0.45).setOrigin(0), this.fxLayer);
-      const vg = this.add(this.sc.add.graphics(), this.fxLayer);
-      for (let i = 0; i < 8; i++) vg.lineStyle(16, 0x000000, 0.08).strokeRect(SX + i * 8, SY + i * 8, SW - i * 16, SH - i * 16);
-      this.k4tag("RECONSTRUCTION", "#000000cc", "#ffffff");
-      return;
-    }
     if (l === "phone") {
       if (!this.k4rolled && this.sc.textures.exists("tv_k4_boulder")) {
         const at = this.k4bgPoint(263 / 320, 35 / 240);
@@ -2066,7 +2054,6 @@ export class NewsDirector {
     }
     if (k !== "field") return -1;
     const l = this.scene.k4look;
-    if (l === "recon") return this.reconDirection(a);
     if (l === "phone") return /boulder/i.test(a) ? this.rollBoulder() : -1;
     if (l === "reality" || l === "high") return this.kitchenDirection(a);
     if (this.scene.singles || this.scene.set === "tv_k4_office") {
@@ -2204,88 +2191,6 @@ export class NewsDirector {
     }
     if (this.storyShotKind !== "wide") this.fieldWide();
     return 1300;
-  }
-
-  /** A reconstruction (the subtitles carry the directions): the brick, the television and the chicken piccata. */
-  private reconDirection(a: string): number {
-    if (this.storyShotKind !== "wide") this.fieldWide();
-    const tv = this.k4bgPoint(0.84, 0.38);
-    const hold = Math.max(2000, Math.min(4600, a.length * 36));
-    if (/glares at the screen/i.test(a)) {
-      this.camTo(1.2, tv.x, tv.y, 2600);
-      return hold;
-    }
-    if (/hurls it full force at the TV/i.test(a)) {
-      const t = this.find("TONY SOPRANO");
-      t?.setPose("brick");
-      this.later(1500, () => {
-        const from = t ? { x: t.spr.x - t.spr.displayWidth * 0.25, y: t.spr.y - t.spr.displayHeight * 0.8 } : { x: this.r.SX + 60, y: tv.y };
-        const b = this.add(this.sc.add.rectangle(from.x, from.y, 16, 9, 0xb45309).setStrokeStyle(2, 0x451a03));
-        t?.setPose("rest");
-        this.sc.tweens.add({
-          targets: b,
-          x: tv.x,
-          y: tv.y,
-          angle: 720,
-          duration: 520,
-          ease: "Quad.in",
-          onComplete: () => {
-            b.destroy();
-            this.k4tvBroken = true;
-            this.tvSmashed(true);
-          },
-        });
-      });
-      return Math.max(hold, 2600);
-    }
-    if (/room goes dark/i.test(a)) {
-      this.k4dark = true;
-      const { SX, SY, SW, SH } = this.r;
-      const d = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0x000000, 0).setOrigin(0), this.fxLayer);
-      this.sc.tweens.add({ targets: d, fillAlpha: 0.45, duration: 500 });
-      return hold;
-    }
-    if (/chicken piccata/i.test(a)) {
-      const c = this.find("CARMELA SOPRANO");
-      const t = this.find("TONY SOPRANO");
-      if (t && c) this.sc.tweens.add({ targets: t.spr, x: c.spr.x - 110, duration: 600, ease: "Quad.out" });
-      if (c)
-        this.later(700, () => {
-          this.sc.tweens.add({ targets: c.spr, y: c.spr.y + 90, angle: 28, duration: 260, ease: "Quad.in" });
-          this.later(260, () => {
-            this.sc.cameras.main.shake(400, 0.01);
-            for (let i = 0; i < 16; i++) {
-              const s = this.add(this.sc.add.circle(c.spr.x, c.spr.y - c.spr.displayHeight * 0.45, 4 + Math.random() * 6, [0xfacc15, 0xd97706, 0xfde68a][i % 3]), this.fxLayer);
-              const ang = Math.random() * Math.PI * 2;
-              this.sc.tweens.add({ targets: s, x: s.x + Math.cos(ang) * (60 + Math.random() * 90), y: s.y + Math.sin(ang) * (50 + Math.random() * 70) + 40, alpha: 0, duration: 900 + Math.random() * 400, onComplete: () => s.destroy() });
-            }
-          });
-        });
-      return Math.max(hold, 3000);
-    }
-    return hold;
-  }
-
-  /** The television, put through: a flash, the cracks and a dead screen (fresh: with sparks). */
-  private tvSmashed(fresh: boolean) {
-    const tv = this.k4bgPoint(0.84, 0.38);
-    const w = tv.bg ? tv.bg.displayWidth * 0.2 : 100;
-    const h = tv.bg ? tv.bg.displayHeight * 0.16 : 70;
-    this.add(this.sc.add.rectangle(tv.x, tv.y, w, h, 0x050505, 0.92));
-    const g = this.add(this.sc.add.graphics());
-    g.lineStyle(2, 0xd1d5db, 0.9);
-    for (let i = 0; i < 9; i++) {
-      const a = (i / 9) * Math.PI * 2;
-      g.lineBetween(tv.x, tv.y, tv.x + Math.cos(a) * w * 0.5, tv.y + Math.sin(a) * h * 0.5);
-    }
-    if (!fresh) return;
-    const f = this.add(this.sc.add.circle(tv.x, tv.y, 60, 0xffffff, calm() ? 0.3 : 0.9).setBlendMode(Phaser.BlendModes.ADD), this.fxLayer);
-    this.sc.tweens.add({ targets: f, scale: 2.5, alpha: 0, duration: 400, onComplete: () => f.destroy() });
-    for (let i = 0; i < 14; i++) {
-      const s = this.add(this.sc.add.rectangle(tv.x, tv.y, 3, 3, 0xfde047).setBlendMode(Phaser.BlendModes.ADD), this.fxLayer);
-      this.sc.tweens.add({ targets: s, x: s.x + (Math.random() - 0.5) * 160, y: s.y + Math.random() * 120 - 30, alpha: 0, duration: 700 + Math.random() * 500, onComplete: () => s.destroy() });
-    }
-    this.sc.cameras.main.shake(350, 0.01);
   }
 
   /** The prank: the boulder comes loose and rolls down the slope at the camera. */

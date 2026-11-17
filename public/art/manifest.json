@@ -8593,6 +8593,27 @@
   },
   "fe_still_krew_ssj": {
    "file": "finale/fe_still_krew_ssj.png"
+  },
+  "sop_tony_body": {
+   "file": "tv/sop_tony_body.png"
+  },
+  "sop_tony_brick": {
+   "file": "tv/sop_tony_brick.png"
+  },
+  "sop_carmela_seat": {
+   "file": "tv/sop_carmela_seat.png"
+  },
+  "sop_piccata": {
+   "file": "tv/sop_piccata.png"
+  },
+  "sop_shove": {
+   "file": "backdrops/sop_shove.png"
+  },
+  "sop_house_ext": {
+   "file": "backdrops/sop_house_ext.png"
+  },
+  "sop_cartoon": {
+   "file": "tv/sop_cartoon.png"
   }
  },
  "sheets": {
@@ -10560,16 +10581,6 @@
    "frameWidth": 128,
    "frameHeight": 128
   },
-  "tvanchor_K4_TONY": {
-   "file": "tv/anchor_K4_TONY.png",
-   "frameWidth": 128,
-   "frameHeight": 128
-  },
-  "tvanchor_K4_CARMELA": {
-   "file": "tv/anchor_K4_CARMELA.png",
-   "frameWidth": 128,
-   "frameHeight": 128
-  },
   "tvanchor_K4_MILITARY": {
    "file": "tv/anchor_K4_MILITARY.png",
    "frameWidth": 128,
@@ -10937,6 +10948,16 @@
   },
   "fe_bossanim_drongus2_p3": {
    "file": "combat/fe_bossanim_drongus2_p3.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_SOP_TONY": {
+   "file": "tv/face_SOP_TONY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_SOP_CARMELA": {
+   "file": "tv/face_SOP_CARMELA.png",
    "frameWidth": 128,
    "frameHeight": 128
   }

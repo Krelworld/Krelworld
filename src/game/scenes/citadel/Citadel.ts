@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { hasVfx, vfx } from "../../gfx/Vfx";
 import type { RoomDef } from "../../../data/dungeons";
 import type { Line } from "../../../data/types";
 import { synth } from "../../audio/Synth";
@@ -254,6 +255,56 @@ export class Citadel {
     return this.sc.add.image(x, y, key).setOrigin(0.5, oy).setScale(scale).setDepth(depth);
   }
 
+  /** Live cables hanging from the ceiling, their frayed ends spitting sparks (the drawn loop), with a spark burst now and then. */
+  private liveCables(x: number, y: number, scale: number, depth: number) {
+    const sc = this.sc;
+    if (!sc.textures.exists("fe_cables_spark")) return this.img(x, y, "c7d_cables", scale, depth, 0);
+    if (!sc.anims.exists("fe_cables_spark")) sc.anims.create({ key: "fe_cables_spark", frames: sc.anims.generateFrameNumbers("fe_cables_spark", { start: 0, end: 7 }), frameRate: 10, repeat: -1 });
+    const s = sc.add.sprite(x, y, "fe_cables_spark", 0).setOrigin(0.5, 0).setScale(scale).setDepth(depth);
+    s.play({ key: "fe_cables_spark", startFrame: Math.floor(Math.random() * 8) });
+    const tip = { x, y: y + 60 * scale };
+    const ev = sc.time.addEvent({
+      delay: 1600 + Math.random() * 2400,
+      loop: true,
+      callback: () => {
+        if (!s.active) return ev.remove();
+        if (hasVfx(sc, "vfx_sparks")) vfx(sc, "vfx_sparks", tip.x, tip.y, { scale: 0.9, depth: depth + 0.1, add: true });
+      },
+    });
+    return s;
+  }
+
+  /** A stack of CRTs that keeps cutting to the Supreme Leader shouting (with a flicker of static between). */
+  private drongusScreens(x: number, y: number, scale: number, depth: number) {
+    const sc = this.sc;
+    const s = this.img(x, y, "c7d_crt", scale, depth);
+    if (!s || !sc.textures.exists("fe_crt_drongus")) return s;
+    const glow = sc.add.rectangle(x, y - s.displayHeight / 2, s.displayWidth * 0.9, s.displayHeight * 0.8, 0xff2a2a, 0).setDepth(depth + 0.05).setBlendMode(Phaser.BlendModes.ADD);
+    const ev = sc.time.addEvent({
+      delay: 900 + Math.random() * 1500,
+      loop: true,
+      callback: () => {
+        if (!s.active) return ev.remove();
+        const on = s.texture.key !== "fe_crt_drongus";
+        // a frame or two of static, then the cut
+        s.setTintFill(0xffffff).setAlpha(0.7);
+        sc.time.delayedCall(60, () => {
+          if (!s.active) return;
+          s.clearTint().setAlpha(1).setTexture(on ? "fe_crt_drongus" : "c7d_crt");
+          glow.setFillStyle(0xff2a2a, on ? 0.12 : 0);
+        });
+      },
+    });
+    return s;
+  }
+
+  /** A banner that stirs in the draught (it hangs from its top edge). */
+  private banner(x: number, y: number, scale: number, depth: number) {
+    const b = this.img(x, y, "c7d_banner", scale, depth, 0);
+    if (b) this.sc.tweens.add({ targets: b, angle: { from: -2.2, to: 2.2 }, scaleX: { from: scale, to: scale * 0.94 }, yoyo: true, repeat: -1, duration: 1700 + Math.random() * 900, ease: "Sine.inOut", delay: Math.random() * 800 });
+    return b;
+  }
+
   /** A flickering candle flame with a warm glow. */
   private flame(x: number, y: number, depth: number, size = 1) {
     const sc = this.sc;
@@ -388,8 +439,12 @@ export class Citadel {
       beam.fillStyle(x < r.w / 2 ? 0xa855f7 : 0xdc2626, 0.07).fillTriangle(x - 22, 60, x + 22, 60, x + 90, 420).fillTriangle(x - 22, 60, x + 90, 420, x - 60, 420);
       sc.tweens.add({ targets: beam, alpha: { from: 0.7, to: 1 }, yoyo: true, repeat: -1, duration: 2200 + Math.random() * 900 });
     }
-    // the tannoy over the door
+    // the tannoy over the door, banners either side, and a bank of screens with the Supreme Leader on them
     this.img(r.w / 2 + 120, 58, "c7d_tannoy", 0.9, 2);
+    for (const x of [r.w * 0.22, r.w * 0.78]) this.banner(x, 22, 1.4, 1.6);
+    this.drongusScreens(r.w / 2 - 170, 120, 1.2, 120);
+    this.liveCables(r.w * 0.4, 0, 1.4, 1.7);
+    this.liveCables(r.w * 0.6, 0, 1.4, 1.7);
     // candelabras either side of the carpet, server racks humming in the corners
     for (let y = 200; y < r.h - 100; y += 210) for (const x of [r.w / 2 - 130, r.w / 2 + 130]) this.candelabra(x, y + 30, 1.2, y + 30);
     for (const [x, y] of [[70, 150], [r.w - 70, 150], [70, r.h - 70], [r.w - 70, r.h - 70]]) {
@@ -454,16 +509,16 @@ export class Citadel {
           break;
         case 2:
           if (ground) this.candelabra(x, gy, 1.8, -2);
-          this.img(x + 90, 0, "c7d_cables", 2, -2.5, 0);
+          this.liveCables(x + 90, 0, 2, -2.5);
           break;
         case 3:
-          this.img(x, 0, "c7d_banner", 2, -3, 0);
+          this.banner(x, 0, 2, -3);
           if (ground) this.img(x + 70, gy, "c7d_skulls", 1.4, -2);
           break;
         case 4:
           // a portrait of the Supreme Leader, every few yards
           this.portrait(x, gy - 330, "boss_drongus", "OUR SUPREME LEADER", -3, 130, 150);
-          if (ground) this.img(x, gy, "c7d_crt", 1.6, -2);
+          if (ground) this.drongusScreens(x, gy, 1.6, -2);
           break;
         default:
           this.img(x, gy - 260, "dec_citadel_2", 1.6, -3);
@@ -631,9 +686,39 @@ export class Citadel {
     sc.tweens.add({ targets: c, alpha: 0, delay: 1300, duration: 200, onComplete: () => c.destroy() });
   }
 
+  private nextCackle = 0;
+  /** How near each cackle played (for tests). */
+  cackled: number[] = [];
+
+  /**
+   * Climbing (The Ascent, The Final Stairs): every 12-25s, Drongus cackling maniacally somewhere far up the tower,
+   * echoing down the stone. Quiet, low-passed, panned; nearer the higher you climb. Never over dialogue.
+   */
+  private cackles() {
+    const sc = this.sc;
+    const r = this.room;
+    if (!r.tower || r.boss) return;
+    const now = sc.time.now;
+    if (!this.nextCackle) this.nextCackle = now + 5000 + Math.random() * 5000;
+    if (now < this.nextCackle) return;
+    this.nextCackle = now + 12000 + Math.random() * 13000;
+    // not over dialogue, and not mid-fight with a mini-boss
+    const s = sc as unknown as { busy?: boolean; boss?: unknown };
+    if (s.busy || s.boss || sc.scene.isActive("Dialogue")) {
+      this.nextCackle = now + 3000;
+      return;
+    }
+    if (G.meta.settings.voices === false) return;
+    const climb = r.exitAt ? r.exitAt[1] : r.h - 200;
+    const k = Phaser.Math.Clamp((this.gy - sc.player.y) / Math.max(1, climb), 0, 1);
+    const vol = Math.min(1, (G.meta.settings.voiceVolume ?? 0.8) * 1.25);
+    if (synth.distant(`drongus_cackle_${1 + Math.floor(Math.random() * 5)}`, k, (Math.random() - 0.5) * 0.8, vol)) this.cackled.push(Math.round(k * 100) / 100);
+  }
+
   /** Every frame: parallax, lightning, the guards telling you off, the door. */
   update(_dt: number) {
     const sc = this.sc;
+    this.cackles();
     if (!this.culled) {
       // first frame: the room is fully built by now
       this.culled = true;

@@ -109,6 +109,17 @@ export abstract class Boss extends Enemy {
     });
   }
 
+  /** Play a one-off sheet (a taunt, a laugh) over the animation sheet, then back to idle. False if it can't. */
+  protected playSheetOnce(key: string, fps = 10): boolean {
+    if (!this.animKey || this.dead || !this.scene.textures.exists(key)) return false;
+    const ak = `${key}:once`;
+    const n = this.scene.textures.get(key).frameTotal - 1;
+    if (!this.scene.anims.exists(ak)) this.scene.anims.create({ key: ak, frames: this.scene.anims.generateFrameNumbers(key, { start: 0, end: n - 1 }), frameRate: fps, repeat: 0 });
+    this.play(ak);
+    this.animUntil = this.world.now() + (n / fps) * 1000 + 50;
+    return true;
+  }
+
   /** Swap to another animation sheet of the same layout (a later phase's look). False if it isn't loaded. */
   protected useAnimSheet(ak: string): boolean {
     if (!this.animKey || this.dead || !this.scene.textures.exists(ak)) return false;

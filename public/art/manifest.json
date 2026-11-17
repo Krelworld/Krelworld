@@ -8695,6 +8695,15 @@
   },
   "kb_burnrun": {
    "file": "kb/kb_burnrun.png"
+  },
+  "fe_crt_drongus": {
+   "file": "props/fe_crt_drongus.png"
+  },
+  "fe_still_krex_boom": {
+   "file": "finale/fe_still_krex_boom.png"
+  },
+  "fe_still_elon_crash": {
+   "file": "finale/fe_still_elon_crash.png"
   }
  },
  "sheets": {
@@ -11211,6 +11220,121 @@
    "file": "kb/kb_chardie_anim.png",
    "frameWidth": 64,
    "frameHeight": 64
+  },
+  "fe_die_ai_pitbull": {
+   "file": "combat/fe_die_ai_pitbull.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.62
+  },
+  "fe_die_ai_pitbull_twin": {
+   "file": "combat/fe_die_ai_pitbull_twin.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.66
+  },
+  "fe_die_ai_pitbull_spider": {
+   "file": "combat/fe_die_ai_pitbull_spider.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.62
+  },
+  "fe_die_nonce": {
+   "file": "combat/fe_die_nonce.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.66
+  },
+  "fe_die_kamikaze": {
+   "file": "combat/fe_die_kamikaze.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.58
+  },
+  "fe_die_news_drone": {
+   "file": "combat/fe_die_news_drone.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.55
+  },
+  "fe_die_idf": {
+   "file": "combat/fe_die_idf.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.58
+  },
+  "fe_die_hamas": {
+   "file": "combat/fe_die_hamas.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.58
+  },
+  "fe_die_mini_drongus": {
+   "file": "combat/fe_die_mini_drongus.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.55
+  },
+  "fe_drongus1_laugh": {
+   "file": "combat/fe_drongus1_laugh.png",
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "hd": 0.3333
+  },
+  "fe_drongus2_laugh": {
+   "file": "combat/fe_drongus2_laugh.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "fe_concept_rear": {
+   "file": "combat/fe_concept_rear.png",
+   "frameWidth": 256,
+   "frameHeight": 256
+  },
+  "fe_concept_slam": {
+   "file": "combat/fe_concept_slam.png",
+   "frameWidth": 256,
+   "frameHeight": 256
+  },
+  "fe_concept_rear_hurt": {
+   "file": "combat/fe_concept_rear_hurt.png",
+   "frameWidth": 256,
+   "frameHeight": 256
+  },
+  "fe_concept_slam_hurt": {
+   "file": "combat/fe_concept_slam_hurt.png",
+   "frameWidth": 256,
+   "frameHeight": 256
+  },
+  "fe_concept_flinch_hurt": {
+   "file": "combat/fe_concept_flinch_hurt.png",
+   "frameWidth": 256,
+   "frameHeight": 256
+  },
+  "fe_cables_spark": {
+   "file": "combat/fe_cables_spark.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "fe_still_elon_crash_anim": {
+   "file": "finale/fe_still_elon_crash_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_krex_boom_anim": {
+   "file": "finale/fe_still_krex_boom_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_dd_brace": {
+   "file": "combat/fe_dd_brace.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "fe_dd_punch": {
+   "file": "combat/fe_dd_punch.png",
+   "frameWidth": 128,
+   "frameHeight": 128
   }
  },
  "vfx": {
@@ -11573,6 +11697,26 @@
    "loop": false,
    "ox": 0.212,
    "oy": 0.387
+  },
+  "fe_vfx_spawn": {
+   "file": "vfx/fe_vfx_spawn.png",
+   "w": 74,
+   "h": 93,
+   "frames": 22,
+   "fps": 14,
+   "loop": false,
+   "ox": 0.5,
+   "oy": 0.817
+  },
+  "fe_vfx_respawn": {
+   "file": "vfx/fe_vfx_respawn.png",
+   "w": 90,
+   "h": 157,
+   "frames": 12,
+   "fps": 14,
+   "loop": false,
+   "ox": 0.5,
+   "oy": 0.873
   }
  }
 }

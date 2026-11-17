@@ -5,6 +5,24 @@ import { synth } from "../audio/Synth";
 
 let NEXT_ID = 1;
 
+/**
+ * Drawn death animations (fe_die_<type>, PixelLab): which frames to play and how it ends. "hold" stays on the
+ * last frame a moment and fades; "pop" bursts at the end; "boom" goes up in an explosion at the end.
+ */
+const DEATHS: Record<string, { to: number; end: "hold" | "pop" | "boom"; fps: number }> = {
+  ai_pitbull: { to: 5, end: "pop", fps: 16 },
+  ai_pitbull_twin: { to: 8, end: "hold", fps: 16 },
+  ai_pitbull_spider: { to: 8, end: "hold", fps: 16 },
+  nonce: { to: 8, end: "hold", fps: 14 },
+  kamikaze: { to: 4, end: "boom", fps: 14 },
+  news_drone: { to: 8, end: "hold", fps: 16 },
+  idf: { to: 8, end: "hold", fps: 16 },
+  hamas: { to: 8, end: "hold", fps: 16 },
+  mini_drongus: { to: 5, end: "pop", fps: 16 },
+};
+/** These get a coded death of their own (no drawn one). */
+const CODED_DEATHS = new Set(["deepfake_anchor"]);
+
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   uid = NEXT_ID++;
   def: EnemyDef;
@@ -380,6 +398,77 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.hpBar?.destroy();
     this.disableBody(true, false);
     this.world.sc.tweens.add({ targets: this, alpha: 0, scale: this.scale * 1.4, angle: 90, duration: 220, onComplete: () => this.destroy() });
+  }
+
+  /** Does it have a death animation of its own? (Then the scene calls dieAnimated() instead of the generic pop.) */
+  get hasDeathAnim() {
+    const id = this.def.id;
+    if (CODED_DEATHS.has(id)) return true;
+    const key = `fe_die_${id}`;
+    return !!DEATHS[id] && this.scene.textures.exists(key) && this.texture.key === `en_${id}`;
+  }
+
+  /** Dies with its drawn animation (flop, melt, explode...), then goes. */
+  dieAnimated() {
+    const sc = this.world.sc;
+    this.dead = true;
+    this.hpBar?.destroy();
+    this.disableBody(false, false); // (body off, but stays active so its animation plays)
+    this.clearTint();
+    const id = this.def.id;
+    if (id === "deepfake_anchor") return this.glitchOut();
+    const d = DEATHS[id];
+    const key = `fe_die_${id}`;
+    // (scale reads are real but writes go through the HD factor: keep the same size on screen)
+    const hd0 = (this.texture.customData as { hd?: number } | undefined)?.hd ?? 1;
+    const logical = this.scaleX / hd0;
+    const ak = `${key}:die`;
+    if (!sc.anims.exists(ak)) sc.anims.create({ key: ak, frames: sc.anims.generateFrameNumbers(key, { start: 0, end: d.to }), frameRate: d.fps, repeat: 0 });
+    this.setTexture(key, 0);
+    this.setScale(logical);
+    this.play(ak);
+    this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      if (!this.active) return;
+      if (d.end === "hold") {
+        sc.tweens.add({ targets: this, alpha: 0, delay: 350, duration: 400, onComplete: () => this.destroy() });
+        return;
+      }
+      if (d.end === "boom") {
+        if (!this.world.boomFx?.(this.x, this.y, 0.9)) this.world.burst(this.x, this.y, 0xf97316, 16);
+        synth.play("explode");
+      } else this.world.burst(this.x, this.y, id === "mini_drongus" ? 0xffd23f : 0x9ca3af, 14);
+      this.destroy();
+    });
+    // never left hanging
+    sc.time.delayedCall(2500, () => this.scene && this.destroy());
+  }
+
+  /** The deepfake anchor: torn into horizontal slices of static that slide apart, flicker and vanish. */
+  private glitchOut() {
+    const sc = this.world.sc;
+    const n = 6;
+    const fw = this.frame.realWidth;
+    const fh = this.frame.realHeight;
+    const k = this.displayHeight / fh;
+    const top = this.y - this.displayHeight * this.originY;
+    const left = this.x - this.displayWidth * this.originX;
+    const parts: Phaser.GameObjects.Image[] = [];
+    for (let i = 0; i < n; i++) {
+      const sl = sc.add.image(left, top, this.texture.key, this.frame.name).setOrigin(0, 0).setDepth(this.depth).setFlipX(this.flipX);
+      const hd = (this.texture.customData as { hd?: number } | undefined)?.hd ?? 1;
+      sl.setScale(k / hd);
+      sl.setCrop(0, (fh / n) * i, fw, fh / n + 1);
+      parts.push(sl);
+      const dir = i % 2 ? 1 : -1;
+      sc.tweens.add({ targets: sl, x: left + dir * (8 + Math.random() * 18), duration: 90, yoyo: true, repeat: 2 });
+      if (i % 2) sl.setTint(i % 3 ? 0x22d3ee : 0xff4fd8);
+    }
+    this.setVisible(false);
+    sc.time.delayedCall(320, () => {
+      for (const sl of parts) sc.tweens.add({ targets: sl, alpha: 0, scaleY: 0.1, duration: 160, onComplete: () => sl.destroy() });
+      this.destroy();
+    });
+    synth.play("zap");
   }
 }
 

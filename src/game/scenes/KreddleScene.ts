@@ -454,7 +454,7 @@ export class KreddleScene extends Phaser.Scene {
     if (this.busy || this.panelRoot) return;
     // someone takes a run at you
     if (time > this.nextShove) {
-      this.nextShove = time + 6000 + Math.random() * 7000;
+      this.nextShove = time + 11000 + Math.random() * 9000;
       const cand = this.npcs.filter((n) => n.kind === "citizen" && !n.charging && Phaser.Math.Distance.Between(n.spr.x, n.spr.y, this.me.x, this.me.y) < 420);
       const n = cand[Math.floor(Math.random() * cand.length)];
       if (n) n.charging = true;
@@ -477,7 +477,7 @@ export class KreddleScene extends Phaser.Scene {
     this.cameras.main.shake(160, 0.006);
     this.tweens.add({ targets: this.me, x: Phaser.Math.Clamp(this.me.x + Math.cos(a) * 80, 30, W - 30), y: Phaser.Math.Clamp(this.me.y + Math.sin(a) * 60, TOP, BOTTOM), duration: 180, ease: "Quad.out" });
     this.bubble(n.spr, Phaser.Utils.Array.GetRandom(SHOVES), "#ffffff");
-    if (s.coins >= 5 && Math.random() < 0.3) {
+    if (s.coins >= 5 && Math.random() < 0.12) {
       s.coins -= 5;
       this.floatText(this.me.x, this.me.y - 50, "-5 KREZZCOIN (pickpocketed)", "#ef4444");
     }

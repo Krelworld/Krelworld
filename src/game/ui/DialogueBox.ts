@@ -116,6 +116,14 @@ export class DialogueBox {
 
     this.keyHandler = (e: KeyboardEvent) => {
       if (!this.active) return;
+      // a key the dialogue uses is the dialogue's alone: Phaser has already queued this same keypress for the scene,
+      // and it would otherwise land a frame later in whatever starts when the box closes (a minigame, a QTE),
+      // so one press of SPACE would both close the last line AND skip / cancel the game
+      const swallow = () => {
+        const mgr = (this.scene.input.keyboard as unknown as { manager?: { queue?: KeyboardEvent[] } } | null)?.manager;
+        const q = mgr?.queue;
+        if (q) for (let i = q.length - 1; i >= 0; i--) if (q[i] === e) q.splice(i, 1);
+      };
       // the pause menu is up over us: its keys aren't ours
       if (this.scene.sys.isPaused() || this.scene.scene.isActive("Menu")) return;
       // Esc in a cutscene or briefing pauses it (settings, dialogue log, quit) like everywhere else
@@ -128,18 +136,21 @@ export class DialogueBox {
       if (this.choiceHandler) {
         const n = parseInt(e.key, 10);
         if (!isNaN(n) && n >= 1 && n <= 9) {
+          swallow();
           this.choiceHandler(n - 1);
         }
         return;
       }
       if (e.key === "Tab") {
         e.preventDefault();
+        swallow();
         this.skipping = true;
         this.advance();
         return;
       }
       if (e.key === " " || e.key === "Enter" || e.key === "e" || e.key === "E") {
         e.preventDefault();
+        swallow();
         this.advance();
       }
     };

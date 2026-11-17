@@ -8851,6 +8851,99 @@
   },
   "c6a_cut_klerble": {
    "file": "c6a/c6a_cut_klerble.png"
+  },
+  "c15_still_crobley_tv": {
+   "file": "c15/c15_still_crobley_tv.png"
+  },
+  "c15_still_cronster_note": {
+   "file": "c15/c15_still_cronster_note.png"
+  },
+  "c15_still_crystal": {
+   "file": "c15/c15_still_crystal.png"
+  },
+  "c15_cut_cronster": {
+   "file": "c15/c15_cut_cronster.png"
+  },
+  "c15_cut_cyst": {
+   "file": "c15/c15_cut_cyst.png"
+  },
+  "c15_cut_flenky": {
+   "file": "c15/c15_cut_flenky.png"
+  },
+  "c15_cut_jenko": {
+   "file": "c15/c15_cut_jenko.png"
+  },
+  "c15_cut_krandall": {
+   "file": "c15/c15_cut_krandall.png"
+  },
+  "c15_cut_krezwonk": {
+   "file": "c15/c15_cut_krezwonk.png"
+  },
+  "c15_cut_polson": {
+   "file": "c15/c15_cut_polson.png"
+  },
+  "c15_cut_reinhardt": {
+   "file": "c15/c15_cut_reinhardt.png"
+  },
+  "c15_cut_rik": {
+   "file": "c15/c15_cut_rik.png"
+  },
+  "c15_cut_sanmik": {
+   "file": "c15/c15_cut_sanmik.png"
+  },
+  "c15_still_cyst_burst": {
+   "file": "c15/c15_still_cyst_burst.png"
+  },
+  "c15_still_cyst_rise": {
+   "file": "c15/c15_still_cyst_rise.png"
+  },
+  "c15_still_darkjenko": {
+   "file": "c15/c15_still_darkjenko.png"
+  },
+  "c15_still_golden": {
+   "file": "c15/c15_still_golden.png"
+  },
+  "c15_still_hijack": {
+   "file": "c15/c15_still_hijack.png"
+  },
+  "c15_still_krandall_fall": {
+   "file": "c15/c15_still_krandall_fall.png"
+  },
+  "c15_still_lamp": {
+   "file": "c15/c15_still_lamp.png"
+  },
+  "c15_still_mollor_free": {
+   "file": "c15/c15_still_mollor_free.png"
+  },
+  "c15_still_rik_rise": {
+   "file": "c15/c15_still_rik_rise.png"
+  },
+  "c15_still_rik_tub": {
+   "file": "c15/c15_still_rik_tub.png"
+  },
+  "c15_still_shrink": {
+   "file": "c15/c15_still_shrink.png"
+  },
+  "c15_still_silence": {
+   "file": "c15/c15_still_silence.png"
+  },
+  "c15_still_tank_boom": {
+   "file": "c15/c15_still_tank_boom.png"
+  },
+  "c15_still_tap": {
+   "file": "c15/c15_still_tap.png"
+  },
+  "c15_still_unmask": {
+   "file": "c15/c15_still_unmask.png"
+  },
+  "c15_still_wildern_boom": {
+   "file": "c15/c15_still_wildern_boom.png"
+  },
+  "c15_still_cyst_burst_clean": {
+   "file": "c15/c15_still_cyst_burst_clean.png"
+  },
+  "c15_eyes_cronster": {
+   "file": "c15/c15_eyes_cronster.png"
   }
  },
  "sheets": {
@@ -11560,6 +11653,121 @@
   },
   "c6a_still_escape_anim": {
    "file": "c6a/c6a_still_escape_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_crystal_anim": {
+   "file": "c15/c15_still_crystal_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_cyst_burst_anim": {
+   "file": "c15/c15_still_cyst_burst_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_cyst_rise_anim": {
+   "file": "c15/c15_still_cyst_rise_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_darkjenko_anim": {
+   "file": "c15/c15_still_darkjenko_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_krandall_fall_anim": {
+   "file": "c15/c15_still_krandall_fall_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_rik_tub_anim": {
+   "file": "c15/c15_still_rik_tub_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_silence_anim": {
+   "file": "c15/c15_still_silence_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_tank_boom_anim": {
+   "file": "c15/c15_still_tank_boom_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_tap_anim": {
+   "file": "c15/c15_still_tap_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_unmask_anim": {
+   "file": "c15/c15_still_unmask_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_wildern_boom_anim": {
+   "file": "c15/c15_still_wildern_boom_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_cronster_note_anim": {
+   "file": "c15/c15_still_cronster_note_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_cut_cyst_anim": {
+   "file": "c15/c15_cut_cyst_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "c15_cut_flenky_anim": {
+   "file": "c15/c15_cut_flenky_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "c15_cut_krandall_anim": {
+   "file": "c15/c15_cut_krandall_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "c15_cut_reinhardt_anim": {
+   "file": "c15/c15_cut_reinhardt_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "c15_cut_rik_anim": {
+   "file": "c15/c15_cut_rik_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "c15_still_golden_anim": {
+   "file": "c15/c15_still_golden_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_hijack_anim": {
+   "file": "c15/c15_still_hijack_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_lamp_anim": {
+   "file": "c15/c15_still_lamp_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_mollor_free_anim": {
+   "file": "c15/c15_still_mollor_free_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_rik_rise_anim": {
+   "file": "c15/c15_still_rik_rise_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "c15_still_shrink_anim": {
+   "file": "c15/c15_still_shrink_anim.png",
    "frameWidth": 256,
    "frameHeight": 144
   }

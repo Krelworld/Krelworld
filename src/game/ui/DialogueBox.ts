@@ -13,6 +13,7 @@ import { CHARACTERS } from "../../data/characters";
 import { FONT, PIXEL_BOLD, PIXEL_FONT, UI, uiFrame } from "./theme";
 import { kruncherVictim, sanmikActive } from "../systems/sanmik";
 import { sanmikify } from "../systems/sanmikify";
+import { playCine } from "../gfx/Cine";
 
 /** SanMik isn't in CHARACTERS (he's Mikey in a wig): his name colour. */
 const SANMIK_COLOR = 0xb0c4ff;
@@ -452,6 +453,14 @@ export class DialogueBox {
       const raw = raw0.s === "YOU" ? { ...raw0, s: s.player } : raw0;
       if (!evalCond(raw.cond, s)) continue;
       if (raw.set) Object.assign(s.flags, raw.set);
+      if (raw.cine && !this.skipping) {
+        // an anime beat before the line: the box steps aside while it plays (Tab skips it with the script)
+        this.root.setVisible(false);
+        await playCine(this.scene, raw.cine, () => this.skipping || this.destroyed);
+        if (this.destroyed) break;
+        this.root.setVisible(true);
+        if (!raw.t && !raw.canon && !raw.react && !raw.choice && !raw.tv) continue;
+      }
       if (raw.react) {
         this.skipping = false;
         const r = raw.react;

@@ -3033,7 +3033,7 @@ export class VignetteScene extends Phaser.Scene {
     await this.takeDrugs();
     await this.talk([
       dir("Oh. Oh, that's lovely. Your hands are steady. The four hundred buttons make sense now. They're all friends. One of them waves at you."),
-      say(me, "…I know how to fly a plane."),
+      say(me, "…I know how to fly a plane.", { cine: "ch6_hijack" }),
       say("KREZWONK", "(over the radio) He knows how to fly a plane.", { cond: { notPlayer: "KREZWONK" } }),
       say("KREBLIS", "(over the radio) He knows how to fly a plane.", { cond: { player: "KREZWONK" } }),
     ]);

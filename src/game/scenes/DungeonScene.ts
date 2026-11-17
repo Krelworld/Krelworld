@@ -25,6 +25,7 @@ import { runDialogue } from "./DialogueScene";
 import { BOSS_TEXT } from "../../content/bosses";
 import { voice } from "../audio/Voice";
 import * as Juice from "../gfx/Juice";
+import { playCine } from "../gfx/Cine";
 import { enemyDamageMult, enemyHpMult, maxHp, bump, maxBottles, maxKrezz } from "../systems/stats";
 import { addCensorBar } from "../gfx/Censor";
 import { activeMods } from "../../data/historicalRevisions";
@@ -1174,6 +1175,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     beam.setRotation(Phaser.Math.Angle.Between(lamp.x, lamp.y, p.x, p.y));
     const len = Phaser.Math.Distance.Between(lamp.x, lamp.y, p.x, p.y);
     await new Promise<void>((r) => this.tweens.add({ targets: beam, width: len, duration: 250, onComplete: () => r() }));
+    await playCine(this, "ch5_shrink");
     this.cameras.main.flash(200, 160, 255, 255);
     for (let i = 0; i < 5; i++) {
       synth.play("tap");
@@ -1185,6 +1187,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     beam.destroy();
     lamp.destroy();
     await this.talk([dir("You are now four millimetres tall. Uncle Rik bends over to see where you've gone. That's all the opening you need.")]);
+    await playCine(this, "ch5_colon");
     this.cameras.main.fadeOut(600, 60, 0, 20);
     await new Promise<void>((r) => this.time.delayedCall(700, () => r()));
   }
@@ -1855,6 +1858,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
           });
         await new Promise<void>((r2) => this.time.delayedCall(1700, () => r2()));
         this.cameras.main.flash(600, 255, 255, 255);
+        await playCine(this, "ch4_boom");
         resolve();
       });
     });
@@ -2474,6 +2478,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     ropes.destroy();
     synth.play("gunget");
     this.tweens.add({ targets: spr, y: spr.y - 16, yoyo: true, duration: 180 });
+    this.busy = true;
+    await playCine(this, "ch3_mollor");
+    this.busy = false;
     const jenko = s.player === "FLENKY";
     await this.talk(
       jenko
@@ -3165,8 +3172,15 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   // ------------------------------------------------------------------ helpers
 
-  /** THE CUM CRYSTAL IS YOURS! YEAH! Every main boss drops one: a big, loud, sparkly moment. */
-  private crystalGet(b: Boss): Promise<void> {
+  /** THE CUM CRYSTAL IS YOURS! YEAH! The drawn shot of it held up high (skippable), then the party. */
+  private async crystalGet(b: Boss): Promise<void> {
+    if (!carriesCrystal(b.bossId) || G.s.flags[`crystal_${b.bossId}`]) return;
+    await playCine(this, "crystal");
+    if (this.sys.settings.active) await this.crystalParty(b);
+  }
+
+  /** Every main boss drops one: a big, loud, sparkly moment. */
+  private crystalParty(b: Boss): Promise<void> {
     const s = G.s;
     if (!carriesCrystal(b.bossId) || s.flags[`crystal_${b.bossId}`]) return Promise.resolve();
     s.flags[`crystal_${b.bossId}`] = true;

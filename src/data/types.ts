@@ -114,6 +114,11 @@ export interface Line {
   tv?: string;
   /** A staged moment in the room as this line shows (e.g. "robbo_enter"): see TownMeetingScene.fx. */
   fx?: string;
+  /**
+   * An anime cine beat (gfx/Cine.ts CINE) played before this line shows: drawn stills, cut-ins, slams, stingers.
+   * A line with a cine and no text is a pure stage beat. Click / Enter cuts the beat; Tab skips it with the script.
+   */
+  cine?: string;
 }
 
 export interface MeetingScript {

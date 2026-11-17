@@ -33,6 +33,8 @@ export const AUDIO_FILES: Record<string, string> = {
   drongus_cackle_3: "audio/sfx/drongus_cackle_3.mp3",
   drongus_cackle_4: "audio/sfx/drongus_cackle_4.mp3",
   drongus_cackle_5: "audio/sfx/drongus_cackle_5.mp3",
+  /** Chapters 1-5 anime beats (gfx/Cine.ts): stingers over the music (which ducks under them). */
+  ...Object.fromEntries(["open", "reveal", "boom", "power", "triumph", "dread"].map((k) => [`c15_sting_${k}`, `audio/c15_sting_${k}.mp3`])),
 };
 
 /** Where each separate shout sits in those files: [start, length] in seconds. */

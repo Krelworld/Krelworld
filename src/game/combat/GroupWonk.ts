@@ -12,7 +12,7 @@ import { padHeld } from "../systems/padbinds";
  * THE GROUP WONK. The long, hard, shared version of WONK YOUR THANG (Wonk.ts), for the finale.
  *
  * Everyone stands in a ring. One shared GROUP KREZZ gauge, which drains all the time (faster the fuller it is).
- * - MASH (R / SPACE / J / L / click / tap / A) to pump it: how hard you're going is presses in the last second.
+ * - MASH (R / SPACE / E / click / tap / A) to pump it: how hard you're going is presses in the last second.
  * - THE BEAT goes round the ring, one lad at a time. Press as their light flashes: SYNC. Each sync on a lad
  *   who hasn't joined yet brings them in (they start wonking too). Every lad in makes the pumping count for more,
  *   and a streak of syncs counts for more again. Miss a beat and the streak's gone (and a joined lad can drop out).
@@ -155,7 +155,7 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat) return;
       const k = e.key.toLowerCase();
-      if (k === "r" || k === " " || k === "j" || k === "l") {
+      if (k === "r" || k === " " || k === "e") {
         e.preventDefault();
         press();
       }

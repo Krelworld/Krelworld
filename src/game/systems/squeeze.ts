@@ -71,13 +71,13 @@ export async function squeeze(
 
 const SQ_KEYS: { label: string; codes: string[] }[] = [
   { label: "E", codes: ["KeyE"] },
-  { label: "J", codes: ["KeyJ"] },
+  { label: "F", codes: ["KeyF"] },
   { label: "SPACE", codes: ["Space"] },
-  { label: "K", codes: ["KeyK"] },
+  { label: "R", codes: ["KeyR"] },
 ];
 
 /**
- * The squeeze itself: a button prompt pops up (E / J / K / SPACE, or tap it); hit the right one and the meter
+ * The squeeze itself: a button prompt pops up (E / F / R / SPACE, or tap it; all round WASD); hit the right one and the meter
  * climbs with a squelch, miss and it slips back; it drains on its own. Fill it before time's up.
  */
 function squeezeGame(scene: Phaser.Scene, her: Phaser.GameObjects.Sprite, me: Phaser.GameObjects.Sprite): Promise<boolean> {

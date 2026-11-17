@@ -159,7 +159,7 @@ export function startWonk(p: Player, now: number) {
   const onKey = (e: KeyboardEvent) => {
     if (e.repeat) return;
     const k = e.key.toLowerCase();
-    if (k === "r" || k === " " || k === "j" || k === "l") {
+    if (k === "r" || k === " " || k === "e") {
       e.preventDefault();
       press();
     }

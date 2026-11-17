@@ -1117,7 +1117,7 @@ export class ClubScene extends Phaser.Scene {
       const onKey = (e: KeyboardEvent) => {
         if (e.repeat) return;
         const k = e.key.toLowerCase();
-        if (k === "r" || k === " " || k === "e" || k === "j") {
+        if (k === "r" || k === " " || k === "e") {
           e.preventDefault();
           press();
         }

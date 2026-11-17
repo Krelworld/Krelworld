@@ -18,7 +18,7 @@ import type { Line } from "../../../data/types";
 type Move = "shove" | "punch" | "kick";
 import { WHINES_ALL, WHINES } from "../../../content/beatup";
 const MOVES: Move[] = ["shove", "punch", "kick"];
-const KEY: Record<Move, string> = { shove: "E", punch: "J", kick: "SPACE" };
+const KEY: Record<Move, string> = { shove: "E", punch: "F", kick: "SPACE" };
 const WORDS: Record<Move, string[]> = {
   shove: ["SHOVE!", "BARGE!", "OOF!", "SHUNT!"],
   punch: ["POW!", "WHAM!", "BIFF!", "SMACK!", "BOSH!"],
@@ -263,8 +263,8 @@ export class Beatup {
     this.keyHandler = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
       if (k === "e" || k === "1") this.press("shove");
-      else if (k === "j" || k === "2" || k === "f") this.press("punch");
-      else if (k === " " || k === "k" || k === "3") this.press("kick");
+      else if (k === "f" || k === "2") this.press("punch");
+      else if (k === " " || k === "3") this.press("kick");
     };
     window.addEventListener("keydown", this.keyHandler);
     h.time.delayedCall(700, () => this.nextPrompt());

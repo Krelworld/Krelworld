@@ -41,6 +41,8 @@ export const FINALE_SHEETS: Record<string, { file: string; frameWidth: number; f
   fe_concept_rear_hurt: { file: "combat/fe_concept_rear_hurt.png", frameWidth: 256, frameHeight: 256 },
   fe_concept_slam_hurt: { file: "combat/fe_concept_slam_hurt.png", frameWidth: 256, frameHeight: 256 },
   fe_concept_flinch_hurt: { file: "combat/fe_concept_flinch_hurt.png", frameWidth: 256, frameHeight: 256 },
+  /** its lightning wind-up, wounded (claws to the sky, the storm crackling between them): the low-HP storm */
+  fe_concept_storm_hurt: { file: "combat/fe_concept_storm_hurt.png", frameWidth: 256, frameHeight: 256 },
 };
 
 /** Queue whatever finale art isn't loaded yet (call from a scene's preload). */

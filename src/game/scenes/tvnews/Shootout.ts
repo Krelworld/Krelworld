@@ -3,6 +3,7 @@ import { synth } from "../../audio/Synth";
 import { vfx } from "../../gfx/Vfx";
 import { G } from "../../G";
 import { calm } from "./NewsChrome";
+import { goreDeath } from "../../gfx/GoreDeath";
 
 /**
  * Sergeant Swig opens fire on the press pack, seen from among them: muzzle flashes, a mix of gunshots, screams,
@@ -76,14 +77,8 @@ export function shootout(sc: Phaser.Scene, o: ShootoutOpts): Promise<void> {
     if (Math.random() < 0.7) synth.play(SCREAMS[Math.floor(Math.random() * SCREAMS.length)]);
     if (v.hp <= 0) {
       // down they go
-      sc.time.delayedCall(140, () => {
-        sc.tweens.add({ targets: s, angle: dir * (80 + Math.random() * 15), y: s.y + s.displayHeight * 0.35, x: s.x + dir * 30, duration: 420, ease: "Bounce.out" });
-        sc.time.delayedCall(380, () => {
-          synth.play("bodies_land");
-          if (gore) vfx(sc, "vfx_bloodpool", s.x + dir * 40, s.y + 4, { scale: 1.6 + Math.random() * 0.6, depth: s.depth - 1, hold: true });
-          else vfx(sc, "vfx_dust", s.x + dir * 30, s.y, { scale: 1.6, depth: s.depth + 1 });
-        });
-      });
+      // (gfx/GoreDeath.ts: the knees, the slump, the fall, the pool; now and then the round takes the top of the head off)
+      goreDeath(sc, s, Math.random() < 0.3 ? "headshot" : "shot", { dir: dir as 1 | -1, hits: 0, delay: 140, quiet: true });
     }
     // some of it reaches the lens
     if (gore && lensDrops < 7 && Math.random() < 0.45) {

@@ -47,6 +47,8 @@ export const AUDIO_FILES: Record<string, string> = {
   ),
   /** Chapters 1-5 anime beats (gfx/Cine.ts): stingers over the music (which ducks under them). */
   ...Object.fromEntries(["open", "reveal", "boom", "power", "triumph", "dread"].map((k) => [`c15_sting_${k}`, `audio/c15_sting_${k}.mp3`])),
+  /** The Krelford flyover (scenes/hub/flyover.ts, ElevenLabs): high wind, the swoops between landmarks, the dive and the title slam. */
+  ...Object.fromEntries(["fly_wind", "fly_whoosh_1", "fly_whoosh_2", "fly_whoosh_3", "fly_dive", "fly_slam"].map((k) => [k, `audio/sfx/${k}.mp3`])),
   /** Side-story anime beats (gfx/SideCine.ts, ElevenLabs): the freeze-frame's record scratch and the stingers. */
   ss_scratch: "audio/ss_scratch.mp3",
   ss_sting_comedy: "audio/ss_sting_comedy.mp3",

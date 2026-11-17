@@ -46,6 +46,7 @@ import * as FB from "../../content/finaleKrelford";
 import { finalePreload, finaleReady, logsKey } from "./finale/finaleArt";
 import { townLife } from "./hub/townLife";
 import { loopProp } from "../gfx/ambient";
+import { canFly3d, FLY_LAST, FLY_STOPS, runFlyover } from "./hub/flyover";
 
 /** The first line over the whiteness. */
 const FD_WAKE_FIRST = FB.FD_WAKE.slice(0, 1);
@@ -466,7 +467,38 @@ export class HubScene extends Phaser.Scene {
     this.time.delayedCall(2500 + Math.random() * 4000, strike);
   }
 
+  /**
+   * First time out of the front door: a 2.5D flyover of Krelford (scenes/hub/flyover.ts), down through the clouds,
+   * round the eight landmarks, up for the title and back down onto you. Skippable. Without WebGL, the old flat pans.
+   */
   private async flyover() {
+    if (!canFly3d(this)) return this.flyoverFlat();
+    const s = G.s;
+    s.flags.flyover_seen = true;
+    G.save();
+    this.busy = true;
+    (this.av.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+    const cam = this.cameras.main;
+    cam.stopFollow();
+    this.scene.setVisible(false, "UI");
+    // where the live camera will sit on the player (clamped to its bounds, as following would)
+    const z = cam.zoom;
+    const end = {
+      x: Phaser.Math.Clamp(this.av.x, cam.width / 2 / z, WORLD_W - cam.width / 2 / z),
+      y: Phaser.Math.Clamp(this.av.y, -SKY_H + cam.height / 2 / z, WORLD_H - cam.height / 2 / z),
+      zoom: z,
+    };
+    await runFlyover(this, { worldW: WORLD_W, worldH: WORLD_H, end, playerName: CHARACTERS[s.player]?.name ?? "You", skip: [this.prompt, this.arrow] });
+    if (!this.sys.isActive()) return;
+    cam.centerOn(end.x, end.y);
+    cam.startFollow(this.av, true, 0.12, 0.12);
+    this.scene.setVisible(true, "UI");
+    this.busy = false;
+    G.emit("toast", { title: "OBJECTIVE", text: "Go to Krelford Town Hall. Follow the yellow arrow." });
+  }
+
+  /** The flyover for renderers without meshes: flat pans round the landmarks. */
+  private async flyoverFlat() {
     const s = G.s;
     s.flags.flyover_seen = true;
     G.save();
@@ -493,24 +525,14 @@ export class HubScene extends Phaser.Scene {
     this.tweens.add({ targets: [big, sub], alpha: 1, duration: 800 });
     await wait(2200);
     this.tweens.add({ targets: [big, sub], alpha: 0, duration: 600 });
-    const stops: [number, number, string][] = [
-      [1650, 1050, "THE KRELTOWER. The tallest building in Krelford. Nobody's sure what's on the top floor. Nobody's asked."],
-      [1280, 440, "KRELFORD TOWN HALL. Where the cabinet meets, argues, and governs."],
-      [1900, 440, "THE HISTORICAL ARCHIVE. Every message ever sent, kept forever. The FGM War Room is in the basement."],
-      [1280, 800, "THE GREAT PUSSY JUICE TAP. It heals. It nourishes. It is the national drink. Never let it stop. It comes from the juice of women's pussies"],
-      [560, 840, "THE KREZZ ARMS. Fizzy Bongos on tap. SanMik & SanChz on most nights. A strip club. You have been warned."],
-      [1280, 1300, "WILDERN ACADEMY. The local school. The new headmaster is said to be very… krazy."],
-      [2440, 1010, "POLSON TOWERS (down that road). Polson HQ. Home of Polson, a lot of stuff, and every decision he's ever not made. Thoughts? Wbu?"],
-      [160, 825, "THE KREDDLE BRIDGE. Over there: Kreddle, the casino universe. They hate us. Their slot machines are excellent."],
-    ];
-    for (const [x, y, t] of stops) {
+    for (const { x, y, cap: t } of FLY_STOPS) {
       cam.pan(x, y, 1700, "Sine.easeInOut");
       await wait(900);
       say2(t);
       await wait(2300);
     }
     // ...and home
-    say2("And this is you. Off to the Town Hall. Don't be late.");
+    say2(FLY_LAST);
     cam.pan(this.av.x, this.av.y, 1600, "Sine.easeInOut");
     void z0;
     await wait(1900);

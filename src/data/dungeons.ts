@@ -55,6 +55,13 @@ export interface RoomDef {
   /** Crushers, steam vents and conveyor belts. */
   hazards?: { kind: "crusher" | "steam" | "conveyor"; x: number; w?: number; period?: number; dir?: number; offset?: number }[];
   crusherLabel?: string;
+  /** Side rooms: art overrides (floor tile, crusher head sheet, vent, moving-platform image) and what the vents puff. */
+  floorTile?: string;
+  crusherArt?: string;
+  ventArt?: string;
+  ventColor?: number;
+  ventLabel?: string;
+  moverArt?: string;
   /** Run and gun: when you get past x (0..1), this lot turns up. Replaces waves. */
   triggers?: [number, [string, number][]][];
   /** Side-scrolling set piece: something chases you from the left once you pass `at` (0..1). */
@@ -909,29 +916,67 @@ export const DUNGEONS: Record<string, DungeonDef> = {
     name: "INSIDE UNCLE RIK (THE TRANSVERSE COLON)",
     music: "ominous",
     returnAt: "PUB",
+    // side-on: a narrow run'n'gun down the inside of the tube (the Colon module in scenes/side dresses it)
+    view: "side",
     rooms: [
       {
         name: "Uncle Rik's Transverse Colon",
-        w: 1500,
-        h: 900,
+        w: 6400,
+        h: 540,
         theme: "colon",
         event: "colon",
         exitFlag: "rik_bombs_done",
         exitHint: "There's no way out but through. Plant all four bombs.",
-        waves: [[["gerbil", 6], ["poo", 3]], [["tumor", 3], ["gerbil", 5]], [["poo", 4], ["tumor", 2], ["gerbil", 7]]],
+        exitLabel: "NO WAY OUT (PLANT THE BOMBS)",
+        backdrop: "colon_side_bg",
+        floorTile: "colon_floor",
+        crusherArt: "colon_squeeze",
+        crusherLabel: "PERISTALSIS",
+        ventArt: "colon_pore",
+        ventColor: 0xbef264,
+        ventLabel: "GUT GAS",
+        moverArt: "colon_poolog",
+        floorGaps: [[0.09, 150], [0.27, 180], [0.51, 170], [0.72, 190], [0.88, 150]],
+        pitColor: 0x9acd32,
+        pitName: "BILE",
+        platforms: [[0.05, 110, 150], [0.2, 120, 170], [0.235, 200, 140], [0.42, 130, 180], [0.46, 210, 140], [0.62, 120, 160], [0.66, 200, 150], [0.8, 130, 170], [0.9, 140, 160]],
+        movers: [[0.102, 100, 110, 0, 50, 2400], [0.284, 110, 120, 50, 0, 2600], [0.523, 100, 110, 0, 55, 2300], [0.735, 110, 120, 0, 60, 2200]],
+        hazards: [
+          { kind: "crusher", x: 0.14, w: 130, period: 2600 },
+          { kind: "steam", x: 0.18, period: 3000 },
+          { kind: "crusher", x: 0.31, w: 130, period: 2300, offset: 600 },
+          { kind: "crusher", x: 0.33, w: 130, period: 2300, offset: 1500 },
+          { kind: "steam", x: 0.45, period: 2700, offset: 900 },
+          { kind: "crusher", x: 0.55, w: 130, period: 2200, offset: 300 },
+          { kind: "steam", x: 0.64, period: 2600 },
+          { kind: "crusher", x: 0.68, w: 130, period: 2400, offset: 1100 },
+          { kind: "crusher", x: 0.82, w: 130, period: 2100, offset: 700 },
+          { kind: "steam", x: 0.85, period: 2400, offset: 1300 },
+        ],
+        triggers: [
+          [0.03, [["gerbil", 5], ["sweetcorn", 3]]],
+          [0.12, [["poo", 3], ["fart_bubble", 2], ["tapeworm", 2]]],
+          [0.22, [["tumor", 1], ["polyp", 1], ["gerbil", 5]]],
+          [0.36, [["tapeworm", 2], ["corn_turd", 3], ["biofilm", 2]]],
+          [0.47, [["fart_bubble", 3], ["sweetcorn", 6], ["polyp", 1]]],
+          [0.58, [["poo", 3], ["tapeworm", 3], ["tumor", 1]]],
+          [0.7, [["gerbil", 7], ["fart_bubble", 3], ["biofilm", 2]]],
+          [0.83, [["tumor", 2], ["polyp", 1], ["tapeworm", 2], ["sweetcorn", 5]]],
+        ],
         props: [
-          { kind: "crystal_wall", x: 0.5, y: 0.2, id: "rik_crystal" },
-          { kind: "bomb_spot", x: 0.14, y: 0.36, id: "b1" },
-          { kind: "bomb_spot", x: 0.86, y: 0.36, id: "b2" },
-          { kind: "bomb_spot", x: 0.2, y: 0.82, id: "b3" },
-          { kind: "bomb_spot", x: 0.8, y: 0.82, id: "b4" },
+          { kind: "crystal_wall", x: 0.38, y: 0.2, id: "rik_crystal" },
+          { kind: "bomb_spot", x: 0.48, y: 0.9, id: "b1" },
+          { kind: "bomb_spot", x: 0.6, y: 0.9, id: "b2" },
+          { kind: "bomb_spot", x: 0.76, y: 0.9, id: "b3" },
+          { kind: "bomb_spot", x: 0.95, y: 0.9, id: "b4" },
         ],
         enterLines: [
           { s: "NARRATOR", t: "You are four millimetres tall, and you are inside Uncle Rik's large intestine. Specifically the transverse colon. The walls are pink, ridged (haustra) and wet (mucosa). They are slowly contracting (peristalsis).", dir: true },
           { s: "GENIE", t: "(on the radio, from the lamp) Peristalsis. That's the squeezing. Don't touch the walls. Don't touch ANYTHING. Oh god, I'm going to be sick in my own lamp." },
           { s: "SANMIK", t: "(on the radio) Find the crystal. Plant the bombs. Get out. Yee.", cond: { notPlayer: "MIKEY" } },
           { s: "SANCHZ", t: "(on the radio) Find the crystal. Plant the bombs. Get out. Yee.", cond: { player: "MIKEY" } },
-          { s: "NARRATOR", t: "Something in the dark is gnawing. Something else is screaming about being cancerous. TIP: prise the cum crystal out of the wall, then plant all four bombs (E on the red circles).", dir: true },
+          { s: "NARRATOR", t: "Something in the dark is gnawing. Something else is screaming about being cancerous. A single kernel of sweetcorn from 2019 runs past, screaming that it has never been digested.", dir: true },
+          { s: "NARRATOR", t: "RUN AND GUN: push right, down the tube. Prise the cum crystal out of the wall, then plant all four bombs (E on the red circles) on the way through. Mind the squeezes, the bile and the gas.", dir: true },
         ],
       },
     ],

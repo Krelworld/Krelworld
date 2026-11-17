@@ -7,6 +7,7 @@ import { vfx } from "../gfx/Vfx";
 import { G } from "../G";
 import { FONT } from "../ui/theme";
 import { FACE_ALIAS } from "./tv/faceMeta";
+import { playClip } from "./tv/action";
 
 /**
  * KrelTV "POV" presentation (an episode opts in with `style: "pov"`; Peep Show uses it).
@@ -1029,6 +1030,13 @@ export class PovDirector {
     const J = this.fig("JEZ", this.cx() - 30, fy, 3.6, 3);
     const M = this.fig("MADISON", this.cx() + 30, fy, 3.6);
     const jezOld = !!J && !J.texture.key.startsWith("tv_p2_");
+    // the PixelLab struggle clips (tv/action.ts): Jez's arm going, Madison flailing, then crumpling behind the table
+    const clips = !!J && !!M && !jezOld && M.texture.key.startsWith("tv_p2_") && !!this.tex("tva_jez_struggle") && !!this.tex("tva_madison_struggle");
+    if (clips) {
+      J!.setFlipX(false);
+      playClip(this.sc, J!, "jez_struggle", { fps: 9, frames: [0, 2, 4, 5, 6, 7, 6, 5, 6, 7, 6, 5, 6, 7, 6, 5, 6, 7, 6, 5, 6, 7, 6, 8] });
+      playClip(this.sc, M!, "madison_struggle", { fps: 9, frames: [0, 2, 3, 4, 5, 6, 5, 4, 3, 4, 5, 6, 5, 4, 3, 4, 5, 6, 5, 4, 5, 6] });
+    }
     // the table (with a modesty panel: Madison ends up behind it)
     if (this.tex("tv_p2_table")) this.add(this.sc.add.image(SX, fy - 52, "tv_p2_table").setOrigin(0).setDisplaySize(SW, 200));
     else {
@@ -1059,8 +1067,8 @@ export class PovDirector {
     const n = 9;
     for (let i = 0; i < n; i++) {
       this.later(300 + i * 260, () => {
-        if (J) (jezOld ? J.setFrame(i % 2 ? 3 : 1) : J.setAngle(i % 2 ? 8 : -6)).setX(this.cx() - 30 + (Math.random() - 0.5) * 16);
-        if (M) M.setX(this.cx() + 30 + (Math.random() - 0.5) * 16).setAngle((Math.random() - 0.5) * 14);
+        if (J) (jezOld ? J.setFrame(i % 2 ? 3 : 1) : J.setAngle(clips ? 0 : i % 2 ? 8 : -6)).setX(this.cx() - 30 + (Math.random() - 0.5) * 16);
+        if (M) M.setX(this.cx() + 30 + (Math.random() - 0.5) * 16).setAngle(clips ? 0 : (Math.random() - 0.5) * 14);
         fx("vfx_hit", hit.x + (Math.random() - 0.5) * 40, hit.y + (Math.random() - 0.5) * 40, 2.2);
         if (gore) {
           fx(i % 3 ? "vfx_blood" : "vfx_bloodspray", hit.x + (Math.random() - 0.5) * 80, hit.y - 20, 1.6);
@@ -1090,8 +1098,10 @@ export class PovDirector {
     // Madison slumps behind the table; Jez stands, covered in it
     const end = 300 + n * 260;
     this.later(end, () => {
-      if (M) this.sc.tweens.add({ targets: M, angle: 80, y: fy + 30, x: M.x + 40, duration: 700, ease: "Quad.in" });
+      if (M && clips) playClip(this.sc, M, "madison_struggle", { fps: 8, frames: [6, 7, 8] });
+      else if (M) this.sc.tweens.add({ targets: M, angle: 80, y: fy + 30, x: M.x + 40, duration: 700, ease: "Quad.in" });
       if (J) {
+        if (clips) J.stop().setTexture(P2_BODY("JEZ"), 0);
         (jezOld ? J.setFrame(0) : J.setAngle(0)).setX(this.cx() - 30);
         J.setTint(gore ? 0xff8080 : 0xa0a0a0);
         this.sc.tweens.add({ targets: J, y: fy - 10, duration: 500, delay: 600 });
@@ -1107,14 +1117,18 @@ export class PovDirector {
     const y = SY + SH - 40;
     const J = this.fig("JEZ", this.cx(), y);
     J?.setTint(this.gore ? 0xff8080 : 0xa0a0a0);
+    // the PixelLab clips (tv/action.ts): the officers dive in, Jez goes over sideways
+    const clips = this.tex("tva_officer_dive") && this.tex("tva_jez_tackled") && !!J && J.texture.key.startsWith("tv_p2_");
     for (const side of [-1, 1]) {
       const o = this.fig("YEMENI OFFICER", side < 0 ? SX - 60 : SX + SW + 60, y, 4.4, 3);
       if (!o) break;
       o.setFlipX(side > 0);
-      this.sc.tweens.add({ targets: o, x: this.cx() + side * 30, duration: 450, ease: "Quad.in" });
+      if (clips && o.texture.key.startsWith("tv_p2_")) playClip(this.sc, o, "officer_dive", { fps: 14 });
+      this.sc.tweens.add({ targets: o, x: this.cx() + side * (clips ? 60 : 30), duration: 450, ease: "Quad.in" });
     }
     this.later(460, () => {
-      if (J) this.sc.tweens.add({ targets: J, angle: 90, y: y - 10, duration: 200 });
+      if (J && clips) playClip(this.sc, J, "jez_tackled", { fps: 14, frames: [2, 3, 4, 5, 6] });
+      else if (J) this.sc.tweens.add({ targets: J, angle: 90, y: y - 10, duration: 200 });
       this.fx("vfx_dust", this.cx(), y, { scale: 3 });
       this.fx("vfx_stars", this.cx(), y - 80, { scale: 2.5 });
       this.sc.cameras.main.shake(300, 0.015);

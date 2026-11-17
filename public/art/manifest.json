@@ -8971,6 +8971,48 @@
   },
   "ddk_unicorn_burst": {
    "file": "props/ddk_unicorn_burst.png"
+  },
+  "tv_tcc_pitch": {
+   "file": "backdrops/tv_tcc_pitch.png"
+  },
+  "tv_tcc_bullpen": {
+   "file": "backdrops/tv_tcc_bullpen.png"
+  },
+  "tv_tcc_cafe": {
+   "file": "backdrops/tv_tcc_cafe.png"
+  },
+  "tv_tcc_school": {
+   "file": "backdrops/tv_tcc_school.png"
+  },
+  "tv_tcc_presser": {
+   "file": "backdrops/tv_tcc_presser.png"
+  },
+  "tv_tcc_ext_day": {
+   "file": "backdrops/tv_tcc_ext_day.png"
+  },
+  "tv_tcc_bb_street": {
+   "file": "backdrops/tv_tcc_bb_street.png"
+  },
+  "tv_tcc_bb_highway": {
+   "file": "backdrops/tv_tcc_bb_highway.png"
+  },
+  "tcc_billboard": {
+   "file": "tv/tcc/tcc_billboard.png"
+  },
+  "tcc_podium": {
+   "file": "tv/tcc/tcc_podium.png"
+  },
+  "tcc_photo_seniors": {
+   "file": "tv/tcc/tcc_photo_seniors.png"
+  },
+  "tcc_photo_refugees": {
+   "file": "tv/tcc/tcc_photo_refugees.png"
+  },
+  "tcc_photo_ds": {
+   "file": "tv/tcc/tcc_photo_ds.png"
+  },
+  "tcc_photo_nuns": {
+   "file": "tv/tcc/tcc_photo_nuns.png"
   }
  },
  "sheets": {
@@ -11802,6 +11844,76 @@
    "file": "props/p_treadmill_anim.png",
    "frameWidth": 82,
    "frameHeight": 67
+  },
+  "tvface_LILA_MINT": {
+   "file": "tv/face_LILA_MINT.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_JOHN_COCK": {
+   "file": "tv/face_JOHN_COCK.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_BRENDA": {
+   "file": "tv/face_BRENDA.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_GRANDMA_1": {
+   "file": "tv/face_GRANDMA_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_GRANDMA_2": {
+   "file": "tv/face_GRANDMA_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MOM_1": {
+   "file": "tv/face_MOM_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MOM_2": {
+   "file": "tv/face_MOM_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_TCC_REPORTER": {
+   "file": "tv/face_TCC_REPORTER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvbody_LILA_MINT": {
+   "file": "tv/body_LILA_MINT.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_JOHN_COCK": {
+   "file": "tv/body_JOHN_COCK.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_BRENDA": {
+   "file": "tv/body_BRENDA.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_MOM_1": {
+   "file": "tv/body_MOM_1.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_MOM_2": {
+   "file": "tv/body_MOM_2.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_JENNY_CUMMING_DAY": {
+   "file": "tv/body_JENNY_CUMMING_DAY.png",
+   "frameWidth": 96,
+   "frameHeight": 160
   }
  },
  "vfx": {

@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { F, ShowDirector, faceKeyOf, type Perf } from "./ShowDirector";
 import { G } from "../../G";
+import { billboardPanel, BILLBOARD_FACE, type Billboard } from "./tccBillboards";
 
 /**
  * A multi-camera studio sitcom (Thick Cumming Cock). Shot the way they are: a cold open, then a title sequence
@@ -18,9 +19,35 @@ const AUDIENCE = "tv_tcc_audience";
  * The cast's full-figure studio sheets (public/art/tv/body_<NAME>.png, 96x160 frames): standing, a talking
  * animation, a walk, sitting and asleep. Anyone without one is played by their TV sprite.
  */
-const BODY: Record<string, { key: string; stand?: number; talk?: [number, number]; talkPose: string; walk?: [number, number]; sit?: number; snore?: [number, number]; flipStand?: boolean }> = {
+type Body = { key: string; stand?: number; talk?: [number, number]; talkPose: string; walk?: [number, number]; sit?: number; snore?: [number, number]; flipStand?: boolean; flip?: boolean };
+const BODY: Record<string, Body> = {
   "CHRISTOPHER THICK": { key: "tvbody_CHRISTOPHER_THICK", stand: 0, talk: [1, 8], talkPose: "", walk: [9, 8], sit: 17, snore: [18, 4], flipStand: true },
   "JENNY CUMMING": { key: "tvbody_JENNY_CUMMING", sit: 0, talk: [1, 8], talkPose: "sit" },
+  // ep 7's new cast: one PixelLab figure each (public/art/tv/body_<NAME>.png); `flip` turns them to face the room
+  "LILA MINT": { key: "tvbody_LILA_MINT", stand: 0, talkPose: "", flip: true },
+  "JOHN COCK": { key: "tvbody_JOHN_COCK", sit: 0, talkPose: "sit", flip: true },
+  BRENDA: { key: "tvbody_BRENDA", stand: 0, talkPose: "" },
+  "MOM 1": { key: "tvbody_MOM_1", stand: 0, talkPose: "" },
+  "MOM 2": { key: "tvbody_MOM_2", stand: 0, talkPose: "" },
+};
+/** Jenny by day: the same chair, a coffee mug instead of the wine. */
+const JENNY_DAY: Body = { key: "tvbody_JENNY_CUMMING_DAY", sit: 0, talkPose: "sit" };
+
+/** Ep 7's day sets (TCC_EP07.sets): the two at the firm open on the building by day, the rest on the place itself. */
+const EXT_DAY = "tv_tcc_ext_day";
+const AT_THE_FIRM = new Set(["tv_tcc_pitch", "tv_tcc_bullpen"]);
+/** Where a billboard stands in a set, in the set's own pixels (256x192): centre x, top y, width. */
+const SET_BILLBOARD: Record<string, { which: Billboard; x: number; y: number; w: number }> = {
+  tv_tcc_cafe: { which: "seniors", x: 36, y: 22, w: 58 },
+  tv_tcc_school: { which: "kids", x: 206, y: 2, w: 92 },
+};
+/** The montage: each billboard going up, and where. */
+const MONTAGE_AT: Record<string, { bg: string; flip?: boolean }> = {
+  seniors: { bg: "tv_tcc_bb_street" },
+  refugees: { bg: "tv_tcc_bb_highway" },
+  kids: { bg: "tv_tcc_school" },
+  ds: { bg: "tv_tcc_bb_street", flip: true },
+  nuns: { bg: "tv_tcc_bb_highway", flip: true },
 };
 
 interface Onstage {
@@ -43,6 +70,7 @@ export class SitcomDirector extends ShowDirector {
   private sideOf(name: string) {
     if (name.startsWith("JENNY")) return -1;
     if (name.startsWith("CHRISTOPHER")) return 1;
+    if (name === "REPORTER" || name === "BRENDA") return -1;
     const i = this.cast.indexOf(name);
     return i % 2 ? 1 : -1;
   }
@@ -51,6 +79,11 @@ export class SitcomDirector extends ShowDirector {
     const k = this.host.setTexture();
     if (this.nyc) return "tv_nyc_skyline";
     return this.tex(SET) && /office/.test(k) ? SET : k;
+  }
+
+  /** TCC's reporter has her own face (the stock REPORTER is other shows'). */
+  protected faceKey(name: string) {
+    return name === "REPORTER" ? "tvface_TCC_REPORTER" : super.faceKey(name);
   }
 
   // ------------------------------------------------------------------ shots
@@ -65,8 +98,25 @@ export class SitcomDirector extends ShowDirector {
     }
     this.nyc = false;
     if (fresh) {
-      // a new scene: the outside of the building first, with the sting
-      this.exterior();
+      // a new scene: nobody's on the set yet (the blocking that follows puts them there)
+      this.stage = {};
+      this.props.delete("slide");
+      if (/montage/i.test(set)) {
+        this.clear();
+        this.shotKind = "montage";
+        this.backdrop(this.tex("tv_tcc_bb_street"), { blur: 3, tint: 0x9a9a9a });
+        this.sfx("tv_sting");
+        return 600;
+      }
+      const k = this.host.setTexture();
+      if (k.startsWith("tv_tcc_") && !AT_THE_FIRM.has(k)) {
+        // out on location: straight onto the place, with the sting
+        this.sfx("tv_sting");
+        this.wide();
+        return 900;
+      }
+      // the outside of the building first, with the sting (by day, for the day scenes at the firm)
+      this.exterior(AT_THE_FIRM.has(k));
       return 2200;
     }
     if (f.includes("CLOSE")) {
@@ -81,15 +131,15 @@ export class SitcomDirector extends ShowDirector {
     return 0;
   }
 
-  /** EXT. establishing shot: the building at night, a cab going past, the sting. */
-  private exterior() {
+  /** EXT. establishing shot: the building at night (or by day), a cab going past, the sting. */
+  private exterior(day = false) {
     this.clear();
     this.shotKind = "ext";
     const { SX, SY, SW, SH } = this.r;
-    this.kenBurns(this.tex(EXT), { z: 1.12, x: 0, y: 26 }, { z: 1.02, x: 0, y: -8 }, 2400);
-    // windows flicker on and off
+    this.kenBurns(this.tex(day && this.tex(EXT_DAY) ? EXT_DAY : EXT), { z: 1.12, x: 0, y: 26 }, { z: 1.02, x: 0, y: -8 }, 2400);
+    // windows flicker on and off (at night)
     const g = this.add(this.sc.add.graphics());
-    this.every(240, () => {
+    if (!day) this.every(240, () => {
       g.clear();
       for (let i = 0; i < 6; i++) {
         g.fillStyle(0xfff2b0, Math.random() * 0.5);
@@ -99,6 +149,14 @@ export class SitcomDirector extends ShowDirector {
     const cab = this.add(this.sc.add.rectangle(SX - 60, SY + SH - 40, 46, 16, 0xf2c94c).setOrigin(0.5));
     this.sc.tweens.add({ targets: cab, x: SX + SW + 60, duration: 2200, ease: "Linear" });
     this.sfx("tv_sting");
+  }
+
+  /** A point on a set's still (the current one by default), as backdrop() draws it with no zoom. */
+  private setPt(ix: number, iy: number, key = this.setKey()) {
+    const { SX, SY, SW, SH } = this.r;
+    const src = this.sc.textures.exists(key) ? (this.sc.textures.get(key).getSourceImage() as HTMLImageElement) : { width: 256, height: 192 };
+    const s = Math.max(SW / src.width, SH / src.height);
+    return { x: SX + SW / 2 + (ix - src.width / 2) * s, y: SY + SH / 2 + (iy - src.height / 2) * s, s };
   }
 
   /** Where people are on the set in the wide shot. */
@@ -113,9 +171,182 @@ export class SitcomDirector extends ShowDirector {
     this.clear();
     this.shotKind = "wide";
     const { SY, SH } = this.r;
-    this.backdrop(this.setKey());
-    this.drawPeople(SY + SH * 0.9, SH * 0.44);
+    const key = this.setKey();
+    this.backdrop(key);
+    this.dressBehind(key);
+    // at the press conference: up on the little stage, behind the lectern
+    if (key === "tv_tcc_presser") this.drawPeople(this.setPt(0, 124).y, SH * 0.3);
+    else this.drawPeople(SY + SH * 0.9, SH * 0.44);
+    this.dressFront(key);
     if (push) this.push(1.04, 4000, this.cx, SY + SH * 0.6);
+  }
+
+  // ------------------------------------------------------------------ ep 7's sets
+
+  /** The set's own furniture behind the cast: a billboard out there, the slide on the screen. */
+  private dressBehind(key: string) {
+    const bb = SET_BILLBOARD[key];
+    if (bb) this.billboardAt(bb.which, bb.x, bb.y, bb.w, key);
+    if (key === "tv_tcc_pitch" && this.props.has("slide")) {
+      // Lila's first slide, up on the pull-down screen on the left wall
+      const a = this.setPt(7, 14);
+      const b = this.setPt(43, 78);
+      this.add(this.sc.add.rectangle(a.x, a.y, b.x - a.x, b.y - a.y, 0x8fc8f0).setOrigin(0));
+      this.miniBillboard("seniors", (a.x + b.x) / 2, a.y + (b.y - a.y) * 0.3, b.x - a.x - 8);
+    }
+  }
+
+  /** In front of the cast: the café table (the grandmas sit behind it), the lectern and the press's flashbulbs. */
+  private dressFront(key: string) {
+    const { SX, SY, SW, SH } = this.r;
+    if (key === "tv_tcc_cafe") {
+      const xs = Object.values(this.stage).map((o) => o.x);
+      const mid = xs.length ? (Math.min(...xs) + Math.max(...xs)) / 2 : this.cx;
+      const y = SY + SH * 0.86;
+      const g = this.add(this.sc.add.graphics());
+      g.fillStyle(0x5a3a22, 1).fillRect(mid - 8, y, 16, SH * 0.2);
+      g.fillStyle(0xf4efe4, 1).fillEllipse(mid, y, SW * 0.5, 44);
+      g.lineStyle(3, 0xd8cdb8, 1).strokeEllipse(mid, y, SW * 0.5, 44);
+      for (let i = -8; i <= 8; i++) g.fillStyle(0xf4efe4, 1).fillCircle(mid + i * SW * 0.03, y + 20, 6);
+      // the tea things
+      g.fillStyle(0xffffff, 1).fillRect(mid - 70, y - 22, 22, 16).fillRect(mid + 50, y - 22, 22, 16);
+      g.fillStyle(0x9ad0e8, 1).fillRect(mid - 70, y - 22, 22, 4).fillRect(mid + 50, y - 22, 22, 4);
+      g.fillStyle(0xf0f0f0, 1).fillEllipse(mid - 59, y - 5, 36, 8).fillEllipse(mid + 61, y - 5, 36, 8);
+      g.fillStyle(0xd85a6a, 1).fillCircle(mid - 4, y - 18, 16);
+      g.fillStyle(0xd85a6a, 1).fillRect(mid + 8, y - 26, 14, 5);
+    }
+    if (key === "tv_tcc_presser") {
+      const x = this.stage["CHRISTOPHER THICK"]?.x ?? this.cx;
+      const top = this.setPt(0, 124).y;
+      if (this.tex("tcc_podium")) {
+        // the lectern (PixelLab): its body is pixels 20-77 of a 64x96 frame
+        const pod = this.add(this.sc.add.image(x, top + SH * 0.05, "tcc_podium").setOrigin(0.5, 77 / 96));
+        pod.setScale((SH * 0.3) / 57);
+        const ps = pod.scale;
+        this.add(this.text(x, pod.y - 26 * ps, "THICK\nCUMMING\nCOCK", Math.max(9, Math.round(5 * ps)), "#ffe14a", { fontStyle: "bold", align: "center", stroke: "#1a2a4a", strokeThickness: 3, lineSpacing: -2 }).setOrigin(0.5));
+      }
+      this.flashbulbs();
+    }
+    void SX;
+  }
+
+  /** The press, popping away. Slower and softer with calm flashes on. */
+  private flashbulbs() {
+    const calm = !!G.meta?.settings?.calmFlash;
+    const { SX, SY, SW, SH } = this.r;
+    this.every(calm ? 1100 : 420, () => {
+      const x = SX + 30 + Math.random() * (SW - 60);
+      const y = SY + SH * (0.72 + Math.random() * 0.2);
+      const f = this.add(this.sc.add.circle(x, y, calm ? 10 : 16, 0xffffff, calm ? 0.3 : 0.9));
+      this.sc.tweens.add({ targets: f, alpha: 0, scale: 1.8, duration: calm ? 700 : 220, onComplete: () => f.destroy() });
+      if (Math.random() < 0.35) this.sfx("camera_flash");
+    }, 14);
+  }
+
+  /** The phones, ringing off the hook. */
+  private ringing() {
+    const { SX, SY, SW, SH } = this.r;
+    const spots = [0.18, 0.42, 0.62, 0.8];
+    let n = 0;
+    this.every(260, () => {
+      const x = SX + SW * spots[n % spots.length] + (Math.random() - 0.5) * 30;
+      const y = SY + SH * (0.4 + Math.random() * 0.12);
+      const t = this.add(this.text(x, y, "RING!", 15, "#ffe14a", { fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setAngle((Math.random() - 0.5) * 24));
+      this.sc.tweens.add({ targets: t, y: y - 26, alpha: 0, duration: 700, onComplete: () => t.destroy() });
+      if (n % 2 === 0) this.sfx("ding");
+      n++;
+    }, 14);
+  }
+
+  /** A billboard standing in a set, placed in the set's own pixels. */
+  private billboardAt(which: Billboard, ix: number, iy: number, iw: number, key: string) {
+    const a = this.setPt(ix - iw / 2, iy, key);
+    const w = iw * a.s;
+    return this.billboardFrame(which, a.x + w / 2, a.y, w);
+  }
+
+  /** The billboard frame (PixelLab), `w` wide, its top centre at (x, y), with the poster on its face. */
+  private billboardFrame(which: Billboard, x: number, y: number, w: number) {
+    const k = this.tex("tcc_billboard");
+    const s = w / 128;
+    if (k) this.add(this.sc.add.image(x, y, k).setOrigin(0.5, 0).setScale(s));
+    const [fx, fy, fw, fh] = BILLBOARD_FACE;
+    return billboardPanel(this.sc, (o) => this.add(o), which, x - w / 2 + fx * s, y + fy * s, fw * s, fh * s);
+  }
+
+  /** A billboard mocked up on a slide (no frame). */
+  private miniBillboard(which: Billboard, x: number, y: number, w: number) {
+    return billboardPanel(this.sc, (o) => this.add(o), which, x - w / 2, y, w, w * 0.36);
+  }
+
+  // ------------------------------------------------------------------ ep 7's inserts
+
+  protected onInsert(id: string): number {
+    if (!id.startsWith("tcc_")) return super.onInsert(id);
+    this.clear();
+    this.shotKind = "insert";
+    const { SX, SY, SW, SH } = this.r;
+    if (id === "tcc_slide_seniors") {
+      // the slide, filling the screen: the mockup billboard against a bit of sky
+      this.backdrop(this.tex("tv_tcc_pitch"), { zoom: 1.6, blur: 2, tint: 0x6a6a6a, ox: SW * 0.45 });
+      this.add(this.sc.add.rectangle(this.cx, SY + SH * 0.47, SW * 0.86, SH * 0.8, 0x8fc8f0).setStrokeStyle(6, 0xf4f4f4));
+      this.billboardFrame("seniors", this.cx, SY + SH * 0.13, SW * 0.74);
+      this.add(this.text(SX + SW * 0.1, SY + SH * 0.1, "SLIDE 1 / 12", 12, "#1a2a4a", { fontStyle: "bold" }));
+      this.push(1.05, 3000, this.cx, SY + SH * 0.4);
+      return 900;
+    }
+    if (id === "tcc_newspaper") return this.newspaper();
+    if (id === "tcc_bb_all") {
+      // the lot of them, side by side, as the theme comes round again
+      this.backdrop(this.tex("tv_tcc_bb_highway"));
+      const order: Billboard[] = ["seniors", "refugees", "kids", "ds", "nuns"];
+      order.forEach((w, i) => this.later(i * 260, () => {
+        this.billboardFrame(w, SX + SW * (0.12 + i * 0.19), SY + SH * (0.06 + (i % 2) * 0.12), SW * 0.2);
+        this.sfx("pop");
+      }));
+      this.push(1.06, 3000, this.cx, SY + SH * 0.35);
+      return 2600;
+    }
+    const which = id.replace("tcc_bb_", "") as Billboard;
+    const at = MONTAGE_AT[which];
+    if (!at) return 0;
+    const bg = this.backdrop(this.tex(at.bg));
+    if (at.flip) bg.setFlipX(true);
+    const panel = this.billboardFrame(which, this.cx, SY + SH * 0.04, SW * 0.66);
+    // the poster goes up: a sheet of white pasted across from the left, revealing it
+    const cover = this.add(this.sc.add.rectangle(panel.x + panel.w, panel.y, panel.w, panel.h, 0xf4f4ee).setOrigin(1, 0));
+    this.sc.tweens.add({ targets: cover, scaleX: 0, duration: 650, delay: 150, ease: "Quad.out" });
+    this.sfx("swing");
+    this.later(800, () => this.sfx("pop"));
+    this.push(1.07, 2600, this.cx, SY + SH * 0.3);
+    return 2400;
+  }
+
+  /** Brenda's newspaper: the classic spin-in to the front page. */
+  private newspaper(): number {
+    const { SY, SW, SH } = this.r;
+    this.backdrop(this.tex("tv_tcc_bullpen"), { zoom: 1.4, blur: 3, tint: 0x777777 });
+    const W = SW * 0.62;
+    const H = SH * 0.86;
+    const paper = this.add(this.sc.add.container(this.cx, SY + SH / 2));
+    paper.add(this.sc.add.rectangle(0, 0, W, H, 0xf2ecd8).setStrokeStyle(2, 0x9a9070));
+    paper.add(this.text(0, -H / 2 + 22, "THE DAILY GAZETTE", 26, "#1a1a1a", { fontStyle: "bold" }).setOrigin(0.5));
+    paper.add(this.sc.add.rectangle(0, -H / 2 + 42, W - 30, 2, 0x1a1a1a));
+    paper.add(this.text(0, -H / 2 + 66, "BILLBOARD BACKLASH!", 30, "#9a1010", { fontStyle: "bold" }).setOrigin(0.5));
+    paper.add(this.text(0, -H / 2 + 92, "Law firm's “inclusive” campaign sparks citywide fury", 12, "#333333", { fontStyle: "italic" }).setOrigin(0.5));
+    // the photo: the billboard itself
+    const ph = this.sc.add.container(0, 0);
+    ph.add(this.sc.add.rectangle(0, 18, W - 40, H * 0.5, 0x8fc8f0));
+    paper.add(ph);
+    const panelW = W - 70;
+    const g = billboardPanel(this.sc, (o) => (ph.add(o), o), "ds", -panelW / 2, 18 - panelW * 0.18, panelW, panelW * 0.36);
+    void g;
+    for (let i = 0; i < 4; i++) paper.add(this.sc.add.rectangle(-W / 2 + 20 + (i % 2) * (W / 2 - 10), H / 2 - 40 + Math.floor(i / 2) * 12, W / 2 - 40, 4, 0xb0a890).setOrigin(0, 0.5));
+    paper.setScale(0.05).setAngle(-540);
+    this.sc.tweens.add({ targets: paper, scale: 1, angle: -3, duration: 900, ease: "Quad.out" });
+    this.sfx("swing");
+    this.later(900, () => this.sfx("tv_sting"));
+    return 2200;
   }
 
   /** Two-shot: closer, both of them. */
@@ -132,6 +363,7 @@ export class SitcomDirector extends ShowDirector {
   private bodies: Record<string, Phaser.GameObjects.Sprite> = {};
 
   private bodyOf(name: string) {
+    if (name === "JENNY CUMMING" && !this.props.has("wine") && this.tex(JENNY_DAY.key)) return JENNY_DAY;
     const b = BODY[name];
     return b && this.tex(b.key) ? b : null;
   }
@@ -149,7 +381,7 @@ export class SitcomDirector extends ShowDirector {
         const frame = o.pose === "asleep" && b.snore ? b.snore[0] : sit ? (b.sit ?? b.stand ?? 0) : (b.stand ?? b.sit ?? 0);
         s = this.add(this.sc.add.sprite(o.x, ground + (o.pose === "lap" ? -height * 0.28 : 0), b.key, frame).setOrigin(0.5, 1));
         this.realScale(s, (height * 1.5) / 160);
-        s.setFlipX(!sit && !!b.flipStand);
+        s.setFlipX(b.flip ?? (!sit && !!b.flipStand));
         if (o.pose === "asleep" && b.snore) {
           const [a, n] = b.snore;
           let k = 0;
@@ -157,6 +389,10 @@ export class SitcomDirector extends ShowDirector {
           this.every(420, () => spr.active && spr.setFrame(a + (++k % n)));
           this.zzz(s.x + 20, s.y - height * 1.4);
         }
+      } else if (o.pose === "bust") {
+        // sat behind a table: their close-up sheet, from the chest up
+        s = this.bust(name, o.x, ground - height * 0.12, height * 1.02);
+        if (!s) continue;
       } else {
         s = this.body(name, o.x, ground + (sit ? 10 : 0), height);
         if (!s) continue;
@@ -222,6 +458,9 @@ export class SitcomDirector extends ShowDirector {
         p.spr.setFrame(F.ALARM);
       } else if (/groggy/.test(e)) {
         p.base = F.NEUTRAL;
+      } else if (/squint/.test(e) && p.frames > F.SPECIAL) {
+        p.base = F.SPECIAL;
+        p.spr.setFrame(F.SPECIAL);
       }
     }
     this.talk(p, name, text, emotion);
@@ -250,7 +489,54 @@ export class SitcomDirector extends ShowDirector {
       if (this.shotKind !== "wide") this.wide();
       return 0;
     }
-    if (/enters/i.test(a)) return this.entrance();
+    if (/enters|walks in|storms in/i.test(a)) return this.entrance();
+    if (/^EXT\..*NIGHT/i.test(a) || /^MONTAGE/i.test(a)) return 0;
+    if (/sipping on a neon green juice/i.test(a)) {
+      const p = this.single("LILA MINT", { side: this.sideOf("LILA MINT"), bg: this.setKey(), recut: true });
+      if (p) this.push(1.05, 1800, p.spr.x, p.spr.y - 220);
+      this.shotKind = "single";
+      this.sfx("slurp");
+      return 700;
+    }
+    if (/first slide/i.test(a)) {
+      this.props.add("slide");
+      this.wide(false);
+      this.sfx("tap");
+      return 500;
+    }
+    if (/out the window|stare in horror/i.test(a)) {
+      // the room, then a push in on what they're looking at
+      this.wide(false);
+      const bb = SET_BILLBOARD[this.setKey()];
+      if (bb) {
+        const p = this.setPt(bb.x, bb.y + bb.w * 0.3);
+        this.push(1.35, 2600, p.x, p.y);
+      }
+      return 1200;
+    }
+    if (/phones ringing/i.test(a)) {
+      this.wide();
+      this.ringing();
+      return 900;
+    }
+    if (/steps up to the podium/i.test(a)) {
+      this.wide();
+      return 600;
+    }
+    if (/^EXT\./i.test(a)) {
+      this.wide();
+      return 900;
+    }
+    if (/leans back, raising an eyebrow/i.test(a)) {
+      const c = this.react("CHRISTOPHER THICK", F.NEUTRAL, { side: 1, bg: this.setKey() });
+      if (c) this.sc.tweens.add({ targets: c.spr, angle: -3, y: c.y + 6, duration: 500, ease: "Sine.easeOut" });
+      this.later(1300, () => {
+        const j = this.single("JENNY CUMMING", { side: -0.6, bg: this.setKey(), scale: 3.45, zoom: 2, recut: true, expr: F.SPECIAL });
+        if (j) this.push(1.06, 2200, j.spr.x, j.spr.y - 240);
+      });
+      this.shotKind = "single";
+      return 1900;
+    }
     if (/stops smiling/i.test(a)) {
       const p = this.react("CHRISTOPHER THICK", F.NEUTRAL, { side: 1, bg: this.setKey() });
       if (p) {
@@ -330,10 +616,10 @@ export class SitcomDirector extends ShowDirector {
     const s = this.bodies[who];
     o.x = tx;
     if (!s) return 0;
-    s.setFlipX(true);
+    const b = this.bodyOf(who);
+    s.setFlipX(!b || !!b.flipStand);
     this.sfx("door");
     this.sc.tweens.add({ targets: s, x: tx, duration: 1300, ease: "Sine.easeOut" });
-    const b = this.bodyOf(who);
     if (b?.walk) {
       // the swagger in
       const [a, n] = b.walk;
@@ -378,6 +664,16 @@ export class SitcomDirector extends ShowDirector {
   protected onBlocking(name: string, to: string, pose?: string): number {
     if (this.nyc) return 0;
     const o = this.place(name);
+    // "sit@0.4": the pose, and where across the set (a fraction of the picture's width)
+    const at = pose?.match(/^(.*)@([\d.]+)$/);
+    if (at) {
+      o.x = this.r.SX + this.r.SW * Number(at[2]);
+      pose = at[1] || "stand";
+    } else if (to === "center") o.x = this.cx;
+    if (pose === "bust") {
+      o.pose = "bust";
+      return 0;
+    }
     if (to === "enter") {
       o.pose = "enter";
       return 0;
@@ -419,6 +715,8 @@ export class SitcomDirector extends ShowDirector {
   /** On a laugh, the picture stays on the punchline: whoever's reacting gets the close-up. */
   protected onAudience(cue: string): number {
     if (this.nyc || this.frozen) return 0;
+    // over a slide / a billboard / the paper, the laugh plays over the picture
+    if (this.shotKind === "insert" && cue !== "biglaugh") return 0;
     if (cue === "biglaugh") {
       this.studioAudience();
       return 0;
@@ -608,7 +906,7 @@ export class SitcomDirector extends ShowDirector {
     if (this.tex(faceKeyOf("JENNY CUMMING"))) this.add(this.sc.add.sprite(SX + SW * 0.25, SY + SH + 6, faceKeyOf("JENNY CUMMING"), F.LAUGH).setOrigin(0.5, 1).setScale(2.6).setAlpha(0.45));
     if (this.tex(faceKeyOf("CHRISTOPHER THICK"))) this.add(this.sc.add.sprite(SX + SW * 0.75, SY + SH + 6, faceKeyOf("CHRISTOPHER THICK"), F.LAUGH).setOrigin(0.5, 1).setScale(2.6).setAlpha(0.45));
     const roll = this.add(this.sc.add.container(this.cx, SY + SH + 20));
-    const lines = ["THICK CUMMING COCK", "", ...t.split("\n").slice(1), "", "STARRING", "Christopher Thick", "Jenny Cumming", "", "Filmed in front of a live studio audience", "(they have since been released)"];
+    const lines = ["THICK CUMMING COCK", "", ...t.split("\n").slice(1), "", "STARRING", "Christopher Thick", "Jenny Cumming", "John Cock", "", "with", "Lila Mint", "Brenda", "", "Filmed in front of a live studio audience", "(they have since been released)"];
     lines.forEach((l, i) => roll.add(this.text(0, i * 26, l, i === 0 ? 24 : 15, i === 0 ? "#ffe14a" : "#ffffff", { fontStyle: i === 0 || l === "STARRING" ? "bold" : "normal", align: "center", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5, 0)));
     this.sc.tweens.add({ targets: roll, y: SY - lines.length * 26 + 140, duration: 6000, ease: "Linear" });
     return 3000;

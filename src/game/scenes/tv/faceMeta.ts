@@ -126,3 +126,17 @@ Object.assign(FACE_META, {
   P2_CHRISTOPHER_THICK: { base: 7, lip: false, gest: [[16, 8]] },
   P2_JENNY_CUMMING: { base: 7, lip: false, gest: [[16, 8]] },
 });
+
+// Thick Cumming Cock ep 7's new cast (PixelLab, in the style of the P2 sheets): 0 neutral, 1 talk, 2 alarm, 3 blink,
+// 4 gesture (= talk), 5 laugh, 6 special (Grandma 1 squinting), 7 neutral. No mouth shapes or gesture animations.
+// TCC_REPORTER is played by Sitcom.ts for TCC's "REPORTER" (other shows' reporters keep their own look).
+Object.assign(FACE_META, {
+  LILA_MINT: { base: 7, lip: false, gest: [] },
+  JOHN_COCK: { base: 7, lip: false, gest: [] },
+  BRENDA: { base: 7, lip: false, gest: [] },
+  GRANDMA_1: { base: 7, lip: false, gest: [] },
+  GRANDMA_2: { base: 7, lip: false, gest: [] },
+  MOM_1: { base: 7, lip: false, gest: [] },
+  MOM_2: { base: 7, lip: false, gest: [] },
+  TCC_REPORTER: { base: 7, lip: false, gest: [] },
+});

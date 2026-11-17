@@ -8,7 +8,7 @@ import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 // - FIFA: Audience: the Hillsborough level is cut.
 // - Dickinson for President: the "very young Filipina" scene is cut, and Trump storms off
 //   instead of shooting himself.
-// Not included: Chomsky's "polyamorous triad", Corbyn in Jo Cox's constituency, "Reality Show",
+// Not included: Corbyn in Jo Cox's constituency, "Reality Show",
 // and "The Story of Jenko's Childhood".
 
 const NEWS = "GB KREWS 24";
@@ -73,6 +73,27 @@ NEWSREADER: Adding to the already frenzied atmosphere, rumors have circulated th
 NEWSREADER: If true, the implications are dire, as it could mean that three nefarious individuals might be on the brink of receiving one brain each, or perhaps two individuals receiving one and a half brains each.
 NEWSREADER: The thought of such a scenario has left authorities and citizens alike on edge, with the specter of an intellectual coup looming large.
 NEWSREADER: As the nation grapples with this unprecedented crisis, the search for Chomsky's brain intensifies, with the fate of the country hanging in the balance. The race to reclaim the missing brain has never been more urgent.
+[FADE]
+`,
+);
+
+export const KREWS_CHOMSKY_TRIAD = ep(
+  "krews_chomsky_triad",
+  NEWS,
+  "GB Krews",
+  "Chomsky's Afterlife Triad",
+  45,
+  `${NEWS_OPEN}
+# CHOMSKY REVEALS PLANS FOR POLYAMOROUS TRIAD IN AFTERLIFE
+NEWSREADER: Noam Chomsky, the renowned linguist and political activist, has shocked the world with his latest revelation in a recent media profile.
+NEWSREADER: In a candid interview, Chomsky disclosed his plans to invite his first wife, Carole, to join a "polyamorous triad" with his current wife, Valeria, in the afterlife.
+NEWSREADER: Chomsky, known for his groundbreaking theories on language and cognition, boldly stated that intelligent humans have evolved past monogamy.
+EXT. HIGH STREET - DAY
+REPORTER: As he delved into his vision for the afterlife, Chomsky went on an extended tangent, painting a vivid picture of how the arrangement would unfold.
+REPORTER: With a mischievous glint in his eye, he frequently paused to say "mmm" and reached to unbuckle his belt, before stopping himself with a chuckle.
+REPORTER: "I'd be behind Valeria whilst Carole... mmm, I can't say that out loud," he muttered, his words trailing off.
+INT. NEWSDESK - DAY
+NEWSREADER: Professor Chomsky's office has not commented.
 [FADE]
 `,
 );
@@ -656,6 +677,7 @@ CROWD MEMBER 3: Set that fucking dog on him!
 
 export const KREWS3_EPISODES: TVEpisode[] = [
   KREWS_CHOMSKY_SHARKS,
+  KREWS_CHOMSKY_TRIAD,
   KREWS_CHOMSKY_BRAIN,
   KREWS_CHOMSKY_WEBSITE,
   KREWS_CARTER,

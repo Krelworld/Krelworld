@@ -128,6 +128,12 @@ export const KREWS1_NEWS: Record<string, NewsCfg> = {
     ots: [],
     straps: { OFFICIAL: ["Government source", "Identity withheld"] },
   },
+  krews_chomsky_triad: {
+    brand: "gbk",
+    ticker: ["Chomsky plans 'polyamorous triad' in the afterlife", "'Intelligent humans have evolved past monogamy'", "Interview paused several times for belt reasons"],
+    scenes: [STUDIO, HIGH_STREET],
+    ots: [],
+  },
   krews_chomsky_website: {
     brand: "gbk",
     ticker: ["$500 billion Chomsky brain map yields a single phrase", "'web site... new web site.'", "Our website is also new"],

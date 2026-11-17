@@ -11,8 +11,6 @@ export const KREWS4_ANCHORS: Record<string, AnchorDef> = {
   "CHEF MICK": { key: "tvanchor_K4_MICK", poses: ["rest", "plead"], talks: [true, true] },
   "CHEF LUCY": { key: "tvanchor_K4_LUCY", poses: ["rest"], talks: [true] },
   "CHEF DAVE": { key: "tvanchor_K4_DAVE", poses: ["rest"], talks: [true] },
-  "TONY SOPRANO": { key: "tvanchor_K4_TONY", poses: ["rest", "brick"], talks: [true, false] },
-  "CARMELA SOPRANO": { key: "tvanchor_K4_CARMELA", poses: ["rest"], talks: [true] },
   "MILITARY SPOKESPERSON": { key: "tvanchor_K4_MILITARY", poses: ["rest"], talks: [true] },
   "NINTENDO SPOKESPERSON": { key: "tvanchor_K4_NINTENDO", poses: ["rest", "wide"], talks: [true, true] },
   "JUICE BUNNY": { key: "tvanchor_K4_BUNNY", poses: ["rest", "swoon"], talks: [true, false] },
@@ -40,8 +38,6 @@ export function krews4Gesture(name: string, text: string, n: number): string[] |
       return [["rest", "wide"], ["wide", "rest"]][n % 2];
     case "JUICE BUNNY":
       return /affections/.test(t) ? ["rest", "swoon"] : ["rest"];
-    case "TONY SOPRANO":
-    case "CARMELA SOPRANO":
     case "CHEF LUCY":
     case "CHEF DAVE":
     case "MILITARY SPOKESPERSON":

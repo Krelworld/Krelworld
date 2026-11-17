@@ -13,11 +13,11 @@ export const KT_OPEN: Line[] = [
 ];
 
 export const KT_ARRIVE: Line[] = [
-  say("PRESIDENT KLERBLE", "YES! YES! YESSS!"),
+  say("PRESIDENT KLERBLE", "YES! YES! YESSS!", { cine: "sting|ss_sting_reveal;cut|c6a_cut_klerble|right|0xff4fd8|1300" }),
   say("KREDDLER", "I touched his epaulette! I'm never washing my hand again! I've never washed it anyway!"),
   say("KREDDLER", "KLERBLE! KLERBLE! He bet the railway and WON it back by lunchtime!"),
   say("PRESIDENT KLERBLE", "People of Kreddle! Today your President does what no President has ever done!"),
-  say("PRESIDENT KLERBLE", "I am going to drive a train… into Krelworld… and see what happens!"),
+  say("PRESIDENT KLERBLE", "I am going to drive a train… into Krelworld… and see what happens!", { cineAfter: "speed|0xff4fd8;slam|THE BRAVEST MAN ALIVE?|#ff4fd8|48;wait|700" }),
   say("KREDDLER", "THE BRAVEST MAN WHO HAS EVER LIVED!!"),
 ];
 
@@ -25,7 +25,7 @@ export const KT_DRIVER: Line[] = [
   say("TRAIN DRIVER", "Mr President, sir, with respect, I'm the driver, and this is the 6:66 to—"),
   say("PRESIDENT KLERBLE", "YES!"),
   dir("President Klerble picks the driver up by his lanyard and posts him through the window of a slot machine. It pays out three cherries."),
-  say("TRAIN DRIVER", "(from inside the slot machine) …that's fair actually."),
+  say("TRAIN DRIVER", "(from inside the slot machine) …that's fair actually.", { cineAfter: "freeze|PAYOUT: THREE CHERRIES." }),
   say("PRESIDENT KLERBLE", "I commandeer this train in the name of KREDDLE! And of gambling! And of ME!"),
 ];
 
@@ -48,7 +48,7 @@ export const KT_KRUNCHERS: Line[] = [
 
 export const KT_DEPART: Line[] = [
   say("PRESIDENT KLERBLE", "Full speed! Fuller than full speed! Put it on RED!"),
-  say("PRESIDENT KLERBLE", "YES! YES! YESSSSSSS!!"),
+  say("PRESIDENT KLERBLE", "YES! YES! YESSSSSSS!!", { cine: "speed|0xff4fd8;cut|c6a_cut_klerble|left|0xff4fd8|1100" }),
   say("STATION ANNOUNCER", "Ding-dong. The Kreddle Express is now departing. Please stand back from the edge of the platform. Or don't. This is Kreddle."),
 ];
 

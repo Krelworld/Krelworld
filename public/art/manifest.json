@@ -8971,6 +8971,57 @@
   },
   "ddk_unicorn_burst": {
    "file": "props/ddk_unicorn_burst.png"
+  },
+  "ss_cut_boggor": {
+   "file": "ss/ss_cut_boggor.png"
+  },
+  "ss_cut_drongus_stare": {
+   "file": "ss/ss_cut_drongus_stare.png"
+  },
+  "ss_cut_eden_flat": {
+   "file": "ss/ss_cut_eden_flat.png"
+  },
+  "ss_cut_gronny": {
+   "file": "ss/ss_cut_gronny.png"
+  },
+  "ss_cut_mum": {
+   "file": "ss/ss_cut_mum.png"
+  },
+  "ss_cut_polson_grin": {
+   "file": "ss/ss_cut_polson_grin.png"
+  },
+  "ss_cut_sanmik": {
+   "file": "ss/ss_cut_sanmik.png"
+  },
+  "ss_cut_scrombus": {
+   "file": "ss/ss_cut_scrombus.png"
+  },
+  "ss_still_bench": {
+   "file": "ss/ss_still_bench.png"
+  },
+  "ss_still_boggor": {
+   "file": "ss/ss_still_boggor.png"
+  },
+  "ss_still_creatine": {
+   "file": "ss/ss_still_creatine.png"
+  },
+  "ss_still_deathfart": {
+   "file": "ss/ss_still_deathfart.png"
+  },
+  "ss_still_gino": {
+   "file": "ss/ss_still_gino.png"
+  },
+  "ss_still_grazie": {
+   "file": "ss/ss_still_grazie.png"
+  },
+  "ss_still_planetrain": {
+   "file": "ss/ss_still_planetrain.png"
+  },
+  "ss_still_turnstile": {
+   "file": "ss/ss_still_turnstile.png"
+  },
+  "ss_still_rival": {
+   "file": "ss/ss_still_rival.png"
   }
  },
  "sheets": {
@@ -11802,6 +11853,91 @@
    "file": "props/p_treadmill_anim.png",
    "frameWidth": 82,
    "frameHeight": 67
+  },
+  "ss_cut_boggor_anim": {
+   "file": "ss/ss_cut_boggor_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "ss_cut_drongus_stare_anim": {
+   "file": "ss/ss_cut_drongus_stare_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "ss_cut_gronny_anim": {
+   "file": "ss/ss_cut_gronny_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "ss_cut_mum_anim": {
+   "file": "ss/ss_cut_mum_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "ss_cut_polson_grin_anim": {
+   "file": "ss/ss_cut_polson_grin_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "ss_cut_sanmik_anim": {
+   "file": "ss/ss_cut_sanmik_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "ss_cut_scrombus_anim": {
+   "file": "ss/ss_cut_scrombus_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "ss_still_bench_anim": {
+   "file": "ss/ss_still_bench_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "ss_still_boggor_anim": {
+   "file": "ss/ss_still_boggor_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "ss_still_creatine_anim": {
+   "file": "ss/ss_still_creatine_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "ss_still_deathfart_anim": {
+   "file": "ss/ss_still_deathfart_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "ss_still_gino_anim": {
+   "file": "ss/ss_still_gino_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "ss_still_grazie_anim": {
+   "file": "ss/ss_still_grazie_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "ss_still_planetrain_anim": {
+   "file": "ss/ss_still_planetrain_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "ss_still_turnstile_anim": {
+   "file": "ss/ss_still_turnstile_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "ss_cut_eden_flat_anim": {
+   "file": "ss/ss_cut_eden_flat_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "ss_still_rival_anim": {
+   "file": "ss/ss_still_rival_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
   }
  },
  "vfx": {

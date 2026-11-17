@@ -38,6 +38,12 @@ export const AUDIO_FILES: Record<string, string> = {
   drongus_cackle_3: "audio/sfx/drongus_cackle_3.mp3",
   drongus_cackle_4: "audio/sfx/drongus_cackle_4.mp3",
   drongus_cackle_5: "audio/sfx/drongus_cackle_5.mp3",
+  /** Side-story anime beats (gfx/SideCine.ts, ElevenLabs): the freeze-frame's record scratch and the stingers. */
+  ss_scratch: "audio/ss_scratch.mp3",
+  ss_sting_comedy: "audio/ss_sting_comedy.mp3",
+  ss_sting_reveal: "audio/ss_sting_reveal.mp3",
+  ss_sting_title: "audio/ss_sting_title.mp3",
+  ss_sting_awkward: "audio/ss_sting_awkward.mp3",
 };
 
 /** Where each separate shout sits in those files: [start, length] in seconds. */

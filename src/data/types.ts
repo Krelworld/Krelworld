@@ -114,6 +114,12 @@ export interface Line {
   tv?: string;
   /** A staged moment in the room as this line shows (e.g. "robbo_enter"): see TownMeetingScene.fx. */
   fx?: string;
+  /**
+   * An anime beat before this line shows (a drawn still, a face cut-in, a freeze-frame, a slam, a stinger…), and/or
+   * once it's been read: see gfx/SideCine.ts for the cue format. Skippable like the line itself.
+   */
+  cine?: string;
+  cineAfter?: string;
 }
 
 export interface MeetingScript {

@@ -85,10 +85,11 @@ const BUILDINGS: Building[] = [
   { id: "POLICE", name: "KRELFORD CONSTABULARY", x: 1700, y: 1670, w: 240, h: 130, wall: 0x1e3a8a, roof: 0x111827, door: { x: 1700, y: 1735 } },
   { id: "CROBLEY_FACTORY", name: "CROBLEY CORP HQ (THE CROBLEY FACTORY)", x: 1660, y: 1255, w: 288, h: 224, wall: 0xf472b6, roof: 0x334155, door: { x: 1660, y: 1367 } },
   { id: "OLD_FLAT", name: "YOUR OLD FLAT", x: 700, y: 1650, w: 200, h: 130, wall: 0x9a8a7a, roof: 0x5a3a2a, door: { x: 700, y: 1715 } },
+  // a red-brick terrace on the east edge (the id is still POLSON_ROAD: chapters, arcs and saves all point at it)
+  { id: "POLSON_ROAD", name: "POLSON TOWERS", x: 2470, y: 970, w: 168, h: 160, wall: 0xa0442c, roof: 0x3a2a24, door: { x: 2470, y: 1050 } },
 ];
 
 const GATES: { id: string; name: string; x: number; y: number }[] = [
-  { id: "POLSON_ROAD", name: "→ POLSON TOWERS", x: 2500, y: 1010 },
   { id: "AIRPORT", name: "→ KRELFORD INTERNATIONAL", x: 2500, y: 1650 },
   { id: "KREDDLE_BRIDGE", name: "← THE KREDDLE BRIDGE (casinos, arcades, hostility)", x: 70, y: 825 },
 ];
@@ -739,7 +740,9 @@ export class HubScene extends Phaser.Scene {
       [300, 1500, 2000, 70],
       [500, 560, 1700, 60],
       [200, 1000, 70, 700],
-      [2400, 860, 160, 290],
+      // the street in front of Polson Towers
+      [2340, 1045, 220, 105],
+      [2340, 860, 60, 200],
     ]) scorched(this.add.tileSprite(x, y, w, h, "tile_road").setOrigin(0).setDepth(0), 0x5a4c48);
     // plaza
     scorched(this.add.tileSprite(1060, 650, 440, 340, "tile_cobble").setOrigin(0).setDepth(0), 0x5a4c48);
@@ -833,7 +836,7 @@ export class HubScene extends Phaser.Scene {
       const [x, y] = treeSpots[i];
       if (this.nearBuilding(x, y, 70) || (Math.abs(x - 1280) < 90) || (y > 760 && y < 900) || (y > 1480 && y < 1590)) continue;
       // keep the side roads and paths clear too
-      if ([[80, 780, WORLD_W, 870], [300, 1500, 2300, 1570], [500, 560, 2200, 620], [200, 1000, 270, 1700], [2400, 860, 2560, 1150], [1060, 650, 1500, 990]].some(([x0, y0, x1, y1]) => x > x0 - 40 && x < x1 + 40 && y > y0 - 50 && y < y1 + 40)) continue;
+      if ([[80, 780, WORLD_W, 870], [300, 1500, 2300, 1570], [500, 560, 2200, 620], [200, 1000, 270, 1700], [2340, 860, 2560, 1150], [1060, 650, 1500, 990]].some(([x0, y0, x1, y1]) => x > x0 - 40 && x < x1 + 40 && y > y0 - 50 && y < y1 + 40)) continue;
       if (BUILDINGS.some((b) => b.door && Math.abs(x - b.door.x) < 80 && y > b.door.y - 20 && y < b.door.y + 120)) continue;
       if (Object.values(NPC_SPOTS).some((p) => Math.hypot(p.x - x, p.y - y) < 60)) continue;
       if (this.ruined) {
@@ -917,7 +920,7 @@ export class HubScene extends Phaser.Scene {
       [300, 1500, 2300, 1570],
       [500, 560, 2200, 620],
       [200, 1000, 270, 1700],
-      [2400, 860, 2560, 1150],
+      [2340, 860, 2560, 1150],
       [1060, 650, 1500, 990],
     ];
     const onRoad = (x: number, y: number, m = 20) => ROADS.some(([x0, y0, x1, y1]) => x > x0 - m && x < x1 + m && y > y0 - m && y < y1 + m);
@@ -1538,6 +1541,8 @@ export class HubScene extends Phaser.Scene {
       this.colliders.add(this.add.rectangle(b.x, b.y + b.h * 0.12, b.w * 0.86, b.h * 0.7, 0, 0));
       if (key === "bld_CROBLEY_FACTORY_RUIN" || key === "bld_WILDERN_RUIN") this.smoulder(b);
       else if (b.id === "CITADEL") this.towerFx(b, img);
+      // Polson Towers after Chapter 6: the lights are off
+      else if (b.id === "POLSON_ROAD" && G.s.flags.polson_dead) img.setTint(0x8a8aa8);
       else this.neonGlow(b.x, b.y - b.h * 0.25, Math.max(60, b.w * 0.45));
       void img;
       return;
@@ -3089,7 +3094,13 @@ You are required by law to sign the Sex Offenders Register.`, {
       }
     }
     if (best && !this.busy && !this.cutscene) {
-      this.prompt.setText(`E: ${best.label()}`).setPosition(this.av.x, this.av.y - 50).setVisible(true);
+      this.prompt.setText(`E: ${best.label()}`).setVisible(true);
+      // keep the whole label on screen (doors at the world's edges, like Polson Towers)
+      {
+        const v = this.cameras.main.worldView;
+        const half = this.prompt.displayWidth / 2 + 6;
+        this.prompt.setPosition(Phaser.Math.Clamp(this.av.x, v.x + half, Math.max(v.x + half, v.right - half)), this.av.y - 50);
+      }
       if (this.controls.interact()) {
         this.prompt.setVisible(false);
         best.use();

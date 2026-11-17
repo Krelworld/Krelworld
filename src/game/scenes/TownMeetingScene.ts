@@ -410,10 +410,14 @@ export class TownMeetingScene extends Phaser.Scene {
    */
   private withSanmikMoment(m: MeetingScript) {
     const beats = [...m.beats];
-    if (m.historical || G.s.player === "MIKEY" || !this.seats.MIKEY || !this.textures.exists("spr_SANMIK") || (Math.random() > 0.35 && !(window as any).__forceSanmik)) return beats;
+    if (m.historical || G.s.player === "MIKEY" || !this.seats.MIKEY || !this.textures.exists("spr_SANMIK")) return beats;
+    // the first briefing Mikey speaks in, he always does it (so you see it at least once); after that, now and then
+    const seen = !!G.s.flags.sanmik_brief_seen;
+    if (seen && Math.random() > 0.4 && !(window as any).__forceSanmik) return beats;
     // only in meetings where Mikey actually speaks, and always before his first line (so every line he says is SanMik's)
     const first = beats.findIndex((b) => b.s === "MIKEY" && !b.dir && !!b.t && !b.notify && evalCond(b.cond, G.s));
     if (first < 0) return beats;
+    G.s.flags.sanmik_brief_seen = true;
     beats.splice(first, 0, say("MIKEY", "Hang on, time to transform into SanMik", { fx: "sanmik_transform" }));
     return beats;
   }
@@ -435,6 +439,12 @@ export class TownMeetingScene extends Phaser.Scene {
       onComplete: () => {
         spr.setTexture("spr_SANMIK", 0).setScale(2.4);
         seat.plate.setText("SANMIK").setColor(hexStr(CHARACTERS.SANMIK?.color ?? 0xb0c4ff));
+        // the reveal: a pop of light and the name, big
+        if (!G.meta?.settings?.calmFlash) this.cameras.main.flash(160, 200, 215, 255);
+        const tag = this.add.text(seat.x, seat.y - 70, "SANMIK!", { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#b0c4ff", stroke: "#1e1b4b", strokeThickness: 7 }).setOrigin(0.5).setDepth(spr.depth + 3).setScale(0.3);
+        this.tweens.add({ targets: tag, scale: 1, duration: 260, ease: "Back.out" });
+        this.tweens.add({ targets: tag, alpha: 0, y: tag.y - 30, delay: 1300, duration: 500, onComplete: () => tag.destroy() });
+        synth.play("ding");
       },
     });
     for (let i = 0; i < 14; i++) {

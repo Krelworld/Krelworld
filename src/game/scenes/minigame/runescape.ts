@@ -116,6 +116,8 @@ export function runescape(host: RsHost) {
   const inv: (Tier | null)[] = new Array(28).fill(null);
   // session time, counted from (clamped) frame deltas: a stalled frame or a hidden tab never eats the session
   let elapsed = 0;
+  /** the game clock for chops, rings and logs: the same clamped deltas, so all of it slows together on a stalled frame */
+  let clock = 0;
 
   // ---------------------------------------------------------------- frame
   const px = sc.textures.exists("rs_px") ? null : sc.add.graphics().fillStyle(0xffffff).fillRect(0, 0, 4, 4);
@@ -429,7 +431,7 @@ export function runescape(host: RsHost) {
     return { x: g.x, y: g.y };
   };
   const goTo = (g: Goal) => {
-    if (sc.time.now < busyUntil) return;
+    if (clock < busyUntil) return;
     stopChop();
     goal = g;
     const p = standFor(g);
@@ -463,11 +465,11 @@ export function runescape(host: RsHost) {
     chopping = true;
     me.setData("facing", t.x > me.x ? "east" : "west");
     game("You swing your axe at the tree.");
-    swingAt = sc.time.now;
+    swingAt = clock;
     newCycle();
   };
   const newCycle = () => {
-    const now = sc.time.now;
+    const now = clock;
     cycleStart = now;
     logAt = now + (manic() ? Phaser.Math.Between(900, 1500) : Phaser.Math.Between(3000, 4000));
     killRing();
@@ -476,12 +478,12 @@ export function runescape(host: RsHost) {
 
   // the timing ring: a shrinking circle closes on a fixed one; tap / SPACE as they meet for a quick log and bonus XP
   const RING_IN = 16, RING_OUT = 48, RING_MS = 520;
-  const ringR = () => (ring ? RING_OUT - ((RING_OUT - RING_IN) * (sc.time.now - ring.t0)) / RING_MS : 0);
+  const ringR = () => (ring ? RING_OUT - ((RING_OUT - RING_IN) * (clock - ring.t0)) / RING_MS : 0);
   const spawnRing = (t: Tree) => {
     const x = t.x, y = t.y - t.img.displayHeight * 0.55;
     const inner = sc.add.circle(x, y, RING_IN).setStrokeStyle(3, 0xffffff, 0.9).setDepth(86);
     const outer = sc.add.circle(x, y, RING_OUT).setStrokeStyle(3, 0x00ff66).setDepth(86);
-    ring = { x, y, t0: sc.time.now, outer, inner };
+    ring = { x, y, t0: clock, outer, inner };
   };
   function killRing() {
     if (!ring) return;
@@ -524,8 +526,8 @@ export function runescape(host: RsHost) {
     const t = txt(0, 0, `+${fmt(n)}`, perfect ? "#ffd23f" : "#ffffff", 14, 83, PIXEL_BOLD).setOrigin(0, 0.5);
     if (ic) c.add(ic);
     c.add(t);
-    sc.tweens.add({ targets: c, y: VY + 34, duration: 1300, ease: "Sine.in", onComplete: () => c.destroy() });
-    sc.tweens.add({ targets: c, alpha: 0, delay: 1000, duration: 300 });
+    sc.tweens.add({ targets: c, y: VY + 72, duration: 1150, ease: "Sine.in", onComplete: () => c.destroy() });
+    sc.tweens.add({ targets: c, alpha: 0, delay: 850, duration: 300 });
   };
 
   const getLog = (t: Tree, mult = 1) => {
@@ -584,8 +586,8 @@ export function runescape(host: RsHost) {
   let fullWarned = 0;
   const fullInv = () => {
     stopChop();
-    if (sc.time.now - fullWarned < 1500) return;
-    fullWarned = sc.time.now;
+    if (clock - fullWarned < 1500) return;
+    fullWarned = clock;
     game("Your inventory is too full to hold any more logs.");
     say(me, "Bank it or drop it, son.");
     invFullFlash.setFillStyle(0xff0000, 0.25);
@@ -611,7 +613,7 @@ export function runescape(host: RsHost) {
   };
   const bank = () => {
     const n = invCount();
-    busyUntil = sc.time.now + 500;
+    busyUntil = clock + 500;
     synth.play("rs_bank", 0.8);
     if (!n) return void game("You have nothing to deposit.");
     banked += n;
@@ -632,17 +634,17 @@ export function runescape(host: RsHost) {
       targets: gary,
       x: GARY_SPOT.x,
       duration: 900,
-      onUpdate: () => animateWalker(gary, -1, 0, true, sc.time.now),
+      onUpdate: () => animateWalker(gary, -1, 0, true, clock),
       onComplete: () => {
         garyState = "here";
-        animateWalker(gary, -1, 0, false, sc.time.now);
+        animateWalker(gary, -1, 0, false, clock);
         say(gary, "Kreblis! Gary would like a word.", 2600);
         if (garyCalled) goTo({ kind: "gary" });
       },
     });
   };
   const callGary = (byPlayer: boolean) => {
-    if (sc.time.now < busyUntil) return;
+    if (clock < busyUntil) return;
     if (byPlayer && gear >= 85 && garyState === "away") return void game("You've got plenty of gear. (For now.)");
     garyCalled = byPlayer || garyCalled;
     if (garyState === "here") goTo({ kind: "gary" });
@@ -651,7 +653,7 @@ export function runescape(host: RsHost) {
   const trade = () => {
     garyCalled = false;
     reups++;
-    busyUntil = sc.time.now + 900;
+    busyUntil = clock + 900;
     stopChop();
     synth.play("door");
     say(gary, GARY_LINES[(reups - 1) % GARY_LINES.length], 1600);
@@ -668,7 +670,7 @@ export function runescape(host: RsHost) {
         x: VX + VW + 40,
         delay: 400,
         duration: 900,
-        onUpdate: () => animateWalker(gary, 1, 0, true, sc.time.now),
+        onUpdate: () => animateWalker(gary, 1, 0, true, clock),
         onComplete: () => {
           garyState = "away";
           gary.setVisible(false);
@@ -716,7 +718,7 @@ export function runescape(host: RsHost) {
       lvl2.setText(`Your Woodcutting level is now ${to}.`);
       lvlBox.setVisible(true);
       lvlZone.setInteractive({ useHandCursor: true });
-      lvlHideAt = sc.time.now + 2400;
+      lvlHideAt = clock + 2400;
     }
     for (const tier of unlocked) {
       game(`You can now chop ${tier.name === "Magic tree" ? "Magic trees" : `${tier.name} trees`}!`);
@@ -810,9 +812,10 @@ export function runescape(host: RsHost) {
   const onUpdate = (_t: number, dtMs: number) => {
     if (over()) return;
     if (host.box.active) return;
-    const now = sc.time.now;
     const dt = Math.min(dtMs, 100) / 1000;
     elapsed += dt;
+    clock += dt * 1000;
+    const now = clock;
 
     // walking
     if (walkTo) {
@@ -947,7 +950,7 @@ export function runescape(host: RsHost) {
     get won() { return won; },
     get ring() { return ring ? { x: ring.x, y: ring.y, r: ringR(), target: RING_IN } : null; },
     get gary() { return garyState === "here" ? { x: gary.x, y: gary.y - 30 } : null; },
-    get busy() { return sc.time.now < busyUntil; },
+    get busy() { return clock < busyUntil; },
     trees: () => trees.map((t) => ({ x: t.x, y: t.y - 40, down: t.down, req: t.tier.req, name: t.tier.name })),
     chest: { x: CHEST[0], y: CHEST[1] - 18 },
     stats: () => ({ reups, logsTotal, banked, dropped, perfects, xp: xpAt(L), t: elapsed }),

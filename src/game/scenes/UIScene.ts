@@ -14,6 +14,7 @@ import { TouchControls, isTouchDevice } from "../ui/TouchControls";
 import { ammoLabel, weaponIcon, weaponList } from "../ui/weapons";
 import { DRONGUS_STATUSES } from "../../content/dialogue/drongusStatuses";
 import { playerFace, sanmikActive } from "../systems/sanmik";
+import type { ShieldHud } from "../combat/BossShield";
 
 interface Toast {
   c: Phaser.GameObjects.Container;
@@ -55,7 +56,7 @@ export class UIScene extends Phaser.Scene {
   private kzT!: Phaser.GameObjects.Text;
   private timerT!: Phaser.GameObjects.Text;
   private toasts: Toast[] = [];
-  private boss: { name: string; hp: number; max: number; shielded: boolean } | null = null;
+  private boss: { name: string; hp: number; max: number; shielded: boolean; shield?: ShieldHud } | null = null;
   private rule: string | null = null;
   private conflictUntil = 0;
   private rename: string | null = null;
@@ -529,11 +530,27 @@ export class UIScene extends Phaser.Scene {
       const b = this.boss;
       g.fillStyle(0x000000, 0.75);
       g.fillRect(180, 506, 600, 16);
-      g.fillStyle(b.shielded ? 0x88aaff : 0xdc2626, 1);
+      const sh = b.shield;
+      const vuln = sh?.state === "vulnerable";
+      g.fillStyle(b.shielded ? 0x88aaff : vuln ? (!G.meta?.settings?.calmFlash && Math.floor(time / 160) % 2 ? 0xf59e0b : 0xffd23f) : 0xdc2626, 1);
       g.fillRect(182, 508, 596 * Math.max(0, b.hp / b.max), 12);
-      g.lineStyle(2, 0xffd23f, 1);
+      // shield phases still to come: a tick on the bar at each
+      for (const m of sh?.marks ?? []) {
+        g.fillStyle(0x6fd8ff, 1).fillRect(181 + 598 * m - 1, 504, 3, 20);
+      }
+      g.lineStyle(2, b.shielded ? 0x6fd8ff : 0xffd23f, 1);
       g.strokeRect(180, 506, 600, 16);
-      this.bossT.setText(b.name + (b.shielded ? "  [SHIELDED]" : "")).setVisible(true);
+      const tag = sh?.state === "shielded" ? `  [SHIELDED ${sh.cracks}/${sh.need} — KILL THE MINIONS]` : vuln ? "  [VULNERABLE!]" : b.shielded ? "  [SHIELDED]" : "";
+      this.bossT.setText(b.name + tag).setColor(sh?.state === "shielded" ? "#7dd3fc" : vuln ? "#ffd23f" : "#ffffff").setVisible(true);
+      if (sh?.state === "shielded") {
+        // frozen behind the shield: a glassy sheen over the bar, and a drawn shield badge by the name
+        g.fillStyle(0xffffff, 0.18).fillRect(182, 508, 596, 4);
+        const x = 480 - this.bossT.width / 2 - 14;
+        const y = 493;
+        g.fillStyle(0x000000, 1).fillPoints([{ x: x - 9, y: y - 11 }, { x, y: y - 14 }, { x: x + 9, y: y - 11 }, { x: x + 8, y: y + 2 }, { x, y: y + 12 }, { x: x - 8, y: y + 2 }], true);
+        g.fillStyle(0x2f7bff, 1).fillPoints([{ x: x - 7, y: y - 9 }, { x, y: y - 11 }, { x: x + 7, y: y - 9 }, { x: x + 6, y: y + 1 }, { x, y: y + 9 }, { x: x - 6, y: y + 1 }], true);
+        g.fillStyle(0xe6fbff, 1).fillRect(x - 1, y - 8, 2, 15).fillRect(x - 5, y - 3, 10, 2);
+      }
     } else this.bossT.setVisible(false);
     // toasts
     let y = 8;

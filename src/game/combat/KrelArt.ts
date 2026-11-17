@@ -107,6 +107,43 @@ export function prop(sc: Phaser.Scene, key: string, x: number, y: number, o: { h
   return im;
 }
 
+/**
+ * Keep `o` stuck to `to` just where it is now: it moves, turns and hides with it (a wound on a body part as it flies
+ * off), until either is gone. Both must be in the same space (neither in a container).
+ */
+export function stick<T extends Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Transform & Phaser.GameObjects.Components.Visible>(sc: Phaser.Scene, o: T, to: Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Transform & Phaser.GameObjects.Components.Visible): T {
+  const dx = o.x - to.x;
+  const dy = o.y - to.y;
+  const a0 = to.angle;
+  const oa = o.angle;
+  const upd = () => {
+    if (!o.active || !to.active) {
+      sc.events.off(Phaser.Scenes.Events.POST_UPDATE, upd);
+      return;
+    }
+    const a = Phaser.Math.DegToRad(to.angle - a0);
+    const c = Math.cos(a);
+    const s = Math.sin(a);
+    o.setPosition(to.x + dx * c - dy * s, to.y + dx * s + dy * c);
+    o.setAngle(oa + to.angle - a0);
+    o.setVisible(to.visible);
+  };
+  sc.events.on(Phaser.Scenes.Events.POST_UPDATE, upd);
+  return o;
+}
+
+/**
+ * A drawn cut (gore on): the ragged, dripping raw edge of a slice through a body (kp_cutneck for a neck or a small
+ * cut, kp_cutbody for a torso), `len` world pixels long, along the cut at (x, y) turned `angle` degrees (0: a
+ * horizontal cut, drips hanging down), stuck to the piece it's on. Null if the art isn't loaded.
+ */
+export function cutEdge(sc: Phaser.Scene, on: Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Transform & Phaser.GameObjects.Components.Visible, x: number, y: number, len: number, o: { angle?: number; body?: boolean; depth?: number } = {}) {
+  const im = prop(sc, o.body ? "kp_cutbody" : "kp_cutneck", x, y, { w: len, depth: o.depth, oy: 0.35 });
+  if (!im) return null;
+  im.setAngle(o.angle ?? 0);
+  return stick(sc, im, on);
+}
+
 /** One piece off the gore/bits sheet, `size` world pixels across. */
 export function bit(sc: Phaser.Scene, name: Bit, x: number, y: number, size: number, depth?: number) {
   if (!hasArt(sc, "kp_bits")) return null;

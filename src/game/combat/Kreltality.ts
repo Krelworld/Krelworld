@@ -6,7 +6,7 @@ import { G } from "../G";
 import { ELEGANT, ELEGANT_NAMES, TAME_NAMES, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
 import { krelCinema } from "./KrelCinema";
 import { onSkip } from "../gfx/Overlay";
-import { Actor, Victim, bit, prop, MEATY, type Bit } from "./KrelArt";
+import { Actor, Victim, bit, cutEdge, prop, stick, MEATY, type Bit } from "./KrelArt";
 
 /**
  * KRELTALITY. After a boss goes down: "FUCKING KILL THEM!!" — press it (or don't) for an over-the-top,
@@ -390,6 +390,15 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     vic.release();
     const t = keep(sc.add.image(body.x, body.y, tg.key, tg.frame).setScale(tg.scale).setFlipX(tg.flip).setDepth(D + 3).setCrop(0, 0, fw, fh * frac));
     body.setCrop(0, fh * frac, fw, fh * (1 - frac));
+    if (gore) {
+      // drawn gore over the cut: the raw, dripping underside of the neck on the head, a stump (spine and all) on the body
+      const cy = body.y - H / 2 + H * frac;
+      const nw = W * 0.34;
+      const st = prop(sc, "kp_neckstump", tg.x, cy, { w: nw * 1.15, oy: 0.28, depth: D + 3 });
+      if (st) keep(stick(sc, st, body));
+      const ce = cutEdge(sc, t, tg.x, cy, nw, { depth: D + 4 });
+      if (ce) keep(ce);
+    }
     return t;
   };
   const neckY = tg.y - H * 0.5 + H * 0.3;
@@ -525,14 +534,28 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       synth.play("boom");
       cam.shake(500, 0.03);
       body.setVisible(false);
-      for (let cx = 0; cx < 3; cx++)
-        for (let cy = 0; cy < 3; cy++) {
-          const ch = keep(sc.add.image(tg.x, tg.y, tg.key, tg.frame).setScale(tg.scale).setFlipX(tg.flip).setDepth(D + 4).setCrop((fw / 3) * cx, (fh / 3) * cy, fw / 3, fh / 3).setTint(0xffb4b4));
-          sc.tweens.add({ targets: ch, x: tg.x + (cx - 1) * (120 + Math.random() * 140), y: floor - Math.random() * 20, angle: (Math.random() - 0.5) * 900, duration: 700 + Math.random() * 300, ease: "Quad.out" });
+      for (let cx = 0; cx < 2; cx++)
+        for (let cy = 0; cy < 2; cy++) {
+          // each chunk is a quarter of them, cut from its own middle so its raw edges are drawn where it tore
+          const ch = keep(sc.add.image(tg.x, tg.y, tg.key, tg.frame).setScale(tg.scale).setFlipX(tg.flip).setDepth(D + 4).setCrop((fw / 2) * cx, (fh / 2) * cy, fw / 2, fh / 2).setTint(0xffb4b4));
+          const ox = (cx - 0.5) * W * 0.5 * (tg.flip ? -1 : 1);
+          const oy = (cy - 0.5) * H * 0.5;
+          if (gore) {
+            const e1 = cutEdge(sc, ch, tg.x + ox, tg.y + (cy ? -0.02 : 0.02) * H, W * 0.5, { body: true, depth: D + 4.5, angle: cy ? 180 : 0 });
+            if (e1) keep(e1);
+            const e2 = cutEdge(sc, ch, tg.x, tg.y + oy, H * 0.5, { angle: (ox < 0) === !tg.flip ? -90 : 90, depth: D + 4.5 });
+            if (e2) keep(e2);
+          }
+          sc.tweens.add({ targets: ch, x: tg.x + (cx - 0.5) * 2 * (140 + Math.random() * 140), y: floor - H * 0.5 + 6 - Math.random() * 10, angle: (Math.random() - 0.5) * 900, duration: 700 + Math.random() * 300, ease: "Quad.out" });
         }
       for (let i = 0; i < 5; i++) guts(tg.x, tg.y, -Math.PI / 2 + (i - 2) * 0.7, 110 + Math.random() * 80);
       blood(tg.x, tg.y, 70, 1.6, true);
-      organs(tg.x, tg.y, 10);
+      organs(tg.x, tg.y, 18);
+      bones(tg.x, tg.y, 6);
+      if (gore) {
+        kp(prop(sc, "kp_gutpile", tg.x, floor - H * 0.05, { w: W * 0.9, oy: 1, depth: D + 1.5 }));
+        kp(prop(sc, "kp_splat_mush", tg.x, floor - 2, { w: W * 2.2, depth: D + 1 }));
+      }
       act.idle();
       label(NAMES.explode);
       await wait(2000);
@@ -553,6 +576,14 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       synth.play("crit");
       const left = keep(sc.add.image(tg.x, tg.y, tg.key, tg.frame).setScale(tg.scale).setFlipX(tg.flip).setDepth(D + 3).setCrop(0, 0, fw / 2, fh));
       body.setCrop(fw / 2, 0, fw / 2, fh);
+      if (gore) {
+        // the cut, drawn: raw meat, bone and guts down the inside of each half
+        for (const [half, ang] of [[left, tg.flip ? 90 : -90], [body, tg.flip ? -90 : 90]] as [Phaser.GameObjects.Image, number][]) {
+          const e = cutEdge(sc, half, tg.x, tg.y, H * 0.92, { body: true, angle: ang, depth: D + 4 });
+          if (e) keep(e);
+        }
+        kp(prop(sc, "kp_gutpile", tg.x, floor, { w: W * 0.7, oy: 1, depth: D + 2.5 }));
+      }
       label(NAMES.halved);
       await wait(500);
       sc.tweens.add({ targets: left, x: tg.x - 40, angle: -70, y: floor - W * 0.25, duration: 900, ease: "Quad.in" });
@@ -599,6 +630,11 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       synth.play("crit");
       flash();
       fx("vfx_crit", tg.x, neckY, 0.7, { add: true, depth: D + 8 });
+      if (gore) {
+        vic.release();
+        const g = cutEdge(sc, body, tg.x, neckY, W * 0.3, { depth: D + 4, angle: tg.flip ? 6 : -6 });
+        if (g) keep(g);
+      }
       label(NAMES.slit);
       fountain(tg.x, neckY, 1400);
       body.setTint(0xffb0b0);
@@ -621,12 +657,16 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       synth.play("splat");
       synth.play("boom");
       cam.shake(400, 0.025);
-      sc.tweens.add({ targets: body, scaleY: tg.scale * 0.08, scaleX: tg.scale * 1.8, y: floor - 4, duration: 120 });
+      sc.tweens.add({ targets: body, scaleY: tg.scale * 0.22, scaleX: tg.scale * 1.6, y: floor - H * 0.1, duration: 120 });
+      if (gore) {
+        body.setTint(0xd08080);
+        kp(prop(sc, "kp_gutpile", tg.x + W * 0.25, floor - 2, { w: W * 0.6, oy: 1, depth: D + 2.5 }));
+      }
       sc.tweens.add({ targets: me, y: floor - 40, duration: 120 });
       blood(tg.x, floor - 6, 60, 1.4, true);
       for (let i = 0; i < 4; i++) guts(tg.x, floor - 6, i < 2 ? Math.PI + 0.2 * i : -0.2 * (i - 2), 100);
       organs(tg.x, floor - 6, 6, ["eyeball", "tooth", "meat", "gutrope", "brain", "eyeball2"], 0.7);
-      if (gore) kp(prop(sc, "kp_splat_mush", tg.x, floor - 2, { w: W * 1.9, depth: D + 1 }));
+      if (gore) kp(prop(sc, "kp_splat_mush", tg.x, floor - 4, { w: W * 1.9, depth: D + 2.2 }));
       label(NAMES.flatten);
       await wait(1800);
       break;
@@ -714,10 +754,15 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     synth.play("boom");
     cam.shake(600, 0.035);
     body.setVisible(false);
-    for (let cy = 0; cy < 4; cy++) {
-      const ch = keep(sc.add.image(tg.x, tg.y, tg.key, tg.frame).setScale(tg.scale * 0.3, tg.scale).setFlipX(tg.flip).setDepth(D + 4).setCrop(0, (fh / 4) * cy, fw, fh / 4).setTint(0xff9999));
-      sc.tweens.add({ targets: ch, x: tg.x + (Math.random() - 0.5) * 300, y: floor - Math.random() * 10, angle: (Math.random() - 0.5) * 1000, duration: 650 + Math.random() * 300, ease: "Quad.out" });
+    for (let cy = 0; cy < 2; cy++) {
+      const ch = keep(sc.add.image(tg.x, tg.y, tg.key, tg.frame).setScale(tg.scale * 0.3, tg.scale).setFlipX(tg.flip).setDepth(D + 4).setCrop(0, (fh / 2) * cy, fw, fh / 2).setTint(0xff9999));
+      if (gore) {
+        const e = cutEdge(sc, ch, tg.x, tg.y, W * 0.4, { body: true, angle: cy ? 180 : 0, depth: D + 4.5 });
+        if (e) keep(e);
+      }
+      sc.tweens.add({ targets: ch, x: tg.x + (cy ? 1 : -1) * (90 + Math.random() * 150), y: floor - H * 0.25 - Math.random() * 10, angle: (cy ? 1 : -1) * (300 + Math.random() * 500), duration: 650 + Math.random() * 300, ease: "Quad.out" });
     }
+    if (gore) kp(prop(sc, "kp_splat_mush", tg.x, floor - 2, { w: W * 2.4, depth: D + 1 }));
     blood(tg.x, tg.y - H * 0.1, 90, 1.8, true);
     for (let i = 0; i < 6; i++) guts(tg.x, tg.y - H * 0.1, -Math.PI / 2 + (i - 2.5) * 0.55, 90 + Math.random() * 90);
     bones(tg.x, tg.y - H * 0.1, 12);
@@ -781,10 +826,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     const bx = tg.x;
     const by = tg.y + H * 0.04;
     // the front of his belly, in bits
-    for (let cx = 0; cx < 3; cx++) {
-      const ch = keep(sc.add.image(tg.x, tg.y, tg.key, tg.frame).setScale(tg.scale * 1.2, tg.scale).setFlipX(tg.flip).setDepth(D + 4).setCrop(fw * (0.3 + cx * 0.14), fh * 0.42, fw * 0.14, fh * 0.2).setTint(0xffa0a0));
-      sc.tweens.add({ targets: ch, x: tg.x + (cx - 1) * (220 + Math.random() * 120), y: floor - Math.random() * 10, angle: (Math.random() - 0.5) * 1200, duration: 800 + Math.random() * 300, ease: "Quad.out" });
-    }
+    organs(tg.x, tg.y + H * 0.04, 8, ["shred", "meat", "guts", "gutrope", "shred", "liver"], 1.2);
     // a great hole where his belly was (drawn: a ragged wound with the guts showing)
     if (!kp(prop(sc, gore ? "kp_wound_belly" : "kp_dustheap", bx, by, { w: W * 0.42, depth: D + 3 }))) {
       keep(sc.add.ellipse(bx, by, W * 0.34, H * 0.17, 0x450a0a).setStrokeStyle(3, 0x9f1239).setDepth(D + 3));

@@ -9382,6 +9382,12 @@
   },
   "tvc_banana": {
    "file": "tv/clips/banana.png"
+  },
+  "kp_cutneck": {
+   "file": "krel/kp_cutneck.png"
+  },
+  "kp_cutbody": {
+   "file": "krel/kp_cutbody.png"
   }
  },
  "sheets": {

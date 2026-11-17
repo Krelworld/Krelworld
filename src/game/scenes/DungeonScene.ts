@@ -1692,6 +1692,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   /** An entirely unnecessary, deeply cartoonish death. */
   /** Captain Stanley, on his knees. Press S. */
+  /** (Retired: Captain Stanley now gets an ordinary Kreltality.) */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async slitThroat(b: Boss) {
     const x = b.x;
     const y = b.y;
@@ -2404,9 +2406,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     if (b.bossId === "krozno") {
       await this.talk(BOSS_TEXT.krozno.outro);
-      // a Kreltality first, if you want one; pass and it's the knife
+      // a Kreltality, if you want one; pass and he just goes down
       if (await this.offerKreltality(b)) b.setVisible(false);
-      else await this.slitThroat(b);
+      else await this.bossFall();
       G.rt.timerEnd = 0;
       G.emit("timer", null);
       s.coins += 300;

@@ -8666,6 +8666,36 @@
   "tva_prop_kimchi": {
    "file": "tv/action/prop_kimchi.png"
   },
+  "kb_still_wide": {
+   "file": "kb/kb_still_wide.png"
+  },
+  "kb_still_fireball": {
+   "file": "kb/kb_still_fireball.png"
+  },
+  "kb_still_bones": {
+   "file": "kb/kb_still_bones.png"
+  },
+  "kb_still_ash": {
+   "file": "kb/kb_still_ash.png"
+  },
+  "kb_cut_klenky": {
+   "file": "kb/kb_cut_klenky.png"
+  },
+  "kb_cut_kredmar": {
+   "file": "kb/kb_cut_kredmar.png"
+  },
+  "kb_cut_krungus": {
+   "file": "kb/kb_cut_krungus.png"
+  },
+  "kb_cut_mikky": {
+   "file": "kb/kb_cut_mikky.png"
+  },
+  "kb_eyes_burn": {
+   "file": "kb/kb_eyes_burn.png"
+  },
+  "kb_burnrun": {
+   "file": "kb/kb_burnrun.png"
+  },
   "c6a_still_march": {
    "file": "c6a/c6a_still_march.png"
   },
@@ -11157,6 +11187,51 @@
    "file": "tv/action/robo_player.png",
    "frameWidth": 96,
    "frameHeight": 96
+  },
+  "kb_cut_klenky_anim": {
+   "file": "kb/kb_cut_klenky_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "kb_cut_krungus_anim": {
+   "file": "kb/kb_cut_krungus_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "kb_cut_mikky_anim": {
+   "file": "kb/kb_cut_mikky_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "kb_cut_kredmar_anim": {
+   "file": "kb/kb_cut_kredmar_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "kb_still_wide_anim": {
+   "file": "kb/kb_still_wide_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kb_still_bones_anim": {
+   "file": "kb/kb_still_bones_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kb_still_fireball_anim": {
+   "file": "kb/kb_still_fireball_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kb_burnrun_anim": {
+   "file": "kb/kb_burnrun_anim.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "kb_chardie_anim": {
+   "file": "kb/kb_chardie_anim.png",
+   "frameWidth": 64,
+   "frameHeight": 64
   },
   "c6a_still_march_anim": {
    "file": "c6a/c6a_still_march_anim.png",

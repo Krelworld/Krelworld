@@ -10,6 +10,7 @@ import { FONT } from "../../ui/theme";
 import { TOUCH } from "../../ui/TouchControls";
 import { hasVfx, vfx, type VfxOpts } from "../../gfx/Vfx";
 import * as Juice from "../../gfx/Juice";
+import { krunchBurn } from "./KrunchBurn";
 import { animateWalker, playPerf } from "../../gfx/HD";
 import { PLAYABLE_IDS, type Line } from "../../../data/types";
 import { KRUNCHERS } from "../../../content/kreddle";
@@ -220,6 +221,7 @@ export class KreddleRaid {
   private redVig: Phaser.GameObjects.Image | null = null;
   private krunchCount = 0;
   private lastKrunchFx = 0;
+  private lastKrunchAt = 0;
 
   constructor(scene: Phaser.Scene) {
     this.sc = scene;
@@ -782,10 +784,10 @@ export class KreddleRaid {
       cam.zoomTo(1.4, 300, "Quad.easeOut", true);
       Juice.slowMo(sc, 0.15, 1300);
       Juice.shake(sc, 900, 0.02);
+      this.lastKrunchAt = Date.now();
       Juice.realWait(1300).then(() => {
         if (!sc.sys.settings.active) return;
-        Juice.slamText(sc, "KRUNCHERS: KRUNCHED", "#b6ff5a", 60, 220, 1300, D_HUD + 4);
-        Juice.earRing(2200, 0.06);
+        // (the title slam is the anime cutscene's now: krunchersDead plays it next)
         cam.zoomTo(1, 700, "Cubic.easeInOut", true);
         cam.pan(this.me.x, this.me.y, 700, "Cubic.easeInOut", true);
         sc.time.delayedCall(720, () => cam.startFollow(this.me, true, 0.1, 0.1));
@@ -805,11 +807,28 @@ export class KreddleRaid {
     }
   }
 
+  /** KRUNCHED: the anime cutscene (KrunchBurn.ts), with the HUD and the world hidden behind it. */
+  async krunchBurn() {
+    const sc = this.sc;
+    if (!sc.sys.settings.active) return;
+    const cam = sc.cameras.main;
+    cam.stopFollow();
+    await krunchBurn(sc, D_HUD + 6);
+    if (!sc.sys.settings.active) return;
+    cam.zoomTo(1, 1);
+    cam.centerOn(this.me.x, this.me.y);
+    cam.startFollow(this.me, true, 0.1, 0.1);
+  }
+
   private async krunchersDead() {
     this.krunchersDone = true;
     this.phase = "cutscene";
     this.busy = true;
-    await this.wait(900);
+    // the last one's slow-mo beat lands, then the anime cutscene of them all burning (Tab / tap skips it)
+    const lag = this.lastKrunchAt + 1300 - Date.now();
+    if (lag > 0) await Juice.realWait(lag);
+    await this.krunchBurn();
+    await this.wait(300);
     synth.play("cheer");
     synth.play("jackpot");
     // the lads celebrate

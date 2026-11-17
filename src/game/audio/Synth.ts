@@ -25,6 +25,8 @@ export const AUDIO_FILES: Record<string, string> = {
   sq_moan: "audio/sq_moan.mp3",
   /** The demons in Lulon's mind: a high, snarling goblin choir chanting KIDS. */
   mind_kids: "audio/mind_kids.mp3",
+  /** The Kreddle Krunchers burning alive (Chapter 6 raid cutscene): each one screams in his lad's own voice. */
+  ...Object.fromEntries([1, 2, 3, 4, 5, 6].map((n) => [`krunch_scream_${n}`, `audio/sfx/krunch_scream_${n}.mp3`])),
 };
 
 /** Where each separate shout sits in those files: [start, length] in seconds. */
@@ -652,6 +654,54 @@ export class Synth {
     g.connect(this.sfxGain);
     src.start(t, off, len + 0.05);
     return true;
+  }
+
+  /**
+   * A recorded scream played "evil twin": pitched down a touch, through a soft-clipping distortion with a short
+   * slapback, so a lad's own voice comes out wrong. Returns a stop() (fades it out), or null if it couldn't play.
+   */
+  evilScream(id: string, vol = 1, rate = 0.9, drive = 6): (() => void) | null {
+    const buf = this.files[id];
+    if (!this.ctx || !buf) return null;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.value = rate;
+    const shaper = ctx.createWaveShaper();
+    const n = 1024;
+    const curve = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const x = (i / (n - 1)) * 2 - 1;
+      curve[i] = Math.tanh(x * drive) / Math.tanh(drive);
+    }
+    shaper.curve = curve;
+    const tone = ctx.createBiquadFilter();
+    tone.type = "lowpass";
+    tone.frequency.value = 5200;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol * 0.55, t + 0.03);
+    // a short slapback, quieter, so it sounds like two of them
+    const echo = ctx.createDelay(0.2);
+    echo.delayTime.value = 0.045;
+    const eg = ctx.createGain();
+    eg.gain.value = 0.35;
+    src.connect(shaper).connect(tone).connect(g);
+    tone.connect(echo).connect(eg).connect(g);
+    g.connect(this.sfxGain);
+    src.start(t);
+    let done = false;
+    src.onended = () => (done = true);
+    return () => {
+      if (done || !this.ctx) return;
+      done = true;
+      const now = this.ctx.currentTime;
+      g.gain.cancelScheduledValues(now);
+      g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+      src.stop(now + 0.3);
+    };
   }
 
   clip(id: string, offset: number, dur: number, vol = 1, rate = 1) {

@@ -1,0 +1,461 @@
+import Phaser from "phaser";
+import { G } from "../../G";
+import { synth } from "../../audio/Synth";
+import { vfx } from "../../gfx/Vfx";
+import * as Juice from "../../gfx/Juice";
+
+/**
+ * KRUNCHED: the anime cutscene after the last Kreddle Kruncher goes up (Chapter 6 raid). Akira-meets-Mortal-Kombat,
+ * cartoon gore: an impact frame, a slow-motion wide shot of all of them running about on fire, a burst of close-up
+ * cut-ins (skin charring off to the skull, hair going up, glasses melting), a row of them burning down to skeletons,
+ * silhouettes against the fireball, and a freeze on the bones crumbling to ash with the title slammed over it.
+ *
+ * Screen-space, over everything; Tab or a tap skips it. With gore off it's fire, silhouettes and ash only (no flesh
+ * or bone close-ups); "Reduce flashing" dims the flashes and drops the impact frames. Resolves when it's over.
+ */
+
+/** The art it uses (public/art/kb). Optional: a missing picture's beat falls back to code-drawn fire. */
+export const KB_ART: Record<string, string> = {
+  kb_still_wide: "kb/kb_still_wide.png",
+  kb_still_fireball: "kb/kb_still_fireball.png",
+  kb_still_bones: "kb/kb_still_bones.png",
+  kb_still_ash: "kb/kb_still_ash.png",
+  kb_cut_klenky: "kb/kb_cut_klenky.png",
+  kb_cut_kredmar: "kb/kb_cut_kredmar.png",
+  kb_cut_krungus: "kb/kb_cut_krungus.png",
+  kb_cut_mikky: "kb/kb_cut_mikky.png",
+  kb_eyes_burn: "kb/kb_eyes_burn.png",
+  kb_burnrun: "kb/kb_burnrun.png",
+};
+/** The animated versions: 9 frames in a row (the first is the still). */
+export const KB_SHEETS: Record<string, [string, number, number]> = {
+  kb_still_wide_anim: ["kb/kb_still_wide_anim.png", 256, 144],
+  kb_still_fireball_anim: ["kb/kb_still_fireball_anim.png", 256, 144],
+  kb_still_bones_anim: ["kb/kb_still_bones_anim.png", 256, 144],
+  kb_cut_klenky_anim: ["kb/kb_cut_klenky_anim.png", 256, 128],
+  kb_cut_kredmar_anim: ["kb/kb_cut_kredmar_anim.png", 256, 128],
+  kb_cut_krungus_anim: ["kb/kb_cut_krungus_anim.png", 256, 128],
+  kb_cut_mikky_anim: ["kb/kb_cut_mikky_anim.png", 256, 128],
+  kb_burnrun_anim: ["kb/kb_burnrun_anim.png", 64, 64],
+  kb_chardie_anim: ["kb/kb_chardie_anim.png", 64, 64],
+};
+
+/** Queue any of the cutscene's art the texture cache doesn't have yet (call from a preload). */
+export function preloadKrunchBurn(scene: Phaser.Scene) {
+  for (const [k, f] of Object.entries(KB_ART)) if (!scene.textures.exists(k)) scene.load.image(k, `art/${f}`);
+  for (const [k, [f, w, h]] of Object.entries(KB_SHEETS)) if (!scene.textures.exists(k)) scene.load.spritesheet(k, `art/${f}`, { frameWidth: w, frameHeight: h });
+}
+
+const GREEN = 0x7cff3a;
+const PINK = 0xff4fd8;
+const CYAN = 0x22d3ee;
+
+/** The close-ups: art, whose it is, which scream, which side it whips in from. */
+const CLOSEUPS: { key: string; name: string; scream: number; color: number }[] = [
+  { key: "kb_cut_klenky", name: "KLENKY", scream: 1, color: PINK },
+  { key: "kb_cut_kredmar", name: "KREDMAR", scream: 3, color: CYAN },
+  { key: "kb_cut_krungus", name: "LIL' KRUNGUS", scream: 5, color: PINK },
+  { key: "kb_cut_mikky", name: "MIKKY K", scream: 6, color: CYAN },
+];
+
+export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
+  const gore = G.meta?.settings?.gore !== false;
+  const calm = Juice.calm();
+  const L = Juice.layer(sc, depth);
+  const root = sc.add.container(0, 0);
+  L.add(root);
+  const timers = new Set<number>();
+  const stops: (() => void)[] = [];
+  let skipped = false;
+  let finished = false;
+  let wake: (() => void) | null = null;
+  const t0 = performance.now();
+
+  const every = (ms: number, fn: () => void) => {
+    const id = window.setInterval(fn, ms);
+    timers.add(id);
+    return () => {
+      window.clearInterval(id);
+      timers.delete(id);
+    };
+  };
+  /** Wait `ms` of real time, or less if it's skipped. */
+  const beat = (ms: number) =>
+    new Promise<void>((res) => {
+      if (skipped) return res();
+      const id = window.setTimeout(() => {
+        timers.delete(id);
+        wake = null;
+        res();
+      }, ms);
+      timers.add(id);
+      wake = () => {
+        window.clearTimeout(id);
+        timers.delete(id);
+        res();
+      };
+    });
+  const scream = (n: number, vol = 1, rate = 0.86 + Math.random() * 0.1) => {
+    const s = synth.evilScream(`krunch_scream_${n}`, vol, rate);
+    if (s) stops.push(s);
+  };
+
+  // ---------------------------------------------------------------- skipping (Tab, or a tap)
+  const skip = () => {
+    // (a beat's grace, so the tap or key that killed the last one doesn't skip it before it starts)
+    if (skipped || finished || performance.now() - t0 < 600) return;
+    skipped = true;
+    wake?.();
+  };
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key !== "Tab") return;
+    e.preventDefault();
+    skip();
+  };
+  window.addEventListener("keydown", onKey);
+  sc.input.on("pointerdown", skip);
+
+  // ---------------------------------------------------------------- the frame: black, letterboxed, a skip hint
+  const black = sc.add.rectangle(480, 270, 1100, 700, 0x000000, 1);
+  const stage = sc.add.container(0, 0);
+  const fx = sc.add.container(0, 0);
+  const barTop = sc.add.rectangle(480, 0, 1100, 112, 0x000000);
+  const barBot = sc.add.rectangle(480, 540, 1100, 112, 0x000000);
+  const hint = sc.add.text(944, 524, "Tab / tap: skip", { fontFamily: "monospace", fontSize: "11px", color: "#6b7280" }).setOrigin(1, 0.5);
+  root.add([black, stage, fx, barTop, barBot, hint]);
+  synth.duckMusic(true);
+
+  const clearStage = () => {
+    stage.removeAll(true);
+    fx.removeAll(true);
+  };
+
+  /** Play a sheet's frames on an image: "once" holds the last frame, "loop" ping-pongs. Real time. */
+  const playFrames = (img: Phaser.GameObjects.Image, key: string, ms: number, mode: "once" | "loop" = "loop", from = 0) => {
+    const ak = `${key}_anim`;
+    if (!sc.textures.exists(ak) || sc.textures.get(ak).frameTotal < 4) return;
+    const n = sc.textures.get(ak).frameTotal - 1;
+    img.setTexture(ak, Math.min(from, n - 1));
+    let i = from;
+    let dir = 1;
+    const stop = every(ms, () => {
+      if (!img.active) return stop();
+      i += dir;
+      if (i >= n || i < 0) {
+        if (mode === "once") return stop();
+        dir = -dir;
+        i += dir * 2;
+      }
+      img.setFrame(Phaser.Math.Clamp(i, 0, n - 1));
+    });
+  };
+
+  /** A full-frame shot: cover-scaled, pushing in slowly. */
+  const shot = (key: string, ms: number, o: { push?: number; frameMs?: number; mode?: "once" | "loop"; tint?: number } = {}) => {
+    if (!sc.textures.exists(key)) return null;
+    const img = sc.add.image(480, 270, key);
+    const k = Math.max(960 / img.frame.realWidth, 540 / img.frame.realHeight) * 1.02;
+    img.setScale(k);
+    if (o.tint !== undefined) img.setTint(o.tint);
+    stage.add(img);
+    playFrames(img, key, o.frameMs ?? 110, o.mode);
+    sc.tweens.add({ targets: img, scale: k * (1 + (o.push ?? 0.1)), duration: ms, ease: "Sine.out" });
+    return img;
+  };
+
+  /** Green chemical fire licking up from the bottom of the frame (the flamethrower's colour). */
+  const fireLine = (n: number, y = 520, scale = 3) => {
+    for (let i = 0; i < n; i++) {
+      const s = vfx(sc, "vfx_fire", 40 + (i / Math.max(1, n - 1)) * 880 + (Math.random() - 0.5) * 60, y + Math.random() * 20, { scale: scale * (0.8 + Math.random() * 0.5), tint: GREEN, add: true, alpha: 0.85, delay: i * 40 });
+      if (s) fx.add(s);
+    }
+  };
+
+  /** Embers (and ash) drifting: little squares on a timer. */
+  const embers = (ms: number, colors = [GREEN, 0xb6ff5a, 0xff8a3a, 0xfff4a8], up = true, rate = 40) => {
+    const stop = every(rate, () => {
+      if (!fx.active) return stop();
+      const c = colors[Math.floor(Math.random() * colors.length)];
+      const sz = 2 + Math.random() * 4;
+      const r = sc.add.rectangle(Math.random() * 960, up ? 560 : -10, sz, sz, c, 1).setBlendMode(up ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL);
+      fx.add(r);
+      sc.tweens.add({ targets: r, y: up ? 120 + Math.random() * 300 : 420 + Math.random() * 120, x: r.x + (Math.random() - 0.5) * 160, alpha: 0, angle: 360, duration: 900 + Math.random() * 900, onComplete: () => r.destroy() });
+    });
+    window.setTimeout(stop, ms);
+  };
+
+  /** Anime impact frames (black/white silhouette swap). Skipped under "Reduce flashing". */
+  const impact = async (key: string | null, scale = 6) => {
+    if (calm || skipped) return;
+    const bg = sc.add.rectangle(480, 270, 1100, 700, 0xffffff, 1);
+    const sil = key && sc.textures.exists(key) ? sc.add.image(480, 300, key).setScale(scale).setTintFill(0x000000) : null;
+    fx.add(sil ? [bg, sil] : [bg]);
+    await Juice.realWait(60);
+    bg.setFillStyle(0x000000, 1);
+    sil?.setTintFill(0xffffff);
+    await Juice.realWait(60);
+    bg.setFillStyle(GREEN, 1);
+    sil?.setTintFill(0x000000);
+    await Juice.realWait(50);
+    bg.destroy();
+    sil?.destroy();
+  };
+
+  const flash = (color: number, ms = 220, alpha = 0.8) => {
+    const r = sc.add.rectangle(480, 270, 1100, 700, color, calm ? alpha * 0.2 : alpha);
+    fx.add(r);
+    sc.tweens.add({ targets: r, alpha: 0, duration: calm ? Math.max(ms, 360) : ms, onComplete: () => r.destroy() });
+  };
+
+  /** A slanted cut-in band with a close-up in it, whipping in from one side; its name stamped on. */
+  const cutIn = (c: (typeof CLOSEUPS)[number], i: number, hold: number) => {
+    const dir = i % 2 ? -1 : 1;
+    const y = 270;
+    const H = 360;
+    const band = sc.add.container(dir * 1000, 0);
+    const bg = sc.add.rectangle(480, y, 1300, H, 0x05010c, 1).setAngle(-3);
+    const lines = sc.add.graphics();
+    const drawLines = () => {
+      if (!lines.active) return;
+      lines.clear();
+      for (let j = 0; j < 26; j++) {
+        const ly = y + (Math.random() - 0.5) * (H - 20);
+        const x0 = Math.random() * 960;
+        lines.lineStyle(1 + Math.random() * 3, j % 3 ? GREEN : c.color, 0.3 + Math.random() * 0.4).lineBetween(x0, ly, x0 + 160 + Math.random() * 300, ly - 12);
+      }
+    };
+    drawLines();
+    every(50, drawLines);
+    band.add([bg, lines]);
+    if (sc.textures.exists(c.key)) {
+      const img = sc.add.image(480, y, c.key);
+      const k = 1000 / img.frame.realWidth;
+      // cropped to the band (the face sits a little above the middle of the picture)
+      const fh = img.frame.realHeight;
+      const cropH = Math.min(fh, (H - 16) / k);
+      const top = Phaser.Math.Clamp((fh - cropH) * 0.4, 0, fh - cropH);
+      img.setScale(k).setAngle(-3);
+      img.setCrop(0, top, img.frame.realWidth, cropH);
+      img.setY(y - (top + cropH / 2 - fh / 2) * k);
+      // the frames run through once: the skin goes as you watch
+      playFrames(img, c.key, Math.max(60, Math.floor(hold / 9)), "once");
+      sc.tweens.add({ targets: img, scale: k * 1.08, x: 480 + dir * 30, duration: hold + 200 });
+      band.add(img);
+    }
+    const edgeA = sc.add.rectangle(480, y - H / 2, 1300, 8, c.color, 1).setAngle(-3);
+    const edgeB = sc.add.rectangle(480, y + H / 2, 1300, 8, c.color, 1).setAngle(-3);
+    const tag = sc.add.text(dir > 0 ? 70 : 890, y + H / 2 - 40, c.name, { fontFamily: "Impact, sans-serif", fontSize: "40px", color: Phaser.Display.Color.IntegerToColor(c.color).rgba, stroke: "#000000", strokeThickness: 8 }).setOrigin(dir > 0 ? 0 : 1, 0.5).setAngle(-3);
+    band.add([edgeA, edgeB, tag]);
+    stage.add(band);
+    sc.tweens.add({ targets: band, x: 0, duration: 140, ease: "Cubic.out" });
+    synth.play("swing");
+    window.setTimeout(() => {
+      if (skipped || !band.active) return;
+      synth.play(i % 2 ? "flesh_rip" : "squelch");
+      scream(c.scream, 1, 0.85 + Math.random() * 0.08);
+      flash(i % 2 ? 0xff1a1a : 0xffffff, 120, 0.4);
+      Juice.shake(sc, 260, 0.012);
+      // cartoon blood spat across the frame
+      for (let j = 0; j < 3; j++) {
+        const b = vfx(sc, j % 2 ? "vfx_bloodspray" : "vfx_gore", 200 + Math.random() * 560, 170 + Math.random() * 200, { scale: 2 + Math.random(), flipX: Math.random() < 0.5, delay: j * 90 });
+        if (b) fx.add(b);
+      }
+      splatter(c.color);
+    }, 150);
+  };
+
+  /** Gloopy red splats (and a few bone flecks) stuck on the "lens". */
+  const splatter = (accent: number) => {
+    for (let j = 0; j < 7; j++) {
+      const x = 80 + Math.random() * 800;
+      const yy = 80 + Math.random() * 380;
+      const r = 6 + Math.random() * 18;
+      const blob = sc.add.circle(x, yy, r, j % 4 === 3 ? accent : 0xb3001b, 0.95).setScale(0.2);
+      const drip = sc.add.rectangle(x, yy, r * 0.5, 2, 0x8a0012, 0.95).setOrigin(0.5, 0);
+      fx.add([drip, blob]);
+      sc.tweens.add({ targets: blob, scale: 1, duration: 90, ease: "Back.out" });
+      sc.tweens.add({ targets: drip, height: 30 + Math.random() * 70, duration: 900, ease: "Sine.in" });
+      sc.tweens.add({ targets: [blob, drip], alpha: 0, delay: 700, duration: 300, onComplete: () => (blob.destroy(), drip.destroy()) });
+    }
+    for (let j = 0; j < 8; j++) {
+      const f = sc.add.rectangle(480 + (Math.random() - 0.5) * 200, 270, 3 + Math.random() * 4, 2 + Math.random() * 2, 0xf5f0e1, 1);
+      fx.add(f);
+      sc.tweens.add({ targets: f, x: f.x + (Math.random() - 0.5) * 700, y: 270 + (Math.random() - 0.5) * 420, angle: 540, alpha: 0, duration: 700, onComplete: () => f.destroy() });
+    }
+  };
+
+  /** The row of them burning down: char-to-skeleton sprites (gore), or black running silhouettes (no gore). */
+  const burnRow = (ms: number) => {
+    const glow = sc.add.rectangle(480, 270, 1100, 700, 0x0a2a05, 1);
+    stage.add(glow);
+    fireLine(9, 470, 2.6);
+    const key = gore ? "kb_chardie" : "kb_burnrun";
+    if (!sc.textures.exists(`${key}_anim`)) return;
+    const n = 5;
+    for (let i = 0; i < n; i++) {
+      const x = 130 + i * 175;
+      const s = sc.add.image(x, 330, `${key}_anim`, 0).setScale(3.4).setFlipX(i % 2 === 1);
+      if (!gore) s.setTintFill(0x000000);
+      else s.setTint(i % 2 ? 0xbfefff : 0xffc8f0);
+      stage.add(s);
+      if (gore) {
+        window.setTimeout(() => !skipped && s.active && playFrames(s, key, Math.floor((ms - 300) / 9), "once"), i * 90);
+        window.setTimeout(() => {
+          if (skipped || !s.active) return;
+          synth.play("bonecrack");
+          for (let j = 0; j < 6; j++) {
+            const f = sc.add.rectangle(x, 360, 3, 2, j % 2 ? 0xf5f0e1 : 0x2a2522, 1);
+            fx.add(f);
+            sc.tweens.add({ targets: f, x: x + (Math.random() - 0.5) * 120, y: 400 - Math.random() * 120, angle: 360, alpha: 0, duration: 600, onComplete: () => f.destroy() });
+          }
+        }, ms * 0.55 + i * 90);
+      } else {
+        playFrames(s, key, 70, "loop");
+        sc.tweens.add({ targets: s, x: x + (i % 2 ? -60 : 60), duration: ms });
+      }
+    }
+  };
+
+  /** The title: "KRUNCHED." slammed on, dripping. */
+  const title = () => {
+    const col = gore ? "#ff2a2a" : "#b6ff5a";
+    const t = sc.add.text(480, 250, "KRUNCHED.", { fontFamily: "Impact, sans-serif", fontSize: "104px", color: col, stroke: "#000000", strokeThickness: 14 }).setOrigin(0.5);
+    t.setShadow(0, 0, col, 24, true, true);
+    t.setScale(3).setAlpha(0);
+    const sub = sc.add.text(480, 428, "THE KREDDLE KRUNCHERS  ·  0 REMAINING", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#f5f0e1", stroke: "#000000", strokeThickness: 6 }).setOrigin(0.5).setAlpha(0);
+    fx.add([t, sub]);
+    sc.tweens.add({
+      targets: t,
+      scale: 1,
+      alpha: 1,
+      duration: 170,
+      ease: "Quad.in",
+      onComplete: () => {
+        if (skipped) return;
+        synth.play("punch_big");
+        Juice.subDrop(1, 1.6);
+        Juice.shake(sc, 300, 0.016);
+        flash(gore ? 0xff1a1a : GREEN, 260, 0.5);
+        if (gore) {
+          // blood running off the letters
+          for (let j = 0; j < 9; j++) {
+            const x = 480 - t.displayWidth / 2 + 30 + Math.random() * (t.displayWidth - 60);
+            const d = sc.add.rectangle(x, 290, 4 + Math.random() * 6, 2, 0xb3001b, 1).setOrigin(0.5, 0);
+            fx.add(d);
+            sc.tweens.add({ targets: d, height: 20 + Math.random() * 90, duration: 1400 + Math.random() * 800, ease: "Sine.in" });
+          }
+        }
+        sc.tweens.add({ targets: sub, alpha: 1, duration: 400, delay: 250 });
+      },
+    });
+  };
+
+  // ---------------------------------------------------------------- the cut
+  const run = async () => {
+    // 1. impact
+    synth.play("reveal_boom");
+    Juice.subDrop(1, 2);
+    await impact("kb_burnrun", 6);
+    flash(GREEN, 300, 0.7);
+
+    // 2. the wide shot, in slow motion: all of them, on fire, running about
+    if (!skipped) {
+      shot("kb_still_wide", 2600, { push: 0.14, frameMs: 150 });
+      fireLine(7, 540, 3.2);
+      embers(2600);
+      synth.play("gun_flamer");
+      scream(2, 0.9, 0.82);
+      window.setTimeout(() => !skipped && scream(4, 0.75, 0.88), 500);
+      window.setTimeout(() => !skipped && synth.play("crowd_panic", 0.6), 200);
+      const stopLines = Juice.speedLines(sc, 0, GREEN, depth + 1);
+      stops.push(stopLines);
+      window.setTimeout(stopLines, 2400);
+      await beat(2600);
+      clearStage();
+    }
+
+    if (gore) {
+      // 3. the eyes
+      if (!skipped && sc.textures.exists("kb_eyes_burn")) {
+        const img = sc.add.image(480, 270, "kb_eyes_burn");
+        const k = 980 / img.frame.realWidth;
+        img.setScale(k);
+        stage.add([img, sc.add.rectangle(480, 270 - 32 * k, 1100, 4, GREEN, 1), sc.add.rectangle(480, 270 + 32 * k, 1100, 4, GREEN, 1)]);
+        sc.tweens.add({ targets: img, scale: k * 1.12, duration: 750 });
+        Juice.heartbeat(0.9);
+        synth.play("telegraph");
+        await beat(750);
+        clearStage();
+      }
+      // 4. the close-ups, fast
+      for (const [i, c] of CLOSEUPS.entries()) {
+        if (skipped) break;
+        cutIn(c, i, 820);
+        await beat(880);
+        if (!skipped && i % 2) await impact(null);
+        clearStage();
+      }
+    }
+
+    // 5. the row of them burning down (or running, as silhouettes)
+    if (!skipped) {
+      burnRow(1700);
+      embers(1700);
+      synth.play("gun_flamer");
+      scream(1, 0.6, 0.8);
+      await beat(1700);
+      clearStage();
+    }
+
+    // 6. silhouettes against the fireball
+    if (!skipped) {
+      shot("kb_still_fireball", 2000, { push: 0.08, frameMs: 120 });
+      synth.play("explode_1");
+      window.setTimeout(() => !skipped && synth.play("explode_2"), 380);
+      flash(0xffffff, 380, 0.9);
+      Juice.shake(sc, 1600, 0.02);
+      for (const n of [3, 5, 6]) scream(n, 0.6, 0.78 + Math.random() * 0.1);
+      embers(2000, [GREEN, 0xffffff, 0xb6ff5a], true, 25);
+      await beat(2000);
+      clearStage();
+    }
+
+    // 7. freeze: the bones crumbling to ash (or just ash), and the title
+    if (!skipped) {
+      for (const s of stops.splice(0)) s();
+      synth.play(gore ? "gurgle_1" : "groan");
+      shot(gore ? "kb_still_bones" : "kb_still_ash", 3200, { push: 0.05, frameMs: 260, mode: "once", tint: 0xe8ddd0 });
+      embers(3200, [0x9ca3af, 0x6b7280, 0x44403c, 0xff8a3a], false, 35);
+      Juice.earRing(2600, 0.06);
+      await beat(500);
+      if (!skipped) title();
+      await beat(2700);
+    }
+  };
+
+  return run().then(async () => {
+    finished = true;
+    for (const s of stops.splice(0)) s();
+    if (!skipped && root.active) {
+      const fade = sc.add.rectangle(480, 270, 1100, 700, 0x000000, 0);
+      root.add(fade);
+      sc.tweens.add({ targets: fade, fillAlpha: 1, duration: 350 });
+      await Juice.realWait(380);
+    }
+    for (const id of timers) {
+      window.clearInterval(id);
+      window.clearTimeout(id);
+    }
+    timers.clear();
+    window.removeEventListener("keydown", onKey);
+    sc.input?.off("pointerdown", skip);
+    synth.duckMusic(false);
+    if (root.active) {
+      // fade back up from black into the street
+      const out = sc.add.rectangle(480, 270, 1100, 700, 0x000000, 1);
+      root.removeAll(true);
+      root.add(out);
+      sc.tweens.add({ targets: out, alpha: 0, duration: 400, onComplete: () => root.destroy() });
+    }
+  });
+}

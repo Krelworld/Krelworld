@@ -10,6 +10,7 @@ import { hasVfx, vfx } from "../gfx/Vfx";
 import { CHARACTERS, LADS } from "../../data/characters";
 import * as FB from "../../content/finaleKrelford";
 import { finalePreload, finaleReady, ssjKey, ssjPortraitKey, ssjSwap } from "./finale/finaleArt";
+import * as Juice from "../gfx/Juice";
 
 /**
  * THE KRELWORLD FINALE, part B: the side-on cutscenes in Krelford.
@@ -48,6 +49,8 @@ export class FinaleScene extends Phaser.Scene {
   private lads: Lad[] = [];
   private escHandler?: (e: KeyboardEvent) => void;
   private stormOn = true;
+  /** True while the SPIRIT CUM beam struggle is on (tests look for it). */
+  clashing = false;
 
   constructor() {
     super("Finale");
@@ -684,8 +687,18 @@ export class FinaleScene extends Phaser.Scene {
       },
     });
     this.speedLines(480, 220, 1100);
-    await new Promise<void>((res) => this.tweens.add({ targets: orb, x: dragon.x + 30, y: dragon.y - dragon.displayHeight * 0.55, scale: 3.4, duration: 1000, ease: "Quad.in", onComplete: () => res() }));
+    // ...but it fights back: the orb's caught halfway, and the two of them push
+    // (it turns round to face it: the art faces left, its jaws at about 0.29 across and 0.67 up the frame)
+    const art = dragon.texture.key === "fb_dragon_side";
+    if (art) dragon.setFlipX(true);
+    const mouth = art ? { x: dragon.x + dragon.displayWidth * 0.29, y: dragon.y - dragon.displayHeight * 0.66 } : { x: dragon.x + dragon.displayWidth * 0.22, y: dragon.y - dragon.displayHeight * 0.58 };
+    await new Promise<void>((res) => this.tweens.add({ targets: orb, x: 520, y: mouth.y - 10, scale: 1.15, duration: 650, ease: "Quad.in", onComplete: () => res() }));
     trail.remove();
+    this.cameras.main.zoomTo(1, 300);
+    await this.beamStruggle(orb, gk, mouth);
+    this.cameras.main.zoomTo(1.15, 200);
+    await new Promise<void>((res) => this.tweens.add({ targets: orb, x: dragon.x + 30, y: dragon.y - dragon.displayHeight * 0.55, scale: 3.6, duration: 260, ease: "Quad.in", onComplete: () => res() }));
+    await Juice.impactFrames(this, dragon, 70);
     // IMPACT
     const white = this.add.rectangle(480, 270, W * 2, 1100, 0xffffff, 1).setDepth(980).setScrollFactor(0);
     synth.play("boom");
@@ -732,6 +745,132 @@ export class FinaleScene extends Phaser.Scene {
     this.tweens.add({ targets: gk, y: gk.y - 600, duration: 700, ease: "Quad.in", delay: 300 });
     await this.talk(FB.FB_AFTER.slice(6));
     await this.wait(400);
+  }
+
+  /**
+   * THE CLASH. The SPIRIT CUM stops dead in mid-air: the Concept breathes its own beam back at it and the two meet
+   * in the middle of town. Mash (any key, click, tap) to push it back down its throat; the lads roar and pour in
+   * their power too, so it gets there on its own if you don't (a few seconds, never a fail). The harder you mash,
+   * the faster it goes. Ends with the clash point at its mouth.
+   */
+  private beamStruggle(orb: Phaser.GameObjects.Container, gk: Phaser.GameObjects.Image, mouth: { x: number; y: number }): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.dead || this.ended) return;
+      const calm = !!G.meta.settings.calmFlash;
+      const src = { x: gk.x, y: gk.y - gk.displayHeight * 0.92 };
+      // 0 = at its mouth (won), 1 = at Goku
+      let t = (orb.x - mouth.x) / (src.x - mouth.x);
+      let mash = 0;
+      let elapsed = 0;
+      let done = false;
+      this.clashing = true;
+      const beams = this.add.graphics().setDepth(66).setBlendMode(Phaser.BlendModes.ADD);
+      const core = this.add.graphics().setDepth(67);
+      const L = Juice.layer(this, 1050);
+      const prompt = this.add.text(480, 448, "MASH!", { fontFamily: "Impact, sans-serif", fontSize: "44px", color: "#ffe066", stroke: "#000", strokeThickness: 8 }).setOrigin(0.5);
+      const hint = this.add.text(480, 486, "any key · click · tap", { fontFamily: FONT, fontSize: "14px", color: "#fff4c2", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5);
+      const barBack = this.add.rectangle(480, 512, 420, 14, 0x000000, 0.75).setStrokeStyle(2, 0xffd23f, 0.9);
+      const barDark = this.add.rectangle(270, 512, 420, 10, 0x6d28d9, 1).setOrigin(0, 0.5);
+      const barGold = this.add.rectangle(690, 512, 210, 10, 0xffe066, 1).setOrigin(1, 0.5);
+      L.add([prompt, hint, barBack, barDark, barGold]);
+      this.tweens.add({ targets: prompt, scale: 1.12, yoyo: true, repeat: -1, duration: 140 });
+      if (!synth.shout("concept_roar", 1, 0.85)) synth.play("roar");
+      synth.play("gun_rail");
+      Juice.subDrop(1, 1.6);
+      const stopLines = Juice.speedLines(this, 0, 0xfff4c2, 1040);
+      const push = () => {
+        if (done) return;
+        mash++;
+        t -= 0.034;
+        Juice.punchZoom(this, 0.03, 160, 1);
+        if (mash % 3 === 0) synth.play("hit");
+        // the lads pour it in: their auras flare
+        const l = this.lads[mash % Math.max(1, this.lads.length)];
+        if (l?.aura) {
+          this.tweens.killTweensOf(l.aura);
+          const sx = l.aura.scaleX;
+          const sy = l.aura.scaleY;
+          this.tweens.add({ targets: l.aura, scaleX: sx * 1.25, scaleY: sy * 1.2, duration: 90, yoyo: true });
+        }
+      };
+      const onKey = (e: KeyboardEvent) => {
+        if (e.key !== "Escape" && !e.repeat) push();
+      };
+      this.input.keyboard?.on("keydown", onKey);
+      this.input.on("pointerdown", push);
+      let shoutI = 0;
+      const shouts = this.time.addEvent({
+        delay: 650,
+        loop: true,
+        callback: () => {
+          const l = this.lads[shoutI++ % Math.max(1, this.lads.length)];
+          if (!l) return;
+          const tx = this.add.text(l.spr.x, l.spr.y - l.spr.displayHeight - 10, "AAAAAAAAA", { fontFamily: "Impact, sans-serif", fontSize: "16px", color: "#ffe066", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(950);
+          this.tweens.add({ targets: tx, y: tx.y - 30, alpha: 0, duration: 900, onComplete: () => tx.destroy() });
+        },
+      });
+      const tick = () => {
+        if (this.dead || this.ended) return cleanup(false);
+        const dt = Math.min(50, this.game.loop.delta) / 1000;
+        elapsed += dt;
+        // it pushes back hard at first; the Krew's power builds and wins out on its own by about seven seconds
+        const krew = Math.min(0.24, elapsed * 0.05);
+        t += (0.1 - krew) * dt;
+        t = Phaser.Math.Clamp(t, 0, 0.82);
+        const cx = mouth.x + (src.x - mouth.x) * t;
+        const cy = mouth.y + (src.y - mouth.y) * t;
+        orb.setPosition(cx, cy);
+        const wob = Math.sin(elapsed * 40) * 4;
+        beams.clear();
+        // its beam: violet, black-cored
+        beams.lineStyle(70 + wob, 0x7c3aed, 0.6).lineBetween(mouth.x, mouth.y, cx, cy);
+        beams.lineStyle(32, 0xc084fc, 0.85).lineBetween(mouth.x, mouth.y, cx, cy);
+        // the SPIRIT CUM: white-gold, wider
+        beams.lineStyle(90 - wob, 0xfff4c2, 0.5).lineBetween(src.x, src.y, cx, cy);
+        beams.lineStyle(40, 0xffffff, 0.95).lineBetween(src.x, src.y, cx, cy);
+        // where they meet: a ragged star of light
+        for (let i = 0; i < 6; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const r = 50 + Math.random() * 70;
+          beams.lineStyle(3 + Math.random() * 5, Math.random() < 0.5 ? 0xffffff : 0xc084fc, 0.9).lineBetween(cx, cy, cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+        }
+        core.clear();
+        core.lineStyle(8, 0x12002a, 0.9).lineBetween(mouth.x, mouth.y, cx, cy);
+        // the clash itself: a flickering knot of light, throwing sparks
+        if (Math.random() < 0.5) {
+          const sp = this.add.circle(cx, cy, 3 + Math.random() * 4, Math.random() < 0.5 ? 0xffffff : 0xc084fc, 1).setDepth(72).setBlendMode(Phaser.BlendModes.ADD);
+          const a = Math.random() * Math.PI * 2;
+          const v = 60 + Math.random() * 160;
+          this.tweens.add({ targets: sp, x: cx + Math.cos(a) * v, y: cy + Math.sin(a) * v, alpha: 0, duration: 380, onComplete: () => sp.destroy() });
+        }
+        if (Math.random() < 0.06 && hasVfx(this, "vfx_sparks")) vfx(this, "vfx_sparks", cx, cy, { scale: 1.6, depth: 73, add: true });
+        orb.setScale(1.15 + Math.sin(elapsed * 30) * 0.12);
+        const k = 1 - t;
+        if (!calm && Math.random() < 0.25) this.cameras.main.shake(80, 0.004 + k * 0.01);
+        barGold.width = 420 * (1 - t);
+        barDark.width = 420 - barGold.width;
+        if (t <= 0.06) cleanup(true);
+      };
+      const cleanup = (won: boolean) => {
+        if (done) return;
+        done = true;
+        this.clashing = false;
+        this.events.off("update", tick);
+        this.input.keyboard?.off("keydown", onKey);
+        this.input.off("pointerdown", push);
+        shouts.remove();
+        stopLines();
+        beams.destroy();
+        core.destroy();
+        for (const o of [prompt, hint, barBack, barDark, barGold]) o.destroy();
+        if (won) {
+          synth.play("boom");
+          Juice.subDrop(1, 2.4);
+        }
+        resolve();
+      };
+      this.events.on("update", tick);
+    });
   }
 
   /** Something comes apart into motes of light. */

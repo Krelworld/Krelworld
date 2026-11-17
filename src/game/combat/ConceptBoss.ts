@@ -47,6 +47,11 @@ export class ConceptBoss extends Boss {
   private lastShrug = 0;
   /** Where it may roam. */
   roam = new Phaser.Geom.Rectangle(0, 0, 0, 0);
+  /** How many times it has healed (the finale sets it): each one, it comes back a little faster and nastier. */
+  escalation = 0;
+  /** Real mode: the HP lines it's crossed (half: a phase break; 40% and 20%: the LIGHTNING GRID). */
+  private realMarks = new Set<number>();
+  private gridQueued = 0;
 
   constructor(w: CombatWorld, x: number, y: number) {
     const art = w.sc.textures.exists("fb_dragon_top");
@@ -102,6 +107,13 @@ export class ConceptBoss extends Boss {
     // real
     const floor = this.maxHp * 0.02;
     const a = Math.min(amount * 1.6, Math.max(0, this.hp - floor));
+    const after = (this.hp - a) / this.maxHp;
+    for (const m of [0.5, 0.4, 0.2]) {
+      if (after > m || this.realMarks.has(m)) continue;
+      this.realMarks.add(m);
+      if (m === 0.5) this.scene.time.delayedCall(10, () => this.active && this.mode === "real" && this.scene.events.emit("epic-phase", this, "IT'S HURTING!", "#ffd23f"));
+      else this.gridQueued++;
+    }
     if (this.hp - a <= floor + 0.5 && !this.lowFired) {
       this.lowFired = true;
       this.scene.time.delayedCall(10, () => this.onLow?.());
@@ -266,8 +278,20 @@ export class ConceptBoss extends Boss {
     this.setFlipX(false);
     if (now < this.nextPattern) return;
     const tele = 900 * w.telegraphMult;
-    const pick = this.patternIdx++ % 5;
-    const fury = real ? 1.5 : 1;
+    // badly hurt: the storm itself turns on you (a checkerboard of strikes, two waves)
+    if (real && this.gridQueued > 0) {
+      this.gridQueued--;
+      this.lightningGrid(now);
+      return;
+    }
+    // once it's healed (or once it's really fighting) it has the spiral too
+    const spiral = real || this.escalation >= 1;
+    const pick = this.patternIdx++ % (spiral ? 6 : 5);
+    const fury = real ? 1.5 : 1 + this.escalation * 0.12;
+    if (pick === 5) {
+      this.spiral(now, real);
+      return;
+    }
     if (pick === 0) {
       // ARM SLAM: claws come down where you are (and where you're going)
       const n = Math.round(4 * fury);
@@ -332,6 +356,87 @@ export class ConceptBoss extends Boss {
       if (n) w.floatText(this.x, this.y - this.displayHeight * 0.4, "SEE ALSO:", "#d8b4fe", 16);
       this.nextPattern = now + 1500;
     }
+  }
+
+  /**
+   * THE DSM SPIRAL (bullet hell, but readable): it rears, its throat glows, then four streams of slow bolts wind
+   * out of its mouth, two arms each way, so the lanes between them open and close like scissors. Walk with them.
+   */
+  private spiral(now: number, real: boolean) {
+    const w = this.world;
+    const sc = this.scene;
+    const charge = 800 * w.telegraphMult;
+    const dur = real ? 3600 : 3000;
+    const mx = () => this.x;
+    const my = () => this.y + 30;
+    this.roar();
+    w.floatText(this.x, this.y - this.displayHeight * 0.4, "DSM-5", "#d8b4fe", 22);
+    const glow = sc.add.circle(mx(), my(), 26, 0xa855f7, 0.55).setDepth(this.depth + 3).setBlendMode(Phaser.BlendModes.ADD).setScale(0.3);
+    sc.tweens.add({ targets: glow, scale: 3, alpha: 0.2, duration: charge, ease: "Quad.in", onComplete: () => glow.destroy() });
+    let a = Math.random() * Math.PI * 2;
+    const step = real ? 0.2 : 0.17;
+    const speed = real ? 170 : 150;
+    sc.time.delayedCall(charge, () => {
+      if (!this.active || this.mode === "still") return;
+      synth.play("pfft");
+      const ev = sc.time.addEvent({
+        delay: real ? 120 : 140,
+        repeat: Math.floor(dur / (real ? 120 : 140)),
+        callback: () => {
+          if (!this.active || this.mode === "still" || this.healing) return ev.remove();
+          a += step;
+          for (let k = 0; k < 2; k++) {
+            w.shoot(mx(), my(), { owner: "enemy", damage: 11, speed, angle: a + k * Math.PI, color: 0xa855f7, life: 6000, scale: 1.3 });
+            w.shoot(mx(), my(), { owner: "enemy", damage: 11, speed, angle: -a + k * Math.PI + 0.5, color: 0x84cc16, life: 6000, scale: 1.3 });
+          }
+        },
+      });
+    });
+    this.nextPattern = now + charge + dur + 1200;
+  }
+
+  /**
+   * THE LIGHTNING GRID: the ground round you is marked out in a checkerboard; the storm hits the dark squares, then
+   * the light ones. Stand on a light square for the first wave and step across for the second.
+   */
+  private lightningGrid(now: number) {
+    const w = this.world;
+    const sc = this.scene;
+    const p = w.player;
+    const tele = 1150 * w.telegraphMult;
+    const cell = 132;
+    const cx = p.x;
+    const cy = p.y;
+    this.roar();
+    w.floatText(this.x, this.y - this.displayHeight * 0.45, "[CITATION NEEDED]", "#e9d5ff", 22);
+    for (let wave = 0; wave < 2; wave++)
+      sc.time.delayedCall(wave * (tele + 250), () => {
+        if (!this.active || this.mode !== "real") return;
+        for (let i = -3; i <= 3; i++)
+          for (let j = -2; j <= 2; j++) {
+            if ((((i + j) % 2) + 2) % 2 !== wave) continue;
+            const x = cx + i * cell;
+            const y = cy + j * cell;
+            if (!Phaser.Geom.Rectangle.Contains(w.bounds, x, y)) continue;
+            w.enemyAoe(x, y, cell * 0.5, 18, tele, 0xe9d5ff);
+          }
+        sc.time.delayedCall(tele - 40, () => {
+          if (!this.active) return;
+          sc.cameras.main.flash(140, 200, 190, 255, true);
+          synth.play(Math.random() < 0.5 ? "thunder_1" : "thunder_2");
+          w.shake(260, 0.012);
+          this.revealWizard();
+          if (sc.textures.exists("fb_lightning") && sc.anims.exists("fb_lightning"))
+            for (let k = 0; k < 4; k++) {
+              const bx = cx + (Math.random() - 0.5) * cell * 6;
+              const by = cy + (Math.random() - 0.5) * cell * 4;
+              const bolt = sc.add.sprite(bx, by + 14, "fb_lightning", 0).setOrigin(0.5, 0.86).setScale(2.2).setDepth(by + 60).setBlendMode(Phaser.BlendModes.ADD).setTint(0xe9d5ff);
+              bolt.play("fb_lightning");
+              bolt.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => bolt.destroy());
+            }
+        });
+      });
+    this.nextPattern = now + 2 * (tele + 250) + 1100;
   }
 
   /** A claw mark where an arm comes down. */

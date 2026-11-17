@@ -15,6 +15,7 @@ import { switchTo } from "../../Flow";
 import { say } from "../../../content/dsl";
 import * as FB from "../../../content/finaleKrelford";
 import { bottleKey, finaleReady, headroom, logsKey, ssjSwap, syringeKey } from "./finaleArt";
+import * as Juice from "../../gfx/Juice";
 
 /**
  * THE CONCEPT OF PAEDOPHILIA, the fight (DungeonScene, dungeon "krelford_finale"). A big top-down arena that is
@@ -123,6 +124,8 @@ export class KrelfordFinale {
   private playerFeet = 26;
   private nextSupply = 0;
   private gone = false;
+  /** The SPIRIT CUM gauge (real phase): fills as the monster weakens. */
+  private gauge?: { fill: Phaser.GameObjects.Rectangle; glow: Phaser.GameObjects.Rectangle; label: Phaser.GameObjects.Text; w: number };
 
   constructor(scene: Phaser.Scene) {
     this.h = scene as unknown as Host;
@@ -172,6 +175,7 @@ export class KrelfordFinale {
       boss.mode = "real";
       boss.started = true;
       boss.nextPattern = h.now() + 1500;
+      this.spiritGauge();
       h.toast("SUPER KRELWORLD KREW", "Real damage now. Hold out until Goku's SPIRIT CUM is ready.");
       return;
     }
@@ -188,6 +192,8 @@ export class KrelfordFinale {
       return;
     }
     await h.talk(FB.FB_ARENA);
+    if (this.gone) return;
+    await this.introShot();
     if (this.gone) return;
     boss.mode = "immortal";
     boss.started = true;
@@ -374,13 +380,21 @@ export class KrelfordFinale {
     b.mode = "still";
     // as it heals it recites a random clinical fact (the lads' reactions after it stay the same)
     const fact = FB.conceptHealFact();
+    const shot = this.healShot(n, 1500);
     await b.fullHeal(1500, fact);
+    if (this.gone) return;
+    await shot;
     if (this.gone) return;
     await h.talk([FB.conceptLine(fact), ...FB.FB_HEAL[Math.min(n, FB.FB_HEAL.length - 1)].slice(1)]);
     if (this.gone) return;
+    b.escalation = this.heals;
     if (this.heals < 3) {
       b.mode = "immortal";
       b.nextPattern = h.now() + 800;
+      // it comes back worse each time
+      Juice.slamText(h.sc, this.heals === 1 ? "IT'S LEARNING" : "IT'S GETTING STRONGER", "#c084fc", 34, 150, 900);
+      b.roar();
+      Juice.shockRing(h.sc, b.x, b.y, { color: 0xa855f7, to: 900, rings: 3, ms: 900 });
       return;
     }
     // the bottle!
@@ -548,6 +562,17 @@ export class KrelfordFinale {
     G.s.hp = Math.max(G.s.hp, maxHp(G.s));
     await h.talk(FB.FB_PHASE2);
     if (this.gone) return;
+    // the Krew, lit up: a gold blast off you, and the words
+    const ps = h.player.spr;
+    Juice.flash(h.sc, 0xffe066, 500, 0.55, 4880);
+    Juice.shockRing(h.sc, ps.x, ps.y, { color: 0xffd23f, to: 900, rings: 4, ms: 900 });
+    for (const l of this.lads) Juice.shockRing(h.sc, l.spr.x, l.spr.y, { color: 0xffe066, to: 260, rings: 2 });
+    h.shake(600, 0.015);
+    Juice.subDrop(0.9, 1.3);
+    synth.play("boom");
+    await Juice.bossCard(h.sc, "SUPER KRELWORLD KREW", "REAL DAMAGE · HOLD OUT FOR THE SPIRIT CUM", "#ffd23f");
+    if (this.gone) return;
+    this.spiritGauge();
     this.stage = "real";
     b.mode = "real";
     b.nextPattern = h.now() + 900;
@@ -635,8 +660,27 @@ export class KrelfordFinale {
     for (const [i, l] of this.lads.entries()) h.time.delayedCall(i * 90, () => h.floatText(l.spr.x, l.spr.y - (l.head ?? 40) - 14, FB.FB_NO, "#ff6b6b", 18));
     h.floatText(h.player.x, h.player.y - 60, FB.FB_NO, "#ff6b6b", 20);
     synth.play("shriek");
+    const cam0 = h.cameras.main;
+    const z0 = cam0.zoom;
+    const close = Juice.letterbox(h.sc, 56, 500);
+    const vig = Juice.vignette(h.sc, 0x7f1d1d, 0.8, 4890);
+    cam0.stopFollow();
+    cam0.pan(b.x, b.y, 900, "Sine.easeInOut", true);
+    cam0.zoomTo(1.15, 2200, "Sine.easeInOut", true);
+    Juice.duckMusic(2400, 800, 0.08);
+    for (let i = 0; i < 4; i++) h.time.delayedCall(i * 560, () => Juice.heartbeat(0.9));
+    Juice.slamText(h.sc, FB.FB_NO, "#ff3b3b", 64, 200, 1600);
     await b.fullHeal(2200, finalFact);
     if (this.gone) return;
+    close(400);
+    h.tweens.add({ targets: vig, alpha: 0, duration: 600, onComplete: () => vig.destroy() });
+    cam0.zoomTo(z0, 500, "Sine.easeInOut", true);
+    cam0.startFollow(h.player.spr, true, 0.12, 0.12);
+    if (this.gauge) {
+      // the gauge: it's full. It was always going to be full.
+      this.gauge.fill.width = this.gauge.w;
+      this.gauge.label.setText("SPIRIT CUM: READY");
+    }
     await h.talk([...FB.FB_FINAL_HEAL.slice(1), ...this.lads.slice(0, 4).map((l) => say(l.id, FB.FB_NO)), { s: "YOU", t: FB.FB_NO, tag: "new" }]);
     if (this.gone) return;
     // ...but Goku's ready
@@ -683,6 +727,11 @@ export class KrelfordFinale {
     if (!this.playerArt && (this.stage === "real" || G.s.flags.finale_cp === "ssj")) ps.setTint(0xfff0b0);
     // the SPIRIT CUM grows as it weakens
     if (this.orb && this.stage === "real") this.orb.setScale(0.35 + 1.6 * (1 - this.boss.hp / this.boss.maxHp));
+    if (this.gauge && this.stage === "real") {
+      const k = Phaser.Math.Clamp(1 - this.boss.hp / this.boss.maxHp, 0, 1);
+      this.gauge.fill.width = Math.max(2, this.gauge.w * k);
+      this.gauge.glow.setAlpha(0.25 + 0.25 * Math.sin(now / 120) * k);
+    }
     // fetch the bottle
     if (this.stage === "fetch" && !h.busy && Phaser.Math.Distance.Between(h.player.x, h.player.y, this.bottle.x, this.bottle.y) < 70) void this.meetGoku();
     // ammo and a bit of health now and then: it's a long fight
@@ -711,5 +760,84 @@ export class KrelfordFinale {
 
   private wait(ms: number) {
     return new Promise<void>((res) => this.h.time.delayedCall(ms, () => res()));
+  }
+
+  /**
+   * Before the first shot: bars in, the camera drifts up over the ruins to it, a beat of quiet, then it ROARS
+   * (the ground jumps, a ring of rubble kicks up off the wreck) and the camera snaps back to you.
+   */
+  private async introShot() {
+    const h = this.h;
+    const b = this.boss;
+    const cam = h.cameras.main;
+    h.busy = true;
+    const close = Juice.letterbox(h.sc, 54, 500);
+    const z0 = cam.zoom;
+    cam.stopFollow();
+    cam.pan(b.x, b.y + 40, 1300, "Sine.easeInOut", true);
+    cam.zoomTo(1.05, 1500, "Sine.easeInOut", true);
+    Juice.duckMusic(1700, 700, 0.12);
+    await this.wait(1500);
+    if (this.gone) return;
+    Juice.riser(600, 0.3);
+    await this.wait(550);
+    if (this.gone) return;
+    b.roar();
+    Juice.subDrop(1, 1.8);
+    h.shake(1100, 0.018);
+    Juice.shockRing(h.sc, b.x, b.y + 60, { color: 0xa855f7, to: 1100, rings: 4, ms: 1000, flat: 0.55 });
+    Juice.debris(h.sc, b.x, b.y + 80, 22, { depth: 2000, speed: 520, size: 10, colors: [0x2a211c, 0x44403c, 0x78716c, 0x7c3aed] });
+    const stop = Juice.speedLines(h.sc, 1000, 0xc4b5fd);
+    await this.wait(1200);
+    stop();
+    if (this.gone) return;
+    close(400);
+    cam.zoomTo(z0, 700, "Sine.easeInOut", true);
+    cam.pan(h.player.x, h.player.y, 700, "Sine.easeInOut", true);
+    await this.wait(720);
+    if (this.gone) return;
+    cam.startFollow(h.player.spr, true, 0.12, 0.12);
+    h.busy = false;
+  }
+
+  /**
+   * Each heal is a moment: the camera pushes in on it while it knits back together, bars in, a sick green-violet
+   * pulse, and (each time worse) the ground round it heaving. Back out when it's done.
+   */
+  private async healShot(n: number, ms: number) {
+    const h = this.h;
+    const b = this.boss;
+    const cam = h.cameras.main;
+    const z0 = cam.zoom;
+    // the camera's off you: the fight holds still meanwhile (nothing in the air, nothing can hit you)
+    const wasBusy = h.busy;
+    h.busy = true;
+    for (const sh of [...h.shots]) if (sh.o.owner === "enemy") h.killShot(sh);
+    const close = Juice.letterbox(h.sc, 44, 300);
+    cam.stopFollow();
+    cam.pan(b.x, b.y, 500, "Sine.easeInOut", true);
+    cam.zoomTo(z0 + 0.18 + n * 0.06, ms, "Sine.easeInOut", true);
+    for (let i = 0; i < 3 + n; i++) h.time.delayedCall(i * (ms / (3 + n)), () => Juice.shockRing(h.sc, b.x, b.y, { color: i % 2 ? 0x22c55e : 0xa855f7, to: 500 + n * 160, rings: 1, ms: 700 }));
+    Juice.heartbeat(0.7);
+    await this.wait(ms + 100);
+    close(300);
+    cam.zoomTo(z0, 400, "Sine.easeInOut", true);
+    cam.startFollow(h.player.spr, true, 0.12, 0.12);
+    if (!wasBusy) h.busy = false;
+  }
+
+  /** The SPIRIT CUM gauge, top of the screen: fills as the monster weakens. */
+  private spiritGauge() {
+    if (this.gauge) return;
+    const h = this.h;
+    const L = Juice.layer(h.sc, 5001);
+    const w = 300;
+    const y = 96;
+    const back = h.add.rectangle(480, y, w + 8, 18, 0x000000, 0.7).setStrokeStyle(2, 0xffd23f, 0.9);
+    const glow = h.add.rectangle(480, y, w + 20, 30, 0xfff4c2, 0.25).setBlendMode(Phaser.BlendModes.ADD);
+    const fill = h.add.rectangle(480 - w / 2, y, 2, 12, 0xfff4c2, 1).setOrigin(0, 0.5);
+    const label = h.add.text(480, y - 18, "GOKU'S SPIRIT CUM", { fontFamily: "Impact, sans-serif", fontSize: "14px", color: "#ffe066", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5);
+    L.add([glow, back, fill, label]);
+    this.gauge = { fill, glow, label, w };
   }
 }

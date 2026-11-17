@@ -614,6 +614,20 @@ export class Synth {
     return !!SHOUTS[id];
   }
 
+  /** The shout bank is loaded and ready to play right now. */
+  shoutReady(id: string) {
+    return !!SHOUTS[id] && !!this.files[id] && !!this.ctx;
+  }
+
+  /** Play one shout from a bank (a random take) and return how long it runs, in ms (0 if it couldn't play). */
+  shoutTake(id: string, vol = 0.95): number {
+    const segs = SHOUTS[id];
+    if (!segs || !this.files[id]) return 0;
+    const i = Math.floor(Math.random() * segs.length);
+    const r = 0.97 + Math.random() * 0.06;
+    return this.shout(id, vol, r, i) ? (segs[i][1] / r) * 1000 : 0;
+  }
+
   shout(id: string, vol = 0.9, rate?: number, index?: number) {
     const buf = this.files[id];
     const segs = SHOUTS[id];

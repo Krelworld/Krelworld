@@ -785,5 +785,20 @@
       "f": 6.5,
       "d": 0.45
     }
+  },
+  "shout_words": {
+    "_doc": "Speakers whose YEE/YEGH in dialogue is the user's own recording (Synth shout bank), not TTS: the word is cut from the recorded line and the game plays the shout in its place (Voice.ts SHOUT_WORDS mirrors this).",
+    "SANMIK": [
+      "yee",
+      "\\by+e{2,}h*\\b"
+    ],
+    "SANCHZ": [
+      "yegh",
+      "\\by+e+g+h+\\b"
+    ],
+    "POLSON": [
+      "yegh",
+      "\\by+e+g+h+\\b"
+    ]
   }
 }

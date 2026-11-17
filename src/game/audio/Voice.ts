@@ -231,6 +231,30 @@ function duckWhileTalking() {
 /** The utterances being spoken right now (kept so the browser doesn't drop them). */
 let live: SpeechSynthesisUtterance[] = [];
 
+/**
+ * Speakers whose YEE / YEGH in dialogue is the user's own recording (Synth's "yee" / "yegh" banks), not TTS.
+ * Mirrors scripts/voice-cast.json "shout_words": the recorder cuts the word out of the line, and say() plays the
+ * real shout where it was (before the clip if the line opens with it, after the clip otherwise).
+ */
+export const SHOUT_WORDS: Record<string, [string, RegExp]> = {
+  SANMIK: ["yee", /\by+e{2,}h*\b/gi],
+  SANCHZ: ["yegh", /\by+e+g+h+\b/gi],
+  POLSON: ["yegh", /\by+e+g+h+\b/gi],
+};
+/** How a line splits round its shouts: how many come first, how many after, and whether anything else is said. */
+export function shoutPlan(speaker: string, text: string): { bank: string; lead: number; tail: number; words: boolean } | null {
+  const sw = SHOUT_WORDS[speaker];
+  if (!sw || !synth.shoutReady(sw[0])) return null;
+  const clean = text.replace(/\[[^\]]*\]/g, " ").replace(/\([^)]*\)/g, " ");
+  const tokens = clean.split(/\s+/).filter((w) => /[A-Za-z0-9]/.test(w));
+  const isShout = (w: string) => new RegExp(sw[1].source, "i").test(w.replace(/[^A-Za-z]/g, ""));
+  if (!tokens.some(isShout)) return null;
+  let lead = 0;
+  while (lead < tokens.length && isShout(tokens[lead])) lead++;
+  const tail = tokens.slice(lead).filter(isShout).length;
+  return { bank: sw[0], lead, tail, words: lead < tokens.length };
+}
+
 export const voice = {
   enabled() {
     return G.meta.settings.voices !== false;
@@ -278,17 +302,46 @@ export const voice = {
     if (!this.enabled()) return;
     this.stop();
     const my = recToken;
-    const go = () => {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    // SanMik's YEEs and SanChz / Polson's YEGHs are the real ones: shouts first, then the line, then any more shouts
+    const sp = shoutPlan(speaker, text);
+    if (sp) {
+      const shouts = (n: number, then?: () => void) => {
+        let k = 0;
+        const next = () => {
+          if (my !== recToken) return;
+          if (k++ >= n) return then?.();
+          const ms = synth.shoutTake(sp.bank);
+          setTimeout(next, Math.max(120, ms - 60));
+        };
+        next();
+      };
+      shouts(sp.lead, () => {
+        if (!sp.words) return;
+        const e = recIndex ? recordingFor(speaker, text) : undefined;
+        const afterMs = e ? ((e[2] * 8) / 32000) * 1000 / speechRate() : 0;
+        playClip();
+        if (sp.tail) setTimeout(() => shouts(sp.tail), afterMs + 80);
+      });
+      return;
+    }
+    playClip();
+    function playClip() {
+      if (recIndex) go();
+      else void loadRecIndex().then(go);
+    }
+    function go() {
       if (my !== recToken) return;
       const e = recordingFor(speaker, text);
       const ctx = synth.ctx;
-      if (!e || !ctx) return this.tts(speaker, text);
+      if (!e || !ctx) return self.tts(speaker, text);
       recPending = true;
       void recBundle(e[0]).then(async (buf) => {
         if (my !== recToken) return;
         if (!buf) {
           recPending = false;
-          return this.tts(speaker, text);
+          return self.tts(speaker, text);
         }
         // clips are loudness-normalised (-16 LUFS, scripts/voice-gen.py); capped at unity so loud settings don't clip
         const vol = Math.min(1, (G.meta.settings.voiceVolume ?? 0.8) * (G.meta.settings.master ?? 1) * 1.25);
@@ -323,7 +376,7 @@ export const voice = {
           audio = await ctx.decodeAudioData(buf.slice(e[1], e[1] + e[2]));
         } catch {
           recPending = false;
-          return this.tts(speaker, text);
+          return self.tts(speaker, text);
         }
         if (my !== recToken) return;
         const src = ctx.createBufferSource();
@@ -339,9 +392,7 @@ export const voice = {
         src.start();
         duckWhileTalking();
       });
-    };
-    if (recIndex) go();
-    else void loadRecIndex().then(go);
+    }
   },
   /**
    * Play a line's recording ON TOP of whatever else is being said (a crowd chanting together). No robot-voice

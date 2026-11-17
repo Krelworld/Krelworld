@@ -154,6 +154,13 @@ def plan(l, c):
     """(model, text to send, settings, delivery tags) for one line."""
     vid, kind, accent, base = c
     t = l["t"].replace("*", "").strip()  # stray asterisks (chat-style corrections) trip the API
+    # the user's own YEEs / YEGHs replace the synthetic ones (the game plays them around this clip)
+    sw = CAST.get("shout_words", {}).get(l["s"])
+    if sw:
+        t = re.sub(sw[1], "", t, flags=re.I)
+        t = re.sub(r"^[\s.,!?…\-—]+", "", t)
+        t = re.sub(r"\s+([.,!?…])", r"\1", t)
+        t = re.sub(r"\s{2,}", " ", t).strip()
     # how names are said (the text on screen is unchanged): e.g. Krebon is "Krebb-on"
     for word, say_as in CAST.get("pronounce", {}).items():
         if not word.startswith("_"):
@@ -243,6 +250,8 @@ for l in lines:
     if not c:
         continue
     model, text, settings, tags = plan(l, c)
+    if not re.search(r"[A-Za-z0-9]", TAG.sub("", text)):
+        continue  # nothing left to say but a shout: the game plays the user's recording
     w = CAST.get("warble", {}).get(c[3])
     pt = CAST.get("pitch", {}).get(c[3])
     tp = CAST.get("tempo", {}).get(c[3])

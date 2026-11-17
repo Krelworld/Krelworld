@@ -105,8 +105,8 @@ export const misc: Record<string, Dressing> = {
     build(k) {
       const { w, h } = k.r;
       windows(k, 24, w - 24, (w / 2 - 88) / 2, (w / 2 - 88) / 2 - 16, 420, 0x374151, 0x111827, 4, 48);
-      k.prop("dd_cockpit", 240, 200, { scale: 2.2, block: [170, 50] });
-      k.prop("dd_cockpit", w - 240, 200, { scale: 2.2, flip: true, block: [170, 50] });
+      k.animProp("dd_cockpit", 240, 200, { scale: 2.2, block: [170, 50], fps: 6, flashy: true });
+      k.animProp("dd_cockpit", w - 240, 200, { scale: 2.2, flip: true, block: [170, 50], fps: 6, flashy: true });
       for (const x of [240, w - 240]) k.light(x, 160, 130, 0x34d399, 0.16, "breathe");
       // the warning lights: STALL, CABIN, HIJACK
       ["STALL", "CABIN", "HIJACK"].forEach((t, i) => {
@@ -124,6 +124,7 @@ export const misc: Record<string, Dressing> = {
 
   // Uncle Rik's transverse colon: the walls squeeze (peristalsis rings roll past), it glistens, it drips, it bubbles
   "rik_colon:0": {
+    floor: "colon",
     keepGeneric: true,
     build(k) {
       const { w, h } = k.r;

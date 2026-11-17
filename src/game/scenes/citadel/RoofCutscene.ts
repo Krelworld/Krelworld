@@ -14,6 +14,8 @@ import { hasVfx, vfx } from "../../gfx/Vfx";
 import * as FR from "../../../content/finaleRoof";
 import * as Juice from "../../gfx/Juice";
 import { FINALE_BOTTLE_AT, FINALE_LOGS_AT, roofPreload, roofReady } from "./RoofArena";
+import { can3d } from "../../gfx/Pseudo3D";
+import { collapseShot } from "./citadel3d";
 
 /**
  * The finale's side-on cutscenes (the roof of Da Drongus Dungeon). Started with switchTo(scene, "RoofCutscene", { beat }).
@@ -733,15 +735,69 @@ export class RoofCutscene extends Phaser.Scene {
 
   // ================================================================= THE COLLAPSE AND THE SURF
 
+  /**
+   * The collapse, in beats (it used to be over in a blink): a rumble that builds (dust sifting down, the lads
+   * wobbling), cracks across the roof and the parapet going, then the floor; then outside, a pseudo-3D wide shot from
+   * across town of the whole tower coming down in stages (citadel3d.ts), then the drawn still. No WebGL: the old flat
+   * outside shot, slowed down to match.
+   */
   private async collapse(lads: Phaser.GameObjects.Sprite[], d: Phaser.GameObjects.Sprite) {
-    // cracks, the floor goes
+    const calm = Juice.calm();
+    const shake = (ms: number, k: number) => this.cameras.main.shake(ms, calm ? k * 0.35 : k);
+    // 1. the rumble: low, then building
+    synth.play("thunder", 0.8);
+    synth.play("drone", 0.7);
+    shake(1400, 0.004);
+    const sift = this.time.addEvent({ delay: 90, loop: true, callback: () => this.dustSift() });
+    for (const l of lads) this.tweens.add({ targets: l, y: l.y - 4, yoyo: true, repeat: 4, duration: 140 + Math.random() * 80 });
+    await this.wait(1300);
+    // 2. it's going: cracks, the alarm, the parapet breaks off
     synth.play("alarm");
-    this.cameras.main.shake(2000, 0.015);
+    shake(2400, 0.01);
     this.groundCracks();
+    this.parapetFalls();
     for (const l of lads) this.tweens.add({ targets: l, y: l.y - 10, yoyo: true, repeat: 6, duration: 120 + Math.random() * 80 });
     await this.talk(FR.COLLAPSE);
-    this.tweens.add({ targets: [d, ...lads], y: "+=600", duration: 1400, ease: "Quad.in", delay: 300 });
-    // the outside shot: the whole tower comes down
+    // 3. the floor goes
+    synth.play("boom");
+    shake(1600, 0.02);
+    this.groundCracks();
+    this.tweens.add({ targets: [d, ...lads], y: "+=600", duration: 1800, ease: "Quad.in", delay: 250 });
+    await this.wait(1100);
+    sift.remove();
+    // 4. outside: the whole tower comes down
+    if (can3d(this)) {
+      const r = await collapseShot(this);
+      if (this.dead || this.ended) return never();
+      if (!r.skipped) await Juice.still(this, "fe_still_collapse", 1800, { push: 0.1, shakeK: 0.015 });
+      return;
+    }
+    await this.collapseFlat();
+  }
+
+  /** Dust and grit sifting down from above while the roof shakes. */
+  private dustSift() {
+    const x = Math.random() * W;
+    const p = this.add.rectangle(x, -6, 2 + Math.random() * 3, 2 + Math.random() * 3, Math.random() < 0.5 ? 0x8a7f74 : 0x5a5060, 0.9).setDepth(85);
+    this.tweens.add({ targets: p, y: FLOOR + Math.random() * 30, x: x - 20 + Math.random() * 40, duration: 700 + Math.random() * 500, ease: "Quad.in", onComplete: () => p.destroy() });
+  }
+
+  /** Chunks of the roof's edge break away and drop out of shot. */
+  private parapetFalls() {
+    const slabs = ["fr_debris_0", "fr_debris_1", "fr_slab"].filter((k) => this.textures.exists(k));
+    for (let i = 0; i < 5; i++) {
+      const left = i % 2 === 0;
+      const x = left ? 30 + Math.random() * 90 : W - 30 - Math.random() * 90;
+      const key = slabs.length ? slabs[i % slabs.length] : null;
+      const o = key ? this.add.image(x, FLOOR - 10, key).setScale(0.5 + Math.random() * 0.4) : this.add.rectangle(x, FLOOR - 10, 40, 24, 0x2a2233);
+      o.setDepth(70);
+      this.tweens.add({ targets: o, x: x + (left ? -80 : 80), y: H + 120, angle: (left ? -1 : 1) * (200 + Math.random() * 300), duration: 1100 + Math.random() * 500, delay: i * 180, ease: "Quad.in", onComplete: () => o.destroy() });
+    }
+    this.time.delayedCall(300, () => synth.play("smash"));
+  }
+
+  /** The old flat outside shot (no WebGL), slowed down. */
+  private async collapseFlat() {
     const c = this.add.container(0, 0).setDepth(650).setScrollFactor(0).setAlpha(0);
     const sky = this.add.graphics();
     sky.fillGradientStyle(0x1a0f2e, 0x1a0f2e, 0x3a1020, 0x3a1020, 1).fillRect(0, 0, W, H);
@@ -754,13 +810,12 @@ export class RoofCutscene extends Phaser.Scene {
     this.tweens.add({ targets: c, alpha: 1, duration: 300 });
     await this.wait(500);
     synth.play("boom");
-    this.cameras.main.shake(3000, 0.025);
-    this.tweens.add({ targets: tower, y: 470 + 460, angle: 4, duration: 3000, ease: "Quad.in" });
-    // insanely large wreckage
+    this.cameras.main.shake(5000, 0.02);
+    this.tweens.add({ targets: tower, y: 470 + 460, angle: 4, duration: 5200, ease: "Quad.in" });
     const slabs = ["fr_debris_0", "fr_debris_1", "fr_slab", "fr_rack"].filter((k) => this.textures.exists(k));
     const ev = this.time.addEvent({
-      delay: 60,
-      repeat: 45,
+      delay: 90,
+      repeat: 55,
       callback: () => {
         const key = slabs[Math.floor(Math.random() * slabs.length)];
         const o = key ? this.add.image(420 + Math.random() * 120, 60 + Math.random() * 120, key).setScale(0.3 + Math.random() * 0.7) : this.add.rectangle(480, 200, 40, 30, 0x2a2233);
@@ -770,17 +825,16 @@ export class RoofCutscene extends Phaser.Scene {
         if (Math.random() < 0.3) synth.play("smash");
       },
     });
-    for (let i = 0; i < 6; i++) {
-      this.time.delayedCall(800 + i * 300, () => {
+    for (let i = 0; i < 8; i++) {
+      this.time.delayedCall(1200 + i * 400, () => {
         const dust = this.add.circle(380 + Math.random() * 200, 470, 60, 0x8a7f74, 0.6);
         c.add(dust);
-        this.tweens.add({ targets: dust, scale: 4, alpha: 0, y: 380, duration: 2000 });
+        this.tweens.add({ targets: dust, scale: 4, alpha: 0, y: 380, duration: 2400 });
       });
     }
-    await this.wait(3200);
+    await this.wait(5400);
     ev.remove();
-    // the wide shot from across town: the whole tower going, and the lads riding it down
-    await Juice.still(this, "fe_still_collapse", 1400, { push: 0.1, shakeK: 0.015 });
+    await Juice.still(this, "fe_still_collapse", 1800, { push: 0.1, shakeK: 0.015 });
     this.tweens.add({ targets: c, alpha: 0, duration: 300, onComplete: () => c.destroy() });
     await this.wait(300);
   }

@@ -47,6 +47,8 @@ import { finalePreload, finaleReady, logsKey } from "./finale/finaleArt";
 import { townLife } from "./hub/townLife";
 import { loopProp } from "../gfx/ambient";
 import { canFly3d, FLY_LAST, FLY_STOPS, runFlyover } from "./hub/flyover";
+import { can3d } from "../gfx/Pseudo3D";
+import { arrivalOrbit } from "./citadel/citadel3d";
 
 /** The first line over the whiteness. */
 const FD_WAKE_FIRST = FB.FD_WAKE.slice(0, 1);
@@ -3351,8 +3353,21 @@ You are required by law to sign the Sex Offenders Register.`, {
     (this.av.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
     const door = b.door!;
     cam.stopFollow();
-    cam.pan(door.x, door.y - 60, 700, Phaser.Math.Easing.Sine.InOut);
     const ids = LADS.filter((p) => p !== s.player && this.textures.exists(`spr_${p}`));
+    // first, a pseudo-3D look at the place: round the tower in the storm and down onto its door (citadel3d.ts)
+    if (can3d(this)) {
+      const z = cam.zoom;
+      const end = {
+        x: Phaser.Math.Clamp(door.x, cam.width / 2 / z, WORLD_W - cam.width / 2 / z),
+        y: Phaser.Math.Clamp(door.y - 60, -SKY_H + cam.height / 2 / z, WORLD_H - cam.height / 2 / z),
+        zoom: z,
+      };
+      this.scene.setVisible(false, "UI");
+      await arrivalOrbit(this, { worldW: WORLD_W, worldH: WORLD_H, tower: { x: b.x, y: this.bImg[b.id] ? this.bImg[b.id].getBottomCenter().y ?? b.y : b.y + b.h / 2 }, end, skip: [this.prompt, this.arrow], onCovered: () => cam.centerOn(end.x, end.y) });
+      if (!this.sys.isActive()) return;
+      cam.centerOn(end.x, end.y);
+      this.scene.setVisible(true, "UI");
+    } else cam.pan(door.x, door.y - 60, 700, Phaser.Math.Easing.Sine.InOut);
     const lads = ids.map((id, i) => this.add.sprite(door.x - 160 + (i % 4) * 40, door.y + 150 + Math.floor(i / 4) * 34, `spr_${id}`, 0).setScale(2).setDepth(door.y + 150));
     await new Promise((r) => this.time.delayedCall(750, r));
     await this.talk(CITADEL_ENTRY.slice(0, 3));

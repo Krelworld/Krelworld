@@ -12,6 +12,8 @@ import { PRIZES } from "../../../content/kreddle";
 import { addKrokens, awardPrize, krokenPrice, krokens, prizeOpen } from "../../systems/kreddle";
 import { G } from "../../G";
 import * as Juice from "../../gfx/Juice";
+import { can3d } from "../../gfx/Pseudo3D";
+import { sanctumSwing, towerShot } from "./citadel3d";
 
 /**
  * DA DRONGUS DUNGEON (Chapter 7): the gothic-cyber look (stone, stained glass, server racks, cables, red and purple
@@ -785,6 +787,22 @@ export class Citadel {
     sc.toast("THE RED DOOR IS OPEN", "Walk through it. He's waiting.");
   }
 
+  // ---------------------------------------------------------------- between floors
+
+  /**
+   * On the way into a room: a short pseudo-3D look at the tower from outside, the first time per playthrough
+   * (The Ascent: up its face from the street; The Final Stairs: round its top in the storm). See citadel3d.ts.
+   */
+  async arrive3d(idx: number) {
+    const kind = idx === 2 ? "ascent" : idx === 5 ? "stairs" : null;
+    if (!kind || !can3d(this.sc)) return;
+    const flag = `c7_3d_${kind}`;
+    if (G.s.flags[flag]) return;
+    G.s.flags[flag] = true;
+    G.save();
+    await towerShot(this.sc, kind, kind === "ascent" ? "DA DRONGUS DUNGEON · UP THE TOWER" : "DA DRONGUS DUNGEON · THE TOP");
+  }
+
   // ---------------------------------------------------------------- DRONGUS, PHASE ONE: the meeting
 
   /** Before the fight: the talk, the anime-style NO!! NEVER!!!, the chat logs. */
@@ -796,6 +814,13 @@ export class Citadel {
     // frame the two of you
     const cam = sc.cameras.main;
     cam.stopFollow();
+    // first, a pseudo-3D swing: low behind you, looking up the carpet at him, then up and over onto the live view
+    if (can3d(sc) && !G.s.flags.c7_sanctum_3d) {
+      G.s.flags.c7_sanctum_3d = true;
+      const p = sc.player.spr;
+      await sanctumSwing(sc, { worldW: this.room.w, worldH: this.room.h, you: { x: p.x, y: p.y }, him: { x, y }, end: { x: cam.midPoint.x, y: cam.midPoint.y, zoom: cam.zoom } });
+      if (!sc.sys.isActive()) return;
+    }
     const bars = Juice.letterbox(sc, 48, 700);
     Juice.vignette(sc, 0x2a0008, 0.55, 4890).setName("meetVig");
     // he's been waiting: a slow push in on him first
@@ -1078,7 +1103,11 @@ export class Citadel {
           sc.cameras.main.shake(600, 0.02);
           sc.cameras.main.flash(500, 255, 220, 120);
         });
-        sc.time.delayedCall(2100, () => this.hooks.next());
+        // outside: a pseudo-3D shot of the cauldron firing you out of the roof (it holds on black for the room change)
+        sc.time.delayedCall(2000, async () => {
+          if (can3d(sc)) await towerShot(sc, "launch");
+          if (sc.sys.isActive()) this.hooks.next();
+        });
       },
     });
   }

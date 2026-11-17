@@ -1313,6 +1313,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       const rule = BAN_RULES.find((b) => b.id === r.rule) ?? null;
       enter.push(say("DRONGUS", rule?.decree ?? "NEW RULE.", { notify: true, sfx: "decree" }));
     }
+    // Da Drongus Dungeon: a pseudo-3D look at the tower from outside on the way into some floors (citadel3d.ts)
+    if (this.citadel && this.dungeon.id === "citadel") await this.citadel.arrive3d(this.roomIdx);
     // let the room fade in first: talking pauses this scene, which froze the fade-in at black for the whole conversation
     const cam = this.cameras.main;
     if (cam.fadeEffect.isRunning && !cam.fadeEffect.direction)

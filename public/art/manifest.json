@@ -8524,6 +8524,15 @@
   },
   "fe_still_drongus_flee": {
    "file": "finale/fe_still_drongus_flee.png"
+  },
+  "bg_c6e_bridge_view": {
+   "file": "backdrops/bg_c6e_bridge_view.png"
+  },
+  "bg_c6e_launch": {
+   "file": "backdrops/bg_c6e_launch.png"
+  },
+  "bg_c6e_krunch_screen": {
+   "file": "backdrops/bg_c6e_krunch_screen.png"
   }
  },
  "sheets": {

@@ -5234,6 +5234,27 @@ export class VignetteScene extends Phaser.Scene {
     return this.add.image(x, y, key).setDisplaySize(size, size).setTint(tint).setAlpha(alpha).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
   }
 
+  /** The mushroom cloud seen from miles away: a glowing stem climbing out of the horizon and a cap rolling open on top. */
+  private farCloud(x: number, y: number, ms = 3600) {
+    const top = y - 170;
+    // the stem: lit from inside at the bottom, smoke further up
+    for (let i = 0; i < 14; i++) {
+      const f = i / 13;
+      const puff = this.add.circle(x + (Math.random() - 0.5) * 8, y - 6, 16 - f * 5, f < 0.5 ? 0xb4532a : 0x5b4a4a, 0.95).setDepth(-3);
+      this.tweens.add({ targets: puff, y: y - 10 - f * (y - top - 20), duration: ms * (0.4 + f * 0.6), ease: "Cubic.out" });
+    }
+    // the cap: dark smoke rolling out, its underside lit orange
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      const r = this.add.circle(x, y - 20, 10, i % 3 ? 0x6b5450 : 0x8a5a44, 1).setDepth(-2);
+      this.tweens.add({ targets: r, x: x + Math.cos(a) * 46, y: top + Math.sin(a) * 18, radius: 26 + Math.random() * 8, duration: ms, ease: "Cubic.out" });
+    }
+    const under = this.glow(x, y - 20, 60, 0xff7a2a, 0.9, -1);
+    this.tweens.add({ targets: under, y: top + 18, displayWidth: 170, displayHeight: 70, alpha: 0.6, duration: ms, ease: "Cubic.out" });
+    const base = this.glow(x, y, 120, 0xffb070, 0.9, -1);
+    this.tweens.add({ targets: base, alpha: 0.45, duration: ms * 1.5 });
+  }
+
   /** Kreddle gone from the skyline: a black, broken line of rubble where the neon was, with fires along it. */
   private kreddleGone(view: { hx: number; hy: number }, depth = -6) {
     const g = this.add.graphics().setDepth(depth);
@@ -5305,11 +5326,7 @@ export class VignetteScene extends Phaser.Scene {
     this.tweens.add({ targets: fire, displayWidth: 300, displayHeight: 300, alpha: 0.55, duration: 6000, ease: "Cubic.out" });
     this.tweens.add({ targets: core, displayWidth: 90, displayHeight: 90, alpha: 0.5, duration: 5000, ease: "Cubic.out" });
     void gone;
-    const cloud = vfx(this, "vfx_mushroom", view.hx, view.hy + 30, { scale: 1.7, depth: -3, hold: true, speed: 0.55, tint: 0xffb27a });
-    if (!cloud) {
-      const cap = this.add.ellipse(view.hx, view.hy - 20, 30, 20, 0xfb923c).setDepth(-3);
-      this.tweens.add({ targets: cap, y: view.hy - 170, scaleX: 5, scaleY: 3, duration: 3000 });
-    }
+    this.farCloud(view.hx, view.hy);
     // the white from the palace shot, fading out over Krelford
     const white = this.add.rectangle(480, 270, 1400, 900, 0xfff7ed, calm ? 0.6 : 1).setDepth(990);
     this.tweens.add({ targets: white, alpha: 0, duration: 1600 });
@@ -5322,9 +5339,9 @@ export class VignetteScene extends Phaser.Scene {
     await this.wait(1600);
     // the blast wave: a pale ring rolling out across the river towards us
     Juice.riser(1100, 0.35);
-    const wave = this.add.ellipse(view.hx, view.hy + 6, 60, 10).setStrokeStyle(4, 0xfff7ed, 0.9).setFillStyle(0xfff7ed, 0.12).setDepth(-4);
-    this.tweens.add({ targets: wave, scaleX: 40, scaleY: 60, alpha: 0, duration: 1200, ease: "Quad.in", onComplete: () => wave.destroy() });
-    for (let i = 0; i < 7; i++) vfx(this, "vfx_dust", 80 + i * 140, 300, { scale: 2.4, depth: -3, delay: 300 + Math.abs(view.hx - (80 + i * 140)) * 0.8 });
+    const wave = this.add.ellipse(view.hx, view.hy + 10, 60, 8).setStrokeStyle(2, 0xfff7ed, 0.8).setFillStyle(0xfff7ed, 0).setDepth(-4);
+    this.tweens.add({ targets: wave, scaleX: 30, scaleY: 40, alpha: 0, duration: 1200, ease: "Quad.in", onComplete: () => wave.destroy() });
+    for (let i = 0; i < 7; i++) vfx(this, "vfx_dust", 80 + i * 140, 302, { scale: 1.5, depth: -3, alpha: 0.7, delay: 300 + Math.abs(view.hx - (80 + i * 140)) * 0.8 });
     await this.wait(1100);
     // it hits town
     synth.play("boom");
@@ -5414,7 +5431,7 @@ export class VignetteScene extends Phaser.Scene {
     const view = this.bridgeView();
     // what's left of the cloud, and the glow where Kreddle was
     this.kreddleGone(view);
-    vfx(this, "vfx_smokecol", view.hx, view.hy - 10, { scale: 3.2, depth: -3, alpha: 0.85 });
+    this.farCloud(view.hx, view.hy, 60);
     const bars = Juice.letterbox(this, 44, 300, 985);
     const fade = this.add.rectangle(480, 270, 960, 540, 0x000000, 1).setDepth(990);
     this.tweens.add({ targets: fade, alpha: 0, duration: 700 });

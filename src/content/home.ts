@@ -65,7 +65,6 @@ export const CONSOLE_GAMES: { mode: string; name: string }[] = [
   { mode: "deadlift", name: "DEADLIFT 300" },
   { mode: "burpees", name: "BURPEES" },
   { mode: "runescape", name: "RUNESCAPE" },
-  { mode: "facebook", name: "FACEBOOK TROLLING" },
   { mode: "modulator", name: "THE VOICE MODULATOR" },
   { mode: "renovate", name: "RENOVATE THE FLAT" },
   { mode: "girlfriends", name: "GIRLFRIENDS" },

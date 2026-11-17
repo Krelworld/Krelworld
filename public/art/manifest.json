@@ -5776,6 +5776,9 @@
   "bld_WILDERN": {
    "file": "buildings/WILDERN.png"
   },
+  "bld_POLSON_ROAD": {
+   "file": "buildings/POLSON_ROAD.png"
+  },
   "bg_abandoned": {
    "file": "backdrops/bg_abandoned.png"
   },
@@ -9383,6 +9386,42 @@
   "tvc_banana": {
    "file": "tv/clips/banana.png"
   },
+  "rs_bg": {
+   "file": "runescape/rs_bg.png"
+  },
+  "rs_tree": {
+   "file": "runescape/rs_tree.png"
+  },
+  "rs_oak": {
+   "file": "runescape/rs_oak.png"
+  },
+  "rs_willow": {
+   "file": "runescape/rs_willow.png"
+  },
+  "rs_maple": {
+   "file": "runescape/rs_maple.png"
+  },
+  "rs_yew": {
+   "file": "runescape/rs_yew.png"
+  },
+  "rs_magic": {
+   "file": "runescape/rs_magic.png"
+  },
+  "rs_stump": {
+   "file": "runescape/rs_stump.png"
+  },
+  "rs_log": {
+   "file": "runescape/rs_log.png"
+  },
+  "rs_chest": {
+   "file": "runescape/rs_chest.png"
+  },
+  "rs_cape": {
+   "file": "runescape/rs_cape.png"
+  },
+  "rs_axe": {
+   "file": "runescape/rs_axe.png"
+  },
   "ui_chalkboard": {
    "file": "ui/ui_chalkboard.png"
   },
@@ -9421,6 +9460,11 @@
   }
  },
  "sheets": {
+  "burpee_KREBLIS": {
+   "file": "krel/burpee_KREBLIS.png",
+   "frameWidth": 96,
+   "frameHeight": 96
+  },
   "boss_banhammer": {
    "file": "combat/boss_banhammer.png",
    "frameWidth": 160,
@@ -14071,8 +14115,8 @@
   },
   "bossdie_pudding_demon": {
    "file": "combat/bossdie_pudding_demon.png",
-   "frameWidth": 112,
-   "frameHeight": 113
+   "frameWidth": 64,
+   "frameHeight": 64
   },
   "bossdie_elon": {
    "file": "combat/bossdie_elon.png",

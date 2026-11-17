@@ -66,7 +66,7 @@ describe("boss shield: the threshold clamp", () => {
 });
 
 describe("boss shield: the phase", () => {
-  it("cracks once per minion and shatters on the last, then it's vulnerable for a while", () => {
+  it("cracks once per minion and shatters on the last, then straight back to the fight (no stun)", () => {
     const s = new ShieldPhase(cfg());
     s.filter(1000, 1000, 5000);
     s.begin(1000, 3);
@@ -74,13 +74,11 @@ describe("boss shield: the phase", () => {
     expect(s.crack(1200)).toBe(false);
     expect(s.cracks).toBe(2);
     expect(s.crack(1300)).toBe(true);
-    expect(s.state).toBe("vulnerable");
-    expect(s.blocking).toBe(false);
-    // bonus damage while it's open
-    expect(s.filter(660, 1000, 10).amount).toBeCloseTo(10 * SHIELD_TUNING.bonus);
-    expect(s.tick(1300 + SHIELD_TUNING.vulnerableMs - 1)).toBe(null);
-    expect(s.tick(1300 + SHIELD_TUNING.vulnerableMs)).toBe("recovered");
     expect(s.state).toBe("idle");
+    expect(s.blocking).toBe(false);
+    // no bonus-damage window, no stun to recover from
+    expect(s.filter(660, 1000, 10).amount).toBeCloseTo(10);
+    expect(s.tick(1300 + SHIELD_TUNING.vulnerableMs)).toBe(null);
     // and on to the next one
     const r = s.filter(660, 1000, 9999);
     expect(660 - r.amount).toBeCloseTo(330);

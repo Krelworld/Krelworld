@@ -236,4 +236,8 @@ export interface MetaState {
   settings: Settings;
   /** Music you've heard (jukebox ids, across all runs), in the order you first heard it. */
   heardMusic?: string[];
+  /** Kreltalities seen in the current cycle (no repeats until you've seen them all). */
+  krelSeen?: string[];
+  /** The last Kreltality played, so a new cycle never opens with it. */
+  krelLast?: string;
 }

@@ -3,7 +3,7 @@ import { synth } from "../audio/Synth";
 import { FONT } from "../ui/theme";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { G } from "../G";
-import { ELEGANT, ELEGANT_NAMES, BOSS_ONLY, TAME_NAMES, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
+import { ELEGANT, ELEGANT_NAMES, TAME_NAMES, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
 import { krelCinema } from "./KrelCinema";
 import { Actor, Victim, bit, prop, MEATY, type Bit } from "./KrelArt";
 
@@ -44,24 +44,51 @@ const NAMES: Record<Finisher, string> = {
 const D = 2000; // above everything in the room
 
 /** Ask. Resolves true if they said yes (and the finisher has played). */
-export async function kreltality(sc: Phaser.Scene, target: KrelTarget, player: { key: string; frame: string | number; scale: number }, force?: Finisher): Promise<boolean> {
+export async function kreltality(
+  sc: Phaser.Scene,
+  target: KrelTarget,
+  player: { key: string; frame: string | number; scale: number },
+  force?: Finisher,
+  /** onStage: hide the real fighters (the show uses its own copies of you and them); onEnd: bring yours back */
+  hooks?: { onStage?: () => void; onEnd?: () => void },
+): Promise<boolean> {
   const yes = await prompt(sc);
   if (!yes) return false;
-  await stage(sc, target, player, force ?? pick(target));
+  hooks?.onStage?.();
+  try {
+    await stage(sc, target, player, force ?? pick());
+  } finally {
+    hooks?.onEnd?.();
+  }
   return true;
 }
 
-/** A random finisher, not the last one you saw; with gore off, only the ones that have a tame version. */
-let lastPick: Finisher | null = null;
-function pick(target?: KrelTarget): Finisher {
+/**
+ * A random finisher from a shuffle bag: none repeats until you've seen every one in the pool, then the
+ * bag refills (never opening with the one you just saw). The bag is kept in meta, so it lasts across
+ * runs and reloads. With gore off, only the ones that have a tame version are in the pool.
+ */
+export function pick(): Finisher {
   const gore = G.meta?.settings?.gore !== false;
-  // the long boss-only ones (GET WELL SOON) need a boss and the gore on
-  const boss = !!target?.id;
-  const pool = (gore ? FINISHERS : [...ELEGANT])
-    .filter((f) => f !== lastPick)
-    .filter((f) => !(BOSS_ONLY as Finisher[]).includes(f) || (boss && gore));
-  lastPick = pool[Math.floor(Math.random() * pool.length)];
-  return lastPick;
+  // GET WELL SOON (asbestos → chainsaw) has no tame version, so it sits out with the gore off
+  const pool: Finisher[] = gore ? FINISHERS : ELEGANT.filter((f) => f !== "asbestos");
+  const meta = G.meta as (typeof G.meta & { krelSeen?: string[]; krelLast?: string }) | undefined;
+  const seen = new Set(meta?.krelSeen ?? []);
+  let fresh = pool.filter((f) => !seen.has(f));
+  if (!fresh.length) {
+    // every one in this pool has been seen: start a new cycle (keeping the ones outside this pool, e.g. gore-only, as they were)
+    for (const f of pool) seen.delete(f);
+    fresh = pool.filter((f) => f !== meta?.krelLast);
+    if (!fresh.length) fresh = pool;
+  }
+  const choice = fresh[Math.floor(Math.random() * fresh.length)];
+  seen.add(choice);
+  if (meta) {
+    meta.krelSeen = [...seen];
+    meta.krelLast = choice;
+    try { G.saveMeta(); } catch { /* tests / no storage */ }
+  }
+  return choice;
 }
 
 /** No asking: it just happens (story Kreltalities, like Uncle Rik's). */

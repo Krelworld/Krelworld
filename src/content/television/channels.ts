@@ -37,6 +37,7 @@ export const NEWS_1 = ep(
 INT. NEWSDESK - EVENING
 [MUSIC news fade]
 NEWSREADER: Good evening. Our top story tonight: the Supreme Leader has posted a new song, and nobody has reacted.
+[INSERT krezzing 1]
 NEWSREADER: The song, titled The Krezzing Hour, was seen by nine people. Nine. The Ministry of Strange Occurrences has described this as "fuuuuuuuuuuuuuuuuuuuckkkk".
 NEWSREADER: Within minutes, the Supreme Leader withdrew all lore from the nation. The word TOWN has since fallen off the Town Hall.
 NEWSREADER: In other news, a pigeon has been seen wearing the word TOWN.

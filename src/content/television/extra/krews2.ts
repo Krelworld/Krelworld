@@ -250,10 +250,12 @@ export const KREWS_FIFA_AUDIENCE = ep(
   `${NEWS_OPEN}
 # GAMES REVIEW: "FIFA: AUDIENCE"
 NEWSREADER: "FIFA: Audience" is the new, much hyped sim from EA Sports. In the game, you take control of a bald, white forty to fifty year old who attends football games to ostensibly show support for his team.
+[INSERT fifa_intro 2]
 NEWSREADER: The game begins as soon as the player boards the bus to the game, and ends when he leaves the stadium. To interact with the game, players only have two options; 'coin' and 'disdain'.
 NEWSREADER: 'Coin' is used to have the player throw coins or bananas, and 'disdain' has the player brandish his middle finger and boo.
 EXT. STADIUM - DAY
 REPORTER: Not only does this encourage an anti-social and violent experience, the game also uses points and rewards to encourage such behaviour.
+[INSERT fifa_play 5]
 REPORTER: Players receive points and bonuses for every person they hit with a coin or banana, regardless of which team that person plays for.
 REPORTER: Additionally, there is no positive way to show your support for the team you are supporting - you cannot cheer, only boo and stick your middle finger up - even when your team wins.
 REPORTER: The game doles out rewards on the basis of how many times you restively mash the buttons during the game, and by how many people you pelt with coins and bananas.
@@ -261,15 +263,18 @@ REPORTER: There is very little downside to such behavior in the game - incidents
 REPORTER: In the event you are caught you are inexplicably hauled in front of the board of directors, who hold a disciplinary meeting in which you can only boo and throw coins, and which ends with the board telling you you have "one more chance", every time.
 INT. NEWSDESK - DAY
 NEWSREADER: The game presents several deeply bizarre and offensive "events" throughout the course of the playthrough: hooliganism, racism and sexism to name a few. In one such event, you must egg a group of female supporters and score points based on how well you succeed in hitting the women.
+[INSERT fifa_story 2]
 NEWSREADER: In another mission, your team are down by 4 goals and your best mate 'Eggy' sets you the objective of inciting a riot to have the game called off, which you achieve by throwing coins at children supporting your own team.
 NEWSREADER: The narrative of the game inexplicably centers around the protagonist's bid to "reclaim what's rightfully his" while he continues to egg and harass both his rivals and his team of choice.
 EXT. STADIUM - DAY
+[INSERT fifa_invasion 1]
 REPORTER: In another level you take part in a raucous celebratory pitch invasion following a cup win, and the player can choose whether to 'coin' or 'disdain' several birds he finds nesting in the rafters of the stadium.
 REPORTER: All in all, "FIFA: Audience" is an offensive, buggy and shallow experience that lacks any meaningful insight into the culture of football fandom.
 REPORTER: The game encourages, rewards and celebrates the very worst aspects of football fandom, feeling more like a 'crime simulator' than an educational experience of what it's like to support a team.
 INT. NEWSDESK - DAY
 NEWSREADER: And this nihilistic, ugly game bears the endorsement and brand of international football's governing body. When pressed for comment, FIFA said the following:
 OFFICIAL: We believe in the power of football to bring people together, and we hope and expect that those who engage with FIFA Audience mode do so with respect for the values of the beautiful game.
+[INSERT fifa_gameover 1]
 OFFICIAL: This is a game which emphasizes player freedom. At no point is the player obliged to harm children or women - they are free to instead choose to fail the level and get game over.
 NEWSREADER: Let's hope they're right, or we could all end up hopping on the bus to the next match with a bag full of coins and a head full of disdain.
 [FADE]

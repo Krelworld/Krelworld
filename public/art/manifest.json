@@ -9358,6 +9358,30 @@
   },
   "fly_sky": {
    "file": "fly/fly_sky.png"
+  },
+  "tvc_kart_track": {
+   "file": "tv/clips/kart_track.png"
+  },
+  "tvc_kart_plumber": {
+   "file": "tv/clips/kart_plumber.png"
+  },
+  "tvc_kart_granny": {
+   "file": "tv/clips/kart_granny.png"
+  },
+  "tvc_kart_frog": {
+   "file": "tv/clips/kart_frog.png"
+  },
+  "tvc_gameshow": {
+   "file": "tv/clips/gameshow.png"
+  },
+  "tvc_fifa_steward": {
+   "file": "tv/clips/fifa_steward.png"
+  },
+  "tvc_fifa_pigeon": {
+   "file": "tv/clips/fifa_pigeon.png"
+  },
+  "tvc_banana": {
+   "file": "tv/clips/banana.png"
   }
  },
  "sheets": {
@@ -14262,6 +14286,11 @@
   "tva_rm_stunned": {
    "file": "tv/action/rm_stunned.png",
    "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvc_fifa_fan": {
+   "file": "tv/clips/fifa_fan.png",
+   "frameWidth": 96,
    "frameHeight": 128
   }
  },

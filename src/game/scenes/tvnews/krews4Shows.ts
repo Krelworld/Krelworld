@@ -252,6 +252,12 @@ export const KREWS4_NEWS: Record<string, NewsCfg> = {
       { match: /unsettling|doubled down/i, pic: KART, caption: "The Bugatti" },
     ],
     straps: { "NINTENDO SPOKESPERSON": ["Nintendo spokesperson", "Nintendo Direct"] },
+    // the game itself (tvnews/mediaClips.ts): parody racers, no real characters on the art
+    clips: {
+      kart_race: { medium: "kart", mode: "race" },
+      kart_roster: { medium: "kart", mode: "roster" },
+      kart_runover: { medium: "kart", mode: "runover" },
+    },
   },
 
   krews_jenkem: {

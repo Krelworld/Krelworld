@@ -17,6 +17,7 @@ import { CHARACTERS } from "../../data/characters";
 import { dir, ping, say } from "../../content/dsl";
 import { LADS } from "../../data/characters";
 import type { Line } from "../../data/types";
+import { RIFFS } from "../../content/riffs";
 
 export class PubScene extends Phaser.Scene {
   /** SanMik & SanChz play the back room most nights. */
@@ -118,6 +119,7 @@ export class PubScene extends Phaser.Scene {
     const s = G.s;
     const items: [string, () => void][] = [];
     items.push(["🪑 Sit down with whoever's in tonight", () => this.sit()]);
+    items.push([s.player === "KREBLIS" ? "🎙 Riff with Drongus" : "🎙 Watch Kreblis and Drongus riff", () => this.riffs()]);
     items.push(["🍺 Get a Fizzy Bongo in at the bar (10 Krezzcoin)", () => this.drinkHere()]);
     items.push(["🛍 Fizzy Bongo to take away (12 Krezzcoin)", () => this.buy()]);
     items.push([s.flags.pub_tv_off ? "📺 Turn the telly back on" : "📺 Turn the telly off", () => this.toggleTv()]);
@@ -227,6 +229,54 @@ export class PubScene extends Phaser.Scene {
     s.flags[`pub_${pick.id}`] = true;
     if (pick.unlocksArchive) G.unlockArchive(pick.unlocksArchive);
     this.table.removeAll(true);
+    this.showMenu();
+  }
+
+  /**
+   * Kreblis and Drongus riffing (src/content/riffs.ts): a random riff you haven't heard yet, then another, until you
+   * stop. Space / E: next line. Tab or NEXT RIFF: skip to the next riff. Esc or END: back to the bar.
+   */
+  private async riffs() {
+    const s = G.s;
+    this.busy = true;
+    this.menu.setVisible(false);
+    this.table.removeAll(true);
+    const me = s.player === "KREBLIS";
+    (["KREBLIS", "DRONGUS"] as const).forEach((id, i) => {
+      const x = 380 + i * 200;
+      const key = me && id === "KREBLIS" ? playerKey(this) : this.textures.exists(`spr_${id}`) ? `spr_${id}` : playerKey(this);
+      const spr = this.add.sprite(x, 290, key, 0).setScale(3.4).setFlipX(i === 1);
+      this.table.add(spr);
+      this.table.add(this.add.text(x, 240, me && id === "KREBLIS" ? "YOU" : CHARACTERS[id]?.name ?? id, { fontFamily: FONT, fontSize: "11px", color: "#ffffff", backgroundColor: "#00000088" }).setOrigin(0.5));
+    });
+    const head = this.add.text(480, 168, "", { fontFamily: FONT, fontSize: "14px", color: "#ffd23f", backgroundColor: "#000000aa", padding: { x: 8, y: 4 } }).setOrigin(0.5);
+    let stop = false;
+    const end = () => {
+      stop = true;
+      this.box.skipAll();
+    };
+    const nextBtn = button(this, 800, 150, "⏭ NEXT RIFF (Tab)", () => this.box.skipAll(), { w: 220, h: 30, size: 12 });
+    const endBtn = button(this, 800, 186, "✕ END (Esc)", end, { w: 220, h: 30, size: 12 });
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && end();
+    this.input.keyboard?.on("keydown", esc);
+    this.table.add([head, nextBtn, endBtn]);
+    const said = (n: number) => `riff_${n}`;
+    while (!stop) {
+      let pool = RIFFS.filter((r) => !s.flags[said(r.n)]);
+      if (!pool.length) {
+        for (const r of RIFFS) delete s.flags[said(r.n)];
+        pool = RIFFS;
+      }
+      const r = pool[Math.floor(Math.random() * pool.length)];
+      s.flags[said(r.n)] = true;
+      head.setText(`${r.title.toUpperCase()}  ·  ${r.date}`);
+      await this.box.play(r.lines);
+    }
+    this.input.keyboard?.off("keydown", esc);
+    this.table.removeAll(true);
+    this.menu.setVisible(true);
+    this.busy = false;
+    G.save();
     this.showMenu();
   }
 

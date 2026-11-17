@@ -36,7 +36,7 @@ export const ministry: Record<string, Dressing> = {
       const { w, h } = k.r;
       k.neon(250, 28, "♥ DA SQUEEZING ROOM ♥", "#ff4fb8", 16);
       k.poster(w - 230, 28, 120, 36, 0xfdf2f8, 0xdb2777, "CUDDLE REGISTER\nMOLLOR ......... ✗\nEVERYONE ELSE ... ✓", "#9d174d", 7);
-      k.prop("dd_heartbed", 190, 250, { scale: 1.5, block: [140, 60] });
+      k.animProp("dd_heartbed", 190, 250, { scale: 1.5, block: [140, 60], fps: 4 });
       k.prop("dd_chaise", w - 170, 190, { scale: 1.7, flip: true, block: [120, 30] });
       // the collection, tied up
       for (const [x, y, f] of [

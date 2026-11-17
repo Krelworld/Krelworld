@@ -9,6 +9,8 @@ import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 //   Sunak's hot mic, election day and #FartGate).
 // - Microsoft's "Crash Mode": the press conference itself; as in "News articles 3" the collision is a fictional one
 //   over Krelford, and nobody involved in it is shown.
+// - Starmer's video scandal: the cross-party meeting, his "virus" statement, the enhanced audio and Sunak at
+//   Downing Street. The video itself is never shown: we only see the phone's back and the MPs' faces.
 
 const NEWS = "GB KREWS 24";
 
@@ -261,4 +263,47 @@ NEWSREADER: His remarks were met with gasps in the press room. Microsoft's share
 `,
 );
 
-export const KREWS_STORIES_EPISODES: TVEpisode[] = [KREWS_KLOPP_BRIBE, KREWS_SUNAK_BOMB, KREWS_STARMER_SAGA, KREWS_CRASH_MODE_LIVE];
+export const KREWS_STARMER_VIDEO = ep(
+  "krews_starmer_video",
+  "Starmer's Landslide in Jeopardy: The Video Scandal",
+  34,
+  `[MUSIC news start]
+# GB KREWS 24
+INT. NEWSDESK - DAY
+[MUSIC news fade]
+# KEIR STARMER'S LABOUR LANDSLIDE IN JEOPARDY AMID SCANDAL OVER DISTURBING VIDEO INCIDENT
+NEWSREADER: In a shocking turn of events, Keir Starmer's resounding Labour landslide victory is facing an unprecedented threat following a deeply disturbing incident involving a video shown to horrified Conservative MPs.
+NEWSREADER: The controversy erupted after Starmer was seen laughing while showing a video on his phone titled "Boy with Down syndrome tragically crushed by meat grinder."
+NEWSREADER: The video graphically depicted the tragic death of a boy with Down syndrome in a factory meat grinder. GB Krews will not be showing it.
+INT. CABINET ROOM - DAY
+REPORTER: The incident occurred during what was supposed to be a routine cross-party meeting.
+REPORTER: Eyewitnesses reported visible distress among Conservative MPs as the gruesome footage played.
+TORY MP: He just kept holding the phone up. He was laughing. I'll never forget it.
+INT. NEWSDESK - DAY
+NEWSREADER: The backlash was immediate, with social media and news outlets exploding in outrage.
+INT. STATEMENT - DAY
+NEWSREADER: In an attempt to contain the fallout, Starmer issued a statement explaining that the video was a "virus" on his phone, and that he had intended to play "a different video."
+NEWSREADER: He claimed that by the time he realized the nature of the content, "it was too late" to stop it.
+NEWSREADER: While this explanation initially helped to quiet the uproar, it did little to fully mitigate the damage.
+INT. NEWSDESK - DAY
+NEWSREADER: The scandal, however, took a devastating turn two days later, when enhanced audio of the incident surfaced.
+INT. ENHANCED AUDIO - DAY
+NEWSREADER: The audio clearly captured Starmer saying to the Tory MPs, moments before the horrific scene unfolded:
+KEIR STARMER: And watch now. He's about to get crushed by the meat grinder.
+INT. NEWSDESK - DAY
+NEWSREADER: This revelation reignited the furor, leading to widespread condemnation and calls for Starmer's immediate resignation.
+NEWSREADER: Political analysts are now speculating that the fallout from this incident could lead to calls for another general election.
+NEWSREADER: Prominent figures within both Labour and Conservative parties have voiced their dismay and demanded accountability.
+EXT. DOWNING STREET - DAY
+RISHI SUNAK: What we have heard is beyond comprehension. I am calling for an urgent investigation into the matter.
+INT. NEWSDESK - DAY
+NEWSREADER: The scandal has not only put Starmer's leadership under intense scrutiny, but also cast a shadow over Labour's recent electoral success.
+NEWSREADER: The party, which had enjoyed a wave of support culminating in a historic landslide victory, now faces the prospect of internal turmoil and a potential collapse in public trust.
+NEWSREADER: Labour's communications team is reportedly working around the clock to manage the crisis, but the damage may already be irreversible.
+NEWSREADER: With mounting pressure from both the public and political opponents, Keir Starmer's future as Labour leader hangs in the balance, and the stability of the newly formed government is uncertain.
+NEWSREADER: As the nation watches this scandal unfold, one thing is clear: nobody in Westminster will be accepting a video from Keir Starmer again.
+[FADE]
+`,
+);
+
+export const KREWS_STORIES_EPISODES: TVEpisode[] = [KREWS_KLOPP_BRIBE, KREWS_SUNAK_BOMB, KREWS_STARMER_SAGA, KREWS_STARMER_VIDEO, KREWS_CRASH_MODE_LIVE];

@@ -43,17 +43,18 @@ export class ExileScene extends Phaser.Scene {
         ? [dir("The corridor. Your corridor. It's lovely out here. Quiet. Nobody asks for Krazy Facts."), say("FLENKY", "Pls."), say("FLENKY", "Can't help it."), say("PROCTUS", "Oh, hello. I'm also banned. I'm appealing. Want to appeal together?")]
         : [dir("The corridor outside the group chat. It's quiet. Somebody has carved 'JENKO WOZ ERE (x9)' into the wall."), say("FLENKY", "Alright mate. First time? Don't worry. You fill in a form, answer a quiz, you're back in by teatime."), say("FLENKY", "I've done it nine times. Ten with the Queen one.")];
     await box.play(intro);
-    let ok = false;
-    let tries = 0;
-    while (!ok && tries < 6) {
-      tries++;
-      const ch = pickChallenge(s);
-      const opts = ch.options.map((o, i) => ({ label: o.label, set: { exile_pick: i } }));
-      await box.play([{ s: "NARRATOR", t: `${ch.title}\n${ch.prompt}`, dir: true, choice: opts }]);
-      const pick = ch.options[s.flags.exile_pick as number];
-      await box.play([dir(pick.reply)]);
-      ok = pick.correct;
-      if (!ok) await box.play([say(s.player === "FLENKY" ? "PROCTUS" : "FLENKY", "Unlucky. Go again. They always let you go again.")]);
+    // one question, and you can't fail it: get it wrong and you're told the answer, told off, and let back in anyway
+    const ch = pickChallenge(s);
+    const opts = ch.options.map((o, i) => ({ label: o.label, set: { exile_pick: i } }));
+    await box.play([{ s: "NARRATOR", t: `${ch.title}\n${ch.prompt}`, dir: true, choice: opts }]);
+    const pick = ch.options[s.flags.exile_pick as number];
+    await box.play([dir(pick.reply)]);
+    if (!pick.correct) {
+      const right = ch.options.find((o) => o.correct);
+      await box.play([
+        ...(right ? [dir(`The answer was "${right.label}".`)] : []),
+        say("DRONGUS", "Wrong. Obviously. I'm letting you back in anyway, because nobody else reacts to my posts.", { notify: true }),
+      ]);
     }
     bump(s, "readmissions");
     G.unlockArchive("arch_flenky_bans");

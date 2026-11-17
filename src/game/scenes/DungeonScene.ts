@@ -2471,6 +2471,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       G.unlockArchive("arch_cheesegate");
       this.checkExit();
     } else {
+      // wrong: the real culprit's revealed, the mites come out, and the case is closed anyway (no resits)
+      const right = CHEESE_ACCUSATIONS.find((a) => a.correct);
+      if (right) await this.talk([dir(`Wrong. It was: ${right.label}. Everyone knew. Case closed.`)]);
+      G.s.flags.cheesegate_solved = true;
+      G.unlockArchive("arch_cheesegate");
       this.roomCleared = false;
       this.waveIdx = -1;
       this.waves = [[["cheese_mite", 8]]];
@@ -2496,6 +2501,16 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         this.checkExit();
       }
     } else {
+      // wrong: the penalty, the right answer, and on to the next round anyway (no resits)
+      const right = round.options.find((x) => x.correct);
+      if (right) await this.talk([dir(`The right answer was ${right.label}. Mork.`)]);
+      this.morkRound++;
+      if (this.morkRound >= MORK_ROUNDS.length) {
+        G.s.flags.mork_done = true;
+        G.unlockArchive("arch_mork_voice");
+        this.toast("MORK VOICE", "Interpreted. Badly. It'll do.");
+        this.checkExit();
+      }
       const fail = o?.fail ?? "enemies";
       if (fail === "trapdoor") {
         this.floatText(this.player.x, this.player.y - 30, "TRAPDOOR", "#ff6666", 16);
@@ -2522,9 +2537,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       const st = steps[i];
       await this.talk([{ s: "NARRATOR", t: `FRAGMAR PRIME — ${st.prompt}`, dir: true, choice: st.options.map((o, j) => ({ label: o, set: { fp_pick: j } })) }]);
       if (G.s.flags.fp_pick !== st.correct) {
-        await this.talk([say("MIKEY", "Fuck. Wrong order. Again. Unsend. UNSEND."), dir("The Network notices. Friend Requests swarm out of the walls.")]);
+        // wrong: told the right one, a few Friend Requests for your trouble, and on you go (no resits)
+        await this.talk([say("MIKEY", "Fuck. Wrong one. Unsend. UNSEND."), dir(`It should have been: ${st.options[st.correct]}. That gets sent instead.`), dir("The Network notices. Friend Requests swarm out of the walls.")]);
         for (let k = 0; k < 3; k++) this.spawnEnemy("friend_crawler", this.player.x + (k - 1) * 90, this.player.y - 140);
-        return;
       }
     }
     G.s.flags.fragmar_prime = true;

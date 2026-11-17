@@ -240,6 +240,10 @@ interface HubInteract {
   enabled?: () => boolean;
 }
 
+/** Quizzes can't be failed: a wrong answer gets the right one, a telling-off, and you carry on. */
+const SCOLDS = ["You fucking idiot.", "Unbelievable. Moving on.", "Embarrassing. Next.", "Christ alive. Anyway.", "Wrong. Obviously. Keep going.", "Shocking. Truly shocking. Carry on."];
+const scold = () => SCOLDS[Math.floor(Math.random() * SCOLDS.length)];
+
 export class HubScene extends Phaser.Scene {
   private controls!: Controls;
   private av!: Phaser.Physics.Arcade.Sprite;
@@ -623,8 +627,9 @@ export class HubScene extends Phaser.Scene {
     }
     if (from === "arena" || from === "vignette" || from === "minigame" || from === "dungeon") this.arcPayout();
     // a side-quest step marked auto follows straight on from the cutscene or fight you've just come back from
-    const auto = (from === "arena" || from === "vignette") && at ? arcStepAt(s, at) : null;
-    if (auto?.step.auto && (await this.runArcStep(at!)) && this.busy) return;
+    const back = from === "arena" || from === "vignette" || from === "minigame" || from === "dungeon";
+    const auto = back && at ? arcStepAt(s, at) : null;
+    if (auto && (auto.step.auto || this.nextStepHere(at)) && (await this.runArcStep(at!)) && this.busy) return;
     G.drongus("hub");
     if (from === "dungeon") G.emit("toast", { title: "BACK IN KRELFORD", text: s.chapter === 1 && !s.flags.wildern_destroyed ? "Wildern has to go. Plant the bombs (4) around the school." : "Report to the Town Hall." });
     // the Kreddle Krunchers come over the bridge (start of Chapter 3)
@@ -2697,17 +2702,14 @@ You are required by law to sign the Sex Offenders Register.`, {
             synth.play("ding");
           } else {
             synth.play("tap_fail");
-            await this.talk(k.noFail ? [dir(q.wrong), dir(`The answer was "${q.options[q.correct]}". You fucking idiot.`)] : [dir(q.wrong)]);
+            await this.talk([dir(q.wrong), dir(`The answer was "${q.options[q.correct]}". ${scold()}`)]);
           }
         }
         delete s.flags.arc_q;
-        if (score >= k.need || k.noFail) {
-          completeStep(s, arc, step);
-          await this.talk(k.success);
-        } else {
-          await this.talk([...k.fail, dir(`(${score}/${k.need} needed. Try again.)`)]);
-          return true;
-        }
+        // never a resit: you pass whatever you scored (the score's just for the shame)
+        completeStep(s, arc, step);
+        if (score < k.need) await this.talk([dir(`(${score}/${k.questions.length}. Passed anyway. Nobody checks.)`)]);
+        await this.talk(k.success);
         break;
       }
       case "arena":
@@ -2734,7 +2736,18 @@ You are required by law to sign the Sex Offenders Register.`, {
     }
     G.save();
     this.arcPayout();
+    // you're already here: if the quest's next step is in this same building, carry straight on (never "leave, come back")
+    if (this.nextStepHere(at)) return this.runArcStep(at);
     return true;
+  }
+
+  /** The quest step now open at `at` follows straight on from a step that was also at `at` (so you're already there). */
+  private nextStepHere(at?: string): boolean {
+    if (!at) return false;
+    const c = arcStepAt(G.s, at);
+    if (!c) return false;
+    const i = c.arc.steps.indexOf(c.step);
+    return i > 0 && c.arc.steps[i - 1].at === at;
   }
 
   private async kreltowerPlaque() {

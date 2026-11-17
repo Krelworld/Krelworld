@@ -9385,6 +9385,42 @@
   },
   "tvc_banana": {
    "file": "tv/clips/banana.png"
+  },
+  "rs_bg": {
+   "file": "runescape/rs_bg.png"
+  },
+  "rs_tree": {
+   "file": "runescape/rs_tree.png"
+  },
+  "rs_oak": {
+   "file": "runescape/rs_oak.png"
+  },
+  "rs_willow": {
+   "file": "runescape/rs_willow.png"
+  },
+  "rs_maple": {
+   "file": "runescape/rs_maple.png"
+  },
+  "rs_yew": {
+   "file": "runescape/rs_yew.png"
+  },
+  "rs_magic": {
+   "file": "runescape/rs_magic.png"
+  },
+  "rs_stump": {
+   "file": "runescape/rs_stump.png"
+  },
+  "rs_log": {
+   "file": "runescape/rs_log.png"
+  },
+  "rs_chest": {
+   "file": "runescape/rs_chest.png"
+  },
+  "rs_cape": {
+   "file": "runescape/rs_cape.png"
+  },
+  "rs_axe": {
+   "file": "runescape/rs_axe.png"
   }
  },
  "sheets": {

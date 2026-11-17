@@ -3094,7 +3094,13 @@ You are required by law to sign the Sex Offenders Register.`, {
       }
     }
     if (best && !this.busy && !this.cutscene) {
-      this.prompt.setText(`E: ${best.label()}`).setPosition(this.av.x, this.av.y - 50).setVisible(true);
+      this.prompt.setText(`E: ${best.label()}`).setVisible(true);
+      // keep the whole label on screen (doors at the world's edges, like Polson Towers)
+      {
+        const v = this.cameras.main.worldView;
+        const half = this.prompt.displayWidth / 2 + 6;
+        this.prompt.setPosition(Phaser.Math.Clamp(this.av.x, v.x + half, Math.max(v.x + half, v.right - half)), this.av.y - 50);
+      }
       if (this.controls.interact()) {
         this.prompt.setVisible(false);
         best.use();

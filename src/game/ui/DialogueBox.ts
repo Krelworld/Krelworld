@@ -15,6 +15,7 @@ import { FONT, PIXEL_BOLD, PIXEL_FONT, UI, uiFrame } from "./theme";
 import { kruncherVictim, sanmikActive } from "../systems/sanmik";
 import { sanmikify } from "../systems/sanmikify";
 import { CINE, playCine as playBeat } from "../gfx/Cine";
+import { krelCue } from "../scenes/KrelCueScene";
 
 /** SanMik isn't in CHARACTERS (he's Mikey in a wig): his name colour. */
 const SANMIK_COLOR = 0xb0c4ff;
@@ -501,6 +502,20 @@ export class DialogueBox {
           });
           synth.music(host === "Meeting" ? "meeting" : "hub");
         }
+        this.root.setVisible(true);
+        if (!raw.t) continue;
+      }
+      if (raw.krel) {
+        // a Kreltality, no fight: the box steps aside, the host pauses under the overlay, then the script carries on
+        this.skipping = false;
+        this.root.setVisible(false);
+        const sc = this.scene;
+        const tune = synth.currentMusic();
+        const did = await krelCue(sc, raw.krel.target);
+        if (this.destroyed) break;
+        if (tune && synth.currentMusic() !== tune) synth.music(tune);
+        const out = did ? raw.krel.yes : raw.krel.no;
+        if (out) queue.unshift(...out);
         this.root.setVisible(true);
         if (!raw.t) continue;
       }

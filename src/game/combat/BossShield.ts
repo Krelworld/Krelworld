@@ -51,7 +51,8 @@ export class BossShield {
   private crackLines: [number, number][][] = [];
   private lastNext = 0;
   private lastPing = 0;
-  private lastNow = -1;
+  /** Fight time (ms): advances with the boss's ticks, so it stands still while the scene is paused or busy. */
+  private clock = 0;
   private gone = false;
   /** The bubble popping up (0..1). */
   private grow = { k: 1 };
@@ -146,22 +147,18 @@ export class BossShield {
   // -------------------------------------------------------------------------------------------------- per frame
 
   /** From Boss.tick. Returns "stun" while it's knocked down (no attacks, no moving). */
-  update(_dt: number, now: number): "stun" | null {
+  update(dt: number, now: number): "stun" | null {
     if (this.gone) return null;
     const b = this.boss;
-    // time the scene spent paused (a phase break, dialogue) doesn't eat the shield's clocks
-    if (this.lastNow >= 0 && now - this.lastNow > 250) {
-      const gap = now - this.lastNow;
-      this.logic.startedAt += gap;
-      this.logic.vulnUntil += gap;
-    }
-    this.lastNow = now;
-    if (this.logic.state === "pending") this.raise(now);
+    // the shield's own clock only runs while the boss does (a phase break or dialogue doesn't eat the stun)
+    this.clock += Math.max(0, dt);
+    const t = this.clock;
+    if (this.logic.state === "pending") this.raise(t, now);
     if (this.logic.state === "shielded") {
       for (const m of this.minions) {
         if (m.counted || (!m.e.dead && m.e.active)) continue;
         m.counted = true;
-        this.crack(now, m.e.x, m.e.y);
+        this.crack(t, m.e.x, m.e.y);
         if (this.logic.state !== "shielded") break;
       }
       // its attacks come slower while it hides in there
@@ -170,9 +167,9 @@ export class BossShield {
         this.lastNext = b.nextPattern;
       }
     }
-    const ev = this.logic.tick(now);
+    const ev = this.logic.tick(t);
     if (ev === "weaken") this.weaken();
-    else if (ev === "autocrack") this.crack(now, b.x + (Math.random() - 0.5) * 200, b.y - 120);
+    else if (ev === "autocrack") this.crack(t, b.x + (Math.random() - 0.5) * 200, b.y - 120);
     else if (ev === "recovered") this.recover();
     if (this.logic.state === "vulnerable") {
       b.contactCd = Math.max(b.contactCd, now + 200);
@@ -242,12 +239,12 @@ export class BossShield {
   // -------------------------------------------------------------------------------------------------- the beats
 
   /** Up it goes: bubble, banner, minions. */
-  private raise(now: number) {
+  private raise(t: number, now: number) {
     const b = this.boss;
     const sc = this.sc;
     const w = this.world;
     const types = minionsFor(this.logic.cfg, this.logic.raised);
-    this.logic.begin(now, types.length);
+    this.logic.begin(t, types.length);
     this.crackLines = [];
     this.minions = [];
     this.lastNext = b.nextPattern;
@@ -275,7 +272,7 @@ export class BossShield {
         const e = w.spawnEnemy(type, x, y, { minion: true });
         if (!e) {
           // the room's full (or the type's missing): that crack comes for free, so the count still adds up
-          sc.time.delayedCall(900, () => !this.gone && this.crack(w.now(), x, y));
+          sc.time.delayedCall(900, () => !this.gone && this.crack(this.clock, x, y));
           return;
         }
         e.hp = e.maxHp = Math.max(1, Math.round(e.maxHp * this.logic.cfg.minionHp));

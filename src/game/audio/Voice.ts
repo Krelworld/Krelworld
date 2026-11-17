@@ -85,7 +85,7 @@ const PROFILES: Record<string, Profile> = {
   "DAVID DICKINSON": { pitch: 0.8, rate: 0.9 },
   "DONALD TRUMP": { pitch: 0.75, rate: 0.95 },
   "JOE BIDEN": { pitch: 0.85, rate: 0.8 },
-  "PROFESSOR BENN BURGESS": { pitch: 0.75, rate: 0.9 },
+  "PROFESSOR BEN BURGIS": { pitch: 0.75, rate: 0.9 },
   WOMAN: { pitch: 1.25, rate: 1, female: true },
   KAREN: { pitch: 1.2, rate: 1.2, female: true },
   DRONGUS: { pitch: 0.6, rate: 0.85 },

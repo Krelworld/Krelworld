@@ -4012,8 +4012,8 @@
     ]
    }
   },
-  "spr_TV_PROFESSOR_BENN_BURGESS": {
-   "file": "chars/TV_PROFESSOR_BENN_BURGESS.png",
+  "spr_TV_PROFESSOR_BEN_BURGIS": {
+   "file": "chars/TV_PROFESSOR_BEN_BURGIS.png",
    "frame": 64,
    "idle": {
     "south": 0,
@@ -10103,8 +10103,8 @@
    "frameWidth": 128,
    "frameHeight": 128
   },
-  "tvface_PROFESSOR_BENN_BURGESS": {
-   "file": "tv/face_PROFESSOR_BENN_BURGESS.png",
+  "tvface_PROFESSOR_BEN_BURGIS": {
+   "file": "tv/face_PROFESSOR_BEN_BURGIS.png",
    "frameWidth": 128,
    "frameHeight": 128
   },

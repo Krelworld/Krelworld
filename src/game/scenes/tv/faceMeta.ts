@@ -51,7 +51,7 @@ export const FACE_META: Record<string, { base: number; lip: boolean; gest: [numb
   PHIL: { base: 5, lip: true, gest: [[16,  8],  [24,  8]] },
   PRESIDENT_HAN: { base: 5, lip: true, gest: [[16,  8],  [24,  8]] },
   PRIME_MINISTER: { base: 5, lip: true, gest: [[16,  8],  [24,  8]] },
-  PROFESSOR_BENN_BURGESS: { base: 5, lip: true, gest: [[16,  8],  [24,  8]] },
+  PROFESSOR_BEN_BURGIS: { base: 5, lip: true, gest: [[16,  8],  [24,  8]] },
   PROSECUTOR: { base: 5, lip: true, gest: [[16,  8]] },
   PUB_PATRON_1: { base: 2, lip: false, gest: [[16,  8]] },
   PUB_PATRON_2: { base: 2, lip: false, gest: [[16,  8]] },

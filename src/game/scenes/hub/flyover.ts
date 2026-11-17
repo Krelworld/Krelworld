@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { synth } from "../../audio/Synth";
 import * as Juice from "../../gfx/Juice";
 import { FONT } from "../../ui/theme";
+import { BRIDGE_Y0, BRIDGE_Y1, KE, KGROUND, glowTexture, snapKreddle, type FlyBoard } from "./flyKreddle";
 
 /**
  * The first look at Krelford: a 2.5D flyover. The town is snapshotted once into a texture and laid on a ground plane
@@ -37,8 +38,14 @@ const HOLD = 2.6;
 const TRAVEL = 0.9;
 const STOP_T = (i: number) => OPEN + i * (HOLD + TRAVEL);
 const LAST_HOLD_END = STOP_T(FLY_STOPS.length - 1) + HOLD;
+// then over the bridge into Kreddle (night, neon), along the Strip, and back across to town for the title
+const CROSS = 1.6;
+const KRED_T = LAST_HOLD_END + CROSS;
+const KRED = 3.6;
+const BACK_T = KRED_T + KRED;
+const BACK = 1.2;
 const RISE = 1.4;
-const TITLE_T = LAST_HOLD_END + RISE;
+const TITLE_T = BACK_T + BACK + RISE;
 const TITLE_HOLD = 2.2;
 const DIVE = 2.5;
 const LAND_T = TITLE_T + TITLE_HOLD + DIVE;
@@ -48,6 +55,8 @@ export const FLY_LENGTH = LAND_T + FADE + 0.3;
 
 /** Focal length (px): 1 world px = 1 screen px at this distance, looking straight down. */
 const FOCAL = 600;
+/** The frame of Kreddle's backdrop used as its night sky. */
+const CROP = "__fly_crop";
 const NEAR = 30;
 const DEG = Math.PI / 180;
 const SW = 960;
@@ -122,6 +131,17 @@ const SHOTS: [Omit<Aim, "x" | "y">, Omit<Aim, "x" | "y">][] = [
   [{ d: 1000, p: 15, yaw: -78, r: 0 }, { d: 1250, p: 12, yaw: -96, r: 0 }],
 ];
 const TITLE_A: Aim = { x: 1320, y: 900, d: 2700, p: 13, yaw: -24, r: -2 };
+/**
+ * Kreddle: low along the bridge deck (under the WELCOME gantry), a banking fly-along down the Strip past the Exchange,
+ * the Arcade, the Casino and the Wheel to the Klerble Grand, then a whip round to look back east over the bridge.
+ */
+const KREDDLE_PATH: [number, Aim][] = [
+  [CROSS * 0.56, { x: KE - 180, y: (BRIDGE_Y0 + BRIDGE_Y1) / 2, d: 420, p: 13, yaw: -90, r: 0 }],
+  [CROSS, { x: KE - 380, y: 760, d: 640, p: 15, yaw: -40, r: -4 }],
+  [CROSS + KRED * 0.5, { x: KE - 1080, y: 720, d: 600, p: 17, yaw: -12, r: -1 }],
+  [CROSS + KRED, { x: KE - 1680, y: 700, d: 700, p: 22, yaw: 22, r: 3 }],
+  [CROSS + KRED + BACK, { x: 200, y: 960, d: 1000, p: 22, yaw: 94, r: 6 }],
+];
 const TITLE_B: Aim = { x: 1300, y: 880, d: 2450, p: 16, yaw: 6, r: 1 };
 
 /** The opening: high above the clouds, gliding, then a dive through the cloud deck (camera positions). */
@@ -153,7 +173,7 @@ function poseAt(t: number, end: Aim): Pose {
     if (t < t0 + HOLD) return aimToPose(lerpAim(stopAim(i, false), stopAim(i, true), ease((t - t0) / HOLD)));
     if (i < FLY_STOPS.length - 1 && t < t0 + HOLD + TRAVEL) return aimToPose(lerpAim(stopAim(i, true), stopAim(i + 1, false), easeIO3((t - t0 - HOLD) / TRAVEL), 0.35));
   }
-  if (t < TITLE_T) return aimToPose(lerpAim(stopAim(FLY_STOPS.length - 1, true), TITLE_A, easeIO3((t - LAST_HOLD_END) / RISE), 0.2));
+  if (t < TITLE_T) return aimToPose(kreddleAim(stopAim(FLY_STOPS.length - 1, true), t - LAST_HOLD_END));
   if (t < TITLE_T + TITLE_HOLD) return aimToPose(lerpAim(TITLE_A, TITLE_B, ease((t - TITLE_T) / TITLE_HOLD)));
   const u = clamp((t - TITLE_T - TITLE_HOLD) / DIVE, 0, 1);
   // the dive: fast at first, settling softly onto the live view
@@ -162,6 +182,31 @@ function poseAt(t: number, end: Aim): Pose {
   a.p = lerp(TITLE_B.p, 90, Math.pow(k, 0.8));
   a.r = lerp(TITLE_B.r, 0, k) + Math.sin(Math.PI * k) * 6;
   return aimToPose(a);
+}
+
+/** Over the bridge, down the Strip and back: a Catmull-Rom through the Kreddle keys, from the bridge shot to the title. */
+function kreddleAim(from: Aim, t: number): Aim {
+  const keys: [number, Aim][] = [[0, from], ...KREDDLE_PATH, [TITLE_T - LAST_HOLD_END, TITLE_A]];
+  let i = 0;
+  while (i < keys.length - 2 && t > keys[i + 1][0]) i++;
+  let u = clamp((t - keys[i][0]) / (keys[i + 1][0] - keys[i][0]), 0, 1);
+  // away from rest at the start, and settling into the title shot at the end
+  if (i === 0) u = u * u;
+  if (i === keys.length - 2) u = 1 - (1 - u) * (1 - u);
+  const k = (i + u) / (keys.length - 1);
+  // unwind the headings so the spline turns the short way round
+  const yaws: number[] = [];
+  for (const [, a] of keys) {
+    let y = a.yaw;
+    const prev = yaws[yaws.length - 1];
+    if (prev !== undefined) {
+      while (y - prev > 180) y -= 360;
+      while (y - prev < -180) y += 360;
+    }
+    yaws.push(y);
+  }
+  const cr = (f: (a: Aim) => number) => Phaser.Math.Interpolation.CatmullRom(keys.map(([, a]) => f(a)), k);
+  return { x: cr((a) => a.x), y: cr((a) => a.y), d: Math.exp(cr((a) => Math.log(a.d))), p: cr((a) => a.p), yaw: Phaser.Math.Interpolation.CatmullRom(yaws, k), r: cr((a) => a.r) };
 }
 
 class Projector {
@@ -214,18 +259,7 @@ class Projector {
   }
 }
 
-interface Board {
-  /** the base line's centre and half-width, and the height, in world px */
-  x: number;
-  y: number;
-  hw: number;
-  h: number;
-  u0: number;
-  u1: number;
-  v0: number;
-  v1: number;
-  vi: number;
-}
+type Board = FlyBoard;
 
 interface Cloud {
   img: Phaser.GameObjects.Image;
@@ -325,6 +359,10 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
     boards.push({ x: left + im.displayWidth / 2, y: top + im.displayHeight, hw: im.displayWidth / 2, h: im.displayHeight, u0, u1, v0: a.y / AH, v1: (a.y + a.h) / AH, vi: 0 });
   });
 
+  // ...and Kreddle, over the bridge, built from its art without running its scene
+  const kd = snapKreddle(sc, "__fly_kd", S);
+  glowTexture(sc, "__fly_glow");
+
   // the world itself isn't needed while we fly (it's all under the sky): stop drawing it
   const hidden = world.filter((g) => (g as unknown as Phaser.GameObjects.Components.Visible).visible);
   for (const g of hidden) (g as unknown as Phaser.GameObjects.Components.Visible).setVisible(false);
@@ -340,37 +378,65 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
   else sky.add(sc.add.rectangle(0, -400, 1600, 400, 0x7fb2e8).setOrigin(0.5, 0));
   sky.add(sc.add.rectangle(0, (224 - SKY_HZ) * SKY_K - 2, 2400, 2400, 0xdce8f8).setOrigin(0.5, 0));
   sky.add(sc.add.rectangle(0, -SKY_HZ * SKY_K + 2, 2400, 2400, 0x3d64a8).setOrigin(0.5, 1));
+  // Kreddle's sky: always night, the neon skyline on the horizon (the top of its backdrop, cropped)
+  const nsky = keep(sc.add.container(SW / 2, 0).setScrollFactor(0).setDepth(D).setAlpha(0));
+  const NK = 3;
+  const NHZ = 91;
+  const nTex = sc.textures.exists("bg_kreddle_sky") ? sc.textures.get("bg_kreddle_sky") : null;
+  if (nTex && !nTex.has(CROP)) nTex.add(CROP, 0, 0, 9, 400, NHZ);
+  if (nTex) nsky.add(sc.add.image(0, -NHZ * NK, "bg_kreddle_sky", CROP).setOrigin(0.5, 0).setScale(NK * 1.2, NK));
+  nsky.add(sc.add.rectangle(0, -2, 2400, 2400, 0x3a1470).setOrigin(0.5, 0));
+  nsky.add(sc.add.rectangle(0, -NHZ * NK + 2, 2400, 2400, 0x29025e).setOrigin(0.5, 1));
 
   // the land around the town, and the town
   const apron = keep(sc.add.mesh(0, 0, "__WHITE").setScrollFactor(0).setDepth(D + 1));
   const APR = 9;
   const apronSpan = { x0: -9000, x1: o.worldW + 9000, y0: -9000, y1: o.worldH + 9000 };
   gridMesh(apron, APR, APR, 0, 0, 1, 1, 0x3c6a33);
+  // west of town: the river under the bridge, and Kreddle's dark country beyond it (columns of land | water)
+  const WCX = [-9000, -7000, -5200, -3800, -2800, -1900, -1200, KE - 40, KE + 20, -30, 0];
+  const WCY = [-9000, -6000, -4000, -2600, -1600, -900, -300, 200, 600, BRIDGE_Y0, BRIDGE_Y1, 1100, 1400, 1800, 2300, 3100, 4500, 6500, 9000];
+  const west = keep(sc.add.mesh(0, 0, "__WHITE").setScrollFactor(0).setDepth(D + 1.5));
+  gridMesh(west, WCX.length - 1, WCY.length - 1, 0, 0, 1, 1, 0xffffff);
+  // the Strip's ground
+  const KGX = 22;
+  const KGY = 12;
+  const kgm = keep(sc.add.mesh(0, 0, kd.groundKey).setScrollFactor(0).setDepth(D + 2.5));
+  // mirrored (the Strip runs west from the bridge) and upside down (a render texture)
+  gridMesh(kgm, KGX, KGY, 1, 1, 0, 0, 0xffffff);
   const GX = 30;
   const GY = 22;
   const gm = keep(sc.add.mesh(0, 0, gKey).setScrollFactor(0).setDepth(D + 2));
   // a render texture is stored upside down
   gridMesh(gm, GX, GY, 0, 1, 1, 0, 0xffffff);
-  const bm = keep(sc.add.mesh(0, 0, bKey).setScrollFactor(0).setDepth(D + 4));
-  {
+  const boardMesh = (key: string, list: Board[], depth: number) => {
+    const m = keep(sc.add.mesh(0, 0, key).setScrollFactor(0).setDepth(depth));
     const v: number[] = [];
     const uv: number[] = [];
     const ix: number[] = [];
-    boards.forEach((b, i) => {
+    list.forEach((b, i) => {
       b.vi = i * 4;
       v.push(0, 0, 0, 0, 0, 0, 0, 0);
       // corners: base-left, base-right, top-left, top-right (atlas is upside down too)
       uv.push(b.u0, b.v1, b.u1, b.v1, b.u0, b.v0, b.u1, b.v0);
       ix.push(i * 4, i * 4 + 1, i * 4 + 2, i * 4 + 2, i * 4 + 1, i * 4 + 3);
     });
-    if (boards.length) {
-      bm.addVertices(v, uv, ix);
-      shareVerts(bm, ix, boards.length * 4);
+    if (list.length) {
+      m.addVertices(v, uv, ix);
+      shareVerts(m, ix, list.length * 4);
     }
-    bm.hideCCW = false;
-    bm.setOrtho(SW, SH);
-    bm.ignoreDirtyCache = true;
-  }
+    m.hideCCW = false;
+    m.setOrtho(SW, SH);
+    m.ignoreDirtyCache = true;
+    return m;
+  };
+  const bm = boardMesh(bKey, boards, D + 4);
+  const kbm = boardMesh(kd.atlasKey, kd.boards, D + 3.9);
+  // Kreddle's neon: glows on every sign and machine, washes of light over the Strip, searchlights
+  const glows = kd.glows.map((gl) => ({ ...gl, img: keep(sc.add.image(0, 0, "__fly_glow").setScrollFactor(0).setBlendMode(Phaser.BlendModes.ADD).setTint(gl.col).setVisible(false)) }));
+  const beamsG = keep(sc.add.graphics().setScrollFactor(0).setDepth(D + 3.2).setBlendMode(Phaser.BlendModes.ADD));
+  // the hard cut between Krelford's morning and Kreddle's night
+  const flash = keep(sc.add.rectangle(SW / 2, SH / 2, SW + 40, SH + 40, 0xff4fd8, 0).setScrollFactor(0).setDepth(D + 9));
 
   // clouds: a deck to dive through, and a ring of them round the town for the wide shot
   const cloudKeys = ["fly_cloud_a", "fly_cloud_b", "fly_cloud_c"].filter((k) => sc.textures.exists(k));
@@ -419,11 +485,13 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
   sc.tweens.add({ targets: hint, alpha: 0.65, duration: 600, delay: 900 });
 
   let card: Phaser.GameObjects.Container | null = null;
-  const showCard = (kicker: string, head: string, body: string) => {
+  /** A lower third. `neon`: Kreddle's version (a white-hot neon headline in pink, cyan trim). */
+  const showCard = (kicker: string, head: string, body: string, neon = false) => {
     hideCard();
     const c = keep(sc.add.container(0, SH - BAR - 16).setScrollFactor(0).setDepth(D + 40));
-    const k = sc.add.text(34, 0, kicker, { fontFamily: FONT, fontSize: "11px", color: "#9fd3ff", fontStyle: "bold" }).setOrigin(0, 1);
-    const h = sc.add.text(32, 0, head, { fontFamily: "Impact, sans-serif", fontSize: "38px", color: "#ffd23f", stroke: "#2a1400", strokeThickness: 6 }).setOrigin(0, 1);
+    const k = sc.add.text(34, 0, kicker, { fontFamily: FONT, fontSize: "11px", color: neon ? "#5ee7ff" : "#9fd3ff", fontStyle: "bold" }).setOrigin(0, 1);
+    const h = sc.add.text(32, 0, head, { fontFamily: "Impact, sans-serif", fontSize: "38px", color: neon ? "#ffffff" : "#ffd23f", stroke: neon ? "#ff4fd8" : "#2a1400", strokeThickness: neon ? 5 : 6 }).setOrigin(0, 1);
+    if (neon) h.setShadow(0, 0, "#ff4fd8", 14, true, true);
     const b = sc.add.text(34, 0, body, { fontFamily: FONT, fontSize: "14px", color: "#f5f0ff", wordWrap: { width: 560 }, lineSpacing: 2 }).setOrigin(0, 1);
     b.setShadow(1, 1, "#000000", 2, false, true);
     // stack up from the bottom: body, headline, kicker
@@ -433,9 +501,17 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
     const panelH = bodyH + h.height + k.height + 14;
     const panelW = Math.max(h.width, body ? b.width : 0) + 90;
     const g = sc.add.graphics();
-    g.fillStyle(0x0b0614, 0.8).fillPoints([new Phaser.Math.Vector2(0, -panelH), new Phaser.Math.Vector2(panelW, -panelH), new Phaser.Math.Vector2(panelW - 34, 8), new Phaser.Math.Vector2(0, 8)], true);
-    g.fillStyle(0xffd23f, 1).fillRect(18, -panelH + 8, 5, panelH - 8);
-    g.fillStyle(0xff4fa3, 1).fillRect(34, h.y + 2, Math.min(h.width, 220), 2);
+    g.fillStyle(neon ? 0x12001f : 0x0b0614, neon ? 0.85 : 0.8).fillPoints([new Phaser.Math.Vector2(0, -panelH), new Phaser.Math.Vector2(panelW, -panelH), new Phaser.Math.Vector2(panelW - 34, 8), new Phaser.Math.Vector2(0, 8)], true);
+    g.fillStyle(neon ? 0xff4fd8 : 0xffd23f, 1).fillRect(18, -panelH + 8, 5, panelH - 8);
+    g.fillStyle(neon ? 0x22d3ee : 0xff4fa3, 1).fillRect(34, h.y + 2, Math.min(h.width, 220), 2);
+    // Kreddle's headline tube stutters on once it's in (with calm flashes on, it just fades up like the rest)
+    if (neon && !calm) {
+      let at = 600;
+      for (const a of [0.3, 1, 0.5, 1]) {
+        sc.time.delayedCall(at, () => h.active && h.setAlpha(a));
+        at += 70;
+      }
+    }
     c.add([g, k, h, b]);
     if (!body) b.setVisible(false);
     // slide in from the left, the headline a beat behind the panel
@@ -464,6 +540,11 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
     [0.05, () => synth.play("fly_wind", 0.8)],
     [2.0, () => synth.play("fly_dive", 0.85)],
     [LAST_HOLD_END + 0.1, () => synth.play("fly_whoosh", 0.8)],
+    // over the bridge and into Kreddle
+    [KRED_T - 0.75, () => synth.play("jackpot", 0.45)],
+    [KRED_T - 0.2, () => showCard("OVER THE BRIDGE", "KREDDLE", "The casino universe. Always night. Always neon.", true)],
+    [BACK_T - 0.1, () => synth.play("fly_whoosh", 0.8)],
+    [BACK_T + 0.3, hideCard],
     [TITLE_T - 0.25, slam],
     [TITLE_T + TITLE_HOLD - 0.3, () => {
       sc.tweens.add({ targets: [title, sub], alpha: 0, y: "-=24", duration: 500, ease: "Cubic.in" });
@@ -473,7 +554,8 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
   ];
   FLY_STOPS.forEach((s, i) => {
     beats.push([STOP_T(i) - 0.15, () => showCard(`LANDMARK ${i + 1} / ${FLY_STOPS.length}`, s.head, capBody(s))]);
-    beats.push([STOP_T(i) + HOLD + 0.2, hideCard]);
+    // (the bridge's card stays up while we cross, until Kreddle's takes over)
+    if (i < FLY_STOPS.length - 1) beats.push([STOP_T(i) + HOLD + 0.2, hideCard]);
     if (i < FLY_STOPS.length - 1) beats.push([STOP_T(i) + HOLD - 0.05, () => synth.play("fly_whoosh", 0.75)]);
   });
   beats.sort((a, b) => a[0] - b[0]);
@@ -497,13 +579,15 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
   let speed = 0;
   const groundVerts = gm.vertices;
   const apronVerts = apron.vertices;
-  const fogC = Phaser.Display.Color.ValueToColor(0xc9d8ef);
-  const mixFog = (base: number, k: number) => {
-    const r = (base >> 16) & 255;
-    const g = (base >> 8) & 255;
-    const b = base & 255;
-    return (Math.round(lerp(r, fogC.red, k)) << 16) | (Math.round(lerp(g, fogC.green, k)) << 8) | Math.round(lerp(b, fogC.blue, k));
-  };
+  const mixC = (a: number, b: number, k: number) =>
+    (Math.round(lerp((a >> 16) & 255, (b >> 16) & 255, k)) << 16) | (Math.round(lerp((a >> 8) & 255, (b >> 8) & 255, k)) << 8) | Math.round(lerp(a & 255, b & 255, k));
+  // Krelford's morning, and Kreddle's night (the fog, the land and the town's light all swing between the two)
+  let fog = 0xc9d8ef;
+  const mixFog = (base: number, k: number) => mixC(base, fog, k);
+  const westVerts = west.vertices;
+  const kgVerts = kgm.vertices;
+  let night = 0;
+  let flashA = 0;
   const frame = (dt: number) => {
     t += dt;
     // (for tests: how far in we are)
@@ -514,6 +598,20 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
     // sky
     const hz = P.horizonY();
     sky.setPosition(SW / 2 - Math.sin(pose.roll) * (hz - SH / 2), SH / 2 + Math.cos(pose.roll) * (hz - SH / 2)).setRotation(pose.roll);
+    nsky.setPosition(sky.x, sky.y).setRotation(pose.roll);
+    // night: a hard cut as the camera crosses the river (slower, and without the flash's punch, under calm flashes)
+    const wasNight = night;
+    night = ease(clamp((-pose.x - 40) / (calm ? 520 : 200), 0, 1));
+    if ((wasNight < 0.5) !== (night < 0.5) && t > 1) {
+      flash.setFillStyle(night >= 0.5 ? 0xff4fd8 : 0xfff2c4);
+      flashA = calm ? 0.18 : 0.6;
+    }
+    flashA = Math.max(0, flashA - dt * (calm ? 0.35 : 2.2));
+    flash.setAlpha(flashA);
+    sky.setAlpha(1 - night);
+    nsky.setAlpha(night);
+    fog = mixC(0xc9d8ef, 0x3b1667, night);
+    const townLight = mixC(0xffffff, 0x5b4c95, night);
     // the cloud whiteout and how much ground shows (it's under the deck until we're through it)
     const inDeck = clamp(1 - Math.abs(pose.z - 2300) / 900, 0, 1);
     white.setAlpha(t < OPEN + 0.5 ? inDeck * (calm ? 0.45 : 0.7) : 0);
@@ -526,7 +624,29 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
         const q = P.project(lerp(apronSpan.x0, apronSpan.x1, i / APR), lerp(apronSpan.y0, apronSpan.y1, j / APR), -1);
         v.x = q.x;
         v.y = -q.y;
-        v.color = mixFog(0x3c6a33, fogAt(q.zc));
+        v.color = mixFog(mixC(0x3c6a33, 0x150b2a, night), fogAt(q.zc));
+        v.alpha = groundA;
+      }
+    // west of town: Kreddle's country, and the river
+    const landC = mixC(0x2a1846, 0x120922, night);
+    const riverC = mixC(0x2f63a3, 0x0d1a44, night);
+    for (let j = 0; j < WCY.length; j++)
+      for (let i = 0; i < WCX.length; i++) {
+        const v = westVerts[j * WCX.length + i];
+        const q = P.project(WCX[i], WCY[j], -0.5);
+        v.x = q.x;
+        v.y = -q.y;
+        v.color = mixFog(WCX[i] < KE ? landC : riverC, fogAt(q.zc));
+        v.alpha = groundA;
+      }
+    // the Strip's ground (always lit: it's always night there)
+    for (let j = 0; j <= KGY; j++)
+      for (let i = 0; i <= KGX; i++) {
+        const v = kgVerts[j * (KGX + 1) + i];
+        const q = P.project(lerp(KGROUND.x0, KGROUND.x1, i / KGX), lerp(KGROUND.y0, KGROUND.y1, j / KGY), 0);
+        v.x = q.x;
+        v.y = -q.y;
+        v.color = mixFog(0xffffff, fogAt(q.zc));
         v.alpha = groundA;
       }
     for (let j = 0; j <= GY; j++)
@@ -535,15 +655,16 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
         const q = P.project((o.worldW * i) / GX, (o.worldH * j) / GY, 0);
         v.x = q.x;
         v.y = -q.y;
-        v.color = mixFog(0xffffff, fogAt(q.zc));
+        v.color = mixFog(townLight, fogAt(q.zc));
         v.alpha = groundA;
       }
     // haze along the horizon
     hazeG.clear();
     if (hz > -200 && groundA > 0) {
       hazeG.setPosition(SW / 2 - Math.sin(pose.roll) * (hz - SH / 2), SH / 2 + Math.cos(pose.roll) * (hz - SH / 2)).setRotation(pose.roll);
-      hazeG.fillGradientStyle(0xdbe6f6, 0xdbe6f6, 0xdbe6f6, 0xdbe6f6, 0, 0, 0.85 * groundA, 0.85 * groundA).fillRect(-1200, -30, 2400, 30);
-      hazeG.fillGradientStyle(0xdbe6f6, 0xdbe6f6, 0xdbe6f6, 0xdbe6f6, 0.85 * groundA, 0.85 * groundA, 0, 0).fillRect(-1200, 0, 2400, 120);
+      const hc = mixC(0xdbe6f6, 0x7a1f9e, night);
+      hazeG.fillGradientStyle(hc, hc, hc, hc, 0, 0, 0.85 * groundA, 0.85 * groundA).fillRect(-1200, -30, 2400, 30);
+      hazeG.fillGradientStyle(hc, hc, hc, hc, 0.85 * groundA, 0.85 * groundA, 0, 0).fillRect(-1200, 0, 2400, 120);
     }
     // the billboards lean up out of the ground as the camera comes down towards the horizon
     const lean = clamp((90 - pose.pitch / DEG) * 1.15, 0, 80) * DEG;
@@ -553,47 +674,110 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
     const ly = Math.sin(pose.yaw);
     const up = Math.sin(lean);
     const back = Math.cos(lean);
-    const bv = bm.vertices;
-    for (const b of boards) {
-      // turned to face the camera's heading, by up to how far it's leaned (flat on the ground, it lies as drawn)
-      const k = clamp(lean / (40 * DEG), 0, 1);
-      const ax = lerp(1, lx, k);
-      const ay = lerp(0, ly, k);
-      const al = Math.hypot(ax, ay) || 1;
-      const ex = ax / al;
-      const ey = ay / al;
-      const bx = lerp(0, hx, k);
-      const by = lerp(-1, hy, k);
-      const bl = Math.hypot(bx, by) || 1;
-      const nx = bx / bl;
-      const ny = by / bl;
-      const pts = [
-        [b.x - ex * b.hw, b.y - ey * b.hw, 0],
-        [b.x + ex * b.hw, b.y + ey * b.hw, 0],
-        [b.x - ex * b.hw + nx * b.h * back, b.y - ey * b.hw + ny * b.h * back, b.h * up],
-        [b.x + ex * b.hw + nx * b.h * back, b.y + ey * b.hw + ny * b.h * back, b.h * up],
-      ];
-      let minZ = Infinity;
-      let sumZ = 0;
-      for (let c = 0; c < 4; c++) {
-        const q = P.project(pts[c][0], pts[c][1], pts[c][2]);
-        const v = bv[b.vi + c];
-        v.x = q.x;
-        v.y = -q.y;
-        minZ = Math.min(minZ, q.zc);
-        sumZ += q.zc;
+    // turned to face the camera's heading, by up to how far they're leaned (flat on the ground, they lie as drawn)
+    const fk = clamp(lean / (40 * DEG), 0, 1);
+    const ax = lerp(1, lx, fk);
+    const ay = lerp(0, ly, fk);
+    const al = Math.hypot(ax, ay) || 1;
+    const ex = ax / al;
+    const ey = ay / al;
+    const bx = lerp(0, hx, fk);
+    const by = lerp(-1, hy, fk);
+    const bl = Math.hypot(bx, by) || 1;
+    const nx = bx / bl;
+    const ny = by / bl;
+    const pts = [
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0],
+    ];
+    const standUp = (m: Phaser.GameObjects.Mesh, list: Board[], light: number) => {
+      const bv = m.vertices;
+      for (const b of list) {
+        if (b.flat) {
+          // lying on the ground: corners base-left (south-west), base-right, top-left (north-west), top-right
+          const [x0, y0, x1, y1] = b.flat;
+          pts[0] = [x0, y1, 0.5];
+          pts[1] = [x1, y1, 0.5];
+          pts[2] = [x0, y0, 0.5];
+          pts[3] = [x1, y0, 0.5];
+        } else {
+          pts[0] = [b.x - ex * b.hw, b.y - ey * b.hw, 0];
+          pts[1] = [b.x + ex * b.hw, b.y + ey * b.hw, 0];
+          pts[2] = [b.x - ex * b.hw + nx * b.h * back, b.y - ey * b.hw + ny * b.h * back, b.h * up];
+          pts[3] = [b.x + ex * b.hw + nx * b.h * back, b.y + ey * b.hw + ny * b.h * back, b.h * up];
+        }
+        let minZ = Infinity;
+        let sumZ = 0;
+        for (let c = 0; c < 4; c++) {
+          const q = P.project(pts[c][0], pts[c][1], pts[c][2]);
+          const v = bv[b.vi + c];
+          v.x = q.x;
+          v.y = -q.y;
+          minZ = Math.min(minZ, q.zc);
+          sumZ += q.zc;
+        }
+        const far = sumZ / 4;
+        const vis = minZ > NEAR + 10 ? groundA : 0;
+        const col = mixFog(light, fogAt(far));
+        for (let c = 0; c < 4; c++) {
+          const v = bv[b.vi + c];
+          v.alpha = vis;
+          v.color = col;
+          // depth: far first (larger z is drawn earlier); anything lying flat goes under everything standing
+          v.z = b.flat ? 999 : clamp(far / 30, 0, 990);
+        }
       }
-      const far = sumZ / 4;
-      const vis = minZ > NEAR + 10 ? groundA : 0;
-      const col = mixFog(0xffffff, fogAt(far));
-      for (let c = 0; c < 4; c++) {
-        const v = bv[b.vi + c];
-        v.alpha = vis;
-        v.color = col;
-        // depth: far first (larger z is drawn earlier)
-        v.z = clamp(far / 30, 0, 990);
+    };
+    standUp(bm, boards, townLight);
+    standUp(kbm, kd.boards, 0xffffff);
+    // whichever place the camera is in is drawn over the other
+    const inKreddle = pose.x < KE / 2;
+    kbm.setDepth(inKreddle ? D + 4.5 : D + 3.9);
+    // the neon glows: they breathe (and the odd dodgy tube stutters, unless calm flashes are on)
+    const glowK = lerp(0.55, 1, night);
+    for (const gl of glows) {
+      const q = P.project(gl.x + nx * gl.hz * back, gl.y + ny * gl.hz * back, gl.hz * up);
+      if (q.zc < 80 || q.zc > 14000 || groundA <= 0) {
+        gl.img.setVisible(false);
+        continue;
       }
+      const sz = (FOCAL * gl.size) / q.zc;
+      if (q.x < -sz || q.x > SW + sz || q.y < -sz || q.y > SH + sz) {
+        gl.img.setVisible(false);
+        continue;
+      }
+      let pulse = calm ? 0.85 + 0.15 * Math.sin(t * 1.1 + gl.ph) : 0.78 + 0.22 * Math.sin(t * 3.2 + gl.ph);
+      if (gl.bad && !calm && Math.sin(t * 9 + gl.ph) > 0.94) pulse *= 0.35;
+      gl.img
+        .setVisible(true)
+        .setPosition(q.x, q.y)
+        .setScale(sz / 64, (sz / 64) * 0.55)
+        .setRotation(pose.roll)
+        .setAlpha(gl.a * pulse * glowK * groundA * clamp((q.zc - 80) / 200, 0, 1))
+        .setDepth(inKreddle ? D + 4.6 : D + 3.95);
     }
+    // searchlights raking the sky over the Strip (slow sweeps either way)
+    beamsG.clear();
+    if (groundA > 0)
+      for (const bm2 of kd.beams) {
+        const sw = Math.sin(t * (calm ? 0.35 : 0.6) + bm2.ph) * 0.5;
+        const L = 2600;
+        const q0 = P.project(bm2.x, bm2.y, 0);
+        if (q0.zc < NEAR + 10) continue;
+        const x0 = q0.x;
+        const y0 = q0.y;
+        const tops: number[] = [];
+        for (const side of [-1, 1]) {
+          const q = P.project(bm2.x + Math.sin(sw) * L + side * 160, bm2.y - 300, Math.cos(sw) * L);
+          if (q.zc < NEAR + 10) break;
+          tops.push(q.x, q.y);
+        }
+        if (tops.length < 4) continue;
+        beamsG.fillStyle(bm2.col, 0.09 * glowK);
+        beamsG.fillTriangle(x0, y0, tops[0], tops[1], tops[2], tops[3]);
+      }
     // clouds: in front of the subject, or behind it (past the point we're looking at)
     const aimD = Math.max(400, pose.z / Math.max(0.15, Math.sin(pose.pitch)));
     for (const c of clouds) {
@@ -614,7 +798,8 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
         .setPosition(q.x, q.y)
         .setScale(s)
         .setRotation(pose.roll)
-        .setAlpha(c.a * near * farA)
+        .setAlpha(c.a * near * farA * (1 - 0.45 * night))
+        .setTint(night > 0 ? mixC(0xffffff, 0x6a4c9c, night) : 0xffffff)
         .setDepth(q.zc > aimD ? D + 3.5 - q.zc / 1e6 : D + 5 - q.zc / 1e6);
     }
     // birds
@@ -636,7 +821,7 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
       }
     }
     // sun shafts: strongest looking east-ish, and not inside a cloud
-    shafts.setAlpha((0.55 + 0.45 * Math.cos(pose.yaw - 0.7)) * (1 - inDeck) * (0.6 + 0.4 * Math.sin(t * 0.7)));
+    shafts.setAlpha((0.55 + 0.45 * Math.cos(pose.yaw - 0.7)) * (1 - inDeck) * (0.6 + 0.4 * Math.sin(t * 0.7)) * (1 - night));
     shafts.setRotation(Math.sin(t * 0.35) * 0.04 + pose.roll);
     // speed: how fast the middle of the screen is sweeping over the ground (screen px/s), as streaks
     const cur = { x: pose.x, y: pose.y };
@@ -687,7 +872,7 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
       hideCard();
       sc.tweens.add({ targets: barT, y: -BAR, duration: 500, ease: "Cubic.in" });
       sc.tweens.add({ targets: barB, y: SH + BAR, duration: 500, ease: "Cubic.in" });
-      sc.tweens.add({ targets: [sky, apron, gm, bm, hazeG, birdsG, shafts, streaks, white, hint, ...clouds.map((c) => c.img)], alpha: 0, duration: FADE * 1000, onComplete: () => sc.time.delayedCall(250, () => teardown(null)) });
+      sc.tweens.add({ targets: [sky, nsky, apron, west, gm, kgm, bm, kbm, beamsG, flash, hazeG, birdsG, shafts, streaks, white, hint, ...clouds.map((c) => c.img), ...glows.map((gl) => gl.img)], alpha: 0, duration: FADE * 1000, onComplete: () => sc.time.delayedCall(250, () => teardown(null)) });
     };
     const teardown = (fade: Phaser.GameObjects.Rectangle | null) => {
       if (done) return;
@@ -695,7 +880,8 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
       for (const g of hidden) if (g.active) (g as unknown as Phaser.GameObjects.Components.Visible).setVisible(true);
       card = null;
       for (const g of made) if (g !== fade && g.active) g.destroy();
-      for (const k of [gKey, bKey]) if (sc.textures.exists(k)) sc.textures.remove(k);
+      for (const k of [gKey, bKey, kd.groundKey, kd.atlasKey, "__fly_glow"]) if (sc.textures.exists(k)) sc.textures.remove(k);
+      if (nTex?.has(CROP)) nTex.remove(CROP);
       if (fade) {
         sc.tweens.add({ targets: fade, alpha: 0, duration: 380, delay: 60, onComplete: () => fade.destroy() });
       }

@@ -526,7 +526,7 @@ export const ARCS: Arc[] = [
     id: "arc_kreblis",
     player: "KREBLIS",
     title: "The Ascension of Kreblis",
-    blurb: "Keep the gear coming. Become the greatest RuneScape player who ever lived. Attain eternal life through HIIT. Troll Facebook.",
+    blurb: "Keep the gear coming. Become the greatest RuneScape player who ever lived. Attain eternal life through HIIT.",
     reward: { coins: 450, desc: "+25 max HP (eternal life, pending verification)." },
     steps: [
       {
@@ -570,18 +570,6 @@ export const ARCS: Arc[] = [
           ],
           success: [say("KREBLIS", "I am now immortal. Probably. I'll know for sure in about eighty years."), dir("ETERNAL LIFE: ATTAINED (pending verification).")],
           fail: [say("KREBLIS", "The hardest is the burpees. I'll go again. Death can wait.")],
-        },
-      },
-      {
-        id: "facebook",
-        text: "Troll Facebook from the laptop at home. Make Krelford furious.",
-        at: "HOME",
-        step: {
-          kind: "minigame",
-          mode: "facebook",
-          intro: [say("KREBLIS", "It's such a good group for trolling."), say("KREBLIS", "Most people are shit at trolling. It's an art. Bad spelling, total sincerity, never break.")],
-          success: [say("KREBLIS", "Four hundred angry reacts and someone's mum has called the police. Wot a nite."), dir("Kreblis is now the most hated man on Krelford Community Noticeboard. He has never been happier.")],
-          fail: [say("KREBLIS", "Got reported. Too obvious. The trick is to make them think you mean it.")],
         },
       },
     ],

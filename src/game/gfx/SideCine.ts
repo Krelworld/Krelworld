@@ -126,7 +126,8 @@ export async function playCine(sc: Phaser.Scene, cue: string, host: CineHost): P
         break;
       }
       case "freeze":
-        await freeze(sc, a[0] ?? "", host, Number(a[1]) || 1700);
+        // the freeze-frame caption stamps ("STARS: 12. INDIANS: 0.") are switched off: they stopped the flow dead
+        void freeze;
         break;
       case "scratch":
         synth.play("ss_scratch");

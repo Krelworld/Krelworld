@@ -388,7 +388,9 @@ export class HubScene extends Phaser.Scene {
     const dawn = !!G.s.flags.finale_dawn;
     const raidNight = !dawn && this.storyNight();
     const mourn = !dawn && !raidNight && this.mourning();
-    const kind = dawn ? null : raidNight ? "storm" : mourn ? "rain" : weatherFor(c0.day);
+    // your first walk out into Krelworld (until the prologue at the Town Hall): always a sunny day
+    const firstDay = !G.s.flags.prologue_done;
+    const kind = dawn || firstDay ? null : raidNight ? "storm" : mourn ? "rain" : weatherFor(c0.day);
     // in mourning: the colour drains out of the town
     if (mourn) this.add.rectangle(480, 270, 960, 540, 0x7a8494, 1).setAlpha(0.35).setScrollFactor(0).setDepth(4899).setBlendMode(Phaser.BlendModes.MULTIPLY);
     (this as any).weatherKind = kind;

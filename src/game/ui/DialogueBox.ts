@@ -8,6 +8,7 @@ import { resolveLine, type ResolvedLine } from "../systems/narrative";
 import { displayText } from "../audio/voiceKey";
 import { evalCond } from "../systems/conditions";
 import { portraitKey } from "../gfx/Textures";
+import { playCine } from "../gfx/SideCine";
 import { synth } from "../audio/Synth";
 import { CHARACTERS } from "../../data/characters";
 import { FONT, PIXEL_BOLD, PIXEL_FONT, UI, uiFrame } from "./theme";
@@ -491,6 +492,7 @@ export class DialogueBox {
         if (c?.lines) queue.unshift(...c.lines);
         continue;
       }
+      if (raw.cine) await this.cine(raw.cine);
       if (!raw.t && !raw.canon) continue;
       const rl = resolveLine(raw, s, opts);
       if (!rl) continue;
@@ -505,10 +507,24 @@ export class DialogueBox {
         await this.waitAdvance();
         this.clearOverlay();
       }
+      if (raw.cineAfter) await this.cine(raw.cineAfter);
     }
     this.active = false;
     this.skipping = false;
     if (!this.destroyed) this.root.setVisible(false);
+  }
+
+  /** An anime beat between lines (SideCine): the box steps aside while it plays; E / Space / click cut it short. */
+  private async cine(cue: string) {
+    if (this.destroyed || this.skipping) return;
+    const was = this.root.visible;
+    this.root.setVisible(false);
+    await playCine(this.scene, cue, {
+      press: () => new Promise<void>((res) => (this.advanceResolve = res)),
+      skipping: () => this.skipping || this.destroyed,
+    });
+    this.advanceResolve = null;
+    if (!this.destroyed) this.root.setVisible(was);
   }
 
   /** Bumped on every line, so a late YEE from an old line stays quiet. */

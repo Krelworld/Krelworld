@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { vfx } from "../gfx/Vfx";
+import { sloppyCutIn } from "../gfx/SideCine";
 import { G } from "../G";
 import { synth } from "../audio/Synth";
 import { animateWalker } from "../gfx/HD";
@@ -161,6 +162,7 @@ export class SanBrother {
     const y = e?.y ?? this.spr.y;
     const sc = this.world.sc;
     this.world.floatText(this.spr.x, this.spr.y - 70, "SLOPPY SURPRISE!!", "#a3e635", 20);
+    sloppyCutIn(this.world.sc);
     synth.shout("yee", 1);
     sc.time.delayedCall(250, () => synth.shout("yee", 1));
     sc.time.delayedCall(500, () => synth.shout("yee", 1));

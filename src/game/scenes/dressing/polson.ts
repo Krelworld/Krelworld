@@ -32,10 +32,10 @@ export const polson: Record<string, Dressing> = {
       k.poster(w - 220, 28, 40, 40, 0xe0f2fe, 0xa8a29e, "(a mirror)", "#64748b", 6, 2);
       // the stuff
       k.prop("dd_shoerack", 120, 150, { scale: 1.5, block: [120, 30] });
-      k.prop("dd_toypile", 90, 340, { scale: 1.6, block: [70, 22] });
-      k.prop("dd_toypile", w - 90, 470, { scale: 1.7, flip: true, block: [76, 22] });
-      k.prop("dd_toypile", 190, h - 50, { scale: 1.5, block: [70, 20] });
-      k.prop("dd_toypile", w - 200, h - 50, { scale: 1.4, flip: true, block: [64, 20] });
+      k.animProp("dd_toypile", 90, 340, { scale: 1.6, block: [70, 22], fps: 6, rest: [4000, 12000] });
+      k.animProp("dd_toypile", w - 90, 470, { scale: 1.7, flip: true, block: [76, 22], fps: 6, rest: [4000, 12000] });
+      k.animProp("dd_toypile", 190, h - 50, { scale: 1.5, block: [70, 20], fps: 6, rest: [4000, 12000] });
+      k.animProp("dd_toypile", w - 200, h - 50, { scale: 1.4, flip: true, block: [64, 20], fps: 6, rest: [4000, 12000] });
       k.prop("dd_toymountain", w - 150, 210, { scale: 0.75, block: [110, 30] });
       label(k, 90, 360);
       label(k, w - 90, 490);
@@ -61,7 +61,7 @@ export const polson: Record<string, Dressing> = {
     ambience: "dungeon",
     build(k) {
       const { w, h } = k.r;
-      k.prop("dd_sink", 260, 160, { scale: 1.8, block: [130, 40] });
+      k.animProp("dd_sink", 260, 160, { scale: 1.8, block: [130, 40], fps: 6, rest: [600, 1800] });
       k.prop("dd_sink", 410, 160, { scale: 1.8, flip: true, block: [130, 40] });
       // the fridge, and what's coming out of it
       const fx = w - 330;
@@ -80,13 +80,13 @@ export const polson: Record<string, Dressing> = {
         [w - 130, 440, 1.3],
         [w - 520, 160, 1.4],
       ])
-        k.prop("dd_pizzaboxes", x, y, { scale: s, block: [44, 18] });
+        k.animProp("dd_pizzaboxes", x, y, { scale: s, block: [44, 18], fps: 8, rest: [2500, 8000] });
       for (const [x, y, f] of [
         [110, h - 50, false],
         [w - 120, h - 50, true],
         [w - 90, 620, false],
       ] as const) {
-        k.prop("dd_binbags", x, y, { scale: 1.6, flip: f, block: [90, 26] });
+        k.animProp("dd_binbags", x, y, { scale: 1.6, flip: f, block: [90, 26], fps: 8, rest: [3000, 9000] });
         k.flies(x, y - 30, 4, 20);
       }
       // mould growing in the grout (breathing), cartons, cans, the odd pizza
@@ -123,7 +123,7 @@ export const polson: Record<string, Dressing> = {
         [w - 220, h - 50, true],
         [w / 2 - 230, 130, false],
       ] as const) {
-        k.prop("dd_toypile", x, y, { scale: 1.5, flip: f, block: [64, 20] });
+        k.animProp("dd_toypile", x, y, { scale: 1.5, flip: f, block: [64, 20], fps: 6, rest: [4000, 12000] });
         label(k, x, y + 14);
       }
       scatter(k, plushies(k), 24, ANY(k), { colors: [0xb45309, 0xfbcfe8, 0xf5f3ff, 0xfde047], sfx: "pop", scale: 1.6 });

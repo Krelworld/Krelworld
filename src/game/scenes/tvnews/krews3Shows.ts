@@ -241,6 +241,35 @@ export const KREWS3_NEWS: Record<string, NewsCfg> = {
     },
   },
 
+  krews_starmer_video: {
+    brand: "gbk",
+    ticker: [
+      "Starmer: video was 'a virus'",
+      "Enhanced audio: 'watch now'",
+      "Sunak: 'beyond comprehension'",
+      "Calls for second general election grow",
+      "Tory MPs offered counselling",
+    ],
+    scenes: [
+      STUDIO,
+      { match: /CABINET ROOM/, kind: "field", set: "tv_k4_cabinet", look: "secret", where: "Westminster", cast: [["KEIR STARMER", 0.34], ["TORY MP", 0.7]], anchors: { "TORY MP": "VOTER 1" } },
+      { match: /STATEMENT/, kind: "graphic", set: "", gfx: { type: "statement", title: "STATEMENT", from: "Keir Starmer", quote: "The video was a virus on my phone. I intended to play a different video. By the time I realised, it was too late.", color: 0xdc2626 } },
+      { match: /ENHANCED AUDIO/, kind: "field", set: "tv_k4_cabinet", look: "hotmic", where: "Enhanced audio", cast: [["KEIR STARMER", 0.5]] },
+      { match: /DOWNING STREET/, kind: "presser", set: "tv_no10_door" },
+    ],
+    ots: [
+      { match: /disturbing video|horrified/i, pic: { key: "tvanchor_STARMER", frame: 0, crop: [30, 2, 68, 60] }, caption: "The video scandal" },
+      { match: /enhanced audio/i, pic: { key: "tv_k4_cabinet", crop: [60, 40, 200, 150] }, caption: "Enhanced audio" },
+      { match: /resignation|general election/i, pic: { key: "tvanchor_STARMER", frame: 0, crop: [30, 2, 68, 60] }, caption: "Calls to resign" },
+    ],
+    straps: {
+      "KEIR STARMER": ["Keir Starmer", "Labour leader"],
+      "RISHI SUNAK": ["Rishi Sunak", "Conservative leader"],
+      "TORY MP": ["Conservative MP", "Was in the meeting"],
+      REPORTER: ["Reporter", "GB Krews, Westminster"],
+    },
+  },
+
   krews_crash_mode_live: {
     brand: "gbk",
     ticker: [

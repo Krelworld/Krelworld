@@ -698,6 +698,7 @@ export class FinaleScene extends Phaser.Scene {
     // the two of them, close up: it roars, Goku screams
     const aura = vfx(this, "fe_vfx_darkaura", dragon.x, dragon.y - 6, { scale: 2.6, depth: dragon.depth - 1, alpha: 0.6, add: true });
     if (!synth.shout("concept_roar", 1, 0.8)) synth.play("roar");
+    synth.music("fe_clash", true);
     this.cameras.main.shake(700, 0.012);
     await Juice.cutIn(this, "fe_cut_concept", { from: "left", y: 170, color: 0xa855f7, hold: 650 });
     await Juice.cutIn(this, "fe_cut_goku", { from: "right", y: 170, color: 0xffd23f, hold: 650 });
@@ -706,8 +707,10 @@ export class FinaleScene extends Phaser.Scene {
     this.cameras.main.zoomTo(1.15, 200);
     await new Promise<void>((res) => this.tweens.add({ targets: orb, x: dragon.x + 30, y: dragon.y - dragon.displayHeight * 0.55, scale: 3.6, duration: 260, ease: "Quad.in", onComplete: () => res() }));
     await Juice.impactFrames(this, dragon, 70);
-    // IMPACT
-    const white = this.add.rectangle(480, 270, W * 2, 1100, 0xffffff, 1).setDepth(980).setScrollFactor(0);
+    // IMPACT (and then the music's gone: just the blast and your ears ringing)
+    synth.stopMusic();
+    Juice.earRing(3500, 0.1);
+    const white = this.add.rectangle(480, 270, W * 2, 1100, 0xffffff, G.meta.settings.calmFlash ? 0.5 : 1).setDepth(980).setScrollFactor(0);
     synth.play("boom");
     synth.play("explode_1");
     this.cameras.main.shake(2000, 0.03);
@@ -740,8 +743,9 @@ export class FinaleScene extends Phaser.Scene {
     this.dragon = null;
     this.wizard = null;
     await this.talk(FB.FB_DESTROYED);
-    // the rain stops; stars
+    // the rain stops; stars (and the music comes back in, softly)
     synth.weatherSound(null);
+    synth.music("c7_spirit", true);
     for (let i = 0; i < 70; i++) {
       const st = this.add.circle(Math.random() * W, Math.random() * (FLOOR - 120), Math.random() < 0.2 ? 1.6 : 1, 0xffffff, 0).setDepth(-19);
       this.tweens.add({ targets: st, alpha: 0.5 + Math.random() * 0.5, delay: Math.random() * 2000, duration: 900 });

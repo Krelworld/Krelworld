@@ -24,6 +24,7 @@
     "DARK JENKO": "5RTlM7GOxnav58fQsiJc",
     "CRONGUS": "pTl0g5oyOXfsBwP8Cf9I",
     "LIL' CRONGUS": "pTl0g5oyOXfsBwP8Cf9I",
+    "LUKE WATKINS": "pTl0g5oyOXfsBwP8Cf9I",
     "KREBLIS": "tROmSU47s7fZ9vUruDdY",
     "KREZWONK": "kU3IVQlF5oaPOYHEwlJA",
     "KREZMAR": "fd3xykIzMlxTNRrqlsdo",
@@ -68,7 +69,8 @@
     "SANMIK": 1.15
   },
   "pitch": {
-    "_doc": "Semitones to shift a speaker's clips by after recording (formants kept). Existing clips are shifted locally, not re-recorded."
+    "_doc": "Semitones to shift a speaker's clips by after recording (formants kept). Existing clips are shifted locally, not re-recorded.",
+    "LUKE WATKINS": -2
   },
   "keyword_moods": {
     "_doc": "Per-speaker moods picked by what a line says, when it has no explicit, inline or punctuation mood. First match wins.",
@@ -867,7 +869,8 @@
     "GABOR THE GOAT": "southern English accent",
     "ROBBO": "British accent",
     "SANJEEV": "southern English accent",
-    "DRONGUS": "southern English accent"
+    "DRONGUS": "southern English accent",
+    "LUKE WATKINS": "southern English accent"
   },
   "clone_v2_always": [
     "MARK",

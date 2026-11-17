@@ -62,6 +62,8 @@ export const AUDIO_FILES: Record<string, string> = {
   drp_rattle: "audio/sfx/drp_rattle.mp3",
   drp_splat: "audio/sfx/drp_splat.mp3",
   drp_suction: "audio/sfx/drp_suction.mp3",
+  /** RuneScape (the woodcutting minigame, ElevenLabs): axe chop, log in the pack, tree falling, bank chest, the level-up fanfare (an original one). */
+  ...Object.fromEntries(["chop", "log", "fall", "bank", "levelup"].map((k) => [`rs_${k}`, `audio/sfx/rs_${k}.mp3`])),
 };
 
 /** Where each separate shout sits in those files: [start, length] in seconds. */
@@ -171,7 +173,8 @@ export const MUSIC_FILES: Record<string, string> = {
   twitcher: "audio/twitcher.mp3",
   crocodile: "audio/crocodile.mp3",
   flenky: "audio/flenky.mp3",
-  sanmik: "audio/ggg2.mp3",
+  // SanMik & SanChz scenes (was Ashurst): Peener Colarder, from the chorus
+  sanmik: "audio/peener_colarder.mp3",
   // the lamp-rubbing vignette (instrumental, ElevenLabs Music)
   lamp_rub: "audio/lamp_rub.mp3",
   // the plane into the Krel Tower (ElevenLabs Music)
@@ -199,7 +202,10 @@ export const MUSIC_FILES: Record<string, string> = {
 };
 
 /** Where a song starts (seconds) when it first comes on, e.g. the title song skips its instrumental intro and opens on the vocals. */
-const MUSIC_START: Record<string, number> = { title: 3.5 };
+const MUSIC_START: Record<string, number> = { sanmik: 16.8 };
+
+/** Looping songs that loop back to their MUSIC_START point rather than to the top. */
+const LOOP_FROM_START = new Set(["sanmik"]);
 
 /** Songs that should play once rather than loop. */
 const ONE_SHOT = new Set(["c6e_aftermath", "c6a_raid_title", "c6a_nuke_arm", "dungeon_rise", "crystal", "viral", "crobley", "majek_lampe", "anthem", "bbp", "twitcher", "crocodile", ...Array.from({ length: 13 }, (_, i) => `ggg${i + 1}`)]);
@@ -1238,9 +1244,11 @@ export class Synth {
         this.tone(138, 0.45, "square", 0.3, 0.34);
         break;
       case "decree":
-        this.tone(392, 0.15, "square", 0.25);
-        this.tone(523, 0.15, "square", 0.25, 0.15);
-        this.tone(784, 0.3, "square", 0.25, 0.3);
+        // (fallback only: the recorded one is a short microtonal koto-ish synth jingle, no horns)
+        this.tone(440, 0.3, "sine", 0.2);
+        this.tone(479, 0.3, "sine", 0.2, 0.12);
+        this.tone(587, 0.3, "sine", 0.2, 0.24);
+        this.tone(880, 0.5, "triangle", 0.15, 0.4);
         break;
       default:
         this.tone(440, 0.05, "square", 0.1);
@@ -1274,7 +1282,14 @@ export class Synth {
     const el = new Audio(MUSIC_FILES[id]);
     if (startFrac > 0) el.addEventListener("loadedmetadata", () => (el.currentTime = el.duration * startFrac), { once: true });
     else if (MUSIC_START[id]) el.addEventListener("loadedmetadata", () => (el.currentTime = MUSIC_START[id]), { once: true });
-    el.loop = !ONE_SHOT.has(id);
+    el.loop = !ONE_SHOT.has(id) && !LOOP_FROM_START.has(id);
+    // these loop back to where they started (the chorus), not to the intro
+    if (LOOP_FROM_START.has(id))
+      el.addEventListener("ended", () => {
+        if (this.el !== el) return;
+        el.currentTime = MUSIC_START[id] ?? 0;
+        el.play().catch(() => undefined);
+      });
     // fade in (the old track fades out underneath)
     el.volume = 0;
     this.ramp(el, () => this.musicLevel(), 450);

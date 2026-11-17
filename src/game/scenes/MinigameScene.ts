@@ -19,6 +19,7 @@ import { vfx } from "../gfx/Vfx";
 import { chatBeat } from "../gfx/SideCine";
 import { CHARACTERS, LADS } from "../../data/characters";
 import { TOUCH } from "../ui/TouchControls";
+import { runescape } from "./minigame/runescape";
 
 const MIKEY_BARKS = [
   "Mikey here.",
@@ -1066,151 +1067,499 @@ export class MinigameScene extends Phaser.Scene {
   // ---------------------------------------------------------------- RUNESCAPE (keep the gear coming)
 
   private runescape() {
-    if (!backdrop(this, "bg_runescape", { dim: 0.1, depth: -10 })) this.add.rectangle(480, 270, 960, 540, 0x3d6a2a);
-    this.add.rectangle(480, 270, 940, 520).setStrokeStyle(6, 0x5a4a2a);
-    title(this, 480, 40, "WOODCUTTING → 99", 26, "#ffff00");
-    this.add.text(480, 70, "Tap / SPACE to chop. When the gear runs out, RE-UP (G or the button).", { fontFamily: FONT, fontSize: "13px", color: "#ffffff" }).setOrigin(0.5);
-    const tree = this.add.image(560, 300, "p_tree").setScale(4);
-    const me = this.add.sprite(400, 330, playerKey(this), 0).setScale(4);
-    const lvlT = this.add.text(40, 110, "", { fontFamily: "monospace", fontSize: "18px", color: "#ffff00", stroke: "#000", strokeThickness: 4 });
-    this.add.text(40, 186, "GEAR", { fontFamily: FONT, fontSize: "12px", color: "#ffffff", fontStyle: "bold" });
-    this.add.rectangle(40, 208, 200, 14, 0x111111).setOrigin(0, 0.5);
-    const gearBar = this.add.rectangle(40, 208, 200, 14, 0xffffff).setOrigin(0, 0.5);
-    const window = this.add.rectangle(860, 200, 80, 100, 0x223355).setStrokeStyle(4, 0x5a4a2a);
-    const gary = this.add.sprite(860, 210, this.textures.exists("spr_GARY") ? "spr_GARY" : "spr_FOLK2", 0).setScale(2.6).setVisible(false);
-    void window;
-    // RuneScape XP table, squashed so 99 is reachable in a minute or so with gear
-    const target = 13034431;
-    let xp = 0;
-    let gear = 100;
-    let reups = 0;
-    let busy = false;
-    const levelOf = (x: number) => Math.min(99, 1 + Math.floor(98 * Math.pow(x / target, 0.55)));
-    const end = this.time.now + 75000;
-    const chop = () => {
-      if (this.ended || busy || this.box.active) return;
-      const mult = gear > 0 ? 1 : 0.08;
-      const gain = Math.round(target / 160 * mult * (0.8 + Math.random() * 0.4));
-      const before = levelOf(xp);
-      xp = Math.min(target, xp + gain);
-      synth.play("hit");
-      me.setFrame(String(me.frame.name) === "3" ? 0 : 3);
-      this.tweens.add({ targets: tree, angle: { from: -3, to: 3 }, yoyo: true, duration: 60 });
-      if (Math.random() < 0.5) this.pop(560 + (Math.random() - 0.5) * 100, 220, `+${gain.toLocaleString()} xp`, "#ffffff", 13);
-      const after = levelOf(xp);
-      if (after > before && after % 10 === 0) this.pop(480, 160, `Woodcutting level ${after}!`, "#ffff00", 22);
-      if (xp >= target) {
-        synth.play("cheer");
-        title(this, 480, 240, "99 WOODCUTTING\nHISCORES: RANK 1 (OVERALL, OF ALL TIME)", 28, "#ffff00").setDepth(200);
-        this.finish(true, [dir(`Gear re-ups required: ${reups}. Gary has bought a boat.`)]);
-      }
-    };
-    const reup = async () => {
-      if (this.ended || busy) return;
-      busy = true;
-      reups++;
-      gary.setVisible(true);
-      synth.play("door");
-      this.pop(860, 130, ["'Alright Kreb'", "'Same again?'", "'For the RuneScape'", "'You're my best customer'"][reups % 4], "#ffd23f", 14);
-      await new Promise<void>((r) => this.time.delayedCall(1200, () => r()));
-      gary.setVisible(false);
-      gear = 100;
-      this.pop(200, 200, "Hmmmm… gear… 😋", "#ffffff", 16);
-      busy = false;
-    };
-    this.mash(chop);
-    this.input.keyboard?.on("keydown-G", reup);
-    const btn = this.add.rectangle(140, 470, 200, 50, 0x7c2d12).setStrokeStyle(3, 0xffff00).setInteractive({ useHandCursor: true });
-    this.add.text(140, 470, "RE-UP (G)", { fontFamily: FONT, fontSize: "16px", color: "#ffff00", fontStyle: "bold" }).setOrigin(0.5);
-    btn.on("pointerdown", (_p: unknown, _x: number, _y: number, ev: { stopPropagation: () => void }) => {
-      ev.stopPropagation();
-      reup();
-    });
-    let warned = false;
-    this.time.addEvent({
-      delay: 100,
-      loop: true,
-      callback: () => {
-        if (this.ended) return;
-        if (!busy) gear = Math.max(0, gear - 1.6);
-        gearBar.width = 2 * gear;
-        gearBar.setFillStyle(gear > 25 ? 0xffffff : 0xef4444);
-        if (gear <= 0 && !warned) {
-          warned = true;
-          this.pop(200, 210, "Feel a bit manic… better get some gear in!", "#ef4444", 15);
-          this.time.delayedCall(3000, () => (warned = false));
-        }
-        const left = Math.max(0, (end - this.time.now) / 1000);
-        lvlT.setText(`Level ${levelOf(xp)}\nXP ${xp.toLocaleString()}`);
-        this.hud.setText(`${left.toFixed(0)}s   RE-UPS ${reups}`);
-        if (left <= 0) this.finish(false, [dir("Your mum calls you down for dinner. The session is over. Lumbridge weeps.")]);
-      },
-    });
+    runescape({ scene: this, hud: this.hud, box: this.box, ended: () => this.ended, finish: (win, lines) => void this.finish(win, lines) });
   }
 
   // ---------------------------------------------------------------- HIIT BURPEES (eternal life)
 
+  /**
+   * The burpee sheet (PixelLab, side view, 96x96 frames, Kreblis facing right): a full chest-to-floor burpee, the
+   * explosive jump, a faceplant and a victory flex.
+   */
+  private static readonly BF = { stand: 0, squat: 1, hands: 2, plank: 3, half: 4, chest: 5, push: 6, feetIn: 7, rise: 8, land: 11, explode: 14, peak: 14, tuck: 14, trip: 16, fall: 17, splat: 18, flat: 19, flex: 20 };
+  /** The EMOM: three rounds, each faster. `beat` is seconds per beat (a rep is a DOWN beat then an UP beat). */
+  private static readonly EMOM = [
+    { name: "CHEST-TO-FLOOR BURPEES", kind: "burpee", reps: 8, beat: 0.62, time: 17, quip: "Lmfao round 1 is chest to floor" },
+    { name: "SQUAT JUMPS", kind: "squat", reps: 10, beat: 0.5, time: 16, quip: "Squat jumps. The calves go immortal first" },
+    { name: "MORE BURPEES", kind: "burpee", reps: 10, beat: 0.46, time: 16, quip: "The hardest is the burpees" },
+  ] as const;
+
+  /**
+   * HIIT burpee EMOM: a rhythm game. A ring closes on the beat: DOWN as it lands drops Kreblis to the floor, UP on the
+   * next beat explodes him up. PERFECT / GOOD keep the combo (higher jump, bigger aura), SLOPPY counts but breaks it,
+   * a miss (or mashing early) flops him onto his face. Three rounds, each faster; hit the reps before the round clock.
+   */
   private burpees() {
-    if (!backdrop(this, "bg_gym", { dim: 0.25, depth: -10 })) this.add.tileSprite(0, 0, 960, 540, "tile_industrial").setOrigin(0);
-    title(this, 480, 44, "EMOM: CHEST-TO-FLOOR BURPEES", 26);
-    this.add.text(480, 76, "Alternate DOWN and UP (arrow keys / S then W / tap bottom then top half). 30 burpees before time.", { fontFamily: FONT, fontSize: "13px", color: "#ffffff" }).setOrigin(0.5);
-    const me = this.add.sprite(480, 330, playerKey(this), 0).setScale(5);
-    const cue = this.add.text(480, 170, "DOWN", { fontFamily: FONT, fontSize: "40px", color: "#22c55e", fontStyle: "bold", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5);
-    const life = this.add.text(480, 460, "", { fontFamily: FONT, fontSize: "16px", color: "#ffd23f", fontStyle: "bold" }).setOrigin(0.5);
-    const need = 30;
+    const calm = !!G.meta?.settings?.calmFlash;
+    const BF = MinigameScene.BF;
+    const ROUNDS = MinigameScene.EMOM;
+    if (!backdrop(this, "bg_gym", { dim: 0.35, depth: -10 })) this.add.tileSprite(0, 0, 960, 540, "tile_industrial").setOrigin(0).setDepth(-10);
+    const FLOOR = 446;
+    const KX = 330;
+    const RX = 700;
+    const RY = 300;
+    // gym mat + his shadow
+    this.add.rectangle(KX - 40, FLOOR + 6, 360, 16, 0x1e293b, 0.85).setStrokeStyle(2, 0x334155).setDepth(5);
+    const shadow = this.add.ellipse(KX, FLOOR + 4, 120, 16, 0x000000, 0.35).setDepth(6);
+    const aura = this.add.graphics().setDepth(15).setBlendMode(Phaser.BlendModes.ADD);
+    const hasSheet = this.textures.exists("burpee_KREBLIS");
+    const me = hasSheet
+      ? this.add.sprite(KX, FLOOR, "burpee_KREBLIS", BF.stand).setOrigin(0.5, 92 / 96).setScale(4).setDepth(20)
+      : this.add.sprite(KX, FLOOR, "spr_KREBLIS", 4).setOrigin(0.5, 1).setScale(3).setDepth(20);
+    const LYING = new Set<number>([BF.plank, BF.half, BF.chest, BF.push, BF.fall, BF.splat, BF.flat]);
+    let pose: number = BF.stand;
+    const setPose = (f: number) => {
+      if (f === pose) return;
+      pose = f;
+      if (hasSheet) me.setFrame(f);
+      else me.setScale(3, LYING.has(f) ? 1.1 : f === BF.squat || f === BF.hands || f === BF.feetIn || f === BF.land ? 2.2 : 3);
+    };
+
+    // ---- HUD: fitness-app panels
+    const panel = (x: number, y: number, w: number, h: number, edge: number) => {
+      this.add.rectangle(x, y, w, h, 0x0b1020, 0.82).setOrigin(0).setStrokeStyle(3, edge).setDepth(100);
+      this.add.rectangle(x, y, 6, h, edge).setOrigin(0).setDepth(101);
+    };
+    panel(16, 14, 300, 84, 0xf97316);
+    const roundT = this.add.text(32, 22, "", { fontFamily: PIXEL_BOLD, fontSize: "14px", color: "#fdba74" }).setDepth(102);
+    const exT = this.add.text(32, 44, "", { fontFamily: FONT, fontSize: "20px", color: "#ffffff", fontStyle: "bold" }).setDepth(102);
+    const pips = [0, 1, 2].map((i) => this.add.rectangle(32 + i * 34, 82, 28, 7, 0x334155).setOrigin(0, 0.5).setDepth(102));
+    panel(644, 14, 300, 84, 0x22d3ee);
+    this.add.text(660, 22, "ROUND CLOCK", { fontFamily: PIXEL_BOLD, fontSize: "14px", color: "#67e8f9" }).setDepth(102);
+    const clockT = this.add.text(928, 58, "0:00", { fontFamily: "monospace", fontSize: "40px", color: "#ffffff", fontStyle: "bold" }).setOrigin(1, 0.5).setDepth(102);
+    const repRing = this.add.graphics().setDepth(101);
+    this.add.circle(480, 58, 42, 0x0b1020, 0.9).setDepth(100);
+    const repT = this.add.text(480, 52, "0", { fontFamily: PIXEL_BOLD, fontSize: "34px", color: "#ffffff", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(102);
+    const repOf = this.add.text(480, 80, "/ 8 REPS", { fontFamily: FONT, fontSize: "11px", color: "#cbd5e1", fontStyle: "bold" }).setOrigin(0.5).setDepth(102);
+    const tut = this.add
+      .text(480, 122, "Ring closes → ▼ DOWN to drop · ▲ UP at the bottom to explode   (↓ ↑ / S W / Space / tap ▼ ▲)", { fontFamily: FONT, fontSize: "14px", color: "#ffffff", fontStyle: "bold", stroke: "#000", strokeThickness: 4 })
+      .setOrigin(0.5)
+      .setDepth(102);
+    const comboT = this.add.text(RX, RY + 88, "", { fontFamily: PIXEL_BOLD, fontSize: "26px", color: "#ffd23f", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(120);
+    const ringG = this.add.graphics().setDepth(110);
+    const glyph = this.add.text(RX, RY, "▼", { fontFamily: FONT, fontSize: "44px", color: "#ffffff", fontStyle: "bold", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(112);
+    const glyphLbl = this.add.text(RX, RY - 76, "", { fontFamily: PIXEL_BOLD, fontSize: "16px", color: "#ffffff", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(112);
+    // touch buttons (tapping anywhere else does the next move, like Space)
+    const tbtn = (x: number, label: string, col: number) => {
+      this.add.circle(x, 462, 44, col, 0.35).setStrokeStyle(4, col).setDepth(100);
+      this.add.text(x, 462, label, { fontFamily: FONT, fontSize: "30px", color: "#ffffff", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(101);
+    };
+    tbtn(70, "▼", 0x22c55e);
+    tbtn(890, "▲", 0x3b82f6);
+    let bubble: Phaser.GameObjects.Text | null = null;
+    const quip = (s: string) => {
+      bubble?.destroy();
+      const b = this.add
+        .text(KX + 70, 176, s, { fontFamily: FONT, fontSize: "15px", color: "#111827", fontStyle: "bold", backgroundColor: "#ffffff", padding: { x: 8, y: 5 }, wordWrap: { width: 230 } })
+        .setOrigin(0, 1)
+        .setDepth(130)
+        .setScale(0.6);
+      bubble = b;
+      this.tweens.add({ targets: b, scale: 1, duration: 140, ease: "Back.out" });
+      this.tweens.add({ targets: b, alpha: 0, delay: 1700, duration: 300, onComplete: () => b.destroy() });
+    };
+    const QUIPS = ["Death is a choice", "Ageing: cancelled", "15 more and I'm immortal", "My telomeres are SCREAMING", "Mortality is a skill issue", "Every Minute On the Minute. Forever.", "The hardest is the burpees"];
+    const FLOP_QUIPS = ["Floor's lovely actually", "That was a rest rep", "Death is a choice. Not this one.", "Lmfao"];
+    let quipN = 0;
+
+    // ---- state
+    type Q = "perfect" | "good" | "sloppy" | "miss";
+    interface Note { t: number; dir: "down" | "up"; rep: number; done: boolean; ticked: boolean }
+    const RANK: Record<Q, number> = { perfect: 3, good: 2, sloppy: 1, miss: 0 };
+    let ri = -1;
+    let R: (typeof ROUNDS)[number] = ROUNDS[0];
+    let T = 600;
+    let notes: Note[] = [];
     let reps = 0;
-    let wantDown = true;
-    let stamina = 100;
-    const end = this.time.now + 35000;
-    const quips = ["The hardest is the burpees", "Lmfao round 1 is chest to floor", "Death is a choice", "Ageing: cancelled", "15 more and I'm immortal"];
-    const press = (down: boolean) => {
-      if (this.ended || this.box.active) return;
-      if (down !== wantDown) {
-        stamina = Math.max(0, stamina - 12);
-        synth.play("hurt");
-        this.cameras.main.shake(120, 0.008);
-        this.pop(480, 250, "FLOP", "#ef4444", 22);
-        return;
-      }
-      if (stamina < 5) {
-        this.pop(480, 250, "gassed…", "#9ca3af", 18);
-        return;
-      }
-      stamina = Math.max(0, stamina - 1.5);
-      if (down) {
-        me.setScale(6, 2.2).setY(380);
-        synth.play("swing");
-      } else {
-        me.setScale(5).setY(300);
-        this.tweens.add({ targets: me, y: 330, duration: 180 });
-        reps++;
-        synth.play("pop");
-        if (reps % 6 === 0) this.pop(480, 220, quips[(reps / 6) % quips.length | 0], "#ffffff", 16);
-      }
-      wantDown = !wantDown;
-      cue.setText(wantDown ? "DOWN" : "UP").setColor(wantDown ? "#22c55e" : "#3b82f6");
-      if (reps >= need) {
-        title(this, 480, 240, "ETERNAL LIFE: ATTAINED", 40, "#ffd23f").setDepth(200);
-        synth.play("cheer");
-        this.finish(true);
+    let total = 0;
+    let combo = 0;
+    let best = 0;
+    let live = false;
+    let roundEnd = 0;
+    let golden = false;
+    let downQ: Q = "good";
+    let seq: { f: number; at: number }[] = [];
+    let jump = { t0: 0, dur: 1, h: 0 };
+    let auraBoost = 0;
+    let clockHold: number | null = null;
+    const now = () => this.time.now;
+    const play = (frames: [number, number][]) => {
+      const t = now();
+      seq = frames.map(([f, d]) => ({ f, at: t + d }));
+    };
+    const headY = () => me.y - (LYING.has(pose) ? 80 : 225);
+
+    // ---- juice
+    const pop = (x: number, y: number, s: string, col: string, size = 22) => {
+      const t = this.add.text(x, y, s, { fontFamily: PIXEL_BOLD, fontSize: `${size}px`, color: col, stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(140).setScale(0.5);
+      this.tweens.add({ targets: t, scale: 1, duration: 120, ease: "Back.out" });
+      this.tweens.add({ targets: t, y: y - 36, alpha: 0, delay: 450, duration: 380, onComplete: () => t.destroy() });
+    };
+    const sweat = (n: number) => {
+      for (let i = 0; i < n; i++) {
+        const x0 = me.x + 10 + Math.random() * 20;
+        const y0 = headY() + Math.random() * 20;
+        const d = this.add.ellipse(x0, y0, 7, 10, 0x9be7ff).setStrokeStyle(1, 0xffffff).setDepth(25);
+        const vx = (Math.random() < 0.5 ? -1 : 1) * (60 + Math.random() * 160);
+        const vy = -(160 + Math.random() * 220);
+        this.tweens.addCounter({ from: 0, to: 1, duration: 650, onUpdate: (tw) => {
+          const s = (tw.getValue() ?? 0) * 0.65;
+          d.setPosition(x0 + vx * s, y0 + vy * s + 0.5 * 900 * s * s);
+        }, onComplete: () => d.destroy() });
       }
     };
-    const kb = this.input.keyboard;
-    for (const k of ["DOWN", "S"]) kb?.on(`keydown-${k}`, () => press(true));
-    for (const k of ["UP", "W"]) kb?.on(`keydown-${k}`, () => press(false));
-    this.input.on("pointerdown", (p: Phaser.Input.Pointer) => press(p.y > 270));
-    this.time.addEvent({
-      delay: 100,
-      loop: true,
-      callback: () => {
+    const dustRing = (big: boolean) => {
+      const r = this.add.ellipse(me.x, FLOOR + 2, 70, 14).setStrokeStyle(big ? 5 : 3, 0xf5e6c8).setDepth(19);
+      this.tweens.add({ targets: r, scaleX: big ? 4 : 2.4, scaleY: big ? 2.6 : 1.6, alpha: 0, duration: big ? 460 : 320, ease: "Quad.out", onComplete: () => r.destroy() });
+      if (big) {
+        vfx(this, "vfx_dust", me.x - 60, FLOOR, { scale: 1.1, depth: 21 });
+        vfx(this, "vfx_dust", me.x + 60, FLOOR, { scale: 1.1, depth: 21, flipX: true });
+      }
+    };
+    const speedLines = (n: number) => {
+      for (let i = 0; i < n; i++) {
+        const x = me.x + (Math.random() - 0.5) * 340;
+        const len = 60 + Math.random() * 120;
+        const l = this.add.rectangle(x, 140 + Math.random() * 260, 3, len, golden ? 0xffe08a : 0xffffff, calm ? 0.35 : 0.75).setDepth(18);
+        this.tweens.add({ targets: l, y: l.y + 240, alpha: 0, duration: 260 + Math.random() * 120, onComplete: () => l.destroy() });
+      }
+    };
+    const burstLines = (x: number, y: number, col: number, alpha: number) => {
+      const g = this.add.graphics().setDepth(17).setPosition(x, y);
+      g.lineStyle(4, col, alpha);
+      for (let i = 0; i < 28; i++) {
+        const a = (i / 28) * Math.PI * 2;
+        const r0 = 60 + (i % 2) * 30;
+        g.lineBetween(Math.cos(a) * r0, Math.sin(a) * r0, Math.cos(a) * (r0 + 120), Math.sin(a) * (r0 + 120));
+      }
+      g.setScale(0.4);
+      this.tweens.add({ targets: g, scale: 1.7, alpha: 0, duration: 650, ease: "Quad.out", onComplete: () => g.destroy() });
+    };
+    const kiai = () => {
+      const t = this.add.text(me.x + 20, 230, "KIIIIAAA!!", { fontFamily: PIXEL_BOLD, fontSize: "56px", color: golden ? "#ffd23f" : "#e0f2fe", stroke: "#7c2d12", strokeThickness: 8 }).setOrigin(0.5).setDepth(150).setScale(0.3).setAngle(-6);
+      this.tweens.add({ targets: t, scale: 1.1, duration: 200, ease: "Back.out" });
+      this.tweens.add({ targets: t, alpha: 0, y: 200, delay: 750, duration: 350, onComplete: () => t.destroy() });
+      burstLines(me.x, FLOOR - 110, golden ? 0xffd23f : 0xbae6fd, calm ? 0.3 : 0.85);
+      vfx(this, "fe_vfx_kicharge", me.x, FLOOR - 100, { scale: 1.6, depth: 16, add: true, alpha: calm ? 0.5 : 1 });
+      auraBoost = 1;
+      synth.play("burst", 0.6);
+      if (!calm) this.cameras.main.shake(180, 0.006);
+    };
+    const goGolden = () => {
+      golden = true;
+      const t = this.add.text(480, 168, "GOLDEN GAINS MODE", { fontFamily: PIXEL_BOLD, fontSize: "34px", color: "#ffd23f", stroke: "#78350f", strokeThickness: 7 }).setOrigin(0.5).setDepth(150).setScale(0.4);
+      this.tweens.add({ targets: t, scale: 1, duration: 220, ease: "Back.out" });
+      this.tweens.add({ targets: t, alpha: 0, delay: 1300, duration: 400, onComplete: () => t.destroy() });
+      burstLines(me.x, FLOOR - 110, 0xffd23f, calm ? 0.3 : 0.9);
+      if (hasSheet) me.setTint(0xffffff, 0xffffff, 0xfff0c0, 0xfff0c0);
+      synth.play("burst", 0.7);
+      quip("Final reps. I can see forever from here");
+    };
+
+    // ---- rounds
+    const updateHud = () => {
+      roundT.setText(`EMOM · ROUND ${Math.max(1, ri + 1)}/${ROUNDS.length}`);
+      exT.setText(R.name);
+      pips.forEach((p, i) => p.setFillStyle(i < ri ? 0x22c55e : i === ri ? 0xf97316 : 0x334155));
+      repT.setText(String(reps));
+      repOf.setText(`/ ${R.reps} REPS`);
+      repRing.clear();
+      repRing.lineStyle(7, 0x334155).strokeCircle(480, 58, 40);
+      if (reps > 0) {
+        repRing.lineStyle(7, golden ? 0xffd23f : 0xf97316);
+        repRing.beginPath();
+        repRing.arc(480, 58, 40, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * reps) / R.reps);
+        repRing.strokePath();
+      }
+      comboT.setText(combo >= 2 ? `x${combo} COMBO` : "");
+      this.hud.setText(`LIFE EXPECTANCY: ${80 + total * 3} yrs   ·   BEST COMBO x${best}`);
+    };
+    const startRound = (i: number) => {
+      ri = i;
+      R = ROUNDS[i];
+      T = R.beat * 1000;
+      reps = 0;
+      live = false;
+      notes = [];
+      clockHold = null;
+      updateHud();
+      const ban = this.add.text(480, 236, `ROUND ${i + 1}\n${R.name}`, { fontFamily: PIXEL_BOLD, fontSize: "40px", color: "#ffffff", align: "center", stroke: "#000", strokeThickness: 7 }).setOrigin(0.5).setDepth(150).setScale(0.4);
+      this.tweens.add({ targets: ban, scale: 1, duration: 220, ease: "Back.out" });
+      this.tweens.add({ targets: ban, alpha: 0, delay: 1100, duration: 300, onComplete: () => ban.destroy() });
+      synth.play("whistle", 0.6);
+      this.time.delayedCall(500, () => quip(R.quip));
+      // count-in on the round's own tempo: 3, 2, 1, then the first DOWN
+      const t0 = now() + 1400 + 3 * T;
+      ["3", "2", "1"].forEach((s, k) =>
+        this.time.delayedCall(1400 + k * T, () => {
+          synth.play("select", 0.9);
+          pop(RX, RY - 120, s, "#ffffff", 34);
+        }),
+      );
+      const slots = Math.ceil((R.time * 1000) / (2 * T)) + 2;
+      for (let r = 0; r < slots; r++) {
+        notes.push({ t: t0 + 2 * r * T, dir: "down", rep: r, done: false, ticked: false });
+        notes.push({ t: t0 + (2 * r + 1) * T, dir: "up", rep: r, done: false, ticked: false });
+      }
+      roundEnd = t0 - T + R.time * 1000;
+      this.time.delayedCall(1400 + 2 * T, () => (live = true));
+      if (i > 0) tut.setVisible(false);
+    };
+    const nextNote = () => notes.find((n) => !n.done);
+
+    const fail = () => {
+      if (this.ended || !live) return;
+      live = false;
+      play([[BF.trip, 0], [BF.fall, 160], [BF.flat, 360]]);
+      synth.play("trombone");
+      title(this, 480, 236, "TIME!\nSTILL MORTAL (FOR NOW)", 36, "#ef4444").setDepth(200);
+      this.time.delayedCall(1300, () => this.finish(false, [dir("Time. You lie face-down on the gym floor. You are, for now, still mortal.")]));
+    };
+    const win = () => {
+      live = false;
+      golden = true;
+      auraBoost = 1;
+      play([[BF.flex, 0]]);
+      jump = { t0: now(), dur: 1, h: 0 };
+      synth.play("cheer");
+      synth.play("burst", 0.7);
+      burstLines(me.x, FLOOR - 110, 0xffd23f, calm ? 0.35 : 0.95);
+      this.time.delayedCall(250, () => burstLines(me.x, FLOOR - 110, 0xffffff, calm ? 0.25 : 0.7));
+      if (!calm) this.cameras.main.flash(250, 255, 236, 170);
+      vfx(this, "vfx_confetti", 480, 120, { scale: 2.5, depth: 160 });
+      speedLines(26);
+      const t = this.add.text(480, 236, "ETERNAL LIFE\nATTAINED", { fontFamily: PIXEL_BOLD, fontSize: "64px", color: "#ffd23f", align: "center", stroke: "#78350f", strokeThickness: 10 }).setOrigin(0.5).setDepth(200).setScale(0.2).setAngle(-4);
+      this.tweens.add({ targets: t, scale: 1, angle: 0, duration: 420, ease: "Back.out" });
+      this.add.text(480, 330, `${total} reps · best combo x${best} · Ageing: cancelled`, { fontFamily: FONT, fontSize: "18px", color: "#ffffff", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(200);
+      this.hud.setText("LIFE EXPECTANCY: ∞");
+      quip("Ageing: cancelled");
+      this.time.delayedCall(2400, () => this.finish(true));
+    };
+    const roundDone = () => {
+      live = false;
+      clockHold = Math.max(0, (roundEnd - now()) / 1000);
+      notes.forEach((n) => (n.done = true));
+      synth.play("ding");
+      pips[ri].setFillStyle(0x22c55e);
+      if (ri + 1 >= ROUNDS.length) {
+        this.time.delayedCall(T, win);
+        return;
+      }
+      pop(480, 200, `ROUND ${ri + 1} DONE`, "#22c55e", 30);
+      this.time.delayedCall(T + 300, () => startRound(ri + 1));
+    };
+
+    // ---- a rep
+    const drop = (q: Q) => {
+      downQ = q;
+      synth.play("swing", 0.7);
+      if (R.kind === "squat") play([[BF.squat, 0]]);
+      else {
+        play([[BF.squat, 0], [BF.hands, T * 0.16], [BF.plank, T * 0.34], [BF.half, T * 0.52], [BF.chest, T * 0.7]]);
+        this.time.delayedCall(T * 0.7, () => {
+          if (this.ended) return;
+          synth.play("punch", 0.5);
+          const r = this.add.ellipse(me.x + 20, FLOOR + 2, 50, 10).setStrokeStyle(2, 0xf5e6c8).setDepth(19);
+          this.tweens.add({ targets: r, scaleX: 2, alpha: 0, duration: 220, onComplete: () => r.destroy() });
+        });
+      }
+      if (q === "sloppy") this.tweens.add({ targets: me, angle: { from: -6, to: 0 }, duration: 260 });
+    };
+    const explode = (q: Q) => {
+      const rq = RANK[q] < RANK[downQ] ? q : downQ;
+      const burpee = R.kind === "burpee";
+      const air0 = burpee ? T * 0.34 : 0;
+      const air = burpee ? T * 0.5 : T * 0.72;
+      const h = rq === "perfect" ? Math.min(190, 120 + combo * 5) : rq === "good" ? 85 : 35;
+      if (burpee) play([[BF.push, 0], [BF.feetIn, T * 0.12], [BF.rise, T * 0.24], [BF.explode, air0], [BF.peak, air0 + air * 0.3], [BF.tuck, air0 + air * 0.62], [BF.land, air0 + air], [BF.stand, air0 + air + T * 0.12]]);
+      else play([[BF.explode, 0], [BF.peak, air * 0.25], [BF.tuck, air * 0.6], [BF.land, air], [BF.stand, air + T * 0.15]]);
+      jump = { t0: now() + air0, dur: air, h };
+      reps++;
+      total++;
+      if (rq === "sloppy") {
+        if (combo >= 3) pop(me.x, FLOOR - 250, "COMBO BROKEN", "#9ca3af", 18);
+        combo = 0;
+        pop(me.x, FLOOR - 230, "SLOPPY REP", "#fdba74", 22);
+      } else {
+        combo++;
+        best = Math.max(best, combo);
+        if (rq === "perfect") pop(me.x, FLOOR - 230, "PERFECT REP!", "#ffd23f", 26);
+      }
+      this.time.delayedCall(air0, () => {
         if (this.ended) return;
-        stamina = Math.min(100, stamina + 0.9);
-        const left = Math.max(0, (end - this.time.now) / 1000);
-        life.setText(`Life expectancy: ${Math.round(80 + reps * (reps >= need ? 1e9 : 3))} years   ·   Stamina ${Math.round(stamina)}%`);
-        this.hud.setText(`BURPEES ${reps}/${need}    ${left.toFixed(1)}s`);
-        if (left <= 0) this.finish(false, [dir("Time. You lie face-down on the gym floor. You are, for now, still mortal.")]);
-      },
-    });
+        synth.play("dodge", 0.8);
+        if (rq === "perfect") {
+          speedLines(golden ? 18 : 12);
+          vfx(this, "vfx_sparks", me.x, FLOOR - 40, { scale: 1.4, depth: 21, add: true });
+        }
+        if (rq !== "sloppy" && combo > 0 && combo % 6 === 0) kiai();
+      });
+      this.time.delayedCall(air0 + air, () => {
+        if (this.ended) return;
+        synth.play(rq === "perfect" ? "smash" : "pop", rq === "perfect" ? 0.6 : 0.8);
+        dustRing(rq !== "sloppy");
+        sweat(rq === "perfect" ? 6 : 3);
+        if (rq === "perfect" && !calm) this.cameras.main.shake(90, 0.004);
+      });
+      if (ri === ROUNDS.length - 1 && !golden && R.reps - reps <= 4) goGolden();
+      else if (reps % 3 === 0 && reps < R.reps) quip(QUIPS[quipN++ % QUIPS.length]);
+      updateHud();
+      if (reps >= R.reps) {
+        live = false;
+        this.time.delayedCall(air0 + air, roundDone);
+      }
+    };
+    const flop = (msg: string, slot: number) => {
+      // down missed: trip, faceplant, get back up in time for the next rep (the UP of this rep is void)
+      notes.filter((n) => n.rep === slot).forEach((n) => (n.done = true));
+      if (combo >= 3) pop(RX, RY + 130, "COMBO BROKEN", "#9ca3af", 16);
+      combo = 0;
+      play([[BF.trip, 0], [BF.fall, T * 0.22], [BF.splat, T * 0.45], [BF.flat, T * 1.0], [BF.hands, T * 1.5], [BF.stand, T * 1.8]]);
+      jump = { t0: 0, dur: 1, h: 0 };
+      this.time.delayedCall(T * 0.45, () => {
+        if (this.ended) return;
+        synth.play("splat");
+        synth.play("trombone", 0.5);
+        pop(me.x + 60, FLOOR - 120, "FLOP!", "#ef4444", 34);
+        vfx(this, "vfx_stars", me.x + 70, FLOOR - 60, { scale: 1.4, depth: 30 });
+        dustRing(false);
+        if (!calm) this.cameras.main.shake(140, 0.007);
+      });
+      pop(RX, RY - 110, msg, "#ef4444", 18);
+      if (Math.random() < 0.6) this.time.delayedCall(T, () => !this.ended && quip(FLOP_QUIPS[quipN++ % FLOP_QUIPS.length]));
+      updateHud();
+    };
+    const stuck = () => {
+      // up missed: he never comes back up from the floor this rep
+      if (combo >= 3) pop(RX, RY + 130, "COMBO BROKEN", "#9ca3af", 16);
+      combo = 0;
+      if (R.kind === "burpee") play([[BF.flat, 0], [BF.feetIn, T * 0.6], [BF.stand, T * 0.88]]);
+      else play([[BF.trip, 0], [BF.fall, T * 0.18], [BF.splat, T * 0.36], [BF.hands, T * 0.72], [BF.stand, T * 0.9]]);
+      synth.play("splat");
+      pop(me.x + 60, FLOOR - 175, "FACE PLANT", "#ef4444", 28);
+      vfx(this, "vfx_stars", me.x + 70, FLOOR - 60, { scale: 1.2, depth: 30 });
+      updateHud();
+    };
+    const judge = (n: Note, q: Q, err: number, msg = "MISS") => {
+      n.done = true;
+      if (q === "miss") this.missFx(RX, RY);
+      else this.hitFx(RX, RY, err, n.dir === "down" ? 0x22c55e : 0x3b82f6, 0.07, 113);
+      if (n.dir === "down") {
+        if (q === "miss") flop(msg, n.rep);
+        else drop(q);
+      } else if (q === "miss") stuck();
+      else explode(q);
+    };
+    const press = (want: "down" | "up" | "auto") => {
+      if (this.ended || this.box.active || !live) return;
+      const n = nextNote();
+      if (!n) return;
+      const err = (now() - n.t) / 1000;
+      if (err < -0.32) return;
+      const d = want === "auto" ? n.dir : want;
+      if (d !== n.dir) return judge(n, "miss", err, d === "down" ? "WRONG WAY: UP!" : "WRONG WAY: DOWN!");
+      if (err < -0.19) return judge(n, "miss", err, "TOO EARLY");
+      const a = Math.abs(err);
+      judge(n, a <= 0.07 ? "perfect" : a <= (err < 0 ? 0.12 : 0.15) ? "good" : "sloppy", err);
+    };
+    const kb = this.input.keyboard;
+    for (const k of ["DOWN", "S"]) kb?.on(`keydown-${k}`, () => press("down"));
+    for (const k of ["UP", "W"]) kb?.on(`keydown-${k}`, () => press("up"));
+    kb?.on("keydown-SPACE", () => press("auto"));
+    this.input.on("pointerdown", (p: Phaser.Input.Pointer) => press(p.y > 400 && p.x < 180 ? "down" : p.y > 400 && p.x > 780 ? "up" : "auto"));
+
+    // ---- the frame loop
+    const tick = () => {
+      if (this.ended) return;
+      const t = now();
+      // animation + jump arc
+      let f = pose;
+      for (const s of seq) if (s.at <= t) f = s.f;
+      setPose(f);
+      let jy = 0;
+      if (jump.h && t >= jump.t0 && t <= jump.t0 + jump.dur) {
+        const p = (t - jump.t0) / jump.dur;
+        jy = jump.h * 4 * p * (1 - p);
+      }
+      me.y = FLOOR - jy;
+      shadow.setScale(1 - Math.min(0.6, jy / 300), 1).setAlpha(0.35 - Math.min(0.2, jy / 800));
+      // aura
+      auraBoost = Math.max(0, auraBoost - 0.02);
+      const lvl = golden ? 1 : Math.min(1, combo / 10) + auraBoost * 0.5;
+      aura.clear();
+      if (lvl > 0.08) {
+        const lying = LYING.has(pose);
+        const cx = lying ? me.x - 40 : me.x;
+        const cy = me.y - (lying ? 45 : 125);
+        const rx = (lying ? 150 : 80) + 30 * lvl;
+        const ry = (lying ? 60 : 145) + 25 * lvl;
+        const col = golden ? 0xffc93c : 0x8fd8ff;
+        const fl = calm ? 1 : 0.85 + 0.15 * Math.sin(t / 55);
+        const a = (calm ? 0.45 : 1) * Math.min(1, lvl);
+        aura.fillStyle(col, 0.12 * a * fl).fillEllipse(cx, cy, rx * 2.3, ry * 2.2);
+        aura.fillStyle(col, 0.2 * a * fl).fillEllipse(cx, cy, rx * 1.7, ry * 1.8);
+        aura.fillStyle(0xffffff, 0.1 * a).fillEllipse(cx, cy, rx * 1.1, ry * 1.3);
+        // flame tongues licking upward
+        const nT = 9;
+        for (let i = 0; i < nT; i++) {
+          const ang = Math.PI + (i / (nT - 1)) * Math.PI;
+          const bx = cx + Math.cos(ang) * rx * 0.85;
+          const by = cy + Math.sin(ang) * ry * 0.85;
+          const hgt = (lying ? 30 : 50) * (0.6 + 0.4 * lvl) * (calm ? 1 : 0.8 + 0.4 * Math.abs(Math.sin(t / 90 + i * 1.7)));
+          aura.fillStyle(col, 0.28 * a);
+          aura.fillTriangle(bx - 12, by, bx + 12, by, bx + Math.cos(ang) * 6, by - hgt);
+        }
+      }
+      if (golden && !calm && Math.random() < 0.25) {
+        const s = this.add.rectangle(me.x + (Math.random() - 0.5) * 140, FLOOR - Math.random() * 60, 3, 8, 0xffe08a).setDepth(18).setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({ targets: s, y: s.y - 160, alpha: 0, duration: 700, onComplete: () => s.destroy() });
+      }
+      // the beat: a tick on every note
+      for (const n of notes) {
+        if (!n.ticked && t >= n.t) {
+          n.ticked = true;
+          if (live) synth.play("select", n.dir === "down" ? 0.8 : 0.45);
+        }
+      }
+      // round clock
+      if (ri >= 0) {
+        const left = Math.max(0, (roundEnd - t) / 1000);
+        const shown = clockHold ?? (live || left < R.time ? left : R.time);
+        clockT.setText(shown < 5 ? `0:0${shown.toFixed(1)}` : `0:${String(Math.ceil(shown)).padStart(2, "0")}`);
+        clockT.setColor(shown < 5 ? "#ef4444" : "#ffffff");
+        if (live && left <= 0) fail();
+      }
+      // auto-miss notes that went by
+      const n = nextNote();
+      if (live && n && t - n.t > 240) judge(n, "miss", 0, "MISSED IT");
+      // the closing ring
+      ringG.clear();
+      const cur = live ? nextNote() : undefined;
+      ringG.fillStyle(0x0b1020, 0.75).fillCircle(RX, RY, 46);
+      ringG.lineStyle(5, 0xffffff, 0.9).strokeCircle(RX, RY, 46);
+      if (cur) {
+        const col = cur.dir === "down" ? 0x22c55e : 0x3b82f6;
+        const lead = 2 * T;
+        const dt = cur.t - t;
+        if (dt < lead) {
+          const r = 46 + Math.max(0, dt / lead) * 120;
+          ringG.lineStyle(7, col, 0.95).strokeCircle(RX, RY, r);
+        }
+        const nx = notes[notes.indexOf(cur) + 1];
+        if (nx && nx.t - t < lead) ringG.lineStyle(3, nx.dir === "down" ? 0x22c55e : 0x3b82f6, 0.4).strokeCircle(RX, RY, 46 + Math.max(0, (nx.t - t) / lead) * 120);
+        glyph.setText(cur.dir === "down" ? "▼" : "▲").setColor(cur.dir === "down" ? "#4ade80" : "#60a5fa");
+        glyphLbl.setText(cur.dir === "down" ? "DROP!" : R.kind === "burpee" ? "EXPLODE!" : "JUMP!");
+      } else {
+        glyph.setText("");
+        glyphLbl.setText("");
+      }
+    };
+    this.events.on("update", tick);
+    this.events.once("shutdown", () => this.events.off("update", tick));
+    // for the browser test bot
+    (this as unknown as { bp: unknown }).bp = { next: () => (live ? nextNote() : undefined), press, now };
+    // the scene clock only ticks from the first update: start the EMOM there, not in create
+    this.time.delayedCall(30, () => startRound(0));
   }
 
   // ---------------------------------------------------------------- FACEBOOK TROLLING

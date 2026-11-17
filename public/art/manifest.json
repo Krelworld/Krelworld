@@ -9161,6 +9161,144 @@
   "fe_cut_lad_SCROMBUS": {
    "file": "finale/fe_cut_lad_SCROMBUS.png"
   },
+  "pl_wall_econ": {
+   "file": "backdrops/pl_wall_econ.png"
+  },
+  "pl_wall_first": {
+   "file": "backdrops/pl_wall_first.png"
+  },
+  "pl_wall_galley": {
+   "file": "backdrops/pl_wall_galley.png"
+  },
+  "pl_sky": {
+   "file": "backdrops/pl_sky.png"
+  },
+  "pl_cockpit": {
+   "file": "backdrops/pl_cockpit.png"
+  },
+  "pl_window": {
+   "file": "props/pl_window.png"
+  },
+  "pl_seat_econ": {
+   "file": "props/pl_seat_econ.png"
+  },
+  "pl_seat_biz": {
+   "file": "props/pl_seat_biz.png"
+  },
+  "pl_seat_first": {
+   "file": "props/pl_seat_first.png"
+  },
+  "pl_suitcase": {
+   "file": "props/pl_suitcase.png"
+  },
+  "pl_duffel": {
+   "file": "props/pl_duffel.png"
+  },
+  "pl_sign_belt": {
+   "file": "props/pl_sign_belt.png"
+  },
+  "pl_sign_smoke": {
+   "file": "props/pl_sign_smoke.png"
+  },
+  "pl_door": {
+   "file": "props/pl_door.png"
+  },
+  "pl_trays": {
+   "file": "props/pl_trays.png"
+  },
+  "pl_bin_open": {
+   "file": "props/pl_bin_open.png"
+  },
+  "pl_hijacker_duck": {
+   "file": "props/pl_hijacker_duck.png"
+  },
+  "pl_goon_duck": {
+   "file": "props/pl_goon_duck.png"
+  },
+  "pl_pass_paper": {
+   "file": "props/pl_pass_paper.png"
+  },
+  "tv_kb_tower": {
+   "file": "backdrops/tv_kb_tower.png"
+  },
+  "tv_kb_office": {
+   "file": "backdrops/tv_kb_office.png"
+  },
+  "tv_kb_meeting": {
+   "file": "backdrops/tv_kb_meeting.png"
+  },
+  "tv_kb_kitchen": {
+   "file": "backdrops/tv_kb_kitchen.png"
+  },
+  "tv_kb_mug": {
+   "file": "backdrops/tv_kb_mug.png"
+  },
+  "tv_kb_board": {
+   "file": "backdrops/tv_kb_board.png"
+  },
+  "tv_kb_branch": {
+   "file": "backdrops/tv_kb_branch.png"
+  },
+  "tv_kb_handshake": {
+   "file": "backdrops/tv_kb_handshake.png"
+  },
+  "tv_kb_famphoto": {
+   "file": "backdrops/tv_kb_famphoto.png"
+  },
+  "tv_kb_adviser_eyes": {
+   "file": "tv/kb_adviser_eyes.png"
+  },
+  "tv_drp_office": {
+   "file": "backdrops/tv_drp_office.png"
+  },
+  "tv_drp_desk": {
+   "file": "tv/drp_desk.png"
+  },
+  "tv_drp_table": {
+   "file": "tv/drp_table.png"
+  },
+  "tv_tcc_pitch": {
+   "file": "backdrops/tv_tcc_pitch.png"
+  },
+  "tv_tcc_bullpen": {
+   "file": "backdrops/tv_tcc_bullpen.png"
+  },
+  "tv_tcc_cafe": {
+   "file": "backdrops/tv_tcc_cafe.png"
+  },
+  "tv_tcc_school": {
+   "file": "backdrops/tv_tcc_school.png"
+  },
+  "tv_tcc_presser": {
+   "file": "backdrops/tv_tcc_presser.png"
+  },
+  "tv_tcc_ext_day": {
+   "file": "backdrops/tv_tcc_ext_day.png"
+  },
+  "tv_tcc_bb_street": {
+   "file": "backdrops/tv_tcc_bb_street.png"
+  },
+  "tv_tcc_bb_highway": {
+   "file": "backdrops/tv_tcc_bb_highway.png"
+  },
+  "tcc_billboard": {
+   "file": "tv/tcc/tcc_billboard.png"
+  },
+  "tcc_podium": {
+   "file": "tv/tcc/tcc_podium.png"
+  },
+  "tcc_photo_seniors": {
+   "file": "tv/tcc/tcc_photo_seniors.png"
+  },
+  "tcc_photo_refugees": {
+   "file": "tv/tcc/tcc_photo_refugees.png"
+  },
+  "tcc_photo_ds": {
+   "file": "tv/tcc/tcc_photo_ds.png"
+  },
+  "tcc_photo_nuns": {
+   "file": "tv/tcc/tcc_photo_nuns.png"
+  },
   "tv_rm_kitchen": {
    "file": "backdrops/tv_rm_kitchen.png"
   }
@@ -13566,6 +13704,403 @@
    "file": "combat/fe_concept_storm_hurt.png",
    "frameWidth": 256,
    "frameHeight": 256
+  },
+  "en_hijacker": {
+   "file": "combat/en_hijacker.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.66
+  },
+  "en_hijacker_pop": {
+   "file": "combat/en_hijacker_pop.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.66
+  },
+  "en_klerble_goon": {
+   "file": "combat/en_klerble_goon.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.66
+  },
+  "en_window_goon": {
+   "file": "combat/en_window_goon.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.66
+  },
+  "en_jet_hijacker": {
+   "file": "combat/en_jet_hijacker.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.66
+  },
+  "pl_steward": {
+   "file": "props/pl_steward.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_pass_scream": {
+   "file": "props/pl_pass_scream.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_pass_cower": {
+   "file": "props/pl_pass_cower.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_pass_lady": {
+   "file": "props/pl_pass_lady.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_pass_tourist": {
+   "file": "props/pl_pass_tourist.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_pass_child": {
+   "file": "props/pl_pass_child.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_mask": {
+   "file": "props/pl_mask.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_cart": {
+   "file": "props/pl_cart.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_hole": {
+   "file": "props/pl_hole.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "pl_bin": {
+   "file": "props/pl_bin.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "bossdown_brand": {
+   "file": "combat/bossdown_brand.png",
+   "frameWidth": 96,
+   "frameHeight": 160,
+   "hd": 0.375
+  },
+  "bossdown_troll": {
+   "file": "combat/bossdown_troll.png",
+   "frameWidth": 96,
+   "frameHeight": 160,
+   "hd": 0.375
+  },
+  "bossdown_flatmate": {
+   "file": "combat/bossdown_flatmate.png",
+   "frameWidth": 96,
+   "frameHeight": 160,
+   "hd": 0.375
+  },
+  "bossdown_rival": {
+   "file": "combat/bossdown_rival.png",
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "hd": 0.3333
+  },
+  "bossdown_jam": {
+   "file": "combat/bossdown_jam.png",
+   "frameWidth": 124,
+   "frameHeight": 127,
+   "hd": 0.378
+  },
+  "bossdown_flirt": {
+   "file": "combat/bossdown_flirt.png",
+   "frameWidth": 126,
+   "frameHeight": 95,
+   "hd": 0.5053
+  },
+  "bossdown_lantern": {
+   "file": "combat/bossdown_lantern.png",
+   "frameWidth": 108,
+   "frameHeight": 103,
+   "hd": 0.466
+  },
+  "bossdown_fruity": {
+   "file": "combat/bossdown_fruity.png",
+   "frameWidth": 82,
+   "frameHeight": 121,
+   "hd": 0.3967
+  },
+  "bossdown_tankc": {
+   "file": "combat/bossdown_tankc.png",
+   "frameWidth": 123,
+   "frameHeight": 105,
+   "hd": 0.4571
+  },
+  "bossdown_pudding_demon": {
+   "file": "combat/bossdown_pudding_demon.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.5
+  },
+  "bossdown_elon": {
+   "file": "combat/bossdown_elon.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "bossdown_drongus2": {
+   "file": "combat/bossdown_drongus2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "bossdown_krandall": {
+   "file": "combat/bossdown_krandall.png",
+   "frameWidth": 64,
+   "frameHeight": 96,
+   "hd": 0.5
+  },
+  "bossdown_hoard": {
+   "file": "combat/bossdown_hoard.png",
+   "frameWidth": 112,
+   "frameHeight": 120,
+   "hd": 0.4167
+  },
+  "bossdown_cronster": {
+   "file": "combat/bossdown_cronster.png",
+   "frameWidth": 88,
+   "frameHeight": 128,
+   "hd": 0.3846
+  },
+  "bossdown_drongus": {
+   "file": "combat/bossdown_drongus.png",
+   "frameWidth": 96,
+   "frameHeight": 144,
+   "hd": 0.3333
+  },
+  "bossdown_stanley": {
+   "file": "combat/bossdown_stanley.png",
+   "frameWidth": 96,
+   "frameHeight": 160,
+   "hd": 0.375
+  },
+  "bossdown_reinhardt": {
+   "file": "combat/bossdown_reinhardt.png",
+   "frameWidth": 108,
+   "frameHeight": 128,
+   "hd": 0.375
+  },
+  "bossdown_rik": {
+   "file": "combat/bossdown_rik.png",
+   "frameWidth": 119,
+   "frameHeight": 124,
+   "hd": 0.3871
+  },
+  "fe_bossdown_drongus2_p3": {
+   "file": "combat/fe_bossdown_drongus2_p3.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "bossdown_dark_drongus": {
+   "file": "combat/bossdown_dark_drongus.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "bossdie_brand": {
+   "file": "combat/bossdie_brand.png",
+   "frameWidth": 176,
+   "frameHeight": 177
+  },
+  "bossdie_troll": {
+   "file": "combat/bossdie_troll.png",
+   "frameWidth": 176,
+   "frameHeight": 177
+  },
+  "bossdie_flatmate": {
+   "file": "combat/bossdie_flatmate.png",
+   "frameWidth": 176,
+   "frameHeight": 177
+  },
+  "bossdie_rival": {
+   "file": "combat/bossdie_rival.png",
+   "frameWidth": 160,
+   "frameHeight": 171
+  },
+  "bossdie_jam": {
+   "file": "combat/bossdie_jam.png",
+   "frameWidth": 176,
+   "frameHeight": 180
+  },
+  "bossdie_flirt": {
+   "file": "combat/bossdie_flirt.png",
+   "frameWidth": 174,
+   "frameHeight": 178
+  },
+  "bossdie_lantern": {
+   "file": "combat/bossdie_lantern.png",
+   "frameWidth": 156,
+   "frameHeight": 160
+  },
+  "bossdie_fruity": {
+   "file": "combat/bossdie_fruity.png",
+   "frameWidth": 170,
+   "frameHeight": 174
+  },
+  "bossdie_tank": {
+   "file": "combat/bossdie_tank.png",
+   "frameWidth": 172,
+   "frameHeight": 176
+  },
+  "bossdie_pudding_demon": {
+   "file": "combat/bossdie_pudding_demon.png",
+   "frameWidth": 112,
+   "frameHeight": 113
+  },
+  "bossdie_elon": {
+   "file": "combat/bossdie_elon.png",
+   "frameWidth": 176,
+   "frameHeight": 192
+  },
+  "bossdie_drongus2": {
+   "file": "combat/bossdie_drongus2.png",
+   "frameWidth": 176,
+   "frameHeight": 179
+  },
+  "bossmove_dark_drongus": {
+   "file": "combat/bossmove_dark_drongus.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "fe_concept_flinch": {
+   "file": "combat/fe_concept_flinch.png",
+   "frameWidth": 256,
+   "frameHeight": 256
+  },
+  "fe_concept_stagger_hurt": {
+   "file": "combat/fe_concept_stagger_hurt.png",
+   "frameWidth": 256,
+   "frameHeight": 256
+  },
+  "tvanchor_WHITTY": {
+   "file": "tv/anchor_WHITTY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_MERRICK": {
+   "file": "tv/anchor_MERRICK.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_BADENOCH": {
+   "file": "tv/anchor_BADENOCH.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_COOPER": {
+   "file": "tv/anchor_COOPER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_STARMER_BRUSH": {
+   "file": "tv/anchor_STARMER_BRUSH.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_CEO": {
+   "file": "tv/face_CEO.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_ADVISER": {
+   "file": "tv/face_ADVISER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MR_JONES": {
+   "file": "tv/face_MR_JONES.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvdrp_octo": {
+   "file": "tv/drp_octo.png",
+   "frameWidth": 160,
+   "frameHeight": 160
+  },
+  "tvdrp_woman": {
+   "file": "tv/drp_woman.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvface_LILA_MINT": {
+   "file": "tv/face_LILA_MINT.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_JOHN_COCK": {
+   "file": "tv/face_JOHN_COCK.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_BRENDA": {
+   "file": "tv/face_BRENDA.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_GRANDMA_1": {
+   "file": "tv/face_GRANDMA_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_GRANDMA_2": {
+   "file": "tv/face_GRANDMA_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MOM_1": {
+   "file": "tv/face_MOM_1.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_MOM_2": {
+   "file": "tv/face_MOM_2.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_TCC_REPORTER": {
+   "file": "tv/face_TCC_REPORTER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvbody_LILA_MINT": {
+   "file": "tv/body_LILA_MINT.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_JOHN_COCK": {
+   "file": "tv/body_JOHN_COCK.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_BRENDA": {
+   "file": "tv/body_BRENDA.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_MOM_1": {
+   "file": "tv/body_MOM_1.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_MOM_2": {
+   "file": "tv/body_MOM_2.png",
+   "frameWidth": 96,
+   "frameHeight": 160
+  },
+  "tvbody_JENNY_CUMMING_DAY": {
+   "file": "tv/body_JENNY_CUMMING_DAY.png",
+   "frameWidth": 96,
+   "frameHeight": 160
   },
   "tvanchor_RM_BRAMWELL": {
    "file": "tv/anchor_RM_BRAMWELL.png",

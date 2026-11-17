@@ -11,7 +11,7 @@ import { Player } from "../combat/Player";
 import { Enemy } from "../combat/Enemy";
 import { Controls } from "../combat/Controls";
 import type { CombatWorld, HitOpts, ShotOpts } from "../combat/types";
-import { Boss, createBoss, DrongusBoss, OverWonkedMachine } from "../combat/Bosses";
+import { Boss, BOSSDIE_SPLIT, createBoss, DrongusBoss, OverWonkedMachine } from "../combat/Bosses";
 import { PuddingDemonBoss } from "../combat/MindBoss";
 import { KrexBoss } from "../combat/KrexBoss";
 import { ElonBoss } from "../combat/ElonBoss";
@@ -42,6 +42,7 @@ import { KrelfordFinale } from "./finale/KrelfordFinale";
 import { finalePreload } from "./finale/finaleArt";
 import { SanBrother } from "../combat/SanBrother";
 import { SideLevel } from "./side/SideLevel";
+import { PlaneCabin } from "./side/PlaneCabin";
 import { ColonTube } from "./side/Colon";
 import { runChain, switchTo } from "../Flow";
 import { say, dir, gabor } from "../../content/dsl";
@@ -146,6 +147,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   side = false;
   private bros: SanBrother[] = [];
   private sideLevel: SideLevel | null = null;
+  /** Flight KR-069 (side-on): the cabin, its passengers and its hazards (side/PlaneCabin.ts). */
+  private plane: PlaneCabin | null = null;
   /** Inside Uncle Rik, side-on: the tube's dressing (ceiling, folds, mucus, the big squeeze). */
   private colonTube: ColonTube | null = null;
   groundY = 0;
@@ -288,6 +291,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.sideBg = null;
     this.towerBg = null;
     this.sideLevel = this.side ? new SideLevel(this as any, r) : null;
+    this.plane = this.side && r.event === "plane" ? new PlaneCabin(this as never, r, { door: () => this.door, cleared: () => this.roomCleared }) : null;
     this.colonTube = this.side && r.theme === "colon" ? new ColonTube(this as any, r) : null;
     if (this.side) {
       // with holes in the floor, the floor is made of blocks and the world carries on underneath
@@ -552,7 +556,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     for (const [fx, h, w] of r.platforms ?? []) {
       const x = r.w * fx;
       const y = gy - h;
-      if (this.citadel) {
+      if (this.plane) {
+        this.plane.platform(x, y, w);
+      } else if (this.citadel) {
         this.citadel.platform(x, y, w, !!r.tower);
       } else if (this.colonTube) {
         this.colonTube.platform(x, y, w);
@@ -605,6 +611,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (r.tower) this.decorateTower();
     else this.citadel?.side();
     this.sideQuestPickups();
+    this.plane?.build();
     const t = this.add.text(480, 200, r.name.toUpperCase(), { fontFamily: FONT, fontSize: "28px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5).setScrollFactor(0).setDepth(950).setShadow(3, 3, "#000", 0);
     this.tweens.add({ targets: t, alpha: 0, delay: 1300, duration: 700, onComplete: () => t.destroy() });
     for (const p of r.props ?? []) if (evalCond(p.cond, G.s)) this.addProp(p);
@@ -1540,6 +1547,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.bros = [];
     this.sideLevel?.destroy();
     this.sideLevel = null;
+    this.plane?.destroy();
+    this.plane = null;
     this.citadel?.destroy();
     this.citadel = null;
     this.roof?.destroy();
@@ -2197,7 +2206,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     b.setVisible(false);
     this.downSpr = down;
     // these strips: a long dazed wobble, then the drop in the last few frames
-    this.downSplit = Math.max(2, n - 4);
+    this.downSplit = BOSSDIE_SPLIT[key] ?? Math.max(2, n - 4);
     if (!this.anims.exists(`${key}_kneel`)) {
       this.anims.create({ key: `${key}_kneel`, frames: this.anims.generateFrameNumbers(key, { start: 0, end: this.downSplit }), frameRate: 9, repeat: 0 });
       this.anims.create({ key: `${key}_fall`, frames: this.anims.generateFrameNumbers(key, { start: this.downSplit, end: n - 1 }), frameRate: 6, repeat: 0 });
@@ -3566,6 +3575,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (!this.busy) for (const b of this.bros) b.update(now, Math.min(delta, 50));
     this.sideLevel?.update(Math.min(delta, 50), this.busy);
     this.citadel?.update(Math.min(delta, 50));
+    this.plane?.update(Math.min(delta, 50), this.busy);
     this.colonTube?.update(Math.min(delta, 50), this.busy);
     this.roof?.update(Math.min(delta, 50));
     const mb = this.room.miniBoss;

@@ -49,6 +49,13 @@ export const AUDIO_FILES: Record<string, string> = {
   ss_sting_reveal: "audio/ss_sting_reveal.mp3",
   ss_sting_title: "audio/ss_sting_title.mp3",
   ss_sting_awkward: "audio/ss_sting_awkward.mp3",
+  /** KrelTV, DR. PUSS (tv/DrPuss.ts): tentacle slap, door creak, door slam and lock, exam table rattle, comic splat, suction pop. */
+  drp_slap: "audio/sfx/drp_slap.mp3",
+  drp_creak: "audio/sfx/drp_creak.mp3",
+  drp_lock: "audio/sfx/drp_lock.mp3",
+  drp_rattle: "audio/sfx/drp_rattle.mp3",
+  drp_splat: "audio/sfx/drp_splat.mp3",
+  drp_suction: "audio/sfx/drp_suction.mp3",
 };
 
 /** Where each separate shout sits in those files: [start, length] in seconds. */
@@ -70,6 +77,8 @@ export const MUSIC_FILES: Record<string, string> = {
   title: "audio/krel_world.mp3",
   // KrelTV: The Best Man's Speech (the wedding video's piano)
   bm_wedding: "audio/bm_wedding.mp3",
+  // KrelTV: the Krelbank advert's music bed
+  krelbank_ad: "audio/krelbank_ad.mp3",
   // the 3D epilogue: the overworld theme, full orchestra
   krelworld_orch: "audio/krelworld_orch.mp3",
   // fight_<boss>: kicks in when the boss's monologue ends and the fight starts (Harry's tracks)
@@ -115,6 +124,8 @@ export const MUSIC_FILES: Record<string, string> = {
   gg_theme: "audio/gg_theme.mp3",
   mot_theme: "audio/mot_theme.mp3",
   mot_rnb: "audio/mot_rnb.mp3",
+  // DR. PUSS (tv/DrPuss.ts): the murky sitcom theme sting
+  drp_theme: "audio/drp_theme.mp3",
   boss: "audio/boss1.mp3",
   boss_salmon: "audio/boss_salmon.mp3",
   boss_krandall: "audio/cranky_crandall_boss.mp3",

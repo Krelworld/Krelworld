@@ -20,6 +20,7 @@ export const DRAMA_FACES: Record<string, { base: number; lip: boolean; gest: [nu
   MT_NURSE: { base: 7, lip: false, gest: [] },
   MT_DIRECTOR: { base: 7, lip: true, gest: [[16, 8]] },
   MT_MUM: { base: 7, lip: false, gest: [[16, 8]] },
+  CHW_CHOMSKY: { base: 7, lip: true, gest: [[16, 8]] },
   // The Sopranos: no gesture animations; Carmela's frame 7 is her face after the chicken piccata
   SOP_TONY: { base: 7, lip: true, gest: [] },
   SOP_CARMELA: { base: 7, lip: true, gest: [] },

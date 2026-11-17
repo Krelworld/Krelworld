@@ -10,6 +10,8 @@ export type TVBeat =
   | { type: "titleCard"; text: string }
   | { type: "transition"; mode: "cut" | "smashCut" | "fade" }
   | { type: "prop"; id: string; on: boolean }
+  /** a cutaway: the picture cuts to an insert (an imagined shot, a still) and holds it over the next `lines` lines */
+  | { type: "insert"; id: string; lines: number }
   | { type: "blocking"; character: string; to: "left" | "right" | "center" | "lap" | "offscreen" | "enter"; pose?: string };
 
 export interface TVEpisode {
@@ -64,6 +66,7 @@ const AUDIENCE_CUES: Record<string, "laugh" | "biglaugh" | "cheer" | "gasp" | "w
  *   [SMASH CUT] [CUT] [FADE]         -> transition
  *   [SFX id] [MUSIC id start|stop|fade]
  *   [PROP id on|off]
+ *   [INSERT id] / [INSERT id 2]     -> cutaway: the picture cuts to an insert shot held over the next line (or 2)
  *   [BLOCK NAME left|right|center|lap|offscreen|enter]
  */
 export function parseScreenplay(text: string): TVBeat[] {
@@ -94,6 +97,9 @@ export function parseScreenplay(text: string): TVBeat[] {
       } else if (upper.startsWith("PROP ")) {
         const [, id, on] = inner.split(/\s+/);
         beats.push({ type: "prop", id, on: on !== "off" });
+      } else if (upper.startsWith("INSERT ")) {
+        const [, id, n] = inner.split(/\s+/);
+        beats.push({ type: "insert", id, lines: Math.max(1, Number(n) || 1) });
       } else if (upper.startsWith("BLOCK ")) {
         // names can be several words: [BLOCK JUROR NUMBER 2 right]
         const parts = inner.split(/\s+/).slice(1);
@@ -158,6 +164,9 @@ export function validateEpisode(ep: TVEpisode): ValidationResult {
       case "transition":
       case "prop":
       case "blocking":
+        break;
+      case "insert":
+        if (!b.id) errors.push(`beat ${i}: insert needs id`);
         break;
       default:
         errors.push(`beat ${i}: unknown type ${(b as any).type}`);

@@ -4012,8 +4012,8 @@
     ]
    }
   },
-  "spr_TV_PROFESSOR_BENN_BURGESS": {
-   "file": "chars/TV_PROFESSOR_BENN_BURGESS.png",
+  "spr_TV_PROFESSOR_BEN_BURGIS": {
+   "file": "chars/TV_PROFESSOR_BEN_BURGIS.png",
    "frame": 64,
    "idle": {
     "south": 0,
@@ -8615,6 +8615,36 @@
   "sop_cartoon": {
    "file": "tv/sop_cartoon.png"
   },
+  "tv_chw_park": {
+   "file": "backdrops/tv_chw_park.png"
+  },
+  "tv_chw_ride": {
+   "file": "backdrops/tv_chw_ride.png"
+  },
+  "tv_chw_adult": {
+   "file": "backdrops/tv_chw_adult.png"
+  },
+  "tv_chw_crowd": {
+   "file": "backdrops/tv_chw_crowd.png"
+  },
+  "tv_chw_shredder": {
+   "file": "backdrops/tv_chw_shredder.png"
+  },
+  "tv_chw_mansion": {
+   "file": "backdrops/tv_chw_mansion.png"
+  },
+  "tv_chw_booth": {
+   "file": "backdrops/tv_chw_booth.png"
+  },
+  "tv_chw_shop": {
+   "file": "backdrops/tv_chw_shop.png"
+  },
+  "tv_chw_body": {
+   "file": "tv/chw_body.png"
+  },
+  "tv_chw_robot": {
+   "file": "tv/chw_robot.png"
+  },
   "tva_prop_chair": {
    "file": "tv/action/prop_chair.png"
   },
@@ -10145,8 +10175,8 @@
    "frameWidth": 128,
    "frameHeight": 128
   },
-  "tvface_PROFESSOR_BENN_BURGESS": {
-   "file": "tv/face_PROFESSOR_BENN_BURGESS.png",
+  "tvface_PROFESSOR_BEN_BURGIS": {
+   "file": "tv/face_PROFESSOR_BEN_BURGIS.png",
    "frameWidth": 128,
    "frameHeight": 128
   },
@@ -10982,6 +11012,21 @@
    "frameWidth": 128,
    "frameHeight": 128
   },
+  "tv_chw_sack": {
+   "file": "tv/chw_sack.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "tv_chw_dance": {
+   "file": "tv/chw_dance.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvface_CHW_CHOMSKY": {
+   "file": "tv/face_CHW_CHOMSKY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
   "tva_dave_chair": {
    "file": "tv/action/dave_chair.png",
    "frameWidth": 192,
@@ -11383,6 +11428,36 @@
    "loop": true,
    "ox": 0.5,
    "oy": 0.863
+  },
+  "fe_vfx_kihit": {
+   "file": "vfx/fe_vfx_kihit.png",
+   "w": 64,
+   "h": 54,
+   "frames": 8,
+   "fps": 22,
+   "loop": false,
+   "ox": 0.516,
+   "oy": 0.519
+  },
+  "fe_vfx_kicharge": {
+   "file": "vfx/fe_vfx_kicharge.png",
+   "w": 86,
+   "h": 85,
+   "frames": 12,
+   "fps": 14,
+   "loop": true,
+   "ox": 0.488,
+   "oy": 0.494
+  },
+  "fe_vfx_kibig": {
+   "file": "vfx/fe_vfx_kibig.png",
+   "w": 138,
+   "h": 146,
+   "frames": 12,
+   "fps": 16,
+   "loop": false,
+   "ox": 0.536,
+   "oy": 0.411
   },
   "tva_vfx_pow": {
    "file": "tv/action/vfx_pow.png",

@@ -8,6 +8,7 @@ import { FONT } from "../../ui/theme";
 import { hdFactor } from "../../gfx/HD";
 import { FACE_ALIAS, FACE_META } from "./faceMeta";
 import { bang, clipSprite, fling, impact, playClip, type ClipOpts, type FlingOpts } from "./action";
+import { CUTAWAYS, type CutKit } from "./cutaways";
 
 /**
  * KrelTV genre presentation: the shared camera crew.
@@ -171,6 +172,8 @@ export abstract class ShowDirector {
   protected holdCount = 0;
   protected camProxy = { s: 1, fx: 0, fy: 0 };
   protected seen = new Set<string>();
+  /** lines still to play over the current cutaway ([INSERT id n]) */
+  protected insertHold = 0;
 
   constructor(
     protected sc: Phaser.Scene,
@@ -204,7 +207,11 @@ export abstract class ShowDirector {
   beat(b: TVBeat, idx: number): number {
     this.idx = idx;
     switch (b.type) {
+      case "insert":
+        this.insertHold = b.lines;
+        return this.onInsert(b.id);
       case "shot": {
+        this.insertHold = 0;
         const fresh = b.set !== this.set;
         this.set = b.set;
         this.framing = b.framing;
@@ -213,7 +220,8 @@ export abstract class ShowDirector {
       }
       case "speaker": {
         const n = b.character.toUpperCase();
-        const ms = this.onSpeak(n, b.text, b.emotion ?? "");
+        // over a cutaway, the line plays as voice-over: the picture stays on the insert
+        const ms = this.insertHold > 0 ? (this.insertHold--, 0) : this.onSpeak(n, b.text, b.emotion ?? "");
         if (!this.unseen(n)) {
           if (n !== this.lastSpeaker) this.prevSpeaker = this.lastSpeaker;
           this.lastSpeaker = n;
@@ -221,8 +229,10 @@ export abstract class ShowDirector {
         return ms;
       }
       case "direction":
+        this.insertHold = 0;
         return this.onDirection(b.action);
       case "titleCard":
+        this.insertHold = 0;
         return this.onTitle(b.text);
       case "audience":
         return this.onAudience(b.cue);
@@ -270,6 +280,32 @@ export abstract class ShowDirector {
   }
   protected onBlocking(_n: string, _to: string, _pose?: string): number {
     return 0;
+  }
+  /** A cutaway (cutaways.ts): the picture cuts to an insert shot and holds it over the next line(s). */
+  protected onInsert(id: string): number {
+    const draw = CUTAWAYS[id];
+    if (!draw) {
+      this.insertHold = 0;
+      return 0;
+    }
+    this.clear();
+    return draw(this.cutKit());
+  }
+
+  /** What a cutaway draws with. */
+  protected cutKit(): CutKit {
+    return {
+      sc: this.sc,
+      r: this.r,
+      add: (o) => this.add(o),
+      later: (ms, fn) => void this.later(ms, fn),
+      every: (ms, fn) => void this.every(ms, fn),
+      text: (x, y, s, size, col, o) => this.text(x, y, s, size, col, o),
+      sfx: (id) => this.sfx(id),
+      push: (to, ms, fx, fy) => this.push(to, ms, fx, fy),
+      backdrop: (key, o) => this.backdrop(this.tex(key), o),
+      tex: (key) => this.tex(key),
+    };
   }
 
   // ------------------------------------------------------------------ plumbing

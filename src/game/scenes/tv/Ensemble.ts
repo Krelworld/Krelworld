@@ -594,6 +594,13 @@ export class EnsembleDirector extends ShowDirector {
     return 0;
   }
 
+  protected onInsert(id: string): number {
+    // the room's off screen now: the next line in it is a fresh cut
+    this.kind = "insert";
+    this.bodies = {};
+    return super.onInsert(id);
+  }
+
   protected onTransition(mode: string): number {
     if (mode === "fade" && this.genre === "sketch") {
       // the sketch's button: freeze, sting, the bumper flashes past

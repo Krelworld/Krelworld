@@ -143,6 +143,11 @@ export class Controls {
     const p = this.pad();
     return this.edge("special", (ptr.isDown && !ptr.wasTouch && ptr.rightButtonDown()) || this.down("special") || padHeld(p, "special"));
   }
+  /** Is SPECIAL held right now? (For charged moves: right mouse, the key, the pad button or the touch button.) */
+  specialHeld(): boolean {
+    const ptr = this.scene.input.activePointer;
+    return (ptr.isDown && !ptr.wasTouch && ptr.rightButtonDown()) || this.down("special") || TOUCH.held.has("special") || padHeld(this.pad(), "special");
+  }
   dodge(): boolean {
     const p = this.pad();
     return this.edge("dodge", this.down("dodge") || padHeld(p, "dodge"));

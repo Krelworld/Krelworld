@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import type { Boss } from "./Bosses";
 import type { Enemy } from "./Enemy";
 import type { CombatWorld } from "./types";
-import { minionsFor, shieldConfig, ShieldPhase, stretchCooldown, type ShieldConfig } from "./bossShieldLogic";
+import { minionsFor, shieldConfig, ShieldPhase, SHIELD_TUNING, stretchCooldown, type ShieldConfig } from "./bossShieldLogic";
 import { synth } from "../audio/Synth";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import * as Juice from "../gfx/Juice";
@@ -11,7 +11,7 @@ import * as Juice from "../gfx/Juice";
  * BOSS SHIELD PHASES (Zelda-style). At each HP threshold (bossShieldLogic.ts) the boss's health stops dead, a
  * glowing bubble goes up round it, a banner says what to do, shots spark off with an IMMUNE, the HP bar freezes and
  * turns blue, and it calls in a few weak themed minions. Each one you kill cracks the shield (2/4...). The last one
- * shatters it, and the boss is stunned on its knees for a few seconds, taking bonus damage: VULNERABLE!
+ * shatters it and the boss fights straight on (the old VULNERABLE! stun is gone).
  * While shielded the boss still fights, but slower, and its own adds wait. If it drags on, it cracks by itself.
  *
  * Wiring: Boss.tick calls update(); DungeonScene.damageEnemy runs every hit through damage(). That's all.
@@ -386,7 +386,7 @@ export class BossShield {
     }
   }
 
-  /** The last crack: it bursts, the boss goes down, VULNERABLE! */
+  /** The last crack: it bursts. */
   private shatter(now: number) {
     const b = this.boss;
     const sc = this.sc;
@@ -405,18 +405,9 @@ export class BossShield {
     synth.play("crit");
     w.shake(380, 0.018);
     w.hitStop(110);
-    sc.time.delayedCall(260, () => {
-      if (this.gone || this.logic.state !== "vulnerable") return;
-      Juice.slamText(sc, "VULNERABLE!", GOLD_S, 52, 150, 1300);
-      synth.play("roar", 0.5);
-    });
-    // stunned: down on one knee (the drawn collapse, stopped before the fall) or reeling where it stands
-    const body = b.body as Phaser.Physics.Arcade.Body;
-    if (w.side) body.setVelocityX(0);
-    else body.setVelocity(0, 0);
-    this.downOrReel();
-    this.stars = vfx(sc, "bs_vfx_stun_stars", b.x, b.y - b.displayHeight / 2, { scale: Phaser.Math.Clamp((b.body as Phaser.Physics.Arcade.Body).width / 45, 1.2, 2.4), depth: b.depth + 7 });
-    b.shieldBroken?.(this.logic.vulnUntil);
+    // no VULNERABLE stun (no kneel, no stars): it bursts and the boss fights straight on.
+    // Armoured bosses (Deranged Drongus) still get their armour cracked open for a moment.
+    b.shieldBroken?.(now + SHIELD_TUNING.vulnerableMs);
     this.updateCounter();
     void now;
   }
@@ -484,7 +475,7 @@ export class BossShield {
       this.kneel.destroy();
       this.kneel = null;
       const b = this.boss;
-      const sceneKneels = this.sc.textures.exists(`bossdie_${b.bossId}`) && !["reinhardt", "krozno", "rik"].includes(b.bossId);
+      const sceneKneels = this.sc.textures.exists(`bossdie_${b.bossId}`) && !["reinhardt", "krozno", "rik"].includes(b.bossId) && !(b as unknown as { deathSequence?: unknown }).deathSequence;
       if (b.active && (!b.dead || !sceneKneels)) b.setVisible(true);
     }
     if (this.boss.active) this.boss.setAngle(0);

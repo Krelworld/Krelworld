@@ -8851,6 +8851,24 @@
   },
   "c6a_cut_klerble": {
    "file": "c6a/c6a_cut_klerble.png"
+  },
+  "colon_side_bg": {
+   "file": "colon/colon_side_bg.png"
+  },
+  "colon_floor": {
+   "file": "colon/colon_floor.png"
+  },
+  "colon_ledge": {
+   "file": "colon/colon_ledge.png"
+  },
+  "colon_flesh": {
+   "file": "colon/colon_flesh.png"
+  },
+  "colon_pore": {
+   "file": "colon/colon_pore.png"
+  },
+  "colon_poolog": {
+   "file": "colon/colon_poolog.png"
   }
  },
  "sheets": {
@@ -11562,6 +11580,40 @@
    "file": "c6a/c6a_still_escape_anim.png",
    "frameWidth": 256,
    "frameHeight": 144
+  },
+  "colon_folds": {
+   "file": "colon/colon_folds.png",
+   "frameWidth": 512,
+   "frameHeight": 64
+  },
+  "colon_squeeze": {
+   "file": "colon/colon_squeeze.png",
+   "frameWidth": 128,
+   "frameHeight": 96
+  },
+  "en_tapeworm": {
+   "file": "combat/en_tapeworm.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.34
+  },
+  "en_fart_bubble": {
+   "file": "combat/en_fart_bubble.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.32
+  },
+  "en_sweetcorn": {
+   "file": "combat/en_sweetcorn.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.28
+  },
+  "en_polyp": {
+   "file": "combat/en_polyp.png",
+   "frameWidth": 64,
+   "frameHeight": 64,
+   "hd": 0.38
   }
  },
  "vfx": {

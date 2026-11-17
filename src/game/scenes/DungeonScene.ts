@@ -2238,9 +2238,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   /** "FUCKING KILL THEM!!" — optional, after the boss's last words. */
   private async maybeKreltality(b: Boss) {
     // (Drongus in every form has his own ending, Uncle Rik has his, and these few have theirs)
-    // the Cronster is Jenko under the mask (a mate: no finisher) — unless you ARE Jenko, and it's your evil double
-    const cronsterOk = b.bossId === "cronster" && G.s.player === "FLENKY";
-    if (!cronsterOk && ["drongus", "cronster", "reinhardt", "krozno", "rik", "krex", "drongus1", "drongus2", "dark_drongus", "final"].includes(b.bossId) || !this.krelTarget) {
+    // the Cronster is Jenko under the mask. Kreltality him anyway: nobody mentions it afterwards
+    if (["drongus", "reinhardt", "krozno", "rik", "krex", "drongus1", "drongus2", "dark_drongus", "final"].includes(b.bossId) || !this.krelTarget) {
       await this.bossFall();
       return;
     }

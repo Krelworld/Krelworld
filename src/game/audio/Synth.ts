@@ -25,6 +25,12 @@ export const AUDIO_FILES: Record<string, string> = {
   sq_moan: "audio/sq_moan.mp3",
   /** The demons in Lulon's mind: a high, snarling goblin choir chanting KIDS. */
   mind_kids: "audio/mind_kids.mp3",
+  /** Drongus cackling maniacally, five takes (eleven_v3, his own cloned voice): heard echoing down the stairs. */
+  drongus_cackle_1: "audio/sfx/drongus_cackle_1.mp3",
+  drongus_cackle_2: "audio/sfx/drongus_cackle_2.mp3",
+  drongus_cackle_3: "audio/sfx/drongus_cackle_3.mp3",
+  drongus_cackle_4: "audio/sfx/drongus_cackle_4.mp3",
+  drongus_cackle_5: "audio/sfx/drongus_cackle_5.mp3",
 };
 
 /** Where each separate shout sits in those files: [start, length] in seconds. */
@@ -609,6 +615,62 @@ export class Synth {
 
   /** Play part of a loaded recording with a fade-out. */
   /** One YEE (or YEGH), picked at random. */
+  private hallVerb: ConvolverNode | null = null;
+
+  /**
+   * Play a recording as if from far away up a stone stairwell: low-passed, quiet, panned, mostly reverb and a
+   * slapback echo. `near` 0..1 brings it closer (louder, brighter, drier). `vol` is the caller's level (e.g. the voice
+   * volume setting). Returns false if it isn't loaded.
+   */
+  distant(id: string, near = 0, pan = 0, vol = 1): boolean {
+    const ctx = this.ctx;
+    const buf = this.files[id];
+    if (!ctx || !buf) return false;
+    if (!this.hallVerb) {
+      // a long, dark, synthetic stairwell: decaying noise, 3.2s
+      const len = Math.floor(ctx.sampleRate * 3.2);
+      const ir = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (let c = 0; c < 2; c++) {
+        const d = ir.getChannelData(c);
+        for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
+      }
+      this.hallVerb = ctx.createConvolver();
+      this.hallVerb.buffer = ir;
+      this.hallVerb.connect(this.sfxGain);
+    }
+    const t = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.value = 0.96 + Math.random() * 0.06;
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 900 + near * 1800;
+    const p = ctx.createStereoPanner();
+    p.pan.value = Math.max(-1, Math.min(1, pan));
+    const dry = ctx.createGain();
+    dry.gain.value = (0.06 + near * 0.16) * vol;
+    const wet = ctx.createGain();
+    wet.gain.value = (0.35 + near * 0.25) * vol;
+    // a slapback off the stone, fed back a few times
+    const dl = ctx.createDelay(1);
+    dl.delayTime.value = 0.33;
+    const fb = ctx.createGain();
+    fb.gain.value = 0.38;
+    const echo = ctx.createGain();
+    echo.gain.value = (0.1 + near * 0.08) * vol;
+    src.connect(lp).connect(p);
+    p.connect(dry).connect(this.sfxGain);
+    p.connect(wet).connect(this.hallVerb);
+    p.connect(dl);
+    dl.connect(fb).connect(dl);
+    dl.connect(echo).connect(this.sfxGain);
+    src.start(t);
+    src.onended = () => setTimeout(() => {
+      for (const n of [src, lp, p, dry, wet, dl, fb, echo]) n.disconnect();
+    }, 4000);
+    return true;
+  }
+
   /** True if there's a recorded bank of shouts called `id` (e.g. "cronster_taunt"). */
   hasShout(id: string) {
     return !!SHOUTS[id];

@@ -597,6 +597,128 @@ export function earRing(ms = 3000, vol = 0.12) {
   o.stop(t + ms / 1000 + 0.05);
 }
 
+/** A short burst of filtered noise (the body of a whoosh or a zap). */
+function noise(a: NonNullable<ReturnType<typeof audio>>, at: number, dur: number, f0: number, f1: number, vol: number, q = 2) {
+  const len = Math.ceil(a.ctx.sampleRate * (dur + 0.05));
+  const buf = a.ctx.createBuffer(1, len, a.ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const src = a.ctx.createBufferSource();
+  src.buffer = buf;
+  const bp = a.ctx.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.Q.value = q;
+  bp.frequency.setValueAtTime(f0, at);
+  bp.frequency.exponentialRampToValueAtTime(f1, at + dur);
+  const g = a.ctx.createGain();
+  g.gain.setValueAtTime(0.0001, at);
+  g.gain.exponentialRampToValueAtTime(vol, at + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+  src.connect(bp).connect(g).connect(a.out);
+  src.start(at);
+  src.stop(at + dur + 0.05);
+}
+
+/** One tone with a pitch glide. */
+function blip(a: NonNullable<ReturnType<typeof audio>>, at: number, type: OscillatorType, f0: number, f1: number, dur: number, vol: number) {
+  const o = a.ctx.createOscillator();
+  const g = a.ctx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(f0, at);
+  o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), at + dur);
+  g.gain.setValueAtTime(0.0001, at);
+  g.gain.exponentialRampToValueAtTime(vol, at + 0.006);
+  g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+  o.connect(g).connect(a.out);
+  o.start(at);
+  o.stop(at + dur + 0.03);
+}
+
+let lastKi = 0;
+/** A ki blast leaving your hand: a bright zap with a punchy low end. */
+export function kiZap(vol = 0.5) {
+  const a = audio();
+  if (!a) return;
+  const t = a.ctx.currentTime;
+  if (t - lastKi < 0.04) return;
+  lastKi = t;
+  blip(a, t, "square", 1400 + Math.random() * 200, 380, 0.09, 0.07 * vol * 2);
+  noise(a, t, 0.08, 4000, 1200, 0.18 * vol, 1.5);
+  thump(a, t, 160, 60, 0.08, 0.35 * vol);
+}
+
+let lastTick = 0;
+/** The combo counter ticking up: each hit a little higher (two octaves over the first 36). */
+export function comboTick(n: number) {
+  const a = audio();
+  if (!a) return;
+  const t = a.ctx.currentTime;
+  if (t - lastTick < 0.05) return;
+  lastTick = t;
+  const f = 520 * Math.pow(2, Math.min(n, 36) / 18);
+  blip(a, t, "triangle", f, f * 1.06, 0.07, 0.07);
+}
+
+/** A super-speed dash: a fast downward whoosh. */
+export function whoosh(vol = 0.45) {
+  const a = audio();
+  if (!a) return;
+  const t = a.ctx.currentTime;
+  noise(a, t, 0.22, 3200, 500, vol, 1.2);
+  blip(a, t, "sine", 900, 220, 0.18, 0.05);
+}
+
+/**
+ * A charging whine you steer: set(k) with k 0..1 raises the pitch and the volume, stop() fades it out.
+ * (Two detuned saws through a filter plus a hum underneath.)
+ */
+export function chargeWhine() {
+  const a = audio();
+  if (!a) return { set: (_k: number) => undefined, stop: () => undefined };
+  const t = a.ctx.currentTime;
+  const g = a.ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  const lp = a.ctx.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.value = 900;
+  const o1 = a.ctx.createOscillator();
+  const o2 = a.ctx.createOscillator();
+  const hum = a.ctx.createOscillator();
+  o1.type = "sawtooth";
+  o2.type = "sawtooth";
+  hum.type = "sine";
+  o1.frequency.value = 180;
+  o2.frequency.value = 183;
+  hum.frequency.value = 55;
+  o1.connect(lp);
+  o2.connect(lp);
+  hum.connect(lp);
+  lp.connect(g).connect(a.out);
+  o1.start(t);
+  o2.start(t);
+  hum.start(t);
+  let done = false;
+  return {
+    set: (k: number) => {
+      if (done) return;
+      const n = a.ctx.currentTime;
+      const f = 180 + k * 900;
+      o1.frequency.setTargetAtTime(f, n, 0.05);
+      o2.frequency.setTargetAtTime(f * 1.017, n, 0.05);
+      lp.frequency.setTargetAtTime(900 + k * 3500, n, 0.05);
+      g.gain.setTargetAtTime(0.04 + k * 0.1, n, 0.05);
+    },
+    stop: () => {
+      if (done) return;
+      done = true;
+      const n = a.ctx.currentTime;
+      g.gain.cancelScheduledValues(n);
+      g.gain.setTargetAtTime(0.0001, n, 0.04);
+      for (const o of [o1, o2, hum]) o.stop(n + 0.3);
+    },
+  };
+}
+
 /** Duck the music to near-silence for `ms` (a held breath before a huge moment), then bring it back over `back` ms. */
 export function duckMusic(ms: number, back = 600, to = 0.05) {
   const a = audio();

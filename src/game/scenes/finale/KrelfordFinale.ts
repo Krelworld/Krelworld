@@ -16,6 +16,7 @@ import { say } from "../../../content/dsl";
 import * as FB from "../../../content/finaleKrelford";
 import { bottleKey, finaleReady, headroom, logsKey, ssjSwap, syringeKey, youCutKey, youEyesKey } from "./finaleArt";
 import * as Juice from "../../gfx/Juice";
+import { KiMode } from "./KiMode";
 
 /**
  * THE CONCEPT OF PAEDOPHILIA, the fight (DungeonScene, dungeon "krelford_finale"). A big top-down arena that is
@@ -124,6 +125,8 @@ export class KrelfordFinale {
   private playerFeet = 26;
   private nextSupply = 0;
   private gone = false;
+  /** Super saiyan combat (the real phase): ki blasts, the dash, the charged beam. */
+  ki?: KiMode;
   /** The SPIRIT CUM gauge (real phase): fills as the monster weakens. */
   private gauge?: { fill: Phaser.GameObjects.Rectangle; glow: Phaser.GameObjects.Rectangle; label: Phaser.GameObjects.Text; w: number };
 
@@ -177,6 +180,7 @@ export class KrelfordFinale {
       boss.nextPattern = h.now() + 1500;
       this.spiritGauge();
       this.darkAura();
+      this.kiOn();
       h.toast("SUPER KRELWORLD KREW", "Real damage now. Hold out until Goku's SPIRIT CUM is ready.");
       return;
     }
@@ -589,6 +593,7 @@ export class KrelfordFinale {
     this.stage = "real";
     b.mode = "real";
     b.nextPattern = h.now() + 900;
+    this.kiOn();
     h.toast("SUPER KRELWORLD KREW", "Real damage now. Hold out until Goku's SPIRIT CUM is ready.");
   }
 
@@ -664,6 +669,7 @@ export class KrelfordFinale {
     if (this.stage !== "real") return;
     this.stage = "end";
     b.mode = "still";
+    this.ki?.stop();
     for (const sh of [...h.shots]) if (sh.o.owner === "enemy") h.killShot(sh);
     for (const e of [...h.enemies]) if (!e.dead && !e.isBoss) h.damageEnemy(e, 99999, { noWonk: true, label: "" });
     const finalFact = FB.conceptHealFact();
@@ -842,6 +848,12 @@ export class KrelfordFinale {
     cam.zoomTo(z0, 400, "Sine.easeInOut", true);
     cam.startFollow(h.player.spr, true, 0.12, 0.12);
     if (!wasBusy) h.busy = false;
+  }
+
+  private kiOn() {
+    if ((window as unknown as { __noKi?: boolean }).__noKi) return;
+    this.ki ??= new KiMode(this.h.sc, () => this.boss);
+    this.ki.start();
   }
 
   /** Real phase: it's hurt and furious, and black-violet flame stands up off it. */

@@ -11231,6 +11231,36 @@
    "loop": true,
    "ox": 0.5,
    "oy": 0.863
+  },
+  "fe_vfx_kihit": {
+   "file": "vfx/fe_vfx_kihit.png",
+   "w": 64,
+   "h": 54,
+   "frames": 8,
+   "fps": 22,
+   "loop": false,
+   "ox": 0.516,
+   "oy": 0.519
+  },
+  "fe_vfx_kicharge": {
+   "file": "vfx/fe_vfx_kicharge.png",
+   "w": 86,
+   "h": 85,
+   "frames": 12,
+   "fps": 14,
+   "loop": true,
+   "ox": 0.488,
+   "oy": 0.494
+  },
+  "fe_vfx_kibig": {
+   "file": "vfx/fe_vfx_kibig.png",
+   "w": 138,
+   "h": 146,
+   "frames": 12,
+   "fps": 16,
+   "loop": false,
+   "ox": 0.536,
+   "oy": 0.411
   }
  }
 }

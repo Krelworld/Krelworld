@@ -3,7 +3,7 @@ import { Boss } from "./Bosses";
 import type { CombatWorld } from "./types";
 import { synth } from "../audio/Synth";
 
-/** Procedural stand-in until the PixelLab sheet (boss_pudding_demon) is installed: a horned slab of pudding. */
+/** Procedural stand-in if the PixelLab sheet (boss_pudding_demon: Luke Watkins) is missing: an old horned slab of pudding. */
 function fallbackTexture(sc: Phaser.Scene): string {
   const key = "boss_pudding_demon_gen";
   if (sc.textures.exists(key)) return key;
@@ -39,11 +39,13 @@ function fallbackTexture(sc: Phaser.Scene): string {
   return key;
 }
 
-const KIDS = ["KIDS! KIDS!", "KIIIIIDS!", "KIDS! KIDS! KIDS!", "KIDS!!"];
+/** What he shouts, over and over (the scene's shout loop): KIDS, deranged, with the odd mutter in between. */
+const MUTTER = ["KIDS!", "KIDS! KIDS!", "KIIIIIDS!", "KIDS! KIDS! KIDS!", "Heh heh heh. KIDS!", "KIDS!!", "kids… kids… KIDS!", "KIIIIDS! KIDS!", "I'm in your head, mate. KIDS!", "KIDS!!!"];
 
 /**
- * THE PUDDING DEMON: the big one, at the bottom of Lulon's mind. Made of bread and butter pudding.
- * Spits custard, rolls raisins, and calls up more little demons. All it ever says is KIDS.
+ * LUKE WATKINS: the big one, at the bottom of Lulon's mind. Lulon's own evil inner self, same face, red eyes.
+ * (Still id pudding_demon, and still the PuddingDemonBoss class: art keys, saves and trophies hang off the id.)
+ * Fires dark mind-bolts, rains bad ideas, charges at you and calls up the little demons. Kreltality-able.
  */
 export class PuddingDemonBoss extends Boss {
   private rollUntil = 0;
@@ -53,7 +55,7 @@ export class PuddingDemonBoss extends Boss {
     super(w, "pudding_demon", x, y, 1400, art ? "boss_pudding_demon" : fallbackTexture(w.sc), 32, 0xfacc15, 32, 32);
     this.setScale(3.4);
     // the scene's shout loop gives it speech bubbles
-    this.def = { ...this.def, shout: KIDS, shoutEvery: 1600 };
+    this.def = { ...this.def, shout: MUTTER, shoutEvery: 1500 };
   }
 
   tick(dt: number, now: number) {
@@ -77,26 +79,27 @@ export class PuddingDemonBoss extends Boss {
     const pick = this.patternIdx++ % (this.phase ? 4 : 3);
     this.taunt();
     if (pick === 0) {
-      // custard spray
-      this.fan(this.phase ? 7 : 5, 0.22, 200, 10, 0xfde68a);
-      this.world.sc.time.delayedCall(350, () => !this.dead && this.fan(this.phase ? 7 : 5, 0.22, 200, 10, 0xfcd34d));
+      // mind-bolts
+      this.fan(this.phase ? 7 : 5, 0.22, 200, 10, 0xa855f7);
+      this.world.sc.time.delayedCall(350, () => !this.dead && this.fan(this.phase ? 7 : 5, 0.22, 200, 10, 0xff3b5c));
       this.nextPattern = now + 1900;
     } else if (pick === 1) {
-      // more little demons, all shouting
+      // he calls up the little demons, cackling
+      this.playAnim("special");
       for (let i = 0; i < (this.phase > 1 ? 4 : 3); i++) this.world.spawnEnemy("mind_imp", this.x + (i - 1) * 60, this.y + 50, { minion: true });
       synth.play("roar");
       this.nextPattern = now + 2600;
     } else if (pick === 2) {
-      // raisin rain
-      for (let i = 0; i < (this.phase ? 7 : 5); i++) this.world.enemyAoe(p.x + (Math.random() - 0.5) * 260, p.y + (Math.random() - 0.5) * 260, 44, 14, tele + i * 90, 0x7c2d12);
+      // bad ideas rain down
+      for (let i = 0; i < (this.phase ? 7 : 5); i++) this.world.enemyAoe(p.x + (Math.random() - 0.5) * 260, p.y + (Math.random() - 0.5) * 260, 44, 14, tele + i * 90, 0x6d28d9);
       this.nextPattern = now + 2200;
     } else {
-      // the pudding rolls at you
+      // he charges at you
       this.halt();
       this.rollAngle = Math.atan2(p.y - this.y, p.x - this.x);
       this.world.enemyLine(this.x, this.y, this.rollAngle, 500, 80, 0, tele);
       this.world.sc.time.delayedCall(tele, () => (this.rollUntil = this.world.now() + 700));
-      this.ring(12, 160, 9, 0xfde68a, now / 400);
+      this.ring(12, 160, 9, 0xa855f7, now / 400);
       this.nextPattern = now + tele + 1800;
     }
   }

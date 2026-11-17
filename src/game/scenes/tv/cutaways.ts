@@ -91,7 +91,7 @@ function lookalikes(k: CutKit) {
   const tints = [0xffffff, 0xffe6f0, 0xe6f0ff, 0xfff6d8, 0xe8ffe8];
   const sash = [0xff4f8a, 0x10c0b0, 0xffd23f, 0x7a5cff, 0xff8a3d];
   const beat = 380;
-  const dancers: { s: Phaser.GameObjects.Sprite; hat: Phaser.GameObjects.Container; i: number; y: number }[] = [];
+  const dancers: { s: Phaser.GameObjects.Sprite; hat: Phaser.GameObjects.Container; band: Phaser.GameObjects.Rectangle; i: number; y: number }[] = [];
   for (let i = 0; i < 5; i++) {
     const x = SX + SW * (0.14 + 0.18 * i);
     const y = SY + SH * (0.95 - (i % 2) * 0.03);
@@ -99,13 +99,12 @@ function lookalikes(k: CutKit) {
     if (!k.tex("tv_chw_dance")) break;
     const s = k.add(k.sc.add.sprite(x, y, "tv_chw_dance", 0).setOrigin(0.5, 1).setScale(scl).setTint(tints[i]));
     // a straw boater and a sash: the costume
-    const hat = k.add(k.sc.add.container(x, y - 118 * scl));
+    const hat = k.add(k.sc.add.container(x, y - 121 * scl));
     hat.add(k.sc.add.ellipse(0, 0, 46 * scl, 9 * scl, 0xf3d98a).setStrokeStyle(1, 0x6b4a1a));
     hat.add(k.sc.add.rectangle(0, -5 * scl, 28 * scl, 10 * scl, 0xf3d98a).setStrokeStyle(1, 0x6b4a1a));
     hat.add(k.sc.add.rectangle(0, -2 * scl, 28 * scl, 3 * scl, sash[i]));
     const band = k.add(k.sc.add.rectangle(x, y - 70 * scl, 34 * scl, 6 * scl, sash[i]).setAngle(-28).setAlpha(0.9));
-    dancers.push({ s, hat, i, y });
-    void band;
+    dancers.push({ s, hat, band, i, y });
   }
   let n = 0;
   k.every(beat, () => {
@@ -115,8 +114,9 @@ function lookalikes(k: CutKit) {
       d.s.setFrame(f).setFlipX((n + d.i) % 8 >= 4);
       const hop = (n + d.i) % 2 ? 14 : 0;
       d.s.y = d.y - hop;
-      d.hat.y = d.y - hop - 118 * (d.s.scaleY);
+      d.hat.y = d.y - hop - 121 * d.s.scaleY;
       d.hat.angle = f === 1 ? -12 : 6;
+      d.band.y = d.y - hop - 70 * d.s.scaleY;
     }
     if (n % 2) float(k, SX + 40 + Math.random() * (SW - 80), SY + SH * 0.45, Math.random() > 0.5 ? "♪" : "♫", "#ffffff", 22);
   });
@@ -135,20 +135,20 @@ function chomlate(k: CutKit) {
   const cols = [0x5b2a86, 0x8a1e3c, 0x1e4a8a];
   quotes.forEach((q, i) => {
     const c = k.add(k.sc.add.container(SX + SW * (0.24 + 0.27 * i), SY + SH * 0.7 + (i === 1 ? -26 : 0)));
-    const w = 170;
+    const w = 196;
     const h = 92;
     c.add(k.sc.add.rectangle(0, 0, w, h, cols[i]).setStrokeStyle(3, 0x1a0a20));
     c.add(k.sc.add.rectangle(-w / 2 + 9, 0, 18, h, 0xd8d8e0).setStrokeStyle(1, 0x888898));
     c.add(k.sc.add.rectangle(w / 2 - 9, 0, 18, h, 0xd8d8e0).setStrokeStyle(1, 0x888898));
     c.add(k.sc.add.rectangle(0, -h / 2 + 6, w - 36, 5, 0xffd23f));
     c.add(k.sc.add.rectangle(0, h / 2 - 6, w - 36, 5, 0xffd23f));
-    const hd = head(k, -w / 2 + 46, 2, 64);
+    const hd = head(k, -w / 2 + 44, 2, 64);
     if (hd) {
-      c.add(k.sc.add.circle(-w / 2 + 46, 2, 30, 0xffd23f));
+      c.add(k.sc.add.circle(-w / 2 + 44, 2, 30, 0xffd23f));
       c.add(hd);
     }
-    c.add(k.text(18, -24, "CHOMLATE", 17, "#ffd23f", { fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5));
-    c.add(k.text(18, 12, q, 9, "#ffffff", { align: "center", fontStyle: "italic" }).setOrigin(0.5));
+    c.add(k.text(34, -24, "CHOMLATE", 17, "#ffd23f", { fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5));
+    c.add(k.text(34, 12, q, 9, "#ffffff", { align: "center", fontStyle: "italic", wordWrap: { width: 104 } }).setOrigin(0.5));
     c.setAngle([-8, 3, 9][i]).setScale(0);
     k.sc.tweens.add({ targets: c, scale: 1, duration: 420, delay: 250 + i * 260, ease: "Back.out", onStart: () => k.sfx("pop") });
     k.sc.tweens.add({ targets: c, y: c.y - 6, duration: 1300 + i * 200, yoyo: true, repeat: -1, ease: "Sine.easeInOut", delay: 800 });
@@ -253,7 +253,7 @@ function giant(k: CutKit) {
   }
   // the crowd stays in front of him
   layer(k, "tv_chw_crowd", [0, 150, 320, 90]);
-  const sign = k.add(k.sc.add.container(SX + SW - 104, SY + SH - 70));
+  const sign = k.add(k.sc.add.container(SX + SW - 104, SY + 150));
   sign.add(k.sc.add.rectangle(0, 0, 170, 44, 0x2a1238).setStrokeStyle(3, 0xffd23f));
   sign.add(k.text(0, 0, "DONATE FOR\nFAME & RICHES", 12, "#ffd23f", { fontStyle: "bold", align: "center" }).setOrigin(0.5));
   k.every(520, () => {
@@ -313,7 +313,7 @@ function shredder(k: CutKit) {
     k.every(170, () => hd.setFrame(++f % 2 ? 5 : 2).setCrop(...HEAD));
   }
   mon.add(k.text(0, 46, "LIVE · THE GREAT CHOMSKY", 7, "#ff5555", { fontStyle: "bold" }).setOrigin(0.5));
-  k.add(k.text(SX + 14, SY + SH - 64, "STAFF ONLY: PULL ROPE", 11, "#111111", { fontStyle: "bold", backgroundColor: "#ffd23f", padding: { x: 5, y: 3 } }));
+  k.add(k.text(SX + 14, SY + SH - 100, "STAFF ONLY: PULL ROPE", 11, "#111111", { fontStyle: "bold", backgroundColor: "#ffd23f", padding: { x: 5, y: 3 } }));
   return 500;
 }
 
@@ -325,7 +325,7 @@ function mansion(k: CutKit) {
   k.push(1.12, 7000, SX + SW * 0.45, SY + SH * 0.4);
   for (let i = 0; i < 3; i++) {
     if (!k.tex("tv_chw_sack")) break;
-    const s = k.add(k.sc.add.image(SX + 70 + i * 92, SY + SH - 10 + (i % 2) * 6, "tv_chw_sack", i % 2).setOrigin(0.5, 1).setScale(2.4 - (i % 2) * 0.3));
+    const s = k.add(k.sc.add.image(SX + 70 + i * 92, SY + SH - 62 + (i % 2) * 6, "tv_chw_sack", i % 2).setOrigin(0.5, 1).setScale(2.4 - (i % 2) * 0.3));
     k.sc.tweens.add({ targets: s, scaleY: s.scaleY * 0.9, duration: 700 + i * 120, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
   }
   // a moth, out of the empty one
@@ -335,7 +335,7 @@ function mansion(k: CutKit) {
   moth.add([wl, wr]);
   k.sc.tweens.add({ targets: [wl, wr], scaleY: 0.2, duration: 80, yoyo: true, repeat: -1 });
   k.sc.tweens.add({ targets: moth, x: SX + SW * 0.8, y: SY + 60, duration: 5000, ease: "Sine.easeInOut" });
-  const tag = k.add(k.text(SX + SW - 16, SY + SH - 16, "FOR SALE: SOLD (TO MARGE)", 12, "#ffffff", { fontStyle: "bold", backgroundColor: "#8a1e1e", padding: { x: 5, y: 3 } }).setOrigin(1, 1));
+  const tag = k.add(k.text(SX + SW - 20, SY + 44, "FOR SALE: SOLD (TO MARGE)", 12, "#ffffff", { fontStyle: "bold", backgroundColor: "#8a1e1e", padding: { x: 5, y: 3 } }).setOrigin(1, 0));
   tag.setAngle(-4);
   return 500;
 }
@@ -350,7 +350,7 @@ function exhibit(k: CutKit) {
   const hatch = at(k, 180, 110);
   k.add(k.text(hatch.x, hatch.y, "TICKETS", 12, "#ffffff", { fontStyle: "bold", backgroundColor: "#8a1e1e", padding: { x: 5, y: 2 } }).setOrigin(0.5));
   // the price board, in the foreground
-  const b = k.add(k.sc.add.container(SX + 118, SY + SH - 128));
+  const b = k.add(k.sc.add.container(SX + 118, SY + SH - 170));
   b.add(k.sc.add.rectangle(0, 0, 190, 170, 0xf6f0de).setStrokeStyle(5, 0x5a3a20));
   b.add(k.text(0, -66, "TODAY'S SESSIONS", 12, "#5a3a20", { fontStyle: "bold" }).setOrigin(0.5));
   b.add(k.text(0, -30, "FEEDING SESSIONS\n£££", 15, "#8a1e1e", { fontStyle: "bold", align: "center" }).setOrigin(0.5));
@@ -358,7 +358,7 @@ function exhibit(k: CutKit) {
   b.add(k.text(0, 60, "stick hire extra · no refunds", 9, "#5a3a20", { fontStyle: "italic" }).setOrigin(0.5));
   b.setAngle(-3);
   k.sc.tweens.add({ targets: b, angle: -1, duration: 1800, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
-  const q = k.add(k.text(SX + SW - 20, SY + SH - 22, "QUEUE STARTS HERE →", 11, "#111111", { fontStyle: "bold", backgroundColor: "#ffd23f", padding: { x: 5, y: 3 } }).setOrigin(1, 1));
+  const q = k.add(k.text(SX + SW - 20, SY + SH - 92, "QUEUE STARTS HERE →", 11, "#111111", { fontStyle: "bold", backgroundColor: "#ffd23f", padding: { x: 5, y: 3 } }).setOrigin(1, 1));
   void q;
   // the dead leaves blowing past
   k.every(500, () => {

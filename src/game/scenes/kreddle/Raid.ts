@@ -586,16 +586,16 @@ export class KreddleRaid {
     const bars = Juice.letterbox(sc, 52, 500, D_HUD + 2);
     synth.music("c6a_raid_title", true);
     if (sc.textures.exists("c6a_still_march")) {
-      const card = Juice.titleCard(sc, "MIDNIGHT · THE KREDDLE BRIDGE", "THE MARCH ON KREDDLE", "", 2000, D_HUD + 9, 420);
+      const card = Juice.titleCard(sc, "MIDNIGHT · THE KREDDLE BRIDGE", "INTO KREDDLE", "", 2000, D_HUD + 9, 420);
       await Promise.all([Juice.still(sc, "c6a_still_march", 3400, { depth: D_HUD + 8, push: 0.1, shakeK: 0 }), card]);
     }
     // the target, all the way down at the far end of the Strip
     cam.stopFollow();
     Juice.whoosh(0.5);
-    cam.pan(PALACE_X, 330, 1500, "Cubic.easeInOut", true);
+    cam.pan(PALACE_X, 290, 1500, "Cubic.easeInOut", true);
     await this.wait(1500);
     Juice.subDrop(0.7, 1.2);
-    await Juice.titleCard(sc, "THE TARGET · PRESIDENT KLERBLE", "THE KLERBLE PALACE", "6 DISTRICTS · 5 BARRICADES · 1 NUCLEAR BOMB", 1500, D_HUD + 9);
+    await Juice.titleCard(sc, "THE TARGET · PRESIDENT KLERBLE", "THE KLERBLE PALACE", "6 DISTRICTS · 5 BARRICADES · 1 NUCLEAR BOMB", 1500, D_HUD + 9, 440);
     Juice.whoosh(0.5);
     const lines = Juice.speedLines(sc, 800, 0xb6ff5a, D_HUD + 1);
     cam.pan(this.me.x, Math.min(this.me.y, H - 270), 900, "Cubic.easeInOut", true);
@@ -1483,7 +1483,7 @@ export class KreddleRaid {
       // a beat of slow-mo on the blast
       Juice.slowMo(sc, 0.35, 450);
       Juice.punchZoom(sc, 0.08, 420, 1);
-      Juice.flash(sc, GREEN, 200, 0.4, D_HUD + 1, true);
+      Juice.flash(sc, GREEN, 200, 0.22, D_HUD + 1, true);
       Juice.shockRing(sc, b.x, 560, { color: GREEN, to: 360, rings: 2, depth: D_LIGHT + 20, flat: 0.5 });
       Juice.debris(sc, b.x, 520, 16, { colors: [0x1c1917, 0xfacc15, 0x7f1d1d, 0xb6ff5a], depth: D_LIGHT + 25, floor: 640 });
       Juice.subDrop(0.7, 1);

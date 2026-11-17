@@ -3977,6 +3977,9 @@ You are required by law to sign the Sex Offenders Register.`, {
     this.scene.setVisible(false, "UI");
     await wait(1500);
     if (over) return;
+    // out of the white: the establishing shot, dawn over what's left of Krelford
+    await Juice.still(this, "fe_still_dawn", 2600, { depth: 9600, push: 0.06, shakeK: 0 });
+    if (over) return;
     await talk(FD_WAKE_FIRST);
     this.tweens.add({ targets: white, alpha: 0, duration: 4500, ease: "Sine.in", onComplete: () => white.destroy() });
     await wait(4200);

@@ -10,6 +10,7 @@ import { hasVfx, vfx } from "../gfx/Vfx";
 import { CHARACTERS, LADS } from "../../data/characters";
 import * as FB from "../../content/finaleKrelford";
 import { finalePreload, finaleReady, ssjKey, ssjPortraitKey, ssjSwap } from "./finale/finaleArt";
+import * as Juice from "../gfx/Juice";
 
 /**
  * THE KRELWORLD FINALE, part B: the side-on cutscenes in Krelford.
@@ -48,6 +49,8 @@ export class FinaleScene extends Phaser.Scene {
   private lads: Lad[] = [];
   private escHandler?: (e: KeyboardEvent) => void;
   private stormOn = true;
+  /** True while the SPIRIT CUM beam struggle is on (tests look for it). */
+  clashing = false;
 
   constructor() {
     super("Finale");
@@ -304,6 +307,9 @@ export class FinaleScene extends Phaser.Scene {
     synth.play("roar");
     this.cameras.main.shake(900, 0.02);
     this.strike(true);
+    // its eyes open (all of them), then the whole of it, from across town
+    await Juice.eyeShot(this, "fe_eyes_concept", 850, { color: 0xa855f7 });
+    await Juice.still(this, "fe_still_concept_rise", 1600, { push: 0.1, shakeK: 0.012 });
     synth.music("c7_concept");
     await this.talk(FB.FB_EMERGE_PANIC);
     // the title
@@ -354,7 +360,8 @@ export class FinaleScene extends Phaser.Scene {
     cam.flash(calm ? 500 : 300, 255, 240, 170);
     await this.wait(1100);
     await this.talk(FB.FB_TRANSFORM.slice(2));
-    // the final scream: all of them at once
+    // the final scream: all of them at once (their eyes first)
+    await Juice.eyeShot(this, "fe_eyes_ssj", 800, { color: 0xffe066 });
     for (const l of this.lads) if (l.spr.texture.key.startsWith("ssj_")) l.spr.setFrame(1);
     cam.resetFX();
     cam.shake(1400, calm ? 0.01 : 0.03);
@@ -664,12 +671,15 @@ export class FinaleScene extends Phaser.Scene {
     });
     await this.wait(600);
     await this.talk(FB.FB_READY);
+    // the money shot: the whole town pouring into it
+    await Juice.still(this, "fe_still_goku_raise", 1500, { push: 0.1, shakeK: 0.012 });
     // it grows
     this.tweens.add({ targets: orb, scale: 2.4, duration: 1500, ease: "Sine.in" });
     this.cameras.main.shake(1500, 0.01);
     this.speedLines(orb.x, orb.y, 1500);
     await this.wait(1600);
     await this.talk(FB.FB_SPIRIT);
+    await Juice.eyeShot(this, "fe_eyes_goku", 650, { color: 0xffd23f });
     motes.remove();
     // THROW
     this.stormOn = false;
@@ -684,10 +694,36 @@ export class FinaleScene extends Phaser.Scene {
       },
     });
     this.speedLines(480, 220, 1100);
-    await new Promise<void>((res) => this.tweens.add({ targets: orb, x: dragon.x + 30, y: dragon.y - dragon.displayHeight * 0.55, scale: 3.4, duration: 1000, ease: "Quad.in", onComplete: () => res() }));
+    // ...but it fights back: the orb's caught halfway, and the two of them push
+    // (it turns round to face it: the art faces left, its jaws at about 0.29 across and 0.67 up the frame)
+    const art = dragon.texture.key === "fb_dragon_side";
+    if (art) dragon.setFlipX(true);
+    const mouth = art ? { x: dragon.x + dragon.displayWidth * 0.29, y: dragon.y - dragon.displayHeight * 0.66 } : { x: dragon.x + dragon.displayWidth * 0.22, y: dragon.y - dragon.displayHeight * 0.58 };
+    await new Promise<void>((res) => this.tweens.add({ targets: orb, x: 520, y: mouth.y - 10, scale: 1.15, duration: 650, ease: "Quad.in", onComplete: () => res() }));
     trail.remove();
-    // IMPACT
-    const white = this.add.rectangle(480, 270, W * 2, 1100, 0xffffff, 1).setDepth(980).setScrollFactor(0);
+    this.cameras.main.zoomTo(1, 300);
+    // the two of them, close up: it roars, Goku screams
+    const aura = vfx(this, "fe_vfx_darkaura", dragon.x, dragon.y - 6, { scale: 2.6, depth: dragon.depth - 1, alpha: 0.6, add: true });
+    if (!synth.shout("concept_roar", 1, 0.8)) synth.play("roar");
+    synth.music("fe_clash", true);
+    this.cameras.main.shake(700, 0.012);
+    await Juice.cutIn(this, "fe_cut_concept", { from: "left", y: 170, color: 0xa855f7, hold: 650 });
+    await Juice.cutIn(this, "fe_cut_goku", { from: "right", y: 170, color: 0xffd23f, hold: 650 });
+    await this.beamStruggle(orb, gk, mouth);
+    aura?.destroy();
+    this.cameras.main.zoomTo(1.15, 200);
+    await new Promise<void>((res) => this.tweens.add({ targets: orb, x: dragon.x + 30, y: dragon.y - dragon.displayHeight * 0.55, scale: 3.6, duration: 260, ease: "Quad.in", onComplete: () => res() }));
+    await Juice.impactFrames(this, dragon, 70);
+    // the money shot: the SPIRIT CUM going down its throat
+    if (this.textures.exists("fe_still_spirit")) {
+      synth.play("explode_2");
+      Juice.subDrop(1, 2);
+      await Juice.still(this, "fe_still_spirit", 1500, { push: 0.12, shakeK: 0.02, flipX: true });
+    }
+    // IMPACT (and then the music's gone: just the blast and your ears ringing)
+    synth.stopMusic();
+    Juice.earRing(3500, 0.1);
+    const white = this.add.rectangle(480, 270, W * 2, 1100, 0xffffff, G.meta.settings.calmFlash ? 0.5 : 1).setDepth(980).setScrollFactor(0);
     synth.play("boom");
     synth.play("explode_1");
     this.cameras.main.shake(2000, 0.03);
@@ -720,8 +756,9 @@ export class FinaleScene extends Phaser.Scene {
     this.dragon = null;
     this.wizard = null;
     await this.talk(FB.FB_DESTROYED);
-    // the rain stops; stars
+    // the rain stops; stars (and the music comes back in, softly)
     synth.weatherSound(null);
+    synth.music("c7_spirit", true);
     for (let i = 0; i < 70; i++) {
       const st = this.add.circle(Math.random() * W, Math.random() * (FLOOR - 120), Math.random() < 0.2 ? 1.6 : 1, 0xffffff, 0).setDepth(-19);
       this.tweens.add({ targets: st, alpha: 0.5 + Math.random() * 0.5, delay: Math.random() * 2000, duration: 900 });
@@ -732,6 +769,143 @@ export class FinaleScene extends Phaser.Scene {
     this.tweens.add({ targets: gk, y: gk.y - 600, duration: 700, ease: "Quad.in", delay: 300 });
     await this.talk(FB.FB_AFTER.slice(6));
     await this.wait(400);
+  }
+
+  /**
+   * THE CLASH. The SPIRIT CUM stops dead in mid-air: the Concept breathes its own beam back at it and the two meet
+   * in the middle of town. Mash (any key, click, tap) to push it back down its throat; the lads roar and pour in
+   * their power too, so it gets there on its own if you don't (a few seconds, never a fail). The harder you mash,
+   * the faster it goes. Ends with the clash point at its mouth.
+   */
+  private beamStruggle(orb: Phaser.GameObjects.Container, gk: Phaser.GameObjects.Image, mouth: { x: number; y: number }): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.dead || this.ended) return;
+      const calm = !!G.meta.settings.calmFlash;
+      const src = { x: gk.x, y: gk.y - gk.displayHeight * 0.92 };
+      // 0 = at its mouth (won), 1 = at Goku
+      let t = (orb.x - mouth.x) / (src.x - mouth.x);
+      let mash = 0;
+      let elapsed = 0;
+      let lastBurst = 0;
+      let youCut = false;
+      let done = false;
+      this.clashing = true;
+      const beams = this.add.graphics().setDepth(66).setBlendMode(Phaser.BlendModes.ADD);
+      const core = this.add.graphics().setDepth(67);
+      const L = Juice.layer(this, 1050);
+      const prompt = this.add.text(480, 448, "MASH!", { fontFamily: "Impact, sans-serif", fontSize: "44px", color: "#ffe066", stroke: "#000", strokeThickness: 8 }).setOrigin(0.5);
+      const hint = this.add.text(480, 486, "any key · click · tap", { fontFamily: FONT, fontSize: "14px", color: "#fff4c2", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5);
+      const barBack = this.add.rectangle(480, 512, 420, 14, 0x000000, 0.75).setStrokeStyle(2, 0xffd23f, 0.9);
+      const barDark = this.add.rectangle(270, 512, 420, 10, 0x6d28d9, 1).setOrigin(0, 0.5);
+      const barGold = this.add.rectangle(690, 512, 210, 10, 0xffe066, 1).setOrigin(1, 0.5);
+      L.add([prompt, hint, barBack, barDark, barGold]);
+      this.tweens.add({ targets: prompt, scale: 1.12, yoyo: true, repeat: -1, duration: 140 });
+      if (!synth.shout("concept_roar", 1, 0.85)) synth.play("roar");
+      synth.play("gun_rail");
+      Juice.subDrop(1, 1.6);
+      const stopLines = Juice.speedLines(this, 0, 0xfff4c2, 1040);
+      const push = () => {
+        if (done) return;
+        mash++;
+        t -= 0.034;
+        Juice.punchZoom(this, 0.03, 160, 1);
+        if (mash % 3 === 0) synth.play("hit");
+        // the lads pour it in: their auras flare
+        const l = this.lads[mash % Math.max(1, this.lads.length)];
+        if (l?.aura) {
+          this.tweens.killTweensOf(l.aura);
+          const sx = l.aura.scaleX;
+          const sy = l.aura.scaleY;
+          this.tweens.add({ targets: l.aura, scaleX: sx * 1.25, scaleY: sy * 1.2, duration: 90, yoyo: true });
+        }
+      };
+      const onKey = (e: KeyboardEvent) => {
+        if (e.key !== "Escape" && !e.repeat) push();
+      };
+      this.input.keyboard?.on("keydown", onKey);
+      this.input.on("pointerdown", push);
+      let shoutI = 0;
+      const shouts = this.time.addEvent({
+        delay: 650,
+        loop: true,
+        callback: () => {
+          const l = this.lads[shoutI++ % Math.max(1, this.lads.length)];
+          if (!l) return;
+          const tx = this.add.text(l.spr.x, l.spr.y - l.spr.displayHeight - 10, "AAAAAAAAA", { fontFamily: "Impact, sans-serif", fontSize: "16px", color: "#ffe066", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(950);
+          this.tweens.add({ targets: tx, y: tx.y - 30, alpha: 0, duration: 900, onComplete: () => tx.destroy() });
+        },
+      });
+      const tick = () => {
+        if (this.dead || this.ended) return cleanup(false);
+        const dt = Math.min(50, this.game.loop.delta) / 1000;
+        elapsed += dt;
+        // it pushes back hard at first; the Krew's power builds and wins out on its own by about seven seconds
+        const krew = Math.min(0.24, elapsed * 0.05);
+        t += (0.1 - krew) * dt;
+        t = Phaser.Math.Clamp(t, 0, 0.82);
+        const cx = mouth.x + (src.x - mouth.x) * t;
+        const cy = mouth.y + (src.y - mouth.y) * t;
+        orb.setPosition(cx, cy);
+        const wob = Math.sin(elapsed * 40) * 4;
+        beams.clear();
+        // its beam: violet, black-cored
+        beams.lineStyle(70 + wob, 0x7c3aed, 0.6).lineBetween(mouth.x, mouth.y, cx, cy);
+        beams.lineStyle(32, 0xc084fc, 0.85).lineBetween(mouth.x, mouth.y, cx, cy);
+        // the SPIRIT CUM: white-gold, wider
+        beams.lineStyle(90 - wob, 0xfff4c2, 0.5).lineBetween(src.x, src.y, cx, cy);
+        beams.lineStyle(40, 0xffffff, 0.95).lineBetween(src.x, src.y, cx, cy);
+        // where they meet: a ragged star of light
+        for (let i = 0; i < 6; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const r = 50 + Math.random() * 70;
+          beams.lineStyle(3 + Math.random() * 5, Math.random() < 0.5 ? 0xffffff : 0xc084fc, 0.9).lineBetween(cx, cy, cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+        }
+        core.clear();
+        core.lineStyle(8, 0x12002a, 0.9).lineBetween(mouth.x, mouth.y, cx, cy);
+        // the clash itself: a flickering knot of light, throwing sparks
+        if (Math.random() < 0.5) {
+          const sp = this.add.circle(cx, cy, 3 + Math.random() * 4, Math.random() < 0.5 ? 0xffffff : 0xc084fc, 1).setDepth(72).setBlendMode(Phaser.BlendModes.ADD);
+          const a = Math.random() * Math.PI * 2;
+          const v = 60 + Math.random() * 160;
+          this.tweens.add({ targets: sp, x: cx + Math.cos(a) * v, y: cy + Math.sin(a) * v, alpha: 0, duration: 380, onComplete: () => sp.destroy() });
+        }
+        // halfway in, you: your own super saiyan close-up whips across
+        if (!youCut && elapsed > 2.2) {
+          youCut = true;
+          const por = ssjPortraitKey(this, G.s.player);
+          if (por) void Juice.cutIn(this, por, { from: "right", y: 150, color: 0xffe066, hold: 700, focus: 0.62, w: 480 });
+        }
+        if (elapsed - lastBurst > 0.22) {
+          lastBurst = elapsed;
+          if (!vfx(this, "fe_vfx_clash", cx + (Math.random() - 0.5) * 20, cy + (Math.random() - 0.5) * 20, { scale: 1.6 + Math.random() * 0.8, depth: 73, add: true, angle: Math.random() * 360 }) && hasVfx(this, "vfx_sparks")) vfx(this, "vfx_sparks", cx, cy, { scale: 1.6, depth: 73, add: true });
+        }
+        orb.setScale(1.15 + Math.sin(elapsed * 30) * 0.12);
+        const k = 1 - t;
+        if (!calm && Math.random() < 0.25) this.cameras.main.shake(80, 0.004 + k * 0.01);
+        barGold.width = 420 * (1 - t);
+        barDark.width = 420 - barGold.width;
+        if (t <= 0.06) cleanup(true);
+      };
+      const cleanup = (won: boolean) => {
+        if (done) return;
+        done = true;
+        this.clashing = false;
+        this.events.off("update", tick);
+        this.input.keyboard?.off("keydown", onKey);
+        this.input.off("pointerdown", push);
+        shouts.remove();
+        stopLines();
+        beams.destroy();
+        core.destroy();
+        for (const o of [prompt, hint, barBack, barDark, barGold]) o.destroy();
+        if (won) {
+          synth.play("boom");
+          Juice.subDrop(1, 2.4);
+        }
+        resolve();
+      };
+      this.events.on("update", tick);
+    });
   }
 
   /** Something comes apart into motes of light. */

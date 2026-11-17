@@ -11,6 +11,38 @@ import { hdFactor } from "./HD";
 
 const alive = (sc: Phaser.Scene) => !!sc.sys && sc.sys.isActive() && !!sc.cameras?.main;
 const shakeOn = () => G.meta?.settings?.shake !== false;
+/**
+ * A drawn still or close-up can have an animated version (`<key>_anim`, a strip of frames): use it if it's there.
+ * Returns the texture key and a start(img) that cycles its frames until the image goes.
+ */
+const ANIM_MODE: Record<string, "pingpong" | "once" | "reverse"> = { fe_still_spirit: "once", fe_eyes_concept: "reverse", fe_still_drongus_break: "reverse", fe_cut_drongus1: "reverse", fe_still_collapse: "once", fe_still_drongus_flee: "once" };
+function animated(sc: Phaser.Scene, key: string) {
+  const ak = `${key}_anim`;
+  if (!sc.textures.exists(ak) || sc.textures.get(ak).frameTotal < 4) return { key, start: (_img: Phaser.GameObjects.Image) => undefined };
+  const n = sc.textures.get(ak).frameTotal - 1;
+  const mode = ANIM_MODE[key] ?? "pingpong";
+  // ping-pong for loops (no jump back to the start); once plays through and holds; reverse plays backwards and holds
+  const seq = mode === "once" ? [...Array(n).keys()] : mode === "reverse" ? [...Array(n).keys()].reverse() : [...Array(n).keys(), ...[...Array(n).keys()].reverse().slice(1, -1)];
+  return {
+    key: ak,
+    start: (img: Phaser.GameObjects.Image) => {
+      let i = 0;
+      img.setFrame(seq[0]);
+      const id = window.setInterval(() => {
+        if (!img.active) return window.clearInterval(id);
+        i++;
+        if (mode !== "pingpong" && i >= seq.length) return window.clearInterval(id);
+        img.setFrame(seq[i % seq.length]);
+      }, 85);
+      img.once("destroy", () => window.clearInterval(id));
+    },
+  };
+}
+
+/** Not shut down (a scene that's been left: anything awaiting a cinematic beat in it should just stop there). */
+const living = (sc: Phaser.Scene) => !!sc.sys && sc.sys.settings.status < Phaser.Scenes.SHUTDOWN;
+/** "Reduce flashing" is on: full-screen flashes are dimmed and slowed, strobing effects are skipped. */
+export const calm = () => !!G.meta?.settings?.calmFlash;
 
 /**
  * A screen-space layer at `depth` that ignores the camera's zoom (a scrollFactor-0 object still gets zoomed, which
@@ -89,6 +121,10 @@ export function punchZoom(sc: Phaser.Scene, amount = 0.12, ms = 380, rest?: numb
 
 /** A full-screen flash of colour that fades (more controllable than camera.flash, and it can sit under the HUD). */
 export function flash(sc: Phaser.Scene, color = 0xffffff, ms = 260, alpha = 1, depth = 4980, add = false) {
+  if (calm()) {
+    alpha *= 0.22;
+    ms = Math.max(ms, 320);
+  }
   const r = sc.add.rectangle(480, 270, 1100, 700, color, alpha);
   layer(sc, depth).add(r);
   if (add) r.setBlendMode(Phaser.BlendModes.ADD);
@@ -275,6 +311,210 @@ export function debris(sc: Phaser.Scene, x: number, y: number, n = 14, opts: { c
       onComplete: () => sc.tweens.add({ targets: r, alpha: 0, duration: 400, onComplete: () => r.destroy() }),
     });
   }
+}
+
+/**
+ * Anime impact frames: for a couple of frames the whole screen goes white with the target as a black silhouette,
+ * then inverts (black screen, white silhouette), then back to normal. Skipped under "Reduce flashing".
+ */
+export async function impactFrames(sc: Phaser.Scene, target: Phaser.GameObjects.Sprite | Phaser.GameObjects.Image | null, frameMs = 55, depth = 4970) {
+  if (calm() || !alive(sc)) return;
+  const bg = sc.add.rectangle(480, 270, 1100, 700, 0xffffff, 1);
+  layer(sc, depth).add(bg);
+  let sil: Phaser.GameObjects.Image | null = null;
+  if (target?.active && target.texture) {
+    const hd = hdFactor(target as { texture?: Phaser.Textures.Texture });
+    sil = sc.add.image(target.x, target.y, target.texture.key, target.frame.name).setOrigin(target.originX, target.originY).setFlipX(target.flipX).setAngle(target.angle).setDepth(depth + 1);
+    sil.setScale(target.scaleX / hd, target.scaleY / hd);
+    sil.setTintFill(0x000000);
+  }
+  await realWait(frameMs);
+  if (!bg.active || !living(sc)) return living(sc) ? undefined : new Promise<void>(() => undefined);
+  bg.setFillStyle(0x000000, 1);
+  sil?.setTintFill(0xffffff);
+  await realWait(frameMs);
+  bg.destroy();
+  sil?.destroy();
+  // (the scene's been left meanwhile: whatever was waiting on this stops here)
+  if (!living(sc)) await new Promise<void>(() => undefined);
+}
+
+/** Anime speed lines rushing in to the middle of the screen (screen-space). Returns a stop(). */
+export function speedLines(sc: Phaser.Scene, ms = 900, color = 0xffffff, depth = 4960, cx = 480, cy = 270) {
+  const g = sc.add.graphics();
+  layer(sc, depth).add(g);
+  const draw = () => {
+    if (!g.active) return;
+    g.clear();
+    for (let i = 0; i < 52; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r0 = 190 + Math.random() * 150;
+      g.lineStyle(1 + Math.random() * 3, color, 0.35 + Math.random() * 0.45);
+      g.lineBetween(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0, cx + Math.cos(a) * 900, cy + Math.sin(a) * 900);
+    }
+  };
+  draw();
+  const id = window.setInterval(draw, 60);
+  let stopped = false;
+  const stop = () => {
+    if (stopped) return;
+    stopped = true;
+    window.clearInterval(id);
+    if (g.active) sc.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() });
+  };
+  if (ms > 0) window.setTimeout(stop, ms);
+  sc.events.once("shutdown", stop);
+  return stop;
+}
+
+/**
+ * An anime cut-in: a slanted band whips across the screen with a close-up in it (speed lines behind, coloured
+ * edges), holds a beat, and whips out the far side. Screen-space. Any image works: it's scaled to the band's width
+ * and cropped to its height (`focus` is where the crop sits, 0 top .. 1 bottom). Resolves when it's gone.
+ */
+export function cutIn(sc: Phaser.Scene, key: string, o: { from?: "left" | "right"; y?: number; color?: number; hold?: number; depth?: number; flipX?: boolean; focus?: number; frame?: number; w?: number; h?: number } = {}): Promise<void> {
+  return new Promise((res) => {
+    if (!alive(sc) || !sc.textures.exists(key)) return res();
+    const y = o.y ?? 300;
+    const H = o.h ?? 168;
+    const W = o.w ?? 560;
+    const col = o.color ?? 0xffffff;
+    const dir = o.from === "right" ? -1 : 1;
+    const root = sc.add.container(0, 0);
+    layer(sc, o.depth ?? 4994).add(root);
+    const tilt = -2.2;
+    const band = sc.add.rectangle(480, y, 1300, H, 0x05010c, 0.96).setAngle(tilt);
+    const edgeA = sc.add.rectangle(480, y, 1300, 5, col, 1).setAngle(tilt);
+    const edgeB = sc.add.rectangle(480, y, 1300, 5, col, 1).setAngle(tilt);
+    // (the edges sit on the band's long sides, tilted with it)
+    const rad = Phaser.Math.DegToRad(tilt);
+    edgeA.setPosition(480 + Math.sin(rad) * (H / 2), y - Math.cos(rad) * (H / 2));
+    edgeB.setPosition(480 - Math.sin(rad) * (H / 2), y + Math.cos(rad) * (H / 2));
+    const lines = sc.add.graphics();
+    const drawLines = () => {
+      if (!lines.active) return;
+      lines.clear();
+      for (let i = 0; i < 22; i++) {
+        const ly = y + (Math.random() - 0.5) * (H - 16);
+        const x0 = Math.random() * 960;
+        lines.lineStyle(1 + Math.random() * 2, col, 0.25 + Math.random() * 0.35).lineBetween(x0, ly, x0 + 120 + Math.random() * 260, ly - 0.04 * (120 + Math.random() * 260));
+      }
+    };
+    drawLines();
+    const lineTimer = window.setInterval(drawLines, 50);
+    const an = o.frame === undefined ? animated(sc, key) : { key, start: () => undefined };
+    const img = sc.add.image(480, y, an.key, o.frame);
+    an.start(img);
+    const tex = img.frame;
+    const k = W / tex.realWidth;
+    const cropH = Math.min(tex.realHeight, (H - 10) / k);
+    const top = Phaser.Math.Clamp((tex.realHeight - cropH) * (o.focus ?? 0.35), 0, tex.realHeight - cropH);
+    const hd = hdFactor(img as { texture?: Phaser.Textures.Texture });
+    img.setScale(k / hd);
+    img.setCrop(0, top, tex.realWidth, cropH);
+    // setCrop keeps the frame's full size: shift so the cropped strip sits in the middle of the band
+    img.setY(y - (top + cropH / 2 - tex.realHeight / 2) * k);
+    img.setFlipX(!!o.flipX);
+    img.setAngle(tilt);
+    root.add([band, lines, img, edgeA, edgeB]);
+    root.x = dir * 1000;
+    synth.play("swing");
+    sc.tweens.add({
+      targets: root,
+      x: 0,
+      duration: 200,
+      ease: "Cubic.out",
+      onComplete: () => {
+        if (!root.active) return res();
+        sc.tweens.add({ targets: img, x: img.x + dir * 22, duration: o.hold ?? 900 });
+        window.setTimeout(() => {
+          if (!root.active || !living(sc)) {
+            window.clearInterval(lineTimer);
+            if (living(sc)) res();
+            return;
+          }
+          sc.tweens.add({
+            targets: root,
+            x: -dir * 1000,
+            duration: 200,
+            ease: "Cubic.in",
+            onComplete: () => {
+              window.clearInterval(lineTimer);
+              root.destroy();
+              res();
+            },
+          });
+        }, o.hold ?? 900);
+      },
+    });
+    sc.events.once("shutdown", () => window.clearInterval(lineTimer));
+  });
+}
+
+/**
+ * A full-screen cinematic still (a drawn "money shot"): it cuts in over everything with a pop, pushes in slowly
+ * (with a little shake), holds for `ms`, then cuts away. Screen-space. Resolves when it's gone.
+ */
+export function still(sc: Phaser.Scene, key: string, ms = 1200, o: { depth?: number; push?: number; shakeK?: number; flipX?: boolean } = {}): Promise<void> {
+  return new Promise((res) => {
+    if (!alive(sc) || !sc.textures.exists(key)) return res();
+    const an = animated(sc, key);
+    const img = sc.add.image(480, 270, an.key, an.key === key ? undefined : 0);
+    an.start(img);
+    const hd = hdFactor(img as { texture?: Phaser.Textures.Texture });
+    const k = Math.max(960 / img.frame.realWidth, 540 / img.frame.realHeight);
+    img.setScale(k / hd);
+    img.setFlipX(!!o.flipX);
+    const bars = [sc.add.rectangle(480, 14, 1100, 28, 0x000000), sc.add.rectangle(480, 526, 1100, 28, 0x000000)];
+    const root = sc.add.container(0, 0, [img, ...bars]);
+    layer(sc, o.depth ?? 4993).add(root);
+    sc.tweens.add({ targets: img, scale: (k * (1 + (o.push ?? 0.08))) / hd, duration: ms, ease: "Sine.out" });
+    if (o.shakeK !== 0) shake(sc, Math.min(ms, 700), o.shakeK ?? 0.01);
+    window.setTimeout(() => {
+      if (!living(sc)) return;
+      root.destroy();
+      res();
+    }, ms);
+  });
+}
+
+/**
+ * The anime eye shot: the screen cuts to black and a strip of just their eyes fills the middle of it, pushing in
+ * slowly (a sting and a heartbeat under it), then cuts back. Screen-space. Resolves when it's gone.
+ */
+export function eyeShot(sc: Phaser.Scene, key: string, ms = 800, o: { depth?: number; color?: number } = {}): Promise<void> {
+  return new Promise((res) => {
+    if (!alive(sc) || !sc.textures.exists(key)) return res();
+    const bg = sc.add.rectangle(480, 270, 1100, 700, 0x000000, 1);
+    const an = animated(sc, key);
+    const img = sc.add.image(480, 270, an.key, an.key === key ? undefined : 0);
+    an.start(img);
+    const hd = hdFactor(img as { texture?: Phaser.Textures.Texture });
+    const k = 980 / img.frame.realWidth;
+    img.setScale(k / hd);
+    const edgeA = sc.add.rectangle(480, 270 - (img.frame.realHeight * k) / 2, 1100, 3, o.color ?? 0xffffff, 0.9);
+    const edgeB = sc.add.rectangle(480, 270 + (img.frame.realHeight * k) / 2, 1100, 3, o.color ?? 0xffffff, 0.9);
+    const root = sc.add.container(0, 0, [bg, img, edgeA, edgeB]);
+    layer(sc, o.depth ?? 4993).add(root);
+    sc.tweens.add({ targets: img, scale: (k * 1.08) / hd, duration: ms, ease: "Sine.out" });
+    synth.play("telegraph");
+    heartbeat(0.8);
+    window.setTimeout(() => {
+      if (!living(sc)) return;
+      root.destroy();
+      res();
+    }, ms);
+  });
+}
+
+/** A pulsing alarm light over the whole screen (red by default) for the rest of a fight. Returns an off(). */
+export function alarmLight(sc: Phaser.Scene, color = 0xff1a1a, depth = 940, peak = 0.16) {
+  const r = sc.add.rectangle(480, 270, 2200, 1400, color, 0).setScrollFactor(0).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
+  const tw = sc.tweens.add({ targets: r, alpha: calm() ? peak * 0.4 : peak, yoyo: true, repeat: -1, duration: calm() ? 1600 : 520, ease: "Sine.inOut" });
+  return () => {
+    tw.stop();
+    if (r.active) sc.tweens.add({ targets: r, alpha: 0, duration: 500, onComplete: () => r.destroy() });
+  };
 }
 
 // ------------------------------------------------------------------ sound design (layered on top of the recorded sfx)

@@ -8455,6 +8455,75 @@
   },
   "tv_p2_table": {
    "file": "backdrops/tv_p2_table.png"
+  },
+  "fe_cut_drongus1": {
+   "file": "finale/fe_cut_drongus1.png"
+  },
+  "fe_cut_drongus2": {
+   "file": "finale/fe_cut_drongus2.png"
+  },
+  "fe_cut_concept": {
+   "file": "finale/fe_cut_concept.png"
+  },
+  "fe_cut_concept_hurt": {
+   "file": "finale/fe_cut_concept_hurt.png"
+  },
+  "fe_cut_goku": {
+   "file": "finale/fe_cut_goku.png"
+  },
+  "fe_still_spirit": {
+   "file": "finale/fe_still_spirit.png"
+  },
+  "fe_still_drongus_break": {
+   "file": "finale/fe_still_drongus_break.png"
+  },
+  "fe_still_drongus_launch": {
+   "file": "finale/fe_still_drongus_launch.png"
+  },
+  "fe_eyes_drongus1": {
+   "file": "finale/fe_eyes_drongus1.png"
+  },
+  "fe_eyes_drongus2": {
+   "file": "finale/fe_eyes_drongus2.png"
+  },
+  "fe_eyes_dd": {
+   "file": "finale/fe_eyes_dd.png"
+  },
+  "fe_eyes_concept": {
+   "file": "finale/fe_eyes_concept.png"
+  },
+  "fe_eyes_ssj": {
+   "file": "finale/fe_eyes_ssj.png"
+  },
+  "fe_eyes_goku": {
+   "file": "finale/fe_eyes_goku.png"
+  },
+  "fe_still_dd_transform": {
+   "file": "finale/fe_still_dd_transform.png"
+  },
+  "fe_still_group_krezz": {
+   "file": "finale/fe_still_group_krezz.png"
+  },
+  "fe_still_concept_rise": {
+   "file": "finale/fe_still_concept_rise.png"
+  },
+  "fe_still_goku_raise": {
+   "file": "finale/fe_still_goku_raise.png"
+  },
+  "fe_still_collapse": {
+   "file": "finale/fe_still_collapse.png"
+  },
+  "fe_still_drongus1_gun": {
+   "file": "finale/fe_still_drongus1_gun.png"
+  },
+  "fe_still_dawn": {
+   "file": "finale/fe_still_dawn.png"
+  },
+  "fe_still_regrow": {
+   "file": "finale/fe_still_regrow.png"
+  },
+  "fe_still_drongus_flee": {
+   "file": "finale/fe_still_drongus_flee.png"
   }
  },
  "sheets": {
@@ -10631,6 +10700,106 @@
    "file": "tv/face_P2_SCROMBUS.png",
    "frameWidth": 128,
    "frameHeight": 128
+  },
+  "fe_cut_concept_anim": {
+   "file": "finale/fe_cut_concept_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_cut_drongus2_anim": {
+   "file": "finale/fe_cut_drongus2_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_eyes_concept_anim": {
+   "file": "finale/fe_eyes_concept_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 64
+  },
+  "fe_eyes_dd_anim": {
+   "file": "finale/fe_eyes_dd_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 64
+  },
+  "fe_still_dd_transform_anim": {
+   "file": "finale/fe_still_dd_transform_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_group_krezz_anim": {
+   "file": "finale/fe_still_group_krezz_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_spirit_anim": {
+   "file": "finale/fe_still_spirit_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_cut_concept_hurt_anim": {
+   "file": "finale/fe_cut_concept_hurt_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_cut_drongus1_anim": {
+   "file": "finale/fe_cut_drongus1_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_cut_goku_anim": {
+   "file": "finale/fe_cut_goku_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_eyes_drongus1_anim": {
+   "file": "finale/fe_eyes_drongus1_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 64
+  },
+  "fe_eyes_drongus2_anim": {
+   "file": "finale/fe_eyes_drongus2_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 64
+  },
+  "fe_eyes_ssj_anim": {
+   "file": "finale/fe_eyes_ssj_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 64
+  },
+  "fe_still_collapse_anim": {
+   "file": "finale/fe_still_collapse_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_concept_rise_anim": {
+   "file": "finale/fe_still_concept_rise_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_drongus1_gun_anim": {
+   "file": "finale/fe_still_drongus1_gun_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_drongus_break_anim": {
+   "file": "finale/fe_still_drongus_break_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_drongus_launch_anim": {
+   "file": "finale/fe_still_drongus_launch_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_drongus_flee_anim": {
+   "file": "finale/fe_still_drongus_flee_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_regrow_anim": {
+   "file": "finale/fe_still_regrow_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
   }
  },
  "vfx": {
@@ -10883,6 +11052,46 @@
    "loop": true,
    "ox": 0.489,
    "oy": 0.68
+  },
+  "fe_vfx_clash": {
+   "file": "vfx/fe_vfx_clash.png",
+   "w": 88,
+   "h": 86,
+   "frames": 10,
+   "fps": 16,
+   "loop": false,
+   "ox": 0.511,
+   "oy": 0.43
+  },
+  "fe_vfx_darkaura": {
+   "file": "vfx/fe_vfx_darkaura.png",
+   "w": 117,
+   "h": 230,
+   "frames": 12,
+   "fps": 12,
+   "loop": true,
+   "ox": 0.513,
+   "oy": 0.896
+  },
+  "fe_vfx_plasma": {
+   "file": "vfx/fe_vfx_plasma.png",
+   "w": 84,
+   "h": 144,
+   "frames": 10,
+   "fps": 14,
+   "loop": false,
+   "ox": 0.5,
+   "oy": 0.875
+  },
+  "fe_vfx_rage": {
+   "file": "vfx/fe_vfx_rage.png",
+   "w": 102,
+   "h": 161,
+   "frames": 8,
+   "fps": 12,
+   "loop": true,
+   "ox": 0.5,
+   "oy": 0.863
   }
  }
 }

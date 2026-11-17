@@ -66,6 +66,7 @@ export const MUSIC_FILES: Record<string, string> = {
   c7_roof: "audio/c7_roof.mp3",
   c7_concept: "audio/c7_concept.mp3",
   c7_spirit: "audio/c7_spirit.mp3",
+  fe_clash: "audio/fe_clash.mp3",
   c7_transform: "audio/c7_transform.mp3",
   hub: "audio/hub.mp3",
   hub_night: "audio/hub_night.mp3",

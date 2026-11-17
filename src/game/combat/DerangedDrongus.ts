@@ -5,6 +5,7 @@ import { synth } from "../audio/Synth";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { BOSS_TEXT } from "../../content/bosses";
 import { DRONGUS2_BREAK } from "../../content/citadel";
+import * as Juice from "../gfx/Juice";
 
 const PLASMA = 0x39ff5a;
 const GOLD = 0xffd23f;
@@ -45,6 +46,11 @@ export class DerangedDrongusBoss extends Boss {
   bottles: Phaser.GameObjects.Image[] = [];
   private art: boolean;
   private shakeT = 0;
+  /** Below 15%: PLASMA RAIN (columns down from the ceiling, three waves), then he's spent and open. */
+  private lastStand: "no" | "pending" | "done" = "no";
+  private alarmOff: (() => void) | null = null;
+  /** The last third: he's burning with rage (a drawn flame aura behind him). */
+  private rageFx: Phaser.GameObjects.Sprite | null = null;
 
   constructor(w: CombatWorld, x: number, y: number) {
     const art = w.sc.textures.exists("boss_drongus2");
@@ -61,6 +67,8 @@ export class DerangedDrongusBoss extends Boss {
       this.gun?.destroy();
       this.glow.destroy();
       this.sweepG?.destroy();
+      this.alarmOff?.();
+      this.rageFx?.destroy();
     });
   }
 
@@ -111,6 +119,7 @@ export class DerangedDrongusBoss extends Boss {
       const left = Math.cos(this.aim) < 0;
       g.setPosition(this.x + jx + Math.cos(this.aim) * 20, this.y - 6 + Math.sin(this.aim) * 10).setRotation(this.aim).setFlipY(left).setDepth(this.depth + 1).setAlpha(this.alpha);
     }
+    this.rageFx?.setPosition(this.x, this.y + this.displayHeight * 0.42).setDepth(this.depth - 1).setVisible(this.visible);
     this.glow.setPosition(this.x, this.y).setDepth(this.depth + 0.5).setFillStyle(0xff3b30, this.open ? 0.28 + Math.sin(now / 60) * 0.1 : 0);
   }
 
@@ -120,7 +129,72 @@ export class DerangedDrongusBoss extends Boss {
     synth.play("roar");
     this.world.shake(400, 0.02);
     this.world.toast(n === 1 ? "HIS ARMOUR'S CRACKING" : "THE ARMOUR'S FALLING APART", n === 1 ? "A plate came off. Your shots get through better now." : "Nearly there. He's faster and angrier.");
+    // the scene stages it: bullets cleared, camera slams in on him, his line across the screen
+    this.scene.events.emit("epic-phase", this, n === 1 ? "THE ARMOUR'S CRACKING!" : "HE'S COMPLETELY LOST IT", n === 1 ? "#ffd23f" : "#ff2a2a");
+    if (n === 2 && !this.alarmOff) this.alarmOff = Juice.alarmLight(this.scene, 0xff1a1a, 940, 0.14);
+    if (n === 2 && !this.rageFx) this.rageFx = vfx(this.scene, "fe_vfx_rage", this.x, this.y, { scale: 1.9, depth: this.depth - 1, alpha: 0.75, add: true });
     this.nextPattern = Math.max(this.nextPattern, now + 900);
+  }
+
+  /**
+   * LAST STAND: he blasts the ceiling and the plasma comes down in columns, three waves. Each column's lane shows
+   * first; every wave's gaps are where the last wave's columns were, so you step across each time. Then he's spent.
+   */
+  private plasmaRain(now: number) {
+    const w = this.world;
+    const sc = this.scene;
+    const body = this.body as Phaser.Physics.Arcade.Body;
+    body.setVelocityX(0);
+    const gy = w.groundY ?? this.y + 100;
+    const top = w.bounds.top;
+    const tele = 1000 * w.telegraphMult;
+    const gap = 150;
+    const colW = 64;
+    this.say("PLASMA RAIN!", "#7dff8a");
+    synth.play("gun_bfk");
+    synth.play("alarm");
+    const [mx, my] = this.muzzle();
+    const up = sc.add.graphics().setDepth(950).setBlendMode(Phaser.BlendModes.ADD);
+    up.lineStyle(40, PLASMA, 0.6).lineBetween(mx, my, mx, top);
+    up.lineStyle(14, 0xeaffea, 1).lineBetween(mx, my, mx, top);
+    sc.tweens.add({ targets: up, alpha: 0, duration: 500, onComplete: () => up.destroy() });
+    w.shake(500, 0.02);
+    for (let wave = 0; wave < 3; wave++) {
+      const off = (wave % 2) * (gap / 2) + 40;
+      sc.time.delayedCall(400 + wave * (tele + 420), () => {
+        if (this.dead || !this.active) return;
+        synth.play("telegraph");
+        for (let x = w.bounds.left + off; x < w.bounds.right - 20; x += gap) {
+          w.enemyLine(x, top, Math.PI / 2, gy - top, colW, Math.round(18 * this.dmgMult), tele);
+          sc.time.delayedCall(tele, () => {
+            if (!sc.sys?.isActive()) return;
+            // a drawn pillar of plasma (stretched to the room's height), or flat bars if the art isn't there
+            const pil = vfx(sc, "fe_vfx_plasma", x, gy, { depth: 950, add: true });
+            if (pil) pil.setScale(colW / 44, (gy - top) / 124);
+            else {
+              const g = sc.add.graphics().setDepth(950).setBlendMode(Phaser.BlendModes.ADD);
+              g.fillStyle(PLASMA, 0.5).fillRect(x - colW / 2, top, colW, gy - top);
+              g.fillStyle(0xeaffea, 1).fillRect(x - colW / 6, top, colW / 3, gy - top);
+              sc.tweens.add({ targets: g, alpha: 0, duration: 380, onComplete: () => g.destroy() });
+            }
+            if (hasVfx(sc, "vfx_sparks")) vfx(sc, "vfx_sparks", x, gy - 6, { scale: 1.2, depth: 951, add: true, tint: PLASMA });
+          });
+        }
+        sc.time.delayedCall(tele, () => {
+          if (!sc.sys?.isActive()) return;
+          synth.play("gun_rail");
+          w.shake(260, 0.014);
+        });
+      });
+    }
+    const end = 400 + 3 * (tele + 420);
+    sc.time.delayedCall(end, () => {
+      if (this.dead || !this.active) return;
+      this.openUntil = this.world.now() + 3400;
+      this.say("SPENT! (HIT HIM!)", "#ff6b6b");
+      synth.play("pfft");
+    });
+    this.nextPattern = now + end + 3600;
   }
 
   /** A plate of armour comes off and clatters to the floor. */
@@ -153,7 +227,19 @@ export class DerangedDrongusBoss extends Boss {
     this.setFlipX(dir < 0);
     if (this.open) body.setVelocityX(0);
     else if (this.grounded()) body.setVelocityX(Math.abs(p.x - this.x) > 200 ? dir * (fast ? 110 : 80) * w.enemyTimeScale : 0);
+    // nearly beaten: the last stand (on the floor, announced by the scene, then the rain)
+    if (this.lastStand === "no" && this.phase >= 2 && this.hp < this.maxHp * 0.15 && this.grounded() && !this.open) {
+      this.lastStand = "pending";
+      this.scene.events.emit("epic-phase", this, "LAST STAND!", "#7dff8a");
+      this.nextPattern = now + 400;
+      return;
+    }
     if (now < this.nextPattern) return;
+    if (this.lastStand === "pending") {
+      this.lastStand = "done";
+      this.plasmaRain(now);
+      return;
+    }
     const tele = 800 * w.telegraphMult;
     const step = this.patternIdx++ % 6;
     if (step === 0) {
@@ -296,6 +382,10 @@ export class DerangedDrongusBoss extends Boss {
   /** Beaten: no spin-and-vanish (the scene runs deathSequence). */
   kill() {
     this.dead = true;
+    this.alarmOff?.();
+    this.alarmOff = null;
+    this.rageFx?.destroy();
+    this.rageFx = null;
     this.hpBar?.destroy();
     this.disableBody(true, false);
     this.sweepG?.destroy();
@@ -312,7 +402,8 @@ export class DerangedDrongusBoss extends Boss {
     return (async () => {
       this.setFlipX(this.cauldron.x < this.x);
       this.gun?.setVisible(false);
-      // NOOOO
+      // NOOOO (the money shot: his armour blowing off him)
+      void Juice.still(sc, "fe_still_drongus_break", 1000);
       shout(0, 34);
       synth.play("roar");
       w.shake(1200, 0.02);
@@ -365,6 +456,8 @@ export class DerangedDrongusBoss extends Boss {
       await wait(900);
       synth.play("jet");
       synth.play("boom");
+      // the money shot: up he goes, through the roof
+      void Juice.still(sc, "fe_still_drongus_launch", 1150, { push: 0.15, shakeK: 0.02 });
       w.shake(700, 0.035);
       sc.cameras.main.flash(400, 255, 230, 140);
       const rocket = sc.add.container(cx, this.cauldron.y - 40).setDepth(960);

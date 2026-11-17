@@ -11,6 +11,8 @@ import { censorRect } from "../../gfx/Censor";
 import { playerKey, sanmikYee } from "../../gfx/sanmikForm";
 import { hasVfx, vfx } from "../../gfx/Vfx";
 import * as FR from "../../../content/finaleRoof";
+import { BOSS_TEXT } from "../../../content/bosses";
+import * as Juice from "../../gfx/Juice";
 import { FINALE_BOTTLE_AT, FINALE_LOGS_AT, roofPreload, roofReady } from "./RoofArena";
 
 /**
@@ -213,6 +215,8 @@ export class RoofCutscene extends Phaser.Scene {
     synth.play("squelch");
     synth.play("hit");
     this.caption("*SHLUNK*", "#ffffff", 42, 0.6);
+    void Juice.impactFrames(this, d, 60);
+    Juice.speedLines(this, 600, GOLD);
     this.tweens.add({ targets: syr, x: d.x + 14, y: headY() - 6, duration: 120 });
     await this.wait(700);
     this.tweens.add({ targets: syr, alpha: 0, angle: 300, x: syr.x + 100, y: FLOOR, duration: 600, onComplete: () => syr.destroy() });
@@ -262,9 +266,14 @@ export class RoofCutscene extends Phaser.Scene {
       synth.play("roar");
       if (i === 2) this.groundCracks();
       if (i === 3) this.lightning(0.8);
+      // the juice reaches his eyes
+      if (i === 4) void Juice.eyeShot(this, "fe_eyes_dd", 700, { color: GOLD });
       await this.wait(1200);
     }
-    // the change
+    // the change: the money shot first
+    synth.play("explode_2");
+    Juice.subDrop(1, 2);
+    await Juice.still(this, "fe_still_dd_transform", 1300, { push: 0.14, shakeK: 0.02 });
     this.cameras.main.flash(500, 255, 240, 180);
     synth.play("boom");
     if (xf) {
@@ -284,11 +293,12 @@ export class RoofCutscene extends Phaser.Scene {
     this.cameras.main.shake(900, 0.02);
     await this.wait(900);
     // the eyes: anime close-up
+    await Juice.eyeShot(this, "fe_eyes_dd", 900, { color: GOLD });
     await this.closeUp("HIS EYES…", 1900);
     await this.talk(FR.XF_AFTER);
-    this.caption("DARK DRONGUS", "#ffd23f", 56, 2.2);
+    // the freeze-frame title card
     synth.play("roar");
-    await this.wait(2000);
+    await Juice.bossCard(this, "DARK DRONGUS", BOSS_TEXT.dark_drongus?.title ?? "", "#ffd23f");
     idle.remove();
   }
 
@@ -434,6 +444,8 @@ export class RoofCutscene extends Phaser.Scene {
     synth.laser(5);
     synth.play("boom");
     this.impactFrames(3);
+    // the money shot: straight down his throat
+    await Juice.still(this, "fe_still_group_krezz", 1100, { push: 0.15, shakeK: 0.025 });
     const beam = this.add.graphics().setDepth(65).setBlendMode(Phaser.BlendModes.ADD);
     const mouth = { x: d.x + 4, y: d.y - d.displayHeight * 0.72 };
     const beamEv = this.time.addEvent({
@@ -767,6 +779,8 @@ export class RoofCutscene extends Phaser.Scene {
     }
     await this.wait(3200);
     ev.remove();
+    // the wide shot from across town: the whole tower going, and the lads riding it down
+    await Juice.still(this, "fe_still_collapse", 1400, { push: 0.1, shakeK: 0.015 });
     this.tweens.add({ targets: c, alpha: 0, duration: 300, onComplete: () => c.destroy() });
     await this.wait(300);
   }

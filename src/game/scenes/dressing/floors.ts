@@ -1,8 +1,10 @@
 import type Phaser from "phaser";
 
 /**
- * Code-drawn floor tiles for the dressed top-down rooms (no art needed). Each one is a seamless 64x64 tile,
- * drawn once into the texture manager as `ddf_<name>`. Shapes are whole pixels so they sit with the pixel art.
+ * Floor tiles for the dressed top-down rooms. The PixelLab ones (public/art/tiles/ddf_<name>.png, seamless 64x64,
+ * muted so the fighters, pickups and bullets read on them) come in through the art manifest as `ddf_<name>`; these
+ * code-drawn ones are the fallback, drawn once into the texture manager under the same key if the picture's missing.
+ * Shapes are whole pixels so they sit with the pixel art.
  */
 
 type Ctx = CanvasRenderingContext2D;
@@ -233,12 +235,31 @@ const DRAW: Record<string, (ctx: Ctx, r: () => number) => void> = {
   },
 };
 
-/** The floor texture key for `name`, drawing it the first time. */
+/**
+ * Floors with no code-drawn version: what to use if the PixelLab tile isn't there (an older theme tile, and the tint
+ * that tile wants).
+ */
+const FALLBACK: Record<string, [string, number?]> = {
+  parquet: ["tile_mansion"],
+  hall: ["tile_lounge"],
+  pub: ["tile_pub", 0xb08a70],
+  colon: ["tile_colon"],
+};
+
+/** The tint the fallback for `name` wants, when the fallback is what's in use (else undefined). */
+export function floorFallbackTint(sc: Phaser.Scene, name: string): number | undefined {
+  return sc.textures.exists(`ddf_${name}`) ? undefined : FALLBACK[name]?.[1];
+}
+
+/**
+ * The floor texture key for `name`: the PixelLab tile (public/art/tiles/ddf_<name>.png, a seamless 64x64, loaded from
+ * the art manifest under the same key) if it's there, else the code-drawn one (drawn the first time), else a theme tile.
+ */
 export function floorTile(sc: Phaser.Scene, name: string): string | null {
   const key = `ddf_${name}`;
   if (sc.textures.exists(key)) return key;
   const draw = DRAW[name];
-  if (!draw) return null;
+  if (!draw) return FALLBACK[name] && sc.textures.exists(FALLBACK[name][0]) ? FALLBACK[name][0] : null;
   const t = sc.textures.createCanvas(key, 64, 64);
   if (!t) return null;
   const ctx = t.getContext();

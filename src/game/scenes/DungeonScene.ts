@@ -50,7 +50,7 @@ import { forcedKreltality, kreltality, type KrelTarget } from "../combat/Kreltal
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { Kit } from "./dressing/kit";
 import { dressingFor } from "./dressing/rooms";
-import { floorTile } from "./dressing/floors";
+import { floorFallbackTint, floorTile } from "./dressing/floors";
 
 interface Shot {
   spr: Phaser.GameObjects.Image;
@@ -705,7 +705,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (r.theme === "mind") this.mindTile();
     if (dressing?.floor) themeTile = floorTile(this, dressing.floor) ?? (this.textures.exists(dressing.floor) ? dressing.floor : themeTile);
     const floor = this.add.tileSprite(0, 0, r.w, r.h, themeTile).setOrigin(0).setDepth(0);
+    const fallbackTint = dressing?.floor ? floorFallbackTint(this, dressing.floor) : undefined;
     if (dressing?.floorTint !== undefined) floor.setTint(dressing.floorTint);
+    else if (fallbackTint !== undefined) floor.setTint(fallbackTint);
     if (dressing?.floorScale) floor.setTileScale(dressing.floorScale);
     const wallCol = { school: 0x6b5b4b, mansion: 0x3b2a1a, lounge: 0xd9ccae, network: 0x0b1530, industrial: 0x1f2937, temple: 0x4a3a2a, prison: 0x111827, wiki: 0xa2a9b1, colon: 0x7a1f3a, mind: 0xb0246b, citadel: 0x140c1c }[r.theme];
     const g = this.add.graphics().setDepth(1);
@@ -2790,6 +2792,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (e instanceof Boss && e.shielded) {
       if (opts.label !== "" && Math.random() < 0.3) this.floatText(e.x, e.y - 40, "SHIELDED", "#88aaff", 12);
       return;
+    }
+    // shield phases (BossShield.ts): immune while it's up, bonus while it's down, clamped at each threshold
+    if (e instanceof Boss && e.guard) {
+      a = e.guard.damage(a, opts);
+      if (a <= 0) return;
     }
     const hpBefore = e.hp;
     e.hp -= a;

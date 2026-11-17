@@ -38,7 +38,7 @@ const EXT_DAY = "tv_tcc_ext_day";
 const AT_THE_FIRM = new Set(["tv_tcc_pitch", "tv_tcc_bullpen"]);
 /** Where a billboard stands in a set, in the set's own pixels (256x192): centre x, top y, width. */
 const SET_BILLBOARD: Record<string, { which: Billboard; x: number; y: number; w: number }> = {
-  tv_tcc_cafe: { which: "seniors", x: 36, y: 22, w: 58 },
+  tv_tcc_cafe: { which: "seniors", x: 35, y: 16, w: 66 },
   tv_tcc_school: { which: "kids", x: 206, y: 2, w: 92 },
 };
 /** The montage: each billboard going up, and where. */
@@ -301,7 +301,7 @@ export class SitcomDirector extends ShowDirector {
       this.backdrop(this.tex("tv_tcc_bb_highway"));
       const order: Billboard[] = ["seniors", "refugees", "kids", "ds", "nuns"];
       order.forEach((w, i) => this.later(i * 260, () => {
-        this.billboardFrame(w, SX + SW * (0.12 + i * 0.19), SY + SH * (0.06 + (i % 2) * 0.12), SW * 0.2);
+        this.billboardFrame(w, SX + SW * [0.18, 0.34, 0.5, 0.66, 0.82][i], SY + SH * (i % 2 ? 0.3 : 0.02), SW * 0.34);
         this.sfx("pop");
       }));
       this.push(1.06, 3000, this.cx, SY + SH * 0.35);

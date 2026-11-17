@@ -60,9 +60,22 @@ export function billboardPanel(sc: Phaser.Scene, add: <T extends Phaser.GameObje
   let size = Math.floor(th * 0.42);
   const t = add(sc.add.text(tx + tw / 2, py + th / 2, SLOGANS[which], { fontFamily: FONT, fontSize: `${size}px`, color: "#16285a", fontStyle: "bold", align: "center", wordWrap: { width: tw } }).setOrigin(0.5));
   t.setLineSpacing(-Math.round(size * 0.15));
-  while (size > 5 && (t.height > th || t.width > tw)) {
+  while (size > 7 && (t.height > th || t.width > tw)) {
     size--;
     t.setFontSize(size).setLineSpacing(-Math.round(size * 0.15));
+  }
+  // a small poster (seen across the street): below the font's smallest legible size it's scaled instead
+  if (t.height > th || t.width > tw) {
+    // (wrapped wider, so it keeps its shape: whichever wrap ends up biggest)
+    let best = 0;
+    let bestW = tw;
+    for (const k of [1, 1.4, 1.8, 2.4]) {
+      t.setWordWrapWidth(tw * k);
+      const s = Math.min(th / t.height, tw / t.width);
+      if (s > best) [best, bestW] = [s, tw * k];
+    }
+    t.setWordWrapWidth(bestW);
+    t.setScale(Math.min(1, best));
   }
   // the firm, along the bottom
   add(sc.add.rectangle(x, y + h - foot, w, foot, 0xc81e3a).setOrigin(0));

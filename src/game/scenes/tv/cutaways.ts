@@ -150,7 +150,7 @@ function chomlate(k: CutKit) {
     c.add(k.text(34, -24, "CHOMLATE", 17, "#ffd23f", { fontStyle: "bold", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5));
     c.add(k.text(34, 12, q, 9, "#ffffff", { align: "center", fontStyle: "italic", wordWrap: { width: 104 } }).setOrigin(0.5));
     c.setAngle([-8, 3, 9][i]).setScale(0);
-    k.sc.tweens.add({ targets: c, scale: 1, duration: 420, delay: 250 + i * 260, ease: "Back.out", onStart: () => k.sfx("pop") });
+    k.sc.tweens.add({ targets: c, scale: 1, duration: 300, delay: 120 + i * 140, ease: "Back.out", onStart: () => k.sfx("pop") });
     k.sc.tweens.add({ targets: c, y: c.y - 6, duration: 1300 + i * 200, yoyo: true, repeat: -1, ease: "Sine.easeInOut", delay: 800 });
   });
   k.every(260, () => {

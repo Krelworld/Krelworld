@@ -75,7 +75,7 @@ const LUKEMIND_SELF: ArcStep[] = [
       intro: [
         dir("The rubble's still smoking. Your phone buzzes. Unknown number: 'CARAVAN. TONIGHT. BRING YOUR OWN SPOON.'"),
         say("CRONGUS", "No."),
-        say("CRONGUS", "No no no. I can feel it. In there. Behind my eyes. Something with horns, made of custard, shouting."),
+        say("CRONGUS", "No no no. I can feel it. In there. Behind my eyes. Something with my face, grinning at me, shouting."),
         say("CRONGUS", "It's not the pudding. It was never the pudding. It's the demons."),
         say("CRONGUS", "I need to kill the demons in my head."),
         dir("You pat your pockets. Ministerial pills. Strictly for emergencies. This is an emergency."),

@@ -20,7 +20,7 @@ import { BRIDGE_Y0, BRIDGE_Y1, KE, KGROUND, glowTexture, snapKreddle, type FlyBo
 export const FLY_STOPS: { x: number; y: number; head: string; cap: string }[] = [
   { x: 1280, y: 1300, head: "WILDERN ACADEMY", cap: "WILDERN ACADEMY. The local school. The new headmaster is said to be very… krazy." },
   { x: 1650, y: 1080, head: "THE KRELTOWER", cap: "THE KRELTOWER. The tallest building in Krelford. Nobody's sure what's on the top floor. Nobody's asked." },
-  { x: 2440, y: 1010, head: "POLSON TOWERS", cap: "POLSON TOWERS (down that road). Polson HQ. Home of Polson, a lot of stuff, and every decision he's ever not made. Thoughts? Wbu?" },
+  { x: 2470, y: 1010, head: "POLSON TOWERS", cap: "POLSON TOWERS. Polson HQ. Home of Polson, a lot of stuff, and every decision he's ever not made. Thoughts? Wbu?" },
   { x: 1900, y: 440, head: "THE HISTORICAL ARCHIVE", cap: "THE HISTORICAL ARCHIVE. Every message ever sent, kept forever. The FGM War Room is in the basement." },
   { x: 1280, y: 440, head: "KRELFORD TOWN HALL", cap: "KRELFORD TOWN HALL. Where the cabinet meets, argues, and governs." },
   { x: 1280, y: 800, head: "THE GREAT PUSSY JUICE TAP", cap: "THE GREAT PUSSY JUICE TAP. It heals. It nourishes. It is the national drink. Never let it stop. It comes from the juice of women's pussies" },
@@ -117,8 +117,8 @@ const SHOTS: [Omit<Aim, "x" | "y">, Omit<Aim, "x" | "y">][] = [
   [{ d: 900, p: 48, yaw: 0, r: 0 }, { d: 720, p: 52, yaw: -10, r: 0 }],
   // the Kreltower: low, orbiting round it
   [{ d: 1000, p: 16, yaw: 125, r: 4 }, { d: 880, p: 20, yaw: 195, r: -3 }],
-  // Polson Towers: looking east down the road
-  [{ d: 560, p: 15, yaw: 84, r: 0 }, { d: 720, p: 12, yaw: 98, r: 2 }],
+  // Polson Towers: low, pushing in on the front of the terrace
+  [{ d: 620, p: 28, yaw: 22, r: 0 }, { d: 500, p: 32, yaw: 8, r: 1 }],
   // the Archive: a truck along the front
   [{ d: 760, p: 40, yaw: 28, r: 0 }, { d: 700, p: 44, yaw: 8, r: 0 }],
   // the Town Hall: head-on, pushing in

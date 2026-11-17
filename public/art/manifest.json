@@ -8455,6 +8455,21 @@
   },
   "tv_p2_table": {
    "file": "backdrops/tv_p2_table.png"
+  },
+  "fe_cut_drongus1": {
+   "file": "finale/fe_cut_drongus1.png"
+  },
+  "fe_cut_drongus2": {
+   "file": "finale/fe_cut_drongus2.png"
+  },
+  "fe_cut_concept": {
+   "file": "finale/fe_cut_concept.png"
+  },
+  "fe_cut_concept_hurt": {
+   "file": "finale/fe_cut_concept_hurt.png"
+  },
+  "fe_cut_goku": {
+   "file": "finale/fe_cut_goku.png"
   }
  },
  "sheets": {
@@ -10883,6 +10898,26 @@
    "loop": true,
    "ox": 0.489,
    "oy": 0.68
+  },
+  "fe_vfx_clash": {
+   "file": "vfx/fe_vfx_clash.png",
+   "w": 88,
+   "h": 86,
+   "frames": 10,
+   "fps": 16,
+   "loop": false,
+   "ox": 0.511,
+   "oy": 0.43
+  },
+  "fe_vfx_darkaura": {
+   "file": "vfx/fe_vfx_darkaura.png",
+   "w": 117,
+   "h": 230,
+   "frames": 12,
+   "fps": 12,
+   "loop": true,
+   "ox": 0.513,
+   "oy": 0.896
   }
  }
 }

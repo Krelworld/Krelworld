@@ -80,6 +80,8 @@ const SHAKE = () => G.meta.settings.shake;
  *  slow-mo killing blow. (Kept to these so the earlier chapters play exactly as before.) */
 /** Bosses that stage their own phase breaks (epic-phase events) instead of the generic half-health pulse. */
 const OWN_PHASE_BREAKS = new Set(["drongus1", "drongus2"]);
+/** Close-up cut-ins (PixelLab stills) for a boss's phase breaks. */
+const PHASE_CUTINS: Record<string, string> = { drongus1: "fe_cut_drongus1", drongus2: "fe_cut_drongus2", concept: "fe_cut_concept_hurt" };
 const EPIC_BOSSES: Record<string, string> = { krozno: "#38bdf8", krex: "#a855f7", elon: "#22d3ee", drongus1: "#ef4444", drongus2: "#ff2a2a" };
 
 const clearKey = (dungeon: string, room: number) => `dclr_${dungeon}_${room}`;
@@ -2048,7 +2050,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     Juice.debris(this, b.x, b.y + b.displayHeight * 0.3, 14, { depth: b.depth + 2, speed: 380, size: 8 });
     const stopLines = Juice.speedLines(this, 900, colN);
     Juice.slamText(this, line, col, 40, 140, 950);
-    await Juice.realWait(1150);
+    const cut = PHASE_CUTINS[b.bossId];
+    if (cut && this.textures.exists(cut)) await Promise.all([Juice.realWait(1150), Juice.cutIn(this, cut, { from: "left", y: 340, color: colN, hold: 850 })]);
+    else await Juice.realWait(1150);
     stopLines();
     if (!this.sys.settings.active) return;
     for (const sh of [...this.shots]) if (sh.o.owner === "enemy") this.killShot(sh);

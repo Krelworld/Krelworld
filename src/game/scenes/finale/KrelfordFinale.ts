@@ -176,6 +176,7 @@ export class KrelfordFinale {
       boss.started = true;
       boss.nextPattern = h.now() + 1500;
       this.spiritGauge();
+      this.darkAura();
       h.toast("SUPER KRELWORLD KREW", "Real damage now. Hold out until Goku's SPIRIT CUM is ready.");
       return;
     }
@@ -573,6 +574,7 @@ export class KrelfordFinale {
     await Juice.bossCard(h.sc, "SUPER KRELWORLD KREW", "REAL DAMAGE · HOLD OUT FOR THE SPIRIT CUM", "#ffd23f");
     if (this.gone) return;
     this.spiritGauge();
+    this.darkAura();
     this.stage = "real";
     b.mode = "real";
     b.nextPattern = h.now() + 900;
@@ -670,6 +672,7 @@ export class KrelfordFinale {
     Juice.duckMusic(2400, 800, 0.08);
     for (let i = 0; i < 4; i++) h.time.delayedCall(i * 560, () => Juice.heartbeat(0.9));
     Juice.slamText(h.sc, FB.FB_NO, "#ff3b3b", 64, 200, 1600);
+    h.time.delayedCall(700, () => void Juice.cutIn(h.sc, "fe_cut_concept", { from: "left", y: 390, color: 0xef4444, hold: 1000 }));
     await b.fullHeal(2200, finalFact);
     if (this.gone) return;
     close(400);
@@ -783,6 +786,7 @@ export class KrelfordFinale {
     await this.wait(550);
     if (this.gone) return;
     b.roar();
+    void Juice.cutIn(h.sc, "fe_cut_concept", { from: "left", y: 380, color: 0xa855f7, hold: 900 });
     Juice.subDrop(1, 1.8);
     h.shake(1100, 0.018);
     Juice.shockRing(h.sc, b.x, b.y + 60, { color: 0xa855f7, to: 1100, rings: 4, ms: 1000, flat: 0.55 });
@@ -824,6 +828,21 @@ export class KrelfordFinale {
     cam.zoomTo(z0, 400, "Sine.easeInOut", true);
     cam.startFollow(h.player.spr, true, 0.12, 0.12);
     if (!wasBusy) h.busy = false;
+  }
+
+  /** Real phase: it's hurt and furious, and black-violet flame stands up off it. */
+  private darkAura() {
+    const h = this.h;
+    const b = this.boss;
+    const a = vfx(h.sc, "fe_vfx_darkaura", b.x, b.y + b.displayHeight * 0.32, { scale: 3.4, depth: b.depth - 1, alpha: 0.4, add: true });
+    if (!a) return;
+    const follow = () => {
+      if (!a.active || !b.active) return;
+      a.setPosition(b.x, b.y + b.displayHeight * 0.32).setDepth(b.depth - 1);
+    };
+    h.sc.events.on("postupdate", follow);
+    a.once("destroy", () => h.sc.events.off("postupdate", follow));
+    b.once("destroy", () => a.destroy());
   }
 
   /** The SPIRIT CUM gauge, top of the screen: fills as the monster weakens. */

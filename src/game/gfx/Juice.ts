@@ -335,6 +335,87 @@ export function speedLines(sc: Phaser.Scene, ms = 900, color = 0xffffff, depth =
   return stop;
 }
 
+/**
+ * An anime cut-in: a slanted band whips across the screen with a close-up in it (speed lines behind, coloured
+ * edges), holds a beat, and whips out the far side. Screen-space. Any image works: it's scaled to the band's width
+ * and cropped to its height (`focus` is where the crop sits, 0 top .. 1 bottom). Resolves when it's gone.
+ */
+export function cutIn(sc: Phaser.Scene, key: string, o: { from?: "left" | "right"; y?: number; color?: number; hold?: number; depth?: number; flipX?: boolean; focus?: number; frame?: number; w?: number; h?: number } = {}): Promise<void> {
+  return new Promise((res) => {
+    if (!alive(sc) || !sc.textures.exists(key)) return res();
+    const y = o.y ?? 300;
+    const H = o.h ?? 168;
+    const W = o.w ?? 560;
+    const col = o.color ?? 0xffffff;
+    const dir = o.from === "right" ? -1 : 1;
+    const root = sc.add.container(0, 0);
+    layer(sc, o.depth ?? 4994).add(root);
+    const tilt = -2.2;
+    const band = sc.add.rectangle(480, y, 1300, H, 0x05010c, 0.96).setAngle(tilt);
+    const edgeA = sc.add.rectangle(480, y, 1300, 5, col, 1).setAngle(tilt);
+    const edgeB = sc.add.rectangle(480, y, 1300, 5, col, 1).setAngle(tilt);
+    // (the edges sit on the band's long sides, tilted with it)
+    const rad = Phaser.Math.DegToRad(tilt);
+    edgeA.setPosition(480 + Math.sin(rad) * (H / 2), y - Math.cos(rad) * (H / 2));
+    edgeB.setPosition(480 - Math.sin(rad) * (H / 2), y + Math.cos(rad) * (H / 2));
+    const lines = sc.add.graphics();
+    const drawLines = () => {
+      if (!lines.active) return;
+      lines.clear();
+      for (let i = 0; i < 22; i++) {
+        const ly = y + (Math.random() - 0.5) * (H - 16);
+        const x0 = Math.random() * 960;
+        lines.lineStyle(1 + Math.random() * 2, col, 0.25 + Math.random() * 0.35).lineBetween(x0, ly, x0 + 120 + Math.random() * 260, ly - 0.04 * (120 + Math.random() * 260));
+      }
+    };
+    drawLines();
+    const lineTimer = window.setInterval(drawLines, 50);
+    const img = sc.add.image(480, y, key, o.frame);
+    const tex = img.frame;
+    const k = W / tex.realWidth;
+    const cropH = Math.min(tex.realHeight, (H - 10) / k);
+    const top = Phaser.Math.Clamp((tex.realHeight - cropH) * (o.focus ?? 0.35), 0, tex.realHeight - cropH);
+    const hd = hdFactor(img as { texture?: Phaser.Textures.Texture });
+    img.setScale(k / hd);
+    img.setCrop(0, top, tex.realWidth, cropH);
+    // setCrop keeps the frame's full size: shift so the cropped strip sits in the middle of the band
+    img.setY(y - (top + cropH / 2 - tex.realHeight / 2) * k);
+    img.setFlipX(!!o.flipX);
+    img.setAngle(tilt);
+    root.add([band, lines, img, edgeA, edgeB]);
+    root.x = dir * 1000;
+    synth.play("swing");
+    sc.tweens.add({
+      targets: root,
+      x: 0,
+      duration: 200,
+      ease: "Cubic.out",
+      onComplete: () => {
+        if (!root.active) return res();
+        sc.tweens.add({ targets: img, x: img.x + dir * 22, duration: o.hold ?? 900 });
+        window.setTimeout(() => {
+          if (!root.active) {
+            window.clearInterval(lineTimer);
+            return res();
+          }
+          sc.tweens.add({
+            targets: root,
+            x: -dir * 1000,
+            duration: 200,
+            ease: "Cubic.in",
+            onComplete: () => {
+              window.clearInterval(lineTimer);
+              root.destroy();
+              res();
+            },
+          });
+        }, o.hold ?? 900);
+      },
+    });
+    sc.events.once("shutdown", () => window.clearInterval(lineTimer));
+  });
+}
+
 /** A pulsing alarm light over the whole screen (red by default) for the rest of a fight. Returns an off(). */
 export function alarmLight(sc: Phaser.Scene, color = 0xff1a1a, depth = 940, peak = 0.16) {
   const r = sc.add.rectangle(480, 270, 2200, 1400, color, 0).setScrollFactor(0).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);

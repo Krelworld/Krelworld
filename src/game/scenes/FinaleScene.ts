@@ -695,7 +695,14 @@ export class FinaleScene extends Phaser.Scene {
     await new Promise<void>((res) => this.tweens.add({ targets: orb, x: 520, y: mouth.y - 10, scale: 1.15, duration: 650, ease: "Quad.in", onComplete: () => res() }));
     trail.remove();
     this.cameras.main.zoomTo(1, 300);
+    // the two of them, close up: it roars, Goku screams
+    const aura = vfx(this, "fe_vfx_darkaura", dragon.x, dragon.y - 6, { scale: 2.6, depth: dragon.depth - 1, alpha: 0.6, add: true });
+    if (!synth.shout("concept_roar", 1, 0.8)) synth.play("roar");
+    this.cameras.main.shake(700, 0.012);
+    await Juice.cutIn(this, "fe_cut_concept", { from: "left", y: 170, color: 0xa855f7, hold: 650 });
+    await Juice.cutIn(this, "fe_cut_goku", { from: "right", y: 170, color: 0xffd23f, hold: 650 });
     await this.beamStruggle(orb, gk, mouth);
+    aura?.destroy();
     this.cameras.main.zoomTo(1.15, 200);
     await new Promise<void>((res) => this.tweens.add({ targets: orb, x: dragon.x + 30, y: dragon.y - dragon.displayHeight * 0.55, scale: 3.6, duration: 260, ease: "Quad.in", onComplete: () => res() }));
     await Juice.impactFrames(this, dragon, 70);
@@ -762,6 +769,8 @@ export class FinaleScene extends Phaser.Scene {
       let t = (orb.x - mouth.x) / (src.x - mouth.x);
       let mash = 0;
       let elapsed = 0;
+      let lastBurst = 0;
+      let youCut = false;
       let done = false;
       this.clashing = true;
       const beams = this.add.graphics().setDepth(66).setBlendMode(Phaser.BlendModes.ADD);
@@ -843,7 +852,16 @@ export class FinaleScene extends Phaser.Scene {
           const v = 60 + Math.random() * 160;
           this.tweens.add({ targets: sp, x: cx + Math.cos(a) * v, y: cy + Math.sin(a) * v, alpha: 0, duration: 380, onComplete: () => sp.destroy() });
         }
-        if (Math.random() < 0.06 && hasVfx(this, "vfx_sparks")) vfx(this, "vfx_sparks", cx, cy, { scale: 1.6, depth: 73, add: true });
+        // halfway in, you: your own super saiyan close-up whips across
+        if (!youCut && elapsed > 2.2) {
+          youCut = true;
+          const por = ssjPortraitKey(this, G.s.player);
+          if (por) void Juice.cutIn(this, por, { from: "right", y: 150, color: 0xffe066, hold: 700, focus: 0.42, w: 480 });
+        }
+        if (elapsed - lastBurst > 0.22) {
+          lastBurst = elapsed;
+          if (!vfx(this, "fe_vfx_clash", cx + (Math.random() - 0.5) * 20, cy + (Math.random() - 0.5) * 20, { scale: 1.6 + Math.random() * 0.8, depth: 73, add: true, angle: Math.random() * 360 }) && hasVfx(this, "vfx_sparks")) vfx(this, "vfx_sparks", cx, cy, { scale: 1.6, depth: 73, add: true });
+        }
         orb.setScale(1.15 + Math.sin(elapsed * 30) * 0.12);
         const k = 1 - t;
         if (!calm && Math.random() < 0.25) this.cameras.main.shake(80, 0.004 + k * 0.01);

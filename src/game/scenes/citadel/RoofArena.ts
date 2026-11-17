@@ -370,10 +370,12 @@ export class RoofArena {
     if (n >= total) {
       const set = (sc as unknown as { setSlowmo?: (k: number) => void }).setSlowmo?.bind(sc);
       Juice.slowMo(sc, 0.3, 900, set);
-      Juice.flash(sc, 0xffd23f, 500, 0.5, 4880);
+      Juice.flash(sc, 0xffd23f, 500, 0.32, 4880);
       Juice.slamText(sc, "EVERYONE'S OUT!", "#ffd23f", 52, 170, 1100);
       Juice.subDrop(0.8, 1.2);
-    } else if (n === Math.ceil(total / 2)) Juice.slamText(sc, "HALF THE LADS ARE FREE", "#fde68a", 34, 150, 900);
+      // and him, close up, losing it
+      sc.time.delayedCall(250, () => void Juice.cutIn(sc, "fr_dd_face", { from: "left", y: 370, color: 0xffd23f, hold: 800, focus: 0.42, w: 520 }));
+    } else if (n === Math.ceil(total / 2)) Juice.slamText(sc, "HALF OF THEM FREE!", "#fde68a", 34, 200, 900);
   }
 
   // ---------------------------------------------------------------- the group wonk

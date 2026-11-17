@@ -39,6 +39,7 @@ import { KrelfordFinale } from "./finale/KrelfordFinale";
 import { finalePreload } from "./finale/finaleArt";
 import { SanBrother } from "../combat/SanBrother";
 import { SideLevel } from "./side/SideLevel";
+import { ColonTube } from "./side/Colon";
 import { runChain, switchTo } from "../Flow";
 import { say, dir, gabor } from "../../content/dsl";
 import { FONT } from "../ui/theme";
@@ -142,6 +143,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   side = false;
   private bros: SanBrother[] = [];
   private sideLevel: SideLevel | null = null;
+  /** Inside Uncle Rik, side-on: the tube's dressing (ceiling, folds, mucus, the big squeeze). */
+  private colonTube: ColonTube | null = null;
   groundY = 0;
   private platforms: Phaser.Physics.Arcade.StaticGroup | null = null;
   private sideBg: Phaser.GameObjects.TileSprite | null = null;
@@ -282,6 +285,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.sideBg = null;
     this.towerBg = null;
     this.sideLevel = this.side ? new SideLevel(this as any, r) : null;
+    this.colonTube = this.side && r.theme === "colon" ? new ColonTube(this as any, r) : null;
     if (this.side) {
       // with holes in the floor, the floor is made of blocks and the world carries on underneath
       this.physics.world.setBounds(24, 0, r.w - 48, this.sideLevel?.hasGaps ? r.h + 400 : this.groundY);
@@ -334,7 +338,10 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     this.controls = new Controls(this);
     // died fighting a mini-boss? Back in at the start of its arena, not the start of the room
-    const cp = r.miniBoss ? G.s.flags[this.miniBossKey()] : undefined;
+    let cp = r.miniBoss ? G.s.flags[this.miniBossKey()] : undefined;
+    // back inside Uncle Rik with the crystal already out: in again where it was, not at the far end of the tube
+    const crystal = this.side && G.s.flags.rik_crystal_taken ? r.props?.find((q) => q.kind === "crystal_wall") : undefined;
+    if (crystal && cp === undefined) cp = `${Math.round(r.w * crystal.x)},${this.groundY - 40}`;
     const cpx = typeof cp === "string" ? Number(cp.split(",")[0]) : NaN;
     const cpy = typeof cp === "string" ? Number(cp.split(",")[1]) : NaN;
     const startX = this.side ? (Number.isFinite(cpx) ? cpx : 90) : r.w / 2;
@@ -544,6 +551,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       const y = gy - h;
       if (this.citadel) {
         this.citadel.platform(x, y, w, !!r.tower);
+      } else if (this.colonTube) {
+        this.colonTube.platform(x, y, w);
       } else if (r.tower && this.textures.exists("tw_ledge")) {
         // PixelLab gothic ledge: carved arches, gold trim, corbels; capped with a dark edge each end
         this.add.tileSprite(x, y - 9, w, 29, "tw_ledge").setOrigin(0.5, 0).setDepth(4);
@@ -583,6 +592,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     this.sideLevel?.build(this.platforms);
     this.obstacles = this.physics.add.staticGroup();
+    this.colonTube?.build(this.obstacles);
     const dx = r.exitAt ? r.w * r.exitAt[0] : r.w - 70;
     const dy = r.exitAt ? gy - r.exitAt[1] - 7 : gy;
     this.door = this.add.image(dx, dy - 30, "p_door_locked").setScale(2.2).setDepth(6);
@@ -928,6 +938,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const r = this.room;
     const x = r.w * p.x;
     const y = this.side ? this.groundY - 20 : r.h * p.y;
+    const y0 = y;
     switch (p.kind) {
       case "wonking_machine": {
         const spr = this.add.image(x, y, "p_wonking").setScale(2.4).setDepth(y);
@@ -1010,7 +1021,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         break;
       }
       case "crystal_wall": {
-        // the cum crystal, wedged in the colon wall
+        // the cum crystal, wedged in the colon wall (side-on: in the back wall, at about head height)
+        const y = this.side ? this.groundY - 120 : y0;
         const glow = this.add.circle(x, y, 46, 0xfff1f2, 0.25).setDepth(y - 1).setBlendMode(Phaser.BlendModes.ADD);
         this.add.ellipse(x, y + 4, 90, 60, 0x9f1239).setStrokeStyle(4, 0x4c0519).setDepth(y - 2);
         const cr = this.add.image(x, y, this.textures.exists("cum_crystal") ? "cum_crystal" : "p_scroll").setDepth(y);
@@ -1022,6 +1034,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
           x,
           y: y + 40,
           r: 70,
+          ...(this.side ? { y: this.groundY - 30, r: 90 } : {}),
           label: "Prise out the cum crystal",
           enabled: () => !G.s.flags.rik_crystal_taken,
           use: () => void this.takeRikCrystal([glow, cr, lab]),
@@ -3532,6 +3545,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (!this.busy) for (const b of this.bros) b.update(now, Math.min(delta, 50));
     this.sideLevel?.update(Math.min(delta, 50), this.busy);
     this.citadel?.update(Math.min(delta, 50));
+    this.colonTube?.update(Math.min(delta, 50), this.busy);
     this.roof?.update(Math.min(delta, 50));
     const mb = this.room.miniBoss;
     if (mb && this.miniBossState === "none" && !this.roomCleared && !this.busy && !this.transitioning) {

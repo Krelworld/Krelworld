@@ -40,7 +40,6 @@ import { finalePreload } from "./finale/finaleArt";
 import { SanBrother } from "../combat/SanBrother";
 import { SideLevel } from "./side/SideLevel";
 import { runChain, switchTo } from "../Flow";
-import { CHEESE_ACCUSATIONS, CHEESE_WITNESSES, DOMESTICS, MORK_ROUNDS } from "../../content/polsonEden";
 import { say, dir, gabor } from "../../content/dsl";
 import { FONT } from "../ui/theme";
 import { CHARACTERS } from "../../data/characters";
@@ -128,7 +127,6 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   private machineUses: Record<string, number> = {};
   private lastWitness = "none";
   private witnessed = new Set<string>();
-  private morkRound = 0;
   private lastHurtSfx = 0;
   private obstacles!: Phaser.Physics.Arcade.StaticGroup;
   private conflictUntil = 0;
@@ -219,7 +217,6 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.machineUses = {};
     this.lastWitness = "none";
     this.witnessed = new Set();
-    this.morkRound = 0;
     this.enemyTimeScale = 1;
     this.prophecyUntil = 0;
     G.rt.dungeonId = this.dungeon.id;
@@ -951,20 +948,6 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         this.interactables.push({ x, y: y + 30, r: 60, label: "Read", use: () => this.talk([dir(p.label ?? "")]) });
         break;
       }
-      case "witness": {
-        const sp = p.speaker!;
-        if (sp === "THE FRIDGE") this.add.image(x, y, "p_fridge").setScale(2.2).setDepth(y);
-        else this.add.sprite(x, y, `spr_${sp}`, 0).setScale(2.2).setDepth(y);
-        this.add.text(x, y - 46, sp === "THE FRIDGE" ? "THE FRIDGE" : CHARACTERS[sp]?.name ?? sp, { fontFamily: FONT, fontSize: "10px", color: "#ffd23f", backgroundColor: "#000000aa" }).setOrigin(0.5).setDepth(y + 1);
-        this.interactables.push({ x, y: y + 20, r: 60, label: `Question ${sp === "THE FRIDGE" ? "the Fridge" : CHARACTERS[sp]?.name}`, use: () => this.questionWitness(p.id!) });
-        break;
-      }
-      case "evidence_board": {
-        this.add.image(x, y, "p_board").setScale(2.2).setDepth(y);
-        this.add.text(x, y - 40, "EVIDENCE BOARD", { fontFamily: FONT, fontSize: "10px", color: "#ffd23f", backgroundColor: "#000000aa" }).setOrigin(0.5).setDepth(y + 1);
-        this.interactables.push({ x, y: y + 20, r: 60, label: "Make an accusation", enabled: () => !G.s.flags.cheesegate_solved, use: () => this.accuse() });
-        break;
-      }
       case "talker": {
         const key = p.image ?? `spr_${p.speaker}`;
         // playing as Mikey you're SanMik in here: no second one standing about
@@ -981,21 +964,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         this.interactables.push({ x, y: this.side ? this.groundY - 24 : y + 20, r: this.side ? 80 : 70, label: verb, use: () => void this.useTalker(p) });
         break;
       }
-      case "npc": {
-        this.add.sprite(x, y, `spr_${p.speaker}`, 0).setScale(2.2).setDepth(y);
-        this.add.text(x, y - 46, "POLSON (MORK MODE)", { fontFamily: FONT, fontSize: "10px", color: "#ffd23f", backgroundColor: "#000000aa" }).setOrigin(0.5).setDepth(y + 1);
-        this.interactables.push({ x, y: y + 20, r: 60, label: "Interpret the Mork Voice", enabled: () => !G.s.flags.mork_done, use: () => this.morkVoice() });
-        break;
-      }
       case "bertha": {
         this.add.image(x, y, "p_bertha").setScale(2.4).setDepth(y);
         this.interactables.push({ x, y: y + 40, r: 70, label: "Inspect Big Bertha", use: () => this.inspectBertha() });
-        break;
-      }
-      case "phone": {
-        this.add.image(x, y, "p_terminal").setScale(1.2).setDepth(y);
-        this.add.text(x, y - 30, "16/04/2022", { fontFamily: FONT, fontSize: "10px", color: "#7fb3ff", backgroundColor: "#000000aa" }).setOrigin(0.5).setDepth(y + 1);
-        this.interactables.push({ x, y, r: 60, label: "Fragmar Prime: send the messages (in the right order)", enabled: () => !G.s.flags.fragmar_prime, use: () => this.fragmarPrime() });
         break;
       }
       case "crystal_wall": {
@@ -1273,8 +1244,6 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const r = this.room;
     this.busy = true;
     const enter: Line[] = (r.enterLines ?? []).map((l) => ({ s: l.s, t: l.t, dir: l.dir, cond: l.cond, variants: l.variants, tag: "new" as const }));
-    if (r.event === "cheesegate") enter.push(...DOMESTICS[0].lines);
-    if (r.event === "mork") enter.push(...DOMESTICS[2].lines);
     if (r.rule) {
       const rule = BAN_RULES.find((b) => b.id === r.rule) ?? null;
       enter.push(say("DRONGUS", rule?.decree ?? "NEW RULE.", { notify: true, sfx: "decree" }));
@@ -1461,7 +1430,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (!this.roomCleared) return;
     if ((r.event === "anthem" || r.event === "stairs") && !this.exitOpen()) return;
     if (r.exitFlag && !G.s.flags[r.exitFlag]) {
-      this.toast("EXIT LOCKED", r.exitHint ? r.exitHint : r.event === "cheesegate" ? "Solve Cheesegate first." : r.event === "mork" ? "Interpret the Mork Voice first." : r.event === "valves" ? "Open all three valves." : "Restore the Reaction Network first.");
+      this.toast("EXIT LOCKED", r.exitHint ? r.exitHint : r.event === "valves" ? "Open all three valves." : "Restore the Reaction Network first.");
       return;
     }
     if (r.boss) return;
@@ -2442,117 +2411,13 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   // ------------------------------------------------------------------ events: Polson Towers
 
-  private async questionWitness(id: string) {
-    const w = CHEESE_WITNESSES.find((x) => x.id === id)!;
-    const key = w.testimony[this.lastWitness] ? this.lastWitness : "none";
-    const first = this.witnessed.size === 0;
-    this.witnessed.add(id);
-    await this.talk([...(w.testimony[key] ?? w.testimony.none), ...(first ? DOMESTICS[1].lines : [])]);
-    this.lastWitness = id;
-    if (this.witnessed.size === 3 && !G.s.flags.cheese_ready) {
-      G.s.flags.cheese_ready = true;
-      this.toast("CHEESEGATE", "All witnesses questioned. Ask them again in a different order, or accuse at the Evidence Board.");
-    }
-  }
 
-  private async accuse() {
-    if (this.witnessed.size < 3) {
-      await this.talk([dir("You haven't questioned everyone yet. The board is mostly blank. Someone has written 'cheese?' in the middle and circled it nine times.")]);
-      return;
-    }
-    if (this.enemies.some((e) => !e.dead)) {
-      this.toast("CHEESEGATE", "Deal with the Cheese Mites first.");
-      return;
-    }
-    const opts = CHEESE_ACCUSATIONS.map((a) => ({ label: a.label, lines: a.outcome, set: (a.correct ? { cheesegate_solved: true } : { cheese_wrong: true }) as Record<string, boolean> }));
-    await this.talk([{ s: "NARRATOR", t: "Who is responsible for Cheesegate?", dir: true, choice: opts }]);
-    if (G.s.flags.cheesegate_solved) {
-      this.roomCleared = true;
-      G.unlockArchive("arch_cheesegate");
-      this.checkExit();
-    } else {
-      // wrong: the real culprit's revealed, the mites come out, and the case is closed anyway (no resits)
-      const right = CHEESE_ACCUSATIONS.find((a) => a.correct);
-      if (right) await this.talk([dir(`Wrong. It was: ${right.label}. Everyone knew. Case closed.`)]);
-      G.s.flags.cheesegate_solved = true;
-      G.unlockArchive("arch_cheesegate");
-      this.roomCleared = false;
-      this.waveIdx = -1;
-      this.waves = [[["cheese_mite", 8]]];
-      this.nextWave();
-    }
-  }
 
-  private async morkVoice() {
-    if (this.morkRound >= MORK_ROUNDS.length) return;
-    const round = MORK_ROUNDS[this.morkRound];
-    synth.play("mork");
-    const opts = round.options.map((o, i) => ({ label: o.label, set: { mork_pick: i } }));
-    await this.talk([{ s: "POLSON", t: round.mork, tag: "new", choice: opts }]);
-    const pick = G.s.flags.mork_pick as number;
-    const o = round.options[pick];
-    if (o?.correct) {
-      this.morkRound++;
-      await this.talk([dir(round.success)]);
-      if (this.morkRound >= MORK_ROUNDS.length) {
-        G.s.flags.mork_done = true;
-        G.unlockArchive("arch_mork_voice");
-        this.toast("MORK VOICE", "Fully interpreted. Nobody knows how.");
-        this.checkExit();
-      }
-    } else {
-      // wrong: the penalty, the right answer, and on to the next round anyway (no resits)
-      const right = round.options.find((x) => x.correct);
-      if (right) await this.talk([dir(`The right answer was ${right.label}. Mork.`)]);
-      this.morkRound++;
-      if (this.morkRound >= MORK_ROUNDS.length) {
-        G.s.flags.mork_done = true;
-        G.unlockArchive("arch_mork_voice");
-        this.toast("MORK VOICE", "Interpreted. Badly. It'll do.");
-        this.checkExit();
-      }
-      const fail = o?.fail ?? "enemies";
-      if (fail === "trapdoor") {
-        this.floatText(this.player.x, this.player.y - 30, "TRAPDOOR", "#ff6666", 16);
-        this.damagePlayer(14, undefined, { unblockable: true });
-      } else if (fail === "enemies") {
-        for (let i = 0; i < 4; i++) this.spawnEnemy("cheese_mite", this.player.x + (Math.random() - 0.5) * 200, this.player.y - 100);
-      } else if (fail === "argument") {
-        await this.talk([say("EDEN", "(from upstairs) POLSON. WHAT DID YOU TELL THEM."), say("POLSON", "Mork."), dir("Two Friend Requests materialise from the argument.")]);
-        for (let i = 0; i < 2; i++) this.spawnEnemy("friend_crawler", this.player.x + (i ? 120 : -120), this.player.y - 120);
-      } else {
-        this.enemyAoe(this.player.x, this.player.y, 80, 14, 700, 0xffd23f);
-        this.floatText(this.player.x, this.player.y - 30, "WRONG BUTTON", "#ff6666", 14);
-      }
-    }
-  }
 
-  private async fragmarPrime() {
-    const steps: { prompt: string; options: string[]; correct: number }[] = [
-      { prompt: "STEP ONE (to Polson). What do you send first?", options: ["\"hey how are you what have you been doing?\"", "The other messages. The ones from 2022.", "An apology for the Eric Andre joke"], correct: 0 },
-      { prompt: "STEP TWO. Then what?", options: ["Post a really passive aggressive status, visible to the lads only", "Send Eden a friend request", "Unsend everything and go to bed"], correct: 1 },
-      { prompt: "STEP THREE (to Polson). The cover story:", options: ["\"oh my god, I just realised I haven't become friends with Eden on Facebook!! After 18 months!! I'm so embarrassed.\"", "\"Is there any chance this was Eden's fault??\"", "\"Mork.\""], correct: 0 },
-    ];
-    for (let i = 0; i < steps.length; i++) {
-      const st = steps[i];
-      await this.talk([{ s: "NARRATOR", t: `FRAGMAR PRIME — ${st.prompt}`, dir: true, choice: st.options.map((o, j) => ({ label: o, set: { fp_pick: j } })) }]);
-      if (G.s.flags.fp_pick !== st.correct) {
-        // wrong: told the right one, a few Friend Requests for your trouble, and on you go (no resits)
-        await this.talk([say("MIKEY", "Fuck. Wrong one. Unsend. UNSEND."), dir(`It should have been: ${st.options[st.correct]}. That gets sent instead.`), dir("The Network notices. Friend Requests swarm out of the walls.")]);
-        for (let k = 0; k < 3; k++) this.spawnEnemy("friend_crawler", this.player.x + (k - 1) * 90, this.player.y - 140);
-      }
-    }
-    G.s.flags.fragmar_prime = true;
-    G.s.coins += 150;
-    G.unlockArchive("arch_fragmar");
-    await this.talk([
-      dir("Sent. In the right order. For the first time in history."),
-      say("POLSON", "(reply, instantly) No worries buddy 😊 She'll accept it now!! Wbu?"),
-      say("MIKEY", "He replied immediately. Because I was nice to him. That was always the trick."),
-      { s: "NARRATOR", t: "", react: { message: "EDEN accepted your friend request.", context: "fragmar_prime", from: "EDEN", outcomes: { LIKE: [say("EDEN", "...👍 back. Weird.")], LAUGH: [say("EDEN", "Why is that funny? Mikey. MIKEY.")], SEEN: [say("EDEN", "Seen. Classic Mikey.")] } } },
-      dir("FRAGMAR PRIME COMPLETE. +150 Krezzcoin. Classification: still extremely petty."),
-    ]);
-  }
+
+
+
+
 
   // ------------------------------------------------------------------ events: misc
 

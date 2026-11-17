@@ -1485,29 +1485,7 @@ function unreachable(d: Doc) {
     d.h(3, `Dungeon "${id}" (not reached from the story)`);
     dungeon(d, id, 4, { title: "" });
   }
-  d.h(3, "Polson & Eden: Cheesegate and the Mork Voice (no dungeon room uses these events)");
-  for (const dm of exp("polsonEden.ts", "DOMESTICS") as any[]) {
-    d.h(4, `Domestic: ${dm.title}`);
-    d.lines(dm.lines, `polsonEden.ts DOMESTICS/${dm.id}`);
-  }
-  EMITTED_EXPORTS.add(`${modByName("polsonEden.ts")[0]}::DOMESTICS`);
-  for (const w of exp("polsonEden.ts", "CHEESE_WITNESSES") as any[]) {
-    d.h(4, `Witness: ${w.name ?? w.id}`);
-    for (const [k, ls] of Object.entries(w.testimony ?? {})) {
-      d.para(`*Testimony (${esc(k)}):*`);
-      d.lines(ls as any[], `polsonEden.ts CHEESE_WITNESSES/${w.id}/${k}`);
-    }
-  }
-  for (const a of exp("polsonEden.ts", "CHEESE_ACCUSATIONS") as any[]) {
-    d.para(`*Accuse: ${esc(a.label)}${a.correct ? " (correct)" : ""}*`);
-    d.lines(a.outcome, `polsonEden.ts CHEESE_ACCUSATIONS/${a.id}`);
-  }
-  for (const [i, r] of (exp("polsonEden.ts", "MORK_ROUNDS") as any[]).entries()) {
-    d.para(`*Mork round ${i + 1}:* ${esc(JSON.stringify({ ...r, lines: undefined, success: undefined, fail: undefined }).slice(0, 300))}`);
-    d.value(r, `polsonEden.ts MORK_ROUNDS#${i}`, `${modByName("polsonEden.ts")[0]}::MORK_ROUNDS`);
-  }
-  for (const n of ["CHEESE_WITNESSES", "CHEESE_ACCUSATIONS", "MORK_ROUNDS"]) EMITTED_EXPORTS.add(`${modByName("polsonEden.ts")[0]}::${n}`);
-  for (const m of ["questionWitness", "accuse", "morkVoice", "fragmarPrime", "restoreNetwork"]) {
+  for (const m of ["restoreNetwork"]) {
     d.h(3, `Dungeon scene code: ${m} (its trigger isn't used by any room)`);
     d.items(extract("DungeonScene.ts", { method: m }));
   }

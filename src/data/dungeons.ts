@@ -5,7 +5,7 @@ import * as CD from "../content/citadel";
 export type Theme = "school" | "mansion" | "network" | "industrial" | "temple" | "prison" | "wiki" | "colon" | "mind" | "citadel" | "lounge";
 
 export interface PropDef {
-  kind: "bomb_spot" | "crystal_wall" | "talker" | "mollor" | "wonking_machine" | "vending" | "valve" | "terminal" | "npc" | "bertha" | "tv" | "sign" | "evidence_board" | "witness" | "reaction_terminal" | "tap_valve" | "phone";
+  kind: "bomb_spot" | "crystal_wall" | "talker" | "mollor" | "wonking_machine" | "vending" | "valve" | "terminal" | "bertha" | "tv" | "sign" | "reaction_terminal" | "tap_valve";
   x: number; // 0..1 of room width
   y: number; // 0..1 of room height
   id?: string;
@@ -27,7 +27,7 @@ export interface RoomDef {
   waves?: [string, number][][];
   props?: PropDef[];
   /** Special scripted event handled by the dungeon scene. */
-  event?: "cheesegate" | "mork" | "valves" | "reaction_terminal" | "bertha" | "records" | "anthem" | "colon" | "drongus1" | "stairs" | "drongus2" | "roof";
+  event?: "valves" | "reaction_terminal" | "bertha" | "records" | "anthem" | "colon" | "drongus1" | "stairs" | "drongus2" | "roof";
   boss?: string;
   /** Arbitrary Drongus rule active in this room (chapter 4). */
   rule?: string;

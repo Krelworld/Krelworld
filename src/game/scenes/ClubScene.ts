@@ -21,6 +21,7 @@ import { bump, maxBottles } from "../systems/stats";
 import { CHARACTERS, LADS } from "../../data/characters";
 import { TOUCH } from "../ui/TouchControls";
 import { SANMIK_SONGS } from "./VenueScene";
+import { playCloseup } from "./club/ClubCloseup";
 
 /**
  * THE WONKY POLE: a cabaret club. Dancers dance round the pole and, the more you tip, take it all off (a smooth
@@ -166,6 +167,8 @@ export class ClubScene extends Phaser.Scene {
   private bars: CensorBar[] = [];
   private pole: Phaser.GameObjects.Graphics | null = null;
   private fx: ClubFx | null = null;
+  /** Touch: the "watch up close" button. */
+  private closeBtn: Phaser.GameObjects.Text | null = null;
   /** Big Derek on the door, before anyone gives him a reason. */
   private doorman: Phaser.GameObjects.Sprite | null = null;
 
@@ -242,7 +245,10 @@ export class ClubScene extends Phaser.Scene {
         else if (!on && this.performer) this.stopBand();
       },
     });
-    this.prompt = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#000000cc", padding: { x: 6, y: 3 } }).setOrigin(0.5).setDepth(1000).setVisible(false);
+    this.prompt = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#000000cc", padding: { x: 6, y: 3 }, align: "center" }).setOrigin(0.5).setDepth(1000).setVisible(false);
+    // touch: the "watch up close" button (keyboard: F, the special key), shown at the stage
+    this.closeBtn = this.add.text(770, 392, "👀 UP\nCLOSE", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#c2185bcc", padding: { x: 8, y: 6 }, align: "center" }).setOrigin(0.5).setDepth(1000).setVisible(false).setInteractive();
+    this.closeBtn.on("pointerdown", () => void this.closeup());
     this.controls = new Controls(this);
     this.box = new DialogueBox(this, 2000, 0.2);
     if (!this.scene.isActive("UI")) this.scene.launch("UI", { mode: "hub" });
@@ -648,8 +654,9 @@ export class ClubScene extends Phaser.Scene {
       label = "E: Pick up: Cuddle token";
       act = () => void this.takeToken();
     } else if (atStage && !this.onBreak && !this.dancerDown) {
-      label = `E: Tip ${this.dancerName()} (5 Krezzcoin)`;
+      label = `E: Tip ${this.dancerName()} (5 Krezzcoin)\n${TOUCH.enabled ? "👀" : "F"}: Watch up close (10 Krezzcoin)`;
       act = () => this.tip();
+      if (this.controls.special()) return void this.closeup();
     } else if (atBooth && !this.onBreak && !this.dancerDown) {
       label = `E: Private dance with ${this.dancerName()} (25 Krezzcoin)`;
       act = () => void this.privateDance();
@@ -674,6 +681,7 @@ export class ClubScene extends Phaser.Scene {
       act = () => this.hitTarget(target);
     }
     if (target && this.controls.attackHeld() && time - this.lastSwing > 280) this.hitTarget(target);
+    this.closeBtn?.setVisible(TOUCH.enabled && atStage && !atToken && !this.onBreak && !this.dancerDown);
     if (label) {
       this.prompt.setText(label).setPosition(this.me.x, this.me.y - 50).setVisible(true);
       if (this.controls.interact() && act) act();
@@ -936,6 +944,28 @@ export class ClubScene extends Phaser.Scene {
         this.time.delayedCall(i * 250, () => this.bubble(p.spr, ["SHE'S MINE", "Oi! She's MINE", "She was looking at ME", "That's my tip money!"][i % 4], 1500, "#ffe4e4"));
       }
     });
+  }
+
+  /** "Watch up close": the anime cut-away (scenes/club/ClubCloseup.ts), then back to the club as it was. */
+  private async closeup() {
+    const s = G.s;
+    if (this.busy || this.onBreak || this.dancerDown) return;
+    if (s.coins < 10) {
+      this.bubble(this.me, "Skint.", 1200);
+      return;
+    }
+    s.coins -= 10;
+    synth.play("coin");
+    this.busy = true;
+    this.prompt.setVisible(false);
+    this.closeBtn?.setVisible(false);
+    bump(s, "club_closeups");
+    const lads = Phaser.Utils.Array.Shuffle(this.patrons.filter((p) => p.spr.active && !this.ko.has(p.spr) && p.id !== "MIKEY" && p.id !== s.player).slice()).slice(0, 4);
+    await playCloseup(this, { tex: this.dancer.texture.key, name: this.dancerName(), lads });
+    if (!this.scene.isActive()) return;
+    this.nextSwap = Math.max(this.nextSwap, this.time.now + 15000);
+    this.controls.swallow();
+    this.busy = false;
   }
 
   /** A private dance, and (if you're up for it) a golden juice squeeze. */

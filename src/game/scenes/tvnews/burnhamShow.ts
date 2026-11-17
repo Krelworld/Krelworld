@@ -363,8 +363,9 @@ export class BurnhamShow {
     this.fresh("crowd");
     const { SX, SY, SW, SH } = this.k.r;
     const sc = this.k.sc;
-    this.k.backdrop("tv_burn_no10", 2.4, 260, 120, true);
-    this.add(sc.add.rectangle(SX, SY, SW, SH, 0x0b1020, 0.25).setOrigin(0));
+    // the far side of the street, soft: the facade's brick and railings, darkened (no blur: its edge showed at this offset)
+    this.k.backdrop("tv_burn_no10", 2.4, 160, 80);
+    this.add(sc.add.rectangle(SX, SY, SW, SH, 0x0b1020, 0.45).setOrigin(0));
     if (!sc.textures.exists("tv_burn_crowd_front")) return;
     const rows: [number, number, number, number][] = [
       // x (0-1), bottom, scale, frame

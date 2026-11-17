@@ -375,6 +375,7 @@ const SPEAKER_SPRITES: Record<string, string> = {
   KROZNO: "boss_krozno",
   "RUSSELL BRAND": "boss_brand",
   "THE PUDDING DEMON": "boss_pudding_demon",
+  "LUKE WATKINS": "boss_pudding_demon",
   "ALISTAIR SWAMP": "boss_troll",
   "ROBBO": "boss_flatmate",
   "CHAD DELTOID": "boss_rival",

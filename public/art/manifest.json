@@ -5776,6 +5776,9 @@
   "bld_WILDERN": {
    "file": "buildings/WILDERN.png"
   },
+  "bld_POLSON_ROAD": {
+   "file": "buildings/POLSON_ROAD.png"
+  },
   "bg_abandoned": {
    "file": "backdrops/bg_abandoned.png"
   },
@@ -7305,6 +7308,48 @@
   },
   "bg_lair": {
    "file": "backdrops/bg_lair.png"
+  },
+  "di_wildern": {
+   "file": "backdrops/di_wildern.png"
+  },
+  "di_polson_towers": {
+   "file": "backdrops/di_polson_towers.png"
+  },
+  "di_ministry": {
+   "file": "backdrops/di_ministry.png"
+  },
+  "di_citadel": {
+   "file": "backdrops/di_citadel.png"
+  },
+  "di_krelford_finale": {
+   "file": "backdrops/di_krelford_finale.png"
+  },
+  "di_airport": {
+   "file": "backdrops/di_airport.png"
+  },
+  "di_rik_colon": {
+   "file": "backdrops/di_rik_colon.png"
+  },
+  "di_crobley_factory": {
+   "file": "backdrops/di_crobley_factory.png"
+  },
+  "di_arena_brand": {
+   "file": "backdrops/di_arena_brand.png"
+  },
+  "di_arena_troll": {
+   "file": "backdrops/di_arena_troll.png"
+  },
+  "di_arena_lukemind": {
+   "file": "backdrops/di_arena_lukemind.png"
+  },
+  "di_arena_flatmate": {
+   "file": "backdrops/di_arena_flatmate.png"
+  },
+  "di_arena_rival": {
+   "file": "backdrops/di_arena_rival.png"
+  },
+  "di_arena_sanmik": {
+   "file": "backdrops/di_arena_sanmik.png"
   },
   "c7_ai_rig": {
    "file": "props/c7_ai_rig.png"
@@ -9385,6 +9430,78 @@
   },
   "tvc_banana": {
    "file": "tv/clips/banana.png"
+  },
+  "rs_bg": {
+   "file": "runescape/rs_bg.png"
+  },
+  "rs_tree": {
+   "file": "runescape/rs_tree.png"
+  },
+  "rs_oak": {
+   "file": "runescape/rs_oak.png"
+  },
+  "rs_willow": {
+   "file": "runescape/rs_willow.png"
+  },
+  "rs_maple": {
+   "file": "runescape/rs_maple.png"
+  },
+  "rs_yew": {
+   "file": "runescape/rs_yew.png"
+  },
+  "rs_magic": {
+   "file": "runescape/rs_magic.png"
+  },
+  "rs_stump": {
+   "file": "runescape/rs_stump.png"
+  },
+  "rs_log": {
+   "file": "runescape/rs_log.png"
+  },
+  "rs_chest": {
+   "file": "runescape/rs_chest.png"
+  },
+  "rs_cape": {
+   "file": "runescape/rs_cape.png"
+  },
+  "rs_axe": {
+   "file": "runescape/rs_axe.png"
+  },
+  "ui_chalkboard": {
+   "file": "ui/ui_chalkboard.png"
+  },
+  "pubicon_sit": {
+   "file": "ui/pubicon_sit.png"
+  },
+  "pubicon_riff": {
+   "file": "ui/pubicon_riff.png"
+  },
+  "pubicon_stag": {
+   "file": "ui/pubicon_stag.png"
+  },
+  "pubicon_tv": {
+   "file": "ui/pubicon_tv.png"
+  },
+  "pubicon_sanmik": {
+   "file": "ui/pubicon_sanmik.png"
+  },
+  "pubicon_pole": {
+   "file": "ui/pubicon_pole.png"
+  },
+  "pubicon_gig": {
+   "file": "ui/pubicon_gig.png"
+  },
+  "pubicon_lamp": {
+   "file": "ui/pubicon_lamp.png"
+  },
+  "pubicon_menu": {
+   "file": "ui/pubicon_menu.png"
+  },
+  "pubicon_chest": {
+   "file": "ui/pubicon_chest.png"
+  },
+  "pubicon_door": {
+   "file": "ui/pubicon_door.png"
   }
  },
  "sheets": {
@@ -14043,8 +14160,8 @@
   },
   "bossdie_pudding_demon": {
    "file": "combat/bossdie_pudding_demon.png",
-   "frameWidth": 112,
-   "frameHeight": 113
+   "frameWidth": 64,
+   "frameHeight": 64
   },
   "bossdie_elon": {
    "file": "combat/bossdie_elon.png",

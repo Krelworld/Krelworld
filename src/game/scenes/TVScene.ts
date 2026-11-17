@@ -673,7 +673,7 @@ export class TVScene extends Phaser.Scene {
         P(150, 170, 50, 50, 0xffe08a, 0.7);
         P(360, 170, 50, 50, 0xffe08a, 0.7);
         P(0, 340, SW, 80, 0x7a5a2a);
-        this.stage.add(this.add.text(SX + 280, SY + 380, "(the moat is gravy)", { fontFamily: FONT, fontSize: "11px", color: "#ddd" }).setOrigin(0.5));
+        this.stage.add(this.add.text(SX + 280, SY + 380, "(the bin is overflowing)", { fontFamily: FONT, fontSize: "11px", color: "#ddd" }).setOrigin(0.5));
         break;
       case "townhall_cam":
         P(0, 0, SW, SH, 0x6b2737);

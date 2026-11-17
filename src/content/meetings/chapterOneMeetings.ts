@@ -84,6 +84,8 @@ export const EMERGENCY_REACTION_SESSION: MeetingScript = {
     ping("DRONGUS", "Anyway, the door to my new dungeon is locked. It requires 6 'Cum Crystals' to be unlocked."),
     ping("DRONGUS", "And your never find them! Never! Hahahahah! HAHAHAHAH! FUCK FUCK FUCK HAHAHAHAHAHA YOU CUNTS!"),
     dir("DRONGUS B. DRIPPIN' has muted the conversation.", { sfx: "notify" }),
+    // ...and storms off to build it: cut outside, where it rises out of the ground at the top of town
+    { s: "NARRATOR", t: "", rise: true },
     say("SCROMBUS", "He can't leak the chat. There are things in that chat that end careers. I have a career now.", { role: true, proctus: "He can't leak the chat! I'm not in it! Am I in it? Why is everyone looking at me like I'm in it?" }),
     say("MIKEY", "There's a voice note of me doing a Chinese accent."),
     say("FLENKY", "There's a lot in there of me being ironically racist too. But I was trying to draw attention to the real plight of marginalized groups. You must understand, it was all ironic."),

@@ -1692,6 +1692,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   /** An entirely unnecessary, deeply cartoonish death. */
   /** Captain Stanley, on his knees. Press S. */
+  /** (Retired: Captain Stanley now gets an ordinary Kreltality.) */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async slitThroat(b: Boss) {
     const x = b.x;
     const y = b.y;
@@ -2238,9 +2240,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   /** "FUCKING KILL THEM!!" — optional, after the boss's last words. */
   private async maybeKreltality(b: Boss) {
     // (Drongus in every form has his own ending, Uncle Rik has his, and these few have theirs)
-    // the Cronster is Jenko under the mask (a mate: no finisher) — unless you ARE Jenko, and it's your evil double
-    const cronsterOk = b.bossId === "cronster" && G.s.player === "FLENKY";
-    if (!cronsterOk && ["drongus", "cronster", "reinhardt", "krozno", "rik", "krex", "drongus1", "drongus2", "dark_drongus", "final"].includes(b.bossId) || !this.krelTarget) {
+    // the Cronster is Jenko under the mask. Kreltality him anyway: nobody mentions it afterwards
+    if (["drongus", "reinhardt", "krozno", "rik", "krex", "drongus1", "drongus2", "dark_drongus", "final"].includes(b.bossId) || !this.krelTarget) {
       await this.bossFall();
       return;
     }
@@ -2405,9 +2406,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     if (b.bossId === "krozno") {
       await this.talk(BOSS_TEXT.krozno.outro);
-      // a Kreltality first, if you want one; pass and it's the knife
+      // a Kreltality, if you want one; pass and he just goes down
       if (await this.offerKreltality(b)) b.setVisible(false);
-      else await this.slitThroat(b);
+      else await this.bossFall();
       G.rt.timerEnd = 0;
       G.emit("timer", null);
       s.coins += 300;

@@ -486,6 +486,24 @@ export class DialogueBox {
         this.root.setVisible(true);
         if (!raw.t) continue;
       }
+      if (raw.rise) {
+        // Drongus storms off and builds his dungeon: cut to the town for the rise, then back to the room
+        this.skipping = false;
+        this.root.setVisible(false);
+        const sc = this.scene;
+        const host = sc.scene.key;
+        if (!G.s.flags.drongus_dungeon_risen) {
+          await new Promise<void>((res) => {
+            sc.events.once("ui-resume", () => res());
+            sc.scene.launch("Hub", { riseCut: host, at: "TOWN_HALL" });
+            sc.scene.bringToTop("Hub");
+            sc.scene.pause();
+          });
+          synth.music(host === "Meeting" ? "meeting" : "hub");
+        }
+        this.root.setVisible(true);
+        if (!raw.t) continue;
+      }
       if (raw.choice) {
         this.skipping = false;
         const avail: ChoiceOption[] = raw.choice.filter((c) => evalCond(c.cond, s));

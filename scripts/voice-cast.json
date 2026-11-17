@@ -723,7 +723,10 @@
     "CABINET MINISTER 3": "~pol_m_uk1",
     "PRANKSTER": "~aide_m_us",
     "GORDON RAMSAY": "SERGEANT SWIG",
-    "CHEF MICK": "~scientist_m"
+    "CHEF MICK": "~scientist_m",
+    "CHRIS WHITTY": "~exec_m",
+    "KEMI BADENOCH": "~exec_f",
+    "DAISY COOPER": "~news_f_rp"
   },
   "clone_accents": {
     "_doc": "Accent tag for cloned voices on eleven_v3, which otherwise drift (American, or regional). Everyone in the group is southern English: faint RP or a slight cockney. Default below.",

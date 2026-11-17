@@ -13897,6 +13897,31 @@
    "file": "combat/fe_concept_stagger_hurt.png",
    "frameWidth": 256,
    "frameHeight": 256
+  },
+  "tvanchor_WHITTY": {
+   "file": "tv/anchor_WHITTY.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_MERRICK": {
+   "file": "tv/anchor_MERRICK.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_BADENOCH": {
+   "file": "tv/anchor_BADENOCH.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_COOPER": {
+   "file": "tv/anchor_COOPER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_STARMER_BRUSH": {
+   "file": "tv/anchor_STARMER_BRUSH.png",
+   "frameWidth": 128,
+   "frameHeight": 128
   }
  },
  "vfx": {

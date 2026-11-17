@@ -18,6 +18,11 @@ export const AUDIO_FILES: Record<string, string> = {
   /** THE CONCEPT OF PAEDOPHILIA's roars, and the withered old wizard behind it doing a YEE. */
   concept_roar: "audio/concept_roar.mp3",
   wizard_yee: "audio/wizard_yee.mp3",
+  /** Boss shield phases (src/game/combat/BossShield.ts): up, a crack per minion, the shatter, a shot pinging off. */
+  bs_shield_up: "audio/sfx/bs_shield_up.mp3",
+  bs_shield_crack: "audio/sfx/bs_shield_crack.mp3",
+  bs_shield_shatter: "audio/sfx/bs_shield_shatter.mp3",
+  bs_shield_ping: "audio/sfx/bs_shield_ping.mp3",
   /** The Cuddle Cronster's fight cries, in BOSS_TEXT.cronster.taunts order. */
   cronster_taunt: "audio/cronster_taunt.mp3",
   /** Robbo (the flatmate), the same way. */

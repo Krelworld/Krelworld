@@ -8851,6 +8851,126 @@
   },
   "c6a_cut_klerble": {
    "file": "c6a/c6a_cut_klerble.png"
+  },
+  "hd_kr_litter": {
+   "file": "props/hd_kr_litter.png"
+  },
+  "ddf_airline": {
+   "file": "tiles/ddf_airline.png"
+  },
+  "ddf_beige": {
+   "file": "tiles/ddf_beige.png"
+  },
+  "ddf_caf": {
+   "file": "tiles/ddf_caf.png"
+  },
+  "ddf_cockpit": {
+   "file": "tiles/ddf_cockpit.png"
+  },
+  "ddf_colon": {
+   "file": "tiles/ddf_colon.png"
+  },
+  "ddf_concrete": {
+   "file": "tiles/ddf_concrete.png"
+  },
+  "ddf_flat": {
+   "file": "tiles/ddf_flat.png"
+  },
+  "ddf_gym": {
+   "file": "tiles/ddf_gym.png"
+  },
+  "ddf_hall": {
+   "file": "tiles/ddf_hall.png"
+  },
+  "ddf_kitchen": {
+   "file": "tiles/ddf_kitchen.png"
+  },
+  "ddf_lino": {
+   "file": "tiles/ddf_lino.png"
+  },
+  "ddf_padded": {
+   "file": "tiles/ddf_padded.png"
+  },
+  "ddf_parquet": {
+   "file": "tiles/ddf_parquet.png"
+  },
+  "ddf_pink": {
+   "file": "tiles/ddf_pink.png"
+  },
+  "ddf_pub": {
+   "file": "tiles/ddf_pub.png"
+  },
+  "ddf_shag": {
+   "file": "tiles/ddf_shag.png"
+  },
+  "ddk_bottle": {
+   "file": "props/ddk_bottle.png"
+  },
+  "ddk_bottle_burst": {
+   "file": "props/ddk_bottle_burst.png"
+  },
+  "ddk_bunny": {
+   "file": "props/ddk_bunny.png"
+  },
+  "ddk_bunny_burst": {
+   "file": "props/ddk_bunny_burst.png"
+  },
+  "ddk_can": {
+   "file": "props/ddk_can.png"
+  },
+  "ddk_can_burst": {
+   "file": "props/ddk_can_burst.png"
+  },
+  "ddk_carton": {
+   "file": "props/ddk_carton.png"
+  },
+  "ddk_carton_burst": {
+   "file": "props/ddk_carton_burst.png"
+  },
+  "ddk_cup": {
+   "file": "props/ddk_cup.png"
+  },
+  "ddk_cup_burst": {
+   "file": "props/ddk_cup_burst.png"
+  },
+  "ddk_paper": {
+   "file": "props/ddk_paper.png"
+  },
+  "ddk_paper_burst": {
+   "file": "props/ddk_paper_burst.png"
+  },
+  "ddk_parcel": {
+   "file": "props/ddk_parcel.png"
+  },
+  "ddk_pint": {
+   "file": "props/ddk_pint.png"
+  },
+  "ddk_pint_burst": {
+   "file": "props/ddk_pint_burst.png"
+  },
+  "ddk_pizza": {
+   "file": "props/ddk_pizza.png"
+  },
+  "ddk_pizza_burst": {
+   "file": "props/ddk_pizza_burst.png"
+  },
+  "ddk_teddy": {
+   "file": "props/ddk_teddy.png"
+  },
+  "ddk_teddy_burst": {
+   "file": "props/ddk_teddy_burst.png"
+  },
+  "ddk_tray": {
+   "file": "props/ddk_tray.png"
+  },
+  "ddk_tray_burst": {
+   "file": "props/ddk_tray_burst.png"
+  },
+  "ddk_unicorn": {
+   "file": "props/ddk_unicorn.png"
+  },
+  "ddk_unicorn_burst": {
+   "file": "props/ddk_unicorn_burst.png"
   }
  },
  "sheets": {
@@ -11563,6 +11683,126 @@
    "frameWidth": 256,
    "frameHeight": 144
   },
+  "hd_fountain_anim": {
+   "file": "props/hd_fountain_anim.png",
+   "frameWidth": 70,
+   "frameHeight": 63
+  },
+  "hd_stall_anim": {
+   "file": "props/hd_stall_anim.png",
+   "frameWidth": 90,
+   "frameHeight": 77
+  },
+  "kd_m_slots_anim": {
+   "file": "props/kd_m_slots_anim.png",
+   "frameWidth": 52,
+   "frameHeight": 87
+  },
+  "kd_m_wheel_anim": {
+   "file": "props/kd_m_wheel_anim.png",
+   "frameWidth": 82,
+   "frameHeight": 106
+  },
+  "hd_flag_anim": {
+   "file": "props/hd_flag_anim.png",
+   "frameWidth": 64,
+   "frameHeight": 112
+  },
+  "kd_fountain_anim": {
+   "file": "props/kd_fountain_anim.png",
+   "frameWidth": 96,
+   "frameHeight": 96
+  },
+  "hd_shrine_anim": {
+   "file": "props/hd_shrine_anim.png",
+   "frameWidth": 112,
+   "frameHeight": 72
+  },
+  "hd_bird_anim": {
+   "file": "props/hd_bird_anim.png",
+   "frameWidth": 16,
+   "frameHeight": 12
+  },
+  "dd_binbags_anim": {
+   "file": "props/dd_binbags_anim.png",
+   "frameWidth": 67,
+   "frameHeight": 48
+  },
+  "dd_cantable_anim": {
+   "file": "props/dd_cantable_anim.png",
+   "frameWidth": 78,
+   "frameHeight": 56
+  },
+  "dd_cockpit_anim": {
+   "file": "props/dd_cockpit_anim.png",
+   "frameWidth": 84,
+   "frameHeight": 56
+  },
+  "dd_heartbed_anim": {
+   "file": "props/dd_heartbed_anim.png",
+   "frameWidth": 106,
+   "frameHeight": 101
+  },
+  "dd_lockers_anim": {
+   "file": "props/dd_lockers_anim.png",
+   "frameWidth": 94,
+   "frameHeight": 64
+  },
+  "dd_pizzaboxes_anim": {
+   "file": "props/dd_pizzaboxes_anim.png",
+   "frameWidth": 44,
+   "frameHeight": 68
+  },
+  "dd_pubstage_anim": {
+   "file": "props/dd_pubstage_anim.png",
+   "frameWidth": 102,
+   "frameHeight": 79
+  },
+  "dd_ruinedsofa_anim": {
+   "file": "props/dd_ruinedsofa_anim.png",
+   "frameWidth": 116,
+   "frameHeight": 61
+  },
+  "dd_scorers_anim": {
+   "file": "props/dd_scorers_anim.png",
+   "frameWidth": 95,
+   "frameHeight": 61
+  },
+  "dd_servery_anim": {
+   "file": "props/dd_servery_anim.png",
+   "frameWidth": 84,
+   "frameHeight": 51
+  },
+  "dd_sink_anim": {
+   "file": "props/dd_sink_anim.png",
+   "frameWidth": 76,
+   "frameHeight": 63
+  },
+  "dd_toypile_anim": {
+   "file": "props/dd_toypile_anim.png",
+   "frameWidth": 56,
+   "frameHeight": 40
+  },
+  "dd_trophies_anim": {
+   "file": "props/dd_trophies_anim.png",
+   "frameWidth": 58,
+   "frameHeight": 68
+  },
+  "ddk_teddy_burst_anim": {
+   "file": "props/ddk_teddy_burst_anim.png",
+   "frameWidth": 32,
+   "frameHeight": 32
+  },
+  "ddk_unicorn_burst_anim": {
+   "file": "props/ddk_unicorn_burst_anim.png",
+   "frameWidth": 32,
+   "frameHeight": 32
+  },
+  "p_treadmill_anim": {
+   "file": "props/p_treadmill_anim.png",
+   "frameWidth": 82,
+   "frameHeight": 67
+  },
   "vs_FLENKY": {
    "file": "vs/vs_FLENKY.png",
    "frameWidth": 128,
@@ -12204,6 +12444,46 @@
    "loop": false,
    "ox": 0.5,
    "oy": 0.873
+  },
+  "bs_vfx_shield_bubble": {
+   "file": "vfx/bs_vfx_shield_bubble.png",
+   "w": 174,
+   "h": 174,
+   "frames": 16,
+   "fps": 12,
+   "loop": true,
+   "ox": 0.5,
+   "oy": 0.5
+  },
+  "bs_vfx_shield_shatter": {
+   "file": "vfx/bs_vfx_shield_shatter.png",
+   "w": 200,
+   "h": 240,
+   "frames": 12,
+   "fps": 16,
+   "loop": false,
+   "ox": 0.515,
+   "oy": 0.313
+  },
+  "bs_vfx_shield_crack": {
+   "file": "vfx/bs_vfx_shield_crack.png",
+   "w": 106,
+   "h": 78,
+   "frames": 10,
+   "fps": 18,
+   "loop": false,
+   "ox": 0.396,
+   "oy": 0.423
+  },
+  "bs_vfx_stun_stars": {
+   "file": "vfx/bs_vfx_stun_stars.png",
+   "w": 65,
+   "h": 31,
+   "frames": 12,
+   "fps": 12,
+   "loop": true,
+   "ox": 0.492,
+   "oy": 0.742
   }
  }
 }

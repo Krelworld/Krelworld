@@ -7,6 +7,7 @@ import { synth } from "../audio/Synth";
 import { voice } from "../audio/Voice";
 import { G } from "../G";
 import { BAN_RULES } from "../systems/ban";
+import { BossShield } from "./BossShield";
 
 const bossDef = (id: string, hp: number, size: number, color: number, speed = 60, damage = 18): EnemyDef => ({
   id,
@@ -62,6 +63,10 @@ export abstract class Boss extends Enemy {
   private nextLeap = 0;
   /** Mid signature leap: its own pattern waits. */
   protected leaping = false;
+  /** Shield phases (BossShield.ts): made on its first live tick, null if this boss doesn't have them. */
+  guard: BossShield | null | undefined = undefined;
+  /** Its shield just shattered: open until `until` (bosses with armour of their own open it up). */
+  shieldBroken?(until: number): void;
 
   constructor(world: CombatWorld, id: string, x: number, y: number, hp: number, texture: string, size: number, color: number, w: number, h: number) {
     super(world, id, x, y, G.s.ngPlus > 0 ? 1.4 : 1, bossDef(id, hp, size, color), texture);
@@ -188,7 +193,7 @@ export abstract class Boss extends Enemy {
    */
   private signatureLeap(now: number): boolean {
     if (this.leaping) return true;
-    if (!SIGNATURE_LEAP.has(this.bossId) || this.world.side || now < this.nextLeap || this.shielded) return false;
+    if (!SIGNATURE_LEAP.has(this.bossId) || this.world.side || now < this.nextLeap || this.shielded || this.guard?.blocking || this.guard?.stunned) return false;
     this.nextLeap = now + 14000 + Math.random() * 7000;
     const p = this.world.player;
     const sc = this.scene;
@@ -274,8 +279,10 @@ export abstract class Boss extends Enemy {
       this.anim = 0;
       this.setFrame(String(this.frame.name) === "0" ? 1 : 0);
     }
+    if (this.guard === undefined) this.guard = BossShield.create(this);
+    const stun = this.guard?.update(dt, now) === "stun";
     if (now < this.flashUntil) this.setTintFill(0xffffff);
-    else if (this.shielded) this.setTint(0x88aaff);
+    else if (this.shielded || this.guard?.blocking) this.setTint(0x88aaff);
     else this.clearTint();
     const frac = this.hp / this.maxHp;
     while (this.phase < this.thresholds.length && frac < this.thresholds[this.phase]) {
@@ -283,8 +290,13 @@ export abstract class Boss extends Enemy {
       this.oneShot("special");
       this.onPhase(this.phase, now);
     }
-    if (!this.signatureLeap(now)) this.pattern(dt, now);
-    G.emit("boss", { name: BOSS_TEXT[this.bossId]?.name ?? this.bossId, hp: this.hp, max: this.maxHp, shielded: this.shielded, phase: this.phase });
+    if (stun) {
+      // knocked down after its shield shattered: it just takes it
+      const b = this.body as Phaser.Physics.Arcade.Body;
+      if (this.world.side) b.setVelocityX(0);
+      else b.setVelocity(0, 0);
+    } else if (!this.signatureLeap(now)) this.pattern(dt, now);
+    G.emit("boss", { name: BOSS_TEXT[this.bossId]?.name ?? this.bossId, hp: this.hp, max: this.maxHp, shielded: this.shielded || !!this.guard?.blocking, phase: this.phase, shield: this.guard?.hud() });
   }
 
   onPhase(_n: number, _now: number) {

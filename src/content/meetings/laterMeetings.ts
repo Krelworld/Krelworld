@@ -262,6 +262,20 @@ export const CRONSTER_BRIEFING: MeetingScript = {
     dir("When the dust clears, Robbo is face down by the door. The wine glass is somehow unbroken. The cravat is round Krezmar's head."),
     say("ROBBO", "(crawling for the door) Fine! FINE! I'm moving in with my drug addict father who married a much younger woman because he's a piece of shit! He's my HERO!", { fx: "robbo_leave" }),
     dir("The door slams. It opens again. A hand reaches in, takes the wine, and withdraws. It slams again."),
+    say("KREZMAR", "Let's kill Robbo.", { cond: { notPlayer: "KREZMAR" } }),
+    say("SCROMBUS", "LET'S KILL ROBBO!", { cond: { notPlayer: "SCROMBUS" }, mood: "shouting" }),
+    say("CRONGUS", "Let's kill Robbo! Kill him and keep the wine!", { cond: { notPlayer: "CRONGUS" }, mood: "excited" }),
+    say("KREBLIS", "Breaking news… let's kill Robbo 👍", { cond: { notPlayer: "KREBLIS" } }),
+    // no fight: you can Kreltality him on the way out, or not
+    {
+      s: "NARRATOR",
+      t: "",
+      krel: {
+        target: "robbo",
+        yes: [dir("Nobody mentions it. Gronny takes the wine.", { set: { robbo_kreltality: true }, variants: { GRONNY: "Nobody mentions it. You take the wine." } })],
+        no: [dir("Robbo escapes with the wine.")],
+      },
+    },
     say("GRONNY", "Three months.", { cond: { notPlayer: "GRONNY" } }),
     dir("Right. The actual Krelmergency."),
     dir("Everyone has a copy of the Krelford Gazette. Nobody has read past the headline. The headline is enough: 'CUDDLE CRONSTER STRIKES AGAIN: JENKO'S GIRLFRIEND TAKEN'."),

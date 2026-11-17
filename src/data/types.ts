@@ -114,6 +114,11 @@ export interface Line {
   tv?: string;
   /** Cut out to the town and raise Da Drongus Dungeon (HubScene), then carry on with the script. */
   rise?: boolean;
+  /**
+   * Offer a Kreltality on someone right here, no fight (KrelCueScene.ts: `target` is a KREL_CUES key, e.g. "robbo"),
+   * then carry on: `yes` plays if it was done, `no` if they were spared.
+   */
+  krel?: { target: string; yes?: Line[]; no?: Line[] };
   /** A staged moment in the room as this line shows (e.g. "robbo_enter"): see TownMeetingScene.fx. */
   fx?: string;
   /**

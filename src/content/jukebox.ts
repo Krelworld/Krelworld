@@ -86,11 +86,11 @@ export const JUKEBOX: JukeboxTrack[] = [
   { ids: ["bbp"], title: "The Abandoned Building", where: "Tailing Lil' Crongus" },
   // ---------------------------------------------------------------- SanMik & SanChz (real titles)
   { ids: ["ggg1", "boss_jam"], title: "BPD Menace", where: "SanMik & SanChz (also: JQ, the Jam Queen)", sanmik: true },
-  { ids: ["ggg2", "sanmik"], title: "Ashurst", where: "SanMik & SanChz", sanmik: true },
+  { ids: ["ggg2"], title: "Ashurst", where: "SanMik & SanChz", sanmik: true },
   { ids: ["ggg3"], title: "I Don't Need Yhu", where: "SanMik & SanChz · OrChzMik", sanmik: true },
   { ids: ["ggg4", "drive"], title: "Viva Reggaeton", where: "SanMik & SanChz · GTA: SanMik", sanmik: true },
   { ids: ["ggg5"], title: "Deep in Ure Ass", where: "SanMik & SanChz · Jerk My Gherk", sanmik: true },
-  { ids: ["ggg6"], title: "Peener Colarder", where: "SanMik & SanChz · Peener 4eva", sanmik: true },
+  { ids: ["ggg6", "sanmik"], title: "Peener Colarder", where: "SanMik & SanChz · Peener 4eva", sanmik: true },
   { ids: ["ggg7"], title: "Fuck U Bitch", where: "SanMik & SanChz · The Nu Warehouse", sanmik: true },
   { ids: ["lamp_rub"], title: "Rub The Lamp", where: "The Krezz Arms back room" },
   { ids: ["tower_crash"], title: "The Krel Tower Has Fallen (Again)", where: "Flight KR-069" },

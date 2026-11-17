@@ -3,6 +3,7 @@ import { squeeze } from "../systems/squeeze";
 import Phaser from "phaser";
 import { bindSanmikToggle } from "../gfx/sanmikForm";
 import { SANMIK_FLAG } from "../systems/sanmik";
+import { dungeonIntro } from "../gfx/DungeonIntro";
 import { DUNGEONS, type DungeonDef, type RoomDef, type PropDef } from "../../data/dungeons";
 import { ENEMIES } from "../../data/enemies";
 import type { Line } from "../../data/types";
@@ -1309,6 +1310,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   private async startRoom() {
     const r = this.room;
     this.busy = true;
+    // first time into this dungeon this run: the anime entry cutscene (its name slams in)
+    if (!(await dungeonIntro(this, this.dungeon))) return;
     const enter: Line[] = (r.enterLines ?? []).map((l) => ({ s: l.s, t: l.t, dir: l.dir, cond: l.cond, variants: l.variants, tag: "new" as const }));
     if (r.rule) {
       const rule = BAN_RULES.find((b) => b.id === r.rule) ?? null;

@@ -19,6 +19,13 @@ export const KREWS3_ANCHORS: Record<string, AnchorDef> = {
   "VOTER 1": { key: "tvanchor_VOX_MAN", poses: ["rest", "point"], talks: [true, true] },
   "MARGARET THOMPSON": { key: "tvanchor_MARGARET", poses: ["rest", "clutch"], talks: [true, true] },
   "DR ELAINE ROBERTS": { key: "tvanchor_ELAINE", poses: ["rest", "palm"], talks: [true, true] },
+  // Burnham's first act: the face rows (gravy, smear) and "chew" (a mouth-full line chews instead of lip-syncing) talk;
+  // the gross-out poses are stills the show sets itself (tvnews/burnhamShow.ts)
+  "ANDY BURNHAM": {
+    key: "tvanchor_BURNHAM",
+    poses: ["rest", "raised", "fist", "gravy", "smear", "chew", "shovel", "burp", "throat", "retch", "bowl", "wince", "strain", "wave"],
+    talks: [true, true, true, true, true, true, false, false, false, false, false, false, false, false],
+  },
 };
 
 /** Which gesture suits a line, for this cast (null: not one of ours). */
@@ -65,6 +72,11 @@ export function krews3Gesture(name: string, text: string, n: number): string[] |
       return ["clutch", "rest"];
     case "DR ELAINE ROBERTS":
       return [["palm", "rest"], ["rest", "palm"]][n % 2];
+    case "ANDY BURNHAM":
+      if (/ladies and gentlemen/.test(t)) return ["raised", "rest", "raised"];
+      if (/law states|constitution/.test(t)) return ["fist", "rest", "fist"];
+      if (/prove that the north/.test(t)) return ["rest", "raised"];
+      return ["rest"];
   }
   return null;
 }

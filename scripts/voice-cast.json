@@ -43,7 +43,13 @@
     "CHINESE CROBLEY": "speaking English with a very strong Chinese accent",
     "RUSSELL BRAND": "lively, flamboyant cockney accent",
     "GENIE": "speaking English with a strong Indian accent",
-    "CARMELA SOPRANO": "strong New Jersey accent"
+    "CARMELA SOPRANO": "strong New Jersey accent",
+    "ANDY BURNHAM": "cheerful, warm Greater Manchester accent",
+    "NORTHERN BLOKE 1": "broad Mancunian accent",
+    "NORTHERN BLOKE 2": "broad Lancashire accent",
+    "NORTHERN BLOKE 3": "broad Yorkshire accent",
+    "NORTHERN BLOKE 4": "broad Mancunian accent",
+    "ALL": "rowdy pub crowd, broad northern English accents"
   },
   "pronounce": {
     "_doc": "How a word is said aloud (the on-screen text is unchanged). Lines containing it are re-recorded.",
@@ -82,6 +88,62 @@
       [
         "\\blore\\b|prophecy|the ancients|krelworld is|national|canon",
         "excited"
+      ]
+    ],
+    "ANDY BURNHAM": [
+      [
+        "^Ladies and gentlemen|as your new prime minister|law states",
+        "triumphant, booming"
+      ],
+      [
+        "^Fock me|southern fairy|real northerners",
+        "mouth full, chewing, delighted"
+      ],
+      [
+        "^Actually",
+        "sly, mischievous"
+      ],
+      [
+        "^Offensive",
+        "smug, mocking"
+      ],
+      [
+        "^Urghh",
+        "pained, groaning"
+      ]
+    ],
+    "NORTHERN BLOKE 1": [
+      [
+        "Corrie",
+        "mouth full, chewing"
+      ],
+      [
+        "To the North",
+        "cheering"
+      ]
+    ],
+    "NORTHERN BLOKE 2": [
+      [
+        "gravy",
+        "mouth full"
+      ]
+    ],
+    "NORTHERN BLOKE 3": [
+      [
+        "voting",
+        "burps"
+      ]
+    ],
+    "NORTHERN BLOKE 4": [
+      [
+        "vomit",
+        "chewing, cheerful"
+      ]
+    ],
+    "ALL": [
+      [
+        "North",
+        "cheering, shouting"
       ]
     ]
   },
@@ -315,7 +377,13 @@
     "CHEF MICK": "esV7kJtKDdBipOsoWtGM",
     "GENIE": "c15nV2xCagiZlwvCGBxW",
     "PROFESSOR BEN BURGIS": "Mlr9g8ZYpsO5Q1Wh5d9S",
-    "CARMELA SOPRANO": "KyRkqFgySOwoLUjC2PQ5"
+    "CARMELA SOPRANO": "KyRkqFgySOwoLUjC2PQ5",
+    "ANDY BURNHAM": "Uni0BwzwHV0kjyKO14TM",
+    "NORTHERN BLOKE 1": "TUK9u4r5y2iPdDsWcYMZ",
+    "NORTHERN BLOKE 2": "PweKxOCw421kbKdSaA5S",
+    "NORTHERN BLOKE 3": "yO0oj6A2TnMNtkikM8bo",
+    "NORTHERN BLOKE 4": "EnFwU9loHqFNYFithh6J",
+    "ALL": "TUK9u4r5y2iPdDsWcYMZ"
   },
   "designed_desc": {
     "KRANKY KRANDALL": "A reedy, squeaky, frail old British man in his nineties. Thin, high, wavering, slightly wheezy voice, rambling and forgetful, trailing off mid-sentence.",
@@ -723,7 +791,13 @@
     "CABINET MINISTER 3": "~pol_m_uk1",
     "PRANKSTER": "~aide_m_us",
     "GORDON RAMSAY": "SERGEANT SWIG",
-    "CHEF MICK": "~scientist_m"
+    "CHEF MICK": "~scientist_m",
+    "ANDY BURNHAM": "BEGOUR THE BEAR",
+    "NORTHERN BLOKE 1": "MARK HUGHES",
+    "NORTHERN BLOKE 2": "OFFICER 1",
+    "NORTHERN BLOKE 3": "KRELBERT",
+    "NORTHERN BLOKE 4": "~everyman_m",
+    "ALL": "MARK HUGHES"
   },
   "clone_accents": {
     "_doc": "Accent tag for cloned voices on eleven_v3, which otherwise drift (American, or regional). Everyone in the group is southern English: faint RP or a slight cockney. Default below.",

@@ -11,6 +11,10 @@ import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 //   over Krelford, and nobody involved in it is shown.
 // - Starmer's video scandal: the cross-party meeting, his "virus" statement, the enhanced audio and Sunak at
 //   Downing Street. The video itself is never shown: we only see the phone's back and the MPs' faces.
+// - Andy Burnham's first act (the user's own gross-out script, word for word; Bloke 2's line was cut off between
+//   screenshots and is filled in): live from Downing Street, the Manchester Wetherspoons with the presser on its
+//   muted telly, then back. Cartoon chips-and-gravy vomit; the squat happens behind the podium under a CENSORED bar
+//   and nothing is ever shown coming out (tvnews/burnhamShow.ts).
 
 const NEWS = "GB KREWS 24";
 
@@ -306,4 +310,66 @@ NEWSREADER: As the nation watches this scandal unfold, one thing is clear: nobod
 `,
 );
 
-export const KREWS_STORIES_EPISODES: TVEpisode[] = [KREWS_KLOPP_BRIBE, KREWS_SUNAK_BOMB, KREWS_STARMER_SAGA, KREWS_STARMER_VIDEO, KREWS_CRASH_MODE_LIVE];
+export const KREWS_BURNHAM_FIRST_ACT = ep(
+  "krews_burnham_first_act",
+  "Andy Burnham's First Act",
+  46,
+  `[MUSIC news start]
+# GB KREWS 24
+INT. NEWSDESK - DAY
+[MUSIC news fade]
+# BREAKING: THE NEW PRIME MINISTER'S FIRST ACT
+NEWSREADER: We go live now to Downing Street, where the new Prime Minister, Andy Burnham, is about to announce his first act in office.
+EXT. 10 DOWNING STREET - DAY
+# LIVE: DOWNING STREET · THE PRIME MINISTER'S FIRST ACT
+(A crisp morning. Union Jack flutters. A modest but enthusiastic crowd of northern transplants, flat caps, and hi-vis jackets has gathered.)
+(Andy Burnham steps up to the podium. He beams like a man who just won the Pools.)
+ANDY BURNHAM (raising both arms): Ladies and gentlemen... and southerners watching from your overpriced pretend-houses... today is a new dawn for this country!
+(The crowd cheers wildly. A few confused civil servants clap politely from the doorway.)
+ANDY BURNHAM: As your new Prime Minister, my first act in office is to introduce a landmark piece of legislation. One that will finally, once and for all, prove that the North is the best!
+(He slams a fist on the podium. The crowd goes mental.)
+ANDY BURNHAM: The law states, quite simply: The North is much better than the South! Legally binding. No appeals. We're putting it in the bloody constitution!
+(Cheers erupt. Someone in the back throws a Greggs sausage roll in celebration.)
+ANDY BURNHAM: And to celebrate this historic moment...
+(He gestures. An aide awkwardly brings forward an enormous white bowl overflowing with thick chips swimming in brown gravy.)
+ANDY BURNHAM: ...I'm going to enjoy a proper northern meal!
+(He grabs a massive spoon, digs in like a man possessed, and shovels chips and gravy into his mouth.)
+[SFX burn_chew]
+[SFX burn_burp]
+(The journalists stare in stunned silence. A pigeon lands on a camera.)
+ANDY BURNHAM (mouth full, gravy everywhere): Fock me... so good I could eat it twice...
+(He pauses. A glint in his eye.)
+ANDY BURNHAM: Actually... mm... that gives me an idea.
+(He sticks two fingers down his throat. The crowd gasps.)
+[SFX burn_vomit]
+(Without missing a beat, Burnham picks up the bowl and starts eating the vomit with the same spoon.)
+ANDY BURNHAM (beaming, mouth full): You'll never catch a southern fairy doing this, r kid!
+[CUT]
+INT. WETHERSPOONS - MANCHESTER - DAY
+(A classic 'Spoons. A muted TV in the corner is showing the live press conference. Four Northern Blokes are eating their own regurgitated meals.)
+NORTHERN BLOKE 1 (mouth full, chewing vomit): Is sumfin happenin' on t'telly? Is that the new character in Corrie?
+NORTHERN BLOKE 2 (shovelling more puke-chips): Dunno, pass us the gravy.
+NORTHERN BLOKE 3 (burping loudly): Aye. So 'ow does this 'ole voting fing work then?
+NORTHERN BLOKE 4 (wiping vomit from his chin with a sleeve): I'm not sure, let me just eat some more of me own vomit and I'll tell ye, r kid!
+(They all laugh and continue eating, completely oblivious. One raises his bowl in a toast.)
+NORTHERN BLOKE 1: To the North!
+ALL: To the North!
+[SFX burn_toast]
+[CUT]
+EXT. 10 DOWNING STREET - CONTINUOUS
+(The journalists are in open-mouthed horror. One female reporter stands up, microphone in hand.)
+REPORTER: Prime Minister, this is offensive! It plays on crude stereotypes of gluttonous and ignorant northerners!
+ANDY BURNHAM: Offensive? You're not a real man, are you, love? Proper southern snowflake. Watch and learn how we do it up North.
+[SFX burn_gurgle]
+ANDY BURNHAM: Urghh... need to shit...
+(He squats slightly behind the podium.)
+[SFX burn_splat]
+(The crowd recoils. Cameras flash. Aides look like they want to die.)
+(Burnham picks up the bowl again, mixes it into the vomit-chips with his spoon, and starts eating it enthusiastically.)
+ANDY BURNHAM (mouth full, grinning): This is how real northerners do it! None of that fancy southern bollocks. Proper, honest grub straight from the gut!
+(The crowd is a mix of horrified silence and a few die-hard cheers. Burnham takes another big spoonful and waves at the cameras.)
+[FADE]
+`,
+);
+
+export const KREWS_STORIES_EPISODES: TVEpisode[] = [KREWS_KLOPP_BRIBE, KREWS_SUNAK_BOMB, KREWS_STARMER_SAGA, KREWS_STARMER_VIDEO, KREWS_CRASH_MODE_LIVE, KREWS_BURNHAM_FIRST_ACT];

@@ -121,6 +121,8 @@ export class Presenter {
   private nod?: Phaser.Tweens.Tween;
   /** the mouth's base (a face still mid-gasp, say) */
   baseMouth = M_CLOSED;
+  /** the pose he drifts back to after a line (a face with gravy on it, say) */
+  restPose = 0;
 
   constructor(
     private sc: Phaser.Scene,
@@ -254,7 +256,7 @@ export class Presenter {
     this.talking = false;
     this.show(this.baseMouth);
     // drift back to resting hands a beat after the line
-    if (this.pose !== 0 && this.def.poses[this.pose] !== "gun") this.later(380 + Math.random() * 400, () => !this.talking && this.setPose(0), this.timers);
+    if (this.pose !== this.restPose && this.def.poses[this.pose] !== "gun") this.later(380 + Math.random() * 400, () => !this.talking && this.setPose(this.restPose), this.timers);
     onDone?.();
   }
 

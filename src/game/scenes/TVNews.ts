@@ -7,6 +7,7 @@ import { Presenter, hasAnchor } from "./tvnews/Presenter";
 import { KREWS3_NEWS, STORY_KINDS, type StoryKind, type StoryScene, type Slide } from "./tvnews/krews3Shows";
 import { KREWS4_NEWS, K4_KINDS, type K4Kind, type K4Scene, type K4Gfx } from "./tvnews/krews4Shows";
 import { KREWS1_NEWS } from "./tvnews/krews1Shows";
+import { BURNHAM_NEWS, BURN_KINDS, BurnhamShow, type BurnKind } from "./tvnews/burnhamShow";
 import { fling, impact, playClip, type ClipOpts } from "./tv/action";
 
 /**
@@ -17,7 +18,7 @@ import { fling, impact, playClip, type ClipOpts } from "./tv/action";
  * pack with flashes going off, a down-the-line split, hidden-camera footage, B-roll).
  */
 
-type Kind = "desk" | "presser" | "hall" | "footage" | "train" | StoryKind | K4Kind;
+type Kind = "desk" | "presser" | "hall" | "footage" | "train" | StoryKind | K4Kind | BurnKind;
 
 export interface SceneDef extends StoryScene, K4Scene {
   match: RegExp;
@@ -129,6 +130,7 @@ export const NEWS_SHOWS: Record<string, NewsCfg> = {
   ...KREWS3_NEWS,
   ...KREWS4_NEWS,
   ...KREWS1_NEWS,
+  ...BURNHAM_NEWS,
 };
 
 const STRAPS: Record<string, [string, string]> = {
@@ -182,6 +184,27 @@ export class NewsDirector {
   }
 
   private sting?: NewsChrome;
+
+  /** Burnham's first act (tvnews/burnhamShow.ts): its Downing Street and 'Spoons scenes, lent this director's camera. */
+  private burnShow?: BurnhamShow;
+  private burn() {
+    return (this.burnShow ??= new BurnhamShow({
+      sc: this.sc,
+      r: this.r,
+      stage: this.stage,
+      fx: this.fxLayer,
+      chrome: this.chrome,
+      clearShot: () => this.clearShot(),
+      backdrop: (key, zoom, ox, oy, blur) => this.backdrop(key, zoom, ox, oy, blur),
+      camTo: (scale, fx, fy, ms, ease) => this.camTo(scale, fx, fy, ms, ease),
+      later: (ms, fn) => this.later(ms, fn),
+      every: (ms, fn) => this.every(ms, fn),
+      presenter: (name, x, y, scale) => this.presenter(name, x, y, scale),
+      strapFor: (name) => this.strapFor(name),
+      reporterInPack: (name) => this.reporterInPack(name),
+      lights: () => this.lights(),
+    }));
+  }
 
   destroy() {
     this.sting?.destroy();
@@ -684,6 +707,9 @@ export class NewsDirector {
         this.trainFrame = 0;
         this.train();
         return 800;
+      case "burnham":
+      case "spoons":
+        return this.burn().shot(this.scene.kind, up);
       default:
         return this.storyShot();
     }
@@ -717,6 +743,7 @@ export class NewsDirector {
     const kind = this.scene.kind;
     const delay = /^\(long pause\)/i.test(text) ? 1100 : 0;
     let p: Presenter | null = null;
+    if (BURN_KINDS.has(kind)) return this.burn().speak(name, text);
     if (K4_KINDS.has(kind)) return this.k4Speak(name, text);
     if (STORY_KINDS.has(kind)) return this.storySpeak(name, text, n);
     if (kind === "desk") {
@@ -809,6 +836,10 @@ export class NewsDirector {
   }
 
   private direction(action: string): number {
+    if (BURN_KINDS.has(this.scene.kind)) {
+      const d = this.burn().direction(action);
+      if (d >= 0) return d;
+    }
     const k4 = this.k4Direction(action);
     if (k4 >= 0) return k4;
     if (STORY_KINDS.has(this.scene.kind)) {
@@ -1095,6 +1126,7 @@ export class NewsDirector {
   }
 
   private storySfx(id: string): number {
+    if (BURN_KINDS.has(this.scene.kind)) return this.burn().sfx(id);
     if (/^explode/.test(id) && this.scene.boom) return this.k4Boom();
     if (id === "smash" && this.ep.id === "krews_roboref" && this.sc.textures.exists("tva_robo_charge")) return this.roboRampage();
     const { SX, SY, SW, SH } = this.r;

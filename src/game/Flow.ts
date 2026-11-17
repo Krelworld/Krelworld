@@ -15,8 +15,43 @@ export interface Next {
   data?: any;
 }
 
+/**
+ * Arriving in Krelford only to be sent straight on somewhere else (every chapter starts at home; Chapter 7 starts
+ * at the top of Da Drongus Dungeon) used to flash the overworld for a split second first. Work out that hop here
+ * and go straight there instead. Mirrors the first redirects in HubScene.onArrive (keep the two in step).
+ */
+function hubRedirect(data?: any): { key: string; data: any } | null {
+  const s = G.s;
+  if (!s) return null;
+  const from: string | undefined = data?.from;
+  const at: string | undefined = data?.at;
+  if (data?.flyover || s.flags.kr_brawl_due) return null;
+  if (s.chapter === 6 && !s.flags.ch6_ready) return null;
+  if (s.chapter >= 7 && s.flags.ch6_clear && !s.flags.ch7_lair_seen) return { key: "Lair", data: {} };
+  if (s.chapter >= 7) return null;
+  if (from === "raid" || from === "krunch") return null;
+  if (s.chapter > 1 && s.chapter < 6 && !s.flags[`ch${s.chapter}_intro`] && !s.flags[`ch${s.chapter}_home`] && at !== "HOME") {
+    s.flags[`ch${s.chapter}_home`] = true;
+    G.save();
+    return { key: "Home", data: { chapterStart: s.chapter } };
+  }
+  // back-to-back Town Hall meetings: straight from one into the next (nothing happens in town in between)
+  if (data?.chain && !(s.chapter > 1 && !s.flags[`ch${s.chapter}_intro`]) && !(s.flags.met_emergency && !s.flags.drongus_dungeon_risen)) {
+    const a = townHallAction();
+    if (a.kind === "meeting") return { key: "Meeting", data: { id: a.id, next: { scene: "Hub", data: { at: "TOWN_HALL", chain: true } } } };
+  }
+  return null;
+}
+
 /** Stop every running scene, then start `key`. Overlays never leak between modes. */
 export function switchTo(from: Phaser.Scene, key: string, data?: any) {
+  if (key === "Hub") {
+    const r = hubRedirect(data);
+    if (r) {
+      key = r.key;
+      data = r.data;
+    }
+  }
   // each place sets its own background ambience; anywhere else is quiet
   synth.ambience(null);
   synth.weatherSound(null);

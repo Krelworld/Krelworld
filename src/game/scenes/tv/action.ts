@@ -57,9 +57,13 @@ export function playClip(sc: Phaser.Scene, s: Phaser.GameObjects.Sprite, name: s
     s.play({ key: id, repeat: o.loop ? -1 : 0 });
     if (o.onFrame) {
       const list = sc.anims.get(id).frames;
-      s.on(Phaser.Animations.Events.ANIMATION_UPDATE, (_a: unknown, f: Phaser.Animations.AnimationFrame) => o.onFrame!(list.indexOf(f)));
+      s.on(Phaser.Animations.Events.ANIMATION_UPDATE, (_a: unknown, f: Phaser.Animations.AnimationFrame) => {
+        // run outside Phaser's animation step, so a callback may cut the shot (destroy this sprite) safely
+        const i = list.indexOf(f);
+        sc.time.delayedCall(0, () => o.onFrame!(i));
+      });
     }
-    if (o.done) s.once(Phaser.Animations.Events.ANIMATION_COMPLETE, o.done);
+    if (o.done) s.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => sc.time.delayedCall(0, () => o.done!()));
   };
   if (o.delay) sc.time.delayedCall(o.delay, go);
   else go();

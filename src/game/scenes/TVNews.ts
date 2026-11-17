@@ -7,6 +7,7 @@ import { Presenter, hasAnchor } from "./tvnews/Presenter";
 import { KREWS3_NEWS, STORY_KINDS, type StoryKind, type StoryScene, type Slide } from "./tvnews/krews3Shows";
 import { KREWS4_NEWS, K4_KINDS, type K4Kind, type K4Scene, type K4Gfx } from "./tvnews/krews4Shows";
 import { KREWS1_NEWS } from "./tvnews/krews1Shows";
+import { fling, impact, playClip, type ClipOpts } from "./tv/action";
 
 /**
  * GB Krews presentation for the story's compulsory broadcasts (Klerble's welcome and presser, the Krandall segment,
@@ -2095,12 +2096,60 @@ export class NewsDirector {
     const main = this.mainSpeaker;
     const p = this.find(main) ?? this.mcu(main);
     p?.stopTalking();
-    p?.setPose("point");
-    const from = p ? { x: p.spr.x - p.spr.displayWidth * 0.2, y: p.spr.y - p.spr.displayHeight * 0.6 } : { x: this.cx(), y: SY + SH * 0.5 };
+    // the PixelLab clip: he picks a brick up off the lectern, winds up and lets it go at us
+    const clip = p ? this.clipOverPresenter(p, "starmer_brick", { fps: 9, frames: [0, 1, 2, 3, 4, 5, 6, 7], onFrame: (i) => i === 7 && launch() }) : null;
+    if (!clip) p?.setPose("point");
+    let launched = false;
+    const launch = () => {
+      if (launched) return;
+      launched = true;
+      if (clip && p) {
+        // (not destroyed from inside its own animation callback: Phaser is still stepping it)
+        clip.setVisible(false);
+        this.sc.time.delayedCall(0, () => clip.destroy());
+        p.spr.setVisible(true);
+        p.setPose("point", false);
+      }
+      this.brickFlight(p, from());
+    };
+    const from = () => (p ? { x: p.spr.x + p.spr.displayWidth * (clip ? 0.25 : -0.2), y: p.spr.y - p.spr.displayHeight * (clip ? 0.95 : 0.6) } : { x: this.cx(), y: SY + SH * 0.5 });
+    if (!clip) launch();
+    void SW;
+    return clip ? 3500 : 2600;
+  }
+
+  /** Something on the end of a clip (an action clip, see tv/action.ts) in place of a presenter: hidden for its length. */
+  private clipOverPresenter(p: Presenter, name: string, o: ClipOpts & { keep?: boolean; ox?: number } = {}) {
+    const key = `tva_${name}`;
+    if (!this.sc.textures.exists(key)) return null;
+    const ox = o.ox ?? 0.5;
+    const s = this.sc.add.sprite(p.spr.x, p.spr.y, key, 0).setOrigin(p.spr.flipX ? 1 - ox : ox, 1).setScale(p.spr.scaleX).setFlipX(p.spr.flipX);
+    s.texture.setFilter(Phaser.Textures.FilterMode.NEAREST);
+    const c = p.spr.parentContainer;
+    if (c) c.addAt(s, c.getIndex(p.spr) + 1);
+    else this.add(s);
+    p.spr.setVisible(false);
+    playClip(this.sc, s, name, {
+      ...o,
+      done: () => {
+        o.done?.();
+        if (o.keep || !s.active) return;
+        s.destroy();
+        if (p.spr.active) p.spr.setVisible(true);
+      },
+    });
+    return s;
+  }
+
+  private brickFlight(p: Presenter | null, from: { x: number; y: number }) {
+    const { SX, SY, SW, SH } = this.r;
     const b = this.add(this.sc.add.container(from.x, from.y), this.fxLayer);
-    b.add(this.sc.add.rectangle(0, 0, 22, 12, 0xb45309).setStrokeStyle(2, 0x451a03));
-    b.add(this.sc.add.rectangle(-4, 0, 1, 12, 0x78350f));
-    b.add(this.sc.add.rectangle(0, -2, 22, 1, 0x78350f));
+    if (this.sc.textures.exists("tva_prop_brick")) b.add(this.sc.add.image(0, 0, "tva_prop_brick").setScale(0.8));
+    else {
+      b.add(this.sc.add.rectangle(0, 0, 22, 12, 0xb45309).setStrokeStyle(2, 0x451a03));
+      b.add(this.sc.add.rectangle(-4, 0, 1, 12, 0x78350f));
+      b.add(this.sc.add.rectangle(0, -2, 22, 1, 0x78350f));
+    }
     synth.play("swing");
     this.sc.tweens.add({
       targets: b,
@@ -2136,7 +2185,6 @@ export class NewsDirector {
         if (p) this.later(700, () => this.sc.tweens.add({ targets: p.spr, x: p.spr.x - SW, duration: 1000, ease: "Quad.in" }));
       },
     });
-    return 2600;
   }
 
   private drawBag(x: number, y: number, s: number) {
@@ -2181,6 +2229,22 @@ export class NewsDirector {
     if (/pins him/i.test(a)) {
       this.fieldWide();
       const g = this.find("GORDON RAMSAY");
+      const m = this.find("CHEF MICK");
+      if (g && m && this.sc.textures.exists("tva_gordon_grab")) {
+        // the PixelLab clips: Gordon lunges and grabs, Mick slammed into the wall
+        const dir = m.spr.x > g.spr.x ? 1 : -1;
+        g.stopTalking();
+        m.stopTalking();
+        const gc = this.clipOverPresenter(g, "gordon_grab", { fps: 11, ox: 64 / 192, frames: [0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 5] });
+        if (gc && dir < 0) gc.setFlipX(!gc.flipX).setOrigin(1 - gc.originX, 1);
+        if (gc) this.sc.tweens.add({ targets: gc, x: gc.x + dir * 70, duration: 380, delay: 200, ease: "Quad.out" });
+        this.later(470, () => {
+          synth.play("punch");
+          impact(this.sc, (o) => this.add(o, this.fxLayer), "pow", m.spr.x - dir * m.spr.displayWidth * 0.2, m.spr.y - m.spr.displayHeight * 0.45, 2, 0.014);
+          this.clipOverPresenter(m, "mick_pinned", { fps: 10, frames: [0, 1, 2, 3, 4, 5, 6, 5, 6, 5, 6] });
+        });
+        return 1900;
+      }
       g?.setPose("point");
       if (g) this.sc.tweens.add({ targets: g.spr, x: g.spr.x + 90, duration: 220, ease: "Quad.out" });
       this.later(200, () => this.sc.cameras.main.shake(300, 0.01));
@@ -2196,6 +2260,31 @@ export class NewsDirector {
     if (/overturns/i.test(a)) {
       if (this.storyShotKind !== "wide") this.fieldWide();
       const c = this.find("CUSTOMER 2");
+      const g = this.find("GORDON RAMSAY");
+      if (g && this.sc.textures.exists("tva_gordon_flip")) {
+        // the PixelLab clip: he gets his hands under it and heaves; the table goes over, the plates go everywhere
+        g.stopTalking();
+        const put = <T extends Phaser.GameObjects.GameObject>(o: T) => this.add(o, this.fxLayer);
+        const tx = c ? (g.spr.x + c.spr.x) / 2 : g.spr.x + 140;
+        const ty = SY + SH * 0.92;
+        const table = this.sc.textures.exists("tva_prop_table") ? put(this.sc.add.image(tx, ty, "tva_prop_table").setOrigin(0.5, 1).setScale(3)) : null;
+        const plates = [-1, 1].map((k) => (this.sc.textures.exists("tva_prop_plate") ? put(this.sc.add.image(tx + k * 34, ty - 168, "tva_prop_plate").setScale(1.6)) : null));
+        this.clipOverPresenter(g, "gordon_flip", { fps: 10, frames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 8] });
+        this.later(560, () => {
+          synth.play("swing");
+          if (table) this.sc.tweens.add({ targets: table, y: ty - 120, x: tx + 90, angle: 200, duration: 520, ease: "Quad.out", onComplete: () => this.sc.tweens.add({ targets: table, y: ty + 80, angle: 260, duration: 300, ease: "Quad.in" }) });
+          plates.forEach((pl, i) => {
+            pl?.destroy();
+            const to = { x: tx + (i ? 200 : -120), y: SY + SH * (0.75 + i * 0.1) };
+            fling(this.sc, put, "plate", { x: tx + (i ? 34 : -34), y: ty - 168 }, to, { ms: 420 + i * 120, spin: i ? 540 : -480, from: 1.6, to: 2.2, arc: 120, done: () => impact(this.sc, put, "shatter", to.x, to.y, 1.4, 0.01) });
+          });
+          if (c) this.sc.tweens.add({ targets: c.spr, y: c.spr.y + 70, angle: 24, duration: 400, delay: 200, ease: "Quad.in" });
+          const f = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xffffff, calm() ? 0.15 : 0.45).setOrigin(0), this.fxLayer);
+          this.sc.tweens.add({ targets: f, alpha: 0, duration: 260, onComplete: () => f.destroy() });
+          this.sc.cameras.main.shake(600, calm() ? 0.005 : 0.012);
+        });
+        return 2000;
+      }
       if (c) this.sc.tweens.add({ targets: c.spr, y: c.spr.y + 70, angle: 24, duration: 400, ease: "Quad.in" });
       const f = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xffffff, calm() ? 0.2 : 0.6).setOrigin(0), this.fxLayer);
       this.sc.tweens.add({ targets: f, alpha: 0, duration: 260, onComplete: () => f.destroy() });

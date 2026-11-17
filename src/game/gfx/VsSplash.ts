@@ -38,7 +38,7 @@ const BOSS_EPITHET: Record<string, string> = {
   krozno: "THIRTY YEARS, NEVER HIJACKED",
   brand: "VERBOSE GRAPPLER",
   troll: "TWELVE-BAR MENACE",
-  pudding_demon: "WANTS ANOTHER BOWL",
+  pudding_demon: "THE REAL ONE (EVIL)",
   flatmate: "DEPOSIT THIEF",
   rival: "NEVER RE-RACKS HIS WEIGHTS",
   jam: "ABSOLUTELY LIVID",
@@ -56,7 +56,7 @@ const BOSS_EPITHET: Record<string, string> = {
 /** Boss colours for their half of the card (falls back to red). */
 const BOSS_COLOR: Record<string, number> = {
   krandall: 0xfacc15, hoard: 0x84cc16, cronster: 0xf472b6, drongus1: 0xef4444, drongus2: 0xff2a2a, dark_drongus: 0xffd23f,
-  krozno: 0x38bdf8, brand: 0xe5e7eb, troll: 0x7d8f6a, pudding_demon: 0xeab308, flatmate: 0x9ca3af, rival: 0xd97706,
+  krozno: 0x38bdf8, brand: 0xe5e7eb, troll: 0x7d8f6a, pudding_demon: 0x9333ea, flatmate: 0x9ca3af, rival: 0xd97706,
   jam: 0xdc2626, rik: 0x65a30d, flirt: 0xf472b6, lantern: 0xdc2626, fruity: 0xec4899, tank: 0x4d7c0f, reinhardt: 0x6b7280,
   krex: 0xa855f7, elon: 0x22d3ee, concept: 0x7c3aed,
 };

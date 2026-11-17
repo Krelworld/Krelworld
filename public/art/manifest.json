@@ -8515,6 +8515,9 @@
   },
   "fe_still_drongus1_gun": {
    "file": "finale/fe_still_drongus1_gun.png"
+  },
+  "fe_still_dawn": {
+   "file": "finale/fe_still_dawn.png"
   }
  },
  "sheets": {
@@ -10691,6 +10694,41 @@
    "file": "tv/face_P2_SCROMBUS.png",
    "frameWidth": 128,
    "frameHeight": 128
+  },
+  "fe_cut_concept_anim": {
+   "file": "finale/fe_cut_concept_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_cut_drongus2_anim": {
+   "file": "finale/fe_cut_drongus2_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 128
+  },
+  "fe_eyes_concept_anim": {
+   "file": "finale/fe_eyes_concept_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 64
+  },
+  "fe_eyes_dd_anim": {
+   "file": "finale/fe_eyes_dd_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 64
+  },
+  "fe_still_dd_transform_anim": {
+   "file": "finale/fe_still_dd_transform_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_group_krezz_anim": {
+   "file": "finale/fe_still_group_krezz_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "fe_still_spirit_anim": {
+   "file": "finale/fe_still_spirit_anim.png",
+   "frameWidth": 256,
+   "frameHeight": 144
   }
  },
  "vfx": {

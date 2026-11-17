@@ -11,6 +11,34 @@ import { hdFactor } from "./HD";
 
 const alive = (sc: Phaser.Scene) => !!sc.sys && sc.sys.isActive() && !!sc.cameras?.main;
 const shakeOn = () => G.meta?.settings?.shake !== false;
+/**
+ * A drawn still or close-up can have an animated version (`<key>_anim`, a strip of frames): use it if it's there.
+ * Returns the texture key and a start(img) that cycles its frames until the image goes.
+ */
+const ANIM_MODE: Record<string, "pingpong" | "once" | "reverse"> = { fe_still_spirit: "once", fe_eyes_concept: "reverse" };
+function animated(sc: Phaser.Scene, key: string) {
+  const ak = `${key}_anim`;
+  if (!sc.textures.exists(ak) || sc.textures.get(ak).frameTotal < 4) return { key, start: (_img: Phaser.GameObjects.Image) => undefined };
+  const n = sc.textures.get(ak).frameTotal - 1;
+  const mode = ANIM_MODE[key] ?? "pingpong";
+  // ping-pong for loops (no jump back to the start); once plays through and holds; reverse plays backwards and holds
+  const seq = mode === "once" ? [...Array(n).keys()] : mode === "reverse" ? [...Array(n).keys()].reverse() : [...Array(n).keys(), ...[...Array(n).keys()].reverse().slice(1, -1)];
+  return {
+    key: ak,
+    start: (img: Phaser.GameObjects.Image) => {
+      let i = 0;
+      img.setFrame(seq[0]);
+      const id = window.setInterval(() => {
+        if (!img.active) return window.clearInterval(id);
+        i++;
+        if (mode !== "pingpong" && i >= seq.length) return window.clearInterval(id);
+        img.setFrame(seq[i % seq.length]);
+      }, 85);
+      img.once("destroy", () => window.clearInterval(id));
+    },
+  };
+}
+
 /** Not shut down (a scene that's been left: anything awaiting a cinematic beat in it should just stop there). */
 const living = (sc: Phaser.Scene) => !!sc.sys && sc.sys.settings.status < Phaser.Scenes.SHUTDOWN;
 /** "Reduce flashing" is on: full-screen flashes are dimmed and slowed, strobing effects are skipped. */
@@ -374,7 +402,9 @@ export function cutIn(sc: Phaser.Scene, key: string, o: { from?: "left" | "right
     };
     drawLines();
     const lineTimer = window.setInterval(drawLines, 50);
-    const img = sc.add.image(480, y, key, o.frame);
+    const an = o.frame === undefined ? animated(sc, key) : { key, start: () => undefined };
+    const img = sc.add.image(480, y, an.key, o.frame);
+    an.start(img);
     const tex = img.frame;
     const k = W / tex.realWidth;
     const cropH = Math.min(tex.realHeight, (H - 10) / k);
@@ -428,7 +458,9 @@ export function cutIn(sc: Phaser.Scene, key: string, o: { from?: "left" | "right
 export function still(sc: Phaser.Scene, key: string, ms = 1200, o: { depth?: number; push?: number; shakeK?: number; flipX?: boolean } = {}): Promise<void> {
   return new Promise((res) => {
     if (!alive(sc) || !sc.textures.exists(key)) return res();
-    const img = sc.add.image(480, 270, key);
+    const an = animated(sc, key);
+    const img = sc.add.image(480, 270, an.key, an.key === key ? undefined : 0);
+    an.start(img);
     const hd = hdFactor(img as { texture?: Phaser.Textures.Texture });
     const k = Math.max(960 / img.frame.realWidth, 540 / img.frame.realHeight);
     img.setScale(k / hd);
@@ -454,7 +486,9 @@ export function eyeShot(sc: Phaser.Scene, key: string, ms = 800, o: { depth?: nu
   return new Promise((res) => {
     if (!alive(sc) || !sc.textures.exists(key)) return res();
     const bg = sc.add.rectangle(480, 270, 1100, 700, 0x000000, 1);
-    const img = sc.add.image(480, 270, key);
+    const an = animated(sc, key);
+    const img = sc.add.image(480, 270, an.key, an.key === key ? undefined : 0);
+    an.start(img);
     const hd = hdFactor(img as { texture?: Phaser.Textures.Texture });
     const k = 980 / img.frame.realWidth;
     img.setScale(k / hd);

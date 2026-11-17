@@ -19,6 +19,14 @@ export const KREWS3_ANCHORS: Record<string, AnchorDef> = {
   "VOTER 1": { key: "tvanchor_VOX_MAN", poses: ["rest", "point"], talks: [true, true] },
   "MARGARET THOMPSON": { key: "tvanchor_MARGARET", poses: ["rest", "clutch"], talks: [true, true] },
   "DR ELAINE ROBERTS": { key: "tvanchor_ELAINE", poses: ["rest", "palm"], talks: [true, true] },
+  // Kill the Patient 2: the hospital's people (no gestures: they stand very still and say very little)
+  "HOSPITAL SPOKESPERSON": { key: "tvanchor_KTP_SPOKES", poses: ["rest"], talks: [true] },
+  "BOARD REPRESENTATIVE": { key: "tvanchor_KTP_BOARDREP", poses: ["rest"], talks: [true] },
+  ADMINISTRATOR: { key: "tvanchor_KTP_ADMIN_F", poses: ["rest"], talks: [true] },
+  "SECOND ADMINISTRATOR": { key: "tvanchor_KTP_ADMIN_M", poses: ["rest"], talks: [true] },
+  "BOARD MEMBER": { key: "tvanchor_KTP_BOARDMEMBER", poses: ["rest"], talks: [true] },
+  "REBECCA HALL": { key: "tvanchor_KTP_HALL", poses: ["rest"], talks: [true] },
+  "MARTIN BELL": { key: "tvanchor_KTP_BELL", poses: ["rest", "note"], talks: [true, true] },
   // #ArsebrushGate: Starmer at the lectern with the giant toothbrush, the people flanking him, the opposition
   "KEIR STARMER@BRUSH": { key: "tvanchor_STARMER_BRUSH", poses: ["rest", "brush"], talks: [true, true] },
   "CHRIS WHITTY": { key: "tvanchor_WHITTY", poses: ["rest", "palm"], talks: [true, true] },
@@ -72,6 +80,15 @@ export function krews3Gesture(name: string, text: string, n: number): string[] |
       return ["clutch", "rest"];
     case "DR ELAINE ROBERTS":
       return [["palm", "rest"], ["rest", "palm"]][n % 2];
+    case "MARTIN BELL":
+      return ["rest", "note"];
+    case "HOSPITAL SPOKESPERSON":
+    case "BOARD REPRESENTATIVE":
+    case "ADMINISTRATOR":
+    case "SECOND ADMINISTRATOR":
+    case "BOARD MEMBER":
+    case "REBECCA HALL":
+      return ["rest"];
     case "CHRIS WHITTY":
       return ["rest"];
     case "DR ALANA MERRICK":

@@ -14,6 +14,10 @@ import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 // - #ArsebrushGate: Sunday's tease, the Downing Street press conference (Starmer with a giant toothbrush, flanked by
 //   Whitty and Dental Health Tsar Dr Alana Merrick, a fictional character), the crashed Department of Health website,
 //   the British Dental Association's statement, Badenoch and Cooper at Westminster, and the hashtags.
+// - Kill the Patient 2: No Alibi: the hospital arcade, the cabinet, the hospital's press room and the committee room,
+//   cutting now and then to "game footage" of the arcade game itself (tvnews/ktpGame.ts), then a BREAKING second half
+//   on the "penis sensor" (only ever the flap and its label). The article stops mid-sentence after 'Fully Immersive';
+//   the newsreader closes there.
 
 const NEWS = "GB KREWS 24";
 
@@ -356,4 +360,115 @@ NEWSREADER: In a later interview, the Prime Minister stood by his remarks.
 `,
 );
 
-export const KREWS_STORIES_EPISODES: TVEpisode[] = [KREWS_KLOPP_BRIBE, KREWS_SUNAK_BOMB, KREWS_STARMER_SAGA, KREWS_STARMER_VIDEO, KREWS_CRASH_MODE_LIVE, KREWS_ARSEBRUSH];
+export const KREWS_KILL_THE_PATIENT = ep(
+  "krews_kill_the_patient",
+  "Kill the Patient 2: No Alibi",
+  36,
+  `[MUSIC news start]
+# GB KREWS 24
+INT. NEWSDESK - DAY
+[MUSIC news fade]
+# HOSPITAL INSTALLS "KILL THE PATIENT 2: NO ALIBI" AFTER $20M PAYOUT OVER THE FIRST ONE
+NEWSREADER: A hospital already forced to pay $20 million in litigation over its decision to install a video game called Kill the Patient in its on-site arcade is facing renewed outrage after administrators approved the installation of its sequel, Kill the Patient 2: No Alibi.
+INT. HOSPITAL ARCADE - DAY
+NEWSREADER: The decision has baffled patients, staff, attorneys, local officials and, reportedly, several members of the hospital's own board, some of whom initially denied that the machine existed despite photographs showing it positioned prominently between a basketball game and a Dance Dance Revolution cabinet.
+REPORTER: The hospital has previously faced intense scrutiny over the original Kill the Patient, an arcade game in which players assumed the role of a disgruntled hospital employee and accumulated points through a variety of activities involving hospitalized patients.
+INT. HOSPITAL STATEMENT GRAPHIC
+REPORTER: Following multiple lawsuits, the hospital ultimately agreed to pay approximately $20 million in damages and issued a public statement promising to "undertake a comprehensive review of the standards governing entertainment available on hospital property."
+INT. HOSPITAL ARCADE - DAY
+REPORTER: Less than two years later, Kill the Patient 2: No Alibi appeared in the arcade.
+INT. NEWSDESK - DAY
+# THE HOSPITAL'S EXPLANATIONS
+NEWSREADER: Hospital executives have offered a rapidly evolving series of explanations.
+INT. HOSPITAL PRESS ROOM - DAY
+# LIVE: THE HOSPITAL · MONDAY MORNING
+REPORTER: At first, a spokesperson denied that the hospital had ever purchased the game.
+HOSPITAL SPOKESPERSON: We have no record of any such machine being present on hospital property.
+INT. CABINET MARQUEE - DAY
+REPORTER: Minutes later, after reporters produced photographs of the cabinet bearing the words KILL THE PATIENT 2: NO ALIBI — NOW WITH CASH PAYOUTS, the hospital clarified that while the machine was physically located inside the hospital, this did not necessarily mean the hospital had "stocked" it.
+INT. NEWSDESK - DAY
+NEWSREADER: By Tuesday, administrators had shifted to defending the game on artistic grounds.
+INT. ARTISTIC STATEMENT GRAPHIC
+NEWSREADER: "The game is actually about corruption in the medical industry, and the player is never explicitly rewarded for killing patients, nor is it ever obligatory for them to kill patients," the hospital said in a written statement.
+INT. NEWSDESK - DAY
+NEWSREADER: That claim has come under particular scrutiny.
+INT. GAME FOOTAGE LEVEL ONE
+# GAME FOOTAGE: KILL THE PATIENT 2
+NEWSREADER: The first level of the game is titled KILL OR GAME OVER.
+NEWSREADER: Upon beginning the level, the player is handed a machine gun and presented with the instruction: "KILL AS MANY PATIENTS AS POSSIBLE, OR GAME OVER!"
+INT. GAME FOOTAGE REFUSAL
+NEWSREADER: Players who refuse to fire reportedly receive an immediate game-over screen reading, "YOU SAVED THE PATIENTS. YOU LOSE."
+INT. GAME FOOTAGE PAYOUT
+REPORTER: More controversially, the machine dispenses real U.S. currency through a slot beneath the controls based directly on the number of patients killed during gameplay.
+INT. CABINET SIGN - DAY
+REPORTER: A printed sign attached to the machine explains the exchange rate as "$1 PER PATIENT — NO DAILY LIMIT."
+INT. HOSPITAL PRESS ROOM - DAY
+REPORTER: Asked how this system was compatible with the hospital's claim that players were "never explicitly rewarded" for killing patients, a board representative said the cash should be understood as...
+BOARD REPRESENTATIVE: An interactive commentary on financial incentives within the American healthcare system.
+BOARD REPRESENTATIVE: The fact that money physically comes out of the machine after you kill a patient does not necessarily mean the money is a reward for killing the patient.
+BOARD REPRESENTATIVE: Correlation should not automatically be interpreted as causation.
+INT. GAME FOOTAGE DEMO
+REPORTER: Reporters then demonstrated that shooting a patient caused the words +$1 PATIENT BONUS to appear on screen immediately before a dollar bill emerged from the cabinet.
+INT. HOSPITAL PRESS ROOM LATER - DAY
+(long pause)
+REPORTER: The representative declined further questions.
+INT. NEWSDESK - DAY
+# 'WE THOUGHT IT WAS A DIFFERENT GAME'
+NEWSREADER: Several board members have sought to distance themselves from the purchase.
+INT. ARCADE ADMINISTRATORS - DAY
+NEWSREADER: One administrator claimed the hospital believed it had ordered a medical education simulator.
+ADMINISTRATOR: I was told it was about difficult decision-making in healthcare. I did not personally play it.
+NEWSREADER: Another said he had assumed the title No Alibi referred to "documentation standards."
+SECOND ADMINISTRATOR: Documentation standards.
+NEWSREADER: A third board member claimed the sequel had been approved because administrators believed it was significantly different from the original game.
+BOARD MEMBER: Obviously, if it had simply been called Kill the Patient Again, that would have raised concerns.
+BOARD MEMBER: But the subtitle No Alibi suggested to us that the developers had taken the franchise in a more mature direction.
+INT. GAME FOOTAGE ATTRACT MODE
+NEWSREADER: The game's own promotional material describes Kill the Patient 2 as "BIGGER, BLOODIER AND LEGALLY INDEMNIFIED."
+INT. LAW OFFICE - DAY
+REBECCA HALL: One could imagine a hospital making this mistake once.
+REBECCA HALL: What is remarkable is that they apparently went through the experience of being sued for $20 million over a game called Kill the Patient, conducted an internal review, and then encountered a game called Kill the Patient 2: No Alibi and thought, 'Yes, that one.'
+INT. NEWSDESK - DAY
+NEWSREADER: Hospital officials insisted that lessons had been learned from the previous litigation.
+INT. HOSPITAL PRESS ROOM - DAY
+HOSPITAL SPOKESPERSON: The original situation and the present situation are completely different.
+REPORTER: Asked to explain the difference, a spokesperson replied...
+HOSPITAL SPOKESPERSON: This is the sequel.
+INT. NEWSDESK - DAY
+# BOARD LAUNCHES INVESTIGATION INTO BOARD
+NEWSREADER: The hospital has now announced an independent investigation into how the machine was approved.
+NEWSREADER: The investigation will be overseen by a five-member committee composed of hospital board members, including three who voted to purchase the machine.
+INT. COMMITTEE ROOM - DAY
+MARTIN BELL: We intend to establish exactly who allowed this to happen.
+INT. AUTHORIZATION GRAPHIC
+REPORTER: Records obtained by reporters show Bell personally signed the purchase authorization beneath a handwritten note reading, "Finally! Loved the first one."
+INT. COMMITTEE ROOM - DAY
+REPORTER: Bell said he could not recall writing the note.
+INT. HOSPITAL ARCADE - DAY
+REPORTER: The machine remained operational as of Wednesday afternoon.
+INT. NEWSDESK - DAY
+# BREAKING: NEW QUESTIONS AFTER "KILL THE PATIENT 2" FOUND TO CONTAIN SO-CALLED "PENIS SENSOR"
+NEWSREADER: Hospital Faces New Questions After 'Kill the Patient 2' Found to Contain So-Called 'Penis Sensor'.
+NEWSREADER: The hospital says the controversial peripheral is "not sexual in nature" and merely enhances realism during urination and "other experiences."
+NEWSREADER: The hospital already facing mounting criticism over its decision to install Kill the Patient 2: No Alibi in its on-site arcade is now confronting an additional controversy after it emerged that the machine contains what its manufacturer describes as a "Penis Sensor."
+INT. CABINET FLAP - DAY
+REPORTER: The peripheral, located beneath a small plastic flap on the front of the arcade cabinet, is accompanied by an instruction label reading: "FOR FULLY IMMERSIVE EXPERIENCE, INSERT PENIS INTO SENSOR WHEN PROMPTED."
+INT. NEWSDESK - DAY
+NEWSREADER: Hospital officials initially said they were unaware that the feature existed.
+NEWSREADER: Several hours later, after photographs of the instruction panel circulated online, the hospital issued a statement clarifying that the device was present but insisting there was "no sexually explicit content whatsoever" in the game.
+INT. SENSOR STATEMENT GRAPHIC
+NEWSREADER: "The peripheral is not sexual in nature," the statement said. "It is an optional immersion device intended to enhance realism during certain routine human activities, including urination and other experiences."
+INT. NEWSDESK - DAY
+NEWSREADER: The hospital did not elaborate on what "other experiences" meant.
+INT. HOSPITAL PRESS ROOM - DAY
+REPORTER: When asked repeatedly during a press conference, a spokesperson said the phrase should not be interpreted "in a sensational or prurient manner."
+HOSPITAL SPOKESPERSON: It refers to other experiences.
+HOSPITAL SPOKESPERSON: That is the terminology used by the manufacturer.
+INT. NEWSDESK - DAY
+# 'FULLY IMMERSIVE'
+NEWSREADER: GB Krews has asked the manufacturer exactly when the sensor becomes active. We are still waiting for an answer.
+[FADE]
+`,
+);
+
+export const KREWS_STORIES_EPISODES: TVEpisode[] = [KREWS_KLOPP_BRIBE, KREWS_SUNAK_BOMB, KREWS_STARMER_SAGA, KREWS_STARMER_VIDEO, KREWS_CRASH_MODE_LIVE, KREWS_ARSEBRUSH, KREWS_KILL_THE_PATIENT];

@@ -603,6 +603,9 @@
     "CHATGPT",
     "STATION ANNOUNCER",
     "JOURNALIST",
+    "HOSPITAL SPOKESPERSON",
+    "ADMINISTRATOR",
+    "REBECCA HALL",
     "LILA MINT",
     "BRENDA",
     "GRANDMA 1",
@@ -651,6 +654,13 @@
     "MIKKY K": "MIKEY"
   },
   "designed_alias": {
+    "HOSPITAL SPOKESPERSON": "~pol_f_us",
+    "BOARD REPRESENTATIVE": "~ceo_m_us",
+    "ADMINISTRATOR": "~aide_f_us",
+    "SECOND ADMINISTRATOR": "~aide_m_us",
+    "BOARD MEMBER": "~pol_m_us",
+    "REBECCA HALL": "~news_f_us",
+    "MARTIN BELL": "~news_m_us",
     "OCTO PUSS": "THE CYST",
     "THE WOMAN": "~aide_f_us",
     "JOURNALIST": "~press_f_rp",

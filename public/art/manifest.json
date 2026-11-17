@@ -9298,6 +9298,27 @@
   },
   "tcc_photo_nuns": {
    "file": "tv/tcc/tcc_photo_nuns.png"
+  },
+  "tv_ktp_arcade": {
+   "file": "backdrops/tv_ktp_arcade.png"
+  },
+  "tv_ktp_cabinet": {
+   "file": "backdrops/tv_ktp_cabinet.png"
+  },
+  "tv_ktp_press": {
+   "file": "backdrops/tv_ktp_press.png"
+  },
+  "tv_ktp_committee": {
+   "file": "backdrops/tv_ktp_committee.png"
+  },
+  "tv_ktp_ward": {
+   "file": "backdrops/tv_ktp_ward.png"
+  },
+  "tva_prop_ktp_bed": {
+   "file": "tv/action/prop_ktp_bed.png"
+  },
+  "tva_prop_ktp_bill": {
+   "file": "tv/action/prop_ktp_bill.png"
   }
  },
  "sheets": {
@@ -14098,6 +14119,61 @@
    "file": "tv/body_JENNY_CUMMING_DAY.png",
    "frameWidth": 96,
    "frameHeight": 160
+  },
+  "tva_ktp_fire": {
+   "file": "tv/action/ktp_fire.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "tva_ktp_run": {
+   "file": "tv/action/ktp_run.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "tva_ktp_flee": {
+   "file": "tv/action/ktp_flee.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "tva_ktp_patients": {
+   "file": "tv/action/ktp_patients.png",
+   "frameWidth": 64,
+   "frameHeight": 64
+  },
+  "tvanchor_KTP_BOARDREP": {
+   "file": "tv/anchor_KTP_BOARDREP.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_KTP_ADMIN_M": {
+   "file": "tv/anchor_KTP_ADMIN_M.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_KTP_BOARDMEMBER": {
+   "file": "tv/anchor_KTP_BOARDMEMBER.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_KTP_BELL": {
+   "file": "tv/anchor_KTP_BELL.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_KTP_SPOKES": {
+   "file": "tv/anchor_KTP_SPOKES.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_KTP_ADMIN_F": {
+   "file": "tv/anchor_KTP_ADMIN_F.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "tvanchor_KTP_HALL": {
+   "file": "tv/anchor_KTP_HALL.png",
+   "frameWidth": 128,
+   "frameHeight": 128
   }
  },
  "vfx": {

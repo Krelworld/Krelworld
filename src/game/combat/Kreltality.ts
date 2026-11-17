@@ -45,10 +45,22 @@ const NAMES: Record<Finisher, string> = {
 const D = 2000; // above everything in the room
 
 /** Ask. Resolves true if they said yes (and the finisher has played). */
-export async function kreltality(sc: Phaser.Scene, target: KrelTarget, player: { key: string; frame: string | number; scale: number }, force?: Finisher): Promise<boolean> {
+export async function kreltality(
+  sc: Phaser.Scene,
+  target: KrelTarget,
+  player: { key: string; frame: string | number; scale: number },
+  force?: Finisher,
+  /** onStage: hide the real fighters (the show uses its own copies of you and them); onEnd: bring yours back */
+  hooks?: { onStage?: () => void; onEnd?: () => void },
+): Promise<boolean> {
   const yes = await prompt(sc);
   if (!yes) return false;
-  await stage(sc, target, player, force ?? pick());
+  hooks?.onStage?.();
+  try {
+    await stage(sc, target, player, force ?? pick());
+  } finally {
+    hooks?.onEnd?.();
+  }
   return true;
 }
 

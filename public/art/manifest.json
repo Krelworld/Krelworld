@@ -9385,6 +9385,11 @@
   }
  },
  "sheets": {
+  "burpee_KREBLIS": {
+   "file": "krel/burpee_KREBLIS.png",
+   "frameWidth": 96,
+   "frameHeight": 96
+  },
   "boss_banhammer": {
    "file": "combat/boss_banhammer.png",
    "frameWidth": 160,

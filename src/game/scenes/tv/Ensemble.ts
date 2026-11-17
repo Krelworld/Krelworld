@@ -530,8 +530,9 @@ export class EnsembleDirector extends ShowDirector {
     // whirls round: now his date is on the end of it
     this.later(1300, () => {
       this.fightBg(-60, 1.4);
-      const wom = this.clipAt("woman_fall", SX + SW * 0.25, SY + SH + 8, h)!;
-      const b2 = this.clipAt("benn_shove", SX + SW * 0.7, SY + SH + 8, h, 1 - 64 / 192)!;
+      const b2 = this.clipAt("benn_shove", SX + SW * 0.82, SY + SH + 8, h * 0.9, 1 - 64 / 192)!;
+      // (she's in front of his arms, so we see her go)
+      const wom = this.clipAt("woman_fall", SX + SW * 0.22, SY + SH + 8, h)!;
       b2.setFlipX(true);
       this.crash(1.06);
       this.playClip(b2, "benn_shove", {

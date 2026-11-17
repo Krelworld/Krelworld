@@ -300,13 +300,18 @@ export class SoapDirector extends ShowDirector {
       const p = this.single("PHIL", { side: 0.4, bg: this.setImg(), recut: true, expr: F.ALARM });
       if (p && this.tex("tva_phil_slam")) {
         // the fist goes up and comes down on the bar (the [SFX smash] lands on it)
-        this.clipOver(p, "phil_slam", { fps: 10, back: F.ALARM });
-        this.later(560, () => {
-          this.crash(1.2, p.spr.x, p.spr.y - 220);
-          this.hit("pow", p.spr.x + 60, this.r.SY + this.r.SH - 20, 2.2, 0.014);
-          this.sfx("punch");
+        this.clipOver(p, "phil_slam", {
+          fps: 8,
+          frames: [0, 1, 2, 3, 4, 4, 5, 6, 6, 6],
+          back: F.ALARM,
+          onFrame: (i) => {
+            if (i !== 6) return;
+            this.crash(1.2, p.spr.x, p.spr.y - 220);
+            this.hit("pow", p.spr.x + 70, this.r.SY + this.r.SH - 10, 2.2, 0.014);
+            this.sfx("punch");
+          },
         });
-        return 800;
+        return 1100;
       }
       if (p) this.later(500, () => this.crash(1.2, p.spr.x, p.spr.y - 220));
       return 700;

@@ -11081,6 +11081,16 @@
    "file": "tv/action/officer_dive.png",
    "frameWidth": 128,
    "frameHeight": 128
+  },
+  "tva_robo_charge": {
+   "file": "tv/action/robo_charge.png",
+   "frameWidth": 96,
+   "frameHeight": 96
+  },
+  "tva_robo_player": {
+   "file": "tv/action/robo_player.png",
+   "frameWidth": 96,
+   "frameHeight": 96
   }
  },
  "vfx": {

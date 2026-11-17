@@ -1046,8 +1046,57 @@ export class NewsDirector {
     return -1;
   }
 
+  /**
+   * Euro 2024: ARBITRO-9000 charging players (PixelLab clips, tv/action.ts). A picture-in-picture "match footage"
+   * insert over the reporter: the robot comes across the pitch and sends two players flying.
+   */
+  private roboRampage(): number {
+    const { SX, SY, SW, SH } = this.r;
+    const put = <T extends Phaser.GameObjects.GameObject>(o: T) => this.add(o, this.fxLayer);
+    const box = { x: SX + 24, y: SY + 24, w: SW - 48, h: SH * 0.62 };
+    const frame = put(this.sc.add.container(0, 0));
+    const bg = this.sc.textures.exists("tv_k1_stadium") ? this.sc.add.image(box.x + box.w / 2, box.y + box.h / 2, "tv_k1_stadium") : this.sc.add.rectangle(box.x + box.w / 2, box.y + box.h / 2, box.w, box.h, 0x166534);
+    if (bg instanceof Phaser.GameObjects.Image) bg.setScale(Math.max(box.w / bg.width, box.h / bg.height) * 1.4).setTint(0xd0ffd0);
+    const mask = this.sc.make.graphics({}).fillRect(box.x, box.y, box.w, box.h);
+    frame.add(bg);
+    const ground = box.y + box.h - 8;
+    const players = [0.55, 0.8].map((fx) => {
+      const pl = this.sc.add.sprite(box.x + box.w * fx, ground, "tva_robo_player", 0).setOrigin(0.5, 1).setScale(2.4).setFlipX(true);
+      frame.add(pl);
+      return pl;
+    });
+    const robo = this.sc.add.sprite(box.x - 60, ground + 6, "tva_robo_charge", 0).setOrigin(0.5, 1).setScale(2.4);
+    frame.add(robo);
+    frame.setMask(mask.createGeometryMask());
+    const border = put(this.sc.add.rectangle(box.x, box.y, box.w, box.h).setOrigin(0).setStrokeStyle(4, 0xffffff));
+    const tag = put(this.sc.add.text(box.x + 10, box.y + 8, "MATCH FOOTAGE", { fontFamily: FONT, fontSize: "14px", color: "#ffffff", fontStyle: "bold", backgroundColor: "#dc2626", padding: { x: 6, y: 3 } }));
+    playClip(this.sc, robo, "robo_charge", { fps: 10, frames: [3, 4, 5, 6], loop: true });
+    synth.play("alarm");
+    this.sc.tweens.add({ targets: robo, x: box.x + box.w + 80, duration: 2200, ease: "Linear" });
+    players.forEach((pl, i) => {
+      const at = ((pl.x - (box.x - 60)) / (box.w + 140)) * 2200 - 120;
+      this.later(at, () => {
+        if (!pl.active) return;
+        synth.play("punch_big");
+        impact(this.sc, (o) => {
+          frame.add(o);
+          return o;
+        }, "pow", pl.x, pl.y - 70, 2, 0.014);
+        playClip(this.sc, pl, "robo_player", { fps: 12 });
+        this.sc.tweens.add({ targets: pl, x: pl.x + 150 + i * 40, duration: 600, ease: "Quad.out" });
+        this.sc.tweens.add({ targets: pl, y: pl.y - 40, duration: 300, yoyo: true, ease: "Quad.out" });
+      });
+    });
+    this.later(2600, () => {
+      for (const o of [frame, border, tag]) this.sc.tweens.add({ targets: o, alpha: 0, duration: 250, onComplete: () => o.destroy() });
+      mask.destroy();
+    });
+    return 2700;
+  }
+
   private storySfx(id: string): number {
     if (/^explode/.test(id) && this.scene.boom) return this.k4Boom();
+    if (id === "smash" && this.ep.id === "krews_roboref" && this.sc.textures.exists("tva_robo_charge")) return this.roboRampage();
     const { SX, SY, SW, SH } = this.r;
     const k = this.scene.kind;
     if (/^fart/.test(id) && k === "rally") {
@@ -2318,6 +2367,12 @@ export class NewsDirector {
         this.sc.tweens.add({ targets: s, x: s.x + (Math.random() - 0.5) * 300, y: SY + SH + 20, angle: 360, duration: 900 + Math.random() * 600, onComplete: () => s.destroy() });
       }
       this.sc.cameras.main.shake(700, 0.012);
+      // bricks through the windows (the props and the shatter from tv/action.ts)
+      const put = <T extends Phaser.GameObjects.GameObject>(o: T) => this.add(o, this.fxLayer);
+      for (let i = 0; i < 3; i++) {
+        const to = { x: SX + SW * (0.18 + i * 0.32), y: SY + SH * (0.22 + (i % 2) * 0.08) };
+        this.later(i * 260, () => fling(this.sc, put, "brick", { x: to.x + (i - 1) * 60, y: SY + SH + 30 }, to, { ms: 360, spin: 600, from: 2.4, to: 1.4, arc: 30, done: () => impact(this.sc, put, "shatter", to.x, to.y, 1.6, 0.008) }));
+      }
     });
     // and here they come
     const heads = this.k4crowdHeads(SY + SH + 120, 0x050505, true);

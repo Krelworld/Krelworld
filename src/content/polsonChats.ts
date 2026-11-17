@@ -380,5 +380,12 @@ export function polsonVisit(s: GameState): Line[] {
   s.flags[`pchat_${c.id}`] = true;
   const arrive = ARRIVALS[Math.floor(Math.random() * ARRIVALS.length)];
   const gta = Math.random() < 0.4 ? POLSON_GTA[Math.floor(Math.random() * POLSON_GTA.length)] : [];
-  return [...arrive, ...gta, ...c.lines, dir("You leave Polson Towers. Polson waves from the window. He will message you about it later. He'll ask what you thought.")];
+  // the anime treatment: the chat gets its own title card, and Polson's last word gets his grin whipped across the screen
+  const lastPol = c.lines.map((l) => l.s).lastIndexOf("POLSON");
+  const chat = c.lines.map((l, i): Line => {
+    if (i === 0) return { ...l, cine: `sting|ss_sting_title;card|POLSON TOWERS · ${c.date}|${c.title.toUpperCase()}||1300` };
+    if (i === lastPol) return { ...l, cineAfter: "cut|ss_cut_polson_grin|left|0xffd23f|900" };
+    return l;
+  });
+  return [...arrive, ...gta, ...chat, dir("You leave Polson Towers. Polson waves from the window. He will message you about it later. He'll ask what you thought.")];
 }

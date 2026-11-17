@@ -15,6 +15,11 @@ export const AUDIO_FILES: Record<string, string> = {
   /** THE CONCEPT OF PAEDOPHILIA's roars, and the withered old wizard behind it doing a YEE. */
   concept_roar: "audio/concept_roar.mp3",
   wizard_yee: "audio/wizard_yee.mp3",
+  /** Boss shield phases (src/game/combat/BossShield.ts): up, a crack per minion, the shatter, a shot pinging off. */
+  bs_shield_up: "audio/sfx/bs_shield_up.mp3",
+  bs_shield_crack: "audio/sfx/bs_shield_crack.mp3",
+  bs_shield_shatter: "audio/sfx/bs_shield_shatter.mp3",
+  bs_shield_ping: "audio/sfx/bs_shield_ping.mp3",
   /** The Cuddle Cronster's fight cries, in BOSS_TEXT.cronster.taunts order. */
   cronster_taunt: "audio/cronster_taunt.mp3",
   /** Robbo (the flatmate), the same way. */
@@ -33,6 +38,12 @@ export const AUDIO_FILES: Record<string, string> = {
   drongus_cackle_3: "audio/sfx/drongus_cackle_3.mp3",
   drongus_cackle_4: "audio/sfx/drongus_cackle_4.mp3",
   drongus_cackle_5: "audio/sfx/drongus_cackle_5.mp3",
+  /** Side-story anime beats (gfx/SideCine.ts, ElevenLabs): the freeze-frame's record scratch and the stingers. */
+  ss_scratch: "audio/ss_scratch.mp3",
+  ss_sting_comedy: "audio/ss_sting_comedy.mp3",
+  ss_sting_reveal: "audio/ss_sting_reveal.mp3",
+  ss_sting_title: "audio/ss_sting_title.mp3",
+  ss_sting_awkward: "audio/ss_sting_awkward.mp3",
 };
 
 /** Where each separate shout sits in those files: [start, length] in seconds. */

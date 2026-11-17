@@ -3484,6 +3484,8 @@ You are required by law to sign the Sex Offenders Register.`, {
     synth.stopMusic();
     cam.stopFollow();
     await ensureCh6Art(this);
+    // night has fallen on Krelford (so every blast lights the town up), and the sky is red
+    const night = this.add.rectangle(480, 270, 960, 540, 0x07040f, 0.3).setScrollFactor(0).setDepth(4904);
     const red = this.add.rectangle(480, 270, 960, 540, 0x7f1d1d, 1).setAlpha(0.25).setScrollFactor(0).setDepth(4950).setBlendMode(Phaser.BlendModes.MULTIPLY);
     void red;
     const bars = Juice.letterbox(this, 46, 600, 4990);
@@ -3603,31 +3605,32 @@ You are required by law to sign the Sex Offenders Register.`, {
     synth.stopMusic();
     cam.pan(1280, 440, 1600, Phaser.Math.Easing.Sine.InOut);
     cam.zoomTo(1.5, 2400, Phaser.Math.Easing.Sine.InOut);
-    const th = BUILDINGS.find((b) => b.id === "TOWN_HALL");
-    const disco: Phaser.GameObjects.Rectangle[] = [];
-    if (th) {
-      for (let i = 0; i < 6; i++) {
-        const w = this.add.rectangle(th.x - th.w * 0.36 + i * th.w * 0.144, th.y - 6 + (i % 2) * 4, th.w * 0.09, th.h * 0.16, 0xff4fd8, 0.0).setDepth(th.y + 210).setBlendMode(Phaser.BlendModes.ADD);
-        disco.push(w);
-      }
-    }
+    // the hall itself lit up against the dark: party lights sweeping up out of the roof, the whole place pulsing to the bass
+    this.tweens.add({ targets: night, fillAlpha: 0.12, duration: 1200 });
+    const beams = [0xff4fd8, 0x22d3ee, 0xfacc15].map((c, i) => {
+      const b = this.add.rectangle(1280 + (i - 1) * 110, 340, 34, 460, c, Juice.calm() ? 0.14 : 0.26).setOrigin(0.5, 1).setDepth(4910).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: b, angle: { from: -25, to: 25 }, yoyo: true, repeat: -1, duration: 900 + i * 240, ease: "Sine.inOut" });
+      return b;
+    });
+    const hall = this.add.ellipse(1280, 440, 380, 220, 0xff4fd8, 0).setDepth(4910).setBlendMode(Phaser.BlendModes.ADD);
     const cols = [0xff4fd8, 0x22d3ee, 0xfacc15, 0x7cff3a];
     let beatN = 0;
     const party = this.time.addEvent({ delay: 430, loop: true, callback: () => {
       beatN++;
       Juice.heartbeat(0.22);
-      disco.forEach((w, i) => w.setFillStyle(cols[(beatN + i) % cols.length], Juice.calm() ? 0.25 : 0.55));
+      hall.setFillStyle(cols[beatN % cols.length], Juice.calm() ? 0.12 : 0.22);
+      this.tweens.add({ targets: hall, fillAlpha: 0.04, duration: 380 });
     } });
     await wait(1700);
     // the last lock-on
-    const ret = this.add.container(1280, 430).setDepth(9050);
+    const ret = this.add.container(1280, 440).setDepth(9050);
     ret.add(this.add.circle(0, 0, 150).setStrokeStyle(4, 0xef4444, 0.95));
     ret.add(this.add.rectangle(0, 0, 360, 3, 0xef4444, 0.8));
     ret.add(this.add.rectangle(0, 0, 3, 360, 0xef4444, 0.8));
     ret.setScale(2.4).setAlpha(0);
     this.tweens.add({ targets: ret, scale: 1, alpha: 1, angle: 90, duration: 700, ease: "Cubic.out" });
     const beep = this.time.addEvent({ delay: 380, loop: true, callback: () => synth.play("telegraph") });
-    const final = this.add.text(1280, 260, "FINAL TARGET: KRELFORD TOWN HALL", { fontFamily: "Impact, sans-serif", fontSize: "20px", color: "#ef4444", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(9100);
+    const final = this.add.text(1280, 332, "FINAL TARGET: KRELFORD TOWN HALL", { fontFamily: "Impact, sans-serif", fontSize: "20px", color: "#ef4444", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(9100);
     this.tweens.add({ targets: final, alpha: 0.3, yoyo: true, repeat: -1, duration: 300 });
     await wait(1200);
     await this.talk([
@@ -3636,6 +3639,7 @@ You are required by law to sign the Sex Offenders Register.`, {
     ]);
     beep.remove();
     party.remove();
+    beams.forEach((b) => b.destroy());
     bars(500);
     this.go("Vignette", { id: "townhall_party", returnAt: "TOWN_HALL" });
   }

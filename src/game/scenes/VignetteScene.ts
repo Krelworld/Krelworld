@@ -4972,7 +4972,7 @@ export class VignetteScene extends Phaser.Scene {
     const nukeShot = () => {
       this.clearStage();
       this.cast.clear();
-      this.cameras.main.setZoom(1).setScroll(0, 0);
+      this.resetCam();
       if (!backdrop(this, "bg_kd_palace", { depth: -10 })) this.sky(0x1a0b3a, 0x5b1d73);
       this.rainOver("rain", 940);
       const nk = this.prop(this.textures.exists("kd_nuke") ? "kd_nuke" : "c6_nuke", 584, 478, 1.6, 300, 0x1f2937, 40, 50);
@@ -5002,16 +5002,20 @@ export class VignetteScene extends Phaser.Scene {
     }
     // across the river, the lads have come out onto the Town Hall steps to watch it go. They're counting.
     this.clearStage();
-    this.cameras.main.setZoom(1).setScroll(0, 0);
+    this.resetCam();
     const view = this.bridgeView();
     const watchers = this.watchers(view);
     this.cameras.main.zoomTo(1.08, 3200, "Sine.easeInOut", true);
     for (const [i, n] of [3, 2, 1].entries()) {
       Juice.tone(1400, 130, 0.08);
-      watchers.forEach((sp, j) => this.time.delayedCall(j * 40, () => this.bubble(sp, j === 3 && n === 2 ? "SEVEN!!" : ["THREE!!", "TWO!!", "ONE!!"][i], "#ffd23f", "#111", 13)));
+      watchers.forEach((sp, j) => {
+        this.tweens.add({ targets: sp, y: sp.y - 8, yoyo: true, duration: 120, delay: j * 30 });
+        if ((j + i) % 3 === 0 || (j === 4 && n === 2)) this.time.delayedCall(j * 40, () => this.bubble(sp, j === 4 && n === 2 ? "SEVEN!!" : ["THREE!!", "TWO!!", "ONE!!"][i], "#ffd23f", "#111", 14));
+      });
       await this.wait(1000);
     }
     // 0:00
+    this.resetCam();
     shot = nukeShot();
     shot.big.setText("0:00");
     this.cameras.main.pan(shot.nk.x, shot.nk.y - 60, 10, "Linear", true);
@@ -5203,6 +5207,57 @@ export class VignetteScene extends Phaser.Scene {
     await this.talk([dir("Somewhere over the Kreddle Bridge, a flurry of ballistic missiles is heading for Krelworld. In the Town Hall, the music is still going.")]);
   }
 
+  /** Back to a plain camera between shots: stop any pan / zoom still running from the last one. */
+  private resetCam() {
+    const cam = this.cameras.main;
+    cam.panEffect.reset();
+    cam.zoomEffect.reset();
+    cam.setZoom(1).setScroll(0, 0);
+  }
+
+  /** A soft round glow (radial gradient), tinted: a fireball's light, a glow on the horizon. */
+  private glow(x: number, y: number, size: number, tint: number, alpha: number, depth: number) {
+    const key = "c6e_glow";
+    if (!this.textures.exists(key)) {
+      const c = this.textures.createCanvas(key, 128, 128);
+      if (c) {
+        const ctx = c.getContext();
+        const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+        g.addColorStop(0, "rgba(255,255,255,1)");
+        g.addColorStop(0.35, "rgba(255,255,255,0.55)");
+        g.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 128, 128);
+        c.refresh();
+      }
+    }
+    return this.add.image(x, y, key).setDisplaySize(size, size).setTint(tint).setAlpha(alpha).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
+  }
+
+  /** Kreddle gone from the skyline: a black, broken line of rubble where the neon was, with fires along it. */
+  private kreddleGone(view: { hx: number; hy: number }, depth = -6) {
+    const g = this.add.graphics().setDepth(depth);
+    g.fillStyle(0x0b0812, 1);
+    g.beginPath();
+    g.moveTo(520, 300);
+    let x = 520;
+    while (x < 960) {
+      // a ragged line of what's left; now and then a broken spire
+      g.lineTo(x, Math.random() < 0.12 ? 196 + Math.random() * 24 : 226 + Math.random() * 30);
+      x += 6 + Math.random() * 14;
+    }
+    g.lineTo(960, 300);
+    g.closePath();
+    g.fillPath();
+    const fires: Phaser.GameObjects.GameObject[] = [g];
+    for (let i = 0; i < 9; i++) {
+      const fx = 540 + i * 46 + Math.random() * 20;
+      fires.push(this.glow(fx, 236 + Math.random() * 20, 30 + Math.random() * 40, 0xff6a1a, 0.75, depth + 1));
+    }
+    fires.push(this.glow(view.hx, view.hy + 6, 260, 0xff5a10, 0.45, depth + 1));
+    return fires;
+  }
+
   /** The view from Krelford across the river to Kreddle (where the palace sits on the horizon: hx, hy). */
   private bridgeView() {
     if (!backdrop(this, "bg_c6e_bridge_view", { depth: -10 })) {
@@ -5221,8 +5276,8 @@ export class VignetteScene extends Phaser.Scene {
     const ids = [...new Set([...LADS, "MIKEY"].filter((p) => p !== me))];
     ids.splice(Math.floor(ids.length / 2), 0, me);
     return ids.map((id, i) => {
-      const x = 330 + i * (330 / Math.max(1, ids.length - 1));
-      const y = 488 + (i % 2) * 18;
+      const x = 250 + i * (460 / Math.max(1, ids.length - 1));
+      const y = 486 + (i % 2) * 20;
       const sp = this.actor(id, x, y, 2.3);
       this.faceTo(sp, view.hx);
       this.face(sp, "north");
@@ -5236,21 +5291,24 @@ export class VignetteScene extends Phaser.Scene {
   private async blastFromKrelford() {
     const calm = Juice.calm();
     this.clearStage();
-    this.cameras.main.setZoom(1).setScroll(0, 0);
+    this.resetCam();
     const view = this.bridgeView();
     synth.weatherSound("rain");
     const lads = this.watchers(view);
     // the far-off light, still burning, and the sky lit orange from underneath
     const sky = this.add.rectangle(480, 150, 960, 300, 0xff7a00, 0).setDepth(-7).setBlendMode(Phaser.BlendModes.ADD);
-    const bloom = this.add.circle(view.hx, view.hy, 90, 0xfff1c1, 0.9).setDepth(-6).setBlendMode(Phaser.BlendModes.ADD);
-    const bloom2 = this.add.circle(view.hx, view.hy, 200, 0xff9a3c, 0.35).setDepth(-6).setBlendMode(Phaser.BlendModes.ADD);
-    this.tweens.add({ targets: bloom, radius: 40, alpha: 0.55, duration: 5000, ease: "Cubic.out" });
-    this.tweens.add({ targets: bloom2, radius: 320, alpha: 0.2, duration: 5000, ease: "Cubic.out" });
     this.tweens.add({ targets: sky, fillAlpha: 0.22, duration: 2000 });
-    const cloud = vfx(this, "vfx_mushroom", view.hx, view.hy + 26, { scale: 0.95, depth: -5, hold: true, speed: 0.6 });
+    // under the fireball the skyline goes dark: Kreddle is gone
+    const gone = this.kreddleGone(view);
+    const fire = this.glow(view.hx, view.hy - 10, 520, 0xffd08a, 1, -4);
+    const core = this.glow(view.hx, view.hy - 10, 220, 0xffffff, 1, -4);
+    this.tweens.add({ targets: fire, displayWidth: 300, displayHeight: 300, alpha: 0.55, duration: 6000, ease: "Cubic.out" });
+    this.tweens.add({ targets: core, displayWidth: 90, displayHeight: 90, alpha: 0.5, duration: 5000, ease: "Cubic.out" });
+    void gone;
+    const cloud = vfx(this, "vfx_mushroom", view.hx, view.hy + 30, { scale: 1.7, depth: -3, hold: true, speed: 0.55, tint: 0xffb27a });
     if (!cloud) {
-      const cap = this.add.ellipse(view.hx, view.hy - 20, 30, 20, 0xfb923c).setDepth(-5);
-      this.tweens.add({ targets: cap, y: view.hy - 150, scaleX: 4, scaleY: 3, duration: 3000 });
+      const cap = this.add.ellipse(view.hx, view.hy - 20, 30, 20, 0xfb923c).setDepth(-3);
+      this.tweens.add({ targets: cap, y: view.hy - 170, scaleX: 5, scaleY: 3, duration: 3000 });
     }
     // the white from the palace shot, fading out over Krelford
     const white = this.add.rectangle(480, 270, 1400, 900, 0xfff7ed, calm ? 0.6 : 1).setDepth(990);
@@ -5352,11 +5410,11 @@ export class VignetteScene extends Phaser.Scene {
   /** From Krelford again: the lights coming up over Kreddle's horizon and arcing over the river towards town. */
   private async incomingOverKrelford() {
     this.clearStage();
-    this.cameras.main.setZoom(1).setScroll(0, 0);
+    this.resetCam();
     const view = this.bridgeView();
     // what's left of the cloud, and the glow where Kreddle was
-    this.add.circle(view.hx, view.hy, 150, 0xff6a1a, 0.25).setDepth(-6).setBlendMode(Phaser.BlendModes.ADD);
-    vfx(this, "vfx_smokecol", view.hx, view.hy - 20, { scale: 2.6, depth: -5, alpha: 0.8 });
+    this.kreddleGone(view);
+    vfx(this, "vfx_smokecol", view.hx, view.hy - 10, { scale: 3.2, depth: -3, alpha: 0.85 });
     const bars = Juice.letterbox(this, 44, 300, 985);
     const fade = this.add.rectangle(480, 270, 960, 540, 0x000000, 1).setDepth(990);
     this.tweens.add({ targets: fade, alpha: 0, duration: 700 });

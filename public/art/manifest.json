@@ -14035,8 +14035,8 @@
   },
   "bossdie_pudding_demon": {
    "file": "combat/bossdie_pudding_demon.png",
-   "frameWidth": 112,
-   "frameHeight": 113
+   "frameWidth": 64,
+   "frameHeight": 64
   },
   "bossdie_elon": {
    "file": "combat/bossdie_elon.png",

@@ -84,6 +84,18 @@ export class ConceptBoss extends Boss {
     return this.displayWidth * 0.3;
   }
 
+  /** Real phase (and the art's there): the cracked, bleeding-gold sheets. */
+  private get hurtArt() {
+    return this.mode === "real" && this.scene.textures.exists("fe_dragon_top_hurt") && this.scene.anims.exists("fe_dragon_top_hurt");
+  }
+  private get topKey() {
+    return this.hurtArt ? "fe_dragon_top_hurt" : "fb_dragon_top";
+  }
+  private get roarKey() {
+    return this.hurtArt && this.scene.textures.exists("fe_dragon_roar_hurt") ? "fe_dragon_roar_hurt" : "fb_dragon_roar";
+  }
+  private shownTop = "fb_dragon_top";
+
   incoming(amount: number): number {
     const now = this.world.now();
     if (this.mode === "still" || this.healing) return 0;
@@ -155,8 +167,13 @@ export class ConceptBoss extends Boss {
   tick(dt: number, now: number) {
     if (this.dead) return;
     // (not Boss.tick: that flips frames 0/1, and this one has its own animation)
+    // into the real phase: swap to the wounded sheet (unless it's mid-roar)
+    if (this.art && this.anims.isPlaying && this.topKey !== this.shownTop) {
+      this.shownTop = this.topKey;
+      this.play(this.topKey);
+    }
     if (now < this.flashUntil) this.setTintFill(0xffffff);
-    else if (this.mode === "real") this.setTint(0xffd6e0);
+    else if (this.mode === "real") this.hurtArt ? this.clearTint() : this.setTint(0xffd6e0);
     else if (this.art) this.clearTint();
     else this.setTint(0x6d28d9);
     this.wizard.setPosition(this.x + 10, this.y - this.displayHeight * 0.18).setDepth(this.depth - 1);
@@ -231,18 +248,20 @@ export class ConceptBoss extends Boss {
     this.roaringUntil = now + 2200;
     if (!synth.shout("concept_roar", 1, 0.9 + Math.random() * 0.15)) synth.play("roar");
     this.world.shake(1300, 0.006);
-    if (!this.art || !sc.textures.exists("fb_dragon_roar")) return;
+    const rk = this.roarKey;
+    if (!this.art || !sc.textures.exists(rk)) return;
     this.anims.stop();
-    this.setTexture("fb_dragon_roar", 0);
-    sc.time.delayedCall(110, () => this.active && !this.dead && this.texture.key === "fb_dragon_roar" && this.setFrame(1));
+    this.setTexture(rk, 0);
+    sc.time.delayedCall(110, () => this.active && !this.dead && this.texture.key === rk && this.setFrame(1));
     // its head rears: a little swell while it bellows
     const sx = this.scaleX;
     const sy = this.scaleY;
     sc.tweens.add({ targets: this, scaleX: sx * 1.04, scaleY: sy * 1.06, duration: 260, yoyo: true, hold: 1100, ease: "Sine.out" });
-    sc.time.delayedCall(1500, () => this.active && !this.dead && this.texture.key === "fb_dragon_roar" && this.setFrame(0));
+    sc.time.delayedCall(1500, () => this.active && !this.dead && this.texture.key === rk && this.setFrame(0));
     sc.time.delayedCall(1650, () => {
       if (!this.active || this.dead) return;
-      this.play("fb_dragon_top");
+      this.shownTop = this.topKey;
+      this.play(this.topKey);
     });
   }
 

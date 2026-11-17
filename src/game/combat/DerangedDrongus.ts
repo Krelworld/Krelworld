@@ -132,6 +132,8 @@ export class DerangedDrongusBoss extends Boss {
     // the scene stages it: bullets cleared, camera slams in on him, his line across the screen
     this.scene.events.emit("epic-phase", this, n === 1 ? "THE ARMOUR'S CRACKING!" : "HE'S COMPLETELY LOST IT", n === 1 ? "#ffd23f" : "#ff2a2a");
     if (n === 2 && !this.alarmOff) this.alarmOff = Juice.alarmLight(this.scene, 0xff1a1a, 940, 0.14);
+    // the last third: what's left of the armour, hanging off him (its own animation sheet)
+    if (n === 2) this.useAnimSheet("fe_bossanim_drongus2_p3");
     if (n === 2 && !this.rageFx) this.rageFx = vfx(this.scene, "fe_vfx_rage", this.x, this.y, { scale: 1.9, depth: this.depth - 1, alpha: 0.75, add: true });
     this.nextPattern = Math.max(this.nextPattern, now + 900);
   }

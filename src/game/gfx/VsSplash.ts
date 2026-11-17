@@ -24,7 +24,7 @@ const LAD_EPITHET: Record<string, string> = {
   KREBON: "THE COUNT OF KREZ KRISTO",
   CRONGUS: "THE LULON LURKER",
   GRONNY: "ALWAYS HITS A 99",
-  MIKEY: "KREBLAR · FEELIN RUSSHEN 2DAY",
+  MIKEY: "FEELIN RUSSHEN 2DAY",
 };
 
 /** A boss's short epithet (their BOSS_TEXT title is the long version: its first part is used if not here). */

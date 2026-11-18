@@ -20,7 +20,7 @@ describe("after Kreddle: the old themes stay gone", () => {
     for (const id of ["hub", "hub_night", "home", "pub", "klerble", "crazy", "sanmik", "ggg13", "viral"]) expect(moodTrack(id, s)).toBe("town_mourning");
     for (const id of ["meeting", "archive", "kreddle", "crandle", "stockport", "wiki"]) expect(moodTrack(id, s)).toBe("ominous");
     for (const id of ["boss", "boss_arena", "fight_flirt", "kreddle_raid"]) expect(moodTrack(id, s)).toBe("c6e_krunch");
-    expect(moodTrack("crystal", s)).toBeNull();
+    expect(moodTrack("crystal", s)).toBe("crystal");
     // the scores and stings carry on
     for (const id of ["c7_dungeon", "c7_spirit", "fe_brawl", "fd_wake", "c6e_aftermath", "town_mourning", "ominous", "dungeon_rise", "anthem", "title", "news", "mot_theme"]) expect(moodTrack(id, s)).toBe(id);
   });

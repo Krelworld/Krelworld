@@ -137,7 +137,7 @@ describe("save slots: summary", () => {
     s.savedAt = new Date(2026, 10, 18, 14, 5).getTime();
     const x = summarizeSlot(1, s, new Date(2026, 10, 18, 20, 0).getTime());
     expect(x.empty).toBe(false);
-    expect(x.playerName).toMatch(/MIKEY/);
+    expect(x.playerName).toMatch(/KREBLAR/);
     expect(x.chapter).toBe(3);
     expect(x.chapterLine).toBe("CH 3 · THE CUDDLE CRONSTER");
     expect(x.where).toBe("Da Drongus Dungeon · room 3/6");

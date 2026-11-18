@@ -1158,6 +1158,7 @@ export class FinaleScene extends Phaser.Scene {
       let youCut = false;
       let surged = false;
       let rallied = false;
+      let lastPush = false;
       let done = false;
       let build = 0;
       this.clashing = true;
@@ -1193,7 +1194,7 @@ export class FinaleScene extends Phaser.Scene {
       const push = () => {
         if (done) return;
         mash++;
-        t -= 0.018;
+        t -= 0.015;
         build = Math.min(1, build + 0.006);
         Juice.punchZoom(this, 0.03, 160, 1);
         if (mash % 3 === 0) synth.play("hit");
@@ -1222,11 +1223,12 @@ export class FinaleScene extends Phaser.Scene {
         if (this.dead || this.ended) return cleanup(false);
         const dt = Math.min(50, this.game.loop.delta) / 1000;
         elapsed += dt;
-        // it pushes back hard at first; the Krew's power builds and wins out on its own (about 13 seconds untouched,
-        // about 7 mashing hard)
+        // it pushes back hard at first; the Krew's power builds and wins out on its own (about 15 seconds untouched).
+        // However hard you mash, it holds you off for a good ten seconds (the floor below creeps down): mashing pins
+        // it at the edge of giving, so it's always a STRUGGLE, never a quick tap-tap-done
         const krew = Math.min(0.22, elapsed * 0.022);
         t += (0.1 - krew) * dt;
-        t = Phaser.Math.Clamp(t, 0, 0.82);
+        t = Phaser.Math.Clamp(t, Math.max(0, 0.62 - elapsed * 0.056), 0.82);
         build = Math.min(1, build + dt * 0.075);
         // a third of the way in: it SURGES. Then the Krew rally: everyone, now.
         if (!surged && elapsed > 3.6) {
@@ -1246,6 +1248,16 @@ export class FinaleScene extends Phaser.Scene {
           if (cut) void Juice.cutIn(this, cut, { from: "right", y: 380, color: 0xffd23f, hold: 700 });
           for (const ab of auraBase.values()) ab.flare = 0.6;
           for (const l of this.lads) this.ring(l.spr.x, l.spr.y - l.spr.displayHeight * 0.5, 140);
+        }
+        // nearly there: one last roar from it, one last scream from everyone
+        if (rallied && !lastPush && elapsed > 8.6) {
+          lastPush = true;
+          Juice.slamText(this, "LAST PUSH!!!", "#ffffff", 54, 170, 1000);
+          if (!synth.shout("concept_roar", 1, 0.6)) synth.play("roar");
+          Juice.subDrop(1, 1.4);
+          this.cameras.main.shake(900, calm ? 0.006 : 0.022);
+          void Juice.cutIn(this, "fe_cut_goku", { from: "right", y: 380, color: 0xffd23f, hold: 600 });
+          for (const ab of auraBase.values()) ab.flare = 0.8;
         }
         // the auras swell
         for (const [l, ab] of auraBase) {

@@ -684,7 +684,8 @@
     "GRANDMA 2",
     "MOM 1",
     "MOM 2",
-    "GAP YAH TILLY"
+    "GAP YAH TILLY",
+    "TRACY"
   ],
   "pools": {
     "male": [
@@ -853,6 +854,7 @@
     "ALL": "MARK HUGHES",
     "RUGBY DAD GARETH": "~pub_m_welsh",
     "GAP YAH TILLY": "~news_f_rp",
+    "TRACY": "~pub_f_manc",
     "MAJOR BUNTING": "THE COLONEL",
     "GENIE": "~press_m_in"
   },

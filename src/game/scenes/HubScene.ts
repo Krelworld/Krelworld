@@ -3572,7 +3572,7 @@ You are required by law to sign the Sex Offenders Register.`, {
     void name;
     // your house is still (just about) enterable: a sign by what's left of the door
     if (b.id === "HOME" && b.door)
-      this.add.text(b.door.x, b.door.y - 36, `${CHARACTERS[G.s.player].name}'S HOUSE (what's left)`, { fontFamily: FONT, fontSize: "11px", color: "#ffd9a8", backgroundColor: "#0c0a09cc", padding: { x: 4, y: 2 } }).setOrigin(0.5, 1).setDepth(b.door.y + 200);
+      this.add.text(b.door.x, b.door.y - 96, `${CHARACTERS[G.s.player].name}'S HOUSE (what's left)`, { fontFamily: FONT, fontSize: "11px", color: "#ffd9a8", backgroundColor: "#0c0a09cc", padding: { x: 4, y: 2 } }).setOrigin(0.5, 1).setDepth(5990);
     this.colliders.add(this.add.rectangle(b.x, b.y + b.h * 0.12, b.w * 0.8, b.h * 0.6, 0, 0));
   }
 

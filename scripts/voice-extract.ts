@@ -72,7 +72,7 @@ const { BARKS } = C("dialogue/ambient.ts");
 const { MINISTRY_QUESTS } = C("quests.ts");
 const { KRUNCHERS, KRUNCHER_BOAST } = C("kreddle.ts");
 const name = (id: string) => (CHARACTERS as any)[id]?.name ?? id;
-const SQUEEZERS = ["SHEZLEIGH", "BIG SUE", "DESTINY", "CRYSTAL"]; // HubScene setupSqueezers + the Club dancers (Mollor: DungeonScene)
+const SQUEEZERS = ["SHEZLEIGH", "BIG SUE", "DESTINY", "CRYSTAL", "TRACY"]; // HubScene setupSqueezers + the Club dancers + Tracy in the ruined house (Mollor: DungeonScene)
 const code = extractCode(
   ROOT,
   {

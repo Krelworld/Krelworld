@@ -358,6 +358,8 @@ const SPEAKER_SPRITES: Record<string, string> = {
   // Polson's pen name
   "CHADMORK WONKOR": "spr_POLSON",
   "UNCLE RIK": "spr_FOLK2",
+  // Chapter 7: sheltering in the wreckage of your house, with her trolley (content/ruinedHome.ts)
+  TRACY: "spr_TV_MARY",
   "DOREEN (SANCHZ NATION)": "spr_FOLK1",
   "SANMIK & SANCHZ": "spr_SANMIK",
   DESTINY: "spr_TV_DANCER1",

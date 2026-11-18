@@ -4103,7 +4103,7 @@ You are required by law to sign the Sex Offenders Register.`, {
     this.tweens.add({ targets: lglow, scale: 1.5, alpha: 0.1, yoyo: true, repeat: -1, duration: 800 });
     cam.stopFollow();
     cam.centerOn(C.x, C.y - 20);
-    synth.music("hub");
+    synth.music("fd_wake");
     const ids = [s.player, ...LADS.filter((p) => p !== s.player), "MIKEY"].filter((p, i, a) => a.indexOf(p) === i && this.textures.exists(`spr_${p}`));
     const lads = ids.map((id, i) => {
       const x = C.x - 160 + (i % 5) * 80 + (i >= 5 ? 40 : 0);

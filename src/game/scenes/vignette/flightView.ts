@@ -34,6 +34,8 @@ export interface FlightFrame {
   progress: number;
   /** 0..1: how much the train has faded out of the view (the drugs take over at the end) */
   trainFade?: number;
+  /** world units the train has swerved off its line (the caller weaves it about so you have to steer) */
+  trainShift?: number;
 }
 
 export interface FlightView {
@@ -41,7 +43,7 @@ export interface FlightView {
   /** The screen roll this frame (radians, Phaser's sense), so the caller can roll its own things with the horizon. */
   readonly roll: number;
   /** For tests / the HUD. */
-  readonly state: { alt: number; speed: number; trainDist: number; roll: number; pitch: number; white: number; trainX: number; trainY: number; trainOn: boolean };
+  readonly state: { alt: number; speed: number; trainDist: number; roll: number; pitch: number; white: number; trainX: number; trainY: number; trainOn: boolean; trainLateral: number };
   destroy(): void;
 }
 
@@ -292,7 +294,7 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
   const railV = rail?.vertices ?? [];
   const trainV = train?.vertices ?? [];
   const rowD: number[] = [];
-  const state = { alt, speed, trainDist: trainD, roll, pitch, white, trainX: 0, trainY: 0, trainOn: false };
+  const state = { alt, speed, trainDist: trainD, roll, pitch, white, trainX: 0, trainY: 0, trainOn: false, trainLateral: 0 };
 
   const update = (f: FlightFrame) => {
     const dt = Math.min(f.dt, 50) / 1000;
@@ -310,7 +312,7 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
     alt = clamp(alt + (-ay * 1100 - (alt - cruise) * 0.35) * dt, 260, 2400);
     speed = lerp(speed, 2600 * (1 + 0.55 * ay) + f.progress * 600, Math.min(1, dt * 2));
     camY += speed * dt;
-    camX = lerp(camX, ax * 2400, Math.min(1, dt * 3));
+    camX = lerp(camX, ax * 4200, Math.min(1, dt * 3));
     cp = Math.cos(pitch);
     sp = Math.sin(pitch);
     cr = Math.cos(roll);
@@ -393,7 +395,7 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
     trainD = lerp(trainD, target, Math.min(1, dt * 1.2));
     const fade = clamp(f.trainFade ?? 0, 0, 1);
     const ty = camY + trainD;
-    const tx = railX(ty);
+    const tx = railX(ty) + (f.trainShift ?? 0);
     const tdx = railDX(ty);
     // the art is a side view, so stand it mostly broadside to you (as if the line swings across your path just there):
     // edge-on along the track it'd be a sliver
@@ -439,6 +441,8 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
       state.trainX = cq.x;
       state.trainY = cq.y;
       state.trainOn = cq.zc > NEAR && ta > 0.05;
+      // how far off to the side it is, in the world (steering space, whatever the distance)
+      state.trainLateral = tx - camX;
     }
     // the marker over it, kept inside the windscreen
     const mq = project(tx, ty, TRAIN_H + 260);
@@ -453,7 +457,7 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
       nextPunch = t + lerp(8, 13, Math.random());
       const c = clouds.reduce((a, b) => (b.y > a.y ? b : a));
       c.y = camY + speed * 3.2;
-      c.x = camX + (ax * 2400 - camX) + lerp(-150, 150, Math.random());
+      c.x = camX + (ax * 4200 - camX) + lerp(-150, 150, Math.random());
       c.z = alt - ay * 1100 * 1.5;
       c.size = lerp(1800, 2600, Math.random());
       c.hit = false;

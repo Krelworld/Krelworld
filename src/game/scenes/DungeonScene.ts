@@ -3,6 +3,7 @@ import { squeeze } from "../systems/squeeze";
 import Phaser from "phaser";
 import { bindSanmikToggle } from "../gfx/sanmikForm";
 import { SANMIK_FLAG } from "../systems/sanmik";
+import { dungeonIntro } from "../gfx/DungeonIntro";
 import { DUNGEONS, type DungeonDef, type RoomDef, type PropDef } from "../../data/dungeons";
 import { ENEMIES } from "../../data/enemies";
 import type { Line } from "../../data/types";
@@ -50,7 +51,8 @@ import { FONT } from "../ui/theme";
 import { CHARACTERS } from "../../data/characters";
 import { evalCond } from "../systems/conditions";
 import { extraViolence, kd } from "../systems/kreddle";
-import { forcedKreltality, kreltality, type KrelTarget } from "../combat/Kreltality";
+import { forcedKreltality, kreltality, prompt as krelPrompt, type KrelTarget } from "../combat/Kreltality";
+import { KREX_KREL_OUTRO, krexKreltality } from "../combat/KrexFinisher";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { Kit } from "./dressing/kit";
 import { dressingFor } from "./dressing/rooms";
@@ -1308,6 +1310,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   private async startRoom() {
     const r = this.room;
     this.busy = true;
+    // first time into this dungeon this run: the anime entry cutscene (its name slams in)
+    if (!(await dungeonIntro(this, this.dungeon))) return;
     const enter: Line[] = (r.enterLines ?? []).map((l) => ({ s: l.s, t: l.t, dir: l.dir, cond: l.cond, variants: l.variants, tag: "new" as const }));
     if (r.rule) {
       const rule = BAN_RULES.find((b) => b.id === r.rule) ?? null;
@@ -2243,12 +2247,48 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   private async maybeKreltality(b: Boss) {
     // (Drongus in every form has his own ending, Uncle Rik has his, and these few have theirs)
     // the Cronster is Jenko under the mask. Kreltality him anyway: nobody mentions it afterwards
+    // (METAL GEAR KREX is offered his before he blows up: krexEnding)
     if (["drongus", "reinhardt", "krozno", "rik", "krex", "drongus1", "drongus2", "dark_drongus", "final"].includes(b.bossId) || !this.krelTarget) {
       await this.bossFall();
       return;
     }
     const done = await this.offerKreltality(b);
     if (!done) await this.bossFall();
+  }
+
+  /**
+   * METAL GEAR KREX: the Kreltality is offered while he's down and sparking, BEFORE he blows up. Yes: you take him
+   * apart by hand (KrexFinisher.ts), then the bits explode. No: his own explosion chain, as ever.
+   */
+  private async krexEnding(b: KrexBoss) {
+    this.krelTarget = null;
+    this.busy = true;
+    if (await krelPrompt(this)) {
+      const ps = this.player.spr;
+      const phd = (ps.texture.customData as { hd?: number } | undefined)?.hd ?? 1;
+      const rig = b.rig();
+      // the show draws its own you and its own him (every bolted-on bit of him): hide the real ones
+      b.setRigVisible(false);
+      ps.setVisible(false);
+      this.downSpr?.setVisible(false);
+      try {
+        await krexKreltality(this, rig, { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd }, this.side ? this.groundY : b.y + b.displayHeight * 0.4);
+      } finally {
+        if (ps.active) ps.setVisible(true);
+      }
+      b.scrap();
+      bump(G.s, "kreltalities");
+      G.s.flags.krel_krex = true; // a trophy for the shelf at home
+      this.cameras.main.startFollow(this.player.spr, true, 0.12, 0.12);
+      await this.talk(KREX_KREL_OUTRO);
+      return;
+    }
+    if (this.textures.exists("fe_still_krex_boom")) {
+      synth.play("explode_2");
+      await Juice.still(this, "fe_still_krex_boom", 1300, { push: 0.12, shakeK: 0.018 });
+    }
+    await b.deathSequence();
+    await this.talk(BOSS_TEXT.krex.outro);
   }
 
   /** Offer the finisher on the beaten boss. True if it was done (the boss is gone), false if you passed. */
@@ -2291,7 +2331,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (EPIC_BOSSES[b.bossId]) await this.epicKillingBlow(b);
     // the mini-bosses' money shots: Krex going up, Elon's rocket spiralling out
     const deathStill = ({ krex: "fe_still_krex_boom", elon: "fe_still_elon_crash" } as Record<string, string>)[b.bossId];
-    if (deathStill && this.textures.exists(deathStill)) {
+    if (deathStill && b.bossId !== "krex" && this.textures.exists(deathStill)) {
       synth.play("explode_2");
       await Juice.still(this, deathStill, 1300, { push: 0.12, shakeK: 0.018 });
     }
@@ -2341,9 +2381,12 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       for (const sh of [...this.shots]) this.killShot(sh);
       // the ones with a big death of their own (METAL GEAR KREX falls to bits)
       const seq = (b as unknown as { deathSequence?: () => Promise<void> }).deathSequence;
-      if (seq) await seq.call(b);
-      await this.talk(BOSS_TEXT[b.bossId].outro);
-      await this.maybeKreltality(b);
+      if (b instanceof KrexBoss) await this.krexEnding(b);
+      else {
+        if (seq) await seq.call(b);
+        await this.talk(BOSS_TEXT[b.bossId].outro);
+        await this.maybeKreltality(b);
+      }
       // the ones who get away (Drongus, phase one: out the back door and up the stairs)
       const flee = (b as unknown as { runAway?: (x: number, y: number) => Promise<void> }).runAway;
       if (flee) await flee.call(b, this.door.x, this.door.y - 10);

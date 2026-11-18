@@ -323,7 +323,15 @@ export class HubScene extends Phaser.Scene {
     this.spawnedSpots = new Set();
     this.cops = [];
     this.pg = { distractedUntil: 0, candyAt: { x: 0, y: 0 }, alarmAt: 0, cooldownUntil: 0, chaseUntil: 0 };
-    this.cameras.main.fadeIn(350);
+    // Arriving from somewhere else: the screen stays black (no HUD, no control) until onArrive has decided what
+    // happens. If a cutscene is due it lifts as the cutscene starts; otherwise as you get control. Never a split
+    // second of you standing in town first. (The finale's white morning brings its own.)
+    this.leaving = false;
+    this.curtain?.destroy();
+    this.curtain = null;
+    this.uiHidden = false;
+    if (data?.from === "finale_dawn") this.cameras.main.fadeIn(350);
+    else this.curtain = this.add.rectangle(480, 270, 4000, 3000, 0x000000, 1).setScrollFactor(0).setDepth(1e6);
     this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
     this.hd = this.textures.exists("bld_TOWN_HALL");
     if (this.hd) this.fitBuildingsToArt();
@@ -343,6 +351,7 @@ export class HubScene extends Phaser.Scene {
     // headroom above the map so the top of Da Drongus Dungeon fits on screen
     this.cameras.main.setBounds(0, -SKY_H, WORLD_W, WORLD_H + SKY_H);
     this.cameras.main.startFollow(this.av, true, 0.12, 0.12);
+    this.cameras.main.centerOn(start.x, start.y);
     // a cut-away from the emergency meeting: just the town, the rise, and back to the Town Hall
     if (this.riseCut) {
       const back = this.riseCut;
@@ -350,7 +359,8 @@ export class HubScene extends Phaser.Scene {
       const hidden = [back, "UI"].filter((k) => this.scene.isActive(k) || this.scene.isPaused(k));
       for (const k of hidden) this.scene.setVisible(false, k);
       this.weather();
-      this.time.delayedCall(400, async () => {
+      // (riseTower opens on a line of dialogue, which lifts the curtain)
+      this.time.delayedCall(60, async () => {
         await this.riseTower();
         this.cameras.main.fadeOut(300);
         await new Promise((r) => this.time.delayedCall(320, r));
@@ -373,6 +383,14 @@ export class HubScene extends Phaser.Scene {
     this.setupExploration();
     if (!this.scene.isActive("UI")) this.scene.launch("UI", { mode: "hub" });
     else this.scene.get("UI").events.emit("mode", "hub");
+    // (the HUD waits behind the curtain too: it starts a frame later, so hide it once it's up)
+    if (this.curtain) {
+      this.uiHidden = true;
+      const ui = this.scene.get("UI");
+      const hide = () => this.uiHidden && this.scene.setVisible(false, "UI");
+      if (ui?.sys.settings.status === Phaser.Scenes.RUNNING) hide();
+      else ui?.events.once("create", hide);
+    }
     G.emit("boss", null);
     G.emit("rule", null);
     // Krelford is always in daylight now; only the story's own nights (the Chapter 6 raid, the bombed town in 7) are dark
@@ -386,7 +404,43 @@ export class HubScene extends Phaser.Scene {
     // the SPIRIT CUM's long whiteness, fading into the morning
     if (data?.from === "finale_dawn") this.whiteout = this.add.rectangle(480, 270, 2000, 1200, 0xffffff, 1).setScrollFactor(0).setDepth(9500);
     this.arriving = true;
-    this.time.delayedCall(400, () => this.onArrive(data?.from, data?.flyover, data?.at).finally(() => (this.arriving = false)));
+    // (behind the curtain there's no fade to wait for)
+    this.time.delayedCall(this.curtain ? 60 : 400, () =>
+      this.onArrive(data?.from, data?.flyover, data?.at).finally(() => {
+        this.arriving = false;
+        this.reveal();
+      }),
+    );
+  }
+
+  /** The black over the town while an arrival is being decided (see create). */
+  private curtain: Phaser.GameObjects.Rectangle | null = null;
+  private uiHidden = false;
+  /** Set once the scene is switching away: the curtain stays down. */
+  private leaving = false;
+
+  /** Lift the arrival curtain (and bring the HUD back). Called as a cutscene starts, or when you get control. */
+  private reveal(ms = 350) {
+    if (this.leaving) return;
+    if (this.uiHidden) {
+      this.uiHidden = false;
+      this.scene.setVisible(true, "UI");
+    }
+    const c = this.curtain;
+    if (!c) return;
+    this.curtain = null;
+    // (faded off the game's own clock, not this scene's: a dialogue pauses the Hub, and its tweens with it)
+    let t = 0;
+    const ev = this.game.events;
+    const step = (_time: number, delta: number) => {
+      t += delta;
+      if (!c.active || t >= ms) {
+        ev.off(Phaser.Core.Events.STEP, step);
+        c.destroy();
+      } else c.setAlpha(1 - t / ms);
+    };
+    ev.on(Phaser.Core.Events.STEP, step);
+    this.events.once("shutdown", () => ev.off(Phaser.Core.Events.STEP, step));
   }
 
   /** First time out of the front door: a slow look round Krelford. */
@@ -587,7 +641,10 @@ export class HubScene extends Phaser.Scene {
 
   private async onArrive(from?: string, flyover?: boolean, at?: string) {
     const s = G.s;
-    if (flyover && !s.flags.flyover_seen && !s.flags.prologue_done) await this.flyover();
+    if (flyover && !s.flags.flyover_seen && !s.flags.prologue_done) {
+      this.reveal();
+      await this.flyover();
+    }
     // just after the Krunchers have had Mikey: the group chat finds out, then you and the krew go straight
     // to the bridge for the shoving match (before anything else, briefings included)
     if (s.flags.kr_brawl_due && this.brawl && !this.brawl.running) {
@@ -618,15 +675,19 @@ export class HubScene extends Phaser.Scene {
     }
     // THE FINALE, the morning after: the lads come round, Drongus comes round, and the race for the logs
     if (s.chapter >= 7 && s.flags.concept_destroyed && s.flags.finale_dawn && !s.flags.finale_dawn_done) {
+      this.reveal();
       await this.finaleDawn();
       return;
     }
     // THE FINALE: Da Drongus Dungeon has come down. The chat logs are somewhere in town. And then...
     if (s.chapter >= 7 && s.flags.citadel_fallen && !s.flags.concept_destroyed) {
+      // (its first shot is set up before the curtain's first frame of lifting)
+      this.reveal();
       await this.finaleKrelford();
       return;
     }
     if (s.chapter >= 7 && s.flags.ch6_clear && !s.flags.ch7_aftermath) {
+      this.reveal();
       await this.aftermath();
       return;
     }
@@ -647,6 +708,7 @@ export class HubScene extends Phaser.Scene {
     }
     // Chapter 6 finale: home in time (or not): Kreddle's Krunch Protocol comes for every building in town
     if (from === "krunch") {
+      this.reveal();
       await this.krunchBombing();
       return;
     }
@@ -678,7 +740,10 @@ export class HubScene extends Phaser.Scene {
       s.hp = Math.min(s.hp, maxHp(s));
       G.emit("toast", { title: "TAP RUSH WORN OFF", text: "Back to normal. The Great Tap is always there for a top-up." });
     }
-    if (s.chapter === 1 && s.flags.ch1_clear && !s.flags.tap_flow_seen) await this.tapFlows();
+    if (s.chapter === 1 && s.flags.ch1_clear && !s.flags.tap_flow_seen) {
+      this.reveal();
+      await this.tapFlows();
+    }
     if (s.chapter === 1 && !s.flags.ch1_hub_tip) {
       s.flags.ch1_hub_tip = true;
       G.emit("toast", { title: "KRELFORD", text: "WASD to walk. E to talk/interact. Follow the yellow arrow. Esc for menu (quests, upgrades, save)." });
@@ -695,6 +760,7 @@ export class HubScene extends Phaser.Scene {
     if (inv) {
       // the posse stands down: the Krunchers have the town now
       this.beatup?.cancel();
+      this.reveal();
       await this.krunchersInvade(inv.arc, inv.step);
       return;
     }
@@ -3016,6 +3082,12 @@ You are required by law to sign the Sex Offenders Register.`, {
 
   private go(key: string, data: any) {
     this.busy = true;
+    // still behind the arrival curtain: it's already black, so straight there
+    if (this.curtain) {
+      this.leaving = true;
+      switchTo(this, key, data);
+      return;
+    }
     this.cameras.main.fadeOut(250);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => switchTo(this, key, data));
   }
@@ -3023,6 +3095,7 @@ You are required by law to sign the Sex Offenders Register.`, {
   private async talk(lines: Line[], live = false) {
     if (!lines.length) return;
     this.busy = true;
+    this.reveal();
     (this.av.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
     await runDialogue(this, lines, false, live);
     this.controls.swallow();
@@ -3033,6 +3106,11 @@ You are required by law to sign the Sex Offenders Register.`, {
 
   update(time: number, delta: number) {
     if (!this.av || this.riseCut) return;
+    // behind the arrival curtain: nothing moves until onArrive has decided
+    if (this.curtain) {
+      (this.av.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+      return;
+    }
     const dt = Math.min(delta, 50);
     const s = G.s;
     s.playtimeMs += dt;
@@ -4103,7 +4181,7 @@ You are required by law to sign the Sex Offenders Register.`, {
     this.tweens.add({ targets: lglow, scale: 1.5, alpha: 0.1, yoyo: true, repeat: -1, duration: 800 });
     cam.stopFollow();
     cam.centerOn(C.x, C.y - 20);
-    synth.music("hub");
+    synth.music("fd_wake");
     const ids = [s.player, ...LADS.filter((p) => p !== s.player), "MIKEY"].filter((p, i, a) => a.indexOf(p) === i && this.textures.exists(`spr_${p}`));
     const lads = ids.map((id, i) => {
       const x = C.x - 160 + (i % 5) * 80 + (i >= 5 ? 40 : 0);

@@ -6878,6 +6878,9 @@
   "p_flirt": {
    "file": "props/p_flirt.png"
   },
+  "p_krex": {
+   "file": "props/p_krex.png"
+  },
   "p_lantern": {
    "file": "props/p_lantern.png"
   },
@@ -7308,6 +7311,48 @@
   },
   "bg_lair": {
    "file": "backdrops/bg_lair.png"
+  },
+  "di_wildern": {
+   "file": "backdrops/di_wildern.png"
+  },
+  "di_polson_towers": {
+   "file": "backdrops/di_polson_towers.png"
+  },
+  "di_ministry": {
+   "file": "backdrops/di_ministry.png"
+  },
+  "di_citadel": {
+   "file": "backdrops/di_citadel.png"
+  },
+  "di_krelford_finale": {
+   "file": "backdrops/di_krelford_finale.png"
+  },
+  "di_airport": {
+   "file": "backdrops/di_airport.png"
+  },
+  "di_rik_colon": {
+   "file": "backdrops/di_rik_colon.png"
+  },
+  "di_crobley_factory": {
+   "file": "backdrops/di_crobley_factory.png"
+  },
+  "di_arena_brand": {
+   "file": "backdrops/di_arena_brand.png"
+  },
+  "di_arena_troll": {
+   "file": "backdrops/di_arena_troll.png"
+  },
+  "di_arena_lukemind": {
+   "file": "backdrops/di_arena_lukemind.png"
+  },
+  "di_arena_flatmate": {
+   "file": "backdrops/di_arena_flatmate.png"
+  },
+  "di_arena_rival": {
+   "file": "backdrops/di_arena_rival.png"
+  },
+  "di_arena_sanmik": {
+   "file": "backdrops/di_arena_sanmik.png"
   },
   "c7_ai_rig": {
    "file": "props/c7_ai_rig.png"
@@ -7799,6 +7844,9 @@
   "club_garm2_bot": {
    "file": "props/club_garm2_bot.png"
   },
+  "club_derek_hand": {
+   "file": "props/club_derek_hand.png"
+  },
   "cancer_krandall": {
    "file": "chars/cancer_krandall.png"
   },
@@ -8194,6 +8242,9 @@
   },
   "kp_goo": {
    "file": "krel/kp_goo.png"
+  },
+  "kp_lump": {
+   "file": "krel/kp_lump.png"
   },
   "kp_gutpile": {
    "file": "krel/kp_gutpile.png"
@@ -9386,6 +9437,12 @@
   "tvc_banana": {
    "file": "tv/clips/banana.png"
   },
+  "kp_cutneck": {
+   "file": "krel/kp_cutneck.png"
+  },
+  "kp_cutbody": {
+   "file": "krel/kp_cutbody.png"
+  },
   "rs_bg": {
    "file": "runescape/rs_bg.png"
   },
@@ -9424,6 +9481,42 @@
   },
   "fly_land": {
    "file": "fly/fly_land.png"
+  },
+  "ui_chalkboard": {
+   "file": "ui/ui_chalkboard.png"
+  },
+  "pubicon_sit": {
+   "file": "ui/pubicon_sit.png"
+  },
+  "pubicon_riff": {
+   "file": "ui/pubicon_riff.png"
+  },
+  "pubicon_stag": {
+   "file": "ui/pubicon_stag.png"
+  },
+  "pubicon_tv": {
+   "file": "ui/pubicon_tv.png"
+  },
+  "pubicon_sanmik": {
+   "file": "ui/pubicon_sanmik.png"
+  },
+  "pubicon_pole": {
+   "file": "ui/pubicon_pole.png"
+  },
+  "pubicon_gig": {
+   "file": "ui/pubicon_gig.png"
+  },
+  "pubicon_lamp": {
+   "file": "ui/pubicon_lamp.png"
+  },
+  "pubicon_menu": {
+   "file": "ui/pubicon_menu.png"
+  },
+  "pubicon_chest": {
+   "file": "ui/pubicon_chest.png"
+  },
+  "pubicon_door": {
+   "file": "ui/pubicon_door.png"
   }
  },
  "sheets": {
@@ -14338,6 +14431,291 @@
   "tvc_fifa_fan": {
    "file": "tv/clips/fifa_fan.png",
    "frameWidth": 96,
+   "frameHeight": 128
+  },
+  "kca_asbestos": {
+   "file": "vs/kca_asbestos.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_bellybomb": {
+   "file": "vs/kca_bellybomb.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_cinder": {
+   "file": "vs/kca_cinder.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_decap": {
+   "file": "vs/kca_decap.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_explode": {
+   "file": "vs/kca_explode.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_flatten": {
+   "file": "vs/kca_flatten.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_freeze": {
+   "file": "vs/kca_freeze.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_halved": {
+   "file": "vs/kca_halved.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_headboot": {
+   "file": "vs/kca_headboot.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_jawtrap": {
+   "file": "vs/kca_jawtrap.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_kebab": {
+   "file": "vs/kca_kebab.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_lasergrid": {
+   "file": "vs/kca_lasergrid.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_pendulum": {
+   "file": "vs/kca_pendulum.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_piranha": {
+   "file": "vs/kca_piranha.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_pump": {
+   "file": "vs/kca_pump.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_ribcage": {
+   "file": "vs/kca_ribcage.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_slit": {
+   "file": "vs/kca_slit.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_spine": {
+   "file": "vs/kca_spine.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_vice": {
+   "file": "vs/kca_vice.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kca_xray": {
+   "file": "vs/kca_xray.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_asbestos": {
+   "file": "vs/kcf_asbestos.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_bellybomb": {
+   "file": "vs/kcf_bellybomb.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_cinder": {
+   "file": "vs/kcf_cinder.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_decap": {
+   "file": "vs/kcf_decap.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_explode": {
+   "file": "vs/kcf_explode.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_flatten": {
+   "file": "vs/kcf_flatten.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_freeze": {
+   "file": "vs/kcf_freeze.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_halved": {
+   "file": "vs/kcf_halved.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_headboot": {
+   "file": "vs/kcf_headboot.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_jawtrap": {
+   "file": "vs/kcf_jawtrap.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_kebab": {
+   "file": "vs/kcf_kebab.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_lasergrid": {
+   "file": "vs/kcf_lasergrid.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_pendulum": {
+   "file": "vs/kcf_pendulum.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_piranha": {
+   "file": "vs/kcf_piranha.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_pump": {
+   "file": "vs/kcf_pump.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_ribcage": {
+   "file": "vs/kcf_ribcage.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_slit": {
+   "file": "vs/kcf_slit.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_spine": {
+   "file": "vs/kcf_spine.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_vice": {
+   "file": "vs/kcf_vice.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcf_xray": {
+   "file": "vs/kcf_xray.png",
+   "frameWidth": 256,
+   "frameHeight": 144
+  },
+  "kcv_brand": {
+   "file": "vs/kcv_brand.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_cronster": {
+   "file": "vs/kcv_cronster.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_elon": {
+   "file": "vs/kcv_elon.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_flatmate": {
+   "file": "vs/kcv_flatmate.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_flirt": {
+   "file": "vs/kcv_flirt.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_fruity": {
+   "file": "vs/kcv_fruity.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_hoard": {
+   "file": "vs/kcv_hoard.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_jam": {
+   "file": "vs/kcv_jam.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_krandall": {
+   "file": "vs/kcv_krandall.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_krozno": {
+   "file": "vs/kcv_krozno.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_lantern": {
+   "file": "vs/kcv_lantern.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_pudding_demon": {
+   "file": "vs/kcv_pudding_demon.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_reinhardt": {
+   "file": "vs/kcv_reinhardt.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_rik": {
+   "file": "vs/kcv_rik.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_rival": {
+   "file": "vs/kcv_rival.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_tank": {
+   "file": "vs/kcv_tank.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_troll": {
+   "file": "vs/kcv_troll.png",
+   "frameWidth": 128,
    "frameHeight": 128
   }
  },

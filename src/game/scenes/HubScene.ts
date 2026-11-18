@@ -325,12 +325,12 @@ export class HubScene extends Phaser.Scene {
     this.pg = { distractedUntil: 0, candyAt: { x: 0, y: 0 }, alarmAt: 0, cooldownUntil: 0, chaseUntil: 0 };
     // Arriving from somewhere else: the screen stays black (no HUD, no control) until onArrive has decided what
     // happens. If a cutscene is due it lifts as the cutscene starts; otherwise as you get control. Never a split
-    // second of you standing in town first. (A meeting's cut-away and the finale's white morning bring their own.)
+    // second of you standing in town first. (The finale's white morning brings its own.)
     this.leaving = false;
     this.curtain?.destroy();
     this.curtain = null;
     this.uiHidden = false;
-    if (data?.riseCut || data?.from === "finale_dawn") this.cameras.main.fadeIn(350);
+    if (data?.from === "finale_dawn") this.cameras.main.fadeIn(350);
     else this.curtain = this.add.rectangle(480, 270, 4000, 3000, 0x000000, 1).setScrollFactor(0).setDepth(1e6);
     this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
     this.hd = this.textures.exists("bld_TOWN_HALL");
@@ -359,7 +359,8 @@ export class HubScene extends Phaser.Scene {
       const hidden = [back, "UI"].filter((k) => this.scene.isActive(k) || this.scene.isPaused(k));
       for (const k of hidden) this.scene.setVisible(false, k);
       this.weather();
-      this.time.delayedCall(400, async () => {
+      // (riseTower opens on a line of dialogue, which lifts the curtain)
+      this.time.delayedCall(60, async () => {
         await this.riseTower();
         this.cameras.main.fadeOut(300);
         await new Promise((r) => this.time.delayedCall(320, r));
@@ -428,7 +429,18 @@ export class HubScene extends Phaser.Scene {
     const c = this.curtain;
     if (!c) return;
     this.curtain = null;
-    this.tweens.add({ targets: c, alpha: 0, duration: ms, onComplete: () => c.destroy() });
+    // (faded off the game's own clock, not this scene's: a dialogue pauses the Hub, and its tweens with it)
+    let t = 0;
+    const ev = this.game.events;
+    const step = (_time: number, delta: number) => {
+      t += delta;
+      if (!c.active || t >= ms) {
+        ev.off(Phaser.Core.Events.STEP, step);
+        c.destroy();
+      } else c.setAlpha(1 - t / ms);
+    };
+    ev.on(Phaser.Core.Events.STEP, step);
+    this.events.once("shutdown", () => ev.off(Phaser.Core.Events.STEP, step));
   }
 
   /** First time out of the front door: a slow look round Krelford. */

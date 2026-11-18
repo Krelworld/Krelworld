@@ -538,7 +538,7 @@ export class RoofCutscene extends Phaser.Scene {
     for (let i = 0; i < 140; i++) {
       const p = map(rnd.between(0, 2560), rnd.between(0, 1792));
       const w = rnd.between(40, 180) * k;
-      g.fillStyle(rnd.frac() < 0.6 ? 0x0b0806 : 0x8f8a84, rnd.frac() < 0.6 ? 0.6 : 0.22).fillEllipse(p.x, p.y, w, w * (0.4 + rnd.frac() * 0.3));
+      g.fillStyle(rnd.frac() < 0.65 ? 0x0b0806 : 0x8f8a84, rnd.frac() < 0.65 ? 0.6 : 0.12).fillEllipse(p.x, p.y, w * 0.8, w * 0.8 * (0.4 + rnd.frac() * 0.3));
     }
     const prop = (key: string, x: number, y: number, s: number) => {
       if (!this.textures.exists(key)) return null;

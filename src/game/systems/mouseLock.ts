@@ -9,7 +9,30 @@ import { G } from "../G";
  * handles gets the virtual position instead of the frozen page position, so aiming, clicks and buttons all work as
  * before. A drawn cursor shows where it is. Esc (or alt-tab) lets the mouse go, as browsers insist; click to grab again.
  * The click that grabs the mouse isn't passed on to the game (so it never fires a shot or presses a button).
+ *
+ * The cursor itself: a normal arrow in menus, talk and town; a big high-contrast CROSSHAIR wherever you aim (dungeons,
+ * run'n'gun, boss fights, the drive). Locked or not (unlocked, it's a CSS cursor on the canvas). It kicks when you fire.
  */
+
+/** Scenes where the mouse aims a gun (unless something's open over them). */
+const AIM_SCENES = ["Dungeon", "Drive"];
+const OVER_SCENES = ["DungeonIntro", "WeaponPick", "Menu", "Dialogue", "TV", "Meeting", "Cutscene", "Vignette", "Minigame"];
+
+const ARROW =
+  '<svg width="16" height="24" viewBox="0 0 16 24" xmlns="http://www.w3.org/2000/svg"><path d="M1 1 L1 19 L5.5 14.5 L8.5 21.5 L11 20.5 L8 13.5 L14 13.5 Z" fill="#fff" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+/** 32x32, hotspot in the middle: a gold ring, four ticks, a white dot, all outlined in black so it shows on anything. */
+const CROSS = (() => {
+  const tick = (x1: number, y1: number, x2: number, y2: number) =>
+    `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#000" stroke-width="4.5" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#ff3fa4" stroke-width="2" stroke-linecap="round"/>`;
+  return (
+    '<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">' +
+    '<circle cx="16" cy="16" r="9.5" fill="none" stroke="#000" stroke-width="4.5"/>' +
+    '<circle cx="16" cy="16" r="9.5" fill="none" stroke="#ffd23f" stroke-width="2"/>' +
+    tick(16, 2, 16, 9) + tick(16, 23, 16, 30) + tick(2, 16, 9, 16) + tick(23, 16, 30, 16) +
+    '<circle cx="16" cy="16" r="2.4" fill="#fff" stroke="#000" stroke-width="1.5"/></svg>'
+  );
+})();
+const CSS_CROSS = `url("data:image/svg+xml;utf8,${encodeURIComponent(CROSS)}") 16 16, crosshair`;
 
 const enabled = () => G.meta?.settings?.mouseLock !== false;
 
@@ -20,10 +43,12 @@ export function installMouseLock(game: Phaser.Game) {
   const v = { x: 480, y: 270, live: false };
   // the drawn cursor: a classic arrow, its tip exactly on the hotspot
   const cur = document.createElement("div");
-  cur.style.cssText = "position:fixed;left:0;top:0;width:16px;height:24px;pointer-events:none;z-index:99999;display:none;";
-  cur.innerHTML =
-    '<svg width="16" height="24" viewBox="0 0 16 24" xmlns="http://www.w3.org/2000/svg"><path d="M1 1 L1 19 L5.5 14.5 L8.5 21.5 L11 20.5 L8 13.5 L14 13.5 Z" fill="#fff" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+  cur.style.cssText = "position:fixed;left:0;top:0;pointer-events:none;z-index:99999;display:none;line-height:0;transition:transform 70ms ease-out;";
+  cur.innerHTML = ARROW;
   document.body.appendChild(cur);
+  let aimMode = false;
+  /** where the hotspot sits inside the drawn cursor */
+  const hot = () => (aimMode ? 16 : 1);
   const locked = () => !!im.mouse?.locked;
   const draw = () => {
     if (!locked()) {
@@ -35,8 +60,8 @@ export function installMouseLock(game: Phaser.Game) {
     const px = b.left + v.x / sm.displayScale.x;
     const py = b.top + v.y / sm.displayScale.y;
     cur.style.display = "block";
-    cur.style.left = `${px - window.scrollX - 1}px`;
-    cur.style.top = `${py - window.scrollY - 1}px`;
+    cur.style.left = `${px - window.scrollX - hot()}px`;
+    cur.style.top = `${py - window.scrollY - hot()}px`;
   };
 
   // every pointer transform: while locked, the mouse pointer goes where the virtual cursor is
@@ -86,9 +111,30 @@ export function installMouseLock(game: Phaser.Game) {
     }
     draw();
   });
-  // turning the setting off lets go straight away
+  // which cursor: the crosshair while you're aiming, the arrow otherwise
+  const sm = game.scene;
+  const aiming = () => AIM_SCENES.some((k) => sm.isActive(k) && !sm.isPaused(k)) && !OVER_SCENES.some((k) => sm.isActive(k));
+  const setMode = (aim: boolean) => {
+    if (aim === aimMode) return;
+    aimMode = aim;
+    cur.innerHTML = aim ? CROSS : ARROW;
+    canvas.style.cursor = aim ? CSS_CROSS : "";
+    draw();
+  };
+  // a little kick on every click while aiming (only the drawn one: CSS cursors can't animate)
+  window.addEventListener("mousedown", () => {
+    if (!aimMode || !locked()) return;
+    cur.style.transition = "none";
+    cur.style.transform = "scale(1.35) rotate(12deg)";
+    requestAnimationFrame(() => {
+      cur.style.transition = "transform 110ms ease-out";
+      cur.style.transform = "";
+    });
+  });
   game.events.on(Phaser.Core.Events.POST_STEP, () => {
+    // turning the setting off lets go straight away
     if (!enabled() && document.pointerLockElement === canvas) document.exitPointerLock();
+    setMode(aiming());
   });
   window.addEventListener("resize", draw);
 }

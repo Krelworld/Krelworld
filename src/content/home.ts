@@ -39,7 +39,7 @@ export const KREL_TROPHIES: Record<string, string> = {
   hoard: "a single, perfectly flat Polson trainer",
   cronster: "the Cuddle Cronster's left glove (still warm)",
   reinhardt: "Reinhardt's glass eye (it follows you round the room)",
-  rik: "Uncle Rik's string vest (scorched)",
+  rik: "Uncle Rik's flat cap (scorched, damp, the only thing he was wearing)",
   krozno: "Captain Stanley's pilot wings",
   brand: "a melted Brand Ambassador lanyard",
   troll: "the Troll's keyboard (several keys missing)",

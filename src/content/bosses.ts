@@ -376,7 +376,7 @@ export const BOSS_TEXT: Record<string, BossText> = {
     title: "Seven Hundred Pounds · Sat On Every Jet · Needed A Shit Real Bad",
     intro: [
       dir("THE GIANT HOT TUB OF CATFORD. The size of a lido. The pride of the estate. The water is green. The water is moving on its own. The jets are coughing up thick grey-green biofilm.", { cine: "ch5_tub" }),
-      dir("In the middle, wedged across all six jets at once, is Uncle Rik. All seven hundred pounds of him. String vest. Flat cap. Smug."),
+      dir("In the middle, wedged across all six jets at once, is Uncle Rik. All seven hundred pounds of him. Stark naked apart from a flat cap. Hairy as a doormat. Smug."),
       say("UNCLE RIK", "'Ello. It's Uncle Rik."),
       say("SANMIK", "Rik. Rik what have you done."),
       say("UNCLE RIK", "I needed a shit real bad. Yee. So I found the biggest toilet in Catford."),

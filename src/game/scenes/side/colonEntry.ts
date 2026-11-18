@@ -10,7 +10,7 @@ import * as Juice from "../../gfx/Juice";
  *     burst of sparkles, down to a glinting speck;
  *  2. ant's-eye view: the camera tilts down past giant blades of grass and rooftop tiles as the speck floats down and
  *     runs for the tub;
- *  3. Uncle Rik from behind, in his tub (only ever shown above the waterline, vest on): you leap off the rim, a heroic
+ *  3. Uncle Rik from behind, in his tub (naked, so only ever shown above the waterline): you leap off the rim, a heroic
  *     dive with speed lines, and the moment you reach the water the Ministry of Dignity censors the frame;
  *  4. a hard cut to a medical-textbook plate of the lower GI tract, a dotted route up it (rectum, sigmoid colon,
  *     descending colon, transverse colon: YOU ARE HERE) with you travelling it, then a dissolve.

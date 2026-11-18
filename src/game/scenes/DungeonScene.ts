@@ -1827,6 +1827,25 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       });
     }
     await wait(950);
+    // gore off: no decapitation, no chunks. He's flattened, sees stars, and the giant Crobley still finishes him.
+    if (this.isGoreOff()) {
+      synth.play("explode");
+      this.bigText("KNOCKOUT", "#fde047", 40, 200);
+      this.tweens.add({ targets: body, angle: b.flipX ? -90 : 90, y: (this.side ? this.groundY : y + 80) - 20, duration: 500, ease: "Bounce.out" });
+      vfx(this, "vfx_stars", x, y - 50, { scale: 1.6, depth: 960 });
+      await wait(900);
+      await this.talk([say("REINHARDT CROBLEY", "(flat on the floor, seeing stars) heh… heh… heh… you'll never… prove… I…")]);
+      const g2 = this.add.image(body.x, -200 + cam.worldView.y, this.textures.exists("p_crobley") ? "p_crobley" : "p_coin").setScale(9).setDepth(961);
+      await new Promise<void>((r) => this.tweens.add({ targets: g2, y: body.y - 30, duration: 500, ease: "Quad.in", onComplete: () => r() }));
+      synth.play("smash");
+      synth.play("explode");
+      cam.shake(500, 0.04);
+      this.boomFx(body.x, body.y, 1.4);
+      body.destroy();
+      this.bigText("CROBLITERATED", "#f472b6", 50, 220);
+      await wait(700);
+      return this.reinhardtDeathEnd(g2, cam);
+    }
     // the head comes off
     const fw = body.frame.width;
     const fh = body.frame.height;
@@ -1878,6 +1897,16 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.gore(head.x, head.y, 80, 2);
     head.destroy();
     this.bigText("FLAWLESS NIBBLE", "#ffd23f", 48, 180);
+    await this.reinhardtDeathEnd(giant, cam);
+  }
+
+  private isGoreOff() {
+    return G.meta.settings.gore === false;
+  }
+
+  /** Both versions of Reinhardt's death end the same way: the giant fades, the camera comes back to you. */
+  private async reinhardtDeathEnd(giant: Phaser.GameObjects.Image, cam: Phaser.Cameras.Scene2D.Camera) {
+    const wait = (ms: number) => new Promise<void>((r) => this.time.delayedCall(ms, () => r()));
     await wait(1500);
     this.tweens.add({ targets: giant, alpha: 0, duration: 800 });
     cam.zoomTo(1, 500);

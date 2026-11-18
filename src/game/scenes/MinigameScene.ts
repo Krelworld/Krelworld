@@ -933,7 +933,7 @@ export class MinigameScene extends Phaser.Scene {
   private renovate() {
     if (!backdrop(this, "bg_fixer", { dim: 0.15, depth: -10 })) this.add.tileSprite(0, 0, 960, 540, "tile_mansion").setOrigin(0);
     title(this, 480, 44, "FLIP IT: ADD £1,500,000 IN 45 SECONDS", 26);
-    this.add.text(480, 74, "Click problems before they ROT. Fix them quickly in a row for a multiplier.", { fontFamily: FONT, fontSize: "14px", color: "#ffffff", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5);
+    this.add.text(480, 74, "Click problems before they ROT (or arrows/WASD to pick, SPACE/E to fix). Fix them quickly in a row for a multiplier.", { fontFamily: FONT, fontSize: "14px", color: "#ffffff", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5);
     const kinds = [
       { t: "DAMP", c: 0x4a6a4a },
       { t: "HOLE", c: 0x111111 },
@@ -992,7 +992,7 @@ export class MinigameScene extends Phaser.Scene {
       r.setScale(0);
       this.tweens.add({ targets: r, scale: 1, duration: 150, ease: "Back.out" });
       if (gold) synth.play("transform_sparkle");
-      r.setInteractive({ useHandCursor: true }).on("pointerdown", () => {
+      const fix = () => {
         if (this.ended || p.dead) return;
         const now = this.time.now;
         // chain fixes within 0.9s of each other and the multiplier climbs (to x3)
@@ -1012,8 +1012,65 @@ export class MinigameScene extends Phaser.Scene {
           synth.play("cheer");
           this.finish(true, [dir(`Fixed ${fixed}. Rotted ${rotted}. Original features found: ${golden}.`)]);
         }
-      });
+      };
+      (p as Prob & { fix?: () => void }).fix = fix;
+      r.setInteractive({ useHandCursor: true }).on("pointerdown", fix);
     };
+    // keyboard: a highlight sits on one problem (the most urgent, unless you move it); arrows/WASD hop to the
+    // nearest one that way, SPACE/E fixes it
+    let sel: Prob | null = null;
+    const hi = this.add.graphics().setDepth(13);
+    const live = () => probs.filter((p) => !p.dead);
+    const urgent = () => live().sort((a, b) => a.born + a.life - (b.born + b.life))[0] ?? null;
+    const hop = (dx: number, dy: number) => {
+      const from = sel && !sel.dead ? sel : urgent();
+      if (!from) return;
+      let best: Prob | null = null;
+      let bd = Infinity;
+      for (const p of live()) {
+        if (p === from) continue;
+        const vx = p.r.x - from.r.x;
+        const vy = p.r.y - from.r.y;
+        const along = vx * dx + vy * dy;
+        if (along <= 10) continue;
+        const d = along + Math.abs(vx * dy - vy * dx) * 1.5;
+        if (d < bd) {
+          bd = d;
+          best = p;
+        }
+      }
+      sel = best ?? from;
+      synth.play("tick", 0.4);
+    };
+    const kb = this.input.keyboard;
+    const onKey = (e: KeyboardEvent) => {
+      if (this.ended) return;
+      const k = e.key.toLowerCase();
+      if (k === "arrowleft" || k === "a") hop(-1, 0);
+      else if (k === "arrowright" || k === "d") hop(1, 0);
+      else if (k === "arrowup" || k === "w") hop(0, -1);
+      else if (k === "arrowdown" || k === "s") hop(0, 1);
+      else if (k === " " || k === "e" || k === "enter") {
+        const p = sel && !sel.dead ? sel : urgent();
+        (p as (Prob & { fix?: () => void }) | null)?.fix?.();
+        sel = null;
+      }
+    };
+    kb?.on("keydown", onKey);
+    this.events.once("shutdown", () => kb?.off("keydown", onKey));
+    this.time.addEvent({
+      delay: 16,
+      loop: true,
+      callback: () => {
+        hi.clear();
+        if (this.ended) return;
+        if (sel?.dead) sel = null;
+        const p = sel ?? urgent();
+        if (!p) return;
+        const t = this.time.now / 120;
+        hi.lineStyle(3, 0x22d3ee, 0.6 + 0.4 * Math.sin(t)).strokeRoundedRect(p.r.x - 46, p.r.y - 34, 92, 78, 8);
+      },
+    });
     const speedUp = (n: number) => {
       const s = title(this, 480, 270, n === 1 ? "SPEED UP!" : "FASTER!!", 54, "#ff6b6b").setDepth(220).setScale(0.3);
       this.tweens.add({ targets: s, scale: 1, duration: 200, ease: "Back.out" });

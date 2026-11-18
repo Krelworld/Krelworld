@@ -3,6 +3,7 @@ import { G } from "../../G";
 import { dir, say } from "../../../content/dsl";
 import type { Line } from "../../../data/types";
 import type { PlayableId } from "../../../data/types";
+import type { DialogueBox } from "../../ui/DialogueBox";
 
 /**
  * The poster on the back wall, right of the window: a cheesy 80s underwear advert starring whoever you're playing,
@@ -35,7 +36,7 @@ export const PANTS_POSTERS: Record<PlayableId, PosterCopy> = {
   },
   KREBLIS: {
     brand: "KREBLIS FOR HIM",
-    slogan: "BREAKING: LOCAL MAN IN PANTS",
+    slogan: "BREAKING: MAN IN PANTS",
     look: "KREBLIS FOR HIM. A strange occurrence: a grown man, oiled, in a studio, in his pants, on purpose. Nobody has been able to explain it. The investigation continues.",
     quip: "Threat level: purple. Pants level: white.",
   },
@@ -47,13 +48,13 @@ export const PANTS_POSTERS: Record<PlayableId, PosterCopy> = {
   },
   SCROMBUS: {
     brand: "SCROMBUS & CO",
-    slogan: "100% HUMAN-MADE (ISH)",
+    slogan: "HUMAN-MADE (ISH)",
     look: "SCROMBUS & CO. 'Lore-washed at 40 degrees.' The small print says no AI was used in this poster. Further small print says some AI was used in this poster.",
     quip: "Severe lack of appreciation for this, frankly.",
   },
   KREBON: {
     brand: "KREBON KLEIN",
-    slogan: "KREBON IS COMING. DRESSED FOR IT.",
+    slogan: "KREBON IS COMING.",
     look: "KREBON KLEIN. A man on a crate, looking into the middle distance like he's just remembered a Twitcher Mutiny lyric. It is the most serious pair of pants ever photographed.",
     quip: "Real butter. Real cotton. Real Krebon.",
   },
@@ -65,7 +66,7 @@ export const PANTS_POSTERS: Record<PlayableId, PosterCopy> = {
   },
   GRONNY: {
     brand: "GRONNY G",
-    slogan: "LOST THE TROUSERS. FOUND HIMSELF.",
+    slogan: "TROUSERS NOT FOUND.",
     look: "GRONNY G FOR MEN. 'He never found his trousers. He found something better.' Even in a poster, there is a faint smell coming off it.",
     quip: "Spec bar's full in these. Always hits a 99.",
   },
@@ -126,6 +127,7 @@ export function addPantsPoster(
   scene: Phaser.Scene,
   addSpot: (s: { x: number; y: number; r: number; label: string; use: () => void | Promise<void> }) => void,
   talk: (lines: Line[]) => Promise<void>,
+  box: () => DialogueBox,
 ) {
   const id = G.s.player as PlayableId;
   const key = artKey(scene, id);
@@ -137,15 +139,17 @@ export function addPantsPoster(
     r: 36,
     label: "E: Look at the poster",
     use: async () => {
-      // a close-up while you read it
+      // a close-up while you read it (the box drops to the bottom of the screen so it doesn't cover it)
+      const scale = 2.2;
       const dim = scene.add.rectangle(480, 270, 960, 540, 0x000000, 0.6).setDepth(1900).setAlpha(0);
-      const big = makePoster(scene, id, key, 480, 250, 2.3, 1901).setAlpha(0);
-      big.y = 270 - (H * 2.3) / 2 + 40;
+      const big = makePoster(scene, id, key, 480, 10, scale, 1901).setAlpha(0);
       scene.tweens.add({ targets: [dim, big], alpha: 1, duration: 250 });
       const copy = PANTS_POSTERS[id];
+      box().atBottom();
       try {
         await talk([dir(copy.look), say(id, copy.quip)]);
       } finally {
+        box().atMiddle();
         scene.tweens.add({ targets: [dim, big], alpha: 0, duration: 200, onComplete: () => (dim.destroy(), big.destroy()) });
       }
     },

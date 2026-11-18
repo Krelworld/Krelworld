@@ -14,15 +14,24 @@ import { PRIZES } from "../../content/kreddle";
 import { DUNGEONS } from "../../data/dungeons";
 import { BOSS_TEXT } from "../../content/bosses";
 import { maxHp } from "../systems/stats";
+import { DEFAULT_DIFFICULTY, difficultyDef, MAX_DIFFICULTY } from "../systems/difficulty";
+import { loadoutSummary } from "../systems/carry";
+import { hexStr } from "../ui/theme";
 
 /**
  * DEBUG · SKIP TO… (from the 🛠 DEBUG button on the title screen).
  * Starts a fresh save at the start of a chapter, or straight at a side quest, with everything before it done.
  */
 export class DebugScene extends Phaser.Scene {
-  private pl: PlayableId = "FLENKY";
-  private picked = false;
-  private page: "main" | "bosses" = "main";
+  protected pl: PlayableId = "FLENKY";
+  protected picked = false;
+  protected page: "main" | "bosses" = "main";
+  /**
+   * CHAPTER SELECT (title screen, once you've finished the game): the same jumps, but a real run:
+   * no debug mode, no god kit, no free guns or money. You start with the kit you finished your last game with.
+   */
+  protected chapterMode = false;
+  protected difficulty = DEFAULT_DIFFICULTY;
 
   /** DEBUG MODE: every upgrade, every gun (strongest in hand), infinite Krezz and IBS (see Player / DungeonScene). */
   private powers() {
@@ -40,15 +49,16 @@ export class DebugScene extends Phaser.Scene {
     G.save();
   }
 
-  constructor() {
-    super("DebugSkip");
+  constructor(key = "DebugSkip") {
+    super(key);
   }
 
   create() {
     if (!this.picked) {
       let p: string | undefined;
       try {
-        p = G.saves.load()?.player;
+        // chapter select: whoever finished the game last; debug: whoever's in the save
+        p = (this.chapterMode ? G.meta.carry?.from : undefined) ?? G.saves.load()?.player;
       } catch {
         p = undefined;
       }
@@ -56,6 +66,63 @@ export class DebugScene extends Phaser.Scene {
       this.picked = true;
     }
     this.draw();
+  }
+
+  /** Every button on the page, for the keyboard: arrows / WASD move, Enter / Space press. */
+  private navs: { c: Phaser.GameObjects.Container; fn: () => void }[] = [];
+  private focus = -1;
+  private ring?: Phaser.GameObjects.Rectangle;
+
+  private btn(x: number, y: number, t: string, fn: () => void, o: Parameters<typeof button>[5] = {}) {
+    const c = button(this, x, y, t, fn, o);
+    this.navs.push({ c, fn });
+    return c;
+  }
+
+  /** Start a page: clear it and its keys, then hook up keyboard navigation over its buttons. */
+  private freshPage() {
+    this.children.removeAll(true);
+    this.input.keyboard?.removeAllListeners();
+    this.navs = [];
+    this.focus = -1;
+    this.ring = undefined;
+    const kb = this.input.keyboard;
+    if (!kb) return;
+    const go = (dx: number, dy: number) => this.moveFocus(dx, dy);
+    for (const [k, dx, dy] of [["UP", 0, -1], ["W", 0, -1], ["DOWN", 0, 1], ["S", 0, 1], ["LEFT", -1, 0], ["A", -1, 0], ["RIGHT", 1, 0], ["D", 1, 0]] as const) kb.on(`keydown-${k}`, () => go(dx, dy));
+    const press = () => {
+      const n = this.navs[this.focus];
+      if (n) n.fn();
+    };
+    kb.on("keydown-ENTER", press);
+    kb.on("keydown-SPACE", press);
+  }
+
+  /** Move the keyboard focus to the nearest button in that direction. */
+  private moveFocus(dx: number, dy: number) {
+    if (!this.navs.length) return;
+    const cur = this.navs[this.focus];
+    let best = -1;
+    let bestD = Infinity;
+    // first press: the first jump on the page (chapter 1 / the first boss), not the toggles up top
+    if (!cur) best = Math.max(0, this.navs.findIndex((n) => n.c.y > 100));
+    else
+      this.navs.forEach((n, i) => {
+        if (i === this.focus) return;
+        const ox = n.c.x - cur.c.x;
+        const oy = n.c.y - cur.c.y;
+        const along = ox * dx + oy * dy;
+        if (along <= 4) return;
+        const side = Math.abs(ox * dy) + Math.abs(oy * dx);
+        const d = along + side * 3;
+        if (d < bestD) (bestD = d), (best = i);
+      });
+    if (best < 0) return;
+    this.focus = best;
+    const c = this.navs[best].c;
+    this.ring?.destroy();
+    this.ring = this.add.rectangle(c.x, c.y, c.width + 8, c.height + 6).setStrokeStyle(3, 0xffd23f).setDepth(50);
+    this.tweens.add({ targets: this.ring, alpha: 0.5, yoyo: true, repeat: -1, duration: 400 });
   }
 
   /** The chapter a side quest belongs to. */
@@ -67,7 +134,7 @@ export class DebugScene extends Phaser.Scene {
   /** A fresh save at the start of chapter `ch`: earlier chapters and their side quests done, starter guns and money. */
   private prep(ch: number, keep: Arc | null) {
     const pl = this.pl;
-    G.newRun(pl, 0);
+    G.newRun(pl, 0, this.chapterMode ? this.difficulty : undefined);
     const s = G.s;
     s.chapter = ch;
     // the start-of-game bits (welcome, Klerble on the telly, the flyover) count as seen
@@ -104,6 +171,12 @@ export class DebugScene extends Phaser.Scene {
           s.flags[`${a.id}_done`] = true;
         }
     }
+    if (this.chapterMode) {
+      // chapter select: your carried kit only (G.newRun gave it you), no freebies and no debug powers
+      s.hp = maxHp(s);
+      G.save();
+      return;
+    }
     s.guns = s.guns ?? {};
     let first: string | null = null;
     for (const [id, g] of Object.entries(GUNS)) {
@@ -121,6 +194,7 @@ export class DebugScene extends Phaser.Scene {
 
   private goCh(n: number) {
     if (n === 1) {
+      if (this.chapterMode) return startNewRun(this, this.pl, 0, this.difficulty);
       startNewRun(this, this.pl);
       this.powers();
       return;
@@ -152,11 +226,10 @@ export class DebugScene extends Phaser.Scene {
   }
 
   private drawBosses() {
-    this.children.removeAll(true);
-    this.input.keyboard?.removeAllListeners();
+    this.freshPage();
     this.add.rectangle(480, 270, 960, 540, 0x10101e);
-    title(this, 480, 24, "DEBUG · BOSS FIGHTS", 24, "#ffd23f");
-    this.add.text(480, 48, "Straight into the boss room, in debug mode. This replaces your current save.", { fontFamily: FONT, fontSize: "11px", color: "#ff9b9b" }).setOrigin(0.5);
+    title(this, 480, 24, this.chapterMode ? "CHAPTER SELECT · BOSS FIGHTS" : "DEBUG · BOSS FIGHTS", 24, "#ffd23f");
+    this.add.text(480, 48, this.chapterMode ? "Straight into the boss room, with your kit. This replaces your current save." : "Straight into the boss room, in debug mode. This replaces your current save.", { fontFamily: FONT, fontSize: "11px", color: "#ff9b9b" }).setOrigin(0.5);
     const list = this.bosses();
     const per = Math.ceil(list.length / 3);
     const sp = Math.min(40, Math.floor(410 / Math.max(1, per)));
@@ -164,26 +237,38 @@ export class DebugScene extends Phaser.Scene {
       const col = Math.floor(i / per);
       const r = i % per;
       const name = BOSS_TEXT[b.boss]?.name ?? b.boss.toUpperCase();
-      button(this, 170 + col * 310, 84 + r * sp, `Ch ${b.ch} · ${name}`, () => this.goBoss(b), { w: 296, h: sp - 5, size: 11 });
+      this.btn(170 + col * 310, 84 + r * sp, `Ch ${b.ch} · ${name}`, () => this.goBoss(b), { w: 296, h: sp - 5, size: 11 });
     });
-    button(this, 90, 516, "◀ BACK", () => ((this.page = "main"), this.draw()), { w: 140, h: 30, size: 13 });
+    this.btn(90, 516, "◀ BACK", () => ((this.page = "main"), this.draw()), { w: 140, h: 30, size: 13 });
     this.input.keyboard?.on("keydown-ESC", () => ((this.page = "main"), this.draw()));
   }
 
   private draw() {
     if (this.page === "bosses") return this.drawBosses();
-    this.children.removeAll(true);
-    this.input.keyboard?.removeAllListeners();
+    this.freshPage();
     this.add.rectangle(480, 270, 960, 540, 0x10101e);
-    title(this, 480, 24, "DEBUG · SKIP TO…", 24, "#ffd23f");
+    title(this, 480, 24, this.chapterMode ? "CHAPTER SELECT" : "DEBUG · SKIP TO…", 24, "#ffd23f");
     this.add.text(480, 48, "Starts a fresh save at the start of whatever you pick. This replaces your current save.", { fontFamily: FONT, fontSize: "11px", color: "#ff9b9b" }).setOrigin(0.5);
-    button(this, 480, 78, `PLAYING AS: ${CHARACTERS[this.pl].name}   (tap to change)`, () => {
+    const cyclePl = () => {
       this.pl = PLAYABLE_ORDER[(PLAYABLE_ORDER.indexOf(this.pl) + 1) % PLAYABLE_ORDER.length];
       this.draw();
-    }, { w: 380, h: 30, size: 13 });
+    };
+    const cycleDiff = () => {
+      this.difficulty = (this.difficulty % MAX_DIFFICULTY) + 1;
+      this.draw();
+    };
+    if (this.chapterMode) {
+      this.btn(325, 78, `PLAYING AS: ${CHARACTERS[this.pl].name}  (C)`, cyclePl, { w: 300, h: 30, size: 12 });
+      const d = difficultyDef(this.difficulty);
+      const db = this.btn(640, 78, `DIFFICULTY ${d.level}/${MAX_DIFFICULTY}: ${d.name}  (V)`, cycleDiff, { w: 310, h: 30, size: 12 });
+      (db as any).label?.setColor(hexStr(d.color));
+      this.input.keyboard?.on("keydown-C", cyclePl);
+      this.input.keyboard?.on("keydown-V", cycleDiff);
+    } else
+      this.btn(480, 78, `PLAYING AS: ${CHARACTERS[this.pl].name}   (tap to change)`, cyclePl, { w: 380, h: 30, size: 13 });
     const head = (x: number, y: number, t: string) => this.add.text(x, y, t, { fontFamily: FONT, fontSize: "13px", color: "#86efac", fontStyle: "bold" }).setOrigin(0.5);
     head(150, 108, "CHAPTERS");
-    CHAPTERS.forEach((c, i) => button(this, 150, 138 + i * 44, `${c.n}. ${c.title}`, () => this.goCh(c.n), { w: 270, h: 36, size: 12 }));
+    CHAPTERS.forEach((c, i) => this.btn(150, 138 + i * 44, `${c.n}. ${c.title}`, () => this.goCh(c.n), { w: 270, h: 36, size: 12 }));
     const arcs = arcsFor(this.pl).slice().sort((a, b) => this.arcCh(a) - this.arcCh(b));
     head(635, 108, "SIDE QUESTS (goes straight to the quest)");
     const per = Math.ceil(arcs.length / 2);
@@ -191,11 +276,25 @@ export class DebugScene extends Phaser.Scene {
     arcs.forEach((a, i) => {
       const col = i < per ? 0 : 1;
       const r = i % per;
-      button(this, 482 + col * 308, 130 + r * sp, `Ch ${this.arcCh(a)} · ${a.title}`, () => this.goArc(a), { w: 300, h: sp - 4, size: 11 });
+      this.btn(482 + col * 308, 130 + r * sp, `Ch ${this.arcCh(a)} · ${a.title}`, () => this.goArc(a), { w: 300, h: sp - 4, size: 11 });
     });
-    button(this, 90, 516, "◀ BACK", () => switchTo(this, "Title"), { w: 140, h: 30, size: 13 });
-    button(this, 150, 138 + CHAPTERS.length * 44 + 8, "⚔ BOSS FIGHTS", () => ((this.page = "bosses"), this.draw()), { w: 270, h: 40, size: 14, color: 0x7f1d1d });
-    this.add.text(480, 516, "DEBUG MODE: all upgrades · every gun (strongest in hand) · infinite Krezz · IBS always ready", { fontFamily: FONT, fontSize: "11px", color: "#86efac" }).setOrigin(0.5);
+    this.btn(90, 516, "◀ BACK", () => switchTo(this, "Title"), { w: 140, h: 30, size: 13 });
+    this.btn(150, 138 + CHAPTERS.length * 44 + 8, "⚔ BOSS FIGHTS", () => ((this.page = "bosses"), this.draw()), { w: 270, h: 40, size: 14, color: 0x7f1d1d });
+    const lo = G.meta.carry;
+    const foot = this.chapterMode
+      ? lo
+        ? `YOUR KIT FROM YOUR LAST FINISHED GAME: ${loadoutSummary(lo)}`
+        : "No kit saved from a finished game: you start with the basics."
+      : "DEBUG MODE: all upgrades · every gun (strongest in hand) · infinite Krezz · IBS always ready";
+    this.add.text(480, 516, foot, { fontFamily: FONT, fontSize: "11px", color: "#86efac" }).setOrigin(0.5);
     this.input.keyboard?.on("keydown-ESC", () => switchTo(this, "Title"));
+  }
+}
+
+/** CHAPTER SELECT (title screen, after you've finished the game): DebugSkip's jumps as a real run with your carried kit. */
+export class ChapterSelectScene extends DebugScene {
+  constructor() {
+    super("ChapterSelect");
+    this.chapterMode = true;
   }
 }

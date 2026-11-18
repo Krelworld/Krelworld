@@ -14,7 +14,7 @@ import { DifficultyScene } from "./game/scenes/DifficultyScene";
 import { CutsceneScene } from "./game/scenes/CutsceneScene";
 import { DialogueScene } from "./game/scenes/DialogueScene";
 import { TownMeetingScene } from "./game/scenes/TownMeetingScene";
-import { DebugScene } from "./game/scenes/DebugScene";
+import { ChapterSelectScene, DebugScene } from "./game/scenes/DebugScene";
 import { HubScene } from "./game/scenes/HubScene";
 import { DungeonScene } from "./game/scenes/DungeonScene";
 import { UIScene } from "./game/scenes/UIScene";
@@ -68,6 +68,7 @@ const game = new Phaser.Game({
     CutsceneScene,
     TownMeetingScene,
     DebugScene,
+    ChapterSelectScene,
     HubScene,
     DungeonScene,
     UIScene,

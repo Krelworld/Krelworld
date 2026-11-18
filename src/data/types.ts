@@ -232,8 +232,32 @@ export interface Settings {
   calmFlash?: boolean;
 }
 
+/**
+ * The kit you finished your last game with (src/game/systems/carry.ts): every new game starts with it.
+ * Gear only: guns, upgrades and perks, money and consumables. Never story progress.
+ */
+export interface CarriedLoadout {
+  /** Who finished the game with it. */
+  from: PlayableId;
+  /** Owned guns -> ammo. */
+  guns: Record<string, number>;
+  /** Gun in hand. */
+  gun?: string;
+  /** The gun-rack order. */
+  gunOrder: string[];
+  /** s.upgrades: stat upgrades, bank perks and moves, Kreddle prizes, gun mods, home decor, fairies… */
+  upgrades: Upgrades;
+  coins: number;
+  bottles: number;
+  bongos: number;
+  /** When it was saved (ms since epoch). */
+  at: number;
+}
+
 export interface MetaState {
   version: number;
+  /** The loadout from your last finished game: new games and Chapter Select start with it. */
+  carry?: CarriedLoadout;
   /** The first-dungeon controls pop-up has been shown. */
   tutDungeon?: boolean;
   archiveUnlocked: string[];

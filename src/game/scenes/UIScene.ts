@@ -391,7 +391,10 @@ export class UIScene extends Phaser.Scene {
     const cam = dun.cameras.main;
     const sx = (p.x - cam.worldView.x) * cam.zoom;
     const sy = (p.y - cam.worldView.y) * cam.zoom - 64 * cam.zoom;
-    c.setPosition(sx, sy - 4 * pulse).setAlpha(Math.min(1, (this.popUntil - time) / 400));
+    // keep it on screen when you're up against the edge (a run'n'gun lockdown holds you there)
+    const half = Math.max(...c.list.map((o) => (o as Phaser.GameObjects.Text).width ?? 0)) / 2 + 4;
+    const W = this.scale.width;
+    c.setPosition(Phaser.Math.Clamp(sx, half, Math.max(half, W - half)), Phaser.Math.Clamp(sy - 4 * pulse, 40, this.scale.height - 20)).setAlpha(Math.min(1, (this.popUntil - time) / 400));
   }
 
   private hpGhost = 1;

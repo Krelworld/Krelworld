@@ -429,7 +429,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         return !this.busy && !!this.player && this.time.now >= this.player.superUntil;
       },
     });
-    this.enemyGroup = this.physics.add.group();
+    // (a physics group re-applies its defaults to every body added to it, so without this it switched off the
+    // world-bounds collision Enemy / Boss set up, and flyers like wisps drifted out of the room where nothing can reach them)
+    this.enemyGroup = this.physics.add.group({ collideWorldBounds: true });
     if (!this.side) this.physics.add.collider(this.enemyGroup, this.enemyGroup);
     this.physics.add.collider(this.player.spr, this.obstacles);
     this.physics.add.collider(this.enemyGroup, this.obstacles);

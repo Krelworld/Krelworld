@@ -299,6 +299,9 @@ export class PubScene extends Phaser.Scene {
     for (let size = 16; lab.width > maxW && size > 10; size--) lab.setFontSize(size);
     const sub = this.add.text(tx, small ? h / 2 + 9 : h / 2 + 12, o.sub, { fontFamily: FONT, fontSize: "12px", color: o.warn ? "#ff8a8a" : "#a9b8a8" }).setOrigin(0, 0.5);
     for (let size = 12; sub.width > maxW && size > 9; size--) sub.setFontSize(size);
+    // still too long at the smallest size (e.g. the riff / stag cards with their rewards): wrap onto a second line
+    // rather than spilling into the next card
+    if (sub.width > maxW) sub.setFontSize(10).setWordWrapWidth(maxW).setLineSpacing(-2).setY(sub.y + 4);
     c.add([lab, sub]);
     const hit = this.add.rectangle(0, 0, w, h, 0x000000, 0).setOrigin(0).setInteractive({ useHandCursor: true });
     c.add(hit);

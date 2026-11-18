@@ -69,6 +69,8 @@ const MAX_ASH = 140;
 const MAX_BUBBLES = 6;
 const MAX_BURNING = 22;
 const MAX_AIR = 4;
+/** The last Kruncher's slow-motion beat (real ms) before the anime cutscene. */
+const LAST_KRUNCH_MS = 2400;
 
 type NState = "idle" | "flee" | "burn" | "choke" | "dead";
 interface RNpc {
@@ -82,6 +84,12 @@ interface RNpc {
   name?: string;
   speed: number;
   baseTint?: number;
+  /** Krunchers: when they caught, a second fire on the head, the next smoke/ember tick, which scream is theirs. */
+  t0?: number;
+  fire2?: Phaser.GameObjects.Sprite | null;
+  nextFx?: number;
+  screamed?: boolean;
+  idx?: number;
 }
 interface Bld {
   img: Phaser.GameObjects.Image;
@@ -481,7 +489,7 @@ export class KreddleRaid {
     if (!planted)
       KRUNCHERS.forEach((k, i) => {
         if (!sc.textures.exists(`spr_${k.of}`)) return;
-        const n = add(`spr_${k.of}`, 8380 + (i % 5) * 85, 480 + Math.floor(i / 5) * 90 + (i % 2) * 18, "kruncher", { name: k.name, baseTint: i % 2 ? 0xff9de6 : 0x9be7ff, speed: 60 });
+        const n = add(`spr_${k.of}`, 8380 + (i % 5) * 85, 480 + Math.floor(i / 5) * 90 + (i % 2) * 18, "kruncher", { name: k.name, baseTint: i % 2 ? 0xff9de6 : 0x9be7ff, speed: 60, idx: i });
         n.spr.setData("facing", "west");
       });
   }
@@ -782,10 +790,26 @@ export class KreddleRaid {
       cam.stopFollow();
       cam.pan(x, y - 30, 300, "Quad.easeOut", true);
       cam.zoomTo(1.4, 300, "Quad.easeOut", true);
-      Juice.slowMo(sc, 0.15, 1300);
+      Juice.slowMo(sc, 0.15, LAST_KRUNCH_MS);
       Juice.shake(sc, 900, 0.02);
       this.lastKrunchAt = Date.now();
-      Juice.realWait(1300).then(() => {
+      // the long beat: the camera creeps in on the last one going down as a ring of green fire goes up round them
+      Juice.realWait(320).then(() => sc.sys.settings.active && cam.zoomTo(1.8, LAST_KRUNCH_MS - 600, "Sine.easeInOut", true));
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        Juice.realWait(250 + i * 140).then(() => {
+          if (!sc.sys.settings.active) return;
+          vfx(sc, "vfx_fire", x + Math.cos(a) * 70, y + Math.sin(a) * 30, { scale: 1.6, depth: D_LIGHT + 8, add: true, tint: i % 2 ? GREEN : 0xffb347 });
+          if (i % 3 === 0) synth.play("gun_flamer");
+        });
+      }
+      Juice.realWait(900).then(() => {
+        if (!sc.sys.settings.active) return;
+        this.scream(n, 0.9);
+        Juice.heartbeat(0.8);
+        Juice.slamText(sc, `${name}…`, "#ff4fd8", 34, 210, 1000, D_HUD + 4);
+      });
+      Juice.realWait(LAST_KRUNCH_MS).then(() => {
         if (!sc.sys.settings.active) return;
         // (the title slam is the anime cutscene's now: krunchersDead plays it next)
         cam.zoomTo(1, 700, "Cubic.easeInOut", true);
@@ -807,6 +831,132 @@ export class KreddleRaid {
     }
   }
 
+  /**
+   * A Kruncher catches: a burst of orange, a second fire up on the head, and a few seconds of burning (a bit longer
+   * than a Kreddler's) so you see them flail, scream, stagger and char before they drop.
+   */
+  private kruncherCatch(n: RNpc) {
+    const sc = this.sc;
+    const now = sc.time.now;
+    n.t0 = now;
+    n.t = now + 2500 + Math.random() * 700;
+    n.nextFx = now + 120;
+    n.screamed = false;
+    n.spr.setTintFill(0xffd27a);
+    sc.time.delayedCall(90, () => n.spr.active && n.state === "burn" && n.spr.setTint(0xff8a3a));
+    vfx(sc, "vfx_boom", n.spr.x, n.spr.y - 24, { scale: 0.7, depth: D_LIGHT + 6, add: true, tint: 0xffb347 });
+    Juice.squash(sc, n.spr, 0.25, 260);
+    n.fire2 = this.addFire(n.spr.x, n.spr.y - 22, 0.8, 0, 0);
+    this.scream(n, 0.55);
+  }
+
+  private scream(n: RNpc, vol: number) {
+    if (this.sc.time.now < this.nextScreamSfx - 150) return;
+    this.nextScreamSfx = this.sc.time.now + 300;
+    if (!synth.evilScream(`krunch_scream_${((n.idx ?? 0) % 9) + 1}`, vol, 0.95 + Math.random() * 0.1)) synth.play("hurt_2");
+  }
+
+  /** Burning: flailing about at first, then staggering, slowing, leaning, charring darker, shedding smoke and flakes. */
+  private kruncherBurnTick(n: RNpc, time: number, step: number) {
+    const spr = n.spr;
+    const t0 = n.t0 ?? time;
+    const k = Phaser.Math.Clamp((time - t0) / Math.max(1, n.t - t0), 0, 1);
+    const gore = G.meta.settings.gore !== false;
+    if (time > n.nextTurn) {
+      n.nextTurn = time + (k < 0.55 ? 220 + Math.random() * 260 : 500 + Math.random() * 400);
+      const ang = Math.random() * Math.PI * 2;
+      n.dir = { x: Math.cos(ang), y: Math.sin(ang) };
+    }
+    // flail (fast, all over), then stagger (slowing to a lurch)
+    const sp = k < 0.55 ? 240 : 240 * Math.max(0.12, (1 - k) * 1.5);
+    spr.x += n.dir.x * sp * step;
+    spr.y += n.dir.y * sp * 0.7 * step;
+    if (k < 0.55) spr.setAngle(Math.sin(time / 45) * 20);
+    else spr.setAngle((n.dir.x < 0 ? -1 : 1) * (10 + k * 22) + Math.sin(time / 160) * 8);
+    animateWalker(spr, n.dir.x, n.dir.y, true, time * (k < 0.55 ? 2.2 : 0.8));
+    // the skin / clothes char as it goes (gore off: soot)
+    const from = Phaser.Display.Color.ValueToColor(0xff8a3a);
+    const to = Phaser.Display.Color.ValueToColor(gore ? 0x2a1610 : 0x3a3a3a);
+    const c = Phaser.Display.Color.Interpolate.ColorWithColor(from, to, 1, Math.min(1, k * 1.25));
+    spr.setTint(Phaser.Display.Color.GetColor(c.r, c.g, c.b));
+    if (!n.screamed && k > 0.5) {
+      n.screamed = true;
+      this.scream(n, 0.7);
+      this.bubble(spr, Phaser.Utils.Array.GetRandom(["AAAAARGH!!", "IT BURNS!!", "MY HAIR!!", "NOT LIKE THIS!!", "MUMMYYYY!!", "I'M MELTING!!"]), "#ffb3a0", true);
+    }
+    if (time > (n.nextFx ?? 0)) {
+      n.nextFx = time + 200;
+      if (spr.visible) {
+        vfx(this.sc, "vfx_smoke", spr.x + (Math.random() - 0.5) * 14, spr.y - 40, { scale: 0.5 + k * 0.6, depth: spr.y + 6, alpha: 0.75 });
+        Juice.debris(this.sc, spr.x, spr.y - 20, 2, { colors: gore ? [0x2a1610, 0x7a2a1a, 0xff8a3a] : [0x3a3a3a, 0x6b7280, 0xff8a3a], depth: D_LIGHT + 5, floor: spr.y + 20, size: 2 });
+      }
+    }
+  }
+
+  /**
+   * Down: they keel over into a burning husk (gore: charred to the bones; gore off: a sooty cartoon husk blinking its
+   * eyes), smoulder for a moment, then crumble to a pile of ash that blows away.
+   */
+  private kruncherHusk(n: RNpc, fire: Phaser.GameObjects.Sprite | null) {
+    const sc = this.sc;
+    const spr = n.spr;
+    const gore = G.meta.settings.gore !== false;
+    const fire2 = n.fire2 ?? null;
+    n.fire2 = null;
+    const left = Math.random() < 0.5;
+    synth.play(gore ? "bonecrack" : "groan");
+    sc.tweens.add({
+      targets: spr,
+      angle: left ? -90 : 90,
+      y: spr.y + 16,
+      duration: 460,
+      ease: "Bounce.out",
+      onComplete: () => {
+        if (!spr.active) return;
+        vfx(sc, "vfx_dust", spr.x, spr.y + 8, { scale: 1.2, depth: spr.y + 2 });
+        vfx(sc, "vfx_fire", spr.x, spr.y - 4, { scale: 1.3, depth: D_LIGHT + 3, add: true, tint: GREEN });
+        let husk: Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Transform & Phaser.GameObjects.Components.Alpha = spr;
+        let eyes: Phaser.GameObjects.Rectangle[] = [];
+        if (gore && sc.textures.exists("kb_chardie_anim")) {
+          // charred to the bones: the last frames of the char-to-skeleton sheet, lying where they fell
+          const bones = sc.add.sprite(spr.x, spr.y + 6, "kb_chardie_anim", 6).setOrigin(0.5, 0.8).setScale(1.7).setDepth(spr.y).setFlipX(left);
+          sc.tweens.add({ targets: spr, alpha: 0, duration: 260 });
+          sc.time.delayedCall(500, () => bones.active && bones.setFrame(7));
+          sc.time.delayedCall(1000, () => bones.active && bones.setFrame(8));
+          husk = bones;
+          spr.once("destroy", () => bones.destroy());
+          if (Math.random() < 0.5) vfx(sc, "vfx_blood", spr.x, spr.y, { scale: 0.6, depth: D_LIGHT + 2 });
+        } else {
+          spr.setTint(gore ? 0x1a0e0a : 0x2a2a2a);
+          if (!gore) {
+            // a cartoon soot-husk: two little white eyes blink, then it crumbles
+            eyes = [-4, 4].map((dx) => sc.add.rectangle(spr.x + dx, spr.y - 6, 3, 3, 0xffffff).setDepth(spr.depth + 1));
+            sc.tweens.add({ targets: eyes, scaleY: 0.1, yoyo: true, repeat: 2, duration: 120, delay: 300, hold: 200 });
+          }
+        }
+        if (fire) {
+          const i = this.fires.findIndex((f) => f.spr === fire);
+          if (i >= 0) this.fires[i].until = sc.time.now + 1600;
+        }
+        if (fire2) {
+          const i = this.fires.findIndex((f) => f.spr === fire2);
+          if (i >= 0) this.fires[i].until = sc.time.now + 900;
+        }
+        for (let j = 0; j < 3; j++) sc.time.delayedCall(j * 420, () => vfx(sc, "vfx_smoke", husk.x + (Math.random() - 0.5) * 20, husk.y - 20, { scale: 1.2, depth: husk.y + 5, alpha: 0.85 }));
+        // crumble to ash
+        sc.time.delayedCall(1500, () => {
+          if (!spr.active) return;
+          synth.play("pfft_1");
+          Juice.debris(sc, husk.x, husk.y - 10, 10, { colors: [0x44403c, 0x6b7280, 0x9ca3af, 0xff8a3a], depth: D_LIGHT + 4, floor: husk.y + 20, size: 3 });
+          vfx(sc, "vfx_dust", husk.x, husk.y, { scale: 1.4, depth: husk.y + 2, tint: 0x6b6b6b });
+          this.addAsh(husk.x, husk.y - 14, true);
+          eyes.forEach((e) => e.destroy());
+          sc.tweens.add({ targets: husk, alpha: 0, scaleY: 0.2, duration: 520, ease: "Quad.in", onComplete: () => spr.destroy() });
+        });
+      },
+    });
+  }
+
   /** KRUNCHED: the anime cutscene (KrunchBurn.ts), with the HUD and the world hidden behind it. */
   async krunchBurn() {
     const sc = this.sc;
@@ -825,7 +975,7 @@ export class KreddleRaid {
     this.phase = "cutscene";
     this.busy = true;
     // the last one's slow-mo beat lands, then the anime cutscene of them all burning (Tab / tap skips it)
-    const lag = this.lastKrunchAt + 1300 - Date.now();
+    const lag = this.lastKrunchAt + LAST_KRUNCH_MS - Date.now();
     if (lag > 0) await Juice.realWait(lag);
     await this.krunchBurn();
     await this.wait(300);
@@ -1530,6 +1680,7 @@ export class KreddleRaid {
     if (n.kind === "kruncher") {
       const line = KRUNCHER_DEATHS.find((l) => l.s === n.name);
       if (line) this.bubble(n.spr, line.t, "#ffd1f3", true);
+      this.kruncherCatch(n);
     } else if (Math.random() < 0.4) this.bubble(n.spr, Phaser.Utils.Array.GetRandom(RAID_SCREAMS).t, "#ffe0e0");
   }
 
@@ -1554,6 +1705,10 @@ export class KreddleRaid {
     const spr = n.spr;
     const fire = n.fire;
     n.fire = null;
+    if (n.kind === "kruncher" && how === "burn") {
+      this.kruncherHusk(n, fire);
+      return;
+    }
     const gore = G.meta.settings.gore !== false;
     if (how === "nails" && gore) {
       vfx(sc, "vfx_gore", spr.x, spr.y, { scale: 0.8, depth: D_LIGHT + 3, flipX: Math.random() < 0.5 });
@@ -1609,6 +1764,16 @@ export class KreddleRaid {
       if (n.state === "burn") {
         if (time > n.t) {
           this.kill(n, "burn");
+          continue;
+        }
+        if (n.kind === "kruncher") {
+          this.kruncherBurnTick(n, time, step);
+          const [lo, hi] = bounds(spr.x);
+          spr.x = Phaser.Math.Clamp(spr.x, lo, hi);
+          spr.y = Phaser.Math.Clamp(spr.y, TOP, BOTTOM);
+          spr.setDepth(spr.y);
+          n.fire?.setPosition(spr.x, spr.y + 22);
+          n.fire2?.setPosition(spr.x + Math.sin(time / 90) * 4, spr.y - 22);
           continue;
         }
         if (time > n.nextTurn) {

@@ -1128,7 +1128,8 @@ export class HubScene extends Phaser.Scene {
         use: async () => {
           this.busy = true;
           (this.av.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
-          await squeeze(this, (l) => this.talk(l), { name: w.name, spr }, this.av, [say(w.name, w.hi)]);
+          // (talk() frees you when its lines end: stay put through the squeeze QTE in between)
+          await squeeze(this, (l) => this.talk(l).then(() => void (this.busy = true)), { name: w.name, spr }, this.av, [say(w.name, w.hi)]);
           this.busy = false;
         },
       });

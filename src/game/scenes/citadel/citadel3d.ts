@@ -318,7 +318,7 @@ export function arrivalOrbit(hub: Phaser.Scene, o: { worldW: number; worldH: num
  * The Inner Sanctum, before phase one: low behind you, looking up the carpet at him on the throne; then up and over
  * onto the live camera. (The room is top-down: it's snapshotted, he and you stand up out of it.)
  */
-export function sanctumSwing(sc: Phaser.Scene, o: { worldW: number; worldH: number; you: { x: number; y: number }; him: { x: number; y: number }; end: { x: number; y: number; zoom: number }; skip?: Phaser.GameObjects.GameObject[] }) {
+export function sanctumSwing(sc: Phaser.Scene, o: { worldW: number; worldH: number; you: { x: number; y: number }; him: { x: number; y: number }; end: { x: number; y: number; zoom: number }; skip?: Phaser.GameObjects.GameObject[]; onCovered?: () => void }) {
   const mx = (o.you.x + o.him.x) / 2;
   const my = (o.you.y + o.him.y) / 2;
   const keys: [number, Aim][] = [
@@ -333,6 +333,7 @@ export function sanctumSwing(sc: Phaser.Scene, o: { worldW: number; worldH: numb
     keys,
     settle: 1.6,
     end: o.end,
+    onCovered: o.onCovered,
     mood: { light: 0xd8b0c8, fog: 0x2a0812, apron: 0x120a16, sky: { top: 0x05020a, horizon: 0x3a0a1c } },
     onBuild: (c) => {
       synth.play("drone", 0.6);

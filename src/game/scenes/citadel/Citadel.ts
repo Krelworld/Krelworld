@@ -827,8 +827,14 @@ export class Citadel {
     if (can3d(sc) && !G.s.flags.c7_sanctum_3d) {
       G.s.flags.c7_sanctum_3d = true;
       const p = sc.player.spr;
-      await sanctumSwing(sc, { worldW: this.room.w, worldH: this.room.h, you: { x: p.x, y: p.y }, him: { x, y }, end: { x: cam.midPoint.x, y: cam.midPoint.y, zoom: cam.zoom } });
+      // it lands on the framing the meeting pans to (the two of you, him up the carpet), and the live camera starts there
+      const z = cam.zoom;
+      const hw = cam.width / 2 / z;
+      const hh = cam.height / 2 / z;
+      const end = { x: Phaser.Math.Clamp(x, hw, Math.max(hw, this.room.w - hw)), y: Phaser.Math.Clamp(y + 120, hh, Math.max(hh, this.room.h - hh)), zoom: z };
+      await sanctumSwing(sc, { worldW: this.room.w, worldH: this.room.h, you: { x: p.x, y: p.y }, him: { x, y }, end, skip: gun ? [gun] : [], onCovered: () => cam.centerOn(end.x, end.y) });
       if (!sc.sys.isActive()) return;
+      cam.centerOn(end.x, end.y);
     }
     const bars = Juice.letterbox(sc, 48, 700);
     Juice.vignette(sc, 0x2a0008, 0.55, 4890).setName("meetVig");

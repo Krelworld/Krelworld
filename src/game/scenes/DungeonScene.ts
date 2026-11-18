@@ -1617,6 +1617,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   }
 
   private gore(x: number, y: number, n: number, power = 1, upward = false) {
+    // gore off: no blood at all (Reinhardt's and Captain Stanley's deaths call this directly)
+    if (G.meta?.settings?.gore === false) return;
     const floor = this.side ? this.groundY : this.bounds.bottom;
     if (hasVfx(this, "vfx_blood")) {
       // drawn blood: a burst (or a gush upwards), meat if it's a lot, a pool where it lands
@@ -1707,6 +1709,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   }
 
   private screenSplat(n = 4) {
+    if (G.meta?.settings?.gore === false) return;
     if (hasVfx(this, "vfx_blood")) {
       // blood on the lens
       for (let i = 0; i < n; i++) vfx(this, "vfx_blood", 80 + Math.random() * 800, 60 + Math.random() * 300, { scale: 2.5 + Math.random() * 2, fixed: true, depth: 990, delay: i * 70, flipX: Math.random() < 0.5 });

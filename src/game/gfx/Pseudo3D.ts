@@ -261,6 +261,8 @@ export interface Board3D {
   scale: number;
   alpha: number;
   tint: number;
+  /** 0..1: how much of it is hidden from the bottom up (sunk into the ground: its base stays at the ground line) */
+  cut?: number;
 }
 
 /** An image placed in the set (dust, glows, sparks, clouds): scaled by distance, faces the screen. */
@@ -610,9 +612,15 @@ export class Stage3D {
           const h = b.h * b.scale;
           const cs = Math.cos(b.spin);
           const sn = Math.sin(b.spin);
+          const cut = b.cut ?? 0;
+          if (b.cut !== undefined) {
+            const vc = lerp(b.v1, b.v0, clamp(cut, 0, 1));
+            bv[b.vi].v = vc;
+            bv[b.vi + 1].v = vc;
+          }
           for (let c = 0; c < 4; c++) {
             const lx0 = c % 2 ? hw : -hw;
-            const ly0 = (c < 2 ? 0 : h) - h / 2;
+            const ly0 = (c < 2 ? cut * h : h) - h / 2;
             const lx1 = lx0 * cs - ly0 * sn;
             const ly1 = lx0 * sn + ly0 * cs + h / 2;
             pts[c][0] = bxw + sx * lx1 + ux * ly1;
@@ -776,6 +784,8 @@ export interface ShotOpts {
   /** ms to fade back out to the caller (default 400); `toBlack`: dip to black instead, which lifts just after the promise resolves */
   fadeOut?: number;
   toBlack?: boolean | "hold";
+  /** the colour of the dips (default black: e.g. white to come out of a white-out) */
+  veilColor?: number;
   /** called once the shot fully covers the caller (move its camera then) */
   onCovered?: () => void;
 }
@@ -830,7 +840,7 @@ class ShotScene extends Phaser.Scene {
     // in: a cross-fade over the caller (or up from black)
     const cam = this.cameras.main;
     // (opaque fill; its alpha does the fading: a rectangle's 6th argument is the fill alpha, which no tween touches)
-    this.veil = this.add.rectangle(SW / 2, SH / 2, SW + 80, SH + 80, 0x000000, 1).setAlpha(o.fromBlack ? 1 : 0).setDepth(100);
+    this.veil = this.add.rectangle(SW / 2, SH / 2, SW + 80, SH + 80, o.veilColor ?? 0x000000, 1).setAlpha(o.fromBlack ? 1 : 0).setDepth(100);
     const fin = o.fadeIn ?? 350;
     if (o.fromBlack) {
       this.tweens.add({ targets: this.veil, alpha: 0, duration: fin, delay: 60 });
@@ -943,6 +953,8 @@ export function swoopToLive(
     onFrame?: (c: ShotCtx, t: number, dt: number) => void;
     onBuild?: (c: ShotCtx) => void;
     onCovered?: () => void;
+    /** passed on to playShot (e.g. fromBlack + veilColor to come in out of a white-out) */
+    shot?: Pick<ShotOpts, "fromBlack" | "veilColor" | "fadeIn" | "fadeOut" | "skippable" | "bars">;
   },
 ): Promise<{ skipped: boolean }> {
   const last = o.keys[o.keys.length - 1][0];
@@ -950,6 +962,7 @@ export function swoopToLive(
   const end: Aim = { x: o.end.x, y: o.end.y, d: FOCAL / o.end.zoom, p: 90, yaw: 0, r: 0 };
   const mood = o.mood ?? { light: 0xffffff, fog: 0xc9d8ef, sky: { top: 0x3d64a8, horizon: 0xdce8f8 }, apron: 0x3c6a33 };
   return playShot(src, {
+    ...o.shot,
     length,
     onCovered: o.onCovered,
     build: (c) => {

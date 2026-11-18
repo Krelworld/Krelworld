@@ -342,3 +342,18 @@ export function moddedFart(s: GameState): { dmg: number; cd: number; speed: numb
     pierce: l("pierce"),
   };
 }
+
+/** Top every owned gun up to at least `frac` of its max. Returns how many were topped up. */
+export function restockGuns(s: GameState, frac: number): number {
+  let n = 0;
+  for (const id of orderedGuns(s)) {
+    const g = GUNS[id];
+    if (!g || id === "chem_flamer") continue;
+    const floor = Math.ceil(gunMaxFor(g, s) * frac);
+    if ((s.guns![id] ?? 0) < floor) {
+      s.guns![id] = floor;
+      n++;
+    }
+  }
+  return n;
+}

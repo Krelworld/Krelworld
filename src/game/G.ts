@@ -38,6 +38,8 @@ class GameContext {
     fartByChoice: false,
     /** The bottled fairy has been used on this dungeon visit (she's back next time you walk in). */
     fairyUsed: false,
+    /** How many guns were topped up walking into this dungeon (for the toast). */
+    restocked: 0,
   };
 
   constructor() {

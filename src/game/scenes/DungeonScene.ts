@@ -1,3 +1,4 @@
+import { restockGuns } from "../systems/armoury";
 import { shinyPickup, trailPropScale } from "../gfx/shiny";
 import { isTouchDevice } from "../ui/TouchControls";
 import { keysFor, prettyKey } from "../systems/keybinds";
@@ -208,8 +209,12 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.sc = this;
     this.dungeon = DUNGEONS[data.dungeon] ?? DUNGEONS.wildern;
     this.roomIdx = data.room ?? 0;
-    // walking in from outside (not the next room along): the fairy's fresh again
-    if ((data.room ?? 0) === 0) G.rt.fairyUsed = false;
+    // walking in from outside (not the next room along): the fairy's fresh again, and every gun you own is topped up
+    // to at least 30% (late on, with Kreddle gone, there's nowhere to buy ammo: an empty arsenal looked like a lost one)
+    if ((data.room ?? 0) === 0) {
+      G.rt.fairyUsed = false;
+      G.rt.restocked = restockGuns(G.s, 0.3);
+    }
     // Saved progress: walking in from town resumes at the first room you haven't cleared.
     this.resumed = false;
     if (this.roomIdx === 0 && G.s.flags[clearKey(this.dungeon.id, 0)]) {
@@ -297,6 +302,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (s.flags.tap_rush) s.flags.tap_rush_out = true;
     this.telegraphMult = (s.player === "KREZWONK" ? 1.4 : 1) * ((r.view ?? this.dungeon.view) === "side" ? 1.3 : 1) * diffFor(s).telegraph;
     this.cameras.main.fadeIn(300);
+    if (G.rt.restocked > 0) {
+      const n = G.rt.restocked;
+      G.rt.restocked = 0;
+      this.time.delayedCall(900, () => this.toast("AMMO TOPPED UP", `${n} gun${n > 1 ? "s" : ""} restocked to at least 30% for this dungeon.`));
+    }
     // a previous room's trip doesn't carry over
     this.cameras.main.setRotation(0).setZoom(1);
     (this.cameras.main as any).postFX?.clear?.();

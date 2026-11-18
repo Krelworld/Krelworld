@@ -1,3 +1,4 @@
+import { orderedGuns } from "../systems/armoury";
 import { diffFor } from "../systems/difficulty";
 import { playerKey, sanmikYee } from "../gfx/sanmikForm";
 import Phaser from "phaser";
@@ -340,6 +341,9 @@ export class Player {
         const nm = cycleGun();
         synth.play("pickup");
         this.world.floatText(this.x, this.y - 44, nm.toUpperCase(), "#67e8f9", 13);
+        // the rest are dry: say so (tap-swap only cycles loaded guns, so they looked like they'd gone)
+        const dry = orderedGuns(G.s).filter((id) => (G.s.guns![id] ?? 0) <= 0).length;
+        if (dry) this.world.floatText(this.x, this.y - 62, `${dry} gun${dry > 1 ? "s" : ""} out of ammo (hold swap to see)`, "#fca5a5", 11);
         G.emit("weaponCard", {});
         sw.swapSlow?.(false);
       }

@@ -969,7 +969,8 @@ class ShotScene extends Phaser.Scene {
 export async function playShot(src: Phaser.Scene, o: ShotOpts): Promise<{ skipped: boolean }> {
   if (!can3d(src)) return { skipped: true };
   // a scene just back from an overlay or a dialogue (which pause it) is resumed a frame later: give it a moment
-  for (let i = 0; i < 40 && src.sys && src.sys.isPaused(); i++) await new Promise((r) => window.setTimeout(r, 25));
+  // (on a slow device that frame can take a while: wait up to 4s)
+  for (let i = 0; i < 160 && src.sys && src.sys.isPaused(); i++) await new Promise((r) => window.setTimeout(r, 25));
   if (!src.sys || !src.sys.isActive()) return { skipped: true };
   return new Promise((resolve) => {
     const key = `__p3d_shot_${++shotSeq}`;

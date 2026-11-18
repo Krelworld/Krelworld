@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { synth } from "../../audio/Synth";
+import { G } from "../../G";
 import {
   type Aim,
   type BoardSpec,
@@ -376,17 +377,10 @@ export function dawnShot(hub: Phaser.Scene, o: { worldW: number; worldH: number;
     mood: { light: 0xe8dccb, fog: 0xc9c2bb, apron: 0x5a5448, sky: { top: 0x7894bb, horizon: 0xe9dccb, below: 0x8a8278 } },
     onBuild: (c) => {
       const { st, sc } = c;
-      const dot = st.softDot("smoke", 0.5);
       const glow = st.softDot("glow", 0.3);
       const rnd = new Phaser.Math.RandomDataGenerator(["kdawn"]);
-      // smoke columns: puffs climbing and leaning off on the wind, forever
-      const cols = [...o.smoke, W, { x: W.x - 150, y: W.y + 30 }, { x: W.x + 160, y: W.y + 20 }];
-      const N = 7;
-      const puffs = cols.flatMap((p, ci) => {
-        const big = ci >= o.smoke.length ? 1.5 : 1;
-        const tint = rnd.pick([0x3f3b3a, 0x4d4846, 0x5b5552]);
-        return Array.from({ length: N }, (_, i) => ({ s: st.addSprite(dot, p.x, p.y, 0, 120, { tint, alpha: 0 }), x: p.x, y: p.y, ph: i / N + rnd.frac() * 0.05, big, rate: rnd.realInRange(0.05, 0.08) }));
-      });
+      // smoke columns over the ruins (bigger over the heap)
+      const smoke = smokeColumns(c, [...o.smoke, { x: W.x, y: W.y, big: 1.5 }, { x: W.x - 150, y: W.y + 30, big: 1.5 }, { x: W.x + 160, y: W.y + 20, big: 1.5 }], "kdawn");
       // what's still glowing in the heap
       const embers = Array.from({ length: 7 }, () => st.addSprite(glow, W.x + rnd.realInRange(-200, 200), W.y + rnd.realInRange(-10, 50), rnd.realInRange(10, 60), rnd.realInRange(90, 160), { add: true, tint: 0xff7a2a, alpha: 0.35 }));
       // high, thin cloud, lit by the sun
@@ -403,15 +397,7 @@ export function dawnShot(hub: Phaser.Scene, o: { worldW: number; worldH: number;
       synth.play("fly_wind", 0.35);
       sc.time.delayedCall(1800, () => c.caption("The morning after.", { color: "#f1e7d6", hold: 2.6 }));
       frame = (T, dt) => {
-        for (const p of puffs) {
-          const u = (p.ph + T * p.rate) % 1;
-          const h = 640 * p.big * u;
-          p.s.x = p.x + h * 0.45 + Math.sin(u * 6 + p.ph * 9) * 20;
-          p.s.y = p.y - h * 0.12;
-          p.s.z = 30 + h;
-          p.s.size = (110 + 330 * u) * p.big;
-          p.s.alpha = 0.55 * clamp(u / 0.12, 0, 1) * (1 - u);
-        }
+        smoke(T);
         embers.forEach((e, i) => (e.alpha = 0.22 + 0.12 * Math.sin(T * (1.3 + i * 0.2) + i)));
         ash.clear().fillStyle(0xd8d2c8, 0.7);
         for (const f of flakes) {
@@ -427,4 +413,122 @@ export function dawnShot(hub: Phaser.Scene, o: { worldW: number; worldH: number;
     },
     onFrame: (_c, t, dt) => frame(t, dt),
   });
+}
+
+// ------------------------------------------------------------------------------------------------ "we saved Krelworld"
+
+/** Smoke columns standing at these points: puffs climbing and leaning off on the wind. Returns the per-frame step. */
+function smokeColumns(c: ShotCtx, pts: (Pt & { big?: number })[], seed: string, height = 640) {
+  const { st } = c;
+  const dot = st.softDot("smoke", 0.5);
+  const rnd = new Phaser.Math.RandomDataGenerator([seed]);
+  const N = 7;
+  const puffs = pts.flatMap((p) => {
+    const big = p.big ?? 1;
+    const tint = rnd.pick([0x3f3b3a, 0x4d4846, 0x5b5552]);
+    return Array.from({ length: N }, (_, i) => ({ s: st.addSprite(dot, p.x, p.y, 0, 120, { tint, alpha: 0 }), x: p.x, y: p.y, ph: i / N + rnd.frac() * 0.05, big, rate: rnd.realInRange(0.05, 0.08) }));
+  });
+  return (T: number) => {
+    for (const p of puffs) {
+      const u = (p.ph + T * p.rate) % 1;
+      const h = height * p.big * u;
+      p.s.x = p.x + h * 0.45 + Math.sin(u * 6 + p.ph * 9) * 20;
+      p.s.y = p.y - h * 0.12;
+      p.s.z = 30 + h;
+      p.s.size = (110 + 330 * u) * p.big;
+      p.s.alpha = 0.55 * clamp(u / 0.12, 0, 1) * (1 - u);
+    }
+  };
+}
+
+/**
+ * The ironic cut after "We did it. We saved Krelworld.": from the live view of the lads, a fast pull back and up over
+ * the devastated town, bodies everywhere (under sheets with gore off), held a beat in silence, then a hard cut back.
+ * `lads`: the live camera's centre and zoom; `bodyKeys`: sprite sheets to lay out as the dead (with their fallen
+ * frame, if they have one).
+ */
+export function ruinRevealShot(hub: Phaser.Scene, o: { worldW: number; worldH: number; lads: { x: number; y: number; zoom: number }; bodyKeys: { key: string; frame: number | string }[]; smoke: Pt[]; skip?: Phaser.GameObjects.GameObject[] }) {
+  const L = o.lads;
+  const PULL = 1.15;
+  const length = 3.6;
+  const gore = G.meta.settings.gore !== false;
+  const start: Aim = { x: L.x, y: L.y, d: FOCAL / L.zoom, p: 90, yaw: 0, r: 0 };
+  // (pulled back towards the middle of town, so the edge of the world stays out of shot)
+  const cx = clamp(L.x, 1000, o.worldW - 1000);
+  const wide: Aim = { x: cx + 40, y: L.y - 330, d: 1180, p: 40, yaw: 8, r: 1.5 };
+  const drift: Aim = { x: cx + 60, y: L.y - 360, d: 1270, p: 38, yaw: 4, r: 0.5 };
+  let tick: (T: number) => void = () => {};
+  return playShot(hub, {
+    length,
+    fadeIn: 60,
+    fadeOut: 90,
+    bars: false,
+    build: (c) => {
+      const { st, sc } = c;
+      st.maxLean = 80;
+      st.light = 0xf2e6d6;
+      st.fog = { color: 0xc9c2bb, start: 1400, span: 5200, max: 0.55 };
+      st.setSky({ top: 0x7894bb, horizon: 0xe9dccb, below: 0x8a8278 });
+      st.addGround({ x0: -9000, y0: -9000, x1: o.worldW + 9000, y1: o.worldH + 9000, cols: 9, rows: 9, color: 0x3a3530, depth: 1 });
+      snapshotWorld(st, hub, { worldW: o.worldW, worldH: o.worldH, skip: o.skip });
+      // the dead, lying about the ruins in the camera's view (not on top of the lads)
+      const rnd = new Phaser.Math.RandomDataGenerator(["kdead"]);
+      const pool = st.key("pool");
+      const sheet = st.key("sheet");
+      {
+        const g = sc.make.graphics({}, false);
+        g.fillStyle(0x7a0a0a, 0.9).fillEllipse(48, 24, 92, 40);
+        g.fillStyle(0xa3120f, 0.9).fillEllipse(42, 22, 60, 26);
+        g.generateTexture(pool, 96, 48);
+        g.clear();
+        g.fillStyle(0xe8e4dc, 1).fillRoundedRect(4, 10, 88, 30, 12);
+        g.fillStyle(0xcfc9be, 1).fillCircle(16, 25, 11).fillRect(30, 30, 56, 6);
+        g.lineStyle(2, 0xb5ada0, 1).strokeRoundedRect(4, 10, 88, 30, 12);
+        g.generateTexture(sheet, 96, 48);
+        g.destroy();
+      }
+      const specs: BoardSpec[] = [];
+      const keys = o.bodyKeys.filter((b) => sc.textures.exists(b.key));
+      for (let i = 0; i < 40; i++) {
+        let x = 0;
+        let y = 0;
+        for (let k = 0; k < 8; k++) {
+          x = clamp(cx + rnd.realInRange(-820, 820), 90, o.worldW - 90);
+          y = clamp(L.y + rnd.realInRange(-950, 130), 160, o.worldH - 90);
+          if (Math.hypot(x - L.x, (y - L.y) * 1.6) > 300) break;
+        }
+        const w = rnd.realInRange(118, 140);
+        if (gore || !keys.length) {
+          if (gore) specs.push({ key: pool, x, y, w: 1, h: 1, flat: [x - w * 0.55, y - w * 0.1, x + w * 0.55, y + w * 0.3] });
+          if (keys.length) {
+            const b = rnd.pick(keys);
+            const flip = rnd.frac() < 0.5;
+            specs.push({ key: b.key, frame: b.frame, x, y, w: 1, h: 1, flipX: flip, tint: gore ? 0xd8c8c0 : 0xb0a8a0, flat: [x - w / 2, y - w * 0.55, x + w / 2, y + w * 0.35] });
+          }
+        } else specs.push({ key: sheet, x, y, w: 1, h: 1, flat: [x - w * 0.45, y - w * 0.15, x + w * 0.45, y + w * 0.22] });
+      }
+      st.addBoards(specs, 3);
+      // smoke over all of it
+      tick = smokeColumns(c, [...o.smoke, ...Array.from({ length: 6 }, () => ({ x: L.x + rnd.realInRange(-900, 900), y: L.y - rnd.realInRange(300, 1100) }))], "kreveal", 560);
+      synth.play("fly_whoosh", 0.45);
+      return (t) => {
+        tick(t + 6);
+        let a: Aim;
+        if (t < PULL) {
+          const k = easeOut3(t / PULL);
+          a = lerpAimSimple(start, wide, k);
+          a.p = lerp(90, wide.p, Math.pow(k, 0.7));
+        } else a = lerpAimSimple(wide, drift, ease((t - PULL) / (length - PULL)));
+        return aimToPose(a);
+      };
+    },
+  });
+}
+
+/** Between two aims (log distance, short way round), no hop. */
+function lerpAimSimple(a: Aim, b: Aim, k: number): Aim {
+  let dy = b.yaw - a.yaw;
+  while (dy > 180) dy -= 360;
+  while (dy < -180) dy += 360;
+  return { x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k), d: Math.exp(lerp(Math.log(a.d), Math.log(b.d), k)), p: lerp(a.p, b.p, k), yaw: a.yaw + dy * k, r: lerp(a.r, b.r, k) };
 }

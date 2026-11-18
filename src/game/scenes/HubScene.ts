@@ -49,7 +49,7 @@ import { loopProp } from "../gfx/ambient";
 import { canFly3d, FLY_LAST, FLY_STOPS, runFlyover } from "./hub/flyover";
 import { can3d } from "../gfx/Pseudo3D";
 import { arrivalOrbit } from "./citadel/citadel3d";
-import { dawnShot, riseShot } from "./hub/hub3d";
+import { dawnShot, riseShot, ruinRevealShot } from "./hub/hub3d";
 
 /** The first line over the whiteness. */
 const FD_WAKE_FIRST = FB.FD_WAKE.slice(0, 1);
@@ -1464,7 +1464,7 @@ export class HubScene extends Phaser.Scene {
       const uiWas = this.scene.isVisible("UI");
       this.scene.setVisible(false, "UI");
       const r = await riseShot(this, { worldW: WORLD_W, worldH: WORLD_H, tower: { x: b.x, y: bottom }, w: b.w, h: b.h, key: this.buildingKey(b), end, skip: [this.prompt, this.arrow].filter(Boolean), onCovered: () => (cam.centerOn(end.x, end.y), raise()) });
-      if (!this.sys.isActive()) return;
+      if (this.gone()) return;
       cam.centerOn(end.x, end.y);
       if (uiWas) this.scene.setVisible(true, "UI");
       titled = !r.skipped;
@@ -1491,6 +1491,37 @@ export class HubScene extends Phaser.Scene {
     synth.music("hub");
     this.busy = false;
     G.save();
+  }
+
+  /** "We saved Krelworld.": a fast pull back over the dead, devastated town in silence, and a hard cut back (hub/hub3d.ts). */
+  private async savedCut() {
+    const cam = this.cameras.main;
+    synth.setMusicBoost(0.1);
+    try {
+      if (can3d(this)) {
+        // (grown-ups only: townsfolk and coppers, on their fallen frame if they have one)
+        const bodyKeys = ["spr_FOLK0", "spr_FOLK1", "spr_FOLK2", "spr_FOLK3", "spr_COP"].map((key) => {
+          const d = charMeta(this, key)?.death;
+          const f = d?.east ?? d?.south ?? d?.west;
+          return { key, frame: f ? f[f.length - 1] : 0 };
+        });
+        const smoke = BUILDINGS.filter((x) => x.id !== "CITADEL").map((x) => ({ x: x.x, y: x.y + x.h * 0.3 }));
+        await ruinRevealShot(this, { worldW: WORLD_W, worldH: WORLD_H, lads: { x: cam.midPoint.x, y: cam.midPoint.y, zoom: cam.zoom }, bodyKeys, smoke, skip: [this.prompt, this.arrow] });
+      } else {
+        const z = cam.zoom;
+        cam.zoomTo(z * 0.45, 650, "Cubic.easeOut");
+        await new Promise((r) => this.time.delayedCall(2600, r));
+        cam.zoomEffect.reset();
+        cam.setZoom(z);
+      }
+    } finally {
+      synth.setMusicBoost(1);
+    }
+  }
+
+  /** Has this scene been shut down (not just paused under a dialogue)? */
+  private gone() {
+    return this.sys.settings.status >= Phaser.Scenes.SHUTDOWN;
   }
 
   /** The flat rise (no WebGL): pan up, the ground cracks, the tower slides up out of it behind a mask. */
@@ -4263,7 +4294,7 @@ You are required by law to sign the Sex Offenders Register.`, {
       if (over) return;
       const smoke = BUILDINGS.filter((x) => x.id !== "CITADEL").map((x) => ({ x: x.x, y: x.y + x.h * 0.3 }));
       await dawnShot(this, { worldW: WORLD_W, worldH: WORLD_H, wreck: { x: cit.x, y: cit.y + cit.h / 2 + 20 }, smoke, end, skip: [this.prompt, this.arrow], onCovered: () => (cam.centerOn(end.x, end.y), white.setAlpha(0), (drifted = true)) });
-      if (over || !this.sys.isActive()) return;
+      if (over || this.gone()) return;
     }
     if (drifted) white.destroy();
     else {
@@ -4318,7 +4349,10 @@ You are required by law to sign the Sex Offenders Register.`, {
     void walkSj(C.x + 700, C.y + 120, 3200).then(() => sj.destroy());
     await talk(SJ_RUBBLE_THANKS.slice(-1));
     await talk(FB.FD_URGH.slice(-1));
-    await talk(FB.FD_SAVED);
+    await talk(FB.FD_SAVED.slice(0, 1));
+    // ...a beat: the town they saved
+    if (!over) await this.savedCut();
+    await talk(FB.FD_SAVED.slice(1));
     // across the rubble...
     cam.pan(D.x, D.y - 20, 1500, Phaser.Math.Easing.Sine.InOut);
     await wait(1600);

@@ -13,8 +13,8 @@ function at(chapter: number, flags: Record<string, boolean> = {}): GameState {
 }
 
 describe("explore-before-the-dungeon trails", () => {
-  it("chapters 2 and 4 each have a short trail: one clue outdoors, the rest indoors in different rooms", () => {
-    for (const n of [2, 4]) {
+  it("chapter 4 has a short trail: one clue outdoors, the rest indoors in different rooms", () => {
+    for (const n of [4]) {
       const t = trailFor(n)!;
       expect(t, `chapter ${n}`).toBeTruthy();
       expect(t.clues.length).toBeGreaterThanOrEqual(4);
@@ -31,18 +31,19 @@ describe("explore-before-the-dungeon trails", () => {
       expect(ch.steps[i + 1].id).toBe("s_dungeon");
       expect(ch.steps[i].done.flag).toBe(trailDoneFlag(t));
     }
-    // chapter 3 keeps its own cuddle-token hunt
+    // chapter 3 keeps its own cuddle-token hunt; chapter 2's receipts trail was taken out
     expect(trailFor(3)).toBeNull();
+    expect(trailFor(2)).toBeNull();
   });
 
   it("starts after the chapter's last beat, outdoor clue first, then the indoor ones in any order, then opens the door", () => {
-    const t = trailFor(2)!;
-    const s = at(2);
+    const t = trailFor(4)!;
+    const s = at(4);
     expect(activeTrail(s)).toBeNull();
     s.flags[t.startFlag] = true;
     const a = activeTrail(s)!;
     expect(a.got).toBe(0);
-    expect(trailObjective(s)!.target).toBe("ARCHIVE");
+    expect(trailObjective(s)!.target).toBe("POLICE");
     // indoor ones don't turn up till the outdoor one's found
     expect(clueAt(s, "HOME")).toBeNull();
     expect(takeClue(s, "HOME")).toBeNull();
@@ -66,7 +67,7 @@ describe("explore-before-the-dungeon trails", () => {
     expect(s.flags[trailDoneFlag(t)]).toBe(true);
     expect(activeTrail(s)).toBeNull();
     expect(trailObjective(s)).toBeNull();
-    const step = CHAPTERS[1].steps.find((st) => st.id === "s_trail")!;
+    const step = CHAPTERS[3].steps.find((st) => st.id === "s_trail")!;
     expect(evalCond(step.done, s)).toBe(true);
   });
 
@@ -91,7 +92,6 @@ describe("explore-before-the-dungeon trails", () => {
     s.chapter = 4;
     s.flags.vig_crobley_news = true;
     settleOldTrails(s);
-    expect(s.flags[trailDoneFlag(trailFor(2)!)]).toBe(true);
     expect(s.flags[trailDoneFlag(trailFor(4)!)]).toBeFalsy();
     s.flags.vig_crobley_presser = true;
     expect(activeTrail(s)).toBeTruthy();

@@ -79,7 +79,6 @@ export const CHAPTERS: ChapterDef[] = [
     steps: [
       { id: "s_pub", text: "Check out the Krezz Arms (the pub). Have a look round. Kreblis and Drongus riff in there for Krokens.", done: { flag: "ch2_pub_visited" }, target: "PUB" },
       { id: "s_brief", text: "Stage the intervention (FGM War Room, under the Archive)", done: { flag: "fragmar_briefed" }, target: "ARCHIVE" },
-      { id: "s_trail", text: "Where's Polson? Follow his trail of Papa Gino's receipts round Krelford (5): the first on the road outside the War Room, the rest indoors", done: { flag: "trail_ch2_receipts_done" }, target: "ARCHIVE" },
       { id: "s_dungeon", text: "Go to Polson Towers and clear out the hoard. The router is in there somewhere.", done: { flag: "ch2_clear" }, target: "POLSON_ROAD" },
       { id: "s_report", text: "Report to the Town Hall", done: { flag: "ch2_fact" }, target: "TOWN_HALL" },
     ],

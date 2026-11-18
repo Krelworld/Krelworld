@@ -48,100 +48,6 @@ export interface TrailDef {
   clues: TrailClue[];
 }
 
-// ---------------------------------------------------------------- CHAPTER 2: WHERE'S POLSON?
-
-const CH2: TrailDef = {
-  id: "ch2_receipts",
-  chapter: 2,
-  title: "WHERE'S POLSON?",
-  label: "RECEIPTS",
-  item: "Papa Gino's receipt",
-  tex: ["ddk_paper", "ddk_pizza"],
-  tint: 0xffc46b,
-  startFlag: "fragmar_briefed",
-  intro: [
-    dir("Outside the War Room. You turn round to say 'right then, Polson Towers'. Polson is not there. Luke's sofa has a Polson-shaped dent in it and nothing else."),
-    ping("CRONGUS", "Where's Polson"),
-    ping("CRONGUS", "I went to get him a biscuit. He's gone. The biscuit's also gone"),
-    ping("POLSON", "Hey dude!! Can't say where I am bc Eden reads my phone 😅"),
-    ping("POLSON", "I've left you a trail!! Like Hansel and Gretel. But Papa Gino's receipts"),
-    ping("SCROMBUS", "Polson. Just tell us where you are."),
-    ping("POLSON", "That's fair.. but she's literally reading this rn 😬"),
-    ping("KREZWONK", "Follow the receipts. The first one's on the road outside the War Room. I can see it from here. It's glowing."),
-    dir("NEW OBJECTIVE: follow Polson's trail of Papa Gino's receipts (5). Polson Towers stays locked until you know where he's holed up."),
-  ],
-  indoors: [
-    dir("On the back of the receipt, in biro: a list. 'PLACES I HAVE BEEN TODAY: your house. The Krezz Arms. The Wonky Pole (for the protein bars). Kreddle (briefly).'"),
-    dir("He's left a receipt in every one. Four more, all indoors, any order. Walk in and have a look round: they glow."),
-  ],
-  done: [
-    dir("Five receipts. You lay them out in a row. Read together, the bits scribbled on the backs make one sentence."),
-    dir("'DELIVER TO: POLSON TOWERS. THE AIRING CUPBOARD. KNOCK THREE TIMES. DO NOT GIVE TO EDEN. DO NOT GIVE TO THE CYST.'"),
-    ping("POLSON", "Ok I'm home!! In the airing cupboard. It's warm. The cyst is RIGHT outside 😬"),
-    ping("POLSON", "Is now a bad time to say I've left the oven on"),
-    ping("KREZWONK", "He walked all the way round Krelford to end up in his own cupboard. The prophecy was right."),
-    dir("POLSON TOWERS IS OPEN. Get him out of his own airing cupboard. Kill the cyst."),
-  ],
-  clues: [
-    {
-      name: "receipt on the War Room steps",
-      where: "FIELD",
-      x: 1700,
-      y: 590,
-      near: "ARCHIVE",
-      hint: "on the road outside the War Room (the Archive)",
-      lines: [
-        dir("A Papa Gino's receipt, folded into a little arrow. 'ONE LARGE MEAT FEAST. EXTRA MEAT. NO VEG. CUSTOMER NOTE: going to my mate's house for a bit 😅'"),
-        dir("There's a map on the back. He has drawn your house. He has drawn it as a pizza."),
-      ],
-    },
-    {
-      name: "receipt by your front door",
-      where: "HOME",
-      x: 705,
-      y: 528,
-      hint: "your house (he's had a nap on your floor)",
-      lines: [
-        dir("On the floor by your front door, still warm: a receipt and a Polson-shaped dent in the carpet. 'GARLIC BREAD x2. DIPS x6. NOTE: had a little nap at yours. Your floor is better than my bed. My bed has Eden in it'"),
-        dir("The carpet smells of garlic and anxiety. You'll be hoovering that. You won't be hoovering that."),
-      ],
-    },
-    {
-      name: "receipt under the bar",
-      where: "PUB",
-      x: 700,
-      y: 470,
-      hint: "the Krezz Arms (under the bar)",
-      lines: [
-        dir("Wedged under the bar, between a Fizzy Bongo cap and a tooth: a receipt. 'DOUGH BALLS x12. NOTE: had one pint to calm down. Then a second pint to calm down from the first pint 😅'"),
-        dir("On the back: 'Kreblis says hi. Kreblis says it's not his tooth.' It is Kreblis's tooth."),
-      ],
-    },
-    {
-      name: "receipt down the red sofa",
-      where: "CLUB",
-      x: 250,
-      y: 400,
-      hint: "the Wonky Pole (through the back of the Krezz Arms)",
-      lines: [
-        dir("Down the side of the red sofa, at Polson height: a receipt and half a protein bar. 'PROTEIN BAR (CHOC FUDGE). NOTE: only here for the protein bars they sell at the bar. Absolutely not for any other reason. Gym soon!!'"),
-        dir("Big Derek says he tipped in Papa Gino's vouchers, said 'sorry' to the pole, and left during the second song."),
-      ],
-    },
-    {
-      name: "receipt at the Kreddle Exchange",
-      where: "KREDDLE",
-      x: 470,
-      y: 640,
-      hint: "Kreddle, over the bridge (outside the Kreddle Exchange)",
-      lines: [
-        dir("Outside the Kreddle Exchange, in a puddle of neon: a receipt. 'CHICKEN WINGS x20. NOTE: tried to gamble my trust fund to buy the house back off Eden. Mum rang the casino.'"),
-        dir("'They gave me the wings for free. Out of pity. Wbu?'"),
-      ],
-    },
-  ],
-};
-
 // ---------------------------------------------------------------- CHAPTER 4: THE GOLDEN WRAPPERS
 
 const CH4: TrailDef = {
@@ -232,4 +138,4 @@ const CH4: TrailDef = {
   ],
 };
 
-export const TRAILS: TrailDef[] = [CH2, CH4];
+export const TRAILS: TrailDef[] = [CH4];

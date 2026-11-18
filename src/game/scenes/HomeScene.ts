@@ -26,6 +26,8 @@ import { GUNS } from "../combat/Guns";
 import { ammoQuote, buyAmmo, firstLoaded, gunModList, gunRatings, gunUpgrades, modSummary, moddedGun, moveGun, orderedGuns, specialText, STAT_KEYS, STAT_LABELS, type StatKey } from "../systems/armoury";
 import { currentStep } from "../Flow";
 import { DARK_AUTISM_PASSAGES } from "../../content/darkAutism";
+import { clueAt, clueTex, takeClue } from "../systems/trails";
+import { shinyColours, shinyPickup, trailPropScale } from "../gfx/shiny";
 
 /** Your house: walk about, watch the telly, sleep. New games start here. */
 
@@ -90,6 +92,7 @@ export class HomeScene extends Phaser.Scene {
       { x: 624, y: 520, r: 44, label: "E: Read 'Dark Autism - An Erotic Memoir'", use: () => this.readBook() },
       { x: 566, y: 452, r: 34, label: "E: Jukebox (every tune you've heard)", use: () => this.jukeboxPanel() },
     );
+    this.placeClue();
     // the jukebox, by the radiator, glowing
     if (this.textures.exists("p_jukebox")) {
       this.add.image(566, 440, "p_jukebox").setOrigin(0.5, 1).setScale(1.6).setDepth(440);
@@ -977,6 +980,31 @@ export class HomeScene extends Phaser.Scene {
     const flyover = !s.flags.flyover_seen && !s.flags.prologue_done;
     this.cameras.main.fadeOut(350);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => switchTo(this, "Hub", { at: "HOME", flyover }));
+  }
+
+  /** A clue on this chapter's explore-before-the-dungeon trail (chapters 2 and 4), glowing somewhere in the room. */
+  private placeClue() {
+    const c = clueAt(G.s, "HOME");
+    const tex = c && clueTex(c.trail, c.i);
+    if (!c || !tex || !this.textures.exists(tex)) return;
+    const shiny = shinyPickup(this, c.clue.x, c.clue.y - 30, tex, { scale: trailPropScale(this, tex, 56), depth: c.clue.y + 2, tag: `✦ ${c.trail.label.replace(/S$/, "")}`, ...shinyColours(c.trail.tint) });
+    const spot: Spot = {
+      x: c.clue.x,
+      y: c.clue.y,
+      r: 56,
+      label: `E: Pick up: ${c.trail.item}`,
+      use: async () => {
+        const r = takeClue(G.s, "HOME");
+        shiny.destroy();
+        this.spots = this.spots.filter((x) => x !== spot);
+        if (!r) return;
+        synth.play("pickup");
+        G.emit("toast", { title: r.title, text: r.toast });
+        G.save();
+        await this.talk(r.lines);
+      },
+    };
+    this.spots.push(spot);
   }
 
   private async talk(lines: Line[]) {

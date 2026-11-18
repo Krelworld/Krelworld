@@ -8,6 +8,7 @@ import { DRONGUS_SEQUENCES } from "../content/dialogue/drongusMessages";
 import { evalCond } from "./systems/conditions";
 import { applyReaction } from "./systems/reactions";
 import { ARCHIVE_BY_ID } from "../content/archive/historicalScenes";
+import { settleOldTrails } from "./systems/trails";
 
 type Listener = (ev: string, data?: any) => void;
 
@@ -53,6 +54,8 @@ class GameContext {
 
   newRun(player: PlayableId, ngPlus = 0, difficulty?: number) {
     this._state = newGameState(player, ngPlus, this.meta, difficulty);
+    // (a fresh game plays the explore-before-the-dungeon trails: see settleOldTrails)
+    this._state.flags.trails_v1 = true;
     // finished the game before: start with the kit you finished it with
     applyLoadout(this._state, this.meta.carry);
     this._state.hp = maxHp(this._state);
@@ -65,6 +68,7 @@ class GameContext {
     const st = this.saves.load();
     if (!st) return false;
     this._state = st;
+    settleOldTrails(st);
     if (this._state.hp > maxHp(this._state)) this._state.hp = maxHp(this._state);
     return true;
   }

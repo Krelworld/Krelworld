@@ -20,6 +20,8 @@ import { RIFFS } from "../../content/riffs";
 import { STAG_CHATS } from "../../content/stagChat";
 import { addKrokens } from "../systems/kreddle";
 import { afterKreddle } from "../systems/moodMusic";
+import { clueAt, clueTex, takeClue } from "../systems/trails";
+import { shinyColours, shinyPickup, trailPropScale, type Shiny } from "../gfx/shiny";
 
 /** Krokens for each riff, the first time you hear it. */
 const RIFF_KROKENS = 3;
@@ -67,6 +69,8 @@ export class PubScene extends Phaser.Scene {
   private tvSub!: Phaser.GameObjects.Text;
   private tvEp: TVEpisode | null = null;
   private tvBeat = 0;
+  /** A clue on this chapter's explore-before-the-dungeon trail, glinting on its card. */
+  private clueShiny: Shiny | null = null;
 
   constructor() {
     super("Pub");
@@ -114,6 +118,9 @@ export class PubScene extends Phaser.Scene {
       this.busy = false;
       this.showMenu();
     });
+    this.clueShiny = null;
+    // something glowing in here (a trail clue): it's the card that's lit when you walk in
+    if (clueAt(G.s, "PUB")) this.selId = "clue";
     this.showMenu();
     // Chapter 2: you were told to come and check the place out
     if (G.s.chapter === 2 && !G.s.flags.ch2_pub_visited) {
@@ -170,6 +177,8 @@ export class PubScene extends Phaser.Scene {
   private menuItems(): PubOption[] {
     const s = G.s;
     const items: PubOption[] = [];
+    const clue = clueAt(s, "PUB");
+    if (clue) items.push({ id: "clue", group: "table", icon: "", label: "Something's glowing", sub: `By the bar. A ${clue.trail.item}?`, run: () => void this.takeClue() });
     // at the table
     items.push({ id: "sit", group: "table", icon: "pubicon_sit", label: "Sit down", sub: "With whoever's in tonight", run: () => this.sit() });
     items.push({ id: "stag", group: "table", icon: "pubicon_stag", label: "Jenko's stag", sub: "Organise it in the group chat", run: () => this.stag() });
@@ -214,6 +223,8 @@ export class PubScene extends Phaser.Scene {
     // the status line lives on (update() keeps it current); everything else is redrawn
     this.menu.remove(this.status);
     for (const c of this.cards) c.setLit(false); // stops the lit icon's bob before its icon goes
+    this.clueShiny?.destroy();
+    this.clueShiny = null;
     this.menu.removeAll(true);
     this.cards = [];
     const calm = !!G.meta?.settings?.calmFlash;
@@ -253,6 +264,11 @@ export class PubScene extends Phaser.Scene {
     this.menu.add(
       this.add.text(LEAVE.x - 16, 508, touch ? "Tap a card" : "Arrows: choose\nEnter / E: go   Esc: leave", { fontFamily: FONT, fontSize: "11px", color: "#b9bdd0", align: "right", lineSpacing: 2 }).setOrigin(1, 0.5),
     );
+    // the trail clue's card: its prop, glowing, where the icon would be
+    const clue = clueAt(G.s, "PUB");
+    const ctex = clue && clueTex(clue.trail, clue.i);
+    if (clue && ctex && this.textures.exists(ctex) && items.some((o) => o.id === "clue"))
+      this.clueShiny = shinyPickup(this, COL_X[0] + 36, CARDS_TOP + CARD_H / 2, ctex, { scale: trailPropScale(this, ctex, 40), depth: 20, size: 0.5, ...shinyColours(clue.trail.tint) });
     // keep the lit card across redraws
     const i = this.cards.findIndex((c) => c.id === this.selId);
     this.focus(i >= 0 ? i : 0, false);
@@ -372,6 +388,23 @@ export class PubScene extends Phaser.Scene {
     this.menu.setVisible(true);
     this.busy = false;
     G.save();
+  }
+
+  /** Pick up the trail clue that's in here: it's shown big and glowing while you read it. */
+  private async takeClue() {
+    const c = clueAt(G.s, "PUB");
+    const tex = c && clueTex(c.trail, c.i);
+    this.clueShiny?.destroy();
+    this.clueShiny = null;
+    const r = takeClue(G.s, "PUB");
+    if (!r) return this.showMenu();
+    synth.play("pickup");
+    G.emit("toast", { title: r.title, text: r.toast });
+    this.selId = "";
+    const big = tex && this.textures.exists(tex) ? shinyPickup(this, 480, 300, tex, { scale: trailPropScale(this, tex, 110), depth: 5, size: 1.4, ...shinyColours(c!.trail.tint) }) : null;
+    await this.play(r.lines);
+    big?.destroy();
+    this.showMenu();
   }
 
   // ------------------------------------------------------------- the table

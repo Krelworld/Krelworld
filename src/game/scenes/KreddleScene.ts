@@ -23,6 +23,8 @@ import { KreddleRaid, RAID_ART } from "./kreddle/Raid";
 import { preloadKrunchBurn } from "./kreddle/KrunchBurn";
 import { kreddleLife, neonBuzz } from "./kreddle/kreddleLife";
 import { calm, loopProp } from "../gfx/ambient";
+import { clueAt, clueTex, takeClue } from "../systems/trails";
+import { shinyColours, shinyPickup, trailPropScale } from "../gfx/shiny";
 
 /**
  * KREDDLE: the casino/arcade universe over the bridge. Always night. Always neon.
@@ -113,6 +115,7 @@ export class KreddleScene extends Phaser.Scene {
     this.drawStrip();
     // buzzing neon, the crowd's glow, the fountain, the blimp, the odd jackpot
     kreddleLife(this, W, this.spots, (text) => G.emit("toast", { title: "THE KLERBLE FOUNTAIN", text }));
+    this.placeClue();
     this.spawnPeople();
     this.me = this.add.sprite(110, 560, playerKey(this), 0).setScale(2).setDepth(560);
     bindSanmikToggle(this, { sprites: () => [this.me], can: () => !this.busy });
@@ -1409,6 +1412,34 @@ export class KreddleScene extends Phaser.Scene {
   }
 
   // ------------------------------------------------------------------ helpers
+
+  /** A clue on this chapter's explore-before-the-dungeon trail (chapters 2 and 4), glowing somewhere on the Strip. */
+  private placeClue() {
+    const c = clueAt(G.s, "KREDDLE");
+    const tex = c && clueTex(c.trail, c.i);
+    if (!c || !tex || !this.textures.exists(tex)) return;
+    const shiny = shinyPickup(this, c.clue.x, c.clue.y - 24, tex, { scale: trailPropScale(this, tex, 44), depth: c.clue.y + 2, size: 0.8, tag: `✦ ${c.trail.label.replace(/S$/, "")}`, ...shinyColours(c.trail.tint) });
+    let taken = false;
+    const spot: Spot = {
+      x: c.clue.x,
+      y: c.clue.y,
+      r: 60,
+      label: () => `E: Pick up: ${c.trail.item}`,
+      use: () => {
+        if (taken || this.busy) return;
+        taken = true;
+        const r = takeClue(G.s, "KREDDLE");
+        shiny.destroy();
+        this.spots = this.spots.filter((x) => x !== spot);
+        if (!r) return;
+        synth.play("pickup");
+        G.emit("toast", { title: r.title, text: r.toast });
+        G.save();
+        void this.talk(r.lines);
+      },
+    };
+    this.spots.push(spot);
+  }
 
   private async talk(lines: Line[]) {
     this.busy = true;

@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { takeIndoorToken, tokenTrail } from "../systems/arcs";
+import { clueAt, clueTex, takeClue } from "../systems/trails";
+import { shinyColours, shinyPickup, trailPropScale, type Shiny } from "../gfx/shiny";
 import { bindSanmikToggle, playerKey, sanmikYee, swapSheet } from "../gfx/sanmikForm";
 import { SANMIK_FLAG } from "../systems/sanmik";
 import { vfx } from "../gfx/Vfx";
@@ -649,14 +651,14 @@ export class ClubScene extends Phaser.Scene {
     const atBooth = !!G.s.flags.golden_unlocked && this.me.x > 800 && this.me.y > 450;
     let label = "";
     let act: (() => void) | null = null;
-    const atToken = !!this.token?.active && Phaser.Math.Distance.Between(this.me.x, this.me.y, this.token.x, this.token.y + 20) < 60;
+    const atToken = !!this.token?.img.active && Phaser.Math.Distance.Between(this.me.x, this.me.y, this.token.x, this.token.y + 20) < 60;
     // Alistair Swamp, pestering the dancer: confront him and it's his blues-night fight (unless he's already been beaten)
     const atAlly = !!this.ally?.visible && !G.s.flags.arc_kz_troll && Phaser.Math.Distance.Between(this.me.x, this.me.y, this.ally!.x, this.ally!.y) < 70;
     if (atAlly && !atToken) {
       label = "E: Confront Alistair Swamp";
       act = () => void this.confrontAlistair();
     } else if (atToken) {
-      label = "E: Pick up: Cuddle token";
+      label = this.tokenLabel();
       act = () => void this.takeToken();
     } else if (atStage && !this.onBreak && !this.dancerDown) {
       label = `E: Tip ${this.dancerName()} (5 Krezzcoin)\n${TOUCH.enabled ? "👀" : "F"}: Watch up close (10 Krezzcoin)`;
@@ -1011,65 +1013,51 @@ export class ClubScene extends Phaser.Scene {
     }
   }
 
-  /** The Cronster's cuddle token (chapter 3): one of the last two is in here, glowing pink under a table. */
-  private token: Phaser.GameObjects.Image | null = null;
+  /**
+   * Something to find in here, glowing: the Cronster's cuddle token (chapter 3: one of the last two is under a table),
+   * or a clue on this chapter's explore-before-the-dungeon trail (chapters 2 and 4).
+   */
+  private token: Shiny | null = null;
+  private tokenKind: "cronster" | "trail" = "cronster";
 
   private placeToken() {
     this.token = null;
     const t = tokenTrail(G.s);
-    if (!t || t.outdoorLeft.length || !t.indoorLeft.some(({ sp }) => sp.inside === "CLUB") || !this.textures.exists("p_token")) return;
-    const sp = t.indoorLeft.find(({ sp }) => sp.inside === "CLUB")!.sp;
-    // big and shiny: a pink halo, slow-turning rays, twinkles and a glint every couple of seconds
-    const ADD = Phaser.BlendModes.ADD;
-    const halo = this.add.circle(sp.x, sp.y, 60, 0xff6bb0, 0.22).setDepth(sp.y - 2).setBlendMode(ADD);
-    const glow = this.add.circle(sp.x, sp.y, 34, 0xffb3d6, 0.45).setDepth(sp.y - 1).setBlendMode(ADD);
-    this.tweens.add({ targets: halo, scale: 1.35, alpha: 0.1, yoyo: true, repeat: -1, duration: 900, ease: "Sine.inOut" });
-    this.tweens.add({ targets: glow, scale: 1.25, alpha: 0.25, yoyo: true, repeat: -1, duration: 600, ease: "Sine.inOut" });
-    const rays = this.add.graphics({ x: sp.x, y: sp.y }).setDepth(sp.y - 1).setBlendMode(ADD);
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2;
-      const len = i % 2 ? 54 : 78;
-      rays.fillStyle(0xffd1e8, i % 2 ? 0.22 : 0.32);
-      rays.fillTriangle(Math.cos(a - 0.09) * 14, Math.sin(a - 0.09) * 14, Math.cos(a + 0.09) * 14, Math.sin(a + 0.09) * 14, Math.cos(a) * len, Math.sin(a) * len);
+    if (t && !t.outdoorLeft.length && t.indoorLeft.some(({ sp }) => sp.inside === "CLUB") && this.textures.exists("p_token")) {
+      const sp = t.indoorLeft.find(({ sp }) => sp.inside === "CLUB")!.sp;
+      // big and shiny: a pink halo, slow-turning rays, twinkles and a glint every couple of seconds
+      this.token = shinyPickup(this, sp.x, sp.y, "p_token", { scale: 4.6 });
+      this.tokenKind = "cronster";
+      return;
     }
-    this.tweens.add({ targets: rays, angle: 360, repeat: -1, duration: 9000 });
-    this.token = this.add.image(sp.x, sp.y, "p_token").setScale(4.6).setDepth(sp.y);
-    const tok = this.token;
-    this.tweens.add({ targets: [tok, glow, halo, rays], y: sp.y - 8, yoyo: true, repeat: -1, duration: 700, ease: "Sine.inOut" });
-    // the glint: a white flash across the coin and a star burst off its edge
-    const glint = this.time.addEvent({
-      delay: 1800,
-      loop: true,
-      callback: () => {
-        if (!tok.active) return;
-        tok.setTintFill(0xffffff);
-        this.time.delayedCall(70, () => tok.active && tok.clearTint());
-        const st = this.add.star(tok.x + 16, tok.y - 16, 4, 3, 14, 0xffffff).setDepth(tok.depth + 1).setBlendMode(ADD).setScale(0.2);
-        this.tweens.add({ targets: st, scale: 1.3, angle: 90, alpha: 0, duration: 520, ease: "Quad.out", onComplete: () => st.destroy() });
-      },
-    });
-    // twinkles drifting up round it
-    const twinkle = this.time.addEvent({
-      delay: 220,
-      loop: true,
-      callback: () => {
-        if (!tok.active) return;
-        const a = Math.random() * Math.PI * 2;
-        const r = 26 + Math.random() * 30;
-        const p = this.add.star(tok.x + Math.cos(a) * r, tok.y + Math.sin(a) * r * 0.7, 4, 1, 5, Math.random() < 0.5 ? 0xffffff : 0xffc2e2).setDepth(tok.depth + 1).setBlendMode(ADD).setScale(0.3);
-        this.tweens.add({ targets: p, scale: 1, y: p.y - 22, alpha: 0, duration: 800, ease: "Sine.out", onComplete: () => p.destroy() });
-      },
-    });
-    const bits = [halo, glow, rays];
-    this.token.setData("glow", { destroy: () => (bits.forEach((b) => b.destroy()), glint.remove(), twinkle.remove()) });
+    const c = clueAt(G.s, "CLUB");
+    const tex = c && clueTex(c.trail, c.i);
+    if (!c || !tex || !this.textures.exists(tex)) return;
+    this.token = shinyPickup(this, c.clue.x, c.clue.y, tex, { scale: trailPropScale(this, tex, 64), tag: `✦ ${c.trail.label.replace(/S$/, "")}`, ...shinyColours(c.trail.tint) });
+    this.tokenKind = "trail";
+  }
+
+  private tokenLabel() {
+    if (this.tokenKind === "cronster") return "E: Pick up: Cuddle token";
+    const c = clueAt(G.s, "CLUB");
+    return `E: Pick up: ${c ? c.trail.item : "it"}`;
   }
 
   private async takeToken() {
     if (this.busy || !this.token) return;
-    const t = takeIndoorToken(G.s, "CLUB");
-    (this.token.getData("glow") as { destroy: () => void } | undefined)?.destroy();
+    const kind = this.tokenKind;
     this.token.destroy();
     this.token = null;
+    if (kind === "trail") {
+      const r = takeClue(G.s, "CLUB");
+      if (!r) return;
+      synth.play("pickup");
+      G.emit("toast", { title: r.title, text: r.toast });
+      G.save();
+      await this.talk(r.lines);
+      return;
+    }
+    const t = takeIndoorToken(G.s, "CLUB");
     if (!t) return;
     synth.play("pickup");
     await this.talk([dir("Under the table nearest the pole, stuck to the carpet: a chocolate cuddle token. It's warm. You decide not to think about why."), ...t.lines]);

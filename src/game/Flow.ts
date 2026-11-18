@@ -9,6 +9,7 @@ import { evalCond } from "./systems/conditions";
 import { maxHp } from "./systems/stats";
 import { activeMods } from "../data/historicalRevisions";
 import { crystalCount, CRYSTALS_NEEDED } from "./systems/crystals";
+import { trailObjective } from "./systems/trails";
 
 export interface Next {
   scene: string;
@@ -145,6 +146,8 @@ export function currentStep(): { text: string; target?: string } | null {
         const req = requiredArcSteps(s)[0];
         if (req) return { text: `SIDE QUEST (required): ${req.arc.title} — ${req.step.text}`, target: req.step.at === "FIELD" ? undefined : req.step.at };
       }
+      // the explore-before-the-dungeon trail: what's left to find, and roughly where
+      if (st.id === "s_trail") return trailObjective(s) ?? { text: st.text, target: st.target };
       return { text: st.text, target: st.target };
     }
   }
@@ -188,7 +191,7 @@ export function dungeonOpen(): { open: boolean; why?: string } {
   const ch = chapterDef(s.chapter);
   const idx = ch.steps.findIndex((st) => st.id === "s_dungeon");
   for (let i = 0; i < idx; i++) {
-    if (!evalCond(ch.steps[i].done, s)) return { open: false, why: ch.steps[i].text };
+    if (!evalCond(ch.steps[i].done, s)) return { open: false, why: ch.steps[i].id === "s_trail" ? (trailObjective(s)?.text ?? ch.steps[i].text) : ch.steps[i].text };
   }
   if (s.flags[`ch${s.chapter}_clear`]) return { open: false, why: "Already cleared. Report to the Town Hall." };
   // Da Drongus Dungeon is sealed until you've got every cum crystal

@@ -27,6 +27,8 @@ import { activeMods } from "../../data/historicalRevisions";
 import { canTurnIn, completePersonal, pickupsInHub, collectPickup, ministryQuestFor, ministryQuestState, acceptMinistry, completeMinistry, ministryProgress } from "../systems/quests";
 import { dir, ping, say } from "../../content/dsl";
 import { narrativeActor } from "../systems/narrative";
+import { activeTrail, clueAt, clueFlag, clueTex, takeClue } from "../systems/trails";
+import { shinyColours, shinyPickup, trailPropScale } from "../gfx/shiny";
 import { arcDue, arcStepAt, completeStep, currentArcSteps, maybeFinishArc, requiredArcSteps, sideQuestsFirst, spotFlag, tokenTrail } from "../systems/arcs";
 import { DUNGEONS } from "../../data/dungeons";
 import { MEETINGS } from "../../content/meetings";
@@ -761,6 +763,7 @@ export class HubScene extends Phaser.Scene {
     const auto = back && at ? arcStepAt(s, at) : null;
     if (auto && (auto.step.auto || this.nextStepHere(at)) && (await this.runArcStep(at!)) && this.busy) return;
     G.drongus("hub");
+    await this.trailIntro();
     if (from === "dungeon") G.emit("toast", { title: "BACK IN KRELFORD", text: s.chapter === 1 && !s.flags.wildern_destroyed ? "Wildern has to go. Plant the bombs (4) around the school." : "Report to the Town Hall." });
     // the Kreddle Krunchers come over the bridge (start of Chapter 3)
     const inv = !this.chainMeetings && currentArcSteps(s).find((c) => c.step.step.kind === "auto" && c.step.step.id === "kruncher_invasion");
@@ -2397,6 +2400,7 @@ You are required by law to sign the Sex Offenders Register.`, {
 
   /** Glowing pickups for any open "collect" side-quest step. */
   private spawnCollectibles() {
+    this.spawnTrailClue();
     for (const c of currentArcSteps(G.s)) {
       const k = c.step.step;
       if (k.kind !== "collect") continue;
@@ -2459,6 +2463,50 @@ You are required by law to sign the Sex Offenders Register.`, {
         });
       });
     }
+  }
+
+  /** The outdoor clue on this chapter's explore-before-the-dungeon trail (the rest are indoors). */
+  private spawnTrailClue() {
+    const c = clueAt(G.s, "FIELD");
+    const tex = c && clueTex(c.trail, c.i);
+    if (!c || !tex || !this.textures.exists(tex)) return;
+    const f = clueFlag(c.trail, c.i);
+    if (this.spawnedSpots.has(f)) return;
+    this.spawnedSpots.add(f);
+    const { x, y } = c.clue;
+    const shiny = shinyPickup(this, x, y - 24, tex, { scale: trailPropScale(this, tex, 44), depth: 4500, size: 0.9, tag: `✦ ${c.trail.label.replace(/S$/, "")}`, ...shinyColours(c.trail.tint) });
+    // and a beam of light, so it shows from across the street
+    const beam = this.add.rectangle(x, y - 90, 26, 150, 0xfff3b0, 0.16).setDepth(4489).setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({ targets: beam, alpha: 0.05, yoyo: true, repeat: -1, duration: 900 });
+    this.interactables.push({
+      x,
+      y,
+      r: 50,
+      label: () => `Pick up: ${c.trail.item}`,
+      enabled: () => !G.s.flags[f],
+      use: async () => {
+        const r = takeClue(G.s, "FIELD");
+        shiny.destroy();
+        beam.destroy();
+        if (!r) return;
+        synth.play("pickup");
+        G.emit("toast", { title: r.title, text: r.toast });
+        G.save();
+        await this.talk(r.lines);
+        G.save();
+      },
+    });
+  }
+
+  /** The first time you're out with this chapter's trail open: what's going on, and where the first clue is. */
+  private async trailIntro() {
+    const a = activeTrail(G.s);
+    if (!a || a.got || G.s.flags[`${a.trail.id}_intro`]) return;
+    G.s.flags[`${a.trail.id}_intro`] = true;
+    G.save();
+    this.reveal();
+    await this.talk(a.trail.intro);
+    G.emit("toast", { title: a.trail.title, text: `${a.trail.label} 0/${a.total}. Follow the arrow to the first one: it glows.` });
   }
 
   private doorLabel(b: Building): string {
@@ -2604,7 +2652,7 @@ You are required by law to sign the Sex Offenders Register.`, {
       return;
     }
     const polsonToken = !!tokenTrail(s)?.indoorLeft.some(({ sp }) => sp.inside === "POLSON") && !tokenTrail(s)?.outdoorLeft.length;
-    if (b.id === "POLSON_ROAD" && (polsonToken || (s.flags.ch2_clear && POLSON_CHATS.length && chapterDef(s.chapter).dungeonDoor !== "POLSON_ROAD")) && !arcStepAt(s, "POLSON_ROAD")) {
+    if (b.id === "POLSON_ROAD" && (polsonToken || !!clueAt(s, "POLSON") || (s.flags.ch2_clear && POLSON_CHATS.length && chapterDef(s.chapter).dungeonDoor !== "POLSON_ROAD")) && !arcStepAt(s, "POLSON_ROAD")) {
       this.go("PolsonHome", {});
       return;
     }

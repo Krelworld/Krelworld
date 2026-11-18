@@ -110,6 +110,12 @@ def cast(sp):
         base = d[sp]
         v = voice_of(base)
         return (v[0], v[1], US, base) if v else None
+    # a name that borrows another speaker's voice (e.g. DERANGED DRONGUS -> DRONGUS): their voice AND their delivery,
+    # clones included (the alias used to only follow designed voices, so cloned speakers fell back to a pool voice)
+    a = CAST.get("designed_alias", {}).get(sp)
+    if a and a != sp and a in CAST["clones"]:
+        v = voice_of(a)
+        return (v[0], v[1], None, a) if v else None
     v = voice_of(sp)
     return (v[0], v[1], None, sp) if v else None
 

@@ -252,15 +252,15 @@ export const FB_SPIRIT: Line[] = [
 // ---------------------------------------------------------------- the super saiyan brawl (side-on, in the sky)
 
 export const FB_BRAWL_INTRO: Line[] = [
-  dir("Nearly dead, it does something new. It pulls itself in: every arm, every eye, every footnote, crushed down into one shape. Human-sized. Hooded. The wizard."),
-  dir("It goes straight up into the storm. Somehow, so do you."),
+  dir("Nearly dead, it does something new. It tears itself out of the rubble, every arm, every eye, every footnote, and goes straight up into the storm: the whole dragon, wings and all."),
+  dir("Somehow, so do you."),
   c("SEE: ABRIDGED ENTRY."),
-  say("KREZMAR", "(from the ground, tiny) HE'S TAKEN IT UP THERE! HANDS ONLY, LAD! HANDS ONLY!"),
+  say("KREZMAR", "(from the ground, tiny) IT'S FLYING! THE DRAGON'S FLYING! PUNCH IT IN ITS STUPID FACE!"),
   { s: "YOU", t: "Right then. Fists.", tag: "new" },
 ];
 
 export const FB_BRAWL_WIN: Line[] = [
-  dir("It goes down through the clouds, through the rubble, and back into the body of the beast like a dropped anvil."),
+  dir("It goes down through the clouds, wings folded, and hits what's left of Krelford like a dropped anvil."),
   c("…PAGE NOT FOUND."),
 ];
 

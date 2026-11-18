@@ -41,24 +41,29 @@ export function ammoUnitCost(id: string): number {
   return Math.max(10, Math.round((g.pickup * g.dmg * g.pellets) / 25));
 }
 
+/** One box at a price multiplier (the ruined house's gun rack sells at salvage prices). */
+function ammoUnit(id: string, mult: number): number {
+  return mult === 1 ? ammoUnitCost(id) : Math.max(1, Math.round(ammoUnitCost(id) * mult));
+}
+
 /** What topping a gun up costs: boxes to fill it, the price of that, and one box's price. */
-export function ammoQuote(s: GameState, id: string): { have: number; max: number; unit: number; boxes: number; fill: number; full: boolean } {
+export function ammoQuote(s: GameState, id: string, mult = 1): { have: number; max: number; unit: number; boxes: number; fill: number; full: boolean } {
   const g = GUNS[id];
   const have = s.guns?.[id] ?? 0;
   const max = gunMaxFor(g, s);
-  const unit = ammoUnitCost(id);
+  const unit = ammoUnit(id, mult);
   const boxes = Math.max(0, Math.ceil((max - have) / g.pickup));
   return { have, max, unit, boxes, fill: boxes * unit, full: have >= max };
 }
 
 /**
- * Buy as many boxes as it takes to fill the gun (or as many as you can afford).
+ * Buy as many boxes as it takes to fill the gun (or as many as you can afford), at `mult` times the usual price.
  * Returns how many boxes were bought (0 = nothing happened: full, broke, or not owned).
  */
-export function buyAmmo(s: GameState, id: string): number {
+export function buyAmmo(s: GameState, id: string, mult = 1): number {
   const g = GUNS[id];
   if (!g || !s.guns || !(id in s.guns)) return 0;
-  const unit = ammoUnitCost(id);
+  const unit = ammoUnit(id, mult);
   let bought = 0;
   while (s.guns[id] < gunMaxFor(g, s) && s.coins >= unit) {
     s.coins -= unit;

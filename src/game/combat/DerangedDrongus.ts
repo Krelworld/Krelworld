@@ -56,12 +56,12 @@ export class DerangedDrongusBoss extends Boss {
 
   constructor(w: CombatWorld, x: number, y: number) {
     const art = w.sc.textures.exists("boss_drongus2");
-    super(w, "drongus2", x, y, 2700, art ? "boss_drongus2" : "boss_drongus", 40, 0xdc2626, art ? 128 : 32, art ? 128 : 48);
+    super(w, "drongus2", x, y, 2200, art ? "boss_drongus2" : "boss_drongus", 40, 0xdc2626, art ? 128 : 32, art ? 128 : 48);
     this.art = art;
-    this.setScale(art ? 2.1 : 4.2);
+    this.setScale(art ? 1.8 : 3.6);
     if (!art) this.setTint(0xff6b6b);
     this.thresholds = [0.66, 0.33];
-    this.def = { ...this.def, shout: BOSS_TEXT.drongus2.taunts, shoutEvery: 8500, damage: 20 };
+    this.def = { ...this.def, shout: BOSS_TEXT.drongus2.taunts, shoutEvery: 8500, damage: 14 };
     // the PixelLab art has the gun in his hands already
     if (!art && w.sc.textures.exists("c7_drongus_gun")) this.gun = w.sc.add.image(x, y, "c7_drongus_gun").setScale(1.1);
     this.glow = w.sc.add.ellipse(x, y, 90, 150, 0xff3b30, 0).setBlendMode(Phaser.BlendModes.ADD);
@@ -99,7 +99,7 @@ export class DerangedDrongusBoss extends Boss {
       this.scene.time.delayedCall(60, () => this.active && !this.dead && (this.art ? this.clearTint() : this.setTint(0xff6b6b)));
       if (Math.random() < 0.3) this.world.floatText(this.x + (Math.random() - 0.5) * 40, this.y - 40, "CLANK", "#ffd23f", 13);
     }
-    return a * [0.6, 0.45, 0.35, 0.25][this.armourLeft];
+    return a * [0.75, 0.6, 0.5, 0.4][this.armourLeft];
   }
 
   private muzzle(): [number, number] {
@@ -174,7 +174,7 @@ export class DerangedDrongusBoss extends Boss {
         if (this.dead || !this.active) return;
         synth.play("telegraph");
         for (let x = w.bounds.left + off; x < w.bounds.right - 20; x += gap) {
-          w.enemyLine(x, top, Math.PI / 2, gy - top, colW, Math.round(18 * this.dmgMult), tele);
+          w.enemyLine(x, top, Math.PI / 2, gy - top, colW, Math.round(14 * this.dmgMult), tele);
           sc.time.delayedCall(tele, () => {
             if (!sc.sys?.isActive()) return;
             // a drawn pillar of plasma (stretched to the room's height), or flat bars if the art isn't there
@@ -235,7 +235,7 @@ export class DerangedDrongusBoss extends Boss {
     const dir = p.x < this.x ? -1 : 1;
     this.setFlipX(dir < 0);
     if (this.open) body.setVelocityX(0);
-    else if (this.grounded()) body.setVelocityX(Math.abs(p.x - this.x) > 200 ? dir * (fast ? 110 : 80) * w.enemyTimeScale : 0);
+    else if (this.grounded()) body.setVelocityX(Math.abs(p.x - this.x) > 300 ? dir * (fast ? 85 : 60) * w.enemyTimeScale : 0);
     // nearly beaten: the last stand (on the floor, announced by the scene, then the rain)
     if (this.lastStand === "no" && this.phase >= 2 && this.hp < this.maxHp * 0.15 && this.grounded() && !this.open) {
       this.lastStand = "pending";
@@ -249,11 +249,11 @@ export class DerangedDrongusBoss extends Boss {
       this.plasmaRain(now);
       return;
     }
-    const tele = 800 * w.telegraphMult;
+    const tele = 1000 * w.telegraphMult;
     const step = this.patternIdx++ % 6;
     if (step === 0) {
       // PLASMA VOLLEY: aim lines first, then bolts down them
-      const n = fast ? 4 : 3;
+      const n = 3;
       for (let i = 0; i < n; i++)
         this.scene.time.delayedCall(i * 380, () => {
           if (this.dead || !this.active) return;
@@ -263,7 +263,7 @@ export class DerangedDrongusBoss extends Boss {
           this.scene.time.delayedCall(tele * 0.55, () => {
             if (this.dead || !this.active) return;
             synth.play("gun_bfk");
-            w.shoot(mx, my, { owner: "enemy", damage: 15, speed: 420, angle: a, color: PLASMA, scale: 2.4, life: 3000 });
+            w.shoot(mx, my, { owner: "enemy", damage: 12, speed: 420, angle: a, color: PLASMA, scale: 2.4, life: 3000 });
           });
         });
       this.say("PLASMA!", "#7dff8a");
@@ -287,7 +287,7 @@ export class DerangedDrongusBoss extends Boss {
         if (this.dead || !this.active) return;
         body.setAllowGravity(false).setVelocity(0, 0);
         this.x = tx;
-        w.enemyAoe(tx, gy - 30, 110, 26, tele, 0xff3b30);
+        w.enemyAoe(tx, gy - 30, 110, 20, tele, 0xff3b30);
         this.scene.time.delayedCall(tele, () => {
           if (this.dead || !this.active) return;
           body.setAllowGravity(true).setVelocityY(2200);
@@ -296,16 +296,16 @@ export class DerangedDrongusBoss extends Boss {
             synth.play("boom");
             w.shake(450, 0.03);
             if (hasVfx(this.scene, "vfx_dust")) vfx(this.scene, "vfx_dust", this.x, gy - 4, { scale: 2, depth: this.depth + 1 });
-            w.enemyLine(this.x, gy - 14, 0, 1000, 34, 18, 120);
-            w.enemyLine(this.x, gy - 14, Math.PI, 1000, 34, 18, 120);
+            w.enemyLine(this.x, gy - 14, 0, 1000, 34, 14, 120);
+            w.enemyLine(this.x, gy - 14, Math.PI, 1000, 34, 14, 120);
             // stuck in the floor: the armour's open
-            this.openUntil = this.world.now() + (fast ? 1900 : 2400);
+            this.openUntil = this.world.now() + (fast ? 2600 : 3200);
             this.say("STUCK! (HIT HIM!)", "#ff6b6b");
             this.pounding = false;
           });
         });
       });
-      this.nextPattern = now + 420 + tele + 140 + (fast ? 1900 : 2400) + 300;
+      this.nextPattern = now + 420 + tele + 140 + (fast ? 2600 : 3200) + 300;
     } else if (step === 3) {
       // the AIs
       const sm = SUMMONS[this.summonIdx++ % SUMMONS.length];
@@ -317,7 +317,7 @@ export class DerangedDrongusBoss extends Boss {
       this.scene.time.delayedCall(700, () => {
         if (this.dead || !this.active) return;
         w.floatText(this.x, this.y - this.displayHeight / 2 - 4, `${sm.ai}: ${sm.reply}`, sm.col, 13);
-        if (live >= 6) return;
+        if (live >= 4) return;
         for (const [type, n] of sm.spawn)
           for (let i = 0; i < n + (this.phase >= 2 ? 1 : 0); i++) {
             const x = Phaser.Math.Clamp(this.x + (i % 2 ? 1 : -1) * Phaser.Math.Between(140, 320), w.bounds.left + 60, w.bounds.right - 60);
@@ -344,7 +344,7 @@ export class DerangedDrongusBoss extends Boss {
         g.fillStyle(PLASMA, 0.55).fillRect(left, y - 18, width, 36);
         g.fillStyle(0xeaffea, 1).fillRect(left, y - 6, width, 12);
         this.sweepG = g;
-        if (Math.abs(p.y - y) < 34) w.damagePlayer(Math.round(20 * this.dmgMult), { x: mx, y }, { label: "-SWEEP" });
+        if (Math.abs(p.y - y) < 34) w.damagePlayer(Math.round(16 * this.dmgMult), { x: mx, y }, { label: "-SWEEP" });
         this.scene.tweens.add({ targets: g, alpha: 0, duration: 420, onComplete: () => g.destroy() });
       });
       this.nextPattern = now + tele + 1200;
@@ -362,7 +362,7 @@ export class DerangedDrongusBoss extends Boss {
         if (this.dead || !this.active) return;
         const [mx, my] = this.muzzle();
         lock = Math.atan2(p.y - my, p.x - mx);
-        w.enemyLine(mx, my, lock, 1400, 90, 34, 450);
+        w.enemyLine(mx, my, lock, 1400, 90, 26, 450);
         this.say("LOCKED! MOVE!", "#ff4d4d");
       });
       this.scene.time.delayedCall(charge, () => {
@@ -377,12 +377,12 @@ export class DerangedDrongusBoss extends Boss {
         beam.lineStyle(84, PLASMA, 0.6).lineBetween(mx, my, mx + Math.cos(lock) * 1400, my + Math.sin(lock) * 1400);
         beam.lineStyle(30, 0xeaffea, 1).lineBetween(mx, my, mx + Math.cos(lock) * 1400, my + Math.sin(lock) * 1400);
         this.scene.tweens.add({ targets: beam, alpha: 0, duration: 450, onComplete: () => beam.destroy() });
-        this.openUntil = this.world.now() + (fast ? 1600 : 2100);
+        this.openUntil = this.world.now() + (fast ? 2300 : 2800);
         this.say("VENTING! (HIT HIM!)", "#ff6b6b");
         for (let i = 0; i < 5; i++) this.scene.time.delayedCall(i * 300, () => !this.dead && hasVfx(this.scene, "vfx_smoke") && vfx(this.scene, "vfx_smoke", this.muzzle()[0], this.muzzle()[1], { scale: 0.6, depth: 952, tint: 0x9cffb0 }));
         if (this.phase >= 2) this.ring(14, 190, 11, PLASMA, Math.random());
       });
-      this.nextPattern = now + charge + (fast ? 1600 : 2100) + 500;
+      this.nextPattern = now + charge + (fast ? 2300 : 2800) + 500;
     }
   }
 

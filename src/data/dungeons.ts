@@ -690,7 +690,7 @@ export const DUNGEONS: Record<string, DungeonDef> = {
       {
         name: "The Top Of The Tower",
         view: "side",
-        w: 960,
+        w: 1440,
         h: 540,
         theme: "citadel",
         backdrop: "bg_lair",

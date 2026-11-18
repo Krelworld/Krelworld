@@ -72,7 +72,7 @@ export const GUNS: Record<string, GunDef> = {
   },
   sniper: {
     id: "sniper", name: "Polson's Long Lens", blurb: "Originally bought to look at his own house from the other side of town.",
-    tex: "p_wpn_rail", dmg: 75, cd: 1100, speed: 1500, pellets: 1, spread: 0, range: 950, pierce: 3, knock: 220, color: 0xf5f5f5, maxAmmo: 24, pickup: 6, ammoPrice: 30, minChapter: 1, shop: 650,
+    tex: "p_wpn_rail", dmg: 110, cd: 900, speed: 2200, pellets: 1, spread: 0, range: 1000, pierce: 8, knock: 380, color: 0xf5f5f5, maxAmmo: 32, pickup: 8, ammoPrice: 30, minChapter: 1, shop: 650,
   },
   // Boggor's side story reward only (never in crates or shops): every shot a blinding camera flash
   boggor_lens: {

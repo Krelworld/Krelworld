@@ -429,6 +429,30 @@ export class KrexBoss extends Boss {
     });
   }
 
+  /**
+   * For the Kreltality (KrexFinisher.ts): the hull and every bit still bolted on, as they stand now, so the show can
+   * draw its own copies. The real ones are hidden with setRigVisible(false) while it plays.
+   */
+  rig(): { id: string; key: string; frame: string | number; x: number; y: number; scale: number; flip: boolean; depth: number }[] {
+    const out = [{ id: "hull", key: this.texture.key, frame: this.frame.name, x: this.x, y: this.y, scale: this.scaleX, flip: this.flipX, depth: this.depth }];
+    for (const [id, p] of this.parts) out.push({ id, key: p.texture.key, frame: p.frame.name, x: p.x, y: p.y, scale: p.scaleX, flip: p.flipX, depth: p.depth });
+    return out;
+  }
+
+  setRigVisible(v: boolean) {
+    this.setVisible(v);
+    for (const p of this.parts.values()) p.setVisible(v).clearTint();
+    if (!v) this.stumpFx?.remove();
+  }
+
+  /** Kreltalised: the show has already blown the copies up. The real thing just goes, quietly. */
+  scrap() {
+    this.stumpFx?.remove();
+    for (const p of this.parts.values()) p.destroy();
+    this.parts.clear();
+    this.destroy();
+  }
+
   /** Flying chunks of tank. */
   private debris(x: number, y: number, gy: number) {
     const sc = this.sc;

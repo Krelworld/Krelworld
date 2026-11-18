@@ -98,7 +98,7 @@ export async function forcedKreltality(sc: Phaser.Scene, target: KrelTarget, pla
 
 // ------------------------------------------------------------------ the prompt
 
-function prompt(sc: Phaser.Scene): Promise<boolean> {
+export function prompt(sc: Phaser.Scene): Promise<boolean> {
   return new Promise((resolve) => {
     const cam = sc.cameras.main;
     const objs: Phaser.GameObjects.GameObject[] = [];

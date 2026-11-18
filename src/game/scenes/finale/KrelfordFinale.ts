@@ -204,7 +204,7 @@ export class KrelfordFinale {
     if (this.gone) return;
     await this.introShot();
     if (this.gone) return;
-    await vsSplash(h.sc, { bossId: "concept", name: "THE CONCEPT", art: { key: "fe_cut_concept", frame: 0 } });
+    await vsSplash(h.sc, { bossId: "concept", name: "THE CONCEPT OF PAEDOPHILIA", art: { key: "fe_cut_concept", frame: 0 } });
     if (this.gone) return;
     boss.mode = "immortal";
     boss.started = true;

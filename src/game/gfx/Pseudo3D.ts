@@ -982,3 +982,36 @@ export function swoopToLive(
     },
   });
 }
+
+// ------------------------------------------------------------------------------------------------ eye/target paths
+
+/** A camera key as an eye point and the point it looks at (world px), rolled `r` degrees. */
+export interface CamKey {
+  x: number;
+  y: number;
+  z: number;
+  tx: number;
+  ty: number;
+  tz: number;
+  r?: number;
+}
+
+/**
+ * A smooth (Catmull-Rom) camera through timed eye/target keys (seconds). Easier than aims for low shots that look
+ * up at something, run along a bridge or sit beside a track. With `settle`, it eases out of the first key and into
+ * the last.
+ */
+export function camPath(keys: [number, CamKey][], t: number, settle = true): Pose {
+  const n = keys.length;
+  const pose = (k: CamKey) => lookAt(k, { x: k.tx, y: k.ty, z: k.tz }, k.r ?? 0);
+  if (n === 1 || t <= keys[0][0]) return pose(keys[0][1]);
+  if (t >= keys[n - 1][0]) return pose(keys[n - 1][1]);
+  let i = 0;
+  while (i < n - 2 && t > keys[i + 1][0]) i++;
+  let u = clamp((t - keys[i][0]) / (keys[i + 1][0] - keys[i][0]), 0, 1);
+  if (settle && i === 0) u = u * u * (2 - u);
+  if (settle && i === n - 2) u = 1 - (1 - u) * (1 - u) * (1 + u);
+  const k = (i + u) / (n - 1);
+  const cr = (f: (a: CamKey) => number) => Phaser.Math.Interpolation.CatmullRom(keys.map(([, a]) => f(a)), k);
+  return pose({ x: cr((a) => a.x), y: cr((a) => a.y), z: cr((a) => a.z), tx: cr((a) => a.tx), ty: cr((a) => a.ty), tz: cr((a) => a.tz), r: cr((a) => a.r ?? 0) });
+}

@@ -1,9 +1,9 @@
 import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 
-// "News stories" screenplays (OCR'd phone screenshots), staged as GB Krews broadcasts with their own sets and
+// "News stories" screenplays (OCR'd phone screenshots), staged as Krunche News broadcasts with their own sets and
 // presenters (see NEWS_SHOWS in src/game/scenes/TVNews.ts). The article text is kept as written; where a page was cut
 // off mid-sentence the sentence is finished, and the people in the stories say the lines the articles report.
-// - Klopp's bribe: a GB Krews Sport bulletin with pitch footage, a replay and the tunnel footage.
+// - Klopp's bribe: a Krunche News Sport bulletin with pitch footage, a replay and the tunnel footage.
 // - Sunak's bomb threat: a breaking-news bulletin and the address to the nation outside Number 10.
 // - Starmer's election: a six-part special (the hot mic, the polls, Rayner on the breakfast sofa, the T-shirts,
 //   Sunak's hot mic, election day and #FartGate).
@@ -26,12 +26,12 @@ import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 //   quote on camera, PixelLab inserts of the turkey, the knife and his lip, Dr Bramwell's (fictional) stunned
 //   close-ups, and the viewers' reaction. The article spells him "Ramsey"; his speaker tag is the game's GORDON RAMSAY.
 
-const NEWS = "GB KREWS 24";
+const NEWS = "KRUNCHE NEWS";
 
 const ep = (id: string, title: string, n: number, script: string): TVEpisode => ({
   id,
   channel: NEWS,
-  show: "GB Krews",
+  show: "Krunche News",
   title,
   episodeNumber: n,
   beats: parseScreenplay(script),
@@ -42,11 +42,11 @@ export const KREWS_KLOPP_BRIBE = ep(
   "Klopp's Farewell Bribe Scandal",
   30,
   `[MUSIC news start]
-# GB KREWS SPORT
+# KRUNCHE NEWS SPORT
 INT. NEWSDESK - NIGHT
 [MUSIC news fade]
 # KLOPP'S ILL-FATED DECISION
-NEWSREADER: Good evening, and welcome to GB Krews Sport. Jürgen Klopp's Anfield farewell was supposed to be a fairytale. Tonight, it is a scandal.
+NEWSREADER: Good evening, and welcome to Krunche News Sport. Jürgen Klopp's Anfield farewell was supposed to be a fairytale. Tonight, it is a scandal.
 NEWSREADER: As the game neared its conclusion, with the score locked at 1-1, Klopp, perhaps in a moment of desperation to ensure a storybook ending, made an uncharacteristic and shocking decision.
 EXT. ANFIELD PITCH - NIGHT
 # SCORE: LIVERPOOL 1-1 VISITORS · 87'
@@ -102,7 +102,7 @@ export const KREWS_SUNAK_BOMB = ep(
   "Sunak Postpones Election Over 'Bomb Threat'",
   31,
   `[MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - NIGHT
 [MUSIC news fade]
 # BREAKING: SUNAK POSTPONES ELECTION FOR FIVE YEARS OVER "BOMB THREAT"
@@ -135,7 +135,7 @@ export const KREWS_STARMER_SAGA = ep(
   "Election Special: From KickGate to FartGate",
   32,
   `[MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - DAY
 [MUSIC news fade]
 # ELECTION SPECIAL: FROM KICKGATE TO FARTGATE
@@ -241,7 +241,7 @@ export const KREWS_CRASH_MODE_LIVE = ep(
   "Microsoft's 'Crash Mode' Press Conference",
   33,
   `[MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - DAY
 [MUSIC news fade]
 # MICROSOFT FACES OUTRAGE OVER "CRASH MODE" DLC ANNOUNCEMENT
@@ -286,13 +286,13 @@ export const KREWS_STARMER_VIDEO = ep(
   "Starmer's Landslide in Jeopardy: The Video Scandal",
   34,
   `[MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - DAY
 [MUSIC news fade]
 # KEIR STARMER'S LABOUR LANDSLIDE IN JEOPARDY AMID SCANDAL OVER DISTURBING VIDEO INCIDENT
 NEWSREADER: In a shocking turn of events, Keir Starmer's resounding Labour landslide victory is facing an unprecedented threat following a deeply disturbing incident involving a video shown to horrified Conservative MPs.
 NEWSREADER: The controversy erupted after Starmer was seen laughing while showing a video on his phone titled "Boy with Down syndrome tragically crushed by meat grinder."
-NEWSREADER: The video graphically depicted the tragic death of a boy with Down syndrome in a factory meat grinder. GB Krews will not be showing it.
+NEWSREADER: The video graphically depicted the tragic death of a boy with Down syndrome in a factory meat grinder. Krunche News will not be showing it.
 INT. CABINET ROOM - DAY
 REPORTER: The incident occurred during what was supposed to be a routine cross-party meeting.
 REPORTER: Eyewitnesses reported visible distress among Conservative MPs as the gruesome footage played.
@@ -329,7 +329,7 @@ export const KREWS_ARSEBRUSH = ep(
   "#ArsebrushGate: The PM's Health Breakthrough",
   35,
   `[MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - DAY
 [MUSIC news fade]
 # PM'S 'HEALTH BREAKTHROUGH' SPARKS FURY AFTER BIZARRE HYGIENE GUIDANCE
@@ -376,7 +376,7 @@ export const KREWS_KILL_THE_PATIENT = ep(
   "Kill the Patient 2: No Alibi",
   36,
   `[MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - DAY
 [MUSIC news fade]
 # HOSPITAL INSTALLS "KILL THE PATIENT 2: NO ALIBI" AFTER $20M PAYOUT OVER THE FIRST ONE
@@ -477,7 +477,7 @@ HOSPITAL SPOKESPERSON: It refers to other experiences.
 HOSPITAL SPOKESPERSON: That is the terminology used by the manufacturer.
 INT. NEWSDESK - DAY
 # 'FULLY IMMERSIVE'
-NEWSREADER: GB Krews has asked the manufacturer exactly when the sensor becomes active. We are still waiting for an answer.
+NEWSREADER: Krunche News has asked the manufacturer exactly when the sensor becomes active. We are still waiting for an answer.
 [FADE]
 `,
 );
@@ -487,7 +487,7 @@ export const KREWS_BURNHAM_FIRST_ACT = ep(
   "Andy Burnham's First Act",
   46,
   `[MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - DAY
 [MUSIC news fade]
 # BREAKING: THE NEW PRIME MINISTER'S FIRST ACT
@@ -549,7 +549,7 @@ export const KREWS_RAMSEY_TURKEY = ep(
   "'Food History Moment' Sparks Outrage",
   48,
   `[MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - DAY
 [MUSIC news fade]
 # "FOOD HISTORY MOMENT" SPARKS OUTRAGE AFTER GORDON RAMSEY'S BIZARRE ON-AIR COOKING DEMONSTRATION

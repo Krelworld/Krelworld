@@ -12,7 +12,7 @@ import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 // Not included: Corbyn in Jo Cox's constituency, "Reality Show",
 // and "The Story of Jenko's Childhood".
 
-const NEWS = "GB KREWS 24";
+const NEWS = "KRUNCHE NEWS";
 const DRAMA = "BBK ONE";
 const SKETCH = "CHANNEL KREZ";
 
@@ -26,14 +26,14 @@ const ep = (id: string, channel: string, show: string, title: string, n: number,
 });
 
 const NEWS_OPEN = `[MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - DAY
 [MUSIC news fade]`;
 
 export const KREWS_CHOMSKY_SHARKS = ep(
   "krews_chomsky_sharks",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Professor Chomsky: An Obituary",
   8,
   `${NEWS_OPEN}
@@ -55,7 +55,7 @@ NEWSREADER: Professor Noam Chomsky leaves behind a profound legacy of groundbrea
 export const KREWS_CHOMSKY_BRAIN = ep(
   "krews_chomsky_brain",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Chomsky's Brain Stolen",
   9,
   `${NEWS_OPEN}
@@ -81,7 +81,7 @@ NEWSREADER: As the nation grapples with this unprecedented crisis, the search fo
 export const KREWS_CHOMSKY_TRIAD = ep(
   "krews_chomsky_triad",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Chomsky's Afterlife Triad",
   45,
   `${NEWS_OPEN}
@@ -102,7 +102,7 @@ NEWSREADER: Professor Chomsky's office has not commented.
 export const KREWS_CHOMSKY_WEBSITE = ep(
   "krews_chomsky_website",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Breakthrough in Mapping Chomsky's Brain Yields Cryptic Message",
   10,
   `${NEWS_OPEN}
@@ -123,7 +123,7 @@ NEWSREADER: Our website is also new. Coincidence? Back after the break.
 export const KREWS_CARTER = ep(
   "krews_carter",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Jimmy Carter 'Probably Dead'",
   11,
   `${NEWS_OPEN}
@@ -144,7 +144,7 @@ NEWSREADER: They added that his repeated public anxiety on the matter was likely
 export const KREWS_SPOONS_CABINET = ep(
   "krews_spoons_cabinet",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Starmer Unveils 'Revolutionary' Wetherspoons Cabinet",
   12,
   `${NEWS_OPEN}
@@ -184,7 +184,7 @@ NEWSREADER: A Labour spokesperson declined to confirm whether Cabinet meetings w
 export const KREWS_KRENSHAW = ep(
   "krews_krenshaw",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Markets Rally on £20 Billion 'Random Public Investment'",
   13,
   `${NEWS_OPEN}
@@ -219,7 +219,7 @@ NEWSREADER: Whether this unorthodox strategy will translate into long-term econo
 export const KREWS_CRASH_MODE = ep(
   "krews_crash_mode",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Microsoft Faces Outrage Over 'Crash Mode' DLC",
   14,
   `${NEWS_OPEN}
@@ -244,7 +244,7 @@ EXECUTIVE: If anyone needs me, I'll be attempting to crash a plane in mid-air on
 export const KREWS_FIFA_AUDIENCE = ep(
   "krews_fifa_audience",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Review: FIFA: Audience",
   15,
   `${NEWS_OPEN}
@@ -284,7 +284,7 @@ NEWSREADER: Let's hope they're right, or we could all end up hopping on the bus 
 export const KREWS_ROBOREF = ep(
   "krews_roboref",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Euro 2024: Robot Referee Goes Rogue",
   16,
   `${NEWS_OPEN}

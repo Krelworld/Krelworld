@@ -481,6 +481,8 @@ export class DialogueBox {
         await new Promise<void>((res) => {
           sc.events.once("ui-resume", () => res());
           sc.scene.launch("TV", { overlay: true, caller: host, episode: raw.tv, once: true });
+          // (launching doesn't move a scene in the draw order: make sure the telly is over the town and the HUD)
+          sc.scene.bringToTop("TV");
           sc.scene.pause();
         });
         synth.music(host === "Meeting" ? "meeting" : "hub");

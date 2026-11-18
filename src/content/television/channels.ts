@@ -27,13 +27,13 @@ const ep = (id: string, channel: string, show: string, title: string, n: number,
 
 export const NEWS_1 = ep(
   "news_1",
-  "GB KREWS 24",
+  "KRUNCHE NEWS",
   "Krelford News at Six",
   "The Great Silence",
   1,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - EVENING
 [MUSIC news fade]
 NEWSREADER: Good evening. Our top story tonight: the Supreme Leader has posted a new song, and nobody has reacted.
@@ -51,13 +51,13 @@ NEWSREADER: Good night.
 
 export const NEWS_2 = ep(
   "news_2",
-  "GB KREWS 24",
+  "KRUNCHE NEWS",
   "Krelford News at Six",
   "Cheesegate",
   2,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - EVENING
 [MUSIC news fade]
 NEWSREADER: Good evening. The Tap is flowing again following what the cabinet are calling "the salmon thing".
@@ -76,13 +76,13 @@ NEWSREADER: Fascinating. Sport now. There is no sport. Krelball is cancelled unt
 
 export const NEWS_3 = ep(
   "news_3",
-  "GB KREWS 24",
+  "KRUNCHE NEWS",
   "Krelford News at Six",
   "Boner Control",
   3,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - EVENING
 [MUSIC news fade]
 NEWSREADER: Good evening. The Ministry of Boner Control has gone dark, and pussy juice pressure across the nation has fallen forty percent.
@@ -96,13 +96,13 @@ NEWSREADER: Threat level today: purple. We have been asked to clarify whether pu
 
 export const NEWS_4 = ep(
   "news_4",
-  "GB KREWS 24",
+  "KRUNCHE NEWS",
   "Krelford News at Six",
   "Banned",
   4,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - EVENING
 [MUSIC news fade]
 NEWSREADER: Good evening. Tonight: Flenky Jenky has been banned again, this time from a ban. Officials say he was banned for having parents.
@@ -116,13 +116,13 @@ NEWSREADER: Good night.
 
 export const NEWS_5 = ep(
   "news_5",
-  "GB KREWS 24",
+  "KRUNCHE NEWS",
   "Krelford News at Six",
   "Who The Fuck Is Krebon",
   5,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - EVENING
 [MUSIC news fade]
 NEWSREADER: Good evening. Krezteua d'If has reopened, and is said to be filling with "versions of history".
@@ -135,13 +135,13 @@ NEWSREADER: A restaurant menu bearing the words "Krebon — real butter" has bee
 
 export const WILDERN_BULLETIN = ep(
   "krews_wildern",
-  "GB KREWS 24",
-  "GB Krews",
+  "KRUNCHE NEWS",
+  "Krunche News",
   "Wildern Destroyed / New Burger",
   1,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 # BREAKING: WILDERN ACADEMY DESTROYED
 INT. NEWSDESK - DAY
 [MUSIC news fade]
@@ -156,13 +156,13 @@ REPORTER: It's a burger. But the bun is also a burger.
 
 export const KRANDALL_SEGMENT = ep(
   "krews_krandall",
-  "GB KREWS 24",
-  "GB Krews",
+  "KRUNCHE NEWS",
+  "Krunche News",
   "Wildern's Krazy New Head",
   1,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 # CONCERNS GROW OVER WILDERN'S NEW HEAD
 INT. NEWSDESK - DAY
 [MUSIC news fade]
@@ -170,7 +170,7 @@ NEWSREADER: Good evening. Concerns are growing tonight over the new headmaster o
 NEWSREADER: Mr Krandall, seventy, describes himself as "krazy and zany". He wears a jester hat. We asked him why. He said "yeee".
 NEWSREADER: He has attracted controversy locally for his unorthodox teaching methods, and is rumoured to be a pussy juice addict.
 NEWSREADER: Parents say they are concerned about what their children are coming home saying about things and also stuff.
-NEWSREADER: GB Krews has obtained secret footage from inside his classroom. Some viewers may find it sticky.
+NEWSREADER: Krunche News has obtained secret footage from inside his classroom. Some viewers may find it sticky.
 INT. CLASSROOM - DAY
 # SECRET FOOTAGE: ENGLISH
 KRANKY KRANDALL: Right! Spelling test time!
@@ -209,13 +209,13 @@ NEWSREADER: The headmaster's office has since been locked from the inside. Witne
 /** The first thing on the telly in a new game: a word from our neighbours. */
 export const KLERBLE_WELCOME = ep(
   "klerble_welcome",
-  "GB KREWS 24",
-  "GB Krews",
+  "KRUNCHE NEWS",
+  "Krunche News",
   "A Message From Our Neighbours",
   1,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - EVENING
 [MUSIC news fade]
 NEWSREADER: Good evening. We interrupt this programme for a message from our neighbours across the bridge. We have been told we have to show it. We were not told why.
@@ -249,13 +249,13 @@ NEWSREADER: (long pause) …Well, that was lovely. We now return you to whatever
 
 export const KLERBLE_PRESSER = ep(
   "klerble_presser",
-  "GB KREWS 24",
-  "GB Krews",
+  "KRUNCHE NEWS",
+  "Krunche News",
   "Kreddle's President Has An Announcement",
   1,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 # BREAKING: KREDDLE PRESIDENT CALLS PRESS CONFERENCE
 INT. NEWSDESK - DAY
 [MUSIC news fade]
@@ -293,13 +293,13 @@ NEWSREADER: The Krel Tower has not been evacuated. The Krelworld cabinet is unde
 
 export const CABINET_LIVE = ep(
   "cabinet_live",
-  "GB KREWS 24",
+  "KRUNCHE NEWS",
   "Cabinet Proceedings Live",
   "Highlights: The Ministries",
   1,
   `
 [MUSIC news start]
-# GB KREWS 24: CABINET PROCEEDINGS LIVE
+# KRUNCHE NEWS: CABINET PROCEEDINGS LIVE
 INT. TOWNHALL CAM - DAY
 [MUSIC news fade]
 ANNOUNCER: Welcome to Cabinet Proceedings Live, where we bring you the best of Krelworld democracy.
@@ -395,7 +395,7 @@ const EPISODES: TVEpisode[] = [KLERBLE_WELCOME, KRANDALL_SEGMENT, KLERBLE_PRESSE
 const counts: Record<string, number> = {};
 export const ALL_EPISODES: TVEpisode[] = EPISODES.map((e) => ({ ...e, episodeNumber: (counts[e.channel] = (counts[e.channel] ?? 0) + 1) }));
 
-export const CHANNELS: string[] = ["GB KREWS 24", "CHANNEL KREZ", "BBK ONE", "WONKING MACHINE SHOPPING NETWORK", "KRELWORLD DOCUMENTARIES"];
+export const CHANNELS: string[] = ["KRUNCHE NEWS", "CHANNEL KREZ", "BBK ONE", "WONKING MACHINE SHOPPING NETWORK", "KRELWORLD DOCUMENTARIES"];
 
 /** Which set a shot uses (tv_<key> art; the k1_ sets are the 2026 redraws of the early stage sets). */
 export function setKeyFor(set: string): string {

@@ -8,7 +8,7 @@ import type { NewsCfg } from "../TVNews";
 import { gore } from "../tv/action";
 
 /**
- * GB Krews: Andy Burnham's first act (src/content/television/extra/krews3.ts, KREWS_BURNHAM_FIRST_ACT), the user's
+ * Krunche News: Andy Burnham's first act (src/content/television/extra/krews3.ts, KREWS_BURNHAM_FIRST_ACT), the user's
  * own gross-out satire. Live from Downing Street (kind "burnham"), the Manchester Wetherspoons with the presser on its
  * muted telly in the corner (kind "spoons"), then back. NewsDirector hands those scenes' beats to BurnhamShow.
  *
@@ -36,7 +36,7 @@ export const BURNHAM_NEWS: Record<string, NewsCfg> = {
       "PM's first act: 'The North is much better than the South'",
       "New law 'legally binding, no appeals'",
       "Sausage roll thrown at Downing Street presser",
-      "Pigeon lands on GB Krews camera, refuses to move",
+      "Pigeon lands on Krunche News camera, refuses to move",
       "Civil service 'clapping politely'",
       "Gravy shortage feared across the North West",
     ],
@@ -434,7 +434,7 @@ export class BurnhamShow {
     const cols = [0xc0c0c0, 0xc0c000, 0x00c0c0, 0x00c000, 0xc000c0, 0xc00000, 0x0000c0];
     cols.forEach((c, i) => this.add(sc.add.rectangle(SX + (i * SW) / 7, SY, SW / 7 + 1, SH * 0.7, c).setOrigin(0)));
     this.add(sc.add.rectangle(SX, SY + SH * 0.7, SW, SH * 0.3, 0x111111).setOrigin(0));
-    this.add(sc.add.text(this.cx, SY + SH * 0.36, "GB KREWS APOLOGISES", { fontFamily: FONT, fontSize: "26px", color: "#ffffff", fontStyle: "bold", backgroundColor: "#0b2a5c", padding: { x: 10, y: 6 } }).setOrigin(0.5));
+    this.add(sc.add.text(this.cx, SY + SH * 0.36, "KRUNCHE NEWS APOLOGISES", { fontFamily: FONT, fontSize: "26px", color: "#ffffff", fontStyle: "bold", backgroundColor: "#0b2a5c", padding: { x: 10, y: 6 } }).setOrigin(0.5));
     this.add(sc.add.text(this.cx, SY + SH * 0.5, what, { fontFamily: FONT, fontSize: "15px", color: "#ffffff", backgroundColor: "#111111", padding: { x: 8, y: 4 }, align: "center", wordWrap: { width: SW - 80 } }).setOrigin(0.5));
   }
 

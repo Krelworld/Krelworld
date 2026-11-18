@@ -4,7 +4,7 @@ import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 // Polson's Mum, Lucy is Eden, Harry is Drongus, Rory is Krezmar, Jenko is Flenky) and these changes:
 // - Gumption and Gravy: none beyond the names.
 // - The Sopranos: as written (the opening scene, with Carmela's "Jesus Christ, Tony!" back in). Its id is still
-//   krews_soprano (it first went out as a GB Krews "reconstruction"; saves remember it by that id).
+//   krews_soprano (it first went out as a Krunche News "reconstruction"; saves remember it by that id).
 // - Mole of Thrones: it opens on Jenko spotting the casting call (the poster scene is cut); the director calls him
 //   "Extra Number 3" and it's a see-through sack, and he's arrested for indecent exposure.
 // Shot in the genre each one parodies: a moody crime drama (tv/CrimeDrama.ts), a prestige fantasy drama crossed

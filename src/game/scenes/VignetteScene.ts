@@ -2216,7 +2216,7 @@ export class VignetteScene extends Phaser.Scene {
       noise.clear();
       for (let i = 0; i < 300; i++) noise.fillStyle(Math.random() < 0.5 ? 0xffffff : 0x666666, 0.6).fillRect(Math.random() * 960, Math.random() * 540, 4, 3);
     } });
-    const chans = ["CH 1: GB KREWS", "CH 2: KRELSPORTS", "CH 3: KIDS' KREL", "CH 4: THE COOKING CHANNEL", "CH 5: SHOPPING"];
+    const chans = ["CH 1: KRUNCHE NEWS", "CH 2: KRELSPORTS", "CH 3: KIDS' KREL", "CH 4: THE COOKING CHANNEL", "CH 5: SHOPPING"];
     const lbl = this.add.text(480, 270, "", { fontFamily: "monospace", fontSize: "30px", color: "#22c55e", backgroundColor: "#000000aa", padding: { x: 10, y: 6 } }).setOrigin(0.5).setDepth(502);
     for (const c of chans) {
       lbl.setText(`${c}\n▶ BREAKING NEWS: CROBLEY`);
@@ -4433,7 +4433,7 @@ export class VignetteScene extends Phaser.Scene {
       const tk = this.add.sprite(-55, 46, "spr_TV_PRESIDENT_KLERBLE", 4).setOrigin(0.5, 1).setScale(0.8);
       tv.add(tk);
       tv.add(this.add.text(-100, -56, "● REC  KRELBURGER CAM 2", { fontFamily: FONT, fontSize: "9px", color: "#ff4d4d" }));
-      tv.add(this.add.text(0, 76, "GB KREWS", { fontFamily: "Impact, sans-serif", fontSize: "13px", color: "#ffd23f" }).setOrigin(0.5));
+      tv.add(this.add.text(0, 76, "KRUNCHE NEWS", { fontFamily: "Impact, sans-serif", fontSize: "13px", color: "#ffd23f" }).setOrigin(0.5));
       const scan = this.add.rectangle(0, -60, 210, 4, 0xffffff, 0.15);
       tv.add(scan);
       this.tweens.add({ targets: scan, y: 50, duration: 1400, repeat: -1 });

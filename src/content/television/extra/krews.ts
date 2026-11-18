@@ -6,7 +6,7 @@ import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 // - The Cookie Monster statement had a page break mid-sentence; "in debt." bridges it.
 // - The Kendrick Lamar concert and the McCann betting advert are not included.
 
-const NEWS = "GB KREWS 24";
+const NEWS = "KRUNCHE NEWS";
 const SKETCH = "CHANNEL KREZ";
 
 const ep = (id: string, channel: string, show: string, title: string, n: number, script: string): TVEpisode => ({
@@ -21,12 +21,12 @@ const ep = (id: string, channel: string, show: string, title: string, n: number,
 export const KREWS_PELE = ep(
   "krews_pele",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Pelé's Dying Wish",
   1,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 # BREAKING: PELÉ ESTATE STATEMENT
 INT. NEWSDESK - DAY
 [MUSIC news fade]
@@ -48,12 +48,12 @@ NEWSREADER: Bitcoin is up four percent.
 export const KREWS_CHANCELLOR = ep(
   "krews_chancellor",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "The Chancellor's Video",
   2,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - DAY
 [MUSIC news fade]
 NEWSREADER: In a video that has sent shockwaves through the UK, the Chancellor uploaded a video of himself harming himself after being critiqued for his economic policies.
@@ -72,12 +72,12 @@ CHANCELLOR: I'll do it again and again until you stop. So just shut up and leave
 export const KREWS_TELLY = ep(
   "krews_telly",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "The Department of Telly",
   3,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - DAY
 [MUSIC news fade]
 NEWSREADER: The Conservative Party has announced plans to bring about the biggest political reform in 200 years, abolishing the role of Chancellor of the Exchequer and the Department of the Treasury, and replacing them with the department of Telly.
@@ -104,12 +104,12 @@ NEWSREADER: You're watching it either way.
 export const KREWS_ANTARCTICA = ep(
   "krews_antarctica",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Government Announces Plan to Nuke Antarctica",
   4,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 # GOVERNMENT ANNOUNCES PLAN TO NUKE ANTARCTICA
 INT. NEWSDESK - DAY
 [MUSIC news fade]
@@ -142,12 +142,12 @@ NEWSREADER: The government is currently looking for volunteers to help with the 
 export const KREWS_COOKIE = ep(
   "krews_cookie",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Cookie Monster: A Statement",
   5,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - DAY
 [MUSIC news fade]
 NEWSREADER: We go now to a statement released this morning from a children's television studio.
@@ -166,12 +166,12 @@ COOKIE MONSTER (tearful): But me want you to know that me are sorry. Me are sorr
 export const KREWS_MONEYBAGS = ep(
   "krews_moneybags",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "\"Moneybags\" Trial Ends With Not Guilty Verdict",
   6,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 # BREAKING: CONTROVERSIAL "MONEYBAGS" TRIAL ENDS WITH NOT GUILTY VERDICT
 INT. NEWSDESK - DAY
 [MUSIC news fade]
@@ -206,12 +206,12 @@ JUDGE KRELMOR: No comment.
 export const KREWS_UNIVERSE = ep(
   "krews_universe",
   NEWS,
-  "GB Krews",
+  "Krunche News",
   "Universes Collide",
   7,
   `
 [MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - DAY
 [MUSIC news fade]
 NEWSREADER: Scientists have announced that our universe has collided with the Super Smash Bros universe, and also with a third "sex themed" universe.

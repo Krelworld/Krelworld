@@ -295,6 +295,9 @@ export class HubScene extends Phaser.Scene {
   create(data: { at?: string; from?: string; advance?: boolean; chain?: boolean; flyover?: boolean; riseCut?: string }) {
     const s = G.s;
     this.riseCut = data?.riseCut ?? null;
+    // the town draws under everything else (the HUD, the telly, dialogue, menus). The dungeon-rise cut brings it to
+    // the top over the briefing room, and the scene list keeps that order, so put it back at the bottom every time
+    if (!this.riseCut) this.scene.sendToBack();
     if (data?.advance) endChapter();
     if (s.flags.companion_used) {
       const who = CHARACTERS[s.flags.companion as string]?.name ?? "Your lad";
@@ -1364,7 +1367,11 @@ export class HubScene extends Phaser.Scene {
       }
     } });
     await new Promise((r) => this.time.delayedCall(2600, r));
+    // (let it fade before the dialogue pauses the town, or it hangs there half-faded under every line)
     this.tweens.add({ targets: [title, sub], alpha: 0, duration: 500, onComplete: () => { title.destroy(); sub.destroy(); } });
+    await new Promise((r) => this.time.delayedCall(520, r));
+    if (title.active) title.destroy();
+    if (sub.active) sub.destroy();
     await this.talk([
       dir("When the dust settles, Wildern Academy is a smoking hole in the ground. Somewhere in the crater, a single jester-hat bell tinkles once, and is silent."),
       say("MIKEY", "YOU'VE DONE IT!!"),

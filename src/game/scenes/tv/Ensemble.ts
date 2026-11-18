@@ -47,7 +47,7 @@ export class EnsembleDirector extends ShowDirector {
     const { SX, SY, SW, SH } = this.r;
     if (this.genre === "parliament") {
       this.chamber(true);
-      this.strap(t.replace(/^GB KREWS 24:\s*/i, ""), "LIVE FROM THE KRELFORD TOWN HALL");
+      this.strap(t.replace(/^KRUNCHE NEWS:\s*/i, ""), "LIVE FROM THE KRELFORD TOWN HALL");
       return 2400;
     }
     if (this.genre === "drama") {

@@ -17,7 +17,7 @@ export interface Rect {
 }
 
 export interface Brand {
-  /** "GB KREWS 24" */
+  /** "KRUNCHE NEWS" */
   name: string;
   /** the short word on the ticker's tab */
   short: string;
@@ -28,9 +28,9 @@ export interface Brand {
 }
 
 export const BRANDS: Record<string, Brand> = {
-  gbk: { name: "GB KREWS 24", short: "KREWS", main: 0xc8102e, accent: 0x0b2a5c, clock: "18:00" },
+  gbk: { name: "KRUNCHE NEWS", short: "KRUNCHE", main: 0xc8102e, accent: 0x0b2a5c, clock: "18:00" },
   kreltv: { name: "KRELTV NEWS", short: "KRELTV", main: 0xb91c1c, accent: 0x111111, clock: "21:00" },
-  gbksport: { name: "GB KREWS SPORT", short: "SPORT", main: 0x15803d, accent: 0x0b2a5c, clock: "22:30" },
+  gbksport: { name: "KRUNCHE NEWS SPORT", short: "SPORT", main: 0x15803d, accent: 0x0b2a5c, clock: "22:30" },
 };
 
 const hex = (c: number) => `#${c.toString(16).padStart(6, "0")}`;

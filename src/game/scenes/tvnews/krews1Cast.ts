@@ -1,7 +1,7 @@
 import type { AnchorDef } from "./Presenter";
 
 /**
- * Guests on the first GB Krews shows (src/content/television/extra/krews.ts and krews2.ts, and the Krelford News at
+ * Guests on the first Krunche News shows (src/content/television/extra/krews.ts and krews2.ts, and the Krelford News at
  * Six in channels.ts), redrawn from their old 64px stage sprites as PixelLab medium shots in the same 128x128
  * four-frame rows as the other presenters (rest first, then the gesture; 0 mouth closed, 1 part-open, 2 wide,
  * 3 blink). The shows themselves are in krews1Shows.ts.

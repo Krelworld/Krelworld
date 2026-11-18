@@ -1,7 +1,7 @@
 import type { AnchorDef } from "./Presenter";
 
 /**
- * The cast of the "news stories" GB Krews shows (src/content/television/extra/krews3.ts): PixelLab medium shots in the
+ * The cast of the "news stories" Krunche News shows (src/content/television/extra/krews3.ts): PixelLab medium shots in the
  * same 128x128 four-frame rows as the other presenters (rest first, then the gestures). Keys with an "@" are the same
  * speaker in another place (Starmer on his battle bus rather than at a lectern); a scene picks them with `anchors`.
  */

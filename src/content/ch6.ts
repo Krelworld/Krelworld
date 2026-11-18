@@ -56,7 +56,7 @@ export const KT_AFTER: Line[] = [
   dir("The Kreddle Express screams out of the station and onto the Kreddle Bridge, towards Krelworld, at three hundred miles an hour. The Krunchers are still waving. They're waving with both hands. And they're both middle fingers."),
   say("KREDDLER", "That's our President! He'll show those Tap-lickers!"),
   dir("You will remember their faces. Every single one of them."),
-  ping("DRONGUS", "Who's watching GB Krews right now"),
+  ping("DRONGUS", "Who's watching Krunche News right now"),
   ping("DRONGUS", "Those Kruncher cunts are cheering"),
   ping("DRONGUS", "Unbelievable"),
 ];
@@ -127,9 +127,9 @@ export const KB_ORDER: Line[] = [
   say("PRESIDENT KLERBLE", "YES! YES! YESSS!!"),
 ];
 
-/** GB Krews has the Krelburger CCTV. The lads find out about Polson. */
+/** Krunche News has the Krelburger CCTV. The lads find out about Polson. */
 export const RM_POLSON: Line[] = [
-  say("SCROMBUS", "Item two. It gets worse. GB Krews has got the CCTV from Krelburger. They're playing it on a loop."),
+  say("SCROMBUS", "Item two. It gets worse. Krunche News has got the CCTV from Krelburger. They're playing it on a loop."),
   dir("Grainy footage on the Town Hall telly. A queue. A very large man at the front of it. A President behind him. A gold revolver. A flash."),
   say("KREZMAR", "Is that… is that Polson?"),
   say("CRONGUS", "He shot him. He shot him in the QUEUE."),

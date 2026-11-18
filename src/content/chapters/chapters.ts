@@ -243,7 +243,7 @@ export const CHAPTERS: ChapterDef[] = [
     dungeon: "airport",
     dungeonDoor: "AIRPORT",
     steps: [
-      { id: "s_brief", text: "KRELMERGENCY: the lads are glued to the telly in the FGM War Room (under the Archive). Something's on GB Krews.", done: { flag: "arcstep_arc_klerble_brief" }, target: "ARCHIVE" },
+      { id: "s_brief", text: "KRELMERGENCY: the lads are glued to the telly in the FGM War Room (under the Archive). Something's on Krunche News.", done: { flag: "arcstep_arc_klerble_brief" }, target: "ARCHIVE" },
       { id: "s_dungeon", text: "Get to Krelford International, get on Flight KR-069 and fly it into the Kreddle Express before it reaches the Krel Tower", done: { flag: "kreltower_resolved" }, target: "AIRPORT" },
       { id: "s_meeting", text: "KRELMERGENCY: the Krel Tower is gone. Emergency meeting at the Town Hall", done: { flag: "revenge_meeting" }, target: "TOWN_HALL" },
       { id: "s_raid", text: "Lead the Krew over the Kreddle Bridge (far west). Revenge. Chemical. Total.", done: { flag: "nuke_planted" }, target: "KREDDLE_BRIDGE" },
@@ -254,7 +254,7 @@ export const CHAPTERS: ChapterDef[] = [
       dir("It's Kreddle. It's President Klerble. He's smiling. That's never good."),
       ping("DRONGUS", "Oh for fuck's sake"),
       ping("DRONGUS", "I was READY. I'd done my hair"),
-      ping("MIKEY", "War Room. Now. It's on GB Krews"),
+      ping("MIKEY", "War Room. Now. It's on Krunche News"),
     ],
     playerScene: {
       FLENKY: [say("FLENKY", "Mollor works on the top floor of the Krel Tower. If Kreddle so much as looks at it, I'm going dark Jenko again. I'm going to go reyp mode."), dir("You check you've still got the mask. You've still got the mask.")],

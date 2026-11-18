@@ -1,30 +1,30 @@
 import { parseScreenplay, type TVEpisode } from "../../../game/systems/tv";
 
-// "Krelmon" news stories, staged as GB Krews broadcasts on the same sets and presenters as krews3.ts (see
+// "Krelmon" news stories, staged as Krunche News broadcasts on the same sets and presenters as krews3.ts (see
 // src/game/scenes/tvnews/krews4Shows.ts for how each one is shot). The article wording is kept; where an article
 // reports what someone said, they say it, and the newsreader carries the rest. Changes:
 // - The Cuddle Cronster (KRELWORLD spelling) harasses the women of Krelford rather than a football club's women's
 //   team; the club chairman's "no comment" is gone.
-// - Starmer's Halloween costume is described but never shown (GB Krews "has chosen not to show" the photos).
+// - Starmer's Halloween costume is described but never shown (Krunche News "has chosen not to show" the photos).
 // - "The Descent" (the age of consent): the cabinet room, the markets, the crowd and the hot mic as written, with
 //   only adults anywhere on screen; Corbyn's text message is cut.
 // - Kitchen Nightmares runs as an entertainment package: the clip as written, with the newsreader in and out.
 // Not included: the Soprano household story (it's a scene from the show, not news: DRAMA_SOPRANOS in dramas.ts, which
 // keeps the id krews_soprano) and "Rishi Sunak Makes Bizarre Reference to Penis" (already on air as drama_special_parts, "Rishi's Special Parts" on BBK One).
 
-const NEWS = "GB KREWS 24";
+const NEWS = "KRUNCHE NEWS";
 
 const ep = (id: string, title: string, n: number, script: string): TVEpisode => ({
   id,
   channel: NEWS,
-  show: "GB Krews",
+  show: "Krunche News",
   title,
   episodeNumber: n,
   beats: parseScreenplay(script),
 });
 
 const OPEN = (time: "DAY" | "NIGHT" = "DAY") => `[MUSIC news start]
-# GB KREWS 24
+# KRUNCHE NEWS
 INT. NEWSDESK - ${time}
 [MUSIC news fade]`;
 
@@ -192,7 +192,7 @@ NEWSREADER: In a shocking turn of events, Vice President Kamala Harris and forme
 NEWSREADER: However, even this bizarre development has been relegated to second place on the news cycle, overtaken by an extraordinary scandal surrounding the UK Prime Minister.
 INT. COSTUME PHOTO GRAPHIC
 NEWSREADER: At the annual Downing Street Halloween party, the Prime Minister arrived dressed as "African Adolf Hitler," complete with full blackface makeup.
-NEWSREADER: Photos of the costume spread like wildfire, sparking international outrage and a swift scramble from Downing Street for damage control. GB Krews has chosen not to show them.
+NEWSREADER: Photos of the costume spread like wildfire, sparking international outrage and a swift scramble from Downing Street for damage control. Krunche News has chosen not to show them.
 INT. LABOUR HQ PRESS ROOM - DAY
 # LIVE: A CHAOTIC PRESS CONFERENCE
 KEIR STARMER: Look, mistakes were made, but I'm not the same person I was three days ago.
@@ -367,7 +367,7 @@ export const KREWS_DESCENT = ep(
   `${OPEN()}
 # BREAKING: STOCK MARKET CRASH · RECESSION DECLARED
 NEWSREADER: In an extraordinary cabinet meeting to address the stock market crash and declared recession, Prime Minister Keir Starmer has proposed a radical solution that left his cabinet ministers stunned.
-NEWSREADER: GB Krews has obtained footage from inside the room.
+NEWSREADER: Krunche News has obtained footage from inside the room.
 INT. CABINET ROOM - DAY
 # SECRET FOOTAGE: THE CABINET ROOM
 KEIR STARMER: Ladies and gentlemen, we are in a crisis. The stock market crash and the declared recession are unprecedented. I've invited our top industry experts to share their insights.

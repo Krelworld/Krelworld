@@ -1,7 +1,7 @@
 import type { NewsCfg } from "../TVNews";
 
 /**
- * The "news stories" GB Krews shows (src/content/television/extra/krews3.ts): Klopp's bribe on GB Krews Sport, Sunak's
+ * The "news stories" Krunche News shows (src/content/television/extra/krews3.ts): Klopp's bribe on Krunche News Sport, Sunak's
  * bomb threat, the Starmer election special and Microsoft's "Crash Mode" press conference. Besides the desk and the
  * press pack they use the story kinds below; NewsDirector draws them (the "news stories" block in TVNews.ts).
  *
@@ -104,8 +104,8 @@ export const KREWS3_NEWS: Record<string, NewsCfg> = {
       { match: /Klopp/i, pic: KLOPP, caption: "Jürgen Klopp" },
     ],
     straps: {
-      NEWSREADER: ["GB Krews Sport", "Live from the Krelford studio"],
-      REPORTER: ["Reporter", "GB Krews Sport, at Anfield"],
+      NEWSREADER: ["Krunche News Sport", "Live from the Krelford studio"],
+      REPORTER: ["Reporter", "Krunche News Sport, at Anfield"],
       "JURGEN KLOPP": ["Jürgen Klopp", "Liverpool manager · his final match"],
       "MARK HUGHES": ["Mark Hughes", "Referee"],
     },
@@ -129,7 +129,7 @@ export const KREWS3_NEWS: Record<string, NewsCfg> = {
     ],
     straps: {
       "RISHI SUNAK": ["Rishi Sunak", "Prime Minister"],
-      REPORTER: ["Reporter", "GB Krews, Downing Street"],
+      REPORTER: ["Reporter", "Krunche News, Downing Street"],
     },
   },
 
@@ -245,7 +245,7 @@ export const KREWS3_NEWS: Record<string, NewsCfg> = {
       "MARGARET THOMPSON": ["Margaret Thompson", "Lifelong Labour supporter"],
       "DR ELAINE ROBERTS": ["Dr Elaine Roberts", "Political expert"],
       "LABOUR INSIDER": ["Senior Labour official", "Speaking anonymously"],
-      REPORTER: ["Reporter", "GB Krews"],
+      REPORTER: ["Reporter", "Krunche News"],
     },
   },
 
@@ -274,7 +274,7 @@ export const KREWS3_NEWS: Record<string, NewsCfg> = {
       "KEIR STARMER": ["Keir Starmer", "Labour leader"],
       "RISHI SUNAK": ["Rishi Sunak", "Conservative leader"],
       "TORY MP": ["Conservative MP", "Was in the meeting"],
-      REPORTER: ["Reporter", "GB Krews, Westminster"],
+      REPORTER: ["Reporter", "Krunche News, Westminster"],
     },
   },
 
@@ -315,7 +315,7 @@ export const KREWS3_NEWS: Record<string, NewsCfg> = {
     ],
     straps: {
       EXECUTIVE: ["Microsoft executive", "Flight Simulator: Crash Mode"],
-      REPORTER: ["Reporter", "GB Krews, Redmond"],
+      REPORTER: ["Reporter", "Krunche News, Redmond"],
       JOURNALIST: ["Journalist", "In the press pack"],
     },
     // the game itself (tvnews/mediaClips.ts): a cartoon collision, no one in it
@@ -394,7 +394,7 @@ export const KREWS3_NEWS: Record<string, NewsCfg> = {
       "BOARD MEMBER": ["Hospital board member", "Voted for the sequel"],
       "REBECCA HALL": ["Rebecca Hall", "Attorney"],
       "MARTIN BELL": ["Martin Bell", "Chairman, investigating committee"],
-      REPORTER: ["Reporter", "GB Krews, at the hospital"],
+      REPORTER: ["Reporter", "Krunche News, at the hospital"],
     },
   },
 
@@ -490,7 +490,7 @@ export const KREWS3_NEWS: Record<string, NewsCfg> = {
       "KEMI BADENOCH": ["Kemi Badenoch", "Leader of the Conservative Party"],
       "DAISY COOPER": ["Daisy Cooper", "Liberal Democrat leader"],
       JOURNALIST: ["Journalist", "In the press pack"],
-      REPORTER: ["Reporter", "GB Krews, Downing Street"],
+      REPORTER: ["Reporter", "Krunche News, Downing Street"],
     },
   },
 };

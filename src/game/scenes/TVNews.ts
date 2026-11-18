@@ -14,7 +14,7 @@ import { fling, impact, playClip, type ClipOpts } from "./tv/action";
 import { mediaClip, type MediaClip, type MediaClipDef } from "./tvnews/mediaClips";
 
 /**
- * GB Krews presentation for the story's compulsory broadcasts (Klerble's welcome and presser, the Krandall segment,
+ * Krunche News presentation for the story's compulsory broadcasts (Klerble's welcome and presser, the Krandall segment,
  * the Wildern bulletin). Like PovDirector it draws the whole picture beat by beat inside the telly, but as a news
  * channel: an ident, bug, clock, ticker and straps (NewsChrome), PixelLab presenters who lip-sync and gesture line by
  * line (Presenter), each story on its own set, and news camera language (slow push-ins, a trucking wide, the press
@@ -140,10 +140,10 @@ export const NEWS_SHOWS: Record<string, NewsCfg> = {
 };
 
 const STRAPS: Record<string, [string, string]> = {
-  NEWSREADER: ["GB Krews", "Live from the Krelford studio"],
+  NEWSREADER: ["Krunche News", "Live from the Krelford studio"],
   "PRESIDENT KLERBLE": ["President Klerble", "President of Kreddle"],
   "KRANKY KRANDALL": ["Mr Kranky Krandall", "Headmaster, Wildern Academy · 70"],
-  REPORTER: ["Reporter", "GB Krews"],
+  REPORTER: ["Reporter", "Krunche News"],
 };
 
 export class NewsDirector {
@@ -304,7 +304,7 @@ export class NewsDirector {
 
   // ------------------------------------------------------------------ shots
 
-  /** The GB Krews studio, wide: the anchor small behind the desk, the camera trucking slowly across, the wall alive. */
+  /** The Krunche News studio, wide: the anchor small behind the desk, the camera trucking slowly across, the wall alive. */
   private studioWide(name = "NEWSREADER") {
     this.clearShot();
     this.drawn = true;
@@ -678,7 +678,7 @@ export class NewsDirector {
     }
     if (/^SECRET FOOTAGE/i.test(t)) {
       this.footageCaption?.setText(t.toUpperCase());
-      this.chrome.headline(`GB Krews exclusive · ${t}`);
+      this.chrome.headline(`Krunche News exclusive · ${t}`);
       // the footage jumps: a glitch between clips
       const { SX, SY, SW, SH } = this.r;
       const g = this.add(this.sc.add.rectangle(SX, SY, SW, SH, 0xffffff, 0.35).setOrigin(0), this.fxLayer);
@@ -1221,7 +1221,7 @@ export class NewsDirector {
       this.hotCaption = t.toUpperCase();
       if (this.scene.kind === "mob") this.mobHotMic();
       this.footageCaption?.setText(this.hotCaption);
-      this.chrome.headline(`GB Krews exclusive · ${t}`);
+      this.chrome.headline(`Krunche News exclusive · ${t}`);
       return 0;
     }
     if (/^PART [A-Z]+:|^ELECTION SPECIAL/i.test(t)) return this.partCard(t);
@@ -1291,7 +1291,7 @@ export class NewsDirector {
     this.grain(hot ? 110 : 160);
     const vg = this.add(this.sc.add.graphics(), this.fxLayer);
     for (let i = 0; i < 8; i++) vg.lineStyle(16, 0x000000, 0.09).strokeRect(SX + i * 8, SY + i * 8, SW - i * 16, SH - i * 16);
-    const exclusive = this.chrome.headlineNow.match(/^GB Krews exclusive · (.+)$/i)?.[1];
+    const exclusive = this.chrome.headlineNow.match(/^Krunche News exclusive · (.+)$/i)?.[1];
     const cap = hot ? this.hotCaption || "HOT MIC" : (exclusive ?? "SECRET FOOTAGE").toUpperCase();
     this.footageCaption = this.add(this.sc.add.text(SX + 16, SY + 46, cap, { fontFamily: FONT, fontSize: "14px", color: "#111827", backgroundColor: "#facc15", padding: { x: 6, y: 3 }, fontStyle: "bold" }), this.fxLayer);
     if (!hot) {
@@ -1938,7 +1938,7 @@ export class NewsDirector {
     bg.fillGradientStyle(brand.accent, brand.accent, 0x020617, 0x020617, 0.97).fillRect(SX, SY, SW, SH);
     bg.fillStyle(brand.main, 1).fillRect(SX, SY + SH * 0.36, SW, 6).fillRect(SX, SY + SH * 0.66, SW, 6);
     c.add(bg);
-    c.add(this.sc.add.text(SX + 30, SY + SH * 0.36 + 16, head ? `GB KREWS · ${head}` : "GB KREWS · SPECIAL", { fontFamily: FONT, fontSize: "15px", color: "#fde68a", fontStyle: "bold" }));
+    c.add(this.sc.add.text(SX + 30, SY + SH * 0.36 + 16, head ? `KRUNCHE NEWS · ${head}` : "KRUNCHE NEWS · SPECIAL", { fontFamily: FONT, fontSize: "15px", color: "#fde68a", fontStyle: "bold" }));
     c.add(this.sc.add.text(SX + 30, SY + SH * 0.36 + 42, rest.toUpperCase(), { fontFamily: FONT, fontSize: "26px", color: "#ffffff", fontStyle: "bold", wordWrap: { width: SW - 60 } }));
     const gl = this.chrome.globe(SX + SW - 70, SY + SH * 0.2, 46, 0xffffff, c, 0.6);
     void gl;
@@ -2521,7 +2521,7 @@ export class NewsDirector {
     return 3000;
   }
 
-  /** A full-screen graphic the story's own: the photograph GB Krews won't show. */
+  /** A full-screen graphic the story's own: the photograph Krunche News won't show. */
   private k4Graphic(g: K4Gfx) {
     const { SX, SY, SW, SH } = this.r;
     const brand = BRANDS[this.cfg.brand];

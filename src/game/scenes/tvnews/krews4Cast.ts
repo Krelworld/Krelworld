@@ -1,7 +1,7 @@
 import type { AnchorDef } from "./Presenter";
 
 /**
- * The cast of the Krelmon GB Krews shows (src/content/television/extra/krews4.ts): PixelLab medium shots in the same
+ * The cast of the Krelmon Krunche News shows (src/content/television/extra/krews4.ts): PixelLab medium shots in the same
  * 128x128 four-frame rows as the other presenters (rest first, then the gestures; 0 mouth closed, 1 part-open, 2 wide,
  * 3 blink). Speakers who borrow someone else's art (the vox pops, the advocacy spokesperson, two of the industry
  * experts) are mapped per scene with `anchors` in krews4Shows.ts.

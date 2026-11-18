@@ -2,7 +2,7 @@ import type { NewsCfg } from "../TVNews";
 import type { AnchorDef } from "./Presenter";
 
 /**
- * Gordon Ramsey's "Food History Moment" on GB Krews (KREWS_RAMSEY_TURKEY in src/content/television/extra/krews3.ts).
+ * Gordon Ramsey's "Food History Moment" on Krunche News (KREWS_RAMSEY_TURKEY in src/content/television/extra/krews3.ts).
  * The documentary is fictional (no broadcaster's logo on the art): its cosy TV-kitchen set with the roast turkey on
  * the island, Ramsey (the game's GORDON RAMSAY art) and Dr Leigh Bramwell (fictional) in a field scene with the
  * documentary's own look (`rmDoc`), and PixelLab close-up inserts (public/art/tv/action/rm_*.png, tva_rm_* sheets):

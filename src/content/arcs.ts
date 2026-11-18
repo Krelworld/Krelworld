@@ -188,7 +188,7 @@ export const ARCS: Arc[] = [
     steps: [
       {
         id: "brief",
-        text: "KRELMERGENCY: the lads are glued to the telly in the FGM War Room (under the Archive). Something's on GB Krews.",
+        text: "KRELMERGENCY: the lads are glued to the telly in the FGM War Room (under the Archive). Something's on Krunche News.",
         at: "ARCHIVE",
         step: {
           kind: "vignette",

@@ -77,7 +77,7 @@ export const SANJEEV_TALK: TalkSet[] = [
   {
     priority: 10,
     lines: [
-      sj("Have you noticed how every time something terrible happens in Krelford, GB Krews just sort of… shows it?"),
+      sj("Have you noticed how every time something terrible happens in Krelford, Krunche News just sort of… shows it?"),
       sj("No questions. No context. Coverage has been relatively supine, mate."),
       sj("I'm not saying anything. I'm just saying look into it."),
     ],

@@ -125,7 +125,7 @@ export const EMERGENCY_REACTION_SESSION: MeetingScript = {
     say("KREBLIS", "Pressure readings say the pussy juice blockage is under Wildern Academy", { role: true, proctus: "There's a blockage under Wildern. I can smell it from here. It smells like a fishmonger's wedding." }),
     say("KREBLIS", "Wildern hosts the main pussy juice pipe. Whoever's got Wildern has got the Tap", { cond: { notPlayer: "KREBLIS" } }),
     ...SJ_TAP,
-    say("SCROMBUS", "Wildern. Hang on. Wasn't Wildern on the news? Someone put GB Krews on."),
+    say("SCROMBUS", "Wildern. Hang on. Wasn't Wildern on the news? Someone put Krunche News on."),
     say("MIKEY", "Mikey here. On it."),
     { s: "NARRATOR", t: "", tv: "krews_krandall" },
     dir("The telly clicks off. Nobody speaks for a long time."),

@@ -1,7 +1,7 @@
 import type { NewsCfg } from "../TVNews";
 
 /**
- * The Krelmon GB Krews shows (src/content/television/extra/krews4.ts). They use the desk, the press pack and the
+ * The Krelmon Krunche News shows (src/content/television/extra/krews4.ts). They use the desk, the press pack and the
  * krews3 story kinds (field, vox, keynote, graphic), plus what's below; NewsDirector draws it all (the "news stories
  * 4" block in TVNews.ts).
  *
@@ -104,7 +104,7 @@ export const KREWS4_NEWS: Record<string, NewsCfg> = {
       "ADVOCACY SPOKESPERSON": ["Spokesperson", "Disability advocacy group"],
       "JUICE BUNNY": ["'Cronny's Juice Bunny'", "Supporter of the Cronster"],
       "LABOUR BACKBENCHER": ["Labour backbencher", "Speaking anonymously"],
-      REPORTER: ["Reporter", "GB Krews, Westminster"],
+      REPORTER: ["Reporter", "Krunche News, Westminster"],
     },
   },
 
@@ -145,7 +145,7 @@ export const KREWS4_NEWS: Record<string, NewsCfg> = {
       "MILITARY SPOKESPERSON": ["Senior military spokesperson", "British Army"],
       WITNESS: ["Witness", "Lives nearby"],
       "KEIR STARMER": ["Sir Keir Starmer", "Prime Minister"],
-      REPORTER: ["Reporter", "GB Krews, at the scene"],
+      REPORTER: ["Reporter", "Krunche News, at the scene"],
     },
   },
 
@@ -175,7 +175,7 @@ export const KREWS4_NEWS: Record<string, NewsCfg> = {
       { match: /BRADFORD/, kind: "vox", set: "tv_k4_bradford", where: "Bradford · the new capital" },
     ],
     ots: [{ match: /Bradford|capital|cost|someday/i, pic: { key: "tv_k4_bradford", crop: [40, 0, 220, 160] }, caption: "Bradford" }],
-    straps: { REPORTER: ["Reporter", "GB Krews, Bradford"] },
+    straps: { REPORTER: ["Reporter", "Krunche News, Bradford"] },
   },
 
   krews_harumpis: {
@@ -189,7 +189,7 @@ export const KREWS4_NEWS: Record<string, NewsCfg> = {
     ],
     scenes: [
       STUDIO,
-      { match: /COSTUME PHOTO/, kind: "graphic", set: "", k4gfx: { type: "withheld", title: "THE DOWNING STREET HALLOWEEN PARTY", caption: "IMAGE WITHHELD BY GB KREWS" } },
+      { match: /COSTUME PHOTO/, kind: "graphic", set: "", k4gfx: { type: "withheld", title: "THE DOWNING STREET HALLOWEEN PARTY", caption: "IMAGE WITHHELD BY KRUNCHE NEWS" } },
       { match: /HOT MIC/, kind: "field", set: "tv_labour_hq_night", look: "hotmic", cast: [["KEIR STARMER", 0.5]], anchors: { "KEIR STARMER": "KEIR STARMER@BUS" } },
       { match: /LABOUR HQ PRESS/, kind: "presser", set: "tv_labour_press" },
     ],
@@ -200,7 +200,7 @@ export const KREWS4_NEWS: Record<string, NewsCfg> = {
     ],
     straps: {
       "KEIR STARMER": ["Sir Keir Starmer", "Prime Minister"],
-      REPORTER: ["Reporter", "GB Krews"],
+      REPORTER: ["Reporter", "Krunche News"],
     },
   },
 
@@ -344,7 +344,7 @@ export const KREWS4_NEWS: Record<string, NewsCfg> = {
       { match: /Strongbow|Wetherspoons/i, pic: { key: "tv_ee_vic", crop: [40, 20, 220, 160] }, caption: "The Wetherspoons Cabinet" },
       { match: /post-mortem|Prime Minister/i, pic: STARMER, caption: "'Absolutely sure'" },
     ],
-    straps: { "KEIR STARMER": ["Keir Starmer", "Prime Minister"], REPORTER: ["Reporter", "GB Krews, Downing Street"] },
+    straps: { "KEIR STARMER": ["Keir Starmer", "Prime Minister"], REPORTER: ["Reporter", "Krunche News, Downing Street"] },
   },
 
   krews_descent: {

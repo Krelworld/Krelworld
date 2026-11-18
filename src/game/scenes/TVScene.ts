@@ -90,7 +90,7 @@ export class TVScene extends Phaser.Scene {
   private sel = 0;
   /** POV presentation, for episodes with style "pov" */
   private pov: PovDirector | ShowDirector | null = null;
-  /** GB Krews presentation, for the story's compulsory bulletins (see TVNews.ts) */
+  /** Krunche News presentation, for the story's compulsory bulletins (see TVNews.ts) */
   private news: NewsDirector | null = null;
   private newsOutro = false;
   /** how long the current beat's picture wants (an animated sequence) */
@@ -109,6 +109,8 @@ export class TVScene extends Phaser.Scene {
   create(data: { overlay?: boolean; caller?: string; fromTitle?: boolean; episode?: string; once?: boolean }) {
     this.once = !!data?.once;
     this.overlay = !!data?.overlay;
+    // over whatever launched it, whatever order the scene list has ended up in
+    this.scene.bringToTop();
     this.caller = data?.caller ?? "";
     this.fromTitle = !!data?.fromTitle;
     this.mode = "channels";

@@ -86,6 +86,8 @@ export class UIScene extends Phaser.Scene {
       loop: true,
       callback: () => {
         if (!DRONGUS_STATUSES.length || !G.s.flags.met_emergency || this.mode !== "hub" || Date.now() < G.rt.nextStatusAt) return;
+        // not over a conversation, the telly or a menu (they dim the screen over the HUD, so it'd come up greyed out)
+        if (["Dialogue", "TV", "Menu", "Meeting", "Cutscene", "Vignette"].some((k) => this.scene.isActive(k)) || this.scene.isPaused("Hub")) return;
         G.rt.nextStatusAt = Date.now() + 34000 + Math.random() * 12000;
         if (!G.rt.statusDeck.length) G.rt.statusDeck = Phaser.Utils.Array.Shuffle(DRONGUS_STATUSES.map((_, i) => i));
         const st = DRONGUS_STATUSES[G.rt.statusDeck.pop()!];

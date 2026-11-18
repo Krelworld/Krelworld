@@ -1,7 +1,7 @@
 import type { NewsCfg, SceneDef } from "../TVNews";
 
 /**
- * The first GB Krews shows (src/content/television/extra/krews.ts, krews2.ts) and the Krelford News at Six
+ * The first Krunche News shows (src/content/television/extra/krews.ts, krews2.ts) and the Krelford News at Six
  * (channels.ts), moved off the old plain stage (64px sprites in front of a set) onto the news presentation the later
  * shows use: the ident, the studio and its anchor, straps and ticker, the press pack, the reporter on location and
  * vox singles. Their guests are in krews1Cast.ts; the tickers are lines from the bulletins themselves.
@@ -40,7 +40,7 @@ export const KREWS1_NEWS: Record<string, NewsCfg> = {
     ],
     scenes: [STUDIO, { match: /POLSON TOWERS/, kind: "vox", set: "tv_k1_polson", where: "Polson Towers" }],
     ots: [{ match: /Polson Towers/i, pic: { key: "tv_k1_polson", crop: [60, 20, 200, 150] }, caption: "Polson Towers" }],
-    straps: { REPORTER: ["Reporter", "GB Krews, at Polson Towers"] },
+    straps: { REPORTER: ["Reporter", "Krunche News, at Polson Towers"] },
   },
   news_3: DESK_ONLY([
     "Ministry of Boner Control has gone dark",
@@ -61,7 +61,7 @@ export const KREWS1_NEWS: Record<string, NewsCfg> = {
     "'Krebon — real butter' menu declared a site of national prophetic significance",
   ]),
 
-  // ---- GB Krews (krews.ts)
+  // ---- Krunche News (krews.ts)
   krews_pele: {
     brand: "gbk",
     ticker: ["Pelé estate statement", "Pelé's assets 'belong to Bitcoin, and Bitcoin alone'", "Bitcoin is up four percent"],
@@ -123,7 +123,7 @@ export const KREWS1_NEWS: Record<string, NewsCfg> = {
     ots: [],
   },
 
-  // ---- GB Krews (krews2.ts)
+  // ---- Krunche News (krews2.ts)
   krews_chomsky_sharks: {
     brand: "gbk",
     ticker: ["Professor Noam Chomsky dies on shark-watching trip", "Hospice staff 'lost their grip'"],

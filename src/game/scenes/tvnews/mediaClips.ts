@@ -6,7 +6,7 @@ import { calm, gore } from "../tv/action";
 import type { Rect } from "./NewsChrome";
 
 /**
- * Clips of the media a news story is about, played over the newsreader's lines: the GB Krews reviews and outrages cut
+ * Clips of the media a news story is about, played over the newsreader's lines: the Krunche News reviews and outrages cut
  * away to the game, the programme or the video itself, the way Kill the Patient 2 does (ktpGame.ts). A show's NewsCfg
  * lists its clips (`clips`), and an `[INSERT <id> <n>]` beat in the script cuts to one and holds it over the next n
  * lines; each of those lines moves the footage on (`line(i)`), so the picture follows what's being described. The

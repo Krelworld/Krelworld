@@ -3452,7 +3452,10 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   private async crystalGet(b: Boss): Promise<void> {
     if (!carriesCrystal(b.bossId) || G.s.flags[`crystal_${b.bossId}`]) return;
     await playCine(this, "crystal");
-    if (this.sys.settings.active) await this.crystalParty(b);
+    // (a cutscene overlay pauses the room and it's resumed a frame or so later: wait for that rather than skip the
+    // whole crystal moment, jingle and all, because the room was still paused when we looked; only give up if it's gone)
+    for (let i = 0; i < 120 && this.sys && this.sys.isPaused(); i++) await new Promise((r) => window.setTimeout(r, 25));
+    if (this.sys && (this.sys.isActive() || this.sys.isPaused())) await this.crystalParty(b);
   }
 
   /** Every main boss drops one: a big, loud, sparkly moment. */

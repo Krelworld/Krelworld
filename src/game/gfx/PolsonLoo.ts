@@ -137,7 +137,7 @@ export async function polsonLoo(sc: Phaser.Scene, host: LooHost): Promise<void> 
     synth.play("door");
     synth.play("boom", 0.6);
     shake(420, 0.03);
-    void Juice.impactFrames(sc, null, 55, 4970);
+    void Juice.impactFrames(sc, null, 55, DEPTH + 2);
     root.add(sfxText(sc, "SLAM!!", 480, 300, 110, "#ffd23f", -9));
     await hold(700, host);
     if (done()) return;
@@ -205,7 +205,7 @@ export async function polsonLoo(sc: Phaser.Scene, host: LooHost): Promise<void> 
     const barT = sc.add.text(480, 470, "CENSORED BY THE MINISTRY OF DIGNITY", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#ffffff" }).setOrigin(0.5);
     root.add([still, vib, bar, barT]);
     synth.play("fart");
-    Juice.flash(sc, 0x6b3f1d, 220, 0.6, 4980);
+    Juice.flash(sc, gore ? 0x6b3f1d : 0x84cc16, 220, 0.6, DEPTH + 2);
     // the whole toilet rattles
     const rattle = sc.tweens.add({ targets: still, x: { from: 474, to: 486 }, duration: calm ? 90 : 45, yoyo: true, repeat: -1 });
     every(70, () => {

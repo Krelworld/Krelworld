@@ -86,7 +86,7 @@ export function goSuper(p: Player, now: number) {
   sc.time.delayedCall(CUT - 300, () => {
     sc.tweens.add({ targets: cam, zoom: z0, duration: 300, ease: "Quad.in" });
     sc.tweens.add({ targets: dark, fillAlpha: 0, duration: 300, onComplete: () => dark.destroy() });
-    w.toast("GOLDEN JUICE TRANSFORMATION", `${superMs() / 1000}s. ATTACK = mega melee. C = CUMEHAMEHA.`);
+    w.toast("GOLDEN JUICE TRANSFORMATION", `${Math.round(superMs() / 1000)}s. ATTACK = mega melee. C = CUMEHAMEHA.`);
   });
 }
 

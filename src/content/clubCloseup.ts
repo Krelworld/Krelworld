@@ -33,3 +33,14 @@ export const CLOSEUP_GASPS = ["OHHHH", "MMMMM", "OH MY DAYS", "FUUUUCK", "OH YES
 
 /** Big Derek (fictional, a designed voice), palm over the lens: recorded like any other line. */
 export const CLOSEUP_DEREK: CloseupLine = { s: "BIG DEREK", t: "SHOW'S OVER, LADS. Hands where I can see them.", mood: "shouting" };
+
+/** The last cut-in: YOU. Speech bubbles only (your lad's voice is a real person's, same as the front row's). */
+export const CLOSEUP_YOU = ["Oh. Oh no. Oh YES.", "Mmmm. Worth every Krezzcoin.", "Don't look at me. Mmmm.", "This is the best ten quid I've ever spent.", "Oh she's looking at me. Mmmm. MMMM."];
+
+/** And she thanks you for it, dressed again, beaming: recorded in her own (designed) voice. */
+export const CLOSEUP_THANKS: CloseupLine[] = [
+  { s: "DESTINY", t: "Aww, thank you, babe. That's a tip, that.", mood: "sultry" },
+  { s: "DESTINY", t: "Thanks, darling. Same time next week?", mood: "sultry" },
+  { s: "CRYSTAL", t: "Aww, ta, love! Thank you!", mood: "sultry" },
+  { s: "CRYSTAL", t: "Thanks, babe. I'll put that one down as a tip.", mood: "sultry" },
+];

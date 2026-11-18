@@ -8,7 +8,7 @@ import { vfx } from "../../gfx/Vfx";
 import { FONT } from "../../ui/theme";
 import { hdFactor } from "../../gfx/HD";
 import { CHARACTERS } from "../../../data/characters";
-import { CLOSEUP_DEREK, CLOSEUP_GASPS, CLOSEUP_MOANS } from "../../../content/clubCloseup";
+import { CLOSEUP_DEREK, CLOSEUP_GASPS, CLOSEUP_MOANS, CLOSEUP_THANKS, CLOSEUP_YOU } from "../../../content/clubCloseup";
 
 /**
  * THE WONKY POLE, "watch up close": an anime cut-away. Hard cut and zoom on the dancer in a big manga panel (speed
@@ -17,7 +17,9 @@ import { CLOSEUP_DEREK, CLOSEUP_GASPS, CLOSEUP_MOANS } from "../../../content/cl
  * frame the sprite shows, every frame, before it's drawn, and the doll frames are never shown without them.
  * Cut-in panels of the front row: sweating, nosebleeds, heart eyes, a censor bar over the lap with motion lines
  * round it (the wonking is implied, never drawn), moaning, then each one krezzes (a brown cloud and a fart).
- * Big Derek's palm hits the lens: SHOW'S OVER. Esc / click / tap skips.
+ * Then YOU, full screen: moaning behind your own bar, and the krezz (implied only: a KREZZ! card, speed lines, a splat
+ * and a CENSORED card over the lot; nothing drawn). She's dressed again and thanks you for it (voiced). Big Derek's palm
+ * hits the lens: SHOW'S OVER. Esc / click / tap skips.
  */
 
 /** The dancer's pole routine per stage (as ClubScene): costume, bikini, the doll. */
@@ -30,7 +32,7 @@ const GARMENTS: Record<string, string[][]> = {
 };
 const STAGE_CARDS = ["STAGE 1 · FEATHERS", "STAGE 2 · THE BIKINI", "STAGE 3 · ██████████"];
 /** How much of the close-up zoom each sheet gets (her art's size in its frame). */
-const FIT: Record<string, number> = { spr_TV_DANCER2: 0.72 };
+const FIT: Record<string, number> = {};
 /** Frame pixels added round each strip bar (on top of the pixel already in STRIP_BARS): generous. */
 const DOLL_PAD = 2;
 
@@ -44,6 +46,8 @@ export interface CloseupOpts {
   /** The dancer's sheet (spr_TV_DANCER1/2). */
   tex: string;
   name: string;
+  /** The dancer's id (DESTINY / CRYSTAL): whose voice thanks you. */
+  id: string;
   /** The front row lads who get a cut-in (up to 4). */
   lads: CloseupLad[];
 }
@@ -121,7 +125,7 @@ export function playCloseup(scene: Phaser.Scene, o: CloseupOpts): Promise<void> 
     // the art scale patch (gfx/HD.ts) multiplies scale writes: `zoom.z` is the on-screen size in 64px-frame units
     // (z 7.4 draws the frame 474px tall, whatever size the sheet's frames really are)
     const zoom = { z: 3.6, y: cy + 10 };
-    // Crystal is drawn bigger in her frame (cut off at the thigh): pull back on her so she sits in the panel the same
+    // (a sheet whose art is drawn bigger in its frame can be pulled back here)
     const fit = FIT[dancer.texture.key] ?? 1;
     const setZoom = () => dancer.setScale((zoom.z * fit * 64) / dancer.frame.height / hdFactor(dancer));
     setZoom();
@@ -304,8 +308,8 @@ export function playCloseup(scene: Phaser.Scene, o: CloseupOpts): Promise<void> 
       synth.voice("mmm", 0.35, 0.95, 0.5);
     };
 
-    const say = (c: Cut, text: string, bg = "#ffffff") => {
-      const b = scene.add.text(c.px + c.pw / 2, c.py + 10, text, { fontFamily: FONT, fontSize: "11px", color: "#050505", backgroundColor: bg, padding: { x: 5, y: 3 }, wordWrap: { width: c.pw - 20 }, align: "center" }).setOrigin(0.5, 0);
+    const say = (c: Cut, text: string, bg = "#ffffff", size = 11) => {
+      const b = scene.add.text(c.px + c.pw / 2, c.py + 10, text, { fontFamily: FONT, fontSize: `${size}px`, color: "#050505", backgroundColor: bg, padding: { x: 5, y: 3 }, wordWrap: { width: Math.min(c.pw - 20, 460) }, align: "center" }).setOrigin(0.5, 0);
       c.box.add(b);
       b.setScale(0.6);
       tw({ targets: b, scale: 1, duration: 140, ease: "Back.out" });
@@ -390,8 +394,142 @@ export function playCloseup(scene: Phaser.Scene, o: CloseupOpts): Promise<void> 
     const KREZZ0 = 11000;
     lads.forEach((_, k) => at(KREZZ0 + k * 750, () => cuts[k] && krezz(cuts[k], k)));
 
+    // ---------------------------------------------------------------- YOU: the last cut-in, full screen
+    const YOU0 = KREZZ0 + Math.max(1, lads.length) * 750 + 900;
+    const YOU_KREZZ = YOU0 + 3000;
+    const THANKS0 = YOU_KREZZ + 1900;
+    let you: Cut | null = null;
+    at(YOU0, () => {
+      if (done) return;
+      const pid = G.s?.player ?? "KREZMAR";
+      const r = { x: 0, y: 0, w: W, h: H };
+      const box = scene.add.container(0, 0);
+      root.add(box);
+      const bg = scene.add.graphics();
+      bg.fillGradientStyle(0xfff0f7, 0xfff0f7, 0xffb3d9, 0xffb3d9, 1).fillRect(0, 0, W, H);
+      // focus lines, in on him
+      for (let k = 0; k < 90; k++) {
+        const a = (k / 90) * Math.PI * 2 + Math.random() * 0.04;
+        bg.lineStyle(1 + Math.random() * 3, 0x000000, 0.08 + Math.random() * 0.1);
+        bg.lineBetween(W / 2 + Math.cos(a) * (230 + Math.random() * 60), H / 2 + Math.sin(a) * (200 + Math.random() * 60), W / 2 + Math.cos(a) * 700, H / 2 + Math.sin(a) * 700);
+      }
+      box.add(bg);
+      const key = scene.textures.exists(`spr_${pid}`) ? `spr_${pid}` : "spr_FOLK1";
+      const art = WONK_ART[key];
+      const frames = art && scene.textures.get(key).frameTotal > art.frames[art.frames.length - 1] + 1 ? art.frames : null;
+      const spr = scene.add.sprite(W / 2, 0, key, frames ? frames[0] : 0).setOrigin(0.5, 0);
+      spr.setScale(8.4 / hdFactor(spr));
+      spr.y = 8 - (4 - spr.displayOriginY) * spr.scaleY;
+      box.add(spr);
+      const motion = scene.add.graphics();
+      box.add(motion);
+      const bar = addCensorBar(scene, spr, { pad: 2 });
+      box.add(bar.obj);
+      box.add(scene.add.text(24, H - 20, `YOU (${CHARACTERS[pid]?.name ?? pid})`, { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#ffffff", stroke: "#000000", strokeThickness: 6 }).setOrigin(0, 1).setAngle(-3));
+      const c: Cut = { id: pid, box, spr, bar, motion, frames, speed: 12, pump: 0, px: r.x, py: r.y, pw: r.w, ph: r.h };
+      cuts.push(c);
+      you = c;
+      box.setAlpha(0).setScale(1.08);
+      tw({ targets: box, alpha: 1, scale: 1, duration: 160, ease: "Quad.out" });
+      synth.play("punch");
+      if (!calm) scene.cameras.main.shake(140, 0.005);
+      // sweat and the nosebleed, as the lads
+      for (const [sx, sy] of [[22, 11], [42, 11], [24, 20]] as const) {
+        const p = fp(c, sx, sy);
+        const d = scene.add.text(p.x, p.y, "💧", { fontFamily: FONT, fontSize: "28px" }).setOrigin(0.5);
+        box.add(d);
+        tw({ targets: d, y: p.y + 60, alpha: { from: 1, to: 0 }, repeat: -1, duration: 900 + Math.random() * 500, delay: Math.random() * 600 });
+      }
+      for (const ex of [28, 36]) {
+        const p = fp(c, ex, 16);
+        const h = scene.add.text(p.x, p.y, "♥", { fontFamily: FONT, fontSize: "48px", color: "#ff2d7a", stroke: "#ffffff", strokeThickness: 4 }).setOrigin(0.5);
+        box.add(h);
+        tw({ targets: h, scale: 1.3, yoyo: true, repeat: -1, duration: calm ? 700 : 240 });
+      }
+      c.nose = [30, 34].map((nx) => {
+        const p = fp(c, nx, 21);
+        const n = scene.add.rectangle(p.x, p.y, 9, 0, 0xd0102a).setOrigin(0.5, 0);
+        box.add(n);
+        tw({ targets: n, height: 30, duration: 900, ease: "Quad.out" });
+        return n;
+      });
+      const mine = CLOSEUP_MOANS.filter((l) => l.who === pid).map((l) => l.text);
+      const moans = [...mine, ...CLOSEUP_YOU];
+      say(c, pick(moans), "#ffffff", 15);
+      at(1500, () => !done && say(c, pick(CLOSEUP_YOU), "#ffd1e8", 15));
+      synth.voice("mmm", 0.5, 0.9);
+      at(700, () => !done && synth.voice("oh", 0.5, 0.95));
+      at(1600, () => !done && synth.play("moan_men_1", 0.45));
+      at(2300, () => {
+        if (done) return;
+        c.speed = 22;
+        synth.voice("oh", 0.55, 1.1);
+      });
+    });
+    // the krezz: implied, all of it. A KREZZ! card, a soft burst of speed lines, a splat, and CENSORED over the lot
+    at(YOU_KREZZ, () => {
+      if (done || !you) return;
+      const c = you;
+      c.speed = 0;
+      if (c.frames) c.spr.setFrame(c.frames[0]);
+      c.spr.x = W / 2;
+      c.bar.follow();
+      c.motion.clear();
+      synth.voice("grunt", 0.55, 0.85);
+      synth.play("splat");
+      synth.play("burn_splat", 0.7);
+      synth.fart(4);
+      const burst = scene.add.graphics();
+      for (let k = 0; k < 70; k++) {
+        const a = (k / 70) * Math.PI * 2;
+        burst.lineStyle(3 + Math.random() * 5, k % 2 ? 0xffffff : 0xff8fc7, 0.85);
+        burst.lineBetween(W / 2 + Math.cos(a) * 60, H / 2 + Math.sin(a) * 60, W / 2 + Math.cos(a) * 760, H / 2 + Math.sin(a) * 760);
+      }
+      c.box.add(burst);
+      burst.setAlpha(0);
+      // calm flashes: the lines fade up slowly and stay, no flash
+      tw({ targets: burst, alpha: calm ? 0.7 : 1, duration: calm ? 500 : 90 });
+      if (!calm) scene.cameras.main.shake(260, 0.012);
+      const card = scene.add.rectangle(W / 2, H / 2 + 30, W + 40, 190, 0x000000, 1).setAngle(-4);
+      const cen = scene.add.text(W / 2, H / 2 + 30, "█ CENSORED █", { fontFamily: "Impact, sans-serif", fontSize: "64px", color: "#ffffff" }).setOrigin(0.5).setAngle(-4);
+      const pow = scene.add.text(W / 2, 120, "KREZZ!!", { fontFamily: "Impact, sans-serif", fontSize: "120px", color: "#ffd23f", stroke: "#3b1d00", strokeThickness: 12 }).setOrigin(0.5).setAngle(-8).setScale(0.2);
+      c.box.add([card, cen, pow]);
+      tw({ targets: pow, scale: 1, duration: 260, ease: "Back.out" });
+      tw({ targets: pow, angle: -4, yoyo: true, repeat: -1, duration: calm ? 900 : 160 });
+      at(700, () => !done && say(c, pick(WONK_DONE), "#fff7c2", 15));
+    });
+    // and she thanks you for it: dressed again, beaming, hearts round her
+    at(THANKS0, () => {
+      if (done) return;
+      const box = scene.add.container(0, 0);
+      root.add(box);
+      const bg = scene.add.graphics();
+      bg.fillGradientStyle(0xff7ac6, 0xff7ac6, 0x5b1a8a, 0x5b1a8a, 1).fillRect(0, 0, W, H);
+      box.add(bg);
+      for (let i = 0; i < 16; i++) {
+        const h = scene.add.text(40 + Math.random() * (W - 80), 40 + Math.random() * (H - 80), Math.random() < 0.6 ? "♥" : "✦", { fontFamily: FONT, fontSize: `${18 + Math.floor(Math.random() * 22)}px`, color: Math.random() < 0.5 ? "#ffffff" : "#ffd1e8" }).setOrigin(0.5).setAlpha(0);
+        box.add(h);
+        tw({ targets: h, alpha: 0.9, y: h.y - 20, yoyo: true, repeat: -1, delay: Math.random() * 800, duration: calm ? 1400 : 700, ease: "Sine.inOut" });
+      }
+      // her costume, back on (her south idle: the full costume, never a doll frame)
+      const her = scene.add.sprite(W / 2 - 150, H / 2 + 40, dancer.texture.key, 0);
+      her.setScale((6.8 * 64) / her.frame.height / hdFactor(her));
+      box.add(her);
+      tw({ targets: her, y: her.y - 6, yoyo: true, repeat: -1, duration: 500, ease: "Sine.inOut" });
+      const mine = CLOSEUP_THANKS.filter((l) => l.s === o.id);
+      const line = pick(mine.length ? mine : CLOSEUP_THANKS);
+      const bub = scene.add.text(W / 2 + 160, H / 2 - 60, line.t, { fontFamily: FONT, fontSize: "22px", color: "#050505", backgroundColor: "#ffffff", padding: { x: 14, y: 10 }, wordWrap: { width: 380 }, align: "center" }).setOrigin(0.5).setScale(0.5);
+      const nm = scene.add.text(W / 2 + 160, H / 2 + 20, `♥ ${o.name} ♥`, { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#ffffff", stroke: "#5b1a8a", strokeThickness: 6 }).setOrigin(0.5);
+      box.add([bub, nm]);
+      tw({ targets: bub, scale: 1, duration: 220, ease: "Back.out" });
+      box.setAlpha(0);
+      tw({ targets: box, alpha: 1, duration: 200 });
+      synth.play("coin");
+      voice.say(line.s, line.t);
+    });
+
     // ---------------------------------------------------------------- SHOW'S OVER
-    const SLAM = KREZZ0 + Math.max(1, lads.length) * 750 + 1300;
+    const SLAM = THANKS0 + 3000;
     at(SLAM, () => {
       if (done) return;
       voice.stop();

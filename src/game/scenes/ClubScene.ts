@@ -961,7 +961,7 @@ export class ClubScene extends Phaser.Scene {
     this.closeBtn?.setVisible(false);
     bump(s, "club_closeups");
     const lads = Phaser.Utils.Array.Shuffle(this.patrons.filter((p) => p.spr.active && !this.ko.has(p.spr) && p.id !== "MIKEY" && p.id !== s.player).slice()).slice(0, 4);
-    await playCloseup(this, { tex: this.dancer.texture.key, name: this.dancerName(), lads });
+    await playCloseup(this, { tex: this.dancer.texture.key, id: this.dancerName(), name: this.dancerName(), lads });
     if (!this.scene.isActive()) return;
     this.nextSwap = Math.max(this.nextSwap, this.time.now + 15000);
     this.controls.swallow();

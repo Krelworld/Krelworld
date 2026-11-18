@@ -297,7 +297,7 @@ export class MenuScene extends Phaser.Scene {
         const cur = s ? clampDifficulty(s.difficulty) : DEFAULT_DIFFICULTY;
         const locked = this.inDungeon();
         add(this.add.text(480, 96, locked
-          ? "🔒 Locked: you're inside a dungeon. No moving the goalposts mid-fight. Change it from the pause menu once you're back out in Krelford."
+          ? "🔒 Can't change difficulty inside a dungeon. Change it from the pause menu once you're back in Krelford."
           : "Pick a level. It kicks in from the next room, fight or minigame. You can change it again any time (just not inside a dungeon).",
           { fontFamily: FONT, fontSize: "12px", color: locked ? "#fca5a5" : "#cbd5e1", align: "center", wordWrap: { width: 600 } }).setOrigin(0.5, 0));
         DIFFICULTY_LEVELS.forEach((d, i) => {

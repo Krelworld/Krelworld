@@ -44,7 +44,7 @@ export class DifficultyScene extends Phaser.Scene {
     if (backdrop(this, "bg_charselect", { dim: 0.6, depth: -10 })) bg.setVisible(false);
     const def = CHARACTERS[this.player];
     const who = this.player === "MIKEY" ? "KREBLAR" : def.name.split(" ")[0].toUpperCase();
-    title(this, W / 2, 30, "HOW KREZZED DO YOU WANT IT?", 26);
+    title(this, W / 2, 30, "CHOOSE DIFFICULTY", 26);
     label(this, W / 2, 50, `${who}'s run. Pick a difficulty.`, 13, "#9aa0b4").setOrigin(0.5, 0);
 
     DIFFICULTY_LEVELS.forEach((d, i) => {
@@ -54,7 +54,7 @@ export class DifficultyScene extends Phaser.Scene {
       const box = this.add.rectangle(x, y, RW, 58, 0x1b1e33, 0.94).setOrigin(0).setStrokeStyle(2, d.color, 0.55).setInteractive({ useHandCursor: true });
       this.add.text(x + 30, y + 29, String(d.level), { fontFamily: "Impact, sans-serif", fontSize: "38px", color: hexStr(d.color), stroke: "#000", strokeThickness: 5 }).setOrigin(0.5);
       this.add.text(x + 62, y + 7, d.name, { fontFamily: FONT, fontSize: "19px", color: hexStr(d.color), fontStyle: "bold", stroke: "#000", strokeThickness: 3 });
-      const tag = d.level === DEFAULT_DIFFICULTY ? "★ RECOMMENDED" : d.level === LEGACY_DIFFICULTY ? "THE ORIGINAL BALANCE" : "";
+      const tag = d.level === DEFAULT_DIFFICULTY ? "★ RECOMMENDED" : d.level === LEGACY_DIFFICULTY ? "ORIGINAL BALANCE" : "";
       if (tag) this.add.text(x + RW - 12, y + 9, tag, { fontFamily: FONT, fontSize: "11px", color: d.level === DEFAULT_DIFFICULTY ? "#ffd23f" : "#67e8f9", fontStyle: "bold" }).setOrigin(1, 0);
       this.add.text(x + 62, y + 33, d.blurb, { fontFamily: FONT, fontSize: "12px", color: "#e5e7eb", wordWrap: { width: RW - 80 } });
       const mark = this.add.text(x - 14, y + 29, "▶", { fontFamily: FONT, fontSize: "20px", color: "#ffd23f" }).setOrigin(0.5).setVisible(false);

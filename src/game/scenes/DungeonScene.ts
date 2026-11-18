@@ -266,6 +266,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   }
 
   create() {
+    // (the scene clock is stale until its first update: bring it up to date so start times taken now are right)
+    this.time.now = this.game.loop.time;
     const s = G.s;
     s.phase = "dungeon";
     this.chantFreeAt = 0;

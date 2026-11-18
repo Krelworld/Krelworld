@@ -183,6 +183,8 @@ export class DriveScene extends Phaser.Scene {
   }
 
   create(data: { chain?: string[]; resume?: { dungeon: string; room: number } }) {
+    // (the scene clock is stale until its first update: bring it up to date so start times taken now are right)
+    this.time.now = this.game.loop.time;
     this.startData = data;
     this.chain = data.chain ?? [];
     this.resume = data.resume ?? null;

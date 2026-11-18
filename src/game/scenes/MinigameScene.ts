@@ -71,6 +71,9 @@ export class MinigameScene extends Phaser.Scene {
 
   create(data: { mode: string; returnAt?: string; chain?: string[]; resume?: { dungeon: string; room: number }; console?: boolean }) {
     this.startData = data;
+    // the scene clock only catches up with the game on its first update: until then time.now is stale (0, or when
+    // this scene last ran), so a start time taken here would make a song look 30s late and skip the whole chart
+    this.time.now = this.game.loop.time;
     this.fromConsole = !!data.console;
     this.chain = data.chain ?? [];
     this.resume = data.resume ?? null;

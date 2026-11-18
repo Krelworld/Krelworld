@@ -91,6 +91,8 @@ export class VignetteScene extends Phaser.Scene {
   }
 
   async create(data: { id: string; returnAt?: string }) {
+    // (the scene clock is stale until its first update: bring it up to date so start times taken now are right)
+    this.time.now = this.game.loop.time;
     this.returnAt = data.returnAt ?? "";
     this.lastCaption = undefined;
     this.cast = new Map();

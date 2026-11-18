@@ -138,7 +138,9 @@ export class KreddleScene extends Phaser.Scene {
     else this.scene.get("UI").events.emit("mode", "hub");
     synth.music("kreddle", true);
     this.nextShove = this.time.now + 9000;
-    this.time.delayedCall(500, () => void this.arrive());
+    // the first time: the welcome card and the narration play straight away, and you don't wander off mid-card
+    if (!G.s.flags.kreddle_seen) this.busy = true;
+    this.time.delayedCall(G.s.flags.kreddle_seen ? 500 : 300, () => void this.arrive());
   }
 
   // ------------------------------------------------------------------ the place

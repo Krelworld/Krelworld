@@ -46,6 +46,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   minion = false;
   dmgMult = 1;
   speedMult = 1;
+  /** Difficulty: >1 attacks come round sooner (cooldowns divided by it). */
+  aggression = 1;
   // timers (ms, world-time)
   stunUntil = 0;
   markedUntil = 0;
@@ -208,7 +210,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           else body.velocity.scale(0.8);
           if (now > this.stateUntil) {
             this.state = "move";
-            this.nextAttack = now + 1200 + Math.random() * 800;
+            this.nextAttack = now + (1200 + Math.random() * 800) / this.aggression;
           }
         }
         break;
@@ -233,7 +235,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
               const a = toP + (n > 1 ? (i - (n - 1) / 2) * (pr.spread ?? 0.2) : 0);
               this.world.shoot(this.x, this.y, { owner: "enemy", damage: pr.damage * this.dmgMult, speed: pr.speed, angle: a, color: pr.color, life: 3500 });
             }
-            this.nextAttack = now + pr.rate * (0.8 + Math.random() * 0.4);
+            this.nextAttack = now + (pr.rate * (0.8 + Math.random() * 0.4)) / this.aggression;
           }
           if (this.state === "windup") this.setTint(0xffaaaa);
         }
@@ -262,7 +264,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       case "spawner": {
         this.halt2();
         if (now > this.nextAttack && this.spawnCount < 6 && this.def.spawns) {
-          this.nextAttack = now + 2600;
+          this.nextAttack = now + (2600) / this.aggression;
           this.spawnCount++;
           this.attackUntil = now + 500;
           const a = Math.random() * Math.PI * 2;
@@ -278,7 +280,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         else if (dist < pref + 80) ang = toP + (Math.PI / 2) * this.orbitDir;
         moveAngle(ang, spd * 0.7);
         if (now > this.nextAttack && dist < 620) {
-          this.nextAttack = now + (this.def.projectile?.rate ?? 2200) * (0.85 + Math.random() * 0.3);
+          this.nextAttack = now + ((this.def.projectile?.rate ?? 2200) * (0.85 + Math.random() * 0.3)) / this.aggression;
           const tx = target.x + (Math.random() - 0.5) * 40;
           const ty = this.walker && this.world.groundY ? Math.min(target.y + 10, this.world.groundY - 8) : target.y + (Math.random() - 0.5) * 30;
           const flight = Math.max(700, tele * 1.4);
@@ -340,7 +342,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           this.halt2();
           if (now > this.stateUntil) {
             this.state = "move";
-            this.nextAttack = now + 1300 + Math.random() * 900;
+            this.nextAttack = now + (1300 + Math.random() * 900) / this.aggression;
           }
         }
         break;
@@ -362,7 +364,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
                 this.world.shoot(this.x, this.y, { owner: "enemy", damage: pr.damage * this.dmgMult, speed: pr.speed, angle: a + (Math.random() - 0.5) * (pr.spread ?? 0.08), color: pr.color, life: 3500 });
               });
             }
-            this.nextAttack = now + pr.rate * (0.8 + Math.random() * 0.4);
+            this.nextAttack = now + (pr.rate * (0.8 + Math.random() * 0.4)) / this.aggression;
           }
           if (this.state === "windup") this.setTint(0xffaaaa);
         }
@@ -396,7 +398,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           moveAngle(this.dashAngle, 560 * ts);
           if (now > this.stateUntil) {
             this.state = "move";
-            this.nextAttack = now + 1800 + Math.random() * 900;
+            this.nextAttack = now + (1800 + Math.random() * 900) / this.aggression;
           }
         }
         break;

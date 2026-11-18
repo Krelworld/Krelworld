@@ -1,6 +1,7 @@
 import type { GameState, MetaState, PlayableId, ReactionChoice, Settings } from "../../data/types";
 import { CHARACTERS } from "../../data/characters";
 import { GUNS } from "../../data/guns";
+import { clampDifficulty, DEFAULT_DIFFICULTY, LEGACY_DIFFICULTY } from "./difficulty";
 
 export const SAVE_VERSION = 3;
 export const SAVE_KEY = "krelworld.save";
@@ -65,7 +66,7 @@ export function defaultStore(): KVStore {
 
 const emptyReactions = (): Record<ReactionChoice, number> => ({ LIKE: 0, LOVE: 0, LAUGH: 0, ANGRY: 0, SEEN: 0 });
 
-export function newGameState(player: PlayableId, ngPlus = 0, meta?: MetaState): GameState {
+export function newGameState(player: PlayableId, ngPlus = 0, meta?: MetaState, difficulty = DEFAULT_DIFFICULTY): GameState {
   const def = CHARACTERS[player];
   return {
     version: SAVE_VERSION,
@@ -95,6 +96,7 @@ export function newGameState(player: PlayableId, ngPlus = 0, meta?: MetaState): 
     discovered: [],
     ngPlus,
     playtimeMs: 0,
+    difficulty: clampDifficulty(difficulty, DEFAULT_DIFFICULTY),
   };
 }
 
@@ -136,6 +138,8 @@ export function migrateState(raw: any): GameState | null {
   s.gunOrder = Array.isArray(raw.gunOrder) ? [...new Set<string>(raw.gunOrder.filter((g: unknown) => typeof g === "string" && g in GUNS))] : [];
   s.discovered = Array.isArray(raw.discovered) ? raw.discovered.slice(-2000) : [];
   s.chapter = clampInt(raw.chapter, 1, 7, 1);
+  // saves from before difficulty existed were played on the original balance: level 2
+  s.difficulty = clampDifficulty(raw.difficulty, LEGACY_DIFFICULTY);
   if (s.phase !== "hub" && s.phase !== "dungeon" && s.phase !== "ended") s.phase = "hub";
   // A save made mid-dungeon resumes at the dungeon entrance in the hub: never an impossible state.
   if (s.phase === "dungeon") s.phase = "hub";

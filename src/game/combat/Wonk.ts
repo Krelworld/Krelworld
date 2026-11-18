@@ -1,3 +1,4 @@
+import { diffFor } from "../systems/difficulty";
 import Phaser from "phaser";
 import { synth } from "../audio/Synth";
 import { TOUCH } from "../ui/TouchControls";
@@ -28,7 +29,10 @@ export function startWonk(p: Player, now: number) {
   // a different wonk every time: the first one ever is gentle, later ones drift, go heavy or go floaty
   const nth = (G.s.flags.wonk_count as number | undefined) ?? 0;
   G.s.flags.wonk_count = nth + 1;
-  const style = wonkStyleFor(nth);
+  // difficulty: a roomier (or tighter) zone and a longer (or shorter) clock
+  const tm = diffFor(G.s).timing;
+  const style0 = wonkStyleFor(nth);
+  const style = tm === 1 ? style0 : { ...style0, width: style0.width * tm, time: Math.round(style0.time * tm) };
   const TIME = style.time;
   const Z0 = styledZone(style);
   let Z = Z0;

@@ -22,8 +22,9 @@ import { narrativeActor } from "../systems/narrative";
 import { DialogueBox } from "../ui/DialogueBox";
 import { bindPad, btnDown, firstDown, PAD_DEFAULTS, PAD_FIXED, PAD_START, padFor, padLabel, resetPad } from "../systems/padbinds";
 import { say } from "../../content/dsl";
+import { clampDifficulty, difficultyDef, difficultyLabel, difficultyStats, DIFFICULTY_LEVELS, LEGACY_DIFFICULTY, DEFAULT_DIFFICULTY, MAX_DIFFICULTY } from "../systems/difficulty";
 
-type Mode = "pause" | "settings" | "bank" | "tribunal" | "death" | "quests" | "controls" | "log";
+type Mode = "pause" | "settings" | "bank" | "tribunal" | "death" | "quests" | "controls" | "log" | "difficulty";
 
 // (the perks list lives with the rest of the armoury rules)
 export { BANK_PERKS };
@@ -110,7 +111,7 @@ export class MenuScene extends Phaser.Scene {
       } else this.render(this.controlsFrom);
       return;
     }
-    if (this.mode === "settings" || this.mode === "quests" || this.mode === "log") {
+    if (this.mode === "settings" || this.mode === "quests" || this.mode === "log" || this.mode === "difficulty") {
       // (from the title screen, settings is the whole menu)
       if (this.caller === "Title" && this.mode === "settings") this.close();
       else this.render("pause");
@@ -284,9 +285,30 @@ export class MenuScene extends Phaser.Scene {
           ["CONTROLS", () => this.openControls("pause")],
           ["SETTINGS", () => this.render("settings")],
         ];
+        if (s) items.push([`DIFFICULTY: ${difficultyLabel(s.difficulty)}${this.inDungeon() ? "  🔒" : ""}`, () => this.render("difficulty")]);
         if (this.caller === "Hub") items.push(["SAVE GAME", () => this.saveNow()]);
         items.push(["QUIT TO TITLE (progress is autosaved)", () => this.quit()]);
-        items.forEach(([t, fn], i) => add(button(this, 480, 150 + i * 46, t, fn, { w: 380 })));
+        const gap = items.length > 7 ? 41 : 46;
+        items.forEach(([t, fn], i) => add(button(this, 480, 150 + i * gap, t, fn, { w: 400, h: items.length > 7 ? 36 : 40 })));
+        break;
+      }
+      case "difficulty": {
+        add(title(this, 480, 70, "DIFFICULTY", 28));
+        const cur = s ? clampDifficulty(s.difficulty) : DEFAULT_DIFFICULTY;
+        const locked = this.inDungeon();
+        add(this.add.text(480, 96, locked
+          ? "🔒 Locked: you're inside a dungeon. No moving the goalposts mid-fight. Change it from the pause menu once you're back out in Krelford."
+          : "Pick a level. It kicks in from the next room, fight or minigame. You can change it again any time (just not inside a dungeon).",
+          { fontFamily: FONT, fontSize: "12px", color: locked ? "#fca5a5" : "#cbd5e1", align: "center", wordWrap: { width: 600 } }).setOrigin(0.5, 0));
+        DIFFICULTY_LEVELS.forEach((d, i) => {
+          const tag = d.level === DEFAULT_DIFFICULTY ? "  ★" : d.level === LEGACY_DIFFICULTY ? "  (original)" : "";
+          const here = d.level === cur;
+          add(button(this, 480, 150 + i * 44, `${here ? "▶ " : ""}${d.level}/${MAX_DIFFICULTY} · ${d.name}${tag}${here ? "  ✓" : ""}`, () => this.setDifficulty(d.level), { w: 460, h: 36, size: 15, disabled: locked && !here, color: here ? 0x1e3a5f : undefined }));
+        });
+        const d = difficultyDef(cur);
+        add(this.add.text(480, 372, d.blurb, { fontFamily: FONT, fontSize: "13px", color: hexStr(d.color), fontStyle: "bold", align: "center", wordWrap: { width: 600 } }).setOrigin(0.5, 0));
+        add(this.add.text(480, 410, difficultyStats(d), { fontFamily: FONT, fontSize: "10px", color: "#9aa0b4", align: "center", wordWrap: { width: 620 } }).setOrigin(0.5, 0));
+        add(button(this, 480, 470, "◀ BACK", () => this.render("pause"), { w: 170, h: 32, size: 14 }));
         break;
       }
       case "controls": {
@@ -1012,6 +1034,38 @@ export class MenuScene extends Phaser.Scene {
     const caller = this.scene.get("Dungeon");
     switchTo(caller, "Kreddle", {});
     this.scene.stop();
+  }
+
+  /**
+   * In a dungeon right now (difficulty is locked): the Dungeon scene is up, or we're in one of a dungeon's detours
+   * (a drive, a minigame...) that resumes back into it.
+   */
+  private inDungeon(): boolean {
+    const mgr = this.game.scene;
+    if (mgr.isActive("Dungeon") || mgr.isPaused("Dungeon") || mgr.isSleeping("Dungeon")) return true;
+    if (this.caller === "Dungeon") return true;
+    return mgr.getScenes(false).some((sc) => {
+      const k = sc.scene.key;
+      if (k === "Menu" || !(mgr.isActive(k) || mgr.isPaused(k))) return false;
+      const d = sc.sys.settings.data as { resume?: { dungeon?: string } } | undefined;
+      return !!d?.resume?.dungeon;
+    });
+  }
+
+  private setDifficulty(level: number) {
+    if (!G.hasRun()) return;
+    if (this.inDungeon()) {
+      synth.play("tap_fail");
+      return;
+    }
+    const was = G.s.difficulty;
+    G.s.difficulty = clampDifficulty(level);
+    G.save();
+    if (was !== G.s.difficulty) {
+      synth.play("ding");
+      G.emit("toast", { title: "DIFFICULTY CHANGED", text: `${difficultyLabel(G.s.difficulty)}. Kicks in from the next room or fight.` });
+    }
+    this.render("difficulty");
   }
 
   private close() {

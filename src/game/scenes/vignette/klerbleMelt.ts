@@ -48,7 +48,20 @@ export async function klerbleMelt(sc: Phaser.Scene) {
   const alarm = add(sc.add.rectangle(480, 270, 1100, 700, 0xff1a1a, 0).setBlendMode(Phaser.BlendModes.ADD));
   sc.tweens.add({ targets: alarm, fillAlpha: 0.14, yoyo: true, repeat: -1, duration: calm ? 1400 : 700 });
   // the light: a white-out from the front, and a hot glow behind him
-  const backGlow = add(sc.add.ellipse(480, 250, 600, 560, 0xffe6a8, 0).setBlendMode(Phaser.BlendModes.ADD));
+  if (!has("c6_kmelt_glow")) {
+    const c = sc.textures.createCanvas("c6_kmelt_glow", 128, 128);
+    if (c) {
+      const ctx = c.getContext();
+      const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+      g.addColorStop(0, "rgba(255,255,255,1)");
+      g.addColorStop(0.4, "rgba(255,255,255,0.5)");
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 128, 128);
+      c.refresh();
+    }
+  }
+  const backGlow = add(sc.add.image(480, 250, "c6_kmelt_glow").setDisplaySize(900, 760).setTint(0xffe6a8).setAlpha(0).setBlendMode(Phaser.BlendModes.ADD));
   const S = 3.6;
   const BX = 480;
   const BY = 302;
@@ -105,7 +118,7 @@ export async function klerbleMelt(sc: Phaser.Scene) {
   // the shockwave takes what's left: it crumbles from the top, and blows off to the right as ash
   const blowAway = async (colors: number[]) => {
     Juice.riser(700, 0.3);
-    const ring = sc.add.ellipse(BX, BY - 40, 60, 60).setStrokeStyle(10, 0xfff7ed, 0.9).setFillStyle(0xffffff, 0);
+    const ring = sc.add.ellipse(BX, BY - 40, 60, 60).setStrokeStyle(3, 0xfff7ed, 0.9).setFillStyle(0xffffff, 0);
     fx.add(ring);
     sc.tweens.add({ targets: ring, scale: 16, alpha: 0, duration: 900, ease: "Cubic.out", onComplete: () => ring.destroy() });
     Juice.shake(sc, 900, 0.012);
@@ -136,7 +149,7 @@ export async function klerbleMelt(sc: Phaser.Scene) {
 
   // 2. the light reaches him
   sc.tweens.add({ targets: white, fillAlpha: calm ? 0.45 : 1, duration: calm ? 700 : 60 });
-  sc.tweens.add({ targets: backGlow, fillAlpha: calm ? 0.35 : 0.7, duration: calm ? 900 : 200 });
+  sc.tweens.add({ targets: backGlow, alpha: calm ? 0.45 : 0.9, duration: calm ? 900 : 200 });
   await wait(calm ? 700 : 120);
   if (!alive()) return;
   sc.tweens.add({ targets: white, fillAlpha: calm ? 0.12 : 0.22, duration: calm ? 900 : 500 });
@@ -217,7 +230,7 @@ export async function klerbleMelt(sc: Phaser.Scene) {
     await blowAway([0x6b7280, 0x9ca3af, 0xd6d3d1, 0x44403c]);
     // and that's all that's left of him
     if (has("c6_ashpile") && alive()) {
-      const pile = sc.add.image(BX, 496, "c6_ashpile").setOrigin(0.5, 1).setScale(2.4).setAlpha(0);
+      const pile = sc.add.image(BX, 496, "c6_ashpile").setOrigin(0.5, 1).setScale(3).setAlpha(0);
       fx.add(pile);
       sc.tweens.add({ targets: pile, alpha: 1, duration: 200 });
       synth.play("pfft", 0.5);

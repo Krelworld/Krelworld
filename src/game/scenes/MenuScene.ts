@@ -96,6 +96,11 @@ export class MenuScene extends Phaser.Scene {
       this.input.keyboard?.off("keydown", shopKeys);
       this.shop = null;
     });
+    // the pause menu pauses the music too (picked up where it left off when you close it)
+    if ((data?.mode ?? "pause") === "pause" && this.caller !== "Title") {
+      synth.pauseMusic();
+      this.events.once("shutdown", () => synth.resumeMusic());
+    }
     this.render(data?.mode ?? "pause");
   }
 

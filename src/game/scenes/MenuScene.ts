@@ -283,7 +283,7 @@ export class MenuScene extends Phaser.Scene {
         add(title(this, 480, 74, "PAUSED", 28));
         const st = s ? currentStep() : null;
         if (st) add(this.add.text(480, 104, `Objective: ${st.text}`, { fontFamily: FONT, fontSize: "13px", color: "#ffffff", wordWrap: { width: 600 }, align: "center" }).setOrigin(0.5, 0));
-        const items: [string, () => void][] = [
+        const items: [string, () => void, boolean?][] = [
           ["RESUME", () => this.close()],
           ["QUESTS & SIDE QUESTS", () => { this.questTab = 0; this.questScroll = 0; this.render("quests"); }],
           ["DIALOGUE LOG", () => { this.logScroll = 0; this.render("log"); }],
@@ -294,11 +294,11 @@ export class MenuScene extends Phaser.Scene {
         if (s && this.caller !== "Title") {
           // manual save slots: only somewhere safe (out in town or at home), never mid-dungeon / boss / cutscene
           const why = this.saveBlocked();
-          items.push([why ? `SAVE GAME  🔒 ${why}` : "SAVE GAME", why ? () => synth.play("tap_fail") : () => this.openSlots()]);
+          items.push([why ? `SAVE GAME  🔒 ${why}` : "SAVE GAME", () => this.openSlots(), !!why]);
         }
         items.push(["QUIT TO TITLE (progress is autosaved)", () => this.quit()]);
         const gap = items.length > 7 ? 41 : 46;
-        items.forEach(([t, fn], i) => add(button(this, 480, 150 + i * gap, t, fn, { w: 400, h: items.length > 7 ? 36 : 40 })));
+        items.forEach(([t, fn, off], i) => add(button(this, 480, 150 + i * gap, t, fn, { w: 400, h: items.length > 7 ? 36 : 40, disabled: off })));
         break;
       }
       case "difficulty": {

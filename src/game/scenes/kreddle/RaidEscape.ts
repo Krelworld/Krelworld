@@ -106,7 +106,7 @@ const MAX_SHOTS = 40;
 const MAX_WRECKS = 10;
 const SCALE = { car: 1.45, tank: 1.5, heli: 1.5 } as const;
 /** Flamethrower-seconds to kill (before the difficulty's enemyHp). */
-const HP = { car: 2.3, tank: 6.5, heli: 3.6, cop: 0.4 } as const;
+const HP = { car: 1.8, tank: 4.8, heli: 2.8, cop: 0.4 } as const;
 /** Waves: where on the Strip they're waiting (you run west from ~9300), and who. */
 const WAVES: { x: number; cars: number; screech: number; tanks: number; helis: number }[] = [
   { x: 8500, cars: 2, screech: 2, tanks: 0, helis: 0 },
@@ -247,9 +247,10 @@ export class EscapeGauntlet {
       img = sc.add.image(0, 0, sc.textures.exists("kd_esc_heli") ? "kd_esc_heli" : "kd_heli").setFlipX(true);
       body.add(img);
       sx = cam.worldView.x - 160;
-      sy = 180;
+      sy = 300;
       tx = me.x - 300;
-      ty = 250 + Math.random() * 50;
+      // (low over the street, under the HUD band and in reach of the flamethrower)
+      ty = 415 + Math.random() * 30;
     }
     body.setScale(SCALE[kind]).setPosition(sx, sy).setDepth(kind === "heli" ? this.h.dLight - 8 : sy);
     const max = HP[kind] * this.d.enemyHp;
@@ -758,7 +759,7 @@ export class EscapeGauntlet {
     const sc = this.sc;
     f.hp -= n;
     const now = sc.time.now;
-    if (now - f.hitAt > 90) {
+    if (now - f.hitAt > (how === "flame" ? 240 : 90)) {
       f.hitAt = now;
       f.img.setTintFill(how === "flame" ? 0xb6ff5a : 0xffffff);
       f.turret?.setTintFill(how === "flame" ? 0xb6ff5a : 0xffffff);

@@ -507,10 +507,11 @@ export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
       stopFire();
       synth.play("pfft_1");
       const b = s.getBounds();
-      const cell = 14;
+      // (about 150 chunks over the middle of the body, whatever size it is on screen)
+      const cell = Math.max(12, Math.ceil(Math.sqrt((b.width * 0.5 * b.height * 0.85) / 150)));
       let made = 0;
-      for (let yy = b.top; yy < b.bottom && made < 160; yy += cell)
-        for (let xx = b.left + b.width * 0.2; xx < b.right - b.width * 0.2 && made < 160; xx += cell) {
+      for (let yy = b.top + b.height * 0.1; yy < b.bottom - b.height * 0.05 && made < 170; yy += cell)
+        for (let xx = b.left + b.width * 0.25; xx < b.right - b.width * 0.25 && made < 170; xx += cell) {
           made++;
           const r = sc.add.rectangle(xx, yy, cell, cell, Math.random() < 0.15 ? 0xff8a3a : Math.random() < 0.5 ? charTo : 0x57534e, 1);
           fx.add(r);

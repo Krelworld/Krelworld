@@ -849,7 +849,7 @@ export class KreddleRaid {
     sc.time.delayedCall(90, () => n.spr.active && n.state === "burn" && n.spr.setTint(0xff8a3a));
     vfx(sc, "vfx_boom", n.spr.x, n.spr.y - 24, { scale: 0.7, depth: D_LIGHT + 6, add: true, tint: 0xffb347 });
     Juice.squash(sc, n.spr, 0.25, 260);
-    n.fire2 = this.addFire(n.spr.x, n.spr.y - 22, 0.8, 0, 0);
+    n.fire2 = this.addFire(n.spr.x, n.spr.y - 46, 0.55, 0, 0);
     this.scream(n, 0.55);
   }
 
@@ -880,7 +880,7 @@ export class KreddleRaid {
     // the skin / clothes char as it goes (gore off: soot)
     const from = Phaser.Display.Color.ValueToColor(0xff8a3a);
     const to = Phaser.Display.Color.ValueToColor(gore ? 0x2a1610 : 0x3a3a3a);
-    const c = Phaser.Display.Color.Interpolate.ColorWithColor(from, to, 1, Math.min(1, k * 1.25));
+    const c = Phaser.Display.Color.Interpolate.ColorWithColor(from, to, 1, Phaser.Math.Clamp((k - 0.35) / 0.55, 0, 1));
     spr.setTint(Phaser.Display.Color.GetColor(c.r, c.g, c.b));
     if (!n.screamed && k > 0.5) {
       n.screamed = true;
@@ -1809,7 +1809,7 @@ export class KreddleRaid {
           spr.y = Phaser.Math.Clamp(spr.y, TOP, BOTTOM);
           spr.setDepth(spr.y);
           n.fire?.setPosition(spr.x, spr.y + 22);
-          n.fire2?.setPosition(spr.x + Math.sin(time / 90) * 4, spr.y - 22);
+          n.fire2?.setPosition(spr.x + Math.sin(time / 90) * 4, spr.y - 46);
           continue;
         }
         if (time > n.nextTurn) {

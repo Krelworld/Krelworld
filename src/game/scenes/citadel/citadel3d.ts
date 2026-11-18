@@ -278,7 +278,7 @@ const APEX = 950;
 const GRAV = (8 * APEX) / (FLIGHT * FLIGHT);
 const V0 = (GRAV * FLIGHT) / 2;
 const LAND = { x: 0, y: RR * 0.5 };
-const RIDER_W = 92;
+const RIDER_W = 110;
 
 /** Turn an upright board (a fixed-facing one) square to the camera, about its own vertical axis (it stays bolt upright). */
 const faceTo = (b: Board3D, ex: number, ey: number) => {
@@ -302,13 +302,13 @@ function pathAt(keys: [number, number, number, number][], t: number) {
 
 /** The camera's eye, and where it looks when it isn't following you. */
 const EYE: [number, number, number, number][] = [
-  [0, -600, 860, RZ + 300],
-  [T_ERUPT, -470, 700, RZ + 170],
-  [2.5, -430, 640, RZ + 110],
-  [3.4, -150, 820, RZ + 420],
-  [4.3, 680, 260, RZ + 620],
-  [T_LAND, 420, 600, RZ + 560],
-  [6.8, 0, 420, RZ + 760],
+  [0, -440, 580, RZ + 210],
+  [T_ERUPT, -330, 470, RZ + 150],
+  [2.5, -300, 420, RZ + 80],
+  [3.4, -160, 560, RZ + 260],
+  [4.3, 600, 300, RZ + 420],
+  [T_LAND, 380, 520, RZ + 520],
+  [6.8, 0, 400, RZ + 720],
 ];
 const LOOK: [number, number, number, number][] = [
   [0, 0, 0, RZ + 40],
@@ -338,6 +338,7 @@ async function launchShot(sc: Phaser.Scene) {
       const S = c.sc;
       const set = towerSet(c, { top: true });
       st.fog = { ...st.fog, start: 1400 };
+      st.light = 0xc4b8e8;
       const rnd = new Phaser.Math.RandomDataGenerator(["klaunch"]);
       // ---- the roof: its floor art cut into tiles (they bulge, and the middle ones jump when it goes)
       let floorKey = "fr_roof_floor";
@@ -452,7 +453,7 @@ async function launchShot(sc: Phaser.Scene) {
         const r = rnd.realInRange(70, 170);
         return st.addSprite(glow, Math.cos(a) * r, Math.sin(a) * r, RZ + 4, rnd.realInRange(60, 110), { add: true, tint: 0xffb020, alpha: 0, layer: "front" });
       });
-      const GN = 22;
+      const GN = 34;
       const geyser = Array.from({ length: GN }, (_, i) => st.addSprite(glow, 0, 0, RZ, 150, { add: true, tint: i % 3 === 0 ? 0xfffbe0 : 0xffc21a, alpha: 0, layer: "front" }));
       const spray = Array.from({ length: 18 }, (_, i) => ({ s: st.addSprite(dot, 0, 0, RZ, 22, { add: true, tint: 0xffd23f, alpha: 0, layer: "front" }), a: (i / 18) * Math.PI * 2 + rnd.frac(), ph: rnd.frac() }));
       const TRAIL = 14;
@@ -490,8 +491,8 @@ async function launchShot(sc: Phaser.Scene) {
       const you = (t: number) => {
         const ft = clamp(t - T_ERUPT, 0, FLIGHT);
         const u = ft / FLIGHT;
-        const hu = ease(clamp((u - 0.15) / 0.85, 0, 1));
-        const x = LAND.x * hu - 170 * Math.sin(Math.PI * u);
+        const hu = ease(clamp((u - 0.3) / 0.7, 0, 1));
+        const x = LAND.x * hu - 190 * Math.sin(Math.PI * clamp((u - 0.25) / 0.75, 0, 1));
         const y = LAND.y * hu;
         const z = RZ - 30 * (1 - u) + V0 * ft - 0.5 * GRAV * ft * ft;
         // five turns, fast out of the geyser, slowing to land upright
@@ -535,9 +536,10 @@ async function launchShot(sc: Phaser.Scene) {
         geyser.forEach((s, i) => {
           const k = i / (GN - 1);
           s.z = lerp(RZ - 10, top, k);
-          s.x = Math.sin(t * 17 + i * 1.3) * 14 * (1 - k * 0.5);
-          s.y = Math.cos(t * 13 + i) * 8;
-          s.size = (i % 3 === 0 ? 80 : 160) + 30 * Math.sin(t * 20 + i) + (k < 0.15 ? 120 : 0);
+          // (it bends after you as you go over)
+          s.x = me.x * k * k + Math.sin(t * 17 + i * 1.3) * 14 * (1 - k * 0.5);
+          s.y = me.y * k * k + Math.cos(t * 13 + i) * 8;
+          s.size = (i % 3 === 0 ? 110 : 210) + 30 * Math.sin(t * 20 + i) + (k < 0.12 ? 160 : 0);
           s.alpha = gk * (i % 3 === 0 ? 0.9 : 0.55);
         });
         for (const p of spray) {
@@ -565,8 +567,8 @@ async function launchShot(sc: Phaser.Scene) {
           b.y = me.y;
           b.z = me.z;
           b.spin = t < T_LAND ? me.spin : 0;
-          // a squash as you land
-          b.scale = t >= T_LAND ? 1 + 0.12 * Math.exp(-(t - T_LAND) * 8) * Math.sin((t - T_LAND) * 30) : 1;
+          // drawn bigger in flight (so you read against the sky), back to size as you come in; a squash as you land
+          b.scale = t >= T_LAND ? 1 + 0.12 * Math.exp(-(t - T_LAND) * 8) * Math.sin((t - T_LAND) * 30) : 1 + 0.7 * (1 - span(t, T_LAND - 0.9, T_LAND));
           b.alpha = lt < 0 || i !== ri ? 0 : 1;
         });
         const rH = riderH[ri] ?? RIDER_W;
@@ -612,7 +614,9 @@ async function launchShot(sc: Phaser.Scene) {
         const w = span(t, T_ERUPT, T_ERUPT + 0.45) * (1 - span(t, T_LAND + 0.1, T_LAND + 1.3));
         const tx = lerp(look.x, me.x, w);
         const ty = lerp(look.y, me.y, w);
-        const tz = lerp(look.z, me.z + rH / 2, w);
+        const tz = lerp(look.z, me.z + rH / 2 - 50, w);
+        // the camera rides up some of the way with you
+        eye.z += 0.5 * (me.z - RZ) * w;
         const jx = (Math.sin(t * 53) + Math.sin(t * 31)) * amp * 0.5;
         const jz = (Math.sin(t * 47 + 1) + Math.sin(t * 29)) * amp * 0.4;
         const roll = Math.sin(t * 0.9) * 1.5 - 7 * Math.sin(Math.PI * clamp((t - 3.1) / 2.3, 0, 1)) + Math.sin(t * 61) * amp * 0.02;

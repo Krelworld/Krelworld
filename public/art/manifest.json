@@ -9499,6 +9499,45 @@
   },
   "pubicon_door": {
    "file": "ui/pubicon_door.png"
+  },
+  "c7f_floor": {
+   "file": "tiles/c7f_floor.png"
+  },
+  "c7f_wall": {
+   "file": "tiles/c7f_wall.png"
+  },
+  "c7f_stairs": {
+   "file": "props/c7f_stairs.png"
+  },
+  "c7f_statue": {
+   "file": "props/c7f_statue.png"
+  },
+  "c7f_desk": {
+   "file": "props/c7f_desk.png"
+  },
+  "c7f_palm": {
+   "file": "props/c7f_palm.png"
+  },
+  "c7f_vase": {
+   "file": "props/c7f_vase.png"
+  },
+  "c7f_pillar": {
+   "file": "props/c7f_pillar.png"
+  },
+  "c7f_chandelier": {
+   "file": "props/c7f_chandelier.png"
+  },
+  "c7f_banner_0": {
+   "file": "props/c7f_banner_0.png"
+  },
+  "c7f_banner_1": {
+   "file": "props/c7f_banner_1.png"
+  },
+  "fx_slurry": {
+   "file": "props/fx_slurry.png"
+  },
+  "fx_slurry_1": {
+   "file": "props/fx_slurry_1.png"
   }
  },
  "sheets": {

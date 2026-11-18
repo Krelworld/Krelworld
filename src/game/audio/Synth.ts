@@ -95,6 +95,8 @@ export const MUSIC_FILES: Record<string, string> = {
   fight_flirt: "audio/fight_flirt.mp3",
   fight_tank: "audio/fight_tank.mp3",
   fight_fruity: "audio/fight_fruity.mp3",
+  // waking up in the smoking ruins, the morning after the Concept of Paedophilia (solo piano)
+  fd_wake: "audio/fd_wake.mp3",
   fight_hoard: "audio/fight_hoard.mp3",
   fight_reinhardt: "audio/fight_reinhardt.mp3",
   fight_lantern: "audio/fight_lantern.mp3",
@@ -113,6 +115,8 @@ export const MUSIC_FILES: Record<string, string> = {
   fe_clash: "audio/fe_clash.mp3",
   gw_anthem: "audio/gw_anthem.mp3",
   gw_krezz: "audio/gw_krezz.mp3",
+  // the super saiyan brawl in the sky (Krelford finale)
+  fe_brawl: "audio/fe_brawl.mp3",
   c7_transform: "audio/c7_transform.mp3",
   hub: "audio/hub.mp3",
   hub_night: "audio/hub_night.mp3",

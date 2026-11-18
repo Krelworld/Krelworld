@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { synth } from "../audio/Synth";
 import * as Juice from "./Juice";
+import { polsonLoo } from "./PolsonLoo";
 
 /**
  * Anime beats for the side stories (side quests, the Polson anecdotes, the Polson chapter), cued from a dialogue
@@ -18,6 +19,7 @@ import * as Juice from "./Juice";
  *   sting|sfxId             a stinger (doesn't wait)
  *   zoom                    a punch-in on the camera (doesn't wait)
  *   riser|ms                a rising whoosh of tension under the next beat (doesn't wait)
+ *   loo                     Polson on the toilet: the anime cut (gfx/PolsonLoo.ts)
  *   wait|ms
  *
  * Every beat can be cut short (E / Space / click moves on, Tab skips the lot): whatever it put on screen goes with it.
@@ -156,6 +158,9 @@ export async function playCine(sc: Phaser.Scene, cue: string, host: CineHost): P
         break;
       case "riser":
         Juice.riser(Number(a[0]) || 1200, 0.3);
+        break;
+      case "loo":
+        await polsonLoo(sc, host);
         break;
       case "wait":
         await hold(Number(a[0]) || 400, host);

@@ -3,6 +3,7 @@ import { PLANE_HOLE_X, PLANE_SECTIONS, type RoomDef } from "../../../data/dungeo
 import { synth } from "../../audio/Synth";
 import { G } from "../../G";
 import type { SideHost } from "./SideLevel";
+import { hasVfx, vfx } from "../../gfx/Vfx";
 
 /**
  * FLIGHT KR-069, side-on: the cabin seen in cross-section, and everything that goes wrong in it.
@@ -22,6 +23,8 @@ export interface PlaneHooks {
   door: () => Phaser.GameObjects.Image | undefined;
   /** The room's been cleared (the exit's open). */
   cleared: () => boolean;
+  /** The hero passengers are up (first class, before the cockpit door): the cabin's own hazards wait. */
+  fight?: () => boolean;
 }
 
 const WALL_K = 3; // the 320x180 PixelLab walls are drawn three times size (960x540)
@@ -45,6 +48,10 @@ type WinGoon = { x: number; y: number; fired: boolean; e: any; leaveAt: number }
 type Crawler = { spr: Phaser.GameObjects.Sprite; hitAt: number; squashUntil: number };
 type Cart = { spr: Phaser.GameObjects.Sprite; vx: number; hitAt: number; warn?: Phaser.GameObjects.Text };
 type Talker = { x: number; y: number; said: number };
+/** A terrified passenger you can shoot (collateral: shots go straight through them). */
+type Victim = { spr: Phaser.GameObjects.Sprite; hp: number; dead: boolean; talker: Talker };
+const DEATH_LINES = ["AAAAGH!", "NOT LIKE THIS!", "MY DUTY FREE!", "TELL MY WIFE—", "I PAID FOR EXTRA LEGROOM!", "WHY?!", "I'M ONLY IN ECONOMY!"];
+const WITNESS_LINES = ["HE SHOT DEREK!", "OH MY GOD!", "WE'RE ALL GONNA DIE!", "I WANT A REFUND!", "SOMEONE DO SOMETHING!", "CABIN CREW!!"];
 
 export class PlaneCabin {
   private cockpit: boolean;
@@ -58,6 +65,7 @@ export class PlaneCabin {
   private nextCart = 0;
   private nextBag = 0;
   private talkers: Talker[] = [];
+  private victims: Victim[] = [];
   private nextTalk = 0;
   private signs: Phaser.GameObjects.Image[] = [];
   private lights: Phaser.GameObjects.Rectangle[] = [];
@@ -239,7 +247,9 @@ export class PlaneCabin {
           if (this.has(key)) {
             const p = sc.add.sprite(x, gy + 2, key, 0).setOrigin(0.5, 1).setScale(scale).setDepth(1.5);
             if (sc.textures.get(key).frameTotal > 2) p.play({ key: this.anim(key, 5 + Math.floor(seed * 4)), startFrame: Math.floor(seed * 4) });
-            this.talkers.push({ x, y: gy - 120, said: 0 });
+            const talker = { x, y: gy - 120, said: 0 };
+            this.talkers.push(talker);
+            this.victims.push({ spr: p, hp: 60, dead: false, talker });
             continue;
           }
         }
@@ -251,7 +261,9 @@ export class PlaneCabin {
               const p = sc.add.sprite(x + 6, gy + 2, key, 0).setOrigin(0.5, 1).setScale(scale * 0.9).setDepth(1.4);
               if (sc.textures.get(key).frameTotal > 2) p.play({ key: this.anim(key, 4), startFrame: Math.floor(seed * 4) });
               sc.tweens.add({ targets: p, y: gy + 26, yoyo: true, repeat: -1, hold: 1400 + seed * 1500, repeatDelay: 1200 + seed * 2000, duration: 260, ease: "Quad.inOut" });
-              this.talkers.push({ x, y: gy - 120, said: 0 });
+              const talker = { x, y: gy - 120, said: 0 };
+              this.talkers.push(talker);
+              this.victims.push({ spr: p, hp: 60, dead: false, talker });
             }
           }
           sc.add.image(x, gy + 2, seatKey).setOrigin(0.5, 1).setScale(scale).setDepth(1.5);
@@ -346,6 +358,11 @@ export class PlaneCabin {
     }
     this.updateDoor();
     if (busy) return;
+    if (this.hooks.fight?.()) {
+      // the hero passengers have the floor: no trolleys, crawlers or bins under their feet
+      if (this.crawlers.length || this.carts.length || this.tilt) this.clearHazards();
+      return;
+    }
     this.sections(p.x);
     this.turbulence(now, dt);
     this.updatePops(now);
@@ -738,6 +755,61 @@ export class PlaneCabin {
     }
   }
 
+  // ---- the passengers can be shot (they go down in a spray of in-flight meal)
+
+  /** A player shot at (x, y): any passenger it passes through takes the hit. The shot carries on (they don't stop bullets). */
+  hitShot(x: number, y: number, damage: number, hit: Set<number>): void {
+    for (let i = 0; i < this.victims.length; i++) {
+      const v = this.victims[i];
+      if (v.dead || hit.has(-1000 - i) || !v.spr.visible) continue;
+      const b = v.spr.getBounds();
+      // the person, not the seat: the top two thirds of the sheet
+      if (x < b.x + b.width * 0.15 || x > b.right - b.width * 0.15 || y < b.y || y > b.y + b.height * 0.7) continue;
+      hit.add(-1000 - i);
+      this.hurtVictim(v, x, y, damage);
+    }
+  }
+
+  private hurtVictim(v: Victim, x: number, y: number, damage: number) {
+    const sc = this.sc;
+    const gore = G.meta?.settings?.gore !== false;
+    v.hp -= Math.max(10, damage);
+    v.spr.setTintFill(0xffffff);
+    sc.time.delayedCall(60, () => v.spr.active && (v.dead ? v.spr.setTint(0x8a7f7f) : v.spr.clearTint()));
+    if (gore && hasVfx(sc, "vfx_blood")) vfx(sc, "vfx_blood", x, y, { scale: 0.8, depth: 3 });
+    if (v.hp > 0) {
+      synth.play(Math.random() < 0.5 ? "scream_man" : "scream_woman", 0.6);
+      return;
+    }
+    v.dead = true;
+    v.talker.said = Number.MAX_SAFE_INTEGER; // the dead don't chat
+    v.spr.anims?.stop();
+    sc.tweens.killTweensOf(v.spr);
+    synth.play(Math.random() < 0.5 ? "scream_man" : "scream_woman");
+    synth.play(gore ? "squelch" : "hit");
+    sc.floatText(v.spr.x, v.spr.y - v.spr.displayHeight * 0.8, DEATH_LINES[Math.floor(Math.random() * DEATH_LINES.length)], "#ff6b6b", 13);
+    const cx = v.spr.x;
+    const cy = v.spr.y - v.spr.displayHeight * 0.5;
+    if (gore) {
+      if (hasVfx(sc, "vfx_bloodspray")) vfx(sc, "vfx_bloodspray", cx, cy, { scale: 1.1, depth: 3 });
+      if (hasVfx(sc, "vfx_gore")) vfx(sc, "vfx_gore", cx, cy, { scale: 0.9, depth: 3 });
+      if (hasVfx(sc, "vfx_bloodpool")) vfx(sc, "vfx_bloodpool", cx, sc.groundY + 2, { scale: 1.1, depth: 1.45, hold: true });
+    } else if (hasVfx(sc, "vfx_dust")) vfx(sc, "vfx_dust", cx, cy, { scale: 1, depth: 3 });
+    // slumped in the seat, grey, for the rest of the flight
+    v.spr.setTint(0x8a7f7f);
+    sc.tweens.add({ targets: v.spr, angle: Math.random() < 0.5 ? -24 : 24, y: v.spr.y + 10, duration: 320, ease: "Bounce.out" });
+    // the neighbours notice
+    const near = this.victims.filter((o) => !o.dead && Math.abs(o.spr.x - cx) < 420);
+    if (near.length) {
+      const w = near[Math.floor(Math.random() * near.length)];
+      sc.time.delayedCall(450, () => {
+        if (w.dead) return;
+        sc.floatText(w.spr.x, w.spr.y - w.spr.displayHeight * 0.8, WITNESS_LINES[Math.floor(Math.random() * WITNESS_LINES.length)], "#ffffff", 12);
+        w.talker.said = sc.time.now;
+      });
+    }
+  }
+
   // ---- the passengers have opinions
 
   private chatter(now: number) {
@@ -750,6 +822,17 @@ export class PlaneCabin {
     const t = near[Math.floor(Math.random() * near.length)];
     t.said = now;
     sc.floatText(t.x, t.y, PASSENGER_LINES[Math.floor(Math.random() * PASSENGER_LINES.length)], "#ffffff", 12);
+  }
+
+  /** Sweep the moving hazards away (the crawling stewards and loose trolleys), and level the cabin. */
+  private clearHazards() {
+    for (const c of [...this.crawlers, ...this.carts]) this.sc.tweens.add({ targets: c.spr, alpha: 0, duration: 300, onComplete: () => c.spr.destroy() });
+    this.crawlers = [];
+    this.carts = [];
+    if (this.tilt) {
+      this.tilt = 0;
+      this.sc.tweens.add({ targets: this.sc.cameras.main, rotation: 0, duration: 400 });
+    }
   }
 
   destroy() {

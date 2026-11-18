@@ -74,6 +74,7 @@ export const JUKEBOX: JukeboxTrack[] = [
   { ids: ["fight_flirt"], title: "Flirt Crobley", where: "Boss: Flirt Crobley" },
   { ids: ["fight_tank"], title: "Tank Crobley", where: "Boss: Tank Crobley" },
   { ids: ["fight_fruity"], title: "He's So Fruity", where: "Boss: Fruity Crobley" },
+  { ids: ["fd_wake"], title: "Hitori no Piano (Slightly Faster)", where: "The morning after" },
   { ids: ["fight_hoard"], title: "Defeat My Cyst (SanChz)", where: "Boss: The Cyst" },
   { ids: ["fight_reinhardt"], title: "Mental Problems", where: "Boss: Reinhardt Crobley" },
   { ids: ["fight_lantern"], title: "Chinese Crobley", where: "Boss: Chinese Crobley" },

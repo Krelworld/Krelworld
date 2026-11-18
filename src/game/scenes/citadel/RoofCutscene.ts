@@ -711,7 +711,7 @@ export class RoofCutscene extends Phaser.Scene {
           const fx = b.x + (k / 5 - 0.5) * w * 0.9;
           const fl = h * (0.25 + 0.35 * lv) * (0.65 + 0.35 * Math.sin(t * (calm ? 4 : 10) + k * 1.9 + i * 0.7));
           const fy = b.y - h * 0.12;
-          aura.fillStyle(cols[i], 0.1 + 0.16 * lv).fillTriangle(fx - w * 0.13, fy, fx + w * 0.13, fy, fx + Math.sin(t * 3 + k) * 6, fy - h * 0.55 - fl);
+          aura.fillStyle(cols[i], 0.16 + 0.24 * lv).fillTriangle(fx - w * 0.13, fy, fx + w * 0.13, fy, fx + Math.sin(t * 3 + k) * 6, fy - h * 0.55 - fl);
         }
         // vibration lines over and under his bit of the bar
         const r = crs[i];
@@ -814,20 +814,33 @@ export class RoofCutscene extends Phaser.Scene {
     const n = lads.length;
     const O: Pt[] = crs.map((r) => ({ x: r.x, y: (r.top + r.bottom) / 2 }));
     const mid = (O[0].x + O[n - 1].x) / 2;
-    const M: Pt = { x: mid + (O[n - 1].x - mid) * 0.72, y: Math.max(130, Math.min(...crs.map((r) => r.top)) - 170) };
+    const headTop = Math.min(...lads.map((l) => l.y - l.displayHeight));
+    const M: Pt = { x: mid + (O[n - 1].x - mid) * 0.72, y: Math.max(140, headTop - 85) };
     const cols = line.map((id) => this.ladCol(id));
-    // where each stream goes on its own first: up and over, its own way
-    const E: Pt[] = O.map((o, k) => ({ x: o.x + 36 + (M.x - o.x) * 0.22, y: o.y - 110 - 18 * (k % 3) }));
+    // each stream runs behind the bar to the gap at his right and rises out of it, up past his head (not over his face)
+    const gapX = lads.map((l, k) => (k < n - 1 ? (l.x + lads[k + 1].x) / 2 : l.x + 33));
+    const G0: Pt[] = O.map((o, k) => ({ x: gapX[k], y: headTop - 4 }));
+    // where each one goes on its own first: a curl up over his head, its own way
+    const E: Pt[] = G0.map((p, k) => ({ x: p.x + 22, y: p.y - 52 - 14 * (k % 3) }));
     const mouth = (): Pt => ({ x: d.x + 4, y: d.y - d.displayHeight * 0.72 });
-    const t0 = this.time.now;
+    let el = 0;
     let merged = false;
     let hit = false;
-    let last = this.time.now;
     const streamPath = (k: number, conv: number, t: number): Path => {
       const o = O[k];
+      const g0 = G0[k];
       const e = conv > 0 ? smooth(0, 1, conv) : 0;
       const end = { x: E[k].x + (M.x - E[k].x) * e, y: E[k].y + (M.y - E[k].y) * e };
-      const base = bezier(o, { x: o.x + 4, y: o.y - 70 - 25 * e }, { x: end.x - (end.x - o.x) * 0.45, y: end.y - 40 + 25 * e }, end);
+      const up = bezier(g0, { x: g0.x, y: g0.y - 45 }, { x: end.x - (end.x - g0.x) * 0.4, y: end.y - 30 + 20 * e }, end);
+      const base: Path = (u) => {
+        if (u >= 0.3) return up((u - 0.3) / 0.7);
+        // behind the bar, along to the gap, then straight up out of it
+        const v = u / 0.3;
+        const w = 1 - v;
+        const cx = g0.x;
+        const cy = o.y - 6;
+        return { x: w * w * o.x + 2 * w * v * cx + v * v * g0.x, y: w * w * o.y + 2 * w * v * cy + v * v * g0.y };
+      };
       if (conv <= 0) return base;
       // braiding: near the knot, each one twists round the others
       const ph = (k * Math.PI * 2) / n;
@@ -840,12 +853,11 @@ export class RoofCutscene extends Phaser.Scene {
       };
     };
     const torrentPath = (m: Pt): Path => bezier(M, { x: M.x + 80, y: M.y - 50 }, { x: m.x - 120, y: m.y - 40 }, m);
-    const upd = () => {
-      const now = this.time.now;
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      const el = (now - t0) / 1000;
-      const t = now / 1000;
+    // on the scene's own clock (frame deltas, like the tweens and the cinematic's clock)
+    const upd = (_time: number, dms: number) => {
+      const dt = Math.min(0.05, dms / 1000);
+      el += dms / 1000;
+      const t = el + 50;
       g.clear();
       const conv = smooth(0.75, 1.35, el);
       const tor = smooth(1.35, 1.65, el);

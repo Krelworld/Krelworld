@@ -208,10 +208,10 @@ export const MUSIC_FILES: Record<string, string> = {
 };
 
 /** Where a song starts (seconds) when it first comes on, e.g. the title song skips its instrumental intro and opens on the vocals. */
-const MUSIC_START: Record<string, number> = { sanmik: 16.8 };
+const MUSIC_START: Record<string, number> = { sanmik: 16.8, title: 4.45 };
 
 /** Looping songs that loop back to their MUSIC_START point rather than to the top. */
-const LOOP_FROM_START = new Set(["sanmik"]);
+const LOOP_FROM_START = new Set(["sanmik", "title"]);
 
 /** Songs that should play once rather than loop. */
 const ONE_SHOT = new Set(["gw_krezz", "c6e_aftermath", "c6a_raid_title", "c6a_nuke_arm", "dungeon_rise", "crystal", "viral", "crobley", "majek_lampe", "anthem", "bbp", "twitcher", "crocodile", ...Array.from({ length: 13 }, (_, i) => `ggg${i + 1}`)]);

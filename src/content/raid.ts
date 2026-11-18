@@ -14,7 +14,7 @@ export const RAID_ARRIVE: Line[] = [
   say("FLENKY", "This is for Mollor. My sweet flirtkitten. LIGHT 'EM UP!"),
   say("GRONNY", "And for Polson."),
   say("SCROMBUS", "And for Polson. Nobody queue-jumps in Krelworld."),
-  dir("HOLD the attack button (mouse / Space / the fire button) to spray CHEMICAL FIRE. Walk EAST along the Strip. Burn the barricades to get through."),
+  dir("HOLD the attack button (left mouse / J / the fire button) to spray CHEMICAL FIRE (aim with the mouse). Walk EAST along the Strip. Burn the barricades to get through."),
 ];
 
 /** The lads shouting as they march (each line is shouted by its speaker, in a speech bubble). */

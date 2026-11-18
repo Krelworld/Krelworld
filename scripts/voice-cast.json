@@ -43,7 +43,7 @@
     "PRESIDENT KLERBLE": "strong Italian accent",
     "CHINESE CROBLEY": "speaking English with a very strong Chinese accent",
     "RUSSELL BRAND": "lively, flamboyant cockney accent",
-    "GENIE": "speaking English with a strong Indian accent",
+    "GENIE": "speaking English with a strong, unmistakable Indian accent",
     "CARMELA SOPRANO": "strong New Jersey accent",
     "ANDY BURNHAM": "cheerful, warm Greater Manchester accent",
     "NORTHERN BLOKE 1": "broad Mancunian accent",
@@ -378,7 +378,6 @@
     "GORDON RAMSAY": "QHY1TBAanOZDM1GB8OcW",
     "DR LEIGH BRAMWELL": "LEMvrmwnLdTCzTsCQtxZ",
     "CHEF MICK": "esV7kJtKDdBipOsoWtGM",
-    "GENIE": "c15nV2xCagiZlwvCGBxW",
     "PROFESSOR BEN BURGIS": "Mlr9g8ZYpsO5Q1Wh5d9S",
     "CARMELA SOPRANO": "KyRkqFgySOwoLUjC2PQ5",
     "MR JONES": "4HhMgTKONxhgWKnTWAAj",
@@ -398,7 +397,8 @@
     "NORTHERN BLOKE 2": "PweKxOCw421kbKdSaA5S",
     "NORTHERN BLOKE 3": "yO0oj6A2TnMNtkikM8bo",
     "NORTHERN BLOKE 4": "EnFwU9loHqFNYFithh6J",
-    "ALL": "TUK9u4r5y2iPdDsWcYMZ"
+    "ALL": "TUK9u4r5y2iPdDsWcYMZ",
+    "GENIE": "c15nV2xCagiZlwvCGBxW"
   },
   "designed_desc": {
     "KRANKY KRANDALL": "A reedy, squeaky, frail old British man in his nineties. Thin, high, wavering, slightly wheezy voice, rambling and forgetful, trailing off mid-sentence.",
@@ -454,7 +454,7 @@
     "FLAT-TYRE FROLLICK": "A nervous young assistant with a strong Northern Irish Belfast accent. Jittery and awestruck.",
     "FOSTER": "A polished, smooth commodities executive in his fifties with a South African accent. Persuasive and discreet.",
     "JUDGE KRELMOR": "A deep, stern, ancient judge in his seventies with a slow, grave Scottish accent.",
-    "GENIE": "A huge, booming, theatrical genie with a strong Indian accent, speaking English. Grumpy, world-weary and dramatic.",
+    "GENIE": "A huge, booming, theatrical genie, a man in his fifties, speaking English with a strong, unmistakable Indian accent (as from Mumbai or Delhi): Indian vowels, retroflex consonants, Indian rhythm and intonation throughout. Grumpy, world-weary and dramatic. Not British, not American.",
     "ALISTAIR SWAMP": "A deep, gravelly old blues singer with a slow Mississippi Delta southern drawl.",
     "GROZZ": "A rotund, sweaty working-class man in his forties with a thick London cockney accent. Beery and gruff.",
     "PHIL": "A gruff hard-man East End London pub landlord in his fifties with a cockney accent. Low and growly.",

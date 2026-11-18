@@ -1,3 +1,5 @@
+import { isTouchDevice } from "../ui/TouchControls";
+import { keysFor, prettyKey } from "../systems/keybinds";
 import { carriesCrystal, crystalCount, CRYSTALS_NEEDED, CRYSTAL_BOSSES } from "../systems/crystals";
 import { squeeze } from "../systems/squeeze";
 import Phaser from "phaser";
@@ -1045,21 +1047,27 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         break;
       }
       case "crystal_wall": {
-        // the cum crystal, wedged in the colon wall (side-on: in the back wall, at about head height)
-        const y = this.side ? this.groundY - 120 : y0;
-        const glow = this.add.circle(x, y, 46, 0xfff1f2, 0.25).setDepth(y - 1).setBlendMode(Phaser.BlendModes.ADD);
-        this.add.ellipse(x, y + 4, 90, 60, 0x9f1239).setStrokeStyle(4, 0x4c0519).setDepth(y - 2);
-        const cr = this.add.image(x, y, this.textures.exists("cum_crystal") ? "cum_crystal" : "p_scroll").setDepth(y);
-        cr.setScale(56 / Math.max(cr.height, 1));
+        // the cum crystal, lying on the floor of the colon in a puddle, with a big obvious E prompt over it
+        const floor = this.side ? this.groundY : y0 + 28;
+        const cy = floor - 30;
+        this.add.ellipse(x, floor - 2, 110, 18, 0x9f1239, 0.85).setDepth(floor - 3);
+        const glow = this.add.circle(x, cy, 52, 0xfff1f2, 0.28).setDepth(floor - 2).setBlendMode(Phaser.BlendModes.ADD);
+        const cr = this.add.image(x, floor - 4, this.textures.exists("cum_crystal") ? "cum_crystal" : "p_scroll").setOrigin(0.5, 1).setDepth(floor);
+        cr.setScale(60 / Math.max(cr.height, 1));
         this.tweens.add({ targets: [glow], scale: 1.3, alpha: 0.1, yoyo: true, repeat: -1, duration: 700 });
-        const lab = this.add.text(x, y - 48, "THE CUM CRYSTAL (WEDGED)", { fontFamily: FONT, fontSize: "10px", color: "#ffd23f", backgroundColor: "#000000aa" }).setOrigin(0.5).setDepth(y + 1);
+        const ek = prettyKey(keysFor("interact")[0] ?? "E");
+        const lab = this.add
+          .text(x, floor - 108, `▼  ${isTouchDevice(this.game) ? "TAP" : `PRESS ${ek}`}: TAKE THE CUM CRYSTAL  ▼`, { fontFamily: "Impact, sans-serif", fontSize: "20px", color: "#ffd23f", stroke: "#000", strokeThickness: 5, backgroundColor: "#000000aa", padding: { x: 8, y: 3 } })
+          .setOrigin(0.5)
+          .setDepth(floor + 50);
+        this.tweens.add({ targets: lab, y: lab.y - 10, yoyo: true, repeat: -1, duration: 450, ease: "Sine.inOut" });
+        this.tweens.add({ targets: lab, scale: 1.08, yoyo: true, repeat: -1, duration: 700, ease: "Sine.inOut" });
         if (G.s.flags.rik_crystal_taken) [glow, cr, lab].forEach((o) => o.destroy());
         this.interactables.push({
           x,
-          y: y + 40,
-          r: 70,
-          ...(this.side ? { y: this.groundY - 30, r: 90 } : {}),
-          label: "Prise out the cum crystal",
+          y: floor - 20,
+          r: this.side ? 100 : 80,
+          label: "Take the cum crystal",
           enabled: () => !G.s.flags.rik_crystal_taken,
           use: () => void this.takeRikCrystal([glow, cr, lab]),
         });

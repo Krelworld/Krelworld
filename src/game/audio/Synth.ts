@@ -67,6 +67,9 @@ export const AUDIO_FILES: Record<string, string> = {
 };
 
 /** Where each separate shout sits in those files: [start, length] in seconds. */
+/** Extra gain for shout clips that are recorded quiet (multiplies the call's volume). */
+const SHOUT_GAIN: Record<string, number> = { yee: 1.8, yegh: 1.8, wizard_yee: 1.5 };
+
 const SHOUTS: Record<string, [number, number][]> = {
   yee: [[0.9, 0.73], [2.25, 0.73], [4.69, 0.81], [6.17, 0.75], [7.44, 0.84], [8.73, 0.77], [9.94, 0.46], [11.06, 0.77], [12.2, 0.82], [13.33, 0.8], [14.62, 0.75], [15.98, 0.72], [17.33, 0.68], [18.59, 0.73]],
   concept_roar: [[0.3, 2.02], [2.82, 2.95], [6.27, 2.15], [8.92, 3.25]],
@@ -744,6 +747,8 @@ export class Synth {
   }
 
   shout(id: string, vol = 0.9, rate?: number, index?: number) {
+    // SanMik's YEE and SanChz's YEGH are quiet recordings: lift them so they cut through
+    vol *= SHOUT_GAIN[id] ?? 1;
     const buf = this.files[id];
     const segs = SHOUTS[id];
     if (!this.ctx || !buf || !segs) return false;

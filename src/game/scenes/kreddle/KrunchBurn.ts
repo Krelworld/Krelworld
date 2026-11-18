@@ -512,8 +512,10 @@ export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
       let made = 0;
       for (let yy = b.top + b.height * 0.1; yy < b.bottom - b.height * 0.05 && made < 170; yy += cell)
         for (let xx = b.left + b.width * 0.25; xx < b.right - b.width * 0.25 && made < 170; xx += cell) {
+          // (ragged, not a solid block: skip some, jitter the rest)
+          if (Math.random() < 0.3 || Math.abs(xx - (b.left + b.width / 2)) > b.width * (0.12 + 0.13 * Math.random())) continue;
           made++;
-          const r = sc.add.rectangle(xx, yy, cell, cell, Math.random() < 0.15 ? 0xff8a3a : Math.random() < 0.5 ? charTo : 0x57534e, 1);
+          const r = sc.add.rectangle(xx + (Math.random() - 0.5) * cell, yy + (Math.random() - 0.5) * cell, cell * (0.5 + Math.random() * 0.6), cell * (0.5 + Math.random() * 0.6), Math.random() < 0.15 ? 0xff8a3a : Math.random() < 0.5 ? charTo : 0x57534e, 1);
           fx.add(r);
           const d = ((yy - b.top) / b.height) * 500;
           sc.tweens.add({ targets: r, x: xx + 300 + Math.random() * 500, y: yy - 60 - Math.random() * 160, angle: 200, scale: 0.2, alpha: 0, delay: d + Math.random() * 150, duration: 900 + Math.random() * 500, onComplete: () => r.destroy() });

@@ -453,7 +453,7 @@ export class UIScene extends Phaser.Scene {
       const bk = prettyKey(keysFor("bongo")[0] ?? "B");
       this.statT.setPosition(68, 56).setText(
         [
-          `🍼 ×${s.bottles}/${maxBottles(s)}${touch ? "" : ` [${q}] heal`}   🍺 ×${s.bongos}${touch ? "" : ` [${bk}]`}${s.upgrades.fairies ? `   🧚 ${s.upgrades.fairies}` : ""}`,
+          `🍼 ×${s.bottles}/${maxBottles(s)}${touch ? "" : ` [${q}] heal`}   🍺 ×${s.bongos}${touch ? "" : ` [${bk}]`}${s.upgrades.fairies ? (G.rt.fairyUsed && this.mode === "dungeon" ? "   🧚 used" : "   🧚 ready") : ""}`,
           ...chips,
         ].join("\n"),
       );

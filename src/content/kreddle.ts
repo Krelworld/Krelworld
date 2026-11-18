@@ -88,7 +88,7 @@ export const PRIZES: Prize[] = [
   { id: "lucky", cat: "tough", name: "LUCKY HORSESHOE", icon: "🍀", desc: "Enemies drop 25% more coins. Stacks twice.", key: "kd_lucky", max: 2 },
   { id: "dice", cat: "power", name: "LOADED DICE", icon: "🎲", desc: "Every dodge leaves a pair of dice behind. They explode. Snake eyes.", key: "kd_dice", max: 1 },
   { id: "slotfart", cat: "power", name: "SLOT MACHINE FARTS", icon: "🍒", desc: "Every fart spins the reels: x1, x2 or a x3 jackpot on the damage.", key: "kd_slotfart", max: 1 },
-  { id: "fairy", cat: "tough", name: "BOTTLED FAIRY", icon: "🧚", desc: "If you die in a fight, she flies out and brings you back to full health. Once. You can carry two.", key: "fairies", max: 2 },
+  { id: "fairy", cat: "tough", name: "BOTTLED FAIRY", icon: "🧚", desc: "Yours for good. If you die in a dungeon, she flies out and brings you back to full health: once per dungeon (she's back next time you walk in).", key: "fairies", max: 1 },
   { id: "g_chainsaw", cat: "guns", name: "THE KREDDLE CHAINSAW", icon: "🪚", desc: "A chainsaw. Short range. Absolutely shreds.", gun: "chainsaw" },
   { id: "g_kreddler", cat: "guns", name: "THE KREDDLER (MINIGUN)", icon: "🔫", desc: "A gold-plated minigun. Spins up, never stops.", gun: "kreddler" },
   { id: "g_disco", cat: "guns", name: "DISCO BALL LAUNCHER", icon: "🪩", desc: "Fires disco balls that explode into rainbow light.", gun: "disco" },

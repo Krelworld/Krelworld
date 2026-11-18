@@ -33,6 +33,8 @@ class GameContext {
     statusDeck: [] as number[],
     /** The player swapped to the Fart Blaster on purpose (cleared on the next room). */
     fartByChoice: false,
+    /** The bottled fairy has been used on this dungeon visit (she's back next time you walk in). */
+    fairyUsed: false,
   };
 
   constructor() {

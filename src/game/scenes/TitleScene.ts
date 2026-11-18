@@ -108,7 +108,9 @@ export class TitleScene extends Phaser.Scene {
     items.push(["SETTINGS", () => this.scene.launch("Menu", { mode: "settings", caller: "Title" })]);
     const gap = items.length > 6 ? 41 : 46;
     items.forEach(([t, fn], i) => button(this, W / 2, 218 + i * gap, t, fn, { w: i === 0 && latest ? 460 : 320, h: items.length > 6 ? 36 : 40, size: i === 0 && latest ? 15 : 17 }));
-    button(this, 90, 24, "🛠 DEBUG", () => switchTo(this, "DebugSkip"), { w: 140, h: 30, size: 13 });
+    // the debug menu: hidden from players. Shown on the dev server, or with ?debug on the end of the link.
+    const dev = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || new URLSearchParams(location.search).has("debug");
+    if (dev) button(this, 90, 24, "🛠 DEBUG", () => switchTo(this, "DebugSkip"), { w: 140, h: 30, size: 13 });
     this.fullscreenButton();
 
     label(this, 12, H - 22, "WASD · Mouse · Click · Space · E · Q · B · R · Esc", 11, "#6d6a85");

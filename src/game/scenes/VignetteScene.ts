@@ -1,5 +1,6 @@
 import { diffFor } from "../systems/difficulty";
 import Phaser from "phaser";
+import { kreddleExpressShot } from "./p3d/kreddleExpress3d";
 import { SJ_KREDDLE, SJ_TOWER_DEMO, SJ_TOWER_SIM } from "../../content/sanjeev";
 import { playerKey } from "../gfx/sanmikForm";
 import { kruncherVictim } from "../systems/sanmik";
@@ -3766,9 +3767,12 @@ export class VignetteScene extends Phaser.Scene {
     void sign;
     const shop = this.add.image(720, 400, "p_krelburger").setOrigin(0.5, 1).setScale(1.5).setDepth(5);
     this.add.text(shop.x, shop.y - shop.displayHeight - 6, "KRELBURGER", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#ffd23f", stroke: "#b91c1c", strokeThickness: 5 }).setOrigin(0.5, 1).setDepth(6);
-    this.caption("MEANWHILE…", "#ffffff", 30);
-    await this.wait(900);
-    this.lastCaption?.destroy();
+    // trackside, in pseudo-3D: the train over the border (it has its own MEANWHILE)
+    if (!(await kreddleExpressShot(this))) {
+      this.caption("MEANWHILE…", "#ffffff", 30);
+      await this.wait(900);
+      this.lastCaption?.destroy();
+    }
     const train = this.add.image(-700, this.textures.exists("bg_krelford_rail") ? 408 : 392, "p_train").setOrigin(0, 1).setScale(2.4).setDepth(10);
     const k = this.add.sprite(0, 0, "spr_TV_PRESIDENT_KLERBLE", 4).setScale(1.5).setDepth(11);
     const follow = () => k.setPosition(train.x + train.displayWidth - 70, train.y - train.displayHeight + 40);

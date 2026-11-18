@@ -250,6 +250,8 @@ export interface BoardSpec {
   flipX?: boolean;
   /** lies flat on the ground over this world rectangle [x0, y0, x1, y1] instead of standing up */
   flat?: [number, number, number, number];
+  /** stands bolt upright facing a fixed way instead of turning to the camera: its right-hand edge points along this heading (radians, 0 = east), e.g. a train side-on along its track */
+  face?: number;
 }
 
 /** A board in a set. Everything below `vi` can be changed per frame to animate it. */
@@ -264,6 +266,8 @@ export interface Board3D {
   v1: number;
   vi: number;
   flat?: [number, number, number, number];
+  /** fixed facing (see BoardSpec.face) */
+  face?: number;
   /** base height, and sideways offset along the camera's right vector */
   z: number;
   ox: number;
@@ -419,7 +423,12 @@ export class Stage3D {
       if (s.crop) {
         const base = tex.get(s.frame);
         const name = `__p3d${this.id}_c${i}`;
-        if (!tex.has(name)) tex.add(name, base.sourceIndex, base.cutX + s.crop[0], base.cutY + s.crop[1], s.crop[2], s.crop[3]);
+        if (!tex.has(name)) {
+          const first = tex.firstFrame;
+          tex.add(name, base.sourceIndex, base.cutX + s.crop[0], base.cutY + s.crop[1], s.crop[2], s.crop[3]);
+          // (Phaser makes the first frame added to a plain image its default: keep the whole picture the default)
+          tex.firstFrame = first;
+        }
         this.crops.push([tex, name]);
         frame = name;
       }
@@ -460,7 +469,7 @@ export class Stage3D {
       let u0 = a.x / AW;
       let u1 = (a.x + a.w) / AW;
       if (e.s.flipX) [u0, u1] = [u1, u0];
-      boards.push(this.board({ x: e.s.x, y: e.s.y, hw: e.s.w / 2, h: e.s.h, u0, u1, v0: a.y / AH, v1: (a.y + a.h) / AH, z: e.s.z ?? 0, ox: e.s.ox ?? 0, tint: e.s.tint ?? 0xffffff, flat: e.s.flat }));
+      boards.push(this.board({ x: e.s.x, y: e.s.y, hw: e.s.w / 2, h: e.s.h, u0, u1, v0: a.y / AH, v1: (a.y + a.h) / AH, z: e.s.z ?? 0, ox: e.s.ox ?? 0, tint: e.s.tint ?? 0xffffff, flat: e.s.flat, face: e.s.face }));
     });
     atlas.setFilter(Phaser.Textures.FilterMode.LINEAR);
     this.addAtlas(key, boards, depthOff);
@@ -570,8 +579,8 @@ export class Stage3D {
     const ax = lerp(1, lx, fk);
     const ay = lerp(0, ly, fk);
     const al = Math.hypot(ax, ay) || 1;
-    const ex = ax / al;
-    const ey = ay / al;
+    const ex0 = ax / al;
+    const ey0 = ay / al;
     const bx = lerp(0, hxv, fk);
     const by = lerp(-1, hyv, fk);
     const bl = Math.hypot(bx, by) || 1;
@@ -597,10 +606,13 @@ export class Stage3D {
           pts[2] = [x0 + b.dx, y0 + b.dy, 0.5 + b.dz];
           pts[3] = [x1 + b.dx, y0 + b.dy, 0.5 + b.dz];
         } else {
-          // its own up: tipped over towards tiltYaw
-          let ux = Ux;
-          let uy = Uy;
-          let uz = Uz;
+          // its own up: tipped over towards tiltYaw (a board with a fixed facing stands straight up)
+          const fixed = b.face !== undefined;
+          const ex = fixed ? Math.cos(b.face!) : ex0;
+          const ey = fixed ? Math.sin(b.face!) : ey0;
+          let ux = fixed ? 0 : Ux;
+          let uy = fixed ? 0 : Uy;
+          let uz = fixed ? 1 : Uz;
           if (b.tilt) {
             const c = Math.cos(b.tilt);
             const s = Math.sin(b.tilt);
@@ -621,9 +633,9 @@ export class Stage3D {
           sx /= sl;
           sy /= sl;
           sz /= sl;
-          const bxw = b.x + ex * b.ox + Ux * b.z + b.dx;
-          const byw = b.y + ey * b.ox + Uy * b.z + b.dy;
-          const bzw = Uz * b.z + b.dz;
+          const bxw = b.x + ex * b.ox + (fixed ? 0 : Ux) * b.z + b.dx;
+          const byw = b.y + ey * b.ox + (fixed ? 0 : Uy) * b.z + b.dy;
+          const bzw = (fixed ? 1 : Uz) * b.z + b.dz;
           const hw = b.hw * b.scale;
           const h = b.h * b.scale;
           const cs = Math.cos(b.spin);
@@ -689,7 +701,11 @@ export class Stage3D {
     for (const g of this.made) if (g.active) g.destroy();
     this.made.length = 0;
     for (const k of this.texKeys) if (this.sc.textures.exists(k)) this.sc.textures.remove(k);
-    for (const [tex, name] of this.crops) if (tex.has(name)) tex.remove(name);
+    for (const [tex, name] of this.crops) {
+      if (tex.has(name)) tex.remove(name);
+      // adding a frame to a plain image makes it the texture's default frame: put that back, or the image breaks
+      if (!tex.has(tex.firstFrame)) tex.firstFrame = "__BASE";
+    }
     this.texKeys = [];
     this.crops = [];
   }

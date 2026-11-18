@@ -88,7 +88,8 @@ export async function kreddleCrossing(sc: Phaser.Scene): Promise<void> {
         const z = 64 + bob;
         // eyes up at the city as it rises, then settling on the Strip
         const lookUp = 90 + 110 * span(t, 1.2, 3.6) - 90 * span(t, 4.8, LENGTH - 0.3);
-        const look = { x: x - 1500, y: MID_Y - 40 * span(t, 4.2, LENGTH) + Math.sin(ph / 2) * 6 * speed, z: lookUp };
+        // (at the end, turning a touch left, off the Exchange's kiosk and down the Strip)
+        const look = { x: x - 1500, y: MID_Y + 330 * span(t, 4.0, LENGTH - 0.2) + Math.sin(ph / 2) * 6 * speed, z: lookUp };
         const pose = lookAt({ x, y, z }, look, Math.sin(ph / 2) * (calm ? 0.4 : 1.2) * speed);
         // the neon breathes (and dodgy tubes stutter, unless calm flashes are on)
         for (const { g, s } of glows) {

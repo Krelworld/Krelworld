@@ -7,12 +7,14 @@ import { DialogueBox } from "../../ui/DialogueBox";
 import { fadeThen, switchTo } from "../../Flow";
 import { synth } from "../../audio/Synth";
 import { FONT, title } from "../../ui/theme";
-import { animateWalker, playPerf } from "../../gfx/HD";
+import { animateWalker, hdFactor, playPerf } from "../../gfx/HD";
 import { censorRect } from "../../gfx/Censor";
 import { playerKey, sanmikYee } from "../../gfx/sanmikForm";
 import { hasVfx, vfx } from "../../gfx/Vfx";
 import * as FR from "../../../content/finaleRoof";
 import * as Juice from "../../gfx/Juice";
+import { CHARACTERS } from "../../../data/characters";
+import { bezier, drawFlow, drawSplash, lighten, Motes, smooth, type Path, type Pt } from "../../gfx/KiStream";
 import { FINALE_BOTTLE_AT, FINALE_LOGS_AT, roofPreload, roofReady } from "./RoofArena";
 
 /**
@@ -544,6 +546,10 @@ export class RoofCutscene extends Phaser.Scene {
     await this.untilCine(12.1);
     pump = 0.85;
     moanGap = 170;
+    // EVERY LAD KREZZING: each one shuddering in his own colour aura, his bit of the bar shaking
+    const strain = this.ladsStrain(lads, line, crs);
+    glow.forEach((g, i) => g.setFillStyle(this.ladCol(line[i]), 0.2));
+    strain.level = 0.45;
     const shout = this.time.addEvent({
       delay: 280,
       loop: true,
@@ -562,23 +568,28 @@ export class RoofCutscene extends Phaser.Scene {
       Juice.shake(this, 300, 0.008 + i * 0.006);
     }
     await this.untilCine(15.3);
+    strain.level = 0.75;
+    // a panel of every lad's face, mid-krezz, sweeping in along the bottom, down the line
+    const panels = this.facePanels(line);
     this.caption(nowLads?.t ?? "NOW, LADS!", "#ffffff", 44, 0.7);
     synth.voice("oh", 0.8, 0.9);
     Juice.riser(1600, 0.35);
     await this.untilCine(16.1);
     shout.remove();
     pump = 1;
+    strain.level = 1;
     this.caption(FR.KZ_FINISH[0], "#ffffff", 50, 0.8);
     for (let i = 0; i < 8; i++) synth.voice(i % 2 ? "oh" : "grunt", 0.5 + i * 0.05, 0.6 + i * 0.1, i * 0.1);
     this.tweens.add({ targets: charge, scaleY: 1.8, fillAlpha: 0.32, duration: 850, ease: "Quad.in" });
     Juice.shake(this, 900, 0.012);
 
-    // 4. KREEEZZ: the release, all of it, into his mouth
+    // 4. KREEEZZ: the release. Every lad's own stream, in his own colour, then all of them as one, into his mouth
     await this.untilCine(17.0);
     brace.remove();
     trail.remove();
     circuit.destroy();
     moanGap = 9999;
+    panels.out();
     this.caption(FR.KZ_FINISH[1], "#ffffff", 64, 2.4);
     synth.laser(5);
     synth.play("boom");
@@ -586,36 +597,19 @@ export class RoofCutscene extends Phaser.Scene {
     this.impactFrames(3);
     // SanMik krezzes with a YEE YEE YEE
     sanmikYee(this, lads[0].x, lads[0].y - lads[0].displayHeight - 10, { times: 3, size: 22, depth: 1000 });
-    const beam = this.add.graphics().setDepth(65).setBlendMode(Phaser.BlendModes.ADD);
-    const beamEv = this.time.addEvent({
-      delay: 16,
-      loop: true,
-      callback: () => {
-        beam.clear();
-        const m = { x: d.x + 4, y: d.y - d.displayHeight * 0.72 };
-        // one ray off every lad (from behind the bar), all meeting in one beam at the front, into his mouth
-        const join = { x: barR + 10, y: barY };
-        crs.forEach((r, k) => {
-          const w = 3 + Math.random() * 2;
-          beam.fillStyle(k % 2 ? 0xffd1f3 : 0xff9ad5, 0.55).fillTriangle(r.x, barY - w, r.x, barY + w, join.x, join.y);
-        });
-        const w0 = 22 + Math.random() * 8;
-        beam.fillStyle(0xff9ad5, 0.22).fillTriangle(join.x, join.y - w0 * 2.2, join.x, join.y + w0 * 2.2, m.x, m.y);
-        beam.fillStyle(0xffffff, 0.9).fillTriangle(join.x, join.y - w0 * 0.6, join.x, join.y + w0 * 0.6, m.x, m.y);
-        beam.fillStyle(0xffffff, 0.9).fillCircle(join.x, join.y, w0 * 0.9);
-      },
+    const flow = this.krezzStreams(lads, line, crs, d, () => {
+      // it hits him: back he goes, off his feet
+      idle.paused = true;
+      this.tweens.add({ targets: d, x: 820, y: d.y - 24, angle: 8, duration: 1400, ease: "Quad.out" });
+      Juice.shake(this, 1500, 0.02);
     });
-    // it hits him: back he goes, off his feet
-    idle.paused = true;
-    this.tweens.add({ targets: d, x: 820, y: d.y - 24, angle: 8, duration: 1400, ease: "Quad.out" });
-    Juice.shake(this, 1500, 0.02);
-    await this.untilCine(18.4);
+    await this.untilCine(19.5);
     // the money shot: straight down his throat
-    await Juice.still(this, "fe_still_group_krezz", 1800, { push: 0.15, shakeK: 0.025, depth: 1040 });
-    Juice.shake(this, 900, 0.025);
+    await Juice.still(this, "fe_still_group_krezz", 1300, { push: 0.15, shakeK: 0.025, depth: 1040 });
+    Juice.shake(this, 600, 0.025);
     await this.untilCine(21.0);
-    beamEv.remove();
-    beam.destroy();
+    flow.destroy();
+    strain.destroy();
     charge.destroy();
     for (const g of glow) g.destroy();
     // the close-up: down his throat, faster and faster, out of his eyes and ears, and then (in slow motion) POP
@@ -681,6 +675,251 @@ export class RoofCutscene extends Phaser.Scene {
     synth.weatherSound("storm");
     await this.collapse(lads, d);
     await this.surf();
+  }
+
+  // ---------------------------------------------------------------- the group krezz: the lads, their streams
+
+  private ladCol(id: string) {
+    return CHARACTERS[id]?.color ?? 0xff9ad5;
+  }
+
+  /**
+   * Every lad krezzing: each one shuddering, his own colour aura licking up round him, vibration lines over and
+   * under his bit of the censor bar, sweat flying off him. `level` (0..1) is how hard.
+   */
+  private ladsStrain(lads: Phaser.GameObjects.Sprite[], line: string[], crs: ReturnType<typeof censorRect>[]) {
+    const aura = this.add.graphics().setDepth(39).setBlendMode(Phaser.BlendModes.ADD);
+    const vib = this.add.graphics().setDepth(61);
+    const base = lads.map((l) => ({ x: l.x, y: l.y }));
+    const cols = line.map((id) => lighten(this.ladCol(id), 0.25));
+    const calm = !!G.meta.settings.calmFlash;
+    let sweatAt = 0;
+    const upd = () => {
+      const t = this.time.now / 1000;
+      const lv = ctl.level;
+      aura.clear();
+      vib.clear();
+      lads.forEach((l, i) => {
+        if (!l.active) return;
+        const b = base[i];
+        const j = lv * 2.4;
+        l.setPosition(b.x + (Math.random() - 0.5) * j, b.y + (Math.random() - 0.5) * j * 0.4);
+        const h = l.displayHeight;
+        const w = l.displayWidth;
+        // flame tongues licking up round him, in his colour
+        for (let k = 0; k < 6; k++) {
+          const fx = b.x + (k / 5 - 0.5) * w * 0.9;
+          const fl = h * (0.25 + 0.35 * lv) * (0.65 + 0.35 * Math.sin(t * (calm ? 4 : 10) + k * 1.9 + i * 0.7));
+          const fy = b.y - h * 0.12;
+          aura.fillStyle(cols[i], 0.1 + 0.16 * lv).fillTriangle(fx - w * 0.13, fy, fx + w * 0.13, fy, fx + Math.sin(t * 3 + k) * 6, fy - h * 0.55 - fl);
+        }
+        // vibration lines over and under his bit of the bar
+        const r = crs[i];
+        for (const side of [-1, 1]) {
+          const y = side < 0 ? r.top - 4 : r.bottom + 4;
+          for (let m = 0; m < 2; m++) {
+            const yy = y + side * m * 5;
+            const x0 = r.x - r.w * (0.42 - m * 0.08) + (Math.random() - 0.5) * 4 * lv;
+            const x1 = r.x + r.w * (0.42 - m * 0.08) + (Math.random() - 0.5) * 4 * lv;
+            vib.lineStyle(2, 0xffffff, 0.3 + 0.45 * lv).lineBetween(x0, yy, x0 + r.w * 0.22, yy).lineBetween(x1 - r.w * 0.22, yy, x1, yy);
+          }
+        }
+      });
+      // sweat
+      if (lv > 0 && this.time.now > sweatAt) {
+        sweatAt = this.time.now + 160 / lv;
+        const l = lads[Math.floor(Math.random() * lads.length)];
+        if (l?.active) {
+          const dir = Math.random() < 0.5 ? -1 : 1;
+          const dr = this.add.ellipse(l.x + dir * l.displayWidth * 0.2, l.y - l.displayHeight * 0.85, 4, 6, 0xbfe9ff, 0.9).setDepth(62);
+          this.tweens.add({ targets: dr, x: dr.x + dir * 22, y: dr.y - 14, alpha: 0, duration: 420, ease: "Quad.out", onComplete: () => dr.destroy() });
+        }
+      }
+    };
+    this.events.on("update", upd);
+    const ctl = {
+      level: 0,
+      destroy: () => {
+        this.events.off("update", upd);
+        aura.destroy();
+        vib.destroy();
+        lads.forEach((l, i) => l.active && l.setPosition(base[i].x, base[i].y));
+      },
+    };
+    this.events.once("shutdown", () => this.events.off("update", upd));
+    return ctl;
+  }
+
+  /** A comic-strip row of every lad's face mid-krezz, slamming in along the bottom, down the line. `out()` drops them. */
+  private facePanels(line: string[]) {
+    const n = line.length;
+    const gap = 6;
+    const P = Math.min(100, Math.floor((W - 32 - gap * (n - 1)) / n));
+    const y = H - 46 - 12 - P / 2;
+    const x0 = W / 2 - (n * P + (n - 1) * gap) / 2 + P / 2;
+    const root = this.add.container(0, 0).setDepth(1030).setScrollFactor(0);
+    const faces: Phaser.GameObjects.Image[] = [];
+    const cells: Phaser.GameObjects.Container[] = [];
+    line.forEach((id, i) => {
+      const key = [`fe_cut_ssj_${id}`, `fe_cut_lad_${id}`].find((k) => this.textures.exists(k));
+      const c = this.add.container(x0 + i * (P + gap), y);
+      c.add(this.add.rectangle(0, 0, P + 6, P + 6, this.ladCol(id), 1));
+      c.add(this.add.rectangle(0, 0, P, P, 0x05010c, 1));
+      if (key) {
+        const img = this.add.image(0, 0, key);
+        const fw = img.frame.realWidth;
+        const fh = img.frame.realHeight;
+        const side = Math.min(fw, fh);
+        const top = (fh - side) * 0.3;
+        const k = P / side;
+        img.setScale(k / hdFactor(img));
+        img.setCrop((fw - side) / 2, top, side, side);
+        img.setY(-(top + side / 2 - fh / 2) * k);
+        img.setData("y0", img.y);
+        c.add(img);
+        faces.push(img);
+      }
+      const flash = this.add.rectangle(0, 0, P, P, 0xffffff, 0.9);
+      c.add(flash);
+      c.setScale(1.8).setAlpha(0);
+      root.add(c);
+      cells.push(c);
+      this.time.delayedCall(i * 75, () => {
+        if (!c.active) return;
+        this.tweens.add({ targets: c, scale: 1, alpha: 1, duration: 150, ease: "Back.out" });
+        this.tweens.add({ targets: flash, fillAlpha: 0, duration: 260 });
+        Juice.tone(520 + i * 70, 50, 0.07, "square");
+      });
+    });
+    // they're straining: every face shudders
+    const shudder = this.time.addEvent({ delay: 40, loop: true, callback: () => faces.forEach((f) => f.active && f.setPosition((Math.random() - 0.5) * 3, f.getData("y0") + (Math.random() - 0.5) * 3)) });
+    return {
+      out: () => {
+        shudder.remove();
+        cells.forEach((c, i) => this.tweens.add({ targets: c, y: c.y + 180, alpha: 0, delay: i * 35, duration: 320, ease: "Quad.in" }));
+        this.time.delayedCall(n * 35 + 360, () => root.destroy());
+      },
+    };
+  }
+
+  /**
+   * THE RELEASE: every lad's own stream of spirit energy, in his colour, arcs up out from behind his bit of the bar,
+   * each one separate; then they bend in and braid together in mid-air, BURST into one torrent, and the torrent
+   * surges into Dark Drongus's mouth (`onHit` when it gets there). Flowing, rippling, glowing ki, not a laser.
+   */
+  private krezzStreams(lads: Phaser.GameObjects.Sprite[], line: string[], crs: ReturnType<typeof censorRect>[], d: Phaser.GameObjects.Sprite, onHit: () => void) {
+    const g = this.add.graphics().setDepth(59).setBlendMode(Phaser.BlendModes.ADD);
+    const calm = !!G.meta.settings.calmFlash;
+    const motes = new Motes(150);
+    const n = lads.length;
+    const O: Pt[] = crs.map((r) => ({ x: r.x, y: (r.top + r.bottom) / 2 }));
+    const mid = (O[0].x + O[n - 1].x) / 2;
+    const M: Pt = { x: mid + (O[n - 1].x - mid) * 0.72, y: Math.max(130, Math.min(...crs.map((r) => r.top)) - 170) };
+    const cols = line.map((id) => this.ladCol(id));
+    // where each stream goes on its own first: up and over, its own way
+    const E: Pt[] = O.map((o, k) => ({ x: o.x + 36 + (M.x - o.x) * 0.22, y: o.y - 110 - 18 * (k % 3) }));
+    const mouth = (): Pt => ({ x: d.x + 4, y: d.y - d.displayHeight * 0.72 });
+    const t0 = this.time.now;
+    let merged = false;
+    let hit = false;
+    let last = this.time.now;
+    const streamPath = (k: number, conv: number, t: number): Path => {
+      const o = O[k];
+      const e = conv > 0 ? smooth(0, 1, conv) : 0;
+      const end = { x: E[k].x + (M.x - E[k].x) * e, y: E[k].y + (M.y - E[k].y) * e };
+      const base = bezier(o, { x: o.x + 4, y: o.y - 70 - 25 * e }, { x: end.x - (end.x - o.x) * 0.45, y: end.y - 40 + 25 * e }, end);
+      if (conv <= 0) return base;
+      // braiding: near the knot, each one twists round the others
+      const ph = (k * Math.PI * 2) / n;
+      return (u) => {
+        const p = base(u);
+        const q = base(Math.min(1, u + 0.02));
+        const a = Math.atan2(q.y - p.y, q.x - p.x) + Math.PI / 2;
+        const amt = Math.sin(u * 11 - t * 8 + ph) * 11 * e * smooth(0.45, 0.8, u) * (1 - smooth(0.9, 1, u));
+        return { x: p.x + Math.cos(a) * amt, y: p.y + Math.sin(a) * amt };
+      };
+    };
+    const torrentPath = (m: Pt): Path => bezier(M, { x: M.x + 80, y: M.y - 50 }, { x: m.x - 120, y: m.y - 40 }, m);
+    const upd = () => {
+      const now = this.time.now;
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      const el = (now - t0) / 1000;
+      const t = now / 1000;
+      g.clear();
+      const conv = smooth(0.75, 1.35, el);
+      const tor = smooth(1.35, 1.65, el);
+      // the individual streams, each in its own colour
+      for (let k = 0; k < n; k++) {
+        if (!lads[k].active) continue;
+        const head = smooth(0, 1, (el - k * 0.045) / 0.55);
+        if (head <= 0) continue;
+        const p = streamPath(k, conv, t);
+        drawFlow(g, p, t, { width: 4.2 + 1.2 * conv, glow: cols[k], mid: lighten(cols[k], 0.55), core: lighten(cols[k], 0.88), pulses: 2, speed: 1.2, wobble: 0.35, seed: k * 1.7, calm }, 0, head, 16);
+        // the tip: a glowing head, spraying motes (while it's still out on its own)
+        const tip = p(head);
+        if (conv < 1) {
+          g.fillStyle(lighten(cols[k], 0.4), 0.35).fillCircle(tip.x, tip.y, 9);
+          g.fillStyle(0xffffff, 0.9).fillCircle(tip.x, tip.y, 4);
+          if (Math.random() < 0.35) motes.burst(tip.x, tip.y, 1, { dir: -Math.PI / 2, spread: Math.PI * 1.4, speed: 90, col: [lighten(cols[k], 0.5), 0xffffff], life: 0.5, r: 2 });
+        }
+      }
+      // the knot where they meet, glowing brighter as they close in
+      if (conv > 0) {
+        const pulse = 1 + 0.12 * Math.sin(t * (calm ? 4 : 12));
+        g.fillStyle(0xfff3c4, 0.14 + 0.2 * conv).fillCircle(M.x, M.y, (18 + 24 * conv) * pulse);
+        g.fillStyle(0xffffff, 0.3 + 0.5 * conv).fillCircle(M.x, M.y, (5 + 10 * conv) * pulse);
+      }
+      if (!merged && el >= 1.35) {
+        merged = true;
+        // ONE: a burst where they all come together
+        Juice.flash(this, 0xfff3c4, 260, 0.55, 1045);
+        Juice.shockRing(this, M.x, M.y, { color: 0xfff3c4, to: 300, rings: 3, ms: 600, depth: 64 });
+        motes.burst(M.x, M.y, 36, { speed: 260, life: 0.7, r: 3, col: [0xffffff, 0xfff3c4, ...cols.map((c) => lighten(c, 0.5))] });
+        Juice.tone(1320, 260, 0.12, "sine");
+        synth.play("boom", 0.7);
+        Juice.shake(this, 400, 0.012);
+      }
+      // the one torrent: flowing on into his mouth
+      if (tor > 0) {
+        const m = mouth();
+        const tp = torrentPath(m);
+        const surge = hit ? 1 + 0.08 * Math.sin(t * 6) : 1;
+        drawFlow(g, tp, t, { width: (12 + 5 * tor) * surge, glow: 0xffd98a, mid: 0xfff3c4, core: 0xffffff, pulses: 3, speed: 1.5, ribbons: 2, wobble: 0.22, seed: 3.1, startW: 0.8, calm }, 0, tor, 26);
+        // orbs and sparkles flicking off it
+        for (let s = 0; s < 3; s++) {
+          const u = Math.random() * tor;
+          const p = tp(u);
+          const q = tp(Math.min(1, u + 0.02));
+          const a = Math.atan2(q.y - p.y, q.x - p.x);
+          const side = Math.random() < 0.5 ? -1 : 1;
+          const v = 40 + Math.random() * 90;
+          motes.add(p.x, p.y, Math.cos(a) * 70 + Math.cos(a + (side * Math.PI) / 2) * v, Math.sin(a) * 70 + Math.sin(a + (side * Math.PI) / 2) * v, { life: 0.4 + Math.random() * 0.5, r: 1.6 + Math.random() * 2.2, star: Math.random() < 0.3, col: Math.random() < 0.2 ? lighten(cols[Math.floor(Math.random() * n)], 0.5) : Math.random() < 0.5 ? 0xffffff : 0xfff3c4 });
+        }
+        if (tor >= 1) {
+          const q = tp(0.97);
+          const dir = Math.atan2(m.y - q.y, m.x - q.x);
+          if (!hit) {
+            hit = true;
+            onHit();
+            motes.burst(m.x, m.y, 30, { dir: dir + Math.PI, spread: 3.4, speed: 280, life: 0.5, r: 3 });
+            synth.play("smash", 0.6);
+          }
+          drawSplash(g, m.x, m.y, dir, t, 1 + 0.1 * Math.sin(t * 9), calm);
+          motes.burst(m.x, m.y, 2, { dir: dir + Math.PI, spread: 3, speed: 230, life: 0.35, r: 2.4 });
+        }
+      }
+      motes.update(dt);
+      motes.draw(g);
+    };
+    this.events.on("update", upd);
+    this.events.once("shutdown", () => this.events.off("update", upd));
+    return {
+      destroy: () => {
+        this.events.off("update", upd);
+        g.destroy();
+      },
+    };
   }
 
   // ---------------------------------------------------------------- the krezz cinematic's clock
@@ -901,35 +1140,49 @@ export class RoofCutscene extends Phaser.Scene {
     const EARS = [at(20, 68), at(108, 68)];
     let speed = 0.2;
     let spill = 0;
-    const parts: { x: number; y: number; t: number }[] = [];
+    const calmK = !!G.meta.settings.calmFlash;
+    const motes = new Motes(120);
+    let last = this.time.now;
+    // the torrent, in from the left (rolling, rippling), into his mouth
+    const inPath = bezier({ x: -80, y: MOUTH.y + 50 }, { x: 160, y: MOUTH.y - 70 }, { x: MOUTH.x - 200, y: MOUTH.y + 50 }, MOUTH);
     const ev = this.time.addEvent({
       delay: 16,
       loop: true,
       callback: () => {
+        const now = this.time.now;
+        const dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+        const t = now / 1000;
         this.speedLines(lines, MOUTH.x, MOUTH.y, 0xffffff, 30 + Math.round(speed * 30));
         speed = Math.min(3, speed + 0.006);
         fx.clear();
-        // the beam, in from the left, into his mouth
-        const w0 = 22 + Math.sin(this.time.now / 30) * 4 + speed * 6;
-        fx.fillStyle(0xffffff, 0.35).fillTriangle(-40, MOUTH.y - w0 * 3, -40, MOUTH.y + w0 * 3, MOUTH.x, MOUTH.y);
-        fx.fillStyle(0xffffff, 1).fillTriangle(-40, MOUTH.y - w0, -40, MOUTH.y + w0, MOUTH.x, MOUTH.y);
-        if (Math.random() < 0.6 + speed * 0.2) parts.push({ x: -20, y: MOUTH.y + (Math.random() - 0.5) * w0 * 2, t: 0 });
-        for (const p of parts) {
-          p.t += 0.02 + speed * 0.03;
-          p.x = -20 + (MOUTH.x + 20) * p.t;
-          fx.fillStyle(0xffffff, 1).fillRect(p.x, p.y + (MOUTH.y - p.y) * p.t, 18 + speed * 10, 3);
+        drawFlow(fx, inPath, t, { width: 26 + speed * 6, glow: 0xffd98a, mid: 0xfff3c4, core: 0xffffff, pulses: 3, speed: 1.2 + speed * 0.5, ribbons: 2, wobble: 0.2, seed: 1.3, startW: 1, calm: calmK }, 0, 1, 28);
+        // orbs and sparkles flicking off it
+        for (let s = 0; s < 2 + Math.round(speed); s++) {
+          const u = Math.random() * 0.95;
+          const p = inPath(u);
+          const side = Math.random() < 0.5 ? -1 : 1;
+          motes.add(p.x, p.y + side * 20, 120 + Math.random() * 120, side * (60 + Math.random() * 120), { life: 0.4 + Math.random() * 0.4, r: 2 + Math.random() * 3, star: Math.random() < 0.3, col: Math.random() < 0.5 ? 0xffffff : 0xfff3c4 });
         }
-        while (parts.length && parts[0].t >= 1) parts.shift();
-        // it's coming out of his eyes and ears
+        // the splash of light round his mouth
+        drawSplash(fx, MOUTH.x, MOUTH.y, 0, t, 1.3 + speed * 0.15, calmK);
+        motes.burst(MOUTH.x, MOUTH.y, 2, { dir: Math.PI, spread: 3.2, speed: 260, life: 0.35, r: 3 });
+        // it's coming out of his eyes and ears: little jets of the same light
         if (spill > 0) {
           for (const e of [...EYES, ...EARS]) {
-            const i = EYES.includes(e) ? 1 : 0.7;
+            const eye = EYES.includes(e);
             const dx = e.x < 560 ? -1 : 1;
             const len = 80 + spill * 400;
-            fx.fillStyle(0xffffff, 0.4 * i).fillTriangle(e.x, e.y - 4, e.x, e.y + 4, e.x + dx * len, e.y - 30 - spill * 60 + (EYES.includes(e) ? -40 : 30));
-            fx.fillStyle(0xffffff, 0.9).fillCircle(e.x, e.y, 6 + spill * 10);
+            const end = { x: e.x + dx * len, y: e.y - 30 - spill * 60 + (eye ? -40 : 30) };
+            const jet = bezier(e, { x: e.x + dx * len * 0.3, y: e.y - 10 }, { x: e.x + dx * len * 0.7, y: end.y + 10 }, end);
+            drawFlow(fx, jet, t, { width: (eye ? 6 : 4.5) + spill * 6, glow: 0xffd98a, mid: 0xfff3c4, core: 0xffffff, pulses: 2, speed: 1.6, wobble: 0.3, seed: e.x, alpha: eye ? 1 : 0.75, calm: calmK }, 0, 1, 14);
+            fx.fillStyle(0xfff3c4, 0.35).fillCircle(e.x, e.y, 10 + spill * 14);
+            fx.fillStyle(0xffffff, 0.9).fillCircle(e.x, e.y, 5 + spill * 8);
+            if (Math.random() < 0.4) motes.burst(end.x, end.y, 1, { dir: Math.atan2(end.y - e.y, end.x - e.x), spread: 1.2, speed: 150, life: 0.4 });
           }
         }
+        motes.update(dt);
+        motes.draw(fx);
         face.setPosition(560 + (Math.random() - 0.5) * speed * 6, 270 + (Math.random() - 0.5) * speed * 6);
       },
     });

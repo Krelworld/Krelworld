@@ -22,6 +22,7 @@ import { addCensorBar, censorRect } from "../gfx/Censor";
 import * as KR from "../../content/krunchers";
 import { GUNS } from "../combat/Guns";
 import { ensureCh6Art } from "../gfx/ch6Art";
+import { klerbleMelt } from "./vignette/klerbleMelt";
 import { Presenter, hasAnchor } from "./tvnews/Presenter";
 import { BRANDS, NewsChrome, calm, cameraFlash } from "./tvnews/NewsChrome";
 import { shootout, splat, tripodRig, type Victim } from "./tvnews/Shootout";
@@ -5022,6 +5023,8 @@ export class VignetteScene extends Phaser.Scene {
     this.cameras.main.pan(480, 270, 10, "Linear", true);
     // (from here on, the old upbeat themes stay gone: systems/moodMusic)
     G.s.flags.kreddle_nuked = true;
+    // the light reaches the bunker first: a close cut to President Klerble as it goes off (gore setting respected)
+    await klerbleMelt(this);
     // silence. then:
     const nukeBars = Juice.letterbox(this, 44, 300, 985);
     this.cameras.main.flash(900, 255, 255, 255);

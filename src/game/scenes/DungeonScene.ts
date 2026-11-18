@@ -2283,12 +2283,25 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       const phd = (ps.texture.customData as { hd?: number } | undefined)?.hd ?? 1;
       const pl = { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd };
       let n = 0;
+      // the show draws its own you and its own victim: while it plays, the real you and every passenger still lying
+      // in the aisle are hidden (or you'd see two of you, and the others cowering through the middle of it);
+      // between finishers they're back, so the "NEXT:" card shows who's next, still cowering
+      const showReal = (on: boolean) => {
+        if (ps.active) ps.setVisible(on);
+        for (const o of downed) if (o.hero.active) o.hero.setVisible(on);
+        this.heroSquad?.setTagsVisible(on);
+      };
       for (const [i, d] of downed.entries()) {
         if (i > 0) await chainCard(this, i + 1, downed.length, d.target.name);
         const tg: KrelTarget = { ...d.target, x: d.hero.x, y: d.hero.y };
         d.hero.remove();
+        showReal(false);
         // a different finisher on each (the shuffle bag never repeats one until you've seen them all)
-        await forcedKreltality(this, tg, pl, pick());
+        try {
+          await forcedKreltality(this, tg, pl, pick());
+        } finally {
+          if (this.heroAlive()) showReal(true);
+        }
         if (!this.heroAlive()) return;
         n++;
         bump(s, "kreltalities");

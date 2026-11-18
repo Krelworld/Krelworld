@@ -48,6 +48,8 @@ export class HeroSquad {
   private lastBark = -1e9;
   private lastBig = -1e9;
   done = false;
+  /** Tags and bars off (while a Kreltality show has the stage). */
+  private hideTags = false;
 
   constructor(private sc: Phaser.Scene) {
     this.bars = sc.add.graphics().setDepth(940);
@@ -90,13 +92,17 @@ export class HeroSquad {
     G.emit("boss", { name: `THE HERO PASSENGERS (${left} LEFT)`, hp, max, shielded: false, phase: 3 - left });
   }
 
+  setTagsVisible(on: boolean) {
+    this.hideTags = !on;
+  }
+
   /** Tags and little bars over their heads (every frame). */
   update() {
     const g = this.bars.clear();
     for (const m of this.members) {
       const t = this.tags.get(m);
       if (!t) continue;
-      if (!m.active) {
+      if (!m.active || this.hideTags || !m.visible) {
         t.setVisible(false);
         continue;
       }

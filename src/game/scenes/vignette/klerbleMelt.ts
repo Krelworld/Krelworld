@@ -66,7 +66,8 @@ export async function klerbleMelt(sc: Phaser.Scene) {
   const BX = 480;
   const BY = 302;
   const pt = (x: number, y: number) => ({ x: BX + (x - 64) * S, y: BY + (y - 64) * S });
-  const bust = add(sc.add.image(BX, BY, "c6_kmelt_0").setScale(S).setTint(0x8a4048));
+  // (he's already flatlined: no grinning portrait in the dark first, the flash is the first we see of him)
+  const bust = add(sc.add.image(BX, BY, "c6_kmelt_0").setScale(S).setTint(0x8a4048).setAlpha(0));
   // the next stage cross-fades in over the last one
   const over = add(sc.add.image(BX, BY, "c6_kmelt_0").setScale(S).setAlpha(0));
   const white = add(sc.add.rectangle(480, 270, 1100, 700, 0xfffbeb, 0));
@@ -148,6 +149,7 @@ export async function klerbleMelt(sc: Phaser.Scene) {
   if (!alive()) return;
 
   // 2. the light reaches him
+  bust.setAlpha(1);
   sc.tweens.add({ targets: white, fillAlpha: calm ? 0.45 : 1, duration: calm ? 700 : 60 });
   sc.tweens.add({ targets: backGlow, alpha: calm ? 0.45 : 0.9, duration: calm ? 900 : 200 });
   await wait(calm ? 700 : 120);

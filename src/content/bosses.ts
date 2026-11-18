@@ -24,7 +24,7 @@ export const BOSS_TEXT: Record<string, BossText> = {
       say("KRANKY KRANDALL", "I'm Mr Krandall. Kranky to my friends. I love cumming and drinking pussy juice!"),
       dir("Pinned to the wall: a letter. 'Dear Kranky. Keep it switched off until they react to the song. All yours till then. Love, D. P.S. The hat is sick.'"),
       say("KRANKY KRANDALL", "He gave me the WHOLE MAIN. All the pussy juice in Krelworld. Mine. Mmmm. Pussy juice. My willy is feeling very erect!"),
-      say("CRONGUS", "There are kids in this building, you absolute sicko.", { cond: { notPlayer: "CRONGUS" } }),
+      say("CRONGUS", "Nobody needed to know that, you absolute sicko.", { cond: { notPlayer: "CRONGUS" } }),
       say("KRANKY KRANDALL", "And they're doing VERY well! They can all spell 'pussy juice'! Lesson one: never share your pussy juice!"),
       say("KRANKY KRANDALL", "Pop quiz! What happens to pupils who come between me and my pussy juice?"),
       say("KRANKY KRANDALL", "DEATH. YEEE!"),

@@ -3,7 +3,7 @@ import { backdrop } from "../gfx/HD";
 import { CHARACTERS, PLAYABLE_ORDER } from "../../data/characters";
 import type { PlayableId } from "../../data/types";
 import { button, FONT, hexStr, label, title, UI } from "../ui/theme";
-import { startNewRun, switchTo, fadeThen } from "../Flow";
+import { switchTo, fadeThen } from "../Flow";
 import { portraitKey } from "../gfx/Textures";
 import { synth } from "../audio/Synth";
 import { G } from "../G";
@@ -26,6 +26,7 @@ export class CharSelectScene extends Phaser.Scene {
     this.ngPlus = data?.ngPlus ?? 0;
     this.sel = 0;
     this.cards = [];
+    this.going = false;
   }
 
   create() {
@@ -116,9 +117,13 @@ export class CharSelectScene extends Phaser.Scene {
     add(button(this, X + 340, 474, "PLAY AS " + (id === "MIKEY" ? "KREBLAR" : d.name.split(" ")[0]), () => this.confirm(), { w: 220, h: 34, size: 13 }));
   }
 
+  private going = false;
   private confirm() {
+    if (this.going) return;
+    this.going = true;
     synth.unlock();
     synth.play("pop");
-    startNewRun(this, PLAYABLE_ORDER[this.sel] as PlayableId, this.ngPlus);
+    // next: how krezzed do you want it (the difficulty screen starts the run)
+    fadeThen(this, 160, () => switchTo(this, "Difficulty", { player: PLAYABLE_ORDER[this.sel] as PlayableId, ngPlus: this.ngPlus }));
   }
 }

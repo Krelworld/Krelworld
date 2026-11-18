@@ -144,3 +144,11 @@ export function scaleInt(n: number, mult: number): number {
   if (mult === 1) return n;
   return n > 0 ? Math.max(1, Math.round(n * mult)) : n;
 }
+
+/** The headline numbers for a level, in plain words (shown on the picker), relative to the original balance. */
+export function difficultyStats(d: DifficultyDef): string {
+  const x = (v: number) => `×${Number(v.toFixed(2))}`;
+  return [`Damage taken ${x(d.damageTaken)}`, `Enemy aggression ${x(d.aggression)}`, `Warnings ${x(d.telegraph)}`, `Mobs ${x(d.enemyCount)}`, `Heal drops ${x(d.healDrops)}`, `Enemy HP ${x(d.enemyHp)}`, `Timing windows ${x(d.timing)}`].join("  ·  ");
+}
+
+export const DIFFICULTY_NOTE = "You can change this any time from the pause menu (not inside a dungeon).";

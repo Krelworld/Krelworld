@@ -20,7 +20,8 @@ export async function squeeze(
   const s = G.s;
   const f = s.flags;
   if (f.golden_charge) {
-    await talk([say(who.name, "You're still glowing from the last one, love. Go and use it first.")]);
+    // (the opener still plays: at the Wonky Pole it's the private dance you've just paid for)
+    await talk([...(opener ?? []), say(who.name, "You're still glowing from the last one, love. Go and use it first.")]);
     return false;
   }
   const step = (n: number) => () => Number(f.sq_step ?? 0) >= n;

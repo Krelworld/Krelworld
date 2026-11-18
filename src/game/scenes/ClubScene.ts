@@ -650,7 +650,12 @@ export class ClubScene extends Phaser.Scene {
     let label = "";
     let act: (() => void) | null = null;
     const atToken = !!this.token?.active && Phaser.Math.Distance.Between(this.me.x, this.me.y, this.token.x, this.token.y + 20) < 60;
-    if (atToken) {
+    // Alistair Swamp, pestering the dancer: confront him and it's his blues-night fight (unless he's already been beaten)
+    const atAlly = !!this.ally?.visible && !G.s.flags.arc_kz_troll && Phaser.Math.Distance.Between(this.me.x, this.me.y, this.ally!.x, this.ally!.y) < 70;
+    if (atAlly && !atToken) {
+      label = "E: Confront Alistair Swamp";
+      act = () => void this.confrontAlistair();
+    } else if (atToken) {
       label = "E: Pick up: Cuddle token";
       act = () => void this.takeToken();
     } else if (atStage && !this.onBreak && !this.dancerDown) {
@@ -1032,6 +1037,24 @@ export class ClubScene extends Phaser.Scene {
     await this.talk([dir("Under the table nearest the pole, stuck to the carpet: a chocolate cuddle token. It's warm. You decide not to think about why."), ...t.lines]);
     G.emit("toast", { title: "THE CUDDLE CRONSTER", text: t.toast });
     G.save();
+  }
+
+  /** Tell Alistair to leave her alone: he takes it badly, and it's blues night in the back room (arena_troll). */
+  private async confrontAlistair() {
+    if (this.busy) return;
+    const me = G.s.player;
+    await this.talk([
+      say(me, "Alistair. Mate. She's working. Leave her alone."),
+      say("ALISTAIR SWAMP", "…hi."),
+      say("ALISTAIR SWAMP", "You've interrupted me. Mid-message. Do you know how long it takes me to type 'hey'?"),
+      say("ALISTAIR SWAMP", "Back room. Now. THE BLUES DON'T FORGET, BOY."),
+      dir("He picks up a Les Paul from somewhere. Big Derek holds the back-room door open, delighted. TIP: Alistair only goes down to a headbutt (F)."),
+    ]);
+    this.busy = true;
+    synth.stopMusic();
+    G.save();
+    this.cameras.main.fadeOut(300);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => switchTo(this, "Dungeon", { dungeon: "arena_troll", room: 0 }));
   }
 
   private leave() {

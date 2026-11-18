@@ -10,10 +10,11 @@ import { playCine } from "../gfx/Cine";
  * GOLDEN JUICE TRANSFORMATION (T). Once per dungeon, if you've had a fresh squeeze beforehand.
  * Golden hair, bulging muscles, a gold flame aura. ATTACK becomes a wide, heavy mega melee; C fires the CUMEHAMEHA.
  */
-export const SUPER_MS = 20000;
+// (two-thirds of the old 20s)
+export const SUPER_MS = 13333;
 /** How long the transformation lasts (Kreddle OVERTIME SUPER adds 10s a level). */
 export function superMs() {
-  return SUPER_MS + 10000 * kd(G.s, "kd_super");
+  return SUPER_MS + 6667 * kd(G.s, "kd_super");
 }
 
 type SuperState = { aura: Phaser.GameObjects.GameObject[]; ev: Phaser.Time.TimerEvent; baseBig: number; baseKey: string; hasArt: boolean };

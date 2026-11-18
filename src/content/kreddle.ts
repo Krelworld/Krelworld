@@ -79,7 +79,7 @@ export const PRIZES: Prize[] = [
   { id: "gold", cat: "guns", name: "GOLD-PLATED GUNS", icon: "🪙", desc: "Every gun you hold turns gold, and so do the bullets. They hit 10% harder because they're gold.", key: "kd_gold", max: 1 },
   { id: "tracer", cat: "style", name: "NEON TRACERS", icon: "✨", desc: "Your bullets leave glowing neon trails.", key: "kd_tracer", max: 1 },
   { id: "jackpot", cat: "guns", name: "JACKPOT ROUNDS", icon: "🎰", desc: "One hit in eight pays out: a little explosion and a shower of coins.", key: "kd_jackpot", max: 1 },
-  { id: "super_time", cat: "power", name: "OVERTIME SUPER", icon: "⏱", desc: "The Golden Juice transformation lasts 10 seconds longer. Stacks twice.", key: "kd_super", max: 2 },
+  { id: "super_time", cat: "power", name: "OVERTIME SUPER", icon: "⏱", desc: "The Golden Juice transformation lasts about 7 seconds longer. Stacks twice.", key: "kd_super", max: 2 },
   { id: "super_aura", cat: "power", name: "RAINBOW SUPER", icon: "🌈", desc: "Your transformation goes rainbow. Mega melee hits 30% harder.", key: "kd_aura", max: 1 },
   { id: "armor", cat: "tough", name: "KREDDLE ARMOUR", icon: "🛡", desc: "Sequinned body armour. Take 10% less damage. Stacks three times. Very shiny.", key: "kd_armor", max: 3 },
   { id: "krezzlong", cat: "power", name: "EXTENDED KREZZ", icon: "⏳", desc: "Your krezz beam lasts half a second longer. Stacks twice.", key: "kd_krezzlong", max: 2 },

@@ -1,5 +1,6 @@
 import { keysFor, prettyKey } from "../systems/keybinds";
 import { currentGun, ownedGuns, gunMax } from "../combat/Guns";
+import { superMs } from "../combat/Super";
 import { fartLevel, fartMeter } from "../combat/Farts";
 import Phaser from "phaser";
 import { G } from "../G";
@@ -351,6 +352,14 @@ export class UIScene extends Phaser.Scene {
     t.pips.setText(pips > 0 ? "●".repeat(pips) + "○".repeat(4 - pips) : "").setPosition(x + S / 2, y + 4).setVisible(pips > 0);
   }
 
+  private hideKeycap(i: number) {
+    const t = this.tray[i];
+    if (!t) return;
+    t.key.setVisible(false);
+    t.label.setVisible(false);
+    t.pips.setVisible(false);
+  }
+
   private hideTray() {
     for (const t of this.tray) {
       t.key.setVisible(false);
@@ -423,7 +432,7 @@ export class UIScene extends Phaser.Scene {
     const chips = [
       s.intoxication > 5 ? `${intoxLabel(s.intoxication)} ${Math.round(s.intoxication)}%` : "",
       s.flags.tap_rush ? "💦 TAP RUSH (+50% HP, +25% dmg)" : "",
-      s.flags.golden_charge ? "⚡ GOLDEN JUICE (T to transform)" : "",
+      s.flags.golden_charge && !dungeon ? "⚡ GOLDEN JUICE (T to transform)" : "",
     ].filter(Boolean);
     if (!dungeon) {
       // KRELFORD: nothing can hurt you here, so no bars. Just your money and anything that's affecting you.
@@ -489,7 +498,12 @@ export class UIScene extends Phaser.Scene {
       if (!touch) {
         // in the side-scrolling (run'n'gun) rooms the player lives down at the bottom left: the tray moves up to the top right
         const side = !!dun?.side;
-        const tx = (i: number) => (side ? 712 + i * 76 : 24 + i * 76);
+        // the golden transformation gets a fourth key once you've drunk the juice (and while it's running: time left)
+        const pl = dun?.player as { superUntil?: number } | undefined;
+        const nowD = (dun as unknown as { now?: () => number } | undefined)?.now?.() ?? 0;
+        const superLeft = Math.max(0, (pl?.superUntil ?? 0) - nowD);
+        const golden = !!s.flags.golden_charge || superLeft > 0;
+        const tx = (i: number) => (side ? (golden ? 636 : 712) + i * 76 : 24 + i * 76);
         const ty = side ? 92 : 448;
         const qk = prettyKey(keysFor("bottle")[0] ?? "Q");
         const mb = Math.max(1, maxBottles(s));
@@ -497,6 +511,11 @@ export class UIScene extends Phaser.Scene {
         this.drawKeycap(1, tx(1), ty, fm / 100, lv >= 1, gk, ["FART", "FAIRY", "BEANS", "CABBAGE", "IBS!"][lv], lv === 4 ? 0xd4ff3a : 0x9ccc65, lv === 4 ? pulse : 0.2, lv);
         // the national drink: how many bottles of pussy juice you've got, and the key to neck one
         this.drawKeycap(2, tx(2), ty, s.bottles / mb, s.bottles > 0, qk, `JUICE ${s.bottles}/${mb}`, 0xff9ecf, s.hp < maxHp(s) * 0.35 && s.bottles > 0 ? pulse : 0.2);
+        if (golden) {
+          const tk = prettyKey(keysFor("transform")[0] ?? "T");
+          if (superLeft > 0) this.drawKeycap(3, tx(3), ty, superLeft / superMs(), false, tk, `GOLDEN ${Math.ceil(superLeft / 1000)}s`, 0xfde047, 0.2);
+          else this.drawKeycap(3, tx(3), ty, 1, true, tk, "TRANSFORM", 0xfde047, pulse);
+        } else this.hideKeycap(3);
       } else this.hideTray();
       // the moment a special becomes ready, a key prompt pops up over your head for a couple of seconds
       if (full && !this.wasFull) this.showPop(touch ? "TAP WONK" : rk, "WONK READY", 0xffd23f, time);

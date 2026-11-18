@@ -61,7 +61,7 @@ export async function squeeze(
       ? [
           dir("⚡ NEW POWER-UP: GOLDEN TRANSFORMATION ⚡"),
           dir("Golden juice can only be attained from the freshest sources. Hug a woman who's up for it before entering a dungeon, and you can transform ONCE in that dungeon."),
-          dir("In a dungeon: press T (or ⚡T) to transform. ATTACK becomes a huge golden mega melee. C (or CUME) fires the CUMEHAMEHA. It lasts 20 seconds."),
+          dir("In a dungeon: press T (or ⚡T) to transform. ATTACK becomes a huge golden mega melee. C (or CUME) fires the CUMEHAMEHA. It lasts about 13 seconds."),
           say(who.name, "Ta-ra, love. Go and get 'em."),
         ]
       : [dir("⚡ GOLDEN JUICE: ready. Press T in your next dungeon."), say(who.name, "Ta-ra, love.")],

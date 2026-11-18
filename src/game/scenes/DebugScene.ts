@@ -54,6 +54,8 @@ export class DebugScene extends Phaser.Scene {
   }
 
   create() {
+    // (the scene object is reused: coming back from the title opens on the main page, not the boss list you left on)
+    this.page = "main";
     if (!this.picked) {
       let p: string | undefined;
       try {
@@ -145,6 +147,8 @@ export class DebugScene extends Phaser.Scene {
       s.flags[`ch${k}_clear`] = s.flags[`ch${k}_outro`] = s.flags[`ch${k}_fact`] = s.flags[`ch${k}_intro`] = true;
       if (k === 1) Object.assign(s.flags, { wildern_destroyed: true, tap_flow_seen: true });
       if (k === 3) Object.assign(s.flags, { mollor_freed: true, golden_unlocked: true });
+      // Chapter 6 ends with Kreddle nuked and Krelford bombed flat: Chapter 7 is the ruined town
+      if (k === 6) Object.assign(s.flags, { raid_march: true, krunch_started: true, kreddle_nuked: true, vig_krunch_protocol: true, vig_townhall_party: true, krelworld_bombed: true });
     }
     for (const a of arcsFor(pl)) {
       if (a === keep) continue;

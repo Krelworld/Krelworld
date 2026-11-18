@@ -189,12 +189,40 @@ export class HomeScene extends Phaser.Scene {
       return;
     }
     if (s.flags.home_seen || s.flags.prologue_done) {
+      await this.gunRackTip();
       await this.kreddleTip();
       return;
     }
     s.flags.home_seen = true;
     G.save();
     await this.welcome();
+    await this.gunRackTip();
+  }
+
+  /**
+   * The gun rack, explained (once): the first time you're home with a real gun to put on it.
+   * (Before that it'd only be explaining an empty rack.)
+   */
+  private async gunRackTip() {
+    const s = G.s;
+    if (s.flags.gunrack_tip || !orderedGuns(s).length) return;
+    s.flags.gunrack_tip = true;
+    G.save();
+    synth.play("notify");
+    // point at it while we talk about it
+    const arrow = this.add.text(880, 150, "▼", { fontFamily: FONT, fontSize: "40px", color: "#67e8f9", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5).setDepth(1400);
+    const tag = this.add.text(880, 116, "THE GUN RACK", { fontFamily: FONT, fontSize: "14px", color: "#67e8f9", fontStyle: "bold", backgroundColor: "#000000cc", padding: { x: 6, y: 3 } }).setOrigin(0.5).setDepth(1400);
+    this.tweens.add({ targets: arrow, y: 168, yoyo: true, repeat: -1, duration: 380 });
+    await this.talk([
+      dir("💡 TIP: THE GUN RACK (on the wall, right). Walk up to it and press E. It's where your guns live between dungeons."),
+      dir("🔫 Every gun you own is on it, rated 1 to 5 for DAMAGE, FIRE RATE, RANGE, ACCURACY and SPECIAL. Point at a gun to see its stats, its ammo and its upgrades."),
+      dir("↕ DRAG the guns (or use ▲▼) into the order you want. That's your weapon-swap order in dungeons, and #1 (if it has ammo) is the gun you walk in holding."),
+      dir("🎯 AMMO: top up any gun right there, for Krezzcoin. No trip to Kreddle needed. 🔧 UPGRADES you've bought at the Kreddle Exchange and Prize Counter show up on each gun, and it tells you what's still out there to buy."),
+      dir("🩸 The KREDDLE PERKS & GORE MODE button at the bottom: every perk you've won or bought, and the gore switch."),
+    ]);
+    this.tweens.killTweensOf(arrow);
+    arrow.destroy();
+    tag.destroy();
   }
 
   // ------------------------------------------------------------------ Chapter 3: the brick

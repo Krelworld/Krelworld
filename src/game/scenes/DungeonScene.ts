@@ -2318,6 +2318,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         h.setTint(0xb8b8b8);
       }
       this.toast("SPARED", "They'll be dining out on this for years.");
+      // let them flop (and let the ESC that spared them go, or it opens the pause menu as soon as you're free)
+      await new Promise<void>((res) => this.time.delayedCall(700, () => res()));
     }
     if (!this.heroAlive()) return;
     sq.destroy();

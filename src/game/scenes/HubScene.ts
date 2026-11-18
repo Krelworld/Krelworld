@@ -583,7 +583,24 @@ export class HubScene extends Phaser.Scene {
     cam.startFollow(this.av, true, 0.12, 0.12);
     this.scene.setVisible(true, "UI");
     this.busy = false;
+    await this.moneyTips();
     G.emit("toast", { title: "OBJECTIVE", text: "Go to Krelford Town Hall. Follow the yellow arrow." });
+  }
+
+  /** Once, at the start of a game: how to make money (Krezzcoin) and Krokens in Krelworld. */
+  private async moneyTips() {
+    const s = G.s;
+    if (s.flags.money_tips_seen) return;
+    s.flags.money_tips_seen = true;
+    G.save();
+    this.busy = true;
+    await this.talk([
+      dir("💰 HOW TO GET RICH IN KRELWORLD 💰"),
+      dir("KREZZCOIN (spend it at the Kreddle Exchange, over the bridge west: guns, ammo, upgrades, fairies): kill things in dungeons, beat bosses, finish chapters and side quests, watch new shows on KrelTV (a gift from Kreddle every new episode), and sit through new Drongus riffs and Jenko's stag group chats at the Krezz Arms."),
+      dir("🎟 KROKENS (Kreddle's own currency, for the special stuff): new Drongus riffs at the Krezz Arms, KrelTV gifts, wins on the games console at home, the slot machine at home (one pull a day), and the slot machines in Kreddle. Spend them at Kreddle's Prize Counter."),
+      dir("Tip: it all adds up. Have a look round before you go and get yourself killed."),
+    ]);
+    this.busy = false;
   }
 
   /** The flyover for renderers without meshes: flat pans round the landmarks. */
@@ -637,6 +654,7 @@ export class HubScene extends Phaser.Scene {
     sub.destroy();
     this.scene.setVisible(true, "UI");
     this.busy = false;
+    await this.moneyTips();
     G.emit("toast", { title: "OBJECTIVE", text: "Go to Krelford Town Hall. Follow the yellow arrow." });
   }
 
@@ -666,6 +684,13 @@ export class HubScene extends Phaser.Scene {
       await this.talk(KR.KR_HOME);
       this.busy = false;
       this.brawl.start();
+      return;
+    }
+    // Chapter 6 starts at home like the others (then the last-chance prompt out here)
+    if (s.chapter === 6 && !s.flags.ch6_ready && !s.flags.ch6_home && at !== "HOME" && from !== "raid" && from !== "krunch") {
+      s.flags.ch6_home = true;
+      G.save();
+      this.go("Home", { chapterStart: 6 });
       return;
     }
     // Chapter 6 is the point of no return: it only starts when you say so, at the Town Hall

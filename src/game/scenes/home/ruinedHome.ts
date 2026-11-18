@@ -176,10 +176,10 @@ export function addRuinSpots(scene: Phaser.Scene, addSpot: (s: Spot) => void, ta
       await talk([dir(RUIN_STASH_FILL)]);
     },
   });
-  // --- Donna, with her trolley, between the bed and the door
+  // --- Donna, a Kreddle croupier bombed out of a job, between the bed and the door
   const TX = 700;
   const TY = 504;
-  const tex = has("spr_TV_MARY") ? "spr_TV_MARY" : "spr_FOLK1";
+  const tex = has("spr_KD_WOMAN") ? "spr_KD_WOMAN" : "spr_FOLK1";
   if (!has(tex)) return;
   const spr = scene.add.sprite(TX, TY, tex, 0).setOrigin(0.5, 1).setDepth(TY);
   // about your height (setScale goes through the HD patch, so it's a plain number here)

@@ -332,6 +332,7 @@ export class DialogueBox {
 
   private clearOverlay() {
     this.overlay.removeAll(true);
+    this.overlay.setY(0);
     this.choiceHandler = null;
   }
 
@@ -344,6 +345,8 @@ export class DialogueBox {
     this.bodyText.setText("");
     this.portrait.setVisible(false);
     this.portraitFrame.clear();
+    // the bubble sits at the same place on screen wherever the box is (atTop / atMiddle move the box, not the phone)
+    this.overlay.setY(-this.root.y);
     const g = this.scene.add.graphics();
     const bubbleW = 640;
     const x = (W - bubbleW) / 2;

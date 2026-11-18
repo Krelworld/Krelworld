@@ -1,5 +1,5 @@
 import { JUKEBOX } from "../../content/jukebox";
-import { KR_HOME } from "../../content/krunchers";
+import { KR_BRICK_ABUSE, KR_BRICK_AFTER, KR_BRICK_HIT, KR_BRICK_LOOK, KR_BRICK_QUIET, KR_BRICK_WINDOW, KR_HOME } from "../../content/krunchers";
 import Phaser from "phaser";
 import { bindSanmikToggle, playerKey } from "../gfx/sanmikForm";
 import { G } from "../G";
@@ -10,7 +10,7 @@ import { synth } from "../audio/Synth";
 import { FONT, uiFrame } from "../ui/theme";
 import { voice } from "../audio/Voice";
 import { dir, say } from "../../content/dsl";
-import { animateWalker, backdrop } from "../gfx/HD";
+import { animateWalker, backdrop, hdFactor } from "../gfx/HD";
 import { CHARACTERS } from "../../data/characters";
 import { maxBottles, maxHp } from "../systems/stats";
 import { canTurnIn, completePersonal } from "../systems/quests";
@@ -89,12 +89,18 @@ export class HomeScene extends Phaser.Scene {
       { x: 350, y: 522, r: 48, label: "E: Open the laptop (group chat)", use: () => this.laptopPanel() },
       { x: 540, y: 500, r: 80, label: "E: Sleep (save · full health · sober up · dream)", use: () => this.sleep() },
       { x: 880, y: 468, r: 55, label: "E: Gun rack (order · ammo · perks)", use: () => this.gunRackPanel() },
-      { x: 420, y: 445, r: 55, label: "E: Look out of the window", use: () => this.talk([dir(s.flags.met_emergency ? "Krelford. The sky has a faint grey tint, like an unloaded page. Somewhere, a Tap is not running." : "Krelford, in the evening. Somewhere a fizzy bongo is opened. Somewhere else, the Great Tap gurgles. All is well. For now.")]) },
+      { x: 420, y: 445, r: 55, label: "E: Look out of the window", use: () => this.talk([dir(this.windowBroken() ? KR_BRICK_WINDOW : s.flags.met_emergency ? "Krelford. The sky has a faint grey tint, like an unloaded page. Somewhere, a Tap is not running." : "Krelford, in the evening. Somewhere a fizzy bongo is opened. Somewhere else, the Great Tap gurgles. All is well. For now.")]) },
       { x: 760, y: 450, r: 60, label: "E: Go outside", use: () => this.leave() },
       { x: 624, y: 520, r: 44, label: "E: Read 'Dark Autism - An Erotic Memoir'", use: () => this.readBook() },
       { x: 566, y: 452, r: 34, label: "E: Jukebox (every tune you've heard)", use: () => this.jukeboxPanel() },
     );
     this.placeClue();
+    // Chapter 3: a Kreddle brick came through the window (the hole and the brick stay till the chapter's done)
+    if (this.windowBroken()) {
+      this.drawBrokenWindow();
+      this.drawGlassOnFloor();
+      this.placeBrick(Number(s.flags.kr_brick_x) || 700, 526);
+    }
     // the jukebox, by the radiator, glowing
     if (this.textures.exists("p_jukebox")) {
       this.add.image(566, 440, "p_jukebox").setOrigin(0.5, 1).setScale(1.6).setDepth(440);
@@ -147,6 +153,8 @@ export class HomeScene extends Phaser.Scene {
       G.save();
       return;
     }
+    // Chapter 3 opens with a brick through the window (once, before the Krunchers come over the bridge)
+    if (s.chapter === 3 && !s.flags.kr_brick && !s.flags.krunchers_invaded) await this.brickScene();
     // a new chapter starts here: it gets going as soon as you leave
     if (s.chapter > 1 && s.flags[`ch${s.chapter}_home`] && !s.flags[`ch${s.chapter}_intro`] && !this.mustWatchBeep())
       G.emit("toast", this.mustWatchCh2() ? { title: "CHAPTER 2", text: "A new day. Watch something on KrelTV first (the telly, on the left), then head out." } : { title: `CHAPTER ${s.chapter}`, text: "A new day. Head out of the front door when you're ready." });
@@ -169,6 +177,251 @@ export class HomeScene extends Phaser.Scene {
     s.flags.home_seen = true;
     G.save();
     await this.welcome();
+  }
+
+  // ------------------------------------------------------------------ Chapter 3: the brick
+
+  /** Where the brick goes through: the bottom-left pane of the window in bg_home. */
+  private static readonly HOLE = { x: 378, y: 248 };
+  /** The window's glass, edge to edge (the Kruncher is only seen through it). */
+  private static readonly GLASS = { x: 331, y: 105, w: 194, h: 190 };
+
+  /** The hole stays (and the brick stays on the floor) for the rest of Chapter 3. */
+  private windowBroken() {
+    return G.s.chapter === 3 && !!G.s.flags.kr_brick;
+  }
+
+  private face(f: "north" | "south" | "east" | "west") {
+    this.me.setData("facing", f);
+    animateWalker(this.me, 0, 0, false, 0);
+  }
+
+  /** The hole in the pane, and the cracks running off it. The cracks sit in front of anything seen through the glass. */
+  private drawBrokenWindow() {
+    const { x, y } = HomeScene.HOLE;
+    const G2 = HomeScene.GLASS;
+    const rs = [30, 17, 34, 21, 36, 16, 29, 22, 33, 18, 31, 24];
+    const pts = rs.map((r, i) => {
+      const a = (i / rs.length) * Math.PI * 2;
+      return new Phaser.Math.Vector2(Phaser.Math.Clamp(x + Math.cos(a) * r * 1.15, 336, 419), Phaser.Math.Clamp(y + Math.sin(a) * r, 206, 289));
+    });
+    const fill = this.add.graphics().setDepth(-9.5);
+    fill.fillStyle(0x140d1f, 0.32);
+    fill.fillPoints(pts, true);
+    const g = this.add.graphics().setDepth(-8);
+    g.lineStyle(2, 0xeaf6ff, 0.9);
+    g.strokePoints(pts, true);
+    g.lineStyle(1.5, 0xf4faff, 0.65);
+    const cracks: [number, number][] = [[-1.1, 95], [-0.45, 120], [0.25, 80], [1.15, 60], [2.0, 70], [2.75, 65], [3.5, 85], [4.3, 110], [5.1, 75]];
+    for (const [a, len] of cracks) {
+      let px = x + Math.cos(a) * 30;
+      let py = y + Math.sin(a) * 26;
+      const line = [new Phaser.Math.Vector2(px, py)];
+      for (let k = 1; k <= 3; k++) {
+        const aa = a + (k % 2 ? 0.22 : -0.18);
+        px = Phaser.Math.Clamp(px + Math.cos(aa) * (len / 3), G2.x + 2, G2.x + G2.w - 2);
+        py = Phaser.Math.Clamp(py + Math.sin(aa) * (len / 3), G2.y + 2, G2.y + G2.h - 2);
+        line.push(new Phaser.Math.Vector2(px, py));
+      }
+      g.strokePoints(line, false);
+    }
+  }
+
+  /** Bits of glass on the floor under the window (always the same bits). */
+  private drawGlassOnFloor() {
+    for (let i = 0; i < 16; i++) {
+      const gx = 300 + ((i * 53) % 260);
+      const gy = 446 + ((i * 29) % 64);
+      const sh = this.add.rectangle(gx, gy, 3 + (i % 3), 2, 0xdff3ff, 0.85).setAngle((i * 37) % 90).setDepth(3);
+      if (i % 4 === 0) this.tweens.add({ targets: sh, alpha: 0.35, yoyo: true, repeat: -1, duration: 700 + i * 40 });
+    }
+  }
+
+  /** The Kreddle brick on your floor: have a look at it. */
+  private placeBrick(x: number, y: number) {
+    const b = this.textures.exists("tva_prop_brick") ? this.add.image(x, y, "tva_prop_brick").setOrigin(0.5, 1).setScale(2.2).setAngle(-8) : this.add.rectangle(x, y, 56, 26, 0x9a3b2a).setOrigin(0.5, 1);
+    b.setDepth(y);
+    // the note, elastic-banded on
+    this.add.rectangle(x + 4, y - 30, 18, 12, 0xfff1fb).setAngle(10).setDepth(y + 1).setStrokeStyle(1, 0xff4fd8);
+    this.spots.push({ x, y: y - 6, r: 40, label: "E: Look at the Kreddle brick", use: () => this.talk(KR_BRICK_LOOK) });
+    return b;
+  }
+
+  /** Chapter 3: a quiet morning, then a Kreddle brick through the window and a Kruncher shouting through the hole. Tab skips it. */
+  private async brickScene() {
+    const s = G.s;
+    s.flags.kr_brick = true;
+    G.save();
+    this.busy = true;
+    // the box goes up top: the window's bottom half (where he'll be) and the floor (where the brick goes) stay in view
+    this.box.atTop();
+    const calm = !!G.meta?.settings?.calmFlash;
+    const cam = this.cameras.main;
+    let skipped = false;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Tab") skipped = true;
+    };
+    window.addEventListener("keydown", onKey);
+    const wait = (ms: number) =>
+      new Promise<void>((r) => {
+        if (skipped) return r();
+        const t0 = this.time.now;
+        const ev = this.time.addEvent({
+          delay: 30,
+          loop: true,
+          callback: () => {
+            if (skipped || this.time.now - t0 >= ms) {
+              ev.remove();
+              r();
+            }
+          },
+        });
+      });
+    const lines = async (l: Line[]) => {
+      if (!skipped) await this.box.play(l);
+      this.controls.swallow();
+    };
+    const me = this.me;
+    // a quiet moment in the middle of the room
+    const tx = 770;
+    if (Math.abs(me.x - tx) > 8 || Math.abs(me.y - 490) > 8) {
+      const dx = Math.sign(tx - me.x) || 1;
+      await new Promise<void>((r) =>
+        this.tweens.add({ targets: me, x: tx, y: 490, duration: Math.max(200, Math.abs(me.x - tx) * 5), onUpdate: () => animateWalker(me, dx, 0, true, this.time.now), onComplete: () => r() }),
+      );
+      me.setDepth(me.y + 1);
+    }
+    this.face("west");
+    await lines(KR_BRICK_QUIET);
+    // a shadow crosses the window…
+    const GL = HomeScene.GLASS;
+    // anyone outside is only seen through the glass: crop them to the window every frame
+    const outside: Phaser.GameObjects.Sprite[] = [];
+    const cropOutside = () => {
+      for (const sp of outside) {
+        if (!sp.active) continue;
+        const fw = sp.frame.width;
+        const fh = sp.frame.height;
+        const left = sp.x - sp.displayWidth * sp.originX;
+        const top = sp.y - sp.displayHeight * sp.originY;
+        const x0 = Phaser.Math.Clamp((GL.x - left) / sp.scaleX, 0, fw);
+        const x1 = Phaser.Math.Clamp((GL.x + GL.w - left) / sp.scaleX, 0, fw);
+        const y0 = Phaser.Math.Clamp((GL.y - top) / sp.scaleY, 0, fh);
+        const y1 = Phaser.Math.Clamp((GL.y + GL.h - top) / sp.scaleY, 0, fh);
+        sp.setCrop(x0, y0, Math.max(0, x1 - x0), Math.max(0, y1 - y0));
+      }
+    };
+    this.events.on("update", cropOutside);
+    const kTex = this.textures.exists("spr_FLENKY") ? "spr_FLENKY" : null;
+    /** How tall he stands, right up against the glass (his head and shoulders show above the sill). */
+    const KH = 260;
+    if (kTex && !skipped) {
+      const shadow = this.add.sprite(GL.x - 80, GL.y + 360, kTex, 0).setOrigin(0.5, 1).setTint(0x000000).setAlpha(0.5).setDepth(-9);
+      shadow.setScale(KH / shadow.frame.realHeight / hdFactor(shadow));
+      outside.push(shadow);
+      cropOutside();
+      this.tweens.add({ targets: shadow, x: GL.x + 90, duration: 700, ease: "Sine.out", onComplete: () => this.tweens.add({ targets: shadow, alpha: 0, duration: 200, onComplete: () => shadow.destroy() }) });
+      await wait(900);
+    }
+    // …CRASH
+    const H = HomeScene.HOLE;
+    // it lands past the bed and skids up to your feet
+    const landX = 640;
+    const restX = 700;
+    let flying: Phaser.GameObjects.Image | null = null;
+    const smashed = !skipped;
+    if (smashed) {
+      synth.play("bs_shield_shatter");
+      synth.play("plate_smash", 0.7);
+      cam.shake(calm ? 200 : 380, calm ? 0.004 : 0.014);
+      const flash = this.add.rectangle(GL.x + GL.w / 2, GL.y + GL.h / 2, GL.w, GL.h, 0xffffff, calm ? 0.25 : 0.9).setDepth(-7);
+      this.tweens.add({ targets: flash, alpha: 0, duration: calm ? 700 : 260, onComplete: () => flash.destroy() });
+      this.drawBrokenWindow();
+      // shards, out into the room and down onto the floor
+      for (let i = 0; i < 18; i++) {
+        const w = Phaser.Math.Between(3, 7);
+        const sh = this.add.triangle(H.x + Phaser.Math.Between(-14, 14), H.y + Phaser.Math.Between(-14, 14), 0, 0, w, w * 0.4, w * 0.3, w * 1.2, 0xdff3ff, 0.9).setDepth(560).setAngle(Phaser.Math.Between(0, 360));
+        this.tweens.add({ targets: sh, x: H.x + Phaser.Math.Between(-80, 300), y: Phaser.Math.Between(450, 530), angle: sh.angle + Phaser.Math.Between(-540, 540), scale: 1.3, duration: Phaser.Math.Between(450, 800), ease: "Quad.in", onComplete: () => sh.setDepth(3).setAlpha(0.75) });
+      }
+      // the brick: at you, then across the floor
+      flying = this.textures.exists("tva_prop_brick") ? this.add.image(H.x, H.y, "tva_prop_brick").setScale(1.2).setDepth(600) : null;
+      // you jump out of your skin
+      this.tweens.add({ targets: me, y: me.y - 26, yoyo: true, duration: 140, ease: "Quad.out" });
+      this.face("south");
+      if (flying) {
+        const f = flying;
+        const t = { p: 0 };
+        await new Promise<void>((r) =>
+          this.tweens.add({
+            targets: t,
+            p: 1,
+            duration: 420,
+            onUpdate: () => {
+              f.x = Phaser.Math.Linear(H.x, landX, t.p);
+              f.y = Phaser.Math.Linear(H.y, 515, t.p * t.p) - Math.sin(Math.PI * t.p) * 50;
+              f.setScale(1.2 + t.p * 1.0).setAngle(t.p * 620);
+            },
+            onComplete: () => r(),
+          }),
+        );
+        synth.play("hit", 0.7);
+        cam.shake(120, calm ? 0.002 : 0.006);
+        for (let i = 0; i < 6; i++) {
+          const d = this.add.circle(f.x + Phaser.Math.Between(-12, 12), 522, Phaser.Math.Between(4, 8), 0xb9a48a, 0.6).setDepth(601);
+          this.tweens.add({ targets: d, x: d.x + Phaser.Math.Between(-30, 30), y: d.y - Phaser.Math.Between(6, 22), alpha: 0, scale: 1.8, duration: 500, onComplete: () => d.destroy() });
+        }
+        f.setOrigin(0.5, 1).setY(526).setDepth(526);
+        await new Promise<void>((r) => this.tweens.add({ targets: f, x: restX, angle: f.angle + 200, duration: 520, ease: "Cubic.out", onComplete: () => r() }));
+        f.setAngle(-8);
+      }
+      await wait(350);
+    }
+    await lines(KR_BRICK_HIT);
+    // Klenky, through the hole
+    let kr: Phaser.GameObjects.Sprite | null = null;
+    let tag: Phaser.GameObjects.Text | null = null;
+    if (kTex && !skipped) {
+      synth.music("klerble", true);
+      this.face("west");
+      kr = this.add.sprite(H.x + 22, GL.y + GL.h + KH + 10, kTex, 0).setOrigin(0.5, 1).setTint(0x9be7ff).setDepth(-9);
+      kr.setScale(KH / kr.frame.realHeight / hdFactor(kr));
+      outside.push(kr);
+      cropOutside();
+      await new Promise<void>((r) => this.tweens.add({ targets: kr, y: GL.y + 345, duration: 380, ease: "Back.out", onComplete: () => r() }));
+      this.tweens.add({ targets: kr, y: kr.y - 6, yoyo: true, repeat: -1, duration: 260, ease: "Sine.inOut" });
+      tag = this.add.text(GL.x + GL.w / 2, GL.y + GL.h + 16, "KLENKY · THE KREDDLE KRUNCHERS", { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#ff4fd8", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(600);
+    }
+    await lines(KR_BRICK_ABUSE);
+    if (kr) {
+      const k = kr;
+      this.tweens.killTweensOf(k);
+      if (!skipped) await new Promise<void>((r) => this.tweens.add({ targets: k, y: k.y + 260, duration: 300, ease: "Quad.in", onComplete: () => r() }));
+      k.destroy();
+    }
+    tag?.destroy();
+    if (!skipped) this.time.delayedCall(700, () => synth.play("alarm", 0.35));
+    // back to the middle for the note and the group chat
+    this.box.atMiddle();
+    await lines(KR_BRICK_AFTER);
+    // tidy up: the hole and the brick stay; if it was skipped before the crash, they're just there
+    window.removeEventListener("keydown", onKey);
+    this.events.off("update", cropOutside);
+    if (skipped) {
+      voice.stop();
+      this.box.skipAll();
+    }
+    if (flying) {
+      this.tweens.killTweensOf(flying);
+      flying.destroy();
+    }
+    if (!smashed) this.drawBrokenWindow();
+    this.drawGlassOnFloor();
+    this.placeBrick(restX, 526);
+    s.flags.kr_brick_x = Math.round(restX);
+    G.save();
+    synth.music("home", true);
+    this.box.atMiddle();
+    this.busy = false;
   }
 
   /** WELCOME TO KRELWORLD: the world, and who you are in it. */

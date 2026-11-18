@@ -163,6 +163,24 @@ export class Projector {
     this.out.zc = zc;
     return this.out;
   }
+  /**
+   * `project` for a point on a ground plane below the camera: a point behind the camera (clamped to the near plane)
+   * is kept below the view, so a low camera looking level or up doesn't fold the ground behind it up into the sky.
+   */
+  projectGround(x: number, y: number, z: number) {
+    const q = this.project(x, y, z);
+    if (q.zc >= NEAR || this.p.z <= z) return q;
+    const dx = x - this.p.x;
+    const dy = y - this.p.y;
+    const dz = z - this.p.z;
+    const xr = dx * this.rx + dy * this.ry;
+    const yu = dx * this.ux + dy * this.uy + dz * this.uz;
+    const sx = (FOCAL * xr) / NEAR;
+    const sy = Math.max((-FOCAL * yu) / NEAR, SH * 3);
+    q.x = SW / 2 + sx * this.cr - sy * this.sr;
+    q.y = SH / 2 + sx * this.sr + sy * this.cr;
+    return q;
+  }
   /** Where the horizon crosses the screen's vertical centre line (before roll). */
   horizonY() {
     return SH / 2 - FOCAL * Math.tan(clamp(this.p.pitch, -1.45, 1.45));
@@ -526,7 +544,7 @@ export class Stage3D {
       for (let j = 0; j <= g.rows; j++)
         for (let i = 0; i <= g.cols; i++) {
           const v = vs[j * (g.cols + 1) + i];
-          const q = P.project(lerp(g.x0, g.x1, i / g.cols), lerp(g.y0, g.y1, j / g.rows), g.z);
+          const q = P.projectGround(lerp(g.x0, g.x1, i / g.cols), lerp(g.y0, g.y1, j / g.rows), g.z);
           v.x = q.x;
           v.y = -q.y;
           v.color = mixC(base, fogC, this.fogAt(q.zc));

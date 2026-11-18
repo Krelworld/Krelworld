@@ -93,6 +93,13 @@ function townBuild(c: ShotCtx, p: Plan) {
       extras.push({ key: k, x: PLANE.x, y: PLANE.y, w: 760, h: (760 * src.height) / src.width });
     }
   }
+  if (p.at === "crater" && sc.textures.exists("r_crater")) {
+    // the crater where the Great Tap was (the Hub's ruin prop), lying flat
+    const src = sc.textures.get("r_crater").getSourceImage();
+    const w = src.width * 2.4;
+    const h = src.height * 2.4;
+    extras.push({ key: "r_crater", x: 1280, y: 830, w, h, flat: [1280 - w / 2, 830 - h / 2, 1280 + w / 2, 830 + h / 2] });
+  }
   const set = townSet(c, { mood: p.mood, ruined: p.ruined, extras, runway: p.at === "plane" });
   // what we're flying to: its base centre and size
   const tg =
@@ -172,7 +179,7 @@ function rikBuild(c: ShotCtx) {
   st.fog = { color: 0x14185a, start: 900, span: 4200, max: 0.7 };
   // the sky is the colour of Pepsi Max
   st.setSky({ top: 0x02030f, horizon: 0x1d3ec8, stars: 60 });
-  st.addGround({ x0: -9000, y0: -9000, x1: 9000, y1: 9000, cols: 9, rows: 9, color: 0x1a2a18, depth: 1 });
+  st.addGround({ x0: -6000, y0: -6000, x1: 6000, y1: 6000, cols: 36, rows: 36, color: 0x1a2a18, depth: 1 });
   const gk = st.groundTexture("deck", 512, 512, (dt) => {
     const g = sc.make.graphics({}, false);
     g.fillStyle(0x6b4527, 1).fillRect(0, 0, 512, 512);

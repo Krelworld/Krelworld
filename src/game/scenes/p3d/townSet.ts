@@ -61,7 +61,7 @@ export const MOODS: Record<TownMood, { sky: SkyOpts; fog: number; light: number;
   day: { sky: { top: 0x3d64a8, horizon: 0xdce8f8 }, fog: 0xc9d8ef, light: 0xffffff, apron: 0x3c6a33, lamps: 0 },
   dusk: { sky: { top: 0x2a1f4d, horizon: 0xf08a5d }, fog: 0x8a5a78, light: 0xffd8bc, apron: 0x2e4a2a, lamps: 0.35 },
   night: { sky: { top: 0x07020f, horizon: 0x2a0f3d, stars: 120 }, fog: 0x1a1030, light: 0x8a90c4, apron: 0x162016, lamps: 0.6 },
-  ruin: { sky: { top: 0x0a0306, horizon: 0x5a1a10, stars: 30 }, fog: 0x2a1210, light: 0xa07868, apron: 0x221a14, lamps: 0 },
+  ruin: { sky: { top: 0x0a0306, horizon: 0x5a1a10, stars: 30 }, fog: 0x2a1210, light: 0xd0a090, apron: 0x221a14, lamps: 0 },
 };
 
 export interface TownSet {
@@ -94,7 +94,8 @@ export function townSet(c: ShotCtx, o: { mood: TownMood; ruined?: boolean; extra
   st.light = mood.light;
   st.fog = { color: mood.fog, start: 1100, span: 5200, max: o.mood === "day" ? 0.6 : 0.8 };
   st.setSky(mood.sky);
-  st.addGround({ x0: -12000, y0: -12000, x1: 14000, y1: 14000, cols: 10, rows: 10, color: mood.apron, depth: 1 });
+  // (fine cells: a low camera would otherwise have a huge cell straddling it, and fold the ground up into the sky)
+  st.addGround({ x0: -6000, y0: -6000, x1: 9000, y1: 8000, cols: 40, rows: 40, color: mood.apron, depth: 1 });
   const has = (k: string) => sc.textures.exists(k);
   // the streets, as the Hub lays them (scorched in the ruins)
   const S = 0.4;
@@ -116,10 +117,10 @@ export function townSet(c: ShotCtx, o: { mood: TownMood; ruined?: boolean; extra
     for (const [x, y, w, h] of ROADS) tile("tile_road", x, y, w, h, 0x4a4a52, 0x5a4c48);
     tile("tile_cobble", 1060, 650, 440, 340, 0x6b6b72, 0x5a4c48);
     // the docks, and (for the airport) the runway east of town
-    tile("tile_sea", -PAD, 1700, 560 + PAD, 92 + PAD, 0x1e4b7a, 0x1e3048);
+    if (has("tile_sea")) dt.draw(t(new Phaser.GameObjects.TileSprite(sc, 0, 1700, 560, 92, "tile_sea").setOrigin(0).setTint(o.ruined ? 0x1e3048 : 0x6a8ab0)));
     if (o.runway) {
-      dt.draw(t(new Phaser.GameObjects.Rectangle(sc, 2600, 1530, 1800, 240, 0x3a3a40).setOrigin(0)));
       const g = t(new Phaser.GameObjects.Graphics(sc));
+      g.fillStyle(0x3a3a40, 1).fillRect(2600, 1530, 1800, 240);
       for (let x = 2640; x < 4400; x += 120) g.fillStyle(0xf5f5f5, 0.9).fillRect(x, 1645, 60, 8);
       g.fillStyle(0xfacc15, 0.9).fillRect(2600, 1530, 1800, 6).fillRect(2600, 1764, 1800, 6);
       dt.draw(g);
@@ -134,7 +135,7 @@ export function townSet(c: ShotCtx, o: { mood: TownMood; ruined?: boolean; extra
     dt.draw(edge);
     for (const g of tmp) g.destroy();
   });
-  st.addGround({ key: gk, rt: true, x0: -PAD, y0: -PAD, x1: GW - PAD, y1: GH - PAD, cols: 18, rows: 14, depth: 1.5 });
+  st.addGround({ key: gk, x0: -PAD, y0: -PAD, x1: GW - PAD, y1: GH - PAD, cols: 18, rows: 14, depth: 1.5 });
 
   // the buildings, the trees, and anything extra (one atlas, so they sort together)
   const f = G.hasRun() ? G.s.flags : {};
@@ -181,7 +182,10 @@ export function townSet(c: ShotCtx, o: { mood: TownMood; ruined?: boolean; extra
       const a = (i / 46) * Math.PI * 2;
       const r = rnd.realInRange(1700, 2300);
       const w = rnd.between(90, 130);
-      specs.push({ key: treeKey, x: 1280 + Math.cos(a) * r * 1.15, y: 900 + Math.sin(a) * r, w, h: (w * ts.height) / ts.width });
+      const x = 1280 + Math.cos(a) * r * 1.15;
+      const y = 900 + Math.sin(a) * r;
+      if (o.runway && x > 2500 && y > 1350) continue;
+      specs.push({ key: treeKey, x, y, w, h: (w * ts.height) / ts.width });
     }
   }
   const nMain = specs.length;

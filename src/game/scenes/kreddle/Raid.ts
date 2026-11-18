@@ -11,6 +11,7 @@ import { TOUCH } from "../../ui/TouchControls";
 import { hasVfx, vfx, type VfxOpts } from "../../gfx/Vfx";
 import * as Juice from "../../gfx/Juice";
 import { krunchBurn } from "./KrunchBurn";
+import { EscapeGauntlet } from "./RaidEscape";
 import { animateWalker, playPerf } from "../../gfx/HD";
 import { PLAYABLE_IDS, type Line } from "../../../data/types";
 import { KRUNCHERS } from "../../../content/kreddle";
@@ -167,7 +168,7 @@ interface Hazard {
 }
 
 /** The raid's own art (public/art/props). Normally in the art manifest; loaded here if a build doesn't have it yet. */
-export const RAID_ART = ["kd_palace", "kd_jet", "kd_heli", "kd_blimp", "kd_bomber", "kd_nuke", "kd_napalm", "kd_gascan", "kd_nailbomb", "kd_ash", "kd_rubble", "kd_evac", "kd_wreck", "kd_bazooka", "kd_charred", "kd_siren", "kd_slots_burnt"];
+export const RAID_ART = ["kd_palace", "kd_jet", "kd_heli", "kd_blimp", "kd_bomber", "kd_nuke", "kd_napalm", "kd_gascan", "kd_nailbomb", "kd_ash", "kd_rubble", "kd_evac", "kd_wreck", "kd_bazooka", "kd_charred", "kd_siren", "kd_slots_burnt", "kd_esc_car", "kd_esc_tank", "kd_esc_turret", "kd_esc_heli", "kd_esc_cop"];
 
 type Phase = "intro" | "march" | "cutscene" | "krunchers" | "palace" | "escape" | "leaving";
 
@@ -230,6 +231,8 @@ export class KreddleRaid {
   private krunchCount = 0;
   private lastKrunchFx = 0;
   private lastKrunchAt = 0;
+  /** The escape gauntlet (Kreddle's security forces between you and the bridge), once the nuke's planted. */
+  private esc: EscapeGauntlet | null = null;
 
   constructor(scene: Phaser.Scene) {
     this.sc = scene;
@@ -1078,6 +1081,25 @@ export class KreddleRaid {
     this.countdown.setVisible(true);
     // the lads run in a pack around you, westward
     this.lads.forEach((l, i) => (l.off = { x: 50 + (i % 4) * 45, y: -70 + (i % 4) * 45 + (i > 3 ? 20 : 0) }));
+    // ...and Kreddle's police and army are waiting for you on the way out
+    if (!this.esc)
+      this.esc = new EscapeGauntlet({
+        sc,
+        me: () => this.me,
+        lads: () => this.lads,
+        explode: (x, y, scale, delay, big) => this.explode(x, y, scale, delay, big),
+        addFire: (x, y, scale, tint, until, ground) => this.addFire(x, y, scale, tint, until, ground),
+        bubble: (spr, text, bg, important) => this.bubble(spr, text, bg, important),
+        shout: (line) => this.shoutLine(line),
+        busy: () => this.busy,
+        addAsh: (x, y, charred) => this.addAsh(x, y, charred),
+        expireFire: (spr, at) => {
+          const f = this.fires.find((q) => q.spr === spr);
+          if (f) f.until = Math.max(1, at);
+        },
+        dLight: D_LIGHT,
+        dHud: D_HUD,
+      });
     synth.music("kreddle_raid", true);
     synth.play("alarm");
     this.setRoute(0);
@@ -1124,6 +1146,8 @@ export class KreddleRaid {
     const sc = this.sc;
     // made it to the bridge (the clock hasn't run out): the drawn shot of the Krew legging it with Kreddle burning behind
     const made = !G.rt.timerEnd || G.rt.timerEnd > Date.now();
+    const wrecked = this.esc?.stats().wrecked ?? 0;
+    if (made && wrecked > 0) sc.time.delayedCall(1300, () => Juice.slamText(sc, `KREDDLE SECURITY WRECKED: ${wrecked}`, "#b6ff5a", 30, 330, 900, D_HUD + 10));
     if (made && sc.textures.exists("c6a_still_escape")) {
       Juice.speedLines(sc, 1800, 0xffd23f, D_HUD + 9);
       Juice.whoosh(0.5);
@@ -1180,6 +1204,7 @@ export class KreddleRaid {
     this.updateLads(time, dt);
     this.updateAir(time, dt);
     this.updateHazards(time);
+    if (this.esc && this.phase === "escape") this.esc.update(time, dt);
     this.updateFires(time, dt);
     this.updateBubbles(time);
     this.ambient(time);
@@ -1201,17 +1226,22 @@ export class KreddleRaid {
     }
     this.controls.interact();
     // movement
-    const mv = this.controls.move();
+    const stunned = !!this.esc?.stunned(time);
+    const mv = stunned ? { x: 0, y: 0 } : this.controls.move();
     const escape = this.phase === "escape";
     const sp = (escape ? 320 : 165) * (dt / 1000);
     let maxX = RW - 60;
     for (const b of this.bars) if (!b.down && b.x > this.me.x - 10) maxX = Math.min(maxX, b.x - 46);
     this.me.x = Phaser.Math.Clamp(this.me.x + mv.x * sp, 40, maxX);
     this.me.y = Phaser.Math.Clamp(this.me.y + mv.y * sp, TOP, BOTTOM);
+    if (this.esc && escape) {
+      this.esc.collide(this.me);
+      this.me.x = Phaser.Math.Clamp(this.me.x, 40, maxX);
+    }
     this.me.setDepth(this.me.y);
     // the flamethrower
     if (TOUCH.enabled && !this.fireBtn) this.makeFireButton();
-    const firing = this.controls.attackHeld() || this.touchFire;
+    const firing = !stunned && (this.controls.attackHeld() || this.touchFire);
     this.controls.autoAim = this.nearestTargetAngle();
     const a = this.controls.aim(this.me.x, this.me.y - 22);
     this.aimDeg = Phaser.Math.RadToDeg(a);
@@ -1300,6 +1330,11 @@ export class KreddleRaid {
   // ------------------------------------------------------------------ the flamethrower
 
   private nearestTargetAngle(): number | null {
+    // the escape: the cops, cars, tanks and choppers in your way come first
+    if (this.esc && this.phase === "escape") {
+      const a = this.esc.nearestAngle(this.me.x, this.me.y - 22);
+      if (a !== null) return a;
+    }
     let best: RNpc | null = null;
     let bd = 320;
     for (const n of this.npcs) {
@@ -1354,6 +1389,7 @@ export class KreddleRaid {
     const step = this.flameAt / 1000;
     this.flameAt = 0;
     const range = 290;
+    this.esc?.flame(this.me.x, this.me.y - 22, a, step);
     const hitBars = new Set<Barricade>();
     for (const n of this.npcs) {
       if (n.state === "dead" || n.state === "burn") continue;

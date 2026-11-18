@@ -143,6 +143,7 @@ export class SsjBrawl {
   private queued = { punch: false, kick: false };
   private pad: { stick: number | null; ox: number; oy: number; mx: number; my: number; held: Set<string>; edges: Set<string> } = { stick: null, ox: 120, oy: 420, mx: 0, my: 0, held: new Set(), edges: new Set() };
   private touchUi = false;
+  private padUi?: Phaser.GameObjects.Container;
   // hud
   private hud!: {
     pBar: Phaser.GameObjects.Rectangle;
@@ -450,7 +451,9 @@ export class SsjBrawl {
   private touchPad() {
     const sc = this.sc;
     sc.input.addPointer(3);
-    const L = Juice.layer(sc, 1060);
+    const L = sc.add.container(0, 0);
+    Juice.layer(sc, 1060).add(L);
+    this.padUi = L;
     const base = sc.add.circle(this.pad.ox, this.pad.oy, 58, 0xffffff, 0.1).setStrokeStyle(2, 0xffffff, 0.3);
     const knob = sc.add.circle(this.pad.ox, this.pad.oy, 26, 0xffffff, 0.3);
     const zone = sc.add.zone(0, 200, 400, 340).setOrigin(0).setInteractive();
@@ -1269,7 +1272,10 @@ export class SsjBrawl {
         a.endAt = now + 600;
       } else if (a.kind === "burst") {
         Juice.shockRing(sc, e.x, e.y, { color: VIOLET, to: 260, rings: 3, ms: 420, depth: 330 });
-        if (!vfx(sc, "fe_vfx_rage", e.x, e.y, { scale: 2, depth: 331, add: true })) vfx(sc, "vfx_shock", e.x, e.y, { scale: 2.4, depth: 331, tint: VIOLET, add: true });
+        // (the rage flame loops: flare it up and fade it out, or it'd hang there for the rest of the fight)
+        const flare = vfx(sc, "fe_vfx_rage", e.x, e.y, { scale: 2, depth: 331, add: true });
+        if (flare) sc.tweens.add({ targets: flare, alpha: 0, scale: 2.6, delay: 250, duration: 450, onComplete: () => flare.destroy() });
+        else vfx(sc, "vfx_shock", e.x, e.y, { scale: 2.4, depth: 331, tint: VIOLET, add: true });
         synth.play("boom", 0.7);
         Juice.shake(sc, 260, 0.012);
         if (Math.hypot(p.x - e.x, p.y - e.y) < 170) {
@@ -1405,6 +1411,7 @@ export class SsjBrawl {
     Juice.slamText(sc, `SUPER KRELWORLD RUSH  x${this.rushHits + 1}`, "#ffd23f", 46, 220, 1500);
     await this.wait(1900);
     close(400);
+    if (this.padUi) this.padUi.setVisible(false);
     await this.talk(FB.FB_BRAWL_WIN);
     this.on = false;
     this.resolveWin?.();

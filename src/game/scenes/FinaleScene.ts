@@ -782,6 +782,8 @@ export class FinaleScene extends Phaser.Scene {
       { key: youCutKey(this, G.s.player) ?? "fe_eyes_ssj", color: 0xffe066, word: "GO!!" },
       { key: "fe_cut_concept_hurt", color: 0xa855f7, word: "?!" },
     ]);
+    // ---- 3b THE BEAM: Goku lets the whole lot go, the Krew's power behind it: a column of light, his hands to its jaws
+    await this.megaBeam(gk, dragon, orb, mouth);
     synth.play("rocket");
     cam.zoomTo(1.15, 200, "Quad.easeOut", true);
     cam.pan(dragon.x + 60, dragon.y - dragon.displayHeight * 0.5, 200, "Quad.easeOut", true);
@@ -965,6 +967,100 @@ export class FinaleScene extends Phaser.Scene {
     await this.wait(3400);
     white.destroy();
     this.time.delayedCall(9000, () => embers.remove());
+  }
+
+  /**
+   * THE MEGA BEAM (the release, after the panels): a column of light out of Goku's hands, thickening as it goes, driving
+   * the SPIRIT CUM down its throat. Streaks race along it, speed lines, the Krew's auras go white; impact frames as it
+   * lands; it shoves the beast back a step. About three seconds. calmFlash: no flicker, no impact frames, gentler shake.
+   */
+  private megaBeam(gk: Phaser.GameObjects.Image, dragon: Phaser.GameObjects.Image, orb: Phaser.GameObjects.Container, mouth: { x: number; y: number }): Promise<void> {
+    return new Promise((res) => {
+      if (this.dead || this.ended) return;
+      const calm = !!G.meta.settings.calmFlash;
+      const cam = this.cameras.main;
+      const x0 = gk.x - 10;
+      const y0 = gk.y - gk.displayHeight * 0.92;
+      const x1 = mouth.x;
+      const y1 = mouth.y;
+      const len = Math.hypot(x1 - x0, y1 - y0);
+      const ang = Math.atan2(y1 - y0, x1 - x0);
+      orb.setPosition(x0, y0).setScale(1.3);
+      const g = this.add.graphics().setDepth(72).setBlendMode(Phaser.BlendModes.ADD);
+      const core = this.add.graphics().setDepth(73);
+      const k = { w: 6, reach: 0 };
+      const ms = 2900;
+      Juice.duckMusic(ms, 400, 0.15);
+      synth.play("gun_rail");
+      synth.play("rocket");
+      Juice.subDrop(1, 3);
+      synth.play("telegraph");
+      Juice.slamText(this, "HAAAAAAAAAAAAAAAA!!!", "#fff4c2", 58, 120, 1800);
+      const stopLines = Juice.speedLines(this, 0, 0xfff4c2, 960);
+      cam.shake(ms, calm ? 0.005 : 0.016);
+      this.tweens.add({ targets: k, reach: 1, duration: 420, ease: "Quad.in" });
+      this.tweens.add({ targets: k, w: 120, duration: ms, ease: "Sine.in" });
+      let landed = false;
+      const draw = () => {
+        const r = len * k.reach;
+        const ex = x0 + Math.cos(ang) * r;
+        const ey = y0 + Math.sin(ang) * r;
+        const wob = calm ? 1 : 0.88 + Math.random() * 0.24;
+        const nx = -Math.sin(ang);
+        const ny = Math.cos(ang);
+        const quad = (gr: Phaser.GameObjects.Graphics, w: number, col: number, a: number) => {
+          gr.fillStyle(col, a);
+          gr.fillPoints([
+            { x: x0 + nx * w * 0.35, y: y0 + ny * w * 0.35 },
+            { x: ex + nx * w, y: ey + ny * w },
+            { x: ex - nx * w, y: ey - ny * w },
+            { x: x0 - nx * w * 0.35, y: y0 - ny * w * 0.35 },
+          ], true);
+          gr.fillCircle(ex, ey, w * 1.1);
+        };
+        g.clear();
+        core.clear();
+        quad(g, k.w * 1.7 * wob, 0xffd23f, 0.28);
+        quad(g, k.w * 1.15 * wob, 0xfff4c2, 0.55);
+        quad(core, k.w * 0.55 * wob, 0xffffff, 1);
+        orb.setPosition(ex, ey).setScale(1.3 + k.w / 60);
+        if (k.reach >= 1 && !landed) {
+          landed = true;
+          synth.play("explode_1");
+          synth.play("boom");
+          void Juice.impactFrames(this, dragon, 60);
+          Juice.flash(this, 0xffffff, 300, 0.6, 975);
+          // shoved back a step
+          this.tweens.add({ targets: dragon, x: dragon.x - 26, duration: 900, ease: "Quad.out" });
+          Juice.shockRing(this, x1, y1, { color: 0xffd23f, to: 360, rings: 3, ms: 700, depth: 74 });
+        }
+        // streaks racing along it
+        if (Math.random() < 0.8) {
+          const off = (Math.random() - 0.5) * k.w * 1.6;
+          const st = this.add.rectangle(x0 + nx * off * 0.4, y0 + ny * off * 0.4, 40 + Math.random() * 60, 3, 0xffffff, 0.9).setDepth(74).setRotation(ang).setBlendMode(Phaser.BlendModes.ADD);
+          this.tweens.add({ targets: st, x: x1 + nx * off, y: y1 + ny * off, alpha: 0.2, duration: 260, onComplete: () => st.destroy() });
+        }
+        // spray off the impact point
+        if (landed && Math.random() < 0.6) {
+          const a = ang + Math.PI + (Math.random() - 0.5) * 2.2;
+          const sp = this.add.circle(x1, y1, 2 + Math.random() * 4, Math.random() < 0.5 ? 0xffffff : 0xffd23f, 1).setDepth(75).setBlendMode(Phaser.BlendModes.ADD);
+          const v = 120 + Math.random() * 260;
+          this.tweens.add({ targets: sp, x: x1 + Math.cos(a) * v, y: y1 + Math.sin(a) * v, alpha: 0, duration: 500, onComplete: () => sp.destroy() });
+        }
+      };
+      // the Krew pour into it: their auras go white and swell
+      for (const l of this.lads) {
+        l.aura?.setTint(0xffffff);
+        if (l.aura) this.tweens.add({ targets: l.aura, alpha: 1, scaleX: l.aura.scaleX * 1.25, scaleY: l.aura.scaleY * 1.25, duration: 600 });
+      }
+      this.events.on("update", draw);
+      this.time.delayedCall(ms, () => {
+        this.events.off("update", draw);
+        stopLines();
+        this.tweens.add({ targets: [g, core], alpha: 0, duration: 250, onComplete: () => (g.destroy(), core.destroy()) });
+        res();
+      });
+    });
   }
 
   /** Chunks blown off something big: rectangles in its colours, tumbling away from the middle. */

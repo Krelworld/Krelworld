@@ -16,8 +16,7 @@ import { ssjSwap, youCutKey } from "./finaleArt";
 
 /**
  * THE SUPER SAIYAN BRAWL (FinaleScene beat "brawl", between the Concept's real phase and the SPIRIT CUM).
- * Nearly dead, the Concept crushes itself down into one human-sized shape, the hooded wizard, and takes it up into
- * the storm. Side-on, in the sky over burning Krelford: you against it, hand to hand, DBZ style.
+ * Nearly dead, the Concept tears itself out of the rubble and takes the whole dragon up into the storm. Side-on, in the sky over burning Krelford: you against it, hand to hand, DBZ style.
  *
  *   PUNCH (J / left click / PUNCH)   a 4-hit string. MASH it and it turns into a FLURRY (a blur of fists and
  *                                    afterimages) that ends in a launcher when you stop.
@@ -27,7 +26,7 @@ import { ssjSwap, youCutKey } from "./finaleArt";
  *   KI (R / L / C / KI, hold)        a volley of ki blasts off your ki meter (shoots his bolts down too).
  *   BLOCK (E / BLOCK, hold)          most of a hit; just before it lands, a PARRY that stuns him.
  *
- * He fights back with telegraphed moves (staff swing, dark bolts, blink-behind slash, a beam across your row, a rush)
+ * It fights back with telegraphed moves (claw swipe, dark fireballs, blink-behind slash, a beam across your row, a rush)
  * that come faster as he weakens, and bursts out of long combos. Knocked down, you get back up, but he heals a chunk.
  * Win with the RUSH finisher (mash). Never a game over. Respects calmFlash (no strobing) and gore.
  */
@@ -40,6 +39,8 @@ export const BRAWL_HP = 2600;
 const P_MAX = 100;
 const GOLD = 0xffd23f;
 const VIOLET = 0xa855f7;
+/** Half the dragon's body width: every reach, spacing and hit radius is measured to its edge, not its middle. */
+const ER = 85;
 
 type PState = "free" | "punch" | "kick" | "flurry" | "block" | "hurt" | "down" | "cine";
 type EState = "move" | "windup" | "stun" | "blink" | "cine";
@@ -196,7 +197,7 @@ export class SsjBrawl {
     const you = youCutKey(sc, G.s.player);
     if (you) void Juice.cutIn(sc, you, you.startsWith("fe_") ? { from: "left", y: 150, color: GOLD, hold: 650 } : { from: "left", y: 150, color: GOLD, hold: 650, focus: 0.6, w: 480 });
     await Juice.cutIn(sc, "fe_cut_concept_hurt", { from: "right", y: 390, color: VIOLET, hold: 650 });
-    await Juice.bossCard(sc, "SUPER SAIYAN BRAWL", "HANDS ONLY. MASH FOR A FLURRY. VANISH BEHIND HIM.", "#ffd23f");
+    await Juice.bossCard(sc, "SUPER SAIYAN BRAWL", "MASH FOR A FLURRY. HOLD R TO BLAST KI. VANISH BEHIND IT.", "#ffd23f");
     this.legend();
     this.pState = "free";
     this.eState = "move";
@@ -284,9 +285,9 @@ export class SsjBrawl {
     // the stars, through gaps in the storm
     const st = sc.add.graphics().setScrollFactor(0.05, 0).setDepth(-59);
     for (let i = 0; i < 60; i++) st.fillStyle(0xffffff, 0.3 + Math.random() * 0.4).fillRect(Math.random() * 1100, Math.random() * 220, 1.5, 1.5);
-    // the dragon, slumped below, emptied out (he came out of it)
+    // (the dragon's up here with you now: nothing slumped below)
     let dragon: Phaser.GameObjects.Image | undefined;
-    if (sc.textures.exists("fb_dragon_side")) {
+    if (false as boolean) {
       dragon = sc.add.image(480, 610, "fb_dragon_side").setOrigin(0.5, 1).setScale(2.2).setScrollFactor(0.12, 0).setDepth(-55).setTint(0x2a0f3d).setAlpha(0.85);
       sc.tweens.add({ targets: dragon, y: 618, yoyo: true, repeat: -1, duration: 2600, ease: "Sine.inOut" });
     }
@@ -382,13 +383,15 @@ export class SsjBrawl {
     this.shield = sc.add.ellipse(40, 0, 50, 150, 0xfff4c2, 0.0).setStrokeStyle(4, GOLD, 0).setBlendMode(Phaser.BlendModes.ADD);
     pc.add([halo, ps, this.shield]);
     this.p = { c: pc, spr: ps, x: WW / 2 - 220, y: 280, vx: 0, vy: 0, face: 1 };
-    // him: the wizard, out of the dragon, human-sized, wreathed in its black-violet flame
-    const wk = sc.textures.exists("fb_wizard") ? "fb_wizard" : "boss_drongus";
-    const es = sc.add.sprite(0, 0, wk, 0).setOrigin(0.5, 0.5);
-    if (wk !== "fb_wizard") es.setTint(0x6d28d9);
-    this.fit(es, 172);
+    // it: the dragon itself, up in the storm, wreathed in its black-violet flame
+    const wk = sc.textures.exists("fb_dragon_side") ? "fb_dragon_side" : "boss_drongus";
+    const es = sc.add.sprite(0, 0, wk, 0).setOrigin(0.5, 0.55);
+    if (wk !== "fb_dragon_side") es.setTint(0x6d28d9);
+    this.fit(es, 250);
+    // wingbeats (the side art has no wings out: a slow heave of the whole body does it)
+    sc.tweens.add({ targets: es, scaleY: es.scaleY * 1.04, scaleX: es.scaleX * 0.98, yoyo: true, repeat: -1, duration: 420, ease: "Sine.inOut" });
     const ec = sc.add.container(0, 0).setDepth(190);
-    this.eAura = vfx(sc, "fe_vfx_darkaura", 0, 80, { scale: 1.5, depth: 0, alpha: 0.55, add: true });
+    this.eAura = vfx(sc, "fe_vfx_darkaura", 0, 110, { scale: 2.4, depth: 0, alpha: 0.55, add: true });
     if (this.eAura) {
       this.eAura.setOrigin(0.5, 0.85);
       ec.add(this.eAura);
@@ -416,7 +419,7 @@ export class SsjBrawl {
     p.spr.setFlipX(p.face < 0);
     this.shield?.setX(40 * p.face);
     e.c.setPosition(e.x, e.y + Math.sin(now / 330 + 1) * 5);
-    // the wizard's art faces west
+    // the dragon's art faces west
     e.spr.setFlipX(e.face > 0);
   }
 
@@ -617,7 +620,7 @@ export class SsjBrawl {
   private updatePlayer(now: number, dt: number, inp: Input) {
     const p = this.p;
     const e = this.e;
-    this.ki = Math.min(100, this.ki + dt * (inp.ki ? 0 : 7));
+    this.ki = Math.min(100, this.ki + dt * (inp.ki ? 6 : 18));
     const free = this.pState === "free" || this.pState === "block";
     if (free) p.face = e.x >= p.x ? 1 : -1;
     // vanish: out of anything but a knockdown
@@ -642,7 +645,9 @@ export class SsjBrawl {
     } else if (this.pState === "block" && !inp.block) this.pState = "free";
     this.shield?.setFillStyle(0xfff4c2, this.pState === "block" ? 0.18 : 0).setStrokeStyle(4, GOLD, this.pState === "block" ? 0.9 : 0);
     // ki volley
-    if (inp.ki && (this.pState === "free") && now - this.lastKi > 130 && this.ki >= 6) this.kiBlast(now);
+    // (any time you're not reeling; out of ki it still spits weaker, slower shots)
+    const canKi = this.pState === "free" || this.pState === "block" || this.pState === "punch" || this.pState === "kick";
+    if (inp.ki && canKi && now - this.lastKi > (this.ki >= 3 ? 85 : 220)) this.kiBlast(now);
     // movement
     const sp = this.pState === "free" ? 360 : this.pState === "block" ? 110 : this.pState === "flurry" ? 60 : 0;
     if (sp) {
@@ -656,10 +661,10 @@ export class SsjBrawl {
     p.y = Phaser.Math.Clamp(p.y + p.vy * dt, TOP, BOT);
     // keep a little apart (you don't pass through him unless you vanish)
     const dx = p.x - e.x;
-    if (Math.abs(dx) < 46 && Math.abs(p.y - e.y) < 90 && this.eState !== "blink") p.x = e.x + (dx >= 0 ? 46 : -46);
+    if (Math.abs(dx) < 46 + ER && Math.abs(p.y - e.y) < 110 && this.eState !== "blink") p.x = e.x + (dx >= 0 ? 46 + ER : -46 - ER);
     // frames: screaming while firing ki or rushing, stance otherwise
     const ssj = p.spr.texture.key.startsWith("ssj_");
-    if (ssj) p.spr.setFrame(this.pState === "flurry" || (inp.ki && this.ki >= 6) ? 1 : 2);
+    if (ssj) p.spr.setFrame(this.pState === "flurry" || inp.ki ? 1 : 2);
     if (this.pState === "free" || this.pState === "block") p.c.setAngle(Phaser.Math.Clamp(p.vx / 40, -8, 8));
     // afterimages while moving fast
     if ((Math.hypot(p.vx, p.vy) > 300 || this.pState === "flurry") && now - this.lastGhost > 45) {
@@ -675,7 +680,7 @@ export class SsjBrawl {
     const e = this.e;
     if (this.eState === "blink") return false;
     const dx = (e.x - p.x) * p.face;
-    return dx > -24 && dx < rx && Math.abs(e.y - p.y) < ry;
+    return dx > -24 && dx < rx + ER && Math.abs(e.y - p.y) < ry + 30;
   }
 
   /** Close the gap a bit on a swing (DBZ homing): up to `max` px toward him, if he's near. */
@@ -683,11 +688,15 @@ export class SsjBrawl {
     const p = this.p;
     const e = this.e;
     const d = Math.abs(e.x - p.x);
-    if (d > 260 || this.eState === "blink") return;
+    if (d > 460 + ER || this.eState === "blink") return;
     p.face = e.x >= p.x ? 1 : -1;
-    const step = Math.min(max, Math.max(0, d - 70));
+    const step = Math.min(max, Math.max(0, d - 70 - ER));
+    if (step > 30) for (let k = 0; k < 3; k++) {
+      const g = this.ghost(p, GOLD, 0.45 - k * 0.12, 160);
+      g.x += step * p.face * (k / 3);
+    }
     p.x += step * p.face;
-    p.y += Phaser.Math.Clamp(e.y - p.y, -40, 40);
+    p.y += Phaser.Math.Clamp(e.y - p.y, -70, 70);
   }
 
   private punch(now: number) {
@@ -697,16 +706,18 @@ export class SsjBrawl {
     this.chain = now - this.lastPunch < 420 ? (this.chain + 1) % 4 : 0;
     this.lastPunch = now;
     this.pState = "punch";
-    this.actUntil = now + (this.chain === 3 ? 240 : 130);
-    this.lunge(70);
+    this.actUntil = now + (this.chain === 3 ? 220 : 110);
+    this.lunge(170);
     const p = this.p;
-    // the pose: a jab forward (the last of the string is a spinning kick)
+    // the pose: a hard straight jab, the body leaning into it (the last of the string is a spinning kick)
     const last = this.chain === 3;
     this.sc.tweens.killTweensOf(p.c);
-    p.c.setAngle(last ? -22 * p.face : 7 * p.face);
-    this.sc.tweens.add({ targets: p.c, angle: 0, duration: last ? 220 : 120, ease: "Quad.out" });
-    this.smear(p.x + p.face * 50, p.y - (last ? 4 : 18), p.face, last ? 1.6 : 1);
-    synth.play("swing", 0.5);
+    p.c.setAngle(last ? -22 * p.face : 10 * p.face);
+    this.sc.tweens.add({ targets: p.c, angle: 0, duration: last ? 220 : 140, ease: "Quad.out" });
+    this.lean(last ? 1.25 : 1.15);
+    if (last) this.smear(p.x + p.face * 50, p.y - 4, p.face, 1.8);
+    else this.jab(this.chain % 2 === 0 ? -26 : -6, 1 + this.chain * 0.15);
+    synth.play("swing", 0.7);
     if (this.reachOk(last ? 140 : 120, 90)) this.hitEnemy(last ? 20 : 12 + this.chain * 2, last ? "kick" : "punch", now);
   }
 
@@ -740,7 +751,7 @@ export class SsjBrawl {
       g.y += (Math.random() - 0.5) * 24;
     }
     p.c.setAngle((Math.random() - 0.5) * 10);
-    p.x += (e.x - p.x - p.face * 72) * 0.3;
+    p.x += (e.x - p.x - p.face * (72 + ER)) * 0.3;
     p.y += (e.y - p.y) * 0.3;
     if (this.reachOk(170, 110)) this.hitEnemy(5, "flurry", now);
     else synth.play("swing", 0.25);
@@ -763,8 +774,9 @@ export class SsjBrawl {
     this.pState = "kick";
     this.actUntil = now + 300;
     this.stats.kicks++;
-    this.lunge(110);
+    this.lunge(220);
     const p = this.p;
+    this.lean(1.3);
     this.sc.tweens.killTweensOf(p.c);
     p.c.setAngle(-28 * p.face);
     this.sc.tweens.add({ targets: p.c, angle: 0, duration: 280, ease: "Back.out" });
@@ -790,7 +802,7 @@ export class SsjBrawl {
     if (now < this.chaseUntil && this.launched) {
       // after a launch: ahead of him, and knock him back the way he came
       const dir = Math.sign(e.vx) || 1;
-      tx = Phaser.Math.Clamp(e.x + dir * 130, 70, WW - 70);
+      tx = Phaser.Math.Clamp(e.x + dir * (130 + ER), 70, WW - 70);
       ty = e.y;
       this.chaseUntil = 0;
       p.face = (-dir as 1 | -1);
@@ -802,7 +814,7 @@ export class SsjBrawl {
     } else if (d < 480 && this.eState !== "blink") {
       // behind him
       const side = p.x < e.x ? 1 : -1;
-      tx = Phaser.Math.Clamp(e.x + side * 86, 60, WW - 60);
+      tx = Phaser.Math.Clamp(e.x + side * (86 + ER), 60, WW - 60);
       ty = e.y;
       p.face = (-side as 1 | -1);
       strike = true;
@@ -848,18 +860,22 @@ export class SsjBrawl {
   private kiBlast(now: number) {
     const p = this.p;
     this.lastKi = now;
-    this.ki -= 6;
+    const full = this.ki >= 3;
+    this.ki = Math.max(0, this.ki - 3);
+    if (this.pState === "block") this.pState = "free";
     this.stats.kis++;
     const hx = p.x + p.face * 46;
     const hy = p.y - 14 + (Math.random() - 0.5) * 12;
     const ang = Math.atan2(this.e.y - hy, this.e.x - hx);
     const a = Math.abs(Math.cos(ang)) < 0.3 ? (p.face > 0 ? 0 : Math.PI) : ang;
-    const o = this.sc.add.circle(hx, hy, 9, 0xfff4c2, 1).setDepth(280).setBlendMode(Phaser.BlendModes.ADD).setStrokeStyle(3, GOLD, 0.9);
-    this.bolts.push({ o, vx: Math.cos(a) * 950, vy: Math.sin(a) * 950, dmg: 8, mine: true, until: now + 1200 });
-    const pop = this.sc.add.circle(hx, hy, 8, 0xffffff, 0.9).setDepth(281).setBlendMode(Phaser.BlendModes.ADD);
-    this.sc.tweens.add({ targets: pop, scale: 2.6, alpha: 0, duration: 120, onComplete: () => pop.destroy() });
-    Juice.kiZap(0.4);
-    p.c.setAngle(-4 * p.face);
+    const o = this.sc.add.circle(hx, hy, full ? 14 : 8, 0xfff4c2, 1).setDepth(280).setBlendMode(Phaser.BlendModes.ADD).setStrokeStyle(4, GOLD, 0.95);
+    this.bolts.push({ o, vx: Math.cos(a) * 1150, vy: Math.sin(a) * 1150, dmg: full ? 11 : 5, mine: true, until: now + 1200 });
+    const pop = this.sc.add.circle(hx, hy, 12, 0xffffff, 0.9).setDepth(281).setBlendMode(Phaser.BlendModes.ADD);
+    this.sc.tweens.add({ targets: pop, scale: 3, alpha: 0, duration: 130, onComplete: () => pop.destroy() });
+    Juice.kiZap(0.5);
+    p.c.setAngle(-6 * p.face);
+    p.vx -= p.face * 40;
+    Juice.shake(this.sc, 50, 0.003);
   }
 
   private hurtPlayer(dmg: number, fromX: number, now: number, unblockable = false) {
@@ -937,7 +953,7 @@ export class SsjBrawl {
       const heal = Math.round(BRAWL_HP * 0.15);
       this.sc.tweens.add({ targets: this, eHp: Math.min(BRAWL_HP, this.eHp + heal), duration: 900 });
       this.float(this.e.x, this.e.y - 110, "IT'S HEALING!", "#c084fc", 22);
-      if (!synth.shout("wizard_yee", 0.95)) synth.play("roar");
+      if (!synth.shout("concept_roar", 0.95, 1.2)) synth.play("roar");
       Juice.shockRing(this.sc, this.e.x, this.e.y, { color: 0x22c55e, to: 220, rings: 2, ms: 700, depth: 300 });
     });
     this.sc.time.delayedCall(2300, () => {
@@ -968,6 +984,8 @@ export class SsjBrawl {
       this.stats.vanishStrikes++;
       this.float(e.x, e.y - 130, "VANISH STRIKE!", "#93c5fd", 22);
     }
+    // the opening third was a slog: hits land harder until he's down to two-thirds
+    if (this.phase() === 0) d = Math.round(d * 1.6);
     this.eHp = Math.max(0, this.eHp - d);
     this.stats.hits++;
     this.combo = now - this.lastHit < 1300 ? this.combo + 1 : 1;
@@ -992,18 +1010,29 @@ export class SsjBrawl {
       synth.play(kind === "launch" ? "punch_big" : "crit");
       if (kind === "launch") synth.play("bonecrack", 0.6);
       Juice.punchZoom(this.sc, 0.07, 260, 1);
-      Juice.shake(this.sc, 200, kind === "launch" ? 0.014 : 0.009);
-      this.hitStop(kind === "launch" ? 120 : 80);
+      Juice.shake(this.sc, 260, kind === "launch" ? 0.02 : 0.013);
+      this.hitStop(kind === "launch" ? 150 : 105);
       if (kind === "launch" && this.combo >= 8) void Juice.impactFrames(this.sc, e.spr, 40);
       this.float(hx, hy - 40, Phaser.Utils.Array.GetRandom(["BAM!", "KRAK!", "WHAM!", "DOOF!"]) as string, "#ffffff", 26);
+    } else if (kind === "flurry") {
+      synth.play("hit", 0.45);
+      this.hitStop(22);
+      Juice.shake(this.sc, 60, 0.004);
+      if (Math.random() < 0.35) vfx(this.sc, "vfx_sparks", hx, hy, { scale: 1, depth: 322, add: true });
     } else {
-      synth.play(kind === "flurry" ? "hit" : "punch", kind === "flurry" ? 0.35 : 0.6);
-      this.hitStop(kind === "flurry" ? 18 : 34);
-      if (this.combo % 10 === 0) Juice.shake(this.sc, 100, 0.006);
+      // a jab: crunchy, with weight behind it
+      synth.play("punch", 0.95);
+      synth.play("hit", 0.5);
+      this.hitStop(62);
+      Juice.shake(this.sc, 130, 0.007);
+      Juice.punchZoom(this.sc, 0.03, 140, 1);
+      Juice.shockRing(this.sc, hx, hy, { color: 0xfff4c2, to: 90, rings: 1, ms: 180, depth: 319 });
+      vfx(this.sc, "vfx_sparks", hx, hy, { scale: 1.3, depth: 322, add: true });
+      this.float(hx, hy - 30, `${d}`, "#fff4c2", 18);
     }
     // flash and recoil
     e.spr.setTintFill(calm() ? 0xffd6e0 : 0xffffff);
-    this.sc.time.delayedCall(60, () => e.spr.active && (e.spr.texture.key === "fb_wizard" ? e.spr.clearTint() : e.spr.setTint(0x6d28d9)));
+    this.sc.time.delayedCall(60, () => e.spr.active && (e.spr.texture.key === "fb_dragon_side" ? e.spr.clearTint() : e.spr.setTint(0x6d28d9)));
     const armored = this.eState === "windup" && this.armored && !heavy;
     if (armored) {
       // he's winding up a big one and won't flinch for jabs: a purple glint says so
@@ -1021,7 +1050,7 @@ export class SsjBrawl {
       if (!chase) this.chases = 0;
       this.sc.tweens.add({ targets: e.c, angle: dir * 360, duration: 600, onComplete: () => e.c.setAngle(0) });
     } else {
-      e.vx = dir * (kind === "kick" ? 520 : kind === "flurry" ? 60 : 140);
+      e.vx = dir * (kind === "kick" ? 640 : kind === "flurry" ? 80 : 260);
       this.stunEnemy(now, kind === "kick" ? 550 : kind === "flurry" ? 160 : 300);
       e.c.setAngle(dir * (kind === "kick" ? 22 : 9));
       this.sc.tweens.add({ targets: e.c, angle: 0, duration: 200 });
@@ -1094,7 +1123,7 @@ export class SsjBrawl {
     }
     // move: hover in at arm's length, level with you
     e.face = p.x >= e.x ? 1 : -1;
-    const want = this.atkN % 3 === 1 ? 300 : 110;
+    const want = (this.atkN % 3 === 1 ? 300 : 110) + ER;
     const tx = p.x - e.face * want;
     const sp = (170 + ph * 50) * dt;
     e.x += Phaser.Math.Clamp(tx - e.x, -sp * 1.6, sp * 1.6);
@@ -1135,12 +1164,12 @@ export class SsjBrawl {
     this.comboTaken = 0;
     const sc = this.sc;
     // the "!" over his head
-    const warn = sc.add.text(e.x, e.y - 120, "!", { fontFamily: "Impact, sans-serif", fontSize: "40px", color: kind === "beam" || kind === "rush" ? "#ff3b3b" : "#e9d5ff", stroke: "#12002a", strokeThickness: 6 }).setOrigin(0.5).setDepth(400);
+    const warn = sc.add.text(e.x, e.y - 160, "!", { fontFamily: "Impact, sans-serif", fontSize: "40px", color: kind === "beam" || kind === "rush" ? "#ff3b3b" : "#e9d5ff", stroke: "#12002a", strokeThickness: 6 }).setOrigin(0.5).setDepth(400);
     a.gfx.push(warn);
     sc.tweens.add({ targets: warn, scale: 1.3, yoyo: true, repeat: -1, duration: calm() ? 400 : 120 });
     synth.play("telegraph", 0.7);
     if (kind === "swing") {
-      // the staff comes up, its orb swelling
+      // the claws come up, dark fire swelling in them
       const orb = sc.add.circle(e.x, e.y - 60, 6, VIOLET, 0.9).setDepth(330).setBlendMode(Phaser.BlendModes.ADD);
       sc.tweens.add({ targets: orb, radius: 22, duration: tele });
       a.gfx.push(orb);
@@ -1153,12 +1182,12 @@ export class SsjBrawl {
       const orb = sc.add.circle(e.x + dir * 30, e.y - 10, 4, VIOLET, 1).setDepth(330).setBlendMode(Phaser.BlendModes.ADD);
       sc.tweens.add({ targets: orb, radius: 18, duration: tele });
       a.gfx.push(orb);
-      this.float(e.x, e.y - 150, "SEE ALSO:", "#d8b4fe", 16);
+      this.float(e.x, e.y - 170, "SEE ALSO:", "#d8b4fe", 16);
     } else if (kind === "blink") {
       // he goes: a puff of black smoke, and a ring where he'll come out (behind you)
       this.ghost(e, 0x12002a, 0.6, 400);
       e.c.setAlpha(0);
-      const bx = Phaser.Math.Clamp(p.x - (Math.sign(e.x - p.x) || 1) * 95, 70, WW - 70);
+      const bx = Phaser.Math.Clamp(p.x - (Math.sign(e.x - p.x) || 1) * (95 + ER), 70, WW - 70);
       a.x = bx;
       a.y = p.y;
       const ring = sc.add.ellipse(bx, p.y, 150, 150, 0x000000, 0).setStrokeStyle(4, VIOLET, 0.9).setDepth(330);
@@ -1211,7 +1240,7 @@ export class SsjBrawl {
     }
     const e = this.e;
     const p = this.p;
-    for (const o of a.gfx) if (o instanceof Phaser.GameObjects.Text) o.setPosition(e.x, e.y - 120);
+    for (const o of a.gfx) if (o instanceof Phaser.GameObjects.Text) o.setPosition(e.x, e.y - 160);
     if (!a.done && now >= a.hitAt) {
       a.done = true;
       for (const o of a.gfx) if (!(o instanceof Phaser.GameObjects.Graphics) || a.kind !== "swing") {
@@ -1222,19 +1251,19 @@ export class SsjBrawl {
       const ph = this.phase();
       const sc = this.sc;
       if (a.kind === "swing") {
-        // the staff comes round
+        // the claws come round
         sc.tweens.add({ targets: e.c, angle: a.dir * 30, duration: 90, yoyo: true });
         this.smear(e.x + a.dir * 70, e.y - 10, a.dir, 2.2, VIOLET);
         synth.play("swing");
         const dx = (p.x - e.x) * a.dir;
-        if (dx > -20 && dx < 165 && Math.abs(p.y - e.y) < 90) this.hurtPlayer(12 + ph * 2, e.x, now);
+        if (dx > -20 && dx < 165 + ER && Math.abs(p.y - e.y) < 110) this.hurtPlayer(12 + ph * 2, e.x, now);
       } else if (a.kind === "bolts") {
         const n = 3 + ph;
         for (let i = 0; i < n; i++)
           sc.time.delayedCall(i * 120, () => {
             if (!this.on || this.finishing) return;
-            const ang = Math.atan2(p.y - e.y, p.x - e.x) + (Math.random() - 0.5) * 0.12;
-            const o = sc.add.circle(e.x + a.dir * 30, e.y - 10, 12, VIOLET, 1).setDepth(285).setStrokeStyle(3, 0x12002a, 0.9);
+            const ang = Math.atan2(p.y - (e.y - 50), p.x - (e.x + a.dir * (ER + 10))) + (Math.random() - 0.5) * 0.12;
+            const o = sc.add.circle(e.x + a.dir * (ER + 10), e.y - 50, 14, VIOLET, 1).setDepth(285).setStrokeStyle(3, 0x12002a, 0.9);
             this.bolts.push({ o, vx: Math.cos(ang) * (380 + ph * 60), vy: Math.sin(ang) * (380 + ph * 60), dmg: 7, mine: false, until: sc.time.now + 3500 });
             synth.play("pfft", 0.5);
           });
@@ -1249,7 +1278,7 @@ export class SsjBrawl {
         Juice.shockRing(sc, e.x, e.y, { color: VIOLET, to: 150, rings: 2, ms: 260, depth: 330 });
         this.smear(e.x + e.face * 50, e.y, e.face, 2.4, VIOLET);
         synth.play("flesh_rip", 0.6);
-        if (Math.hypot(p.x - e.x, p.y - e.y) < 115) this.hurtPlayer(15 + ph * 2, e.x, now);
+        if (Math.hypot(p.x - e.x, p.y - e.y) < 115 + ER) this.hurtPlayer(15 + ph * 2, e.x, now);
       } else if (a.kind === "beam") {
         const y = a.y;
         const len = a.dir > 0 ? WW - e.x : e.x;
@@ -1281,7 +1310,7 @@ export class SsjBrawl {
         else vfx(sc, "vfx_shock", e.x, e.y, { scale: 2.4, depth: 331, tint: VIOLET, add: true });
         synth.play("boom", 0.7);
         Juice.shake(sc, 260, 0.012);
-        if (Math.hypot(p.x - e.x, p.y - e.y) < 170) {
+        if (Math.hypot(p.x - e.x, p.y - e.y) < 170 + ER) {
           this.hurtPlayer(8, e.x, now, true);
           p.vx = (Math.sign(p.x - e.x) || 1) * 700;
         }
@@ -1303,7 +1332,7 @@ export class SsjBrawl {
       b.o.y += b.vy * dt;
       let dead = now > b.until || b.o.x < 0 || b.o.x > WW || b.o.y < -40 || b.o.y > 580;
       if (!dead && b.mine) {
-        if (this.eState !== "blink" && Math.hypot(b.o.x - e.x, b.o.y - e.y) < 50) {
+        if (this.eState !== "blink" && Math.abs(b.o.x - e.x) < ER + 20 && Math.abs(b.o.y - e.y) < 120) {
           dead = true;
           this.hitEnemy(b.dmg, "punch", now);
         }
@@ -1316,6 +1345,10 @@ export class SsjBrawl {
       } else if (!dead && Math.hypot(b.o.x - p.x, b.o.y - p.y) < 34) {
         dead = true;
         this.hurtPlayer(b.dmg, b.o.x - b.vx * 0.05, now);
+      }
+      if (b.mine && Math.random() < 0.6) {
+        const t = this.sc.add.circle(b.o.x, b.o.y, 8, GOLD, 0.6).setDepth(279).setBlendMode(Phaser.BlendModes.ADD);
+        this.sc.tweens.add({ targets: t, alpha: 0, scale: 0.2, duration: 160, onComplete: () => t.destroy() });
       }
       if (!b.mine && Math.random() < 0.3) {
         const t = this.sc.add.circle(b.o.x, b.o.y, 6, VIOLET, 0.5).setDepth(284).setBlendMode(Phaser.BlendModes.ADD);
@@ -1457,9 +1490,38 @@ export class SsjBrawl {
   private ghost(f: Fighter, tint: number, alpha: number, ms: number) {
     const s = f.spr;
     const g = this.sc.add.image(f.c.x, f.c.y, s.texture.key, s.frame.name).setOrigin(s.originX, s.originY).setFlipX(s.flipX).setDepth(f.c.depth - 1).setTintFill(tint).setAlpha(alpha).setAngle(f.c.angle).setBlendMode(Phaser.BlendModes.ADD);
-    g.setScale(Math.abs(s.scaleX) / hdFactor(g), Math.abs(s.scaleY) / hdFactor(g));
+    // (match what's on screen exactly: the HD factor maths blew some afterimages up to twice his size)
+    g.setDisplaySize(Math.abs(s.displayWidth), Math.abs(s.displayHeight));
     this.sc.tweens.add({ targets: g, alpha: 0, duration: ms, onComplete: () => g.destroy() });
     return g;
+  }
+
+  /** A straight punch: a streak from your shoulder and a big glowing fist that snaps out to his body. */
+  private jab(dy: number, k: number) {
+    const p = this.p;
+    const e = this.e;
+    const x0 = p.x + p.face * 30;
+    const y0 = p.y + dy;
+    const reach = Phaser.Math.Clamp(Math.abs(e.x - p.x) - ER + 30, 70, 150) * p.face;
+    const g = this.sc.add.graphics().setDepth(270).setBlendMode(Phaser.BlendModes.ADD);
+    g.lineStyle(18 * k, 0xfff4c2, 0.35).lineBetween(x0, y0, x0 + reach, y0);
+    g.lineStyle(5 * k, 0xffffff, 0.95).lineBetween(x0 + reach * 0.3, y0, x0 + reach, y0);
+    this.sc.tweens.add({ targets: g, alpha: 0, duration: 120, onComplete: () => g.destroy() });
+    const f = this.sc.add.image(x0, y0, "br_fist").setDepth(275).setFlipX(p.face < 0).setBlendMode(Phaser.BlendModes.ADD).setScale(1.6 * k);
+    this.sc.tweens.add({ targets: f, x: x0 + reach, scale: 2.4 * k, duration: 60, ease: "Quad.out" });
+    this.sc.tweens.add({ targets: f, alpha: 0, delay: 70, duration: 90, onComplete: () => f.destroy() });
+  }
+
+  /** Throw your weight into it: a quick stretch along the punch, then back. */
+  private lean(k: number) {
+    const s = this.p.spr;
+    const bx = Math.abs((s as unknown as { _bx?: number })._bx ?? s.scaleX);
+    const by = Math.abs((s as unknown as { _by?: number })._by ?? s.scaleY);
+    (s as unknown as { _bx?: number })._bx = bx;
+    (s as unknown as { _by?: number })._by = by;
+    this.sc.tweens.killTweensOf(s);
+    s.setScale(bx * k, by / Math.sqrt(k));
+    this.sc.tweens.add({ targets: s, scaleX: bx, scaleY: by, duration: 160, ease: "Back.out" });
   }
 
   /** A swoosh of a fist or a foot: a bright arc, gone in a blink. */
@@ -1560,8 +1622,8 @@ export class SsjBrawl {
   private legend() {
     const sc = this.sc;
     const text = this.touchUi
-      ? "PUNCH: mash for a flurry   KICK: launch   VANISH: behind him / after a launch   KI: hold   BLOCK: hold (just in time = PARRY)"
-      : "J / click: PUNCH (mash = FLURRY)   K / right-click: KICK   Space: VANISH   R: KI (hold)   E: BLOCK (hold)";
+      ? "PUNCH: mash for a flurry   KICK: launch   KI: hold to blast   VANISH: behind it / after a launch   BLOCK: hold (just in time = PARRY)"
+      : "J / click: PUNCH (mash = FLURRY)   K / right-click: KICK   R: KI BLASTS (hold)   Space: VANISH   E: BLOCK (hold)";
     const t = sc.add.text(480, 506, text, { fontFamily: FONT, fontSize: "12px", color: "#fff4c2", stroke: "#000", strokeThickness: 4, align: "center", wordWrap: { width: 900 } }).setOrigin(0.5);
     Juice.layer(sc, 1050).add(t);
     sc.tweens.add({ targets: t, alpha: 0, delay: 9000, duration: 800, onComplete: () => t.destroy() });

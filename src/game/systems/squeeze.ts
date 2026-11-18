@@ -102,7 +102,8 @@ function squeezeGame(scene: Phaser.Scene, her: Phaser.GameObjects.Sprite, me: Ph
     let want = SQ_KEYS[0];
     let done = false;
     const t0 = scene.time.now;
-    const LIMIT = 10500;
+    // (very hard to fail: lots of time, big steps, no penalty, a slow drain, and half a bar at the bell still counts)
+    const LIMIT = 20000;
     const next = () => {
       let k = SQ_KEYS[Math.floor(Math.random() * SQ_KEYS.length)];
       if (k === want) k = SQ_KEYS[(SQ_KEYS.indexOf(k) + 1) % SQ_KEYS.length];
@@ -115,15 +116,17 @@ function squeezeGame(scene: Phaser.Scene, her: Phaser.GameObjects.Sprite, me: Ph
       if (done) return;
       if (ok) {
         streak++;
-        meter = Math.min(100, meter + 10 + Math.min(6, streak));
+        meter = Math.min(100, meter + 20 + Math.min(8, streak * 2));
         synth.shout("sq_squelch", 0.8, 0.85 + Math.random() * 0.35);
         drops(scene, her.x, her.y, 4);
         scene.tweens.add({ targets: [her, me], angle: { from: -5, to: 5 }, yoyo: true, duration: 70 });
         if (meter >= 100) return finish(true);
         next();
       } else {
-        streak = 0;
-        meter = Math.max(0, meter - 5);
+        // a wrong key still squeezes a bit (and keeps your streak)
+        meter = Math.min(100, meter + 8);
+        bar.width = 4.4 * meter;
+        if (meter >= 100) return finish(true);
         synth.play("tap_fail");
         btn.setFillStyle(0xef4444);
         scene.time.delayedCall(120, () => btn.active && btn.setFillStyle(0xfde047));
@@ -142,11 +145,11 @@ function squeezeGame(scene: Phaser.Scene, her: Phaser.GameObjects.Sprite, me: Ph
       delay: 50,
       loop: true,
       callback: () => {
-        meter = Math.max(0, meter - 0.22);
+        meter = Math.max(0, meter - 0.06);
         bar.width = 4.4 * meter;
         const left = Math.max(0, LIMIT - (scene.time.now - t0));
         clock.setText((left / 1000).toFixed(1));
-        if (left <= 0) finish(meter >= 100);
+        if (left <= 0) finish(meter >= 50);
       },
     });
     function finish(win: boolean) {

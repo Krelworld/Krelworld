@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 
 /**
  * Flowing spirit-energy streams (anime ki / spirit-wave): wobbling, rippling ribbons with a glowing core, pulses
@@ -63,6 +63,10 @@ export interface FlowStyle {
   startW?: number;
   /** Calm (photosensitivity): no fast flicker. */
   calm?: boolean;
+  /** Lumpy, surging edges (0..1): a quick ripple on top of the slow ones, so it rolls like a torrent, not a beam. */
+  lumps?: number;
+  /** Glowing globules surging along inside it, bulging out past its edges. */
+  beads?: number;
 }
 
 /** The unit normal of `path` at u. */
@@ -91,6 +95,8 @@ export function flowEdges(path: Path, t: number, s: FlowStyle, u0: number, u1: n
     const { nx, ny } = normal(path, u);
     // the rippling width: two travelling waves plus the pulses surging along it
     let w = 1 + 0.22 * Math.sin(u * 13 - t * 11 * k + seed) + 0.13 * Math.sin(u * 31 + t * 7 * k + seed * 2);
+    const lumps = s.lumps ?? 0;
+    if (lumps > 0) w += lumps * (0.2 * Math.sin(u * 47 - t * 16 * k + seed * 3) + 0.14 * Math.sin(u * 71 - t * 23 * k + seed * 5) + 0.12 * Math.sin(u * 23 + t * 5 * k));
     for (let j = 0; j < pulses; j++) {
       const at = frac(t * speed + j / pulses + seed * 0.13);
       const d = (u - at) / 0.06;
@@ -139,6 +145,22 @@ export function drawFlow(g: Phaser.GameObjects.Graphics, path: Path, t: number, 
       R.push({ x: p.x + nx * (tw - half), y: p.y + ny * (tw - half) });
     }
     fillEdges(g, { L, R }, 0xffffff, 0.32 * a);
+  }
+  for (let j = 0; j < (s.beads ?? 0); j++) {
+    // a globule of light surging along inside it, swelling past the edges as it goes
+    const u = u0 + (u1 - u0) * frac(t * (s.speed ?? 0.9) * 0.8 + j / (s.beads ?? 1) + (s.seed ?? 0) * 0.37);
+    const fade = smooth(u0, u0 + 0.08, u) * smooth(u1, u1 - 0.1, u);
+    if (fade <= 0.02) continue;
+    const p = path(u);
+    const { nx, ny } = normal(path, u);
+    const sw = Math.sin(t * 9 * k + j * 2.1);
+    const off = Math.sin(u * 9 - t * 7 * k + (s.seed ?? 0)) * (s.wobble ?? 0.3) * s.width + sw * s.width * 0.35;
+    const x = p.x + nx * off;
+    const y = p.y + ny * off;
+    const r = s.width * (0.85 + 0.3 * sw) * fade;
+    g.fillStyle(s.glow, 0.12 * a * fade).fillCircle(x, y, r * 1.7);
+    g.fillStyle(s.mid, 0.3 * a * fade).fillCircle(x, y, r * 1.1);
+    g.fillStyle(0xffffff, 0.55 * a * fade).fillCircle(x, y, r * 0.45);
   }
   fillEdges(g, flowEdges(path, t, s, u0, u1, n, 0.38, 0, 0.3), s.core ?? 0xffffff, 0.92 * a);
 }
@@ -216,5 +238,16 @@ export function drawSplash(g: Phaser.GameObjects.Graphics, x: number, y: number,
     const r = { x: bx - Math.cos(a + Math.PI / 2) * R * wa, y: by - Math.sin(a + Math.PI / 2) * R * wa };
     g.fillStyle(i % 2 ? 0xfff3c4 : 0xffffff, 0.55).fillTriangle(l.x, l.y, r.x, r.y, tip.x, tip.y);
     g.fillStyle(0xffffff, 0.8).fillCircle(tip.x, tip.y, 2 + power);
+  }
+  // a crown of glowing globules thrown off and back, swelling and shrinking (light, not liquid: they never land)
+  for (let i = 0; i < 7; i++) {
+    const ph = frac(t * 1.6 * k + i / 7);
+    const a = dir + Math.PI + (((i * 0.618) % 1) - 0.5) * 3.6;
+    const d = R * (0.8 + 2.2 * ph);
+    const r = (3 + 3 * power) * Math.sin(Math.PI * ph);
+    const bx = x + Math.cos(a) * d;
+    const by = y + Math.sin(a) * d - 10 * ph * ph;
+    g.fillStyle(0xfff3c4, 0.3 * (1 - ph)).fillCircle(bx, by, r * 2);
+    g.fillStyle(0xffffff, 0.85 * (1 - ph)).fillCircle(bx, by, r);
   }
 }

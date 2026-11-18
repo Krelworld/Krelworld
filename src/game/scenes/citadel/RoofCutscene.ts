@@ -604,9 +604,16 @@ export class RoofCutscene extends Phaser.Scene {
       Juice.shake(this, 1500, 0.02);
     });
     await this.untilCine(19.5);
-    // the money shot: straight down his throat
-    await Juice.still(this, "fe_still_group_krezz", 1300, { push: 0.15, shakeK: 0.025, depth: 1040 });
-    Juice.shake(this, 600, 0.025);
+    // the money shot: the camera slams in on it, the whole torrent rolling into his mouth
+    const cam = this.cameras.main;
+    const mo = flow.mouth();
+    cam.zoomTo(1.55, 380, "Cubic.easeOut", true);
+    cam.pan(Math.min(W - W / 3.1, mo.x - 90), Math.max(H / 3.1, mo.y + 50), 380, "Cubic.easeOut", true);
+    Juice.shake(this, 1000, 0.012);
+    synth.voice("grunt", 0.7, 0.6);
+    await this.untilCine(20.65);
+    cam.zoomTo(1, 280, "Quad.easeIn", true);
+    cam.pan(480, 270, 280, "Quad.easeIn", true);
     await this.untilCine(21.0);
     flow.destroy();
     strain.destroy();
@@ -822,7 +829,14 @@ export class RoofCutscene extends Phaser.Scene {
     const G0: Pt[] = O.map((o, k) => ({ x: gapX[k], y: headTop - 4 }));
     // where each one goes on its own first: a curl up over his head, its own way
     const E: Pt[] = G0.map((p, k) => ({ x: p.x + 22, y: p.y - 52 - 14 * (k % 3) }));
-    const mouth = (): Pt => ({ x: d.x + 4, y: d.y - d.displayHeight * 0.72 });
+    // his mouth, wherever he's been knocked to (and however far he's tipped back)
+    const mouth = (): Pt => {
+      const lx = 6;
+      const ly = -d.displayHeight * 0.67;
+      const c = Math.cos(d.rotation);
+      const sn = Math.sin(d.rotation);
+      return { x: d.x + lx * c - ly * sn, y: d.y + lx * sn + ly * c };
+    };
     let el = 0;
     let merged = false;
     let hit = false;
@@ -897,9 +911,9 @@ export class RoofCutscene extends Phaser.Scene {
         const m = mouth();
         const tp = torrentPath(m);
         const surge = hit ? 1 + 0.08 * Math.sin(t * 6) : 1;
-        drawFlow(g, tp, t, { width: (12 + 5 * tor) * surge, glow: 0xffd98a, mid: 0xfff3c4, core: 0xffffff, pulses: 3, speed: 1.5, ribbons: 2, wobble: 0.22, seed: 3.1, startW: 0.8, calm }, 0, tor, 26);
+        drawFlow(g, tp, t, { width: (14 + 8 * tor) * surge, glow: 0xffc96a, mid: 0xfff0c0, core: 0xffffff, pulses: 3, speed: 1.5, alpha: 0.62, ribbons: 3, wobble: 0.3, lumps: 1, beads: 5, seed: 3.1, startW: 0.9, calm }, 0, tor, 56);
         // orbs and sparkles flicking off it
-        for (let s = 0; s < 3; s++) {
+        for (let s = 0; s < 5; s++) {
           const u = Math.random() * tor;
           const p = tp(u);
           const q = tp(Math.min(1, u + 0.02));
@@ -917,7 +931,7 @@ export class RoofCutscene extends Phaser.Scene {
             motes.burst(m.x, m.y, 30, { dir: dir + Math.PI, spread: 3.4, speed: 280, life: 0.5, r: 3 });
             synth.play("smash", 0.6);
           }
-          drawSplash(g, m.x, m.y, dir, t, 1 + 0.1 * Math.sin(t * 9), calm);
+          drawSplash(g, m.x, m.y, dir, t, 1.25 + 0.12 * Math.sin(t * (calm ? 3 : 9)), calm);
           motes.burst(m.x, m.y, 2, { dir: dir + Math.PI, spread: 3, speed: 230, life: 0.35, r: 2.4 });
         }
       }
@@ -927,6 +941,7 @@ export class RoofCutscene extends Phaser.Scene {
     this.events.on("update", upd);
     this.events.once("shutdown", () => this.events.off("update", upd));
     return {
+      mouth,
       destroy: () => {
         this.events.off("update", upd);
         g.destroy();
@@ -1168,7 +1183,7 @@ export class RoofCutscene extends Phaser.Scene {
         this.speedLines(lines, MOUTH.x, MOUTH.y, 0xffffff, 30 + Math.round(speed * 30));
         speed = Math.min(3, speed + 0.006);
         fx.clear();
-        drawFlow(fx, inPath, t, { width: 26 + speed * 6, glow: 0xffd98a, mid: 0xfff3c4, core: 0xffffff, pulses: 3, speed: 1.2 + speed * 0.5, ribbons: 2, wobble: 0.2, seed: 1.3, startW: 1, calm: calmK }, 0, 1, 28);
+        drawFlow(fx, inPath, t, { width: 26 + speed * 6, glow: 0xffd98a, mid: 0xfff3c4, core: 0xffffff, pulses: 3, speed: 1.2 + speed * 0.5, ribbons: 3, wobble: 0.26, lumps: 1, beads: 5, seed: 1.3, startW: 1, calm: calmK }, 0, 1, 64);
         // orbs and sparkles flicking off it
         for (let s = 0; s < 2 + Math.round(speed); s++) {
           const u = Math.random() * 0.95;

@@ -3467,7 +3467,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const objs: Phaser.GameObjects.GameObject[] = [];
     const keep = <T extends Phaser.GameObjects.GameObject>(o: T) => (objs.push(o), o);
     const fix = <T extends Phaser.GameObjects.GameObject & { setScrollFactor: (n: number) => T; setDepth: (n: number) => T }>(o: T, d = 0) => keep(o.setScrollFactor(0).setDepth(5000 + d));
-    synth.music("crystal", true);
+    // (Uncle Rik's is won inside the SanMikverse's one long song: In Tha Hot Tub keeps going)
+    if (b.bossId !== "rik") synth.music("crystal", true);
     cam.flash(400, 255, 255, 255);
     cam.shake(400, 0.012);
     // the room goes dark purple, and light rays spin out from the middle

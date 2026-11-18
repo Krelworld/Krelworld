@@ -916,7 +916,7 @@ export const DUNGEONS: Record<string, DungeonDef> = {
     id: "rik_colon",
     chapter: 5,
     name: "INSIDE UNCLE RIK (THE TRANSVERSE COLON)",
-    music: "ominous",
+    music: "boss_rik",
     returnAt: "PUB",
     // side-on: a narrow run'n'gun down the inside of the tube (the Colon module in scenes/side dresses it)
     view: "side",

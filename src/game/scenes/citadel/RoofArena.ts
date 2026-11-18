@@ -432,7 +432,7 @@ export class RoofArena {
     G.s.flags.finale_wonked = true;
     delete G.s.flags.finale_freed;
     G.save();
-    sc.cameras.main.flash(500, 255, 255, 255);
+    if (!G.meta.settings.calmFlash) sc.cameras.main.flash(500, 255, 255, 255);
     synth.play("boom");
     sc.cameras.main.fadeOut(500, 255, 255, 255);
     sc.time.delayedCall(520, () => switchTo(sc, "RoofCutscene", { beat: "krezz" }));

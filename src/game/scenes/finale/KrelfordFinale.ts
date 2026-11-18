@@ -26,9 +26,13 @@ import { KiMode } from "./KiMode";
  *   1 IMMORTAL  it fully heals every time you knock a chunk off. Three times. Then: the bottle.
  *   2 FETCH     go and get the golden pussy juice testosterone (where Drongus threw it). Goku is there.
  *   3 INJECT    jab each of the lads (E), dodging it all the while. Then: the transformation (cutscene).
- *   4 REAL      super saiyan: real damage, while Goku's SPIRIT CUM grows. Nearly dead: it FULLY heals. NOOOOO.
- *               Then the SPIRIT CUM (cutscene, then the Ending).
+ *   4 REAL      super saiyan: real damage, while Goku's SPIRIT CUM grows. It escalates as it weakens (ConceptBoss).
+ *   5 BRAWL     nearly dead, it crushes itself down into the wizard and goes up into the storm: a side-on, hand-to-hand
+ *               super saiyan brawl (FinaleScene beat "brawl", finale/SsjBrawl.ts, over the paused fight).
+ *   6           back down: it FULLY heals. NOOOOO. Then the SPIRIT CUM (cutscene, then the Ending).
  * Checkpoint (G.s.flags.finale_cp): die after the bottle and you come back at the bottle; after the change, super saiyan.
+ * G.s.flags.finale_brawl: 1 while the brawl's on (come back and you're straight into it), 2 once it's won (straight to
+ * the final heal). Cleared with the rest when the SPIRIT CUM's done.
  */
 
 /** Hub (Krelford) map size; the arena is the same town at ARENA_K scale. */
@@ -161,7 +165,9 @@ export class KrelfordFinale {
     h.boss = boss;
     this.boss = boss;
     boss.onHeal = () => void this.heal();
-    boss.onLow = () => void this.finalHeal();
+    boss.onLow = () => void this.toBrawl();
+    sc.events.on("concept-rage", (line: string) => this.rage(line));
+    sc.events.once("shutdown", () => sc.events.off("concept-rage"));
     sc.events.on("update", this.update, this);
     sc.events.once("shutdown", () => sc.events.off("update", this.update, this));
     const cp = G.s.flags.finale_cp;
@@ -182,6 +188,17 @@ export class KrelfordFinale {
       this.spiritGauge();
       this.darkAura();
       this.kiOn();
+      // back in after the brawl had started (or been won): straight back to it
+      const fb = Number(G.s.flags.finale_brawl ?? 0);
+      if (fb) {
+        boss.hp = boss.maxHp * 0.02;
+        h.time.delayedCall(900, () => {
+          if (this.gone) return;
+          if (fb === 1) void this.toBrawl();
+          else void this.finalHeal(true);
+        });
+        return;
+      }
       h.toast("SUPER KRELWORLD KREW", "Real damage now. Hold out until Goku's SPIRIT CUM is ready.");
       return;
     }
@@ -204,7 +221,7 @@ export class KrelfordFinale {
     if (this.gone) return;
     await this.introShot();
     if (this.gone) return;
-    await vsSplash(h.sc, { bossId: "concept", name: "THE CONCEPT", art: { key: "fe_cut_concept", frame: 0 } });
+    await vsSplash(h.sc, { bossId: "concept", name: "THE CONCEPT OF PAEDOPHILIA", art: { key: "fe_cut_concept", frame: 0 } });
     if (this.gone) return;
     boss.mode = "immortal";
     boss.started = true;
@@ -665,11 +682,88 @@ export class KrelfordFinale {
     if (!this.playerHalo) this.playerHalo = this.ssjHalo(ps, this.playerFeet);
   }
 
-  /** It's nearly dead... and it heals. All of it. NOOOOO. Then: the SPIRIT CUM. */
-  private async finalHeal() {
+  /** Wound up as it weakens (ConceptBoss "concept-rage", at 75% and 30%): a roar, a word, its flame flares up. */
+  private rage(line: string) {
     const h = this.h;
     const b = this.boss;
     if (this.stage !== "real") return;
+    Juice.slamText(h.sc, line, "#c084fc", 40, 150, 1000);
+    b.roar();
+    Juice.shockRing(h.sc, b.x, b.y, { color: 0xa855f7, to: 1000, rings: 4, ms: 900 });
+    Juice.debris(h.sc, b.x, b.y + 80, 16, { depth: 2000, speed: 480, size: 9, colors: [0x2a211c, 0x44403c, 0x7c3aed] });
+    h.shake(700, 0.014);
+    this.darkAura();
+  }
+
+  /**
+   * Nearly dead, it does something new: it crushes itself down into the wizard and goes up into the storm. The
+   * SUPER SAIYAN BRAWL plays over the paused fight (FinaleScene beat "brawl"), then on to the final heal.
+   */
+  private async toBrawl() {
+    const h = this.h;
+    const sc = h.sc;
+    const b = this.boss;
+    if (this.stage !== "real") return;
+    this.stage = "end";
+    b.mode = "still";
+    this.ki?.stop();
+    G.s.flags.finale_brawl = 1;
+    G.save();
+    for (const sh of [...h.shots]) if (sh.o.owner === "enemy") h.killShot(sh);
+    for (const e of [...h.enemies]) if (!e.dead && !e.isBoss) h.damageEnemy(e, 99999, { noWonk: true, label: "" });
+    // the camera goes to it: it folds in on itself, the wizard showing through, and it's gone up into the clouds
+    const cam = h.cameras.main;
+    h.busy = true;
+    const close = Juice.letterbox(sc, 54, 400);
+    cam.stopFollow();
+    cam.pan(b.x, b.y, 700, "Sine.easeInOut", true);
+    cam.zoomTo(1.05, 900, "Sine.easeInOut", true);
+    b.roar();
+    await this.wait(700);
+    if (this.gone) return;
+    for (let i = 0; i < 4; i++)
+      h.time.delayedCall(i * 260, () => {
+        if (this.gone) return;
+        b.revealWizard();
+        Juice.shockRing(sc, b.x, b.y, { color: i % 2 ? 0xffd23f : 0xa855f7, to: 700 - i * 120, rings: 1, ms: 500 });
+      });
+    Juice.slamText(sc, "IT'S CONDENSING", "#c084fc", 44, 170, 900);
+    h.shake(1100, 0.012);
+    Juice.riser(1100, 0.3);
+    await this.wait(1100);
+    if (this.gone) return;
+    Juice.flash(sc, 0xffffff, 400, 0.7, 4880);
+    synth.play("zap");
+    const stop = Juice.speedLines(sc, 600, 0xe9d5ff);
+    await this.wait(600);
+    stop();
+    if (this.gone) return;
+    close(200);
+    sc.scene.setVisible(false, "UI");
+    sc.scene.pause();
+    sc.scene.launch("Finale", {
+      beat: "brawl",
+      overlay: true,
+      done: () => {
+        if (this.gone) return;
+        sc.scene.resume();
+        sc.scene.setVisible(true, "UI");
+        cam.zoomTo(0.8, 10);
+        cam.startFollow(h.player.spr, true, 0.12, 0.12);
+        h.busy = false;
+        G.s.flags.finale_brawl = 2;
+        G.save();
+        synth.music("c7_spirit", true);
+        void this.finalHeal(true);
+      },
+    });
+  }
+
+  /** It's nearly dead... and it heals. All of it. NOOOOO. Then: the SPIRIT CUM. */
+  private async finalHeal(afterBrawl = false) {
+    const h = this.h;
+    const b = this.boss;
+    if (this.stage !== "real" && !afterBrawl) return;
     this.stage = "end";
     b.mode = "still";
     this.ki?.stop();

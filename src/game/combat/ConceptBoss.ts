@@ -24,6 +24,13 @@ import { horrorKey } from "../scenes/finale/finaleArt";
  */
 export type ConceptMode = "immortal" | "shrug" | "real" | "still";
 
+/**
+ * Real phase: what your hits (and the lads') are worth against it. It was 1.6, and a decent player had it down in
+ * well under a minute; at this it takes about two and a half times as long, and it gets nastier as it goes
+ * (see `rage`): new attacks at 75% and 50%, and its patterns come faster at 66% and 33%.
+ */
+export const CONCEPT_REAL_DMG = 0.65;
+
 export class ConceptBoss extends Boss {
   quietDefeat = true;
   mode: ConceptMode = "still";
@@ -52,7 +59,7 @@ export class ConceptBoss extends Boss {
   roam = new Phaser.Geom.Rectangle(0, 0, 0, 0);
   /** How many times it has healed (the finale sets it): each one, it comes back a little faster and nastier. */
   escalation = 0;
-  /** Real mode: the HP lines it's crossed (half: a phase break; 40% and 20%: the LIGHTNING GRID). */
+  /** Real mode: the HP lines it's crossed (75%: FURIOUS; half: a phase break; 40% and 20%: the LIGHTNING GRID; 30%: DESPERATE). */
   private realMarks = new Set<number>();
   private gridQueued = 0;
 
@@ -184,12 +191,13 @@ export class ConceptBoss extends Boss {
     }
     // real
     const floor = this.maxHp * 0.02;
-    const a = Math.min(amount * 1.6, Math.max(0, this.hp - floor));
+    const a = Math.min(amount * CONCEPT_REAL_DMG, Math.max(0, this.hp - floor));
     const after = (this.hp - a) / this.maxHp;
-    for (const m of [0.5, 0.4, 0.2]) {
+    for (const m of [0.75, 0.5, 0.4, 0.3, 0.2]) {
       if (after > m || this.realMarks.has(m)) continue;
       this.realMarks.add(m);
       if (m === 0.5) this.scene.time.delayedCall(10, () => this.active && this.mode === "real" && this.scene.events.emit("epic-phase", this, "IT'S HURTING!", "#ffd23f"));
+      else if (m === 0.75 || m === 0.3) this.scene.time.delayedCall(10, () => this.active && this.mode === "real" && this.scene.events.emit("concept-rage", m === 0.75 ? "IT'S FURIOUS" : "IT'S DESPERATE"));
       else this.gridQueued++;
     }
     if (this.hp - a <= floor + 0.5 && !this.lowFired) {
@@ -353,7 +361,21 @@ export class ConceptBoss extends Boss {
     this.scene.tweens.add({ targets: this.wizard, alpha: 0, delay: 300, duration: 1100 });
   }
 
-  pattern(_dt: number, now: number) {
+  /** Real phase: how wound up it is (0 above 66%, 1 above 33%, 2 below). Its patterns come faster with each. */
+  get rage() {
+    if (this.mode !== "real") return 0;
+    const k = this.hp / this.maxHp;
+    return k > 0.66 ? 0 : k > 0.33 ? 1 : 2;
+  }
+
+  pattern(dt: number, now: number) {
+    const before = this.nextPattern;
+    this.patternStep(dt, now);
+    // wound up: less of a breather between attacks
+    if (this.nextPattern !== before && this.nextPattern > now) this.nextPattern = now + (this.nextPattern - now) * [1, 0.84, 0.7][this.rage];
+  }
+
+  private patternStep(_dt: number, now: number) {
     const w = this.world;
     const p = w.player;
     const ts = w.enemyTimeScale;
@@ -374,10 +396,21 @@ export class ConceptBoss extends Boss {
     }
     // once it's healed (or once it's really fighting) it has the spiral too
     const spiral = real || this.escalation >= 1;
-    const pick = this.patternIdx++ % (spiral ? 6 : 5);
-    const fury = real ? 1.5 : 1 + this.escalation * 0.12;
+    // badly hurt, it has more: the CLAW CROSS below 75%, the COMET TRAIL below half
+    const k = this.hp / this.maxHp;
+    const extra = real ? (k < 0.75 ? 1 : 0) + (k < 0.5 ? 1 : 0) : 0;
+    const pick = this.patternIdx++ % ((spiral ? 6 : 5) + extra);
+    const fury = real ? 1.5 + this.rage * 0.15 : 1 + this.escalation * 0.12;
     if (pick === 5) {
       this.spiral(now, real);
+      return;
+    }
+    if (pick === 6) {
+      this.clawCross(now);
+      return;
+    }
+    if (pick === 7) {
+      this.cometTrail(now);
       return;
     }
     if (pick === 0) {
@@ -530,6 +563,68 @@ export class ConceptBoss extends Boss {
         });
       });
     this.nextPattern = now + 2 * (tele + 250) + 1100;
+  }
+
+  /**
+   * THE CLAW CROSS (real phase, below 75%): two of its arms rake an X through where you're standing, then (once it's
+   * wound up) a + where you've stepped to. Step out of the middle, then out of the lines.
+   */
+  private clawCross(now: number) {
+    const w = this.world;
+    const p = w.player;
+    const tele = 900 * w.telegraphMult;
+    this.move("slam", 11);
+    w.floatText(this.x, this.y - this.displayHeight * 0.4, "SEE ALSO:", "#d8b4fe", 18);
+    const waves = this.rage >= 1 ? 2 : 1;
+    for (let wave = 0; wave < waves; wave++)
+      this.scene.time.delayedCall(wave * tele * 0.7, () => {
+        if (!this.active || this.mode !== "real") return;
+        const x0 = p.x;
+        const y0 = p.y;
+        // a line right through where you are, both ways
+        for (const a of wave ? [0, Math.PI / 2] : [Math.PI / 4, -Math.PI / 4]) w.enemyLine(x0 - Math.cos(a) * 520, y0 - Math.sin(a) * 520, a, 1040, 50, 20, tele);
+        this.scene.time.delayedCall(tele, () => {
+          if (!this.active) return;
+          synth.play("smash");
+          w.shake(180, 0.01);
+          this.claw(x0, y0);
+        });
+      });
+    this.nextPattern = now + tele * (1 + 0.7 * (waves - 1)) + 1100;
+  }
+
+  /**
+   * THE COMET TRAIL (real phase, below half): a string of bile comets comes down one after another, each a step
+   * closer to wherever you are. Keep moving, at an angle to it.
+   */
+  private cometTrail(now: number) {
+    const w = this.world;
+    const p = w.player;
+    const sc = this.scene;
+    const tele = 650 * w.telegraphMult;
+    this.move("rear", 12);
+    this.roar();
+    const n = 7 + this.rage * 2;
+    let x = this.x;
+    let y = this.y + 90;
+    for (let i = 0; i < n; i++)
+      sc.time.delayedCall(i * 170, () => {
+        if (!this.active || this.mode !== "real") return;
+        const a = Math.atan2(p.y - y, p.x - x);
+        const step = Math.min(110, Phaser.Math.Distance.Between(x, y, p.x, p.y));
+        x += Math.cos(a) * step;
+        y += Math.sin(a) * step;
+        const cx = x;
+        const cy = y;
+        w.enemyAoe(cx, cy, 70, 18, tele, i % 2 ? 0x84cc16 : 0xa855f7);
+        sc.time.delayedCall(tele, () => {
+          if (!this.active) return;
+          synth.play(i % 2 ? "pfft" : "smash");
+          w.shake(90, 0.006);
+          if (hasVfx(sc, "vfx_dust")) vfx(sc, "vfx_dust", cx, cy + 8, { scale: 1.4, depth: cy + 10, tint: 0xa855f7 });
+        });
+      });
+    this.nextPattern = now + n * 170 + tele + 900;
   }
 
   /** A claw mark where an arm comes down. */

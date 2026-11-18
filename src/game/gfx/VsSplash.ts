@@ -70,6 +70,8 @@ export interface VsOpts {
   /** fallback art when there's no vs_<bossId> sheet: a texture and frame (e.g. the boss's own sprite) */
   art?: { key: string; frame?: string | number };
   color?: number;
+  /** a gang (the hero passengers): their battle sprites side by side on the boss's half, instead of one portrait */
+  group?: { key: string; frame?: string | number }[];
 }
 
 /** Has this boss had its card this run already? (A retry after a death doesn't make you sit through it again.) */
@@ -94,6 +96,7 @@ export function vsSplash(sc: Phaser.Scene, o: VsOpts): Promise<void> {
     bossEpithet: o.epithet ?? BOSS_EPITHET[o.bossId] ?? (t?.title ?? "").split("·")[0].trim().toUpperCase(),
     bossColor: o.color ?? BOSS_COLOR[o.bossId] ?? 0xdc2626,
     art: o.art,
+    group: o.group,
     quick,
   });
 }
@@ -108,6 +111,7 @@ interface VsData {
   bossEpithet: string;
   bossColor: number;
   art?: { key: string; frame?: string | number };
+  group?: { key: string; frame?: string | number }[];
   quick: boolean;
   done: () => void;
 }
@@ -226,7 +230,25 @@ export class VsSplashScene extends Phaser.Scene {
       return img;
     };
     portrait(L, `vs_${d.player}`, { key: `spr_${d.player}`, frame: 0 }, true);
-    portrait(R, `vs_${d.bossId}`, d.art, false);
+    if (d.group?.length) {
+      // a gang: all of them in a staggered row, the middle one in front
+      const n = d.group.length;
+      const order = [...d.group.keys()].sort((a, b) => Math.abs(b - (n - 1) / 2) - Math.abs(a - (n - 1) / 2));
+      for (const i of order) {
+        const g = d.group[i];
+        if (!this.textures.exists(g.key)) continue;
+        const img = this.add.image(0, 0, g.key, g.frame ?? 0).setOrigin(0.5, 1).setFlipX(true);
+        const back = Math.abs(i - (n - 1) / 2);
+        const sc = (330 - back * 50) / img.frame.realHeight;
+        img.setScale(sc / hdFactor(img));
+        const cx = 720 + (i - (n - 1) / 2) * 150;
+        img.setPosition(cx, H + 10 - back * 30);
+        const echo = this.add.image(cx + 22, img.y, g.key, g.frame ?? 0).setOrigin(0.5, 1).setScale(img.scaleX / hdFactor(img), img.scaleY / hdFactor(img)).setFlipX(true).setTintFill(dark(R.col, 0.25)).setAlpha(0.8);
+        if (back) img.setTint(0xc8c8d0);
+        R.c.add([echo, img]);
+        this.tweens.add({ targets: [img, echo], x: `-=${18 - back * 6}`, duration: 2600, ease: "Sine.out" });
+      }
+    } else portrait(R, `vs_${d.bossId}`, d.art, false);
 
     // the halves slam in from either side
     const q = d.quick ? 0.6 : 1;

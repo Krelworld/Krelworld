@@ -698,8 +698,11 @@ export class VignetteScene extends Phaser.Scene {
         say(spy, "There he goes. Up to some sick shit. Stay low."),
       ]);
     }
-    // the song starts as soon as we're at the door
+    // the song starts as soon as we're at the door (and it's this scene's alone: it never follows you out)
     synth.music("bbp", true);
+    this.events.once("shutdown", () => {
+      if (synth.currentMusic() === "bbp") synth.stopMusic();
+    });
     await this.talk([dir("The abandoned building. A faint smell of custard. And something underneath the custard that the custard is trying to cover up.")]);
     this.time.addEvent({ delay: 140, repeat: 14, callback: () => animateWalker(luke, 1, 0, true, this.time.now) });
     await this.tween({ targets: luke, x: 480, duration: 2000 });

@@ -103,6 +103,8 @@ const code = extractCode(
       "Citadel.ts:who|text", // STAIRS_ECHOES (content/citadel)
       "RoofArena.ts:b.id|line.t", // FREED (content/finaleRoof)
       "TVScene.ts:b.character|b.text", // TV episodes (content/television)
+      "ClubCloseup.ts:CLOSEUP_DEREK.s|CLOSEUP_DEREK.t", // content/clubCloseup.ts
+      "ClubCloseup.ts:line.s|line.t", // CLOSEUP_THANKS (content/clubCloseup.ts)
       "narrative.ts:speaker|text",
       "DialogueBox.ts:String(l.s === \"YOU\" ? s.player : l.s)|l.t",
       "DialogueBox.ts:queue[i].s|REGISTER_JIBES[Math.floor(Math.random() * REGISTER_JIBES.length)]",

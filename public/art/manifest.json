@@ -6878,6 +6878,9 @@
   "p_flirt": {
    "file": "props/p_flirt.png"
   },
+  "p_krex": {
+   "file": "props/p_krex.png"
+  },
   "p_lantern": {
    "file": "props/p_lantern.png"
   },
@@ -7840,6 +7843,9 @@
   },
   "club_garm2_bot": {
    "file": "props/club_garm2_bot.png"
+  },
+  "club_derek_hand": {
+   "file": "props/club_derek_hand.png"
   },
   "cancer_krandall": {
    "file": "chars/cancer_krandall.png"

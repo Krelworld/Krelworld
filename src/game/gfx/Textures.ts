@@ -373,6 +373,7 @@ const SPEAKER_SPRITES: Record<string, string> = {
   SANMIK: "spr_SANMIK",
   SANCHZ: "spr_SANCHZ",
   KROZNO: "boss_krozno",
+  "ELON MUSK": "boss_elon",
   "RUSSELL BRAND": "boss_brand",
   "THE PUDDING DEMON": "boss_pudding_demon",
   "LUKE WATKINS": "boss_pudding_demon",
@@ -411,7 +412,8 @@ function spritePortrait(scene: Phaser.Scene, sprKey: string, bg: number): string
   if (scene.textures.exists(key)) return key;
   if (!scene.textures.exists(sprKey)) return null;
   const tex = scene.textures.get(sprKey);
-  if (!(tex.customData as { char?: unknown; hd?: number })?.hd) return null; // old procedural art: no
+  // old procedural art: no (a boss_ sheet is always PixelLab's, hd tag or not: Elon on his rocket has none)
+  if (!(tex.customData as { char?: unknown; hd?: number })?.hd && !sprKey.startsWith("boss_")) return null;
   const fr = tex.get(0);
   const src = tex.getSourceImage() as HTMLImageElement | HTMLCanvasElement;
   const [tmp, tctx] = canvas(fr.cutWidth, fr.cutHeight);
@@ -476,6 +478,43 @@ function spritePortrait(scene: Phaser.Scene, sprKey: string, bg: number): string
 /** Speakers who are only ever heard, never seen (their portrait is a shut door). */
 const OFFSCREEN = new Set(["GIRLFRIEND"]);
 
+/** Drongus's chatbots talk from a CRT, in their own colours and glyph (as in his lair), not with a passer-by's face. */
+const AI_FACES: Record<string, { bg: string; fg: string; glyph: string }> = {
+  GROK: { bg: "#050505", fg: "#f2f2f2", glyph: "⊘" },
+  CLAUDE: { bg: "#2b1a12", fg: "#f4b48c", glyph: "✳" },
+  CHATGPT: { bg: "#0b2a23", fg: "#7fffd4", glyph: "✿" },
+  SUNO: { bg: "#2a0f2f", fg: "#ff9de6", glyph: "♪" },
+};
+
+function aiPortrait(scene: Phaser.Scene, id: string): string {
+  const key = `gen_ai_${id.toLowerCase()}`;
+  if (scene.textures.exists(key)) return key;
+  const f = AI_FACES[id];
+  const c = scene.textures.createCanvas(key, 64, 64);
+  if (!c) return "gen_folk";
+  const x = c.getContext();
+  // the beige monitor case, the glass, scanlines, the glyph
+  x.fillStyle = "#3a3a3a";
+  x.fillRect(4, 6, 56, 50);
+  x.fillStyle = "#cfc6ae";
+  x.fillRect(6, 8, 52, 46);
+  x.fillStyle = f.bg;
+  x.fillRect(11, 13, 42, 32);
+  x.fillStyle = "rgba(255,255,255,0.06)";
+  for (let y = 13; y < 45; y += 3) x.fillRect(11, y, 42, 1);
+  x.fillStyle = f.fg;
+  x.font = "bold 24px sans-serif";
+  x.textAlign = "center";
+  x.textBaseline = "middle";
+  x.fillText(f.glyph, 32, 29);
+  x.fillStyle = "#8a8270";
+  x.fillRect(22, 56, 20, 4);
+  x.fillStyle = "#22c55e";
+  x.fillRect(50, 49, 3, 2);
+  c.refresh();
+  return key;
+}
+
 function offscreenPortrait(scene: Phaser.Scene): string {
   const key = "gen_offscreen";
   if (scene.textures.exists(key)) return key;
@@ -515,6 +554,7 @@ export function portraitKey(scene: Phaser.Scene, speaker: string): string | null
   if (s === "NARRATOR" || s === "") return null;
   // never seen: a voice through the bedroom door
   if (OFFSCREEN.has(s)) return offscreenPortrait(scene);
+  if (AI_FACES[s]) return aiPortrait(scene, s);
   const art = s.includes("GABOR")
     ? "p_gabor"
     : s === "GENIE"
@@ -527,6 +567,8 @@ export function portraitKey(scene: Phaser.Scene, speaker: string): string | null
           ? "p_reinhardt"
           : s.startsWith("FLIRT CROBLEY")
             ? "p_flirt"
+            : s === "METAL GEAR KREX"
+              ? "p_krex"
             : s.startsWith("CHINESE CROBLEY")
               ? "p_lantern"
               : s.startsWith("FRUITY CROBLEY")

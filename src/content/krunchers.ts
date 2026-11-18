@@ -172,3 +172,100 @@ export const KR_AFTER: Line[] = [
   say("KREZWONK", "I have foreseen it. This isn't the last we'll see of the Kreddle Krunchers."),
   { s: "YOU", t: "Next time, we go over THERE. And we get Mikey's dignity back.", tag: "new", variants: { MIKEY: "Next time, we go over THERE. And we get Polson's shake back." } },
 ];
+
+// ---------------------------------------------------------------- THE BRICK (Chapter 3, at home, before the invasion)
+// A quiet morning at home, then a Kreddle brick through the window and a Kruncher shouting through the hole
+// (HomeScene.brickScene). The first anyone in Krelworld sees of them: the rest come over the bridge once you step out.
+
+/** A quiet morning. Too quiet. */
+export const KR_BRICK_QUIET: Line[] = [
+  dir("Chapter 3. A new day in Krelford. The kettle's on. A little bird is doing a little song outside. For once, nothing is happening."),
+  {
+    s: "YOU",
+    t: "Ahh. Peace and quiet. Nothing bad is going to happen today. I can feel it.",
+    tag: "new",
+    mood: "happy",
+    variants: {
+      MIKEY: "Ahh. Fizzy bongo, no plans, nobody battering me. Today is going to be a GOOD day.",
+      KREZWONK: "I have foreseen a lovely, peaceful day. I'm almost never wrong.",
+      KREBLIS: "Breaking news… a nice quiet day 👍",
+      KREZMAR: "Ahh. No meetings. No loans due. Just me and my window. Lovely.",
+    },
+  },
+];
+
+/** CRASH. */
+export const KR_BRICK_HIT: Line[] = [
+  dir("A BRICK. Through your WINDOW. It skids across the floor and stops at your feet, like it's proud of itself."),
+  {
+    s: "YOU",
+    t: "WHAT THE FUCK!?",
+    tag: "new",
+    mood: "shocked, shouting",
+    variants: {
+      CRONGUS: "MY WINDOW! I'm still paying that off! In instalments!",
+      KREZMAR: "MY WINDOW!? Who the FACK does that!?",
+      SCROMBUS: "WHAT THE FUCK!? I was LOOKING out of that!",
+    },
+  },
+  dir("A face pops up in the hole: a neon varsity jacket, a Kreddle spray tan, and the smug little grin of a lad who has never once paid for a window."),
+];
+
+/** Through the broken window. */
+export const KR_BRICK_ABUSE: Line[] = [
+  say("KLENKY", "OI! KRELWORLD! Special delivery! That's a KREDDLE brick, that. Worth more than your house.", { mood: "shouting, mischievously" }),
+  {
+    s: "YOU",
+    t: "Who the fuck are YOU?",
+    tag: "new",
+    mood: "angry",
+    variants: {
+      FLENKY: "Oi! You've got my FACE! And you're using it for CRIME!",
+      KREBLIS: "Breaking news… who the fuck are you 👍",
+      KREZWONK: "I didn't foresee you. Which means you're not important.",
+    },
+  },
+  say("KLENKY", "Kreddle Krunchers, mate. Ask around. Actually, don't bother. Nobody round here's got any mates.", { mood: "smug" }),
+  say("KLENKY", "Look at this place! Is that a TELLY or a microwave? Fucking hell. Even your carpet's skint.", { mood: "laughs" }),
+  say("KLENKY", "You lot drink PUSSY JUICE out of a TAP in the middle of the road, and you call US weird?", { mood: "shouting" }),
+  say("KLENKY", "Your whole town's a shithole with a bus stop. Your Supreme Leader writes LORE. On FACEBOOK. And nobody reacts!", { mood: "laughs" }),
+  say("KLENKY", "And your lads? Fizzy-bongo-sucking, group-chat-posting, skint little MUGS. And you're the worst one, you absolute CUNT.", { mood: "shouting" }),
+  {
+    s: "YOU",
+    t: "Oi! Get off my lawn! …I haven't got a lawn. Get off my BIN!",
+    tag: "new",
+    mood: "furious",
+    variants: {
+      MIKEY: "Oi! That's MY window! I was going to look out of that later!",
+      KREZMAR: "You'll pay for that window, you FACKING KANT. With interest. MY interest.",
+      KREBLIS: "Breaking news… you're a massive prick 👍",
+      KREBON: "Six Krez Years inside and nobody ever chucked a brick at ME, you little prick.",
+      SCROMBUS: "Right! I'm calling the police! …We haven't got police. I'm calling Drongus!",
+      GRONNY: "Oi! I'm telling your mum! …Your Kreddle mum. Whoever!",
+      CRONGUS: "Come in here and say that! …Actually, don't. Mind the glass.",
+    },
+  },
+  say("KLENKY", "Enjoy the draught, Tap-licker! Get used to us. We're coming over that bridge, and we're bringing MORE BRICKS.", { mood: "menacing" }),
+  say("KLENKY", "KRUNCHERS RULE! KRELWORLD DROOLS!", { mood: "shouting" }),
+];
+
+/** He legs it. Then the note. Then the chat. */
+export const KR_BRICK_AFTER: Line[] = [
+  dir("He's gone. You can hear him cackling all the way down the road, then a car alarm, then more cackling."),
+  dir('There\'s a note elastic-banded to the brick. In pink glitter pen: "KREDDLE KRUNCHERS WAS ERE. KRELWORLD = SHITHOLE. P.S. this brick is worth more than your house. P.P.S. we\'re coming."'),
+  { s: "YOU", t: "…Right. Group chat.", tag: "new", mood: "deadpan" },
+  { s: "YOU", t: "lads someone just put a BRICK through my window", tag: "new", notify: true, sfx: "notify" },
+  { s: "YOU", t: "said our town's a shithole", tag: "new", notify: true, sfx: "notify" },
+  ping("KREBLIS", "Breaking news… it is though 👍", { cond: { notPlayer: "KREBLIS" } }),
+  ping("SCROMBUS", "Unlucky mate. Can I have the brick", { cond: { notPlayer: "SCROMBUS" } }),
+  ping("DRONGUS", "Did he at least react to the song"),
+  ping("MIKEY", "lol", { cond: { notPlayer: "MIKEY" } }),
+  ping("POLSON", "Yeeegh. That's not great. Thoughts? 😅", { cond: { player: "MIKEY" } }),
+  ping("KREZMAR", "That's KREDDLE. I can smell it from here. FACKING KANTS", { cond: { notPlayer: "KREZMAR" } }),
+];
+
+/** The brick, left on the floor for the rest of Chapter 3. */
+export const KR_BRICK_LOOK: Line[] = [
+  dir('The Kreddle brick. The note\'s still on it: "KREDDLE KRUNCHERS WAS ERE. KRELWORLD = SHITHOLE." It\'s a nicer brick than any brick in Krelford. That\'s the worst part.'),
+];
+export const KR_BRICK_WINDOW = "Krelford, through a brick-shaped hole. There's a draught. It smells faintly of Kreddle: fake tan, slot machines and smug.";

@@ -21,8 +21,8 @@ import * as Juice from "../../gfx/Juice";
 
 const DEPTH = CINE_DEPTH + 5;
 
-/** Plate art (256x144) to screen: drawn at 2.5x with its top-left here. */
-const PLATE = { x: 160, y: 112, k: 2.5 };
+/** Plate art (256x144) to screen: drawn at 2.2x with its top-left here (labels in the margins either side). */
+const PLATE = { x: 198, y: 118, k: 2.2 };
 const pp = (ix: number, iy: number) => ({ x: PLATE.x + ix * PLATE.k, y: PLATE.y + iy * PLATE.k });
 
 /** The route up the plate's colon, in plate-art pixels: anus end of the rectum, up through the sigmoid, the
@@ -46,12 +46,12 @@ interface Callout {
 }
 
 const CALLOUTS: Callout[] = [
-  { at: [129, 132], x: 150, y: 440, side: "l", name: "RECTUM", note: "point of entry", when: 0.02 },
-  { at: [160, 105], x: 812, y: 432, side: "r", name: "SIGMOID COLON", note: "S-bend; mind the corner", when: 0.2 },
-  { at: [189, 64], x: 812, y: 262, side: "r", name: "DESCENDING COLON", note: "the long climb", when: 0.42 },
-  { at: [182, 10], x: 812, y: 132, side: "r", name: "SPLENIC FLEXURE", when: 0.72 },
-  { at: [118, 30], x: 150, y: 150, side: "l", name: "TRANSVERSE COLON", when: 0.95 },
-  { at: [66, 62], x: 150, y: 300, side: "l", name: "Ascending colon", note: "(not on this trip)" },
+  { at: [129, 132], x: 186, y: 430, side: "l", name: "RECTUM", note: "point of entry", when: 0.02 },
+  { at: [160, 105], x: 776, y: 420, side: "r", name: "SIGMOID COLON", note: "S-bend: mind the corner", when: 0.2 },
+  { at: [189, 64], x: 776, y: 270, side: "r", name: "DESCENDING COLON", note: "the long climb", when: 0.42 },
+  { at: [182, 10], x: 776, y: 150, side: "r", name: "SPLENIC FLEXURE", when: 0.72 },
+  { at: [118, 30], x: 186, y: 160, side: "l", name: "TRANSVERSE COLON", when: 0.95 },
+  { at: [66, 62], x: 186, y: 310, side: "l", name: "Ascending colon", note: "(not on this trip)" },
 ];
 
 type Spr = Phaser.GameObjects.Sprite;
@@ -115,6 +115,10 @@ export async function playColonEntry(sc: Phaser.Scene, o: ColonEntryOpts): Promi
   Juice.layer(sc, DEPTH + 3).add(hint);
   const cam = sc.cameras.main;
   const zoom0 = cam.zoom;
+  const bounded = cam.useBounds;
+  // the HUD (its own scene, drawn above this one) is put away for the duration
+  const uiShown = sc.scene.isVisible("UI");
+  if (uiShown) sc.scene.setVisible(false, "UI");
   const timers: number[] = [];
   const every = (ms: number, f: () => void) => {
     const id = window.setInterval(() => (live() ? f() : window.clearInterval(id)), ms);
@@ -139,7 +143,7 @@ export async function playColonEntry(sc: Phaser.Scene, o: ColonEntryOpts): Promi
   };
 
   /** A caption box, textbook style (cream card, serif). */
-  const caption = (parent: Phaser.GameObjects.Container, text: string, x = 32, y = 44) => {
+  const caption = (parent: Phaser.GameObjects.Container, text: string, x = 32, y = 36) => {
     const t = sc.add.text(x + 12, y + 8, text, { fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "17px", fontStyle: "italic", color: "#2b2118", wordWrap: { width: 420 } });
     const b = sc.add.rectangle(x, y, t.width + 24, t.height + 16, 0xf3ead2, 0.95).setOrigin(0, 0).setStrokeStyle(2, 0x2b2118);
     parent.add([b, t]);
@@ -163,6 +167,21 @@ export async function playColonEntry(sc: Phaser.Scene, o: ColonEntryOpts): Promi
     f.setScale(h / frameH);
     parent.add(f);
     return f;
+  };
+  /** A "YOU (4 mm)" pointer that rides along over a figure. */
+  const youTag = (parent: Phaser.GameObjects.Container, f: Spr) => {
+    const t = sc.add.text(0, 0, "YOU (4 mm)", { fontFamily: "Impact, sans-serif", fontSize: "16px", color: "#fde047", stroke: "#000000", strokeThickness: 4 }).setOrigin(0.5, 1);
+    const a = sc.add.triangle(0, 0, 0, 0, 12, 0, 6, 9, 0xfde047).setStrokeStyle(2, 0x000000).setOrigin(0.5, 0);
+    parent.add([t, a]);
+    const follow = () => {
+      if (!f.active || !t.active) return sc.events.off("postupdate", follow);
+      const top = f.y - f.displayHeight - 6;
+      a.setPosition(f.x, top - 10);
+      t.setPosition(f.x, top - 12);
+    };
+    sc.events.on("postupdate", follow);
+    follow();
+    return [t, a];
   };
   const runCycle = (f: Spr, ms = 90) => {
     let i = 0;
@@ -206,6 +225,10 @@ export async function playColonEntry(sc: Phaser.Scene, o: ColonEntryOpts): Promi
   try {
     // ================================================================ 1. the shrink, in the world
     if (live() && !cut) {
+      cam.stopFollow();
+      // (off the room's bounds for the punch-in, so you're centred even at the edge of the room)
+      cam.useBounds = false;
+      cam.pan(p.x, p.y - 20, 700, "Cubic.easeOut", true);
       cam.zoomTo(Math.max(zoom0, 1) * 2.2, 1000, "Cubic.easeOut", true);
       const ring = sc.add.circle(p.x, p.y - 20, 70).setStrokeStyle(3, 0x67e8f9, 0.9).setFillStyle(0, 0).setDepth(p.depth + 2);
       sc.tweens.add({ targets: ring, radius: 4, alpha: 0.2, duration: 1600, ease: "Cubic.in", onComplete: () => ring.destroy() });
@@ -235,7 +258,8 @@ export async function playColonEntry(sc: Phaser.Scene, o: ColonEntryOpts): Promi
       const over = (img.displayHeight - 540) / 2;
       img.y = 270 + over; // the sky first
       sc.tweens.add({ targets: img, y: 270 - over, duration: 2300, ease: "Sine.inOut" });
-      const fig = figure(c, 360, -30, 34, IDLE_E);
+      const fig = figure(c, 360, -30, 40, IDLE_E);
+      youTag(c, fig);
       const trail = every(80, () => fig.active && sparkles(c, fig.x + (Math.random() - 0.5) * 10, fig.y - 16, 1, 18));
       caption(c, "Four millimetres tall. The rooftop is now a jungle.");
       await tw({ targets: fig, y: 478, duration: 2300, ease: "Sine.inOut" });
@@ -257,7 +281,8 @@ export async function playColonEntry(sc: Phaser.Scene, o: ColonEntryOpts): Promi
       const img = backdrop(c, "ce_rik_back", 1.04);
       sc.tweens.add({ targets: img, scale: img.scale * 1.06, duration: 3600, ease: "Sine.out" });
       caption(c, "Uncle Rik settles back into the tub. He has no idea what's coming.");
-      const fig = figure(c, 150, 500, 26, IDLE_E);
+      const fig = figure(c, 150, 500, 28, IDLE_E);
+      const tag = youTag(c, fig);
       const run = runCycle(fig);
       await tw({ targets: fig, x: 250, duration: 700 });
       window.clearInterval(run);
@@ -268,6 +293,7 @@ export async function playColonEntry(sc: Phaser.Scene, o: ColonEntryOpts): Promi
       synth.play("dodge");
       Juice.whoosh(0.35);
       fig.setScale(fig.scaleX).setFrame(ATK_E);
+      for (const q of tag) q.destroy();
       const arc = { t: 0 };
       await tw({
         targets: arc,
@@ -326,7 +352,7 @@ export async function playColonEntry(sc: Phaser.Scene, o: ColonEntryOpts): Promi
       c.add(sc.add.text(480, 82, "Anterior view. The route of the four-millimetre explorer is shown dotted.", { fontFamily: "Georgia, serif", fontSize: "15px", fontStyle: "italic", color: "#4a3b2c" }).setOrigin(0.5));
       c.add(sc.add.text(920, 34, "PLATE XLII", { fontFamily: "Georgia, serif", fontSize: "12px", color: "#6b5a45" }).setOrigin(1, 0.5));
       c.add(sc.add.image(PLATE.x, PLATE.y, "ce_plate").setOrigin(0, 0).setScale(PLATE.k));
-      c.add(sc.add.text(480, 500, "Not to scale. For educational purposes only. Uncle Rik was not consulted.", { fontFamily: "Georgia, serif", fontSize: "13px", fontStyle: "italic", color: "#4a3b2c" }).setOrigin(0.5));
+      c.add(sc.add.text(480, 494, "Not to scale. For educational purposes only. Uncle Rik was not consulted.", { fontFamily: "Georgia, serif", fontSize: "13px", fontStyle: "italic", color: "#4a3b2c" }).setOrigin(0.5));
 
       // callouts
       const shown = new Set<Callout>();
@@ -340,9 +366,9 @@ export async function playColonEntry(sc: Phaser.Scene, o: ColonEntryOpts): Promi
         const ex = co.side === "l" ? co.x + 6 : co.x - 6;
         g.lineBetween(a.x, a.y, ex, co.y);
         g.fillStyle(col, 1).fillCircle(a.x, a.y, 3);
-        const t = sc.add.text(co.x, co.y, co.name, { fontFamily: "Georgia, serif", fontSize: grey ? "14px" : "16px", fontStyle: grey ? "italic" : "bold", color: grey ? "#8a7b65" : ink }).setOrigin(co.side === "l" ? 1 : 0, 1);
+        const t = sc.add.text(co.x, co.y, co.name, { fontFamily: "Georgia, serif", fontSize: grey ? "13px" : "14px", fontStyle: grey ? "italic" : "bold", color: grey ? "#8a7b65" : ink }).setOrigin(co.side === "l" ? 1 : 0, 1);
         const parts: Phaser.GameObjects.GameObject[] = [g, t];
-        if (co.note) parts.push(sc.add.text(co.x, co.y + 2, co.note, { fontFamily: "Georgia, serif", fontSize: "13px", fontStyle: "italic", color: grey ? "#9a8b75" : "#4a3b2c" }).setOrigin(co.side === "l" ? 1 : 0, 0));
+        if (co.note) parts.push(sc.add.text(co.x, co.y + 2, co.note, { fontFamily: "Georgia, serif", fontSize: "12px", fontStyle: "italic", color: grey ? "#9a8b75" : "#4a3b2c" }).setOrigin(co.side === "l" ? 1 : 0, 0));
         c.add(parts);
         for (const q of parts) (q as unknown as Phaser.GameObjects.Components.Alpha).setAlpha(0);
         sc.tweens.add({ targets: parts, alpha: 1, duration: 300 });
@@ -392,8 +418,8 @@ export async function playColonEntry(sc: Phaser.Scene, o: ColonEntryOpts): Promi
       for (const co of CALLOUTS) showCallout(co);
       // YOU ARE HERE
       const end = at(1);
-      const here = sc.add.text(150, 172, "YOU ARE HERE", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#b91c1c" }).setOrigin(1, 0);
-      const arrow = sc.add.graphics().lineStyle(2, 0xb91c1c, 1).lineBetween(154, 186, end.x - 18, end.y + 6);
+      const here = sc.add.text(186, 182, "YOU ARE HERE", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#b91c1c" }).setOrigin(1, 0);
+      const arrow = sc.add.graphics().lineStyle(2, 0xb91c1c, 1).lineBetween(190, 196, end.x - 16, end.y + 6);
       c.add([here, arrow]);
       sc.tweens.add({ targets: [here, ring], alpha: 0.45, yoyo: true, repeat: -1, duration: calm ? 900 : 520, ease: "Sine.inOut" });
       synth.play("ding", 0.8);
@@ -415,6 +441,8 @@ export async function playColonEntry(sc: Phaser.Scene, o: ColonEntryOpts): Promi
       const veil = sc.add.rectangle(480, 270, 1100, 700, 0x3c0014, 1);
       root.add(veil);
       cam.zoomTo(zoom0, 1, "Linear", true);
+      cam.useBounds = bounded;
+      if (uiShown) sc.scene.setVisible(true, "UI");
       p.setVisible(false);
       window.setTimeout(() => root.active && root.destroy(), 2500);
     }

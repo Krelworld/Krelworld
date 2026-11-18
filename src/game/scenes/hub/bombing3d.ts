@@ -208,7 +208,7 @@ export async function bombingShot(hub: Phaser.Scene, o: Opts): Promise<{ ran: bo
         st.light = 0x8a7c9c;
         st.fog = { color: 0x3a1420, start: 700, span: 4200, max: 0.75 };
         st.setSky({ top: 0x07030c, horizon: 0x8a2a1c, below: 0x1a0d10, stars: 90 });
-        st.addGround({ x0: -9000, y0: -9000, x1: o.worldW + 9000, y1: o.worldH + 9000, cols: 9, rows: 9, color: 0x1c1418, depth: 1 });
+        st.addGround({ x0: -9000, y0: -9000, x1: o.worldW + 9000, y1: o.worldH + 9000, cols: 9, rows: 9, color: 0x2a3424, depth: 1 });
         const { boards } = snapshotWorld(st, hub, { worldW: o.worldW, worldH: o.worldH, skip: o.skip });
         // each target's board in the snapshot (by where its picture stood)
         const bBoard: (Board3D | undefined)[] = plan.map(({ b }) => {
@@ -278,9 +278,9 @@ export async function bombingShot(hub: Phaser.Scene, o: Opts): Promise<{ ran: bo
           const shoulder = i % 2 === 0;
           const end = { x: b.x, y: p.base - 10, z: b.h * 0.35 };
           const start = shoulder
-            ? { x: end.x - fx * (a.d + 500) + rx * side * 380, y: end.y - fy * (a.d + 500) + ry * side * 380, z: end.z + 1000 }
+            ? { x: end.x - fx * (a.d + 500) + rx * side * 650, y: end.y - fy * (a.d + 500) + ry * side * 650, z: end.z + 1400 }
             : { x: end.x + fx * 3000 + rx * side * 900, y: end.y + fy * 3000 + ry * side * 900, z: 1250 };
-          const m = missileKey ? st.addSprite(missileKey, start.x, start.y, start.z, 120, { alpha: 0, layer: "front", lit: false }) : st.addSprite(glow, start.x, start.y, start.z, 50, { add: true, alpha: 0, layer: "front", tint: 0xe5e7eb });
+          const m = missileKey ? st.addSprite(missileKey, start.x, start.y, start.z, 95, { alpha: 0, layer: "front", lit: false }) : st.addSprite(glow, start.x, start.y, start.z, 50, { add: true, alpha: 0, layer: "front", tint: 0xe5e7eb });
           const head = st.addSprite(glow, start.x, start.y, start.z, 90, { add: true, alpha: 0, layer: "front", tint: 0xffb35c });
           const flare = st.addSprite(glow, end.x, end.y, end.z, Math.max(420, b.w * 1.6), { add: true, alpha: 0, layer: "front", tint: 0xfff1d6 });
           const z0 = b.h * 0.35;
@@ -413,7 +413,7 @@ export async function bombingShot(hub: Phaser.Scene, o: Opts): Promise<{ ran: bo
             const lab = labels[i];
             if (lt >= 0 && lt < 1.0) {
               const q = proj(b.x, p.base, bH0[i] || b.h);
-              lab.setVisible(q.zc > 80).setPosition(q.x, Math.max(80, q.y - 26)).setScale(lt < 0.16 ? lerp(2, 1, lt / 0.16) : 1).setAlpha(lt < 0.6 ? 1 : 1 - (lt - 0.6) / 0.4);
+              lab.setVisible(q.zc > 80).setPosition(clamp(q.x, lab.width / 2 + 12, SW - lab.width / 2 - 12), clamp(q.y - 26, 80, SH - 90)).setScale(lt < 0.16 ? lerp(2, 1, lt / 0.16) : 1).setAlpha(lt < 0.6 ? 1 : 1 - (lt - 0.6) / 0.4);
             } else lab.setVisible(false);
           }
           if (!plan.some((p) => t >= p.fly && t < p.hit)) ret.setVisible(false);

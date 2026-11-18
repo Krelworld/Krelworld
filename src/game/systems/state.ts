@@ -3,9 +3,11 @@ import { CHARACTERS } from "../../data/characters";
 import { GUNS } from "../../data/guns";
 import { sanitizeLoadout } from "./carry";
 import { clampDifficulty, DEFAULT_DIFFICULTY, LEGACY_DIFFICULTY } from "./difficulty";
+import { AUTO_KEY, MANUAL_SLOTS, mostRecentSlot, SLOT_IDS, slotKey, SLOTS_MIGRATED_KEY, summarizeSlot, type SlotId, type SlotSummary } from "./saveSlots";
 
 export const SAVE_VERSION = 3;
-export const SAVE_KEY = "krelworld.save";
+/** The AUTO slot (the old single save's key): see saveSlots.ts. */
+export const SAVE_KEY = AUTO_KEY;
 export const META_KEY = "krelworld.meta";
 
 export interface KVStore {
@@ -150,6 +152,10 @@ export function migrateState(raw: any): GameState | null {
     (s as any)[k] = typeof v === "number" && isFinite(v) ? v : (base as any)[k];
   }
   s.banRisk = Math.min(Math.max(s.banRisk, 0), 99);
+  // the LOAD list's details: optional, and only ever plain values
+  if (typeof s.savedAt !== "number" || !isFinite(s.savedAt)) delete s.savedAt;
+  if (typeof s.where !== "string") delete s.where;
+  if (typeof s.objective !== "string") delete s.objective;
   s.intoxication = Math.min(Math.max(s.intoxication, 0), 100);
   s.version = SAVE_VERSION;
   return s;
@@ -174,19 +180,33 @@ export function deserialize(json: string | null): GameState | null {
 }
 
 export class SaveManager {
-  constructor(private store: KVStore = defaultStore()) {}
+  constructor(private store: KVStore = defaultStore(), private now: () => number = () => Date.now()) {
+    migrateSlots(store);
+  }
 
-  save(s: GameState) {
-    this.store.setItem(SAVE_KEY, serialize(s));
+  /** Write a run to a slot (AUTO by default: every G.save()). Stamps when. */
+  save(s: GameState, slot: SlotId = "auto") {
+    s.savedAt = this.now();
+    this.store.setItem(slotKey(slot), serialize(s));
   }
-  load(): GameState | null {
-    return deserialize(this.store.getItem(SAVE_KEY));
+  load(slot: SlotId = "auto"): GameState | null {
+    return deserialize(this.store.getItem(slotKey(slot)));
   }
+  /** Any slot holds a run. */
   hasSave(): boolean {
-    return this.load() !== null;
+    return SLOT_IDS.some((id) => this.load(id) !== null);
   }
-  clear() {
-    this.store.removeItem(SAVE_KEY);
+  clear(slot: SlotId = "auto") {
+    this.store.removeItem(slotKey(slot));
+  }
+  /** The newest filled slot (what CONTINUE loads), or null. */
+  latest(): SlotId | null {
+    return mostRecentSlot(SLOT_IDS.map((id) => ({ id, s: this.load(id) })));
+  }
+  /** AUTO, SLOT 1-3 as the LOAD list shows them. */
+  summaries(): SlotSummary[] {
+    const now = this.now();
+    return SLOT_IDS.map((id) => summarizeSlot(id, this.load(id), now));
   }
   loadMeta(): MetaState {
     const raw = this.store.getItem(META_KEY);
@@ -211,6 +231,22 @@ export class SaveManager {
   saveMeta(m: MetaState) {
     this.store.setItem(META_KEY, JSON.stringify(m));
   }
+}
+
+/**
+ * One-off, the first time the game runs with save slots: the old single save (now the AUTO slot) is also copied
+ * into SLOT 1 if that's empty, so a NEW GAME (which writes AUTO) can never cost anyone their old progress.
+ */
+export function migrateSlots(store: KVStore): boolean {
+  if (store.getItem(SLOTS_MIGRATED_KEY)) return false;
+  const raw = store.getItem(AUTO_KEY);
+  let copied = false;
+  if (raw && deserialize(raw) && !MANUAL_SLOTS.some((n) => store.getItem(slotKey(n)))) {
+    store.setItem(slotKey(1), raw);
+    copied = true;
+  }
+  store.setItem(SLOTS_MIGRATED_KEY, "1");
+  return copied;
 }
 
 export function unlockArchive(s: GameState, meta: MetaState | null, id: string): boolean {

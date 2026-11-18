@@ -58,7 +58,7 @@ describe("character side stories", () => {
     const s = newGameState("GRONNY");
     s.flags.met_emergency = true;
     const a = ARCS.find((x) => x.player === "GRONNY")!;
-    completeStep(s, a, a.steps[0]);
+    for (const st of a.steps) if (st.step.kind !== "arena") completeStep(s, a, st);
     const arena = a.steps.find((x) => x.step.kind === "arena")!;
     const k = arena.step as { kind: "arena"; dungeon: string };
     s.flags[DUNGEONS[k.dungeon].arenaFlag!] = true;

@@ -511,7 +511,15 @@ export class Player {
     if (call) this.world.floatText(this.x, this.y - 48, call, callCol, call.length > 12 ? 15 : 12);
     const blast = (x: number, y: number) => {
       synth.play("explode");
-      this.world.shake(140, 0.006);
+      // the explosives should feel like explosives: a shake that scales with the blast, a tiny freeze on impact,
+      // and a shockwave ring (the numbers barely moved; the feel did)
+      const k = Math.min(1.8, blastR / 90);
+      this.world.shake(180 + 90 * k, 0.006 + 0.005 * k);
+      this.world.hitStop?.(35 + Math.round(20 * k));
+      const ring = this.world.sc.add.circle(x, y, 10, 0xffffff, 0).setStrokeStyle(5, disco ? 0xff4fd8 : 0xfff1c2, 0.95).setDepth(y + 60);
+      this.world.sc.tweens.add({ targets: ring, radius: blastR * 1.1, alpha: 0, duration: 260, ease: "Cubic.out", onComplete: () => ring.destroy() });
+      const flash = this.world.sc.add.circle(x, y, blastR * 0.55, 0xfff7d6, 0.55).setDepth(y + 59).setBlendMode(Phaser.BlendModes.ADD);
+      this.world.sc.tweens.add({ targets: flash, alpha: 0, scale: 1.4, duration: 140, onComplete: () => flash.destroy() });
       const drawn = !disco && !!this.world.boomFx?.(x, y, 0.8 * Math.max(0.6, blastR / (base.blast ?? blastR)));
       if (drawn) {
         /* drawn explosion */

@@ -202,6 +202,12 @@ export interface GameState {
   ending?: ReactionChoice;
   /** 1-5 (src/game/systems/difficulty.ts). 2 = the original balance (old saves), 3 = the default for new games. */
   difficulty: number;
+  /** When this save was written (ms since epoch). Old saves don't have it. */
+  savedAt?: number;
+  /** Where it was saved, for the LOAD list ("Krelford · Krezz Arms", "Da Drongus Dungeon · room 3"). */
+  where?: string;
+  /** The objective at the time, for the LOAD list. */
+  objective?: string;
 }
 
 export interface Settings {

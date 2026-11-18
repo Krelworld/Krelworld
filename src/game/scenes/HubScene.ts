@@ -1,3 +1,4 @@
+import { afterKreddle } from "../systems/moodMusic";
 import { SJ_RUBBLE_ARRIVE, SJ_RUBBLE_EAT, SJ_RUBBLE_STUCK, SJ_RUBBLE_THANKS } from "../../content/sanjeev";
 import Phaser from "phaser";
 import { pursuerId } from "../systems/sanmik";
@@ -583,7 +584,24 @@ export class HubScene extends Phaser.Scene {
     cam.startFollow(this.av, true, 0.12, 0.12);
     this.scene.setVisible(true, "UI");
     this.busy = false;
+    await this.moneyTips();
     G.emit("toast", { title: "OBJECTIVE", text: "Go to Krelford Town Hall. Follow the yellow arrow." });
+  }
+
+  /** Once, at the start of a game: how to make money (Krezzcoin) and Krokens in Krelworld. */
+  private async moneyTips() {
+    const s = G.s;
+    if (s.flags.money_tips_seen) return;
+    s.flags.money_tips_seen = true;
+    G.save();
+    this.busy = true;
+    await this.talk([
+      dir("💰 HOW TO GET RICH IN KRELWORLD 💰"),
+      dir("KREZZCOIN (spend it at the Kreddle Exchange, over the bridge west: guns, ammo, upgrades, fairies): kill things in dungeons, beat bosses, finish chapters and side quests, watch new shows on KrelTV (a gift from Kreddle every new episode), and sit through new Drongus riffs and Jenko's stag group chats at the Krezz Arms."),
+      dir("🎟 KROKENS (Kreddle's own currency, for the special stuff): new Drongus riffs at the Krezz Arms, KrelTV gifts, wins on the games console at home, the slot machine at home (one pull a day), and the slot machines in Kreddle. Spend them at Kreddle's Prize Counter."),
+      dir("Tip: it all adds up. Have a look round before you go and get yourself killed."),
+    ]);
+    this.busy = false;
   }
 
   /** The flyover for renderers without meshes: flat pans round the landmarks. */
@@ -637,6 +655,7 @@ export class HubScene extends Phaser.Scene {
     sub.destroy();
     this.scene.setVisible(true, "UI");
     this.busy = false;
+    await this.moneyTips();
     G.emit("toast", { title: "OBJECTIVE", text: "Go to Krelford Town Hall. Follow the yellow arrow." });
   }
 
@@ -666,6 +685,13 @@ export class HubScene extends Phaser.Scene {
       await this.talk(KR.KR_HOME);
       this.busy = false;
       this.brawl.start();
+      return;
+    }
+    // Chapter 6 starts at home like the others (then the last-chance prompt out here)
+    if (s.chapter === 6 && !s.flags.ch6_ready && !s.flags.ch6_home && at !== "HOME" && from !== "raid" && from !== "krunch") {
+      s.flags.ch6_home = true;
+      G.save();
+      this.go("Home", { chapterStart: 6 });
       return;
     }
     // Chapter 6 is the point of no return: it only starts when you say so, at the Town Hall
@@ -2570,6 +2596,19 @@ You are required by law to sign the Sex Offenders Register.`, {
 
   /** The bridge west to Kreddle: neon rails, flashing arrow. */
   private drawKreddleBridge(x: number, y: number, name: string) {
+    // after the nuke: a scorched stub of a bridge, no neon, no signs, nothing on the far side
+    if (afterKreddle(G.s)) {
+      const g = this.add.graphics().setDepth(2);
+      g.fillStyle(0x27272a, 1).fillRect(0, y - 45, 110, 90);
+      for (let bx = 0; bx < 110; bx += 16) g.fillStyle(0x1c1917, 1).fillRect(bx, y - 45, 12, 90);
+      g.fillStyle(0x0c0a09, 1).fillTriangle(0, y - 45, 46, y - 45, 0, y + 20).fillTriangle(0, y + 45, 30, y + 45, 0, y - 5);
+      g.lineStyle(3, 0x57534e, 0.8).lineBetween(46, y - 47, 110, y - 47).lineBetween(30, y + 47, 110, y + 47);
+      this.add.text(x + 20, y + 52, "THE KREDDLE BRIDGE (what's left)", { fontFamily: FONT, fontSize: "12px", color: "#a8a29e", backgroundColor: "#0c0a09cc", padding: { x: 5, y: 3 } }).setOrigin(0.15, 0).setDepth(y + 40);
+      const ember = this.add.ellipse(20, y, 90, 90, 0xf97316, 0.06).setDepth(1).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: ember, alpha: 0.02, yoyo: true, repeat: -1, duration: 1400 });
+      void name;
+      return;
+    }
     const g = this.add.graphics().setDepth(2);
     g.fillStyle(0x3f3f46, 1).fillRect(0, y - 45, 110, 90);
     for (let bx = 0; bx < 110; bx += 16) g.fillStyle(0x52525b, 1).fillRect(bx, y - 45, 12, 90);
@@ -2641,6 +2680,11 @@ You are required by law to sign the Sex Offenders Register.`, {
       }
       if (!s.flags.met_emergency) {
         await this.talk([dir("The bridge to Kreddle. A neon sign on the far side flashes 'OPEN 24/7/365/FOREVER'. You've got more pressing things to do first.")]);
+        return;
+      }
+      // after the nuke there's no Kreddle to go to
+      if (afterKreddle(s)) {
+        await this.talk([dir("The bridge to Kreddle stops halfway, melted into a drip. On the far side: a crater that glows at night, and a neon sign, face down in the ash, still flickering 'OPEN 24/7/365/FOREV'. There's nothing over there any more.")]);
         return;
       }
       this.go("Kreddle", {});

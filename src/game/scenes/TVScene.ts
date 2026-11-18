@@ -586,15 +586,14 @@ export class TVScene extends Phaser.Scene {
 
   private kreddleGift() {
     const s = G.s;
-    let txt: string;
+    // every new episode: some Krezzcoin, and half the time some Krokens on top
+    const c = 45 + Math.floor(Math.random() * 12) * 5;
+    s.coins += c;
+    let txt = `+${c} KREZZCOIN`;
     if (Math.random() < 0.5) {
       const n = 4 + Math.floor(Math.random() * 7);
       addKrokens(s, n);
-      txt = `+${n} KROKENS`;
-    } else {
-      const n = 25 + Math.floor(Math.random() * 11) * 5;
-      s.coins += n;
-      txt = `+${n} KREZZCOIN`;
+      txt += ` · +${n} KROKENS`;
     }
     synth.play("ding");
     G.emit("toast", { title: "🎁 A GIFT FROM KREDDLE", text: `${txt}. "Keep watching, Krelworld." — President Klerble` });

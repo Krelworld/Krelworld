@@ -1,3 +1,4 @@
+import { afterKreddle } from "../systems/moodMusic";
 import { dialogueLog } from "../ui/dialogueLog";
 import Phaser from "phaser";
 import { ACTIONS, bindKey, keyNameFromEvent, keysFor, prettyKey, resetKeys } from "../systems/keybinds";
@@ -283,7 +284,7 @@ export class MenuScene extends Phaser.Scene {
         add(title(this, 480, 74, "PAUSED", 28));
         const st = s ? currentStep() : null;
         if (st) add(this.add.text(480, 104, `Objective: ${st.text}`, { fontFamily: FONT, fontSize: "13px", color: "#ffffff", wordWrap: { width: 600 }, align: "center" }).setOrigin(0.5, 0));
-        const items: [string, () => void][] = [
+        const items: [string, () => void, boolean?][] = [
           ["RESUME", () => this.close()],
           ["QUESTS & SIDE QUESTS", () => { this.questTab = 0; this.questScroll = 0; this.render("quests"); }],
           ["DIALOGUE LOG", () => { this.logScroll = 0; this.render("log"); }],
@@ -291,10 +292,14 @@ export class MenuScene extends Phaser.Scene {
           ["SETTINGS", () => this.render("settings")],
         ];
         if (s) items.push([`DIFFICULTY: ${difficultyLabel(s.difficulty)}${this.inDungeon() ? "  🔒" : ""}`, () => this.render("difficulty")]);
-        if (this.caller === "Hub") items.push(["SAVE GAME", () => this.saveNow()]);
+        if (s && this.caller !== "Title") {
+          // manual save slots: only somewhere safe (out in town or at home), never mid-dungeon / boss / cutscene
+          const why = this.saveBlocked();
+          items.push([why ? `SAVE GAME  🔒 ${why}` : "SAVE GAME", () => this.openSlots(), !!why]);
+        }
         items.push(["QUIT TO TITLE (progress is autosaved)", () => this.quit()]);
         const gap = items.length > 7 ? 41 : 46;
-        items.forEach(([t, fn], i) => add(button(this, 480, 150 + i * gap, t, fn, { w: 400, h: items.length > 7 ? 36 : 40 })));
+        items.forEach(([t, fn, off], i) => add(button(this, 480, 150 + i * gap, t, fn, { w: 400, h: items.length > 7 ? 36 : 40, disabled: off })));
         break;
       }
       case "difficulty": {
@@ -567,11 +572,13 @@ export class MenuScene extends Phaser.Scene {
         add(button(this, 480, 260, "TRY THE ROOM AGAIN (lose 10% Krezzcoin)", () => this.retry(), { w: 460 }));
         add(button(this, 480, 320, "RETURN TO KRELFORD", () => this.toHub(), { w: 460 }));
         // straight over the bridge to restock: guns, mods, ammo, a Lad for hire
-        if (G.s.flags.met_emergency) add(button(this, 480, 380, "GO TO KREDDLE (guns · mods · ammo · Lads)", () => this.toKreddle(), { w: 460 }));
+        // (not once Kreddle's been nuked: there's nothing over the bridge any more)
+        const kreddleGone = afterKreddle(G.s);
+        if (G.s.flags.met_emergency && !kreddleGone) add(button(this, 480, 380, "GO TO KREDDLE (guns · mods · ammo · Lads)", () => this.toKreddle(), { w: 460 }));
         // the first time you go down, if you've never been over the bridge: point at Kreddle's shops
         if (!G.s.flags.first_death_seen) {
           G.s.flags.first_death_seen = true;
-          if (!G.s.flags.kreddle_seen) {
+          if (!G.s.flags.kreddle_seen && !kreddleGone) {
             add(this.add.rectangle(480, 470, 600, 84, 0x1a0b2e, 0.95).setStrokeStyle(2, 0xff4fd8));
             add(
               this.add
@@ -994,11 +1001,20 @@ export class MenuScene extends Phaser.Scene {
     this.root.setVisible(true);
   }
 
-  private saveNow() {
-    G.save();
-    synth.play("ding");
-    G.emit("toast", { title: "SAVED", text: "Game saved. The wiki has also been updated, at some point." });
-    this.close();
+  /** Why SAVE GAME is locked right now (null = you can save). Town and home only. */
+  private saveBlocked(): string | null {
+    if (this.inDungeon()) return "not inside a dungeon";
+    if (this.caller !== "Hub" && this.caller !== "Home") return "only in town or at home";
+    const mgr = this.game.scene;
+    if (["Dialogue", "Cutscene", "Meeting", "Vignette", "TV", "Minigame", "Finale", "Lair"].some((k) => mgr.isActive(k) || mgr.isPaused(k))) return "not during a scene";
+    return null;
+  }
+
+  /** SAVE GAME: the slot picker over the pause menu (it closes the menu once you've saved). */
+  private openSlots() {
+    this.events.off("slots-closed");
+    this.events.once("slots-closed", (d: { saved?: boolean }) => (d?.saved ? this.close() : this.render("pause")));
+    this.scene.launch("Slots", { mode: "save", caller: "Menu" });
   }
 
   private quit() {

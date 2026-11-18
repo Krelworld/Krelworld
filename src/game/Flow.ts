@@ -10,6 +10,7 @@ import { maxHp } from "./systems/stats";
 import { activeMods } from "../data/historicalRevisions";
 import { crystalCount, CRYSTALS_NEEDED } from "./systems/crystals";
 import { trailObjective } from "./systems/trails";
+import type { SlotId } from "./systems/saveSlots";
 
 export interface Next {
   scene: string;
@@ -27,6 +28,12 @@ function hubRedirect(data?: any): { key: string; data: any } | null {
   const from: string | undefined = data?.from;
   const at: string | undefined = data?.at;
   if (data?.flyover || s.flags.kr_brawl_due) return null;
+  // Chapter 6 starts at home too (then the last-chance prompt in town)
+  if (s.chapter === 6 && !s.flags.ch6_ready && !s.flags.ch6_home && at !== "HOME" && from !== "raid" && from !== "krunch") {
+    s.flags.ch6_home = true;
+    G.save();
+    return { key: "Home", data: { chapterStart: 6 } };
+  }
   if (s.chapter === 6 && !s.flags.ch6_ready) return null;
   if (s.chapter >= 7 && s.flags.ch6_clear && !s.flags.ch7_lair_seen) return { key: "Lair", data: {} };
   if (s.chapter >= 7) return null;
@@ -102,8 +109,8 @@ export function startNewRun(from: Phaser.Scene, player: PlayableId, ngPlus = 0, 
   switchTo(from, "Home", {});
 }
 
-export function continueRun(from: Phaser.Scene) {
-  if (!G.loadRun()) return false;
+export function continueRun(from: Phaser.Scene, slot: SlotId = G.saves.latest() ?? "auto") {
+  if (!G.loadRun(slot)) return false;
   if (G.s.phase === "ended") {
     switchTo(from, "Ending", { replay: true });
     return true;

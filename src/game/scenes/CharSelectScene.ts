@@ -51,8 +51,10 @@ export class CharSelectScene extends Phaser.Scene {
       if (pk) this.add.image(x + CW / 2 - 8, y + 40, pk).setDisplaySize(66, 66);
       this.add.sprite(x + CW - 24, y + 76, `spr_${id}`, 0).setScale(1.25);
       this.add.text(x + CW / 2, y + 90, id === "MIKEY" ? "KREBLAR" : def.name, { fontFamily: FONT, fontSize: "11px", color: hexStr(def.color), fontStyle: "bold", align: "center", wordWrap: { width: CW - 8 } }).setOrigin(0.5, 0);
-      // (Mikey's card already says KREBLAR up top: his real name goes underneath, like everyone else's)
-      const sub = id === "MIKEY" ? def.realName ?? "" : def.nickname ? `"${def.nickname}"` : def.realName ?? "";
+      // (Mikey's card already says KREBLAR up top: his first name goes underneath)
+      // (real first names only here, no surnames)
+      const first = (def.realName ?? "").split(" ")[0];
+      const sub = id === "MIKEY" ? first : def.nickname ? `"${def.nickname}"` : first;
       const nick = id !== "MIKEY" && !!def.nickname;
       this.add.text(x + CW / 2, y + 115, sub, { fontFamily: FONT, fontSize: nick ? "10px" : "9px", color: nick ? hexStr(def.color) : "#8a8fa0", fontStyle: nick ? "bold" : "normal" }).setOrigin(0.5, 0);
       if (done) this.add.text(x + 4, y + 3, "✓", { fontFamily: FONT, fontSize: "11px", color: "#5ad35a" });

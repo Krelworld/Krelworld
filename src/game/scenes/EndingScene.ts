@@ -1,3 +1,4 @@
+import { snapshotLoadout } from "../systems/carry";
 import Phaser from "phaser";
 import { backdrop } from "../gfx/HD";
 import { G } from "../G";
@@ -79,6 +80,8 @@ export class EndingScene extends Phaser.Scene {
       s.flags.game_complete = true;
       if (!G.meta.completedWith.includes(s.player)) G.meta.completedWith.push(s.player);
       G.meta.ngPlusUnlocked = true;
+      // the kit you finished with comes with you into every new game (not a debug run's god kit)
+      G.meta.carry = snapshotLoadout(s) ?? G.meta.carry;
       G.save();
     }
     synth.music("ending");

@@ -1,3 +1,4 @@
+import { applyLoadout } from "./systems/carry";
 import type { GameState, MetaState, PlayableId, ReactionChoice } from "../data/types";
 import { SaveManager, newGameState, unlockArchive, markWatched } from "./systems/state";
 import { activeMods } from "../data/historicalRevisions";
@@ -52,6 +53,8 @@ class GameContext {
 
   newRun(player: PlayableId, ngPlus = 0, difficulty?: number) {
     this._state = newGameState(player, ngPlus, this.meta, difficulty);
+    // finished the game before: start with the kit you finished it with
+    applyLoadout(this._state, this.meta.carry);
     this._state.hp = maxHp(this._state);
     this.rt.wonk = 0;
     this.rt.fart = 0;

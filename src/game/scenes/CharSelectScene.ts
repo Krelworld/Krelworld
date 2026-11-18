@@ -9,6 +9,7 @@ import { synth } from "../audio/Synth";
 import { G } from "../G";
 import { maxHp } from "../systems/stats";
 import { keysFor, prettyKey } from "../systems/keybinds";
+import { loadoutSummary } from "../systems/carry";
 
 const COLS = 3;
 
@@ -80,6 +81,9 @@ export class CharSelectScene extends Phaser.Scene {
     kb.on("keydown-ENTER", () => this.confirm());
     kb.on("keydown-ESC", () => fadeThen(this, 200, () => switchTo(this, "Title")));
     button(this, 120, H - 26, "◀ BACK", () => fadeThen(this, 200, () => switchTo(this, "Title")), { w: 140, h: 32, size: 14 });
+    // finished the game before: say what's coming with you
+    const lo = G.meta.carry;
+    if (lo) label(this, 206, H - 34, `🎒 Your kit from your last finished game came with you: ${loadoutSummary(lo)}`, 12, "#86efac");
   }
 
   private select(i: number) {

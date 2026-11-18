@@ -60,6 +60,8 @@ export class TitleScene extends Phaser.Scene {
     if (has) items.push([sv ? `CONTINUE · DIFFICULTY ${clampDifficulty(sv.difficulty)}/${MAX_DIFFICULTY}` : "CONTINUE", () => continueRun(this) || undefined]);
     items.push(["NEW GAME", () => fadeThen(this, 200, () => switchTo(this, "CharSelect", { ngPlus: 0 }))]);
     if (G.meta.ngPlusUnlocked) items.push(["NEW KREZ+", () => fadeThen(this, 200, () => switchTo(this, "CharSelect", { ngPlus: 1 }))]);
+    // finished the game: jump to any chapter, side quest or boss with the kit you finished with
+    if (G.meta.ngPlusUnlocked || G.meta.carry) items.push(["CHAPTER SELECT", () => fadeThen(this, 200, () => switchTo(this, "ChapterSelect"))]);
     items.push(["HISTORICAL ARCHIVE", () => fadeThen(this, 200, () => switchTo(this, "Archive", { fromTitle: true }))]);
     items.push(["SETTINGS", () => this.scene.launch("Menu", { mode: "settings", caller: "Title" })]);
     items.forEach(([t, fn], i) => button(this, W / 2, 222 + i * 46, t, fn, { w: 320 }));

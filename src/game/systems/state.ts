@@ -1,6 +1,7 @@
 import type { GameState, MetaState, PlayableId, ReactionChoice, Settings } from "../../data/types";
 import { CHARACTERS } from "../../data/characters";
 import { GUNS } from "../../data/guns";
+import { sanitizeLoadout } from "./carry";
 import { clampDifficulty, DEFAULT_DIFFICULTY, LEGACY_DIFFICULTY } from "./difficulty";
 
 export const SAVE_VERSION = 3;
@@ -201,6 +202,7 @@ export class SaveManager {
         archiveUnlocked: Array.isArray(p.archiveUnlocked) ? p.archiveUnlocked : [],
         tvWatched: Array.isArray(p.tvWatched) ? p.tvWatched : [],
         completedWith: Array.isArray(p.completedWith) ? p.completedWith : [],
+        carry: sanitizeLoadout(p.carry),
       };
     } catch {
       return m;

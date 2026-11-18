@@ -200,6 +200,8 @@ export interface GameState {
   ngPlus: number;
   playtimeMs: number;
   ending?: ReactionChoice;
+  /** 1-5 (src/game/systems/difficulty.ts). 2 = the original balance (old saves), 3 = the default for new games. */
+  difficulty: number;
 }
 
 export interface Settings {

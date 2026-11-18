@@ -1,3 +1,4 @@
+import { clampDifficulty, MAX_DIFFICULTY } from "../systems/difficulty";
 import Phaser from "phaser";
 import { animateWalker, backdrop } from "../gfx/HD";
 import { G } from "../G";
@@ -54,7 +55,9 @@ export class TitleScene extends Phaser.Scene {
 
     const has = G.saves.hasSave();
     const items: [string, () => void, boolean?][] = [];
-    if (has) items.push(["CONTINUE", () => continueRun(this) || undefined]);
+    // the save slot shows the run's difficulty
+    const sv = has ? G.saves.load() : null;
+    if (has) items.push([sv ? `CONTINUE · DIFFICULTY ${clampDifficulty(sv.difficulty)}/${MAX_DIFFICULTY}` : "CONTINUE", () => continueRun(this) || undefined]);
     items.push(["NEW GAME", () => fadeThen(this, 200, () => switchTo(this, "CharSelect", { ngPlus: 0 }))]);
     if (G.meta.ngPlusUnlocked) items.push(["NEW KREZ+", () => fadeThen(this, 200, () => switchTo(this, "CharSelect", { ngPlus: 1 }))]);
     items.push(["HISTORICAL ARCHIVE", () => fadeThen(this, 200, () => switchTo(this, "Archive", { fromTitle: true }))]);

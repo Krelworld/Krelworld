@@ -9568,6 +9568,33 @@
   },
   "fx_slurry_1": {
    "file": "props/fx_slurry_1.png"
+  },
+  "c6_kmelt_0": {
+   "file": "props/c6_kmelt_0.png"
+  },
+  "c6_kmelt_1": {
+   "file": "props/c6_kmelt_1.png"
+  },
+  "c6_kmelt_2": {
+   "file": "props/c6_kmelt_2.png"
+  },
+  "c6_kmelt_3": {
+   "file": "props/c6_kmelt_3.png"
+  },
+  "c6_kmelt_4": {
+   "file": "props/c6_kmelt_4.png"
+  },
+  "c6_kmelt_5": {
+   "file": "props/c6_kmelt_5.png"
+  },
+  "c6_kmelt_6": {
+   "file": "props/c6_kmelt_6.png"
+  },
+  "c6_kmelt_soot": {
+   "file": "props/c6_kmelt_soot.png"
+  },
+  "c6_kmelt_ash": {
+   "file": "props/c6_kmelt_ash.png"
   }
  },
  "sheets": {

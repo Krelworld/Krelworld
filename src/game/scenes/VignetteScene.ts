@@ -1,3 +1,4 @@
+import { diffFor } from "../systems/difficulty";
 import Phaser from "phaser";
 import { SJ_KREDDLE, SJ_TOWER_DEMO, SJ_TOWER_SIM } from "../../content/sanjeev";
 import { playerKey } from "../gfx/sanmikForm";
@@ -21,6 +22,7 @@ import { addCensorBar, censorRect } from "../gfx/Censor";
 import * as KR from "../../content/krunchers";
 import { GUNS } from "../combat/Guns";
 import { ensureCh6Art } from "../gfx/ch6Art";
+import { klerbleMelt } from "./vignette/klerbleMelt";
 import { Presenter, hasAnchor } from "./tvnews/Presenter";
 import { BRANDS, NewsChrome, calm, cameraFlash } from "./tvnews/NewsChrome";
 import { shootout, splat, tripodRig, type Victim } from "./tvnews/Shootout";
@@ -3704,22 +3706,25 @@ export class VignetteScene extends Phaser.Scene {
           const st = view.state;
           // test hook: steer at the train
           if ((window as unknown as { __krelAutoFly?: boolean }).__krelAutoFly && st.trainOn) {
-            ax += Phaser.Math.Clamp((st.trainX - 480) / 400, -sp, sp);
-            ay += Phaser.Math.Clamp((st.trainY - VY) / 400, -sp, sp);
+            ax += Phaser.Math.Clamp(st.trainLateral / 4200, -sp, sp);
           }
           ax = Phaser.Math.Clamp(ax, -1, 1);
           ay = Phaser.Math.Clamp(ay, -1, 1);
           // the view out of the windscreen banks and pitches with you; you close on the train as the lock builds
-          view.update({ ax, ay, dt: 16, progress: phase === "chase" ? lock : 1, trainFade: 0 });
+          // the Kreddle Express weaves about (more wildly the closer you get): you have to steer to stay on it
+          const swerve = (Math.sin(t / 1900) + 0.55 * Math.sin(t / 830 + 1.3) + 0.3 * Math.sin(t / 410 + 0.4)) * (400 + lock * 500);
+          view.update({ ax, ay, dt: 16, progress: phase === "chase" ? lock : 1, trainFade: 0, trainShift: swerve });
           cross.setPosition(480, VY);
           cockpit.update(ax, ay, t);
           const c2 = Phaser.Display.Color.HSVToRGB(((t / 60) % 360) / 360, 0.35, 1) as Phaser.Types.Display.ColorObject;
           haze.setFillStyle((c2.r << 16) | (c2.g << 8) | c2.b, 0.07 + 0.03 * Math.sin(t / 300));
           if (phase !== "chase") return;
           // on target: the train's middle inside the sights (a bit of give, more as it gets bigger)
-          const near = 70 + lock * 60;
-          const on = st.trainOn && Math.abs(st.trainX - 480) < near && Math.abs(st.trainY - VY) < near * 1.6;
-          lock = Phaser.Math.Clamp(lock + (on ? 0.0016 : -0.0005), 0, 1);
+          // on target: steering at it (sideways, in the world, so it's as hard at 7 km as at 2 km)
+          const on = st.trainOn && Math.abs(st.trainLateral) < 420;
+          // difficulty: the lock builds quicker (or slower) and leaks slower (or quicker)
+          const tm = diffFor(G.s).timing;
+          lock = Phaser.Math.Clamp(lock + (on ? 0.0016 * tm : -0.0005 / tm), 0, 1);
           if (on !== wasOn) {
             drawCross(on);
             if (on) synth.play("select");
@@ -5102,6 +5107,8 @@ export class VignetteScene extends Phaser.Scene {
     this.cameras.main.pan(480, 270, 10, "Linear", true);
     // (from here on, the old upbeat themes stay gone: systems/moodMusic)
     G.s.flags.kreddle_nuked = true;
+    // the light reaches the bunker first: a close cut to President Klerble as it goes off (gore setting respected)
+    await klerbleMelt(this);
     // silence. then:
     const nukeBars = Juice.letterbox(this, 44, 300, 985);
     this.cameras.main.flash(900, 255, 255, 255);

@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { KMELT_ART } from "../scenes/vignette/klerbleMelt";
 
 /**
  * Chapter 6 cutscene art (PixelLab). Listed in public/art/manifest.json too; this map lets a scene
@@ -35,6 +36,8 @@ export const CH6_ART: Record<string, string> = {
   c6_skeleton: "props/c6_skeleton.png",
   c6_burnheap: "props/c6_burnheap.png",
   c6_klerble_crawl: "props/c6_klerble_crawl.png",
+  // the Krunch Protocol: Klerble in the bunker as the nuke goes off (scenes/vignette/klerbleMelt.ts)
+  ...KMELT_ART,
 };
 
 /** Load whichever Chapter 6 images aren't in the texture cache yet. Resolves when done (or at once). */

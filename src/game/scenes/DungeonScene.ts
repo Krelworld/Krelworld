@@ -30,6 +30,7 @@ import { voice } from "../audio/Voice";
 import * as Juice from "../gfx/Juice";
 import { playCine } from "../gfx/Cine";
 import { enemyDamageMult, enemyHpMult, maxHp, bump, maxBottles, maxKrezz } from "../systems/stats";
+import { diffFor, scaleCount } from "../systems/difficulty";
 import { addCensorBar } from "../gfx/Censor";
 import { activeMods } from "../../data/historicalRevisions";
 import { addBanRisk, BAN_RULES, type BanRule, coolBanRisk } from "../systems/ban";
@@ -286,7 +287,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const r = this.room;
     // a Tap Rush lasts for this outing, then wears off back in town
     if (s.flags.tap_rush) s.flags.tap_rush_out = true;
-    this.telegraphMult = (s.player === "KREZWONK" ? 1.4 : 1) * ((r.view ?? this.dungeon.view) === "side" ? 1.3 : 1);
+    this.telegraphMult = (s.player === "KREZWONK" ? 1.4 : 1) * ((r.view ?? this.dungeon.view) === "side" ? 1.3 : 1) * diffFor(s).telegraph;
     this.cameras.main.fadeIn(300);
     // a previous room's trip doesn't carry over
     this.cameras.main.setRotation(0).setZoom(1);
@@ -1406,7 +1407,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     this.waveActive = true;
     const wave = this.waves[this.waveIdx];
-    for (const [type, count] of wave) {
+    const dCount = diffFor(G.s).enemyCount;
+    for (const [type, count0] of wave) {
+      const count = scaleCount(count0, dCount);
       for (let i = 0; i < count; i++) {
         let x = Phaser.Math.Between(this.bounds.left + 60, this.bounds.right - 60);
         let y = Phaser.Math.Between(this.bounds.top + 60, this.bounds.centerY + 40);
@@ -1923,11 +1926,12 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     // bosses toughen up as the story goes on (the bank is how you keep up); BOSS_TOUGH: a bit more meat on all of them,
     // so a big gun from the Exchange speeds a fight up rather than deleting the boss
     const BOSS_TOUGH = 1.3;
-    const bossMult = BOSS_TOUGH * (1 + Math.max(0, G.s.chapter - 2) * 0.18) * hpMult;
+    const bossMult = BOSS_TOUGH * (1 + Math.max(0, G.s.chapter - 2) * 0.18) * hpMult * diffFor(G.s).bossHp;
     if (hpMult < 1) b.dmgMult = (b.dmgMult ?? 1) * 0.8;
     b.maxHp = Math.round(b.maxHp * bossMult);
     b.hp = b.maxHp;
     b.dmgMult = (b.dmgMult ?? 1) * 1.1 * (1 + Math.max(0, G.s.chapter - 2) * 0.1);
+    b.aggression = diffFor(G.s).aggression;
     const pct = (this as any)._bossHpPct;
     if (typeof pct === "number" && pct > 0 && pct < 1) b.hp = Math.max(1, Math.round(b.maxHp * pct));
     this.boss = b;
@@ -2208,13 +2212,14 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const left = this.arenaLeft || Math.max(0, this.player.x - 200);
     // Gareth up front, the Major behind him, Tilly at the back with the luggage
     const lineup: [HeroId, number][] = [["heropax_rugby", 560], ["heropax_major", 700], ["heropax_gapgirl", 840]];
-    const mult = 1.3 * (1 + Math.max(0, G.s.chapter - 2) * 0.18) * hpMult;
+    const mult = 1.3 * (1 + Math.max(0, G.s.chapter - 2) * 0.18) * hpMult * diffFor(G.s).bossHp;
     for (const [i, [id, dx]] of lineup.entries()) {
       const x = Math.min(r.w - 120, left + dx);
       const h = createHero(id, this, x, this.groundY - 90);
       h.maxHp = Math.round(h.maxHp * mult);
       h.hp = h.maxHp;
       h.dmgMult = (h.dmgMult ?? 1) * 1.1 * (1 + Math.max(0, G.s.chapter - 2) * 0.1);
+      h.aggression = diffFor(G.s).aggression;
       h.setFlipX(true);
       this.enemies.push(h);
       this.enemyGroup.add(h);
@@ -2957,11 +2962,13 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (!ENEMIES[type]) return null;
     if (this.enemies.filter((e) => !e.dead).length > 28) return null;
     const s = G.s;
-    const e = new Enemy(this, type, Phaser.Math.Clamp(x, this.bounds.left + 20, this.bounds.right - 20), Phaser.Math.Clamp(y, this.bounds.top + 20, this.bounds.bottom - 20), enemyHpMult(s));
+    const dd = diffFor(s);
+    const e = new Enemy(this, type, Phaser.Math.Clamp(x, this.bounds.left + 20, this.bounds.right - 20), Phaser.Math.Clamp(y, this.bounds.top + 20, this.bounds.bottom - 20), enemyHpMult(s) * dd.enemyHp);
     e.noDrops = !!opts.noDrops;
     e.minion = !!opts.minion;
     e.dmgMult = enemyDamageMult(s);
-    e.speedMult = activeMods(s).enemySpeedMult * (s.ngPlus ? 1.1 : 1);
+    e.speedMult = activeMods(s).enemySpeedMult * (s.ngPlus ? 1.1 : 1) * dd.enemySpeed;
+    e.aggression = dd.aggression;
     e.hpBar = this.add.graphics().setDepth(800);
     if (this.side) {
       (e as any).big = SIDE_BIG * 0.95;
@@ -3149,21 +3156,22 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     if (!e.noDrops) {
       const mods = activeMods(s);
-      let coins = Math.round(e.def.coins * mods.coinMult * (s.player === "KREZMAR" ? 1.35 : 1) * (1 + 0.25 * kd(s, "kd_lucky")));
+      const dd = diffFor(s);
+      let coins = Math.round(e.def.coins * mods.coinMult * (s.player === "KREZMAR" ? 1.35 : 1) * (1 + 0.25 * kd(s, "kd_lucky")) * dd.coins);
       while (coins > 0) {
         const v = Math.min(coins, 3);
         this.dropPickup(e.x + (Math.random() - 0.5) * 20, e.y + (Math.random() - 0.5) * 20, "coin", v);
         coins -= v;
       }
       if (Math.random() < 0.6) this.dropPickup(e.x, e.y, "krezz", e.def.krezz);
-      if (Math.random() < 0.06) this.dropPickup(e.x, e.y, "heal", 12);
+      if (Math.random() < 0.06 * dd.healDrops) this.dropPickup(e.x, e.y, "heal", 12);
       if (mods.crobleys && Math.random() < 0.12) this.dropPickup(e.x, e.y, "crobley", 1);
       if (Math.random() < 0.02) this.dropPickup(e.x, e.y, "bongo", 1);
       if (ownedGuns().length) {
         // more often when you're running low; a guaranteed one after a dry spell
         this.ammoDry++;
-        const chance = e.isBoss ? 1 : this.ammoLow() ? 0.4 : 0.22;
-        if (Math.random() < chance || this.ammoDry >= 6) {
+        const chance = e.isBoss ? 1 : (this.ammoLow() ? 0.4 : 0.22) * dd.ammoDrops;
+        if (Math.random() < chance || this.ammoDry >= dd.ammoDryKills) {
           this.ammoDry = 0;
           this.dropPickup(e.x + 10, e.y, "ammo", 1);
         }
@@ -3222,6 +3230,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       const live = this.shots.filter((sh) => sh.o.owner === "enemy").length;
       if (live >= 9 || x < v.x - 30 || x > v.right + 30 || y < v.y - 30 || y > v.bottom + 30) o = { ...o, life: 1 };
       o = { ...o, speed: o.speed * 0.8, scale: (o.scale ?? 1) * 1.25 };
+    }
+    // difficulty: enemy bullets a touch slower or quicker
+    if (o.owner === "enemy") {
+      const ps = diffFor(G.s).projectileSpeed;
+      if (ps !== 1) o = { ...o, speed: o.speed * ps };
     }
     // run'n'gun: your bullets should snap across the screen, not drift (slow guns felt awful side-on)
     if (this.side && o.owner === "player") o = { ...o, speed: Math.max(o.speed * 1.7, 950) };
@@ -4022,7 +4035,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         synth.play("coin");
         break;
       case "krezz":
-        s.krezz = Math.min(100 + (s.upgrades.krezz ?? 0) * 20, s.krezz + pk.value);
+        s.krezz = Math.min(100 + (s.upgrades.krezz ?? 0) * 20, s.krezz + pk.value * diffFor(s).krezzGain);
         synth.play("pickup");
         break;
       case "heal":

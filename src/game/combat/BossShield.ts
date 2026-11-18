@@ -2,7 +2,9 @@ import Phaser from "phaser";
 import type { Boss } from "./Bosses";
 import type { Enemy } from "./Enemy";
 import type { CombatWorld } from "./types";
-import { minionsFor, shieldConfig, ShieldPhase, SHIELD_TUNING, stretchCooldown, type ShieldConfig } from "./bossShieldLogic";
+import { minionsFor, shieldConfig, shieldForDifficulty, ShieldPhase, SHIELD_TUNING, stretchCooldown, type ShieldConfig } from "./bossShieldLogic";
+import { diffFor } from "../systems/difficulty";
+import { G } from "../G";
 import { synth } from "../audio/Synth";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import * as Juice from "../gfx/Juice";
@@ -71,7 +73,8 @@ export class BossShield {
   ) {
     this.sc = boss.scene;
     this.world = boss.world;
-    this.logic = new ShieldPhase(cfg, boss.hp / boss.maxHp);
+    const dd = shieldForDifficulty(cfg, diffFor(G.s));
+    this.logic = new ShieldPhase(dd.cfg, boss.hp / boss.maxHp, dd.tune);
     this.cracksG = this.sc.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
     this.marksG = this.sc.add.graphics();
     this.counter = this.sc.add

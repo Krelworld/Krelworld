@@ -1,3 +1,4 @@
+import { diffFor } from "../systems/difficulty";
 import { addKrokens } from "../systems/kreddle";
 import Phaser from "phaser";
 import { playerKey } from "../gfx/sanmikForm";
@@ -114,7 +115,9 @@ export class MinigameScene extends Phaser.Scene {
    */
   private static readonly BEAT_WIN = { perfect: 0.06, early: 0.15, late: 0.21 };
   private inWindow(err: number, w = MinigameScene.BEAT_WIN) {
-    return err >= -w.early && err <= w.late;
+    // difficulty: roomier (or tighter) timing windows
+    const k = diffFor(G.s).timing;
+    return err >= -w.early * k && err <= w.late * k;
   }
   /** The hit feedback at the target ring: a flash, a ring pulse, and the PERFECT / EARLY / LATE label. */
   private hitFx(x: number, y: number, err: number, col: number, perfectWin = MinigameScene.BEAT_WIN.perfect, depth = 170) {
@@ -525,7 +528,7 @@ export class MinigameScene extends Phaser.Scene {
           if (n.done) continue;
           const x = HIT_X + ((n.t - st) / LEAD) * 780;
           n.c.setX(x).setVisible(x < 950);
-          if (st - n.t > MinigameScene.BEAT_WIN.late) {
+          if (st - n.t > MinigameScene.BEAT_WIN.late * diffFor(G.s).timing) {
             n.done = true;
             this.tweens.add({ targets: n.c, alpha: 0, y: n.c.y + 10, duration: 200, onComplete: () => n.c.destroy() });
             misses++;
@@ -2412,7 +2415,7 @@ export class MinigameScene extends Phaser.Scene {
           }
           if (n.done) continue;
           n.img.x = HIT_X + (n.t - t) * SPEED * (n.fast ? 2 : 1);
-          if (t - n.t > WIN.late) {
+          if (t - n.t > WIN.late * diffFor(G.s).timing) {
             n.done = true;
             missed++;
             combo = 0;

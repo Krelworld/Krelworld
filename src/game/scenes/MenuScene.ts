@@ -1,3 +1,4 @@
+import { afterKreddle } from "../systems/moodMusic";
 import { dialogueLog } from "../ui/dialogueLog";
 import Phaser from "phaser";
 import { ACTIONS, bindKey, keyNameFromEvent, keysFor, prettyKey, resetKeys } from "../systems/keybinds";
@@ -571,11 +572,13 @@ export class MenuScene extends Phaser.Scene {
         add(button(this, 480, 260, "TRY THE ROOM AGAIN (lose 10% Krezzcoin)", () => this.retry(), { w: 460 }));
         add(button(this, 480, 320, "RETURN TO KRELFORD", () => this.toHub(), { w: 460 }));
         // straight over the bridge to restock: guns, mods, ammo, a Lad for hire
-        if (G.s.flags.met_emergency) add(button(this, 480, 380, "GO TO KREDDLE (guns · mods · ammo · Lads)", () => this.toKreddle(), { w: 460 }));
+        // (not once Kreddle's been nuked: there's nothing over the bridge any more)
+        const kreddleGone = afterKreddle(G.s);
+        if (G.s.flags.met_emergency && !kreddleGone) add(button(this, 480, 380, "GO TO KREDDLE (guns · mods · ammo · Lads)", () => this.toKreddle(), { w: 460 }));
         // the first time you go down, if you've never been over the bridge: point at Kreddle's shops
         if (!G.s.flags.first_death_seen) {
           G.s.flags.first_death_seen = true;
-          if (!G.s.flags.kreddle_seen) {
+          if (!G.s.flags.kreddle_seen && !kreddleGone) {
             add(this.add.rectangle(480, 470, 600, 84, 0x1a0b2e, 0.95).setStrokeStyle(2, 0xff4fd8));
             add(
               this.add

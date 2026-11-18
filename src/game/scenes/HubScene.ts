@@ -1,3 +1,4 @@
+import { afterKreddle } from "../systems/moodMusic";
 import { SJ_RUBBLE_ARRIVE, SJ_RUBBLE_EAT, SJ_RUBBLE_STUCK, SJ_RUBBLE_THANKS } from "../../content/sanjeev";
 import Phaser from "phaser";
 import { pursuerId } from "../systems/sanmik";
@@ -2595,6 +2596,19 @@ You are required by law to sign the Sex Offenders Register.`, {
 
   /** The bridge west to Kreddle: neon rails, flashing arrow. */
   private drawKreddleBridge(x: number, y: number, name: string) {
+    // after the nuke: a scorched stub of a bridge, no neon, no signs, nothing on the far side
+    if (afterKreddle(G.s)) {
+      const g = this.add.graphics().setDepth(2);
+      g.fillStyle(0x27272a, 1).fillRect(0, y - 45, 110, 90);
+      for (let bx = 0; bx < 110; bx += 16) g.fillStyle(0x1c1917, 1).fillRect(bx, y - 45, 12, 90);
+      g.fillStyle(0x0c0a09, 1).fillTriangle(0, y - 45, 46, y - 45, 0, y + 20).fillTriangle(0, y + 45, 30, y + 45, 0, y - 5);
+      g.lineStyle(3, 0x57534e, 0.8).lineBetween(46, y - 47, 110, y - 47).lineBetween(30, y + 47, 110, y + 47);
+      this.add.text(x + 20, y + 52, "THE KREDDLE BRIDGE (what's left)", { fontFamily: FONT, fontSize: "12px", color: "#a8a29e", backgroundColor: "#0c0a09cc", padding: { x: 5, y: 3 } }).setOrigin(0.15, 0).setDepth(y + 40);
+      const ember = this.add.ellipse(20, y, 90, 90, 0xf97316, 0.06).setDepth(1).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: ember, alpha: 0.02, yoyo: true, repeat: -1, duration: 1400 });
+      void name;
+      return;
+    }
     const g = this.add.graphics().setDepth(2);
     g.fillStyle(0x3f3f46, 1).fillRect(0, y - 45, 110, 90);
     for (let bx = 0; bx < 110; bx += 16) g.fillStyle(0x52525b, 1).fillRect(bx, y - 45, 12, 90);
@@ -2666,6 +2680,11 @@ You are required by law to sign the Sex Offenders Register.`, {
       }
       if (!s.flags.met_emergency) {
         await this.talk([dir("The bridge to Kreddle. A neon sign on the far side flashes 'OPEN 24/7/365/FOREVER'. You've got more pressing things to do first.")]);
+        return;
+      }
+      // after the nuke there's no Kreddle to go to
+      if (afterKreddle(s)) {
+        await this.talk([dir("The bridge to Kreddle stops halfway, melted into a drip. On the far side: a crater that glows at night, and a neon sign, face down in the ash, still flickering 'OPEN 24/7/365/FOREV'. There's nothing over there any more.")]);
         return;
       }
       this.go("Kreddle", {});

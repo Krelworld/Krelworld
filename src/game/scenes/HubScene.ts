@@ -821,7 +821,8 @@ export class HubScene extends Phaser.Scene {
     const b = BUILDINGS.find((x) => x.id === at);
     if (b?.door) return { x: b.door.x, y: b.door.y + 40 };
     const gt = GATES.find((g) => g.id === at);
-    if (gt) return { x: gt.x - 60, y: gt.y };
+    // (step off on the town side: the Kreddle Bridge is on the west edge, the airport gate on the east)
+    if (gt) return { x: gt.x < WORLD_W / 2 ? gt.x + 60 : gt.x - 60, y: gt.y };
     return { x: 1280, y: 900 };
   }
 

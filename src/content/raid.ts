@@ -14,6 +14,9 @@ export const RAID_ARRIVE: Line[] = [
   say("FLENKY", "This is for Mollor. My sweet flirtkitten. LIGHT 'EM UP!"),
   say("GRONNY", "And for Polson."),
   say("SCROMBUS", "And for Polson. Nobody queue-jumps in Krelworld."),
+  // (Chapter 3: the last time they crossed this bridge, Kreddle fired them home out of a tank: content/takeon.ts)
+  say("CRONGUS", "Last time we came over this bridge they fired us home out of a tank."),
+  say("MIKEY", "This time WE'RE the tank."),
   dir("HOLD the attack button (mouse / Space / the fire button) to spray CHEMICAL FIRE. Walk EAST along the Strip. Burn the barricades to get through."),
 ];
 
@@ -159,6 +162,7 @@ export const RAID_KLERBLE_BROADCAST: Line[] = [
 export const KRUNCHER_STANDOFF: Line[] = [
   dir("At the end of Kruncher Row, in front of their burning HQ, the Kreddle Krunchers stand in a line. They have not evacuated. They are not clever."),
   say("KLENKY", "Your never beat us!"),
+  say("SKROMBUS", "Remember when our army fired you home out of a TANK? Return to sender! LOL!"),
   say("KREDMAR", "We hate you!"),
   say("LIL' KRUNGUS", "We're kill you!"),
   say("GRENNY", "Waa waa wee waa! That mean you DEAD!"),
@@ -210,6 +214,7 @@ export const NUKE_PLANT: Line[] = [
   say("KREZWONK", "Four minutes. That's how long we've got before this slag explodes."),
   say("SCROMBUS", "Four minutes to get back over the bridge and into the Town Hall. Plenty of time. Probably."),
   say("FLENKY", "This is for you, Mollor."),
+  say("KREZMAR", "And this is for your little press conference, Klerble. Every man, woman and child, you said. Now it's YOUR turn."),
   say("KREZWONK", "Timer's on. Shall we… run?"),
   say("GRONNY", "RUUUUUUN!!!"),
 ];

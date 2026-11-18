@@ -174,6 +174,14 @@ export const ARCS: Arc[] = [
         at: "FIELD",
         step: { kind: "shove", spot: { x: 330, y: 825 }, intro: KR_BRAWL_INTRO, leave: KR_LEAVE, after: KR_AFTER, seconds: 20 },
       },
+      {
+        // straight on from the shove: the krew march on Kreddle and get annihilated (HubScene.kreddleTakeOn, then
+        // KreddleScene's rout mode). Sets up the Chapter 6 raid.
+        id: "takeon",
+        text: "The krew have decided to take on Kreddle. Over the bridge, guns out. What could possibly go wrong?",
+        at: "FIELD",
+        step: { kind: "auto", id: "kreddle_takeon" },
+      },
     ],
   },
   {

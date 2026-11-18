@@ -20,6 +20,7 @@ import { addKrokens, awardPrize, kd, krokenPrice, krokens, prizeOpen, rollPrize,
 import type { Line } from "../../data/types";
 import { maxHp } from "../systems/stats";
 import { KreddleRaid, RAID_ART } from "./kreddle/Raid";
+import { KreddleRout } from "./kreddle/Rout";
 import { preloadKrunchBurn } from "./kreddle/KrunchBurn";
 import { kreddleLife, neonBuzz } from "./kreddle/kreddleLife";
 import { calm, loopProp } from "../gfx/ambient";
@@ -79,6 +80,8 @@ export class KreddleScene extends Phaser.Scene {
   private wantPrizes = false;
   /** Chapter 6: the raid (entered with `{ raid: true }`) replaces everything else in the scene. */
   private raid: KreddleRaid | null = null;
+  /** Chapter 3: taking on Kreddle (entered with `{ rout: true }`): the krew get annihilated on the ordinary Strip. */
+  private rout: KreddleRout | null = null;
 
   constructor() {
     super("Kreddle");
@@ -91,12 +94,23 @@ export class KreddleScene extends Phaser.Scene {
     preloadKrunchBurn(this);
   }
 
-  create(data?: { raid?: boolean }) {
+  create(data?: { raid?: boolean; rout?: boolean }) {
     // (the scene clock is stale until its first update: bring it up to date so start times taken now are right)
     this.time.now = this.game.loop.time;
     const s = G.s;
     this.busy = false;
     this.raid = null;
+    this.rout = null;
+    if (data?.rout) {
+      this.npcs = [];
+      this.spots = [];
+      this.rout = new KreddleRout(this, () => {
+        this.drawWorld();
+        this.drawStrip();
+      });
+      this.rout.create();
+      return;
+    }
     if (data?.raid) {
       this.raid = new KreddleRaid(this);
       this.raid.create();
@@ -384,6 +398,10 @@ export class KreddleScene extends Phaser.Scene {
   update(time: number, delta: number) {
     if (this.raid) {
       this.raid.update(time, delta);
+      return;
+    }
+    if (this.rout) {
+      this.rout.update(time, delta);
       return;
     }
     const s = G.s;

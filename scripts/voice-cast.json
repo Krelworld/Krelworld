@@ -162,6 +162,8 @@
     "PROCTUS": "I0V8SaNN5uKM4QjG6kF6",
     "EDEN": "BymVtFXWg3UHfEHOYBLG",
     "KREDDLER": "UHCLQqLxgjmnF7tge49B",
+    "KREDDLE SOLDIER": "UHCLQqLxgjmnF7tge49B",
+    "KREDDLE GENERAL": "w6T6Mq8Bx1Ccju1YeIxp",
     "SIMON": "ircz82aIyCp2gauT3gXV",
     "MARGE PLUNKETT": "FiqvxKj4JU9JFPYylkgC",
     "PRESIDENT HAN": "iBOEfG9Kr8MI9nDzmwTy",
@@ -593,6 +595,8 @@
     "KROZNO": "mischievously",
     "METAL GEAR KREX": "robotic",
     "KREDDLER": "excited",
+    "KREDDLE SOLDIER": "mocking, shouting",
+    "KREDDLE GENERAL": "smug, menacing",
     "MARGE PLUNKETT": "excited",
     "JENNY CUMMING": "cheerful",
     "HOST": "excited",
@@ -857,7 +861,9 @@
     "GAP YAH TILLY": "~news_f_rp",
     "DONNA": "~pub_f_manc",
     "MAJOR BUNTING": "THE COLONEL",
-    "GENIE": "~press_m_in"
+    "GENIE": "~press_m_in",
+    "KREDDLE SOLDIER": "KREDDLER",
+    "KREDDLE GENERAL": "TANK CROBLEY"
   },
   "clone_accents": {
     "_doc": "Accent tag for cloned voices on eleven_v3, which otherwise drift (American, or regional). Everyone in the group is southern English: faint RP or a slight cockney. Default below.",

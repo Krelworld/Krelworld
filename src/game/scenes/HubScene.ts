@@ -40,6 +40,9 @@ import { POLSON_GONE } from "../../content/ch6";
 import { takeDrugs, tripInto } from "./hub/drugs";
 import { clock, weatherFor } from "../systems/clock";
 import * as KR from "../../content/krunchers";
+import * as KTO from "../../content/takeon";
+import { klerblePresser } from "../gfx/klerblePresser";
+import { PLAYABLE_IDS } from "../../data/types";
 import { KR6_LAST_CHANCE } from "../../content/chapters/ch6prompt";
 import * as AFTER from "../../content/chapters/ch7aftermath";
 import { CITADEL_ENTRY } from "../../content/chapters/ch7aftermath";
@@ -791,8 +794,16 @@ export class HubScene extends Phaser.Scene {
     G.drongus("hub");
     await this.trailIntro();
     if (from === "dungeon") G.emit("toast", { title: "BACK IN KRELFORD", text: s.chapter === 1 && !s.flags.wildern_destroyed ? "Wildern has to go. Plant the bombs (4) around the school." : "Report to the Town Hall." });
+    // Chapter 3, after the Krunchers leave: the krew take on Kreddle (and come back in a heap). A save from in between
+    // picks up wherever it was: back at the bridge before the march, or the heap if Kreddle's already done with them.
+    if (!this.chainMeetings && this.takeOnStep()) {
+      this.reveal();
+      if (s.flags.kreddle_rekt) await this.kreddleAftermath();
+      else await this.kreddleTakeOn();
+      return;
+    }
     // the Kreddle Krunchers come over the bridge (start of Chapter 3)
-    const inv = !this.chainMeetings && currentArcSteps(s).find((c) => c.step.step.kind === "auto" && c.step.step.id === "kruncher_invasion");
+    const inv =!this.chainMeetings && currentArcSteps(s).find((c) => c.step.step.kind === "auto" && c.step.step.id === "kruncher_invasion");
     if (inv) {
       // the posse stands down: the Krunchers have the town now
       this.beatup?.cancel();
@@ -4165,13 +4176,143 @@ You are required by law to sign the Sex Offenders Register.`, {
     for (const sp of b.ks) this.tweens.add({ targets: sp, x: 40, duration: 1600 + Math.random() * 600, onComplete: () => sp.destroy() });
     await new Promise<void>((res) => this.time.delayedCall(900, () => res()));
     await this.talk(k.after);
-    for (const sp of b.krew) this.tweens.add({ targets: sp, alpha: 0, duration: 800, onComplete: () => sp.destroy() });
     b.heckle?.remove();
     s.flags.krunchers_shoved = b.shoves;
     completeStep(s, arc, step);
     this.brawl = null;
-    this.busy = false;
     G.save();
+    // straight on: fired up, the krew decide to take on Kreddle (the next step of this story)
+    if (this.takeOnStep()) {
+      await this.kreddleTakeOn(b.krew);
+      return;
+    }
+    for (const sp of b.krew) this.tweens.add({ targets: sp, alpha: 0, duration: 800, onComplete: () => sp.destroy() });
+    this.busy = false;
+    this.arcPayout();
+  }
+
+  // ---------------------------------------------------------------- TAKING ON KREDDLE (Chapter 3, after the shove)
+
+  /** The Krunchers story's "take on Kreddle" step, if it's the one that's up. */
+  private takeOnStep() {
+    return currentArcSteps(G.s).find((c) => c.step.step.kind === "auto" && c.step.step.id === "kreddle_takeon") ?? null;
+  }
+
+  /** The krew, by the bridge (all the lads but you, Mikey included: it's his dignity they're after). */
+  private takeOnKrew(x: number, y: number) {
+    return PLAYABLE_IDS.filter((p) => p !== G.s.player && this.textures.exists(`spr_${p}`)).map((p, i) => this.add.sprite(x + (i % 4) * 42, y - 40 + Math.floor(i / 4) * 46, `spr_${p}`, 0).setScale(2).setDepth(y));
+  }
+
+  /** At the bridge: the worst plan the krew have ever had. Then over the bridge, armed, into KreddleScene's rout mode. */
+  private async kreddleTakeOn(krew?: Phaser.GameObjects.Sprite[]) {
+    const s = G.s;
+    this.busy = true;
+    this.cutscene = true;
+    this.beatup?.cancel();
+    this.prompt.setVisible(false);
+    (this.av.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+    const x = 330;
+    const y = 825;
+    if (!krew?.length) {
+      this.av.setPosition(x + 140, y + 10);
+      krew = this.takeOnKrew(x + 190, y);
+    } else {
+      // Mikey wasn't in the shoving match (he was being sad about his dignity): he's here now
+      const have = new Set(krew.map((k) => k.texture.key));
+      for (const p of PLAYABLE_IDS) if (p !== s.player && !have.has(`spr_${p}`) && this.textures.exists(`spr_${p}`)) krew.push(this.add.sprite(x + 300, y + 30, `spr_${p}`, 0).setScale(2).setDepth(y + 30));
+    }
+    // you, with the krew, by the bridge (wherever you were stood in the scrum)
+    this.av.setPosition(x + 140, y + 20);
+    this.cameras.main.stopFollow();
+    this.cameras.main.centerOn(x + 200, y - 20);
+    this.reveal();
+    synth.music("klerble", true);
+    if (!s.flags.kreddle_takeon_decided) {
+      await this.talk(KTO.TAKEON_DECIDE);
+      s.flags.kreddle_takeon_decided = true;
+      G.save();
+    } else await this.talk([dir("Round two. The krew are still at the bridge, still armed, still sure about this.")]);
+    this.busy = true;
+    // over the bridge, guns out
+    synth.play("cheer");
+    void this.walkSpr(this.av as unknown as Phaser.GameObjects.Sprite, 40, y, 1600);
+    await Promise.all(krew.map((k, i) => this.walkSpr(k, 20 + (i % 3) * 10, y - 30 + (i % 4) * 20, 1500 + i * 80)));
+    this.go("Kreddle", { rout: true });
+  }
+
+  /**
+   * Back from Kreddle: the krew come down out of the sky in a heap by the bridge. Then Klerble's victory press
+   * conference on Kreddle TV (gfx/klerblePresser.ts), the krew's fury, the group chat, and the story's done.
+   */
+  private async kreddleAftermath() {
+    const s = G.s;
+    const c = this.takeOnStep();
+    if (!c) return;
+    this.busy = true;
+    this.cutscene = true;
+    this.beatup?.cancel();
+    this.prompt.setVisible(false);
+    const cam = this.cameras.main;
+    const hx = 360;
+    const hy = 835;
+    (this.av.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+    this.av.setPosition(hx, hy).setVisible(false);
+    cam.stopFollow();
+    cam.centerOn(hx, hy + 90);
+    this.reveal();
+    synth.stopMusic();
+    // the heap: everyone drops out of the sky, one at a time
+    const ids = [...PLAYABLE_IDS.filter((p) => p !== s.player), s.player];
+    const heap: Phaser.GameObjects.Sprite[] = [];
+    synth.play("whistle");
+    await new Promise((r) => this.time.delayedCall(700, r));
+    for (let i = 0; i < ids.length; i++) {
+      const key = ids[i] === s.player ? playerKey(this) : `spr_${ids[i]}`;
+      if (!this.textures.exists(key)) continue;
+      const tx = hx - 70 + (i % 5) * 34;
+      const ty = hy + 10 - Math.floor(i / 5) * 18 - (i % 2) * 6;
+      const sp = this.add.sprite(tx, ty - 520, key, 0).setScale(2).setDepth(hy + 20 + i);
+      heap.push(sp);
+      this.tweens.add({ targets: sp, angle: 720, duration: 520 });
+      await new Promise<void>((r) => this.tweens.add({ targets: sp, y: ty, duration: 520, ease: "Quad.in", onComplete: () => r() }));
+      const meta = charMeta(this, key);
+      const fall = meta?.death?.east ?? meta?.death?.south;
+      sp.setAngle(fall?.length ? 0 : 90);
+      if (fall?.length) sp.setFrame(fall[fall.length - 1]);
+      synth.play(i % 3 ? "punch" : "bodies_land");
+      vfx(this, "vfx_dust", tx, ty + 10, { scale: 1.4, depth: hy + 40 });
+      Juice.shake(this, 120, 0.006);
+      if (i % 2) vfx(this, "vfx_stars", tx, ty - 30, { scale: 0.8, depth: hy + 60 });
+    }
+    synth.play("trombone");
+    const stamp = this.add.text(hx, hy - 50, "RETURN TO SENDER\nNO VALUE · DO NOT RETURN", { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#dc2626", align: "center", backgroundColor: "#fef3c7", padding: { x: 6, y: 3 } }).setOrigin(0.5).setAngle(-12).setDepth(hy + 80).setScale(2.4).setAlpha(0);
+    this.tweens.add({ targets: stamp, scale: 1, alpha: 1, duration: 220, ease: "Quad.in", onComplete: () => Juice.shake(this, 160, 0.008) });
+    await new Promise((r) => this.time.delayedCall(700, r));
+    await this.talk(KTO.TAKEON_LAND);
+    this.busy = true;
+    // KREDDLE TV, live: the President celebrates
+    this.scene.setVisible(false, "UI");
+    synth.music("klerble", true);
+    await klerblePresser(this, async (lines) => {
+      await this.talk(lines, true);
+      this.busy = true;
+    });
+    this.scene.setVisible(true, "UI");
+    synth.stopMusic();
+    await this.talk(KTO.TAKEON_AFTER);
+    this.busy = true;
+    // everyone limps off; you get up
+    stamp.destroy();
+    const me = heap.pop();
+    me?.destroy();
+    for (const sp of heap) this.tweens.add({ targets: sp, alpha: 0, duration: 900, onComplete: () => sp.destroy() });
+    this.av.setVisible(true);
+    cam.startFollow(this.av, true, 0.12, 0.12);
+    completeStep(s, c.arc, c.step);
+    G.save();
+    synth.music("hub", true);
+    this.cutscene = false;
+    this.busy = false;
     this.arcPayout();
   }
 

@@ -9421,6 +9421,9 @@
   },
   "rs_axe": {
    "file": "runescape/rs_axe.png"
+  },
+  "fly_land": {
+   "file": "fly/fly_land.png"
   }
  },
  "sheets": {

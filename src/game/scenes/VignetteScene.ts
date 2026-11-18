@@ -25,6 +25,7 @@ import { Presenter, hasAnchor } from "./tvnews/Presenter";
 import { BRANDS, NewsChrome, calm, cameraFlash } from "./tvnews/NewsChrome";
 import { shootout, splat, tripodRig, type Victim } from "./tvnews/Shootout";
 import * as Juice from "../gfx/Juice";
+import { createFlightView } from "./vignette/flightView";
 import { goreDeath } from "../gfx/GoreDeath";
 import {
   KB_ORDER, KB_QUEUE, KB_SHOT, KP_KLERBLE, KP_LAST, KP_PARTY, KP_PROTOCOL, KP_RUINS, KT_AFTER, KT_ARRIVE, KT_DEPART, KT_DRIVER, KT_KRUNCHERS, KT_OPEN, PE_RAIN,
@@ -3514,17 +3515,19 @@ export class VignetteScene extends Phaser.Scene {
   private juiceFlight() {
     return new Promise<{ sx: number; sy: number }>((resolve) => {
       const NEED = 8;
-      // trippy sky: two hue-cycling layers
-      // the world rolls with the plane; the cockpit doesn't
+      // the cartons roll with the plane; the cockpit doesn't
       const world = this.add.container(480, 250).setDepth(1);
-      const sky = this.add.graphics();
-      const ground = this.add.graphics();
       const objs = this.add.container(0, 0);
-      world.add([sky, ground, objs]);
-      const haze = this.add.rectangle(480, 270, 960, 540, 0xff4fd8, 0.18).setDepth(15).setBlendMode(Phaser.BlendModes.ADD);
+      world.add(objs);
+      // (a faint pink tint: the drugs are working)
+      const haze = this.add.rectangle(480, 270, 960, 540, 0xff4fd8, 0.08).setDepth(15).setBlendMode(Phaser.BlendModes.ADD);
       const cockpit = this.cockpitFrame();
       const VY = cockpit.viewY;
       world.setY(VY);
+      // out of the windscreen: the sky, the countryside, the railway and the Kreddle Express on it
+      const view = createFlightView(this, { cx: 480, cy: VY, depth: 0 });
+      (this as unknown as { flightView?: typeof view }).flightView = view;
+      let trainFade = 0;
       const hud = this.add.text(480, 52, "", { fontFamily: "Impact, sans-serif", fontSize: "24px", color: "#ffffff", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(40);
       const help = this.add.text(480, 86, "COLLECT THE PUSSY JUICE CONTAINERS TO REACH THE TRAIN", { fontFamily: FONT, fontSize: "15px", color: "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(40);
       this.add.text(480, VY + 52, "WASD / ARROWS (or drag) to steer", { fontFamily: FONT, fontSize: "11px", color: "#86efac" }).setOrigin(0.5).setDepth(41);
@@ -3575,6 +3578,7 @@ export class VignetteScene extends Phaser.Scene {
           this.input.keyboard?.off("keydown-E", go);
           this.input.keyboard?.off("keydown-SPACE", go);
           const g = live.find((o) => o.giant);
+          view.destroy();
           resolve({ sx: g ? g.c.scaleX * 0.25 : 3, sy: g ? g.c.scaleY * 0.25 : 9 });
         };
         b.on("pointerdown", go);
@@ -3603,22 +3607,14 @@ export class VignetteScene extends Phaser.Scene {
           }
           ax = Phaser.Math.Clamp(ax, -1, 1);
           ay = Phaser.Math.Clamp(ay, -1, 1);
-          // the world tilts with you; the drugs make it wobble
-          world.setRotation(-ax * 0.14 + Math.sin(t / 700) * 0.035);
-          const hy = 10 - ay * 120;
-          const hue = (t / 40) % 360;
-          const c1 = Phaser.Display.Color.HSVToRGB(hue / 360, 0.45, 1) as Phaser.Types.Display.ColorObject;
-          const c2 = Phaser.Display.Color.HSVToRGB(((hue + 60) % 360) / 360, 0.35, 1) as Phaser.Types.Display.ColorObject;
-          const col = (o: Phaser.Types.Display.ColorObject) => (o.r << 16) | (o.g << 8) | o.b;
-          sky.clear().fillGradientStyle(col(c1), col(c1), col(c2), col(c2), 1).fillRect(-900, -900, 1800, hy + 900);
-          ground.clear().fillStyle(0x3d8a3a, 1).fillRect(-900, hy, 1800, 900);
-          for (let i = 0; i < 9; i++) {
-            const k = ((i + (t / 300) % 1) / 9) ** 2;
-            ground.fillStyle(i % 2 ? 0x4fa04a : 0x357a32, 1).fillRect(-900, hy + k * 400, 1800, 8 + k * 30);
-          }
+          // the view out of the windscreen banks and pitches with you (the drugs make it wobble); the cartons roll with it
+          if (phase === "giant") trainFade = Math.min(1, trainFade + 0.012);
+          view.update({ ax, ay, dt: 16, progress: phase === "collect" ? got / NEED : 1, trainFade });
+          world.setRotation(view.roll);
           cross.setPosition(480, VY);
           cockpit.update(ax, ay, t);
-          haze.setFillStyle(col(c2), 0.16 + 0.06 * Math.sin(t / 300));
+          const c2 = Phaser.Display.Color.HSVToRGB(((t / 60) % 360) / 360, 0.35, 1) as Phaser.Types.Display.ColorObject;
+          haze.setFillStyle((c2.r << 16) | (c2.g << 8) | c2.b, 0.07 + 0.03 * Math.sin(t / 300));
           // spawning
           if (phase === "collect" && t > nextSpawn && live.filter((o) => !o.giant).length < 3) {
             spawn(false);

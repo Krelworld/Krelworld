@@ -812,6 +812,8 @@ export interface ShotOpts {
   toBlack?: boolean | "hold";
   /** called once the shot fully covers the caller (move its camera then) */
   onCovered?: () => void;
+  /** play over a caller that is paused (e.g. a second shot straight after one that paused it) instead of waiting for it to run */
+  overPaused?: boolean;
 }
 
 let shotSeq = 0;
@@ -942,8 +944,8 @@ class ShotScene extends Phaser.Scene {
 export async function playShot(src: Phaser.Scene, o: ShotOpts): Promise<{ skipped: boolean }> {
   if (!can3d(src)) return { skipped: true };
   // a scene just back from an overlay or a dialogue (which pause it) is resumed a frame later: give it a moment
-  for (let i = 0; i < 40 && src.sys && src.sys.isPaused(); i++) await new Promise((r) => window.setTimeout(r, 25));
-  if (!src.sys || !src.sys.isActive()) return { skipped: true };
+  if (!o.overPaused) for (let i = 0; i < 40 && src.sys && src.sys.isPaused(); i++) await new Promise((r) => window.setTimeout(r, 25));
+  if (!src.sys || !(src.sys.isActive() || (o.overPaused && src.sys.isPaused()))) return { skipped: true };
   return new Promise((resolve) => {
     const key = `__p3d_shot_${++shotSeq}`;
     let settled = false;

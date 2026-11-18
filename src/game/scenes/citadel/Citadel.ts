@@ -1026,14 +1026,16 @@ export class Citadel {
   office() {
     const sc = this.sc;
     const gy = this.gy;
+    // (laid out for a 960-wide room: centred in a wider one, so there's room to move round him)
+    const ox = Math.max(0, (this.room.w - 960) / 2);
     sc.add.rectangle(0, 0, 960, 540, 0x0a0312, 0.15).setOrigin(0).setScrollFactor(0).setDepth(-9);
     this.storm(-8.5, 0.6);
     // the Council of Machines along the back wall
     const rigs: [number, string, string, string][] = [
-      [112, "SUNO", "♪", "#ff9de6"],
-      [262, "CLAUDE", "✳", "#f4b48c"],
-      [700, "GROK", "⊘", "#f2f2f2"],
-      [850, "CHATGPT", "✿", "#7fffd4"],
+      [ox + 112, "SUNO", "♪", "#ff9de6"],
+      [ox + 262, "CLAUDE", "✳", "#f4b48c"],
+      [ox + 700, "GROK", "⊘", "#f2f2f2"],
+      [ox + 850, "CHATGPT", "✿", "#7fffd4"],
     ];
     for (const [x, name, glyph, col] of rigs) {
       const k = 1.15;
@@ -1045,9 +1047,9 @@ export class Citadel {
       sc.add.text(sx, sy, label, { fontFamily: FONT, fontSize: "9px", color: col, align: "center", fontStyle: "bold" }).setOrigin(0.5).setDepth(-1.9);
       if (name === "CLAUDE" || name === "CHATGPT") sc.add.text(x, gy - 200 * k, "RESTORED FROM BACKUP", { fontFamily: FONT, fontSize: "8px", color: "#fca5a5", backgroundColor: "#000000aa" }).setOrigin(0.5).setDepth(-1.9);
     }
-    this.img(480, 150, "c7_calendar", 1.1, -3, 0.5);
+    this.img(ox + 480, 150, "c7_calendar", 1.1, -3, 0.5);
     // the cauldron in the middle, the two bottles of gold either side
-    const cx = 480;
+    const cx = ox + 480;
     const caul = this.img(cx, gy + 4, "c7_cauldron", 2.4, -1);
     if (!caul) {
       const g = sc.add.graphics().setDepth(-1);
@@ -1058,7 +1060,7 @@ export class Citadel {
     sc.tweens.add({ targets: glow, alpha: 0.5, scaleX: 1.1, yoyo: true, repeat: -1, duration: 700 });
     sc.time.addEvent({ delay: 180, loop: true, callback: () => this.sparkle(cx + (Math.random() - 0.5) * 110, gy - 110, -60) });
     const bottles: Phaser.GameObjects.Image[] = [];
-    for (const [i, bx] of [370, 590].entries()) {
+    for (const [i, bx] of [ox + 370, ox + 590].entries()) {
       const key = `c7_bottle_${i}`;
       const b = sc.textures.exists(key) ? sc.add.image(bx, gy + 2, key).setOrigin(0.5, 1).setScale(2.6).setDepth(-0.8) : sc.add.image(bx, gy - 60, "fx_circle").setScale(2).setTint(GOLD_C).setDepth(-0.8);
       bottles.push(b);

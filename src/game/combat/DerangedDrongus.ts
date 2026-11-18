@@ -58,10 +58,10 @@ export class DerangedDrongusBoss extends Boss {
     const art = w.sc.textures.exists("boss_drongus2");
     super(w, "drongus2", x, y, 2700, art ? "boss_drongus2" : "boss_drongus", 40, 0xdc2626, art ? 128 : 32, art ? 128 : 48);
     this.art = art;
-    this.setScale(art ? 2.1 : 4.2);
+    this.setScale(art ? 1.8 : 3.6);
     if (!art) this.setTint(0xff6b6b);
     this.thresholds = [0.66, 0.33];
-    this.def = { ...this.def, shout: BOSS_TEXT.drongus2.taunts, shoutEvery: 8500, damage: 20 };
+    this.def = { ...this.def, shout: BOSS_TEXT.drongus2.taunts, shoutEvery: 8500, damage: 14 };
     // the PixelLab art has the gun in his hands already
     if (!art && w.sc.textures.exists("c7_drongus_gun")) this.gun = w.sc.add.image(x, y, "c7_drongus_gun").setScale(1.1);
     this.glow = w.sc.add.ellipse(x, y, 90, 150, 0xff3b30, 0).setBlendMode(Phaser.BlendModes.ADD);
@@ -235,7 +235,7 @@ export class DerangedDrongusBoss extends Boss {
     const dir = p.x < this.x ? -1 : 1;
     this.setFlipX(dir < 0);
     if (this.open) body.setVelocityX(0);
-    else if (this.grounded()) body.setVelocityX(Math.abs(p.x - this.x) > 200 ? dir * (fast ? 110 : 80) * w.enemyTimeScale : 0);
+    else if (this.grounded()) body.setVelocityX(Math.abs(p.x - this.x) > 300 ? dir * (fast ? 85 : 60) * w.enemyTimeScale : 0);
     // nearly beaten: the last stand (on the floor, announced by the scene, then the rain)
     if (this.lastStand === "no" && this.phase >= 2 && this.hp < this.maxHp * 0.15 && this.grounded() && !this.open) {
       this.lastStand = "pending";
@@ -249,7 +249,7 @@ export class DerangedDrongusBoss extends Boss {
       this.plasmaRain(now);
       return;
     }
-    const tele = 800 * w.telegraphMult;
+    const tele = 1000 * w.telegraphMult;
     const step = this.patternIdx++ % 6;
     if (step === 0) {
       // PLASMA VOLLEY: aim lines first, then bolts down them
@@ -317,7 +317,7 @@ export class DerangedDrongusBoss extends Boss {
       this.scene.time.delayedCall(700, () => {
         if (this.dead || !this.active) return;
         w.floatText(this.x, this.y - this.displayHeight / 2 - 4, `${sm.ai}: ${sm.reply}`, sm.col, 13);
-        if (live >= 6) return;
+        if (live >= 4) return;
         for (const [type, n] of sm.spawn)
           for (let i = 0; i < n + (this.phase >= 2 ? 1 : 0); i++) {
             const x = Phaser.Math.Clamp(this.x + (i % 2 ? 1 : -1) * Phaser.Math.Between(140, 320), w.bounds.left + 60, w.bounds.right - 60);

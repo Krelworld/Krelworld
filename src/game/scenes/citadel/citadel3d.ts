@@ -308,14 +308,14 @@ const EYE: [number, number, number, number][] = [
   [3.4, -160, 560, RZ + 260],
   [4.3, 600, 300, RZ + 420],
   [T_LAND, 380, 520, RZ + 520],
-  [6.8, 0, 300, RZ + 800],
+  [6.5, 0, 300, RZ + 800],
 ];
 const LOOK: [number, number, number, number][] = [
   [0, 0, 0, RZ + 40],
   [T_ERUPT, 0, 0, RZ + 60],
   [3.4, 0, 0, RZ + 700],
   [T_LAND, LAND.x, LAND.y, RZ + 40],
-  [6.8, 0, 40, RZ],
+  [6.5, 0, 40, RZ],
 ];
 
 /**
@@ -327,7 +327,7 @@ const LOOK: [number, number, number, number][] = [
 async function launchShot(sc: Phaser.Scene) {
   if (!can3d(sc)) return { skipped: true };
   await ensureRoofArt(sc);
-  const length = 6.8;
+  const length = 6.5;
   return playShot(sc, {
     length,
     fadeIn: 260,
@@ -411,14 +411,17 @@ async function launchShot(sc: Phaser.Scene) {
       const pk = playerKey(sc);
       const meta = charMeta(S, pk);
       const pickM = (m: Record<string, number[]> | undefined, dir: string) => (m ? (m[dir] ?? m.east ?? m.south) : undefined);
-      // up: arms up (the middle of the cheer), or flung (a hurt frame); down: flailing; landed: the cheer
+      // up: arms up (the middle of the cheer), or flung (a hurt frame); down: flailing; landed: flat on your back (the
+      // roof room's first line says so; the collapse, held), or the cheer for a lad who hasn't one
       const cheerS = pickM(meta?.victory, "south");
       const hurtE = pickM(meta?.hurt, "east");
       const riseF = cheerS?.length ? [cheerS[Math.floor(cheerS.length / 2)]] : hurtE?.length ? [hurtE[Math.min(1, hurtE.length - 1)]] : [meta ? (meta.idle.east ?? 0) : 3];
       const fallF = pickM(meta?.hurt, "south") ?? (meta ? riseF : [1, 2]);
       const standF = meta ? (meta.idle.south ?? 0) : 0;
       const cheerF = cheerS ?? [standF];
-      const frames = S.textures.exists(pk) ? [...new Set([...riseF, ...fallF, ...cheerF, standF])].filter((f) => S.textures.get(pk).has(String(f))) : [];
+      const flatF = pickM(meta?.death, "south");
+      const landF = flatF?.length ? flatF : cheerF;
+      const frames = S.textures.exists(pk) ? [...new Set([...riseF, ...fallF, ...landF, standF])].filter((f) => S.textures.get(pk).has(String(f))) : [];
       const riderAt = up.length;
       const riderH: number[] = [];
       for (const f of frames) {
@@ -502,6 +505,7 @@ async function launchShot(sc: Phaser.Scene) {
         let f = standF;
         if (t < T_LAND) f = u < 0.5 ? riseF[0] : fallF[Math.floor(t * 8) % fallF.length];
         else if (t < T_LAND + 0.15) f = fallF[fallF.length - 1];
+        else if (flatF?.length) f = flatF[Math.min(flatF.length - 1, Math.floor((t - T_LAND - 0.15) * 12))];
         else if (t < T_LAND + 1.2) f = cheerF[Math.floor((t - T_LAND) * 9) % cheerF.length];
         return { x, y, z, spin, f, u, ft };
       };

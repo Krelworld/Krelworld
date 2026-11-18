@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import manifestJson from "../public/art/manifest.json";
 import { KC_HEADS, KCV_HEAD } from "../src/game/combat/krelCineData";
 
 // The Kreltality close-ups show the boss you beat: every close-up has its head boxes and split sheets, and every
 // Kreltality-able boss has its own close-up head.
-const manifest = JSON.parse(readFileSync(new URL("../public/art/manifest.json", import.meta.url), "utf8")) as { sheets: Record<string, { frameWidth: number }> };
+const manifest = manifestJson as unknown as { sheets: Record<string, { frameWidth: number }> };
 const FINS = ["spine", "explode", "halved", "headboot", "slit", "flatten", "vice", "bellybomb", "jawtrap", "pendulum", "ribcage", "freeze", "kebab", "lasergrid", "xray", "decap", "pump", "cinder", "piranha", "asbestos"];
 const BOSSES = ["brand", "flatmate", "flirt", "fruity", "tank", "lantern", "hoard", "jam", "krandall", "pudding_demon", "rival", "troll", "elon", "reinhardt", "krozno", "cronster", "rik"];
 

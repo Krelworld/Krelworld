@@ -5,7 +5,6 @@ import { hasVfx, vfx } from "../gfx/Vfx";
 import { G } from "../G";
 import { ELEGANT, ELEGANT_NAMES, TAME_NAMES, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
 import { krelCinema } from "./KrelCinema";
-import { onSkip } from "../gfx/Overlay";
 import { Actor, Victim, bit, cutEdge, prop, stick, MEATY, type Bit } from "./KrelArt";
 
 /**
@@ -456,7 +455,24 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     ff = 14;
     slow(slowK);
   };
-  const offStageSkip = onSkip(sc, 450, skipAll);
+  // (on the stage only a deliberate press skips: a skip key, a click, a pad button; not a held movement key's repeats)
+  const t0Skip = performance.now();
+  const skipKey = (e: KeyboardEvent) => {
+    if (e.repeat || performance.now() - t0Skip < 450 || !["Escape", " ", "Enter", "Tab"].includes(e.key)) return;
+    skipAll();
+  };
+  const skipTap = () => {
+    if (performance.now() - t0Skip >= 450) skipAll();
+  };
+  sc.input.keyboard?.on("keydown", skipKey);
+  sc.input.on("pointerdown", skipTap);
+  sc.input.gamepad?.on("down", skipTap);
+  const offStageSkip = () => {
+    sc.input.keyboard?.off("keydown", skipKey);
+    sc.input.off("pointerdown", skipTap);
+    sc.input.gamepad?.off("down", skipTap);
+  };
+  sc.events.once("shutdown", offStageSkip);
   const strike = async () => {
     if (cut) return;
     cut = true;

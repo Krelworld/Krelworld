@@ -94,7 +94,11 @@ export function installDebug(game: Phaser.Game) {
       const room = d.room ?? d.roomDef;
       if (room?.w && room?.h) ps.setPosition(room.w / 2 - 120, room.h / 2 + 20);
       const phd = ps.texture.customData?.hd ?? 1;
-      return forcedKreltality(d, { key, frame: 0, x: ps.x + 170, y: ps.y - 20, scale: 230 / fr.height, flip: true, name: name ?? bossId.toUpperCase(), id: bossId }, { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd }, which);
+      // (the show draws its own you: hide the real one meanwhile, as the Dungeon does)
+      ps.setVisible(false);
+      return forcedKreltality(d, { key, frame: 0, x: ps.x + 170, y: ps.y - 20, scale: 230 / fr.height, flip: true, name: name ?? bossId.toUpperCase(), id: bossId }, { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd }, which).finally(() => {
+        if (ps.active) ps.setVisible(true);
+      });
     },
     /** Show a boss's VS card over the running scene (for checking the cards). */
     vs: (bossId: string) => {

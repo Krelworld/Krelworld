@@ -666,6 +666,9 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       await c.strike();
       const cp = { t: 0 };
       synth.play("bonecrack");
+      // (gore: the split shows as blood beading up down the breastbone, not a drawn line)
+      const crackBeads = c.gore ? bead(tg.x, cy - ch / 2, tg.x, cy + ch / 2, 500) : [];
+      if (crackBeads.length) crack.setVisible(false);
       await c.tw({ targets: cp, t: 1, duration: 500, onUpdate: () => {
         crack.clear().lineStyle(2, c.gore ? 0xb91c1c : 0xf472b6, 1);
         const n = 6;
@@ -680,6 +683,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       synth.voice("oh", 0.6, 1.6);
       // ...and open, like a book
       crack.setVisible(false);
+      crackBeads.forEach((b) => b.destroy());
       cav.setVisible(!cavArt);
       cavArt?.setVisible(true);
       heart.setVisible(true);

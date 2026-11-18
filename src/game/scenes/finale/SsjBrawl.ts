@@ -968,6 +968,8 @@ export class SsjBrawl {
       this.stats.vanishStrikes++;
       this.float(e.x, e.y - 130, "VANISH STRIKE!", "#93c5fd", 22);
     }
+    // the opening third was a slog: hits land harder until he's down to two-thirds
+    if (this.phase() === 0) d = Math.round(d * 1.6);
     this.eHp = Math.max(0, this.eHp - d);
     this.stats.hits++;
     this.combo = now - this.lastHit < 1300 ? this.combo + 1 : 1;

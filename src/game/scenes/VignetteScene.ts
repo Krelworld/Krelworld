@@ -1,3 +1,4 @@
+import { diffFor } from "../systems/difficulty";
 import Phaser from "phaser";
 import { SJ_KREDDLE, SJ_TOWER_DEMO, SJ_TOWER_SIM } from "../../content/sanjeev";
 import { playerKey } from "../gfx/sanmikForm";
@@ -3635,7 +3636,8 @@ export class VignetteScene extends Phaser.Scene {
           // on target: the train's middle inside the sights (a bit of give, more as it gets bigger)
           const near = 70 + lock * 60;
           const on = st.trainOn && Math.abs(st.trainX - 480) < near && Math.abs(st.trainY - VY) < near * 1.6;
-          lock = Phaser.Math.Clamp(lock + (on ? 0.0016 : -0.0005), 0, 1);
+          const tm = diffFor(G.s).timing;
+          lock = Phaser.Math.Clamp(lock + (on ? 0.0016 * tm : -0.0005 / tm), 0, 1);
           if (on !== wasOn) {
             drawCross(on);
             if (on) synth.play("select");

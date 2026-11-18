@@ -1,3 +1,4 @@
+import { diffFor, scaleInt } from "../systems/difficulty";
 import Phaser from "phaser";
 import { playerKey } from "../gfx/sanmikForm";
 import { vfx } from "../gfx/Vfx";
@@ -488,6 +489,7 @@ export class DriveScene extends Phaser.Scene {
 
   private hurtTruck(n: number, why?: string) {
     if (this.ended) return;
+    n = scaleInt(n, diffFor(G.s).damageTaken);
     this.hp = Math.max(0, this.hp - n);
     this.shake(0.25 + n * 0.02);
     // a red edge, not a full-screen flash (that strobes)

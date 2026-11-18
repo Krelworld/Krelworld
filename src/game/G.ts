@@ -48,8 +48,8 @@ class GameContext {
     return !!this._state;
   }
 
-  newRun(player: PlayableId, ngPlus = 0) {
-    this._state = newGameState(player, ngPlus, this.meta);
+  newRun(player: PlayableId, ngPlus = 0, difficulty?: number) {
+    this._state = newGameState(player, ngPlus, this.meta, difficulty);
     this._state.hp = maxHp(this._state);
     this.rt.wonk = 0;
     this.rt.fart = 0;

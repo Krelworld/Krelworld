@@ -91,6 +91,16 @@ export function shieldConfig(bossId: string): ShieldConfig | null {
   return c;
 }
 
+/**
+ * The difficulty's take on a boss's shields (src/game/systems/difficulty.ts): more or fewer minions per shield (never
+ * fewer than two), and a shield that holds out for longer or shorter before it cracks itself. Level 2 changes nothing.
+ */
+export function shieldForDifficulty(c: ShieldConfig, d: { shieldMinions: number; shieldStall: number }, tune = SHIELD_TUNING): { cfg: ShieldConfig; tune: typeof SHIELD_TUNING } {
+  const cfg = d.shieldMinions ? { ...c, count: c.count.map((n) => Math.max(2, n + d.shieldMinions)) } : c;
+  const t = d.shieldStall !== 1 ? { ...tune, stallMs: Math.round(tune.stallMs * d.shieldStall) } : tune;
+  return { cfg, tune: t };
+}
+
 /** Minions for shield number `n` (0-based). */
 export function minionsFor(c: ShieldConfig, n: number): string[] {
   const k = Math.max(1, c.count[Math.min(n, c.count.length - 1)] ?? 3);

@@ -1,3 +1,4 @@
+import { scaleCooldown } from "../systems/difficulty";
 import Phaser from "phaser";
 import { Enemy } from "./Enemy";
 import type { CombatWorld } from "./types";
@@ -432,7 +433,12 @@ export abstract class Boss extends Enemy {
     }
     // staggered (on its knees) or stunned after its shield shattered: it stays put and takes it
     if (stun || (this.downed && !this.downKeepsPattern)) this.halt();
-    else if (!this.signatureLeap(now)) this.pattern(dt, now);
+    else if (!this.signatureLeap(now)) {
+      const before = this.nextPattern;
+      this.pattern(dt, now);
+      // difficulty: a cooldown that just started comes round sooner (or later)
+      if (this.nextPattern !== before) this.nextPattern = scaleCooldown(now, this.nextPattern, this.aggression);
+    }
     this.emitHud();
   }
 

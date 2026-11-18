@@ -1,3 +1,4 @@
+import { diffFor, scaleInt } from "../../systems/difficulty";
 import Phaser from "phaser";
 import type { Line } from "../../../data/types";
 import { G } from "../../G";
@@ -863,6 +864,8 @@ export class SsjBrawl {
 
   private hurtPlayer(dmg: number, fromX: number, now: number, unblockable = false) {
     if (this.pState === "down" || this.finishing) return;
+    const dd = diffFor(G.s);
+    dmg = scaleInt(dmg, dd.damageTaken);
     const p = this.p;
     if (now < this.iframesUntil) {
       if (dmg > 0 && Math.random() < 0.5) this.float(p.x, p.y - 90, "MISS", "#93c5fd", 16);
@@ -870,7 +873,7 @@ export class SsjBrawl {
     }
     const fromFront = (fromX - p.x) * p.face >= 0;
     if (this.pState === "block" && fromFront && !unblockable) {
-      if (now - this.blockStart < 200) {
+      if (now - this.blockStart < 200 * dd.timing) {
         // PARRY: right on time
         this.stats.parries++;
         this.float(p.x, p.y - 100, "PARRY!", "#86efac", 26);
@@ -897,7 +900,7 @@ export class SsjBrawl {
     if (this.pState === "flurry") (this as unknown as { stopFlurryLines?: () => void }).stopFlurryLines?.();
     this.pState = "hurt";
     this.actUntil = now + 320;
-    this.iframesUntil = now + 450;
+    this.iframesUntil = now + 450 * dd.iframes;
     const dir = Math.sign(p.x - fromX) || -p.face;
     p.vx = dir * 520;
     this.sc.tweens.killTweensOf(p.c);

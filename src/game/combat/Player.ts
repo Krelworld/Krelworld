@@ -1,3 +1,4 @@
+import { diffFor } from "../systems/difficulty";
 import { playerKey, sanmikYee } from "../gfx/sanmikForm";
 import Phaser from "phaser";
 import { cumehameha, goSuper, megaMelee, superTick } from "./Super";
@@ -308,7 +309,7 @@ export class Player {
     else this.spr.clearTint();
     superTick(this, now);
     // Krezz trickle
-    s.krezz = Math.min(maxKrezz(s), s.krezz + dt * 0.0022 * (1 + 0.3 * (s.upgrades.pk_krezz ?? 0)));
+    s.krezz = Math.min(maxKrezz(s), s.krezz + dt * 0.0022 * (1 + 0.3 * (s.upgrades.pk_krezz ?? 0)) * diffFor(s).krezzGain);
     if (s.flags.debug_mode) s.krezz = maxKrezz(s); // debug: infinite Krezz
     // Krez Loan interest
     if (this.interestUntil > now && this.loanUntil < now) {
@@ -1072,9 +1073,12 @@ export class Player {
     a *= 1 - 0.1 * (s.upgrades.pk_armor ?? 0);
     a *= 1 - 0.1 * kd(s, "kd_armor");
     if (now < this.bongoUntil) a *= 0.95;
+    // difficulty: every hit, from anything
+    const dd = diffFor(s);
+    a *= dd.damageTaken;
     s.hp -= a;
     this.recentDamage.push({ t: now, amt: a });
-    this.iframesUntil = now + 450;
+    this.iframesUntil = now + 450 * dd.iframes;
     if (a > 0.5) this.hurtUntil = now + 320;
     if (s.hp <= 0) {
       if (this.id === "FLENKY" && !this.readmissionUsed) {

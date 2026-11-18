@@ -1,3 +1,4 @@
+import { diffFor } from "../systems/difficulty";
 import Phaser from "phaser";
 import type { PlayableId } from "../../data/types";
 import { synth } from "../audio/Synth";
@@ -253,9 +254,10 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
       // on the beat?
       const since = st.t - (st.nextBeat - beatMs(st.progress));
       const until = st.nextBeat - st.t;
-      if (!st.beatHit && (since < GW_WINDOW || until < GW_WINDOW * 0.6)) {
+      const WIN = GW_WINDOW * diffFor(G.s).timing;
+      if (!st.beatHit && (since < WIN || until < WIN * 0.6)) {
         st.beatHit = true;
-        const idx = until < GW_WINDOW * 0.6 ? (st.beatIdx + 1) % N : st.beatIdx;
+        const idx = until < WIN * 0.6 ? (st.beatIdx + 1) % N : st.beatIdx;
         const l = lads[idx];
         st.streak++;
         st.progress = Math.min(1, st.progress + 0.006);

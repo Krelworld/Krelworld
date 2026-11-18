@@ -412,7 +412,8 @@ function spritePortrait(scene: Phaser.Scene, sprKey: string, bg: number): string
   if (scene.textures.exists(key)) return key;
   if (!scene.textures.exists(sprKey)) return null;
   const tex = scene.textures.get(sprKey);
-  if (!(tex.customData as { char?: unknown; hd?: number })?.hd) return null; // old procedural art: no
+  // old procedural art: no (a boss_ sheet is always PixelLab's, hd tag or not: Elon on his rocket has none)
+  if (!(tex.customData as { char?: unknown; hd?: number })?.hd && !sprKey.startsWith("boss_")) return null;
   const fr = tex.get(0);
   const src = tex.getSourceImage() as HTMLImageElement | HTMLCanvasElement;
   const [tmp, tctx] = canvas(fr.cutWidth, fr.cutHeight);

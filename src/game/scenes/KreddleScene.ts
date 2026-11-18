@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { kreddleCrossing } from "./p3d/kreddleCrossing";
 import { bindSanmikToggle, playerKey } from "../gfx/sanmikForm";
 import { vfx } from "../gfx/Vfx";
 import { G } from "../G";
@@ -322,6 +323,13 @@ export class KreddleScene extends Phaser.Scene {
     s.flags.kreddle_visits = ((s.flags.kreddle_visits as number) ?? 0) + 1;
     if (s.flags.kreddle_seen) return;
     s.flags.kreddle_seen = true;
+    // the run over the bridge, in pseudo-3D (before the nuke: Kreddle has to be there)
+    let gone = false;
+    const off = () => (gone = true);
+    this.events.once("shutdown", off);
+    await kreddleCrossing(this);
+    this.events.off("shutdown", off);
+    if (gone) return;
     const t = this.add.text(480, 200, "WELCOME TO\nKREDDLE", { fontFamily: "Impact, sans-serif", fontSize: "64px", color: "#ff4fd8", align: "center", stroke: "#12001f", strokeThickness: 10 }).setOrigin(0.5).setScrollFactor(0).setDepth(5000).setScale(0.2);
     t.setShadow(0, 0, "#ff4fd8", 24, true, true);
     synth.play("cheer");

@@ -5,6 +5,7 @@ import type { DungeonDef } from "../../data/dungeons";
 import { PIXEL_BOLD } from "../ui/theme";
 import { charMeta, hdFactor } from "./HD";
 import { onSkip, runOverlay } from "./Overlay";
+import { dungeonSwoop } from "../scenes/p3d/dungeonSwoop";
 
 /**
  * The anime dungeon-entry cutscene (about 3s): a low-angle shot of your lad striding up to the entrance under focus
@@ -90,7 +91,9 @@ export async function dungeonIntro(sc: Phaser.Scene, d: DungeonDef): Promise<boo
   let gone = false;
   const off = () => (gone = true);
   sc.events.once("shutdown", off);
-  await playDungeonIntro(sc, dungeonIntroOpts(d));
+  // the first time this playthrough: a pseudo-3D swoop onto the place from the town, before the card
+  await dungeonSwoop(sc, d);
+  if (!gone) await playDungeonIntro(sc, dungeonIntroOpts(d));
   sc.events.off("shutdown", off);
   return !gone;
 }

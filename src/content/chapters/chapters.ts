@@ -172,7 +172,6 @@ export const CHAPTERS: ChapterDef[] = [
       { id: "s_tv", text: "Krelmergency in the FGM War Room (under the Archive): something huge is on KrelTV, on every channel.", done: { flag: "vig_crobley_news" }, target: "ARCHIVE" },
       { id: "s_brief", text: "Krelmergency briefing in the FGM War Room (under the Archive): what do we do about Reinhardt Crobley?", done: { flag: "crobley_briefed" }, target: "ARCHIVE" },
       { id: "s_presser", text: "Sergeant Swig is holding a press conference about the live-TV murder. Krelford Constabulary.", done: { flag: "vig_crobley_presser" }, target: "POLICE" },
-      { id: "s_trail", text: "Find Reinhardt's five golden Crobley wrappers (5): the first outside the Constabulary, the rest indoors. The factory gate won't open without them", done: { flag: "trail_ch4_wrappers_done" }, target: "POLICE" },
       { id: "s_dungeon", text: "Storm the Crobley Factory (the gate on the east edge of town). Kill Reinhardt. Take cum crystal number four.", done: { flag: "ch4_clear" }, target: "CROBLEY_FACTORY" },
       { id: "s_report", text: "Report to the Town Hall", done: { flag: "ch4_fact" }, target: "TOWN_HALL" },
     ],

@@ -43,7 +43,8 @@ export class WeaponPickScene extends Phaser.Scene {
     if (compact) this.add.rectangle(480, bandY, 960, 78, 0x05010c, 0.55);
     if (!compact) this.add.text(480, 70, "CHOOSE YOUR WEAPON", { fontFamily: "Impact, sans-serif", fontSize: compact ? "20px" : "38px", color: "#67e8f9", stroke: "#001018", strokeThickness: compact ? 4 : 7 }).setOrigin(0.5);
     if (!compact) this.add.text(480, 108, "(the world's slowed right down) · Tap one · or ←/→ and SPACE · or 1–9 · or let go of SWAP on it · ESC to cancel", { fontFamily: FONT, fontSize: "12px", color: "#cbd5e1" }).setOrigin(0.5);
-    const perRow = Math.min(compact ? 20 : 7, this.list.length);
+    // (the compact strip stays one row: a second one would fall off the bottom when the strip sits at the foot of the screen)
+    const perRow = Math.min(compact ? 30 : 7, this.list.length);
     const rows = Math.ceil(this.list.length / perRow);
     const TW = compact ? Math.min(60, Math.floor(920 / perRow) - 6) : 116;
     const TH = compact ? 54 : 112;

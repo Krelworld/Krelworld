@@ -4,6 +4,7 @@ import { synth } from "../../audio/Synth";
 import type { DungeonDef } from "../../../data/dungeons";
 import { type BoardSpec, type CamKey, type ShotCtx, type Sprite3D, camPath, clamp, mixC, playShot, span } from "../../gfx/Pseudo3D";
 import { type TownMood, MOODS, townSet } from "./townSet";
+import { crobleyFloor3d } from "./crobleyFactory3d";
 
 /**
  * The establishing swoop before a dungeon's anime entry card (gfx/DungeonIntro.ts): a quick pseudo-3D flight over
@@ -62,7 +63,7 @@ export async function dungeonSwoop(sc: Phaser.Scene, d: DungeonDef): Promise<voi
   for (let i = 0; i < 60 && sc.sys && !sc.sys.isActive() && !sc.sys.isPaused(); i++) await new Promise((r) => window.setTimeout(r, 20));
   const t0 = Date.now();
   let paused = false;
-  await playShot(sc, {
+  const ext = await playShot(sc, {
     length: d.id === "rik_colon" ? 3.6 : LENGTH,
     fromBlack: true,
     fadeIn: 420,
@@ -76,6 +77,8 @@ export async function dungeonSwoop(sc: Phaser.Scene, d: DungeonDef): Promise<voi
     },
     build: (c) => (d.id === "rik_colon" ? rikBuild(c) : townBuild(c, PLANS[d.id])),
   });
+  // the Crobley factory: then inside, a glide along the factory floor in full swing (unless they skipped the swoop)
+  if (d.id === "crobley_factory" && paused && !ext.skipped && sc.sys && sc.sys.isPaused()) await crobleyFloor3d(sc);
   if (paused && sc.sys && sc.sys.isPaused()) sc.scene.resume();
   if (G.rt.timerEnd) G.rt.timerEnd += Date.now() - t0;
 }

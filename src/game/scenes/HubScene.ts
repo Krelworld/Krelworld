@@ -49,6 +49,7 @@ import { loopProp } from "../gfx/ambient";
 import { canFly3d, FLY_LAST, FLY_STOPS, runFlyover } from "./hub/flyover";
 import { can3d } from "../gfx/Pseudo3D";
 import { arrivalOrbit } from "./citadel/citadel3d";
+import { dawnShot, riseShot, ruinRevealShot } from "./hub/hub3d";
 import { bombingShot } from "./hub/bombing3d";
 
 /** The first line over the whiteness. */
@@ -850,10 +851,12 @@ export class HubScene extends Phaser.Scene {
     if (!this.ruined) this.add.text(1280, 690, "THE GREAT PUSSY JUICE TAP", { fontFamily: FONT, fontSize: "11px", color: "#ffb6c1", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5).setDepth(801);
     this.colliders.add(this.add.rectangle(1280, 840, 120, 60, 0, 0));
     // The Kreltower
-    if (G.s.flags.kreltower_fell) {
-      if (this.hd && this.textures.exists("hd_rubble")) this.add.image(1650, 1100, "hd_rubble").setOrigin(0.5, 1).setDepth(1100);
+    // (nothing tall survives the nuke: after it the tower is a heap whichever way the flight went)
+    if (G.s.flags.kreltower_fell || this.ruined) {
+      if (this.ruined) this.ruinProp("r_fireheap", 1650, 1100, 2.2);
+      else if (this.hd && this.textures.exists("hd_rubble")) this.add.image(1650, 1100, "hd_rubble").setOrigin(0.5, 1).setDepth(1100);
       else this.add.image(1650, 1100, "p_rubble").setOrigin(0.5, 1).setScale(2).setDepth(1100);
-      this.add.text(1650, 1110, "WHERE THE KRELTOWER WAS (AGAIN)", { fontFamily: FONT, fontSize: "11px", color: "#ff9a9a", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5, 0).setDepth(1101);
+      if (!this.ruined) this.add.text(1650, 1110, "WHERE THE KRELTOWER WAS (AGAIN)", { fontFamily: FONT, fontSize: "11px", color: "#ff9a9a", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5, 0).setDepth(1101);
     } else {
       if (this.hd && this.textures.exists("hd_kreltower")) {
         // half as big again: it's the tallest thing in town
@@ -863,7 +866,7 @@ export class HubScene extends Phaser.Scene {
       this.add.text(1650, 1110, "THE KRELTOWER (rebuilt)", { fontFamily: FONT, fontSize: "11px", color: "#ffffff", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5, 0).setDepth(1101);
     }
     this.colliders.add(this.add.rectangle(1650, 1085, 70, 30, 0, 0));
-    this.interactables.push({ x: 1650, y: 1135, r: 55, label: () => (G.s.flags.kreltower_fell ? "Look at the rubble" : "Read the Kreltower plaque"), use: () => this.kreltowerPlaque() });
+    this.interactables.push({ x: 1650, y: 1135, r: 55, label: () => (G.s.flags.kreltower_fell || this.ruined ? "Look at the rubble" : "Read the Kreltower plaque"), use: () => this.kreltowerPlaque() });
     // public TV
     if (this.ruined) this.ruinProp("r_girders", 1450, 760, 1.4);
     else if (this.hd && this.textures.exists("hd_tv")) this.add.image(1450, 730, "hd_tv").setDepth(770);
@@ -1448,6 +1451,85 @@ export class HubScene extends Phaser.Scene {
     synth.music("dungeon_rise", true);
     cam.stopFollow();
     const bottom = b.y + b.h / 2;
+    let up = false;
+    const raise = () => {
+      if (up) return;
+      up = true;
+      s.flags.drongus_dungeon_risen = true;
+      this.drawBuilding(b);
+      this.interactables.push({ x: b.door!.x, y: b.door!.y + 10, r: 46, label: () => this.doorLabel(b), use: () => this.enterBuilding(b) });
+    };
+    // in pseudo-3D (hub/hub3d.ts): round the plot as it cracks, up with the tower, the title, down onto the live view
+    let titled = false;
+    if (can3d(this)) {
+      const z = cam.zoom;
+      const end = { x: Phaser.Math.Clamp(b.x, cam.width / 2 / z, WORLD_W - cam.width / 2 / z), y: Phaser.Math.Clamp(bottom - 250, -SKY_H + cam.height / 2 / z, WORLD_H - cam.height / 2 / z), zoom: z };
+      const uiWas = this.scene.isVisible("UI");
+      this.scene.setVisible(false, "UI");
+      const r = await riseShot(this, { worldW: WORLD_W, worldH: WORLD_H, tower: { x: b.x, y: bottom }, w: b.w, h: b.h, key: this.buildingKey(b), end, skip: [this.prompt, this.arrow].filter(Boolean), onCovered: () => (cam.centerOn(end.x, end.y), raise()) });
+      if (this.gone()) return;
+      cam.centerOn(end.x, end.y);
+      if (uiWas) this.scene.setVisible(true, "UI");
+      titled = !r.skipped;
+    }
+    if (!up) await this.riseFlat(b, bottom);
+    raise();
+    // the title
+    if (!titled) await this.riseTitle();
+    await this.talk([
+      dir("Where there was an empty plot at the top of town, there is now a tower. It's the biggest thing in Krelford. It's black. It has spikes. It has, for some reason, chains on it. Its one window is an enormous glowing red eye, and the eye is looking at the group chat."),
+      ping("DRONGUS", "Like it?"),
+      ping("DRONGUS", "DA DRONGUS DUNGEON. I'm in it. The lore's in it. The chat log is in it. Top floor."),
+      ping("DRONGUS", "The door is sealed with six cum crystals. Don't ask how I made them. I've given one to each of my best boys."),
+      ping("DRONGUS", "Good luck getting them back, you fucking CUNTS. Your never do it! Ha ha ha ha! DIE!"),
+      say("KREZWONK", "Six crystals. Six bosses. One at the end of every mission. I have foreseen it.", { role: true, proctus: "Six crystals! I foresaw that! I foresaw it about four seconds ago, but it counts." }),
+      say("SCROMBUS", "So every time we put one of his lads down, we take his crystal. Get all six, we walk in the front door."),
+      say("MIKEY", "Why are they called cum crystals"),
+      say("SCROMBUS", "They are probably crystals made out of cum."),
+      dir("NEW: CUM CRYSTALS 0/6. Every main boss carries one. Collect all six to open Da Drongus Dungeon."),
+    ]);
+    cam.pan(this.av.x, this.av.y, 900, Phaser.Math.Easing.Sine.InOut);
+    await new Promise((r) => this.time.delayedCall(950, r));
+    cam.startFollow(this.av, true, 0.12, 0.12);
+    synth.music("hub");
+    this.busy = false;
+    G.save();
+  }
+
+  /** "We saved Krelworld.": a fast pull back over the dead, devastated town in silence, and a hard cut back (hub/hub3d.ts). */
+  private async savedCut() {
+    const cam = this.cameras.main;
+    synth.setMusicBoost(0.1);
+    try {
+      if (can3d(this)) {
+        // (grown-ups only: townsfolk and coppers, on their fallen frame if they have one)
+        const bodyKeys = ["spr_FOLK0", "spr_FOLK1", "spr_FOLK2", "spr_FOLK3", "spr_COP"].map((key) => {
+          const d = charMeta(this, key)?.death;
+          const f = d?.east ?? d?.south ?? d?.west;
+          return { key, frame: f ? f[f.length - 1] : 0 };
+        });
+        const smoke = BUILDINGS.filter((x) => x.id !== "CITADEL").map((x) => ({ x: x.x, y: x.y + x.h * 0.3 }));
+        await ruinRevealShot(this, { worldW: WORLD_W, worldH: WORLD_H, lads: { x: cam.midPoint.x, y: cam.midPoint.y, zoom: cam.zoom }, bodyKeys, smoke, skip: [this.prompt, this.arrow] });
+      } else {
+        const z = cam.zoom;
+        cam.zoomTo(z * 0.45, 650, "Cubic.easeOut");
+        await new Promise((r) => this.time.delayedCall(2600, r));
+        cam.zoomEffect.reset();
+        cam.setZoom(z);
+      }
+    } finally {
+      synth.setMusicBoost(1);
+    }
+  }
+
+  /** Has this scene been shut down (not just paused under a dialogue)? */
+  private gone() {
+    return this.sys.settings.status >= Phaser.Scenes.SHUTDOWN;
+  }
+
+  /** The flat rise (no WebGL): pan up, the ground cracks, the tower slides up out of it behind a mask. */
+  private async riseFlat(b: Building, bottom: number) {
+    const cam = this.cameras.main;
     cam.pan(b.x, bottom - 250, 1600, Phaser.Math.Easing.Sine.InOut);
     await new Promise((r) => this.time.delayedCall(1700, r));
     // the ground cracks
@@ -1487,10 +1569,11 @@ export class HubScene extends Phaser.Scene {
     dust.remove();
     tower.clearMask(true);
     tower.destroy();
-    s.flags.drongus_dungeon_risen = true;
-    this.drawBuilding(b);
-    this.interactables.push({ x: b.door!.x, y: b.door!.y + 10, r: 46, label: () => this.doorLabel(b), use: () => this.enterBuilding(b) });
-    // the title
+  }
+
+  /** DA DRONGUS DUNGEON, over the screen. */
+  private async riseTitle() {
+    const cam = this.cameras.main;
     cam.flash(500, 239, 68, 68);
     const title = this.add.text(480, 200, "DA DRONGUS DUNGEON", { fontFamily: "Impact, sans-serif", fontSize: "60px", color: "#ef4444", stroke: "#000", strokeThickness: 10 }).setOrigin(0.5).setScrollFactor(0).setDepth(6000).setScale(3).setAlpha(0);
     this.tweens.add({ targets: title, scale: 1, alpha: 1, duration: 500, ease: "Back.out" });
@@ -1498,24 +1581,6 @@ export class HubScene extends Phaser.Scene {
     this.tweens.add({ targets: sub, alpha: 1, delay: 600, duration: 400 });
     await new Promise((r) => this.time.delayedCall(2600, r));
     this.tweens.add({ targets: [title, sub], alpha: 0, duration: 500, onComplete: () => { title.destroy(); sub.destroy(); } });
-    await this.talk([
-      dir("Where there was an empty plot at the top of town, there is now a tower. It's the biggest thing in Krelford. It's black. It has spikes. It has, for some reason, chains on it. Its one window is an enormous glowing red eye, and the eye is looking at the group chat."),
-      ping("DRONGUS", "Like it?"),
-      ping("DRONGUS", "DA DRONGUS DUNGEON. I'm in it. The lore's in it. The chat log is in it. Top floor."),
-      ping("DRONGUS", "The door is sealed with six cum crystals. Don't ask how I made them. I've given one to each of my best boys."),
-      ping("DRONGUS", "Good luck getting them back, you fucking CUNTS. Your never do it! Ha ha ha ha! DIE!"),
-      say("KREZWONK", "Six crystals. Six bosses. One at the end of every mission. I have foreseen it.", { role: true, proctus: "Six crystals! I foresaw that! I foresaw it about four seconds ago, but it counts." }),
-      say("SCROMBUS", "So every time we put one of his lads down, we take his crystal. Get all six, we walk in the front door."),
-      say("MIKEY", "Why are they called cum crystals"),
-      say("SCROMBUS", "They are probably crystals made out of cum."),
-      dir("NEW: CUM CRYSTALS 0/6. Every main boss carries one. Collect all six to open Da Drongus Dungeon."),
-    ]);
-    cam.pan(this.av.x, this.av.y, 900, Phaser.Math.Easing.Sine.InOut);
-    await new Promise((r) => this.time.delayedCall(950, r));
-    cam.startFollow(this.av, true, 0.12, 0.12);
-    synth.music("hub");
-    this.busy = false;
-    G.save();
   }
 
   /** Somewhere a stroll away that he can walk to in a straight line without going through a building. */
@@ -4253,9 +4318,26 @@ You are required by law to sign the Sex Offenders Register.`, {
     // out of the white: the establishing shot, dawn over what's left of Krelford
     await Juice.still(this, "fe_still_dawn", 2600, { depth: 9600, push: 0.06, shakeK: 0 });
     if (over) return;
-    await talk(FD_WAKE_FIRST);
-    this.tweens.add({ targets: white, alpha: 0, duration: 4500, ease: "Sine.in", onComplete: () => white.destroy() });
-    await wait(4200);
+    // in pseudo-3D (hub/hub3d.ts): out of the white, a slow drift over the smoking town to where the tower stood, and
+    // down onto the lads; otherwise the white just lifts off them
+    const z = cam.zoom;
+    const end = { x: Phaser.Math.Clamp(C.x, cam.width / 2 / z, WORLD_W - cam.width / 2 / z), y: Phaser.Math.Clamp(C.y - 20, -SKY_H + cam.height / 2 / z, WORLD_H - cam.height / 2 / z), zoom: z };
+    const cit = BUILDINGS.find((x) => x.id === "CITADEL")!;
+    let drifted = false;
+    if (can3d(this)) {
+      // (the first line is still on the white)
+      await talk(FD_WAKE_FIRST);
+      if (over) return;
+      const smoke = BUILDINGS.filter((x) => x.id !== "CITADEL").map((x) => ({ x: x.x, y: x.y + x.h * 0.3 }));
+      await dawnShot(this, { worldW: WORLD_W, worldH: WORLD_H, wreck: { x: cit.x, y: cit.y + cit.h / 2 + 20 }, smoke, end, skip: [this.prompt, this.arrow], onCovered: () => (cam.centerOn(end.x, end.y), white.setAlpha(0), (drifted = true)) });
+      if (over || this.gone()) return;
+    }
+    if (drifted) white.destroy();
+    else {
+      if (!can3d(this)) await talk(FD_WAKE_FIRST);
+      this.tweens.add({ targets: white, alpha: 0, duration: 4500, ease: "Sine.in", onComplete: () => white.destroy() });
+      await wait(4200);
+    }
     await talk(FB.FD_WAKE.slice(1));
     // one by one, they come round… but nobody can get up
     for (const [i, l] of lads.entries()) {
@@ -4303,7 +4385,10 @@ You are required by law to sign the Sex Offenders Register.`, {
     void walkSj(C.x + 700, C.y + 120, 3200).then(() => sj.destroy());
     await talk(SJ_RUBBLE_THANKS.slice(-1));
     await talk(FB.FD_URGH.slice(-1));
-    await talk(FB.FD_SAVED);
+    await talk(FB.FD_SAVED.slice(0, 1));
+    // ...a beat: the town they saved
+    if (!over) await this.savedCut();
+    await talk(FB.FD_SAVED.slice(1));
     // across the rubble...
     cam.pan(D.x, D.y - 20, 1500, Phaser.Math.Easing.Sine.InOut);
     await wait(1600);

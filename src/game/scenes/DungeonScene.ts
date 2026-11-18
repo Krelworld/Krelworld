@@ -205,6 +205,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.sc = this;
     this.dungeon = DUNGEONS[data.dungeon] ?? DUNGEONS.wildern;
     this.roomIdx = data.room ?? 0;
+    // walking in from outside (not the next room along): the fairy's fresh again
+    if ((data.room ?? 0) === 0) G.rt.fairyUsed = false;
     // Saved progress: walking in from town resumes at the first room you haven't cleared.
     this.resumed = false;
     if (this.roomIdx === 0 && G.s.flags[clearKey(this.dungeon.id, 0)]) {
@@ -271,9 +273,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const s = G.s;
     s.phase = "dungeon";
     this.chantFreeAt = 0;
-    // effects a touch quieter in here, so the level music comes through
-    synth.setSfxScale(0.78);
-    synth.setMusicBoost(1.2);
+    // effects a touch quieter in here, so the level and boss music comes through (they were still drowning it)
+    synth.setSfxScale(0.68);
+    synth.setMusicBoost(1.35);
     this.events.once("shutdown", () => {
       synth.setSfxScale(1);
       synth.setMusicBoost(1);
@@ -3576,10 +3578,10 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     });
   }
 
-  /** A bottled fairy: out she comes, round you she goes, and you're back on your feet. */
+  /** A bottled fairy: out she comes, round you she goes, and you're back on your feet. Once per dungeon visit. */
   private fairyRevive() {
     const s = G.s;
-    s.upgrades.fairies = Math.max(0, (s.upgrades.fairies ?? 0) - 1);
+    G.rt.fairyUsed = true;
     s.hp = maxHp(s);
     const p = this.player;
     p.iframesUntil = this.now() + 2500;
@@ -3610,12 +3612,12 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       orbit.remove();
       this.tweens.add({ targets: fairy, y: fairy.y - 200, alpha: 0, duration: 600, onComplete: () => fairy.destroy() });
     });
-    this.toast("SAVED BY A FAIRY", `Full health. ${s.upgrades.fairies ? `${s.upgrades.fairies} fairy left in the bottle.` : "That was your last fairy. Get more at the Kreddle Exchange."}`);
+    this.toast("SAVED BY A FAIRY", "Full health. She's spent for this dungeon: she'll be back in the bottle next time you walk in.");
   }
 
   private die() {
     if (this.dying) return;
-    if ((G.s.upgrades.fairies ?? 0) > 0 && this.player && !this.player.dead) {
+    if ((G.s.upgrades.fairies ?? 0) > 0 && !G.rt.fairyUsed && this.player && !this.player.dead) {
       this.fairyRevive();
       return;
     }

@@ -58,7 +58,7 @@ const RAIL_W = 240;
 const RAIL_X = 1500;
 const RAIL_A = 1300;
 const RAIL_P = 9000;
-const TRAIN_L = 2100;
+const TRAIN_L = 3000;
 const TRAIN_H = TRAIN_L * (29 / 221);
 const N_CLOUDS = 16;
 const N_STREAKS = 26;
@@ -102,6 +102,8 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
   let prevAx = 0;
   let t = 0;
   let white = 0;
+  /** when the next cloud is put right on your nose (a brief white-out every so often) */
+  let nextPunch = 7;
   let trainD = 22000;
   let cp = 1;
   let sp = 0;
@@ -251,6 +253,8 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
     z: number;
     size: number;
     hit: boolean;
+    /** 0..1 fade-in, so a cloud put somewhere new doesn't pop */
+    fade: number;
   }
   const clouds: Cloud[] = [];
   const placeCloud = (c: Cloud, first: boolean) => {
@@ -265,7 +269,7 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
   };
   for (let i = 0; i < (cloudKeys.length ? N_CLOUDS : 0); i++) {
     const img = keep(sc.add.image(0, 0, cloudKeys[i % cloudKeys.length]).setDepth(D + 0.3));
-    const c: Cloud = { img, x: 0, y: 0, z: 0, size: 1000, hit: false };
+    const c: Cloud = { img, x: 0, y: 0, z: 0, size: 1000, hit: false, fade: 1 };
     placeCloud(c, true);
     clouds.push(c);
   }
@@ -385,15 +389,19 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
     }
 
     // the Kreddle Express: closing as you collect, then gone in the haze when the drugs take over
-    const target = lerp(22000, 3600, clamp(f.progress, 0, 1));
+    const target = lerp(22000, 3000, clamp(f.progress, 0, 1));
     trainD = lerp(trainD, target, Math.min(1, dt * 1.2));
     const fade = clamp(f.trainFade ?? 0, 0, 1);
     const ty = camY + trainD;
     const tx = railX(ty);
     const tdx = railDX(ty);
-    const tl = Math.hypot(tdx, 1);
-    const ux = tdx / tl;
-    const uy = 1 / tl;
+    // the art is a side view, so stand it mostly broadside to you (as if the line swings across your path just there):
+    // edge-on along the track it'd be a sliver
+    const bx = 0.88 + 0.12 * (tdx / Math.hypot(tdx, 1));
+    const by = 0.12 / Math.hypot(tdx, 1);
+    const tl = Math.hypot(bx, by);
+    const ux = bx / tl;
+    const uy = by / tl;
     const ta = (1 - smooth(FAR * 0.5, FAR * 0.85, trainD)) * (1 - fade);
     if (train) {
       // corners: rear-base, nose-base (u = 1: the art's nose is on the right), rear-top, nose-top
@@ -433,7 +441,17 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
       .setPosition(clamp(mq.x, 120, SW - 120), clamp(mq.y, o.cy - 110, o.cy + 90))
       .setAlpha(ta > 0.05 && mq.zc > NEAR ? Math.min(1, ta * 1.4) * (0.75 + 0.25 * Math.sin(t * 6)) : 0);
 
-    // clouds
+    // clouds: every so often one sits dead ahead at your height, so you punch through it
+    if (t > nextPunch && clouds.length) {
+      nextPunch = t + lerp(8, 13, Math.random());
+      const c = clouds.reduce((a, b) => (b.y > a.y ? b : a));
+      c.y = camY + speed * 3.2;
+      c.x = camX + (ax * 2400 - camX) + lerp(-150, 150, Math.random());
+      c.z = alt - ay * 1100 * 1.5;
+      c.size = lerp(1800, 2600, Math.random());
+      c.hit = false;
+      c.fade = 0;
+    }
     let through = 0;
     for (const c of clouds) {
       const q = project(c.x, c.y, c.z);
@@ -449,7 +467,7 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
         .setPosition(q.x, q.y)
         .setScale(s, s * 0.8)
         .setRotation(roll)
-        .setAlpha(near * far * 0.95)
+        .setAlpha(near * far * 0.95 * (c.fade = Math.min(1, c.fade + dt * 1.2)))
         .setDepth(D + 0.3 + 0.35 * (1 - clamp(q.zc / FAR, 0, 1)));
       // inside the cloud's puff as it passes over the nose
       if (q.zc < 1600 && Math.abs(c.x - camX) < c.size * 0.42 && Math.abs(c.z - alt) < c.size * 0.22) through = Math.max(through, 1 - q.zc / 1600);

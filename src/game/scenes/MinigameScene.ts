@@ -314,10 +314,14 @@ export class MinigameScene extends Phaser.Scene {
       { her: "ok last chance to impress me 😏", opts: [["Yee. I'm a famus rapper.", 30, "say less 🔥🔥🔥"], ["I'm so famous and you're so pricks.", 6, "we?? there's one of me"], ["Yee I love you.", 20, "babe weve known each other 4 minutes… i love u too 😭"]] },
     ];
     let btns: Phaser.GameObjects.Container[] = [];
+    // the replies on offer right now, for the keyboard (1-3): they were mouse/touch only
+    let picks: (() => void)[] = [];
     const clearBtns = () => {
       btns.forEach((b) => b.destroy());
       btns = [];
+      picks = [];
     };
+    (["ONE", "TWO", "THREE"] as const).forEach((k, n) => this.input.keyboard?.on(`keydown-${k}`, () => picks[n]?.()));
     const round = (i: number) => {
       if (i >= ROUNDS.length) {
         clearBtns();
@@ -335,8 +339,7 @@ export class MinigameScene extends Phaser.Scene {
         synth.play("notify");
         const opts = Phaser.Utils.Array.Shuffle([...R.opts]);
         opts.forEach((o, k) => {
-          btns.push(
-            button(this, 480, 448 + k * 30, o[0], () => {
+          const choose = () => {
               clearBtns();
               push("SanMik_Official", o[0], "#b0c4ff");
               synth.shout("yee", 0.6);
@@ -349,8 +352,9 @@ export class MinigameScene extends Phaser.Scene {
                 else if (o[1] < 0) pop(715, "🙄");
                 this.time.delayedCall(1300, () => round(i + 1));
               });
-            }, { w: 860, h: 26, size: 12 }),
-          );
+            };
+          picks.push(choose);
+          btns.push(button(this, 480, 448 + k * 30, `${k + 1}. ${o[0]}`, choose, { w: 860, h: 26, size: 12 }));
         });
       });
     };

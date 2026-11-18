@@ -14822,6 +14822,21 @@
    "file": "vs/kcv_troll.png",
    "frameWidth": 128,
    "frameHeight": 128
+  },
+  "kcv_heropax_rugby": {
+   "file": "vs/kcv_heropax_rugby.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_heropax_gapgirl": {
+   "file": "vs/kcv_heropax_gapgirl.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_heropax_major": {
+   "file": "vs/kcv_heropax_major.png",
+   "frameWidth": 128,
+   "frameHeight": 128
   }
  },
  "vfx": {

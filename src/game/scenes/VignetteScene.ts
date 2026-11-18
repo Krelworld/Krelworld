@@ -3052,13 +3052,13 @@ export class VignetteScene extends Phaser.Scene {
       g.fillStyle(0x3d6a2a, 1).fillRect(0, 440, 960, 100);
     }
     const haze = this.add.rectangle(480, 270, 960, 540, 0xff4fd8, 0.28).setDepth(80).setBlendMode(Phaser.BlendModes.ADD);
-    // the giant pussy juice takes up exactly the space the Krel Tower is about to
+    // the Kreddle Express (or so the drugs say) sits exactly where the Krel Tower is about to be
     const tower = this.bigTower(640, 440, 9);
     tower.img.setAlpha(0);
-    const carton = this.add.image(640, 440, "p_juice").setOrigin(0.5, 1).setDepth(10);
-    carton.displayHeight = tower.h * 0.96;
-    carton.displayWidth = tower.w * 1.25;
-    const label = this.add.text(640, tower.at(0.5), "PUSSY\nJUICE", { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#ffffff", align: "center", stroke: "#b0247a", strokeThickness: 6 }).setOrigin(0.5).setDepth(11);
+    const carton = this.add.image(640, 440, this.textures.exists("p_train") ? "p_train" : "p_juice").setOrigin(0.5, 1).setDepth(10);
+    carton.displayWidth = tower.w * 2.6;
+    carton.displayHeight = (carton.displayWidth * carton.height) / carton.width;
+    const label = this.add.text(640, 440 - carton.displayHeight - 24, "THE KREDDLE EXPRESS", { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#ffffff", align: "center", stroke: "#b0247a", strokeThickness: 6 }).setOrigin(0.5).setDepth(11);
     const plane = this.airliner(150, 215, 220);
     const chute = this.chute(me, 120, 60);
     // EJECT: the seat rockets out, speed lines, and the little pink canopy pops
@@ -3068,19 +3068,19 @@ export class VignetteScene extends Phaser.Scene {
     chute.setScale(0.2);
     this.tweens.add({ targets: chute, scale: 1, duration: 450, ease: "Back.out", delay: 350, onStart: () => synth.play("pop") });
     this.tweens.add({ targets: plane, x: 300, y: tower.at(0.66), duration: 2600, ease: "Sine.inOut" });
-    await this.talk([dir("You shoot out of the roof of KR-069 on a rocket-powered seat. A little pink parachute pops open. Below you, the plane carries on, straight and true, towards the giant pussy juice.")]);
+    await this.talk([dir("You shoot out of the roof of KR-069 on a rocket-powered seat. A little pink parachute pops open. Below you, the plane carries on, straight and true, towards the Kreddle Express.")]);
     // the drugs wear off
     this.tween({ targets: haze, alpha: 0, duration: 1800 });
     this.tween({ targets: label, alpha: 0, duration: 1400 });
-    // the carton narrows into the tower's silhouette as the tower shimmers in
-    this.tween({ targets: carton, alpha: 0, displayWidth: tower.w * 0.6, duration: 1800, ease: "Sine.inOut" });
+    // the train stands up and narrows into the tower's silhouette as the tower shimmers in
+    this.tween({ targets: carton, alpha: 0, displayWidth: tower.w * 0.6, displayHeight: tower.h * 0.96, duration: 1800, ease: "Sine.inOut" });
     await this.tween({ targets: tower.img, alpha: 1, duration: 1800, ease: "Sine.inOut" });
     carton.destroy();
     this.add.text(640, 448, "THE KREL TOWER", { fontFamily: FONT, fontSize: "12px", color: "#ffffff", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5, 0).setDepth(12);
     synth.play("gasp");
     this.cameras.main.shake(400, 0.01);
     await this.talk([
-      dir("The giant pussy juice wobbles. It shimmers. It is, and possibly always was, the Krel Tower."),
+      dir("The Kreddle Express wobbles. It shimmers. It stands up on its end. It is, and possibly always was, the Krel Tower."),
       say(lad(["SCROMBUS", "KREZMAR"]), "(over the radio) Oh no!! You were hallucinating so badly from the drugs that you didn't realise you were heading straight for the Krel Tower! Noooooooooooo!"),
       say(lad(["FLENKY", "CRONGUS"]), "(over the radio) MOLLOR'S ON THE TOP FLOOR!!"),
       say(me, "…Has anyone seen the train though?"),
@@ -3532,30 +3532,33 @@ export class VignetteScene extends Phaser.Scene {
   }
 
   /**
-   * First person: steer KR-069 through eight floating pussy juice cartons, then line up the
-   * giant one. Right before you hit it, the ejector seat. Resolves with the giant's final scale.
+   * First person: keep the Kreddle Express in your sights. While it's in the crosshair you close on it; let it
+   * drift out and you lose ground. Close the gap and it's time for the ejector seat. Resolves when you eject.
    */
   private juiceFlight() {
     return new Promise<{ sx: number; sy: number }>((resolve) => {
-      const NEED = 8;
-      // the cartons roll with the plane; the cockpit doesn't
-      const world = this.add.container(480, 250).setDepth(1);
-      const objs = this.add.container(0, 0);
-      world.add(objs);
       // (a faint pink tint: the drugs are working)
       const haze = this.add.rectangle(480, 270, 960, 540, 0xff4fd8, 0.08).setDepth(15).setBlendMode(Phaser.BlendModes.ADD);
       const cockpit = this.cockpitFrame();
       const VY = cockpit.viewY;
-      world.setY(VY);
       // out of the windscreen: the sky, the countryside, the railway and the Kreddle Express on it
       const view = createFlightView(this, { cx: 480, cy: VY, depth: 0 });
       (this as unknown as { flightView?: typeof view }).flightView = view;
-      let trainFade = 0;
       const hud = this.add.text(480, 52, "", { fontFamily: "Impact, sans-serif", fontSize: "24px", color: "#ffffff", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(40);
-      const help = this.add.text(480, 86, "COLLECT THE PUSSY JUICE CONTAINERS TO REACH THE TRAIN", { fontFamily: FONT, fontSize: "15px", color: "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(40);
+      const help = this.add.text(480, 86, "AIM AT THE TRAIN. KEEP IT IN YOUR SIGHTS TO CLOSE IN.", { fontFamily: FONT, fontSize: "15px", color: "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(40);
       this.add.text(480, VY + 52, "WASD / ARROWS (or drag) to steer", { fontFamily: FONT, fontSize: "11px", color: "#86efac" }).setOrigin(0.5).setDepth(41);
+      // the lock-on bar
+      const barBg = this.add.rectangle(480, 116, 300, 12, 0x000000, 0.6).setStrokeStyle(2, 0xffffff, 0.8).setDepth(40);
+      const bar = this.add.rectangle(331, 116, 0, 8, 0x86efac).setOrigin(0, 0.5).setDepth(41);
+      void barBg;
       const cross = this.add.graphics().setDepth(30);
-      cross.lineStyle(3, 0x86efac, 0.9).strokeCircle(0, 0, 22).lineBetween(-34, 0, -12, 0).lineBetween(12, 0, 34, 0).lineBetween(0, -34, 0, -12).lineBetween(0, 12, 0, 34);
+      const drawCross = (on: boolean) => {
+        cross.clear();
+        const col = on ? 0xff4d4d : 0x86efac;
+        cross.lineStyle(3, col, 0.9).strokeCircle(0, 0, 22).lineBetween(-34, 0, -12, 0).lineBetween(12, 0, 34, 0).lineBetween(0, -34, 0, -12).lineBetween(0, 12, 0, 34);
+        if (on) cross.lineStyle(2, col, 0.7).strokeRect(-40, -40, 80, 80);
+      };
+      drawCross(false);
       const keys = this.input.keyboard?.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE,E") as Record<string, Phaser.Input.Keyboard.Key>;
       let ax = 0;
       let ay = 0;
@@ -3571,23 +3574,16 @@ export class VignetteScene extends Phaser.Scene {
       this.input.on("pointerdown", onDown);
       this.input.on("pointermove", onMove);
       this.input.on("pointerup", onUp);
-      type Obj = { c: Phaser.GameObjects.Container; ox: number; oy: number; z: number; giant: boolean };
-      const live: Obj[] = [];
-      let got = 0;
-      let phase: "collect" | "giant" | "eject" | "done" = "collect";
-      let nextSpawn = 600;
+      let phase: "chase" | "eject" | "done" = "chase";
+      let lock = 0;
+      let wasOn = false;
+      let lastBeep = 0;
       let t = 0;
-      const spawn = (giant: boolean) => {
-        const img = this.add.image(0, 0, "p_juice");
-        const lbl = this.add.text(0, 6, "PUSSY\nJUICE", { fontFamily: "Impact, sans-serif", fontSize: "9px", color: "#ffffff", align: "center", stroke: "#b0247a", strokeThickness: 2 }).setOrigin(0.5);
-        const c = this.add.container(0, 0, [img, lbl]);
-        objs.addAt(c, 0);
-        live.push({ c, ox: giant ? 0 : Phaser.Math.FloatBetween(-0.85, 0.85), oy: giant ? 0.1 : Phaser.Math.FloatBetween(-0.6, 0.6), z: 1, giant });
-      };
       const ejectPrompt = () => {
         phase = "eject";
         synth.play("alarm");
         help.setText("");
+        hud.setText("");
         const p = title(this, 480, 230, "⚠ HIT THE EJECTOR SEAT ⚠", 36, "#ff4d4d").setDepth(60);
         const b = this.add.text(480, 300, "PARACHUTE TO FREEDOM  [ E / SPACE / TAP ]", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#ffffff", backgroundColor: "#b91c1c", padding: { x: 14, y: 8 } }).setOrigin(0.5).setDepth(60).setInteractive({ useHandCursor: true });
         this.tweens.add({ targets: [p, b], scale: { from: 1, to: 1.08 }, yoyo: true, repeat: -1, duration: 300 });
@@ -3600,9 +3596,8 @@ export class VignetteScene extends Phaser.Scene {
           this.input.off("pointerup", onUp);
           this.input.keyboard?.off("keydown-E", go);
           this.input.keyboard?.off("keydown-SPACE", go);
-          const g = live.find((o) => o.giant);
           view.destroy();
-          resolve({ sx: g ? g.c.scaleX * 0.25 : 3, sy: g ? g.c.scaleY * 0.25 : 9 });
+          resolve({ sx: 3, sy: 9 });
         };
         b.on("pointerdown", go);
         this.input.keyboard?.once("keydown-E", go);
@@ -3622,60 +3617,42 @@ export class VignetteScene extends Phaser.Scene {
             if (keys.W.isDown || keys.UP.isDown) ay -= sp;
             if (keys.S.isDown || keys.DOWN.isDown) ay += sp;
           }
-          // test hook: steer at the nearest carton
-          if ((window as unknown as { __krelAutoFly?: boolean }).__krelAutoFly && live.length) {
-            const o = live.reduce((a, b) => (b.z < a.z ? b : a));
-            ax += Phaser.Math.Clamp(o.ox - ax, -sp, sp);
-            ay += Phaser.Math.Clamp(o.oy - ay, -sp, sp);
+          const st = view.state;
+          // test hook: steer at the train
+          if ((window as unknown as { __krelAutoFly?: boolean }).__krelAutoFly && st.trainOn) {
+            ax += Phaser.Math.Clamp((st.trainX - 480) / 400, -sp, sp);
+            ay += Phaser.Math.Clamp((st.trainY - VY) / 400, -sp, sp);
           }
           ax = Phaser.Math.Clamp(ax, -1, 1);
           ay = Phaser.Math.Clamp(ay, -1, 1);
-          // the view out of the windscreen banks and pitches with you (the drugs make it wobble); the cartons roll with it
-          if (phase === "giant") trainFade = Math.min(1, trainFade + 0.012);
-          view.update({ ax, ay, dt: 16, progress: phase === "collect" ? got / NEED : 1, trainFade });
-          world.setRotation(view.roll);
+          // the view out of the windscreen banks and pitches with you; you close on the train as the lock builds
+          view.update({ ax, ay, dt: 16, progress: phase === "chase" ? lock : 1, trainFade: 0 });
           cross.setPosition(480, VY);
           cockpit.update(ax, ay, t);
           const c2 = Phaser.Display.Color.HSVToRGB(((t / 60) % 360) / 360, 0.35, 1) as Phaser.Types.Display.ColorObject;
           haze.setFillStyle((c2.r << 16) | (c2.g << 8) | c2.b, 0.07 + 0.03 * Math.sin(t / 300));
-          // spawning
-          if (phase === "collect" && t > nextSpawn && live.filter((o) => !o.giant).length < 3) {
-            spawn(false);
-            nextSpawn = t + 1100;
+          if (phase !== "chase") return;
+          // on target: the train's middle inside the sights (a bit of give, more as it gets bigger)
+          const near = 70 + lock * 60;
+          const on = st.trainOn && Math.abs(st.trainX - 480) < near && Math.abs(st.trainY - VY) < near * 1.6;
+          lock = Phaser.Math.Clamp(lock + (on ? 0.0016 : -0.0005), 0, 1);
+          if (on !== wasOn) {
+            drawCross(on);
+            if (on) synth.play("select");
+            wasOn = on;
           }
-          // move everything towards you
-          for (const o of [...live]) {
-            o.z -= o.giant ? (o.z < 0.14 ? 0 : 0.0032) : 0.0075;
-            const zz = o.z * 3 + 0.25;
-            const sx = ((o.ox - ax) * 420) / zz;
-            const sy = ((o.oy - ay) * 300) / zz;
-            const s = (o.giant ? 2.6 : 1.7) / zz;
-            o.c.setPosition(sx, sy).setScale(s, o.giant ? s * 2.6 : s);
-            if (o.giant) {
-              // the giant one holds still while you line it up, then the ejector seat
-              if (phase === "giant" && o.z < 0.14) ejectPrompt();
-              continue;
-            }
-            if (o.z <= 0.06) {
-              if (Math.abs(o.ox - ax) < 0.22 && Math.abs(o.oy - ay) < 0.24) {
-                got++;
-                synth.play("slurp");
-                this.cameras.main.flash(150, 255, 120, 220);
-                const pop = this.add.text(480, VY + 80, ["SLURP!", "JUICY!", "LOVELY!", "MMMM!", "GET IN!"][got % 5], { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#ff9ad5", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(50);
-                this.tweens.add({ targets: pop, y: VY + 40, alpha: 0, duration: 700, onComplete: () => pop.destroy() });
-              } else synth.play("pfft");
-              o.c.destroy();
-              live.splice(live.indexOf(o), 1);
-            }
+          if (on && t - lastBeep > 420 - lock * 300) {
+            lastBeep = t;
+            synth.play("monbeep");
           }
-          hud.setText(phase === "collect" ? `PUSSY JUICE ${got}/${NEED}` : "");
-          if (phase === "collect" && got >= NEED) {
-            phase = "giant";
-            for (const o of live) o.c.destroy();
-            live.length = 0;
+          bar.width = 298 * lock;
+          bar.setFillStyle(on ? 0xff4d4d : 0x86efac);
+          hud.setText(on ? `ON TARGET  ${Math.round(lock * 100)}%` : lock > 0 ? `OFF TARGET  ${Math.round(lock * 100)}%` : "FIND THE TRAIN");
+          help.setText(on ? "HOLD IT THERE…" : "AIM AT THE TRAIN. KEEP IT IN YOUR SIGHTS TO CLOSE IN.");
+          if (lock >= 1) {
             synth.play("perfect");
-            help.setText("COLLECT THE GIANT PUSSY JUICE TO GET THE TRAIN!").setFontSize(20).setColor("#ff4fd8");
-            spawn(true);
+            help.setText("");
+            ejectPrompt();
           }
         },
       });

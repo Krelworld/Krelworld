@@ -134,6 +134,18 @@ export const KZ_LANDED: Line[] = [
 
 export const KZ_FINISH = ["GROUP…", "KREEEEEEEEEEEZZZZZZ!!!"];
 
+/**
+ * The GROUP KREZZ cinematic's on-screen captions, in order (timed to its music, gw_krezz): they lock eyes, the krezz
+ * goes round the lads, the count, the release (KZ_FINISH), the pop, and the quiet after.
+ */
+export const KZ_CINE = {
+  eyes: "EVERY LAD. ONE LOOK.",
+  dawn: "HE KNOWS.",
+  charge: ["THE KREZZ GOES ROUND…", "AND ROUND…", "AND ROUND!!"],
+  count: ["THREE!", "TWO!", "ONE!"],
+  quiet: "THE RAIN STOPS.",
+};
+
 export const KZ_AFTER: Line[] = [
   dir("Where his head was, there is a fine golden mist, and nothing else. The rest of Dark Drongus stands there for a very long second. Then it sits down."),
   say("KREZMAR", "…did we just do that?", { cond: { notPlayer: "KREZMAR" } }),

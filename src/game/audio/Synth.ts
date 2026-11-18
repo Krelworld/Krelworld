@@ -113,6 +113,8 @@ export const MUSIC_FILES: Record<string, string> = {
   c7_concept: "audio/c7_concept.mp3",
   c7_spirit: "audio/c7_spirit.mp3",
   fe_clash: "audio/fe_clash.mp3",
+  gw_anthem: "audio/gw_anthem.mp3",
+  gw_krezz: "audio/gw_krezz.mp3",
   // the super saiyan brawl in the sky (Krelford finale)
   fe_brawl: "audio/fe_brawl.mp3",
   c7_transform: "audio/c7_transform.mp3",
@@ -212,7 +214,7 @@ const MUSIC_START: Record<string, number> = { sanmik: 16.8 };
 const LOOP_FROM_START = new Set(["sanmik"]);
 
 /** Songs that should play once rather than loop. */
-const ONE_SHOT = new Set(["c6e_aftermath", "c6a_raid_title", "c6a_nuke_arm", "dungeon_rise", "crystal", "viral", "crobley", "majek_lampe", "anthem", "bbp", "twitcher", "crocodile", ...Array.from({ length: 13 }, (_, i) => `ggg${i + 1}`)]);
+const ONE_SHOT = new Set(["gw_krezz", "c6e_aftermath", "c6a_raid_title", "c6a_nuke_arm", "dungeon_rise", "crystal", "viral", "crobley", "majek_lampe", "anthem", "bbp", "twitcher", "crocodile", ...Array.from({ length: 13 }, (_, i) => `ggg${i + 1}`)]);
 
 type Wave = OscillatorType;
 

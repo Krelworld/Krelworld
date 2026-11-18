@@ -1,3 +1,5 @@
+import { keysFor, prettyKey } from "../systems/keybinds";
+import { isTouchDevice } from "../ui/TouchControls";
 import { JUKEBOX } from "../../content/jukebox";
 import { KR_BRICK_ABUSE, KR_BRICK_AFTER, KR_BRICK_HIT, KR_BRICK_LOOK, KR_BRICK_QUIET, KR_BRICK_WINDOW, KR_HOME } from "../../content/krunchers";
 import Phaser from "phaser";
@@ -489,6 +491,9 @@ export class HomeScene extends Phaser.Scene {
       dir("The Supreme Leader, DRONGUS B. DRIPPIN', writes the lore. Krelworld runs on lore. Without lore, everything may sadly explode."),
       dir(`And you are ${me.name}${me.aka ? `, ${me.aka}` : ""}: ${role} in Drongus's cabinet. You have to turn up to many important meetings to govern this most crazy of universes, and keep the peace. But today, you wake up with the feeling that something might be about to go wrong..in a very sad yet upsetting way.`),
       dir("TIP: WASD / arrows (or the stick) to walk. E to use things. Have a look round: the telly works, the bed saves your game."),
+      ...(s.player === "MIKEY"
+        ? [dir(`TIP: You can become SANMIK whenever you like. Press ${prettyKey(keysFor("sanmik")[0] ?? "V")}${isTouchDevice(this.game) ? " (or the SANMIK button)" : ""} and you're SanMik: afro, shades, drawn-on goatee, and a big YEE. Press it again to go back to being you.`)]
+        : []),
       say(s.player, "Right. There's a cabinet meeting at the Town Hall later. Something about 'appreciating content'. But first…"),
       dir("Why not watch some lovely TV? (The telly's on the left. Walk up to it and press E.)"),
     ];

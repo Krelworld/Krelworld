@@ -132,6 +132,9 @@ export function bindSanmikToggle(scene: Phaser.Scene, opts: SanmikToggleOpts) {
       sanmikPuff(scene, spr, on);
     }
     opts.onSwap?.(on);
+    // becoming SanMik: a big YEE
+    const first = opts.sprites().find((sp) => sp?.active);
+    if (on && first) sanmikYee(scene, first.x, first.y - first.displayHeight * 0.75, { size: 44 });
     if (on && !G.s.flags.sanmik_tip) {
       G.s.flags.sanmik_tip = true;
       G.emit("toast", { title: "SANMIK", text: `Afro, shades, drawn-on goatee, shirt open. Same Mikey underneath. ${prettyKey(keysFor("sanmik")[0] ?? "V")} to change back.` });

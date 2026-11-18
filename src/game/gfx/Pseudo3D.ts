@@ -691,7 +691,21 @@ export class Stage3D {
  * Snapshot a top-down scene's world into a set: everything flat (floors, roads, graphics) into one ground texture,
  * every tall image/sprite into a board atlas (the flyover's trick). The source scene is left as it is.
  */
-export function snapshotWorld(st: Stage3D, src: Phaser.Scene, o: { worldW: number; worldH: number; skip?: Phaser.GameObjects.GameObject[]; scale?: number; maxDepth?: number; minBoardH?: number; light?: number }) {
+export function snapshotWorld(
+  st: Stage3D,
+  src: Phaser.Scene,
+  o: {
+    worldW: number;
+    worldH: number;
+    skip?: Phaser.GameObjects.GameObject[];
+    scale?: number;
+    maxDepth?: number;
+    minBoardH?: number;
+    light?: number;
+    /** images that aren't in the scene (make them off the display list) to stand up with the world's boards, in the same mesh so they sort with them; their boards come back in `extra` */
+    extra?: Phaser.GameObjects.Image[];
+  },
+) {
   const skipSet = new Set(o.skip ?? []);
   const maxDepth = o.maxDepth ?? 3000;
   const world = (src.children.list as Phaser.GameObjects.GameObject[]).filter((g) => {
@@ -715,7 +729,8 @@ export function snapshotWorld(st: Stage3D, src: Phaser.Scene, o: { worldW: numbe
   ground.fill(0x2a2a2a);
   ground.draw(order.filter((e) => !isBoard(e.g) && e.g.type !== "Text").map((e) => e.g));
   ground.setFilter(Phaser.Textures.FilterMode.LINEAR);
-  const bObjs = order.filter((e) => isBoard(e.g)).map((e) => e.g as Phaser.GameObjects.Image);
+  const bObjs = [...(o.extra ?? []), ...order.filter((e) => isBoard(e.g)).map((e) => e.g as Phaser.GameObjects.Image)];
+  const extra: (Board3D | undefined)[] = [];
   const AW = 2048;
   let BS = 1;
   const pack = (scale: number) => {
@@ -752,12 +767,14 @@ export function snapshotWorld(st: Stage3D, src: Phaser.Scene, o: { worldW: numbe
     let u0 = a.x / AW;
     let u1 = (a.x + a.w) / AW;
     if (im.flipX) [u0, u1] = [u1, u0];
-    boards.push(st.board({ x: left + im.displayWidth / 2, y: top + im.displayHeight, hw: im.displayWidth / 2, h: im.displayHeight, u0, u1, v0: a.y / AH, v1: (a.y + a.h) / AH }));
+    const bd = st.board({ x: left + im.displayWidth / 2, y: top + im.displayHeight, hw: im.displayWidth / 2, h: im.displayHeight, u0, u1, v0: a.y / AH, v1: (a.y + a.h) / AH });
+    boards.push(bd);
+    if (i < (o.extra?.length ?? 0)) extra[i] = bd;
   });
   atlas.setFilter(Phaser.Textures.FilterMode.LINEAR);
   st.addGround({ key: gKey, rt: true, x0: 0, y0: 0, x1: o.worldW, y1: o.worldH, cols: 30, rows: 22, depth: 2, color: o.light ?? 0xffffff });
   st.addAtlas(bKey, boards, 4, o.light);
-  return { boards };
+  return { boards, extra };
 }
 
 // ------------------------------------------------------------------------------------------------ playing a shot

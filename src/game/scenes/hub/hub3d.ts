@@ -111,12 +111,11 @@ export function riseShot(
       const { st, sc, calm } = c;
       st.maxLean = 80;
       // a storm over the town, in the middle of the day
-      const mood = { light: 0x8c84a8, fog: 0x3b3150 };
+      const mood = { light: 0x9890b4, fog: 0x4a3f62 };
       st.light = mood.light;
-      st.fog = { color: mood.fog, start: 900, span: 5200, max: 0.75 };
-      st.setSky({ top: 0x120c1e, horizon: 0x5b4466, below: 0x2a2232 });
-      st.addGround({ x0: -9000, y0: -9000, x1: o.worldW + 9000, y1: o.worldH + 9000, cols: 9, rows: 9, color: 0x2c3a26, depth: 1 });
-      snapshotWorld(st, hub, { worldW: o.worldW, worldH: o.worldH, skip: o.skip });
+      st.fog = { color: mood.fog, start: 1100, span: 6000, max: 0.6 };
+      st.setSky({ top: 0x1e1430, horizon: 0x6e5480, below: 0x2a1a36 });
+      st.addGround({ x0: -9000, y0: -9000, x1: o.worldW + 9000, y1: o.worldH + 9000, cols: 9, rows: 9, color: 0x24122f, depth: 1 });
       // the cracks, spreading (flat on the ground, under everything standing)
       const cracks = [0.35, 0.65, 1].map((r, i) => crackTexture(c, `crack${i}`, r, `kcrack${i}`));
       const pit = st.key("pit");
@@ -137,19 +136,20 @@ export function riseShot(
         3,
       );
       for (const f of flats) f.alpha = 0;
-      // the tower (under the town's boards: the Town Hall in front of it stays in front of it)
-      const tSpecs: BoardSpec[] = [];
-      if (sc.textures.exists(o.key)) tSpecs.push({ key: o.key, x: X, y: Y, w: TW, h: TH });
-      else {
-        const k = st.key("spike");
+      // the tower, stood up with the town's boards (so what's in front of it stays in front of it)
+      let tKey = o.key;
+      if (!sc.textures.exists(tKey)) {
+        tKey = st.key("spike");
         const g = sc.make.graphics({}, false);
         g.fillStyle(0x1c1424, 1).fillRect(20, 60, 88, 196).fillTriangle(10, 64, 118, 64, 64, 0);
         g.fillStyle(0xff2d95, 1).fillRect(56, 120, 16, 24);
-        g.generateTexture(k, 128, 256);
+        g.generateTexture(tKey, 128, 256);
         g.destroy();
-        tSpecs.push({ key: k, x: X, y: Y, w: TW, h: TH });
       }
-      const [tower] = st.addBoards(tSpecs, 3.9);
+      const tImg = sc.make.image({ x: X, y: Y, key: tKey }, false).setOrigin(0.5, 1).setDisplaySize(TW, TH);
+      const snap = snapshotWorld(st, hub, { worldW: o.worldW, worldH: o.worldH, skip: o.skip, extra: [tImg] });
+      tImg.destroy();
+      const tower = snap.extra[0] ?? st.addBoards([{ key: tKey, x: X, y: Y, w: TW, h: TH }], 3.9)[0];
       tower.cut = 1;
       tower.dz = -TH;
       // rocks and clods, flung up as each floor bursts through
@@ -247,11 +247,11 @@ export function riseShot(
       const shakeK = calm ? 0.3 : 1;
       // the camera: an orbit (degrees round from due south), then up and over onto the live view
       const orbitPose = (t: number, top: number, amp: number): Pose => {
-        const a = t < T_RISE ? lerp(128, 100, ease(t / T_RISE)) : lerp(100, 34, ease((t - T_RISE) / (T_SETTLE - T_RISE)));
-        const rise = span(t, T_RISE, T_UP + 0.6);
-        const dist = lerp(620, 1500, rise);
-        const z = lerp(40, TH * 0.5, rise);
-        const lookZ = Math.max(60, lerp(40, top * 0.62, rise));
+        const a = t < T_RISE ? lerp(150, 118, ease(t / T_RISE)) : lerp(118, 52, ease((t - T_RISE) / (T_SETTLE - T_RISE)));
+        const rise = span(t, T_RISE - 0.4, T_UP + 0.8);
+        const dist = lerp(430, 700, rise) + 90 * span(t, T_UP, T_SETTLE);
+        const z = lerp(50, TH * 0.3, rise);
+        const lookZ = Math.max(30, lerp(20, Math.max(top * 0.52, TH * 0.15), rise));
         const jx = (Math.sin(t * 53) + Math.sin(t * 31)) * amp * 0.5;
         const jz = (Math.sin(t * 47 + 1) + Math.sin(t * 29)) * amp * 0.4;
         return lookAt({ x: X + Math.sin(a * DEG) * dist, y: Y + Math.cos(a * DEG) * dist, z }, { x: X + jx, y: Y, z: lookZ + jz }, Math.sin(t * 0.8) * 1.5 + Math.sin(t * 61) * amp * 0.01);
@@ -280,6 +280,9 @@ export function riseShot(
         flats[2].alpha = span(t, T_CRACK + 0.9, T_CRACK + 1.3);
         flats[3].alpha = span(t, T_CRACK + 1.7, T_CRACK + 2.1);
         flats[0].alpha = span(t, T_RISE - 0.3, T_RISE + 0.3);
+        // (and fade off as we come down onto the live town, which has none)
+        const gone = 1 - span(t, T_SETTLE - 0.4, T_SETTLE + SETTLE * 0.6);
+        for (const f of flats) f.alpha *= gone;
         hot.alpha = 0.5 * span(t, T_CRACK, T_RISE) * (1 - span(t, T_UP, T_UP + 1)) * (0.8 + 0.2 * Math.sin(t * 9));
         // the tower: up a floor at a time, each one a shove (and a little drop back), shuddering in between
         let up = 0;
@@ -313,12 +316,12 @@ export function riseShot(
           if (lt < 0) continue;
           const life = p.big ? 3.2 : 1.6;
           const k = easeOut3(lt / life);
-          const rr = p.r + (p.big ? 900 : 260) * k;
+          const rr = p.r + (p.big ? 520 : 200) * k;
           p.s.x = X + Math.cos(p.a) * rr;
           p.s.y = Y + Math.sin(p.a) * rr * 0.6;
-          p.s.z = 20 + (p.big ? 140 : 90) * k;
-          p.s.size = (p.big ? 280 : 150) + (p.big ? 520 : 260) * k;
-          p.s.alpha = clamp(lt / 0.2, 0, 1) * (p.big ? 0.65 : 0.55) * (1 - span(lt, life * 0.45, life));
+          p.s.z = 15 + (p.big ? 60 : 70) * k;
+          p.s.size = (p.big ? 150 : 110) + (p.big ? 220 : 160) * k;
+          p.s.alpha = clamp(lt / 0.2, 0, 1) * (p.big ? 0.4 : 0.45) * (1 - span(lt, life * 0.3, life));
         }
         // the shake: a constant grind, and every floor kicks it
         let amp = (t < T_CRACK ? 2 : 6) * (t < T_UP + 1 ? 1 : 0);
@@ -330,7 +333,7 @@ export function riseShot(
         // the light clears to the town's as we come down onto it
         const clear = span(t, T_SETTLE, length);
         st.light = mixC(mood.light, 0xffffff, clear);
-        st.fog = { ...st.fog, max: 0.75 * (1 - clear) };
+        st.fog = { ...st.fog, max: 0.6 * (1 - clear) };
         if (t < T_SETTLE) return orbitPose(t, top, amp);
         settleFrom ??= orbitPose(T_SETTLE, top, 0);
         const k = clamp((t - T_SETTLE) / SETTLE, 0, 1);

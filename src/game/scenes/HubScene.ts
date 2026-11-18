@@ -4258,15 +4258,16 @@ You are required by law to sign the Sex Offenders Register.`, {
     const cit = BUILDINGS.find((x) => x.id === "CITADEL")!;
     let drifted = false;
     if (can3d(this)) {
+      // (the first line is still on the white)
+      await talk(FD_WAKE_FIRST);
+      if (over) return;
       const smoke = BUILDINGS.filter((x) => x.id !== "CITADEL").map((x) => ({ x: x.x, y: x.y + x.h * 0.3 }));
       await dawnShot(this, { worldW: WORLD_W, worldH: WORLD_H, wreck: { x: cit.x, y: cit.y + cit.h / 2 + 20 }, smoke, end, skip: [this.prompt, this.arrow], onCovered: () => (cam.centerOn(end.x, end.y), white.setAlpha(0), (drifted = true)) });
       if (over || !this.sys.isActive()) return;
     }
-    if (drifted) {
-      white.destroy();
-      await talk(FD_WAKE_FIRST);
-    } else {
-      await talk(FD_WAKE_FIRST);
+    if (drifted) white.destroy();
+    else {
+      if (!can3d(this)) await talk(FD_WAKE_FIRST);
       this.tweens.add({ targets: white, alpha: 0, duration: 4500, ease: "Sine.in", onComplete: () => white.destroy() });
       await wait(4200);
     }

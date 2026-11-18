@@ -167,7 +167,17 @@ export class UIScene extends Phaser.Scene {
     const list = weaponList(s);
     const i = Math.max(0, list.findIndex((w) => w.id === (s.gun ?? null)));
     this.weaponCard?.destroy();
-    const c = this.add.container(480, 430).setDepth(900);
+    // in the run'n'gun rooms the action fills the screen: a small, see-through card on the half the player isn't in
+    const dun = this.scene.get("Dungeon") as unknown as { side?: boolean; player?: { spr?: Phaser.GameObjects.Sprite }; cameras?: Phaser.Cameras.Scene2D.CameraManager } | null;
+    const rng = !!(dun && this.scene.isActive("Dungeon") && dun.side);
+    let cy = 430;
+    if (rng) {
+      const spr = dun!.player?.spr;
+      const cam = dun!.cameras?.main;
+      const py = spr && cam ? (spr.y - cam.worldView.y) * cam.zoom : 400;
+      cy = py < 300 ? 470 : 150;
+    }
+    const c = this.add.container(480, cy).setDepth(900);
     this.weaponCard = c;
     c.add(this.add.rectangle(0, 0, 440, 92, 0x0b1220, 0.9).setStrokeStyle(3, 0x67e8f9));
     const side = (k: number, x: number) => {
@@ -185,10 +195,11 @@ export class UIScene extends Phaser.Scene {
     c.add(weaponIcon(this, -70, 0, w, 58));
     c.add(this.add.text(-30, -16, w.name.toUpperCase(), { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#ffffff", wordWrap: { width: 160 } }).setOrigin(0, 0.5));
     c.add(this.add.text(-30, 14, ammoLabel(w), { fontFamily: FONT, fontSize: "13px", color: "#facc15", fontStyle: "bold" }).setOrigin(0, 0.5));
-    c.add(this.add.text(0, 54, "TAP SWAP: next · HOLD SWAP: choose", { fontFamily: FONT, fontSize: "10px", color: "#94a3b8", backgroundColor: "#0b1220cc", padding: { x: 4, y: 1 } }).setOrigin(0.5));
-    c.setScale(0.85).setAlpha(0);
-    this.tweens.add({ targets: c, scale: 1, alpha: 1, duration: 120, ease: "Back.out" });
-    this.tweens.add({ targets: c, alpha: 0, delay: 1400, duration: 300, onComplete: () => {
+    if (!rng) c.add(this.add.text(0, 54, "TAP SWAP: next · HOLD SWAP: choose", { fontFamily: FONT, fontSize: "10px", color: "#94a3b8", backgroundColor: "#0b1220cc", padding: { x: 4, y: 1 } }).setOrigin(0.5));
+    const full = rng ? 0.62 : 1;
+    c.setScale(full * 0.85).setAlpha(0);
+    this.tweens.add({ targets: c, scale: full, alpha: rng ? 0.8 : 1, duration: 120, ease: "Back.out" });
+    this.tweens.add({ targets: c, alpha: 0, delay: rng ? 800 : 1400, duration: rng ? 220 : 300, onComplete: () => {
       if (this.weaponCard === c) this.weaponCard = null;
       c.destroy();
     } });

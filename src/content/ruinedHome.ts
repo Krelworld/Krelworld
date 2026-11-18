@@ -3,12 +3,12 @@ import type { Line } from "../data/types";
 
 /**
  * Chapter 7, after Krelford is bombed: what's left of your house. Everything still works amongst the rubble,
- * there's a pussy juice stash in the wreckage, and Tracy (who's been living under your stairs since the bombing,
+ * there's a pussy juice stash in the wreckage, and Donna (who's been living under your stairs since the bombing,
  * with a shopping trolley full of supplies) is up for a squeeze. Used by HomeScene's ruined variant (scenes/home/ruinedHome.ts).
  */
 
 /** The squeezer sheltering in the wreckage. */
-export const RUIN_WOMAN = "TRACY";
+export const RUIN_WOMAN = "DONNA";
 
 /** Walking in for the first time. */
 export const RUIN_ARRIVE: Line[] = [
@@ -17,7 +17,7 @@ export const RUIN_ARRIVE: Line[] = [
   say(RUIN_WOMAN, "Oh thank God, it's you. Don't shoot. I've been under your stairs since the bombs. I brought my trolley."),
 ];
 
-/** Tracy, when you walk up to her. */
+/** Donna, when you walk up to her. */
 export const RUIN_WOMAN_HI: Line[] = [
   "Alright, love. Still alive, then. Before you go up that hill: this might be the last squeeze in Krelford.",
   "Everyone I know is ash, love. Golden juice, for the road. It's what they'd have wanted.",

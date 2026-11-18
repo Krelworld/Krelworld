@@ -12,7 +12,7 @@ import { RUIN_STASH_FILL, RUIN_STASH_FULL, RUIN_WOMAN, RUIN_WOMAN_HI } from "../
 /**
  * Chapter 7, after the Krunch Protocol: your house is a wreck, but you can still walk in. Same room, same furniture,
  * every interactable still works; it's dressed as a bomb site (scorched, rubble, a hole in the roof with the burning sky
- * through it, smoke, embers and dust), with a pussy juice stash in the rubble and Tracy sheltering in the wreckage.
+ * through it, smoke, embers and dust), with a pussy juice stash in the rubble and Donna sheltering in the wreckage.
  */
 
 /** Is home a ruin right now? (The same rule as the ruined town in HubScene.) */
@@ -141,7 +141,7 @@ export function dressRuin(scene: Phaser.Scene, bg: Phaser.GameObjects.Image | nu
   }
 }
 
-/** The juice stash in the rubble and Tracy, sheltering in the wreckage. */
+/** The juice stash in the rubble and Donna, sheltering in the wreckage. */
 export function addRuinSpots(scene: Phaser.Scene, addSpot: (s: Spot) => void, talk: (lines: Line[]) => Promise<void>, me: () => Phaser.GameObjects.Sprite) {
   const has = (k: string) => scene.textures.exists(k);
   // --- the pussy juice stash: an army crate half under the plaster, cartons on top, glowing pink
@@ -176,7 +176,7 @@ export function addRuinSpots(scene: Phaser.Scene, addSpot: (s: Spot) => void, ta
       await talk([dir(RUIN_STASH_FILL)]);
     },
   });
-  // --- Tracy, with her trolley, between the bed and the door
+  // --- Donna, with her trolley, between the bed and the door
   const TX = 700;
   const TY = 504;
   const tex = has("spr_TV_MARY") ? "spr_TV_MARY" : "spr_FOLK1";

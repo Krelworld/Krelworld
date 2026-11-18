@@ -8240,6 +8240,9 @@
   "kp_goo": {
    "file": "krel/kp_goo.png"
   },
+  "kp_lump": {
+   "file": "krel/kp_lump.png"
+  },
   "kp_gutpile": {
    "file": "krel/kp_gutpile.png"
   },

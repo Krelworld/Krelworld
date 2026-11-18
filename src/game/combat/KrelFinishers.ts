@@ -1097,8 +1097,17 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         act.idle();
         block.setVisible(true).setPosition(hx, hy - 10);
         toss(block, dir * 120, -220, hy + 10, 400, () => synth.play("smash"));
-        const lump = keep(sc.add.circle(hx, hy - hr * 0.6, 4, 0xfda4af).setStrokeStyle(1, 0x9f1239).setDepth(D + 6));
-        sc.tweens.add({ targets: lump, radius: hr * 0.35, duration: 500, ease: "Back.out" });
+        // drawn (PixelLab): a cartoon bump swelling up out of the top of the head
+        const lumpArt = prop(sc, "kp_lump", hx, hy - hr * 0.4, { w: hr * 0.85, oy: 1, depth: D + 6 });
+        if (lumpArt) {
+          keep(lumpArt);
+          const ls = lumpArt.scaleX;
+          lumpArt.setScale(ls * 0.15);
+          sc.tweens.add({ targets: lumpArt, scale: ls, duration: 500, ease: "Back.out" });
+        } else {
+          const lump = keep(sc.add.circle(hx, hy - hr * 0.6, 4, 0xfda4af).setStrokeStyle(1, 0x9f1239).setDepth(D + 6));
+          sc.tweens.add({ targets: lump, radius: hr * 0.35, duration: 500, ease: "Back.out" });
+        }
         c.fx("vfx_stars", hx, hy - hr, 1, { depth: D + 7 });
         await c.wait(900);
         card();

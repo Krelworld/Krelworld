@@ -1,7 +1,8 @@
+import { shinyPickup, trailPropScale } from "../gfx/shiny";
 import { isTouchDevice } from "../ui/TouchControls";
 import { keysFor, prettyKey } from "../systems/keybinds";
 import { carriesCrystal, crystalCount, CRYSTALS_NEEDED, CRYSTAL_BOSSES } from "../systems/crystals";
-import { squeeze } from "../systems/squeeze";
+import { preview, squeeze } from "../systems/squeeze";
 import Phaser from "phaser";
 import { bindSanmikToggle } from "../gfx/sanmikForm";
 import { SANMIK_FLAG } from "../systems/sanmik";
@@ -2670,7 +2671,51 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     await this.talk(txt.outro);
     await this.maybeKreltality(b);
     await this.crystalGet(b);
+    // the end of Chapter 1: the first taste of golden juice (the strippers at the Wonky Pole sell squeezes after this)
+    if (b.bossId === "krandall" && !G.s.flags.golden_found) await this.goldenJuiceFind(b);
     this.completeChapter(b.bossId);
+  }
+
+  /** After Krandall: a bottle of golden pussy juice rolls out from where he fell. Drink it: the transformation, explained. */
+  private goldenJuiceFind(b: Boss): Promise<void> {
+    return new Promise<void>((resolve) => {
+      const s = G.s;
+      const x = Phaser.Math.Clamp(b.x, 80, this.room.w - 80);
+      const y = this.side ? this.groundY - 30 : Phaser.Math.Clamp(b.y + 30, 120, this.room.h - 90);
+      const tex = this.textures.exists("p_juice") ? "p_juice" : this.textures.exists("p_bottle") ? "p_bottle" : "p_scroll";
+      const shine = shinyPickup(this, x, y, tex, { scale: trailPropScale(this, tex, 46), halo: 0xfde047, glow: 0xfff3a0, rays: 0xffe680, twinkle: 0xfff7c2, tag: "✦ GOLDEN JUICE" });
+      shine.img.setTint(0xffd23f);
+      this.busy = false;
+      this.toast("WHAT'S THAT?", "Something golden rolled out from under Krandall. Go and look.");
+      const it: Interactable = {
+        x,
+        y,
+        r: 70,
+        label: "Drink the golden pussy juice",
+        use: async () => {
+          this.interactables = this.interactables.filter((q) => q !== it);
+          this.busy = true;
+          shine.destroy();
+          await this.talk([
+            dir("Rolling out from under Krandall's coat: a little glass bottle of something GOLDEN. It's warm. It's glowing. The label, in Krandall's handwriting, says GOLDEN PUSSY JUICE. FRESHEST SOURCES ONLY."),
+            dir("You drink it. Of course you drink it."),
+          ]);
+          synth.play("gulp");
+          await preview(this, this.player.spr);
+          s.flags.golden_found = true;
+          s.flags.golden_first = true;
+          s.flags.golden_charge = true;
+          G.save();
+          await this.talk([
+            dir("⚡ NEW POWER-UP: GOLDEN TRANSFORMATION ⚡"),
+            dir("You're full of golden juice. In your next dungeon, press T (or ⚡T) to TRANSFORM, once: ATTACK becomes a huge golden mega melee and C (or CUME) fires the CUMEHAMEHA. It lasts about 13 seconds."),
+            dir("Golden juice only comes from the freshest sources. When you want more: the Wonky Pole. Pay for a private dance in the booth at the back, give the stripper a squeeze, and drink what comes out."),
+          ]);
+          resolve();
+        },
+      };
+      this.interactables.push(it);
+    });
   }
 
   /** The chapter's dungeon is done (after its boss, or after whatever its last room asks of you). */

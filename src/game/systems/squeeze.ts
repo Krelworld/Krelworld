@@ -185,7 +185,7 @@ function drops(scene: Phaser.Scene, x: number, y: number, n: number) {
 }
 
 /** A taste of what's coming: the golden flash, the scream, the aura. */
-function preview(scene: Phaser.Scene, me: Phaser.GameObjects.Sprite): Promise<void> {
+export function preview(scene: Phaser.Scene, me: Phaser.GameObjects.Sprite): Promise<void> {
   return new Promise((res) => {
     scene.cameras.main.flash(400, 255, 236, 140);
     scene.cameras.main.shake(900, 0.015);

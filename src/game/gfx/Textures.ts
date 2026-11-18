@@ -373,6 +373,10 @@ const SPEAKER_SPRITES: Record<string, string> = {
   SANMIK: "spr_SANMIK",
   SANCHZ: "spr_SANCHZ",
   KROZNO: "boss_krozno",
+  // Flight KR-069's hero passengers
+  "RUGBY DAD GARETH": "boss_heropax_rugby",
+  "GAP YAH TILLY": "boss_heropax_gapgirl",
+  "MAJOR BUNTING": "boss_heropax_major",
   "RUSSELL BRAND": "boss_brand",
   "THE PUDDING DEMON": "boss_pudding_demon",
   "LUKE WATKINS": "boss_pudding_demon",

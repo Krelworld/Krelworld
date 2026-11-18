@@ -462,8 +462,8 @@ export class RoofCutscene extends Phaser.Scene {
     moanGap = 9999;
     synth.stopMusic();
     const closeBars = Juice.letterbox(this, 46, 600, 1050);
-    this.cameras.main.zoomTo(1.12, 9000, "Sine.easeInOut");
-    this.cameras.main.pan(400, 250, 9000, "Sine.easeInOut");
+    this.cameras.main.zoomTo(1.12, 9000, "Sine.easeInOut", true);
+    this.cameras.main.pan(400, 250, 9000, "Sine.easeInOut", true);
     await this.wait(700);
     await this.startCine("gw_krezz");
 
@@ -482,8 +482,8 @@ export class RoofCutscene extends Phaser.Scene {
 
     // 2. THE KREZZ GOES ROUND: a spark runs down the line and back, lighting each lad up, faster every time
     await this.untilCine(8.5);
-    this.cameras.main.zoomTo(1, 500, "Quad.easeOut");
-    this.cameras.main.pan(480, 270, 500, "Quad.easeOut");
+    this.cameras.main.zoomTo(1, 500, "Quad.easeOut", true);
+    this.cameras.main.pan(480, 270, 500, "Quad.easeOut", true);
     Juice.subDrop(0.8, 1.2);
     Juice.flash(this, 0xffd1f3, 300, 0.5, 1045);
     moanGap = 300;
@@ -599,8 +599,8 @@ export class RoofCutscene extends Phaser.Scene {
           const w = 3 + Math.random() * 2;
           beam.fillStyle(k % 2 ? 0xffd1f3 : 0xff9ad5, 0.55).fillTriangle(r.x, barY - w, r.x, barY + w, join.x, join.y);
         });
-        const w0 = 14 + Math.random() * 6;
-        beam.fillStyle(0xff9ad5, 0.22).fillTriangle(join.x, join.y - w0 * 1.8, join.x, join.y + w0 * 1.8, m.x, m.y);
+        const w0 = 22 + Math.random() * 8;
+        beam.fillStyle(0xff9ad5, 0.22).fillTriangle(join.x, join.y - w0 * 2.2, join.x, join.y + w0 * 2.2, m.x, m.y);
         beam.fillStyle(0xffffff, 0.9).fillTriangle(join.x, join.y - w0 * 0.6, join.x, join.y + w0 * 0.6, m.x, m.y);
         beam.fillStyle(0xffffff, 0.9).fillCircle(join.x, join.y, w0 * 0.9);
       },
@@ -654,8 +654,8 @@ export class RoofCutscene extends Phaser.Scene {
     this.tweens.add({ targets: mist, scale: 3, alpha: 0, duration: 2600 });
     this.gibsRain(d.x, d.y - d.displayHeight * 0.75);
     // the camera creeps in on what's left of him
-    this.cameras.main.zoomTo(1.22, 5000, "Sine.easeInOut");
-    this.cameras.main.pan(600, 250, 5000, "Sine.easeInOut");
+    this.cameras.main.zoomTo(1.22, 5000, "Sine.easeInOut", true);
+    this.cameras.main.pan(600, 250, 5000, "Sine.easeInOut", true);
     Juice.earRing(4000, 0.08);
     await this.untilCine(30.0);
     // the storm stops: no rain, no lightning, just him
@@ -667,8 +667,8 @@ export class RoofCutscene extends Phaser.Scene {
     synth.play("thud");
     Juice.shake(this, 300, 0.01);
     await this.untilCine(35.0);
-    this.cameras.main.zoomTo(1, 1200, "Sine.easeInOut");
-    this.cameras.main.pan(480, 270, 1200, "Sine.easeInOut");
+    this.cameras.main.zoomTo(1, 1200, "Sine.easeInOut", true);
+    this.cameras.main.pan(480, 270, 1200, "Sine.easeInOut", true);
     closeBars(800);
     await this.wait(1200);
     // the aftermath: "did we just do that?"; and deep down, the CRACK
@@ -683,27 +683,34 @@ export class RoofCutscene extends Phaser.Scene {
 
   // ---------------------------------------------------------------- the krezz cinematic's clock
 
-  private cineT0 = 0;
+  private cineGame = 0;
   private cineId = "";
 
   /** Start the cinematic's music and its clock with it (waiting, briefly, for the track to actually start). */
   private async startCine(id: string) {
     this.cineId = id;
     synth.music(id, true);
-    this.cineT0 = this.time.now;
     for (let i = 0; i < 40; i++) {
       const el = synth.musicEl();
       if (el && !el.paused && el.currentTime > 0) break;
       await this.wait(50);
     }
-    this.cineT0 = this.time.now;
+    // the scene's own clock (frame by frame, like every tween in it), from here
+    this.cineGame = 0;
+    const tick = (_t: number, dt: number) => (this.cineGame += dt / 1000);
+    this.events.on("update", tick);
+    this.events.once("shutdown", () => this.events.off("update", tick));
   }
 
-  /** Seconds into the cinematic: the music's own position while it plays (so every beat lands on the music). */
+  /**
+   * Seconds into the cinematic: the music's own position while it plays (so every beat lands on the music), but
+   * never ahead of the scene's own clock (on a slow machine the tweens fall behind the music: the beats wait for
+   * them, so nothing piles up on top of anything else).
+   */
   private cineT() {
     const el = synth.musicEl();
-    if (el && synth.playingFile() === this.cineId && el.currentTime > 0) return el.currentTime;
-    return (this.time.now - this.cineT0) / 1000;
+    if (el && synth.playingFile() === this.cineId && el.currentTime > 0) return Math.min(el.currentTime, this.cineGame);
+    return this.cineGame;
   }
 
   /** Wait until the cinematic's clock reaches `sec`. */

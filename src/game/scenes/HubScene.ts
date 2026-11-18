@@ -668,6 +668,13 @@ export class HubScene extends Phaser.Scene {
       this.brawl.start();
       return;
     }
+    // Chapter 6 starts at home like the others (then the last-chance prompt out here)
+    if (s.chapter === 6 && !s.flags.ch6_ready && !s.flags.ch6_home && at !== "HOME" && from !== "raid" && from !== "krunch") {
+      s.flags.ch6_home = true;
+      G.save();
+      this.go("Home", { chapterStart: 6 });
+      return;
+    }
     // Chapter 6 is the point of no return: it only starts when you say so, at the Town Hall
     if (s.chapter === 6 && !s.flags.ch6_ready) {
       if (!s.flags.ch6_lastchance_seen) {

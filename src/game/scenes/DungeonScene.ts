@@ -1847,7 +1847,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       this.tweens.add({ targets: body, angle: b.flipX ? -90 : 90, y: (this.side ? this.groundY : y + 80) - 20, duration: 500, ease: "Bounce.out" });
       vfx(this, "vfx_stars", x, y - 50, { scale: 1.6, depth: 960 });
       await wait(900);
-      await this.talk([say("REINHARDT CROBLEY", "(flat on the floor, seeing stars) heh… heh… heh… you'll never… prove… I…")]);
+      await this.talk([say("REINHARDT CROBLEY", "(the head, on the floor) heh… heh… heh… you'll never… prove… I…")]);
       const g2 = this.add.image(body.x, -200 + cam.worldView.y, this.textures.exists("p_crobley") ? "p_crobley" : "p_coin").setScale(9).setDepth(961);
       await new Promise<void>((r) => this.tweens.add({ targets: g2, y: body.y - 30, duration: 500, ease: "Quad.in", onComplete: () => r() }));
       synth.play("smash");

@@ -882,7 +882,7 @@ export class HomeScene extends Phaser.Scene {
       b.on("pointerover", () => b.setStrokeStyle(1, 0xffd23f));
       b.on("pointerout", () => b.setStrokeStyle(1, playing ? 0xff6fa8 : 0x2e2a45));
       b.on("pointerdown", () => {
-        synth.music(t.ids[0], true);
+        synth.musicRaw(t.ids[0], true);
         close();
         this.jukeboxPanel(page);
       });
@@ -900,7 +900,7 @@ export class HomeScene extends Phaser.Scene {
     if (pool.length) {
       this.button(root, 845, 470, 90, 30, "SHUFFLE", () => {
         const t = pool[Math.floor(Math.random() * pool.length)];
-        synth.music(t.ids[0], true);
+        synth.musicRaw(t.ids[0], true);
         close();
         this.jukeboxPanel(page);
       }, 0x4a1d3f);

@@ -1350,7 +1350,7 @@ export class Synth {
 
   /** The town theme follows Krelford's clock: if it's playing, swap to the day or night version as needed. */
   refreshTown() {
-    if (this.elId === "hub" || this.elId === "hub_night" || this.elId === "raid_march" || this.elId === "town_mourning") this.music("hub");
+    if (this.elId === "hub" || this.elId === "hub_night" || this.elId === "raid_march" || this.elId === "town_mourning" || this.elId === "fd_wake") this.music("hub");
   }
 
   /** The id of the music playing now (file or synthesised), if any. */
@@ -1361,10 +1361,46 @@ export class Synth {
   /** Told about every piece of music that starts (the jukebox collects them). */
   onMusic: ((id: string) => void) | null = null;
 
+  /**
+   * Set at boot (systems/moodMusic): the story's say over what plays. Given the id asked for, it returns the id to
+   * play instead, "" for silence, or null to leave the music alone. (After Kreddle is nuked, the old themes stay gone.)
+   */
+  moodGate: ((id: string) => string | null) | null = null;
+  private rawMusic = false;
+
+  /** Play exactly this, past the mood gate: the jukebox (your choice), and the odd scene that means to play an old song. */
+  musicRaw(id: string, force = false, startFrac = 0) {
+    this.rawMusic = true;
+    try {
+      this.music(id, force, startFrac);
+    } finally {
+      this.rawMusic = false;
+    }
+  }
+
   music(id: string, force = false, startFrac = 0) {
     if (id === "hub" && this.isMarch()) id = "raid_march";
     else if (id === "hub" && this.isMourning()) id = "town_mourning";
     else if (id === "hub" && this.isNight()) id = "hub_night";
+    if (!this.rawMusic && this.moodGate) {
+      let to: string | null = id;
+      try {
+        to = this.moodGate(id);
+      } catch {
+        /* never let the gate stop the music */
+      }
+      if (to === null) return;
+      if (to === "") {
+        this.stopMusic();
+        return;
+      }
+      if (to !== id) {
+        // a stand-in carries on from room to room rather than restarting at every door
+        id = to;
+        force = false;
+        startFrac = 0;
+      }
+    }
     try {
       this.onMusic?.(id);
     } catch {

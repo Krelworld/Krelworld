@@ -113,7 +113,7 @@ export class EndingScene extends Phaser.Scene {
     return new Promise((res) => {
       this.children.removeAll(true);
       this.add.rectangle(0, 0, 960, 540, 0x000000).setOrigin(0);
-      synth.music("crazy", true);
+      synth.musicRaw("crazy", true);
       this.add.text(20, 20, "♪ NOW PLAYING: 'Krazy For The Krelworld' — Drongus (unreacted)", { fontFamily: FONT, fontSize: "13px", color: "#ff6fa8" }).setDepth(10);
       const t = this.add.text(480, 560, CREDITS.join("\n"), { fontFamily: FONT, fontSize: "18px", color: "#ffffff", align: "center", lineSpacing: 8 }).setOrigin(0.5, 0);
       this.tweens.add({

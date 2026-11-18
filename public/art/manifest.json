@@ -8582,6 +8582,12 @@
   "bg_c6e_bridge_view": {
    "file": "backdrops/bg_c6e_bridge_view.png"
   },
+  "bg_c6e_bridge_gone": {
+   "file": "backdrops/bg_c6e_bridge_gone.png"
+  },
+  "c6e_kreddle_cut": {
+   "file": "props/c6e_kreddle_cut.png"
+  },
   "bg_c6e_launch": {
    "file": "backdrops/bg_c6e_launch.png"
   },

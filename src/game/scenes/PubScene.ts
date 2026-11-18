@@ -19,6 +19,7 @@ import type { Line } from "../../data/types";
 import { RIFFS } from "../../content/riffs";
 import { STAG_CHATS } from "../../content/stagChat";
 import { addKrokens } from "../systems/kreddle";
+import { afterKreddle } from "../systems/moodMusic";
 
 /** Krokens for each riff, the first time you hear it. */
 const RIFF_KROKENS = 3;
@@ -72,7 +73,8 @@ export class PubScene extends Phaser.Scene {
   }
 
   create() {
-    this.sanmikOn = Math.random() < 0.7;
+    // after Kreddle, nobody's in the mood: no SanMik set in the back room
+    this.sanmikOn = !afterKreddle(G.s) && Math.random() < 0.7;
     this.busy = false;
     this.selId = "";
     this.cards = [];

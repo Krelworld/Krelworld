@@ -4116,6 +4116,13 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         this.floatText(this.player.x, this.player.y - 30, "nibbled a crobley", "#e0a35a", 13);
         synth.play("pickup");
         break;
+      case "bottle":
+        // pussy juice for the bottle belt (Q): you can carry up to three over your usual max from these
+        s.bottles = Math.min(maxBottles(s) + 3, s.bottles + pk.value);
+        this.floatText(this.player.x, this.player.y - 30, `+${pk.value} PUSSY JUICE (${s.bottles})`, "#ff9ecf", 13);
+        synth.play("pickup");
+        vfx(this, "vfx_heal", this.player.x, this.player.y + 20, { scale: 0.8, depth: this.player.spr.depth + 1, tint: 0xff9ecf });
+        break;
       case "bongo":
         s.bongos += 1;
         this.floatText(this.player.x, this.player.y - 30, "+1 FIZZY BONGO", "#e0a35a", 13);

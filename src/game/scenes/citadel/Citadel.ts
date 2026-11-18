@@ -1,3 +1,5 @@
+import { dir, say } from "../../../content/dsl";
+import { squeeze } from "../../systems/squeeze";
 import Phaser from "phaser";
 import { hasVfx, vfx } from "../../gfx/Vfx";
 import type { RoomDef } from "../../../data/dungeons";
@@ -914,6 +916,42 @@ export class Citadel {
   private sawDoor = false;
 
   /** No enemies. Near silence, a low drone, thunder, candles going out behind you, his voice from above. */
+  /** The final stairs: three bottles of pussy juice on landings, and a woman sheltering near the top to squeeze. */
+  private stairsSupplies(plats: [number, number, number][]) {
+    const sc = this.sc;
+    const r = this.room;
+    // the wide landings (every fourth step), a third, a half and three-quarters of the way up
+    const landings = plats.filter((_, i) => i % 4 === 3);
+    if (landings.length < 4) return;
+    for (const f of [0.25, 0.5, 0.75]) {
+      const [fx, h] = landings[Math.min(landings.length - 1, Math.round((landings.length - 1) * f))];
+      sc.dropPickup(r.w * fx, this.gy - h - 26, "bottle", 1);
+    }
+    const [wx, wh] = landings[landings.length - 1];
+    const tex = ["spr_TV_SHEZLEIGH", "spr_TV_WOMAN", "spr_TV_SUE"].find((k) => sc.textures.exists(k));
+    if (!tex) return;
+    const x = r.w * wx - 70;
+    const y = this.gy - wh - 30;
+    const spr = sc.add.sprite(x, y, tex, 0).setScale(2).setDepth(6);
+    sc.add.text(x, y - 46, "TRACEY 💛", { fontFamily: FONT, fontSize: "10px", color: "#fde047", backgroundColor: "#00000088", padding: { x: 3, y: 1 } }).setOrigin(0.5, 1).setDepth(7);
+    sc.tweens.add({ targets: spr, y: y - 3, yoyo: true, repeat: -1, duration: 1000 });
+    this.hooks.interact({
+      x,
+      y,
+      r: 80,
+      label: G.s.flags.golden_charge ? "Tracey (you're already full of golden juice)" : "Talk to Tracey (squeeze)",
+      use: async () => {
+        this.hooks.setBusy(true);
+        await squeeze(sc, (l) => this.hooks.talk(l), { name: "TRACEY", spr }, sc.player.spr as unknown as Phaser.GameObjects.Sprite, [
+          dir("Huddled on the landing, hiding from the music, in last night's outfit: a woman with a thousand-yard stare."),
+          say("TRACEY", "I came to his party. Six days ago. Six days I've been on these stairs. Every time I get near the bottom he plays the anthem and I lose my nerve."),
+          say("TRACEY", "You going up there? Want a squeeze for luck, love? I've got nothing else to do."),
+        ], "Squeeze for luck?");
+        this.hooks.setBusy(false);
+      },
+    });
+  }
+
   stairs() {
     const sc = this.sc;
     const r = this.room;
@@ -943,6 +981,8 @@ export class Citadel {
         g.fillStyle(0x3a2c4a, 1).fillRect(sx - w / 2, sy, w, 4);
       }
     }
+    // three bottles of pussy juice on the landings on the way up, and a woman hiding near the top (golden juice)
+    this.stairsSupplies(plats);
     // the door at the top: black iron, light leaking under it
     const d = this.hooks.door();
     d.setAlpha(0);

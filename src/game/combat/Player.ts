@@ -554,6 +554,19 @@ export class Player {
       this.world.sc.tweens.add({ targets: ring, scale: 4, alpha: 0, duration: 220, ease: "Quad.out", onComplete: () => ring.destroy() });
       synth.play("zap", 0.5);
     };
+    // Polson's Long Lens: every hit a white pop and a spray of glass; crits say so
+    const snipeHit = (x: number, y: number, crit: boolean) => {
+      this.world.burst(x, y, 0xffffff, crit ? 16 : 9);
+      this.world.burst(x, y, 0xfde68a, crit ? 10 : 4);
+      const ring = this.world.sc.add.circle(x, y, 8, 0xffffff, 0).setStrokeStyle(crit ? 5 : 3, 0xfff1c2, 1).setDepth(604).setBlendMode(Phaser.BlendModes.ADD);
+      this.world.sc.tweens.add({ targets: ring, scale: crit ? 6 : 3.5, alpha: 0, duration: 240, ease: "Quad.out", onComplete: () => ring.destroy() });
+      if (crit) {
+        this.world.floatText(x, y - 34, "SNIPED!", "#fde047", 18);
+        this.world.hitStop?.(70);
+        this.world.shake(120, 0.006);
+      }
+      payout(x, y);
+    };
     const onHit = g.mech === "loan" ? (x: number, y: number) => (interest(x, y), payout(x, y)) : g.id === "rail" ? (x: number, y: number) => (railHit(x, y), payout(x, y)) : jackpot ? payout : undefined;
     if (g.id === "chainsaw") {
       // sparks and chunks right at the bar
@@ -566,8 +579,9 @@ export class Player {
     for (const fo of fan)
     for (let i = 0; i < pellets; i++) {
       const spread = fo + (pellets > 1 ? (i / (pellets - 1) - 0.5) * spreadW + (Math.random() - 0.5) * 0.08 : (Math.random() - 0.5) * spreadW);
-      const crit = Math.random() < 0.06;
-      const d = this.dmg(g.dmg, now) * dmgMul * (crit ? 2 : 1) * (gold ? 1.1 : 1);
+      const snipe = g.id === "sniper";
+      const crit = Math.random() < (snipe ? 0.3 : 0.06);
+      const d = this.dmg(g.dmg, now) * dmgMul * (crit ? (snipe ? 2.5 : 2) : 1) * (gold ? 1.1 : 1);
       this.world.shoot(mx, my, {
         owner: "player",
         damage: blastR ? 0 : d,
@@ -584,11 +598,12 @@ export class Player {
         knock: g.knock,
         scale: g.id === "rail" ? 1.6 : g.id === "chainsaw" ? 0.5 : disco ? 1.8 : g.id === "loan" ? 1.5 : g.id === "dice" ? 1.7 : g.id === "chips" ? 1.3 : g.shotTex ? 0.65 : 1,
         trail: tracer ? (this.shots % 2 ? 0xff4fd8 : 0x22d3ee) : g.id === "loan" ? 0x94a3b8 : undefined,
-        onHit: blastR ? blast : onHit,
+        onHit: blastR ? blast : snipe ? (x: number, y: number) => snipeHit(x, y, crit) : onHit,
         onEnd: blastR ? blast : undefined,
       });
     }
     if (g.id === "rail") this.railFx(mx, my, g.range, g.color);
+    if (g.id === "sniper") this.sniperFx(mx, my, g.range);
     synth.play(g.sfx ?? (g.id === "rocket" ? "rocket" : `gun_${g.id}`));
     // a drawn muzzle flash at the barrel (not for the chainsaw or the flamer, which are their own flash)
     if (g.id !== "chainsaw" && g.id !== "flamer") vfx(this.world.sc, "vfx_muzzle", mx, my, { angle: Phaser.Math.RadToDeg(this.aim), scale: g.id === "bfk" || g.id === "shotgun" || g.id === "rocket" ? 1.3 : 0.8, depth: 599, add: true });
@@ -635,6 +650,30 @@ export class Player {
       sc.tweens.add({ targets: wash, alpha: 0, duration: 120, onComplete: () => wash.destroy() });
     }
     synth.play("zap", 0.7);
+  }
+
+  /** Polson's Long Lens: a hairline tracer the length of the screen, a lens flare at the barrel, a kick and a hair of hitstop. */
+  private sniperFx(mx: number, my: number, range: number) {
+    const sc = this.world.sc;
+    const a = this.aim;
+    const calm = !!G.meta?.settings?.calmFlash;
+    const add = Phaser.BlendModes.ADD;
+    const glow = sc.add.rectangle(mx, my, range, 8, 0xfde68a, 0.4).setOrigin(0, 0.5).setRotation(a).setDepth(597).setBlendMode(add);
+    const core = sc.add.rectangle(mx, my, range, 2, 0xffffff, 1).setOrigin(0, 0.5).setRotation(a).setDepth(599).setBlendMode(add);
+    sc.tweens.add({ targets: core, alpha: 0, duration: 220, ease: "Quad.in", onComplete: () => core.destroy() });
+    sc.tweens.add({ targets: glow, scaleY: 3, alpha: 0, duration: 300, ease: "Quad.out", onComplete: () => glow.destroy() });
+    // the lens flare: a bright disc and a horizontal streak at the muzzle
+    const flare = sc.add.circle(mx, my, 10, 0xffffff, 1).setDepth(602).setBlendMode(add);
+    const streak = sc.add.rectangle(mx, my, 120, 3, 0xfff7d6, 0.9).setDepth(602).setBlendMode(add);
+    sc.tweens.add({ targets: flare, scale: 3, alpha: 0, duration: 180, onComplete: () => flare.destroy() });
+    sc.tweens.add({ targets: streak, scaleX: 2.5, alpha: 0, duration: 220, onComplete: () => streak.destroy() });
+    const body = this.spr.body as Phaser.Physics.Arcade.Body | undefined;
+    if (body) {
+      if (this.world.side) body.velocity.x -= Math.cos(a) * 260;
+      else body.reset(this.spr.x - Math.cos(a) * 9, this.spr.y - Math.sin(a) * 9);
+    }
+    this.world.hitStop(35);
+    this.world.shake(120, calm ? 0.003 : 0.008);
   }
 
   private tryDodge(now: number, mv: { x: number; y: number }) {

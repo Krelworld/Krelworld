@@ -1,3 +1,4 @@
+import { diffFor } from "./difficulty";
 import { GUNS, gunMax } from "../combat/Guns";
 import type { GameState, Line } from "../../data/types";
 import { ARCS, arcFor, arcsFor, type Arc, type ArcStep } from "../../content/arcs";
@@ -59,14 +60,15 @@ export function maybeFinishArc(s: GameState): string | null {
     if (s.flags[`${a.id}_done`]) continue;
     if (!a.steps.every((st) => stepDone(s, a, st))) continue;
     s.flags[`${a.id}_done`] = true;
-    s.coins += a.reward.coins;
+    const coins = Math.round(a.reward.coins * diffFor(s).rewards);
+    s.coins += coins;
     if (a.reward.gun && GUNS[a.reward.gun]) {
       // a new gun, or a full refill of it if you already have one
       s.guns = s.guns ?? {};
       s.guns[a.reward.gun] = gunMax(GUNS[a.reward.gun], s);
       s.gun = a.reward.gun;
     }
-    out.push(`${a.title} complete: +${a.reward.coins} Krezzcoin. ${a.reward.desc}`);
+    out.push(`${a.title} complete: +${coins} Krezzcoin${coins !== a.reward.coins ? ` (${diffFor(s).name} bonus)` : ""}. ${a.reward.desc}`);
   }
   return out.length ? out.join(" ") : null;
 }

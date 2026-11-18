@@ -1,3 +1,5 @@
+import { dir, say } from "../../../content/dsl";
+import { squeeze } from "../../systems/squeeze";
 import Phaser from "phaser";
 import { hasVfx, vfx } from "../../gfx/Vfx";
 import type { RoomDef } from "../../../data/dungeons";
@@ -914,6 +916,42 @@ export class Citadel {
   private sawDoor = false;
 
   /** No enemies. Near silence, a low drone, thunder, candles going out behind you, his voice from above. */
+  /** The final stairs: three bottles of pussy juice on landings, and a woman sheltering near the top to squeeze. */
+  private stairsSupplies(plats: [number, number, number][]) {
+    const sc = this.sc;
+    const r = this.room;
+    // the wide landings (every fourth step), a third, a half and three-quarters of the way up
+    const landings = plats.filter((_, i) => i % 4 === 3);
+    if (landings.length < 4) return;
+    for (const f of [0.25, 0.5, 0.75]) {
+      const [fx, h] = landings[Math.min(landings.length - 1, Math.round((landings.length - 1) * f))];
+      sc.dropPickup(r.w * fx, this.gy - h - 26, "bottle", 1);
+    }
+    const [wx, wh] = landings[landings.length - 1];
+    const tex = ["spr_TV_SHEZLEIGH", "spr_TV_WOMAN", "spr_TV_SUE"].find((k) => sc.textures.exists(k));
+    if (!tex) return;
+    const x = r.w * wx - 70;
+    const y = this.gy - wh - 30;
+    const spr = sc.add.sprite(x, y, tex, 0).setScale(2).setDepth(6);
+    sc.add.text(x, y - 46, "TRACEY 💛", { fontFamily: FONT, fontSize: "10px", color: "#fde047", backgroundColor: "#00000088", padding: { x: 3, y: 1 } }).setOrigin(0.5, 1).setDepth(7);
+    sc.tweens.add({ targets: spr, y: y - 3, yoyo: true, repeat: -1, duration: 1000 });
+    this.hooks.interact({
+      x,
+      y,
+      r: 80,
+      label: G.s.flags.golden_charge ? "Tracey (you're already full of golden juice)" : "Talk to Tracey (squeeze)",
+      use: async () => {
+        this.hooks.setBusy(true);
+        await squeeze(sc, (l) => this.hooks.talk(l), { name: "TRACEY", spr }, sc.player.spr as unknown as Phaser.GameObjects.Sprite, [
+          dir("Huddled on the landing, hiding from the music, in last night's outfit: a woman with a thousand-yard stare."),
+          say("TRACEY", "I came to his party. Six days ago. Six days I've been on these stairs. Every time I get near the bottom he plays the anthem and I lose my nerve."),
+          say("TRACEY", "You going up there? Want a squeeze for luck, love? I've got nothing else to do."),
+        ], "Squeeze for luck?");
+        this.hooks.setBusy(false);
+      },
+    });
+  }
+
   stairs() {
     const sc = this.sc;
     const r = this.room;
@@ -943,6 +981,8 @@ export class Citadel {
         g.fillStyle(0x3a2c4a, 1).fillRect(sx - w / 2, sy, w, 4);
       }
     }
+    // three bottles of pussy juice on the landings on the way up, and a woman hiding near the top (golden juice)
+    this.stairsSupplies(plats);
     // the door at the top: black iron, light leaking under it
     const d = this.hooks.door();
     d.setAlpha(0);
@@ -1026,14 +1066,16 @@ export class Citadel {
   office() {
     const sc = this.sc;
     const gy = this.gy;
+    // (laid out for a 960-wide room: centred in a wider one, so there's room to move round him)
+    const ox = Math.max(0, (this.room.w - 960) / 2);
     sc.add.rectangle(0, 0, 960, 540, 0x0a0312, 0.15).setOrigin(0).setScrollFactor(0).setDepth(-9);
     this.storm(-8.5, 0.6);
     // the Council of Machines along the back wall
     const rigs: [number, string, string, string][] = [
-      [112, "SUNO", "♪", "#ff9de6"],
-      [262, "CLAUDE", "✳", "#f4b48c"],
-      [700, "GROK", "⊘", "#f2f2f2"],
-      [850, "CHATGPT", "✿", "#7fffd4"],
+      [ox + 112, "SUNO", "♪", "#ff9de6"],
+      [ox + 262, "CLAUDE", "✳", "#f4b48c"],
+      [ox + 700, "GROK", "⊘", "#f2f2f2"],
+      [ox + 850, "CHATGPT", "✿", "#7fffd4"],
     ];
     for (const [x, name, glyph, col] of rigs) {
       const k = 1.15;
@@ -1045,9 +1087,9 @@ export class Citadel {
       sc.add.text(sx, sy, label, { fontFamily: FONT, fontSize: "9px", color: col, align: "center", fontStyle: "bold" }).setOrigin(0.5).setDepth(-1.9);
       if (name === "CLAUDE" || name === "CHATGPT") sc.add.text(x, gy - 200 * k, "RESTORED FROM BACKUP", { fontFamily: FONT, fontSize: "8px", color: "#fca5a5", backgroundColor: "#000000aa" }).setOrigin(0.5).setDepth(-1.9);
     }
-    this.img(480, 150, "c7_calendar", 1.1, -3, 0.5);
+    this.img(ox + 480, 150, "c7_calendar", 1.1, -3, 0.5);
     // the cauldron in the middle, the two bottles of gold either side
-    const cx = 480;
+    const cx = ox + 480;
     const caul = this.img(cx, gy + 4, "c7_cauldron", 2.4, -1);
     if (!caul) {
       const g = sc.add.graphics().setDepth(-1);
@@ -1058,7 +1100,7 @@ export class Citadel {
     sc.tweens.add({ targets: glow, alpha: 0.5, scaleX: 1.1, yoyo: true, repeat: -1, duration: 700 });
     sc.time.addEvent({ delay: 180, loop: true, callback: () => this.sparkle(cx + (Math.random() - 0.5) * 110, gy - 110, -60) });
     const bottles: Phaser.GameObjects.Image[] = [];
-    for (const [i, bx] of [370, 590].entries()) {
+    for (const [i, bx] of [ox + 370, ox + 590].entries()) {
       const key = `c7_bottle_${i}`;
       const b = sc.textures.exists(key) ? sc.add.image(bx, gy + 2, key).setOrigin(0.5, 1).setScale(2.6).setDepth(-0.8) : sc.add.image(bx, gy - 60, "fx_circle").setScale(2).setTint(GOLD_C).setDepth(-0.8);
       bottles.push(b);

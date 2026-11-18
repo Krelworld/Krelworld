@@ -1,3 +1,4 @@
+import { diffFor } from "./difficulty";
 import type { GameState } from "../../data/types";
 import { PERSONAL_QUESTS, MINISTRY_QUESTS, type PersonalQuest, type PickupSpot, type MinistryQuest } from "../../content/quests";
 import { evalCond } from "./conditions";
@@ -44,7 +45,7 @@ export function canTurnIn(s: GameState, at: string): PersonalQuest | undefined {
 
 export function completePersonal(s: GameState, q: PersonalQuest): number {
   s.flags[`pq_done_${q.id}`] = true;
-  const coins = Math.round(q.reward.coins * activeMods(s).questRewardMult);
+  const coins = Math.round(q.reward.coins * activeMods(s).questRewardMult * diffFor(s).rewards);
   s.coins += coins;
   if (q.reward.upgrade) s.upgrades[q.reward.upgrade] = 1;
   return coins;

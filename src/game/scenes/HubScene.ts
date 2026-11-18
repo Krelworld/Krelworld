@@ -2559,7 +2559,7 @@ You are required by law to sign the Sex Offenders Register.`, {
       case "BANK":
         return "Enter the Central Bank (upgrades)";
       case "HOME":
-        return "Go home (sleep · save · TV)";
+        return this.ruined ? "Enter the wreckage of your house (juice · ammo · sleep · save)" : "Go home (sleep · save · TV)";
       case "BAN_TRIBUNAL":
         return s.flags.ban_tribunal_open ? "Enter the Ban Tribunal" : "Ban Tribunal (closed until the Cronster briefing)";
       case "BOOTH":
@@ -3571,6 +3571,9 @@ You are required by law to sign the Sex Offenders Register.`, {
     let name = b.id === "HOME" ? `${CHARACTERS[G.s.player].name}'S HOUSE` : b.name;
     name = `${name} (RUBBLE)`;
     void name;
+    // your house is still (just about) enterable: a sign by what's left of the door
+    if (b.id === "HOME" && b.door)
+      this.add.text(b.door.x, b.door.y - 96, `${CHARACTERS[G.s.player].name}'S HOUSE (what's left)`, { fontFamily: FONT, fontSize: "11px", color: "#ffd9a8", backgroundColor: "#0c0a09cc", padding: { x: 4, y: 2 } }).setOrigin(0.5, 1).setDepth(5990);
     this.colliders.add(this.add.rectangle(b.x, b.y + b.h * 0.12, b.w * 0.8, b.h * 0.6, 0, 0));
   }
 
@@ -3733,6 +3736,8 @@ You are required by law to sign the Sex Offenders Register.`, {
     synth.music("hub");
     this.busy = false;
     G.emit("toast", { title: "CHAPTER 7", text: "DA DRONGUS DUNGEON — the gates are open. Stop the leak." });
+    // a suggestion, not a requirement: the wreckage of your house still has juice, ammo and a bed in it
+    this.time.delayedCall(4200, () => G.emit("toast", { title: "OPTIONAL", text: "Your house is still (mostly) standing. Stock up on pussy juice and ammo there before the dungeon. Or don't." }));
   }
 
   // ---------------------------------------------------------------- CHAPTER 6: last chance, revenge, the march, the bomb

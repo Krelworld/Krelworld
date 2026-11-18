@@ -236,6 +236,8 @@ export interface Settings {
   autoAdvance?: boolean;
   /** Tone down full-screen flashes (photosensitivity). */
   calmFlash?: boolean;
+  /** Keep the mouse inside the game window (pointer lock; desktop). Default on; only false turns it off. */
+  mouseLock?: boolean;
 }
 
 /**

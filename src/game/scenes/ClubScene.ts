@@ -219,10 +219,10 @@ export class ClubScene extends Phaser.Scene {
       this.patrons.push({ id, spr });
       this.add.text(x, y + 30, CHARACTERS[id]?.name ?? id, { fontFamily: FONT, fontSize: "9px", color: "#ffd1e8", stroke: "#000", strokeThickness: 2 }).setOrigin(0.5).setDepth(y + 1);
     });
-    // Alistair Swamp: in most nights, pestering whoever's dancing
+    // Alistair Swamp: always in, pestering whoever's dancing
     this.ally = null;
     this.allyLabel = null;
-    if (this.textures.exists("spr_ALISTAIR") && Math.random() < 0.75) {
+    if (this.textures.exists("spr_ALISTAIR")) {
       this.ally = this.add.sprite(300, 400, "spr_ALISTAIR", 0).setScale(2).setDepth(400);
       this.ally.setData("facing", "north");
       this.allyLabel = this.add.text(300, 430, "ALISTAIR SWAMP", { fontFamily: FONT, fontSize: "9px", color: "#ffd1e8", stroke: "#000", strokeThickness: 2 }).setOrigin(0.5).setDepth(401);

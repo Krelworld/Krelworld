@@ -1840,9 +1840,9 @@ export class MinigameScene extends Phaser.Scene {
       synth.stopMusic();
       const total = ((G.s.flags.rock_points as number) ?? 0) + points;
       G.s.flags.rock_points = total;
-      G.s.coins += Math.floor(points / 5);
+      const pay = this.gigPay(points);
       title(this, 480, 200, `${points} ROCKSTAR POINTS`, 40, "#ffd23f").setDepth(300);
-      this.finish(points >= 100, [dir(`Caught: ${caught}. Best combo: ${bestCombo}. Rockstar points: +${points} (total ${total}). The Krezz Arms takes a cut and gives you ${Math.floor(points / 5)} Krezzcoin.`)]);
+      this.finish(points >= 100, [dir(`Caught: ${caught}. Best combo: ${bestCombo}. Rockstar points: +${points} (total ${total}). The Krezz Arms takes a cut and gives you ${pay.coins} Krezzcoin, and the band's merch table slips you ${pay.krokens} Krokens.`)]);
     };
     let bestCombo = 0;
     endBtn.on("pointerdown", finishGig);
@@ -1924,6 +1924,18 @@ export class MinigameScene extends Phaser.Scene {
 
 
   /** Not playing as Krebon: you're in the crowd at his gig, throwing underwear at the stage. */
+  /** Every gig pays: Krezzcoin and Krokens, more for a better show (and a little even for a bad one). */
+  private gigPay(points: number) {
+    const coins = 30 + Math.floor(Math.max(0, points) / 4);
+    const krokens = 3 + Math.min(9, Math.floor(Math.max(0, points) / 80));
+    G.s.coins += coins;
+    addKrokens(G.s, krokens);
+    synth.play("coin");
+    G.emit("toast", { title: `💰 +${coins} KREZZCOIN · 🎟 +${krokens} KROKENS`, text: "Twitcher Mutiny's door money." });
+    G.save();
+    return { coins, krokens };
+  }
+
   private gigWatch() {
     if (!backdrop(this, "bg_gig", { depth: -10 })) this.add.rectangle(480, 270, 960, 540, 0x1a1033);
     this.add.rectangle(480, 352, 860, 16, 0x3b2a1a).setDepth(2);
@@ -2075,8 +2087,9 @@ export class MinigameScene extends Phaser.Scene {
       synth.stopMusic();
       G.s.flags.rock_points = ((G.s.flags.rock_points as number) ?? 0) + points;
       G.s.flags.saw_gig = true;
+      const pay = this.gigPay(points);
       this.finish(true, [
-        dir(`You threw ${thrown} items of underwear. Krebon caught ${caught}. You decked ${moshed} moshers, got shoved ${shoved} times and saw off ${invaders} stage invaders. Rockstar points: +${points}.`),
+        dir(`You threw ${thrown} items of underwear. Krebon caught ${caught}. You decked ${moshed} moshers, got shoved ${shoved} times and saw off ${invaders} stage invaders. Rockstar points: +${points}. Krebon bungs you ${pay.coins} Krezzcoin and ${pay.krokens} Krokens out of the door money.`),
         say("KREBON", "Thank you Krelford. You've been a strange and moist crowd."),
         dir("Polson is crying. He says it's the smoke machine. There is no smoke machine."),
       ]);

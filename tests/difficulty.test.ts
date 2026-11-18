@@ -18,6 +18,8 @@ const DIRECTION: Record<Exclude<NumKey, "level" | "color">, 1 | -1> = {
   ammoDrops: -1,
   ammoDryKills: 1,
   coins: 1,
+  rewards: 1,
+  krokenBonus: 1,
   krezzGain: -1,
   iframes: -1,
   timing: -1,
@@ -38,7 +40,7 @@ describe("difficulty table", () => {
     const d = DIFFICULTY_LEVELS[1];
     for (const k of Object.keys(DIRECTION) as (keyof typeof DIRECTION)[]) {
       if (k === "ammoDryKills") expect(d[k]).toBe(6); // the old "a guaranteed ammo after 6 dry kills"
-      else if (k === "shieldMinions") expect(d[k]).toBe(0);
+      else if (k === "shieldMinions" || k === "krokenBonus") expect(d[k]).toBe(0);
       else expect(d[k], k).toBe(1);
     }
   });

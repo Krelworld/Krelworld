@@ -15,6 +15,39 @@ export class TitleScene extends Phaser.Scene {
     super("Title");
   }
 
+  /**
+   * FULLSCREEN (top right, or F): the whole screen. On an iPhone, where the browser won't do it, it tells you to
+   * add the game to your home screen instead (it then opens with no browser bars). Hidden once you're
+   * already running from the home screen.
+   */
+  private fullscreenButton() {
+    const standalone = matchMedia?.("(display-mode: fullscreen)").matches || matchMedia?.("(display-mode: standalone)").matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
+    if (standalone) return;
+    const { width: W, height: H } = this.scale;
+    const can = this.sys.game.device.fullscreen.available;
+    const iosHint = () => {
+      const t = label(this, W / 2, H - 52, "On iPhone: tap Share  ⬆  then  \"Add to Home Screen\"  for full screen", 13, "#ffd23f").setOrigin(0.5, 0);
+      this.tweens.add({ targets: t, alpha: 0, delay: 5000, duration: 600, onComplete: () => t.destroy() });
+    };
+    const flip = () => {
+      if (!can) return iosHint();
+      try {
+        this.scale.toggleFullscreen();
+      } catch {
+        /* the browser said no */
+      }
+    };
+    const b = button(this, W - 100, 24, this.scale.isFullscreen ? "⛶ EXIT FULLSCREEN" : "⛶ FULLSCREEN (F)", flip, { w: 180, h: 30, size: 13 });
+    const relabel = () => {
+      const t = (b as unknown as { list?: Phaser.GameObjects.GameObject[] }).list?.find((o) => o instanceof Phaser.GameObjects.Text) as Phaser.GameObjects.Text | undefined;
+      t?.setText(this.scale.isFullscreen ? "⛶ EXIT FULLSCREEN" : "⛶ FULLSCREEN (F)");
+    };
+    this.scale.on("enterfullscreen", relabel);
+    this.scale.on("leavefullscreen", relabel);
+    this.events.once("shutdown", () => (this.scale.off("enterfullscreen", relabel), this.scale.off("leavefullscreen", relabel)));
+    this.input.keyboard?.on("keydown-F", flip);
+  }
+
   create() {
     const { width: W, height: H } = this.scale;
     this.cameras.main.fadeIn(400);
@@ -76,6 +109,7 @@ export class TitleScene extends Phaser.Scene {
     const gap = items.length > 6 ? 41 : 46;
     items.forEach(([t, fn], i) => button(this, W / 2, 218 + i * gap, t, fn, { w: i === 0 && latest ? 460 : 320, h: items.length > 6 ? 36 : 40, size: i === 0 && latest ? 15 : 17 }));
     button(this, 90, 24, "🛠 DEBUG", () => switchTo(this, "DebugSkip"), { w: 140, h: 30, size: 13 });
+    this.fullscreenButton();
 
     label(this, 12, H - 22, "WASD · Mouse · Click · Space · E · Q · B · R · Esc", 11, "#6d6a85");
     label(this, W - 12, H - 22, "v1.0 · No reactions were harmed", 11, "#6d6a85").setOrigin(1, 0);

@@ -291,7 +291,7 @@ export const CHARACTERS: Record<string, CharacterDef> = {
   },
   MIKEY: {
     id: "MIKEY",
-    name: "MIKEY NEVITT",
+    name: "KREBLAR",
     realName: "Mikey Nevitt",
     nickname: "KREBLAR",
     aka: "FGM ULTRA operative, call sign RUSSHEN. After dark: SANMIK.",

@@ -9044,6 +9044,12 @@
   "ss_cut_polson_grin": {
    "file": "ss/ss_cut_polson_grin.png"
   },
+  "ss_loo_strain": {
+   "file": "ss/ss_loo_strain.png"
+  },
+  "ss_loo_bliss": {
+   "file": "ss/ss_loo_bliss.png"
+  },
   "ss_cut_sanmik": {
    "file": "ss/ss_cut_sanmik.png"
   },

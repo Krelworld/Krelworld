@@ -829,7 +829,8 @@ class ShotScene extends Phaser.Scene {
     }
     // in: a cross-fade over the caller (or up from black)
     const cam = this.cameras.main;
-    this.veil = this.add.rectangle(SW / 2, SH / 2, SW + 80, SH + 80, 0x000000, o.fromBlack ? 1 : 0).setDepth(100);
+    // (opaque fill; its alpha does the fading: a rectangle's 6th argument is the fill alpha, which no tween touches)
+    this.veil = this.add.rectangle(SW / 2, SH / 2, SW + 80, SH + 80, 0x000000, 1).setAlpha(o.fromBlack ? 1 : 0).setDepth(100);
     const fin = o.fadeIn ?? 350;
     if (o.fromBlack) {
       this.tweens.add({ targets: this.veil, alpha: 0, duration: fin, delay: 60 });
@@ -904,8 +905,11 @@ class ShotScene extends Phaser.Scene {
  * Play a pseudo-3D shot over `src`. Resolves when it's over ({ skipped }), with its scene and textures gone. Without
  * WebGL it resolves at once (skipped: true), so callers can just await it.
  */
-export function playShot(src: Phaser.Scene, o: ShotOpts): Promise<{ skipped: boolean }> {
-  if (!can3d(src) || !src.sys.isActive()) return Promise.resolve({ skipped: true });
+export async function playShot(src: Phaser.Scene, o: ShotOpts): Promise<{ skipped: boolean }> {
+  if (!can3d(src)) return { skipped: true };
+  // a scene just back from an overlay or a dialogue (which pause it) is resumed a frame later: give it a moment
+  for (let i = 0; i < 40 && src.sys && src.sys.isPaused(); i++) await new Promise((r) => window.setTimeout(r, 25));
+  if (!src.sys || !src.sys.isActive()) return { skipped: true };
   return new Promise((resolve) => {
     const key = `__p3d_shot_${++shotSeq}`;
     let settled = false;

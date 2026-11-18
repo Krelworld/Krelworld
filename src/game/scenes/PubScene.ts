@@ -51,6 +51,9 @@ type Focusable = { id: string; cx: number; cy: number; run: () => void; setLit: 
 
 const hex = (c: number) => "#" + c.toString(16).padStart(6, "0");
 
+/** Krezzcoin for the first time through each Drongus riff or Jenko's-stag chat. */
+const CHAT_COINS = 40;
+
 export class PubScene extends Phaser.Scene {
   /** SanMik & SanChz play the back room most nights. */
   private sanmikOn = true;
@@ -181,7 +184,7 @@ export class PubScene extends Phaser.Scene {
     if (clue) items.push({ id: "clue", group: "table", icon: "", label: "Something's glowing", sub: `By the bar. A ${clue.trail.item}?`, run: () => void this.takeClue() });
     // at the table
     items.push({ id: "sit", group: "table", icon: "pubicon_sit", label: "Sit down", sub: "With whoever's in tonight", run: () => this.sit() });
-    items.push({ id: "stag", group: "table", icon: "pubicon_stag", label: "Jenko's stag", sub: "Organise it in the group chat", run: () => this.stag() });
+    items.push({ id: "stag", group: "table", icon: "pubicon_stag", label: "Jenko's stag", sub: "Organise it in the group chat (+40 Krezzcoin per new chat)", run: () => this.stag() });
     const q = personalQuest(s);
     if (q && pickupsInHub(s).some((p) => p.anchor === "PUB_MENU")) items.push({ id: "menu", group: "table", icon: "pubicon_menu", label: "Nick the menu", sub: "Off the bar. Personal quest", run: () => this.readMenu() });
     if (canTurnIn(s, "PUB")) items.push({ id: "treasure", group: "table", icon: "pubicon_chest", label: "Krezmond's treasure", sub: "Open it. Quest turn-in", run: () => this.turnIn() });
@@ -189,8 +192,8 @@ export class PubScene extends Phaser.Scene {
     items.push({ id: "tv", group: "ent", icon: "pubicon_tv", label: "Watch the telly", sub: "KrelTV, over the bar", run: () => this.watchTv() });
     items.push(
       s.player === "KREBLIS"
-        ? { id: "riff", group: "ent", icon: "pubicon_riff", label: "Riff with Drongus", sub: `+${RIFF_KROKENS} Krokens per new riff`, run: () => this.riffs() }
-        : { id: "riff", group: "ent", icon: "pubicon_riff", label: "Kreblis & Drongus", sub: `Watch them riff. +${RIFF_KROKENS} Krokens each`, run: () => this.riffs() },
+        ? { id: "riff", group: "ent", icon: "pubicon_riff", label: "Riff with Drongus", sub: `+${RIFF_KROKENS} Krokens, +40 Krezzcoin per new riff`, run: () => this.riffs() }
+        : { id: "riff", group: "ent", icon: "pubicon_riff", label: "Kreblis & Drongus", sub: `Watch them riff. +${RIFF_KROKENS} Krokens, +40 Krezzcoin each`, run: () => this.riffs() },
     );
     // the back rooms
     if (this.sanmikOn) items.push({ id: "sanmik", group: "back", icon: "pubicon_sanmik", label: "SanMik & SanChz", sub: s.player === "MIKEY" ? "You're on. Live, mid-song" : "On now. Live, mid-song", run: () => switchTo(this, "Venue", {}) });
@@ -558,6 +561,13 @@ export class PubScene extends Phaser.Scene {
       bar.setVisible(true);
       await this.box.play(c.lines);
       bar.setVisible(false);
+      // Krezzcoin for every riff or stag chat the first time you sit through it (or skip on from it)
+      if (!s.flags[`coin_${c.id}`]) {
+        s.flags[`coin_${c.id}`] = true;
+        s.coins += CHAT_COINS;
+        synth.play("coin");
+        G.emit("toast", { title: `💰 +${CHAT_COINS} KREZZCOIN`, text: "Someone's left a tip on the table." });
+      }
       // Krokens for every riff the first time you sit through it (or skip on from it)
       let paid = false;
       if (pay && !s.flags[`paid_${c.id}`]) {

@@ -56,7 +56,7 @@ export async function kreltality(
   if (!yes) return false;
   hooks?.onStage?.();
   try {
-    await stage(sc, target, player, force ?? pick());
+    await stage(sc, target, player, force ?? pick(target));
   } finally {
     hooks?.onEnd?.();
   }
@@ -68,12 +68,33 @@ export async function kreltality(
  * bag refills (never opening with the one you just saw). The bag is kept in meta, so it lasts across
  * runs and reloads. With gore off, only the ones that have a tame version are in the pool.
  */
-export function pick(): Finisher {
+/** The humanoid, fictional bosses GET WELL SOON is guaranteed on (no monsters, machines, or real people). */
+const GWS_BOSSES = new Set(["krandall", "drongus", "krozno", "heropax_rugby", "heropax_gapgirl", "heropax_major", "troll", "pudding_demon", "flatmate", "jam", "rik", "flirt", "lantern", "fruity", "tank", "reinhardt", "rival", "cronster", "drongus1", "drongus2"]);
+
+export function pick(target?: { id?: string }): Finisher {
   const gore = G.meta?.settings?.gore !== false;
   // GET WELL SOON (asbestos → chainsaw) has no tame version, so it sits out with the gore off
   const pool: Finisher[] = gore ? FINISHERS : ELEGANT.filter((f) => f !== "asbestos");
   const meta = G.meta as (typeof G.meta & { krelSeen?: string[]; krelLast?: string }) | undefined;
   const seen = new Set(meta?.krelSeen ?? []);
+  // GET WELL SOON is guaranteed once a playthrough, on a (fictional) humanoid boss, never as the run's first
+  // Kreltality: the first such boss after that gets it, unless it's already turned up this run (gore on only)
+  const run = G.s?.flags;
+  if (run) {
+    const n = Number(run.krel_count ?? 0);
+    run.krel_count = n + 1;
+    const forced = gore && pool.includes("asbestos") && !run.krel_gws_seen && n >= 1 && !!target?.id && GWS_BOSSES.has(target.id);
+    if (forced) {
+      run.krel_gws_seen = true;
+      seen.add("asbestos");
+      if (meta) {
+        meta.krelSeen = [...seen];
+        meta.krelLast = "asbestos";
+        try { G.saveMeta(); } catch { /* tests / no storage */ }
+      }
+      return "asbestos";
+    }
+  }
   let fresh = pool.filter((f) => !seen.has(f));
   if (!fresh.length) {
     // every one in this pool has been seen: start a new cycle (keeping the ones outside this pool, e.g. gore-only, as they were)
@@ -82,6 +103,7 @@ export function pick(): Finisher {
     if (!fresh.length) fresh = pool;
   }
   const choice = fresh[Math.floor(Math.random() * fresh.length)];
+  if (choice === "asbestos" && run) run.krel_gws_seen = true;
   seen.add(choice);
   if (meta) {
     meta.krelSeen = [...seen];

@@ -28,6 +28,7 @@ import { currentStep } from "../Flow";
 import { DARK_AUTISM_PASSAGES } from "../../content/darkAutism";
 import { clueAt, clueTex, takeClue } from "../systems/trails";
 import { shinyColours, shinyPickup, trailPropScale } from "../gfx/shiny";
+import { addPantsPoster } from "./home/pantsPoster";
 
 /** Your house: walk about, watch the telly, sleep. New games start here. */
 
@@ -80,6 +81,7 @@ export class HomeScene extends Phaser.Scene {
     this.drawShelf(292, 300);
     if (this.textures.exists("p_gunrack")) this.add.image(880, 300, "p_gunrack").setScale(1.6).setDepth(5);
     this.drawDecor();
+    addPantsPoster(this, (sp) => this.spots.push(sp), (l) => this.talk(l), () => this.box);
     this.spots.push(
       { x: 140, y: 480, r: 80, label: "E: Watch KrelTV", use: () => this.watchTV() },
       { x: 900, y: 532, r: 42, label: "E: Play the games console", use: () => this.consolePanel() },

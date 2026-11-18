@@ -2314,7 +2314,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         showReal(false);
         // a different finisher on each (the shuffle bag never repeats one until you've seen them all)
         try {
-          await forcedKreltality(this, tg, pl, pick());
+          await forcedKreltality(this, tg, pl, pick(tg));
         } finally {
           if (this.heroAlive()) showReal(true);
         }

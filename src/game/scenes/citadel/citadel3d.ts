@@ -69,6 +69,8 @@ interface TowerSet {
   strike: (k?: number) => void;
   glow: string;
   dot: string;
+  /** the tower's window glows (they go with it in the collapse) */
+  glows: Sprite3D[];
 }
 
 /** Row edges (image px) for cutting the tower into pieces, and how many columns each row splits into. */
@@ -153,8 +155,9 @@ function towerSet(c: ShotCtx, o: { pieces?: boolean; ruinLight?: boolean } = {})
   // glows: the tower's windows, street lamps, fires in town
   const glow = st.softDot("glow", 0.3);
   const dot = st.softDot("dust", 0.55);
-  for (const [x, z, col] of [[-60, TH * 0.62, 0xd946ef], [70, TH * 0.6, 0xd946ef], [0, TH * 0.78, 0xff4fd8], [-30, TH * 0.4, 0xff7a1a], [0, 40, 0xff4fa3]] as [number, number, number][])
-    st.addSprite(glow, x, 2, z, 150, { add: true, tint: col, alpha: 0.55, layer: "front" });
+  const glows = ([[-60, TH * 0.62, 0xd946ef], [70, TH * 0.6, 0xd946ef], [0, TH * 0.78, 0xff4fd8], [-30, TH * 0.4, 0xff7a1a], [0, 40, 0xff4fa3]] as [number, number, number][]).map(([x, z, col]) =>
+    st.addSprite(glow, x, 2, z, 150, { add: true, tint: col, alpha: 0.55, layer: "front" }),
+  );
   for (const y of [700, 1700, 2600])
     for (let x = -2600; x <= 2600; x += 520) st.addSprite(glow, x + 60, y + 60, 30, 110, { add: true, tint: 0xffb35c, alpha: 0.45 });
   // storm clouds, low and heavy
@@ -188,7 +191,7 @@ function towerSet(c: ShotCtx, o: { pieces?: boolean; ruinLight?: boolean } = {})
       rain.lineBetween(d.x, d.y, d.x - 4, d.y - 16);
     }
   };
-  return { tower, rows: ROWS.length - 1, tick, strike, glow, dot };
+  return { tower, rows: ROWS.length - 1, tick, strike, glow, dot, glows };
 }
 
 /** A camera orbiting the tower: angle `a` degrees round from due south, `dist` out, `z` up, looking at height `lookZ`. */
@@ -345,10 +348,10 @@ export function sanctumSwing(sc: Phaser.Scene, o: { worldW: number; worldH: numb
  * middle floors drop (the lads riding the wreckage), the base crumbles into a wall of dust.
  */
 export function collapseShot(sc: Phaser.Scene) {
-  const length = 9.2;
-  const T_SHEAR = 1.8;
-  const T_MID = 3.6;
-  const T_BASE = 5.4;
+  const length = 9.6;
+  const T_SHEAR = 2.2;
+  const T_MID = 4.2;
+  const T_BASE = 6.0;
   const g = 520;
   return playShot(sc, {
     length,
@@ -371,7 +374,7 @@ export function collapseShot(sc: Phaser.Scene) {
       const ids = [G.s.player, ...PLAYABLE_IDS.filter((id) => id !== G.s.player)].slice(0, 5);
       const ladSpecs: BoardSpec[] = ids.map((id, i) => {
         const key = id === G.s.player ? playerKey(sc) : sc.textures.exists(`spr_${id}`) ? `spr_${id}` : "spr_FLENKY";
-        return { key, frame: 0, x: 0, y: 0, w: 46, h: 62, ox: -110 + i * 55, z: TH * (1 - ROWS[2] / IMG_H) };
+        return { key, frame: 0, x: 0, y: 0, w: 64, h: 86, ox: -120 + i * 60, z: TH * (1 - ROWS[2] / IMG_H) };
       });
       const lads = st.addBoards(ladSpecs.filter((s) => sc.textures.exists(s.key)), 4.5);
       // debris: bits of the tower, flung off at each stage
@@ -417,10 +420,11 @@ export function collapseShot(sc: Phaser.Scene) {
         [T_BASE, () => (synth.play("boom"), synth.play("explode"))],
         [T_BASE + 0.6, () => synth.play("smash", 0.8)],
         [T_BASE + 1.4, () => synth.play("thunder", 0.8)],
-        [7.4, () => set.strike(0.6)],
+        [8.0, () => set.strike(0.6)],
       ];
       let bi = 0;
       const booms = [T_SHEAR, T_MID, T_BASE];
+      const glowPlan = set.glows.map((gl) => ({ gl, z0: gl.z, t0: gl.z > TH * 0.7 ? T_SHEAR : gl.z > TH * 0.3 ? T_MID : T_BASE }));
       const shakeK = calm ? 0.3 : 1;
       return (t, dt) => {
         while (bi < beats.length && beats[bi][0] <= t) beats[bi++][1]();
@@ -466,6 +470,12 @@ export function collapseShot(sc: Phaser.Scene) {
           const top = b.z + b.dz + b.h;
           b.alpha = clamp((top + 60) / 160, 0, 1);
         }
+        // the windows' glows drop with their floors and go out
+        glowPlan.forEach(({ gl, z0, t0 }, i) => {
+          const lt = Math.max(0, t - t0);
+          gl.z = z0 - 0.5 * g * lt * lt;
+          gl.alpha = 0.55 * clamp(1 - lt / 0.9, 0, 1) * (t > t0 - 0.6 && t < t0 ? 0.6 + 0.4 * Math.sin(t * 40 + i) : 1);
+        });
         // the lads ride the middle floors down
         const mt = Math.max(0, t - (T_MID + 0.1));
         lads.forEach((l, i) => {
@@ -490,12 +500,13 @@ export function collapseShot(sc: Phaser.Scene) {
           const lt = t - p.t0;
           if (lt < 0) continue;
           const k = easeOut3(lt / 2.6);
-          const rr = p.r + 520 * k;
+          const rr = p.r + 620 * k;
           p.s.x = Math.cos(p.a) * rr;
           p.s.y = Math.sin(p.a) * rr * 0.6;
-          p.s.z = 60 + 160 * k;
-          p.s.size = 300 + 520 * p.grow * k;
-          p.s.alpha = clamp(lt / 0.5, 0, 1) * 0.85;
+          p.s.z = 40 + 120 * k;
+          p.s.size = 240 + 300 * p.grow * k;
+          // it rolls out, then thins as it settles
+          p.s.alpha = clamp(lt / 0.5, 0, 1) * 0.62 * (1 - 0.5 * span(lt, 2, 3.6));
         }
         for (const p of breakPuffs) {
           const lt = t - p.t0;
@@ -508,12 +519,12 @@ export function collapseShot(sc: Phaser.Scene) {
           p.s.size = 200 + lt * 260;
           p.s.alpha = 0.7 * (1 - lt / 3);
         }
-        // the camera: close and low under it, then pulling back across town as it goes
-        const back = span(t, T_SHEAR - 0.4, T_BASE + 0.8);
-        const a = lerp(-14, 16, ease(t / length));
-        const dist = lerp(1500, 2600, back) + 120 * span(t, T_BASE + 1, length);
-        const z = lerp(150, 300, back);
-        const lookZ = lerp(TH * 0.66, TH * 0.24, span(t, T_SHEAR, T_BASE + 1.4));
+        // the camera: close and low under it (the whole tower filling the frame), then pulling back as it goes
+        const back = span(t, T_SHEAR - 0.2, T_BASE + 1.2);
+        const a = lerp(-10, 12, ease(t / length));
+        const dist = lerp(1150, 1950, back) + 150 * span(t, T_BASE + 1.2, length);
+        const z = lerp(120, 320, back);
+        const lookZ = lerp(TH * 0.58, TH * 0.22, span(t, T_SHEAR + 0.4, T_BASE + 1.6));
         const jx = (Math.sin(t * 53) + Math.sin(t * 31)) * amp * 0.5;
         const jz = (Math.sin(t * 47 + 1) + Math.sin(t * 29)) * amp * 0.4;
         return orbit(a, dist, z, lookZ, Math.sin(t * 0.9) * 1.5 + Math.sin(t * 61) * amp * 0.012, jx, jz);

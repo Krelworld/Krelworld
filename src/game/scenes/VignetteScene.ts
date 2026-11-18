@@ -292,6 +292,80 @@ export class VignetteScene extends Phaser.Scene {
     for (let i = 0; i < 5; i++) vfx(this, "vfx_dust", t.x + (i - 2) * t.w * 0.7, t.ground - 5, { scale: 2.8, depth: 43, delay: 900 + i * 150 });
   }
 
+  /**
+   * The slow version, in stages (about twice as long as collapseFx): it groans and sheds bits from the wound
+   * (`hitY`), the top shears off at the wound and topples away, then the rest sinks into its footprint with booms
+   * chasing it down. Resolves once it's down (about 5.6s).
+   */
+  private async collapseStaged(t: BigTower, hitY: number) {
+    const calmF = Juice.calm();
+    const img = t.img;
+    const src = img.frame;
+    // the wound, as a fraction of the image from the top
+    const f = Phaser.Math.Clamp((hitY - (t.ground - t.h)) / t.h, 0.15, 0.85);
+    const cutPx = Math.round(src.height * f);
+    // the top: a copy of the art cropped to above the wound, pivoting at the wound
+    const top = this.add.image(t.x, hitY, img.texture.key, img.frame.name).setOrigin(0.5, f).setDepth(img.depth + 0.5);
+    top.setDisplaySize(img.displayWidth, img.displayHeight).setCrop(0, 0, src.width, cutPx);
+    img.setCrop(0, cutPx, src.width, src.height - cutPx);
+    const mask = this.make.graphics({}, false).fillRect(-200, -900, 1360, t.ground + 900).createGeometryMask();
+    img.setMask(mask);
+    top.setMask(mask);
+    // 1. it groans: a shudder that builds, bits shaking loose from the wound
+    synth.play("drone", 0.7);
+    const x0 = t.x;
+    const t0 = this.time.now;
+    const shudder = this.time.addEvent({
+      delay: 40,
+      loop: true,
+      callback: () => {
+        // builds over the second and a bit
+        const j = (Math.random() - 0.5) * (2 + 5 * Math.min(1, (this.time.now - t0) / 1200)) * (calmF ? 0.5 : 1);
+        img.x = x0 + j;
+        top.x = x0 + j;
+      },
+    });
+    for (let i = 0; i < 7; i++)
+      this.time.delayedCall(150 + i * 170, () => {
+        const bx = t.x + (Math.random() - 0.5) * t.w * 0.7;
+        const bit = this.add.rectangle(bx, hitY + (Math.random() - 0.5) * 30, 5 + Math.random() * 9, 5 + Math.random() * 7, Math.random() < 0.5 ? 0x6b7280 : 0x3f3f46).setDepth(img.depth + 1);
+        this.tweens.add({ targets: bit, y: t.ground - 4, x: bx + (Math.random() - 0.5) * 60, angle: Math.random() * 400, duration: 700 + Math.random() * 400, ease: "Quad.in", onComplete: () => bit.destroy() });
+        if (i % 3 === 0) synth.play("smash", 0.4);
+      });
+    this.cameras.main.shake(1300, calmF ? 0.004 : 0.008);
+    await this.wait(1300);
+    shudder.remove();
+    img.x = x0;
+    top.x = x0;
+    // 2. the top shears off at the wound and topples away from the hit (to the left), then drops
+    synth.play("boom");
+    this.boomAt(t.x, hitY, 1.8, img.depth + 2);
+    this.cameras.main.shake(900, calmF ? 0.01 : 0.022);
+    this.tweens.add({ targets: top, angle: -24, x: t.x - t.w * 0.35, duration: 1300, ease: "Quad.in" });
+    this.tweens.add({ targets: top, y: t.ground + t.h * f + 40, delay: 900, duration: 1500, ease: "Quad.in" });
+    this.time.delayedCall(2000, () => {
+      synth.play("smash");
+      vfx(this, "vfx_dust", t.x - t.w * 0.9, t.ground - 5, { scale: 3, depth: 43 });
+    });
+    await this.wait(1500);
+    // 3. the rest sinks into its own footprint, booms chasing the top of it down
+    synth.play("boom");
+    this.cameras.main.shake(2800, calmF ? 0.012 : 0.03);
+    const dur = 2900;
+    const rest = t.h * (1 - f);
+    this.tweens.add({ targets: img, y: t.ground + rest * 0.98, duration: dur, ease: "Quad.in" });
+    this.tweens.add({ targets: img, angle: { from: 0, to: 3 }, duration: dur, ease: "Sine.in" });
+    this.tweens.add({ targets: t.shadow, alpha: 0, duration: dur });
+    for (let i = 0; i < 7; i++) {
+      const ms = i * (dur / 7);
+      const p = (ms / dur) ** 2;
+      this.time.delayedCall(ms, () => this.boomAt(t.x + (Math.random() - 0.5) * t.w * 0.8, hitY + rest * (p + 0.1 + Math.random() * 0.12), 1.3 + Math.random() * 0.6, 41));
+    }
+    vfx(this, "vfx_blastsmoke", t.x, t.ground - 10, { scale: 3.2, depth: 42, delay: 500 });
+    for (let i = 0; i < 5; i++) vfx(this, "vfx_dust", t.x + (i - 2) * t.w * 0.7, t.ground - 5, { scale: 2.8, depth: 43, delay: 800 + i * 160 });
+    await this.wait(dur - 200);
+  }
+
   /** Wipe the set for the next shot, but keep the dialogue box (depth 1000+) alive. */
   private clearStage() {
     this.cast.clear();
@@ -471,10 +545,9 @@ export class VignetteScene extends Phaser.Scene {
       this.tween({ targets: smoke, y: smoke.y - 160, alpha: 0, scale: 2.5, duration: 3000 + Math.random() * 1500 });
     }
     await this.wait(1200);
-    synth.play("boom");
-    this.cameras.main.shake(2600, 0.03);
-    fire.destroy();
-    this.collapseFx(tower);
+    // it comes down slowly, in stages (the top shears off at the wound first), then the dust
+    this.tweens.add({ targets: fire, alpha: 0, duration: 1600, onComplete: () => fire.destroy() });
+    await this.collapseStaged(tower, hitY);
     for (let i = 0; i < (hasVfx(this, "vfx_dust") ? 10 : 30); i++) {
       const dust = this.add.circle(560 + (Math.random() - 0.5) * 200, 430, 20 + Math.random() * 30, 0xb8a888, 0.85).setDepth(40);
       this.tween({ targets: dust, x: dust.x + (Math.random() - 0.5) * 700, y: 400 - Math.random() * 160, scale: 3, alpha: 0, duration: 3500, delay: 400 + Math.random() * 1400 });

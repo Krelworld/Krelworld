@@ -489,7 +489,7 @@ export class RoofCutscene extends Phaser.Scene {
     moanGap = 300;
     const glow = lads.map((l) => this.add.ellipse(l.x, l.y - l.displayHeight * 0.5, l.displayWidth * 0.9, l.displayHeight * 1.05, 0xff9ad5, 0).setDepth(39).setBlendMode(Phaser.BlendModes.ADD));
     const circuit = this.add.graphics().setDepth(63).setBlendMode(Phaser.BlendModes.ADD);
-    const charge = this.add.ellipse(bar.x, barY, bar.width + 30, 30, 0xff9ad5, 0.12).setDepth(62).setBlendMode(Phaser.BlendModes.ADD);
+    const charge = this.add.ellipse(bar.x, barY, bar.width + 30, 16, 0xff5fae, 0.1).setDepth(62).setBlendMode(Phaser.BlendModes.ADD);
     let heat = 0;
     const chest = (l: Phaser.GameObjects.Sprite) => ({ x: l.x, y: l.y - l.displayHeight * 0.62 });
     // the trail: a line of light joining them all up, brighter every pass
@@ -530,14 +530,14 @@ export class RoofCutscene extends Phaser.Scene {
           const spark = this.add.circle(chest(l).x, chest(l).y, 10 + p * 4, 0xffffff, 1).setDepth(64).setBlendMode(Phaser.BlendModes.ADD);
           this.tweens.add({ targets: spark, scale: 2.4, alpha: 0, duration: 300, onComplete: () => spark.destroy() });
           const g = glow[lads.indexOf(l)];
-          g.setFillStyle(0xff9ad5, 0.35 + heat * 0.25);
-          this.tweens.add({ targets: g, fillAlpha: 0.1 + heat * 0.25, duration: 400 });
+          g.setFillStyle(0xff9ad5, 0.25 + heat * 0.15);
+          this.tweens.add({ targets: g, fillAlpha: 0.06 + heat * 0.14, duration: 400 });
           synth.wonkTick(heat);
           if (k % 3 === 0) synth.voice(p > 1 ? "oh" : "grunt", 0.35 + heat * 0.3, 0.7 + heat * 0.5 + (k % 4) * 0.08);
         }),
       );
       Juice.shake(this, (to - from) * 1000, 0.003 + p * 0.004);
-      this.tweens.add({ targets: charge, scaleY: 1.15 + p * 0.2, fillAlpha: 0.2 + p * 0.1, duration: (to - from) * 1000 });
+      this.tweens.add({ targets: charge, scaleY: 1.1 + p * 0.15, fillAlpha: 0.14 + p * 0.06, duration: (to - from) * 1000 });
     }
 
     // 3. THE COUNT: everyone shouting, him bracing; then NOW, LADS! and GROUP…
@@ -570,7 +570,7 @@ export class RoofCutscene extends Phaser.Scene {
     pump = 1;
     this.caption(FR.KZ_FINISH[0], "#ffffff", 50, 0.8);
     for (let i = 0; i < 8; i++) synth.voice(i % 2 ? "oh" : "grunt", 0.5 + i * 0.05, 0.6 + i * 0.1, i * 0.1);
-    this.tweens.add({ targets: charge, scaleY: 2, fillAlpha: 0.55, duration: 850, ease: "Quad.in" });
+    this.tweens.add({ targets: charge, scaleY: 1.8, fillAlpha: 0.32, duration: 850, ease: "Quad.in" });
     Juice.shake(this, 900, 0.012);
 
     // 4. KREEEZZ: the release, all of it, into his mouth
@@ -593,10 +593,16 @@ export class RoofCutscene extends Phaser.Scene {
       callback: () => {
         beam.clear();
         const m = { x: d.x + 4, y: d.y - d.displayHeight * 0.72 };
-        const w0 = 30 + Math.random() * 10;
-        beam.fillStyle(0xff9ad5, 0.18).fillTriangle(barL, barY - w0 * 2.4, barL, barY + w0 * 2.4, m.x, m.y);
-        beam.fillStyle(0xffffff, 0.3).fillTriangle(barL, barY - w0 * 1.6, barL, barY + w0 * 1.6, m.x, m.y);
-        beam.fillStyle(0xffffff, 0.95).fillTriangle(barL + 40, barY - w0 * 0.6, barL + 40, barY + w0 * 0.6, m.x, m.y);
+        // one ray off every lad (from behind the bar), all meeting in one beam at the front, into his mouth
+        const join = { x: barR + 10, y: barY };
+        crs.forEach((r, k) => {
+          const w = 3 + Math.random() * 2;
+          beam.fillStyle(k % 2 ? 0xffd1f3 : 0xff9ad5, 0.55).fillTriangle(r.x, barY - w, r.x, barY + w, join.x, join.y);
+        });
+        const w0 = 14 + Math.random() * 6;
+        beam.fillStyle(0xff9ad5, 0.22).fillTriangle(join.x, join.y - w0 * 1.8, join.x, join.y + w0 * 1.8, m.x, m.y);
+        beam.fillStyle(0xffffff, 0.9).fillTriangle(join.x, join.y - w0 * 0.6, join.x, join.y + w0 * 0.6, m.x, m.y);
+        beam.fillStyle(0xffffff, 0.9).fillCircle(join.x, join.y, w0 * 0.9);
       },
     });
     // it hits him: back he goes, off his feet

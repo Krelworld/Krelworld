@@ -9619,6 +9619,33 @@
   },
   "kd_esc_cop": {
    "file": "props/kd_esc_cop.png"
+  },
+  "poster_yfront_FLENKY": {
+   "file": "props/home/poster_yfront_flenky.png"
+  },
+  "poster_yfront_KREZMAR": {
+   "file": "props/home/poster_yfront_krezmar.png"
+  },
+  "poster_yfront_KREBLIS": {
+   "file": "props/home/poster_yfront_kreblis.png"
+  },
+  "poster_yfront_KREZWONK": {
+   "file": "props/home/poster_yfront_krezwonk.png"
+  },
+  "poster_yfront_SCROMBUS": {
+   "file": "props/home/poster_yfront_scrombus.png"
+  },
+  "poster_yfront_KREBON": {
+   "file": "props/home/poster_yfront_krebon.png"
+  },
+  "poster_yfront_CRONGUS": {
+   "file": "props/home/poster_yfront_crongus.png"
+  },
+  "poster_yfront_GRONNY": {
+   "file": "props/home/poster_yfront_gronny.png"
+  },
+  "poster_yfront_MIKEY": {
+   "file": "props/home/poster_yfront_mikey.png"
   }
  },
  "sheets": {

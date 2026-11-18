@@ -851,10 +851,12 @@ export class HubScene extends Phaser.Scene {
     if (!this.ruined) this.add.text(1280, 690, "THE GREAT PUSSY JUICE TAP", { fontFamily: FONT, fontSize: "11px", color: "#ffb6c1", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5).setDepth(801);
     this.colliders.add(this.add.rectangle(1280, 840, 120, 60, 0, 0));
     // The Kreltower
-    if (G.s.flags.kreltower_fell) {
-      if (this.hd && this.textures.exists("hd_rubble")) this.add.image(1650, 1100, "hd_rubble").setOrigin(0.5, 1).setDepth(1100);
+    // (nothing tall survives the nuke: after it the tower is a heap whichever way the flight went)
+    if (G.s.flags.kreltower_fell || this.ruined) {
+      if (this.ruined) this.ruinProp("r_fireheap", 1650, 1100, 2.2);
+      else if (this.hd && this.textures.exists("hd_rubble")) this.add.image(1650, 1100, "hd_rubble").setOrigin(0.5, 1).setDepth(1100);
       else this.add.image(1650, 1100, "p_rubble").setOrigin(0.5, 1).setScale(2).setDepth(1100);
-      this.add.text(1650, 1110, "WHERE THE KRELTOWER WAS (AGAIN)", { fontFamily: FONT, fontSize: "11px", color: "#ff9a9a", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5, 0).setDepth(1101);
+      if (!this.ruined) this.add.text(1650, 1110, "WHERE THE KRELTOWER WAS (AGAIN)", { fontFamily: FONT, fontSize: "11px", color: "#ff9a9a", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5, 0).setDepth(1101);
     } else {
       if (this.hd && this.textures.exists("hd_kreltower")) {
         // half as big again: it's the tallest thing in town
@@ -864,7 +866,7 @@ export class HubScene extends Phaser.Scene {
       this.add.text(1650, 1110, "THE KRELTOWER (rebuilt)", { fontFamily: FONT, fontSize: "11px", color: "#ffffff", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5, 0).setDepth(1101);
     }
     this.colliders.add(this.add.rectangle(1650, 1085, 70, 30, 0, 0));
-    this.interactables.push({ x: 1650, y: 1135, r: 55, label: () => (G.s.flags.kreltower_fell ? "Look at the rubble" : "Read the Kreltower plaque"), use: () => this.kreltowerPlaque() });
+    this.interactables.push({ x: 1650, y: 1135, r: 55, label: () => (G.s.flags.kreltower_fell || this.ruined ? "Look at the rubble" : "Read the Kreltower plaque"), use: () => this.kreltowerPlaque() });
     // public TV
     if (this.ruined) this.ruinProp("r_girders", 1450, 760, 1.4);
     else if (this.hd && this.textures.exists("hd_tv")) this.add.image(1450, 730, "hd_tv").setDepth(770);

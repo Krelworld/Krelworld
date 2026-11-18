@@ -466,10 +466,11 @@ export function ruinRevealShot(hub: Phaser.Scene, o: { worldW: number; worldH: n
     build: (c) => {
       const { st, sc } = c;
       st.maxLean = 80;
-      st.light = 0xf2e6d6;
-      st.fog = { color: 0xc9c2bb, start: 1400, span: 5200, max: 0.55 };
-      st.setSky({ top: 0x7894bb, horizon: 0xe9dccb, below: 0x8a8278 });
-      st.addGround({ x0: -9000, y0: -9000, x1: o.worldW + 9000, y1: o.worldH + 9000, cols: 9, rows: 9, color: 0x3a3530, depth: 1 });
+      // an apocalypse: fire-lit, under a sky of smoke
+      st.light = 0xe0a27a;
+      st.fog = { color: 0x5a3426, start: 1200, span: 4200, max: 0.6 };
+      st.setSky({ top: 0x1c1416, horizon: 0xb4502a, below: 0x3a2620 });
+      st.addGround({ x0: -9000, y0: -9000, x1: o.worldW + 9000, y1: o.worldH + 9000, cols: 9, rows: 9, color: 0x2a201c, depth: 1 });
       snapshotWorld(st, hub, { worldW: o.worldW, worldH: o.worldH, skip: o.skip });
       // the dead, lying about the ruins in the camera's view (not on top of the lads)
       const rnd = new Phaser.Math.RandomDataGenerator(["kdead"]);
@@ -508,8 +509,40 @@ export function ruinRevealShot(hub: Phaser.Scene, o: { worldW: number; worldH: n
         } else specs.push({ key: sheet, x, y, w: 1, h: 1, flat: [x - w * 0.45, y - w * 0.15, x + w * 0.45, y + w * 0.22] });
       }
       st.addBoards(specs, 3);
-      // smoke over all of it
-      tick = smokeColumns(c, [...o.smoke, ...Array.from({ length: 6 }, () => ({ x: L.x + rnd.realInRange(-900, 900), y: L.y - rnd.realInRange(300, 1100) }))], "kreveal", 560);
+      // the town burning: walls of flame across the ruins, a glow under each, sparks going up
+      const glow = st.softDot("glow", 0.3);
+      const fireKey = sc.textures.exists("vfx_fire") ? "vfx_fire" : "";
+      const nFrames = fireKey ? Math.max(1, sc.textures.get(fireKey).frameTotal - 1) : 1;
+      const firePts = [...o.smoke.map((p) => ({ ...p, big: 1.3 })), ...Array.from({ length: 12 }, () => ({ x: clamp(cx + rnd.realInRange(-1100, 1100), 60, o.worldW - 60), y: L.y - rnd.realInRange(250, 1300), big: rnd.realInRange(0.7, 1.2) }))].filter((p) => Math.hypot(p.x - L.x, (p.y - L.y) * 1.6) > 260);
+      const flames = firePts.flatMap((p, i) => {
+        const base = st.addSprite(glow, p.x, p.y, 20, 260 * p.big, { add: true, tint: 0xff4a10, alpha: 0.3 });
+        const tongues = fireKey
+          ? Array.from({ length: 2 }, (_, j) => ({ s: st.addSprite(fireKey, p.x + (j - 0.5) * 50 * p.big, p.y + j * 12, 0, rnd.realInRange(130, 200) * p.big, { lit: false, frame: 0, originY: 1 }), ph: rnd.frac() * nFrames, rate: rnd.realInRange(11, 16) }))
+          : Array.from({ length: 3 }, (_, j) => ({ s: st.addSprite(glow, p.x + (j - 1) * 50 * p.big, p.y, 90, rnd.realInRange(160, 260) * p.big, { add: true, tint: j === 1 ? 0xffd27a : 0xff7a2a }), ph: rnd.frac() * 6, rate: 0 }));
+        return [{ base, tongues, i, big: p.big }];
+      });
+      const sparks = Array.from({ length: 50 }, () => {
+        const p = rnd.pick(firePts);
+        return { s: st.addSprite(glow, p.x, p.y, 0, 14, { add: true, tint: rnd.pick([0xffb347, 0xff6a1a, 0xfff0a0]) }), x: p.x, y: p.y, ph: rnd.frac(), rate: rnd.realInRange(0.25, 0.5), drift: rnd.realInRange(-120, 120) };
+      });
+      const fireTick = (T: number) => {
+        for (const f of flames) {
+          f.base.alpha = 0.26 + 0.08 * Math.sin(T * 9 + f.i * 1.7) + 0.06 * Math.sin(T * 23 + f.i);
+          for (const t of f.tongues) {
+            if (t.rate) t.s.img.setFrame(Math.floor(t.ph + T * t.rate) % nFrames);
+            else t.s.z = 90 + 30 * Math.sin(T * 11 + t.ph);
+          }
+        }
+        for (const k of sparks) {
+          const u = (k.ph + T * k.rate) % 1;
+          k.s.z = 40 + u * 700;
+          k.s.x = k.x + k.drift * u + Math.sin(u * 12 + k.ph * 7) * 18;
+          k.s.alpha = (1 - u) * (0.6 + 0.4 * Math.sin(T * 30 + k.ph * 50));
+        }
+      };
+      // black smoke over all of it
+      const smokeTick = smokeColumns(c, [...o.smoke.map((p) => ({ ...p, big: 1.4 })), ...firePts.filter((_, i) => i % 2 === 0)], "kreveal", 760);
+      tick = (T) => (smokeTick(T), fireTick(T));
       synth.play("fly_whoosh", 0.45);
       return (t) => {
         tick(t + 6);

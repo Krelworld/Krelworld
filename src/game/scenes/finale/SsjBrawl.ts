@@ -1519,7 +1519,7 @@ export class SsjBrawl {
     const kiBack = sc.add.rectangle(24, 62, 220, 8, 0x000000, 0.7).setOrigin(0, 0.5).setStrokeStyle(1, 0x93c5fd, 0.8);
     const kiBar = sc.add.rectangle(25, 62, 218, 6, 0x93c5fd, 1).setOrigin(0, 0.5);
     const kiLab = sc.add.text(250, 62, "KI", { fontFamily: FONT, fontSize: "11px", color: "#93c5fd", fontStyle: "bold" }).setOrigin(0, 0.5);
-    const eName = sc.add.text(936, 18, "THE CONCEPT · ABRIDGED", { fontFamily: "Impact, sans-serif", fontSize: "16px", color: "#d8b4fe", stroke: "#000", strokeThickness: 4 }).setOrigin(1, 0);
+    const eName = sc.add.text(936, 18, "THE CONCEPT OF PAEDOPHILIA · ABRIDGED", { fontFamily: "Impact, sans-serif", fontSize: "16px", color: "#d8b4fe", stroke: "#000", strokeThickness: 4 }).setOrigin(1, 0);
     const eBack = sc.add.rectangle(936, 44, 330, 16, 0x000000, 0.7).setOrigin(1, 0.5).setStrokeStyle(2, VIOLET, 0.9);
     const eLag = sc.add.rectangle(934, 44, 326, 12, 0xffffff, 0.8).setOrigin(1, 0.5);
     const eBar = sc.add.rectangle(934, 44, 326, 12, VIOLET, 1).setOrigin(1, 0.5);

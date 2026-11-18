@@ -61,7 +61,7 @@ export async function kreddleCrossing(sc: Phaser.Scene): Promise<void> {
       // the bridge's neon rails, and the river catching them
       const rails: Sprite3D[] = [];
       for (let x = 20; x > KE - 20; x -= 52)
-        for (const [y, col] of [[BRIDGE_Y0 + 2, 0xff4fd8], [BRIDGE_Y1 - 2, 0x22d3ee]] as [number, number][]) rails.push(st.addSprite(glow, x, y, 22, 46, { add: true, tint: col, alpha: 0.85 }));
+        for (const [y, col] of [[BRIDGE_Y0 + 2, 0xff4fd8], [BRIDGE_Y1 - 2, 0x22d3ee]] as [number, number][]) rails.push(st.addSprite(glow, x, y, 26, 26, { add: true, tint: col, alpha: 0.85 }));
       const rnd = new Phaser.Math.RandomDataGenerator(["kcross"]);
       const glints = Array.from({ length: 30 }, () => ({ s: st.addSprite(glow, rnd.between(KE + 30, -30), rnd.pick([rnd.between(200, BRIDGE_Y0 - 30), rnd.between(BRIDGE_Y1 + 30, 1500)]), 2, rnd.between(40, 90), { add: true, tint: rnd.pick([0xff4fd8, 0x22d3ee, 0xfacc15]), alpha: 0.3 }), ph: rnd.frac() * 6 }));
       // searchlights over the Strip

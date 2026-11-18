@@ -986,8 +986,9 @@ export class FinaleScene extends Phaser.Scene {
       const len = Math.hypot(x1 - x0, y1 - y0);
       const ang = Math.atan2(y1 - y0, x1 - x0);
       orb.setPosition(x0, y0).setScale(1.3);
-      const g = this.add.graphics().setDepth(72).setBlendMode(Phaser.BlendModes.ADD);
-      const core = this.add.graphics().setDepth(73);
+      // (over the Krew and their auras: it's the one thing on screen)
+      const g = this.add.graphics().setDepth(880).setBlendMode(Phaser.BlendModes.ADD);
+      const core = this.add.graphics().setDepth(881);
       const k = { w: 6, reach: 0 };
       const ms = 2900;
       Juice.duckMusic(ms, 400, 0.15);
@@ -1032,18 +1033,18 @@ export class FinaleScene extends Phaser.Scene {
           Juice.flash(this, 0xffffff, 300, 0.6, 975);
           // shoved back a step
           this.tweens.add({ targets: dragon, x: dragon.x - 26, duration: 900, ease: "Quad.out" });
-          Juice.shockRing(this, x1, y1, { color: 0xffd23f, to: 360, rings: 3, ms: 700, depth: 74 });
+          Juice.shockRing(this, x1, y1, { color: 0xffd23f, to: 360, rings: 3, ms: 700, depth: 883 });
         }
         // streaks racing along it
         if (Math.random() < 0.8) {
           const off = (Math.random() - 0.5) * k.w * 1.6;
-          const st = this.add.rectangle(x0 + nx * off * 0.4, y0 + ny * off * 0.4, 40 + Math.random() * 60, 3, 0xffffff, 0.9).setDepth(74).setRotation(ang).setBlendMode(Phaser.BlendModes.ADD);
+          const st = this.add.rectangle(x0 + nx * off * 0.4, y0 + ny * off * 0.4, 40 + Math.random() * 60, 3, 0xffffff, 0.9).setDepth(882).setRotation(ang).setBlendMode(Phaser.BlendModes.ADD);
           this.tweens.add({ targets: st, x: x1 + nx * off, y: y1 + ny * off, alpha: 0.2, duration: 260, onComplete: () => st.destroy() });
         }
         // spray off the impact point
         if (landed && Math.random() < 0.6) {
           const a = ang + Math.PI + (Math.random() - 0.5) * 2.2;
-          const sp = this.add.circle(x1, y1, 2 + Math.random() * 4, Math.random() < 0.5 ? 0xffffff : 0xffd23f, 1).setDepth(75).setBlendMode(Phaser.BlendModes.ADD);
+          const sp = this.add.circle(x1, y1, 2 + Math.random() * 4, Math.random() < 0.5 ? 0xffffff : 0xffd23f, 1).setDepth(883).setBlendMode(Phaser.BlendModes.ADD);
           const v = 120 + Math.random() * 260;
           this.tweens.add({ targets: sp, x: x1 + Math.cos(a) * v, y: y1 + Math.sin(a) * v, alpha: 0, duration: 500, onComplete: () => sp.destroy() });
         }
@@ -1051,7 +1052,7 @@ export class FinaleScene extends Phaser.Scene {
       // the Krew pour into it: their auras go white and swell
       for (const l of this.lads) {
         l.aura?.setTint(0xffffff);
-        if (l.aura) this.tweens.add({ targets: l.aura, alpha: 1, scaleX: l.aura.scaleX * 1.25, scaleY: l.aura.scaleY * 1.25, duration: 600 });
+        if (l.aura) this.tweens.add({ targets: l.aura, alpha: 1, duration: 600 });
       }
       this.events.on("update", draw);
       this.time.delayedCall(ms, () => {
@@ -1344,6 +1345,8 @@ export class FinaleScene extends Phaser.Scene {
         this.input.off("pointerdown", push);
         shouts.remove();
         stopLines();
+        // the auras settle back down (swollen to the max they'd hide the release behind a wall of fire)
+        for (const [l, ab] of auraBase) if (l.aura) this.tweens.add({ targets: l.aura, scaleX: ab.sx * 1.15, scaleY: ab.sy * 1.15, alpha: 0.8, duration: 500 });
         beams.destroy();
         core.destroy();
         this.tweens.add({ targets: glowGold, alpha: 0, duration: 600, onComplete: () => glowGold.destroy() });

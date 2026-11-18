@@ -439,7 +439,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     else this.scene.get("UI").events.emit("mode", "dungeon");
     G.emit("room", { name: `${this.dungeon.name} · ${r.name}`, idx: this.roomIdx, total: this.dungeon.rooms.length });
     G.emit("boss", null);
-    this.roomMusicId = r.boss && r.theme === "citadel" && r.music ? r.music : r.boss ? (r.boss === "drongus" ? "final" : MUSIC_FILES[`boss_${r.boss}`] ? `boss_${r.boss}` : "boss") : r.music ?? this.dungeon.music;
+    // Luke Watkins (pudding_demon) is fought to the mind's own track, carried straight on from the rooms before
+    const keepsDungeonMusic = r.boss === "pudding_demon";
+    this.roomMusicId = keepsDungeonMusic ? (r.music ?? this.dungeon.music) : r.boss && r.theme === "citadel" && r.music ? r.music : r.boss ? (r.boss === "drongus" ? "final" : MUSIC_FILES[`boss_${r.boss}`] ? `boss_${r.boss}` : "boss") : r.music ?? this.dungeon.music;
     this.fightMusicOn = false;
     synth.music(this.roomMusicId);
     // background ambience for the place (quiet, under the music)

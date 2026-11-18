@@ -308,7 +308,7 @@ const EYE: [number, number, number, number][] = [
   [3.4, -160, 560, RZ + 260],
   [4.3, 600, 300, RZ + 420],
   [T_LAND, 380, 520, RZ + 520],
-  [6.8, 0, 400, RZ + 720],
+  [6.8, 0, 300, RZ + 800],
 ];
 const LOOK: [number, number, number, number][] = [
   [0, 0, 0, RZ + 40],
@@ -411,11 +411,13 @@ async function launchShot(sc: Phaser.Scene) {
       const pk = playerKey(sc);
       const meta = charMeta(S, pk);
       const pickM = (m: Record<string, number[]> | undefined, dir: string) => (m ? (m[dir] ?? m.east ?? m.south) : undefined);
+      // up: arms up (the middle of the cheer), or flung (a hurt frame); down: flailing; landed: the cheer
+      const cheerS = pickM(meta?.victory, "south");
       const hurtE = pickM(meta?.hurt, "east");
-      const riseF = hurtE?.length ? [hurtE[Math.min(1, hurtE.length - 1)]] : [meta ? (meta.idle.east ?? 0) : 3];
+      const riseF = cheerS?.length ? [cheerS[Math.floor(cheerS.length / 2)]] : hurtE?.length ? [hurtE[Math.min(1, hurtE.length - 1)]] : [meta ? (meta.idle.east ?? 0) : 3];
       const fallF = pickM(meta?.hurt, "south") ?? (meta ? riseF : [1, 2]);
       const standF = meta ? (meta.idle.south ?? 0) : 0;
-      const cheerF = pickM(meta?.victory, "south") ?? [standF];
+      const cheerF = cheerS ?? [standF];
       const frames = S.textures.exists(pk) ? [...new Set([...riseF, ...fallF, ...cheerF, standF])].filter((f) => S.textures.get(pk).has(String(f))) : [];
       const riderAt = up.length;
       const riderH: number[] = [];
@@ -437,7 +439,7 @@ async function launchShot(sc: Phaser.Scene) {
       for (let i = 0; i < 16; i++) {
         const w = rnd.between(12, 24);
         const h = rnd.between(12, 24);
-        debSpecs.push({ key: floorKey, crop: [Math.round(FW * 0.36) + rnd.between(0, Math.round(FW * 0.24)), Math.round(FW * 0.36) + rnd.between(0, Math.round(FW * 0.24)), w, h], x: 0, y: 0, w: w * 2.2, h: h * 2.2 });
+        debSpecs.push({ key: floorKey, crop: [Math.round(FW * 0.36) + rnd.between(0, Math.round(FW * 0.24)), Math.round(FW * 0.36) + rnd.between(0, Math.round(FW * 0.24)), w, h], x: 0, y: 0, w: w * 1.5, h: h * 1.5 });
       }
       const debris = st.addBoards(debSpecs, 4.7).map((b) => {
         b.alpha = 0;
@@ -463,7 +465,7 @@ async function launchShot(sc: Phaser.Scene) {
       const sparks = Array.from({ length: 10 }, () => ({ s: st.addSprite(dot, LAND.x, LAND.y, RZ, 18, { add: true, tint: 0xffe27a, alpha: 0, layer: "front" }), a: rnd.realInRange(0, Math.PI * 2), v: rnd.realInRange(120, 260), vz: rnd.realInRange(150, 320) }));
       // ---- on the glass: speed lines, the gold flash, lightning in the sky
       const lines = st.keep(S.add.graphics().setDepth(40));
-      const streaks = Array.from({ length: 20 }, () => ({ ox: rnd.realInRange(-280, 280), oy: rnd.realInRange(-300, 300), len: rnd.realInRange(40, 130) }));
+      const streaks = Array.from({ length: 20 }, () => ({ ox: rnd.realInRange(-280, 280), oy: rnd.realInRange(-300, 300), len: rnd.realInRange(80, 220) }));
       const gold = st.keep(S.add.rectangle(SW / 2, SH / 2, SW + 80, SH + 80, 0xffc94a, 1).setBlendMode(Phaser.BlendModes.ADD).setDepth(31).setAlpha(0));
       const boltG = st.keep(S.add.graphics().setDepth(0.5));
       let bolt: { pts: number[]; t0: number } | null = null;
@@ -643,7 +645,7 @@ async function launchShot(sc: Phaser.Scene) {
         const dir = me.u < 0.5 ? 1 : -1;
         lines.clear();
         if (sk > 0.02 && qz > 60) {
-          lines.lineStyle(2, 0xfff3c4, 0.55 * sk);
+          lines.lineStyle(3, 0xffe9a0, 0.6 * sk);
           for (const s of streaks) {
             s.oy += dir * 1700 * dt * (0.5 + sk);
             if (s.oy > 300) s.oy -= 600;

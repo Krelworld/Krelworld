@@ -2993,9 +2993,18 @@ export class VignetteScene extends Phaser.Scene {
     // a lad on the ground to deliver the bad news (never the player)
     const lad = (pref: string[]) => pref.find((p) => p !== me) ?? "KREBLIS";
     // ---- the cockpit
-    const sky = this.sky(0x7ec8f0, 0xf3d9b1);
     const dash = this.cockpitFrame();
-    const idle = this.time.addEvent({ delay: 16, loop: true, callback: () => dash.update(0, 0, this.time.now) });
+    // the autopilot holds her straight and level while you work out the buttons (the same view as the flight)
+    const outside = createFlightView(this, { cx: 480, cy: dash.viewY, depth: 0 });
+    const idle = this.time.addEvent({
+      delay: 16,
+      loop: true,
+      callback: () => {
+        const t = this.time.now;
+        outside.update({ ax: Math.sin(t / 2300) * 0.08, ay: Math.sin(t / 3100) * 0.05, dt: 16, progress: 0 });
+        dash.update(0, 0, t);
+      },
+    });
     synth.music("boss_krozno", true);
     await this.talk([
       dir("The cockpit of Flight KR-069. Captain Stanley is in no position to object. There are four hundred buttons. One of them is labelled 'DO NOT'."),
@@ -3012,8 +3021,8 @@ export class VignetteScene extends Phaser.Scene {
       say("KREZWONK", "(over the radio) He knows how to fly a plane.", { cond: { notPlayer: "KREZWONK" } }),
       say("KREBLIS", "(over the radio) He knows how to fly a plane.", { cond: { player: "KREZWONK" } }),
     ]);
-    sky.destroy();
     idle.remove();
+    outside.destroy();
     dash.root.destroy();
     // ---- the flight
     await this.juiceFlight();

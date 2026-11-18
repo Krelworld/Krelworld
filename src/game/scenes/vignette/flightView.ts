@@ -487,6 +487,7 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
   const destroy = () => {
     if (dead) return;
     dead = true;
+    sc.events.off("shutdown", destroy);
     for (const g of made) g.destroy();
     for (const k of texKeys) if (sc.textures.exists(k)) sc.textures.remove(k);
   };

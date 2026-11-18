@@ -1427,7 +1427,30 @@ export class Synth {
     if (this.timer === null) this.timer = window.setInterval(() => this.schedule(), 60);
   }
 
+  /** The pause menu: hold the music where it is (recorded track and the synth tracks), and pick it up again after. */
+  private musicPaused = false;
+  pauseMusic() {
+    if (this.musicPaused) return;
+    this.musicPaused = true;
+    this.el?.pause();
+    if (this.timer !== null) {
+      window.clearInterval(this.timer);
+      this.timer = null;
+    }
+  }
+
+  resumeMusic() {
+    if (!this.musicPaused) return;
+    this.musicPaused = false;
+    if (this.el && this.el.paused && !this.el.ended) this.el.play().catch(() => undefined);
+    if (this.track && this.ctx && this.timer === null) {
+      this.nextTime = this.ctx.currentTime + 0.05;
+      this.timer = window.setInterval(() => this.schedule(), 60);
+    }
+  }
+
   stopMusic() {
+    this.musicPaused = false;
     this.stopFile();
     this.trackId = "";
     this.track = null;

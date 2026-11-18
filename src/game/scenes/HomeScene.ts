@@ -29,6 +29,8 @@ import { DARK_AUTISM_PASSAGES } from "../../content/darkAutism";
 import { clueAt, clueTex, takeClue } from "../systems/trails";
 import { shinyColours, shinyPickup, trailPropScale } from "../gfx/shiny";
 import { addPantsPoster } from "./home/pantsPoster";
+import { addRuinSpots, dressRuin, homeRuined, RUIN_AMMO_MULT } from "./home/ruinedHome";
+import { RUIN_ARRIVE, RUIN_SLEEP, RUIN_TV, RUIN_WINDOW } from "../../content/ruinedHome";
 
 /** Your house: walk about, watch the telly, sleep. New games start here. */
 
@@ -54,6 +56,8 @@ export class HomeScene extends Phaser.Scene {
   private spots: Spot[] = [];
   /** Panels open right now (one closing and another opening straight after mustn't free the player). */
   private openPanels = 0;
+  /** Chapter 7, after the bombing: the wreckage of your house (same room, everything still works). */
+  private ruined = false;
 
   constructor() {
     super("Home");
@@ -63,11 +67,16 @@ export class HomeScene extends Phaser.Scene {
     const s = G.s;
     this.busy = false;
     this.spots = [];
+    this.ruined = homeRuined(s);
     this.cameras.main.fadeIn(500);
-    if (!backdrop(this, "bg_home", { depth: -10 })) this.add.rectangle(480, 270, 960, 540, 0x2a2233).setDepth(-10);
-    // a warm lamp glow
-    const glow = this.add.ellipse(160, 360, 380, 260, 0xffc46b, 0.08).setBlendMode(Phaser.BlendModes.ADD).setDepth(1);
-    this.tweens.add({ targets: glow, alpha: 0.5, yoyo: true, repeat: -1, duration: 2400, ease: "Sine.inOut" });
+    const bg = backdrop(this, "bg_home", { depth: -10 });
+    if (!bg) this.add.rectangle(480, 270, 960, 540, 0x2a2233).setDepth(-10);
+    if (this.ruined) dressRuin(this, bg);
+    else {
+      // a warm lamp glow
+      const glow = this.add.ellipse(160, 360, 380, 260, 0xffc46b, 0.08).setBlendMode(Phaser.BlendModes.ADD).setDepth(1);
+      this.tweens.add({ targets: glow, alpha: 0.5, yoyo: true, repeat: -1, duration: 2400, ease: "Sine.inOut" });
+    }
     // the furniture
     const tv = this.add.image(130, 478, "p_tv").setOrigin(0.5, 1).setScale(7).setDepth(470);
     const screen = this.add.rectangle(tv.x - 8, tv.y - tv.displayHeight * 0.48, tv.displayWidth * 0.62, tv.displayHeight * 0.45, 0x7dd3fc, 0.18).setDepth(471).setBlendMode(Phaser.BlendModes.ADD);
@@ -83,17 +92,18 @@ export class HomeScene extends Phaser.Scene {
     this.drawDecor();
     addPantsPoster(this, (sp) => this.spots.push(sp), (l) => this.talk(l), () => this.box);
     this.spots.push(
-      { x: 140, y: 480, r: 80, label: "E: Watch KrelTV", use: () => this.watchTV() },
+      { x: 140, y: 480, r: 80, label: this.ruined ? "E: Watch KrelTV (it still works. Somehow.)" : "E: Watch KrelTV", use: () => (this.ruined ? void this.talk([dir(RUIN_TV)]).then(() => this.watchTV()) : this.watchTV()) },
       { x: 900, y: 532, r: 42, label: "E: Play the games console", use: () => this.consolePanel() },
       { x: 292, y: 462, r: 40, label: "E: Look at your trophy shelf", use: () => this.trophyPanel() },
       { x: 350, y: 522, r: 48, label: "E: Open the laptop (group chat)", use: () => this.laptopPanel() },
       { x: 540, y: 500, r: 80, label: "E: Sleep (save · full health · sober up · dream)", use: () => this.sleep() },
-      { x: 880, y: 468, r: 55, label: "E: Gun rack (order · ammo · perks)", use: () => this.gunRackPanel() },
-      { x: 420, y: 445, r: 55, label: "E: Look out of the window", use: () => this.talk([dir(this.windowBroken() ? KR_BRICK_WINDOW : s.flags.met_emergency ? "Krelford. The sky has a faint grey tint, like an unloaded page. Somewhere, a Tap is not running." : "Krelford, in the evening. Somewhere a fizzy bongo is opened. Somewhere else, the Great Tap gurgles. All is well. For now.")]) },
-      { x: 760, y: 450, r: 60, label: "E: Go outside", use: () => this.leave() },
+      { x: 880, y: 468, r: 55, label: this.ruined ? "E: Gun rack (order · ammo at half price · perks)" : "E: Gun rack (order · ammo · perks)", use: () => this.gunRackPanel() },
+      { x: 420, y: 445, r: 55, label: this.ruined ? "E: Look out of where the window was" : "E: Look out of the window", use: () => this.talk([dir(this.ruined ? RUIN_WINDOW : this.windowBroken() ? KR_BRICK_WINDOW : s.flags.met_emergency ? "Krelford. The sky has a faint grey tint, like an unloaded page. Somewhere, a Tap is not running." : "Krelford, in the evening. Somewhere a fizzy bongo is opened. Somewhere else, the Great Tap gurgles. All is well. For now.")]) },
+      { x: 760, y: 450, r: 60, label: this.ruined ? "E: Climb back out into Krelford" : "E: Go outside", use: () => this.leave() },
       { x: 624, y: 520, r: 44, label: "E: Read 'Dark Autism - An Erotic Memoir'", use: () => this.readBook() },
       { x: 566, y: 452, r: 34, label: "E: Jukebox (every tune you've heard)", use: () => this.jukeboxPanel() },
     );
+    if (this.ruined) addRuinSpots(this, (sp) => this.spots.push(sp), (l) => this.talk(l), () => this.me);
     this.placeClue();
     // Chapter 3: a Kreddle brick came through the window (the hole and the brick stay till the chapter's done)
     if (this.windowBroken()) {
@@ -169,6 +179,14 @@ export class HomeScene extends Phaser.Scene {
       G.emit("toast", { title: "PERSONAL QUEST COMPLETE", text: `${q.title}: +${coins} Krezzcoin. ${q.reward.desc}` });
       synth.play("ding");
       G.save();
+    }
+    if (this.ruined) {
+      if (!s.flags.home_ruin_seen) {
+        s.flags.home_ruin_seen = true;
+        G.save();
+        await this.talk(RUIN_ARRIVE);
+      }
+      return;
     }
     if (s.flags.home_seen || s.flags.prologue_done) {
       await this.kreddleTip();
@@ -577,6 +595,8 @@ export class HomeScene extends Phaser.Scene {
     // lights out (a black sheet, so the dream's text box still shows)
     const night = this.add.rectangle(480, 270, 960, 540, 0x05030c, 0).setDepth(1500);
     await new Promise<void>((r) => this.tweens.add({ targets: night, fillAlpha: 0.94, duration: 600, onComplete: () => r() }));
+    if (this.ruined) await this.talk([dir(RUIN_SLEEP)]);
+    this.busy = true;
     const z = this.add.text(480, 200, "z z z", { fontFamily: FONT, fontSize: "36px", color: "#a5b4fc" }).setOrigin(0.5).setDepth(1501);
     this.tweens.add({ targets: z, y: 170, alpha: 0.3, yoyo: true, repeat: -1, duration: 900 });
     await this.talk(this.dream());
@@ -760,6 +780,8 @@ export class HomeScene extends Phaser.Scene {
     const s = G.s;
     s.guns = s.guns ?? {};
     const { root, close } = this.panel("THE GUN RACK", "#67e8f9");
+    // in the wreckage there are no shops left: ammo's at salvage prices (half the Exchange's)
+    const ammoMult = this.ruined ? RUIN_AMMO_MULT : 1;
     const prevThreshold = this.input.dragDistanceThreshold;
     this.input.dragDistanceThreshold = 8;
     const coinsT = this.add.text(916, 78, "", { fontFamily: FONT, fontSize: "13px", color: "#ffd23f", fontStyle: "bold" }).setOrigin(1, 0.5);
@@ -982,14 +1004,14 @@ export class HomeScene extends Phaser.Scene {
         const parts = [modHave < modMaxAll ? "this gun's mods" : "", ...where("Kreddle Exchange"), ...where("Kreddle Prize Counter")].filter(Boolean);
         detailC.add(this.fitText(this.add.text(X + 12, TOP + 296, `⬆ In Kreddle: ${parts.join(", ")}`, { fontFamily: FONT, fontSize: "10px", color: "#ff7ad9", fontStyle: "bold" }), W - 24));
       } else detailC.add(this.add.text(X + 12, TOP + 296, "Every upgrade bought. Fully krezzed.", { fontFamily: FONT, fontSize: "11px", color: "#5ad35a" }));
-      // ammo, at the Kreddle Exchange's prices
-      const q = ammoQuote(s, id);
+      // ammo, at the Kreddle Exchange's prices (half that in the ruins)
+      const q = ammoQuote(s, id, ammoMult);
       const afford = s.coins >= q.unit;
       const label = q.full ? "AMMO FULL" : s.coins >= q.fill ? `FILL AMMO · ${q.fill}🪙` : afford ? `BUY ${g.pickup} AMMO · ${q.unit}🪙` : `SKINT: AMMO IS ${q.unit}🪙`;
       const bx = X + 12 + 85;
       const ammoBtn = this.button(detailC, bx, 434, 170, 32, label, () => {
         if (q.full || !afford) return;
-        if (!buyAmmo(s, id)) return;
+        if (!buyAmmo(s, id, ammoMult)) return;
         synth.play("coin");
         G.save();
         selected = id;
@@ -1024,7 +1046,7 @@ export class HomeScene extends Phaser.Scene {
         renderList();
         renderDetail();
       } else if (ev.key === "b" || ev.key === "B") {
-        if (selected && buyAmmo(s, selected)) {
+        if (selected && buyAmmo(s, selected, ammoMult)) {
           synth.play("coin");
           G.save();
           renderList();
@@ -1037,7 +1059,7 @@ export class HomeScene extends Phaser.Scene {
       this.input.keyboard?.off("keydown", onKey);
       this.input.dragDistanceThreshold = prevThreshold;
     });
-    root.add(this.add.text(48, 494, "↑↓ pick · SHIFT+↑↓ move · B buy ammo", { fontFamily: FONT, fontSize: "10px", color: "#64748b" }).setOrigin(0, 0.5));
+    root.add(this.add.text(48, 494, `↑↓ pick · SHIFT+↑↓ move · B buy ammo${this.ruined ? " · no shops left: ammo's HALF PRICE" : ""}`, { fontFamily: FONT, fontSize: "10px", color: "#64748b" }).setOrigin(0, 0.5));
     renderList();
     renderDetail();
   }

@@ -23,6 +23,7 @@ import { narrativeActor } from "../systems/narrative";
 import { DialogueBox } from "../ui/DialogueBox";
 import { bindPad, btnDown, firstDown, PAD_DEFAULTS, PAD_FIXED, PAD_START, padFor, padLabel, resetPad } from "../systems/padbinds";
 import { say } from "../../content/dsl";
+import { ruinHomeHint } from "./home/ruinedHome";
 import { clampDifficulty, difficultyDef, difficultyLabel, difficultyStats, DIFFICULTY_LEVELS, LEGACY_DIFFICULTY, DEFAULT_DIFFICULTY, MAX_DIFFICULTY } from "../systems/difficulty";
 
 type Mode = "pause" | "settings" | "bank" | "tribunal" | "death" | "quests" | "controls" | "log" | "difficulty";
@@ -283,7 +284,9 @@ export class MenuScene extends Phaser.Scene {
       case "pause": {
         add(title(this, 480, 74, "PAUSED", 28));
         const st = s ? currentStep() : null;
-        if (st) add(this.add.text(480, 104, `Objective: ${st.text}`, { fontFamily: FONT, fontSize: "13px", color: "#ffffff", wordWrap: { width: 600 }, align: "center" }).setOrigin(0.5, 0));
+        // (Chapter 7: a nudge towards the wreckage of your house before the dungeon; the objective itself doesn't change)
+        const hint = s ? ruinHomeHint(s) : "";
+        if (st) add(this.add.text(480, hint ? 96 : 104, `Objective: ${st.text}${hint ? `\n${hint}` : ""}`, { fontFamily: FONT, fontSize: hint ? "11px" : "13px", color: "#ffffff", wordWrap: { width: 640 }, align: "center" }).setOrigin(0.5, 0));
         const items: [string, () => void, boolean?][] = [
           ["RESUME", () => this.close()],
           ["QUESTS & SIDE QUESTS", () => { this.questTab = 0; this.questScroll = 0; this.render("quests"); }],
@@ -440,6 +443,7 @@ export class MenuScene extends Phaser.Scene {
           line("");
           line("RIGHT NOW", "#86efac", true);
           line(st ? `${st.text}${where(st.target)}` : "Chapter complete.");
+          if (ruinHomeHint(s)) line(ruinHomeHint(s), "#ffd9a8");
           line("");
           line("THIS CHAPTER", "#86efac", true);
           let reached = false;

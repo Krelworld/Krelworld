@@ -85,6 +85,7 @@ export const JUKEBOX: JukeboxTrack[] = [
   { ids: ["final"], title: "The Final Wonking", where: "The last boss" },
   // ---------------------------------------------------------------- minigames
   { ids: ["crocodile"], title: "Crocodile", where: "The crocodile rhythm game" },
+  { ids: ["jmg_tweak"], title: "Tweak", where: "A private dance at the Wonky Pole" },
   { ids: ["twitcher"], title: "Twitcher Mutiny (Live)", where: "Benn's gig at the Krezz Arms" },
   { ids: ["bbp"], title: "The Abandoned Building", where: "Tailing Lil' Crongus" },
   // ---------------------------------------------------------------- SanMik & SanChz (real titles)

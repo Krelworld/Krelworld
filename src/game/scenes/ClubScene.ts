@@ -990,8 +990,13 @@ export class ClubScene extends Phaser.Scene {
     this.tweens.add({ targets: this.dancer, x: this.me.x - 50, y: this.me.y - 6, duration: 500 });
     await new Promise((r) => this.time.delayedCall(550, r));
     if (!perfCycle(this.dancer, "dance")) this.tweens.add({ targets: this.dancer, angle: { from: -10, to: 10 }, yoyo: true, repeat: 7, duration: 150 });
+    // the private dance has its own song, from the chorus (the club's tune comes back after)
+    const clubTune = synth.currentMusic();
+    synth.musicRaw("jmg_tweak", true);
     await squeeze(this, (l) => this.talk(l), { name, spr: this.dancer }, this.me, [dir(`${name} does a private dance for you. It's mostly spinning. It's very good spinning.`)]);
     this.dancer.setAngle(0);
+    if (clubTune && clubTune !== "jmg_tweak") synth.music(clubTune, true);
+    else synth.music("pub", true);
     this.tweens.add({ targets: this.dancer, x: home.x, y: home.y, duration: 500 });
     this.busy = false;
   }

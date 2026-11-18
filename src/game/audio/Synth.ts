@@ -181,6 +181,8 @@ export const MUSIC_FILES: Record<string, string> = {
   bbp: "audio/bbp.mp3",
   twitcher: "audio/twitcher.mp3",
   crocodile: "audio/crocodile.mp3",
+  // GGG, "Jerk My Gherk", track 8: Tweak (the private dance at the Wonky Pole; the file starts 12s in, the chorus at +1s)
+  jmg_tweak: "audio/jmg_tweak.mp3",
   flenky: "audio/flenky.mp3",
   // SanMik & SanChz scenes (was Ashurst): Peener Colarder, from the chorus
   sanmik: "audio/peener_colarder.mp3",
@@ -211,10 +213,10 @@ export const MUSIC_FILES: Record<string, string> = {
 };
 
 /** Where a song starts (seconds) when it first comes on, e.g. the title song skips its instrumental intro and opens on the vocals. */
-const MUSIC_START: Record<string, number> = { sanmik: 16.8, title: 4.45 };
+const MUSIC_START: Record<string, number> = { sanmik: 16.8, title: 4.45, jmg_tweak: 1 };
 
 /** Looping songs that loop back to their MUSIC_START point rather than to the top. */
-const LOOP_FROM_START = new Set(["sanmik", "title"]);
+const LOOP_FROM_START = new Set(["sanmik", "title", "jmg_tweak"]);
 
 /** Songs that should play once rather than loop. */
 const ONE_SHOT = new Set(["gw_krezz", "c6e_aftermath", "c6a_raid_title", "c6a_nuke_arm", "dungeon_rise", "crystal", "viral", "crobley", "majek_lampe", "anthem", "bbp", "twitcher", "crocodile", ...Array.from({ length: 13 }, (_, i) => `ggg${i + 1}`)]);

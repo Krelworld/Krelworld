@@ -51,8 +51,9 @@ import { FONT } from "../ui/theme";
 import { CHARACTERS } from "../../data/characters";
 import { evalCond } from "../systems/conditions";
 import { extraViolence, kd } from "../systems/kreddle";
-import { forcedKreltality, kreltality, prompt as krelPrompt, type KrelTarget } from "../combat/Kreltality";
+import { forcedKreltality, kreltality, pick, prompt as krelPrompt, type KrelTarget } from "../combat/Kreltality";
 import { KREX_KREL_OUTRO, krexKreltality } from "../combat/KrexFinisher";
+import { HeroPassenger, HeroSquad, createHero, krelAllPrompt, chainCard, multiBanner, type HeroId } from "../combat/HeroPassengers";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { Kit } from "./dressing/kit";
 import { dressingFor } from "./dressing/rooms";
@@ -165,6 +166,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   private miniBossState: "none" | "fight" | "done" = "none";
   /** While a side-on mini-boss is up, the screen is locked from here to the end of the room. */
   private arenaLeft = 0;
+  /** Flight KR-069's hero passengers, while they're up (HeroPassengers.ts). */
+  private heroSquad: HeroSquad | null = null;
 
   constructor() {
     super("Dungeon");
@@ -242,6 +245,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.rushIdx = Math.max(0, Math.min(data.rush ?? 0, this.room?.bossRush?.length ?? 0));
     this.miniBossState = "none";
     this.arenaLeft = 0;
+    this.heroSquad = null;
     this.citadel = null;
     this.roof = null;
   }
@@ -293,7 +297,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.sideBg = null;
     this.towerBg = null;
     this.sideLevel = this.side ? new SideLevel(this as any, r) : null;
-    this.plane = this.side && r.event === "plane" ? new PlaneCabin(this as never, r, { door: () => this.door, cleared: () => this.roomCleared }) : null;
+    this.plane = this.side && r.event === "plane" ? new PlaneCabin(this as never, r, { door: () => this.door, cleared: () => this.roomCleared, fight: () => !!this.heroSquad && !this.heroSquad.done }) : null;
     this.colonTube = this.side && r.theme === "colon" ? new ColonTube(this as any, r) : null;
     if (this.side) {
       // with holes in the floor, the floor is made of blocks and the world carries on underneath
@@ -1553,6 +1557,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.sideLevel = null;
     this.plane?.destroy();
     this.plane = null;
+    this.heroSquad?.destroy();
+    this.heroSquad = null;
     this.citadel?.destroy();
     this.citadel = null;
     this.roof?.destroy();
@@ -2183,8 +2189,163 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       else await this.talk(mb.pa);
     }
     if (mb.music) synth.music(mb.music, true);
+    // the hero passengers: three at once (their own start)
+    if (mb.id === "heropax") return this.startHeroPax(again, mb.hp ?? 1);
     const at = r.tower ? { x: Phaser.Math.Clamp(this.player.x + (this.player.x < r.w / 2 ? 260 : -260), 120, r.w - 120), y: this.player.y - 240 } : { x: Math.min(r.w - 180, this.player.x + 560), y: this.groundY - 170 };
     await this.startBoss(mb.id, mb.hp ?? 1, at);
+  }
+
+  /**
+   * THE HERO PASSENGERS (Flight KR-069, first class): three passengers who've decided to take the plane back, all at
+   * once. They come up out of their seats, the VS card has the three of them, and they share one bar on the HUD.
+   */
+  private async startHeroPax(again: boolean, hpMult: number) {
+    const r = this.room;
+    const sq = new HeroSquad(this);
+    this.heroSquad = sq;
+    const left = this.arenaLeft || Math.max(0, this.player.x - 200);
+    // Gareth up front, the Major behind him, Tilly at the back with the luggage
+    const lineup: [HeroId, number][] = [["heropax_rugby", 560], ["heropax_major", 700], ["heropax_gapgirl", 840]];
+    const mult = 1.3 * (1 + Math.max(0, G.s.chapter - 2) * 0.18) * hpMult;
+    for (const [i, [id, dx]] of lineup.entries()) {
+      const x = Math.min(r.w - 120, left + dx);
+      const h = createHero(id, this, x, this.groundY - 90);
+      h.maxHp = Math.round(h.maxHp * mult);
+      h.hp = h.maxHp;
+      h.dmgMult = (h.dmgMult ?? 1) * 1.1 * (1 + Math.max(0, G.s.chapter - 2) * 0.1);
+      h.setFlipX(true);
+      this.enemies.push(h);
+      this.enemyGroup.add(h);
+      const bb = h.body as Phaser.Physics.Arcade.Body;
+      bb.setCollideWorldBounds(true);
+      if (this.side) bb.setGravityY(1500);
+      // the figure stands at the bottom middle of its cell
+      const fw = h.frame.width;
+      const fh = h.frame.height;
+      bb.setSize(fw * 0.3, fh * 0.62).setOffset(fw * 0.35, fh * 0.37);
+      sq.add(h);
+      // up out of the seats, one after another
+      h.setAlpha(0);
+      this.time.delayedCall(i * 260, () => {
+        if (!h.active) return;
+        h.setAlpha(1);
+        bb.setVelocityY(-520);
+        synth.play("swing");
+        this.floatText(h.x, h.y - 70, "!", "#fde68a", 26);
+      });
+    }
+    synth.play("roar");
+    if (!again) await this.talk(BOSS_TEXT.heropax.intro);
+    if (!this.heroAlive()) return;
+    await vsSplash(this, {
+      bossId: "heropax",
+      name: "THE HERO PASSENGERS",
+      epithet: "TAKING THE PLANE BACK",
+      color: 0xdc2626,
+      group: sq.members.map((m) => ({ key: m.texture.key, frame: 0 })),
+    });
+    synth.music("boss_arena", true);
+    this.fightMusicOn = true;
+    this.busy = false;
+    const now = this.now();
+    for (const [i, m] of sq.members.entries()) {
+      m.started = true;
+      m.nextPattern = now + 1000 + i * 700;
+    }
+  }
+
+  /** One of them is down (they stay down, cowering). The last one down ends it. */
+  private heroPaxDown(h: HeroPassenger) {
+    const sq = this.heroSquad;
+    if (!sq) return;
+    if (h.downTarget) sq.onDown(h, h.downTarget);
+    h.setDepth(h.y - 2);
+    if (sq.alive.length || sq.done) return;
+    sq.done = true;
+    void this.heroPaxDefeated(sq);
+  }
+
+  /** All three down: "KRELTALITY ALL OF THEM?" (one after another), or spare them. Then on to the cockpit door. */
+  private async heroPaxDefeated(sq: HeroSquad) {
+    const s = G.s;
+    this.busy = true;
+    this.player?.cheer(this.now(), 2600);
+    G.emit("boss", null);
+    for (const e of [...this.enemies]) if (!e.dead) this.damageEnemy(e, 99999, { noWonk: true, label: "" });
+    for (const sh of [...this.shots]) this.killShot(sh);
+    await new Promise<void>((res) => this.time.delayedCall(900, () => res()));
+    if (!this.heroAlive()) return;
+    await this.talk(BOSS_TEXT.heropax.outro);
+    if (!this.heroAlive()) return;
+    const downed = sq.downed.filter((d) => d.hero.active);
+    if (downed.length && (await krelAllPrompt(this, downed.length))) {
+      const ps = this.player.spr;
+      const phd = (ps.texture.customData as { hd?: number } | undefined)?.hd ?? 1;
+      const pl = { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd };
+      let n = 0;
+      // the show draws its own you and its own victim: while it plays, the real you and every passenger still lying
+      // in the aisle are hidden (or you'd see two of you, and the others cowering through the middle of it);
+      // between finishers they're back, so the "NEXT:" card shows who's next, still cowering
+      const showReal = (on: boolean) => {
+        if (ps.active) ps.setVisible(on);
+        for (const o of downed) if (o.hero.active) o.hero.setVisible(on);
+        this.heroSquad?.setTagsVisible(on);
+      };
+      for (const [i, d] of downed.entries()) {
+        if (i > 0) await chainCard(this, i + 1, downed.length, d.target.name);
+        const tg: KrelTarget = { ...d.target, x: d.hero.x, y: d.hero.y };
+        d.hero.remove();
+        showReal(false);
+        // a different finisher on each (the shuffle bag never repeats one until you've seen them all)
+        try {
+          await forcedKreltality(this, tg, pl, pick());
+        } finally {
+          if (this.heroAlive()) showReal(true);
+        }
+        if (!this.heroAlive()) return;
+        n++;
+        bump(s, "kreltalities");
+        s.flags[`krel_${d.target.id}`] = true;
+      }
+      if (n > 1) await multiBanner(this, n);
+    } else {
+      // spared: they flop over where they are, and stay there
+      for (const d of downed) {
+        const h = d.hero;
+        h.anims.stop();
+        this.tweens.killTweensOf(h);
+        this.tweens.add({ targets: h, angle: h.flipX ? -84 : 84, y: h.y + h.displayHeight * 0.3, duration: 500, ease: "Quad.in" });
+        h.setTint(0xb8b8b8);
+      }
+      this.toast("SPARED", "They'll be dining out on this for years.");
+      // let them flop (and let the ESC that spared them go, or it opens the pause menu as soon as you're free)
+      await new Promise<void>((res) => this.time.delayedCall(700, () => res()));
+    }
+    if (!this.heroAlive()) return;
+    sq.destroy();
+    this.heroSquad = null;
+    this.cameras.main.zoomTo(1, 300);
+    // a mini-boss: the room carries on (the screen unlocks, the room's music comes back), and the cockpit door opens
+    this.roomCleared = true;
+    this.markCleared();
+    this.miniBossState = "done";
+    delete s.flags[this.miniBossKey()];
+    this.arenaLeft = 0;
+    this.cameras.main.setBounds(0, 0, this.room.w, this.room.h);
+    this.cameras.main.startFollow(this.player.spr, true, 0.12, 0.12);
+    this.fightMusicOn = false;
+    synth.music(this.room.music ?? this.dungeon.music, true);
+    this.dropPickup(this.player.x + 40, this.player.y - 30, "ammo", 2);
+    s.hp = Math.min(maxHp(s), s.hp + maxHp(s) * 0.5);
+    this.door.setTexture("p_door");
+    this.toast("EXIT OPEN", "The cockpit door. Breach it →");
+    this.busy = false;
+  }
+
+
+  /** Still here (not shut down by a death or a quit): paused by a dialogue counts. */
+  private heroAlive() {
+    return !!this.sys && (this.sys.isActive() || this.sys.isPaused());
   }
 
   /** Where the boss died and what they looked like (for the KRELTALITY stand-in). */
@@ -2975,6 +3136,10 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       this.lastKillPop = this.now();
       synth.play(extraViolence(s) ? "splat" : "pop");
     }
+    if (e instanceof HeroPassenger) {
+      this.heroPaxDown(e);
+      return;
+    }
     if (e instanceof Boss) {
       this.boss = null;
       this.onBossDefeated(e);
@@ -3636,10 +3801,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.sideLevel?.update(Math.min(delta, 50), this.busy);
     this.citadel?.update(Math.min(delta, 50));
     this.plane?.update(Math.min(delta, 50), this.busy);
+    this.heroSquad?.update();
     this.colonTube?.update(Math.min(delta, 50), this.busy);
     this.roof?.update(Math.min(delta, 50));
     const mb = this.room.miniBoss;
-    if (mb && this.miniBossState === "none" && !this.roomCleared && !this.busy && !this.transitioning) {
+    if (mb && this.miniBossState === "none" && !this.roomCleared && !this.busy && !this.transitioning && !this.sideLevel?.locked) {
       const climb = this.room.exitAt ? this.room.exitAt[1] : this.room.h - 200;
       if (this.room.tower ? this.player.y < this.groundY - mb.at * climb : this.player.x > this.room.w * mb.at) void this.startMiniBoss();
     }

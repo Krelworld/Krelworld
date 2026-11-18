@@ -36,7 +36,7 @@ export const FRAGMAR_BRIEFING: MeetingScript = {
     dir("He lets out a death fart.", { fx: "fart:POLSON", cine: "sting|ss_sting_reveal;impact;speed|0x84cc16;still|ss_still_deathfart|2600" }),
     say("POLSON", "Uuuuurrrrrghhhhh…", { mood: "groans" }),
     say("POLSON", "It's sludge time.", { cineAfter: "freeze|SLUDGE TIME: 19:42" }),
-    dir("He walks to the toilet. He does not close the door.", { fx: "exit:POLSON" }),
+    dir("He walks to the toilet. He does not close the door.", { fx: "exit:POLSON", cineAfter: "loo" }),
     dir("Some time later. He comes back, sits down, and loudly farts again.", { fx: "enter:POLSON" }),
     say("POLSON", "I love it when they just slide out accidentally and you don't even have to worry about pushing", { fx: "fart:POLSON" }),
     dir("Drongus stares straight ahead at the telly. He doesn't move for the rest of the evening.", { fx: "emote:DRONGUS_HOME:😐", cine: "cut|ss_cut_drongus_stare|right|0x60a5fa|1500" }),

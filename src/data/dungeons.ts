@@ -126,6 +126,8 @@ function flightAisle(): RoomDef {
     theme: "industrial",
     event: "plane",
     exitLabel: "COCKPIT →",
+    // first class, just before the cockpit door: THE HERO PASSENGERS (three at once; HeroPassengers.ts)
+    miniBoss: { id: "heropax", at: 0.875 },
     // stacked trolleys in the galley, piled luggage, the first-class bar
     platforms: [[f(1250), 92, 130], [f(2050), 92, 130], [f(2980), 100, 120], [f(3300), 100, 120], [f(3140), 200, 150], [f(5500), 96, 200], [f(6150), 96, 190], [f(5830), 200, 150], [f(6850), 96, 170]],
     triggers: [

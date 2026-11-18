@@ -9044,6 +9044,12 @@
   "ss_cut_polson_grin": {
    "file": "ss/ss_cut_polson_grin.png"
   },
+  "ss_loo_strain": {
+   "file": "ss/ss_loo_strain.png"
+  },
+  "ss_loo_bliss": {
+   "file": "ss/ss_loo_bliss.png"
+  },
   "ss_cut_sanmik": {
    "file": "ss/ss_cut_sanmik.png"
   },
@@ -14432,6 +14438,60 @@
    "file": "tv/clips/fifa_fan.png",
    "frameWidth": 96,
    "frameHeight": 128
+  },
+  "bossanim_heropax_rugby": {
+   "file": "combat/bossanim_heropax_rugby.png",
+   "frameWidth": 128,
+   "frameHeight": 112,
+   "hd": 0.65
+  },
+  "boss_heropax_rugby": {
+   "file": "combat/boss_heropax_rugby.png",
+   "frameWidth": 128,
+   "frameHeight": 112,
+   "hd": 0.65
+  },
+  "krelvic_heropax_rugby": {
+   "file": "krel/krelvic_heropax_rugby.png",
+   "frameWidth": 128,
+   "frameHeight": 112,
+   "hd": 0.65
+  },
+  "bossanim_heropax_gapgirl": {
+   "file": "combat/bossanim_heropax_gapgirl.png",
+   "frameWidth": 128,
+   "frameHeight": 112,
+   "hd": 0.65
+  },
+  "boss_heropax_gapgirl": {
+   "file": "combat/boss_heropax_gapgirl.png",
+   "frameWidth": 128,
+   "frameHeight": 112,
+   "hd": 0.65
+  },
+  "krelvic_heropax_gapgirl": {
+   "file": "krel/krelvic_heropax_gapgirl.png",
+   "frameWidth": 128,
+   "frameHeight": 112,
+   "hd": 0.65
+  },
+  "bossanim_heropax_major": {
+   "file": "combat/bossanim_heropax_major.png",
+   "frameWidth": 128,
+   "frameHeight": 112,
+   "hd": 0.65
+  },
+  "boss_heropax_major": {
+   "file": "combat/boss_heropax_major.png",
+   "frameWidth": 128,
+   "frameHeight": 112,
+   "hd": 0.65
+  },
+  "krelvic_heropax_major": {
+   "file": "krel/krelvic_heropax_major.png",
+   "frameWidth": 128,
+   "frameHeight": 112,
+   "hd": 0.65
   },
   "kca_asbestos": {
    "file": "vs/kca_asbestos.png",

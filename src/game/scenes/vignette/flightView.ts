@@ -41,7 +41,7 @@ export interface FlightView {
   /** The screen roll this frame (radians, Phaser's sense), so the caller can roll its own things with the horizon. */
   readonly roll: number;
   /** For tests / the HUD. */
-  readonly state: { alt: number; speed: number; trainDist: number; roll: number; pitch: number; white: number };
+  readonly state: { alt: number; speed: number; trainDist: number; roll: number; pitch: number; white: number; trainX: number; trainY: number; trainOn: boolean };
   destroy(): void;
 }
 
@@ -292,7 +292,7 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
   const railV = rail?.vertices ?? [];
   const trainV = train?.vertices ?? [];
   const rowD: number[] = [];
-  const state = { alt, speed, trainDist: trainD, roll, pitch, white };
+  const state = { alt, speed, trainDist: trainD, roll, pitch, white, trainX: 0, trainY: 0, trainOn: false };
 
   const update = (f: FlightFrame) => {
     const dt = Math.min(f.dt, 50) / 1000;
@@ -432,6 +432,13 @@ export function createFlightView(sc: Phaser.Scene, o: FlightViewOpts): FlightVie
       const q = project(tx + ux * (TRAIN_L / 2 - 120 - back), ty + uy * (TRAIN_L / 2 - 120 - back), TRAIN_H + 40 + p.age * 260);
       const s = (F * (80 + p.age * 260)) / Math.max(q.zc, NEAR) / 64;
       p.img.setPosition(q.x, q.y).setScale(s).setAlpha(ta * 0.45 * (1 - p.age)).setDepth(D + 0.29 + 0.35 * (1 - clamp(trainD / FAR, 0, 1)));
+    }
+    // where the train's middle is on screen (for aiming at it)
+    {
+      const cq = project(tx, ty, TRAIN_H / 2);
+      state.trainX = cq.x;
+      state.trainY = cq.y;
+      state.trainOn = cq.zc > NEAR && ta > 0.05;
     }
     // the marker over it, kept inside the windscreen
     const mq = project(tx, ty, TRAIN_H + 260);

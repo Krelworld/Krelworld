@@ -3906,6 +3906,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
           continue;
         }
         this.dress?.shotAt(sh.spr.x, sh.spr.y);
+        // KR-069's passengers: collateral (the shot carries on through them)
+        this.plane?.hitShot(sh.spr.x, sh.spr.y, sh.o.damage || 20, sh.hit);
         if (this.spice?.hitShot(sh.spr.x, sh.spr.y, sh.o.damage || 30)) {
           sh.o.onHit?.(sh.spr.x, sh.spr.y);
           this.killShot(sh);

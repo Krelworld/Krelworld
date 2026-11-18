@@ -4790,7 +4790,7 @@ export class VignetteScene extends Phaser.Scene {
     // (a) the Town Hall: hubris
     if (!backdrop(this, "bg_townhall", { dim: 0.1, depth: -10 })) this.sky(0x6b4f2a, 0x3a2a1a);
     synth.weatherSound("rain");
-    synth.music("crazy");
+    synth.musicRaw("crazy");
     const lads = this.partyCast(290);
     lads.forEach((sp) => sp.setTint(0xd6d3d1));
     // still smoking from Kreddle
@@ -5028,6 +5028,8 @@ export class VignetteScene extends Phaser.Scene {
     shot.big.destroy();
     cdBars(10);
     this.cameras.main.pan(480, 270, 10, "Linear", true);
+    // (from here on, the old upbeat themes stay gone: systems/moodMusic)
+    G.s.flags.kreddle_nuked = true;
     // silence. then:
     const nukeBars = Juice.letterbox(this, 44, 300, 985);
     this.cameras.main.flash(900, 255, 255, 255);
@@ -5504,7 +5506,7 @@ export class VignetteScene extends Phaser.Scene {
       meOnFloor?.destroy();
       this.cast.set("MIKEY", mik);
     }
-    synth.music("sanmik");
+    synth.musicRaw("sanmik");
     const s1 = this.perform([mik, chz], "sing", 9);
     const s2 = this.perform([d1, d2], "dance", 10);
     await Juice.titleCard(this, "INSIDE THE TOWN HALL. RIGHT NOW.", "THE VICTORY PARTY", "", 1700);

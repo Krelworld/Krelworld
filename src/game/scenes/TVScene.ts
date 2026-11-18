@@ -326,7 +326,7 @@ export class TVScene extends Phaser.Scene {
 
   private showDemand(page = this.demandPage) {
     this.mode = "episodes";
-    synth.music("news");
+    synth.musicRaw("news");
     const watched = this.fromTitle ? G.meta.tvWatched : G.s.tvWatched;
     const avail = ALL_EPISODES.filter((e) => this.unlocked(e));
     const PER = this.fromTitle ? 8 : 7;
@@ -472,7 +472,7 @@ export class TVScene extends Phaser.Scene {
         else synth.play(b.id);
         break;
       case "music":
-        if (b.mode === "start") synth.music(b.id, true);
+        if (b.mode === "start") synth.musicRaw(b.id, true);
         else synth.stopMusic();
         break;
       case "transition":

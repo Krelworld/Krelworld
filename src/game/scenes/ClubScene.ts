@@ -1019,17 +1019,55 @@ export class ClubScene extends Phaser.Scene {
     const t = tokenTrail(G.s);
     if (!t || t.outdoorLeft.length || !t.indoorLeft.some(({ sp }) => sp.inside === "CLUB") || !this.textures.exists("p_token")) return;
     const sp = t.indoorLeft.find(({ sp }) => sp.inside === "CLUB")!.sp;
-    const glow = this.add.circle(sp.x, sp.y, 26, 0xff6bb0, 0.35).setDepth(sp.y - 1).setBlendMode(Phaser.BlendModes.ADD);
-    this.tweens.add({ targets: glow, scale: 1.5, alpha: 0.12, yoyo: true, repeat: -1, duration: 700 });
-    this.token = this.add.image(sp.x, sp.y, "p_token").setScale(2.4).setDepth(sp.y);
-    this.token.setData("glow", glow);
-    this.tweens.add({ targets: this.token, y: sp.y - 6, yoyo: true, repeat: -1, duration: 600 });
+    // big and shiny: a pink halo, slow-turning rays, twinkles and a glint every couple of seconds
+    const ADD = Phaser.BlendModes.ADD;
+    const halo = this.add.circle(sp.x, sp.y, 60, 0xff6bb0, 0.22).setDepth(sp.y - 2).setBlendMode(ADD);
+    const glow = this.add.circle(sp.x, sp.y, 34, 0xffb3d6, 0.45).setDepth(sp.y - 1).setBlendMode(ADD);
+    this.tweens.add({ targets: halo, scale: 1.35, alpha: 0.1, yoyo: true, repeat: -1, duration: 900, ease: "Sine.inOut" });
+    this.tweens.add({ targets: glow, scale: 1.25, alpha: 0.25, yoyo: true, repeat: -1, duration: 600, ease: "Sine.inOut" });
+    const rays = this.add.graphics({ x: sp.x, y: sp.y }).setDepth(sp.y - 1).setBlendMode(ADD);
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      const len = i % 2 ? 54 : 78;
+      rays.fillStyle(0xffd1e8, i % 2 ? 0.22 : 0.32);
+      rays.fillTriangle(Math.cos(a - 0.09) * 14, Math.sin(a - 0.09) * 14, Math.cos(a + 0.09) * 14, Math.sin(a + 0.09) * 14, Math.cos(a) * len, Math.sin(a) * len);
+    }
+    this.tweens.add({ targets: rays, angle: 360, repeat: -1, duration: 9000 });
+    this.token = this.add.image(sp.x, sp.y, "p_token").setScale(4.6).setDepth(sp.y);
+    const tok = this.token;
+    this.tweens.add({ targets: [tok, glow, halo, rays], y: sp.y - 8, yoyo: true, repeat: -1, duration: 700, ease: "Sine.inOut" });
+    // the glint: a white flash across the coin and a star burst off its edge
+    const glint = this.time.addEvent({
+      delay: 1800,
+      loop: true,
+      callback: () => {
+        if (!tok.active) return;
+        tok.setTintFill(0xffffff);
+        this.time.delayedCall(70, () => tok.active && tok.clearTint());
+        const st = this.add.star(tok.x + 16, tok.y - 16, 4, 3, 14, 0xffffff).setDepth(tok.depth + 1).setBlendMode(ADD).setScale(0.2);
+        this.tweens.add({ targets: st, scale: 1.3, angle: 90, alpha: 0, duration: 520, ease: "Quad.out", onComplete: () => st.destroy() });
+      },
+    });
+    // twinkles drifting up round it
+    const twinkle = this.time.addEvent({
+      delay: 220,
+      loop: true,
+      callback: () => {
+        if (!tok.active) return;
+        const a = Math.random() * Math.PI * 2;
+        const r = 26 + Math.random() * 30;
+        const p = this.add.star(tok.x + Math.cos(a) * r, tok.y + Math.sin(a) * r * 0.7, 4, 1, 5, Math.random() < 0.5 ? 0xffffff : 0xffc2e2).setDepth(tok.depth + 1).setBlendMode(ADD).setScale(0.3);
+        this.tweens.add({ targets: p, scale: 1, y: p.y - 22, alpha: 0, duration: 800, ease: "Sine.out", onComplete: () => p.destroy() });
+      },
+    });
+    const bits = [halo, glow, rays];
+    this.token.setData("glow", { destroy: () => (bits.forEach((b) => b.destroy()), glint.remove(), twinkle.remove()) });
   }
 
   private async takeToken() {
     if (this.busy || !this.token) return;
     const t = takeIndoorToken(G.s, "CLUB");
-    (this.token.getData("glow") as Phaser.GameObjects.Arc | undefined)?.destroy();
+    (this.token.getData("glow") as { destroy: () => void } | undefined)?.destroy();
     this.token.destroy();
     this.token = null;
     if (!t) return;

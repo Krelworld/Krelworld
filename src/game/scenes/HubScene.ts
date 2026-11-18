@@ -2511,7 +2511,8 @@ You are required by law to sign the Sex Offenders Register.`, {
         return `DA DRONGUS DUNGEON (sealed: ${crystalCount(s)}/${CRYSTALS_NEEDED} cum crystals)`;
       case "POLSON_ROAD":
         if (s.flags.polson_dead) return "Polson Towers (the lights are off)";
-        return s.flags.ch3_clear && POLSON_CHATS.length ? "Polson Towers (pop round for a chat)" : `${b.name} (not this chapter)`;
+        // open for a chat any time once his chapter (2) is done
+        return s.flags.ch2_clear && POLSON_CHATS.length ? "Polson Towers (pop round for a chat)" : `${b.name} (not this chapter)`;
       case "WILDERN":
       case "MINISTRY":
         return `${b.name} (not this chapter)`;
@@ -2597,13 +2598,13 @@ You are required by law to sign the Sex Offenders Register.`, {
       this.go("Kreddle", {});
       return;
     }
-    // after Chapter 3, Polson Towers is open for a chat (straight out of the real Messenger logs)
+    // after Chapter 2 (his chapter), Polson Towers is open for a chat (straight out of the real Messenger logs)
     if (b.id === "POLSON_ROAD" && s.flags.polson_dead) {
       await this.talk(POLSON_GONE);
       return;
     }
     const polsonToken = !!tokenTrail(s)?.indoorLeft.some(({ sp }) => sp.inside === "POLSON") && !tokenTrail(s)?.outdoorLeft.length;
-    if (b.id === "POLSON_ROAD" && (polsonToken || (s.flags.ch3_clear && POLSON_CHATS.length && chapterDef(s.chapter).dungeonDoor !== "POLSON_ROAD")) && !arcStepAt(s, "POLSON_ROAD")) {
+    if (b.id === "POLSON_ROAD" && (polsonToken || (s.flags.ch2_clear && POLSON_CHATS.length && chapterDef(s.chapter).dungeonDoor !== "POLSON_ROAD")) && !arcStepAt(s, "POLSON_ROAD")) {
       this.go("PolsonHome", {});
       return;
     }

@@ -5,7 +5,7 @@ import { hasVfx, vfx } from "../gfx/Vfx";
 import { G } from "../G";
 import { ELEGANT, ELEGANT_NAMES, TAME_NAMES, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
 import { krelCinema } from "./KrelCinema";
-import { Actor, Victim, bit, prop, MEATY, type Bit } from "./KrelArt";
+import { Actor, Victim, bit, cutEdge, prop, stick, MEATY, type Bit } from "./KrelArt";
 
 /**
  * KRELTALITY. After a boss goes down: "FUCKING KILL THEM!!" — press it (or don't) for an over-the-top,
@@ -389,6 +389,15 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     vic.release();
     const t = keep(sc.add.image(body.x, body.y, tg.key, tg.frame).setScale(tg.scale).setFlipX(tg.flip).setDepth(D + 3).setCrop(0, 0, fw, fh * frac));
     body.setCrop(0, fh * frac, fw, fh * (1 - frac));
+    if (gore) {
+      // drawn gore over the cut: the raw, dripping underside of the neck on the head, a stump (spine and all) on the body
+      const cy = body.y - H / 2 + H * frac;
+      const nw = W * 0.34;
+      const st = prop(sc, "kp_neckstump", tg.x, cy, { w: nw * 1.15, oy: 0.28, depth: D + 3 });
+      if (st) keep(stick(sc, st, body));
+      const ce = cutEdge(sc, t, tg.x, cy, nw, { depth: D + 4 });
+      if (ce) keep(ce);
+    }
     return t;
   };
   const neckY = tg.y - H * 0.5 + H * 0.3;
@@ -401,10 +410,14 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
   // ---- slow motion (scene clock, tweens and drawn effects together), with letterbox bars while it's slowed
   const base = { t: sc.time.timeScale, tw: sc.tweens.timeScale, an: sc.anims.globalTimeScale };
   let bars: Phaser.GameObjects.Rectangle[] | null = null;
+  /** the current slow-motion factor, and the fast-forward under a skip */
+  let slowK = 1;
+  let ff = 1;
   const slow = (k: number) => {
-    sc.time.timeScale = base.t * k;
-    sc.tweens.timeScale = base.tw * k;
-    sc.anims.globalTimeScale = base.an * k;
+    slowK = k;
+    sc.time.timeScale = base.t * k * ff;
+    sc.tweens.timeScale = base.tw * k * ff;
+    sc.anims.globalTimeScale = base.an * k * ff;
     if (k < 1 && !bars) {
       const kz = 1 / cam.zoom;
       bars = [-1, 1].map((s) => {
@@ -417,6 +430,58 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       bars.forEach((b, i) => sc.tweens.add({ targets: b, y: 270 + (i ? 1 : -1) * 340 * kz, duration: 250, onComplete: () => b.destroy() }));
       bars = null;
     }
+  };
+
+  // ---- the cut: at the strike, a smash cut to the drawn close-up of the blow (KrelCinema.ts) and back again. The
+  // stage is held still under it (the overlay pauses this scene: clocks, tweens, sprites), so when it comes back the
+  // sprites carry on from the moment of impact. Each finisher calls strike() on its blow; one that doesn't gets the
+  // close-up at the end, as before.
+  const title = gore ? NAMES[which] : (TAME_NAMES as Record<string, string>)[which] ?? "K.O.!";
+  const victimId = tg.id ?? tg.key.replace(/^(bossanim_|boss_|p_)/, "");
+  let cut = false;
+  let skipping = false;
+  let cover: Phaser.GameObjects.Rectangle | null = null;
+  let sfxWas: number | null = null;
+  /** Skip: the whole sequence, at once. The close-up ends; the rest plays out at speed, blacked out and silent. */
+  const skipAll = () => {
+    if (skipping) return;
+    skipping = true;
+    const kz = 1 / cam.zoom;
+    cover = keep(sc.add.rectangle(480, 270, 1400 * kz, 900 * kz, 0x000000, 1).setScrollFactor(0).setDepth(D + 70));
+    if (synth.sfxGain) {
+      sfxWas = synth.sfxGain.gain.value;
+      synth.sfxGain.gain.value = 0;
+    }
+    ff = 14;
+    slow(slowK);
+  };
+  // (on the stage only a deliberate press skips: a skip key, a click, a pad button; not a held movement key's repeats)
+  const t0Skip = performance.now();
+  const skipKey = (e: KeyboardEvent) => {
+    if (e.repeat || performance.now() - t0Skip < 450 || !["Escape", " ", "Enter", "Tab"].includes(e.key)) return;
+    skipAll();
+  };
+  const skipTap = () => {
+    if (performance.now() - t0Skip >= 450) skipAll();
+  };
+  sc.input.keyboard?.on("keydown", skipKey);
+  sc.input.on("pointerdown", skipTap);
+  sc.input.gamepad?.on("down", skipTap);
+  const offStageSkip = () => {
+    sc.input.keyboard?.off("keydown", skipKey);
+    sc.input.off("pointerdown", skipTap);
+    sc.input.gamepad?.off("down", skipTap);
+  };
+  sc.events.once("shutdown", offStageSkip);
+  const strike = async () => {
+    if (cut) return;
+    cut = true;
+    if (skipping) return;
+    await krelCinema(sc, { which, title, victim: tg.name, id: victimId, tex: { key: tg.key, frame: tg.frame }, onSkip: skipAll });
+    if (skipping || !sc.sys.isActive()) return;
+    // back on the stage: a white impact frame on the cut (dim and slow with calmFlash)
+    if (calm) cam.flash(420, 80, 80, 80);
+    else cam.flash(110, 255, 255, 255);
   };
 
   // ---- the finishers
@@ -441,7 +506,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     } catch {
       /* keep the whole frame */
     }
-    const ctx: KrelCtx = { sc, cam, tg, body, me, act, vic, organs, ps: pl.scale, W, H, fw, fh, floor, fig, D, gore, calm, wait, tw, keep, fx: (k, x, y, s, e) => fx(k, x, y, s, e), blood, fountain, guts, bones, flash, slow };
+    const ctx: KrelCtx = { sc, cam, tg, body, me, act, vic, organs, ps: pl.scale, W, H, fw, fh, floor, fig, D, gore, calm, wait, tw, keep, fx: (k, x, y, s, e) => fx(k, x, y, s, e), blood, fountain, guts, bones, flash, slow, strike };
     try {
       await runElegant(ctx, which as Elegant);
     } finally {
@@ -453,6 +518,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       // his hand goes in at the neck… and comes out with the lot
       void act.play("rip", { frames: [0, 4], hold: true });
       await tw({ targets: me, x: tg.x - W * 0.45, duration: 280 });
+      await strike();
       flash();
       synth.play("punch_big");
       void act.play("rip", { frames: [5, 8], hold: true, fps: 10 });
@@ -477,20 +543,35 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       body.setTint(0xff9999);
       sc.tweens.add({ targets: body, x: { from: tg.x - 3, to: tg.x + 3 }, yoyo: true, repeat: 20, duration: 40 });
       await tw({ targets: body, scaleX: tg.scale * 1.7, scaleY: tg.scale * 1.5, duration: 1200, ease: "Quad.in" });
+      await strike();
       flash();
       synth.play("explode");
       fx("vfx_bigboom", tg.x, tg.y + H * 0.15, 1.5 * Math.max(1, W / 90), { depth: D + 7 });
       synth.play("boom");
       cam.shake(500, 0.03);
       body.setVisible(false);
-      for (let cx = 0; cx < 3; cx++)
-        for (let cy = 0; cy < 3; cy++) {
-          const ch = keep(sc.add.image(tg.x, tg.y, tg.key, tg.frame).setScale(tg.scale).setFlipX(tg.flip).setDepth(D + 4).setCrop((fw / 3) * cx, (fh / 3) * cy, fw / 3, fh / 3).setTint(0xffb4b4));
-          sc.tweens.add({ targets: ch, x: tg.x + (cx - 1) * (120 + Math.random() * 140), y: floor - Math.random() * 20, angle: (Math.random() - 0.5) * 900, duration: 700 + Math.random() * 300, ease: "Quad.out" });
+      for (let cx = 0; cx < 2; cx++)
+        for (let cy = 0; cy < 2; cy++) {
+          // each chunk is a quarter of them, cut from its own middle so its raw edges are drawn where it tore
+          const ch = keep(sc.add.image(tg.x, tg.y, tg.key, tg.frame).setScale(tg.scale).setFlipX(tg.flip).setDepth(D + 4).setCrop((fw / 2) * cx, (fh / 2) * cy, fw / 2, fh / 2).setTint(0xffb4b4));
+          const ox = (cx - 0.5) * W * 0.5 * (tg.flip ? -1 : 1);
+          const oy = (cy - 0.5) * H * 0.5;
+          if (gore) {
+            const e1 = cutEdge(sc, ch, tg.x + ox, tg.y + (cy ? -0.02 : 0.02) * H, W * 0.5, { body: true, depth: D + 4.5, angle: cy ? 180 : 0 });
+            if (e1) keep(e1);
+            const e2 = cutEdge(sc, ch, tg.x, tg.y + oy, H * 0.5, { angle: (ox < 0) === !tg.flip ? -90 : 90, depth: D + 4.5 });
+            if (e2) keep(e2);
+          }
+          sc.tweens.add({ targets: ch, x: tg.x + (cx - 0.5) * 2 * (140 + Math.random() * 140), y: floor - H * 0.5 + 6 - Math.random() * 10, angle: (Math.random() - 0.5) * 900, duration: 700 + Math.random() * 300, ease: "Quad.out" });
         }
       for (let i = 0; i < 5; i++) guts(tg.x, tg.y, -Math.PI / 2 + (i - 2) * 0.7, 110 + Math.random() * 80);
       blood(tg.x, tg.y, 70, 1.6, true);
-      organs(tg.x, tg.y, 10);
+      organs(tg.x, tg.y, 18);
+      bones(tg.x, tg.y, 6);
+      if (gore) {
+        kp(prop(sc, "kp_gutpile", tg.x, floor - H * 0.05, { w: W * 0.9, oy: 1, depth: D + 1.5 }));
+        kp(prop(sc, "kp_splat_mush", tg.x, floor - 2, { w: W * 2.2, depth: D + 1 }));
+      }
       act.idle();
       label(NAMES.explode);
       await wait(2000);
@@ -502,6 +583,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       await tw({ targets: me, x: tg.x - W * 0.42 - me.displayWidth * 0.2, duration: 220 });
       act.idle();
       await act.play("katana", { frames: [0, 4], hold: true });
+      await strike();
       flash();
       synth.play("swing");
       void act.play("katana", { frames: [5, 8], hold: true, fps: 18 });
@@ -510,6 +592,14 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       synth.play("crit");
       const left = keep(sc.add.image(tg.x, tg.y, tg.key, tg.frame).setScale(tg.scale).setFlipX(tg.flip).setDepth(D + 3).setCrop(0, 0, fw / 2, fh));
       body.setCrop(fw / 2, 0, fw / 2, fh);
+      if (gore) {
+        // the cut, drawn: raw meat, bone and guts down the inside of each half
+        for (const [half, ang] of [[left, tg.flip ? 90 : -90], [body, tg.flip ? -90 : 90]] as [Phaser.GameObjects.Image, number][]) {
+          const e = cutEdge(sc, half, tg.x, tg.y, H * 0.92, { body: true, angle: ang, depth: D + 4 });
+          if (e) keep(e);
+        }
+        kp(prop(sc, "kp_gutpile", tg.x, floor, { w: W * 0.7, oy: 1, depth: D + 2.5 }));
+      }
       label(NAMES.halved);
       await wait(500);
       sc.tweens.add({ targets: left, x: tg.x - 40, angle: -70, y: floor - W * 0.25, duration: 900, ease: "Quad.in" });
@@ -524,6 +614,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     case "headboot": {
       // a run-up and a punt: the kick is his own (krelact kick row)
       await act.play("kick", { frames: [0, 3], hold: true });
+      await strike();
       flash();
       synth.play("punch_big");
       void act.play("kick", { frames: [4, 8] });
@@ -549,11 +640,17 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       // in close, blade up, one quick draw across
       await tw({ targets: me, x: tg.x - W * 0.6, duration: 200 });
       await act.play("katana", { frames: [0, 4], hold: true, fps: 16 });
+      await strike();
       synth.play("swing");
       await act.play("katana", { frames: [5, 8], hold: true, fps: 20 });
       synth.play("crit");
       flash();
       fx("vfx_crit", tg.x, neckY, 0.7, { add: true, depth: D + 8 });
+      if (gore) {
+        vic.release();
+        const g = cutEdge(sc, body, tg.x, neckY, W * 0.3, { depth: D + 4, angle: tg.flip ? 6 : -6 });
+        if (g) keep(g);
+      }
       label(NAMES.slit);
       fountain(tg.x, neckY, 1400);
       body.setTint(0xffb0b0);
@@ -569,18 +666,23 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       await act.play("stomp", { frames: [0, 2], hold: true });
       void act.play("stomp", { frames: [3, 5], hold: true, fps: 8 });
       await tw({ targets: me, x: tg.x, y: tg.y - H - 200, duration: 450, ease: "Quad.out" });
+      await strike();
       void act.play("stomp", { frames: [6, 8], hold: true, fps: 14 });
       await tw({ targets: me, y: tg.y - H * 0.35, duration: 220, ease: "Quad.in" });
       flash();
       synth.play("splat");
       synth.play("boom");
       cam.shake(400, 0.025);
-      sc.tweens.add({ targets: body, scaleY: tg.scale * 0.08, scaleX: tg.scale * 1.8, y: floor - 4, duration: 120 });
+      sc.tweens.add({ targets: body, scaleY: tg.scale * 0.22, scaleX: tg.scale * 1.6, y: floor - H * 0.1, duration: 120 });
+      if (gore) {
+        body.setTint(0xd08080);
+        kp(prop(sc, "kp_gutpile", tg.x + W * 0.25, floor - 2, { w: W * 0.6, oy: 1, depth: D + 2.5 }));
+      }
       sc.tweens.add({ targets: me, y: floor - 40, duration: 120 });
       blood(tg.x, floor - 6, 60, 1.4, true);
       for (let i = 0; i < 4; i++) guts(tg.x, floor - 6, i < 2 ? Math.PI + 0.2 * i : -0.2 * (i - 2), 100);
       organs(tg.x, floor - 6, 6, ["eyeball", "tooth", "meat", "gutrope", "brain", "eyeball2"], 0.7);
-      if (gore) kp(prop(sc, "kp_splat_mush", tg.x, floor - 2, { w: W * 1.9, depth: D + 1 }));
+      if (gore) kp(prop(sc, "kp_splat_mush", tg.x, floor - 4, { w: W * 1.9, depth: D + 2.2 }));
       label(NAMES.flatten);
       await wait(1800);
       break;
@@ -658,6 +760,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
       await wait(260 - i * 12);
     }
     // ...and POP
+    await strike();
     synth.voice("oh", 0.9, 2.6);
     await wait(150);
     flash();
@@ -667,10 +770,15 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     synth.play("boom");
     cam.shake(600, 0.035);
     body.setVisible(false);
-    for (let cy = 0; cy < 4; cy++) {
-      const ch = keep(sc.add.image(tg.x, tg.y, tg.key, tg.frame).setScale(tg.scale * 0.3, tg.scale).setFlipX(tg.flip).setDepth(D + 4).setCrop(0, (fh / 4) * cy, fw, fh / 4).setTint(0xff9999));
-      sc.tweens.add({ targets: ch, x: tg.x + (Math.random() - 0.5) * 300, y: floor - Math.random() * 10, angle: (Math.random() - 0.5) * 1000, duration: 650 + Math.random() * 300, ease: "Quad.out" });
+    for (let cy = 0; cy < 2; cy++) {
+      const ch = keep(sc.add.image(tg.x, tg.y, tg.key, tg.frame).setScale(tg.scale * 0.3, tg.scale).setFlipX(tg.flip).setDepth(D + 4).setCrop(0, (fh / 2) * cy, fw, fh / 2).setTint(0xff9999));
+      if (gore) {
+        const e = cutEdge(sc, ch, tg.x, tg.y, W * 0.4, { body: true, angle: cy ? 180 : 0, depth: D + 4.5 });
+        if (e) keep(e);
+      }
+      sc.tweens.add({ targets: ch, x: tg.x + (cy ? 1 : -1) * (90 + Math.random() * 150), y: floor - H * 0.25 - Math.random() * 10, angle: (cy ? 1 : -1) * (300 + Math.random() * 500), duration: 650 + Math.random() * 300, ease: "Quad.out" });
     }
+    if (gore) kp(prop(sc, "kp_splat_mush", tg.x, floor - 2, { w: W * 2.4, depth: D + 1 }));
     blood(tg.x, tg.y - H * 0.1, 90, 1.8, true);
     for (let i = 0; i < 6; i++) guts(tg.x, tg.y - H * 0.1, -Math.PI / 2 + (i - 2.5) * 0.55, 90 + Math.random() * 90);
     bones(tg.x, tg.y - H * 0.1, 12);
@@ -719,6 +827,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     beep.remove();
     p.destroy();
     // BOOM, belly first
+    await strike();
     flash();
     synth.play("explode");
     fx("vfx_bigboom", tg.x, tg.y + H * 0.15, 1.5 * Math.max(1, W / 90), { depth: D + 7 });
@@ -733,10 +842,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     const bx = tg.x;
     const by = tg.y + H * 0.04;
     // the front of his belly, in bits
-    for (let cx = 0; cx < 3; cx++) {
-      const ch = keep(sc.add.image(tg.x, tg.y, tg.key, tg.frame).setScale(tg.scale * 1.2, tg.scale).setFlipX(tg.flip).setDepth(D + 4).setCrop(fw * (0.3 + cx * 0.14), fh * 0.42, fw * 0.14, fh * 0.2).setTint(0xffa0a0));
-      sc.tweens.add({ targets: ch, x: tg.x + (cx - 1) * (220 + Math.random() * 120), y: floor - Math.random() * 10, angle: (Math.random() - 0.5) * 1200, duration: 800 + Math.random() * 300, ease: "Quad.out" });
-    }
+    organs(tg.x, tg.y + H * 0.04, 8, ["shred", "meat", "guts", "gutrope", "shred", "liver"], 1.2);
     // a great hole where his belly was (drawn: a ragged wound with the guts showing)
     if (!kp(prop(sc, gore ? "kp_wound_belly" : "kp_dustheap", bx, by, { w: W * 0.42, depth: D + 3 }))) {
       keep(sc.add.ellipse(bx, by, W * 0.34, H * 0.17, 0x450a0a).setStrokeStyle(3, 0x9f1239).setDepth(D + 3));
@@ -766,9 +872,17 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
     await wait(1400);
   }
 
-  // ---- the close-up: a hard cut to the drawn anime shot of it, then back here for the banner
   slow(1);
-  await krelCinema(sc, { which, title: gore ? NAMES[which] : (TAME_NAMES as Record<string, string>)[which] ?? "K.O.!", victim: tg.name });
+  // (a finisher with no strike of its own: the close-up now, after it, as it always was)
+  await strike();
+  offStageSkip();
+  if (skipping) {
+    // the skip's over: back to normal speed and sound, and up comes the banner
+    ff = 1;
+    slow(1);
+    if (sfxWas !== null && synth.sfxGain) synth.sfxGain.gain.value = sfxWas;
+    (cover as Phaser.GameObjects.Rectangle | null)?.destroy();
+  }
   // ---- KRELTALITY (and you, celebrating: his own victory row)
   if (me.active && me.visible && me.scrollFactorX === 1) act.cheer();
   const kz = 1 / cam.zoom;
@@ -793,7 +907,7 @@ async function stage(sc: Phaser.Scene, tg: KrelTarget, pl: { key: string; frame:
   }
   const sub = keep(sc.add.text(480, 270 - 65 * kz, `${tg.name} HAS BEEN KRELTALISED`, { fontFamily: FONT, fontSize: "16px", color: "#fca5a5", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setScrollFactor(0).setDepth(D + 60).setScale(kz));
   void sub;
-  await wait(2600);
+  await wait(skipping ? 1200 : 2600);
   // and back to the room
   vic.destroy();
   for (const o of junk) {

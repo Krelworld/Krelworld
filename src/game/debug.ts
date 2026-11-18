@@ -7,7 +7,7 @@ import type { PlayableId } from "../data/types";
 import { maxHp } from "./systems/stats";
 import { jetStream, startWonk } from "./combat/Wonk";
 import { runGroupWonk } from "./combat/GroupWonk";
-import { kreltality, type Finisher } from "./combat/Kreltality";
+import { forcedKreltality, kreltality, type Finisher } from "./combat/Kreltality";
 import { vsSplash } from "./gfx/VsSplash";
 import { krelCinema } from "./combat/KrelCinema";
 
@@ -80,15 +80,35 @@ export function installDebug(game: Phaser.Game) {
       const phd = ps.texture.customData?.hd ?? 1;
       void kreltality(d, { key: e.texture.key, frame: e.frame.name, x: e.x, y: e.y, scale: e.scaleX / hd, flip: e.flipX, name: "TEST DUMMY", id: e.bossId }, { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd }, which);
     },
+    /**
+     * A KRELTALITY on any boss's sprite, stood next to you in the current Dungeon room, no asking (for checking a
+     * finisher on every boss): __krel.krelOn("brand", "headboot").
+     */
+    krelOn: (bossId: string, which: Finisher, name?: string) => {
+      const d = game.scene.getScene("Dungeon") as any;
+      if (!d?.player) return;
+      const key = ["bossanim_", "boss_", "p_"].map((p) => p + bossId).find((k) => d.textures.exists(k)) ?? "boss_brand";
+      const fr = d.textures.get(key).get(0);
+      const ps = d.player.spr;
+      // the middle of the room, so the camera can centre on it
+      const room = d.room ?? d.roomDef;
+      if (room?.w && room?.h) ps.setPosition(room.w / 2 - 120, room.h / 2 + 20);
+      const phd = ps.texture.customData?.hd ?? 1;
+      // (the show draws its own you: hide the real one meanwhile, as the Dungeon does)
+      ps.setVisible(false);
+      return forcedKreltality(d, { key, frame: 0, x: ps.x + 170, y: ps.y - 20, scale: 230 / fr.height, flip: true, name: name ?? bossId.toUpperCase(), id: bossId }, { key: ps.texture.key, frame: 0, scale: ps.scaleX / phd }, which).finally(() => {
+        if (ps.active) ps.setVisible(true);
+      });
+    },
     /** Show a boss's VS card over the running scene (for checking the cards). */
     vs: (bossId: string) => {
       const sc = game.scene.getScenes(true)[0];
       return sc ? vsSplash(sc, { bossId }) : undefined;
     },
     /** Play a Kreltality close-up over the running scene. */
-    krelCine: (which: string, title = "TEST!") => {
+    krelCine: (which: string, title = "TEST!", id?: string) => {
       const sc = game.scene.getScenes(true)[0];
-      return sc ? krelCinema(sc, { which, title, victim: "TEST DUMMY" }) : undefined;
+      return sc ? krelCinema(sc, { which, title, victim: id ? id.toUpperCase() : "TEST DUMMY", id }) : undefined;
     },
     god: () => {
       G.s.hp = maxHp(G.s) * 100;

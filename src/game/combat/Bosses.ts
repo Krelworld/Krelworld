@@ -433,6 +433,11 @@ export abstract class Boss extends Enemy {
     // staggered (on its knees) or stunned after its shield shattered: it stays put and takes it
     if (stun || (this.downed && !this.downKeepsPattern)) this.halt();
     else if (!this.signatureLeap(now)) this.pattern(dt, now);
+    this.emitHud();
+  }
+
+  /** Its bar on the HUD (a group of mini-bosses, the hero passengers, share one instead). */
+  protected emitHud() {
     G.emit("boss", { name: BOSS_TEXT[this.bossId]?.name ?? this.bossId, hp: this.hp, max: this.maxHp, shielded: this.shielded || !!this.guard?.blocking, phase: this.phase, shield: this.guard?.hud() });
   }
 

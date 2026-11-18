@@ -516,9 +516,13 @@ export class RoofCutscene extends Phaser.Scene {
     const oy = (H - 1792 * k) / 2;
     const c = this.add.container(0, 0).setDepth(600).setScrollFactor(0).setAlpha(0);
     const map = (x: number, y: number) => ({ x: ox + x * k, y: oy + y * k });
+    // Krelford, as the Krunch left it: ash for grass, cracked roads, every building a burning heap
     c.add(this.add.rectangle(480, 270, W, H, 0x07040c));
-    if (this.textures.exists("tile_grass")) c.add(this.add.tileSprite(ox, oy, 2560 * k, 1792 * k, "tile_grass").setOrigin(0).setTileScale(k).setTint(0x3b2f27));
-    else c.add(this.add.rectangle(ox, oy, 2560 * k, 1792 * k, 0x2a211c).setOrigin(0));
+    if (this.textures.exists("tile_grass")) c.add(this.add.tileSprite(ox, oy, 2560 * k, 1792 * k, "tile_grass").setOrigin(0).setTileScale(k).setTint(0x221a15));
+    else c.add(this.add.rectangle(ox, oy, 2560 * k, 1792 * k, 0x1a1310).setOrigin(0));
+    const rnd = new Phaser.Math.RandomDataGenerator(["roof_landing"]);
+    const g = this.add.graphics();
+    c.add(g);
     for (const [x, y, w, h] of [
       [80, 780, 2480, 90],
       [1235, 200, 90, 1500],
@@ -527,27 +531,71 @@ export class RoofCutscene extends Phaser.Scene {
       [200, 1000, 70, 700],
     ]) {
       const p = map(x, y);
-      c.add(this.add.rectangle(p.x, p.y, w * k, h * k, 0x4a3e3a).setOrigin(0));
+      if (this.textures.exists("tile_road")) c.add(this.add.tileSprite(p.x, p.y, w * k, h * k, "tile_road").setOrigin(0).setTileScale(k).setTint(0x4a3e3a));
+      else g.fillStyle(0x3a302c, 1).fillRect(p.x, p.y, w * k, h * k);
     }
-    // what's left of the buildings
-    const blds: [string, number, number, number][] = [
-      ["TOWN_HALL", 1280, 420, 420], ["ARCHIVE", 1900, 420, 300], ["BAN_TRIBUNAL", 660, 420, 280], ["PUB", 560, 820, 300], ["HOME", 520, 1250, 260],
-      ["WILDERN", 1280, 1300, 420], ["MINISTRY", 2000, 1270, 340], ["UNIVERSITY", 840, 1260, 260], ["GYM", 2350, 600, 240], ["POLICE", 1700, 1670, 240], ["CROBLEY_FACTORY", 1660, 1255, 288],
+    // scorch, ash drifts and craters
+    for (let i = 0; i < 140; i++) {
+      const p = map(rnd.between(0, 2560), rnd.between(0, 1792));
+      const w = rnd.between(40, 180) * k;
+      g.fillStyle(rnd.frac() < 0.65 ? 0x0b0806 : 0x8f8a84, rnd.frac() < 0.65 ? 0.6 : 0.12).fillEllipse(p.x, p.y, w * 0.8, w * 0.8 * (0.4 + rnd.frac() * 0.3));
+    }
+    const prop = (key: string, x: number, y: number, s: number) => {
+      if (!this.textures.exists(key)) return null;
+      const img = this.add.image(x, y, key).setOrigin(0.5, 0.85).setScale(s * k);
+      c.add(img);
+      return img;
+    };
+    for (let i = 0; i < 18; i++) {
+      const p = map(rnd.between(80, 2480), rnd.between(300, 1700));
+      prop(rnd.frac() < 0.5 ? "r_scorch" : "r_crater", p.x, p.y, 1.6 + rnd.frac());
+    }
+    // what's left of the buildings: rubble heaps, girders and a bit of wall, still burning
+    const blds: [number, number, number][] = [
+      [1280, 420, 420], [1900, 420, 300], [660, 420, 280], [560, 820, 300], [520, 1250, 260],
+      [1280, 1300, 420], [2000, 1270, 340], [840, 1260, 260], [2350, 600, 240], [1700, 1670, 240], [1660, 1255, 288],
     ];
-    for (const [id, x, y, w] of blds) {
+    const heap = ["r_rubble", "r_ruin", "r_girders", "r_wall", "r_fireheap", "r_rubble", "r_debris"];
+    for (const [x, y, w] of blds) {
       const p = map(x, y);
-      const key = this.textures.exists(`bld_${id}_RUIN`) ? `bld_${id}_RUIN` : this.textures.exists(`bld_${id}`) ? `bld_${id}` : null;
-      if (key) {
-        const img = this.add.image(p.x, p.y, key).setTint(0x6b5a55);
-        img.setScale((w * k) / img.width);
-        c.add(img);
-      } else c.add(this.add.rectangle(p.x, p.y, w * k, w * k * 0.5, 0x2a2420));
-      if (Math.random() < 0.7) {
-        const f = this.add.circle(p.x + (Math.random() - 0.5) * 30, p.y, 5, 0xff7a1a, 0.7).setBlendMode(Phaser.BlendModes.ADD);
-        this.tweens.add({ targets: f, scale: 1.6, alpha: 0.3, yoyo: true, repeat: -1, duration: 300 + Math.random() * 300 });
+      g.fillStyle(0x0d0a08, 0.6).fillEllipse(p.x, p.y + 6, w * k * 1.05, w * k * 0.4);
+      const n = Math.max(3, Math.round(w / 70));
+      for (let i = 0; i < n; i++) {
+        const hx = p.x + ((i + 0.5) / n - 0.5) * w * k + rnd.between(-4, 4);
+        const hy = p.y + rnd.between(-8, 8);
+        if (!prop(heap[(i + rnd.between(0, 6)) % heap.length], hx, hy, 1.8 + rnd.frac() * 0.8)) g.fillStyle(0x3a2f2a, 1).fillEllipse(hx, hy, 70 * k, 36 * k);
+      }
+      if (hasVfx(this, "vfx_fire")) {
+        for (let i = 0; i < 2; i++) {
+          const f = vfx(this, "vfx_fire", p.x + rnd.between(-w / 3, w / 3) * k, p.y + rnd.between(-6, 6), { scale: 0.55 + rnd.frac() * 0.3, delay: rnd.between(0, 600) });
+          if (f) c.add(f);
+        }
+      } else {
+        const f = this.add.circle(p.x + rnd.between(-15, 15), p.y, 5, 0xff7a1a, 0.7).setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({ targets: f, scale: 1.6, alpha: 0.3, yoyo: true, repeat: -1, duration: 300 + rnd.between(0, 300) });
         c.add(f);
       }
+      const sm = hasVfx(this, "vfx_smokecol") ? vfx(this, "vfx_smokecol", p.x, p.y - 6, { scale: 0.8, alpha: 0.75, delay: rnd.between(0, 400) }) : null;
+      if (sm) c.add(sm);
     }
+    // burnt-out cars and the odd lamp post along the high street
+    for (let x = 260; x < 2360; x += 330) {
+      if (Math.abs(x - 1280) < 200) continue;
+      const p = map(x + rnd.between(-40, 40), rnd.frac() < 0.5 ? 810 : 860);
+      prop(rnd.frac() < 0.7 ? "r_carwreck" : "r_lamp", p.x, p.y, 1.7);
+    }
+    // firelight and falling ash over the lot
+    c.add(this.add.rectangle(480, 270, W, H, 0xff6a2a, 0.08).setBlendMode(Phaser.BlendModes.ADD));
+    const ash = this.time.addEvent({
+      delay: 70,
+      loop: true,
+      callback: () => {
+        if (!c.active) return void ash.remove();
+        const a = this.add.rectangle(Math.random() * W, -6, 2, 2, 0xb8b2aa, 0.8);
+        c.add(a);
+        this.tweens.add({ targets: a, x: a.x + 50 + Math.random() * 60, y: H + 10, angle: 360, duration: 3500 + Math.random() * 2000, onComplete: () => a.destroy() });
+      },
+    });
     const cit = map(1280, 110);
     c.add(this.add.rectangle(cit.x, cit.y, 380 * k, 170 * k, 0x1b1424).setStrokeStyle(2, 0xff2d55));
     c.add(this.add.text(cit.x, cit.y, "DA DRONGUS DUNGEON", { fontFamily: FONT, fontSize: "10px", color: "#ff9ab0" }).setOrigin(0.5));

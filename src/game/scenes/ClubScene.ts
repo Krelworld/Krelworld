@@ -21,6 +21,7 @@ import { bump, maxBottles } from "../systems/stats";
 import { CHARACTERS, LADS } from "../../data/characters";
 import { TOUCH } from "../ui/TouchControls";
 import { SANMIK_SONGS } from "./VenueScene";
+import { playCloseup } from "./club/ClubCloseup";
 
 /**
  * THE WONKY POLE: a cabaret club. Dancers dance round the pole and, the more you tip, take it all off (a smooth
@@ -166,6 +167,8 @@ export class ClubScene extends Phaser.Scene {
   private bars: CensorBar[] = [];
   private pole: Phaser.GameObjects.Graphics | null = null;
   private fx: ClubFx | null = null;
+  /** Touch: the "watch up close" button. */
+  private closeBtn: Phaser.GameObjects.Text | null = null;
   /** Big Derek on the door, before anyone gives him a reason. */
   private doorman: Phaser.GameObjects.Sprite | null = null;
 
@@ -242,7 +245,10 @@ export class ClubScene extends Phaser.Scene {
         else if (!on && this.performer) this.stopBand();
       },
     });
-    this.prompt = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#000000cc", padding: { x: 6, y: 3 } }).setOrigin(0.5).setDepth(1000).setVisible(false);
+    this.prompt = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#000000cc", padding: { x: 6, y: 3 }, align: "center" }).setOrigin(0.5).setDepth(1000).setVisible(false);
+    // touch: the "watch up close" button (keyboard: F, the special key), shown at the stage
+    this.closeBtn = this.add.text(770, 392, "👀 UP\nCLOSE", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#c2185bcc", padding: { x: 8, y: 6 }, align: "center" }).setOrigin(0.5).setDepth(1000).setVisible(false).setInteractive();
+    this.closeBtn.on("pointerdown", () => void this.closeup());
     this.controls = new Controls(this);
     this.box = new DialogueBox(this, 2000, 0.2);
     if (!this.scene.isActive("UI")) this.scene.launch("UI", { mode: "hub" });
@@ -644,12 +650,18 @@ export class ClubScene extends Phaser.Scene {
     let label = "";
     let act: (() => void) | null = null;
     const atToken = !!this.token?.active && Phaser.Math.Distance.Between(this.me.x, this.me.y, this.token.x, this.token.y + 20) < 60;
-    if (atToken) {
+    // Alistair Swamp, pestering the dancer: confront him and it's his blues-night fight (unless he's already been beaten)
+    const atAlly = !!this.ally?.visible && !G.s.flags.arc_kz_troll && Phaser.Math.Distance.Between(this.me.x, this.me.y, this.ally!.x, this.ally!.y) < 70;
+    if (atAlly && !atToken) {
+      label = "E: Confront Alistair Swamp";
+      act = () => void this.confrontAlistair();
+    } else if (atToken) {
       label = "E: Pick up: Cuddle token";
       act = () => void this.takeToken();
     } else if (atStage && !this.onBreak && !this.dancerDown) {
-      label = `E: Tip ${this.dancerName()} (5 Krezzcoin)`;
+      label = `E: Tip ${this.dancerName()} (5 Krezzcoin)\n${TOUCH.enabled ? "👀" : "F"}: Watch up close (10 Krezzcoin)`;
       act = () => this.tip();
+      if (this.controls.special()) return void this.closeup();
     } else if (atBooth && !this.onBreak && !this.dancerDown) {
       label = `E: Private dance with ${this.dancerName()} (25 Krezzcoin)`;
       act = () => void this.privateDance();
@@ -674,6 +686,7 @@ export class ClubScene extends Phaser.Scene {
       act = () => this.hitTarget(target);
     }
     if (target && this.controls.attackHeld() && time - this.lastSwing > 280) this.hitTarget(target);
+    this.closeBtn?.setVisible(TOUCH.enabled && atStage && !atToken && !this.onBreak && !this.dancerDown);
     if (label) {
       this.prompt.setText(label).setPosition(this.me.x, this.me.y - 50).setVisible(true);
       if (this.controls.interact() && act) act();
@@ -938,6 +951,28 @@ export class ClubScene extends Phaser.Scene {
     });
   }
 
+  /** "Watch up close": the anime cut-away (scenes/club/ClubCloseup.ts), then back to the club as it was. */
+  private async closeup() {
+    const s = G.s;
+    if (this.busy || this.onBreak || this.dancerDown) return;
+    if (s.coins < 10) {
+      this.bubble(this.me, "Skint.", 1200);
+      return;
+    }
+    s.coins -= 10;
+    synth.play("coin");
+    this.busy = true;
+    this.prompt.setVisible(false);
+    this.closeBtn?.setVisible(false);
+    bump(s, "club_closeups");
+    const lads = Phaser.Utils.Array.Shuffle(this.patrons.filter((p) => p.spr.active && !this.ko.has(p.spr) && p.id !== "MIKEY" && p.id !== s.player).slice()).slice(0, 4);
+    await playCloseup(this, { tex: this.dancer.texture.key, id: this.dancerName(), name: this.dancerName(), lads });
+    if (!this.scene.isActive()) return;
+    this.nextSwap = Math.max(this.nextSwap, this.time.now + 15000);
+    this.controls.swallow();
+    this.busy = false;
+  }
+
   /** A private dance, and (if you're up for it) a golden juice squeeze. */
   private async privateDance() {
     const s = G.s;
@@ -1002,6 +1037,24 @@ export class ClubScene extends Phaser.Scene {
     await this.talk([dir("Under the table nearest the pole, stuck to the carpet: a chocolate cuddle token. It's warm. You decide not to think about why."), ...t.lines]);
     G.emit("toast", { title: "THE CUDDLE CRONSTER", text: t.toast });
     G.save();
+  }
+
+  /** Tell Alistair to leave her alone: he takes it badly, and it's blues night in the back room (arena_troll). */
+  private async confrontAlistair() {
+    if (this.busy) return;
+    const me = G.s.player;
+    await this.talk([
+      say(me, "Alistair. Mate. She's working. Leave her alone."),
+      say("ALISTAIR SWAMP", "…hi."),
+      say("ALISTAIR SWAMP", "You've interrupted me. Mid-message. Do you know how long it takes me to type 'hey'?"),
+      say("ALISTAIR SWAMP", "Back room. Now. THE BLUES DON'T FORGET, BOY."),
+      dir("He picks up a Les Paul from somewhere. Big Derek holds the back-room door open, delighted. TIP: Alistair only goes down to a headbutt (F)."),
+    ]);
+    this.busy = true;
+    synth.stopMusic();
+    G.save();
+    this.cameras.main.fadeOut(300);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => switchTo(this, "Dungeon", { dungeon: "arena_troll", room: 0 }));
   }
 
   private leave() {

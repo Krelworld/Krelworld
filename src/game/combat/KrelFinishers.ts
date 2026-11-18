@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { synth } from "../audio/Synth";
 import { voice } from "../audio/Voice";
 import type { KrelTarget } from "./Kreltality";
-import { bit, prop, type Actor, type Bit, type Victim } from "./KrelArt";
+import { bit, cutEdge, prop, type Actor, type Bit, type Victim } from "./KrelArt";
 
 /**
  * The choreographed Kreltalities: wind-up, a slow-motion beat, the impact, the aftermath. Mortal Kombat's
@@ -80,6 +80,11 @@ export interface KrelCtx {
   flash(): void;
   /** slow motion (1 = normal); letterbox bars while it's slowed */
   slow(k: number): void;
+  /**
+   * The strike: call it (and await it) on the blow. It smash-cuts to the drawn close-up of the kill and back, with the
+   * stage held still meanwhile, so carry on from the moment of impact. Only the first call cuts.
+   */
+  strike(): Promise<void>;
 }
 
 /** The heart monitor's screen in the drawn ward (kp_ward), as fractions of the picture: centre, size. */
@@ -128,6 +133,29 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
   const img = (key: string, x: number, y: number, o: Parameters<typeof prop>[4] = {}) => {
     const im = prop(sc, key, x, y, o);
     return im ? keep(im) : null;
+  };
+  /** a drawn raw edge on a piece that's been cut (KrelArt.cutEdge: gore only), kept for tidying */
+  const edge = (on: Obj & Phaser.GameObjects.Components.Visible, x: number, y: number, len: number, o: Parameters<typeof cutEdge>[5] = {}) => {
+    if (!c.gore) return null;
+    const e = cutEdge(sc, on, x, y, len, { depth: D + 5.5, ...o });
+    return e ? keep(e) : null;
+  };
+  /** Blood beading along a fresh cut from (x0, y0) to (x1, y1): drawn drops coming up one after another (gore). */
+  const bead = (x0: number, y0: number, x1: number, y1: number, ms = 500) => {
+    const n = Math.max(3, Math.round(Math.hypot(x1 - x0, y1 - y0) / 5));
+    const out: Phaser.GameObjects.Image[] = [];
+    for (let i = 0; i < n; i++) {
+      const t = (i + 0.5) / n;
+      const d = bitk("drop", x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, 5 + Math.random() * 3, D + 4.5);
+      if (!d) break;
+      const s = d.scaleX;
+      d.setScale(0);
+      sc.tweens.add({ targets: d, scale: s, delay: (ms * i) / n, duration: 160, ease: "Back.out" });
+      // some run
+      if (Math.random() < 0.35) sc.tweens.add({ targets: d, y: d.y + 4 + Math.random() * 8, delay: ms + Math.random() * 400, duration: 900, ease: "Sine.in" });
+      out.push(d);
+    }
+    return out;
   };
   /** a drawn piece off the gore/bits sheet, kept for tidying */
   const bitk = (b: Bit, x: number, y: number, size: number, depth = D + 6) => {
@@ -300,6 +328,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       sc.tweens.add({ targets: timer, alpha: 0.2, yoyo: true, repeat: -1, duration: 60 });
       // the beat: nothing. Then everything.
       await c.wait(500);
+      await c.strike();
       c.slow(0.3);
       synth.play("telegraph");
       sc.tweens.add({ targets: armL, angle: -82, duration: 160, ease: "Back.out" });
@@ -467,6 +496,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         const dir = to < 0 ? 1 : -1;
         const dur = 1000;
         if (last) {
+          await c.strike();
           c.slow(0.3);
           synth.play("telegraph");
         }
@@ -505,6 +535,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
             upper = part(0, 0, 1, v);
             lower = part(0, v, 1, 1, D + 2);
             body.setVisible(false);
+            edge(upper, tg.x, waistY, W * 0.9, { body: true });
+            edge(lower, tg.x, waistY, W * 0.9, { body: true, angle: 180 });
             synth.play("crit");
             synth.play("squelch");
             c.flash();
@@ -631,8 +663,12 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       // the crack down the middle
       const crack = sc.add.graphics();
       r.add(crack);
+      await c.strike();
       const cp = { t: 0 };
       synth.play("bonecrack");
+      // (gore: the split shows as blood beading up down the breastbone, not a drawn line)
+      const crackBeads = c.gore ? bead(tg.x, cy - ch / 2, tg.x, cy + ch / 2, 500) : [];
+      if (crackBeads.length) crack.setVisible(false);
       await c.tw({ targets: cp, t: 1, duration: 500, onUpdate: () => {
         crack.clear().lineStyle(2, c.gore ? 0xb91c1c : 0xf472b6, 1);
         const n = 6;
@@ -647,6 +683,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       synth.voice("oh", 0.6, 1.6);
       // ...and open, like a book
       crack.setVisible(false);
+      crackBeads.forEach((b) => b.destroy());
       cav.setVisible(!cavArt);
       cavArt?.setVisible(true);
       heart.setVisible(true);
@@ -664,14 +701,29 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       // the beat: you reach in
       c.slow(0.4);
       const vessel = keep(sc.add.graphics().setDepth(D + 5));
+      // drawn: a rope of the bits sheet's gut links (red with gore, pink without), strung from the chest to the heart
+      const links = Array.from({ length: 9 }, () => bitk("gutrope", tg.x, cy, 9, D + 5));
+      const drawnVessel = links.every(Boolean);
+      if (drawnVessel) links.forEach((l) => l?.setTint(c.gore ? 0xffffff : 0xf9a8d4));
+      else links.forEach((l) => l?.destroy());
       // his hand goes in, closes round it, and holds it up high (krelact rip row)
       void act.play("rip", { frames: [0, 5], hold: true, fps: 10 });
       const hx = c.me.x + 12;
       const hy = c.me.y - c.me.displayHeight * (act.sheet ? 0.42 : 0.2);
       await c.tw({ targets: heart, x: hx, y: hy, duration: 700, ease: "Quad.inOut", onUpdate: () => {
-        vessel.clear().lineStyle(3 * hs * 0.6, c.gore ? 0x9f1239 : 0xec4899, 1).lineBetween(tg.x, cy, heart.x, heart.y);
+        if (drawnVessel) {
+          const ang = Phaser.Math.RadToDeg(Math.atan2(heart.y - cy, heart.x - tg.x));
+          links.forEach((l, i) => {
+            const t = (i + 0.5) / links.length;
+            // sagging a little in the middle
+            l?.setPosition(tg.x + (heart.x - tg.x) * t, cy + (heart.y - cy) * t + Math.sin(t * Math.PI) * 6).setAngle(ang);
+          });
+          if (c.gore && Math.random() < 0.15) c.blood(tg.x + (heart.x - tg.x) * 0.5, cy + (heart.y - cy) * 0.5, 2, 0.3);
+        } else vessel.clear().lineStyle(3 * hs * 0.6, c.gore ? 0x9f1239 : 0xec4899, 1).lineBetween(tg.x, cy, heart.x, heart.y);
       } });
       vessel.destroy();
+      // it snaps
+      links.forEach((l, i) => l && toss(l, (Math.random() - 0.5) * 60, -40 - Math.random() * 40, floor - 4, (i % 2 ? 1 : -1) * 300));
       void act.play("rip", { frames: [6, 8], hold: true, fps: 10 });
       synth.play(c.gore ? "squelch" : "pop");
       if (c.gore) c.blood(tg.x, cy, 30, 1, true);
@@ -831,6 +883,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       p = say("…uh oh.", "#fecaca");
       await c.wait(700);
       p.destroy();
+      await c.strike();
       c.slow(0.3);
       await swell(kx * 1.12, ky * 1.12, { duration: 140, ease: "Quad.in" });
       hoseEv.remove();
@@ -1002,6 +1055,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         if (held) void act.play("slam", { frames: [frenzy ? 4 : 1, 6], hold: true, fps: frenzy ? 30 : 16 });
         await c.tw({ targets: block, y: hy - lift, x: hx + (Math.random() - 0.5) * 6, angle: (Math.random() - 0.5) * 20, duration: frenzy ? 120 : 300, ease: "Quad.out" });
         if (n === 0) {
+          await c.strike();
           c.slow(0.35);
           await c.wait(250);
         }
@@ -1043,8 +1097,17 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         act.idle();
         block.setVisible(true).setPosition(hx, hy - 10);
         toss(block, dir * 120, -220, hy + 10, 400, () => synth.play("smash"));
-        const lump = keep(sc.add.circle(hx, hy - hr * 0.6, 4, 0xfda4af).setStrokeStyle(1, 0x9f1239).setDepth(D + 6));
-        sc.tweens.add({ targets: lump, radius: hr * 0.35, duration: 500, ease: "Back.out" });
+        // drawn (PixelLab): a cartoon bump swelling up out of the top of the head
+        const lumpArt = prop(sc, "kp_lump", hx, hy - hr * 0.4, { w: hr * 0.85, oy: 1, depth: D + 6 });
+        if (lumpArt) {
+          keep(lumpArt);
+          const ls = lumpArt.scaleX;
+          lumpArt.setScale(ls * 0.15);
+          sc.tweens.add({ targets: lumpArt, scale: ls, duration: 500, ease: "Back.out" });
+        } else {
+          const lump = keep(sc.add.circle(hx, hy - hr * 0.6, 4, 0xfda4af).setStrokeStyle(1, 0x9f1239).setDepth(D + 6));
+          sc.tweens.add({ targets: lump, radius: hr * 0.35, duration: 500, ease: "Back.out" });
+        }
         c.fx("vfx_stars", hx, hy - hr, 1, { depth: D + 7 });
         await c.wait(900);
         card();
@@ -1133,6 +1196,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         sc.tweens.killTweensOf(f);
         dart(f, true);
       }
+      await c.strike();
       // the feeding: bites, bubbles, thrashing, the water going red and then thick
       const bubbles = sc.time.addEvent({ delay: 60, loop: true, callback: () => {
         const bx = tg.x + (Math.random() - 0.5) * tw * 0.8;
@@ -1526,6 +1590,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       await c.wait(1500);
       oh.destroy();
 
+      await c.strike();
       // ---- 3. six months later: the hospital bed
       bk = await blackCard("Six months later...");
       office.destroy();
@@ -1870,6 +1935,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       void act.play("punch", { frames: [0, 3], hold: true, fps: 10 });
       await c.tw({ targets: c.me, x: c.me.x - 40, duration: 380, ease: "Quad.out" });
       await c.wait(250);
+      await c.strike();
       c.slow(0.25);
       void act.play("punch", { frames: [4, 6], hold: true, fps: 24 });
       await c.tw({ targets: c.me, x: tg.x - W * 0.5 - 10 - (act.sheet ? c.me.displayWidth * 0.2 : 0), duration: 140, ease: "Quad.in" });
@@ -1964,6 +2030,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       synth.play("ding");
       await c.tw({ targets: glint, scale: glk, angle: 90, yoyo: true, duration: 200 });
       await c.wait(400);
+      await c.strike();
       // SHUNK: a drawn steel spit (PixelLab) shoots up out of the floor; only the part above the floor shows
       const sk = keep(sc.add.graphics().setDepth(D + 1.5));
       sk.setPosition(tg.x, floor + 4);
@@ -2111,6 +2178,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         g.destroy();
         led.destroy();
       };
+      await c.strike();
       for (const v of cuts) await beam(lx + 7, top + H * v, rx - 7, top + H * v);
       await beam(tg.x, barY + 6, tg.x, floor);
       await c.wait(500);
@@ -2122,21 +2190,36 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       p = say("Did I?", "#ffffff", "me");
       await c.wait(1100);
       p.destroy();
-      // hairline seams
+      // the seams show: blood beading up along every cut (gore); thin scorch lines (gore off)
       const seams = keep(sc.add.graphics().setDepth(D + 4).setAlpha(0));
-      seams.lineStyle(1.5, c.gore ? 0xdc2626 : 0x111111, 1);
-      for (const v of cuts) seams.lineBetween(tg.x - W * 0.42, top + H * v, tg.x + W * 0.42, top + H * v);
-      seams.lineBetween(tg.x, top + 2, tg.x, floor - 2);
+      const beads: Phaser.GameObjects.Image[] = [];
+      if (c.gore) {
+        for (const v of cuts) beads.push(...bead(tg.x - W * 0.42, top + H * v, tg.x + W * 0.42, top + H * v, 500));
+        beads.push(...bead(tg.x, top + 2, tg.x, floor - 2, 500));
+      } else {
+        seams.lineStyle(1.5, 0x111111, 1);
+        for (const v of cuts) seams.lineBetween(tg.x - W * 0.42, top + H * v, tg.x + W * 0.42, top + H * v);
+        seams.lineBetween(tg.x, top + 2, tg.x, floor - 2);
+      }
       synth.play("ding");
       await c.tw({ targets: seams, alpha: 1, duration: 500 });
       await c.wait(600);
       if (c.gore) {
         seams.setVisible(false);
+        beads.forEach((b) => b.destroy());
         body.setVisible(false);
         const rows = [0, ...cuts, 1];
         const pieces: { o: Phaser.GameObjects.Image; r: number; s: number }[] = [];
         for (let r = 0; r < 4; r++)
           for (let s = 0; s < 2; s++) pieces.push({ o: part(s * 0.5, rows[r], (s + 1) * 0.5, rows[r + 1], D + 3 + (3 - r) * 0.1), r, s });
+        // every cut face drawn raw: along the top and bottom of each slab, and down the middle
+        const rowsY = rows.map((v) => top + H * v);
+        for (const { o, r, s } of pieces) {
+          const cx = tg.x + (s ? 1 : -1) * W * 0.21;
+          if (r > 0) edge(o, cx, rowsY[r], W * 0.44, { body: true, angle: 180 });
+          if (r < 3) edge(o, cx, rowsY[r + 1], W * 0.44, { body: true });
+          edge(o, tg.x, (rowsY[r] + rowsY[r + 1]) / 2, rowsY[r + 1] - rowsY[r], { angle: s ? -90 : 90 });
+        }
         synth.play("squelch");
         // they slide apart along the cuts, the top first, slowly
         for (const { o, r, s } of pieces) {
@@ -2254,6 +2337,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
         // his punch row: fist back with the step back, the rest of it with the lunge
         void act.play("punch", { frames: [0, 4], hold: true, fps: 22 });
         await c.tw({ targets: c.me, x: homeX - 18, duration: 180, ease: "Quad.out" });
+        if (i === 0) await c.strike();
         void act.play("punch", { frames: [5, 8], fps: 20 });
         await c.tw({ targets: c.me, x: homeX + 22, duration: 80, ease: "Quad.in" });
         synth.play("punch_big");
@@ -2374,6 +2458,7 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       await scaleTo(c.me, [c.ps, c.ps], [c.ps, c.ps * 0.85], { duration: 400 });
       synth.play("telegraph");
       await c.wait(600);
+      await c.strike();
       // the draw-cut: you're past them before anyone sees it
       const endX = tg.x + W * 0.5 + 40;
       synth.play("swing3");
@@ -2394,8 +2479,8 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       c.vic.react("impact", { fps: 10 });
       // stillness
       await c.wait(900);
-      const line = keep(sc.add.rectangle(tg.x, nY, W * 0.5, 1.5, c.gore ? 0xdc2626 : 0x000000, 1).setDepth(D + 4).setAlpha(0));
-      if (c.gore) sc.tweens.add({ targets: line, alpha: 1, duration: 400 });
+      // the cut shows: blood beading up along it, left to right
+      const beads = c.gore ? bead(tg.x - W * 0.25, nY + 1, tg.x + W * 0.25, nY - 1, 400) : [];
       // the sheath
       sc.tweens.add({ targets: sword, angle: 0, duration: 300 });
       await c.tw({ targets: sword, scaleY: 0, delay: 300, duration: 250 });
@@ -2403,10 +2488,21 @@ export async function runElegant(c: KrelCtx, which: Elegant) {
       synth.play("tap");
       await c.wait(450);
       if (c.gore) {
-        line.setVisible(false);
+        beads.forEach((b) => b.destroy());
         const cut = neckV + 0.02;
         const head = part(0, 0, 1, cut, D + 5);
         cropAbove(cut);
+        // the raw ends: under the head, and a stump (spine and all) on the body
+        const cy = top + H * cut;
+        edge(head, tg.x, cy, W * 0.36);
+        const st = img("kp_neckstump", tg.x, cy, { w: W * 0.42, oy: 0.28, depth: D + 4 });
+        if (st) sc.events.on(Phaser.Scenes.Events.POST_UPDATE, function upd() {
+          if (!st.active || !body.active) return sc.events.off(Phaser.Scenes.Events.POST_UPDATE, upd);
+          // (stays on the body as it goes down)
+          const a = Phaser.Math.DegToRad(body.angle);
+          const oy = cy - T.y;
+          st.setPosition(body.x - Math.sin(a) * oy, body.y + Math.cos(a) * oy).setAngle(body.angle);
+        });
         c.slow(0.22);
         synth.play("squelch");
         synth.voice("oh", 0.6, 0.45);

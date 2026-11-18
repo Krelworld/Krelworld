@@ -204,6 +204,11 @@ export class SideLevel {
     return { x: p.x + (Math.random() - 0.5) * (p.w * 0.5), y: p.y };
   }
 
+  /** A LOCKDOWN is on (the screen's held until the wave is dead). */
+  get locked() {
+    return !!this.lock;
+  }
+
   private releaseLock() {
     const sc = this.sc;
     const lk = this.lock!;

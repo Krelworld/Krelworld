@@ -2050,7 +2050,8 @@ export class VignetteScene extends Phaser.Scene {
     const me = G.s.player === "MIKEY" ? mik : this.add.sprite(110, 410, playerKey(this), 0).setScale(3).setDepth(10);
     const goat = this.textures.exists("p_gabor") ? this.add.image(860, 440, "p_gabor").setOrigin(0.5, 1).setScale(1).setDepth(10) : this.add.circle(860, 420, 20, 0xffffff);
     void me;
-    synth.music("ggg13");
+    // the same In Tha Hot Tub that's been going since the Rik fight (looping, never restarted)
+    synth.music("boss_rik");
     // three blocked jets along the tub
     const jets = [300, 480, 660].map((x) => {
       const c = this.add.container(x, 330).setDepth(20);
@@ -2092,7 +2093,6 @@ export class VignetteScene extends Phaser.Scene {
     // the genie gets in
     const genie = this.textures.exists("p_genie") ? this.add.image(480, 330, "p_genie").setOrigin(0.5, 1).setScale(0.1).setDepth(19) : this.add.ellipse(480, 280, 90, 140, 0x3b82f6).setScale(0.1).setDepth(19);
     await this.tween({ targets: genie, scale: this.textures.exists("p_genie") ? 2 : 1, duration: 900, ease: "Back.out" });
-    synth.music("ggg13", true);
     await this.talk([
       say("GENIE", "…"),
       say("GENIE", "OHHHHHH."),

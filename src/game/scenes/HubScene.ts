@@ -50,6 +50,7 @@ import { canFly3d, FLY_LAST, FLY_STOPS, runFlyover } from "./hub/flyover";
 import { can3d } from "../gfx/Pseudo3D";
 import { arrivalOrbit } from "./citadel/citadel3d";
 import { dawnShot, riseShot, ruinRevealShot } from "./hub/hub3d";
+import { bombingShot } from "./hub/bombing3d";
 
 /** The first line over the whiteness. */
 const FD_WAKE_FIRST = FB.FD_WAKE.slice(0, 1);
@@ -3594,7 +3595,8 @@ You are required by law to sign the Sex Offenders Register.`, {
     const glow = this.add.circle(cx, cy - 30, 34, 0xfbcfe8, 0.35).setBlendMode(Phaser.BlendModes.ADD).setDepth(cy + 59);
     this.tweens.add({ targets: [crystal, glow], y: "-=10", yoyo: true, repeat: -1, duration: 700 });
     this.tweens.add({ targets: glow, scale: 1.5, alpha: 0.15, yoyo: true, repeat: -1, duration: 700 });
-    synth.play("ding");
+    // the last crystal gets its jingle too (straight past the post-nuke music gate: it's a deliberate sting)
+    synth.musicRaw("crystal", true);
     s.flags.crystal_krunch = true;
     s.flags.crystal_krunch_seen = true;
     await this.talk(AFTER.AFTER_CRYSTAL.slice(0, 6));
@@ -3715,6 +3717,31 @@ You are required by law to sign the Sex Offenders Register.`, {
     }
   }
 
+  /**
+   * A Krunch missile has landed on `b`: it comes down (scorched, shaking, collapsing into its own footprint), a heap of
+   * rubble where it stood, fires and a smoke column. `now`: all at once (a skipped montage).
+   */
+  private krunchWreck(b: Building, now = false) {
+    const img = this.bImg[b.id];
+    const d = now ? 0 : 1;
+    this.time.delayedCall(70 * d, () => {
+      if (!img?.active) return;
+      img.clearTint().setTint(0x3a2a24);
+      if (now) img.setVisible(false);
+      else {
+        this.tweens.add({ targets: img, x: { from: img.x - 6, to: img.x }, duration: 45, repeat: 5, yoyo: true });
+        const bottom = img.y + img.displayHeight * (1 - img.originY);
+        this.tweens.add({ targets: img, scaleY: img.scaleY * 0.15, y: bottom - img.displayHeight * 0.15 * (1 - img.originY), alpha: 0, duration: 900, delay: 250, ease: "Quad.in", onComplete: () => img.setVisible(false) });
+      }
+      const heap = this.rubbleProps(b);
+      if (now) return;
+      for (const r of heap) (r as unknown as { setAlpha: (a: number) => void }).setAlpha(0);
+      this.tweens.add({ targets: heap, alpha: 1, duration: 500, delay: 650 });
+    });
+    for (let j = 0; j < 2; j++) vfx(this, "vfx_fire", b.x + (j ? 1 : -1) * b.w * 0.22, b.y + b.h * 0.2, { scale: 2.2, depth: b.y + 200, delay: 300 * d });
+    vfx(this, "vfx_smokecol", b.x, b.y - b.h * 0.2, { scale: 2.4, depth: b.y + 199, delay: 450 * d });
+  }
+
   /** The Krunch Protocol lands: every building in Krelford, one after another. */
   private async krunchBombing() {
     const cam = this.cameras.main;
@@ -3744,8 +3771,29 @@ You are required by law to sign the Sex Offenders Register.`, {
     const setTally = (n: number) => tally.setText(`⚠ KRUNCH PROTOCOL\nTARGETS DESTROYED: ${n} / ${order.length + 1}`);
     setTally(0);
     const wait = (ms: number) => new Promise((r) => this.time.delayedCall(ms, r));
-    // a montage that speeds up as it goes: the first few you watch land, then they're coming in faster than you can look
-    for (const [i, b] of order.entries()) {
+    // a montage that speeds up as it goes: the first few you watch land, then they're coming in faster than you can look.
+    // With WebGL it's flown in pseudo-3D (hub/bombing3d.ts), the live town wrecked under the shot as each one lands;
+    // without it, the 2D montage below.
+    const wrecked = new Set<string>();
+    const flown = await bombingShot(this, {
+      worldW: WORLD_W,
+      worldH: WORLD_H,
+      targets: order.map((b) => ({ id: b.id, label: b.id === "HOME" ? "YOUR HOUSE" : b.name, x: b.x, y: b.y, w: b.w, h: b.h, img: this.bImg[b.id] })),
+      total: order.length + 1,
+      end: { x: 1280, y: 790, zoom: cam.zoom },
+      skip: [this.prompt, this.arrow, this.av],
+      onCovered: () => cam.centerOn(1280, 790),
+      onImpact: (i) => {
+        wrecked.add(order[i].id);
+        this.krunchWreck(order[i]);
+        setTally(i + 1);
+      },
+    });
+    if (flown.ran) {
+      for (const b of order) if (!wrecked.has(b.id)) this.krunchWreck(b, true);
+      setTally(order.length);
+    }
+    if (!flown.ran) for (const [i, b] of order.entries()) {
       const k = Math.max(0.35, 1 - i * 0.07);
       cam.pan(b.x, b.y, 450 * k, Phaser.Math.Easing.Sine.InOut);
       await wait(480 * k);
@@ -3787,26 +3835,12 @@ You are required by law to sign the Sex Offenders Register.`, {
       Juice.flash(this, 0xffffff, 140, 0.5, 4970);
       cam.shake(350, 0.014);
       Juice.punchZoom(this, 0.06, 380, 1);
-      if (img?.active) {
-        img.setTintFill(0xffffff);
-        this.time.delayedCall(70, () => {
-          if (!img.active) return;
-          // it comes down: scorched, shaking, collapsing into its own footprint, and a heap of rubble where it stood
-          img.clearTint().setTint(0x3a2a24);
-          this.tweens.add({ targets: img, x: { from: img.x - 6, to: img.x }, duration: 45, repeat: 5, yoyo: true });
-          const bottom = img.y + img.displayHeight * (1 - img.originY);
-          this.tweens.add({ targets: img, scaleY: img.scaleY * 0.15, y: bottom - img.displayHeight * 0.15 * (1 - img.originY), alpha: 0, duration: 900, delay: 250, ease: "Quad.in", onComplete: () => img.setVisible(false) });
-          const heap = this.rubbleProps(b);
-          for (const r of heap) (r as unknown as { setAlpha: (a: number) => void }).setAlpha(0);
-          this.tweens.add({ targets: heap, alpha: 1, duration: 500, delay: 650 });
-        });
-      }
+      if (img?.active) img.setTintFill(0xffffff);
+      this.krunchWreck(b);
       Juice.shockRing(this, b.x, b.y + b.h * 0.3, { color: 0xffd8a8, to: Math.max(260, b.w * 1.6), rings: 2, depth: 9002, flat: 0.45 });
       Juice.debris(this, b.x, b.y, 12, { depth: 9003, speed: 380, size: 9, floor: b.y + b.h / 2 });
       vfx(this, hasVfx(this, "vfx_bigboom") ? "vfx_bigboom" : "vfx_boom", b.x, b.y, { scale: 2.6, depth: 9001 });
       for (let j = 0; j < 3; j++) vfx(this, "vfx_boom", b.x + (Math.random() - 0.5) * b.w * 0.8, b.y + (Math.random() - 0.5) * b.h * 0.6, { scale: 1.6, depth: 9001, delay: 120 + j * 110 });
-      for (let j = 0; j < 2; j++) vfx(this, "vfx_fire", b.x + (j ? 1 : -1) * b.w * 0.22, b.y + b.h * 0.2, { scale: 2.2, depth: b.y + 200, delay: 300 });
-      vfx(this, "vfx_smokecol", b.x, b.y - b.h * 0.2, { scale: 2.4, depth: b.y + 199, delay: 450 });
       setTally(i + 1);
       const label = this.add.text(b.x, b.y - b.h / 2 - 30, b.id === "HOME" ? "YOUR HOUSE" : b.name, { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#ffd23f", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(9100).setScale(2);
       this.tweens.add({ targets: label, scale: 1, duration: 160, ease: "Quad.in" });

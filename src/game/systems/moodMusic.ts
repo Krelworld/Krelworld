@@ -37,7 +37,8 @@ const FIGHT = new Set([
 ]);
 
 /** Little celebratory stings: after Kreddle, nothing plays (whatever's on carries on). */
-const STING = new Set(["crystal"]);
+// (the crystal jingle always plays: every cum crystal gets its sting, the last one included)
+const STING = new Set<string>();
 
 /**
  * What actually plays when the game asks for `id`:

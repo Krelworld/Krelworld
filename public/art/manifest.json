@@ -8582,6 +8582,12 @@
   "bg_c6e_bridge_view": {
    "file": "backdrops/bg_c6e_bridge_view.png"
   },
+  "bg_c6e_bridge_gone": {
+   "file": "backdrops/bg_c6e_bridge_gone.png"
+  },
+  "c6e_kreddle_cut": {
+   "file": "props/c6e_kreddle_cut.png"
+  },
   "bg_c6e_launch": {
    "file": "backdrops/bg_c6e_launch.png"
   },
@@ -14814,6 +14820,21 @@
   },
   "kcv_troll": {
    "file": "vs/kcv_troll.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_heropax_rugby": {
+   "file": "vs/kcv_heropax_rugby.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_heropax_gapgirl": {
+   "file": "vs/kcv_heropax_gapgirl.png",
+   "frameWidth": 128,
+   "frameHeight": 128
+  },
+  "kcv_heropax_major": {
+   "file": "vs/kcv_heropax_major.png",
    "frameWidth": 128,
    "frameHeight": 128
   }

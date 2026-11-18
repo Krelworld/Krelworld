@@ -1286,7 +1286,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         const songs = ["ggg2", "ggg13", "ggg6", "ggg12", "ggg4", "ggg9", "ggg3", "ggg10"];
         const titles: Record<string, string> = { ggg2: "Ashurst", ggg13: "In Tha Hot Tub", ggg6: "Peener Colarder", ggg12: "I Love Christmas", ggg4: "Viva Reggaeton", ggg9: "Wank Til U Spunk", ggg3: "I Don't Need Yhu", ggg10: "Fragrant Bitch" };
         const id = songs[this.jukeIdx++ % songs.length];
-        synth.music(id, true);
+        synth.musicRaw(id, true);
         this.toast("♪ JUKEBOX", `SanMik & SanChz — "${titles[id]}"`);
         return;
       }

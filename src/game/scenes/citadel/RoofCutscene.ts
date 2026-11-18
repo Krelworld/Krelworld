@@ -636,18 +636,20 @@ export class RoofCutscene extends Phaser.Scene {
     if (ddArt) {
       d.setFrame(0);
       const fh = d.frame.height;
-      d.setCrop(0, fh * 0.32, d.frame.width, fh * 0.68);
+      // cut just under the beard (the stump covers the rest)
+      d.setCrop(0, fh * 0.38, d.frame.width, fh * 0.62);
     } else d.setCrop(0, 40, 96, 104);
-    const neckY = d.y - d.displayHeight * 0.68;
-    const mist = this.add.circle(d.x, neckY, 50, GOLD, 0.5).setDepth(52).setBlendMode(Phaser.BlendModes.ADD);
+    const neckY = d.y - d.displayHeight * (ddArt ? 0.6 : 0.68);
+    const neckX = d.x + (ddArt ? d.displayWidth * 0.05 : 0);
+    const mist = this.add.circle(neckX, neckY, 50, GOLD, 0.5).setDepth(52).setBlendMode(Phaser.BlendModes.ADD);
     // the stump (gore off: just glowing)
     const gore = G.meta.settings.gore !== false;
-    this.add.ellipse(d.x, neckY + 6, 46, 16, gore ? 0x9a0f1a : GOLD).setDepth(53);
+    this.add.ellipse(neckX, neckY + 4, ddArt ? 64 : 46, 18, gore ? 0x9a0f1a : GOLD).setDepth(53);
     this.time.addEvent({
       delay: 60,
       repeat: 40,
       callback: () => {
-        const dr = this.add.circle(d.x + (Math.random() - 0.5) * 20, neckY, 3 + Math.random() * 4, gore ? 0xb3121f : 0xfff3b0).setDepth(54);
+        const dr = this.add.circle(neckX + (Math.random() - 0.5) * 20, neckY, 3 + Math.random() * 4, gore ? 0xb3121f : 0xfff3b0).setDepth(54);
         this.tweens.add({ targets: dr, x: dr.x + (Math.random() - 0.5) * 120, y: dr.y - 60 - Math.random() * 60, duration: 300, ease: "Quad.out", yoyo: false, onComplete: () => this.tweens.add({ targets: dr, y: FLOOR, alpha: 0.6, duration: 500, ease: "Quad.in", onComplete: () => dr.destroy() }) });
       },
     });

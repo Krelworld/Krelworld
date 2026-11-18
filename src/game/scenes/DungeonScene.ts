@@ -1541,7 +1541,18 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     return this.door.texture.key === "p_door";
   }
 
+  /** Personal-quest pickups you walked past: grabbed on the way out (the dungeon can't be revisited later). */
+  private sweepQuestPickups() {
+    for (const pk of [...this.pickups]) {
+      if (pk.kind !== "quest" || !pk.spr.active) continue;
+      pk.onCollect?.();
+      pk.spr.destroy();
+      this.pickups.splice(this.pickups.indexOf(pk), 1);
+    }
+  }
+
   private goNextRoom() {
+    this.sweepQuestPickups();
     if (this.busy) return;
     this.busy = true;
     synth.play("dooropen");
@@ -2764,6 +2775,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   /** The chapter's dungeon is done (after its boss, or after whatever its last room asks of you). */
   private completeChapter(bossId: string) {
+    this.sweepQuestPickups();
     const s = G.s;
     for (let i = 0; i < this.dungeon.rooms.length; i++) delete s.flags[clearKey(this.dungeon.id, i)];
     const dd = diffFor(s);
@@ -3959,7 +3971,6 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     // intoxication decays slowly
     s.intoxication = Math.max(0, s.intoxication - dt * 0.0006);
-    s.playtimeMs += dt;
     // ban rule: standing still / attack spam
     if (this.rule && !this.busy) {
       if (this.rule.kind === "NO_STANDING_STILL" && this.player.stillTime > 900 && now - this.lastStillTick > 900) {

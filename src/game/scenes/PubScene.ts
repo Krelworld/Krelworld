@@ -222,7 +222,11 @@ export class PubScene extends Phaser.Scene {
   }
 
   /** The chalkboard: three columns of picture cards, Leave on its own, status and controls along the bottom. */
+  /** When the menu last came back: confirm keys are ignored for a moment so mashing through dialogue doesn't reopen a table. */
+  private menuShownAt = 0;
+
   private showMenu() {
+    this.menuShownAt = this.time.now;
     // the status line lives on (update() keeps it current); everything else is redrawn
     this.menu.remove(this.status);
     for (const c of this.cards) c.setLit(false); // stops the lit icon's bob before its icon goes
@@ -353,6 +357,7 @@ export class PubScene extends Phaser.Scene {
   /** Arrows move round the board (to the nearest card that way), Enter / E / Space picks, Esc leaves. */
   private menuKey(e: KeyboardEvent) {
     if (this.busy || !this.menu.visible || !this.cards.length || this.sys.isPaused()) return;
+    if ((e.key === " " || e.key === "Enter" || e.key.toLowerCase() === "e") && this.time.now - this.menuShownAt < 400) return;
     const dirs: Record<string, [number, number]> = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0] };
     const d = dirs[e.key];
     if (d) {

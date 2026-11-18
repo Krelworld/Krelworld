@@ -1,4 +1,5 @@
 import { diffFor } from "./difficulty";
+import { DUNGEONS } from "../../data/dungeons";
 import type { GameState } from "../../data/types";
 import { PERSONAL_QUESTS, MINISTRY_QUESTS, type PersonalQuest, type PickupSpot, type MinistryQuest } from "../../content/quests";
 import { evalCond } from "./conditions";
@@ -34,7 +35,17 @@ export function collectPickup(s: GameState, q: PersonalQuest, p: PickupSpot) {
 }
 
 export function pickupsCollected(s: GameState, q: PersonalQuest): number {
-  return q.pickups.filter((p) => s.flags[pickupFlag(q, p)]).length;
+  return q.pickups.filter((p) => s.flags[pickupFlag(q, p)] || pastDungeon(s, p)).length;
+}
+
+/**
+ * A dungeon pickup whose dungeon's chapter is already cleared counts as found: the dungeon can't be gone back into,
+ * so an old save that walked past one could otherwise never finish its quest. (New runs sweep them up on the way out.)
+ */
+function pastDungeon(s: GameState, p: PickupSpot): boolean {
+  if (!("dungeon" in p.where)) return false;
+  const d = (DUNGEONS as Record<string, { chapter?: number } | undefined>)[p.where.dungeon];
+  return !!d?.chapter && !!s.flags[`ch${d.chapter}_clear`];
 }
 
 export function canTurnIn(s: GameState, at: string): PersonalQuest | undefined {

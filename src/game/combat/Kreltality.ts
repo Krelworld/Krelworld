@@ -141,8 +141,8 @@ export function prompt(sc: Phaser.Scene): Promise<boolean> {
       b.on("pointerdown", fn);
       return b;
     };
-    const yesB = mk(-140, "☠ KRELTALITY (K)", "#991b1b", () => done(true));
-    mk(150, "spare them (ESC)", "#1f2937", () => done(false));
+    const yesB = mk(-140, sc.input.gamepad?.total ? "☠ KRELTALITY (K / Ⓐ)" : "☠ KRELTALITY (K)", "#991b1b", () => done(true));
+    mk(150, sc.input.gamepad?.total ? "spare them (ESC / Ⓑ)" : "spare them (ESC)", "#1f2937", () => done(false));
     sc.tweens.add({ targets: yesB, scale: { from: k, to: k * 1.08 }, yoyo: true, repeat: -1, duration: 300 });
     const bar = pin(sc.add.rectangle(cx - 200 * k, cy + 70 * k, 400 * k, 6 * k, 0xef4444).setOrigin(0, 0.5).setDepth(D + 52));
     sc.tweens.add({ targets: bar, scaleX: 0, duration: 7000, onComplete: () => done(false) });
@@ -151,12 +151,20 @@ export function prompt(sc: Phaser.Scene): Promise<boolean> {
     const onEsc = () => done(false);
     kb?.on("keydown-K", onK);
     kb?.on("keydown-ESC", onEsc);
+    // a gamepad: A (bottom) = KRELTALITY, B (right) = spare
+    const gp = sc.input.gamepad;
+    const onPad = (_pad: Phaser.Input.Gamepad.Gamepad, btn: Phaser.Input.Gamepad.Button) => {
+      if (btn.index === 0) done(true);
+      else if (btn.index === 1) done(false);
+    };
+    gp?.on("down", onPad);
     let fin = false;
     function done(v: boolean) {
       if (fin) return;
       fin = true;
       kb?.off("keydown-K", onK);
       kb?.off("keydown-ESC", onEsc);
+      gp?.off("down", onPad);
       for (const o of objs) {
         sc.tweens.killTweensOf(o);
         o.destroy();

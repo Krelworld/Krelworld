@@ -103,6 +103,15 @@ const game = new Phaser.Game({
   ],
 });
 installMouseLock(game);
+// playtime: every frame of a run counts (town, dungeons, meetings, home, TV, cutscenes, minigames), not the
+// title/character-select screens or the pause menu
+const NOT_PLAYING = ["Boot", "Title", "CharSelect", "Difficulty", "Menu", "Slots", "ChapterSelect", "DebugSkip"];
+game.events.on(Phaser.Core.Events.POST_STEP, (_t: number, delta: number) => {
+  if (!G.hasRun()) return;
+  const sm = game.scene;
+  if (NOT_PLAYING.some((k) => sm.isActive(k))) return;
+  G.s.playtimeMs += Math.min(delta, 100);
+});
 
 installDebug(game);
 installSaveWhere(game);

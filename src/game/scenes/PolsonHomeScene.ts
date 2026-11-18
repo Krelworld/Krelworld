@@ -80,10 +80,10 @@ export class PolsonHomeScene extends Phaser.Scene {
       synth.play("pickup");
       G.emit("toast", { title: r.title, text: r.toast });
       G.save();
-      await box.play([...r.lines, dir("You leave Polson Towers. Polson waves from the window, chewing.")], { onSpeaker: (sp) => this.tweens.add({ targets: sp === "POLSON" ? pol : me, y: 352 - 10, yoyo: true, duration: 110 }) });
+      await box.play([...r.lines], { onSpeaker: (sp) => this.tweens.add({ targets: sp === "POLSON" ? pol : me, y: 352 - 10, yoyo: true, duration: 110 }) });
     };
     this.time.delayedCall(400, () =>
-      box.play(lines, { onSpeaker: (sp) => this.tweens.add({ targets: sp === "POLSON" ? pol : me, y: 352 - 10, yoyo: true, duration: 110 }) }).then(takeToken).then(pickClue).then(() => {
+      box.play(lines, { onSpeaker: (sp) => this.tweens.add({ targets: sp === "POLSON" ? pol : me, y: 352 - 10, yoyo: true, duration: 110 }) }).then(takeToken).then(pickClue).then(() => box.play([dir("You leave Polson Towers. Polson waves from the window, chewing.")])).then(() => {
         this.cameras.main.fadeOut(300);
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => switchTo(this, "Hub", { at: "POLSON_ROAD" }));
       }),

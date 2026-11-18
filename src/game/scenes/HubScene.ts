@@ -1503,7 +1503,7 @@ export class HubScene extends Phaser.Scene {
       const end = { x: Phaser.Math.Clamp(b.x, cam.width / 2 / z, WORLD_W - cam.width / 2 / z), y: Phaser.Math.Clamp(bottom - 250, -SKY_H + cam.height / 2 / z, WORLD_H - cam.height / 2 / z), zoom: z };
       const uiWas = this.scene.isVisible("UI");
       this.scene.setVisible(false, "UI");
-      const r = await riseShot(this, { worldW: WORLD_W, worldH: WORLD_H, tower: { x: b.x, y: bottom }, w: b.w, h: b.h, key: this.buildingKey(b), end, skip: [this.prompt, this.arrow].filter(Boolean), onCovered: () => (cam.centerOn(end.x, end.y), raise()) });
+      const r = await riseShot(this, { worldW: WORLD_W, worldH: WORLD_H, tower: { x: b.x, y: bottom }, w: b.w, h: b.h, key: this.buildingKey(b), end, skip: [this.prompt, this.arrow].filter(Boolean), onCovered: () => { if (this.gone()) return; cam.centerOn(end.x, end.y); raise(); } });
       if (this.gone()) return;
       cam.centerOn(end.x, end.y);
       if (uiWas) this.scene.setVisible(true, "UI");
@@ -3282,7 +3282,7 @@ You are required by law to sign the Sex Offenders Register.`, {
     }
     const dt = Math.min(delta, 50);
     const s = G.s;
-    s.playtimeMs += dt;
+    // (playtime is counted globally in main.ts)
     if (this.controls.pause() && !this.busy) {
       this.openMenu("pause");
       return;

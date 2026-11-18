@@ -65,6 +65,9 @@ export class RoofCutscene extends Phaser.Scene {
 
   async create() {
     roofReady(this);
+    // (a skipped slow-mo can leave the clocks slowed)
+    this.time.timeScale = 1;
+    this.tweens.timeScale = 1;
     this.dead = false;
     this.ended = false;
     this.rainOn = true;
@@ -384,13 +387,25 @@ export class RoofCutscene extends Phaser.Scene {
 
   // ================================================================= THE GROUP KREZZ
 
+  /**
+   * The story bit first (at your pace: the line-up, the throw, the shot of Krelford), then THE GROUP KREZZ itself:
+   * one long cinematic cut to its own music (gw_krezz), beat by beat:
+   *   0s    they lock eyes (a close-up of every lad, then you; then his eyes, as it dawns on him)
+   *   8.5s  the krezz goes round the lads: a spark down the line and back, three times, faster each time
+   *   12s   THREE! TWO! ONE! (everyone shouting, him bracing), NOW, LADS!, GROUP…
+   *   17s   KREEEZZ: the release, the money shot, the beam down his throat, out of his eyes, and POP (slow-mo)
+   *   28s   the quiet: headless, he stands there; the rain stops; he sits down
+   * Then the dialogue after, the collapse and the surf. Esc skips all of it.
+   */
   private async krezz() {
     synth.music("c7_stairs", true);
     // you and the lads, in a line, left; him, right
     const line: string[] = [G.s.player, ...this.others()];
     // facing us, each with his hand down there (his wonk loop), all behind one long bar
     const lads = line.map((id, i) => this.lad(id, 52 + i * 66, FLOOR + 12, 4.6, "south").setDepth(40 + i));
-    const pumping = this.time.addEvent({ delay: 16, loop: true, paused: true, callback: () => lads.forEach((l, i) => l.active && playPerf(l, "wonk", this.time.now, 10 + (i % 3), i * 3)) });
+    // how hard they're going (0: holding it, 1: flat out); the cinematic winds it up
+    let pump = 0;
+    const pumping = this.time.addEvent({ delay: 16, loop: true, paused: true, callback: () => lads.forEach((l, i) => l.active && playPerf(l, "wonk", this.time.now, 7 + (i % 3) + pump * 12, i * 3)) });
     const ddArt = this.textures.exists("boss_dark_drongus") && this.textures.get("boss_dark_drongus").frameTotal > 2;
     const d = this.add.sprite(770, FLOOR + 14, ddArt ? "boss_dark_drongus" : "boss_drongus", 0).setOrigin(0.5, 1).setScale(ddArt ? 2.6 : 3).setDepth(50);
     if (!ddArt) d.setTint(0xffe28a);
@@ -417,7 +432,18 @@ export class RoofCutscene extends Phaser.Scene {
     barG.setScale(0, 1);
     // the hands go down once the bar is across
     this.tweens.add({ targets: barG, scaleX: 1, duration: 500, ease: "Quad.out", onComplete: () => (pumping.paused = false) });
-    const moan = this.time.addEvent({ delay: 260, loop: true, callback: () => synth.voice(Math.random() < 0.5 ? "oh" : "mmm", 0.35, 0.7 + Math.random() * 0.6) });
+    // the moaning: low and steady while he talks (holding it), a crescendo once it goes
+    let moanGap = 520;
+    let moanAt = 0;
+    const moan = this.time.addEvent({
+      delay: 40,
+      loop: true,
+      callback: () => {
+        if (this.time.now < moanAt) return;
+        moanAt = this.time.now + moanGap * (0.8 + Math.random() * 0.4);
+        synth.voice(Math.random() < 0.5 ? "oh" : "mmm", 0.22 + pump * 0.4, 0.7 + Math.random() * 0.6 + pump * 0.3);
+      },
+    });
     await this.talk(FR.KZ_STAND);
     // he throws them
     await this.talk(FR.KZ_THROW.slice(0, 1));
@@ -430,81 +456,290 @@ export class RoofCutscene extends Phaser.Scene {
     await this.wait(1100);
     await this.talk(FR.KZ_THROW.slice(1));
     await this.landingShot();
-    await this.talk(FR.KZ_LANDED);
-    // GROUP… KREZZ
-    moan.remove();
-    synth.music("c7_spirit", true);
-    this.caption(FR.KZ_FINISH[0], "#ffffff", 46, 1.4);
-    for (let i = 0; i < 8; i++) synth.voice(i % 2 ? "oh" : "grunt", 0.5 + i * 0.05, 0.6 + i * 0.1, i * 0.12);
-    // SanMik krezzes with a YEE YEE YEE
-    sanmikYee(this, lads[0].x, lads[0].y - lads[0].displayHeight - 10, { times: 3, size: 22, depth: 1000 });
-    const charge = this.add.ellipse(bar.x, barY, bar.width, 40, 0xffffff, 0.2).setDepth(62).setBlendMode(Phaser.BlendModes.ADD);
-    this.tweens.add({ targets: charge, scaleY: 3, alpha: 0.9, duration: 1400, ease: "Quad.in" });
-    this.cameras.main.shake(1400, 0.008);
-    await this.wait(1400);
-    this.caption(FR.KZ_FINISH[1], "#ffffff", 64, 1.6);
+    // "Eyes on him. NOW!" (his "NOW, LADS!" waits for the end of the count)
+    const nowLads = FR.KZ_LANDED.find((l) => l.t.startsWith("NOW, LADS"));
+    await this.talk(FR.KZ_LANDED.filter((l) => l !== nowLads));
+
+    // ------------------------------------------------ THE GROUP KREZZ (on the music's clock from here)
+    moanGap = 9999;
+    synth.stopMusic();
+    const closeBars = Juice.letterbox(this, 46, 600, 1050);
+    this.cameras.main.zoomTo(1.12, 9000, "Sine.easeInOut", true);
+    this.cameras.main.pan(400, 250, 9000, "Sine.easeInOut", true);
+    await this.wait(700);
+    await this.startCine("gw_krezz");
+
+    // 1. THEY LOCK EYES: a close-up of every lad, one after another, then you; then his eyes, as it dawns on him
+    this.caption(FR.KZ_CINE.eyes, "#ffd1f3", 30, 6.2);
+    const cuts = [...this.others(), G.s.player].map((id) => `fe_cut_lad_${id}`).filter((k) => this.textures.exists(k));
+    const per = Math.max(520, Math.min(900, 6400 / Math.max(1, cuts.length)));
+    for (let i = 0; i < cuts.length; i++) {
+      if (i % 2 === 0) Juice.heartbeat(0.7);
+      void Juice.cutIn(this, cuts[i], { from: i % 2 ? "right" : "left", y: 270, w: 640, h: 190, color: 0xff9ad5, hold: per - 400, focus: 0.3, depth: 1040 });
+      await this.untilCine(0.5 + ((i + 1) * per) / 1000);
+    }
+    await this.untilCine(7.0);
+    this.caption(FR.KZ_CINE.dawn, "#ffd23f", 30, 1.2);
+    await Juice.eyeShot(this, "fe_eyes_dd", 1100, { color: GOLD, depth: 1040 });
+
+    // 2. THE KREZZ GOES ROUND: a spark runs down the line and back, lighting each lad up, faster every time
+    await this.untilCine(8.5);
+    this.cameras.main.zoomTo(1, 500, "Quad.easeOut", true);
+    this.cameras.main.pan(480, 270, 500, "Quad.easeOut", true);
+    Juice.subDrop(0.8, 1.2);
+    Juice.flash(this, 0xffd1f3, 300, 0.5, 1045);
+    moanGap = 300;
+    const glow = lads.map((l) => this.add.ellipse(l.x, l.y - l.displayHeight * 0.5, l.displayWidth * 0.9, l.displayHeight * 1.05, 0xff9ad5, 0).setDepth(39).setBlendMode(Phaser.BlendModes.ADD));
+    const circuit = this.add.graphics().setDepth(63).setBlendMode(Phaser.BlendModes.ADD);
+    const charge = this.add.ellipse(bar.x, barY, bar.width + 30, 16, 0xff5fae, 0.1).setDepth(62).setBlendMode(Phaser.BlendModes.ADD);
+    let heat = 0;
+    const chest = (l: Phaser.GameObjects.Sprite) => ({ x: l.x, y: l.y - l.displayHeight * 0.62 });
+    // the trail: a line of light joining them all up, brighter every pass
+    const trail = this.time.addEvent({
+      delay: 30,
+      loop: true,
+      callback: () => {
+        circuit.clear();
+        circuit.lineStyle(3 + heat * 6, 0xff9ad5, 0.2 + heat * 0.55);
+        circuit.beginPath();
+        lads.forEach((l, k) => {
+          const c = chest(l);
+          const y = c.y + Math.sin(this.time.now / 60 + k) * 3;
+          if (k) circuit.lineTo(c.x, y);
+          else circuit.moveTo(c.x, y);
+        });
+        circuit.strokePath();
+      },
+    });
+    const passes = [
+      [8.6, 10.2],
+      [10.3, 11.3],
+      [11.35, 11.95],
+    ];
+    for (let p = 0; p < passes.length; p++) {
+      const [from, to] = passes[p];
+      await this.untilCine(from);
+      this.caption(FR.KZ_CINE.charge[p], p === 2 ? "#ffffff" : "#ff9ad5", 30 + p * 6, to - from + 0.2);
+      const order = p % 2 ? [...lads].reverse() : lads;
+      const step = ((to - from) * 1000) / order.length;
+      order.forEach((l, k) =>
+        this.time.delayedCall(k * step, () => {
+          if (!l.active) return;
+          heat = Math.min(1, heat + 1 / (lads.length * passes.length));
+          pump = heat * 0.7;
+          const col = this.add.rectangle(l.x, l.y, 40, 10, 0xffd1f3, 0.75).setOrigin(0.5, 1).setDepth(39).setBlendMode(Phaser.BlendModes.ADD);
+          this.tweens.add({ targets: col, height: 300, alpha: 0, duration: 520, ease: "Quad.out", onComplete: () => col.destroy() });
+          const spark = this.add.circle(chest(l).x, chest(l).y, 10 + p * 4, 0xffffff, 1).setDepth(64).setBlendMode(Phaser.BlendModes.ADD);
+          this.tweens.add({ targets: spark, scale: 2.4, alpha: 0, duration: 300, onComplete: () => spark.destroy() });
+          const g = glow[lads.indexOf(l)];
+          g.setFillStyle(0xff9ad5, 0.25 + heat * 0.15);
+          this.tweens.add({ targets: g, fillAlpha: 0.06 + heat * 0.14, duration: 400 });
+          synth.wonkTick(heat);
+          if (k % 3 === 0) synth.voice(p > 1 ? "oh" : "grunt", 0.35 + heat * 0.3, 0.7 + heat * 0.5 + (k % 4) * 0.08);
+        }),
+      );
+      Juice.shake(this, (to - from) * 1000, 0.003 + p * 0.004);
+      this.tweens.add({ targets: charge, scaleY: 1.1 + p * 0.15, fillAlpha: 0.14 + p * 0.06, duration: (to - from) * 1000 });
+    }
+
+    // 3. THE COUNT: everyone shouting, him bracing; then NOW, LADS! and GROUP…
+    await this.untilCine(12.1);
+    pump = 0.85;
+    moanGap = 170;
+    const shout = this.time.addEvent({
+      delay: 280,
+      loop: true,
+      callback: () => {
+        const l = lads[Math.floor(Math.random() * lads.length)];
+        if (l?.active) this.pop(l.x, l.y - l.displayHeight - 8, FR.WONK_SHOUTS[Math.floor(Math.random() * FR.WONK_SHOUTS.length)], "#ffffff", 14);
+      },
+    });
+    const brace = this.time.addEvent({ delay: 16, loop: true, callback: () => d.active && d.setX(770 + (Math.random() - 0.5) * 8) });
+    for (let i = 0; i < 3; i++) {
+      await this.untilCine(12.3 + i * 1.25);
+      Juice.slamText(this, FR.KZ_CINE.count[i], i === 2 ? "#ffffff" : "#ff9ad5", 96 + i * 16, 250, 700, 1045);
+      Juice.tone(i === 2 ? 1320 : 880, 160, 0.16, "square");
+      Juice.subDrop(0.5 + i * 0.2, 0.8);
+      synth.voice("grunt", 0.6, 0.8 + i * 0.1);
+      Juice.shake(this, 300, 0.008 + i * 0.006);
+    }
+    await this.untilCine(15.3);
+    this.caption(nowLads?.t ?? "NOW, LADS!", "#ffffff", 44, 0.7);
+    synth.voice("oh", 0.8, 0.9);
+    Juice.riser(1600, 0.35);
+    await this.untilCine(16.1);
+    shout.remove();
+    pump = 1;
+    this.caption(FR.KZ_FINISH[0], "#ffffff", 50, 0.8);
+    for (let i = 0; i < 8; i++) synth.voice(i % 2 ? "oh" : "grunt", 0.5 + i * 0.05, 0.6 + i * 0.1, i * 0.1);
+    this.tweens.add({ targets: charge, scaleY: 1.8, fillAlpha: 0.32, duration: 850, ease: "Quad.in" });
+    Juice.shake(this, 900, 0.012);
+
+    // 4. KREEEZZ: the release, all of it, into his mouth
+    await this.untilCine(17.0);
+    brace.remove();
+    trail.remove();
+    circuit.destroy();
+    moanGap = 9999;
+    this.caption(FR.KZ_FINISH[1], "#ffffff", 64, 2.4);
     synth.laser(5);
     synth.play("boom");
+    Juice.subDrop(1, 2);
     this.impactFrames(3);
-    // the money shot: straight down his throat
-    await Juice.still(this, "fe_still_group_krezz", 1100, { push: 0.15, shakeK: 0.025 });
+    // SanMik krezzes with a YEE YEE YEE
+    sanmikYee(this, lads[0].x, lads[0].y - lads[0].displayHeight - 10, { times: 3, size: 22, depth: 1000 });
     const beam = this.add.graphics().setDepth(65).setBlendMode(Phaser.BlendModes.ADD);
-    const mouth = { x: d.x + 4, y: d.y - d.displayHeight * 0.72 };
     const beamEv = this.time.addEvent({
       delay: 16,
       loop: true,
       callback: () => {
         beam.clear();
-        const w0 = 30 + Math.random() * 10;
-        beam.fillStyle(0xffffff, 0.25).fillTriangle(bar.x - bar.width / 2, barY - w0 * 1.6, bar.x - bar.width / 2, barY + w0 * 1.6, mouth.x, mouth.y);
-        beam.fillStyle(0xffffff, 0.9).fillTriangle(bar.x - bar.width / 2 + 40, barY - w0 * 0.6, bar.x - bar.width / 2 + 40, barY + w0 * 0.6, mouth.x, mouth.y);
+        const m = { x: d.x + 4, y: d.y - d.displayHeight * 0.72 };
+        // one ray off every lad (from behind the bar), all meeting in one beam at the front, into his mouth
+        const join = { x: barR + 10, y: barY };
+        crs.forEach((r, k) => {
+          const w = 3 + Math.random() * 2;
+          beam.fillStyle(k % 2 ? 0xffd1f3 : 0xff9ad5, 0.55).fillTriangle(r.x, barY - w, r.x, barY + w, join.x, join.y);
+        });
+        const w0 = 22 + Math.random() * 8;
+        beam.fillStyle(0xff9ad5, 0.22).fillTriangle(join.x, join.y - w0 * 2.2, join.x, join.y + w0 * 2.2, m.x, m.y);
+        beam.fillStyle(0xffffff, 0.9).fillTriangle(join.x, join.y - w0 * 0.6, join.x, join.y + w0 * 0.6, m.x, m.y);
+        beam.fillStyle(0xffffff, 0.9).fillCircle(join.x, join.y, w0 * 0.9);
       },
     });
-    this.cameras.main.shake(900, 0.02);
-    await this.wait(1000);
+    // it hits him: back he goes, off his feet
+    idle.paused = true;
+    this.tweens.add({ targets: d, x: 820, y: d.y - 24, angle: 8, duration: 1400, ease: "Quad.out" });
+    Juice.shake(this, 1500, 0.02);
+    await this.untilCine(18.4);
+    // the money shot: straight down his throat
+    await Juice.still(this, "fe_still_group_krezz", 1800, { push: 0.15, shakeK: 0.025, depth: 1040 });
+    Juice.shake(this, 900, 0.025);
+    await this.untilCine(21.0);
     beamEv.remove();
     beam.destroy();
     charge.destroy();
-    // the close-up: down his throat, faster and faster, out of his eyes and ears, and then
+    for (const g of glow) g.destroy();
+    // the close-up: down his throat, faster and faster, out of his eyes and ears, and then (in slow motion) POP
     await this.headExplodes();
-    // the wide shot: headless, he sits down
+
+    // 5. THE QUIET: headless, he stands there a very long second. The rain stops. Then he sits down.
     idle.remove();
     bar.destroy();
     barG.destroy();
     barT.destroy();
     pumping.remove();
+    moan.remove();
     for (const l of lads) {
       l.setData("facing", "east");
       animateWalker(l, 0, 0, false, 0);
     }
+    d.setPosition(800, FLOOR + 14).setAngle(0);
     if (ddArt) {
       d.setFrame(0);
       const fh = d.frame.height;
-      d.setCrop(0, fh * 0.32, d.frame.width, fh * 0.68);
+      // cut just under the beard (the stump covers the rest)
+      d.setCrop(0, fh * 0.38, d.frame.width, fh * 0.62);
     } else d.setCrop(0, 40, 96, 104);
-    const neckY = d.y - d.displayHeight * 0.68;
-    const mist = this.add.circle(d.x, neckY, 50, GOLD, 0.5).setDepth(52).setBlendMode(Phaser.BlendModes.ADD);
+    const neckY = d.y - d.displayHeight * (ddArt ? 0.6 : 0.68);
+    const neckX = d.x + (ddArt ? d.displayWidth * 0.05 : 0);
+    const mist = this.add.circle(neckX, neckY, 50, GOLD, 0.5).setDepth(52).setBlendMode(Phaser.BlendModes.ADD);
     // the stump (gore off: just glowing)
     const gore = G.meta.settings.gore !== false;
-    this.add.ellipse(d.x, neckY + 6, 46, 16, gore ? 0x9a0f1a : GOLD).setDepth(53);
+    this.add.ellipse(neckX, neckY + 4, ddArt ? 64 : 46, 18, gore ? 0x9a0f1a : GOLD).setDepth(53);
     this.time.addEvent({
       delay: 60,
       repeat: 40,
       callback: () => {
-        const dr = this.add.circle(d.x + (Math.random() - 0.5) * 20, neckY, 3 + Math.random() * 4, gore ? 0xb3121f : 0xfff3b0).setDepth(54);
+        const dr = this.add.circle(neckX + (Math.random() - 0.5) * 20, neckY, 3 + Math.random() * 4, gore ? 0xb3121f : 0xfff3b0).setDepth(54);
         this.tweens.add({ targets: dr, x: dr.x + (Math.random() - 0.5) * 120, y: dr.y - 60 - Math.random() * 60, duration: 300, ease: "Quad.out", yoyo: false, onComplete: () => this.tweens.add({ targets: dr, y: FLOOR, alpha: 0.6, duration: 500, ease: "Quad.in", onComplete: () => dr.destroy() }) });
       },
     });
     this.tweens.add({ targets: mist, scale: 3, alpha: 0, duration: 2600 });
     this.gibsRain(d.x, d.y - d.displayHeight * 0.75);
-    for (const l of lads) l.setData("facing", "east");
-    await this.wait(1200);
+    // the camera creeps in on what's left of him
+    this.cameras.main.zoomTo(1.22, 5000, "Sine.easeInOut", true);
+    this.cameras.main.pan(600, 250, 5000, "Sine.easeInOut", true);
+    Juice.earRing(4000, 0.08);
+    await this.untilCine(30.0);
+    // the storm stops: no rain, no lightning, just him
+    this.rainOn = false;
+    synth.weatherSound(null);
+    this.caption(FR.KZ_CINE.quiet, "#c7d2fe", 26, 2.6);
+    await this.untilCine(32.0);
     this.tweens.add({ targets: d, y: d.y + 30, angle: -6, duration: 900, ease: "Bounce.out" });
     synth.play("thud");
+    Juice.shake(this, 300, 0.01);
+    await this.untilCine(35.0);
+    this.cameras.main.zoomTo(1, 1200, "Sine.easeInOut", true);
+    this.cameras.main.pan(480, 270, 1200, "Sine.easeInOut", true);
+    closeBars(800);
+    await this.wait(1200);
+    // the aftermath: "did we just do that?"; and deep down, the CRACK
     await this.talk(FR.KZ_AFTER);
-    // the collapse
+    // the collapse (the storm's back for it)
+    synth.music("c7_spirit", true);
+    this.rainOn = true;
+    synth.weatherSound("storm");
     await this.collapse(lads, d);
     await this.surf();
+  }
+
+  // ---------------------------------------------------------------- the krezz cinematic's clock
+
+  private cineGame = 0;
+  private cineId = "";
+
+  /** Start the cinematic's music and its clock with it (waiting, briefly, for the track to actually start). */
+  private async startCine(id: string) {
+    this.cineId = id;
+    synth.music(id, true);
+    for (let i = 0; i < 40; i++) {
+      const el = synth.musicEl();
+      if (el && !el.paused && el.currentTime > 0) break;
+      await this.wait(50);
+    }
+    // the scene's own clock (frame by frame, like every tween in it), from here
+    this.cineGame = 0;
+    const tick = (_t: number, dt: number) => (this.cineGame += dt / 1000);
+    this.events.on("update", tick);
+    this.events.once("shutdown", () => this.events.off("update", tick));
+  }
+
+  /**
+   * Seconds into the cinematic: the music's own position while it plays (so every beat lands on the music), but
+   * never ahead of the scene's own clock (on a slow machine the tweens fall behind the music: the beats wait for
+   * them, so nothing piles up on top of anything else).
+   */
+  private cineT() {
+    const el = synth.musicEl();
+    if (el && synth.playingFile() === this.cineId && el.currentTime > 0) return Math.min(el.currentTime, this.cineGame);
+    return this.cineGame;
+  }
+
+  /** Wait until the cinematic's clock reaches `sec`. */
+  private untilCine(sec: number) {
+    if (this.dead || this.ended) return never();
+    return new Promise<void>((res) => {
+      if (this.cineT() >= sec) return res();
+      const ev = this.time.addEvent({
+        delay: 20,
+        loop: true,
+        callback: () => {
+          if (this.dead || this.ended) return ev.remove();
+          if (this.cineT() >= sec) {
+            ev.remove();
+            res();
+          }
+        },
+      });
+    }).then(() => (this.dead || this.ended ? never() : undefined));
+  }
+
+  /** A shout floating up off someone. */
+  private pop(x: number, y: number, t: string, col: string, size = 16) {
+    const o = this.add.text(x, y, t, { fontFamily: "Impact, sans-serif", fontSize: `${size}px`, color: col, stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(90);
+    this.tweens.add({ targets: o, y: y - 30, alpha: 0, duration: 800, onComplete: () => o.destroy() });
   }
 
   /** "Meanwhile, far below": the bottle and the logs come down in ruined Krelford. Their spots are saved for part two. */
@@ -642,6 +877,7 @@ export class RoofCutscene extends Phaser.Scene {
 
   /** Black-white-black impact frames. */
   private impactFrames(n: number) {
+    if (G.meta.settings.calmFlash) return;
     for (let i = 0; i < n; i++) {
       this.time.delayedCall(i * 120, () => this.flashRect.setFillStyle(i % 2 ? 0x000000 : 0xffffff, 1));
       this.time.delayedCall(i * 120 + 60, () => this.flashRect.setFillStyle(0xffffff, 0));
@@ -717,12 +953,17 @@ export class RoofCutscene extends Phaser.Scene {
     ev.remove();
     fx.clear();
     face.setVisible(false);
-    this.flashRect.setFillStyle(0xffffff, 1);
+    const calm = !!G.meta.settings.calmFlash;
+    this.flashRect.setFillStyle(0xffffff, calm ? 0.25 : 1);
     this.tweens.add({ targets: this.flashRect, fillAlpha: 0, duration: 900 });
     synth.play("boom");
     synth.play("explode");
+    Juice.subDrop(1, 2.4);
     this.cameras.main.shake(900, 0.04);
     this.headGibs(c, 560, 250);
+    // slow motion while it all goes everywhere, and a ringing in the ears
+    Juice.slowMo(this, 0.25, 1600);
+    Juice.earRing(2600, 0.1);
     await this.wait(2200);
     this.tweens.add({ targets: c, alpha: 0, duration: 400, onComplete: () => c.destroy() });
     await this.wait(420);

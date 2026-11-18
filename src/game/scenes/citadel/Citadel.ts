@@ -14,6 +14,7 @@ import { G } from "../../G";
 import * as Juice from "../../gfx/Juice";
 import { can3d } from "../../gfx/Pseudo3D";
 import { sanctumSwing, towerShot } from "./citadel3d";
+import { dressFoyer, foyerArt, isFoyer } from "./foyer";
 
 /**
  * DA DRONGUS DUNGEON (Chapter 7): the gothic-cyber look (stone, stained glass, server racks, cables, red and purple
@@ -428,6 +429,14 @@ export class Citadel {
   topDown() {
     const r = this.room;
     const sc = this.sc;
+    // the Foyer has its own PixelLab dressing (foyer.ts)
+    if (isFoyer(r) && foyerArt(sc))
+      return dressFoyer(sc as never, r, {
+        liveCables: (x, y, s, d) => this.liveCables(x, y, s, d),
+        drongusScreens: (x, y, s, d) => this.drongusScreens(x, y, s, d),
+        storm: (d, k) => this.storm(d, k),
+        interact: (it) => this.hooks.interact(it),
+      });
     // dark, cold light; a red carpet up the middle to the door
     sc.add.rectangle(r.w / 2, r.h / 2 + 30, 170, r.h - 60, 0x5b0f1e).setDepth(0.5);
     sc.add.rectangle(r.w / 2 - 85, r.h / 2 + 30, 4, r.h - 60, 0xd4a017).setDepth(0.6);

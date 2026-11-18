@@ -25,6 +25,7 @@ import { Presenter, hasAnchor } from "./tvnews/Presenter";
 import { BRANDS, NewsChrome, calm, cameraFlash } from "./tvnews/NewsChrome";
 import { shootout, splat, tripodRig, type Victim } from "./tvnews/Shootout";
 import * as Juice from "../gfx/Juice";
+import { createFlightView } from "./vignette/flightView";
 import { goreDeath } from "../gfx/GoreDeath";
 import {
   KB_ORDER, KB_QUEUE, KB_SHOT, KP_KLERBLE, KP_LAST, KP_PARTY, KP_PROTOCOL, KP_RUINS, KT_AFTER, KT_ARRIVE, KT_DEPART, KT_DRIVER, KT_KRUNCHERS, KT_OPEN, PE_RAIN,
@@ -64,6 +65,17 @@ function everyoneSil(sc: Phaser.Scene, sps: Phaser.GameObjects.Sprite[]) {
     }
   }, 170);
 }
+
+/**
+ * Kreddle's skyline in the bridge view (bg_c6e_bridge_view, 480x272 drawn at 2x): the cut-out (c6e_kreddle_cut) starts at
+ * source px (x0, y0); hz is the waterline row. On screen a source row r sits at k*r - 2; `left` and `shore` are where
+ * the city starts and the waterline, in screen px.
+ */
+const KD_SKY = { x0: 246, y0: 80, hz: 140, k: 2, left: 492, shore: 278 };
+/** The buildings in the cut-out, left to right: [first column, last column + 1, top row] (source px; the palace's dome is one). */
+const KD_BUILDINGS: [number, number, number][] = [[0, 14, 128], [14, 19, 123], [19, 25, 126], [25, 29, 119], [29, 38, 116], [38, 46, 121], [46, 51, 110], [51, 55, 121], [55, 60, 117], [60, 65, 102], [65, 70, 98], [70, 74, 113], [74, 80, 107], [80, 88, 111], [88, 96, 97], [96, 100, 111], [100, 106, 114], [106, 125, 95], [125, 136, 111], [136, 140, 118], [140, 147, 99], [147, 153, 112], [153, 157, 102], [157, 161, 99], [161, 169, 112], [169, 179, 110], [179, 183, 109], [183, 197, 118], [197, 201, 120], [201, 206, 117], [206, 215, 105], [215, 220, 125], [220, 234, 122]];
+/** The tower the Golden Klaw's sign stands on. */
+const KD_SIGN_ON = 23;
 
 export class VignetteScene extends Phaser.Scene {
   private box!: DialogueBox;
@@ -3076,9 +3088,18 @@ export class VignetteScene extends Phaser.Scene {
     // a lad on the ground to deliver the bad news (never the player)
     const lad = (pref: string[]) => pref.find((p) => p !== me) ?? "KREBLIS";
     // ---- the cockpit
-    const sky = this.sky(0x7ec8f0, 0xf3d9b1);
     const dash = this.cockpitFrame();
-    const idle = this.time.addEvent({ delay: 16, loop: true, callback: () => dash.update(0, 0, this.time.now) });
+    // the autopilot holds her straight and level while you work out the buttons (the same view as the flight)
+    const outside = createFlightView(this, { cx: 480, cy: dash.viewY, depth: 0 });
+    const idle = this.time.addEvent({
+      delay: 16,
+      loop: true,
+      callback: () => {
+        const t = this.time.now;
+        outside.update({ ax: Math.sin(t / 2300) * 0.08, ay: Math.sin(t / 3100) * 0.05, dt: 16, progress: 0 });
+        dash.update(0, 0, t);
+      },
+    });
     synth.music("boss_krozno", true);
     await this.talk([
       dir("The cockpit of Flight KR-069. Captain Stanley is in no position to object. There are four hundred buttons. One of them is labelled 'DO NOT'."),
@@ -3095,8 +3116,8 @@ export class VignetteScene extends Phaser.Scene {
       say("KREZWONK", "(over the radio) He knows how to fly a plane.", { cond: { notPlayer: "KREZWONK" } }),
       say("KREBLIS", "(over the radio) He knows how to fly a plane.", { cond: { player: "KREZWONK" } }),
     ]);
-    sky.destroy();
     idle.remove();
+    outside.destroy();
     dash.root.destroy();
     // ---- the flight
     await this.juiceFlight();
@@ -3115,13 +3136,13 @@ export class VignetteScene extends Phaser.Scene {
       g.fillStyle(0x3d6a2a, 1).fillRect(0, 440, 960, 100);
     }
     const haze = this.add.rectangle(480, 270, 960, 540, 0xff4fd8, 0.28).setDepth(80).setBlendMode(Phaser.BlendModes.ADD);
-    // the giant pussy juice takes up exactly the space the Krel Tower is about to
+    // the Kreddle Express (or so the drugs say) sits exactly where the Krel Tower is about to be
     const tower = this.bigTower(640, 440, 9);
     tower.img.setAlpha(0);
-    const carton = this.add.image(640, 440, "p_juice").setOrigin(0.5, 1).setDepth(10);
-    carton.displayHeight = tower.h * 0.96;
-    carton.displayWidth = tower.w * 1.25;
-    const label = this.add.text(640, tower.at(0.5), "PUSSY\nJUICE", { fontFamily: "Impact, sans-serif", fontSize: "34px", color: "#ffffff", align: "center", stroke: "#b0247a", strokeThickness: 6 }).setOrigin(0.5).setDepth(11);
+    const carton = this.add.image(640, 440, this.textures.exists("p_train") ? "p_train" : "p_juice").setOrigin(0.5, 1).setDepth(10);
+    carton.displayWidth = tower.w * 2.6;
+    carton.displayHeight = (carton.displayWidth * carton.height) / carton.width;
+    const label = this.add.text(640, 440 - carton.displayHeight - 24, "THE KREDDLE EXPRESS", { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#ffffff", align: "center", stroke: "#b0247a", strokeThickness: 6 }).setOrigin(0.5).setDepth(11);
     const plane = this.airliner(150, 215, 220);
     const chute = this.chute(me, 120, 60);
     // EJECT: the seat rockets out, speed lines, and the little pink canopy pops
@@ -3131,19 +3152,19 @@ export class VignetteScene extends Phaser.Scene {
     chute.setScale(0.2);
     this.tweens.add({ targets: chute, scale: 1, duration: 450, ease: "Back.out", delay: 350, onStart: () => synth.play("pop") });
     this.tweens.add({ targets: plane, x: 300, y: tower.at(0.66), duration: 2600, ease: "Sine.inOut" });
-    await this.talk([dir("You shoot out of the roof of KR-069 on a rocket-powered seat. A little pink parachute pops open. Below you, the plane carries on, straight and true, towards the giant pussy juice.")]);
+    await this.talk([dir("You shoot out of the roof of KR-069 on a rocket-powered seat. A little pink parachute pops open. Below you, the plane carries on, straight and true, towards the Kreddle Express.")]);
     // the drugs wear off
     this.tween({ targets: haze, alpha: 0, duration: 1800 });
     this.tween({ targets: label, alpha: 0, duration: 1400 });
-    // the carton narrows into the tower's silhouette as the tower shimmers in
-    this.tween({ targets: carton, alpha: 0, displayWidth: tower.w * 0.6, duration: 1800, ease: "Sine.inOut" });
+    // the train stands up and narrows into the tower's silhouette as the tower shimmers in
+    this.tween({ targets: carton, alpha: 0, displayWidth: tower.w * 0.6, displayHeight: tower.h * 0.96, duration: 1800, ease: "Sine.inOut" });
     await this.tween({ targets: tower.img, alpha: 1, duration: 1800, ease: "Sine.inOut" });
     carton.destroy();
     this.add.text(640, 448, "THE KREL TOWER", { fontFamily: FONT, fontSize: "12px", color: "#ffffff", backgroundColor: "#00000099", padding: { x: 4, y: 2 } }).setOrigin(0.5, 0).setDepth(12);
     synth.play("gasp");
     this.cameras.main.shake(400, 0.01);
     await this.talk([
-      dir("The giant pussy juice wobbles. It shimmers. It is, and possibly always was, the Krel Tower."),
+      dir("The Kreddle Express wobbles. It shimmers. It stands up on its end. It is, and possibly always was, the Krel Tower."),
       say(lad(["SCROMBUS", "KREZMAR"]), "(over the radio) Oh no!! You were hallucinating so badly from the drugs that you didn't realise you were heading straight for the Krel Tower! Noooooooooooo!"),
       say(lad(["FLENKY", "CRONGUS"]), "(over the radio) MOLLOR'S ON THE TOP FLOOR!!"),
       say(me, "…Has anyone seen the train though?"),
@@ -3595,28 +3616,33 @@ export class VignetteScene extends Phaser.Scene {
   }
 
   /**
-   * First person: steer KR-069 through eight floating pussy juice cartons, then line up the
-   * giant one. Right before you hit it, the ejector seat. Resolves with the giant's final scale.
+   * First person: keep the Kreddle Express in your sights. While it's in the crosshair you close on it; let it
+   * drift out and you lose ground. Close the gap and it's time for the ejector seat. Resolves when you eject.
    */
   private juiceFlight() {
     return new Promise<{ sx: number; sy: number }>((resolve) => {
-      const NEED = 8;
-      // trippy sky: two hue-cycling layers
-      // the world rolls with the plane; the cockpit doesn't
-      const world = this.add.container(480, 250).setDepth(1);
-      const sky = this.add.graphics();
-      const ground = this.add.graphics();
-      const objs = this.add.container(0, 0);
-      world.add([sky, ground, objs]);
-      const haze = this.add.rectangle(480, 270, 960, 540, 0xff4fd8, 0.18).setDepth(15).setBlendMode(Phaser.BlendModes.ADD);
+      // (a faint pink tint: the drugs are working)
+      const haze = this.add.rectangle(480, 270, 960, 540, 0xff4fd8, 0.08).setDepth(15).setBlendMode(Phaser.BlendModes.ADD);
       const cockpit = this.cockpitFrame();
       const VY = cockpit.viewY;
-      world.setY(VY);
+      // out of the windscreen: the sky, the countryside, the railway and the Kreddle Express on it
+      const view = createFlightView(this, { cx: 480, cy: VY, depth: 0 });
+      (this as unknown as { flightView?: typeof view }).flightView = view;
       const hud = this.add.text(480, 52, "", { fontFamily: "Impact, sans-serif", fontSize: "24px", color: "#ffffff", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(40);
-      const help = this.add.text(480, 86, "COLLECT THE PUSSY JUICE CONTAINERS TO REACH THE TRAIN", { fontFamily: FONT, fontSize: "15px", color: "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(40);
+      const help = this.add.text(480, 86, "AIM AT THE TRAIN. KEEP IT IN YOUR SIGHTS TO CLOSE IN.", { fontFamily: FONT, fontSize: "15px", color: "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(40);
       this.add.text(480, VY + 52, "WASD / ARROWS (or drag) to steer", { fontFamily: FONT, fontSize: "11px", color: "#86efac" }).setOrigin(0.5).setDepth(41);
+      // the lock-on bar
+      const barBg = this.add.rectangle(480, 116, 300, 12, 0x000000, 0.6).setStrokeStyle(2, 0xffffff, 0.8).setDepth(40);
+      const bar = this.add.rectangle(331, 116, 0, 8, 0x86efac).setOrigin(0, 0.5).setDepth(41);
+      void barBg;
       const cross = this.add.graphics().setDepth(30);
-      cross.lineStyle(3, 0x86efac, 0.9).strokeCircle(0, 0, 22).lineBetween(-34, 0, -12, 0).lineBetween(12, 0, 34, 0).lineBetween(0, -34, 0, -12).lineBetween(0, 12, 0, 34);
+      const drawCross = (on: boolean) => {
+        cross.clear();
+        const col = on ? 0xff4d4d : 0x86efac;
+        cross.lineStyle(3, col, 0.9).strokeCircle(0, 0, 22).lineBetween(-34, 0, -12, 0).lineBetween(12, 0, 34, 0).lineBetween(0, -34, 0, -12).lineBetween(0, 12, 0, 34);
+        if (on) cross.lineStyle(2, col, 0.7).strokeRect(-40, -40, 80, 80);
+      };
+      drawCross(false);
       const keys = this.input.keyboard?.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE,E") as Record<string, Phaser.Input.Keyboard.Key>;
       let ax = 0;
       let ay = 0;
@@ -3632,23 +3658,16 @@ export class VignetteScene extends Phaser.Scene {
       this.input.on("pointerdown", onDown);
       this.input.on("pointermove", onMove);
       this.input.on("pointerup", onUp);
-      type Obj = { c: Phaser.GameObjects.Container; ox: number; oy: number; z: number; giant: boolean };
-      const live: Obj[] = [];
-      let got = 0;
-      let phase: "collect" | "giant" | "eject" | "done" = "collect";
-      let nextSpawn = 600;
+      let phase: "chase" | "eject" | "done" = "chase";
+      let lock = 0;
+      let wasOn = false;
+      let lastBeep = 0;
       let t = 0;
-      const spawn = (giant: boolean) => {
-        const img = this.add.image(0, 0, "p_juice");
-        const lbl = this.add.text(0, 6, "PUSSY\nJUICE", { fontFamily: "Impact, sans-serif", fontSize: "9px", color: "#ffffff", align: "center", stroke: "#b0247a", strokeThickness: 2 }).setOrigin(0.5);
-        const c = this.add.container(0, 0, [img, lbl]);
-        objs.addAt(c, 0);
-        live.push({ c, ox: giant ? 0 : Phaser.Math.FloatBetween(-0.85, 0.85), oy: giant ? 0.1 : Phaser.Math.FloatBetween(-0.6, 0.6), z: 1, giant });
-      };
       const ejectPrompt = () => {
         phase = "eject";
         synth.play("alarm");
         help.setText("");
+        hud.setText("");
         const p = title(this, 480, 230, "⚠ HIT THE EJECTOR SEAT ⚠", 36, "#ff4d4d").setDepth(60);
         const b = this.add.text(480, 300, "PARACHUTE TO FREEDOM  [ E / SPACE / TAP ]", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#ffffff", backgroundColor: "#b91c1c", padding: { x: 14, y: 8 } }).setOrigin(0.5).setDepth(60).setInteractive({ useHandCursor: true });
         this.tweens.add({ targets: [p, b], scale: { from: 1, to: 1.08 }, yoyo: true, repeat: -1, duration: 300 });
@@ -3661,8 +3680,8 @@ export class VignetteScene extends Phaser.Scene {
           this.input.off("pointerup", onUp);
           this.input.keyboard?.off("keydown-E", go);
           this.input.keyboard?.off("keydown-SPACE", go);
-          const g = live.find((o) => o.giant);
-          resolve({ sx: g ? g.c.scaleX * 0.25 : 3, sy: g ? g.c.scaleY * 0.25 : 9 });
+          view.destroy();
+          resolve({ sx: 3, sy: 9 });
         };
         b.on("pointerdown", go);
         this.input.keyboard?.once("keydown-E", go);
@@ -3682,68 +3701,42 @@ export class VignetteScene extends Phaser.Scene {
             if (keys.W.isDown || keys.UP.isDown) ay -= sp;
             if (keys.S.isDown || keys.DOWN.isDown) ay += sp;
           }
-          // test hook: steer at the nearest carton
-          if ((window as unknown as { __krelAutoFly?: boolean }).__krelAutoFly && live.length) {
-            const o = live.reduce((a, b) => (b.z < a.z ? b : a));
-            ax += Phaser.Math.Clamp(o.ox - ax, -sp, sp);
-            ay += Phaser.Math.Clamp(o.oy - ay, -sp, sp);
+          const st = view.state;
+          // test hook: steer at the train
+          if ((window as unknown as { __krelAutoFly?: boolean }).__krelAutoFly && st.trainOn) {
+            ax += Phaser.Math.Clamp((st.trainX - 480) / 400, -sp, sp);
+            ay += Phaser.Math.Clamp((st.trainY - VY) / 400, -sp, sp);
           }
           ax = Phaser.Math.Clamp(ax, -1, 1);
           ay = Phaser.Math.Clamp(ay, -1, 1);
-          // the world tilts with you; the drugs make it wobble
-          world.setRotation(-ax * 0.14 + Math.sin(t / 700) * 0.035);
-          const hy = 10 - ay * 120;
-          const hue = (t / 40) % 360;
-          const c1 = Phaser.Display.Color.HSVToRGB(hue / 360, 0.45, 1) as Phaser.Types.Display.ColorObject;
-          const c2 = Phaser.Display.Color.HSVToRGB(((hue + 60) % 360) / 360, 0.35, 1) as Phaser.Types.Display.ColorObject;
-          const col = (o: Phaser.Types.Display.ColorObject) => (o.r << 16) | (o.g << 8) | o.b;
-          sky.clear().fillGradientStyle(col(c1), col(c1), col(c2), col(c2), 1).fillRect(-900, -900, 1800, hy + 900);
-          ground.clear().fillStyle(0x3d8a3a, 1).fillRect(-900, hy, 1800, 900);
-          for (let i = 0; i < 9; i++) {
-            const k = ((i + (t / 300) % 1) / 9) ** 2;
-            ground.fillStyle(i % 2 ? 0x4fa04a : 0x357a32, 1).fillRect(-900, hy + k * 400, 1800, 8 + k * 30);
-          }
+          // the view out of the windscreen banks and pitches with you; you close on the train as the lock builds
+          view.update({ ax, ay, dt: 16, progress: phase === "chase" ? lock : 1, trainFade: 0 });
           cross.setPosition(480, VY);
           cockpit.update(ax, ay, t);
-          haze.setFillStyle(col(c2), 0.16 + 0.06 * Math.sin(t / 300));
-          // spawning
-          if (phase === "collect" && t > nextSpawn && live.filter((o) => !o.giant).length < 3) {
-            spawn(false);
-            nextSpawn = t + 1100;
+          const c2 = Phaser.Display.Color.HSVToRGB(((t / 60) % 360) / 360, 0.35, 1) as Phaser.Types.Display.ColorObject;
+          haze.setFillStyle((c2.r << 16) | (c2.g << 8) | c2.b, 0.07 + 0.03 * Math.sin(t / 300));
+          if (phase !== "chase") return;
+          // on target: the train's middle inside the sights (a bit of give, more as it gets bigger)
+          const near = 70 + lock * 60;
+          const on = st.trainOn && Math.abs(st.trainX - 480) < near && Math.abs(st.trainY - VY) < near * 1.6;
+          lock = Phaser.Math.Clamp(lock + (on ? 0.0016 : -0.0005), 0, 1);
+          if (on !== wasOn) {
+            drawCross(on);
+            if (on) synth.play("select");
+            wasOn = on;
           }
-          // move everything towards you
-          for (const o of [...live]) {
-            o.z -= o.giant ? (o.z < 0.14 ? 0 : 0.0032) : 0.0075;
-            const zz = o.z * 3 + 0.25;
-            const sx = ((o.ox - ax) * 420) / zz;
-            const sy = ((o.oy - ay) * 300) / zz;
-            const s = (o.giant ? 2.6 : 1.7) / zz;
-            o.c.setPosition(sx, sy).setScale(s, o.giant ? s * 2.6 : s);
-            if (o.giant) {
-              // the giant one holds still while you line it up, then the ejector seat
-              if (phase === "giant" && o.z < 0.14) ejectPrompt();
-              continue;
-            }
-            if (o.z <= 0.06) {
-              if (Math.abs(o.ox - ax) < 0.22 && Math.abs(o.oy - ay) < 0.24) {
-                got++;
-                synth.play("slurp");
-                this.cameras.main.flash(150, 255, 120, 220);
-                const pop = this.add.text(480, VY + 80, ["SLURP!", "JUICY!", "LOVELY!", "MMMM!", "GET IN!"][got % 5], { fontFamily: "Impact, sans-serif", fontSize: "30px", color: "#ff9ad5", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(50);
-                this.tweens.add({ targets: pop, y: VY + 40, alpha: 0, duration: 700, onComplete: () => pop.destroy() });
-              } else synth.play("pfft");
-              o.c.destroy();
-              live.splice(live.indexOf(o), 1);
-            }
+          if (on && t - lastBeep > 420 - lock * 300) {
+            lastBeep = t;
+            synth.play("monbeep");
           }
-          hud.setText(phase === "collect" ? `PUSSY JUICE ${got}/${NEED}` : "");
-          if (phase === "collect" && got >= NEED) {
-            phase = "giant";
-            for (const o of live) o.c.destroy();
-            live.length = 0;
+          bar.width = 298 * lock;
+          bar.setFillStyle(on ? 0xff4d4d : 0x86efac);
+          hud.setText(on ? `ON TARGET  ${Math.round(lock * 100)}%` : lock > 0 ? `OFF TARGET  ${Math.round(lock * 100)}%` : "FIND THE TRAIN");
+          help.setText(on ? "HOLD IT THERE…" : "AIM AT THE TRAIN. KEEP IT IN YOUR SIGHTS TO CLOSE IN.");
+          if (lock >= 1) {
             synth.play("perfect");
-            help.setText("COLLECT THE GIANT PUSSY JUICE TO GET THE TRAIN!").setFontSize(20).setColor("#ff4fd8");
-            spawn(true);
+            help.setText("");
+            ejectPrompt();
           }
         },
       });
@@ -4869,7 +4862,7 @@ export class VignetteScene extends Phaser.Scene {
     // (a) the Town Hall: hubris
     if (!backdrop(this, "bg_townhall", { dim: 0.1, depth: -10 })) this.sky(0x6b4f2a, 0x3a2a1a);
     synth.weatherSound("rain");
-    synth.music("crazy");
+    synth.musicRaw("crazy");
     const lads = this.partyCast(290);
     lads.forEach((sp) => sp.setTint(0xd6d3d1));
     // still smoking from Kreddle
@@ -5107,6 +5100,8 @@ export class VignetteScene extends Phaser.Scene {
     shot.big.destroy();
     cdBars(10);
     this.cameras.main.pan(480, 270, 10, "Linear", true);
+    // (from here on, the old upbeat themes stay gone: systems/moodMusic)
+    G.s.flags.kreddle_nuked = true;
     // silence. then:
     const nukeBars = Juice.letterbox(this, 44, 300, 985);
     this.cameras.main.flash(900, 255, 255, 255);
@@ -5337,33 +5332,182 @@ export class VignetteScene extends Phaser.Scene {
     this.tweens.add({ targets: base, alpha: 0.45, duration: ms * 1.5 });
   }
 
-  /** Kreddle gone from the skyline: a black, broken line of rubble where the neon was, with fires along it. */
-  private kreddleGone(view: { hx: number; hy: number }, depth = -6) {
+  /** Kreddle gone from the skyline: nothing standing, just a low, black, broken line of rubble on the shore, fires along it. */
+  private kreddleGone(view: { hx: number; hy: number }, depth = -6, fires = true) {
     const g = this.add.graphics().setDepth(depth);
+    const shore = KD_SKY.shore;
     g.fillStyle(0x0b0812, 1);
     g.beginPath();
-    g.moveTo(520, 300);
-    let x = 520;
+    g.moveTo(KD_SKY.left, shore + 4);
+    let x = KD_SKY.left;
     while (x < 960) {
-      // a ragged line of what's left; now and then a broken spire
-      g.lineTo(x, Math.random() < 0.12 ? 196 + Math.random() * 24 : 226 + Math.random() * 30);
-      x += 6 + Math.random() * 14;
+      // heaps; now and then a stump of a wall or a bent girder
+      g.lineTo(x, shore - (Math.random() < 0.1 ? 14 + Math.random() * 10 : 3 + Math.random() * 9));
+      x += 5 + Math.random() * 12;
     }
-    g.lineTo(960, 300);
+    g.lineTo(960, shore + 4);
     g.closePath();
     g.fillPath();
-    const fires: Phaser.GameObjects.GameObject[] = [g];
-    for (let i = 0; i < 9; i++) {
-      const fx = 540 + i * 46 + Math.random() * 20;
-      fires.push(this.glow(fx, 236 + Math.random() * 20, 30 + Math.random() * 40, 0xff6a1a, 0.75, depth + 1));
+    const out: Phaser.GameObjects.GameObject[] = [g];
+    if (!fires) return out;
+    for (let i = 0; i < 10; i++) {
+      const fx = KD_SKY.left + 20 + i * 46 + Math.random() * 20;
+      out.push(this.glow(fx, shore - 6 - Math.random() * 6, 26 + Math.random() * 36, 0xff6a1a, 0.7, depth + 1));
     }
-    fires.push(this.glow(view.hx, view.hy + 6, 260, 0xff5a10, 0.45, depth + 1));
-    return fires;
+    out.push(this.glow(view.hx, view.hy + 6, 260, 0xff5a10, 0.45, depth + 1));
+    return out;
   }
 
-  /** The view from Krelford across the river to Kreddle (where the palace sits on the horizon: hx, hy). */
-  private bridgeView() {
-    if (!backdrop(this, "bg_c6e_bridge_view", { depth: -10 })) {
+  /**
+   * Kreddle's skyline coming down, building by building, from the palace outwards: the shockwave runs along the shore,
+   * each building lights up, shears, leans away from the blast and breaks up as it falls (debris, dust, then fire),
+   * the Golden Klaw's sign tumbles off its tower, and there's nothing left standing but rubble, smoke and the glow.
+   * The buildings are the backdrop's own skyline, cut out of it (c6e_kreddle_cut over bg_c6e_bridge_gone).
+   * Returns stop(): ends the smoke (call it before the stage is cleared).
+   */
+  private kreddleCollapse(view: { hx: number; hy: number }) {
+    const calm = Juice.calm();
+    const tex = "c6e_kreddle_cut";
+    const S = KD_SKY;
+    const shore = S.shore;
+    // the rubble's already there behind the city: it shows as each building goes
+    this.kreddleGone(view, -7, false);
+    if (!this.textures.exists(tex)) return { stop: () => undefined };
+    const T = this.textures.get(tex);
+    // nothing shows below the waterline (the buildings sink into their own dust)
+    const maskG = this.make.graphics({}, false);
+    maskG.fillStyle(0xffffff).fillRect(-400, -600, 1800, shore + 600);
+    const layer = this.add.container(0, 0).setDepth(-6);
+    layer.setMask(maskG.createGeometryMask());
+    const dark = (k: number) => Phaser.Display.Color.Interpolate.ColorWithColor(Phaser.Display.Color.ValueToColor(0xffb070), Phaser.Display.Color.ValueToColor(0x140806), 100, Math.round(k * 100));
+    const burn = (img: Phaser.GameObjects.Image, ms: number) =>
+      this.tweens.addCounter({ from: 0, to: 1, duration: ms, onUpdate: (tw) => {
+        if (!img.active) return;
+        const c = dark(tw.getValue() ?? 1);
+        img.setTint(Phaser.Display.Color.GetColor(c.r, c.g, c.b));
+      } });
+    // the front: when the blast reaches a point on the shore (ms after the flash)
+    // soft smoke (the glow's gradient, drawn normally rather than added)
+    const puff = (x: number, y: number, size: number, tint: number, alpha: number) => this.glow(x, y, size, tint, alpha, -5).setBlendMode(Phaser.BlendModes.NORMAL);
+    const T0 = 450;
+    const PER_PX = 6.5;
+    const hitAt = (x: number) => T0 + Math.abs(x - view.hx) * PER_PX;
+    // the shockwave running along the shore both ways, a wall of dust behind it
+    const reach = Math.max(view.hx - S.left, 960 - view.hx) + 20;
+    this.time.delayedCall(T0, () => {
+      const ring = this.add.ellipse(view.hx, shore - 8, 20, 12).setStrokeStyle(3, 0xfff1d6, calm ? 0.5 : 0.9).setFillStyle(0xffd8a8, calm ? 0.08 : 0.18).setDepth(-4);
+      this.tweens.add({ targets: ring, scaleX: (reach * 2) / 20, scaleY: 4, alpha: 0, duration: reach * PER_PX, ease: "Linear", onComplete: () => ring.destroy() });
+    });
+    for (let d = 0; d <= reach; d += 26)
+      for (const side of [-1, 1]) {
+        const x = view.hx + side * d;
+        if (x < S.left - 10 || x > 970 || (d === 0 && side > 0)) continue;
+        vfx(this, "vfx_dust", x, shore - 4, { scale: 1.1 + Math.random() * 0.5, depth: -5, alpha: 0.8, delay: hitAt(x) + 60 });
+      }
+    // one building: its pieces (top to bottom), cut from the skyline
+    const bld = KD_BUILDINGS.map(([c0, c1, top], i) => {
+      const w = c1 - c0;
+      const rows = S.hz - top;
+      const n = rows >= 30 ? 3 : rows >= 13 ? 2 : 1;
+      const cuts = [top];
+      for (let j = 1; j < n; j++) cuts.push(Math.round(top + (rows * j) / n + (Math.random() - 0.5) * 4));
+      cuts.push(S.hz);
+      const x = S.k * (S.x0 + c0 + w / 2);
+      const frags = cuts.slice(0, -1).map((a, j) => {
+        const b = cuts[j + 1];
+        const name = `kd_${i}_${j}_${a}`;
+        if (!T.has(name)) T.add(name, 0, c0, a - S.y0, w, b - a);
+        const img = this.add.image(x, S.k * b - 2, tex, name).setOrigin(0.5, 1).setScale(S.k);
+        layer.add(img);
+        return img;
+      });
+      return { x, w, frags };
+    });
+    // the Golden Klaw's sign, up on its tower right of the palace
+    const sb = KD_BUILDINGS[KD_SIGN_ON];
+    const sign = this.add.container(S.k * (S.x0 + (sb[0] + sb[1]) / 2), S.k * sb[2] - 2);
+    const signGlow = this.add.ellipse(0, -15, 70, 26, 0xff4fd8, 0.35).setBlendMode(Phaser.BlendModes.ADD);
+    const signBoard = this.add.rectangle(0, -15, 50, 15, 0x12001f).setStrokeStyle(2, 0xff4fd8);
+    const signText = this.add.text(0, -15, "CASINO", { fontFamily: "Impact, sans-serif", fontSize: "11px", color: "#facc15" }).setOrigin(0.5);
+    sign.add([this.add.rectangle(0, -4, 3, 8, 0x3f3f46), signGlow, signBoard, signText]);
+    layer.add(sign);
+    // each building, as the front reaches it
+    bld.forEach(({ x, w, frags }) => {
+      const at = hitAt(x) + Math.random() * 90;
+      const dir = Math.sign(x - view.hx) || (Math.random() < 0.5 ? -1 : 1);
+      this.time.delayedCall(at, () => {
+        if (!frags[0]?.active) return;
+        // lit up by the blast (a slow warm glow with calm flashes on; a hard white hit otherwise)
+        frags.forEach((f) => (calm ? f.setTint(0xffd0a0) : f.setTintFill(0xfff4e0)));
+        this.time.delayedCall(calm ? 260 : 90, () => frags.forEach((f) => f.active && (f.clearTint(), burn(f, 1400))));
+        // top to bottom: the top shears off and goes furthest; the base just drops into its own dust
+        frags.forEach((f, fromTop) => {
+          const last = fromTop === frags.length - 1;
+          const lean = dir * (last ? 4 + Math.random() * 8 : 14 + Math.random() * 10);
+          const fall = last ? 0 : dir * (50 + Math.random() * 80) * (frags.length - fromTop) * 0.5;
+          const drop = shore - f.y + f.displayHeight + 8;
+          // a lurch away from the blast, then down
+          this.tweens.add({ targets: f, angle: lean, x: f.x + dir * (last ? 2 : 6), duration: 260 + fromTop * 60, ease: "Sine.out" });
+          this.tweens.add({ targets: f, angle: lean + fall, x: f.x + dir * (last ? 3 : 14 + Math.random() * 30 + (frags.length - fromTop) * 8), y: f.y + drop, delay: 220 + fromTop * 140 + Math.random() * 120, duration: (last ? 1500 : 1000) + Math.random() * 500, ease: last ? "Cubic.in" : "Quad.in" });
+        });
+        // it breaks up: chunks and neon thrown out and up
+        const nDeb = 4 + Math.round(w / 2);
+        const topY = frags[0].y - frags[0].displayHeight;
+        for (let k = 0; k < nDeb; k++) {
+          const d = this.add.rectangle(x + (Math.random() - 0.5) * w * 2, topY + Math.random() * (shore - topY), 2 + Math.random() * 4, 2 + Math.random() * 4, [0x1c1917, 0x44403c, 0x292524, 0x0c0a09, 0xf97316, 0x1c1917, 0x44403c, 0xff4fd8, 0x292524, 0x22d3ee][k % 10]);
+          layer.add(d);
+          const vx = dir * (30 + Math.random() * 120) * (Math.random() < 0.2 ? -0.5 : 1);
+          const vy = -(40 + Math.random() * 140);
+          const x0 = d.x;
+          const y0 = d.y;
+          const dur = 1400 + Math.random() * 600;
+          this.tweens.add({ targets: d, x: x0 + (vx * dur) / 1000, angle: 360 * dir, duration: dur, onUpdate: (tw) => {
+            const t = (tw.progress * dur) / 1000;
+            d.y = y0 + vy * t + 210 * t * t;
+          }, onComplete: () => d.destroy() });
+        }
+        // dust and smoke where it stood, then fire in what's left
+        vfx(this, "vfx_dust", x, shore - 4, { scale: 0.8 + w / 12, depth: -5, alpha: 0.9, delay: 320 });
+        for (let k = 0; k < 3; k++) {
+          const p = puff(x + (Math.random() - 0.5) * w * 2, shore - 6, 26 + w * 2, 0x57534e, 0.7);
+          this.tweens.add({ targets: p, y: p.y - 40 - Math.random() * 50, scale: p.scale * 2.2, alpha: 0, delay: 300 + k * 160, duration: 1800 + Math.random() * 600, ease: "Sine.out", onComplete: () => p.destroy() });
+        }
+        this.time.delayedCall(700, () => {
+          const f = this.glow(x, shore - 7, 22 + w * 3, 0xff6a1a, 0.75, -5);
+          this.tweens.add({ targets: f, alpha: 0.45, yoyo: true, repeat: -1, duration: 1100 + Math.random() * 700, ease: "Sine.inOut" });
+        });
+        if (Math.random() < 0.35) synth.play(Math.random() < 0.5 ? "smash" : "boom", 0.18);
+      });
+    });
+    // the sign: its lights die, it comes off the tower and tumbles end over end into the rubble
+    const sAt = hitAt(sign.x) + 60;
+    const sDir = Math.sign(sign.x - view.hx) || 1;
+    this.time.delayedCall(sAt, () => {
+      if (!sign.active) return;
+      signText.setColor("#57534e");
+      signBoard.setStrokeStyle(2, 0x44403c);
+      this.tweens.add({ targets: signGlow, alpha: 0, duration: calm ? 600 : 200 });
+      vfx(this, "vfx_sparks", sign.x, sign.y - 15, { scale: 0.8, depth: -4 });
+      const x0 = sign.x;
+      const y0 = sign.y;
+      const dur = 1700;
+      this.tweens.add({ targets: sign, x: x0 + sDir * 90, angle: sDir * 300, duration: dur, ease: "Sine.out", onUpdate: (tw) => {
+        const t = (tw.progress * dur) / 1000;
+        sign.y = y0 - 60 * t + 70 * t * t;
+      } });
+    });
+    // smoke over the ruins for the rest of the shot
+    const smoke = this.time.addEvent({ delay: 160, repeat: 70, startAt: 0, callback: () => {
+      const sx = S.left + Math.random() * (960 - S.left);
+      const p = puff(sx, shore - 4, 34 + Math.random() * 30, Math.random() < 0.5 ? 0x44403c : 0x292524, 0.6);
+      this.tweens.add({ targets: p, y: p.y - 70 - Math.random() * 60, x: p.x - 20 - Math.random() * 30, scale: p.scale * 2.6, alpha: 0, duration: 3200 + Math.random() * 1200, ease: "Sine.out", onComplete: () => p.destroy() });
+    } });
+    return { stop: () => smoke.remove() };
+  }
+
+  /** The view from Krelford across the river to Kreddle (where the palace sits on the horizon: hx, hy). `gone`: with Kreddle erased from it. */
+  private bridgeView(gone = false) {
+    if (!(gone && backdrop(this, "bg_c6e_bridge_gone", { depth: -10 })) && !backdrop(this, "bg_c6e_bridge_view", { depth: -10 })) {
       this.sky(0x0f0b24, 0x2a1645);
       this.add.rectangle(480, 300, 960, 50, 0x05030c).setDepth(-9);
       for (let i = 0; i < 40; i++) this.add.rectangle(600 + Math.random() * 280, 250 + Math.random() * 20, 4, 6 + Math.random() * 30, [0xff4fd8, 0x22d3ee, 0xfacc15][i % 3]).setOrigin(0.5, 1).setDepth(-9);
@@ -5395,19 +5539,18 @@ export class VignetteScene extends Phaser.Scene {
     const calm = Juice.calm();
     this.clearStage();
     this.resetCam();
-    const view = this.bridgeView();
+    const view = this.bridgeView(true);
     synth.weatherSound("rain");
     const lads = this.watchers(view);
     // the far-off light, still burning, and the sky lit orange from underneath
     const sky = this.add.rectangle(480, 150, 960, 300, 0xff7a00, 0).setDepth(-7).setBlendMode(Phaser.BlendModes.ADD);
     this.tweens.add({ targets: sky, fillAlpha: 0.22, duration: 2000 });
-    // under the fireball the skyline goes dark: Kreddle is gone
-    const gone = this.kreddleGone(view);
+    // under the fireball the whole skyline comes down, building by building, until there's nothing standing
+    const fall = this.kreddleCollapse(view);
     const fire = this.glow(view.hx, view.hy - 10, 520, 0xffd08a, 1, -4);
     const core = this.glow(view.hx, view.hy - 10, 220, 0xffffff, 1, -4);
     this.tweens.add({ targets: fire, displayWidth: 300, displayHeight: 300, alpha: 0.55, duration: 6000, ease: "Cubic.out" });
     this.tweens.add({ targets: core, displayWidth: 90, displayHeight: 90, alpha: 0.5, duration: 5000, ease: "Cubic.out" });
-    void gone;
     this.farCloud(view.hx, view.hy);
     // the white from the palace shot, fading out over Krelford
     const white = this.add.rectangle(480, 270, 1400, 900, 0xfff7ed, calm ? 0.6 : 1).setDepth(990);
@@ -5458,6 +5601,7 @@ export class VignetteScene extends Phaser.Scene {
     // to black
     const black = this.add.rectangle(480, 270, 1400, 900, 0x000000, 0).setDepth(990);
     await this.tween({ targets: black, alpha: 1, duration: 900 });
+    fall.stop();
   }
 
   /** The Krunch Protocol's own screen: what it is, what it's doing and where it's aiming. close() takes it away. */
@@ -5510,7 +5654,7 @@ export class VignetteScene extends Phaser.Scene {
   private async incomingOverKrelford() {
     this.clearStage();
     this.resetCam();
-    const view = this.bridgeView();
+    const view = this.bridgeView(true);
     // what's left of the cloud, and the glow where Kreddle was
     this.kreddleGone(view);
     this.farCloud(view.hx, view.hy, 60);
@@ -5583,7 +5727,7 @@ export class VignetteScene extends Phaser.Scene {
       meOnFloor?.destroy();
       this.cast.set("MIKEY", mik);
     }
-    synth.music("sanmik");
+    synth.musicRaw("sanmik");
     const s1 = this.perform([mik, chz], "sing", 9);
     const s2 = this.perform([d1, d2], "dance", 10);
     await Juice.titleCard(this, "INSIDE THE TOWN HALL. RIGHT NOW.", "THE VICTORY PARTY", "", 1700);

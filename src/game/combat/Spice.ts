@@ -135,17 +135,7 @@ export class Spice {
         if (q) this.add("ammo_crate", q.x, q.y);
       }
     }
-    if (this.twist === "SLURRY FLOOR") {
-      for (let i = 0; i < 5; i++) {
-        const p = this.randomSpot(b, 60);
-        if (!p) continue;
-        const rad = 55 + Math.random() * 45;
-        this.puddles.push({ x: p.x, y: p.y, r: rad });
-        const g = sc.add.ellipse(p.x, p.y, rad * 2.2, rad * 1.8, 0x65a30d, 0.45).setDepth(3).setStrokeStyle(3, 0x3f6212, 0.7);
-        sc.tweens.add({ targets: g, scaleX: 1.05, scaleY: 0.95, yoyo: true, repeat: -1, duration: 900 + i * 120, ease: "Sine.inOut" });
-        sc.add.text(p.x, p.y, "SLURRY", { fontFamily: "sans-serif", fontSize: "11px", color: "#ecfccb", stroke: "#1a2e05", strokeThickness: 3 }).setOrigin(0.5).setDepth(3).setAlpha(0.7);
-      }
-    }
+    if (this.twist === "SLURRY FLOOR") this.slurry(b);
     if (this.twist === "LIGHTS OUT") {
       const overlay = sc.add.rectangle(0, 0, 960, 540, 0x000000, 0.86).setOrigin(0).setScrollFactor(0).setDepth(940);
       const hole = sc.make.graphics({ x: 0, y: 0 }, false);
@@ -153,6 +143,47 @@ export class Spice {
       mask.setInvertAlpha(true);
       overlay.setMask(mask);
       this.dark = { overlay, hole };
+    }
+  }
+
+  /**
+   * SLURRY FLOOR: five puddles of glowing Krezz slurry (the hitbox is the circle of radius r). With the PixelLab
+   * splat (fx_slurry) they're spilled slime with a glow that breathes; without it, the old drawn ellipses.
+   */
+  slurry(b: Phaser.Geom.Rectangle) {
+    const sc = this.sc;
+    const art = sc.textures.exists("fx_slurry");
+    for (let i = 0; i < 5; i++) {
+      const p = this.randomSpot(b, 60);
+      if (!p) continue;
+      const rad = 55 + Math.random() * 45;
+      this.puddles.push({ x: p.x, y: p.y, r: rad });
+      if (art) {
+        const glow = sc.add.ellipse(p.x, p.y, rad * 2.5, rad * 2.1, 0x84cc16, 0.16).setDepth(2.9).setBlendMode(Phaser.BlendModes.ADD);
+        sc.tweens.add({ targets: glow, alpha: { from: 0.55, to: 1 }, scaleX: { from: 0.94, to: 1.04 }, scaleY: { from: 0.94, to: 1.04 }, yoyo: true, repeat: -1, duration: 1100 + i * 150, ease: "Sine.inOut" });
+        const g = sc.add.image(p.x, p.y, i % 2 && sc.textures.exists("fx_slurry_1") ? "fx_slurry_1" : "fx_slurry").setDepth(3).setAlpha(0.84).setFlipX(Math.random() < 0.5).setFlipY(Math.random() < 0.5);
+        g.setDisplaySize(rad * 2.3, rad * 1.95);
+        const sx = g.scaleX;
+        const sy = g.scaleY;
+        sc.tweens.add({ targets: g, scaleX: sx * 1.03, scaleY: sy * 0.97, yoyo: true, repeat: -1, duration: 900 + i * 120, ease: "Sine.inOut" });
+        // the odd bubble popping on the surface
+        const bub = sc.add.circle(p.x, p.y, 3, 0xd9f99d, 0).setDepth(3.1).setStrokeStyle(1, 0xecfccb, 0.9);
+        sc.time.addEvent({
+          delay: 700 + i * 230,
+          loop: true,
+          callback: () => {
+            if (!bub.active) return;
+            const a = Math.random() * Math.PI * 2;
+            const d = Math.random() * rad * 0.6;
+            bub.setPosition(p.x + Math.cos(a) * d, p.y + Math.sin(a) * d * 0.8).setScale(0.6).setAlpha(1);
+            sc.tweens.add({ targets: bub, scale: 1.6, alpha: 0, duration: 520 });
+          },
+        });
+        continue;
+      }
+      const g = sc.add.ellipse(p.x, p.y, rad * 2.2, rad * 1.8, 0x65a30d, 0.45).setDepth(3).setStrokeStyle(3, 0x3f6212, 0.7);
+      sc.tweens.add({ targets: g, scaleX: 1.05, scaleY: 0.95, yoyo: true, repeat: -1, duration: 900 + i * 120, ease: "Sine.inOut" });
+      sc.add.text(p.x, p.y, "SLURRY", { fontFamily: "sans-serif", fontSize: "11px", color: "#ecfccb", stroke: "#1a2e05", strokeThickness: 3 }).setOrigin(0.5).setDepth(3).setAlpha(0.7);
     }
   }
 

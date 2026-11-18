@@ -197,8 +197,8 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
       if (punchA) dd.play(punchA);
       ddBusyUntil = st.t + 700;
     };
-    // the climax music
-    synth.music("fe_clash", true);
+    // the group wonk's own anthem: choir, orchestra and rock, building the whole way
+    synth.music("gw_anthem", true);
     // the ring
     const lads = ring.map((id, i) => {
       const a = -Math.PI / 2 + (i / N) * Math.PI * 2;
@@ -394,7 +394,7 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
         } else if (p > 0.5 && milestone < 2) {
           milestone = 2;
           ddText.setText("STOP IT. STOP IT!");
-          sc.cameras.main.flash(150, 255, 200, 240);
+          if (!calm) sc.cameras.main.flash(150, 255, 200, 240);
           milestoneHit("HALFWAY!", "#ff9ad5");
           // his eyes, as it dawns on him
           void Juice.eyeShot(sc, "fe_eyes_dd", 500, { color: 0xffd23f, depth: 3560 });
@@ -402,7 +402,7 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
           milestone = 3;
           ddText.setText("NOT THE GROUP WONK!!!");
           synth.play("alarm");
-          sc.cameras.main.flash(200, 255, 255, 255);
+          if (!calm) sc.cameras.main.flash(200, 255, 255, 255);
           milestoneHit("NOT THE GROUP WONK!!!", "#ffd23f");
           Juice.riser(1800, 0.3);
         } else if (p > 0.9 && milestone < 4) {
@@ -477,7 +477,7 @@ export function runGroupWonk(sc: Phaser.Scene, opts: { lads: PlayableId[]; playe
       if (ok) sanmikYee(sc, lads[0].x, lads[0].y - lads[0].spr.displayHeight * 0.5 - 20, { times: 3, screen: true, size: 22, depth: 3600 });
       if (ok) {
         for (let i = 0; i < 6; i++) synth.voice(i % 2 ? "oh" : "grunt", 0.7, 0.7 + i * 0.12, i * 0.12);
-        sc.cameras.main.flash(400, 255, 255, 255);
+        if (!calm) sc.cameras.main.flash(400, 255, 255, 255);
         sc.cameras.main.shake(700, 0.02);
       } else synth.play("trombone");
       sc.time.delayedCall(ok ? 1600 : 1200, () => {

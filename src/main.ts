@@ -4,6 +4,9 @@ import Phaser from "phaser";
 import { installPixelFonts } from "./game/ui/fontPatch";
 import { installCalmFlash } from "./game/ui/calmFlash";
 import { installJukebox } from "./game/systems/jukebox";
+import { installMoodMusic } from "./game/systems/moodMusic";
+import { synth } from "./game/audio/Synth";
+import { G } from "./game/G";
 import { BootScene } from "./game/scenes/BootScene";
 import { TitleScene } from "./game/scenes/TitleScene";
 import { CharSelectScene } from "./game/scenes/CharSelectScene";
@@ -41,6 +44,8 @@ import { installCrashGuard } from "./game/crashGuard";
 installPixelFonts();
 installCalmFlash();
 installJukebox();
+// after Kreddle is nuked, the old upbeat themes stay gone
+installMoodMusic(synth, () => (G.hasRun() ? G.s : null));
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,

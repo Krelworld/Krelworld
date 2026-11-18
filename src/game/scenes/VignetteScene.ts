@@ -299,15 +299,26 @@ export class VignetteScene extends Phaser.Scene {
    */
   private async collapseStaged(t: BigTower, hitY: number) {
     const calmF = Juice.calm();
-    const img = t.img;
-    const src = img.frame;
+    const whole = t.img;
+    const tex = whole.texture;
+    const src = whole.frame;
     // the wound, as a fraction of the image from the top
     const f = Phaser.Math.Clamp((hitY - (t.ground - t.h)) / t.h, 0.15, 0.85);
     const cutPx = Math.round(src.height * f);
-    // the top: a copy of the art cropped to above the wound, pivoting at the wound
-    const top = this.add.image(t.x, hitY, img.texture.key, img.frame.name).setOrigin(0.5, f).setDepth(img.depth + 0.5);
-    top.setDisplaySize(img.displayWidth, img.displayHeight).setCrop(0, 0, src.width, cutPx);
-    img.setCrop(0, cutPx, src.width, src.height - cutPx);
+    // the art cut in two at the wound (temporary frames on its texture): the top pivots on the wound
+    const fTop = `__vcut_top_${cutPx}`;
+    const fBot = `__vcut_bot_${cutPx}`;
+    if (!tex.has(fTop)) tex.add(fTop, src.sourceIndex, src.cutX, src.cutY, src.cutWidth, cutPx);
+    if (!tex.has(fBot)) tex.add(fBot, src.sourceIndex, src.cutX, src.cutY + cutPx, src.cutWidth, src.cutHeight - cutPx);
+    const top = this.add.image(t.x, hitY, tex.key, fTop).setOrigin(0.5, 1).setDepth(whole.depth + 0.5);
+    top.setDisplaySize(whole.displayWidth, t.h * f);
+    const img = this.add.image(t.x, t.ground, tex.key, fBot).setOrigin(0.5, 1).setDepth(whole.depth);
+    img.setDisplaySize(whole.displayWidth, t.h * (1 - f));
+    whole.setVisible(false);
+    this.events.once("shutdown", () => {
+      if (tex.has(fTop)) tex.remove(fTop);
+      if (tex.has(fBot)) tex.remove(fBot);
+    });
     const mask = this.make.graphics({}, false).fillRect(-200, -900, 1360, t.ground + 900).createGeometryMask();
     img.setMask(mask);
     top.setMask(mask);

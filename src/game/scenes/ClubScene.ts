@@ -161,6 +161,8 @@ export class ClubScene extends Phaser.Scene {
   /** You hit a dancer: everything gets worse. */
   private angry = false;
   private dancerDown = false;
+  /** a private dance (with its own song) is on */
+  private privateOn = false;
   private musicStopped = false;
   // the strip
   private stripStage = 0;
@@ -265,6 +267,7 @@ export class ClubScene extends Phaser.Scene {
     this.derek = null;
     this.angry = false;
     this.dancerDown = false;
+    this.privateOn = false;
     this.musicStopped = false;
     this.songIdx = -1;
     this.between = false;
@@ -570,8 +573,8 @@ export class ClubScene extends Phaser.Scene {
     const dt = Math.min(delta, 50);
     this.fx?.update(time);
     if (this.doorman?.active) this.doorman.setFrame(Math.floor(time / 900) % 2);
-    // the routine
-    if (!this.onBreak && !this.dancerDown) {
+    // the routine (not while she's off the pole doing your private dance: it would pin her back to the pole, and you with her)
+    if (!this.onBreak && !this.dancerDown && !this.privateOn) {
       const t = time / 1000;
       // the real routine when the art has it; otherwise the old hip-sway wobble
       const real = this.danceFrame(time);
@@ -601,7 +604,8 @@ export class ClubScene extends Phaser.Scene {
       b.spr.y = 335 - Math.abs(Math.sin(t * 5.5)) * 9;
       animateWalker(b.spr, Math.cos(t * 2), 0, true, time);
     });
-    if (this.band.length && !this.musicStopped && !this.between && this.songIdx >= 0 && synth.fileProgress().ended) {
+    // (not during a private dance: that has its own song, and the band's next number would cut over it)
+    if (this.band.length && !this.musicStopped && !this.between && !this.privateOn && this.songIdx >= 0 && synth.fileProgress().ended) {
       this.between = true;
       synth.play("cheer");
       this.banner?.setText("♪ \"Cheers Wonky Pole. This next one's about a hot tub.\"");
@@ -985,6 +989,7 @@ export class ClubScene extends Phaser.Scene {
     }
     s.coins -= 25;
     this.busy = true;
+    this.privateOn = true;
     const name = this.dancerName();
     const home = { x: this.dancer.x, y: this.dancer.y };
     this.tweens.add({ targets: this.dancer, x: this.me.x - 50, y: this.me.y - 6, duration: 500 });
@@ -993,11 +998,12 @@ export class ClubScene extends Phaser.Scene {
     // the private dance has its own song, from the chorus (the club's tune comes back after)
     const clubTune = synth.currentMusic();
     synth.musicRaw("jmg_tweak", true);
-    await squeeze(this, (l) => this.talk(l), { name, spr: this.dancer }, this.me, [dir(`${name} does a private dance for you. It's mostly spinning. It's very good spinning.`)]);
+    // (talk() frees you when its lines end: keep the room still for the squeeze in between, or you walk off and start a brawl mid-QTE)
+    await squeeze(this, (l) => this.talk(l).then(() => void (this.busy = true)), { name, spr: this.dancer }, this.me, [dir(`${name} does a private dance for you. It's mostly spinning. It's very good spinning.`)]);
     this.dancer.setAngle(0);
     if (clubTune && clubTune !== "jmg_tweak") synth.music(clubTune, true);
     else synth.music("pub", true);
-    this.tweens.add({ targets: this.dancer, x: home.x, y: home.y, duration: 500 });
+    this.tweens.add({ targets: this.dancer, x: home.x, y: home.y, duration: 500, onComplete: () => (this.privateOn = false) });
     this.busy = false;
   }
 

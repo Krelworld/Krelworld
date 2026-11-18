@@ -63,8 +63,117 @@ const SPOTS: [number, number][] = [
 ];
 const CHEST: [number, number] = [372, 346];
 
-const GARY_LINES = ["Alright Kreb.", "Same again?", "For the RuneScape?", "You're my best customer."];
-const CRAWL_LINES = ["Feel a bit manic… better get some gear in!", "Hands… so… slow…", "Where's Gary. WHERE IS GARY.", "This is not the RuneScape way."];
+/**
+ * Whose woodcutting session this is. The resource orb drains while you chop and makes you fast while it's up; when it
+ * runs dry you crawl until the NPC turns up at the edge of the map and refills it. Kreblis (gear, off Gary) is the
+ * original and the default; the other lads with a RuneScape step in their own story get their own.
+ */
+export interface RsProfile {
+  /** the lad's sprite (falls back to the player's own) */
+  sprite: string;
+  /** their name in the chatbox */
+  chatName: string;
+  /** the resource: orb label, the full-orb colour, the re-up button, the hud counter and the orb's hover */
+  res: { label: string; col: number; button: string; hud: string; hover: [string, string] };
+  /** the NPC who refills it */
+  npc: { name: string; sprite: string; level: string; arrive: string; hello: string; lines: string[] };
+  /** said (and typed) on a refill */
+  refill: string;
+  manicGame: string;
+  outGame: string;
+  plentyGame: string;
+  /** muttered while crawling (the first one when it runs out) */
+  crawl: string[];
+  open: string;
+  full: string;
+  locked: string;
+  bank: string[];
+  winSay: string;
+  winGame: string;
+  /** the first line of the end card (the logs line follows) */
+  winEnd: (reups: number) => string;
+  failEnd: string;
+}
+
+export const RS_KREBLIS: RsProfile = {
+  sprite: "spr_KREBLIS",
+  chatName: "Kreblis",
+  res: { label: "GEAR", col: 0x2fbf3f, button: "Re-up (G)", hud: "RE-UPS", hover: ["Re-up", "Gear"] },
+  npc: { name: "Gary", sprite: "spr_GARY", level: "level-2", arrive: "Gary would like a word.", hello: "Kreblis! Gary would like a word.", lines: ["Alright Kreb.", "Same again?", "For the RuneScape?", "You're my best customer."] },
+  refill: "Hmmmm… gear… 😋",
+  manicGame: "You feel manic. Your chopping speed is greatly increased.",
+  outGame: "You've run out of gear. Your chopping slows to a crawl.",
+  plentyGame: "You've got plenty of gear. (For now.)",
+  crawl: ["Feel a bit manic… better get some gear in!", "Hands… so… slow…", "Where's Gary. WHERE IS GARY.", "This is not the RuneScape way."],
+  open: "Servers playing up again… doesn't matter.",
+  full: "Bank it or drop it, son.",
+  locked: "Not yet. Not YET.",
+  bank: ["Banked.", "Lumbridge thanks you.", "Logs secured."],
+  winSay: "Skillcape. Emote. Now.",
+  winGame: "Woodcutting cape unlocked. Gary is already outside asking about the cape.",
+  winEnd: (n) => `Gear re-ups required: ${n}. Gary has bought a boat.`,
+  failEnd: "Your mum calls you down for dinner. The session is over. Lumbridge weeps.",
+};
+
+/** Gronny: chopping logs to cover the rent Robbo stiffed him on (and to make a carpet Robbo can't ruin), on sausage rolls off Sanjeev. */
+export const RS_GRONNY: RsProfile = {
+  sprite: "spr_GRONNY",
+  chatName: "Gronny",
+  res: { label: "ROLL", col: 0xd8902c, button: "Roll (G)", hud: "ROLLS", hover: ["Eat", "Sausage roll"] },
+  npc: {
+    name: "Sanjeev",
+    sprite: "spr_SANJEEV",
+    level: "level-3",
+    arrive: "Sanjeev would like a word.",
+    hello: "Gronny! Restorative sausage roll, mate?",
+    lines: ["Alright mate. Here you go.", "Still going? Fair play, mate.", "Flaky pastry. The flavour is divine.", "Follow the money, mate. Or the logs."],
+  },
+  refill: "Sausage roll. Me happy.",
+  manicGame: "Pastry flakes everywhere. Your chopping speed is greatly increased.",
+  outGame: "You've run out of sausage rolls. Your chopping slows to a crawl.",
+  plentyGame: "You've got plenty of sausage rolls. (For now.)",
+  crawl: ["Me hungry. Me chop slow.", "No roll. No logs. Fair enough.", "Where Sanjeev. WHERE SANJEEV.", "Robbo took rent. Robbo probably took roll too."],
+  open: "Robbo owe rent. Me chop logs. Me pay rent.",
+  full: "Bag full. Me bank.",
+  locked: "Not yet. Tree too big. Me too small.",
+  bank: ["Logs for rent.", "Log carpet. Good carpet.", "Banked. Fair enough."],
+  winSay: "Skillcape. Me wear it. With shorts.",
+  winGame: "Woodcutting cape unlocked. Sanjeev is outside with a celebratory sausage roll.",
+  winEnd: (n) => `Sausage rolls required: ${n}. Rent: paid. New carpet: wood. Robbo can't ruin wood.`,
+  failEnd: "The landlord is banging on the door about the rent. The session is over. Lumbridge weeps.",
+};
+
+/** Lil' Crongus: chopping to keep his mind off the pudding, which the fairground man keeps whispering him more of. */
+export const RS_CRONGUS: RsProfile = {
+  sprite: "spr_CRONGUS",
+  chatName: "Lil Crongus",
+  res: { label: "PUD", col: 0xf2cf6a, button: "Pud (G)", hud: "PUDS", hover: ["Eat", "Pudding"] },
+  npc: {
+    name: "Fairground Man",
+    sprite: "spr_FOLK2",
+    level: "level-69",
+    arrive: "A fairground man is whispering at you from behind a tree.",
+    hello: "Psst. Minister. Over here. Custard's still warm.",
+    lines: ["You didn't get it from me.", "Same again, Minister?", "There's no coming back, son. Here.", "Eat it behind the tree. People are watching."],
+  },
+  refill: "Oh no. Oh NO. Oh YES. 😋",
+  manicGame: "The ultimate sensation. Your hands won't stop shaking. Your chopping speed is greatly increased.",
+  outGame: "The pudding has worn off. Your chopping slows to a crawl.",
+  plentyGame: "You've still got pudding in you. (For now.)",
+  crawl: ["Don't think about the pudding. Think about the tree.", "I can never come back from this.", "Is that custard? On the bark? Oh God.", "Wholesome logs. Wholesome. For the children."],
+  open: "Chopping keeps my mind off things. Wholesome things.",
+  full: "Bank it. Act normal.",
+  locked: "Not yet. Not YET.",
+  bank: ["Banked. For the children.", "Children's Ministry log fund.", "Nobody saw. Logs secured."],
+  winSay: "Skillcape. Totally wholesome skillcape.",
+  winGame: "Woodcutting cape unlocked. It smells faintly of custard.",
+  winEnd: (n) => `Pudding hits required: ${n}. The fairground man has bought a second fairground.`,
+  failEnd: "Kreblis messages you: 'wuu2'. You log out in a panic. Lumbridge weeps.",
+};
+
+const PROFILES: Record<string, RsProfile> = { KREBLIS: RS_KREBLIS, GRONNY: RS_GRONNY, CRONGUS: RS_CRONGUS };
+/** The profile for this player (Kreblis's for anyone without one of their own). */
+export const rsProfile = (player: string | undefined): RsProfile => PROFILES[player ?? ""] ?? RS_KREBLIS;
 
 /** The real old-school XP table (xp needed for each level), so the numbers on screen look right. */
 const XP_TABLE: number[] = (() => {
@@ -99,6 +208,9 @@ type Goal = { kind: "tree"; tree: Tree } | { kind: "chest" } | { kind: "gary" } 
 
 export function runescape(host: RsHost) {
   const sc = host.scene;
+  const P = rsProfile(G.s?.player);
+  const GARY_LINES = P.npc.lines;
+  const CRAWL_LINES = P.crawl;
   const calm = !!G.meta?.settings?.calmFlash;
   const over = () => host.ended() || won;
   let won = false;
@@ -184,7 +296,7 @@ export function runescape(host: RsHost) {
   };
   const hpOrb = orb(70, 0xb81d1d, "HP");
   hpOrb.num.setText("99");
-  const gearOrb = orb(112, 0x2fbf3f, "GEAR");
+  const gearOrb = orb(112, P.res.col, P.res.label);
   const gearZone = sc.add.zone(PX + 40, 112, 50, 34).setInteractive({ useHandCursor: true }).setDepth(61);
   // tab stones
   const TABS = ["⚔", "📊", "📜", "🎒", "🛡", "🙏", "✨"];
@@ -223,7 +335,7 @@ export function runescape(host: RsHost) {
     return { b, t };
   };
   button(PX + 58, 518, 108, "Drop all (D)", () => dropAll());
-  const reupBtn = button(PX + 178, 518, 108, "Re-up (G)", () => callGary(true));
+  const reupBtn = button(PX + 178, 518, 108, P.res.button, () => callGary(true));
 
   // ---------------------------------------------------------------- chatbox
   const CHAT_N = 6;
@@ -257,7 +369,7 @@ export function runescape(host: RsHost) {
     chatLog.push({ who, text, game: false });
     renderChat();
   };
-  sc.add.text(CX + 8, CY + CH - 44, "Kreblis: *", { fontFamily: PIXEL_FONT, fontSize: "13px", color: "#000000" }).setDepth(60);
+  sc.add.text(CX + 8, CY + CH - 44, `${P.chatName}: *`, { fontFamily: PIXEL_FONT, fontSize: "13px", color: "#000000" }).setDepth(60);
   // chat tabs, with the log-out at the end
   const CHAT_TABS = ["All", "Game", "Public", "Private", "Channel", "Clan", "Trade"];
   CHAT_TABS.forEach((t, i) => {
@@ -353,21 +465,21 @@ export function runescape(host: RsHost) {
     goTo({ kind: "chest" });
   });
 
-  const meKey = sc.textures.exists("spr_KREBLIS") ? "spr_KREBLIS" : playerKey(sc);
+  const meKey = sc.textures.exists(P.sprite) ? P.sprite : playerKey(sc);
   const me = sc.add.sprite(360, 300, meKey, 0).setOrigin(0.5, 0.92).setScale(2.2);
   const meta = charMeta(sc, meKey);
   const axe = sc.textures.exists("rs_axe") ? sc.add.image(0, 0, "rs_axe").setOrigin(0.15, 0.85).setScale(0.9).setVisible(false) : null;
   const shadow = sc.add.ellipse(me.x, me.y, 34, 10, 0x000000, 0.3);
 
-  const garyKey = sc.textures.exists("spr_GARY") ? "spr_GARY" : "spr_FOLK2";
+  const garyKey = sc.textures.exists(P.npc.sprite) ? P.npc.sprite : "spr_FOLK2";
   const gary = sc.add.sprite(VX + VW + 40, 250, garyKey, 0).setOrigin(0.5, 0.92).setScale(2.2).setVisible(false);
   gary.setInteractive({ useHandCursor: true });
-  gary.on("pointerover", () => hover("Talk-to", "Gary", "#ffff00", "level-2"));
+  gary.on("pointerover", () => hover("Talk-to", P.npc.name, "#ffff00", P.npc.level));
   gary.on("pointerout", () => hover("Walk here", ""));
   gary.on("pointerdown", (_p: unknown, _x: number, _y: number, ev: { stopPropagation: () => void }) => {
     ev?.stopPropagation?.();
     if (over() || host.box.active) return;
-    hover("Talk-to", "Gary", "#ffff00", "level-2");
+    hover("Talk-to", P.npc.name, "#ffff00", P.npc.level);
     callGary(true);
   });
   let garyState: "away" | "coming" | "here" | "leaving" = "away";
@@ -458,7 +570,7 @@ export function runescape(host: RsHost) {
     if (t.down) return void game("The tree has already been chopped down.");
     if (t.tier.req > level) {
       game(`You need a Woodcutting level of ${t.tier.req} to chop down this tree.`);
-      return void say(me, "Not yet. Not YET.");
+      return void say(me, P.locked);
     }
     if (invCount() >= 28) return void fullInv();
     clearTutorial();
@@ -589,7 +701,7 @@ export function runescape(host: RsHost) {
     if (clock - fullWarned < 1500) return;
     fullWarned = clock;
     game("Your inventory is too full to hold any more logs.");
-    say(me, "Bank it or drop it, son.");
+    say(me, P.full);
     invFullFlash.setFillStyle(0xff0000, 0.25);
     sc.tweens.add({ targets: invFullFlash, fillAlpha: 0, duration: calm ? 900 : 500 });
     sc.tweens.add({ targets: chest, y: CHEST[1] - 8, yoyo: true, repeat: 3, duration: 180 });
@@ -620,7 +732,7 @@ export function runescape(host: RsHost) {
     inv.fill(null);
     renderInv();
     game(`You deposit ${n} logs into the bank chest.`);
-    say(me, ["Banked.", "Lumbridge thanks you.", "Logs secured."][banked % 3]);
+    say(me, P.bank[banked % P.bank.length]);
   };
 
   // ---------------------------------------------------------------- gear + Gary
@@ -629,7 +741,7 @@ export function runescape(host: RsHost) {
     if (garyState !== "away" || over()) return;
     garyState = "coming";
     gary.setVisible(true).setPosition(VX + VW + 30, GARY_SPOT.y);
-    game("Gary would like a word.");
+    game(P.npc.arrive);
     sc.tweens.add({
       targets: gary,
       x: GARY_SPOT.x,
@@ -638,14 +750,14 @@ export function runescape(host: RsHost) {
       onComplete: () => {
         garyState = "here";
         animateWalker(gary, -1, 0, false, clock);
-        say(gary, "Kreblis! Gary would like a word.", 2600);
+        say(gary, P.npc.hello, 2600);
         if (garyCalled) goTo({ kind: "gary" });
       },
     });
   };
   const callGary = (byPlayer: boolean) => {
     if (clock < busyUntil) return;
-    if (byPlayer && gear >= 85 && garyState === "away") return void game("You've got plenty of gear. (For now.)");
+    if (byPlayer && gear >= 85 && garyState === "away") return void game(P.plentyGame);
     garyCalled = byPlayer || garyCalled;
     if (garyState === "here") goTo({ kind: "gary" });
     else garyAppear();
@@ -657,13 +769,13 @@ export function runescape(host: RsHost) {
     stopChop();
     synth.play("door");
     say(gary, GARY_LINES[(reups - 1) % GARY_LINES.length], 1600);
-    chat("Gary", GARY_LINES[(reups - 1) % GARY_LINES.length]);
+    chat(P.npc.name, GARY_LINES[(reups - 1) % GARY_LINES.length]);
     sc.time.delayedCall(700, () => {
       if (over()) return;
       gear = 100;
-      say(me, "Hmmmm… gear… 😋", 1800);
-      chat("Kreblis", "Hmmmm… gear… 😋");
-      game("You feel manic. Your chopping speed is greatly increased.");
+      say(me, P.refill, 1800);
+      chat(P.chatName, P.refill);
+      game(P.manicGame);
       garyState = "leaving";
       sc.tweens.add({
         targets: gary,
@@ -765,17 +877,17 @@ export function runescape(host: RsHost) {
       let f = 0;
       sc.time.addEvent({ delay: 130, repeat: 30, callback: () => me.setFrame(vic[Math.min(vic.length - 1, f++)]) });
     }
-    sc.time.delayedCall(560, () => say(me, "Skillcape. Emote. Now.", 2600));
+    sc.time.delayedCall(560, () => say(me, P.winSay, 2600));
     game("Congratulations, you've reached the highest possible Woodcutting level of 99.");
-    game(`Woodcutting cape unlocked. Gary is already outside asking about the cape.`);
+    game(P.winGame);
     sc.time.delayedCall(3600, () =>
-      host.finish(true, [dir(`Gear re-ups required: ${reups}. Gary has bought a boat.`), dir(`${logsTotal} logs cut (${banked} banked, ${dropped} dropped). Perfect swings: ${perfects}.`)]),
+      host.finish(true, [dir(P.winEnd(reups)), dir(`${logsTotal} logs cut (${banked} banked, ${dropped} dropped). Perfect swings: ${perfects}.`)]),
     );
   };
   const timeUp = () => {
     stopChop();
     game("Your mum is calling you.");
-    host.finish(false, [dir(`Woodcutting level ${level}. ${fmt(xpAt(L))} XP.`), dir("Your mum calls you down for dinner. The session is over. Lumbridge weeps.")]);
+    host.finish(false, [dir(`Woodcutting level ${level}. ${fmt(xpAt(L))} XP.`), dir(P.failEnd)]);
   };
   const quit = () => {
     if (over() || host.box.active) return;
@@ -802,7 +914,7 @@ export function runescape(host: RsHost) {
   kb?.on("keydown-D", () => !over() && !host.box.active && dropAll());
   kb?.on("keydown-B", () => !over() && !host.box.active && goTo({ kind: "chest" }));
   kb?.on("keydown-ESC", () => quit());
-  gearZone.on("pointerover", () => hover("Re-up", "Gear", "#ffff00", "Gary"));
+  gearZone.on("pointerover", () => hover(P.res.hover[0], P.res.hover[1], "#ffff00", P.npc.name));
   gearZone.on("pointerdown", () => !over() && !host.box.active && callGary(true));
 
   // ---------------------------------------------------------------- the loop
@@ -831,7 +943,7 @@ export function runescape(host: RsHost) {
         else if (g?.kind === "chest") bank();
         else if (g?.kind === "gary") {
           if (garyState === "here") trade();
-          else game("Gary has wandered off. He'll be back.");
+          else game(`${P.npc.name} has wandered off. He'll be back.`);
         }
       } else {
         me.x += (dx / d) * sp;
@@ -877,7 +989,7 @@ export function runescape(host: RsHost) {
           lastCrawlSay = now;
           const l = CRAWL_LINES[crawlLine++ % CRAWL_LINES.length];
           say(me, l, 2400);
-          chat("Kreblis", l);
+          chat(P.chatName, l);
         }
       }
     } else if (!walkTo && !won) {
@@ -894,15 +1006,15 @@ export function runescape(host: RsHost) {
     // gear: drains faster while chopping
     gear = Math.max(0, gear - (chopping ? 4.6 : 2.2) * dt);
     const gf = gear / 100;
-    gearOrb.fill.setScale(0.25 + 0.75 * gf).setFillStyle(gear > 30 ? 0x2fbf3f : gear > 0 ? 0xe0a020 : 0x6b1e14);
+    gearOrb.fill.setScale(0.25 + 0.75 * gf).setFillStyle(gear > 30 ? P.res.col : gear > 0 ? 0xe0a020 : 0x6b1e14);
     gearOrb.num.setText(String(Math.ceil(gear))).setColor(gear > 30 ? "#00ff00" : gear > 0 ? "#ffff00" : "#ff2020");
     reupBtn.t.setColor(gear < 35 ? "#ffff00" : "#ff981f");
     if (gear < 35 && garyState === "away") garyAppear();
     if (gear <= 0 && !gearWarned) {
       gearWarned = true;
       say(me, CRAWL_LINES[0], 2600);
-      chat("Kreblis", CRAWL_LINES[0]);
-      game("You've run out of gear. Your chopping slows to a crawl.");
+      chat(P.chatName, CRAWL_LINES[0]);
+      game(P.outGame);
       if (ring) killRing();
       crawlLine = 1;
       lastCrawlSay = now;
@@ -932,7 +1044,7 @@ export function runescape(host: RsHost) {
     const next = TIERS.find((t) => t.req > level);
     unlockTxt.setText(next ? `${next.name}: level ${next.req}` : "Everything unlocked");
     const left = Math.max(0, SESSION_S - elapsed);
-    host.hud.setText(`TIME ${Math.ceil(left)}s    RE-UPS ${reups}`);
+    host.hud.setText(`TIME ${Math.ceil(left)}s    ${P.res.hud} ${reups}`);
 
     if (level >= 99) return win();
     if (left <= 0) timeUp();
@@ -958,6 +1070,6 @@ export function runescape(host: RsHost) {
 
   game("Welcome to RuneScape.");
   game("Click a tree to chop it. Tap the ring as it closes for bonus XP.");
-  sc.time.delayedCall(600, () => !over() && say(me, "Servers playing up again… doesn't matter.", 2600));
+  sc.time.delayedCall(600, () => !over() && say(me, P.open, 2600));
   renderInv();
 }

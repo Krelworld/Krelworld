@@ -372,6 +372,22 @@ export const ARCS: Arc[] = [
         },
       },
       {
+        id: "runescape",
+        text: "Robbo stiffed you on the rent. Get 99 Woodcutting at home and chop your way to it (and a new carpet).",
+        at: "HOME",
+        step: {
+          kind: "minigame",
+          mode: "runescape",
+          intro: [
+            say("GRONNY", "Robbo no pay rent. Me pay rent. Me chop logs."),
+            say("GRONNY", "Logs make money. Logs make carpet. Wood carpet. Robbo can't ruin wood."),
+            dir("Sanjeev has texted: 'Got restorative sausage rolls if you need them mate. Look into it.'"),
+          ],
+          success: [say("GRONNY", "Ninety-nine. Rent paid. Carpet made."), say("GRONNY", "Me most powerful lumberjack. Now me find Robbo.")],
+          fail: [say("GRONNY", "Ran out of sausage roll. Fair enough."), say("GRONNY", "…no. Not fair enough. Again.")],
+        },
+      },
+      {
         id: "kev",
         text: "Return to the Old Flat and confront Robbo.",
         at: "OLD_FLAT",
@@ -425,6 +441,23 @@ export const ARCS: Arc[] = [
           ],
           success: [say("KREBLIS", "Right"), say("KREBLIS", "Right right. Filed under nothing 👍"), dir("He believes you. For now. You are, from this day, a man with a secret. Every time someone says 'pudding' in the group chat, your soul leaves your body slightly.")],
           fail: [say("KREBLIS", "I'm filing this… under STRANGE"), say("KREBLIS", "*STRANGE 😋"), dir("He doesn't know. Not yet. Try again: compose yourself.")],
+        },
+      },
+      {
+        id: "runescape",
+        text: "Keep your mind off the pudding. Do something wholesome: 99 Woodcutting at home.",
+        at: "HOME",
+        step: {
+          kind: "minigame",
+          mode: "runescape",
+          intro: [
+            say("CRONGUS", "Right. New rule. Every time I think about the pudding, I chop a tree."),
+            say("CRONGUS", "Wholesome. Outdoorsy. Very Children's Minister. Nobody can say anything about woodcutting."),
+            dir("Your phone buzzes. Unknown number: 'psst. custard's warm. same tree as last time.'"),
+            say("CRONGUS", "…I didn't read that."),
+          ],
+          success: [say("CRONGUS", "Ninety-nine. A wholesome achievement. For the children."), say("CRONGUS", "I didn't think about the pudding once. I thought about it the whole time.")],
+          fail: [say("CRONGUS", "I can never come back from this."), say("CRONGUS", "One more go. Then no more pudding. Couldn't agree more.")],
         },
       },
       {

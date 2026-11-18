@@ -96,14 +96,14 @@ const CH2: TrailDef = {
       ],
     },
     {
-      name: "receipt on your pillow",
+      name: "receipt by your front door",
       where: "HOME",
-      x: 660,
-      y: 480,
-      hint: "your house (he's had a nap in your bed)",
+      x: 705,
+      y: 528,
+      hint: "your house (he's had a nap on your floor)",
       lines: [
-        dir("By your bed, still warm: a receipt and a head-shaped dent. 'GARLIC BREAD x2. DIPS x6. NOTE: had a little nap at yours. Your bed is better than mine. Mine has Eden in it'"),
-        dir("Your sheets smell of garlic and anxiety. You'll be washing those. You won't be washing those."),
+        dir("On the floor by your front door, still warm: a receipt and a Polson-shaped dent in the carpet. 'GARLIC BREAD x2. DIPS x6. NOTE: had a little nap at yours. Your floor is better than my bed. My bed has Eden in it'"),
+        dir("The carpet smells of garlic and anxiety. You'll be hoovering that. You won't be hoovering that."),
       ],
     },
     {
@@ -118,13 +118,13 @@ const CH2: TrailDef = {
       ],
     },
     {
-      name: "receipt on the pole",
+      name: "receipt down the red sofa",
       where: "CLUB",
-      x: 660,
-      y: 455,
+      x: 250,
+      y: 400,
       hint: "the Wonky Pole (through the back of the Krezz Arms)",
       lines: [
-        dir("Tucked into a front-row seat, at Polson height: a receipt and half a protein bar. 'PROTEIN BAR (CHOC FUDGE). NOTE: only here for the protein bars they sell at the bar. Absolutely not for any other reason. Gym soon!!'"),
+        dir("Down the side of the red sofa, at Polson height: a receipt and half a protein bar. 'PROTEIN BAR (CHOC FUDGE). NOTE: only here for the protein bars they sell at the bar. Absolutely not for any other reason. Gym soon!!'"),
         dir("Big Derek says he tipped in Papa Gino's vouchers, said 'sorry' to the pole, and left during the second song."),
       ],
     },

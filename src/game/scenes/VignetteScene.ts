@@ -4958,9 +4958,11 @@ export class VignetteScene extends Phaser.Scene {
     this.cameras.main.zoomTo(1.12, 9000, "Sine.easeInOut", true);
     // the trail
     const trail = this.add.graphics().setDepth(290);
+    // (gore off: a sooty scorch trail, not blood)
+    const goreOn = G.meta.settings.gore !== false;
     const smear = () => {
-      trail.fillStyle(0x7f1d1d, 0.85).fillRect(-80, 344, kl.x + 10, 8);
-      trail.fillStyle(0xb91c1c, 0.7).fillRect(-80, 346, kl.x + 6, 3);
+      trail.fillStyle(goreOn ? 0x7f1d1d : 0x27272a, 0.85).fillRect(-80, 344, kl.x + 10, 8);
+      trail.fillStyle(goreOn ? 0xb91c1c : 0x52525b, 0.7).fillRect(-80, 346, kl.x + 6, 3);
     };
     synth.play("roar");
     crawling(true);

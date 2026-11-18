@@ -832,7 +832,8 @@ export class HubScene extends Phaser.Scene {
     const b = BUILDINGS.find((x) => x.id === at);
     if (b?.door) return { x: b.door.x, y: b.door.y + 40 };
     const gt = GATES.find((g) => g.id === at);
-    if (gt) return { x: gt.x - 60, y: gt.y };
+    // (step off on the town side: the Kreddle Bridge is on the west edge, the airport gate on the east)
+    if (gt) return { x: gt.x < WORLD_W / 2 ? gt.x + 60 : gt.x - 60, y: gt.y };
     return { x: 1280, y: 900 };
   }
 
@@ -2593,6 +2594,9 @@ You are required by law to sign the Sex Offenders Register.`, {
         return "Knock on the dark house";
       case "AIRPORT":
         return "Krelford International";
+      case "KREDDLE_BRIDGE":
+        // after the nuke there are no casinos or arcades over there
+        return afterKreddle(s) ? "The Kreddle Bridge (what's left)" : b.name;
       case "CITADEL":
         return `DA DRONGUS DUNGEON (sealed: ${crystalCount(s)}/${CRYSTALS_NEEDED} cum crystals)`;
       case "POLSON_ROAD":

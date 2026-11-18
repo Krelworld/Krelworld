@@ -17,7 +17,7 @@ export const RAID_ARRIVE: Line[] = [
   // (Chapter 3: the last time they crossed this bridge, Kreddle fired them home out of a tank: content/takeon.ts)
   say("CRONGUS", "Last time we came over this bridge they fired us home out of a tank."),
   say("MIKEY", "This time WE'RE the tank."),
-  dir("HOLD the attack button (mouse / Space / the fire button) to spray CHEMICAL FIRE. Walk EAST along the Strip. Burn the barricades to get through."),
+  dir("HOLD the attack button (mouse / J / the fire button) to spray CHEMICAL FIRE. Walk EAST along the Strip. Burn the barricades to get through."),
 ];
 
 /** The lads shouting as they march (each line is shouted by its speaker, in a speech bubble). */

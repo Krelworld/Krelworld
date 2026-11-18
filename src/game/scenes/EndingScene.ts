@@ -55,15 +55,27 @@ export class EndingScene extends Phaser.Scene {
         ["LAUGH", "😂 LAUGH"],
         ["SEEN", "NO REACTION"],
       ];
+      let picked = false;
+      const pick = (r: ReactionChoice) => {
+        if (picked) return;
+        picked = true;
+        this.input.keyboard?.off("keydown", onKey);
+        synth.play("pop");
+        c.destroy();
+        res(r);
+      };
+      // (keyboard too: 1-4, so it isn't a mouse-only dead end)
+      const onKey = (e: KeyboardEvent) => {
+        const i = ["Digit1", "Digit2", "Digit3", "Digit4"].indexOf(e.code) + 1 || ["Numpad1", "Numpad2", "Numpad3", "Numpad4"].indexOf(e.code) + 1;
+        if (i > 0) pick(opts[i - 1][0]);
+      };
+      this.input.keyboard?.on("keydown", onKey);
       opts.forEach(([r, label], i) => {
-        const b = button(this, -225 + i * 150, 70, label, () => {
-          synth.play("pop");
-          c.destroy();
-          res(r);
-        }, { w: 138, h: 56, size: 15, color: 0xf0f2f5, textColor: "#050505" });
+        const b = button(this, -225 + i * 150, 70, label, () => pick(r), { w: 138, h: 56, size: 15, color: 0xf0f2f5, textColor: "#050505" });
         c.add(b);
       });
       c.add(this.add.text(0, 125, "This is the only thing he ever wanted.", { fontFamily: FONT, fontSize: "12px", color: "#65676b", fontStyle: "italic" }).setOrigin(0.5));
+      c.add(this.add.text(0, 141, "(click, or press 1 · 2 · 3 · 4)", { fontFamily: FONT, fontSize: "10px", color: "#8a8d91" }).setOrigin(0.5));
       c.setScale(0.2);
       this.tweens.add({ targets: c, scale: 1, duration: 500, ease: "Back.out" });
     });
@@ -165,11 +177,21 @@ export class EndingScene extends Phaser.Scene {
     c.setScale(0.2);
     this.tweens.add({ targets: c, scale: 1, duration: 400, ease: "Back.out" });
     await new Promise<void>((res) => {
-      c.add(button(this, -130, 90, "🗑 DELETE CHAT", () => res(), { w: 220, h: 54, size: 16, color: 0xe41e3f }));
-      c.add(button(this, 130, 90, "Keep one message", () => {
+      const keep = () => {
         synth.play("tap_fail");
         warn.setText("No. All of it. You know what's in there.");
-      }, { w: 220, h: 54, size: 14, color: 0xf0f2f5, textColor: "#050505" }));
+      };
+      // (keyboard too: 1 / Enter deletes, 2 keeps one)
+      const onKey = (e: KeyboardEvent) => {
+        if (e.code === "Digit1" || e.code === "Numpad1" || e.code === "Enter" || e.code === "NumpadEnter") {
+          this.input.keyboard?.off("keydown", onKey);
+          res();
+        } else if (e.code === "Digit2" || e.code === "Numpad2") keep();
+      };
+      this.input.keyboard?.on("keydown", onKey);
+      c.add(button(this, -130, 90, "🗑 DELETE CHAT", () => (this.input.keyboard?.off("keydown", onKey), res()), { w: 220, h: 54, size: 16, color: 0xe41e3f }));
+      c.add(button(this, 130, 90, "Keep one message", keep, { w: 220, h: 54, size: 14, color: 0xf0f2f5, textColor: "#050505" }));
+      c.add(this.add.text(0, 140, "(click, or press 1 / 2)", { fontFamily: FONT, fontSize: "10px", color: "#8a8d91" }).setOrigin(0.5));
     });
     c.removeAll(true);
     c.add(this.add.rectangle(0, 0, 640, 320, 0xffffff).setStrokeStyle(4, 0xe41e3f));

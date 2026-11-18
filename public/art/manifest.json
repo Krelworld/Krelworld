@@ -9604,6 +9604,21 @@
   },
   "ce_rik_back": {
    "file": "colonentry/ce_rik_back.png"
+  },
+  "kd_esc_tank": {
+   "file": "props/kd_esc_tank.png"
+  },
+  "kd_esc_turret": {
+   "file": "props/kd_esc_turret.png"
+  },
+  "kd_esc_car": {
+   "file": "props/kd_esc_car.png"
+  },
+  "kd_esc_heli": {
+   "file": "props/kd_esc_heli.png"
+  },
+  "kd_esc_cop": {
+   "file": "props/kd_esc_cop.png"
   }
  },
  "sheets": {

@@ -226,3 +226,51 @@ export const ESCAPE_SHOUTS: Line[] = [
   say("KREBLIS", "Breaking news… we are legging it 👍"),
   say("KREZMAR", "Last one to the Town Hall is a Kreddler!"),
 ];
+
+/** The escape gauntlet: Kreddle's security forces waiting on the Strip. Wave callouts (big text) and their tannoy line. */
+export const ESCAPE_WAVES: { title: string; tannoy: string }[] = [
+  { title: "⚠ KPD ROADBLOCK ⚠", tannoy: "KREDDLE POLICE: Stop right there! You are under arrest for arson, treason and not gambling!" },
+  { title: "⚠ KPD AIR SUPPORT ⚠", tannoy: "KREDDLE POLICE: Air unit inbound. Surrender and you may keep one (1) loyalty card." },
+  { title: "⚠ ARMOUR ON THE STRIP ⚠", tannoy: "KREDDLE ARMY: Tanks deployed. Tanks paid for by your losses. Thank you for playing." },
+  { title: "⚠ KLERBLE SQUARE: AIR STRIKE ⚠", tannoy: "KREDDLE POLICE: All units, all units. Shoot the green one. Shoot ALL the green ones." },
+  { title: "⚠ THE KROZLEN BLOCKADE ⚠", tannoy: "KREDDLE ARMY: Blockade established. Nobody leaves Kreddle. House rules." },
+  { title: "⚠ FULL MOBILISATION ⚠", tannoy: "PRESIDENT KLERBLE (recorded): Whoever stops them gets a free spin. A FREE SPIN." },
+  { title: "⚠ THE LAST ROADBLOCK: THE BRIDGE ⚠", tannoy: "KREDDLE POLICE: The bridge is closed. The bridge is CLOSED. Oh no. Oh no no no." },
+];
+
+/** A vehicle merked: the lads cheer it. */
+export const ESCAPE_WRECK_SHOUTS: Line[] = [
+  say("SCROMBUS", "Absolutely MERKED!"),
+  say("GRONNY", "Waa waa wee waa! Get in!"),
+  say("KREBON", "That one turned its own power off."),
+  say("FLENKY", "Flip it! FLIP IT! …It flipped!"),
+  say("CRONGUS", "BOOM! Lil' Crongus says BOOM!"),
+  say("MIKEY", "Next! NEXT!"),
+  say("KREZWONK", "I foresaw that. It was beautiful."),
+  say("KREBLIS", "Breaking news… that's scrap now 👍"),
+  say("KREZMAR", "Add it to the bill, Klerble!"),
+];
+
+/** A tank's turret goes. */
+export const ESCAPE_TANK_SHOUTS: Line[] = [
+  say("SCROMBUS", "Its HAT came off!"),
+  say("GRONNY", "TURRET'S IN ORBIT!"),
+  say("KREZMAR", "Somebody catch that turret!"),
+  say("CRONGUS", "I want the turret. Can I keep the turret?"),
+];
+
+/** A chopper goes down. */
+export const ESCAPE_HELI_SHOUTS: Line[] = [
+  say("FLENKY", "CHOPPER DOWN! CHOPPER DOWN!"),
+  say("KREBLIS", "Breaking news… the traffic helicopter is now traffic 👍"),
+  say("MIKEY", "It's spinning! Look at it SPIN!"),
+  say("KREBON", "Gravity: still on. Good."),
+];
+
+/** You're knocked down: the lads drag you up. */
+export const ESCAPE_DOWNED: Line[] = [
+  say("SCROMBUS", "Up! UP! We're not leaving you in Kreddle!"),
+  say("GRONNY", "Get up get up get up!"),
+  say("KREZWONK", "Not here. Not like this. Up you get."),
+  say("KREZMAR", "Oi! No napping on the Strip!"),
+];

@@ -1,3 +1,4 @@
+import { installMouseLock } from "./game/systems/mouseLock";
 import { TutorialScene } from "./game/scenes/TutorialScene";
 import { PolsonHomeScene } from "./game/scenes/PolsonHomeScene";
 import Phaser from "phaser";
@@ -101,6 +102,7 @@ const game = new Phaser.Game({
     PolsonHomeScene,
   ],
 });
+installMouseLock(game);
 
 installDebug(game);
 installSaveWhere(game);

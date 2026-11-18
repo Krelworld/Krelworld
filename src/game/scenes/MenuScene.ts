@@ -373,6 +373,7 @@ export class MenuScene extends Phaser.Scene {
           toggle("Character voices", () => set.voices !== false, () => (set.voices = set.voices === false));
           row("Voice volume", () => pct(set.voiceVolume ?? 0.8), () => (set.voiceVolume = clamp((set.voiceVolume ?? 0.8) - 0.1)), () => (set.voiceVolume = clamp((set.voiceVolume ?? 0.8) + 0.1)));
           row("Voice speed", () => `${(set.voiceSpeed ?? 1.5).toFixed(2).replace(/0$/, "")}x`, () => (set.voiceSpeed = Math.max(0.8, Math.round(((set.voiceSpeed ?? 1.5) - 0.05) * 20) / 20)), () => (set.voiceSpeed = Math.min(2, Math.round(((set.voiceSpeed ?? 1.5) + 0.05) * 20) / 20)));
+          toggle("Lock mouse to game window", () => set.mouseLock !== false, () => (set.mouseLock = set.mouseLock === false));
         } else {
           row("Text speed", () => `${set.textSpeed.toFixed(1)}x`, () => (set.textSpeed = Math.max(0.5, set.textSpeed - 0.5)), () => (set.textSpeed = Math.min(4, set.textSpeed + 0.5)));
           toggle("Auto-advance dialogue", () => !!set.autoAdvance, () => (set.autoAdvance = !set.autoAdvance));

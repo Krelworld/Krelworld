@@ -408,11 +408,15 @@ export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
   };
 
   /** A Kruncher's little sprite, big, side-on (their own sheet: the lads' doubles), or null if it's not loaded. */
-  const kSprite = (i: number, x: number, y: number, scale: number) => {
+  /** (sized by frame height on screen: the HD sheets carry their own scale factor) */
+  const kSprite = (i: number, x: number, y: number, h: number) => {
     const k = KRUNCHERS[i % KRUNCHERS.length];
     const key = `spr_${k.of}`;
     if (!sc.textures.exists(key)) return null;
-    return sc.add.sprite(x, y, key, sc.textures.get(key).frameTotal > 5 ? 4 : 0).setOrigin(0.5, 1).setScale(scale);
+    const s = sc.add.sprite(x, y, key, sc.textures.get(key).frameTotal > 5 ? 4 : 0).setOrigin(0.5, 0.92).setScale(1);
+    const k0 = h / Math.max(1, s.displayHeight);
+    s.setScale(k0).setData("k0", k0);
+    return s;
   };
   const charTo = gore ? 0x2a1610 : 0x303030;
   const lerpTint = (img: Phaser.GameObjects.Sprite, k: number, from = 0xff8a3a) => {
@@ -424,17 +428,20 @@ export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
   const stagger = (ms: number) => {
     stage.add(sc.add.rectangle(480, 270, 1100, 700, 0x1a0602, 1));
     stage.add(sc.add.rectangle(480, 420, 1100, 140, 0x0a0302, 1));
-    fireLine(10, 330, 3.4);
+    for (let i = 0; i < 10; i++) {
+      const w = vfx(sc, "vfx_fire", 40 + i * 98 + (Math.random() - 0.5) * 40, 300, { scale: 3.2 + Math.random(), tint: GREEN, add: true, alpha: 0.7, delay: i * 40 });
+      if (w) stage.add(w);
+    }
     const n = KRUNCHERS.length;
     const fall0 = ms * 0.45;
     const gap = (ms * 0.42) / n;
     for (let i = 0; i < n; i++) {
       const x = 70 + i * (820 / (n - 1));
-      const s = kSprite(i, x, 430, 3);
+      const s = kSprite(i, x, 440, 230);
       if (!s) continue;
       s.setFlipX(i % 2 === 1);
       stage.add(s);
-      const f = vfx(sc, "vfx_fire", x, 400, { scale: 1.6, tint: i % 2 ? GREEN : 0xffb347, add: true });
+      const f = vfx(sc, "vfx_fire", x, 330, { scale: 1.1, tint: i % 2 ? GREEN : 0xffb347, add: true, alpha: 0.85 });
       if (f) fx.add(f);
       const t0 = performance.now();
       const stop = every(40, () => {
@@ -444,7 +451,7 @@ export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
         if (s.getData("down")) return;
         s.setAngle(Math.sin(performance.now() / (60 + i * 7) + i) * (8 + k * 14));
         s.x = x + Math.sin(performance.now() / 140 + i * 2) * 10;
-        if (f) f.setPosition(s.x, 380);
+        if (f) f.setPosition(s.x, 330);
       });
       // down they go, left to right, like dominoes
       window.setTimeout(() => {
@@ -452,12 +459,12 @@ export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
         s.setData("down", true);
         synth.play(i % 2 ? "punch" : "smash");
         if (i % 3 === 0) scream((i % 9) + 1, 0.5, 0.8 + Math.random() * 0.1);
-        sc.tweens.add({ targets: s, angle: 90, y: 446, duration: 260, ease: "Quad.in", onComplete: () => {
+        sc.tweens.add({ targets: s, angle: i % 2 ? -90 : 90, y: 470, duration: 260, ease: "Quad.in", onComplete: () => {
           if (skipped || !s.active) return;
           Juice.shake(sc, 120, 0.008);
           const d = vfx(sc, "vfx_dust", s.x + 40, 440, { scale: 1.6, tint: 0x5a4a40 });
           if (d) fx.add(d);
-          if (f) f.setPosition(s.x + 50, 420);
+          if (f) f.setPosition(s.x + (i % 2 ? -60 : 60), 450);
           for (let j = 0; j < 5; j++) {
             const r = sc.add.rectangle(s.x + 40, 430, 3, 3, j % 2 ? 0x44403c : 0xff8a3a, 1);
             fx.add(r);
@@ -475,11 +482,12 @@ export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
   const lastStanding = (ms: number) => {
     stage.add(sc.add.rectangle(480, 270, 1100, 700, 0x050208, 1));
     stage.add(sc.add.ellipse(480, 470, 700, 120, GREEN, 0.25).setBlendMode(Phaser.BlendModes.ADD));
-    const s = kSprite(KRUNCHERS.length - 1, 480, 500, 6.2);
+    const s = kSprite(KRUNCHERS.length - 1, 480, 520, 470);
     if (!s) return;
     s.setFrame(0);
     stage.add(s);
-    sc.tweens.add({ targets: s, scale: 6.8, duration: ms, ease: "Sine.out" });
+    const k0 = s.getData("k0") as number;
+    sc.tweens.add({ targets: s, scale: { from: k0, to: k0 * 1.08 }, duration: ms, ease: "Sine.out" });
     const t0 = performance.now();
     const burnMs = ms * 0.6;
     // fire climbing him from the feet up
@@ -499,7 +507,7 @@ export function krunchBurn(sc: Phaser.Scene, depth: number): Promise<void> {
       stopFire();
       synth.play("pfft_1");
       const b = s.getBounds();
-      const cell = 10;
+      const cell = 14;
       let made = 0;
       for (let yy = b.top; yy < b.bottom && made < 160; yy += cell)
         for (let xx = b.left + b.width * 0.2; xx < b.right - b.width * 0.2 && made < 160; xx += cell) {

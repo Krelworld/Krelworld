@@ -1509,7 +1509,7 @@ export class KreddleRaid {
       vfx(sc, "vfx_blastsmoke", x, y + 10, { scale: scale * 0.8, depth: y + 40, alpha: 0.8 });
       const near = Math.abs(x - this.me.x) < 700;
       if (near) {
-        sc.cameras.main.shake(260, 0.006 + scale * 0.004);
+        Juice.shake(sc, 260, 0.006 + scale * 0.004);
         if (sc.time.now > this.nextBoomSfx) {
           this.nextBoomSfx = sc.time.now + 140;
           synth.play(Math.random() < 0.5 ? "explode_1" : "explode_2");
@@ -2162,8 +2162,11 @@ export class KreddleRaid {
     }
     if (time > this.nextLightning) {
       this.nextLightning = time + 12000 + Math.random() * 14000;
-      sc.cameras.main.flash(120, 200, 210, 255);
-      sc.time.delayedCall(200, () => sc.cameras.main.flash(80, 160, 170, 255));
+      // (not over a cutscene, and no double strobe under Reduce flashing)
+      if (!this.busy && !Juice.calm()) {
+        sc.cameras.main.flash(120, 200, 210, 255);
+        sc.time.delayedCall(200, () => sc.cameras.main.flash(80, 160, 170, 255));
+      } else if (!this.busy) Juice.flash(sc, 0xc8d2ff, 400, 0.3, D_NIGHT + 1);
       synth.play(Math.random() < 0.5 ? "thunder_1" : "thunder_2");
     }
     if (time > this.nextTannoy && !this.busy && this.phase !== "escape") {
@@ -2183,7 +2186,8 @@ export class KreddleRaid {
         break;
       }
       // during the escape, the whole Strip is going up
-      if (this.phase === "escape" && Math.random() < 0.35) this.explode(cx + (Math.random() - 0.3) * 700, TOP + Math.random() * 230, 0.8 + Math.random() * 0.8);
+      // (the street itself is the gauntlet now: the background goes up along the shopfronts, out of your way)
+      if (this.phase === "escape" && Math.random() < 0.18) this.explode(cx + (Math.random() - 0.3) * 700, TOP + Math.random() * 40, 0.7 + Math.random() * 0.6);
     }
   }
 

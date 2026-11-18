@@ -101,7 +101,7 @@ interface Shot {
 const TOP = 432;
 const BOTTOM = 680;
 const MAX_FOES = 9;
-const MAX_COPS = 12;
+const MAX_COPS = 8;
 const MAX_SHOTS = 40;
 const MAX_WRECKS = 10;
 const SCALE = { car: 1.45, tank: 1.5, heli: 1.5 } as const;
@@ -274,7 +274,7 @@ export class EscapeGauntlet {
       synth.play("drone");
     } else {
       synth.play("thud");
-      Juice.shake(sc, 300, 0.004);
+      this.shake(300, 0.004);
     }
     this.foes.push(f);
   }
@@ -433,7 +433,7 @@ export class EscapeGauntlet {
     vfx(sc, "vfx_muzzle", mx, my, { scale: 2, depth: this.h.dLight + 6 });
     vfx(sc, "vfx_blastsmoke", mx, my, { scale: 0.6, depth: this.h.dLight + 5, alpha: 0.7 });
     synth.play("boom");
-    Juice.shake(sc, 200, 0.005);
+    this.shake(200, 0.005);
     this.fire("shell", mx, my, tx, ty, dur, 22, 78);
   }
 
@@ -480,7 +480,7 @@ export class EscapeGauntlet {
         for (const m of f.marker) (m as Phaser.GameObjects.Arc).setPosition(me.x, me.y - 30);
       }
       if (time > f.teleUntil) {
-        f.marker?.forEach((m) => m.destroy());
+        f.marker?.forEach((m) => this.kill(m));
         f.marker = undefined;
         f.state = "idle";
         f.next = time + (2800 + Math.random() * 1800) / this.d.aggression;
@@ -553,7 +553,7 @@ export class EscapeGauntlet {
       } else {
         s.setAngle(0);
         if (!busy && time > c.next && Math.abs(me.x - s.x) < 720) {
-          c.next = time + (1700 + Math.random() * 1300) / this.d.aggression;
+          c.next = time + (2100 + Math.random() * 1500) / this.d.aggression;
           // a glint (the warning), then the shot
           const dir = me.x < s.x ? -1 : 1;
           const gx = s.x + dir * 34;
@@ -565,7 +565,7 @@ export class EscapeGauntlet {
             synth.play("gun_pistol");
             vfx(sc, "vfx_muzzle", gx, gy, { scale: 0.8, depth: this.h.dLight + 6, angle: dir < 0 ? 180 : 0 });
             const m = this.h.me();
-            this.fire("bullet", gx, gy, m.x + (Math.random() - 0.5) * 30, m.y - 30 + (Math.random() - 0.5) * 20, 0, 6, 22);
+            this.fire("bullet", gx, gy, m.x + (Math.random() - 0.5) * 30, m.y - 30 + (Math.random() - 0.5) * 20, 0, 5, 22);
           } });
         }
       }
@@ -581,7 +581,7 @@ export class EscapeGauntlet {
     if (this.shots.length >= MAX_SHOTS) {
       const old = this.shots.shift();
       old?.obj.destroy();
-      old?.marker?.forEach((m) => m.destroy());
+      old?.marker?.forEach((m) => this.kill(m));
     }
     const key = kind === "bullet" ? "esc_bullet" : kind === "shell" ? "esc_shell" : "esc_missile";
     const obj = sc.add.image(x0, y0, key).setDepth(this.h.dLight + 7).setScale(kind === "bullet" ? 1.6 : 1.5);
@@ -642,7 +642,7 @@ export class EscapeGauntlet {
       }
       if (land) {
         o.destroy();
-        s.marker?.forEach((m) => m.destroy());
+        s.marker?.forEach((m) => this.kill(m));
         this.shots.splice(i, 1);
         this.h.explode(o.x, o.y, s.kind === "shell" ? 1.2 : 1, 0, true);
         if (Math.abs(me.x - o.x) < s.r && Math.abs(me.y - o.y) < s.r * 0.7) this.hurt(s.dmg, (me.x < o.x ? -1 : 1) * 120, s.kind === "shell" ? "SHELLED!" : "HIT!");
@@ -670,7 +670,7 @@ export class EscapeGauntlet {
     sc.tweens.killTweensOf(this.hurtEdge);
     this.hurtEdge.setAlpha(Juice.calm() ? 0.35 : Math.min(0.9, 0.4 + dmg / 30));
     sc.tweens.add({ targets: this.hurtEdge, alpha: 0, duration: Juice.calm() ? 700 : 380 });
-    Juice.shake(sc, 160, 0.006 + dmg / 3000);
+    this.shake(160, 0.006 + dmg / 3000);
     if (why) this.pop(me.x, me.y - 110, why, "#ff4d4d");
     if (this.grit <= 0) {
       // knocked down: the lads drag you back up
@@ -784,7 +784,7 @@ export class EscapeGauntlet {
   private destroyFoe(f: Foe) {
     const sc = this.sc;
     f.state = "dead";
-    f.marker?.forEach((m) => m.destroy());
+    f.marker?.forEach((m) => this.kill(m));
     f.marker = undefined;
     f.bar.destroy();
     f.barBg.destroy();
@@ -806,7 +806,7 @@ export class EscapeGauntlet {
       this.blast(b.x, y0, 150, 1.4, true);
       sc.tweens.add({ targets: b, y: y0 - 150 - Math.random() * 60, angle: b.angle + spin * 0.6, duration: 420, ease: "Quad.out", onComplete: () => sc.tweens.add({ targets: b, y: y0, angle: 180, duration: 360, ease: "Quad.in", onComplete: () => {
         synth.play("smash");
-        Juice.shake(sc, 200, 0.01);
+        this.shake(200, 0.01);
         this.h.explode(b.x + 20, y0 - 10, 0.9, 0, false);
         vfx(sc, "vfx_dust", b.x, y0, { scale: 1.6, depth: y0 + 1 });
         this.wreck(f, 1.6);
@@ -820,7 +820,7 @@ export class EscapeGauntlet {
       Juice.shockRing(sc, b.x, y0 - 10, { color: 0xffb347, to: 420, rings: 3, depth: this.h.dLight + 20, flat: 0.5 });
       Juice.flash(sc, 0xffb347, 200, 0.3, this.h.dHud - 1, true);
       Juice.subDrop(0.8, 1.2);
-      Juice.shake(sc, 420, 0.016);
+      this.shake(420, 0.016);
       synth.play("boom");
       this.blast(b.x, y0, 220, 2.5, true);
       if (f.turret) {
@@ -880,7 +880,7 @@ export class EscapeGauntlet {
           vfx(sc, "vfx_bigboom", b.x, groundY - 50, { scale: 3, depth: this.h.dLight + 30, tint: 0xff8a3a });
           Juice.shockRing(sc, b.x, groundY, { color: 0xff8a3a, to: 460, rings: 2, depth: this.h.dLight + 20, flat: 0.45 });
           Juice.subDrop(0.9, 1.4);
-          Juice.shake(sc, 500, 0.018);
+          this.shake(500, 0.018);
           this.blast(b.x, groundY, 200, 2.2, true);
           this.wreck(f, 2.2);
         }
@@ -906,7 +906,7 @@ export class EscapeGauntlet {
   }
 
   private remove(f: Foe) {
-    f.marker?.forEach((m) => m.destroy());
+    f.marker?.forEach((m) => this.kill(m));
     f.bar.destroy();
     f.barBg.destroy();
     f.siren?.destroy();
@@ -1097,6 +1097,17 @@ export class EscapeGauntlet {
   private pop(x: number, y: number, text: string, color: string) {
     const t = this.sc.add.text(x, y, text, { fontFamily: "Impact, sans-serif", fontSize: "20px", color, stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(this.h.dLight + 40);
     this.sc.tweens.add({ targets: t, y: y - 50, alpha: 0, duration: 1100, ease: "Quad.out", onComplete: () => t.destroy() });
+  }
+
+  /** Screen shake: respects the shake setting, and is gentler under Reduce flashing. */
+  private shake(ms: number, k: number) {
+    Juice.shake(this.sc, ms, Juice.calm() ? k * 0.4 : k);
+  }
+
+  /** Destroy a marker (and stop anything tweening it first). */
+  private kill(o: Phaser.GameObjects.GameObject) {
+    this.sc.tweens.killTweensOf(o);
+    o.destroy();
   }
 
   /** For tests and the debug hooks: how it's going. */

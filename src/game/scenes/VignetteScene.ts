@@ -66,6 +66,17 @@ function everyoneSil(sc: Phaser.Scene, sps: Phaser.GameObjects.Sprite[]) {
   }, 170);
 }
 
+/**
+ * Kreddle's skyline in the bridge view (bg_c6e_bridge_view, 480x272 drawn at 2x): the cut-out (c6e_kreddle_cut) starts at
+ * source px (x0, y0); hz is the waterline row. On screen a source row r sits at k*r - 2; `left` and `shore` are where
+ * the city starts and the waterline, in screen px.
+ */
+const KD_SKY = { x0: 246, y0: 80, hz: 140, k: 2, left: 492, shore: 278 };
+/** The buildings in the cut-out, left to right: [first column, last column + 1, top row] (source px; the palace's dome is one). */
+const KD_BUILDINGS: [number, number, number][] = [[0, 14, 128], [14, 19, 123], [19, 25, 126], [25, 29, 119], [29, 38, 116], [38, 46, 121], [46, 51, 110], [51, 55, 121], [55, 60, 117], [60, 65, 102], [65, 70, 98], [70, 74, 113], [74, 80, 107], [80, 88, 111], [88, 96, 97], [96, 100, 111], [100, 106, 114], [106, 125, 95], [125, 136, 111], [136, 140, 118], [140, 147, 99], [147, 153, 112], [153, 157, 102], [157, 161, 99], [161, 169, 112], [169, 179, 110], [179, 183, 109], [183, 197, 118], [197, 201, 120], [201, 206, 117], [206, 215, 105], [215, 220, 125], [220, 234, 122]];
+/** The tower the Golden Klaw's sign stands on. */
+const KD_SIGN_ON = 23;
+
 export class VignetteScene extends Phaser.Scene {
   private box!: DialogueBox;
   private returnAt = "";
@@ -5260,33 +5271,182 @@ export class VignetteScene extends Phaser.Scene {
     this.tweens.add({ targets: base, alpha: 0.45, duration: ms * 1.5 });
   }
 
-  /** Kreddle gone from the skyline: a black, broken line of rubble where the neon was, with fires along it. */
-  private kreddleGone(view: { hx: number; hy: number }, depth = -6) {
+  /** Kreddle gone from the skyline: nothing standing, just a low, black, broken line of rubble on the shore, fires along it. */
+  private kreddleGone(view: { hx: number; hy: number }, depth = -6, fires = true) {
     const g = this.add.graphics().setDepth(depth);
+    const shore = KD_SKY.shore;
     g.fillStyle(0x0b0812, 1);
     g.beginPath();
-    g.moveTo(520, 300);
-    let x = 520;
+    g.moveTo(KD_SKY.left, shore + 4);
+    let x = KD_SKY.left;
     while (x < 960) {
-      // a ragged line of what's left; now and then a broken spire
-      g.lineTo(x, Math.random() < 0.12 ? 196 + Math.random() * 24 : 226 + Math.random() * 30);
-      x += 6 + Math.random() * 14;
+      // heaps; now and then a stump of a wall or a bent girder
+      g.lineTo(x, shore - (Math.random() < 0.1 ? 14 + Math.random() * 10 : 3 + Math.random() * 9));
+      x += 5 + Math.random() * 12;
     }
-    g.lineTo(960, 300);
+    g.lineTo(960, shore + 4);
     g.closePath();
     g.fillPath();
-    const fires: Phaser.GameObjects.GameObject[] = [g];
-    for (let i = 0; i < 9; i++) {
-      const fx = 540 + i * 46 + Math.random() * 20;
-      fires.push(this.glow(fx, 236 + Math.random() * 20, 30 + Math.random() * 40, 0xff6a1a, 0.75, depth + 1));
+    const out: Phaser.GameObjects.GameObject[] = [g];
+    if (!fires) return out;
+    for (let i = 0; i < 10; i++) {
+      const fx = KD_SKY.left + 20 + i * 46 + Math.random() * 20;
+      out.push(this.glow(fx, shore - 6 - Math.random() * 6, 26 + Math.random() * 36, 0xff6a1a, 0.7, depth + 1));
     }
-    fires.push(this.glow(view.hx, view.hy + 6, 260, 0xff5a10, 0.45, depth + 1));
-    return fires;
+    out.push(this.glow(view.hx, view.hy + 6, 260, 0xff5a10, 0.45, depth + 1));
+    return out;
   }
 
-  /** The view from Krelford across the river to Kreddle (where the palace sits on the horizon: hx, hy). */
-  private bridgeView() {
-    if (!backdrop(this, "bg_c6e_bridge_view", { depth: -10 })) {
+  /**
+   * Kreddle's skyline coming down, building by building, from the palace outwards: the shockwave runs along the shore,
+   * each building lights up, shears, leans away from the blast and breaks up as it falls (debris, dust, then fire),
+   * the Golden Klaw's sign tumbles off its tower, and there's nothing left standing but rubble, smoke and the glow.
+   * The buildings are the backdrop's own skyline, cut out of it (c6e_kreddle_cut over bg_c6e_bridge_gone).
+   * Returns stop(): ends the smoke (call it before the stage is cleared).
+   */
+  private kreddleCollapse(view: { hx: number; hy: number }) {
+    const calm = Juice.calm();
+    const tex = "c6e_kreddle_cut";
+    const S = KD_SKY;
+    const shore = S.shore;
+    // the rubble's already there behind the city: it shows as each building goes
+    this.kreddleGone(view, -7, false);
+    if (!this.textures.exists(tex)) return { stop: () => undefined };
+    const T = this.textures.get(tex);
+    // nothing shows below the waterline (the buildings sink into their own dust)
+    const maskG = this.make.graphics({}, false);
+    maskG.fillStyle(0xffffff).fillRect(-400, -600, 1800, shore + 600);
+    const layer = this.add.container(0, 0).setDepth(-6);
+    layer.setMask(maskG.createGeometryMask());
+    const dark = (k: number) => Phaser.Display.Color.Interpolate.ColorWithColor(Phaser.Display.Color.ValueToColor(0xffb070), Phaser.Display.Color.ValueToColor(0x140806), 100, Math.round(k * 100));
+    const burn = (img: Phaser.GameObjects.Image, ms: number) =>
+      this.tweens.addCounter({ from: 0, to: 1, duration: ms, onUpdate: (tw) => {
+        if (!img.active) return;
+        const c = dark(tw.getValue() ?? 1);
+        img.setTint(Phaser.Display.Color.GetColor(c.r, c.g, c.b));
+      } });
+    // the front: when the blast reaches a point on the shore (ms after the flash)
+    // soft smoke (the glow's gradient, drawn normally rather than added)
+    const puff = (x: number, y: number, size: number, tint: number, alpha: number) => this.glow(x, y, size, tint, alpha, -5).setBlendMode(Phaser.BlendModes.NORMAL);
+    const T0 = 450;
+    const PER_PX = 6.5;
+    const hitAt = (x: number) => T0 + Math.abs(x - view.hx) * PER_PX;
+    // the shockwave running along the shore both ways, a wall of dust behind it
+    const reach = Math.max(view.hx - S.left, 960 - view.hx) + 20;
+    this.time.delayedCall(T0, () => {
+      const ring = this.add.ellipse(view.hx, shore - 8, 20, 12).setStrokeStyle(3, 0xfff1d6, calm ? 0.5 : 0.9).setFillStyle(0xffd8a8, calm ? 0.08 : 0.18).setDepth(-4);
+      this.tweens.add({ targets: ring, scaleX: (reach * 2) / 20, scaleY: 4, alpha: 0, duration: reach * PER_PX, ease: "Linear", onComplete: () => ring.destroy() });
+    });
+    for (let d = 0; d <= reach; d += 26)
+      for (const side of [-1, 1]) {
+        const x = view.hx + side * d;
+        if (x < S.left - 10 || x > 970 || (d === 0 && side > 0)) continue;
+        vfx(this, "vfx_dust", x, shore - 4, { scale: 1.1 + Math.random() * 0.5, depth: -5, alpha: 0.8, delay: hitAt(x) + 60 });
+      }
+    // one building: its pieces (top to bottom), cut from the skyline
+    const bld = KD_BUILDINGS.map(([c0, c1, top], i) => {
+      const w = c1 - c0;
+      const rows = S.hz - top;
+      const n = rows >= 30 ? 3 : rows >= 13 ? 2 : 1;
+      const cuts = [top];
+      for (let j = 1; j < n; j++) cuts.push(Math.round(top + (rows * j) / n + (Math.random() - 0.5) * 4));
+      cuts.push(S.hz);
+      const x = S.k * (S.x0 + c0 + w / 2);
+      const frags = cuts.slice(0, -1).map((a, j) => {
+        const b = cuts[j + 1];
+        const name = `kd_${i}_${j}_${a}`;
+        if (!T.has(name)) T.add(name, 0, c0, a - S.y0, w, b - a);
+        const img = this.add.image(x, S.k * b - 2, tex, name).setOrigin(0.5, 1).setScale(S.k);
+        layer.add(img);
+        return img;
+      });
+      return { x, w, frags };
+    });
+    // the Golden Klaw's sign, up on its tower right of the palace
+    const sb = KD_BUILDINGS[KD_SIGN_ON];
+    const sign = this.add.container(S.k * (S.x0 + (sb[0] + sb[1]) / 2), S.k * sb[2] - 2);
+    const signGlow = this.add.ellipse(0, -15, 70, 26, 0xff4fd8, 0.35).setBlendMode(Phaser.BlendModes.ADD);
+    const signBoard = this.add.rectangle(0, -15, 50, 15, 0x12001f).setStrokeStyle(2, 0xff4fd8);
+    const signText = this.add.text(0, -15, "CASINO", { fontFamily: "Impact, sans-serif", fontSize: "11px", color: "#facc15" }).setOrigin(0.5);
+    sign.add([this.add.rectangle(0, -4, 3, 8, 0x3f3f46), signGlow, signBoard, signText]);
+    layer.add(sign);
+    // each building, as the front reaches it
+    bld.forEach(({ x, w, frags }) => {
+      const at = hitAt(x) + Math.random() * 90;
+      const dir = Math.sign(x - view.hx) || (Math.random() < 0.5 ? -1 : 1);
+      this.time.delayedCall(at, () => {
+        if (!frags[0]?.active) return;
+        // lit up by the blast (a slow warm glow with calm flashes on; a hard white hit otherwise)
+        frags.forEach((f) => (calm ? f.setTint(0xffd0a0) : f.setTintFill(0xfff4e0)));
+        this.time.delayedCall(calm ? 260 : 90, () => frags.forEach((f) => f.active && (f.clearTint(), burn(f, 1400))));
+        // top to bottom: the top shears off and goes furthest; the base just drops into its own dust
+        frags.forEach((f, fromTop) => {
+          const last = fromTop === frags.length - 1;
+          const lean = dir * (last ? 4 + Math.random() * 8 : 14 + Math.random() * 10);
+          const fall = last ? 0 : dir * (50 + Math.random() * 80) * (frags.length - fromTop) * 0.5;
+          const drop = shore - f.y + f.displayHeight + 8;
+          // a lurch away from the blast, then down
+          this.tweens.add({ targets: f, angle: lean, x: f.x + dir * (last ? 2 : 6), duration: 260 + fromTop * 60, ease: "Sine.out" });
+          this.tweens.add({ targets: f, angle: lean + fall, x: f.x + dir * (last ? 3 : 14 + Math.random() * 30 + (frags.length - fromTop) * 8), y: f.y + drop, delay: 220 + fromTop * 140 + Math.random() * 120, duration: (last ? 1500 : 1000) + Math.random() * 500, ease: last ? "Cubic.in" : "Quad.in" });
+        });
+        // it breaks up: chunks and neon thrown out and up
+        const nDeb = 4 + Math.round(w / 2);
+        const topY = frags[0].y - frags[0].displayHeight;
+        for (let k = 0; k < nDeb; k++) {
+          const d = this.add.rectangle(x + (Math.random() - 0.5) * w * 2, topY + Math.random() * (shore - topY), 2 + Math.random() * 4, 2 + Math.random() * 4, [0x1c1917, 0x44403c, 0x292524, 0x0c0a09, 0xf97316, 0x1c1917, 0x44403c, 0xff4fd8, 0x292524, 0x22d3ee][k % 10]);
+          layer.add(d);
+          const vx = dir * (30 + Math.random() * 120) * (Math.random() < 0.2 ? -0.5 : 1);
+          const vy = -(40 + Math.random() * 140);
+          const x0 = d.x;
+          const y0 = d.y;
+          const dur = 1400 + Math.random() * 600;
+          this.tweens.add({ targets: d, x: x0 + (vx * dur) / 1000, angle: 360 * dir, duration: dur, onUpdate: (tw) => {
+            const t = (tw.progress * dur) / 1000;
+            d.y = y0 + vy * t + 210 * t * t;
+          }, onComplete: () => d.destroy() });
+        }
+        // dust and smoke where it stood, then fire in what's left
+        vfx(this, "vfx_dust", x, shore - 4, { scale: 0.8 + w / 12, depth: -5, alpha: 0.9, delay: 320 });
+        for (let k = 0; k < 3; k++) {
+          const p = puff(x + (Math.random() - 0.5) * w * 2, shore - 6, 26 + w * 2, 0x57534e, 0.7);
+          this.tweens.add({ targets: p, y: p.y - 40 - Math.random() * 50, scale: p.scale * 2.2, alpha: 0, delay: 300 + k * 160, duration: 1800 + Math.random() * 600, ease: "Sine.out", onComplete: () => p.destroy() });
+        }
+        this.time.delayedCall(700, () => {
+          const f = this.glow(x, shore - 7, 22 + w * 3, 0xff6a1a, 0.75, -5);
+          this.tweens.add({ targets: f, alpha: 0.45, yoyo: true, repeat: -1, duration: 1100 + Math.random() * 700, ease: "Sine.inOut" });
+        });
+        if (Math.random() < 0.35) synth.play(Math.random() < 0.5 ? "smash" : "boom", 0.18);
+      });
+    });
+    // the sign: its lights die, it comes off the tower and tumbles end over end into the rubble
+    const sAt = hitAt(sign.x) + 60;
+    const sDir = Math.sign(sign.x - view.hx) || 1;
+    this.time.delayedCall(sAt, () => {
+      if (!sign.active) return;
+      signText.setColor("#57534e");
+      signBoard.setStrokeStyle(2, 0x44403c);
+      this.tweens.add({ targets: signGlow, alpha: 0, duration: calm ? 600 : 200 });
+      vfx(this, "vfx_sparks", sign.x, sign.y - 15, { scale: 0.8, depth: -4 });
+      const x0 = sign.x;
+      const y0 = sign.y;
+      const dur = 1700;
+      this.tweens.add({ targets: sign, x: x0 + sDir * 90, angle: sDir * 300, duration: dur, ease: "Sine.out", onUpdate: (tw) => {
+        const t = (tw.progress * dur) / 1000;
+        sign.y = y0 - 60 * t + 70 * t * t;
+      } });
+    });
+    // smoke over the ruins for the rest of the shot
+    const smoke = this.time.addEvent({ delay: 160, repeat: 70, startAt: 0, callback: () => {
+      const sx = S.left + Math.random() * (960 - S.left);
+      const p = puff(sx, shore - 4, 34 + Math.random() * 30, Math.random() < 0.5 ? 0x44403c : 0x292524, 0.6);
+      this.tweens.add({ targets: p, y: p.y - 70 - Math.random() * 60, x: p.x - 20 - Math.random() * 30, scale: p.scale * 2.6, alpha: 0, duration: 3200 + Math.random() * 1200, ease: "Sine.out", onComplete: () => p.destroy() });
+    } });
+    return { stop: () => smoke.remove() };
+  }
+
+  /** The view from Krelford across the river to Kreddle (where the palace sits on the horizon: hx, hy). `gone`: with Kreddle erased from it. */
+  private bridgeView(gone = false) {
+    if (!(gone && backdrop(this, "bg_c6e_bridge_gone", { depth: -10 })) && !backdrop(this, "bg_c6e_bridge_view", { depth: -10 })) {
       this.sky(0x0f0b24, 0x2a1645);
       this.add.rectangle(480, 300, 960, 50, 0x05030c).setDepth(-9);
       for (let i = 0; i < 40; i++) this.add.rectangle(600 + Math.random() * 280, 250 + Math.random() * 20, 4, 6 + Math.random() * 30, [0xff4fd8, 0x22d3ee, 0xfacc15][i % 3]).setOrigin(0.5, 1).setDepth(-9);
@@ -5318,19 +5478,18 @@ export class VignetteScene extends Phaser.Scene {
     const calm = Juice.calm();
     this.clearStage();
     this.resetCam();
-    const view = this.bridgeView();
+    const view = this.bridgeView(true);
     synth.weatherSound("rain");
     const lads = this.watchers(view);
     // the far-off light, still burning, and the sky lit orange from underneath
     const sky = this.add.rectangle(480, 150, 960, 300, 0xff7a00, 0).setDepth(-7).setBlendMode(Phaser.BlendModes.ADD);
     this.tweens.add({ targets: sky, fillAlpha: 0.22, duration: 2000 });
-    // under the fireball the skyline goes dark: Kreddle is gone
-    const gone = this.kreddleGone(view);
+    // under the fireball the whole skyline comes down, building by building, until there's nothing standing
+    const fall = this.kreddleCollapse(view);
     const fire = this.glow(view.hx, view.hy - 10, 520, 0xffd08a, 1, -4);
     const core = this.glow(view.hx, view.hy - 10, 220, 0xffffff, 1, -4);
     this.tweens.add({ targets: fire, displayWidth: 300, displayHeight: 300, alpha: 0.55, duration: 6000, ease: "Cubic.out" });
     this.tweens.add({ targets: core, displayWidth: 90, displayHeight: 90, alpha: 0.5, duration: 5000, ease: "Cubic.out" });
-    void gone;
     this.farCloud(view.hx, view.hy);
     // the white from the palace shot, fading out over Krelford
     const white = this.add.rectangle(480, 270, 1400, 900, 0xfff7ed, calm ? 0.6 : 1).setDepth(990);
@@ -5381,6 +5540,7 @@ export class VignetteScene extends Phaser.Scene {
     // to black
     const black = this.add.rectangle(480, 270, 1400, 900, 0x000000, 0).setDepth(990);
     await this.tween({ targets: black, alpha: 1, duration: 900 });
+    fall.stop();
   }
 
   /** The Krunch Protocol's own screen: what it is, what it's doing and where it's aiming. close() takes it away. */
@@ -5433,7 +5593,7 @@ export class VignetteScene extends Phaser.Scene {
   private async incomingOverKrelford() {
     this.clearStage();
     this.resetCam();
-    const view = this.bridgeView();
+    const view = this.bridgeView(true);
     // what's left of the cloud, and the glow where Kreddle was
     this.kreddleGone(view);
     this.farCloud(view.hx, view.hy, 60);

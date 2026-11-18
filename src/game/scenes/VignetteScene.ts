@@ -3621,21 +3621,23 @@ export class VignetteScene extends Phaser.Scene {
           const st = view.state;
           // test hook: steer at the train
           if ((window as unknown as { __krelAutoFly?: boolean }).__krelAutoFly && st.trainOn) {
-            ax += Phaser.Math.Clamp((st.trainX - 480) / 400, -sp, sp);
-            ay += Phaser.Math.Clamp((st.trainY - VY) / 400, -sp, sp);
+            ax += Phaser.Math.Clamp(st.trainLateral / 4200, -sp, sp);
           }
           ax = Phaser.Math.Clamp(ax, -1, 1);
           ay = Phaser.Math.Clamp(ay, -1, 1);
           // the view out of the windscreen banks and pitches with you; you close on the train as the lock builds
-          view.update({ ax, ay, dt: 16, progress: phase === "chase" ? lock : 1, trainFade: 0 });
+          // the Kreddle Express weaves about (more wildly the closer you get): you have to steer to stay on it
+          const swerve = (Math.sin(t / 1900) + 0.55 * Math.sin(t / 830 + 1.3) + 0.3 * Math.sin(t / 410 + 0.4)) * (400 + lock * 500);
+          view.update({ ax, ay, dt: 16, progress: phase === "chase" ? lock : 1, trainFade: 0, trainShift: swerve });
           cross.setPosition(480, VY);
           cockpit.update(ax, ay, t);
           const c2 = Phaser.Display.Color.HSVToRGB(((t / 60) % 360) / 360, 0.35, 1) as Phaser.Types.Display.ColorObject;
           haze.setFillStyle((c2.r << 16) | (c2.g << 8) | c2.b, 0.07 + 0.03 * Math.sin(t / 300));
           if (phase !== "chase") return;
           // on target: the train's middle inside the sights (a bit of give, more as it gets bigger)
-          const near = 70 + lock * 60;
-          const on = st.trainOn && Math.abs(st.trainX - 480) < near && Math.abs(st.trainY - VY) < near * 1.6;
+          // on target: steering at it (sideways, in the world, so it's as hard at 7 km as at 2 km)
+          const on = st.trainOn && Math.abs(st.trainLateral) < 420;
+          // difficulty: the lock builds quicker (or slower) and leaks slower (or quicker)
           const tm = diffFor(G.s).timing;
           lock = Phaser.Math.Clamp(lock + (on ? 0.0016 * tm : -0.0005 / tm), 0, 1);
           if (on !== wasOn) {

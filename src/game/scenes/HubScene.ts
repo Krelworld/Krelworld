@@ -3532,7 +3532,8 @@ You are required by law to sign the Sex Offenders Register.`, {
     const glow = this.add.circle(cx, cy - 30, 34, 0xfbcfe8, 0.35).setBlendMode(Phaser.BlendModes.ADD).setDepth(cy + 59);
     this.tweens.add({ targets: [crystal, glow], y: "-=10", yoyo: true, repeat: -1, duration: 700 });
     this.tweens.add({ targets: glow, scale: 1.5, alpha: 0.15, yoyo: true, repeat: -1, duration: 700 });
-    synth.play("ding");
+    // the last crystal gets its jingle too (straight past the post-nuke music gate: it's a deliberate sting)
+    synth.musicRaw("crystal", true);
     s.flags.crystal_krunch = true;
     s.flags.crystal_krunch_seen = true;
     await this.talk(AFTER.AFTER_CRYSTAL.slice(0, 6));

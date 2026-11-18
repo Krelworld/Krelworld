@@ -10,7 +10,7 @@ import { synth } from "../audio/Synth";
 import { FONT, uiFrame } from "../ui/theme";
 import { voice } from "../audio/Voice";
 import { dir, say } from "../../content/dsl";
-import { animateWalker, backdrop } from "../gfx/HD";
+import { animateWalker, backdrop, hdFactor } from "../gfx/HD";
 import { CHARACTERS } from "../../data/characters";
 import { maxBottles, maxHp } from "../systems/stats";
 import { canTurnIn, completePersonal } from "../systems/quests";
@@ -97,7 +97,7 @@ export class HomeScene extends Phaser.Scene {
     if (this.windowBroken()) {
       this.drawBrokenWindow();
       this.drawGlassOnFloor();
-      this.placeBrick(Number(s.flags.kr_brick_x) || 600, 520);
+      this.placeBrick(Number(s.flags.kr_brick_x) || 700, 526);
     }
     // the jukebox, by the radiator, glowing
     if (this.textures.exists("p_jukebox")) {
@@ -251,7 +251,8 @@ export class HomeScene extends Phaser.Scene {
     s.flags.kr_brick = true;
     G.save();
     this.busy = true;
-    this.box.atBottom();
+    // the box goes up top: the window's bottom half (where he'll be) and the floor (where the brick goes) stay in view
+    this.box.atTop();
     const calm = !!G.meta?.settings?.calmFlash;
     const cam = this.cameras.main;
     let skipped = false;
@@ -279,12 +280,12 @@ export class HomeScene extends Phaser.Scene {
       this.controls.swallow();
     };
     const me = this.me;
-    // over by the window for a quiet moment
-    const tx = 610;
-    if (Math.abs(me.x - tx) > 8 || Math.abs(me.y - 495) > 8) {
+    // a quiet moment in the middle of the room
+    const tx = 770;
+    if (Math.abs(me.x - tx) > 8 || Math.abs(me.y - 490) > 8) {
       const dx = Math.sign(tx - me.x) || 1;
       await new Promise<void>((r) =>
-        this.tweens.add({ targets: me, x: tx, y: 495, duration: Math.max(200, Math.abs(me.x - tx) * 5), onUpdate: () => animateWalker(me, dx, 0, true, this.time.now), onComplete: () => r() }),
+        this.tweens.add({ targets: me, x: tx, y: 490, duration: Math.max(200, Math.abs(me.x - tx) * 5), onUpdate: () => animateWalker(me, dx, 0, true, this.time.now), onComplete: () => r() }),
       );
       me.setDepth(me.y + 1);
     }
@@ -292,19 +293,39 @@ export class HomeScene extends Phaser.Scene {
     await lines(KR_BRICK_QUIET);
     // a shadow crosses the window…
     const GL = HomeScene.GLASS;
-    const maskG = this.add.graphics().setVisible(false);
-    maskG.fillStyle(0xffffff).fillRect(GL.x, GL.y, GL.w, GL.h);
-    const mask = maskG.createGeometryMask();
+    // anyone outside is only seen through the glass: crop them to the window every frame
+    const outside: Phaser.GameObjects.Sprite[] = [];
+    const cropOutside = () => {
+      for (const sp of outside) {
+        if (!sp.active) continue;
+        const fw = sp.frame.width;
+        const fh = sp.frame.height;
+        const left = sp.x - sp.displayWidth * sp.originX;
+        const top = sp.y - sp.displayHeight * sp.originY;
+        const x0 = Phaser.Math.Clamp((GL.x - left) / sp.scaleX, 0, fw);
+        const x1 = Phaser.Math.Clamp((GL.x + GL.w - left) / sp.scaleX, 0, fw);
+        const y0 = Phaser.Math.Clamp((GL.y - top) / sp.scaleY, 0, fh);
+        const y1 = Phaser.Math.Clamp((GL.y + GL.h - top) / sp.scaleY, 0, fh);
+        sp.setCrop(x0, y0, Math.max(0, x1 - x0), Math.max(0, y1 - y0));
+      }
+    };
+    this.events.on("update", cropOutside);
     const kTex = this.textures.exists("spr_FLENKY") ? "spr_FLENKY" : null;
+    /** How tall he stands, right up against the glass (his head and shoulders show above the sill). */
+    const KH = 260;
     if (kTex && !skipped) {
-      const shadow = this.add.sprite(GL.x - 60, GL.y + GL.h + 150, kTex, 0).setOrigin(0.5, 1).setScale(4.2).setTint(0x000000).setAlpha(0.5).setDepth(-9).setMask(mask);
+      const shadow = this.add.sprite(GL.x - 80, GL.y + 360, kTex, 0).setOrigin(0.5, 1).setTint(0x000000).setAlpha(0.5).setDepth(-9);
+      shadow.setScale(KH / shadow.frame.realHeight / hdFactor(shadow));
+      outside.push(shadow);
+      cropOutside();
       this.tweens.add({ targets: shadow, x: GL.x + 90, duration: 700, ease: "Sine.out", onComplete: () => this.tweens.add({ targets: shadow, alpha: 0, duration: 200, onComplete: () => shadow.destroy() }) });
       await wait(900);
     }
     // …CRASH
     const H = HomeScene.HOLE;
-    const landX = Phaser.Math.Clamp(me.x - 190, 440, 800);
-    const restX = Phaser.Math.Clamp(me.x - 80, 480, 860);
+    // it lands past the bed and skids up to your feet
+    const landX = 640;
+    const restX = 700;
     let flying: Phaser.GameObjects.Image | null = null;
     const smashed = !skipped;
     if (smashed) {
@@ -316,7 +337,7 @@ export class HomeScene extends Phaser.Scene {
       this.drawBrokenWindow();
       // shards, out into the room and down onto the floor
       for (let i = 0; i < 18; i++) {
-        const w = Phaser.Math.Between(4, 11);
+        const w = Phaser.Math.Between(3, 7);
         const sh = this.add.triangle(H.x + Phaser.Math.Between(-14, 14), H.y + Phaser.Math.Between(-14, 14), 0, 0, w, w * 0.4, w * 0.3, w * 1.2, 0xdff3ff, 0.9).setDepth(560).setAngle(Phaser.Math.Between(0, 360));
         this.tweens.add({ targets: sh, x: H.x + Phaser.Math.Between(-80, 300), y: Phaser.Math.Between(450, 530), angle: sh.angle + Phaser.Math.Between(-540, 540), scale: 1.3, duration: Phaser.Math.Between(450, 800), ease: "Quad.in", onComplete: () => sh.setDepth(3).setAlpha(0.75) });
       }
@@ -335,7 +356,7 @@ export class HomeScene extends Phaser.Scene {
             duration: 420,
             onUpdate: () => {
               f.x = Phaser.Math.Linear(H.x, landX, t.p);
-              f.y = Phaser.Math.Linear(H.y, 512, t.p * t.p) - Math.sin(Math.PI * t.p) * 50;
+              f.y = Phaser.Math.Linear(H.y, 515, t.p * t.p) - Math.sin(Math.PI * t.p) * 50;
               f.setScale(1.2 + t.p * 1.0).setAngle(t.p * 620);
             },
             onComplete: () => r(),
@@ -344,10 +365,10 @@ export class HomeScene extends Phaser.Scene {
         synth.play("hit", 0.7);
         cam.shake(120, calm ? 0.002 : 0.006);
         for (let i = 0; i < 6; i++) {
-          const d = this.add.circle(f.x + Phaser.Math.Between(-12, 12), 516, Phaser.Math.Between(4, 8), 0xb9a48a, 0.6).setDepth(601);
+          const d = this.add.circle(f.x + Phaser.Math.Between(-12, 12), 522, Phaser.Math.Between(4, 8), 0xb9a48a, 0.6).setDepth(601);
           this.tweens.add({ targets: d, x: d.x + Phaser.Math.Between(-30, 30), y: d.y - Phaser.Math.Between(6, 22), alpha: 0, scale: 1.8, duration: 500, onComplete: () => d.destroy() });
         }
-        f.setOrigin(0.5, 1).setY(520).setDepth(520);
+        f.setOrigin(0.5, 1).setY(526).setDepth(526);
         await new Promise<void>((r) => this.tweens.add({ targets: f, x: restX, angle: f.angle + 200, duration: 520, ease: "Cubic.out", onComplete: () => r() }));
         f.setAngle(-8);
       }
@@ -360,10 +381,13 @@ export class HomeScene extends Phaser.Scene {
     if (kTex && !skipped) {
       synth.music("klerble", true);
       this.face("west");
-      kr = this.add.sprite(GL.x + 70, GL.y + GL.h + 330, kTex, 0).setOrigin(0.5, 1).setScale(4.2).setTint(0x9be7ff).setDepth(-9).setMask(mask);
-      await new Promise<void>((r) => this.tweens.add({ targets: kr, y: GL.y + GL.h + 150, duration: 380, ease: "Back.out", onComplete: () => r() }));
+      kr = this.add.sprite(H.x + 22, GL.y + GL.h + KH + 10, kTex, 0).setOrigin(0.5, 1).setTint(0x9be7ff).setDepth(-9);
+      kr.setScale(KH / kr.frame.realHeight / hdFactor(kr));
+      outside.push(kr);
+      cropOutside();
+      await new Promise<void>((r) => this.tweens.add({ targets: kr, y: GL.y + 345, duration: 380, ease: "Back.out", onComplete: () => r() }));
       this.tweens.add({ targets: kr, y: kr.y - 6, yoyo: true, repeat: -1, duration: 260, ease: "Sine.inOut" });
-      tag = this.add.text(GL.x + GL.w / 2, GL.y - 14, "KLENKY · THE KREDDLE KRUNCHERS", { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#ff4fd8", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(600);
+      tag = this.add.text(GL.x + GL.w / 2, GL.y + GL.h + 16, "KLENKY · THE KREDDLE KRUNCHERS", { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#ff4fd8", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(600);
     }
     await lines(KR_BRICK_ABUSE);
     if (kr) {
@@ -374,10 +398,12 @@ export class HomeScene extends Phaser.Scene {
     }
     tag?.destroy();
     if (!skipped) this.time.delayedCall(700, () => synth.play("alarm", 0.35));
+    // back to the middle for the note and the group chat
+    this.box.atMiddle();
     await lines(KR_BRICK_AFTER);
     // tidy up: the hole and the brick stay; if it was skipped before the crash, they're just there
     window.removeEventListener("keydown", onKey);
-    maskG.destroy();
+    this.events.off("update", cropOutside);
     if (skipped) {
       voice.stop();
       this.box.skipAll();
@@ -388,7 +414,7 @@ export class HomeScene extends Phaser.Scene {
     }
     if (!smashed) this.drawBrokenWindow();
     this.drawGlassOnFloor();
-    this.placeBrick(restX, 520);
+    this.placeBrick(restX, 526);
     s.flags.kr_brick_x = Math.round(restX);
     G.save();
     synth.music("home", true);

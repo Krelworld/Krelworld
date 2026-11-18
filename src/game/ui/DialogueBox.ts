@@ -97,12 +97,6 @@ export class DialogueBox {
     return this;
   }
 
-  /** Back down to the bottom of the screen (where it starts). */
-  atBottom() {
-    this.root.setY(0);
-    return this;
-  }
-
   /** Centre the box vertically on the screen (home: in the middle of the room, not up against the ceiling). */
   atMiddle() {
     this.root.setY(Math.round((12 - 362) / 2));
@@ -332,6 +326,7 @@ export class DialogueBox {
 
   private clearOverlay() {
     this.overlay.removeAll(true);
+    this.overlay.setY(0);
     this.choiceHandler = null;
   }
 
@@ -344,6 +339,8 @@ export class DialogueBox {
     this.bodyText.setText("");
     this.portrait.setVisible(false);
     this.portraitFrame.clear();
+    // the bubble sits at the same place on screen wherever the box is (atTop / atMiddle move the box, not the phone)
+    this.overlay.setY(-this.root.y);
     const g = this.scene.add.graphics();
     const bubbleW = 640;
     const x = (W - bubbleW) / 2;

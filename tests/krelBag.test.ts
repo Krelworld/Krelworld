@@ -34,20 +34,23 @@ describe("Kreltality picking", () => {
     expect(got).not.toContain("asbestos");
     meta.settings.gore = true;
   });
-  it("GET WELL SOON is guaranteed once a playthrough, as the second Kreltality (never the first)", async () => {
+  it("GET WELL SOON is guaranteed once a playthrough on a humanoid boss (never the first Kreltality)", async () => {
     const { pick } = await import("../src/game/combat/Kreltality");
-    for (let run = 0; run < 5; run++) {
-      meta.settings.gore = true;
-      // even if it was seen in an earlier playthrough
-      meta.krelSeen = ["asbestos"];
-      Gm.s = { flags: {} };
-      const first = pick();
-      const second = pick();
-      expect(first === "asbestos" ? second !== "asbestos" : second === "asbestos").toBe(true);
-      const rest = Array.from({ length: 6 }, () => pick());
-      // once it's been, the run doesn't force it again
-      expect([first, second, ...rest].filter((f) => f === "asbestos").length).toBeLessThanOrEqual(2);
-    }
+    meta.settings.gore = true;
+    // first Kreltality of the run, on a humanoid boss: not forced
+    meta.krelSeen = ["asbestos"];
+    Gm.s = { flags: {} };
+    expect(pick({ id: "krandall" })).not.toBe("asbestos");
+    // a monster boss and a plain enemy: not forced
+    expect(pick({ id: "salmon" })).not.toBe("asbestos");
+    expect(pick({})).not.toBe("asbestos");
+    // a real person: not forced
+    expect(pick({ id: "elon" })).not.toBe("asbestos");
+    // the next humanoid boss: forced, even though it's been seen in an earlier game
+    expect(pick({ id: "flatmate" })).toBe("asbestos");
+    // and only once a run
+    meta.krelSeen = ["asbestos"];
+    expect(pick({ id: "reinhardt" })).not.toBe("asbestos");
     Gm.s = undefined;
   });
 });

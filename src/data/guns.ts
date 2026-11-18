@@ -63,7 +63,7 @@ export const GUNS: Record<string, GunDef> = {
   },
   rocket: {
     id: "rocket", name: "The Marital Aid", blurb: "Fires pink rubber rockets. Vibrates on impact. Then explodes.",
-    tex: "p_wpn_rocket", dmg: 34, cd: 1000, speed: 360, pellets: 1, spread: 0, range: 520, blast: 85, knock: 260, color: 0xffffff, shotTex: "fx_rocket", maxAmmo: 12, pickup: 3, ammoPrice: 25, minChapter: 4, price: 750,
+    tex: "p_wpn_rocket", dmg: 30, cd: 800, speed: 620, pellets: 1, spread: 0, range: 520, blast: 100, knock: 260, color: 0xffffff, shotTex: "fx_rocket", maxAmmo: 12, pickup: 3, ammoPrice: 25, minChapter: 4, price: 750,
   },
   // ---- Central Bank exclusives
   gatling: {
@@ -90,7 +90,7 @@ export const GUNS: Record<string, GunDef> = {
   },
   bfk: {
     id: "bfk", name: "The BFK (Big Fucking Krezzer)", blurb: "Do not fire indoors. Everything in Krelworld is indoors.",
-    tex: "p_wpn_rocket", dmg: 95, cd: 1600, speed: 300, pellets: 1, spread: 0, range: 560, blast: 150, knock: 420, color: 0xc084fc, shotTex: "fx_rocket", maxAmmo: 6, pickup: 2, ammoPrice: 60, minChapter: 1, shop: 3000,
+    tex: "p_wpn_rocket", dmg: 85, cd: 1300, speed: 520, pellets: 1, spread: 0, range: 560, blast: 165, knock: 420, color: 0xc084fc, shotTex: "fx_rocket", maxAmmo: 6, pickup: 2, ammoPrice: 60, minChapter: 1, shop: 3000,
   },
   // ---- Kreddle prizes
   chainsaw: {
@@ -103,7 +103,7 @@ export const GUNS: Record<string, GunDef> = {
   },
   disco: {
     id: "disco", name: "Disco Ball Launcher", blurb: "Saturday night fever. Saturday night explosions.",
-    tex: "p_wpn_disco", dmg: 40, cd: 900, speed: 340, pellets: 1, spread: 0, range: 520, blast: 120, knock: 300, color: 0xe5e7eb, maxAmmo: 14, pickup: 4, ammoPrice: 45, minChapter: 1, kreddle: true,
+    tex: "p_wpn_disco", dmg: 35, cd: 720, speed: 560, pellets: 1, spread: 0, range: 520, blast: 130, knock: 300, color: 0xe5e7eb, maxAmmo: 14, pickup: 4, ammoPrice: 45, minChapter: 1, kreddle: true,
   },
   flush: {
     id: "flush", name: "The Royal Flush", blurb: "Five cards, all aces, all very sharp.",
@@ -128,7 +128,7 @@ export const GUNS: Record<string, GunDef> = {
   },
   dice: {
     id: "dice", name: "Snake Eyes", blurb: "Lobs a pair of loaded dice. Roll high, big bang. Roll double one and the House cries.",
-    tex: "p_wpn_dice", dmg: 30, cd: 820, speed: 380, pellets: 1, spread: 0, range: 480, blast: 60, knock: 240, color: 0xffffff, maxAmmo: 18, pickup: 5, ammoPrice: 40, minChapter: 1, shop: 1950, kreddle: true, mech: "dice", sfx: "gun_disco",
+    tex: "p_wpn_dice", dmg: 27, cd: 660, speed: 600, pellets: 1, spread: 0, range: 480, blast: 70, knock: 240, color: 0xffffff, maxAmmo: 18, pickup: 5, ammoPrice: 40, minChapter: 1, shop: 1950, kreddle: true, mech: "dice", sfx: "gun_disco",
   },
 };
 

@@ -6,7 +6,8 @@ vi.mock("../src/game/gfx/Vfx", () => ({ hasVfx: () => false, vfx: () => {} }));
 vi.mock("../src/game/combat/KrelCinema", () => ({ krelCinema: () => {} }));
 vi.mock("../src/game/combat/KrelArt", () => ({ Actor: class {}, Victim: class {}, bit: () => {}, prop: () => {}, MEATY: [] }));
 const meta: { settings: { gore: boolean }; krelSeen?: string[] } = { settings: { gore: true } };
-vi.mock("../src/game/G", () => ({ G: { meta, saveMeta: () => {} } }));
+const Gm: { meta: typeof meta; saveMeta: () => void; s?: { flags: Record<string, unknown> } } = { meta, saveMeta: () => {} };
+vi.mock("../src/game/G", () => ({ G: Gm }));
 
 // Kreltalities come out of a shuffle bag: never a repeat until you've seen them all.
 describe("Kreltality picking", () => {
@@ -32,5 +33,21 @@ describe("Kreltality picking", () => {
     expect(new Set(got).size).toBe(tame.length);
     expect(got).not.toContain("asbestos");
     meta.settings.gore = true;
+  });
+  it("GET WELL SOON is guaranteed once a playthrough, as the second Kreltality (never the first)", async () => {
+    const { pick } = await import("../src/game/combat/Kreltality");
+    for (let run = 0; run < 5; run++) {
+      meta.settings.gore = true;
+      // even if it was seen in an earlier playthrough
+      meta.krelSeen = ["asbestos"];
+      Gm.s = { flags: {} };
+      const first = pick();
+      const second = pick();
+      expect(first === "asbestos" ? second !== "asbestos" : second === "asbestos").toBe(true);
+      const rest = Array.from({ length: 6 }, () => pick());
+      // once it's been, the run doesn't force it again
+      expect([first, second, ...rest].filter((f) => f === "asbestos").length).toBeLessThanOrEqual(2);
+    }
+    Gm.s = undefined;
   });
 });

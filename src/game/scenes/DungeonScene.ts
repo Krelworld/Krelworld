@@ -56,7 +56,7 @@ import { say, dir, gabor } from "../../content/dsl";
 import { FONT } from "../ui/theme";
 import { CHARACTERS } from "../../data/characters";
 import { evalCond } from "../systems/conditions";
-import { extraViolence, kd } from "../systems/kreddle";
+import { addKrokens, extraViolence, kd } from "../systems/kreddle";
 import { forcedKreltality, kreltality, pick, prompt as krelPrompt, type KrelTarget } from "../combat/Kreltality";
 import { KREX_KREL_OUTRO, krexKreltality } from "../combat/KrexFinisher";
 import { HeroPassenger, HeroSquad, createHero, krelAllPrompt, chainCard, multiBanner, type HeroId } from "../combat/HeroPassengers";
@@ -2732,8 +2732,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   private completeChapter(bossId: string) {
     const s = G.s;
     for (let i = 0; i < this.dungeon.rooms.length; i++) delete s.flags[clearKey(this.dungeon.id, i)];
-    const reward = Math.round(200 * activeMods(s).questRewardMult * (1 + (s.chapter - 1) * 0.25));
+    const dd = diffFor(s);
+    const reward = Math.round(200 * activeMods(s).questRewardMult * (1 + (s.chapter - 1) * 0.25) * dd.rewards);
     s.coins += reward;
+    // the hard-mode bonus: Krokens for every chapter on HARD / VERY HARD
+    if (dd.krokenBonus > 0) addKrokens(s, dd.krokenBonus);
     s.flags[`ch${this.dungeon.chapter}_clear`] = true;
     s.phase = "hub";
     s.hp = maxHp(s);
@@ -2751,7 +2754,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     G.drongus("boss_defeated");
     G.save();
-    this.toast("CHAPTER COMPLETE", `+${reward} Krezzcoin. Report to the Town Hall.`);
+    this.toast("CHAPTER COMPLETE", `+${reward} Krezzcoin${dd.krokenBonus > 0 ? ` · +${dd.krokenBonus} Krokens (${dd.name} bonus)` : ""}. Report to the Town Hall.`);
     this.time.delayedCall(1800, () => {
       this.cameras.main.fadeOut(500);
       this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {

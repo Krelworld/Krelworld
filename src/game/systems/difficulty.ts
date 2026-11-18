@@ -39,6 +39,10 @@ export interface DifficultyDef {
   ammoDryKills: number;
   /** Coins from kills (harder pays more). */
   coins: number;
+  /** Story payouts: chapter-complete, side-quest and personal-quest Krezzcoin (harder pays more). */
+  rewards: number;
+  /** Bonus Krokens for every chapter you complete on this level (0 = none). */
+  krokenBonus: number;
   /** Krezz meter gain (pickups and the trickle). */
   krezzGain: number;
   /** Mercy invincibility after a hit. */
@@ -58,7 +62,7 @@ export const DIFFICULTY_LEVELS: readonly DifficultyDef[] = [
     blurb: "For the story. Enemies hit softly and warn you early, and healing is plentiful.",
     color: 0x86efac,
     enemyHp: 0.7, bossHp: 0.7, damageTaken: 0.55, telegraph: 1.35, aggression: 0.75, enemySpeed: 0.88, projectileSpeed: 0.82,
-    enemyCount: 0.75, healDrops: 2, ammoDrops: 1.4, ammoDryKills: 4, coins: 1, krezzGain: 1.3, iframes: 1.4, timing: 1.35, shieldStall: 0.6, shieldMinions: -1,
+    enemyCount: 0.75, healDrops: 2, ammoDrops: 1.4, ammoDryKills: 4, coins: 1, rewards: 1, krokenBonus: 0, krezzGain: 1.3, iframes: 1.4, timing: 1.35, shieldStall: 0.6, shieldMinions: -1,
   },
   {
     level: 2,
@@ -66,7 +70,7 @@ export const DIFFICULTY_LEVELS: readonly DifficultyDef[] = [
     blurb: "The game as it was originally balanced.",
     color: 0x67e8f9,
     enemyHp: 1, bossHp: 1, damageTaken: 1, telegraph: 1, aggression: 1, enemySpeed: 1, projectileSpeed: 1,
-    enemyCount: 1, healDrops: 1, ammoDrops: 1, ammoDryKills: 6, coins: 1, krezzGain: 1, iframes: 1, timing: 1, shieldStall: 1, shieldMinions: 0,
+    enemyCount: 1, healDrops: 1, ammoDrops: 1, ammoDryKills: 6, coins: 1, rewards: 1, krokenBonus: 0, krezzGain: 1, iframes: 1, timing: 1, shieldStall: 1, shieldMinions: 0,
   },
   {
     level: 3,
@@ -74,23 +78,23 @@ export const DIFFICULTY_LEVELS: readonly DifficultyDef[] = [
     blurb: "Recommended. Enemies are a bit tougher and quicker, and healing is a bit scarcer.",
     color: 0xffd23f,
     enemyHp: 1.08, bossHp: 1.08, damageTaken: 1.2, telegraph: 0.92, aggression: 1.12, enemySpeed: 1.04, projectileSpeed: 1.05,
-    enemyCount: 1.1, healDrops: 0.85, ammoDrops: 0.95, ammoDryKills: 6, coins: 1.1, krezzGain: 1, iframes: 1, timing: 0.92, shieldStall: 1, shieldMinions: 0,
+    enemyCount: 1.1, healDrops: 0.85, ammoDrops: 0.95, ammoDryKills: 6, coins: 1.1, rewards: 1, krokenBonus: 0, krezzGain: 1, iframes: 1, timing: 0.92, shieldStall: 1, shieldMinions: 0,
   },
   {
     level: 4,
     name: "HARD",
-    blurb: "More enemies, faster attacks, less healing and ammo.",
+    blurb: "More enemies, faster attacks, less healing and ammo. Pays more: 1.5x coin from kills, 1.4x quest and chapter rewards, +10 Krokens a chapter.",
     color: 0xfb923c,
     enemyHp: 1.15, bossHp: 1.15, damageTaken: 1.4, telegraph: 0.85, aggression: 1.25, enemySpeed: 1.08, projectileSpeed: 1.1,
-    enemyCount: 1.25, healDrops: 0.7, ammoDrops: 0.85, ammoDryKills: 7, coins: 1.2, krezzGain: 0.92, iframes: 0.92, timing: 0.85, shieldStall: 1.15, shieldMinions: 1,
+    enemyCount: 1.25, healDrops: 0.7, ammoDrops: 0.85, ammoDryKills: 7, coins: 1.5, rewards: 1.4, krokenBonus: 10, krezzGain: 0.92, iframes: 0.92, timing: 0.85, shieldStall: 1.15, shieldMinions: 1,
   },
   {
     level: 5,
     name: "VERY HARD",
-    blurb: "Short warnings, heavy hits, big waves, few drops. Pays the most coin.",
+    blurb: "Short warnings, heavy hits, big waves, few drops. Pays the most: 1.9x coin from kills, 1.8x quest and chapter rewards, +25 Krokens a chapter.",
     color: 0xff4d6d,
     enemyHp: 1.25, bossHp: 1.25, damageTaken: 1.7, telegraph: 0.78, aggression: 1.4, enemySpeed: 1.12, projectileSpeed: 1.18,
-    enemyCount: 1.4, healDrops: 0.55, ammoDrops: 0.75, ammoDryKills: 8, coins: 1.3, krezzGain: 0.85, iframes: 0.85, timing: 0.78, shieldStall: 1.3, shieldMinions: 1,
+    enemyCount: 1.4, healDrops: 0.55, ammoDrops: 0.75, ammoDryKills: 8, coins: 1.9, rewards: 1.8, krokenBonus: 25, krezzGain: 0.85, iframes: 0.85, timing: 0.78, shieldStall: 1.3, shieldMinions: 1,
   },
 ];
 

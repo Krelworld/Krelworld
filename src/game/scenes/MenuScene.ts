@@ -291,7 +291,11 @@ export class MenuScene extends Phaser.Scene {
           ["SETTINGS", () => this.render("settings")],
         ];
         if (s) items.push([`DIFFICULTY: ${difficultyLabel(s.difficulty)}${this.inDungeon() ? "  🔒" : ""}`, () => this.render("difficulty")]);
-        if (this.caller === "Hub") items.push(["SAVE GAME", () => this.saveNow()]);
+        if (s && this.caller !== "Title") {
+          // manual save slots: only somewhere safe (out in town or at home), never mid-dungeon / boss / cutscene
+          const why = this.saveBlocked();
+          items.push([why ? `SAVE GAME  🔒 ${why}` : "SAVE GAME", why ? () => synth.play("tap_fail") : () => this.openSlots()]);
+        }
         items.push(["QUIT TO TITLE (progress is autosaved)", () => this.quit()]);
         const gap = items.length > 7 ? 41 : 46;
         items.forEach(([t, fn], i) => add(button(this, 480, 150 + i * gap, t, fn, { w: 400, h: items.length > 7 ? 36 : 40 })));
@@ -994,11 +998,20 @@ export class MenuScene extends Phaser.Scene {
     this.root.setVisible(true);
   }
 
-  private saveNow() {
-    G.save();
-    synth.play("ding");
-    G.emit("toast", { title: "SAVED", text: "Game saved. The wiki has also been updated, at some point." });
-    this.close();
+  /** Why SAVE GAME is locked right now (null = you can save). Town and home only. */
+  private saveBlocked(): string | null {
+    if (this.inDungeon()) return "not inside a dungeon";
+    if (this.caller !== "Hub" && this.caller !== "Home") return "only in town or at home";
+    const mgr = this.game.scene;
+    if (["Dialogue", "Cutscene", "Meeting", "Vignette", "TV", "Minigame", "Finale", "Lair"].some((k) => mgr.isActive(k) || mgr.isPaused(k))) return "not during a scene";
+    return null;
+  }
+
+  /** SAVE GAME: the slot picker over the pause menu (it closes the menu once you've saved). */
+  private openSlots() {
+    this.events.off("slots-closed");
+    this.events.once("slots-closed", (d: { saved?: boolean }) => (d?.saved ? this.close() : this.render("pause")));
+    this.scene.launch("Slots", { mode: "save", caller: "Menu" });
   }
 
   private quit() {

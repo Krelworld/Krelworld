@@ -9,6 +9,7 @@ import { evalCond } from "./systems/conditions";
 import { applyReaction } from "./systems/reactions";
 import { ARCHIVE_BY_ID } from "../content/archive/historicalScenes";
 import { settleOldTrails } from "./systems/trails";
+import type { SlotId } from "./systems/saveSlots";
 
 type Listener = (ev: string, data?: any) => void;
 
@@ -64,18 +65,48 @@ class GameContext {
     this.save();
   }
 
-  loadRun(): boolean {
-    const st = this.saves.load();
+  /**
+   * Where the player is and what they're doing, for the LOAD list (set up in saveWhere.ts, which can see the scenes).
+   * Undefined fields keep whatever the run last had (e.g. a save made during a cutscene).
+   */
+  describe: (() => { where?: string; objective?: string }) | null = null;
+
+  /** Load a slot as the current run (CONTINUE / LOAD GAME). A manual slot becomes the AUTO run from here on. */
+  loadRun(slot: SlotId = "auto"): boolean {
+    const st = this.saves.load(slot);
     if (!st) return false;
+    // from now on autosaves carry this run, and CONTINUE comes back to it
+    if (slot !== "auto") this.saves.save(st, "auto");
     this._state = st;
     settleOldTrails(st);
     if (this._state.hp > maxHp(this._state)) this._state.hp = maxHp(this._state);
     return true;
   }
 
+  /** Autosave (the AUTO slot). Called all over the game. */
   save() {
-    if (this._state) this.saves.save(this._state);
+    if (this._state) {
+      this.stamp(this._state);
+      this.saves.save(this._state);
+    }
     this.saves.saveMeta(this.meta);
+  }
+
+  /** SAVE GAME from the pause menu: the run goes into a manual slot (and AUTO, as ever). */
+  saveToSlot(slot: 1 | 2 | 3) {
+    if (!this._state) return;
+    this.save();
+    this.saves.save(this._state, slot);
+  }
+
+  private stamp(s: GameState) {
+    try {
+      const d = this.describe?.();
+      if (d?.where) s.where = d.where;
+      if (d?.objective !== undefined) s.objective = d.objective || undefined;
+    } catch {
+      /* never let a label break a save */
+    }
   }
 
   saveMeta() {

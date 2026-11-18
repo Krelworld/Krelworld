@@ -41,6 +41,8 @@ import { FinaleScene } from "./game/scenes/FinaleScene";
 import { RoofCutscene } from "./game/scenes/citadel/RoofCutscene";
 import { installDebug } from "./game/debug";
 import { installCrashGuard } from "./game/crashGuard";
+import { SaveSlotsScene } from "./game/scenes/SaveSlotsScene";
+import { installSaveWhere } from "./game/saveWhere";
 
 installPixelFonts();
 installCalmFlash();
@@ -93,6 +95,7 @@ const game = new Phaser.Game({
     FinaleScene,
     RoofCutscene,
     MenuScene,
+    SaveSlotsScene,
     TutorialScene,
     EndingScene,
     PolsonHomeScene,
@@ -100,4 +103,5 @@ const game = new Phaser.Game({
 });
 
 installDebug(game);
+installSaveWhere(game);
 installCrashGuard(game);

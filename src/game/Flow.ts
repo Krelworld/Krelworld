@@ -10,6 +10,7 @@ import { maxHp } from "./systems/stats";
 import { activeMods } from "../data/historicalRevisions";
 import { crystalCount, CRYSTALS_NEEDED } from "./systems/crystals";
 import { trailObjective } from "./systems/trails";
+import type { SlotId } from "./systems/saveSlots";
 
 export interface Next {
   scene: string;
@@ -102,8 +103,8 @@ export function startNewRun(from: Phaser.Scene, player: PlayableId, ngPlus = 0, 
   switchTo(from, "Home", {});
 }
 
-export function continueRun(from: Phaser.Scene) {
-  if (!G.loadRun()) return false;
+export function continueRun(from: Phaser.Scene, slot: SlotId = G.saves.latest() ?? "auto") {
+  if (!G.loadRun(slot)) return false;
   if (G.s.phase === "ended") {
     switchTo(from, "Ending", { replay: true });
     return true;

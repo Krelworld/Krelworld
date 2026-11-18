@@ -2,9 +2,10 @@ import { clampDifficulty, MAX_DIFFICULTY } from "../systems/difficulty";
 import Phaser from "phaser";
 import { animateWalker, backdrop } from "../gfx/HD";
 import { G } from "../G";
-import { button, FONT, title, label } from "../ui/theme";
+import { button, FONT, title, label, panel } from "../ui/theme";
 import { synth } from "../audio/Synth";
 import { continueRun, switchTo, fadeThen } from "../Flow";
+import { formatPlaytime, slotLabel } from "../systems/saveSlots";
 import { LADS } from "../../data/characters";
 
 const LEAK = ["[citation needed]", "Seen by 9", "Hello?", "KREZZ", "Drongi", "WONK", "pls", "Krebon is coming", "lore withdrawn", "THE KREZZING HOUR", "Krez-ousers", "purple", "Big Bertha", "12 Midday", "cheesegate"];
@@ -53,18 +54,27 @@ export class TitleScene extends Phaser.Scene {
     title(this, W / 2, 140, "WONK 'TIL YOU KREZ", 26, "#ff6fa8");
     label(this, W / 2, 168, "The craziest universe of all time…", 13, "#c9c3e6").setOrigin(0.5, 0);
 
-    const has = G.saves.hasSave();
+    // CONTINUE: the newest of the AUTO and manual slots
+    const latest = G.saves.latest();
+    const sv = latest ? G.saves.load(latest) : null;
     const items: [string, () => void, boolean?][] = [];
-    // the save slot shows the run's difficulty
-    const sv = has ? G.saves.load() : null;
-    if (has) items.push([sv ? `CONTINUE · DIFFICULTY ${clampDifficulty(sv.difficulty)}/${MAX_DIFFICULTY}` : "CONTINUE", () => continueRun(this) || undefined]);
-    items.push(["NEW GAME", () => fadeThen(this, 200, () => switchTo(this, "CharSelect", { ngPlus: 0 }))]);
-    if (G.meta.ngPlusUnlocked) items.push(["NEW KREZ+", () => fadeThen(this, 200, () => switchTo(this, "CharSelect", { ngPlus: 1 }))]);
+    if (latest && sv) items.push([`CONTINUE · ${slotLabel(latest)} · CH ${sv.chapter} · ⏱ ${formatPlaytime(sv.playtimeMs)} · DIFF ${clampDifficulty(sv.difficulty)}/${MAX_DIFFICULTY}`, () => continueRun(this, latest) || undefined]);
+    if (latest) items.push(["LOAD GAME", () => this.scene.launch("Slots", { mode: "load", caller: "Title" })]);
+    // a new game takes over the AUTO slot (manual slots are never touched): say so if there's a run in it
+    const auto = G.saves.load("auto");
+    const fresh = (ngPlus: number) => () => {
+      const go = () => fadeThen(this, 200, () => switchTo(this, "CharSelect", { ngPlus }));
+      if (!auto) return go();
+      this.confirmNew(`A new game replaces the AUTO save\n(CH ${auto.chapter} · ⏱ ${formatPlaytime(auto.playtimeMs)}).\nSLOT 1-3 are kept. Save to a slot first from the pause menu if you want to keep it.`, go);
+    };
+    items.push(["NEW GAME", fresh(0)]);
+    if (G.meta.ngPlusUnlocked) items.push(["NEW KREZ+", fresh(1)]);
     // finished the game: jump to any chapter, side quest or boss with the kit you finished with
     if (G.meta.ngPlusUnlocked || G.meta.carry) items.push(["CHAPTER SELECT", () => fadeThen(this, 200, () => switchTo(this, "ChapterSelect"))]);
     items.push(["HISTORICAL ARCHIVE", () => fadeThen(this, 200, () => switchTo(this, "Archive", { fromTitle: true }))]);
     items.push(["SETTINGS", () => this.scene.launch("Menu", { mode: "settings", caller: "Title" })]);
-    items.forEach(([t, fn], i) => button(this, W / 2, 222 + i * 46, t, fn, { w: 320 }));
+    const gap = items.length > 6 ? 41 : 46;
+    items.forEach(([t, fn], i) => button(this, W / 2, 218 + i * gap, t, fn, { w: i === 0 && latest ? 460 : 320, h: items.length > 6 ? 36 : 40, size: i === 0 && latest ? 15 : 17 }));
     button(this, 90, 24, "🛠 DEBUG", () => switchTo(this, "DebugSkip"), { w: 140, h: 30, size: 13 });
 
     label(this, 12, H - 22, "WASD · Mouse · Click · Space · E · Q · B · R · Esc", 11, "#6d6a85");
@@ -73,5 +83,26 @@ export class TitleScene extends Phaser.Scene {
     this.input.once("pointerdown", () => synth.unlock());
     this.input.keyboard?.once("keydown", () => synth.unlock());
     synth.music("title");
+  }
+
+  /** Yes / no over the title (NEW GAME when there's a run in the AUTO slot). Enter / Y = yes, Esc / N = no. */
+  private confirmNew(text: string, yes: () => void) {
+    const box = this.add.container(0, 0).setDepth(1000);
+    const off = () => {
+      this.input.keyboard?.off("keydown", onKey);
+      box.destroy(true);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code === "Enter" || e.code === "NumpadEnter" || e.code === "KeyY") {
+        off();
+        yes();
+      } else if (e.code === "Escape" || e.code === "KeyN") off();
+    };
+    box.add(this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x000000, 0.6).setOrigin(0).setInteractive());
+    box.add(panel(this, 210, 170, 540, 200));
+    box.add(this.add.text(480, 230, text, { fontFamily: FONT, fontSize: "14px", color: "#ffffff", align: "center", fontStyle: "bold", wordWrap: { width: 500 } }).setOrigin(0.5));
+    box.add(button(this, 390, 324, "NEW GAME", () => (off(), yes()), { w: 160, h: 34, size: 15, color: 0x7f1d1d }));
+    box.add(button(this, 570, 324, "CANCEL", off, { w: 160, h: 34, size: 15 }));
+    this.input.keyboard?.on("keydown", onKey);
   }
 }

@@ -57,3 +57,16 @@ describe("the ALT Archive", () => {
     expect(Object.values(CANON).some((c) => c.sourceTimestamp)).toBe(true);
   });
 });
+
+import { CHAPTERS } from "../src/content/chapters/chapters";
+import { migrateState } from "../src/game/systems/state";
+describe("the founding is optional", () => {
+  it("chapter 1 has no compulsory Archive step", () => {
+    const ch1 = (CHAPTERS as any[]).find((c) => c.n === 1);
+    expect(ch1.steps.some((st: any) => st.target === "ARCHIVE")).toBe(false);
+  });
+  it("old saves past the Emergency Session get the side quests", () => {
+    const s = migrateState({ player: "FLENKY", chapter: 1, flags: { met_emergency: true } })!;
+    expect(s.flags.ministerial_quests).toBe(true);
+  });
+});

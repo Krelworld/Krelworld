@@ -162,6 +162,8 @@ export function migrateState(raw: any): GameState | null {
   s.intoxication = Math.min(Math.max(s.intoxication, 0), 100);
   // THE KRUNCH PIT's records (saves from before it don't have any)
   if (raw.pit !== undefined) s.pit = cleanPit(raw.pit);
+  // the founding in the Archive is optional now: the side quests open with the Emergency Session (saves from before)
+  if (s.flags.met_emergency && !s.flags.ministerial_quests) s.flags.ministerial_quests = true;
   s.version = SAVE_VERSION;
   return s;
 }

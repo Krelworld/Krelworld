@@ -2924,7 +2924,7 @@ You are required by law to sign the Sex Offenders Register.`, {
         }
         const a = archiveAction();
         if (a.kind === "meeting" && a.id === "founding_cabinet") {
-          // first visit: the Archive offers a trip down memory lane, which you can skip
+          // first (voluntary) visit: the Archive offers a trip down memory lane, which you can skip
           delete s.flags.founding_pick;
           await this.talk([
             say("ARCHIVE", "Welcome to the Krelworld Historical Archive."),
@@ -2941,7 +2941,7 @@ You are required by law to sign the Sex Offenders Register.`, {
           Object.assign(s.flags, m?.onComplete ?? {});
           for (const id of m?.unlocksArchive ?? []) G.unlockArchive(id);
           G.save();
-          await this.talk([say("ARCHIVE", "Very well. The founding has been filed. You can replay it any time from the Archive."), dir("Ministerial side quests are now available from cabinet members around Krelford.")]);
+          await this.talk([say("ARCHIVE", "Very well. The founding has been filed. You can replay it any time from the Archive.")]);
           return;
         }
         if (a.kind === "meeting") {

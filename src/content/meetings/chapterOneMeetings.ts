@@ -147,7 +147,8 @@ export const EMERGENCY_REACTION_SESSION: MeetingScript = {
     dir("All eyes turn to you."),
     say("SCROMBUS", "Go on then. Wildern Academy. Find Kranky Krandall, take him out, and get the Tap back on. For the lore. And the kids.", { role: true, proctus: "Off you pop! Kill the jester! Save the children! I'll stay here and guard the... table." }),
   ],
-  onComplete: { met_emergency: true, objective_wildern: true, leak_threat: true },
+  // (the cabinet's side quests open straight away: watching the founding in the Archive is entirely optional)
+  onComplete: { met_emergency: true, objective_wildern: true, leak_threat: true, ministerial_quests: true },
   unlocksArchive: ["arch_great_silence"],
 };
 

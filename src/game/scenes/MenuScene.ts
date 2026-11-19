@@ -1,3 +1,4 @@
+import { canFullscreen, fullscreenLabel, toggleFullscreen } from "../systems/fullscreen";
 import { afterKreddle } from "../systems/moodMusic";
 import { dialogueLog } from "../ui/dialogueLog";
 import Phaser from "phaser";
@@ -283,6 +284,12 @@ export class MenuScene extends Phaser.Scene {
     switch (mode) {
       case "pause": {
         add(title(this, 480, 74, "PAUSED", 28));
+        // fullscreen, from here too (and Alt+Enter any time)
+        if (canFullscreen(this.game))
+          add(button(this, 712, 74, fullscreenLabel(this.game), () => {
+            toggleFullscreen(this.game);
+            this.time.delayedCall(250, () => this.render("pause"));
+          }, { w: 190, h: 34, size: 13, color: 0x1e3a5f }));
         const st = s ? currentStep() : null;
         // (Chapter 7: a nudge towards the wreckage of your house before the dungeon; the objective itself doesn't change)
         const hint = s ? ruinHomeHint(s) : "";

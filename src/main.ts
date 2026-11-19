@@ -1,3 +1,4 @@
+import { installFullscreenKeys } from "./game/systems/fullscreen";
 import { installMouseLock } from "./game/systems/mouseLock";
 import { TutorialScene } from "./game/scenes/TutorialScene";
 import { PolsonHomeScene } from "./game/scenes/PolsonHomeScene";
@@ -103,6 +104,7 @@ const game = new Phaser.Game({
   ],
 });
 installMouseLock(game);
+installFullscreenKeys(game);
 // playtime: every frame of a run counts (town, dungeons, meetings, home, TV, cutscenes, minigames), not the
 // title/character-select screens or the pause menu
 const NOT_PLAYING = ["Boot", "Title", "CharSelect", "Difficulty", "Menu", "Slots", "ChapterSelect", "DebugSkip"];

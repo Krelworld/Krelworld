@@ -172,9 +172,6 @@ export class PubScene extends Phaser.Scene {
 
   // ------------------------------------------------------------- menu
 
-  private barred(left: number) {
-    this.play([dir(`Barred from the Wonky Pole: ${Math.ceil(left / 60000)} more minute${left > 60000 ? "s" : ""}.`), say("BIG DEREK", "You lot are barred. Come back later. And wash your hands.")]).then(() => this.showMenu());
-  }
 
   /** What's on the chalkboard tonight. */
   private menuItems(): PubOption[] {
@@ -198,14 +195,10 @@ export class PubScene extends Phaser.Scene {
     // the back rooms
     if (this.sanmikOn) items.push({ id: "sanmik", group: "back", icon: "pubicon_sanmik", label: "SanMik & SanChz", sub: s.player === "MIKEY" ? "You're on. Live, mid-song" : "On now. Live, mid-song", run: () => switchTo(this, "Venue", {}) });
     if (s.player !== "KREBON" && s.flags.met_emergency) items.push({ id: "gig", group: "back", icon: "pubicon_gig", label: "Twitcher Mutiny", sub: "On now. It's getting rowdy", run: () => switchTo(this, "Minigame", { mode: "gig", returnAt: "PUB" }) });
-    {
-      const left = ((s.flags.club_banned_until as number) ?? 0) - s.playtimeMs;
-      items.push(
-        left > 0
-          ? { id: "pole", group: "back", icon: "pubicon_pole", label: "The Wonky Pole", sub: `BARRED: ${Math.ceil(left / 60000)} more min`, warn: true, run: () => this.barred(left) }
-          : { id: "pole", group: "back", icon: "pubicon_pole", label: "The Wonky Pole", sub: "Through the curtain", run: () => switchTo(this, "Club", {}) },
-      );
-    }
+    // (no ban from the Wonky Pole any more: getting thrown out is just a scene, you can walk straight back in.
+    // A ban locked players out of a chapter-3 cuddle token.)
+    delete s.flags.club_banned_until;
+    items.push({ id: "pole", group: "back", icon: "pubicon_pole", label: "The Wonky Pole", sub: "Through the curtain", run: () => switchTo(this, "Club", {}) });
     if (s.flags.sanmik_catford) items.push({ id: "lamp", group: "back", icon: "pubicon_lamp", label: "The magic lamp", sub: "Rub it: Begour's café", run: () => switchTo(this, "Dungeon", { dungeon: "sanmik_hangout", room: 0 }) });
     items.push({
       id: "leave",

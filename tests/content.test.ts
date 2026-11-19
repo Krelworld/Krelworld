@@ -17,6 +17,7 @@ import { PERSONAL_QUESTS, MINISTRY_QUESTS } from "../src/content/quests";
 import { ENDINGS } from "../src/content/endings";
 import { CANON_LIST } from "../src/content/archive/canonQuotes";
 import { CHARACTERS } from "../src/data/characters";
+import { MIKEY_ARCHIVE_ALT, ARCHIVE_UNDATED } from "../src/content/archive/mikeyAltQuotes";
 
 // The game must not ship slurs from the source chats. This list is checked against every curated string.
 const BANNED = [/\bnigg/i, /\bfag/i, /\bpaki\b/i, /\bchink/i, /\bretard\b/i, /\btrann/i, /\bgook/i, /lolicon/i, /child porn/i];
@@ -99,7 +100,7 @@ describe("content integrity", () => {
   });
 
   it("no slurs from the source chats made it into the game", () => {
-    const strings = allStrings([MEETINGS, ARCHIVE, ALL_EPISODES, BARKS, PLAYER_BARKS, NPC_TALK, PUB_CONVERSATIONS, DRONGUS_SEQUENCES, CHATTER, CHAPTERS, PERSONAL_QUESTS, ENDINGS, CANON_LIST, BOSS_TEXT, CHARACTERS]);
+    const strings = allStrings([MEETINGS, ARCHIVE, ALL_EPISODES, BARKS, PLAYER_BARKS, NPC_TALK, PUB_CONVERSATIONS, DRONGUS_SEQUENCES, CHATTER, CHAPTERS, PERSONAL_QUESTS, ENDINGS, CANON_LIST, BOSS_TEXT, CHARACTERS, MIKEY_ARCHIVE_ALT, ARCHIVE_UNDATED]);
     expect(strings.length).toBeGreaterThan(1000);
     for (const str of strings) for (const re of BANNED) expect(re.test(str), str).toBe(false);
   });

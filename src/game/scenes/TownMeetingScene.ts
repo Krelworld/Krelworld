@@ -15,6 +15,7 @@ import { synth } from "../audio/Synth";
 import { FONT, hexStr, UI } from "../ui/theme";
 import { CANON } from "../../content/archive/canonQuotes";
 import { say } from "../../content/dsl";
+import { isAlt } from "../variant";
 
 interface Seat {
   id: string;
@@ -59,7 +60,7 @@ export class TownMeetingScene extends Phaser.Scene {
     const card = this.add.container(W / 2, H / 2).setDepth(2000);
     card.add(this.add.rectangle(0, 0, W, 140, 0x000000, 0.85));
     card.add(this.add.text(0, -24, m.title, { fontFamily: FONT, fontSize: "30px", color: "#ffd23f", fontStyle: "bold" }).setOrigin(0.5));
-    card.add(this.add.text(0, 18, m.subtitle ?? "", { fontFamily: FONT, fontSize: "15px", color: "#ff6fa8" }).setOrigin(0.5));
+    card.add(this.add.text(0, 18, (isAlt() && m.altSubtitle !== undefined ? m.altSubtitle : m.subtitle) ?? "", { fontFamily: FONT, fontSize: "15px", color: "#ff6fa8" }).setOrigin(0.5));
     if (m.historical) card.add(this.add.text(0, 46, "ARCHIVE RECONSTRUCTION — ORIGINAL SPEAKERS", { fontFamily: FONT, fontSize: "11px", color: "#c8b88a" }).setOrigin(0.5));
     this.tweens.add({ targets: card, alpha: 0, delay: 1600, duration: 500, onComplete: () => card.destroy() });
 

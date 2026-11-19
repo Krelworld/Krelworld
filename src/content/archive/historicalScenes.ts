@@ -1,11 +1,13 @@
 import type { ArchiveEntry } from "../../data/types";
 import { adapt, canon, dir, ping, say } from "../dsl";
 import { weaveArchive } from "./grotesque";
+import { weaveMikeyAlt } from "./mikeyAltQuotes";
+import { ALT } from "../../game/variant";
 
 // The Krelworld Historical Archive. Each entry has the official Krelworld version,
 // the original record (replayable as a reenactment), and sometimes a contradiction.
 
-export const ARCHIVE: ArchiveEntry[] = weaveArchive([
+const RECORD: ArchiveEntry[] = weaveArchive([
   {
     id: "arch_motto",
     title: "The Constitution: WONK IT 'TIL YOU KREZ",
@@ -277,5 +279,7 @@ export const ARCHIVE: ArchiveEntry[] = weaveArchive([
   },
 ]);
 
+/** The ALT build has Mikey in the Krelworld-era chat and no dates (mikeyAltQuotes.ts); the normal build is the record as is. */
+export const ARCHIVE: ArchiveEntry[] = ALT ? weaveMikeyAlt(RECORD) : RECORD;
 
 export const ARCHIVE_BY_ID: Record<string, ArchiveEntry> = Object.fromEntries(ARCHIVE.map((a) => [a.id, a]));

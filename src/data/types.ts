@@ -140,6 +140,8 @@ export interface MeetingScript {
   id: string;
   title: string;
   subtitle?: string;
+  /** ALT build only: replaces `subtitle` (the archive reconstructions there carry no dates). */
+  altSubtitle?: string;
   agenda: string[];
   /** Archive reconstructions show the original speakers and never substitute Proctus. */
   historical?: boolean;

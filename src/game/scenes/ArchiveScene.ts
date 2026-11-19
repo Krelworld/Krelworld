@@ -9,6 +9,7 @@ import { switchTo, fadeThen } from "../Flow";
 import { synth } from "../audio/Synth";
 import { CANON } from "../../content/archive/canonQuotes";
 import { CHARACTERS } from "../../data/characters";
+import { isAlt } from "../variant";
 
 export class ArchiveScene extends Phaser.Scene {
   private fromTitle = false;
@@ -95,7 +96,7 @@ export class ArchiveScene extends Phaser.Scene {
     const X = 366;
     this.detail.add(this.add.rectangle(X, 64, 578, 430, 0xf5ecd0, 0.95).setOrigin(0).setStrokeStyle(2, 0x7a5230));
     this.detail.add(this.add.text(X + 16, 74, e.title.toUpperCase(), { fontFamily: FONT, fontSize: "18px", color: "#3a2a1a", fontStyle: "bold", wordWrap: { width: 540 } }));
-    this.detail.add(this.add.text(X + 16, 100, `${e.era.replace("_", " ")} · ${e.date}`, { fontFamily: FONT, fontSize: "11px", color: "#7a6a4a" }));
+    this.detail.add(this.add.text(X + 16, 100, isAlt() ? e.era.replace("_", " ") : `${e.era.replace("_", " ")} · ${e.date}`, { fontFamily: FONT, fontSize: "11px", color: "#7a6a4a" }));
     let y = 124;
     const block = (label: string, text: string, color: string) => {
       this.detail.add(this.add.text(X + 16, y, label, { fontFamily: FONT, fontSize: "11px", color, fontStyle: "bold" }));

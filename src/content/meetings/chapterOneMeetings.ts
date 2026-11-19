@@ -156,6 +156,7 @@ export const FOUNDING_CABINET: MeetingScript = {
   id: "founding_cabinet",
   title: "THE FOUNDING CABINET",
   subtitle: "Archive reconstruction — 9 January 2025",
+  altSubtitle: "Archive reconstruction",
   location: "TOWN_HALL",
   historical: true,
   agenda: [
@@ -211,6 +212,7 @@ export const KRAZY_FACT_EMERGENCY: MeetingScript = {
   id: "krazy_fact_emergency",
   title: "THE FIRST KRAZY FACT EMERGENCY",
   subtitle: "Archive: 4 January 2025 — Present: the Tap flows again",
+  altSubtitle: "Archive — Present: the Tap flows again",
   location: "TOWN_HALL",
   agenda: [
     "1. The Tap is back (applause)",

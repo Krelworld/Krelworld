@@ -347,7 +347,7 @@ export class TVScene extends Phaser.Scene {
     }
     if (!this.fromTitle) items.push({ label: "📺 Back to whatever's on", action: () => this.surf() });
     items.push({ label: "⏏ Switch off", action: () => this.exit() });
-    this.renderList(this.fromTitle ? "KRELWORLD MEDIA ARCHIVE" : "KRELTV ON DEMAND", items);
+    this.renderList(this.fromTitle ? "WATCH TV" : "KRELTV ON DEMAND", items);
     if (!this.fromTitle) {
       // the TV log: what you've seen, what's left, and how many gifts are still out there
       const seen = avail.filter((e) => G.s.tvWatched.includes(e.id)).length;

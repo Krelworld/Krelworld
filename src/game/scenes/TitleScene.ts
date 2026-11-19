@@ -1,3 +1,4 @@
+import { canFullscreen, fullscreenLabel, toggleFullscreen } from "../systems/fullscreen";
 import { clampDifficulty, MAX_DIFFICULTY } from "../systems/difficulty";
 import Phaser from "phaser";
 import { animateWalker, backdrop } from "../gfx/HD";
@@ -24,28 +25,24 @@ export class TitleScene extends Phaser.Scene {
     const standalone = matchMedia?.("(display-mode: fullscreen)").matches || matchMedia?.("(display-mode: standalone)").matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
     if (standalone) return;
     const { width: W, height: H } = this.scale;
-    const can = this.sys.game.device.fullscreen.available;
     const iosHint = () => {
       const t = label(this, W / 2, H - 52, "On iPhone: tap Share  ⬆  then  \"Add to Home Screen\"  for full screen", 13, "#ffd23f").setOrigin(0.5, 0);
       this.tweens.add({ targets: t, alpha: 0, delay: 5000, duration: 600, onComplete: () => t.destroy() });
     };
     const flip = () => {
-      if (!can) return iosHint();
-      try {
-        this.scale.toggleFullscreen();
-      } catch {
-        /* the browser said no */
-      }
+      if (!toggleFullscreen(this.game)) iosHint();
     };
-    const b = button(this, W - 100, 24, this.scale.isFullscreen ? "⛶ EXIT FULLSCREEN" : "⛶ FULLSCREEN (F)", flip, { w: 180, h: 30, size: 13 });
+    const tag = () => fullscreenLabel(this.game, canFullscreen(this.game) ? "  (F)" : "");
+    const b = button(this, W - 150, 34, tag(), flip, { w: 280, h: 48, size: 18, color: 0x1e3a5f });
     const relabel = () => {
       const t = (b as unknown as { list?: Phaser.GameObjects.GameObject[] }).list?.find((o) => o instanceof Phaser.GameObjects.Text) as Phaser.GameObjects.Text | undefined;
-      t?.setText(this.scale.isFullscreen ? "⛶ EXIT FULLSCREEN" : "⛶ FULLSCREEN (F)");
+      t?.setText(tag());
     };
     this.scale.on("enterfullscreen", relabel);
     this.scale.on("leavefullscreen", relabel);
     this.events.once("shutdown", () => (this.scale.off("enterfullscreen", relabel), this.scale.off("leavefullscreen", relabel)));
     this.input.keyboard?.on("keydown-F", flip);
+    if (canFullscreen(this.game)) label(this, W - 150, 64, "Alt+Enter: fullscreen any time", 11, "#9aa0b4").setOrigin(0.5, 0);
   }
 
   create() {

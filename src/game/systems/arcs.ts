@@ -129,7 +129,8 @@ export function takeIndoorToken(s: GameState, where: "CLUB" | "POLSON"): { lines
   s.flags[spotFlag(t.arc, t.step, hit.i)] = true;
   const got = t.spots.filter((_, i) => s.flags[spotFlag(t.arc, t.step, i)]).length;
   const k = t.step.step as Extract<ArcStep["step"], { kind: "collect" }>;
-  return { lines: k.pickup, toast: `${k.label}: ${hit.sp.name} (${got}/${t.spots.length})${got === t.spots.length ? " · Take them to Sergeant Swig." : ""}` };
+  // (each find is a batch of three tokens)
+  return { lines: k.pickup, toast: `${k.label}s: ${hit.sp.name} (${got * 3}/${t.spots.length * 3})${got === t.spots.length ? " · Take them to Sergeant Swig." : ""}` };
 }
 
 /**

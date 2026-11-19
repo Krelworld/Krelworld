@@ -70,3 +70,13 @@ describe("the founding is optional", () => {
     expect(s.flags.ministerial_quests).toBe(true);
   });
 });
+
+describe("cuddle tokens: two batches", () => {
+  it("old saves keep their indoor finds and drop the outdoor ones", () => {
+    const s = migrateState({ player: "FLENKY", chapter: 3, version: 3, flags: { arcspot_arc_cronster_tokens_0: true, arcspot_arc_cronster_tokens_5: true } })!;
+    expect(s.flags.arcspot_arc_cronster_tokens_0).toBeUndefined();
+    expect(s.flags.arcspot_arc_cronster_tokens_1).toBe(true);
+    const again = migrateState(JSON.parse(JSON.stringify(s)))!;
+    expect(again.flags.arcspot_arc_cronster_tokens_1).toBe(true);
+  });
+});

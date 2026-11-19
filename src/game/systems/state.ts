@@ -7,7 +7,7 @@ import { cleanPit } from "./pit";
 import { storageKey } from "../variant";
 import { AUTO_KEY, MANUAL_SLOTS, mostRecentSlot, SLOT_IDS, slotKey, SLOTS_MIGRATED_KEY, summarizeSlot, type SlotId, type SlotSummary } from "./saveSlots";
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 /** The AUTO slot (the old single save's key): see saveSlots.ts. */
 export const SAVE_KEY = AUTO_KEY;
 export const META_KEY = "krelworld.meta";
@@ -162,6 +162,17 @@ export function migrateState(raw: any): GameState | null {
   s.intoxication = Math.min(Math.max(s.intoxication, 0), 100);
   // THE KRUNCH PIT's records (saves from before it don't have any)
   if (raw.pit !== undefined) s.pit = cleanPit(raw.pit);
+  // the cuddle tokens went from six finds (four outdoors, then the Wonky Pole and Polson's) to two batches of three:
+  // carry the indoor finds over to their new places, and forget the outdoor ones
+  // (saves from before version 4)
+  if (!(typeof raw.version === "number" && raw.version >= 4)) {
+    const k = (i: number) => `arcspot_arc_cronster_tokens_${i}`;
+    const club = !!s.flags[k(4)];
+    const polson = !!s.flags[k(5)];
+    for (let i = 0; i < 6; i++) delete s.flags[k(i)];
+    if (club) s.flags[k(0)] = true;
+    if (polson) s.flags[k(1)] = true;
+  }
   // the founding in the Archive is optional now: the side quests open with the Emergency Session (saves from before)
   if (s.flags.met_emergency && !s.flags.ministerial_quests) s.flags.ministerial_quests = true;
   s.version = SAVE_VERSION;

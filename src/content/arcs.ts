@@ -795,20 +795,16 @@ export const ARCS: Arc[] = [
       },
       {
         id: "tokens",
-        text: "Find the Cronster's six chocolate cuddle tokens around Krelford. They glow pink.",
+        text: "Find the Cronster's chocolate cuddle tokens: a batch of three in the Wonky Pole (through the back of the Krezz Arms), and a batch of three at Polson Towers. They glow pink.",
         at: "FIELD",
         step: {
           kind: "collect",
           label: "Cuddle token",
-          pickup: [dir("A chocolate cuddle token. 'Sweet hugs, sweeter squeezes.' It smells incredible. You do not eat it. You think about eating it.")],
+          pickup: [dir("Three chocolate cuddle tokens. 'Sweet hugs, sweeter squeezes.' They smell incredible. You do not eat them. You think about eating them.")],
+          // two batches of three, both indoors: one in the Wonky Pole (through the Krezz Arms), one at Polson's
           spots: [
-            { x: 480, y: 1050, name: "dark choccy" },
-            { x: 1560, y: 980, name: "mint choccy" },
-            { x: 2200, y: 1050, name: "caramel choccy" },
-            { x: 420, y: 1440, name: "ruby choccy" },
-            // the last two are indoors: one in the Wonky Pole (through the Krezz Arms), one at Polson's
-            { x: 300, y: 470, name: "white choccy (the Wonky Pole)", inside: "CLUB" },
-            { x: 560, y: 330, name: "orange choccy (Polson's sofa bed)", inside: "POLSON" },
+            { x: 300, y: 470, name: "dark, mint & white choccy (the Wonky Pole)", inside: "CLUB" },
+            { x: 560, y: 330, name: "caramel, ruby & orange choccy (Polson's sofa bed)", inside: "POLSON" },
           ],
         },
       },

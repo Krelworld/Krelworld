@@ -126,7 +126,7 @@ export const CHAPTERS: ChapterDef[] = [
     dungeonDoor: "MINISTRY",
     steps: [
       { id: "s_brief", text: "KRELMERGENCY at the Town Hall: the Cuddle Cronster has taken Mollor", done: { flag: "cronster_briefed" }, target: "TOWN_HALL" },
-      { id: "s_police", text: "The police briefing, then the Cronster's chocolate trail (find six cuddle tokens, hand them to Swig)", done: { flag: "arcstep_arc_cronster_handin" }, target: "POLICE" },
+      { id: "s_police", text: "The police briefing, then the Cronster's chocolate trail (two batches of three cuddle tokens: the Wonky Pole and Polson Towers; hand them to Swig)", done: { flag: "arcstep_arc_cronster_handin" }, target: "POLICE" },
       { id: "s_dungeon", text: "Storm the Ministry of Boner Control. Climb to Da Squeezing Room, unmask the Cronster, rescue Mollor", done: { flag: "ch3_clear" }, target: "MINISTRY" },
       { id: "s_report", text: "Report to the Town Hall", done: { flag: "ch3_fact" }, target: "TOWN_HALL" },
     ],

@@ -1101,7 +1101,7 @@ export class ClubScene extends Phaser.Scene {
     const t = takeIndoorToken(G.s, "CLUB");
     if (!t) return;
     synth.play("pickup");
-    await this.talk([dir("Under the table nearest the pole, stuck to the carpet: a chocolate cuddle token. It's warm. You decide not to think about why."), ...t.lines]);
+    await this.talk([dir("Under the table nearest the pole, stuck to the carpet: three chocolate cuddle tokens. They're warm. You decide not to think about why."), ...t.lines]);
     G.emit("toast", { title: "THE CUDDLE CRONSTER", text: t.toast });
     G.save();
   }

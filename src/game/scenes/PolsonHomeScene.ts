@@ -51,7 +51,7 @@ export class PolsonHomeScene extends Phaser.Scene {
       if (!t) return;
       tok?.destroy();
       synth.play("pickup");
-      await box.play([dir("Wedged down the side of the sofa bed, between a Papa Gino's menu and a protein bar wrapper: a chocolate cuddle token."), say("POLSON", "That's not mine!! I'd have eaten it 😅"), ...t.lines]);
+      await box.play([dir("Wedged down the side of the sofa bed, between a Papa Gino's menu and a protein bar wrapper: three chocolate cuddle tokens."), say("POLSON", "That's not mine!! I'd have eaten it 😅"), ...t.lines]);
       G.emit("toast", { title: "THE CUDDLE CRONSTER", text: t.toast });
       G.save();
     };

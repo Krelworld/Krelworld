@@ -1443,7 +1443,7 @@ export class VignetteScene extends Phaser.Scene {
       say("NEWSREADER", "But as tensions rise and trust in law enforcement plummets, one question remains: will the Cuddle Cronster be stopped before he strikes again? Or will Krelford continue to spiral into fear, chaos, and chocolate-fueled madness?"),
       say("NEWSREADER", "For now, the Cuddle Cronster roams free, leaving only his disturbing notes and sweet, sinister tokens in his wake."),
       say("SERGEANT SWIG", "(quietly, to you, reloading) Find the tokens. Bring them to me. For evidence."),
-      dir("NEW OBJECTIVE: find six chocolate cuddle tokens around Krelford. They glow pink."),
+      dir("NEW OBJECTIVE: find the six chocolate cuddle tokens. They glow pink. A batch of three in the Wonky Pole (through the back of the Krezz Arms), a batch of three at Polson Towers."),
     ]);
   }
 

@@ -138,7 +138,8 @@ export function currentStep(): { text: string; target?: string } | null {
   const tt = tokenTrail(s);
   if (tt && !tt.outdoorLeft.length && tt.indoorLeft.length) {
     const club = tt.indoorLeft.some(({ sp }) => sp.inside === "CLUB");
-    return { text: `${tt.indoorLeft.length === 1 ? "The last batch of cuddle tokens is" : "The cuddle tokens are in two batches of three"}: ${tt.indoorLeft.map(({ sp }) => (sp.inside === "CLUB" ? "the strip club (through the Krezz Arms)" : "Polson's house")).join(" and ")}`, target: club ? "PUB" : "POLSON_ROAD" };
+    const where = tt.indoorLeft.map(({ sp }) => (sp.inside === "CLUB" ? "in the Wonky Pole (go into the Krezz Arms, then the strip room at the back)" : "at Polson Towers (down the side of Polson's sofa bed)"));
+    return { text: tt.indoorLeft.length === 1 ? `🍫 The last three cuddle tokens are ${where[0]}` : `🍫 Find the cuddle tokens: three ${where.join(", and three ")}`, target: club ? "PUB" : "POLSON_ROAD" };
   }
   // required side quests come first, in the quiet before the chapter's plot gets going
   if (sideQuestsFirst(s)) {

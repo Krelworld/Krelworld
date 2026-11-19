@@ -21,6 +21,10 @@ import { STAG_CHATS } from "../../content/stagChat";
 import { addKrokens } from "../systems/kreddle";
 import { afterKreddle } from "../systems/moodMusic";
 import { clueAt, clueTex, takeClue } from "../systems/trails";
+import { tokenTrail } from "../systems/arcs";
+
+/** Is a batch of the Cronster's cuddle tokens waiting in the Wonky Pole? */
+const clubHasTokens = () => !!tokenTrail(G.s)?.indoorLeft.some(({ sp }) => sp.inside === "CLUB");
 import { shinyColours, shinyPickup, trailPropScale, type Shiny } from "../gfx/shiny";
 
 /** Krokens for each riff, the first time you hear it. */
@@ -124,6 +128,7 @@ export class PubScene extends Phaser.Scene {
     this.clueShiny = null;
     // something glowing in here (a trail clue): it's the card that's lit when you walk in
     if (clueAt(G.s, "PUB")) this.selId = "clue";
+    else if (clubHasTokens()) this.selId = "pole";
     this.showMenu();
     // Chapter 2: you were told to come and check the place out
     if (G.s.chapter === 2 && !G.s.flags.ch2_pub_visited) {
@@ -198,7 +203,9 @@ export class PubScene extends Phaser.Scene {
     // (no ban from the Wonky Pole any more: getting thrown out is just a scene, you can walk straight back in.
     // A ban locked players out of a chapter-3 cuddle token.)
     delete s.flags.club_banned_until;
-    items.push({ id: "pole", group: "back", icon: "pubicon_pole", label: "The Wonky Pole", sub: "Through the curtain", run: () => switchTo(this, "Club", {}) });
+    // (chapter 3: a batch of the Cronster's cuddle tokens is in there)
+    const tokens = clubHasTokens();
+    items.push({ id: "pole", group: "back", icon: "pubicon_pole", label: tokens ? "The Wonky Pole 🍫" : "The Wonky Pole", sub: tokens ? "Through the curtain · CUDDLE TOKENS IN HERE" : "Through the curtain", run: () => switchTo(this, "Club", {}) });
     if (s.flags.sanmik_catford) items.push({ id: "lamp", group: "back", icon: "pubicon_lamp", label: "The magic lamp", sub: "Rub it: Begour's café", run: () => switchTo(this, "Dungeon", { dungeon: "sanmik_hangout", room: 0 }) });
     items.push({
       id: "leave",

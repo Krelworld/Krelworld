@@ -1131,17 +1131,20 @@ export class Citadel {
   private officeAfter() {
     const sc = this.sc;
     const gy = this.gy;
+    // the office is centred in a wider room (the Deranged Drongus fight): everything sits off its offset
+    const ox = Math.max(0, (this.room.w - 960) / 2);
+    const cx = this.officeObj?.cauldron.x ?? ox + 480;
     this.afterFight = true;
     synth.stopMusic();
     this.hooks.hideDoor();
-    for (const [x, k, v] of [[200, "heal", 30], [300, "ammo", 3], [640, "heal", 30], [760, "ammo", 3], [420, "bottle", 1]] as [number, "heal" | "ammo" | "bottle", number][]) this.sc.dropPickup(x, gy - 20, k, v);
+    for (const [x, k, v] of [[200, "heal", 30], [300, "ammo", 3], [640, "heal", 30], [760, "ammo", 3], [420, "bottle", 1]] as [number, "heal" | "ammo" | "bottle", number][]) this.sc.dropPickup(ox + x, gy - 20, k, v);
     sc.toast("QUIET", "Health and ammo on the floor. The ChatGPT rig is running the Kreddle Exchange (E). When you're ready: the cauldron (E).");
-    this.hooks.interact({ x: 850, y: gy - 30, r: 90, label: "Use the Kreddle Exchange", use: () => this.giftShop() });
+    this.hooks.interact({ x: ox + 850, y: gy - 30, r: 90, label: "Use the Kreddle Exchange", use: () => this.giftShop() });
     let jumped = false;
     this.hooks.interact({
-      x: 480,
+      x: cx,
       y: gy - 30,
-      r: 110,
+      r: 120,
       label: "Jump into the cauldron",
       enabled: () => !jumped,
       use: async () => {
@@ -1149,11 +1152,11 @@ export class Citadel {
         await this.hooks.talk(CAULDRON_JUMP);
         const p = sc.player.spr;
         this.hooks.setBusy(true);
-        sc.tweens.add({ targets: p, y: gy - 220, x: 480, duration: 420, ease: "Quad.out", onComplete: () => sc.tweens.add({ targets: p, y: gy - 80, duration: 300, ease: "Quad.in" }) });
+        sc.tweens.add({ targets: p, y: gy - 220, x: cx, duration: 420, ease: "Quad.out", onComplete: () => sc.tweens.add({ targets: p, y: gy - 80, duration: 300, ease: "Quad.in" }) });
         sc.time.delayedCall(760, () => {
           synth.play("splash");
           p.setVisible(false);
-          for (let i = 0; i < 20; i++) this.sparkle(480 + (Math.random() - 0.5) * 100, gy - 100, -80);
+          for (let i = 0; i < 20; i++) this.sparkle(cx + (Math.random() - 0.5) * 100, gy - 100, -80);
         });
         sc.time.delayedCall(1500, () => {
           synth.play("jet");

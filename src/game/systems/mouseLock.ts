@@ -46,10 +46,18 @@ export function installMouseLock(game: Phaser.Game) {
   cur.style.cssText = "position:fixed;left:0;top:0;pointer-events:none;z-index:99999;display:none;line-height:0;transition:transform 70ms ease-out;";
   cur.innerHTML = ARROW;
   document.body.appendChild(cur);
+  // in fullscreen only the fullscreen element (and what's inside it) is drawn: the cursor has to live in there
+  const rehome = () => {
+    const host = (document.fullscreenElement as HTMLElement | null) ?? document.body;
+    if (cur.parentElement !== host) host.appendChild(cur);
+    draw();
+  };
+  document.addEventListener("fullscreenchange", rehome);
+  document.addEventListener("webkitfullscreenchange", rehome);
   let aimMode = false;
   /** where the hotspot sits inside the drawn cursor */
   const hot = () => (aimMode ? 16 : 1);
-  const locked = () => !!im.mouse?.locked;
+  const locked = () => !!im.mouse?.locked || document.pointerLockElement === game.canvas;
   const draw = () => {
     if (!locked()) {
       cur.style.display = "none";
@@ -110,6 +118,8 @@ export function installMouseLock(game: Phaser.Game) {
       v.live = false;
     }
     draw();
+    // (Phaser's own lock flag can flip a moment after this event: draw again next frame)
+    requestAnimationFrame(draw);
   });
   // which cursor: the crosshair while you're aiming, the arrow otherwise
   const sm = game.scene;

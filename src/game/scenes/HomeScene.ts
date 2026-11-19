@@ -31,7 +31,7 @@ import { DARK_AUTISM_PASSAGES } from "../../content/darkAutism";
 import { clueAt, clueTex, takeClue } from "../systems/trails";
 import { shinyColours, shinyPickup, trailPropScale } from "../gfx/shiny";
 import { addPantsPoster } from "./home/pantsPoster";
-import { addRuinSpots, dressRuin, homeRuined, RUIN_AMMO_MULT } from "./home/ruinedHome";
+import { addRuinSpots, dressRuin, homeRuined, RUIN_AMMO_MULT, wreckFurniture } from "./home/ruinedHome";
 import { RUIN_ARRIVE, RUIN_SLEEP, RUIN_TV, RUIN_WINDOW } from "../../content/ruinedHome";
 
 /** Your house: walk about, watch the telly, sleep. New games start here. */
@@ -79,7 +79,8 @@ export class HomeScene extends Phaser.Scene {
       const glow = this.add.ellipse(160, 360, 380, 260, 0xffc46b, 0.08).setBlendMode(Phaser.BlendModes.ADD).setDepth(1);
       this.tweens.add({ targets: glow, alpha: 0.5, yoyo: true, repeat: -1, duration: 2400, ease: "Sine.inOut" });
     }
-    // the furniture
+    // the furniture (in the wreckage it all gets knocked about and scorched further down)
+    const furnFrom = this.children.list.length;
     const tv = this.add.image(130, 478, "p_tv").setOrigin(0.5, 1).setScale(7).setDepth(470);
     const screen = this.add.rectangle(tv.x - 8, tv.y - tv.displayHeight * 0.48, tv.displayWidth * 0.62, tv.displayHeight * 0.45, 0x7dd3fc, 0.18).setDepth(471).setBlendMode(Phaser.BlendModes.ADD);
     this.tweens.add({ targets: screen, alpha: 0.05, yoyo: true, repeat: -1, duration: 160 });
@@ -121,6 +122,7 @@ export class HomeScene extends Phaser.Scene {
     }
     // a well-thumbed copy of Dark Autism - An Erotic Memoir, at the foot of the bed
     if (this.textures.exists("p_dark_autism")) this.add.image(628, 534, "p_dark_autism").setOrigin(0.5, 1).setScale(0.34).setAngle(-14).setDepth(533);
+    if (this.ruined) wreckFurniture(this, this.children.list.slice(furnFrom), screen);
     this.me = this.add.sprite(s.flags.home_seen ? 740 : 420, 500, playerKey(this), 0).setOrigin(0.5, 1).setScale(5.5).setDepth(500);
     bindSanmikToggle(this, { sprites: () => [this.me], can: () => !this.busy });
     this.prompt = this.add.text(0, 0, "", { fontFamily: FONT, fontSize: "13px", color: "#ffffff", backgroundColor: "#000000cc", padding: { x: 6, y: 3 } }).setOrigin(0.5).setDepth(1000).setVisible(false);

@@ -3599,9 +3599,78 @@ You are required by law to sign the Sex Offenders Register.`, {
     name = `${name} (RUBBLE)`;
     void name;
     // your house is still (just about) enterable: a sign by what's left of the door
-    if (b.id === "HOME" && b.door)
+    if (b.id === "HOME" && b.door) {
       this.add.text(b.door.x, b.door.y - 96, `${CHARACTERS[G.s.player].name}'S HOUSE (what's left)`, { fontFamily: FONT, fontSize: "11px", color: "#ffd9a8", backgroundColor: "#0c0a09cc", padding: { x: 4, y: 2 } }).setOrigin(0.5, 1).setDepth(5990);
+      this.markRuinedHome(b);
+    }
     this.colliders.add(this.add.rectangle(b.x, b.y + b.h * 0.12, b.w * 0.8, b.h * 0.6, 0, 0));
+  }
+
+  /**
+   * Your house in the wreckage, easy to find: what's left of its front wall and red roof still standing, a big label,
+   * a beam of light over it you can see from across town, a bouncing arrow at the door, and an arrow at the edge of the
+   * screen pointing home whenever it's out of view.
+   */
+  private markRuinedHome(b: Building) {
+    const door = b.door!;
+    // the front wall and a corner of the roof, still standing (jagged, scorched)
+    const g = this.add.graphics().setDepth(door.y - 20);
+    const L = b.x - b.w / 2 + 20;
+    const R = b.x + b.w / 2 - 20;
+    const base = door.y - 4;
+    const top = b.y - b.h * 0.15;
+    g.fillStyle(b.wall, 1).fillPoints([
+      new Phaser.Math.Vector2(L, base), new Phaser.Math.Vector2(L, top + 10), new Phaser.Math.Vector2(L + 40, top - 6), new Phaser.Math.Vector2(L + 70, top + 30),
+      new Phaser.Math.Vector2(b.x - 40, top + 5), new Phaser.Math.Vector2(b.x - 6, top + 46), new Phaser.Math.Vector2(b.x + 30, top + 20), new Phaser.Math.Vector2(b.x + 70, top + 60),
+      new Phaser.Math.Vector2(R - 30, top + 40), new Phaser.Math.Vector2(R, top + 70), new Phaser.Math.Vector2(R, base),
+    ], true);
+    g.fillStyle(0x0d0806, 0.45).fillRect(L, top + 30, R - L, base - top - 30);
+    // the roof: one red corner left, hanging off the left end
+    g.fillStyle(b.roof, 1).fillPoints([new Phaser.Math.Vector2(L - 16, top + 14), new Phaser.Math.Vector2(L + 46, top - 46), new Phaser.Math.Vector2(L + 110, top - 10), new Phaser.Math.Vector2(L + 76, top + 4), new Phaser.Math.Vector2(L + 40, top - 14)], true);
+    g.lineStyle(3, 0x1a0f0b, 1).strokeRect(L, top + 10, R - L, base - top - 10);
+    // the door gap and a window hole, firelit
+    g.fillStyle(0x140a06, 1).fillRect(door.x - 24, base - 70, 48, 70);
+    g.fillStyle(0xff7a2a, 0.5).fillRect(door.x - 18, base - 60, 36, 56);
+    g.fillStyle(0x140a06, 1).fillRect(L + 30, top + 60, 50, 40);
+    vfx(this, "vfx_fire", L + 55, top + 96, { scale: 0.7, depth: door.y - 19 });
+    // big label, the same as the house had before
+    const label = this.add.text(b.x, top - 70, "🏠 YOUR HOUSE (what's left)", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#ffd23f", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(9100).setScale(1.6);
+    this.tweens.add({ targets: label, scale: 1.75, yoyo: true, repeat: -1, duration: 900, ease: "Sine.inOut" });
+    // a beam of light straight up from it, visible across town
+    const beam = this.add.rectangle(b.x, base, 46, 1400, 0xffd27a, 0.16).setOrigin(0.5, 1).setDepth(9050).setBlendMode(Phaser.BlendModes.ADD);
+    const core = this.add.rectangle(b.x, base, 12, 1400, 0xfff1c4, 0.25).setOrigin(0.5, 1).setDepth(9051).setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({ targets: [beam, core], alpha: { from: 1, to: 0.45 }, yoyo: true, repeat: -1, duration: 1100, ease: "Sine.inOut" });
+    // a bouncing arrow at the door
+    const down = this.add.text(door.x, door.y - 130, "▼", { fontFamily: FONT, fontSize: "30px", color: "#ffd23f", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setDepth(9100);
+    this.tweens.add({ targets: down, y: door.y - 112, yoyo: true, repeat: -1, duration: 450, ease: "Sine.inOut" });
+    // off screen: an arrow on the edge of the screen pointing home
+    const edge = this.add.container(0, 0).setDepth(9500).setVisible(false);
+    const arrow = this.add.triangle(0, 0, 0, -14, 26, 0, 0, 14, 0xffd23f).setStrokeStyle(3, 0x000000);
+    const tag = this.add.text(0, 24, "🏠 HOME", { fontFamily: FONT, fontSize: "11px", color: "#ffd23f", backgroundColor: "#000000aa", padding: { x: 3, y: 1 } }).setOrigin(0.5);
+    edge.add([arrow, tag]);
+    this.time.addEvent({
+      delay: 60,
+      loop: true,
+      callback: () => {
+        const cam = this.cameras.main;
+        const v = cam.worldView;
+        const hx = door.x;
+        const hy = door.y - 60;
+        const onScreen = hx > v.x && hx < v.right && hy > v.y && hy < v.bottom;
+        edge.setVisible(!onScreen && !this.busy && !this.cutscene);
+        if (onScreen) return;
+        const cx = v.centerX;
+        const cy = v.centerY;
+        const ang = Math.atan2(hy - cy, hx - cx);
+        // where the line to the house leaves the view (inset a little), in world space so the camera's zoom doesn't matter
+        const z = cam.zoom || 1;
+        const hw = v.width / 2 - 40 / z;
+        const hh = v.height / 2 - 48 / z;
+        const t = Math.min(hw / Math.abs(Math.cos(ang) || 1e-6), hh / Math.abs(Math.sin(ang) || 1e-6));
+        edge.setPosition(cx + Math.cos(ang) * t, cy + Math.sin(ang) * t).setScale(1 / z);
+        arrow.setRotation(ang);
+      },
+    });
   }
 
   /** No lawns, no plants, no parked cars: wrecks, debris and ash. */

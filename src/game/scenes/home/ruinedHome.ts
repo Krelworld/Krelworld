@@ -215,3 +215,72 @@ export function ruinHomeHint(s: GameState | null | undefined): string {
   if (!f.ch7_aftermath || f.home_ruin_seen || f.citadel_lads_in || f.citadel_fallen || f.ch7_clear) return "";
   return "Optional: stop at the wreckage of your house first (pussy juice, half-price ammo, a squeeze).";
 }
+
+/** Things in the room that aren't furniture (the stash, Donna, clues): left as they are. */
+const NOT_FURNITURE = /^(c7d_|p_juice|spr_|r_|vfx_|clue)/;
+
+/**
+ * The furniture after the blast: everything's still there (and still works) but knocked crooked, scorched and buried
+ * in plaster: the TV's screen is cracked and full of static, there's roof on the bed and holes burnt in the sofa.
+ * `objs` is everything the room added for its furniture; `screen` is the TV's glow.
+ */
+export function wreckFurniture(scene: Phaser.Scene, objs: Phaser.GameObjects.GameObject[], screen?: Phaser.GameObjects.Rectangle) {
+  const has = (k: string) => scene.textures.exists(k);
+  const SCORCH = 0x8a766c;
+  const tilt: Record<string, number> = { p_tv: -7, p_sofa: -4, p_bed: 3, p_jukebox: 9, p_gunrack: -7, p_console: 6, p_laptop: -10 };
+  let wallIx = 0;
+  for (const o of objs) {
+    if (!(o instanceof Phaser.GameObjects.Image) || o instanceof Phaser.GameObjects.Sprite) continue;
+    const key = o.texture.key;
+    if (NOT_FURNITURE.test(key)) continue;
+    o.setTint(SCORCH);
+    if (key in tilt) o.setAngle(o.angle + tilt[key]);
+    else if (o.y < 400) o.setAngle(o.angle + (wallIx++ % 2 ? 9 : -11)); // posters and frames: knocked crooked
+    // soot over the top half of it
+    const b = o.getBounds();
+    scene.add.ellipse(b.centerX, b.top + b.height * 0.3, b.width * 0.8, b.height * 0.5, 0x0d0806, 0.28).setDepth(o.depth + 0.2);
+  }
+  // the TV: cracked, all static
+  const tv = objs.find((o) => o instanceof Phaser.GameObjects.Image && o.texture.key === "p_tv") as Phaser.GameObjects.Image | undefined;
+  if (tv) {
+    if (screen) screen.setFillStyle(0xd8d8d8, 0.3).setAngle(-7);
+    const b = tv.getBounds();
+    const cx = b.centerX - 10;
+    const cy = b.top + b.height * 0.42;
+    const g = scene.add.graphics().setDepth(tv.depth + 0.5);
+    g.lineStyle(3, 0x0b0b0b, 0.9);
+    for (const [dx, dy] of [[-120, -90], [110, -70], [-90, 120], [130, 100], [10, -140], [-150, 10]] as const)
+      g.strokePoints([new Phaser.Math.Vector2(cx, cy), new Phaser.Math.Vector2(cx + dx * 0.45, cy + dy * 0.4 + 8), new Phaser.Math.Vector2(cx + dx, cy + dy)], false);
+    g.fillStyle(0x0b0b0b, 0.9).fillCircle(cx, cy, 9);
+    // static snow
+    scene.time.addEvent({
+      delay: 90,
+      loop: true,
+      callback: () => {
+        for (let i = 0; i < 6; i++) {
+          const sx = cx + Phaser.Math.Between(-150, 140);
+          const sy = cy + Phaser.Math.Between(-120, 110);
+          const d = scene.add.rectangle(sx, sy, Phaser.Math.Between(4, 14), 3, 0xffffff, 0.7).setDepth(tv.depth + 0.4);
+          scene.time.delayedCall(90, () => d.destroy());
+        }
+      },
+    });
+  }
+  // a chunk of roof on the bed, plaster on the sofa, burn holes in both
+  const heap = (k: string, x: number, y: number, sc: number, depth: number, a = 0) => {
+    if (has(k)) scene.add.image(x, y, k).setOrigin(0.5, 0.85).setScale(sc).setAngle(a).setDepth(depth).setTint(0xb0a39a);
+  };
+  heap("r_debris", 500, 470, 1.6, 533, -12);
+  heap("r_rubble", 586, 482, 1.1, 533.2);
+  heap("r_debris", 300, 498, 1.1, 535, 20);
+  scene.add.rectangle(548, 452, 190, 16, 0x4a3222).setAngle(-9).setStrokeStyle(2, 0x1f140d).setDepth(533.4);
+  scene.add.rectangle(262, 470, 120, 12, 0x5a3e2a).setAngle(14).setStrokeStyle(2, 0x1f140d).setDepth(535.4);
+  const burn = scene.add.graphics().setDepth(533.3);
+  for (const [x, y, w, h] of [[456, 500, 40, 18], [612, 488, 30, 14], [276, 508, 34, 14], [346, 486, 22, 10]] as const) {
+    burn.fillStyle(0x140c08, 0.9).fillEllipse(x, y, w, h);
+    burn.lineStyle(2, 0xff7a2a, 0.55).strokeEllipse(x, y, w + 4, h + 3);
+  }
+  // plaster dust settled over everything
+  const dust = scene.add.graphics().setDepth(536);
+  for (let i = 0; i < 70; i++) dust.fillStyle(0xd8cfc0, 0.35).fillRect(120 + ((i * 131) % 820), 420 + ((i * 53) % 110), 3 + (i % 4), 2);
+}

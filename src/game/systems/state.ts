@@ -3,6 +3,7 @@ import { CHARACTERS } from "../../data/characters";
 import { GUNS } from "../../data/guns";
 import { sanitizeLoadout } from "./carry";
 import { clampDifficulty, DEFAULT_DIFFICULTY, LEGACY_DIFFICULTY } from "./difficulty";
+import { cleanPit } from "./pit";
 import { storageKey } from "../variant";
 import { AUTO_KEY, MANUAL_SLOTS, mostRecentSlot, SLOT_IDS, slotKey, SLOTS_MIGRATED_KEY, summarizeSlot, type SlotId, type SlotSummary } from "./saveSlots";
 
@@ -159,6 +160,8 @@ export function migrateState(raw: any): GameState | null {
   if (typeof s.where !== "string") delete s.where;
   if (typeof s.objective !== "string") delete s.objective;
   s.intoxication = Math.min(Math.max(s.intoxication, 0), 100);
+  // THE KRUNCH PIT's records (saves from before it don't have any)
+  if (raw.pit !== undefined) s.pit = cleanPit(raw.pit);
   s.version = SAVE_VERSION;
   return s;
 }

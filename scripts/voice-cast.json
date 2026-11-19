@@ -401,7 +401,8 @@
     "NORTHERN BLOKE 3": "yO0oj6A2TnMNtkikM8bo",
     "NORTHERN BLOKE 4": "EnFwU9loHqFNYFithh6J",
     "ALL": "TUK9u4r5y2iPdDsWcYMZ",
-    "GENIE": "CucQbnQGIeTo1uVfoVg1"
+    "GENIE": "CucQbnQGIeTo1uVfoVg1",
+    "KEV KRUNCH": "TKpCosjBhFyhPuAqj7vL"
   },
   "designed_desc": {
     "KRANKY KRANDALL": "A reedy, squeaky, frail old British man in his nineties. Thin, high, wavering, slightly wheezy voice, rambling and forgetful, trailing off mid-sentence.",
@@ -863,7 +864,8 @@
     "MAJOR BUNTING": "THE COLONEL",
     "GENIE": "~press_m_in",
     "KREDDLE SOLDIER": "KREDDLER",
-    "KREDDLE GENERAL": "TANK CROBLEY"
+    "KREDDLE GENERAL": "TANK CROBLEY",
+    "KEV KRUNCH": "ANNOUNCER"
   },
   "clone_accents": {
     "_doc": "Accent tag for cloned voices on eleven_v3, which otherwise drift (American, or regional). Everyone in the group is southern English: faint RP or a slight cockney. Default below.",

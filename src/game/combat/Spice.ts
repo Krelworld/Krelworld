@@ -54,6 +54,8 @@ export class Spice {
   twist: Twist | null = null;
   private tags = new Map<Enemy, Phaser.GameObjects.Text>();
   private elites = new Map<Enemy, EliteMod>();
+  /** THE KRUNCH PIT sets the elite chance itself (the gauntlet ramps it per wave; none at the test range). */
+  eliteOverride: number | null = null;
   private dark: { overlay: Phaser.GameObjects.Rectangle; hole: Phaser.GameObjects.Graphics } | null = null;
   private puddles: { x: number; y: number; r: number }[] = [];
   private puddleTick = 0;
@@ -394,7 +396,7 @@ export class Spice {
   onSpawn(e: Enemy, opts: { minion?: boolean } = {}) {
     if (opts.minion || e.isBoss || e.def.id === "tax_goblin" || e.def.id === "fuel_tank" || e.def.behavior === "spawner") return;
     const base = Math.min(0.16, 0.05 + 0.02 * Math.max(1, G.s.chapter));
-    const chance = this.twist === "ELITES" ? 0.45 : base;
+    const chance = this.eliteOverride ?? (this.twist === "ELITES" ? 0.45 : base);
     if (Math.random() > chance) return;
     const mods: EliteMod[] = ["SWOLE", "ZOOMIES", "SPLITTER", "VOLATILE"];
     const mod = mods[Math.floor(Math.random() * mods.length)];

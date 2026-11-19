@@ -64,6 +64,8 @@ import { hasVfx, vfx } from "../gfx/Vfx";
 import { Kit } from "./dressing/kit";
 import { dressingFor } from "./dressing/rooms";
 import { floorFallbackTint, floorTile } from "./dressing/floors";
+import { beatenBosses, bossEscorts, bossWaveHp, breatherSec, gauntletBossFor, gauntletPool, gauntletScale, gauntletWave, GAUNTLET_KILL_COIN_MULT, heatScale, isBossWave, pitRecord, recordGauntlet, recordRematch, REMATCH_BY_ID, REMATCH_KILL_COIN_MULT, rematchPay, wavePay } from "../systems/pit";
+import type { PitResult } from "../G";
 
 interface Shot {
   spr: Phaser.GameObjects.Image;
@@ -201,6 +203,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   }
 
   private markCleared() {
+    // (practice in the Pit leaves the story's room progress alone)
+    if (G.rt.pit) return;
     G.s.flags[clearKey(this.dungeon.id, this.roomIdx)] = true;
     G.save();
   }
@@ -211,13 +215,14 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.roomIdx = data.room ?? 0;
     // walking in from outside (not the next room along): the fairy's fresh again, and every gun you own is topped up
     // to at least 30% (late on, with Kreddle gone, there's nowhere to buy ammo: an empty arsenal looked like a lost one)
-    if ((data.room ?? 0) === 0) {
+    // (not in the Pit: practice runs come with what you brought, and a free top-up there would be an ammo farm)
+    if ((data.room ?? 0) === 0 && !G.rt.pit) {
       G.rt.fairyUsed = false;
       G.rt.restocked = restockGuns(G.s, 0.3);
     }
     // Saved progress: walking in from town resumes at the first room you haven't cleared.
     this.resumed = false;
-    if (this.roomIdx === 0 && G.s.flags[clearKey(this.dungeon.id, 0)]) {
+    if (this.roomIdx === 0 && G.s.flags[clearKey(this.dungeon.id, 0)] && !G.rt.pit) {
       let i = 0;
       while (i < this.dungeon.rooms.length - 1 && G.s.flags[clearKey(this.dungeon.id, i)]) i++;
       this.roomIdx = i;
@@ -260,6 +265,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.heroSquad = null;
     this.citadel = null;
     this.roof = null;
+    this.pitFinishing = false;
+    this.pitHud = null;
+    this.rangeHits = [];
+    this.rangeBiggest = 0;
+    this.rangeTotal = 0;
   }
 
   preload() {
@@ -487,6 +497,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.events.on("player-heal", () => this.ruleBroken("NO_HEAL"));
     this.events.on("player-special", () => this.ruleBroken("NO_SPECIAL"));
     this.events.on("ui-resume", () => (this.paused = false));
+    // THE KRUNCH PIT: LEAVE from the pause menu, and a line of numbers up top
+    if (G.rt.pit) {
+      this.events.on("pit-quit", () => void this.pitFinish("quit"));
+      this.pitHud = this.add.text(480, 86, "", { fontFamily: FONT, fontSize: "14px", color: "#fde68a", stroke: "#000", strokeThickness: 4, align: "center" }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(990);
+    }
 
     this.events.once("shutdown", () => this.removeListeners());
     this.startRoom();
@@ -644,7 +659,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const t = this.add.text(480, 200, r.name.toUpperCase(), { fontFamily: FONT, fontSize: "28px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5).setScrollFactor(0).setDepth(950).setShadow(3, 3, "#000", 0);
     this.tweens.add({ targets: t, alpha: 0, delay: 1300, duration: 700, onComplete: () => t.destroy() });
     for (const p of r.props ?? []) if (evalCond(p.cond, G.s)) this.addProp(p);
-    if (r.gunCrate) this.time.delayedCall(600, () => this.maybeGunCrate(true));
+    if (r.gunCrate && !G.rt.pit) this.time.delayedCall(600, () => this.maybeGunCrate(true));
   }
 
   private towerBg: Phaser.GameObjects.TileSprite | null = null;
@@ -652,7 +667,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   /** Personal-quest pickups in side-on rooms: on the floor (or up on a ledge in a tower). */
   private sideQuestPickups() {
     const r = this.room;
-    for (const { quest, spot } of pickupsInDungeon(G.s, this.dungeon.id, this.roomIdx)) {
+    for (const { quest, spot } of G.rt.pit ? [] : pickupsInDungeon(G.s, this.dungeon.id, this.roomIdx)) {
       let x = r.w * (0.25 + Math.random() * 0.5);
       let y = this.groundY - 30;
       if (r.tower && r.platforms?.length) {
@@ -1337,8 +1352,9 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const r = this.room;
     this.busy = true;
     // first time into this dungeon this run: the anime entry cutscene (its name slams in)
-    if (!(await dungeonIntro(this, this.dungeon))) return;
-    const enter: Line[] = (r.enterLines ?? []).map((l) => ({ s: l.s, t: l.t, dir: l.dir, cond: l.cond, variants: l.variants, tag: "new" as const }));
+    if (!G.rt.pit && !(await dungeonIntro(this, this.dungeon))) return;
+    // (practice in the Pit: no story on the way in, just the fight)
+    const enter: Line[] = (G.rt.pit ? [] : r.enterLines ?? []).map((l) => ({ s: l.s, t: l.t, dir: l.dir, cond: l.cond, variants: l.variants, tag: "new" as const }));
     if (r.rule) {
       const rule = BAN_RULES.find((b) => b.id === r.rule) ?? null;
       enter.push(say("DRONGUS", rule?.decree ?? "NEW RULE.", { notify: true, sfx: "decree" }));
@@ -1356,8 +1372,14 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (cam.fadeEffect.isRunning && !cam.fadeEffect.direction) cam.fadeEffect.reset();
     if (enter.length) await this.talk(enter);
     // once per playthrough (it used to be once per browser, so a new game never saw it again)
-    if (!G.s.flags.tut_dungeon && G.s.chapter === 1 && this.roomIdx === 0) await this.showTutorial();
-    if (r.pa?.length && !G.s.flags[clearKey(this.dungeon.id, this.roomIdx)] && !(r.miniBoss && G.s.flags[this.miniBossKey()])) {
+    if (!G.s.flags.tut_dungeon && G.s.chapter === 1 && this.roomIdx === 0 && !G.rt.pit) await this.showTutorial();
+    // the Pit's own rooms: the gauntlet and the test range run themselves
+    if (G.rt.pit && (G.rt.pit.mode === "gauntlet" || G.rt.pit.mode === "range")) {
+      this.busy = false;
+      this.pitArenaStart();
+      return;
+    }
+    if (r.pa?.length && !G.rt.pit && !G.s.flags[clearKey(this.dungeon.id, this.roomIdx)] && !(r.miniBoss && G.s.flags[this.miniBossKey()])) {
       if (this.citadel) await this.citadel.pa(r.pa);
       else await this.talk(r.pa);
     }
@@ -1384,7 +1406,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (this.roomIdx === 0) G.drongus("enter_dungeon");
     this.busy = false;
     if (this.resumed) this.toast("PROGRESS SAVED", `Picking up where you left off: room ${this.roomIdx + 1} of ${this.dungeon.rooms.length}.`);
-    if (!r.boss && G.s.flags[clearKey(this.dungeon.id, this.roomIdx)]) {
+    if (!r.boss && !G.rt.pit && G.s.flags[clearKey(this.dungeon.id, this.roomIdx)]) {
       this.roomCleared = true;
       this.checkExit();
       return;
@@ -1420,6 +1442,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   }
 
   private nextWave() {
+    // the gauntlet's waves are its own (a wave just ended: pay up, breathe, next)
+    if (G.rt.pit?.mode === "gauntlet" || G.rt.pit?.mode === "range") {
+      this.pitWaveDone();
+      return;
+    }
     this.waveIdx++;
     if (this.waveIdx >= this.waves.length) {
       this.waveActive = false;
@@ -1474,12 +1501,20 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     // every cleared room pays out some ammo
     if (ownedGuns().length) this.dropPickup(this.player.x + 40, this.player.y - 30, "ammo", 1.5);
     coolBanRisk(G.s, 15);
+    if (G.rt.pit) {
+      // a rematch's last room without a boss (none yet, but if the card changes): that's the win
+      if (G.rt.pit.mode === "rematch" && this.roomIdx >= G.rt.pit.to && !this.room.boss) void this.pitFinish("win");
+      else this.checkExit();
+      return;
+    }
     this.maybeGunCrate();
     this.checkExit();
   }
 
   /** Weapon crates: the first cleared room always has one until you own a gun, then about one room in three. */
   private maybeGunCrate(force = false) {
+    // (no new guns out of practice: the Pit's not a crate farm)
+    if (G.rt.pit) return;
     const s = G.s;
     const first = !ownedGuns(s).length;
     if (!force && !first && Math.random() > 0.33) return;
@@ -1557,6 +1592,19 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     this.busy = true;
     synth.play("dooropen");
     G.save();
+    if (G.rt.pit) {
+      // practice: the range's door is the way out; a rematch goes room to room (no detours: those are story) to its last
+      if (G.rt.pit.mode !== "rematch" || this.roomIdx + 1 > G.rt.pit.to) {
+        void this.pitFinish(G.rt.pit.mode === "rematch" ? "win" : "quit");
+        return;
+      }
+      this.cameras.main.fadeOut(250);
+      this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+        this.transitioning = true;
+        this.scene.restart({ dungeon: this.dungeon.id, room: this.roomIdx + 1 });
+      });
+      return;
+    }
     if (this.room.then?.length) {
       // a detour through other scenes (a minigame, a car chase) before the next room
       const [first, ...rest] = this.room.then;
@@ -1612,7 +1660,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   }
 
   private removeListeners() {
-    for (const ev of ["prophecy", "krezz-burst", "drop-heal", "decree", "drongus-decree", "epic-phase", "conflict", "player-dodge", "player-heal", "player-special", "ui-resume"]) this.events.removeAllListeners(ev);
+    for (const ev of ["prophecy", "krezz-burst", "drop-heal", "decree", "drongus-decree", "epic-phase", "conflict", "player-dodge", "player-heal", "player-special", "ui-resume", "pit-quit"]) this.events.removeAllListeners(ev);
     this.rule = null;
     G.emit("rule", null);
   }
@@ -1732,6 +1780,317 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       const sp = this.add.circle(80 + Math.random() * 800, 60 + Math.random() * 300, 30 + Math.random() * 60, 0xb91c1c, 0.75).setScrollFactor(0).setDepth(990);
       this.tweens.add({ targets: sp, y: sp.y + 140, scaleY: 1.6, alpha: 0, delay: 700, duration: 2200, onComplete: () => sp.destroy() });
     }
+  }
+
+  // ------------------------------------------------------------------ THE KRUNCH PIT (practice: systems/pit.ts)
+
+  private pitFinishing = false;
+  private pitHud: Phaser.GameObjects.Text | null = null;
+  /** Test range: [time, damage] of recent hits on the dummies, the biggest single hit, and the total. */
+  private rangeHits: [number, number][] = [];
+  private rangeBiggest = 0;
+  private rangeTotal = 0;
+
+  /** How much tougher the Pit makes what spawns (null: not in the Pit, or nothing to change). */
+  private pitEnemyScale(): { hp: number; dmg: number; speed: number; aggression: number } | null {
+    const pit = G.rt.pit;
+    if (!pit) return null;
+    if (pit.mode === "rematch") return pit.heat > 1 ? heatScale(pit.heat) : null;
+    const g = gauntletScale(pit.mode === "gauntlet" ? Math.max(1, pit.wave) : pit.rangeLevel);
+    return { hp: g.hp, dmg: g.dmg, speed: g.speed, aggression: g.aggression };
+  }
+
+  /** Kill drops in the Pit: cut (wave pay is the gauntlet's income), none at all at the range. */
+  private pitCoinMult(): number {
+    const m = G.rt.pit?.mode;
+    return m === "gauntlet" ? GAUNTLET_KILL_COIN_MULT : m === "rematch" ? REMATCH_KILL_COIN_MULT : m === "range" ? 0 : 1;
+  }
+
+  /** The gauntlet or the range, from the top. */
+  private pitArenaStart() {
+    const pit = G.rt.pit!;
+    if (pit.mode === "range") {
+      this.rangeSetup();
+      return;
+    }
+    const best = pitRecord(G.s).bestWave;
+    this.toast("ENDLESS GAUNTLET", `${best ? `Your best: wave ${best}. ` : ""}Every 5th wave is a boss. Pause menu → LEAVE to walk out with what you've made.`);
+    this.bigText("THE KRUNCH PIT", "#ef4444", 52, 170);
+    synth.play("roar");
+    this.time.delayedCall(1700, () => this.gauntletSpawn());
+  }
+
+  /** The next gauntlet wave (or its boss). */
+  private gauntletSpawn() {
+    const pit = G.rt.pit;
+    if (!pit || pit.mode !== "gauntlet" || this.dying || this.pitFinishing) return;
+    pit.wave++;
+    const n = pit.wave;
+    const sc = gauntletScale(n);
+    if (this.spice) this.spice.eliteOverride = sc.elite;
+    const boss = gauntletBossFor(n, beatenBosses(G.s));
+    this.bigText(boss ? `WAVE ${n}: BOSS` : `WAVE ${n}`, boss ? "#ef4444" : "#fde047", boss ? 46 : 40);
+    synth.play(boss ? "decree" : "ding");
+    this.waveActive = true;
+    if (boss) {
+      const esc = bossEscorts(n);
+      if (esc) this.pitSpawnWave(gauntletWave(n, gauntletPool(G.s)).slice(0, 2).map(([t]) => [t, Math.ceil(esc / 2)] as [string, number]));
+      void this.startBoss(boss, bossWaveHp(n), { x: this.room.w / 2, y: this.room.h / 2 - 110 });
+      return;
+    }
+    // (no boss beaten that fits the ring yet: a bigger wave instead)
+    const comp = gauntletWave(n, gauntletPool(G.s));
+    if (isBossWave(n)) for (const c of comp) c[1] = Math.ceil(c[1] * 1.5);
+    this.pitSpawnWave(comp);
+  }
+
+  /** Spawn a line-up anywhere in the room, never right on top of you. */
+  private pitSpawnWave(comp: [string, number][], opts: { noDrops?: boolean } = {}) {
+    const b = this.bounds;
+    for (const [type, count] of comp) {
+      for (let i = 0; i < count; i++) {
+        let x = 0;
+        let y = 0;
+        for (let t = 0; t < 12; t++) {
+          x = Phaser.Math.Between(b.left + 60, b.right - 60);
+          y = Phaser.Math.Between(b.top + 70, b.bottom - 60);
+          if (Phaser.Math.Distance.Between(x, y, this.player.x, this.player.y) > 240) break;
+        }
+        this.spawnPortal(x, y, () => {
+          if (this.pitFinishing) return;
+          const e = this.spawnEnemy(type, x, y, opts);
+          if (e && G.rt.pit?.mode === "range") e.noDrops = true;
+        });
+      }
+    }
+  }
+
+  /** A wave's down: the gauntlet pays, takes a breath, maybe drops something, and goes again. */
+  private pitWaveDone() {
+    const pit = G.rt.pit;
+    if (!pit || this.dying || this.pitFinishing) return;
+    if (pit.mode === "range") {
+      this.toast("WAVE DOWN", "Ring the bell for another. The loaner rack's on the left.");
+      return;
+    }
+    const n = pit.wave;
+    pit.cleared = n;
+    const s = G.s;
+    const pay = wavePay(n, diffFor(s).rewards);
+    s.coins += pay.coins;
+    if (pay.krokens) addKrokens(s, pay.krokens);
+    synth.play("coin");
+    this.bigText(`WAVE ${n} DOWN  +${pay.coins}🪙${pay.krokens ? `  +${pay.krokens} KROKENS` : ""}`, pay.milestone ? "#facc15" : "#86efac", pay.milestone ? 34 : 28, 150);
+    if (pay.milestone) {
+      synth.play("perfect");
+      this.toast(`MILESTONE: WAVE ${n}`, `Bonus paid. It only gets nastier from here (wave ${n + 1}: ${Math.round(gauntletScale(n + 1).hp * 100)}% HP, ${Math.round(gauntletScale(n + 1).dmg * 100)}% damage).`);
+    }
+    // the breather: a chance of juice and ammo (always after a boss)
+    const cx = this.room.w / 2;
+    const cy = this.room.h / 2 + 30;
+    const afterBoss = isBossWave(n);
+    if (afterBoss || Math.random() < 0.45) this.dropPickup(cx - 40, cy, "heal", afterBoss ? 40 : 20);
+    if (ownedGuns().length && (afterBoss || Math.random() < 0.6)) this.dropPickup(cx + 40, cy, "ammo", afterBoss ? 2 : 1);
+    if (afterBoss && Math.random() < 0.5) this.dropPickup(cx, cy + 40, "bottle", 1);
+    G.save();
+    const secs = breatherSec(n);
+    const t = this.add.text(480, 210, "", { fontFamily: "Impact, sans-serif", fontSize: "22px", color: "#ffffff", stroke: "#000", strokeThickness: 5 }).setOrigin(0.5).setScrollFactor(0).setDepth(994);
+    for (let i = 0; i < secs; i++) this.time.delayedCall(800 + i * 1000, () => t.active && t.setText(`NEXT WAVE IN ${secs - i}…`));
+    this.time.delayedCall(800 + secs * 1000, () => {
+      t.destroy();
+      this.gauntletSpawn();
+    });
+  }
+
+  /** A gauntlet boss goes down: no speeches, no cutscene, on with the wave. */
+  private pitBossDown(b: Boss) {
+    G.emit("boss", null);
+    synth.play("boom");
+    this.boomFx(b.x, b.y, 1.4);
+    this.shake(500, 0.02);
+    this.bigText(`${BOSS_TEXT[b.bossId]?.name ?? "THE BOSS"}: DOWN`, "#facc15", 34, 190);
+    this.boss = null;
+    if (this.fightMusicOn) {
+      synth.music(this.roomMusicId, true);
+      this.fightMusicOn = false;
+    }
+  }
+
+  /** A rematch's last boss is beaten: the big finish, a Kreltality if you like, then the results. */
+  private async rematchBossWin(b: Boss) {
+    G.emit("boss", null);
+    synth.play("boom");
+    this.boomFx(b.x, b.y, 1.6);
+    this.shake(700, 0.03);
+    for (const e of [...this.enemies]) if (e !== b && !e.dead) this.damageEnemy(e, 99999, { noWonk: true, label: "" });
+    for (const sh of [...this.shots]) this.killShot(sh);
+    this.rule = null;
+    G.emit("rule", null);
+    G.rt.timerEnd = 0;
+    G.emit("timer", null);
+    if (b.bossId === "rik") b.setVisible(false);
+    else if (b.bossId === "reinhardt" || b.bossId === "krozno") {
+      if (await this.offerKreltality(b)) b.setVisible(false);
+      else await this.bossFall();
+    } else await this.maybeKreltality(b);
+    this.boss = null;
+    await this.pitFinish("win");
+  }
+
+  /**
+   * The practice run's over (won, died, walked out): pay what it pays, record it, put the run back as it was
+   * (G.pitEnd: settlePractice) and go back to the Pit for the card.
+   */
+  private async pitFinish(outcome: PitResult["outcome"], cause?: string) {
+    const pit = G.rt.pit;
+    if (!pit || this.pitFinishing) return;
+    this.pitFinishing = true;
+    this.busy = true;
+    const s = G.s;
+    const result: PitResult = { mode: pit.mode, outcome, earned: { coins: 0, krokens: 0 }, cause };
+    if (pit.mode === "gauntlet") {
+      result.waves = pit.cleared;
+      result.newBest = recordGauntlet(pitRecord(s), pit.cleared, s.coins - pit.snap.coins);
+    } else if (pit.mode === "rematch" && pit.rematch) {
+      result.rematch = pit.rematch;
+      result.heat = pit.heat;
+      const def = REMATCH_BY_ID[pit.rematch];
+      if (outcome === "win" && def) {
+        const pay = rematchPay(def, pit.heat, diffFor(s).rewards);
+        s.coins += pay.coins;
+        if (pay.krokens) addKrokens(s, pay.krokens);
+        result.newBest = recordRematch(pitRecord(s), def.id, pit.heat, s.coins - pit.snap.coins);
+      } else pitRecord(s).earned += Math.max(0, s.coins - pit.snap.coins);
+    }
+    if (outcome === "win") {
+      synth.play("perfect");
+      this.bigText(pit.mode === "rematch" ? "REMATCH WON" : "DONE", "#facc15", 50, 200);
+    }
+    await new Promise<void>((r) => this.time.delayedCall(outcome === "win" ? 1400 : 200, () => r()));
+    // the room stops here (nothing picked up after the books are closed), then the run goes back as it was
+    this.transitioning = true;
+    result.earned = G.pitEnd();
+    this.cameras.main.fadeOut(350);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => switchTo(this, "Pit", { result }));
+  }
+
+  /** Every frame in the Pit: the HUD line, and the range's free ammo and krezz. */
+  private pitTick(now: number) {
+    const pit = G.rt.pit;
+    if (!pit) return;
+    const s = G.s;
+    if (pit.mode === "range") {
+      for (const id of Object.keys(s.guns ?? {})) if (GUNS[id]) s.guns![id] = gunMax(GUNS[id], s);
+      s.krezz = maxKrezz(s);
+      this.rangeHits = this.rangeHits.filter(([t]) => now - t < 5000);
+      const dmg = this.rangeHits.reduce((a, [, d]) => a + d, 0);
+      const span = this.rangeHits.length ? Math.max(1000, now - this.rangeHits[0][0]) : 1000;
+      const dps = this.rangeHits.length ? Math.round((dmg * 1000) / span) : 0;
+      this.pitHud?.setText(`TEST RANGE · DPS ${dps} · BIGGEST HIT ${Math.round(this.rangeBiggest)} · TOTAL ${Math.round(this.rangeTotal)}\nINFINITE AMMO · NO REWARDS · NO DEATH · wave level ${pit.rangeLevel}`);
+      return;
+    }
+    const earned = s.coins - pit.snap.coins;
+    const k = ((s.flags.krokens as number) ?? 0) - ((pit.snap.flags.krokens as number) ?? 0);
+    if (pit.mode === "gauntlet") this.pitHud?.setText(`WAVE ${Math.max(1, pit.wave)} · BEST ${pitRecord(s).bestWave} · +${earned} 🪙${k ? ` · +${k} KROKENS` : ""}`);
+    else if (pit.rematch) {
+      const def = REMATCH_BY_ID[pit.rematch];
+      const pay = def ? rematchPay(def, pit.heat, diffFor(s).rewards).coins : 0;
+      this.pitHud?.setText(`REMATCH · HEAT ×${pit.heat} · +${earned} 🪙 so far · +${pay} 🪙 for the win`);
+    }
+  }
+
+  // ---- the test range
+
+  private rangeSetup() {
+    const r = this.room;
+    if (this.spice) this.spice.eliteOverride = 0;
+    this.toast("TEST RANGE", "Infinite ammo, no rewards, nobody dies. Loaner rack on the left, the bell on the right. Out through the door at the top.");
+    for (const [fx, fy] of [[0.3, 0.3], [0.5, 0.26], [0.7, 0.3]]) this.spawnDummy(r.w * fx, r.h * fy);
+    // the loaner rack: borrow anything (it all goes back when you leave)
+    const rack = this.add.image(150, r.h * 0.5, this.textures.exists("p_gun_crate") ? "p_gun_crate" : "p_bin");
+    fitTo(rack, 60).setDepth(r.h * 0.5);
+    this.add.text(150, r.h * 0.5 - 50, "LOANER RACK", { fontFamily: FONT, fontSize: "12px", color: "#67e8f9", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(1500);
+    this.interactables.push({ x: 150, y: r.h * 0.5, r: 80, label: "Loaner rack: try any gun or perk", use: () => this.openLoaners() });
+    // the bell: a wave on demand, at the level you set
+    const bx = r.w - 150;
+    const bell = this.add.text(bx, r.h * 0.5, "🔔", { fontSize: "44px" }).setOrigin(0.5).setDepth(r.h * 0.5);
+    this.add.text(bx, r.h * 0.5 - 50, "THE BELL", { fontFamily: FONT, fontSize: "12px", color: "#fde047", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(1500);
+    this.interactables.push({
+      x: bx,
+      y: r.h * 0.5,
+      r: 80,
+      label: "Ring the bell: spawn a wave",
+      use: () => {
+        const pit = G.rt.pit;
+        if (!pit) return;
+        this.tweens.add({ targets: bell, angle: { from: -25, to: 25 }, yoyo: true, repeat: 3, duration: 80, onComplete: () => bell.setAngle(0) });
+        synth.play("ding");
+        this.bigText(`WAVE (LEVEL ${pit.rangeLevel})`, "#fde047", 34);
+        this.waveActive = true;
+        this.pitSpawnWave(gauntletWave(pit.rangeLevel, gauntletPool(G.s)), { noDrops: true });
+      },
+    });
+    const lx = r.w - 150;
+    const ly = r.h * 0.72;
+    const lvl = this.add.text(lx, ly, "", { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#ffffff", backgroundColor: "#7f1d1dcc", padding: { x: 8, y: 4 } }).setOrigin(0.5).setDepth(1500);
+    const showLvl = () => lvl.setText(`WAVE LEVEL ${G.rt.pit?.rangeLevel ?? 1}`);
+    showLvl();
+    this.interactables.push({
+      x: lx,
+      y: ly,
+      r: 70,
+      label: "Change the wave level (1 / 5 / 10 / 15 / 20)",
+      use: () => {
+        const pit = G.rt.pit;
+        if (!pit) return;
+        const steps = [1, 5, 10, 15, 20];
+        pit.rangeLevel = steps[(steps.indexOf(pit.rangeLevel) + 1) % steps.length];
+        synth.play("select");
+        showLvl();
+      },
+    });
+    this.interactables.push({
+      x: 150,
+      y: r.h * 0.72,
+      r: 70,
+      label: "Clear the range (kill everything but the dummies)",
+      use: () => {
+        for (const e of [...this.enemies]) if (!e.dead && !(e as Enemy & { dummy?: boolean }).dummy) this.damageEnemy(e, 999999, { noWonk: true, label: "" });
+        synth.play("boom");
+      },
+    });
+    this.add.text(150, r.h * 0.72, "CLEAR", { fontFamily: "Impact, sans-serif", fontSize: "18px", color: "#ffffff", backgroundColor: "#1e3a8acc", padding: { x: 8, y: 4 } }).setOrigin(0.5).setDepth(1500);
+    // the way out
+    this.roomCleared = true;
+    this.door.setTexture("p_door");
+  }
+
+  /** A dummy: never moves, never hits back, never dies, and counts every hit. */
+  private spawnDummy(x: number, y: number) {
+    const e = this.spawnEnemy("gym_bro", x, y, { noDrops: true, minion: true });
+    if (!e) return;
+    (e as Enemy & { dummy?: boolean }).dummy = true;
+    e.maxHp = 1e9;
+    e.hp = e.maxHp;
+    e.setTint(0xd6b98c);
+    (e.body as Phaser.Physics.Arcade.Body).setImmovable(true);
+    e.hpBar?.setVisible(false);
+    this.add.text(x, y + 40, "DUMMY", { fontFamily: FONT, fontSize: "10px", color: "#fde68a", stroke: "#000", strokeThickness: 3 }).setOrigin(0.5).setDepth(1500);
+  }
+
+  private rangeHit(a: number) {
+    if (a <= 0) return;
+    this.rangeHits.push([this.now(), a]);
+    this.rangeBiggest = Math.max(this.rangeBiggest, a);
+    this.rangeTotal += a;
+  }
+
+  /** The loaner rack (PitLoanScene, over the range). */
+  private openLoaners() {
+    if (this.busy) return;
+    this.paused = true;
+    this.scene.launch("PitLoan", { caller: "Dungeon" });
+    this.scene.pause();
   }
 
   private bigText(t: string, color: string, size = 46, y = 150) {
@@ -1996,6 +2355,16 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     b.hp = b.maxHp;
     b.dmgMult = (b.dmgMult ?? 1) * 1.1 * (1 + Math.max(0, G.s.chapter - 2) * 0.1);
     b.aggression = diffFor(G.s).aggression;
+    // the Pit: a gauntlet boss hits as hard as the wave it's on; a rematch boss as hot as the Heat
+    const ps = this.pitEnemyScale();
+    if (ps) {
+      if (G.rt.pit?.mode === "rematch") {
+        b.maxHp = Math.round(b.maxHp * ps.hp);
+        b.hp = b.maxHp;
+      }
+      b.dmgMult = (b.dmgMult ?? 1) * ps.dmg;
+      b.aggression *= ps.aggression;
+    }
     const pct = (this as any)._bossHpPct;
     if (typeof pct === "number" && pct > 0 && pct < 1) b.hp = Math.max(1, Math.round(b.maxHp * pct));
     this.boss = b;
@@ -2028,7 +2397,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       synth.music(`fight_${id}`, true);
       this.fightMusicOn = true;
     }
-    if (fresh) await this.talk(txt.intro);
+    if (fresh && G.rt.pit?.mode !== "gauntlet") await this.talk(txt.intro);
     if (epic) {
       if (fresh && BOSS_EYES[id] && b.active) await Juice.eyeShot(this, BOSS_EYES[id], 750, { color: Phaser.Display.Color.HexStringToColor(epic).color });
       // the VS card is their title card (name and epithet), at the end of the entrance
@@ -2559,6 +2928,10 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   private async onBossDefeated(b: Boss) {
     this.player?.cheer(this.now(), 2600);
+    if (G.rt.pit?.mode === "gauntlet" || G.rt.pit?.mode === "range") {
+      this.pitBossDown(b);
+      return;
+    }
     this.busy = true;
     if (EPIC_BOSSES[b.bossId]) await this.epicKillingBlow(b);
     // the mini-bosses' money shots: Krex going up, Elon's rocket spiralling out
@@ -2601,6 +2974,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       this.time.delayedCall(900, () => void this.startBoss(next.boss, next.hp ?? 1));
       return;
     }
+    // a rematch's last boss: that's the win (none of what comes after it in the story)
+    if (G.rt.pit && this.roomIdx >= G.rt.pit.to) {
+      await this.rematchBossWin(b);
+      return;
+    }
     if (this.roomIdx < this.dungeon.rooms.length - 1) {
       // a boss half way through: beat it and the door opens
       G.emit("boss", null);
@@ -2622,7 +3000,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       // the ones who get away (Drongus, phase one: out the back door and up the stairs)
       const flee = (b as unknown as { runAway?: (x: number, y: number) => Promise<void> }).runAway;
       if (flee) await flee.call(b, this.door.x, this.door.y - 10);
-      await this.crystalGet(b);
+      if (!G.rt.pit) await this.crystalGet(b);
       this.boss = null;
       this.roomCleared = true;
       this.markCleared();
@@ -2817,6 +3195,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   private missionFailed() {
     this.busy = true;
+    // a rematch of the flight: the clock running out is just a loss (the tower stays up)
+    if (G.rt.pit) {
+      void this.pitFinish("death", "OUT OF TIME");
+      return;
+    }
     const s = G.s;
     Object.assign(s.flags, { kreltower_resolved: true, kreltower_fell: true, arcstep_arc_klerble_hijack: true });
     G.rt.timerEnd = 0;
@@ -3012,7 +3395,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
   }
 
   private addRisk(n: number, why: string) {
-    if (this.dying || this.busy) return;
+    if (this.dying || this.busy || G.rt.pit) return;
     const banned = addBanRisk(G.s, n);
     this.floatText(this.player.x, this.player.y - 46, `BAN RISK +${Math.round(n)}`, "#ff4444", 12);
     if (banned) this.getBanned(why);
@@ -3081,6 +3464,13 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     e.dmgMult = enemyDamageMult(s);
     e.speedMult = activeMods(s).enemySpeedMult * (s.ngPlus ? 1.1 : 1) * dd.enemySpeed;
     e.aggression = dd.aggression;
+    const ps = this.pitEnemyScale();
+    if (ps) {
+      e.hp = e.maxHp = Math.max(1, Math.round(e.maxHp * ps.hp));
+      e.dmgMult *= ps.dmg;
+      e.speedMult *= ps.speed;
+      e.aggression *= ps.aggression;
+    }
     e.hpBar = this.add.graphics().setDepth(800);
     if (this.side) {
       (e as any).big = SIDE_BIG * 0.95;
@@ -3163,6 +3553,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       a = e.guard.damage(a, opts);
       if (a <= 0) return;
     }
+    if ((e as Enemy & { dummy?: boolean }).dummy) this.rangeHit(a);
     const hpBefore = e.hp;
     e.hp -= a;
     e.flashUntil = now + 70;
@@ -3269,7 +3660,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     if (!e.noDrops) {
       const mods = activeMods(s);
       const dd = diffFor(s);
-      let coins = Math.round(e.def.coins * mods.coinMult * (s.player === "KREZMAR" ? 1.35 : 1) * (1 + 0.25 * kd(s, "kd_lucky")) * dd.coins);
+      let coins = Math.round(e.def.coins * mods.coinMult * (s.player === "KREZMAR" ? 1.35 : 1) * (1 + 0.25 * kd(s, "kd_lucky")) * dd.coins * this.pitCoinMult());
       while (coins > 0) {
         const v = Math.min(coins, 3);
         this.dropPickup(e.x + (Math.random() - 0.5) * 20, e.y + (Math.random() - 0.5) * 20, "coin", v);
@@ -3732,6 +4123,14 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
 
   private die() {
     if (this.dying) return;
+    // the test range: nobody dies at the range
+    if (G.rt.pit?.mode === "range") {
+      G.s.hp = maxHp(G.s);
+      this.player.iframesUntil = this.now() + 1500;
+      this.cameras.main.flash(250, 255, 255, 255);
+      this.bigText("RESPAWNED (IT'S A RANGE)", "#fde68a", 28);
+      return;
+    }
     if ((G.s.upgrades.fairies ?? 0) > 0 && !G.rt.fairyUsed && this.player && !this.player.dead) {
       this.fairyRevive();
       return;
@@ -3862,6 +4261,11 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     });
     this.time.delayedCall(END, () => {
       this.tweens.timeScale = 1;
+      // the Pit: dying ends the run (you keep what you made), and the card's back in the Pit
+      if (G.rt.pit) {
+        void this.pitFinish("death");
+        return;
+      }
       this.scene.launch("Menu", { mode: "death", caller: "Dungeon", dungeon: this.dungeon.id, room: this.roomIdx, bossHpPct: undefined, rush: this.boss ? this.rushIdx : 0 });
       this.scene.pause();
     });
@@ -3984,8 +4388,15 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     }
     // enemies
     const edt = dt * this.enemyTimeScale;
+    if (G.rt.pit) this.pitTick(now);
     for (const e of [...this.enemies]) {
       if (e.dead) continue;
+      // a test-range dummy: stands there and takes it
+      if ((e as Enemy & { dummy?: boolean }).dummy) {
+        (e.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+        e.setDepth(e.y);
+        continue;
+      }
       if (!this.busy) {
         e.tick(edt, now);
         if (e.def.shout && Math.random() < edt / (e.def.shoutEvery ?? (e.def.id === "tumor" ? 2600 : 4200))) this.enemyShout(e);
@@ -4101,7 +4512,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
       }
     }
     // wave progression
-    if (this.waveActive && this.pendingSpawns === 0 && this.enemies.every((e) => e.dead) && !this.busy) {
+    if (this.waveActive && this.pendingSpawns === 0 && this.enemies.every((e) => e.dead || (e as Enemy & { dummy?: boolean }).dummy) && !this.busy) {
       this.waveActive = false;
       this.time.delayedCall(600, () => this.nextWave());
     }

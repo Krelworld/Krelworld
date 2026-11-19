@@ -9,6 +9,13 @@ import Phaser from "phaser";
 export async function runOverlay<T extends object>(sc: Phaser.Scene, key: string, cls: typeof Phaser.Scene, data: T): Promise<void> {
   // a scene coming back from a dialogue (which pauses it) is resumed a frame later: give it a moment
   for (let i = 0; i < 40 && sc.sys && sc.sys.isPaused(); i++) await new Promise((r) => window.setTimeout(r, 25));
+  // an overlay's first outing: added while the scene manager is mid-update (from a timer, say), it only lands next
+  // frame, and start() can't find it till then (the caller was left paused behind a card that never came)
+  const mgr0 = sc.sys?.game?.scene;
+  if (mgr0 && !mgr0.getScene(key)) {
+    mgr0.add(key, cls, false);
+    for (let i = 0; i < 40 && !mgr0.getScene(key); i++) await new Promise((r) => window.setTimeout(r, 25));
+  }
   return new Promise((res) => {
     const mgr = sc.sys?.game?.scene;
     if (!mgr || !sc.sys.isActive()) return res();

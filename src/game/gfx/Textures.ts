@@ -354,6 +354,8 @@ export function generatePortraits(scene: Phaser.Scene) {
 /** Which portrait texture to show for a speaker. */
 /** Named speakers who aren't in CHARACTERS but have a generated sprite. */
 const SPEAKER_SPRITES: Record<string, string> = {
+  // THE KRUNCH PIT's barker (systems/pit.ts): the KrelTV announcer's suit, moonlighting
+  "KEV KRUNCH": "spr_TV_ANNOUNCER",
   "BOGGOR CRANSTIL": "spr_BOGGOR",
   // Polson's pen name
   "CHADMORK WONKOR": "spr_POLSON",

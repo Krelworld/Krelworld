@@ -38,6 +38,8 @@ import { EnterScene } from "./game/scenes/EnterScene";
 import { HomeScene } from "./game/scenes/HomeScene";
 import { DriveScene } from "./game/scenes/DriveScene";
 import { BeepBeepScene } from "./game/scenes/BeepBeepScene";
+import { PitScene } from "./game/scenes/PitScene";
+import { PitLoanScene } from "./game/scenes/PitLoanScene";
 import { LairScene } from "./game/scenes/LairScene";
 import { FinaleScene } from "./game/scenes/FinaleScene";
 import { RoofCutscene } from "./game/scenes/citadel/RoofCutscene";
@@ -85,6 +87,8 @@ const game = new Phaser.Game({
     VignetteScene,
     MinigameScene,
     VenueScene,
+    PitScene,
+    PitLoanScene,
     ClubScene,
     KreddleScene,
     WhackScene,

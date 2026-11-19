@@ -54,6 +54,12 @@ updated). To list every dialogue line added or changed since the export:
   stripping!"), K3_CHANT ("Krel world! Do
   the krel dance!"), K3_KREZMAR ("Right you fucking cunts." … "It's wonking time."), then the card K3_SEQUEL
   ("THE LADS WILL RETURN.. IN 'KRELWORLD 64'"). The credits' closing card now reads "SEE YOU IN KRELWORLD 64".
+- **THE KRUNCH PIT** (src/content/pit.ts, played by src/game/scenes/PitScene.ts): a new barker, KEV KRUNCH
+  (voiced in the KrelTV announcer's voice), for the fight venue by the airport road. PIT_LOCKED (through the door,
+  before Chapter 1's done), PIT_INTRO (his spiel: the gauntlet, rematches, the test range, "none of it counts"),
+  PIT_HELLO (one at random on the way back in), PIT_PICK (per mode), and the results cards: PIT_DEATH, PIT_WIN,
+  PIT_RECORD, PIT_QUIT, PIT_RANGE_DONE. The death card's headline and small print (PIT_DEATH_TITLES,
+  PIT_DEATH_SMALL) are on screen only.
 
 ## Every dialogue line added or changed since the export (snapshot)
 

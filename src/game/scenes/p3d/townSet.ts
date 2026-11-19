@@ -43,6 +43,7 @@ export const TOWN_BUILDINGS: TownBuilding[] = [
   { id: "CROBLEY_FACTORY", name: "CROBLEY CORP HQ", x: 1660, y: 1255, w: 288, h: 224, door: { x: 1660, y: 1367 } },
   { id: "OLD_FLAT", name: "YOUR OLD FLAT", x: 700, y: 1650, w: 200, h: 130, door: { x: 700, y: 1715 } },
   { id: "POLSON_ROAD", name: "POLSON TOWERS", x: 2470, y: 970, w: 168, h: 160, door: { x: 2470, y: 1050 } },
+  { id: "PIT", name: "THE KRUNCH PIT", x: 2290, y: 1660, w: 200, h: 170, door: { x: 2290, y: 1745 } },
 ];
 
 const ROADS: [number, number, number, number][] = [
@@ -80,6 +81,8 @@ function buildingKey(sc: Phaser.Scene, id: string) {
   const f = G.hasRun() ? G.s.flags : {};
   if (id === "CROBLEY_FACTORY" && f.crobley_factory_destroyed && sc.textures.exists("bld_CROBLEY_FACTORY_RUIN")) return "bld_CROBLEY_FACTORY_RUIN";
   if (id === "WILDERN" && f.wildern_destroyed && sc.textures.exists("bld_WILDERN_RUIN")) return "bld_WILDERN_RUIN";
+  // THE KRUNCH PIT moved into the old Bonky temple (the hammer on the roof stayed)
+  if (id === "PIT") return "bld_BONKY_TEMPLE";
   return `bld_${id}`;
 }
 

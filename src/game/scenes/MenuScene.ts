@@ -306,9 +306,16 @@ export class MenuScene extends Phaser.Scene {
           const why = this.saveBlocked();
           items.push([why ? `SAVE GAME  🔒 ${why}` : "SAVE GAME", () => this.openSlots(), !!why]);
         }
+        // THE KRUNCH PIT: walk out of a practice run (you keep what you've made; the range gives it all back)
+        if (G.rt.pit && this.caller === "Dungeon")
+          items.splice(1, 0, [G.rt.pit.mode === "range" ? "LEAVE THE TEST RANGE" : G.rt.pit.mode === "rematch" ? "FORFEIT THE REMATCH (keep the kill money)" : "LEAVE THE PIT (bank what you've made)", () => {
+            this.close();
+            this.scene.get("Dungeon").events.emit("pit-quit");
+          }]);
         items.push(["QUIT TO TITLE (progress is autosaved)", () => this.quit()]);
-        const gap = items.length > 7 ? 41 : 46;
-        items.forEach(([t, fn, off], i) => add(button(this, 480, 150 + i * gap, t, fn, { w: 400, h: items.length > 7 ? 36 : 40, disabled: off })));
+        // (ten with the Pit's LEAVE: squeezed a touch more so the last one stays on the panel)
+        const gap = items.length > 9 ? 37 : items.length > 7 ? 41 : 46;
+        items.forEach(([t, fn, off], i) => add(button(this, 480, 150 + i * gap, t, fn, { w: 400, h: items.length > 9 ? 32 : items.length > 7 ? 36 : 40, disabled: off })));
         break;
       }
       case "difficulty": {

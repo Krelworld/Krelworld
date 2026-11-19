@@ -1084,4 +1084,23 @@ export const DUNGEONS: Record<string, DungeonDef> = {
     returnAt: "PUB",
     rooms: [{ ...SANMIK_HANGOUT, enterLines: [{ s: "NARRATOR", t: "You rub the lamp. Pop. Begour's café, Catford. The kettle is already on.", dir: true }] }],
   },
+
+  // THE KRUNCH PIT (src/game/systems/pit.ts): fighting outside the story. The gauntlet's waves and the range's
+  // dummies are made by DungeonScene (pit mode), not listed here; both rooms go back to the Pit.
+  pit_gauntlet: {
+    id: "pit_gauntlet",
+    chapter: 0,
+    name: "THE KRUNCH PIT (ENDLESS GAUNTLET)",
+    music: "boss_arena",
+    returnAt: "PIT",
+    rooms: [{ name: "The Pit", w: 1300, h: 820, theme: "industrial" }],
+  },
+  pit_range: {
+    id: "pit_range",
+    chapter: 0,
+    name: "THE KRUNCH PIT (TEST RANGE)",
+    music: "industrial",
+    returnAt: "PIT",
+    rooms: [{ name: "The Test Range", w: 1300, h: 820, theme: "industrial" }],
+  },
 };

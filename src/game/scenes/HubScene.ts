@@ -58,6 +58,8 @@ import { canFly3d, FLY_LAST, FLY_STOPS, runFlyover } from "./hub/flyover";
 import { can3d } from "../gfx/Pseudo3D";
 import { arrivalOrbit } from "./citadel/citadel3d";
 import { dawnShot, riseShot, ruinRevealShot } from "./hub/hub3d";
+import { pitOpen, pitRecord } from "../systems/pit";
+import { PIT_LOCKED } from "../../content/pit";
 import { bombingShot } from "./hub/bombing3d";
 
 /** The first line over the whiteness. */
@@ -99,6 +101,8 @@ const BUILDINGS: Building[] = [
   { id: "OLD_FLAT", name: "YOUR OLD FLAT", x: 700, y: 1650, w: 200, h: 130, wall: 0x9a8a7a, roof: 0x5a3a2a, door: { x: 700, y: 1715 } },
   // a red-brick terrace on the east edge (the id is still POLSON_ROAD: chapters, arcs and saves all point at it)
   { id: "POLSON_ROAD", name: "POLSON TOWERS", x: 2470, y: 970, w: 168, h: 160, wall: 0xa0442c, roof: 0x3a2a24, door: { x: 2470, y: 1050 } },
+  // THE KRUNCH PIT (systems/pit.ts): fights outside the story, in the old Bonky temple by the airport road. Opens after Chapter 1.
+  { id: "PIT", name: "THE KRUNCH PIT", x: 2290, y: 1660, w: 200, h: 170, wall: 0x3f3f46, roof: 0x7f1d1d, door: { x: 2290, y: 1745 } },
 ];
 
 const GATES: { id: string; name: string; x: number; y: number }[] = [
@@ -1660,6 +1664,8 @@ export class HubScene extends Phaser.Scene {
   private buildingKey(b: Building) {
     if (b.id === "CROBLEY_FACTORY" && G.s.flags.crobley_factory_destroyed && this.textures.exists("bld_CROBLEY_FACTORY_RUIN")) return "bld_CROBLEY_FACTORY_RUIN";
     if (b.id === "WILDERN" && G.s.flags.wildern_destroyed && this.textures.exists("bld_WILDERN_RUIN")) return "bld_WILDERN_RUIN";
+    // THE KRUNCH PIT moved into the old Bonky temple (the hammer on the roof stayed)
+    if (b.id === "PIT") return "bld_BONKY_TEMPLE";
     return `bld_${b.id}`;
   }
 
@@ -1707,10 +1713,25 @@ export class HubScene extends Phaser.Scene {
     return !!G.s.flags.drongus_dungeon_risen;
   }
 
+  /** THE KRUNCH PIT: the old Bonky temple, gone red, with a neon sign that doesn't quite work. */
+  private pitSign(b: Building, img: Phaser.GameObjects.Image) {
+    img.setTint(0xffb4a8);
+    const y = b.y + b.h * 0.28;
+    const t = this.add.text(b.x, y, "THE KRUNCH PIT", { fontFamily: "Impact, sans-serif", fontSize: "15px", color: "#ff4d4d", stroke: "#1a0000", strokeThickness: 4 }).setOrigin(0.5).setDepth(b.y + b.h / 2);
+    this.add.text(b.x, y + 14, "FIGHTS NIGHTLY", { fontFamily: FONT, fontSize: "8px", color: "#fecaca", stroke: "#000", strokeThickness: 2 }).setOrigin(0.5).setDepth(b.y + b.h / 2);
+    // the K flickers
+    this.time.addEvent({ delay: 1700, loop: true, callback: () => {
+      t.setAlpha(0.35);
+      this.time.delayedCall(90, () => t.setAlpha(1));
+    } });
+    this.neonGlow(b.x, y, 70);
+  }
+
   private drawBuilding(b: Building) {
     if (b.id === "CITADEL" && G.s.flags.citadel_fallen) return this.drawWreckHeap(b);
     if (b.id === "CITADEL" && !this.towerUp()) return;
-    if (this.ruined && b.id !== "CITADEL") return this.drawRuinedBuilding(b);
+    // (the Krunch Pit's underground: it came through the bombing fine, obviously)
+    if (this.ruined && b.id !== "CITADEL" && b.id !== "PIT") return this.drawRuinedBuilding(b);
     const key = this.buildingKey(b);
     if (this.hd && this.textures.exists(key)) {
       const img = this.add.image(b.x, b.y, key).setDepth(b.y + b.h / 2 - 1);
@@ -1730,6 +1751,7 @@ export class HubScene extends Phaser.Scene {
       else if (b.id === "CITADEL") this.towerFx(b, img);
       // Polson Towers after Chapter 6: the lights are off
       else if (b.id === "POLSON_ROAD" && G.s.flags.polson_dead) img.setTint(0x8a8aa8);
+      else if (b.id === "PIT") this.pitSign(b, img);
       else this.neonGlow(b.x, b.y - b.h * 0.25, Math.max(60, b.w * 0.45));
       void img;
       return;
@@ -2055,7 +2077,8 @@ export class HubScene extends Phaser.Scene {
     const f = G.s.flags;
     // somewhere you've never been gets a bouncing "NEW" over its door
     for (const p of HubScene.PLACES()) {
-      if (f[`visited_${p.id}`]) continue;
+      // (the Krunch Pit's door is locked till Chapter 1's done: no "NEW" on it before then)
+      if (f[`visited_${p.id}`] || (p.id === "PIT" && !pitOpen(G.s))) continue;
       const t = this.add.text(p.x, p.y - 64, "★ NEW", { fontFamily: FONT, fontSize: "12px", color: "#ffd23f", backgroundColor: "#000000aa", padding: { x: 4, y: 2 }, fontStyle: "bold" }).setOrigin(0.5).setDepth(2000);
       this.tweens.add({ targets: t, y: t.y - 8, yoyo: true, repeat: -1, duration: 600, ease: "Sine.inOut" });
       this.newMarkers[p.id] = t;
@@ -2588,6 +2611,8 @@ You are required by law to sign the Sex Offenders Register.`, {
         return "Enter Krelford University";
       case "GYM":
         return "Enter Krunch Gym";
+      case "PIT":
+        return pitOpen(s) ? `Enter THE KRUNCH PIT (gauntlet · rematches · test range)${pitRecord(s).bestWave ? ` · best: wave ${pitRecord(s).bestWave}` : ""}` : "THE KRUNCH PIT (members only: opens after Chapter 1)";
       case "FIXER_UPPER":
         return "Look at the fixer-upper";
       case "ABANDONED":
@@ -2741,6 +2766,18 @@ You are required by law to sign the Sex Offenders Register.`, {
         this.go("Dungeon", { dungeon: "arena_sanmik", room: 0 });
         return;
       }
+    }
+    // THE KRUNCH PIT: fights outside the story (PitScene). Locked till Chapter 1's done.
+    if (b.id === "PIT") {
+      if (!pitOpen(s)) {
+        synth.play("tap_fail");
+        await this.talk(PIT_LOCKED);
+        return;
+      }
+      synth.play("door");
+      this.discover(b.id, b.name);
+      this.go("Pit", {});
+      return;
     }
     if (b.id === "WILDERN" && (s.flags.wildern_destroyed || (s.chapter === 1 && s.flags.ch1_clear))) {
       await this.talk([dir(s.flags.wildern_destroyed ? "A smoking crater. Bits of desk. A gold star, fluttering. Somewhere underneath it all, a bell tinkles." : "The doors are chained shut. Mikey's bombs need planting round the outside: look for the red circles.", s.flags.wildern_destroyed ? {} : { variants: { MIKEY: "The doors are chained shut. Your bombs need planting round the outside: look for the red circles." } })]);

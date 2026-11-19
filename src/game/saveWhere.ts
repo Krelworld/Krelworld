@@ -28,6 +28,8 @@ const ROOMS: Record<string, string> = {
   Lair: "Da Drongus Dungeon · the top",
   Finale: "The Finale",
   Ending: "The End",
+  Pit: "Krelford · The Krunch Pit",
+  PitLoan: "Krelford · The Krunch Pit",
 };
 
 function dungeonWhere(id: string, room: number): string | undefined {
@@ -46,6 +48,8 @@ function up(mgr: Phaser.Scenes.SceneManager, k: string) {
 
 export function describeWhere(game: Phaser.Game): string | undefined {
   const mgr = game.scene;
+  // a practice run in the Pit saves as the run you'd walk out with: you're in the Pit, not the dungeon
+  if (G.rt.pit) return ROOMS.Pit;
   if (up(mgr, "Dungeon") && G.rt.dungeonId) return dungeonWhere(G.rt.dungeonId, G.rt.room);
   // a dungeon's detours (a drive, a minigame) come back into it
   for (const sc of mgr.getScenes(false)) {

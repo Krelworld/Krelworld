@@ -216,6 +216,22 @@ export interface GameState {
   where?: string;
   /** The objective at the time, for the LOAD list. */
   objective?: string;
+  /** THE KRUNCH PIT's records (src/game/systems/pit.ts). Old saves don't have it: it starts empty. */
+  pit?: PitRecord;
+}
+
+/** THE KRUNCH PIT: what you've done in there (never anything story-related). */
+export interface PitRecord {
+  /** Most gauntlet waves cleared in one run. */
+  bestWave: number;
+  /** Gauntlet runs and rematch wins. */
+  runs: number;
+  /** Krezzcoin made in the Pit, all time (wave pay, clear pay, kill drops). */
+  earned: number;
+  /** Rematch id -> the hottest Heat you've beaten it at. */
+  rematch: Record<string, number>;
+  /** The barker has done his opening spiel. */
+  met?: boolean;
 }
 
 export interface Settings {

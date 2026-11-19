@@ -141,3 +141,27 @@ pellets (+1), blast (+15% radius), homing, and "luck" on the gambling guns. A le
 BFK 110) and `weight` is the stat (fire rate 1.1, pellets 1.2, damage 1, ammo 0.6, accuracy/range 0.5…). First
 levels are 20–120; the last damage level runs 230 (pistol) to 640 (BFK). Maxing one gun is ~1,000 (pistol) to
 ~3,700 (BFK); the whole shelf is ~44,000, so you mod the two or three guns you actually use.
+
+## THE KRUNCH PIT (farming outside the story)
+
+The Pit (Krelford, by the airport road; opens after Chapter 1) is the one place you can fight for money on repeat.
+It's tuned to be worth an evening for the thing you're saving for, not to empty the shelf. Numbers live in
+`src/game/systems/pit.ts`; `tests/pit.test.ts` keeps them honest.
+
+| | Pays |
+|---|---|
+| Gauntlet wave n | 2 + 1.5n Krezzcoin (wave 10: 17), × difficulty `rewards` |
+| Gauntlet milestones | wave 5: +25 · 10: +75 · 15: +150 · 20: +250 (and every 5 after); Krokens 1 / 3 / 4 / 6 |
+| Gauntlet kill drops | × 0.35 of normal |
+| A run to wave 10 / 15 / 20 | 205 / 464 / 860 wave pay (NORMAL; Krokens 4 / 8 / 14), plus kill drops |
+| Rematch win | 50% of the original clear × Heat (1, 1.5, 2, 3) × `rewards`; boss-only rematches are 60% of a dungeon. Krokens 0 / 1 / 2 / 4 by Heat |
+| Rematch kill drops | × 0.5 of normal |
+| Test range | nothing (and nothing it lends you leaves the range) |
+
+**An hour of farming** (about four runs to wave ~12) comes to ~1,500–2,500 Krezzcoin: more than the story's
+~1,000–1,500 an hour, so it's a real option, but a ~25,000 shelf is still ten-plus hours away. The gauntlet gets
+nasty fast (wave 15 is ~3.7× HP and ~2.2× damage on top of your difficulty), so the high-paying waves are earned.
+
+Practice never touches the story: the run is snapshotted going in and settled coming out
+(`settlePractice`): only coins, Krokens, ammo for guns you already owned, bottles/bongos and the Pit's records
+come back. No crates, no free ammo top-up, and you can't come out with less money than you went in with.

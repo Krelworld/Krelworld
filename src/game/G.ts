@@ -10,6 +10,41 @@ import { applyReaction } from "./systems/reactions";
 import { ARCHIVE_BY_ID } from "../content/archive/historicalScenes";
 import { settleOldTrails } from "./systems/trails";
 import type { SlotId } from "./systems/saveSlots";
+import { cloneState, practiceEarnings, settlePractice, type PitMode, type PracticeEarnings } from "./systems/pit";
+
+/** A practice run in THE KRUNCH PIT (gauntlet, rematch or test range): see systems/pit.ts. */
+export interface PitRun {
+  mode: PitMode;
+  /** The run as it was going in: what comes back out (plus earnings) when it's over. */
+  snap: GameState;
+  /** Rematches: which one, and how hot. */
+  rematch?: string;
+  heat: number;
+  /** The rematch's first and last rooms. */
+  from: number;
+  to: number;
+  /** Gauntlet: the wave you're on (0 before the first) and the last one cleared. */
+  wave: number;
+  cleared: number;
+  /** Test range: the level the spawn-a-wave bell rings up. */
+  rangeLevel: number;
+  /** When the run started (Date.now()). */
+  startedAt: number;
+}
+
+/** How a practice run ended, for the results card back in the Pit. */
+export interface PitResult {
+  mode: PitMode;
+  outcome: "win" | "death" | "quit";
+  earned: PracticeEarnings;
+  /** Gauntlet: waves cleared, and whether that's a new best. Rematch: which one and how hot. */
+  waves?: number;
+  newBest?: boolean;
+  rematch?: string;
+  heat?: number;
+  /** What did you in (a death card line). */
+  cause?: string;
+}
 
 type Listener = (ev: string, data?: any) => void;
 
@@ -40,6 +75,8 @@ class GameContext {
     fairyUsed: false,
     /** How many guns were topped up walking into this dungeon (for the toast). */
     restocked: 0,
+    /** A practice run in THE KRUNCH PIT is on (null: the story). */
+    pit: null as PitRun | null,
   };
 
   constructor() {
@@ -56,6 +93,7 @@ class GameContext {
   }
 
   newRun(player: PlayableId, ngPlus = 0, difficulty?: number) {
+    this.rt.pit = null;
     this._state = newGameState(player, ngPlus, this.meta, difficulty);
     // (a fresh game plays the explore-before-the-dungeon trails: see settleOldTrails)
     this._state.flags.trails_v1 = true;
@@ -79,26 +117,57 @@ class GameContext {
     if (!st) return false;
     // from now on autosaves carry this run, and CONTINUE comes back to it
     if (slot !== "auto") this.saves.save(st, "auto");
+    this.rt.pit = null;
     this._state = st;
     settleOldTrails(st);
     if (this._state.hp > maxHp(this._state)) this._state.hp = maxHp(this._state);
     return true;
   }
 
-  /** Autosave (the AUTO slot). Called all over the game. */
+  /**
+   * Autosave (the AUTO slot). Called all over the game. During a practice run in the Pit it writes the run as it
+   * would come back out (settlePractice), never the live one: a save mid-gauntlet can't carry a story change.
+   */
   save() {
     if (this._state) {
-      this.stamp(this._state);
-      this.saves.save(this._state);
+      const st = this.rt.pit ? settlePractice(this.rt.pit.snap, this._state, this.rt.pit.mode) : this._state;
+      this.stamp(st);
+      this.saves.save(st);
     }
     this.saves.saveMeta(this.meta);
+  }
+
+  /** Start a practice run in the Pit: snapshot the run as it is. */
+  pitBegin(run: Omit<PitRun, "snap" | "startedAt" | "wave" | "cleared" | "rangeLevel"> & Partial<Pick<PitRun, "rangeLevel">>) {
+    const s = this.s;
+    s.phase = "hub";
+    this.rt.pit = { wave: 0, cleared: 0, rangeLevel: 1, ...run, snap: cloneState(s), startedAt: Date.now() };
+    this.rt.timerEnd = 0;
+    this.rt.fairyUsed = false;
+    this.emit("timer", null);
+  }
+
+  /** End the practice run: the run goes back to how it was, plus what you earned. Returns what it earned. */
+  pitEnd(): PracticeEarnings {
+    const run = this.rt.pit;
+    if (!run || !this._state) return { coins: 0, krokens: 0 };
+    const settled = settlePractice(run.snap, this._state, run.mode);
+    settled.hp = maxHp(settled);
+    const earned = practiceEarnings(run.snap, settled);
+    this.rt.pit = null;
+    this.rt.timerEnd = 0;
+    this.rt.fairyUsed = false;
+    this._state = settled;
+    this.emit("timer", null);
+    this.save();
+    return earned;
   }
 
   /** SAVE GAME from the pause menu: the run goes into a manual slot (and AUTO, as ever). */
   saveToSlot(slot: 1 | 2 | 3) {
     if (!this._state) return;
     this.save();
-    this.saves.save(this._state, slot);
+    this.saves.save(this.rt.pit ? settlePractice(this.rt.pit.snap, this._state, this.rt.pit.mode) : this._state, slot);
   }
 
   private stamp(s: GameState) {
@@ -121,6 +190,8 @@ class GameContext {
   }
 
   unlockArchive(id: string) {
+    // (practice in the Pit never unlocks anything)
+    if (this.rt.pit) return false;
     const fresh = unlockArchive(this.s, this.meta, id);
     if (fresh) this.emit("toast", { title: "HISTORICAL ARCHIVE UPDATED", text: ARCHIVE_BY_ID[id]?.title ?? id });
     return fresh;
@@ -140,7 +211,8 @@ class GameContext {
 
   /** Fire Drongus message sequences for a trigger (Messenger toasts, spaced out). */
   drongus(trigger: string) {
-    if (!this._state) return;
+    // (nothing from Drongus during practice in the Pit: his messages are story)
+    if (!this._state || this.rt.pit) return;
     const s = this._state;
     // ambient chatter (walking round town, the pub, the telly, standing still) is rationed: Drongus pipes up every few
     // minutes at most, like a witch's rhyme. Story moments (bosses, dungeons, Krazy Facts) always come through.

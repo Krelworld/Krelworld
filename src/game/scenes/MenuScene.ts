@@ -25,9 +25,11 @@ import { DialogueBox } from "../ui/DialogueBox";
 import { bindPad, btnDown, firstDown, PAD_DEFAULTS, PAD_FIXED, PAD_START, padFor, padLabel, resetPad } from "../systems/padbinds";
 import { say } from "../../content/dsl";
 import { ruinHomeHint } from "./home/ruinedHome";
+import { BANTER_LEVELS, BANTER_NOTE, banterDef, banterLabel, clampBanter, DEFAULT_BANTER } from "../systems/banter";
+import type { BanterLevel } from "../../data/types";
 import { clampDifficulty, difficultyDef, difficultyLabel, difficultyStats, DIFFICULTY_LEVELS, LEGACY_DIFFICULTY, DEFAULT_DIFFICULTY, MAX_DIFFICULTY } from "../systems/difficulty";
 
-type Mode = "pause" | "settings" | "bank" | "tribunal" | "death" | "quests" | "controls" | "log" | "difficulty";
+type Mode = "pause" | "settings" | "bank" | "tribunal" | "death" | "quests" | "controls" | "log" | "difficulty" | "banter";
 
 // (the perks list lives with the rest of the armoury rules)
 export { BANK_PERKS };
@@ -119,7 +121,7 @@ export class MenuScene extends Phaser.Scene {
       } else this.render(this.controlsFrom);
       return;
     }
-    if (this.mode === "settings" || this.mode === "quests" || this.mode === "log" || this.mode === "difficulty") {
+    if (this.mode === "settings" || this.mode === "quests" || this.mode === "log" || this.mode === "difficulty" || this.mode === "banter") {
       // (from the title screen, settings is the whole menu)
       if (this.caller === "Title" && this.mode === "settings") this.close();
       else this.render("pause");
@@ -301,6 +303,7 @@ export class MenuScene extends Phaser.Scene {
           }],
         ];
         if (s) items.push([`DIFFICULTY: ${difficultyLabel(s.difficulty)}${this.inDungeon() ? "  🔒" : ""}`, () => this.render("difficulty")]);
+        if (s) items.push([`BANTER: ${banterLabel(s.banter)}`, () => this.render("banter")]);
         if (s && this.caller !== "Title") {
           // manual save slots: only somewhere safe (out in town or at home), never mid-dungeon / boss / cutscene
           const why = this.saveBlocked();
@@ -314,8 +317,9 @@ export class MenuScene extends Phaser.Scene {
           }]);
         items.push(["QUIT TO TITLE (progress is autosaved)", () => this.quit()]);
         // (ten with the Pit's LEAVE: squeezed a touch more so the last one stays on the panel)
-        const gap = items.length > 9 ? 37 : items.length > 7 ? 41 : 46;
-        items.forEach(([t, fn, off], i) => add(button(this, 480, 150 + i * gap, t, fn, { w: 400, h: items.length > 9 ? 32 : items.length > 7 ? 36 : 40, disabled: off })));
+        // (eleven with the Pit's LEAVE and the banter level: tighter again)
+        const gap = items.length > 10 ? 33 : items.length > 9 ? 35 : items.length > 7 ? 41 : 46;
+        items.forEach(([t, fn, off], i) => add(button(this, 480, 150 + i * gap, t, fn, { w: 400, h: items.length > 10 ? 29 : items.length > 9 ? 31 : items.length > 7 ? 36 : 40, disabled: off })));
         break;
       }
       case "difficulty": {
@@ -334,6 +338,21 @@ export class MenuScene extends Phaser.Scene {
         const d = difficultyDef(cur);
         add(this.add.text(480, 372, d.blurb, { fontFamily: FONT, fontSize: "13px", color: hexStr(d.color), fontStyle: "bold", align: "center", wordWrap: { width: 600 } }).setOrigin(0.5, 0));
         add(this.add.text(480, 410, difficultyStats(d), { fontFamily: FONT, fontSize: "10px", color: "#9aa0b4", align: "center", wordWrap: { width: 620 } }).setOrigin(0.5, 0));
+        add(button(this, 480, 470, "◀ BACK", () => this.render("pause"), { w: 170, h: 32, size: 14 }));
+        break;
+      }
+      case "banter": {
+        add(title(this, 480, 70, "BANTER LEVEL", 28));
+        const cur = s ? clampBanter(s.banter) : DEFAULT_BANTER;
+        add(this.add.text(480, 96, "How much the lads chat in briefings and debriefings. It kicks in from the next scene. Change it again any time.", { fontFamily: FONT, fontSize: "12px", color: "#cbd5e1", align: "center", wordWrap: { width: 600 } }).setOrigin(0.5, 0));
+        BANTER_LEVELS.forEach((b, i) => {
+          const here = b.id === cur;
+          const tag = b.id === DEFAULT_BANTER ? "  ★ (recommended)" : "";
+          add(button(this, 480, 160 + i * 52, `${here ? "▶ " : ""}${b.name}${tag}${here ? "  ✓" : ""}`, () => this.setBanter(b.id), { w: 460, h: 40, size: 15, color: here ? 0x1e3a5f : undefined }));
+        });
+        const b = banterDef(cur);
+        add(this.add.text(480, 330, b.blurb, { fontFamily: FONT, fontSize: "13px", color: hexStr(b.color), fontStyle: "bold", align: "center", wordWrap: { width: 600 } }).setOrigin(0.5, 0));
+        add(this.add.text(480, 390, BANTER_NOTE, { fontFamily: FONT, fontSize: "11px", color: "#9aa0b4", align: "center", wordWrap: { width: 620 } }).setOrigin(0.5, 0));
         add(button(this, 480, 470, "◀ BACK", () => this.render("pause"), { w: 170, h: 32, size: 14 }));
         break;
       }
@@ -1105,6 +1124,18 @@ export class MenuScene extends Phaser.Scene {
       G.emit("toast", { title: "DIFFICULTY CHANGED", text: `${difficultyLabel(G.s.difficulty)}. Kicks in from the next room or fight.` });
     }
     this.render("difficulty");
+  }
+
+  private setBanter(level: BanterLevel) {
+    if (!G.hasRun()) return;
+    const was = G.s.banter;
+    G.s.banter = clampBanter(level);
+    G.save();
+    if (was !== G.s.banter) {
+      synth.play("ding");
+      G.emit("toast", { title: "BANTER LEVEL CHANGED", text: `${banterLabel(G.s.banter)}. Kicks in from the next scene.` });
+    }
+    this.render("banter");
   }
 
   private close() {

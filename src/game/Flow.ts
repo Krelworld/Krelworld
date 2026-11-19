@@ -2,7 +2,7 @@ import { synth } from "./audio/Synth";
 import { offerFacts, adoptFact } from "../data/historicalRevisions";
 import { requiredArcSteps, sideQuestsFirst, tokenTrail } from "./systems/arcs";
 import Phaser from "phaser";
-import type { Line, PlayableId } from "../data/types";
+import type { BanterLevel, Line, PlayableId } from "../data/types";
 import { G } from "./G";
 import { chapterDef, CHAPTERS } from "../content/chapters/chapters";
 import { evalCond } from "./systems/conditions";
@@ -104,8 +104,8 @@ export function goNext(from: Phaser.Scene, next: Next | null | undefined) {
 export const AFTER_PROLOGUE = { scene: "Cutscene", data: { script: "ch1_intro", bg: "messenger", music: "meeting", next: { scene: "Meeting", data: { id: "emergency_reaction_session", next: { scene: "Hub", data: { at: "TOWN_HALL", chain: true } } } } } };
 
 /** A new game starts at home. */
-export function startNewRun(from: Phaser.Scene, player: PlayableId, ngPlus = 0, difficulty?: number) {
-  G.newRun(player, ngPlus, difficulty);
+export function startNewRun(from: Phaser.Scene, player: PlayableId, ngPlus = 0, difficulty?: number, banter?: BanterLevel) {
+  G.newRun(player, ngPlus, difficulty, banter);
   switchTo(from, "Home", {});
 }
 

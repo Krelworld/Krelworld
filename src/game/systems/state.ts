@@ -1,8 +1,9 @@
-import type { GameState, MetaState, PlayableId, ReactionChoice, Settings } from "../../data/types";
+import type { BanterLevel, GameState, MetaState, PlayableId, ReactionChoice, Settings } from "../../data/types";
 import { CHARACTERS } from "../../data/characters";
 import { GUNS } from "../../data/guns";
 import { sanitizeLoadout } from "./carry";
 import { clampDifficulty, DEFAULT_DIFFICULTY, LEGACY_DIFFICULTY } from "./difficulty";
+import { clampBanter, DEFAULT_BANTER } from "./banter";
 import { cleanPit } from "./pit";
 import { storageKey } from "../variant";
 import { AUTO_KEY, MANUAL_SLOTS, mostRecentSlot, SLOT_IDS, slotKey, SLOTS_MIGRATED_KEY, summarizeSlot, type SlotId, type SlotSummary } from "./saveSlots";
@@ -72,7 +73,7 @@ export function defaultStore(): KVStore {
 
 const emptyReactions = (): Record<ReactionChoice, number> => ({ LIKE: 0, LOVE: 0, LAUGH: 0, ANGRY: 0, SEEN: 0 });
 
-export function newGameState(player: PlayableId, ngPlus = 0, meta?: MetaState, difficulty = DEFAULT_DIFFICULTY): GameState {
+export function newGameState(player: PlayableId, ngPlus = 0, meta?: MetaState, difficulty = DEFAULT_DIFFICULTY, banter: BanterLevel = DEFAULT_BANTER): GameState {
   const def = CHARACTERS[player];
   return {
     version: SAVE_VERSION,
@@ -103,6 +104,7 @@ export function newGameState(player: PlayableId, ngPlus = 0, meta?: MetaState, d
     ngPlus,
     playtimeMs: 0,
     difficulty: clampDifficulty(difficulty, DEFAULT_DIFFICULTY),
+    banter: clampBanter(banter),
   };
 }
 
@@ -146,6 +148,8 @@ export function migrateState(raw: any): GameState | null {
   s.chapter = clampInt(raw.chapter, 1, 7, 1);
   // saves from before difficulty existed were played on the original balance: level 2
   s.difficulty = clampDifficulty(raw.difficulty, LEGACY_DIFFICULTY);
+  // saves from before the banter level existed had all of it: MAX BANTER
+  s.banter = clampBanter(raw.banter);
   if (s.phase !== "hub" && s.phase !== "dungeon" && s.phase !== "ended") s.phase = "hub";
   // A save made mid-dungeon resumes at the dungeon entrance in the hub: never an impossible state.
   if (s.phase === "dungeon") s.phase = "hub";

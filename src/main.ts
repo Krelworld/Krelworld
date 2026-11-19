@@ -13,6 +13,7 @@ import { BootScene } from "./game/scenes/BootScene";
 import { TitleScene } from "./game/scenes/TitleScene";
 import { CharSelectScene } from "./game/scenes/CharSelectScene";
 import { DifficultyScene } from "./game/scenes/DifficultyScene";
+import { BanterScene } from "./game/scenes/BanterScene";
 import { CutsceneScene } from "./game/scenes/CutsceneScene";
 import { DialogueScene } from "./game/scenes/DialogueScene";
 import { TownMeetingScene } from "./game/scenes/TownMeetingScene";
@@ -71,6 +72,7 @@ const game = new Phaser.Game({
     TitleScene,
     CharSelectScene,
     DifficultyScene,
+    BanterScene,
     CutsceneScene,
     TownMeetingScene,
     DebugScene,
@@ -111,7 +113,7 @@ installMouseLock(game);
 installFullscreenKeys(game);
 // playtime: every frame of a run counts (town, dungeons, meetings, home, TV, cutscenes, minigames), not the
 // title/character-select screens or the pause menu
-const NOT_PLAYING = ["Boot", "Title", "CharSelect", "Difficulty", "Menu", "Slots", "ChapterSelect", "DebugSkip"];
+const NOT_PLAYING = ["Boot", "Title", "CharSelect", "Difficulty", "Banter", "Menu", "Slots", "ChapterSelect", "DebugSkip"];
 game.events.on(Phaser.Core.Events.POST_STEP, (_t: number, delta: number) => {
   if (!G.hasRun()) return;
   const sm = game.scene;

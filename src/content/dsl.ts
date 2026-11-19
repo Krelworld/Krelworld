@@ -29,6 +29,13 @@ export const react = (
   options?: ReactionChoice[],
 ): Line => ({ s: "NARRATOR", t: "", react: { message, context, outcomes, from, options } });
 
+/**
+ * Banter tags (src/game/systems/banter.ts) for briefing and debriefing lines. The line itself is untouched.
+ * bMax: MAX BANTER only. bMod: MAX and MODERATE BANTER (cut at EXPOSITION).
+ */
+export const bMax = (l: Line): Line => ({ ...l, banter: "max" });
+export const bMod = (l: Line): Line => ({ ...l, banter: "moderate" });
+
 /** Gabor the Goat tAaAlKs LiIiKE tHiIIiS. Deterministic, so it reads the same every time. */
 export function goat(t: string): string {
   let i = 0;

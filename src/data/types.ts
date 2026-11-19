@@ -78,6 +78,9 @@ export interface ChoiceOption {
   lines?: Line[];
 }
 
+/** MAX BANTER (everything), MODERATE BANTER, or EXPOSITION (the plot beats and some of the jokes). */
+export type BanterLevel = "max" | "moderate" | "exposition";
+
 export interface Line {
   /** Speaker. */
   s: SpeakerId;
@@ -134,6 +137,12 @@ export interface Line {
    */
   cine?: string;
   cineAfter?: string;
+  /**
+   * Banter (src/game/systems/banter.ts): the lowest banter level this line still plays at. "max" = MAX BANTER only,
+   * "moderate" = MAX and MODERATE (cut at EXPOSITION). Untagged lines always play. Only for briefing / debriefing
+   * scenes, and never on a line that does something (sets a flag, asks, reacts, puts the telly on...).
+   */
+  banter?: "max" | "moderate";
 }
 
 export interface MeetingScript {
@@ -210,6 +219,8 @@ export interface GameState {
   ending?: ReactionChoice;
   /** 1-5 (src/game/systems/difficulty.ts). 2 = the original balance (old saves), 3 = the default for new games. */
   difficulty: number;
+  /** How much the lads chat in briefings and debriefings (src/game/systems/banter.ts). Old saves come back as "max". */
+  banter: BanterLevel;
   /** When this save was written (ms since epoch). Old saves don't have it. */
   savedAt?: number;
   /** Where it was saved, for the LOAD list ("Krelford · Krezz Arms", "Da Drongus Dungeon · room 3"). */

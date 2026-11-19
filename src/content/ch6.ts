@@ -1,5 +1,5 @@
 import type { Line } from "../data/types";
-import { dir, ping, say } from "./dsl";
+import { bMax, bMod, dir, ping, say } from "./dsl";
 
 // CHAPTER 6: THE KREDDLE EXPRESS — the cutscenes (VignetteScene). Everything here is fictional, cartoonish and stupid.
 // Speaker ids are the lads' ids; "YOU" is whoever you're playing as.
@@ -86,13 +86,13 @@ export const RM_JENKO: Line[] = [
 export const RM_REVENGE: Line[] = [
   say("SCROMBUS", "We need to take revenge on Kreddle!!!! They destroyed the Krel Tower!!! They killed POLSON!!!"),
   say("KREZMAR", "YES!! FOR POLSON!!"),
-  say("MIKEY", "YES. Revenge. FGM rules of engagement: there are none."),
-  say("GRONNY", "Me want revenge. Revenge good."),
-  say("KREBLIS", "Breaking news…"),
-  say("KREBLIS", "Revenge 👍"),
-  say("KREZWONK", "I have foreseen it. A great vengeance. With loads of fire in it."),
-  say("CRONGUS", "Yeah! Revenge!! …On Kreddle! For the tower! For Polson!"),
-  say("GRONNY", "Polson would want revenge. Polson would want snack first. Then revenge."),
+  bMod(say("MIKEY", "YES. Revenge. FGM rules of engagement: there are none.")),
+  bMax(say("GRONNY", "Me want revenge. Revenge good.")),
+  bMax(say("KREBLIS", "Breaking news…")),
+  bMax(say("KREBLIS", "Revenge 👍")),
+  bMod(say("KREZWONK", "I have foreseen it. A great vengeance. With loads of fire in it.")),
+  bMod(say("CRONGUS", "Yeah! Revenge!! …On Kreddle! For the tower! For Polson!")),
+  bMax(say("GRONNY", "Polson would want revenge. Polson would want snack first. Then revenge.")),
   say("SCROMBUS", "We avenge Polson. We find Klerble. And we make him wait in a queue. FOREVER."),
 ];
 
@@ -138,11 +138,11 @@ export const RM_POLSON: Line[] = [
   ping("DRONGUS", "Polson's dead"),
   ping("DRONGUS", "He messaged me 'wbu' an hour ago"),
   ping("DRONGUS", "I never replied"),
-  say("KREBLIS", "Breaking news…"),
-  say("KREBLIS", "Polson 😭"),
-  say("KREZWONK", "I foresaw it. I didn't say anything. It felt rude."),
-  say("MIKEY", "He owed me a tenner.", { cond: { notPlayer: "MIKEY" } }),
-  say("MIKEY", "…I'd give a hundred tenners to have him back. A HUNDRED.", { cond: { notPlayer: "MIKEY" } }),
+  bMod(say("KREBLIS", "Breaking news…")),
+  bMod(say("KREBLIS", "Polson 😭")),
+  bMax(say("KREZWONK", "I foresaw it. I didn't say anything. It felt rude.")),
+  bMod(say("MIKEY", "He owed me a tenner.", { cond: { notPlayer: "MIKEY" } })),
+  bMod(say("MIKEY", "…I'd give a hundred tenners to have him back. A HUNDRED.", { cond: { notPlayer: "MIKEY" } })),
   say("FLENKY", "First Mollor. Now Polson. Klerble's taking EVERYTHING."),
   dir("On the telly, President Klerble eats Polson's fortieth burger. He gives the camera a thumbs up."),
   say("SCROMBUS", "Somebody turn it off."),
@@ -226,8 +226,8 @@ export const RM_CAUTION: Line[] = [
   say("KREBLIS", "Kreddle is the most heavily armed universe nearby. Lots of bombs and other things which could explode Krelworld 👍", { cond: { notPlayer: "KREBLIS" } }),
   say("SCROMBUS", "Point of order. Kreddle is the most heavily armed universe nearby. Lots of bombs and other things which could explode Krelworld.", { cond: { player: "KREBLIS" } }),
   say("MIKEY", "Who cares! They'll never beat us!!"),
-  say("GRONNY", "There never beat us!!"),
-  say("KREZMAR", "Never! They're a load of Kreddle cunts with sequins on!"),
+  bMax(say("GRONNY", "There never beat us!!")),
+  bMod(say("KREZMAR", "Never! They're a load of Kreddle cunts with sequins on!")),
   say("FLENKY", "They don't have the BALLS!!"),
   say("EVERYONE", "THEY'LL NEVER BEAT US!!"),
 ];
@@ -272,8 +272,8 @@ export const RM_HANDS: Line[] = [
   say("FLENKY", "For Mollor."),
   say("KREZMAR", "For the Krel Tower."),
   say("MIKEY", "For my dignity.", { variants: { MIKEY: "For Polson's shake." } }),
-  say("CRONGUS", "For… the Krelneva Convention?"),
-  say("EVERYONE", "NO."),
+  bMod(say("CRONGUS", "For… the Krelneva Convention?")),
+  bMod(say("EVERYONE", "NO.")),
   say("SCROMBUS", "Hands in. Everybody. Hands in the middle."),
 ];
 

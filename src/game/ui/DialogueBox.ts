@@ -7,6 +7,7 @@ import { voice } from "../audio/Voice";
 import { resolveLine, type ResolvedLine } from "../systems/narrative";
 import { displayText } from "../audio/voiceKey";
 import { evalCond } from "../systems/conditions";
+import { banterKeeps, clampBanter } from "../systems/banter";
 import { portraitKey } from "../gfx/Textures";
 import { playCine } from "../gfx/SideCine";
 import { synth } from "../audio/Synth";
@@ -456,12 +457,14 @@ export class DialogueBox {
     this.active = true;
     this.skipping = false;
     this.root.setVisible(true);
-    const queue = [...lines];
     const s = G.s;
-    voice.prefetch(queue.filter((l) => !l.dir && l.t).map((l) => ({ s: String(l.s === "YOU" ? s.player : l.s), t: l.t })));
+    // the banter level as the script starts (a change in the pause menu kicks in from the next one)
+    const banter = clampBanter(s.banter);
+    const queue = [...lines];
+    voice.prefetch(queue.filter((l) => !l.dir && l.t && banterKeeps(l, banter)).map((l) => ({ s: String(l.s === "YOU" ? s.player : l.s), t: l.t })));
     // On the register: whoever speaks to you first opens with what they think of you.
     if (s.flags.on_register && !(((s.flags.on_register_until as number) ?? Infinity) < s.playtimeMs)) {
-      const i = queue.findIndex((l) => !l.dir && !l.notify && l.s !== "NARRATOR" && l.s !== s.player && !!l.t && evalCond(l.cond, s));
+      const i = queue.findIndex((l) => !l.dir && !l.notify && l.s !== "NARRATOR" && l.s !== s.player && !!l.t && evalCond(l.cond, s) && banterKeeps(l, banter));
       if (i >= 0) queue.splice(i, 0, { s: queue[i].s, t: REGISTER_JIBES[Math.floor(Math.random() * REGISTER_JIBES.length)], tag: "new" });
     }
     while (queue.length && !this.destroyed) {
@@ -469,6 +472,8 @@ export class DialogueBox {
       // "YOU" = whoever you're playing as
       const raw = raw0.s === "YOU" ? { ...raw0, s: s.player } : raw0;
       if (!evalCond(raw.cond, s)) continue;
+      // briefings and debriefings: lines the banter level leaves out (never one that does anything: see systems/banter.ts)
+      if (!banterKeeps(raw, banter)) continue;
       if (raw.set) Object.assign(s.flags, raw.set);
       if (raw.react) {
         this.skipping = false;

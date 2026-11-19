@@ -16,6 +16,7 @@ import { FONT, hexStr, UI } from "../ui/theme";
 import { CANON } from "../../content/archive/canonQuotes";
 import { say } from "../../content/dsl";
 import { isAlt } from "../variant";
+import { banterKeeps, clampBanter } from "../systems/banter";
 
 interface Seat {
   id: string;
@@ -416,7 +417,7 @@ export class TownMeetingScene extends Phaser.Scene {
     const seen = !!G.s.flags.sanmik_brief_seen;
     if (seen && Math.random() > 0.4 && !(window as any).__forceSanmik) return beats;
     // only in meetings where Mikey actually speaks, and always before his first line (so every line he says is SanMik's)
-    const first = beats.findIndex((b) => b.s === "MIKEY" && !b.dir && !!b.t && !b.notify && evalCond(b.cond, G.s));
+    const first = beats.findIndex((b) => b.s === "MIKEY" && !b.dir && !!b.t && !b.notify && evalCond(b.cond, G.s) && banterKeeps(b, clampBanter(G.s.banter)));
     if (first < 0) return beats;
     G.s.flags.sanmik_brief_seen = true;
     beats.splice(first, 0, say("MIKEY", "Hang on, time to transform into SanMik", { fx: "sanmik_transform" }));

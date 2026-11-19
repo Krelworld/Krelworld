@@ -1,5 +1,5 @@
 import type { Line } from "../../data/types";
-import { dir, ping, say } from "../dsl";
+import { bMax, bMod, dir, ping, say } from "../dsl";
 
 // CHAPTER 7, after Drongus's lair: Krelford, the morning after the Krunch Protocol.
 // The joke: the lads think they did all this on a night out. Nobody says "missiles". Nobody says "bombed".
@@ -12,16 +12,16 @@ export const AFTER_WAKE: Line[] = [
 export const AFTER_HANGOVER: Line[] = [
   say("KREZMAR", "…ughhhhhh."),
   say("MIKEY", "Ugh. Lads.. My head."),
-  say("KREBLIS", "Breaking news… I'm never drinking or doing gear ever again 👍"),
+  bMod(say("KREBLIS", "Breaking news… I'm never drinking or doing gear ever again 👍")),
   say("SCROMBUS", "What happened last night?"),
   say("KREBON", "We went on a mad one. It got a little mental."),
-  say("GRONNY", "Me no remember. Me remember disco. Then ceiling."),
-  say("CRONGUS", "Has someone moved the Town Hall? It's… lower."),
-  say("KREZWONK", "I foresaw this hangover. I did not foresee its scale."),
+  bMax(say("GRONNY", "Me no remember. Me remember disco. Then ceiling.")),
+  bMax(say("CRONGUS", "Has someone moved the Town Hall? It's… lower.")),
+  bMax(say("KREZWONK", "I foresaw this hangover. I did not foresee its scale.")),
   say("KREZMAR", "Look at the state of the place. We really went for it."),
-  say("MIKEY", "Someone's set fire to Krelburger. Classic us."),
-  say("KREBON", "Somebody's going to have to tidy all this up. Such as a woman."),
-  say("KREBLIS", "Mmm… smoke…"),
+  bMod(say("MIKEY", "Someone's set fire to Krelburger. Classic us.")),
+  bMax(say("KREBON", "Somebody's going to have to tidy all this up. Such as a woman.")),
+  bMax(say("KREBLIS", "Mmm… smoke…")),
   { s: "YOU", t: "Honestly lads. Best night ever. I think.", tag: "new" },
 ];
 
@@ -39,11 +39,11 @@ export const AFTER_SHRIEK: Line[] = [
   say("KREZMAR", "EEEEEEEEEEEEEEEEE!!!"),
   say("KREZMAR", "My job. MY JOB. If my boss sees the chat I'm finished."),
   say("SCROMBUS", "The whole town's going to see it! The whole town is going to JUDGE us!"),
-  say("CRONGUS", "They'll see the pudding stuff. Everyone in Krelford will know."),
-  say("FLENKY", "I'll never work in this town again."),
-  say("GRONNY", "Me job! Me… what is me job?"),
-  say("KREBLIS", "Breaking news… we are fucked 👍"),
-  say("KREBON", "We could turn the internet off."),
+  bMod(say("CRONGUS", "They'll see the pudding stuff. Everyone in Krelford will know.")),
+  bMod(say("FLENKY", "I'll never work in this town again.")),
+  bMax(say("GRONNY", "Me job! Me… what is me job?")),
+  bMod(say("KREBLIS", "Breaking news… we are fucked 👍")),
+  bMod(say("KREBON", "We could turn the internet off.")),
 ];
 
 export const AFTER_CRYSTAL: Line[] = [
@@ -52,7 +52,7 @@ export const AFTER_CRYSTAL: Line[] = [
   dir("It's a cum crystal. The sixth one. It's just… there. Nobody knows where it came from. Nobody asks."),
   say("MIKEY", "Six. That's six. When did we get six?"),
   say("KREBON", "We must have got it last night."),
-  say("SCROMBUS", "Absolute legends. Even blackout drunk we're on mission."),
+  bMod(say("SCROMBUS", "Absolute legends. Even blackout drunk we're on mission.")),
   dir("At the top of town, through the smoke, the six slots on Da Drongus Dungeon light up one by one. The gates grind open."),
   say("KREZMAR", "Right. It's game on. We stop the leak."),
   { s: "YOU", t: "Da Drongus Dungeon. Let's go.", tag: "new" },

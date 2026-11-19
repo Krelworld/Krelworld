@@ -1,5 +1,5 @@
 import { applyLoadout } from "./systems/carry";
-import type { GameState, MetaState, PlayableId, ReactionChoice } from "../data/types";
+import type { BanterLevel, GameState, MetaState, PlayableId, ReactionChoice } from "../data/types";
 import { SaveManager, newGameState, unlockArchive, markWatched } from "./systems/state";
 import { activeMods } from "../data/historicalRevisions";
 import { maxHp } from "./systems/stats";
@@ -92,9 +92,9 @@ class GameContext {
     return !!this._state;
   }
 
-  newRun(player: PlayableId, ngPlus = 0, difficulty?: number) {
+  newRun(player: PlayableId, ngPlus = 0, difficulty?: number, banter?: BanterLevel) {
     this.rt.pit = null;
-    this._state = newGameState(player, ngPlus, this.meta, difficulty);
+    this._state = newGameState(player, ngPlus, this.meta, difficulty, banter);
     // (a fresh game plays the explore-before-the-dungeon trails: see settleOldTrails)
     this._state.flags.trails_v1 = true;
     // finished the game before: start with the kit you finished it with

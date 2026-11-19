@@ -3,14 +3,15 @@ import { backdrop } from "../gfx/HD";
 import { CHARACTERS } from "../../data/characters";
 import type { PlayableId } from "../../data/types";
 import { button, FONT, hexStr, label, title } from "../ui/theme";
-import { startNewRun, switchTo, fadeThen } from "../Flow";
+import { switchTo, fadeThen } from "../Flow";
 import { synth } from "../audio/Synth";
 import { btnDown, PAD_START } from "../systems/padbinds";
 import { DEFAULT_DIFFICULTY, DIFFICULTY_LEVELS, DIFFICULTY_NOTE, difficultyStats, LEGACY_DIFFICULTY, MAX_DIFFICULTY } from "../systems/difficulty";
 
 /**
  * NEW GAME, after the character: how krezzed do you want it? Five levels, the recommended one (3) highlighted.
- * Arrows / W-S / 1-5 / d-pad / stick pick, Enter / Space / pad A start, Esc / pad B go back to the characters.
+ * Then the banter level (BanterScene), then the game.
+ * Arrows / W-S / 1-5 / d-pad / stick pick, Enter / Space / pad A on to the banter level, Esc / pad B go back to the characters.
  * Mouse and touch: tap a level to pick it, tap it again (or START) to go.
  */
 export class DifficultyScene extends Phaser.Scene {
@@ -28,10 +29,11 @@ export class DifficultyScene extends Phaser.Scene {
     super("Difficulty");
   }
 
-  init(data: { player?: PlayableId; ngPlus?: number }) {
+  init(data: { player?: PlayableId; ngPlus?: number; difficulty?: number }) {
     this.player = data?.player ?? "FLENKY";
     this.ngPlus = data?.ngPlus ?? 0;
-    this.sel = DEFAULT_DIFFICULTY - 1;
+    // (back from the banter picker: the level you'd picked is still picked)
+    this.sel = (data?.difficulty && data.difficulty >= 1 && data.difficulty <= MAX_DIFFICULTY ? data.difficulty : DEFAULT_DIFFICULTY) - 1;
     this.rows = [];
     this.padPrev = [];
     this.padPrimed = false;
@@ -69,9 +71,9 @@ export class DifficultyScene extends Phaser.Scene {
 
     this.stats = this.add.text(W / 2, 400, "", { fontFamily: FONT, fontSize: "11px", color: "#cbd5e1", align: "center", wordWrap: { width: 820 } }).setOrigin(0.5, 0);
     this.add.text(W / 2, 436, DIFFICULTY_NOTE, { fontFamily: FONT, fontSize: "15px", color: "#ffd23f", fontStyle: "bold", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5, 0);
-    this.add.text(W / 2, 458, "↑/↓ or 1–5 to pick · ENTER / A to start · tap twice on touch", { fontFamily: FONT, fontSize: "11px", color: "#8a8fa0" }).setOrigin(0.5, 0);
+    this.add.text(W / 2, 458, "↑/↓ or 1–5 to pick · ENTER / A to go on · tap twice on touch", { fontFamily: FONT, fontSize: "11px", color: "#8a8fa0" }).setOrigin(0.5, 0);
     button(this, 150, H - 30, "◀ CHARACTERS", () => this.back(), { w: 200, h: 34, size: 14 });
-    button(this, W - 170, H - 30, "LET'S KREZ ▶", () => this.confirm(), { w: 240, h: 38, size: 17, color: 0x7c2d12 });
+    button(this, W - 170, H - 30, "NEXT: BANTER ▶", () => this.confirm(), { w: 240, h: 38, size: 17, color: 0x7c2d12 });
     this.select(this.sel, true);
 
     const kb = this.input.keyboard!;
@@ -142,6 +144,7 @@ export class DifficultyScene extends Phaser.Scene {
     this.going = true;
     synth.unlock();
     synth.play("pop");
-    startNewRun(this, this.player, this.ngPlus, DIFFICULTY_LEVELS[this.sel].level);
+    // then: how much banter
+    fadeThen(this, 160, () => switchTo(this, "Banter", { player: this.player, ngPlus: this.ngPlus, difficulty: DIFFICULTY_LEVELS[this.sel].level }));
   }
 }

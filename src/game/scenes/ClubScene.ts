@@ -667,7 +667,7 @@ export class ClubScene extends Phaser.Scene {
       label = this.tokenLabel();
       act = () => void this.takeToken();
     } else if (atStage && !this.onBreak && !this.dancerDown) {
-      label = `E: Tip ${this.dancerName()} (5 Krezzcoin)\n${TOUCH.enabled ? "👀" : "F"}: Watch up close (10 Krezzcoin)`;
+      label = `E: Tip ${this.dancerName()} (5 Krezzcoin)\n${TOUCH.enabled ? "👀" : "F"}: Watch up close (10 Krezzcoin)${this.goldenOpen() ? "  → 💋 PRIVATE DANCE (golden juice)" : ""}`;
       act = () => this.tip();
       if (this.controls.special()) return void this.closeup();
     } else if (atBooth && !this.onBreak && !this.dancerDown) {
@@ -978,7 +978,35 @@ export class ClubScene extends Phaser.Scene {
     if (!this.scene.isActive()) return;
     this.nextSwap = Math.max(this.nextSwap, this.time.now + 15000);
     this.controls.swallow();
+    // straight from the close-up: she offers you the booth (where the golden juice comes from)
+    if (this.goldenOpen() && !this.onBreak && !this.dancerDown) {
+      const name = this.dancerName();
+      delete s.flags.pd_offer;
+      await this.talk([
+        {
+          s: "NARRATOR",
+          dir: true,
+          t: `💋 ${name} leans down off the stage: "Private dance, babe? Back booth. 25 Krezzcoin." (A private dance is where the GOLDEN JUICE comes from: give her a squeeze.)`,
+          choice: [
+            { label: "💋 Private dance (25 Krezzcoin)", set: { pd_offer: 1 } },
+            { label: "Not now", set: { pd_offer: 0 } },
+          ],
+        },
+      ]);
+      this.busy = false;
+      if (s.flags.pd_offer === 1) {
+        delete s.flags.pd_offer;
+        return void this.privateDance();
+      }
+      delete s.flags.pd_offer;
+      return;
+    }
     this.busy = false;
+  }
+
+  /** Golden juice is a thing yet (so the private dance is on offer). */
+  private goldenOpen() {
+    return !!(G.s.flags.golden_unlocked || G.s.flags.golden_found);
   }
 
   /** A private dance, and (if you're up for it) a golden juice squeeze. */

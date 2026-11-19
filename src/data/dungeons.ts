@@ -809,7 +809,7 @@ export const DUNGEONS: Record<string, DungeonDef> = {
     arenaFlag: "sanmik_catford",
     returnAt: "PUB",
     rooms: [
-      { ...SANMIK_HANGOUT, enterLines: SANMIK_ARRIVAL, then: ["cam2cam"] },
+      { ...SANMIK_HANGOUT, enterLines: SANMIK_ARRIVAL },
       {
         name: "Catford High Street",
         w: 3400,

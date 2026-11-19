@@ -1,7 +1,7 @@
 import type { CharacterId, GameState, Line, PlayableId, SpeakerId } from "../../data/types";
 import { CHARACTERS } from "../../data/characters";
 import { CANON } from "../../content/archive/canonQuotes";
-import { evalCond } from "./conditions";
+import { evalCond, lineText } from "./conditions";
 
 /**
  * The one global substitution rule.
@@ -53,9 +53,8 @@ export function resolveLine(line: Line, s: GameState, opts: ResolveOptions = {})
       if (!text) text = c.text;
     }
   }
-  if (line.variants && line.variants[s.player] !== undefined) {
-    text = line.variants[s.player] as string;
-  }
+  // per-player variants, and the ALT build's replacement text (conditions.ts lineText)
+  text = lineText(line, s.player, text);
   let title: string | undefined;
   if (!opts.historical && line.role && speaker === s.player) {
     speaker = "PROCTUS";

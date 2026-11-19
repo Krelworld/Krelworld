@@ -9,6 +9,7 @@ import { animateWalker, attackFrame } from "../../gfx/HD";
 import { bump } from "../../systems/stats";
 import { dir, say } from "../../../content/dsl";
 import type { Line } from "../../../data/types";
+import { isAlt } from "../../variant";
 
 /**
  * Posse encounter: one of the lads walks up and says "let's beat up X". A posse forms, you find
@@ -122,7 +123,8 @@ export class Beatup {
     const h = this.h;
     const s = G.s;
     const pool = INSTIGATORS.filter((id) => id !== s.player);
-    const victims = VICTIMS.filter((v) => v.id !== s.player && (!victimId || v.id === victimId));
+    // (the ALT build: never Mikey. Luke and Jenko only)
+    const victims = VICTIMS.filter((v) => v.id !== s.player && (!isAlt() || v.id !== "MIKEY") && (!victimId || v.id === victimId));
     if (pool.length < 1 || !victims.length) return;
     Phaser.Utils.Array.Shuffle(pool);
     const crew = pool.slice(0, Math.min(3, pool.length));

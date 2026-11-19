@@ -55,6 +55,8 @@ export interface Cond {
   intoxBelow?: number;
   resentmentAtLeast?: number;
   ngPlus?: boolean;
+  /** Only in the ALT build (true) / only in the normal build (false): see src/game/variant.ts. */
+  alt?: boolean;
   any?: Cond[];
   not?: Cond;
 }
@@ -97,6 +99,10 @@ export interface Line {
   proctus?: string;
   /** Per-player replacement text when the listed player is the speaker or present. */
   variants?: Partial<Record<PlayableId, string>>;
+  /** ALT build only: replaces `t` (a player's `variants` entry still wins; `altVariants` replaces those). */
+  alt?: string;
+  /** ALT build only: per-player replacements, over `variants`. */
+  altVariants?: Partial<Record<PlayableId, string>>;
   react?: ReactionPrompt;
   choice?: ChoiceOption[];
   set?: Record<string, FlagValue>;

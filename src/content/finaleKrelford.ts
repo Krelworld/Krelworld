@@ -1,5 +1,6 @@
 import type { Line } from "../data/types";
 import { dir, say } from "./dsl";
+import { ALT } from "../game/variant";
 
 // THE FINALE, PART B: back in Krelford after Da Drongus Dungeon falls. THE CONCEPT OF PAEDOPHILIA.
 // The monster only ever speaks in clinical, definitional language (diagnostic-manual and encyclopaedia phrasing).
@@ -24,7 +25,7 @@ export const FB_CELEBRATE: Line[] = [
   say("FLENKY", "Did everyone see my landing? Nobody saw my landing."),
   say("KREBON", "Is this a crime scene? Feels like a crime scene. I'm on probation."),
   say("CRONGUS", "Lads. LADS. Think about what this means."),
-  say("MIKEY", "Does it mean I'm in the group now?"),
+  say("MIKEY", "Does it mean I'm in the group now?", { alt: "Does it mean what I think it means?" }),
   say("KREZWONK", "It means… oh my god. We can now delete the chat logs."),
   dir("Silence. Then the loudest cheer Krelford has ever heard. Somebody starts a conga. It goes once round the wreckage and falls apart."),
   { s: "YOU", t: "OH MY GOD. WE CAN NOW DELETE THE CHAT LOGS.", tag: "new" },
@@ -174,7 +175,7 @@ export const FB_HEAL: Line[][] = [
   [
     c("NO CURE HAS BEEN DEVELOPED."),
     say("KREBLIS", "Breaking news… we're going to die 👍"),
-    say("MIKEY", "Is this how it ends? I never even got in the group."),
+    say("MIKEY", "Is this how it ends? I never even got in the group.", { alt: "Is this how it ends? I never even got my 50p back." }),
     dir("Despair. Absolute despair. The rain gets heavier, out of spite."),
   ],
 ];
@@ -211,7 +212,7 @@ export const INJECT_BARKS: Record<string, string> = {
   KREBON: "Is this legal? Don't answer that.",
   CRONGUS: "It's warm. Why is it warm. Don't tell me.",
   GRONNY: "Me feel… BIG.",
-  MIKEY: "Am I in the group now? Is this the initiation?",
+  MIKEY: ALT ? "Is this the nuclear option? It feels nuclear." : "Am I in the group now? Is this the initiation?",
 };
 
 export const FB_ALL_INJECTED: Line[] = [
@@ -224,7 +225,7 @@ export const FB_TRANSFORM: Line[] = [
   say("GRONNY", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
   say("SCROMBUS", "MY SHIRT. MY SHIRT'S GONE. WHERE DID THESE COME FROM."),
   say("FLENKY", "I can see through time. Ninjas can't even do that."),
-  say("MIKEY", "Is this what it's like being in the group?"),
+  say("MIKEY", "Is this what it's like being in the group?", { alt: "Is this what it's like being famus? YEEE." }),
 ];
 
 export const FB_PHASE2: Line[] = [
@@ -338,7 +339,7 @@ export const FD_SAVED: Line[] = [
   say("KREZWONK", "Lads. Something's just occurred to me. We need to release some of the inmates from Krelcatraz. Jimmy Savile. Ian Watkins. Gary Glitter."),
   say("KREZWONK", "We have no idea what they're in prison for! It's awful! I feel so guilty!"),
   say("KREBON", "Free them. Free them all. I know what it's like to be on the inside."),
-  say("MIKEY", "Can I come when we let them out?"),
+  say("MIKEY", "Can I come when we let them out?", { alt: "Bagsy I hold the door when we let them out." }),
 ];
 
 export const FD_DRONGUS_STIR: Line[] = [

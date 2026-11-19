@@ -1,7 +1,9 @@
 import { afterKreddle } from "../systems/moodMusic";
 import { SJ_RUBBLE_ARRIVE, SJ_RUBBLE_EAT, SJ_RUBBLE_STUCK, SJ_RUBBLE_THANKS } from "../../content/sanjeev";
 import Phaser from "phaser";
-import { pursuerId } from "../systems/sanmik";
+import { BOOTH_NAME, boothTarget, pursuerId } from "../systems/sanmik";
+import { isAlt } from "../variant";
+import { BOOTH_ALT } from "../../content/alt";
 import { bindSanmikToggle } from "../gfx/sanmikForm";
 import { keysFor, prettyKey } from "../systems/keybinds";
 import { playerKey } from "../gfx/sanmikForm";
@@ -244,6 +246,8 @@ const POLSON_WHINES = [
   "Takeaway after? Thoughts?",
   "I'm free!! Eden's at her mum's!!",
 ];
+/** The ALT build: Polson follows everyone, so his "Mikey!!" lines are only for when you ARE Mikey. */
+const polsonLines = (a: string[]) => (isAlt() && G.s.player !== "MIKEY" ? a.filter((t) => !/mikey/i.test(t)) : a);
 const POLSON_HURT = ["OOF", "Yeeeggghhhh!!", "Fair 😅", "That's fair", "Ow. Still coming though", "Is that a no?", "Eden's gonna hear about this", "Hahaha. Ow.", "Mikey!!"];
 
 interface HubInteract {
@@ -1771,8 +1775,9 @@ export class HubScene extends Phaser.Scene {
     // Eden moved out of Polson Towers in chapter 2
     // the one who follows you round town wanting a shove: Mikey, or Polson if you ARE Mikey (not in Polson's chapters)
     const chaser = pursuerId(s);
-    for (const id of [...LADS, "POLSON"]) {
-      if (id === s.player || id === "MIKEY" || id === chaser) continue;
+    // (the ALT build: Mikey's just one of the lads about town, at his usual spot)
+    for (const id of [...LADS, ...(isAlt() ? ["MIKEY"] : []), "POLSON"]) {
+      if (id === s.player || (id === "MIKEY" && !isAlt()) || id === chaser) continue;
       if ((id === "POLSON" || id === "EDEN") && s.chapter < 3) continue;
       // shot in the Krelburger queue by President Klerble (Chapter 6)
       if (id === "POLSON" && s.flags.polson_dead) continue;
@@ -1888,7 +1893,7 @@ export class HubScene extends Phaser.Scene {
       animateWalker(spr, dx, dy, moving, now);
       if (now > f.nextWhine && d < 360 && !this.busy) {
         f.nextWhine = now + 5500 + Math.random() * 4000;
-        const whines = n.id === "POLSON" ? POLSON_WHINES : MIKEY_WHINES;
+        const whines = n.id === "POLSON" ? polsonLines(POLSON_WHINES) : MIKEY_WHINES;
         this.bubble(n, whines[Math.floor(Math.random() * whines.length)]);
       }
     }
@@ -1921,7 +1926,7 @@ export class HubScene extends Phaser.Scene {
       G.emit("toast", { title: `${n.id}: KNOCKED OUT`, text: "Peace and quiet. For about 40 seconds." });
     } else {
       f.nextWhine = now + 1500;
-      const hurt = n.id === "POLSON" ? POLSON_HURT : MIKEY_HURT;
+      const hurt = n.id === "POLSON" ? polsonLines(POLSON_HURT) : MIKEY_HURT;
       this.bubble(n, hurt[Math.floor(Math.random() * hurt.length)], 1600);
     }
   }
@@ -2575,6 +2580,7 @@ You are required by law to sign the Sex Offenders Register.`, {
       case "BAN_TRIBUNAL":
         return s.flags.ban_tribunal_open ? "Enter the Ban Tribunal" : "Ban Tribunal (closed until the Cronster briefing)";
       case "BOOTH":
+        if (isAlt()) return `The Booth (Bully ${BOOTH_NAME[boothTarget(s)]} · vent your frustration)`;
         return s.player === "MIKEY" ? "The Booth (nobody to bully today)" : "The Booth (Bully Mikey · vent your frustration)";
       case "CROBLEY_FACTORY":
         return s.flags.crobley_factory_destroyed ? "The smouldering wreck of Crobley Corp HQ" : "Crobley Corp HQ";
@@ -2769,6 +2775,12 @@ You are required by law to sign the Sex Offenders Register.`, {
         return;
       }
       case "BOOTH":
+        // the ALT build: Luke or Jenko in the harness (anyone can have a go, Mikey included)
+        if (isAlt()) {
+          await this.talk(BOOTH_ALT[boothTarget(s) as "CRONGUS" | "FLENKY"].enter);
+          this.go("Minigame", { mode: "bully", returnAt: "BOOTH" });
+          return;
+        }
         await this.talk(
           s.player === "MIKEY"
             ? [dir("The Booth. There's a heavy bag in here shaped like you. You leave it be. You've had enough of that for one lifetime.")]

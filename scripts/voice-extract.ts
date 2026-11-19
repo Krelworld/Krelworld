@@ -37,6 +37,9 @@ function walk(o: unknown, file: string) {
     const speakers = r.s === "YOU" ? PLAYABLE : [r.s || (typeof r.canon === "string" ? CANON[r.canon]?.speaker : "")];
     for (const sp of speakers) if (sp && text) add(sp, text, file, r.mood);
     if (r.variants && typeof r.variants === "object") for (const [p, v] of Object.entries(r.variants as Record<string, string>)) add(r.s === "YOU" ? p : r.s, v, file, r.mood);
+    // the ALT build's replacement texts (src/game/variant.ts): `alt` in place of `t`, `altVariants` over `variants`
+    if (typeof r.alt === "string") for (const sp of speakers) if (sp) add(sp, r.alt, file, r.mood);
+    if (r.altVariants && typeof r.altVariants === "object") for (const [p, v] of Object.entries(r.altVariants as Record<string, string>)) add(r.s === "YOU" ? p : r.s, v, file, r.mood);
     if (r.role && PLAYABLE.includes(r.s as string)) {
       if (typeof r.proctus === "string") add("PROCTUS", r.proctus, file);
       else if (text) add("PROCTUS", `(reading the wrong cue card) "${text}"... is that right? It says ${(CHARACTERS as any)[r.s as string].name} on the back.`, file);

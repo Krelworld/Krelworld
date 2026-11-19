@@ -1,6 +1,7 @@
 import type { Line, PlayableId } from "../data/types";
 import { SJ_TRAIN } from "./sanjeev";
 import { canon, dir, ping, say } from "./dsl";
+import { ALT } from "../game/variant";
 import { KR_AFTER, KR_BRAWL_INTRO, KR_LEAVE } from "./krunchers";
 
 // Character arcs: extra side-quest chains for specific playable characters.
@@ -159,7 +160,9 @@ export const ARCS: Arc[] = [
     player: "ALL",
     minChapter: 3,
     title: "The Kreddle Krunchers",
-    blurb: "Kreddle's answer to the lads have come over the bridge. They've pissed on the Kreltower and battered Mikey. Nobody gets to batter Mikey but us.",
+    blurb: ALT
+      ? "Kreddle's answer to the lads have come over the bridge. They've pissed on the Kreltower and battered Mikey. Nobody batters one of ours."
+      : "Kreddle's answer to the lads have come over the bridge. They've pissed on the Kreltower and battered Mikey. Nobody gets to batter Mikey but us.",
     reward: { coins: 60, desc: "Drongus felt sorry for you and sent you 60 Krezzcoin. 'Don't spend it all at once. Also react to my song.'" },
     steps: [
       {

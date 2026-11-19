@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-alt/
 # Private chat exports are reference material only. Never commit or bundle them.
 source/
 K*.json

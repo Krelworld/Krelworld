@@ -1,4 +1,5 @@
 import type { Cond, GameState, PlayableId } from "../../data/types";
+import { isAlt } from "../variant";
 
 const asList = (p: PlayableId | PlayableId[]) => (Array.isArray(p) ? p : [p]);
 
@@ -18,6 +19,7 @@ export function evalCond(c: Cond | undefined, s: GameState): boolean {
   if (c.intoxBelow !== undefined && s.intoxication >= c.intoxBelow) return false;
   if (c.resentmentAtLeast !== undefined && s.drongusResentment < c.resentmentAtLeast) return false;
   if (c.ngPlus !== undefined && (s.ngPlus > 0) !== c.ngPlus) return false;
+  if (c.alt !== undefined && isAlt() !== c.alt) return false;
   if (c.any !== undefined && !c.any.some((x) => evalCond(x, s))) return false;
   if (c.not !== undefined && evalCond(c.not, s)) return false;
   return true;
@@ -28,4 +30,16 @@ export function pickWhere<T extends { cond?: Cond }>(items: T[], s: GameState, r
   const ok = items.filter((i) => evalCond(i.cond, s));
   if (!ok.length) return undefined;
   return ok[Math.floor(rnd() * ok.length)];
+}
+
+/**
+ * A line's text for this player in this build: `variants[player]` (in the ALT build `altVariants[player]` first), else
+ * in the ALT build `alt`, else `t`. Anything shaped like a Line will do (bubbles, barks).
+ */
+export function lineText(l: { t: string; alt?: string; variants?: Partial<Record<PlayableId, string>>; altVariants?: Partial<Record<PlayableId, string>> }, player: PlayableId, base = l.t): string {
+  const a = isAlt();
+  if (a && l.altVariants?.[player] !== undefined) return l.altVariants[player] as string;
+  if (l.variants?.[player] !== undefined) return l.variants[player] as string;
+  if (a && l.alt !== undefined) return l.alt;
+  return base;
 }

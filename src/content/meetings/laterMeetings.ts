@@ -473,7 +473,7 @@ export const FLENKY_CONSTITUTIONAL_CRISIS: MeetingScript = {
     say("SCROMBUS", "We need an institution. A Ban Tribunal. Bans can be appealed, readmissions processed, exile challenges standardised.", { role: true, proctus: "A Tribunal! For bans! I've been banned nine times! Wait, that was the card. That was Flenky. Or me. The card's ambiguous." }),
     say("KREZMAR", "And who staffs it?"),
     say("KREBLIS", "Obviously the most banned man in Krelworld", { role: true, proctus: "The most banned man in Krelworld! ...is it me? I feel like it might be me." }),
-    say("KREBLIS", "1. Him", { cond: { notPlayer: "KREBLIS" } }), say("KREBLIS", "2. Mikey", { cond: { notPlayer: "KREBLIS" } }), say("KREBLIS", "3……?", { cond: { notPlayer: "KREBLIS" } }),
+    say("KREBLIS", "1. Him", { cond: { notPlayer: "KREBLIS" } }), say("KREBLIS", "2. Mikey", { cond: { notPlayer: "KREBLIS" }, alt: "2. Also him" }), say("KREBLIS", "3……?", { cond: { notPlayer: "KREBLIS" } }),
     say("KREBLIS", "No", { cond: { notPlayer: "KREBLIS" } }),
     say("FLENKY", "Exile Appeals Officer. I accept. Can I come in now.", {
       role: true,

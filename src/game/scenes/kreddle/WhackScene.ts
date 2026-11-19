@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { G } from "../../G";
+import { isAlt } from "../../variant";
 import { synth } from "../../audio/Synth";
 import { FONT, PIXEL_BOLD, button } from "../../ui/theme";
 import { TOUCH } from "../../ui/TouchControls";
@@ -68,7 +69,8 @@ const BARKS: Record<string, string[]> = {
   klerble: ["NO! NO! NOOO!", "I hate your universe!", "My glorious face!"],
   klerble1: ["Is that all? YES!", "You'll need more than that!", "Ha! HA!"],
   klerbleEscape: ["YES! YES! YESSS!", "The House wins!"],
-  mikey: ["That's not fair lads", "I'm telling Drongus", "Mikey has left the group", "Can someone react to my message pls", "OW. Okay that one was fair"],
+  // (the ALT build: no "left the group")
+  mikey: ["That's not fair lads", "I'm telling Drongus", "Mikey has left the group", "Can someone react to my message pls", "OW. Okay that one was fair"].filter((t) => !isAlt() || !t.includes("left the group")),
   bongo: ["+3s! FIZZY BONGOS!", "Glug glug glug!", "Portfolio development!"],
   crobley: ["THE GREAT TAP FLOWS!"],
 };

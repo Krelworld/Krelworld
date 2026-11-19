@@ -1,5 +1,6 @@
 import type Phaser from "phaser";
 import { G } from "./G";
+import { storageKey } from "./variant";
 
 // Keeps one bad frame from freezing the whole game, reloads cleanly if the GPU drops the
 // WebGL context, and leaves a breadcrumb so the next launch can say what happened.
@@ -9,14 +10,14 @@ const ALIVE = "krel_alive";
 
 function store(k: string, v: string) {
   try {
-    localStorage.setItem(k, v);
+    localStorage.setItem(storageKey(k), v);
   } catch {
     /* storage blocked: diagnostics only */
   }
 }
 function load(k: string): string | null {
   try {
-    return localStorage.getItem(k);
+    return localStorage.getItem(storageKey(k));
   } catch {
     return null;
   }

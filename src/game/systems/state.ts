@@ -3,6 +3,7 @@ import { CHARACTERS } from "../../data/characters";
 import { GUNS } from "../../data/guns";
 import { sanitizeLoadout } from "./carry";
 import { clampDifficulty, DEFAULT_DIFFICULTY, LEGACY_DIFFICULTY } from "./difficulty";
+import { storageKey } from "../variant";
 import { AUTO_KEY, MANUAL_SLOTS, mostRecentSlot, SLOT_IDS, slotKey, SLOTS_MIGRATED_KEY, summarizeSlot, type SlotId, type SlotSummary } from "./saveSlots";
 
 export const SAVE_VERSION = 3;
@@ -37,24 +38,25 @@ export function defaultStore(): KVStore {
       const probe = "__krel_probe";
       ls.setItem(probe, "1");
       ls.removeItem(probe);
+      // (keys are prefixed in the ALT build: see variant.ts)
       return {
         getItem: (k) => {
           try {
-            return ls.getItem(k);
+            return ls.getItem(storageKey(k));
           } catch {
             return null;
           }
         },
         setItem: (k, v) => {
           try {
-            ls.setItem(k, v);
+            ls.setItem(storageKey(k), v);
           } catch {
             /* storage full or blocked: ignore */
           }
         },
         removeItem: (k) => {
           try {
-            ls.removeItem(k);
+            ls.removeItem(storageKey(k));
           } catch {
             /* ignore */
           }

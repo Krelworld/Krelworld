@@ -1,5 +1,6 @@
 import type { Line } from "../data/types";
 import { dir, say } from "./dsl";
+import { ALT } from "../game/variant";
 
 // Everything you can do at home that isn't the telly or the bed.
 
@@ -61,7 +62,7 @@ export const KREL_TROPHIES: Record<string, string> = {
 export const CONSOLE_GAMES: { mode: string; name: string }[] = [
   { mode: "crocodile", name: "CROCODILE (rhythm)" },
   { mode: "cam2cam", name: "CAM2CAM (censored edition)" },
-  { mode: "bully", name: "BULLY MIKEY" },
+  { mode: "bully", name: ALT ? "THE FRUSTRATION BOOTH" : "BULLY MIKEY" },
   { mode: "deadlift", name: "DEADLIFT 300" },
   { mode: "burpees", name: "BURPEES" },
   { mode: "runescape", name: "RUNESCAPE" },

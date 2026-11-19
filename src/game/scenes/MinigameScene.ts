@@ -21,6 +21,9 @@ import { chatBeat } from "../gfx/SideCine";
 import { CHARACTERS, LADS } from "../../data/characters";
 import { TOUCH } from "../ui/TouchControls";
 import { runescape } from "./minigame/runescape";
+import { isAlt } from "../variant";
+import { BOOTH_NAME, boothTarget } from "../systems/sanmik";
+import { BOOTH_ALT } from "../../content/alt";
 
 const MIKEY_BARKS = [
   "Mikey here.",
@@ -195,13 +198,19 @@ export class MinigameScene extends Phaser.Scene {
     const target = proxy ? "PROCTUS" : "MIKEY";
     const name = proxy ? "PROCTUS (ACTING MIKEY)" : "MIKEY";
     const barks = proxy ? PROCTUS_BARKS : MIKEY_BARKS;
+    // the ALT build: Luke or Jenko in the harness instead, whoever you are, Mikey included (content/alt.ts)
+    const altId = isAlt() ? (boothTarget(G.s) as "CRONGUS" | "FLENKY") : null;
+    const alt = altId ? BOOTH_ALT[altId] : null;
+    const altName = altId ? BOOTH_NAME[altId] : "";
+    const bagId = altId ?? target;
+    const popBarks = alt ? alt.barks.map((l) => l.t) : barks;
     if (!backdrop(this, "bg_booth", { dim: 0.15, depth: -10 })) {
       this.add.tileSprite(0, 0, 960, 540, "tile_pub").setOrigin(0);
       this.add.rectangle(480, 470, 960, 140, 0x2a1a0a);
     }
-    title(this, 480, 70, `TAKE OUT YOUR FRUSTRATION ON ${name}`, 26, "#ff6b6b");
+    title(this, 480, 70, `TAKE OUT YOUR FRUSTRATION ON ${alt ? altName.toUpperCase() : name}`, 26, "#ff6b6b");
     this.add.text(480, 100, "Tap / SPACE to vent. The group chat has been a lot this week.", { fontFamily: FONT, fontSize: "14px", color: "#d6d6d6" }).setOrigin(0.5);
-    const bag = this.add.sprite(480, 330, `spr_${target}`, 0).setScale(6).setDepth(10);
+    const bag = this.add.sprite(480, 330, `spr_${bagId}`, 0).setScale(6).setDepth(10);
     const chain = this.add.rectangle(480, 150, 4, 70, 0x888888);
     const meterBg = this.add.rectangle(480, 500, 400, 20, 0x333333).setStrokeStyle(2, 0xffffff);
     const meter = this.add.rectangle(280, 500, 400, 20, 0xff3b30).setOrigin(0, 0.5);
@@ -213,7 +222,8 @@ export class MinigameScene extends Phaser.Scene {
     const firstTime = !G.s.flags.mg_bully_won;
     const timeLimit = 20;
     const end = this.time.now + timeLimit * 1000;
-    this.box.play([dir(proxy ? "Mikey is busy (being you). Proctus has been asked to stand in. Proctus did not agree to this." : "The Booth. Mikey has been strung up as a heavy bag. He seems fine with it. He is never fine with it."), say(target, barks[0])]);
+    if (alt) this.box.play([alt.intro, alt.barks[0]]);
+    else this.box.play([dir(proxy ? "Mikey is busy (being you). Proctus has been asked to stand in. Proctus did not agree to this." : "The Booth. Mikey has been strung up as a heavy bag. He seems fine with it. He is never fine with it."), say(target, barks[0])]);
     const swing = () => {
       if (this.ended || this.box.active) return;
       hits++;
@@ -227,13 +237,14 @@ export class MinigameScene extends Phaser.Scene {
       bag.setTintFill(0xffffff);
       this.time.delayedCall(60, () => bag.clearTint());
       this.pop(400 + Math.random() * 160, 260 + Math.random() * 60, crit ? "KREZ!" : ["WONK", "POW", "BONK", "SLAP", "ⓘ"][hits % 5], crit ? "#ffd23f" : "#ffffff", crit ? 26 : 18);
-      if (hits % 6 === 0) this.pop(480, 200, `"${barks[(hits / 6) % barks.length | 0]}"`, "#9ad1ff", 16);
+      if (hits % 6 === 0) this.pop(480, 200, `"${popBarks[(hits / 6) % popBarks.length | 0]}"`, "#9ad1ff", 16);
       if (frustration <= 0) {
         const coins = firstTime ? 60 : 10;
         G.s.coins += coins;
         G.s.flags.bullied_mikey = true;
         bump(G.s, "bully_sessions");
-        this.finish(true, [
+        if (alt) this.finish(true, [dir(`Frustration: gone. Krezzcoin found in ${altName}'s pockets: ${coins}.`), ...alt.win]);
+        else this.finish(true, [
           dir(`Frustration: gone. Krezzcoin found in ${proxy ? "Proctus's" : "Mikey's"} pockets: ${coins}.`),
           say(target, proxy ? "I'd like it noted that I was only acting." : "Fair play. Fair play. Same time next week?"),
           ...(proxy ? [] : [say("MIKEY", "Can someone react to my message pls")]),
@@ -247,7 +258,8 @@ export class MinigameScene extends Phaser.Scene {
       callback: () => {
         const left = Math.max(0, Math.ceil((end - this.time.now) / 1000));
         this.hud.setText(`TIME ${left}s   HITS ${hits}`);
-        if (left <= 0 && !this.ended) this.finish(false, [dir(`Time. You are still frustrated. ${proxy ? "Proctus" : "Mikey"} looks smug, which somehow makes it worse.`), say(target, barks[barks.length - 1])]);
+        if (left <= 0 && !this.ended && alt) this.finish(false, [dir(`Time. You are still frustrated. ${altName} looks smug, which somehow makes it worse.`), alt.barks[alt.barks.length - 1]]);
+        else if (left <= 0 && !this.ended) this.finish(false, [dir(`Time. You are still frustrated. ${proxy ? "Proctus" : "Mikey"} looks smug, which somehow makes it worse.`), say(target, barks[barks.length - 1])]);
       },
     });
   }

@@ -1,4 +1,5 @@
 import type { GameState } from "../../data/types";
+import { isAlt } from "../variant";
 
 // Playing as Mikey ("Kreblar"). He can become SANMIK (his rapper alter ego) whenever he likes, and in the
 // SanMikverse (Chapter 5) he IS SanMik the whole time. Logic only: no Phaser in here, so it can be unit-tested.
@@ -41,7 +42,8 @@ export function playerFace(s: GameState): string {
  * Not in the Polson chapters (2: the Polson Towers intervention, 5: SanChz in the SanMikverse), when he's busy.
  */
 export function pursuerId(s: GameState): "MIKEY" | "POLSON" | null {
-  if (!isMikey(s)) return "MIKEY";
+  // the ALT build: it's always Polson (whoever you are), and when he's not about there's nobody
+  if (!isMikey(s) && !isAlt()) return "MIKEY";
   if (s.chapter === 2 || s.chapter === 5 || s.flags.polson_dead) return null;
   return "POLSON";
 }
@@ -50,3 +52,18 @@ export function pursuerId(s: GameState): "MIKEY" | "POLSON" | null {
 export function kruncherVictim(s: GameState): "MIKEY" | "POLSON" {
   return isMikey(s) ? "POLSON" : "MIKEY";
 }
+
+/**
+ * Who's strung up in the Frustration Booth: Mikey (the normal build), or in the ALT build Luke (Lil' Crongus) and
+ * Jenko (Flenky) taking turns, session by session. Never yourself.
+ */
+export function boothTarget(s: GameState): "MIKEY" | "CRONGUS" | "FLENKY" {
+  if (!isAlt()) return "MIKEY";
+  if (s.player === "CRONGUS") return "FLENKY";
+  if (s.player === "FLENKY") return "CRONGUS";
+  const n = s.flags.cnt_bully_sessions; // stats.ts bump("bully_sessions")
+  return typeof n === "number" && n % 2 ? "FLENKY" : "CRONGUS";
+}
+
+/** What the lads call them. */
+export const BOOTH_NAME: Record<string, string> = { MIKEY: "Mikey", CRONGUS: "Luke", FLENKY: "Jenko" };

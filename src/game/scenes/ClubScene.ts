@@ -9,6 +9,7 @@ import { squeeze } from "../systems/squeeze";
 import { addWrist, wristLook, type Wrist } from "../gfx/Wrist";
 import { flap, fall, OVER, styledZone, styleGauge, zoneAt, WONK_STYLES, type WonkZone, type WonkStyle } from "../combat/Wonk";
 import { G } from "../G";
+import { isAlt } from "../variant";
 import { Controls } from "../combat/Controls";
 import { DialogueBox } from "../ui/DialogueBox";
 import { switchTo } from "../Flow";
@@ -91,7 +92,8 @@ const LEER_BY: Record<string, string[]> = {
   KREBON: ["She's coming to my gig. She's mine.", "🤘 Mine 🤘"],
   CRONGUS: ["Mmm. Like a pudding.", "She's mine. I'm Lil' but I'm mine. She's mine."],
   GRONNY: ["Waa waa wee waa.", "Mmm. Lovely day for it.", "Buying gf!"],
-  MIKEY: ["Can I sit with you lot?", "Mmm. She's... can I have her? Can I join?"],
+  // (the ALT build: he's sat with them already)
+  MIKEY: isAlt() ? ["Mmm. She's... can I have her? Can I join?"] : ["Can I sit with you lot?", "Mmm. She's... can I have her? Can I join?"],
 };
 
 const BAND_INTRO = [
@@ -1125,7 +1127,7 @@ export class ClubScene extends Phaser.Scene {
     this.tweens.add({ targets: this.dancer, x: 1020, duration: 900 });
     this.fx?.dim(true);
     if (this.band.length) this.bubble(this.performer ? this.me : this.band[0].spr, "(still playing) This one's for the wonkers.", 2200, "#e0e7ff");
-    if (this.patrons.some((p) => p.id === "MIKEY")) this.bubble(this.patrons.find((p) => p.id === "MIKEY")!.spr, "Can I join the wonk-off?", 1800);
+    if (!isAlt() && this.patrons.some((p) => p.id === "MIKEY")) this.bubble(this.patrons.find((p) => p.id === "MIKEY")!.spr, "Can I join the wonk-off?", 1800);
     await new Promise((r) => this.time.delayedCall(900, r));
     this.busy = true;
     await this.runWonkOff(crew.map((c) => c.id));

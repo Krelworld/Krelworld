@@ -440,7 +440,16 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   };
   place();
   window.addEventListener("resize", place);
-  document.body.appendChild(wrap);
+  // fullscreen shows only the fullscreen element: the overlay has to live inside it (or it's drawn behind, unseen)
+  const rehome = () => {
+    const host = (document.fullscreenElement as HTMLElement | null) ?? document.body;
+    if (wrap.parentElement !== host) host.appendChild(wrap);
+    // (the cursor overlay sits above us either way)
+    place();
+  };
+  document.addEventListener("fullscreenchange", rehome);
+  document.addEventListener("webkitfullscreenchange", rehome);
+  rehome();
   const loading = document.createElement("div");
   Object.assign(loading.style, { position: "absolute", inset: "0", display: "flex", alignItems: "center", justifyContent: "center", color: "#999", fontSize: "14px" });
   wrap.appendChild(loading);
@@ -453,6 +462,8 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
     window.clearTimeout(slow);
     wrap.remove();
     window.removeEventListener("resize", place);
+    document.removeEventListener("fullscreenchange", rehome);
+    document.removeEventListener("webkitfullscreenchange", rehome);
     return;
   }
   window.clearTimeout(slow);
@@ -1449,6 +1460,8 @@ export async function krelworld3d(scene: Phaser.Scene): Promise<void> {
   running = false;
   alive = false;
   window.removeEventListener("resize", place);
+  document.removeEventListener("fullscreenchange", rehome);
+  document.removeEventListener("webkitfullscreenchange", rehome);
   window.removeEventListener("resize", onResize);
   window.removeEventListener("resize", sizeComposer);
   composer.dispose();

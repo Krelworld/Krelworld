@@ -284,12 +284,6 @@ export class MenuScene extends Phaser.Scene {
     switch (mode) {
       case "pause": {
         add(title(this, 480, 74, "PAUSED", 28));
-        // fullscreen, from here too (and Alt+Enter any time)
-        if (canFullscreen(this.game))
-          add(button(this, 712, 74, fullscreenLabel(this.game), () => {
-            toggleFullscreen(this.game);
-            this.time.delayedCall(250, () => this.render("pause"));
-          }, { w: 190, h: 34, size: 13, color: 0x1e3a5f }));
         const st = s ? currentStep() : null;
         // (Chapter 7: a nudge towards the wreckage of your house before the dungeon; the objective itself doesn't change)
         const hint = s ? ruinHomeHint(s) : "";
@@ -300,6 +294,11 @@ export class MenuScene extends Phaser.Scene {
           ["DIALOGUE LOG", () => { this.logScroll = 0; this.render("log"); }],
           ["CONTROLS", () => this.openControls("pause")],
           ["SETTINGS", () => this.render("settings")],
+          // fullscreen (Alt+Enter does it any time). On an iPhone the browser won't: say how instead.
+          [canFullscreen(this.game) ? `${fullscreenLabel(this.game)}   (Alt+Enter)` : "⛶ FULLSCREEN", () => {
+            if (toggleFullscreen(this.game)) this.time.delayedCall(250, () => this.render("pause"));
+            else G.emit("toast", { title: "FULLSCREEN ON iPHONE", text: "Safari can't do it from inside a page. Tap Share ⬆ then \"Add to Home Screen\": the game then opens full screen, no browser bars." });
+          }],
         ];
         if (s) items.push([`DIFFICULTY: ${difficultyLabel(s.difficulty)}${this.inDungeon() ? "  🔒" : ""}`, () => this.render("difficulty")]);
         if (s && this.caller !== "Title") {

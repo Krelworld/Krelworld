@@ -291,7 +291,15 @@
 
   // Also monitor for any UI modals/overlays that might have dedicated music
   // This is a catch-all for any other dedicated music tracks
+  // (coalesced: the feed mutates many times a second during a match, and this scans the whole
+  // document with attribute-substring selectors, so run it at most once per 300ms)
+  let dedicatedCheckPending = false;
   const observer = new MutationObserver(() => {
+    if (dedicatedCheckPending) return;
+    dedicatedCheckPending = true;
+    setTimeout(() => { dedicatedCheckPending = false; checkDedicatedMusic(); }, 300);
+  });
+  function checkDedicatedMusic() {
     // Check for epilogue audio
     const epilogueOverlays = document.querySelectorAll('[id*="epilogue"], [class*="epilogue"]');
     for (let overlay of epilogueOverlays) {
@@ -322,7 +330,7 @@
       stopGeneralMusic();
       return;
     }
-  });
+  }
 
   // Start observing
   observer.observe(document.body, {

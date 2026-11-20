@@ -1656,6 +1656,8 @@ function addMessageToPhonePopup(message, isUser = false, delay = 0) {
   if (!phoneMessagesContainer) return;
 
   setTimeout(() => {
+    // the popup may have been closed (container cleared) while this message was delayed
+    if (!phoneMessagesContainer) return;
     const timestamp = Date.now();
     if (typeof S !== 'undefined' && S.isSecretarySessionActive) {
       // Save message to secretary history for persistence first

@@ -223,6 +223,7 @@ async function handleSeason5BribeStrategy(bribeAmount) {
   }
   
   S.season5.survival.matches_survived += 1;
+  registerBribe(bribeAmount, { who: 'The Survival Economy', label: (currentOpponent()?.team || 'The opposition') + ' "protection"', kind: 'protection', noFavour: true });
   
   // Log bribe
   if (!S.bribe_log) S.bribe_log = [];
@@ -515,9 +516,10 @@ const oppAtKickoff = S.matchContext;
 startPreMatchInitBetting();
 if (!S.preMatch) S.preMatch = {};
 
-// Send Delmor's intro message in first pre-match
 // Awaited interruptions (press/drugs/corruption systems): Marco, favours, drug tests
 await GameHooks.emitAsync('prematch:events');
+
+// Send Delmor's intro message in first pre-match
 if (typeof sendRivalIntroMessage === 'function') {
   sendRivalIntroMessage();
 }

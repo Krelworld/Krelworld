@@ -171,6 +171,7 @@ async function handlePlayerDefamationConfrontation(confrontationData) {
       const bribeAmount = 50000 + Math.random() * 100000;
       if ((S.club_cash || 0) >= bribeAmount) {
         S.club_cash -= bribeAmount;
+        registerBribe(bribeAmount, { who: managerName, label: `${managerName} (your manager)`, kind: 'manager', noFavour: true });
         log(`You offer him ${money(bribeAmount)} to calm down. He pockets the money but still looks furious.`);
         
         // Quirk-based bribe response
@@ -1806,9 +1807,9 @@ async function openNewsPortal(){
 
   const content = document.createElement('div');
   const archive = document.createElement('div');
-  archive.style.marginTop = '24px';
   // stories still on journalists' desks (leads, 087o-sys-press)
   if (window.KSys && typeof KSys.newsTab === 'function') tabs.appendChild(KSys.newsTab(content, archive));
+  archive.style.marginTop = '24px';
 
   shell.appendChild(tabs);
   shell.appendChild(content);
@@ -3653,7 +3654,6 @@ function applyStoryEffects(story) {
       S.wife_love = clamp((S.wife_love || 60) + value, 0, 100);
     } else if (effect === 'legalRisk') {
       S.legal_risk = clamp((S.legal_risk || 0) + value, 0, 100);
-    }
     } else if (effect === 'sponsor') {
       // a sponsor pulls out: club cash (negative value)
       S.club_cash = (S.club_cash || 0) + value;
@@ -3665,6 +3665,7 @@ function applyStoryEffects(story) {
       S.compliance_risk = clamp((S.compliance_risk || 0) + value, 0, 100);
     } else if (effect === 'fa_heat') {
       S.fa_heat = Math.max(0, (S.fa_heat || 0) + value);
+    }
   }
 
   // Affair / bedroom-habits / protection gossip triggers a wife confrontation
@@ -3745,6 +3746,7 @@ async function bribeJudge(lawsuit) {
   const canBribe = await takeFundsFor(bribeAmount, `Judge bribe ${money(bribeAmount)} — funding source?`);
   
   if (canBribe.ok) {
+    registerBribe(bribeAmount, { who: 'A judge', label: `Judge (${lawsuit.target || 'defamation case'})`, kind: 'judge', origin: 'Case dismissed' });
     if (Math.random() * 100 < successChance) {
       log(`Judge accepts the bribe. Case dismissed.`);
     } else {

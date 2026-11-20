@@ -534,6 +534,29 @@ function ensureOpponentForToday() {
           transferActCost
         );
 
+        // --- Favours & espionage (087q-sys-corruption reads these) ---
+        perkRow(
+          "policy-favour",
+          "Policy Favour",
+          "A form gets 'lost' in Whitehall. The officials lean your way next match (+2), and a bureaucrat owes you one.",
+          15,
+          (S.referee_soft_bias|0) > 0 ? "Already cashed in for this match." : ""
+        );
+        const survLeft = (window.S && S.sys) ? (S.sys.surveillanceUntil - S.sys.tick) : -1;
+        perkRow(
+          "surveillance",
+          survLeft >= 0 ? `Surveillance (running · ${survLeft + 1} more match${survLeft ? 'es' : ''})` : "Surveillance",
+          "Private detectives on retainer for 5 matches: exact stage, timing and source of every press lead, what your Tinder matches really want, and dirt on Delmor and your next opponent.",
+          10
+        );
+        perkRow(
+          "advanced-blackmail",
+          "Blackmail Package",
+          "Someone important at your next opponent drops out before kickoff. Also lets you turn dirt into favours people owe you (Dodgy stuff menu).",
+          25,
+          S.power_blackmail_pending ? "A package is already on its way to your next opponent." : ""
+        );
+
         // --- Nuclear Option (Trident) ---
         const isInPreMatch = !!(S.preMatch && typeof S.preMatch === 'object');
         const tridentDisabled = S.power_unlocked_trident 
@@ -656,6 +679,7 @@ function ensureOpponentForToday() {
         // Soft effects: tiny ref tilt or rival annoyance
         S.referee_soft_bias = (S.referee_soft_bias||0) + 5;
         log("You quietly cash in a minor policy favour. Somewhere in an office, a form is 'lost' and a bureaucrat owes you one.");
+        if (window.KSys && KSys.onPolicyFavour) KSys.onPolicyFavour();
         pingDelmor("You little rat. I can smell your paperwork tricks from across the south coast.");
       }
 
@@ -676,6 +700,7 @@ function ensureOpponentForToday() {
         }
         
         log("📺 Starmer delivers an emergency statement about 'protecting historic community clubs'. You are awarded three mysterious league points.");
+        if (window.KSys && KSys.onPowerPerk) KSys.onPowerPerk(perkId); // Number 10 will want something back
         if (S.press) {
           S.press.last_scandal = "Emergency points package controversy";
         }
@@ -689,6 +714,7 @@ function ensureOpponentForToday() {
         S.power_transfer_act_uses = uses + 1;
         S.transfer_act_active = true;
         log("Parliament passes a deranged 'Transfer Powers Act'. Your next transfer negotiation will ignore reality and basic economics.");
+        if (window.KSys && KSys.onPowerPerk) KSys.onPowerPerk(perkId); // and Minister Hollis will want something back
         pingDelmor("The state is buying you players now? You're not a chairman, you're a government arts project.");
       }
 
@@ -701,6 +727,7 @@ function ensureOpponentForToday() {
         if (!spend(cost)) return;
         S.power_unlocked_number10 = true;
         log("You are ushered into a private back room at Number 10. The air smells of coffee, fear, and dying principles. The Nuclear Option path is now open.");
+        if (window.KSys && KSys.onPowerPerk) KSys.onPowerPerk(perkId);
         pingDelmor("You got into Number 10? I am going to be sick.");
       }
 
@@ -769,6 +796,7 @@ function ensureOpponentForToday() {
         if (!spend(cost)) return;
         S.power_last_espionage = "surveillance";
         log("You unleash a swarm of private detectives on a rival chairman. Their secrets begin to drip into your inbox.");
+        if (window.KSys && KSys.onSurveillance) KSys.onSurveillance();
         pingDelmor("Are there men parked outside my house? You cheap espionage goblin.");
       }
 
@@ -778,6 +806,7 @@ function ensureOpponentForToday() {
         S.power_last_espionage = "blackmail";
         S.power_blackmail_pending = true;
         log("You prepare a brutal blackmail package for an upcoming opponent. Someone important will mysteriously 'drop out' before kickoff.");
+        if (window.KSys && KSys.onBlackmail) KSys.onBlackmail();
         pingDelmor("You start blackmailing people and I swear I will go fully subterranean warfare on you.");
       }
 

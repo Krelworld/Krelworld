@@ -832,6 +832,7 @@ async function managerComplaintDecision(ultimatum=false){
     const roll = Math.floor(Math.random()*100);
     if (roll < chance){
       _logMgr("He pockets the envelope with a sigh. \"Let's just get through today.\"");
+      registerBribe(0, { who: (m && m.name) || 'The manager', kind: 'manager', noFavour: true });
       S.team_morale_boost = (S.team_morale_boost||0) + 2;
       S.compliance_risk = (S.compliance_risk||0) + 1;
     } else {

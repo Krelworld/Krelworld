@@ -1350,11 +1350,14 @@ async function handleTransferVendettaEvent(ev, wf, rel){
 
 function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
 
-// Bribe bookkeeping (the one surviving copy; note: nothing in v12 calls it yet)
-function registerBribe(amount=0){
+// Bribe bookkeeping: every bribe site calls this once the money changes hands.
+// info: { who, label, kind:'referee'|'manager'|'official'|'police'|'editor'|..., origin, noFavour }
+// -> bribe count + risk, a piece of evidence and (usually) an IOU: they owe you now (087q).
+function registerBribe(amount=0, info){
   S.bribes_count = (S.bribes_count||0) + 1;
   // Scale risk lightly with frequency; heavy bribes can add a bit more
   incrementRisk("bribe", 1 + (amount>50000 ? 1 : 0));
+  if (window.KSys && typeof KSys.onBribe === 'function') KSys.onBribe(amount, info || {});
 }
 
 

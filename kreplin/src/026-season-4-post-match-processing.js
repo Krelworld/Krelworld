@@ -1513,6 +1513,7 @@ async function handleBribeBreachPoliceInterview(bribeAmount, oppTeam) {
           S.club_cash = Math.max(0, (S.club_cash || 0) - bribeAsk);
         }
         log("Envelopes change hands. The case disappears from the files.");
+        registerBribe(bribeAsk, { who: 'An officer', label: 'A sharia police officer', kind: 'police', origin: 'Lost your file' });
         S.police_risk = Math.max(0, (S.police_risk || 0) - 4);
         updateHUD?.();
       } else {

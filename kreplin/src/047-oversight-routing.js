@@ -2120,6 +2120,7 @@
         S.club_cash = Math.max(0, (S.club_cash || 0) - bribeAmount);
       }
       S.police_risk = Math.max(0, (S.police_risk || 0) - 5);
+      registerBribe(bribeAmount, { who: 'A magistrate', kind: 'police', origin: 'A file went missing' });
       
       S._police_interview_active = false;
       updateHUD?.();
@@ -2410,6 +2411,7 @@
         S.club_cash = Math.max(0, (S.club_cash || 0) - bribeAmount);
       }
       S.police_risk = Math.max(0, (S.police_risk || 0) - 5);
+      registerBribe(bribeAmount, { who: 'A magistrate', kind: 'police', origin: 'A file went missing' });
       
       S._police_interview_active = false;
       updateHUD?.();
@@ -2805,6 +2807,7 @@
           S.club_cash = Math.max(0, (S.club_cash || 0) - bribeAmount);
         }
         S.police_risk = Math.max(0, (S.police_risk || 0) - 5);
+        registerBribe(bribeAmount, { who: 'A detective', kind: 'police', origin: 'The case was dropped' });
       } else {
         stepContent.innerHTML = `
           <h4 style="margin: 0 0 15px 0; color: var(--accent);">❌ Bribe Failed</h4>
@@ -2967,6 +2970,7 @@
         S.club_cash = Math.max(0, (S.club_cash || 0) - bribeAmount);
       }
       S.fa_risk = Math.max(0, (S.fa_risk || 0) - 4);
+      registerBribe(bribeAmount, { who: 'An FA investigator', kind: 'official', origin: 'Case closed' });
     }
     
     updateHUD?.();
@@ -3061,6 +3065,7 @@
         S.club_cash = Math.max(0, (S.club_cash || 0) - bribeAmount);
       }
       S.compliance_risk = Math.max(0, (S.compliance_risk || 0) - 2);
+      registerBribe(bribeAmount, { who: 'A board auditor', kind: 'board', origin: 'Clean it up' });
     }
     
     updateHUD?.();

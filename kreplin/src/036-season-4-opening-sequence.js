@@ -903,6 +903,7 @@ async function ultimaCupPreMatchMenu() {
       // bribe accepted
       log("The referee quietly agrees to 'interpret' decisions in your chosen direction.");
       S.referee_bribed = side; // 'us' or 'them'
+      registerBribe(amount, { kind:'referee', origin:'Bent a cup match your way' });
       
       // bribe accepted: weaken their pre-match strength slightly
       if (S.preMatch && typeof S.preMatch.oppStrength === 'number'){
@@ -937,6 +938,7 @@ async function ultimaCupPreMatchMenu() {
       
       log("The opposing manager accepts your bribe. He'll 'instruct' his team to play... less aggressively.");
       S.opponent_bribed = true;
+      registerBribe(amount, { who: (currentOpponent()?.manager || 'The opposing manager'), kind:'manager', origin:'Told his lads not to try' });
       
       // weaken their pre-match strength
       if (S.preMatch && typeof S.preMatch.oppStrength === 'number'){

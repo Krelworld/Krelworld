@@ -516,8 +516,8 @@ async function scenarioRefereeCall(){
  const ch=await choose([{key:'f',label:'Tell him to be fair, no matter what'},{key:'b',label:'Attempt a bribe',variant:'warn'}],'Approach?');
  if(ch==='f'){log("He says he’ll be professional. You’ll see.");S.reputation=clamp(S.reputation+2,0,100);}
  else {const m=await choose([{key:'o',label:'Use your own money'},{key:'c',label:'Embezzle club funds',variant:'warn'}],'Funding?');const amt=1000000;
-  if(m==='o'){if(S.chairman_cash>=amt){S.chairman_cash-=amt;S.morale=clamp(S.morale-3,-100,100);S.compliance_risk=clamp(S.compliance_risk+10,0,100);log('The envelope changes hands.'); addPaper('Personal bribe to official',14);} else {log('You can’t afford it; rumor still circulates.');S.reputation=clamp(S.reputation-5,0,100);}}
-  else {if(S.club_cash>=amt){S.club_cash-=amt;S.offbooks+=amt;S.morale=clamp(S.morale+5,-100,100);S.compliance_risk=clamp(S.compliance_risk+20,0,100);log('A “donation” is arranged.'); addPaper('Club-funded bribe attempt',16);} else {log('Club can’t cover; whispers get out.');S.compliance_risk=clamp(S.compliance_risk+10,0,100);}}
+  if(m==='o'){if(S.chairman_cash>=amt){S.chairman_cash-=amt;S.morale=clamp(S.morale-3,-100,100);S.compliance_risk=clamp(S.compliance_risk+10,0,100);log('The envelope changes hands.'); addPaper('Personal bribe to official',14); registerBribe(amt,{kind:'referee',origin:'Pre-match call'});} else {log('You can’t afford it; rumor still circulates.');S.reputation=clamp(S.reputation-5,0,100);}}
+  else {if(S.club_cash>=amt){S.club_cash-=amt;S.offbooks+=amt;S.morale=clamp(S.morale+5,-100,100);S.compliance_risk=clamp(S.compliance_risk+20,0,100);log('A “donation” is arranged.'); addPaper('Club-funded bribe attempt',16); registerBribe(amt,{kind:'referee',origin:'Club “donation”'});} else {log('Club can’t cover; whispers get out.');S.compliance_risk=clamp(S.compliance_risk+10,0,100);}}
  }
  render();
 }
@@ -1440,7 +1440,7 @@ async function faSanctionsCheck(){
   const act=await choose([{key:'c',label:'Cooperate fully'},{key:'o',label:'Obstruct / delay',variant:'warn'},{key:'b',label:'Bribe an official',variant:'bad'}],'Strategy during probe?');
   if(act==='c'){S.reputation=clamp(S.reputation+2,0,100); burnPaper(6);}
   else if(act==='o'){S.reputation=clamp(S.reputation-6,0,100);S.compliance_risk=clamp(S.compliance_risk+10,0,100); addPaper('Noncompliance with document production',12);}
-  else {const cost=rnd(2,4)*1000000; if(S.club_cash>=cost){S.club_cash-=cost; S.offbooks+=cost; S.reputation=clamp(S.reputation-8,0,100); addPaper('Attempted to influence regulator',18);} else {log('You fail to raise the hush fund. It backfires.'); S.points_deducted+=3; adjustClubPoints(-3); advanceDiscipline(3);} }
+  else {const cost=rnd(2,4)*1000000; if(S.club_cash>=cost){S.club_cash-=cost; S.offbooks+=cost; S.reputation=clamp(S.reputation-8,0,100); addPaper('Attempted to influence regulator',18); registerBribe(cost,{who:'An FA official',kind:'official',origin:'The FA probe'});} else {log('You fail to raise the hush fund. It backfires.'); S.points_deducted+=3; adjustClubPoints(-3); advanceDiscipline(3);} }
   S.fa_cooldown=2; render(); return true;
 }
 async function triggerRemovalWorkaround(reason){
@@ -1466,7 +1466,7 @@ async function boardVoteCheck(){
   const ch=await choose([{key:'p',label:'Plead long-term vision'},{key:'r',label:'Threaten to resign'},{key:'b',label:'Bribe directors',variant:'warn'},{key:'k',label:'Blackmail a dissenter',variant:'bad'}],'Your play?');
   if(ch==='p'){S.board_support=clamp(S.board_support+10,0,100);S.reputation=clamp(S.reputation+3,0,100);log('A few soften. You survive—barely.'); burnPaper(4);}
   else if(ch==='r'){if(Math.random()<0.6){log('They blink. You remain with conditions attached.');S.board_support=clamp(S.board_support+5,0,100);} else {log('They accept your resignation threat.');await triggerRemovalWorkaround('a failed brinkmanship play');}}
-  else if(ch==='b'){const cost=2500000;if(S.chairman_cash>=cost){S.chairman_cash-=cost;S.board_support=clamp(S.board_support+20,0,100);S.reputation=clamp(S.reputation-6,0,100);addPaper('Chairman bribed directors',18);log('Pockets lined. Motion defeated.');} else {log('You can’t raise the hush fund. It backfires.');S.board_support=clamp(S.board_support-10,0,100);}}
+  else if(ch==='b'){const cost=2500000;if(S.chairman_cash>=cost){S.chairman_cash-=cost;S.board_support=clamp(S.board_support+20,0,100);S.reputation=clamp(S.reputation-6,0,100);addPaper('Chairman bribed directors',18);registerBribe(cost,{who:'The board',label:'Two directors',kind:'board',origin:'Board vote'});log('Pockets lined. Motion defeated.');} else {log('You can’t raise the hush fund. It backfires.');S.board_support=clamp(S.board_support-10,0,100);}}
   else {S.compliance_risk=clamp(S.compliance_risk+20,0,100);S.reputation=clamp(S.reputation-12,0,100);addPaper('Blackmail dossier compiled',16);log('Ugly. You scrape by this time; dossiers linger.');}
   S.board_cooldown = 2; render(); return true;
 }

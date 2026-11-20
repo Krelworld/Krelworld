@@ -1459,8 +1459,9 @@ function dodgyStuffItems(){
     sub.push({ key:'marco', label: dq.buyLabel() });
     if (dq.canTake()) sub.push({ key:'coke', label: dq.takeLabel(), variant:'bad' });
   }
-  return sub;
+  // Marco on tick, steroids, favours, DERANGED (087p/087q systems; keys start 'sys_')
   if (window.KSys && typeof KSys.dodgyItems === 'function') { try { sub.push(...KSys.dodgyItems()); } catch(_){} }
+  return sub;
 }
 async function dodgyStuffMenu(){
   while (true) {
@@ -1469,8 +1470,8 @@ async function dodgyStuffMenu(){
     const k = await choose(sub.concat([{ key:'back', label:'Back' }]), 'Dodgy stuff');
     if (k === 'marco') { window.KDrugQuick.buy(); continue; }
     if (k === 'coke') { window.KDrugQuick.take(); continue; }
-    return k;
     if (typeof k === 'string' && k.startsWith('sys_') && window.KSys) { await KSys.handleDodgy(k); continue; }
+    return k;
   }
 }
 
@@ -1702,6 +1703,7 @@ async function preMatchTransfersAndBettingMenu(){
       // bribe accepted
       log("The referee quietly agrees to 'interpret' decisions in your chosen direction.");
       S.referee_bribed = side; // 'us' or 'them'
+      registerBribe(amount, { kind:'referee', origin:'Bent a match your way' });
       S.compliance_risk = (S.compliance_risk||0) + 10;
       S.legal_risk      = (S.legal_risk||0) + 5;
 
@@ -1795,6 +1797,7 @@ async function preMatchTransfersAndBettingMenu(){
 
         // bribe accepted: weaken their pre-match strength slightly
         S.opponent_bribed = true;
+        registerBribe(amt, { who: (currentOpponent()?.manager || 'The opposing manager'), kind:'manager', origin:'Told his lads not to try' });
         log("He grins and shakes on it: the opposing team will \"not try their hardest.\"");
         if (S.preMatch && typeof S.preMatch.oppStrength === 'number'){
           S.preMatch.oppStrength = Math.max(5, S.preMatch.oppStrength - 10);

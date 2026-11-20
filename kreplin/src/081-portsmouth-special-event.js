@@ -723,6 +723,7 @@ For a performer whose career has depended on testing whether there are any remai
             S.club_cash = Math.max(0, (S.club_cash || 0) - bribeAmount);
           }
           log(`You pay ${money(Math.round(bribeAmount))} in bribes. The case disappears.`);
+          registerBribe(bribeAmount, { who: 'Hampshire Police', label: 'A Hampshire copper', kind: 'police', origin: 'The bus case disappeared' });
         } else {
           log('The bribe is rejected. You are found guilty.');
           if (!S.suspensions) S.suspensions = {};
@@ -889,6 +890,7 @@ For a performer whose career has depended on testing whether there are any remai
             S.club_cash = Math.max(0, (S.club_cash || 0) - bribeAmount);
           }
           log(`You pay ${money(Math.round(bribeAmount))}. The case is dropped.`);
+          registerBribe(bribeAmount, { who: 'Hampshire Police', label: 'A Hampshire copper', kind: 'police', origin: 'The exposure case dropped' });
         } else {
           log('Bribe rejected. You are found guilty.');
           const registerGames = 3 + Math.floor(Math.random() * 5);

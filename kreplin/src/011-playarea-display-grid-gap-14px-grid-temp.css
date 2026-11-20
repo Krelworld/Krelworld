@@ -1,0 +1,29 @@
+  #playArea{ display:grid; gap:14px; grid-template-columns: 1.6fr 1fr; align-items:start; }
+  @media (max-width: 980px){
+    #playArea{ grid-template-columns: 1fr; }
+  }
+  #dialoguePanel, #choicesPanel{
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:12px; padding:12px; min-height:420px;
+  }
+  #dialoguePanel{ max-height:68vh; overflow:auto; }
+  #choicesPanel{ max-height:68vh; overflow:auto; }
+  #choicesPanel .choices, #choicesPanel #choices{ display:flex; flex-direction:column; gap:8px; }
+  #choicesPanel .choices a, #choicesPanel #choices a,
+  #choicesPanel .choices button, #choicesPanel #choices button{
+    appearance:none; border:1px solid var(--glass-border);
+    background: linear-gradient(135deg, 
+      rgba(26, 26, 46, 0.8) 0%, 
+      rgba(22, 33, 62, 0.6) 100%);
+    color:var(--text);
+    border-radius:6px; padding:6px 10px; text-align:left; text-decoration:none; cursor:pointer;
+    backdrop-filter: blur(8px) saturate(150%);
+    font-size: 0.85rem;
+  }
+  #choicesPanel .choices a:hover, #choicesPanel #choices a:hover,
+  #choicesPanel .choices button:hover, #choicesPanel #choices button:hover{ 
+    background: linear-gradient(135deg, 
+      rgba(26, 26, 46, 0.9) 0%, 
+      rgba(22, 33, 62, 0.7) 100%);
+    border-color: var(--accent);
+  }

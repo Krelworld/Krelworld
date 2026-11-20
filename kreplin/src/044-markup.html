@@ -1,0 +1,258 @@
+</script>
+
+<div id="betModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#111; color:#eee; width:min(520px, 92vw); border:1px solid #333; border-radius:8px; padding:16px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <h3 style="margin:0; font-size:18px;">Match Betting</h3>
+      <button id="betCloseBtn" style="background:#333; color:#eee; border:0; padding:6px 10px; border-radius:6px; cursor:pointer;">✕</button>
+    </div>
+    <div id="betOddsLine" style="margin-bottom:10px; font-size:14px;"></div>
+    <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <label style="flex:1; background:#1a1a1a; padding:8px; border-radius:6px;">
+        <input type="radio" name="betOutcome" value="us" checked> Bet on Us (Southampton)
+      </label>
+      <label style="flex:1; background:#1a1a1a; padding:8px; border-radius:6px;">
+        <input type="radio" name="betOutcome" value="them"> Bet on Opponents
+      </label>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
+      <label for="betStake" style="width:120px;">Stake (£):</label>
+      <input id="betStake" type="number" min="10" step="10" value="100" style="flex:1; padding:8px; border-radius:6px; border:1px solid #333; background:#1c1c1c; color:#eee;">
+    </div>
+    <div id="betPotentialWin" style="margin-bottom:12px; font-size:14px; opacity:0.9;"></div>
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button id="betPlaceBtn" style="background:#0a7; color:#000; border:0; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:700;">Place Bet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Inventory Modal -->
+<div id="inventoryModal" class="hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-title">Inventory</div>
+      <button id="closeInventoryBtn" class="icon-btn">Close</button>
+    </div>
+    <div class="modal-body">
+      <div id="invSummary" class="mb-12"></div>
+
+      <h4 class="mb-8">Accolades & Trophies</h4>
+      <div id="invAccolades"></div>
+
+      <div class="mt-16">
+        <h4 class="mb-8">Other</h4>
+        <div id="invOther"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Match Visualizer Overlay -->
+<div id="matchViewer" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#1a1a1a; color:#eee; width:min(720px, 95vw); border:1px solid #333; border-radius:12px; padding:0; box-shadow: 0 8px 32px rgba(0,0,0,0.8);">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:16px; border-bottom:1px solid #333; background:#222; border-radius:12px 12px 0 0;">
+      <h3 style="margin:0; font-size:18px; font-weight:600;">Match Visualizer</h3>
+      <button id="closeMatchViewerBtn" style="background:#333; color:#eee; border:0; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:16px;">✕</button>
+    </div>
+    <div style="padding:20px;">
+      <canvas id="matchCanvas" width="640" height="360" style="image-rendering: pixelated; width: 100%; height: auto; display:block; margin:0 auto; border:1px solid #333; border-radius:6px;"></canvas>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
+        <button id="skipMatchBtn" style="background:#0a7; color:#000; border:0; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600;">Skip Match</button>
+        <div id="matchTicker" style="font-size:16px; opacity:.9; font-weight:600; color:#fff;">00:00</div>
+      </div>
+      <div id="matchStatus" style="margin-top:12px; padding:12px; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius:8px; font-size:13px; border:1px solid #2a2a3e; display:flex; justify-content:space-between; align-items:center;">
+        <div style="flex:1;">
+          <div style="color:#a0a8c0; font-size:11px; margin-bottom:4px;">Cards & Injuries</div>
+          <div id="matchCards" style="color:#fff; font-weight:500;">🟨 0 🟥 0</div>
+        </div>
+        <div style="flex:1; text-align:right;">
+          <div style="color:#a0a8c0; font-size:11px; margin-bottom:4px;">Injuries</div>
+          <div id="matchInjuries" style="color:#ff4757; font-weight:500;">🚑 0</div>
+        </div>
+      </div>
+      <div id="matchCommentary" style="margin-top:16px; padding:16px; background:linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); border-radius:10px; font-size:14px; max-height:260px; min-height:140px; overflow-y:auto; line-height:1.6; border:1px solid #2a2a2a; box-shadow:inset 0 2px 8px rgba(0,0,0,0.5); scroll-behavior:smooth;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Tinder Modal -->
+<div id="tinderModal" class="hidden">
+  <div class="tinder-chat-quick-options" id="tinderChatQuickOptions">
+    <!-- Quick message options will be inserted here -->
+  </div>
+  <div class="tinder-phone-container">
+    <div class="tinder-phone-screen">
+      <div class="tinder-header">
+        <div class="tinder-logo">tinder</div>
+        <button class="tinder-close-btn" id="tinderCloseBtn">✕</button>
+      </div>
+      <div class="tinder-content">
+        <!-- My Profile View (Default) -->
+        <div class="tinder-profile-view" id="tinderProfileView">
+          <div class="tinder-my-profile">
+            <img class="tinder-my-profile-img" id="tinderMyProfileImg" src="" alt="Your Profile">
+            <div class="tinder-my-profile-overlay">
+              <div class="tinder-my-profile-name-age">
+                <span class="tinder-my-profile-name" id="tinderMyProfileName"></span>
+                <span class="tinder-my-profile-age" id="tinderMyProfileAge">58</span>
+              </div>
+              <div class="tinder-my-profile-bio" id="tinderMyProfileBio"></div>
+            </div>
+            <button class="tinder-start-btn" id="tinderStartBtn">Start Swiping</button>
+          </div>
+        </div>
+        
+        <!-- Swipe View -->
+        <div class="tinder-swipe-view hidden" id="tinderSwipeView">
+          <div class="tinder-card-container" id="tinderCardContainer">
+            <div class="tinder-card" id="tinderCard">
+              <img class="tinder-card-img" id="tinderCardImg" src="" alt="Profile">
+              <div class="tinder-card-info">
+                <div class="tinder-card-name-age">
+                  <span class="tinder-card-name" id="tinderCardName"></span>
+                  <span class="tinder-card-age" id="tinderCardAge"></span>
+                </div>
+                <div class="tinder-card-bio" id="tinderCardBio"></div>
+              </div>
+            </div>
+          </div>
+          <div class="tinder-actions">
+            <button class="tinder-action-btn tinder-pass-btn" id="tinderPassBtn">✕</button>
+            <button class="tinder-action-btn tinder-like-btn" id="tinderLikeBtn">♥</button>
+          </div>
+        </div>
+        
+        <!-- Match Overlay -->
+        <div class="tinder-match-overlay" id="tinderMatchOverlay">
+          <div class="tinder-match-confetti" id="tinderMatchConfetti"></div>
+          <div class="tinder-match-text">It's a Match!</div>
+          <div class="tinder-match-subtext" id="tinderMatchSubtext"></div>
+          <div class="tinder-match-actions">
+            <button class="tinder-match-btn tinder-chat-btn" id="tinderChatBtn">Send Message</button>
+            <button class="tinder-match-btn tinder-continue-btn" id="tinderContinueBtn">Keep Swiping</button>
+          </div>
+        </div>
+        
+        <!-- Chat View -->
+        <div class="tinder-chat-view hidden" id="tinderChatView">
+          <div class="tinder-chat-header">
+            <button class="tinder-chat-back-btn" id="tinderChatBackBtn">←</button>
+            <div class="tinder-chat-header-info">
+              <img class="tinder-chat-header-img" id="tinderChatHeaderImg" src="" alt="">
+              <div class="tinder-chat-header-name" id="tinderChatHeaderName"></div>
+            </div>
+          </div>
+          <div class="tinder-chat-messages" id="tinderChatMessages">
+            <!-- Messages will be inserted here -->
+          </div>
+          <div class="tinder-chat-input-container">
+            <div class="tinder-chat-actions">
+              <button class="tinder-chat-close-btn" id="tinderChatCloseBtn">Close</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Matches List View -->
+        <div class="tinder-matches-view hidden" id="tinderMatchesView">
+          <div class="tinder-matches-header">
+            <button class="tinder-matches-back-btn" id="tinderMatchesBackBtn">←</button>
+            <div class="tinder-matches-title">Your Matches</div>
+          </div>
+          <div class="tinder-matches-list" id="tinderMatchesList">
+            <!-- Match items will be inserted here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Music Control Modal -->
+<div id="musicControlModal" class="music-control-modal hidden" style="display: none;">
+  <div class="music-control-overlay" onclick="closeMusicControlModal()"></div>
+  <div class="music-control-content">
+    <div class="music-control-header">
+      <h2 style="margin: 0; font-size: 1.5rem; color: var(--text);">🎵 Audio Controls</h2>
+      <button class="music-control-close" onclick="closeMusicControlModal()" style="background: transparent; border: none; color: var(--text); font-size: 24px; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)';" onmouseout="this.style.background='transparent';">✕</button>
+    </div>
+    <div class="music-control-body" style="padding: 24px;">
+      <!-- Background Music Controls -->
+      <div class="audio-control-section" style="margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <h3 style="margin: 0; font-size: 1.1rem; color: var(--text);">🎶 Background Music</h3>
+          <button id="musicMuteBtn" onclick="toggleMusicMute()" style="padding: 6px 12px; font-size: 12px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text); border-radius: 6px; cursor: pointer; transition: all 0.2s;">🔊</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button onclick="adjustMusicVolume(-0.1)" style="padding: 8px 12px; font-size: 14px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text); border-radius: 6px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)';" onmouseout="this.style.background='rgba(255,255,255,0.1)';">−</button>
+          <input type="range" id="musicVolumeSlider" min="0" max="100" value="60" oninput="setMusicVolumeFromSlider(this.value)" style="flex: 1; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; outline: none; cursor: pointer;" />
+          <button onclick="adjustMusicVolume(0.1)" style="padding: 8px 12px; font-size: 14px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text); border-radius: 6px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)';" onmouseout="this.style.background='rgba(255,255,255,0.1)';">+</button>
+        </div>
+        <div style="margin-top: 8px; font-size: 12px; color: var(--muted); text-align: center;" id="musicVolumeDisplay">60%</div>
+      </div>
+
+      <!-- Sound Effects Controls -->
+      <div class="audio-control-section">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <h3 style="margin: 0; font-size: 1.1rem; color: var(--text);">🔊 Sound Effects</h3>
+          <button id="sfxMuteBtn" onclick="toggleSoundEffectsMute()" style="padding: 6px 12px; font-size: 12px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text); border-radius: 6px; cursor: pointer; transition: all 0.2s;">🔊</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button onclick="adjustSoundEffectsVolume(-0.1)" style="padding: 8px 12px; font-size: 14px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text); border-radius: 6px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)';" onmouseout="this.style.background='rgba(255,255,255,0.1)';">−</button>
+          <input type="range" id="sfxVolumeSlider" min="0" max="100" value="100" oninput="setSoundEffectsVolumeFromSlider(this.value)" style="flex: 1; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; outline: none; cursor: pointer;" />
+          <button onclick="adjustSoundEffectsVolume(0.1)" style="padding: 8px 12px; font-size: 14px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text); border-radius: 6px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)';" onmouseout="this.style.background='rgba(255,255,255,0.1)';">+</button>
+        </div>
+        <div style="margin-top: 8px; font-size: 12px; color: var(--muted); text-align: center;" id="sfxVolumeDisplay">100%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Top Scorers Modal -->
+<div id="topScorersModal" class="top-scorers-modal hidden">
+  <div class="top-scorers-content">
+    <div class="top-scorers-header">
+      <h2 class="top-scorers-title">⚽ Top Scorers</h2>
+      <button class="top-scorers-close" onclick="closeTopScorersPopup()">Close</button>
+    </div>
+    <div id="topScorersContent">
+      <!-- Top scorers table will be populated here -->
+    </div>
+  </div>
+</div>
+
+<!-- Cronster Letter Modal -->
+<div id="cronsterLetterModal" class="modern-modal-overlay hidden" style="display: none;">
+  <div class="modern-modal" style="max-width: 600px;">
+    <div class="modal-header">
+      <h3>A Disturbing Letter</h3>
+      <button class="modal-close" onclick="closeCronsterLetterModal()">✕</button>
+    </div>
+    <div class="modal-body" id="cronsterLetterContent" style="font-family: 'Courier New', monospace; background: #f9f5e8; padding: 30px; border: 2px solid #8b7355; border-radius: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); line-height: 1.8; color: #3a3a3a;">
+      <!-- Letter content will be populated here -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeCronsterLetterModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Naughty Videos Viewer Overlay -->
+<div id="videoViewer" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#1a1a1a; color:#eee; width:min(720px, 95vw); border:1px solid #333; border-radius:12px; padding:0; box-shadow: 0 8px 32px rgba(0,0,0,0.8);">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:16px; border-bottom:1px solid #333; background:#222; border-radius:12px 12px 0 0;">
+      <h3 style="margin:0; font-size:18px; font-weight:600;">Private Video</h3>
+      <button id="closeVideoViewerBtn" style="background:#333; color:#eee; border:0; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:16px;">✕</button>
+    </div>
+    <div style="padding:20px;">
+      <canvas id="videoCanvas" width="640" height="360" style="image-rendering: pixelated; width: 100%; height: auto; display:block; margin:0 auto; border:1px solid #333; border-radius:6px;"></canvas>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
+        <button id="skipVideoBtn" style="background:#0a7; color:#000; border:0; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600;">Skip Video</button>
+        <div id="videoTicker" style="font-size:16px; opacity:.9; font-weight:600; color:#fff;">00:00</div>
+      </div>
+      <div id="videoCaption" style="margin-top:16px; padding:12px; background:#0f0f0f; border-radius:8px; font-size:13px; text-align:center; line-height:1.4; border:1px solid #333;"></div>
+    </div>
+  </div>
+</div>
+
+
+<script>

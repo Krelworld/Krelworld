@@ -1,0 +1,1159 @@
+  /* Stop hard centering; use full width */
+  body{ display:block; }
+  .app-wrap{ width:100%; max-width:none; padding:16px; }
+  
+  /* Enhanced HUD Bar */
+  #hudBar {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .hitem {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .hitem .label {
+    color: var(--muted);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  #hudBar button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+    font-size: 11px;
+  }
+  #hudBar button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  #hudBar button:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  /* Enhanced Header */
+  header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    padding: 8px 16px;
+    margin-bottom: 8px;
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+  #hudTitle {
+    font-size: 16px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent-3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .sub {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 2px;
+    line-height: 1.3;
+  }
+
+  /* Two fixed columns: main content left (wider), status right (sidebar) */
+  #mainColumn{ width: 62%; max-width: 980px; }
+  #statusColumn{ width: 36%; }
+
+  /* Put them side by side on desktop; stack on mobile */
+  #mainColumn, #statusColumn{ display:inline-block; vertical-align:top; }
+  @media (max-width: 980px){
+    #mainColumn, #statusColumn{ width:100%; }
+  }
+
+  /* Make the right sidebar pleasant to read */
+  #statusColumn .panel{ position:sticky; top:12px; max-height: calc(100vh - 24px); overflow:auto; }
+
+  /* Make the log roomy again */
+  #log, .log{ max-height: 70vh; }
+  
+  /* ========== BLOOD SPLATTER EFFECT ========== */
+  .blood-splatter-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+  }
+  
+  .blood-splatter {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, #8b0000 0%, #5a0000 50%, transparent 100%);
+    border-radius: 50% 50% 50% 0;
+    opacity: 0.9;
+    animation: bloodSplatter 0.6s ease-out forwards;
+  }
+  
+  .blood-splatter-large {
+    width: 16px;
+    height: 16px;
+    background: radial-gradient(circle, #cc0000 0%, #8b0000 50%, #5a0000 80%, transparent 100%);
+  }
+  
+  .blood-splatter-small {
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, #8b0000 0%, transparent 100%);
+  }
+  
+  @keyframes bloodSplatter {
+    0% {
+      transform: translate(0, 0) scale(0) rotate(0deg);
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.9;
+    }
+    100% {
+      transform: translate(var(--splatter-x, 0), var(--splatter-y, 0)) scale(1) rotate(var(--splatter-rot, 0deg));
+      opacity: 0.6;
+    }
+  }
+  
+  /* Screen shake effect for stomping */
+  .screen-shake {
+    animation: screenShake 0.3s ease-out;
+  }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px) translateY(-1px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px) translateY(1px); }
+  }
+  
+  @keyframes screenShake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px) rotate(-0.5deg); }
+    20%, 40%, 60%, 80% { transform: translateX(4px) rotate(0.5deg); }
+  }
+  
+  /* ========== OMINOUS UI POPOUT FOR SEASON 5 MATCH 1 ========== */
+  .ominous-popout-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(0, 0, 0, 0.95) 0%, rgba(20, 0, 0, 0.98) 50%, #000 100%);
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: ominousFadeIn 0.8s ease-out;
+    backdrop-filter: blur(10px);
+  }
+  
+  @keyframes ominousFadeIn {
+    0% {
+      opacity: 0;
+      background: #000;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  .ominous-popout-container {
+    background: linear-gradient(135deg, 
+      rgba(20, 0, 0, 0.95) 0%, 
+      rgba(40, 0, 0, 0.9) 30%,
+      rgba(20, 0, 0, 0.95) 70%,
+      rgba(10, 0, 0, 0.98) 100%);
+    border: 3px solid rgba(139, 0, 0, 0.6);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 900px;
+    width: 90%;
+    max-height: 85vh;
+    box-shadow: 
+      0 0 60px rgba(139, 0, 0, 0.8),
+      0 0 120px rgba(139, 0, 0, 0.4),
+      inset 0 0 40px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    position: relative;
+    overflow: hidden;
+    animation: ominousSlideIn 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  
+  .ominous-popout-container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(139, 0, 0, 0.1) 0%, transparent 70%);
+    animation: ominousPulse 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  
+  @keyframes ominousSlideIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.8) translateY(50px);
+      filter: blur(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      filter: blur(0);
+    }
+  }
+  
+  @keyframes ominousPulse {
+    0%, 100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 0.3;
+    }
+    50% {
+      transform: scale(1.2) rotate(180deg);
+      opacity: 0.5;
+    }
+  }
+  
+  .ominous-popout-header {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(139, 0, 0, 0.5);
+    position: relative;
+  }
+  
+  .ominous-popout-title {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #8b0000;
+    text-shadow: 
+      0 0 20px rgba(139, 0, 0, 1),
+      0 0 40px rgba(139, 0, 0, 0.8),
+      0 0 60px rgba(139, 0, 0, 0.4);
+    letter-spacing: 0.1em;
+    margin: 0;
+    animation: ominousTitleGlow 2s ease-in-out infinite;
+  }
+  
+  @keyframes ominousTitleGlow {
+    0%, 100% {
+      text-shadow: 
+        0 0 20px rgba(139, 0, 0, 1),
+        0 0 40px rgba(139, 0, 0, 0.8),
+        0 0 60px rgba(139, 0, 0, 0.4);
+    }
+    50% {
+      text-shadow: 
+        0 0 30px rgba(139, 0, 0, 1.2),
+        0 0 60px rgba(139, 0, 0, 1),
+        0 0 90px rgba(139, 0, 0, 0.6);
+    }
+  }
+  
+  .ominous-popout-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    border: 1px solid rgba(139, 0, 0, 0.3);
+    max-height: 60vh;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 0, 0, 0.6) rgba(0, 0, 0, 0.3);
+  }
+  
+  .ominous-popout-content::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .ominous-popout-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+  }
+  
+  .ominous-popout-content::-webkit-scrollbar-thumb {
+    background: rgba(139, 0, 0, 0.6);
+    border-radius: 4px;
+  }
+  
+  .ominous-popout-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 0, 0, 0.8);
+  }
+  
+  .ominous-commentary-line {
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, 
+      rgba(139, 0, 0, 0.1) 0%, 
+      rgba(0, 0, 0, 0.2) 50%,
+      rgba(139, 0, 0, 0.1) 100%);
+    border-left: 4px solid rgba(139, 0, 0, 0.5);
+    color: #e0e0e0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    word-wrap: break-word;
+    animation: ominousLineFadeIn 0.5s ease-out;
+    transition: all 0.3s ease;
+  }
+  
+  .ominous-commentary-line:hover {
+    background: linear-gradient(90deg, 
+      rgba(139, 0, 0, 0.2) 0%, 
+      rgba(0, 0, 0, 0.3) 50%,
+      rgba(139, 0, 0, 0.2) 100%);
+    border-left-color: rgba(139, 0, 0, 0.8);
+    transform: translateX(4px);
+  }
+  
+  @keyframes ominousLineFadeIn {
+    0% {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  .ominous-commentary-line.shooting-start {
+    animation: ominousShootingShake 0.3s ease-out, ominousLineFadeIn 0.5s ease-out;
+    color: #ff3333;
+    border-left-color: #ff0000;
+    background: linear-gradient(90deg, 
+      rgba(255, 0, 0, 0.2) 0%, 
+      rgba(139, 0, 0, 0.3) 50%,
+      rgba(255, 0, 0, 0.2) 100%);
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+  }
+  
+  @keyframes ominousShootingShake {
+    0%, 100% { transform: translateX(0) translateY(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px) translateY(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(4px) translateY(2px); }
+  }
+  
+  .ominous-commentary-line.death {
+    color: #ff6666;
+    border-left-color: #ff0000;
+    background: linear-gradient(90deg, 
+      rgba(255, 0, 0, 0.25) 0%, 
+      rgba(139, 0, 0, 0.35) 50%,
+      rgba(255, 0, 0, 0.25) 100%);
+    text-shadow: 
+      0 0 10px rgba(255, 0, 0, 0.8),
+      0 0 20px rgba(255, 0, 0, 0.4);
+    font-weight: 600;
+    animation: ominousDeathPulse 0.6s ease-out, ominousLineFadeIn 0.5s ease-out;
+  }
+  
+  @keyframes ominousDeathPulse {
+    0% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+    }
+    50% {
+      transform: scale(1.02);
+      box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  
+  .ominous-popout-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(139, 0, 0, 0.3);
+    border: 2px solid rgba(139, 0, 0, 0.6);
+    color: #e0e0e0;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: none;
+  }
+  
+  .ominous-popout-close:hover {
+    background: rgba(139, 0, 0, 0.5);
+    border-color: rgba(139, 0, 0, 0.8);
+    color: #fff;
+    box-shadow: 0 0 15px rgba(139, 0, 0, 0.6);
+  }
+  
+  .ominous-popout-close.show {
+    display: block;
+  }
+  
+  /* ========== KINETIC EXPLOSIVE TEXT EFFECTS ========== */
+  .kinetic-text {
+    display: inline-block;
+    animation: kineticExplode 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    text-shadow: 
+      0 0 10px rgba(255, 0, 0, 0.8),
+      0 0 20px rgba(255, 0, 0, 0.6),
+      0 0 30px rgba(255, 0, 0, 0.4);
+    color: #ff0000 !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.1em;
+    transform-origin: center;
+  }
+  
+  @keyframes kineticExplode {
+    0% {
+      transform: scale(0.5) rotate(-10deg);
+      opacity: 0;
+      filter: blur(5px);
+    }
+    20% {
+      transform: scale(1.3) rotate(5deg);
+      opacity: 1;
+      filter: blur(0px);
+    }
+    40% {
+      transform: scale(0.95) rotate(-3deg);
+    }
+    60% {
+      transform: scale(1.1) rotate(2deg);
+    }
+    80% {
+      transform: scale(0.98) rotate(-1deg);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+  }
+  
+  .bloody-text {
+    color: #ff3333 !important;
+    text-shadow: 0 2px 8px rgba(255, 0, 0, 0.8), 0 0 16px rgba(255, 51, 51, 0.6);
+    position: relative;
+    display: inline-block;
+    animation: typewriterBloody 2.5s steps(50, end);
+    font-weight: 600;
+  }
+  
+  .bloody-text::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #ff3333, transparent);
+    opacity: 0.8;
+    animation: bloodDripLine 1.5s ease-out infinite;
+  }
+  
+  @keyframes typewriterBloody {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  
+  @keyframes bloodDrip {
+    0%, 100% {
+      filter: none;
+    }
+    50% {
+      filter: none;
+    }
+  }
+  
+  @keyframes bloodDripLine {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scaleX(0.8);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scaleX(1);
+    }
+  }
+  
+  /* Combined kinetic + bloody effect */
+  .explosive-bloody-text {
+    display: inline-block;
+    color: #ff0000 !important;
+    font-weight: 900 !important;
+    text-shadow: 
+      0 0 10px rgba(255, 0, 0, 1),
+      0 0 20px rgba(255, 0, 0, 0.8),
+      0 0 30px rgba(139, 0, 0, 0.6),
+      0 4px 8px rgba(0, 0, 0, 0.9);
+    animation: explosiveBloody 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    transform-origin: center;
+    letter-spacing: 0.15em;
+    position: relative;
+  }
+  
+  @keyframes explosiveBloody {
+    0% {
+      transform: scale(0.3) rotate(-15deg);
+      opacity: 0;
+      filter: blur(8px) brightness(2);
+    }
+    15% {
+      transform: scale(1.4) rotate(8deg);
+      opacity: 1;
+      filter: blur(0px) brightness(1.5);
+    }
+    30% {
+      transform: scale(0.9) rotate(-4deg);
+      filter: brightness(1.2);
+    }
+    45% {
+      transform: scale(1.15) rotate(3deg);
+      filter: brightness(1.3);
+    }
+    60% {
+      transform: scale(0.95) rotate(-1deg);
+      filter: brightness(1.1);
+    }
+    75% {
+      transform: scale(1.05) rotate(1deg);
+      filter: brightness(1.2);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+      filter: brightness(1) drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
+    }
+  }
+  
+  /* ========== SUSPENSEFUL PRESENTATION EFFECTS ========== */
+  .suspense-fade-in {
+    animation: suspenseFadeIn 1.5s ease-out forwards;
+    opacity: 0;
+  }
+  
+  @keyframes suspenseFadeIn {
+    0% {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+      filter: blur(5px);
+    }
+    50% {
+      opacity: 0.5;
+      transform: translateY(10px) scale(0.98);
+      filter: blur(2px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0px);
+    }
+  }
+  
+  /* Typewriter effect for gunfire scenes - reveals text character by character */
+  .typewriter-text {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid currentColor;
+    animation: typewriterReveal 2s steps(40, end), blinkCursor 0.75s step-end infinite;
+  }
+  
+  @keyframes typewriterReveal {
+    from {
+      width: 0;
+    }
+    to {
+      width: 100%;
+    }
+  }
+  
+  @keyframes blinkCursor {
+    from, to {
+      border-color: transparent;
+    }
+    50% {
+      border-color: currentColor;
+    }
+  }
+  
+  /* Typewriter effect for multi-line text after gunfire */
+  .bloody-text.typewriter,
+  .typewriter-bloody {
+    display: inline-block;
+    overflow: hidden;
+    white-space: pre-wrap;
+    border-right: 2px solid #8b0000;
+    animation: typewriterMultiline 2.5s steps(60, end), blinkCursorRed 0.75s step-end infinite;
+  }
+  
+  @keyframes typewriterMultiline {
+    from {
+      width: 0;
+      max-width: 0;
+    }
+    to {
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+  
+  @keyframes blinkCursorRed {
+    from, to {
+      border-color: transparent;
+    }
+    50% {
+      border-color: #ff3333;
+    }
+  }
+  
+  /* ========== CINEMATIC MODAL FOR RECKONING SCENE ========== */
+  .cinematic-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20000;
+    animation: cinematicFadeIn 0.5s ease-out;
+  }
+  
+  .cinematic-modal {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    border: 2px solid #333;
+    border-radius: 0;
+    box-shadow: 
+      0 0 60px rgba(255, 0, 0, 0.3),
+      0 0 120px rgba(0, 0, 0, 0.8),
+      inset 0 0 40px rgba(0, 0, 0, 0.5);
+    max-width: 800px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    animation: cinematicSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+  
+  .cinematic-modal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 50%, rgba(255, 0, 0, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 50%, rgba(255, 0, 0, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  .cinematic-modal-content {
+    position: relative;
+    z-index: 1;
+    padding: 40px;
+    color: #e0e0e0;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    line-height: 1.8;
+    font-size: 1.1em;
+  }
+  
+  .cinematic-modal-content p {
+    margin: 0 0 24px 0;
+    opacity: 1;
+    animation: none !important;
+  }
+  
+  .cinematic-modal-content .typewriter-line {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    border-right: 2px solid #e0e0e0;
+    animation: typewriterReveal 2s steps(40, end), blinkCursor 0.75s step-end infinite;
+  }
+  
+  .cinematic-modal-content .typewriter-line.no-cursor {
+    border-right: none !important;
+    animation: none !important;
+  }
+  
+  @keyframes typewriterReveal {
+    from {
+      width: 0;
+    }
+    to {
+      width: 100%;
+    }
+  }
+  
+  @keyframes blinkCursor {
+    from, to {
+      border-color: transparent;
+    }
+    50% {
+      border-color: #e0e0e0;
+    }
+  }
+  
+  .cinematic-modal-close-btn {
+    position: fixed;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    background: rgba(255, 51, 51, 0.3);
+    border: 2px solid #ff3333;
+    color: #ff3333;
+    padding: 12px 24px;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 20001;
+    transition: all 0.3s ease;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    box-shadow: 0 0 20px rgba(255, 51, 51, 0.5);
+    border-radius: 4px;
+  }
+  
+  /* Sinister modal for Van Onslaught announcement */
+  .sinister-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.98);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20000;
+    animation: sinisterFadeIn 0.3s ease-out;
+  }
+  
+  @keyframes sinisterFadeIn {
+    from {
+      opacity: 0;
+      background: rgba(0, 0, 0, 1);
+    }
+    to {
+      opacity: 1;
+      background: rgba(0, 0, 0, 0.98);
+    }
+  }
+  
+  .sinister-modal {
+    background: linear-gradient(135deg, #000000 0%, #1a0000 50%, #000000 100%);
+    border: 3px solid #8b0000;
+    border-radius: 0;
+    box-shadow: 
+      0 0 80px rgba(139, 0, 0, 0.6),
+      0 0 160px rgba(0, 0, 0, 0.9),
+      inset 0 0 60px rgba(139, 0, 0, 0.2);
+    max-width: 900px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    animation: sinisterSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+  
+  @keyframes sinisterSlideIn {
+    from {
+      transform: translateY(-50px) scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+  
+  .sinister-modal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 50%, rgba(139, 0, 0, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 50%, rgba(139, 0, 0, 0.3) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: sinisterPulse 3s ease-in-out infinite;
+  }
+  
+  @keyframes sinisterPulse {
+    0%, 100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+  
+  .sinister-modal-content {
+    position: relative;
+    z-index: 1;
+    padding: 50px;
+    color: #cc0000;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    line-height: 1.9;
+    font-size: 1.15em;
+    text-shadow: 0 0 10px rgba(204, 0, 0, 0.5);
+  }
+  
+  .sinister-modal-content p {
+    margin: 0 0 28px 0;
+    opacity: 1;
+    animation: none !important;
+  }
+  
+  .sinister-modal-content .typewriter-line {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    border-right: 2px solid #cc0000;
+    animation: sinisterTypewriterReveal 2.5s steps(50, end), sinisterBlinkCursor 0.8s step-end infinite;
+    color: #cc0000;
+    text-shadow: 0 0 8px rgba(204, 0, 0, 0.6);
+  }
+  
+  .sinister-modal-content .typewriter-line.no-cursor {
+    border-right: none !important;
+    animation: none !important;
+  }
+  
+  @keyframes sinisterTypewriterReveal {
+    from {
+      width: 0;
+    }
+    to {
+      width: 100%;
+    }
+  }
+  
+  @keyframes sinisterBlinkCursor {
+    from, to {
+      border-color: transparent;
+    }
+    50% {
+      border-color: #cc0000;
+      box-shadow: 0 0 8px rgba(204, 0, 0, 0.8);
+    }
+  }
+  
+  .sinister-modal-close-btn {
+    position: fixed;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    background: rgba(139, 0, 0, 0.4);
+    border: 2px solid #8b0000;
+    color: #cc0000;
+    padding: 14px 28px;
+    font-size: 17px;
+    cursor: pointer;
+    z-index: 20001;
+    transition: all 0.3s ease;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    box-shadow: 0 0 25px rgba(139, 0, 0, 0.7);
+    border-radius: 4px;
+    text-shadow: 0 0 8px rgba(204, 0, 0, 0.6);
+  }
+  
+  .sinister-modal-close-btn:hover {
+    background: rgba(139, 0, 0, 0.6);
+    box-shadow: 0 0 35px rgba(139, 0, 0, 0.9);
+    transform: translate(-50%, 50%) scale(1.05);
+  }
+  
+  .sinister-title {
+    font-size: 1.4em;
+    color: #cc0000;
+    text-align: center;
+    margin-bottom: 30px;
+    text-shadow: 0 0 15px rgba(204, 0, 0, 0.7);
+    letter-spacing: 2px;
+    font-weight: bold;
+  }
+  
+  /* Specific positioning for press conference modal (van onslaught) */
+  #cinematic-press-conference-modal .cinematic-modal-close-btn {
+    position: fixed;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+  }
+  
+  /* Specific positioning for reckoning modal (krunchem) */
+  #cinematic-reckoning-modal .cinematic-modal-close-btn {
+    position: fixed;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+  }
+  
+  .cinematic-modal-close-btn:hover {
+    background: rgba(255, 51, 51, 0.4);
+    box-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+  }
+  
+  .cinematic-modal-close-btn:active {
+    transform: scale(0.95);
+  }
+  
+  .cinematic-modal-content strong {
+    color: #ff3333;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+  }
+  
+  .cinematic-modal-content .cinematic-title {
+    font-size: 1.8em;
+    color: #ff3333;
+    text-align: center;
+    margin-bottom: 30px;
+    text-shadow: 
+      0 0 20px rgba(255, 51, 51, 0.8),
+      0 0 40px rgba(255, 51, 51, 0.4);
+    letter-spacing: 0.1em;
+    font-weight: 700;
+  }
+  
+  @keyframes cinematicFadeIn {
+    from { 
+      opacity: 0;
+    }
+    to { 
+      opacity: 1;
+    }
+  }
+  
+  @keyframes cinematicSlideIn {
+    from { 
+      opacity: 0;
+      transform: scale(0.9) translateY(30px);
+      filter: blur(10px);
+    }
+    to { 
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      filter: blur(0);
+    }
+  }
+  
+  .suspense-slide {
+    animation: suspenseSlide 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    opacity: 0;
+  }
+  
+  @keyframes suspenseSlide {
+    0% {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    60% {
+      opacity: 0.7;
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  /* Video player styles for coma and hajj videos */
+  .cinematic-video-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    z-index: 30000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: cinematicFadeIn 0.5s ease-out;
+  }
+  
+  .cinematic-video-container video {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+  }
+  
+  .cinematic-video-close-btn {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 12px 24px;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 30001;
+    transition: all 0.3s ease;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    border-radius: 4px;
+    display: none;
+  }
+  
+  .cinematic-video-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  .cinematic-video-close-btn.show {
+    display: block;
+  }
+  
+  /* Black screen overlay */
+  .black-screen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    z-index: 25000;
+    animation: blackScreenFadeIn 0.3s ease-out;
+  }
+  
+  @keyframes blackScreenFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  /* Wake up button */
+  .wake-up-button {
+    position: fixed;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 15px 30px;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 25001;
+    transition: all 0.3s ease;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    border-radius: 4px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+  
+  .wake-up-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Heart monitor beep text */
+  .heart-monitor-beep {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-size: 24px;
+    font-family: 'Courier New', monospace;
+    z-index: 25001;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    animation: beepPulse 1s ease-in-out infinite;
+  }
+  
+  @keyframes beepPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  .suspense-pulse {
+    animation: suspensePulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes suspensePulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.85;
+      transform: scale(1.02);
+    }
+  }
+  
+  .dramatic-reveal {
+    animation: dramaticReveal 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  
+  @keyframes dramaticReveal {
+    0% {
+      opacity: 0;
+      transform: scale(0.8) translateY(30px);
+      filter: blur(10px);
+    }
+    40% {
+      opacity: 0.3;
+      transform: scale(0.9) translateY(15px);
+      filter: blur(5px);
+    }
+    70% {
+      opacity: 0.7;
+      transform: scale(1.05) translateY(-5px);
+      filter: blur(2px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      filter: blur(0px);
+    }
+  }

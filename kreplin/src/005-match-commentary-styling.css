@@ -1,0 +1,164 @@
+  /* Match Commentary Styling */
+  #matchCommentary {
+    scrollbar-width: thin;
+    scrollbar-color: #444 #1a1a1a;
+  }
+  
+  #matchCommentary::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  #matchCommentary::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 4px;
+  }
+  
+  #matchCommentary::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+  }
+  
+  #matchCommentary::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+  
+  .commentary-line {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+    word-wrap: break-word;
+  }
+  
+  .commentary-line:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateX(4px);
+  }
+  
+  .commentary-goal {
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+    border-left-color: #ffd700;
+    font-weight: 600;
+    color: #ffd700;
+    padding: 10px 14px;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.2);
+    animation: goalPulse 0.6s ease-out;
+  }
+  
+  @keyframes goalPulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+    50% { transform: scale(1.02); box-shadow: 0 0 0 8px rgba(255, 215, 0, 0); }
+    100% { transform: scale(1); }
+  }
+  
+  .commentary-card {
+    background: linear-gradient(90deg, rgba(255, 165, 0, 0.12) 0%, rgba(255, 165, 0, 0.04) 100%);
+    border-left-color: #ffa500;
+    color: #ffa500;
+    font-weight: 500;
+  }
+  
+  .commentary-penalty {
+    background: linear-gradient(90deg, rgba(255, 69, 0, 0.15) 0%, rgba(255, 69, 0, 0.05) 100%);
+    border-left-color: #ff4500;
+    color: #ff6b47;
+    font-weight: 600;
+  }
+  
+  .commentary-shot {
+    background: rgba(100, 149, 237, 0.08);
+    border-left-color: #6495ed;
+    color: #87ceeb;
+  }
+  
+  .commentary-corner {
+    background: rgba(135, 206, 250, 0.08);
+    border-left-color: #87cefa;
+    color: #b0e0e6;
+  }
+  
+  .commentary-foul {
+    background: rgba(255, 140, 0, 0.08);
+    border-left-color: #ff8c00;
+    color: #ffa366;
+  }
+  
+  .commentary-important {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
+    border-left-color: #fff;
+    color: #fff;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 12px 16px;
+  }
+  
+  .commentary-dramatic {
+    background: linear-gradient(90deg, rgba(255, 0, 0, 0.2) 0%, rgba(255, 69, 0, 0.1) 100%);
+    border-left-color: #ff0000;
+    color: #ff6b6b;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 12px 16px;
+    animation: dramaticFlash 0.8s ease-out;
+    box-shadow: 0 2px 12px rgba(255, 0, 0, 0.3);
+  }
+  
+  @keyframes dramaticFlash {
+    0% { 
+      transform: scale(0.9);
+      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.8);
+    }
+    50% { 
+      transform: scale(1.05);
+      box-shadow: 0 0 0 12px rgba(255, 0, 0, 0);
+    }
+    100% { 
+      transform: scale(1);
+    }
+  }
+  
+  /* Fade-in animation for preamble commentary */
+  @keyframes commentaryFadeIn {
+    0% { 
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    100% { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Kinetic animation for action-packed commentary */
+  @keyframes explodeIn {
+    0% {
+      transform: scale(0) rotate(-10deg);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.2) rotate(5deg);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes commentaryKinetic {
+    0% { 
+      opacity: 0;
+      transform: translateX(-30px) scale(0.9);
+      filter: blur(4px);
+    }
+    50% {
+      transform: translateX(5px) scale(1.05);
+    }
+    100% { 
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      filter: blur(0);
+    }
+  }

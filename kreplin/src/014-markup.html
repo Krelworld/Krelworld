@@ -1,0 +1,140 @@
+</style>
+
+
+
+</head>
+<body>
+<!-- Background music for opening sequence -->
+<audio id="openingMusic" loop>
+  <source src="https://www.dropbox.com/scl/fi/ehi6scemff22ptcsouys3/untitled.mp3?rlkey=mn036wym7x6hj2srsece0otkg&st=us8ir7c7&dl=1" type="audio/mpeg">
+</audio>
+
+<!-- LADS GATE SCREEN -->
+<div id="ladsGateScreen">
+  <div class="lads-gate-container" id="ladsGateQuestion">
+    <div class="lads-gate-text">THIS GAME IS FOR THE LADS. ARE YOU ONE OF THE LADS?</div>
+    <div class="lads-gate-buttons">
+      <button class="lads-gate-button" id="ladsGateYes">YES</button>
+      <button class="lads-gate-button" id="ladsGateNo">NO</button>
+    </div>
+  </div>
+  <div class="lads-gate-container" id="ladsGateRejected" style="display: none;">
+    <div class="lads-gate-rejected-text">WELL FUCK OFF THEN</div>
+    <button class="lads-gate-button" id="ladsGateReset">RESET</button>
+  </div>
+</div>
+
+<!-- DOS-STYLE START SCREEN -->
+<div id="startScreen" class="hidden">
+  <div class="dos-container">
+    <div style="font-size: 4rem; margin: 20px 0; text-align: center;">⚽</div>
+    <div class="dos-title">KREPLIN</div>
+    <div class="dos-subtitle">A SOUTHAMPTON FC CHAIRMAN SIM</div>
+    <div id="sponsorSelection" style="margin: 30px 0; display: none;">
+      <div class="dos-subtitle" style="margin-bottom: 20px;">CHOOSE YOUR SPONSOR</div>
+      <div class="dos-buttons">
+        <button class="dos-button sponsor-btn" data-sponsor="m">MCDONALD'S — £3M + £150K/WEEK</button>
+        <button class="dos-button sponsor-btn" data-sponsor="e">THE EDGE GAY CLUB — £1.5M + £200K/WEEK</button>
+        <button class="dos-button sponsor-btn" data-sponsor="n">NINTENDO — £4M + £200K/WEEK</button>
+        <button class="dos-button sponsor-btn" data-sponsor="p">PORTSMOUTH FC — £8M + £300K/WEEK</button>
+      </div>
+    </div>
+    <div class="dos-buttons" id="mainButtons">
+      <button class="dos-button" id="watchIntroBtn">WATCH INTRO CUTSCENE</button>
+      <button class="dos-button" id="startCampaignBtn">NEW CAMPAIGN</button>
+      <button class="dos-button" id="loadGameBtn">LOAD</button>
+    </div>
+    <div class="dos-loading" id="startScreenLoading" style="display:none;">LOADING...</div>
+  </div>
+</div>
+
+<div id="hudBar">
+  <div class="hitem">🏦 <span class="label">Club £</span><span id="hudClubCash">–</span></div>
+  <button id="transferCashBtn" style="padding: 4px 6px; font-size: 11px; min-width: 28px; height: 28px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #ccc; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" title="Transfer between Club & Chairman Cash" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='rgba(255,255,255,0.3)';" onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(255,255,255,0.15)';">⇄</button>
+  <div class="hitem">💰 <span class="label">Chair £</span><span id="hudChairCash">–</span></div>
+  <div class="hitem">💳 <span class="label">Debt</span><span id="hudTotalDebt">–</span></div>
+  <div class="hitem">⚽ <span class="label">Games</span><span id="hudGames">0/0</span></div>
+  <div class="hitem">📈 <span class="label">Record</span><span id="hudRecord">W0 D0 L0</span></div>
+  <div class="hitem">🏆 <span class="label">Points</span><span id="hudPoints">0</span></div>
+  <div class="hitem">📅 <span class="label">Season</span><span id="hudSeason">1</span></div>
+  <div class="hitem">😊 <span class="label">Morale</span><span id="hudMorale">–</span></div>
+  <div class="hitem">🎮 <span class="label">Lobby Tokens</span><span id="hudLobbyTokens">–</span></div>
+  <button id="openDoctorBtn">🩺 Doctor</button>
+  <button id="openStadiumBtn">🏟️ Stadium</button>
+  <button id="openPowerNetworkBtn">🏛 Power</button>
+  <button id="openFixturesBtn">📅 Fixtures & Table</button>
+  <button id="btnReadNews" class="hud-icon-btn">📰 News <span id="badgeNews" class="hud-badge" style="display:none;">●</span></button>
+  <button id="btnUsePhone" class="hud-icon-btn">📱 Phone <span id="badgePhone" class="hud-badge" style="display:none;">●</span></button>
+  <button id="openInvBtn">📦 Inventory</button>
+  <div class="hitem kreplin-gem">💎 <span class="label">Kreplin Gem</span><span id="hudKreplinGem">0/4</span></div>
+  <button id="fundraiserBtn" style="padding: 4px 8px; font-size: 12px; min-width: auto; height: 28px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #ccc; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" title="Hold fundraising events at your stadium" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='rgba(255,255,255,0.3)';" onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(255,255,255,0.15)';">🎪 Fundraiser</button>
+  <button id="musicControlBtn" style="padding: 4px 8px; font-size: 12px; min-width: auto; height: 28px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #ccc; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" title="Music & Sound Controls" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='rgba(255,255,255,0.3)';" onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(255,255,255,0.15)';">🎵 Audio</button>
+</div>
+<header>
+<div id="mainColumn" class="app-wrap">
+  <strong><span id="hudTitle">Southampton Chairman Sim</span></strong>
+  <div class="sub">v12 fixes: PROPOSE & divorce restored, more frequent board summons, spoiler‑free options, mid‑season R&D, tougher starting budget, unaffordable flow at start, new Off‑books Exposure meter.</div>
+</header>
+<div id="playArea">
+  <div id="dialoguePanel">
+  </div>
+  <div id="choicesPanel">
+  </div>
+</div>
+<main>
+  <section class="panel legacy-stats" id="statusColumn" style="display:none">
+    <div class="row"><div class="k">Club</div><div class="v" id="clubName"></div></div>
+    <div class="row"><div class="k">Season</div><div class="v" id="seasonProg"></div></div>
+    <div class="row"><div class="k">Record</div><div class="v" id="record"></div></div>
+    <div class="row"><div class="k">Points</div><div class="v" id="points"></div></div>
+    <div class="row"><div class="k">Morale</div><div class="v" id="morale"></div></div>
+    <div class="row"><div class="k">Reputation</div><div class="v" id="reputation"></div></div>
+    <div class="row"><div class="k">Compliance</div><div class="v" id="compliance"></div></div>
+    <div class="row"><div class="k">Legal</div><div class="v" id="legal"></div></div>
+    <div class="row"><div class="k">Home Stability</div><div class="v" id="homeStability"></div></div>
+    <div class="row"><div class="k">Wife Relationship</div><div class="v" id="wifeRel"></div></div>
+    <div class="row"><div class="k">Kids Relationship</div><div class="v" id="kidsRel"></div></div>
+    <div class="row"><div class="k">School Fees Due</div><div class="v" id="schoolFees"></div></div>
+    <div class="row"><div class="k">Club Cash</div><div class="v" id="clubCash"></div></div>
+    <div class="row"><div class="k">Chair Cash</div><div class="v" id="chairCash"></div></div>
+    <div class="row"><div class="k">Club Debt</div><div class="v" id="clubDebt"></div></div>
+    <div class="row"><div class="k">Off‑books Exposure</div><div class="v" id="offbooks"></div></div>
+    <div class="row"><div class="k">Managers Fired</div><div class="v" id="fires"></div></div>
+    <div class="row"><div class="k">Embargo</div><div class="v" id="embargo"></div></div>
+    <div class="row"><div class="k">Pts Deducted</div><div class="v" id="deduct"></div></div>
+    <div class="row"><div class="k">Stars</div><div class="v" id="stars"></div></div>
+
+    <div id="meters">
+      <div class="meter">
+        <div class="label"><span>FA/Board Heat</span><span class="pill" id="heatHint">Low</span></div>
+        <div class="bar"><span id="heatBar"></span></div>
+        <div class="step">
+          <div class="chip" id="stepWarn">Warning</div>
+          <div class="chip" id="stepFine">Fine</div>
+          <div class="chip" id="stepPoints">Points</div>
+          <div class="chip" id="stepEmbargo">Embargo</div>
+          <div class="chip" id="stepReferral">Referral</div>
+        </div>
+      </div>
+      <div class="meter">
+        <div class="label"><span>Paper Trail Risk</span><span class="pill" id="paperHint">Clean</span></div>
+        <div class="bar"><span id="paperBar"></span></div>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="panel" id="log">
+    <div id="feed"></div>
+    <div id="actions">
+    <footer>
+      <button id="saveBtn">Save</button>
+      <button id="loadBtn">Load</button>
+      <button id="resetBtn">Reset</button>
+      <span class="sub">Saves live in this browser.</span>
+    </footer>
+  </section>
+</main>
+</div>
+
+<script>

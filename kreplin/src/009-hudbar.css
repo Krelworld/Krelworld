@@ -1,0 +1,1285 @@
+  #hudBar{
+    position: sticky; 
+    top: 0; 
+    z-index: 5;
+    background: linear-gradient(135deg, 
+      rgba(26, 26, 46, 0.9) 0%, 
+      rgba(22, 33, 62, 0.7) 100%);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 10px 14px; 
+    display: flex; 
+    gap: 12px; 
+    align-items: center; 
+    flex-wrap: wrap;
+    backdrop-filter: blur(24px) saturate(200%);
+    box-shadow: 
+      var(--glass-shadow),
+      var(--glass-glow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  #hudBar .hitem{
+    display: flex; 
+    align-items: center; 
+    gap: 8px;
+    background: linear-gradient(135deg, 
+      rgba(26, 26, 46, 0.8) 0%, 
+      rgba(22, 33, 62, 0.6) 100%);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px; 
+    padding: 6px 10px; 
+    font-size: 11px;
+    transition: all var(--transition-smooth);
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px) saturate(150%);
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.01em;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  #hudBar .hitem::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+      rgba(99, 102, 241, 0.1) 0%, 
+      rgba(139, 92, 246, 0.05) 100%);
+    opacity: 0;
+    transition: opacity var(--transition-smooth);
+    pointer-events: none;
+  }
+  
+  #hudBar .hitem:hover{
+    background: linear-gradient(135deg, 
+      rgba(26, 26, 46, 0.9) 0%, 
+      rgba(22, 33, 62, 0.7) 100%);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 
+      0 8px 20px rgba(0, 0, 0, 0.3),
+      var(--shadow-neon),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+  
+  #hudBar .hitem:hover::before {
+    opacity: 1;
+  }
+  
+  #hudBar .label{ 
+    color: var(--muted); 
+    font-weight: 600; 
+    text-shadow: 0 0 8px rgba(160, 168, 192, 0.2);
+  }
+  
+  /* Comms buttons (News/Phone) - now red like other buttons */
+  #hudBar .hud-icon-btn{
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--accent);
+    border: none;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+    font-size: 11px;
+  }
+  #hudBar .hud-icon-btn:hover{
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  #hudBar .hud-icon-btn:active{
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+  }
+  #hudBar .hud-icon-btn.hud-glow{
+    box-shadow: 0 0 0 2px rgba(99,102,241,0.25), 0 0 16px rgba(99,102,241,0.35);
+  }
+  #hudBar .hud-badge{
+    position: relative;
+    top: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #fbbf24; /* amber-400 - contrasting yellow */
+    box-shadow: 0 0 10px rgba(251,191,36,0.9), 0 0 20px rgba(251,191,36,0.5);
+    display: inline-block;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  /* Hide non-functional cocaine status pill but keep functionality elsewhere */
+  #hudBar #hudDrugPill{ display: none !important; }
+  
+  /* Kreplin Gem - Shining Effect */
+  #hudBar .hitem.kreplin-gem {
+    position: relative;
+    animation: gemShine 3s ease-in-out infinite;
+  }
+  
+  #hudBar .hitem.kreplin-gem::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.3) 50%,
+      transparent 70%
+    );
+    animation: gemShimmer 2s ease-in-out infinite;
+    pointer-events: none;
+  }
+  
+  @keyframes gemShine {
+    0%, 100% {
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 10px rgba(99, 102, 241, 0.3);
+    }
+    50% {
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 20px rgba(99, 102, 241, 0.6),
+        0 0 30px rgba(139, 92, 246, 0.4);
+    }
+  }
+  
+  @keyframes gemShimmer {
+    0% {
+      transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    100% {
+      transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+  }
+  
+  @keyframes gemCelebration {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.3);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.5);
+    }
+  }
+  
+  @keyframes twinkle {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+    25% {
+      opacity: 0.7;
+      transform: scale(1.1) rotate(90deg);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.2) rotate(180deg);
+    }
+    75% {
+      opacity: 0.8;
+      transform: scale(1.1) rotate(270deg);
+    }
+  }
+  
+  @keyframes sparkle {
+    0% {
+      opacity: 0;
+      transform: translateY(0) scale(0);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(-20px) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-40px) scale(0);
+    }
+  }
+  
+  @keyframes pulseGlow {
+    0%, 100% {
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 20, 147, 0.6), 0 0 90px rgba(255, 215, 0, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 50px rgba(255, 215, 0, 1), 0 0 100px rgba(255, 20, 147, 0.8), 0 0 150px rgba(255, 215, 0, 0.6);
+    }
+  }
+  
+  @keyframes rainbow {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+  }
+  #toggleStatsBtn{
+    margin-left:auto; appearance:none; cursor:pointer;
+    background:var(--btn); color:var(--text); border:1px solid var(--border);
+    border-radius:8px; padding:5px 8px;
+    font-size: 11px;
+  }
+  .hidden{ display:none !important; }
+  
+  /* Match viewer overlay styling */
+  #matchViewer:not(.hidden) {
+    display: flex !important;
+  }
+  
+  /* Modal styles for match viewer */
+  .modal-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    margin: 20px auto;
+    position: relative;
+  }
+  
+  .modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #333;
+    background: #222;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  .modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #eee;
+  }
+  
+  .modal-body {
+    padding: 16px;
+  }
+  
+  /* Tinder UI Styles - Modern Design */
+  #tinderModal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+  }
+  
+  #tinderModal.hidden {
+    display: none !important;
+  }
+  
+  .tinder-phone-container {
+    width: 450px;
+    height: 900px;
+    max-width: 90vw;
+    max-height: 90vh;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-radius: 40px;
+    padding: 8px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 0 3px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .tinder-phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    border-radius: 32px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .tinder-header {
+    background: linear-gradient(135deg, #FD5068 0%, #FF6B9D 50%, #C44569 100%);
+    padding: 16px 20px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    z-index: 10;
+  }
+  
+  .tinder-logo {
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  
+  .tinder-close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    font-size: 20px;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 300;
+  }
+  
+  .tinder-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+  }
+  
+  .tinder-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: #f8f8f8;
+  }
+  
+  .tinder-profile-view, .tinder-swipe-view, .tinder-chat-view, .tinder-matches-view {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  
+  .tinder-profile-view.hidden, .tinder-swipe-view.hidden, .tinder-chat-view.hidden, .tinder-matches-view.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(100%);
+  }
+  
+  .tinder-my-profile {
+    padding: 0;
+    text-align: center;
+    background: #ffffff;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .tinder-my-profile-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 25%;
+    z-index: 0;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+    display: block;
+  }
+  
+  .tinder-my-profile-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    width: 100%;
+    padding: 16px 20px 100px 20px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.6) 60%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+    justify-content: flex-end;
+    min-height: 140px;
+  }
+  
+  .tinder-my-profile-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    display: inline-block;
+  }
+  
+  .tinder-my-profile-age {
+    font-size: 20px;
+    color: #ffffff;
+    margin: 0 0 6px 8px;
+    font-weight: 400;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    display: inline-block;
+  }
+  
+  .tinder-my-profile-name-age {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 8px;
+    width: 100%;
+  }
+  
+  .tinder-my-profile-bio {
+    font-size: 13px;
+    color: #ffffff;
+    line-height: 1.4;
+    max-width: 100%;
+    margin: 0;
+    text-align: left;
+    white-space: pre-line;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .tinder-start-btn {
+    background: linear-gradient(135deg, #FD5068 0%, #FF6B9D 100%);
+    color: white;
+    border: none;
+    padding: 14px 48px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(253, 80, 104, 0.6);
+    transition: all 0.2s;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    z-index: 2;
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .tinder-start-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(253, 80, 104, 0.5);
+  }
+  
+  .tinder-start-btn:active {
+    transform: translateY(0);
+  }
+  
+  .tinder-card-container {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow: hidden;
+    background: #f8f8f8;
+  }
+  
+  .tinder-card {
+    position: absolute;
+    width: calc(100% - 32px);
+    max-width: 400px;
+    height: calc(100% - 240px);
+    min-height: 480px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    cursor: grab;
+    transition: transform 0.1s;
+    user-select: none;
+    position: relative;
+  }
+  
+  .tinder-card:active {
+    cursor: grabbing;
+  }
+  
+  .tinder-card.swiping {
+    transition: none;
+  }
+  
+  .tinder-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+    display: block;
+    image-rendering: auto;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+  
+  .tinder-card-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 20px 20px 20px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.6) 60%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 10;
+    pointer-events: none;
+    min-height: 180px;
+  }
+  
+  .tinder-card-info > * {
+    pointer-events: auto;
+  }
+  
+  .tinder-card-name {
+    font-size: 26px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    display: inline-block;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  }
+  
+  .tinder-card-age {
+    font-size: 22px;
+    color: #ffffff;
+    font-weight: 400;
+    margin: 0;
+    display: inline-block;
+    margin-left: 8px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  }
+  
+  .tinder-card-name-age {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  
+  .tinder-card-bio {
+    font-size: 15px;
+    color: #ffffff;
+    line-height: 1.5;
+    overflow-y: auto;
+    max-height: 100px;
+    margin: 0;
+    flex: 1;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .tinder-card-bio::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .tinder-card-bio::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .tinder-card-bio::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+  }
+  
+  .tinder-actions {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    background: transparent;
+    box-shadow: none;
+    border-top: none;
+  }
+  
+  .tinder-action-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s;
+    font-weight: 300;
+  }
+  
+  .tinder-action-btn:hover {
+    transform: scale(1.08);
+  }
+  
+  .tinder-action-btn:active {
+    transform: scale(0.95);
+  }
+  
+  .tinder-pass-btn {
+    background: #ffffff;
+    border: 3px solid #e0e0e0;
+    color: #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .tinder-pass-btn:hover {
+    border-color: #d0d0d0;
+    color: #d0d0d0;
+  }
+  
+  .tinder-like-btn {
+    background: linear-gradient(135deg, #4CD964 0%, #5DE26A 100%);
+    color: white;
+    box-shadow: 0 2px 12px rgba(76, 217, 100, 0.4);
+  }
+  
+  .tinder-like-btn:hover {
+    box-shadow: 0 4px 16px rgba(76, 217, 100, 0.5);
+  }
+  
+  .tinder-match-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  
+  .tinder-match-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+  
+  .tinder-match-text {
+    font-size: 48px;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    animation: matchPulse 0.6s ease-out;
+  }
+  
+  .tinder-match-subtext {
+    font-size: 24px;
+    color: #fff;
+    text-align: center;
+    opacity: 0.9;
+  }
+  
+  .tinder-match-confetti {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  
+  .confetti-piece {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #FFD700;
+    animation: confettiFall 3s linear forwards;
+  }
+  
+  @keyframes matchPulse {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  
+  @keyframes confettiFall {
+    0% {
+      transform: translateY(-100vh) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+  
+  .tinder-match-actions {
+    margin-top: 40px;
+    display: flex;
+    gap: 16px;
+  }
+  
+  .tinder-match-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  
+  .tinder-match-btn:hover {
+    transform: translateY(-2px);
+  }
+  
+  .tinder-chat-view {
+    background: #ffffff;
+  }
+  
+  .tinder-chat-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #ffffff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  .tinder-chat-back-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #fe3c72;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 12px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  
+  .tinder-chat-back-btn:hover {
+    background: #f5f5f5;
+  }
+  
+  .tinder-chat-header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+  }
+  
+  .tinder-chat-header-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fe3c72;
+  }
+  
+  .tinder-chat-header-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+  
+  .tinder-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #f5f5f5;
+  }
+  
+  .tinder-chat-message {
+    display: flex;
+    flex-direction: column;
+    max-width: 75%;
+    animation: messageSlideIn 0.3s ease-out;
+  }
+  
+  .tinder-chat-message.sent {
+    align-self: flex-end;
+  }
+  
+  .tinder-chat-message.received {
+    align-self: flex-start;
+  }
+  
+  .tinder-chat-message-bubble {
+    padding: 10px 14px;
+    border-radius: 18px;
+    font-size: 15px;
+    line-height: 1.4;
+    word-wrap: break-word;
+  }
+  
+  .tinder-chat-message.sent .tinder-chat-message-bubble {
+    background: #fe3c72;
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+  }
+  
+  .tinder-chat-message.received .tinder-chat-message-bubble {
+    background: #e0e0e0;
+    color: #1a1a1a;
+    border-bottom-left-radius: 4px;
+  }
+  
+  .tinder-chat-message-time {
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
+    padding: 0 4px;
+  }
+  
+  .tinder-chat-message.sent .tinder-chat-message-time {
+    text-align: right;
+  }
+  
+  .tinder-chat-message.received .tinder-chat-message-time {
+    text-align: left;
+  }
+  
+  .tinder-chat-input-container {
+    background: #ffffff;
+    border-top: 1px solid #e0e0e0;
+    padding: 12px 16px;
+  }
+  
+  .tinder-chat-quick-options {
+    position: absolute;
+    left: calc(50vw + 250px);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 220px;
+    max-height: 80vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 10001;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  @media (max-width: 900px) {
+    .tinder-chat-quick-options {
+      left: calc(50vw + 180px);
+      width: 180px;
+      font-size: 12px;
+    }
+  }
+  
+  #tinderModal.chat-active .tinder-chat-quick-options {
+    opacity: 1;
+    pointer-events: all;
+  }
+  
+  .tinder-chat-quick-option {
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    padding: 10px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #1a1a1a;
+    text-align: left;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+  
+  .tinder-chat-quick-option:hover {
+    background: #fe3c72;
+    color: #ffffff;
+    border-color: #fe3c72;
+  }
+  
+  .tinder-chat-actions {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .tinder-chat-close-btn {
+    background: #e0e0e0;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .tinder-chat-close-btn:hover {
+    background: #d0d0d0;
+  }
+  
+  .tinder-chat-btn {
+    background: linear-gradient(135deg, #FF4458 0%, #FF6B7A 100%);
+    color: white;
+  }
+  
+  .tinder-continue-btn {
+    background: #fff;
+    color: #333;
+  }
+  
+  /* Matches List View */
+  .tinder-matches-view {
+    background: #ffffff;
+  }
+  
+  .tinder-matches-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #ffffff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  .tinder-matches-back-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #fe3c72;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 12px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  
+  .tinder-matches-back-btn:hover {
+    background: #f5f5f5;
+  }
+  
+  .tinder-matches-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+  
+  .tinder-matches-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #f5f5f5;
+  }
+  
+  .tinder-match-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: #ffffff;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+  }
+  
+  .tinder-match-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #fe3c72;
+  }
+  
+  .tinder-match-item-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fe3c72;
+  }
+  
+  .tinder-match-item-info {
+    flex: 1;
+  }
+  
+  .tinder-match-item-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+  
+  .tinder-match-item-bio {
+    font-size: 14px;
+    color: #666;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .tinder-match-item-time {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+  
+  /* Cinematic daughter interaction modal animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideIn {
+    from {
+      transform: translateY(-30px) scale(0.96);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes typewriterReveal {
+    from {
+      width: 0;
+    }
+    to {
+      width: 100%;
+    }
+  }
+  
+  @keyframes blinkCursor {
+    from, to {
+      border-color: transparent;
+    }
+    50% {
+      border-color: #6366f1;
+      box-shadow: 0 0 6px rgba(99, 102, 241, 0.6);
+    }
+  }
+  
+  /* Subtle Visual Distortive Effects - Tape Warble & Lo-Fi Aesthetic */
+  
+  /* Tape Warble Animation - Slow, continuous subtle distortion */
+  @keyframes tapeWarble {
+    0% {
+      transform: translateX(0) translateY(0) scale(1) rotate(0deg);
+      filter: hue-rotate(0deg) contrast(1) brightness(1);
+    }
+    12.5% {
+      transform: translateX(0.3px) translateY(-0.2px) scale(1.0002) rotate(0.01deg);
+      filter: hue-rotate(0.5deg) contrast(1.002) brightness(1.001);
+    }
+    25% {
+      transform: translateX(-0.2px) translateY(0.3px) scale(0.9998) rotate(-0.01deg);
+      filter: hue-rotate(-0.3deg) contrast(0.998) brightness(0.999);
+    }
+    37.5% {
+      transform: translateX(0.2px) translateY(0.1px) scale(1.0001) rotate(0.005deg);
+      filter: hue-rotate(0.2deg) contrast(1.001) brightness(1.0005);
+    }
+    50% {
+      transform: translateX(0) translateY(0) scale(1) rotate(0deg);
+      filter: hue-rotate(0deg) contrast(1) brightness(1);
+    }
+    62.5% {
+      transform: translateX(-0.3px) translateY(0.2px) scale(0.9999) rotate(-0.005deg);
+      filter: hue-rotate(-0.2deg) contrast(0.999) brightness(0.9995);
+    }
+    75% {
+      transform: translateX(0.1px) translateY(-0.3px) scale(1.0001) rotate(0.008deg);
+      filter: hue-rotate(0.4deg) contrast(1.001) brightness(1.0008);
+    }
+    87.5% {
+      transform: translateX(-0.1px) translateY(0.1px) scale(0.9999) rotate(-0.008deg);
+      filter: hue-rotate(-0.4deg) contrast(0.999) brightness(0.9992);
+    }
+    100% {
+      transform: translateX(0) translateY(0) scale(1) rotate(0deg);
+      filter: hue-rotate(0deg) contrast(1) brightness(1);
+    }
+  }
+  
+  /* Subtle Ripple Wave Animation */
+  @keyframes subtleRipple {
+    0% {
+      transform: scale(1) translateY(0);
+      filter: blur(0px);
+    }
+    33% {
+      transform: scale(1.0003) translateY(-0.2px);
+      filter: blur(0.1px);
+    }
+    66% {
+      transform: scale(0.9997) translateY(0.2px);
+      filter: blur(0.05px);
+    }
+    100% {
+      transform: scale(1) translateY(0);
+      filter: blur(0px);
+    }
+  }
+  
+  /* Chromatic Aberration Effect - Subtle Lo-Fi */
+  @keyframes chromaticWobble {
+    0%, 100% {
+      text-shadow: 
+        0 0 0 rgba(99, 102, 241, 0),
+        0 0 0 rgba(139, 92, 246, 0),
+        0 0 0 rgba(236, 72, 153, 0);
+    }
+    25% {
+      text-shadow: 
+        0.2px 0 0 rgba(99, 102, 241, 0.15),
+        -0.2px 0 0 rgba(139, 92, 246, 0.15),
+        0 0.1px 0 rgba(236, 72, 153, 0.1);
+    }
+    50% {
+      text-shadow: 
+        -0.1px 0 0 rgba(99, 102, 241, 0.1),
+        0.1px 0 0 rgba(139, 92, 246, 0.1),
+        0 -0.1px 0 rgba(236, 72, 153, 0.08);
+    }
+    75% {
+      text-shadow: 
+        0.15px 0 0 rgba(99, 102, 241, 0.12),
+        -0.15px 0 0 rgba(139, 92, 246, 0.12),
+        0 0.05px 0 rgba(236, 72, 153, 0.09);
+    }
+  }
+  
+  /* Subtle Warp Animation */
+  @keyframes subtleWarp {
+    0%, 100% {
+      transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+      filter: brightness(1) saturate(1);
+    }
+    25% {
+      transform: perspective(1000px) rotateX(0.05deg) rotateY(0.02deg);
+      filter: brightness(1.002) saturate(1.01);
+    }
+    50% {
+      transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+      filter: brightness(1) saturate(1);
+    }
+    75% {
+      transform: perspective(1000px) rotateX(-0.03deg) rotateY(-0.02deg);
+      filter: brightness(0.998) saturate(0.99);
+    }
+  }
+  
+  /* Apply subtle tape warble to all panels - combined with noise flicker */
+  .panel {
+    animation: tapeWarble 8s ease-in-out infinite, noiseFlicker 0.15s steps(3) infinite;
+    will-change: transform, filter, background-position;
+  }
+  
+  /* Apply subtle ripple to HUD bar */
+  #hudBar {
+    animation: subtleRipple 6s ease-in-out infinite;
+    will-change: transform, filter;
+  }
+  
+  /* Apply subtle warping to play area panels */
+  #playArea,
+  #dialoguePanel,
+  #choicesPanel {
+    animation: subtleWarp 10s ease-in-out infinite;
+    will-change: transform, filter;
+  }
+  
+  /* Subtle chromatic aberration on text elements */
+  #hudBar .hitem,
+  #hudBar button,
+  .panel h1,
+  .panel h2,
+  .panel h3,
+  .panel strong {
+    animation: chromaticWobble 7s ease-in-out infinite;
+    will-change: text-shadow;
+  }
+  
+  /* Apply subtle effects to buttons */
+  #actions button,
+  #choicesPanel button,
+  #choicesPanel a {
+    animation: tapeWarble 9s ease-in-out infinite;
+    will-change: transform, filter;
+  }
+  
+  /* Header gets subtle warble */
+  header {
+    animation: tapeWarble 12s ease-in-out infinite;
+    will-change: transform, filter;
+  }
+  
+  /* Entry items get subtle ripple */
+  .entry {
+    animation: subtleRipple 5s ease-in-out infinite;
+    will-change: transform, filter;
+    animation-delay: calc(var(--entry-index, 0) * 0.1s);
+  }
+  
+  /* Reduce motion for accessibility - respect user preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .panel,
+    #hudBar,
+    #playArea,
+    #dialoguePanel,
+    #choicesPanel,
+    #actions button,
+    #choicesPanel button,
+    #choicesPanel a,
+    header,
+    .entry,
+    #hudBar .hitem,
+    #hudBar button,
+    .panel h1,
+    .panel h2,
+    .panel h3,
+    .panel strong {
+      animation: none;
+    }
+  }
+  

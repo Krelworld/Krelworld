@@ -1243,13 +1243,33 @@ function getOpponentPlayers(){
 }
 
 // Opponent’s best five (from S.opponent_today or S.opponent)
-function getOppSelectedFive(){
-  const pool = Array.isArray(S?.opponent_today) ? S.opponent_today
+function getOppSelectedFive() {
+  let pool = Array.isArray(S?.opponent_today) ? S.opponent_today
              : (Array.isArray(S?.opponent) ? S.opponent : []);
-  if (pool.length >= 5){
+  
+  // If pool is empty or too small, try to regenerate
+  if (pool.length < 5) {
+    if (typeof ensureOpponentForToday === 'function') {
+      ensureOpponentForToday();
+      pool = S.opponent_today || [];
+    }
+    
+    // If still empty, create emergency squad
+    if (pool.length < 5) {
+      const {team} = currentOpponent();
+      pool = Array.from({length: 5}, (_, i) => ({
+        name: `${team} Player ${i+1}`,
+        rating: 70 + Math.random() * 15, // 70-85 rating range
+        position: ['GK', 'DEF', 'MID', 'FWD'][Math.floor(Math.random() * 4)]
+      }));
+      S.opponent_today = pool;
+    }
+  }
+  
+  if (pool.length >= 5) {
     return [...pool].sort((a,b)=> (b.rating||0) - (a.rating||0)).slice(0,5);
   }
-  return [];
+  return pool.slice(0, 5);
 }
 
 // Team strength = sum(rating) + small morale factor; clamp so it can’t be 0
@@ -1291,20 +1311,55 @@ function computeOpponentStrength(players) {
 
 
 // Compute and cache strengths/odds once per pre-match
-function computePreMatchStrengthsAndOdds(){
+function computePreMatchStrengthsAndOdds() {
+  ensureOpponentForToday();
   const our5 = getOurSelectedFive();
   const opp5 = getOppSelectedFive();
+  
+  // Use correct functions for each team
   let ourStr = computeTeamStrength(our5);
-  const oppStr = computeOpponentStrength(opp5);
+  let oppStr = computeOpponentStrength(opp5);
+  
+  // Scale down strength values to match expectedGoals function expectations
+  // Original system used ~40-60 range, new system uses ~300-500 range
+  // Scale by dividing by 8 to get back to reasonable range
+  ourStr = Math.round(ourStr / 8);
+  oppStr = Math.round(oppStr / 8);
+  
+  // Additional balance fix: Cap opponent strength to prevent unrealistic elite teams
+  // Even top teams shouldn't have 5 elite players - that's unrealistic
+  // Cap opponent strength at 50 (equivalent to ~400 base strength)
+  oppStr = Math.min(oppStr, 50);
+  
   S.preMatch = S.preMatch || {};
-  // Apply Season 5 doping boost if active
-  if (S.season === 5 && S.preMatch && S.preMatch.season5_doped && S.preMatch.performance_boost) {
+  // Season 5 doping boost ("Squad performance spikes")
+  if (S.season === 5 && S.preMatch.season5_doped && S.preMatch.performance_boost) {
     ourStr = Math.floor(ourStr * S.preMatch.performance_boost);
   }
-  
   S.preMatch.ourStrength = ourStr;
   S.preMatch.oppStrength = oppStr;
-  S.preMatch.odds = getMatchOdds(ourStr, oppStr);
+  
+  // 4. Fix bribe side propagation
+  if (S.referee_bribed && (S.referee_bribed === 'us' || S.referee_bribed === 'them') && !S.ref_bribe_side) {
+    S.ref_bribe_side = S.referee_bribed;
+    S.referee_bribed = true;
+  }
+  
+  // Apply referee bias if bribed
+  if (typeof applyRefereeBiasToPreMatch === 'function') {
+    applyRefereeBiasToPreMatch();
+  }
+  
+  // Calculate odds
+  const pUs = ourStr / (ourStr + oppStr);
+  const pThem = 1 - pUs;
+  const house = 0.95;
+  const min = 1.1, max = 10;
+  const usOdds = Math.min(max, Math.max(min, (1/pUs)*house));
+  const themOdds = Math.min(max, Math.max(min, (1/pThem)*house));
+  
+  S.preMatch.odds = { usOdds: +usOdds.toFixed(2), themOdds: +themOdds.toFixed(2) };
+  return S.preMatch.odds;
 }
 
 // Call this at the start of each pre-match so betting resets and odds exist

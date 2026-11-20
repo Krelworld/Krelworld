@@ -1,7 +1,5 @@
 /* === Patch 4B.1 — Oversight routing + balance === */
 (function(){
-  if (window.__patch4B1Applied) return;
-  window.__patch4B1Applied = true;
 
   // ---------- utils ----------
   function rint(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
@@ -3141,13 +3139,6 @@
   // Expose maybeQueueOversight to global scope
   window.maybeQueueOversight = maybeQueueOversight;
   
-  // Test function to verify presentInvestigation works (for debugging)
-  window.testPoliceInterview = function() {
-    if (typeof window.presentInvestigation === 'function') {
-      window.presentInvestigation({ authority: 'police', caseType: 'test case' });
-    } else {
-      console.error("DEBUG: presentInvestigation function does not exist");
-    }
-  };
+
 
 })();

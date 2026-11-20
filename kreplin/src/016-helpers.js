@@ -14,6 +14,7 @@ function actionsRoot(){
   return document.getElementById('actions') || document.getElementById('choices') || document.getElementById('choicesPanel') || document.body;
 }
 function moneyGBP(n){ return "£"+Number(Math.max(0,Math.round(n||0))).toLocaleString('en-GB'); }
+function isInRehab(){ try{ return !!(S && S.suspensions && (S.suspensions.rehab_games|0) > 0); }catch(_){ return false; } }
 function isInPrison(){ try{ return !!(S && S.suspensions && (S.suspensions.prison_games|0) > 0); }catch(_){ return false; } }
 // Make sure the drug/addiction/suspension fields exist on S.
 function ensureDrugCore(){

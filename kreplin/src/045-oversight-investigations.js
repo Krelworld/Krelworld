@@ -1,7 +1,5 @@
 /* ========= Patch 4B: Oversight & Investigations ========= */
 (function(){
-  if (window.__oversightPatch4B) return;
-  window.__oversightPatch4B = true;
 
   function ensureOversightState(){
     if (!window.S) return;

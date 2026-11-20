@@ -1,7 +1,5 @@
 /* === Patch 4B.3 — Summons & Sentencing (Board/FA routing + prison severity) === */
 (function(){
-  if (window.__patch4B3Applied) return;
-  window.__patch4B3Applied = true;
 
   // Legacy oversight headlines are swallowed and turned into queued investigations
   window.__allowOversightHeadlineNow = false;

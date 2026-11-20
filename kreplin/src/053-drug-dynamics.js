@@ -1,7 +1,5 @@
 /* === Patch 5 — Drug-Related Dynamics (Players & Staff) === */
 (function(){
-  if (window.__patch5DrugsApplied) return;
-  window.__patch5DrugsApplied = true;
 
   // ---------- State helpers ----------
   function ensureDrugState(){

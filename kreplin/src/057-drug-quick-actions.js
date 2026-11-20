@@ -1,7 +1,5 @@
 /* === Patch 5.3.1 — Drugs UI Resilience & Working Buy/Use === */
 (function(){
-  if (window.__patch531_applied) return;
-  window.__patch531_applied = true;
 
   // ---- Safe state guards ----
 
@@ -30,7 +28,6 @@
   // ---- Inventory bridge removed - handled by ensureInventoryUI() ----
 
   // ---- Context detection & allowed phases ----
-  window.__ui_context = window.__ui_context || 'boot';
   function allowedPhase(){
     // Only show quick actions in pre‑match, evening, or home
     // Exclude name selection phase
@@ -173,9 +170,19 @@
   }
 
   // ---- Quick actions follow the explicit phase ----
-  // Shown under every menu of an allowed phase (pre-match / evening / home); cleared otherwise.
-  GameHooks.on('choices', function(){ if (allowedPhase()) mountDrugQuick(); });
-  GameHooks.on('phase', function(){ if (!allowedPhase()) clearDrugQuick(); });
+  // On entering an allowed phase (pre-match / evening / home) they are mounted under the
+  // first menu of that phase (as the old log-sniffing did on a context change); leaving
+  // the phase clears them.
+  let quickMountPending = false;
+  GameHooks.on('phase', function(){
+    quickMountPending = allowedPhase();
+    if (!quickMountPending) clearDrugQuick();
+  });
+  GameHooks.on('choices', function(){
+    if (!quickMountPending) return;
+    quickMountPending = false;
+    if (allowedPhase()) mountDrugQuick();
+  });
 
   // ---- Post‑match resets ----
   // (Dormant: was keyed to an "Attendance: … Gate Revenue:" log line the core no longer writes.)

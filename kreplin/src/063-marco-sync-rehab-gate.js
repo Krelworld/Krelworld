@@ -1,7 +1,6 @@
 // === Patch 5.7.1: Wire Marco→Inventory, Deranged in dialogue, and real Rehab skip ===
 (function(){
   try{
-    if (window.__p571_applied) return; window.__p571_applied = true;
 
     ensureDrugCore();
 
@@ -40,14 +39,13 @@
       try{ document.getElementById('hudDrugCount').textContent = String(S.inventory.drugs|0); }catch(_){}
     };
 
-    function inRehab(){ try{ return !!(S && S.suspensions && (S.suspensions.rehab_games|0) > 0); }catch(_){ return false; } }
 
     // While in rehab every menu gets the "stay in rehab" button
-    GameHooks.on('choices', function(){ if (inRehab()) mountRehabGate(); });
+    GameHooks.on('choices', function(){ if (isInRehab()) mountRehabGate(); });
 
   // ----- Rehab: gate + auto-match sim and finances -----
     document.addEventListener('click', function(e){
-      if (!inRehab()) return;
+      if (!isInRehab()) return;
       const el = e.target.closest('button,a'); if (!el) return;
       if (el.dataset && el.dataset.rehab571 === "1") return; // allow our rehab button
       
@@ -119,7 +117,7 @@
     }
 
     function mountRehabGate(){
-      if (!inRehab()) return;
+      if (!isInRehab()) return;
       const root = actionsRoot(); if (!root) return;
       root.querySelectorAll('button[data-rehab571="1"]').forEach(n=>n.remove());
       const b = document.createElement('button');
@@ -132,7 +130,7 @@
     // Kick things off if we load mid-phase
     setTimeout(function(){
       ensureDrugCore();
-      if (inRehab()) mountRehabGate();
+      if (isInRehab()) mountRehabGate();
     }, 400);
 
   }catch(e){ console.error("Patch 5.7.1 error", e); }

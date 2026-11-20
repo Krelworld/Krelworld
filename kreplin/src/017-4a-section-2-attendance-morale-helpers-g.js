@@ -266,12 +266,23 @@ function makeOpponentSquad(teamName){
 }
 
 // Ensure today’s opponent player-pool exists (and cache by match index)
-function ensureOpponentForToday(){
+function ensureOpponentForToday() {
   const idx = S.matches_played|0;
   if (!Array.isArray(S._opponentSquads)) S._opponentSquads = [];
-  if (!S._opponentSquads[idx]){
+  
+  // If opponent pool is missing or has < 5 players, generate proper squad
+  if (!S._opponentSquads[idx] || S._opponentSquads[idx].length < 5) {
     const {team} = currentOpponent();
-    S._opponentSquads[idx] = makeOpponentSquad(team);
+    if (typeof makeOpponentSquad === 'function') {
+      S._opponentSquads[idx] = makeOpponentSquad(team);
+    } else {
+      // Fallback: create basic opponent squad
+      S._opponentSquads[idx] = Array.from({length: 11}, (_, i) => ({
+        name: `Opponent Player ${i+1}`,
+        rating: 65 + Math.random() * 20, // 65-85 rating range
+        position: ['GK', 'DEF', 'MID', 'FWD'][Math.floor(Math.random() * 4)]
+      }));
+    }
   }
   S.opponent_today = S._opponentSquads[idx];
 }

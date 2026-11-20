@@ -2707,7 +2707,8 @@ async function skipToResults() {
   };
 }
 
-async function simulateMatch(opponentTeam = null) {
+// Original simulation; league matches are handled by simulateMatch() (match hotfix part).
+async function simulateMatchLegacy(opponentTeam = null) {
   // Check if we're in a Champions League or World Cup context
   if (opponentTeam === null && (S.competition === 'champions_league' || S.competition === 'world_cup' || S.clActive || S.worldCupActive)) {
     // **Champions League/World Cup match simulation** - treat as cup match

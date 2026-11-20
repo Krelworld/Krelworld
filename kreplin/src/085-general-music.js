@@ -1,7 +1,5 @@
 /* === General Music System === */
 (function(){
-  if (window.__generalMusicSystemApplied) return;
-  window.__generalMusicSystemApplied = true;
 
   // General music tracks list (using direct download links)
   const generalMusicTracks = [

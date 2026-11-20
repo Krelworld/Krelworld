@@ -1,564 +1,451 @@
 /* MATCH HOTFIX - Fixes for "always win opener" issues */
-(function() {
-  'use strict';
-  
-  // Store original functions
-  const originalEnsureOpponentForToday = window.ensureOpponentForToday;
-  const originalGetOppSelectedFive = window.getOppSelectedFive;
-  const originalComputePreMatchStrengthsAndOdds = window.computePreMatchStrengthsAndOdds;
-  
-  // 1. Fix opponent generation for week 1
-  window.ensureOpponentForToday = function() {
-    const idx = S.matches_played|0;
-    if (!Array.isArray(S._opponentSquads)) S._opponentSquads = [];
-    
-    // If opponent pool is missing or has < 5 players, generate proper squad
-    if (!S._opponentSquads[idx] || S._opponentSquads[idx].length < 5) {
-      const {team} = currentOpponent();
-      if (typeof makeOpponentSquad === 'function') {
-        S._opponentSquads[idx] = makeOpponentSquad(team);
-      } else {
-        // Fallback: create basic opponent squad
-        S._opponentSquads[idx] = Array.from({length: 11}, (_, i) => ({
-          name: `Opponent Player ${i+1}`,
-          rating: 65 + Math.random() * 20, // 65-85 rating range
-          position: ['GK', 'DEF', 'MID', 'FWD'][Math.floor(Math.random() * 4)]
-        }));
-      }
-    }
-    S.opponent_today = S._opponentSquads[idx];
-  };
-  
-  // 2. Add failsafe for missing opponent five
-  window.getOppSelectedFive = function() {
-    let pool = Array.isArray(S?.opponent_today) ? S.opponent_today
-               : (Array.isArray(S?.opponent) ? S.opponent : []);
-    
-    // If pool is empty or too small, try to regenerate
-    if (pool.length < 5) {
-      if (typeof ensureOpponentForToday === 'function') {
-        ensureOpponentForToday();
-        pool = S.opponent_today || [];
-      }
-      
-      // If still empty, create emergency squad
-      if (pool.length < 5) {
-        const {team} = currentOpponent();
-        pool = Array.from({length: 5}, (_, i) => ({
-          name: `${team} Player ${i+1}`,
-          rating: 70 + Math.random() * 15, // 70-85 rating range
-          position: ['GK', 'DEF', 'MID', 'FWD'][Math.floor(Math.random() * 4)]
-        }));
-        S.opponent_today = pool;
-      }
+// League matches use this simulation; cup/friendly matches (an opponent passed in)
+// still go through simulateMatchLegacy().
+async function simulateMatch(opponentTeam = null) {
+  if (opponentTeam === null) {
+    // **League match simulation** - this is the path that was causing 0-0 games
+    // If a special Messi-in-goal fiasco is scheduled, force a 0-100 loss
+    if (S.messi_goalie_next_loss) {
+      S.messi_goalie_next_loss = false;
+      S.matches_played++; 
+      S.losses++;
+      S.morale = clamp(S.morale - 25, -100, 100);
+      log('Result: LOSS (0–100). Board moves to remove you.');
+      await triggerRemovalWorkaround('an egregious tactical fiasco (0–100)');
+      render();
+      return { winner: "them", usGoals: 0, themGoals: 100, score: "0-100" };
     }
     
-    if (pool.length >= 5) {
-      return [...pool].sort((a,b)=> (b.rating||0) - (a.rating||0)).slice(0,5);
-    }
-    return pool.slice(0, 5);
-  };
-  
-  // 3. Fix pre-match strength computation
-  window.computePreMatchStrengthsAndOdds = function() {
-    ensureOpponentForToday();
-    const our5 = getOurSelectedFive();
-    const opp5 = getOppSelectedFive();
-    
-    // Use correct functions for each team
-    let ourStr = computeTeamStrength(our5);
-    let oppStr = computeOpponentStrength(opp5);
-    
-    // Scale down strength values to match expectedGoals function expectations
-    // Original system used ~40-60 range, new system uses ~300-500 range
-    // Scale by dividing by 8 to get back to reasonable range
-    ourStr = Math.round(ourStr / 8);
-    oppStr = Math.round(oppStr / 8);
-    
-    // Additional balance fix: Cap opponent strength to prevent unrealistic elite teams
-    // Even top teams shouldn't have 5 elite players - that's unrealistic
-    // Cap opponent strength at 50 (equivalent to ~400 base strength)
-    oppStr = Math.min(oppStr, 50);
-    
-    S.preMatch = S.preMatch || {};
-    S.preMatch.ourStrength = ourStr;
-    S.preMatch.oppStrength = oppStr;
-    
-    // 4. Fix bribe side propagation
-    if (S.referee_bribed && (S.referee_bribed === 'us' || S.referee_bribed === 'them') && !S.ref_bribe_side) {
-      S.ref_bribe_side = S.referee_bribed;
-      S.referee_bribed = true;
+    // Ensure strengths are computed
+    if (!S?.preMatch?.ourStrength || !S?.preMatch?.oppStrength) {
+      computePreMatchStrengthsAndOdds();
     }
     
-    // Apply referee bias if bribed
-    if (typeof applyRefereeBiasToPreMatch === 'function') {
-      applyRefereeBiasToPreMatch();
-    }
+    let our = S.preMatch.ourStrength, opp = S.preMatch.oppStrength;
     
-    // Calculate odds
-    const pUs = ourStr / (ourStr + oppStr);
-    const pThem = 1 - pUs;
-    const house = 0.95;
-    const min = 1.1, max = 10;
-    const usOdds = Math.min(max, Math.max(min, (1/pUs)*house));
-    const themOdds = Math.min(max, Math.max(min, (1/pThem)*house));
+    // Apply any one-match morale effects
+    if (typeof S.team_morale_boost === 'number') our += S.team_morale_boost;
+    if (typeof S.morale_opponent === 'number') opp += Math.round((S.morale_opponent - 70) / 5);
     
-    S.preMatch.odds = { usOdds: +usOdds.toFixed(2), themOdds: +themOdds.toFixed(2) };
-    return S.preMatch.odds;
-  };
-  
-  // 5. Override the async simulateMatch function to reduce strength equalization
-  // We need to patch the async version that's actually called by the game
-  const originalAsyncSimulateMatch = window.simulateMatch;
-  
-  // Create a wrapper that intercepts calls to the async simulateMatch
-  window.simulateMatch = async function(opponentTeam = null) {
-    if (opponentTeam === null) {
-      // **League match simulation** - this is the path that was causing 0-0 games
-      // If a special Messi-in-goal fiasco is scheduled, force a 0-100 loss
-      if (S.messi_goalie_next_loss) {
-        S.messi_goalie_next_loss = false;
-        S.matches_played++; 
-        S.losses++;
-        S.morale = clamp(S.morale - 25, -100, 100);
-        log('Result: LOSS (0–100). Board moves to remove you.');
-        await triggerRemovalWorkaround('an egregious tactical fiasco (0–100)');
-        render();
-        return { winner: "them", usGoals: 0, themGoals: 100, score: "0-100" };
-      }
-      
-      // Ensure strengths are computed
-      if (!S?.preMatch?.ourStrength || !S?.preMatch?.oppStrength) {
-        computePreMatchStrengthsAndOdds();
-      }
-      
-      let our = S.preMatch.ourStrength, opp = S.preMatch.oppStrength;
-      
-      // Apply any one-match morale effects
-      if (typeof S.team_morale_boost === 'number') our += S.team_morale_boost;
-      if (typeof S.morale_opponent === 'number') opp += Math.round((S.morale_opponent - 70) / 5);
-      
-      // FIXED: Reduce equalization cap from 200 to 500, but scale down since we're using smaller values now
-      our = Math.max(10, Math.min(our, 60));
-      opp = Math.max(10, Math.min(opp, 60));
-      
-      // Simulate goals using expected goals and Poisson distribution
-      const [ourXG, oppXG] = expectedGoals(our, opp);
-      let gf = Math.min(poisson(ourXG), 7), ga = Math.min(poisson(oppXG), 7);
+    // FIXED: Reduce equalization cap from 200 to 500, but scale down since we're using smaller values now
+    our = Math.max(10, Math.min(our, 60));
+    opp = Math.max(10, Math.min(opp, 60));
+    
+    // Simulate goals using expected goals and Poisson distribution
+    const [ourXG, oppXG] = expectedGoals(our, opp);
+    let gf = Math.min(poisson(ourXG), 7), ga = Math.min(poisson(oppXG), 7);
 
-      // Portsmouth replacement kids should not be a fair fight.
-      try {
-        const oppName = (typeof currentOpponent === 'function' ? currentOpponent()?.team : '') || '';
-        const oppLower = oppName.toLowerCase();
-        const isPortsmouth =
-          oppLower.includes('portsmouth') || oppLower.includes('pompey');
-        const isReplacement =
-          !!(S && (S.portsmouth_under12s_team || S.portsmouth_bus_destroyed));
+    // Portsmouth replacement kids should not be a fair fight.
+    try {
+      const oppName = (typeof currentOpponent === 'function' ? currentOpponent()?.team : '') || '';
+      const oppLower = oppName.toLowerCase();
+      const isPortsmouth =
+        oppLower.includes('portsmouth') || oppLower.includes('pompey');
+      const isReplacement =
+        !!(S && (S.portsmouth_under12s_team || S.portsmouth_bus_destroyed));
 
-        if (isPortsmouth && isReplacement) {
-          if (gf <= ga) {
-            gf = Math.max(3, ga + 2);
-          }
-          ga = Math.min(ga, 1);
+      if (isPortsmouth && isReplacement) {
+        if (gf <= ga) {
+          gf = Math.max(3, ga + 2);
         }
-      } catch (_e) {
-        // If anything about opponent/drug state is weird, leave RNG as‑is.
+        ga = Math.min(ga, 1);
       }
-      
-      if (S.rnd_perks && S.rnd_perks.facility && Math.random() < 0.07 && ga > 0) ga -= 1;
-      if (our - opp > 20 && gf <= ga) gf = Math.min(gf + 1, 7);
-      if (opp - our > 20 && ga <= gf) ga = Math.min(ga + 1, 7);
-      
-      const winner = gf > ga ? "us" : (gf < ga ? "them" : "draw");
-      
-      // Update league match stats
-      if (winner === "us") {
-        S.wins = (S.wins || 0) + 1;
-        S.points = (S.points || 0) + 3;
-        S.morale = clamp(S.morale + 4, -100, 100);
-      } else if (winner === "them") {
-        S.losses = (S.losses || 0) + 1;
-        S.morale = clamp(S.morale - 6, -100, 100);
-      } else {
-        S.draws = (S.draws || 0) + 1;
-        S.points = (S.points || 0) + 1;
-      }
-      
-      // Create goal events with scorers for the summary
-      const events = [];
-      let t = 0;
-      
-      // Get player pools for both teams
-      const ourPlayers = getOurSelectedFive();
-      const oppPlayers = getOpponentPlayers();
-      
-      // Ensure we have actual player objects with names
-      const ourPlayersWithNames = ourPlayers.filter(p => p && p.name);
-      const oppPlayersWithNames = oppPlayers.filter(p => p && p.name);
-      
-      // Add our goals with player details - ensure we create exactly gf goals
-      for (let i = 0; i < gf; i++) {
-        const t = 10 + Math.floor(Math.random() * 80); // 10-90 minutes (avoid early goals)
-        
-        // Ensure we have a proper player name, fallback to generating one if needed
-        let scorerName = null;
-        let assisterName = null;
-        
-        if (ourPlayersWithNames.length > 0) {
-          const scorer = pick(ourPlayersWithNames);
-          scorerName = scorer?.name;
-          
-          if (Math.random() < 0.6 && ourPlayersWithNames.length > 1) {
-            const assister = pick(ourPlayersWithNames.filter(p => p.id !== scorer?.id));
-            assisterName = assister?.name;
-          }
-        } else if (ourPlayers.length > 0) {
-          // Fallback to any player in our squad, even if name is missing
-          const fallbackPlayer = pick(ourPlayers);
-          scorerName = fallbackPlayer?.name || `Player ${i + 1}`;
-        } else {
-          scorerName = `Southampton Player ${i + 1}`;
-        }
-        
-        events.push({ 
-          t, 
-          who: 'HOME', 
-          kind: 'GOAL',
-          scorer: scorerName,
-          assister: assisterName,
-          team: getClubName()
-        });
-      }
-      
-      // Add opponent goals with player details - ensure we create exactly ga goals
-      for (let i = 0; i < ga; i++) {
-        const t = 10 + Math.floor(Math.random() * 80); // 10-90 minutes (avoid early goals)
-        const scorer = oppPlayersWithNames.length > 0 ? pick(oppPlayersWithNames) : null;
-        const assister = (Math.random() < 0.6 && oppPlayersWithNames.length > 1) 
-          ? pick(oppPlayersWithNames.filter(p => p.id !== scorer?.id)) 
-          : null;
-        const oppTeam = currentOpponent()?.team || 'Opposition';
-        events.push({ 
-          t, 
-          who: 'AWAY', 
-          kind: 'GOAL',
-          scorer: scorer?.name || (oppPlayers.length > 0 ? pick(oppPlayers).name : 'Opposition Player'),
-          assister: assister?.name || null,
-          team: oppTeam
-        });
-      }
-      
-      // Add other events (shots, corners, fouls, cards) - much more common than goals
-      const totalEvents = Math.max(10, Math.floor((gf + ga) * 8));
-      for (let i = 0; i < totalEvents; i++) {
-        t += 3 + Math.floor(Math.random() * 8);
-        const eventTypes = ['SHOT', 'CORNER', 'FOUL', 'CARD'];
-        const eventType = pick(eventTypes);
-        const isHome = Math.random() < 0.5;
-        const players = isHome ? ourPlayersWithNames : oppPlayersWithNames;
-        const player = players.length > 0 ? pick(players) : null;
-        
-        events.push({
-          t,
-          who: isHome ? 'HOME' : 'AWAY',
-          kind: eventType,
-          player: player?.name || null,
-          team: isHome ? 'Southampton FC' : (currentOpponent()?.team || 'Opposition')
-        });
-      }
-      
-      // Add referee bias events if referee was bribed
-      if (S.referee_bribed && (S.referee_bribed === 'us' || S.referee_bribed === 'them')) {
-        addRefereeBiasEvents(events, ourPlayersWithNames, oppPlayersWithNames);
-      }
-      
-      // Sort events by time for proper chronological order
-      events.sort((a, b) => a.t - b.t);
-      
-      // Add context-dependent commentary for referee bribes (DISABLED - using new referee bias events instead)
-      // if (S && (S.referee_bribed === 'us' || S.referee_bribed === 'them')) {
-      //   const { team: oppTeam } = currentOpponent();
-      //   const favName = (S.referee_bribed === 'us') ? 'Southampton' : oppTeam;
-      //   const oppName = (S.referee_bribed === 'us') ? oppTeam : 'Southampton';
-      //   
-      //   // Add 1-3 referee bribe commentary lines throughout the match
-      //   const numBribeComments = 1 + Math.floor(Math.random() * 3);
-      //   for (let i = 0; i < numBribeComments; i++) {
-      //     const commentTime = Math.floor(Math.random() * 90);
-      //     const pool = (S.referee_bribed === 'us') ? REF_BRIBE_FOR_US : REF_BRIBE_FOR_THEM;
-      //     const line = pick(pool)
-      //       .replaceAll('{FAV}', favName)
-      //       .replaceAll('{OPP}', oppName);
-      //     
-      //     const bribeEvent = {
-      //       t: commentTime,
-      //       who: 'NEUTRAL',
-      //       kind: 'ATMOSPHERE',
-      //       message: line
-      //     };
-      //     
-      //     events.push(bribeEvent);
-      //   }
-      // }
-      
-      // Sort again after adding bribery commentary
-      events.sort((a, b) => a.t - b.t);
-      
-      // Store match events for summary
-      S.matchEvents = events;
-      
-      // Display match commentary in real-time for sim mode
-      log("The match is underway...");
-      
-      // Add skip to results button - add to actions area and make it persistent
-      const skipButton = document.createElement('button');
-      skipButton.id = 'skipToResultsBtn';
-      skipButton.textContent = 'Skip to Results';
-      skipButton.className = 'btn-warn';
-      
-      // Disable skip button if this is match 11 season 2 (stadium attack match) OR if stadium burn is triggered
-      const isStadiumAttackMatch = (S.season === 2 && S.matches_played === 11) || S.preMatch?.stadium_burn_triggered;
-      
-      skipButton.style.cssText = `
-        background-color: ${isStadiumAttackMatch ? '#999 !important' : '#ff6b6b !important'};
-        color: white !important;
-        border: 2px solid ${isStadiumAttackMatch ? '#666 !important' : '#ff4444 !important'};
-        padding: 12px 20px !important;
-        border-radius: 8px !important;
-        cursor: ${isStadiumAttackMatch ? 'not-allowed !important' : 'pointer !important'};
-        font-size: 14px !important;
-        font-weight: bold !important;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
-        transition: all 0.2s ease !important;
-        margin: 5px !important;
-        opacity: ${isStadiumAttackMatch ? '0.5' : '1'};
-      `;
-      
-      if (isStadiumAttackMatch) {
-        skipButton.disabled = true;
-        skipButton.title = 'Skip disabled for this match';
-      }
-      
-      // Add hover effect (only if not disabled)
-      if (!isStadiumAttackMatch) {
-        skipButton.addEventListener('mouseenter', () => {
-          skipButton.style.backgroundColor = '#ff4444';
-          skipButton.style.transform = 'scale(1.05)';
-        });
-        skipButton.addEventListener('mouseleave', () => {
-          skipButton.style.backgroundColor = '#ff6b6b';
-          skipButton.style.transform = 'scale(1)';
-        });
-      }
-      
-      let skipRequested = false;
-      skipButton.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        skipRequested = true;
-        skipButton.remove();
-        log("⏭️ Skipping to match results...");
-        // Actually call the skipToResults function and return immediately
-        const result = await skipToResults();
-        // Force return from the simulateMatch function
-        throw new Error('SKIP_TO_RESULTS:' + JSON.stringify(result));
-      });
-      
-      // Add to actions area
-      const actions = document.getElementById('actions');
-      if (actions) {
-        actions.appendChild(skipButton);
-      } else {
-        // Fallback to body if actions not found
-        document.body.appendChild(skipButton);
-      }
-      
-      // Override clearActions to preserve our skip button
-      if (!window.originalClearActions) {
-        window.originalClearActions = window.clearActions;
-      }
-      window.clearActions = function() {
-        const skipBtn = document.getElementById('skipToResultsBtn');
-        window.originalClearActions();
-        if (skipBtn && actions) {
-          actions.appendChild(skipBtn);
-        }
-      };
-      
-      // Ensure button is visible and add a small delay
-      setTimeout(() => {
-        if (document.getElementById('skipToResultsBtn')) {
-        }
-      }, 100);
-      
-      // Update top scorers with the goals and announce them
-      try {
-        for (let i = 0; i < events.length; i++) {
-          // Check if skip was requested
-          if (skipRequested) {
-            break;
-          }
-        const event = events[i];
-        if (event.kind === 'GOAL') {
-          if (event.scorer) {
-            addGoalToTopScorers(event.scorer, event.team);
-          }
-          if (event.assister) {
-            addAssistToTopScorers(event.assister, event.team);
-          }
-          
-          // Generate varied goal commentary
-          const goalCommentary = generateGoalCommentary(event);
-          log(goalCommentary);
-        } else if (event.kind === 'SHOT') {
-          // Generate varied shot commentary
-          const shotCommentary = generateShotCommentary(event);
-          log(shotCommentary);
-        } else if (event.kind === 'CORNER') {
-          // Generate varied corner commentary
-          const cornerCommentary = generateCornerCommentary(event);
-          log(cornerCommentary);
-        } else if (event.kind === 'FOUL') {
-          // Generate varied foul commentary
-          const foulCommentary = generateFoulCommentary(event);
-          log(foulCommentary);
-        } else if (event.kind === 'YELLOW_CARD') {
-          // Generate varied yellow card commentary
-          const cardCommentary = generateYellowCardCommentary(event);
-          log(cardCommentary);
-        } else if (event.kind === 'RED_CARD') {
-          // Generate varied red card commentary
-          const cardCommentary = generateRedCardCommentary(event);
-          log(cardCommentary);
-        } else if (event.kind === 'DODGY_PENALTY') {
-          // Handle dodgy penalty from referee bias
-          const penaltyCommentary = generateDodgyPenaltyCommentary(event);
-          log(penaltyCommentary);
-          
-          // Add a goal from the penalty (80% conversion rate)
-          if (Math.random() < 0.8) {
-            // Add goal to top scorers
-            addGoalToTopScorers(event.player, event.team);
-            
-            // Generate goal commentary
-            const goalEvent = {
-              t: event.t + 0.1,
-              who: event.who,
-              kind: 'GOAL',
-              scorer: event.player,
-              assister: null,
-              team: event.team,
-              isFromPenalty: true
-            };
-            const goalCommentary = generateGoalCommentary(goalEvent);
-            log(`${goalCommentary} (Penalty)`);
-            
-            // IMPORTANT: Add the goal event to the events array for match summary
-            events.push(goalEvent);
-            
-            // Update goal count
-            if (event.who === 'HOME') {
-              gf++;
-            } else {
-              ga++;
-            }
-          }
-        } else if (event.kind === 'DODGY_RED_CARD') {
-          // Handle dodgy red card from referee bias
-          const redCardCommentary = generateDodgyRedCardCommentary(event);
-          log(redCardCommentary);
-          
-          // Add to top scorers red card count
-          addCardToTopScorers(event.player, event.team, 'red');
-        } else if (event.kind === 'EARLY_FINAL_WHISTLE') {
-          // Handle early final whistle from referee bias
-          const earlyWhistleCommentary = generateEarlyFinalWhistleCommentary(event);
-          log(earlyWhistleCommentary);
-          
-          // End the match early
-          log(`The match ends early due to the referee's bizarre decision!`);
-          break; // Exit the event processing loop
-        } else if (event.kind === 'ATMOSPHERE') {
-          // Display atmosphere commentary
-          log(event.message);
-        } else if (event.kind === 'COCAINE_HEART_ATTACK') {
-          const name = event.player || 'A player';
-          log(`${name} collapses on the pitch – suspected heart failure linked to drug abuse.`);
-        }
-
-        // After printing commentary for this event, run the quick-sim taunt/shout tick
-        // Use the event's minute if available, else approximate with integer 't' or 0
-        const minute = (typeof event.t === 'number') ? Math.floor(event.t) : (typeof event.minute === 'number' ? Math.floor(event.minute) : 0);
-        await processQuickSimTick(minute);
-      }
-      } catch (error) {
-        // Handle skip to results
-        if (error.message && error.message.startsWith('SKIP_TO_RESULTS:')) {
-          const resultJson = error.message.substring('SKIP_TO_RESULTS:'.length);
-          const result = JSON.parse(resultJson);
-          // Remove skip button if still present
-          const remainingSkipBtn = document.getElementById('skipToResultsBtn');
-          if (remainingSkipBtn) {
-            remainingSkipBtn.remove();
-          }
-          // Restore original clearActions function
-          if (window.originalClearActions) {
-            window.clearActions = window.originalClearActions;
-            delete window.originalClearActions;
-          }
-          return result;
-        }
-        // Re-throw other errors
-        throw error;
-      }
-
-      // Log the full-time result with correct opponent name
-      try {
-        const oppName = S.matchContext?.team || currentOpponent().team || "Unknown";
-        log(`Full-time: ${getClubName()} ${gf} – ${ga} ${oppName}`);
-        
-        // Check if this is the stadium fire match and add explosion commentary
-        if (S.preMatch?.stadium_burn_triggered) {
-          log(`💥 SUDDENLY: Flames erupt from the stadium!`);
-          log(`🔥 The ground shakes as explosions rock St Mary's!`);
-          log(`🚨 EMERGENCY: The stadium has been attacked by terrorists!`);
-          log(`💣 Multiple bombs have exploded throughout the stadium!`);
-          log(`🔥 The stadium is burning down! Flames engulf the stands!`);
-          log(`🩸 There's blood and guts everywhere!`);
-          log(`😱 Everyone is screaming in terror!`);
-        }
-        
-        // Show match summary with goal scorers
-        showMatchSummary(gf, ga, oppName);
-      } catch {}
-      
-      // Special event: if a bribe was accepted but you won anyway
-      if (S.accepted_bribe_this_match && winner === "us") {
-        log("The referee's 'help' was unnecessary - you won on merit!");
-      }
-      
-      // Remove skip button if still present and restore original clearActions
-      const remainingSkipBtn = document.getElementById('skipToResultsBtn');
-      if (remainingSkipBtn) {
-        remainingSkipBtn.remove();
-      }
-      
-      // Restore original clearActions function
-      if (window.originalClearActions) {
-        window.clearActions = window.originalClearActions;
-        delete window.originalClearActions;
-      }
-      
-      // Skip result is now handled in the catch block above
-      
-      return { winner, usGoals: gf, themGoals: ga, score: `${gf}-${ga}` };
+    } catch (_e) {
+      // If anything about opponent/drug state is weird, leave RNG as‑is.
+    }
+    
+    if (S.rnd_perks && S.rnd_perks.facility && Math.random() < 0.07 && ga > 0) ga -= 1;
+    if (our - opp > 20 && gf <= ga) gf = Math.min(gf + 1, 7);
+    if (opp - our > 20 && ga <= gf) ga = Math.min(ga + 1, 7);
+    
+    const winner = gf > ga ? "us" : (gf < ga ? "them" : "draw");
+    
+    // Update league match stats
+    if (winner === "us") {
+      S.wins = (S.wins || 0) + 1;
+      S.points = (S.points || 0) + 3;
+      S.morale = clamp(S.morale + 4, -100, 100);
+    } else if (winner === "them") {
+      S.losses = (S.losses || 0) + 1;
+      S.morale = clamp(S.morale - 6, -100, 100);
     } else {
-      // **Friendly match simulation** - call original function for friendlies
-      return await originalAsyncSimulateMatch.call(this, opponentTeam);
+      S.draws = (S.draws || 0) + 1;
+      S.points = (S.points || 0) + 1;
     }
-  };
-  
-})();
+    
+    // Create goal events with scorers for the summary
+    const events = [];
+    let t = 0;
+    
+    // Get player pools for both teams
+    const ourPlayers = getOurSelectedFive();
+    const oppPlayers = getOpponentPlayers();
+    
+    // Ensure we have actual player objects with names
+    const ourPlayersWithNames = ourPlayers.filter(p => p && p.name);
+    const oppPlayersWithNames = oppPlayers.filter(p => p && p.name);
+    
+    // Add our goals with player details - ensure we create exactly gf goals
+    for (let i = 0; i < gf; i++) {
+      const t = 10 + Math.floor(Math.random() * 80); // 10-90 minutes (avoid early goals)
+      
+      // Ensure we have a proper player name, fallback to generating one if needed
+      let scorerName = null;
+      let assisterName = null;
+      
+      if (ourPlayersWithNames.length > 0) {
+        const scorer = pick(ourPlayersWithNames);
+        scorerName = scorer?.name;
+        
+        if (Math.random() < 0.6 && ourPlayersWithNames.length > 1) {
+          const assister = pick(ourPlayersWithNames.filter(p => p.id !== scorer?.id));
+          assisterName = assister?.name;
+        }
+      } else if (ourPlayers.length > 0) {
+        // Fallback to any player in our squad, even if name is missing
+        const fallbackPlayer = pick(ourPlayers);
+        scorerName = fallbackPlayer?.name || `Player ${i + 1}`;
+      } else {
+        scorerName = `Southampton Player ${i + 1}`;
+      }
+      
+      events.push({ 
+        t, 
+        who: 'HOME', 
+        kind: 'GOAL',
+        scorer: scorerName,
+        assister: assisterName,
+        team: getClubName()
+      });
+    }
+    
+    // Add opponent goals with player details - ensure we create exactly ga goals
+    for (let i = 0; i < ga; i++) {
+      const t = 10 + Math.floor(Math.random() * 80); // 10-90 minutes (avoid early goals)
+      const scorer = oppPlayersWithNames.length > 0 ? pick(oppPlayersWithNames) : null;
+      const assister = (Math.random() < 0.6 && oppPlayersWithNames.length > 1) 
+        ? pick(oppPlayersWithNames.filter(p => p.id !== scorer?.id)) 
+        : null;
+      const oppTeam = currentOpponent()?.team || 'Opposition';
+      events.push({ 
+        t, 
+        who: 'AWAY', 
+        kind: 'GOAL',
+        scorer: scorer?.name || (oppPlayers.length > 0 ? pick(oppPlayers).name : 'Opposition Player'),
+        assister: assister?.name || null,
+        team: oppTeam
+      });
+    }
+    
+    // Add other events (shots, corners, fouls, cards) - much more common than goals
+    const totalEvents = Math.max(10, Math.floor((gf + ga) * 8));
+    for (let i = 0; i < totalEvents; i++) {
+      t += 3 + Math.floor(Math.random() * 8);
+      const eventTypes = ['SHOT', 'CORNER', 'FOUL', 'CARD'];
+      const eventType = pick(eventTypes);
+      const isHome = Math.random() < 0.5;
+      const players = isHome ? ourPlayersWithNames : oppPlayersWithNames;
+      const player = players.length > 0 ? pick(players) : null;
+      
+      events.push({
+        t,
+        who: isHome ? 'HOME' : 'AWAY',
+        kind: eventType,
+        player: player?.name || null,
+        team: isHome ? 'Southampton FC' : (currentOpponent()?.team || 'Opposition')
+      });
+    }
+    
+    // Add referee bias events if referee was bribed
+    if (S.referee_bribed && (S.referee_bribed === 'us' || S.referee_bribed === 'them')) {
+      addRefereeBiasEvents(events, ourPlayersWithNames, oppPlayersWithNames);
+    }
+    
+    // Sort events by time for proper chronological order
+    events.sort((a, b) => a.t - b.t);
+    
+    // Add context-dependent commentary for referee bribes (DISABLED - using new referee bias events instead)
+    // if (S && (S.referee_bribed === 'us' || S.referee_bribed === 'them')) {
+    //   const { team: oppTeam } = currentOpponent();
+    //   const favName = (S.referee_bribed === 'us') ? 'Southampton' : oppTeam;
+    //   const oppName = (S.referee_bribed === 'us') ? oppTeam : 'Southampton';
+    //   
+    //   // Add 1-3 referee bribe commentary lines throughout the match
+    //   const numBribeComments = 1 + Math.floor(Math.random() * 3);
+    //   for (let i = 0; i < numBribeComments; i++) {
+    //     const commentTime = Math.floor(Math.random() * 90);
+    //     const pool = (S.referee_bribed === 'us') ? REF_BRIBE_FOR_US : REF_BRIBE_FOR_THEM;
+    //     const line = pick(pool)
+    //       .replaceAll('{FAV}', favName)
+    //       .replaceAll('{OPP}', oppName);
+    //     
+    //     const bribeEvent = {
+    //       t: commentTime,
+    //       who: 'NEUTRAL',
+    //       kind: 'ATMOSPHERE',
+    //       message: line
+    //     };
+    //     
+    //     events.push(bribeEvent);
+    //   }
+    // }
+    
+    // Sort again after adding bribery commentary
+    events.sort((a, b) => a.t - b.t);
+    
+    // Store match events for summary
+    S.matchEvents = events;
+    
+    // Display match commentary in real-time for sim mode
+    log("The match is underway...");
+    
+    // Add skip to results button - add to actions area and make it persistent
+    const skipButton = document.createElement('button');
+    skipButton.id = 'skipToResultsBtn';
+    skipButton.textContent = 'Skip to Results';
+    skipButton.className = 'btn-warn';
+    
+    // Disable skip button if this is match 11 season 2 (stadium attack match) OR if stadium burn is triggered
+    const isStadiumAttackMatch = (S.season === 2 && S.matches_played === 11) || S.preMatch?.stadium_burn_triggered;
+    
+    skipButton.style.cssText = `
+      background-color: ${isStadiumAttackMatch ? '#999 !important' : '#ff6b6b !important'};
+      color: white !important;
+      border: 2px solid ${isStadiumAttackMatch ? '#666 !important' : '#ff4444 !important'};
+      padding: 12px 20px !important;
+      border-radius: 8px !important;
+      cursor: ${isStadiumAttackMatch ? 'not-allowed !important' : 'pointer !important'};
+      font-size: 14px !important;
+      font-weight: bold !important;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
+      transition: all 0.2s ease !important;
+      margin: 5px !important;
+      opacity: ${isStadiumAttackMatch ? '0.5' : '1'};
+    `;
+    
+    if (isStadiumAttackMatch) {
+      skipButton.disabled = true;
+      skipButton.title = 'Skip disabled for this match';
+    }
+    
+    // Add hover effect (only if not disabled)
+    if (!isStadiumAttackMatch) {
+      skipButton.addEventListener('mouseenter', () => {
+        skipButton.style.backgroundColor = '#ff4444';
+        skipButton.style.transform = 'scale(1.05)';
+      });
+      skipButton.addEventListener('mouseleave', () => {
+        skipButton.style.backgroundColor = '#ff6b6b';
+        skipButton.style.transform = 'scale(1)';
+      });
+    }
+    
+    let skipRequested = false;
+    skipButton.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      skipRequested = true;
+      skipButton.remove();
+      log("⏭️ Skipping to match results...");
+      // Actually call the skipToResults function and return immediately
+      const result = await skipToResults();
+      // Force return from the simulateMatch function
+      throw new Error('SKIP_TO_RESULTS:' + JSON.stringify(result));
+    });
+    
+    // Add to actions area
+    const actions = document.getElementById('actions');
+    if (actions) {
+      actions.appendChild(skipButton);
+    } else {
+      // Fallback to body if actions not found
+      document.body.appendChild(skipButton);
+    }
+    
+    // Override clearActions to preserve our skip button
+    if (!window.originalClearActions) {
+      window.originalClearActions = window.clearActions;
+    }
+    window.clearActions = function() {
+      const skipBtn = document.getElementById('skipToResultsBtn');
+      window.originalClearActions();
+      if (skipBtn && actions) {
+        actions.appendChild(skipBtn);
+      }
+    };
+    
+    // Ensure button is visible and add a small delay
+    setTimeout(() => {
+      if (document.getElementById('skipToResultsBtn')) {
+      }
+    }, 100);
+    
+    // Update top scorers with the goals and announce them
+    try {
+      for (let i = 0; i < events.length; i++) {
+        // Check if skip was requested
+        if (skipRequested) {
+          break;
+        }
+      const event = events[i];
+      if (event.kind === 'GOAL') {
+        if (event.scorer) {
+          addGoalToTopScorers(event.scorer, event.team);
+        }
+        if (event.assister) {
+          addAssistToTopScorers(event.assister, event.team);
+        }
+        
+        // Generate varied goal commentary
+        const goalCommentary = generateGoalCommentary(event);
+        log(goalCommentary);
+      } else if (event.kind === 'SHOT') {
+        // Generate varied shot commentary
+        const shotCommentary = generateShotCommentary(event);
+        log(shotCommentary);
+      } else if (event.kind === 'CORNER') {
+        // Generate varied corner commentary
+        const cornerCommentary = generateCornerCommentary(event);
+        log(cornerCommentary);
+      } else if (event.kind === 'FOUL') {
+        // Generate varied foul commentary
+        const foulCommentary = generateFoulCommentary(event);
+        log(foulCommentary);
+      } else if (event.kind === 'YELLOW_CARD') {
+        // Generate varied yellow card commentary
+        const cardCommentary = generateYellowCardCommentary(event);
+        log(cardCommentary);
+      } else if (event.kind === 'RED_CARD') {
+        // Generate varied red card commentary
+        const cardCommentary = generateRedCardCommentary(event);
+        log(cardCommentary);
+      } else if (event.kind === 'DODGY_PENALTY') {
+        // Handle dodgy penalty from referee bias
+        const penaltyCommentary = generateDodgyPenaltyCommentary(event);
+        log(penaltyCommentary);
+        
+        // Add a goal from the penalty (80% conversion rate)
+        if (Math.random() < 0.8) {
+          // Add goal to top scorers
+          addGoalToTopScorers(event.player, event.team);
+          
+          // Generate goal commentary
+          const goalEvent = {
+            t: event.t + 0.1,
+            who: event.who,
+            kind: 'GOAL',
+            scorer: event.player,
+            assister: null,
+            team: event.team,
+            isFromPenalty: true
+          };
+          const goalCommentary = generateGoalCommentary(goalEvent);
+          log(`${goalCommentary} (Penalty)`);
+          
+          // IMPORTANT: Add the goal event to the events array for match summary
+          events.push(goalEvent);
+          
+          // Update goal count
+          if (event.who === 'HOME') {
+            gf++;
+          } else {
+            ga++;
+          }
+        }
+      } else if (event.kind === 'DODGY_RED_CARD') {
+        // Handle dodgy red card from referee bias
+        const redCardCommentary = generateDodgyRedCardCommentary(event);
+        log(redCardCommentary);
+        
+        // Add to top scorers red card count
+        addCardToTopScorers(event.player, event.team, 'red');
+      } else if (event.kind === 'EARLY_FINAL_WHISTLE') {
+        // Handle early final whistle from referee bias
+        const earlyWhistleCommentary = generateEarlyFinalWhistleCommentary(event);
+        log(earlyWhistleCommentary);
+        
+        // End the match early
+        log(`The match ends early due to the referee's bizarre decision!`);
+        break; // Exit the event processing loop
+      } else if (event.kind === 'ATMOSPHERE') {
+        // Display atmosphere commentary
+        log(event.message);
+      } else if (event.kind === 'COCAINE_HEART_ATTACK') {
+        const name = event.player || 'A player';
+        log(`${name} collapses on the pitch – suspected heart failure linked to drug abuse.`);
+      }
+
+      // After printing commentary for this event, run the quick-sim taunt/shout tick
+      // Use the event's minute if available, else approximate with integer 't' or 0
+      const minute = (typeof event.t === 'number') ? Math.floor(event.t) : (typeof event.minute === 'number' ? Math.floor(event.minute) : 0);
+      await processQuickSimTick(minute);
+    }
+    } catch (error) {
+      // Handle skip to results
+      if (error.message && error.message.startsWith('SKIP_TO_RESULTS:')) {
+        const resultJson = error.message.substring('SKIP_TO_RESULTS:'.length);
+        const result = JSON.parse(resultJson);
+        // Remove skip button if still present
+        const remainingSkipBtn = document.getElementById('skipToResultsBtn');
+        if (remainingSkipBtn) {
+          remainingSkipBtn.remove();
+        }
+        // Restore original clearActions function
+        if (window.originalClearActions) {
+          window.clearActions = window.originalClearActions;
+          delete window.originalClearActions;
+        }
+        return result;
+      }
+      // Re-throw other errors
+      throw error;
+    }
+
+    // Log the full-time result with correct opponent name
+    try {
+      const oppName = S.matchContext?.team || currentOpponent().team || "Unknown";
+      log(`Full-time: ${getClubName()} ${gf} – ${ga} ${oppName}`);
+      
+      // Check if this is the stadium fire match and add explosion commentary
+      if (S.preMatch?.stadium_burn_triggered) {
+        log(`💥 SUDDENLY: Flames erupt from the stadium!`);
+        log(`🔥 The ground shakes as explosions rock St Mary's!`);
+        log(`🚨 EMERGENCY: The stadium has been attacked by terrorists!`);
+        log(`💣 Multiple bombs have exploded throughout the stadium!`);
+        log(`🔥 The stadium is burning down! Flames engulf the stands!`);
+        log(`🩸 There's blood and guts everywhere!`);
+        log(`😱 Everyone is screaming in terror!`);
+      }
+      
+      // Show match summary with goal scorers
+      showMatchSummary(gf, ga, oppName);
+    } catch {}
+    
+    // Special event: if a bribe was accepted but you won anyway
+    if (S.accepted_bribe_this_match && winner === "us") {
+      log("The referee's 'help' was unnecessary - you won on merit!");
+    }
+    
+    // Remove skip button if still present and restore original clearActions
+    const remainingSkipBtn = document.getElementById('skipToResultsBtn');
+    if (remainingSkipBtn) {
+      remainingSkipBtn.remove();
+    }
+    
+    // Restore original clearActions function
+    if (window.originalClearActions) {
+      window.clearActions = window.originalClearActions;
+      delete window.originalClearActions;
+    }
+    
+    // Skip result is now handled in the catch block above
+    
+    return { winner, usGoals: gf, themGoals: ga, score: `${gf}-${ga}` };
+  } else {
+    // **Friendly match simulation** - call original function for friendlies
+    return await simulateMatchLegacy.call(this, opponentTeam);
+  }
+}
 
 // ===== STADIUM DEALING SYSTEM =====
 

@@ -1,7 +1,5 @@
 /* === Patch 4B.2 — Prison Enforcement Mode === */
 (function(){
-  if (window.__prisonPatchApplied) return;
-  window.__prisonPatchApplied = true;
 
   function roundIndex(){
     try{
@@ -141,13 +139,9 @@
   }, 800);
 
   // ---------- REHAB SYSTEM (parallel to prison) ----------
-  function isRehab(){
-    if (!window.S || !S.suspensions) return false;
-    return (S.suspensions.rehab_games || 0) > 0;
-  }
   
   function rehabFilterOnce(){
-    if (!isRehab()) return;
+    if (!isInRehab()) return;
     const root = actionsRoot();
     if (!root) return;
     const btns = Array.from(root.querySelectorAll('button, a'));
@@ -188,14 +182,14 @@
   (function observeRehabActions(){
     const root = actionsRoot();
     if (!root || window.__rehabObserver) return;
-    const mo = new MutationObserver((_muts)=>{ if (isRehab()) rehabFilterOnce(); });
+    const mo = new MutationObserver((_muts)=>{ if (isInRehab()) rehabFilterOnce(); });
     mo.observe(root, { childList:true, subtree:true });
     window.__rehabObserver = mo;
   })();
 
   // On boot / reload, if already in rehab, announce and filter once
   setTimeout(function(){
-    if (isRehab()){
+    if (isInRehab()){
       feed("REHAB: You're in treatment. Pre‑match limited to watch‑only actions.");
       rehabFilterOnce();
       if (typeof window.updateHUD === 'function') window.updateHUD();
@@ -326,69 +320,4 @@
     };
   })();
 
-  // ---------- DEBUG TOGGLES ----------
-  window.cokeDev = {
-    addBags: function(n = 5) {
-      if (!S) S = {};
-      if (!S.inventory) S.inventory = { accolades: [], drugs: 0 };
-      S.inventory.drugs = (S.inventory.drugs|0) + n;
-      log(`Added ${n} cocaine bags. Total: ${S.inventory.drugs}`);
-      if (typeof window.updateHUD === 'function') window.updateHUD();
-    },
-    
-    setState: function(s) {
-      if (!S) S = {};
-      if (["sober", "buzzed", "wired", "crashing"].includes(s)) {
-        S.coke_state = s;
-        log(`Cocaine state set to: ${s}`);
-      } else {
-        log("Invalid state. Use: 'sober', 'buzzed', 'wired', or 'crashing'");
-      }
-    },
-    
-    setStreak: function(n) {
-      if (!S) S = {};
-      S.coke_streak = Math.max(0, n|0);
-      S.drug_streak = Math.max(0, n|0); // Also set drug_streak for compatibility
-      log(`Cocaine streak set to: ${S.coke_streak}`);
-    },
-    
-    forceOverdose: function() {
-      if (!S) S = {};
-      S.coke_streak = 4; // Set to trigger overdose
-      S.drug_streak = 4; // Also set drug_streak for compatibility
-      log("Forcing overdose on next cocaine use...");
-      triggerOverdose();
-    },
-    
-    forceRehab: function(n = 3) {
-      if (!S) S = {};
-      S.coke_cooldown = n|0;
-      log(`Forced into rehab for ${S.coke_cooldown} matches`);
-      if (typeof window.updateHUD === 'function') window.updateHUD();
-    },
-    
-    addPlayerAddiction: function(playerName, level = 1) {
-      if (!S) S = {};
-      if (!S.addiction) S.addiction = {};
-      S.addiction[playerName] = (S.addiction[playerName]||0) + level;
-      log(`Added ${level} addiction level to ${playerName}. Total: ${S.addiction[playerName]}`);
-    },
-    
-    showAddictionStatus: function() {
-      if (!S) S = {};
-      log("=== ADDICTION STATUS ===");
-      if (S.addiction) {
-        for (const [player, level] of Object.entries(S.addiction)) {
-          log(`${player}: ${level} addiction level`);
-        }
-      }
-      if (S.opposition_addiction) {
-        log("Opposition addictions: " + Object.keys(S.opposition_addiction).length);
-      }
-      if (S._addiction_penalties) {
-        log("Active penalties: " + Object.keys(S._addiction_penalties).length);
-      }
-    }
-  };
 })();

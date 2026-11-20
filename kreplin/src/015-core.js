@@ -72,6 +72,7 @@ window.GameHooks = GameHooks;
 
 // Explicit game phase (replaces guessing the phase from log text).
 // window.__ui_context mirrors it for older code that still reads that.
+window.__ui_context = window.__ui_context || 'boot';
 function setPhase(phase){
   const prev = (window.S && S.phase) || window.__ui_context || null;
   if (window.S) S.phase = phase;

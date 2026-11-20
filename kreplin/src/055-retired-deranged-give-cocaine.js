@@ -1,14 +1,11 @@
 /* === Patch 5.3 — Deranged Everywhere & Give Cocaine === */
 (function(){
-  if (window.__patch53DrugsApplied) return;
-  window.__patch53DrugsApplied = true;
 
   // ---- Core drug + addiction state ----
 
 
   // ---- Context tracking so we only render in valid phases ----
   // Allowed phases for deranged/give‑coke: prematch, evening, home (family).
-  window.__ui_context = window.__ui_context || 'boot';
   window.__current_actor = window.__current_actor || null; // e.g. 'police','board','fa','wife','child','player:Name'
 
 

@@ -1,7 +1,5 @@
 /* === Patch 5.3.2 — Inventory & Drugs Workaround (robust) === */
 (function(){
-  if (window.__patch_532_applied) return;
-  window.__patch_532_applied = true;
 
   // Ultra-simple overdose function - just the basics
   window.unifiedOverdose = function(){

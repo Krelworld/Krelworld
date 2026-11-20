@@ -87,6 +87,7 @@ async function postMatchWageDecision(){
       S.player_wage_skips = 0;
       if (S.manager) S.manager.unpaid_streak = 0;
       log(`You paid wages: ${money(totalDue)} (Manager ${money(managerWeekly)} + Squad ${money(teamWeekly)}).`);
+      finNote('Wages', -totalDue);
       // Still check debt management after payment
       await processDebtManagement();
       return;
@@ -102,6 +103,7 @@ S.club_debt = (S.club_debt|0) + totalDue;
   if (S.manager) S.manager.unpaid_streak = (S.manager.unpaid_streak|0) + 1;
 
 log(`You skipped wages. Arrears increased by ${money(totalDue)} (now ${money(S.player_wage_arrears)}). Club debt is now ${money(S.club_debt)}.`);
+  finNote('Wages skipped', totalDue, { debt: true });
 
   // Highest-paid player confrontation
   const hp = highestPaidInLineup();
@@ -159,10 +161,11 @@ log(`You skipped wages. Arrears increased by ${money(totalDue)} (now ${money(S.p
     const totalOwed = wageArrears + legalCosts;
     
     log(`<strong>⚖️ COURT ORDER:</strong> The court orders payment of ${money(wageArrears)} in unpaid wages plus ${money(legalCosts)} in legal costs.`);
-    log(`This has been added to your club debt (now ${money(S.club_debt + totalOwed)}).`);
+    // the arrears are already on the club debt (each skip added them); only the legal costs are new
+    log(`This has been added to your club debt (now ${money((S.club_debt|0) + legalCosts)}).`);
     
     // Add to debt
-    S.club_debt = (S.club_debt|0) + totalOwed;
+    S.club_debt = (S.club_debt|0) + legalCosts;
     S.debt_club = S.club_debt; // sync legacy key
     
     // Mark this as court-ordered debt that must be enforced
@@ -187,43 +190,7 @@ log(`You skipped wages. Arrears increased by ${money(totalDue)} (now ${money(S.p
       S.court_ordered_debts = S.court_ordered_debts.filter(d => d.amount !== totalOwed || d.type !== 'wages');
     } else {
       log(`<strong>⚠️ You cannot pay the court order immediately.</strong> The debt remains and will be enforced.`);
-      // Court-ordered debt is ENFORCEABLE - IMMEDIATELY GARNISH EVERYTHING
-      log(`<strong>🚨 ENFORCEMENT:</strong> The court is immediately garnishing all available assets to pay the debt.`);
-      
-      // IMMEDIATELY liquidate everything before offering payment plan
-      await enforceDebtGarnishment();
-      
-      // Court-ordered debt is sold to creditor if not already active
-      if (!S.debt_creditor || !S.debt_creditor.active) {
-        log(`<strong>⚠️ CRITICAL:</strong> Your court-ordered wage debt of ${money(S.club_debt)} has been sold to a creditor.`);
-        log(`Interest will now accumulate at 5% per match. You need to take action.`);
-        
-        if (!S.debt_creditor || typeof S.debt_creditor !== 'object') {
-          S.debt_creditor = {
-            active: false,
-            principal: 0,
-            interest_rate: 0.05,
-            matches_since_sale: 0
-          };
-        }
-        
-        S.debt_creditor.active = true;
-        S.debt_creditor.principal = S.club_debt;
-        S.debt_creditor.matches_since_sale = 0;
-        
-        // Offer payment plan - if refused, nuclear option
-        const planAccepted = await offerPaymentPlan();
-        if (!planAccepted) {
-          // Refused payment plan - NUCLEAR OPTION
-          log(`<strong>💀 You refused the payment plan. The nuclear option is your only remaining choice.</strong>`);
-          await triggerNuclearOption();
-        }
-      } else {
-        // Already have creditor - update principal to current total debt
-        S.debt_creditor.principal = S.club_debt;
-        log(`<strong>⚠️ Additional court-ordered wage debt added.</strong> Your total debt to the creditor is now ${money(S.club_debt)}.`);
-      }
-      
+      await insolvencyCourtOrder('wages');
     }
   }
   
@@ -232,6 +199,217 @@ log(`You skipped wages. Arrears increased by ${money(totalDue)} (now ${money(S.p
 }
 
 // ========== DEBT MANAGEMENT SYSTEM ==========
+
+// ========== MATCHDAY BOOKS (display-only ledger) ==========
+// finNote(label, amount[, {debt:true}]) itemises a money movement for this matchday's books.
+// The ledger opens at pre-match and closes at the end of the matchday with one summary line
+// in the feed; S.fin_last keeps the closed books for the Finances pane, S.fin_season the
+// season-to-date totals (e.g. the women's team drain, which used to be invisible).
+function finNote(label, amount, opt){
+  try {
+    if (!S) return;
+    amount = Math.round(Number(amount) || 0);
+    if (!amount) return;
+    if (!S.fin_cur || typeof S.fin_cur !== 'object') S.fin_cur = { season: S.season | 0, match: (S.matches_played | 0) + 1, items: [] };
+    const debt = !!(opt && opt.debt);
+    const it = S.fin_cur.items.find(i => i.label === label && !!i.debt === debt);
+    if (it) it.amount += amount; else S.fin_cur.items.push({ label, amount, debt });
+    if (!S.fin_season || S.fin_season.season !== (S.season | 0)) S.fin_season = { season: S.season | 0, items: {} };
+    S.fin_season.items[label] = (S.fin_season.items[label] || 0) + amount;
+  } catch (_) {}
+}
+window.finNote = finNote;
+GameHooks.on('prematch', () => { try { if (S) S.fin_cur = { season: S.season | 0, match: (S.matches_played | 0) + 1, items: [] }; } catch (_) {} });
+GameHooks.on('matchday:end', () => {
+  try {
+    const cur = S && S.fin_cur;
+    if (!cur || !cur.items.length) return;
+    const k = n => { const a = Math.abs(n); return a >= 1e6 ? `£${(a / 1e6).toFixed(1)}M` : a >= 1e4 ? `£${Math.round(a / 1e3)}k` : money(a); };
+    const parts = cur.items.map(i => i.debt ? `${i.label} ${k(i.amount)} (on debt)` : `${i.label} ${i.amount >= 0 ? '+' : '−'}${k(i.amount)}`);
+    const net = cur.items.filter(i => !i.debt).reduce((s, i) => s + i.amount, 0);
+    log(`💷 <strong>Matchday books:</strong> ${parts.join(' · ')} → net ${net >= 0 ? '+' : '−'}${k(net)}`);
+    S.fin_last = cur;
+    S.fin_cur = null;
+  } catch (_) {}
+});
+
+// ========== INSOLVENCY LADDER ==========
+// Replaces the old "debt > £5M and > 3× cash → garnish everything" cliff.
+// Danger is measured on NET club debt (club debt minus club cash) and shown in the top bar
+// and the Finances pane (debtDanger()). Consequences climb at most ONE rung per matchday
+// (processDebtManagement runs once, after the wage decision) and ease off when you pay down:
+//   rung 1  Warning letter      net debt ≥ £1.5M
+//   rung 2  Bailiffs            net debt ≥ £4M   (trophies + saleable inventory seized; 2%/match fees)
+//   rung 3  Fire sale           net debt ≥ £7M   (best player sold at 60%, again every 2nd matchday)
+//   rung 4  Administration      net debt ≥ £10M  (−9 points, one offer to sell the club)
+//   game over                   still in administration after 3 more matchdays
+const INSOLVENCY_RUNGS = [
+  { at: 0,        name: 'Solvent',        short: 'OK' },
+  { at: 1500000,  name: 'Warning letter', short: 'LETTER' },
+  { at: 4000000,  name: 'Bailiffs',       short: 'BAILIFFS' },
+  { at: 7000000,  name: 'Fire sale',      short: 'FIRE SALE' },
+  { at: 10000000, name: 'Administration', short: 'ADMIN' },
+];
+const INSOLVENCY_ADMIN_GRACE = 3; // matchdays in administration before liquidation
+
+function ensureInsolvency(){
+  if (!S.insolvency || typeof S.insolvency !== 'object') S.insolvency = { stage: 0, at_stage: 0, admin_matches: 0, fire_sales: 0, log: [] };
+  return S.insolvency;
+}
+// Read-only snapshot for the UI: { net, level, stage, pct, next, rungs }
+function debtDanger(){
+  const ins = (S && S.insolvency) || { stage: 0 };
+  const net = Math.max(0, (S.club_debt || 0) - Math.max(0, S.club_cash || 0));
+  let level = 0;
+  for (let i = 1; i < INSOLVENCY_RUNGS.length; i++) if (net >= INSOLVENCY_RUNGS[i].at) level = i;
+  const top = INSOLVENCY_RUNGS[INSOLVENCY_RUNGS.length - 1].at;
+  const next = INSOLVENCY_RUNGS[Math.min(INSOLVENCY_RUNGS.length - 1, (ins.stage | 0) + 1)];
+  return { net, level, stage: ins.stage | 0, admin_matches: ins.admin_matches | 0, grace: INSOLVENCY_ADMIN_GRACE,
+           pct: Math.min(100, Math.round(net / top * 100)), next, rungs: INSOLVENCY_RUNGS };
+}
+window.debtDanger = debtDanger;
+
+function insolvencyNote(line){
+  const ins = ensureInsolvency();
+  ins.log.push({ season: S.season | 0, match: (S.matches_played | 0) + 1, line: String(line).replace(/<[^>]+>/g, '') });
+  ins.log = ins.log.slice(-8);
+}
+
+// Pay seized proceeds straight off the club debt.
+function insolvencySeize(amount){
+  amount = Math.max(0, Math.round(amount || 0));
+  S.club_debt = Math.max(0, (S.club_debt || 0) - amount);
+  S.debt_club = S.club_debt;
+  return amount;
+}
+
+async function insolvencyRung(stage){
+  const ins = ensureInsolvency();
+  const club = getClubName();
+  if (stage === 1) {
+    log(`<strong>✉️ WARNING LETTER:</strong> A creditor writes to ${club}. Red ink, capital letters, one word underlined three times: "PAY."`);
+    log(`Net debt ${money(debtDanger().net)}. Get it under ${money(INSOLVENCY_RUNGS[1].at)} or the bailiffs are next.`);
+    S.fan_morale = Math.max(0, (S.fan_morale || 50) - 2);
+    insolvencyNote('Warning letter received');
+  } else if (stage === 2) {
+    log(`<strong>🚪 BAILIFFS:</strong> Two lads called Big Steve and Bigger Steve let themselves into the club with a crowbar.`);
+    let raised = 0;
+    const acc = (S.inventory && Array.isArray(S.inventory.accolades)) ? S.inventory.accolades : [];
+    if (acc.length) {
+      const v = acc.reduce((s, t) => s + (t.value || 0), 0);
+      raised += insolvencySeize(v);
+      log(`They take the trophy cabinet (${acc.length} item${acc.length > 1 ? 's' : ''}) — ${money(v)} off the debt. Bigger Steve licks one.`);
+      S.inventory.accolades = [];
+    }
+    const items = (S.inventory && Array.isArray(S.inventory.items)) ? S.inventory.items : [];
+    const take = items.filter(it => it && it.sellable !== false && (it.baseValue || 0) > 0 && !it.equipped);
+    if (take.length) {
+      const v = take.reduce((s, it) => s + (it.baseValue || 0) * (it.quantity || 1), 0);
+      raised += insolvencySeize(v);
+      S.inventory.items = items.filter(it => !take.includes(it));
+      log(`They bag up your stuff: ${take.slice(0, 3).map(it => it.name).join(', ')}${take.length > 3 ? '…' : ''} — ${money(v)}.`);
+    }
+    const personal = Math.floor((S.chairman_cash || 0) * 0.25);
+    if (personal > 0) {
+      S.chairman_cash -= personal;
+      raised += insolvencySeize(personal);
+      log(`Big Steve finds your wallet. ${money(personal)} gone. He keeps the photo of your mum.`);
+    }
+    if (!raised) log(`There is nothing worth taking. Bigger Steve takes a dump in the boardroom out of spite.`);
+    log(`Bailiff fees now run at 2% of the debt every matchday until you sort it out.`);
+    insolvencyNote(`Bailiffs seized ${money(raised)}`);
+  } else if (stage === 3) {
+    await insolvencyFireSale();
+  } else if (stage === 4) {
+    const pts = 9;
+    log(`<strong>⚖️ ADMINISTRATION:</strong> ${club} goes into administration. Men in grey suits are counting the toilet roll.`);
+    if (typeof ensureTableTeam === 'function') ensureTableTeam(club);
+    if (typeof adjustClubPoints === 'function') adjustClubPoints(-pts);
+    S.points_deducted = (S.points_deducted || 0) + pts;
+    log(`📊 ${club} are docked ${pts} points. Clear the debt below ${money(INSOLVENCY_RUNGS[4].at)} within ${INSOLVENCY_ADMIN_GRACE} matchdays or the club is liquidated.`);
+    if (typeof renderLeagueTablePanel === 'function') renderLeagueTablePanel();
+    insolvencyNote(`Administration: −${pts} points`);
+    ins.admin_matches = 0;
+    if (!S.nuclear_option_used) {
+      await triggerNuclearOption({ fromAdministration: true });
+      if ((S.club_debt || 0) <= 0) { ins.stage = 0; ins.at_stage = 0; }
+    }
+  }
+}
+
+async function insolvencyFireSale(){
+  const sq = (typeof getSquad === 'function') ? getSquad() : (S.squad || []);
+  const alive = sq.filter(p => p && !p.is_dead);
+  if (alive.length <= 5) {
+    const personal = Math.floor((S.chairman_cash || 0) * 0.5);
+    S.chairman_cash = Math.max(0, (S.chairman_cash || 0) - personal);
+    insolvencySeize(personal);
+    log(`<strong>🔥 FIRE SALE:</strong> The administrators want a player, but you've only got five and one of them is mostly kebab. They take ${money(personal)} of your own money instead.`);
+    insolvencyNote(`Fire sale: ${money(personal)} personal cash`);
+    return;
+  }
+  const best = alive.slice().sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
+  const fee = Math.round((best.price || 0) * 0.6);
+  insolvencySeize(fee);
+  if (typeof setSquad === 'function') setSquad(sq.filter(p => p !== best)); else S.squad = sq.filter(p => p !== best);
+  if (Array.isArray(S.lineup)) S.lineup = S.lineup.filter(id => id !== best.id);
+  ensureInsolvency().fire_sales++;
+  log(`<strong>🔥 FIRE SALE:</strong> ${best.name} (RAT ${best.rating}) is flogged for ${money(fee)} — 60% of his value — to whoever answered the phone first.`);
+  log(`He leaves in a bin bag. The money goes straight to the creditors.`);
+  S.fan_morale = Math.max(0, (S.fan_morale || 50) - 4);
+  insolvencyNote(`Fire sale: ${best.name} for ${money(fee)}`);
+}
+
+// Once per matchday: climb (or ease) one rung, then apply ongoing costs.
+async function processInsolvencyLadder(){
+  if (!S || S.game_over) return;
+  const ins = ensureInsolvency();
+  const md = `${S.season | 0}:${S.matches_played | 0}`;
+  if (ins.last_md === md) return; // one rung per matchday, however many times debt management runs
+  ins.last_md = md;
+  const d = debtDanger();
+  const prev = ins.stage | 0;
+  if (d.level > prev) {
+    ins.stage = prev + 1; ins.at_stage = 0;
+    await insolvencyRung(ins.stage);
+  } else if (d.level < prev) {
+    ins.stage = d.level; ins.at_stage = 0; ins.admin_matches = 0;
+    log(d.level === 0
+      ? `<strong>✅ Debt under control.</strong> The creditors stop ringing. For now.`
+      : `<strong>📉 Debt easing:</strong> back to "${INSOLVENCY_RUNGS[d.level].name}". The bailiffs sulk off.`);
+    insolvencyNote(`Eased to ${INSOLVENCY_RUNGS[d.level].name}`);
+  } else if (prev > 0) {
+    ins.at_stage = (ins.at_stage | 0) + 1;
+    if (prev === 3 && ins.at_stage % 2 === 0) await insolvencyFireSale();
+    if (prev === 4) {
+      ins.admin_matches = (ins.admin_matches | 0) + 1;
+      const left = INSOLVENCY_ADMIN_GRACE - ins.admin_matches;
+      if (left <= 0) {
+        log(`<strong>💀 LIQUIDATED:</strong> The administrators give up. ${getClubName()} is wound up and sold for parts. Someone buys the corner flags.`);
+        log(`<strong>💀 GAME OVER</strong>`);
+        S.game_over = true;
+        S.game_over_reason = 'Club liquidated after administration';
+        insolvencyNote('Liquidated');
+        return;
+      }
+      log(`<strong>⚖️ Administration:</strong> ${left} matchday${left > 1 ? 's' : ''} left to get net debt under ${money(INSOLVENCY_RUNGS[4].at)}.`);
+    }
+  }
+  if ((ins.stage | 0) >= 2 && (S.club_debt || 0) > 0) {
+    const fee = Math.round((S.club_debt || 0) * 0.02);
+    S.club_debt += fee; S.debt_club = S.club_debt;
+    if (typeof finNote === 'function') finNote('Bailiff fees & interest', -fee);
+  }
+}
+
+// A court order the club can't pay: no more instant garnish-everything; it goes on the ladder.
+async function insolvencyCourtOrder(kind){
+  const ins = ensureInsolvency();
+  const what = kind === 'transfer' ? 'transfer-fee court order' : kind === 'plan' ? 'unpaid payment plan' : 'wage court order';
+  log(`<strong>⚖️ ENFORCEABLE:</strong> The ${what} goes on the debt pile. Every matchday you can't pay, the creditors climb another rung.`);
+  if ((ins.stage | 0) === 0 && debtDanger().level >= 1) { ins.stage = 1; ins.at_stage = 0; await insolvencyRung(1); }
+}
+
 
 // Check debt obligations before allowing match to proceed
 async function checkDebtObligationsBeforeMatch(){
@@ -270,47 +448,10 @@ async function checkDebtObligationsBeforeMatch(){
       log(`<strong>🚨 BLOCKED:</strong> You don't have enough cash to make the mandatory payment (${money(clubCash)} available, ${money(paymentPerMatch)} needed).`);
       log(`You have ${money(personalCash)} in personal cash.`);
       
-      // Try to liquidate to make payment
-      log(`<strong>Attempting to raise funds to make mandatory payment...</strong>`);
-      await attemptLiquidation();
-      
-      // Check again after liquidation
-      if (S.club_cash >= paymentPerMatch) {
-        // Can now pay
-        S.club_cash -= paymentPerMatch;
-        S.payment_plan.remaining_amount = Math.max(0, (S.payment_plan.remaining_amount || 0) - paymentPerMatch);
-        S.club_debt = Math.max(0, (S.club_debt || 0) - paymentPerMatch);
-        S.payment_plan.matches_remaining = Math.max(0, (S.payment_plan.matches_remaining || 0) - 1);
-        log(`Payment made from liquidated funds. ${S.payment_plan.matches_remaining} matches remaining.`);
-        
-        if (S.payment_plan.remaining_amount <= 0) {
-          log(`<strong>✅ Payment plan complete!</strong> All debt cleared.`);
-          S.payment_plan.active = false;
-          if (S.debt_creditor) {
-            S.debt_creditor.active = false;
-            S.debt_creditor.principal = 0;
-          }
-        }
-      } else {
-        // Still can't pay - IMMEDIATELY TRIGGER NUCLEAR OPTION
-        log(`<strong>💀 Still cannot make payment after liquidation.</strong>`);
-        log(`<strong>☢️ THE NUCLEAR OPTION IS YOUR ONLY CHOICE.</strong>`);
-        
-        if (S.club_debt > 0 && !S.nuclear_option_used) {
-          await triggerNuclearOption();
-          // After nuclear option, check if game is over
-          if (S.game_over) {
-            return false; // Block match - game is over
-          }
-        } else if (S.nuclear_option_used && S.club_debt > 0 && S.club_cash < paymentPerMatch) {
-          // Already used nuclear option and still insolvent - game over
-          log(`<strong>💀 GAME OVER</strong>`);
-          log(`You've become insolvent again after selling the club. There's no way back.`);
-          S.game_over = true;
-          S.game_over_reason = "Insolvency after nuclear option";
-          return false; // Block match
-        }
-      }
+      // No more instant liquidation: the plan collapses and the debt goes back on the ladder
+      log(`<strong>💀 Payment plan collapses.</strong> The creditor tears it up and adds you to the naughty list.`);
+      S.payment_plan.active = false;
+      await insolvencyCourtOrder('plan');
     }
   }
   
@@ -341,12 +482,10 @@ async function processDebtManagement(){
     log(`Your debt has been fully cleared. The creditor releases their claim.`);
   }
   
-  // If debt is high enough and not yet sold to creditor, check if it should be
-  if ((!S.debt_creditor || !S.debt_creditor.active) && currentDebt > 5000000 && currentDebt > (S.club_cash || 0) * 3) {
-    await checkDebtCreditorSale();
-  }
+  // (The old "debt > £5M and > 3× cash → creditor seizes everything" cliff is replaced by
+  //  the insolvency ladder below.)
   
-  // Process creditor interest if active
+  // Process creditor interest if active (legacy saves with a creditor already attached)
   if (S.debt_creditor && S.debt_creditor.active) {
     processCreditorInterest();
   }
@@ -356,10 +495,8 @@ async function processDebtManagement(){
     await processPaymentPlan();
   }
   
-  // Check if we need to liquidate assets
-  if (currentDebt > 0 && S.club_cash < currentDebt * 0.1) {
-    await checkLiquidation();
-  }
+  // Insolvency ladder: one rung per matchday (warning → bailiffs → fire sale → administration)
+  await processInsolvencyLadder();
   
   // Sync debt keys
   S.debt_club = S.club_debt;
@@ -497,9 +634,8 @@ async function processPaymentPlan(){
     log(`<strong>🚨 This payment is MANDATORY. You cannot afford the installment.</strong>`);
     S.payment_plan.active = false;
     
-    // Can't afford installment = NUCLEAR OPTION
-    log(`<strong>☢️ THE NUCLEAR OPTION IS YOUR ONLY CHOICE.</strong>`);
-    await triggerNuclearOption();
+    // Can't afford installment: the debt goes back on the insolvency ladder
+    await insolvencyCourtOrder('plan');
   }
 }
 
@@ -605,8 +741,10 @@ async function attemptLiquidation(){
 }
 
 // Trigger nuclear option - sell club
-async function triggerNuclearOption(){
+async function triggerNuclearOption(opts){
+  opts = opts || {};
   if (S.nuclear_option_used) {
+    if (opts.fromAdministration) return;
     // Game ends if insolvent again after using nuclear option
     log(`<strong>💀 GAME OVER</strong>`);
     log(`You've become insolvent again after selling the club. There's no way back.`);
@@ -662,8 +800,8 @@ async function triggerNuclearOption(){
     }
   }
   
-  // Apply variable point deduction for insolvency
-  const insolvencyPoints = rnd(4, 10);
+  // Apply variable point deduction for insolvency (administration already docked its own)
+  const insolvencyPoints = opts.fromAdministration ? 0 : rnd(4, 10);
   const clubName = S.club_name || "Southampton FC";
   if (typeof ensureLeagueTableInit === 'function') {
     ensureLeagueTableInit();
@@ -671,7 +809,7 @@ async function triggerNuclearOption(){
   if (typeof ensureTableTeam === 'function') {
     ensureTableTeam(clubName);
   }
-  if (S.table && S.table[clubName]) {
+  if (insolvencyPoints && S.table && S.table[clubName]) {
     adjustClubPoints(-insolvencyPoints); // Allow negative points
     S.points_deducted = (S.points_deducted || 0) + insolvencyPoints;
     log(`📊 ${clubName} receives a ${insolvencyPoints} point deduction for insolvency.`);
@@ -684,9 +822,13 @@ async function triggerNuclearOption(){
   const choice = await choose([
     {key: "mcdonalds", label: "Sell to McDonald's", variant: "warn"},
     {key: "portsmouth", label: "Sell to Portsmouth FC", variant: "warn"},
-    {key: "cancel", label: "Cancel (game will end)"}
+    {key: "cancel", label: opts.fromAdministration ? "Refuse to sell — ride out administration" : "Cancel (game will end)"}
   ], `Who do you sell the club to?`);
   
+  if (choice === "cancel" && opts.fromAdministration) {
+    log(`You refuse to sell. The administrators shrug and start pricing up the dugouts.`);
+    return;
+  }
   if (choice === "cancel") {
     log(`You refuse to sell. The game ends.`);
     S.game_over = true;
@@ -1095,7 +1237,7 @@ function addGoalFlashEffect() {
 
 // Commentary generation functions (moved to global scope for reuse)
 function generateGoalCommentary(event) {
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   const gameTime = event.t || 0;
   const isLateGoal = gameTime > 80;
   const isEarlyGoal = gameTime < 20;
@@ -1252,7 +1394,7 @@ function generateGoalCommentary(event) {
 }
 
 function generateShotCommentary(event) {
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   const gameTime = event.t || 0;
   const isCloseMiss = Math.random() < 0.3;
   const isGoodSave = Math.random() < 0.2;
@@ -1416,7 +1558,7 @@ function generateShotCommentary(event) {
 }
 
 function generateCornerCommentary(event) {
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   const gameTime = event.t || 0;
   const isLateCorner = gameTime > 80;
   
@@ -1538,7 +1680,7 @@ function generateCornerCommentary(event) {
 }
 
 function generateFoulCommentary(event) {
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   const gameTime = event.t || 0;
   const isLateFoul = gameTime > 80;
   const isEarlyFoul = gameTime < 20;
@@ -1641,7 +1783,7 @@ function generateFoulCommentary(event) {
 }
 
 function generateYellowCardCommentary(event) {
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   const gameTime = event.t || 0;
   const isLateCard = gameTime > 80;
   const isEarlyCard = gameTime < 20;
@@ -1700,7 +1842,7 @@ function generateYellowCardCommentary(event) {
 }
 
 function generateDodgyPenaltyCommentary(event) {
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   const gameTime = event.t || 0;
   const playerName = event.player || 'Unknown Player';
   const teamName = event.team || 'Unknown Team';
@@ -1720,7 +1862,7 @@ function generateDodgyPenaltyCommentary(event) {
 }
 
 function generateDodgyRedCardCommentary(event) {
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   const gameTime = event.t || 0;
   const playerName = event.player || 'Unknown Player';
   const teamName = event.team || 'Unknown Team';
@@ -1832,7 +1974,7 @@ function generateStretcherInjuryCommentary(victimName, causedBy) {
 }
 
 function generateRedCardCommentary(event) {
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   const gameTime = event.t || 0;
   const isLateCard = gameTime > 80;
   const isEarlyCard = gameTime < 20;
@@ -2005,7 +2147,7 @@ function generateContextualCommentary(event, gameState) {
 
 // Southampton possession commentary function
 function generateSouthamptonPossessionCommentary(event) {
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   const gameTime = event.t || 0;
   const isLatePossession = gameTime > 80;
   const isEarlyPossession = gameTime < 20;
@@ -2063,7 +2205,7 @@ function generateSouthamptonPossessionCommentary(event) {
 function generateBackflipCommentary() {
   const players = getOurSelectedFive().concat(getOpponentPlayers()).filter(p => p?.name);
   const player = players.length > 0 ? pick(players).name : 'A player';
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   
   const backflipComments = [
     `🤸 INCREDIBLE! ${player} just did a BACKFLIP after that play! The crowd goes absolutely WILD!`,
@@ -2084,7 +2226,7 @@ function generatePlayerFightCommentary() {
   const oppPlayers = getOpponentPlayers().filter(p => p?.name);
   const player1 = ourPlayers.length > 0 ? pick(ourPlayers).name : 'A Southampton player';
   const player2 = oppPlayers.length > 0 ? pick(oppPlayers).name : 'An opponent';
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   
   const fightComments = [
     `👊 CHAOS! ${player1} and ${player2} are THROWING PUNCHES at each other! This is a FULL-ON BRAWL!`,
@@ -2101,7 +2243,7 @@ function generatePlayerFightCommentary() {
 }
 
 function generateRefereeExposureCommentary() {
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   
   const exposureComments = [
     `😱 OH MY GOD! The referee has just EXPOSED HIMSELF on the pitch! This is ABSOLUTELY INSANE!`,
@@ -2118,7 +2260,7 @@ function generateRefereeExposureCommentary() {
 }
 
 function generateFanShootingCommentary() {
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   
   // Play gunfire sound effect
   if (typeof window.playSoundEffect === 'function') {
@@ -2142,7 +2284,7 @@ function generateFanShootingCommentary() {
 function generateCrazyDramaCommentary() {
   const players = getOurSelectedFive().concat(getOpponentPlayers()).filter(p => p?.name);
   const player = players.length > 0 ? pick(players).name : 'A player';
-  const oppName = currentOpponent()?.team || 'Opposition';
+  const oppName = matchOpponentName();
   
   const dramaComments = [
     `💥 EXPLOSION OF DRAMA! ${player} just did something INCREDIBLE! The stadium is ROCKING!`,

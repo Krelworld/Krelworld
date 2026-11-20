@@ -428,3 +428,59 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
   #lashContainer{padding:12px!important;box-sizing:border-box}
   #lashContainer button{max-width:calc(100vw - 24px)!important;padding:18px 20px!important;font-size:1.4em!important;box-sizing:border-box}
 }
+
+/* ---------- debt danger (insolvency ladder) ---------- */
+.k-danger[hidden]{display:none}
+.k-danger .k-meter b{background:var(--good)}
+.k-danger[data-tone=warn]{border-color:var(--warn)} .k-danger[data-tone=warn] .v{color:var(--warn)} .k-danger[data-tone=warn] .k-meter b{background:var(--warn)}
+.k-danger[data-tone=bad]{border-color:var(--bad);background:#3a1418;animation:kDangerPulse 1.6s ease-in-out infinite} .k-danger[data-tone=bad] .v{color:#ff8b8f} .k-danger[data-tone=bad] .k-meter b{background:var(--bad)}
+@keyframes kDangerPulse{50%{box-shadow:0 0 0 2px rgba(229,72,77,.45)}}
+@media (prefers-reduced-motion: reduce){.k-danger[data-tone=bad]{animation:none}}
+.k-top-toggle{display:none}
+.k-fin-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:12px}
+.k-fin-cols h4{margin:0 0 6px;font:600 12px var(--font-ui);color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+.k-fin-books{width:100%;border-collapse:collapse;font:13px var(--font-body)}
+.k-fin-books td{padding:4px 6px;border-top:1px solid var(--line)}
+.k-fin-books td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.k-fin-books td small{color:var(--muted)} .k-fin-books .pos{color:var(--good)} .k-fin-books .neg{color:var(--bad)} .k-fin-books .mut{color:var(--muted)}
+.k-fin-note{margin:8px 0 0;font:13px/1.4 var(--font-body);color:var(--text)} .k-fin-note b.bad{color:var(--bad)}
+.k-danger-meter{height:10px;background:var(--ink);border:1px solid var(--line2);border-radius:2px;overflow:hidden}
+.k-danger-meter i{display:block;height:100%;background:var(--good);transition:width .3s}
+.k-danger-meter[data-tone=warn] i{background:var(--warn)} .k-danger-meter[data-tone=bad] i{background:var(--bad)}
+.k-ladder{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:3px;counter-reset:rung}
+.k-ladder li{display:flex;justify-content:space-between;gap:8px;padding:4px 8px;border:1px solid var(--line);border-radius:var(--r);background:var(--ink);font:13px var(--font-body);color:var(--muted);counter-increment:rung}
+.k-ladder li b{font-weight:600;color:var(--text)} .k-ladder li b::before{content:counter(rung) '. ';color:var(--muted)}
+.k-ladder li span{font-variant-numeric:tabular-nums}
+.k-ladder li.past{opacity:.55} .k-ladder li.due{border-color:var(--warn)} .k-ladder li.on{border-color:var(--bad);background:#3a1418} .k-ladder li.on b{color:#fff}
+.k-ladder-log{margin:8px 0 0;padding-left:18px;font:12px/1.4 var(--font-body);color:var(--muted)}
+
+/* ---------- phone portrait: compact top strip, slimmer banner, peek-able decision sheet ---------- */
+@media (max-width: 900px){
+  .k-top:not(.expanded){flex-wrap:nowrap;gap:6px;padding:4px 6px;padding-top:calc(4px + env(safe-area-inset-top))}
+  .k-top:not(.expanded) .k-club div,.k-top:not(.expanded) .k-date{display:none}
+  .k-top:not(.expanded) .k-club img{width:26px;height:26px}
+  .k-top:not(.expanded) .k-stats{width:auto;flex:1 1 auto;overflow:hidden;gap:4px}
+  .k-top:not(.expanded) .k-stat{min-height:36px;padding:2px 6px;gap:0;flex:0 1 auto;min-width:0}
+  .k-top:not(.expanded) .k-stat img{display:none}
+  .k-top:not(.expanded) .k-stat .k{font-size:9px;letter-spacing:.3px}
+  .k-top:not(.expanded) .k-stat .v{font-size:13px}
+  .k-top:not(.expanded) .k-stat .k-form i{width:11px;height:11px;font-size:8px;line-height:11px}
+  .k-top:not(.expanded) .k-stat .k-meter{width:100%}
+  .k-top:not(.expanded) #kStatDebt,.k-top:not(.expanded) #kStatMorale,.k-top:not(.expanded) #kStatTokens,.k-top:not(.expanded) #kStatGems,.k-top:not(.expanded) #kStatDrugs{display:none}
+  .k-top:not(.expanded) #kStatDanger .k{display:none}
+  .k-top:not(.expanded) #kStatDanger .v{font-size:11px;max-width:74px;overflow:hidden;text-overflow:ellipsis}
+  .k-top-toggle{display:block;flex:none;width:36px;height:36px;margin-left:auto;background:var(--panel);color:var(--text);border:var(--px) solid var(--line2);border-radius:var(--r);font:14px var(--font-ui);cursor:pointer}
+  .k-top.expanded .k-top-toggle{position:absolute;right:8px;top:calc(6px + env(safe-area-inset-top));transform:rotate(180deg)}
+  .k-top.expanded .k-date{margin-right:44px}
+  .k-scene{height:58px}
+  .k-scene .cap{bottom:6px}
+  .k-scene h2{font-size:16px}
+  .k-scene .phase{font-size:10px}
+  .k-decision{max-height:40vh;max-height:40dvh}
+  .k-decision h3{min-height:36px;padding:4px 4px 4px 10px}
+  .k-sheet-toggle{height:32px}
+  .k-decision.collapsed{box-shadow:0 -2px 10px rgba(0,0,0,.5)}
+  .k-decision.collapsed h3{cursor:pointer}
+  #kApp #actions button{min-height:42px;padding:5px 8px}
+  .k-fin-cols{grid-template-columns:minmax(0,1fr)}
+}

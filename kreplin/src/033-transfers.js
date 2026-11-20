@@ -397,43 +397,8 @@ async function handleUnpaidTransferAgent(agentData){
           S.court_ordered_debts = S.court_ordered_debts.filter(d => d.amount !== totalOwed || d.type !== 'transfer');
         } else {
           log(`<strong>⚠️ You cannot pay the court order immediately.</strong> The debt remains and will be enforced.`);
-          // Court-ordered debt is ENFORCEABLE - IMMEDIATELY GARNISH EVERYTHING
-          log(`<strong>🚨 ENFORCEMENT:</strong> The court is immediately garnishing all available assets to pay the debt.`);
-          
-          // IMMEDIATELY liquidate everything before offering payment plan
-          await enforceDebtGarnishment();
-          
-          // Court-ordered debt is sold to creditor if not already active
-          if (!S.debt_creditor || !S.debt_creditor.active) {
-            log(`<strong>⚠️ CRITICAL:</strong> Your court-ordered debt of ${money(S.club_debt)} has been sold to a creditor.`);
-            log(`Interest will now accumulate at 5% per match. You need to take action.`);
-            
-            if (!S.debt_creditor || typeof S.debt_creditor !== 'object') {
-              S.debt_creditor = {
-                active: false,
-                principal: 0,
-                interest_rate: 0.05,
-                matches_since_sale: 0
-              };
-            }
-            
-            S.debt_creditor.active = true;
-            S.debt_creditor.principal = S.club_debt;
-            S.debt_creditor.matches_since_sale = 0;
-            
-            // Offer payment plan - if refused, nuclear option
-            const planAccepted = await offerPaymentPlan();
-            if (!planAccepted) {
-              // Refused payment plan - NUCLEAR OPTION
-              log(`<strong>💀 You refused the payment plan. The nuclear option is your only remaining choice.</strong>`);
-              await triggerNuclearOption();
-            }
-          } else {
-            // Already have creditor - update principal to current total debt
-            // This ensures interest is calculated on the full amount owed
-            S.debt_creditor.principal = S.club_debt;
-            log(`<strong>⚠️ Additional court-ordered debt added.</strong> Your total debt to the creditor is now ${money(S.club_debt)}.`);
-          }
+          // No more instant garnish-everything: the debt goes on the insolvency ladder
+          await insolvencyCourtOrder('transfer');
           
           // Trigger debt management to process interest
           await processDebtManagement();

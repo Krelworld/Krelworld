@@ -969,6 +969,7 @@ window.processHomeMatchRevenue = function() {
   log(`🏟️ Attendance: ${attendance.toLocaleString()} (${projection.utilization.toFixed(1)}% capacity)`);
   log(`💰 Matchday Revenue: ${money(revenue)}`);
   log(`🔧 Stadium Upkeep: -${money(upkeepAmount)}`);
+  if (typeof finNote === 'function') { finNote('Gate', revenue); finNote('Upkeep', -upkeepAmount); }
   
   
   
@@ -1014,6 +1015,7 @@ function processEastleighMatchRevenue() {
   log(`🏟️ Attendance: ${attendance.toLocaleString()} (Eastleigh F.C. - ${stadium.utilization_percent.toFixed(1)}% capacity)`);
   log(`💰 Matchday Revenue: ${money(revenue)}`);
   log(`🔧 Stadium Upkeep: -${money(eastleighUpkeep)}`);
+  if (typeof finNote === 'function') { finNote('Gate', revenue); finNote('Upkeep', -eastleighUpkeep); }
   
   // Check for insolvency after processing
   checkStadiumInsolvency();
@@ -1705,6 +1707,17 @@ function currentOpponent(){
     team: S.opponents[idx],
     manager: S.opponentManagers[idx]
   };
+}
+
+// The opponent of the match being played / still animating. Pinned at kickoff (S.matchContext),
+// so commentary that keeps running after the result bumps matches_played can't name the NEXT
+// fixture ("Corner to Aston Villa" while playing Everton).
+function matchOpponentName(){
+  try {
+    const mc = S && S.matchContext;
+    if (mc && mc.team && (typeof mc.roundIndex !== 'number' || mc.roundIndex >= (S.matches_played | 0) - 1)) return mc.team;
+  } catch (_) {}
+  return (typeof currentOpponent === 'function' && currentOpponent()?.team) || 'Opposition';
 }
 
 // --- SCHEDULE builder (keeps your S.opponents order) ---

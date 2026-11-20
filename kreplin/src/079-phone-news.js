@@ -1341,13 +1341,15 @@
       }
       const revenueDelta = Math.round(WOMENS_TEAM_REVENUE_BASE * revenueMultiplier);
 
-      // Always apply the financial effect, regardless of whether we log it this match
+      // Always apply the financial effect, and itemise it in the matchday books / Finances
+      const cashBefore = S.club_cash || 0;
       if (typeof window.addMoneyClub === 'function') {
         window.addMoneyClub(revenueDelta);
       } else {
         const current = (S.club_cash || 0) + revenueDelta;
         S.club_cash = current < 0 ? 0 : current;
       }
+      if (typeof window.finNote === 'function') window.finNote("Women's team", (S.club_cash || 0) - cashBefore);
 
       const tooltipOptions = [
         "You are promised they will start making money soon",

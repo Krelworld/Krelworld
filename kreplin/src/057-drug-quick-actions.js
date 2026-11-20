@@ -178,11 +178,33 @@
     quickMountPending = allowedPhase();
     if (!quickMountPending) clearDrugQuick();
   });
-  GameHooks.on('choices', function(){
+  GameHooks.on('choices', function(info){
     if (!quickMountPending) return;
+    // the pre-match menus carry these inside "Dodgy stuff…" (window.KDrugQuick below)
+    if (info && /PRE-MATCH ACTIONS/i.test(String(info.prompt || ''))) { quickMountPending = false; return; }
     quickMountPending = false;
     if (allowedPhase()) mountDrugQuick();
   });
+
+  // Same two actions for menus that list them as choose() items (pre-match "Dodgy stuff…")
+  function streakNow(){ return Math.max((S.drug_streak|0), (S.coke_streak|0)); }
+  window.KDrugQuick = {
+    available(){ try{ ensureDrugCore(); return !!S.drugs_unlocked && !(S.suspensions?.prison_games>0 || S.suspensions?.rehab_games>0); }catch(_){ return false; } },
+    buyLabel(){ return `Call Marco (Buy Drugs) — ${moneyGBP(DRUG_PRICE)} / bag`; },
+    takeLabel(){ const st = streakNow(); const need = Math.min(4, st+1); return st >= 4 ? 'Take Cocaine (will OVERDOSE)' : `Take Cocaine (${need} bag${need>1?'s':''} needed)`; },
+    canTake(){ const st = streakNow(); return st < 4 && (S.inventory?.drugs|0) >= Math.min(4, st+1); },
+    buy(){
+      ensureDrugCore();
+      if ((S.chairman_cash|0) < DRUG_PRICE){ (window.log||console.log)("Marco: \"Cash up front, mate.\" (Not enough money)"); return; }
+      S.chairman_cash -= DRUG_PRICE;
+      const oldCount = S.inventory.drugs|0;
+      S.inventory.drugs = oldCount + 1;
+      if (oldCount === 0 && !S.stadium_dealing_unlocked) { S.stadium_dealing_unlocked = true; S.cocaine_purchase_matches_ago = 0; S.marco_approach_attempted = false; }
+      (window.log||console.log)("You buy 1 bag.");
+      if (typeof window.updateHUD === 'function') window.updateHUD();
+    },
+    take(){ try { takeCocaine(); } catch(_){} }
+  };
 
   // ---- Post‑match resets (once per match day; rehab countdown is playRehabWeek's) ----
   GameHooks.on('matchday:end', function(){

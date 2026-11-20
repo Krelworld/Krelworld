@@ -785,16 +785,11 @@ async function ultimaCupPreMatchMenu() {
       label: (S.preMatch && S.preMatch.betLocked) ? '💰 Bet (already placed)' : '💰 Place a Bet (optional)'
     });
     
-    // bribe options (guard duplicates)
-    if (!S.referee_bribed && !S.referee_assaulted) {
-      items.push({ key:'referee', label:'⚖️ Call the referee (…favor a side)' });
-    }
-    if (!S.accepted_bribe_this_match && !S.opponent_bribed) {
-      items.push({ key:'backchannel', label:'🤝 Backchannel with opposing manager (offer a bribe)' });
-    }
+    // bribes + Marco: one "Dodgy stuff…" submenu (see dodgyStuffMenu)
+    if (dodgyStuffItems().length) items.push({ key:'dodgy', label:'🤝 Dodgy stuff… (bribes, Marco)', variant:'warn' });
     
     // Proceed to kickoff option
-    items.push({ key:'kick', label:'🏆 Proceed to kickoff' }, { key:'back', label:'🔙 Back / Pause' });
+    items.push({ key:'kick', label:'🏆 Proceed to kickoff' });
     
     // de-dupe by key in case something else pushed the same entry
     {
@@ -805,8 +800,12 @@ async function ultimaCupPreMatchMenu() {
     // Store a flag that we're about to show the menu
     S._preMatchMenuActive = true;
     
-    const choice = await choose(items, '🏆 ULTIMA CUP PRE-MATCH ACTIONS 🏆');
+    let choice = await choose(items, '🏆 ULTIMA CUP PRE-MATCH ACTIONS 🏆');
     S._preMatchMenuActive = false;
+    if (choice === 'dodgy'){
+      choice = await dodgyStuffMenu();
+      if (!choice || choice === 'back') continue;
+    }
     
     // visitors must be handled before kickoff
     if (choice === 'door'){

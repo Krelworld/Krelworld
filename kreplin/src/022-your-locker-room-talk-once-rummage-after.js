@@ -1446,6 +1446,31 @@ async function declineThreatenHushFlow(whoLabel, originalAmount){
   return {declined:true, reported:false, hushed:true};
 }
 
+// ----- Pre-match "Dodgy stuff…" submenu (shared by the league and Ultima Cup menus) -----
+// Returns the items still on offer this match; the caller routes 'referee'/'backchannel'
+// to its own handlers. Marco's buy/take are run here (they are the drug quick actions).
+function dodgyStuffItems(){
+  const sub = [];
+  if (!S.referee_bribed && !S.referee_assaulted) sub.push({ key:'referee', label:'Call the referee (…favor a side)' });
+  if (!S.accepted_bribe_this_match && !S.opponent_bribed) sub.push({ key:'backchannel', label:'Backchannel with opposing manager (offer a bribe)' });
+  const dq = window.KDrugQuick;
+  if (dq && dq.available()) {
+    sub.push({ key:'marco', label: dq.buyLabel() });
+    if (dq.canTake()) sub.push({ key:'coke', label: dq.takeLabel(), variant:'bad' });
+  }
+  return sub;
+}
+async function dodgyStuffMenu(){
+  while (true) {
+    const sub = dodgyStuffItems();
+    if (!sub.length) return 'back';
+    const k = await choose(sub.concat([{ key:'back', label:'Back' }]), 'Dodgy stuff');
+    if (k === 'marco') { window.KDrugQuick.buy(); continue; }
+    if (k === 'coke') { window.KDrugQuick.take(); continue; }
+    return k;
+  }
+}
+
 // ----- Pre-Match actions hub (menu) -----
 async function preMatchTransfersAndBettingMenu(){
   // Show the fixture up front
@@ -1491,18 +1516,13 @@ async function preMatchTransfersAndBettingMenu(){
       label: (S.preMatch && S.preMatch.betLocked) ? 'Bet (already placed)' : 'Place a Bet (optional)'
     });
 
-    // bribe options (guard duplicates)
-    if (!S.referee_bribed && !S.referee_assaulted) {
-      items.push({ key:'referee', label:'Call the referee (…favor a side)' });
-    }
-    if (!S.accepted_bribe_this_match && !S.opponent_bribed) {
-      items.push({ key:'backchannel', label:'Backchannel with opposing manager (offer a bribe)' });
-    }
+    // bribes + Marco live in one "Dodgy stuff…" submenu so the main list fits keys 1–9
+    if (dodgyStuffItems().length) items.push({ key:'dodgy', label:'Dodgy stuff… (bribes, Marco)', variant:'warn' });
 
     // Brick throwing options removed from pre-match - they belong during the match
 
-    // proceed/back
-    items.push({ key:'kick', label:'Proceed to kickoff' }, { key:'back', label:'Back / Pause' });
+    // proceed
+    items.push({ key:'kick', label:'Proceed to kickoff' });
 
     // de-dupe by key in case something else pushed the same entry
     {
@@ -1554,7 +1574,11 @@ async function preMatchTransfersAndBettingMenu(){
       continue;
     }
     
-    const choice = result;
+    let choice = result;
+    if (choice === 'dodgy'){
+      choice = await dodgyStuffMenu();
+      if (!choice || choice === 'back') continue;
+    }
 
     // visitors must be handled before kickoff
     if (choice === 'door'){
@@ -2474,7 +2498,7 @@ let _lastBribeLineAtMinute = -999;
 // --- Inject bribery-flavored commentary (uses whole-minute granularity)
 // fire an outrage line occasionally if the ref was bribed
 if (S && (S.referee_bribed === 'us' || S.referee_bribed === 'them')) {
-  const { team: oppTeam } = currentOpponent();
+  const oppTeam = matchOpponentName();
   const favName = (S.referee_bribed === 'us') ? 'Southampton' : oppTeam;
   const oppName = (S.referee_bribed === 'us') ? oppTeam : 'Southampton';
 
@@ -2551,7 +2575,7 @@ if (S && (S.referee_bribed === 'us' || S.referee_bribed === 'them')) {
         });
         
         // Add match played for all opponent players
-        const oppTeam = currentOpponent()?.team || 'Opposition';
+        const oppTeam = matchOpponentName();
         oppPlayers.forEach(player => {
           if (player?.name) {
             addMatchToTopScorers(player.name, oppTeam);
@@ -2822,9 +2846,7 @@ if (S && (S.referee_bribed === 'us' || S.referee_bribed === 'them')) {
     requestAnimationFrame(step);
 
     // internals
-    function _oppName(){
-      const opp = (typeof currentOpponent==='function') ? currentOpponent() : null;
-      return opp?.team || "Opposition";}
+    function _oppName(){ return matchOpponentName(); }
    
   });
 }
@@ -2932,7 +2954,7 @@ async function _animateMatchWithCommentary(events, canvas, com, tick, gf, ga) {
 
       // Inject bribery-flavored commentary if ref was bribed
       if (S && (S.referee_bribed === 'us' || S.referee_bribed === 'them')) {
-        const { team: oppTeam } = currentOpponent();
+        const oppTeam = matchOpponentName();
         const favName = (S.referee_bribed === 'us') ? 'Southampton' : oppTeam;
         const oppName = (S.referee_bribed === 'us') ? oppTeam : 'Southampton';
         const minuteNow = Math.floor(clock);
@@ -2985,7 +3007,7 @@ async function _animateMatchWithCommentary(events, canvas, com, tick, gf, ga) {
         
         // Add drunk manager commentary for World Cup matches (watch mode)
         if (S.isDrunk && S.competition === 'world_cup' && changedMinute && Math.random() < 0.2) {
-          const oppName = S.matchContext?.team || currentOpponent()?.team || 'Opposition';
+          const oppName = matchOpponentName();
           const drunkComment = generateDrunkManagerCommentary(oppName);
           if (drunkComment) {
             _appendCom(com, drunkComment);
@@ -2997,7 +3019,7 @@ async function _animateMatchWithCommentary(events, canvas, com, tick, gf, ga) {
       
       if (clock >= totalTime + 0.1){
         // wrap up
-        const oppName = (typeof currentOpponent === 'function') ? (currentOpponent()?.team || 'Opposition') : 'Opposition';
+        const oppName = matchOpponentName();
         _appendCom(com, `Full-time: ${getClubName()} ${homeG} – ${awayG} ${oppName}`);
         
         // Check if this is the stadium fire match
@@ -3039,7 +3061,7 @@ async function _animateMatchWithCommentary(events, canvas, com, tick, gf, ga) {
         });
         
         // Add match played for all opponent players
-        const oppTeam = currentOpponent()?.team || 'Opposition';
+        const oppTeam = matchOpponentName();
         oppPlayers.forEach(player => {
           if (player?.name) {
             addMatchToTopScorers(player.name, oppTeam);
@@ -3274,7 +3296,7 @@ async function _animateMatchWithCommentary(events, canvas, com, tick, gf, ga) {
     injuries = 0;
     updateMatchStatus();
     com.innerHTML = "";
-    _appendCom(com, `Kickoff at ${getStadiumName()}: ${getClubName()} vs ${(typeof currentOpponent === 'function') ? (currentOpponent()?.team || 'Opposition') : 'Opposition'}.`);
+    _appendCom(com, `Kickoff at ${getStadiumName()}: ${getClubName()} vs ${matchOpponentName()}.`);
     requestAnimationFrame(step);
 
     // Initialize match status display
@@ -3284,7 +3306,7 @@ async function _animateMatchWithCommentary(events, canvas, com, tick, gf, ga) {
     updateMatchStatus();
     
     // Initialize commentary
-    const oppName = (typeof currentOpponent === 'function') ? (currentOpponent()?.team || 'Opposition') : 'Opposition';
+    const oppName = matchOpponentName();
     com.innerHTML = "";
     _appendCom(com, `Kickoff at ${getStadiumName()}: ${getClubName()} vs ${oppName}.`);
     

@@ -108,6 +108,19 @@
     set('kDebt', money(dc + dp));
     $('kDebt') && $('kDebt').classList.toggle('bad', dc + dp > 0);
     $('kClubCash') && $('kClubCash').classList.toggle('bad', (s.club_cash || 0) < 0);
+    // insolvency ladder: chip appears once net debt is on the way to the first rung
+    const dd = typeof window.debtDanger === 'function' ? window.debtDanger() : null;
+    const dEl0 = $('kStatDanger');
+    if (dEl0 && dd) {
+      const show = dd.stage > 0 || dd.net >= (dd.rungs[1].at * 0.5);
+      dEl0.hidden = !show;
+      const tone = dd.stage >= 3 || dd.level >= 3 ? 'bad' : dd.stage >= 1 || dd.level >= 1 ? 'warn' : 'ok';
+      dEl0.dataset.tone = tone;
+      set('kDanger', dd.stage > 0 ? `${dd.rungs[dd.stage].name}${dd.stage === 4 ? ` · ${Math.max(0, dd.grace - dd.admin_matches)} left` : ''}` : `${money(dd.net)} net`);
+      const bar = $('kDangerBar'); if (bar) bar.style.width = dd.pct + '%';
+      dEl0.title = `Net debt ${money(dd.net)} · next: ${dd.next.name} at ${money(dd.next.at)}`;
+      document.body.dataset.debt = tone;
+    }
     const rows = leagueRows();
     const pos = rows.findIndex(r => r.us) + 1;
     set('kLeagueK', pos ? `League · ${ordinal(pos)}` : 'League');
@@ -282,29 +295,30 @@
     root.querySelectorAll('button').forEach(b => {
       if (!b.classList.contains('opt')) return;
       const k = b.querySelector(':scope > kbd'); const vis = b.offsetParent !== null;
-      if (k) { const t = vis && n < 9 ? String(++n) : '·'; if (k.textContent !== t) k.textContent = t; }
+      if (k) { const t = vis && n < 10 ? String(++n % 10) : '·'; if (k.textContent !== t) k.textContent = t; }
     });
-    const hint = $('kHint'); if (hint) hint.textContent = n > 1 ? `press 1–${n}` : n === 1 ? 'press 1' : '';
+    const hint = $('kHint'); if (hint) hint.textContent = n > 9 ? 'press 1–9, 0' : n > 1 ? `press 1–${n}` : n === 1 ? 'press 1' : '';
     const dec = $('kDecision'); if (dec) dec.classList.toggle('empty', !root.querySelector('button, input, select, a'));
   }
   let numberQueued = false;
   function scanActions() {
     const root = $('actions'); if (!root) return;
+    if (root.querySelector('button:not([data-k-deco])')) openSheet(); // new choices arrived
     root.querySelectorAll('button').forEach(decorate);
     if (!numberQueued) { numberQueued = true; requestAnimationFrame(() => { numberQueued = false; numberChoices(); }); }
   }
   function afterChoices() { scanActions(); }
 
-  // keys 1–9 press the nth visible decision button (only when it is actually on top)
+  // keys 1–9 (and 0 for the 10th) press the nth visible decision button (only when it is actually on top)
   document.addEventListener('keydown', e => {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
     const tag = (document.activeElement && document.activeElement.tagName) || '';
     if (/INPUT|TEXTAREA|SELECT/.test(tag)) return;
     if (e.key === 'Escape') { if (closeTopPane() || closeTopLegacy()) { e.preventDefault(); } return; }
-    if (!/^[1-9]$/.test(e.key)) return;
+    if (!/^[0-9]$/.test(e.key)) return;
     const root = $('actions'); if (!root) return;
     const btns = [...root.querySelectorAll('button.opt')].filter(b => b.offsetParent !== null && !b.disabled);
-    const b = btns[+e.key - 1]; if (!b) return;
+    const b = btns[e.key === '0' ? 9 : +e.key - 1]; if (!b) return;
     const r = b.getBoundingClientRect();
     if (r.bottom < 0 || r.top > innerHeight) b.scrollIntoView({ block: 'nearest' });
     const r2 = b.getBoundingClientRect();
@@ -360,12 +374,37 @@
 
   // ---------- navigation ----------
   const click = id => { const b = $(id); if (b) b.click(); };
+  function finBooksHtml(s) {
+    const books = s.fin_last;
+    const rows = books && books.items && books.items.length
+      ? books.items.map(i => `<tr><td>${esc(i.label)}${i.debt ? ' <small>(added to debt)</small>' : ''}</td><td class="${i.debt || i.amount < 0 ? 'neg' : 'pos'}">${i.debt ? '+' + fmtFull(i.amount) : (i.amount < 0 ? '−' : '+') + fmtFull(Math.abs(i.amount))}</td></tr>`).join('')
+      : `<tr><td colspan="2" class="mut">No matchday played yet.</td></tr>`;
+    const ws = s.fin_season && s.fin_season.season === (s.season | 0) ? (s.fin_season.items["Women's team"] || 0) : 0;
+    return `<h4>Last matchday${books ? ` · S${books.season} MD${books.match}` : ''}</h4><table class="k-fin-books">${rows}</table>`
+      + (ws ? `<p class="k-fin-note">Women's team expenses this season: <b class="bad">${fmtFull(Math.abs(ws))}</b></p>` : '');
+  }
+  function finLadderHtml() {
+    const d = typeof window.debtDanger === 'function' ? window.debtDanger() : null;
+    if (!d) return '';
+    const s = St() || {};
+    const steps = d.rungs.slice(1).map((r, i) => {
+      const n = i + 1;
+      const cls = d.stage > n ? 'past' : d.stage === n ? 'on' : d.net >= r.at ? 'due' : '';
+      return `<li class="${cls}"><b>${esc(r.name)}</b><span>${money(r.at)}+</span></li>`;
+    }).join('');
+    const hist = s.insolvency && s.insolvency.log && s.insolvency.log.length
+      ? `<ul class="k-ladder-log">${s.insolvency.log.slice(-3).reverse().map(e => `<li>S${e.season} MD${e.match}: ${esc(e.line)}</li>`).join('')}</ul>` : '';
+    return `<h4>Debt danger</h4><div class="k-danger-meter" data-tone="${d.stage >= 3 || d.level >= 3 ? 'bad' : d.stage || d.level ? 'warn' : 'ok'}"><i style="width:${d.pct}%"></i></div>
+      <p class="k-fin-note">Net club debt <b>${fmtFull(d.net)}</b> (debt minus club cash). One rung per matchday while you're over the line; pay it down and they back off.${d.stage === 4 ? ` <b class="bad">Administration: ${Math.max(0, d.grace - d.admin_matches)} matchday(s) to fix it.</b>` : ''}</p>
+      <ol class="k-ladder">${steps}<li class="${d.stage === 4 && d.admin_matches >= d.grace ? 'on' : ''}"><b>Liquidation</b><span>+${d.grace} matchdays</span></li></ol>${hist}`;
+  }
   async function finances() {
     const s = St() || {};
     const dc = (typeof s.club_debt === 'number') ? s.club_debt : (s.debt_club | 0);
     const dp = (typeof s.debt_personal === 'number') ? s.debt_personal : (s.personal_debt | 0);
-    const v = await KUI.modal({ title: 'Finances', portrait: 'secretary',
-      html: `<div class="k-fin"><div><span>Club cash</span><b>${fmtFull(s.club_cash)}</b></div><div><span>Your cash</span><b>${fmtFull(s.chairman_cash)}</b></div><div><span>Club debt</span><b class="${dc > 0 ? 'bad' : ''}">${fmtFull(dc)}</b></div><div><span>Personal debt</span><b class="${dp > 0 ? 'bad' : ''}">${fmtFull(dp)}</b></div></div>`,
+    const v = await KUI.modal({ title: 'Finances', portrait: 'secretary', wide: true,
+      html: `<div class="k-fin"><div><span>Club cash</span><b>${fmtFull(s.club_cash)}</b></div><div><span>Your cash</span><b>${fmtFull(s.chairman_cash)}</b></div><div><span>Club debt</span><b class="${dc > 0 ? 'bad' : ''}">${fmtFull(dc)}</b></div><div><span>Personal debt</span><b class="${dp > 0 ? 'bad' : ''}">${fmtFull(dp)}</b></div></div>`
+        + `<div class="k-fin-cols"><section>${finBooksHtml(s)}</section><section>${finLadderHtml()}</section></div>`,
       actions: [{ id: 'move', label: '⇄ Move cash', variant: 'primary' }, { id: 'debt', label: 'Pay off debt', disabled: dc + dp <= 0 }, { id: 'close', label: 'Close' }] });
     if (v === 'move') { if (typeof openCashTransferModal === 'function') openCashTransferModal(); else click('transferCashBtn'); }
     if (v === 'debt' && typeof openDebtPaymentModal === 'function') openDebtPaymentModal();
@@ -408,11 +447,32 @@
     dot.hidden = !any;
   }
 
-  // phone: decision sheet can be collapsed to read the feed
-  function openSheet() { const d = $('kDecision'); if (d) d.classList.remove('collapsed'); }
+  // phone: decision sheet can be collapsed to read the feed. It drops to a peek bar on its own
+  // while narrative keeps arriving under an open menu, and springs back when new choices arrive.
+  let choicesAt = 0, touchedAt = 0;
+  function openSheet() { const d = $('kDecision'); if (d) d.classList.remove('collapsed'); choicesAt = Date.now(); }
   document.addEventListener('click', e => {
+    const peek = e.target.closest('#kDecision.collapsed h3');
+    if (peek && !e.target.closest('#kSheetToggle')) { openSheet(); touchedAt = Date.now(); return; }
     const t = e.target.closest('#kSheetToggle'); if (!t) return;
     const d = $('kDecision'); if (d) d.classList.toggle('collapsed');
+    touchedAt = Date.now();
+  });
+  document.addEventListener('pointerdown', e => { if (e.target.closest('#kDecision')) touchedAt = Date.now(); }, true);
+  const phone = () => matchMedia('(max-width: 900px)').matches;
+  GameHooks.on('log', () => {
+    if (!phone()) return;
+    const d = $('kDecision'), root = $('actions'); if (!d || !root || !root.querySelector('button.opt')) return;
+    const now = Date.now();
+    if (now - choicesAt < 700 || now - touchedAt < 1500) return; // the player's own click, or the menu just drew
+    d.classList.add('collapsed');
+  });
+  // phone: the top strip is one compact row; the chevron shows every stat
+  document.addEventListener('click', e => {
+    const t = e.target.closest('#kTopToggle'); if (!t) return;
+    const top = $('kTop'); if (!top) return;
+    const on = top.classList.toggle('expanded');
+    t.setAttribute('aria-expanded', on ? 'true' : 'false');
   });
 
   // ---------- wire up ----------

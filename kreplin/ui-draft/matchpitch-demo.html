@@ -1,0 +1,12 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>MatchPitch demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>body{background:#12151d;margin:0;padding:20px;color:#eee;font:14px monospace}#p{width:768px}</style></head>
+<body><div id="p"></div><div id="log"></div>
+<script src="matchpitch.js"></script>
+<script>
+const pitch = MatchPitch.mount(document.getElementById('p'), { home: 'Southampton', away: 'Everton' });
+const evs = [[1500,{kind:'FOUL'}],[3500,{kind:'GOAL',who:'HOME'}],[9000,{kind:'CARD',who:'AWAY',card:'YELLOW'}],
+  [11000,{kind:'STRETCHER_INJURY',who:'AWAY'}],[15000,{kind:'CRAZY_FAN_SHOOTING'}],[18000,{kind:'GOAL',who:'AWAY'}],[24000,{kind:'CARD',who:'HOME',card:'RED'}]];
+for (const [t, e] of evs) setTimeout(() => { pitch.event(e); document.getElementById('log').textContent += e.kind + ' '; }, t);
+</script></body></html>

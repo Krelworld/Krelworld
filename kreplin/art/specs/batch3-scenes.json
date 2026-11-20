@@ -1,0 +1,18 @@
+[
+  {"name": "bg-locker", "w": 384, "h": 216, "outline": "lineless", "shading": "detailed shading", "detail": "highly detailed", "view": "side",
+   "description": "interior of a grim football changing room, wooden benches, red and white kits hanging on pegs, tactics whiteboard with scribbles, steamy shower doorway, mud on tiled floor, harsh fluorescent light"},
+  {"name": "bg-press", "w": 384, "h": 216, "outline": "lineless", "shading": "detailed shading", "detail": "highly detailed", "view": "side",
+   "description": "football press conference room, long table with microphones and water bottles, sponsor backdrop wall with red and white logos, rows of journalists and camera flashes in the foreground"},
+  {"name": "bg-home", "w": 384, "h": 216, "outline": "lineless", "shading": "detailed shading", "detail": "highly detailed", "view": "side",
+   "description": "tacky english suburban kitchen diner at night, dinner table with cold plates of food, family photos, wine bottle, glowing tv in the corner, rain on window"},
+  {"name": "bg-nightclub", "w": 384, "h": 216, "outline": "lineless", "shading": "detailed shading", "detail": "highly detailed", "view": "side",
+   "description": "seedy nightclub VIP booth, neon pink and purple lights, champagne bottles, velvet sofas, dance floor with silhouettes, disco ball"},
+  {"name": "bg-boardroom", "w": 384, "h": 216, "outline": "lineless", "shading": "detailed shading", "detail": "highly detailed", "view": "side",
+   "description": "stern football association boardroom, long mahogany table, empty leather chairs, portraits of old men on walls, stacks of paperwork, grey daylight through tall windows"},
+  {"name": "bg-doctor", "w": 384, "h": 216, "outline": "lineless", "shading": "detailed shading", "detail": "highly detailed", "view": "side",
+   "description": "dodgy football club medical room, treatment table, shelves of unlabelled pill bottles and syringes, skeleton model, flickering lamp, dirty sink"},
+  {"name": "bg-prison", "w": 384, "h": 216, "outline": "lineless", "shading": "detailed shading", "detail": "highly detailed", "view": "side",
+   "description": "grim prison cell, metal bunk bed, steel toilet, barred window with moonlight, football poster taped to concrete wall"},
+  {"name": "bg-newsroom", "w": 384, "h": 216, "outline": "lineless", "shading": "detailed shading", "detail": "highly detailed", "view": "side",
+   "description": "messy tabloid newspaper office at night, desks with old computers, piles of newspapers, headline mockups pinned to the wall, coffee cups, red printing press glow"}
+]

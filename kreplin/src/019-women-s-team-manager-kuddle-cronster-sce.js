@@ -655,7 +655,7 @@ function playCronsterAnthem() {
     
     const skipDiv = document.createElement('div');
     skipDiv.id = 'juice-song-skip';
-    skipDiv.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10001; padding: 15px 30px; background: rgba(99, 102, 241, 0.9); border: 2px solid #6366f1; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
+    skipDiv.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10001; padding: 15px 30px; background: rgba(99, 102, 241, 0.9); border: 2px solid var(--red); border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
     skipDiv.textContent = 'Stop Song';
     skipDiv.onclick = () => {
       audio.pause();
@@ -2003,7 +2003,7 @@ async function watchSurveillanceFootage(location) {
     
     // Show video player with actual video
     const videoDiv = document.createElement('div');
-    videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid #6366f1; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
+    videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid var(--red); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
     
     // Use Dropbox direct download URL (dl=1 makes it a direct download link)
     const dropboxUrl = 'https://www.dropbox.com/scl/fi/uod1htoycrmns5omda7f2/Video-12-18-25-10-20-54-pm.mov?rlkey=4ul65tggdj73jcrggyas0kwbt&st=p94ivw3j&dl=1';
@@ -2021,7 +2021,7 @@ async function watchSurveillanceFootage(location) {
     xButton.onclick = closeHandler;
     xButton.title = 'Close';
     
-    videoDiv.innerHTML = '<div style="color: #6366f1; font-size: 24px; margin-bottom: 20px;">📹 SURVEILLANCE FOOTAGE</div><video id="secretZoneVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="' + dropboxUrl + '" type="video/quicktime"><source src="' + dropboxUrl + '" type="video/mp4">Your browser does not support the video tag.</video>';
+    videoDiv.innerHTML = '<div style="color: var(--gold); font-size: 24px; margin-bottom: 20px;">📹 SURVEILLANCE FOOTAGE</div><video id="secretZoneVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="' + dropboxUrl + '" type="video/quicktime"><source src="' + dropboxUrl + '" type="video/mp4">Your browser does not support the video tag.</video>';
     videoDiv.appendChild(xButton);
     document.body.appendChild(videoDiv);
     
@@ -2147,7 +2147,7 @@ async function watchSurveillanceFootage(location) {
     
     // Show video player with selected video
     const videoDiv = document.createElement('div');
-    videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid #6366f1; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
+    videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid var(--red); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
     
     // Create close handler function
     const closeHandler = () => {
@@ -2161,7 +2161,7 @@ async function watchSurveillanceFootage(location) {
     xButton.onclick = closeHandler;
     xButton.title = 'Close';
     
-    videoDiv.innerHTML = `<div style="color: #6366f1; font-size: 24px; margin-bottom: 20px;">📹 SURVEILLANCE FOOTAGE - Video ${videoNum + 1}</div><video id="hallwayVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="${videoUrl}" type="video/${isMov ? 'quicktime' : 'mp4'}"><source src="${videoUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
+    videoDiv.innerHTML = `<div style="color: var(--gold); font-size: 24px; margin-bottom: 20px;">📹 SURVEILLANCE FOOTAGE - Video ${videoNum + 1}</div><video id="hallwayVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="${videoUrl}" type="video/${isMov ? 'quicktime' : 'mp4'}"><source src="${videoUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
     videoDiv.appendChild(xButton);
     document.body.appendChild(videoDiv);
     

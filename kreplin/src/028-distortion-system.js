@@ -152,7 +152,7 @@ function sendInternalEmail(templateKey) {
   if (!isDistortionActive()) return;
   
   const template = INTERNAL_EMAIL_TEMPLATES[templateKey] || INTERNAL_EMAIL_TEMPLATES.A;
-  log(`<div style="border-left: 3px solid #6366f1; padding-left: 12px; margin: 8px 0; font-family: monospace; font-size: 0.9em; opacity: 0.9;">${template}</div>`);
+  log(`<div style="border-left: 3px solid var(--red); padding-left: 12px; margin: 8px 0; font-family: monospace; font-size: 0.9em; opacity: 0.9;">${template}</div>`);
 }
 
 // Public log(): lets 'log:veto' handlers swallow a line, writes it, then emits 'log'.

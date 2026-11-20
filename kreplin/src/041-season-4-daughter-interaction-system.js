@@ -393,7 +393,7 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
      // Check for Season 3 coma state
      if (S.season === 3 && S.season3 && S.season3.player_coma_between_seasons) {
        log(``);
-       log(`<strong style="font-size: 1.2em; color: #6366f1;">━━━ AWAKENING ━━━</strong>`);
+       log(`<strong style="font-size: 1.2em; color: var(--gold);">━━━ AWAKENING ━━━</strong>`);
        log(``);
        log(`You wake from the coma.`);
        log(`Months have passed. The world has moved on.`);

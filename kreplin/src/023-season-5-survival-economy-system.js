@@ -1326,11 +1326,11 @@ async function playTrainVideo(videoUrl) {
     }
     
     const videoDiv = document.createElement('div');
-    videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid #6366f1; z-index: 25000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
+    videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid var(--red); z-index: 25000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
     
     const xButton = document.createElement('button');
     xButton.textContent = '✕';
-    xButton.style.cssText = 'position: absolute; top: 10px; right: 10px; background: #6366f1; color: white; border: none; width: 30px; height: 30px; font-size: 20px; cursor: pointer; z-index: 25001;';
+    xButton.style.cssText = 'position: absolute; top: 10px; right: 10px; background: var(--red); color: white; border: none; width: 30px; height: 30px; font-size: 20px; cursor: pointer; z-index: 25001;';
     
     const closeVideo = () => {
       videoDiv.remove();
@@ -1345,7 +1345,7 @@ async function playTrainVideo(videoUrl) {
     
     xButton.onclick = closeVideo;
     
-    videoDiv.innerHTML = '<div style="color: #6366f1; font-size: 24px; margin-bottom: 20px;">📹</div><video id="trainVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="' + videoUrl + '" type="video/mp4">Your browser does not support the video tag.</video>';
+    videoDiv.innerHTML = '<div style="color: var(--gold); font-size: 24px; margin-bottom: 20px;">📹</div><video id="trainVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="' + videoUrl + '" type="video/mp4">Your browser does not support the video tag.</video>';
     videoDiv.appendChild(xButton);
     document.body.appendChild(videoDiv);
     

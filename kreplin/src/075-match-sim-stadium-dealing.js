@@ -1147,7 +1147,7 @@ async function showKreplinGemCelebration() {
       padding: 15px 40px;
       font-size: 24px;
       font-weight: 700;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      background: var(--red);
       color: #FFFFFF;
       border: 3px solid rgba(255, 255, 255, 0.3);
       border-radius: 12px;
@@ -1199,9 +1199,9 @@ async function playCronsterKreplinGemVideo() {
   
   // Show video player with actual video
   const videoDiv = document.createElement('div');
-  videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid #6366f1; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
+  videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid var(--red); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
   
-  videoDiv.innerHTML = '<div style="color: #6366f1; font-size: 24px; margin-bottom: 20px;">✨💎 KREPLIN GEM DISCOVERY 💎✨</div><video id="cronsterGemVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="' + videoUrl + '" type="video/mp4">Your browser does not support the video tag.</video>';
+  videoDiv.innerHTML = '<div style="color: var(--gold); font-size: 24px; margin-bottom: 20px;">✨💎 KREPLIN GEM DISCOVERY 💎✨</div><video id="cronsterGemVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="' + videoUrl + '" type="video/mp4">Your browser does not support the video tag.</video>';
   document.body.appendChild(videoDiv);
   
   // Wait for video to be closed or finished
@@ -1243,9 +1243,9 @@ async function playKreplinGemVideo() {
   
   // Show video player with actual video
   const videoDiv = document.createElement('div');
-  videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid #6366f1; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
+  videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid var(--red); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
   
-  videoDiv.innerHTML = '<div style="color: #6366f1; font-size: 24px; margin-bottom: 20px;">✨💎 KREPLIN GEM DISCOVERY 💎✨</div><video id="stadiumGemVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="' + videoUrl + '" type="video/mp4">Your browser does not support the video tag.</video>';
+  videoDiv.innerHTML = '<div style="color: var(--gold); font-size: 24px; margin-bottom: 20px;">✨💎 KREPLIN GEM DISCOVERY 💎✨</div><video id="stadiumGemVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="' + videoUrl + '" type="video/mp4">Your browser does not support the video tag.</video>';
   document.body.appendChild(videoDiv);
   
   // Wait for video to be closed or finished

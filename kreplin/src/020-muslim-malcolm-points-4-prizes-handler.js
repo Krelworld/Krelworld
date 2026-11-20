@@ -241,7 +241,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     
     // Show the video immediately (mandatory to watch)
     const videoDiv = document.createElement('div');
-    videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid #6366f1; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
+    videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid var(--red); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
     
     // Wait for video to be closed or finished
     await new Promise((resolve) => {
@@ -268,7 +268,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
       xButton.onclick = closeHandler;
       xButton.title = 'Close';
       
-      videoDiv.innerHTML = `<div style="color: #6366f1; font-size: 24px; margin-bottom: 20px;">📹 Mohammed Van Onslaught Press Conference</div><video id="vanOnslaughtPressVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="${videoUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
+      videoDiv.innerHTML = `<div style="color: var(--gold); font-size: 24px; margin-bottom: 20px;">📹 Mohammed Van Onslaught Press Conference</div><video id="vanOnslaughtPressVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="${videoUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
       videoDiv.appendChild(xButton);
       document.body.appendChild(videoDiv);
       
@@ -377,7 +377,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
         
         // Show the video (no autoplay - user must click play)
         const videoDiv = document.createElement('div');
-        videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid #6366f1; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
+        videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid var(--red); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
         
         // Create close handler function
         const closeHandler = () => {
@@ -391,7 +391,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
         xButton.onclick = closeHandler;
         xButton.title = 'Close';
         
-        videoDiv.innerHTML = `<div style="color: #6366f1; font-size: 24px; margin-bottom: 20px;">📹 ${videoTitle}</div><video id="loreVideo" controls style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="${videoUrl}" type="video/quicktime"><source src="${videoUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
+        videoDiv.innerHTML = `<div style="color: var(--gold); font-size: 24px; margin-bottom: 20px;">📹 ${videoTitle}</div><video id="loreVideo" controls style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="${videoUrl}" type="video/quicktime"><source src="${videoUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
         videoDiv.appendChild(xButton);
         document.body.appendChild(videoDiv);
         

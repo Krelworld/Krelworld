@@ -34,7 +34,7 @@ async function runSeason4Opener() {
   
   // (2) Opening Log Entry / Scene
   log(``);
-  log(`<strong style="font-size: 1.2em; color: #6366f1;">━━━ SEASON 4 ━━━</strong>`);
+  log(`<strong style="font-size: 1.2em; color: var(--gold);">━━━ SEASON 4 ━━━</strong>`);
   log(``);
   
   if (ABSENCE_REASON === 'COMA') {

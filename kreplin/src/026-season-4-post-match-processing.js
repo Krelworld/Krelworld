@@ -46,13 +46,13 @@ if (S.season === 5 && S.season5 && S.season5.initialized) {
     if (choice === 'yes') {
       // Show video modal
       const videoDiv = document.createElement('div');
-      videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid #6366f1; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
+      videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid var(--red); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
       
       const dropboxUrl = 'https://www.dropbox.com/scl/fi/q94f13zzvbbmjyfw48rv1/Video-1-8-26-3-10-33-pm.mp4?rlkey=bb5fcrcj493hojwnf3xdpzn6k&st=7vjwmg7c&dl=1';
       
       const xButton = document.createElement('button');
       xButton.textContent = '✕';
-      xButton.style.cssText = 'position: absolute; top: 10px; right: 10px; background: #6366f1; color: white; border: none; width: 30px; height: 30px; font-size: 20px; cursor: pointer; z-index: 10001;';
+      xButton.style.cssText = 'position: absolute; top: 10px; right: 10px; background: var(--red); color: white; border: none; width: 30px; height: 30px; font-size: 20px; cursor: pointer; z-index: 10001;';
       xButton.onclick = () => {
         videoDiv.remove();
         if (videoDiv.querySelector('video')) {
@@ -60,7 +60,7 @@ if (S.season === 5 && S.season5 && S.season5.initialized) {
         }
       };
       
-      videoDiv.innerHTML = '<div style="color: #6366f1; font-size: 24px; margin-bottom: 20px;">📹 SCHOOL HEAD OFFICE</div><video id="schoolWeaponsVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="' + dropboxUrl + '" type="video/mp4">Your browser does not support the video tag.</video>';
+      videoDiv.innerHTML = '<div style="color: var(--gold); font-size: 24px; margin-bottom: 20px;">📹 SCHOOL HEAD OFFICE</div><video id="schoolWeaponsVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="' + dropboxUrl + '" type="video/mp4">Your browser does not support the video tag.</video>';
       videoDiv.appendChild(xButton);
       document.body.appendChild(videoDiv);
       
@@ -408,18 +408,18 @@ async function triggerVanOnslaughtVisit() {
     
     // Show video modal
     const videoDiv = document.createElement('div');
-    videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid #6366f1; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
+    videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid var(--red); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
     
     const dropboxUrl = 'https://www.dropbox.com/scl/fi/jse4pu6hej5dxkd7yso3e/My-Movie-124.mp4?rlkey=c1tri0haymvl0oas8em1up9v6&st=bmnmf3f3&dl=1';
     
     const xButton = document.createElement('button');
     xButton.textContent = '✕';
-    xButton.style.cssText = 'position: absolute; top: 10px; right: 10px; background: #6366f1; color: white; border: none; width: 30px; height: 30px; font-size: 20px; cursor: pointer; z-index: 10001;';
+    xButton.style.cssText = 'position: absolute; top: 10px; right: 10px; background: var(--red); color: white; border: none; width: 30px; height: 30px; font-size: 20px; cursor: pointer; z-index: 10001;';
     xButton.onclick = () => {
       videoDiv.remove();
     };
     
-    videoDiv.innerHTML = '<div style="color: #6366f1; font-size: 24px; margin-bottom: 20px;">📹 MOHAMMED VAN ONSLAUGHT</div><video id="vanOnslaughtVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="' + dropboxUrl + '" type="video/mp4">Your browser does not support the video tag.</video>';
+    videoDiv.innerHTML = '<div style="color: var(--gold); font-size: 24px; margin-bottom: 20px;">📹 MOHAMMED VAN ONSLAUGHT</div><video id="vanOnslaughtVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="' + dropboxUrl + '" type="video/mp4">Your browser does not support the video tag.</video>';
     videoDiv.appendChild(xButton);
     document.body.appendChild(videoDiv);
     

@@ -937,7 +937,7 @@ async function showEndOfSeasonPresentation() {
     watchButton.style.cssText = `
       padding: 15px 30px;
       margin: 10px 0;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      background: var(--red);
       color: white;
       border: 2px solid #4f46e5;
       border-radius: 8px;
@@ -955,7 +955,7 @@ async function showEndOfSeasonPresentation() {
     watchButton.onmouseout = () => {
       watchButton.style.transform = 'translateY(0)';
       watchButton.style.boxShadow = '0 4px 12px rgba(99,102,241,0.3)';
-      watchButton.style.background = 'linear-gradient(135deg, #6366f1, #8b5cf6)';
+      watchButton.style.background = 'var(--red)';
     };
     
     watchButtonContainer.appendChild(watchButton);
@@ -971,7 +971,7 @@ async function showEndOfSeasonPresentation() {
         
         // Show the video
         const videoDiv = document.createElement('div');
-        videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid #6366f1; z-index: 20000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px; box-shadow: 0 0 40px rgba(99,102,241,0.5);';
+        videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid var(--red); z-index: 20000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px; box-shadow: 0 0 40px rgba(99,102,241,0.5);';
         
         // Create close handler function
         const closeHandler = () => {
@@ -986,7 +986,7 @@ async function showEndOfSeasonPresentation() {
         xButton.onclick = closeHandler;
         xButton.title = 'Close';
         
-        videoDiv.innerHTML = `<div style="color: #6366f1; font-size: 24px; margin-bottom: 20px;">📹 Historic Announcement</div><video id="historicAnnouncementVideo" controls style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="${announcementVideoUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
+        videoDiv.innerHTML = `<div style="color: var(--gold); font-size: 24px; margin-bottom: 20px;">📹 Historic Announcement</div><video id="historicAnnouncementVideo" controls style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="${announcementVideoUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
         videoDiv.appendChild(xButton);
         document.body.appendChild(videoDiv);
         

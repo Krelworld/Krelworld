@@ -1204,7 +1204,7 @@ async function triggerDaughterInteractionS4WithCinematic() {
             overflow: hidden;
             white-space: nowrap;
             position: relative;
-            border-right: 2px solid #6366f1;
+            border-right: 2px solid var(--red);
             animation: typewriterReveal 1.2s steps(40, end), blinkCursor 0.6s step-end infinite;
             color: #e0e0e0;
           `;
@@ -1252,7 +1252,7 @@ async function triggerDaughterInteractionS4WithCinematic() {
     left: 50%;
     transform: translate(-50%, 50%);
     background: rgba(99, 102, 241, 0.3);
-    border: 2px solid #6366f1;
+    border: 2px solid var(--red);
     color: #e0e0e0;
     padding: 14px 28px;
     font-size: 17px;

@@ -263,14 +263,14 @@ async function endOfSeason(){
       playButton.textContent = 'Continue';
       playButton.style.padding = '12px 30px';
       playButton.style.fontSize = '16px';
-      playButton.style.backgroundColor = '#6366f1';
+      playButton.style.backgroundColor = 'var(--red)';
       playButton.style.color = '#ffffff';
       playButton.style.border = 'none';
       playButton.style.borderRadius = '4px';
       playButton.style.cursor = 'pointer';
       playButton.style.transition = 'background-color 0.2s';
       playButton.onmouseover = () => { playButton.style.backgroundColor = '#4f46e5'; };
-      playButton.onmouseout = () => { playButton.style.backgroundColor = '#6366f1'; };
+      playButton.onmouseout = () => { playButton.style.backgroundColor = 'var(--red)'; };
       
       popupContainer.appendChild(messageText);
       popupContainer.appendChild(playButton);
@@ -1140,7 +1140,7 @@ async function runSeason5Opener() {
   if (!S.season5) S.season5 = {};
   
   log(``);
-  log(`<strong style="font-size: 1.2em; color: #6366f1;">━━━ SEASON 5 ━━━</strong>`);
+  log(`<strong style="font-size: 1.2em; color: var(--gold);">━━━ SEASON 5 ━━━</strong>`);
   log(``);
   
   // Ensure inventory is preserved from Season 4

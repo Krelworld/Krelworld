@@ -303,6 +303,8 @@ export interface MetaState {
   carry?: CarriedLoadout;
   /** The first-dungeon controls pop-up has been shown. */
   tutDungeon?: boolean;
+  /** The Chapter Select password has been given on this device (it isn't asked again). */
+  chapterSelectOk?: boolean;
   archiveUnlocked: string[];
   tvWatched: string[];
   completedWith: PlayableId[];

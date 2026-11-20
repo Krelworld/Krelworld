@@ -100,7 +100,9 @@ export class TitleScene extends Phaser.Scene {
     items.push(["NEW GAME", fresh(0)]);
     if (G.meta.ngPlusUnlocked) items.push(["NEW KREZ+", fresh(1)]);
     // jump to any chapter, side quest or boss (with the kit you finished with, if you've finished it)
-    items.push(["CHAPTER SELECT", () => fadeThen(this, 200, () => switchTo(this, "ChapterSelect"))]);
+    // (password-protected: asked once per device)
+    const toChapters = () => fadeThen(this, 200, () => switchTo(this, "ChapterSelect"));
+    items.push(["CHAPTER SELECT", () => (G.meta.chapterSelectOk ? toChapters() : this.askPassword(toChapters))]);
     // any KrelTV episode you've watched on any run, plus the ones that are always on (on-demand, no gifts)
     items.push(["WATCH TV", () => fadeThen(this, 200, () => switchTo(this, "TV", { fromTitle: true }))]);
     items.push(["SETTINGS", () => this.scene.launch("Menu", { mode: "settings", caller: "Title" })]);
@@ -118,6 +120,71 @@ export class TitleScene extends Phaser.Scene {
     this.input.keyboard?.once("keydown", () => synth.unlock());
     synth.music("title");
   }
+
+  /**
+   * The Chapter Select password, over the title. A real text box (so phones bring up their keyboard) laid over the
+   * canvas; Enter / OK checks it, Esc / CANCEL closes. Right once and this device isn't asked again.
+   */
+  private askPassword(ok: () => void) {
+    if (this.pwOpen) return;
+    this.pwOpen = true;
+    const box = this.add.container(0, 0).setDepth(1000);
+    box.add(this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x000000, 0.6).setOrigin(0).setInteractive());
+    box.add(panel(this, 270, 160, 420, 220));
+    box.add(this.add.text(480, 196, "🔒 CHAPTER SELECT", { fontFamily: FONT, fontSize: "20px", color: "#ffd23f", fontStyle: "bold" }).setOrigin(0.5));
+    box.add(this.add.text(480, 226, "Password:", { fontFamily: FONT, fontSize: "14px", color: "#ffffff" }).setOrigin(0.5));
+    const wrong = this.add.text(480, 296, "", { fontFamily: FONT, fontSize: "13px", color: "#f87171", fontStyle: "bold" }).setOrigin(0.5);
+    box.add(wrong);
+    // the text box itself: an HTML input over the canvas, kept in place if the window resizes
+    const inp = document.createElement("input");
+    inp.type = "password";
+    inp.autocomplete = "off";
+    inp.setAttribute("autocapitalize", "off");
+    inp.spellcheck = false;
+    Object.assign(inp.style, { position: "fixed", zIndex: "1000", font: "bold 16px monospace", textAlign: "center", background: "#0b0b1a", color: "#ffffff", border: "2px solid #ffd23f", borderRadius: "6px", outline: "none", padding: "0" });
+    const place = () => {
+      const r = this.game.canvas.getBoundingClientRect();
+      const sx = r.width / this.scale.width;
+      const sy = r.height / this.scale.height;
+      Object.assign(inp.style, { left: `${r.left + 360 * sx}px`, top: `${r.top + 244 * sy}px`, width: `${240 * sx}px`, height: `${32 * sy}px` });
+    };
+    place();
+    document.body.appendChild(inp);
+    window.addEventListener("resize", place);
+    // the game's own key handlers mustn't see the typing
+    this.input.keyboard && (this.input.keyboard.enabled = false);
+    setTimeout(() => inp.focus(), 50);
+    const close = () => {
+      window.removeEventListener("resize", place);
+      inp.remove();
+      box.destroy(true);
+      if (this.input.keyboard) this.input.keyboard.enabled = true;
+      this.pwOpen = false;
+    };
+    const check = () => {
+      if (inp.value.trim().toLowerCase() === "krunt") {
+        G.meta.chapterSelectOk = true;
+        G.saveMeta();
+        synth.play("select");
+        close();
+        ok();
+      } else {
+        synth.play("thud");
+        wrong.setText("Wrong password.");
+        inp.value = "";
+        inp.focus();
+      }
+    };
+    inp.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Enter") check();
+      else if (e.key === "Escape") close();
+    });
+    box.add(button(this, 400, 340, "OK", check, { w: 140, h: 34, size: 15, color: 0x166534 }));
+    box.add(button(this, 560, 340, "CANCEL", close, { w: 140, h: 34, size: 15 }));
+    this.events.once("shutdown", () => this.pwOpen && close());
+  }
+  private pwOpen = false;
 
   /** Yes / no over the title (NEW GAME when there's a run in the AUTO slot). Enter / Y = yes, Esc / N = no. */
   private confirmNew(text: string, yes: () => void) {

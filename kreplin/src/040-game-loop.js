@@ -2095,7 +2095,13 @@ if (!(S.season === 5 && S.season5 && S.season5.first_match_special_event && S.ma
 // Team walkout: no kickoff, the fixture is forfeited 3–0
 const forfeit = !!S._walkout_forfeit;
 S._walkout_forfeit = false;
-const how = forfeit ? 'forfeit' : await choose(kickoffOptions, "Kickoff Options");
+// The pre-match menu already asked how to kick off (watch live / skip to result);
+// only ask here if it didn't, and never for a one-option menu (special matches).
+const preKick = window.KPacing ? KPacing.takeKickoff() : null;
+const how = forfeit ? 'forfeit'
+  : (kickoffOptions.length === 1) ? kickoffOptions[0].key
+  : (preKick && kickoffOptions.some(o => o.key === preKick)) ? preKick
+  : await choose(kickoffOptions, "Kickoff Options");
 
 // --- capture the opponent AT KICKOFF so logs/table use the same team ---
 const oppAtKickoff = (typeof currentOpponent === 'function') ? currentOpponent() : { team: 'Opposition' };
@@ -2213,7 +2219,8 @@ if (isSeason5FirstMatch) {
 } else {
 }
 
-await waitAdvance("Post-Match", "Match finished. Process consequences?");
+// Pure "advance" gate: only kept for the Season 5 opener (its special track plays over it).
+if (isSeason5FirstMatch) await waitAdvance("Post-Match", "Match finished. Process consequences?");
 
 // Before postMatchPhase (second post-match in main game log), pause special music and resume normal background music
 // The special music will resume in the aftermath UI which comes after postMatchPhase

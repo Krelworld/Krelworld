@@ -1480,6 +1480,11 @@ async function preMatchTransfersAndBettingMenu(){
   // ensure preMatch bucket exists
   if (!S.preMatch || typeof S.preMatch !== 'object') S.preMatch = {};
 
+  // The knock at the door is answered as the pre-match opens (it had to be answered
+  // before kickoff anyway; an empty doorstep no longer costs a click). Visitors that
+  // re-arm the door (visitors_handled=false) still show the menu item.
+  if (!S.visitors_handled) { await openKnockDoor(); S.visitors_handled = true; }
+
   while (true) {
     
     // CRITICAL FIX: Wait for nuclear sequence to complete before showing menu
@@ -1498,9 +1503,8 @@ async function preMatchTransfersAndBettingMenu(){
     // Build items fresh each loop
     let items = [];
 
-    // visitors gate
-    items.push({ key:'door',
-      label: S.visitors_handled ? 'Answer the door (done)' : 'Answer the knock at the door' });
+    // visitors gate (only while someone is still knocking: the first knock is answered on entry)
+    if (!S.visitors_handled) items.push({ key:'door', label: 'Answer the knock at the door' });
 
     // core actions
     items.push(
@@ -1521,8 +1525,14 @@ async function preMatchTransfersAndBettingMenu(){
 
     // Brick throwing options removed from pre-match - they belong during the match
 
-    // proceed
-    items.push({ key:'kick', label:'Proceed to kickoff' });
+    // matchday pint: remembered once chosen (KPacing), switchable here
+    if (window.KPacing && KPacing.drinkPref() !== 'ask') {
+      items.push({ key:'drinkpref', label: KPacing.drinkPref() === 'drink' ? '🍺 Matchday pint: ON (tap to go sober)' : '🥤 Matchday pint: OFF (tap to have one)' });
+    }
+
+    // proceed: watch it live, or straight to the result (no separate "Kickoff Options" menu)
+    items.push({ key:'kick', label:'▶ Kick off (watch live)', variant:'good' });
+    items.push({ key:'kickskip', label:'⏩ Kick off — skip to result' });
 
     // de-dupe by key in case something else pushed the same entry
     {
@@ -1790,8 +1800,10 @@ async function preMatchTransfersAndBettingMenu(){
       }
     }
 
-    if (choice === 'kick'){
+    if (choice === 'drinkpref'){ KPacing.toggleDrink(); continue; }
+    if (choice === 'kick' || choice === 'kickskip'){
       if (!S.visitors_handled){ log("You should answer the knock at the door before kickoff."); continue; }
+      S._kickoffMode = (choice === 'kickskip') ? 'skip' : 'sim';
       return; // exit to match
     }
 

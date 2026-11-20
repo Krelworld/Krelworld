@@ -3738,7 +3738,7 @@ async function playChampionsLeagueGroupMatch() {
   
   // Drinking decision before Champions League match
   log("You have a moment before the match begins...");
-  const drinkChoice = await choose([
+  const drinkChoice = (window.KPacing && KPacing.drinkPref() !== 'ask') ? KPacing.drinkPref() : await choose([
     { key: 'sober', label: 'Stay sober and focused' },
     { key: 'drink', label: 'Have a drink (you might make some obnoxious remarks)' }
   ], 'Pre-match preparation');
@@ -3753,7 +3753,7 @@ async function playChampionsLeagueGroupMatch() {
   }
   
   // Kickoff options - same as regular matches
-  const how = await choose([
+  const how = (window.KPacing && KPacing.takeKickoff()) || await choose([
     {key: 'sim', label: 'Quick Simulate'},
     {key: 'skip', label: 'Skip to Results'}
   ], "Kickoff Options");
@@ -4003,7 +4003,7 @@ async function playSingleChampionsLeagueKnockoutMatch(opponent, roundName, round
   
   // Drinking decision before Champions League match
   log("You have a moment before the match begins...");
-  const drinkChoice = await choose([
+  const drinkChoice = (window.KPacing && KPacing.drinkPref() !== 'ask') ? KPacing.drinkPref() : await choose([
     { key: 'sober', label: 'Stay sober and focused' },
     { key: 'drink', label: 'Have a drink (you might make some obnoxious remarks)' }
   ], 'Pre-match preparation');
@@ -4018,7 +4018,7 @@ async function playSingleChampionsLeagueKnockoutMatch(opponent, roundName, round
   }
   
   // Kickoff options - same as regular matches
-  const how = await choose([
+  const how = (window.KPacing && KPacing.takeKickoff()) || await choose([
     {key: 'sim', label: 'Quick Simulate'},
     {key: 'skip', label: 'Skip to Results'}
   ], "Kickoff Options");
@@ -4399,7 +4399,7 @@ async function playWorldCupGroupMatch(opponent) {
   
   // Drinking decision before World Cup match
   log("You have a moment before the match begins...");
-  const drinkChoice = await choose([
+  const drinkChoice = (window.KPacing && KPacing.drinkPref() !== 'ask') ? KPacing.drinkPref() : await choose([
     { key: 'sober', label: 'Stay sober and focused' },
     { key: 'drink', label: 'Have a drink (you might make some obnoxious remarks)' }
   ], 'Pre-match preparation');
@@ -4413,7 +4413,7 @@ async function playWorldCupGroupMatch(opponent) {
     log("You stay focused and sober.");
   }
   
-  const how = await choose([
+  const how = (window.KPacing && KPacing.takeKickoff()) || await choose([
     {key: 'sim', label: 'Quick Simulate'},
     {key: 'skip', label: 'Skip to Results'}
   ], `World Cup Group Stage`);
@@ -4804,7 +4804,7 @@ async function playWorldCupKnockout(season) {
     
     // Drinking decision before World Cup final
     log("You have a moment before the match begins...");
-    const drinkChoice = await choose([
+    const drinkChoice = (window.KPacing && KPacing.drinkPref() !== 'ask') ? KPacing.drinkPref() : await choose([
       { key: 'sober', label: 'Stay sober and focused' },
       { key: 'drink', label: 'Have a drink (you might make some obnoxious remarks)' }
     ], 'Pre-match preparation');
@@ -4818,7 +4818,7 @@ async function playWorldCupKnockout(season) {
       log("You stay focused and sober.");
     }
     
-    const how = await choose([
+    const how = (window.KPacing && KPacing.takeKickoff()) || await choose([
       {key: 'sim', label: 'Quick Simulate'},
       {key: 'skip', label: 'Skip to Results'}
     ], `THE WORLD CUP FINAL`);
@@ -5018,7 +5018,7 @@ async function playWorldCupMatch(opponent, roundName, match, season) {
   
   // Drinking decision before World Cup match
   log("You have a moment before the match begins...");
-  const drinkChoice = await choose([
+  const drinkChoice = (window.KPacing && KPacing.drinkPref() !== 'ask') ? KPacing.drinkPref() : await choose([
     { key: 'sober', label: 'Stay sober and focused' },
     { key: 'drink', label: 'Have a drink (you might make some obnoxious remarks)' }
   ], 'Pre-match preparation');
@@ -5032,7 +5032,7 @@ async function playWorldCupMatch(opponent, roundName, match, season) {
     log("You stay focused and sober.");
   }
   
-  const how = await choose([
+  const how = (window.KPacing && KPacing.takeKickoff()) || await choose([
     {key: 'sim', label: 'Quick Simulate'},
     {key: 'skip', label: 'Skip to Results'}
   ], `${roundName} - Single Leg`);

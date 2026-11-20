@@ -1598,12 +1598,15 @@ async function playMatchPhaseWithTaunts(){
     S._preMatchMenuActive = false;
   }
   
-  // Drinking decision before match
+  // Drinking decision before match: asked once, then remembered (KPacing.drinkPref;
+  // switch it from the pre-match menu's "Matchday pint" toggle)
   log("You have a moment before the match begins...");
-  const drinkChoice = await choose([
+  const drinkPref = window.KPacing ? KPacing.drinkPref() : 'ask';
+  const drinkChoice = drinkPref !== 'ask' ? drinkPref : await choose([
     { key: 'sober', label: 'Stay sober and focused' },
     { key: 'drink', label: 'Have a relaxing drink of beer' }
-  ], 'Pre-match preparation');
+  ], 'Pre-match preparation\n\n(Your answer becomes your matchday habit — switch it any week from the pre-match menu.)');
+  if (drinkPref === 'ask' && window.KPacing) KPacing.setDrink(drinkChoice);
   
   if (drinkChoice === 'drink') {
     S.isDrunk = true;

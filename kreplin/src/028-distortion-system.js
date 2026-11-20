@@ -1441,7 +1441,7 @@ async function maybeEveningEvent(){
     {key:'home',   label:'Stay home (family time)', variant:'good'},
     {key:'study',  label:'Go to your study',        variant:'neutral'},
     {key:'club',   label:'Go to a nightclub',       variant:'bad'},
-    {key:'sleep',  label:'Sleep peacefully'},
+    {key:'sleep',  label:'Sleep peacefully (next week ▸)'},
   ];
   
   // Season 4 & 5: Add Tinder option if daughter suggested dating
@@ -1454,6 +1454,7 @@ async function maybeEveningEvent(){
   if(evening==='sleep'){
     S.drug_binge = 0;
     S.no_sleep = 0;
+    S._quiet_evening = true; // nothing to read: the main loop skips its "Next week" gate
     log('You turn in early and feel clearer in the morning.');
     render();
     return;

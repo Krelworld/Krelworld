@@ -154,6 +154,8 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
         el.dispatchEvent(new Event('change', { bubbles: true }));
       }
     }).catch(() => {});
+    // phone: the decision sheet drops to a peek bar while narrative arrives; a player taps it open
+    if (args.mobile && rnd() < 0.7) await p.evaluate(() => { const h = document.querySelector('#kDecision.collapsed h3'); if (h && document.querySelector('#actions button')) h.click(); }).catch(() => {});
     // candidate buttons: the topmost layer = elements actually hit-testable at their centre
     const cands = await p.evaluate(() => {
       const out = [];
@@ -198,6 +200,11 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
         if (buy.length) strong = buy;
       }
       if (same > 4 && pool.some(c => /^buy player$/i.test(c.text))) strong = pool.filter(c => /^buy player$/i.test(c.text));
+      // fewer than 5 players: sign anyone, on tick if the club is skint
+      if ((globalThis.__squad || 99) < 5) {
+        const sign = pool.filter(c => /transfer window|^buy player$|commit without paying|^pay from (club|chairman)|^sign /i.test(c.text) || /• skill \d+/i.test(c.text));
+        if (sign.length && rnd() < 0.8) strong = sign;
+      }
       const sinceMatch = i - (globalThis.__lastPlayedStep || 0);
       const pStrong = same > 6 ? 0.2 : sinceMatch > 40 ? 0.9 : 0.6;
       let src = (strong.length && rnd() < pStrong) ? strong : (pool.length ? pool : usable);

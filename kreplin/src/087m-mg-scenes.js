@@ -50,16 +50,17 @@
 .ks-date .table::before{content:'';position:absolute;left:50%;top:-22px;width:6px;height:20px;margin-left:-3px;background:#e9e6de;border:1px solid #000}
 .ks-date .table::after{content:'';position:absolute;left:50%;top:-30px;width:6px;height:8px;margin-left:-3px;background:#f29b2e;border-radius:50% 50% 30% 30%;box-shadow:0 0 14px 6px rgba(242,155,46,.5);animation:ksFlick .4s steps(2) infinite}
 .ks-date .plate{position:absolute;bottom:14px;width:46px;height:12px;background:#fff;border:2px solid #000;border-radius:50%}
-.ks-date .bub{position:absolute;top:8px;left:50%;transform:translateX(-50%);max-width:min(560px,86%);background:#f4f1ea;color:#0d1016;padding:5px 9px;border:2px solid #000;border-radius:4px;box-shadow:2px 2px 0 #000;
-  font:600 13px/1.25 var(--font-ui,monospace);white-space:normal;max-height:44px;overflow:hidden}
-.ks-date .meter{position:absolute;right:8px;bottom:52px;width:22px;height:96px;background:#0d1016;border:2px solid #000;box-shadow:0 0 0 2px #3a4258}
-.ks-date .meter i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,#3fbf6b,#f2c14e 50%,#e5484d);transition:height .8s ease-out}
-.ks-date .meter b{position:absolute;right:28px;bottom:-2px;font:700 10px var(--font-ui,monospace);color:#f2c14e;letter-spacing:1px;writing-mode:vertical-rl;transform:rotate(180deg);text-shadow:1px 1px 0 #000}
-.ks-date .meter em{position:absolute;left:-4px;right:-4px;top:-16px;text-align:center;font:700 11px var(--font-ui,monospace);font-style:normal;color:#fff;text-shadow:1px 1px 0 #000}
-.ks-date .bump{position:absolute;right:36px;bottom:120px;font:700 14px var(--font-ui,monospace);color:#e5484d;text-shadow:1px 1px 0 #000;animation:ksUp 1.2s ease-out forwards}
+.ks-date .bub{position:absolute;top:8px;left:8px;max-width:min(520px,calc(100% - 190px));background:#f4f1ea;color:#0d1016;padding:5px 9px;border:2px solid #000;border-radius:4px;box-shadow:2px 2px 0 #000;
+  font:600 13px/1.25 var(--font-ui,monospace);white-space:normal;max-height:48px;overflow:hidden}
+.ks-date .meter{position:absolute;right:8px;top:8px;width:170px;padding:4px 6px 5px;background:rgba(13,16,22,.88);border:2px solid #000;border-radius:4px;box-shadow:2px 2px 0 #000}
+.ks-date .meter b{display:flex;justify-content:space-between;font:700 10px/1.2 var(--font-ui,monospace);color:#f2c14e;letter-spacing:1px;margin-bottom:3px}
+.ks-date .meter b em{font-style:normal;color:#fff}
+.ks-date .meter s{display:block;position:relative;height:9px;background:#2e3547;border:1px solid #000;text-decoration:none}
+.ks-date .meter i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#3fbf6b,#f2c14e 50%,#e5484d);transition:width .8s ease-out}
+.ks-date .bump{position:absolute;right:14px;top:44px;font:700 14px var(--font-ui,monospace);color:#e5484d;text-shadow:1px 1px 0 #000;animation:ksUp 1.2s ease-out forwards}
 @keyframes ksFlick{50%{opacity:.75}}
 @keyframes ksUp{from{transform:translateY(8px);opacity:1}to{transform:translateY(-14px);opacity:0}}
-@media (max-width:700px){.ks-date{height:132px}.ks-date .who{width:64px;height:64px;bottom:30px}.ks-date .bub{font-size:12px;max-height:46px}.ks-date .meter{height:70px;bottom:46px}.ks-date .meter b{display:none}}
+@media (max-width:700px){.ks-date{height:172px}.ks-date .who{width:64px;height:64px;bottom:22px}.ks-date .table{height:26px}.ks-date .plate{display:none}.ks-date .bub{font-size:11px;max-height:38px;max-width:none;right:8px;top:auto;bottom:4px;padding:3px 7px}.ks-date .meter{left:8px;right:8px;width:auto;top:6px;padding:2px 6px 4px}.ks-date .bump{top:30px}}
 .k-px-portrait{image-rendering:pixelated!important;object-fit:cover}
 `;
     document.head.appendChild(st);
@@ -92,7 +93,7 @@
         const finish = id => { if (skipIv) clearInterval(skipIv); document.removeEventListener('keydown', onKey, true); done(id); };
         const pick = (opt) => {
           if (picked) return; picked = true;
-          opts.querySelectorAll('button').forEach(b => { b.disabled = true; });
+          opts.querySelectorAll('button').forEach((b, i) => { b.disabled = true; b.classList.toggle('primary', options[i] === opt); b.style.opacity = options[i] === opt ? '1' : ''; });
           const r = HT_REACT[opt.id] || 'nod';
           pls.forEach((p, i) => { p.src = A['mg-ht-player-' + r] || p.src; p.classList.remove('react'); void p.offsetWidth; p.classList.add('react'); p.style.animationDelay = (i * 0.08) + 's'; });
           cap.textContent = opt.description || opt.label || '';
@@ -120,7 +121,7 @@
   function awkwardness() {
     const s3 = (window.S && S.season3) || {};
     const raw = (s3.son_humiliation | 0) + (s3.player_jealousy | 0) + 0.5 * (s3.secretary_validation | 0);
-    return Math.max(0, Math.min(1, raw / 14));
+    return Math.max(0, Math.min(1, raw / 18));
   }
   const date = {
     elx: null, last: 0,
@@ -134,10 +135,10 @@
         <img class="who px" data-who="son" alt="" style="left:10%"><img class="who px" data-who="secretary" alt="" style="left:50%;margin-left:-42px">
         <img class="who px" data-who="you" alt="" style="right:14%">
         <div class="table"><span class="plate" style="left:12%"></span><span class="plate" style="left:calc(50% - 25px)"></span><span class="plate" style="right:16%"></span></div>
-        <div class="bub"></div><div class="meter" title="Awkwardness"><i style="height:0%"></i><em>0%</em><b>AWKWARDNESS</b></div>`;
+        <div class="bub"></div><div class="meter" title="Awkwardness"><b>AWKWARDNESS <em>0%</em></b><s><i></i></s></div>`;
       d.querySelector('[data-who=son]').src = A.son || '';
       d.querySelector('[data-who=secretary]').src = A.secretary || '';
-      const you = d.querySelector('[data-who=you]'); you.src = A.chairman || ''; you.style.transform = 'scaleX(-1)';
+      const you = d.querySelector('[data-who=you]'); you.src = A['mg-key-chairman'] || A.chairman || '';
       if (feedWrap && feedWrap.parentNode === host) host.insertBefore(d, feedWrap); else host.prepend(d);
       this.elx = d; this.last = awkwardness();
       this.update({ line: '', who: 'secretary' });
@@ -147,7 +148,7 @@
       const b = d.querySelector('.bub'); b.textContent = line || ''; b.style.display = line ? '' : 'none';
       d.querySelectorAll('.who').forEach(w => w.classList.toggle('talk', w.dataset.who === who));
       const a = awkwardness(), pct = Math.round(a * 100);
-      d.querySelector('.meter i').style.height = pct + '%';
+      d.querySelector('.meter i').style.width = pct + '%';
       d.querySelector('.meter em').textContent = pct + '%';
       if (a > this.last + 0.001) { const bump = el('div', 'bump', '+' + Math.round((a - this.last) * 100) + '%'); d.appendChild(bump); setTimeout(() => bump.remove(), 1300); }
       this.last = a;

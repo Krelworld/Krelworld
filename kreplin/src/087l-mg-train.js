@@ -208,7 +208,11 @@
         if (!r.done) {
           const sp = r.speed * (1 + 0.45 * Math.sin(r.t * 5.3) + 0.25 * Math.sin(r.t * 11.1));
           r.m += r.dir * sp * dt; if (r.m > 1) { r.m = 1; r.dir = -1; } if (r.m < 0) { r.m = 0; r.dir = 1; }
-          if (r.t > 0.6 && (input.pressed || input.keyPressed(' ') || input.keyPressed('Enter'))) {
+          const prs = input.pressed || input.keyPressed(' ') || input.keyPressed('Enter');
+          // still mashing from the ropes? presses closer than 0.35s apart don't count as the one deliberate roll
+          const mashing = prs && (r.t <= 0.6 || r.t - (r.lastIn == null ? -1 : r.lastIn) < 0.35);
+          if (prs) r.lastIn = r.t;
+          if (prs && !mashing) {
             r.done = true; r.hit = Math.abs(r.m - r.zc) <= r.zw / 2;
             if (r.hit) { g.phase = 'rolled'; g.endT = 0; g.outcome = 'rolled'; sfx.roll(); mg.banner('YOU ROLLED CLEAR!', C.good, 1.6); }
             else { mg.shake(3, 0.2); pop('NOOOO', W / 2, 120, C.redL, 14); }

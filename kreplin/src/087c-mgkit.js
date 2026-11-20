@@ -109,7 +109,7 @@
       keyPressed(k) { return this._kp.has(k); } };
     let start = null;
     const toLocal = e => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; };
-    const pd = e => { e.preventDefault(); canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId); const p = toLocal(e);
+    const pd = e => { e.preventDefault(); try { canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId); } catch (_) {} const p = toLocal(e);
       Object.assign(input, { down: true, x: p.x, y: p.y, pressed: true }); start = { ...p, t: performance.now() }; };
     const pm = e => { if (!input.down) return; const p = toLocal(e); input.x = p.x; input.y = p.y; };
     const pu = e => { if (!input.down) return; const p = toLocal(e); input.down = false; input.released = true; input.x = p.x; input.y = p.y;

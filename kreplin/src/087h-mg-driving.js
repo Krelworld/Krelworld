@@ -320,7 +320,7 @@
         ctx.fillStyle = '#fd4'; ctx.beginPath(); ctx.arc(90, 60, 10 + n * 16, 0, 7); ctx.fill();
         ctx.fillStyle = '#a65'; ctx.fillRect(84, 60, 12, 40 + n * 20);
       }
-      ctx.fillStyle = 'rgba(7,9,13,.78)'; ctx.fillRect(0, 120, W, 170);
+      ctx.fillStyle = 'rgba(7,9,13,.92)'; ctx.fillRect(0, 120, W, 170); // opaque enough that the world (stadium sign, car) can't read through the card text
       mg.text(won ? 'YOU MADE IT!' : 'NUCLEAR ARMAGEDDON!', 90, 138, { size: won ? 18 : 14, color: won ? '#3fbf6b' : '#e5484d' });
       const l1 = won ? ['You successfully delivered your', "daughter to St Mary's Stadium!"] : ['You ran out of time.', 'The nukes have landed.'];
       mg.text(l1[0], 90, 162, { size: 8, color: '#f4f1ea' }); mg.text(l1[1], 90, 173, { size: 8, color: '#f4f1ea' });

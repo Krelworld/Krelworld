@@ -27,3 +27,29 @@ Every minigame is rebuilt on `ui-draft/minigames/mgkit.js` (MGKit). Rules for al
 
 ## Build process
 Build each game as a standalone module `ui-draft/minigames/<game>.js` + demo page `ui-draft/minigames/<game>-demo.html` (loads mgkit.js + the module, runs the game with a fake `S` and logs the result). Verify with Playwright at 390x844 (touch emulation, `hasTouch:true`) and 1366x860 (mouse/keyboard): play it scripted to both a win and a loss, screenshot, check no page errors. Integration into `src/` happens later in one pass.
+
+## Integration (done)
+- Kit + modules live in `src/087c-mgkit.js` … `src/087l-mg-train.js`, scenes in `src/087m-mg-scenes.js`; the old
+  implementations were deleted, so each global has one definition. Demos in `ui-draft/minigames/*-demo.html` load the src parts.
+- Sprites: `@art` now embeds every `art/raw/*.png` (incl. `mg-*`); `MGKit.load()` maps any `…/<name>.png` URL to
+  `window.KREPLIN_ART[name]`, so modules keep their art-base paths and work both standalone and in the build.
+- Kit: `MGKit.tone/noise/sfx/tinted/wrapText/art`, `mg.button()`, `mg.giveUp()`, `MGKit.current`; blurs the focused
+  element on open; z-index above KUI modals; a 450 ms click shield after close stops ghost clicks on story buttons.
+- Test builds only (`__KREPLIN_TEST__`/`?debug`): with `MGKit.autoResolve = true` (or `window.__MG_AUTORESOLVE__`) each
+  minigame ends at once with a random contract-valid outcome (`opts.auto`). `tools/autoplay.js` sets it unless `--live-minigames`.
+- Fixes: taunt frustration rule is case-insensitive (owner-approved); train death stays terminal (story promise never
+  resolves, as in src/023); train last-chance roll ignores leftover rope-mashing; penalties brick accepts the items-array Brick.
+
+## Scenes (#11–13)
+- Half-time (`KreplinScenes.halftime`, both match overlays in src/025): KUI modal dressing room (bg-locker, 3 players,
+  `mg-ht-player-{idle,nod,scared,roid,shocked}`); options/effects unchanged; Esc/skip -> default as before.
+- Restaurant date (src/020 ACT III.5): table panel above the feed with an AWKWARDNESS meter
+  (= son_humiliation + player_jealousy + ½ secretary_validation, /18); dialogue still runs through `choose()`.
+  Meter consequences wired in season 3 (src/020):
+  - `player_jealousy >= 4`: drive-home scene drops the supportive line ("You can't bring yourself to say anything nice…").
+  - `secretary_validation >= 6`: her cringey texts arrive more often (40% -> 70% per match).
+  - `son_humiliation >= 6`: the son brings the restaurant up when he pitches the Krunchem plan (ACT IV);
+    he also looks smaller at the table.
+  - `son_humiliation >= 8`: framing him for the murders (ACT V) sticks — "he doesn't have the fight left", police_risk −5.
+- Tinder (src/083): cards, chat header and matches list use pixel portraits (`mg-tinder-*`, fictional people);
+  swipe mechanics unchanged.

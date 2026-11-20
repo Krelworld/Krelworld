@@ -516,6 +516,8 @@ startPreMatchInitBetting();
 if (!S.preMatch) S.preMatch = {};
 
 // Send Delmor's intro message in first pre-match
+// Awaited interruptions (press/drugs/corruption systems): Marco, favours, drug tests
+await GameHooks.emitAsync('prematch:events');
 if (typeof sendRivalIntroMessage === 'function') {
   sendRivalIntroMessage();
 }

@@ -1807,6 +1807,8 @@ async function openNewsPortal(){
   const content = document.createElement('div');
   const archive = document.createElement('div');
   archive.style.marginTop = '24px';
+  // stories still on journalists' desks (leads, 087o-sys-press)
+  if (window.KSys && typeof KSys.newsTab === 'function') tabs.appendChild(KSys.newsTab(content, archive));
 
   shell.appendChild(tabs);
   shell.appendChild(content);
@@ -3652,6 +3654,17 @@ function applyStoryEffects(story) {
     } else if (effect === 'legalRisk') {
       S.legal_risk = clamp((S.legal_risk || 0) + value, 0, 100);
     }
+    } else if (effect === 'sponsor') {
+      // a sponsor pulls out: club cash (negative value)
+      S.club_cash = (S.club_cash || 0) + value;
+    } else if (effect === 'board') {
+      S.board_support = clamp((S.board_support || 50) + value, 0, 100);
+    } else if (effect === 'police_risk') {
+      S.police_risk = Math.max(0, (S.police_risk || 0) + value);
+    } else if (effect === 'compliance_risk') {
+      S.compliance_risk = clamp((S.compliance_risk || 0) + value, 0, 100);
+    } else if (effect === 'fa_heat') {
+      S.fa_heat = Math.max(0, (S.fa_heat || 0) + value);
   }
 
   // Affair / bedroom-habits / protection gossip triggers a wife confrontation

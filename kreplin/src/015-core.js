@@ -49,6 +49,9 @@ window.addEventListener('unhandledrejection', function(e) {
      'prison:match'              each match day spent in the prison loop
      'choices' ({root, prompt, options})  after choose() has drawn a menu's buttons
      'init'                      after init() has created/loaded S
+     'prematch:events'           AWAITED (GameHooks.emitAsync) early in the pre-match, once the
+                                 opponent is cached: interruptions that need a menu/modal
+                                 (dealer collections, favours called in, drug tests)
      'matchday:end'              once per match, after postMatchPhase (finalizeMatchDay has
                                  reset the per-match morale fields): kickbacks, cocaine crash,
                                  drug-day resets
@@ -73,6 +76,12 @@ const GameHooks = (function(){
         try { if (fn(...args) === false) vetoed = true; } catch (e) { console.error(`GameHooks '${evt}' handler failed:`, e); }
       }
       return vetoed;
+    },
+    // awaited variant: handlers may be async (menus/modals); run one after another
+    async emitAsync(evt, ...args){
+      for (const fn of list(evt).slice()){
+        try { await fn(...args); } catch (e) { console.error(`GameHooks '${evt}' handler failed:`, e); }
+      }
     }
   };
 })();

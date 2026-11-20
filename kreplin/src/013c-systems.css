@@ -1,0 +1,50 @@
+/* ===================== KREPLIN deeper systems (press leads, dossier) ===================== */
+/* lead card: a torn bit of tabloid, in the feed, the news portal and the dossier */
+.k-lead{background:var(--white);color:#141414;border:var(--px) solid #000;border-left:6px solid var(--red);border-radius:var(--r);padding:8px 12px 10px;margin:4px 0 8px;box-shadow:0 2px 0 #000;font-family:Georgia,'Times New Roman',serif;max-width:640px}
+.k-lead .mast{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font:900 12px/1.3 Georgia,serif;letter-spacing:2px;color:var(--red);border-bottom:1px solid #141414;padding-bottom:3px;margin-bottom:4px}
+.k-lead .mast span{font:italic 400 12px Georgia,serif;letter-spacing:0;color:#444}
+.k-lead h4{margin:2px 0 4px;font:900 17px/1.15 Georgia,serif;text-transform:uppercase;color:#000;overflow-wrap:anywhere}
+.k-lead p{margin:0 0 6px;font-size:14px;color:#222}
+.k-lead .k-lead-intro{font:700 12px var(--font-ui);letter-spacing:.5px;color:#7a0b10;text-transform:uppercase;margin-bottom:2px}
+.k-lead-meta{display:flex;flex-wrap:wrap;gap:4px 14px;font:12px var(--font-ui);color:#333}
+.k-lead-meta .when{font-weight:700;color:#000;background:#f2c14e;padding:0 6px;border-radius:2px}
+.k-lead.hot .k-lead-meta .when{background:var(--red);color:#fff}
+.k-lead.cold .k-lead-meta .when{background:#d9d4c7}
+.k-lead.done{opacity:.75;border-left-color:#777}
+.k-lead.done .k-lead-meta .when{background:#777;color:#fff}
+.k-lead .k-lead-btn{margin-top:8px;background:#111;color:#fff;border:var(--px) solid #000;border-radius:var(--r);padding:5px 12px;font:600 13px var(--font-ui);cursor:pointer;min-height:32px}
+.k-lead .k-lead-btn:hover{background:var(--red)}
+.k-line .k-lead{margin-left:-6px}
+.k-dossier .k-lead h4{margin:2px 0 4px;font:900 17px/1.15 Georgia,serif;letter-spacing:0;text-transform:uppercase;color:#000}
+.k-lead-note{font:italic 13px Georgia,serif;color:#333}
+/* top bar press chip */
+#kStatLeads[data-tone="bad"] .v{color:var(--red-l)} #kStatLeads[data-tone="warn"] .v{color:var(--warn)}
+#kStatLeads[data-tone="bad"]{border-color:var(--red)}
+/* dossier */
+.k-dossier .k-dtabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.k-dossier .k-dtabs button{background:var(--panel2);color:var(--text);border:var(--px) solid var(--line2);border-radius:var(--r);padding:5px 10px;font:600 13px var(--font-ui);cursor:pointer;min-height:32px}
+.k-dossier .k-dtabs button.on{background:var(--red);border-color:var(--red-d);color:#fff}
+.k-dossier h4{margin:12px 0 6px;font:700 13px var(--font-ui);letter-spacing:1px;text-transform:uppercase;color:var(--gold)}
+.k-dossier .k-sub{color:var(--muted);font-size:13px}
+.k-dossier .bad,.k-sub.bad{color:var(--red-l)}
+.k-dossier .mut{color:var(--muted);font-size:13px}
+.k-dlist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.k-dlist li{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:6px 8px;overflow-wrap:anywhere}
+.k-dbtn{background:var(--panel2);color:var(--text);border:var(--px) solid var(--line2);border-radius:var(--r);padding:3px 10px;font:600 12px var(--font-ui);cursor:pointer;margin-left:6px;min-height:28px}
+.k-dbtn:hover{border-color:var(--red)}
+.k-dtable{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+.k-dtable th{text-align:left;color:var(--muted);font:600 11px var(--font-ui);text-transform:uppercase;padding:4px;border-bottom:1px solid var(--line2)}
+.k-dtable th:first-child{width:52px} .k-dtable th:nth-child(3){width:52px} .k-dtable th:nth-child(4){width:96px}
+.k-dtable td{padding:5px 4px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+.k-dtable td small{color:var(--muted)}
+.k-dtable tr.leaked td:nth-child(4){color:var(--red-l)}
+.k-dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.k-dgrid>div{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:8px;display:grid;gap:4px}
+.k-dgrid span{color:var(--muted);font:600 11px var(--font-ui);text-transform:uppercase;letter-spacing:.5px}
+.k-dgrid small{color:var(--muted)}
+.k-dbar{display:block;height:8px;background:var(--ink);border:1px solid var(--line2);border-radius:2px;overflow:hidden}
+.k-dbar i{display:block;height:100%;background:var(--gold)}
+.k-dbar[data-tone="warn"] i{background:var(--warn)} .k-dbar[data-tone="bad"] i{background:var(--red)}
+.k-modal .k-quote{font:italic 16px Georgia,serif;color:var(--white);border-left:3px solid var(--red);padding-left:10px}
+.k-modal.news .k-quote{color:#111}
+@media (max-width:600px){ .k-dtable th:nth-child(3),.k-dtable td:nth-child(3){display:none} .k-dtable th:nth-child(4){width:80px} }

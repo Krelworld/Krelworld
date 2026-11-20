@@ -312,7 +312,8 @@ async function applyImpulseEffect(impulseLabel, title) {
         const targetPlayer = S.squad.find(p => p?.name === playerName) || S.squad[0];
         const playerId = targetPlayer?.name || playerName;
         
-        S.evidence[playerId] = "drugs";
+        // planted evidence lives in the evidence file (S.evidence[]); the FA test reads it too
+        if (typeof addEvidence === 'function') addEvidence({ kind: 'planted', label: `Bag of cocaine planted in ${playerId}'s locker`, weight: 8, target: playerId, tags: ['drugs', 'planted'], noLeak: true });
         log(`You plant a bag of cocaine in ${playerId}'s locker. This could be useful later.`);
         
         // Enable blackmail route (set flag for existing systems)

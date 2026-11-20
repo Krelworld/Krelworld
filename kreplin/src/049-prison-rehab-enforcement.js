@@ -305,7 +305,7 @@
     let adjustedChance = chance + cokeRisk;
 
     // Check for planted evidence
-    if (S.evidence && Object.keys(S.evidence).length > 0) {
+    if (Array.isArray(S.evidence) && S.evidence.some(e => e && e.kind === 'planted')) {
       adjustedChance += 0.2; // +20% chance if evidence is planted
     }
 

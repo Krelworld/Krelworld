@@ -720,6 +720,8 @@ function normalizeGameState(state) {
   if (!Array.isArray(state.squad)) state.squad = [];
   if (!Array.isArray(state.lineup)) state.lineup = [];
   if (!Array.isArray(state.paperTrail)) state.paperTrail = [];
+  // evidence/leads/favours/drugs systems (converts the legacy S.evidence map once)
+  if (typeof ensureSystemsState === 'function') ensureSystemsState(state);
   if (!Array.isArray(state.pending_births)) state.pending_births = [];
   if (!Array.isArray(state.transfer_market)) state.transfer_market = [];
   if (!Array.isArray(state.unpaid_transfers)) state.unpaid_transfers = [];
@@ -738,7 +740,8 @@ function normalizeGameState(state) {
     'std_treatment_attempts', 'std_last_treatment_match', 'pregnancies',
     'bribes_count', 'morale_opponent', 'very_bad_std_matches', 'very_bad_std_treatment_attempts',
     'very_bad_std_last_treatment_match', 'estranged_kids', 'press_threats',
-    'wives_count', 'kids_count', 'baby_care_weekly', 'divorces', 'marco_deal_count'
+    'wives_count', 'kids_count', 'baby_care_weekly', 'divorces', 'marco_deal_count',
+    'fa_heat'
   ];
   
   numericFields.forEach(field => {
@@ -1010,7 +1013,9 @@ function ensureLeagueTableInit(){
   }
 }
 // ---------- paper trail ----------
-function addPaper(item,severity=10){ S.paperTrail.push({item,week:S.matches_played}); S.paperRisk = clamp(S.paperRisk+severity,0,100); }
+function addPaper(item,severity=10){ S.paperTrail.push({item,week:S.matches_played}); S.paperRisk = clamp(S.paperRisk+severity,0,100); addPaperEvidence(item,severity); }
+// paper-trail items are already public: they go in the dossier and speed up any lead on the same theme
+function addPaperEvidence(item,severity){ try{ if (typeof addEvidence==='function' && window.KSys && KSys.themeOfText) addEvidence({ kind:'paper', label:String(item), weight:Math.round((severity||10)/2), tags:[KSys.themeOfText(item)], leaked:true }); }catch(_){} }
 function burnPaper(minReduce=8){ S.paperRisk = clamp(S.paperRisk - rnd(minReduce, minReduce+8), 0, 100); }
 
 // ---------- secretary ----------

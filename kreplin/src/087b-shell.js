@@ -212,14 +212,23 @@
   }
 
   // ---------- right column: match brief + league ----------
+  let lastPinned = null;
   function currentOpp() {
     const s = St(); if (!s || !Array.isArray(s.opponents) || !s.opponents.length) return null;
     const i = Math.min(s.matches_played | 0, s.opponents.length - 1);
     const mc = s.matchContext, mp = s.matches_played | 0;
+    const after = curPhase === 'match' || curPhase === 'postmatch';
     if (mc && mc.team && typeof mc.roundIndex === 'number') {
+      lastPinned = { team: mc.team, manager: mc.manager, roundIndex: mc.roundIndex, season: s.season };
       // pinned at kickoff: during the match and its aftermath (matches_played already bumped)
       // the banner must keep naming the fixture just played, not the next one
-      if (mc.roundIndex === mp || (mc.roundIndex === mp - 1 && (curPhase === 'match' || curPhase === 'postmatch'))) return { team: mc.team, manager: mc.manager };
+      if (mc.roundIndex === mp || (mc.roundIndex === mp - 1 && after)) return { team: mc.team, manager: mc.manager };
+    }
+    // post-match clears matchContext before the evening: keep naming the fixture just played
+    if (after && mp > 0) {
+      if (lastPinned && lastPinned.roundIndex === mp - 1 && lastPinned.season === s.season) return { team: lastPinned.team, manager: lastPinned.manager };
+      const j = Math.min(mp - 1, s.opponents.length - 1);
+      return { team: s.opponents[j], manager: Array.isArray(s.opponentManagers) ? s.opponentManagers[j] : null };
     }
     return { team: s.opponents[i], manager: Array.isArray(s.opponentManagers) ? s.opponentManagers[i] : null };
   }

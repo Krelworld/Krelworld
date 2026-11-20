@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Taunt Bubbles Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#12151d;color:#e9e6de;font:14px 'Pixelify Sans',monospace;padding:16px}button{font:600 14px 'Pixelify Sans',monospace;background:#d71920;color:#fff;border:2px solid #ff4a50;border-radius:4px;padding:10px 14px;margin:4px 4px 4px 0;cursor:pointer}pre{background:#0d1016;border:2px solid #2e3547;padding:8px;white-space:pre-wrap;min-height:80px;font:12px monospace}</style>
+</head><body>
+<h1 style="font-size:20px;margin:0 0 8px">KREPLIN · In-match taunts</h1>
+<button id="go">presentInteractiveTauntOptions()</button> <button id="drunk">toggle drunk</button>
+<pre id="out"></pre>
+<script>
+// fake game globals (subset of src/028 pools)
+const TAUNTS = {
+  mild: ["PASS THE FUCKING BALL", "SHOOT!", "FOOTBALL!", "WAKE UP!", "DON'T FUCKING DWELL!"],
+  salty: ["SHOOT AT THE FUCKING GOAL", "GET STUCK IN!", "DON'T PLAY FUCKING ABOUT AT THE BACK! GET YOUR COCKS STUCK IN", "HEAD UP YOU CLOWN!"],
+  extreme: ["CUNTS!", "THE REFEREE IS A DEAD MAN FUCKING WALKING!", "TWO FOOTED TACKLE THE CUNT!", "PUNCH HIM WHEN THE REF AINT LOOKING!"],
+  drunk: ["I'VE BEEN DRINKING ALL DAY AND I'M STILL NOT AS SHIT AS YOU!", "DRUNK OFF MY TITS AND STILL MORE TALENTED!"],
+  saints: ["OH WHEN THE SAINTS!", "COME ON YOU SAINTS!", "RED AND WHITE ARMY!"]
+};
+function rollTauntMenu(fr) { const all = [].concat(...Object.values(S.isDrunk ? TAUNTS : { m: TAUNTS.mild, s: TAUNTS.salty, e: TAUNTS.extreme, sa: TAUNTS.saints })); const o = new Set(); while (o.size < 4) o.add(all[Math.floor(Math.random() * all.length)]); return [...o]; }
+function addSessionShout(s) { if (!Array.isArray(S.sessionShouts)) S.sessionShouts = []; S.sessionShouts.push(s); }
+window.S = { frustration: 40, isDrunk: false, sessionShouts: [] };
+</script>
+<script src="mgkit.js"></script><script src="taunts.js"></script>
+<script>
+const out = document.getElementById('out');
+const logFn = m => { out.textContent += 'log: ' + m + '\n'; window.__lastLog = m; };
+async function run() {
+  const before = S.frustration;
+  const r = await presentInteractiveTauntOptions(logFn);
+  out.textContent += `RESOLVED ${JSON.stringify(r)} frustration ${before} -> ${S.frustration}\n`;
+  window.__result = { ret: r, before, after: S.frustration, shout: S.sessionShouts[S.sessionShouts.length - 1], log: window.__lastLog };
+}
+document.getElementById('go').onclick = run;
+document.getElementById('drunk').onclick = () => { S.isDrunk = !S.isDrunk; out.textContent += 'drunk=' + S.isDrunk + '\n'; };
+</script></body></html>

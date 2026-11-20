@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kreplin Keypad Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#12151d;color:#e9e6de;font:14px 'Pixelify Sans',monospace;padding:16px}button{font:600 14px 'Pixelify Sans',monospace;background:#d71920;color:#fff;border:2px solid #ff4a50;border-radius:4px;padding:10px 14px;margin:4px 4px 4px 0;cursor:pointer}pre{background:#0d1016;border:2px solid #2e3547;padding:8px;white-space:pre-wrap;min-height:80px;font:12px monospace}</style>
+</head><body>
+<h1 style="font-size:20px;margin:0 0 8px">KREPLIN · The Kreplin Protocol (keypad)</h1>
+<button id="go">Start showKreplinProtocolUI()</button>
+<pre id="out"></pre>
+<script src="mgkit.js"></script><script src="keypad.js"></script>
+<script>
+const out = document.getElementById('out');
+window.S = { game_over: false };
+window.log = m => { out.textContent += 'log: ' + m + '\n'; };
+window.KREPLIN_PROTOCOL_VIDEO = 'data:video/mp4;base64,AAAA'; // demo: force the video error path (offline)
+window.showKreplinEpilogue = async () => { out.textContent += '[epilogue]\n'; };
+async function run() {
+  S.game_over = false; delete S.game_over_reason;
+  const r = await showKreplinProtocolUI();
+  out.textContent += 'RESOLVED ' + JSON.stringify(r) + '  S=' + JSON.stringify(S) + '\n';
+  window.__result = { ret: r, S: JSON.parse(JSON.stringify(S)) };
+}
+document.getElementById('go').onclick = run;
+</script></body></html>

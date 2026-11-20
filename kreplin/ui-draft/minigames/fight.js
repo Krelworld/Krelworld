@@ -51,8 +51,8 @@
       patterns: ['P.P.', 'PKP.', 'B.P.', 'D.D.', 'P.BK', 'PP.D', 'K.B.', 'B.DP', 'PPK.', 'D.PB'] },
   };
   const TYPES = {
-    P: { label: 'PUNCH', hint: 'TAP', col: '#f2c14e', atk: true, base: 6 },
-    K: { label: 'KICK', hint: 'SWIPE UP', col: '#ff6a3a', atk: true, base: 9 },
+    P: { label: 'PUNCH', hint: 'TAP', col: '#f2c14e', atk: true, base: 3 },
+    K: { label: 'KICK', hint: 'SWIPE UP', col: '#ff6a3a', atk: true, base: 4.5 },
     B: { label: 'BLOCK', hint: 'SWIPE DOWN', col: '#3d7bd9', atk: false },
     D: { label: 'DODGE', hint: 'SWIPE SIDE', col: '#3fbf6b', atk: false },
   };
@@ -101,7 +101,7 @@
       g.combo++; g.best = Math.max(g.best, g.combo); if (gr.n === 'PERFECT') g.stats.perfect++;
       if (g.combo % 10 === 0) { sfx.combo(); mg.banner(g.combo + ' COMBO!', C.gold, 0.8); }
       setGrade(gr);
-      const cm = 1 + Math.min(g.combo, 20) * 0.04;
+      const cm = 1 + Math.min(g.combo, 20) * 0.03;
       if (T.atk) {
         g.pPose = cue.type === 'K' ? 'kick' : 'punch'; g.pT = 0.22;
         hurtOpp(Math.round(T.base * gr.m * cm), cue.type === 'K', gr);
@@ -116,7 +116,7 @@
     }
     function miss(cue, why) {
       g.stats.miss++; setGrade({ n: 'MISS', c: C.redL });
-      if (TYPES[cue.type].atk) hurtPlayer(5, why || 'TOO SLOW');
+      if (TYPES[cue.type].atk) hurtPlayer(4, why || 'TOO SLOW');
       else hurtPlayer(V.hitDmg[0] + Math.floor(Math.random() * (V.hitDmg[1] - V.hitDmg[0] + 1)), V.hitName);
     }
     function act(action, when) {

@@ -176,7 +176,7 @@
         }
       }
       if (G.d >= D_END) {
-        G.d = D_END; G.state = 'won'; G.t = 0; mg.banner('YOU MADE IT!', '#3fbf6b', 1.5); mg.flash('#fff', .3);
+        G.d = D_END; G.state = 'won'; G.t = 0; mg.flash('#fff', .3); sfx('square', 523, 1046, 0.4, 0.15);
         for (let i = 0; i < 50; i++) mg.particles.spawn({ x: 90, y: 120, vx: (Math.random() - .5) * 160, vy: -Math.random() * 120, g: 140, life: 1.4, color: ['#d71920', '#fff', '#f2c14e'][i % 3], size: 2 });
         _log("You've reached St Mary's Stadium! You made it in time!"); stopMusic(); return;
       }

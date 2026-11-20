@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Brick Throw Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../kui.css">
+<style>body{margin:0;background:#12151d;color:#e9e6de;font:14px 'Pixelify Sans',monospace;padding:16px}button{font:inherit;padding:8px 14px;background:#d71920;color:#fff;border:2px solid #ff4a50;border-radius:4px;margin:0 6px 6px 0}#log{white-space:pre-wrap;margin-top:12px}</style>
+</head><body>
+<h1>throwBrickAt (skill layer)</h1>
+<button data-t="referee">Brick the referee</button><button data-t="manager">Brick their manager</button>
+<div id="log"></div>
+<script>
+  window.KMG_ART = '../../art/raw/';
+  // fake S + the bits of src/ that throwBrickAt uses
+  var S = { morale: 0, matchContext: {} };
+  const brickThrow = { consumeOnThrow: true, targets: {
+    manager: { arrest: 0.6, morale: [-5, -12], quality: [-2, -6], newsNote: 'You aim a brick at the opposing manager!' },
+    referee: { arrest: 0.8, morale: [-8, -15], quality: [-3, -8], newsNote: 'You target the referee with a brick!' } } };
+  function log(m){ document.getElementById('log').textContent += m + '\n'; console.log('[log]', m); }
+  const addSessionShout = () => {}, hasBrickEquipped = () => true, removeItem = () => log('(brick consumed)');
+  async function triggerArrestFlow(c){ log('(triggerArrestFlow stub) ' + JSON.stringify(c)); }
+  // === src/028 throwBrickAt with the 3-line integration applied ===
+  async function throwBrickAt(targetType, context = {}) {
+    if (!hasBrickEquipped()) { log("You need to have a Brick equipped to throw it!"); return; }
+    const target = brickThrow.targets[targetType];
+    if (!target) { log("Invalid brick target!"); return; }
+    log(target.newsNote); addSessionShout(target.newsNote);
+    const hitMult = (typeof throwBrickMinigame === 'function') ? await throwBrickMinigame(targetType, context, { debug: true }) : 1; // NEW
+    window.__mult = hitMult; log('hit multiplier: x' + hitMult);
+    if (target.morale) {
+      const delta = (target.morale[0] + Math.random() * (target.morale[1] - target.morale[0])) * hitMult; // * hitMult NEW
+      S.morale = Math.max(-100, Math.min(100, (S.morale || 0) + delta));
+      log(`Team morale ${delta > 0 ? 'increased' : 'decreased'} by ${Math.abs(delta).toFixed(1)}.`);
+    }
+    if (target.quality && context.opponent) {
+      const delta = (target.quality[0] + Math.random() * (target.quality[1] - target.quality[0])) * hitMult; // * hitMult NEW
+      if (!S.matchContext) S.matchContext = {}; if (!S.matchContext.opponentQualityMod) S.matchContext.opponentQualityMod = 0;
+      S.matchContext.opponentQualityMod += delta;
+      log(`Opponent quality reduced by ${Math.abs(delta).toFixed(1)} for this match.`);
+    }
+    if (Math.random() < target.arrest) { log("🚨 ARREST: Police are called immediately!"); await triggerArrestFlow({ reason: 'threw_brick', target: targetType }); }
+    if (brickThrow.consumeOnThrow) removeItem("Brick", 1);
+  }
+</script>
+<script src="mgkit.js"></script>
+<script src="brick.js"></script>
+<script>
+  const q = new URLSearchParams(location.search);
+  async function run(t){ window.__result = null; await throwBrickAt(t, t === 'manager' ? { opponent: { name: 'Portsmouth' } } : {}); window.__result = String(window.__mult); log('RESULT mult=' + window.__mult + ' S=' + JSON.stringify(S)); }
+  document.querySelectorAll('button[data-t]').forEach(b => b.onclick = () => run(b.dataset.t));
+  if (q.has('auto')) run(q.get('auto') || 'referee');
+</script>
+</body></html>

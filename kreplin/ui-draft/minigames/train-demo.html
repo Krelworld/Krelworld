@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Train Tracks Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#12151d;color:#e9e6de;font:14px 'Pixelify Sans',monospace;padding:16px}button{font:600 14px 'Pixelify Sans',monospace;background:#d71920;color:#fff;border:2px solid #ff4a50;border-radius:4px;padding:10px 14px;margin:4px 4px 4px 0;cursor:pointer}pre{background:#0d1016;border:2px solid #2e3547;padding:8px;white-space:pre-wrap;min-height:80px}</style>
+</head><body>
+<h1 style="font-size:20px;margin:0 0 8px">KREPLIN · Train-tracks escape</h1>
+<button id="all">All items (items[] brick + HGH + coke)</button><button id="legacy">Brick via S.inventory.brick only</button><button id="none">No items (last chance)</button>
+<pre id="out"></pre><div id="actions"></div>
+<script src="mgkit.js"></script><script src="train.js"></script>
+<script>
+const out = document.getElementById('out');
+window.log = m => { out.textContent += 'log: ' + m + '\n'; };
+window.playTrainVideo = async url => { out.textContent += '[video] ' + url.split('/').slice(-1)[0].split('?')[0] + '\n'; };
+window.handleTrainDeath = async () => { out.textContent += '[handleTrainDeath] splat-train.mp4 + YOU ARE DEAD - GAME OVER\n'; window.__dead = true; };
+const presets = {
+  all: { inventory: { items: [{ name: 'Brick', equipped: true }], drugs: 2 }, doctor: { hgh_stock: 1 } },
+  legacy: { inventory: { brick: 1 } },
+  none: { inventory: { items: [] }, doctor: { hgh_stock: 0 } },
+};
+for (const k in presets) document.getElementById(k).onclick = async e => { e.target.blur(); window.S = JSON.parse(JSON.stringify(presets[k])); window.__result = null; window.__dead = false;
+  const r = await KreplinTrain.startTrainTracksSequence({ music: null }); window.__result = r; out.textContent += 'RESULT ' + r + '\n'; };
+</script></body></html>

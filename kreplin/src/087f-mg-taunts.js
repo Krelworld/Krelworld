@@ -1,7 +1,7 @@
 /* ===================== KREPLIN — In-match taunt bubbles =====================
    Drop-in for src/028 presentInteractiveTauntOptions(logFn = null): Promise<void>.
    Same option source (rollTauntMenu(S.frustration) -> TAUNTS fallback -> pickInvective), same log line
-   `You shout: "..."`, same addSessionShout(), same frustration rule (+15 if it contains fucking/wanker/cunt,
+   `You shout: "..."`, same addSessionShout(), same frustration rule (+15 if it contains fuck(ing)/wanker/cunt/bastard/twat/bellend,
    +8 if it contains saints/southampton, else +5; capped at 100) — now case-insensitive (owner-approved bug fix).
    NEW: 3 pixel speech bubbles; tap one (or 1/2/3) within 3s. Timeout -> random pick from the options, as before.
 */
@@ -17,7 +17,7 @@
   // Owner-approved fix: the old rule compared lowercase words against ALL-CAPS taunts, so nearly everything scored +5.
   function frustrationDelta(t) {
     const s = String(t).toLowerCase();
-    if (s.includes('fucking') || s.includes('wanker') || s.includes('cunt')) return 15;
+    if (/fuck|wanker|cunt|bastard|twat|bellend/.test(s)) return 15;
     if (s.includes('saints') || s.includes('southampton')) return 8;
     return 5;
   }

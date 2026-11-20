@@ -4,6 +4,9 @@
 //   Marco credit -> debt -> called in;  doping -> FA test -> ban of a named player
 //   favour owed -> called in -> refused (evidence);  Surveillance / Blackmail / Policy favour
 //   legacy save migration (S.evidence map -> array, once)
+//   phase 2: 3-deep chats + memory callbacks, stale texts, deadline texts, sext evidence,
+//   wife -> ex-wife (Delmor dirt buries a lead), Tinder agendas/tells/Surveillance reveal,
+//   "Done swiping", date outcomes, an alibi used against a police case, Sarah's arc ending bleak
 // Usage: node tools/systems-test.js [--jump 2:3] [--shots dir] [--mobile]
 const { chromium, devices } = require('playwright');
 const path = require('path');
@@ -206,6 +209,208 @@ const ok = (cond, msg) => { console.log(`${cond ? 'PASS' : 'FAIL'}  ${msg}`); if
   const bm = await E(() => { const m0 = S.morale_opponent = 70; GameHooks.emit('prematch:end'); const d = KSys.freeDirt()[0]; const f = d && KSys.blackmailWithDirt(d.id); return { drop: m0 - S.morale_opponent, pending: S.power_blackmail_pending, fav: !!f }; });
   ok(bm.drop >= 20 && !bm.pending, `Blackmail: a key opponent drops out (opp morale −${bm.drop})`);
   ok(bm.fav, 'Blackmail turns dirt into a favour owed to you');
+
+  // ======================= PHASE 2: texting =======================
+  const phoneBtn = async (re, timeout = 5000) => {
+    await p.waitForFunction(src => [...document.querySelectorAll('#phone-choice-container button')].some(x => new RegExp(src, 'i').test(x.innerText)), re.source, { timeout }).catch(() => {});
+    return p.evaluate(src => { const b = [...document.querySelectorAll('#phone-choice-container button')].find(x => new RegExp(src, 'i').test(x.innerText)); if (b) { b.click(); return b.innerText; } return null; }, re.source);
+  };
+  const closePhone = () => E(() => { try { closePhoneTextPopup(); } catch (_) {} });
+  await closePhone();
+  await E(() => { initPhoneSystem(); const c = S.contacts.captain; c.textsThisPhase = 0; c.history = []; c.queued_texts = []; delete S.relationships.captain; });
+  // level 1 = the existing quick-text tone; levels 2 and 3 = follow-ups
+  p.evaluate(() => openContactChat('captain'));
+  const t1 = await phoneBtn(/Friendly/);
+  const t2 = await phoneBtn(/Proper captain/);
+  const t3 = await phoneBtn(/Love you mate/);
+  await p.waitForFunction(() => (S.contacts.captain.history || []).filter(h => h.from === 'them').length >= 3, null, { timeout: 6000 }).catch(() => {});
+  if (shots) { await p.waitForTimeout(400); await p.screenshot({ path: `${shots}/phone-chat-3deep.png` }); }
+  const chat = await E(() => ({ you: S.contacts.captain.history.filter(h => h.from === 'you').map(h => h.text), them: S.contacts.captain.history.filter(h => h.from === 'them').length, mem: S.relationships.captain.memory.map(m => m.quote), warmth: S.relationships.captain.warmth }));
+  ok(!!t1 && !!t2 && !!t3 && chat.you.length >= 3 && chat.them >= 3, `3-deep captain chat: ${chat.you.map(x => '"' + x.slice(0, 28) + '"').join(' > ')}`);
+  ok(chat.mem.includes('love you mate') && chat.warmth > 50, `captain remembers "${chat.mem.join('", "')}" (warmth ${chat.warmth})`);
+  // weeks later he brings it up
+  await E(() => { S.sys.tick += 3; S.contacts.captain.textsThisPhase = 0; window.__r0 = Math.random; Math.random = () => 0.1; });
+  await phoneBtn(/Leave it|Back/); await closePhone();
+  p.evaluate(() => openContactChat('captain'));
+  await phoneBtn(/Friendly/);
+  await p.waitForFunction(() => S.contacts.captain.history.some(h => h.from === 'them' && /love you mate/i.test(h.text)), null, { timeout: 6000 }).catch(() => {});
+  await E(() => { Math.random = window.__r0; });
+  const cb = await E(() => (S.contacts.captain.history.filter(h => h.from === 'them').pop() || {}).text);
+  const cbAny = await E(() => S.contacts.captain.history.find(h => h.from === 'them' && /love you mate/i.test(h.text)));
+  ok(!!cbAny, `memory callback, matches later: "${cbAny ? cbAny.text : cb}"`);
+  await closePhone();
+
+  // stale: unread for two matches costs (captain sulks -> morale; Marco adds interest)
+  const stale = await E(() => {
+    S.drugs.debt = 20000; const debt0 = S.drugs.debt;
+    queueIncomingText('captain', 'Gaffer? (test)'); queueIncomingText('bookie_marco', 'oi (test)');
+    const w0 = KSys.rel('captain').warmth, m0 = S.morale;
+    GameHooks.emit('matchday:end'); GameHooks.emit('matchday:end');
+    const e = S.contacts.captain.queued_texts.find(x => /test/.test(x.text));
+    return { stale: !!(e && e.stale), dw: KSys.rel('captain').warmth - w0, dm: S.morale - m0, debtUp: S.drugs.debt - debt0, note: (S.contacts.captain.queued_texts.find(x => x.staleNote) || {}).text };
+  });
+  ok(stale.stale && stale.dw < 0 && stale.debtUp >= 5000, `unread texts go stale: captain warmth ${stale.dw}, morale ${stale.dm}, Marco tab +${stale.debtUp} ("${stale.note}")`);
+
+  // deadline: "reply by kickoff" or it lands
+  const dl = await E(() => {
+    const th = KSys.THREADS.mgr_board; S.contacts.manager.queued_texts = [];
+    const e = KSys.queueThread('manager', th); const t0 = KSys.rel('manager').trust, m0 = S.morale;
+    KSys.checkDeadlines(); const early = e.expired;
+    S.sys.tick += 1; KSys.checkDeadlines();
+    return { early, expired: e.expired, dt: KSys.rel('manager').trust - t0, dm: S.morale - m0, text: e.text };
+  });
+  ok(!dl.early && dl.expired && dl.dt < 0, `deadline text expires at kickoff if unanswered (manager trust ${dl.dt}, morale ${dl.dm}): "${dl.text.slice(0, 60)}…"`);
+  // ...and an answered one doesn't
+  await E(() => { S.contacts.captain.queued_texts = []; KSys.queueThread('captain', KSys.THREADS.cap_bonus); S.contacts.captain.textsThisPhase = 0; });
+  p.evaluate(() => openContactChat('captain'));
+  const ans = await phoneBtn(/Double it/);
+  await p.waitForTimeout(400);
+  const dl2 = await E(() => { const e = S.contacts.captain.queued_texts.find(x => x.thread === 'cap_bonus'); S.sys.tick += 1; KSys.checkDeadlines(); return { answered: e.answered, expired: e.expired }; });
+  ok(!!ans && dl2.answered && !dl2.expired, 'answering a deadline text in time defuses it');
+  await closePhone();
+
+  // a sext becomes evidence (and may be screenshotted)
+  const ev0 = await E(() => S.evidence.length);
+  await E(() => { S.contacts.captain_wife.textsThisPhase = 0; S.contacts.captain_wife.flirt_level = 0; });
+  p.evaluate(() => openContactChat('captain_wife'));
+  await phoneBtn(/Erotic/);
+  await p.waitForFunction(() => S.evidence.some(e => e.kind === 'sext' && e.witness === 'captain_wife'), null, { timeout: 6000 }).catch(() => {});
+  const sext = await E(() => S.evidence.filter(e => e.kind === 'sext' && e.witness === 'captain_wife').pop());
+  ok(!!sext && sext.tags.includes('sex'), `a sext becomes evidence: "${sext && sext.label}"${sext && sext.screenshot ? ' (screenshotted)' : ''}`);
+  await phoneBtn(/Leave it/, 1500); await closePhone();
+
+  // wife (S1–3) -> "Ex-wife (at Delmor's)" in S4: taunts + Delmor dirt that buries a lead
+  const season0 = await E(() => S.season);
+  const wife = await E(() => { S.married = true; if (!S.wife_name) S.wife_name = 'Babs Kreplin'; KSys.syncWife(); return { wife: !!(S.contacts.wife && S.contacts.wife.unlocked), ex: !!(S.contacts.ex_wife && S.contacts.ex_wife.unlocked) }; });
+  ok(wife.wife && !wife.ex, 'season 1–3: your wife is in your contacts');
+  await E(() => { S.contacts.wife.queued_texts = []; KSys.queueThread('wife', KSys.THREADS.wife_recital); });
+  p.evaluate(() => openContactChat('wife'));
+  await phoneBtn(/Board meeting/); await phoneBtn(/tactical prawns/i);
+  await p.waitForFunction(() => S.contacts.wife.history.filter(h => h.from === 'them').length >= 2, null, { timeout: 6000 }).catch(() => {});
+  const wchat = await E(() => S.contacts.wife.history.map(h => (h.from === 'you' ? '> ' : '< ') + h.text.slice(0, 50)));
+  ok(wchat.length >= 4, `wife thread: ${wchat.join(' | ')}`);
+  await closePhone();
+  const ex = await E(() => {
+    S.season = 4; S.season4 = S.season4 || {}; S.season4.wife_left_for_delmor = true; KSys.syncWife();
+    S.sys.exNextDirt = S.sys.tick; S.sys.threadsThisTick = 0; KSys.exWifeTick();
+    const e = KSys.pendingThread('ex_wife');
+    return { wife: !!S.contacts.wife.unlocked, ex: !!S.contacts.ex_wife.unlocked, name: S.contacts.ex_wife.name, pending: e && e.text, mem: KSys.rel('ex_wife').memory.length };
+  });
+  ok(!ex.wife && ex.ex && /Delmor/.test(ex.name), `season 4: "${ex.name}" replaces the wife (memories carried: ${ex.mem})`);
+  p.evaluate(() => openContactChat('ex_wife'));
+  await p.waitForSelector('#phone-choice-container .phone-choice-btn', { timeout: 5000 }).catch(() => {});
+  if (shots) { await p.waitForTimeout(500); await p.screenshot({ path: `${shots}/phone-ex-wife-dirt.png` }); }
+  await phoneBtn(/Send me proof/);
+  await p.waitForFunction(() => S.dirt.some(d => d.from === 'ex_wife'), null, { timeout: 6000 }).catch(() => {});
+  if (shots) { await p.waitForTimeout(500); await p.screenshot({ path: `${shots}/phone-ex-wife-reply.png` }); }
+  const buried = await E(async () => {
+    const d = S.dirt.find(x => x.from === 'ex_wife' && !x.used); if (!d) return null;
+    S.leads.filter(l => l.status === 'active').forEach(l => KSys.endLead(l, 'killed', 'cleanup'));
+    const ev = addEvidence({ kind: 'coke', label: 'Test: ex-wife bury', weight: 12, noLeak: true }); ev.leaked = true;
+    const lead = KSys.createLead('drugs', [ev], null);
+    const r = await KSys.killLead(lead, 'dirt:' + d.id);
+    return { r, status: lead.status, note: lead.note };
+  });
+  ok(buried && buried.status === 'buried', `ex-wife's Delmor dirt buries a lead (${buried && buried.note})`);
+  const taunt = await E(() => { S.sys.exNextDirt = S.sys.tick + 5; S.sys.threadsThisTick = 0; const n0 = S.contacts.ex_wife.queued_texts.length; const r0 = Math.random; Math.random = () => 0.1; try { KSys.exWifeTick(); } finally { Math.random = r0; } const e = S.contacts.ex_wife.queued_texts.slice(-1)[0] || {}; return { text: e.text, cat: e.category, added: S.contacts.ex_wife.queued_texts.length > n0 }; });
+  ok(taunt.added && taunt.cat === 'malicious', `ex-wife taunts: "${taunt.text}"`);
+  await closePhone();
+
+  // ======================= PHASE 2: Tinder =======================
+  await E(() => { S.season4.daughter_suggested_dating = true; ensureTinderFlags(); S.season4.tinder_profile_created = true; S.season4.tinder_bio = ['Love abit of connection x']; S.surveillance = { active: false, until: -1, tinderReveal: false }; S.sys.surveillanceUntil = -1; });
+  const swipe = async () => {
+    p.evaluate(() => { window.__sw = openTinderSwiping(); });
+    await p.waitForSelector('#tinderStartBtn', { state: 'visible', timeout: 5000 });
+    await p.click('#tinderStartBtn');
+    await p.waitForTimeout(300);
+  };
+  await swipe();
+  const card0 = await E(() => ({ tell: (document.querySelector('#tinderCard .k-tinder-tell') || {}).innerText, agenda: !!document.querySelector('#tinderCard .k-tinder-agenda'), done: !!document.getElementById('tinderDoneBtn') }));
+  if (shots) await p.screenshot({ path: `${shots}/tinder-card-tell.png` });
+  ok(!!card0.tell && !card0.agenda, `Tinder card shows a tell, agenda hidden without Surveillance ("${card0.tell}")`);
+  ok(card0.done, 'swiping has a "Done swiping" exit');
+  await p.click('#tinderDoneBtn');
+  const closed = await E(async () => { await Promise.race([window.__sw, new Promise(r => setTimeout(r, 4000))]); return document.getElementById('tinderModal').classList.contains('hidden'); });
+  ok(closed, '"Done swiping" closes Tinder and returns');
+  // Surveillance: every agenda revealed
+  await E(() => KSys.onSurveillance());
+  await swipe();
+  const seen = {};
+  for (let i = 0; i < 12; i++) {
+    const c = await E(() => ({ name: (document.getElementById('tinderCardName') || {}).innerText, ag: (document.querySelector('#tinderCard .k-tinder-agenda b') || {}).innerText, hidden: document.getElementById('tinderModal').classList.contains('hidden') }));
+    if (c.hidden) break;
+    if (c.ag && !seen[c.ag]) { seen[c.ag] = c.name; if (shots && /PLANT/.test(c.ag)) await p.screenshot({ path: `${shots}/tinder-card-surveillance.png` }); }
+    await p.click('#tinderPassBtn', { force: true }).catch(() => {});
+    await p.waitForTimeout(450);
+  }
+  const ags = Object.keys(seen);
+  ok(['JOURNALIST', 'PLANT', 'GOLD-DIGGER', 'GENUINE'].every(k => ags.some(a => a.includes(k))), `Surveillance reveals every agenda: ${ags.map(a => `${a} (${seen[a]})`).join(', ')}`);
+  await E(() => { const m = document.getElementById('tinderModal'); m.classList.add('hidden'); });
+  // a match keeps the agenda and lands in your phone
+  const rec = await E(() => { const m = KSys.tinderOnMatch({ name: 'Gemma', agenda: 'journalist', tell: 'Job: media' }); KSys.tinderOnMatch({ name: 'Kayleigh', agenda: 'plant' }); KSys.tinderOnMatch({ name: 'Chanel', agenda: 'golddigger' }); KSys.tinderOnMatch({ name: 'Sarah', agenda: 'genuine' }); return { agenda: m.agenda, contact: !!(S.contacts[m.contact] && S.contacts[m.contact].unlocked) }; });
+  ok(rec.agenda === 'journalist' && rec.contact, 'a match keeps her agenda and becomes a phone contact');
+  // "Talk about work" with the journalist: a quote becomes evidence and her lead jumps
+  await E(() => { S.leads.filter(l => l.status === 'active').forEach(l => KSys.endLead(l, 'killed', 'cleanup')); S.sys.newLeadTick = -1; });
+  const tw = E(() => KSys.tinderTalkWork({ name: 'Gemma' }));
+  await clickModal(/Greggs/); await tw;
+  const greggs = await E(() => { const ev = S.evidence.find(e => /Greggs/.test(e.label)); const l = ev && S.leads.find(x => x.evidenceIds.includes(ev.id)); return { ev: !!ev, stage: l && l.stage, progress: l && l.progress }; });
+  ok(greggs.ev && greggs.stage >= 2, `journalist fishes a quote: evidence + lead jumps to stage ${greggs.stage + 1}`);
+  // date outcomes per agenda
+  const date = async (name, re) => { const pr = p.evaluate(n => KSys.tinderDateOutcome(n), name); for (const r of [].concat(re)) await clickModal(r); return pr; };
+  await E(() => { S.leads.filter(l => l.status === 'active').forEach(l => KSys.endLead(l, 'killed', 'cleanup')); S.sys.newLeadTick = -1; });
+  const o1 = await date('Gemma', /Brilliant/);
+  const kt = await E(() => S.evidence.some(e => /sold her night/.test(e.label) && e.leaked));
+  ok(o1 && (o1.includes('kiss_and_tell') || o1.includes('photos')) && (kt || o1.includes('photos')), `journalist date: ${o1.join(', ')}`);
+  const pr = p.evaluate(() => KSys.tinderDateOutcome('Kayleigh'));
+  await p.waitForSelector('.k-modal-wrap .k-out-plant', { timeout: 4000 }).catch(() => {});
+  if (shots) { await p.waitForTimeout(400); await p.screenshot({ path: `${shots}/tinder-date-outcome-plant.png` }); }
+  await clickModal(/Brilliant/); const o2 = await pr;
+  const plant = await E(() => ({ intel: S.sys.pompeyIntel, bugged: S.sys.bugged > S.sys.tick, delmor: (S.contacts.delmor_krunchem.queued_texts.slice(-1)[0] || {}).text }));
+  ok(o2.includes('plant') && plant.intel >= 2 && plant.bugged, `plant date: Delmor gets your tactics ("${plant.delmor}")`);
+  const pr3 = p.evaluate(() => KSys.tinderDateOutcome('Chanel'));
+  await p.waitForSelector('.k-modal-wrap .k-out-blackmail', { timeout: 4000 }).catch(() => {});
+  if (shots) { await p.waitForTimeout(400); await p.screenshot({ path: `${shots}/tinder-date-outcome-blackmail.png` }); }
+  await clickModal(/Publish and be damned/); const o3 = await pr3;
+  const bm3 = await E(() => S.evidence.some(e => /Saints scarf/.test(e.label)));
+  ok(o3.includes('blackmail') && bm3, 'gold-digger date: blackmail with a price; refusing sends the photos');
+  // Sarah: the real thing, through the existing invitation flow (bleak text kept), then an alibi
+  await E(() => { S.season4.tinder_matches = S.season4.tinder_matches || []; window.__inv = null; window.__r1 = Math.random; Math.random = () => 0.9; /* no sharia police this time */ window.__dt = handleTinderInvitation({ name: 'Sarah', bio: 'x', personality: 'enthusiastic' }); });
+  for (let i = 0; i < 40; i++) {
+    const done = await E(() => S.tinder.sarah.dates > 0 && !document.querySelector('.k-modal-wrap'));
+    const clicked = await E(() => { const m = [...document.querySelectorAll('.k-modal-wrap .k-btn')].pop(); if (m) { m.click(); return 'modal'; } const b = [...document.querySelectorAll('#actions button')].find(x => /use protection|complete|continue|ok/i.test(x.innerText)); if (b) { b.click(); return b.innerText; } return null; });
+    if (done && !clicked) break;
+    await p.waitForTimeout(250);
+  }
+  await E(() => { Math.random = window.__r1; });
+  const sd = await E(() => ({ dates: S.tinder.sarah.dates, alibi: !!KSys.freeAlibi(), stage: S.tinder.sarah.stage, bleak: [...document.querySelectorAll('#feed *')].some(e => /You feel nothing/.test(e.textContent)) }));
+  ok(sd.dates >= 1 && sd.alibi && sd.bleak, `Sarah date via the real invite flow: bleak text kept, connection + alibi (stage ${sd.stage})`);
+  // the alibi against a police case
+  await E(() => { window.__ui_context = 'postmatch'; window.__inv = presentInvestigation({ type: 'investigation', authority: 'police', caseType: 'misconduct' }); });
+  await p.waitForFunction(() => [...document.querySelectorAll('#stepOptions button')].some(b => /alibi/i.test(b.innerText)), null, { timeout: 6000 }).catch(() => {});
+  if (shots) await p.screenshot({ path: `${shots}/police-alibi.png` });
+  const alibiBtn = await E(() => { const b = [...document.querySelectorAll('#stepOptions button')].find(x => /alibi/i.test(x.innerText)); if (b) { b.click(); return b.innerText; } return null; });
+  await E(async () => { await Promise.race([window.__inv, new Promise(r => setTimeout(r, 8000))]); });
+  const al = await E(() => ({ used: S.tinder.alibis.filter(a => a.used).length, free: !!KSys.freeAlibi(), modal: !!window.currentInvestigationModal && document.body.contains(window.currentInvestigationModal) }));
+  ok(!!alibiBtn && al.used === 1 && !al.free, `alibi used once against a police case: ${alibiBtn}`);
+  // Sarah's arc: five beats, then she leaves — whatever you answer
+  const sarahTry = [/Coffee/, /Tell her I said hi/, /None of it/, /She's right/, /Please don't go/];
+  for (let s = 0; s < 5; s++) {
+    const ok1 = await E(() => { S.tinder.sarah.next = S.sys.tick; const e = KSys.sarahText(); return !!e; });
+    if (!ok1) break;
+    p.evaluate(() => openContactChat('tinder_sarah'));
+    await phoneBtn(sarahTry[s]);
+    await p.waitForTimeout(500);
+    if (s === 4 && shots) await p.screenshot({ path: `${shots}/phone-sarah-leaves.png` });
+    await closePhone();
+  }
+  const sarah = await E(() => ({ ended: S.tinder.sarah.ended, gone: S.contacts.tinder_sarah.gone, pool: generateTinderProfilePool().some(x => x.name === 'Sarah'), hist: S.contacts.tinder_sarah.history.filter(h => h.from === 'them').length }));
+  ok(sarah.ended && !!sarah.gone && !sarah.pool, `Sarah's arc ends bleak (${sarah.hist} replies; "${sarah.gone}") and she's off Tinder`);
+  const ignored = await E(() => { const T = S.tinder.sarah; T.ended = false; T.stage = 5; T.finalSent = null; T.next = S.sys.tick; S.contacts.tinder_sarah.gone = null; KSys.sarahText(); GameHooks.emit('matchday:end'); return T.ended; });
+  ok(ignored, 'ignoring her last text ends it too');
+  // post-date texts from the others, with a deadline for the gold-digger
+  const after = await E(() => { const T = KSys.tinderState(); Object.values(T.matches).forEach(m => { m.afterNext = 0; if (m.name !== 'Sarah') m.dates = Math.max(1, m.dates); }); const r0 = Math.random; Math.random = () => 0.1; try { for (let i = 0; i < 3; i++) { S.sys.tick++; KSys.tinderTick(); } } finally { Math.random = r0; } return Object.values(T.matches).filter(m => m.afterSent).map(m => m.name + ': ' + (S.contacts[m.contact].queued_texts.slice(-1)[0] || {}).text); });
+  ok(after.length >= 2, `matches keep texting after the date: ${after.map(x => x.slice(0, 60)).join(' | ')}`);
+  await p.evaluate(s => { S.season = s; }, season0);
 
   // ---------- Dossier ----------
   p.evaluate(() => KSys.openDossier('press'));

@@ -111,27 +111,7 @@ export const KREWS3_NEWS: Record<string, NewsCfg> = {
     },
   },
 
-  krews_sunak_bomb: {
-    brand: "gbk",
-    ticker: [
-      "Election postponed 'for at least five years'",
-      "Bomb 'under every polling station', says PM",
-      "Polling cards: keep them, apparently",
-      "Opposition: 'he's twenty points behind, that's the bomb'",
-      "Downing Street cat 'also unavailable until 2029'",
-    ],
-    scenes: [STUDIO, { match: /DOWNING STREET/, kind: "presser", set: "tv_no10_door" }],
-    ots: [
-      { match: /desperate move|bomb threat/i, pic: SUNAK, caption: "Election cancelled" },
-      { match: /live now to Downing Street/i, pic: { key: "tv_no10_door", crop: [100, 10, 120, 150] }, caption: "Downing Street" },
-      { match: /intelligence|five years/i, pic: SUNAK, caption: "'Credible threat'" },
-      { match: /Downing Street|declined/i, pic: { key: "tv_no10_door", crop: [100, 10, 120, 150] }, caption: "No comment" },
-    ],
-    straps: {
-      "RISHI SUNAK": ["Rishi Sunak", "Prime Minister"],
-      REPORTER: ["Reporter", "Krunche News, Downing Street"],
-    },
-  },
+
 
   krews_starmer_saga: {
     brand: "gbk",

@@ -95,13 +95,7 @@ export const KREWS1_NEWS: Record<string, NewsCfg> = {
       "JEREMY CORBYN": ["Jeremy Corbyn", "Minister for Distractions"],
     },
   },
-  krews_cookie: {
-    brand: "gbk",
-    ticker: ["Cookie Monster releases a statement", "Statement released from a children's television studio"],
-    scenes: [STUDIO, { match: /CHILDREN'S TV STUDIO/, kind: "field", set: "tv_k1_kids", cast: [["COOKIE MONSTER", 0.5]] }],
-    ots: [],
-    straps: { "COOKIE MONSTER": ["Cookie Monster", "A statement"] },
-  },
+
   krews_moneybags: {
     brand: "gbk",
     ticker: ["'Moneybags' trial ends with not guilty verdict", "Judge cites 'strong gut feeling'", "CCTV of the bribe included the dialogue 'this is a bribe'", "Judge Krelmor: 'No comment'"],

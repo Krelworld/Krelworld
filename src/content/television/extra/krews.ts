@@ -139,30 +139,6 @@ NEWSREADER: The government is currently looking for volunteers to help with the 
 `,
 );
 
-export const KREWS_COOKIE = ep(
-  "krews_cookie",
-  NEWS,
-  "Krunche News",
-  "Cookie Monster: A Statement",
-  5,
-  `
-[MUSIC news start]
-# KRUNCHE NEWS
-INT. NEWSDESK - DAY
-[MUSIC news fade]
-NEWSREADER: We go now to a statement released this morning from a children's television studio.
-INT. CHILDREN'S TV STUDIO - DAY
-(A lone spotlight. COOKIE MONSTER sits beside a giant cookie jar. He does not eat a cookie.)
-COOKIE MONSTER: Hi, me Cookie Monster. Some of you may be wondering why me not been on the show lately. And it is because me been going through some tough times.
-COOKIE MONSTER: You see, for a long time now, me been struggling with a pornography and gambling addiction.
-COOKIE MONSTER: It all started innocently enough, with me watching a little bit of porn here and there. But then me started gambling, and before me knew it, me was up to my eyeballs in debt.
-COOKIE MONSTER: But recently, some interns on the show have been accusing me of sexual impropriety. And they're right. It's true. Me have been behaving inappropriately with them.
-COOKIE MONSTER (tearful): But me want you to know that me are sorry. Me are sorry for the pain me have caused. And me are committed to getting help for my addiction.
-(He eyes the cookie jar. The spotlight goes out.)
-[FADE]
-`,
-);
-
 export const KREWS_MONEYBAGS = ep(
   "krews_moneybags",
   NEWS,
@@ -317,4 +293,4 @@ JUROR NUMBER 2: (Moaning) Oh god it's so hot... it's SO hot... it's so fucking H
 `,
 );
 
-export const KREWS_EPISODES: TVEpisode[] = [KREWS_PELE, KREWS_CHANCELLOR, KREWS_TELLY, KREWS_ANTARCTICA, KREWS_COOKIE, KREWS_MONEYBAGS, KREWS_UNIVERSE, SKETCH_FUNERAL, SKETCH_GROCERY, SKETCH_JUROR];
+export const KREWS_EPISODES: TVEpisode[] = [KREWS_PELE, KREWS_CHANCELLOR, KREWS_TELLY, KREWS_ANTARCTICA, KREWS_MONEYBAGS, KREWS_UNIVERSE, SKETCH_FUNERAL, SKETCH_GROCERY, SKETCH_JUROR];

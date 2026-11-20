@@ -97,39 +97,6 @@ NEWSREADER: Jürgen Klopp leaves Anfield as he arrived: twenty quid lighter than
 `,
 );
 
-export const KREWS_SUNAK_BOMB = ep(
-  "krews_sunak_bomb",
-  "Sunak Postpones Election Over 'Bomb Threat'",
-  31,
-  `[MUSIC news start]
-# KRUNCHE NEWS
-INT. NEWSDESK - NIGHT
-[MUSIC news fade]
-# BREAKING: SUNAK POSTPONES ELECTION FOR FIVE YEARS OVER "BOMB THREAT"
-NEWSREADER: Sunak's desperate move: an election cancellation over a bomb threat sparks controversy.
-NEWSREADER: In an unprecedented and controversial move, Prime Minister Rishi Sunak has called for the next general election to be postponed indefinitely, citing a bomb threat that he claims poses a significant risk to national security.
-NEWSREADER: This decision, announced late last night, has sent shockwaves through the political landscape, raising questions about the motivations and legitimacy behind the delay.
-NEWSREADER: We go live now to Downing Street, where the Prime Minister is addressing the nation.
-EXT. DOWNING STREET - NIGHT
-# LIVE: DOWNING STREET · ADDRESS TO THE NATION
-RISHI SUNAK: Good evening. Intelligence agencies have identified a credible threat that necessitates postponing the election for at least five years to ensure public safety.
-RISHI SUNAK: Given the severity and credibility of this threat, it is imperative that we take all necessary precautions to protect our citizens.
-RISHI SUNAK: The decision to postpone the election is not taken lightly, but is necessary to maintain national security.
-REPORTER: Prime Minister! What exactly is the threat?
-RISHI SUNAK: It's a bomb. A big one. Under the polling station. All of the polling stations. Every single one.
-REPORTER: Five years, Prime Minister? Has this got anything to do with you being twenty points behind in the polls?
-RISHI SUNAK: The safety of the British people must come before political processes.
-(long pause)
-RISHI SUNAK: That's all. Thank you. Lovely.
-INT. NEWSDESK - NIGHT
-# THE BOMB THREAT AND GOVERNMENT'S RESPONSE
-NEWSREADER: According to Sunak, intelligence agencies have identified a credible threat that necessitates postponing the election for at least five years.
-NEWSREADER: The Prime Minister emphasized the need for extreme caution, arguing that the safety of the British people must come before political processes.
-NEWSREADER: Downing Street has declined to say where the bomb is, who planted it, or why it will take exactly five years to find. More on that as we get it.
-[FADE]
-`,
-);
-
 export const KREWS_STARMER_SAGA = ep(
   "krews_starmer_saga",
   "Election Special: From KickGate to FartGate",
@@ -582,4 +549,4 @@ NEWSREADER: The turkey was unavailable for comment.
 `,
 );
 
-export const KREWS_STORIES_EPISODES: TVEpisode[] = [KREWS_KLOPP_BRIBE, KREWS_SUNAK_BOMB, KREWS_STARMER_SAGA, KREWS_STARMER_VIDEO, KREWS_CRASH_MODE_LIVE, KREWS_ARSEBRUSH, KREWS_KILL_THE_PATIENT, KREWS_BURNHAM_FIRST_ACT, KREWS_RAMSEY_TURKEY];
+export const KREWS_STORIES_EPISODES: TVEpisode[] = [KREWS_KLOPP_BRIBE, KREWS_STARMER_SAGA, KREWS_STARMER_VIDEO, KREWS_CRASH_MODE_LIVE, KREWS_ARSEBRUSH, KREWS_KILL_THE_PATIENT, KREWS_BURNHAM_FIRST_ACT, KREWS_RAMSEY_TURKEY];

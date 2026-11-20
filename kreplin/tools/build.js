@@ -1,7 +1,7 @@
 // Concatenate src/ parts (in manifest order) into dist/KREPLIN.html.
 // Virtual manifest entries:
 //   "@art"  -> generated JS that sets window.KREPLIN_ART = {name: dataURL} from art/raw/*.png
-//              (UI art only: minigame sprites mg-* are left out until the minigames are integrated)
+//              (UI art + minigame sprites mg-*; MGKit.load() maps any '<name>.png' URL onto these data URLs)
 const fs = require('fs');
 const path = require('path');
 const root = path.join(__dirname, '..');
@@ -9,7 +9,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(root, 'src', 'manifest.jso
 
 function artPart() {
   const dir = path.join(root, 'art', 'raw');
-  const files = fs.readdirSync(dir).filter(f => f.endsWith('.png') && !f.startsWith('mg-')).sort();
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.png')).sort();
   const map = {};
   let bytes = 0;
   for (const f of files) {

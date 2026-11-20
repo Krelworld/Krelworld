@@ -7,7 +7,7 @@
 <h1 style="font-size:20px;margin:0 0 8px">KREPLIN · Train-tracks escape</h1>
 <button id="all">All items (items[] brick + HGH + coke)</button><button id="legacy">Brick via S.inventory.brick only</button><button id="none">No items (last chance)</button>
 <pre id="out"></pre><div id="actions"></div>
-<script src="mgkit.js"></script><script src="train.js"></script>
+<script src="../../src/087c-mgkit.js"></script><script src="../../src/087l-mg-train.js"></script>
 <script>
 const out = document.getElementById('out');
 window.log = m => { out.textContent += 'log: ' + m + '\n'; };
@@ -19,5 +19,5 @@ const presets = {
   none: { inventory: { items: [] }, doctor: { hgh_stock: 0 } },
 };
 for (const k in presets) document.getElementById(k).onclick = async e => { e.target.blur(); window.S = JSON.parse(JSON.stringify(presets[k])); window.__result = null; window.__dead = false;
-  const r = await KreplinTrain.startTrainTracksSequence({ music: null }); window.__result = r; out.textContent += 'RESULT ' + r + '\n'; };
+  const r = await KreplinTrain.startTrainTracksSequence({ music: null, resolveOnDeath: true }); window.__result = r; out.textContent += 'RESULT ' + r + '\n'; };
 </script></body></html>

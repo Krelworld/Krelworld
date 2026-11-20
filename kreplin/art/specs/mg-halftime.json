@@ -1,0 +1,57 @@
+[
+ {
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "name": "mg-ht-player-idle",
+  "w": 64,
+  "h": 64,
+  "description": "cartoon football player in a red and white vertically striped shirt, black shorts, short dark hair, sitting slumped on a wooden dressing room bench, towel around neck, exhausted, front view, full body",
+  "seed": 31
+ },
+ {
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "name": "mg-ht-player-nod",
+  "w": 64,
+  "h": 64,
+  "description": "cartoon football player in a red and white vertically striped shirt, black shorts, short dark hair, sitting on a bench nodding calmly with a thumbs up, focused face, front view, full body",
+  "seed": 32
+ },
+ {
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "name": "mg-ht-player-scared",
+  "w": 64,
+  "h": 64,
+  "description": "cartoon football player in a red and white vertically striped shirt, black shorts, short dark hair, sitting on a bench crying in terror, hands on cheeks, tears, front view, full body",
+  "seed": 33
+ },
+ {
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "name": "mg-ht-player-roid",
+  "w": 64,
+  "h": 64,
+  "description": "cartoon huge hulking muscular football player in a tight red and white vertically striped shirt, bulging veins, wild bulging eyes, jaw clenched, flexing both arms, front view, full body",
+  "seed": 34
+ },
+ {
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "name": "mg-ht-player-shocked",
+  "w": 64,
+  "h": 64,
+  "description": "cartoon football player in a red and white vertically striped shirt, black shorts, short dark hair, pale green-faced and sweating, gasping in horror with both hands clutching his head, standing, front view, full body",
+  "seed": 77
+ }
+]

@@ -950,16 +950,18 @@ async function throwBrickAt(targetType, context = {}) {
   // Log the brick throw
   log(target.newsNote);
   addSessionShout(target.newsNote);
+  // Skill layer (src/087i-mg-brick.js): aim + throw; the hit quality scales the effects below. Arrest roll unchanged.
+  const hitMult = (typeof throwBrickMinigame === 'function') ? await throwBrickMinigame(targetType, context) : 1;
   
   // Apply morale/quality effects
   if (target.morale) {
-    const delta = target.morale[0] + Math.random() * (target.morale[1] - target.morale[0]);
+    const delta = (target.morale[0] + Math.random() * (target.morale[1] - target.morale[0])) * hitMult;
     S.morale = Math.max(-100, Math.min(100, (S.morale || 0) + delta));
     log(`Team morale ${delta > 0 ? 'increased' : 'decreased'} by ${Math.abs(delta).toFixed(1)}.`);
   }
   
   if (target.quality && context.opponent) {
-    const delta = target.quality[0] + Math.random() * (target.quality[1] - target.quality[0]);
+    const delta = (target.quality[0] + Math.random() * (target.quality[1] - target.quality[0])) * hitMult;
     // Apply opponent quality reduction for this match only
     if (!S.matchContext) S.matchContext = {};
     if (!S.matchContext.opponentQualityMod) S.matchContext.opponentQualityMod = 0;
@@ -1074,41 +1076,8 @@ async function triggerArrestFlow(context) {
   updateHUD?.();
 }
 
-// Auto-taunt during match simulation (no interactive menu)
-async function presentInteractiveTauntOptions(logFn = null) {
-  const currentFrustration = S.frustration || 0;
-  // Use provided log function (for overlay) or fallback to regular log
-  const addLog = logFn || ((text) => log(text));
-  
-  // Generate 4 taunt options based on current frustration (includes vile ones)
-  let options = [];
-  try {
-    options = rollTauntMenu(currentFrustration) || [];
-  } catch {}
-  if (!Array.isArray(options) || options.length === 0) {
-    // Fallback: build a broad pool from existing TAUNTS categories
-    const pools = [];
-    try { if (Array.isArray(TAUNTS?.extreme)) pools.push(...TAUNTS.extreme); } catch {}
-    try { if (Array.isArray(TAUNTS?.saints)) pools.push(...TAUNTS.saints); } catch {}
-    try { if (Array.isArray(TAUNTS?.general)) pools.push(...TAUNTS.general); } catch {}
-    options = pools.filter(Boolean);
-  }
-  const selectedTaunt = (Array.isArray(options) && options.length > 0) ? pick(options) : pickInvective(currentFrustration);
-  if (!selectedTaunt) return; // nothing to shout, avoid undefined logs
-  
-  // Log the taunt immediately using the provided log function (overlay or regular)
-  addLog(`You shout: "${selectedTaunt}"`);
-  addSessionShout(selectedTaunt);
-  
-  // Update frustration based on taunt intensity
-  if (selectedTaunt.includes('fucking') || selectedTaunt.includes('wanker') || selectedTaunt.includes('cunt')) {
-    S.frustration = Math.min((S.frustration || 0) + 15, 100);
-  } else if (selectedTaunt.includes('saints') || selectedTaunt.includes('Southampton')) {
-    S.frustration = Math.min((S.frustration || 0) + 8, 100);
-  } else {
-    S.frustration = Math.min((S.frustration || 0) + 5, 100);
-  }
-}
+// Interactive taunt during match simulation: presentInteractiveTauntOptions(logFn) is defined by
+// src/087f-mg-taunts.js (3 pixel speech bubbles, 3s to pick; timeout picks at random as before).
 
 // Auto-shout system for quick sim
 async function processQuickSimTick(currentMinute, logFn = null) {

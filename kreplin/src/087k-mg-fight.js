@@ -20,12 +20,7 @@
   const C = { red: '#d71920', redL: '#ff4a50', ink: '#0d1016', gold: '#f2c14e', good: '#3fbf6b', bad: '#e5484d', text: '#e9e6de', muted: '#8c93a8', blue: '#3d7bd9' };
 
   // ---- sfx ----
-  let AC = null;
-  function ac() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) { AC = null; } return AC; }
-  function tone(f0, f1, dur, type = 'square', vol = 0.08) { const a = ac(); if (!a) return; const o = a.createOscillator(), g = a.createGain(), t = a.currentTime;
-    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur); }
-  function noise(dur, freq, vol = 0.15) { const a = ac(); if (!a) return; const n = Math.floor(a.sampleRate * dur), b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0);
-    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2); const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); s.buffer = b; f.type = 'lowpass'; f.frequency.value = freq; g.gain.value = vol; s.connect(f).connect(g).connect(a.destination); s.start(); }
+  const ac = MGKit.ac, tone = MGKit.tone, noise = (dur, freq, vol = 0.15) => MGKit.noise(dur, freq, vol, 2); // shared kit audio
   const sfx = {
     hit(big) { noise(big ? 0.22 : 0.12, big ? 900 : 1600, big ? 0.35 : 0.25); tone(big ? 160 : 220, 60, 0.12, 'square', 0.1); },
     hurt() { noise(0.25, 500, 0.3); tone(120, 50, 0.25, 'sawtooth', 0.08); },
@@ -37,9 +32,7 @@
     combo() { tone(660, 1320, 0.12, 'triangle', 0.08); },
   };
 
-  const tintCache = new Map();
-  function tinted(img, color) { const k = img.src + color; if (tintCache.has(k)) return tintCache.get(k);
-    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d'); x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-atop'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height); tintCache.set(k, c); return c; }
+  const tinted = MGKit.tinted;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
   const VARIANTS = {

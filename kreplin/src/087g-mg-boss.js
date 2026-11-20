@@ -26,24 +26,9 @@
   const FONT = '"Pixelify Sans", ui-monospace, monospace';
 
   // ---- tiny WebAudio sfx ----
-  let AC = null;
-  function sfx(type, f0, f1, dur, vol = 0.25) {
-    try {
-      AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-      if (AC.state === 'suspended') AC.resume().catch(() => {});
-      const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime;
-      o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
-      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-      o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur + 0.02);
-    } catch (e) {}
-  }
+  const sfx = (type, f0, f1, dur, vol = 0.25) => MGKit.sfx(type, f0, f1, dur, vol);
   // white-tinted copy of a sprite (hit flash)
-  function tint(img, color) {
-    if (!img) return null;
-    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
-    const x = c.getContext('2d'); x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-atop'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height);
-    return c;
-  }
+  const tint = (img, color) => MGKit.tinted(img, color); // cached in the kit
 
   function pauseGeneralMusic() {
     let was = false;
@@ -434,7 +419,7 @@
       if (line) mg.text(line, x, yy, { size, color });
     }
 
-    if (opts.debug) window.__kmgBoss = { get G() { return G; }, mg };
+    if (opts.debug || window.__KREPLIN_TEST__) window.__kmgBoss = { get G() { return G; }, mg };
     mg.loop(dt => { update(dt); draw(); });
     const result = await mg.done;
     stopMusic();

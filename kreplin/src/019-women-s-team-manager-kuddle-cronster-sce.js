@@ -729,79 +729,6 @@ async function waitForLogQueue() {
   await new Promise(resolve => setTimeout(resolve, 500));
 }
 
-// Create fight minigame modal/pop-out
-function createFightModal() {
-  // Remove existing modal if present
-  const existing = document.getElementById('fight-modal');
-  if (existing) existing.remove();
-  
-  const modal = document.createElement('div');
-  modal.id = 'fight-modal';
-  modal.className = 'fight-modal';
-  
-  modal.innerHTML = `
-    <div class="fight-modal-overlay"></div>
-    <div class="fight-modal-content">
-      <div class="fight-header">
-        <h2>⚔️ FIGHT!</h2>
-        <div class="fight-health-bars">
-          <div class="health-bar-container">
-            <div class="health-label">YOU</div>
-            <div class="health-bar">
-              <div class="health-fill player-health" style="width: 100%"></div>
-            </div>
-            <div class="health-text player-health-text">100%</div>
-          </div>
-          <div class="health-bar-container">
-            <div class="health-label">CRONSTER</div>
-            <div class="health-bar">
-              <div class="health-fill cronster-health" style="width: 100%"></div>
-            </div>
-            <div class="health-text cronster-health-text">100%</div>
-          </div>
-        </div>
-      </div>
-      <div class="fight-arena">
-        <div class="fighter player-fighter">
-          <div class="fighter-sprite">👤</div>
-          <div class="fighter-name">YOU</div>
-        </div>
-        <div class="vs-indicator">VS</div>
-        <div class="fighter cronster-fighter">
-          <div class="cronster-sprite">
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <!-- Cloak body -->
-              <path d="M 20 30 Q 20 20, 30 20 Q 50 15, 70 20 Q 80 20, 80 30 L 80 90 L 20 90 Z" fill="#1a1a2e" stroke="#2d2d44" stroke-width="1.5"/>
-              <!-- Cloak hood covering head -->
-              <path d="M 30 25 Q 50 18, 70 25 Q 75 28, 75 35 Q 75 42, 70 45 Q 50 50, 30 45 Q 25 42, 25 35 Q 25 28, 30 25" fill="#0f0f1a" stroke="#1a1a2e" stroke-width="1"/>
-              <!-- Head (skinny, visible under hood) -->
-              <ellipse cx="50" cy="42" rx="11" ry="13" fill="#3d3d3d"/>
-              <!-- Greasy dark hair strands coming down over forehead -->
-              <path d="M 38 38 L 40 32 L 42 35 L 44 31 L 46 34" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.9"/>
-              <path d="M 42 40 L 44 34 L 46 37 L 48 33 L 50 36" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.9"/>
-              <path d="M 46 40 L 48 34 L 50 37 L 52 33 L 54 36" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.9"/>
-              <path d="M 50 40 L 52 34 L 54 37 L 56 33 L 58 36" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.9"/>
-              <path d="M 54 40 L 56 34 L 58 37 L 60 33 L 62 38" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.9"/>
-              <!-- Dark eyes (visible under hair) -->
-              <circle cx="46" cy="46" r="2.5" fill="#000000"/>
-              <circle cx="54" cy="46" r="2.5" fill="#000000"/>
-              <!-- Skinny body (under cloak) -->
-              <rect x="46" y="58" width="8" height="28" fill="#2d2d2d" rx="1"/>
-            </svg>
-          </div>
-          <div class="fighter-name">CRONSTER</div>
-        </div>
-      </div>
-      <div class="fight-log" id="fight-log"></div>
-      <div class="fight-actions" id="fight-actions"></div>
-      <div class="fight-prompt" id="fight-prompt"></div>
-    </div>
-  `;
-  
-  document.body.appendChild(modal);
-  return modal;
-}
-
 // Close fight modal
 function closeFightModal() {
   const modal = document.getElementById('fight-modal');
@@ -811,10 +738,10 @@ function closeFightModal() {
   }
 }
 
-// Log message to fight modal
+// Log message to fight modal (the old modal is gone: the rhythm brawler is a canvas, so this now just hits the main feed)
 function fightLog(msg) {
   const fightLogEl = document.getElementById('fight-log');
-  if (!fightLogEl) return;
+  if (!fightLogEl) { log(msg); return; }
   
   const entry = document.createElement('div');
   entry.className = 'fight-log-entry';
@@ -824,71 +751,6 @@ function fightLog(msg) {
   
   // Also log to main feed
   log(msg);
-}
-
-// Update health bars in fight modal
-function updateFightHealth(playerHealth, cronsterHealth) {
-  const playerBar = document.querySelector('.player-health');
-  const cronsterBar = document.querySelector('.cronster-health');
-  const playerText = document.querySelector('.player-health-text');
-  const cronsterText = document.querySelector('.cronster-health-text');
-  
-  if (playerBar) {
-    playerBar.style.width = Math.max(0, Math.min(100, playerHealth)) + '%';
-    playerBar.style.backgroundColor = playerHealth > 50 ? '#00d4aa' : playerHealth > 25 ? '#ffa726' : '#ff4757';
-  }
-  if (playerText) playerText.textContent = Math.max(0, Math.min(100, Math.round(playerHealth))) + '%';
-  
-  if (cronsterBar) {
-    cronsterBar.style.width = Math.max(0, Math.min(100, cronsterHealth)) + '%';
-    cronsterBar.style.backgroundColor = cronsterHealth > 50 ? '#ff4757' : cronsterHealth > 25 ? '#ffa726' : '#00d4aa';
-  }
-  if (cronsterText) cronsterText.textContent = Math.max(0, Math.min(100, Math.round(cronsterHealth))) + '%';
-}
-
-// Animate fighter attack
-function animateFighterAttack(fighterType) {
-  const fighter = document.querySelector(`.${fighterType}-fighter`);
-  if (fighter) {
-    fighter.classList.add('attacking');
-    setTimeout(() => fighter.classList.remove('attacking'), 500);
-  }
-}
-
-// Choose function for fight modal
-async function fightChoose(opts, prompt) {
-  return new Promise((resolve) => {
-    const actionsEl = document.getElementById('fight-actions');
-    const promptEl = document.getElementById('fight-prompt');
-    
-    if (!actionsEl || !promptEl) {
-      // Fallback to regular choose
-      choose(opts, prompt).then(resolve);
-      return;
-    }
-    
-    // Clear previous buttons
-    actionsEl.innerHTML = '';
-    promptEl.textContent = prompt || 'Choose:';
-    
-    // Create buttons
-    opts.forEach(opt => {
-      const btn = document.createElement('button');
-      btn.textContent = opt.label;
-      btn.className = 'fight-action-btn';
-      if (opt.variant === 'bad') btn.classList.add('bad');
-      if (opt.variant === 'warn') btn.classList.add('warn');
-      if (opt.variant === 'good') btn.classList.add('good');
-      
-      btn.onclick = () => {
-        actionsEl.innerHTML = '';
-        promptEl.textContent = '';
-        resolve(opt.key);
-      };
-      
-      actionsEl.appendChild(btn);
-    });
-  });
 }
 
 // Fighting minigame for cronster
@@ -934,70 +796,9 @@ async function cronsterFightingMinigame() {
   // Wait for all log messages to finish displaying
   await waitForLogQueue();
   
-  // Create and show fight modal
-  const modal = createFightModal();
-  fightLog('⚔️ FIGHT MINIGAME: Press the buttons as they appear!');
-  
-  let playerHealth = 100;
-  let cronsterHealth = 100;
-  let round = 0;
-  const maxRounds = 10;
-  
-  // Initial health display
-  updateFightHealth(playerHealth, cronsterHealth);
-  
-  while (playerHealth > 0 && cronsterHealth > 0 && round < maxRounds) {
-    round++;
-    fightLog(`\nRound ${round}:`);
-    fightLog(`Your health: ${playerHealth}% | Cronster health: ${cronsterHealth}%`);
-    
-    // Random button sequence
-    const buttons = ['PUNCH', 'KICK', 'DODGE', 'BLOCK'];
-    const requiredButton = buttons[Math.floor(Math.random() * buttons.length)];
-    
-    const buttonChoice = await fightChoose([
-      {key: 'punch', label: 'PUNCH', variant: 'bad'},
-      {key: 'kick', label: 'KICK', variant: 'bad'},
-      {key: 'dodge', label: 'DODGE', variant: ''},
-      {key: 'block', label: 'BLOCK', variant: ''}
-    ], `Quick! Press ${requiredButton}!`);
-    
-    const buttonMap = {punch: 'PUNCH', kick: 'KICK', dodge: 'DODGE', block: 'BLOCK'};
-    const pressedButton = buttonMap[buttonChoice];
-    
-    if (pressedButton === requiredButton) {
-      // Hit!
-      animateFighterAttack('player');
-      const damage = 15 + Math.random() * 20;
-      cronsterHealth -= damage;
-      fightLog(`✅ You hit! ${Math.round(damage)} damage!`);
-      updateFightHealth(playerHealth, cronsterHealth);
-    } else {
-      // Miss or get hit
-      if (Math.random() < 0.6) {
-        animateFighterAttack('cronster');
-        const damage = 10 + Math.random() * 15;
-        playerHealth -= damage;
-        fightLog(`❌ You missed! Cronster hits you for ${Math.round(damage)} damage!`);
-        updateFightHealth(playerHealth, cronsterHealth);
-      } else {
-        fightLog(`⚠️ You dodged, but no damage dealt.`);
-      }
-    }
-    
-    // Cronster's turn (automatic)
-    if (cronsterHealth > 0 && Math.random() < 0.7) {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      animateFighterAttack('cronster');
-      const cronsterDamage = 8 + Math.random() * 12;
-      playerHealth -= cronsterDamage;
-      fightLog(`👊 Cronster hits you for ${Math.round(cronsterDamage)} damage!`);
-      updateFightHealth(playerHealth, cronsterHealth);
-    }
-    
-    // Small delay between rounds for readability
-    await new Promise(resolve => setTimeout(resolve, 500));
-  }
+  // Rhythm brawler (src/087k-mg-fight.js) replaces the old button-prompt modal + round loop
+  log('⚔️ FIGHT MINIGAME: Press the buttons as they appear!');
+  let { playerHealth, cronsterHealth } = await KreplinFight.cronsterBrawl();
   
   fightLog('');
   if (playerHealth <= 0) {

@@ -324,7 +324,9 @@ async function revealMatchEvents(result, overlay, skipState) {
         
         if (overlay._pitch) overlay._pitch.whistle('HALF TIME');
         if (minuteEl) minuteEl.textContent = 'HT';
-        const choice = await promptQuickSimChoice(overlay, {
+        // Pixel dressing-room scene (src/087m-mg-scenes.js); same options/effects, falls back to the plain menu
+        const htPrompt = (window.KreplinScenes && window.KUI) ? KreplinScenes.halftime : (o) => promptQuickSimChoice(overlay, o);
+        const choice = await htPrompt({
           title: "Half-time",
           subtitle: "What's the message in the dressing room?",
           options: halftimeOptions,
@@ -524,7 +526,7 @@ async function revealMatchEvents(result, overlay, skipState) {
       const shouldFire = changedMinute && (Math.random() < 0.12) && eventMinute > 5 && eventMinute < 88;
       
       if (shouldFire) {
-        const oppTeam = currentOpponent()?.team || 'Opposition';
+        const oppTeam = matchOpponentName();
         const favName = (S.referee_bribed === 'us') ? 'Southampton' : oppTeam;
         const oppName = (S.referee_bribed === 'us') ? oppTeam : 'Southampton';
         const pool = (S.referee_bribed === 'us') ? REF_BRIBE_FOR_US : REF_BRIBE_FOR_THEM;
@@ -544,7 +546,7 @@ async function revealMatchEvents(result, overlay, skipState) {
       const shouldFire = changedMinute && (Math.random() < 0.2) && eventMinute > 5 && eventMinute < 88;
       
       if (shouldFire) {
-        const oppName = S.matchContext?.team || currentOpponent()?.team || 'Opposition';
+        const oppName = matchOpponentName();
         const drunkComment = generateDrunkManagerCommentary(oppName);
         if (drunkComment) {
           addLogEntry(logEl, `${eventMinute}' - ${drunkComment}`, null);
@@ -845,7 +847,7 @@ async function revealMatchEvents(result, overlay, skipState) {
   if (!skipState.requested) {
     await pacedDelay(1500);
     minuteEl.textContent = "FT";
-    addLogEntry(logEl, `Full-time: ${getClubName()} ${result.usGoals} – ${result.themGoals} ${currentOpponent()?.team || 'Opposition'}`, null);
+    addLogEntry(logEl, `Full-time: ${getClubName()} ${result.usGoals} – ${result.themGoals} ${matchOpponentName()}`, null);
     await pacedDelay(2000);
     
     // Season 5 first match: Mohammed Van Onslaught massacre event
@@ -1130,7 +1132,7 @@ async function revealUltimaCupEvents(result, overlay, skipState) {
       await pacedDelay(500);
       
       // Create halftime modal similar to normal matches
-      const halftimeChoice = await promptQuickSimChoice(overlay, {
+      const halftimeChoice = await ((window.KreplinScenes && window.KUI) ? KreplinScenes.halftime : (o) => promptQuickSimChoice(overlay, o))({
         title: "Half-time",
         subtitle: "The first half of the Ultima Cup is complete. What do you do?",
         options: [
@@ -1425,7 +1427,7 @@ function revealFinalScore(result, overlay) {
   
   // Add final score to log
   const homeTeam = getClubName();
-  const awayTeam = currentOpponent()?.team || 'Opposition';
+  const awayTeam = matchOpponentName();
   addLogEntry(logEl, `Full-time: ${homeTeam} ${result.usGoals} – ${result.themGoals} ${awayTeam}`, null);
 }
 
@@ -1573,7 +1575,7 @@ async function quickSimulateMatchWithLogCommentary() {
     const assister = (Math.random() < 0.6 && oppPlayersWithNames.length > 1) 
       ? pick(oppPlayersWithNames.filter(p => p.id !== scorer?.id)) 
       : null;
-    const oppTeam = currentOpponent()?.team || 'Opposition';
+    const oppTeam = matchOpponentName();
     events.push({ 
       t, 
       who: 'AWAY', 
@@ -1642,7 +1644,7 @@ async function quickSimulateMatchWithLogCommentary() {
       who: isHome ? 'HOME' : 'AWAY',
       kind: eventType,
       player: player?.name || null,
-      team: isHome ? 'Southampton FC' : (currentOpponent()?.team || 'Opposition')
+      team: isHome ? 'Southampton FC' : (matchOpponentName())
     });
   }
   
@@ -1744,7 +1746,7 @@ async function quickSimulateMatchWithLogCommentary() {
       
       // Add drunk manager commentary for World Cup matches
       if (S.isDrunk && S.competition === 'world_cup') {
-        const oppName = S.matchContext?.team || currentOpponent()?.team || 'Opposition';
+        const oppName = matchOpponentName();
         const drunkComment = generateDrunkManagerCommentary(oppName);
         if (drunkComment && Math.random() < 0.4) { // 40% chance per 10-minute interval
           log(`${eventMinute}' - ${drunkComment}`);
@@ -1907,7 +1909,7 @@ async function quickSimulateMatchWithLogCommentary() {
       const shouldFire = changedMinute && (Math.random() < 0.12) && eventMinute > 5 && eventMinute < 88;
       
       if (shouldFire) {
-        const oppTeam = currentOpponent()?.team || 'Opposition';
+        const oppTeam = matchOpponentName();
         const favName = (S.referee_bribed === 'us') ? 'Southampton' : oppTeam;
         const oppName = (S.referee_bribed === 'us') ? oppTeam : 'Southampton';
         const pool = (S.referee_bribed === 'us') ? REF_BRIBE_FOR_US : REF_BRIBE_FOR_THEM;
@@ -1921,7 +1923,7 @@ async function quickSimulateMatchWithLogCommentary() {
     
     // Add drunk manager commentary after events for World Cup matches
     if (S.isDrunk && S.competition === 'world_cup' && Math.random() < 0.3) {
-      const oppName = S.matchContext?.team || currentOpponent()?.team || 'Opposition';
+      const oppName = matchOpponentName();
       const drunkComment = generateDrunkManagerCommentary(oppName);
       if (drunkComment) {
         log(`${eventMinute}' - ${drunkComment}`);

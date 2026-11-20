@@ -2,7 +2,7 @@
    Drop-in for src/028 presentInteractiveTauntOptions(logFn = null): Promise<void>.
    Same option source (rollTauntMenu(S.frustration) -> TAUNTS fallback -> pickInvective), same log line
    `You shout: "..."`, same addSessionShout(), same frustration rule (+15 if it contains fucking/wanker/cunt,
-   +8 if it contains 'saints'/'Southampton' (case-sensitive, as before), else +5; capped at 100).
+   +8 if it contains saints/southampton, else +5; capped at 100) — now case-insensitive (owner-approved bug fix).
    NEW: 3 pixel speech bubbles; tap one (or 1/2/3) within 3s. Timeout -> random pick from the options, as before.
 */
 (function () {
@@ -14,12 +14,14 @@
   const pickA = a => a[Math.floor(Math.random() * a.length)];
   const FALLBACK = ['PASS THE FUCKING BALL', 'SHOOT!', 'COME ON YOU SAINTS!', 'REF, OPEN YOUR FUCKING EYES!', 'WAKE UP!', 'GET STUCK IN!'];
 
+  // Owner-approved fix: the old rule compared lowercase words against ALL-CAPS taunts, so nearly everything scored +5.
   function frustrationDelta(t) {
-    if (t.includes('fucking') || t.includes('wanker') || t.includes('cunt')) return 15;
-    if (t.includes('saints') || t.includes('Southampton')) return 8;
+    const s = String(t).toLowerCase();
+    if (s.includes('fucking') || s.includes('wanker') || s.includes('cunt')) return 15;
+    if (s.includes('saints') || s.includes('southampton')) return 8;
     return 5;
   }
-  // visual heat only (case-insensitive); the frustration effect above stays exactly as src/028
+  // visual heat only (case-insensitive)
   function vileness(t) { const s = String(t).toLowerCase(); return /cunt|wanker|kill|break his|legs|hospital|murder|dead man|punch|smash|stretcher/.test(s) ? 3 : /fuck|shit|cock|tits|clown|disgrace/.test(s) ? 2 : 1; }
   function rollOptions(fr) {
     let options = [];

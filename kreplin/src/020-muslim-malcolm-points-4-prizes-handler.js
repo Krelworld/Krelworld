@@ -1224,10 +1224,14 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     log(`You find yourself at a restaurant. Casual but aspirational. Overpriced small plates.`);
     log(`You are all seated.`);
     log(``);
+    // Pixel table scene + visible awkwardness meter (src/087m-mg-scenes.js); the choices still go through choose()
+    const dateScene = (line, who) => { try { if (window.KreplinScenes) KreplinScenes.date.update({ line, who }); } catch (_) {} };
+    try { if (window.KreplinScenes) KreplinScenes.date.open(); } catch (_) {}
     
     // PHASE 1 - Opening Icebreaker
     log(`${secretaryName} opens with: "I'm just really grateful we could all show up authentically tonight."`);
     log(``);
+    dateScene(`"I'm just really grateful we could all show up authentically tonight."`, 'secretary');
     
     const phase1Choice = await choose([
       { key: 'performative', label: '"Yeah, it\'s about communication, isn\'t it."' },
@@ -1249,6 +1253,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     // PHASE 2 - Food Ordering
     log(`${secretaryName} suggests: "I thought we could share everything?"`);
     log(``);
+    dateScene(`"I thought we could share everything?"`, 'secretary');
     
     const phase2Choice = await choose([
       { key: 'agree', label: '"Yeah, that makes sense."' },
@@ -1273,6 +1278,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     // PHASE 2.5 - Optional Peacocking Remarks
     log(`${secretaryName} makes small talk about work.`);
     log(``);
+    dateScene(`${secretaryName} makes small talk about work.`, 'secretary');
     
     const peacockChoice = await choose([
       { key: 'peacock', label: 'Make a sexually competitive remark', variant: 'sensual' },
@@ -1316,6 +1322,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     log(`${secretaryName} asks: "What do you both value most in relationships?"`);
     log(`${sonName} answers sincerely: "Trust. Openness. Being able to be yourself without judgment."`);
     log(``);
+    dateScene(`"Trust. Openness. Being able to be yourself without judgment."`, 'son');
     
     const phase3Choice = await choose([
       { key: 'abstract', label: '"Honesty. Transparency."' },
@@ -1341,6 +1348,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     log(`The check arrives.`);
     log(`${secretaryName} says: "I don't really believe in transactional dynamics."`);
     log(``);
+    dateScene(`"I don't really believe in transactional dynamics."`, 'secretary');
     
     const phase4Choice = await choose([
       { key: 'you_pay', label: 'You pay for everything' },
@@ -1364,6 +1372,8 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     log(``);
     log(`You all hug awkwardly outside.`);
     log(``);
+    dateScene(`You all hug awkwardly outside.`, null);
+    setTimeout(() => { try { if (window.KreplinScenes) KreplinScenes.date.close(); } catch (_) {} }, 2500);
     
     // Send follow-up text
     if (S.contacts && S.contacts.secretary && S.contacts.secretary.unlocked) {
@@ -1398,8 +1408,11 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     log('');
     
     // Dialogue choice: support son or undermine him
+    // Date consequence: with player_jealousy >= 4 the supportive option is gone (dialogue skews aggressive)
+    const jealousAfterDate = (S.season3.player_jealousy || 0) >= 4;
+    if (jealousAfterDate) log(`You can't bring yourself to say anything nice about ${sonName}.`);
     const dialogueChoice = await choose([
-      { key: 'support', label: `"I'm happy to support you both. ${sonName} seems really happy."` },
+      ...(jealousAfterDate ? [] : [{ key: 'support', label: `"I'm happy to support you both. ${sonName} seems really happy."` }]),
       { key: 'undermine_too_good', label: `"You're too good for him, you know."` },
       { key: 'undermine_cheating', label: `"He's probably cheating on you."` },
       { key: 'undermine_drugs', label: `"I hear he has a drug problem."` }
@@ -1508,7 +1521,9 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
       ];
       
       // Send texts gradually over matches (one per match check, with some randomness)
-      if (textCount < cringeyTexts.length && Math.random() < 0.4) {
+      // Date consequence: secretary_validation >= 6 -> she texts more often
+      const textChance = (S.season3.secretary_validation || 0) >= 6 ? 0.7 : 0.4;
+      if (textCount < cringeyTexts.length && Math.random() < textChance) {
         queueIncomingText('secretary', cringeyTexts[textCount], 'flirtatious');
         S.season3.secretary_texts_count = textCount + 1;
       }
@@ -1673,6 +1688,8 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     log(`There's a knock at the door...`);
     log(``);
     log(`${sonName} enters, looking serious.`);
+    // Date consequence: a humiliated son still brings it up
+    if ((S.season3.son_humiliation || 0) >= 6) log(`"I thought the restaurant went… okay?" he says quietly.`);
     log(`"Dad, I've been thinking. We need to deal with Krunchem properly."`);
     log(`"You've got lobby tokens, right? We could use them to find his address."`);
     log(`"Then we send someone to... deliver a message."`);
@@ -1869,6 +1886,11 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
       const sonName = S.child1_name.split(' ')[0] || 'your son';
       log(`You plant evidence. ${sonName} is arrested.`);
       log(`He looks at you with betrayal in his eyes. "Why, Dad? Why?"`);
+      // Date consequence: son_humiliation >= 8 -> he barely fights it; the frame sticks (less heat on you)
+      if ((S.season3.son_humiliation || 0) >= 8) {
+        log(`After that dinner, he doesn't have the fight left to deny it.`);
+        S.police_risk = Math.max(0, (S.police_risk || 0) - 5);
+      }
       log(``);
       if (S.season3.son_relationship_with_secretary) {
         const secretaryName = S.secretary_name || 'your secretary';

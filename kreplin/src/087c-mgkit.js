@@ -13,16 +13,64 @@
                tap: {x,y}|null, keys: Set, keyPressed(k) }
    mg.ctx, mg.W, mg.H, mg.sprites (load via mg.load({name:url})), mg.text(str,x,y,{size,color,align,shadow})
    mg.banner(text,color,secs)  mg.shake(px,secs)  mg.flash(color,secs)  mg.particles.spawn({...})
-   mg.end(result) -> closes, resolves mg.done promise with result
+   mg.end(result) -> closes, resolves mg.done promise with result   mg.giveUp() -> same as the Give-up button
+   MGKit.current -> the open minigame (or null)
    await mg.done
+   mg.button(rect{x,y,w,h}, label, {col,fg,sub,size}) -> draws a pixel button, returns true if tapped this frame
+   Shared helpers (no instance needed):
+     MGKit.tone(f0,f1,dur,type,vol)  MGKit.noise(dur,freq,vol,pow)  MGKit.sfx(type,f0,f1,dur,vol)  (tiny WebAudio blips)
+     MGKit.tinted(img,color) -> cached silhouette canvas   MGKit.wrapText(ctx,str,maxW) -> lines
+     MGKit.art(url) -> url, or the embedded data URL (window.KREPLIN_ART) when the build has that sprite
 */
 (function () {
   const FONT = '"Pixelify Sans", ui-monospace, monospace';
+
+  // ---------- shared helpers ----------
+  // In the built game every sprite is embedded as window.KREPLIN_ART[name]; modules still ask for '<base>/<name>.png'.
+  function art(url) {
+    const A = window.KREPLIN_ART;
+    if (!A || typeof url !== 'string' || !url || url.startsWith('data:')) return url;
+    const m = url.match(/([\w-]+)\.png(?:[?#].*)?$/);
+    return (m && A[m[1]]) || url;
+  }
+  let AC = null;
+  function ac() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume().catch(() => {}); } catch (e) { AC = null; } return AC; }
+  function tone(f0, f1, dur, type = 'square', vol = 0.08) {
+    const a = ac(); if (!a) return;
+    try { const o = a.createOscillator(), g = a.createGain(), t = a.currentTime;
+      o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.02); } catch (e) {}
+  }
+  function noise(dur, freq, vol = 0.15, pow = 1) {
+    const a = ac(); if (!a) return;
+    try { const n = Math.floor(a.sampleRate * dur), b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, pow);
+      const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); s.buffer = b; f.type = 'lowpass'; f.frequency.value = freq;
+      g.gain.value = vol; s.connect(f).connect(g).connect(a.destination); s.start(); } catch (e) {}
+  }
+  const sfx = (type, f0, f1, dur, vol = 0.2) => tone(f0, f1, dur, type, vol);
+  const tintCache = new WeakMap();
+  function tinted(img, color) {
+    if (!img) return null;
+    let m = tintCache.get(img); if (!m) { m = new Map(); tintCache.set(img, m); }
+    if (m.has(color)) return m.get(color);
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d');
+    x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-atop'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height);
+    m.set(color, c); return c;
+  }
+  function wrapText(ctx, str, maxW) {
+    const out = []; let line = '';
+    for (const w of String(str).split(' ')) { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t; }
+    if (line) out.push(line); return out;
+  }
+
   function open(o = {}) {
+    // drop focus from whatever launched us, so Space/Enter can't re-click the button underneath
+    try { if (document.activeElement && document.activeElement !== document.body && document.activeElement.blur) document.activeElement.blur(); } catch (e) {}
     const W = o.w || 180, H = o.h || 320;
     const wrap = document.createElement('div');
     wrap.className = 'mg-wrap';
-    wrap.style.cssText = 'position:fixed;inset:0;z-index:3000;background:#07090d;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none';
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:250000;background:#07090d;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none';
     const bar = document.createElement('div');
     bar.style.cssText = 'position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:8px;padding:8px 12px;font:600 14px ' + FONT + ';color:#e9e6de;z-index:2;pointer-events:none';
     bar.innerHTML = `<span style="letter-spacing:1px">${o.title || ''}</span><span style="flex:1"></span>`;
@@ -79,7 +127,8 @@
     const sprites = {};
     function load(map) {
       return Promise.all(Object.entries(map).map(([k, url]) => new Promise(res => {
-        const img = new Image(); img.onload = () => { sprites[k] = img; res(); }; img.onerror = () => res(); img.src = url;
+        if (!url) return res();
+        const img = new Image(); img.onload = () => { sprites[k] = img; res(); }; img.onerror = () => res(); img.src = art(url);
       })));
     }
 
@@ -115,12 +164,13 @@
       if (!alive) return; alive = false; cancelAnimationFrame(raf);
       window.removeEventListener('resize', fit); window.removeEventListener('pointerup', pu); window.removeEventListener('pointercancel', pu);
       window.removeEventListener('keydown', kd, true); window.removeEventListener('keyup', ku, true);
-      wrap.remove(); resolveDone(result);
+      wrap.remove(); if (window.MGKit.current === api) window.MGKit.current = null; resolveDone(result);
     }
-    give.onclick = () => end(typeof o.onGiveUp === 'function' ? o.onGiveUp() : 'lose');
+    const giveUp = () => end(typeof o.onGiveUp === 'function' ? o.onGiveUp() : 'lose');
+    give.onclick = giveUp;
 
-    return {
-      W, H, ctx, canvas, input, sprites, load, text, particles, done, end,
+    const api = {
+      W, H, ctx, canvas, input, sprites, load, text, particles, done, end, giveUp, title: o.title || '',
       loop(fn) { updateFn = fn; },
       banner(t, color = '#fff', secs = 1.2) { bannerState = { text: t, color, t: secs }; },
       shake(px = 3, secs = 0.25) { shakeState = { px, t: secs }; },
@@ -128,7 +178,18 @@
       fail() { fails++; if (o.giveUpAfterFails != null && fails >= o.giveUpAfterFails) give.style.display = ''; return fails; },
       get fails() { return fails; }, get elapsed() { return elapsed; },
       showGiveUp() { give.style.display = ''; },
+      button(b, label, s = {}) {
+        const pressed = input.down && input.x >= b.x && input.x <= b.x + b.w && input.y >= b.y && input.y <= b.y + b.h;
+        ctx.fillStyle = '#000'; ctx.fillRect(b.x + 2, b.y + 2, b.w, b.h);
+        ctx.fillStyle = s.col || '#d71920'; ctx.fillRect(b.x, b.y + (pressed ? 1 : 0), b.w, b.h);
+        ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(b.x, b.y + (pressed ? 1 : 0), b.w, 2);
+        text(label, b.x + b.w / 2, b.y + b.h / 2 - (s.sub ? 3 : 0) + (pressed ? 1 : 0), { size: s.size || 9, color: s.fg || '#fff' });
+        if (s.sub) text(s.sub, b.x + b.w / 2, b.y + b.h - 5 + (pressed ? 1 : 0), { size: 6, color: 'rgba(255,255,255,.75)', bold: false });
+        const t = input.tap; return !!(t && t.x >= b.x && t.x <= b.x + b.w && t.y >= b.y && t.y <= b.y + b.h);
+      },
     };
+    window.MGKit.current = api; // the open minigame (test harnesses: MGKit.current.giveUp())
+    return api;
   }
-  window.MGKit = { open };
+  window.MGKit = { open, art, ac, tone, noise, sfx, tinted, wrapText, FONT, current: null };
 })();

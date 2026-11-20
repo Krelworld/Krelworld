@@ -785,8 +785,8 @@ For a performer whose career has depended on testing whether there are any remai
       return;
     }
     
-    // Fight minigame
-    const fightResult = await playFightMinigame();
+    // Fight minigame (rhythm brawler, src/087k-mg-fight.js; writes the same FIGHT MINIGAME log lines)
+    const fightResult = await KreplinFight.playFightMinigame();
     
     if (fightResult === 'win') {
       log('');
@@ -839,79 +839,6 @@ For a performer whose career has depended on testing whether there are any remai
     }
     
     // Game continues to pre-match phase naturally
-  }
-  
-  // Fight minigame
-  async function playFightMinigame() {
-    log('');
-    log('⚔️ FIGHT MINIGAME: Press the buttons as they appear!');
-    
-    let playerHealth = 100;
-    let captainHealth = 100;
-    let round = 0;
-    const maxRounds = 10;
-    
-    while (playerHealth > 0 && captainHealth > 0 && round < maxRounds) {
-      round++;
-      log(`\nRound ${round}:`);
-      log(`Your health: ${playerHealth}% | Captain health: ${captainHealth}%`);
-      
-      // Random button sequence
-      const buttons = ['PUNCH', 'KICK', 'DODGE', 'BLOCK'];
-      const requiredButton = buttons[Math.floor(Math.random() * buttons.length)];
-      
-      const buttonChoice = await choose([
-        {key: 'punch', label: 'PUNCH', variant: 'bad'},
-        {key: 'kick', label: 'KICK', variant: 'bad'},
-        {key: 'dodge', label: 'DODGE', variant: ''},
-        {key: 'block', label: 'BLOCK', variant: ''}
-      ], `Quick! Press ${requiredButton}!`);
-      
-      const buttonMap = {punch: 'PUNCH', kick: 'KICK', dodge: 'DODGE', block: 'BLOCK'};
-      const pressedButton = buttonMap[buttonChoice];
-      
-      if (pressedButton === requiredButton) {
-        // Hit!
-        const damage = 15 + Math.random() * 20;
-        captainHealth -= damage;
-        log(`✅ You hit! ${Math.round(damage)} damage!`);
-      } else {
-        // Miss or get hit
-        if (Math.random() < 0.6) {
-          const damage = 10 + Math.random() * 15;
-          playerHealth -= damage;
-          log(`❌ You missed! Captain hits you for ${Math.round(damage)} damage!`);
-        } else {
-          log(`⚠️ You dodged, but no damage dealt.`);
-        }
-      }
-      
-      // Captain's turn (automatic)
-      if (captainHealth > 0 && Math.random() < 0.7) {
-        const captainDamage = 8 + Math.random() * 12;
-        playerHealth -= captainDamage;
-        log(`👊 Captain hits you for ${Math.round(captainDamage)} damage!`);
-      }
-      
-      // Small delay between rounds for readability
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-    
-    log('');
-    if (playerHealth <= 0) {
-      log('💀 You are knocked out!');
-    } else if (captainHealth <= 0) {
-      log('💀 The captain is knocked out!');
-    } else {
-      log('⏱️ Time runs out!');
-    }
-    
-    // Determine winner
-    if (playerHealth > captainHealth) {
-      return 'win';
-    } else {
-      return 'lose';
-    }
   }
   
   // Handle mooning

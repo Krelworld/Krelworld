@@ -29,17 +29,7 @@
   const CRITTERS = { squirrel: { r: 7, spd: 46 }, rabbit: { r: 7, spd: 40 }, hedgehog: { r: 7, spd: 14 }, badger: { r: 10, spd: 20 } };
   const _log = m => { try { if (typeof log === 'function') log(m); } catch (e) {} };
 
-  let AC = null;
-  function sfx(type, f0, f1, dur, vol = 0.2) {
-    try {
-      AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-      if (AC.state === 'suspended') AC.resume().catch(() => {});
-      const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime;
-      o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
-      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-      o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur + 0.02);
-    } catch (e) {}
-  }
+  const sfx = MGKit.sfx;
   function pauseGeneralMusic() {
     let was = false;
     try {
@@ -343,7 +333,7 @@
       }
     }
 
-    if (opts.debug) window.__kmgDrive = { get G() { return G; }, mg, D_UNI, D_END, LANES, CAR_Y };
+    if (opts.debug || window.__KREPLIN_TEST__) window.__kmgDrive = { get G() { return G; }, mg, D_UNI, D_END, LANES, CAR_Y };
     mg.loop(dt => { update(dt); draw(); });
     const result = await mg.done;
     stopMusic();

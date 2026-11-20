@@ -41,8 +41,8 @@
     if (brickThrow.consumeOnThrow) removeItem("Brick", 1);
   }
 </script>
-<script src="mgkit.js"></script>
-<script src="brick.js"></script>
+<script src="../../src/087c-mgkit.js"></script>
+<script src="../../src/087i-mg-brick.js"></script>
 <script>
   const q = new URLSearchParams(location.search);
   async function run(t){ window.__result = null; await throwBrickAt(t, t === 'manager' ? { opponent: { name: 'Portsmouth' } } : {}); window.__result = String(window.__mult); log('RESULT mult=' + window.__mult + ' S=' + JSON.stringify(S)); }

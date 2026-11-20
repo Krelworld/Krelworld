@@ -20,7 +20,7 @@ function rollTauntMenu(fr) { const all = [].concat(...Object.values(S.isDrunk ? 
 function addSessionShout(s) { if (!Array.isArray(S.sessionShouts)) S.sessionShouts = []; S.sessionShouts.push(s); }
 window.S = { frustration: 40, isDrunk: false, sessionShouts: [] };
 </script>
-<script src="mgkit.js"></script><script src="taunts.js"></script>
+<script src="../../src/087c-mgkit.js"></script><script src="../../src/087f-mg-taunts.js"></script>
 <script>
 const out = document.getElementById('out');
 const logFn = m => { out.textContent += 'log: ' + m + '\n'; window.__lastLog = m; };

@@ -24,12 +24,7 @@
   const C = { red: '#d71920', redL: '#ff4a50', ink: '#0d1016', gold: '#f2c14e', good: '#3fbf6b', text: '#e9e6de', muted: '#8c93a8' };
 
   // ---- sfx ----
-  let AC = null;
-  function ac() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) { AC = null; } return AC; }
-  function tone(f0, f1, dur, type = 'square', vol = 0.08) { const a = ac(); if (!a) return; const o = a.createOscillator(), g = a.createGain(), t = a.currentTime;
-    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur); }
-  function noise(dur, freq, vol = 0.15) { const a = ac(); if (!a) return; const n = Math.floor(a.sampleRate * dur), b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0);
-    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n); const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); s.buffer = b; f.type = 'lowpass'; f.frequency.value = freq; g.gain.value = vol; s.connect(f).connect(g).connect(a.destination); s.start(); }
+  const ac = MGKit.ac, tone = MGKit.tone, noise = (dur, freq, vol = 0.15) => MGKit.noise(dur, freq, vol, 1); // shared kit audio
   const sfx = {
     strain() { tone(180 + Math.random() * 60, 120, 0.08, 'sawtooth', 0.04); },
     snap() { noise(0.12, 3000, 0.3); tone(900, 200, 0.1, 'square', 0.06); },
@@ -40,9 +35,7 @@
     splat() { noise(0.6, 300, 0.5); tone(120, 30, 0.5, 'sawtooth', 0.12); },
   };
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const tintCache = new Map();
-  function tinted(img, color) { const k = img.src + color; if (tintCache.has(k)) return tintCache.get(k);
-    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d'); x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-atop'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height); tintCache.set(k, c); return c; }
+  const tinted = MGKit.tinted;
 
   function detectItems(S) {
     S = S || {};
@@ -275,11 +268,16 @@
       resume();
       return outcome;
     }
-    // death: original resolves first, then handleTrainDeath plays the splat video + GAME OVER
+    // death: handleTrainDeath plays the splat video + GAME OVER. As in src/023, death is terminal: the promise the
+    // story awaits never resolves (restart / load save buttons take over). opts.resolveOnDeath (demo/tests) resolves 'dead'.
     resume();
-    if (typeof window.handleTrainDeath === 'function') setTimeout(() => window.handleTrainDeath(), 0);
+    if (typeof window.handleTrainDeath === 'function') {
+      setTimeout(() => window.handleTrainDeath(), 0);
+      if (!opts.resolveOnDeath) return new Promise(() => {});
+    }
     return 'dead';
   }
 
   window.KreplinTrain = { startTrainTracksSequence, detectItems, get debug() { return run._debug; } };
+  window.startTrainTracksSequence = startTrainTracksSequence;
 })();

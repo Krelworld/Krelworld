@@ -19,19 +19,7 @@
   const C = { red: '#d71920', redL: '#ff4a50', ink: '#0d1016', gold: '#f2c14e', good: '#3fbf6b', bad: '#e5484d', text: '#e9e6de', muted: '#8c93a8', panel: '#1d2230', line: '#3a4258' };
 
   // ---- tiny WebAudio sfx (no assets) ----
-  let AC = null;
-  function ac() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) { AC = null; } return AC; }
-  function tone(f0, f1, dur, type = 'square', vol = 0.08) {
-    const a = ac(); if (!a) return; const o = a.createOscillator(), g = a.createGain(), t = a.currentTime;
-    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
-    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur);
-  }
-  function noise(dur, freq, vol = 0.12) {
-    const a = ac(); if (!a) return; const n = Math.floor(a.sampleRate * dur), b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0);
-    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
-    const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); s.buffer = b; f.type = 'lowpass'; f.frequency.value = freq;
-    g.gain.value = vol; s.connect(f).connect(g).connect(a.destination); s.start();
-  }
+  const ac = MGKit.ac, tone = MGKit.tone, noise = (dur, freq, vol = 0.12) => MGKit.noise(dur, freq, vol, 1); // shared kit audio
   const sfx = {
     fart() { noise(0.35 + Math.random() * 0.3, 180 + Math.random() * 200, 0.2); tone(70 + Math.random() * 30, 40, 0.4, 'sawtooth', 0.05); },
     grunt() { tone(140, 90, 0.25, 'sawtooth', 0.05); },
@@ -43,14 +31,8 @@
   };
 
   // ---- helpers ----
-  const tintCache = new Map();
-  function tinted(img, color) {
-    const k = img.src + color; if (tintCache.has(k)) return tintCache.get(k);
-    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d');
-    x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-atop'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height);
-    tintCache.set(k, c); return c;
-  }
-  function wrap(ctx, str, maxW) { const out = []; let line = ''; for (const w of str.split(' ')) { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t; } if (line) out.push(line); return out; }
+  const tinted = MGKit.tinted;
+  const wrap = MGKit.wrapText;
   const lerp = (a, b, t) => a + (b - a) * t, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
   // Intestine path inside the GUT CAM panel (x 98..176, y 26..198)

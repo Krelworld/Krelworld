@@ -28,17 +28,7 @@
     { d: 26, mult: 0.5, label: 'GRAZED!', col: '#f29b2e', sub: 'Clipped him. Sort of.' },
     { d: Infinity, mult: 0.2, label: 'MISSED!', col: '#e5484d', sub: 'Everyone still saw you do it.' },
   ];
-  let AC = null;
-  function sfx(type, f0, f1, dur, vol = 0.2) {
-    try {
-      AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-      if (AC.state === 'suspended') AC.resume().catch(() => {});
-      const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime;
-      o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
-      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-      o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur + 0.02);
-    } catch (e) {}
-  }
+  const sfx = MGKit.sfx;
 
   async function throwBrickMinigame(targetType = 'referee', context = {}, opts = {}) {
     const art = opts.art || window.KMG_ART || 'art/raw/';
@@ -197,7 +187,7 @@
       }
     }
 
-    if (opts.debug) window.__kmgBrick = { G, T, mg, toScreen };
+    if (opts.debug || window.__KREPLIN_TEST__) window.__kmgBrick = { G, T, mg, toScreen };
     mg.loop(dt => { update(dt); draw(); });
     const mult = await mg.done;
     return typeof mult === 'number' ? mult : 1;

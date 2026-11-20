@@ -1283,7 +1283,9 @@ async function openTinderSwiping() {
 
     // Wait a moment for old image to clear, then load new image
     setTimeout(() => {
-      if (currentProfile.image) {
+      if (window.KreplinScenes && KreplinScenes.applyPortrait(cardImg, currentProfile)) {
+        // pixel portrait card
+      } else if (currentProfile.image) {
         const imageUrl = convertDropboxUrl(currentProfile.image);
         cardImg.src = imageUrl;
         cardImg.style.display = 'block';
@@ -1567,9 +1569,11 @@ async function openTinderSwiping() {
 // Generate profile pool
 function generateTinderProfilePool() {
   const profiles = [];
+  let genericPortrait = 0; // pixel portraits (src/087m-mg-scenes.js): one per generic profile
   
   TINDER_PROFILES.forEach(profileTemplate => {
     const profile = {...profileTemplate};
+    if (!profile.name && window.KreplinScenes) profile.portrait = KreplinScenes.TINDER_GENERIC[genericPortrait++ % KreplinScenes.TINDER_GENERIC.length];
     
     // Generate name if needed
     if (!profile.name && typeof FEMALE_NAMES !== 'undefined') {
@@ -1653,7 +1657,9 @@ async function startTinderConversation(profile) {
   const chatQuickOptions = document.getElementById('tinderChatQuickOptions');
   
   // Set up chat header
-  if (profile.image) {
+  if (window.KreplinScenes && KreplinScenes.applyPortrait(chatHeaderImg, profile)) {
+    // pixel portrait
+  } else if (profile.image) {
     chatHeaderImg.src = profile.image;
     chatHeaderImg.style.display = 'block';
   } else {
@@ -2349,11 +2355,12 @@ async function viewTinderMatches() {
     const timeAgo = S.matches_played - match.matched_at;
     const timeText = timeAgo === 0 ? 'Just now' : `${timeAgo} match${timeAgo !== 1 ? 'es' : ''} ago`;
     
-    const imageUrl = convertDropboxUrl(match.image);
+    const px = window.KreplinScenes ? KreplinScenes.tinderPortrait(match) : null;
+    const imageUrl = px ? px.src : convertDropboxUrl(match.image);
     const fallbackImg = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="60" height="60"%3E%3Crect fill="%23ddd" width="60" height="60"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-family="sans-serif" font-size="10"%3EImage%3C/text%3E%3C/svg%3E';
     
     matchItem.innerHTML = `
-      <img class="tinder-match-item-img" src="${imageUrl}" alt="${match.name}" onerror="this.src='${fallbackImg}'">
+      <img class="tinder-match-item-img${px ? ' k-px-portrait' : ''}" src="${imageUrl}" alt="${match.name}" onerror="this.src='${fallbackImg}'">
       <div class="tinder-match-item-info">
         <div class="tinder-match-item-name">${match.name}</div>
         <div class="tinder-match-item-bio">${match.bio || ''}</div>

@@ -281,6 +281,7 @@ async function revealMatchEvents(result, overlay, skipState) {
   
   // Add kickoff message
   addLogEntry(logEl, "Kickoff!", null);
+  if (window.KVoice) KVoice.say('kickoff');
   await pacedDelay(1500);
   
   if (skipState.requested) {
@@ -323,6 +324,7 @@ async function revealMatchEvents(result, overlay, skipState) {
         }
         
         if (overlay._pitch) overlay._pitch.whistle('HALF TIME');
+        if (window.KVoice) KVoice.say('halftime');
         if (minuteEl) minuteEl.textContent = 'HT';
         // Pixel dressing-room scene (src/087m-mg-scenes.js); same options/effects, falls back to the plain menu
         const htPrompt = (window.KreplinScenes && window.KUI) ? KreplinScenes.halftime : (o) => promptQuickSimChoice(overlay, o);
@@ -514,7 +516,21 @@ async function revealMatchEvents(result, overlay, skipState) {
     
     // Show minute markers periodically (every 10 minutes)
     if (eventMinute > 0 && eventMinute % 10 === 0 && eventMinute > lastMinuteMarker) {
-      addLogEntry(logEl, `${eventMinute}' - The match continues...`, null);
+      const minuteMarkers = [
+        "The match continues...",
+        "The match grinds on...",
+        "Still going. Still football. Allegedly.",
+        "Both sides trading possession like stolen goods.",
+        "A lull. The crowd checks its phones.",
+        "Midfield scrap. Shin pads taking a beating.",
+        "The ball spends a worrying amount of time in the air.",
+        "Plenty of huffing, very little puffing.",
+        "The referee jogs past looking smug about something.",
+        "Someone in the crowd starts a slow clap. Nobody joins in.",
+        "Throw-in. Throw-in. Throw-in. This is the game now.",
+        "The pitch is starting to resemble a ploughed field."
+      ];
+      addLogEntry(logEl, `${eventMinute}' - ${window.KPacing ? KPacing.bag('comm:minute', minuteMarkers) : minuteMarkers[0]}`, null);
       lastMinuteMarker = eventMinute;
       await pacedDelay(1000);
       if (skipState.requested) break;
@@ -561,6 +577,7 @@ async function revealMatchEvents(result, overlay, skipState) {
     let commentary = '';
     try {
       if (overlay._pitch) { try { overlay._pitch.event(event); } catch (_e) {} }
+      if (window.KVoice) { try { KVoice.matchEvent(event); } catch (_e) {} }
       if (event.kind === 'GOAL') {
         commentary = generateGoalCommentary(event);
         // Flash effect on goal
@@ -818,11 +835,19 @@ async function revealMatchEvents(result, overlay, skipState) {
         "Southampton dominating possession",
         "Away side pressing",
         "Both teams looking for opportunities",
-        "Match heating up"
+        "Match heating up",
+        "A seagull lands in the centre circle and refuses to leave",
+        "The away end has started a conga line",
+        "Somebody in the Chapel Stand is frying sausages on a camping stove",
+        "Both managers are pointing at things. Nobody knows what",
+        "The fourth official is eating a Twix",
+        "Tempo dropping. Players visibly thinking about dinner",
+        "The tannoy announces a lost child. He is forty-three",
+        "Long ball, longer ball, longest ball. Nobody wins any of them"
       ];
       await pacedDelay(1500);
       if (!skipState.requested) {
-        addLogEntry(logEl, `${eventMinute + 1}' - ${pick(updates)}`, null);
+        addLogEntry(logEl, `${eventMinute + 1}' - ${window.KPacing ? KPacing.bag('comm:updates', updates) : pick(updates)}`, null);
       }
     }
     
@@ -848,6 +873,7 @@ async function revealMatchEvents(result, overlay, skipState) {
     await pacedDelay(1500);
     minuteEl.textContent = "FT";
     addLogEntry(logEl, `Full-time: ${getClubName()} ${result.usGoals} – ${result.themGoals} ${matchOpponentName()}`, null);
+    if (window.KVoice) KVoice.fulltime(result.usGoals, result.themGoals);
     await pacedDelay(2000);
     
     // Season 5 first match: Mohammed Van Onslaught massacre event

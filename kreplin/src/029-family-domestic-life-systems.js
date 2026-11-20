@@ -1362,25 +1362,43 @@ function generateInterChairmanGossip() {
       const allianceQuotes = [
         `"${chairman1.name} defends ${chairman2.name}'s recent comments, calling them 'refreshing candor.'"`,
         `"Sources say ${chairman1.name} and ${chairman2.name} have been seen meeting privately."`,
-        `"${chairman1.name} publicly supports ${chairman2.name}'s approach to club management."`
+        `"${chairman1.name} publicly supports ${chairman2.name}'s approach to club management."`,
+        `"${chairman1.name} and ${chairman2.name} were photographed sharing a single enormous milkshake."`,
+        `"${chairman1.name} and ${chairman2.name} have reportedly started a joint WhatsApp group called 'Real Chairmen Only'."`,
+        `"${chairman1.name} lent ${chairman2.name} his helicopter. It has not been returned."`,
+        `"${chairman1.name} and ${chairman2.name} turned up to the league AGM in matching gilets."`,
+        `"${chairman1.name} told reporters ${chairman2.name} is 'like a brother to me, a younger, poorer brother.'"`,
+        `"${chairman1.name} and ${chairman2.name} were spotted at a garden centre buying a single shared bonsai."`
       ];
-      gossip = allianceQuotes[Math.floor(Math.random() * allianceQuotes.length)];
+      gossip = window.KPacing ? KPacing.bag('gossip:alliance', allianceQuotes) : allianceQuotes[Math.floor(Math.random() * allianceQuotes.length)];
       headline = `Chairman alliance forms`;
     } else {
       // Neutral gossip based on personality
       if (chairman1.personality === "Cynic" && Math.random() < 0.5) {
         const cynicQuotes = [
           `"${chairman1.name} was overheard criticizing ${chairman2.name}'s 'naive' management style."`,
-          `"${chairman1.name} reportedly made snide remarks about ${chairman2.name} at a private function."`
+          `"${chairman1.name} reportedly made snide remarks about ${chairman2.name} at a private function."`,
+          `"${chairman1.name} told a dinner party that ${chairman2.name} 'couldn't run a bath, let alone a football club.'"`,
+          `"${chairman1.name} reportedly called ${chairman2.name} 'a hairdo with a chequebook.'"`,
+          `"${chairman1.name} was seen doing an impression of ${chairman2.name} at the bar. It involved a lot of crying."`,
+          `"Sources say ${chairman1.name} keeps a dartboard with ${chairman2.name}'s face on it in the boardroom toilet."`,
+          `"${chairman1.name} described ${chairman2.name}'s transfer policy as 'throwing money into a canal and hoping for ducks.'"`,
+          `"${chairman1.name} sent ${chairman2.name} a sympathy card. Nobody had died."`
         ];
-        gossip = cynicQuotes[Math.floor(Math.random() * cynicQuotes.length)];
+        gossip = window.KPacing ? KPacing.bag('gossip:cynic', cynicQuotes) : cynicQuotes[Math.floor(Math.random() * cynicQuotes.length)];
         headline = `Chairman criticism surfaces`;
       } else if (chairman1.personality === "Statesman" && Math.random() < 0.3) {
         const statesmanQuotes = [
           `"${chairman1.name} praised ${chairman2.name}'s 'measured approach' to recent challenges."`,
-          `"${chairman1.name} called ${chairman2.name} 'a credit to the league.'"`
+          `"${chairman1.name} called ${chairman2.name} 'a credit to the league.'"`,
+          `"${chairman1.name} described ${chairman2.name} as 'the conscience of the league, or at least its least criminal member.'"`,
+          `"${chairman1.name} raised a glass to ${chairman2.name} at a charity gala, then had to be helped down from the table."`,
+          `"${chairman1.name} said ${chairman2.name} 'carries himself with the dignity of a man who has never been arrested. Yet.'"`,
+          `"${chairman1.name} praised ${chairman2.name}'s 'statesmanlike handshake' in a twenty-minute speech nobody asked for."`,
+          `"${chairman1.name} nominated ${chairman2.name} for a knighthood. The letter came back unopened."`,
+          `"${chairman1.name} called ${chairman2.name} 'a lighthouse in a sea of absolute bastards.'"`
         ];
-        gossip = statesmanQuotes[Math.floor(Math.random() * statesmanQuotes.length)];
+        gossip = window.KPacing ? KPacing.bag('gossip:statesman', statesmanQuotes) : statesmanQuotes[Math.floor(Math.random() * statesmanQuotes.length)];
         headline = `Chairman praise`;
       }
     }

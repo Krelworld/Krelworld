@@ -75,7 +75,16 @@ function checkFamilyEvents() {
 // Trigger family meltdown
 function triggerFamilyMeltdown() {
   log("💥 FAMILY MELTDOWN: Your home life is in crisis!");
-  log("📰 Press scandal: 'Chairman's family life in turmoil'");
+  const meltdownFlavour = [
+    "📰 Press scandal: 'Chairman's family life in turmoil'",
+    "📰 Tabloid splash: 'SAINTS SUPREMO SLEEPING IN THE CLUB CAR PARK'",
+    "📰 Front page: chairman's wife seen throwing his suits off a balcony into the Itchen.",
+    "📰 'KIDS CHANGE SURNAME — CHAIRMAN FINDS OUT FROM CLUB WEBSITE'",
+    "📰 'MELTDOWN AT THE MANSION': neighbours report the chairman shouting at a hedge.",
+    "📰 Local radio gives its whole phone-in to your marriage. Four hours. No adverts.",
+    "📰 'Chairman's family moves in with the kit man', reports the Echo."
+  ];
+  log(window.KPacing ? KPacing.bag('family:meltdown', meltdownFlavour) : meltdownFlavour[0]);
   log("💰 Sponsor loss: -£500,000 (sponsors don't want association with family drama)");
   
   S.club_cash = Math.max(0, S.club_cash - 500000);
@@ -100,10 +109,18 @@ function triggerWifeComplaint() {
     "I'm tired of being a single parent.",
     "You're more married to the club than to me.",
     "The neighbors are starting to talk.",
-    "I need you to be present, not just physically here."
+    "I need you to be present, not just physically here.",
+    "You called our son 'the lad' and asked if he was match fit.",
+    "You gave a team talk at the dinner table. The dog cried.",
+    "I found a transfer list on the fridge. Two of the names were our children.",
+    "You fell asleep in the bath muttering 'four-four-two'.",
+    "Our daughter asked me if 'Chairman' is your first name.",
+    "We had a family portrait done and you held up a scarf.",
+    "You've been to more press conferences than parents' evenings. You've been to no parents' evenings.",
+    "The kids made you a birthday card. You asked who their agent was."
   ];
   
-  const complaint = pick(complaints);
+  const complaint = window.KPacing ? KPacing.bag('family:wife_complaint', complaints) : pick(complaints);
   log(`💔 Your spouse says: "${complaint}"`);
   
   S.family.wifeRel = Math.max(0, S.family.wifeRel - 5);
@@ -125,10 +142,20 @@ function triggerTroubleAtSchool() {
     "Your child is falling behind in their studies.",
     "Your child is acting out due to lack of attention.",
     "The school is concerned about your child's behavior.",
-    "Your child is being bullied and you weren't there to help."
+    "Your child is being bullied and you weren't there to help.",
+    "Your child sold signed photos of you in the playground for 2p each. There were no takers at 2p.",
+    "Your child told the class you 'work in crime'.",
+    "Your child ran a betting ring on the egg-and-spoon race. The odds were good.",
+    "Your child drew a family portrait. You're a brown smudge in the corner labelled 'away'.",
+    "Your child headbutted the PE teacher after being substituted in rounders.",
+    "Your child tried to sell the school minibus to a man from Portsmouth.",
+    "Your child was sent home for running a 'transfer window' for other children's packed lunches.",
+    "Your child gave a show-and-tell about 'Daddy's special briefcase'. The headteacher would like a word.",
+    "Your child's nativity performance as Third Shepherd was described by the local paper as 'contractual'.",
+    "Your child has been holding press conferences at break time. Questions are not allowed."
   ];
   
-  const issue = pick(schoolIssues);
+  const issue = window.KPacing ? KPacing.bag('family:school', schoolIssues) : pick(schoolIssues);
   log(`📚 ${issue}`);
   
   S.family.kidsRel = Math.max(0, S.family.kidsRel - 3);
@@ -576,7 +603,17 @@ const SLAP_QUOTES = [
   "A sharp slap ends the conversation.",
   "You eat a slap. Lesson delivered.",
   "Her palm answers more clearly than words.",
-  "Security looks over as you get slapped."
+  "Security looks over as you get slapped.",
+  "She slaps you so hard your ancestors feel it.",
+  "A slap rings out. Somewhere, a dog barks in solidarity with her.",
+  "She slaps you, then slaps you again for flinching.",
+  "The slap lands like a free kick into the top corner. Unstoppable.",
+  "You take one slap to the face and a second, invisible one to the ego.",
+  "She slaps you. A waiter drops a tray in awe.",
+  "Her hand meets your cheek at roughly the speed of sound.",
+  "She slaps you with the confidence of a woman who has been rehearsing all week.",
+  "The slap is so crisp it could be sold in a multipack.",
+  "A slap. Your left ear now rings in B flat."
 ];
 
 // Have Sex outcome quotes
@@ -1203,7 +1240,7 @@ async function handleHarshRejection(selectedPerson, line) {
   // Check for slap
   const slapChance = calculateSlapChance(line);
   if (Math.random() < slapChance) {
-    const slapQuote = pick(SLAP_QUOTES);
+    const slapQuote = window.KPacing ? KPacing.bag('family:slap', SLAP_QUOTES) : pick(SLAP_QUOTES);
     log(slapQuote);
     
     // Apply debuff
@@ -1544,9 +1581,15 @@ async function triggerAffairScandal(affair) {
   // Log terrace reaction
   const chantLines = [
     "Saints fans spend 90 minutes chanting “SEX PEST OUT” instead of backing the team.",
-    "Home crowd serenades you with “HE’S NOT A REAL MAN” to the tune of “When the Saints Go Marching In”."
+    "Home crowd serenades you with “HE’S NOT A REAL MAN” to the tune of “When the Saints Go Marching In”.",
+    "The Itchen Stand unfurls a forty-foot banner: “KEEP IT IN YOUR TRACKSUIT, CHAIRMAN”.",
+    "Home and away fans unite for once to sing “WHO’S SHAGGING WHO? IT’S YOU, IT’S YOU”.",
+    "Half the Northam End turns its back on the directors’ box and moons you in unison.",
+    "A brass band in the Chapel Stand plays “Careless Whisper” every time you appear on the big screen.",
+    "Fans chant “LOCK HIM UP, THEN LOSE THE KEY” for ninety minutes and most of injury time.",
+    "The family stand sings “WE CAN SEE YOU SNEAKING OUT” every time you get up for a wee."
   ];
-  log(pick(chantLines));
+  log(window.KPacing ? KPacing.bag('terrace:sex_scandal', chantLines) : pick(chantLines));
 
   if (typeof addPaper === 'function') {
     addPaper('Sex scandal splashed across the tabloids', 14 + severity * 2);

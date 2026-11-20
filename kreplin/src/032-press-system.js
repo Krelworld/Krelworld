@@ -535,7 +535,15 @@ const RIVAL_INTRO_MESSAGES = [
   "Hello there, you fucking cunt. Delmor Krunchem here, chairman of Portsmouth FC. I'm your rival, and I'm going to make your life a living hell. You better watch your step because you will fail! Ha ha! I'm actually laughing at how pathetic you are!",
   "Greetings, you subhuman piece of garbage. I'm Delmor Krunchem, the chairman of Portsmouth FC, and I am your rival! You better watch your step! You will fail! Ha ha! I am actually laughing about how pathetic you are!",
   "Hello, you worthless scumbag. I'm Delmor Krunchem, chairman of Portsmouth FC, and I am your rival! You better watch your step! You will fail! Ha ha! I am actually laughing about how pathetic you are!",
-  "Well hello there, you fucking cunt. I'm Delmor Krunchem, the chairman of Portsmouth FC, I am your rival! You better watch your step! You will fail! Ha ha! I am actually laughing about how pathetic you are!"
+  "Well hello there, you fucking cunt. I'm Delmor Krunchem, the chairman of Portsmouth FC, I am your rival! You better watch your step! You will fail! Ha ha! I am actually laughing about how pathetic you are!",
+  "Hello, rat. Delmor Krunchem here, chairman of Portsmouth FC. I have never lost a fight, an argument or an arm wrestle, and I'm not starting with you. You will fail! Ha ha!",
+  "Greetings, little Southampton man. I am Delmor Krunchem, chairman of Portsmouth FC, and I am bigger than you in every possible way. I measured. You will fail! I am already laughing!",
+  "This is Delmor Krunchem, chairman of Portsmouth FC. I got your number off a man in a pub for a bag of scampi fries. Best money I ever spent. Watch your step, you prick. You will fail!",
+  "Welcome to the Premier League, you sack of wet sand. Delmor Krunchem, chairman of Portsmouth FC. I own three yachts and your future. Ha ha!",
+  "Delmor Krunchem, chairman of Portsmouth FC. I wanted to introduce myself properly before I destroy you. Manners cost nothing. Your club costs slightly more. You will fail!",
+  "Hello, you fucking amateur. I'm Delmor Krunchem, the chairman of Portsmouth FC. I've had a portrait of you painted so I can throw darts at it. You will fail! I am laughing right now!",
+  "Ah, the new boy. Delmor Krunchem, chairman of Portsmouth FC. I've seen your squad. I've seen bigger threats in a Kinder Egg. Ha ha! You will fail!",
+  "Ding dong, it's Delmor Krunchem, chairman of Portsmouth FC. I am your rival, your nightmare and your landlord, eventually. Watch your step, you little rat!"
 ];
 
 // Vile messages array for when player loses (~35 messages - expanded with more abusive variants)
@@ -624,7 +632,15 @@ const RIVAL_UNHINGED_RESPONSES = [
   "Keep engaging with me, you subhuman piece of shit. I love watching you lose your mind. I hope your entire bloodline gets wiped out. You're a fucking disgrace.",
   "You're talking back? Excellent. This is exactly what I wanted. You're a subhuman waste of space and I'm going to destroy you. I hope you get terminal cancer.",
   "Keep replying, you fucking cunt. Every message proves how much of a subhuman piece of garbage you are. I hope you and your family get cancer and die slowly.",
-  "You're engaging? Perfect. I'm going to make sure everyone knows what a fucking cunt you are. I hope you get cancer and die a slow, painful death."
+  "You're engaging? Perfect. I'm going to make sure everyone knows what a fucking cunt you are. I hope you get cancer and die a slow, painful death.",
+  "Oh, you're replying? I printed your message and ate it. It tasted of fear. I'm coming for you, you fucking cunt. – Delmor",
+  "Keep typing, little rat. Every word goes in my folder. My folder is enormous. It has tabs. You're finished.",
+  "You've woken the beast. The beast is me. I'm in my dressing gown but I am still the beast. You're dead to football.",
+  "Did you think I'd be upset? I'm in a hot tub reading your message out to my staff. They're crying with laughter. You worthless cunt.",
+  "You're replying at this hour? You're obsessed with me. I don't blame you. I'm magnificent. You're a stain on a stain.",
+  "Big words from a man whose club smells of feet. I'm going to bury you, you sack of shit, and plant a Portsmouth flag on the mound.",
+  "Reply all you like. I've linked your number to my massage chair. Every text you send relaxes me. Keep going, you pathetic prick.",
+  "You think you scare me? I once headbutted a swan. It apologised. You'll apologise too, you fucking worm."
 ];
 
 // Player response phrases for Krunchem pop-ups
@@ -804,14 +820,33 @@ const RIVAL_TEMPLATES = {
       "Ha ha, another loss. Some chairman you are.",
       "You bottled it again. Embarrassing.",
       "Another defeat. When will you learn?",
-      "Lost again? Shocking."
+      "Lost again? Shocking.",
+      "Another loss. I've had the result framed. It's in my downstairs toilet, facing the seat.",
+      "Lost again? My nan could chair your club and she's been dead since 2009.",
+      "Unlucky. Not really. I'm lying. I'm thrilled.",
+      "I watched your match on mute so I could hear myself laughing.",
+      "Saw the score. Had to sit down. Then I stood up again to dance.",
+      "Are you trying to lose, or is this genuinely your best? Asking for my diary.",
+      "Your goalkeeper waved at the ball like an old friend leaving on a train.",
+      "Bad luck, little rat. Portsmouth sends its condolences. And a fart.",
+      "Another L. You collect them like a little boy collects stamps."
     ],
     harsh: [
       "Ha ha ha! You lost! You will never win!",
       "I hate you. Days like this keep me young.",
       "Your club is a joke and so are you.",
       "Another loss. I'm loving every second of your misery.",
-      "You're a failure. Everyone knows it. – Delmor"
+      "You're a failure. Everyone knows it. – Delmor",
+      "I've told my chef to bake a cake shaped like your league position. It's a very flat cake.",
+      "You lost so badly my accountant phoned me just to giggle down the line.",
+      "I've printed your result on 400 tea towels. Fratton Park club shop. £12.99.",
+      "My dog has a better win ratio than you and he's only ever played fetch.",
+      "You lost. I ran a bath to celebrate. A big one. Bubbles shaped like your fans crying.",
+      "Every time Southampton lose, an angel gets a Portsmouth season ticket. – Delmor",
+      "I don't even hate you any more. I pity you. No I don't. I hate you. – Delmor",
+      "Your defence has the structural integrity of a wet Greggs bag.",
+      "I'm naming my new yacht 'Southampton Lost Again'. It's very big. Bigger than you. – Delmor",
+      "Pathetic. I've seen better organised football at a stag do in Magaluf."
     ],
     extreme: RIVAL_LOSS_VILE_MESSAGES
   },
@@ -820,13 +855,29 @@ const RIVAL_TEMPLATES = {
       "You really did that? Of course you did. I've already called the press.",
       "You are a walking scandal generator. I'm actually impressed.",
       "Another scandal? Predictable. I've briefed every journalist I know.",
-      "You can't help yourself, can you? The press will have a field day. – Delmor"
+      "You can't help yourself, can you? The press will have a field day. – Delmor",
+      "Another scandal? I've had to give a journalist my spare room just to keep up with you.",
+      "I read about you in three papers today. One of them was a takeaway menu. – Delmor",
+      "Even the Portsmouth Evening News is bored of you. They've gone back to reporting on a pothole.",
+      "You're the only chairman in England with his own tabloid desk. Congratulations, you prick.",
+      "I've started a scrapbook of your scandals. It's on volume four. It's the size of a Bible.",
+      "My PR man saw your headline and asked me for a pay rise for not working for you.",
+      "Scandal again. You're a sewer pipe with a club badge on it. – Delmor",
+      "My mother read about you and crossed herself twice. She isn't even religious."
     ],
     extreme: [
       "I've just briefed every journalist I know. Enjoy the headlines.",
       "I hope this ruins you. I am going to make sure everyone remembers this forever.",
       "This is it. This is the end for you. I'm making sure of it. – Delmor",
-      "You're finished. I'm going to make sure the whole world knows what a monster you are. – Delmor"
+      "You're finished. I'm going to make sure the whole world knows what a monster you are. – Delmor",
+      "I've hired a skywriter. Tomorrow your scandal goes up over the Solent in smoke. – Delmor",
+      "I've posted the cuttings to your mum. And your old headmaster. And your dentist. – Delmor",
+      "This is the best day of my life and I was at both of my weddings. – Delmor",
+      "I'm having this headline laminated and buried with me. – Delmor",
+      "The FA rang me for a comment. I spoke for four hours. They had to change the tape. – Delmor",
+      "I've booked the big screen at Fratton Park. Your scandal on a loop at half-time. Every match. Forever.",
+      "Your shame is my pension plan. I'm selling the documentary rights tonight. – Delmor",
+      "I hope this follows you to your grave and then digs you back up for a second go. – Delmor"
     ]
   },
   personal_meltdown: {
@@ -834,13 +885,29 @@ const RIVAL_TEMPLATES = {
       "Saw your little meltdown. Chairman of the Year, eh?",
       "You're not okay, are you? Good.",
       "Having a breakdown? Perfect. Keep spiralling.",
-      "Your mental state is showing. Everyone can see it. – Delmor"
+      "Your mental state is showing. Everyone can see it. – Delmor",
+      "Heard you were crying in a Little Chef. Classic you.",
+      "I pay a man to sit outside your house and count your sobs. He's asked for overtime.",
+      "Your eyes in that photo. Like a microwaved fish. Brilliant. – Delmor",
+      "Breakdown? Have you tried being better? It works for me every single day.",
+      "Your therapist rang me for advice. I told her you're unfixable and to bill you double.",
+      "Saw you on the news arguing with a bin. Did the bin win?",
+      "Losing your marbles? Don't worry, I'll find them and flush them. – Delmor",
+      "You look like a man who's been shouting at the sea. Keep it up. The sea's winning."
     ],
     extreme: [
       "Keep spiralling. I'm cheering.",
       "You're not fit to run a car park, let alone a football club.",
       "I hope you break completely. I want to watch you fall apart. – Delmor",
-      "You're losing it. Everyone sees it. I'm making sure they never forget. – Delmor"
+      "You're losing it. Everyone sees it. I'm making sure they never forget. – Delmor",
+      "I've put a webcam on your front door. Watching you fall apart is my favourite channel. – Delmor",
+      "Crack, little rat. Crack all the way down. I'll be waiting at the bottom in a deckchair.",
+      "I hope your brain does a three-point turn and drives off a cliff. – Delmor",
+      "Your mind's going and I've bought popcorn. The big bucket. With butter. – Delmor",
+      "You're unravelling like a cheap Portsmouth scarf. And I made the scarf. – Delmor",
+      "I'm having your breakdown set to music. It opens in the West End next spring. – Delmor",
+      "Every night I pray you get worse. Every morning you deliver. Thank you. – Delmor",
+      "Melt, you waxwork. Melt. – Delmor"
     ]
   },
   player_sale_disaster: {
@@ -848,12 +915,27 @@ const RIVAL_TEMPLATES = {
       "Sold your best player again? Genius move.",
       "Your fans must really love you right now. I certainly do.",
       "Another star player gone. Your club is bleeding talent.",
-      "You're destroying your own team. I love watching it. – Delmor"
+      "You're destroying your own team. I love watching it. – Delmor",
+      "Sold him for that? I'd have given you more for his boots, and I hate his boots.",
+      "Your transfer policy is a car boot sale run by a drunk badger.",
+      "Thanks for the bargain. I'll stick him on our bench and laugh at him daily. – Delmor",
+      "You sell players like a man emptying the fridge before a holiday.",
+      "I hear your fans are burning shirts. Is that the new kit launch?",
+      "You've sold so many players your squad photo is a selfie. – Delmor",
+      "Great business. If the business was setting fire to money.",
+      "Your scouting department is a bloke called Kev with a Ceefax login."
     ],
     extreme: [
       "You're selling the soul of your club. I hope it kills you.",
       "Every player you sell is another nail in your coffin. Keep going. – Delmor",
-      "Your fans hate you. Your players hate you. I hate you. Perfect. – Delmor"
+      "Your fans hate you. Your players hate you. I hate you. Perfect. – Delmor",
+      "Sell the lot. Sell the corner flags. Sell your teeth. I'll buy the lot for a fiver. – Delmor",
+      "Your club is being stripped for parts like a Vauxhall in a lay-by. – Delmor",
+      "I'm framing his transfer receipt and hanging it over my bed. – Delmor",
+      "Keep selling. Soon it'll just be you on the pitch in your pants. – Delmor",
+      "One day you'll sell the stadium and I'll turn it into a Portsmouth car park. – Delmor",
+      "You're auctioning your own legacy on eBay. Ending soon. No bids. – Delmor",
+      "Every player you flog makes my blood sing. – Delmor"
     ]
   },
   portsmouth_success: {
@@ -861,42 +943,91 @@ const RIVAL_TEMPLATES = {
       "Portsmouth win, Southampton lose. Just like it should be.",
       "We're up, you're down. It's beautiful.",
       "Pompey wins again. You lose again. Perfect symmetry.",
-      "Portsmouth success, Southampton failure. The natural order. – Delmor"
+      "Portsmouth success, Southampton failure. The natural order. – Delmor",
+      "Portsmouth won. I've given every player a bonus and a hug. A long hug.",
+      "Pompey top of the form table. You're top of the laughing stock table.",
+      "We won and I've had the score tattooed on my chest. It's getting crowded in there.",
+      "Another Pompey win. The Solent smells sweeter tonight. Yours smells of bins. – Delmor",
+      "We play football. You play pretend. – Delmor",
+      "Portsmouth won so hard the seagulls are singing our song.",
+      "Victory tastes like a pasty from the Fratton End. You'll never know that taste.",
+      "Our kitman keeps more clean sheets than your keeper. – Delmor"
     ],
     extreme: [
       "Portsmouth are everything you'll never be. Remember that. – Delmor",
       "We win. You lose. Forever. – Delmor",
-      "Portsmouth rises while you fall. This is how it should be. – Delmor"
+      "Portsmouth rises while you fall. This is how it should be. – Delmor",
+      "Portsmouth is a cathedral. Southampton is a portaloo at a festival. Day three. – Delmor",
+      "I'm putting up a statue of myself outside Fratton Park. It points at Southampton and laughs. – Delmor",
+      "Pompey forever. You for about another week. – Delmor",
+      "Our win has been declared a bank holiday in Portsmouth. Yours would be declared a public health emergency.",
+      "I'm rising, little rat. Like bread. Like a god. Like a big Portsmouth bread god. – Delmor",
+      "When the historians write about this era you'll be a footnote. A rude one. – Delmor",
+      "We are the future. You are a skidmark on the past. – Delmor"
     ]
   },
   derby_loss: {
     harsh: [
       "We beat you. Again. It never gets old.",
       "Derby day. Our day. Your humiliation.",
-      "Portsmouth 1, Southampton 0. In everything. – Delmor"
+      "Portsmouth 1, Southampton 0. In everything. – Delmor",
+      "Derby day. I watched from my box eating a whole roast swan. You looked hungrier. – Delmor",
+      "We beat you so badly the M27 has filed a noise complaint.",
+      "Thanks for the three points. I've spent them on a hot tub.",
+      "Your end went so quiet I thought you'd all died. Sadly not.",
+      "I'm having that scoreline engraved on my cufflinks. – Delmor",
+      "The derby's over. The healing never starts. – Delmor",
+      "I've renamed my downstairs toilet 'St Mary's'. Fitting. – Delmor"
     ],
     extreme: [
       "We own you. We always have. We always will. – Delmor",
       "Derby humiliation. This is your life now. – Delmor",
-      "You lost to us. Again. I hope it hurts. I hope it always hurts. – Delmor"
+      "You lost to us. Again. I hope it hurts. I hope it always hurts. – Delmor",
+      "I'm going to play the derby highlights at your funeral. On a big telly. With surround sound. – Delmor",
+      "You're the little brother who gets his head flushed every year. Every. Single. Year. – Delmor",
+      "Derby humiliation number whatever. I've lost count. You never will. – Delmor",
+      "I played the winning goal at my mother's bedside. She sat up. First time in years. – Delmor",
+      "Southampton is a village that thinks it's a city. Portsmouth just taught it to read. – Delmor",
+      "I've sent the replay to your wife. She clapped. – Delmor",
+      "I'll be dining out on this derby until the sun explodes. – Delmor"
     ]
   },
   relegation: {
     extreme: [
       "Relegated. You're finished. I hope you never come back. – Delmor",
       "Down you go. Where you belong. – Delmor",
-      "Relegation. This is your legacy. Failure. – Delmor"
+      "Relegation. This is your legacy. Failure. – Delmor",
+      "Relegated! I've opened a bottle of champagne older than your club. – Delmor",
+      "Enjoy the Championship. Bring a coat. And a helmet. – Delmor",
+      "Down, down, deeper and down. I've hired Status Quo to play it in my kitchen. – Delmor",
+      "Relegation suits you. It's the right size. – Delmor",
+      "I'll send you a postcard from the top flight. It'll just say 'ha'. – Delmor",
+      "Your club fell through the floor and I've bricked up the hole. – Delmor",
+      "Relegated. If I were you I'd emigrate. To the sea. – Delmor"
     ]
   },
   sacking: {
     harsh: [
       "Sacked? Of course you were. You're incompetent.",
       "They finally saw through you. Good.",
-      "Out on your arse. Deserved. – Delmor"
+      "Out on your arse. Deserved. – Delmor",
+      "Sacked? I'd offer you a job at Portsmouth but we've already got a bin.",
+      "They've finally sacked you. Take the stapler. You've earned nothing else. – Delmor",
+      "Out. Gone. Binned. Lovely. – Delmor",
+      "I hear they changed the locks before you'd finished the meeting.",
+      "Being sacked is the most competent thing that's happened at your club all year.",
+      "Clear your desk, little rat. Leave the tears, the cleaner can mop them. – Delmor",
+      "Sacked like a sack of potatoes. A sad, sacked sack. – Delmor"
     ],
     extreme: [
       "Sacked. Finished. Done. I hope you never work in football again. – Delmor",
-      "Your career is over. I'm celebrating. – Delmor"
+      "Your career is over. I'm celebrating. – Delmor",
+      "Sacked. I've had the news read out in church. – Delmor",
+      "You'll never work in football again. Or retail. I've made calls. – Delmor",
+      "I'm having your P45 framed in the Fratton Park toilets. At eye level. – Delmor",
+      "Unemployed and unloved. The perfect combination. – Delmor",
+      "I hope the job centre makes you wait forever. I've paid them to. – Delmor",
+      "Sacked. Finally your club has a functioning brain cell, and it isn't yours. – Delmor"
     ]
   }
 };
@@ -937,7 +1068,7 @@ function getRivalMessageForEvent(eventType, context = {}) {
     return fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
   }
 
-  return pool[Math.floor(Math.random() * pool.length)];
+  return window.KPacing ? KPacing.bag(`rival:${eventType}:${intensity}`, pool) : pool[Math.floor(Math.random() * pool.length)];
 }
 
 // Save message to rival inbox
@@ -1045,7 +1176,7 @@ function sendRivalIntroMessage() {
   S.rival.introMessageSent = true;
   
   // Select random intro message and make it dynamic with current rival club
-  let introMessage = RIVAL_INTRO_MESSAGES[Math.floor(Math.random() * RIVAL_INTRO_MESSAGES.length)];
+  let introMessage = window.KPacing ? KPacing.bag('rival:intro', RIVAL_INTRO_MESSAGES) : RIVAL_INTRO_MESSAGES[Math.floor(Math.random() * RIVAL_INTRO_MESSAGES.length)];
   const rivalClub = S.rival?.club || "Portsmouth FC";
   // Replace hardcoded "Portsmouth FC" with current rival club name
   introMessage = introMessage.replace(/Portsmouth FC/g, rivalClub);

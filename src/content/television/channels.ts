@@ -391,6 +391,13 @@ NARRATOR: Some historians dispute this, citing Godric Gryffindor and a Waluigi u
 
 const EPISODES: TVEpisode[] = [KLERBLE_WELCOME, KRANDALL_SEGMENT, KLERBLE_PRESSER, WILDERN_BULLETIN, NEWS_1, NEWS_2, NEWS_3, NEWS_4, NEWS_5, CABINET_LIVE, SHOPPING, KRONSTER_DOC, LORE_HOUR, CREATION_MYTH, EASTENDERS_KREZZ, { ...BEEP_SHOW, unlockFlag: "tv_beep_show", unlockHint: "Locked programme: you'll catch it at the start of Chapter 4" }, ...KREWS_EPISODES, ...KREWS3_EPISODES.filter((e) => e.id !== "krews_crash_mode"), ...KREWS_STORIES_EPISODES, ...KREWS4_EPISODES, ...DRAMA_EPISODES, { ...TCC_EP07, channel: "CHANNEL KREZ" }, DRP_EP01, BEST_MAN, KRELBANK_AD];
 
+/**
+ * The story's own broadcasts: the ones the game plays you as part of the plot (Klerble's welcome, the Krandall
+ * segment in the first meeting, the Beep Show at the start of Chapter 4, Klerble's presser). On the telly they only
+ * turn up once you've seen them in the story, at the end of the on-demand list, and never as "whatever's on".
+ */
+export const STORY_EPISODES: ReadonlySet<string> = new Set(["klerble_welcome", "krews_krandall", "beep_show", "klerble_presser"]);
+
 /** Number each channel's episodes in order, now that some channels have been folded together. */
 const counts: Record<string, number> = {};
 export const ALL_EPISODES: TVEpisode[] = EPISODES.map((e) => ({ ...e, episodeNumber: (counts[e.channel] = (counts[e.channel] ?? 0) + 1) }));

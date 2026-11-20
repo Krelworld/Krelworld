@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { charMeta } from "../gfx/HD";
 import { voice } from "../audio/Voice";
 import { displayText } from "../audio/voiceKey";
-import { ALL_EPISODES, CHANNELS, setKeyFor } from "../../content/television/channels";
+import { ALL_EPISODES, CHANNELS, setKeyFor, STORY_EPISODES } from "../../content/television/channels";
 import { beatDuration, type TVBeat, type TVEpisode } from "../systems/tv";
 import { G } from "../G";
 import { synth } from "../audio/Synth";
@@ -183,7 +183,7 @@ export class TVScene extends Phaser.Scene {
 
   /** Whatever's on: a random show you can watch (usually one you haven't seen), never the one that just finished. */
   private surf() {
-    const all = ALL_EPISODES.filter((e) => this.unlocked(e) && e.id !== this.ep?.id);
+    const all = ALL_EPISODES.filter((e) => this.unlocked(e) && !STORY_EPISODES.has(e.id) && e.id !== this.ep?.id);
     if (!all.length) return this.showDemand();
     const fresh = all.filter((e) => !this.watchedList().includes(e.id));
     const pool = fresh.length && Math.random() < 0.75 ? fresh : all;
@@ -311,6 +311,8 @@ export class TVScene extends Phaser.Scene {
   private static readonly ROWS = 7;
 
   private unlocked(e: TVEpisode) {
+    // the story's broadcasts: only once you've seen them in the story
+    if (STORY_EPISODES.has(e.id)) return this.watchedList().includes(e.id);
     if (!e.unlockFlag) return true;
     if (this.fromTitle) return G.meta.tvWatched.includes(e.id);
     return !!G.s.flags[e.unlockFlag];
@@ -325,7 +327,7 @@ export class TVScene extends Phaser.Scene {
       synth.musicRaw("news");
       // open on the first show you haven't seen (or the top)
       this.guideTab = "ALL";
-      this.guideList = ALL_EPISODES.filter((e) => this.unlocked(e));
+      this.guideList = ALL_EPISODES.filter((e) => this.unlocked(e) && !STORY_EPISODES.has(e.id));
       const i = this.guideList.findIndex((e) => !this.watchedList().includes(e.id));
       this.guideSel = Math.max(0, i);
       this.guideTop = Math.max(0, this.guideSel - 2);
@@ -355,7 +357,8 @@ export class TVScene extends Phaser.Scene {
     this.ui.removeAll(true);
     this.stage.removeAll(true);
     const watched = this.watchedList();
-    const avail = ALL_EPISODES.filter((e) => this.unlocked(e));
+    // the story's broadcasts go at the end (they only show up once you've seen them in the story)
+    const avail = ALL_EPISODES.filter((e) => this.unlocked(e)).sort((a, b) => +STORY_EPISODES.has(a.id) - +STORY_EPISODES.has(b.id));
     this.guideTabs = ["ALL", ...[...new Set(avail.map((e) => e.channel))].sort((a, b) => chanOrder(a) - chanOrder(b))];
     if (!this.guideTabs.includes(this.guideTab)) this.guideTab = "ALL";
     this.guideList = avail.filter((e) => this.guideTab === "ALL" || e.channel === this.guideTab);
@@ -422,8 +425,9 @@ export class TVScene extends Phaser.Scene {
       });
       card.on("pointerdown", () => (synth.play("select"), this.play(e)));
       // channel chip
-      add(this.add.rectangle(SX + 22, y + 6, 50, RH - 17, col).setOrigin(0));
-      txt(SX + 47, y + (RH - 5) / 2, chanCode(e.channel), 10, "#0a0a14").setOrigin(0.5);
+      const story = STORY_EPISODES.has(e.id);
+      add(this.add.rectangle(SX + 22, y + 6, 50, RH - 17, story ? 0xffffff : col).setOrigin(0).setStrokeStyle(story ? 2 : 0, 0xd4a017));
+      txt(SX + 47, y + (RH - 5) / 2, story ? "STORY" : chanCode(e.channel), story ? 9 : 10, story ? "#7a5a00" : "#0a0a14").setOrigin(0.5);
       const title = e.title.length > 40 ? e.title.slice(0, 39) + "…" : e.title;
       const show = e.show.length > 46 ? e.show.slice(0, 45) + "…" : e.show;
       txt(SX + 82, y + 5, title, 14, sel ? "#ffffff" : "#e6ebff");

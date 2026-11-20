@@ -1715,6 +1715,16 @@ async function mainGameLoopPass() {
   if(S.game_over){
     log('GAME OVER: ' + (S.game_over_reason || 'Unknown reason'));
     log('Your story has come to an end.');
+    // a game over with no end screen of its own (liquidation, insolvency...) used to leave the
+    // player on a dead feed with stale buttons; give it a way back to the start screen
+    if (!window.__kreplinFailstate && !window.__kreplinCampaignEnd && window.KUI) {
+      window.__kreplinFailstate = true;
+      const actions = document.getElementById('actions'); if (actions) actions.innerHTML = '';
+      KUI.modal({ title: 'Game over', variant: 'sinister', dismissible: false,
+        html: `<p>${KUI.esc(S.game_over_reason || 'Your story has come to an end.')}</p>`,
+        actions: [{ id: 'restart', label: 'Back to the start screen', variant: 'primary' }] })
+        .then(() => { try { location.reload(); } catch (_) {} });
+    }
     return; // Exit the game loop
   }
   

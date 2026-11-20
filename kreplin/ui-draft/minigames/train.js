@@ -72,7 +72,7 @@
     const LABEL = { brick: 'Throw Brick at Train', hgh: 'Use HGH', cocaine: 'Use Cocaine' }, SHORT = { brick: 'BRICK', hgh: 'HGH', cocaine: 'COKE' };
     const inSlot = (p, s) => p && p.x >= s.x - 4 && p.x <= s.x + s.w + 4 && p.y >= s.y - 8 && p.y <= s.y + s.h + 4;
     const pop = (s, x, y, c, size = 11) => g.pops.push({ s, x, y, c, size, t: 0 });
-    const Z = () => 1.2 + 45 * Math.max(0, 1 - g.t / LIMIT);
+    const Z = () => { const q = Math.max(0, 1 - g.t / LIMIT); return 1.2 + 22 * q * q; };
 
     function startRoll() {
       g.phase = 'roll'; g.roll = { m: 0, dir: 1, speed: 1.6, zc: 0.3 + Math.random() * 0.4, zw: 0.07, done: false, t: 0 };
@@ -221,8 +221,8 @@
           }
         }
       } else if (g.phase === 'rolled') {
-        g.endT += dt; g.rollX = Math.min(120, g.endT * 260);
-        g.t = Math.min(LIMIT + 0.6, g.t + dt * 1.2); // train thunders past
+        g.endT += dt; g.rollX = Math.min(70, g.endT * 200);
+        g.t = Math.min(LIMIT + 0.6, g.t + dt * 4); // train thunders past
         if (g.endT > 2.2) { mg.end('rolled'); return; }
       } else if (g.phase === 'dead') {
         g.endT += dt; if (g.endT > 1.6) { mg.end('dead'); return; }
@@ -231,7 +231,7 @@
 
       // ---- draw ----
       drawWorld(T);
-      if (g.phase === 'rolled') { drawMan(T); if (g.t < LIMIT + 0.5) drawTrain(T); }
+      if (g.phase === 'rolled') { if (g.t < LIMIT) drawTrain(T); else { ctx.fillStyle = 'rgba(255,255,220,.15)'; ctx.fillRect(0, 0, W, H); } drawMan(T); }
       else if (g.phase === 'dead') { ctx.fillStyle = '#7a0a10'; ctx.fillRect(0, 0, W, H); for (let i = 0; i < 9; i++) { ctx.fillStyle = i % 2 ? '#c4121a' : '#a00d14'; ctx.beginPath(); ctx.arc((i * 47) % W, 120 + (i * 61) % 180, 10 + (i % 4) * 7, 0, Math.PI * 2); ctx.fill(); } text('SPLAT', W / 2, 100, { size: 28, color: '#fff' }); }
       else { drawMan(T); if (!(g.phase === 'use' && g.used === 'brick' && g.boomed)) drawTrain(T); }
       if (g.phase === 'use' && g.used === 'brick' && g.brickPos && !g.boomed && mg.sprites.brick) { ctx.save(); ctx.translate(g.brickPos.x, g.brickPos.y); ctx.rotate(g.brickPos.r); ctx.drawImage(mg.sprites.brick, -10, -10, 20, 20); ctx.restore(); }

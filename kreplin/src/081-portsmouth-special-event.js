@@ -827,9 +827,15 @@ For a performer whose career has depended on testing whether there are any remai
       log('🏥 You wake up in hospital. The match has already been played.');
       log('📰 Southampton lose the match. You were in hospital and couldn\'t attend.');
       
-      // Simulate loss
-      if (!S.losses) S.losses = 0;
-      S.losses++;
+      // Simulate loss (through the league table too, so points/table/W-D-L stay in step)
+      const lostTo = (Array.isArray(S.opponents) && S.opponents[S.matches_played || 0]) || (S.rival && S.rival.club) || 'Portsmouth';
+      if (typeof applyResultToTable === 'function' && typeof syncClubRecordFromTable === 'function') {
+        applyResultToTable(getClubName(), lostTo, 0, 2);
+        syncClubRecordFromTable();
+      } else {
+        if (!S.losses) S.losses = 0;
+        S.losses++;
+      }
       S.matches_played = (S.matches_played || 0) + 1;
       S.morale = Math.max(-100, (S.morale || 0) - 10);
       

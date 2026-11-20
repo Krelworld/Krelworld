@@ -192,7 +192,7 @@ const ok = (cond, msg) => { console.log(`${cond ? 'PASS' : 'FAIL'}  ${msg}`); if
   ok(!!favBtn && refused.ev && refused.left === 0, 'favour you owe is called in; refusing leaves evidence');
 
   // ---------- Power Network: Surveillance / Blackmail / Policy favour ----------
-  await p.evaluate(() => { const b = document.getElementById('openPowerNetworkBtn'); b && b.click(); });
+  await p.evaluate(() => { S.referee_soft_bias = 0; /* a random earlier event can leave a tilt, which greys out Policy favour */ const b = document.getElementById('openPowerNetworkBtn'); b && b.click(); });
   await p.waitForTimeout(300);
   const rows = await E(() => [...document.querySelectorAll('#powerPerks [data-perk-id]')].map(x => x.dataset.perkId));
   ok(['perk-policy-favour', 'perk-surveillance', 'perk-advanced-blackmail'].every(k => rows.includes(k)), `Power Network shows Policy favour / Surveillance / Blackmail (${rows.length} perks)`);
@@ -201,10 +201,10 @@ const ok = (cond, msg) => { console.log(`${cond ? 'PASS' : 'FAIL'}  ${msg}`); if
     await p.evaluate(id => { const b = document.querySelector(`#powerPerks [data-perk-id="${id}"]`); b && b.click(); }, id);
     await p.waitForTimeout(200);
   }
-  const pw = await E(() => ({ surv: KSys.surveillanceOn(), tinder: S.surveillance && S.surveillance.tinderReveal, dirt: KSys.freeDirt().length, kit: S.sys.blackmailKit, pending: S.power_blackmail_pending, bureaucrat: KSys.owedToMe().some(f => /bureaucrat/i.test(f.label)), bias: S.referee_soft_bias, exact: KSys.leadWhen(S.leads.find(l => l.status === 'active') || S.leads[0]) }));
+  const pw = await E(() => ({ surv: KSys.surveillanceOn(), tinder: S.surveillance && S.surveillance.tinderReveal, dirt: KSys.freeDirt().length, kit: S.sys.blackmailKit, pending: S.power_blackmail_pending, bureaucrat: KSys.owedToMe().some(f => /bureaucrat/i.test(f.label)), owedList: KSys.owedToMe().map(f => f.label).join(';'), tokens: S.lobby_tokens, bias: S.referee_soft_bias, exact: KSys.leadWhen(S.leads.find(l => l.status === 'active') || S.leads[0]) }));
   ok(pw.surv && pw.tinder && pw.dirt >= 2, `Surveillance: running, Tinder reveal flag, dirt ×${pw.dirt}`);
   ok(/stage|published|killed|buried/i.test(pw.exact), `Surveillance shows exact stage ("${pw.exact}")`);
-  ok(pw.bureaucrat && pw.bias > 0, 'Policy favour: +bias and a bureaucrat owes you');
+  ok(pw.bureaucrat && pw.bias > 0, `Policy favour: +bias and a bureaucrat owes you (${pw.bureaucrat}, ${pw.bias}, owed: ${pw.owedList}, tokens ${pw.tokens})`);
   await p.evaluate(() => { const b = document.getElementById('powerNetworkCloseBtn'); b && b.click(); });
   const bm = await E(() => { const m0 = S.morale_opponent = 70; GameHooks.emit('prematch:end'); const d = KSys.freeDirt()[0]; const f = d && KSys.blackmailWithDirt(d.id); return { drop: m0 - S.morale_opponent, pending: S.power_blackmail_pending, fav: !!f }; });
   ok(bm.drop >= 20 && !bm.pending, `Blackmail: a key opponent drops out (opp morale −${bm.drop})`);
@@ -247,9 +247,9 @@ const ok = (cond, msg) => { console.log(`${cond ? 'PASS' : 'FAIL'}  ${msg}`); if
     const w0 = KSys.rel('captain').warmth, m0 = S.morale;
     GameHooks.emit('matchday:end'); GameHooks.emit('matchday:end');
     const e = S.contacts.captain.queued_texts.find(x => /test/.test(x.text));
-    return { stale: !!(e && e.stale), dw: KSys.rel('captain').warmth - w0, dm: S.morale - m0, debtUp: S.drugs.debt - debt0, note: (S.contacts.captain.queued_texts.find(x => x.staleNote) || {}).text };
+    return { stale: !!(e && e.stale), dw: KSys.rel('captain').warmth - w0, dm: S.morale - m0, debtUp: S.drugs.debt - debt0, marco: KSys.rel('bookie_marco').staleUnread, note: (S.contacts.captain.queued_texts.find(x => x.staleNote) || {}).text };
   });
-  ok(stale.stale && stale.dw < 0 && stale.debtUp >= 5000, `unread texts go stale: captain warmth ${stale.dw}, morale ${stale.dm}, Marco tab +${stale.debtUp} ("${stale.note}")`);
+  ok(stale.stale && stale.dw < 0 && stale.marco >= 1 && stale.debtUp > 0, `unread texts go stale: captain warmth ${stale.dw}, morale ${stale.dm}, Marco tab +${stale.debtUp} ("${stale.note}")`);
 
   // deadline: "reply by kickoff" or it lands
   const dl = await E(() => {
@@ -278,6 +278,21 @@ const ok = (cond, msg) => { console.log(`${cond ? 'PASS' : 'FAIL'}  ${msg}`); if
   const sext = await E(() => S.evidence.filter(e => e.kind === 'sext' && e.witness === 'captain_wife').pop());
   ok(!!sext && sext.tags.includes('sex'), `a sext becomes evidence: "${sext && sext.label}"${sext && sext.screenshot ? ' (screenshotted)' : ''}`);
   await phoneBtn(/Leave it/, 1500); await closePhone();
+
+  // the secretary keeps her own builder; her one-liners now get answered back, and her threads wait for a reply
+  await E(() => { S.secretary_hired = true; S.secretary_name = S.secretary_name || 'Tracey Bumble'; initializeSecretaryMessagingState(); S.secRel = 50; S.secTrust = 50; S.secRisk = 30; initPhoneSystem(); S.contacts.secretary.queued_texts = []; KSys.queueThread('secretary', KSys.THREADS.sec_hr); window.__r2 = Math.random; Math.random = () => 0.3; });
+  p.evaluate(() => openSecretaryMessaging());
+  const secAns = await phoneBtn(/Answer/);
+  await phoneBtn(/Sign it/);
+  await p.waitForTimeout(300);
+  await phoneBtn(/Professional \(one-liner\)/);
+  await phoneBtn(/No attachment/);
+  const secFollow = await phoneBtn(/↩/, 6000);
+  await p.waitForTimeout(400);
+  await E(() => { Math.random = window.__r2; });
+  const sec = await E(() => ({ answered: S.contacts.secretary.queued_texts.some(e => e.thread === 'sec_hr' && e.answered), hist: (S.secMessageHistory || []).length, trust: S.secTrust }));
+  ok(!!secAns && sec.answered && !!secFollow, `secretary: thread answered from her chat, one-liner gets a follow-up (${secFollow && secFollow.slice(0, 40)})`);
+  await closePhone();
 
   // wife (S1–3) -> "Ex-wife (at Delmor's)" in S4: taunts + Delmor dirt that buries a lead
   const season0 = await E(() => S.season);
@@ -374,7 +389,7 @@ const ok = (cond, msg) => { console.log(`${cond ? 'PASS' : 'FAIL'}  ${msg}`); if
   const bm3 = await E(() => S.evidence.some(e => /Saints scarf/.test(e.label)));
   ok(o3.includes('blackmail') && bm3, 'gold-digger date: blackmail with a price; refusing sends the photos');
   // Sarah: the real thing, through the existing invitation flow (bleak text kept), then an alibi
-  await E(() => { S.season4.tinder_matches = S.season4.tinder_matches || []; window.__inv = null; window.__r1 = Math.random; Math.random = () => 0.9; /* no sharia police this time */ window.__dt = handleTinderInvitation({ name: 'Sarah', bio: 'x', personality: 'enthusiastic' }); });
+  await E(() => { window.__logs = []; GameHooks.on('log', m => window.__logs.push(String(m))); S.season4.tinder_matches = S.season4.tinder_matches || []; window.__inv = null; window.__r1 = Math.random; Math.random = () => 0.9; /* no sharia police this time */ window.__dt = handleTinderInvitation({ name: 'Sarah', bio: 'x', personality: 'enthusiastic' }); });
   for (let i = 0; i < 40; i++) {
     const done = await E(() => S.tinder.sarah.dates > 0 && !document.querySelector('.k-modal-wrap'));
     const clicked = await E(() => { const m = [...document.querySelectorAll('.k-modal-wrap .k-btn')].pop(); if (m) { m.click(); return 'modal'; } const b = [...document.querySelectorAll('#actions button')].find(x => /use protection|complete|continue|ok/i.test(x.innerText)); if (b) { b.click(); return b.innerText; } return null; });
@@ -382,8 +397,8 @@ const ok = (cond, msg) => { console.log(`${cond ? 'PASS' : 'FAIL'}  ${msg}`); if
     await p.waitForTimeout(250);
   }
   await E(() => { Math.random = window.__r1; });
-  const sd = await E(() => ({ dates: S.tinder.sarah.dates, alibi: !!KSys.freeAlibi(), stage: S.tinder.sarah.stage, bleak: [...document.querySelectorAll('#feed *')].some(e => /You feel nothing/.test(e.textContent)) }));
-  ok(sd.dates >= 1 && sd.alibi && sd.bleak, `Sarah date via the real invite flow: bleak text kept, connection + alibi (stage ${sd.stage})`);
+  const sd = await E(() => ({ dates: S.tinder.sarah.dates, alibi: !!KSys.freeAlibi(), stage: S.tinder.sarah.stage, bleak: window.__logs.some(m => /You feel nothing/.test(m)) }));
+  ok(sd.dates >= 1 && sd.alibi && sd.bleak, `Sarah date via the real invite flow: bleak text kept, connection + alibi (${JSON.stringify(sd)})`);
   // the alibi against a police case
   await E(() => { window.__ui_context = 'postmatch'; window.__inv = presentInvestigation({ type: 'investigation', authority: 'police', caseType: 'misconduct' }); });
   await p.waitForFunction(() => [...document.querySelectorAll('#stepOptions button')].some(b => /alibi/i.test(b.innerText)), null, { timeout: 6000 }).catch(() => {});

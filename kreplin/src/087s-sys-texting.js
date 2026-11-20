@@ -378,7 +378,7 @@
         const c = S.contacts[id]; if (!c || !Array.isArray(c.queued_texts)) continue;
         let stale = 0;
         for (const e of c.queued_texts) {
-          if (e.type !== 'incoming' || e.read) continue;
+          if (e.type !== 'incoming' || e.read || e.staleNote) continue;
           if (typeof e.tick !== 'number') { e.tick = t - 1; continue; }
           if (!e.stale && t - e.tick >= 2) { e.stale = true; stale++; }
         }
@@ -426,10 +426,14 @@
   K.goneStale = function (id, n) {
     const r = K.rel(id); r.staleUnread = (r.staleUnread | 0) + n;
     const cost = STALE[id] || STALE._;
+    if (cost.quiet) return;
     K.textFx(id, cost.fx);
-    if (id === 'bookie_marco') { ensureSystemsState(); const fee = Math.max(5000, Math.round((S.drugs.debt | 0) * 0.1)); S.drugs.debt = (S.drugs.debt | 0) + fee; }
+    if (id === 'bookie_marco') { ensureSystemsState(); if ((S.drugs.debt | 0) > 0) S.drugs.debt += Math.max(1000, Math.round(S.drugs.debt * 0.1)); }
     if (id === 'secretary') S.secTrust = clamp((S.secTrust || 0) - 5, 0, 100);
-    if (id === 'ex_wife') { const c = S.contacts.ex_wife; (c.queued_texts || []).forEach(e => { if (e.thread === 'ex_dirt' && !e.answered) { e.expired = true; } }); }
+    if (id === 'ex_wife') {
+      let lost = 0; (S.contacts.ex_wife.queued_texts || []).forEach(e => { if (e.thread === 'ex_dirt' && !e.answered && !e.expired) { e.expired = true; lost++; } });
+      if (!lost) return; // a taunt left on read costs nothing; dirt left on read is gone
+    }
     const line = fill(P('stale_' + (STALE[id] ? id : '_'), cost.lines));
     if (S.contacts[id] && S.contacts[id].unlocked) { queueIncomingText(id, line, 'malicious'); const q = S.contacts[id].queued_texts; q[q.length - 1].tick = K.tick(); q[q.length - 1].staleNote = true; }
     try { logSafe(`📵 You left ${K.esc(cname(id))} on read. ${cost.note ? fill(cost.note) : ''}`); } catch (_) {}
@@ -466,14 +470,14 @@
   // unread for two matches
   const STALE = {
     _: { fx: { w: -5, t: -3 }, lines: ["?", "Read 2 weeks ago. Cool. Cool cool cool.", "Fine."] },
-    wife: { fx: { w: -8, love: -5, mar: 4 }, note: 'She noticed. She notices everything.', lines: ["Read Tuesday. It's Saturday. I've changed the locks. Then changed them back. Then changed them again.", "You can read a referee's mind but not a text from your wife. Noted.", "Your daughter asked if you're dead. I said 'only inside'."] },
+    wife: { fx: { w: -6, love: -2, mar: 3 }, note: 'She noticed. She notices everything.', lines: ["Read Tuesday. It's Saturday. I've changed the locks. Then changed them back. Then changed them again.", "You can read a referee's mind but not a text from your wife. Noted.", "Your daughter asked if you're dead. I said 'only inside'."] },
     captain: { fx: { w: -6, mor: -3 }, note: 'The captain sulks (morale −3).', lines: ["Gaffer you've left me on read twice. The lads have noticed. I've told them you're 'busy'. They've started saying 'busy' in a voice.", "Fine. I'll just captain myself then.", "Gaffer I'm doing the team talk in the mirror again"] },
-    bookie_marco: { fx: { w: -6, t: -6 }, note: 'Marco charges for being ignored (+interest on the tab).', lines: ["u left me on read. thats a fee. its on the tab. everything is on the tab", "2 blue ticks and no reply. my cousin hates blue ticks. hes very sensitive", "ignoring me is +10%. replying is also +10% but u get a nice chat"] },
+    bookie_marco: { fx: { w: -6, t: -6 }, note: 'Marco charges for being ignored (+10% on any tab).', lines: ["u left me on read. thats a fee. its on the tab. everything is on the tab", "2 blue ticks and no reply. my cousin hates blue ticks. hes very sensitive", "ignoring me is +10%. replying is also +10% but u get a nice chat"] },
     secretary: { fx: { w: -4, t: -5 }, note: 'Her trust drops (−5).', lines: ["I've escalated my own message to myself. I've decided you're busy.", "Following up on my follow-up regarding my previous follow-up.", "I'll assume silence is consent. HR says that's a bad assumption. I've told HR it's your assumption."] },
     captain_wife: { fx: { l: -6, w: -5 }, lines: ["Typical. Like all of you. Like HIM.", "I put a dress on for that text. Taking it off now. Not like that."] },
     manager: { fx: { t: -6, mor: -1 }, note: 'The manager loses faith (morale −1).', lines: ["Boss? I'll take that as a 'stay the course'. Or a 'you're sacked'. Hard to tell with you.", "Read and no reply. I'm putting the U23s on standby. For me."] },
     ex_wife: { fx: { w: -3 }, note: 'Whatever she had on Delmor, she keeps.', lines: ["Forget it. Delmor's back. He's in the hot tub. Again. It's not a hot tub, it's the bath with a hairdryer.", "Your loss. It was GOOD as well."] },
-    delmor_krunchem: { fx: {}, lines: ["Ignoring me? I'll text your wife instead. Oh wait. She's next to me.", "Silence. Like your fans at St Mary's."] },
+    delmor_krunchem: { quiet: true, fx: {}, lines: ["Ignoring me? I'll text your wife instead. Oh wait. She's next to me.", "Silence. Like your fans at St Mary's."] },
     womens_manager: { fx: { w: -4 }, lines: ["Silence is a statement too 💅", "I'll note that in the minutes as 'chairman unavailable for comment'."] }
   };
 

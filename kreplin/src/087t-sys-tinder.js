@@ -57,6 +57,8 @@
       tells: ["Photo 1: her nan's 90th. Nobody's posing", "Prompt: 'I'll judge you by how you treat waiters'", "'Bad at this. Be nice x'", "Photo 3: a slightly burnt lasagne she's clearly proud of"],
       chat: ["Ha. You're not what the papers say. You're worse. I like it.", "Tell me something true. Doesn't have to be nice.", "I've been to St Mary's once. My dad took me. He cried. Saints lost. He cried more."] }
   };
+  const LUKE_TELLS = ["Photo 1: Luke. Photo 2: Luke, closer. Photo 3: Luke's car. He's not a woman. He's Luke.", "Luke has swiped right on you four times. The app only lets you do it once."];
+  const SANMIK_TELLS = ["Every photo is the same photo, mirrored", "Location: 'ur area x'"];
   const SARAH_TELLS = ["Photo 2: a Saints shirt from the 2003 cup final. Faded. Real.", "'Honest people only. I can tell.'", "Photo 4: a care home Christmas party. She's the one holding everyone's plates."];
   const SARAH_CHAT = ["I work nights at the care home. Mrs Pettigrew says hi. She's 97. She thinks you're 'dishy'.", "Ha. You're not what the papers say. You're worse. I like it.", "Tell me something true. Doesn't have to be nice.", "My dad took me to St Mary's once. He cried. Saints lost. He cried more. He's gone now. Still counts."];
   K.TINDER_AGENDAS = AG;
@@ -70,7 +72,7 @@
       profiles.forEach(p => {
         const rec = T.matches[p.name];
         if (p.name === 'Sarah') { p.agenda = 'genuine'; p.sarah = true; p.tell = P('tell_sarah', SARAH_TELLS); return; }
-        if (p.name === 'Luke' || p.name === 'SanMik') { p.agenda = null; return; }
+        if (p.name === 'Luke' || p.name === 'SanMik') { p.agenda = null; p.tell = P('tell_' + p.name, p.name === 'Luke' ? LUKE_TELLS : SANMIK_TELLS); return; }
         if (rec && rec.agenda) p.agenda = rec.agenda;
         else {
           if (!T.agendaBag.length) T.agendaBag = ['journalist', 'plant', 'golddigger', 'journalist', 'plant', 'golddigger', 'genuine'].sort(() => Math.random() - 0.5);
@@ -108,6 +110,9 @@
     try {
       const m = K.tinderRecord(p);
       registerContact(m);
+      // Sarah's arc starts when you match, date or no date
+      const sa = K.tinderState().sarah;
+      if (m.name === 'Sarah' && !sa.ended && sa.stage < 1) { sa.stage = 1; sa.next = K.tick() + 1; }
       return m;
     } catch (e) { console.error('tinderOnMatch', e); return null; }
   };
@@ -115,7 +120,9 @@
 
   // ---------- chat ----------
   K.tinderAgendaReply = function (p) {
-    const m = recOf(p); if (!m || Math.random() >= 0.35) return null;
+    const m = recOf(p);
+    if (m && m.name === 'Sarah' && K.tinderState().sarah.ended) return { text: 'This account no longer exists.', unmatch: true };
+    if (!m || Math.random() >= 0.35) return null;
     const pool = m.name === 'Sarah' ? SARAH_CHAT : (AG[m.agenda] || AG.genuine).chat;
     return { text: P('tchat_' + (m.name === 'Sarah' ? 'sarah' : m.agenda), pool), unmatch: false };
   };
@@ -185,6 +192,7 @@
   K.tinderDateOutcome = async function (name) {
     const T = K.tinderState();
     const m = T.matches[name || T.lastDate]; if (!m) return null;
+    if (m.name === 'Sarah' && T.sarah.ended) { logSafe('She leaves before the kettle boils. She says she only came to give you back your scarf. You never gave her a scarf.'); return []; }
     const id = m.contact; registerContact(m);
     const outs = [];
     if (m.name === 'Sarah') outs.push(T.sarah.stage <= 1 ? 'connection' : 'connection', 'alibi');
@@ -331,6 +339,7 @@
       { l: '"I understand."', r: ["No you don't. That's ok. Nobody does. Bye, chairman."] },
       { l: '"Is it the cocaine?"', r: ["It's a bit the cocaine."] }] }
   ];
+  const SARAH_NODATE = "You matched with me, said 'evening m'lady', then nothing for a week, then 'u up'. I'm a night nurse. I'm always up. Coffee? Not your house.";
   K.SARAH = SARAH;
   K.sarahText = function () {
     const T = K.tinderState(); const sa = T.sarah;
@@ -338,7 +347,8 @@
     const m = T.matches.Sarah || K.tinderRecord({ name: 'Sarah', agenda: 'genuine' });
     registerContact(m);
     const beat = SARAH[sa.stage];
-    const e = K.queueThread(m.contact, { id: 'sarah_beat', text: beat.text, cat: 'friendly' });
+    const text = sa.stage === 1 && !sa.dates ? SARAH_NODATE : beat.text;
+    const e = K.queueThread(m.contact, { id: 'sarah_beat', text, cat: 'friendly' });
     if (e) e.stage = sa.stage;
     sa.stage++; sa.next = K.tick() + 2;
     // a final message nobody answers still ends it (at the next matchday)
@@ -385,6 +395,8 @@
   })();
 
   GameHooks.on('postmatch:end', () => K.tinderTick());
+  // after a load: matches are phone contacts again
+  GameHooks.on('init', () => { try { if (window.S && S.tinder && S.contacts) Object.values(K.tinderState().matches).forEach(m => registerContact(m)); } catch (_) {} });
   K.tinderTick = function () {
     try {
       if (!window.S || !S.contacts || (S.season | 0) < 4) return;

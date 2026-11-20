@@ -1600,8 +1600,8 @@ async function playMatchPhaseWithTaunts(){
   
   // Drinking decision before match: asked once, then remembered (KPacing.drinkPref;
   // switch it from the pre-match menu's "Matchday pint" toggle)
-  log("You have a moment before the match begins...");
   const drinkPref = window.KPacing ? KPacing.drinkPref() : 'ask';
+  if (drinkPref === 'ask') log("You have a moment before the match begins...");
   const drinkChoice = drinkPref !== 'ask' ? drinkPref : await choose([
     { key: 'sober', label: 'Stay sober and focused' },
     { key: 'drink', label: 'Have a relaxing drink of beer' }
@@ -1653,7 +1653,15 @@ async function playMatchPhaseWithTaunts(){
     log("You feel more relaxed but perhaps less inhibited...");
   } else {
     S.isDrunk = false;
-    log("You stay focused and sober. Your taunts will be more measured and appropriate.");
+    if (drinkPref === 'ask' || !window.KPacing) log("You stay focused and sober. Your taunts will be more measured and appropriate.");
+    else log(KPacing.bag('drink:sober', [
+      "You stay sober. Mostly out of spite.",
+      "Sparkling water. You hold it like a pint so nobody talks to you.",
+      "Stone-cold sober. Your hands are shaking anyway.",
+      "No pint today. The barman looks genuinely hurt.",
+      "You sip a Fruit Shoot in the directors' box with total dignity.",
+      "Sober as a judge. A judge who has seen terrible things."
+    ]));
   }
   
   // Start the match simulation with integrated taunt system

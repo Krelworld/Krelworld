@@ -1,0 +1,16 @@
+[
+  {"name":"vanonslaught","w":96,"h":96,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+   "description":"portrait bust of a sinister authoritarian supreme leader, white military dress uniform covered in gold medals, peaked cap, black sunglasses, thick black beard, stern expression, facing viewer"},
+  {"name":"cronster","w":96,"h":96,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+   "description":"portrait bust of a scruffy burly middle-aged man, ginger mullet, shellsuit tracksuit jacket, gold hoop earring, holding a CD, cheeky menacing grin, facing viewer"},
+  {"name":"gazza","w":96,"h":96,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+   "description":"portrait bust of a chaotic ageing ex-footballer, bleached blonde spiky hair, sunburnt face, red eyes, old football shirt, can of lager, manic grin, facing viewer"},
+  {"name":"malcolm","w":96,"h":96,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+   "description":"portrait bust of a cheerful bearded game show host, sparkly gold sequin suit jacket, bow tie, holding a microphone, big showbiz smile, facing viewer"},
+  {"name":"son","w":96,"h":96,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+   "description":"portrait bust of a gormless teenage boy, curtains haircut, braces on teeth, oversized football scarf, hoodie, facing viewer"},
+  {"name":"daughter","w":96,"h":96,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+   "description":"portrait bust of an unimpressed teenage girl, dark eyeliner, hoop earrings, phone in hand, rolling eyes, facing viewer"},
+  {"name":"rodjohnson","w":96,"h":96,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+   "description":"portrait bust of a sleazy stand-up comedian, loud patterned shirt, microphone, slicked hair, smirk, facing viewer"}
+]

@@ -21,7 +21,7 @@
 
     function money(n){ return "£"+Number(Math.max(0,Math.round(n||0))).toLocaleString('en-GB'); }
     const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
-    function logSafe(m){ try{ (window.log||console.log)(m); }catch(_){ console.log(m); } }
+    function logSafe(m){ try{ (window.log||console.log)(m); }catch(_){  } }
     function actionsRoot(){ 
     const actions = document.getElementById('actions');
     if (actions) return actions;
@@ -57,7 +57,6 @@
         S.stadium_dealing_unlocked = true;
         S.cocaine_purchase_matches_ago = 0; // Track when cocaine was first purchased
         S.marco_approach_attempted = false;
-        console.log(`DEBUG: Cocaine added to inventory (fallback) - stadium dealing unlocked, marco_approach_attempted reset to false`);
       }
       
       try{ document.getElementById('hudDrugCount').textContent = String(S.inventory.drugs|0); }catch(_){}
@@ -150,8 +149,6 @@
       root.appendChild(more);
     }
 
-    // Give cocaine in dialogue
-    function clearGive(){ try{ actionsRoot().querySelectorAll('button[data-givecoke571="1"]').forEach(n=>n.remove()); }catch(_){ } }
     function mountGiveCoke(){
       // DISABLED: Now handled by contextual impulse system
       // The new impulse system provides contextual "Give cocaine to [specific target]" options

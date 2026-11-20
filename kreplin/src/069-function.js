@@ -1,3 +1,4 @@
+/* === Deranged Visibility Guard (minimal, non-destructive) v5.9 === */
 (function(){
   function ready(fn){ if (document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
 

@@ -1,3 +1,4 @@
+/* DERANGED — Dialog-Scoped Minimal Patch v8.0 */
 (function(){
   const W = window;
   if (W.__DERANGED_V80__) return; W.__DERANGED_V80__ = true;

@@ -823,12 +823,10 @@ async function createTinderProfile() {
     log('You take a selfie. The app processes it.');
     log('');
     
-    console.log('[TINDER PROFILE] About to show facetune choice');
     const facetuneChoice = await choose([
       {key: 'yes', label: 'Yes, facetune it', variant: 'warn'},
       {key: 'no', label: 'No, use original'}
     ], 'FACETUNE PHOTO?');
-    console.log('[TINDER PROFILE] Facetune choice received:', facetuneChoice);
     
     if (facetuneChoice === 'yes') {
       S.season4.profile_facetuned = true;
@@ -841,16 +839,13 @@ async function createTinderProfile() {
     }
     log('');
     
-    console.log('[TINDER PROFILE] About to call createTinderBioViaPhoneUI');
     // STEP 2: Bio Builder (via phone UI)
     await createTinderBioViaPhoneUI();
-    console.log('[TINDER PROFILE] createTinderBioViaPhoneUI completed');
     
     S.season4.tinder_profile_created = true;
     S.season4.tinder_bio_viewed = false; // Bio not viewed until first swipe
     log('✅ Profile created. You can now start swiping.');
     log('');
-    console.log('[TINDER PROFILE] Profile creation completed successfully');
   } catch (e) {
     console.error('[TINDER PROFILE] Error in createTinderProfile:', e);
     console.error('[TINDER PROFILE] Error stack:', e.stack);
@@ -879,12 +874,6 @@ function validateTinderModalStructure(modal) {
   const hasHeader = !!modal.querySelector('.tinder-header');
   const hasContent = !!modal.querySelector('.tinder-content');
   
-  console.log('[TINDER] Structure check:', {
-    phoneContainer: hasPhoneContainer,
-    phoneScreen: hasPhoneScreen,
-    header: hasHeader,
-    content: hasContent
-  });
   
   if (!hasPhoneContainer || !hasPhoneScreen || !hasHeader || !hasContent) {
     console.error('[TINDER] Modal structure is incomplete - missing key containers');
@@ -898,7 +887,6 @@ function validateTinderModalStructure(modal) {
 async function ensureTinderModalExists() {
   // Wait for DOM to be fully ready
   if (document.readyState === 'loading') {
-    console.log('[TINDER] DOM still loading, waiting for DOMContentLoaded...');
     await new Promise(resolve => {
       document.addEventListener('DOMContentLoaded', resolve, {once: true});
     });
@@ -988,7 +976,6 @@ async function ensureTinderModalExists() {
     return false;
   }
   
-  console.log('[TINDER] All required elements found successfully');
   return true;
 }
 
@@ -2031,16 +2018,9 @@ function generateTinderResponse(profile, messageType, attachment) {
 
 // PART 5: INVITATION & ESCALATION
 async function handleTinderInvitation(profile) {
-  console.log('[TINDER INVITATION] ========== START ==========');
-  console.log('[TINDER INVITATION] State at start:', {
-    __in_evening_phase: window.__in_evening_phase,
-    __tinder_encounter_started: window.__tinder_encounter_started,
-    __tinder_encounter_completed: window.__tinder_encounter_completed
-  });
   
   // Mark that an encounter has started IMMEDIATELY
   window.__tinder_encounter_started = true;
-  console.log('[TINDER INVITATION] Set __tinder_encounter_started = true');
   // Add invitation message to chat
   addMessageToChat('You', "Want to come over to my place?", true);
   
@@ -2114,7 +2094,6 @@ async function handleTinderInvitation(profile) {
       await applyTinderPostEncounterEffects();
       
       // CRITICAL FIX: Set completed flag so maybeEveningEvent() can detect it
-      console.log('[TINDER INVITATION] [LASHING PATH] Setting __tinder_encounter_completed = true');
       window.__tinder_encounter_completed = true;
       
       // Small delay to ensure flag is set and propagated
@@ -2122,14 +2101,12 @@ async function handleTinderInvitation(profile) {
       
       // Check if we're in the evening phase and need to continue
       if (window.__in_evening_phase) {
-        console.log('[TINDER INVITATION] [LASHING PATH] ✓ __in_evening_phase is TRUE - continuing evening phase');
         
         // Small delay to ensure UI is updated and modal is closed
         await new Promise(resolve => setTimeout(resolve, 200));
         
         // Automatically progress to sleep phase so the evening phase completes properly
         try {
-          console.log('[TINDER INVITATION] [LASHING PATH] Automatically progressing to sleep phase...');
           
           S.drug_binge = 0;
           S.no_sleep = 0;
@@ -2140,26 +2117,16 @@ async function handleTinderInvitation(profile) {
           if (typeof render === 'function') render();
           if (typeof updateHUD === 'function') updateHUD();
           
-          console.log('[TINDER INVITATION] [LASHING PATH] Sleep phase completed');
         } catch (e) {
           console.error('[TINDER INVITATION] [LASHING PATH] Error progressing to sleep phase:', e);
           console.error('[TINDER INVITATION] [LASHING PATH] Stack:', e.stack);
         } finally {
           // Clear the evening phase flag now that encounter is complete
-          console.log('[TINDER INVITATION] [LASHING PATH] Clearing flags in finally block');
           window.__in_evening_phase = false;
           window.__tinder_encounter_completed = false;
           window.__tinder_encounter_started = false;
-          console.log('[TINDER INVITATION] [LASHING PATH] Flags cleared. Final state:', {
-            __in_evening_phase: window.__in_evening_phase,
-            __tinder_encounter_started: window.__tinder_encounter_started,
-            __tinder_encounter_completed: window.__tinder_encounter_completed
-          });
         }
       } else {
-        console.log('[TINDER INVITATION] [LASHING PATH] ✗ __in_evening_phase is FALSE');
-        console.log('[TINDER INVITATION] [LASHING PATH] This means maybeEveningEvent() already finished and cleared the flag');
-        console.log('[TINDER INVITATION] [LASHING PATH] Clearing encounter flags only');
         // Clear flags even if not in evening phase to prevent stale state
         window.__tinder_encounter_completed = false;
         window.__tinder_encounter_started = false;
@@ -2213,45 +2180,29 @@ async function handleTinderInvitation(profile) {
   try {
     S.season4.tinder_active_conversation = null;
     S.season4.tinder_encounters++;
-    console.log('[TINDER DEBUG] Calling applyTinderPostEncounterEffects...');
     await applyTinderPostEncounterEffects();
-    console.log('[TINDER DEBUG] applyTinderPostEncounterEffects returned');
   } catch (e) {
     console.error('[TINDER DEBUG] Error in applyTinderPostEncounterEffects:', e);
     // Ensure we still clear the conversation even if effects fail
     S.season4.tinder_active_conversation = null;
   }
   
-  console.log('[TINDER INVITATION] ========== COMPLETION CHECK ==========');
-  console.log('[TINDER INVITATION] State before setting completion:', {
-    __in_evening_phase: window.__in_evening_phase,
-    __tinder_encounter_started: window.__tinder_encounter_started,
-    __tinder_encounter_completed: window.__tinder_encounter_completed
-  });
   
   // CRITICAL: Set completed flag FIRST so maybeEveningEvent() can detect it
   window.__tinder_encounter_completed = true;
-  console.log('[TINDER INVITATION] Set __tinder_encounter_completed = true');
   
   // Small delay to ensure flag is set and propagated
   await new Promise(resolve => setTimeout(resolve, 50));
   
-  console.log('[TINDER INVITATION] State after setting completion:', {
-    __in_evening_phase: window.__in_evening_phase,
-    __tinder_encounter_started: window.__tinder_encounter_started,
-    __tinder_encounter_completed: window.__tinder_encounter_completed
-  });
   
   // Check if we're in the evening phase and need to continue
   if (window.__in_evening_phase) {
-    console.log('[TINDER INVITATION] ✓ __in_evening_phase is TRUE - continuing evening phase');
     
     // Small delay to ensure UI is updated and modal is closed
     await new Promise(resolve => setTimeout(resolve, 200));
     
     // Automatically progress to sleep phase so the evening phase completes properly
     try {
-      console.log('[TINDER INVITATION] Automatically progressing to sleep phase...');
       
       S.drug_binge = 0;
       S.no_sleep = 0;
@@ -2262,26 +2213,16 @@ async function handleTinderInvitation(profile) {
       if (typeof render === 'function') render();
       if (typeof updateHUD === 'function') updateHUD();
       
-      console.log('[TINDER INVITATION] Sleep phase completed');
     } catch (e) {
       console.error('[TINDER INVITATION] Error progressing to sleep phase:', e);
       console.error('[TINDER INVITATION] Stack:', e.stack);
     } finally {
       // Clear the evening phase flag now that encounter is complete
-      console.log('[TINDER INVITATION] Clearing flags in finally block');
       window.__in_evening_phase = false;
       window.__tinder_encounter_completed = false;
       window.__tinder_encounter_started = false;
-      console.log('[TINDER INVITATION] Flags cleared. Final state:', {
-        __in_evening_phase: window.__in_evening_phase,
-        __tinder_encounter_started: window.__tinder_encounter_started,
-        __tinder_encounter_completed: window.__tinder_encounter_completed
-      });
     }
   } else {
-    console.log('[TINDER INVITATION] ✗ __in_evening_phase is FALSE');
-    console.log('[TINDER INVITATION] This means maybeEveningEvent() already finished and cleared the flag');
-    console.log('[TINDER INVITATION] Clearing encounter flags only');
     // Clear flags even if not in evening phase to prevent stale state
     window.__tinder_encounter_completed = false;
     window.__tinder_encounter_started = false;
@@ -2322,9 +2263,7 @@ async function applyTinderPostEncounterEffects() {
   log('');
   
   // Wait for user to acknowledge before continuing
-  console.log('[TINDER DEBUG] Waiting for Complete button...');
   const completeResult = await choose([{key:'complete', label:'Complete'}], "The encounter is complete.");
-  console.log('[TINDER DEBUG] Complete button clicked, result:', completeResult);
   
   // Ensure Tinder modal is fully closed
   try {
@@ -2335,7 +2274,6 @@ async function applyTinderPostEncounterEffects() {
     if (modal) {
       modal.classList.add('hidden');
       modal.classList.remove('chat-active');
-      console.log('[TINDER DEBUG] Modal closed');
     }
     if (chatView) chatView.classList.add('hidden');
     if (swipeView) swipeView.classList.add('hidden');
@@ -2348,7 +2286,6 @@ async function applyTinderPostEncounterEffects() {
   if (typeof render === 'function') render();
   if (typeof updateHUD === 'function') updateHUD();
   
-  console.log('[TINDER DEBUG] applyTinderPostEncounterEffects completed');
 }
 
 // View matches
@@ -2522,7 +2459,7 @@ async function showIntroCutscene() {
       overlay.remove();
       // Resume intro music if it was playing before
       if (wasMusicPlaying && openingMusic) {
-        openingMusic.play().catch(err => console.log('Could not resume music:', err));
+        openingMusic.play().catch(err => {});
       }
       resolve();
     };
@@ -2694,7 +2631,6 @@ async function showBrickVideo() {
     }
   });
   
-  console.log('Cheat code handler initialized: Type "crongusdrive" anywhere to start driving minigame');
 })();
 
 // Global cheat code handler for "crongusshit" to advance to toilet straining minigame
@@ -2768,5 +2704,4 @@ async function showBrickVideo() {
     }
   });
   
-  console.log('Cheat code handler initialized: Type "crongusshit" anywhere to start toilet straining minigame');
 })();

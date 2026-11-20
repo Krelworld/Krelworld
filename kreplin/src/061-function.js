@@ -1,3 +1,4 @@
+/* === Patch 5.6 — Marco buy linkage + Deranged dialogue actions + Real rehab skip === */
 (function(){
   if (window.__patch56_applied) return;
   window.__patch56_applied = true;
@@ -16,7 +17,7 @@
   }
   function money(n){ return "£"+Number(Math.max(0,Math.round(n||0))).toLocaleString('en-GB'); }
   function clamp(v,lo,hi){ return Math.max(lo, Math.min(hi, v)); }
-  function logSafe(m){ try{ (window.log||console.log)(m); }catch(_){ console.log(m); } }
+  function logSafe(m){ try{ (window.log||console.log)(m); }catch(_){  } }
   function actionsRoot(){ 
     const actions = document.getElementById('actions');
     if (actions) return actions;
@@ -104,7 +105,6 @@
                 S.stadium_dealing_unlocked = true;
                 S.cocaine_purchase_matches_ago = 0;
                 S.marco_approach_attempted = false;
-                console.log(`DEBUG: Cocaine added (fallback) - stadium dealing unlocked, marco_approach_attempted reset to false`);
               }
             }
             logSafe("Marco slips you a small bag. (+1 cocaine)");

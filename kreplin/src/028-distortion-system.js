@@ -61,35 +61,6 @@ let duplicateLogCount = 0;
 
 // ========== NARRATIVE DISTORTION FUNCTIONS ==========
 
-// Convert NPC dialogue to third person (NPCs refer to player in third person)
-function applyNarrativeDistortion(text) {
-  if (!isDistortionActive() || typeof text !== 'string') return text;
-  
-  let distorted = text;
-  
-  // Replace "you" with third person references
-  const replacements = [
-    { pattern: /\byou\b/gi, replacement: (match, offset) => {
-      // Don't replace if it's part of a quote or dialogue
-      if (offset > 0 && text[offset - 1] === '"') return match;
-      return Math.random() < 0.7 ? 'he' : match;
-    }},
-    { pattern: /\bYour\b/g, replacement: 'His' },
-    { pattern: /\byour\b/gi, replacement: (match) => Math.random() < 0.7 ? 'his' : match },
-    { pattern: /\bYou're\b/gi, replacement: 'He\'s' },
-    { pattern: /\bYou've\b/gi, replacement: 'He\'s' }
-  ];
-  
-  replacements.forEach(({ pattern, replacement }) => {
-    if (typeof replacement === 'function') {
-      distorted = distorted.replace(pattern, replacement);
-    } else {
-      distorted = distorted.replace(pattern, replacement);
-    }
-  });
-  
-  return distorted;
-}
 
 // Modify emails to imply decisions already made
 function applyEmailDistortion(emailText) {
@@ -332,7 +303,7 @@ async function displayLogEntry(entry) {
     // Small delay to ensure smooth scrolling
     await new Promise(resolve => setTimeout(resolve, 100));
 }
-function logSafe(msg){ try{ (window.log||console.log)(msg); }catch(_){ console.log(msg); } }
+function logSafe(msg){ try{ (window.log||console.log)(msg); }catch(_){  } }
 function clearActions(){
   try {
     const actionsEl = document.getElementById('actions');
@@ -367,7 +338,6 @@ function restoreInterfaceAfterTimeout() {
       feedEl.appendChild(recoveryEl);
     }
     
-    console.log("Interface restoration completed successfully");
   } catch (e) {
     console.error("Error during interface restoration:", e);
   }
@@ -394,13 +364,6 @@ function choose(opts,prompt='Choose:'){
     };
     try {
       // Basic debug instrumentation so we can track stuck choices
-      try {
-        console.log('choose(): showing options', {
-          prompt,
-          keys: Array.isArray(opts) ? opts.map(o => o && o.key) : null,
-          ctx: window.__ui_context || 'unknown'
-        });
-      } catch (_dbg) {}
 
       // Get DOM elements dynamically instead of relying on global constants
       const actionsEl = document.getElementById('actions');
@@ -417,7 +380,6 @@ function choose(opts,prompt='Choose:'){
           const retryActionsEl = document.getElementById('actions');
           const retryFeedEl = document.getElementById('feed');
           if (retryActionsEl && retryFeedEl) {
-            console.log('choose: DOM elements recovered on retry');
             // Retry the choose function
             choose(opts, prompt).then(res).catch(rej);
           } else {
@@ -458,7 +420,6 @@ function choose(opts,prompt='Choose:'){
         
         if (timeSinceActivity < inactiveThreshold) {
           // User is active, don't reset - extend timeout instead
-          console.log('choose: User is active, extending timeout instead of resetting');
           const extendedTimeout = setTimeout(() => {
             const timeSinceActivity2 = Date.now() - (window._lastUserActivity || Date.now());
             if (timeSinceActivity2 >= inactiveThreshold) {
@@ -576,9 +537,6 @@ function choose(opts,prompt='Choose:'){
       setTimeout(() => {
         const allButtons = actionsEl.querySelectorAll('button');
         allButtons.forEach(btn => {
-          console.log({
-            isInDOM: document.body.contains(btn)
-          });
         });
       }, 100);
       
@@ -598,57 +556,6 @@ function choose(opts,prompt='Choose:'){
 function setVal(id,v){document.getElementById(id).textContent=v;}
 function pickLine(list){return list[Math.floor(Math.random()*list.length)];}
 
-// Dialogue popup function for immersive conversations
-async function showDialoguePopup(speaker, text, isYou = false) {
-  // Apply narrative distortion if active (NPCs refer to player in third person)
-  if (!isYou && isDistortionActive()) {
-    text = applyNarrativeDistortion(text);
-  }
-  
-  return new Promise((resolve) => {
-    const overlay = document.createElement('div');
-    overlay.className = 'dialogue-popup-overlay';
-    
-    const container = document.createElement('div');
-    container.className = 'dialogue-popup-container';
-    
-    const bubble = document.createElement('div');
-    bubble.className = 'dialogue-bubble';
-    
-    const speakerEl = document.createElement('div');
-    speakerEl.className = `dialogue-speaker ${isYou ? 'you' : 'them'}`;
-    speakerEl.textContent = isYou ? 'You' : speaker;
-    
-    const textEl = document.createElement('div');
-    textEl.className = `dialogue-text ${isYou ? 'you' : 'them'}`;
-    textEl.textContent = text;
-    
-    bubble.appendChild(speakerEl);
-    bubble.appendChild(textEl);
-    container.appendChild(bubble);
-    
-    const actions = document.createElement('div');
-    actions.className = 'dialogue-actions';
-    
-    const continueBtn = document.createElement('button');
-    continueBtn.textContent = 'Continue';
-    continueBtn.className = 'btn btn-primary';
-    continueBtn.style.cssText = 'width: 100%; padding: 12px; margin-top: 10px;';
-    continueBtn.onclick = () => {
-      overlay.remove();
-      resolve();
-    };
-    
-    actions.appendChild(continueBtn);
-    container.appendChild(actions);
-    overlay.appendChild(container);
-    
-    document.body.appendChild(overlay);
-    
-    // Auto-focus button
-    setTimeout(() => continueBtn.focus(), 100);
-  });
-}
 
 // Persistent dialogue popup manager for nightclub seduction
 let persistentDialoguePopup = null;
@@ -960,38 +867,6 @@ function dedupeSessionShouts() {
   return deduped;
 }
 
-// Taunt wheel system
-async function showTauntWheel() {
-  const currentFrustration = S.frustration || 0;
-  const options = rollTauntMenu(currentFrustration);
-  
-  const tauntOptions = options.map((taunt, index) => ({
-    key: `taunt_${index}`,
-    label: taunt
-  }));
-  
-  // Add a "Done" option to exit the taunt wheel
-  tauntOptions.push({ key: 'done', label: 'Done taunting' });
-  
-  const choice = await choose(tauntOptions, "Choose your taunt:");
-  if (!choice || choice === 'done') return;
-  
-  const selectedTaunt = options[parseInt(choice.split('_')[1])];
-  
-  // Log the taunt immediately
-  log(`You shout: "${selectedTaunt}"`);
-  addSessionShout(selectedTaunt);
-  
-  // Ask if they want to taunt again
-  const continueChoice = await choose([
-    { key: 'again', label: 'Taunt again' },
-    { key: 'done', label: 'Done taunting' }
-  ], 'Continue taunting?');
-  
-  if (continueChoice === 'again') {
-    await showTauntWheel();
-  }
-}
 
 // Brick throwing system
 function hasBrickEquipped() {
@@ -1043,17 +918,6 @@ async function throwBrickAt(targetType, context = {}) {
   }
 }
 
-// Add brick throwing option to any conversation scene
-function addBrickOptionToConversation(options, contactName) {
-  if (hasBrickEquipped()) {
-    options.push({ 
-      key: 'throw_brick', 
-      label: `Throw brick at ${contactName}`, 
-      variant: 'bad' 
-    });
-  }
-  return options;
-}
 
 // Handle brick throwing in conversation
 async function handleConversationBrickThrow(contactName) {
@@ -1471,10 +1335,6 @@ async function familyBlock(){
 
 // Helper function to open Tinder from menu/event
 async function openTinderApp() {
-  // #region agent log
-  // Debug fetch disabled - server not running
-  // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29681',message:'openTinderApp: Entry',data:{profileCreated:S.season4?.tinder_profile_created,daughterSuggested:S.season4?.daughter_suggested_dating},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'S'})}).catch(()=>{});
-  // #endregion
   if (!S.season4 || !S.season4.daughter_suggested_dating) {
     log("Your daughter hasn't suggested dating yet.");
     return;
@@ -1483,23 +1343,11 @@ async function openTinderApp() {
   ensureTinderFlags();
   
   if (!S.season4.tinder_profile_created) {
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29689',message:'openTinderApp: Profile not created, calling createTinderProfile',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'T'})}).catch(()=>{});
-    // #endregion
     await createTinderProfile();
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29690',message:'openTinderApp: createTinderProfile completed',data:{profileCreated:S.season4?.tinder_profile_created},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'U'})}).catch(()=>{});
-    // #endregion
   }
   
   // Show menu if profile exists (either just created or already existed)
   if (S.season4.tinder_profile_created) {
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29692',message:'openTinderApp: Profile exists, showing menu',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'V'})}).catch(()=>{});
-    // #endregion
     // Show menu
     const menuChoice = await choose([
       {key: 'swipe', label: 'Swipe for matches'},
@@ -1507,10 +1355,6 @@ async function openTinderApp() {
       {key: 'close', label: 'Close app'}
     ], 'TINDER - What do you want to do?');
     
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29699',message:'openTinderApp: Menu choice received',data:{choice:menuChoice},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'W'})}).catch(()=>{});
-    // #endregion
     
     if (menuChoice === 'swipe') {
       await openTinderSwiping();
@@ -1518,16 +1362,9 @@ async function openTinderApp() {
       await viewTinderMatches();
     }
   }
-  // #region agent log
-  // Debug fetch disabled - server not running
-  // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29705',message:'openTinderApp: About to return',data:{profileCreated:S.season4?.tinder_profile_created},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'X'})}).catch(()=>{});
-  // #endregion
 }
 
 async function maybeEveningEvent(){
-  console.log("DEBUG EVENING: maybeEveningEvent() called");
-  console.log("DEBUG EVENING: Current club:", S.club_name);
-  console.log("DEBUG EVENING: Evening phase flag:", window.__in_evening_phase || false);
   
   // Soft inits (safe even if already set)
   if(S.married===undefined) S.married = true;
@@ -1582,14 +1419,7 @@ async function maybeEveningEvent(){
     eveningOptions.splice(3, 0, {key:'tinder', label:'📱 Open Tinder', variant:'warn'});
   }
   
-  console.log('[EVENING DEBUG] About to call choose() with options:', eveningOptions.map(o => o.key));
-  console.log('[EVENING DEBUG] DOM state before choose:', {
-    actionsEl: !!document.getElementById('actions'),
-    feedEl: !!document.getElementById('feed'),
-    actionsInnerHTML: document.getElementById('actions')?.innerHTML?.substring(0, 100) || 'empty'
-  });
   const evening = await choose(eveningOptions, 'Evening options:');
-  console.log('[EVENING DEBUG] choose() returned:', evening);
 
   if(evening==='sleep'){
     S.drug_binge = 0;
@@ -1613,12 +1443,9 @@ async function maybeEveningEvent(){
   }
 
   if(evening==='study'){
-    console.log("DEBUG EVENING: Study option selected, calling openStudyHub()");
     initPressSystem();
     await openStudyHub();
-    console.log("DEBUG EVENING: openStudyHub() returned");
     render();
-    console.log("DEBUG EVENING: Returning from maybeEveningEvent() after study");
     return;
   }
 
@@ -1634,61 +1461,26 @@ async function maybeEveningEvent(){
   }
 
   if(evening==='tinder'){
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29806',message:'TINDER FLOW: Entry point',data:{profileCreated:S.season4?.tinder_profile_created,eveningPhase:window.__in_evening_phase,encounterStarted:window.__tinder_encounter_started,encounterCompleted:window.__tinder_encounter_completed},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
-    console.log('[TINDER FLOW] ========== TINDER SELECTED ==========');
-    console.log('[TINDER FLOW] Initial state:', {
-      __in_evening_phase: window.__in_evening_phase,
-      __tinder_encounter_started: window.__tinder_encounter_started,
-      __tinder_encounter_completed: window.__tinder_encounter_completed
-    });
     
     // Set flag to indicate we're in evening phase
     window.__in_evening_phase = true;
     window.__tinder_encounter_completed = false;
     window.__tinder_encounter_started = false;
     
-    console.log('[TINDER FLOW] Flags set. Opening Tinder...');
     
     try {
-      // #region agent log
-      // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29821',message:'TINDER FLOW: Before openTinderApp',data:{profileCreated:S.season4?.tinder_profile_created},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       // Open Tinder - this returns when user closes the app
       await openTinderApp();
-      // #region agent log
-      // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29824',message:'TINDER FLOW: After openTinderApp returned',data:{profileCreated:S.season4?.tinder_profile_created,encounterStarted:window.__tinder_encounter_started,encounterCompleted:window.__tinder_encounter_completed},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
-      console.log('[TINDER FLOW] openTinderApp() returned');
-      console.log('[TINDER FLOW] State after openTinderApp:', {
-        __in_evening_phase: window.__in_evening_phase,
-        __tinder_encounter_started: window.__tinder_encounter_started,
-        __tinder_encounter_completed: window.__tinder_encounter_completed
-      });
       
       // CRITICAL FIX: Wait for encounter to complete
       // The encounter might start AFTER openTinderApp returns (user swipes, matches, chats, invites)
       // We need to poll and wait until it's done
-      console.log('[TINDER FLOW] Starting wait loop for encounter completion...');
-      // #region agent log
-      // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29834',message:'TINDER FLOW: Starting wait loop',data:{encounterStarted:window.__tinder_encounter_started,encounterCompleted:window.__tinder_encounter_completed,profileCreated:S.season4?.tinder_profile_created},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
       
       // Give a short grace period for encounter to start (user might be in the middle of swiping)
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // If no encounter was started, skip the wait loop entirely
       if (!window.__tinder_encounter_started) {
-        console.log('[TINDER FLOW] No encounter started - skipping wait loop');
-        // #region agent log
-        // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29836',message:'TINDER FLOW: No encounter started, skipping wait',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D2'})}).catch(()=>{});
-        // #endregion
       } else {
         // Encounter was started - wait for it to complete
         const maxWaitTime = 120000; // 2 minutes max
@@ -1710,96 +1502,42 @@ async function maybeEveningEvent(){
           
           // Log state changes
           if (JSON.stringify(currentState) !== JSON.stringify(lastState)) {
-            console.log('[TINDER FLOW] State changed:', currentState);
-            // #region agent log
-            // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29851',message:'TINDER FLOW: State changed in wait loop',data:{oldState:lastState,newState:currentState,iteration:loopIteration,elapsed:Date.now()-startTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-            // #endregion
             lastState = currentState;
           }
           
           // If encounter completed, we're done
           if (window.__tinder_encounter_completed) {
-            console.log('[TINDER FLOW] ✓ Encounter completed! Exiting wait loop.');
-            // #region agent log
-            // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29857',message:'TINDER FLOW: Encounter completed, breaking wait loop',data:{iteration:loopIteration,elapsed:Date.now()-startTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-            // #endregion
             break;
           }
           
           // If flag was cleared externally (shouldn't happen), restore it
           if (!window.__in_evening_phase && window.__tinder_encounter_started) {
             console.error('[TINDER FLOW] ERROR: Flag cleared while encounter in progress! Restoring...');
-            // #region agent log
-            // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29863',message:'TINDER FLOW: Flag cleared error, restoring',data:{iteration:loopIteration},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
-            // #endregion
             window.__in_evening_phase = true;
           }
           
           // Log every 50 iterations (5 seconds) to track if loop is running
-          if (loopIteration % 50 === 0) {
-            // #region agent log
-            // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29868',message:'TINDER FLOW: Wait loop heartbeat',data:{iteration:loopIteration,elapsed:Date.now()-startTime,state:currentState},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-            // #endregion
-          }
           
           await new Promise(resolve => setTimeout(resolve, 100));
         }
         
         const elapsed = Date.now() - startTime;
-        console.log('[TINDER FLOW] Wait loop finished after', elapsed, 'ms');
-        // #region agent log
-        // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29871',message:'TINDER FLOW: Wait loop finished',data:{elapsed,timedOut:elapsed>=maxWaitTime,iterations:loopIteration,encounterStarted:window.__tinder_encounter_started,encounterCompleted:window.__tinder_encounter_completed},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-        // #endregion
       }
       
-      console.log('[TINDER FLOW] Final state:', {
-        __in_evening_phase: window.__in_evening_phase,
-        __tinder_encounter_started: window.__tinder_encounter_started,
-        __tinder_encounter_completed: window.__tinder_encounter_completed
-      });
       
     } catch (e) {
       console.error('[TINDER FLOW] Error in tinder branch:', e);
       console.error('[TINDER FLOW] Stack:', e.stack);
-      // #region agent log
-      // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29880',message:'TINDER FLOW: Error caught',data:{error:e.message,stack:e.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-      // #endregion
     } finally {
-      console.log('[TINDER FLOW] ========== FINALLY BLOCK ==========');
-      console.log('[TINDER FLOW] State in finally:', {
-        __in_evening_phase: window.__in_evening_phase,
-        __tinder_encounter_started: window.__tinder_encounter_started,
-        __tinder_encounter_completed: window.__tinder_encounter_completed
-      });
-      // #region agent log
-      // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29883',message:'TINDER FLOW: Finally block entry',data:{encounterStarted:window.__tinder_encounter_started,encounterCompleted:window.__tinder_encounter_completed,inEveningPhase:window.__in_evening_phase},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'K'})}).catch(()=>{});
-      // #endregion
       
       // ONLY clear if encounter completed OR if no encounter was ever started
       // If encounter started but didn't complete, something went wrong - keep flag set
       if (window.__tinder_encounter_completed) {
-        console.log('[TINDER FLOW] Encounter completed - clearing all flags');
-        // #region agent log
-        // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29893',message:'TINDER FLOW: Clearing flags (encounter completed)',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'L'})}).catch(()=>{});
-        // #endregion
         window.__in_evening_phase = false;
         window.__tinder_encounter_completed = false;
         window.__tinder_encounter_started = false;
       } else if (!window.__tinder_encounter_started) {
         // No encounter started - user just browsed Tinder and closed it
-        console.log('[TINDER FLOW] No encounter started - clearing flags');
-        // #region agent log
-        // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29898',message:'TINDER FLOW: Clearing flags (no encounter started)',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'M'})}).catch(()=>{});
-        // #endregion
         window.__in_evening_phase = false;
         window.__tinder_encounter_completed = false;
         window.__tinder_encounter_started = false;
@@ -1808,22 +1546,10 @@ async function maybeEveningEvent(){
         // Keep flag set so handleTinderInvitation can complete it
         console.warn('[TINDER FLOW] WARNING: Encounter started but not completed in finally block');
         console.warn('[TINDER FLOW] Keeping __in_evening_phase flag set - handleTinderInvitation should clear it');
-        // #region agent log
-        // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29904',message:'TINDER FLOW: Keeping flags (encounter started but not completed)',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'N'})}).catch(()=>{});
-        // #endregion
       }
     }
     
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29911',message:'TINDER FLOW: Before render and return',data:{inEveningPhase:window.__in_evening_phase},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'O'})}).catch(()=>{});
-    // #endregion
     render();
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:29912',message:'TINDER FLOW: After render, about to return from maybeEveningEvent',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'P'})}).catch(()=>{});
-    // #endregion
     return;
   }
 

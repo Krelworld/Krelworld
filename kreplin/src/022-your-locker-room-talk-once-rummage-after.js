@@ -1294,7 +1294,7 @@ function computeOpponentStrength(players) {
 function computePreMatchStrengthsAndOdds(){
   const our5 = getOurSelectedFive();
   const opp5 = getOppSelectedFive();
-  const ourStr = computeTeamStrength(our5);
+  let ourStr = computeTeamStrength(our5);
   const oppStr = computeOpponentStrength(opp5);
   S.preMatch = S.preMatch || {};
   // Apply Season 5 doping boost if active
@@ -1408,27 +1408,18 @@ async function preMatchTransfersAndBettingMenu(){
   if (!S.preMatch || typeof S.preMatch !== 'object') S.preMatch = {};
 
   while (true) {
-    console.log("DEBUG PRE-MATCH: Top of menu loop, flags:", {
-      nuclearInProgress: S._nuclearSequenceInProgress,
-      menuInterrupted: S._preMatchMenuInterrupted,
-      menuActive: S._preMatchMenuActive,
-      menuNeedsRestore: S._preMatchMenuNeedsRestore
-    });
     
     // CRITICAL FIX: Wait for nuclear sequence to complete before showing menu
     if (S._nuclearSequenceInProgress) {
-      console.log("DEBUG PRE-MATCH: Nuclear sequence in progress, waiting...");
       await new Promise(resolve => setTimeout(resolve, 500));
       continue; // Check again
     }
     
     // Check if menu needs to be restored after nuclear sequence interruption
     if (S._preMatchMenuNeedsRestore) {
-      console.log("DEBUG PRE-MATCH: Menu restore flag detected, restoring menu...");
       S._preMatchMenuNeedsRestore = false;
       log("Returning to pre-match actions after nuclear sequence...");
       // Clear any stuck state and continue the loop naturally
-      console.log("DEBUG PRE-MATCH: Menu restore flag cleared, will rebuild menu");
     }
     
     // Build items fresh each loop
@@ -1473,53 +1464,43 @@ async function preMatchTransfersAndBettingMenu(){
 
     // Check if menu was interrupted before showing choices
     if (S._preMatchMenuInterrupted) {
-      console.log("DEBUG PRE-MATCH: Menu interrupted flag detected, clearing and continuing");
       S._preMatchMenuInterrupted = false;
       // Menu was interrupted by nuclear sequence, skip this iteration and re-show menu
       log("Pre-match menu restored after nuclear sequence.");
       // Small delay to ensure UI is ready
       await new Promise(resolve => setTimeout(resolve, 100));
-      console.log("DEBUG PRE-MATCH: About to continue loop after interruption");
       continue;
     }
     
-    console.log("DEBUG PRE-MATCH: About to show menu choices with", items.length, "items");
     
     // Store a flag that we're about to show the menu, so nuclear sequence can detect it
     S._preMatchMenuActive = true;
     
     // Use Promise.race to detect if menu is interrupted
-    console.log("DEBUG PRE-MATCH: Creating choose() promise for menu");
     const choicePromise = choose(items, 'Pre-Match Actions');
     let intervalCount = 0;
     const interruptCheck = new Promise((resolve) => {
       const checkInterval = setInterval(() => {
         intervalCount++;
         if (intervalCount % 10 === 0) { // Log every 1 second (10 intervals)
-          console.log("DEBUG PRE-MATCH: Interrupt check running, count:", intervalCount, "flag:", S._preMatchMenuInterrupted);
         }
         if (S._preMatchMenuInterrupted) {
-          console.log("DEBUG PRE-MATCH: Interruption flag detected by interval! Count:", intervalCount);
           clearInterval(checkInterval);
           resolve('interrupted');
         }
       }, 100);
       // Clean up interval when choice is made
       choicePromise.then(() => {
-        console.log("DEBUG PRE-MATCH: Choice promise resolved, clearing interval");
         clearInterval(checkInterval);
       }).catch(() => {
-        console.log("DEBUG PRE-MATCH: Choice promise rejected, clearing interval");
         clearInterval(checkInterval);
       });
     });
     
     const result = await Promise.race([choicePromise, interruptCheck]);
-    console.log("DEBUG PRE-MATCH: Promise.race resolved with:", result);
     S._preMatchMenuActive = false;
     
     if (result === 'interrupted') {
-      console.log("DEBUG PRE-MATCH: Menu was interrupted, clearing flag and continuing loop");
       // Menu was interrupted, continue loop to re-show
       S._preMatchMenuInterrupted = false;
       continue;
@@ -1601,7 +1582,6 @@ async function preMatchTransfersAndBettingMenu(){
             };
             window.socialManager.showAchievement(achievement);
             window.socialManager.achievements.push(achievement);
-            if (window.stateManager) window.stateManager.saveAchievement(achievement);
           }
           
           log(`CONSEQUENCES: Personal fine £${fineChair.toLocaleString()}, Club fine £${fineClub.toLocaleString()}`);
@@ -2357,14 +2337,11 @@ let _lastBribeLineAtMinute = -999;
     // SAFETY: if the viewer/canvas isn't in the DOM, fall back to a quick resolve
     if (!canvas) {
       console.warn('matchCanvas not found – falling back to quick result.');
-      console.log('Modal element:', modal);
-      console.log('Canvas element:', canvas);
       const quick = _quickResolve ? _quickResolve() : { home: 0, away: 0 };
       _watch.running = false;
       return resolve({ home: quick.home, away: quick.away });
     }
     
-    console.log('Match animation starting with canvas:', canvas);
 
     const ctx = canvas.getContext('2d');
     // ... (rest of your animator as-is)
@@ -2805,7 +2782,6 @@ function _openMatchViewer(){
   if (modal) {
     modal.classList.remove('hidden');
     modal.style.display = 'flex';
-    console.log('Match viewer opened');
   } else {
     console.error('Match viewer element not found');
   }
@@ -2815,7 +2791,6 @@ function _closeMatchViewer(){
   if (modal) {
     modal.classList.add('hidden');
     modal.style.display = 'none';
-    console.log('Match viewer closed');
   }
 }
 

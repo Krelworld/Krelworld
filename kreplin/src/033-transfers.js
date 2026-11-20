@@ -544,10 +544,6 @@ async function handleGascoigneEstateExecutor(){
   render();
 }
 
-async function unpaidTransferFollowups(){
- // This function is now replaced by queueUnpaidTransferAgents() and handleUnpaidTransferAgent()
- // Keeping for backward compatibility but it no longer does anything
-}
 
 // ---------- pre-match shenanigans ----------
 async function scenarioRefereeCall(){

@@ -24,7 +24,7 @@
       var feed = document.getElementById('feed');
       if (feed){
         var p = document.createElement('p'); p.textContent = String(m||""); feed.appendChild(p);
-      } else { console && console.log && console.log(m); }
+      }
     }catch(e){}
   };
 

@@ -413,12 +413,10 @@ async function processCronsterEvents() {
     const shouldSetPending = S.cronster.letter_received && 
                             ((isPast75Percent) || (isLatterHalf && hasEnoughEvents));
     
-    console.log(`DEBUG CRONSTER: season=${S.season}, matchesPlayed=${matchesPlayed}, seasonMatches=${seasonMatches}, isLatterHalf=${isLatterHalf}, isPast75Percent=${isPast75Percent}, letter_received=${S.cronster.letter_received}, sightings_count=${S.cronster.sightings_count}, juice_incident=${S.cronster.juice_incident}, cd_received=${S.cronster.cd_received}, hasEnoughEvents=${hasEnoughEvents}, shouldSetPending=${shouldSetPending}`);
     
     if (shouldSetPending) {
       // Mark that we'll trigger the climax when door is opened in prematch
       S.cronster.booby_trap_pending_climax = true;
-      console.log(`DEBUG CRONSTER: booby_trap_pending_climax set to true - will trigger on next door knock`);
     }
   }
   
@@ -2079,10 +2077,8 @@ async function handleSecretarySTDPoliceDelmor() {
     if (typeof sendRivalText === 'function') {
       sendRivalText(message);
     } else if (typeof window.enqueueRivalText === 'function') {
-      console.log('[DEBUG handleSecretarySTDPoliceDelmor] Calling enqueueRivalText with:', message);
       window.enqueueRivalText(message);
     } else {
-      console.log('[DEBUG handleSecretarySTDPoliceDelmor] enqueueRivalText not available, using log fallback');
       log(`📱 Delmor Krunchem: "${message}"`);
     }
   }, 1000);

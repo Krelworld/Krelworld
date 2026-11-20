@@ -54,46 +54,7 @@ function completeAllLeagueGames() {
   renderLeagueTablePanel();
 }
 
-// Function to simulate all other Premier League matches and generate goals for top scorers
-function simulateAllOtherLeagueMatches() {
-  ensureTopScorersInit();
-  
-  // Get all teams except Southampton
-  const otherTeams = ALL_TEAMS.filter(team => team !== 'Southampton FC');
-  
-  // Simulate matches between other teams
-  for (let i = 0; i < otherTeams.length; i++) {
-    for (let j = i + 1; j < otherTeams.length; j++) {
-      const team1 = otherTeams[i];
-      const team2 = otherTeams[j];
-      
-      // Simulate match between team1 and team2
-      const team1Goals = Math.floor(Math.random() * 4); // 0-3 goals
-      const team2Goals = Math.floor(Math.random() * 4); // 0-3 goals
-      
-      // Generate goal events for top scorers
-      for (let g = 0; g < team1Goals; g++) {
-        const playerName = generateRandomPlayerName();
-        addGoalToTopScorers(playerName, team1);
-      }
-      
-      for (let g = 0; g < team2Goals; g++) {
-        const playerName = generateRandomPlayerName();
-        addGoalToTopScorers(playerName, team2);
-      }
-    }
-  }
-}
 
-// Helper function to generate random player names for other teams
-function generateRandomPlayerName() {
-  const firstNames = ['James', 'John', 'Michael', 'David', 'Robert', 'William', 'Richard', 'Thomas', 'Christopher', 'Daniel', 'Matthew', 'Anthony', 'Mark', 'Donald', 'Steven', 'Paul', 'Andrew', 'Joshua', 'Kenneth', 'Kevin', 'Brian', 'George', 'Timothy', 'Ronald', 'Jason', 'Edward', 'Jeffrey', 'Ryan', 'Jacob', 'Gary', 'Nicholas', 'Eric', 'Jonathan', 'Stephen', 'Larry', 'Justin', 'Scott', 'Brandon', 'Benjamin', 'Samuel', 'Gregory', 'Alexander', 'Patrick', 'Jack', 'Dennis', 'Jerry', 'Tyler', 'Aaron', 'Jose', 'Henry', 'Adam', 'Douglas', 'Nathan', 'Peter', 'Zachary', 'Kyle', 'Noah', 'Alan', 'Ethan', 'Jeremy', 'Elijah', 'Mason', 'Logan', 'Jackson', 'Sebastian', 'Aiden', 'Owen', 'Caleb', 'Luke', 'Connor', 'Wyatt', 'Christian', 'Landon', 'Hunter', 'Carter', 'Ryan', 'Brayden', 'Nicholas', 'Anthony', 'David', 'Alexander', 'James', 'William', 'Christopher', 'Matthew', 'Daniel', 'Andrew', 'Joshua', 'Kenneth', 'Kevin', 'Brian', 'George', 'Timothy', 'Ronald', 'Jason', 'Edward', 'Jeffrey', 'Ryan', 'Jacob', 'Gary', 'Nicholas', 'Eric', 'Jonathan', 'Stephen', 'Larry', 'Justin', 'Scott', 'Brandon', 'Benjamin', 'Samuel', 'Gregory', 'Alexander', 'Patrick', 'Jack', 'Dennis', 'Jerry', 'Tyler', 'Aaron', 'Jose', 'Henry', 'Adam', 'Douglas', 'Nathan', 'Peter', 'Zachary', 'Kyle', 'Noah', 'Alan', 'Ethan', 'Jeremy', 'Elijah', 'Mason', 'Logan', 'Jackson', 'Sebastian', 'Aiden', 'Owen', 'Caleb', 'Luke', 'Connor', 'Wyatt', 'Christian', 'Landon', 'Hunter', 'Carter', 'Ryan', 'Brayden'];
-  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee', 'Perez', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson', 'Walker', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores', 'Green', 'Adams', 'Nelson', 'Baker', 'Hall', 'Rivera', 'Campbell', 'Mitchell', 'Carter', 'Roberts', 'Gomez', 'Phillips', 'Evans', 'Turner', 'Diaz', 'Parker', 'Cruz', 'Edwards', 'Collins', 'Reyes', 'Stewart', 'Morris', 'Morales', 'Murphy', 'Cook', 'Rogers', 'Gutierrez', 'Ortiz', 'Morgan', 'Cooper', 'Peterson', 'Bailey', 'Reed', 'Kelly', 'Howard', 'Ramos', 'Kim', 'Cox', 'Ward', 'Richardson', 'Watson', 'Brooks', 'Chavez', 'Wood', 'James', 'Bennett', 'Gray', 'Mendoza', 'Ruiz', 'Hughes', 'Price', 'Alvarez', 'Castillo', 'Sanders', 'Patel', 'Myers', 'Long', 'Ross', 'Foster', 'Jimenez'];
-  
-  const firstName = pick(firstNames);
-  const lastName = pick(lastNames);
-  return `${firstName} ${lastName}`;
-}
 
 function getFinalStandings(){
   ensureLeagueTableInit();
@@ -196,7 +157,6 @@ function showFinalLeagueTable() {
           };
           window.socialManager.showAchievement(achievement);
           window.socialManager.achievements.push(achievement);
-          if (window.stateManager) window.stateManager.saveAchievement(achievement);
         }
         
         // Track Premier League title for certificate (alternative path)
@@ -258,7 +218,6 @@ function showFinalLeagueTable() {
       };
       window.socialManager.showAchievement(achievement);
       window.socialManager.achievements.push(achievement);
-      if (window.stateManager) window.stateManager.saveAchievement(achievement);
     }
     
     // Track Premier League title for certificate
@@ -805,7 +764,6 @@ function selectPresentationHost() {
   const randomKey = hostKeys[randomIndex];
   
   // Debug log to verify randomization
-  console.log("Selected presenter:", randomKey, "from", hostKeys.length, "options", "index:", randomIndex);
   
   if (!PRESENTATION_HOSTS[randomKey]) {
     console.error("Invalid host key:", randomKey);

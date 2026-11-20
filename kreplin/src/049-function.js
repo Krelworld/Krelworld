@@ -1,3 +1,4 @@
+/* === Patch 4B.2 — Prison Enforcement Mode === */
 (function(){
   if (window.__prisonPatchApplied) return;
   window.__prisonPatchApplied = true;

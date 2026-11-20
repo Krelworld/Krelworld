@@ -1,3 +1,4 @@
+/* Portsmouth Special Event */
 (async function() {
   'use strict';
   
@@ -11,9 +12,6 @@
     if (!nextOpponent) return;
     
     // Debug: log what we're checking for the Portsmouth special event
-    try {
-      console.log("[PORTSMOUTH EVENT] checkPortsmouthSpecialEvent: nextMatchIndex =", nextMatchIndex, "opponent =", nextOpponent);
-    } catch(e) {}
     
     // Check if next opponent is the rival (works even if Portsmouth was renamed to Burger King FC, etc.)
     const rivalClub = S.rival?.club || "Portsmouth";
@@ -28,21 +26,12 @@
     // Only trigger once per Portsmouth/rival match
     if (isPortsmouth && !S.portsmouth_special_event_triggered) {
       S.portsmouth_special_event_triggered = true;
-      try {
-        console.log("[PORTSMOUTH EVENT] Triggering Portsmouth special event for opponent:", nextOpponent);
-      } catch(e) {}
       await triggerPortsmouthSpecialEvent();
-      try {
-        console.log("[PORTSMOUTH EVENT] Portsmouth special event completed, returning to eveningPhase.");
-      } catch(e) {}
     }
   }
   
   // Main Portsmouth special event
   async function triggerPortsmouthSpecialEvent() {
-    try {
-      console.log("[PORTSMOUTH EVENT] triggerPortsmouthSpecialEvent: start. matches_played =", S.matches_played, "opponents length =", Array.isArray(S.opponents) ? S.opponents.length : "n/a");
-    } catch(e) {}
     
     // Get rival's current club name (handles renames like Burger King FC)
     const rivalClub = S.rival?.club || "Portsmouth";
@@ -76,9 +65,6 @@
     ], `Delmor's message fills you with rage. Do you want to play a prank on ${rivalClub}?`);
     
     if (prankChoice === 'no') {
-      try {
-        console.log("[PORTSMOUTH EVENT] prankChoice = 'no' (stay home and prepare)");
-      } catch(e) {}
       log('You decide to stay home and prepare for the match. Smart move.');
       await waitAdvance("Preparing", "You get a good night's sleep...");
       // Game continues to pre-match phase naturally
@@ -114,9 +100,6 @@
     
     const bridgeChoice = await choose(bridgeOptions, "What do you want to do?");
     
-    try {
-      console.log("[PORTSMOUTH EVENT] Bridge choice selected:", bridgeChoice, "hasBrick =", !!hasBrick, "hasCocaine =", !!hasCocaine, "hasHGH =", !!hasHGH);
-    } catch(e) {}
     
     if (bridgeChoice === 'throw_brick') {
       // Track brick throws and add buildup if not first time
@@ -134,9 +117,6 @@
     } else if (bridgeChoice === 'nothing') {
       // Player chooses to do nothing: treat this as a quiet night before the derby
       log('You watch the bus drive past. Nothing happens. You return home, feeling slightly disappointed but oddly relieved.');
-      try {
-        console.log("[PORTSMOUTH EVENT] Player chose 'nothing' on the bridge. Advancing to normal night-before-match flow.");
-      } catch(e) {}
       // Give an explicit advance so the UI always has a button and the main loop can carry on cleanly
       await waitAdvance("Home", "The night passes and you focus on tomorrow's match...");
       // No special flags are set here: Portsmouth field their normal team and the game proceeds to the usual pre-match phase

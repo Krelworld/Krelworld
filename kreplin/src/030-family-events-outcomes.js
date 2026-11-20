@@ -1443,7 +1443,6 @@ async function handleSexConsequences(selectedPerson) {
     };
     window.socialManager.showAchievement(achievement);
     window.socialManager.achievements.push(achievement);
-    if (window.stateManager) window.stateManager.saveAchievement(achievement);
   }
 }
 

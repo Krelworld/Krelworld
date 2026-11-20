@@ -1100,9 +1100,6 @@ async function ultimaCupKickoff() {
   }
   
   // Handle post-match (bet resolution, etc.)
-  // #region agent log
-  // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:54691',message:'ultimaCupKickoff post-match handler entry',data:{outcomeExists:!!outcome,outcome:outcome},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-  // #endregion
   if (outcome) {
     const resultKey = outcome.winner === 'us' ? 'us' : (outcome.winner === 'portsmouth' ? 'them' : 'draw');
     if (typeof resolveActiveBet === 'function') {
@@ -1120,37 +1117,14 @@ async function ultimaCupKickoff() {
     const playersArmedValue = S.ultimaCup.players_armed;
     const hasArmedPlayers = playersArmedValue === true || playersArmedValue === 'true' || playersArmedValue === 1 || !!playersArmedValue;
     
-    // #region agent log
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:54700',message:'Briefcase check before victory UI',data:{power_briefcase_owned:S.power_briefcase_owned,briefcaseValue:briefcaseValue,hasBriefcase:hasBriefcase,ultimaCup:S.ultimaCup,players_armed:S.ultimaCup?.players_armed,playersArmedValue:playersArmedValue,hasArmedPlayers:hasArmedPlayers,allConditionsMet:hasBriefcase && hasArmedPlayers},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
-    console.log('[BRIEFCASE DEBUG] Checking conditions after Ultima Cup (normal path):', {
-      power_briefcase_owned: S.power_briefcase_owned,
-      briefcaseValue: briefcaseValue,
-      hasBriefcase: hasBriefcase,
-      players_armed: S.ultimaCup.players_armed,
-      playersArmedValue: playersArmedValue,
-      hasArmedPlayers: hasArmedPlayers,
-      allConditionsMet: hasBriefcase && hasArmedPlayers
-    });
     
     if (hasBriefcase && hasArmedPlayers) {
-      // #region agent log
-      // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:54708',message:'Calling showUltimaCupVictoryUIBombPath',data:{outcome:outcome},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
-      console.log('[BRIEFCASE DEBUG] Player has briefcase AND armed players! Calling showUltimaCupVictoryUIBombPath from normal path');
       await showUltimaCupVictoryUIBombPath(outcome);
-      // #region agent log
-      // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:54710',message:'showUltimaCupVictoryUIBombPath returned',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
     } else {
-      console.log('[BRIEFCASE DEBUG] Conditions not met (briefcase:', hasBriefcase, ', armed players:', hasArmedPlayers, '), showing normal victory UI');
       // Show normal victory UI
       await showUltimaCupVictoryUI(outcome);
     }
   } else {
-    // #region agent log
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:54716',message:'No outcome - skipping victory UI',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
   }
   
   return outcome;
@@ -1267,9 +1241,6 @@ async function ultimaCupKickoffBombPath() {
     }
     
     // ========== BOMB PATH: Check conditions BEFORE calling victory UI ==========
-    console.log('========================================');
-    console.log('[BRIEFCASE DEBUG BOMB PATH] Starting condition check');
-    console.log('[BRIEFCASE DEBUG BOMB PATH] Outcome:', outcome);
     
     // Check if player has briefcase AND armed players - both are required for briefcase UI
     const briefcaseValue = S.power_briefcase_owned;
@@ -1285,25 +1256,9 @@ async function ultimaCupKickoffBombPath() {
     const playersArmedValue = S.ultimaCup.players_armed;
     const hasArmedPlayers = playersArmedValue === true || playersArmedValue === 'true' || playersArmedValue === 1 || !!playersArmedValue;
     
-    console.log('[BRIEFCASE DEBUG BOMB PATH] Condition check results:', {
-      power_briefcase_owned: S.power_briefcase_owned,
-      briefcaseValue: briefcaseValue,
-      briefcaseType: typeof briefcaseValue,
-      hasBriefcase: hasBriefcase,
-      ultimaCup: S.ultimaCup,
-      ultimaCupExists: !!S.ultimaCup,
-      players_armed: S.ultimaCup.players_armed,
-      playersArmedValue: playersArmedValue,
-      playersArmedType: typeof playersArmedValue,
-      hasArmedPlayers: hasArmedPlayers,
-      allConditionsMet: hasBriefcase && hasArmedPlayers,
-      bombPath: true
-    });
-    console.log('========================================');
     
     // Show victory UI (modified for bomb path) - always call showUltimaCupVictoryUIBombPath
     // It will handle both success (briefcase UI) and failstates
-    console.log('[BRIEFCASE DEBUG BOMB PATH] Calling showUltimaCupVictoryUIBombPath');
     await showUltimaCupVictoryUIBombPath(outcome);
   }
   
@@ -1363,7 +1318,7 @@ async function quickSimulateUltimaCupBombPath() {
   const firstAudio = new Audio('https://www.dropbox.com/scl/fi/l2c8pfxv3qpduo9dgrw57/untitled.mp3?rlkey=tctx0hi3gmastnv9bh0nxesvc&st=dasom9yw&dl=1');
   firstAudio.loop = true;
   firstAudio.volume = 0.7;
-  firstAudio.play().catch(err => console.log('Audio play failed:', err));
+  firstAudio.play().catch(err => {});
   
   // Store reference to first audio for later stopping
   window._ultimaCupFirstAudio = firstAudio;
@@ -1889,7 +1844,7 @@ async function quickSimulateUltimaCupBombPath() {
     const secondAudio = new Audio('https://www.dropbox.com/scl/fi/f1v29tjkeusk4ar4mscyq/uktima-spastic.mp3?rlkey=ivdn8zvb120vu2c4ik0cxv237&st=efpcxvs9&dl=1');
     secondAudio.loop = true;
     secondAudio.volume = 0.7;
-    secondAudio.play().catch(err => console.log('Second audio play failed:', err));
+    secondAudio.play().catch(err => {});
     window._ultimaCupSecondAudio = secondAudio;
     
     // Match proper starts
@@ -2466,7 +2421,6 @@ async function quickSimulateUltimaCupBombPath() {
       
       // If player has briefcase and armed players, skip commentary box and return immediately
       if (hasBriefcase && hasArmedPlayers) {
-        console.log('[BRIEFCASE DEBUG] Player has briefcase and armed players - skipping commentary box continue button');
         // Return early - don't show commentary box continue button
         // The outcome will be handled by ultimaCupKickoffBombPath which will call showUltimaCupVictoryUIBombPath
         return {

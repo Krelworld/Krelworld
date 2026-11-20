@@ -92,10 +92,8 @@ async function buyFlow(){
         S.power_heat = Math.min(100, (S.power_heat|0) + 10);
         if (typeof window.enqueueRivalText === 'function'){
           const msg = `They're literally laundering transfer fees through Westminster for you now. This league is finished.`;
-          console.log('[DEBUG Westminster bribe] Calling enqueueRivalText with:', msg);
           window.enqueueRivalText(msg);
         } else {
-          console.log('[DEBUG Westminster bribe] enqueueRivalText not available, using log fallback');
           log(`📱 Delmor Krunchem: "They're literally laundering transfer fees through Westminster for you now. This league is finished."`);
         }
         // Track that rivals now have a transfer vendetta hook
@@ -367,11 +365,6 @@ async function unpaidTransferTick(){
 }
 // ====== BETTING (one-time per pre-match) ======
 
-function resetPreMatchBettingLock() {
-  S.preMatch = S.preMatch || {};
-  S.preMatch.betLocked = false;
-  S.preMatch.bet = null; // {outcome:'us'|'them', stake, odds}
-}
 
 function openBettingModal() {
   S.preMatch = S.preMatch || {};
@@ -422,68 +415,11 @@ function openBettingModal() {
   modal.style.display = 'flex';
 }
 
-// Call this when the Pre-Match phase begins (before showing menu)
-// so betting starts unlocked each match.
-function startPreMatchInitBetting() {
-  resetPreMatchBettingLock();
-  // Precompute strengths/odds for display and later sim.
-  computePreMatchStrengthsAndOdds();
-}
 
 
 // ====== STRENGTH & ODDS (used by betting + sim) ======
 
 
-function getMatchOdds(our, opp){
-  const total = Math.max(1, our+opp);
-  const pUs = our/total, pThem = opp/total;
-  const house=0.90, min=1.20, max=9.50;
-  const usOdds   = Math.min(max, Math.max(min, (1/pUs)*house));
-  const themOdds = Math.min(max, Math.max(min, (1/pThem)*house));
-  return { usOdds:+usOdds.toFixed(2), themOdds:+themOdds.toFixed(2) };
-}
-function computePreMatchStrengthsAndOdds(){
- ensureOpponentForToday();
-  const our = getOurSelectedFive();
-  const opp = getOppSelectedFive();
-  let ourStr = computeTeamStrength(our);
-  const oppStr = computeTeamStrength(opp);
-  S.preMatch = S.preMatch || {};
-  // Work out how many fit, available players we actually have.
-  let availableCount = null;
-  if (Array.isArray(S.squad)) {
-    try {
-      availableCount = S.squad.filter(isPlayerAvailableForSelection).length;
-    } catch (_e) {
-      // Defensive: don't break pre-match if anything goes wrong here.
-      availableCount = null;
-    }
-  }
-
-  S.preMatch.availablePlayers = availableCount;
-
-  // If we don't have more than 5 fit players, we effectively have no bench.
-  // You play short-handed and your quality takes a hit.
-  if (typeof availableCount === 'number' && availableCount <= 5) {
-    S.preMatch.canUseSubs = false;
-    const missing = Math.max(0, 5 - availableCount);
-    if (missing > 0) {
-      const PENALTY_PER_MISSING = 12; // each missing player meaningfully hurts strength
-      ourStr = Math.max(10, ourStr - PENALTY_PER_MISSING * missing);
-    }
-  } else {
-    S.preMatch.canUseSubs = true;
-  }
-
-  // Apply Season 5 doping boost if active
-  if (S.season === 5 && S.preMatch && S.preMatch.season5_doped && S.preMatch.performance_boost) {
-    ourStr = Math.floor(ourStr * S.preMatch.performance_boost);
-  }
-  
-  S.preMatch.ourStrength = ourStr;
-  S.preMatch.oppStrength = oppStr;
-  S.preMatch.odds = getMatchOdds(ourStr, oppStr);
-}
 
 async function placeBetMenu(){
   // one bet per pre-match
@@ -627,193 +563,18 @@ const tauntPools = {
   ]
 };
 
-// Core functions for the new systems
-function updateFrustration(delta) {
-  if (typeof S.frustration !== 'number') S.frustration = 0;
-  S.frustration = Math.max(0, Math.min(100, S.frustration + delta));
-}
 
-function decayFrustration() {
-  if (typeof S.frustration !== 'number') S.frustration = 0;
-  S.frustration = Math.max(0, S.frustration - quickInvective.frustration.decayRate);
-}
 
-function addSessionShout(shout) {
-  if (!Array.isArray(S.sessionShouts)) S.sessionShouts = [];
-  S.sessionShouts.push(shout);
-}
 
-function clearSessionShouts() {
-  S.sessionShouts = [];
-}
 
 function getDeduplicatedSessionShouts() {
   if (!Array.isArray(S.sessionShouts)) return [];
   return [...new Set(S.sessionShouts)];
 }
 
-// Taunt wheel system
-async function showTauntWheel() {
-  const frustration = S.frustration || 0;
-  
-  // Determine taunt pool weights based on frustration
-  let poolWeights = { mild: 0.4, salty: 0.3, extreme: 0.2, saints: 0.1 };
-  
-  if (frustration > 70) {
-    poolWeights = { mild: 0.1, salty: 0.2, extreme: 0.5, saints: 0.2 };
-  } else if (frustration > 40) {
-    poolWeights = { mild: 0.2, salty: 0.4, extreme: 0.3, saints: 0.1 };
-  }
-  
-  // Select 4 taunts with weighted randomness
-  const selectedTaunts = [];
-  const usedPools = new Set();
-  
-  for (let i = 0; i < 4; i++) {
-    let pool;
-    do {
-      const rand = Math.random();
-      if (rand < poolWeights.mild) pool = 'mild';
-      else if (rand < poolWeights.mild + poolWeights.salty) pool = 'salty';
-      else if (rand < poolWeights.mild + poolWeights.salty + poolWeights.extreme) pool = 'extreme';
-      else pool = 'saints';
-    } while (usedPools.has(pool) && usedPools.size < 4);
-    
-    usedPools.add(pool);
-    const taunt = pick(tauntPools[pool]);
-    selectedTaunts.push({ text: taunt, pool });
-  }
-  
-  // Show taunt wheel
-  const choice = await choose([
-    { key: 'taunt1', label: selectedTaunts[0].text },
-    { key: 'taunt2', label: selectedTaunts[1].text },
-    { key: 'taunt3', label: selectedTaunts[2].text },
-    { key: 'taunt4', label: selectedTaunts[3].text },
-    { key: 'back', label: 'Back' }
-  ], 'Taunt Wheel - Choose your invective:');
-  
-  if (choice && choice.startsWith('taunt')) {
-    const tauntIndex = parseInt(choice.replace('taunt', '')) - 1;
-    const selectedTaunt = selectedTaunts[tauntIndex];
-    
-    // Log the taunt immediately
-    log(`You shout: "${selectedTaunt.text}"`);
-    
-    // Add to session shouts
-    addSessionShout(selectedTaunt.text);
-    
-    // Update frustration based on taunt intensity
-    if (selectedTaunt.pool === 'extreme') {
-      updateFrustration(5);
-    } else if (selectedTaunt.pool === 'salty') {
-      updateFrustration(3);
-    } else if (selectedTaunt.pool === 'saints') {
-      updateFrustration(-2);
-    }
-    
-    // Show wheel again (refreshes with new options)
-    await showTauntWheel();
-  }
-}
 
-// Brick throwing system
-function hasBrickEquipped() {
-  if (!S.inventory || !Array.isArray(S.inventory.items)) return false;
-  const brick = S.inventory.items.find(item => item.name === 'Brick');
-  return brick && brick.equipped;
-}
 
-async function throwBrickAt(target) {
-  if (!hasBrickEquipped()) {
-    log("You don't have a brick equipped!");
-    return;
-  }
-  
-  const targetConfig = brickThrow.targets[target];
-  if (!targetConfig) {
-    log("Invalid target for brick throwing!");
-    return;
-  }
-  
-  // Determine effects
-  const arrestChance = targetConfig.arrest;
-  const moraleEffect = targetConfig.morale[0] + Math.random() * (targetConfig.morale[1] - targetConfig.morale[0]);
-  const qualityEffect = targetConfig.quality[0] + Math.random() * (targetConfig.quality[1] - targetConfig.quality[0]);
-  
-  // Log the action
-  const targetNames = {
-    players: 'your own players',
-    opponents: 'the opposition players',
-    manager: 'your manager',
-    referee: 'the referee',
-    fans: 'the fans'
-  };
-  
-  log(`You hurl a brick at ${targetNames[target]}!`);
-  
-  // Apply effects
-  S.morale = Math.max(-100, Math.min(100, (S.morale || 0) + moraleEffect));
-  if (S.squad && Array.isArray(S.squad)) {
-    S.squad.forEach(player => {
-      if (player.quality) {
-        player.quality = Math.max(0, Math.min(100, player.quality + qualityEffect));
-      }
-    });
-  }
-  
-  // Check for arrest
-  if (Math.random() < arrestChance) {
-    log("Security immediately restrains you! The police are called.");
-    
-    // Apply arrest consequences
-    const fineChair = 30000 + Math.floor(Math.random() * 30000);
-    const fineClub = Math.round(fineChair * 1.2);
-    
-    S.chairman_cash = Math.max(0, (S.chairman_cash || 0) - fineChair);
-    S.club_cash = Math.max(0, (S.club_cash || 0) - fineClub);
-    S.police_risk = Math.min(100, (S.police_risk || 0) + 15);
-    S.legal_risk = Math.min(100, (S.legal_risk || 0) + 3);
-    S.compliance_risk = Math.min(100, (S.compliance_risk || 0) + 4);
-    S.reputation = Math.max(0, (S.reputation || 0) - 10);
-    
-    log(`CONSEQUENCES: Personal fine £${fineChair.toLocaleString()}, Club fine £${fineClub.toLocaleString()}`);
-    
-    // Queue police investigation
-    if (!S._pending_police_investigation) {
-      S._pending_police_investigation = { 
-        authority: 'police', 
-        caseType: 'brick throwing',
-        description: 'Throwing objects at match participants'
-      };
-    }
-  } else {
-    log("The brick misses its target. You manage to avoid detection.");
-  }
-  
-  // Remove brick from inventory after use
-  removeItem('Brick', 1);
-}
 
-// News integration and manager confrontation
-function generateFanReactionNews() {
-  const shouts = getDeduplicatedSessionShouts();
-  if (shouts.length === 0) return null;
-  
-  const headline = "Fan Reaction: Chairman's Matchday Outbursts";
-  const body = `Southampton chairman was heard shouting during the match: "${shouts.join('", "')}". The outbursts have drawn mixed reactions from supporters.`;
-  
-  return createStory(
-    'gossip',
-    headline,
-    body,
-    { shouts: shouts.join(', ') },
-    { reputation: -2, fan_morale: -1 },
-    'auto',
-    1,
-    ['fan_reaction']
-  );
-}
 
 async function handleManagerConfrontation() {
   // Check if player was drunk during the match - this is the trigger for confrontation
@@ -1195,13 +956,6 @@ async function handleManagerConfrontation() {
   S.isDrunk = false;
 }
 
-// Add brick throwing option to any conversation scene
-function addBrickThrowingToConversation(choices) {
-  if (hasBrickEquipped()) {
-    choices.push({ key: 'brick_contact', label: 'Throw brick at contact', variant: 'bad' });
-  }
-  return choices;
-}
 
 // Handle brick throwing in conversation
 async function handleConversationBrickThrowing(contactName) {
@@ -1267,15 +1021,7 @@ function computeMatchOdds(){
 
 
 
-async function secretaryInterview(){  // legacy calls become no-ops when hired
-  if(S.secretary_hired) return;
-  await ensureSecretaryHired();
-}
 
-async function hireSecretaryFlow(){   // legacy alias, same idea
-  if(S.secretary_hired) return;
-  await ensureSecretaryHired();
-}
 
 async function chooseSecretaryQuickHire(){
   if(S.secretary_hired) return;
@@ -1387,25 +1133,6 @@ function preMatchResetFlags(){
 }
 
 // ---------- Locker-room helpers (single copy) ----------
-// --- Locker-room phrase pools (safe, idempotent) ---
-function generateRummageFind(player, side){
-  const baseQuality = player?.rating || 60;
-  const qualityBump = Math.max(0, Math.floor((baseQuality - 60)/5));
-  const r = Math.random();
-
-  const find = { money:0, accolade:null, drugs:0, playerName: player?.name || null, side };
-
-  if (r < 0.45) {
-    find.money = 200 + Math.floor(Math.random()*600) + (qualityBump*25);
-  }
-  if (Math.random() < (0.25 + qualityBump*0.01)) {
-    const medals = ["Player of the Month plaque","Youth Cup medal","County 5-a-side ribbon","Old golden boot keyring","Regional MVP badge"];
-    find.accolade = pick(medals);
-  }
-  const rare = side === "opp" ? 0.10 : 0.05;
-  if (Math.random() < rare){ find.drugs = 1; }
-  return find;
-}
 
 // Unified “steal/do nothing” choice UI
 async function presentRummageChoices(find){

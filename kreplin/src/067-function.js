@@ -1,3 +1,4 @@
+/* === Deranged Controller v6 — hard de-dup + interaction-only gate === */
 (function(){
   try{
     if (window.__DERANGED_V6__) return; window.__DERANGED_V6__ = true;

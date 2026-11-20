@@ -69,15 +69,9 @@ function computeUltimaCupResultBombPath() {
 
 // ========== SHOW ULTIMA CUP VICTORY UI - BOMB PATH ==========
 async function showUltimaCupVictoryUIBombPath(outcome) {
-  console.log('========================================');
-  console.log('[BRIEFCASE DEBUG] showUltimaCupVictoryUIBombPath ENTRY');
-  console.log('[BRIEFCASE DEBUG] Outcome:', JSON.stringify(outcome, null, 2));
-  console.log('[BRIEFCASE DEBUG] S.power_briefcase_owned:', S.power_briefcase_owned, 'Type:', typeof S.power_briefcase_owned);
-  console.log('[BRIEFCASE DEBUG] S.ultimaCup:', S.ultimaCup);
   
   // If outcome indicates a fail state, don't proceed (fail state should have been handled already)
   if (outcome && (outcome.failState || outcome.chairmanKilled || outcome.playersKilled)) {
-    console.log('[BRIEFCASE DEBUG] Outcome indicates fail state - returning early');
     return;
   }
   
@@ -96,27 +90,10 @@ async function showUltimaCupVictoryUIBombPath(outcome) {
   const playersArmedValue = S.ultimaCup.players_armed;
   const hasArmedPlayers = playersArmedValue === true || playersArmedValue === 'true' || playersArmedValue === 1 || !!playersArmedValue;
   
-  console.log('[BRIEFCASE DEBUG] ===== CONDITION CHECK =====');
-  console.log('[BRIEFCASE DEBUG] Briefcase check:');
-  console.log('  - S.power_briefcase_owned:', S.power_briefcase_owned);
-  console.log('  - briefcaseValue:', briefcaseValue);
-  console.log('  - briefcaseValue type:', typeof briefcaseValue);
-  console.log('  - hasBriefcase:', hasBriefcase);
-  console.log('[BRIEFCASE DEBUG] Armed players check:');
-  console.log('  - S.ultimaCup:', S.ultimaCup);
-  console.log('  - S.ultimaCup.players_armed:', S.ultimaCup.players_armed);
-  console.log('  - playersArmedValue:', playersArmedValue);
-  console.log('  - playersArmedValue type:', typeof playersArmedValue);
-  console.log('  - hasArmedPlayers:', hasArmedPlayers);
-  console.log('[BRIEFCASE DEBUG] Final result:');
-  console.log('  - allConditionsMet:', hasBriefcase && hasArmedPlayers);
-  console.log('========================================');
   
   // If we have both briefcase and armed players, show briefcase UI directly
   if (hasBriefcase && hasArmedPlayers) {
-    console.log('[BRIEFCASE DEBUG] ✅✅✅ BOTH CONDITIONS MET! Showing briefcase UI ✅✅✅');
     try {
-    console.log('[BRIEFCASE DEBUG] Creating briefcase UI overlay...');
     log(``);
     log(`<div style="padding:30px;background:rgba(255,0,0,0.3);border:4px solid #ff0000;border-radius:20px;margin:30px 0;box-shadow:0 0 40px rgba(255,0,0,0.6);">
       <h2 style="font-size:2rem;color:#ff0000;margin-bottom:20px;text-align:center;text-shadow:0 0 20px rgba(255,0,0,0.8);">💼 THE ULTIMA BRIEFCASE 💼</h2>
@@ -222,13 +199,10 @@ async function showUltimaCupVictoryUIBombPath(outcome) {
     // Remove any existing briefcase overlays first
     const existing = document.getElementById('ultima-briefcase-overlay');
     if (existing) {
-      console.log('[BRIEFCASE DEBUG] Removing existing overlay');
       existing.remove();
     }
     
-    console.log('[BRIEFCASE DEBUG] Appending overlay to document.body...');
     document.body.appendChild(briefcaseOverlay);
-    console.log('[BRIEFCASE DEBUG] Overlay appended. Checking DOM...');
     
     // Force visibility with multiple methods
     briefcaseOverlay.style.display = 'flex';
@@ -249,7 +223,6 @@ async function showUltimaCupVictoryUIBombPath(outcome) {
               setTimeout(() => {
                 if (!document.getElementById('ultima-briefcase-overlay')) {
                   document.body.appendChild(briefcaseOverlay);
-                  console.log('[BRIEFCASE DEBUG] Overlay re-added');
                 }
               }, 10);
             }
@@ -269,17 +242,6 @@ async function showUltimaCupVictoryUIBombPath(outcome) {
     
     // Verify it's in the DOM
     const verifyOverlay = document.getElementById('ultima-briefcase-overlay');
-    console.log('[BRIEFCASE DEBUG] ===== OVERLAY VERIFICATION =====');
-    console.log('[BRIEFCASE DEBUG] Overlay in DOM:', !!verifyOverlay);
-    console.log('[BRIEFCASE DEBUG] Overlay parent:', verifyOverlay?.parentElement?.tagName);
-    console.log('[BRIEFCASE DEBUG] Overlay display:', briefcaseOverlay.style.display);
-    console.log('[BRIEFCASE DEBUG] Overlay visibility:', briefcaseOverlay.style.visibility);
-    console.log('[BRIEFCASE DEBUG] Overlay opacity:', briefcaseOverlay.style.opacity);
-    console.log('[BRIEFCASE DEBUG] Overlay zIndex:', briefcaseOverlay.style.zIndex);
-    console.log('[BRIEFCASE DEBUG] Overlay computed style display:', window.getComputedStyle(briefcaseOverlay).display);
-    console.log('[BRIEFCASE DEBUG] Overlay computed style visibility:', window.getComputedStyle(briefcaseOverlay).visibility);
-    console.log('[BRIEFCASE DEBUG] Overlay computed style zIndex:', window.getComputedStyle(briefcaseOverlay).zIndex);
-    console.log('[BRIEFCASE DEBUG] =================================');
     
     // Force a reflow to ensure the overlay is rendered
     void briefcaseOverlay.offsetHeight;
@@ -287,31 +249,23 @@ async function showUltimaCupVictoryUIBombPath(outcome) {
     // Double-check visibility after a brief moment with multiple checks
     setTimeout(() => {
       const checkOverlay = document.getElementById('ultima-briefcase-overlay');
-      console.log('[BRIEFCASE DEBUG] ===== 100ms CHECK =====');
-      console.log('[BRIEFCASE DEBUG] Overlay exists:', !!checkOverlay);
       if (checkOverlay) {
-        console.log('[BRIEFCASE DEBUG] Overlay still exists, forcing visibility again');
         checkOverlay.style.display = 'flex';
         checkOverlay.style.visibility = 'visible';
         checkOverlay.style.opacity = '1';
         checkOverlay.style.zIndex = '25000';
-        console.log('[BRIEFCASE DEBUG] Visibility forced. Computed display:', window.getComputedStyle(checkOverlay).display);
       } else {
         console.error('[BRIEFCASE DEBUG] ❌❌❌ OVERLAY WAS REMOVED BEFORE IT COULD BE DISPLAYED! ❌❌❌');
         console.error('[BRIEFCASE DEBUG] This means something is removing it. Check for other code that removes overlays.');
       }
-      console.log('[BRIEFCASE DEBUG] ========================');
     }, 100);
     
     // Additional check after 500ms
     setTimeout(() => {
       const checkOverlay2 = document.getElementById('ultima-briefcase-overlay');
-      console.log('[BRIEFCASE DEBUG] ===== 500ms CHECK =====');
-      console.log('[BRIEFCASE DEBUG] Overlay exists:', !!checkOverlay2);
       if (!checkOverlay2) {
         console.error('[BRIEFCASE DEBUG] ❌❌❌ OVERLAY STILL MISSING AFTER 500ms! ❌❌❌');
       }
-      console.log('[BRIEFCASE DEBUG] ========================');
     }, 500);
     
     // Wait for button press
@@ -515,12 +469,6 @@ async function showUltimaCupVictoryUIBombPath(outcome) {
       </div>`);
     }
   } else {
-    console.log('[BRIEFCASE DEBUG] ❌❌❌ CONDITIONS NOT MET - Showing death sequence ❌❌❌');
-    console.log('[BRIEFCASE DEBUG] - Has briefcase:', hasBriefcase, '(value:', briefcaseValue, ', type:', typeof briefcaseValue, ')');
-    console.log('[BRIEFCASE DEBUG] - Has armed players:', hasArmedPlayers, '(value:', playersArmedValue, ', type:', typeof playersArmedValue, ')');
-    console.log('[BRIEFCASE DEBUG] - S.ultimaCup:', S.ultimaCup);
-    console.log('[BRIEFCASE DEBUG] - S.ultimaCup.players_armed:', S.ultimaCup?.players_armed);
-    console.log('[BRIEFCASE DEBUG] =================================');
     
     // Handle all three failstate scenarios
     // Scenario 1: Players unarmed, no briefcase
@@ -779,8 +727,7 @@ async function showFailstateMenu() {
       const saved = localStorage.getItem(SAVE_KEY);
       if (saved) {
         try {
-          const parsed = JSON.parse(saved);
-          S = normalizeGameState(parsed);
+          S = parseSavedGame(saved);
           window.S = S;
           if (typeof render === 'function') {
             render();
@@ -958,7 +905,7 @@ async function startKrunchemBossBattle() {
     const bossFightAudio = new Audio('https://www.dropbox.com/scl/fi/i11xhg5i8pxzmk4h3ujta/krunchem-boss-fight.mp3?rlkey=pgvmyz9g7yyrze7shskw1flyc&st=hlvhfdts&dl=1');
     bossFightAudio.loop = true;
     bossFightAudio.volume = 0.7;
-    bossFightAudio.play().catch(err => console.log('Boss fight audio play failed:', err));
+    bossFightAudio.play().catch(err => {});
     gameOverlay._bossFightAudio = bossFightAudio; // Store reference for cleanup
     
     // Sound effects for boss fight
@@ -968,7 +915,6 @@ async function startKrunchemBossBattle() {
         try {
           bossFightAudioContext = new (window.AudioContext || window.webkitAudioContext)();
         } catch (e) {
-          console.log('Boss fight audio context failed:', e);
           return false;
         }
       }
@@ -2357,7 +2303,6 @@ async function startKrunchemBossBattle() {
             window._startGeneralMusic();
           } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
             generalMusicAudio.play().catch(err => {
-              console.log('Could not resume background music:', err);
             });
           }
         }

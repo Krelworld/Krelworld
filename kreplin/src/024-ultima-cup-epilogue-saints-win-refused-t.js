@@ -293,7 +293,7 @@ async function showUltimaCupEpilogueSaintsWin() {
     const epilogueAudio = new Audio('https://www.dropbox.com/scl/fi/qqboc2l8vj7xjhnqfcmpj/epilogue.mp3?rlkey=1dbpkuoyyiyp5lz5bw3tcr75c&st=491q33ww&dl=1');
     epilogueAudio.loop = true;
     epilogueAudio.volume = 0.7;
-    epilogueAudio.play().catch(err => console.log('Epilogue audio play failed:', err));
+    epilogueAudio.play().catch(err => {});
     overlay._epilogueAudio = epilogueAudio; // Store reference for cleanup
     
     // Start displaying lines sequentially
@@ -590,7 +590,7 @@ async function showUltimaCupEpilogueSaintsLose() {
     const epilogueAudio = new Audio('https://www.dropbox.com/scl/fi/qqboc2l8vj7xjhnqfcmpj/epilogue.mp3?rlkey=1dbpkuoyyiyp5lz5bw3tcr75c&st=491q33ww&dl=1');
     epilogueAudio.loop = true;
     epilogueAudio.volume = 0.7;
-    epilogueAudio.play().catch(err => console.log('Epilogue audio play failed:', err));
+    epilogueAudio.play().catch(err => {});
     overlay._epilogueAudio = epilogueAudio; // Store reference for cleanup
     
     // Start displaying lines sequentially (button is already visible)
@@ -1572,7 +1572,6 @@ async function showCredits() {
       creditsAudio.loop = false;
       creditsAudio.volume = 0.7;
       creditsAudio.play().catch(err => {
-        console.log('Credits music play failed (may require user interaction):', err);
       });
     }
     
@@ -1621,7 +1620,6 @@ async function startDrivingMinigame() {
     
     // Start playing the driving song
     driveMusic.play().catch(err => {
-      console.log('Could not play driving music:', err);
     });
     
     // Create canvas - use viewport size to fit screen
@@ -1840,7 +1838,6 @@ async function startDrivingMinigame() {
       driveMusic.pause();
       woodlandMusic.currentTime = 0; // Reset to start
       woodlandMusic.play().catch(err => {
-        console.log('Could not play woodland music:', err);
       });
       
       return new Promise((resolveCutscene) => {
@@ -2117,7 +2114,6 @@ async function startDrivingMinigame() {
               woodlandMusic.pause();
               woodlandMusic.currentTime = 0;
               driveMusic.play().catch(err => {
-                console.log('Could not resume driving music:', err);
               });
               // Resume general music after cutscene ends
               if (typeof window._startGeneralMusic === 'function') {
@@ -2561,7 +2557,6 @@ async function startDrivingMinigame() {
                 window._startGeneralMusic();
               } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
                 generalMusicAudio.play().catch(err => {
-                  console.log('Could not resume background music:', err);
                 });
               }
             }
@@ -2610,7 +2605,6 @@ async function startDrivingMinigame() {
 }
 
 async function playMatchPhaseWithTaunts(){
-  console.log("DEBUG QUICK SIM: playMatchPhaseWithTaunts() called");
   if (!S.matchContext || !S.matchContext.team) {
     S.matchContext = currentOpponent();
   }
@@ -2620,22 +2614,18 @@ async function playMatchPhaseWithTaunts(){
   
   // Ensure pre-match menu flags are cleared (defensive)
   if (S._preMatchMenuInterrupted) {
-    console.log("DEBUG QUICK SIM: Clearing _preMatchMenuInterrupted flag inside playMatchPhaseWithTaunts");
     S._preMatchMenuInterrupted = false;
   }
   if (S._preMatchMenuActive) {
-    console.log("DEBUG QUICK SIM: Clearing _preMatchMenuActive flag inside playMatchPhaseWithTaunts");
     S._preMatchMenuActive = false;
   }
   
   // Drinking decision before match
   log("You have a moment before the match begins...");
-  console.log("DEBUG QUICK SIM: About to show drinking choice");
   const drinkChoice = await choose([
     { key: 'sober', label: 'Stay sober and focused' },
     { key: 'drink', label: 'Have a relaxing drink of beer' }
   ], 'Pre-match preparation');
-  console.log("DEBUG QUICK SIM: Drinking choice made:", drinkChoice);
   
   if (drinkChoice === 'drink') {
     S.isDrunk = true;
@@ -2695,9 +2685,7 @@ async function playMatchPhaseWithTaunts(){
   S._tauntPromptInFlight = false;
   
   // Use quick sim with live overlay UI
-  console.log("DEBUG QUICK SIM: About to call quickSimulateMatchWithLiveOverlay()");
   let outcome = await quickSimulateMatchWithLiveOverlay();
-  console.log("DEBUG QUICK SIM: quickSimulateMatchWithLiveOverlay() returned:", outcome);
   
   // Clear the taunt mode flag after simulation
   S.tauntModeActive = false;
@@ -2711,7 +2699,6 @@ async function playMatchPhaseWithTaunts(){
     their_goals: outcome.themGoals || outcome.their_goals || 0,
     simulated: true
   };
-  console.log("DEBUG QUICK SIM: playMatchPhaseWithTaunts() returning result:", result);
   return result;
 }
 

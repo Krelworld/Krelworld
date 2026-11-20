@@ -1,3 +1,4 @@
+/* === Patch 4B.1 — Oversight routing + balance === */
 (function(){
   if (window.__patch4B1Applied) return;
   window.__patch4B1Applied = true;
@@ -108,7 +109,6 @@
     // Extra cooldown for police investigations to prevent immediate re-arrests
     if (chosen === 'police') {
       S._investigationCooldown = Math.max(S._investigationCooldown, 4);
-      console.log("DEBUG: Police investigation queued for case:", caseType, "bribes_count:", bribes);
       S._police_investigation_cooldown = 6; // 6 matches before another police investigation
     }
   }
@@ -997,7 +997,6 @@
         clearBtns(); // Clear the current buttons before showing new ones
         presentPoliceSentencing(caseType, severity, addBtn, clearBtns, update, fineChair, fineClub);
       });
-      console.log("DEBUG: Guilty button created successfully");
     } catch(e) {
       console.error("DEBUG: Error creating guilty button:", e);
     }
@@ -1008,7 +1007,6 @@
         clearBtns(); // Clear the current buttons before showing new ones
         presentPoliceExcuses(caseType, severity, addBtn, clearBtns, update, fineChair, fineClub);
       });
-      console.log("DEBUG: Not guilty button created successfully");
     } catch(e) {
       console.error("DEBUG: Error creating not guilty button:", e);
     }
@@ -1236,12 +1234,10 @@
 
   // ---------- investigation presenter (popup-based UI) ----------
   window.presentInvestigation = async function(v){
-    console.log("DEBUG: presentInvestigation called with:", v);
     ensureState();
     
     // Check if we're in the right context for investigations
     const currentContext = window.__ui_context || 'unknown';
-    console.log("DEBUG: Current UI context:", currentContext);
     
     // Only allow investigations in post-match or evening contexts
     // Prevent investigations from appearing in pre-match or other inappropriate contexts
@@ -1249,13 +1245,11 @@
       // Re-queue for later processing
       if (!Array.isArray(S.knock_queue)) S.knock_queue = [];
       S.knock_queue.push(v);
-      console.log("DEBUG: Investigation re-queued due to inappropriate context:", currentContext);
       return;
     }
     
     const auth = v.authority; // 'board' | 'fa' | 'police'
     const caseType = v.caseType || 'irregularities';
-    console.log("DEBUG: auth:", auth, "caseType:", caseType);
 
     // Log the headline to main feed
     if (auth === 'police'){
@@ -2545,7 +2539,7 @@
         if (!S.suspensions || typeof S.suspensions !== 'object') S.suspensions = {};
         if (!Number.isFinite(S.suspensions.prison_games)) S.suspensions.prison_games = 0;
         if (!Number.isFinite(S.suspensions.rehab_games)) S.suspensions.rehab_games = 0;
-      }catch(e){ console.log("DEBUG: ensureSuspensions failed", e); }
+      }catch(e){  }
     }
     
     // Calculate severity for sentencing
@@ -2597,10 +2591,6 @@
             const oldPrisonGames = S.suspensions?.prison_games || 0;
             S.suspensions.prison_games = (S.suspensions?.prison_games || 0) + prisonTerm;
             S.prison = true;
-            console.log("DEBUG PRISON SET: prisonTerm=" + prisonTerm + ", oldPrisonGames=" + oldPrisonGames + ", newPrisonGames=" + S.suspensions.prison_games);
-            console.log("DEBUG PRISON SET: S.prison=" + S.prison + ", S.suspensions=" + JSON.stringify(S.suspensions));
-            console.log("DEBUG PRISON SET: matches_played=" + (S.matches_played || 0) + ", season_matches=" + (S.season_matches || 0));
-            console.trace("DEBUG PRISON SET: Stack trace");
           }
         }
         
@@ -2608,12 +2598,7 @@
           S.police_risk = Math.max(0, (S.police_risk || 0) - 4);
           S._police_interview_in_progress = false;
           S._police_interview_active = false;
-          try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(_){ }
-          try { 
-            console.log("DEBUG: Sentence accepted — prison_games:", S.suspensions?.prison_games, "rehab_games:", S.suspensions?.rehab_games, "prison flag:", S.prison);
-            console.log("DEBUG: Current game state — matches_played:", S.matches_played, "season_matches:", S.season_matches, "game_over:", S.game_over);
-            console.log("DEBUG: Main loop condition check — should break:", (S.suspensions?.prison_games|0) > 0);
-          } catch(_){ }
+          saveGame();
           try { if (typeof logSafe === 'function') logSafe('PRISON: Sentence queued. You will serve during upcoming matches.'); } catch(_){ }
         }
         
@@ -2644,11 +2629,9 @@
         if (typeof S !== 'undefined') {
           S._police_interview_in_progress = false;
           S._police_interview_active = false;
-          console.log("DEBUG ACCEPT SENTENCE: State flags cleared, prison_games:", S.suspensions?.prison_games);
           
           // Final check: if prison was set, ensure state is consistent
           if (prisonTerm > 0 && (S.suspensions?.prison_games|0) > 0) {
-            console.log("DEBUG ACCEPT SENTENCE: Prison term confirmed — prison_games:", S.suspensions.prison_games, "prison flag:", S.prison);
             // Ensure prison flag is set
             S.prison = true;
             // Double-check suspensions object exists
@@ -2662,19 +2645,12 @@
           }
           
           // Save state before resolving
-          try { 
-            localStorage.setItem(SAVE_KEY, JSON.stringify(S)); 
-            console.log("DEBUG ACCEPT SENTENCE: State saved to localStorage");
-          } catch(e) {
-            console.error("DEBUG ACCEPT SENTENCE: Error saving state:", e);
-          }
+          saveGame();
         }
         
         // Close modal and resolve - use safeResolve to prevent double-resolving
-        console.log("DEBUG ACCEPT SENTENCE: About to close modal");
         try { 
           closeInvestigationModal(); 
-          console.log("DEBUG ACCEPT SENTENCE: Modal closed");
         } catch(e) {
           console.error("DEBUG ACCEPT SENTENCE: Error closing modal:", e);
         }
@@ -2684,7 +2660,7 @@
           // Remove all modal overlays
           const allModals = document.querySelectorAll('.modern-modal-overlay, .modal-overlay');
           allModals.forEach(modal => {
-            try { modal.remove(); console.log("DEBUG: Removed modal overlay"); } catch(_) {}
+            try { modal.remove();  } catch(_) {}
           });
           
           // Clear the investigation modal reference
@@ -2701,15 +2677,12 @@
             actionsEl.innerHTML = '';
           }
           
-          console.log("DEBUG ACCEPT SENTENCE: Aggressive cleanup complete");
         } catch(cleanupError) {
           console.error("DEBUG ACCEPT SENTENCE: Error during aggressive cleanup:", cleanupError);
         }
         
         // Resolve to allow game loop to continue - this must happen
-        console.log("DEBUG ACCEPT SENTENCE: About to resolve promise");
         safeResolve();
-        console.log("DEBUG ACCEPT SENTENCE: resolve() called successfully");
         
         // Return immediately after resolving to prevent further execution
         return;
@@ -2854,7 +2827,7 @@
       // Remove all modal overlays
       const allModals = document.querySelectorAll('.modern-modal-overlay, .modal-overlay');
       allModals.forEach(modal => {
-        try { modal.remove(); console.log("DEBUG EXCUSE: Removed modal overlay"); } catch(_) {}
+        try { modal.remove();  } catch(_) {}
       });
       
       // Clear the investigation modal reference
@@ -2871,7 +2844,6 @@
         actionsEl.innerHTML = '';
       }
       
-      console.log("DEBUG EXCUSE: Aggressive cleanup complete");
     } catch(cleanupError) {
       console.error("DEBUG EXCUSE: Error during aggressive cleanup:", cleanupError);
     }
@@ -2879,14 +2851,11 @@
     // Close modal and resolve immediately
     try {
       closeInvestigationModal();
-      console.log("DEBUG EXCUSE: Investigation modal closed");
     } catch(e) {
       console.error("DEBUG EXCUSE: Error closing modal:", e);
     }
     
-    console.log("DEBUG EXCUSE: Resolving promise");
     resolve();
-    console.log("DEBUG EXCUSE: Promise resolved");
   }
 
   async function runFAInvestigation(caseType, resolve) {

@@ -50,14 +50,12 @@
 
   // 6) Advance the week HERE (single source of truth)
   S.matches_played = (S.matches_played || 0) + 1;
-  console.log('DEBUG POSTMATCH: matches_played incremented to:', S.matches_played);
   // Note: If prison/rehab gets set after this point, the prison/rehab loop will detect
   // that matches_played was just incremented and won't increment it again on first iteration
   
   // Season 5: mandatory press conference after match 2 (matches_played === 1 after increment)
   // This ensures it happens after the kidnapping sequence from match 1
   if (S.season === 5 && S.season5 && S.matches_played === 1 && S.season5.kidnapping_sequence_shown && !S.season5.kidnapping_press_done) {
-    console.log('DEBUG POSTMATCH: Triggering kidnapping press conference after match 2');
     if (typeof window.conductKidnappingPressConference === 'function') {
       await window.conductKidnappingPressConference();
     } else if (typeof conductKidnappingPressConference === 'function') {
@@ -139,12 +137,9 @@ S.opponent_bribed = false;
   setTimeout(() => {
     if (typeof render === 'function') render();
     if (typeof updateHUD === 'function') updateHUD();
-    if (typeof SAVE_KEY === 'string') {
-      try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}
-    }
+    saveGame();
   }, 100);
   
-  console.log('DEBUG POSTMATCH: postMatchPhase completed successfully, returning to main loop');
 }
 
 function clearOverlaysForEvening() {
@@ -178,9 +173,6 @@ async function eveningPhase(){
   try {
     // Ensure no stale overlays are blocking input before showing evening choices
     clearOverlaysForEvening();
-    try {
-      console.log('eveningPhase: start', { ctx: window.__ui_context || 'unknown', matchesPlayed: S?.matches_played, opponent: (typeof currentOpponent === 'function') ? currentOpponent().team : undefined });
-    } catch (_dbg) {}
     
     // Safety net: if the Portsmouth bus-crash press conference is still pending
     // for any reason after the match, force it to run at the very start of evening.
@@ -196,7 +188,6 @@ async function eveningPhase(){
     // Safety net: Season 5 kidnapping press conference after match 2
     // This is a backup in case it didn't trigger in postMatchPhase
     if (S.season === 5 && S.season5 && S.matches_played === 1 && S.season5.kidnapping_sequence_shown && !S.season5.kidnapping_press_done) {
-      console.log('DEBUG EVENING: Triggering kidnapping press conference (backup trigger)');
       if (typeof window.conductKidnappingPressConference === 'function') {
         await window.conductKidnappingPressConference();
       } else if (typeof conductKidnappingPressConference === 'function') {
@@ -207,48 +198,22 @@ async function eveningPhase(){
       S.season5.kidnapping_press_done = true;
     }
     
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:27091',message:'EVENING PHASE: Before maybeEveningEvent',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'Q'})}).catch(()=>{});
-    // #endregion
     await callIf('maybeEveningEvent');
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:27092',message:'EVENING PHASE: After maybeEveningEvent returned',data:{inEveningPhase:window.__in_evening_phase},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'R'})}).catch(()=>{});
-    // #endregion
-    try { console.log('eveningPhase: after maybeEveningEvent'); } catch (_dbg) {}
     
     // Check if movie has been released
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:27094',message:'EVENING PHASE: Before checkMovieRelease',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'Y'})}).catch(()=>{});
-    // #endregion
     await checkMovieRelease();
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:27095',message:'EVENING PHASE: After checkMovieRelease',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'Z'})}).catch(()=>{});
-    // #endregion
     
     await callIf('tickPregnanciesAfterMatch');
-    try { console.log('eveningPhase: after tickPregnanciesAfterMatch'); } catch (_dbg) {}
     
     await processAffairs();
-    try { console.log('eveningPhase: after processAffairs'); } catch (_dbg) {}
     
     await processWorldEvents();
-    try { console.log('eveningPhase: after processWorldEvents'); } catch (_dbg) {}
     
     // Check for family events and outcomes
     checkFamilyEvents();
-    try { console.log('eveningPhase: after checkFamilyEvents'); } catch (_dbg) {}
     
     // Check if next match is against Portsmouth - trigger special event
     await checkPortsmouthSpecialEvent();
-    try { console.log('eveningPhase: after checkPortsmouthSpecialEvent'); } catch (_dbg) {}
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:27112',message:'EVENING PHASE: End of try block, before finally',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'AA'})}).catch(()=>{});
-    // #endregion
     
     // Add cronster surveillance options in evening phase if cameras are installed
     // Hallway surveillance disappears when cronster is defeated, secret zone can only be watched once
@@ -278,15 +243,7 @@ async function eveningPhase(){
       log('⚠️ An error occurred during the evening phase. Skipping remaining evening events so the season can continue.');
     } catch (_) {}
   } finally {
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:27141',message:'EVENING PHASE: Finally block entry',data:{inEveningPhase:window.__in_evening_phase},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'AB'})}).catch(()=>{});
-    // #endregion
     await callIf('saveAuto');
-    // #region agent log
-    // Debug fetch disabled - server not running
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin2.html:27142',message:'EVENING PHASE: Finally block complete, eveningPhase returning',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'AC'})}).catch(()=>{});
-    // #endregion
   }
 }
 
@@ -301,7 +258,6 @@ async function callIf(name, ...args){
   if(!fn) return undefined;
   return await fn(...args);
 }
-async function pressConference(){ return; }
 function uniqueSample(arr, n){
   const out = [];
   const used = new Set();
@@ -360,7 +316,6 @@ function updateHUD(){
     const tableEntry = S.table[clubName];
     if (typeof tableEntry.PTS === 'number') {
       S.points = tableEntry.PTS;
-      console.log(`DEBUG updateHUD: Synced S.points from table to ${S.points} for ${clubName}`);
     }
     if (typeof tableEntry.W === 'number') {
       S.wins = tableEntry.W;
@@ -372,7 +327,6 @@ function updateHUD(){
       S.losses = tableEntry.L;
     }
   } else {
-    console.log(`DEBUG updateHUD: No table entry found for ${clubName}, table exists: ${!!S.table}`);
   }
 
   const cc  = S.club_cash || 0;
@@ -605,12 +559,6 @@ function showLeagueTablePopup() {
   const clubName = S.club_name || "Southampton FC";
   
   // DEBUG: Log state before filtering
-  console.log(`DEBUG LEAGUE TABLE POPUP: Season=${S.season}, matches_played=${S.matches_played}`);
-  console.log(`DEBUG: S.table has ${Object.keys(S.table).length} teams:`, Object.keys(S.table));
-  console.log(`DEBUG: S.opponents has ${S.opponents ? S.opponents.length : 0} teams:`, S.opponents);
-  console.log(`DEBUG: destroyed teams:`, destroyed);
-  console.log(`DEBUG: rebranded teams:`, rebrandedTeams);
-  console.log(`DEBUG: clubs_taken_over:`, S.season4 && S.season4.clubs_taken_over);
   
   // For season 4 & 5, filter to only show valid teams (opponents + Southampton)
   let validTeams = null;
@@ -621,7 +569,6 @@ function showLeagueTablePopup() {
     if (S.season4 && S.season4.clubs_taken_over) {
       Object.values(S.season4.clubs_taken_over).forEach(newName => validTeams.add(newName));
     }
-    console.log(`DEBUG: validTeams Set has ${validTeams.size} teams:`, Array.from(validTeams));
   }
   
   const rows = Object.entries(S.table)
@@ -631,12 +578,10 @@ function showLeagueTablePopup() {
       if ((S.season === 4 || S.season === 5) && validTeams) {
         // Filter out old team names that have been taken over
         if (rebrandedTeams.includes(team)) {
-          console.log(`DEBUG POPUP: Filtered out ${team} - rebranded`);
           return false;
         }
         // Only show valid teams (opponents + Southampton + taken-over teams with new names)
         if (!validTeams.has(team)) {
-          console.log(`DEBUG POPUP: Filtered out ${team} - not in validTeams`);
           return false;
         }
         return true;
@@ -645,12 +590,10 @@ function showLeagueTablePopup() {
       // For other seasons, use standard filtering
       // Filter out destroyed teams
       if (destroyed.includes(team)) {
-        console.log(`DEBUG POPUP: Filtered out ${team} - destroyed`);
         return false;
       }
       // Filter out old team names that have been taken over
       if (rebrandedTeams.includes(team)) {
-        console.log(`DEBUG POPUP: Filtered out ${team} - rebranded`);
         return false;
       }
       return true;
@@ -663,7 +606,6 @@ function showLeagueTablePopup() {
       return { team, ...r, GD, effectivePTS };
     });
 
-  console.log(`DEBUG POPUP: After filtering, ${rows.length} teams remain:`, rows.map(r => r.team));
 
   // Sort: effective PTS desc (for Southampton), raw PTS desc (for others), GD desc, GF desc, team asc
   rows.sort((a,b)=>{
@@ -742,17 +684,7 @@ function showLeagueTablePopup() {
   document.addEventListener('keydown', handleEscape);
 }
 
-function closeLeagueTablePopup() {
-  const modal = document.querySelector('.league-modal');
-  if (modal) {
-    modal.remove();
-  }
-}
 
-// Keep the old function for backward compatibility, but make it show the popup instead
-function showLeagueTable(){
-  showLeagueTablePopup();
-}
 
 
 
@@ -995,7 +927,6 @@ async function handleDelayedPregnancy(p){
     };
     window.socialManager.showAchievement(achievement);
     window.socialManager.achievements.push(achievement);
-    if (window.stateManager) window.stateManager.saveAchievement(achievement);
   }
   
   log(p.partner_name + ' informs you that you have impregnated her.');
@@ -1049,7 +980,6 @@ async function handleDelayedFemaleStd(s){
     };
     window.socialManager.showAchievement(achievement);
     window.socialManager.achievements.push(achievement);
-    if (window.stateManager) window.stateManager.saveAchievement(achievement);
   }
   
   const st = await choose(
@@ -1127,7 +1057,6 @@ async function handleDelayedMaleStd(s){
       };
       window.socialManager.showAchievement(achievement);
       window.socialManager.achievements.push(achievement);
-      if (window.stateManager) window.stateManager.saveAchievement(achievement);
     }
     
     const treat = await choose(
@@ -1602,11 +1531,6 @@ async function maybeInfectPartnerWithVeryBadStd(partnerName, partnerType){
 }
 
 
-async function announceFamilyNames(){
-  ensureFamilyNames();
-  log("Family: Wife — " + S.wife_name + "; Children — " + S.child1_name + " and " + S.child2_name + ".");
-  await choose([{key:'ok',label:'OK'}], "Family details:");
-}
 
 // Enhanced log system with burst handling
 let logQueue = [];

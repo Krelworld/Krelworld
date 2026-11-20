@@ -210,11 +210,6 @@ function generateMarketIfNeeded(initial=false){
 
 function getSquad(){ return S.squad || []; }
 function setSquad(arr){ S.squad = arr; }
-function squadValue(){
-  const sq = getSquad(); let v=0;
-  for(const p of sq){ v += (p.price||0); }
-  return v;
-}
 
 
 
@@ -579,19 +574,15 @@ function ensureOpponentForToday(){
           if (isBriefcase) {
             const hasEnoughTokens = (S.lobby_tokens || 0) >= 10000;
             const alreadyOwned = S.power_briefcase_owned;
-            console.log(`[DEBUG BRIEFCASE] Button found - tokens: ${S.lobby_tokens}, hasEnough: ${hasEnoughTokens}, owned: ${alreadyOwned}, disabled attr: ${btn.hasAttribute('disabled')}, disabled prop: ${btn.disabled}`);
             
             // Explicitly enable if player has enough tokens and doesn't own it
             if (hasEnoughTokens && !alreadyOwned) {
               btn.disabled = false;
               btn.removeAttribute('disabled');
-              console.log(`[DEBUG BRIEFCASE] Explicitly enabled briefcase button`);
             } else if (alreadyOwned) {
               btn.disabled = true;
-              console.log(`[DEBUG BRIEFCASE] Briefcase already owned, button disabled`);
             } else {
               btn.disabled = true;
-              console.log(`[DEBUG BRIEFCASE] Not enough tokens, button disabled`);
             }
           }
           
@@ -603,10 +594,8 @@ function ensureOpponentForToday(){
             e.stopPropagation();
             // Prevent clicks on disabled buttons
             if (btn.disabled) {
-              console.log(`[DEBUG] Button ${id} is disabled, ignoring click`);
               return;
             }
-            console.log(`[DEBUG] Button ${id} clicked`);
             
             // CRITICAL FIX: Save scroll position BEFORE any async operations
             const inner = document.getElementById('powerNetworkInner');
@@ -646,12 +635,9 @@ function ensureOpponentForToday(){
       // Helper to nudge Delmor without over-wiring
       function pingDelmor(line){
         try{
-          console.log('[DEBUG pingDelmor] Function called with line:', line);
           if (typeof window.enqueueRivalText === 'function') {
-            console.log('[DEBUG pingDelmor] Calling enqueueRivalText with:', line);
             window.enqueueRivalText(line);
           } else {
-            console.log('[DEBUG pingDelmor] enqueueRivalText not available, using log fallback');
             log(`📱 Delmor Krunchem: "${line}"`);
           }
         }catch(e){
@@ -748,25 +734,15 @@ function ensureOpponentForToday(){
         const wasInEvening = window.__in_evening_phase || false;
         const savedUIContext = window.__ui_context || 'unknown';
         
-        console.log("DEBUG TRIDENT: Starting nuclear sequence");
-        console.log("DEBUG TRIDENT: wasInPreMatch:", wasInPreMatch);
-        console.log("DEBUG TRIDENT: wasInEvening:", wasInEvening);
-        console.log("DEBUG TRIDENT: savedUIContext:", savedUIContext);
-        console.log("DEBUG TRIDENT: Current club:", S.club_name);
         
         // Close power network pane BEFORE nuclear sequence to prevent UI conflicts
         togglePowerNetworkPane(false);
         
         // Launch nuclear sequence and wait for it to complete
-        console.log("DEBUG TRIDENT: Calling launchNuclearMissile()");
         await launchNuclearMissile();
-        console.log("DEBUG TRIDENT: launchNuclearMissile() returned");
-        console.log("DEBUG TRIDENT: Current club after nuclear:", S.club_name);
-        console.log("DEBUG TRIDENT: DOM state after nuclear - actions:", !!document.getElementById('actions'), "children:", document.getElementById('actions')?.children?.length || 0);
         
         // Refresh the power network display (in case it's opened again later)
         renderPowerNetwork();
-        console.log("DEBUG TRIDENT: Power network refreshed");
         
         // CRITICAL FIX: Restore UI context based on where we were when nuclear started
         if (wasInPreMatch && S.preMatch) {
@@ -774,9 +750,7 @@ function ensureOpponentForToday(){
           S._preMatchMenuInterrupted = true;
           // The menu loop will check this flag and continue on the next iteration
           log("Returning to pre-match actions...");
-          console.log("DEBUG TRIDENT: Set pre-match interruption flag");
         } else if (wasInEvening) {
-          console.log("DEBUG TRIDENT: Was in evening phase, checking if UI needs restoration");
           const actionsEl = document.getElementById('actions');
           if (!actionsEl || actionsEl.children.length === 0) {
             console.warn("DEBUG TRIDENT: WARNING - Evening UI may be in bad state!");
@@ -787,16 +761,13 @@ function ensureOpponentForToday(){
           // has already completed and we're between phases. The nuclear sequence cleared
           // the UI but there's nothing to resume. We need to signal that the game should
           // continue to the next phase (pre-match menu).
-          console.log("DEBUG TRIDENT: Was in postmatch context, setting flag to trigger pre-match menu");
           S._nuclearPostmatchComplete = true;
           log("Continuing to next match preparation...");
         } else {
           // Generic fallback for other contexts
-          console.log("DEBUG TRIDENT: Generic context restoration for:", savedUIContext);
           S._nuclearSequenceJustCompleted = true;
         }
         
-        console.log("DEBUG TRIDENT: Trident purchase complete, returning from activatePowerPerk");
       }
 
       else if (perkId === "perk-surveillance"){
@@ -817,9 +788,6 @@ function ensureOpponentForToday(){
       }
 
       else if (perkId === "perk-briefcase"){
-        console.log("[DEBUG BRIEFCASE] activatePowerPerk called for perk-briefcase");
-        console.log("[DEBUG BRIEFCASE] power_briefcase_owned:", S.power_briefcase_owned);
-        console.log("[DEBUG BRIEFCASE] lobby_tokens:", S.lobby_tokens);
         
         if (S.power_briefcase_owned){
           log("You already own the Ultima Briefcase.");
@@ -827,21 +795,16 @@ function ensureOpponentForToday(){
         }
         const cost = 10000;
         const currentTokens = S.lobby_tokens || 0;
-        console.log("[DEBUG BRIEFCASE] Checking tokens - need:", cost, "have:", currentTokens);
         if (currentTokens < cost) {
           log(`You don't have enough Lobby Tokens. You need ${cost.toLocaleString()} but only have ${currentTokens.toLocaleString()}.`);
           return;
         }
-        console.log("[DEBUG BRIEFCASE] Calling spend() with cost:", cost);
         if (!spend(cost)) {
-          console.log("[DEBUG BRIEFCASE] spend() returned false");
           return;
         }
-        console.log("[DEBUG BRIEFCASE] Setting power_briefcase_owned to true");
         S.power_briefcase_owned = true;
         log("You acquire a heavy, small metal briefcase with a red button. It sits ominously in your office, its purpose yet to be revealed.");
         pingDelmor("What the hell is that? A briefcase? For ten thousand tokens? You're either insane or you know something I don't.");
-        console.log("[DEBUG BRIEFCASE] Purchase complete!");
       }
     } catch(e){
       console.error("activatePowerPerk error:", e);
@@ -854,20 +817,10 @@ function ensureOpponentForToday(){
       const S = window.S || (window.S = {});
       
       // CRITICAL DEBUG: Log complete context at start of nuclear sequence
-      console.log("=== DEBUG NUCLEAR: SEQUENCE START ===");
-      console.log("DEBUG NUCLEAR: Club name:", S.club_name);
-      console.log("DEBUG NUCLEAR: Season:", S.season, "Match:", S.matches_played);
-      console.log("DEBUG NUCLEAR: In evening phase:", window.__in_evening_phase || false);
-      console.log("DEBUG NUCLEAR: Pre-match active:", S._preMatchMenuActive || false);
-      console.log("DEBUG NUCLEAR: Pre-match object exists:", !!S.preMatch);
-      console.log("DEBUG NUCLEAR: Current UI context:", window.__ui_context || 'unknown');
       
       // Check DOM state
       const actionsEl = document.getElementById('actions');
       const feedEl = document.getElementById('feed');
-      console.log("DEBUG NUCLEAR: DOM state - actions:", !!actionsEl, "children:", actionsEl?.children?.length || 0);
-      console.log("DEBUG NUCLEAR: DOM state - feed:", !!feedEl);
-      console.log("=================================");
       
       // Check if we're interrupting a pre-match menu
       const wasInPreMatch = !!(S.preMatch && typeof S.preMatch === 'object');
@@ -876,15 +829,12 @@ function ensureOpponentForToday(){
       // The interruption flag makes Promise.race resolve
       // The blocking flag makes the menu loop wait after it resolves
       if (S._preMatchMenuActive && S.preMatch) {
-        console.log("DEBUG NUCLEAR: Pre-match menu is active, setting interruption AND blocking flags");
         S._preMatchMenuInterrupted = true; // Makes Promise.race resolve
         S._nuclearSequenceInProgress = true; // Makes menu loop wait
         // Wait for Promise.race to detect the flag
         await new Promise(resolve => setTimeout(resolve, 200));
-        console.log("DEBUG NUCLEAR: Flags set, continuing nuclear sequence");
       } else if (S.preMatch) {
         // We're in pre-match but menu isn't actively showing choices
-        console.log("DEBUG NUCLEAR: In pre-match phase, setting blocking flag");
         S._nuclearSequenceInProgress = true;
       }
       
@@ -993,9 +943,6 @@ function ensureOpponentForToday(){
       log("👮 Detective: 'You've just destroyed an entire city and killed hundreds of thousands of people. What do you plea?'");
       
       // CRITICAL FIX: Add explicit logging and error handling for plea choice
-      console.log("DEBUG NUCLEAR: About to show plea choice");
-      console.log("DEBUG NUCLEAR: Current club before plea:", S.club_name);
-      console.log("DEBUG NUCLEAR: DOM state before plea - actions element:", !!document.getElementById('actions'));
       
       let plea;
       try {
@@ -1004,8 +951,6 @@ function ensureOpponentForToday(){
           {key: 'guilty', label: 'Guilty'},
           {key: 'mental_health', label: 'Blame mental health'}
         ], 'What is your plea?');
-        console.log("DEBUG NUCLEAR: Plea received:", plea);
-        console.log("DEBUG NUCLEAR: Current club after plea:", S.club_name);
       } catch(pleaError) {
         console.error("DEBUG NUCLEAR: Error in plea choice:", pleaError);
         console.error("DEBUG NUCLEAR: Error stack:", pleaError.stack);
@@ -1014,12 +959,9 @@ function ensureOpponentForToday(){
         log("⚠️ An error occurred during plea entry. Defaulting to 'Not guilty'.");
       }
       
-      console.log("DEBUG NUCLEAR: Plea choice completed, checking DOM state");
-      console.log("DEBUG NUCLEAR: DOM state after plea - actions element:", !!document.getElementById('actions'), "children:", document.getElementById('actions')?.children?.length || 0);
       
       // CRITICAL FIX: Always clear choice buttons after plea is selected
       if (typeof clearChoiceButtons === 'function') {
-        console.log("DEBUG NUCLEAR: Clearing choice buttons after plea");
         clearChoiceButtons();
       }
       
@@ -1044,18 +986,15 @@ function ensureOpponentForToday(){
         log("👮 You are released with a warning. The detective seems to accept your explanation.");
       }
       
-      console.log("DEBUG NUCLEAR: Plea processed successfully");
       
       await new Promise(resolve => setTimeout(resolve, 2000));
       log("");
       log("🌍 The world watches in horror. The nuclear option has been used. There is no going back.");
       
-      console.log("DEBUG NUCLEAR: Nuclear sequence complete, cleaning up and restoring game flow");
       
       // CRITICAL FIX: Close Power Network pane to ensure it's not blocking interaction
       if (typeof togglePowerNetworkPane === 'function') {
         togglePowerNetworkPane(false);
-        console.log("DEBUG NUCLEAR: Closed Power Network pane via toggle");
       }
       
       // CRITICAL FIX: Force close any remaining Power Network pane elements
@@ -1064,7 +1003,6 @@ function ensureOpponentForToday(){
         if (powerPane) {
           powerPane.style.display = 'none';
           powerPane.remove(); // Completely remove it from DOM
-          console.log("DEBUG NUCLEAR: Forcefully removed Power Network pane");
         }
       } catch(paneError) {
         console.error("DEBUG NUCLEAR: Error removing power pane:", paneError);
@@ -1074,12 +1012,10 @@ function ensureOpponentForToday(){
       try {
         if (typeof window.closeInvestigationModal === 'function') {
           window.closeInvestigationModal();
-          console.log("DEBUG NUCLEAR: Closed investigation modal");
         }
         if (window.currentInvestigationModal) {
           window.currentInvestigationModal.remove();
           window.currentInvestigationModal = null;
-          console.log("DEBUG NUCLEAR: Removed investigation modal reference");
         }
       } catch(modalError) {
         console.error("DEBUG NUCLEAR: Error closing modals:", modalError);
@@ -1095,7 +1031,6 @@ function ensureOpponentForToday(){
             }
           } catch(_) {}
         });
-        console.log("DEBUG NUCLEAR: Removed all modal overlays");
       } catch(removeError) {
         console.error("DEBUG NUCLEAR: Error removing modals:", removeError);
       }
@@ -1119,7 +1054,6 @@ function ensureOpponentForToday(){
       await new Promise(resolve => setTimeout(resolve, 300));
       
       // CRITICAL FIX: Clear the blocking flag to let the menu loop continue
-      console.log("DEBUG NUCLEAR: Clearing nuclear sequence blocking flag to resume menu");
       S._nuclearSequenceInProgress = false;
       S._preMatchMenuActive = false; // Clear active flag
       
@@ -1129,22 +1063,18 @@ function ensureOpponentForToday(){
       const currentUIContext = window.__ui_context || 'unknown';
       const currentClubName = S.club_name || "Unknown";
       
-      console.log("DEBUG NUCLEAR: Context check - inEveningPhase:", inEveningPhase, "inPreMatch:", inPreMatch, "UIContext:", currentUIContext, "club:", currentClubName);
       
       // Handle restoration based on context
       if (inPreMatch) {
         // Pre-match menu was active - set flag to force menu restoration
         S._preMatchMenuNeedsRestore = true;
-        console.log("DEBUG NUCLEAR: Set menu restore flag for pre-match menu");
       } else if (inEveningPhase) {
         // Evening phase was active - force UI refresh
-        console.log("DEBUG NUCLEAR: In evening phase, forcing UI refresh");
         S._eveningMenuNeedsRestore = true;
         
         // Check if we need to warn the player about save/reload
         const actionsElCheck = document.getElementById('actions');
         const hasButtons = actionsElCheck && actionsElCheck.children.length > 0;
-        console.log("DEBUG NUCLEAR: Evening UI state - actions element exists:", !!actionsElCheck, "has buttons:", hasButtons);
         
         if (!hasButtons) {
           console.warn("DEBUG NUCLEAR: WARNING - No action buttons found after nuclear sequence in evening phase!");
@@ -1160,7 +1090,6 @@ function ensureOpponentForToday(){
           setTimeout(() => {
             const actionsElDelayCheck = document.getElementById('actions');
             const hasButtonsDelayCheck = actionsElDelayCheck && actionsElDelayCheck.children.length > 0;
-            console.log("DEBUG NUCLEAR: Post-delay check - has buttons:", hasButtonsDelayCheck);
             if (!hasButtonsDelayCheck) {
               log("⚠️ <strong style='color:#ff0000;'>CRITICAL:</strong> Menu buttons did not restore. Please SAVE and RELOAD your game immediately.");
             }
@@ -1170,12 +1099,10 @@ function ensureOpponentForToday(){
         // CRITICAL FIX: Nuclear was triggered during postmatch/oversight phase
         // The oversight phase has likely already completed and there's no active menu to restore
         // Set a flag so the main loop knows to skip oversightPhase and continue
-        console.log("DEBUG NUCLEAR: In postmatch context - setting flag for main loop to continue");
         S._nuclearPostmatchComplete = true;
         log("Nuclear sequence complete. Continuing to next match preparation...");
       } else {
         // Generic fallback for any other context
-        console.log("DEBUG NUCLEAR: Unknown or generic context (" + currentUIContext + ") - setting generic completion flag");
         S._nuclearSequenceJustCompleted = true;
         
         // Check if UI needs attention
@@ -1189,7 +1116,6 @@ function ensureOpponentForToday(){
         }
       }
       
-      console.log("DEBUG NUCLEAR: Nuclear sequence complete, restoration flags set");
       
     } catch(e) {
       console.error("launchNuclearMissile error:", e);
@@ -1198,13 +1124,11 @@ function ensureOpponentForToday(){
       try {
         if (typeof togglePowerNetworkPane === 'function') {
           togglePowerNetworkPane(false);
-          console.log("DEBUG NUCLEAR: Closed Power Network pane in error handler");
         }
         // Force remove pane from DOM
         const powerPane = document.getElementById('powerNetworkPane');
         if (powerPane) {
           powerPane.remove();
-          console.log("DEBUG NUCLEAR: Removed Power Network pane in error handler");
         }
         // Close investigation modals
         if (typeof window.closeInvestigationModal === 'function') {
@@ -1224,17 +1148,14 @@ function ensureOpponentForToday(){
       }
       
       // CRITICAL FIX: Clear blocking flag even on error
-      console.log("DEBUG NUCLEAR: Error occurred, clearing blocking flag");
       S._nuclearSequenceInProgress = false;
       S._preMatchMenuActive = false;
       
       // CRITICAL FIX: Set flag to force menu restoration even on error
       if (S.preMatch && typeof S.preMatch === 'object') {
         S._preMatchMenuNeedsRestore = true;
-        console.log("DEBUG NUCLEAR: Set menu restore flag after error");
       }
       
-      console.log("DEBUG NUCLEAR: Error recovery - blocking flag cleared, menu should resume");
       
       // Clear any stuck UI state
       if (typeof clearChoiceButtons === 'function') {
@@ -1727,15 +1648,6 @@ function ensureOpponentForToday(){
     }
   }
 
-  // Helper function to check if a team is Portsmouth or Burger King FC (surrogate Portsmouth)
-  function isPortsmouthOrSurrogate(teamName) {
-    if (!teamName) return false;
-    const nameLower = teamName.toLowerCase();
-    return nameLower.includes('portsmouth') || 
-           nameLower.includes('pompey') || 
-           nameLower.includes('burger king') ||
-           teamName === "Burger King FC";
-  }
 
 window.ensurePowerNetworkPane = ensurePowerNetworkPane;
 window.togglePowerNetworkPane = togglePowerNetworkPane;
@@ -1771,29 +1683,24 @@ if (document.readyState === 'loading') {
   // Hook the HUD button (and de-dupe if needed)
 // DISABLED: Complex inventory UI setup - replaced with simple approach
 window.ensureInventoryUI = function(){
-  console.log('ensureInventoryUI called');
   
   // If your HUD already renders a dedicated button:
   const btns = document.querySelectorAll('#openInvBtn');
   if (btns.length > 1) btns.forEach((b,i)=> i>0 && b.remove());
   const btn = document.getElementById('openInvBtn');
   if (btn){
-    console.log('Inventory button found, wiring click handler');
     // Remove any existing listeners by cloning the button
     const clone = btn.cloneNode(true);
     btn.parentNode.replaceChild(clone, btn);
     
     // Add the click handler
     clone.addEventListener('click', function(e) {
-      console.log('Inventory button clicked!');
       e.preventDefault();
       e.stopPropagation();
       toggleInventoryPane(true);
     });
     
-    console.log('Inventory button click handler attached successfully');
   } else {
-    console.log('No inventory button found, creating fallback tab');
     // fallback: create a tab if the HUD button isn't present in this skin
     const nav = document.querySelector('#topNav, header, .nav, #nav') || document.body;
     let tab = document.getElementById('inventoryTab');
@@ -1815,7 +1722,6 @@ window.ensureInventoryUI = function(){
   
   // Now that inventory functions are loaded, ensure the button is properly set up
   setTimeout(() => {
-    console.log('Inventory functions loaded, setting up button');
     const btn = document.getElementById('openInvBtn');
     if (btn) {
       // Remove any existing listeners
@@ -1825,18 +1731,15 @@ window.ensureInventoryUI = function(){
       // Add the click handler
       btn.addEventListener('click', function(e) {
         e.preventDefault();
-        console.log('Inventory button clicked (post-load handler)!');
         toggleInventoryPane(true);
       });
       
       btn.setAttribute('data-listener-attached', 'true');
-      console.log('Inventory button setup complete (post-load)');
     }
   }, 100);
   
   // Call bootWire after inventory functions are exposed
   if (typeof window.bootWire === 'function') {
-    console.log('Calling bootWire from inventory IIFE');
     window.bootWire();
   }
 };
@@ -2423,7 +2326,6 @@ window.ensureInventoryUI = function(){
   
   // Now that doctor functions are loaded, ensure the button is properly set up
   setTimeout(() => {
-    console.log('Doctor functions loaded, setting up button');
     const btn = document.getElementById('openDoctorBtn');
     if (btn) {
       // Remove any existing listeners
@@ -2433,22 +2335,16 @@ window.ensureInventoryUI = function(){
       // Add the click handler
       btn.addEventListener('click', function(e) {
         e.preventDefault();
-        console.log('Doctor button clicked (post-load handler)!');
         window.toggleDoctorPane(true);
       });
       
       btn.setAttribute('data-listener-attached', 'true');
-      console.log('Doctor button setup complete (post-load)');
     }
   }, 100);
   
   // Add a test function for debugging
   window.testDoctorButton = function() {
-    console.log('Testing doctor button...');
     const btn = document.getElementById('openDoctorBtn');
-    console.log('Button found:', btn);
-    console.log('Button has listener:', btn?.hasAttribute('data-listener-attached'));
-    console.log('toggleDoctorPane available:', typeof window.toggleDoctorPane);
     if (btn) {
       btn.click();
     }
@@ -2457,15 +2353,11 @@ window.ensureInventoryUI = function(){
 
 // Hook the doctor button
 window.ensureDoctorUI = function(){
-  console.log('ensureDoctorUI called');
   const btn = document.getElementById('openDoctorBtn');
-  console.log('Doctor button found:', btn);
   if (btn && !btn.hasAttribute('data-listener-attached')){
-    console.log('Adding event listener to doctor button');
     btn.setAttribute('data-listener-attached', 'true');
     btn.addEventListener('click', (e)=>{
       e.preventDefault();
-      console.log('Doctor button clicked!');
       if (typeof window.toggleDoctorPane === 'function') {
         window.toggleDoctorPane(true);
       } else {
@@ -2473,23 +2365,18 @@ window.ensureDoctorUI = function(){
       }
     });
   } else if (btn) {
-    console.log('Doctor button already has listener attached');
   } else {
-    console.log('Doctor button not found!');
   }
-  console.log('toggleDoctorPane available:', typeof window.toggleDoctorPane);
   window.ensureDoctorPane();
 };
 
 // Stadium Management UI
 window.ensureStadiumUI = function(){
-  console.log('ensureStadiumUI called');
   
   // Ensure DOM is ready before trying to access elements
   const setupStadiumUI = () => {
     // Hook the HUD button
     const btns = document.querySelectorAll('#openStadiumBtn');
-    console.log('Found stadium buttons:', btns.length);
     if (btns.length > 1) btns.forEach((b,i)=> i>0 && b.remove());
     const btn = document.getElementById('openStadiumBtn');
     if (btn){
@@ -2499,19 +2386,16 @@ window.ensureStadiumUI = function(){
         toggleStadiumPane(true);
       });
     } else {
-      console.log('No stadium button found, will retry later');
       // Retry after a short delay if button doesn't exist yet
       setTimeout(setupStadiumUI, 100);
       
       // Also try to create a fallback button if needed
       const hudBar = document.getElementById('hudBar');
       if (hudBar && !document.getElementById('openStadiumBtn')) {
-        console.log('Creating fallback stadium button');
         const fallbackBtn = document.createElement('button');
         fallbackBtn.id = 'openStadiumBtn';
         fallbackBtn.textContent = '🏟️ Stadium';
         fallbackBtn.addEventListener('click', ()=>{
-          console.log('Fallback stadium button clicked!');
           toggleStadiumPane(true);
         });
         hudBar.appendChild(fallbackBtn);
@@ -2554,15 +2438,11 @@ window.ensureStadiumPane = function(){
 
 // Make toggleStadiumPane globally accessible
 window.toggleStadiumPane = function(show){
-  console.log('toggleStadiumPane called with show:', show);
   const pane = ensureStadiumPane();
-  console.log('Stadium pane element:', pane);
   if (show) {
-    console.log('Rendering stadium panel...');
     
     // Ensure game state is initialized before rendering
     if (!S) {
-      console.log('S not initialized, attempting to initialize...');
       if (typeof init === 'function') {
         init();
       }
@@ -2570,7 +2450,6 @@ window.toggleStadiumPane = function(show){
     
     // Ensure stadium state exists
     if (S && !S.stadium) {
-      console.log('S.stadium not initialized, creating default stadium...');
       S.stadium = {
         capacity: 32000,
         quality: 60,
@@ -2588,10 +2467,8 @@ window.toggleStadiumPane = function(show){
     
     renderStadiumPanel();
     pane.style.display = 'block';
-    console.log('Stadium panel should now be visible');
   } else {
     pane.style.display = 'none';
-    console.log('Stadium panel hidden');
   }
 };
 
@@ -2976,28 +2853,12 @@ window.accelerateProject = function() {
   updateHUD();
 }
 
-function generateSponsorName() {
-  const sponsors = [
-    "TechCorp", "GlobalBank", "EnergyPlus", "MegaCorp", "FutureTech",
-    "PremierGroup", "ElitePartners", "CapitalOne", "InnovationLabs", "PowerSystems"
-  ];
-  return sponsors[Math.floor(Math.random() * sponsors.length)];
-}
 
 // Global test function for stadium system
 window.testStadium = function() {
-  console.log('Testing stadium system...');
-  console.log('S exists:', !!S);
-  console.log('S.stadium exists:', !!(S && S.stadium));
-  if (S && S.stadium) {
-    console.log('Stadium data:', S.stadium);
-  }
-  console.log('toggleStadiumPane function exists:', typeof window.toggleStadiumPane);
-  console.log('ensureStadiumUI function exists:', typeof window.ensureStadiumUI);
   
   // Try to open stadium panel
   if (typeof window.toggleStadiumPane === 'function') {
-    console.log('Attempting to open stadium panel...');
     window.toggleStadiumPane(true);
   }
 };

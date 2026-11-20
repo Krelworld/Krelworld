@@ -1304,18 +1304,8 @@ async function revealUltimaCupEvents(result, overlay, skipState) {
   const playersArmedValue = S.ultimaCup.players_armed;
   const hasArmedPlayers = playersArmedValue === true || playersArmedValue === 'true' || playersArmedValue === 1 || !!playersArmedValue;
   
-  console.log('[BRIEFCASE DEBUG] Checking conditions at end of commentary:', {
-    power_briefcase_owned: S.power_briefcase_owned,
-    briefcaseValue: briefcaseValue,
-    hasBriefcase: hasBriefcase,
-    players_armed: S.ultimaCup.players_armed,
-    playersArmedValue: playersArmedValue,
-    hasArmedPlayers: hasArmedPlayers,
-    allConditionsMet: hasBriefcase && hasArmedPlayers
-  });
   
   if (hasBriefcase && hasArmedPlayers) {
-    console.log('[BRIEFCASE DEBUG] Conditions met! Adding briefcase button to commentary UI');
     
     // Add context message to commentary
     addLogEntry("💼 The match is over. You remember the briefcase in your office. The time has come to make a decision...");
@@ -1393,12 +1383,6 @@ async function revealUltimaCupEvents(result, overlay, skipState) {
       overlay._briefcaseButton = briefcaseBtn;
       overlay._briefcaseReady = true;
       
-      console.log('[BRIEFCASE DEBUG] Briefcase button added to overlay at bottom:', {
-        button: briefcaseBtn,
-        container: container,
-        containerPosition: window.getComputedStyle(container).position,
-        buttonBottom: briefcaseBtn.style.bottom
-      });
       
       // Force a reflow to ensure button is visible
       void briefcaseBtn.offsetHeight;
@@ -1975,12 +1959,9 @@ async function quickSimulateMatchWithLogCommentary() {
 function resolveActiveBet(resultKey){
   const bet = S.preMatch?.bet;
   if(!bet) {
-    console.log('DEBUG BET: No bet found to resolve');
     return;
   }
 
-  console.log('DEBUG BET: Resolving bet:', bet);
-  console.log('DEBUG BET: resultKey:', resultKey);
 
   // Normalize keys so UI markets and engine result agree
   const map = { 
@@ -1998,18 +1979,13 @@ function resolveActiveBet(resultKey){
   const placed = map[betOutcome] || betOutcome;      // what the player chose
   const actual = map[resultKeyNorm] || resultKeyNorm;        // what actually happened
 
-  console.log('DEBUG BET: betOutcome:', betOutcome, 'resultKeyNorm:', resultKeyNorm);
-  console.log('DEBUG BET: placed:', placed, 'actual:', actual, 'match:', placed === actual);
-  console.log('DEBUG BET: chairman_cash before:', S.chairman_cash);
 
   if (placed === actual){
     const winnings = Math.floor(bet.stake * bet.odds);
     const cashBefore = S.chairman_cash || 0;
     S.chairman_cash = cashBefore + winnings;
-    console.log('DEBUG BET: WINNER! winnings:', winnings, 'chairman_cash after:', S.chairman_cash);
     log(`✓ Bet WON! Payout: £${winnings.toLocaleString('en-GB')}. (Cash: £${cashBefore.toLocaleString('en-GB')} → £${S.chairman_cash.toLocaleString('en-GB')})`);
   } else {
-    console.log('DEBUG BET: Bet lost - placed:', placed, 'actual:', actual);
     log(`✗ Bet lost. (Bet on ${bet.outcome}, result was ${resultKey})`);
   }
 
@@ -2023,7 +1999,6 @@ function resolveActiveBet(resultKey){
 }
 
 function applyResultToTable(ourTeam, oppTeam, ourGoals, oppGoals){
-  console.log(`DEBUG applyResultToTable: Called with ourTeam="${ourTeam}", oppTeam="${oppTeam}", ourGoals=${ourGoals}, oppGoals=${oppGoals}`);
   if (!S.table) ensureLeagueTableInit();
   // Ensure both teams have table entries before recording
   ensureTableTeam(ourTeam);
@@ -2031,7 +2006,6 @@ function applyResultToTable(ourTeam, oppTeam, ourGoals, oppGoals){
   const A = S.table[ourTeam]  || (S.table[ourTeam]={P:0,W:0,D:0,L:0,GF:0,GA:0,GD:0,PTS:0});
   const B = S.table[oppTeam]  || (S.table[oppTeam]={P:0,W:0,D:0,L:0,GF:0,GA:0,GD:0,PTS:0});
 
-  console.log(`DEBUG applyResultToTable: Before update - ${ourTeam}: P=${A.P}, PTS=${A.PTS}`);
   
   A.P++; B.P++;
   A.GF += ourGoals;  A.GA += oppGoals;
@@ -2043,12 +2017,10 @@ function applyResultToTable(ourTeam, oppTeam, ourGoals, oppGoals){
   else if (ourGoals < oppGoals){ B.W++; B.PTS+=3; A.L++; }
   else { A.D++; B.D++; A.PTS+=1; B.PTS+=1; }
   
-  console.log(`DEBUG applyResultToTable: After update - ${ourTeam}: P=${A.P}, W=${A.W}, D=${A.D}, L=${A.L}, PTS=${A.PTS}`);
   
   // Sync S.points, S.wins, S.draws, S.losses with league table for current club
   // Use getClubName() to ensure we get the correct club name (handles renaming)
   const clubName = (typeof getClubName === 'function') ? getClubName() : (S.club_name || "Southampton FC");
-  console.log(`DEBUG applyResultToTable: Checking sync - ourTeam="${ourTeam}", clubName="${clubName}", table entry exists: ${!!S.table[clubName]}`);
   
   // Check if ourTeam matches clubName OR if ourTeam is in the table and matches current club
   if ((ourTeam === clubName || ourTeam === (S.club_name || "Southampton FC")) && S.table[ourTeam]) {
@@ -2057,10 +2029,7 @@ function applyResultToTable(ourTeam, oppTeam, ourGoals, oppGoals){
     S.wins = tableEntry.W;
     S.draws = tableEntry.D;
     S.losses = tableEntry.L;
-    console.log(`DEBUG applyResultToTable: Synced S.points to ${S.points} for ${ourTeam}`);
-    console.log(`DEBUG applyResultToTable: Synced stats for ${ourTeam} - PTS=${S.points}, W=${S.wins}, D=${S.draws}, L=${S.losses}`);
   } else {
-    console.log(`DEBUG applyResultToTable: Did NOT sync stats - ourTeam="${ourTeam}", clubName="${clubName}", table entry exists: ${!!S.table[ourTeam]}`);
   }
 }
 
@@ -2082,8 +2051,6 @@ if (typeof window.isHomeToday !== 'function') {
 
 // --- Post-match: record result, settle bets, advance round ---
 async function postMatchPhase(outcome){
-  console.log('DEBUG POSTMATCH: postMatchPhase called with outcome:', outcome);
-  console.log('DEBUG POSTMATCH: Current state - matches_played:', S.matches_played, 'season:', S.season);
   
   // Process post-match drug effects (cocaine dependency, doping scandals)
   if (typeof processPostMatchDrugEffects === 'function') {
@@ -2132,9 +2099,6 @@ async function postMatchPhase(outcome){
   // 3) Announce explicitly
   log(`Full-time: ${getClubName()} ${gf}–${ga} ${oppName}.`);
   // Explicit debug breadcrumb so we know this post-match phase actually ran
-  if (typeof console !== 'undefined' && console.log) {
-    console.log('[WomenNarrative] postMatchPhase reached for opponent:', oppName, 'gf:', gf, 'ga:', ga);
-  }
   
   // Handle press conference after bus crash (after match, so you can bask in glory)
   const busCrashPressConf =

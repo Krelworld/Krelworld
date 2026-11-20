@@ -32,21 +32,17 @@ async function quickSimulateUltimaCup() {
   let briefcaseButtonResolve = null;
   
   try {
-    console.log('[BRIEFCASE DEBUG] About to call revealUltimaCupEvents');
     await revealUltimaCupEvents(result, overlay, skipState);
-    console.log('[BRIEFCASE DEBUG] revealUltimaCupEvents completed');
     
     // Check if briefcase button was added
     const briefcaseBtn = overlay.querySelector('#ultima-briefcase-advance-btn');
     if (briefcaseBtn) {
-      console.log('[BRIEFCASE DEBUG] Briefcase button found, setting up click handler');
       
       // Create promise that resolves when button is clicked
       const briefcaseButtonPromise = new Promise((resolve) => {
         briefcaseButtonResolve = resolve;
         
         briefcaseBtn.addEventListener('click', async () => {
-          console.log('[BRIEFCASE DEBUG] Briefcase button clicked!');
           briefcaseButtonClicked = true;
           
           // Remove overlay
@@ -60,17 +56,14 @@ async function quickSimulateUltimaCup() {
       });
       
       // Wait for button click (with a very long timeout as fallback - user should click the button)
-      console.log('[BRIEFCASE DEBUG] Waiting for briefcase button click...');
       await Promise.race([
         briefcaseButtonPromise,
         new Promise(resolve => setTimeout(() => {
-          console.log('[BRIEFCASE DEBUG] Briefcase button timeout - user may have closed overlay');
           resolve();
         }, 600000)) // 10 minute timeout as fallback
       ]);
       
       if (briefcaseButtonClicked) {
-        console.log('[BRIEFCASE DEBUG] Briefcase button was clicked, proceeding to briefcase UI');
         // Overlay already removed by button handler
         // Create outcome object and call briefcase UI
         const outcome = {
@@ -87,13 +80,11 @@ async function quickSimulateUltimaCup() {
   } finally {
     // Only remove overlay if briefcase button wasn't clicked
     if (!briefcaseButtonClicked && overlay.parentElement) {
-      console.log('[BRIEFCASE DEBUG] Removing overlay (normal path)');
       overlay.remove();
     }
   }
   
   // Show full-time in main log
-  console.log('[BRIEFCASE DEBUG] About to log full-time result');
   log(`Full-time: ${ourTeam} ${result.usGoals} – ${portsmouthTeam} ${result.portsmouthGoals} – ${legendsTeam} ${result.legendsGoals} – ${ultimaTeam} ${result.ultimaGoals}`);
   
   const matchResult = { 
@@ -193,7 +184,6 @@ async function quickSimulateUltimaCup() {
     }
   }
   
-  console.log('[BRIEFCASE DEBUG] About to check briefcase conditions, matchResult:', matchResult);
   
   // Check if player has briefcase AND armed players - both are required for briefcase UI
   const briefcaseValue = S.power_briefcase_owned;
@@ -206,18 +196,8 @@ async function quickSimulateUltimaCup() {
   const playersArmedValue = S.ultimaCup.players_armed;
   const hasArmedPlayers = playersArmedValue === true || playersArmedValue === 'true' || playersArmedValue === 1 || !!playersArmedValue;
   
-  console.log('[BRIEFCASE DEBUG] Checking conditions after Ultima Cup:', {
-    power_briefcase_owned: S.power_briefcase_owned,
-    briefcaseValue: briefcaseValue,
-    hasBriefcase: hasBriefcase,
-    players_armed: S.ultimaCup.players_armed,
-    playersArmedValue: playersArmedValue,
-    hasArmedPlayers: hasArmedPlayers,
-    allConditionsMet: hasBriefcase && hasArmedPlayers
-  });
   
   if (hasBriefcase && hasArmedPlayers) {
-    console.log('[BRIEFCASE DEBUG] Player has briefcase AND armed players! Calling showUltimaCupVictoryUIBombPath');
     // Convert matchResult to outcome format expected by bomb path
     const outcome = {
       usGoals: matchResult.usGoals,
@@ -228,12 +208,10 @@ async function quickSimulateUltimaCup() {
     };
     await showUltimaCupVictoryUIBombPath(outcome);
   } else {
-    console.log('[BRIEFCASE DEBUG] Conditions not met (briefcase:', hasBriefcase, ', armed players:', hasArmedPlayers, '), showing normal victory UI');
     // Show normal victory UI
     await showUltimaCupVictoryUI(matchResult);
   }
   
-  console.log('[BRIEFCASE DEBUG] Victory UI call completed, returning matchResult');
   
   return matchResult;
 }

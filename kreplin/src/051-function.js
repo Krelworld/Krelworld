@@ -1,3 +1,4 @@
+/* === Patch 4B.3 — Summons & Sentencing (Board/FA routing + prison severity) === */
 (function(){
   if (window.__patch4B3Applied) return;
   window.__patch4B3Applied = true;
@@ -29,19 +30,15 @@
   })();
 
   window.queueInvestigationSafe = function(authority, caseType){
-    console.log("DEBUG: queueInvestigationSafe called with:", authority, caseType);
     try{
       if (typeof queueInvestigation === 'function'){ 
-        console.log("DEBUG: Using queueInvestigation function");
         queueInvestigation(authority, caseType); 
         return; 
       }
       if (!S) {
-        console.log("DEBUG: No S object found");
         return;
       }
       if (!Array.isArray(S.knock_queue)) {
-        console.log("DEBUG: Creating new knock_queue array");
         S.knock_queue = [];
       }
       const investigation = { type:"investigation", authority, caseType };

@@ -13,7 +13,6 @@ window.ensureFixturesUI = function(){
       newBtn.addEventListener('click', function(e){
         e.preventDefault();
         e.stopPropagation();
-        console.log('Fixtures button clicked!');
         try {
           if (typeof window.toggleFixturesPane === 'function') {
             window.toggleFixturesPane(true);
@@ -29,7 +28,6 @@ window.ensureFixturesUI = function(){
         }
       });
       
-      console.log('Fixtures button wired successfully');
     } else {
       setTimeout(setupFixturesUI, 100);
       const hudBar = document.getElementById('hudBar');
@@ -40,7 +38,6 @@ window.ensureFixturesUI = function(){
         fallbackBtn.addEventListener('click', function(e){
           e.preventDefault();
           e.stopPropagation();
-          console.log('Fixtures button (fallback) clicked!');
           try {
             if (typeof window.toggleFixturesPane === 'function') {
               window.toggleFixturesPane(true);
@@ -56,7 +53,6 @@ window.ensureFixturesUI = function(){
           }
         });
         hudBar.appendChild(fallbackBtn);
-        console.log('Fixtures button (fallback) created');
       }
     }
     ensureFixturesPane();
@@ -516,9 +512,6 @@ window.showLeagueTableView = function showLeagueTableView(pane) {
       if (S.season4 && S.season4.clubs_taken_over) {
         Object.values(S.season4.clubs_taken_over).forEach(newName => validTeams.add(newName));
       }
-      console.log(`DEBUG VIEW: validTeams Set has ${validTeams.size} teams:`, Array.from(validTeams));
-      console.log(`DEBUG VIEW: destroyed teams:`, destroyed);
-      console.log(`DEBUG VIEW: rebranded teams:`, rebrandedTeams);
     }
     
     const standings = Object.entries(S.table)
@@ -528,12 +521,10 @@ window.showLeagueTableView = function showLeagueTableView(pane) {
         if ((S.season === 4 || S.season === 5) && validTeams) {
           // Filter out old team names that have been taken over
           if (rebrandedTeams.includes(team)) {
-            console.log(`DEBUG VIEW: Filtered out ${team} - rebranded`);
             return false;
           }
           // Only show valid teams (opponents + Southampton + taken-over teams with new names)
           if (!validTeams.has(team)) {
-            console.log(`DEBUG VIEW: Filtered out ${team} - not in validTeams`);
             return false;
           }
           return true;
@@ -542,12 +533,10 @@ window.showLeagueTableView = function showLeagueTableView(pane) {
         // For other seasons, use standard filtering
         // Filter out destroyed teams
         if (destroyed.includes(team)) {
-          console.log(`DEBUG VIEW: Filtered out ${team} - destroyed`);
           return false;
         }
         // Filter out old team names that have been taken over
         if (rebrandedTeams.includes(team)) {
-          console.log(`DEBUG VIEW: Filtered out ${team} - rebranded`);
           return false;
         }
         return true;
@@ -561,7 +550,6 @@ window.showLeagueTableView = function showLeagueTableView(pane) {
         };
       });
     
-    console.log(`DEBUG VIEW: After filtering, ${standings.length} teams remain:`, standings.map(s => s.team));
     
     standings.sort((a, b) => {
         // Sort by effective points for Southampton, raw points for others
@@ -1076,7 +1064,6 @@ function processEastleighMatchRevenue() {
   }
 
   function takeOneDrug(){
-    console.log("DEBUG: takeOneDrug() called (system 1) - redirecting to takeCocaine");
     // Redirect to the consolidated takeCocaine function
     return takeCocaine();
   }
@@ -1090,7 +1077,6 @@ function processEastleighMatchRevenue() {
       return window.unifiedOverdose();
     } else {
       // Fallback if patch hasn't loaded yet
-      console.log("DEBUG: Patch version not available, using fallback");
       logSafe("❗ You\'ve pushed it too far — you overdose right before the match!");
       S.drug_streak = 0;
       S.coke_streak = 0;
@@ -1116,7 +1102,6 @@ function processEastleighMatchRevenue() {
       S.stadium_dealing_unlocked = true;
       S.cocaine_purchase_matches_ago = 0; // Track when cocaine was first purchased
       S.marco_approach_attempted = false;
-      console.log(`DEBUG: Cocaine added to inventory - stadium dealing unlocked, marco_approach_attempted reset to false`);
     }
     
     renderInventory();
@@ -1215,7 +1200,6 @@ window.sellItem = function(name, qty = 1) {
   };
 
   // Debug: Log that the invective system is loaded
-  console.log("Quick-Sim Invective & Brick Throwing System loaded successfully!");
 
   window.equipItem = function(name) {
     ensureInv();
@@ -1247,16 +1231,11 @@ window.sellItem = function(name, qty = 1) {
   
   // Debug function to test inventory button
   window.testInventoryButton = function() {
-    console.log('Testing inventory button...');
     const btn = document.getElementById('openInvBtn');
-    console.log('Inventory button found:', btn);
     if (btn) {
-      console.log('Button text:', btn.textContent);
-      console.log('Button has click listeners:', btn.onclick !== null);
       // Try to trigger click
       btn.click();
     } else {
-      console.log('No inventory button found!');
     }
   };
 })();
@@ -1402,88 +1381,6 @@ function takeOneDrug(){
 }
 
 
-function ensureLeagueTableInit(){
-  if (!S.table) S.table = {};
-  // ensure an entry for our club + every opponent (strings) - except destroyed teams
-  const destroyed = S.destroyedTeams || [];
-  const clubName = teamKeyClub();
-  
-  // CRITICAL FIX: For season 4 & 5, ensure opponents are set up BEFORE filtering
-  // This prevents the issue where ensureLeagueTableInit runs before ensureSeasonSchedule
-  if ((S.season === 4 || S.season === 5) && (!S.opponents || !Array.isArray(S.opponents) || S.opponents.length === 0)) {
-    console.log(`DEBUG INIT: S.opponents not set up yet, calling ensureSeasonSchedule first`);
-    if (typeof ensureSeasonSchedule === 'function') {
-      ensureSeasonSchedule();
-    }
-  }
-  
-  const allTeams = [clubName].concat(S.opponents || []);
-  
-  console.log(`DEBUG ensureLeagueTableInit: Season=${S.season}, matches_played=${S.matches_played}`);
-  console.log(`DEBUG INIT: Before cleanup, S.table has ${Object.keys(S.table).length} teams:`, Object.keys(S.table));
-  console.log(`DEBUG INIT: clubName=${clubName}, opponents.length=${S.opponents ? S.opponents.length : 0}`, S.opponents);
-  
-  // For season 4 & 5, remove teams from table that aren't in the current opponents list
-  if ((S.season === 4 || S.season === 5) && S.opponents && Array.isArray(S.opponents)) {
-    const validTeams = new Set([clubName, ...S.opponents]);
-    // Also include teams that were taken over (their new names)
-    if (S.season4 && S.season4.clubs_taken_over) {
-      Object.values(S.season4.clubs_taken_over).forEach(newName => validTeams.add(newName));
-    }
-    const rebrandedTeams = (S.season4 && S.season4.clubs_taken_over) ? Object.keys(S.season4.clubs_taken_over) : [];
-    
-    console.log(`DEBUG INIT: validTeams Set has ${validTeams.size} teams:`, Array.from(validTeams));
-    console.log(`DEBUG INIT: rebrandedTeams:`, rebrandedTeams);
-    console.log(`DEBUG INIT: destroyed teams:`, destroyed);
-    
-    // Remove teams from table that aren't valid
-    // CRITICAL: For Season 4 & 5, don't filter by destroyed array - teams might be "reborn"
-    // Only remove teams that aren't in validTeams or are rebranded (old names)
-    const teamsRemoved = [];
-    for (const teamName of Object.keys(S.table)) {
-      // Remove old team names that have been taken over
-      if (rebrandedTeams.includes(teamName)) {
-        delete S.table[teamName];
-        teamsRemoved.push(`${teamName} (rebranded)`);
-        continue;
-      }
-      // Remove teams that aren't in valid teams list
-      // NOTE: We don't check destroyed array for Season 4 & 5 because teams might be re-included
-      if (!validTeams.has(teamName)) {
-        delete S.table[teamName];
-        teamsRemoved.push(`${teamName} (not in validTeams)`);
-      }
-    }
-    if (teamsRemoved.length > 0) {
-      console.log(`DEBUG INIT: Removed ${teamsRemoved.length} teams:`, teamsRemoved);
-    }
-    
-    // Ensure valid teams have table entries
-    // NOTE: For Season 4 & 5, don't check destroyed array - create entries for all valid teams
-    const teamsCreated = [];
-    for (const t of validTeams) {
-      if (!S.table[t]) {
-        S.table[t] = { P:0, W:0, D:0, L:0, GF:0, GA:0, GD:0, PTS:0 };
-        teamsCreated.push(t);
-      }
-    }
-    if (teamsCreated.length > 0) {
-      console.log(`DEBUG INIT: Created ${teamsCreated.length} new table entries:`, teamsCreated);
-    }
-    
-    console.log(`DEBUG INIT: After cleanup, S.table has ${Object.keys(S.table).length} teams:`, Object.keys(S.table));
-    
-    // Normalize games played for season 4 & 5 to ensure consistency
-    normalizeGamesPlayed();
-  } else {
-    // For other seasons, use standard logic
-    for (const t of allTeams){
-      if (!destroyed.includes(t) && !S.table[t]){
-        S.table[t] = { P:0, W:0, D:0, L:0, GF:0, GA:0, GD:0, PTS:0 };
-      }
-    }
-  }
-}
 
 // Normalize games played across all teams to ensure consistency
 function normalizeGamesPlayed() {
@@ -1586,7 +1483,6 @@ function addGoalToTopScorers(playerName, team, isOwnGoal = false) {
   if (!isOwnGoal) {
     S.topScorers[playerName].goals++;
     // Debug logging to verify goal tracking
-    console.log(`Goal added: ${playerName} (${team}) - Total goals: ${S.topScorers[playerName].goals}`);
   }
 }
 
@@ -1838,26 +1734,6 @@ function showMatchSummary(ourGoals, theirGoals, oppName) {
 }
 
 
-// apply one result to the table
-// NOTE: This function is DEPRECATED - use the version at line 38201 instead
-// Keeping for backward compatibility but it should not be used
-function applyResultToTable_OLD(teamA, teamB, gfA, gaA){
-  ensureLeagueTableInit();
-  // Ensure both teams have table entries before recording
-  ensureTableTeam(teamA);
-  ensureTableTeam(teamB);
-  const gfB = gaA, gaB = gfA;
-  const A = S.table[teamA] || (S.table[teamA]={P:0,W:0,D:0,L:0,GF:0,GA:0,PTS:0});
-  const B = S.table[teamB] || (S.table[teamB]={P:0,W:0,D:0,L:0,GF:0,GA:0,PTS:0});
-
-  A.P++; B.P++;
-  A.GF+=gfA; A.GA+=gaA;
-  B.GF+=gfB; B.GA+=gaB;
-
-  if (gfA>gaA){ A.W++; A.PTS+=3; B.L++; }
-  else if (gfA<gaA){ B.W++; B.PTS+=3; A.L++; }
-  else { A.D++; B.D++; A.PTS++; B.PTS++; }
-}
 
 // re-render the table panel safely
 function renderLeagueTablePanel(){
@@ -1871,37 +1747,30 @@ function ensureTableTeam(team){
   // Always ensure current club has a table entry, even if somehow marked as destroyed
   if (team === clubName) {
     if (!S.table[team]) {
-      console.log(`DEBUG ensureTableTeam: Creating entry for current club "${team}"`);
       S.table[team] = { P:0, W:0, D:0, L:0, GF:0, GA:0, GD:0, PTS:0 };
     } else {
-      console.log(`DEBUG ensureTableTeam: Entry already exists for current club "${team}": P=${S.table[team].P}, PTS=${S.table[team].PTS}`);
     }
     return; // Always create/ensure club entry
   }
   // Don't add destroyed teams to the table (except current club, handled above)
   if (S.destroyedTeams && Array.isArray(S.destroyedTeams) && S.destroyedTeams.includes(team)) {
-    console.log(`DEBUG ensureTableTeam: Skipping destroyed team "${team}"`);
     return; // Skip destroyed teams
   }
   if (!S.table[team]) {
-    console.log(`DEBUG ensureTableTeam: Creating entry for opponent "${team}"`);
     S.table[team] = { P:0, W:0, D:0, L:0, GF:0, GA:0, GD:0, PTS:0 };
   }
 }
 window.recordTableResult = function(home, away, gh, ga){
-  console.log(`DEBUG: recordTableResult called: ${home} vs ${away} (${gh}-${ga})`);
   ensureTableTeam(home); ensureTableTeam(away);
   const H=S.table[home], A=S.table[away];
   
   // Safety check: if entry still doesn't exist after ensureTableTeam, create it anyway (defensive)
   // This can happen if team names don't match exactly or if there's a timing issue
   if (!H) {
-    console.log(`DEBUG: Home team ${home} entry missing after ensureTableTeam, creating it`);
     if (!S.table) S.table = {};
     S.table[home] = { P:0, W:0, D:0, L:0, GF:0, GA:0, GD:0, PTS:0 };
   }
   if (!A) {
-    console.log(`DEBUG: Away team ${away} entry missing after ensureTableTeam, creating it`);
     if (!S.table) S.table = {};
     S.table[away] = { P:0, W:0, D:0, L:0, GF:0, GA:0, GD:0, PTS:0 };
   }
@@ -1912,7 +1781,6 @@ window.recordTableResult = function(home, away, gh, ga){
   
   // Final safety check - if still missing, skip (shouldn't happen but be safe)
   if (!H_final || !A_final) {
-    console.log(`DEBUG: Skipping recordTableResult - team(s) entry still missing after creation: H=${!!H_final}, A=${!!A_final}`);
     return;
   }
   
@@ -1921,8 +1789,6 @@ window.recordTableResult = function(home, away, gh, ga){
   if (gh>ga){ H_final.W++; A_final.L++; H_final.PTS+=3; }
   else if (gh<ga){ A_final.W++; H_final.L++; A_final.PTS+=3; }
   else { H_final.D++; A_final.D++; H_final.PTS+=1; A_final.PTS+=1; }
-  console.log(`DEBUG: Updated table - ${home}: P=${H_final.P}, W=${H_final.W}, D=${H_final.D}, L=${H_final.L}, PTS=${H_final.PTS}`);
-  console.log(`DEBUG: Updated table - ${away}: P=${A_final.P}, W=${A_final.W}, D=${A_final.D}, L=${A_final.L}, PTS=${A_final.PTS}`);
   
   // Sync S.points with league table for Southampton
   const clubName = S.club_name || "Southampton FC";
@@ -1995,7 +1861,6 @@ function ensureSeasonScheduleAndTable(){
   if (!S.table) S.table = {};
   // (Re)build rounds if missing or season length changed
   if (!S.rounds || !Array.isArray(S.rounds) || S.rounds.length !== (S.opponents? S.opponents.length : 0)) {
-    console.log(`DEBUG: Rebuilding rounds. Current rounds length: ${S.rounds?.length || 0}, opponents length: ${S.opponents?.length || 0}`);
     if (!S.opponents || !S.opponents.length){
       // fallback: if you don't have opponents yet, derive a simple list
       let others = ALL_TEAMS.filter(t=>t!=="Southampton FC");
@@ -2008,10 +1873,8 @@ function ensureSeasonScheduleAndTable(){
       }
       
       S.opponents = others.slice(0, Math.min(others.length, S.season_matches||others.length));
-      console.log(`DEBUG: Created opponents list: ${S.opponents.length} teams`);
     }
     S.rounds = buildRoundsFromOurOpponents(S.opponents);
-    console.log(`DEBUG: Built ${S.rounds.length} rounds with ${S.rounds[0]?.length || 0} matches per round`);
   }
   // Make sure every team has a row (so the table isn't "static") - except destroyed teams
   const destroyed = S.destroyedTeams || [];

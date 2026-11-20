@@ -822,7 +822,6 @@ function renameTeam(oldName, newName, options = {}) {
     isPlayerClub = false  // Is this the player's club being renamed?
   } = options;
   
-  console.log(`[RENAME] Renaming team "${oldName}" -> "${newName}"`);
   
   // Track the rename globally
   if (!S.team_renames) S.team_renames = {};
@@ -839,7 +838,6 @@ function renameTeam(oldName, newName, options = {}) {
     for (let i = 0; i < S.opponents.length; i++) {
       if (S.opponents[i] === oldName) {
         S.opponents[i] = newName;
-        console.log(`[RENAME] Updated opponents[${i}]: "${oldName}" -> "${newName}"`);
       }
     }
   }
@@ -865,7 +863,6 @@ function renameTeam(oldName, newName, options = {}) {
         }
       }
     }
-    console.log(`[RENAME] Updated ${fixturesUpdated} fixtures in rounds`);
   }
   
   // 3. Update league table - new team inherits ALL data from old team
@@ -883,17 +880,14 @@ function renameTeam(oldName, newName, options = {}) {
         GD: (oldEntry.GD !== undefined ? oldEntry.GD : ((oldEntry.GF || 0) - (oldEntry.GA || 0))),
         PTS: oldEntry.PTS || 0  // Points - CRITICAL
       };
-      console.log(`[RENAME] Transferred table data: ${oldEntry.P} games, ${oldEntry.PTS} points`);
       
       // Delete old entry - CRITICAL
       delete S.table[oldName];
-      console.log(`[RENAME] Removed old table entry for "${oldName}"`);
     } else if (!S.table[newName]) {
       // If no table entry exists, create one with current games played
       const clubName = (typeof teamKeyClub === 'function') ? teamKeyClub() : (S.club_name || "Southampton FC");
       const targetGames = (S.table[clubName] && S.table[clubName].P) ? S.table[clubName].P : (S.matches_played || 0);
       S.table[newName] = { P: targetGames, W:0, D:0, L:0, GF:0, GA:0, GD:0, PTS:0 };
-      console.log(`[RENAME] Created new table entry with ${targetGames} games played`);
     }
   }
   
@@ -902,7 +896,6 @@ function renameTeam(oldName, newName, options = {}) {
     for (let i = 0; i < S.table_order.length; i++) {
       if (S.table_order[i] === oldName) {
         S.table_order[i] = newName;
-        console.log(`[RENAME] Updated table_order[${i}]`);
       }
     }
   }
@@ -911,13 +904,11 @@ function renameTeam(oldName, newName, options = {}) {
   if (updateRival && S.rival) {
     const oldRivalClub = S.rival.club;
     S.rival.club = newName;
-    console.log(`[RENAME] Updated S.rival.club: "${oldRivalClub}" -> "${newName}"`);
   }
   
   // 6. If this is the player's club, update S.club_name
   if (isPlayerClub) {
     S.club_name = newName;
-    console.log(`[RENAME] Updated S.club_name to "${newName}"`);
   }
   
   // 7. Update league table display
@@ -925,7 +916,6 @@ function renameTeam(oldName, newName, options = {}) {
     renderLeagueTablePanel();
   }
   
-  console.log(`[RENAME] Team rename complete: "${oldName}" -> "${newName}"`);
 }
 
 // Post-load validation to ensure all renamed teams are consistent
@@ -935,7 +925,6 @@ function validateTeamRenames() {
     S.team_renames = {};
   }
   
-  console.log('[RENAME VALIDATION] Starting post-load team rename validation');
   
   // CRITICAL: Check if player's club was renamed and fix duplication
   const playerClubName = S.club_name || "Southampton FC";
@@ -943,12 +932,10 @@ function validateTeamRenames() {
   
   // If player's club has a different name, it means it was renamed
   if (playerClubName !== defaultClubName) {
-    console.log(`[RENAME VALIDATION] Player club renamed: "${defaultClubName}" -> "${playerClubName}"`);
     
     // Add to team_renames if not already there
     if (!S.team_renames[defaultClubName]) {
       S.team_renames[defaultClubName] = playerClubName;
-      console.log(`[RENAME VALIDATION] Added player club rename to tracking`);
     }
     
     // CRITICAL: Remove old club name from opponents array
@@ -956,7 +943,6 @@ function validateTeamRenames() {
       const oldIndex = S.opponents.indexOf(defaultClubName);
       if (oldIndex !== -1) {
         S.opponents.splice(oldIndex, 1);
-        console.log(`[RENAME VALIDATION] Removed "${defaultClubName}" from opponents array`);
       }
     }
     
@@ -965,10 +951,8 @@ function validateTeamRenames() {
       // Transfer data to new name if new name doesn't have data
       if (!S.table[playerClubName] || S.table[playerClubName].P === 0) {
         S.table[playerClubName] = {...S.table[defaultClubName]};
-        console.log(`[RENAME VALIDATION] Transferred player club table data`);
       }
       delete S.table[defaultClubName];
-      console.log(`[RENAME VALIDATION] Removed "${defaultClubName}" from league table`);
     }
     
     // CRITICAL: Remove old club name from fixtures
@@ -990,24 +974,18 @@ function validateTeamRenames() {
           }
         }
       }
-      if (fixedCount > 0) {
-        console.log(`[RENAME VALIDATION] Fixed ${fixedCount} fixtures for player club`);
-      }
     }
   }
   
   const renames = Object.entries(S.team_renames);
   
   if (renames.length === 0) {
-    console.log('[RENAME VALIDATION] No team renames found');
     return;
   }
   
-  console.log(`[RENAME VALIDATION] Found ${renames.length} team renames:`, S.team_renames);
   
   // Apply each rename to ensure consistency
   for (const [oldName, newName] of renames) {
-    console.log(`[RENAME VALIDATION] Validating rename: "${oldName}" -> "${newName}"`);
     
     // 1. Fix opponents array - remove old names completely
     if (S.opponents && Array.isArray(S.opponents)) {
@@ -1017,17 +995,12 @@ function validateTeamRenames() {
           // Check if newName is already in opponents
           if (!S.opponents.includes(newName)) {
             S.opponents[i] = newName;
-            console.log(`[RENAME VALIDATION] Fixed opponents[${i}]: "${oldName}" -> "${newName}"`);
           } else {
             // newName already exists, remove the duplicate
             S.opponents.splice(i, 1);
             removed++;
-            console.log(`[RENAME VALIDATION] Removed duplicate from opponents[${i}]`);
           }
         }
-      }
-      if (removed > 0) {
-        console.log(`[RENAME VALIDATION] Removed ${removed} duplicate opponents`);
       }
     }
     
@@ -1050,9 +1023,6 @@ function validateTeamRenames() {
           }
         }
       }
-      if (fixedCount > 0) {
-        console.log(`[RENAME VALIDATION] Fixed ${fixedCount} fixtures`);
-      }
     }
     
     // 3. Fix league table - ensure old name is gone, new name has the data
@@ -1061,15 +1031,12 @@ function validateTeamRenames() {
         // Old name exists but new name doesn't - transfer data
         S.table[newName] = {...S.table[oldName]};
         delete S.table[oldName];
-        console.log(`[RENAME VALIDATION] Transferred table data from "${oldName}" to "${newName}"`);
       } else if (S.table[oldName] && S.table[newName]) {
         // Both exist - keep the one with more games played
         if (S.table[oldName].P > S.table[newName].P) {
           S.table[newName] = {...S.table[oldName]};
-          console.log(`[RENAME VALIDATION] Transferred better table data from "${oldName}" to "${newName}"`);
         }
         delete S.table[oldName];
-        console.log(`[RENAME VALIDATION] Removed duplicate table entry for "${oldName}"`);
       }
     }
     
@@ -1078,13 +1045,11 @@ function validateTeamRenames() {
       for (let i = 0; i < S.table_order.length; i++) {
         if (S.table_order[i] === oldName) {
           S.table_order[i] = newName;
-          console.log(`[RENAME VALIDATION] Fixed table_order[${i}]`);
         }
       }
     }
   }
   
-  console.log('[RENAME VALIDATION] Validation complete');
 }
 
 // Helper function to get club name (with renaming support)
@@ -1126,41 +1091,6 @@ function addGoalFlashEffect() {
   }
 }
 
-// Helper function to add styled match commentary
-function addStyledMatchCommentary(commentary, event) {
-  // Check if match viewer is open - if so, route commentary there
-  const matchViewer = document.getElementById('matchViewer');
-  const matchCommentary = document.getElementById('matchCommentary');
-  if (matchViewer && !matchViewer.classList.contains('hidden') && matchCommentary) {
-    _appendCom(matchCommentary, commentary);
-    return;
-  }
-  
-  // Otherwise route to feed/log as before
-  const feed = document.getElementById('feed');
-  if (feed) {
-    const entry = document.createElement('div');
-    
-    // Determine styling based on event type and team
-    if (event && event.who === 'HOME') {
-      if (event.kind === 'GOAL') {
-        entry.className = 'southampton-goal';
-      } else if (event.kind === 'POSSESSION') {
-        entry.className = 'southampton-possession';
-      } else {
-        entry.className = 'southampton-action';
-      }
-    } else {
-      entry.className = '';
-    }
-    
-    entry.innerHTML = commentary;
-    feed.appendChild(entry);
-    feed.scrollTop = feed.scrollHeight;
-  } else {
-    log(commentary);
-  }
-}
 
 // Commentary generation functions (moved to global scope for reuse)
 function generateGoalCommentary(event) {
@@ -3875,7 +3805,6 @@ async function completeChampionsLeagueGroupStage() {
     S.clActive = false;
     S.clStage = 'done'; // Mark as done to prevent re-initialization
     S.matchContext = null; // Clear to prevent CL opponents contaminating league
-    console.log('[CL CLEANUP] Cleared matchContext after elimination');
     // Track CL entry result
     if (S.fiveSeasonArc) {
       const existing = S.fiveSeasonArc.clEntries.findIndex(e => e.season === S.season);
@@ -4025,7 +3954,6 @@ async function playChampionsLeagueKnockoutMatch() {
       log(`<strong>❌ ELIMINATED</strong>`);
       S.clActive = false;
       S.matchContext = null; // Clear to prevent CL opponents contaminating league
-      console.log('[CL CLEANUP] Cleared matchContext after QF elimination');
       if (S.fiveSeasonArc) {
         const existing = S.fiveSeasonArc.clEntries.findIndex(e => e.season === S.season);
         if (existing >= 0) {
@@ -4059,7 +3987,6 @@ async function playChampionsLeagueKnockoutMatch() {
       const ourMatch = S.clKnockoutBracket.quarterfinal.find(m => (m.team1 === 'Southampton FC' || m.team2 === 'Southampton FC'));
       if (ourMatch && ourMatch.winner === 'Southampton FC') {
         await advanceToChampionsLeagueSemifinals();
-        console.log(`CL: advanced to SEMIFINAL - Teams: ${S.clKnockoutBracket.semifinal.map(m => `${m.team1} vs ${m.team2}`).join(', ')}`);
       }
     }
     
@@ -4096,7 +4023,6 @@ async function playChampionsLeagueKnockoutMatch() {
       log(`<strong>❌ ELIMINATED</strong>`);
       S.clActive = false;
       S.matchContext = null; // Clear to prevent CL opponents contaminating league
-      console.log('[CL CLEANUP] Cleared matchContext after SF elimination');
       if (S.fiveSeasonArc) {
         const existing = S.fiveSeasonArc.clEntries.findIndex(e => e.season === S.season);
         if (existing >= 0) {
@@ -4129,7 +4055,6 @@ async function playChampionsLeagueKnockoutMatch() {
       const ourMatch = S.clKnockoutBracket.semifinal.find(m => (m.team1 === 'Southampton FC' || m.team2 === 'Southampton FC'));
       if (ourMatch && ourMatch.winner === 'Southampton FC') {
         await advanceToChampionsLeagueFinal();
-        console.log(`CL: advanced to FINAL - ${S.clKnockoutBracket.final.team1} vs ${S.clKnockoutBracket.final.team2}`);
       }
     }
     
@@ -4216,7 +4141,6 @@ async function playChampionsLeagueKnockoutMatch() {
     S.clKnockoutBracket.final.played = true;
     S.clActive = false;
     S.matchContext = null; // Clear to prevent CL opponents contaminating league
-    console.log('[CL CLEANUP] Cleared matchContext after final');
   }
 }
 
@@ -5118,22 +5042,17 @@ function simScore(str){
 
 // Simulate all non-player fixtures in a given round and record them
 window.simulateOtherMatchesForRound = function(roundIndex){
-  console.log(`DEBUG: simulateOtherMatchesForRound called with roundIndex: ${roundIndex}`);
   ensureSeasonScheduleAndTable();
   // Use current club name (supports renaming after nuclear option)
   const OUR_CLUB = (typeof getClubName === 'function') ? getClubName() : (S?.club_name || "Southampton FC");
   const rounds = S.rounds || [];
   const matches = rounds[roundIndex] || [];
-  console.log(`DEBUG: Found ${matches.length} matches in round ${roundIndex}`);
-  console.log(`DEBUG: Rounds array length: ${rounds.length}`);
-  console.log(`DEBUG: Our club name is "${OUR_CLUB}", will skip matches involving this team`);
   
   let simulatedCount = 0;
   for (const [home, away] of matches){
     if (!home || !away) continue;
     // Skip our match; it's already recorded elsewhere
     if (home === OUR_CLUB || away === OUR_CLUB) {
-      console.log(`DEBUG: Skipping match ${home} vs ${away} (involves our club)`);
       continue;
     }
 
@@ -5144,10 +5063,8 @@ window.simulateOtherMatchesForRound = function(roundIndex){
     const gh = simScore(sh + 2);
     const ga = simScore(sa);
 
-    console.log(`DEBUG: Simulating ${home} vs ${away}: ${gh}-${ga}`);
     recordTableResult(home, away, gh, ga);
     simulatedCount++;
   }
-  console.log(`DEBUG: Simulated ${simulatedCount} other matches for round ${roundIndex}`);
 }
 

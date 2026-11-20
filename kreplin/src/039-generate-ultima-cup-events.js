@@ -684,7 +684,6 @@ async function endOfSeason(){
           window._startGeneralMusic();
         } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
           generalMusicAudio.play().catch(err => {
-            console.log('Could not resume background music:', err);
           });
         }
       }
@@ -807,7 +806,6 @@ async function endOfSeason(){
               window._startGeneralMusic();
             } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
               generalMusicAudio.play().catch(err => {
-                console.log('Could not resume background music:', err);
               });
             }
           }
@@ -934,7 +932,6 @@ async function endOfSeason(){
           window._startGeneralMusic();
         } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
           generalMusicAudio.play().catch(err => {
-            console.log('Could not resume background music:', err);
           });
         }
       }
@@ -994,7 +991,6 @@ async function endOfSeason(){
         window._startGeneralMusic();
       } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
         generalMusicAudio.play().catch(err => {
-          console.log('Could not resume background music:', err);
         });
       }
     }
@@ -1274,7 +1270,6 @@ async function runSeason5Opener() {
   S.season5.first_match_special_event = true;
   // Initialize kidnapping sequence flag to false (will be set to true after it plays)
   S.season5.kidnapping_sequence_shown = false;
-  console.log('DEBUG: Season 5 initialized - kidnapping_sequence_shown set to false');
 }
 
 // ---------- difficulty ----------
@@ -1423,7 +1418,7 @@ function loadFromSlot(slotNumber) {
     const normalizedState = normalizeGameState(data.gameState);
     
     // Write normalized state to main autosave key
-    localStorage.setItem(SAVE_KEY, JSON.stringify(normalizedState));
+    saveGame(normalizedState);
     
     // Update both window.S and global S reference
     window.S = normalizedState;

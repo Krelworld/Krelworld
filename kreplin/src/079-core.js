@@ -663,14 +663,12 @@
   // Send rival text (Delmor Krunchem) - ensures contact exists and queues text
   window.sendRivalText = function sendRivalText(text) {
     // DEBUG: Log when sendRivalText is called
-    console.log('[DEBUG sendRivalText] Called with text:', text);
     
     window.S = window.S || {};
     if (!S.contacts) S.contacts = {};
     
     // Ensure Delmor contact exists and is initialized
     if (!S.contacts.delmor_krunchem) {
-      console.log('[DEBUG sendRivalText] Creating Delmor contact');
       S.contacts.delmor_krunchem = {
         id: 'delmor_krunchem',
         unlocked: true,
@@ -689,11 +687,8 @@
     
     // Queue the text using the proper system
     if (typeof queueIncomingText === 'function') {
-      console.log('[DEBUG sendRivalText] Calling queueIncomingText');
       queueIncomingText('delmor_krunchem', text, 'malicious');
-      console.log('[DEBUG sendRivalText] Text queued. Contact queued_texts length:', S.contacts.delmor_krunchem.queued_texts?.length || 0);
     } else {
-      console.log('[DEBUG sendRivalText] queueIncomingText not available, using fallback log');
       // Fallback: log directly if queueIncomingText isn't available
       log(`📱 Delmor Krunchem: "${text}"`);
     }
@@ -702,11 +697,9 @@
   // Enqueue rival text - alias for sendRivalText (used by many places in code)
   window.enqueueRivalText = function enqueueRivalText(text) {
     // DEBUG: Log when enqueueRivalText is called
-    console.log('[DEBUG enqueueRivalText] Called with text:', text);
     
     // Call sendRivalText which handles all the contact initialization and queuing
     if (typeof window.sendRivalText === 'function') {
-      console.log('[DEBUG enqueueRivalText] Calling sendRivalText');
       window.sendRivalText(text);
     } else {
       console.error('[DEBUG enqueueRivalText] ERROR: sendRivalText function not found!');
@@ -715,7 +708,6 @@
       if (!S.contacts) S.contacts = {};
       
       if (!S.contacts.delmor_krunchem) {
-        console.log('[DEBUG enqueueRivalText] Creating Delmor contact (fallback)');
         S.contacts.delmor_krunchem = {
           id: 'delmor_krunchem',
           unlocked: true,
@@ -730,11 +722,8 @@
       }
       
       if (typeof queueIncomingText === 'function') {
-        console.log('[DEBUG enqueueRivalText] Calling queueIncomingText (fallback)');
         queueIncomingText('delmor_krunchem', text, 'malicious');
-        console.log('[DEBUG enqueueRivalText] Text queued (fallback). Contact queued_texts length:', S.contacts.delmor_krunchem.queued_texts?.length || 0);
       } else {
-        console.log('[DEBUG enqueueRivalText] queueIncomingText not available, using log fallback');
         log(`📱 Delmor Krunchem: "${text}"`);
       }
     }
@@ -743,25 +732,9 @@
   // DEBUG: Helper function to check Delmor text status (call from console: debugDelmorTexts())
   window.debugDelmorTexts = function debugDelmorTexts() {
     window.S = window.S || {};
-    console.log('=== DELMOR TEXT DEBUG INFO ===');
-    console.log('S.contacts exists:', !!S.contacts);
-    console.log('Delmor contact exists:', !!S.contacts?.delmor_krunchem);
     if (S.contacts?.delmor_krunchem) {
       const delmor = S.contacts.delmor_krunchem;
-      console.log('Delmor contact:', {
-        id: delmor.id,
-        name: delmor.name,
-        unlocked: delmor.unlocked,
-        queued_texts_count: delmor.queued_texts?.length || 0,
-        queued_texts: delmor.queued_texts || [],
-        unread_count: (delmor.queued_texts || []).filter(t => !t.read).length
-      });
     }
-    console.log('S.phone_unread:', S.phone_unread);
-    console.log('sendRivalText function exists:', typeof window.sendRivalText === 'function');
-    console.log('enqueueRivalText function exists:', typeof window.enqueueRivalText === 'function');
-    console.log('queueIncomingText function exists:', typeof queueIncomingText === 'function');
-    console.log('=============================');
     return S.contacts?.delmor_krunchem;
   };
 
@@ -1397,9 +1370,6 @@
         if (typeof window.log === 'function') {
           log(`[Women's Team] Revenue from ${getClubName()} Women's Team: -£${absVal} (${tt})`);
         } else {
-          try {
-            console.log(`[Women's Team] Revenue from ${getClubName()} Women's Team: -£${absVal} (${tt})`);
-          } catch (_) {}
         }
         // Wait a couple of matches before we’re allowed to show another revenue line
         n.revenueCooldown = 2 + Math.floor(Math.random() * 3); // 2–4 matches
@@ -1419,9 +1389,6 @@
         if (typeof window.log === 'function') {
           log(`[Women’s Team] ${j}`);
         } else {
-          try {
-            console.log(`[Women’s Team] ${j}`);
-          } catch (_) {}
         }
         n.attendanceCooldown = 6 + Math.floor(Math.random() * 5); // wait more matches
       }
@@ -1795,9 +1762,7 @@
         }
         
         // Save state first
-        if (typeof SAVE_KEY === 'string') {
-          try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}
-        }
+        saveGame();
         
         // Close phone popup
         if (phoneMessagesContainer) {
@@ -1873,11 +1838,9 @@
         
         // CRITICAL: Clear matchContext to prevent World Cup opponents contaminating league
         S.matchContext = null;
-        console.log('[WORLD CUP CLEANUP] Cleared matchContext to prevent national team contamination');
         
         // CRITICAL: Restore currentOpponent function to prevent World Cup opponents contaminating league matches
         restoreCurrentOpponent();
-        console.log('[WORLD CUP CLEANUP] Restored currentOpponent function');
         
         // Mark World Cup as completed for this season
         S.worldCupCompletedForSeason = true;
@@ -1906,13 +1869,7 @@
           }
           
           // Save state before continuing
-          if (typeof SAVE_KEY === 'string') {
-            try { 
-              localStorage.setItem(SAVE_KEY, JSON.stringify(S)); 
-            } catch(e) {
-              console.warn("Could not save state:", e);
-            }
-          }
+          saveGame();
           
           // Continue to main game loop
           // Use a small delay to ensure UI is ready and avoid nested async issues
@@ -1933,13 +1890,7 @@
             console.error("Error in mainGameLoop after World Cup:", e);
             log(`⚠️ Error continuing game: ${e.message || e}. Please check the console for details.`);
             // Try to save state even on error
-            if (typeof SAVE_KEY === 'string') {
-              try { 
-                localStorage.setItem(SAVE_KEY, JSON.stringify(S)); 
-              } catch(saveErr) {
-                console.warn("Could not save state after error:", saveErr);
-              }
-            }
+            saveGame();
           }
         } else {
           log(`Season complete or game over. World Cup participation recorded.`);
@@ -2018,7 +1969,6 @@
         
         // CRITICAL: Restore currentOpponent function to prevent World Cup opponents contaminating Season 3
         restoreCurrentOpponent();
-        console.log('[SEASON 3 START] Restored currentOpponent function');
         
         if (typeof ensureSeasonSchedule === 'function') {
           ensureSeasonSchedule();
@@ -2085,13 +2035,7 @@
         }
         
         // Save state
-        if (typeof SAVE_KEY === 'string') {
-          try { 
-            localStorage.setItem(SAVE_KEY, JSON.stringify(S)); 
-          } catch(e) {
-            console.warn("Could not save state:", e);
-          }
-        }
+        saveGame();
         
         // Update HUD
         if (typeof updateHUD === 'function') {
@@ -2250,13 +2194,7 @@
         }
         
         // Save state
-        if (typeof SAVE_KEY === 'string') {
-          try { 
-            localStorage.setItem(SAVE_KEY, JSON.stringify(S)); 
-          } catch(e) {
-            console.warn("Could not save state:", e);
-          }
-        }
+        saveGame();
         
         // Update HUD
         if (typeof updateHUD === 'function') {
@@ -2620,7 +2558,6 @@
         S.season5.first_match_special_event = true;
         // Initialize kidnapping sequence flag to false (will be set to true after it plays)
         S.season5.kidnapping_sequence_shown = false;
-        console.log('DEBUG: Season 5 initialized (cheat) - kidnapping_sequence_shown set to false');
         if (S.season4) {
           S.season5.personal_life_locked = S.season4.personal_life_locked || true;
           S.season5.home_interaction_always_silent = S.season4.home_interaction_always_silent || true;
@@ -2652,13 +2589,7 @@
         }
         
         // Save state
-        if (typeof SAVE_KEY === 'string') {
-          try { 
-            localStorage.setItem(SAVE_KEY, JSON.stringify(S)); 
-          } catch(e) {
-            console.warn("Could not save state:", e);
-          }
-        }
+        saveGame();
         
         // Update HUD
         if (typeof updateHUD === 'function') {
@@ -2703,9 +2634,7 @@
         S.matches_played = S.season_matches || 9;
         
         // Save state
-        if (typeof SAVE_KEY === 'string') {
-          try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}
-        }
+        saveGame();
         
         // Call the season 5 end of season presentation
         if (typeof showEndOfSeasonPresentation === 'function') {
@@ -3068,9 +2997,7 @@
         S.matches_played = S.season_matches || 9;
         
         // Save state
-        if (typeof SAVE_KEY === 'string') {
-          try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}
-        }
+        saveGame();
         
         // Call the ultima cup pre-match function
         if (typeof ultimaCupPreMatch === 'function') {
@@ -3168,13 +3095,7 @@
         }
         
         // Save state
-        if (typeof SAVE_KEY === 'string') {
-          try { 
-            localStorage.setItem(SAVE_KEY, JSON.stringify(S)); 
-          } catch(e) {
-            console.warn("Could not save state:", e);
-          }
-        }
+        saveGame();
         
         // Update HUD
         if (typeof updateHUD === 'function') {
@@ -3472,9 +3393,7 @@
                 
                 if (!outcome) {
                   if (typeof playMatchPhaseWithTaunts === 'function') {
-                    console.log("DEBUG QUICK SIM (CHEAT): Starting playMatchPhaseWithTaunts() for Portsmouth.");
                     outcome = await playMatchPhaseWithTaunts();
-                    console.log("DEBUG QUICK SIM (CHEAT): playMatchPhaseWithTaunts() returned, outcome:", outcome);
                   } else if (typeof playMatchPhase === 'function') {
                     outcome = await playMatchPhase();
                   } else if (typeof simulateMatch === 'function') {
@@ -3526,15 +3445,7 @@
                 // leaving any hanging choices from the original main loop, persist
                 // state and perform a light reload so the main game loop can
                 // resume cleanly from the next opponent.
-                try {
-                  if (typeof SAVE_KEY === 'string') {
-                    localStorage.setItem(SAVE_KEY, JSON.stringify(S));
-                  }
-                } catch (eSave) {
-                  try {
-                    console.error("[PORTSMOUTH CHEAT] Error saving state before reload:", eSave);
-                  } catch (_eLog2) {}
-                }
+                saveGame();
                 try {
                   log("✅ Portsmouth cheat flow complete. Reloading to resume the season cleanly from the next match...");
                 } catch (_eLog3) {}

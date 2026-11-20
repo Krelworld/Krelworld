@@ -1,3 +1,4 @@
+/* === General Music System === */
 (function(){
   if (window.__generalMusicSystemApplied) return;
   window.__generalMusicSystemApplied = true;
@@ -373,11 +374,9 @@
       if (video.__videoListenersAttached) return; // Already attached
       video.__videoListenersAttached = true;
       
-      console.log('DEBUG VIDEO: Attaching event listeners to Dropbox video');
       
       // If video is already playing (autoplay), stop music immediately
       if (!video.paused && activeVideoCount === 0) {
-        console.log('DEBUG VIDEO: Dropbox video already playing, stopping music immediately');
         musicWasPlayingBeforeVideo = (generalMusicAudio && !generalMusicAudio.paused);
         activeVideoCount++;
         stopGeneralMusic();
@@ -386,13 +385,11 @@
       // When video starts playing
     video.addEventListener('play', () => {
       if (isDropboxVideo(video)) {
-        console.log('DEBUG VIDEO: Dropbox video started playing');
         activeVideoCount++;
         
         // Stop music if this is the first video
         if (activeVideoCount === 1) {
           musicWasPlayingBeforeVideo = (generalMusicAudio && !generalMusicAudio.paused);
-          console.log('DEBUG VIDEO: Stopping general music (was playing:', musicWasPlayingBeforeVideo, ')');
           stopGeneralMusic();
         }
       }
@@ -401,12 +398,10 @@
     // When video pauses
     video.addEventListener('pause', () => {
       if (isDropboxVideo(video)) {
-        console.log('DEBUG VIDEO: Dropbox video paused');
         activeVideoCount = Math.max(0, activeVideoCount - 1);
         
         // Resume music if no videos are playing
         if (activeVideoCount === 0 && musicWasPlayingBeforeVideo) {
-          console.log('DEBUG VIDEO: Resuming general music');
           startGeneralMusic();
           musicWasPlayingBeforeVideo = false;
         }
@@ -416,12 +411,10 @@
     // When video ends
     video.addEventListener('ended', () => {
       if (isDropboxVideo(video)) {
-        console.log('DEBUG VIDEO: Dropbox video ended');
         activeVideoCount = Math.max(0, activeVideoCount - 1);
         
         // Resume music if no videos are playing
         if (activeVideoCount === 0 && musicWasPlayingBeforeVideo) {
-          console.log('DEBUG VIDEO: Resuming general music after video ended');
           startGeneralMusic();
           musicWasPlayingBeforeVideo = false;
         }
@@ -431,12 +424,10 @@
     // When video is removed from DOM
     const removeObserver = new MutationObserver((mutations) => {
       if (!document.body.contains(video)) {
-        console.log('DEBUG VIDEO: Dropbox video removed from DOM');
         activeVideoCount = Math.max(0, activeVideoCount - 1);
         
         // Resume music if no videos are playing
         if (activeVideoCount === 0 && musicWasPlayingBeforeVideo) {
-          console.log('DEBUG VIDEO: Resuming general music after video removed');
           startGeneralMusic();
           musicWasPlayingBeforeVideo = false;
         }
@@ -516,7 +507,6 @@
   // Also attach listeners to any existing videos
   setTimeout(() => {
     const existingVideos = document.querySelectorAll('video');
-    console.log('DEBUG VIDEO: Found', existingVideos.length, 'existing video elements');
     existingVideos.forEach(attachVideoListeners);
   }, 1000);
 
@@ -530,6 +520,4 @@
     musicWasPlaying: () => musicWasPlayingBeforeVideo
   };
 
-  console.log('General music system initialized');
-  console.log('DEBUG VIDEO: Video monitoring system initialized - will stop music when Dropbox videos play');
 })();

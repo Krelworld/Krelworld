@@ -1,3 +1,4 @@
+/* === Patch 5 — Drug-Related Dynamics (Players & Staff) === */
 (function(){
   if (window.__patch5DrugsApplied) return;
   window.__patch5DrugsApplied = true;
@@ -63,10 +64,8 @@
         S.stadium_dealing_unlocked = true;
         S.cocaine_purchase_matches_ago = 0; // Track when cocaine was first purchased
         S.marco_approach_attempted = false;
-        console.log(`DEBUG: Cocaine purchased - stadium dealing unlocked, marco_approach_attempted reset to false`);
         logSafe("You buy 1 bag. A shady figure approaches you later: \"I hear you're in the market for... extracurricular activities.\"");
       } else {
-        console.log(`DEBUG: Cocaine purchased - stadium dealing already unlocked`);
         logSafe("You buy 1 bag.");
       }
       updateHUD?.();
@@ -78,10 +77,8 @@
         S.stadium_dealing_unlocked = true;
         S.cocaine_purchase_matches_ago = 0; // Track when cocaine was first purchased
         S.marco_approach_attempted = false;
-        console.log(`DEBUG: 5 bags cocaine purchased - stadium dealing unlocked, marco_approach_attempted reset to false`);
         logSafe("You buy 5 bags for a slight loyalty discount (in spirit). A shady figure approaches you later: \"I hear you're in the market for... extracurricular activities.\"");
       } else {
-        console.log(`DEBUG: 5 bags cocaine purchased - stadium dealing already unlocked`);
         logSafe("You buy 5 bags for a slight loyalty discount (in spirit).");
       }
       updateHUD?.();
@@ -232,7 +229,6 @@
         S.season5.first_match_special_event = true;
         // Initialize kidnapping sequence flag to false (will be set to true after it plays)
         S.season5.kidnapping_sequence_shown = false;
-        console.log('DEBUG: Season 5 initialized (cheat) - kidnapping_sequence_shown set to false');
         if (S.season4) {
           S.season5.personal_life_locked = S.season4.personal_life_locked || true;
           S.season5.home_interaction_always_silent = S.season4.home_interaction_always_silent || true;
@@ -278,12 +274,10 @@
 
   function getBrickCount() {
     if (!S.inventory || !Array.isArray(S.inventory.items)) {
-      console.log('DEBUG: Inventory not initialized, initializing...');
       ensureInv();
       return 0;
     }
     const brick = S.inventory.items.find(item => item.name === 'Brick');
-    console.log('DEBUG: Brick count:', brick ? brick.quantity : 0);
     return brick ? brick.quantity : 0;
   }
 
@@ -353,7 +347,6 @@
       if ((S.chairman_cash|0) < BRICK_PRICE){ logSafe("Not enough money for a Brick."); return; }
       S.chairman_cash -= BRICK_PRICE;
       
-      console.log('DEBUG: Before adding brick, inventory items:', S.inventory?.items?.length || 0);
       addItem({ 
         name: "Brick", 
         type: "weapon", 
@@ -362,7 +355,6 @@
         sellable: true, 
         equipped: true 
       });
-      console.log('DEBUG: After adding brick, inventory items:', S.inventory?.items?.length || 0);
       
       const newCount = getBrickCount();
       
@@ -403,11 +395,9 @@
           logSafe("The team plays without you. The result will be recorded.");
         }
       }catch(e){
-        console.log("DEBUG: Error in match simulation:", e);
         logSafe("The team plays without you. The result will be recorded.");
       }
     } catch (e) {
-      console.log("DEBUG: Error in triggerOverdose:", e);
       // Fallback - just set basic rehab state
       S.suspensions = S.suspensions || {};
       S.suspensions.rehab_games = 3;
@@ -420,7 +410,6 @@
     try {
       if (typeof updateHUD === 'function') updateHUD();
     } catch (e) {
-      console.log("DEBUG: updateHUD failed in triggerOverdose:", e);
     }
   }
 
@@ -435,7 +424,6 @@
   }
 
   function mountDrugActions(){
-    console.log(`DEBUG: mountDrugActions called - canShowDrugActions: ${canShowDrugActions()}, drugs_unlocked: ${S.drugs_unlocked}`);
     if (!canShowDrugActions()) return;
     ensureDrugState();
     const root = actionsRoot();
@@ -444,15 +432,12 @@
     clearPatch5Btns();
 
     if (!S.drugs_unlocked){
-      console.log(`DEBUG: drugs_unlocked is false, not showing buy button`);
       // Marco knockdoor functionality removed
     } else {
-      console.log(`DEBUG: drugs_unlocked is true, but buy button removed from pre-match menu`);
       // Buy button removed - functionality handled in top UI
     }
 
     if (S.drugs_unlocked){
-      console.log(`DEBUG: drugs_unlocked is true, but take cocaine button removed from pre-match menu`);
       // Take cocaine button removed - functionality handled in top UI
     }
 

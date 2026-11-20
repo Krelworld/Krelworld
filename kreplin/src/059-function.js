@@ -1,10 +1,10 @@
+/* === Patch 5.3.2 — Inventory & Drugs Workaround (robust) === */
 (function(){
   if (window.__patch_532_applied) return;
   window.__patch_532_applied = true;
 
   // Ultra-simple overdose function - just the basics
   window.unifiedOverdose = function(){
-    console.log("DEBUG: unifiedOverdose() called!");
     
     // Show the message and reset streaks
     logSafe("❗ You've pushed it too far — you overdose right before the match!");
@@ -30,7 +30,6 @@
     S.rehab_games_remaining = 3;
     logSafe("You're sent to rehab for 3 games. The team plays without you.");
     
-    console.log("DEBUG: unifiedOverdose completed - with rehab flag");
   };
 
   // Intercept the game flow to show rehab button after kickoff
@@ -41,7 +40,6 @@
       window.choose = function(options, prompt) {
         // Check if we're in rehab and this is a kickoff choice
         if (S && S.in_rehab && prompt && prompt.includes('Kickoff')) {
-          console.log("DEBUG: Intercepting kickoff for rehab");
           
           // Clear the choices and show rehab button
           const root = document.getElementById('actions') || document.getElementById('choices') || document.body;
@@ -91,11 +89,7 @@
               }
               
               // Save state
-              try {
-                localStorage.setItem('saints_save_v4', JSON.stringify(S));
-              } catch (e) {
-                console.log("DEBUG: Could not save state:", e);
-              }
+              saveGame();
             };
             root.appendChild(rehabBtn);
           }
@@ -113,7 +107,6 @@
 
   // Make takeCocaine globally accessible
   window.takeCocaine = function(){
-    console.log("DEBUG: takeCocaine() called (CONSOLIDATED)");
     try {
       ensureCore();
       // Force unlock drugs to ensure functionality
@@ -123,15 +116,11 @@
     
     // Use the higher of the two streak values for overdose check
     const currentStreak = Math.max((S.drug_streak|0), (S.coke_streak|0));
-    console.log(`DEBUG: Current streak: ${currentStreak}, drug_streak: ${S.drug_streak}, coke_streak: ${S.coke_streak}`);
     
     if (currentStreak >= 4){ 
-      console.log("DEBUG: Triggering overdose!");
       try {
         overdoseNow(); 
-        console.log("DEBUG: overdoseNow() completed successfully");
       } catch (e) {
-        console.log("DEBUG: Error in overdoseNow():", e);
       }
       return; 
     }
@@ -151,10 +140,8 @@
     (window.log||console.log)(`You snort ${need===1?'a line':'several lines'} of cocaine. Adrenaline surges! (Streak ${S.drug_streak})`);
     if (S.drug_streak === 4) (window.log||console.log)("⚠️ Warning: another consecutive use will result in overdose!");
     S.team_morale_boost = (S.team_morale_boost||0) + 2;
-    console.log("DEBUG: takeCocaine() completed successfully - avoiding HUD update");
     // Deranged actions removed - will be replaced by another function
     } catch (e) {
-      console.log("DEBUG: Error in takeCocaine() main function:", e);
     }
   };
 
@@ -169,7 +156,7 @@
     if (typeof S.on_drugs_today !== 'boolean') S.on_drugs_today = false;
     if (!S.suspensions) S.suspensions = { rehab_games:0, prison_games:0, house_games:0 };
   }
-  function logSafe(m){ try{ (window.log||console.log)(m); }catch(_){ console.log(m); } }
+  function logSafe(m){ try{ (window.log||console.log)(m); }catch(_){  } }
   function money(n){ return "£"+Number(Math.max(0,Math.round(n||0))).toLocaleString('en-GB'); }
 
   // ---------- HUD pill ----------
@@ -215,7 +202,6 @@
       S.stadium_dealing_unlocked = true;
       S.cocaine_purchase_matches_ago = 0;
       S.marco_approach_attempted = false;
-      console.log(`DEBUG: Cocaine purchased (buyBag) - stadium dealing unlocked, marco_approach_attempted reset to false`);
     }
     
     logSafe("You buy 1 bag.");
@@ -331,12 +317,9 @@
     buy.addEventListener('click', buyBag);
     const use = document.createElement('button'); use.textContent='Take (use)'; use.disabled = drug<=0; 
     use.addEventListener('click', function(){
-      console.log("DEBUG: Take (use) button clicked!");
       try {
         window.takeCocaine();
-        console.log("DEBUG: window.takeCocaine returned successfully from Take (use) button");
       } catch (e) {
-        console.log("DEBUG: Error in Take (use) button click handler:", e);
       }
     });
     act.appendChild(buy); act.appendChild(use);
@@ -380,7 +363,6 @@
     brickRow.appendChild(brickK); brickRow.appendChild(brickV); brickRow.appendChild(brickAct);
     list.appendChild(brickRow);
     
-    console.log(`DEBUG: Inventory Take button created! Text: "${use.textContent}", Disabled: ${use.disabled}, Drug count: ${drug}`);
   }
 
   // Expose renderInventory to global scope

@@ -1,3 +1,4 @@
+/* Music Control Modal JavaScript */
 (function() {
   'use strict';
 

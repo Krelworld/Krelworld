@@ -1,3 +1,4 @@
+/* === Patch 5.3 — Deranged Everywhere & Give Cocaine === */
 (function(){
   if (window.__patch53DrugsApplied) return;
   window.__patch53DrugsApplied = true;
@@ -18,7 +19,7 @@
   }
 
   function actionsRoot(){ return document.getElementById('actions') || document.getElementById('choices') || document.body; }
-  function logSafe(m){ try{ (window.log||console.log)(m); }catch(_){ console.log(m); } }
+  function logSafe(m){ try{ (window.log||console.log)(m); }catch(_){  } }
   function money(n){ return "£"+Number(Math.max(0,Math.round(n||0))).toLocaleString('en-GB'); }
   const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 
@@ -147,28 +148,7 @@
     return;
   }
 
-  function normalizeTargetKey(target){
-    if (!target) return 'unknown';
-    const t = String(target).toLowerCase();
-    if (t.includes('board')) return 'board';
-    if (t === 'fa' || t.includes('f.a')) return 'fa';
-    if (t.includes('wife') || t.includes('spouse')) return 'wife';
-    if (t.includes('child') || t.includes('kid') || t.includes('son') || t.includes('daughter')) return 'family';
-    if (t.includes('manager') || t.includes('coach') || t.includes('staff')) return 'staff';
-    if (t.includes('player')){
-      const parts = String(target).split(':'); // player:Name
-      if (parts[1]) return 'player:'+parts[1].trim();
-      return 'player';
-    }
-    return t.replace(/\s+/g,'_');
-  }
 
-  function bumpAddiction(key){
-    if (!S.addictions || !S.addictions.people) S.addictions = {people:{}};
-    const cur = Number(S.addictions.people[key]||0) + 1;
-    S.addictions.people[key] = cur;
-    return cur;
-  }
 
   function reactToGift(target, level){
     const low = level <= 1, mid = level===2, hi = level>=3;

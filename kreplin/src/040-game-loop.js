@@ -1,15 +1,10 @@
 // ---------- game loop ----------
 function setupGameButtons() {
-  console.log('DEBUG: Setting up game buttons...');
-  console.log('DEBUG: document.readyState:', document.readyState);
   
   const saveBtn = document.getElementById('saveBtn');
   const loadBtn = document.getElementById('loadBtn');
   const resetBtn = document.getElementById('resetBtn');
   
-  console.log('DEBUG: saveBtn found:', !!saveBtn);
-  console.log('DEBUG: loadBtn found:', !!loadBtn);
-  console.log('DEBUG: resetBtn found:', !!resetBtn);
   
   if (saveBtn) {
     saveBtn.onclick = () => {
@@ -19,7 +14,6 @@ function setupGameButtons() {
       }
       showSaveSlotModal(false);
     };
-    console.log('DEBUG: saveBtn handler attached');
   } else {
     console.error('DEBUG: saveBtn not found!');
   }
@@ -28,70 +22,31 @@ function setupGameButtons() {
     loadBtn.onclick = () => {
       showSaveSlotModal(true);
     };
-    console.log('DEBUG: loadBtn handler attached');
   } else {
     console.error('DEBUG: loadBtn not found!');
   }
   
   if (resetBtn) {
-    console.log('DEBUG: Attaching reset button handler...');
     resetBtn.onclick = async () => {
-      console.log('DEBUG: Reset button clicked!');
       // Show confirmation dialog
       if (!confirm('Are you sure you want to reset? This will delete all saved progress and return you to Season 1, Match 1.')) {
-        console.log('DEBUG: Reset cancelled by user');
         return; // User cancelled
       }
       
-      console.log('DEBUG: Reset confirmed, proceeding...');
       // Set flag to prevent auto-load after reset
       localStorage.setItem('_reset_flag', 'true');
       localStorage.removeItem(SAVE_KEY);
-      console.log('DEBUG: localStorage cleared');
       
-      // Stop auto-save to prevent race condition
-      if (window.stateManager) {
-        console.log('DEBUG: Stopping auto-save...');
-        window.stateManager.stopAutoSave();
+      // Also delete the legacy IndexedDB autosave store (older builds), then reload
+      try {
+        const request = indexedDB.deleteDatabase('SaintsChairmanDB');
+        request.onsuccess = () => location.reload();
+        request.onerror = () => location.reload();
+        request.onblocked = () => location.reload();
+      } catch(e) {
+        location.reload();
       }
-      
-      // Clear IndexedDB if stateManager exists
-      if (window.stateManager && window.stateManager.db) {
-        try {
-          console.log('DEBUG: Clearing IndexedDB via stateManager...');
-          await window.stateManager.clearGameState();
-          console.log('DEBUG: IndexedDB cleared via stateManager');
-        } catch(e) {
-          console.error('DEBUG: Error clearing IndexedDB:', e);
-        }
-      } else {
-        // If stateManager doesn't exist yet, clear IndexedDB directly
-        try {
-          console.log('DEBUG: Clearing IndexedDB directly...');
-          const request = indexedDB.deleteDatabase('SaintsChairmanDB');
-          request.onsuccess = () => {
-            console.log('DEBUG: IndexedDB cleared');
-            location.reload();
-          };
-          request.onerror = () => {
-            console.error('DEBUG: Error clearing IndexedDB');
-            location.reload();
-          };
-          request.onblocked = () => {
-            console.log('DEBUG: IndexedDB clear blocked, reloading anyway');
-            location.reload();
-          };
-        } catch(e) {
-          console.error('DEBUG: Error clearing IndexedDB:', e);
-          location.reload();
-        }
-        return;
-      }
-      
-      console.log('DEBUG: Reloading page...');
-      location.reload();
     };
-    console.log('DEBUG: resetBtn handler attached successfully');
   } else {
     console.error('DEBUG: resetBtn not found! Cannot attach handler.');
   }
@@ -99,30 +54,16 @@ function setupGameButtons() {
 
 // Setup buttons when DOM is ready
 if (document.readyState === 'loading') {
-  console.log('DEBUG: DOM still loading, waiting for DOMContentLoaded');
   document.addEventListener('DOMContentLoaded', setupGameButtons);
 } else {
-  console.log('DEBUG: DOM already ready, setting up buttons immediately');
   setupGameButtons();
 }
 
 // Emergency function to clear corrupted state - call from console: clearCorruptedState()
 window.clearCorruptedState = function() {
-  console.log('🧹 Clearing corrupted game state...');
   localStorage.removeItem(SAVE_KEY);
   localStorage.removeItem('_reset_flag');
-  if (window.stateManager) {
-    window.stateManager.clearGameState().then(() => {
-      console.log('✅ State cleared. Reloading page...');
-      location.reload();
-    }).catch(() => {
-      console.log('✅ State cleared (IndexedDB clear failed, but localStorage cleared). Reloading page...');
-      location.reload();
-    });
-  } else {
-    console.log('✅ State cleared. Reloading page...');
-    location.reload();
-  }
+  location.reload();
 };
 
 function init(){
@@ -130,16 +71,14 @@ function init(){
   const resetFlag = localStorage.getItem('_reset_flag');
   let saved = null;
   if (resetFlag === 'true') {
-    console.log('✅ Reset flag detected in init() - starting fresh');
     localStorage.removeItem('_reset_flag');
     S = defaultState();
   } else {
     saved = localStorage.getItem(SAVE_KEY);
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        // Normalize the loaded state to ensure all fields are properly initialized
-        S = normalizeGameState(parsed);
+        // Parse + normalize the loaded state (migrates older saves)
+        S = parseSavedGame(saved);
         // Update window.S to match
         window.S = S;
       } catch (e) {
@@ -163,7 +102,7 @@ function init(){
     addItem({ name: "2003 FA Cup Runners-Up Trophy", type: "trophy", quantity: 1, baseValue: 50000, sellable: true });
     // Trophy message moved to main intro flow to avoid duplication
   }
-_introLogged: false, // --- normalize arrays/objects after S is created ---
+// --- normalize arrays/objects after S is created ---
 S.bet_history = Array.isArray(S.bet_history) ? S.bet_history : [];
 // --- save migration shim: older saves may be missing opponentManagers
 if (Array.isArray(S.opponents) && (!Array.isArray(S.opponentManagers) || S.opponentManagers.length !== S.opponents.length)) {
@@ -288,11 +227,6 @@ function _moraleApprox(){
   const boost = Number(S?.team_morale_boost || 0);
   const pfa   = Number(S?.pfa_risk || 0);
   return Math.max(0, Math.min(100, base + boost - Math.floor(pfa*2)));
-}
-function _mgrToneLine(agree, soft, harsh){
-  const bias = (agree|0);
-  const roll = Math.random()*100;
-  return (bias >= 65 || roll < (bias/2)) ? soft : harsh;
 }
 
 // Enhanced manager dialogue system with context and personality
@@ -692,11 +626,6 @@ async function managerBriefingIfNeeded(){
   await managerComplaintDecision(true);
 }
 
-function ensureInitialSquadIsEmpty(){
-  if (!Array.isArray(S.squad)) S.squad = [];
-  // Don't clear the initial squad - keep the intended weak players
-  // The draft system was overriding the difficulty by giving good players
-}
 
 // Non-blocking one-time draft; returns a Promise but you don't have to await it
 function runInitialDraftIfNeeded(){
@@ -939,7 +868,6 @@ async function managerComplaintDecision(ultimatum=false){
 
 async function game(){
  try {
-  console.log('DEBUG game(): Starting, startScreenMode=', startScreenMode, 'window.startScreenMode=', window.startScreenMode);
   
   // Hide start screen if still visible and mark as loaded
   const startScreen = document.getElementById('startScreen');
@@ -949,7 +877,6 @@ async function game(){
   window.__gameAutoLoaded = true; // Mark that game has started to prevent start screen from showing again
   
   await init();                 // <-- ensure S is created/loaded first
-  console.log('DEBUG game(): After init(), S exists=', !!S, 'S.season=', S?.season, 'S.matches_played=', S?.matches_played);
   render();                     // safe now
   updateHUD();
   // Ensure Power Network tab exists once core HUD is up
@@ -963,7 +890,6 @@ async function game(){
   
   // Check window.startScreenMode if local variable is not set
   const effectiveMode = startScreenMode || window.startScreenMode || 'none';
-  console.log('DEBUG game(): Effective mode=', effectiveMode);
   
   // If coming from start screen, use modal versions
   if (effectiveMode === 'campaign') {
@@ -980,16 +906,13 @@ async function game(){
     await chooseManager();
   } else if (effectiveMode === 'quick') {
     // Resume mode - skip all setup steps, just continue from saved state
-    console.log('DEBUG game(): Quick start mode - skipping setup');
     updateHUD();
     // Skip all setup steps for resumed games - they're already done
   } else if (effectiveMode === 'load') {
     // Loaded game, skip intro and setup - just continue from where we left off
-    console.log('DEBUG game(): Load mode - skipping setup, continuing game');
     updateHUD();
     // Skip all setup steps for loaded games - they're already done
   } else {
-    console.log('DEBUG game(): Legacy/New game mode - showing intro');
     // Legacy path - show intro in log and use original functions
     if (!S._introLogged) {
       log("You are the new chairman of Southampton FC. You're about to discover that it's not as straightforward as you may think!");
@@ -1019,18 +942,13 @@ ensureLeagueTableInit();
 await ensureSecretaryHired();
 
 // Start the main game loop - this actually runs the game
-console.log('DEBUG game(): Starting mainGameLoop()');
 try {
   await mainGameLoop();
 } catch (e) {
   console.error('DEBUG game(): Error in mainGameLoop():', e);
   logSafe("A critical error occurred in the game loop. The game will attempt to continue...");
   // Try to save state before crashing
-  try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(S));
-  } catch (saveError) {
-    console.log("Could not save state:", saveError);
-  }
+  saveGame();
 }
 
 // Prison loop function - rebuilt for reliability
@@ -1242,7 +1160,7 @@ async function runPrisonLoop() {
       }
       
       // Save state
-      localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+      saveGame();
       
       // Wait for user - with aggressive cleanup before and timeout protection
       try {
@@ -1273,7 +1191,7 @@ async function runPrisonLoop() {
       console.error("PRISON LOOP ERROR:", e);
       // Decrement to prevent infinite loop
       S.suspensions.prison_games = Math.max(0, (S.suspensions.prison_games|0) - 1);
-      localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+      saveGame();
       logSafe("PRISON: Error occurred, but continuing sentence...");
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
@@ -1831,7 +1749,6 @@ async function mainGameLoop() {
   
   while(S.matches_played<S.season_matches && S.matches_played < (S.opponents?.length || S.season_matches) && (S.suspensions?.prison_games|0) <= 0 && (S.suspensions?.rehab_games|0) <= 0 && !S.game_over){
    try {
-    console.log("DEBUG MAIN LOOP: Entry check — matches_played:", S.matches_played, "season_matches:", S.season_matches, "opponents.length:", (S.opponents?.length || 0), "prison_games:", (S.suspensions?.prison_games|0), "rehab_games:", (S.suspensions?.rehab_games|0), "game_over:", S.game_over);
     
     // Send initial Delmor text at the beginning of the game (only once)
     if (S.matches_played === 0 && !S._initial_delmor_text_sent) {
@@ -1848,9 +1765,7 @@ async function mainGameLoop() {
     await maybeSecretaryEvent(); 
     const prisonCheck = (S.suspensions?.prison_games|0) > 0;
     const rehabCheck = (S.suspensions?.rehab_games|0) > 0;
-    console.log("DEBUG MAIN LOOP: After maybeSecretaryEvent — prison_games:", (S.suspensions?.prison_games|0), "rehab_games:", (S.suspensions?.rehab_games|0), "should break:", (S.bankrupt || prisonCheck || rehabCheck || S.game_over));
     if(S.bankrupt||prisonCheck||rehabCheck||S.game_over) {
-      console.log("DEBUG MAIN LOOP: Breaking due to state — bankrupt:", S.bankrupt, "prison:", prisonCheck, "rehab:", rehabCheck, "game_over:", S.game_over);
       break;
     }
   await processWages();
@@ -1993,18 +1908,14 @@ if (how === 'skip') {
   outcome = await skipToResults();
 } else {
   // quick-sim path with taunt option
-  console.log("DEBUG QUICK SIM: Starting playMatchPhaseWithTaunts()");
   // Clear any pre-match menu interruption flags that might interfere
   if (S._preMatchMenuInterrupted) {
-    console.log("DEBUG QUICK SIM: Clearing _preMatchMenuInterrupted flag");
     S._preMatchMenuInterrupted = false;
   }
   if (S._preMatchMenuActive) {
-    console.log("DEBUG QUICK SIM: Clearing _preMatchMenuActive flag");
     S._preMatchMenuActive = false;
   }
   outcome = await playMatchPhaseWithTaunts();
-  console.log("DEBUG QUICK SIM: playMatchPhaseWithTaunts() returned, outcome:", outcome);
   
   // Apply Season 5 survival economy match modifiers
   if (typeof applySeason5MatchModifiers === 'function') {
@@ -2013,7 +1924,6 @@ if (how === 'skip') {
 }
 
 // Store match result for Press system (normalize goal field names)
-console.log(`DEBUG: outcome object before storage:`, outcome);
 
 const ourGoals = 
   (typeof outcome?.our_goals === 'number')     ? outcome.our_goals     :
@@ -2035,8 +1945,6 @@ window.lastMatchOutcome = {
   usGoals: ourGoals,
   themGoals: theirGoals
 };
-console.log(`DEBUG: Storing match result - ourGoals: ${ourGoals}, theirGoals: ${theirGoals}`);
-console.log(`DEBUG: S.lastMatchResult after storage:`, S.lastMatchResult);
 
 // Use the SAME captured opponent in the full-time line (no "stagger")
 
@@ -2056,27 +1964,22 @@ const isSeason5FirstMatch = (S.season === 5 && S.matches_played === 0);
 let postMatchAudio = null;
 
 if (isSeason5FirstMatch) {
-  console.log('DEBUG MUSIC: Season 5 first match detected - checking for existing special post-match music');
   
   // Use existing audio if it was already created (from panic video/aftermath UI)
   postMatchAudio = window._season5PostMatchAudio;
   
   if (!postMatchAudio) {
-    console.log('DEBUG MUSIC: No existing audio found, creating new one');
     // Stop general background music
     if (typeof window._stopGeneralMusic === 'function') {
       window._stopGeneralMusic();
-      console.log('DEBUG MUSIC: Stopped general music via _stopGeneralMusic');
     } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio && !generalMusicAudio.paused) {
       generalMusicAudio.pause();
-      console.log('DEBUG MUSIC: Paused generalMusicAudio directly');
     }
     
     // Also pause opening music if playing
     const openingMusic = document.getElementById('openingMusic');
     if (openingMusic && !openingMusic.paused) {
       openingMusic.pause();
-      console.log('DEBUG MUSIC: Paused opening music');
     }
     
     // Create the post-match track
@@ -2088,7 +1991,6 @@ if (isSeason5FirstMatch) {
     // Store globally
     window._season5PostMatchAudio = postMatchAudio;
   } else {
-    console.log('DEBUG MUSIC: Using existing special post-match audio (from aftermath UI)');
     // Make sure background music is still stopped
     if (typeof window._stopGeneralMusic === 'function') {
       window._stopGeneralMusic();
@@ -2101,45 +2003,33 @@ if (isSeason5FirstMatch) {
   if (postMatchAudio.paused) {
     try {
       await postMatchAudio.play();
-      console.log('DEBUG MUSIC: Special post-match music started/resumed playing for first post-match UI');
     } catch (err) {
-      console.log('Could not play post-match track:', err);
     }
   } else {
-    console.log('DEBUG MUSIC: Special post-match music already playing for first post-match UI');
   }
 } else {
-  console.log('DEBUG MUSIC: Not season 5 first match, skipping special music');
 }
 
-console.log('DEBUG POSTMATCH: About to show Post-Match waitAdvance button');
-console.log('DEBUG POSTMATCH: Season:', S.season, 'Match:', S.matches_played);
 await waitAdvance("Post-Match", "Match finished. Process consequences?");
 
 // Before postMatchPhase (second post-match in main game log), pause special music and resume normal background music
 // The special music will resume in the aftermath UI which comes after postMatchPhase
 if (isSeason5FirstMatch && postMatchAudio && !postMatchAudio.paused) {
   postMatchAudio.pause();
-  console.log('DEBUG MUSIC: Paused special music before postMatchPhase (second post-match)');
   // Don't reset currentTime - let it continue from where it paused when it resumes in aftermath
 }
 
 // Resume normal background music for the second post-match (postMatchPhase)
 if (isSeason5FirstMatch) {
-  console.log('DEBUG MUSIC: Resuming normal background music for postMatchPhase');
   if (typeof window._startGeneralMusic === 'function') {
     window._startGeneralMusic();
   } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
     generalMusicAudio.play().catch(err => {
-      console.log('Could not resume background music:', err);
     });
   }
 }
 
-console.log('DEBUG POSTMATCH: Post-Match button clicked, proceeding to postMatchPhase');
-console.log('DEBUG POSTMATCH: Outcome object:', outcome);
 await postMatchPhase(outcome);
-console.log('DEBUG POSTMATCH: postMatchPhase completed, continuing main loop');
 
 // Season 5 first match: Play Panic video after match UI finishes
 // Note: This code may not run if the video was already played from the massacre event
@@ -2286,9 +2176,6 @@ if (S.season === 5 && S.season5 && S.season5.play_panic_video && S.matches_playe
     videoCloseBtn.addEventListener('click', resolve, { once: true });
   });
   
-  // #region agent log
-  // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:53699',message:'post-match panic video code checking kidnapping sequence',data:{season:S.season,matchesPlayed:S.matches_played,kidnappingShown:S.season5?.kidnapping_sequence_shown,playPanicVideoFlag:S.season5?.play_panic_video},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-  // #endregion
   
   // After panic video: Show kidnapping sequence UI log (only if not already shown)
   if (!S.season5) S.season5 = {};
@@ -2296,20 +2183,15 @@ if (S.season === 5 && S.season5 && S.season5.play_panic_video && S.matches_playe
   // Safety check: If we're on match 0 and the flag is somehow true, reset it
   // This handles cases where the flag persisted from a previous save incorrectly
   if (S.matches_played === 0 && S.season5.kidnapping_sequence_shown === true) {
-    console.log('DEBUG: [POST-MATCH] Resetting kidnapping_sequence_shown flag - should be false for match 0');
     S.season5.kidnapping_sequence_shown = false;
   }
   
   if (!S.season5.kidnapping_sequence_shown) {
-    // #region agent log
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:53701',message:'post-match code calling showKidnappingSequenceModal',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
     if (typeof showKidnappingSequenceModal === 'function') {
       try {
         await showKidnappingSequenceModal();
         // Only set flag to true AFTER the modal has been shown successfully
         S.season5.kidnapping_sequence_shown = true;
-        console.log('DEBUG: Kidnapping sequence modal completed, flag set to true');
       } catch (error) {
         console.error('DEBUG: Error showing kidnapping sequence modal:', error);
         // Don't set flag if there was an error, so it can try again
@@ -2318,8 +2200,5 @@ if (S.season === 5 && S.season5 && S.season5.play_panic_video && S.matches_playe
       console.error('showKidnappingSequenceModal is not defined');
     }
   } else {
-    // #region agent log
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:53715',message:'post-match code kidnapping already shown',data:{kidnappingShown:S.season5.kidnapping_sequence_shown},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
   }
 }

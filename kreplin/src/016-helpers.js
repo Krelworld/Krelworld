@@ -3,9 +3,6 @@ const money=n=>'£'+Number(n).toLocaleString('en-GB');
 const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 const sample=arr=>arr[Math.floor(Math.random()*arr.length)];
 const now=()=>new Date().toLocaleString();
-// Get DOM elements dynamically to avoid null references
-function getFeed() { return document.getElementById('feed'); }
-function getActions() { return document.getElementById('actions'); }
 const FEMALE_NAMES = ["Krogette","Beyonce","Dresdeny", "Disorderleigh", "Kretchen", "Felchette", "Cyste", "Lovely Laura", "Melonette", "Syrup", "Fanny", "Lioness", "Saintette", "Vanilla", "Kezril", "Sativa", "Autopsie", "Bertha", "Stampedette", "Banana", "Kush", "Seronda", "Trophie", "Lisa", "Beryl", "Fabulous Fanny", "Gruntette", "Squawkette", "Squiffy", "Injurie", "Kezza", "Mollor", "Swezzer", "Kate", "Crostina", "Belchetta", "Dragonfruit", "Da Female Chozen One", "Morag", "Jeggings", "Fergie", "Shagette", "Venus", "Kath", "Coffee Cake", "Kreblisa", "Cindy", "Peckish", "Crumpette", "Appetite", "Appetiser","Karen", "Flartennia", "Trumpence", "Tuppence", "Serendipitie", "Temperance", "Ribena", "Saltine", "Emily", "Statistique", "Dizney", "Princess", "Precious", "Plumpette", "Carrot", "Felchita", "Saliva", "Salvia", "Cannabette", "Ambrosia", "Wei-Ling", "Synthetique", "Briberie", "Finesse", "Massage", "Boggette", "Menage", "Sympathie", "Empathie", "Tuppence", "Eva", "Eternity", "Felicity", "Bolognese", "Yazzy", "Burkha", "Margherita", "Chocolette", "Repartee", "Partition", "Beaky", "Pandemonia", "Temptressa", "Charlotte", "Emma", "Missionarie", "Pepper", "Peppa Pig", "Tactile", "Ribbony", "Tiramisu", "Cream", "Fragrance", "Cardigan", "Viola", "Bouquet", "Rachel", "Nutella", "Tarantulette", "Gertrude", "Gerty", "Serviette", "Scandelle", "Fabrique", "Fluffette", "Aneurysme", "Dorothy", "Francine", "Padma", "Angel", "Lubricia", "Snetty", "Missionarie", "Angelique", "Guinevere", "Dialysis", "Cygerette", "Gertrude", "Gertie", "Celebritie", "Brandice", "Burghette", "Licorice", "Bruschetta", "Maybelline", "Lizzy", "Nativitie", "Sensitivitie", "Brownie", "Cavity", "Bustina", "Expedia", "Stella", "Pleazure", "Aphrodite", "Belladonna", "Cassiopeia", "Delilah", "Electra", "Fiona", "Gwendolyn", "Hecate", "Isadora", "Jezebel", "Kali", "Lilith", "Medusa", "Nyx", "Ophelia", "Persephone", "Quinn", "Raven", "Seraphina", "Tempest", "Ursula", "Valkyrie", "Wren"];
 const MALE_NAMES   = ["Krelmor", "Hagrid", "Rhett", "Skunk", "Wezlow", "Crabon", "Gulch", "Milkus", "Scronson", "Kremon", "Kelmon", "Grotty", "Periwinkle", "Scrotto", "Drongus B.", "Lil Crongus", "Krog", "Skidmork", "Bertie", "Wilmor", "Silmor", "Terrence", "Kevin", "Clarence", "Dynamo", "Ronson", "Bronson", "Tackle", "Tom", "Robert", "Tobias", "Bazzard", "Krazil", "Oregano", "Timmy", "Jimmy", "Lazlow", "Ambrose", "Forrester", "Michael", "Tuppy", "Strategem", "Molty", "Andre", "Sonic", "Nigel", "Peregrine", "Deontay", "Malachi", "Godspeed", "Usain", "Kim-Jong", "Debonair", "Krezben","Krabbor", "Kritchell", "Grog", "Archimedes", "Rodney", "Chozen-One", "Sanjeev", "Radar", "Chieftan", "Chicago", "Belchmar", "Barles", "Brixton", "Hackney", "Krelbert", "Drongus", "Chiplin", "Crobley", "Stepney", "Scrombus", "Kreblis", "Malcolm", "Norman", "King Baxter", "Kendrick Lamar II", "Football", "Rooney", "Milner", "Bovril", "Basil", "Bestial", "Boggor", "Timmy", "Thomas", "Tyrone", "Ibram X", "Krodmar", "Blexmar", "Fraxmar", "Brelmar", "Conkreth", "Moborsh", "Dalton", "Deacon", "Krazy", "Krazed", "Litmus", "Stretch", "Mohammed", "Gutstank", "Irving", "Lil' Gluggy", "Willy", "Steamon", "Ernie", "Ernest", "Wonderful Willy", "Labrador", "Kidney", "Buster", "Nobby", "Nut", "Bolt", "Tech N9ne", "Wrench", "Gronald", "Kenneth", "Sledge", "Clench", "Swizzy", "Texan", "Aberdeen", "Big Mac", "Nugget", "Larry", "Lombar", "Bongo", "Fortune Favors Da Brave", "Jenko", "Tech", "Jupiter", "Chadmork", "Dante", "Flenky", "James", "Harry", "Charlie", "Mikey", "Jack", "Norfolk", "Squit", "Thump", "Drastic", "Vilnius", "Sclerosis", "Cave", "Salton", "Sheikh", "Grimblo", "Skepta", "Stroke", "Cartilidge", "Milbrook", "Morton", "Zaddius", "Dutty", "Terry", "Norris", "Tarbrus", "Brutus", "Da Illest", "Krevin", "Kravid", "Bozzer", "Krorge", "Krudgle", "Stomp", "Chaos", "Defcon", "Balthazar", "Mozart", "Chazon", "Peerless", "Anthony", "Rancid", "Bogus", "Shafty Rod", "Gronster","Dongle", "Stench", "Wankme", "Alexander", "Benjamin", "Christopher", "Daniel", "Edward", "Frederick", "Gabriel", "Henry", "Isaac"];
 const SURNAMES     = ["Creltu","Scrozno", "Drywall", "Prostin", "Felch", "Mandrill", "Frelgu","Jumblin", "Drippin", "S. Grant", "Krenton", "Brenlus", "Lorris", "Norris", "Forsyth","Spain","Cheezit", "Techno", "McDonald","Johnson","Thompson","Walker","Cratchett","Krelmor", "Custard", "Krankmo", "Brongus","Borker","Braich", "Falconer", "Bell", "Cranch", "Willie", "Popper", "Softener", "Robber-Baron", "Wren", "Yang", "Krozno", "Seamen", "Weeper", "Hex", "Burgess","Tremblin", "Conker", "Dribbler", "Snugglepuff", "Moore","Mildew","Clark","Allen", "Bongo", "Crampon", "Krandall", "Bangsweth", "Crendu", "Snuffton", "Wankus", "Borgor", "Bagdai", "Gambler", "Onsley", "Tenderly", "Tendril", "Throbbin", "Onslaught", "Hammerbro", "Goldstein", "Wongstein", "Parcel", "Wrentham", "Springer", "Crimson", "Rotson", "Nevitt", "Brotwith", "Simpson", "Swiller", "Gooch", "Brunt", "Guzzlebum", "Cumming", "Treadmill", "Stiffie", "Roosevelt", "Kennedy", "Hardrod", "Crocku", "Cranstil", "Cronstil", "Morton", "Crandar", "Stillfrit", "Venables", "Trennith", "Trimbon", "Buxter", "Mezlow", "Voldon", "Maximum", "Choccu", "Pudding", "Pennis", "Chang", "Patel", "Richmond", "Angus", "Sashimi", "Fortune", "Jenkins", "Islam", "Wang", "Wong", "Cohen", "Sunak", "Wonkor", "Bongrip", "Butterworth", "Nutbust", "Cowlick", "Smith", "Pusher", "Flatus", "Jenkins", "Brinkley", "Titchmarsh", "Trickmeister", "Cockson", "Michaels", "Brezlin", "Brecht", "Drooblin", "Masher", "Troika", "Empath", "Clitte", "Gargle", "Gargler", "Trackanfield", "Creamer", "Troffley", "Truffle", "Flendon", "Quimstick", "Hounslow", "Gorping", "Masala", "Tremble", "Jones", "Skunt", "Onslow", "Bexley-Heath", "Baxter", "Tickle", "Belfrey", "Bogstein", "Kwale", "Kwamese", "Bumpstock", "Crimbo", "Tekken", "Fragmar", "Lizards", "Konguss", "Crongus", "Bigbum", "Chang", "Cohenberg", "Bingo", "Fragnor", "Moaning", "Griblis", "Creston", "Tenderly", "Winstanley", "Frenalty", "Muncher", "Bigbelly", "Johnson", "Stroker", "Singh", "Toaster", "Dorito", "Tungus", "Dangle", "Dongle", "Cockwood", "Nukem", "Kingfisher", "Spurting", "Beaker", "Failsafe", "Cronston", "Milmil", "Bangers", "Dribblin", "Scrottus", "Scrotton", "Leaker", "Bellhop", "Spaffing", "Wonkor", "Crapper", "Nicely", "Mudflap", "Stambus", "Krelford", "Kettler", "Paradise", "Grettle", "Gronston", "Grottler", "Throbber", "Febrielgus", "Silly", "Stuttgart", "Ronson", "Smellie", "Gagger", "Guzzler", "Anderson", "Blackwood"];
@@ -162,194 +159,6 @@ class ModernModal {
 
 // Global modal instance
 const modal = new ModernModal();
-
-// --- MODERN STATE MANAGEMENT WITH INDEXEDDB ---
-class GameStateManager {
-  constructor() {
-    this.dbName = 'SaintsChairmanDB';
-    this.dbVersion = 1;
-    this.db = null;
-    this.autoSaveInterval = null;
-  }
-
-  async init() {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, this.dbVersion);
-      
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => {
-        this.db = request.result;
-        this.startAutoSave();
-        resolve();
-      };
-      
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains('gameState')) {
-          const store = db.createObjectStore('gameState', { keyPath: 'id' });
-          store.createIndex('timestamp', 'timestamp', { unique: false });
-        }
-        if (!db.objectStoreNames.contains('achievements')) {
-          db.createObjectStore('achievements', { keyPath: 'id' });
-        }
-        if (!db.objectStoreNames.contains('settings')) {
-          db.createObjectStore('settings', { keyPath: 'key' });
-        }
-      };
-    });
-  }
-
-  async saveGameState(state, metadata = {}) {
-    if (!this.db) return false;
-    
-    const gameState = {
-      id: 'current',
-      data: state,
-      timestamp: Date.now(),
-      version: 'v12',
-      metadata: {
-        season: state.season || 1,
-        gamesPlayed: state.matches_played || 0,
-        ...metadata
-      }
-    };
-
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(['gameState'], 'readwrite');
-      const store = transaction.objectStore('gameState');
-      const request = store.put(gameState);
-      
-      request.onsuccess = () => {
-        console.log('Game state saved to IndexedDB');
-        resolve(true);
-      };
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  async loadGameState() {
-    if (!this.db) return null;
-    
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(['gameState'], 'readonly');
-      const store = transaction.objectStore('gameState');
-      const request = store.get('current');
-      
-      request.onsuccess = () => {
-        const result = request.result;
-        if (result) {
-          console.log('Game state loaded from IndexedDB');
-          resolve(result.data);
-        } else {
-          resolve(null);
-        }
-      };
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  async getSaveHistory() {
-    if (!this.db) return [];
-    
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(['gameState'], 'readonly');
-      const store = transaction.objectStore('gameState');
-      const index = store.index('timestamp');
-      const request = index.getAll();
-      
-      request.onsuccess = () => {
-        const saves = request.result
-          .sort((a, b) => b.timestamp - a.timestamp)
-          .slice(0, 10); // Keep last 10 saves
-        resolve(saves);
-      };
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  async saveAchievement(achievement) {
-    if (!this.db) return false;
-    
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(['achievements'], 'readwrite');
-      const store = transaction.objectStore('achievements');
-      const request = store.put({
-        id: achievement.id,
-        ...achievement,
-        unlockedAt: Date.now()
-      });
-      
-      request.onsuccess = () => resolve(true);
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  async getAchievements() {
-    if (!this.db) return [];
-    
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(['achievements'], 'readonly');
-      const store = transaction.objectStore('achievements');
-      const request = store.getAll();
-      
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  startAutoSave() {
-    // Auto-save every 30 seconds
-    this.autoSaveInterval = setInterval(() => {
-      if (window.S) {
-        this.saveGameState(window.S);
-      }
-    }, 30000);
-  }
-
-  stopAutoSave() {
-    if (this.autoSaveInterval) {
-      clearInterval(this.autoSaveInterval);
-      this.autoSaveInterval = null;
-    }
-  }
-
-  async clearGameState() {
-    if (!this.db) return false;
-    
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(['gameState'], 'readwrite');
-      const store = transaction.objectStore('gameState');
-      const request = store.delete('current');
-      
-      request.onsuccess = () => {
-        console.log('Game state cleared from IndexedDB');
-        resolve(true);
-      };
-      request.onerror = () => reject(request.error);
-    });
-  }
-}
-
-// Make GameStateManager globally accessible
-window.GameStateManager = GameStateManager;
-
-// Initialize modern systems now that GameStateManager is defined
-// Use async wrapper to ensure proper initialization
-if (typeof initializeModernSystems === 'function') {
-  const initModernSystems = async () => {
-    try {
-      await initializeModernSystems();
-    } catch (e) {
-      console.error('Error initializing modern systems:', e);
-    }
-  };
-  
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initModernSystems);
-  } else {
-    initModernSystems();
-  }
-}
 
 // --- PERFORMANCE OPTIMIZATIONS ---
 class PerformanceOptimizer {
@@ -671,7 +480,6 @@ class SocialManager {
         url: window.location.href
       });
     } catch (error) {
-      console.log('Share cancelled or failed:', error);
     }
   }
 
@@ -858,7 +666,6 @@ Play at: ${window.location.href}`;
 
     newAchievements.forEach(achievement => {
       this.showAchievement(achievement);
-      stateManager.saveAchievement(achievement);
     });
   }
 
@@ -1061,14 +868,6 @@ function promptNumber(message, options = {}) {
   });
 }
 
-function promptText(message, defaultValue = "") {
-  return modal.show({
-    title: 'Enter Text',
-    message: message,
-    type: 'text',
-    options: { defaultValue }
-  });
-}
 
 
 function ensureFamilyNames(){
@@ -1536,7 +1335,6 @@ if (typeof registerBribe !== 'function'){
         };
         window.socialManager.showAchievement(achievement);
         window.socialManager.achievements.push(achievement);
-        if (window.stateManager) window.stateManager.saveAchievement(achievement);
       }
     } catch (_) {}
   }

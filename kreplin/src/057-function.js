@@ -1,3 +1,4 @@
+/* === Patch 5.3.1 — Drugs UI Resilience & Working Buy/Use === */
 (function(){
   if (window.__patch531_applied) return;
   window.__patch531_applied = true;
@@ -54,7 +55,6 @@
     const allowed = ['prematch','evening','home'].includes(window.__ui_context) && 
                    !window.__ui_context.includes('name') && 
                    !window.__ui_context.includes('boot');
-    console.log(`DEBUG: allowedPhase() - context: "${window.__ui_context}", allowed: ${allowed}`);
     return allowed;
   }
 
@@ -65,17 +65,14 @@
   }
   // Consolidated takeCocaine function - this is the main one that all buttons should use
   function takeCocaine(){
-    console.log("DEBUG: takeCocaine() called (CONSOLIDATED)");
     ensureCore();
     if (!S.drugs_unlocked) { (window.log||console.log)("You don't have a dealer contact yet."); return; }
     if (S.suspensions?.rehab_games > 0){ (window.log||console.log)("REHAB: You're barred from using drugs while in treatment."); return; }
     
     // Use the higher of the two streak values for overdose check
     const currentStreak = Math.max((S.drug_streak|0), (S.coke_streak|0));
-    console.log(`DEBUG: Current streak: ${currentStreak}, drug_streak: ${S.drug_streak}, coke_streak: ${S.coke_streak}`);
     
     if (currentStreak >= 4){ 
-      console.log("DEBUG: Triggering overdose!");
       overdose(); 
       return; 
     }
@@ -111,7 +108,6 @@
       };
       window.socialManager.showAchievement(achievement);
       window.socialManager.achievements.push(achievement);
-      if (window.stateManager) window.stateManager.saveAchievement(achievement);
     }
     
     // Deranged actions removed - will be replaced by another function
@@ -121,11 +117,9 @@
   function actionsRoot(){ return document.getElementById('actions') || document.getElementById('choices') || document.body; }
   function clearDrugQuick(){ try{ actionsRoot().querySelectorAll('button[data-drugquick531="1"]').forEach(n=>n.remove()); }catch(_){} }
   function mountDrugQuick(){
-    console.log("DEBUG: mountDrugQuick() called");
     
     // Prevent infinite loops by checking if we're already mounting
     if (window.__mountingDrugQuick) {
-      console.log("DEBUG: mountDrugQuick() already in progress, skipping");
       return;
     }
     window.__mountingDrugQuick = true;
@@ -135,15 +129,11 @@
       const root = actionsRoot(); if (!root) return;
       clearDrugQuick();
 
-      console.log(`DEBUG: allowedPhase(): ${allowedPhase()}, drugs_unlocked: ${S.drugs_unlocked}, context: ${window.__ui_context}`);
-      console.log(`DEBUG: prison_games: ${S.suspensions?.prison_games}, rehab_games: ${S.suspensions?.rehab_games}`);
       
       if (!allowedPhase() || !S.drugs_unlocked) {
-        console.log("DEBUG: Button not shown - phase not allowed or drugs not unlocked");
         return;
       }
     if (S.suspensions?.prison_games>0 || S.suspensions?.rehab_games>0) {
-      console.log("DEBUG: Button not shown - in prison or rehab");
       return;
     }
 
@@ -163,7 +153,6 @@
         S.stadium_dealing_unlocked = true;
         S.cocaine_purchase_matches_ago = 0;
         S.marco_approach_attempted = false;
-        console.log(`DEBUG: Cocaine purchased (direct) - stadium dealing unlocked, marco_approach_attempted reset to false`);
       }
       
       (window.log||console.log)("You buy 1 bag.");
@@ -189,17 +178,13 @@
                     : `Take Cocaine (${need} bag${need>1?'s':''} needed)`;
     take.disabled = !Number.isFinite(need) || ((S.inventory.drugs|0) < need);
     take.addEventListener('click', function(){
-      console.log("DEBUG: Take Cocaine button clicked!");
       try {
         takeCocaine();
-        console.log("DEBUG: takeCocaine returned successfully from Take Cocaine button");
       } catch (e) {
-        console.log("DEBUG: Error in Take Cocaine button click handler:", e);
       }
     });
     root.appendChild(take);
     
-    console.log(`DEBUG: Take Cocaine button created! Text: "${take.textContent}", Disabled: ${take.disabled}`);
     } finally {
       // Always clear the mounting flag
       window.__mountingDrugQuick = false;
@@ -283,7 +268,6 @@
   
   // Add a global function to manually create cocaine buttons
   window.createCocaineButton = function() {
-    console.log("DEBUG: Manual cocaine button creation requested");
     try {
       const root = document.getElementById('actions') || document.getElementById('choices') || document.body;
       if (root) {
@@ -297,58 +281,44 @@
         btn.style.margin = '5px';
         btn.dataset.testCocaine = '1';
         btn.addEventListener('click', function(){
-          console.log("DEBUG: Manual button clicked!");
           try {
             takeCocaine();
-            console.log("DEBUG: takeCocaine returned successfully from manual button");
           } catch (e) {
-            console.log("DEBUG: Error in manual button click handler:", e);
           }
         });
         root.appendChild(btn);
-        console.log("DEBUG: Manual cocaine button created!");
         return true;
       } else {
-        console.log("DEBUG: No root element found for manual button");
         return false;
       }
     } catch(e) {
-      console.log("DEBUG: Error creating manual button:", e);
       return false;
     }
   };
   
   // Add a function to force open inventory and check for buttons
   window.checkInventoryButtons = function() {
-    console.log("DEBUG: Checking inventory buttons...");
     try {
       // Force open inventory
       if (typeof window.toggleInventoryPane === 'function') {
         window.toggleInventoryPane(true);
-        console.log("DEBUG: Inventory opened");
       }
       
       // Check for cocaine buttons in inventory
       const inventoryPane = document.getElementById('inventoryPane');
       if (inventoryPane) {
         const cocaineButtons = inventoryPane.querySelectorAll('button');
-        console.log(`DEBUG: Found ${cocaineButtons.length} buttons in inventory`);
         cocaineButtons.forEach((btn, i) => {
-          console.log(`DEBUG: Button ${i}: "${btn.textContent}"`);
         });
       } else {
-        console.log("DEBUG: No inventory pane found");
       }
       
       // Check for buttons in main area
       const mainButtons = document.querySelectorAll('button[data-drugquick531="1"]');
-      console.log(`DEBUG: Found ${mainButtons.length} drug quick buttons in main area`);
       mainButtons.forEach((btn, i) => {
-        console.log(`DEBUG: Main button ${i}: "${btn.textContent}"`);
       });
       
     } catch(e) {
-      console.log("DEBUG: Error checking inventory buttons:", e);
     }
   };
 })();

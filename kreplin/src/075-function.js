@@ -1,3 +1,4 @@
+/* MATCH HOTFIX - Fixes for "always win opener" issues */
 (function() {
   'use strict';
   
@@ -387,7 +388,6 @@
       // Ensure button is visible and add a small delay
       setTimeout(() => {
         if (document.getElementById('skipToResultsBtn')) {
-          console.log('Skip button added successfully');
         }
       }, 100);
       
@@ -558,7 +558,6 @@
     }
   };
   
-  console.log('Match hotfix applied: Fixed opponent generation, bribe propagation, and strength equalization');
 })();
 
 // ===== STADIUM DEALING SYSTEM =====
@@ -571,7 +570,6 @@ async function maybeStadiumDealingApproach() {
   S.cocaine_purchase_matches_ago = (S.cocaine_purchase_matches_ago || 0) + 1;
   
   // Debug logging
-  console.log(`DEBUG: Stadium dealing approach check - cocaine_purchase_matches_ago: ${S.cocaine_purchase_matches_ago}, marco_approach_attempted: ${S.marco_approach_attempted}`);
   
   // Calculate approach chance based on previous decisions and time since cocaine purchase
   let approachChance = S.stadium_dealing_approach_chance;
@@ -580,35 +578,26 @@ async function maybeStadiumDealingApproach() {
   // Guaranteed appearance if user has visited 1+ times and we need to reach 3 visits
   if (totalVisits >= 1 && totalVisits < 3) {
     approachChance = 100; // 100% chance to ensure we can reach 3 visits
-    console.log(`DEBUG: Marco approach chance set to 100% (guaranteed appearance - visits: ${totalVisits})`);
   }
   // High chance within 4 matches of cocaine purchase (first time only)
   else if (S.cocaine_purchase_matches_ago <= 4 && !S.marco_approach_attempted) {
     approachChance = 75; // 75% chance within 4 matches for first approach
-    console.log(`DEBUG: Marco approach chance set to 75% (first approach within 4 matches of cocaine purchase)`);
   }
   // After first approach, use normal approach chance for subsequent approaches
   else if (S.marco_approach_attempted) {
-    console.log(`DEBUG: Marco has approached before, using normal approach chance: ${approachChance}%`);
   }
   
-  console.log(`DEBUG: Final approach chance: ${approachChance}%`);
   
   // Roll for approach
   const roll = Math.random() * 100;
-  console.log(`DEBUG: Approach roll: ${roll.toFixed(2)} (need < ${approachChance})`);
   
   if (roll < approachChance) {
-    console.log(`DEBUG: Marco approach triggered!`);
     if (!S.marco_approach_attempted) {
       S.marco_approach_attempted = true; // Mark that Marco has made his first approach
-      console.log(`DEBUG: This is Marco's first approach`);
     } else {
-      console.log(`DEBUG: Marco is returning for another deal`);
     }
     await showStadiumDealingOffer();
   } else {
-    console.log(`DEBUG: Marco approach not triggered this time`);
   }
 }
 
@@ -639,13 +628,11 @@ async function showStadiumDealingOffer() {
   
   // Increment total visits counter regardless of choice
   S.stadium_dealing_total_visits = (S.stadium_dealing_total_visits || 0) + 1;
-  console.log(`DEBUG: Stadium dealing visit #${S.stadium_dealing_total_visits} (choice: ${choice})`);
   
   // Check for catastrophe trigger (3 total visits, regardless of choice)
   if (S.stadium_dealing_total_visits >= 3) {
     S.preMatch = S.preMatch || {};
     S.preMatch.stadium_burn_triggered = true;
-    console.log(`DEBUG: Stadium burn triggered after ${S.stadium_dealing_total_visits} visits`);
   }
   
   if (choice === 'allow') {
@@ -691,7 +678,6 @@ function handleStadiumDealingRefuse() {
 
 // Process stadium dealing results after match
 async function processStadiumDealingResults() {
-  console.log(`DEBUG processStadiumDealingResults: stadium_burn_triggered=${S.preMatch?.stadium_burn_triggered}, stadium_dealing_payout=${S.preMatch?.stadium_dealing_payout}`);
   
   // Additional safety check: If it's season 2 match 11 and we haven't triggered yet, force it
   if (!S.preMatch?.stadium_burn_triggered && S.season === 2 && S.matches_played === 11 && !S.stadium_burned) {
@@ -699,7 +685,6 @@ async function processStadiumDealingResults() {
     const hasDealingHistory = S.stadium_dealing_unlocked || totalVisits > 0 || (S.stadium_dealing_total_allows || 0) > 0;
     
     if (totalVisits >= 2 || hasDealingHistory) {
-      console.log(`DEBUG processStadiumDealingResults: Season 2 match 11 safety check - forcing trigger (visits=${totalVisits}, hasHistory=${hasDealingHistory})`);
       S.preMatch = S.preMatch || {};
       S.preMatch.stadium_burn_triggered = true;
     }
@@ -708,7 +693,6 @@ async function processStadiumDealingResults() {
   // Check for stadium burn trigger FIRST - this can happen even without a payout
   // (e.g., season 2 default path at match 11)
   if (S.preMatch?.stadium_burn_triggered) {
-    console.log(`DEBUG processStadiumDealingResults: Stadium burn triggered, calling triggerStadiumBurn()`);
     await triggerStadiumBurn();
     
     // Clean up the trigger flag
@@ -716,7 +700,6 @@ async function processStadiumDealingResults() {
     
     // If there was no payout, we're done here
     if (!S.preMatch?.stadium_dealing_payout) {
-      console.log(`DEBUG processStadiumDealingResults: No payout, but stadium burn processed. Exiting.`);
       return;
     }
   }
@@ -759,7 +742,6 @@ async function triggerStadiumBurn() {
     };
     window.socialManager.showAchievement(achievement);
     window.socialManager.achievements.push(achievement);
-    if (window.stateManager) window.stateManager.saveAchievement(achievement);
   }
   
   // Destroy stadium
@@ -1040,7 +1022,6 @@ async function playGemJingle() {
           window._startGeneralMusic();
         } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
           generalMusicAudio.play().catch(err => {
-            console.log('Could not resume background music:', err);
           });
         }
       }
@@ -1048,7 +1029,6 @@ async function playGemJingle() {
       // Resume opening music if it was playing
       if (wasOpeningMusicPlaying && openingMusic) {
         openingMusic.play().catch(err => {
-          console.log('Could not resume opening music:', err);
         });
       }
       
@@ -1064,7 +1044,6 @@ async function playGemJingle() {
           window._startGeneralMusic();
         } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
           generalMusicAudio.play().catch(err => {
-            console.log('Could not resume background music:', err);
           });
         }
       }
@@ -1072,7 +1051,6 @@ async function playGemJingle() {
       // Resume opening music if it was playing
       if (wasOpeningMusicPlaying && openingMusic) {
         openingMusic.play().catch(err => {
-          console.log('Could not resume opening music:', err);
         });
       }
       
@@ -1090,7 +1068,6 @@ async function playGemJingle() {
             window._startGeneralMusic();
           } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
             generalMusicAudio.play().catch(err => {
-              console.log('Could not resume background music:', err);
             });
           }
         }
@@ -1098,7 +1075,6 @@ async function playGemJingle() {
         // Resume opening music if it was playing
         if (wasOpeningMusicPlaying && openingMusic) {
           openingMusic.play().catch(err => {
-            console.log('Could not resume opening music:', err);
           });
         }
         

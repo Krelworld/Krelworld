@@ -886,10 +886,6 @@ function closeChairmenLeaguePopup() {
 // Make close function globally accessible for onclick handlers
 window.closeChairmenLeaguePopup = closeChairmenLeaguePopup;
 
-// Legacy function - keep for backward compatibility but redirect to popup
-async function showChairmenLeagueTable() {
-  await showChairmenLeagueTablePopup();
-}
 
 // Show live chairman rankings with dynamic updates and quick quotes
 async function showLiveChairmanRankings() {

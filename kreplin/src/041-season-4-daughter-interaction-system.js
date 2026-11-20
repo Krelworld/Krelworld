@@ -62,9 +62,8 @@ if (S._skip_to_main_menu) {
 // Check for custody immediately after postMatchPhase - if detected, break from loop
 const custodyAfterPostMatch = (S.suspensions?.prison_games|0) > 0 || (S.suspensions?.rehab_games|0) > 0;
 if (custodyAfterPostMatch) {
-  console.log("DEBUG POSTMATCH: Custody detected after postMatchPhase — prison_games:", (S.suspensions?.prison_games|0), "rehab_games:", (S.suspensions?.rehab_games|0), "matches_played:", S.matches_played);
   // Save state and break from loop - prison/rehab loop will handle it
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e) { console.error("DEBUG POSTMATCH: Error saving state:", e); }
+  saveGame();
   break; // Break from main loop to enter prison/rehab loop
 }
 
@@ -85,7 +84,6 @@ if(Array.isArray(S.knock_queue) && S.knock_queue.length > 0) {
   const investigation = S.knock_queue.find(v => v.type === 'investigation');
   if(investigation) {
     S.knock_queue = S.knock_queue.filter(v => v !== investigation);
-    console.log("DEBUG POSTMATCH: About to call presentInvestigation for queued investigation");
     try {
       if (typeof window.presentInvestigation === 'function') {
         await window.presentInvestigation(investigation);
@@ -95,7 +93,6 @@ if(Array.isArray(S.knock_queue) && S.knock_queue.length > 0) {
     } catch(e) {
       console.error("DEBUG POSTMATCH: Error during presentInvestigation (queued):", e);
     }
-    console.log("DEBUG POSTMATCH: presentInvestigation completed/skipped, checking state — prison_games:", (S.suspensions?.prison_games|0), "rehab_games:", (S.suspensions?.rehab_games|0));
     // Clear pending investigation if it's the same type to prevent duplication
     if (S._pending_police_investigation && 
         S._pending_police_investigation.authority === investigation.authority &&
@@ -106,12 +103,10 @@ if(Array.isArray(S.knock_queue) && S.knock_queue.length > 0) {
     // Check for custody immediately after queued investigation
     const custodyAfterQueuedInvestigation = (S.suspensions?.prison_games|0) > 0 || (S.suspensions?.rehab_games|0) > 0;
     if (custodyAfterQueuedInvestigation) {
-      console.log("DEBUG POSTMATCH: Custody detected after queued investigation — prison_games:", (S.suspensions?.prison_games|0), "rehab_games:", (S.suspensions?.rehab_games|0), "matches_played:", S.matches_played);
-      try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e) { console.error("DEBUG POSTMATCH: Error saving state:", e); }
+      saveGame();
       
       // Ensure DOM is clean before transitioning to prison loop
       try {
-        console.log("DEBUG POSTMATCH: Cleaning up DOM before custody transition (queued investigation)");
         if (window.currentInvestigationModal) {
           window.currentInvestigationModal.remove();
           window.currentInvestigationModal = null;
@@ -122,9 +117,8 @@ if(Array.isArray(S.knock_queue) && S.knock_queue.length > 0) {
         console.error("DEBUG POSTMATCH: Error cleaning up DOM:", e);
       }
       
-      console.log("DEBUG POSTMATCH: Custody detected after queued investigation, breaking to prison loop");
       // Save state and break from main loop so prison/rehab loop can take over
-      try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e) { console.error("DEBUG POSTMATCH: Error saving state:", e); }
+      saveGame();
       break;
     }
   }
@@ -132,7 +126,6 @@ if(Array.isArray(S.knock_queue) && S.knock_queue.length > 0) {
 
 // Also check for pending police investigations from pre-match events (only if not already processed)
 if(S._pending_police_investigation) {
-  console.log("DEBUG POSTMATCH: About to call presentInvestigation for pending investigation");
   try {
     if (typeof window.presentInvestigation === 'function') {
       await window.presentInvestigation(S._pending_police_investigation);
@@ -142,35 +135,29 @@ if(S._pending_police_investigation) {
   } catch(e) {
     console.error("DEBUG POSTMATCH: Error during presentInvestigation (pending):", e);
   }
-  console.log("DEBUG POSTMATCH: presentInvestigation completed/skipped, checking state — prison_games:", (S.suspensions?.prison_games|0), "rehab_games:", (S.suspensions?.rehab_games|0));
   S._pending_police_investigation = null; // Clear the flag
   
   // Check for custody immediately after police investigation
   const custodyAfterInvestigation = (S.suspensions?.prison_games|0) > 0 || (S.suspensions?.rehab_games|0) > 0;
   if (custodyAfterInvestigation) {
-    console.log("DEBUG POSTMATCH: Custody detected immediately after police investigation — prison_games:", (S.suspensions?.prison_games|0), "rehab_games:", (S.suspensions?.rehab_games|0), "matches_played:", S.matches_played);
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e) { console.error("DEBUG POSTMATCH: Error saving state:", e); }
+    saveGame();
     
     // Ensure DOM is clean before transitioning to prison loop
     try {
-      console.log("DEBUG POSTMATCH: Cleaning up DOM before custody transition");
       if (window.currentInvestigationModal) {
         window.currentInvestigationModal.remove();
         window.currentInvestigationModal = null;
-        console.log("DEBUG POSTMATCH: Removed currentInvestigationModal");
       }
       const actionsEl = document.getElementById('actions');
       if (actionsEl) {
         actionsEl.innerHTML = '';
-        console.log("DEBUG POSTMATCH: Cleared actions element");
       }
     } catch(e) {
       console.error("DEBUG POSTMATCH: Error cleaning up DOM:", e);
     }
     
-    console.log("DEBUG POSTMATCH: Custody detected after investigation, breaking to prison loop");
     // Save state and break from main loop so prison/rehab loop can take over
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e) { console.error("DEBUG POSTMATCH: Error saving state:", e); }
+    saveGame();
     break;
   }
 }
@@ -178,8 +165,7 @@ if(S._pending_police_investigation) {
 // If custody/rehab has been set by the investigation, trigger controlled break to prison loop
 const custodyPostInvestigation = (S.suspensions?.prison_games|0) > 0 || (S.suspensions?.rehab_games|0) > 0;
 if (custodyPostInvestigation) {
-  console.log("DEBUG POSTMATCH: Custody detected post-investigation — prison_games:", (S.suspensions?.prison_games|0), "rehab_games:", (S.suspensions?.rehab_games|0), "matches_played:", S.matches_played);
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e) { console.error("DEBUG POSTMATCH: Error saving state:", e); }
+  saveGame();
   
   // Ensure DOM is clean before transitioning to prison loop
   try {
@@ -193,17 +179,14 @@ if (custodyPostInvestigation) {
     if (actionsEl) actionsEl.innerHTML = '';
   } catch(_){}
   
-  console.log("DEBUG POSTMATCH: Custody detected post-investigation, breaking to prison loop");
   // Save state and break from main loop so prison/rehab loop can take over
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e) { console.error("DEBUG POSTMATCH: Error saving state:", e); }
+  saveGame();
   break;
 }
 
 // Then check for new investigations based on risk
 if (typeof maybeQueueOversight === 'function') {
-  console.log("DEBUG: Calling maybeQueueOversight");
   maybeQueueOversight();
-  console.log("DEBUG: maybeQueueOversight completed");
 }
 
 // Generate Fan Reaction news if there were shouts
@@ -243,15 +226,9 @@ const ga =
 
 await waitAdvance("Evening", "Handle personal life, nightclub, family, etc.");
 
-try {
-  console.log("DEBUG MAIN LOOP: entering eveningPhase after match");
-} catch (_dbg) {}
 
 await eveningPhase();
 
-try {
-  console.log("DEBUG MAIN LOOP: eveningPhase completed, preparing Next Week prompt");
-} catch (_dbg) {}
 
 // Do not force Chairman League actions here; accessible via Study/Evening menu
 // if (!S.chairman_actions_offered_this_evening) {
@@ -279,9 +256,6 @@ if (typeof document !== 'undefined') {
 
 await waitAdvance("Next Week", "Advance the season.");
 
-try {
-  console.log("DEBUG MAIN LOOP: Next Week acknowledged, continuing to oversight/next loop");
-} catch (_dbg) {}
 
 // Clear police interview flag when advancing to next week
 if (S._police_interview_active) {
@@ -295,23 +269,19 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
   // If sentenced to prison/rehab or bankrupt, do not enter oversight; transition immediately
   const shouldSkipOversight = S.bankrupt || (S.suspensions?.prison_games|0) > 0 || (S.suspensions?.rehab_games|0) > 0;
   if (shouldSkipOversight) {
-    console.log("DEBUG: Skipping oversightPhase due to state — bankrupt:", !!S.bankrupt, "prison_games:", S.suspensions?.prison_games, "rehab_games:", S.suspensions?.rehab_games, "matches_played:", S.matches_played);
-    console.log("DEBUG: Breaking from main loop to enter prison/rehab loop");
     break;
   }
   
   // CRITICAL FIX: Check if nuclear sequence just completed during postmatch/oversight phase
   // If so, skip oversightPhase (it already ran before nuclear) and continue to next loop iteration
   if (S._nuclearPostmatchComplete || S._nuclearSequenceJustCompleted) {
-    console.log("DEBUG: Nuclear sequence completed during postmatch/unknown phase, skipping oversight and continuing to next match");
-    console.log("DEBUG: Flags - nuclearPostmatchComplete:", !!S._nuclearPostmatchComplete, "nuclearSequenceJustCompleted:", !!S._nuclearSequenceJustCompleted);
     S._nuclearPostmatchComplete = false; // Clear the flags
     S._nuclearSequenceJustCompleted = false;
-    localStorage.setItem(SAVE_KEY,JSON.stringify(S));
+    saveGame();
     // Continue to next iteration of main loop (which will show pre-match menu)
   } else {
     await oversightPhase(); // FA or Board, with baseline board summon at least once
-    localStorage.setItem(SAVE_KEY,JSON.stringify(S));
+    saveGame();
   }
    } catch (e) {
     console.error("DEBUG MAIN LOOP: Error in main game loop iteration:", e);
@@ -320,29 +290,18 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
     console.error("DEBUG MAIN LOOP: Current state — matches_played:", S.matches_played, "prison_games:", (S.suspensions?.prison_games|0), "rehab_games:", (S.suspensions?.rehab_games|0));
     // Check if custody was set during error handling
     if ((S.suspensions?.prison_games|0) > 0 || (S.suspensions?.rehab_games|0) > 0) {
-      console.log("DEBUG MAIN LOOP: Custody detected after error, breaking to prison/rehab loop");
       break;
     }
     // For other errors, continue to next iteration
-    console.log("DEBUG MAIN LOOP: Non-critical error, continuing to next iteration");
    }
   }
-  console.log("DEBUG: Main game loop ended - rehab_games:", S.suspensions?.rehab_games, "prison_games:", S.suspensions?.prison_games);
-  console.log("DEBUG: Main game loop ended - matches_played:", S.matches_played, "season_matches:", S.season_matches, "game_over:", S.game_over);
   
   // Ensure state is saved before entering prison loop
-  try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(S));
-    console.log("DEBUG: State saved before prison loop");
-  } catch(e) {
-    console.error("DEBUG: Error saving state before prison loop:", e);
-  }
+  saveGame();
   
   // Run prison loop if needed
   if ((S.suspensions?.prison_games|0) > 0) {
-    console.log("DEBUG: Entering prison loop — prison_games:", (S.suspensions?.prison_games|0));
     await runPrisonLoop();
-    console.log("DEBUG: Exited prison loop");
   }
 
  // Rehab loop - runs when player is in rehab (similar to prison)
@@ -405,19 +364,16 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
          updateLeagueTable(S.opponents[S.matches_played-1], matchResult.our_goals, matchResult.their_goals);
        }
      } catch (e) {
-       console.log("DEBUG: updateLeagueTable failed in rehab loop:", e);
      }
      
      // Refresh UI - safely
      try {
        if (typeof render === 'function') render();
      } catch (e) {
-       console.log("DEBUG: render failed in rehab loop:", e);
      }
      try {
        if (typeof updateHUD === 'function') updateHUD();
      } catch (e) {
-       console.log("DEBUG: updateHUD failed in rehab loop:", e);
      }
      
      // Decrement rehab sentence
@@ -439,21 +395,18 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
      }
      
      // Save state
-     localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+     saveGame();
      
      // Wait for user to acknowledge
      await waitAdvance("Rehab", "Continue treatment...");
    } catch (e) {
-     console.log("DEBUG: Error in rehab loop:", e);
      // Fallback - just decrement and continue
      S.suspensions.rehab_games = Math.max(0, (S.suspensions.rehab_games|0) - 1);
      logSafe("REHAB: An error occurred during treatment, but you continue...");
    }
   }
-  console.log("DEBUG: Rehab loop ended - rehab_games:", S.suspensions?.rehab_games);
 
   // After prison and rehab, continue with the main game loop if season isn't over
- console.log("DEBUG: Checking if season continues - matches_played:", S.matches_played, "season_matches:", S.season_matches, "opponents.length:", (S.opponents?.length || 0), "prison_games:", (S.suspensions?.prison_games|0), "rehab_games:", (S.suspensions?.rehab_games|0));
  
  // Store matches_played before recursive call to check for progress
  const matchesBeforeRecursion = S.matches_played;
@@ -465,17 +418,14 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
                     (S.suspensions?.rehab_games|0) <= 0 && 
                     !S.game_over;
  
- console.log("DEBUG: Can loop run?", canLoopRun);
  
  if (S.matches_played < S.season_matches && (S.suspensions?.prison_games|0) <= 0 && (S.suspensions?.rehab_games|0) <= 0 && canLoopRun) {
    // Re-enter the main game loop - call the main game loop function recursively
-   console.log("DEBUG: Recursively calling mainGameLoop after rehab");
    // Don't reset depth - let it track naturally, finally block will decrement
    try {
      await mainGameLoop();
      // Check if we made progress (matches_played increased) or if season ended
      const matchesAfterRecursion = S.matches_played;
-     console.log("DEBUG: After recursive call - matches before:", matchesBeforeRecursion, "matches after:", matchesAfterRecursion);
      
      // If no progress was made and we're still in the same state, there might be an issue
      if (matchesAfterRecursion === matchesBeforeRecursion && S.matches_played < S.season_matches && (S.suspensions?.prison_games|0) <= 0 && (S.suspensions?.rehab_games|0) <= 0) {
@@ -487,7 +437,6 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
      // Return after recursive call to ensure clean exit
      return;
    } catch (e) {
-     console.log("DEBUG: Error in recursive mainGameLoop call after rehab:", e);
      // Note: Recursion depth is handled by finally block, no need to reset here
      // Fallback - just log and continue
      logSafe("The game continues after your rehabilitation...");
@@ -562,9 +511,7 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
       }
       
       try {
-        console.log('DEBUG: About to show Continue to Season 4 button');
         const choice = await choose([{ key: 'continue', label: 'Continue to Season 4' }], 'You have awakened from the coma');
-        console.log('DEBUG: Continue to Season 4 button clicked, choice:', choice);
       } catch (e) {
         console.error('Error in coma continue choice:', e);
         // Continue anyway if choice fails
@@ -593,12 +540,12 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
       try {
         await runSeason4Opener();
         S.season4_opener_complete = true;
-        localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+        saveGame();
       } catch (e) {
         console.error('Error in runSeason4Opener:', e);
         log('Season 4 opener encountered an error, continuing...');
         S.season4_opener_complete = true; // Mark as complete to prevent retry loop
-        localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+        saveGame();
       }
     }
     
@@ -606,7 +553,7 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
     if (S.season === 5 && !S.season5_opener_complete) {
       await runSeason5Opener();
       S.season5_opener_complete = true;
-      localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+      saveGame();
     }
     
     // Reset women's team manager demands counter for new season
@@ -674,7 +621,6 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
     
     // CRITICAL: Restore currentOpponent function to prevent World Cup/CL opponents contaminating new season
     restoreCurrentOpponent();
-    console.log('[NEW SEASON START] Restored currentOpponent function');
     
     ensureSeasonSchedule();
     
@@ -686,7 +632,7 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
     renderLeagueTablePanel();
     
     log(`Starting Season ${S.season}...`);
-    localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+    saveGame();
     
     // Update HUD to reflect new season - this must happen after season_matches is set
     if (typeof updateHUD === 'function') updateHUD();
@@ -701,7 +647,6 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
  }
  
  } catch (e) {
-   console.log("DEBUG: Critical error in main game loop:", e);
    logSafe("A critical error occurred in the game loop. The game will attempt to continue...");
    // Reset recursion depth on error
    S._mainGameLoopRecursionDepth = 0;
@@ -716,11 +661,9 @@ if (typeof window !== 'undefined') {
   window.mainGameLoop = mainGameLoop;
 }
 } catch (e) {
-  console.log("DEBUG: Critical error in game function:", e);
   
   // Handle choice timeout errors more gracefully
   if (e.message && e.message.includes('Choice timeout')) {
-    console.log("DEBUG: Choice timeout detected, attempting recovery");
     try {
       // Use the dedicated restoration function
       restoreInterfaceAfterTimeout();
@@ -728,23 +671,23 @@ if (typeof window !== 'undefined') {
       logSafe("⚠️ Game interface timed out. Interface has been reset. You can continue playing.");
       return; // Don't show the full error message for timeouts
     } catch (recoveryError) {
-      console.log("Recovery attempt failed:", recoveryError);
+      console.error("Recovery attempt failed:", recoveryError);
     }
   }
   
   // Try to save state
   try {
     if (window.S) {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(window.S));
+      saveGame(window.S);
     }
   } catch (saveError) {
-    console.log("Could not save state after game error:", saveError);
+    console.error("Could not save state after game error:", saveError);
   }
   // Show error message to user
   try {
     logSafe("A critical error occurred in the game. The game state has been saved. Please refresh the page.");
   } catch (logError) {
-    console.log("Could not log error message:", logError);
+    console.error("Could not log error message:", logError);
   }
 }
 }
@@ -793,11 +736,9 @@ window.addEventListener('load', () => {
   const lastLoadedSlot = localStorage.getItem('last_loaded_slot');
   const saved = localStorage.getItem(SAVE_KEY);
   
-  console.log('DEBUG window.load: lastLoadedSlot=', lastLoadedSlot, 'saved exists=', !!saved);
   
   if (lastLoadedSlot && saved) {
     // Auto-load the game after slot load reload
-    console.log('DEBUG: Auto-loading game from slot ' + lastLoadedSlot);
     window.__gameAutoLoaded = true; // Set flag to prevent start screen from showing
     localStorage.removeItem('last_loaded_slot'); // Clear flag
     localStorage.removeItem('last_loaded_slot_date'); // Clear date flag
@@ -808,7 +749,6 @@ window.addEventListener('load', () => {
       startScreenMode = 'load';
     }
     window.__loadingFromStartScreen = false; // Not from start screen, auto-loading
-    console.log('DEBUG: Calling game() with startScreenMode=load');
     
     // Ensure start screen is hidden
     const startScreen = document.getElementById('startScreen');
@@ -841,7 +781,6 @@ window.addEventListener('load', () => {
       }
     });
   } else {
-    console.log('DEBUG: Normal flow - showing start screen');
     // Normal flow - show start screen and wait for user interaction
     const startScreen = document.getElementById('startScreen');
     if (startScreen) {
@@ -926,7 +865,6 @@ let startScreenMode = window.startScreenMode || 'none'; // 'none', 'campaign', '
 // Sync with window if it was set before this declaration
 if (window.startScreenMode && window.startScreenMode !== 'none') {
   startScreenMode = window.startScreenMode;
-  console.log('DEBUG: Synced startScreenMode from window:', startScreenMode);
 }
 
 // Show DOS-style modal
@@ -1244,10 +1182,9 @@ function setupLadsGateScreen() {
         if (openingMusic) {
           openingMusic.volume = 0.5; // Set volume to 50%
           openingMusic.play().catch(e => {
-            console.log('Audio autoplay prevented, will play on user interaction:', e);
             // If autoplay is blocked, start playing when user clicks any button
             const startMusicOnInteraction = () => {
-              openingMusic.play().catch(err => console.log('Could not start music:', err));
+              openingMusic.play().catch(err => {});
               document.removeEventListener('click', startMusicOnInteraction);
               document.removeEventListener('touchstart', startMusicOnInteraction);
             };
@@ -1278,20 +1215,12 @@ function setupLadsGateScreen() {
 
 // Start screen button handlers - use inline handlers for reliability
 function setupStartScreenButtons() {
-  console.log('Setting up start screen buttons...');
   const startScreen = document.getElementById('startScreen');
   const watchIntroBtn = document.getElementById('watchIntroBtn');
   const startCampaignBtn = document.getElementById('startCampaignBtn');
   const quickStartBtn = document.getElementById('quickStartBtn');
   const loadGameBtn = document.getElementById('loadGameBtn');
   
-  console.log('Elements found:', {
-    startScreen: !!startScreen,
-    watchIntroBtn: !!watchIntroBtn,
-    startCampaignBtn: !!startCampaignBtn,
-    quickStartBtn: !!quickStartBtn,
-    loadGameBtn: !!loadGameBtn
-  });
   
   if (!startScreen) {
     console.warn('Start screen not found!');
@@ -1309,23 +1238,16 @@ function setupStartScreenButtons() {
   
   async function handleStartCampaign() {
     if (isStarting) {
-      console.log('Game already starting, ignoring click');
       return;
     }
-    console.log('New Campaign button clicked!');
     // Ensure music is playing
     const openingMusic = document.getElementById('openingMusic');
     if (openingMusic && openingMusic.paused) {
-      openingMusic.play().catch(e => console.log('Could not start music:', e));
+      openingMusic.play().catch(e => {});
     }
     isStarting = true;
     try {
       // Clear saved state to always start fresh
-      if (window.stateManager) {
-        await window.stateManager.clearGameState();
-        console.log('✅ Cleared saved game state for new campaign');
-      }
-      // Also clear localStorage as backup
       localStorage.removeItem(SAVE_KEY);
       localStorage.setItem('_reset_flag', 'true');
       startScreenMode = 'campaign';
@@ -1340,14 +1262,12 @@ function setupStartScreenButtons() {
   
   async function handleQuickStart() {
     if (isStarting) {
-      console.log('Game already starting, ignoring click');
       return;
     }
-    console.log('Resume button clicked!');
     // Ensure music is playing
     const openingMusic = document.getElementById('openingMusic');
     if (openingMusic && openingMusic.paused) {
-      openingMusic.play().catch(e => console.log('Could not start music:', e));
+      openingMusic.play().catch(e => {});
     }
     isStarting = true;
     try {
@@ -1367,7 +1287,6 @@ function setupStartScreenButtons() {
   }
   
   async function handleLoadGame() {
-    console.log('Load Game button clicked!');
     // Hide lads gate screen when loading - bypass it entirely
     const ladsGateScreen = document.getElementById('ladsGateScreen');
     if (ladsGateScreen) {
@@ -1392,12 +1311,10 @@ function setupStartScreenButtons() {
     } else {
       // Fallback to old method if modal function doesn't exist
       try {
-        const SAVE_KEY = 'saints_save_v4';
         const saveData = localStorage.getItem(SAVE_KEY);
         if (saveData) {
           try {
-            const parsed = JSON.parse(saveData);
-            window.S = normalizeGameState(parsed);
+            window.S = parseSavedGame(saveData);
             S = window.S;
             startScreenMode = 'load';
             // Start the game - it will handle loading the saved state
@@ -1417,7 +1334,6 @@ function setupStartScreenButtons() {
   }
   
   async function handleWatchIntro() {
-    console.log('Watch Intro button clicked!');
     try {
       await showIntroCutscene();
     } catch (err) {
@@ -1433,7 +1349,6 @@ function setupStartScreenButtons() {
     const btn = document.getElementById('watchIntroBtn');
     btn.onclick = handleWatchIntro;
     btn.style.cursor = 'pointer';
-    console.log('Watch Intro button wired');
   } else {
     console.warn('Watch Intro button not found!');
   }
@@ -1444,7 +1359,6 @@ function setupStartScreenButtons() {
     const btn = document.getElementById('startCampaignBtn');
     btn.onclick = handleStartCampaign;
     btn.style.cursor = 'pointer';
-    console.log('New Campaign button wired');
   } else {
     console.warn('New Campaign button not found!');
   }
@@ -1456,7 +1370,6 @@ function setupStartScreenButtons() {
     const btn = document.getElementById('quickStartBtn');
     btn.onclick = handleQuickStart;
     btn.style.cursor = 'pointer';
-    console.log('Resume button wired');
   } else {
     console.warn('Resume button not found!');
   }
@@ -1468,7 +1381,6 @@ function setupStartScreenButtons() {
     const btn = document.getElementById('loadGameBtn');
     btn.onclick = handleLoadGame;
     btn.style.cursor = 'pointer';
-    console.log('Load Game button wired');
   } else {
     console.warn('Load Game button not found!');
   }
@@ -1487,12 +1399,10 @@ function setupStartScreenButtons() {
       });
       this.style.background = '#00ff00';
       this.style.color = '#000';
-      console.log('Sponsor selected:', sponsor);
     };
     btn.style.cursor = 'pointer';
   });
   
-  console.log('Button setup complete');
 }
 
 // Setup buttons - handle both cases: DOM already loaded or still loading
@@ -1519,7 +1429,6 @@ function attemptSetup() {
     setupLadsGateScreen();
     const btn = document.getElementById('startCampaignBtn');
     if (btn && !btn.onclick) {
-      console.log('Retrying button setup after delay...');
       setupStartScreenButtons();
     }
   }, 100);

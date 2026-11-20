@@ -1,3 +1,4 @@
+/* === Patch 5.7.3 — DERANGED actions mount reliably when S.on_drugs_today === true === */
 (function(){
   try{
     if (window.__deranged573) return; window.__deranged573 = true;
@@ -23,7 +24,7 @@
           || document.body;
     }
     function clamp(v,lo,hi){ return Math.max(lo, Math.min(hi, v)); }
-    function logSafe(m){ try{ (window.log||console.log)(m); }catch(_){ console.log(m); } }
+    function logSafe(m){ try{ (window.log||console.log)(m); }catch(_){  } }
 
     const POOL = [
       { label: "throw scalding hot coffee", effect: function(){

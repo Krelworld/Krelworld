@@ -25,10 +25,6 @@ function initPressSystem() {
   }
 }
 
-// Generate a unique story ID
-function generateStoryId() {
-  return 'story_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
 
 // Get next writer (avoiding repetition)
 function getNextWriter() {
@@ -49,176 +45,12 @@ function getNextWriter() {
   return fullName;
 }
 
-// Token replacement system
-function replaceTokens(template, tokens) {
-  let result = template;
-  for (const [key, value] of Object.entries(tokens)) {
-    const regex = new RegExp(`\\{${key}\\}`, 'g');
-    result = result.replace(regex, value || 'Unknown');
-  }
-  return result;
-}
 
-// Create a story object
-function createStory(section, headlineTemplate, bodyTemplate, tokens, effects = {}, source = 'auto', severity = 0, flags = []) {
-  return {
-    id: generateStoryId(),
-    section: section,
-    writer: getNextWriter(),
-    headlineTemplate: headlineTemplate,
-    bodyTemplate: bodyTemplate,
-    tokens: tokens,
-    effects: effects,
-    source: source,
-    severity: severity,
-    flags: flags,
-    createdAt: Date.now(),
-    publishAt: Date.now() // Can be modified for delayed publishing
-  };
-}
 
-// Queue a story for publishing
-function queueStory(story) {
-  if (!S.press.queue) S.press.queue = [];
-  S.press.queue.push(story);
-  console.log(`DEBUG: Queued ${story.section} story: ${story.id}`);
-  // Mark unread for HUD indicator
-  S.news_unread = true;
-}
 
-// Publish stories from queue (respecting caps and cooldowns)
-function publishStoriesFromQueue() {
-  if (!S.press.queue || S.press.queue.length === 0) return;
-  
-  const publishedThisMatch = { politics: 0, sports: 0, gossip: 0 };
-  const storiesToPublish = [];
-  
-  // Process queue and select stories to publish
-  for (let i = S.press.queue.length - 1; i >= 0; i--) {
-    const story = S.press.queue[i];
-    
-    // Check if story is ready to publish
-    if (story.publishAt > Date.now()) continue;
-    
-    // Check section cooldown
-    if (S.press.cooldowns[story.section] > 0) continue;
-    
-    // Check per-match cap (max 1 per section)
-    if (publishedThisMatch[story.section] >= 1) continue;
-    
-    // Check if we've published this story recently (avoid repetition)
-    const recentPublished = S.press.published.slice(-10);
-    if (recentPublished.some(p => p.headlineTemplate === story.headlineTemplate)) continue;
-    
-    storiesToPublish.push(story);
-    S.press.queue.splice(i, 1);
-    publishedThisMatch[story.section]++;
-    
-    // Set cooldown for this section
-    S.press.cooldowns[story.section] = 1; // 1 match cooldown
-  }
-  
-  // Publish selected stories
-  for (const story of storiesToPublish) {
-    publishStory(story);
-  }
-}
 
-// Publish a single story
-function publishStory(story) {
-  // Handle both headlineTemplate/bodyTemplate and headline/body formats
-  let headline, body;
-  
-  if (story.headlineTemplate && story.bodyTemplate) {
-    // Story uses template format (first createStory function)
-    headline = replaceTokens(story.headlineTemplate, story.tokens || {});
-    body = replaceTokens(story.bodyTemplate, story.tokens || {});
-  } else if (story.headline && story.body) {
-    // Story uses direct format (second createStory function)
-    headline = replaceTokens(story.headline, story.tokens || {});
-    body = replaceTokens(story.body, story.tokens || {});
-  } else {
-    // Fallback: use whatever is available
-    headline = story.headline || story.headlineTemplate || 'Untitled Story';
-    body = story.body || story.bodyTemplate || 'No content available.';
-  }
-  
-  // Add to published archive
-  if (!S.press.published) S.press.published = [];
-  S.press.published.push({
-    ...story,
-    headline: headline,
-    body: body,
-    publishedAt: Date.now()
-  });
-  
-  // Keep only last 20 published stories
-  if (S.press.published.length > 20) {
-    S.press.published = S.press.published.slice(-20);
-  }
-  
-  // Apply story effects
-  applyStoryEffects(story);
-  
-  // Render the story
-  renderPublishedStory(story, headline, body);
-  
-  console.log(`DEBUG: Published ${story.section} story: ${story.id}`);
-}
 
-// Apply story effects to game state
-function applyStoryEffects(story) {
-  if (story.effects.reputation) {
-    S.reputation = clamp((S.reputation || 50) + story.effects.reputation, 0, 100);
-  }
-  if (story.effects.maritalRisk) {
-    S.wife_love = clamp((S.wife_love || 60) + story.effects.maritalRisk, 0, 100);
-  }
-  if (story.effects.morale) {
-    S.morale = clamp((S.morale || 0) + story.effects.morale, -100, 100);
-  }
-  if (story.effects.legalRisk) {
-    S.legal_risk = clamp((S.legal_risk || 0) + story.effects.legalRisk, 0, 100);
-  }
-  
-  // Handle affair gossip triggering wife confrontation
-  // Also trigger for bedroom_habits and protection gossip
-  if (story.section === 'gossip' && 
-      (story.flags.includes('affair') || 
-       story.flags.includes('bedroom_habits') || 
-       story.flags.includes('protection'))) {
-    triggerWifeConfrontation();
-  }
-  
-  // Handle defamation lawsuits
-  if (story.severity > 0 && story.source === 'pressCall') {
-    const target = story.tokens?.target || 'Unknown Person';
-    scheduleDefamationLawsuit(story.severity, target);
-  }
-}
 
-// Render a published story
-function renderPublishedStory(story, headline, body) {
-  const effectsText = [];
-  if (story.effects.reputation) {
-    effectsText.push(`Reputation ${story.effects.reputation > 0 ? '+' : ''}${story.effects.reputation}`);
-  }
-  if (story.effects.maritalRisk) {
-    effectsText.push(`Marital risk ${story.effects.maritalRisk > 0 ? '+' : ''}${story.effects.maritalRisk}`);
-  }
-  if (story.effects.morale) {
-    effectsText.push(`Morale ${story.effects.morale > 0 ? '+' : ''}${story.effects.morale}`);
-  }
-  
-  const effectsDisplay = effectsText.length > 0 ? ` (${effectsText.join(', ')})` : '';
-  
-  log(`<strong>📰 ${story.section.toUpperCase()}:</strong> ${headline}`);
-  log(`By ${story.writer} — ${story.section}`);
-  log(body);
-  if (effectsDisplay) {
-    log(`<em>${effectsDisplay}</em>`);
-  }
-}
 
 // Schedule a defamation lawsuit
 function scheduleDefamationLawsuit(severity, target) {
@@ -245,7 +77,6 @@ function scheduleDefamationLawsuit(severity, target) {
     };
     window.socialManager.showAchievement(achievement);
     window.socialManager.achievements.push(achievement);
-    if (window.stateManager) window.stateManager.saveAchievement(achievement);
   }
   
   log(`<strong>⚠️ Legal Notice:</strong> Defamation lawsuit filed by ${target}. Due in ${lawsuit.dueIn} match${lawsuit.dueIn > 1 ? 'es' : ''}.`);
@@ -492,52 +323,7 @@ async function processPendingLawsuits() {
   }
 }
 
-// Present lawsuit resolution options
-async function presentLawsuitOptions(lawsuit) {
-  const options = [
-    { key: 'settle', label: `Pay settlement (£${lawsuit.amount.toLocaleString()})` },
-    { key: 'fight', label: 'Fight in court (risk higher costs)' },
-    { key: 'bribe', label: 'Bribe the judge (high risk)' }
-  ];
-  
-  const choice = await choose(options, `Defamation lawsuit due: ${lawsuit.severity} severity level`);
-  
-  if (choice === 'settle') {
-    const canPay = await takeFundsFor(lawsuit.amount, `Lawsuit settlement £${lawsuit.amount.toLocaleString()} — funding source?`);
-    if (canPay.ok) {
-      log(`Settlement paid. Case closed.`);
-      S.legal_risk = clamp((S.legal_risk || 0) - 5, 0, 100);
-    } else {
-      log(`Can't pay settlement. Case goes to trial.`);
-      await fightLawsuit(lawsuit);
-    }
-  } else if (choice === 'fight') {
-    await fightLawsuit(lawsuit);
-  } else if (choice === 'bribe') {
-    await bribeJudge(lawsuit);
-  }
-}
 
-// Fight lawsuit in court
-async function fightLawsuit(lawsuit) {
-  const winChance = 0.4; // 40% chance to win
-  if (Math.random() < winChance) {
-    log(`You win the case! No damages awarded.`);
-    S.reputation = clamp((S.reputation || 50) + 2, 0, 100);
-  } else {
-    const damages = lawsuit.amount * (1.5 + Math.random());
-    log(`You lose the case. Damages: £${Math.round(damages).toLocaleString()}`);
-    S.reputation = clamp((S.reputation || 50) - 5, 0, 100);
-    S.legal_risk = clamp((S.legal_risk || 0) + 10, 0, 100);
-    
-    // Try to pay damages
-    const canPay = await takeFundsFor(Math.round(damages), `Court damages £${Math.round(damages).toLocaleString()} — funding source?`);
-    if (!canPay.ok) {
-      log(`Can't pay damages. Additional penalties applied.`);
-      S.legal_risk = clamp((S.legal_risk || 0) + 15, 0, 100);
-    }
-  }
-}
 
 // Bribe the judge
 
@@ -645,12 +431,9 @@ async function openStudyHub() {
     
     // Texting option removed - can be done via phone instead
     
-    console.log("DEBUG STUDY HUB: About to show study options");
-    console.log("DEBUG STUDY HUB: DOM state - actions:", !!document.getElementById('actions'), "children:", document.getElementById('actions')?.children?.length || 0);
     
     // Check if evening menu needs restore flag is set (from nuclear sequence)
     if (window.S && window.S._eveningMenuNeedsRestore) {
-      console.log("DEBUG STUDY HUB: Evening menu restore flag detected, clearing it");
       window.S._eveningMenuNeedsRestore = false;
       log("📚 Returning to study after world-altering events...");
       // Small delay to let UI stabilize
@@ -658,7 +441,6 @@ async function openStudyHub() {
     }
     
     const choice = await choose(options, 'Study Options');
-    console.log("DEBUG STUDY HUB: Choice received:", choice);
     
     if (choice === 'news') {
       await readTheNews();
@@ -670,12 +452,10 @@ async function openStudyHub() {
       await openTextingMenu();
     } else if (choice === 'back') {
       log(`You leave your study.`);
-      console.log("DEBUG STUDY HUB: Leaving study hub");
       break;
     }
   }
   
-  console.log("DEBUG STUDY HUB: Study hub loop ended");
 }
 
 // Display news article in newspaper popup
@@ -1505,25 +1285,13 @@ function triggerRivalEvent(eventType, context = {}) {
   // Ensure we're using the correct state object (S or window.S)
   
   // Debug: Log current state
-  console.log("DEBUG triggerRivalEvent called:", {
-    eventType,
-    hasS: !!S,
-    hasWindowS: typeof window !== 'undefined' && !!window.S,
-    usingState: state === S ? 'S' : state === window.S ? 'window.S' : 'null',
-    hasRival: !!state?.rival,
-    rivalEnabled: state?.rival?.enabled,
-    rivalName: state?.rival?.name,
-    settingsEnabled: state?.settings?.rival_abuse_enabled
-  });
   
   if (!state) {
-    console.log("Rival event blocked: no state object available");
     return;
   }
   
   // Initialize rival if it doesn't exist
   if (!state.rival) {
-    console.log("DEBUG: Initializing rival in triggerRivalEvent");
     state.rival = {
       name: "Delmor Krunchem",
       club: "Portsmouth",
@@ -1572,15 +1340,9 @@ function triggerRivalEvent(eventType, context = {}) {
   
   // Early exit checks
   if (!state.rival.enabled) {
-    console.log("Rival event blocked: rival disabled", {
-      hasRival: !!state.rival,
-      enabled: state.rival?.enabled,
-      rivalObject: state.rival
-    });
     return;
   }
   if (state.settings && state.settings.rival_abuse_enabled === false) {
-    console.log("Rival event blocked: rival_abuse_enabled is false");
     return;
   }
 
@@ -1589,7 +1351,6 @@ function triggerRivalEvent(eventType, context = {}) {
   const lastEventTick = state.rival.lastEventTick || 0;
   if (currentTick === lastEventTick && eventType !== 'scandal') {
     // Allow scandals to always trigger, but limit other events to once per match
-    console.log("Rival event blocked: cooldown (same match tick)");
     return;
   }
 
@@ -1623,11 +1384,9 @@ function triggerRivalEvent(eventType, context = {}) {
   // Roll for reaction
   const roll = Math.random();
   if (roll > reactionChance) {
-    console.log(`Rival event blocked: probability roll failed (${roll.toFixed(2)} > ${reactionChance.toFixed(2)})`);
     return; // No reaction this time
   }
   
-  console.log(`Rival event triggering: ${eventType}, chance was ${reactionChance.toFixed(2)}, roll was ${roll.toFixed(2)}`);
 
   // Update last event tick (update both S and window.S if they're different)
   state.rival.lastEventTick = currentTick;
@@ -1700,7 +1459,6 @@ function triggerRivalEvent(eventType, context = {}) {
   if (deliveryMethod === 'news' || deliveryMethod === 'both') {
     // Check if we've already shown 2 news stories this season
     if (state.rival.newsStoriesThisSeason >= 2) {
-      console.log("Rival news story blocked: already shown 2 this season");
       // Fall back to text only if we were going to show both
       if (deliveryMethod === 'both') {
         log(`📱 Delmor Krunchem: "${message}"`);
@@ -2250,38 +2008,6 @@ async function takePressCallAboutSomeone() {
   log(`<strong>📰 Story published:</strong> Your comments are now public.`);
 }
 
-// General press call (prior/upcoming match)
-async function takePressCallGeneral(topic) {
-  const quotes = [
-    "We're focused on getting the best result possible.",
-    "The team is in good spirits and ready to compete.",
-    "Every match is important in this league.",
-    "We'll see what happens on the day.",
-    "The fans deserve our best effort.",
-    "It's all about the three points.",
-    "We respect our opponents but we're here to win."
-  ];
-  
-  const quote = await choose(quotes.map((q, i) => ({ key: i, label: q })), 'What do you say?');
-  const selectedQuote = quotes[quote];
-  
-  const story = createStory(
-    'sports',
-    'Southampton Manager Speaks on {topic}',
-    'In a brief press conference, the Southampton manager addressed questions about {topic}. "{quote}"',
-    {
-      topic: topic === 'prior' ? 'recent performance' : 'upcoming fixture',
-      quote: selectedQuote
-    },
-    { reputation: 1 },
-    'pressCall',
-    0,
-    []
-  );
-  
-  publishStory(story);
-  log(`<strong>📰 Story published:</strong> Your statement is now public.`);
-}
 
 // New press call system with context-sensitive categories
 async function takePressCallGeneralNew(topic) {
@@ -2729,23 +2455,6 @@ function applyPressCallConsequences(openingCategory, subjectCategory, closingCat
 }
 
 
-// View archive
-async function viewArchive() {
-  if (!S.press.published || S.press.published.length === 0) {
-    log(`No stories in archive yet.`);
-    return;
-  }
-  
-  log(`<strong>📚 Archive:</strong> Last ${Math.min(10, S.press.published.length)} published stories:`);
-  
-  const recentStories = S.press.published.slice(-10).reverse();
-  for (const story of recentStories) {
-    log(`<strong>${story.section.toUpperCase()}:</strong> ${story.headline}`);
-    log(`By ${story.writer} — ${new Date(story.publishedAt).toLocaleDateString()}`);
-    log(story.body);
-    log('---');
-  }
-}
 
 // Watch naughty videos - the main function
 async function watchNaughtyVideos() {
@@ -2786,7 +2495,6 @@ async function watchNaughtyVideos() {
     };
     window.socialManager.showAchievement(achievement);
     window.socialManager.achievements.push(achievement);
-    if (window.stateManager) window.stateManager.saveAchievement(achievement);
   }
   
   try {
@@ -3520,12 +3228,6 @@ function generateSportsStory() {
   const awayGoals = lastMatchResult.awayGoals ?? 0;
   
   // Debug: log the actual match result being used
-  console.log(`DEBUG: generateSportsStory - homeGoals: ${homeGoals}, awayGoals: ${awayGoals}, opponent: ${opponent}, manager: ${manager}`);
-  console.log(`DEBUG: S.lastMatchResult:`, S.lastMatchResult);
-  console.log(`DEBUG: S.matchContext:`, S.matchContext);
-  console.log(`DEBUG: S.matches_played:`, S.matches_played);
-  console.log(`DEBUG: S.opponents[${S.matches_played - 1}]:`, S.opponents?.[S.matches_played - 1]);
-  console.log(`DEBUG: S.opponentManagers[${S.matches_played - 1}]:`, S.opponentManagers?.[S.matches_played - 1]);
   const weWon = homeGoals > awayGoals;
   const theyWon = awayGoals > homeGoals;
   const wasDraw = homeGoals === awayGoals;
@@ -3680,92 +3382,10 @@ function createStory(section, headline, body, tokens = {}, effects = {}, source 
 function queueStory(story) {
   if (!S.press.queue) S.press.queue = [];
   S.press.queue.push(story);
-  console.log(`Queued ${story.section} story: ${story.headline}`);
   // Mark unread for HUD indicator
   S.news_unread = true;
 }
 
-// Publish stories from queue (respecting caps and cooldowns)
-function publishStoriesFromQueue() {
-  if (!S.press.queue || S.press.queue.length === 0) return;
-  
-  const published = { politics: 0, sports: 0, gossip: 0 };
-  
-  // Helper function to check if story is ready to publish
-  const isReadyToPublish = (story) => {
-    // Check both publishAt and publishAfter properties for compatibility
-    if (story.publishAt !== undefined && Date.now() < story.publishAt) return false;
-    if (story.publishAfter !== undefined && Date.now() < story.publishAfter) return false;
-    return true;
-  };
-  
-  // Helper function to check if story is a special/priority story
-  const isSpecialStory = (story) => {
-    const specialIds = [
-      'shafty_rod_johnson_arrest',
-      'shafty_rod_johnson_under12s_arrest',
-      'stadium_attack_followup'
-    ];
-    const specialSources = [
-      'portsmouth_bus_under12s_story',
-      'stadium_attack_followup'
-    ];
-    const headlineText = story.headline || story.headlineTemplate || '';
-    return specialIds.includes(story.id) || 
-           specialSources.includes(story.source) ||
-           headlineText.includes('Shafty Rod Johnson') ||
-           headlineText.includes('Kuddle Cronster') ||
-           headlineText.includes('ST MARY\'S ATTACK') ||
-           headlineText.includes('St Mary\'s');
-  };
-  
-  // Collect stories to publish, prioritizing special stories
-  const storiesToPublish = [];
-  
-  // First pass: collect special stories
-  for (let i = S.press.queue.length - 1; i >= 0; i--) {
-    const story = S.press.queue[i];
-    
-    if (!isReadyToPublish(story)) continue;
-    if (S.press.cooldowns[story.section] > 0) continue;
-    if (published[story.section] >= 1) continue;
-    if (!isSpecialStory(story)) continue;
-    
-    storiesToPublish.push({ story, index: i });
-  }
-  
-  // Second pass: collect regular stories
-  for (let i = S.press.queue.length - 1; i >= 0; i--) {
-    const story = S.press.queue[i];
-    
-    if (!isReadyToPublish(story)) continue;
-    if (S.press.cooldowns[story.section] > 0) continue;
-    if (published[story.section] >= 1) continue;
-    if (isSpecialStory(story)) continue; // Skip if already collected
-    
-    storiesToPublish.push({ story, index: i });
-  }
-  
-  // Sort by creation time (oldest first to respect order)
-  storiesToPublish.sort((a, b) => (a.story.created || a.story.createdAt || 0) - (b.story.created || b.story.createdAt || 0));
-  
-  // Process stories (from end backwards to maintain correct indices)
-  for (let i = storiesToPublish.length - 1; i >= 0; i--) {
-    const { story, index } = storiesToPublish[i];
-    
-    if (published[story.section] >= 1) continue;
-    
-    // Publish the story
-    publishStory(story);
-    published[story.section]++;
-    
-    // Set cooldown
-    S.press.cooldowns[story.section] = 1;
-    
-    // Remove from queue (process from end to maintain indices)
-    S.press.queue.splice(index, 1);
-  }
-}
 
 // Publish stories from queue for a specific section only
 function publishStoriesFromQueueForSection(selectedSection) {
@@ -3878,7 +3498,6 @@ function publishStory(story) {
   }
   
   // Don't render the story immediately - let the user choose when to read it
-  console.log(`Published ${story.section} story: ${finalHeadline}`);
 }
 
 // Apply story effects to game state
@@ -3896,7 +3515,19 @@ function applyStoryEffects(story) {
       S.manager_quit_risk = clamp((S.manager_quit_risk || 0) + value, 0, 100);
     } else if (effect === 'walkout_risk') {
       S.walkout_risk = clamp((S.walkout_risk || 0) + value, 0, 100);
+    } else if (effect === 'maritalRisk') {
+      // camelCase keys (older story definitions)
+      S.wife_love = clamp((S.wife_love || 60) + value, 0, 100);
+    } else if (effect === 'legalRisk') {
+      S.legal_risk = clamp((S.legal_risk || 0) + value, 0, 100);
     }
+  }
+
+  // Affair / bedroom-habits / protection gossip triggers a wife confrontation
+  const flags = Array.isArray(story.flags) ? story.flags : [];
+  if (story.section === 'gossip' &&
+      (flags.includes('affair') || flags.includes('bedroom_habits') || flags.includes('protection'))) {
+    triggerWifeConfrontation();
   }
 }
 

@@ -89,9 +89,6 @@ async function handleSeason5SurvivalEconomy() {
   // This prevents protection bribes from appearing in Season 5 Match 1 and
   // guarantees the press conference happens first (intended for Match 2).
   if (!S.season5.kidnapping_press_done) {
-    if (typeof console !== 'undefined' && console.log) {
-      console.log('[Season5Survival] Skipping survival economy - kidnapping_press_done is false');
-    }
     return;
   }
   
@@ -200,7 +197,6 @@ async function handleSeason5BribeStrategy(bribeAmount) {
   }
 
   // Deduct from personal funds first, then club funds if needed
-  console.log('DEBUG BRIBE: Before payment - chairman_cash=' + personalCash + ', club_cash=' + clubCash + ', bribeAmount=' + bribeAmount);
   let remaining = bribeAmount;
   let fromPersonal = 0;
   let fromClub = 0;
@@ -209,24 +205,19 @@ async function handleSeason5BribeStrategy(bribeAmount) {
     fromPersonal = Math.min(personalCash, remaining);
     S.chairman_cash = personalCash - fromPersonal;
     remaining -= fromPersonal;
-    console.log('DEBUG BRIBE: Deducted ' + fromPersonal + ' from chairman_cash, remaining=' + remaining);
   }
   if (remaining > 0) {
     fromClub = Math.min(clubCash, remaining);
     S.club_cash = Math.max(0, clubCash - fromClub);
     remaining -= fromClub;
-    console.log('DEBUG BRIBE: Deducted ' + fromClub + ' from club_cash, remaining=' + remaining);
   }
 
   // Keep aggregate money snapshot (if used elsewhere) roughly in sync
   S.money = (S.chairman_cash || 0) + (S.club_cash || 0);
-  console.log('DEBUG BRIBE: After payment - chairman_cash=' + (S.chairman_cash || 0) + ', club_cash=' + (S.club_cash || 0) + ', total=' + S.money);
-  console.log('DEBUG BRIBE: Total deducted=' + (fromPersonal + fromClub) + ', should equal bribeAmount=' + bribeAmount);
   
   // CRITICAL: Update HUD to reflect money changes
   if (typeof updateHUD === 'function') {
     updateHUD();
-    console.log('DEBUG BRIBE: updateHUD() called');
   } else {
     console.warn('DEBUG BRIBE: updateHUD function not found!');
   }
@@ -557,17 +548,13 @@ ensureStadiumDealingPersistence();
 const hasDealingHistory = S.stadium_dealing_unlocked || 
                           (S.stadium_dealing_total_visits || 0) > 0 || 
                           (S.stadium_dealing_total_allows || 0) > 0;
-console.log(`DEBUG: Checking stadium dealing conditions - unlocked: ${S.stadium_dealing_unlocked}, burned: ${S.stadium_burned}, hasHistory: ${hasDealingHistory}`);
 if (hasDealingHistory && !S.stadium_burned) {
   // If not unlocked but has history, unlock it to allow approaches
   if (!S.stadium_dealing_unlocked) {
     S.stadium_dealing_unlocked = true;
-    console.log(`DEBUG: Auto-unlocking stadium dealing due to previous history`);
   }
-  console.log(`DEBUG: Calling maybeStadiumDealingApproach()`);
   await maybeStadiumDealingApproach();
 } else {
-  console.log(`DEBUG: Stadium dealing approach skipped - unlocked: ${S.stadium_dealing_unlocked}, burned: ${S.stadium_burned}, hasHistory: ${hasDealingHistory}`);
 }
 
 // Check if we need to force trigger stadium attack at match 11 season 2 (before match starts)
@@ -575,17 +562,10 @@ if (!S.preMatch.stadium_burn_triggered && S.season === 2 && S.matches_played ===
   // Check if user hasn't triggered it naturally (by visiting Marco 3 times)
   if (S.stadium_dealing_total_visits < 3) {
     // Force trigger the stadium attack - set flag so it happens during the match
-    console.log(`DEBUG SEASON2 ATTACK: Forcing stadium attack at match 11 season 2 (user hasn't triggered it naturally)`);
-    console.log(`DEBUG SEASON2 ATTACK: stadium_dealing_total_visits=${S.stadium_dealing_total_visits}, stadium_burned=${S.stadium_burned}, stadium_dealing_unlocked=${S.stadium_dealing_unlocked}`);
     S.preMatch.stadium_burn_triggered = true;
-    console.log(`DEBUG SEASON2 ATTACK: Set S.preMatch.stadium_burn_triggered = true`);
   } else {
-    console.log(`DEBUG SEASON2 ATTACK: User already triggered attack naturally (stadium_dealing_total_visits=${S.stadium_dealing_total_visits})`);
   }
 } else {
-  if (S.season === 2 && S.matches_played === 11) {
-    console.log(`DEBUG SEASON2 ATTACK: Conditions not met - stadium_burn_triggered=${S.preMatch?.stadium_burn_triggered}, stadium_burned=${S.stadium_burned}, stadium_dealing_unlocked=${S.stadium_dealing_unlocked}`);
-  }
 }
 
 // Press interview system
@@ -612,7 +592,6 @@ if (S.season === 2 && S.matches_played <= 1 && (!S.cronster || !S.cronster.lette
   }
   // Only trigger if women's team exists and isn't liquidated
   if (S.womens_team && !S.womens_team.liquidated) {
-    console.log('DEBUG CRONSTER PREMATCH: Automatically triggering letter at start of Season 2 Episode 1 (matches_played=' + S.matches_played + ')');
     await handleCronsterInitialLetter();
     // Note: S.cronster.letter_received is set to true in handleCronsterInitialLetter(),
     // which will prevent duplicate triggers
@@ -626,7 +605,6 @@ if ((S.season === 4 || S.season === 5) && S.matches_played > 0) {
   const seasonKey = S.season === 4 ? 'season4' : 'season5';
   const seasonData = S[seasonKey];
   
-  console.log(`DEBUG MALCOLM PREMATCH: Checking - season=${S.season}, matches_played=${S.matches_played}, seasonData exists=${!!seasonData}, visited=${seasonData?.muslim_malcolm_visited}`);
   
   if (seasonData && !seasonData.muslim_malcolm_visited) {
     const matchesPlayed = S.matches_played || 0;
@@ -640,7 +618,6 @@ if ((S.season === 4 || S.season === 5) && S.matches_played > 0) {
     if (matchesPlayed >= guaranteedMatch) {
       // MUST visit by match 6 if not visited yet (100% guarantee)
       shouldTrigger = true;
-      console.log(`DEBUG MALCOLM PREMATCH: GUARANTEED TRIGGER - matchesPlayed (${matchesPlayed}) >= guaranteedMatch (${guaranteedMatch})`);
     } else {
       // Random chance before guarantee point (higher chance as season progresses)
       let triggerChance = 0.3;
@@ -651,19 +628,15 @@ if ((S.season === 4 || S.season === 5) && S.matches_played > 0) {
       }
       const roll = Math.random();
       shouldTrigger = (roll < triggerChance);
-      console.log(`DEBUG MALCOLM PREMATCH: Random check - triggerChance=${triggerChance.toFixed(2)}, roll=${roll.toFixed(2)}, shouldTrigger=${shouldTrigger}`);
     }
     
     if (shouldTrigger) {
-      console.log(`DEBUG MALCOLM PREMATCH: TRIGGERING VISIT - Setting muslim_malcolm_visited=true`);
       try {
         seasonData.muslim_malcolm_visited = true;
         // Mark that we're visiting this match to prevent FA executive from also visiting
         if (!S.preMatch) S.preMatch = {};
         S.preMatch.muslim_malcolm_visiting = true;
-        console.log(`DEBUG MALCOLM PREMATCH: About to call handleMuslimMalcolmPoints4Prizes()`);
         await handleMuslimMalcolmPoints4Prizes();
-        console.log(`DEBUG MALCOLM PREMATCH: handleMuslimMalcolmPoints4Prizes() completed`);
       } catch (error) {
         console.error(`DEBUG MALCOLM PREMATCH: Error during visit:`, error);
         // Reset flag on error so it can try again
@@ -672,9 +645,6 @@ if ((S.season === 4 || S.season === 5) && S.matches_played > 0) {
       }
     }
   } else {
-    if (seasonData && seasonData.muslim_malcolm_visited) {
-      console.log(`DEBUG MALCOLM PREMATCH: Already visited this season, skipping`);
-    }
   }
 }
 
@@ -1145,29 +1115,22 @@ async function showOminousMassacrePopout() {
     }
   }
   
-  // #region agent log
-  // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24430',message:'showOminousMassacrePopout calling playPanicVideo',data:{season:S.season,matchesPlayed:S.matches_played,playPanicVideoFlag:S.season5?.play_panic_video},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-  // #endregion
   
   // Set up special post-match music BEFORE panic video/aftermath UI
   // This music will play during aftermath UI and continue through the first post-match UI
   const isSeason5FirstMatch = (S.season === 5 && S.matches_played === 0);
   if (isSeason5FirstMatch) {
-    console.log('DEBUG MUSIC: Setting up special post-match music before panic video (for aftermath UI)');
     // Stop general background music
     if (typeof window._stopGeneralMusic === 'function') {
       window._stopGeneralMusic();
-      console.log('DEBUG MUSIC: Stopped general music via _stopGeneralMusic (before panic video)');
     } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio && !generalMusicAudio.paused) {
       generalMusicAudio.pause();
-      console.log('DEBUG MUSIC: Paused generalMusicAudio directly (before panic video)');
     }
     
     // Also pause opening music if playing
     const openingMusic = document.getElementById('openingMusic');
     if (openingMusic && !openingMusic.paused) {
       openingMusic.pause();
-      console.log('DEBUG MUSIC: Paused opening music (before panic video)');
     }
     
     // Create and store the post-match audio (but don't play it yet - aftermath UI will start it)
@@ -1178,15 +1141,11 @@ async function showOminousMassacrePopout() {
     
     // Store globally so aftermath UI and first post-match UI can use it
     window._season5PostMatchAudio = postMatchAudio;
-    console.log('DEBUG MUSIC: Special post-match audio created and stored (will play in aftermath UI)');
   }
   
   // Play Panic video right after massacre
   await playPanicVideo();
   
-  // #region agent log
-  // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24433',message:'showOminousMassacrePopout playPanicVideo returned',data:{kidnappingShown:S.season5?.kidnapping_sequence_shown},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-  // #endregion
   
   // Clear the flag so the old post-match video code doesn't play it again
   if (S.season5) {
@@ -1199,7 +1158,6 @@ async function showOminousMassacrePopout() {
 // Usage: After the confrontation scene ends, call: await showTrainTracksNextButton();
 // Make it globally accessible - defined early so it's available when needed
 window.showTrainTracksNextButton = async function showTrainTracksNextButton() {
-  console.log('DEBUG: showTrainTracksNextButton called');
   
   // Create a promise that resolves when the train tracks sequence completes
   let trainTracksResolve;
@@ -1212,10 +1170,8 @@ window.showTrainTracksNextButton = async function showTrainTracksNextButton() {
   
   // If actions doesn't exist, try to create it or use body
   if (!actions) {
-    console.log('DEBUG: actions element not found, checking for alternatives');
     // Try to find the actions container or create a fallback
     actions = document.querySelector('#actions') || document.body;
-    console.log('DEBUG: Using fallback container:', actions);
   }
   
   // Clear any existing buttons in actions if it exists
@@ -1244,22 +1200,10 @@ window.showTrainTracksNextButton = async function showTrainTracksNextButton() {
     box-shadow: 0 0 20px rgba(139, 0, 0, 0.6);
   `;
   nextBtn.onclick = async () => {
-    console.log('DEBUG: Next button clicked, starting train tracks sequence');
     nextBtn.remove();
-    console.log('DEBUG: Checking for startTrainTracksSequence...');
-    console.log('DEBUG: typeof window.startTrainTracksSequence:', typeof window.startTrainTracksSequence);
-    console.log('DEBUG: window.startTrainTracksSequence:', window.startTrainTracksSequence);
     if (typeof window.startTrainTracksSequence === 'function') {
-      console.log('DEBUG: Calling window.startTrainTracksSequence()');
-      // #region agent log
-      // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24525',message:'showTrainTracksNextButton calling startTrainTracksSequence',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
       try {
         await window.startTrainTracksSequence();
-        console.log('DEBUG: Train tracks sequence completed, resolving promise');
-        // #region agent log
-        // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24527',message:'showTrainTracksNextButton startTrainTracksSequence completed',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
         trainTracksResolve();
       } catch (error) {
         console.error('DEBUG: Error in train tracks sequence:', error);
@@ -1270,7 +1214,6 @@ window.showTrainTracksNextButton = async function showTrainTracksNextButton() {
       console.error('DEBUG: Available window properties with "train":', Object.keys(window).filter(k => k.toLowerCase().includes('train')));
       // Try to find and call it anyway
       if (window.startTrainTracksSequence) {
-        console.log('DEBUG: Found startTrainTracksSequence but it\'s not a function, trying to call anyway');
         try {
           await window.startTrainTracksSequence();
           trainTracksResolve();
@@ -1288,18 +1231,13 @@ window.showTrainTracksNextButton = async function showTrainTracksNextButton() {
   
   // Append to body to ensure it's visible above modals
   document.body.appendChild(nextBtn);
-  console.log('DEBUG: Next button added to DOM');
   
   // Wait for the train tracks sequence to complete before returning
   await trainTracksPromise;
-  console.log('DEBUG: showTrainTracksNextButton returning after train tracks sequence');
 };
 
 // Main train tracks sequence - defined early to ensure it's available when button is clicked
 window.startTrainTracksSequence = async function startTrainTracksSequence() {
-  // #region agent log
-  // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24548',message:'startTrainTracksSequence entry',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-  // #endregion
   
   // Stop background music
   let wasMusicPlaying = false;
@@ -1482,9 +1420,6 @@ window.startTrainTracksSequence = async function startTrainTracksSequence() {
   franticOverlay.countdownInterval = countdownInterval;
   franticOverlay.dataset.escapeUsed = 'false';
   
-  // #region agent log
-  // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24700',message:'startTrainTracksSequence returning promise',data:{hasEscapeResolve:!!escapeResolve},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-  // #endregion
   
   // Return the promise - it will resolve when useEscapeOption or handleTrainDeath is called
   return escapePromise;
@@ -1612,7 +1547,6 @@ async function useEscapeOption(option) {
         window._startGeneralMusic();
       } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
         generalMusicAudio.play().catch(err => {
-          console.log('Could not resume background music:', err);
         });
       }
     }
@@ -1633,8 +1567,6 @@ async function useEscapeOption(option) {
   log(`You survive, but at what cost?`);
   log(``);
   
-  console.log('DEBUG TRAIN TRACKS: useEscapeOption completed, returning control to main loop');
-  console.log('DEBUG TRAIN TRACKS: Main loop will handle post-match flow');
   
   // Clear actions - main loop will handle post-match
   const actions = document.getElementById('actions');
@@ -1646,7 +1578,6 @@ async function useEscapeOption(option) {
       window._startGeneralMusic();
     } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
       generalMusicAudio.play().catch(err => {
-        console.log('Could not resume background music:', err);
       });
     }
   }
@@ -1687,7 +1618,6 @@ async function handleTrainDeath() {
       window._startGeneralMusic();
     } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
       generalMusicAudio.play().catch(err => {
-        console.log('Could not resume background music:', err);
       });
     }
   }
@@ -1782,10 +1712,6 @@ async function playTrainVideo(videoUrl) {
 
 // Function to show kidnapping sequence modal after panic video
 async function showKidnappingSequenceModal() {
-  // #region agent log
-  // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24440',message:'showKidnappingSequenceModal function entry',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-  // #endregion
-  console.log('DEBUG: showKidnappingSequenceModal called');
   
   // Stop background music - be aggressive about it to prevent clashing
   let wasMusicPlaying = false;
@@ -1844,23 +1770,19 @@ async function showKidnappingSequenceModal() {
   // Use the post-match audio that was already created (before panic video), or create new one
   let postMatchAudio = window._season5PostMatchAudio;
   if (!postMatchAudio) {
-    console.log('DEBUG MUSIC: No existing audio found in aftermath UI, creating new one');
     // If no existing audio, create new one with correct URL
     const postMatchTrackUrl = 'https://www.dropbox.com/scl/fi/99k3vl0z7pwwv61irqnj3/delmor-shoot.mp3?rlkey=kqwvyt6a02ltwda4hs66ru1wo&st=4o4ndk0j&dl=1';
     postMatchAudio = new Audio(postMatchTrackUrl);
     postMatchAudio.volume = 1.0;
     window._season5PostMatchAudio = postMatchAudio;
   } else {
-    console.log('DEBUG MUSIC: Found existing special post-match audio in aftermath UI');
   }
   
   // Ensure it's playing - start it if paused, restart if ended
   if (postMatchAudio.paused || postMatchAudio.ended) {
     if (postMatchAudio.ended) {
-      console.log('DEBUG MUSIC: Audio ended, restarting for aftermath UI');
       postMatchAudio.currentTime = 0;
     } else {
-      console.log('DEBUG MUSIC: Audio paused, starting for aftermath UI');
     }
     postMatchAudio.play().catch(e => {
       console.error('Error playing post-match audio in aftermath UI:', e);
@@ -1871,7 +1793,6 @@ async function showKidnappingSequenceModal() {
     });
   } else {
     // If it's already playing, make sure volume is correct
-    console.log('DEBUG MUSIC: Special post-match music already playing for aftermath UI');
     postMatchAudio.volume = 1.0;
   }
   
@@ -2067,7 +1988,6 @@ async function showKidnappingSequenceModal() {
           window._startGeneralMusic();
         } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
           generalMusicAudio.play().catch(err => {
-            console.log('Could not resume background music:', err);
           });
         }
       }
@@ -2080,13 +2000,10 @@ async function showKidnappingSequenceModal() {
         // Wait a bit for the modal to fully fade out
         await new Promise(resolve => setTimeout(resolve, 600));
         
-        console.log('DEBUG: Attempting to call showTrainTracksNextButton');
-        console.log('DEBUG: window.showTrainTracksNextButton exists:', typeof window.showTrainTracksNextButton);
         
         if (typeof window.showTrainTracksNextButton === 'function') {
           try {
             await window.showTrainTracksNextButton();
-            console.log('DEBUG: window.showTrainTracksNextButton completed successfully');
           } catch (error) {
             console.error('DEBUG: Error calling window.showTrainTracksNextButton:', error);
           }
@@ -2337,9 +2254,6 @@ async function playPanicVideo() {
     const doResolve = () => {
       if (!resolved) {
         resolved = true;
-        // #region agent log
-        // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24821',message:'playPanicVideo doResolve called',data:{resolved:resolved},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
         if (document.body.contains(videoContainer)) {
           videoContainer.remove();
         }
@@ -2348,85 +2262,45 @@ async function playPanicVideo() {
     };
     
     video.addEventListener('ended', () => {
-      // #region agent log
-      // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24831',message:'playPanicVideo video ended event fired',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
       setTimeout(() => {
         doResolve();
       }, 500);
     }, { once: true });
     
     videoCloseBtn.addEventListener('click', () => {
-      // #region agent log
-      // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24837',message:'playPanicVideo close button clicked',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
       doResolve();
     }, { once: true });
   });
   
-  // #region agent log
-  // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24842',message:'playPanicVideo promise resolved, checking kidnapping sequence',data:{season:S.season,season5Exists:!!S.season5,kidnappingShown:S.season5?.kidnapping_sequence_shown,matchesPlayed:S.matches_played},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C,D'})}).catch(()=>{});
-  // #endregion
   
   // After panic video: Show kidnapping sequence UI log for Season 5 Match 1
   // This is called from showOminousMassacrePopout() which only happens on the first match
   // So we can safely show the sequence if it hasn't been shown yet
   if (S.season === 5) {
-    // #region agent log
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24845',message:'playPanicVideo season check passed',data:{season:S.season,season5Exists:!!S.season5},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     if (!S.season5) S.season5 = {};
     
     // Safety check: If we're on match 0 and the flag is somehow true, reset it
     // This handles cases where the flag persisted from a previous save incorrectly
     if (S.matches_played === 0 && S.season5.kidnapping_sequence_shown === true) {
-      console.log('DEBUG: Resetting kidnapping_sequence_shown flag - should be false for match 0');
-      console.log('DEBUG: Flag was incorrectly set to true, resetting to false');
       S.season5.kidnapping_sequence_shown = false;
     }
     
     if (!S.season5.kidnapping_sequence_shown) {
-      // #region agent log
-      // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24847',message:'playPanicVideo kidnapping sequence not shown yet',data:{kidnappingShown:S.season5.kidnapping_sequence_shown,showKidnappingExists:typeof showKidnappingSequenceModal},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,D'})}).catch(()=>{});
-      // #endregion
-      console.log('DEBUG: Showing kidnapping sequence after panic video');
       if (typeof showKidnappingSequenceModal === 'function') {
         try {
-          // #region agent log
-          // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24850',message:'playPanicVideo calling showKidnappingSequenceModal',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-          // #endregion
           await showKidnappingSequenceModal();
-          // #region agent log
-          // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24852',message:'playPanicVideo showKidnappingSequenceModal completed',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-          // #endregion
           // Only set flag to true AFTER the modal has been shown successfully
           S.season5.kidnapping_sequence_shown = true;
-          console.log('DEBUG: Kidnapping sequence modal completed, flag set to true');
         } catch (error) {
-          // #region agent log
-          // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24855',message:'playPanicVideo showKidnappingSequenceModal error',data:{error:error?.message||String(error),stack:error?.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-          // #endregion
           console.error('DEBUG: Error showing kidnapping sequence modal:', error);
           // Don't set flag if there was an error, so it can try again
         }
       } else {
-        // #region agent log
-        // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24859',message:'playPanicVideo showKidnappingSequenceModal not defined',data:{typeofShowKidnapping:typeof showKidnappingSequenceModal},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
         console.error('showKidnappingSequenceModal is not defined');
       }
     } else {
-      // #region agent log
-      // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24862',message:'playPanicVideo kidnapping sequence already shown',data:{kidnappingShown:S.season5.kidnapping_sequence_shown},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
-      console.log('DEBUG: Kidnapping sequence already shown, skipping');
-      console.log('DEBUG: Current state - season:', S.season, 'matches_played:', S.matches_played, 'flag:', S.season5.kidnapping_sequence_shown);
     }
   } else {
-    // #region agent log
-    // fetch('http://127.0.0.1:7242/ingest/eee92c5c-269f-487d-8d83-62783d0700de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kreplin6.html:24865',message:'playPanicVideo not season 5',data:{season:S.season},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
-    console.log('DEBUG: Not season 5, skipping kidnapping sequence');
   }
 }
 
@@ -3375,7 +3249,6 @@ async function playNuclearStrikeVideo() {
         // Try direct dropboxusercontent format
         const fileId = 'sf4ih30kgaxin2aypoabz';
         const altUrl = `https://dl.dropboxusercontent.com/scl/fi/${fileId}/Video-1-12-26-2-16-09-pm.mp4?rlkey=oax2vakhguqjk942y6jtg7r0v&st=m1d1yegk&dl=1`;
-        console.log('Trying alternative URL:', altUrl);
         video.src = altUrl;
         video.load();
         return;
@@ -3825,7 +3698,6 @@ async function startToiletStrainingMinigame() {
     minigameMusic.loop = true;
     minigameMusic.volume = 0.7;
     minigameMusic.play().catch(err => {
-      console.log('Minigame music play failed (may require user interaction):', err);
     });
     
     // Sound effect URLs - Replace these with actual grunt and fart sound effect URLs
@@ -3860,7 +3732,6 @@ async function startToiletStrainingMinigame() {
       sound.volume = 0.4;
       sound.play().catch(err => {
         // Silently fail if sound can't be played
-        console.log('Sound effect play failed:', err);
       });
     }
     
@@ -4234,7 +4105,6 @@ async function startToiletStrainingMinigame() {
           window._startGeneralMusic();
         } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
           generalMusicAudio.play().catch(err => {
-            console.log('Could not resume background music:', err);
           });
         }
       }
@@ -4792,7 +4662,6 @@ async function showKreplinProtocolUI() {
       video.addEventListener('loadedmetadata', () => {
         if (video.requestFullscreen) {
           videoContainer.requestFullscreen().catch(err => {
-            console.log('Fullscreen request failed:', err);
           });
         } else if (video.webkitRequestFullscreen) {
           videoContainer.webkitRequestFullscreen();
@@ -5121,7 +4990,7 @@ async function showKreplinEpilogue() {
     const epilogueAudio = new Audio('https://www.dropbox.com/scl/fi/qqboc2l8vj7xjhnqfcmpj/epilogue.mp3?rlkey=1dbpkuoyyiyp5lz5bw3tcr75c&st=491q33ww&dl=1');
     epilogueAudio.loop = true;
     epilogueAudio.volume = 0.7;
-    epilogueAudio.play().catch(err => console.log('Epilogue audio play failed:', err));
+    epilogueAudio.play().catch(err => {});
     overlay._epilogueAudio = epilogueAudio; // Store reference for cleanup
     
     // Start displaying lines sequentially
@@ -5191,7 +5060,6 @@ async function playNuclearStrikeVideoEpilogue() {
     video.addEventListener('loadedmetadata', () => {
       if (videoContainer.requestFullscreen) {
         videoContainer.requestFullscreen().catch(err => {
-          console.log('Fullscreen request failed:', err);
         });
       } else if (videoContainer.webkitRequestFullscreen) {
         videoContainer.webkitRequestFullscreen();
@@ -5490,7 +5358,7 @@ async function showNuclearStrikeEpilogue() {
     const epilogueAudio = new Audio('https://www.dropbox.com/scl/fi/qqboc2l8vj7xjhnqfcmpj/epilogue.mp3?rlkey=1dbpkuoyyiyp5lz5bw3tcr75c&st=491q33ww&dl=1');
     epilogueAudio.loop = true;
     epilogueAudio.volume = 0.7;
-    epilogueAudio.play().catch(err => console.log('Epilogue audio play failed:', err));
+    epilogueAudio.play().catch(err => {});
     overlay._epilogueAudio = epilogueAudio; // Store reference for cleanup
     
     // Start displaying lines sequentially

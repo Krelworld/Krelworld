@@ -32,15 +32,6 @@
     "Start shadow-boxing and headbutt a locker"
   ];
 
-  function titleAllowsDeranged(title){
-    if (!title) return false;
-    // Strict contexts only: locker rooms or referee bribe side-pick
-    if (title.includes("Your Locker Room")) return true;
-    if (title.includes("Opposition Locker Room")) return true;
-    if (title.includes("Which side should the referee favor?")) return true;
-    // (Optionally add manager-specific dialog titles here if/when present)
-    return false;
-  }
 
   // Effects resolver by context
   async function performDerangedEffectsForTitle(title){

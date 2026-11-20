@@ -118,7 +118,6 @@ async function openKnockDoor(){
   // This is a fallback trigger - main triggers are in postMatchPhase and eveningPhase
   // MUST check BEFORE early return to ensure it can trigger even if visitors_handled is true
   if (S.season === 5 && S.season5 && S.matches_played === 1 && S.season5.kidnapping_sequence_shown && !S.season5.kidnapping_press_done) {
-    console.log('DEBUG KNOCKDOOR: Triggering kidnapping press conference - season=5, matches_played=' + S.matches_played + ', kidnapping_sequence_shown=' + S.season5.kidnapping_sequence_shown + ', kidnapping_press_done=' + S.season5.kidnapping_press_done);
     if (typeof window.conductKidnappingPressConference === 'function') {
       await window.conductKidnappingPressConference();
     } else if (typeof conductKidnappingPressConference === 'function') {
@@ -127,7 +126,6 @@ async function openKnockDoor(){
       console.warn('conductKidnappingPressConference function not found');
     }
     S.season5.kidnapping_press_done = true;
-    console.log('DEBUG KNOCKDOOR: Press conference completed, kidnapping_press_done set to true');
     // Do not mark visitors_handled here; normal visitors may still follow
   }
 
@@ -135,18 +133,15 @@ async function openKnockDoor(){
   // Once per season in seasons 4 and 5, Muslim Malcolm visits via knockdoor
   // NOTE: This is now a fallback - the main trigger is in preMatchPhase() for automatic visits
   // MUST check BEFORE early return to ensure it can trigger even if visitors_handled is true
-  console.log(`DEBUG MALCOLM: Checking visit (fallback) - season=${S.season}, matches_played=${S.matches_played}, visitors_handled=${S.visitors_handled}`);
   if ((S.season === 4 || S.season === 5) && S.matches_played > 0) {
     const seasonKey = S.season === 4 ? 'season4' : 'season5';
     const seasonData = S[seasonKey];
-    console.log(`DEBUG MALCOLM: Season check passed - seasonKey=${seasonKey}, seasonData exists=${!!seasonData}, muslim_malcolm_visited=${seasonData?.muslim_malcolm_visited}`);
     
     // Skip if already visited this season OR if visit is already scheduled for this match (handled in preMatchPhase)
     if (seasonData && !seasonData.muslim_malcolm_visited && !(S.preMatch && S.preMatch.muslim_malcolm_visiting)) {
       const matchesPlayed = S.matches_played || 0;
       const seasonMatches = S.season_matches || 16;
       const seasonProgress = matchesPlayed / seasonMatches;
-      console.log(`DEBUG MALCOLM: Not visited yet - matchesPlayed=${matchesPlayed}, seasonMatches=${seasonMatches}, seasonProgress=${seasonProgress.toFixed(2)}`);
       
       // Check if FA executive (points seller) already visited this season - if so, no conflict
       let faExecutiveAlreadyVisited = false;
@@ -171,7 +166,6 @@ async function openKnockDoor(){
         // Only skip if FA executive is definitely visiting this exact match
         // Since FA executive is random, we'll let Malcolm visit and skip FA executive if both would trigger
         shouldTrigger = true;
-        console.log(`DEBUG MALCOLM: GUARANTEED TRIGGER - matchesPlayed (${matchesPlayed}) >= guaranteedMatch (${guaranteedMatch})`);
       } else {
         // Random chance before guarantee point (higher chance as season progresses)
         let triggerChance = 0.3;
@@ -182,11 +176,9 @@ async function openKnockDoor(){
         }
         const roll = Math.random();
         shouldTrigger = (roll < triggerChance);
-        console.log(`DEBUG MALCOLM: Random check - triggerChance=${triggerChance.toFixed(2)}, roll=${roll.toFixed(2)}, shouldTrigger=${shouldTrigger}`);
       }
       
       if (shouldTrigger) {
-        console.log(`DEBUG MALCOLM: TRIGGERING VISIT - Setting muslim_malcolm_visited=true`);
         seasonData.muslim_malcolm_visited = true;
         // Mark that we're visiting this match to prevent FA executive from also visiting
         if (!S.preMatch) S.preMatch = {};
@@ -195,20 +187,15 @@ async function openKnockDoor(){
         S.visitors_handled = true;
         return;
       } else {
-        console.log(`DEBUG MALCOLM: Not triggering this match (shouldTrigger=false)`);
       }
     } else {
       if (!seasonData) {
-        console.log(`DEBUG MALCOLM: seasonData is null/undefined - cannot check visit status`);
       } else if (seasonData.muslim_malcolm_visited) {
-        console.log(`DEBUG MALCOLM: Already visited this season (muslim_malcolm_visited=true)`);
       }
     }
   } else {
     if (S.season !== 4 && S.season !== 5) {
-      console.log(`DEBUG MALCOLM: Wrong season (${S.season}), not checking`);
     } else if (S.matches_played <= 0) {
-      console.log(`DEBUG MALCOLM: matches_played (${S.matches_played}) <= 0, not checking`);
     }
   }
 
@@ -220,7 +207,6 @@ async function openKnockDoor(){
 
 // --- Consume queued visitors first (unrest / investigation) ---
 if (Array.isArray(S.knock_queue) && S.knock_queue.length){
-  console.log(`DEBUG: openKnockDoor processing ${S.knock_queue.length} queued items`);
   while (S.knock_queue.length){
     const v = S.knock_queue.shift();
     if (v.type === 'unrest')       { await handleUnrestVisitor(); }
@@ -242,7 +228,6 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
 
   // Season 5 Match 2: Mohammed Van Onslaught press conference visitor
   if (S.season === 5 && S.matches_played === 1 && (!S.season5 || !S.season5.van_onslaught_press_conference_shown)) {
-    console.log('DEBUG VAN ONSLAUGHT: Press conference event triggered - season=5, matches_played=' + S.matches_played);
     if (!S.season5) S.season5 = {};
     S.season5.van_onslaught_press_conference_shown = true;
     
@@ -254,7 +239,6 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     
     const videoUrl = 'https://www.dropbox.com/scl/fi/1jrhs2o25ynt4m88hg5k6/conference-ai.mp4?rlkey=3q28dvzgm28lg2ubywx4bk6oy&st=x5m8cz7d&dl=1';
     
-    console.log('DEBUG VAN ONSLAUGHT: Showing press conference video (mandatory)');
     // Show the video immediately (mandatory to watch)
     const videoDiv = document.createElement('div');
     videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid #6366f1; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
@@ -268,13 +252,11 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
           return;
         }
         promiseResolved = true;
-        console.log('DEBUG VAN ONSLAUGHT: Promise resolving after video closed');
         resolve();
       };
       
       // Create close handler function
       const closeHandler = () => {
-        console.log('DEBUG VAN ONSLAUGHT: closeHandler called, removing video div');
         videoDiv.remove();
         safeResolve();
       };
@@ -289,12 +271,10 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
       videoDiv.innerHTML = `<div style="color: #6366f1; font-size: 24px; margin-bottom: 20px;">📹 Mohammed Van Onslaught Press Conference</div><video id="vanOnslaughtPressVideo" controls autoplay style="width: 100%; height: calc(100% - 80px); object-fit: contain;"><source src="${videoUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
       videoDiv.appendChild(xButton);
       document.body.appendChild(videoDiv);
-      console.log('DEBUG VAN ONSLAUGHT: Video div added to DOM');
       
       // Wait for video to be closed or finished
       const video = document.getElementById('vanOnslaughtPressVideo');
       const finalCloseHandler = () => {
-        console.log('DEBUG VAN ONSLAUGHT: finalCloseHandler called (video ended or X clicked)');
         closeHandler();
       };
       
@@ -304,7 +284,6 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
       // Also resolve when video ends
       if (video) {
         video.addEventListener('ended', finalCloseHandler);
-        console.log('DEBUG VAN ONSLAUGHT: Added ended event listener to video');
         // Try to play the video
         video.play().catch(err => {
           console.warn('DEBUG VAN ONSLAUGHT: Autoplay prevented, user will need to click play:', err);
@@ -313,28 +292,23 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
         console.error('DEBUG VAN ONSLAUGHT: ERROR - video element not found after creation!');
         // Fallback: resolve after a short delay if video element not found
         setTimeout(() => {
-          console.log('DEBUG VAN ONSLAUGHT: Fallback timeout - resolving promise');
           safeResolve();
         }, 1000);
       }
     });
     
-    console.log('DEBUG VAN ONSLAUGHT: Promise resolved, video closed. Logging messenger leaves...');
     log(`The messenger leaves.`);
     
-    console.log('DEBUG VAN ONSLAUGHT: About to call choose() to present Continue option');
     // Present options to continue after watching the press conference
     try {
       const choice = await choose([
         { key: 'continue', label: 'Continue' }
       ], 'The messenger has left.');
-      console.log('DEBUG VAN ONSLAUGHT: choose() returned:', choice);
     } catch (error) {
       console.error('DEBUG VAN ONSLAUGHT: ERROR in choose() call:', error);
       throw error;
     }
     
-    console.log('DEBUG VAN ONSLAUGHT: Press conference event completed successfully');
     // Don't mark visitors_handled here - allow other visitors to continue
   }
 
@@ -469,10 +443,8 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     const shouldTrigger = S.cronster.booby_trap_pending_climax || 
                          (isLatterHalf && S.cronster.letter_received && (hasEnoughEvents || isPast75Percent));
     
-    console.log(`DEBUG CRONSTER DOOR: Checking confrontation - season=${S.season}, matchesPlayed=${matchesPlayed}, seasonMatches=${seasonMatches}, isLatterHalf=${isLatterHalf}, isPast75Percent=${isPast75Percent}, letter_received=${S.cronster.letter_received}, hasEnoughEvents=${hasEnoughEvents}, shouldTrigger=${shouldTrigger}`);
     
     if (shouldTrigger) {
-      console.log(`DEBUG CRONSTER DOOR: TRIGGERING FINAL CONFRONTATION!`);
       S.cronster.booby_trap_pending_climax = false;
       S.cronster.booby_trap_climax_triggered = true;
       
@@ -780,7 +752,6 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
             window._startGeneralMusic();
           } else if (typeof generalMusicAudio !== 'undefined' && generalMusicAudio) {
             generalMusicAudio.play().catch(err => {
-              console.log('Could not resume background music:', err);
             });
           }
         }
@@ -1404,12 +1375,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     
     // Force save state to ensure flag persists (defensive programming)
     if (typeof localStorage !== 'undefined') {
-      try {
-        const saveKey = typeof SAVE_KEY !== 'undefined' ? SAVE_KEY : 'saints_save_v4';
-        localStorage.setItem(saveKey, JSON.stringify(S));
-      } catch(e) {
-        console.warn("Could not save state after dating minigame:", e);
-      }
+      saveGame();
     }
     
     S.visitors_handled = true;
@@ -1510,12 +1476,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     
     // Force save state
     if (typeof localStorage !== 'undefined') {
-      try {
-        const saveKey = typeof SAVE_KEY !== 'undefined' ? SAVE_KEY : 'saints_save_v4';
-        localStorage.setItem(saveKey, JSON.stringify(S));
-      } catch(e) {
-        console.warn("Could not save state after drive home scene:", e);
-      }
+      saveGame();
     }
     
     S.visitors_handled = true;

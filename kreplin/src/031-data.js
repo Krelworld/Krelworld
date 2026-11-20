@@ -1963,10 +1963,6 @@ function showSecretaryStatus() {
   log(`✅ Available categories: ${availableCategories.join(', ')}`);
 }
 
-function hasRecentEroticMessages() {
-  // Check if last 3 messages were erotic (simplified check)
-  return S.secMessageCounts.erotic > 0 && (Date.now() - S.lastEroticTs) < 3 * 24 * 60 * 60 * 1000; // 3 days
-}
 
 async function composeSecretaryMessage() {
   // Check if we're starting a new thread or continuing an existing one

@@ -2862,14 +2862,14 @@ function createQuickSimOverlay(homeTeam, awayTeam) {
       <button class="quick-sim-skip-btn k-btn">Skip to FT ▸▸</button>
     </div>
   `;
-  
-  // Disable skip button if this is match 11 season 2 (stadium attack match) or first match of season 5 or stadium burn triggered
-  const skipBtn = overlay.querySelector('.quick-sim-skip-btn');
   // Pixel pitch acts out the events revealMatchEvents feeds it (cosmetic only)
   try {
     if (window.MatchPitch) overlay._pitch = MatchPitch.mount(overlay.querySelector('.k-pitch'), { home: homeTeam, away: awayTeam });
   } catch (e) { console.warn('MatchPitch mount failed', e); }
 
+  
+  // Disable skip button if this is match 11 season 2 (stadium attack match) or first match of season 5 or stadium burn triggered
+  const skipBtn = overlay.querySelector('.quick-sim-skip-btn');
   if (skipBtn && ((S.season === 2 && S.matches_played === 11) || (S.season === 5 && S.season5 && S.season5.first_match_special_event && S.matches_played === 0) || S.preMatch?.stadium_burn_triggered)) {
     skipBtn.disabled = true;
     skipBtn.style.opacity = '0.5';

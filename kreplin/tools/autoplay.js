@@ -14,7 +14,8 @@
 //   --lean     always takes the quickest path to the next match (kick off, pay wages, sleep, continue)
 //   --clicks   counts the game's choose() menus per week (decision menus + single-button "advance"
 //              gates) and prints CLICKS lines: the minimum clicks a player needs per match week.
-//   A failstate (window.__kreplinFailstate) counts as game over; a page reload is reported (RELOAD).
+//   A failstate (window.__kreplinFailstate) counts as game over, the end credits (window.__kreplinCampaignEnd)
+//   as the campaign's end; a page reload is reported (RELOAD).
 // Reports: page errors, progress (season/match), stalls, and a points/table ledger
 // check after every played match (LEDGER lines; --dump also prints the final ledger).
 const { chromium, devices } = require('playwright');
@@ -135,7 +136,7 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
   const state = () => p.evaluate(() => {
     const S = window.S || {};
     return { season: S.season, played: S.matches_played, pts: S.points, w: S.wins, d: S.draws, l: S.losses,
-      club: S.club_cash, chair: S.chairman_cash, over: !!S.game_over || !!window.__kreplinFailstate,
+      club: S.club_cash, chair: S.chairman_cash, over: !!S.game_over || !!window.__kreplinFailstate, end: !!window.__kreplinCampaignEnd,
       squad: Array.isArray(S.squad) ? S.squad.length : 0 };
   }).catch(() => ({}));
 
@@ -175,11 +176,11 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
         if (!hit || !(hit === el || el.contains(hit))) return;
         el.dataset.apIdx = idx;
         const lbl = el.querySelector(':scope > .lbl') || el;
-        out.push({ idx, text: (lbl.innerText || el.value || el.title || '').trim().slice(0, 60), hud: !!el.closest('#hudBar, footer, #kRail, #kTop, #kMoreSheet, .k-sheet-toggle, .k-linkbtn') });
+        out.push({ idx, text: (lbl.innerText || el.value || el.title || '').trim().slice(0, 60), hud: !!el.closest('#hudBar, footer, #kRail, #kTop, #kMoreSheet, .k-sheet-toggle, .k-linkbtn') && !el.closest('.k-modal, .kp-modal-wrap'), chip: el.classList.contains('k-vm-chip') });
       });
       return out;
     });
-    const usable = cands.filter(c => !c.hud && (!SKIP.test(c.text) || (same > 8 && /^(×|✕|x|back.*)$/i.test(c.text))));
+    const usable = cands.filter(c => !c.hud && !c.chip && (!SKIP.test(c.text) || (same > 8 && /^(×|✕|x|back.*)$/i.test(c.text))));
     // don't sell the squad below a playable size (the bot otherwise strands itself in the lineup picker)
     if ((globalThis.__squad || 99) <= 8) for (let k = usable.length - 1; k >= 0; k--) if (/^(sell player|sell |accept .* for |confirm sale)/i.test(usable[k].text)) usable.splice(k, 1);
     // occasionally press Escape / click overlay-less hud for coverage
@@ -223,7 +224,20 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
     if (shots && i % EVERY === 0) await p.screenshot({ path: `${shots}/ap-${String(i).padStart(4, '0')}.png` });
     if (args.mobile && i % 5 === 0) await checkOverflow(i);
     if (s.over) { console.log('GAME OVER reached at step', i); break; }
-    if (same > (+args.patience || 40)) { console.log('STALL at step', i, 'last clicks:', history.slice(-8).join(' > ')); break; }
+    if (s.end) { console.log('CAMPAIGN END (credits / RESTART GAME) reached at step', i); break; }
+    if (same > (+args.patience || 40)) {
+      console.log('STALL at step', i, 'last clicks:', history.slice(-8).join(' > '));
+      // why: every visible button and what actually sits on top of its centre
+      console.log('STALL-BUTTONS', await p.evaluate(() => [...document.querySelectorAll('button, [role=button]')].map(el => {
+        const r = el.getBoundingClientRect(); const cs = getComputedStyle(el);
+        if (r.width < 4 || r.height < 4 || cs.display === 'none' || cs.visibility === 'hidden') return null;
+        const h = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        const d = n => n ? `${n.tagName}#${n.id}.${String(n.className).slice(0, 30)}` : 'null';
+        return `"${(el.innerText || '').trim().slice(0, 24)}" ${d(el)} @${Math.round(r.left)},${Math.round(r.top)} ${el.disabled ? 'DISABLED ' : ''}hit=${h === el || (h && el.contains(h)) ? 'self' : d(h)}`;
+      }).filter(Boolean).slice(0, 25).join('\n  ')).catch(e => e.message));
+      if (shots) await p.screenshot({ path: `${shots}/stall.png` }).catch(() => {});
+      break;
+    }
   }
   if (args.clicks) {
     const c = await p.evaluate(() => window.__apClicks || {}).catch(() => ({}));

@@ -939,7 +939,8 @@ export class Synth {
     }
   }
 
-  play(id: string, vol = 1) {
+  /** `rate`: a set playback rate for a recorded take (pitch it up or down); otherwise a touch of random wobble. */
+  play(id: string, vol = 1, rate?: number) {
     if (!this.ctx) return;
     // canned laughter: a random slice of the real laugh track (the big one plays most of it)
     if (id === "laugh" && this.clip("laugh_track", Math.random() * 1.6, 2.8 + Math.random() * 0.8, 1.1, 0.96 + Math.random() * 0.08)) return;
@@ -953,7 +954,7 @@ export class Synth {
       const s = this.ctx.createBufferSource();
       s.buffer = rec;
       // a touch of pitch wobble so repeats don't sound copy-pasted
-      s.playbackRate.value = 0.94 + Math.random() * 0.12;
+      s.playbackRate.value = rate ?? 0.94 + Math.random() * 0.12;
       if (vol !== 1) {
         const g = this.ctx.createGain();
         g.gain.value = vol;

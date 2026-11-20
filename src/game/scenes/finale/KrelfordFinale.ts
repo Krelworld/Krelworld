@@ -29,7 +29,8 @@ import { KiMode } from "./KiMode";
  *   4 REAL      super saiyan: real damage, while Goku's SPIRIT CUM grows. It escalates as it weakens (ConceptBoss).
  *   5 BRAWL     nearly dead, it crushes itself down into the wizard and goes up into the storm: a side-on, hand-to-hand
  *               super saiyan brawl (FinaleScene beat "brawl", finale/SsjBrawl.ts, over the paused fight).
- *   6           back down: it FULLY heals. NOOOOO. Then the SPIRIT CUM (cutscene, then the Ending).
+ *   6           back down: it crashes into town and COLLAPSES (bar to 0), lies still... twitches, gets back up
+ *               bigger and darker, and its bar slowly refills. NOOOOO. Then the SPIRIT CUM (cutscene, then the Ending).
  * Checkpoint (G.s.flags.finale_cp): die after the bottle and you come back at the bottle; after the change, super saiyan.
  * G.s.flags.finale_brawl: 1 while the brawl's on (come back and you're straight into it), 2 once it's won (straight to
  * the final heal). Cleared with the rest when the SPIRIT CUM's done.
@@ -759,9 +760,14 @@ export class KrelfordFinale {
     });
   }
 
-  /** It's nearly dead... and it heals. All of it. NOOOOO. Then: the SPIRIT CUM. */
+  /**
+   * After the brawl: it comes down out of the storm and COLLAPSES (a heap, smoke, its bar drained to nothing), and it's
+   * quiet, and you think that's it. Then it twitches. The light goes, something low starts up, and it gets back up,
+   * bigger and darker, and its bar fills, slowly, all the way. NOOOOO. Then Goku: the SPIRIT CUM.
+   */
   private async finalHeal(afterBrawl = false) {
     const h = this.h;
+    const sc = h.sc;
     const b = this.boss;
     if (this.stage !== "real" && !afterBrawl) return;
     this.stage = "end";
@@ -770,27 +776,72 @@ export class KrelfordFinale {
     for (const sh of [...h.shots]) if (sh.o.owner === "enemy") h.killShot(sh);
     for (const e of [...h.enemies]) if (!e.dead && !e.isBoss) h.damageEnemy(e, 99999, { noWonk: true, label: "" });
     const finalFact = FB.conceptHealFact();
+    const cam0 = h.cameras.main;
+    const z0 = cam0.zoom;
+    h.busy = true;
+    cam0.stopFollow();
+    cam0.pan(b.x, b.y + 40, 500, "Sine.easeInOut", true);
+    cam0.zoomTo(0.95, 700, "Sine.easeInOut", true);
+    const bars = Juice.letterbox(sc, 50, 400);
+    // ---- 1 THE COLLAPSE: down out of the clouds, a reel, and it goes down in a heap
+    await this.wait(250);
+    if (this.gone) return;
+    await b.collapse();
+    if (this.gone) return;
+    // ---- 2 QUIET: the music drops away; just the rain. You won. (Didn't you?)
+    // (one duck for the whole quiet: it swells back in as it gets up. Stacked ducks restore to the ducked level.)
+    Juice.duckMusic(7000, 1800, 0.03);
+    for (const [i, l] of this.lads.entries()) h.time.delayedCall(300 + i * 120, () => l.aura && h.tweens.add({ targets: l.aura, alpha: 0.4, duration: 900 }));
+    cam0.zoomTo(1.0, 2600, "Sine.easeInOut", true);
+    await this.wait(2300);
+    if (this.gone) return;
+    // ---- 3 IT TWITCHES. The lights go down; something low and wrong starts up under it all.
+    const dim = h.add.rectangle(480, 270, 2000, 1200, 0x05020c, 0).setScrollFactor(0).setDepth(952).setBlendMode(Phaser.BlendModes.MULTIPLY);
+    const sick = h.add.rectangle(480, 270, 2000, 1200, 0x4c1d95, 0).setScrollFactor(0).setDepth(953).setBlendMode(Phaser.BlendModes.ADD);
+    h.tweens.add({ targets: dim, alpha: 0.55, duration: 4200, ease: "Sine.in" });
+    Juice.dreadSwell(5600, 0.26);
+    b.twitch(0.5);
+    await this.wait(900);
+    if (this.gone) return;
+    b.twitch(0.8);
+    await this.wait(650);
+    if (this.gone) return;
+    synth.play("drone", 0.9);
+    b.twitch(1);
+    Juice.heartbeat(0.8);
+    await this.wait(450);
+    if (this.gone) return;
+    // ---- 4 IT GETS BACK UP: bigger, darker; the ground heaving; a sick violet light coming up off it
+    synth.play("thunder", 0.8);
+    h.shake(2600, 0.006);
+    h.tweens.add({ targets: sick, alpha: 0.12, duration: 2400 });
+    for (let i = 0; i < 4; i++) h.time.delayedCall(i * 600, () => !this.gone && Juice.shockRing(sc, b.x, b.y + 60, { color: 0x4c1d95, to: 500 + i * 160, rings: 1, ms: 900, flat: 0.5 }));
+    Juice.debris(sc, b.x, b.y + 80, 14, { depth: 2000, speed: 300, size: 9, colors: [0x2a211c, 0x44403c, 0x12002a] });
+    cam0.zoomTo(1.12, 2400, "Sine.easeIn", true);
+    await b.reemerge(2400);
+    if (this.gone) return;
+    h.shake(900, 0.02);
+    Juice.subDrop(1, 1.8);
+    Juice.shockRing(sc, b.x, b.y, { color: 0xa855f7, to: 1100, rings: 4, ms: 1000 });
+    this.darkAura();
+    await this.wait(700);
+    if (this.gone) return;
     await h.talk([FB.conceptLine(finalFact)]);
     if (this.gone) return;
-    // everyone screams
+    // ---- 5 THE REFILL: everyone screams, and its bar fills, slowly, all the way
     for (const [i, l] of this.lads.entries()) h.time.delayedCall(i * 90, () => h.floatText(l.spr.x, l.spr.y - (l.head ?? 40) - 14, FB.FB_NO, "#ff6b6b", 18));
     h.floatText(h.player.x, h.player.y - 60, FB.FB_NO, "#ff6b6b", 20);
     synth.play("shriek");
-    const cam0 = h.cameras.main;
-    const z0 = cam0.zoom;
-    const close = Juice.letterbox(h.sc, 56, 500);
-    const vig = Juice.vignette(h.sc, 0x7f1d1d, 0.8, 4890);
-    cam0.stopFollow();
-    cam0.pan(b.x, b.y, 900, "Sine.easeInOut", true);
-    cam0.zoomTo(1.15, 2200, "Sine.easeInOut", true);
-    Juice.duckMusic(2400, 800, 0.08);
-    for (let i = 0; i < 4; i++) h.time.delayedCall(i * 560, () => Juice.heartbeat(0.9));
-    Juice.slamText(h.sc, FB.FB_NO, "#ff3b3b", 64, 200, 1600);
+    const vig = Juice.vignette(sc, 0x7f1d1d, 0.8, 4890);
+    const healMs = 4600;
+    cam0.zoomTo(1.2, healMs, "Sine.easeInOut", true);
+    for (let i = 0; i < Math.floor(healMs / 600); i++) h.time.delayedCall(i * 600, () => !this.gone && Juice.heartbeat(0.9));
+    Juice.slamText(sc, FB.FB_NO, "#ff3b3b", 64, 200, 1600);
     // every wound closing, every arm growing back: the money shot
-    h.time.delayedCall(600, () => void Juice.still(h.sc, "fe_still_regrow", 1500, { push: 0.1, shakeK: 0.01 }));
-    await b.fullHeal(2200, finalFact);
+    h.time.delayedCall(900, () => void Juice.still(sc, "fe_still_regrow", 1500, { push: 0.1, shakeK: 0.01 }));
+    await b.refill(healMs, finalFact);
     if (this.gone) return;
-    close(400);
+    bars(400);
     h.tweens.add({ targets: vig, alpha: 0, duration: 600, onComplete: () => vig.destroy() });
     cam0.zoomTo(z0, 500, "Sine.easeInOut", true);
     cam0.startFollow(h.player.spr, true, 0.12, 0.12);
@@ -801,19 +852,32 @@ export class KrelfordFinale {
     }
     await h.talk([...FB.FB_FINAL_HEAL.slice(1), ...this.lads.slice(0, 4).map((l) => say(l.id, FB.FB_NO)), { s: "YOU", t: FB.FB_NO, tag: "new" }]);
     if (this.gone) return;
-    // ...but Goku's ready
-    this.orb && h.tweens.add({ targets: this.orb, scale: 2.2, duration: 600 });
+    // ...but Goku's ready: the light comes back, gold, off him
     const cam = h.cameras.main;
-    h.busy = true;
     if (this.goku) {
       cam.stopFollow();
       cam.pan(this.goku.x, this.goku.y - 80, 900, "Sine.easeInOut");
-      await this.wait(1100);
+      await this.wait(950);
+      if (this.gone) return;
     }
+    Juice.riser(1300, 0.35);
+    h.tweens.add({ targets: [dim, sick], alpha: 0, duration: 1100 });
+    for (const l of this.lads) if (l.aura) h.tweens.add({ targets: l.aura, alpha: 0.85, duration: 700 });
+    if (this.orb) {
+      h.tweens.add({ targets: this.orb, scale: 3.2, duration: 1200, ease: "Sine.in" });
+      for (let i = 0; i < 4; i++) h.time.delayedCall(i * 280, () => !this.gone && this.orb && Juice.shockRing(sc, this.orb.x, this.orb.y, { color: 0xffd23f, to: 300 + i * 120, rings: 1, ms: 600, depth: 2001 }));
+    }
+    const stopLines = Juice.speedLines(sc, 1200, 0xfff4c2);
+    h.shake(1200, 0.008);
+    await this.wait(1250);
+    stopLines();
+    if (this.gone) return;
     G.s.hp = maxHp(G.s);
     G.save();
     synth.weatherSound(null);
-    cam.flash(400, 255, 255, 255);
+    synth.play("reveal_boom");
+    Juice.subDrop(1, 1.4);
+    cam.flash(400, 255, 240, 190);
     h.time.delayedCall(300, () => {
       h.cameras.main.fadeOut(300, 255, 255, 255);
       h.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {

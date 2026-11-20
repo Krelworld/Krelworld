@@ -556,6 +556,46 @@ export function subDrop(vol = 1, dur = 1.6) {
   thump(a, a.ctx.currentTime, 110, 28, dur, vol);
 }
 
+/**
+ * An unsettling swell: a low, beating, detuned growl with a sour high note over it, opening up (filter and volume)
+ * over `ms` and cut off at the top. Something terrible getting back up.
+ */
+export function dreadSwell(ms = 4000, vol = 0.22) {
+  const a = audio();
+  if (!a) return;
+  const t = a.ctx.currentTime;
+  const end = t + ms / 1000;
+  const lp = a.ctx.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.setValueAtTime(110, t);
+  lp.frequency.exponentialRampToValueAtTime(1400, end);
+  const g = a.ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, end);
+  g.gain.exponentialRampToValueAtTime(0.0001, end + 0.35);
+  lp.connect(g).connect(a.out);
+  const oscs: OscillatorNode[] = [];
+  for (const [f, type, k] of [
+    [41.2, "sawtooth", 1],
+    [43.6, "sawtooth", 0.8],
+    [61.7, "triangle", 0.7],
+    [87.3, "sine", 0.5],
+    [233, "sine", 0.18],
+  ] as [number, OscillatorType, number][]) {
+    const o = a.ctx.createOscillator();
+    o.type = type;
+    o.frequency.setValueAtTime(f, t);
+    // everything sags a little flat as it swells: wrong
+    o.frequency.linearRampToValueAtTime(f * 0.97, end);
+    const og = a.ctx.createGain();
+    og.gain.value = k;
+    o.connect(og).connect(lp);
+    o.start(t);
+    o.stop(end + 0.4);
+    oscs.push(o);
+  }
+}
+
 /** A rising noise sweep: tension before a hit. */
 export function riser(ms = 1500, vol = 0.35) {
   const a = audio();

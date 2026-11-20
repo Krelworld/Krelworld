@@ -137,6 +137,11 @@ export class SsjBrawl {
   private lastGhost = 0;
   private nextCheer = 0;
   private finishing = false;
+  /** Slow motion (the biggest hits): until this (real time), everything runs at slowK. */
+  private slowUntil = 0;
+  private slowK = 1;
+  private squashTw?: Phaser.Tweens.Tween;
+  private lastTrail = 0;
   /** For the tests / bots: what's happened. */
   stats = { hits: 0, maxCombo: 0, flurries: 0, vanishes: 0, vanishStrikes: 0, kicks: 0, kis: 0, parries: 0, blocks: 0, hurt: 0, kos: 0, rush: 0 };
   // input
@@ -592,9 +597,10 @@ export class SsjBrawl {
     const sc = this.sc;
     const rt = performance.now();
     if (rt < this.freezeUntil) return;
-    if (sc.tweens.timeScale < 1 && !this.finishing) sc.tweens.timeScale = 1;
+    const slow = rt < this.slowUntil ? this.slowK : 1;
+    if (!this.finishing && sc.tweens.timeScale !== slow) sc.tweens.timeScale = slow;
     const now = sc.time.now;
-    const dt = Math.min(50, sc.game.loop.delta) / 1000;
+    const dt = (Math.min(50, sc.game.loop.delta) / 1000) * slow;
     const inp = this.read();
     if (!this.finishing) {
       this.updatePlayer(now, dt, inp);
@@ -691,9 +697,9 @@ export class SsjBrawl {
     if (d > 460 + ER || this.eState === "blink") return;
     p.face = e.x >= p.x ? 1 : -1;
     const step = Math.min(max, Math.max(0, d - 70 - ER));
-    if (step > 30) for (let k = 0; k < 3; k++) {
-      const g = this.ghost(p, GOLD, 0.45 - k * 0.12, 160);
-      g.x += step * p.face * (k / 3);
+    if (step > 30) for (let k = 0; k < 5; k++) {
+      const g = this.ghost(p, GOLD, 0.5 - k * 0.08, 180);
+      g.x += step * p.face * (k / 5);
     }
     p.x += step * p.face;
     p.y += Phaser.Math.Clamp(e.y - p.y, -70, 70);
@@ -971,7 +977,7 @@ export class SsjBrawl {
 
   // ---------------------------------------------------------------- your hits
 
-  private hitEnemy(dmg: number, kind: "punch" | "kick" | "flurry" | "launch", now: number, chase = false) {
+  private hitEnemy(dmg: number, kind: "punch" | "kick" | "flurry" | "launch" | "ki", now: number, chase = false) {
     const p = this.p;
     const e = this.e;
     if (this.finishing || this.eState === "cine") return;
@@ -996,43 +1002,84 @@ export class SsjBrawl {
     this.ki = Math.min(100, this.ki + (kind === "flurry" ? 1 : 4));
     Juice.comboTick(this.combo);
     const heavy = kind === "kick" || kind === "launch" || vs;
+    // the big ones: the end of a string, a launcher, a vanish strike
+    const finisher = kind === "launch" || vs || (kind === "kick" && this.pState === "punch");
+    const light = kind === "flurry" || kind === "ki";
     // where it lands
     const hx = e.x - p.face * 18 + (Math.random() - 0.5) * 16;
     const hy = e.y - 20 + (Math.random() - 0.5) * 40;
-    vfx(this.sc, "fe_vfx_kihit", hx, hy, { scale: heavy ? 1.4 : kind === "flurry" ? 0.6 : 0.9, depth: 320, add: true, angle: Math.random() * 360 });
+    vfx(this.sc, "fe_vfx_kihit", hx, hy, { scale: finisher ? 1.9 : heavy ? 1.5 : light ? 0.6 : 1.05, depth: 320, add: true, angle: Math.random() * 360 });
     if (heavy) {
-      if (!vfx(this.sc, "tva_vfx_pow", hx, hy - 20, { scale: 1.3, depth: 330 })) vfx(this.sc, "vfx_crit", hx, hy, { scale: 1.6, depth: 330 });
-      Juice.shockRing(this.sc, hx, hy, { color: GOLD, to: 160, rings: 2, ms: 300, depth: 319 });
-      Juice.debris(this.sc, hx, hy, 6, { colors: [0x2a1a3a, 0x4c1d95, 0xffd23f, 0x12002a], speed: 300, size: 6, depth: 318, floor: hy + 160 });
+      if (!vfx(this.sc, "tva_vfx_pow", hx, hy - 20, { scale: finisher ? 1.7 : 1.35, depth: 330 })) vfx(this.sc, "vfx_crit", hx, hy, { scale: 1.6, depth: 330 });
+      this.impactFlash(hx, hy, finisher ? 1.6 : 1.2);
+      this.impactLines(hx, hy, p.face, finisher ? 1.5 : 1.1);
+      Juice.shockRing(this.sc, hx, hy, { color: GOLD, to: finisher ? 420 : 260, rings: finisher ? 3 : 2, ms: finisher ? 420 : 320, depth: 319 });
+      // a flat ring of air blown out sideways: the shove goes right through him
+      Juice.shockRing(this.sc, e.x + p.face * 40, e.y, { color: 0xffffff, to: finisher ? 520 : 340, rings: 1, ms: 360, depth: 318, flat: 0.32 });
+      this.chunks(hx, hy, finisher ? 14 : 9, finisher ? 520 : 380);
       if (gore()) {
-        if (!vfx(this.sc, "vfx_bloodspray", hx, hy, { scale: 1.2, depth: 321, tint: 0x7c3aed, flipX: p.face < 0 })) vfx(this.sc, "vfx_blood", hx, hy, { scale: 1.2, depth: 321, tint: 0x7c3aed });
+        if (!vfx(this.sc, "vfx_bloodspray", hx, hy, { scale: finisher ? 1.7 : 1.3, depth: 321, tint: 0x7c3aed, flipX: p.face < 0 })) vfx(this.sc, "vfx_blood", hx, hy, { scale: 1.2, depth: 321, tint: 0x7c3aed });
       } else vfx(this.sc, "vfx_stars", hx, hy - 30, { scale: 1, depth: 321 });
-      synth.play(kind === "launch" ? "punch_big" : "crit");
-      if (kind === "launch") synth.play("bonecrack", 0.6);
-      Juice.punchZoom(this.sc, 0.07, 260, 1);
-      Juice.shake(this.sc, 260, kind === "launch" ? 0.02 : 0.013);
-      this.hitStop(kind === "launch" ? 150 : 105);
+      if (this.fxOk(4)) vfx(this.sc, "vfx_blastsmoke", e.x + p.face * 30, e.y + 10, { scale: finisher ? 1.8 : 1.3, depth: 317, alpha: 0.75, flipX: p.face < 0 }) ?? vfx(this.sc, "vfx_smoke", e.x, e.y, { scale: 1.6, depth: 317 });
+      // the sound: a stack of them, pitched down for weight (and a little different every time)
+      const r = 0.82 + Math.random() * 0.12;
+      synth.play(kind === "launch" ? "punch_big" : "crit", 1, r);
+      synth.play("smash", 0.75, r * 0.85);
+      synth.play("boom", finisher ? 0.8 : 0.5, 0.7 + Math.random() * 0.15);
+      if (kind === "launch") synth.play("bonecrack", 0.7, 0.8 + Math.random() * 0.2);
+      if (finisher) synth.play("explode", 0.45, 1.15 + Math.random() * 0.2);
+      Juice.subDrop(finisher ? 0.9 : 0.6, finisher ? 0.9 : 0.6);
+      Juice.punchZoom(this.sc, finisher ? 0.14 : 0.1, finisher ? 340 : 280, 1);
+      this.camKick(p.face, finisher ? 26 : 16);
+      Juice.shake(this.sc, finisher ? 420 : 320, kind === "launch" ? 0.03 : finisher ? 0.026 : 0.019);
+      this.hitStop(finisher ? 120 : 100);
+      if (finisher) this.burstLines(hx, hy, 240);
+      // the biggest ones: a beat of slow motion as he goes
+      if (kind === "launch" && (this.combo >= 6 || this.chases >= 1 || Math.random() < 0.35)) this.slowMo(0.3, 340);
       if (kind === "launch" && this.combo >= 8) void Juice.impactFrames(this.sc, e.spr, 40);
-      this.float(hx, hy - 40, Phaser.Utils.Array.GetRandom(["BAM!", "KRAK!", "WHAM!", "DOOF!"]) as string, "#ffffff", 26);
+      this.float(hx, hy - 40, Phaser.Utils.Array.GetRandom(["BAM!", "KRAK!", "WHAM!", "DOOF!"]) as string, "#ffffff", finisher ? 34 : 28);
     } else if (kind === "flurry") {
-      synth.play("hit", 0.45);
-      this.hitStop(22);
-      Juice.shake(this.sc, 60, 0.004);
-      if (Math.random() < 0.35) vfx(this.sc, "vfx_sparks", hx, hy, { scale: 1, depth: 322, add: true });
+      synth.play("hit", 0.5, 0.85 + Math.random() * 0.35);
+      if (Math.random() < 0.3) synth.play("punch", 0.35, 1.1 + Math.random() * 0.3);
+      this.hitStop(28);
+      Juice.shake(this.sc, 70, 0.006);
+      this.camKick(p.face, 3);
+      if (Math.random() < 0.35) vfx(this.sc, "vfx_sparks", hx, hy, { scale: 1.1, depth: 322, add: true });
+      if (Math.random() < 0.25) this.impactLines(hx, hy, p.face, 0.6);
+    } else if (kind === "ki") {
+      synth.play("hit", 0.45, 0.9 + Math.random() * 0.25);
+      this.hitStop(26);
+      Juice.shake(this.sc, 70, 0.005);
+      Juice.shockRing(this.sc, hx, hy, { color: 0xfff4c2, to: 80, rings: 1, ms: 160, depth: 319 });
+      if (Math.random() < 0.5) vfx(this.sc, "vfx_sparks", hx, hy, { scale: 1, depth: 322, add: true });
+      this.float(hx, hy - 30, `${d}`, "#fff4c2", 16);
     } else {
-      // a jab: crunchy, with weight behind it
-      synth.play("punch", 0.95);
-      synth.play("hit", 0.5);
-      this.hitStop(62);
-      Juice.shake(this.sc, 130, 0.007);
-      Juice.punchZoom(this.sc, 0.03, 140, 1);
-      Juice.shockRing(this.sc, hx, hy, { color: 0xfff4c2, to: 90, rings: 1, ms: 180, depth: 319 });
-      vfx(this.sc, "vfx_sparks", hx, hy, { scale: 1.3, depth: 322, add: true });
-      this.float(hx, hy - 30, `${d}`, "#fff4c2", 18);
+      // a jab: crunchy, with real weight behind it (each in the string a bit heavier than the last)
+      const k = 1 + this.chain * 0.18;
+      const r = 1.08 - this.chain * 0.07 + Math.random() * 0.08;
+      synth.play("punch", 1, r);
+      synth.play("hit", 0.55, r * 0.9);
+      synth.play("smash", 0.3 + this.chain * 0.08, 1.25 - this.chain * 0.1);
+      this.hitStop(68 + this.chain * 9);
+      Juice.shake(this.sc, 160, 0.01 + this.chain * 0.002);
+      Juice.punchZoom(this.sc, 0.045 + this.chain * 0.012, 170, 1);
+      this.camKick(p.face, 7 + this.chain * 3);
+      this.impactFlash(hx, hy, 0.8 * k);
+      this.impactLines(hx, hy, p.face, 0.75 * k);
+      Juice.shockRing(this.sc, hx, hy, { color: 0xfff4c2, to: 130 * k, rings: 1, ms: 200, depth: 319 });
+      vfx(this.sc, "vfx_sparks", hx, hy, { scale: 1.5 * k, depth: 322, add: true });
+      if (this.chain >= 1) this.chunks(hx, hy, 3 + this.chain, 260);
+      this.float(hx, hy - 30, `${d}`, "#fff4c2", 18 + this.chain * 2);
     }
-    // flash and recoil
+    // flash, squash and recoil
     e.spr.setTintFill(calm() ? 0xffd6e0 : 0xffffff);
-    this.sc.time.delayedCall(60, () => e.spr.active && (e.spr.texture.key === "fb_dragon_side" ? e.spr.clearTint() : e.spr.setTint(0x6d28d9)));
+    this.sc.time.delayedCall(light ? 50 : 80, () => e.spr.active && (e.spr.texture.key === "fb_dragon_side" ? e.spr.clearTint() : e.spr.setTint(0x6d28d9)));
+    if (!light) {
+      this.squashTw?.stop();
+      const sq = heavy ? 0.22 : 0.12;
+      e.c.setScale(1 - sq, 1 + sq * 0.6);
+      this.squashTw = this.sc.tweens.add({ targets: e.c, scaleX: 1, scaleY: 1, duration: heavy ? 320 : 200, ease: "Back.out" });
+    }
     const armored = this.eState === "windup" && this.armored && !heavy;
     if (armored) {
       // he's winding up a big one and won't flinch for jabs: a purple glint says so
@@ -1043,18 +1090,20 @@ export class SsjBrawl {
     const dir = p.face;
     if (kind === "launch") {
       this.launched = true;
-      e.vx = dir * 900;
-      e.vy = (Math.random() - 0.5) * 200;
+      e.vx = dir * 1300;
+      e.vy = (Math.random() - 0.5) * 260;
       this.stunEnemy(now, 950);
       this.chaseUntil = now + 650;
       if (!chase) this.chases = 0;
       this.sc.tweens.add({ targets: e.c, angle: dir * 360, duration: 600, onComplete: () => e.c.setAngle(0) });
     } else {
-      e.vx = dir * (kind === "kick" ? 640 : kind === "flurry" ? 80 : 260);
+      e.vx = dir * (kind === "kick" ? 1000 : kind === "flurry" ? 110 : kind === "ki" ? 160 : 420 + this.chain * 60);
       this.stunEnemy(now, kind === "kick" ? 550 : kind === "flurry" ? 160 : 300);
-      e.c.setAngle(dir * (kind === "kick" ? 22 : 9));
-      this.sc.tweens.add({ targets: e.c, angle: 0, duration: 200 });
+      e.c.setAngle(dir * (kind === "kick" ? 30 : light ? 5 : 13));
+      this.sc.tweens.add({ targets: e.c, angle: 0, duration: kind === "kick" ? 320 : 200 });
     }
+    // smashed through the scenery: any big rock in his way goes to pieces
+    if (heavy) this.smashRocks(e.x, e.y, dir);
     // too long in a string: he bursts out of it
     if (this.comboTaken >= 18 && kind !== "launch") {
       this.comboTaken = 0;
@@ -1100,14 +1149,26 @@ export class SsjBrawl {
     if (e.x < 70 || e.x > WW - 70) {
       e.x = Phaser.Math.Clamp(e.x, 70, WW - 70);
       if (Math.abs(e.vx) > 300) {
-        Juice.shake(this.sc, 160, 0.01);
-        Juice.debris(this.sc, e.x, e.y, 8, { speed: 280, depth: 318 });
+        // slammed into the edge of the storm: the sky itself cracks
+        Juice.shake(this.sc, 260, 0.016);
+        this.chunks(e.x, e.y, 10, 340);
+        this.skyCrack(e.x, e.y, 1.2);
+        synth.play("smash", 0.8, 0.75);
+        synth.play("boom", 0.5, 0.8);
       }
       e.vx = -e.vx * 0.3;
     }
     e.y = Phaser.Math.Clamp(e.y, TOP, BOT);
     if (this.launched && Math.abs(e.vx) < 150) this.launched = false;
-    if (this.launched && now - this.lastGhost > 30) this.ghost(e, VIOLET, 0.35, 200);
+    if ((this.launched || Math.abs(e.vx) > 500) && now - this.lastGhost > 30) {
+      this.lastGhost = now;
+      this.ghost(e, VIOLET, 0.35, 200);
+    }
+    // blasted back: a trail of smoke torn off him
+    if (Math.abs(e.vx) > 450 && now - this.lastTrail > 70 && this.fxOk()) {
+      this.lastTrail = now;
+      vfx(this.sc, "vfx_smoke", e.x - Math.sign(e.vx) * 70, e.y + (Math.random() - 0.5) * 60, { scale: 1.3, depth: 185, alpha: 0.6 });
+    }
     if (this.eState === "cine" || this.eState === "blink") {
       this.runAtk(now);
       return;
@@ -1228,7 +1289,7 @@ export class SsjBrawl {
     this.atk = null;
     this.e.c.setAlpha(1);
     this.sc.tweens.killTweensOf(this.e.c);
-    this.e.c.setAngle(0);
+    this.e.c.setAngle(0).setScale(1);
     if (this.eState === "windup" || this.eState === "blink") this.eState = "move";
   }
 
@@ -1334,7 +1395,7 @@ export class SsjBrawl {
       if (!dead && b.mine) {
         if (this.eState !== "blink" && Math.abs(b.o.x - e.x) < ER + 20 && Math.abs(b.o.y - e.y) < 120) {
           dead = true;
-          this.hitEnemy(b.dmg, "punch", now);
+          this.hitEnemy(b.dmg, "ki", now);
         }
         // your ki shoots his bolts down
         for (const o of this.bolts) if (!o.mine && o.o.active && Math.hypot(o.o.x - b.o.x, o.o.y - b.o.y) < 24) {
@@ -1421,18 +1482,30 @@ export class SsjBrawl {
     synth.play("telegraph");
     await this.wait(420);
     p.c.setAngle(p.face * 30);
-    synth.play("punch_big");
-    synth.play("bonecrack");
+    synth.play("punch_big", 1, 0.8);
+    synth.play("bonecrack", 1, 0.85);
+    synth.play("smash", 0.9, 0.6);
+    synth.play("explode", 0.7, 0.9);
     this.hitStop(160);
     void Juice.impactFrames(sc, e.spr, 55);
     vfx(sc, "fe_vfx_kibig", e.x, e.y - 30, { scale: 2.2, depth: 340, add: true });
+    this.impactFlash(e.x, e.y - 30, 2);
+    this.impactLines(e.x, e.y - 30, 1, 2);
+    this.impactLines(e.x, e.y - 30, -1, 2);
+    this.skyCrack(e.x, e.y - 30, 2);
+    this.chunks(e.x, e.y - 30, 18, 600);
+    Juice.shockRing(sc, e.x, e.y - 30, { color: GOLD, to: 700, rings: 4, ms: 600, depth: 319 });
+    this.burstLines(e.x, e.y - 30, 500);
+    // (finishing: the fight's tweens are ours to slow) a long beat of slow motion as he goes down
+    sc.tweens.timeScale = 0.35;
+    window.setTimeout(() => this.sc.sys?.isActive() && (this.sc.tweens.timeScale = 1), 650);
     if (gore()) vfx(sc, "vfx_bloodspray", e.x, e.y - 20, { scale: 1.8, depth: 339, tint: 0x7c3aed });
     Juice.shake(sc, 700, 0.025);
     Juice.subDrop(1, 1.6);
     sc.tweens.add({ targets: e, y: 900, duration: 700, ease: "Quad.in" });
     sc.tweens.add({ targets: e.c, angle: 720, duration: 700 });
     for (let k = 0; k < 10; k++) sc.time.delayedCall(k * 50, () => this.ghost(e, VIOLET, 0.5, 300));
-    await this.wait(750);
+    await this.wait(980);
     // ...into the dragon, far below: the whole storm lights up
     synth.play("explode_2");
     synth.play("boom");
@@ -1476,15 +1549,118 @@ export class SsjBrawl {
     vfx(sc, "fe_vfx_kihit", e.x + (Math.random() - 0.5) * 50, e.y + (Math.random() - 0.5) * 70, { scale: 1.1, depth: 330, add: true, angle: Math.random() * 360 });
     e.c.setAngle((Math.random() - 0.5) * 30);
     e.x += (Math.random() - 0.5) * 10;
-    synth.play(this.rushHits % 3 ? "punch" : "crit", 0.6);
+    synth.play(this.rushHits % 3 ? "punch" : "crit", 0.7, 0.85 + Math.random() * 0.35);
+    if (this.rushHits % 4 === 0) synth.play("smash", 0.4, 0.9 + Math.random() * 0.3);
     Juice.comboTick(this.rushHits);
-    Juice.punchZoom(sc, 0.04, 140, 1);
-    if (this.rushHits % 6 === 0) Juice.shake(sc, 120, 0.01);
+    Juice.punchZoom(sc, 0.05, 140, 1);
+    this.impactLines(e.x + (Math.random() - 0.5) * 50, e.y + (Math.random() - 0.5) * 60, p.face, 0.9);
+    this.camKick(p.face, 6);
+    if (this.rushHits % 3 === 0) Juice.shake(sc, 140, 0.012);
+    if (this.rushHits % 5 === 0) this.chunks(e.x, e.y, 5, 380);
     this.combo = this.rushHits;
     this.lastHit = t;
   }
 
   // ---------------------------------------------------------------- bits
+
+  /** Room for one more bit of optional flying junk (keeps the frame rate up in a long flurry). */
+  private fxOk(extra = 0) {
+    return this.sc.children.length + extra < 650;
+  }
+
+  /** Slow motion for `ms` real milliseconds at `k` (the fighters, their bolts and every tween). */
+  private slowMo(k: number, ms: number) {
+    this.slowK = k;
+    this.slowUntil = performance.now() + ms;
+  }
+
+  /** Shove the camera along the punch (it eases back on its own: the camera follows the fight). */
+  private camKick(dir: number, px: number) {
+    if (calm()) px *= 0.4;
+    this.sc.cameras.main.scrollX += dir * px;
+  }
+
+  /** A white-hot pop where it lands (a full-screen blink on the biggest ones). */
+  private impactFlash(x: number, y: number, k: number) {
+    const c = this.sc.add.circle(x, y, 26 * k, 0xffffff, 1).setDepth(326).setBlendMode(Phaser.BlendModes.ADD);
+    this.sc.tweens.add({ targets: c, scale: 2.4, alpha: 0, duration: 130, ease: "Quad.out", onComplete: () => c.destroy() });
+    if (k >= 1.5) Juice.flash(this.sc, 0xffffff, 110, 0.3, 1040, true);
+  }
+
+  /** Anime impact lines: a starburst of white streaks off the hit, flung mostly the way it's going. */
+  private impactLines(x: number, y: number, dir: number, k: number) {
+    if (!this.fxOk()) return;
+    const g = this.sc.add.graphics().setDepth(325).setBlendMode(Phaser.BlendModes.ADD);
+    const n = Math.round(9 * Math.min(1.6, k));
+    for (let i = 0; i < n; i++) {
+      const fwd = i < n * 0.6;
+      const a = (fwd ? (dir > 0 ? 0 : Math.PI) : Math.random() * Math.PI * 2) + (Math.random() - 0.5) * (fwd ? 1.1 : 0.6);
+      const r0 = 18 * k + Math.random() * 12;
+      const r1 = r0 + (50 + Math.random() * 90) * k * (fwd ? 1.3 : 0.8);
+      g.lineStyle(1 + Math.random() * 3 * k, i % 3 ? 0xffffff : 0xfff4c2, 0.95);
+      g.lineBetween(x + Math.cos(a) * r0, y + Math.sin(a) * r0, x + Math.cos(a) * r1, y + Math.sin(a) * r1);
+    }
+    this.sc.tweens.add({ targets: g, alpha: 0, duration: 150, onComplete: () => g.destroy() });
+  }
+
+  /** Speed lines rushing in on the hit (screen space), for a moment. */
+  private burstLines(x: number, y: number, ms: number) {
+    const cam = this.sc.cameras.main;
+    Juice.speedLines(this.sc, ms, 0xffffff, 1030, (x - cam.worldView.x) * cam.zoom, (y - cam.worldView.y) * cam.zoom);
+  }
+
+  /** Bits of him (and the storm) blown off by the hit, tumbling down out of sight. */
+  private chunks(x: number, y: number, n: number, speed: number) {
+    if (!this.fxOk(n)) return;
+    Juice.debris(this.sc, x, y, n, { colors: [0x2a1a3a, 0x4c1d95, 0xffd23f, 0x12002a, 0x6a5a72], speed, size: 7, depth: 318, floor: 700 });
+  }
+
+  /** The sky cracks: a jagged white-violet split in the storm behind them, gone in half a second. */
+  private skyCrack(x: number, y: number, k: number) {
+    if (!this.fxOk()) return;
+    const g = this.sc.add.graphics().setDepth(-20).setBlendMode(Phaser.BlendModes.ADD);
+    for (let b = 0; b < 4; b++) {
+      let px = x;
+      let py = y;
+      const a = Math.random() * Math.PI * 2;
+      g.lineStyle(4 * k, 0xd8c8ff, 0.9).beginPath().moveTo(px, py);
+      for (let i = 0; i < 6; i++) g.lineTo((px += Math.cos(a + (Math.random() - 0.5) * 1.2) * 40 * k), (py += Math.sin(a + (Math.random() - 0.5) * 1.2) * 40 * k));
+      g.strokePath();
+    }
+    this.sc.tweens.add({ targets: g, alpha: 0, delay: 120, duration: 420, onComplete: () => g.destroy() });
+    if (!calm()) {
+      const r = this.sc.add.rectangle(480, 270, 960, 540, 0xd8c8ff, 0.18).setScrollFactor(0).setDepth(-35).setBlendMode(Phaser.BlendModes.ADD);
+      this.sc.tweens.add({ targets: r, alpha: 0, duration: 220, onComplete: () => r.destroy() });
+    }
+  }
+
+  /** Knocked through the rubble hanging in the sky: any rock near his flight path goes to pieces. */
+  private smashRocks(x: number, y: number, dir: number) {
+    const cam = this.sc.cameras.main;
+    for (const r of this.bg.rocks) {
+      if (r.o.alpha < 0.5) continue;
+      // where the rock is on screen, against where he is
+      const rx = r.o.x - cam.scrollX * r.k;
+      const ex = x - cam.scrollX;
+      const ahead = (rx - ex) * dir;
+      if (ahead < -40 || ahead > 320 || Math.abs(r.o.y - y) > 130) continue;
+      const wx = rx + cam.scrollX;
+      const fg = r.k > 1;
+      this.sc.time.delayedCall(Math.max(0, ahead) * 0.4, () => {
+        if (!r.o.active) return;
+        this.chunks(wx, r.o.y, fg ? 12 : 7, fg ? 420 : 300);
+        vfx(this.sc, "vfx_dust", wx, r.o.y, { scale: fg ? 2 : 1.3, depth: fg ? 601 : 317 });
+        synth.play("smash", fg ? 0.7 : 0.45, 0.9 + Math.random() * 0.2);
+        r.o.setAlpha(0);
+        // another one drifts up from below, later
+        this.sc.time.delayedCall(2500, () => {
+          if (!r.o.active) return;
+          r.o.y = 600;
+          r.o.setAlpha(fg ? 0.9 : 0.8);
+        });
+      });
+    }
+  }
 
   /** A translucent copy of a fighter, fading where it stood. */
   private ghost(f: Fighter, tint: number, alpha: number, ms: number) {
@@ -1548,7 +1724,8 @@ export class SsjBrawl {
     this.freezeUntil = Math.max(this.freezeUntil, performance.now() + ms);
     this.sc.tweens.timeScale = 0.05;
     window.setTimeout(() => {
-      if (this.sc.sys?.isActive() && performance.now() >= this.freezeUntil - 1) this.sc.tweens.timeScale = 1;
+      const t = performance.now();
+      if (this.sc.sys?.isActive() && t >= this.freezeUntil - 1) this.sc.tweens.timeScale = t < this.slowUntil ? this.slowK : 1;
     }, ms + 5);
   }
 

@@ -3,8 +3,10 @@ import { Boss, type BossAnimState } from "./Bosses";
 import type { CombatWorld } from "./types";
 import { synth } from "../audio/Synth";
 import { G } from "../G";
+import { diffFor } from "../systems/difficulty";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { voice } from "../audio/Voice";
+import { hdFactor } from "../gfx/HD";
 import { CONCEPT, CONCEPT_BARKS, CONCEPT_HEAL } from "../../content/finaleKrelford";
 import { horrorKey } from "../scenes/finale/finaleArt";
 
@@ -25,11 +27,18 @@ import { horrorKey } from "../scenes/finale/finaleArt";
 export type ConceptMode = "immortal" | "shrug" | "real" | "still";
 
 /**
- * Real phase: what your hits (and the lads') are worth against it. It was 1.6, and a decent player had it down in
- * well under a minute; at this it takes about two and a half times as long, and it gets nastier as it goes
+ * Real phase: what your hits (and the lads') are worth against it, before difficulty. It was 1.6 (a decent player had
+ * it down in well under a minute), then 0.65 (two and a half times as long: a slog). Now 1.08, divided by the
+ * difficulty's boss-HP multiplier (`conceptRealDmg`): 1.0 on NORMAL, so it drains (and the SPIRIT CUM fills) about
+ * 35% quicker than at 0.65; harder levels still take longer, easier ones less. It still gets nastier as it goes
  * (see `rage`): new attacks at 75% and 50%, and its patterns come faster at 66% and 33%.
  */
-export const CONCEPT_REAL_DMG = 0.65;
+export const CONCEPT_REAL_DMG = 1.08;
+
+/** The real-phase damage multiplier for a run's difficulty (its HP is fixed, so the boss-HP scaling goes in here). */
+export function conceptRealDmg(bossHp = diffFor(G.s).bossHp) {
+  return CONCEPT_REAL_DMG / Math.max(0.1, bossHp);
+}
 
 export class ConceptBoss extends Boss {
   quietDefeat = true;
@@ -191,7 +200,7 @@ export class ConceptBoss extends Boss {
     }
     // real
     const floor = this.maxHp * 0.02;
-    const a = Math.min(amount * CONCEPT_REAL_DMG, Math.max(0, this.hp - floor));
+    const a = Math.min(amount * conceptRealDmg(), Math.max(0, this.hp - floor));
     const after = (this.hp - a) / this.maxHp;
     for (const m of [0.75, 0.5, 0.4, 0.3, 0.2]) {
       if (after > m || this.realMarks.has(m)) continue;
@@ -234,12 +243,185 @@ export class ConceptBoss extends Boss {
     );
   }
 
+  /** Down in a heap after the brawl (the finale stages it): tick leaves it alone. */
+  private slumped = false;
+  /** Back up after the collapse: bigger, darker. */
+  private risen = false;
+  private slumpPose?: { sx: number; sy: number; y: number };
+
+  /**
+   * After the brawl: it comes down out of the storm like a dropped anvil, reels, and crumples into a heap with
+   * smoke coming off it while its bar drains to nothing. Resolves once it's lying still.
+   */
+  collapse(): Promise<void> {
+    const sc = this.scene;
+    const w = this.world;
+    this.healing = true;
+    this.mode = "still";
+    this.halt();
+    sc.tweens.killTweensOf(this);
+    sc.tweens.killTweensOf(this.wizard);
+    this.wizard.setAlpha(0);
+    const sx = this.scaleX / hdFactor(this);
+    const sy = this.scaleY / hdFactor(this);
+    const y0 = this.y;
+    this.slumpPose = { sx, sy, y: y0 };
+    // it lands (from the brawl's last punch: down out of the clouds)
+    this.slumped = true;
+    this.anims.stop();
+    if (this.art && sc.textures.exists("fe_concept_stagger_hurt")) this.setTexture("fe_concept_stagger_hurt", 0);
+    this.setY(y0 - 520).setAlpha(1);
+    return new Promise((res) => {
+      sc.tweens.add({
+        targets: this,
+        y: y0,
+        duration: 420,
+        ease: "Quad.in",
+        onComplete: () => {
+          if (!this.active) return res();
+          // the impact: the whole town jumps
+          synth.play("smash", 1, 0.7);
+          synth.play("boom", 0.9, 0.75);
+          synth.play("explode", 0.6, 0.8);
+          w.shake(700, 0.022);
+          sc.cameras.main.flash(120, 255, 240, 220, true);
+          if (hasVfx(sc, "vfx_bigboom")) vfx(sc, "vfx_bigboom", this.x, y0 + 60, { scale: 3, depth: this.depth + 3 });
+          if (hasVfx(sc, "vfx_dust")) for (let i = 0; i < 5; i++) vfx(sc, "vfx_dust", this.x + (i - 2) * 110, y0 + 90 + (i % 2) * 20, { scale: 2.4, depth: this.depth + 2, delay: i * 40 });
+          const crater = sc.add.ellipse(this.x, y0 + 100, this.displayWidth * 0.95, this.displayWidth * 0.3, 0x0d0a08, 0.75).setDepth(0.6);
+          crater.setStrokeStyle(6, 0x2a211c, 0.8);
+          sc.tweens.add({ targets: crater, scaleX: { from: 0.4, to: 1 }, scaleY: { from: 0.4, to: 1 }, duration: 260, ease: "Cubic.out" });
+          const cracks = sc.add.graphics().setDepth(0.65);
+          cracks.lineStyle(4, 0x050403, 0.9);
+          for (let k = 0; k < 9; k++) {
+            const a = (k / 9) * Math.PI * 2 + Math.random() * 0.4;
+            let cx = this.x + Math.cos(a) * this.displayWidth * 0.4;
+            let cy = y0 + 100 + Math.sin(a) * this.displayWidth * 0.13;
+            cracks.beginPath().moveTo(cx, cy);
+            for (let j = 0; j < 4; j++) cracks.lineTo((cx += Math.cos(a + (Math.random() - 0.5) * 0.9) * 60), (cy += Math.sin(a + (Math.random() - 0.5) * 0.9) * 26));
+            cracks.strokePath();
+          }
+          // a reel on its feet...
+          let n = 0;
+          const reel = () => {
+            if (!this.active) return res();
+            if (this.art && sc.textures.exists("fe_concept_stagger_hurt")) this.setFrame(Math.min(n, sc.textures.get("fe_concept_stagger_hurt").frameTotal - 2));
+            this.setAngle(n % 2 ? 6 : -7);
+            this.x += n % 2 ? 14 : -14;
+            if (++n < 6) sc.time.delayedCall(150 + n * 20, reel);
+            else crumple();
+          };
+          // ...then it goes down: folds, sinks, lies there smoking
+          const crumple = () => {
+            synth.play("bodies_land", 1, 0.6);
+            synth.play("bonecrack", 0.7, 0.7);
+            synth.play("smash", 0.7, 0.55);
+            w.shake(500, 0.016);
+            this.setTint(0x6b5a7a);
+            sc.tweens.add({ targets: this, scaleX: sx * 1.1, scaleY: sy * 0.6, angle: 9, y: y0 + this.displayHeight * 0.14, duration: 650, ease: "Bounce.out" });
+            if (hasVfx(sc, "vfx_dust")) for (let i = 0; i < 4; i++) vfx(sc, "vfx_dust", this.x + (i - 1.5) * 130, y0 + 100, { scale: 2.6, depth: this.depth + 2, delay: 200 + i * 60 });
+            if (hasVfx(sc, "vfx_smokecol")) for (let i = 0; i < 3; i++) vfx(sc, "vfx_smokecol", this.x + (i - 1) * 120, y0 + 40, { scale: 2.2, depth: this.depth + 4, alpha: 0.7, delay: 300 + i * 200 });
+            else if (hasVfx(sc, "vfx_smoke")) for (let i = 0; i < 4; i++) vfx(sc, "vfx_smoke", this.x + (i - 1.5) * 90, y0 + 30, { scale: 2.4, depth: this.depth + 4, delay: 300 + i * 160 });
+            // its bar drains to nothing
+            sc.tweens.add({ targets: this, hp: 0, duration: 1100, ease: "Cubic.out", onUpdate: () => this.emitBar() });
+            sc.time.delayedCall(1200, () => res());
+          };
+          sc.time.delayedCall(120, reel);
+        },
+      });
+    });
+  }
+
+  /** Lying still... then a twitch. Another. Each one a dry crack and a judder. */
+  twitch(k = 1) {
+    const sc = this.scene;
+    if (!this.active || !this.slumpPose) return;
+    synth.play("bonecrack", 0.35 + 0.2 * k, 0.55 + Math.random() * 0.1);
+    if (k > 0.6) synth.play("squelch", 0.4, 0.6);
+    const a = this.angle;
+    sc.tweens.add({ targets: this, angle: a + (Math.random() < 0.5 ? -1 : 1) * 5 * k, scaleY: this.scaleY * (1 + 0.06 * k), duration: 70, yoyo: true, ease: "Quad.out" });
+    this.world.shake(120, 0.004 * k);
+    if (hasVfx(sc, "vfx_dust")) vfx(sc, "vfx_dust", this.x + (Math.random() - 0.5) * 160, this.y + 60, { scale: 1.2, depth: this.depth + 2 });
+  }
+
+  /**
+   * It gets back up: unfolds, out of the heap, bigger and darker than it was, the wounded light in it gone dim, and
+   * roars. (Its bar is still empty: `refill` does that.)
+   */
+  reemerge(riseMs = 2400): Promise<void> {
+    const sc = this.scene;
+    const pose = this.slumpPose ?? { sx: this.scaleX / hdFactor(this), sy: this.scaleY / hdFactor(this), y: this.y };
+    this.healing = true;
+    this.risen = true;
+    this.slumped = true;
+    if (this.art) {
+      this.anims.stop();
+      this.setTexture(this.hurtArt ? "fe_dragon_top_hurt" : "fb_dragon_top", 0);
+    }
+    this.setTint(0x6b5a7a);
+    // up it comes, in heaves
+    sc.tweens.add({ targets: this, x: this.x + 10, duration: 110, yoyo: true, repeat: Math.floor(riseMs / 220) - 1 });
+    return new Promise((res) =>
+      sc.tweens.add({
+        targets: this,
+        scaleX: pose.sx * 1.14,
+        scaleY: pose.sy * 1.14,
+        angle: 0,
+        y: pose.y,
+        duration: riseMs,
+        ease: "Sine.inOut",
+        onComplete: () => {
+          if (!this.active) return res();
+          this.slumped = false;
+          this.movingUntil = this.reelingUntil = 0;
+          this.shownTop = this.topKey;
+          if (this.art) this.play(this.topKey);
+          this.roar();
+          this.revealWizard();
+          res();
+        },
+      }),
+    );
+  }
+
+  /** The bar refills, slowly, all the way, and nothing you can do about it. `line` floats over it as it does. */
+  refill(ms = 4200, line = CONCEPT_HEAL): Promise<void> {
+    const sc = this.scene;
+    this.healing = true;
+    if (hasVfx(sc, "vfx_heal")) vfx(sc, "vfx_heal", this.x, this.y + 40, { scale: 5.5, depth: this.depth + 2, tint: 0x6d28d9 });
+    this.world.floatText(this.x, this.y - this.displayHeight * 0.45, line, "#e9d5ff", 22);
+    const glow = sc.add.ellipse(this.x, this.y, this.displayWidth * 0.9, this.displayHeight * 0.9, 0x4c1d95, 0.3).setBlendMode(Phaser.BlendModes.ADD).setDepth(this.depth + 1);
+    sc.tweens.add({ targets: glow, alpha: 0.08, scale: 1.25, yoyo: true, repeat: Math.max(0, Math.round(ms / 900) - 1), duration: 450, onComplete: () => glow.destroy() });
+    synth.play("heal", 0.8, 0.6);
+    // slowly, inexorably: a steady glug, all the way to the top
+    return new Promise((res) =>
+      sc.tweens.add({
+        targets: this,
+        hp: this.maxHp,
+        duration: ms,
+        ease: "Linear",
+        onUpdate: () => this.emitBar(),
+        onComplete: () => {
+          this.healing = false;
+          this.lowFired = false;
+          res();
+        },
+      }),
+    );
+  }
+
   private emitBar() {
-    G.emit("boss", { name: CONCEPT, hp: this.hp, max: this.maxHp, shielded: this.mode === "shrug" || this.mode === "still", phase: this.mode === "real" ? 1 : 0 });
+    G.emit("boss", { name: CONCEPT, hp: this.hp, max: this.maxHp, shielded: (this.mode === "shrug" || this.mode === "still") && !this.slumped && !this.risen, phase: this.mode === "real" ? 1 : 0 });
   }
 
   tick(dt: number, now: number) {
     if (this.dead) return;
+    if (this.slumped) {
+      // in a heap (or getting up out of one): the finale's tweens have it; just keep the bar and the wizard in step
+      this.wizard.setPosition(this.x + 10, this.y - this.displayHeight * 0.18).setDepth(this.depth - 1);
+      this.emitBar();
+      this.halt();
+      return;
+    }
     if (this.reelingUntil && now >= this.reelingUntil) this.playAnim("getup");
     // (not Boss.tick: that flips frames 0/1, and this one has its own animation)
     // into the real phase: swap to the wounded sheet (unless it's mid-roar)
@@ -248,6 +430,7 @@ export class ConceptBoss extends Boss {
       this.play(this.topKey);
     }
     if (now < this.flashUntil) this.setTintFill(0xffffff);
+    else if (this.risen) this.setTint(0x9d86b8);
     else if (this.mode === "real") this.hurtArt ? this.clearTint() : this.setTint(0xffd6e0);
     else if (this.art) this.clearTint();
     else this.setTint(0x6d28d9);

@@ -1,0 +1,22 @@
+[
+  {"name": "crest", "w": 96, "h": 96, "nobg": true, "outline": "single color black outline", "shading": "medium shading", "detail": "highly detailed",
+   "description": "football club crest badge, heraldic shield with vertical red and white stripes, a golden halo above a white football, banner ribbon at bottom, front view, centered icon"},
+  {"name": "office", "w": 384, "h": 216, "outline": "lineless", "shading": "detailed shading", "detail": "highly detailed", "view": "side",
+   "description": "interior of a football club chairman's office at night, big wooden desk with an old computer monitor, rotary phone and whisky glass, red and white scarves on the wall, framed trophies, large window behind looking out over a floodlit football stadium pitch"},
+  {"name": "stadium", "w": 384, "h": 216, "outline": "lineless", "shading": "detailed shading", "detail": "highly detailed", "view": "high top-down",
+   "description": "english football stadium at night from the stands, floodlights, bright green striped pitch, red and white crowd in the stands, rain"},
+  {"name": "chairman", "w": 96, "h": 96, "nobg": true, "outline": "single color black outline", "shading": "medium shading", "detail": "highly detailed",
+   "description": "portrait bust of a sleazy middle-aged english football club chairman, slicked back grey hair, red tie, cheap pinstripe suit, smug grin, sweaty forehead, facing viewer"},
+  {"name": "delmor", "w": 96, "h": 96, "nobg": true, "outline": "single color black outline", "shading": "medium shading", "detail": "highly detailed",
+   "description": "portrait bust of a menacing rival football chairman villain, bald head, thick black goatee, royal blue suit, gold chain, cigar, scowling, facing viewer"},
+  {"name": "marco", "w": 96, "h": 96, "nobg": true, "outline": "single color black outline", "shading": "medium shading", "detail": "highly detailed",
+   "description": "portrait bust of a shady nightclub fixer, mirrored aviator sunglasses, open shirt, gold chains, slick ponytail, leather jacket, facing viewer"},
+  {"name": "secretary", "w": 96, "h": 96, "nobg": true, "outline": "single color black outline", "shading": "medium shading", "detail": "highly detailed",
+   "description": "portrait bust of a sharp office secretary woman, big 80s hair, cat-eye glasses, red lipstick, white blouse, raised eyebrow, facing viewer"},
+  {"name": "wife", "w": 96, "h": 96, "nobg": true, "outline": "single color black outline", "shading": "medium shading", "detail": "highly detailed",
+   "description": "portrait bust of an annoyed english housewife, pearl necklace, blonde bob haircut, arms crossed, glaring, facing viewer"},
+  {"name": "doctor", "w": 96, "h": 96, "nobg": true, "outline": "single color black outline", "shading": "medium shading", "detail": "highly detailed",
+   "description": "portrait bust of a dodgy football club doctor, white coat, stethoscope, comb-over, tiny round glasses, holding a syringe, facing viewer"},
+  {"name": "manager", "w": 96, "h": 96, "nobg": true, "outline": "single color black outline", "shading": "medium shading", "detail": "highly detailed",
+   "description": "portrait bust of a stressed english football manager, red tracksuit jacket, flat cap, chewing gum, bags under eyes, facing viewer"}
+]

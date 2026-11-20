@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KREPLIN — Chairman's Office (mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#d71920; --red-d:#9e0f15; --red-l:#ff4a50;
+  --white:#f4f1ea; --ink:#0d1016; --bg:#12151d; --bg2:#181c26; --panel:#1d2230; --panel2:#242a3a;
+  --line:#2e3547; --line2:#3a4258; --muted:#8c93a8; --text:#e9e6de;
+  --gold:#f2c14e; --pitch:#2fa84f; --pitch-d:#1d6b33; --warn:#f29b2e; --bad:#e5484d; --good:#3fbf6b; --sense:#d36bd1;
+  --font-ui:'Pixelify Sans', ui-monospace, monospace; --font-body:'Inter', system-ui, sans-serif;
+  --r:4px; --px:2px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font:15px/1.5 var(--font-body);
+  background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.035) 1px, transparent 0);background-size:6px 6px}
+img.px{image-rendering:pixelated}
+.app>*{min-width:0}
+.app{display:grid;grid-template-columns:208px 1fr 380px;grid-template-rows:auto 1fr;height:100vh}
+
+/* ---------- top bar ---------- */
+.top{grid-column:1/-1;display:flex;align-items:center;gap:18px;padding:8px 16px;background:linear-gradient(#1b1f2b,#151924);
+  border-bottom:var(--px) solid var(--red);box-shadow:0 2px 0 #000}
+.club{display:flex;align-items:center;gap:10px;min-width:188px}
+.club img{width:44px;height:44px}
+.club b{font:700 18px/1 var(--font-ui);letter-spacing:.5px;display:block}
+.club small{color:var(--muted);font:12px var(--font-ui)}
+.date{font:600 13px/1.25 var(--font-body);font-variant-numeric:tabular-nums;color:var(--white);padding:4px 10px;border:var(--px) solid var(--line2);background:var(--ink);border-radius:var(--r)}
+.date span{display:block;color:var(--gold);font-weight:400}
+.stats{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.stat{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 6px;background:var(--panel);border:var(--px) solid var(--line);border-radius:var(--r)}
+.stat img{width:24px;height:24px}
+.stat .k{font:11px/1 var(--font-ui);color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.stat .v{font:700 15px/1.1 var(--font-body);font-variant-numeric:tabular-nums;color:var(--white)}
+.stat .v.bad{color:var(--bad)}
+.form{display:flex;gap:3px;margin-top:2px}
+.form i{width:14px;height:14px;font:700 10px/14px var(--font-ui);text-align:center;font-style:normal;color:#000;border-radius:2px}
+.form .W{background:var(--good)} .form .D{background:#c9c4b6} .form .L{background:var(--bad)}
+.meter{width:70px;height:8px;background:var(--ink);border:1px solid var(--line2);margin-top:3px}
+.meter b{display:block;height:100%;background:linear-gradient(90deg,var(--warn),var(--good))}
+
+/* ---------- nav rail ---------- */
+.rail{background:var(--bg2);border-right:var(--px) solid var(--line);padding:10px 8px;display:flex;flex-direction:column;gap:2px;overflow:auto}
+.rail h4{font:12px var(--font-ui);color:var(--muted);letter-spacing:1px;margin:10px 8px 4px;text-transform:uppercase}
+.nav{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:var(--r);color:var(--text);text-decoration:none;font:500 15px var(--font-ui);border:var(--px) solid transparent;cursor:pointer;background:none;width:100%;text-align:left}
+.nav img{width:28px;height:28px}
+.nav:hover{background:var(--panel);border-color:var(--line2)}
+.nav.on{background:var(--red);border-color:var(--red-l);color:#fff;box-shadow:0 2px 0 var(--red-d)}
+.nav .badge{margin-left:auto;background:var(--red);color:#fff;font:700 11px/18px var(--font-ui);min-width:18px;height:18px;text-align:center;border-radius:9px;padding:0 5px}
+.nav.on .badge{background:#fff;color:var(--red)}
+.rail .spacer{flex:1}
+.rail .sys{display:flex;gap:6px;padding:6px}
+.rail .sys button{flex:1;font:13px var(--font-ui);background:var(--panel);color:var(--muted);border:var(--px) solid var(--line);border-radius:var(--r);padding:6px 0;cursor:pointer}
+
+/* ---------- centre: scene + inbox feed ---------- */
+.centre{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.scene{position:relative;height:200px;flex:none;border-bottom:var(--px) solid #000;overflow:hidden}
+.scene img{width:100%;height:100%;object-fit:cover;object-position:center 40%;filter:saturate(1.05)}
+.scene::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(10,12,18,.92));pointer-events:none}
+.scene .cap{position:absolute;left:18px;bottom:12px;z-index:1}
+.scene .phase{font:600 12px var(--font-ui);letter-spacing:1.5px;color:var(--gold);text-transform:uppercase}
+.scene h2{margin:2px 0 0;font:700 28px/1.1 var(--font-ui);color:#fff;text-shadow:2px 2px 0 #000}
+.scene h2 em{font-style:normal;color:var(--red-l)}
+.steps{position:absolute;right:16px;bottom:14px;z-index:1;display:flex;gap:4px}
+.steps span{font:12px var(--font-ui);padding:3px 8px;background:rgba(0,0,0,.6);border:1px solid var(--line2);color:var(--muted);border-radius:2px}
+.steps span.on{color:#fff;border-color:var(--red-l);background:var(--red)}
+.steps span.done{color:var(--good)}
+.feed{flex:1;overflow:auto;padding:14px 18px 24px;display:flex;flex-direction:column;gap:10px}
+.day{align-self:center;font:12px var(--font-ui);color:var(--muted);letter-spacing:1px;padding:2px 10px;border:1px solid var(--line);border-radius:10px}
+.msg{display:grid;grid-template-columns:56px 1fr;gap:12px;background:var(--panel);border:var(--px) solid var(--line);border-radius:var(--r);padding:10px 12px;box-shadow:0 2px 0 #000}
+.msg .ava{width:56px;height:56px;background:var(--ink);border:var(--px) solid var(--line2);border-radius:var(--r);overflow:hidden}
+.msg .ava img{width:100%;height:100%}
+.msg .who{font:600 14px var(--font-ui);display:flex;gap:8px;align-items:baseline}
+.msg .who small{font:12px var(--font-ui);color:var(--muted)}
+.msg .tag{font:11px var(--font-ui);padding:1px 6px;border-radius:2px;background:var(--panel2);color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.msg.rival{border-color:#24407a;background:linear-gradient(90deg,rgba(36,64,122,.35),var(--panel) 40%)}
+.msg.rival .tag{background:#24407a;color:#cfe0ff}
+.msg p{margin:3px 0 0}
+.line{color:var(--text);padding:2px 4px 2px 12px;border-left:var(--px) solid var(--line2)}
+.line.sys{color:var(--muted);font-size:14px}
+.line b{color:var(--white)}
+.news{background:var(--white);color:#111;border:var(--px) solid #000;border-radius:2px;padding:10px 14px;box-shadow:3px 3px 0 #000;max-width:560px}
+.news .mast{font:900 13px/1 Georgia,serif;letter-spacing:2px;color:var(--red);border-bottom:2px solid #111;padding-bottom:4px;margin-bottom:6px}
+.news h3{font:900 21px/1.1 Georgia,serif;margin:0 0 4px}
+.news p{margin:0;font:14px/1.4 Georgia,serif}
+.fixture-card{display:flex;align-items:center;gap:14px;background:linear-gradient(90deg,var(--pitch-d),var(--panel) 60%);border:var(--px) solid var(--pitch);border-radius:var(--r);padding:10px 14px}
+.fixture-card b{font:700 18px var(--font-ui)}
+.fixture-card small{color:#bfe8c9;font:13px var(--font-ui)}
+
+/* ---------- right: decision + match brief ---------- */
+.side{border-left:var(--px) solid var(--line);background:var(--bg2);display:flex;flex-direction:column;min-height:0;overflow:auto}
+.card{margin:12px;background:var(--panel);border:var(--px) solid var(--line);border-radius:var(--r);box-shadow:0 2px 0 #000}
+.card h3{margin:0;padding:8px 12px;font:600 15px var(--font-ui);letter-spacing:.5px;border-bottom:var(--px) solid var(--line);display:flex;align-items:center;gap:8px}
+.card h3 .hint{margin-left:auto;font:12px var(--font-ui);color:var(--muted)}
+.decision{border-color:var(--red)}
+.decision h3{background:var(--red);border-color:var(--red-d);color:#fff}
+.decision h3 .hint{color:#ffd6d7}
+.opts{list-style:none;margin:0;padding:8px;display:flex;flex-direction:column;gap:6px}
+.opt{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;
+  background:var(--panel2);border:var(--px) solid var(--line2);border-radius:var(--r);padding:7px 10px;color:var(--text);font:500 14px/1.3 var(--font-body);box-shadow:0 2px 0 #000;transition:transform .05s}
+.opt:hover{border-color:var(--white);transform:translateY(-1px)}
+.opt:active{transform:translateY(1px);box-shadow:none}
+.opt kbd{font:700 13px/22px var(--font-ui);width:24px;height:24px;text-align:center;background:var(--ink);border:1px solid var(--line2);border-radius:3px;color:var(--gold)}
+.opt small{display:block;color:var(--muted);font-size:12px;margin-top:1px}
+.opt .chip{font:11px var(--font-ui);padding:2px 6px;border-radius:2px;white-space:nowrap}
+.opt.req{border-color:var(--gold)} .opt.req .chip{background:var(--gold);color:#000}
+.opt.done{opacity:.55} .opt.done .chip{background:transparent;color:var(--good)}
+.opt.bad .chip{background:var(--bad);color:#fff}
+.opt.go{background:var(--red);border-color:var(--red-l);color:#fff;font-weight:700} .opt.go small{color:#ffd6d7} .opt.go kbd{color:#fff;background:var(--red-d)}
+.brief{padding:10px 12px 12px}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;text-align:center;gap:6px}
+.vs .t{font:700 15px var(--font-ui)} .vs .t small{display:block;font:12px var(--font-ui);color:var(--muted)}
+.vs .x{font:700 22px var(--font-ui);color:var(--muted)}
+.bars{margin-top:10px;display:grid;grid-template-columns:70px 1fr 34px;gap:4px 8px;align-items:center;font:12px var(--font-ui);color:var(--muted)}
+.bars .b{height:10px;background:var(--ink);border:1px solid var(--line2);position:relative}
+.bars .b i{position:absolute;inset:0 auto 0 0;background:var(--red)} .bars .b.o i{background:#4a77d4}
+.bars span:last-child,.bars .n{color:var(--white);text-align:right;font:600 12px var(--font-body);font-variant-numeric:tabular-nums}
+.odds{display:flex;gap:6px;margin-top:10px}
+.odds div{flex:1;text-align:center;background:var(--ink);border:1px solid var(--line2);border-radius:3px;padding:4px 0;font:12px var(--font-ui);color:var(--muted)}
+.odds b{display:block;font:700 16px var(--font-body);font-variant-numeric:tabular-nums;color:var(--gold)}
+.table{width:100%;border-collapse:collapse;font:13px var(--font-ui)}
+.table td{padding:3px 12px;border-top:1px solid var(--line)}
+.table tr.us td{background:rgba(215,25,32,.25);color:#fff}
+.table td:last-child{text-align:right;color:var(--white)}
+
+/* ---------- mobile ---------- */
+@media (max-width: 900px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto auto 1fr auto;height:auto;min-height:100vh}
+  .top{flex-wrap:wrap;gap:8px;padding:8px 16px}
+  .stats{margin-left:0;width:100%;overflow-x:auto;flex-wrap:nowrap}
+  .rail{order:4;position:sticky;bottom:0;flex-direction:row;border-right:0;border-top:var(--px) solid var(--line);padding:4px;overflow-x:auto;z-index:5}
+  .rail h4,.rail .spacer,.rail .sys{display:none}
+  .nav{flex-direction:column;gap:2px;font-size:11px;min-width:64px;padding:4px;text-align:center}
+  .nav .badge{position:absolute;margin:0 0 0 22px}
+  .scene{height:130px}
+  .scene h2{font-size:22px}
+  .steps{display:none}
+  .date{font-size:12px}
+  .feed{padding:12px 16px 16px}
+  .msg{grid-template-columns:40px 1fr;gap:10px}
+  .msg .ava{width:40px;height:40px}
+  .side{border-left:0;order:3;position:sticky;bottom:58px;z-index:4;background:transparent;overflow:visible}
+  .side .card:not(.decision){display:none}
+  .decision{margin:0 8px 8px;max-height:46vh;overflow:auto;box-shadow:0 -6px 24px rgba(0,0,0,.6)}
+  .opt small{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="club"><img class="px" src="../art/raw/crest.png" alt=""><div><b>SOUTHAMPTON</b><small>Chairman: Gary Morton</small></div></div>
+    <div class="date">SAT 23 AUG 2025<span>Season 1 · Matchday 3 of 16</span></div>
+    <div class="stats">
+      <div class="stat"><img class="px" src="../art/raw/ico-cash.png" alt=""><div><div class="k">Club</div><div class="v">£15.0M</div></div></div>
+      <div class="stat"><img class="px" src="../art/raw/ico-wallet.png" alt=""><div><div class="k">Your cash</div><div class="v">£1.0M</div></div></div>
+      <div class="stat"><img class="px" src="../art/raw/ico-debt.png" alt=""><div><div class="k">Debt</div><div class="v">£0</div></div></div>
+      <div class="stat"><img class="px" src="../art/raw/ico-trophy.png" alt=""><div><div class="k">League · 7th</div><div class="form"><i class="W">W</i><i class="L">L</i><i class="D">D</i></div></div></div>
+      <div class="stat"><img class="px" src="../art/raw/ico-morale.png" alt=""><div><div class="k">Morale</div><div class="meter"><b style="width:50%"></b></div></div></div>
+      <div class="stat"><img class="px" src="../art/raw/ico-token.png" alt=""><div><div class="k">Tokens</div><div class="v">15</div></div></div>
+      <div class="stat"><img class="px" src="../art/raw/ico-gem.png" alt=""><div><div class="k">Gems</div><div class="v">0/4</div></div></div>
+    </div>
+  </header>
+
+  <nav class="rail">
+    <button class="nav on"><img class="px" src="../art/raw/ico-ball.png" alt="">Matchday</button>
+    <button class="nav"><img class="px" src="../art/raw/ico-news.png" alt="">News<span class="badge">2</span></button>
+    <button class="nav"><img class="px" src="../art/raw/ico-phone.png" alt="">Phone<span class="badge">1</span></button>
+    <button class="nav"><img class="px" src="../art/raw/ico-fixtures.png" alt="">Fixtures &amp; Table</button>
+    <h4>Club</h4>
+    <button class="nav"><img class="px" src="../art/raw/ico-stadium.png" alt="">Stadium</button>
+    <button class="nav"><img class="px" src="../art/raw/ico-doctor.png" alt="">Doctor</button>
+    <button class="nav"><img class="px" src="../art/raw/ico-cash.png" alt="">Finances</button>
+    <button class="nav"><img class="px" src="../art/raw/ico-fundraiser.png" alt="">Fundraiser</button>
+    <h4>You</h4>
+    <button class="nav"><img class="px" src="../art/raw/ico-power.png" alt="">Power Network</button>
+    <button class="nav"><img class="px" src="../art/raw/ico-inventory.png" alt="">Inventory</button>
+    <div class="spacer"></div>
+    <div class="sys"><button>Save</button><button>Load</button><button>♪</button></div>
+  </nav>
+
+  <main class="centre">
+    <div class="scene">
+      <img class="px" src="../art/raw/office.png" alt="">
+      <div class="cap">
+        <div class="phase">Pre-match · Chairman's office</div>
+        <h2>Southampton <em>v</em> Everton</h2>
+      </div>
+      <div class="steps"><span class="done">✓ Wages</span><span class="on">Pre-match</span><span>Match</span><span>Post-match</span><span>Evening</span></div>
+    </div>
+    <section class="feed">
+      <div class="day">— SATURDAY 23 AUGUST —</div>
+      <div class="line sys">Wages paid: <b>£412,000</b> to 5 players and the manager.</div>
+      <article class="msg rival">
+        <div class="ava"><img class="px" src="../art/raw/delmor.png" alt=""></div>
+        <div><div class="who">Delmor Krunchem <span class="tag">Text · Portsmouth Chairman</span></div>
+        <p>"This is Delmor Krunchem, the Chairman of Portsmouth FC. Don't get too comfortable, little rat. Portsmouth will destroy you when we meet."</p></div>
+      </article>
+      <article class="news">
+        <div class="mast">THE DAILY KREPLIN</div>
+        <h3>SAINTS CHAIRMAN SPOTTED IN McDONALD'S DRIVE-THRU AT 4AM</h3>
+        <p>Witnesses report the chairman ordered "everything" and paid in Johnstone's Paint Trophy memorabilia.</p>
+      </article>
+      <article class="msg">
+        <div class="ava"><img class="px" src="../art/raw/manager.png" alt=""></div>
+        <div><div class="who">Crobley Crongus <span class="tag">Manager</span></div>
+        <p>"Gaffer, we've got five players and one of them is suspended. Either sign someone or I'm putting the kit man up front."</p></div>
+      </article>
+      <div class="fixture-card"><img class="px" src="../art/raw/ico-ball.png" width="32" height="32" alt=""><div><b>[PREMIER LEAGUE] Southampton v Everton</b><br><small>Another day at the office. Another chance to disgrace yourself.</small></div></div>
+      <div class="line">There's a <b>knock at the door</b>.</div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <section class="card decision">
+      <h3>What now, Chairman? <span class="hint">press 1–9</span></h3>
+      <ol class="opts">
+        <li><button class="opt req"><kbd>1</kbd><span>Answer the knock at the door<small>Someone's been waiting a while</small></span><span class="chip">REQUIRED</span></button></li>
+        <li><button class="opt"><kbd>2</kbd><span>Transfer window<small>£15.0M available</small></span><span></span></button></li>
+        <li><button class="opt"><kbd>3</kbd><span>Pick lineup<small>4 of 5 fit · 1 suspended</small></span><span></span></button></li>
+        <li><button class="opt done"><kbd>4</kbd><span>Your locker room</span><span class="chip">✓ DONE</span></button></li>
+        <li><button class="opt"><kbd>5</kbd><span>Sneak into the opposition locker</span><span></span></button></li>
+        <li><button class="opt"><kbd>6</kbd><span>Place a bet</span><span></span></button></li>
+        <li><button class="opt bad"><kbd>7</kbd><span>Call the referee<small>…to "discuss" the game</small></span><span class="chip">RISK</span></button></li>
+        <li><button class="opt bad"><kbd>8</kbd><span>Bribe Sean Dyche</span><span class="chip">RISK</span></button></li>
+        <li><button class="opt go"><kbd>9</kbd><span>KICK OFF<small>Answer the door first</small></span><span></span></button></li>
+      </ol>
+    </section>
+    <section class="card">
+      <h3><img class="px" src="../art/raw/ico-ball.png" width="20" height="20" alt="">Match brief</h3>
+      <div class="brief">
+        <div class="vs"><div class="t">SOUTHAMPTON<small>7th · W L D</small></div><div class="x">v</div><div class="t">EVERTON<small>12th · Mgr: Sean Dyche</small></div></div>
+        <div class="bars">
+          <span>Strength</span><div class="b"><i style="width:46%"></i></div><span class="n">46</span>
+          <span>Everton</span><div class="b o"><i style="width:71%"></i></div><span class="n">71</span>
+          <span>Morale</span><div class="b"><i style="width:50%"></i></div><span class="n">50</span>
+        </div>
+        <div class="odds"><div>Saints<b>10.0</b></div><div>Draw<b>4.5</b></div><div>Everton<b>1.10</b></div></div>
+      </div>
+    </section>
+    <section class="card">
+      <h3><img class="px" src="../art/raw/ico-trophy.png" width="20" height="20" alt="">League</h3>
+      <table class="table">
+        <tr><td>5 Brighton</td><td>5</td></tr>
+        <tr><td>6 Fulham</td><td>4</td></tr>
+        <tr class="us"><td>7 Southampton</td><td>4</td></tr>
+        <tr><td>8 Wolves</td><td>3</td></tr>
+        <tr><td>9 Brentford</td><td>3</td></tr>
+      </table>
+    </section>
+  </aside>
+</div>
+</body>
+</html>

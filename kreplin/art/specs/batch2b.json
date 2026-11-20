@@ -1,0 +1,35 @@
+[
+ {
+  "name": "ico-morale",
+  "w": 48,
+  "h": 48,
+  "nobg": true,
+  "outline": "single color black outline",
+  "shading": "basic shading",
+  "detail": "medium detail",
+  "description": "icon of a red heart with a small round black and white soccer ball in the corner, game ui item icon",
+  "seed": 21
+ },
+ {
+  "name": "ico-fixtures",
+  "w": 48,
+  "h": 48,
+  "nobg": true,
+  "outline": "single color black outline",
+  "shading": "basic shading",
+  "detail": "medium detail",
+  "description": "icon of a calendar page with a round black and white soccer ball on it, game ui item icon",
+  "seed": 21
+ },
+ {
+  "name": "ico-ball",
+  "w": 48,
+  "h": 48,
+  "nobg": true,
+  "outline": "single color black outline",
+  "shading": "basic shading",
+  "detail": "medium detail",
+  "description": "icon of a round black and white soccer ball with pentagon panels, association football, game ui item icon",
+  "seed": 21
+ }
+]

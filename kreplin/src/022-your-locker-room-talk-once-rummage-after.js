@@ -2499,8 +2499,8 @@ let _lastBribeLineAtMinute = -999;
 // fire an outrage line occasionally if the ref was bribed
 if (S && (S.referee_bribed === 'us' || S.referee_bribed === 'them')) {
   const oppTeam = matchOpponentName();
-  const favName = (S.referee_bribed === 'us') ? 'Southampton' : oppTeam;
-  const oppName = (S.referee_bribed === 'us') ? oppTeam : 'Southampton';
+  const favName = (S.referee_bribed === 'us') ? getClubName() : oppTeam;
+  const oppName = (S.referee_bribed === 'us') ? oppTeam : getClubName();
 
   const minuteNow = Math.floor(clock);               // <-- use local cutscene clock
   const changedMinute = (minuteNow !== _lastBribeLineAtMinute);
@@ -2680,8 +2680,8 @@ if (S && (S.referee_bribed === 'us' || S.referee_bribed === 'them')) {
 
         if (!cornerText) {
           cornerText = e.player 
-            ? `Corner to ${e.who==='HOME' ? 'Southampton' : _oppName()}—${e.player} takes it.`
-            : (e.who==='HOME') ? "Corner to Southampton…" : `Corner to ${_oppName()}…`;
+            ? `Corner to ${e.who==='HOME' ? getClubName() : _oppName()}—${e.player} takes it.`
+            : (e.who==='HOME') ? `Corner to ${getClubName()}…` : `Corner to ${_oppName()}…`;
         }
         _appendCom(com, cornerText);
       } else if (e.kind==='FOUL'){
@@ -2955,8 +2955,8 @@ async function _animateMatchWithCommentary(events, canvas, com, tick, gf, ga) {
       // Inject bribery-flavored commentary if ref was bribed
       if (S && (S.referee_bribed === 'us' || S.referee_bribed === 'them')) {
         const oppTeam = matchOpponentName();
-        const favName = (S.referee_bribed === 'us') ? 'Southampton' : oppTeam;
-        const oppName = (S.referee_bribed === 'us') ? oppTeam : 'Southampton';
+        const favName = (S.referee_bribed === 'us') ? getClubName() : oppTeam;
+        const oppName = (S.referee_bribed === 'us') ? oppTeam : getClubName();
         const minuteNow = Math.floor(clock);
         const changedMinute = (minuteNow !== (window._lastBribeLineAtMinute || -999));
         const shouldFire = changedMinute && (Math.random() < 0.12);

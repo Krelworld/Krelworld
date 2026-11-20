@@ -476,7 +476,7 @@ async function ultimaCupPreMatch() {
       <h2 style="font-size:2rem;color:#FFD700;margin-bottom:20px;text-align:center;text-shadow:0 0 10px rgba(255,215,0,0.5);">THE TEAMS</h2>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;">
         <div style="padding:20px;background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,215,0,0.05));border-radius:10px;border:2px solid rgba(255,215,0,0.4);box-shadow:0 0 10px rgba(255,215,0,0.2);">
-          <h3 style="font-size:1.5rem;color:#FFD700;margin-bottom:10px;text-shadow:0 0 5px rgba(255,215,0,0.5);">Southampton FC</h3>
+          <h3 style="font-size:1.5rem;color:#FFD700;margin-bottom:10px;text-shadow:0 0 5px rgba(255,215,0,0.5);">${getClubName()}</h3>
           <p style="color:#FFF;line-height:1.6;">Your team. The journey ends here.</p>
         </div>
         <div style="padding:20px;background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,215,0,0.05));border-radius:10px;border:2px solid rgba(255,215,0,0.4);box-shadow:0 0 10px rgba(255,215,0,0.2);">

@@ -156,22 +156,21 @@
     // New inventory items
     if (Array.isArray(items) && items.length){
       const head = document.createElement('div');
-      head.className = 'subtle'; head.textContent = 'Inventory Items'; head.style.margin = '8px 0 6px';
+      head.className = 'subtle kp-sec'; head.textContent = 'Inventory Items';
       list.appendChild(head);
 
       items.forEach((item, idx)=>{
-        const row = document.createElement('div'); row.className='row';
+        const row = document.createElement('div'); row.className='row kp-item';
         const k = document.createElement('div'); k.className='k'; 
         k.textContent = item.name + (item.equipped ? ' (EQUIPPED)' : '');
         const v = document.createElement('div'); v.className='v'; 
         v.textContent = `${item.quantity}x ${moneyGBP(item.baseValue||0)}`;
-        const act = document.createElement('div');
+        const act = document.createElement('div'); act.className = 'kp-item-act';
         
         // Sell button
         if (item.sellable) {
           const sellBtn = document.createElement('button'); 
           sellBtn.textContent = 'Sell'; 
-          sellBtn.style.marginRight='6px';
           sellBtn.addEventListener('click', ()=>{
             sellItem(item.name, 1);
           });
@@ -200,14 +199,14 @@
     // Legacy valuables (accolades)
     if (Array.isArray(acc) && acc.length){
       const head = document.createElement('div');
-      head.className = 'subtle'; head.textContent = 'Legacy Valuables'; head.style.margin = '8px 0 6px';
+      head.className = 'subtle kp-sec'; head.textContent = 'Legacy Valuables';
       list.appendChild(head);
 
       acc.forEach((a, idx)=>{
-        const row = document.createElement('div'); row.className='row';
+        const row = document.createElement('div'); row.className='row kp-item';
         const k = document.createElement('div'); k.className='k'; k.textContent = a?.name || 'Unlabelled trophy';
         const v = document.createElement('div'); v.className='v'; v.textContent = moneyGBP(a?.value||0);
-        const act = document.createElement('div'); const btn = document.createElement('button'); btn.textContent = 'Sell';
+        const act = document.createElement('div'); act.className = 'kp-item-act'; const btn = document.createElement('button'); btn.textContent = 'Sell';
         btn.addEventListener('click', async ()=>{
           await sellAccolade(idx);
         });
@@ -218,15 +217,15 @@
     }
 
     // drugs controls
-    const dHead = document.createElement('div'); dHead.className='subtle'; dHead.textContent = 'Other'; dHead.style.margin='8px 0 6px';
+    const dHead = document.createElement('div'); dHead.className='subtle kp-sec'; dHead.textContent = 'Other';
     list.appendChild(dHead);
 
     // Cocaine row
-    const row = document.createElement('div'); row.className='row';
+    const row = document.createElement('div'); row.className='row kp-item';
     const k = document.createElement('div'); k.className='k'; k.textContent='Cocaine';
     const v = document.createElement('div'); v.className='v'; v.textContent=`${drug} bag(s)`;
-    const act = document.createElement('div');
-    const buy = document.createElement('button'); buy.textContent = `Buy 1 bag (${moneyGBP(PRICE_PER_BAG)})`; buy.style.marginRight='6px';
+    const act = document.createElement('div'); act.className = 'kp-item-act';
+    const buy = document.createElement('button'); buy.textContent = `Buy 1 bag (${moneyGBP(PRICE_PER_BAG)})`;
     buy.addEventListener('click', buyBag);
     const use = document.createElement('button'); use.textContent='Take (use)'; use.disabled = drug<=0; 
     use.addEventListener('click', function(){
@@ -240,14 +239,13 @@
     list.appendChild(row);
 
     // Brick purchase row
-    const brickRow = document.createElement('div'); brickRow.className='row';
+    const brickRow = document.createElement('div'); brickRow.className='row kp-item';
     const brickK = document.createElement('div'); brickK.className='k'; brickK.textContent='Brick';
     const brickV = document.createElement('div'); brickV.className='v'; brickV.textContent='Weapon';
-    const brickAct = document.createElement('div');
+    const brickAct = document.createElement('div'); brickAct.className = 'kp-item-act';
     const buyBrick = document.createElement('button'); 
     const currentBricks = getBrickCount();
     buyBrick.textContent = `Buy Brick (${moneyGBP(100000)}) - Current: ${currentBricks}`; 
-    buyBrick.style.marginRight='6px';
     buyBrick.addEventListener('click', function(){
       const brickPrice = 100000;
       if ((S.chairman_cash|0) < brickPrice){ 

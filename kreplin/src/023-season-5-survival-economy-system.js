@@ -1294,8 +1294,7 @@ async function handleTrainDeath() {
     
     const startAgainBtn = document.createElement('button');
     startAgainBtn.textContent = 'Start Again';
-    startAgainBtn.className = 'btn';
-    startAgainBtn.style.cssText = 'padding: 12px 24px; font-size: 16px; cursor: pointer; margin: 10px; background: #ff0000; color: #fff;';
+    startAgainBtn.className = 'go';
     startAgainBtn.onclick = () => {
       location.reload();
     };
@@ -1303,8 +1302,7 @@ async function handleTrainDeath() {
     
     const resumeBtn = document.createElement('button');
     resumeBtn.textContent = 'Resume from Last Save';
-    resumeBtn.className = 'btn';
-    resumeBtn.style.cssText = 'padding: 12px 24px; font-size: 16px; cursor: pointer; margin: 10px;';
+    resumeBtn.className = '';
     resumeBtn.onclick = () => {
       if (typeof loadState === 'function') {
         loadState();

@@ -283,11 +283,22 @@
       btn.textContent = '';
       const k = document.createElement('kbd'); k.setAttribute('aria-hidden', 'true');
       const sp = document.createElement('span'); sp.className = 'lbl'; sp.textContent = label;
+      playerCard(sp, label, btn);
       btn.append(k, sp);
       if (chip) { const c = document.createElement('span'); c.className = 'chip'; c.textContent = chip; btn.appendChild(c); }
     } else {
       btn.classList.add('rich');
     }
+  }
+  // transfer market / sell lists: "Name (MF) | TIER | RAT 74 | £5,320,000 | £57,200/wk" -> a player row
+  const PLAYER_RE = /^(Sell )?(.+?) \((GK|DF|MF|FW)\)(?: \| ([A-Z]+))? \| RAT (\d+) \| (£[\d,]+)(?: \| (£[\d,]+)\/wk)?$/;
+  function playerCard(sp, label, btn) {
+    const m = PLAYER_RE.exec(label); if (!m) return;
+    const [, sell, name, pos, tier, rat, price, wage] = m;
+    const short = v => money(Number(String(v).replace(/[£,]/g, '')));
+    btn.classList.add('k-player');
+    sp.innerHTML = `<b>${sell ? 'Sell ' : ''}${esc(name)}</b> <i class="pos">${pos}</i><span class="meta">${tier ? `<em class="tier t-${tier.toLowerCase()}">${esc(tier)}</em>` : ''}<span>RAT <b>${rat}</b></span><span>${short(price)}</span>${wage ? `<span>${short(wage)}/wk</span>` : ''}</span>`;
+    sp.title = label;
   }
   function numberChoices() {
     const root = $('actions'); if (!root) return;
@@ -484,6 +495,18 @@
     setPhaseView(window.__ui_context || 'boot');
     renderTop();
   }
+  // feed: only the newest "View Full Table" button stays (one per league-position line piled up)
+  let tableBtnQueued = false;
+  function dedupeTableButtons() {
+    tableBtnQueued = false;
+    const feed = $('feed'); if (!feed) return;
+    const btns = [...feed.querySelectorAll('button[onclick*="LeagueTablePopup"]')];
+    btns.forEach((b, i) => {
+      if (i < btns.length - 1) { b.remove(); return; }
+      if (!b.classList.contains('k-tablebtn')) { b.removeAttribute('style'); b.classList.add('k-tablebtn'); }
+    });
+  }
+  GameHooks.on('log', () => { if (!tableBtnQueued) { tableBtnQueued = true; requestAnimationFrame(dedupeTableButtons); } });
   GameHooks.on('hud', renderTop);
   GameHooks.on('phase', p => { setPhaseView(p); renderTop(); });
   GameHooks.on('init', () => { window.__kLastDay = null; renderTop(); setPhaseView((St() && St().phase) || 'boot'); });

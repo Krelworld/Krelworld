@@ -312,21 +312,15 @@ function ensureOpponentForToday() {
       pane = document.createElement('div');
       pane.id = 'inventoryPane';
       pane.style.display = 'none';
-      pane.style.position = 'relative';
-      pane.style.margin = '12px 0';
-      pane.style.padding = '12px';
-      pane.style.border = '1px solid rgba(255,255,255,0.12)';
-      pane.style.borderRadius = '10px';
-      pane.style.background = 'rgba(0,0,0,0.25)';
+      pane.className = 'kp-pane';
 
       const h = document.createElement('div');
-      h.textContent = 'Inventory';
-      h.style.fontWeight = '600';
-      h.style.marginBottom = '8px';
+      h.className = 'kp-head';
+      h.innerHTML = '<h2>📦 Inventory</h2>';
       pane.appendChild(h);
 
       // sections
-      const sum = document.createElement('div'); sum.id = 'invSummary'; sum.style.marginBottom = '8px';
+      const sum = document.createElement('div'); sum.id = 'invSummary'; sum.className = 'kp-summary';
       pane.appendChild(sum);
 
       const list = document.createElement('div'); list.id = 'inventoryList';
@@ -334,7 +328,7 @@ function ensureOpponentForToday() {
 
       const close = document.createElement('button');
       close.textContent = 'Close';
-      close.style.marginTop = '8px';
+      close.className = 'kp-close';
       close.addEventListener('click', ()=>toggleInventoryPane(false));
       pane.appendChild(close);
 
@@ -2466,25 +2460,25 @@ window.renderStadiumPanel = function(){
   const soldOutRevenue = stadium.capacity * stadium.ticket_price * 1.1; // 10% quality uplift
   
   let html = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <h2 style="margin: 0;">🏟️ Stadium & Facilities</h2>
-      <button onclick="toggleStadiumPane(false)" style="background: #f87171; border: none; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer;">✕</button>
+    <div class="kp-head">
+      <h2>🏟️ Stadium & Facilities</h2>
+      <button onclick="toggleStadiumPane(false)" class="kp-x" aria-label="Close">✕</button>
     </div>
     
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
-      <div class="panel" style="padding: 16px;">
-        <h3 style="margin-top: 0;">Current Stadium</h3>
+    <div class="kp-grid2">
+      <div class="kp-card">
+        <h3>Current Stadium</h3>
         <div class="row"><div class="k">Capacity</div><div class="v">${stadium.capacity.toLocaleString()}</div></div>
         <div class="row"><div class="k">Quality</div><div class="v">${stadium.quality}/100</div></div>
         <div class="row"><div class="k">Safety</div><div class="v">${stadium.safety}/100</div></div>
-        <div class="row"><div class="k">Ticket Price</div><div class="v">£${stadium.ticket_price}</div></div>
+        <div class="row"><div class="k">Ticket Price</div><div class="v">${money(stadium.ticket_price)}</div></div>
         <div class="row"><div class="k">Upkeep per Match</div><div class="v">${money((stadium.upkeep_per_match && !isNaN(stadium.upkeep_per_match) ? stadium.upkeep_per_match : 5000))}</div></div>
         <div class="row"><div class="k">Last Attendance</div><div class="v">${stadium.last_home_attendance.toLocaleString()}</div></div>
         <div class="row"><div class="k">Utilization</div><div class="v">${stadium.utilization_percent.toFixed(1)}%</div></div>
       </div>
       
-      <div class="panel" style="padding: 16px;">
-        <h3 style="margin-top: 0;">Revenue Projections</h3>
+      <div class="kp-card">
+        <h3>Revenue Projections</h3>
         <div class="row"><div class="k">If Sold Out</div><div class="v">${money(soldOutRevenue)}</div></div>
         <div class="row"><div class="k">At Current Morale</div><div class="v">${money(nextHomeProjection.revenue)}</div></div>
         <div class="row"><div class="k">Projected Attendance</div><div class="v">${nextHomeProjection.attendance.toLocaleString()}</div></div>
@@ -2520,13 +2514,13 @@ function renderActiveProject(){
   }
   
   return `
-    <div class="panel" style="padding: 16px; margin-bottom: 20px;">
-      <h3 style="margin-top: 0;">Active Project: ${project.name}</h3>
+    <div class="kp-card">
+      <h3>Active Project: ${project.name}</h3>
       <div class="row"><div class="k">Progress</div><div class="v">Matches ${progress}/${totalDuration}</div></div>
       <div class="row"><div class="k">Status</div><div class="v ${statusClass}">${statusText}</div></div>
       <div class="row"><div class="k">Remaining</div><div class="v">${remaining} matches</div></div>
       
-      <div style="margin-top: 16px; display: flex; gap: 8px;">
+      <div class="kp-actions">
         <button onclick="pauseProject()" class="warn">Pause</button>
         <button onclick="cancelProject()" class="bad">Cancel</button>
         <button onclick="accelerateProject()" class="good">Accelerate</button>
@@ -2536,7 +2530,7 @@ function renderActiveProject(){
 }
 
 function renderUpgradeOptions(){
-  let html = '<h3>Available Upgrades</h3><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">';
+  let html = '<h3 class="kp-sub">Available Upgrades</h3><div class="kp-grid2">';
   
   for (const [key, upgrade] of Object.entries(window.STADIUM_UPGRADES)) {
     const capacityGain = typeof upgrade.capacity_gain === 'object' 
@@ -2552,24 +2546,20 @@ function renderUpgradeOptions(){
     const roi80 = calculateROI(upgrade, 80);
     
     html += `
-      <div class="panel" style="padding: 16px;">
-        <h4 style="margin-top: 0;">${upgrade.name}</h4>
-        <p style="margin: 8px 0; color: var(--muted);">${upgrade.description}</p>
+      <div class="kp-card">
+        <h4>${upgrade.name}</h4>
+        <p class="kp-muted">${upgrade.description}</p>
         <div class="row"><div class="k">Capacity</div><div class="v">+${capacityGain}</div></div>
         <div class="row"><div class="k">Quality</div><div class="v">+${upgrade.quality_gain}</div></div>
         <div class="row"><div class="k">Duration</div><div class="v">${duration}</div></div>
         <div class="row"><div class="k">Cost</div><div class="v">${money(cost)}</div></div>
         
-        <div style="margin: 12px 0; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px;">
-          <div style="font-size: 0.9rem; color: var(--muted); margin-bottom: 4px;">ROI Projections:</div>
-          <div style="font-size: 0.85rem;">40% morale: ${money(roi40)}/match</div>
-          <div style="font-size: 0.85rem;">60% morale: ${money(roi60)}/match</div>
-          <div style="font-size: 0.85rem;">80% morale: ${money(roi80)}/match</div>
+        <div class="kp-note">
+          <div class="kp-note-k">ROI projections (per match)</div>
+          <div class="kp-roi"><span>40% morale<b>${money(roi40)}</b></span><span>60%<b>${money(roi60)}</b></span><span>80%<b>${money(roi80)}</b></span></div>
         </div>
         
-        <div style="margin-top: 12px;">
-          <button onclick="startProject('${key}', 'cash')" class="good" style="width: 100%;">Start Project</button>
-        </div>
+        <button onclick="startProject('${key}', 'cash')" class="good kp-wide">Start Project</button>
       </div>
     `;
   }
@@ -2629,7 +2619,7 @@ window.calculateAttendanceProjection = function() {
   const qualityUplift = 1 + (stadium.quality / 100) * 0.1; // Up to 10% uplift
   const ticketRevenue = attendance * stadium.ticket_price * qualityUplift;
   const concessions = attendance * 8; // £8 per person average
-  const revenue = ticketRevenue + concessions;
+  const revenue = Math.round(ticketRevenue + concessions); // whole pounds (was leaking pence into club cash)
   
   return { attendance, utilization, revenue };
 }

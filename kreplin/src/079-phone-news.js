@@ -3861,9 +3861,13 @@
         contact.suspicion = Math.min(10, (contact.suspicion || 0) + (category === 'erotic' ? 2 : 1));
         
         if (contact.flirt_level > 5 && Math.random() < 0.3) {
-          // Affair event
-          const accept = confirm('Meetup? (Affair: +morale 5, 20% paparazzi risk)');
-          if (accept) {
+          // Affair event (KUI dialog; resolves after the text is handled)
+          const ask = 'Meetup? (Affair: +morale 5, 20% paparazzi risk)';
+          const decide = window.KUI
+            ? KUI.confirm(ask, { title: (contact.name || "Captain's wife"), ok: 'Meet up', cancel: 'Not now', variant: 'phone' })
+            : Promise.resolve(confirm(ask));
+          decide.then(accept => {
+            if (!accept) return;
             S.morale = Math.min(100, (S.morale || 0) + 5);
             log('📱 Affair event: Morale +5');
             if (Math.random() < 0.2) {
@@ -3871,7 +3875,8 @@
               S.reputation = Math.max(0, (S.reputation || 50) - 10);
               S.club_cash = Math.max(0, (S.club_cash || 0) - 5000);
             }
-          }
+            if (typeof updateHUD === 'function') updateHUD();
+          }).catch(() => {});
         }
         
         if (contact.suspicion >= 8) {

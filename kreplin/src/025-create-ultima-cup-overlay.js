@@ -527,8 +527,8 @@ async function revealMatchEvents(result, overlay, skipState) {
       
       if (shouldFire) {
         const oppTeam = matchOpponentName();
-        const favName = (S.referee_bribed === 'us') ? 'Southampton' : oppTeam;
-        const oppName = (S.referee_bribed === 'us') ? oppTeam : 'Southampton';
+        const favName = (S.referee_bribed === 'us') ? getClubName() : oppTeam;
+        const oppName = (S.referee_bribed === 'us') ? oppTeam : getClubName();
         const pool = (S.referee_bribed === 'us') ? REF_BRIBE_FOR_US : REF_BRIBE_FOR_THEM;
         const line = pick(pool)
           .replaceAll('{FAV}', favName)
@@ -1644,7 +1644,7 @@ async function quickSimulateMatchWithLogCommentary() {
       who: isHome ? 'HOME' : 'AWAY',
       kind: eventType,
       player: player?.name || null,
-      team: isHome ? 'Southampton FC' : (matchOpponentName())
+      team: isHome ? getClubName() : (matchOpponentName())
     });
   }
   
@@ -1910,8 +1910,8 @@ async function quickSimulateMatchWithLogCommentary() {
       
       if (shouldFire) {
         const oppTeam = matchOpponentName();
-        const favName = (S.referee_bribed === 'us') ? 'Southampton' : oppTeam;
-        const oppName = (S.referee_bribed === 'us') ? oppTeam : 'Southampton';
+        const favName = (S.referee_bribed === 'us') ? getClubName() : oppTeam;
+        const oppName = (S.referee_bribed === 'us') ? oppTeam : getClubName();
         const pool = (S.referee_bribed === 'us') ? REF_BRIBE_FOR_US : REF_BRIBE_FOR_THEM;
         const line = pick(pool)
           .replaceAll('{FAV}', favName)

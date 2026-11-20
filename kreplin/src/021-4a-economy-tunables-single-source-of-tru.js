@@ -384,7 +384,11 @@ function openBettingModal() {
   }
 
   const { usOdds, themOdds } = S.preMatch.odds;
-  line.textContent = `Odds — Us: ${usOdds} | Opponents: ${themOdds}`;
+  const oppName = (currentOpponent() || {}).team || 'Opponents';
+  line.innerHTML = `<span>${getClubName()}<b>${usOdds}</b></span><span>${oppName}<b>${themOdds}</b></span>`;
+  const usLbl = document.getElementById('betUsName'), themLbl = document.getElementById('betThemName');
+  if (usLbl) usLbl.textContent = `${getClubName()} @ ${usOdds}`;
+  if (themLbl) themLbl.textContent = `${oppName} @ ${themOdds}`;
 
   function refreshPotential(){
     const outcome = document.querySelector('input[name="betOutcome"]:checked')?.value || 'us';
@@ -408,7 +412,7 @@ function openBettingModal() {
     S.preMatch.bet = { outcome, stake: st, odds };
     S.preMatch.betLocked = true;
 
-    log(`Bet placed: ${money(st)} on ${outcome === 'us' ? 'Southampton' : 'Opponents'} @ ${odds}.`);
+    log(`Bet placed: ${money(st)} on ${outcome === 'us' ? getClubName() : 'Opponents'} @ ${odds}.`);
     modal.style.display = 'none';
   };
   close.onclick = () => { modal.style.display = 'none'; };

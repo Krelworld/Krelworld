@@ -484,3 +484,101 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
   #kApp #actions button{min-height:42px;padding:5px 8px}
   .k-fin-cols{grid-template-columns:minmax(0,1fr)}
 }
+#feed .k-tablebtn{margin-left:8px;font:600 12px/1 var(--font-ui);padding:5px 9px;border-radius:var(--r);border:var(--px) solid var(--line2);background:var(--panel2);color:var(--gold);cursor:pointer;vertical-align:middle}
+#feed .k-tablebtn:hover{border-color:var(--gold)}
+
+/* ---------- end-of-season presentation: content scrolls, footer button stays put ---------- */
+.eos-presentation-modal{overflow:hidden!important;display:flex;flex-direction:column}
+.eos-presentation-content{min-height:0;flex:1 1 auto;overflow-y:auto}
+.eos-presentation-footer{flex:none;display:flex;justify-content:center;padding:10px 14px calc(10px + env(safe-area-inset-bottom));border-top:var(--px) solid var(--line);background:var(--panel2)}
+.eos-presentation-footer .k-btn{min-height:44px;min-width:200px;justify-content:center}
+.ultima-cup-announcement-modal{display:flex;flex-direction:column}
+.ultima-cup-announcement-modal > .ultima-cup-announcement-button{flex:none;position:sticky;bottom:0}
+
+/* ---------- pane kit (stadium, inventory, betting): design tokens, no inline styles ---------- */
+.kp-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}
+.kp-head h2,.kp-head h3{margin:0;font:600 18px/1.2 var(--font-ui);color:var(--white);letter-spacing:.3px}
+.kp-x{flex:none;width:36px;height:36px;min-height:36px!important;padding:0!important;display:grid;place-items:center;font:600 16px var(--font-ui)!important;color:var(--muted)!important;background:var(--panel2)!important;border:var(--px) solid var(--line2)!important;border-radius:var(--r)!important;box-shadow:none!important;cursor:pointer}
+.kp-x:hover{color:var(--white)!important;border-color:var(--white)!important}
+.kp-grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 14px}
+.kp-card{background:var(--ink);border:var(--px) solid var(--line);border-radius:var(--r);padding:12px 14px;min-width:0}
+.kp-card h3,.kp-card h4{margin:0 0 8px;font:600 15px var(--font-ui);color:var(--gold);letter-spacing:.4px}
+.kp-card .row,.kp-item.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 0;border:0;border-top:1px solid var(--line);margin:0;background:none;min-height:0}
+.kp-card .row:first-of-type{border-top:0}
+.kp-card .row .k{color:var(--muted);font:13px var(--font-body)}
+.kp-card .row .v{color:var(--white);font:600 14px var(--font-body);font-variant-numeric:tabular-nums;text-align:right}
+.kp-card .row .v.good{color:var(--good)} .kp-card .row .v.warn{color:var(--warn)} .kp-card .row .v.bad{color:var(--bad)}
+.kp-sub{margin:4px 0 8px;font:600 13px var(--font-ui);color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+.kp-muted{margin:4px 0 8px;color:var(--muted);font:13px/1.4 var(--font-body)}
+.kp-note{margin:10px 0;padding:8px 10px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.kp-note-k{font:11px var(--font-ui);color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.kp-roi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.kp-roi span{font:11px var(--font-ui);color:var(--muted)} .kp-roi b{display:block;font:600 13px var(--font-body);color:var(--white);font-variant-numeric:tabular-nums}
+.kp-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px} .kp-actions.kp-end{justify-content:flex-end}
+.kp-wide{width:100%}
+#stadiumPane .kp-card button.good,#stadiumPane .kp-actions .good{border-color:var(--good)!important}
+#stadiumPane .kp-actions .warn{border-color:var(--warn)!important} #stadiumPane .kp-actions .bad{border-color:var(--bad)!important}
+/* inventory */
+.kp-summary .stat-row{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+.kp-summary .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid var(--line2);border-radius:999px;background:var(--ink);font:13px var(--font-body);color:var(--muted)}
+.kp-summary .badge strong{color:var(--white)} .kp-summary .dot{display:none}
+.kp-sec{margin:14px 0 4px;font:600 12px var(--font-ui);color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+.kp-item.row{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;gap:2px 12px;padding:8px 0}
+.kp-item .k{grid-column:1;color:var(--white);font:600 14px/1.3 var(--font-body);min-width:0;overflow-wrap:anywhere}
+.kp-item .v{grid-column:1;color:var(--muted);font:13px var(--font-body);font-variant-numeric:tabular-nums;text-align:left}
+.kp-item-act{grid-column:2;grid-row:1/3;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;align-items:center;max-width:58vw}
+#inventoryPane .kp-item-act button{min-height:36px;padding:6px 12px}
+#inventoryPane .kp-close{margin-top:14px}
+/* betting */
+.kp-modal-wrap{position:fixed;inset:0;z-index:var(--z-modal,9999);background:rgba(6,8,12,.72);align-items:center;justify-content:center;padding:16px}
+.kp-modal{width:min(520px,100%);background:var(--panel);border:var(--px) solid var(--line2);border-radius:var(--r);box-shadow:0 4px 0 #000,0 20px 60px rgba(0,0,0,.6);padding:14px 16px;color:var(--text)}
+.kp-odds{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
+.kp-odds span{background:var(--ink);border:1px solid var(--line2);border-radius:var(--r);padding:6px 8px;text-align:center;font:12px var(--font-ui);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kp-odds b{display:block;font:700 18px var(--font-body);color:var(--gold);font-variant-numeric:tabular-nums}
+.kp-choice2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
+.kp-radio{display:flex;gap:8px;align-items:flex-start;padding:10px;border:var(--px) solid var(--line2);border-radius:var(--r);background:var(--panel2);cursor:pointer;font:600 14px var(--font-body);min-height:44px}
+.kp-radio small{display:block;font:12px var(--font-body);color:var(--muted);font-weight:400}
+.kp-radio:has(input:checked){border-color:var(--red-l);background:rgba(215,25,32,.18)}
+.kp-radio input{accent-color:var(--red);margin-top:3px}
+.kp-field{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;margin:0 0 8px}
+.kp-field label{font:12px var(--font-ui);color:var(--muted);text-transform:uppercase;letter-spacing:.6px;background:none!important}
+.kp-field input{width:100%;box-sizing:border-box;padding:8px 10px}
+#betModal .kp-radio{background:var(--panel2)!important}
+@media (max-width: 900px){
+  .kp-grid2{grid-template-columns:minmax(0,1fr)}
+  .kp-card{padding:10px 12px}
+  .kp-modal-wrap{align-items:flex-end;padding:0}
+  .kp-modal{width:100vw;border-radius:8px 8px 0 0;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+  .kp-choice2{grid-template-columns:minmax(0,1fr)}
+  .kp-actions.kp-end .k-btn{flex:1;justify-content:center;min-height:44px}
+}
+
+/* ---------- end-of-season presentation on tokens ---------- */
+.eos-presentation-modal{background:var(--panel)!important;border:var(--px) solid var(--gold)!important;border-radius:var(--r)!important;box-shadow:0 4px 0 #000,0 20px 60px rgba(0,0,0,.6)!important;backdrop-filter:none!important}
+.eos-presentation-header{background:var(--panel2)!important;border-bottom:var(--px) solid var(--line)!important;padding:12px 16px!important}
+.eos-presentation-title{color:var(--gold)!important;text-shadow:2px 2px 0 #000!important;font:700 22px/1.2 var(--font-ui)!important;letter-spacing:.5px}
+.eos-presentation-content{padding:14px 18px!important;font:15px/1.55 var(--font-body)!important;color:var(--text)!important}
+.eos-presentation-content > div{margin:0 0 8px}
+.eos-presentation-content [style*="border"]{border-color:var(--line2)!important;border-radius:var(--r)!important}
+.eos-presentation-content [style*="gradient"]{background:var(--ink)!important;box-shadow:none!important}
+.eos-presentation-content [style*="text-shadow"]{text-shadow:none!important}
+.eos-presentation-content table{width:100%;border-collapse:collapse;font:13px var(--font-body)}
+.eos-presentation-content td,.eos-presentation-content th{padding:4px 6px;border-top:1px solid var(--line)}
+@media (max-width: 900px){
+  .eos-presentation-overlay{align-items:flex-end!important}
+  .eos-presentation-modal{width:100vw!important;max-width:100vw!important;max-height:94dvh!important;border-radius:8px 8px 0 0!important}
+  .eos-presentation-title{font-size:17px!important}
+  .eos-presentation-content{padding:12px!important;font-size:14px!important}
+}
+#betModal .kp-modal > .kp-muted,#betModal .kp-modal > .kp-odds,#betModal .kp-modal > .kp-choice2,#betModal .kp-modal > .kp-field,#betModal .kp-modal > .kp-actions{background:none!important;border:0!important;padding:0!important;box-shadow:none!important}
+#betModal .kp-modal > .kp-muted{margin:2px 0 4px!important;color:var(--gold)!important;font-weight:600}
+#betModal .k-btn.primary{background:var(--red)!important;border-color:var(--red-l)!important;color:#fff!important}
+/* transfer market / sell rows (shell turns the pipe-delimited labels into these) */
+#kApp #actions button.k-player .lbl{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px}
+#kApp #actions button.k-player .lbl > b{font-weight:700;color:var(--white)}
+#kApp #actions button.k-player .pos{font:600 11px/16px var(--font-ui);font-style:normal;color:var(--muted);border:1px solid var(--line2);border-radius:3px;padding:0 4px}
+#kApp #actions button.k-player .meta{flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px 10px;font:12px var(--font-body);color:var(--muted);font-variant-numeric:tabular-nums}
+#kApp #actions button.k-player .meta b{color:var(--white);font-weight:600}
+#kApp #actions button.k-player .tier{font:700 10px/16px var(--font-ui);font-style:normal;letter-spacing:.5px;padding:0 5px;border-radius:3px;background:var(--panel2);color:var(--text)}
+#kApp #actions button.k-player .t-legendary{background:var(--gold);color:#000} #kApp #actions button.k-player .t-elite{background:#7b5cd6;color:#fff}
+#kApp #actions button.k-player .t-excellent{background:var(--good);color:#000} #kApp #actions button.k-player .t-shit{background:#5a4a3a;color:#e9d9c6}

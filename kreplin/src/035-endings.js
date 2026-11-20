@@ -1072,7 +1072,7 @@ async function showEndOfSeasonPresentation() {
         <h2>THE TEAMS</h2>
         <div class="ultima-cup-teams-grid">
           <div class="ultima-cup-team-card">
-            <h3>Southampton FC</h3>
+            <h3>${getClubName()}</h3>
             <p>Your team. The journey ends here.</p>
           </div>
           <div class="ultima-cup-team-card">
@@ -1769,7 +1769,7 @@ async function showEndOfSeasonPresentation() {
       <h2>THE TEAMS</h2>
       <div class="ultima-cup-teams-grid">
         <div class="ultima-cup-team-card">
-          <h3>Southampton FC</h3>
+          <h3>${getClubName()}</h3>
           <p>Your team. The journey ends here.</p>
         </div>
         <div class="ultima-cup-team-card">
@@ -1875,9 +1875,7 @@ async function showEndOfSeasonPresentation() {
     
     const endBtn = document.createElement('button');
     endBtn.textContent = 'End Presentation';
-    endBtn.style.cssText = 'padding:12px 24px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;box-shadow:0 4px 12px rgba(99,102,241,0.3);transition:all 0.2s;margin:20px auto;display:block;';
-    endBtn.onmouseover = () => { endBtn.style.transform = 'translateY(-2px)'; endBtn.style.boxShadow = '0 6px 16px rgba(99,102,241,0.4)'; };
-    endBtn.onmouseout = () => { endBtn.style.transform = 'translateY(0)'; endBtn.style.boxShadow = '0 4px 12px rgba(99,102,241,0.3)'; };
+    endBtn.className = 'k-btn primary eos-end-btn';
     
     const endBtnPromise = new Promise(resolve => {
       endBtn.onclick = () => {
@@ -1886,7 +1884,12 @@ async function showEndOfSeasonPresentation() {
       };
     });
     
-    content.appendChild(endBtn);
+    // pinned footer: never scrolls out of (or gets clipped by) the modal
+    const footer = document.createElement('div');
+    footer.className = 'eos-presentation-footer';
+    footer.appendChild(endBtn);
+    modal.appendChild(footer);
+    endBtn.focus({ preventScroll: true });
     await endBtnPromise;
   }
 }

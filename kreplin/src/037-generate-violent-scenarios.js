@@ -603,6 +603,7 @@ async function showArmedNoBriefcaseFailstate() {
 
 // ========== SHOW FAILSTATE MENU ==========
 async function showFailstateMenu() {
+  window.__kreplinFailstate = true; // the run has ended (read by tools/autoplay.js)
   const menuOverlay = document.createElement('div');
   menuOverlay.style.cssText = `
     position: fixed;
@@ -723,7 +724,11 @@ async function showFailstateMenu() {
     
     loadButton.onclick = () => {
       menuOverlay.remove();
-      // Load save
+      // Load save: reload into the autosave (the boot path resumes it in 'load' mode)
+      // rather than swapping S under the still-running flow that just killed you.
+      if (localStorage.getItem(SAVE_KEY)) {
+        try { localStorage.setItem('last_loaded_slot', 'autosave'); location.reload(); return; } catch (_) {}
+      }
       const saved = localStorage.getItem(SAVE_KEY);
       if (saved) {
         try {

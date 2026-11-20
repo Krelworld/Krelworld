@@ -11,6 +11,10 @@
 //   campaign setup, playing the skipped fixtures through the table (S4/S5 openers run
 //   unless --noopener). --flags sets state paths then; --setup evaluates JS then, e.g.
 //   --jump 3:16 --flags '{"season3.player_coma_between_seasons":true}'  (S3 end -> coma -> S4)
+//   --lean     always takes the quickest path to the next match (kick off, pay wages, sleep, continue)
+//   --clicks   counts the game's choose() menus per week (decision menus + single-button "advance"
+//              gates) and prints CLICKS lines: the minimum clicks a player needs per match week.
+//   A failstate (window.__kreplinFailstate) counts as game over; a page reload is reported (RELOAD).
 // Reports: page errors, progress (season/match), stalls, and a points/table ledger
 // check after every played match (LEDGER lines; --dump also prints the final ledger).
 const { chromium, devices } = require('playwright');
@@ -28,6 +32,8 @@ const file = path.resolve(args.file || path.join(__dirname, '..', 'dist', 'KREPL
 const shots = args.shots ? path.resolve(args.shots) : null;
 if (shots) fs.mkdirSync(shots, { recursive: true });
 
+const LEAN = [/^answer the knock/i, /kick off \(watch|proceed to kickoff/i, /^quick simulate/i, /stay sober/i, /keep it calm/i,
+  /^pay wages now/i, /^skip — add to arrears/i, /sleep peacefully/i, /^next week/i, /^(continue|post-match|evening|match complete|ok|close|done|skip.*|leave|ignore.*|no thanks.*|decline.*)$/i];
 const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i;
 
 (async () => {
@@ -95,6 +101,21 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
   p.on('pageerror', e => { const at = String(e.stack || '').split('\n').slice(1, 3).map(l => l.trim().replace(/\(?file:[^)]*KREPLIN.html:/, 'L').replace(/\)$/, '')).join(' <- '); const k = (e.message.slice(0, 160) + (at ? '  @ ' + at : '')); errors.set(k, (errors.get(k) || 0) + 1); });
   await p.goto('file://' + file);
   await p.waitForTimeout(500);
+  let reloads = 0;
+  p.on('load', () => { reloads++; console.log('RELOAD #' + reloads + ' (page navigated/reloaded mid-run)'); });
+  const installClickProbe = () => p.evaluate(() => {
+    if (window.__apClicks || !window.GameHooks) return;
+    window.__apClicks = {};
+    GameHooks.on('choices', ({ prompt, options }) => {
+      const S = window.S; if (!S) return;
+      const k = `${S.season}/${S.matches_played}`;
+      const w = window.__apClicks[k] || (window.__apClicks[k] = { menus: 0, gates: 0, labels: [] });
+      w.menus++;
+      if ((options || []).length <= 1) { w.gates++; w.labels.push(String((options[0] || {}).label || '').slice(0, 24)); }
+      else w.labels.push('[' + String(prompt || '').split('\n')[0].slice(0, 24) + ']');
+    });
+  }).catch(() => {});
+  if (args.clicks) await installClickProbe();
   if (args.jump || args.setup || args.flags) {
     const [season, match] = String(args.jump && args.jump !== true ? args.jump : '').split(':');
     const spec = { season: +season || undefined, match: +match || 0,
@@ -114,7 +135,7 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
   const state = () => p.evaluate(() => {
     const S = window.S || {};
     return { season: S.season, played: S.matches_played, pts: S.points, w: S.wins, d: S.draws, l: S.losses,
-      club: S.club_cash, chair: S.chairman_cash, over: !!S.game_over,
+      club: S.club_cash, chair: S.chairman_cash, over: !!S.game_over || !!window.__kreplinFailstate,
       squad: Array.isArray(S.squad) ? S.squad.length : 0 };
   }).catch(() => ({}));
 
@@ -178,7 +199,11 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
       if (same > 4 && pool.some(c => /^buy player$/i.test(c.text))) strong = pool.filter(c => /^buy player$/i.test(c.text));
       const sinceMatch = i - (globalThis.__lastPlayedStep || 0);
       const pStrong = same > 6 ? 0.2 : sinceMatch > 40 ? 0.9 : 0.6;
-      const src = (strong.length && rnd() < pStrong) ? strong : (pool.length ? pool : usable);
+      let src = (strong.length && rnd() < pStrong) ? strong : (pool.length ? pool : usable);
+      // --lean: play like someone who just wants the next match (measures the minimum clicks per week)
+      if (args.lean && same < 6) {
+        for (const re of LEAN) { const m = pool.filter(c => re.test(c.text)); if (m.length) { src = [m[0]]; break; } }
+      }
       const pick = src[Math.floor(rnd() * src.length)];
       history.push(pick.text);
       await p.click(`[data-ap-idx="${pick.idx}"]`, { timeout: 1500, force: true }).catch(() => {});
@@ -199,6 +224,15 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
     if (args.mobile && i % 5 === 0) await checkOverflow(i);
     if (s.over) { console.log('GAME OVER reached at step', i); break; }
     if (same > (+args.patience || 40)) { console.log('STALL at step', i, 'last clicks:', history.slice(-8).join(' > ')); break; }
+  }
+  if (args.clicks) {
+    const c = await p.evaluate(() => window.__apClicks || {}).catch(() => ({}));
+    const weeks = Object.entries(c);
+    // drop the last (unfinished) week
+    weeks.pop();
+    const tot = weeks.reduce((a, [, w]) => (a.m += w.menus, a.g += w.gates, a), { m: 0, g: 0 });
+    for (const [k, w] of weeks) console.log(`CLICKS week ${k}: menus ${w.menus} gates ${w.gates} :: ${w.labels.join(' > ').slice(0, 260)}`);
+    if (weeks.length) console.log(`CLICKS avg over ${weeks.length} weeks: menus/week ${(tot.m / weeks.length).toFixed(2)}, gates/week ${(tot.g / weeks.length).toFixed(2)}`);
   }
   const s = await state();
   console.log('FINAL', JSON.stringify(s));

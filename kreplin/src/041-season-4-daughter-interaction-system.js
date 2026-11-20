@@ -224,7 +224,8 @@ const ga =
   (typeof outcome?.ga === 'number')            ? outcome.ga            : 0;
 
 
-await waitAdvance("Evening", "Handle personal life, nightclub, family, etc.");
+// (No "Evening" gate: the evening's events bring their own choices; one Continue follows.)
+S._quiet_evening = false;
 
 
 await eveningPhase();
@@ -254,7 +255,9 @@ if (typeof document !== 'undefined') {
   }
 }
 
-await waitAdvance("Next Week", "Advance the season.");
+// One Continue closes the week, unless the evening was an early night with nothing to read.
+if (S._quiet_evening) S._quiet_evening = false;
+else await waitAdvance("Next week ▸", (window.KPacing && KPacing.weekSummary()) || "Advance the season.");
 
 
 // Clear police interview flag when advancing to next week
@@ -1217,6 +1220,17 @@ function setupStartScreenButtons() {
     const btn = document.getElementById('quickStartBtn');
     btn.onclick = handleQuickStart;
     btn.style.cursor = 'pointer';
+    // Offer the autosave (the campaign in progress) whenever there is one: a reload
+    // (failstate "Return to Intro", a cheat flow, a browser refresh) must never leave
+    // NEW CAMPAIGN as the only way back in.
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      const sv = raw ? JSON.parse(raw) : null;
+      if (sv && !sv.game_over && (sv.player_firstname || (sv.matches_played|0) > 0 || (sv.season|0) > 1)) {
+        btn.textContent = `CONTINUE — SEASON ${sv.season || 1}, GAME ${Math.min((sv.matches_played|0) + 1, sv.season_matches || 16)}`;
+        btn.style.display = 'block';
+      } else btn.style.display = 'none';
+    } catch (_) { btn.style.display = 'none'; }
   } else {
     console.warn('Resume button not found!');
   }

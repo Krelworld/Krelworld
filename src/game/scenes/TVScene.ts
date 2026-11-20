@@ -67,6 +67,22 @@ const TV_ALIASES: Record<string, string> = {
 
 const EXTRA_CAST_SHOWS = new Set(["creation_myth", "eastenders_krezz", "beep_show"]);
 
+/** The on-demand guide's channel colours and short codes. */
+const CHAN_STYLE: Record<string, [number, string]> = {
+  "KRUNCHE NEWS": [0xef4444, "NEWS"],
+  "CHANNEL KREZ": [0xa855f7, "KREZ"],
+  "BBK ONE": [0x3b82f6, "BBK1"],
+  "WONKING MACHINE SHOPPING NETWORK": [0xf59e0b, "SHOP"],
+  "KRELWORLD DOCUMENTARIES": [0x10b981, "DOCS"],
+  "THICK CUMMING COCK": [0xec4899, "TCC"],
+};
+const chanColor = (c: string) => CHAN_STYLE[c]?.[0] ?? 0x64748b;
+const chanCode = (c: string) => CHAN_STYLE[c]?.[1] ?? c.replace(/[^A-Z0-9]/gi, "").slice(0, 4).toUpperCase();
+const chanOrder = (c: string) => {
+  const i = CHANNELS.indexOf(c);
+  return i < 0 ? 99 : i;
+};
+
 export class TVScene extends Phaser.Scene {
   private overlay = false;
   private caller = "";
@@ -144,6 +160,8 @@ export class TVScene extends Phaser.Scene {
     this.card = this.add.text(SX + SW / 2, SY + SH / 2, "", { fontFamily: FONT, fontSize: "26px", color: "#ffffff", fontStyle: "bold", align: "center", wordWrap: { width: SW - 60 } }).setOrigin(0.5).setDepth(60).setShadow(3, 3, "#000", 0);
     if (G.meta.settings.crt) this.drawCRT();
     this.drawControls();
+    // the mouse wheel scrolls the on-demand guide
+    this.input.on("wheel", (_p: unknown, _o: unknown, _dx: number, dy: number) => this.mode === "episodes" && this.moveGuide(dy > 0 ? 1 : -1));
     this.keyHandler = (e) => this.onKey(e);
     window.addEventListener("keydown", this.keyHandler);
     this.events.once("shutdown", () => {
@@ -159,16 +177,15 @@ export class TVScene extends Phaser.Scene {
       const e = ALL_EPISODES.find((x) => x.id === data.episode);
       if (e) return this.play(e);
     }
-    // no channels: switch it on and something's on (the archive on the title screen is on-demand only)
-    if (this.fromTitle) this.showDemand();
-    else this.surf();
+    // switch it on and something's on (from the title screen too: there it's every show you've seen on any run)
+    this.surf();
   }
 
   /** Whatever's on: a random show you can watch (usually one you haven't seen), never the one that just finished. */
   private surf() {
     const all = ALL_EPISODES.filter((e) => this.unlocked(e) && e.id !== this.ep?.id);
     if (!all.length) return this.showDemand();
-    const fresh = this.fromTitle ? [] : all.filter((e) => !G.s.tvWatched.includes(e.id));
+    const fresh = all.filter((e) => !this.watchedList().includes(e.id));
     const pool = fresh.length && Math.random() < 0.75 ? fresh : all;
     this.play(pool[Math.floor(Math.random() * pool.length)]);
   }
@@ -285,37 +302,13 @@ export class TVScene extends Phaser.Scene {
 
   // ---------------------------------------------------------- menus
 
-  private renderList(title: string, items: { label: string; action: () => void; dim?: boolean }[]) {
-    this.ui.removeAll(true);
-    this.stage.removeAll(true);
-    this.items = items;
-    this.sel = 0;
-    this.ui.add(this.add.rectangle(SX, SY, SW, SH, 0x10183a).setOrigin(0));
-    this.ui.add(this.add.text(SX + SW / 2, SY + 22, title, { fontFamily: FONT, fontSize: "20px", color: "#7fb3ff", fontStyle: "bold" }).setOrigin(0.5));
-    items.forEach((it, i) => {
-      const t = this.add
-        .text(SX + 30, SY + 56 + i * 30, it.label, { fontFamily: FONT, fontSize: "15px", color: it.dim ? "#5a6080" : "#ffffff", wordWrap: { width: SW - 60 } })
-        .setInteractive({ useHandCursor: true });
-      t.on("pointerover", () => this.highlight(i));
-      t.on("pointerdown", () => {
-        synth.play("select");
-        it.action();
-      });
-      this.ui.add(t);
-    });
-    this.highlight(0);
-  }
-
-  private highlight(i: number) {
-    this.sel = i;
-    let idx = 0;
-    for (const o of this.ui.list) {
-      if (o instanceof Phaser.GameObjects.Text && o.input) {
-        o.setBackgroundColor(idx === i ? "#2d3360" : "#00000000");
-        idx++;
-      }
-    }
-  }
+  /** ON DEMAND: a channel guide. Tabs per channel, a scrolling list of episode cards, a NEW / ✓ badge on each. */
+  private guideTab = "ALL";
+  private guideSel = 0;
+  private guideTop = 0;
+  private guideList: TVEpisode[] = [];
+  private guideTabs: string[] = [];
+  private static readonly ROWS = 7;
 
   private unlocked(e: TVEpisode) {
     if (!e.unlockFlag) return true;
@@ -323,40 +316,143 @@ export class TVScene extends Phaser.Scene {
     return !!G.s.flags[e.unlockFlag];
   }
 
-  /** ON DEMAND: every show you can watch, a page at a time. */
-  private demandPage = 0;
-
-  private showDemand(page = this.demandPage) {
-    this.mode = "episodes";
-    synth.musicRaw("news");
-    const watched = this.fromTitle ? G.meta.tvWatched : G.s.tvWatched;
-    const avail = ALL_EPISODES.filter((e) => this.unlocked(e));
-    const PER = this.fromTitle ? 8 : 7;
-    const pages = Math.max(1, Math.ceil(avail.length / PER));
-    this.demandPage = page = Phaser.Math.Clamp(page, 0, pages - 1);
-    const items: { label: string; action: () => void; dim?: boolean }[] = avail.slice(page * PER, page * PER + PER).map((e) => ({
-      label: (() => {
-        const l = `${watched.includes(e.id) ? "✓" : this.fromTitle ? "•" : "🎁"} ${e.show}: ${e.title}`;
-        return l.length > 58 ? l.slice(0, 56) + "…" : l;
-      })(),
-      action: () => this.play(e),
-    }));
-    if (pages > 1) {
-      if (page > 0) items.push({ label: `◀ Previous page`, action: () => this.showDemand(page - 1) });
-      if (page < pages - 1) items.push({ label: `Next page ▶  (${page + 1}/${pages})`, action: () => this.showDemand(page + 1) });
-    }
-    if (!this.fromTitle) items.push({ label: "📺 Back to whatever's on", action: () => this.surf() });
-    items.push({ label: "⏏ Switch off", action: () => this.exit() });
-    this.renderList(this.fromTitle ? "WATCH TV" : "KRELTV ON DEMAND", items);
-    if (!this.fromTitle) {
-      // the TV log: what you've seen, what's left, and how many gifts are still out there
-      const seen = avail.filter((e) => G.s.tvWatched.includes(e.id)).length;
-      const locked = ALL_EPISODES.length - avail.length;
-      const log = `📺 Seen ${seen} of ${avail.length} · 🎁 ${avail.length - seen} Kreddle gift${avail.length - seen === 1 ? "" : "s"} still to claim${locked ? ` · 🔒 ${locked} more unlock as the story goes on` : ""}`;
-      this.ui.add(this.add.text(SX + SW / 2, SY + SH - 18, log, { fontFamily: FONT, fontSize: "11px", color: "#facc15", align: "center", wordWrap: { width: SW - 30 } }).setOrigin(0.5));
-    }
+  private watchedList() {
+    return this.fromTitle ? G.meta.tvWatched : G.s.tvWatched;
   }
 
+  private showDemand() {
+    if (this.mode !== "episodes") {
+      synth.musicRaw("news");
+      // open on the first show you haven't seen (or the top)
+      this.guideTab = "ALL";
+      this.guideList = ALL_EPISODES.filter((e) => this.unlocked(e));
+      const i = this.guideList.findIndex((e) => !this.watchedList().includes(e.id));
+      this.guideSel = Math.max(0, i);
+      this.guideTop = Math.max(0, this.guideSel - 2);
+    }
+    this.mode = "episodes";
+    this.drawGuide();
+  }
+
+  private setGuideTab(tab: string) {
+    this.guideTab = tab;
+    this.guideSel = 0;
+    this.guideTop = 0;
+    synth.play("select");
+    this.drawGuide();
+  }
+
+  private moveGuide(d: number) {
+    if (!this.guideList.length) return;
+    this.guideSel = Phaser.Math.Clamp(this.guideSel + d, 0, this.guideList.length - 1);
+    const R = TVScene.ROWS;
+    if (this.guideSel < this.guideTop) this.guideTop = this.guideSel;
+    if (this.guideSel >= this.guideTop + R) this.guideTop = this.guideSel - R + 1;
+    this.drawGuide();
+  }
+
+  private drawGuide() {
+    this.ui.removeAll(true);
+    this.stage.removeAll(true);
+    const watched = this.watchedList();
+    const avail = ALL_EPISODES.filter((e) => this.unlocked(e));
+    this.guideTabs = ["ALL", ...[...new Set(avail.map((e) => e.channel))].sort((a, b) => chanOrder(a) - chanOrder(b))];
+    if (!this.guideTabs.includes(this.guideTab)) this.guideTab = "ALL";
+    this.guideList = avail.filter((e) => this.guideTab === "ALL" || e.channel === this.guideTab);
+    this.guideSel = Phaser.Math.Clamp(this.guideSel, 0, Math.max(0, this.guideList.length - 1));
+    const add = <T extends Phaser.GameObjects.GameObject>(o: T) => (this.ui.add(o), o);
+    const txt = (x: number, y: number, s: string, size: number, color: string, bold = true) => add(this.add.text(x, y, s, { fontFamily: FONT, fontSize: `${size}px`, color, fontStyle: bold ? "bold" : "normal" }));
+
+    // the screen: deep blue with faint scanlines
+    add(this.add.rectangle(SX, SY, SW, SH, 0x0a1030).setOrigin(0));
+    const lines = add(this.add.graphics());
+    lines.fillStyle(0xffffff, 0.025);
+    for (let y = SY; y < SY + SH; y += 4) lines.fillRect(SX, y, SW, 1);
+
+    // header: the KRELTV badge, ON DEMAND, and "whatever's on" to the right
+    add(this.add.rectangle(SX, SY, SW, 46, 0x141c4d).setOrigin(0));
+    add(this.add.rectangle(SX, SY + 46, SW, 2, 0xd4a017).setOrigin(0));
+    add(this.add.rectangle(SX + 14, SY + 11, 78, 24, 0xffd23f).setOrigin(0).setStrokeStyle(2, 0x7a5a00));
+    txt(SX + 53, SY + 23, "KRELTV", 14, "#1a1200").setOrigin(0.5);
+    txt(SX + 104, SY + 23, "ON DEMAND", 18, "#ffffff").setOrigin(0, 0.5);
+    const pill = add(this.add.rectangle(SX + SW - 14, SY + 23, 170, 26, 0x1f2b6b).setOrigin(1, 0.5).setStrokeStyle(2, 0x7fb3ff).setInteractive({ useHandCursor: true }));
+    const pillT = txt(SX + SW - 99, SY + 23, "📺 WHATEVER'S ON", 12, "#cfe0ff").setOrigin(0.5);
+    pill.on("pointerover", () => pill.setFillStyle(0x2d3d94));
+    pill.on("pointerout", () => pill.setFillStyle(0x1f2b6b));
+    pill.on("pointerdown", () => (synth.play("select"), this.surf()));
+    void pillT;
+
+    // channel tabs
+    let tx = SX + 14;
+    for (const tab of this.guideTabs) {
+      const on = tab === this.guideTab;
+      const col = tab === "ALL" ? 0xffd23f : chanColor(tab);
+      const label = tab === "ALL" ? "ALL" : chanCode(tab);
+      const w = label.length * 9 + 22;
+      const r = add(this.add.rectangle(tx, SY + 56, w, 22, on ? col : 0x141c4d).setOrigin(0).setStrokeStyle(2, col, on ? 1 : 0.6).setInteractive({ useHandCursor: true }));
+      txt(tx + w / 2, SY + 67, label, 11, on ? "#0a0a14" : "#dfe6ff").setOrigin(0.5);
+      r.on("pointerdown", () => this.setGuideTab(tab));
+      tx += w + 6;
+    }
+    const tabName = this.guideTab === "ALL" ? "Every channel" : this.guideTab;
+    txt(SX + SW - 14, SY + 67, tabName.length > 22 ? tabName.slice(0, 21) + "…" : tabName, 10, "#8fa0d0", false).setOrigin(1, 0.5);
+
+    // the list
+    const R = TVScene.ROWS;
+    const top0 = SY + 88;
+    // a redraw puts a new card under a mouse that hasn't moved: only a real move picks a row (so the keys aren't fought)
+    const ptr = this.input.activePointer;
+    const still = { x: ptr.x, y: ptr.y };
+    const RH = 40;
+    this.guideTop = Phaser.Math.Clamp(this.guideTop, 0, Math.max(0, this.guideList.length - R));
+    if (!this.guideList.length) txt(SX + SW / 2, top0 + 120, "Nothing on this channel yet.", 14, "#8fa0d0", false).setOrigin(0.5);
+    this.guideList.slice(this.guideTop, this.guideTop + R).forEach((e, k) => {
+      const i = this.guideTop + k;
+      const sel = i === this.guideSel;
+      const y = top0 + k * RH;
+      const col = chanColor(e.channel);
+      const seen = watched.includes(e.id);
+      const card = add(this.add.rectangle(SX + 14, y, SW - 28, RH - 5, sel ? 0x26357a : 0x131b45).setOrigin(0).setStrokeStyle(2, sel ? col : 0x222c66).setInteractive({ useHandCursor: true }));
+      card.on("pointerover", (p: Phaser.Input.Pointer) => {
+        if (p.x === still.x && p.y === still.y) return;
+        if (this.guideSel !== i) {
+          this.guideSel = i;
+          this.drawGuide();
+        }
+      });
+      card.on("pointerdown", () => (synth.play("select"), this.play(e)));
+      // channel chip
+      add(this.add.rectangle(SX + 22, y + 6, 50, RH - 17, col).setOrigin(0));
+      txt(SX + 47, y + (RH - 5) / 2, chanCode(e.channel), 10, "#0a0a14").setOrigin(0.5);
+      const title = e.title.length > 40 ? e.title.slice(0, 39) + "…" : e.title;
+      const show = e.show.length > 46 ? e.show.slice(0, 45) + "…" : e.show;
+      txt(SX + 82, y + 5, title, 14, sel ? "#ffffff" : "#e6ebff");
+      txt(SX + 82, y + 21, show, 10, sel ? "#b9c8ff" : "#7f8cc0", false);
+      // badge: NEW (a gift waiting, in a run) or ✓ seen
+      const bx = SX + SW - 22;
+      const by = y + (RH - 5) / 2;
+      if (seen) txt(bx, by, "✓ SEEN", 10, "#4ade80").setOrigin(1, 0.5);
+      else {
+        const b = add(this.add.rectangle(bx, by, this.fromTitle ? 42 : 60, 18, 0xffd23f).setOrigin(1, 0.5));
+        void b;
+        txt(bx - (this.fromTitle ? 21 : 30), by, this.fromTitle ? "NEW" : "🎁 NEW", 10, "#1a1200").setOrigin(0.5);
+      }
+      if (sel) txt(SX + 6, by, "▶", 12, "#ffd23f").setOrigin(0.5);
+    });
+    // scroll hints
+    if (this.guideTop > 0) txt(SX + SW / 2, top0 - 7, "▲", 10, "#7fb3ff").setOrigin(0.5);
+    if (this.guideTop + R < this.guideList.length) txt(SX + SW / 2, top0 + R * RH - 2, `▼ ${this.guideList.length - this.guideTop - R} more`, 10, "#7fb3ff").setOrigin(0.5);
+
+    // footer: the TV log, then the keys
+    const seenN = avail.filter((e) => watched.includes(e.id)).length;
+    const locked = ALL_EPISODES.length - avail.length;
+    const log = this.fromTitle
+      ? `📺 ${avail.length} shows to watch${locked ? ` · 🔒 ${locked} more turn up as you play the story` : ""}`
+      : `📺 Seen ${seenN} of ${avail.length} · 🎁 ${avail.length - seenN} Kreddle gift${avail.length - seenN === 1 ? "" : "s"} to claim${locked ? ` · 🔒 ${locked} unlock later` : ""}`;
+    add(this.add.rectangle(SX, SY + SH - 40, SW, 40, 0x0d1438).setOrigin(0));
+    txt(SX + SW / 2, SY + SH - 29, log, 11, "#facc15", false).setOrigin(0.5);
+    txt(SX + SW / 2, SY + SH - 13, "↑↓ pick · ←→ channel · ENTER watch · ESC whatever's on", 10, "#7f8cc0", false).setOrigin(0.5);
+  }
 
   // ---------------------------------------------------------- playback
 
@@ -575,12 +671,9 @@ export class TVScene extends Phaser.Scene {
       this.time.delayedCall(600, () => this.exit());
       return;
     }
-    // and straight on to whatever's on next (the archive goes back to its list)
-    if (this.fromTitle) this.showDemand();
-    else {
-      this.card.setText("COMING UP NEXT…");
-      this.time.delayedCall(1400, () => this.mode === "playing" && this.ep === e && (this.card.setText(""), this.surf()));
-    }
+    // and straight on to whatever's on next
+    this.card.setText("COMING UP NEXT…");
+    this.time.delayedCall(1400, () => this.mode === "playing" && this.ep === e && (this.card.setText(""), this.surf()));
     if (e.id === "tcc_ep7" && !this.fromTitle) G.emit("toast", { title: "KRELTV", text: "The cabinet has opinions about Thick Cumming Cock. Go and ask them." });
   }
 
@@ -997,11 +1090,20 @@ export class TVScene extends Phaser.Scene {
       else if (e.key === "Escape") this.back();
       return;
     }
-    if (e.key === "ArrowDown" || e.key === "s") this.highlight(Math.min(this.items.length - 1, this.sel + 1));
-    else if (e.key === "ArrowUp" || e.key === "w") this.highlight(Math.max(0, this.sel - 1));
-    else if (e.key === "Enter" || e.key === " " || e.key === "e") this.items[this.sel]?.action();
-    else if (e.key === "ArrowRight" || e.key === "ArrowLeft") this.showDemand(this.demandPage + (e.key === "ArrowRight" ? 1 : -1));
-    // Esc from on demand goes back to whatever's on (the title-screen archive just closes)
-    else if (e.key === "Escape") (this.fromTitle ? this.exit() : this.surf());
+    if (this.mode !== "episodes") return;
+    if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") this.moveGuide(1);
+    else if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") this.moveGuide(-1);
+    else if (e.key === "PageDown") this.moveGuide(TVScene.ROWS);
+    else if (e.key === "PageUp") this.moveGuide(-TVScene.ROWS);
+    else if (e.key === "Enter" || e.key === " " || e.key === "e" || e.key === "E") {
+      const ep = this.guideList[this.guideSel];
+      if (ep) this.play(ep);
+    } else if (e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "d" || e.key === "a") {
+      const i = this.guideTabs.indexOf(this.guideTab);
+      const n = this.guideTabs.length;
+      this.setGuideTab(this.guideTabs[(i + (e.key === "ArrowRight" || e.key === "d" ? 1 : -1) + n) % n]);
+    }
+    // Esc from on demand goes back to whatever's on (switch off with the button beside the telly)
+    else if (e.key === "Escape") this.surf();
   }
 }

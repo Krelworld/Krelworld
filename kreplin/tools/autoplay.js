@@ -154,6 +154,20 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
         el.dispatchEvent(new Event('change', { bubbles: true }));
       }
     }).catch(() => {});
+    // --live-minigames: a canvas minigame is up -> play it (random taps + keys) instead of counting a stall
+    if (args['live-minigames']) {
+      const box = await p.evaluate(() => { const c = document.querySelector('.mg-wrap canvas'); if (!c) return null; const r = c.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; }).catch(() => null);
+      if (box) {
+        globalThis.__mgSteps = (globalThis.__mgSteps || 0) + 1;
+        if (globalThis.__mgSteps === 1) console.log(`MINIGAME live at step ${i}`);
+        await p.mouse.click(box.x + box.w * (0.2 + rnd() * 0.6), box.y + box.h * (0.3 + rnd() * 0.6)).catch(() => {});
+        await p.keyboard.press(['1', '2', 'Space', 'ArrowLeft', 'ArrowRight', 'Enter'][Math.floor(rnd() * 6)]).catch(() => {});
+        await p.waitForTimeout(120);
+        if (globalThis.__mgSteps > 600) { console.log('STALL in a live minigame at step', i); break; }
+        continue;
+      }
+      globalThis.__mgSteps = 0;
+    }
     // phone: the decision sheet drops to a peek bar while narrative arrives; a player taps it open
     if (args.mobile && rnd() < 0.7) await p.evaluate(() => { const h = document.querySelector('#kDecision.collapsed h3'); if (h && document.querySelector('#actions button')) h.click(); }).catch(() => {});
     // candidate buttons: the topmost layer = elements actually hit-testable at their centre

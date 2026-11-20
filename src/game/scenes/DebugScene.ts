@@ -27,8 +27,8 @@ export class DebugScene extends Phaser.Scene {
   protected picked = false;
   protected page: "main" | "bosses" = "main";
   /**
-   * CHAPTER SELECT (title screen, once you've finished the game): the same jumps, but a real run:
-   * no debug mode, no god kit, no free guns or money. You start with the kit you finished your last game with.
+   * CHAPTER SELECT (title screen): the same jumps, but a real run: no debug mode, no god kit. You start with the kit
+   * you finished your last game with, or (never finished) the everyday guns and some money for a later chapter.
    */
   protected chapterMode = false;
   protected difficulty = DEFAULT_DIFFICULTY;
@@ -175,12 +175,13 @@ export class DebugScene extends Phaser.Scene {
           s.flags[`${a.id}_done`] = true;
         }
     }
-    if (this.chapterMode) {
-      // chapter select: your carried kit only (G.newRun gave it you), no freebies and no debug powers
+    // chapter select with a carried kit (you've finished the game): that kit only (G.newRun gave it you), no freebies
+    if (this.chapterMode && G.meta.carry) {
       s.hp = maxHp(s);
       G.save();
       return;
     }
+    // otherwise a fair start for a later chapter: the everyday guns from the chapters before it, and some money
     s.guns = s.guns ?? {};
     let first: string | null = null;
     for (const [id, g] of Object.entries(GUNS)) {
@@ -191,6 +192,12 @@ export class DebugScene extends Phaser.Scene {
     }
     if (first) s.gun = first;
     s.coins += 300 * ch;
+    if (this.chapterMode) {
+      // (no debug powers in chapter select)
+      s.hp = maxHp(s);
+      G.save();
+      return;
+    }
     s.hp = maxHp(s);
     G.save();
     this.powers();
@@ -288,14 +295,14 @@ export class DebugScene extends Phaser.Scene {
     const foot = this.chapterMode
       ? lo
         ? `YOUR KIT FROM YOUR LAST FINISHED GAME: ${loadoutSummary(lo)}`
-        : "No kit saved from a finished game: you start with the basics."
+        : "Later chapters start you with the everyday guns from the chapters before, and some Krezzcoin."
       : "DEBUG MODE: all upgrades · every gun (strongest in hand) · infinite Krezz · IBS always ready";
     this.add.text(480, 516, foot, { fontFamily: FONT, fontSize: "11px", color: "#86efac" }).setOrigin(0.5);
     this.input.keyboard?.on("keydown-ESC", () => switchTo(this, "Title"));
   }
 }
 
-/** CHAPTER SELECT (title screen, after you've finished the game): DebugSkip's jumps as a real run with your carried kit. */
+/** CHAPTER SELECT (title screen): DebugSkip's jumps as a real run, with your carried kit once you've finished the game. */
 export class ChapterSelectScene extends DebugScene {
   constructor() {
     super("ChapterSelect");

@@ -99,8 +99,8 @@ export class TitleScene extends Phaser.Scene {
     };
     items.push(["NEW GAME", fresh(0)]);
     if (G.meta.ngPlusUnlocked) items.push(["NEW KREZ+", fresh(1)]);
-    // finished the game: jump to any chapter, side quest or boss with the kit you finished with
-    if (G.meta.ngPlusUnlocked || G.meta.carry) items.push(["CHAPTER SELECT", () => fadeThen(this, 200, () => switchTo(this, "ChapterSelect"))]);
+    // jump to any chapter, side quest or boss (with the kit you finished with, if you've finished it)
+    items.push(["CHAPTER SELECT", () => fadeThen(this, 200, () => switchTo(this, "ChapterSelect"))]);
     // any KrelTV episode you've watched on any run, plus the ones that are always on (on-demand, no gifts)
     items.push(["WATCH TV", () => fadeThen(this, 200, () => switchTo(this, "TV", { fromTitle: true }))]);
     items.push(["SETTINGS", () => this.scene.launch("Menu", { mode: "settings", caller: "Title" })]);

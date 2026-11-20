@@ -445,11 +445,6 @@ function renderChoice(opts,prompt='Choose:'){
       
       // Set up timeout to prevent infinite waiting (30 minutes with warning)
       // But only reset if user is truly inactive (no activity in last 5 minutes)
-      // Draw the prompt and buttons once the narrative before them has been written.
-      const drawSeq = (window.__chooseSeq = (window.__chooseSeq || 0) + 1);
-      const drawMenu = () => {
-      if (drawSeq !== window.__chooseSeq || promiseResolved) return; // superseded by a newer menu
-      try {
       const checkActivityAndWarn = () => {
         const timeSinceActivity = Date.now() - (window._lastUserActivity || Date.now());
         const inactiveThreshold = 300000; // 5 minutes of inactivity
@@ -457,7 +452,6 @@ function renderChoice(opts,prompt='Choose:'){
         if (timeSinceActivity < inactiveThreshold) {
           // User is active, don't show warning or reset
           return false;
-      if (window.KShell && KShell.setPrompt) KShell.setPrompt(prompt, opts);
         }
         
         // User is inactive, show warning
@@ -509,6 +503,11 @@ function renderChoice(opts,prompt='Choose:'){
         clearActions();
         window.S._menuInterrupted = true;
       }
+      // Draw the prompt and buttons once the narrative before them has been written.
+      const drawSeq = (window.__chooseSeq = (window.__chooseSeq || 0) + 1);
+      const drawMenu = () => {
+      if (drawSeq !== window.__chooseSeq || promiseResolved) return; // superseded by a newer menu
+      try {
       const p=document.createElement('div');
       p.className='entry k-prompt-entry';
       p.innerHTML=`<div class="m"><div class="k-line prompt">${prompt}</div></div>`;
@@ -516,6 +515,7 @@ function renderChoice(opts,prompt='Choose:'){
       const lastEl = feedEl.lastElementChild && feedEl.lastElementChild.id === 'pending-indicator' ? feedEl.lastElementChild.previousElementSibling : feedEl.lastElementChild;
       if (lastEl && lastEl.classList && lastEl.classList.contains('k-prompt-entry')) lastEl.remove();
       feedEl.appendChild(p);
+      if (window.KShell && KShell.setPrompt) KShell.setPrompt(prompt, opts);
       
       // Apply UI distortion if active
       applyUIDistortion();
@@ -548,8 +548,6 @@ function renderChoice(opts,prompt='Choose:'){
             });
             
             // Apply input lag if distortion is active
-      };
-      if (typeof whenLogIdle === 'function') whenLogIdle(drawMenu); else drawMenu();
             const lag = isDistortionActive() ? (Math.random() * 200 + 100) : 0; // 100-300ms
             
             setTimeout(() => {
@@ -608,6 +606,8 @@ function renderChoice(opts,prompt='Choose:'){
         console.error('choose draw error:', e);
         safeReject(e);
       }
+      };
+      if (typeof whenLogIdle === 'function') whenLogIdle(drawMenu); else drawMenu();
     } catch (e) {
       console.error('choose function error:', e);
       safeReject(e);

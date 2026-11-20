@@ -43,7 +43,9 @@ const ok = (cond, msg) => { console.log(`${cond ? 'PASS' : 'FAIL'}  ${msg}`); if
   for (let i = 0; i < 400 && !(await atMenu()); i++) {
     await p.evaluate(() => {
       for (const el of document.querySelectorAll('input')) if (!el.value && el.offsetParent) { el.value = 'Test'; el.dispatchEvent(new Event('input', { bubbles: true })); }
-      const btns = [...document.querySelectorAll('button')].filter(x => { const r = x.getBoundingClientRect(); if (r.width < 4 || x.disabled) return false; const h = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return h && (h === x || x.contains(h)) && !x.closest('#kRail,#kTop,#hudBar'); });
+      // phone layout: the decision sheet collapses to a peek bar while narrative arrives; open it
+      const sheet = document.getElementById('kDecision'); if (sheet) sheet.classList.remove('collapsed');
+      const btns = [...document.querySelectorAll('button')].filter(x => { if (x.offsetParent) x.scrollIntoView({ block: 'nearest' }); const r = x.getBoundingClientRect(); if (r.width < 4 || x.disabled) return false; const h = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return h && (h === x || x.contains(h)) && !x.closest('#kRail,#kTop,#hudBar,#kSheetToggle,.k-sheet-toggle,#kMoreSheet'); });
       const pref = btns.find(x => /continue|next|ok|start|confirm|done|skip|auto|close|accept|yes/i.test(x.innerText)) || btns[0];
       if (pref) pref.click();
     }).catch(() => {});

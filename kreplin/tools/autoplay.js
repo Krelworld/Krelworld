@@ -100,6 +100,8 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
   const errors = new Map();
   p.on('console', m => { const t = m.text(); if (t.startsWith('[ap]')) console.log(t.slice(0, 300)); }); // probes from --setup
   p.on('pageerror', e => { const at = String(e.stack || '').split('\n').slice(1, 3).map(l => l.trim().replace(/\(?file:[^)]*KREPLIN.html:/, 'L').replace(/\)$/, '')).join(' <- '); const k = (e.message.slice(0, 160) + (at ? '  @ ' + at : '')); errors.set(k, (errors.get(k) || 0) + 1); });
+  p.on('crash', () => console.log('PAGE CRASHED (renderer died)'));
+  b.on('disconnected', () => console.log('BROWSER DISCONNECTED'));
   await p.goto('file://' + file);
   await p.waitForTimeout(500);
   let reloads = 0;

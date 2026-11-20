@@ -225,7 +225,12 @@ const ga =
 
 
 // (No "Evening" gate: the evening's events bring their own choices; one Continue follows.)
+// Exception: the evening clears open popups, so if a post-match text / news popup is still on
+// screen, keep a Continue until it has been read.
 S._quiet_evening = false;
+if (document.querySelector('.phone-text-overlay, .news-popup-overlay, .modern-modal-overlay, .dialogue-popup-overlay')) {
+  await waitAdvance("Evening ▸", "Read your messages, then head into the evening.");
+}
 
 
 await eveningPhase();

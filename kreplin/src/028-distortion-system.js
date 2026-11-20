@@ -234,7 +234,9 @@ async function processLogQueue() {
         await displayLogEntry(entry);
         
         // Add extra delay for goal entries to make them more prominent
-        if (entry.isGoal) {
+        if (window.__logFastForward) {
+            // player asked to skip ahead: no pacing delays
+        } else if (entry.isGoal) {
             await new Promise(resolve => setTimeout(resolve, 2000)); // 2 seconds for goals
         } else if (entry.isBurst && logQueue.length > 0) {
             await new Promise(resolve => setTimeout(resolve, 800));
@@ -244,6 +246,7 @@ async function processLogQueue() {
     // Hide pending indicator when done
     hidePendingIndicator();
     isProcessingQueue = false;
+    window.__logFastForward = false;
 }
 
 function showPendingIndicator() {
@@ -252,10 +255,12 @@ function showPendingIndicator() {
         indicator = document.createElement('div');
         indicator.id = 'pending-indicator';
         indicator.className = 'pending-indicator';
-        indicator.innerHTML = '<div class="pending-text">More events incoming...</div>';
-        feed.appendChild(indicator);
+        indicator.innerHTML = '<div class="pending-text">More events incoming...</div><button type="button" class="k-ff">Skip ahead ▸▸</button>';
+        indicator.querySelector('.k-ff').onclick = () => { window.__logFastForward = true; };
+        (document.getElementById('feed') || feed).appendChild(indicator);
     }
     indicator.style.display = 'block';
+    if (indicator.parentNode && indicator.parentNode.lastElementChild !== indicator) indicator.parentNode.appendChild(indicator);
 }
 
 function hidePendingIndicator() {
@@ -266,9 +271,27 @@ function hidePendingIndicator() {
 }
 
 async function displayLogEntry(entry) {
+    const feedEl = document.getElementById('feed') || feed;
     const d = document.createElement('div');
-    d.className = 'entry log-entry';
-    d.innerHTML = `<div class="t">${entry.timestamp}</div><div class="m">${entry.message}</div>`;
+    d.className = 'entry log-entry k-entry';
+
+    // In-game date instead of a real-world timestamp: a separator whenever the football day changes.
+    const day = (window.KShell && KShell.dayLabel) ? KShell.dayLabel() : '';
+    if (day && day !== window.__kLastDay) {
+        window.__kLastDay = day;
+        const sep = document.createElement('div');
+        sep.className = 'k-day';
+        sep.textContent = `— ${day} —`;
+        feedEl.appendChild(sep);
+    }
+    if (day) d.title = day;
+
+    const m = document.createElement('div');
+    m.className = 'm';
+    let card = null;
+    try { if (window.KUI && typeof entry.message === 'string') card = KUI.renderEntry(entry.message); } catch (e) { card = null; }
+    if (card) m.appendChild(card); else m.innerHTML = entry.message;
+    d.appendChild(m);
     
     // Add burst styling if needed
     if (entry.isBurst) {
@@ -277,39 +300,47 @@ async function displayLogEntry(entry) {
     
     // Add duplicate styling if needed
     if (entry.isDuplicate) {
-        d.style.opacity = '0.7';
-        d.style.fontStyle = 'italic';
+        d.classList.add('k-dup');
     }
     
     // Add goal styling and flash effect
     if (entry.isGoal) {
         d.classList.add('goal-entry');
-        
-        // Add flash effect to the entire feed
-        const feed = document.getElementById('feed');
-        if (feed) {
-            feed.classList.add('goal-flash');
+        if (feedEl) {
+            feedEl.classList.add('goal-flash');
             setTimeout(() => {
-                feed.classList.remove('goal-flash');
+                feedEl.classList.remove('goal-flash');
             }, 500);
         }
     }
     
-    feed.appendChild(d);
+    const pending = document.getElementById('pending-indicator');
+    if (pending && pending.parentNode === feedEl) feedEl.insertBefore(d, pending); else feedEl.appendChild(d);
     
     // Trigger animation
     requestAnimationFrame(() => {
         d.classList.add('entry-visible');
     });
     
-    // Wait for animation to start, then scroll
-    await new Promise(resolve => setTimeout(resolve, 50));
-    
-    // Scroll to this specific entry
-    d.scrollIntoView({behavior: 'smooth', block: 'end'});
+    // Wait for animation to start, then scroll the feed (not the page) to this entry
+    if (!window.__logFastForward) await new Promise(resolve => setTimeout(resolve, 50));
+    const scroller = d.closest('#dialoguePanel');
+    if (scroller) scroller.scrollTo({ top: scroller.scrollHeight, behavior: window.__logFastForward ? 'auto' : 'smooth' });
+    else d.scrollIntoView({behavior: 'smooth', block: 'end'});
     
     // Small delay to ensure smooth scrolling
-    await new Promise(resolve => setTimeout(resolve, 100));
+    if (!window.__logFastForward) await new Promise(resolve => setTimeout(resolve, 100));
+}
+
+// Resolve once the log queue has drained (choose() waits on this so its prompt and buttons
+// appear after the narrative that precedes them). Calls fn synchronously when already idle.
+function whenLogIdle(fn, maxWaitMs = 20000) {
+    const idle = () => !isProcessingQueue && logQueue.length === 0;
+    if (idle()) { fn(); return; }
+    const t0 = Date.now();
+    const iv = setInterval(() => {
+        if (idle() || Date.now() - t0 > maxWaitMs) { clearInterval(iv); fn(); }
+    }, 40);
 }
 function logSafe(msg){ try{ (window.log||console.log)(msg); }catch(_){  } }
 function clearActions(){
@@ -472,6 +503,11 @@ function renderChoice(opts,prompt='Choose:'){
       
       // Set up timeout to prevent infinite waiting (30 minutes with warning)
       // But only reset if user is truly inactive (no activity in last 5 minutes)
+      // Draw the prompt and buttons once the narrative before them has been written.
+      const drawSeq = (window.__chooseSeq = (window.__chooseSeq || 0) + 1);
+      const drawMenu = () => {
+      if (drawSeq !== window.__chooseSeq || promiseResolved) return; // superseded by a newer menu
+      try {
       const checkActivityAndWarn = () => {
         const timeSinceActivity = Date.now() - (window._lastUserActivity || Date.now());
         const inactiveThreshold = 300000; // 5 minutes of inactivity
@@ -479,6 +515,7 @@ function renderChoice(opts,prompt='Choose:'){
         if (timeSinceActivity < inactiveThreshold) {
           // User is active, don't show warning or reset
           return false;
+      if (window.KShell && KShell.setPrompt) KShell.setPrompt(prompt, opts);
         }
         
         // User is inactive, show warning
@@ -531,8 +568,11 @@ function renderChoice(opts,prompt='Choose:'){
         window.S._menuInterrupted = true;
       }
       const p=document.createElement('div');
-      p.className='entry';
-      p.innerHTML=`<div class="m"><strong>${prompt}</strong></div>`;
+      p.className='entry k-prompt-entry';
+      p.innerHTML=`<div class="m"><div class="k-line prompt">${prompt}</div></div>`;
+      // a menu re-shown with nothing written in between replaces its previous prompt line
+      const lastEl = feedEl.lastElementChild && feedEl.lastElementChild.id === 'pending-indicator' ? feedEl.lastElementChild.previousElementSibling : feedEl.lastElementChild;
+      if (lastEl && lastEl.classList && lastEl.classList.contains('k-prompt-entry')) lastEl.remove();
       feedEl.appendChild(p);
       
       // Apply UI distortion if active
@@ -566,6 +606,8 @@ function renderChoice(opts,prompt='Choose:'){
             });
             
             // Apply input lag if distortion is active
+      };
+      if (typeof whenLogIdle === 'function') whenLogIdle(drawMenu); else drawMenu();
             const lag = isDistortionActive() ? (Math.random() * 200 + 100) : 0; // 100-300ms
             
             setTimeout(() => {
@@ -617,12 +659,12 @@ function renderChoice(opts,prompt='Choose:'){
       // Let systems add their own buttons under this menu
       GameHooks.emit('choices', { root: actionsEl, prompt, options: opts });
       
-      // Safe scrollIntoView with error handling
-      try {
-        actionsEl.scrollIntoView({behavior:'smooth'});
-      } catch (scrollError) {
-        console.warn('scrollIntoView failed:', scrollError);
-        // Continue execution even if scroll fails
+      if (window.KShell && KShell.afterChoices) KShell.afterChoices(actionsEl, opts, prompt);
+      const fs = document.getElementById('dialoguePanel');
+      if (fs) fs.scrollTo({ top: fs.scrollHeight });
+      } catch (e) {
+        console.error('choose draw error:', e);
+        safeReject(e);
       }
     } catch (e) {
       console.error('choose function error:', e);
@@ -630,7 +672,7 @@ function renderChoice(opts,prompt='Choose:'){
     }
   });
 }
-function setVal(id,v){document.getElementById(id).textContent=v;}
+function setVal(id,v){const el=document.getElementById(id); if(el) el.textContent=v;}
 function pickLine(list){return list[Math.floor(Math.random()*list.length)];}
 
 

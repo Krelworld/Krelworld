@@ -70,71 +70,80 @@
   <button id="fundraiserBtn" style="padding: 4px 8px; font-size: 12px; min-width: auto; height: 28px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #ccc; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" title="Hold fundraising events at your stadium" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='rgba(255,255,255,0.3)';" onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(255,255,255,0.15)';">🎪 Fundraiser</button>
   <button id="musicControlBtn" style="padding: 4px 8px; font-size: 12px; min-width: auto; height: 28px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #ccc; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" title="Music & Sound Controls" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='rgba(255,255,255,0.3)';" onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(255,255,255,0.15)';">🎵 Audio</button>
 </div>
-<header>
-<div id="mainColumn" class="app-wrap">
-  <strong><span id="hudTitle">Southampton Chairman Sim</span></strong>
-  <div class="sub">v12 fixes: PROPOSE & divorce restored, more frequent board summons, spoiler‑free options, mid‑season R&D, tougher starting budget, unaffordable flow at start, new Off‑books Exposure meter.</div>
-</header>
-<div id="playArea">
-  <div id="dialoguePanel">
-  </div>
-  <div id="choicesPanel">
-  </div>
-</div>
-<main>
-  <section class="panel legacy-stats" id="statusColumn" style="display:none">
-    <div class="row"><div class="k">Club</div><div class="v" id="clubName"></div></div>
-    <div class="row"><div class="k">Season</div><div class="v" id="seasonProg"></div></div>
-    <div class="row"><div class="k">Record</div><div class="v" id="record"></div></div>
-    <div class="row"><div class="k">Points</div><div class="v" id="points"></div></div>
-    <div class="row"><div class="k">Morale</div><div class="v" id="morale"></div></div>
-    <div class="row"><div class="k">Reputation</div><div class="v" id="reputation"></div></div>
-    <div class="row"><div class="k">Compliance</div><div class="v" id="compliance"></div></div>
-    <div class="row"><div class="k">Legal</div><div class="v" id="legal"></div></div>
-    <div class="row"><div class="k">Home Stability</div><div class="v" id="homeStability"></div></div>
-    <div class="row"><div class="k">Wife Relationship</div><div class="v" id="wifeRel"></div></div>
-    <div class="row"><div class="k">Kids Relationship</div><div class="v" id="kidsRel"></div></div>
-    <div class="row"><div class="k">School Fees Due</div><div class="v" id="schoolFees"></div></div>
-    <div class="row"><div class="k">Club Cash</div><div class="v" id="clubCash"></div></div>
-    <div class="row"><div class="k">Chair Cash</div><div class="v" id="chairCash"></div></div>
-    <div class="row"><div class="k">Club Debt</div><div class="v" id="clubDebt"></div></div>
-    <div class="row"><div class="k">Off‑books Exposure</div><div class="v" id="offbooks"></div></div>
-    <div class="row"><div class="k">Managers Fired</div><div class="v" id="fires"></div></div>
-    <div class="row"><div class="k">Embargo</div><div class="v" id="embargo"></div></div>
-    <div class="row"><div class="k">Pts Deducted</div><div class="v" id="deduct"></div></div>
-    <div class="row"><div class="k">Stars</div><div class="v" id="stars"></div></div>
-
-    <div id="meters">
-      <div class="meter">
-        <div class="label"><span>FA/Board Heat</span><span class="pill" id="heatHint">Low</span></div>
-        <div class="bar"><span id="heatBar"></span></div>
-        <div class="step">
-          <div class="chip" id="stepWarn">Warning</div>
-          <div class="chip" id="stepFine">Fine</div>
-          <div class="chip" id="stepPoints">Points</div>
-          <div class="chip" id="stepEmbargo">Embargo</div>
-          <div class="chip" id="stepReferral">Referral</div>
-        </div>
-      </div>
-      <div class="meter">
-        <div class="label"><span>Paper Trail Risk</span><span class="pill" id="paperHint">Clean</span></div>
-        <div class="bar"><span id="paperBar"></span></div>
-      </div>
+<!-- ===== KREPLIN shell (mockup/office.html). Legacy ids the game writes to are kept: #feed, #actions,
+     #dialoguePanel, #choicesPanel, #hudTitle, the hidden #hudBar buttons (the rail proxies to them) and the
+     save/load/reset footer. ===== -->
+<div id="kApp" class="k-app">
+  <header class="k-top" id="kTop">
+    <div class="k-club"><img class="px" data-art="crest" alt=""><div><b id="kClubName">SOUTHAMPTON</b><small id="kChairName">Chairman</small></div></div>
+    <div class="k-date" id="kDate">&nbsp;<span id="kDateSub"></span></div>
+    <div class="k-stats" id="kStats">
+      <button class="k-stat" id="kStatClub" data-nav="finances" title="Club cash (tap to move money)"><img class="px" data-art="ico-cash" alt=""><div><div class="k">Club</div><div class="v" id="kClubCash">–</div></div></button>
+      <button class="k-stat" id="kStatChair" data-nav="finances" title="Your cash (tap to move money)"><img class="px" data-art="ico-wallet" alt=""><div><div class="k">Your cash</div><div class="v" id="kChairCash">–</div></div></button>
+      <button class="k-stat" id="kStatDebt" data-nav="debt" title="Debt"><img class="px" data-art="ico-debt" alt=""><div><div class="k">Debt</div><div class="v" id="kDebt">–</div></div></button>
+      <button class="k-stat" id="kStatLeague" data-nav="fixtures" title="League position and form"><img class="px" data-art="ico-trophy" alt=""><div><div class="k" id="kLeagueK">League</div><div class="k-form" id="kForm"></div></div></button>
+      <div class="k-stat" id="kStatMorale" title="Fan morale"><img class="px" data-art="ico-morale" alt=""><div><div class="k">Morale <span id="kMoraleN"></span></div><div class="k-meter"><b id="kMorale" style="width:50%"></b></div></div></div>
+      <div class="k-stat" id="kStatTokens" title="Lobby tokens"><img class="px" data-art="ico-token" alt=""><div><div class="k">Tokens</div><div class="v" id="kTokens">0</div></div></div>
+      <div class="k-stat" id="kStatGems" title="Kreplin gems"><img class="px" data-art="ico-gem" alt=""><div><div class="k">Gems</div><div class="v" id="kGems">0/4</div></div></div>
+      <div class="k-stat" id="kStatDrugs" title="Cocaine" hidden><img class="px" data-art="ico-heat" alt=""><div><div class="k">Gear</div><div class="v" id="kDrugs">0</div></div></div>
     </div>
-  </section>
+  </header>
 
+  <nav class="k-rail" id="kRail" aria-label="Chairman menu">
+    <button class="k-nav on" data-nav="matchday"><img class="px" data-art="ico-ball" alt=""><span>Matchday</span></button>
+    <button class="k-nav" data-nav="news"><img class="px" data-art="ico-news" alt=""><span>News</span><i class="k-badge" id="kBadgeNews" hidden>!</i></button>
+    <button class="k-nav" data-nav="phone"><img class="px" data-art="ico-phone" alt=""><span>Phone</span><i class="k-badge" id="kBadgePhone" hidden>!</i></button>
+    <button class="k-nav" data-nav="fixtures"><img class="px" data-art="ico-fixtures" alt=""><span>Fixtures &amp; Table</span></button>
+    <h4>Club</h4>
+    <button class="k-nav" data-nav="stadium"><img class="px" data-art="ico-stadium" alt=""><span>Stadium</span></button>
+    <button class="k-nav" data-nav="doctor"><img class="px" data-art="ico-doctor" alt=""><span>Doctor</span></button>
+    <button class="k-nav" data-nav="finances"><img class="px" data-art="ico-cash" alt=""><span>Finances</span></button>
+    <button class="k-nav" data-nav="fundraiser"><img class="px" data-art="ico-fundraiser" alt=""><span>Fundraiser</span></button>
+    <h4>You</h4>
+    <button class="k-nav" data-nav="power"><img class="px" data-art="ico-power" alt=""><span>Power Network</span></button>
+    <button class="k-nav" data-nav="inventory"><img class="px" data-art="ico-inventory" alt=""><span>Inventory</span></button>
+    <button class="k-nav k-more" data-nav="more"><img class="px" data-art="ico-calendar" alt=""><span>More</span></button>
+    <div class="k-spacer"></div>
+    <div class="k-sys"><button data-nav="save">Save</button><button data-nav="load">Load</button><button data-nav="audio" aria-label="Audio">&#9835;</button><button data-nav="reset" title="Start over" aria-label="Start over">&#10226;</button></div>
+  </nav>
 
-  <section class="panel" id="log">
-    <div id="feed"></div>
-    <div id="actions">
+  <main class="k-centre" id="kCentre">
+    <div class="k-scene" id="kScene" data-scene="office">
+      <img class="px" id="kSceneImg" data-art="office" alt="">
+      <div class="cap"><div class="phase" id="kScenePhase">Chairman's office</div><h2 id="kSceneTitle">&nbsp;</h2></div>
+      <div class="steps" id="kSteps"></div>
+    </div>
+    <div id="dialoguePanel" class="k-feedwrap" aria-live="polite"><div id="feed" class="k-feed"></div></div>
+  </main>
+
+  <aside class="k-side" id="kSide">
+    <section class="k-card k-decision" id="kDecision">
+      <h3><span id="kPrompt">What now, Chairman?</span><span class="hint" id="kHint">press 1–9</span><button class="k-sheet-toggle" id="kSheetToggle" aria-label="Collapse choices">&#9662;</button></h3>
+      <div id="choicesPanel"><div id="actions"></div></div>
+    </section>
+    <section class="k-card" id="kBrief" hidden>
+      <h3><img class="px" data-art="ico-ball" alt="">Match brief</h3>
+      <div class="k-brief" id="kBriefBody"></div>
+    </section>
+    <section class="k-card" id="kLeague" hidden>
+      <h3><img class="px" data-art="ico-trophy" alt="">League<button class="hint k-linkbtn" data-nav="fixtures">full table ›</button></h3>
+      <table class="k-table" id="kLeagueTable"></table>
+    </section>
+  </aside>
+</div>
+
+<div id="kMoreSheet" class="k-more-sheet" hidden></div>
+
+<!-- legacy holders (hidden; still written to / clicked through by the game) -->
+<div id="kLegacy" hidden>
+  <strong><span id="hudTitle">Southampton Chairman Sim</span></strong>
+  <section id="log">
     <footer>
       <button id="saveBtn">Save</button>
       <button id="loadBtn">Load</button>
       <button id="resetBtn">Reset</button>
-      <span class="sub">Saves live in this browser.</span>
     </footer>
   </section>
-</main>
 </div>
 
 <!-- Modals (moved here from between the old patch script blocks) -->

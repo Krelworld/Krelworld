@@ -1,0 +1,267 @@
+/* ===================== KREPLIN shell layout (mockup/office.html) =====================
+   Loaded after every legacy stylesheet; ids are used where legacy rules use ids. */
+
+/* ---------- base: undo the old glass theme ---------- */
+html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text)}
+body{display:block;font:15px/1.5 var(--font-body);letter-spacing:0;backdrop-filter:none;
+  background:var(--bg) radial-gradient(circle at 1px 1px, rgba(255,255,255,.035) 1px, transparent 0) 0 0/6px 6px;
+  overflow:hidden;-webkit-text-size-adjust:100%}
+body::before,body::after{content:none!important;animation:none!important}
+body.distorted::after{content:''!important;position:fixed;inset:0;pointer-events:none;z-index:var(--z-toast);
+  background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.06) 2px 4px);animation:scanlineDrift 15s linear infinite!important}
+header::before,h1::after{content:none}
+h1,h2,h3,h4{animation:none}
+img.px,canvas.px,.k-msg .ava img{image-rendering:pixelated}
+button{font-family:inherit}
+#hudBar,#kLegacy,#statusColumn,#playArea{display:none!important}
+.hidden{display:none!important}
+::selection{background:var(--red);color:#fff}
+*{scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+
+/* ---------- app frame ---------- */
+#kApp{display:grid;grid-template-columns:208px minmax(0,1fr) 380px;grid-template-rows:auto minmax(0,1fr);height:100vh;height:100dvh;width:100%;max-width:100vw;overflow:hidden}
+#kApp>*{min-width:0}
+
+/* top bar */
+.k-top{grid-column:1/-1;display:flex;align-items:center;gap:18px;padding:8px 16px;background:linear-gradient(#1b1f2b,#151924);
+  border-bottom:var(--px) solid var(--red);box-shadow:0 2px 0 #000;position:relative;z-index:var(--z-shell);min-width:0}
+.k-club{display:flex;align-items:center;gap:10px;min-width:0;flex:none}
+.k-club img{width:44px;height:44px;flex:none}
+.k-club b{font:700 18px/1 var(--font-ui);letter-spacing:.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;color:var(--white)}
+.k-club small{color:var(--muted);font:12px var(--font-ui);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.k-date{font:600 13px/1.25 var(--font-body);font-variant-numeric:tabular-nums;color:var(--white);padding:4px 10px;border:var(--px) solid var(--line2);background:var(--ink);border-radius:var(--r);white-space:nowrap;flex:none}
+.k-date span{display:block;color:var(--gold);font-weight:400}
+.k-stats{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end;min-width:0}
+.k-stat{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 6px;background:var(--panel);border:var(--px) solid var(--line);border-radius:var(--r);color:var(--text);text-align:left;font:inherit;min-height:40px}
+button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);background:var(--panel2)}
+.k-stat img{width:24px;height:24px;flex:none}
+.k-stat .k{font:11px/1 var(--font-ui);color:var(--muted);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
+.k-stat .v{font:700 15px/1.1 var(--font-body);font-variant-numeric:tabular-nums;color:var(--white);white-space:nowrap}
+.k-stat .v.bad{color:var(--bad)}
+.k-form{display:flex;gap:3px;margin-top:2px;min-height:14px}
+.k-form i{width:14px;height:14px;font:700 10px/14px var(--font-ui);text-align:center;font-style:normal;color:#000;border-radius:2px}
+.k-form .W{background:var(--good)} .k-form .D{background:#c9c4b6} .k-form .L{background:var(--bad)}
+.k-form .k-rec{font:600 12px/14px var(--font-body);color:var(--white);font-variant-numeric:tabular-nums}
+.k-meter{width:70px;height:8px;background:var(--ink);border:1px solid var(--line2);margin-top:3px}
+.k-meter b{display:block;height:100%;background:linear-gradient(90deg,var(--warn),var(--good));transition:width .3s}
+#kMoraleN{color:var(--white);letter-spacing:0}
+
+/* nav rail */
+.k-rail{background:var(--bg2);border-right:var(--px) solid var(--line);padding:10px 8px;display:flex;flex-direction:column;gap:2px;overflow:auto;min-height:0}
+.k-rail h4{font:12px var(--font-ui);color:var(--muted);letter-spacing:1px;margin:10px 8px 4px;text-transform:uppercase}
+.k-nav{position:relative;display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:var(--r);color:var(--text);font:500 15px var(--font-ui);border:var(--px) solid transparent;cursor:pointer;background:none;width:100%;text-align:left;min-height:44px}
+.k-nav img{width:28px;height:28px;flex:none}
+.k-nav:hover{background:var(--panel);border-color:var(--line2)}
+.k-nav.on{background:var(--red);border-color:var(--red-l);color:#fff;box-shadow:0 2px 0 var(--red-d)}
+.k-badge{margin-left:auto;background:var(--red);color:#fff;font:700 11px/18px var(--font-ui);font-style:normal;min-width:18px;height:18px;text-align:center;border-radius:9px;padding:0 5px}
+.k-nav.on .k-badge{background:#fff;color:var(--red)}
+.k-badge[hidden]{display:none}
+.k-rail .k-more{display:none}
+.k-spacer{flex:1}
+.k-sys{display:flex;gap:6px;padding:6px}
+.k-sys button{flex:1;font:13px var(--font-ui);background:var(--panel);color:var(--muted);border:var(--px) solid var(--line);border-radius:var(--r);padding:6px 0;cursor:pointer;min-height:34px}
+.k-sys button:hover{color:var(--white);border-color:var(--line2)}
+
+/* centre: scene + feed */
+.k-centre{display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative;padding:0!important;gap:0!important;grid-template-columns:none}
+#dialoguePanel > footer{display:none!important}
+.k-scene{position:relative;height:200px;flex:none;border-bottom:var(--px) solid #000;overflow:hidden;background:#000}
+.k-scene img{width:100%;height:100%;object-fit:cover;object-position:center 40%;display:block;transition:opacity .25s}
+.k-scene::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(10,12,18,.92));pointer-events:none}
+.k-scene .cap{position:absolute;left:18px;right:18px;bottom:12px;z-index:1;min-width:0}
+.k-scene .phase{font:600 12px var(--font-ui);letter-spacing:1.5px;color:var(--gold);text-transform:uppercase}
+.k-scene h2{margin:2px 0 0;font:700 28px/1.1 var(--font-ui);color:#fff;text-shadow:2px 2px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100% - 330px);background:none;-webkit-text-fill-color:currentColor}
+.k-scene h2 em{font-style:normal;color:var(--red-l)}
+.steps{position:absolute;right:16px;bottom:14px;z-index:1;display:flex;gap:4px}
+.steps span{font:12px var(--font-ui);padding:3px 8px;background:rgba(0,0,0,.6);border:1px solid var(--line2);color:var(--muted);border-radius:2px}
+.steps span.on{color:#fff;border-color:var(--red-l);background:var(--red)}
+.steps span.done{color:var(--good)}
+#dialoguePanel.k-feedwrap{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:0;margin:0;max-height:none;background:none;border:0;border-radius:0;box-shadow:none;animation:none}
+#feed.k-feed{display:flex;flex-direction:column;gap:10px;padding:14px 18px 24px;max-height:none;overflow:visible;background:none;border:0}
+
+/* feed entries (legacy .entry wrapper keeps old code that inspects .entry .m working) */
+#feed .entry{all:unset;display:block;opacity:1;animation:kIn .18s ease-out}
+#feed .entry .t{display:none}
+#feed .entry > .m{display:block;margin:0;padding:0;background:none;border:0;color:inherit;font:inherit}
+#feed .entry.k-dup{opacity:.7;font-style:italic}
+#feed .k-day{margin:4px 0}
+#feed .k-line{line-height:1.5;overflow-wrap:anywhere}
+#feed .k-line.raw{border-left:0;padding-left:0}
+#feed .k-line.shout{font-weight:700;color:var(--white)}
+#feed .k-line.sense{border-left-color:var(--sense)}
+#feed .k-line strong,#feed .k-line b{color:var(--white)}
+#feed .k-line img,#feed .k-line video,#feed .k-line canvas,#feed .k-line table{max-width:100%;height:auto}
+#feed .k-line > div[style]{max-width:100%;box-sizing:border-box}
+#feed .k-prompt-entry .k-line.prompt{border-left-color:var(--red);color:var(--white);font:600 14px var(--font-ui);letter-spacing:.3px}
+#feed .goal-entry .k-line{border-left-color:var(--gold);color:var(--gold);font-weight:700}
+#feed.goal-flash{animation:none}
+#feed .warning,#feed > div[style]{max-width:100%}
+.k-msg .bd{min-width:0}
+.k-msg p{overflow-wrap:anywhere}
+.k-msg.you{border-color:#5a4a1a;background:linear-gradient(90deg,rgba(242,193,78,.12),var(--panel) 40%)}
+.k-msg.you .tag{background:#5a4a1a;color:var(--gold)}
+.k-msg.danger .tag{background:#6b1d20;color:#ffd6d7}
+.k-news{background:var(--white);color:#111;border:var(--px) solid #000;border-radius:2px;padding:10px 14px;box-shadow:3px 3px 0 #000;max-width:560px;animation:kIn .18s ease-out}
+.k-news .mast{font:900 13px/1 Georgia,serif;letter-spacing:2px;color:var(--red);border-bottom:2px solid #111;padding-bottom:4px;margin-bottom:6px}
+.k-news p{margin:0;font:700 17px/1.3 Georgia,serif}
+.k-news p strong,.k-news p b{color:#111}
+.pending-indicator{display:flex!important;align-items:center;gap:10px;align-self:center;font:12px var(--font-ui);color:var(--muted);letter-spacing:1px;padding:2px 4px;background:none;border:0;animation:none}
+.pending-indicator[style*="none"]{display:none!important}
+.pending-indicator .pending-text{animation:pendingPulse 1.5s ease-in-out infinite}
+.pending-indicator .k-ff{font:12px var(--font-ui);color:var(--gold);background:var(--ink);border:1px solid var(--line2);border-radius:3px;padding:4px 10px;cursor:pointer;min-height:32px}
+
+/* right column */
+.k-side{border-left:var(--px) solid var(--line);background:var(--bg2);display:flex;flex-direction:column;min-height:0;overflow:auto;overscroll-behavior:contain}
+.k-card{margin:12px 12px 0;background:var(--panel);border:var(--px) solid var(--line);border-radius:var(--r);box-shadow:0 2px 0 #000;flex:none}
+.k-card:last-child{margin-bottom:12px}
+.k-card[hidden]{display:none}
+.k-card h3{margin:0;padding:8px 12px;font:600 15px var(--font-ui);letter-spacing:.5px;border-bottom:var(--px) solid var(--line);display:flex;align-items:center;gap:8px;color:var(--text);background:none;animation:none}
+.k-card h3 img{width:20px;height:20px}
+.k-card h3 .hint{margin-left:auto;font:12px var(--font-ui);color:var(--muted);white-space:nowrap}
+.k-linkbtn{background:none;border:0;cursor:pointer;padding:4px 0;min-height:auto}
+.k-linkbtn:hover{color:var(--white)}
+.k-decision{border-color:var(--red)}
+.k-decision h3{background:var(--red);border-color:var(--red-d);color:#fff}
+.k-decision h3 #kPrompt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.k-decision h3 .hint{color:#ffd6d7}
+.k-decision.empty h3 .hint{display:none}
+.k-sheet-toggle{display:none}
+#choicesPanel{all:unset;display:block}
+#kApp #actions{display:flex;flex-direction:column;gap:6px;padding:8px;margin:0;grid-template-columns:none}
+#kApp #actions:empty::before{content:'…';color:var(--muted);font:14px var(--font-ui);padding:6px 4px}
+#kApp #actions button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:26px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;
+  background:var(--panel2);border:var(--px) solid var(--line2);border-radius:var(--r);padding:7px 10px;color:var(--text);font:500 14px/1.3 var(--font-body);box-shadow:0 2px 0 #000;min-height:44px;transition:transform .05s;animation:none;overflow-wrap:anywhere}
+#kApp #actions button::before,#kApp #actions button::after{content:none}
+#kApp #actions button:not(.opt),#kApp #actions button.rich{grid-template-columns:1fr}
+#kApp #actions button:hover:not(:disabled){border-color:var(--white);transform:translateY(-1px)}
+#kApp #actions button:active:not(:disabled){transform:translateY(1px);box-shadow:none}
+#kApp #actions button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#kApp #actions button:disabled{opacity:.5;cursor:not-allowed}
+#kApp #actions button kbd{font:700 13px/22px var(--font-ui);width:24px;height:24px;text-align:center;background:var(--ink);border:1px solid var(--line2);border-radius:3px;color:var(--gold)}
+#kApp #actions button .lbl{min-width:0}
+#kApp #actions button .chip{font:11px var(--font-ui);padding:2px 6px;border-radius:2px;white-space:nowrap;letter-spacing:.5px}
+#kApp #actions button.good{border-color:#2c6e45}
+#kApp #actions button.warn{border-color:#8a5a1c} #kApp #actions button.warn .chip{background:var(--warn);color:#000}
+#kApp #actions button.bad{border-color:#7a2a2d} #kApp #actions button.bad .chip{background:var(--bad);color:#fff}
+#kApp #actions button.sensual,#kApp #actions button.sex{border-color:#6b2f6a} #kApp #actions button.sensual .chip,#kApp #actions button.sex .chip{background:var(--sense);color:#000}
+#kApp #actions button.req{border-color:var(--gold)} #kApp #actions button.req .chip{background:var(--gold);color:#000}
+#kApp #actions button.done{opacity:.55} #kApp #actions button.done .chip{background:transparent;color:var(--good)}
+#kApp #actions button.go{background:var(--red);border-color:var(--red-l);color:#fff;font-weight:700} #kApp #actions button.go kbd{color:#fff;background:var(--red-d)}
+#kApp #actions button.glow-gem{border-color:var(--sense);box-shadow:0 0 0 2px rgba(211,107,209,.35),0 2px 0 #000}
+#kApp #actions > :not(button){max-width:100%}
+#kApp #actions input,#kApp #actions select,#kApp #actions textarea,.k-input{width:100%;box-sizing:border-box;font:15px var(--font-body);color:var(--text);background:var(--ink);border:var(--px) solid var(--line2);border-radius:var(--r);padding:9px 10px;min-height:44px}
+.k-brief{padding:10px 12px 12px}
+.k-brief .vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;text-align:center;gap:6px}
+.k-brief .vs .t{font:700 15px var(--font-ui);min-width:0;overflow-wrap:anywhere} .k-brief .vs .t small{display:block;font:12px var(--font-ui);color:var(--muted)}
+.k-brief .vs .x{font:700 22px var(--font-ui);color:var(--muted)}
+.k-brief .bars{margin-top:10px;display:grid;grid-template-columns:70px 1fr 34px;gap:4px 8px;align-items:center;font:12px var(--font-ui);color:var(--muted)}
+.k-brief .bars span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-brief .bars .b{height:10px;background:var(--ink);border:1px solid var(--line2);position:relative}
+.k-brief .bars .b i{position:absolute;inset:0 auto 0 0;background:var(--red)} .k-brief .bars .b.o i{background:#4a77d4}
+.k-brief .bars .n{color:var(--white);text-align:right;font:600 12px var(--font-body);font-variant-numeric:tabular-nums}
+.k-brief .odds{display:flex;gap:6px;margin-top:10px}
+.k-brief .odds div{flex:1;min-width:0;text-align:center;background:var(--ink);border:1px solid var(--line2);border-radius:3px;padding:4px 0;font:12px var(--font-ui);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.k-brief .odds b{display:block;font:700 16px var(--font-body);font-variant-numeric:tabular-nums;color:var(--gold)}
+.k-betnote{margin-top:8px;font:12px var(--font-ui);color:var(--gold)}
+.k-table{width:100%;border-collapse:collapse;font:13px var(--font-ui)}
+.k-table th{font:11px var(--font-ui);color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:4px 8px;text-align:left;border:0}
+.k-table td{padding:3px 8px;border:0;border-top:1px solid var(--line);color:var(--text)}
+.k-table td:nth-child(n+3),.k-table th:nth-child(n+3){text-align:right;font-variant-numeric:tabular-nums}
+.k-table td:last-child{color:var(--white);font-weight:600}
+.k-table tr.us td{background:rgba(215,25,32,.25);color:#fff}
+.k-fin{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.k-fin div{background:var(--ink);border:1px solid var(--line2);border-radius:var(--r);padding:8px 10px}
+.k-fin span{display:block;font:11px var(--font-ui);color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.k-fin b{font:700 17px var(--font-body);font-variant-numeric:tabular-nums} .k-fin b.bad{color:var(--bad)}
+
+/* "More" sheet (phone) */
+.k-more-sheet{position:fixed;inset:0;z-index:var(--z-pane)}
+.k-more-sheet[hidden]{display:none}
+.k-more-scrim{position:absolute;inset:0;background:rgba(6,8,12,.6)}
+.k-more-box{position:absolute;left:0;right:0;bottom:0;background:var(--bg2);border-top:var(--px) solid var(--red);padding:12px 12px calc(12px + env(safe-area-inset-bottom));max-height:80vh;overflow:auto;animation:kIn .15s ease-out}
+.k-more-box h4{margin:0 4px 8px;font:12px var(--font-ui);color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.k-more-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.k-more-grid .k-nav{flex-direction:column;gap:4px;font-size:12px;text-align:center;padding:8px 4px;background:var(--panel);border-color:var(--line)}
+.k-more-grid .k-nav.on{background:var(--panel);border-color:var(--line);box-shadow:none}
+.k-more-sys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
+.k-more-sys button{font:13px var(--font-ui);background:var(--panel);color:var(--text);border:var(--px) solid var(--line);border-radius:var(--r);min-height:44px;cursor:pointer}
+
+/* ---------- legacy panes (inventory, doctor, stadium, power network, fixtures) as sheets ---------- */
+#inventoryPane,#doctorPane,#stadiumPane,#powerNetworkPane,#fixturesPane{position:fixed!important;z-index:var(--z-pane);top:50%;left:50%;transform:translate(-50%,-50%);
+  width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 48px);overflow:auto;margin:0!important;padding:14px!important;
+  background:var(--panel)!important;border:var(--px) solid var(--line2)!important;border-radius:var(--r)!important;color:var(--text);
+  box-shadow:0 4px 0 #000,0 0 0 100vmax rgba(6,8,12,.72)!important;font:14px/1.45 var(--font-body)}
+#inventoryPane > div:first-child,#doctorPane > div:first-child,#stadiumPane > div:first-child,#powerNetworkPane > div:first-child,#fixturesPane > div:first-child{font:600 18px var(--font-ui)}
+#inventoryPane button,#doctorPane button,#stadiumPane button,#powerNetworkPane button,#fixturesPane button{font:600 14px/1.2 var(--font-body);padding:9px 14px;border-radius:var(--r);border:var(--px) solid var(--line2);background:var(--panel2);color:var(--text);cursor:pointer;box-shadow:0 2px 0 #000;min-height:40px}
+#inventoryPane button:hover,#doctorPane button:hover,#stadiumPane button:hover,#powerNetworkPane button:hover,#fixturesPane button:hover{border-color:var(--white)}
+#inventoryPane table,#fixturesPane table,#stadiumPane table,#powerNetworkPane table{width:100%;border-collapse:collapse;font-size:13px}
+#fixturesPane table td,#fixturesPane table th{padding:4px 6px;border-bottom:1px solid var(--line)}
+
+/* ---------- old global header/panel visuals neutralised ---------- */
+.panel{animation:none;backdrop-filter:none}
+.panel:hover{transform:none}
+.entry:hover{transform:none}
+
+/* ===================== phone portrait ===================== */
+@media (max-width: 900px){
+  body{font-size:15px}
+  #kApp{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto auto;height:100vh;height:100dvh}
+  .k-top{grid-column:1;flex-wrap:wrap;gap:6px 10px;padding:6px 10px;padding-top:calc(6px + env(safe-area-inset-top))}
+  .k-club img{width:32px;height:32px}
+  .k-club b{font-size:15px;max-width:42vw}
+  .k-club small{font-size:11px;max-width:42vw}
+  .k-date{font-size:11px;padding:2px 8px;margin-left:auto;line-height:1.2}
+  .k-stats{margin-left:0;width:100%;overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .k-stats::-webkit-scrollbar{display:none}
+  .k-stat{flex:none;padding:2px 8px 2px 4px;min-height:36px}
+  .k-stat img{width:20px;height:20px}
+  .k-stat .v{font-size:14px}
+  .k-centre{grid-row:3}
+  .k-scene{height:96px}
+  .k-scene .cap{left:12px;right:12px;bottom:8px}
+  .k-scene h2{font-size:19px;max-width:100%}
+  .k-scene .phase{font-size:11px;letter-spacing:1px}
+  .steps{display:none}
+  #feed.k-feed{padding:10px 12px 14px;gap:8px}
+  .k-msg{grid-template-columns:40px minmax(0,1fr);gap:10px;padding:8px 10px}
+  .k-msg .ava{width:40px;height:40px;font-size:18px}
+  .k-news{max-width:100%}
+  .k-side{grid-row:4;border-left:0;background:transparent;overflow:visible;position:relative;z-index:var(--z-sheet)}
+  .k-side .k-card:not(.k-decision){display:none}
+  .k-decision{margin:0 6px 6px;max-height:46vh;max-height:46dvh;display:flex;flex-direction:column;box-shadow:0 -6px 24px rgba(0,0,0,.6)}
+  .k-decision h3{flex:none;padding:6px 6px 6px 12px;min-height:40px}
+  .k-decision #choicesPanel{overflow:auto;overscroll-behavior:contain;min-height:0}
+  .k-decision.collapsed #choicesPanel{display:none}
+  .k-decision.empty{display:none}
+  .k-sheet-toggle{display:block;margin-left:4px;flex:none;width:36px;height:32px;background:var(--red-d);color:#fff;border:1px solid var(--red-l);border-radius:3px;font:14px var(--font-ui);cursor:pointer}
+  .k-decision.collapsed .k-sheet-toggle{transform:rotate(180deg)}
+  .k-decision h3 .hint{display:none}
+  #kApp #actions{padding:6px;gap:5px}
+  #kApp #actions button{grid-template-columns:24px minmax(0,1fr) auto;font-size:15px;padding:6px 8px}
+  .k-rail{grid-row:5;flex-direction:row;border-right:0;border-top:var(--px) solid var(--line);padding:4px 4px calc(4px + env(safe-area-inset-bottom));overflow:hidden;gap:2px;z-index:var(--z-sheet)}
+  .k-rail h4,.k-rail .k-spacer,.k-rail .k-sys{display:none}
+  .k-rail .k-nav{display:none}
+  .k-rail .k-nav[data-nav=matchday],.k-rail .k-nav[data-nav=news],.k-rail .k-nav[data-nav=phone],.k-rail .k-nav[data-nav=fixtures],.k-rail .k-more{display:flex}
+  .k-rail .k-nav{flex:1 1 0;min-width:0;flex-direction:column;gap:2px;font-size:11px;padding:4px 2px;text-align:center;justify-content:center;min-height:52px}
+  .k-rail .k-nav span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .k-rail .k-nav img{width:24px;height:24px}
+  .k-rail .k-badge{position:absolute;top:2px;left:calc(50% + 6px);margin:0}
+  .k-nav:hover{background:none;border-color:transparent}
+  .k-nav.on:hover{background:var(--red);border-color:var(--red-l)}
+  #inventoryPane,#doctorPane,#stadiumPane,#powerNetworkPane,#fixturesPane{top:auto;bottom:0;left:0;transform:none;width:100vw;max-height:88dvh;border-radius:8px 8px 0 0!important;padding-bottom:calc(14px + env(safe-area-inset-bottom))!important}
+}
+@media (max-width: 900px) and (max-height: 560px){ .k-scene{display:none} }
+@media (min-width: 901px) and (max-width: 1180px){
+  #kApp{grid-template-columns:72px minmax(0,1fr) 340px}
+  .k-rail .k-nav span,.k-rail h4{display:none}
+  .k-rail .k-nav{justify-content:center;padding:7px 4px}
+  .k-rail .k-badge{position:absolute;top:2px;right:2px}
+  .k-sys{flex-direction:column}
+  .k-stat .k{font-size:10px}
+  .k-club small{display:none}
+  .k-scene h2{max-width:100%}
+  .steps{display:none}
+}
+@media (hover: none){
+  #kApp #actions button:hover:not(:disabled){transform:none;border-color:var(--line2)}
+}

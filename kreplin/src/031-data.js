@@ -903,22 +903,16 @@ function render(){
  }
  setVal('fires',S.manager_fires); setVal('embargo',S.transfer_embargo?'Yes':'No');
  setVal('deduct',S.points_deducted);
+ // (the old stats column is gone; these meters only render if their elements exist)
  const stars=[]; if(S.messi_signed)stars.push('Messi'); if(S.ronaldo_signed)stars.push('Ronaldo'); setVal('stars',stars.join(', ')||'—');
 
  const heat = clamp((S.compliance_risk + S.legal_risk)/2 * 0.8 + S.paperRisk*0.5, 0, 100);
- document.getElementById('heatBar').style.width = heat+'%';
- document.getElementById('paperBar').style.width = clamp(S.paperRisk,0,100)+'%';
- document.getElementById('heatHint').textContent = heat<35?'Low':(heat<70?'Rising':'Hot');
- document.getElementById('paperHint').textContent = S.paperRisk<20?'Clean':(S.paperRisk<60?'Messy':'Explosive');
-
- const stepEls=[
-   document.getElementById('stepWarn'),
-   document.getElementById('stepFine'),
-   document.getElementById('stepPoints'),
-   document.getElementById('stepEmbargo'),
-   document.getElementById('stepReferral')
- ];
- stepEls.forEach((el,i)=>{ if(S.discipline_step>=i+1){el.classList.add('on')} else {el.classList.remove('on')} });updateHUD();  
+ const $ = id => document.getElementById(id);
+ if ($('heatBar')) $('heatBar').style.width = heat+'%';
+ if ($('paperBar')) $('paperBar').style.width = clamp(S.paperRisk,0,100)+'%';
+ if ($('heatHint')) $('heatHint').textContent = heat<35?'Low':(heat<70?'Rising':'Hot');
+ if ($('paperHint')) $('paperHint').textContent = S.paperRisk<20?'Clean':(S.paperRisk<60?'Messy':'Explosive');
+ ['stepWarn','stepFine','stepPoints','stepEmbargo','stepReferral'].forEach((id,i)=>{ const el=$(id); if(el) el.classList.toggle('on', S.discipline_step>=i+1); });updateHUD();  
 if (typeof mountPlayArea === "function") mountPlayArea();
 
 }

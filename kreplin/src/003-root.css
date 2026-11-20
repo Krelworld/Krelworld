@@ -1,20 +1,4 @@
-  :root{
-    --bg: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 100%);
-    --panel: rgba(255, 255, 255, 0.05);
-    --panel-solid: #1e2329;
-    --muted: #94a3b8;
-    --text: #f1f5f9;
-    --accent: #ef4444;   /* Southampton red */
-    --accent-2: #10b981; /* success green */
-    --accent-3: #3b82f6; /* info blue */
-    --warn: #f59e0b;     /* warning amber */
-    --border: rgba(255, 255, 255, 0.1);
-    --btn: rgba(255, 255, 255, 0.08);
-    --btn-hover: rgba(255, 255, 255, 0.12);
-    --radius: 16px;
-    --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 16px 64px rgba(0, 0, 0, 0.4);
-  }
+  /* (old red-glass :root override removed - tokens live in 013a-kui.css) */
 
 
   /* Page baseline */

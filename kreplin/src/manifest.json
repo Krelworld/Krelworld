@@ -13,7 +13,12 @@
  "011-playarea-display-grid-gap-14px-grid-temp.css",
  "012-markup.html",
  "013-make-right-panel-pick-up-the-existing-ac.css",
+ "013a-kui.css",
+ "013b-shell.css",
  "014-markup.html",
+ "@art",
+ "014b-kui.js",
+ "014c-matchpitch.js",
  "015-core.js",
  "016-helpers.js",
  "017-4a-section-2-attendance-morale-helpers-g.js",
@@ -59,5 +64,6 @@
  "083-debt-cash-tinder-modals.js",
  "085-general-music.js",
  "087-music-control-modal.js",
+ "087b-shell.js",
  "088-markup.html"
 ]

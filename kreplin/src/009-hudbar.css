@@ -1209,53 +1209,54 @@
     }
   }
   
+  /* Tape warble / noise / ripple: only while the coma distortion is active (body.distorted) */
   /* Apply subtle tape warble to all panels - combined with noise flicker */
-  .panel {
+  body.distorted .panel {
     animation: tapeWarble 8s ease-in-out infinite, noiseFlicker 0.15s steps(3) infinite;
     will-change: transform, filter, background-position;
   }
   
   /* Apply subtle ripple to HUD bar */
-  #hudBar {
+  body.distorted #hudBar {
     animation: subtleRipple 6s ease-in-out infinite;
     will-change: transform, filter;
   }
   
   /* Apply subtle warping to play area panels */
-  #playArea,
-  #dialoguePanel,
-  #choicesPanel {
+  body.distorted #playArea,
+  body.distorted #dialoguePanel,
+  body.distorted #choicesPanel {
     animation: subtleWarp 10s ease-in-out infinite;
     will-change: transform, filter;
   }
   
   /* Subtle chromatic aberration on text elements */
-  #hudBar .hitem,
-  #hudBar button,
-  .panel h1,
-  .panel h2,
-  .panel h3,
-  .panel strong {
+  body.distorted #hudBar .hitem,
+  body.distorted #hudBar button,
+  body.distorted .panel h1,
+  body.distorted .panel h2,
+  body.distorted .panel h3,
+  body.distorted .panel strong {
     animation: chromaticWobble 7s ease-in-out infinite;
     will-change: text-shadow;
   }
   
   /* Apply subtle effects to buttons */
-  #actions button,
-  #choicesPanel button,
-  #choicesPanel a {
+  body.distorted #actions button,
+  body.distorted #choicesPanel button,
+  body.distorted #choicesPanel a {
     animation: tapeWarble 9s ease-in-out infinite;
     will-change: transform, filter;
   }
   
   /* Header gets subtle warble */
-  header {
+  body.distorted header {
     animation: tapeWarble 12s ease-in-out infinite;
     will-change: transform, filter;
   }
   
   /* Entry items get subtle ripple */
-  .entry {
+  body.distorted .entry {
     animation: subtleRipple 5s ease-in-out infinite;
     will-change: transform, filter;
     animation-delay: calc(var(--entry-index, 0) * 0.1s);

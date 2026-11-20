@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brawler Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#12151d;color:#e9e6de;font:14px 'Pixelify Sans',monospace;padding:16px}button{font:600 14px 'Pixelify Sans',monospace;background:#d71920;color:#fff;border:2px solid #ff4a50;border-radius:4px;padding:10px 14px;margin:4px 4px 4px 0;cursor:pointer}pre{background:#0d1016;border:2px solid #2e3547;padding:8px;white-space:pre-wrap;min-height:80px}</style>
+</head><body>
+<h1 style="font-size:20px;margin:0 0 8px">KREPLIN · Rhythm brawler</h1>
+<button id="cron">Cronster fight</button><button id="cap">Portsmouth captain</button>
+<pre id="out"></pre>
+<script src="mgkit.js"></script><script src="fight.js"></script>
+<script>
+const out = document.getElementById('out');
+window.S = { club_cash: 10000000, cronster: { active: true } };
+window.log = m => { out.textContent += 'log: ' + m + '\n'; };
+async function cron(e) { e.target.blur(); window.__result = null;
+  // mirrors cronsterFightingMinigame: fight core swapped for KreplinFight.cronsterBrawl()
+  let { playerHealth, cronsterHealth } = await KreplinFight.cronsterBrawl();
+  let outcome;
+  if (playerHealth > cronsterHealth) { outcome = 'win'; log("You unmask him... it is Jenko!"); }
+  else { outcome = 'lose'; const penalty = Math.floor((S.club_cash || 0) * 0.75); S.club_cash = Math.max(0, S.club_cash - penalty); log('You lose 75% of the club money (Lost £' + penalty.toLocaleString() + ')'); }
+  S.cronster.defeated = true; S.cronster.active = false;
+  window.__result = { outcome, playerHealth, cronsterHealth, club_cash: S.club_cash }; out.textContent += 'RESULT ' + JSON.stringify(window.__result) + '\n'; }
+async function cap(e) { e.target.blur(); window.__result = null; const r = await KreplinFight.playFightMinigame(); window.__result = { outcome: r }; out.textContent += 'RESULT ' + r + '\n'; }
+document.getElementById('cron').onclick = cron; document.getElementById('cap').onclick = cap;
+</script></body></html>

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Krunchem Boss Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../kui.css">
+<style>body{margin:0;background:#12151d;color:#e9e6de;font:14px 'Pixelify Sans',monospace;padding:16px}button{font:inherit;padding:8px 14px;background:#d71920;color:#fff;border:2px solid #ff4a50;border-radius:4px}#log{white-space:pre-wrap;margin-top:12px}</style>
+</head><body>
+<h1>Krunchem boss battle</h1>
+<button id="go">Fight Krunchem</button> <label><input type="checkbox" id="cut"> play win cutscene (needs network)</label>
+<div id="log"></div>
+<script>
+  window.KMG_ART = '../../art/raw/';
+  var S = { club_cash: 1000000 }; // fake state (boss touches none)
+  function log(m){ document.getElementById('log').textContent += m + '\n'; console.log('[log]', m); }
+  async function playDowningStreetVideo(){ log('(playDowningStreetVideo stub)'); }
+</script>
+<script src="mgkit.js"></script>
+<script src="boss.js"></script>
+<script>
+  const q = new URLSearchParams(location.search);
+  async function run(){
+    const cut = document.getElementById('cut').checked;
+    const r = await startKrunchemBossBattle({ cutscene: cut, music: false, debug: true });
+    window.__result = r; log('RESULT: ' + r);
+  }
+  document.getElementById('go').onclick = run;
+  if (q.has('auto')) run();
+</script>
+</body></html>

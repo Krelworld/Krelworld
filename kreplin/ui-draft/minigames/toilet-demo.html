@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Toilet Strain Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#12151d;color:#e9e6de;font:14px 'Pixelify Sans',monospace;padding:16px}button{font:600 14px 'Pixelify Sans',monospace;background:#d71920;color:#fff;border:2px solid #ff4a50;border-radius:4px;padding:10px 14px;margin:4px 4px 4px 0;cursor:pointer}pre{background:#0d1016;border:2px solid #2e3547;padding:8px;white-space:pre-wrap;min-height:80px}</style>
+</head><body>
+<h1 style="font-size:20px;margin:0 0 8px">KREPLIN · Toilet strain (4th gem)</h1>
+<button id="go">Start (normal)</button>
+<pre id="out"></pre>
+<script src="mgkit.js"></script><script src="toilet.js"></script>
+<script>
+const out = document.getElementById('out');
+window.S = { kreplin_gems: 3 };
+window.log = m => { out.textContent += 'log: ' + m + '\n'; };
+window.playGemShitVideo = async () => { out.textContent += '[video] gem shit video plays; S.kreplin_gems = 4\n'; S.kreplin_gems = 4; };
+async function run() { const r = await KreplinToilet.startToiletStrainingMinigame({ music: null }); out.textContent += 'RESULT ' + JSON.stringify(r) + '\n'; window.__result = r; }
+document.getElementById('go').onclick = e => { e.target.blur(); run(); };
+</script></body></html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Penalties Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#12151d;color:#e9e6de;font:14px 'Pixelify Sans',monospace;padding:16px}button,select{font:600 14px 'Pixelify Sans',monospace;background:#d71920;color:#fff;border:2px solid #ff4a50;border-radius:4px;padding:10px 14px;margin:4px 4px 4px 0;cursor:pointer}select{background:#242a3a;border-color:#3a4258}label{display:inline-block;margin:4px 8px 4px 0}pre{background:#0d1016;border:2px solid #2e3547;padding:8px;white-space:pre-wrap;min-height:80px;font:12px monospace}</style>
+</head><body>
+<h1 style="font-size:20px;margin:0 0 8px">KREPLIN · Penalties</h1>
+<select id="mode">
+  <option value="pompey">Ultima Cup vs Delmor Krunchem (Portsmouth)</option>
+  <option value="ultima">Ultima Cup vs Mohammed van Onslaught (Ultima FC)</option>
+  <option value="legends">Ultima Cup vs Mohammed van Onslaught (Legends FC)</option>
+  <option value="wc">World Cup final vs Brazil</option>
+  <option value="wc2">World Cup final vs Narnia (hashed kit)</option>
+</select>
+<div><label><input type="checkbox" id="hgh" checked> HGH</label><label><input type="checkbox" id="coke" checked> cocaine</label><label><input type="checkbox" id="brick" checked> brick</label></div>
+<button id="go">Start</button>
+<pre id="out"></pre>
+<script src="mgkit.js"></script><script src="penalties.js"></script>
+<script>
+const out = document.getElementById('out');
+window.log = m => { if (m) out.textContent += 'log: ' + m.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() + '\n'; };
+window.getClubName = () => 'Southampton';
+function freshS() {
+  return { doctor: { hgh_stock: hgh.checked ? 2 : 0 }, inventory: { hgh: 0, drugs: coke.checked ? 3 : 0, brick: brick.checked }, cocaine: 0, brick: 0,
+    lineup: [1, 2, 3, 4, 5], squad: [{ id: 1, name: 'Gazza Jnr' }, { id: 2, name: 'Big Terry' }, { id: 3, name: 'Kev Splatt' }, { id: 4, name: 'Dazzler' }, { id: 5, name: 'Mick Plinth' }] };
+}
+async function run() {
+  window.S = freshS(); const m = mode.value; let r;
+  out.textContent += '--- start ' + m + '\n';
+  if (m === 'pompey') r = await playPenaltyMinigame('Delmor Krunchem', 'Portsmouth');
+  else if (m === 'ultima') r = await playPenaltyMinigame('Mohammed van Onslaught', 'Ultima FC');
+  else if (m === 'legends') r = await playPenaltyMinigame('Mohammed van Onslaught', 'Legends FC');
+  else if (m === 'wc') r = await playWorldCupPenalties('Brazil');
+  else r = await playWorldCupPenalties('Narnia');
+  out.textContent += 'RESULT ' + JSON.stringify(r) + '  S=' + JSON.stringify({ doctor: S.doctor, inventory: S.inventory }) + '\n';
+  window.__result = r;
+}
+document.getElementById('go').onclick = run;
+</script></body></html>

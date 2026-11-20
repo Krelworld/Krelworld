@@ -4,7 +4,8 @@
 //   --mobile   runs as an iPhone 13 (Playwright device) and checks for horizontal overflow
 //              (document.scrollingElement.scrollWidth > innerWidth, or a visible button outside the
 //              viewport); each new violation is reported once, with a screenshot when --shots is set.
-//                               [--jump season[:match]] [--flags '{"season3.x":true}'] [--noopener]
+//                               [--jump season[:match]] [--flags '{"season3.x":true}'] [--noopener] [--live-minigames]
+//   MGKit canvas minigames auto-resolve (window.__MG_AUTORESOLVE__) unless --live-minigames.
 //   --jump starts the campaign at a season/match: the page's test entry point
 //   (window.__kreplinDebug.jump) applies it when the main loop starts, after the
 //   campaign setup, playing the skipped fixtures through the table (S4/S5 openers run
@@ -72,8 +73,10 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
     let a = gs >>> 0;
     Math.random = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   }, +(args.gameseed || seed));
-  await ctx.addInitScript(() => {
+  await ctx.addInitScript((liveMG) => {
     window.__KREPLIN_TEST__ = true; // enables window.__kreplinDebug
+    // canvas minigames (MGKit) resolve at once with a random contract-valid outcome; --live-minigames leaves them up
+    if (!liveMG) window.__MG_AUTORESOLVE__ = true;
     const st = window.setTimeout, si = window.setInterval;
     window.__speed = 50;
     window.setTimeout = (f, d, ...a) => st(f, Math.max(0, (d || 0) / window.__speed), ...a);
@@ -85,7 +88,7 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
       const el = this; st(() => { try { el.dispatchEvent(new Event('ended')); } catch (e) {} }, 30);
       return Promise.resolve();
     };
-  });
+  }, !!args['live-minigames']);
   const p = await ctx.newPage();
   const errors = new Map();
   p.on('console', m => { const t = m.text(); if (t.startsWith('[ap]')) console.log(t.slice(0, 300)); }); // probes from --setup

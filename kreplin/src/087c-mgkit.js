@@ -15,6 +15,7 @@
    mg.banner(text,color,secs)  mg.shake(px,secs)  mg.flash(color,secs)  mg.particles.spawn({...})
    mg.end(result) -> closes, resolves mg.done promise with result   mg.giveUp() -> same as the Give-up button
    MGKit.current -> the open minigame (or null)
+   opts.auto() -> outcome to end with when a test harness sets MGKit.autoResolve (test builds only; see autoOn)
    await mg.done
    mg.button(rect{x,y,w,h}, label, {col,fg,sub,size}) -> draws a pixel button, returns true if tapped this frame
    Shared helpers (no instance needed):
@@ -62,6 +63,15 @@
     const out = []; let line = '';
     for (const w of String(str).split(' ')) { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t; }
     if (line) out.push(line); return out;
+  }
+
+  // Auto-resolve is honoured only on a test build of the page (window.__KREPLIN_TEST__ or ?debug) AND when the
+  // harness asks for it (MGKit.autoResolve = true or window.__MG_AUTORESOLVE__ = true). Players never hit it.
+  function autoOn() {
+    try {
+      const test = window.__KREPLIN_TEST__ || /[?&]debug\b/.test(location.search || '');
+      return !!(test && ((window.MGKit && window.MGKit.autoResolve) || window.__MG_AUTORESOLVE__));
+    } catch (e) { return false; }
   }
 
   function open(o = {}) {
@@ -134,6 +144,7 @@
 
     // ---------- loop ----------
     let resolveDone; const done = new Promise(r => (resolveDone = r));
+    let autoT = 0;
     let alive = true, raf = 0, acc = 0, last = performance.now(), elapsed = 0, fails = 0, updateFn = null;
     const STEP = 1 / 60;
     function frame(now) {
@@ -164,14 +175,24 @@
       if (!alive) return; alive = false; cancelAnimationFrame(raf);
       window.removeEventListener('resize', fit); window.removeEventListener('pointerup', pu); window.removeEventListener('pointercancel', pu);
       window.removeEventListener('keydown', kd, true); window.removeEventListener('keyup', ku, true);
-      wrap.remove(); if (window.MGKit.current === api) window.MGKit.current = null; resolveDone(result);
+      // Leave an invisible shield for a moment: a touch that ended the game must not turn into a ghost click
+      // on whatever story button sits underneath once the canvas is gone.
+      wrap.className = 'mg-shield'; wrap.style.background = 'transparent'; wrap.innerHTML = '';
+      const swallow = e => { e.preventDefault(); e.stopPropagation(); };
+      ['click', 'pointerup', 'mouseup', 'touchend'].forEach(t => wrap.addEventListener(t, swallow, true));
+      setTimeout(() => wrap.remove(), 450);
+      if (window.MGKit.current === api) window.MGKit.current = null; resolveDone(result);
     }
     const giveUp = () => end(typeof o.onGiveUp === 'function' ? o.onGiveUp() : 'lose');
     give.onclick = giveUp;
 
     const api = {
       W, H, ctx, canvas, input, sprites, load, text, particles, done, end, giveUp, title: o.title || '',
-      loop(fn) { updateFn = fn; },
+      loop(fn) {
+        updateFn = fn;
+        // Test harness only (tools/autoplay.js): resolve at once with a random, contract-valid outcome from o.auto()
+        if (autoOn() && !autoT) autoT = setTimeout(() => { try { end(typeof o.auto === 'function' ? o.auto() : (typeof o.onGiveUp === 'function' ? o.onGiveUp() : 'lose')); } catch (e) { console.error('[MGKit auto]', e); end('lose'); } }, 30);
+      },
       banner(t, color = '#fff', secs = 1.2) { bannerState = { text: t, color, t: secs }; },
       shake(px = 3, secs = 0.25) { shakeState = { px, t: secs }; },
       flash(c = '#fff', secs = 0.2) { flashState = { c, t: secs, d: secs }; },

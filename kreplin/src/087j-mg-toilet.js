@@ -58,7 +58,7 @@
     const music = musicStart();
     if (opts.music !== null) { try { music.m = new Audio(opts.music || MUSIC); music.m.loop = true; music.m.volume = 0.7; music.m.play().catch(() => {}); } catch (e) {} }
 
-    const mg = MGKit.open({ title: 'THE 4TH GEM', w: 180, h: 320, giveUpAfterFails: 6, giveUpLabel: 'Call a plumber', onGiveUp: () => 'plumber' });
+    const mg = MGKit.open({ title: 'THE 4TH GEM', w: 180, h: 320, giveUpAfterFails: 6, giveUpLabel: 'Call a plumber', onGiveUp: () => 'plumber', auto: () => (Math.random() < .8 ? 'strain' : 'plumber') });
     await mg.load({ man: ART + 'mg-toilet-chairman.png', heart: ART + 'mg-toilet-heart.png', lax: ART + 'mg-toilet-laxative.png', gem: ART + 'ico-gem.png' });
     const { ctx, W, H, input, text, particles: P } = mg;
 

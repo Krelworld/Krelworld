@@ -59,7 +59,7 @@
     if (opts.music !== false) { try { music = new Audio(BOSS_MUSIC); music.loop = true; music.volume = 0.7; music.play().catch(() => {}); } catch (e) {} }
     const stopMusic = () => { if (music) { music.pause(); music.currentTime = 0; } };
 
-    const mg = MGKit.open({ title: 'KRUNCHEM — JETPACK DUEL', w: W, h: H, giveUpAfter: 150, giveUpAfterFails: 3, giveUpLabel: 'Continue', onGiveUp: () => 'lose' });
+    const mg = MGKit.open({ title: 'KRUNCHEM — JETPACK DUEL', w: W, h: H, giveUpAfter: 150, giveUpAfterFails: 3, giveUpLabel: 'Continue', onGiveUp: () => 'lose', auto: () => (Math.random() < .5 ? 'win' : 'lose') });
     await mg.load({ me: art + 'mg-boss-chairman.png', k: art + 'mg-boss-krunchem.png', rocket: art + 'mg-boss-rocket.png',
       brick: art + 'mg-boss-brick.png', beer: art + 'mg-boss-beer.png', roofs: art + 'mg-boss-roofs.png' });
     const S = mg.sprites, ctx = mg.ctx, inp = mg.input;

@@ -58,7 +58,7 @@
     }
     const stopMusic = () => { for (const a of [drive, wood]) if (a) { a.pause(); a.currentTime = 0; } };
 
-    const mg = MGKit.open({ title: 'GET TO ST MARY\'S', w: W, h: H, giveUpAfterFails: 2, giveUpLabel: 'Run for it', onGiveUp: () => 'giveup' });
+    const mg = MGKit.open({ title: 'GET TO ST MARY\'S', w: W, h: H, giveUpAfterFails: 2, giveUpLabel: 'Run for it', onGiveUp: () => 'giveup', auto: () => (Math.random() < .8 ? 'win' : 'giveup') });
     await mg.load({ car: art + 'mg-drive-car.png', squirrel: art + 'mg-drive-squirrel.png', rabbit: art + 'mg-drive-rabbit.png',
       hedgehog: art + 'mg-drive-hedgehog.png', badger: art + 'mg-drive-badger.png', grave: art + 'mg-drive-grave.png',
       tree: art + 'mg-drive-tree.png', daughter: art + 'daughter.png', stadium: art + 'stadium.png' });

@@ -54,7 +54,8 @@
 
   async function brawl(which = 'cronster', opts = {}) {
     const V = VARIANTS[which] || VARIANTS.cronster;
-    const mg = MGKit.open({ title: V.title, w: 180, h: 320, giveUpAfter: 30, onGiveUp: () => 'giveup' });
+    const mg = MGKit.open({ title: V.title, w: 180, h: 320, giveUpAfter: 30, onGiveUp: () => 'giveup',
+      auto: () => { const won = Math.random() < .5; g.php = won ? 40 + Math.round(Math.random() * 50) : 0; g.ohp = won ? 0 : 30 + Math.round(Math.random() * 50); return 'auto'; } });
     await mg.load({
       bg: ART + V.bg, pIdle: ART + 'mg-fight-chairman-idle.png', pPunch: ART + 'mg-fight-chairman-punch.png', pKick: ART + 'mg-fight-chairman-kick.png', pBlock: ART + 'mg-fight-chairman-block.png',
       oIdle: ART + `mg-fight-${V.sprite}-idle.png`, oAtk: ART + `mg-fight-${V.sprite}-attack.png`, oHurt: ART + `mg-fight-${V.sprite}-hurt.png`,

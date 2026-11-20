@@ -16,7 +16,7 @@
   const rnd = (a, b) => a + Math.random() * (b - a);
 
   async function play(opts = {}) {
-    const mg = MGKit.open({ title: 'THE KREPLIN PROTOCOL', w: 180, h: 320, giveUpAfter: 10, giveUpLabel: 'Accept fate', onGiveUp: () => 'incinerated' });
+    const mg = MGKit.open({ title: 'THE KREPLIN PROTOCOL', w: 180, h: 320, giveUpAfter: 10, giveUpLabel: 'Accept fate', onGiveUp: () => 'incinerated', auto: () => (Math.random() < .85 ? 'initiated' : 'incinerated') });
     const sp = mg.sprites, { ctx, input } = mg;
     await mg.load({ bg: ART() + 'mg-key-bg.png', nuke: ART() + 'mg-key-nuke.png', ch: ART() + 'mg-key-chairman.png' });
     const time = opts.time || TIME;

@@ -45,7 +45,7 @@
   // core: show bubbles, resolve with chosen string (or null if no options)
   async function chooseTaunt(options, opts = {}) {
     const shown = options.slice(0, 3);
-    const mg = MGKit.open({ title: 'TAUNT!', w: 180, h: 320 });
+    const mg = MGKit.open({ title: 'TAUNT!', w: 180, h: 320, auto: () => pickA(shown) });
     const sp = mg.sprites, { ctx, input } = mg;
     await mg.load({ bg: ART() + 'mg-taunt-pitch.png', ch: ART() + 'mg-taunt-chairman.png', pl: ART() + 'mg-taunt-player.png' });
     const fr0 = (window.S && S.frustration) || 0;

@@ -52,7 +52,8 @@
   const railX = (y, side) => VPX + side * 50 * (y - HZ) / 172;
 
   async function run(items) {
-    const mg = MGKit.open({ title: 'TIED TO THE TRACKS', w: 180, h: 320 });
+    const mg = MGKit.open({ title: 'TIED TO THE TRACKS', w: 180, h: 320,
+      auto: () => items.length ? items[Math.floor(Math.random() * items.length)] : (Math.random() < .8 ? 'rolled' : 'dead') });
     await mg.load({ train: ART + 'mg-train-front.png', man: ART + 'mg-train-chairman.png', brick: ART + 'mg-train-brick.png', hgh: ART + 'mg-train-hgh.png', cocaine: ART + 'mg-train-coke.png' });
     const { ctx, W, H, input, text, particles: P } = mg;
     const LIMIT = 10;

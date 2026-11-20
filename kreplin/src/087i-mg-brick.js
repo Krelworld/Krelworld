@@ -35,7 +35,7 @@
     const opp = context && context.opponent; const oppName = opp ? (typeof opp === 'string' ? opp : (opp.name || '')) : '';
     const who = targetType === 'manager' ? 'manager' : 'referee';
     const NAME = { referee: 'THE REFEREE', manager: (oppName ? oppName.toUpperCase() + ' ' : 'THEIR ') + 'MANAGER', players: 'YOUR OWN PLAYERS', opponents: 'THE OPPOSITION', fans: 'THE AWAY END' }[targetType] || 'THE TARGET';
-    const mg = MGKit.open({ title: 'BRICK: ' + NAME, w: W, h: H });
+    const mg = MGKit.open({ title: 'BRICK: ' + NAME, w: W, h: H, auto: () => GRADES[Math.floor(Math.random() * GRADES.length)].mult });
     await mg.load({ target: art + (who === 'manager' ? 'mg-brick-manager.png' : 'mg-brick-referee.png'), brick: art + 'mg-boss-brick.png' });
     const SP = mg.sprites, ctx = mg.ctx, inp = mg.input;
 

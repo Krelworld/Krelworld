@@ -73,7 +73,8 @@
   // resolves 'us' | 'them' | 'tie' | 'giveup'
   // =====================================================================================
   async function runShootout(cfg) {
-    const mg = MGKit.open({ title: cfg.title || 'PENALTIES', w: 180, h: 320, giveUpAfter: 150, giveUpLabel: 'Bottle it', onGiveUp: () => 'them' });
+    const mg = MGKit.open({ title: cfg.title || 'PENALTIES', w: 180, h: 320, giveUpAfter: 150, giveUpLabel: 'Bottle it', onGiveUp: () => 'them',
+      auto: () => (cfg.maxSudden && Math.random() < .1) ? 'tie' : (Math.random() < .5 ? 'us' : 'them') });
     const sp = mg.sprites;
     await mg.load({
       crowd: ART() + 'mg-pen-crowd.png', kIdle: ART() + 'mg-pen-keeper-idle.png', kDive: ART() + 'mg-pen-keeper-dive.png',
@@ -515,7 +516,9 @@
     const S = window.S || {};
     const hasHGH = (S.doctor && S.doctor.hgh_stock > 0) || (S.inventory && S.inventory.hgh > 0);
     const hasCocaine = (S.inventory && S.inventory.drugs > 0) || (S.cocaine && S.cocaine > 0);
-    const hasBrick = (S.inventory && S.inventory.brick) || (S.brick && S.brick > 0);
+    // brick: accept the items-array schema (getItemByName('Brick')) as well as the old flag, as in the train escape
+    const brickItem = () => { try { return typeof getItemByName === 'function' && Array.isArray(S.inventory && S.inventory.items) ? getItemByName('Brick') : null; } catch (e) { return null; } };
+    const hasBrick = (S.inventory && S.inventory.brick) || (S.brick && S.brick > 0) || !!brickItem();
     const loseCode = opponentTeam === 'Portsmouth' ? 'portsmouth' : (opponentTeam === 'Legends FC' ? 'legends' : 'ultima');
     const isVO = /onslaught/i.test(opponentName);
     const kit = opponentTeam === 'Portsmouth' ? null : opponentTeam === 'Legends FC' ? '#6b2fa8' : '#d4a017';
@@ -530,7 +533,7 @@
       onItem(id) {
         if (id === 'hgh') { if (S.doctor) S.doctor.hgh_stock = Math.max(0, (S.doctor.hgh_stock || 0) - 1); if (S.inventory && S.inventory.hgh) S.inventory.hgh = Math.max(0, S.inventory.hgh - 1); }
         if (id === 'coke') { if (S.inventory && S.inventory.drugs) S.inventory.drugs = Math.max(0, S.inventory.drugs - 1); if (S.cocaine) S.cocaine = Math.max(0, (S.cocaine || 0) - 1); }
-        if (id === 'brick') { if (S.inventory && S.inventory.brick) S.inventory.brick = false; if (S.brick) S.brick = Math.max(0, (S.brick || 0) - 1); }
+        if (id === 'brick') { if (S.inventory && S.inventory.brick) S.inventory.brick = false; else if (S.brick) S.brick = Math.max(0, (S.brick || 0) - 1); else if (brickItem() && typeof removeItem === 'function') removeItem('Brick', 1); }
       },
       logUs: (ok, saved) => callLog(ok ? GREEN_BOX('⚽ You score!') : RED_BOX(saved ? '🧤 Saved!' : '❌ You miss!')),
       logThem: (ok, saved) => callLog(ok ? RED_BOX(`⚽ ${opponentName} scores!`) : GREEN_BOX(saved ? '🧤 Saved!' : `❌ ${opponentName} misses!`)),

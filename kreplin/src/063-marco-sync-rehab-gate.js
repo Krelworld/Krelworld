@@ -1,4 +1,4 @@
-// === Patch 5.7.1: Wire Marco→Inventory, Deranged in dialogue, and real Rehab skip ===
+// === Patch 5.7.1: Marco buy → inventory sync, and the rehab gate (stay a week / auto-sim) ===
 (function(){
   try{
 

@@ -1344,6 +1344,13 @@ async function handleTransferVendettaEvent(ev, wf, rel){
 
 function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
 
+// Bribe bookkeeping (the one surviving copy; note: nothing in v12 calls it yet)
+function registerBribe(amount=0){
+  S.bribes_count = (S.bribes_count||0) + 1;
+  // Scale risk lightly with frequency; heavy bribes can add a bit more
+  incrementRisk("bribe", 1 + (amount>50000 ? 1 : 0));
+}
+
 
 
 const POSITIONS = ["GK","DF","MF","FW"];

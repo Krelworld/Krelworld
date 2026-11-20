@@ -59,7 +59,7 @@
       if ((S.club_cash || 0) >= fee && typeof makePlayer === 'function') opts.push({ key: 'buy', label: `Panic-buy a striker at 22:59 (${money_(fee)})`, variant: 'warn' });
       if (bench.length && sq.length > 6) opts.push({ key: 'sell', label: `Flog ${bench[0].name} to whoever answers` });
       opts.push({ key: 'hide', label: 'Turn your phone off and hide in the kit room' });
-      const k = await choose(opts, 'Deadline day. What do you do?');
+      const k = opts.length > 1 ? await choose(opts, 'Deadline day. What do you do?') : 'hide';
       if (k === 'buy') {
         const pl = makePlayer(); pl.pos = 'FW'; pl.rating = Math.max(pl.rating, 70 + Math.floor(Math.random() * 16)); pl.price = fee; pl.wage = Math.max(pl.wage || 0, 300);
         sq.push(pl); cash(-fee, 'Deadline-day signing');

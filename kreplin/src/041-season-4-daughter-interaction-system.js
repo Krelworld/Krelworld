@@ -228,7 +228,7 @@ const ga =
 // Exception: the evening clears open popups, so if a post-match text / news popup is still on
 // screen, keep a Continue until it has been read.
 S._quiet_evening = false;
-if (document.querySelector('.phone-text-overlay, .news-popup-overlay, .modern-modal-overlay, .dialogue-popup-overlay')) {
+if ([...document.querySelectorAll('.phone-text-overlay, .news-popup-overlay, .modern-modal-overlay, .dialogue-popup-overlay')].some(el => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.display !== 'none' && cs.visibility !== 'hidden' && +cs.opacity > 0; })) {
   await waitAdvance("Evening ▸", "Read your messages, then head into the evening.");
 }
 

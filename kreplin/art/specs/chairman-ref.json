@@ -1,0 +1,10 @@
+[
+ {"name":"chairman-a","w":128,"h":128,"nobg":true,"init":"art/ref/chairman-init128.png","init_strength":250,"seed":3,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+  "description":"portrait of a fat balding english man with slicked back thin hair, small round wire glasses, red flushed face, navy pinstripe suit, loose blue tie, holding a pint of lager and a burger, facing viewer"},
+ {"name":"chairman-b","w":128,"h":128,"nobg":true,"init":"art/ref/chairman-init128.png","init_strength":450,"seed":4,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+  "description":"portrait of a fat balding english man with slicked back thin hair, small round wire glasses, red flushed face, navy pinstripe suit, loose blue tie, holding a pint of lager and a burger, facing viewer"},
+ {"name":"chairman-c","w":128,"h":128,"nobg":true,"init":"art/ref/chairman-init128.png","init_strength":650,"seed":5,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+  "description":"portrait of a fat balding english man with slicked back thin hair, small round wire glasses, red flushed face, navy pinstripe suit, loose blue tie, holding a pint of lager and a burger, facing viewer"},
+ {"name":"chairman-d","w":96,"h":96,"nobg":true,"seed":6,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+  "description":"portrait bust of a fat balding middle-aged english man, thin slicked back dark hair, small round wire-rimmed glasses, red chubby flushed face, double chin, navy pinstripe suit, loose royal blue tie, white shirt, holding a pint of lager, facing viewer"}
+]

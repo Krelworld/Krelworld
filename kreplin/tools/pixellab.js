@@ -24,6 +24,10 @@ async function gen(s) {
     text_guidance_scale: s.guidance || 8,
   };
   for (const k of ['outline', 'shading', 'detail', 'view', 'direction', 'seed']) if (s[k] != null) body[k] = s[k];
+  if (s.init) {
+    body.init_image = { type: 'base64', base64: fs.readFileSync(path.join(__dirname, '..', s.init)).toString('base64') };
+    body.init_image_strength = s.init_strength || 300;
+  }
   for (let attempt = 1; attempt <= 3; attempt++) {
     const r = await fetch('https://api.pixellab.ai/v1/generate-image-pixflux', {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer proxy-injected' },

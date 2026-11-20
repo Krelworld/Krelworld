@@ -3,30 +3,8 @@
   try{
     if (window.__p571_applied) return; window.__p571_applied = true;
 
-    function ensureCore(){
-      window.S = window.S || {};
-      const S = window.S;
-      if (!S.inventory || typeof S.inventory !== 'object') S.inventory = { accolades: [], drugs: 0 };
-      if (!Array.isArray(S.inventory.accolades)) S.inventory.accolades = [];
-      if (typeof S.inventory.drugs !== 'number') S.inventory.drugs = 0;
-      if (typeof S.on_drugs_today !== 'boolean') S.on_drugs_today = false;
-      if (typeof S.drug_streak !== 'number') S.drug_streak = 0;
-      if (!S.suspensions) S.suspensions = { rehab_games:0, prison_games:0, house_games:0 };
-      if (!S.record_simple) S.record_simple = {W:0,D:0,L:0};
-      if (typeof S.fan_morale !== 'number') S.fan_morale = 60;
-      if (typeof S.club_cash !== 'number') S.club_cash = 0;
-      if (typeof S.chairman_cash !== 'number') S.chairman_cash = 0;
-    }
-    ensureCore();
+    ensureDrugCore();
 
-    function money(n){ return "£"+Number(Math.max(0,Math.round(n||0))).toLocaleString('en-GB'); }
-    const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
-    function logSafe(m){ try{ (window.log||console.log)(m); }catch(_){  } }
-    function actionsRoot(){ 
-    const actions = document.getElementById('actions');
-    if (actions) return actions;
-    return document.getElementById('choices') || document.getElementById('choicesPanel') || document.body; 
-  }
 
     // ----- Marco nightclub buys → Inventory (post-click sync) -----
     document.addEventListener('click', function(e){
@@ -38,7 +16,7 @@
       const looksLikeBuy   = t.includes('buy') || t.includes('bag') || t.includes('drugs') || t.includes('call marco');
       if (looksLikeMarco && looksLikeBuy){
         setTimeout(()=>{ try{
-          ensureCore();
+          ensureDrugCore();
           window.addDrugsToInventory ? window.addDrugsToInventory(1) : (S.inventory.drugs = (S.inventory.drugs|0)+1);
           logSafe("Marco slips you a small bag. (+1 cocaine)");
           if (typeof window.updateHUD === 'function') window.updateHUD();
@@ -48,7 +26,7 @@
 
     // ----- Expose addDrugsToInventory for other flows -----
     window.addDrugsToInventory = window.addDrugsToInventory || function(qty){
-      ensureCore();
+      ensureDrugCore();
       const oldCount = S.inventory.drugs|0;
       S.inventory.drugs = Math.max(0, (S.inventory.drugs|0) + Math.max(0, qty|0));
       
@@ -62,99 +40,10 @@
       try{ document.getElementById('hudDrugCount').textContent = String(S.inventory.drugs|0); }catch(_){}
     };
 
-    // ----- Context detection via log() and mutation -----
-    window.__ui_context = window.__ui_context || 'boot';
-    function setCtx(c){ window.__ui_context = c; }
-    function allowedPhase(){ 
-      return ['prematch','evening','home','family'].includes(window.__ui_context) && 
-             !window.__ui_context.includes('name') && 
-             !window.__ui_context.includes('boot'); 
-    }
     function inRehab(){ try{ return !!(S && S.suspensions && (S.suspensions.rehab_games|0) > 0); }catch(_){ return false; } }
 
-    (function wrapLog(){
-      const prev = window.log || function(){ };
-      if (prev.__p571ctx) return;
-      window.log = function(){
-        const msg = arguments[0];
-        try{
-          if (typeof msg === 'string'){
-            if (/Pre[- ]?match|team talk|locker|Kickoff|Opponent/i.test(msg)) setCtx('prematch');
-            else if (/Evening|Nightclub|Bar|Pub|After hours/i.test(msg)) setCtx('evening');
-            else if (/Stay home|Home life|house|family/i.test(msg)) setCtx('home');
-            if (inRehab()){ setCtx('rehab'); mountRehabGate(); }
-            else if (allowedPhase()){ mountDerangedButtons(); mountGiveCoke(); }
-          }
-        }catch(_){}
-        return prev.apply(this, arguments);
-      };
-      window.log.__p571ctx = true;
-    })();
-
-    (function observeActions(){
-      const root = actionsRoot();
-      if (!root || root.__obs571) return;
-      const mo = new MutationObserver(()=>{
-        if (inRehab()) { mountRehabGate(); return; }
-        if (allowedPhase()){ mountDerangedButtons(); mountGiveCoke(); }
-      });
-      mo.observe(root, {childList:true, subtree:true});
-      root.__obs571 = mo;
-    })();
-
-    // ----- Deranged actions in dialogue menus (when high) -----
-    function clearDeranged(){ try{ actionsRoot().querySelectorAll('button[data-deranged571="1"]').forEach(n=>n.remove()); }catch(_){ } }
-    const DERANGED_POOL = [
-      {label:"throw scalding hot coffee", effect:function(){
-        S.team_morale_boost = (S.team_morale_boost||0) - 10;
-        S.reputation = Math.max(0, (S.reputation|0) - 6);
-        S.police_risk = (S.police_risk|0) + 4; S.fa_risk = (S.fa_risk|0) + 2;
-        logSafe("DERANGED: You fling scalding coffee. Chaos. Morale craters.");
-      }},
-      {label:"make strange animal grunting noises", effect:function(){
-        S.reputation = Math.max(0, (S.reputation|0) - 2);
-        const wobble = (Math.random()<0.5) ? -3 : +2;
-        S.team_morale_boost = clamp((S.team_morale_boost||0) + wobble, -12, 12);
-        logSafe("DERANGED: You grunt like a wild boar. Everyone is unsettled.");
-      }},
-      {label:"hurl abuse at a random player", effect:function(){
-        S.team_morale_boost = Math.max(-12, (S.team_morale_boost||0) - 5);
-        logSafe("DERANGED: You lay into a player until he’s glassy-eyed.");
-      }},
-      {label:"smash a club trophy in front of them", effect:function(){
-        S.reputation = Math.max(0, (S.reputation|0) - 7);
-        if (S.inventory?.accolades?.length){ const lost = S.inventory.accolades.pop(); logSafe(`DERANGED: You smash "${lost.name||'a trophy'}". Shards everywhere.`); }
-        else logSafe("DERANGED: You smash a framed photo. Glass rains down.");
-      }}
-    ];
-    function mountDerangedButtons(){
-      // Deranged actions disabled - will be replaced by another function
-      return;
-      ensureCore();
-      if (!S.on_drugs_today) return;
-      const root = actionsRoot(); if (!root) return;
-      if (root.querySelector('button[data-deranged571="1"]')) return; // already mounted
-      const pool = DERANGED_POOL.slice().sort(()=>Math.random()-0.5).slice(0,2);
-      pool.forEach(a=>{
-        const b = document.createElement('button');
-        b.dataset.deranged571 = "1"; b.className = "btn-bad";
-        b.textContent = "DERANGED: " + a.label;
-        b.addEventListener('click', ()=>{ try{ a.effect(); }catch(_){ } b.remove(); });
-        root.appendChild(b);
-      });
-      const more = document.createElement('button');
-      more.dataset.deranged571 = "1"; more.className = "btn-warn";
-      more.textContent = "More deranged ideas…";
-      more.addEventListener('click', ()=>{ clearDeranged(); mountDerangedButtons(); });
-      root.appendChild(more);
-    }
-
-    function mountGiveCoke(){
-      // DISABLED: Now handled by contextual impulse system
-      // The new impulse system provides contextual "Give cocaine to [specific target]" options
-      // instead of generic popup-based giving
-      return;
-    }
+    // While in rehab every menu gets the "stay in rehab" button
+    GameHooks.on('choices', function(){ if (inRehab()) mountRehabGate(); });
 
   // ----- Rehab: gate + auto-match sim and finances -----
     document.addEventListener('click', function(e){
@@ -190,7 +79,7 @@
     function updateHudSafe(){ try{ if (typeof window.updateHUD === 'function') window.updateHUD(); }catch(_){} }
 
     function rehabAdvanceOneWeek(){
-      ensureCore();
+      ensureDrugCore();
       const SOUTH = S.club_name || "Southampton FC";
       const opp = currentOpponentName();
       const home = isHomeSafe();
@@ -217,8 +106,8 @@
       try{ if (typeof window.applyFanMoraleDeltaByResult === 'function') window.applyFanMoraleDeltaByResult(gf, ga); }catch(_){}
       logSafe(`While you stay in rehab, the team plays without you: ${SOUTH} ${gf}–${ga} ${opp}.`);
       logSafe(`Attendance: ${attendance.toLocaleString('en-GB')}`);
-      logSafe(`Gate Revenue: ${money(gate)}`);
-      if (wages>0) logSafe(`Wages paid: ${money(wages)}`);
+      logSafe(`Gate Revenue: ${moneyGBP(gate)}`);
+      if (wages>0) logSafe(`Wages paid: ${moneyGBP(wages)}`);
       S.suspensions.rehab_games = Math.max(0, (S.suspensions.rehab_games|0) - 1);
       if (S.suspensions.rehab_games > 0){
         logSafe(`REHAB: ${S.suspensions.rehab_games} match(es) remaining.`);
@@ -242,9 +131,8 @@
 
     // Kick things off if we load mid-phase
     setTimeout(function(){
-      ensureCore();
+      ensureDrugCore();
       if (inRehab()) mountRehabGate();
-      else if (allowedPhase()){ mountDerangedButtons(); mountGiveCoke(); }
     }, 400);
 
   }catch(e){ console.error("Patch 5.7.1 error", e); }

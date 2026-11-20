@@ -3,12 +3,9 @@
   if (window.__patch4B3Applied) return;
   window.__patch4B3Applied = true;
 
-  (function suppressLegacyHeadlines(){
-    const prev = window.log || function(){};
-    if (prev.__suppressOversightHeadlines) return;
-    window.__allowOversightHeadlineNow = false;
-    window.log = function(){
-      const msg = arguments[0];
+  // Legacy oversight headlines are swallowed and turned into queued investigations
+  window.__allowOversightHeadlineNow = false;
+  GameHooks.on('log:veto', function suppressLegacyHeadlines(msg){
       if (window.__oversightQueueMode !== false && typeof msg === "string"){
         const looksLikeOversight = /^(?:News:\s*Scandal Brewing|Scandal Brewing|Board summons:|News:\s*Financial Crimes Unit)/i.test(msg);
         if (looksLikeOversight && !window.__allowOversightHeadlineNow){
@@ -21,13 +18,10 @@
               (window.queueInvestigationSafe||function(){} )('police', 'financial');
             }
           } catch(_) {}
-          return;
+          return false;
         }
       }
-      return prev.apply(this, arguments);
-    };
-    window.log.__suppressOversightHeadlines = true;
-  })();
+  });
 
   window.queueInvestigationSafe = function(authority, caseType){
     try{

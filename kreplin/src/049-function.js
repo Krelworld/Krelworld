@@ -3,7 +3,6 @@
   if (window.__prisonPatchApplied) return;
   window.__prisonPatchApplied = true;
 
-  function isPrison(){ try{ return (S && S.suspensions && (S.suspensions.prison_games|0) > 0); }catch(_){ return false; } }
   function roundIndex(){
     try{
       if (S && S.matchContext && Number.isFinite(S.matchContext.roundIndex)) return S.matchContext.roundIndex;
@@ -12,32 +11,14 @@
   }
   function feed(msg){ try{ (window.log||console.log)(msg); }catch(_){ } }
   function hud(){ try{ (window.updateHUD||function(){})() }catch(_){ } }
-  function actionsRoot(){ return document.getElementById('actions') || document.getElementById('choices') || document.body; }
 
-  // --- Hard stop: No "home life" while in prison ---
-  (function blockHomeLife(){
-    const names = ["openHomeLife","openHome","showHomeLife","renderHome"];
-    names.forEach(fn => {
-      const prev = window[fn];
-      if (typeof prev === "function" && !prev.__prisonWrapped){
-        window[fn] = function(){
-          if (isPrison()){
-            feed("PRISON: Home life is unavailable while you are in custody.");
-            return;
-          }
-          return prev.apply(this, arguments);
-        };
-        window[fn].__prisonWrapped = true;
-      }
-    });
-  })();
 
   // --- Pre‑match filter: strip bribery/dirty actions while in prison ---
   const BAD_TXT = /(bribe|blackmail|rummag|rummage|plant|drugs?|dealer|home life|visit (?:own|opp) locker|locker|tunnel|bookie|bet|fix match|fix|scout|wine|dine|gift|pay off|shake|shake[- ]down|threat)/i;
   const OK_TXT  = /(proceed|kickoff|start match|continue|watch|observe|skip|quick result|save|load|reset|stats|inventory)/i;
 
   function prisonFilterOnce(){
-    if (!isPrison()) return;
+    if (!isInPrison()) return;
     const root = actionsRoot();
     if (!root) return;
     const btns = Array.from(root.querySelectorAll('button, a'));
@@ -97,14 +78,14 @@
   (function observeActions(){
     const root = actionsRoot();
     if (!root || window.__prisonObserver) return;
-    const mo = new MutationObserver((_muts)=>{ if (isPrison()) prisonFilterOnce(); });
+    const mo = new MutationObserver((_muts)=>{ if (isInPrison()) prisonFilterOnce(); });
     mo.observe(root, { childList:true, subtree:true });
     window.__prisonObserver = mo;
   })();
 
   // --- Per‑match morale hit while in prison ---
   function applyPrisonMoraleHit(){
-    if (!isPrison()) return;
+    if (!isInPrison()) return;
     const rix = roundIndex();
     if (S._prisonMoraleRound === rix) return;
     S._prisonMoraleRound = rix;
@@ -119,16 +100,10 @@
   }
 
   // --- Post‑match: decrement prison_games once, announce, and keep loop alive ---
-  (function wrapLogForPrisonCycle(){
-    const prev = window.log || function(){};
-    if (prev.__prisonWrapped) return;
-    window.log = function(){
-      const msg = arguments[0];
-      const ret = prev.apply(this, arguments);
-      try{
-        if (typeof msg === "string" && msg.indexOf("Attendance:") === 0 && msg.indexOf("Gate Revenue:") !== -1){
-          // post‑match anchor
-          if (isPrison()){
+  // (Dormant: was keyed to an "Attendance: … Gate Revenue:" log line the core no longer writes;
+  //  the prison loop in the core does the real countdown.)
+  GameHooks.on('postmatch:gate-anchor', function(){
+          if (isInPrison()){
             const rix = roundIndex();
             if (S._prisonTickRound !== rix){
               S._prisonTickRound = rix;
@@ -148,22 +123,16 @@
               hud();
             }
           }
-        }
-        // When a prematch banner renders, apply the morale hit
-        if (typeof msg === "string" && /SUSPENSION ACTIVE|IN CUSTODY|pre‑match|pre-match|Kickoff|Opponent/i.test(msg)){
-          applyPrisonMoraleHit();
-          // also filter buttons after any such log to keep UI clean
-          setTimeout(prisonFilterOnce, 50);
-        }
-      }catch(_){}
-      return ret;
-    };
-    window.log.__prisonWrapped = true;
-  })();
+  });
+  // Pre-match: apply the per-match morale hit and keep the menu observe-only
+  GameHooks.on('prematch', function(){
+    applyPrisonMoraleHit();
+    setTimeout(prisonFilterOnce, 50);
+  });
 
   // On boot / reload, if already in prison, announce and filter once
   setTimeout(function(){
-    if (isPrison()){
+    if (isInPrison()){
       feed("PRISON: You'll watch from your cell. Home life disabled. Pre‑match limited to observe‑only actions.");
       applyPrisonMoraleHit();
       prisonFilterOnce();
@@ -270,24 +239,11 @@
     }
   }
 
-  // Apply state effects on pre-match
-  (function applyCocaineEffectsOnPreMatch(){
-    const prev = window.log || function(){};
-    if (prev.__cokeEffectsApplied) return;
-    prev.__cokeEffectsApplied = true;
-    
-    window.log = function(){
-      const msg = arguments[0];
-      const ret = prev.apply(this, arguments);
-      try{
-        if (typeof msg === "string" && /pre[- ]match|Kickoff|Opponent/i.test(msg)){
-          applyCocaineStateEffects();
-          applyAddictionPenalties();
-        }
-      }catch(_){}
-      return ret;
-    };
-  })();
+  // Apply state effects once per pre-match
+  GameHooks.on('prematch', function(){
+    applyCocaineStateEffects();
+    applyAddictionPenalties();
+  });
 
   // Apply addiction penalties to team performance
   function applyAddictionPenalties() {

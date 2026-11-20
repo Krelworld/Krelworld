@@ -29,6 +29,57 @@ window.addEventListener('unhandledrejection', function(e) {
   e.preventDefault(); // Prevent the default browser behavior
 });
 
+/* --- GAME HOOKS ---
+   The one extension mechanism for systems that need to react to core events
+   (instead of re-wrapping log/updateHUD/choose/phase functions).
+
+     GameHooks.on(event, fn)      register a handler (returns fn)
+     GameHooks.off(event, fn)     remove it
+     GameHooks.emit(event, ...a)  call handlers in registration order (errors are contained)
+     GameHooks.veto(event, ...a)  true if any handler returned false (used to suppress a log line)
+
+   Events emitted by the core:
+     'log' (msg)                 after a line is written to the feed
+     'log:veto' (msg)            before writing; return false to swallow the line
+     'hud'                       after updateHUD() redraws the HUD
+     'phase' (phase, prev)       whenever setPhase() changes S.phase, followed by the
+                                 phase's own event: 'prematch' | 'postmatch' | 'evening' |
+                                 'oversight' | 'prison' | 'rehab' | 'home'
+     'prematch:end', 'postmatch:end'   after preMatchPhase()/postMatchPhase() resolve
+     'init'                      after init() has created/loaded S
+     'postmatch:gate-anchor'     never emitted in v12 (see note in patches-drugs) */
+const GameHooks = (function(){
+  const handlers = Object.create(null);
+  function list(evt){ return handlers[evt] || (handlers[evt] = []); }
+  return {
+    on(evt, fn){ list(evt).push(fn); return fn; },
+    off(evt, fn){ const l = list(evt); const i = l.indexOf(fn); if (i >= 0) l.splice(i, 1); },
+    emit(evt, ...args){
+      for (const fn of list(evt).slice()){
+        try { fn(...args); } catch (e) { console.error(`GameHooks '${evt}' handler failed:`, e); }
+      }
+    },
+    veto(evt, ...args){
+      let vetoed = false;
+      for (const fn of list(evt).slice()){
+        try { if (fn(...args) === false) vetoed = true; } catch (e) { console.error(`GameHooks '${evt}' handler failed:`, e); }
+      }
+      return vetoed;
+    }
+  };
+})();
+window.GameHooks = GameHooks;
+
+// Explicit game phase (replaces guessing the phase from log text).
+// window.__ui_context mirrors it for older code that still reads that.
+function setPhase(phase){
+  const prev = (window.S && S.phase) || window.__ui_context || null;
+  if (window.S) S.phase = phase;
+  window.__ui_context = phase;
+  GameHooks.emit('phase', phase, prev);
+  if (phase) GameHooks.emit(phase);
+}
+
 /* --- SUBTLE SOUND EFFECTS SYSTEM --- */
 (function() {
   'use strict';

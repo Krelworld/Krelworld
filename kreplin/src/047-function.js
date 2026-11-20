@@ -4,7 +4,6 @@
   window.__patch4B1Applied = true;
 
   // ---------- utils ----------
-  function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
   function rint(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
   function weightedPick(items){ // [{k,w}]
     let sum = 0; for (const it of items) sum += Math.max(0, it.w|0);
@@ -3135,22 +3134,9 @@
   };
 
   // ---------- hook post‑match: only queue, never show buttons here ----------
-  (function hookLogForQueue(){
-    const prev = window.log || function(){};
-    if (prev.__queueOversightPatched) return;
-    window.log = function(){
-      const msg = arguments[0];
-      const ret = prev.apply(this, arguments);
-      try{
-        if (typeof msg === "string" && msg.indexOf("Attendance:") === 0 && msg.indexOf("Gate Revenue:") !== -1){
-          // We are in post‑match: just *queue* oversight, do not render options here.
-          setTimeout(maybeQueueOversight, 120);
-        }
-      }catch(_){}
-      return ret;
-    };
-    window.log.__queueOversightPatched = true;
-  })();
+  // Post-match: just *queue* oversight, do not render options here.
+  // (Dormant: was keyed to an "Attendance: … Gate Revenue:" log line the core no longer writes.)
+  GameHooks.on('postmatch:gate-anchor', function(){ setTimeout(maybeQueueOversight, 120); });
 
   // Expose maybeQueueOversight to global scope
   window.maybeQueueOversight = maybeQueueOversight;

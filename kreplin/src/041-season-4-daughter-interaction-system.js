@@ -72,7 +72,7 @@ initPressSystem();
 generatePostMatchStories();
 
 // Set UI context for post-match processing
-window.__ui_context = 'postmatch';
+setPhase('postmatch');
 
 // Wait a moment for any misc issues (like drug tests) to be processed first
 await new Promise(resolve => setTimeout(resolve, 500));
@@ -828,15 +828,8 @@ window.addEventListener('load', () => {
     }catch(e){ console.warn("updateHeaderLine failed:", e); }
   };
 
-  // Hook into init
-  const _init = window.init;
-  if (typeof _init === "function"){
-    window.init = function patchedInit(){
-      const r = _init.apply(this, arguments);
-      try { updateHeaderLine(); } catch(e){}
-      return r;
-    };
-  }
+  // Refresh the header after init
+  GameHooks.on('init', function(){ try { updateHeaderLine(); } catch(e){} });
 
   // Also refresh whenever manager is hired/fired
   const _hire = window._hireManagerFlow;
@@ -960,7 +953,7 @@ async function choosePlayerNameModal() {
     return; // Name already chosen
   }
   
-  window.__ui_context = 'name_selection';
+  setPhase('name_selection');
   
   const firsts = uniqueSample(MALE_NAMES, 9);
   const firstOpts = firsts.map((nm, i) => ({ key: String(i + 1), label: nm }));
@@ -996,7 +989,7 @@ async function choosePlayerNameModal() {
   }
   
   ensureFamilyNames();
-  window.__ui_context = 'boot';
+  setPhase('boot');
 }
 
 // Modified chooseSecretaryQuickHire to use modal

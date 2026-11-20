@@ -155,7 +155,15 @@ function sendInternalEmail(templateKey) {
   log(`<div style="border-left: 3px solid #6366f1; padding-left: 12px; margin: 8px 0; font-family: monospace; font-size: 0.9em; opacity: 0.9;">${template}</div>`);
 }
 
+// Public log(): lets 'log:veto' handlers swallow a line, writes it, then emits 'log'.
 function log(msg) {
+  if (GameHooks.veto('log:veto', msg)) return;
+  const ret = writeLog(msg);
+  GameHooks.emit('log', msg);
+  return ret;
+}
+
+function writeLog(msg) {
     const currentTime = Date.now();
     const timeSinceLastLog = currentTime - lastLogTime;
     
@@ -343,7 +351,80 @@ function restoreInterfaceAfterTimeout() {
   }
 }
 
-function choose(opts,prompt='Choose:'){
+// ---- Menus ----
+// choose(items, title) is the single entry point for a menu. Pipeline:
+//   chooseWithImpulse  (cocaine impulse / DERANGED outburst option while high)
+//   -> chooseBase      (rehab intercept: "Kickoff" menus become the watch-from-rehab button)
+//   -> renderChoice    (draws the buttons, then emits GameHooks 'choices')
+async function choose(items, title, ...rest){
+  return chooseWithImpulse(items, title, ...rest);
+}
+
+function chooseBase(options, prompt){
+  // Check if we're in rehab and this is a kickoff choice
+  if (S && S.in_rehab && prompt && prompt.includes('Kickoff')) {
+    
+    // Clear the choices and show rehab button
+    const root = document.getElementById('actions') || document.getElementById('choices') || document.body;
+    if (root) {
+      const existingBtns = root.querySelectorAll('button, a');
+      existingBtns.forEach(btn => btn.remove());
+      
+      // Create rehab button
+      const rehabBtn = document.createElement('button');
+      rehabBtn.textContent = 'Watch game from rehab (observe only)';
+      rehabBtn.className = 'warn';
+      rehabBtn.onclick = function() {
+        // Simulate match
+        const ourGoals = Math.floor(Math.random() * 3) + 1;
+        const theirGoals = Math.floor(Math.random() * 3);
+        
+        logSafe("You watch from the treatment center. The counselors say you're making progress.");
+        logSafe(`REHAB MATCH RESULT: ${ourGoals}-${theirGoals}`);
+        
+        // Update stats
+        S.matches_played = (S.matches_played|0) + 1;
+        if (ourGoals > theirGoals) {
+          S.wins = (S.wins|0) + 1;
+          S.points = (S.points|0) + 3;
+        } else if (ourGoals === theirGoals) {
+          S.draws = (S.draws|0) + 1;
+          S.points = (S.points|0) + 1;
+        } else {
+          S.losses = (S.losses|0) + 1;
+        }
+        
+        // Decrement rehab games
+        S.rehab_games_remaining = Math.max(0, S.rehab_games_remaining - 1);
+        
+        if (S.rehab_games_remaining > 0) {
+          logSafe(`REHAB: ${S.rehab_games_remaining} more match(es) remaining in treatment.`);
+          // Continue to next match
+          setTimeout(() => {
+            if (typeof updateHUD === 'function') updateHUD();
+            // The game will naturally continue to the next match
+          }, 1000);
+        } else {
+          logSafe("REHAB: You are discharged! Full game functionality restored.");
+          S.in_rehab = false;
+          S.rehab_games_remaining = 0;
+          if (typeof updateHUD === 'function') updateHUD();
+        }
+        
+        // Save state
+        saveGame();
+      };
+      root.appendChild(rehabBtn);
+    }
+    
+    // Return a promise that resolves immediately
+    return Promise.resolve('rehab');
+  }
+  
+  return renderChoice.apply(this, arguments);
+}
+
+function renderChoice(opts,prompt='Choose:'){
   return new Promise((res, rej) => {
     let promiseResolved = false;
     const safeResolve = (value) => {
@@ -533,12 +614,8 @@ function choose(opts,prompt='Choose:'){
         actionsEl.appendChild(b);
       });
       
-      // Verify all buttons are in DOM after appending all
-      setTimeout(() => {
-        const allButtons = actionsEl.querySelectorAll('button');
-        allButtons.forEach(btn => {
-        });
-      }, 100);
+      // Let systems add their own buttons under this menu
+      GameHooks.emit('choices', { root: actionsEl, prompt, options: opts });
       
       // Safe scrollIntoView with error handling
       try {
@@ -1437,6 +1514,7 @@ async function maybeEveningEvent(){
   }
 
   if(evening==='home'){
+    setPhase('home');
     await openAtHomeMenu();
     render();
     return;

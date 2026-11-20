@@ -1020,71 +1020,11 @@ function processEastleighMatchRevenue() {
 }
 
 
-  // Actions
-  async function sellAccolade(idx){
-    ensureInv();
-    const item = S.inventory.accolades[idx];
-    if (!item) return;
-    
-    // Check if season 4-5 and if this is a major trophy that can be traded for points
-    const isSeason4or5 = (S.season === 4 || S.season === 5);
-    const trophyName = item.name || '';
-    const isPremierLeague = trophyName.includes('Premier League');
-    const isChampionsLeague = trophyName.includes('Champions League');
-    const isWorldCup = trophyName.includes('World Cup');
-    const isMajorTrophy = isPremierLeague || isChampionsLeague || isWorldCup;
-    
-    if (isSeason4or5 && isMajorTrophy) {
-      // Offer choice: sell for money or trade for points
-      const pointsValue = isPremierLeague ? 4 : (isChampionsLeague ? 5 : 7);
-      const val = Number(item.value||0);
-      
-      const choice = await choose([
-        {key: 'money', label: `Sell for ${money(val)}`},
-        {key: 'points', label: `Trade to Saudis for ${pointsValue} points`}
-      ], `What would you like to do with "${trophyName}"?`);
-      
-      if (choice === 'points') {
-        // Trade for points
-        S.points = (S.points || 0) + pointsValue;
-        S.inventory.accolades.splice(idx, 1);
-        log(`You trade "${trophyName}" to the Saudis for ${pointsValue} league points.`);
-        log(`[GAME LOG] The Saudis want to accumulate silverware. They're paying handsomely in league points.`);
-        updateHUD?.(); renderInventory();
-        return;
-      }
-    }
-    
-    // Default: sell for money
-    const val = Number(item.value||0);
-    S.chairman_cash = (S.chairman_cash||0) + Math.max(0,val);
-    S.inventory.accolades.splice(idx,1);
-    log(`You fence "${item.name}" for £${val.toLocaleString('en-GB')}.`);
-    updateHUD?.(); renderInventory();
-  }
 
-  function takeOneDrug(){
-    // Redirect to the consolidated takeCocaine function
-    return takeCocaine();
-  }
 
   // Unified overdose function - REMOVED: Using safer patch version instead
   // The patch version at line 9354 is safer and handles errors better
 
-  function triggerOverdose(){
-    // Call the safer patch version directly
-    if (typeof window.unifiedOverdose === 'function') {
-      return window.unifiedOverdose();
-    } else {
-      // Fallback if patch hasn't loaded yet
-      logSafe("❗ You\'ve pushed it too far — you overdose right before the match!");
-      S.drug_streak = 0;
-      S.coke_streak = 0;
-      S.on_drugs_today = false;
-      S.suspensions = S.suspensions || {};
-      S.suspensions.rehab_games = 3;
-    }
-  }
 
   // Public helpers to add loot cleanly from events
   window.addAccoladeToInventory = function(name, value){
@@ -1228,89 +1168,15 @@ window.sellItem = function(name, qty = 1) {
 
   // expose in case something else wants to toggle explicitly
   window.toggleInventoryPane = toggleInventoryPane;
-  
-  // Debug function to test inventory button
-  window.testInventoryButton = function() {
-    const btn = document.getElementById('openInvBtn');
-    if (btn) {
-      // Try to trigger click
-      btn.click();
-    } else {
-    }
-  };
+
 })();
 
 
 
 
-function openInventoryModal(){
-  // safety: ensure structure exists
-  if (!S.inventory) S.inventory = { accolades: [], drugs: 0 };
-  if (!Array.isArray(S.inventory.accolades)) S.inventory.accolades = [];
-  if (typeof S.inventory.drugs !== 'number') S.inventory.drugs = 0;
-
-  const m = document.getElementById('inventoryModal');
-  if (!m) return;
-
-  // Summary
-  const totalAcc = S.inventory.accolades.length;
-  const drugCount = S.inventory.drugs|0;
-  const summary = document.getElementById('invSummary');
-  if (summary){
-    summary.innerHTML = `
-      <div class="stat-row">
-        <span class="badge"><span class="dot"></span><strong>${totalAcc}</strong>&nbsp;item(s)</span>
-        <span class="badge"><span class="dot"></span><strong>${drugCount}</strong>&nbsp;drug(s)</span>
-      </div>
-    `;
-  }
-
-  // Accolades/trophies list
-  const mountA = document.getElementById('invAccolades');
-  if (mountA){
-    if (totalAcc === 0){
-      mountA.innerHTML = `<div class="muted">No trophies or valuables in your stash.</div>`;
-    } else {
-      mountA.innerHTML = S.inventory.accolades.map((a,idx)=>renderAccoladeRow(a, idx)).join('');
-      // attach handlers for each sell button
-      S.inventory.accolades.forEach((_,idx)=>{
-        const btn = document.getElementById(`sell-acc-${idx}`);
-        if (btn) btn.onclick = async ()=>await sellAccolade(idx);
-      });
-    }
-  }
-
-  // Other (drugs)
-  const mountO = document.getElementById('invOther');
-  if (mountO){
-    if (drugCount <= 0){
-      mountO.innerHTML = `<div class="muted">No drugs in inventory.</div>`;
-    } else {
-      mountO.innerHTML = `
-        <div class="row">
-          <div class="k">Cocaine</div>
-          <div class="v">${drugCount} bag(s)</div>
-          <div><button id="invTakeDrugBtn">Take one (use)</button></div>
-        </div>
-      `;
-      const btn = document.getElementById('invTakeDrugBtn');
-      if (btn) btn.onclick = takeOneDrug;
-    }
-  }
-
-  m.classList.remove('hidden');
-}
-
-function renderAccoladeRow(a, idx){
-  const name = a?.name || 'Unlabelled trophy';
-  const val  = Number(a?.value||0);
-  return `
-    <div class="row" id="acc-${idx}">
-      <div class="k">${name}</div>
-      <div class="v">£${val.toLocaleString('en-GB')}</div>
-      <div><button id="sell-acc-${idx}">Sell</button></div>
-    </div>
-  `;
+// Refresh the inventory pane after a sale/use (the old separate inventory modal is gone)
+function refreshInventoryView(){
+  if (typeof renderInventory === 'function') renderInventory();
 }
 
 async function sellAccolade(idx){
@@ -1343,7 +1209,7 @@ async function sellAccolade(idx){
       log(`You trade "${trophyName}" to the Saudis for ${pointsValue} league points.`);
       log(`[GAME LOG] The Saudis want to accumulate silverware. They're paying handsomely in league points.`);
       updateHUD?.();
-      openInventoryModal();
+      refreshInventoryView();
       return;
     }
   }
@@ -1357,7 +1223,7 @@ async function sellAccolade(idx){
   log(`You fence "${item.name}" for £${val.toLocaleString('en-GB')}.`);
   updateHUD?.();
   // re-open to refresh list (or update DOM surgically)
-  openInventoryModal();
+  refreshInventoryView();
 }
 
 // Simple stub for “taking” a drug; full effects will come in the drug patch
@@ -1377,7 +1243,7 @@ function takeOneDrug(){
     addChairmanPointsImmediate(5, 'taking drugs');
   }
   updateHUD?.();
-  openInventoryModal();
+  refreshInventoryView();
 }
 
 

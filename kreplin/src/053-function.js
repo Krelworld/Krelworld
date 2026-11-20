@@ -16,18 +16,12 @@
     if (!S.suspensions) S.suspensions = { house_games:0, prison_games:0, krazy_register_games:0, rehab_games:0 };
     if (typeof S.suspensions.rehab_games !== 'number') S.suspensions.rehab_games = 0;
   }
-  function money(n){ return "£"+Number(Math.max(0,Math.round(n||0))).toLocaleString('en-GB'); }
-  function logSafe(msg){ try{ (window.log||console.log)(msg); }catch(_){ } }
-  function actionsRoot(){ return document.getElementById('actions') || document.getElementById('choices') || document.body; }
   function btn(label, cls, on){ const b=document.createElement('button'); b.textContent=label; if (cls) b.className=cls; b.dataset.patch5="1"; if(on) b.addEventListener('click', on); return b; }
   function clearPatch5Btns(){ try{ actionsRoot().querySelectorAll('button[data-patch5="1"]').forEach(n=>n.remove()); }catch(_){} }
 
   // ---------- HUD badge ----------
-  (function hookHUD(){
-    const prev = window.updateHUD || function(){};
-    if (prev.__drugsHUDWrapped) return;
-    window.updateHUD = function(){
-      const ret = prev.apply(this, arguments);
+  // HUD extension (runs after updateHUD redraws)
+  GameHooks.on('hud', function hookHUD(){
       try{
         ensureDrugState();
         const bar = document.getElementById('hudBar');
@@ -44,10 +38,7 @@
           pill.innerHTML = `<span class="label">Cocaine</span><span>${count} (${tag})</span>`;
         }
       }catch(_){}
-      return ret;
-    };
-    window.updateHUD.__drugsHUDWrapped = true;
-  })();
+  });
 
 
   // ---------- Buy & Use actions (Pre‑Match / Evening) ----------
@@ -57,7 +48,7 @@
     ensureDrugState();
     const root = actionsRoot();
     clearPatch5Btns();
-    const b1 = btn(`Call Marco (Buy 1 bag – ${money(DRUG_PRICE)})`, "", function(){
+    const b1 = btn(`Call Marco (Buy 1 bag – ${moneyGBP(DRUG_PRICE)})`, "", function(){
       if ((S.chairman_cash|0) < DRUG_PRICE){ logSafe("Marco: \"Cash up front, mate.\" (Not enough money)"); return; }
       S.chairman_cash -= DRUG_PRICE; S.inventory.drugs = (S.inventory.drugs|0) + 1; 
       if (!S.stadium_dealing_unlocked) {
@@ -70,7 +61,7 @@
       }
       updateHUD?.();
     });
-    const b5 = btn(`Buy 5 bags – ${money(DRUG_PRICE*5)}`, "", function(){
+    const b5 = btn(`Buy 5 bags – ${moneyGBP(DRUG_PRICE*5)}`, "", function(){
       if ((S.chairman_cash|0) < DRUG_PRICE*5){ logSafe("Not enough money for 5 bags."); return; }
       S.chairman_cash -= DRUG_PRICE*5; S.inventory.drugs = (S.inventory.drugs|0) + 5; 
       if (!S.stadium_dealing_unlocked) {
@@ -343,7 +334,7 @@
     const root = actionsRoot();
     clearPatch5Btns();
     const currentBricks = getBrickCount();
-    const b1 = btn(`Buy Brick – ${money(BRICK_PRICE)} (Current: ${currentBricks})`, "", function(){
+    const b1 = btn(`Buy Brick – ${moneyGBP(BRICK_PRICE)} (Current: ${currentBricks})`, "", function(){
       if ((S.chairman_cash|0) < BRICK_PRICE){ logSafe("Not enough money for a Brick."); return; }
       S.chairman_cash -= BRICK_PRICE;
       
@@ -370,7 +361,7 @@
     updateHUD?.();
   }
 
-  function requiredBagsForStreak(n){ return Math.min(4, Math.max(1, (n|0)+1)); } // 1,2,3,4 then OD
+// 1,2,3,4 then OD
 
   function triggerOverdose(){
     try {
@@ -414,10 +405,9 @@
   }
 
   // ---------- Pre‑match mount points ----------
-  function isPrison(){ try{ return (S && S.suspensions && (S.suspensions.prison_games|0) > 0); }catch(_){ return false; } }
   function isRehab(){ try{ return (S && (S.coke_cooldown|0) > 0); }catch(_){ return false; } }
   function canShowDrugActions(){
-    if (!S || isPrison()) return false;
+    if (!S || isInPrison()) return false;
     if (S.suspensions?.rehab_games > 0) return false;
     if (isRehab()) return false; // Also block during cocaine rehab
     return true;
@@ -447,19 +437,12 @@
     }
   }
 
-  // Hook log to mount actions when a pre-match banner appears
-  (function wrapLogForPrematchDrugButtons(){
-    const prev = window.log || function(){};
-    if (prev.__drugButtonsPatched) return;
-    window.log = function(){
-      const msg = arguments[0];
-      const ret = prev.apply(this, arguments);
-      try{
-        if (typeof msg === "string" && /pre[- ]match|Kickoff|Opponent|locker|team talk|manager briefing/i.test(msg)){
-          setTimeout(mountDrugActions, 50);
-        }
-        // post-match: reset daily flag + rehab countdown
-        if (typeof msg === "string" && msg.indexOf("Attendance:") === 0 && msg.indexOf("Gate Revenue:") !== -1){
+  // Pre-match menus get the "plant drugs" action
+  GameHooks.on('choices', function(){ if (S && S.phase === 'prematch') mountDrugActions(); });
+
+  // Post-match: reset daily flag + rehab countdown + cocaine crash
+  // (Dormant: was keyed to an "Attendance: … Gate Revenue:" log line the core no longer writes.)
+  GameHooks.on('postmatch:gate-anchor', function(){
           if (S.on_drugs_today) S.on_drugs_today = false;
           if (S.suspensions?.rehab_games > 0){
             S.suspensions.rehab_games = Math.max(0, (S.suspensions.rehab_games|0) - 1);
@@ -478,12 +461,7 @@
             S.team_morale_boost = (S.team_morale_boost||0) - S._coke_crash_morale_penalty;
             log(`The cocaine crash hits hard. Team morale -${S._coke_crash_morale_penalty}.`);
           }
-        }
-      }catch(_){}
-      return ret;
-    };
-    window.log.__drugButtonsPatched = true;
-  })();
+  });
 
   // ---------- DERANGED actions (when high) ----------
   function mountDerangedActions(){
@@ -536,15 +514,6 @@
   }
 
   // ---------- Player Drug Scandal (pre-match event) ----------
-  function maybePlayerDrugScandal(){
-    if (!S || !Array.isArray(S.squad) || S.squad.length === 0) return;
-    if (isPrison()) return; // keep pre-match minimal in prison
-    // chance scales with number of "deranged" types (we'll mimic by picking higher rated or random)
-    const base = 0.07;
-    if (Math.random() >= base) return;
-    const p = S.squad[Math.floor(Math.random()*S.squad.length)];
-    presentPlayerDrugScandal(p);
-  }
 
   function presentPlayerDrugScandal(player){
     const name = player?.name || "Unnamed Player";
@@ -569,7 +538,7 @@
     const blackmail = btn("Exploit: blackmail for weekly payments", "bad", function(){
       player.blackmailed = true;
       player.blackmail_wage = Math.max(1000, Math.round((player.wage||100)*4));
-      logSafe(`${name} agrees to pay you ${money(player.blackmail_wage)} per week to keep quiet.`);
+      logSafe(`${name} agrees to pay you ${moneyGBP(player.blackmail_wage)} per week to keep quiet.`);
       S.offbooks = (S.offbooks|0) + 1;
       clearPatch5Btns();
     });
@@ -590,30 +559,19 @@
   }
 
   // Apply blackmail payments weekly (post-match anchor is fine)
-  (function siphonBlackmailCashPostMatch(){
-    const prev = window.log || function(){};
-    if (prev.__patch5BlackmailSiphon) return;
-    window.log = function(){
-      const msg = arguments[0];
-      const ret = prev.apply(this, arguments);
-      try{
-        if (typeof msg === "string" && msg.indexOf("Attendance:") === 0 && msg.indexOf("Gate Revenue:") !== -1){
+  // (Dormant: was keyed to an "Attendance: … Gate Revenue:" log line the core no longer writes.)
+  GameHooks.on('postmatch:gate-anchor', function siphonBlackmailCashPostMatch(){
           if (Array.isArray(S.squad)){
             let total = 0;
             S.squad.forEach(p=>{ if (p?.blackmailed && p.blackmail_wage){ total += p.blackmail_wage; } });
-            if (total>0){ S.chairman_cash = (S.chairman_cash|0) + total; logSafe(`Off‑books kickbacks from players total ${money(total)}.`); }
+            if (total>0){ S.chairman_cash = (S.chairman_cash|0) + total; logSafe(`Off‑books kickbacks from players total ${moneyGBP(total)}.`); }
           }
           // Queue drug scandal for next pre-match instead of immediate trigger
           // This prevents interference with post-match investigations
           if (!S._queued_drug_scandal) {
             S._queued_drug_scandal = true;
           }
-        }
-      }catch(_){}
-      return ret;
-    };
-    window.log.__patch5BlackmailSiphon = true;
-  })();
+  });
 
   // ---------- Plant drugs on a player ----------
   function plantDrugsFlow(){

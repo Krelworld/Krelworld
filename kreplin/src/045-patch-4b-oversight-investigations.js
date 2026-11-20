@@ -25,10 +25,7 @@
   }
 
   function rndInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
-  function clamp(n,lo,hi){ return Math.max(lo, Math.min(hi,n)); }
-  function money(n){ return "£"+Number(Math.max(0,Math.round(n||0))).toLocaleString('en-GB'); }
   function feedLog(msg){ try{ (window.log||console.log)(msg); }catch(e){} }
-  function actionsRoot(){ return document.getElementById('actions') || document.getElementById('choices') || document.body; }
   function btn(label, variant, onClick){
     var b = document.createElement('button');
     b.textContent = label;
@@ -101,18 +98,18 @@
     feedLog("BOARD HEARING: \""+caseType+"\" — You’ve been summoned to the board.");
     var root = actionsRoot();
     var fine = rndInt(10000, 60000);
-    root.appendChild(btn("Accept guilt (pay "+money(fine)+")", "warn", function(){
+    root.appendChild(btn("Accept guilt (pay "+moneyGBP(fine)+")", "warn", function(){
       addClubFine(fine);
       S.board_support = clamp((S.board_support|0) - 5, 0, 100);
       S.compliance_risk = clamp((S.compliance_risk|0) - 2, 0, 999);
-      feedLog("You accept the charges. The board fines the club "+money(fine)+" and issues a stern warning.");
+      feedLog("You accept the charges. The board fines the club "+moneyGBP(fine)+" and issues a stern warning.");
       clearChoiceButtons(); if (typeof updateHUD==="function") updateHUD();
     }));
     root.appendChild(btn("Blame mental health (medium risk)", "warn", function(){
       var lucky = Math.random() < 0.45;
       if (lucky){
         var covered = resolveArrears(rndInt(15000, 60000));
-        feedLog("They sigh: \"That sounds really difficult.\" A mental‑health charity quietly covers "+money(covered)+" of club arrears.");
+        feedLog("They sigh: \"That sounds really difficult.\" A mental‑health charity quietly covers "+moneyGBP(covered)+" of club arrears.");
         S.compliance_risk = clamp((S.compliance_risk|0) - 3, 0, 999);
       } else {
         feedLog("They stare in silence. \"We’re not convinced.\" Support drops.");
@@ -133,7 +130,7 @@
       clearChoiceButtons(); if (typeof updateHUD==="function") updateHUD();
     }));
     var bribeAsk = rndInt(20000, 90000);
-    root.appendChild(btn("Offer a bribe ("+money(bribeAsk)+")", "bad", function(){
+    root.appendChild(btn("Offer a bribe ("+moneyGBP(bribeAsk)+")", "bad", function(){
       var ok = Math.random() < 0.6;
       if (ok){
         if ((S.chairman_cash|0) >= bribeAsk) S.chairman_cash -= bribeAsk;
@@ -156,7 +153,7 @@
     var points = Math.random() < 0.35 ? rndInt(1, 6) : 0;
     var suspend = Math.random() < 0.35 ? rndInt(1, 4) : 0;
     feedLog("FA INTERVIEW: \""+caseType+"\" — You’re called to HQ about irregularities.");
-    root.appendChild(btn("Accept guilt (fine "+money(baseFine)+ (points? ", -"+points+" pts":"") + (suspend? ", suspended "+suspend+" game(s)":"") +")", "warn", function(){
+    root.appendChild(btn("Accept guilt (fine "+moneyGBP(baseFine)+ (points? ", -"+points+" pts":"") + (suspend? ", suspended "+suspend+" game(s)":"") +")", "warn", function(){
       addClubFine(baseFine);
       if (points) addPointsDeduction(points);
       if (suspend) S.suspensions.house_games = (S.suspensions.house_games|0) + suspend;
@@ -199,13 +196,13 @@
       clearChoiceButtons(); if (typeof updateHUD==="function") updateHUD();
     }));
     var bribeAsk = baseFine + rndInt(10000, 40000);
-    root.appendChild(btn("Quietly ask: \"What can make this go away?\" ("+money(bribeAsk)+")", "bad", function(){
+    root.appendChild(btn("Quietly ask: \"What can make this go away?\" ("+moneyGBP(bribeAsk)+")", "bad", function(){
       var ok = Math.random() < 0.45;
       if (ok){
         if ((S.chairman_cash|0) >= bribeAsk) S.chairman_cash -= bribeAsk;
         else S.club_cash = Math.max(0, (S.club_cash|0) - bribeAsk);
         var cleared = resolveArrears(rndInt(10000, 40000));
-        feedLog("A whisper: \"Keep your head down.\" Case closed. "+(cleared?("Some arrears quietly resolved ("+money(cleared)+")."):""));
+        feedLog("A whisper: \"Keep your head down.\" Case closed. "+(cleared?("Some arrears quietly resolved ("+moneyGBP(cleared)+")."):""));
         S.fa_risk = clamp((S.fa_risk|0) - 4, 0, 999);
       } else {
         feedLog("They recoil. \"Do not attempt to interfere.\" The file thickens.");
@@ -231,7 +228,7 @@
     var fineClub  = Math.round(fineChair * 0.6);
     var prison    = Math.random() < 0.4 ? rndInt(1, 4) : 0;
     feedLog("YOU'VE BEEN ARRESTED BY THE POLICE — Case: "+caseType);
-    root.appendChild(btn("Accept guilt (fines "+money(fineChair)+" personal, "+money(fineClub)+" club"+(prison? ", prison "+prison+" game(s)":"")+")", "warn", function(){
+    root.appendChild(btn("Accept guilt (fines "+moneyGBP(fineChair)+" personal, "+moneyGBP(fineClub)+" club"+(prison? ", prison "+prison+" game(s)":"")+")", "warn", function(){
       addChairFine(fineChair);
       addClubFine(fineClub);
       if (prison) {
@@ -268,7 +265,7 @@
         var lucky = Math.random() < 0.35;
         if (lucky){
           var cleared = resolveArrears(rndInt(15000, 60000));
-          feedLog("One detective softens. \"We'll caution you.\" "+(cleared?("A charity covers "+money(cleared)+" in arrears."):""));
+          feedLog("One detective softens. \"We'll caution you.\" "+(cleared?("A charity covers "+moneyGBP(cleared)+" in arrears."):""));
           S.police_risk = clamp((S.police_risk|0) - 3, 0, 999);
         } else {
           feedLog("They don't buy it. They proceed with charges.");
@@ -300,13 +297,13 @@
       clearChoiceButtons(); if (typeof updateHUD==="function") updateHUD();
     }));
     var bribeAsk = fineChair + rndInt(20000, 50000);
-    root.appendChild(btn("Ask quietly: \"What can I make to do this go away?\" ("+money(bribeAsk)+")", "bad", function(){
+    root.appendChild(btn("Ask quietly: \"What can I make to do this go away?\" ("+moneyGBP(bribeAsk)+")", "bad", function(){
       var ok = Math.random() < 0.35;
       if (ok){
         if ((S.chairman_cash|0) >= bribeAsk) S.chairman_cash -= bribeAsk;
         else S.club_cash = Math.max(0, (S.club_cash|0) - bribeAsk);
         var cleared = resolveArrears(rndInt(20000, 70000));
-        feedLog("A look. A nod. The file goes missing. "+(cleared?("Arrears vanish to the tune of "+money(cleared)+"."):""));
+        feedLog("A look. A nod. The file goes missing. "+(cleared?("Arrears vanish to the tune of "+moneyGBP(cleared)+"."):""));
         S.police_risk = clamp((S.police_risk|0) - 5, 0, 999);
       } else {
         feedLog("They bristle. \"Attempted bribery, noted.\"");
@@ -380,22 +377,6 @@
     return;
   }
 
-  (function hookLog(){
-    var prev = window.log || function(){};
-    if (prev.__wrapped4B) return;
-    window.log = function(){
-      var msg = arguments[0];
-      var ret = prev.apply(this, arguments);
-      try{
-        if (typeof msg === "string" && msg.indexOf("Attendance:") === 0 && msg.indexOf("Gate Revenue:") !== -1){
-          // Disabled old oversight system - using new investigation system instead
-          // setTimeout(maybePresentOversightEvents, 250);
-        }
-      }catch(e){}
-      return ret;
-    };
-    window.log.__wrapped4B = true;
-  })();
 
   setTimeout(function(){ try{ ensureOversightState(); announceSuspensionsIfAny(); }catch(e){} }, 1500);
 

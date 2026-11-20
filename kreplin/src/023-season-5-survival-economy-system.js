@@ -476,7 +476,15 @@ function applySeason5MatchModifiers(outcome) {
   return outcome;
 }
 
-async function preMatchPhase(){
+// Public preMatchPhase(): marks the phase, runs it, then emits 'prematch:end'.
+async function preMatchPhase(...args){
+  setPhase('prematch');
+  const result = await runPreMatchPhase.apply(this, args);
+  GameHooks.emit('prematch:end', result);
+  return result;
+}
+
+async function runPreMatchPhase(){
 // Process Press system pre-match events
 initPressSystem();
 await processPendingLawsuits();

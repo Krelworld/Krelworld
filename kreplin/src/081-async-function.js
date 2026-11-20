@@ -1102,21 +1102,11 @@ For a performer whose career has depended on testing whether there are any remai
     }
   }
   
-  // Hook into pre-match to check sex offender consequences
-  const originalPreMatchPhase = window.preMatchPhase;
-  if (typeof originalPreMatchPhase === 'function') {
-    window.preMatchPhase = async function(...args) {
-      const result = await originalPreMatchPhase.apply(this, args);
-      checkSexOffenderMatchConsequences();
-      return result;
-    };
-  }
+  // After pre-match: sex offender register consequences
+  GameHooks.on('prematch:end', function() { checkSexOffenderMatchConsequences(); });
   
   // Reset flag after match
-  const originalPostMatchPhase = window.postMatchPhase;
-  if (typeof originalPostMatchPhase === 'function') {
-    window.postMatchPhase = async function(...args) {
-      const result = await originalPostMatchPhase.apply(this, args);
+  GameHooks.on('postmatch:end', function() {
       if (S.portsmouth_special_event_triggered) {
         // Reset for next time
         const nextMatchIndex = (S.matches_played || 0);
@@ -1125,9 +1115,7 @@ For a performer whose career has depended on testing whether there are any remai
           S.portsmouth_special_event_triggered = false;
         }
       }
-      return result;
-    };
-  }
+  });
  
   // Expose functions needed by the global game loop
   // `eveningPhase` calls `checkPortsmouthSpecialEvent` directly, and

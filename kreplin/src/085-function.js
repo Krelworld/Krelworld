@@ -278,13 +278,8 @@
     };
   }
 
-  // Monitor for epilogue audio starting
-  const originalLog = window.log;
-  if (typeof originalLog === 'function' && !originalLog.__generalMusicHooked) {
-    window.log = function() {
-      const result = originalLog.apply(this, arguments);
-      
-      // Check if epilogue audio is being created/played
+  // Monitor for epilogue audio starting (checked shortly after each log line)
+  GameHooks.on('log', function() {
       setTimeout(() => {
         const epilogueOverlays = document.querySelectorAll('[id*="epilogue"], [class*="epilogue"]');
         for (let overlay of epilogueOverlays) {
@@ -294,11 +289,7 @@
           }
         }
       }, 100);
-      
-      return result;
-    };
-    originalLog.__generalMusicHooked = true;
-  }
+  });
 
   // Also monitor for any UI modals/overlays that might have dedicated music
   // This is a catch-all for any other dedicated music tracks

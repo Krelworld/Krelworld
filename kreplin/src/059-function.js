@@ -32,83 +32,10 @@
     
   };
 
-  // Intercept the game flow to show rehab button after kickoff
-  (function interceptRehabFlow() {
-    // Override the main game functions to check for rehab
-    const originalChoose = window.choose;
-    if (originalChoose && !originalChoose.__rehabIntercepted) {
-      window.choose = function(options, prompt) {
-        // Check if we're in rehab and this is a kickoff choice
-        if (S && S.in_rehab && prompt && prompt.includes('Kickoff')) {
-          
-          // Clear the choices and show rehab button
-          const root = document.getElementById('actions') || document.getElementById('choices') || document.body;
-          if (root) {
-            const existingBtns = root.querySelectorAll('button, a');
-            existingBtns.forEach(btn => btn.remove());
-            
-            // Create rehab button
-            const rehabBtn = document.createElement('button');
-            rehabBtn.textContent = 'Watch game from rehab (observe only)';
-            rehabBtn.className = 'warn';
-            rehabBtn.onclick = function() {
-              // Simulate match
-              const ourGoals = Math.floor(Math.random() * 3) + 1;
-              const theirGoals = Math.floor(Math.random() * 3);
-              
-              logSafe("You watch from the treatment center. The counselors say you're making progress.");
-              logSafe(`REHAB MATCH RESULT: ${ourGoals}-${theirGoals}`);
-              
-              // Update stats
-              S.matches_played = (S.matches_played|0) + 1;
-              if (ourGoals > theirGoals) {
-                S.wins = (S.wins|0) + 1;
-                S.points = (S.points|0) + 3;
-              } else if (ourGoals === theirGoals) {
-                S.draws = (S.draws|0) + 1;
-                S.points = (S.points|0) + 1;
-              } else {
-                S.losses = (S.losses|0) + 1;
-              }
-              
-              // Decrement rehab games
-              S.rehab_games_remaining = Math.max(0, S.rehab_games_remaining - 1);
-              
-              if (S.rehab_games_remaining > 0) {
-                logSafe(`REHAB: ${S.rehab_games_remaining} more match(es) remaining in treatment.`);
-                // Continue to next match
-                setTimeout(() => {
-                  if (typeof updateHUD === 'function') updateHUD();
-                  // The game will naturally continue to the next match
-                }, 1000);
-              } else {
-                logSafe("REHAB: You are discharged! Full game functionality restored.");
-                S.in_rehab = false;
-                S.rehab_games_remaining = 0;
-                if (typeof updateHUD === 'function') updateHUD();
-              }
-              
-              // Save state
-              saveGame();
-            };
-            root.appendChild(rehabBtn);
-          }
-          
-          // Return a promise that resolves immediately
-          return Promise.resolve('rehab');
-        }
-        
-        // Otherwise, use the original choose function
-        return originalChoose.apply(this, arguments);
-      };
-      window.choose.__rehabIntercepted = true;
-    }
-  })();
-
   // Make takeCocaine globally accessible
   window.takeCocaine = function(){
     try {
-      ensureCore();
+      ensureDrugCore();
       // Force unlock drugs to ensure functionality
       S.drugs_unlocked = true;
       if (!S.drugs_unlocked) { (window.log||console.log)("You don't have a dealer contact yet."); return; }
@@ -146,18 +73,6 @@
   };
 
   // ---------- Safe state & logging ----------
-  function ensureCore(){
-    window.S = window.S || {};
-    if (!S.inventory || typeof S.inventory !== 'object') S.inventory = { accolades: [], drugs: 0 };
-    if (!Array.isArray(S.inventory.accolades)) S.inventory.accolades = [];
-    if (typeof S.inventory.drugs !== 'number') S.inventory.drugs = 0;
-    if (typeof S.drugs_unlocked !== 'boolean') S.drugs_unlocked = true; // ensure drugs are unlocked
-    if (typeof S.drug_streak !== 'number') S.drug_streak = 0;
-    if (typeof S.on_drugs_today !== 'boolean') S.on_drugs_today = false;
-    if (!S.suspensions) S.suspensions = { rehab_games:0, prison_games:0, house_games:0 };
-  }
-  function logSafe(m){ try{ (window.log||console.log)(m); }catch(_){  } }
-  function money(n){ return "£"+Number(Math.max(0,Math.round(n||0))).toLocaleString('en-GB'); }
 
   // ---------- HUD pill ----------
   function ensureDrugHUD(){
@@ -175,7 +90,7 @@
     updateDrugHUD();
   }
   function updateDrugHUD(){
-    ensureCore();
+    ensureDrugCore();
     const span = document.getElementById('hudDrugCount');
     if (span) span.textContent = String(S.inventory?.drugs|0);
   }
@@ -191,8 +106,8 @@
     return window.unifiedOverdose();
   }
   function buyBag(){
-    ensureCore();
-    if ((S.chairman_cash|0) < PRICE_PER_BAG){ logSafe(`Marco: "Cash up front." (Need ${money(PRICE_PER_BAG)})`); return; }
+    ensureDrugCore();
+    if ((S.chairman_cash|0) < PRICE_PER_BAG){ logSafe(`Marco: "Cash up front." (Need ${moneyGBP(PRICE_PER_BAG)})`); return; }
     S.chairman_cash -= PRICE_PER_BAG;
     const oldCount = S.inventory.drugs|0;
     S.inventory.drugs = (S.inventory.drugs|0) + 1;
@@ -211,7 +126,7 @@
 
   // ---------- Helper: Get Brick Count ----------
   function getBrickCount() {
-    ensureCore();
+    ensureDrugCore();
     const bricks = (S.inventory.items || []).filter(item => item.name === 'Brick');
     if (bricks.length === 0) return 0;
     return bricks.reduce((total, brick) => total + (brick.quantity || 0), 0);
@@ -219,7 +134,7 @@
 
   // ---------- Enhanced Render Inventory (with buy/use controls) ----------
   function renderInventory(){
-    ensureCore(); ensureInventoryPane(); ensureDrugHUD();
+    ensureDrugCore(); ensureInventoryPane(); ensureDrugHUD();
     const sum  = document.getElementById('invSummary');
     const list = document.getElementById('inventoryList');
     if (!list) return;
@@ -251,7 +166,7 @@
         const k = document.createElement('div'); k.className='k'; 
         k.textContent = item.name + (item.equipped ? ' (EQUIPPED)' : '');
         const v = document.createElement('div'); v.className='v'; 
-        v.textContent = `${item.quantity}x ${money(item.baseValue||0)}`;
+        v.textContent = `${item.quantity}x ${moneyGBP(item.baseValue||0)}`;
         const act = document.createElement('div');
         
         // Sell button
@@ -293,7 +208,7 @@
       acc.forEach((a, idx)=>{
         const row = document.createElement('div'); row.className='row';
         const k = document.createElement('div'); k.className='k'; k.textContent = a?.name || 'Unlabelled trophy';
-        const v = document.createElement('div'); v.className='v'; v.textContent = money(a?.value||0);
+        const v = document.createElement('div'); v.className='v'; v.textContent = moneyGBP(a?.value||0);
         const act = document.createElement('div'); const btn = document.createElement('button'); btn.textContent = 'Sell';
         btn.addEventListener('click', async ()=>{
           await sellAccolade(idx);
@@ -313,7 +228,7 @@
     const k = document.createElement('div'); k.className='k'; k.textContent='Cocaine';
     const v = document.createElement('div'); v.className='v'; v.textContent=`${drug} bag(s)`;
     const act = document.createElement('div');
-    const buy = document.createElement('button'); buy.textContent = `Buy 1 bag (${money(PRICE_PER_BAG)})`; buy.style.marginRight='6px';
+    const buy = document.createElement('button'); buy.textContent = `Buy 1 bag (${moneyGBP(PRICE_PER_BAG)})`; buy.style.marginRight='6px';
     buy.addEventListener('click', buyBag);
     const use = document.createElement('button'); use.textContent='Take (use)'; use.disabled = drug<=0; 
     use.addEventListener('click', function(){
@@ -333,7 +248,7 @@
     const brickAct = document.createElement('div');
     const buyBrick = document.createElement('button'); 
     const currentBricks = getBrickCount();
-    buyBrick.textContent = `Buy Brick (${money(100000)}) - Current: ${currentBricks}`; 
+    buyBrick.textContent = `Buy Brick (${moneyGBP(100000)}) - Current: ${currentBricks}`; 
     buyBrick.style.marginRight='6px';
     buyBrick.addEventListener('click', function(){
       const brickPrice = 100000;
@@ -370,7 +285,7 @@
 
   // ---------- Boot wiring ----------
   function bootWire(){
-    ensureCore();
+    ensureDrugCore();
     if (typeof window.ensureInventoryPane === 'function') {
       window.ensureInventoryPane();
     } else {
@@ -384,15 +299,9 @@
   window.bootWire = bootWire;
 
   // Safety: also refresh HUD when the outer game HUD refreshes
-  (function wrapHUD(){
-    const prev = window.updateHUD || function(){};
-    if (prev.__drugHudWrap532) return;
-    window.updateHUD = function(){
-      const ret = prev.apply(this, arguments);
+  // HUD extension (runs after updateHUD redraws)
+  GameHooks.on('hud', function wrapHUD(){
       try{ updateDrugHUD(); }catch(_){}
-      return ret;
-    };
-    window.updateHUD.__drugHudWrap532 = true;
-  })();
+  });
 
 })();

@@ -71,58 +71,16 @@
 })();
 
 
-// SIMPLE INVENTORY BUTTON SETUP - FINAL SOLUTION
-function setupSimpleInventoryButton() {
-  
-  // Wait for DOM to be ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupSimpleInventoryButton);
-    return;
-  }
-  
+// Inventory button: opens the inventory pane (the one inventory UI)
+(function wireInventoryButton(){
   const btn = document.getElementById('openInvBtn');
-  if (btn) {
-    // Remove any existing event listeners by cloning
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    
-    // Add simple click handler using onclick (most reliable)
-    newBtn.onclick = function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Ensure inventory pane exists first
-      if (typeof ensureInventoryPane === 'function') {
-        ensureInventoryPane();
-      }
-      
-      // Then toggle it open and render content
-      if (typeof window.toggleInventoryPane === 'function') {
-        window.toggleInventoryPane(true);
-      } else {
-        const pane = document.getElementById('inventoryPane');
-        if (pane) {
-          pane.style.display = 'block';
-          if (typeof window.renderInventory === 'function') {
-            // Ensure inventory data exists
-            if (!window.S) window.S = {};
-            if (!window.S.inventory) window.S.inventory = { accolades: [], drugs: 0, items: [] };
-            window.renderInventory();
-          } else {
-          }
-        } else {
-        }
-      }
-    };
-    
-  } else {
-  }
-}
-
-// Set up the button with multiple fallbacks
-setupSimpleInventoryButton();
-setTimeout(setupSimpleInventoryButton, 1000);
-setTimeout(setupSimpleInventoryButton, 3000);
+  if (!btn) return;
+  btn.onclick = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleInventoryPane(true);
+  };
+})();
 
 // Set up fundraiser button
 function setupFundraiserButton() {

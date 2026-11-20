@@ -245,11 +245,8 @@
   };
 
   // Wrap HUD to manage unread indicators and click binding
-  (function wrapHUDComms(){
-    const prev = window.updateHUD || function(){};
-    if (prev.__commsWrap) return;
-    window.updateHUD = function(){
-      const ret = prev.apply(this, arguments);
+  // HUD extension (runs after updateHUD redraws)
+  GameHooks.on('hud', function wrapHUDComms(){
       try{
         window.S = window.S || {};
         if (typeof S.phone_unread !== 'number') S.phone_unread = 0;
@@ -291,10 +288,7 @@
         if (newsBtn) newsBtn.classList.toggle('hud-glow', newsUnread);
         if (phoneBtn) phoneBtn.classList.toggle('hud-glow', phoneUnread);
       }catch(_){ }
-      return ret;
-    };
-    window.updateHUD.__commsWrap = true;
-  })();
+  });
 
   // ========== PHONE TEXT CATEGORIES & CONTENT SYSTEM ==========
   
@@ -4189,11 +4183,8 @@
     }
   }
 
-  // Hook into post-match phase
-  const originalPostMatchPhase = window.postMatchPhase;
-  if (typeof originalPostMatchPhase === 'function') {
-    window.postMatchPhase = async function(...args) {
-      const result = await originalPostMatchPhase.apply(this, args);
+  // After the post-match phase: phone events + Pompey-loss unlock
+  GameHooks.on('postmatch:end', function() {
       checkPhoneEvents();
       
       // Check for Pompey loss
@@ -4207,24 +4198,9 @@
           unlockDelmor();
         }
       }
-      
-      return result;
-    };
-  }
+  });
 
-  // Initialize on load
-  if (typeof init === 'function') {
-    const originalInit = init;
-    window.init = function() {
-      const result = originalInit.apply(this, arguments);
-      initPhoneSystem();
-      return result;
-    };
-  } else {
-    // Fallback: init when S is available
-    setTimeout(() => {
-      if (window.S) initPhoneSystem();
-    }, 1000);
-  }
+  // Initialize the phone system once S exists
+  GameHooks.on('init', function() { initPhoneSystem(); });
 
 })();

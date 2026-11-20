@@ -170,6 +170,7 @@ function clearOverlaysForEvening() {
 }
 
 async function eveningPhase(){
+  setPhase('evening');
   try {
     // Ensure no stale overlays are blocking input before showing evening choices
     clearOverlaysForEvening();
@@ -276,7 +277,7 @@ async function choosePlayerName(){
   }
   
   // Set context to prevent cocaine buttons during name selection
-  window.__ui_context = 'name_selection';
+  setPhase('name_selection');
   
   const firsts = uniqueSample(MALE_NAMES, 9);
   const firstOpts = firsts.map((nm,i)=>({key:String(i+1), label:nm}));
@@ -300,13 +301,20 @@ if (title) {
   ensureFamilyNames();
   
   // Reset context after name selection is complete
-  window.__ui_context = 'boot';
+  setPhase('boot');
 }
 
 function fmtGBP(n){ n = Math.floor(n||0); return "£" + n.toLocaleString(); }
 function hudSet(id, val){ const el = document.getElementById(id); if(el) el.textContent = val; }
 
+// Public updateHUD(): redraws the HUD then emits 'hud' so systems can add their pills.
 function updateHUD(){
+  const ret = renderHUD.apply(this, arguments);
+  GameHooks.emit('hud');
+  return ret;
+}
+
+function renderHUD(){
   if (!S) return;  // hard guard so we never read properties of null
 
   // Sync S.points, S.wins, S.draws, S.losses with league table (if table exists) to ensure consistency

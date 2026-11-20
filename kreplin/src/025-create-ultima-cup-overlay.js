@@ -2050,7 +2050,15 @@ if (typeof window.isHomeToday !== 'function') {
 }
 
 // --- Post-match: record result, settle bets, advance round ---
-async function postMatchPhase(outcome){
+// Public postMatchPhase(): marks the phase, runs it, then emits 'postmatch:end'.
+async function postMatchPhase(...args){
+  setPhase('postmatch');
+  const result = await runPostMatchPhase.apply(this, args);
+  GameHooks.emit('postmatch:end', result);
+  return result;
+}
+
+async function runPostMatchPhase(outcome){
   
   // Process post-match drug effects (cocaine dependency, doping scandals)
   if (typeof processPostMatchDrugEffects === 'function') {

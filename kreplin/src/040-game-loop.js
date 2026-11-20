@@ -66,7 +66,14 @@ window.clearCorruptedState = function() {
   location.reload();
 };
 
+// Public init(): creates/loads S, then emits 'init'.
 function init(){
+  const result = initGameState.apply(this, arguments);
+  GameHooks.emit('init');
+  return result;
+}
+
+function initGameState(){
   // Check if reset was requested - if so, skip loading and start fresh
   const resetFlag = localStorage.getItem('_reset_flag');
   let saved = null;
@@ -1013,7 +1020,7 @@ async function runPrisonLoop() {
     }
     
     // Clear any UI context flags
-    window.__ui_context = 'prison';
+    setPhase('prison');
     S._police_interview_in_progress = false;
     S._police_interview_active = false;
     
@@ -1146,7 +1153,7 @@ async function runPrisonLoop() {
         
         // Reset UI context and clear any remaining UI elements
         try {
-          window.__ui_context = null;
+          setPhase(null);
           if (typeof clearActions === 'function') {
             clearActions();
           }

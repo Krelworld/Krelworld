@@ -9,6 +9,32 @@ const SURNAMES     = ["Creltu","Scrozno", "Drywall", "Prostin", "Felch", "Mandri
 
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
+// ---- Shared helpers for the drug / oversight systems (formerly re-declared per patch) ----
+function actionsRoot(){
+  return document.getElementById('actions') || document.getElementById('choices') || document.getElementById('choicesPanel') || document.body;
+}
+function moneyGBP(n){ return "£"+Number(Math.max(0,Math.round(n||0))).toLocaleString('en-GB'); }
+function isInPrison(){ try{ return !!(S && S.suspensions && (S.suspensions.prison_games|0) > 0); }catch(_){ return false; } }
+// Make sure the drug/addiction/suspension fields exist on S.
+function ensureDrugCore(){
+  window.S = window.S || {};
+  const S = window.S;
+  if (!S.inventory || typeof S.inventory !== 'object') S.inventory = { accolades: [], drugs: 0 };
+  if (!Array.isArray(S.inventory.accolades)) S.inventory.accolades = [];
+  if (typeof S.inventory.drugs !== 'number') S.inventory.drugs = 0;
+  if (typeof S.drugs_unlocked !== 'boolean') S.drugs_unlocked = true;
+  if (typeof S.drug_streak !== 'number') S.drug_streak = 0;
+  if (typeof S.on_drugs_today !== 'boolean') S.on_drugs_today = false;
+  if (!S.suspensions) S.suspensions = { rehab_games:0, prison_games:0, house_games:0 };
+  if (typeof S.suspensions.prison_games !== 'number') S.suspensions.prison_games = 0;
+  if (typeof S.suspensions.rehab_games !== 'number') S.suspensions.rehab_games = 0;
+  if (!S.addictions || typeof S.addictions !== 'object') S.addictions = { people: {} };
+  if (!S.record_simple) S.record_simple = {W:0,D:0,L:0};
+  if (typeof S.fan_morale !== 'number') S.fan_morale = 60;
+  if (typeof S.club_cash !== 'number') S.club_cash = 0;
+  if (typeof S.chairman_cash !== 'number') S.chairman_cash = 0;
+}
+
 
 
 
@@ -1315,37 +1341,9 @@ async function handleTransferVendettaEvent(ev, wf, rel){
   }
 }
 
-// Only add if you don't already have them:
-if (typeof clamp !== 'function'){
-  function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
-}
-
-if (typeof registerBribe !== 'function'){
-  function registerBribe(amount, who = 'referee', source = 'club'){
-    try {
-      S.bribe_log.push({ who, amount, source, week: S.matches_played|0 });
-      
-      // Trigger bribery achievement
-      if (window.socialManager && !window.socialManager.achievements.find(a => a.id === 'bribed_someone')) {
-        const achievement = {
-          id: 'bribed_someone',
-          title: 'Bribed Someone',
-          description: 'Bribed someone',
-          icon: '💰'
-        };
-        window.socialManager.showAchievement(achievement);
-        window.socialManager.achievements.push(achievement);
-      }
-    } catch (_) {}
-  }
-}
+function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
 
 
-function registerBribe(amount=0){
-  S.bribes_count = (S.bribes_count||0) + 1;
-  // Scale risk lightly with frequency; heavy bribes can add a bit more
-  incrementRisk("bribe", 1 + (amount>50000 ? 1 : 0));
-}
 
 const POSITIONS = ["GK","DF","MF","FW"];
 

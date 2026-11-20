@@ -1512,6 +1512,7 @@ async function boardVoteCheck(){
   S.board_cooldown = 2; render(); return true;
 }
 async function oversightPhase(){
+  setPhase('oversight');
   let used=false;
   const t=faThresholds();
   const heat = (S.compliance_risk + S.legal_risk)/2 + S.paperRisk*0.4;

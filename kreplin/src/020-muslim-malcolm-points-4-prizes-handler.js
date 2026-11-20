@@ -2446,6 +2446,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
         
         for (let i = 0; i < numOptions; i++) {
           const pointsOffered = Math.floor(Math.random() * 10) + 1; // 1-10 points
+          if (packages.some(p => p.points === pointsOffered)) continue; // no identical packages
           const totalCost = costPerPoint * pointsOffered;
           packages.push({
             points: pointsOffered,

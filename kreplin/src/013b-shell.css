@@ -640,3 +640,6 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
 .ultima-cup-section h2,.ultima-cup-section h3,.ultima-cup-team-card h3,.ultima-cup-commentary-header,.score-value{text-shadow:none!important}
 .ultima-cup-section h2{font:700 20px var(--font-ui)!important;color:var(--gold)!important}
 .ultima-cup-skip-btn{box-shadow:0 3px 0 #000!important;border-radius:var(--r)!important}
+
+/* phone: toasts sit above the tab bar, not on it */
+@media (max-width: 900px){.k-toasts{right:8px;left:8px;bottom:calc(84px + env(safe-area-inset-bottom));align-items:flex-end}}

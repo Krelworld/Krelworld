@@ -557,12 +557,20 @@
   });
 
   // ---------- Plant drugs on a player ----------
-  function plantDrugsFlow(){
+  async function plantDrugsFlow(){
     ensureDrugState();
     if ((S.inventory.drugs|0) <= 0){ logSafe("You need at least one bag to plant."); return; }
     if (!Array.isArray(S.squad) || S.squad.length === 0){ logSafe("No players available."); return; }
     const options = S.squad.map(p=>p?.name).filter(Boolean);
-    const name = prompt("Choose a player to frame:\n" + options.map((n,i)=>`${i+1}. ${n}`).join("\n"));
+    let name;
+    if (window.KUI) {
+      // pick from a list instead of typing a number (same result: index 1..n)
+      const pickIdx = await KUI.modal({ title: 'Choose a player to frame:', variant: 'sinister',
+        actions: options.map((n, i) => ({ id: String(i + 1), label: KUI.esc(n) })).concat([{ id: 'cancel', label: 'Cancel' }]) });
+      name = (pickIdx == null || pickIdx === 'cancel') ? null : pickIdx;
+    } else {
+      name = prompt("Choose a player to frame:\n" + options.map((n,i)=>`${i+1}. ${n}`).join("\n"));
+    }
     if (name === null) return;
     let chosen = null;
     // try index

@@ -300,7 +300,7 @@
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
     const tag = (document.activeElement && document.activeElement.tagName) || '';
     if (/INPUT|TEXTAREA|SELECT/.test(tag)) return;
-    if (e.key === 'Escape') { if (closeTopPane()) { e.preventDefault(); } return; }
+    if (e.key === 'Escape') { if (closeTopPane() || closeTopLegacy()) { e.preventDefault(); } return; }
     if (!/^[1-9]$/.test(e.key)) return;
     const root = $('actions'); if (!root) return;
     const btns = [...root.querySelectorAll('button.opt')].filter(b => b.offsetParent !== null && !b.disabled);
@@ -325,6 +325,38 @@
     }
     return false;
   }
+
+  // ---------- legacy overlays: Esc closes (via their own close button), Tab stays inside ----------
+  function topLegacyLayer() {
+    let best = null, bestZ = -1;
+    for (const el of document.body.children) {
+      if (el.id === 'kApp' || el.id === 'kMoreSheet' || el.id === 'kLegacy' || /\bk-(toasts|vfail|modal-wrap|cut)\b/.test(el.className || '')) continue;
+      const cs = getComputedStyle(el);
+      if (cs.position !== 'fixed' || cs.display === 'none' || cs.visibility === 'hidden') continue;
+      const r = el.getBoundingClientRect();
+      if (r.width < innerWidth * 0.5 || r.height < innerHeight * 0.5) continue;
+      const z = parseInt(cs.zIndex, 10) || 0;
+      if (z >= bestZ) { best = el; bestZ = z; }
+    }
+    return best;
+  }
+  function closeTopLegacy() {
+    if (document.querySelector('.k-modal-wrap')) return false;      // KUI handles its own
+    const layer = topLegacyLayer(); if (!layer) return false;
+    const btn = [...layer.querySelectorAll('button')].find(b => b.offsetParent !== null && /^([✕×x]\s*)?(close|cancel|close window)?$/i.test(b.textContent.trim()) && b.textContent.trim());
+    if (btn) { btn.click(); return true; }
+    return false;
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Tab' || document.querySelector('.k-modal-wrap')) return;
+    const layer = topLegacyLayer(); if (!layer) return;
+    const f = [...layer.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(x => !x.disabled && x.offsetParent !== null);
+    if (!f.length) return;
+    const i = f.indexOf(document.activeElement);
+    if (i < 0) { e.preventDefault(); f[0].focus(); }
+    else if (e.shiftKey && i === 0) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+  }, true);
 
   // ---------- navigation ----------
   const click = id => { const b = $(id); if (b) b.click(); };

@@ -29,7 +29,8 @@ function setupGameButtons() {
   if (resetBtn) {
     resetBtn.onclick = async () => {
       // Show confirmation dialog
-      if (!confirm('Are you sure you want to reset? This will delete all saved progress and return you to Season 1, Match 1.')) {
+      const resetMsg = 'Are you sure you want to reset? This will delete all saved progress and return you to Season 1, Match 1.';
+      if (!(window.KUI ? await KUI.confirm(resetMsg, { title: 'Start over?', ok: 'Reset', variant: 'sinister' }) : confirm(resetMsg))) {
         return; // User cancelled
       }
       

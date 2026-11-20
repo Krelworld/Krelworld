@@ -187,8 +187,8 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
 .k-more-sys button{font:13px var(--font-ui);background:var(--panel);color:var(--text);border:var(--px) solid var(--line);border-radius:var(--r);min-height:44px;cursor:pointer}
 
 /* ---------- legacy panes (inventory, doctor, stadium, power network, fixtures) as sheets ---------- */
-#inventoryPane,#doctorPane,#stadiumPane,#powerNetworkPane,#fixturesPane{position:fixed!important;z-index:var(--z-pane);top:50%;left:50%;transform:translate(-50%,-50%);
-  width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 48px);overflow:auto;margin:0!important;padding:14px!important;
+#inventoryPane,#doctorPane,#stadiumPane,#powerNetworkPane,#fixturesPane{position:fixed!important;z-index:var(--z-pane)!important;top:50%!important;left:50%!important;right:auto!important;bottom:auto!important;transform:translate(-50%,-50%)!important;
+  width:min(820px,calc(100vw - 32px))!important;max-width:none!important;height:auto!important;max-height:calc(100dvh - 48px)!important;overflow:auto!important;animation:none!important;backdrop-filter:none!important;margin:0!important;padding:14px!important;
   background:var(--panel)!important;border:var(--px) solid var(--line2)!important;border-radius:var(--r)!important;color:var(--text);
   box-shadow:0 4px 0 #000,0 0 0 100vmax rgba(6,8,12,.72)!important;font:14px/1.45 var(--font-body)}
 #inventoryPane > div:first-child,#doctorPane > div:first-child,#stadiumPane > div:first-child,#powerNetworkPane > div:first-child,#fixturesPane > div:first-child{font:600 18px var(--font-ui)}
@@ -198,6 +198,7 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
 #fixturesPane table td,#fixturesPane table th{padding:4px 6px;border-bottom:1px solid var(--line)}
 
 /* ---------- old global header/panel visuals neutralised ---------- */
+#inventoryPane::before,#doctorPane::before,#stadiumPane::before,#powerNetworkPane::before,#fixturesPane::before,#inventoryPane::after,#doctorPane::after,#stadiumPane::after,#powerNetworkPane::after,#fixturesPane::after{content:none!important}
 .panel{animation:none;backdrop-filter:none}
 .panel:hover{transform:none}
 .entry:hover{transform:none}
@@ -248,7 +249,7 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
   .k-rail .k-badge{position:absolute;top:2px;left:calc(50% + 6px);margin:0}
   .k-nav:hover{background:none;border-color:transparent}
   .k-nav.on:hover{background:var(--red);border-color:var(--red-l)}
-  #inventoryPane,#doctorPane,#stadiumPane,#powerNetworkPane,#fixturesPane{top:auto;bottom:0;left:0;transform:none;width:100vw;max-height:88dvh;border-radius:8px 8px 0 0!important;padding-bottom:calc(14px + env(safe-area-inset-bottom))!important}
+  #inventoryPane,#doctorPane,#stadiumPane,#powerNetworkPane,#fixturesPane{top:auto!important;bottom:0!important;left:0!important;transform:none!important;width:100vw!important;max-height:88dvh!important;border-radius:8px 8px 0 0!important;padding-bottom:calc(14px + env(safe-area-inset-bottom))!important}
 }
 @media (max-width: 900px) and (max-height: 560px){ .k-scene{display:none} }
 @media (min-width: 901px) and (max-width: 1180px){
@@ -337,3 +338,75 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
   .quick-sim-modal{width:100vw;border-radius:8px 8px 0 0;border-width:var(--px) 0 0;padding-bottom:env(safe-area-inset-bottom)}
 }
 .quick-sim-modal .quick-sim-modal-options button.btn,.quick-sim-modal .quick-sim-modal-options button.btn:hover,.quick-sim-modal .quick-sim-modal-options button.btn:focus{background:var(--panel2);color:var(--text);transform:none}
+
+/* ===================== legacy modal families on the one theme =====================
+   (KUI.modal is the target API; these keep the ~22 older overlay systems visually consistent,
+   phone-safe and full-screen sheets on phones) */
+.modern-modal-overlay,.sinister-modal-overlay,.cinematic-modal-overlay,.news-popup-overlay,.save-slot-modal-overlay,.eos-presentation-overlay,
+.dialogue-popup-overlay,.phone-text-overlay,.music-control-modal,.top-scorers-modal,.ultima-cup-announcement-overlay,.fight-modal-overlay,.league-modal,
+#betModal,#debtPaymentModal,#cashTransferModal,#matchViewer,#videoViewer,#inventoryModal,#tinderModal{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.modern-modal-overlay,.sinister-modal-overlay,.cinematic-modal-overlay,.news-popup-overlay,.save-slot-modal-overlay,.eos-presentation-overlay,.dialogue-popup-overlay,
+.phone-text-overlay,.ultima-cup-announcement-overlay,.fight-modal-overlay{background:rgba(6,8,12,.78)!important}
+/* default family -> KUI default */
+.modern-modal,.save-slot-modal,.dialogue-popup-container,.music-control-content,.top-scorers-content,.league-modal-content,.eos-presentation-modal,
+#betModal > div,#debtPaymentModal > div,#cashTransferModal > div,#matchViewer > div,#videoViewer > div,.modal-card{
+  background:var(--panel)!important;color:var(--text)!important;border:var(--px) solid var(--line2)!important;border-radius:var(--r)!important;
+  box-shadow:0 4px 0 #000,0 20px 60px rgba(0,0,0,.6)!important;font-family:var(--font-body);max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);overflow:auto}
+.modern-modal .modal-header,.league-modal-header,.eos-presentation-header,.music-control-header,.top-scorers-header,
+#betModal > div > div:first-child,#debtPaymentModal > div > div:first-child,#cashTransferModal > div > div:first-child,#matchViewer > div > div:first-child,#videoViewer > div > div:first-child{
+  background:var(--panel2)!important;border-bottom:var(--px) solid var(--line)!important;border-radius:0!important}
+.modern-modal h3,.league-modal-title,.eos-presentation-title,.music-control-header h2,.top-scorers-title,.save-slot-modal h3,
+#betModal h3,#debtPaymentModal h3,#cashTransferModal h3,#matchViewer h3,#videoViewer h3{font-family:var(--font-ui)!important;font-weight:600!important;letter-spacing:.4px;color:var(--white)!important;
+  background:none!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important;animation:none!important}
+#betModal > div > div,#debtPaymentModal > div > div,#cashTransferModal > div > div{max-width:100%}
+#betModal label,#debtPaymentModal label,#cashTransferModal label{background:var(--panel2)!important;border-color:var(--line2)!important;color:var(--text)}
+#betModal input[type=number],#debtPaymentModal input[type=number],#cashTransferModal input[type=number],.modal-input{background:var(--ink)!important;border:var(--px) solid var(--line2)!important;color:var(--text)!important;border-radius:var(--r)!important;min-height:44px;font:16px var(--font-body)!important}
+#debtPaymentInfo,#debtPaymentPreview,#cashTransferPreview,#betOddsLine,#betPotentialWin{background:var(--ink)!important;color:var(--text)!important;border-radius:var(--r)!important}
+#betModal button,#debtPaymentModal button,#cashTransferModal button,#matchViewer button,#videoViewer button,.modern-modal .btn,.save-slot-modal button,.music-control-content button,
+.top-scorers-close,.league-modal-close,.eos-presentation-close{font:600 14px/1.2 var(--font-body)!important;border-radius:var(--r)!important;border:var(--px) solid var(--line2)!important;
+  background:var(--panel2)!important;color:var(--text)!important;box-shadow:0 2px 0 #000;min-height:40px;cursor:pointer}
+#betPlaceBtn,#debtPaymentConfirmBtn,#cashTransferConfirmBtn,.modern-modal .btn-primary{background:var(--red)!important;border-color:var(--red-l)!important;color:#fff!important}
+/* sinister -> KUI sinister */
+.sinister-modal,.sinister-modal-content{background:#0b0607!important;color:var(--text);border-color:#5a0b0e!important;box-shadow:0 0 40px rgba(215,25,32,.35)!important;max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);overflow:auto}
+.sinister-modal-close-btn{font:600 14px var(--font-body)!important;background:#1a0a0c!important;color:var(--red-l)!important;border:var(--px) solid #5a0b0e!important;border-radius:var(--r)!important;min-height:44px}
+/* cinematic */
+.cinematic-modal,.cinematic-modal-content{max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);overflow:auto;border-radius:var(--r)!important}
+.cinematic-modal-close-btn,.cinematic-video-close-btn{font:600 15px var(--font-ui)!important;background:rgba(13,16,22,.9)!important;color:#fff!important;border:var(--px) solid var(--line2)!important;border-radius:var(--r)!important;min-height:44px;padding:8px 16px!important}
+/* news -> KUI news (paper) */
+.news-popup-container{background:var(--white)!important;color:#111!important;border:var(--px) solid #000!important;border-radius:2px!important;box-shadow:4px 4px 0 #000!important;max-height:calc(100dvh - 24px)!important}
+.news-popup-header{background:var(--white)!important;color:#111!important;border-bottom:3px double #111!important;padding:12px 16px!important}
+.news-popup-header h2{font:900 26px/1 Georgia,serif!important;letter-spacing:3px;color:var(--red)!important;text-transform:uppercase;margin:0!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}
+.news-popup-date{color:#555!important;font:13px Georgia,serif!important}
+.news-popup-close{background:#111!important;color:#fff!important;border:0!important;border-radius:2px!important;min-width:44px;min-height:44px}
+.news-popup-body{color:#111!important;overflow:auto}
+.news-popup-body .btn-secondary{font:12px Georgia,serif!important;background:#fff!important;color:#111!important;border:1px solid #111!important;border-radius:2px!important;padding:6px 10px!important;min-height:36px;cursor:pointer}
+.news-article-headline{font:900 28px/1.1 Georgia,serif!important;color:#111!important}
+.news-article-section{font:700 11px Georgia,serif;letter-spacing:2px;color:var(--red)!important}
+/* phone */
+.phone-text-container{background:#0f1a12!important;box-shadow:0 0 0 6px #2b2f36,0 20px 60px rgba(0,0,0,.8)!important;border-radius:22px!important}
+.phone-text-header{background:#1b2b1f!important;border-color:#2b3a2f!important}
+.phone-text-received .phone-text-bubble{background:var(--panel2)!important;color:var(--text)!important}
+.phone-text-sent .phone-text-bubble{background:var(--red)!important;color:#fff!important}
+#phone-choice-container,.phone-choice-container{background:var(--panel)!important;border:var(--px) solid var(--line2)!important;border-radius:var(--r)!important;box-shadow:0 4px 0 #000!important;padding:10px!important;display:flex;flex-direction:column;gap:6px}
+#phone-choice-container button,.phone-choice-btn{all:unset;box-sizing:border-box;display:block;width:100%;cursor:pointer;background:var(--panel2);border:var(--px) solid var(--line2);border-radius:var(--r);padding:9px 12px;min-height:44px;color:var(--text);font:600 14px/1.3 var(--font-body);box-shadow:0 2px 0 #000;text-align:left}
+#phone-choice-container button:hover,.phone-choice-btn:hover{border-color:var(--white)}
+#phone-choice-container button.btn-primary:first-child{background:var(--red);border-color:var(--red-l);color:#fff}
+/* DOS family keeps its green-screen identity but on the KUI dos look and phone-safe */
+.dos-modal,.dos-modal-content{max-width:calc(100vw - 24px)!important;max-height:calc(100dvh - 24px);overflow:auto;box-sizing:border-box}
+.dos-modal-button{min-height:44px}
+/* eos presentation & fight & ultima announcement: just phone-safe */
+.eos-presentation-modal,.fight-modal,.ultima-cup-announcement-modal,.ultima-cup-announcement-content{max-width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;overflow:auto;box-sizing:border-box}
+
+@media (max-width: 900px){
+  .modern-modal,.save-slot-modal,.dialogue-popup-container,.music-control-content,.top-scorers-content,.league-modal-content,.eos-presentation-modal,.sinister-modal,
+  .news-popup-container,#betModal > div,#debtPaymentModal > div,#cashTransferModal > div,#matchViewer > div,#videoViewer > div{
+    width:100vw!important;max-width:100vw!important;max-height:100dvh!important;min-height:0;border-radius:0!important;border-width:0!important;margin:0!important}
+  .modern-modal-overlay,.sinister-modal-overlay,.news-popup-overlay,.save-slot-modal-overlay,.eos-presentation-overlay,.dialogue-popup-overlay,
+  #betModal,#debtPaymentModal,#cashTransferModal,#matchViewer,#videoViewer{padding:0!important;align-items:flex-end!important}
+  .phone-text-overlay{padding:0!important;gap:0!important;justify-content:flex-start!important}
+  .phone-text-container{width:100vw!important;max-width:100vw!important;height:62dvh!important;border-radius:0 0 14px 14px!important;box-shadow:none!important}
+  #phone-choice-container{width:100vw!important;max-width:100vw!important;flex:1;overflow:auto;border-radius:0!important;border-width:var(--px) 0 0!important;margin:0!important}
+  .news-popup-header h2{font-size:20px!important}
+  .news-article-headline{font-size:22px!important}
+  #betModal > div > div[style*="display:flex"],#debtPaymentModal > div > div[style*="display:flex"],#cashTransferModal > div > div[style*="display:flex"]{flex-wrap:wrap}
+}

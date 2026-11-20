@@ -1181,7 +1181,7 @@ async function showKreplinCertificate() {
 // Generate PDF certificate
 function generateCertificatePDF(stats) {
   if (typeof window.jspdf === 'undefined') {
-    alert('PDF library not loaded. Please refresh the page.');
+    (window.KUI ? KUI.alert('PDF library not loaded. Please refresh the page.') : alert('PDF library not loaded. Please refresh the page.'));
     return;
   }
   

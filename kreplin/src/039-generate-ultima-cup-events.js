@@ -1569,8 +1569,13 @@ function showSaveSlotModal(isLoading = false) {
   document.body.appendChild(overlay);
 }
 
-function deleteSaveSlot(slotNumber) {
-  if (confirm(`Are you sure you want to delete save slot ${slotNumber}?`)) {
+async function deleteSaveSlot(slotNumber) {
+  // remember which slot list was open: the Delete button's handler closes it while we ask
+  const openOverlay = document.querySelector('.save-slot-modal-overlay');
+  const wasLoading = openOverlay ? openOverlay.querySelector('h3')?.textContent === 'Load Game' : null;
+  const sure = window.KUI ? await KUI.confirm(`Are you sure you want to delete save slot ${slotNumber}?`, { title: 'Delete save', ok: 'Delete', variant: 'sinister' })
+                          : confirm(`Are you sure you want to delete save slot ${slotNumber}?`);
+  if (sure) {
     deleteSlot(slotNumber);
     log(`Save slot ${slotNumber} deleted.`);
     // Refresh the modal if it's open
@@ -1579,6 +1584,8 @@ function deleteSaveSlot(slotNumber) {
       const isLoading = overlay.querySelector('h3')?.textContent === 'Load Game';
       overlay.remove();
       showSaveSlotModal(isLoading);
+    } else if (wasLoading !== null) {
+      showSaveSlotModal(wasLoading);
     }
   }
 }

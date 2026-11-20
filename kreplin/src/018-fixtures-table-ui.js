@@ -20,11 +20,11 @@ window.ensureFixturesUI = function(){
             toggleFixturesPane(true);
           } else {
             console.error('toggleFixturesPane function not found!');
-            alert('Fixtures panel could not be opened. Please refresh the page.');
+            (window.KUI ? KUI.alert('Fixtures panel could not be opened. Please refresh the page.') : alert('Fixtures panel could not be opened. Please refresh the page.'));
           }
         } catch (error) {
           console.error('Error opening fixtures panel:', error);
-          alert('Error opening fixtures panel: ' + error.message);
+          (window.KUI ? KUI.alert('Error opening fixtures panel: ' + error.message) : alert('Error opening fixtures panel: ' + error.message));
         }
       });
       
@@ -45,11 +45,11 @@ window.ensureFixturesUI = function(){
               toggleFixturesPane(true);
             } else {
               console.error('toggleFixturesPane function not found!');
-              alert('Fixtures panel could not be opened. Please refresh the page.');
+              (window.KUI ? KUI.alert('Fixtures panel could not be opened. Please refresh the page.') : alert('Fixtures panel could not be opened. Please refresh the page.'));
             }
           } catch (error) {
             console.error('Error opening fixtures panel:', error);
-            alert('Error opening fixtures panel: ' + error.message);
+            (window.KUI ? KUI.alert('Error opening fixtures panel: ' + error.message) : alert('Error opening fixtures panel: ' + error.message));
           }
         });
         hudBar.appendChild(fallbackBtn);

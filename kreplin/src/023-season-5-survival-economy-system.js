@@ -2710,7 +2710,7 @@ async function showNuclearStrikeTargetSelection() {
     launchButton.addEventListener('click', () => {
       const targets = Array.from(selectedTeams);
       if (targets.length === 0) {
-        alert('Please select at least one target.');
+        (window.KUI ? KUI.alert('Please select at least one target.') : alert('Please select at least one target.'));
         return;
       }
       overlay.remove();

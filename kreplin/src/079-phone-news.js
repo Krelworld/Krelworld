@@ -1646,7 +1646,7 @@
       return;
     }
     
-    const text = prompt('Enter your message:');
+    const text = window.KUI ? await KUI.prompt('Enter your message:', '', { title: 'New message', variant: 'phone', ok: 'Send' }) : prompt('Enter your message:');
     if (!text || text.trim() === '') return;
     
     // Cheat code detection for Marco (case-insensitive)

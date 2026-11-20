@@ -2590,7 +2590,7 @@ S.accepted_bribe_this_match = true;
             opponentClub: opp,
             matchIndex: today
           };
-          S.bribes_count = (S.bribes_count||0) + 1;
+          if ((amt||0) > 50000) S.bribes_count = (S.bribes_count||0) + 1; // only >£50k counts (phase 2 tuning)
           if (typeof addEvidence === 'function') addEvidence({ kind:'bribe', label:`Took ${money(amt)} from ${mgr} to lose to ${opp}`, weight:12, witness:String(mgr).toLowerCase(), witnessLabel:mgr, tags:['corruption'] });
           S.legal_risk = (S.legal_risk||0) + 2;
           S.compliance_risk = (S.compliance_risk||0) + 3;

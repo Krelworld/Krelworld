@@ -1354,9 +1354,13 @@ function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
 // info: { who, label, kind:'referee'|'manager'|'official'|'police'|'editor'|..., origin, noFavour }
 // -> bribe count + risk, a piece of evidence and (usually) an IOU: they owe you now (087q).
 function registerBribe(amount=0, info){
-  S.bribes_count = (S.bribes_count||0) + 1;
-  // Scale risk lightly with frequency; heavy bribes can add a bit more
-  incrementRisk("bribe", 1 + (amount>50000 ? 1 : 0));
+  // Tuning (systems phase 2): only bribes over £50k count toward bribes_count / police eligibility.
+  // Smaller ones still leave evidence and an IOU (KSys.onBribe below).
+  if ((amount||0) > 50000) {
+    S.bribes_count = (S.bribes_count||0) + 1;
+    // Scale risk lightly with frequency; heavy bribes can add a bit more
+    incrementRisk("bribe", 2);
+  }
   if (window.KSys && typeof KSys.onBribe === 'function') KSys.onBribe(amount, info || {});
 }
 

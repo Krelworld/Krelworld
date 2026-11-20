@@ -547,7 +547,7 @@ function ensureOpponentForToday() {
           "surveillance",
           survLeft >= 0 ? `Surveillance (running · ${survLeft + 1} more match${survLeft ? 'es' : ''})` : "Surveillance",
           "Private detectives on retainer for 5 matches: exact stage, timing and source of every press lead, what your Tinder matches really want, and dirt on Delmor and your next opponent.",
-          10
+          15
         );
         perkRow(
           "advanced-blackmail",
@@ -792,7 +792,7 @@ function ensureOpponentForToday() {
       }
 
       else if (perkId === "perk-surveillance"){
-        const cost = 10;
+        const cost = 15;
         if (!spend(cost)) return;
         S.power_last_espionage = "surveillance";
         log("You unleash a swarm of private detectives on a rival chairman. Their secrets begin to drip into your inbox.");

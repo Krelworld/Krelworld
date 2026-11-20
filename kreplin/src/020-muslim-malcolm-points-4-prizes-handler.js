@@ -954,6 +954,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     log(``);
     
     S.season3.son_hired_as_scout = true;
+    S.season3.son_name = sonName; // read by the Season 4 opener
     log(`You appoint ${sonName} as the club's talent scout.`);
     log(`The board raises eyebrows, but you're the chairman.`);
     incrementRisk('nepotism', 5);
@@ -1662,7 +1663,12 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
      ============================================ */
   
   // ACT IV - The Brick (late season, after poly reveal AND dating minigame)
-  if (S.season === 3 && S.season3 && S.season3.secretary_poly_reveal && !S.season3.act4_complete && (S.season3.dating_minigame_complete || !S.season3.secretary_relationship_opened_to_player) && S.matches_played >= 12 && S.matches_played <= 16) {
+  // The son asks once; if you decline he comes back one last time near the end
+  // (match 15+), so the climax isn't silently lost.
+  const act4Asks = S.season3 ? (S.season3.act4_asks|0) : 0;
+  const act4Due = act4Asks === 0 || (act4Asks === 1 && S.matches_played >= 15);
+  if (S.season === 3 && S.season3 && S.season3.secretary_poly_reveal && !S.season3.act4_complete && act4Due && (S.season3.dating_minigame_complete || !S.season3.secretary_relationship_opened_to_player) && S.matches_played >= 12 && S.matches_played <= 16) {
+    S.season3.act4_asks = act4Asks + 1;
     const sonName = S.child1_name.split(' ')[0] || 'your son';
     log(`There's a knock at the door...`);
     log(``);
@@ -1674,21 +1680,30 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     log(`He's suggesting intimidation. Violence, even.`);
     log(``);
     
-    if ((S.lobby_tokens || 0) < 5) {
+    const ACT4_CASH_PRICE = 500000;
+    const act4Options = [];
+    if ((S.lobby_tokens || 0) >= 5) {
+      act4Options.push({ key: 'use_tokens', label: 'Use lobby tokens to find Krunchem\'s address', variant: 'warn' });
+    } else {
       log(`You don't have enough lobby tokens (need 5, have ${S.lobby_tokens || 0}).`);
-      log(`${sonName} looks disappointed. "We'll need more influence first."`);
-      S.visitors_handled = true;
-      return;
     }
+    // Alternative to tokens: buy the address from a private investigator
+    if ((S.chairman_cash || 0) >= ACT4_CASH_PRICE) {
+      act4Options.push({ key: 'pay_cash', label: `Pay a private investigator for the address (${money(ACT4_CASH_PRICE)})`, variant: 'warn' });
+    }
+    act4Options.push({ key: 'not_now', label: 'Not now' });
     
-    const choice = await choose([
-      { key: 'use_tokens', label: 'Use lobby tokens to find Krunchem\'s address', variant: 'warn' }
-    ], 'Use lobby tokens to locate Krunchem?');
+    const choice = await choose(act4Options, 'Use lobby tokens to locate Krunchem?');
     
-    if (choice === 'use_tokens') {
-      S.lobby_tokens = Math.max(0, (S.lobby_tokens || 0) - 5);
+    if (choice === 'use_tokens' || choice === 'pay_cash') {
       S.season3.krunchem_address_known = true;
-      log(`You spend 5 lobby tokens. Within hours, you have an address.`);
+      if (choice === 'use_tokens') {
+        S.lobby_tokens = Math.max(0, (S.lobby_tokens || 0) - 5);
+        log(`You spend 5 lobby tokens. Within hours, you have an address.`);
+      } else {
+        S.chairman_cash = Math.max(0, (S.chairman_cash || 0) - ACT4_CASH_PRICE);
+        log(`You pay ${money(ACT4_CASH_PRICE)} in cash. Within hours, you have an address.`);
+      }
       log(`A residential property in a quiet suburb.`);
       log(``);
       log(`${sonName} grins. "We should send Gazza to throw a brick through their window."`);
@@ -1707,6 +1722,8 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
         log(`But Gazza isn't signed. You'll need to find someone else.`);
         log(`Or wait. The opportunity might pass.`);
       }
+    } else if ((S.lobby_tokens || 0) < 5 && (S.chairman_cash || 0) < ACT4_CASH_PRICE) {
+      log(`${sonName} looks disappointed. "We'll need more influence first."`);
     } else {
       log(`${sonName} looks disappointed. "Fine. We'll do it your way."`);
     }
@@ -2003,6 +2020,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
       }
     } else if (choice === 'frame_secretary') {
       S.season3.secretary_framed = true;
+      S.season3.secretary_in_prison = true; // read by the Season 4 opener
       const secretaryName = S.secretary_name || 'your secretary';
       log(`You frame ${secretaryName}. She's arrested.`);
       log(`She's removed from the narrative. Gone.`);

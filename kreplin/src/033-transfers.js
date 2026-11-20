@@ -596,7 +596,7 @@ async function maybeMoralComplianceAudit(){
   if (currentAuditCount >= 2) return;
   
   // Check if enough matches have passed since last audit (trigger every 3-5 matches)
-  const matchesSinceLastAudit = S.matches_played - (seasonData.last_audit_match || -1);
+  const matchesSinceLastAudit = S.matches_played - (seasonData.last_audit_match ?? -1);
   if (matchesSinceLastAudit < 3) return;
   
   // Random chance to trigger (higher chance as season progresses)

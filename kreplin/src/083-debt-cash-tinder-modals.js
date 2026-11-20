@@ -1825,7 +1825,7 @@ async function handleTinderMessageChoice(profile, choice) {
         'https://www.dropbox.com/scl/fi/osne24v2558zclbp3ofcx/Video-1-7-26-4-16-25-pm-1.mp4?rlkey=rd77cc3xzldv3marj651ct11f&st=lzauh41s&dl=1',
         'https://www.dropbox.com/scl/fi/pgtanci70jfiweun99suk/Video-1-7-26-4-16-25-pm-1-1.mp4?rlkey=g1ln72d29tb91rmtsz9n8v08a&st=ctc89v0e&dl=1',
         'https://www.dropbox.com/scl/fi/bkvxd6cc1eb877gdv69hs/Video-1-7-26-4-16-25-pm.mp4?rlkey=pdnvw0qgqbymuk1sjpditdq3z&st=lvdo82xa&dl=1',
-        'https://www.dropbox.com/scl/fi/4fisr3igjf4c1dqvupr6v/Video-1-7-26-4-45-22-pm.mp4?rlkey=6f7ahfp8bh7zjer9n49t57ft6&st=c8xw7yl9&dl=0'
+        'https://www.dropbox.com/scl/fi/4fisr3igjf4c1dqvupr6v/Video-1-7-26-4-45-22-pm.mp4?rlkey=6f7ahfp8bh7zjer9n49t57ft6&st=c8xw7yl9&dl=1'
       ];
       const selectedVideo = raunchyVideos[Math.floor(Math.random() * raunchyVideos.length)];
       const videoType = selectedVideo.includes('.mov') ? 'video/quicktime' : 'video/mp4';

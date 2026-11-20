@@ -210,6 +210,7 @@ function finalizeMatchDay(){
   // reset morale snapshots for next fixture
   S.team_morale_boost = 0;
   S.morale_opponent   = 70;
+  S.referee_soft_bias = 0; // a policy favour lasts one match
 
   // once-per-match systems (blackmail kickbacks, cocaine crash, drug-day resets);
   // they may set next match's morale, so they run after the reset above

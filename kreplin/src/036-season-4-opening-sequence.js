@@ -17,8 +17,8 @@ async function runSeason4Opener() {
   const secretary_child_names = (has_child_with_secretary && S.child1_name) ? [S.child1_name] : [];
   const wife_name = S.wife_name || 'Wife';
   const secretary_name = S.secretary_name || 'Secretary';
-  const son_name = (S.season3 && S.season3.son_name) || 'Son';
-  const chairman_cash = S.cash || 0;
+  const son_name = (S.season3 && S.season3.son_name) || (S.child1_name ? S.child1_name.split(' ')[0] : '') || 'Son';
+  const chairman_cash = S.chairman_cash || 0;
   const krunchem_family_murdered = (S.season3 && S.season3.krunchem_family_murdered) || false;
   const secretary_framed = (S.season3 && S.season3.secretary_framed) || false;
   
@@ -142,7 +142,8 @@ async function runSeason4Opener() {
     // (5) Apply financial consequence
     await new Promise(resolve => setTimeout(resolve, 2000));
     const halfCash = Math.floor(chairman_cash * 0.5);
-    S.cash = halfCash;
+    S.chairman_cash = Math.max(0, (S.chairman_cash || 0) - halfCash);
+    S.season4.wife_took_half_money = true;
     log(`A transfer clears. Half your money is gone.`);
     
     // (6) Present reply options (standard categories) that do not change outcome
@@ -379,8 +380,8 @@ async function runSeason4Opener() {
   log(``);
   
   // (12) Final convergence state flags for Season 4
-  S.season4.wife_left_for_delmor = true;
-  S.season4.wife_took_half_money = true;
+  S.season4.wife_left_for_delmor = wife_exists;   // read by the S4/S5 Delmor taunts
+  S.season4.wife_took_half_money = !!S.season4.wife_took_half_money;
   S.season4.delmor_power_increasing = true;
   if (shouldTextSecretary) {
     S.season4.secretary_joined_delmor_polycule = true;
@@ -954,7 +955,11 @@ async function ultimaCupPreMatchMenu() {
       break;
     }
     
-    if (choice === 'back'){ break; }
+    if (choice === 'back'){
+      // leaving the menu leads to kickoff too, so the door must be answered first
+      if (!S.visitors_handled){ log("You should answer the knock at the door before kickoff."); continue; }
+      break;
+    }
   }
   
   // Mark pre-match as complete

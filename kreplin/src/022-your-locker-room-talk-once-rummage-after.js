@@ -1771,7 +1771,11 @@ async function preMatchTransfersAndBettingMenu(){
       return; // exit to match
     }
 
-    if (choice === 'back'){ return; }
+    if (choice === 'back'){
+      // leaving the menu leads to kickoff too, so the door must be answered first
+      if (!S.visitors_handled){ log("You should answer the knock at the door before kickoff."); continue; }
+      return;
+    }
   }
 }
 

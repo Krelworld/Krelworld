@@ -2725,6 +2725,9 @@ function computeQuickSimResult() {
   // Apply any one-match morale effects
   if (typeof S.team_morale_boost === 'number') our += S.team_morale_boost;
   if (typeof S.morale_opponent === 'number') opp += Math.round((S.morale_opponent - 70) / 5);
+  // Power Network "policy favour": the officials lean our way a little this match
+  // (S.referee_soft_bias, +5 per favour -> +2 strength, capped at +4; cleared after the match)
+  if ((S.referee_soft_bias|0) > 0) our += Math.min(4, Math.round((S.referee_soft_bias|0) * 0.4));
   our = Math.max(10, Math.min(our, 200));
   opp = Math.max(10, Math.min(opp, 200));
   

@@ -1613,12 +1613,13 @@ async function handleTrainDeath() {
       overlay._trainApproachAudio.currentTime = 0;
     }
     
-    // Resolve the promise before removing overlay
-    if (overlay.escapeResolve) {
-      overlay.escapeResolve();
-    }
+    // Death is terminal: the escape promise is deliberately NOT resolved, so the
+    // story that awaits the train sequence never resumes. The player restarts or
+    // reloads the last save (which predates the death; we don't save here).
     overlay.remove();
   }
+  S.game_over = true;
+  S.game_over_reason = 'Hit by a train.';
   
   // Resume background music if it was playing
   if (overlay && overlay._wasMusicPlaying) {

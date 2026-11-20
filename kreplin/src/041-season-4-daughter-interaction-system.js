@@ -10,7 +10,7 @@ if (S.season === 4 && S.season4 && S.season4.initialized && !S.season4.daughter_
   ensureDaughterSceneFlags();
   
   // Check if a daughter scene should be available
-  const firstAuditMatch = S.season4.last_audit_match || -1;
+  const firstAuditMatch = S.season4.last_audit_match ?? -1; // an audit at match 0 counts
   const hasHadFirstAudit = firstAuditMatch >= 0;
   const seasonMatches = S.season_matches || 16;
   const isLateSeason = S.matches_played >= Math.floor(seasonMatches * 0.75);
@@ -415,7 +415,8 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
       }
       
       log(``);
-      // The coma flag is cleared after the Season 4 opener (which branches on it).
+      // The coma flag is kept: the Season 4 opener branches on it and it drives the
+      // distortion system through Season 4 (cleared when Season 5 starts).
      }
      
      // World Cup off-season (runs between seasons, before season increment)
@@ -436,10 +437,8 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
       try {
         await runSeason4Opener();
         S.season4_opener_complete = true;
-        if (S.season3 && S.season3.player_coma_between_seasons) {
-          S.season3.player_coma_between_seasons = false;
-          S.season3.coma_was_between_s3_s4 = true;
-        }
+        // The coma flag stays set through Season 4: it drives the S4 opener's COMA
+        // branch and the distortion system (isDistortionActive). Cleared entering S5.
         saveGame();
       } catch (e) {
         console.error('Error in runSeason4Opener:', e);
@@ -449,6 +448,13 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
       }
     }
     
+    // The coma's after-effects (distortion) end with Season 4
+    if (S.season === 5 && S.season3 && S.season3.player_coma_between_seasons) {
+      S.season3.player_coma_between_seasons = false;
+      S.season3.coma_was_between_s3_s4 = true;
+      if (typeof applyUIDistortion === 'function') applyUIDistortion();
+    }
+
     // Run Season 5 opening sequence if transitioning to Season 5
     if (S.season === 5 && !S.season5_opener_complete) {
       try {

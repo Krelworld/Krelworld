@@ -32,15 +32,20 @@ function checkFamilyEvents() {
     }
   }
   
-  // Check for missed dinners
+  // Check for missed dinners: a complaint means no family dinner for 3+ matches,
+  // and she complains at most once every 3 matches.
   if (!S.family.dinnersAttended) S.family.dinnersAttended = 0;
   if (!S.family.lastDinnerMatch) S.family.lastDinnerMatch = 0;
-  
-  if (S.matches_played - S.family.lastDinnerMatch >= 3) {
+  const mp = S.matches_played|0;
+  if (S.family.lastDinnerMatch > mp) S.family.lastDinnerMatch = 0;                 // new season
+  if ((S.family.lastWifeComplaintMatch ?? -99) > mp) S.family.lastWifeComplaintMatch = -99;
+  const sinceDinner = mp - S.family.lastDinnerMatch;
+  if (sinceDinner >= 3) {
     S.family.dinnersAttended = 0;
   }
   
-  if (S.family.dinnersAttended === 0 && S.matches_played > 3) {
+  if (sinceDinner >= 3 && mp > 3 && mp - (S.family.lastWifeComplaintMatch ?? -99) >= 3) {
+    S.family.lastWifeComplaintMatch = mp;
     triggerWifeComplaint();
   }
   
@@ -212,10 +217,8 @@ function applyFamilyEffects() {
 function updateFamilyStatsAfterMatch() {
   if (!S.family) return;
   
-  // Track dinner attendance
-  if (S.family.lastDinnerMatch !== S.matches_played) {
-    S.family.dinnersAttended = 0;
-  }
+  // (Dinner neglect is judged in checkFamilyEvents from lastDinnerMatch; a match
+  //  without a dinner that same evening is not neglect.)
   
   // Small decay in relationships if not maintained
   if (Math.random() < 0.1) { // 10% chance

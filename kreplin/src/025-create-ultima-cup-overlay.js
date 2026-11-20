@@ -2164,10 +2164,11 @@ async function runPostMatchPhase(outcome){
       const messageType = Math.random();
       let message = '';
       
-      if (messageType < 0.5 && typeof RIVAL_SEASON4_5_DAUGHTER_MESSAGES !== 'undefined' && RIVAL_SEASON4_5_DAUGHTER_MESSAGES && RIVAL_SEASON4_5_DAUGHTER_MESSAGES.length > 0) {
+      const wifeWithDelmor = !!(S.season4 && S.season4.wife_left_for_delmor);
+      if ((messageType < 0.5 || !wifeWithDelmor) && typeof RIVAL_SEASON4_5_DAUGHTER_MESSAGES !== 'undefined' && RIVAL_SEASON4_5_DAUGHTER_MESSAGES && RIVAL_SEASON4_5_DAUGHTER_MESSAGES.length > 0) {
         // Daughter message
         message = RIVAL_SEASON4_5_DAUGHTER_MESSAGES[Math.floor(Math.random() * RIVAL_SEASON4_5_DAUGHTER_MESSAGES.length)];
-      } else if (typeof RIVAL_SEASON4_5_WIFE_MESSAGES !== 'undefined' && RIVAL_SEASON4_5_WIFE_MESSAGES && RIVAL_SEASON4_5_WIFE_MESSAGES.length > 0) {
+      } else if (wifeWithDelmor && typeof RIVAL_SEASON4_5_WIFE_MESSAGES !== 'undefined' && RIVAL_SEASON4_5_WIFE_MESSAGES && RIVAL_SEASON4_5_WIFE_MESSAGES.length > 0) {
         // Wife message
         message = RIVAL_SEASON4_5_WIFE_MESSAGES[Math.floor(Math.random() * RIVAL_SEASON4_5_WIFE_MESSAGES.length)];
       }

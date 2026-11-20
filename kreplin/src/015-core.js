@@ -652,7 +652,7 @@ async function triggerDaughterInteractionS4() {
   S.season4.daughter_scene_this_match = true;
   
   // Determine which scene to show based on progression
-  const firstAuditMatch = S.season4.last_audit_match || -1;
+  const firstAuditMatch = S.season4.last_audit_match ?? -1; // an audit at match 0 counts
   const hasHadFirstAudit = firstAuditMatch >= 0;
   const seasonMatches = S.season_matches || 16;
   const isLateSeason = S.matches_played >= Math.floor(seasonMatches * 0.75);
@@ -1085,7 +1085,7 @@ async function triggerDaughterInteractionS4WithCinematic() {
   S.season4.daughter_scene_this_match = true;
   
   // Determine which scene to show
-  const firstAuditMatch = S.season4.last_audit_match || -1;
+  const firstAuditMatch = S.season4.last_audit_match ?? -1; // an audit at match 0 counts
   const hasHadFirstAudit = firstAuditMatch >= 0;
   const seasonMatches = S.season_matches || 16;
   const isLateSeason = S.matches_played >= Math.floor(seasonMatches * 0.75);

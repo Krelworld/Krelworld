@@ -237,6 +237,9 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
   const s = await state();
   console.log('FINAL', JSON.stringify(s));
   console.log(`MATCHES ${matchesSeen} | LEDGER-PROBLEMS ${ledgerBad}`);
+  // evidence/press/drugs/corruption systems: spot runaway loops (>1 publication per match, unbounded debt)
+  const sys = await p.evaluate(() => window.KSys && window.S ? KSys.summary() : null).catch(() => null);
+  if (sys) console.log(`SYSTEMS EVIDENCE ${sys.evidence} / LEADS ${sys.leadsActive},${sys.published},${sys.killed + sys.buried} / FAVOURS ${sys.owed},${sys.owing} / DRUGS ${sys.tol},${sys.add},${sys.debt} / FA ${sys.fa_heat}:${sys.fa_level} / max pubs per match ${sys.maxPubsOneMatch}${sys.maxPubsOneMatch > 1 ? '  <-- RUNAWAY' : ''}`);
   if (args.dump) {
     console.log('LEDGER', JSON.stringify(await p.evaluate(() => window.__kreplinDebug ? window.__kreplinDebug.ledger() : null).catch(e => e.message)));
     // describe what is on screen: #actions and any visible fixed overlays

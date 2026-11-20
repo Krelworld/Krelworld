@@ -1080,6 +1080,8 @@
       
       // List all unlocked contacts
       const contactIds = ['secretary', 'captain', 'captain_wife', 'manager', 'bookie_marco', 'delmor_krunchem', 'womens_manager'];
+      // wife / ex-wife / Tinder matches (087s, 087t)
+      if (window.KSys && KSys.extraContacts) { try { if (KSys.syncWife) KSys.syncWife(); contactIds.splice(1, 0, ...KSys.extraContacts()); } catch (_) {} }
       for (const id of contactIds) {
         const contact = S.contacts && S.contacts[id];
         if (contact && contact.unlocked) {
@@ -1109,6 +1111,12 @@
     // generic contact chat/builder.
     if (contactId === 'secretary' && typeof openSecretaryMessaging === 'function') {
       await openSecretaryMessaging();
+      return;
+    }
+
+    // contacts owned by the systems files (wife, ex-wife, Tinder matches) draw their own chat
+    if (window.KSys && KSys.ownsContact && KSys.ownsContact(contactId)) {
+      await KSys.openChat(contactId);
       return;
     }
 
@@ -1150,6 +1158,11 @@
         window.renderWomensManagerThreadUI(contact, choice);
         return;
       }
+    }
+
+    // a threaded text waiting for an answer (087s): its reply options come first
+    if (window.KSys && KSys.renderPendingThread) {
+      try { if (await KSys.renderPendingThread(contactId)) return; } catch (e) { console.error('renderPendingThread', e); }
     }
     
     // Show action buttons
@@ -3609,8 +3622,8 @@
     await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
     hideTypingIndicator();
     
-    // Generate reply
-    const reply = randomReply(contactId, category);
+    // Generate reply (087s: a callback to something you said weeks ago, or a mood line; else the pools)
+    const reply = (window.KSys && KSys.threadReply && KSys.threadReply(contactId, category, message)) || randomReply(contactId, category);
     addMessageToPhonePopup(reply.text, false, 200);
     
     // Add reply to history
@@ -3627,6 +3640,11 @@
     
     // Log to feed
     log(`📱 ${contact.name}: "${reply.text}"`);
+
+    // 087s: relationship, evidence (sexts/threats/high texts) and 2–3-deep follow-ups
+    if (window.KSys && KSys.afterText) {
+      try { await KSys.afterText(contactId, message, category, reply); } catch (e) { console.error('afterText', e); }
+    }
   }
 
   // Generate weighted random reply
@@ -3870,6 +3888,7 @@
             if (!accept) return;
             S.morale = Math.min(100, (S.morale || 0) + 5);
             log('📱 Affair event: Morale +5');
+            if (typeof addEvidence === 'function') addEvidence({ kind: 'affair', label: `Met ${contact.name || "the captain's wife"} in secret`, weight: 12, witness: 'captain_wife', witnessLabel: contact.name, tags: ['sex'] });
             if (Math.random() < 0.2) {
               log('📱 Paparazzi caught you! Reputation -10, £5000 fine.');
               S.reputation = Math.max(0, (S.reputation || 50) - 10);
@@ -4209,5 +4228,6 @@
 
   // Initialize the phone system once S exists
   GameHooks.on('init', function() { initPhoneSystem(); });
+  window.openContactChat = openContactChat; // 087s/087t re-open a chat after a thread
 
 })();

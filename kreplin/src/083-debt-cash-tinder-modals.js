@@ -1198,6 +1198,8 @@ async function openTinderSwiping() {
   }
   
   closeBtn.onclick = closeModal;
+  // 087t: a clear "Done swiping" way out of the swipe view
+  if (window.KSys && KSys.tinderSwipeUI) KSys.tinderSwipeUI(closeModal);
   
   // Start swiping button
   startBtn.onclick = () => {
@@ -1252,6 +1254,8 @@ async function openTinderSwiping() {
     cardAge.style.display = 'inline-block';
     cardBio.textContent = currentProfile.bio || 'No bio available';
     cardBio.style.display = 'block';
+    // 087t: a tell under the bio (the hidden agenda itself while Surveillance runs)
+    if (window.KSys && KSys.tinderCard) KSys.tinderCard(currentProfile, cardBio);
     
     // Helper function to convert Dropbox URLs to direct download format
     const convertDropboxUrl = (url) => {
@@ -1361,6 +1365,8 @@ async function openTinderSwiping() {
           matched_at: S.matches_played || 0
         });
       }
+      // 087t: her agenda is fixed now, and she's in your phone
+      if (window.KSys && KSys.tinderOnMatch) KSys.tinderOnMatch(currentProfile);
       
       // Show match overlay with animation
       const matchSubtext = document.getElementById('tinderMatchSubtext');
@@ -1605,6 +1611,8 @@ function generateTinderProfilePool() {
     const j = Math.floor(Math.random() * (i + 1));
     [profiles[i], profiles[j]] = [profiles[j], profiles[i]];
   }
+  // 087t: every profile has a hidden agenda (and a tell)
+  if (window.KSys && KSys.tinderDecorate) KSys.tinderDecorate(profiles);
   
   return profiles;
 }
@@ -1623,6 +1631,8 @@ function checkTinderMatch(profile) {
   if (profile.alwaysMatches) {
     return true;
   }
+  // 087t: the ones with an agenda are keen on anyone
+  if (window.KSys && KSys.tinderAgendaMatch && KSys.tinderAgendaMatch(profile)) return true;
   
   return false;
 }
@@ -1774,6 +1784,9 @@ async function tinderConversationLoop(profile) {
     };
     chatQuickOptions.appendChild(btn);
   });
+  delete chatQuickOptions.dataset.wound;
+  // 087t: "Talk about work" (she fishes, by agenda)
+  if (window.KSys && KSys.tinderChatExtras) KSys.tinderChatExtras(profile, chatQuickOptions);
   
   // Close button handler
   chatCloseBtn.onclick = () => {
@@ -1903,6 +1916,8 @@ async function handleTinderMessageChoice(profile, choice) {
     text: response.text,
     timestamp: Date.now()
   });
+  // 087t: long chats wind down to invite / close
+  if (window.KSys && KSys.tinderAfterMessage) KSys.tinderAfterMessage(profile, conversation);
 }
 
 // PART 4: RESPONSE POOL
@@ -1911,6 +1926,10 @@ function generateTinderResponse(profile, messageType, attachment) {
   const hasRegisterDisclaimer = bioTone.some(line => line.includes('sex offender'));
   const isFacetuned = S.season4.profile_facetuned;
   
+  // 087t: her agenda slips into the conversation now and then
+  const agendaLine = window.KSys && KSys.tinderAgendaReply ? KSys.tinderAgendaReply(profile, messageType) : null;
+  if (agendaLine && messageType !== 'inappropriate' && !attachment) return agendaLine;
+
   // Response pools based on various factors
   const responses = [];
   
@@ -2027,6 +2046,7 @@ async function handleTinderInvitation(profile) {
   
   // Mark that an encounter has started IMMEDIATELY
   window.__tinder_encounter_started = true;
+  if (window.KSys && KSys.tinderDateStart) KSys.tinderDateStart(profile);
   // Add invitation message to chat
   addMessageToChat('You', "Want to come over to my place?", true);
   
@@ -2267,6 +2287,9 @@ async function applyTinderPostEncounterEffects() {
   }
   
   log('');
+
+  // 087t: what the date actually cost you (photos, kiss-and-tell, blackmail, the plant, an alibi…)
+  if (window.KSys && KSys.tinderDateOutcome) { try { await KSys.tinderDateOutcome(); } catch (e) { console.error('tinderDateOutcome', e); } }
   
   // Wait for user to acknowledge before continuing
   const completeResult = await choose([{key:'complete', label:'Complete'}], "The encounter is complete.");

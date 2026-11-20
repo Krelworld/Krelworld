@@ -1380,7 +1380,25 @@
       });
     }
     
+    // 087t: a Tinder alibi ("he was with me all night, officer"), once
+    const alibi = window.KSys && KSys.freeAlibi ? KSys.freeAlibi() : null;
+    if (alibi) options.push({ key: 'alibi', label: `Alibi: "${alibi.from} says I was with her all night"`, variant: 'good' });
+
     const choice = await showInvestigationOptions(options);
+
+    if (choice === 'alibi' && window.KSys && KSys.useAlibi) {
+      const a = KSys.useAlibi();
+      stepContent.innerHTML = `
+          <h4 style="margin: 0 0 15px 0; color: var(--accent);">🕯️ Alibi</h4>
+          <p style="margin: 0 0 10px 0;">${a ? a.text : ''}</p>
+          <div style="background: var(--bg); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent); margin-top: 15px;">
+            <strong style="color: var(--accent);">Result:</strong> Case dropped. Police risk −10. The alibi is used up.
+          </div>`;
+      if (a) feedLog(`🕯️ ${a.from} gives you an alibi. The ${caseType} case is dropped.`);
+      updateHUD?.();
+      setTimeout(() => { closeInvestigationModal(); resolve(); }, 3000);
+      return;
+    }
     
     if (choice.startsWith('cert_')) {
       // Use disorder certificate

@@ -1892,6 +1892,8 @@ async function openSecretaryMessaging() {
     choice.style.flexDirection = 'column';
     choice.style.gap = '6px';
     choice.innerHTML = '';
+    // 087s: her unread texts, and an answer button when one of them wants a reply
+    if (window.KSys && KSys.secretaryThreadButton) setTimeout(() => KSys.secretaryThreadButton(choice, renderSecretaryChoices), 0);
 
     // --- Three‑part builder on top (to match your preference) ---
     const btnBuilder = document.createElement('button');
@@ -2459,6 +2461,8 @@ async function processSecretaryResponse(category, attachment, message) {
   // Store the message for potential evidence
   S._last_secretary_message = message;
   S._last_secretary_attachment = attachment;
+  // 087s: sexts / pictures / texts sent high become evidence (she may screenshot them)
+  if (window.KSys && KSys.onSecretarySent) { try { KSys.onSecretarySent(category, attachment, message); } catch (e) { console.error(e); } }
   
   // Award lobby tokens for inappropriate pictures/raunchy videos BEFORE boundary check
   // (Player still performed the action, so they should get tokens even if it triggers a violation)
@@ -2544,6 +2548,9 @@ async function processSecretaryResponse(category, attachment, message) {
   // Note: Lobby tokens for inappropriate pictures/raunchy videos are now awarded
   // at the start of the function (before boundary violation check) to ensure
   // they're always awarded when the action is performed
+
+  // 087s: she answers back — a follow-up or two, gated on how she feels about you
+  if (window.KSys && KSys.afterSecretaryText) { try { await KSys.afterSecretaryText(category, attachment, message); } catch (e) { console.error(e); } }
 }
 
 function getSecretaryResponse(category, trust, rel, lastMessage) {

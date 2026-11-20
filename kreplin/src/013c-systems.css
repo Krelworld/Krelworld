@@ -48,3 +48,20 @@
 .k-modal .k-quote{font:italic 16px Georgia,serif;color:var(--white);border-left:3px solid var(--red);padding-left:10px}
 .k-modal.news .k-quote{color:#111}
 @media (max-width:600px){ .k-dtable th:nth-child(3),.k-dtable td:nth-child(3){display:none} .k-dtable th:nth-child(4){width:80px} }
+/* texting / Tinder (087s, 087t) */
+.tinder-card-info .k-tinder-tell{margin-top:6px;font:italic 14px/1.3 inherit;font-family:inherit;color:#f3e7c9;background:rgba(0,0,0,.35);border-radius:6px;padding:4px 8px;overflow-wrap:anywhere}
+.k-tinder-agenda{margin-top:6px;font:13px/1.35 inherit;font-family:inherit;color:#fff;background:#7a0b10;border:2px solid #000;border-radius:6px;padding:4px 8px;overflow-wrap:anywhere}
+.k-tinder-agenda b{letter-spacing:1px;display:block;font-family:var(--font-ui);font-size:12px}
+.k-tinder-agenda span{opacity:.92}
+.k-tinder-agenda.k-ag-genuine{background:#1f5a3a}
+.k-tinder-agenda.k-ag-golddigger{background:#7a5a0b}
+.k-tinder-out p{margin:0 0 8px;font-size:15px;line-height:1.4}
+.tinder-done-btn{display:block;margin:10px auto 4px;padding:8px 18px;min-height:36px;border-radius:20px;border:2px solid #222;background:#3a3a3a;color:#fff;font:600 14px var(--font-ui);cursor:pointer}
+.tinder-done-btn:hover{background:rgba(0,0,0,.6)}
+@media (max-width:900px){
+  .tinder-swipe-view .tinder-card{height:calc(100% - 24px);min-height:0}
+  .tinder-swipe-view .tinder-card-container{padding:12px}
+  .tinder-card-info .k-tinder-tell{font-size:13px}
+  .k-tinder-agenda{font-size:12px}
+  .tinder-done-btn{margin:4px auto 2px;padding:6px 16px}
+}

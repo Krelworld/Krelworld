@@ -1331,6 +1331,7 @@ function generateCertificatePDF(stats) {
 
 // Credits Scene - shown after certificate download
 async function showCredits() {
+  window.__kreplinCampaignEnd = true; // the campaign is over: credits -> RESTART GAME (read by tools/autoplay.js)
   return new Promise((resolve) => {
     // Determine ending type for music selection
     const endingType = (S.playerStats && S.playerStats.endingType) || "kreplin_protocol";
@@ -1583,8 +1584,8 @@ async function showCredits() {
 // Driving Minigame: startDrivingMinigame() is defined by src/087h-mg-driving.js (MGKit scrolling road).
 
 async function playMatchPhaseWithTaunts(){
-  if (!S.matchContext || !S.matchContext.team) {
-    S.matchContext = currentOpponent();
+  if (!S.matchContext || !S.matchContext.team || (typeof S.matchContext.roundIndex === 'number' && S.matchContext.roundIndex !== (S.matches_played | 0))) {
+    S.matchContext = { ...currentOpponent(), roundIndex: S.matches_played | 0 };
   }
   
   // Clear the UI to remove pre-match menu

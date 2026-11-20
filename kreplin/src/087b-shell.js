@@ -215,10 +215,16 @@
   function currentOpp() {
     const s = St(); if (!s || !Array.isArray(s.opponents) || !s.opponents.length) return null;
     const i = Math.min(s.matches_played | 0, s.opponents.length - 1);
-    if (s.matchContext && s.matchContext.roundIndex === (s.matches_played | 0) && s.matchContext.team) return { team: s.matchContext.team, manager: s.matchContext.manager };
+    const mc = s.matchContext, mp = s.matches_played | 0;
+    if (mc && mc.team && typeof mc.roundIndex === 'number') {
+      // pinned at kickoff: during the match and its aftermath (matches_played already bumped)
+      // the banner must keep naming the fixture just played, not the next one
+      if (mc.roundIndex === mp || (mc.roundIndex === mp - 1 && (curPhase === 'match' || curPhase === 'postmatch'))) return { team: mc.team, manager: mc.manager };
+    }
     return { team: s.opponents[i], manager: Array.isArray(s.opponentManagers) ? s.opponentManagers[i] : null };
   }
   function renderSide() {
+    renderTitle();
     const s = St();
     const brief = $('kBrief'), league = $('kLeague');
     if (!s || !s.season) { if (brief) brief.hidden = true; if (league) league.hidden = true; return; }

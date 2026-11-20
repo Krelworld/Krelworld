@@ -942,8 +942,8 @@ queuePreMatchVisitors();
 
 
 async function playMatchPhase(){
-if (!S.matchContext || !S.matchContext.team) {
-  S.matchContext = currentOpponent();
+if (!S.matchContext || !S.matchContext.team || (typeof S.matchContext.roundIndex === 'number' && S.matchContext.roundIndex !== (S.matches_played | 0))) {
+  S.matchContext = { ...currentOpponent(), roundIndex: S.matches_played | 0 };
 }
   // Check for pre-revealed match result (rare narrative distortion)
   if (isDistortionActive()) {

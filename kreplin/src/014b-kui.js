@@ -143,7 +143,7 @@
     return new Promise(resolve => {
       const wrap = el('div', 'k-cut');
       if (o.title) wrap.appendChild(el('div', 'k-cut-title', esc(o.title)));
-      const v = document.createElement('video');
+      const v = document.createElement('video'); v.__kGuard = true; // has its own fail-safe
       v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; if (o.poster) v.poster = o.poster;
       v.controls = false; if (o.muted) v.muted = true; if (typeof o.volume === 'number') v.volume = Math.max(0, Math.min(1, o.volume));
       v.src = o.src;
@@ -184,6 +184,82 @@
       });
     });
   }
+
+  // ---------- video safety net ----------
+  // Every <video> the game creates (cutscenes, surveillance footage, phone attachments...) is guarded:
+  // if it fails to load (Dropbox down/blocked), never starts, or stalls, a "Continue" bar appears.
+  // Continue dispatches the video's own 'ended' event, so whatever the scene does after the video
+  // (show its Close button, resolve its promise, pay out...) runs exactly as if it had finished.
+  // A video that plays normally is left untouched.
+  function inFixedLayer(node) {
+    for (let n = node; n && n !== document.body; n = n.parentElement) {
+      if (getComputedStyle(n).position === 'fixed') return n;
+    }
+    return null;
+  }
+  function guardVideo(v, o = {}) {
+    if (!v || v.__kGuard) return; v.__kGuard = true;
+    let started = false, bar = null, lastT = -1, done = false;
+    const timers = [];
+    const clear = () => { done = true; timers.forEach(t => { clearTimeout(t); clearInterval(t); }); if (bar) bar.remove(); bar = null; };
+    function showBar(kind) {
+      if (done || bar || !v.isConnected) return;
+      const layer = inFixedLayer(v);
+      bar = el('div', `k-vfail ${layer ? 'fixed' : 'inline'}`);
+      bar.setAttribute('role', 'status');
+      bar.innerHTML = `<span>${kind === 'blocked' ? 'Tap to play the video' : 'Video unavailable'}</span>`;
+      if (kind === 'blocked') {
+        const play = el('button', 'k-btn primary', '▶ Play');
+        play.onclick = () => { v.play().then(() => { if (bar) { bar.remove(); bar = null; } }).catch(() => {}); };
+        bar.appendChild(play);
+      }
+      const cont = el('button', 'k-btn', kind === 'blocked' ? 'Skip ▸' : 'Continue ▸');
+      cont.onclick = () => {
+        clear();
+        try { v.pause(); } catch (e) {}
+        v.dispatchEvent(new Event('ended'));
+        try { o.onSkip && o.onSkip(v); } catch (e) {}
+      };
+      bar.appendChild(cont);
+      if (layer) document.body.appendChild(bar); else v.insertAdjacentElement('afterend', bar);
+      // the bar lives only as long as its video
+      const iv = setInterval(() => { if (!v.isConnected) { clearInterval(iv); clear(); } }, 500); timers.push(iv);
+    }
+    const fail = () => showBar('error');
+    v.addEventListener('playing', () => { started = true; if (bar) { bar.remove(); bar = null; } });
+    v.addEventListener('ended', clear);
+    v.addEventListener('error', fail);
+    v.querySelectorAll('source').forEach(src => src.addEventListener('error', () => { if (v.networkState === 3 || !v.currentSrc) fail(); }));
+    // never got going: blocked autoplay (paused with data) or nothing loaded at all
+    timers.push(setTimeout(() => {
+      if (started || done || !v.isConnected || v.ended) return;
+      if (v.networkState === 3 || v.error) fail();
+      else if (v.paused && v.readyState >= 2 && (v.autoplay || v.__kWant || o.expectPlay)) showBar('blocked');
+    }, 2500));
+    timers.push(setTimeout(() => { if (!started && !done && v.isConnected && !v.ended && (v.autoplay || v.__kWant || !v.paused || o.expectPlay)) fail(); }, o.maxWaitMs || 15000));
+    // stalled mid-way
+    timers.push(setInterval(() => {
+      if (!started || done || v.paused || v.ended) { lastT = v.currentTime; return; }
+      if (v.currentTime === lastT) fail(); lastT = v.currentTime;
+    }, 12000));
+  }
+  function guardAll(root) {
+    if (!root || root.nodeType !== 1) return;
+    if (root.tagName === 'VIDEO') guardVideo(root);
+    else root.querySelectorAll && root.querySelectorAll('video').forEach(v => guardVideo(v));
+  }
+  function startVideoWatch() {
+    guardAll(document.body);
+    new MutationObserver(ms => { for (const m of ms) m.addedNodes.forEach(guardAll); })
+      .observe(document.documentElement, { childList: true, subtree: true });
+  }
+  if (document.body) startVideoWatch(); else document.addEventListener('DOMContentLoaded', startVideoWatch);
+  // remember that the game asked a video to play (so a blocked/failed start is noticed); the
+  // original promise is returned untouched
+  try {
+    const origPlay = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () { if (this.tagName === 'VIDEO') this.__kWant = true; return origPlay.apply(this, arguments); };
+  } catch (e) {}
 
   // ---------- toast ----------
   let toastBox;
@@ -242,5 +318,5 @@
     return e;
   }
 
-  window.KUI = { modal, alert: kAlert, confirm: kConfirm, prompt: kPrompt, cutscene, toast, renderEntry, portraitFor, cast, lookup, ART, esc };
+  window.KUI = { modal, guardVideo, alert: kAlert, confirm: kConfirm, prompt: kPrompt, cutscene, toast, renderEntry, portraitFor, cast, lookup, ART, esc };
 })();

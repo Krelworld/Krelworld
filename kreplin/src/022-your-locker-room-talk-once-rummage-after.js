@@ -1396,7 +1396,8 @@ async function takeFundsFor(amount, prompt="Funding source?"){
 // --- If the target refuses the bribe, they threaten to report you; you can hush them
 async function declineThreatenHushFlow(whoLabel, originalAmount){
   // 40% chance they decline; tune as you like
-  const declines = (Math.random() < 0.40);
+  // high on cocaine (buzzed ×1.15 / wired ×1.35, set by 049 when you use) bribes land better
+  const declines = (Math.random() < 0.40 / Math.max(1, Number(S._coke_bribe_multiplier) || 1));
   if (!declines) return { declined:false, reported:false, hushed:false };
 
   log(`${whoLabel}: "That’s corrupt. I should report you."`);
@@ -1459,6 +1460,7 @@ function dodgyStuffItems(){
     if (dq.canTake()) sub.push({ key:'coke', label: dq.takeLabel(), variant:'bad' });
   }
   return sub;
+  if (window.KSys && typeof KSys.dodgyItems === 'function') { try { sub.push(...KSys.dodgyItems()); } catch(_){} }
 }
 async function dodgyStuffMenu(){
   while (true) {
@@ -1468,6 +1470,7 @@ async function dodgyStuffMenu(){
     if (k === 'marco') { window.KDrugQuick.buy(); continue; }
     if (k === 'coke') { window.KDrugQuick.take(); continue; }
     return k;
+    if (typeof k === 'string' && k.startsWith('sys_') && window.KSys) { await KSys.handleDodgy(k); continue; }
   }
 }
 

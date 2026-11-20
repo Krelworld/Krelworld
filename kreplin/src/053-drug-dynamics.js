@@ -542,6 +542,8 @@
     root.appendChild(cover); root.appendChild(bench); root.appendChild(blackmail); root.appendChild(expose);
   }
 
+  // the FA drug test (087p maybePlayerDrugScandal) raises this for cocaine/planted positives
+  window.presentPlayerDrugScandal = presentPlayerDrugScandal;
   // Apply blackmail payments once per match day
   GameHooks.on('matchday:end', function siphonBlackmailCashPostMatch(){
           let total = 0;

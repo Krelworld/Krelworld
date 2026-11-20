@@ -240,6 +240,7 @@
     }
   }
 
+  window.applyCocaineStateEffects = applyCocaineStateEffects; // also run on use (087p)
   // Apply state effects once per pre-match
   GameHooks.on('prematch', function(){
     applyCocaineStateEffects();

@@ -61,6 +61,8 @@
     // Update both streak variables for compatibility
     S.drug_streak = currentStreak + 1;
     S.coke_streak = currentStreak + 1;
+    // tolerance/addiction + the real buzzed/wired state (087p-sys-drugs)
+    if (window.KSys && KSys.onCokeUsed) KSys.onCokeUsed(need);
     
     (window.log||console.log)(`You snort ${need===1?'a line':'several lines'} of cocaine. Adrenaline surges! (Streak ${S.drug_streak})`);
     if (S.drug_streak === 4) (window.log||console.log)("⚠️ Warning: another consecutive use will result in overdose!");

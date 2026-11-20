@@ -44,10 +44,14 @@ window.addEventListener('unhandledrejection', function(e) {
      'hud'                       after updateHUD() redraws the HUD
      'phase' (phase, prev)       whenever setPhase() changes S.phase, followed by the
                                  phase's own event: 'prematch' | 'postmatch' | 'evening' |
-                                 'oversight' | 'prison' | 'rehab' | 'home'
+                                 'home' | 'oversight' | 'prison' (also 'boot', 'name_selection')
      'prematch:end', 'postmatch:end'   after preMatchPhase()/postMatchPhase() resolve
+     'prison:match'              each match day spent in the prison loop
+     'choices' ({root, prompt, options})  after choose() has drawn a menu's buttons
      'init'                      after init() has created/loaded S
-     'postmatch:gate-anchor'     never emitted in v12 (see note in patches-drugs) */
+     'postmatch:gate-anchor'     NOT emitted: holds handlers that were keyed to an
+                                 "Attendance: … Gate Revenue:" log line the core stopped
+                                 writing, so they never ran in v12 (kept dormant) */
 const GameHooks = (function(){
   const handlers = Object.create(null);
   function list(evt){ return handlers[evt] || (handlers[evt] = []); }

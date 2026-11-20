@@ -63,7 +63,8 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
   const state = () => p.evaluate(() => {
     const S = window.S || {};
     return { season: S.season, played: S.matches_played, pts: S.points, w: S.wins, d: S.draws, l: S.losses,
-      club: S.club_cash, chair: S.chairman_cash, over: !!S.game_over };
+      club: S.club_cash, chair: S.chairman_cash, over: !!S.game_over,
+      squad: Array.isArray(S.squad) ? S.squad.length : 0 };
   }).catch(() => ({}));
 
   let last = '', same = 0, history = [];
@@ -100,6 +101,8 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
       return out;
     });
     const usable = cands.filter(c => !c.hud && (!SKIP.test(c.text) || (same > 8 && /^(×|✕|x|back.*)$/i.test(c.text))));
+    // don't sell the squad below a playable size (the bot otherwise strands itself in the lineup picker)
+    if ((globalThis.__squad || 99) <= 8) for (let k = usable.length - 1; k >= 0; k--) if (/^sell player/i.test(usable[k].text)) usable.splice(k, 1);
     // occasionally press Escape / click overlay-less hud for coverage
     if (!usable.length) {
       await p.keyboard.press('Escape').catch(() => {});
@@ -118,6 +121,7 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
       await p.waitForTimeout(60);
     }
     const s = await state();
+    globalThis.__squad = s.squad;
     if (s.played !== globalThis.__lastPlayed) { globalThis.__lastPlayed = s.played; globalThis.__lastPlayedStep = i; }
     const sig = JSON.stringify(s) + usable.map(u => u.text).join('|');
     if (sig === last) same++; else { same = 0; last = sig; }

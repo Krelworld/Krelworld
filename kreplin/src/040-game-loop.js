@@ -1057,6 +1057,7 @@ async function runPrisonLoop() {
       }
       
       logSafe("PRISON: You are in custody. Watching from your cell...");
+      GameHooks.emit('prison:match');
       
       // Get opponent
       const matchesPlayed = (S.matches_played|0);

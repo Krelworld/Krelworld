@@ -122,11 +122,14 @@
             }
           }
   });
-  // Pre-match: apply the per-match morale hit and keep the menu observe-only
-  GameHooks.on('prematch', function(){
+  // Each match day (pre-match, or a match watched from the cell): apply the per-match
+  // morale hit and keep the menu observe-only
+  function prisonMatchDay(){
     applyPrisonMoraleHit();
     setTimeout(prisonFilterOnce, 50);
-  });
+  }
+  GameHooks.on('prematch', prisonMatchDay);
+  GameHooks.on('prison:match', prisonMatchDay);
 
   // On boot / reload, if already in prison, announce and filter once
   setTimeout(function(){

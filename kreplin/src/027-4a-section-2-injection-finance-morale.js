@@ -620,7 +620,8 @@ function showLeagueTablePopup() {
     return a.team.localeCompare(b.team);
   });
 
-  // Create modal
+  // Create modal (one at a time)
+  document.querySelectorAll('.league-modal').forEach(m => m.remove());
   const modal = document.createElement('div');
   modal.className = 'league-modal';
   modal.innerHTML = `

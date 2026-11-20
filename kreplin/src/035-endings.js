@@ -304,8 +304,9 @@ function showFinalLeagueTablePopup() {
 }
 
 function closeLeagueTablePopup() {
-  const modal = document.querySelector('.league-modal');
-  if (modal) modal.remove();
+  // every open table goes: "View Full Table" buttons pile up in the feed, and closing only the
+  // first (bottom) one of a stack left the visible one up, so Close looked dead
+  document.querySelectorAll('.league-modal').forEach(m => m.remove());
 }
 
 // ========== END-OF-SEASON PRESENTATION SYSTEM ==========

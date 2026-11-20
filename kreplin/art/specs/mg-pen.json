@@ -1,0 +1,22 @@
+[
+  {"name":"mg-pen-crowd","w":192,"h":96,"outline":"lineless","shading":"medium shading","detail":"highly detailed","view":"side",
+   "description":"packed football stadium stand full of cheering crowd at night seen from pitch level, rows of fans with red and white scarves, floodlight glare at top, dark sky, front view, no goal, no text"},
+  {"name":"mg-pen-keeper-idle","w":64,"h":64,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed","view":"side","direction":"south",
+   "description":"football goalkeeper standing in ready crouch facing viewer, arms spread wide, big gloves, bright green long sleeve goalkeeper jersey, black shorts, full body, front view"},
+  {"name":"mg-pen-keeper-dive","w":64,"h":64,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed","view":"side",
+   "description":"football goalkeeper diving horizontally to the right in mid air, body stretched flat, arms reaching right with big gloves, bright green long sleeve goalkeeper jersey, black shorts, full body"},
+  {"name":"mg-pen-keeper-ko","w":64,"h":64,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed","view":"side",
+   "description":"knocked out football goalkeeper lying flat on his back on the ground, cartoon dizzy stars and a red brick next to his head, bright green goalkeeper jersey, black shorts, big gloves, full body"},
+  {"name":"mg-pen-kicker-us","w":64,"h":64,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed","view":"side","direction":"north",
+   "description":"football player seen from behind standing ready to take a penalty, back view, red and white vertical striped shirt, black shorts, red socks, short grey hair, full body"},
+  {"name":"mg-pen-kicker-them","w":64,"h":64,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed","view":"side","direction":"north",
+   "description":"chunky bald football player seen from behind standing ready to take a penalty, back view, royal blue shirt, white shorts, blue socks, full body"},
+  {"name":"mg-pen-ball","w":32,"h":32,"nobg":true,"outline":"single color black outline","shading":"basic shading","detail":"medium detail",
+   "description":"round black and white soccer ball, classic pentagon pattern, centered icon"},
+  {"name":"mg-pen-hgh","w":32,"h":32,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"medium detail",
+   "description":"medical syringe with glowing green liquid and a small vial, centered icon"},
+  {"name":"mg-pen-coke","w":32,"h":32,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"medium detail",
+   "description":"small clear plastic baggie of white powder with a rolled up banknote, centered icon"},
+  {"name":"mg-pen-brick","w":32,"h":32,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"medium detail",
+   "description":"single red clay house brick, chunky, slightly chipped, centered icon"}
+]

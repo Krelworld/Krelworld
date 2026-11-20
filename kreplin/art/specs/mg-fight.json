@@ -1,0 +1,133 @@
+[
+ {
+  "name": "mg-fight-chairman-idle",
+  "w": 64,
+  "h": 64,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "view": "side",
+  "seed": 21,
+  "description": "cartoon fat balding middle-aged english man, thin slicked back dark hair, small round wire glasses, red chubby face, navy pinstripe suit, loose royal blue tie, white shirt, boxing stance with fists raised, full body, side view facing right, fighting game sprite"
+ },
+ {
+  "name": "mg-fight-chairman-punch",
+  "w": 64,
+  "h": 64,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "view": "side",
+  "seed": 22,
+  "description": "cartoon fat balding middle-aged english man, thin slicked back dark hair, small round wire glasses, red chubby face, navy pinstripe suit, loose royal blue tie, white shirt, throwing a straight punch with right arm fully extended forward, full body, side view facing right, fighting game sprite"
+ },
+ {
+  "name": "mg-fight-chairman-kick",
+  "w": 64,
+  "h": 64,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "view": "side",
+  "seed": 23,
+  "description": "cartoon fat balding middle-aged english man, thin slicked back dark hair, small round wire glasses, red chubby face, navy pinstripe suit, loose royal blue tie, white shirt, doing a high front kick with one leg raised high forward, full body, side view facing right, fighting game sprite"
+ },
+ {
+  "name": "mg-fight-chairman-block",
+  "w": 64,
+  "h": 64,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "view": "side",
+  "seed": 24,
+  "description": "cartoon fat balding middle-aged english man, thin slicked back dark hair, small round wire glasses, red chubby face, navy pinstripe suit, loose royal blue tie, white shirt, crouching and covering his face with both forearms, defensive block, full body, side view facing right, fighting game sprite"
+ },
+ {
+  "name": "mg-fight-cronster-idle",
+  "w": 64,
+  "h": 64,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "view": "side",
+  "seed": 25,
+  "description": "cartoon scruffy burly man with ginger mullet, red and yellow shellsuit tracksuit, gold hoop earring, menacing grin, fists raised, full body, side view facing left, fighting game sprite"
+ },
+ {
+  "name": "mg-fight-cronster-attack",
+  "w": 64,
+  "h": 64,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "view": "side",
+  "seed": 26,
+  "description": "cartoon scruffy burly man with ginger mullet, red and yellow shellsuit tracksuit, lunging forward with both hands outstretched to squeeze, full body, side view facing left, fighting game sprite"
+ },
+ {
+  "name": "mg-fight-cronster-hurt",
+  "w": 64,
+  "h": 64,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "view": "side",
+  "seed": 32,
+  "description": "cartoon scruffy burly man with ginger orange mullet hair, red and yellow shellsuit tracksuit, gold hoop earring, bent over clutching his stomach in pain, eyes squeezed shut, full body, side view facing left, fighting game sprite"
+ },
+ {
+  "name": "mg-fight-captain-idle",
+  "w": 64,
+  "h": 64,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "view": "side",
+  "seed": 28,
+  "description": "cartoon muscular footballer in a plain royal blue football kit with white shorts, shaved head, angry snarl, fists raised, full body, side view facing left, fighting game sprite"
+ },
+ {
+  "name": "mg-fight-captain-attack",
+  "w": 64,
+  "h": 64,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "view": "side",
+  "seed": 33,
+  "description": "cartoon muscular footballer in a plain royal blue football kit with white shorts, shaved head, throwing a straight punch with one arm fully extended to the left, full body, side view facing left, fighting game sprite"
+ },
+ {
+  "name": "mg-fight-captain-hurt",
+  "w": 64,
+  "h": 64,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "view": "side",
+  "seed": 30,
+  "description": "cartoon muscular footballer in a plain royal blue football kit with white shorts, shaved head, reeling backwards hurt, dizzy, full body, side view facing left, fighting game sprite"
+ },
+ {
+  "name": "mg-fight-bg-street",
+  "w": 192,
+  "h": 128,
+  "outline": "lineless",
+  "shading": "detailed shading",
+  "detail": "highly detailed",
+  "view": "side",
+  "seed": 31,
+  "description": "night city street pavement outside a football stadium, parked blue coach bus, street lamps, brick terraced houses, wet road, no text, no logos"
+ }
+]

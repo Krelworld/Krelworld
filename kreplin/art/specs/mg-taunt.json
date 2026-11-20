@@ -1,0 +1,8 @@
+[
+  {"name":"mg-taunt-chairman","w":64,"h":64,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+   "description":"furious red-faced middle-aged man in a cheap pinstripe suit and red tie, slicked back grey hair, screaming with mouth wide open, shaking a fist, upper body, facing viewer"},
+  {"name":"mg-taunt-player","w":48,"h":48,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"medium detail","view":"side",
+   "description":"offended football player in red and white striped shirt looking up with hands on hips, shocked face, full body, front view"},
+  {"name":"mg-taunt-pitch","w":180,"h":128,"outline":"lineless","shading":"medium shading","detail":"highly detailed","view":"high top-down",
+   "description":"view from the directors box over a floodlit football pitch at night, green striped grass, small players, red and white crowd in the stand opposite, no text"}
+]

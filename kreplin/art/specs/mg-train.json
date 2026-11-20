@@ -1,0 +1,59 @@
+[
+ {
+  "name": "mg-train-front",
+  "w": 96,
+  "h": 96,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "view": "low top-down",
+  "seed": 41,
+  "description": "front view of a red diesel passenger train locomotive head-on, two bright headlights, windscreen, buffers, symmetrical, no text"
+ },
+ {
+  "name": "mg-train-chairman",
+  "w": 96,
+  "h": 64,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "view": "high top-down",
+  "seed": 42,
+  "description": "cartoon fat balding middle-aged english man, thin slicked back dark hair, small round wire glasses, red chubby face, navy pinstripe suit, loose royal blue tie, white shirt, lying on his back tied up with brown ropes wrapped around his body and legs, terrified screaming face, top-down view, horizontal"
+ },
+ {
+  "name": "mg-train-brick",
+  "w": 32,
+  "h": 32,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "seed": 46,
+  "description": "a single rectangular red clay building brick block, isolated object, no house"
+ },
+ {
+  "name": "mg-train-hgh",
+  "w": 32,
+  "h": 32,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "seed": 44,
+  "description": "medical syringe with green glowing liquid"
+ },
+ {
+  "name": "mg-train-coke",
+  "w": 32,
+  "h": 32,
+  "outline": "single color black outline",
+  "shading": "medium shading",
+  "detail": "highly detailed",
+  "nobg": true,
+  "seed": 45,
+  "description": "small clear plastic baggie of white powder, zip lock bag"
+ }
+]

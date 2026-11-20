@@ -1,0 +1,8 @@
+[
+  {"name":"mg-key-bg","w":180,"h":128,"outline":"lineless","shading":"detailed shading","detail":"highly detailed","view":"side",
+   "description":"football stadium at night under a blood red apocalyptic sky, several nuclear missiles with fiery trails streaking down from the sky toward the city, glowing floodlights, ominous"},
+  {"name":"mg-key-nuke","w":96,"h":96,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+   "description":"huge nuclear mushroom cloud explosion, orange fire and dark smoke, cartoon style, centered"},
+  {"name":"mg-key-chairman","w":64,"h":64,"nobg":true,"outline":"single color black outline","shading":"medium shading","detail":"highly detailed",
+   "description":"sweaty panicking middle-aged man in a cheap pinstripe suit and red tie, slicked back grey hair, eyes bulging, frantically jabbing a finger forward, upper body, facing viewer"}
+]

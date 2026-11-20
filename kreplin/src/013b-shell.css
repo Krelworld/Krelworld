@@ -213,7 +213,7 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
   .k-date{font-size:11px;padding:2px 8px;margin-left:auto;line-height:1.2}
   .k-stats{margin-left:0;width:100%;overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .k-stats::-webkit-scrollbar{display:none}
-  .k-stat{flex:none;padding:2px 8px 2px 4px;min-height:36px}
+  .k-stat{flex:none;padding:2px 8px 2px 4px;min-height:44px}
   .k-stat img{width:20px;height:20px}
   .k-stat .v{font-size:14px}
   .k-centre{grid-row:3}
@@ -233,7 +233,7 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
   .k-decision #choicesPanel{overflow:auto;overscroll-behavior:contain;min-height:0}
   .k-decision.collapsed #choicesPanel{display:none}
   .k-decision.empty{display:none}
-  .k-sheet-toggle{display:block;margin-left:4px;flex:none;width:36px;height:32px;background:var(--red-d);color:#fff;border:1px solid var(--red-l);border-radius:3px;font:14px var(--font-ui);cursor:pointer}
+  .k-sheet-toggle{display:block;margin-left:auto;flex:none;width:44px;height:36px;background:var(--red-d);color:#fff;border:1px solid var(--red-l);border-radius:3px;font:14px var(--font-ui);cursor:pointer}
   .k-decision.collapsed .k-sheet-toggle{transform:rotate(180deg)}
   .k-decision h3 .hint{display:none}
   #kApp #actions{padding:6px;gap:5px}
@@ -243,7 +243,7 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
   .k-rail .k-nav{display:none}
   .k-rail .k-nav[data-nav=matchday],.k-rail .k-nav[data-nav=news],.k-rail .k-nav[data-nav=phone],.k-rail .k-nav[data-nav=fixtures],.k-rail .k-more{display:flex}
   .k-rail .k-nav{flex:1 1 0;min-width:0;flex-direction:column;gap:2px;font-size:11px;padding:4px 2px;text-align:center;justify-content:center;min-height:52px}
-  .k-rail .k-nav span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .k-rail .k-nav span{overflow:hidden;max-width:100%;line-height:1.1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
   .k-rail .k-nav img{width:24px;height:24px}
   .k-rail .k-badge{position:absolute;top:2px;left:calc(50% + 6px);margin:0}
   .k-nav:hover{background:none;border-color:transparent}

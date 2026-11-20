@@ -334,7 +334,7 @@
     if (r.bottom < 0 || r.top > innerHeight) b.scrollIntoView({ block: 'nearest' });
     const r2 = b.getBoundingClientRect();
     const hit = document.elementFromPoint(r2.left + r2.width / 2, r2.top + r2.height / 2);
-    if (hit && (hit === b || b.contains(hit))) { e.preventDefault(); b.click(); }
+    if (hit && (hit === b || b.contains(hit))) { e.preventDefault(); touchedAt = Date.now(); b.click(); }
   });
 
   // ---------- panes (inventory/doctor/stadium/power/fixtures) become sheets ----------

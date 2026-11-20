@@ -288,7 +288,7 @@ async function insolvencyRung(stage){
   const club = getClubName();
   if (stage === 1) {
     log(`<strong>✉️ WARNING LETTER:</strong> A creditor writes to ${club}. Red ink, capital letters, one word underlined three times: "PAY."`);
-    log(`Net debt ${money(debtDanger().net)}. Get it under ${money(INSOLVENCY_RUNGS[1].at)} or the bailiffs are next.`);
+    log(`Net debt ${money(debtDanger().net)}. Over ${money(INSOLVENCY_RUNGS[2].at)} at the next matchday and the bailiffs come round. Under ${money(INSOLVENCY_RUNGS[1].at)} and they leave you alone.`);
     S.fan_morale = Math.max(0, (S.fan_morale || 50) - 2);
     insolvencyNote('Warning letter received');
   } else if (stage === 2) {

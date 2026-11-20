@@ -1,6 +1,6 @@
 # KREPLIN: deeper systems (design for sign-off)
 
-Status: **draft for the owner's approval**. No code has changed yet. The top half is for the owner. The appendix is for whoever builds it.
+Status: **APPROVED by the owner (build order: backbone → press → drugs → corruption → texting → Tinder).** See 'Owner decisions' below. The top half is for the owner. The appendix is for whoever builds it.
 
 ---
 
@@ -148,7 +148,15 @@ Right now most dirty deeds just add one or two points to a hidden risk number, a
 
 ---
 
-## 4. Open questions for the owner
+
+## Owner decisions (answers to the open questions)
+1. **Ex-wife keeps texting** — after she leaves for Delmor she becomes "Ex-wife (at Delmor's)": taunts, and occasionally feeds you usable Delmor dirt.
+2. **Leaks add heat only** — published stories hit reputation/sponsors/board/marriage and raise FA/police heat; the existing investigation system decides prison/rehab.
+3. **Countdown is vague unless Surveillance** — tabloid hints by default; the Surveillance perk reveals exact stage and source.
+4. **Bans can hit anyone** — named story players too; story code must handle their absence gracefully.
+5. **Sarah stays bleak** — the genuine Tinder arc ends with her leaving whatever you do; no warm ending.
+
+## 4. Open questions for the owner (answered above)
 
 1. **The wife after season 4.** Once she has left for Delmor, does her contact (a) disappear, (b) become "Ex-wife (at Delmor's)" and keep texting, feeding you Delmor dirt or taunting you, or (c) go one-way with read receipts only?
 2. **How lethal leaks can be.** Can a published story **directly** send you to prison or rehab (big drama, fewer second chances), or should it only add heat that the existing investigation system then rolls on (today's pacing)?

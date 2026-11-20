@@ -349,6 +349,15 @@
         </div>
         <div style="margin-top: 8px; font-size: 12px; color: var(--muted); text-align: center;" id="sfxVolumeDisplay">100%</div>
       </div>
+
+      <!-- Voices (match commentary + tap-to-play voicemails; src/087x-voices.js) -->
+      <div class="audio-control-section" style="margin-top: 32px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <h3 style="margin: 0; font-size: 1.1rem; color: var(--text);">🎙️ Voices</h3>
+          <button id="voicesToggleBtn" onclick="toggleVoices()" aria-pressed="true" style="padding: 6px 12px; font-size: 12px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text); border-radius: 6px; cursor: pointer; transition: all 0.2s;">ON</button>
+        </div>
+        <div style="margin-top: 8px; font-size: 12px; color: var(--muted);">Live-match commentary and ▶ voicemail chips. Follows the music volume.</div>
+      </div>
     </div>
   </div>
 </div>

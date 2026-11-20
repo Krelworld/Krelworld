@@ -2024,6 +2024,9 @@ async function mainGameLoopPass() {
     log(`⚽ [${getLeagueName().toUpperCase()}] ${getClubName()} vs ${opp}. Another day at the office. Another chance to disgrace yourself.`);
   }
   
+ // Seasons 1-2 club-life texture (board, deadline day, derby week...): src/087y-season-texture.js
+ if (window.KTexture) await KTexture.run('prematch');
+
  await preMatchPhase();
 
 // Sentenced to rehab during the pre-match (e.g. an overdose): this fixture is

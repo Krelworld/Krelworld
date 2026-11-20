@@ -255,6 +255,9 @@ if (typeof document !== 'undefined') {
   }
 }
 
+// Seasons 1-2 club-life texture after the result (board check-ins, awards, cup run, fans)
+if (window.KTexture && !S.game_over) await KTexture.run('evening');
+
 // One Continue closes the week, unless the evening was an early night with nothing to read.
 if (S._quiet_evening) S._quiet_evening = false;
 else await waitAdvance("Next week ▸", (window.KPacing && KPacing.weekSummary()) || "Advance the season.");

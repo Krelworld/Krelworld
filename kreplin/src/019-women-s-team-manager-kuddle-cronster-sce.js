@@ -283,7 +283,11 @@ function shouldTriggerWomensManagerDemand() {
   const targetMatches = [Math.floor(matchesPerSeason * 0.25), Math.floor(matchesPerSeason * 0.75)];
   const currentMatch = S.matches_played || 0;
   
-  return targetMatches.includes(currentMatch) && Math.random() < 0.7;
+  // Season 3 scheduler: a pending story beat keeps the door; the demand comes a match later
+  const due = targetMatches.includes(currentMatch) || S.womens_team.deferred_demand_match === currentMatch;
+  if (!due) return false;
+  if (window.KPacing && KPacing.yieldToStory && KPacing.yieldToStory('womens_demand')) { S.womens_team.deferred_demand_match = currentMatch + 1; return false; }
+  return Math.random() < 0.7;
 }
 
 // Handle Kuddle Cronster initial letter (Season 2 only)

@@ -1,0 +1,20 @@
+{
+  "voice_id": "goT3UYdM9bhm0n2lmKQx",
+  "voice_name": "Edward - British, Dark, Low (ElevenLabs voice library, stock)",
+  "model_id": "eleven_multilingual_v2",
+  "settings": {
+    "stability": 0.45,
+    "similarity_boost": 0.8,
+    "style": 0.45,
+    "use_speaker_boost": true
+  },
+  "note": "Mohammed Van Onslaught's Season 4 announcements (chips via src/087x-voices.js).",
+  "lines": {
+    "vanonslaught_1": "I am pleased to announce... the coronation of the Muslim Premier League.",
+    "vanonslaught_2": "The following clubs have been liquidated, and their stadiums have been converted into large mosques.",
+    "vanonslaught_3": "We didn't want to do this, but the fans of the clubs in question demanded it, as they wanted places of worship. And who were we to deny them?",
+    "vanonslaught_4": "The league continues, with ten teams. This will be much more exciting for everyone, as fewer games will make way for extra time for pious activities, such as praying to Allah, and other things.",
+    "vanonslaught_5": "Football will be purified. Compliance will be rewarded. Non-compliance will be corrected.",
+    "vanonslaught_6": "You. You are a vile, treacherous pig, and it is long past time for you to bend the knee."
+  }
+}

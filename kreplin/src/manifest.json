@@ -17,6 +17,7 @@
  "013b-shell.css",
  "014-markup.html",
  "@art",
+ "@audio",
  "014b-kui.js",
  "014c-matchpitch.js",
  "015-core.js",
@@ -77,5 +78,7 @@
  "087k-mg-fight.js",
  "087l-mg-train.js",
  "087m-mg-scenes.js",
+ "087x-voices.js",
+ "087y-season-texture.js",
  "088-markup.html"
 ]

@@ -320,7 +320,8 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
   }
 
   // Check for private investigator lore videos (random, before cronster confrontation)
-  if (S.cronster && S.cronster.active && !S.cronster.booby_trap_climax_triggered && !S.cronster.defeated && S.season >= 2) {
+  // (Season 3 scheduler: the Cronster side arc steps aside while an S3 story beat is due - KPacing.yieldToStory)
+  if (S.cronster && S.cronster.active && !S.cronster.booby_trap_climax_triggered && !S.cronster.defeated && S.season >= 2 && !(window.KPacing && KPacing.yieldToStory && KPacing.yieldToStory('cronster_lore'))) {
     // Initialize lore videos tracking if needed
     if (!S.cronster.lore_videos) {
       S.cronster.lore_videos = {
@@ -427,7 +428,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
 
   // Check for final confrontation with Kuddle Cronster (back half of season 2+)
   // This should happen inevitably - doesn't require booby trap to be set
-  if (S.cronster && S.cronster.active && !S.cronster.booby_trap_climax_triggered && !S.cronster.defeated && S.season >= 2) {
+  if (S.cronster && S.cronster.active && !S.cronster.booby_trap_climax_triggered && !S.cronster.defeated && S.season >= 2 && !(window.KPacing && KPacing.yieldToStory && KPacing.yieldToStory('cronster_climax'))) {
     const matchesPlayed = S.matches_played || 0;
     const seasonMatches = S.season_matches || 16;
     const isLatterHalf = matchesPlayed >= Math.floor(seasonMatches / 2);
@@ -482,7 +483,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
   }
 
   // Check for cronster juice incident (when opening door)
-  if (S.cronster && S.cronster.juice_incident_pending && !S.cronster.juice_incident_triggered) {
+  if (S.cronster && S.cronster.juice_incident_pending && !S.cronster.juice_incident_triggered && !(window.KPacing && KPacing.yieldToStory && KPacing.yieldToStory('cronster_juice'))) {
     S.cronster.juice_incident_triggered = true;
     S.cronster.juice_incident_pending = false;
     log(`You open the door to your office.`);

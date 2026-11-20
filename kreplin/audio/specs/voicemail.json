@@ -1,0 +1,30 @@
+{
+  "voice_id": "7p1Ofvcwsv7UBPoFNcpI",
+  "voice_name": "Julian - deep rich mature British (ElevenLabs voice library, stock)",
+  "model_id": "eleven_multilingual_v2",
+  "settings": {
+    "stability": 0.4,
+    "similarity_boost": 0.8,
+    "style": 0.5,
+    "use_speaker_boost": true
+  },
+  "note": "Delmor Krunchem voicemails. Each line's 'match' text (src/087x-voices.js) attaches a tap-to-play chip where the text appears in game.",
+  "lines": {
+    "delmor_01": "This is Delmor Krunchem, the Chairman of Portsmouth FC. Don't get too comfortable, little rat. Portsmouth will destroy you when we meet.",
+    "delmor_02": "Well, well, well. Look who we have here. I'm Delmor Krunchem, chairman of Portsmouth FC, and I'm your worst nightmare. You're going to fail spectacularly, you worthless piece of shit. I'm already laughing at how pathetic you are!",
+    "delmor_03": "Hello, you worthless scumbag. I'm Delmor Krunchem, chairman of Portsmouth FC, and I am your rival! You better watch your step! You will fail! Ha ha! I am actually laughing about how pathetic you are!",
+    "delmor_04": "Ha ha ha! You lost! You will never win!",
+    "delmor_05": "I hate you. Days like this keep me young.",
+    "delmor_06": "Another loss. I'm loving every second of your misery.",
+    "delmor_07": "Ha ha, another loss. Some chairman you are.",
+    "delmor_08": "You bottled it again. Embarrassing.",
+    "delmor_09": "We beat you. Again. It never gets old.",
+    "delmor_10": "We own you. We always have. We always will.",
+    "delmor_11": "Portsmouth win, Southampton lose. Just like it should be.",
+    "delmor_12": "Hey scum. Just letting you know the entire Portsmouth team is on the road to your pathetic excuse for a city right now. We're going to fucking destroy you tomorrow. You're nothing. We own you. Get ready to be humiliated, you fucking loser.",
+    "delmor_13": "She's moved in with me. Don't worry... I'll take good care of her.",
+    "delmor_14": "I'm coming for you. You killed my family. I will make you suffer.",
+    "delmor_15": "I can see you. I know where you are. Sleep well, knowing I'm coming.",
+    "delmor_16": "Your club is a joke and so are you."
+  }
+}

@@ -2762,8 +2762,7 @@ async function quickSimulateMatchWithLiveOverlay() {
   // Handle special case (Messi goalie fiasco)
   if (result.isSpecial) {
     S.messi_goalie_next_loss = false;
-    S.matches_played++; 
-    S.losses++;
+    // (the 0–100 result is recorded by postMatchPhase like any other)
     S.morale = clamp(S.morale - 25, -100, 100);
     log('Result: LOSS (0–100). Board moves to remove you.');
     await triggerRemovalWorkaround('an egregious tactical fiasco (0–100)');

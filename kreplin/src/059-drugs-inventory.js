@@ -23,9 +23,9 @@
       logSafe(`You lose all your personal money and £${remaining.toLocaleString('en-GB')} from club funds in medical bills.`);
     }
     
-    // Set a flag that we're in rehab (but don't use the broken rehab system)
-    S.in_rehab = true;
-    S.rehab_games_remaining = 3;
+    // Rehab: one scheme only (S.suspensions.rehab_games); the main loop plays these weeks without you
+    if (!S.suspensions) S.suspensions = {};
+    S.suspensions.rehab_games = Math.max(S.suspensions.rehab_games|0, 3);
     logSafe("You're sent to rehab for 3 games. The team plays without you.");
     
   };

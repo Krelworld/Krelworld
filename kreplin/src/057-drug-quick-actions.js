@@ -184,15 +184,10 @@
     if (allowedPhase()) mountDrugQuick();
   });
 
-  // ---- Post‑match resets ----
-  // (Dormant: was keyed to an "Attendance: … Gate Revenue:" log line the core no longer writes.)
-  GameHooks.on('postmatch:gate-anchor', function(){
+  // ---- Post‑match resets (once per match day; rehab countdown is playRehabWeek's) ----
+  GameHooks.on('matchday:end', function(){
     ensureDrugCore();
     if (S.on_drugs_today) S.on_drugs_today = false;
-    if (S.suspensions?.rehab_games > 0){
-      S.suspensions.rehab_games = Math.max(0, (S.suspensions.rehab_games|0) - 1);
-      (window.log||console.log)(`REHAB: ${S.suspensions.rehab_games} match(es) remaining.`);
-    }
     if (typeof window.updateHUD === 'function') window.updateHUD();
     // hide quick actions until a valid phase returns
     clearDrugQuick();

@@ -86,7 +86,7 @@ async function handleMuslimMalcolmPoints4Prizes() {
       }
       
       // Add points to league total
-      S.points = (S.points || 0) + pointsValue;
+      adjustClubPoints(pointsValue);
       totalPointsGained += pointsValue;
       
       log(`You trade "${trophyName}" to Muslim Malcolm for ${pointsValue} league points.`);
@@ -2492,18 +2492,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
             }
           } else if (isWorkingVersion) {
             // WORKING VERSION: Actually give the points
-            S.points = (S.points || 0) + selectedPackage.points;
-            
-            // Also update the league table entry
-            const clubName = S.club_name || "Southampton FC";
-            if (typeof ensureTableTeam === 'function') {
-              ensureTableTeam(clubName);
-            }
-            if (!S.table) S.table = {};
-            if (!S.table[clubName]) {
-              S.table[clubName] = { P:0, W:0, D:0, L:0, GF:0, GA:0, GD:0, PTS:0 };
-            }
-            S.table[clubName].PTS = (S.table[clubName].PTS || 0) + selectedPackage.points;
+            adjustClubPoints(selectedPackage.points); // table row + S.points_adjust
             
             log(``);
             log(`The figure takes the money and hands you a sealed envelope.`);
@@ -2638,10 +2627,7 @@ S.accepted_bribe_this_match = true;
             
             // Apply consequences
             S.points_deducted = (S.points_deducted || 0) + 2;
-            const clubName = S.club_name || "Southampton FC";
-            if (S.table && S.table[clubName]) {
-              S.table[clubName].PTS = (S.table[clubName].PTS || 0) - 2;
-            }
+            adjustClubPoints(-2);
             const fine = 150000;
             if (typeof addMoneyClub === 'function') {
               S.club_cash = Math.max(0, (S.club_cash || 0) - fine);

@@ -2,7 +2,7 @@
 function pickEnding(){
   // Don't treat prison as a fail state - player can serve multiple sentences
   if(S.bankrupt) return 'Removed';
-  const effective=S.points-S.points_deducted;
+  const effective=S.points; // table points already include deductions/bonuses
   const league_won=effective>=Math.floor(S.season_matches*2.1);
   const fired_all=(S.manager_fires===S.matches_played);
   if(S.block_cl_win) return 'PortsmouthDynasty';
@@ -14,42 +14,15 @@ function pickEnding(){
   return 'MixedBag';
 }
 // New function to complete all remaining league games
+// Season end: play the fixtures between other clubs that haven't been played yet
+// (rounds after our last match), from the real schedule, so the table reconciles.
 function completeAllLeagueGames() {
   ensureLeagueTableInit();
-  
-  // Get all teams that haven't completed their season
-  const teams = Object.keys(S.table);
-  const incompleteTeams = teams.filter(team => {
-    const teamData = S.table[team];
-    return teamData.P < S.season_matches;
-  });
-  
-  // Simulate remaining games for each incomplete team
-  incompleteTeams.forEach(team => {
-    const teamData = S.table[team];
-    const remainingGames = S.season_matches - teamData.P;
-    
-    for (let i = 0; i < remainingGames; i++) {
-      // Simulate a game result
-      const goalsFor = Math.floor(Math.random() * 4); // 0-3 goals
-      const goalsAgainst = Math.floor(Math.random() * 4); // 0-3 goals
-      
-      teamData.P++;
-      teamData.GF += goalsFor;
-      teamData.GA += goalsAgainst;
-      
-      if (goalsFor > goalsAgainst) {
-        teamData.W++;
-        teamData.PTS += 3;
-      } else if (goalsFor === goalsAgainst) {
-        teamData.D++;
-        teamData.PTS += 1;
-      } else {
-        teamData.L++;
-      }
-    }
-  });
-  
+  if (typeof ensureSeasonScheduleAndTable === 'function') ensureSeasonScheduleAndTable();
+  const rounds = Array.isArray(S.rounds) ? S.rounds : [];
+  for (let r = 0; r < rounds.length; r++) {
+    if (typeof simulateOtherMatchesForRound === 'function') simulateOtherMatchesForRound(r);
+  }
   // Update the league table display
   renderLeagueTablePanel();
 }
@@ -96,7 +69,7 @@ function getFinalStandings(){
       const GD = (r.GF - r.GA);
       const isSouthampton = team === clubName;
       // For Southampton, calculate effective points (PTS - points_deducted)
-      const effectivePTS = isSouthampton ? (r.PTS || 0) - (S.points_deducted || 0) : (r.PTS || 0);
+      const effectivePTS = (r.PTS || 0); // deductions are already applied to the table row
       return { team, ...r, GD, effectivePTS };
     });
   rows.sort((a,b)=>{
@@ -136,10 +109,10 @@ function showFinalLeagueTable() {
     const teamRow = rows.find(r => r.team === clubName);
     if (teamRow) {
       // Reconstruct data from row - use table data to ensure consistency
-      const effectivePoints = (teamRow.PTS || 0) - (S.points_deducted || 0);
+      const effectivePoints = (teamRow.PTS || 0);
       log(`🏆 <strong>FINAL LEAGUE TABLE</strong> - ${clubName} finished ${southamptonPos}${getOrdinalSuffix(southamptonPos)} of ${rows.length} | P:${teamRow.P} W:${teamRow.W} D:${teamRow.D} L:${teamRow.L} GD:${teamRow.GD} PTS:${teamRow.PTS} <button onclick="showFinalLeagueTablePopup()" style="background:var(--accent);color:white;border:none;padding:4px 8px;border-radius:4px;font-size:0.8rem;cursor:pointer;margin-left:8px;">View Full Table</button>`);
       // Use table data for record to ensure it matches what's shown in the table
-      log(`<strong>Final Record:</strong> P${teamRow.P} W${teamRow.W} D${teamRow.D} L${teamRow.L}  Pts:${teamRow.PTS} (-${S.points_deducted || 0} deducted) = ${effectivePoints} effective`);
+      log(`<strong>Final Record:</strong> P${teamRow.P} W${teamRow.W} D${teamRow.D} L${teamRow.L}  Pts:${effectivePoints} (after -${S.points_deducted || 0} deducted)`);
       log(`<strong>Goals:</strong> ${teamRow.GF} for, ${teamRow.GA} against (${teamRow.GD} goal difference)`);
       log(`<strong>Manager Changes:</strong> ${S.manager_fires || 0} of ${teamRow.P} games`);
       // Continue with qualification status using teamRow data
@@ -193,13 +166,13 @@ function showFinalLeagueTable() {
   }
   
   // Calculate effective points from table data (which includes bonus points)
-  const effectivePoints = (southamptonData.PTS || 0) - (S.points_deducted || 0);
+  const effectivePoints = (southamptonData.PTS || 0);
   
   // Clean summary in log with popup option - use table data to ensure consistency
   log(`🏆 <strong>FINAL LEAGUE TABLE</strong> - ${clubName} finished ${southamptonPos}${getOrdinalSuffix(southamptonPos)} of ${rows.length} | P:${southamptonData.P} W:${southamptonData.W} D:${southamptonData.D} L:${southamptonData.L} GD:${southamptonData.GF - southamptonData.GA} PTS:${southamptonData.PTS} <button onclick="showFinalLeagueTablePopup()" style="background:var(--accent);color:white;border:none;padding:4px 8px;border-radius:4px;font-size:0.8rem;cursor:pointer;margin-left:8px;">View Full Table</button>`);
   
   // Use table data for record to ensure it matches what's shown in the table
-  log(`<strong>Final Record:</strong> P${southamptonData.P} W${southamptonData.W} D${southamptonData.D} L${southamptonData.L}  Pts:${southamptonData.PTS} (-${S.points_deducted || 0} deducted) = ${effectivePoints} effective`);
+  log(`<strong>Final Record:</strong> P${southamptonData.P} W${southamptonData.W} D${southamptonData.D} L${southamptonData.L}  Pts:${effectivePoints} (after -${S.points_deducted || 0} deducted)`);
   log(`<strong>Goals:</strong> ${southamptonData.GF} for, ${southamptonData.GA} against (${southamptonData.GF - southamptonData.GA} goal difference)`);
   log(`<strong>Manager Changes:</strong> ${S.manager_fires || 0} of ${southamptonData.P} games`);
   
@@ -1539,17 +1512,7 @@ async function showEndOfSeasonPresentation() {
         🏆 SOUTHAMPTON WINS! +3 league points!
       </div>`);
       const bonusPointsWon = 3;
-      S.points = (S.points || 0) + bonusPointsWon;
-      // Also update the league table to include bonus points
-      const clubName = S.club_name || "Southampton FC";
-      if (!S.table) S.table = {};
-      if (!S.table[clubName]) {
-        // Initialize table entry if it doesn't exist
-        ensureLeagueTableInit();
-      }
-      if (S.table[clubName]) {
-        S.table[clubName].PTS = (S.table[clubName].PTS || 0) + bonusPointsWon;
-      }
+      adjustClubPoints(bonusPointsWon); // table row + S.points_adjust
       S.morale = Math.min(100, (S.morale || 0) + 5);
       appendToModal("✨ Morale +5! Fans are confused but pleased!");
     } else {

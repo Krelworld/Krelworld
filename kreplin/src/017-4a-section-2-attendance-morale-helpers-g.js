@@ -671,18 +671,7 @@ function ensureOpponentForToday() {
         
         // Update both the HUD points and league table points
         const bonusPoints = 3;
-        S.points = (S.points || 0) + bonusPoints;
-        
-        // Also update the league table entry
-        const clubName = S.club_name || "Southampton FC";
-        if (typeof ensureTableTeam === 'function') {
-          ensureTableTeam(clubName);
-        }
-        if (!S.table) S.table = {};
-        if (!S.table[clubName]) {
-          S.table[clubName] = { P:0, W:0, D:0, L:0, GF:0, GA:0, GD:0, PTS:0 };
-        }
-        S.table[clubName].PTS = (S.table[clubName].PTS || 0) + bonusPoints;
+        adjustClubPoints(bonusPoints); // table row + S.points_adjust
         
         // Update UI
         if (typeof updateHUD === 'function') {

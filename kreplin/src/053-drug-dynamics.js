@@ -374,18 +374,8 @@
       S.on_drugs_today = false;
       S.drug_streak = 0;
 
-      // Auto-simulate match (no influence). Try to click the Skip (Quick result) button if present.
-      try{
-        const skip = document.getElementById('skipMatchBtn');
-        if (skip){ skip.click(); }
-        else if (typeof window.quickResult === "function"){ window.quickResult(); }
-        else if (typeof window.startMatch === "function"){ window.startMatch(); setTimeout(()=>document.getElementById('skipMatchBtn')?.click(), 200); }
-        else {
-          logSafe("The team plays without you. The result will be recorded.");
-        }
-      }catch(e){
-        logSafe("The team plays without you. The result will be recorded.");
-      }
+      // The match is played without you: the main loop hands this fixture to the rehab weeks.
+      logSafe("The team plays without you. The result will be recorded.");
     } catch (e) {
       // Fallback - just set basic rehab state
       S.suspensions = S.suspensions || {};
@@ -403,7 +393,7 @@
   }
 
   // ---------- Pre‑match mount points ----------
-  function isRehab(){ try{ return (S && (S.coke_cooldown|0) > 0); }catch(_){ return false; } }
+  function isRehab(){ return isInRehab(); } // one rehab scheme: S.suspensions.rehab_games
   function canShowDrugActions(){
     if (!S || isInPrison()) return false;
     if (S.suspensions?.rehab_games > 0) return false;
@@ -438,15 +428,10 @@
   // Pre-match menus get the "plant drugs" action
   GameHooks.on('choices', function(){ if (S && S.phase === 'prematch') mountDrugActions(); });
 
-  // Post-match: reset daily flag + rehab countdown + cocaine crash
-  // (Dormant: was keyed to an "Attendance: … Gate Revenue:" log line the core no longer writes.)
-  GameHooks.on('postmatch:gate-anchor', function(){
+  // Once per match day: reset daily flag + cocaine crash
+  // (the rehab countdown lives in playRehabWeek, one decrement per rehab match)
+  GameHooks.on('matchday:end', function(){
           if (S.on_drugs_today) S.on_drugs_today = false;
-          if (S.suspensions?.rehab_games > 0){
-            S.suspensions.rehab_games = Math.max(0, (S.suspensions.rehab_games|0) - 1);
-            if (S.suspensions.rehab_games>0) logSafe(`REHAB: You're barred for ${S.suspensions.rehab_games} more match(es).`);
-            updateHUD?.();
-          }
           
           // Cocaine state transition: shift to "crashing" if currently buzzed/wired
           if (S.coke_state === "buzzed" || S.coke_state === "wired") {
@@ -502,6 +487,7 @@
 
   function maybeQueueInvestigation(authority, chance){
     try{
+      if (typeof window.cokeAdjustedInvestigationChance === 'function') chance = window.cokeAdjustedInvestigationChance(chance);
       if (chance !== undefined && Math.random() >= chance) return;
       if (typeof window.queueInvestigationSafe === 'function'){
         window.queueInvestigationSafe(authority, 'misconduct');
@@ -556,17 +542,16 @@
     root.appendChild(cover); root.appendChild(bench); root.appendChild(blackmail); root.appendChild(expose);
   }
 
-  // Apply blackmail payments weekly (post-match anchor is fine)
-  // (Dormant: was keyed to an "Attendance: … Gate Revenue:" log line the core no longer writes.)
-  GameHooks.on('postmatch:gate-anchor', function siphonBlackmailCashPostMatch(){
+  // Apply blackmail payments once per match day
+  GameHooks.on('matchday:end', function siphonBlackmailCashPostMatch(){
+          let total = 0;
           if (Array.isArray(S.squad)){
-            let total = 0;
             S.squad.forEach(p=>{ if (p?.blackmailed && p.blackmail_wage){ total += p.blackmail_wage; } });
             if (total>0){ S.chairman_cash = (S.chairman_cash|0) + total; logSafe(`Off‑books kickbacks from players total ${moneyGBP(total)}.`); }
           }
           // Queue drug scandal for next pre-match instead of immediate trigger
           // This prevents interference with post-match investigations
-          if (!S._queued_drug_scandal) {
+          if (total > 0 && !S._queued_drug_scandal) {
             S._queued_drug_scandal = true;
           }
   });

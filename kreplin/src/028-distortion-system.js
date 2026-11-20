@@ -385,73 +385,15 @@ function restoreInterfaceAfterTimeout() {
 // ---- Menus ----
 // choose(items, title) is the single entry point for a menu. Pipeline:
 //   chooseWithImpulse  (cocaine impulse / DERANGED outburst option while high)
-//   -> chooseBase      (rehab intercept: "Kickoff" menus become the watch-from-rehab button)
+//   -> chooseBase      (pass-through; rehab weeks are run by playRehabWeek in the main loop)
 //   -> renderChoice    (draws the buttons, then emits GameHooks 'choices')
 async function choose(items, title, ...rest){
   return chooseWithImpulse(items, title, ...rest);
 }
 
 function chooseBase(options, prompt){
-  // Check if we're in rehab and this is a kickoff choice
-  if (S && S.in_rehab && prompt && prompt.includes('Kickoff')) {
-    
-    // Clear the choices and show rehab button
-    const root = document.getElementById('actions') || document.getElementById('choices') || document.body;
-    if (root) {
-      const existingBtns = root.querySelectorAll('button, a');
-      existingBtns.forEach(btn => btn.remove());
-      
-      // Create rehab button
-      const rehabBtn = document.createElement('button');
-      rehabBtn.textContent = 'Watch game from rehab (observe only)';
-      rehabBtn.className = 'warn';
-      rehabBtn.onclick = function() {
-        // Simulate match
-        const ourGoals = Math.floor(Math.random() * 3) + 1;
-        const theirGoals = Math.floor(Math.random() * 3);
-        
-        logSafe("You watch from the treatment center. The counselors say you're making progress.");
-        logSafe(`REHAB MATCH RESULT: ${ourGoals}-${theirGoals}`);
-        
-        // Update stats
-        S.matches_played = (S.matches_played|0) + 1;
-        if (ourGoals > theirGoals) {
-          S.wins = (S.wins|0) + 1;
-          S.points = (S.points|0) + 3;
-        } else if (ourGoals === theirGoals) {
-          S.draws = (S.draws|0) + 1;
-          S.points = (S.points|0) + 1;
-        } else {
-          S.losses = (S.losses|0) + 1;
-        }
-        
-        // Decrement rehab games
-        S.rehab_games_remaining = Math.max(0, S.rehab_games_remaining - 1);
-        
-        if (S.rehab_games_remaining > 0) {
-          logSafe(`REHAB: ${S.rehab_games_remaining} more match(es) remaining in treatment.`);
-          // Continue to next match
-          setTimeout(() => {
-            if (typeof updateHUD === 'function') updateHUD();
-            // The game will naturally continue to the next match
-          }, 1000);
-        } else {
-          logSafe("REHAB: You are discharged! Full game functionality restored.");
-          S.in_rehab = false;
-          S.rehab_games_remaining = 0;
-          if (typeof updateHUD === 'function') updateHUD();
-        }
-        
-        // Save state
-        saveGame();
-      };
-      root.appendChild(rehabBtn);
-    }
-    
-    // Return a promise that resolves immediately
-    return Promise.resolve('rehab');
-  }
-  
+  // (Rehab no longer intercepts the kickoff menu: rehab weeks are played by the
+  //  main loop's playRehabWeek(), so a kickoff menu never appears while in rehab.)
   return renderChoice.apply(this, arguments);
 }
 

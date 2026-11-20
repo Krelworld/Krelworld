@@ -607,7 +607,6 @@ std_state:"none", // "none" | "treated" | "untreated"
 std_treatment_attempts:0,
 std_last_treatment_match:-1,
 pregnancies:0,
-reputation:50, legal_risk:0, compliance_risk:0,
 wife_name:"",
 child1_name:"",
 child2_name:"",
@@ -623,7 +622,6 @@ debt_personal:0,
 debt_club:0,
 press_threats:0,
 transfer_market: [],
-unpaid_transfers: [],
 transfer_flags: { seasonOpened:false, midOpened:false },
 mental_health_excuse_used: false,
 unpaid_transfer_agents: {},
@@ -884,7 +882,7 @@ function normalizeGameState(state) {
 // ---------- UI render ----------
 function render(){
   if(!S) return;
- setVal('clubName',S.club_name + (S.onKrazyRegister ? ' — KRAZY' : ''));
+ setVal('clubName',getClubName() + (S.onKrazyRegister ? ' — KRAZY' : ''));
  setVal('seasonProg',`Season ${S.season || 1}/5 (${S.matches_played}/${S.season_matches})`);
  setVal('record',`W${S.wins} D${S.draws} L${S.losses}`);
  setVal('points',`${S.points}${S.points_deducted?` (-${S.points_deducted})`:''}`);
@@ -903,9 +901,9 @@ function render(){
  }
  setVal('fires',S.manager_fires); setVal('embargo',S.transfer_embargo?'Yes':'No');
  setVal('deduct',S.points_deducted);
- // (the old stats column is gone; these meters only render if their elements exist)
  const stars=[]; if(S.messi_signed)stars.push('Messi'); if(S.ronaldo_signed)stars.push('Ronaldo'); setVal('stars',stars.join(', ')||'—');
 
+ // (the old stats column is gone; these meters only render if their elements exist)
  const heat = clamp((S.compliance_risk + S.legal_risk)/2 * 0.8 + S.paperRisk*0.5, 0, 100);
  const $ = id => document.getElementById(id);
  if ($('heatBar')) $('heatBar').style.width = heat+'%';

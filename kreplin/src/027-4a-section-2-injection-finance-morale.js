@@ -20,12 +20,7 @@
   //   log(`Attendance: ${att.toLocaleString('en-GB')} (St Mary's). Gate Revenue: £${rev.toLocaleString('en-GB')}.`);
   // }
 
-  // Fan morale delta: Win +3 / Loss −5 / Draw +1
-  let delta = 0;
-  if (gf > ga) delta =  3;
-  else if (gf < ga) delta = -5;
-  else delta = 1;
-  S.fan_morale = Math.max(0, Math.min(100, (S.fan_morale|0) + delta));
+  // (Fan morale delta for the result is applied once, earlier in postMatchPhase.)
 
   // HUD refresh
   if (typeof updateHUD === 'function') updateHUD();
@@ -349,7 +344,7 @@ function renderHUD(){
   const gp  = S.matches_played || 0;
   const sm  = S.season_matches || 16;
   const w   = S.wins || 0, d = S.draws || 0, l = S.losses || 0;
-  const pts = (S.points || ((w*3) + d)) - (S.points_deducted || 0);
+  const pts = (typeof S.points === 'number') ? S.points : ((w*3) + d); // table points (deductions/bonuses included)
 
   hudSet("hudClubCash",  fmtGBP(cc));
   hudSet("hudChairCash", fmtGBP(ch));
@@ -472,7 +467,7 @@ function getCurrentLeaguePosition() {
       const GD = (r.GF - r.GA);
       const isSouthampton = team === clubName;
       // For Southampton, calculate effective points (PTS - points_deducted) for sorting
-      const effectivePTS = isSouthampton ? (r.PTS || 0) - (S.points_deducted || 0) : (r.PTS || 0);
+      const effectivePTS = (r.PTS || 0); // deductions are already applied to the table row
       return { team, ...r, GD, effectivePTS };
     });
 
@@ -610,7 +605,7 @@ function showLeagueTablePopup() {
       const GD = (r.GF - r.GA);
       const isSouthampton = team === clubName;
       // For Southampton, calculate effective points (PTS - points_deducted)
-      const effectivePTS = isSouthampton ? (r.PTS || 0) - (S.points_deducted || 0) : (r.PTS || 0);
+      const effectivePTS = (r.PTS || 0); // deductions are already applied to the table row
       return { team, ...r, GD, effectivePTS };
     });
 

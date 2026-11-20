@@ -469,10 +469,7 @@ async function triggerVanOnslaughtVisit() {
   
   if (!S.season4.points_deducted_for_refusal) {
     S.points_deducted = (S.points_deducted || 0) + 3;
-    const clubName = S.club_name || "Southampton FC";
-    if (S.table && S.table[clubName]) {
-      S.table[clubName].PTS = (S.table[clubName].PTS || 0) - 3;
-    }
+    adjustClubPoints(-3);
     S.season4.points_deducted_for_refusal = true;
     
     log(`<strong>📧 League Administration Email:</strong>`);
@@ -1723,7 +1720,7 @@ try{
     const rIx =
       (S && S.matchContext && typeof S.matchContext.roundIndex === 'number')
         ? S.matchContext.roundIndex
-        : Math.max(0, (S.matches_played || 1) - 1);
+        : (S.matches_played|0); // not yet incremented: the round being played
     const fx = Array.isArray(S.rounds?.[rIx]?.[0]) ? S.rounds[rIx][0] : [SOUTH, oppName];
     wasHome = (fx[0] === SOUTH);
   } catch(_){ wasHome = true; }
@@ -1737,10 +1734,7 @@ try{
   //   log(`Attendance: ${att.toLocaleString()} (St Mary's). Gate Revenue: £${rev.toLocaleString()}.`);
   // }
 
-  // Fan morale delta (Win +3, Loss −5, Draw +1)
-  if (gf > ga)       S.fan_morale = Math.min(100,(S.fan_morale|0) + 3);
-  else if (ga > gf)  S.fan_morale = Math.max(0,(S.fan_morale|0) - 5);
-  else               S.fan_morale = Math.min(100,(S.fan_morale|0) + 1);
+  // (Fan morale delta for the result is applied once, earlier in postMatchPhase.)
 
   if (typeof updateHUD === 'function') updateHUD();
 } catch(e){

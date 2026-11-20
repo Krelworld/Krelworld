@@ -12,9 +12,9 @@ if(Math.random()<0.18 && getSquad().length){
   const target = pick(sq);
   const offer = Math.max(2000, Math.floor((target.price||5000) * (0.8 + Math.random()*0.8)));
   const r = await choose([
-    {key:"acc",label:`Accept $${offer} for ${target.name}`},
+    {key:"acc",label:`Accept ${money(offer)} for ${target.name}`},
     {key:"rej",label:"Reject"}
-  ], `Transfer Offer: Another club bids $${offer} for ${target.name}.`);
+  ], `Transfer Offer: Another club bids ${money(offer)} for ${target.name}.`);
   if(r==="acc"){
     setSquad(sq.filter(p=>p.id!==target.id));
     if (typeof addMoneyClub === 'function') {
@@ -22,7 +22,7 @@ if(Math.random()<0.18 && getSquad().length){
     } else {
       S.club_cash = (S.club_cash || 0) + offer;
     }
-    log(`Sold ${target.name} to the bidding club for $${offer}.`);
+    log(`Sold ${target.name} to the bidding club for ${money(offer)}.`);
   }else{
     log("You rejected the offer.");
   }
@@ -63,7 +63,7 @@ async function buyFlow(){
   }
 
   const choiceOptions = [
-    {key:"club",label:`Pay from Club ($${displayPrice})`},
+    {key:"club",label:`Pay from Club (${money(displayPrice)})`},
     {key:"unpaid",label:"Commit without paying (unpaid transfer)"},
     {key:"cancel",label:"Cancel"}
   ];
@@ -85,7 +85,7 @@ async function buyFlow(){
       if (usingTransferAct){
         // One-shot: consume the Act and lean on the press / Delmor / risk systems
         S.transfer_act_active = false;
-        log(`Transfer complete: ${p.name} joins on a state-backed sweetheart deal. Club paid just $${fee} on a sticker price of $${p.price}.`);
+        log(`Transfer complete: ${p.name} joins on a state-backed sweetheart deal. Club paid just ${money(fee)} on a sticker price of ${money(p.price)}.`);
         if (S.press){
           S.press.last_scandal = `Transfer Powers Act: ${p.name} signs for a surreal cut-price fee amid accusations of state interference.`;
         }
@@ -109,7 +109,7 @@ async function buyFlow(){
           scheduleWorldEvent('transferVendetta', 2 + Math.floor(Math.random()*3), { clubId });
         }catch(e){}
       } else {
-        log(`Transfer complete: ${p.name} joins. Club paid $${p.price}.`);
+        log(`Transfer complete: ${p.name} joins. Club paid ${money(p.price)}.`);
       }
     }else{
       log("Insufficient club funds.");
@@ -319,13 +319,13 @@ function finalizeBuy(p){
 async function sellFlow(){
   const sq = getSquad();
   if(sq.length===0){ log("You have no players to sell."); return; }
-  const opts = sq.map(pl=>({key:pl.id, label:`Sell ${pl.name} (${pl.pos}) | RAT ${pl.rating} | $${pl.price}`}));
+  const opts = sq.map(pl=>({key:pl.id, label:`Sell ${pl.name} (${pl.pos}) | RAT ${pl.rating} | ${money(pl.price)}`}));
   opts.push({key:"back",label:"Back"});
   const k = await choose(opts,"Choose player to sell");
   if(k==="back") return;
   const pl = sq.find(x=>x.id===k);
   if(!pl) return;
-  const confirm = await choose([{key:"y",label:`Confirm sale for $${pl.price}`},{key:"n",label:"Cancel"}],`Sell ${pl.name}?`);
+  const confirm = await choose([{key:"y",label:`Confirm sale for ${money(pl.price)}`},{key:"n",label:"Cancel"}],`Sell ${pl.name}?`);
   if(confirm!=="y") return;
   if (typeof addMoneyClub === 'function') {
     addMoneyClub(pl.price||0);
@@ -333,7 +333,7 @@ async function sellFlow(){
     S.club_cash = (S.club_cash || 0) + (pl.price||0);
   }
   setSquad(sq.filter(x=>x.id!==pl.id));
-  log(`Sold ${pl.name} for $${pl.price}.`);
+  log(`Sold ${pl.name} for ${money(pl.price)}.`);
   
   // Trigger rival event if selling a star player (high rating or high price)
   if (typeof triggerRivalEvent === 'function') {
@@ -439,7 +439,7 @@ async function placeBetMenu(){
 
   // Choose the market
   const market = await choose([
-    { key:'home', label:`Southampton to WIN @ ${odds.home.toFixed(2)}` },
+    { key:'home', label:`${getClubName()} to WIN @ ${odds.home.toFixed(2)}` },
     { key:'draw', label:`DRAW @ ${odds.draw.toFixed(2)}` },
     { key:'away', label:`${team} to WIN @ ${odds.away.toFixed(2)}` },
     { key:'x',    label:'Cancel' }

@@ -304,150 +304,29 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
     await runPrisonLoop();
   }
 
- // Rehab loop - runs when player is in rehab (similar to prison)
- while((S.suspensions?.rehab_games|0) > 0){
-   try {
-     // Track rehab time for certificate
-     if (!S.playerStats) S.playerStats = {};
-     S.playerStats.matchesSpentInRehabilitation = (S.playerStats.matchesSpentInRehabilitation || 0) + 1;
-     
-     // Track if this is the first rehab match iteration
-     const isFirstRehabIteration = !S._rehab_loop_entered;
-     S._rehab_loop_entered = true;
-     
-     // Store the match index when rehab was set (if not already stored)
-     if (!S._rehab_match_index_when_set) {
-       S._rehab_match_index_when_set = S.matches_played;
-     }
-     
-     // If this is the first iteration and matches_played hasn't changed since rehab was set,
-     // it means matches_played was already incremented in postMatchPhase before rehab was set.
-     // In that case, use the current index (don't increment again).
-     // Otherwise, increment matches_played for this rehab match.
-     if (isFirstRehabIteration && S.matches_played === S._rehab_match_index_when_set) {
-       // matches_played was already incremented, use current index
-       // Don't increment again
-     } else {
-       // Normal case: increment for this rehab match
-       S.matches_played = (S.matches_played|0) + 1;
-     }
-     
-     // Clear the stored index after first use
-     if (isFirstRehabIteration) {
-       S._rehab_match_index_when_set = null;
-     }
-     
-     logSafe("REHAB: You are in treatment. The team plays without you...");
-     
-     // Simulate only Southampton's scheduled match (no extra matches)
-     // If season has ended, use a generic opponent
-     const oppName = S.opponents[S.matches_played] || "Season End Match";
-     const opp = { team: oppName, manager: S.opponentManagers?.[S.matches_played] || "Opposing Manager" };
-     const matchResult = await simulatePrisonMatch(opp); // Reuse prison match simulation
-     
-     // Don't increment matches_played here - it was already handled above
-     
-     // Update points and win/loss/draw counters based on result
-     if (matchResult.our_goals > matchResult.their_goals) {
-       S.wins = (S.wins|0) + 1;
-       S.points = (S.points|0) + 3;
-     } else if (matchResult.our_goals === matchResult.their_goals) {
-       S.draws = (S.draws|0) + 1;
-       S.points = (S.points|0) + 1;
-     } else {
-       S.losses = (S.losses|0) + 1;
-     }
-     
-     // Update league table - safely
-     try {
-       if (typeof updateLeagueTable === 'function') {
-         updateLeagueTable(S.opponents[S.matches_played-1], matchResult.our_goals, matchResult.their_goals);
-       }
-     } catch (e) {
-     }
-     
-     // Refresh UI - safely
-     try {
-       if (typeof render === 'function') render();
-     } catch (e) {
-     }
-     try {
-       if (typeof updateHUD === 'function') updateHUD();
-     } catch (e) {
-     }
-     
-     // Decrement rehab sentence
-     S.suspensions.rehab_games = Math.max(0, (S.suspensions.rehab_games|0) - 1);
-     
-     // Show result - safely
-     logSafe(`REHAB MATCH RESULT: ${matchResult.our_goals}-${matchResult.their_goals}`);
-     if ((S.suspensions.rehab_games|0) > 0) {
-       logSafe(`REHAB: ${S.suspensions.rehab_games} more match(es) remaining in treatment.`);
-     } else {
-       logSafe("REHAB: You are discharged! Full game functionality restored.");
-       S._rehab_loop_entered = false; // Reset for next time
-       S._rehab_match_index_when_set = null; // Clear stored index
-       
-       // Reduce drug-related risks after completing rehab
-       S.coke_detection_risk = Math.max(0, (S.coke_detection_risk|0) - 5);
-       S.police_risk = Math.max(0, (S.police_risk|0) - 3);
-       logSafe("Your time in rehab has reduced your drug-related legal exposure.");
-     }
-     
-     // Save state
-     saveGame();
-     
-     // Wait for user to acknowledge
-     await waitAdvance("Rehab", "Continue treatment...");
-   } catch (e) {
-     // Fallback - just decrement and continue
-     S.suspensions.rehab_games = Math.max(0, (S.suspensions.rehab_games|0) - 1);
-     logSafe("REHAB: An error occurred during treatment, but you continue...");
-   }
-  }
+ // Rehab weeks: the team plays without you, through the normal result path.
+ while((S.suspensions?.rehab_games|0) > 0 && !S.game_over && (S.matches_played|0) < (S.season_matches|0)){
+   await playRehabWeek();
+ }
 
   // After prison and rehab, continue with the main game loop if season isn't over
  
- // Store matches_played before recursive call to check for progress
- const matchesBeforeRecursion = S.matches_played;
- 
- // Check if the while loop condition would be true (i.e., loop can actually run)
- const canLoopRun = S.matches_played < S.season_matches && 
-                    S.matches_played < (S.opponents?.length || S.season_matches) && 
-                    (S.suspensions?.prison_games|0) <= 0 && 
-                    (S.suspensions?.rehab_games|0) <= 0 && 
-                    !S.game_over;
- 
- 
- if (S.matches_played < S.season_matches && (S.suspensions?.prison_games|0) <= 0 && (S.suspensions?.rehab_games|0) <= 0 && canLoopRun) {
-   // Re-enter the main game loop - call the main game loop function recursively
-   // Don't reset depth - let it track naturally, finally block will decrement
-   try {
-     await mainGameLoop();
-     // Check if we made progress (matches_played increased) or if season ended
-     const matchesAfterRecursion = S.matches_played;
-     
-     // If no progress was made and we're still in the same state, there might be an issue
-     if (matchesAfterRecursion === matchesBeforeRecursion && S.matches_played < S.season_matches && (S.suspensions?.prison_games|0) <= 0 && (S.suspensions?.rehab_games|0) <= 0) {
-       console.warn("DEBUG: No progress made in recursive call - matches_played unchanged. This may indicate a loop condition issue.");
-       // Don't recursively call again - let the function exit
-       return; // Exit to prevent infinite recursion
-     }
-     // Note: Recursion depth is handled by finally block, no need to reset here
-     // Return after recursive call to ensure clean exit
-     return;
-   } catch (e) {
-     // Note: Recursion depth is handled by finally block, no need to reset here
-     // Fallback - just log and continue
-     logSafe("The game continues after your rehabilitation...");
-   }
- } else {
+ if (S.game_over) return;
+ // Matches left this season: run another pass (prison/rehab loops pick up any new sentence).
+ if (S.matches_played < S.season_matches && S.matches_played < (S.opponents?.length || S.season_matches)) {
+   return 'again';
+ }
+ {
    // Season is over, proceed to end of season presentation first
    try {
      await showEndOfSeasonPresentation();
    } catch (e) {
      console.error("Error in showEndOfSeasonPresentation:", e);
      log("The presentation encountered an error, but the season continues...");
+     // Season 5 must still reach the Ultima Cup, or the season would replay.
+     if (S.season >= 5 && !(S.ultimaCup && S.ultimaCup.advancedFromSeason5) && typeof ultimaCupPreMatch === 'function') {
+       try { await ultimaCupPreMatch(); } catch (e2) { console.error('Error entering Ultima Cup:', e2); }
+     }
    }
    
    // Check if we advanced to Ultima Cup - if so, skip endOfSeason()
@@ -466,16 +345,33 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
    }
    
    clearActions();
+
+   // Season 5 is the last league season: if we got here without the Ultima Cup,
+   // the campaign is over (never replay Season 5).
+   if (S.season >= 5) {
+     S.game_over = true;
+     S.game_over_reason = S.game_over_reason || 'The campaign is over.';
+     saveGame();
+     return;
+   }
    
    // Ensure UI is ready before showing continue button
    await new Promise(resolve => setTimeout(resolve, 500));
    
    let continueChoice;
    try {
-     continueChoice = await choose([
-       {key:'next',label:'Continue to next season'},
-       {key:'reset',label:'Start over (Reset)'}
-     ],'Season complete.');
+     while (true) {
+       continueChoice = await choose([
+         {key:'next',label:'Continue to next season'},
+         {key:'reset',label:'Start over (Reset)'}
+       ],'Season complete.');
+       if (continueChoice !== 'reset') break;
+       const sure = await choose([
+         {key:'back',label:'No, go back'},
+         {key:'reset',label:'Yes, delete this campaign and start over', variant:'bad'}
+       ],'Start over? Your current campaign will be lost.');
+       if (sure === 'reset') break;
+     }
    } catch (e) {
      console.error("Error in continue choice:", e);
      // Default to next season if choice fails
@@ -519,7 +415,7 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
       }
       
       log(``);
-      S.season3.player_coma_between_seasons = false; // Clear coma flag
+      // The coma flag is cleared after the Season 4 opener (which branches on it).
      }
      
      // World Cup off-season (runs between seasons, before season increment)
@@ -540,6 +436,10 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
       try {
         await runSeason4Opener();
         S.season4_opener_complete = true;
+        if (S.season3 && S.season3.player_coma_between_seasons) {
+          S.season3.player_coma_between_seasons = false;
+          S.season3.coma_was_between_s3_s4 = true;
+        }
         saveGame();
       } catch (e) {
         console.error('Error in runSeason4Opener:', e);
@@ -551,7 +451,12 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
     
     // Run Season 5 opening sequence if transitioning to Season 5
     if (S.season === 5 && !S.season5_opener_complete) {
-      await runSeason5Opener();
+      try {
+        await runSeason5Opener();
+      } catch (e) {
+        console.error('Error in runSeason5Opener:', e);
+        log('Season 5 opener encountered an error, continuing...');
+      }
       S.season5_opener_complete = true;
       saveGame();
     }
@@ -575,61 +480,8 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
     // Note: bribes_count is already cumulative, so we use Math.max to ensure it doesn't decrease
     S.playerStats.bribesMadeOrAccepted = Math.max(S.playerStats.bribesMadeOrAccepted || 0, currentSeasonBribes);
     
-    // Reset for next season
-    S.matches_played = 0;
-    S.wins = 0;
-    S.draws = 0;
-    S.losses = 0;
-    S.points = 0;
-    S.points_deducted = 0;
-    S.manager_fires = 0;
-    S.fired_last_game = false;
-    // Season 4 & 5 have 9 games, others have 16 - will be set correctly by ensureSeasonSchedule()
-    S.season_matches = (S.season === 4 || S.season === 5) ? 9 : 16;
-    
-    // Reset CL active state (will be set when CL starts)
-    S.clActive = false;
-    S.clStage = 'group'; // Reset to group stage for new season
-    S.clGroupMatches = [];
-    S.clGroupStandings = {};
-    S.clKnockoutRound = null;
-    S.clKnockoutBracket = {};
-    S.clScheduledMatches = [];
-    S.clNextMatchIndex = 0;
-    
-    // Reset World Cup completion flag for new season
-    S.worldCupCompletedForSeason = false;
-    
-    // Reset some risks but keep some progression
-    S.legal_risk = Math.max(0, (S.legal_risk||0) - 10);
-    S.compliance_risk = Math.max(0, (S.compliance_risk||0) - 10);
-    S.police_risk = Math.max(0, (S.police_risk||0) - 5);
-    
-    // Clear prison status
-    S.prison = false;
-    if(S.suspensions) {
-      S.suspensions.prison_games = 0;
-    }
-    
-    // Reset table for new season
-    S.table = {};
-    S.table_order = [];
-    S.leagueTableShownInPresentation = false; // Reset flag for new season
-    
-    // Reset opponents schedule for new season
-    S.opponents = [];
-    
-    // CRITICAL: Restore currentOpponent function to prevent World Cup/CL opponents contaminating new season
-    restoreCurrentOpponent();
-    
-    ensureSeasonSchedule();
-    
-    // ensureSeasonSchedule() already sets season_matches correctly based on season number
-    // (9 for seasons 4 & 5, 16 for others) - don't override it
-    
-    // Ensure league table is initialized
-    ensureLeagueTableInit();
-    renderLeagueTablePanel();
+    // Reset for next season (table, fixtures, record, CL/WC, risks)
+    beginNewSeasonState();
     
     log(`Starting Season ${S.season}...`);
     saveGame();
@@ -637,9 +489,8 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
     // Update HUD to reflect new season - this must happen after season_matches is set
     if (typeof updateHUD === 'function') updateHUD();
     
-    // Restart the main game loop for new season
-    // Don't reset depth - let it track naturally, finally block will decrement
-    await mainGameLoop();
+    // Play the new season (next pass of mainGameLoop)
+    return 'again';
    } else {
      localStorage.removeItem(SAVE_KEY); 
      location.reload();
@@ -647,12 +498,9 @@ if (!S.inventory)   S.inventory   = { accolades: [], drugs: 0 };
  }
  
  } catch (e) {
+   console.error('mainGameLoopPass error:', e);
    logSafe("A critical error occurred in the game loop. The game will attempt to continue...");
-   // Reset recursion depth on error
-   S._mainGameLoopRecursionDepth = 0;
- } finally {
-   // Always reset recursion depth when function exits
-   S._mainGameLoopRecursionDepth = Math.max(0, (S._mainGameLoopRecursionDepth || 0) - 1);
+   return 'again';
  }
 }
 

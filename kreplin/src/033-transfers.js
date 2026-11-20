@@ -1069,10 +1069,7 @@ async function maybeMoralComplianceAudit(){
     addToModal('', false);
     const pointsDeducted = rnd(3, 6);
     S.points_deducted = (S.points_deducted || 0) + pointsDeducted;
-    const clubName = S.club_name || "Southampton FC";
-    if (S.table && S.table[clubName]) {
-      S.table[clubName].PTS = (S.table[clubName].PTS || 0) - pointsDeducted;
-    }
+    adjustClubPoints(-pointsDeducted);
     addToModal(`Points Deducted: ${pointsDeducted}`, true);
     addToModal('"Logged as Corrective Adjustment."', false);
     addToModal('No appeal.', false);
@@ -1128,10 +1125,7 @@ async function maybeMoralComplianceAudit(){
       addToModal('"This is noted."', false);
       const emergencyPoints = rnd(2, 4);
       S.points_deducted = (S.points_deducted || 0) + emergencyPoints;
-      const clubName = S.club_name || "Southampton FC";
-      if (S.table && S.table[clubName]) {
-        S.table[clubName].PTS = (S.table[clubName].PTS || 0) - emergencyPoints;
-      }
+      adjustClubPoints(-emergencyPoints);
       addToModal(`Points Deducted: ${emergencyPoints}`, true);
     }
   }
@@ -1475,13 +1469,13 @@ async function faSanctionsCheck(){
   log('<strong>FA INVESTIGATION:</strong> Dossier opened.' + (incriminating?` A leaked document circulates: “${incriminating}”.`:''));
   if(S.discipline_step===0){log('Outcome: <em>Official Warning</em> issued.');advanceDiscipline(1);}
   else if(S.discipline_step===1){const fine=rnd(1,4)*1000000; S.club_cash=Math.max(0,S.club_cash-fine); log(`Outcome: <em>Fine</em> of ${money(fine)}.`);advanceDiscipline(2);}
-  else if(S.discipline_step===2){const pts=rnd(2,6); S.points_deducted+=pts; const clubName = S.club_name || "Southampton FC"; if(S.table && S.table[clubName]){S.table[clubName].PTS = (S.table[clubName].PTS || 0) - pts;} log(`Outcome: <em>Points Deduction</em> of -${pts}.`);advanceDiscipline(3);}
+  else if(S.discipline_step===2){const pts=rnd(2,6); S.points_deducted+=pts; adjustClubPoints(-pts); log(`Outcome: <em>Points Deduction</em> of -${pts}.`);advanceDiscipline(3);}
   else if(S.discipline_step===3){S.transfer_embargo=true; log('Outcome: <em>Transfer Embargo</em> until further notice.');advanceDiscipline(4);}
   else { if(Math.random()<0.35){log('<strong>REFERRAL:</strong> Case forwarded to authorities.');advanceDiscipline(5);} else {const fine=rnd(3,7)*1000000; S.club_cash=Math.max(0,S.club_cash-fine); log(`Outcome: Additional <em>Fine</em> ${money(fine)} and embargo maintained.`);} }
   const act=await choose([{key:'c',label:'Cooperate fully'},{key:'o',label:'Obstruct / delay',variant:'warn'},{key:'b',label:'Bribe an official',variant:'bad'}],'Strategy during probe?');
   if(act==='c'){S.reputation=clamp(S.reputation+2,0,100); burnPaper(6);}
   else if(act==='o'){S.reputation=clamp(S.reputation-6,0,100);S.compliance_risk=clamp(S.compliance_risk+10,0,100); addPaper('Noncompliance with document production',12);}
-  else {const cost=rnd(2,4)*1000000; if(S.club_cash>=cost){S.club_cash-=cost; S.offbooks+=cost; S.reputation=clamp(S.reputation-8,0,100); addPaper('Attempted to influence regulator',18);} else {log('You fail to raise the hush fund. It backfires.'); S.points_deducted+=3; const clubName = S.club_name || "Southampton FC"; if(S.table && S.table[clubName]){S.table[clubName].PTS = (S.table[clubName].PTS || 0) - 3;} advanceDiscipline(3);} }
+  else {const cost=rnd(2,4)*1000000; if(S.club_cash>=cost){S.club_cash-=cost; S.offbooks+=cost; S.reputation=clamp(S.reputation-8,0,100); addPaper('Attempted to influence regulator',18);} else {log('You fail to raise the hush fund. It backfires.'); S.points_deducted+=3; adjustClubPoints(-3); advanceDiscipline(3);} }
   S.fa_cooldown=2; render(); return true;
 }
 async function triggerRemovalWorkaround(reason){

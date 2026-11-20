@@ -425,10 +425,7 @@ function triggerMassiveDopingScandal(player) {
   S.chairman_cash = Math.max(0, (S.chairman_cash || 0) - fine);
   S.reputation = Math.max(0, (S.reputation || 50) - 30);
   S.points_deducted = (S.points_deducted || 0) + 6; // Major points deduction
-  const clubName = S.club_name || "Southampton FC";
-  if (S.table && S.table[clubName]) {
-    S.table[clubName].PTS = (S.table[clubName].PTS || 0) - 6;
-  }
+  adjustClubPoints(-6);
   
   log(`💸 You are fined £${fine.toLocaleString()} for the massive doping scandal.`);
   log(`📉 Your reputation plummets. Points deduction: -6.`);
@@ -752,10 +749,7 @@ function triggerRoidRage(player) {
         S.chairman_cash = Math.max(0, (S.chairman_cash || 0) - fine);
         S.reputation = Math.max(0, (S.reputation || 50) - 15);
         S.points_deducted = (S.points_deducted || 0) + 3; // Points deduction
-        const clubName = S.club_name || "Southampton FC";
-        if (S.table && S.table[clubName]) {
-          S.table[clubName].PTS = (S.table[clubName].PTS || 0) - 3;
-        }
+        adjustClubPoints(-3);
         log(`You are fined £${fine.toLocaleString()} and receive a 3-point deduction for doping violations.`);
         log('Your reputation takes a significant hit.');
       }
@@ -1286,8 +1280,9 @@ function computeTeamStrength(players){
     
     return sum + playerRating;
   }, 0);
-  const boost = (S?.team_morale_boost||0);
-  return Math.max(5, base + boost);
+  // One-match morale (S.team_morale_boost) is applied once, by the match engine
+  // (computeQuickSimResult & co.), not here as well.
+  return Math.max(5, base);
 }
 
 // Convert strengths to fair-ish decimal odds with a small house edge
@@ -1303,10 +1298,8 @@ function getMatchOdds(our, opp){
 function computeOpponentStrength(players) {
   // Sum opponent player ratings (no per-player morale available)
   const base = players.reduce((sum, p) => sum + (p.rating || 0), 0);
-  // Adjust strength by opponent morale relative to baseline (70)
-  const moraleDelta = (typeof S.morale_opponent === 'number' ? S.morale_opponent : 70) - 70;
-  const moraleBonus = Math.round(moraleDelta / 5);  // ±1 strength per ±5 morale points
-  return Math.max(5, base + moraleBonus);
+  // Opponent morale (S.morale_opponent) is applied once, by the match engine.
+  return Math.max(5, base);
 }
 
 

@@ -158,10 +158,14 @@ async function promptQuickSimChoice(overlay, {
       if (ev.key === 'Escape') {
         const fallback = defaultId || options[0].id;
         safeResolve(fallback);
+      } else if (/^[1-9]$/.test(ev.key) && options[+ev.key - 1]) {
+        ev.preventDefault(); ev.stopPropagation();
+        safeResolve(options[+ev.key - 1].id);
       }
     };
+    setTimeout(() => { const f = btnRow.querySelector('button'); if (f) f.focus({ preventScroll: true }); }, 0);
 
-    document.addEventListener('keydown', onKey);
+    document.addEventListener('keydown', onKey, true);
 
     let skipInterval = null;
     if (skipState) {
@@ -181,7 +185,7 @@ async function promptQuickSimChoice(overlay, {
       if (backdrop && backdrop.parentNode) {
         backdrop.parentNode.removeChild(backdrop);
       }
-      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('keydown', onKey, true);
       if (skipInterval) clearInterval(skipInterval);
     }
   });
@@ -308,6 +312,8 @@ async function revealMatchEvents(result, overlay, skipState) {
           halftimeOptions.push({ id: 'emotional_blackmail', label: 'Emotional blackmail', description: 'Threaten to kill yourself if you don\'t win the game.' });
         }
         
+        if (overlay._pitch) overlay._pitch.whistle('HALF TIME');
+        if (minuteEl) minuteEl.textContent = 'HT';
         const choice = await promptQuickSimChoice(overlay, {
           title: "Half-time",
           subtitle: "What's the message in the dressing room?",
@@ -316,6 +322,7 @@ async function revealMatchEvents(result, overlay, skipState) {
           toneClass: 'quick-sim-modal-halftime',
           skipState
         });
+        if (overlay._pitch) overlay._pitch.resume();
 
         let flavour = '';
         let aggression = 1;
@@ -490,6 +497,7 @@ async function revealMatchEvents(result, overlay, skipState) {
     if (eventMinute > currentMinute) {
       currentMinute = eventMinute;
       minuteEl.textContent = `${eventMinute}'`;
+      if (overlay._pitch) overlay._pitch.minute(eventMinute);
     }
     
     // Show minute markers periodically (every 10 minutes)
@@ -540,6 +548,7 @@ async function revealMatchEvents(result, overlay, skipState) {
     // Generate commentary
     let commentary = '';
     try {
+      if (overlay._pitch) { try { overlay._pitch.event(event); } catch (_e) {} }
       if (event.kind === 'GOAL') {
         commentary = generateGoalCommentary(event);
         // Flash effect on goal
@@ -1402,6 +1411,7 @@ function revealFinalScore(result, overlay) {
   scoreHome.textContent = result.usGoals;
   scoreAway.textContent = result.themGoals;
   minuteEl.textContent = "FT";
+  if (overlay._pitch) overlay._pitch.fulltime();
   
   // Add final score to log
   const homeTeam = getClubName();
@@ -1424,8 +1434,7 @@ async function quickSimulateMatchWithLogCommentary() {
   // Check for Messi goalie fiasco
   if (S.messi_goalie_next_loss) {
     S.messi_goalie_next_loss = false;
-    S.matches_played++; 
-    S.losses++;
+    // (the 0–100 result is recorded by postMatchPhase like any other)
     S.morale = clamp(S.morale - 25, -100, 100);
     log('Result: LOSS (0–100). Board moves to remove you.');
     await triggerRemovalWorkaround('an egregious tactical fiasco (0–100)');
@@ -1936,17 +1945,11 @@ async function quickSimulateMatchWithLogCommentary() {
   // Recalculate winner with own goals included
   const finalWinner = gf > finalGa ? "us" : (gf < finalGa ? "them" : "draw");
   
-  // Update league match stats
+  // Morale swing (W/D/L and points are recorded by postMatchPhase via the table)
   if (finalWinner === "us") {
-    S.wins = (S.wins || 0) + 1;
-    S.points = (S.points || 0) + 3;
     S.morale = clamp(S.morale + 4, -100, 100);
   } else if (finalWinner === "them") {
-    S.losses = (S.losses || 0) + 1;
     S.morale = clamp(S.morale - 6, -100, 100);
-  } else {
-    S.draws = (S.draws || 0) + 1;
-    S.points = (S.points || 0) + 1;
   }
   
   return { winner: finalWinner, usGoals: gf, themGoals: finalGa, score: `${gf}-${finalGa}` };
@@ -2068,7 +2071,7 @@ async function runPostMatchPhase(outcome){
   const roundIndex =
     (S && S.matchContext && typeof S.matchContext.roundIndex === 'number')
       ? S.matchContext.roundIndex
-      : Math.max(0, (S.matches_played || 1) - 1);
+      : (S.matches_played|0); // not yet incremented: the round being played
 
   const oppName =
     (S && S.matchContext && S.matchContext.team)
@@ -2184,7 +2187,7 @@ try {
     const roundIndex =
       (S && S.matchContext && typeof S.matchContext.roundIndex === 'number')
         ? S.matchContext.roundIndex
-        : Math.max(0, (S.matches_played || 1) - 1);
+        : (S.matches_played|0); // not yet incremented: the round being played
     const fixture = Array.isArray(S.rounds?.[roundIndex]?.[0])
       ? S.rounds[roundIndex][0]
       : [SOUTH, oppName];
@@ -2231,8 +2234,8 @@ try {
 } catch(e) {
   console.error("[4A] post-match finance/morale error:", e);
 }
-// Determine home/away context for narrative + bribery systems
-const wasHome = (typeof isHomeToday === 'function' ? isHomeToday() : true);
+// Determine home/away context for narrative + bribery systems (this round's fixture)
+const wasHome = (() => { try { const fx = S.rounds?.[roundIndex]?.[0]; return Array.isArray(fx) ? fx[0] === getClubName() : true; } catch(_) { return true; } })();
 
 // Narrative-only: Southampton Women's Team omnipresent subsystem
 try {

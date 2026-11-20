@@ -49,9 +49,13 @@ window.addEventListener('unhandledrejection', function(e) {
      'prison:match'              each match day spent in the prison loop
      'choices' ({root, prompt, options})  after choose() has drawn a menu's buttons
      'init'                      after init() has created/loaded S
+     'matchday:end'              once per match, after postMatchPhase (finalizeMatchDay has
+                                 reset the per-match morale fields): kickbacks, cocaine crash,
+                                 drug-day resets
      'postmatch:gate-anchor'     NOT emitted: holds handlers that were keyed to an
                                  "Attendance: … Gate Revenue:" log line the core stopped
-                                 writing, so they never ran in v12 (kept dormant) */
+                                 writing and are superseded elsewhere (prison countdown is
+                                 the prison loop; oversight is queued by the main loop) */
 const GameHooks = (function(){
   const handlers = Object.create(null);
   function list(evt){ return handlers[evt] || (handlers[evt] = []); }

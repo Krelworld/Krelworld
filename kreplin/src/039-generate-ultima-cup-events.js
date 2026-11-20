@@ -1108,8 +1108,12 @@ async function endOfSeason(){
   }
   
   
-  const ending = pickEnding();
-  if(ending==='Removed'){ log('<strong>Outcome:</strong> Removed / Administration. History frowns.'); }
+  // The ending verdict and THE END belong to the true end of the campaign only;
+  // mid-campaign seasons get the season summary (metrics/finance/discipline).
+  const campaignOver = (S.season|0) >= 5 || !!S.game_over;
+  const ending = campaignOver ? pickEnding() : null;
+  if (!campaignOver) { log(`<strong>━━━ SEASON ${S.season} SUMMARY ━━━</strong>`); }
+  else if(ending==='Removed'){ log('<strong>Outcome:</strong> Removed / Administration. History frowns.'); }
   else if(ending==='PortsmouthDynasty'){ log('Outcome: Portsmouth win the Champions League behind a GOAT goalkeeper called Lionel. You are a trivia question.'); }
   else if(ending==='Double'){ log('<strong>Outcome:</strong> Premier League + Champions League. Ruthless churn bewildered Europe.'); }
   else if(ending==='LeagueOnly'){ log('<strong>Outcome:</strong> Premier League title secured. Europe slips away.'); }
@@ -1127,7 +1131,7 @@ async function endOfSeason(){
   ensureLeagueTableInit(); // reseed rows for all teams
   renderLeagueTablePanel();
   
-  log('<strong>THE END.</strong>');
+  if (campaignOver) log('<strong>THE END.</strong>');
 }
 
 // Season 5 opening sequence

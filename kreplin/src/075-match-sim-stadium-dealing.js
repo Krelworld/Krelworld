@@ -7,8 +7,7 @@ async function simulateMatch(opponentTeam = null) {
     // If a special Messi-in-goal fiasco is scheduled, force a 0-100 loss
     if (S.messi_goalie_next_loss) {
       S.messi_goalie_next_loss = false;
-      S.matches_played++; 
-      S.losses++;
+      // (the 0–100 result is recorded by postMatchPhase like any other)
       S.morale = clamp(S.morale - 25, -100, 100);
       log('Result: LOSS (0–100). Board moves to remove you.');
       await triggerRemovalWorkaround('an egregious tactical fiasco (0–100)');
@@ -60,17 +59,11 @@ async function simulateMatch(opponentTeam = null) {
     
     const winner = gf > ga ? "us" : (gf < ga ? "them" : "draw");
     
-    // Update league match stats
+    // Morale swing (W/D/L and points are recorded by postMatchPhase via the table)
     if (winner === "us") {
-      S.wins = (S.wins || 0) + 1;
-      S.points = (S.points || 0) + 3;
       S.morale = clamp(S.morale + 4, -100, 100);
     } else if (winner === "them") {
-      S.losses = (S.losses || 0) + 1;
       S.morale = clamp(S.morale - 6, -100, 100);
-    } else {
-      S.draws = (S.draws || 0) + 1;
-      S.points = (S.points || 0) + 1;
     }
     
     // Create goal events with scorers for the summary

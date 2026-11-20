@@ -109,9 +109,8 @@
     return s.replace(/\bfa\b/i,'FA').replace(/\bpolice\b/i,'the police').replace(/\bboard\b/i,'the board');
   }
 
-  // ---- Post-match daily cleanup ----
-  // (Dormant: was keyed to an "Attendance: … Gate Revenue:" log line the core no longer writes.)
-  GameHooks.on('postmatch:gate-anchor', function(){
+  // ---- Post-match daily cleanup (once per match day) ----
+  GameHooks.on('matchday:end', function(){
     if (S.on_drugs_today) S.on_drugs_today = false;
     clearDerangedButtons();
   });

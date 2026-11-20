@@ -1746,10 +1746,9 @@
             }
           }
           
-          // Update season statistics
-          S.wins = (S.wins || 0) + remainingMatches;
-          S.points = (S.points || 0) + (remainingMatches * 3);
+          // Season statistics come from the table rows written above
           S.matches_played = totalMatches;
+          syncClubRecordFromTable();
         } else {
           // Already at end of season, just ensure matches_played is set
           S.matches_played = totalMatches;
@@ -3215,10 +3214,11 @@
               S.morale = clamp((S.morale || 0) - 1, -100, 100);
             }
             
-            // Update league table
-            const clubName = S.club_name || "Southampton FC";
+            // Update league table (and this round's other fixtures)
+            const clubName = getClubName();
             if (typeof applyResultToTable === 'function') {
               applyResultToTable(clubName, opponentName, gf, ga);
+              if (typeof simulateOtherMatchesForRound === 'function') simulateOtherMatchesForRound((S.matches_played|0) - 1);
             } else {
               // Fallback manual table update
               if (!S.table) S.table = {};

@@ -40,8 +40,8 @@
     };
 
 
-    // While in rehab every menu gets the "stay in rehab" button
-    GameHooks.on('choices', function(){ if (isInRehab()) mountRehabGate(); });
+    // (The "stay in rehab for one week" gate is retired: the main loop's playRehabWeek
+    //  plays each rehab fixture through postMatchPhase and counts the sentence down.)
 
   // ----- Rehab: gate + auto-match sim and finances -----
     document.addEventListener('click', function(e){
@@ -51,7 +51,7 @@
       
       // Do NOT block core post-match / evening navigation – only gate match‑day chaos
       const ctx = window.__ui_context || 'unknown';
-      if (ctx === 'evening' || ctx === 'postmatch' || ctx === 'home' || ctx === 'family') {
+      if (ctx === 'evening' || ctx === 'postmatch' || ctx === 'home' || ctx === 'family' || ctx === 'rehab') {
         return;
       }
       
@@ -127,11 +127,6 @@
       root.appendChild(b);
     }
 
-    // Kick things off if we load mid-phase
-    setTimeout(function(){
-      ensureDrugCore();
-      if (isInRehab()) mountRehabGate();
-    }, 400);
 
   }catch(e){ console.error("Patch 5.7.1 error", e); }
 })();

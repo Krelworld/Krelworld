@@ -144,6 +144,10 @@
   // ---------- REHAB SYSTEM (parallel to prison) ----------
   
   function rehabFilterOnce(){
+    // Retired: rehab fixtures are played by the main loop (playRehabWeek) through the
+    // normal result path, so there is no pre-match menu to filter and no
+    // "Watch from rehab" button (it counted down the unrelated coke_cooldown).
+    return;
     if (!isInRehab()) return;
     const root = actionsRoot();
     if (!root) return;
@@ -293,34 +297,23 @@
 
   // ---------- COCAINE DETECTION HOOKS ----------
   // Hook into existing investigation systems to include cocaine evidence
-  (function hookCocaineDetection(){
-    const origMaybeQueue = window.maybeQueueInvestigation;
-    if (typeof origMaybeQueue !== "function" || window.__cokeDetectionHooked) return;
-    window.__cokeDetectionHooked = true;
-    
-    window.maybeQueueInvestigation = function(authority, chance){
-      try{
-        // Add cocaine detection risk to the investigation chance
-        const cokeRisk = (S.coke_detection_risk||0) * 0.1; // 10% per detection point
-        const adjustedChance = chance !== undefined ? Math.min(0.95, chance + cokeRisk) : cokeRisk;
-        
-        // Check for planted evidence
-        if (S.evidence && Object.keys(S.evidence).length > 0) {
-          adjustedChance += 0.2; // +20% chance if evidence is planted
-        }
-        
-        // Check for addiction evidence
-        if (S.addiction && Object.keys(S.addiction).length > 0) {
-          adjustedChance += 0.15; // +15% chance if players are addicted
-        }
-        
-        // Call original function with adjusted chance
-        return origMaybeQueue.call(this, authority, adjustedChance);
-      }catch(e){
-        console.warn("Cocaine detection hook error:", e);
-        return origMaybeQueue.call(this, authority, chance);
-      }
-    };
-  })();
+  // (The drug systems' maybeQueueInvestigation is local to its module, so it calls this.)
+  window.cokeAdjustedInvestigationChance = function(chance){
+    if (chance === undefined) return undefined; // unconditional queue stays unconditional
+    // Add cocaine detection risk to the investigation chance
+    const cokeRisk = (S.coke_detection_risk||0) * 0.1; // 10% per detection point
+    let adjustedChance = chance + cokeRisk;
+
+    // Check for planted evidence
+    if (S.evidence && Object.keys(S.evidence).length > 0) {
+      adjustedChance += 0.2; // +20% chance if evidence is planted
+    }
+
+    // Check for addiction evidence
+    if (S.addiction && Object.keys(S.addiction).length > 0) {
+      adjustedChance += 0.15; // +15% chance if players are addicted
+    }
+    return Math.min(0.95, adjustedChance);
+  };
 
 })();

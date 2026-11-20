@@ -1,12 +1,8 @@
 // ---------- wages ----------
+// Pre-match: only the dodgy-contract arrears talks. The weekly wage bill itself is
+// charged once, after the match, by postMatchWageDecision().
 async function processWages(){
  if(!S.squad || !Array.isArray(S.squad) || S.squad.length===0) return;
- log('<strong>Wage Week:</strong> Paying the squad.');
- const normal=S.squad.filter(p=>p.signed&&!p.dodgy_contract);
- const total=normal.reduce((s,p)=>s+p.wage,0);
- const effectiveTotal = (S.rnd_perks && S.rnd_perks.facility) ? Math.floor(total*0.98) : total;
- if(S.club_cash>=effectiveTotal){S.club_cash-=effectiveTotal;if(effectiveTotal>0){log(`Paid normal wages: ${money(effectiveTotal)}`);}} else {log('Insufficient funds for normal wages. Partial payments; dressing room uneasy.');S.morale=clamp(S.morale-5,-100,100);S.club_cash=0; addPaper('Missed payroll run',10);}
- render();
  for(const p of S.squad.filter(p=>p.dodgy_contract)){
   log(`Wage issue: ${p.name} expects ${money(p.wage)} now; arrears ${p.arrears} weeks.`);
   const ch=await choose([
@@ -26,6 +22,13 @@ async function processWages(){
   if(p.arrears>=3){log(`${p.name} files a PFA complaint. FA takes notice.`);S.compliance_risk=clamp(S.compliance_risk+15,0,100);S.legal_risk=clamp(S.legal_risk+15,0,100);S.morale=clamp(S.morale-5,-100,100); advanceDiscipline(2);}
   render();
  }
+}
+
+// Weekly bill for the regular (non-dodgy) squad, facility perk applied.
+function weeklySquadWages(){
+  const normal = (S.squad||[]).filter(p => p && !p.dodgy_contract && !p.is_dead);
+  const total = normal.reduce((s,p)=>s+(p.wage||0),0);
+  return ((S.rnd_perks && S.rnd_perks.facility) ? Math.floor(total*0.98) : total)|0;
 }
 
 function totalLineupWages(){
@@ -50,7 +53,7 @@ async function postMatchWageDecision(){
   if (typeof S.player_wage_arrears !== 'number') S.player_wage_arrears = 0;
   if (!S.manager) S.manager = { name:null, skill:0, wage:0, unpaid_streak:0 };
 
-  const teamWeekly = totalLineupWages();
+  const teamWeekly = weeklySquadWages();
   const managerWeekly = S.manager?.wage|0;
   const totalDue = teamWeekly + managerWeekly;
 
@@ -221,12 +224,10 @@ log(`You skipped wages. Arrears increased by ${money(totalDue)} (now ${money(S.p
         log(`<strong>⚠️ Additional court-ordered wage debt added.</strong> Your total debt to the creditor is now ${money(S.club_debt)}.`);
       }
       
-      // Trigger debt management to process interest
-      await processDebtManagement();
     }
   }
   
-  // Check debt management after wage decision
+  // Check debt management after wage decision (once)
   await processDebtManagement();
 }
 
@@ -671,7 +672,7 @@ async function triggerNuclearOption(){
     ensureTableTeam(clubName);
   }
   if (S.table && S.table[clubName]) {
-    S.table[clubName].PTS = (S.table[clubName].PTS || 0) - insolvencyPoints; // Allow negative points
+    adjustClubPoints(-insolvencyPoints); // Allow negative points
     S.points_deducted = (S.points_deducted || 0) + insolvencyPoints;
     log(`📊 ${clubName} receives a ${insolvencyPoints} point deduction for insolvency.`);
     // Update league table display
@@ -2542,28 +2543,33 @@ async function skipToResults() {
     // Apply global morale perks (but not one-match boosts meant for league)
     our = Math.max(10, Math.min(our, 200));
     opp = Math.max(10, Math.min(opp, 200));
-  } else {
-    // For league matches, use selected five
-    const our5 = getOurSelectedFive();
-    const opp5 = getOppSelectedFive();
-    our = computeTeamStrength(our5);
-    opp = computeOpponentStrength(opp5);
-    
-    // Apply morale bonuses
-    if (typeof S.team_morale_boost === 'number') our += S.team_morale_boost;
-    if (typeof S.morale_opponent === 'number') opp += Math.round((S.morale_opponent - 70) / 5);
-    our = Math.max(10, Math.min(our, 200));
-    opp = Math.max(10, Math.min(opp, 200));
   }
   
-  // Simulate goals using expected goals and Poisson distribution
-  const [ourXG, oppXG] = expectedGoals(our, opp);
-  let gf = Math.min(poisson(ourXG), 7), ga = Math.min(poisson(oppXG), 7);
-  
-  // Apply facility perks and strength differences
-  if (S.rnd_perks && S.rnd_perks.facility && Math.random() < 0.07 && ga > 0) ga -= 1;
-  if (our - opp > 20 && gf <= ga) gf = Math.min(gf + 1, 7);
-  if (opp - our > 20 && ga <= gf) ga = Math.min(ga + 1, 7);
+  let gf, ga;
+  if (isCupMatch) {
+    // Simulate goals using expected goals and Poisson distribution
+    const [ourXG, oppXG] = expectedGoals(our, opp);
+    gf = Math.min(poisson(ourXG), 7); ga = Math.min(poisson(oppXG), 7);
+    
+    // Apply facility perks and strength differences
+    if (S.rnd_perks && S.rnd_perks.facility && Math.random() < 0.07 && ga > 0) ga -= 1;
+    if (our - opp > 20 && gf <= ga) gf = Math.min(gf + 1, 7);
+    if (opp - our > 20 && ga <= gf) ga = Math.min(ga + 1, 7);
+  } else {
+    // League: the same engine as Quick Simulate (strengths, morale, events),
+    // so skipping changes nothing but the presentation.
+    const qs = computeQuickSimResult();
+    if (qs.isSpecial) {
+      S.messi_goalie_next_loss = false;
+      S.morale = clamp(S.morale - 25, -100, 100);
+      log('Result: LOSS (0–100). Board moves to remove you.');
+      await triggerRemovalWorkaround('an egregious tactical fiasco (0–100)');
+    }
+    S.matchEvents = Array.isArray(qs.events) ? qs.events : [];
+    gf = qs.usGoals|0; ga = qs.themGoals|0;
+    if (gf > ga) S.morale = clamp(S.morale + 4, -100, 100);
+    else if (ga > gf) S.morale = clamp(S.morale - 6, -100, 100);
+  }
   
   // Generate match events (goals, cards, etc.)
   const events = [];
@@ -2617,7 +2623,7 @@ async function skipToResults() {
   
   // Show match summary
   log(`\n📊 MATCH RESULT:`);
-  log(`🏟️ Southampton FC ${gf} - ${ga} ${opponentName}`);
+  log(`🏟️ ${getClubName()} ${gf} - ${ga} ${opponentName}`);
   
   // Show goals
   const ourGoals = events.filter(e => e.kind === 'GOAL' && e.team === 'us');
@@ -2670,18 +2676,13 @@ async function skipToResults() {
     });
   }
   
-  // Only update league statistics if this is a league match
+  // League result is recorded by postMatchPhase (table, W/D/L, points)
   if (!isCupMatch) {
     if (gf > ga) {
-      S.wins = (S.wins || 0) + 1;
-      S.points = (S.points || 0) + 3;
       log(`\n✅ Victory! +3 points`);
     } else if (ga > gf) {
-      S.losses = (S.losses || 0) + 1;
       log(`\n❌ Defeat`);
     } else {
-      S.draws = (S.draws || 0) + 1;
-      S.points = (S.points || 0) + 1;
       log(`\n🤝 Draw! +1 point`);
     }
     
@@ -2691,8 +2692,6 @@ async function skipToResults() {
         addGoalToTopScorers(goal.scorer, 'us');
       }
     });
-    
-    log(`\n📈 Current League Position: ${S.points || 0} points (${S.wins || 0}W ${S.draws || 0}D ${S.losses || 0}L)`);
   }
   
   // Return result in format expected by Champions League/World Cup handlers
@@ -2860,8 +2859,7 @@ async function simulateMatchLegacy(opponentTeam = null) {
     // If a special Messi-in-goal fiasco is scheduled, force a 0-100 loss
     if (S.messi_goalie_next_loss) {
       S.messi_goalie_next_loss = false;
-      S.matches_played++; 
-      S.losses++;
+      // (the 0–100 result is recorded by postMatchPhase like any other)
       S.morale = clamp(S.morale - 25, -100, 100);
       log('Result: LOSS (0–100). Board moves to remove you.');
       await triggerRemovalWorkaround('an egregious tactical fiasco (0–100)');
@@ -3009,17 +3007,11 @@ async function simulateMatchLegacy(opponentTeam = null) {
       await new Promise(resolve => setTimeout(resolve, 2000)); // Give time to read final commentary
       _closeMatchViewer();
       
-      // Update league match stats
+      // Morale swing (W/D/L and points are recorded by postMatchPhase via the table)
       if (winner === "us") {
-        S.wins = (S.wins || 0) + 1;
-        S.points = (S.points || 0) + 3;
         S.morale = clamp(S.morale + 4, -100, 100);
       } else if (winner === "them") {
-        S.losses = (S.losses || 0) + 1;
         S.morale = clamp(S.morale - 6, -100, 100);
-      } else {
-        S.draws = (S.draws || 0) + 1;
-        S.points = (S.points || 0) + 1;
       }
       
       // Log the full-time result
@@ -5049,6 +5041,10 @@ window.simulateOtherMatchesForRound = function(roundIndex){
   const rounds = S.rounds || [];
   const matches = rounds[roundIndex] || [];
   
+  // each round's other fixtures are played exactly once
+  if (!Array.isArray(S.rounds_done)) S.rounds_done = [];
+  if (S.rounds_done[roundIndex]) return;
+  S.rounds_done[roundIndex] = true;
   let simulatedCount = 0;
   for (const [home, away] of matches){
     if (!home || !away) continue;

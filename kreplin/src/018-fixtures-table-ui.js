@@ -544,7 +544,7 @@ window.showLeagueTableView = function showLeagueTableView(pane) {
       .map(([team, data]) => {
         const isSouthampton = team === getClubName() || team === (S.club_name || 'Southampton FC');
         // For Southampton, calculate effective points (PTS - points_deducted)
-        const effectivePTS = isSouthampton ? (data.PTS || 0) - (S.points_deducted || 0) : (data.PTS || 0);
+        const effectivePTS = (data.PTS || 0); // deductions are already applied to the table row
         return {
           team, ...data, effectivePTS
         };
@@ -1204,7 +1204,7 @@ async function sellAccolade(idx){
     
     if (choice === 'points') {
       // Trade for points
-      S.points = (S.points || 0) + pointsValue;
+      adjustClubPoints(pointsValue);
       S.inventory.accolades.splice(idx, 1);
       log(`You trade "${trophyName}" to the Saudis for ${pointsValue} league points.`);
       log(`[GAME LOG] The Saudis want to accumulate silverware. They're paying handsomely in league points.`);
@@ -1626,6 +1626,24 @@ function ensureTableTeam(team){
     S.table[team] = { P:0, W:0, D:0, L:0, GF:0, GA:0, GD:0, PTS:0 };
   }
 }
+// Non-match points (trophy trades, bonuses, deductions) go onto our table row and
+// into S.points_adjust, so the table stays the single source of truth for S.points.
+function adjustClubPoints(delta){
+  delta = Number(delta) || 0;
+  const club = getClubName();
+  ensureTableTeam(club);
+  const row = S.table[club];
+  row.PTS = (row.PTS || 0) + delta;
+  S.points_adjust = (S.points_adjust|0) + delta;
+  S.points = row.PTS;
+}
+// Copy our W/D/L/points from the table row (the table is authoritative).
+function syncClubRecordFromTable(){
+  const club = getClubName();
+  const row = S.table && S.table[club];
+  if (!row) return;
+  S.points = row.PTS; S.wins = row.W; S.draws = row.D; S.losses = row.L;
+}
 window.recordTableResult = function(home, away, gh, ga){
   ensureTableTeam(home); ensureTableTeam(away);
   const H=S.table[home], A=S.table[away];
@@ -1690,35 +1708,42 @@ function currentOpponent(){
 }
 
 // --- SCHEDULE builder (keeps your S.opponents order) ---
+// A real single round-robin (circle method) over the league = us + S.opponents, so
+// every team plays every other team once and the table reconciles. Rounds are
+// ordered so round r is our fixture against opponents[r] (our fixture first).
+// With an odd number of teams we have one bye round; its fixtures are folded into
+// the last round so every team finishes on the same number of games.
 function buildRoundsFromOurOpponents(opponents){
-  // opponents.length = S.season_matches (your existing season length)
-  const rounds = [];
-  const teams = ALL_TEAMS.slice();
-  // Use current club name (supports renaming after nuclear option)
   const SOUTH = (typeof getClubName === 'function') ? getClubName() : (S?.club_name || "Southampton FC");
-
-  // flip home/away each round for us; others paired randomly but non-overlapping that round
-  for (let r=0; r<opponents.length; r++){
-    const opp = opponents[r];
-    const roundMatches = [];
-
-    // our fixture first (alternate home/away each round)
-    const homeFirst = (r%2===0);
-    if (homeFirst) roundMatches.push([SOUTH, opp]); else roundMatches.push([opp, SOUTH]);
-
-    // pool of remaining teams this round
-    const pool = teams.filter(t=> t!==SOUTH && t!==opp);
-    // shuffle a copy (Fisher–Yates)
-    for (let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const tmp=pool[i]; pool[i]=pool[j]; pool[j]=tmp; }
-    // pair off sequentially
-    for (let i=0;i<pool.length;i+=2){
-      const a = pool[i], b = pool[i+1];
-      if (!a || !b) break; // odd safety
-      // alternate home assignment to mix it up
-      if ((i/2)%2===0) roundMatches.push([a,b]); else roundMatches.push([b,a]);
-    }
-    rounds.push(roundMatches);
+  const teams = [SOUTH, ...opponents.filter(t => t && t !== SOUTH)];
+  if (teams.length % 2) teams.push(null); // bye
+  const n = teams.length;
+  // shuffle the others so pairings differ every season (we stay fixed at index 0)
+  const rest = teams.slice(1);
+  for (let i = rest.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [rest[i], rest[j]] = [rest[j], rest[i]]; }
+  let rot = rest;
+  const circle = [];
+  for (let r = 0; r < n - 1; r++) {
+    const ring = [SOUTH, ...rot];
+    const round = [];
+    for (let i = 0; i < n/2; i++) round.push([ring[i], ring[n-1-i]]);
+    circle.push(round);
+    rot = [rot[rot.length-1], ...rot.slice(0, -1)];
   }
+  const byOpp = new Map();
+  let byeRound = null;
+  for (const round of circle) {
+    const ours = round.find(([a,b]) => a === SOUTH || b === SOUTH);
+    const opp = ours[0] === SOUTH ? ours[1] : ours[0];
+    const others = round.filter(m => m !== ours && m[0] && m[1]);
+    if (opp === null) byeRound = others; else byOpp.set(opp, others);
+  }
+  const rounds = opponents.map((opp, r) => {
+    const ourFx = (r % 2 === 0) ? [SOUTH, opp] : [opp, SOUTH];
+    const others = (byOpp.get(opp) || []).map((m, i) => (i % 2 ? [m[1], m[0]] : m));
+    return [ourFx, ...others];
+  });
+  if (byeRound && rounds.length) rounds[rounds.length - 1].push(...byeRound);
   return rounds;
 }
 
@@ -1726,7 +1751,11 @@ function buildRoundsFromOurOpponents(opponents){
 function ensureSeasonScheduleAndTable(){
   if (!S.table) S.table = {};
   // (Re)build rounds if missing or season length changed
-  if (!S.rounds || !Array.isArray(S.rounds) || S.rounds.length !== (S.opponents? S.opponents.length : 0)) {
+  const SOUTH_NOW = (typeof getClubName === 'function') ? getClubName() : (S?.club_name || "Southampton FC");
+  const roundsMatchSchedule = Array.isArray(S.rounds) && Array.isArray(S.opponents) &&
+    S.rounds.length === S.opponents.length &&
+    S.opponents.every((o, r) => Array.isArray(S.rounds[r]?.[0]) && S.rounds[r][0].includes(o) && S.rounds[r][0].includes(SOUTH_NOW));
+  if (!roundsMatchSchedule) {
     if (!S.opponents || !S.opponents.length){
       // fallback: if you don't have opponents yet, derive a simple list
       let others = ALL_TEAMS.filter(t=>t!=="Southampton FC");
@@ -1741,11 +1770,13 @@ function ensureSeasonScheduleAndTable(){
       S.opponents = others.slice(0, Math.min(others.length, S.season_matches||others.length));
     }
     S.rounds = buildRoundsFromOurOpponents(S.opponents);
+    // rounds before the current fixture count as played (a mid-season rebuild must not replay them)
+    S.rounds_done = S.rounds.map((_, r) => r < (S.matches_played|0));
   }
-  // Make sure every team has a row (so the table isn't "static") - except destroyed teams
+  // Make sure every league team has a row (so the table isn't "static") - except destroyed teams
   const destroyed = S.destroyedTeams || [];
-  for (const t of ALL_TEAMS) {
-    if (!destroyed.includes(t)) {
+  for (const t of [SOUTH_NOW, ...(S.opponents || [])]) {
+    if (t && !destroyed.includes(t)) {
       ensureTableTeam(t);
     }
   }

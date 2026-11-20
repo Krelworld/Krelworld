@@ -139,8 +139,14 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
         if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0) return;
         const x = r.left + r.width / 2, y = r.top + r.height / 2;
         if (y < 0 || y > innerHeight || x < 0 || x > innerWidth) { el.scrollIntoView({ block: 'center' }); }
-        const r2 = el.getBoundingClientRect();
-        const hit = document.elementFromPoint(r2.left + r2.width / 2, r2.top + r2.height / 2);
+        let r2 = el.getBoundingClientRect();
+        let hit = document.elementFromPoint(r2.left + r2.width / 2, r2.top + r2.height / 2);
+        if (!hit || !(hit === el || el.contains(hit))) {
+          // clipped inside a scrolling modal? bring it into view and test again
+          el.scrollIntoView({ block: 'center' });
+          r2 = el.getBoundingClientRect();
+          hit = document.elementFromPoint(r2.left + r2.width / 2, r2.top + r2.height / 2);
+        }
         if (!hit || !(hit === el || el.contains(hit))) return;
         el.dataset.apIdx = idx;
         const lbl = el.querySelector(':scope > .lbl') || el;
@@ -159,7 +165,13 @@ const SKIP = /^(save|load|reset|back \/ pause|start over.*|delete.*|×|✕|x)$/i
     } else {
       // prefer "kickoff"/"continue"/"next" ~50% to make progress
       const pool = usable.filter(c => !/view full table|^\[[ ✓]\]/i.test(c.text));
-      const strong = pool.filter(c => /auto-select best|auto-pick|proceed to kickoff|kick ?off|quick sim|simulate|continue|next week|next|post-match|evening|close window|^ok$|^close$|done|skip|wake/i.test(c.text));
+      let strong = pool.filter(c => /auto-select best|auto-pick|proceed to kickoff|kick ?off|quick sim|simulate|continue|next week|next|post-match|evening|close window|^ok$|^close$|done|skip|wake/i.test(c.text));
+      // short of fit players (lineup stuck below 5): go and buy someone
+      if (same > 4 && pool.some(c => /need exactly 5/i.test(c.text))) {
+        const buy = pool.filter(c => /transfer window|buy player/i.test(c.text));
+        if (buy.length) strong = buy;
+      }
+      if (same > 4 && pool.some(c => /^buy player$/i.test(c.text))) strong = pool.filter(c => /^buy player$/i.test(c.text));
       const sinceMatch = i - (globalThis.__lastPlayedStep || 0);
       const pStrong = same > 6 ? 0.2 : sinceMatch > 40 ? 0.9 : 0.6;
       const src = (strong.length && rnd() < pStrong) ? strong : (pool.length ? pool : usable);

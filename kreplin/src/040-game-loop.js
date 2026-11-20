@@ -117,8 +117,9 @@ if (Array.isArray(S.opponents) && (!Array.isArray(S.opponentManagers) || S.oppon
     return (typeof TEAM_MANAGERS !== 'undefined' && TEAM_MANAGERS && TEAM_MANAGERS[team]) ? TEAM_MANAGERS[team] : randomManagerName();
   });
 }
-// Only set default club name if club hasn't been sold
-if (!S.club_sold_to) {
+// Club name: keep whatever the save has (renames persist); default only if missing.
+// getClubName() is the single source for display.
+if (typeof S.club_name !== 'string' || !S.club_name) {
   S.club_name = "Southampton FC";
 } else if (S.club_sold_to === "mcdonalds" && S.club_name === "Southampton FC") {
   // Fix legacy saves where club_name wasn't updated after McDonalds sale
@@ -181,11 +182,10 @@ wireChrome();         // set up buttons/handlers (safe; they run later on click)
   // Note: Rival intro message is now sent in pre-match phase instead of game start
 }
 
-// --- Advance to next matchday (shared by simulate + watch) ---
+// --- End of a match day (runs once per match, after postMatchPhase) ---
+// postMatchPhase() owns the result + matches_played; this resets the per-match
+// fields and then runs the systems that tick once per match ('matchday:end').
 function finalizeMatchDay(){
-  // move the schedule index
-  S.matches_played = (S.matches_played|0) + 1;
-
   // Decrement KRAZY register games remaining
   if (S.onKrazyRegister && S.krazyGamesRemaining > 0) {
     S.krazyGamesRemaining--;
@@ -204,15 +204,108 @@ function finalizeMatchDay(){
   S.visited_ownLocker = false;
   S.visited_oppLocker = false;
   S.spoke_to_team_this_prematch = false;
+  S._walkout_forfeit = false;
 
   // reset morale snapshots for next fixture
   S.team_morale_boost = 0;
   S.morale_opponent   = 70;
 
-
+  // once-per-match systems (blackmail kickbacks, cocaine crash, drug-day resets);
+  // they may set next match's morale, so they run after the reset above
+  GameHooks.emit('matchday:end');
 
   // refresh UI
   if (typeof updateHUD === 'function') updateHUD();
+}
+GameHooks.on('postmatch:end', finalizeMatchDay);
+
+// --- Test/debug entry point -------------------------------------------------
+// Only exists with ?debug in the URL or window.__KREPLIN_TEST__ set before load
+// (tools/autoplay.js sets it). jump() is applied when the main loop starts, after
+// the campaign setup (name/sponsor/manager) so nothing overwrites it.
+//   __kreplinDebug.jump({ season: 3, match: 5, opener: true, flags: {'season3.x': true}, setup: "js" })
+//   __kreplinDebug.ledger()  -> points/table reconciliation report
+(function(){
+  try {
+    const on = (typeof location !== 'undefined' && /[?&]debug\b/.test(location.search || '')) || window.__KREPLIN_TEST__;
+    if (!on) return;
+    window.__kreplinDebug = {
+      jump(opts){ window.__kreplinPendingJump = Object.assign({}, opts || {}); return true; },
+      ledger(){ return kreplinLedgerCheck(); }
+    };
+  } catch (_) {}
+})();
+
+// Points/table reconciliation (used by the debug harness).
+function kreplinLedgerCheck(){
+  const club = getClubName();
+  const row = (S.table && S.table[club]) || null;
+  const W = S.wins|0, D = S.draws|0, L = S.losses|0;
+  const adj = S.points_adjust|0;
+  const out = { club, points: S.points, tablePTS: row ? row.PTS : null, W, D, L, adj,
+    played: S.matches_played|0, tableP: row ? row.P : null, problems: [] };
+  if (row) {
+    if (row.PTS !== S.points) out.problems.push(`S.points ${S.points} != table PTS ${row.PTS}`);
+    if (row.PTS !== 3*row.W + row.D + adj) out.problems.push(`table PTS ${row.PTS} != 3W+D+adj ${3*row.W + row.D + adj}`);
+    if (row.W !== W || row.D !== D || row.L !== L) out.problems.push(`W/D/L ${W}/${D}/${L} != table ${row.W}/${row.D}/${row.L}`);
+  }
+  if ((S.matches_played|0) !== W + D + L) out.problems.push(`matches_played ${S.matches_played} != W+D+L ${W+D+L}`);
+  return out;
+}
+
+// --- One week in rehab: the fixture is played without you, through the normal
+// result path (postMatchPhase), and the sentence counts down once. ---
+async function playRehabWeek(){
+  if (!S.playerStats) S.playerStats = {};
+  S.playerStats.matchesSpentInRehabilitation = (S.playerStats.matchesSpentInRehabilitation || 0) + 1;
+  setPhase('rehab');
+  logSafe("REHAB: You are in treatment. The team plays without you...");
+
+  // Staff pick the side and the club pays the week's wages (no chairman decisions)
+  try { ensureValidLineup(); } catch (_) {}
+  const opp = (typeof currentOpponent === 'function') ? currentOpponent() : { team: 'Opposition' };
+  S.matchContext = Object.assign({}, opp, { roundIndex: S.matches_played|0 });
+  S.messi_goalie_next_loss = false; // the fiasco needs you in the dugout
+  let res;
+  try {
+    S.preMatch = null;
+    computePreMatchStrengthsAndOdds();
+    res = computeQuickSimResult();
+  } catch (e) {
+    console.error('rehab match sim failed', e);
+    res = { usGoals: 0, themGoals: 1, events: [] };
+  }
+  S.matchEvents = Array.isArray(res.events) ? res.events : [];
+  const outcome = { our_goals: res.usGoals|0, their_goals: res.themGoals|0, simulated: true, rehab: true };
+  window.lastMatchOutcome = Object.assign({ usGoals: outcome.our_goals, themGoals: outcome.their_goals }, outcome);
+
+  const due = (typeof weeklySquadWages === 'function' ? weeklySquadWages() : 0) + (S.manager?.wage|0);
+  if ((S.club_cash|0) >= due) {
+    S.club_cash = (S.club_cash|0) - due;
+    if (due > 0) logSafe(`Wages paid by the club in your absence: ${money(due)}.`);
+  } else if (due > 0) {
+    S.player_wage_arrears = (S.player_wage_arrears|0) + due;
+    S.club_debt = (S.club_debt|0) + due;
+    logSafe(`The club can't cover wages in your absence. Arrears +${money(due)}.`);
+  }
+
+  await postMatchPhase(outcome);
+
+  // Decrement rehab sentence (the only place it counts down)
+  S.suspensions.rehab_games = Math.max(0, (S.suspensions.rehab_games|0) - 1);
+  logSafe(`REHAB MATCH RESULT: ${outcome.our_goals}-${outcome.their_goals}`);
+  if ((S.suspensions.rehab_games|0) > 0) {
+    logSafe(`REHAB: ${S.suspensions.rehab_games} more match(es) remaining in treatment.`);
+  } else {
+    logSafe("REHAB: You are discharged! Full game functionality restored.");
+    // Reduce drug-related risks after completing rehab
+    S.coke_detection_risk = Math.max(0, (S.coke_detection_risk|0) - 5);
+    S.police_risk = Math.max(0, (S.police_risk|0) - 3);
+    logSafe("Your time in rehab has reduced your drug-related legal exposure.");
+  }
+  saveGame();
+  updateHUD();
+  await waitAdvance("Continue", "Continue treatment...");
 }
 
 /* === Patch 3B: Manager’s Pre-Match Actions & Decisions ======================
@@ -534,6 +627,8 @@ async function fireManager(reason=""){
   const name = S.manager.name;
   S.manager = null;
   S.manager_events = { warned_this_match:false, crisis_this_match:false, fired_this_match:true };
+  S.manager_fires = (S.manager_fires|0) + 1;
+  S.fired_last_game = true;
   log(`You fire <strong>${name}</strong>. ${reason ? '('+reason+')' : ''}`);
 }
 
@@ -543,17 +638,13 @@ async function maybeTeamWalkout(triggerCause=""){
   if (morale >= 10) return false;
 
   log(`⚠️ The squad refuses to take the pitch. ${triggerCause ? triggerCause : "They cite unbearable conditions and loss of trust."}`);
-  // Forfeit: 3–0 loss against current opponent
-  try {
-    const us  = "Southampton FC";
-    const opp = (typeof currentOpponent==="function" && currentOpponent()) ? currentOpponent().team : "Opposition";
-    if (typeof recordTableResult === "function") recordTableResult(opp, us, 3, 0);
-  } catch(e){ /* non-fatal */ }
+  // Forfeit: this fixture is recorded as a 3–0 defeat by the normal result path
+  // (the main loop skips kickoff when S._walkout_forfeit is set).
+  S._walkout_forfeit = true;
 
   // Fallout
   S.reputation = Math.max(0, (S.reputation||50) - 8);
   S.pfa_risk   = Math.max(0, (S.pfa_risk||0) + 3);
-  S.team_morale_boost = Math.max(25, _moraleApprox()); // reset to safer floor
   _logMgr("“This is untenable. We’ll need to rebuild trust from the ground up.”");
   await fireManager("Walkout aftermath");
   return true;
@@ -1040,21 +1131,11 @@ async function runPrisonLoop() {
       if (!S.playerStats) S.playerStats = {};
       S.playerStats.matchesSpentInPrison = (S.playerStats.matchesSpentInPrison || 0) + 1;
       
-      // Handle match index increment
-      const isFirstIteration = !S._prison_loop_entered;
+      // This week's fixture is opponents[matches_played]; matches_played advances
+      // after the result is recorded (same order as postMatchPhase).
+      if ((S.matches_played|0) >= (S.season_matches|0)) break; // season over: sentence carries on
+      const prisonRound = S.matches_played|0;
       S._prison_loop_entered = true;
-      
-      if (!S._prison_match_index_when_set) {
-        S._prison_match_index_when_set = S.matches_played;
-      }
-      
-      if (!isFirstIteration || S.matches_played !== S._prison_match_index_when_set) {
-        S.matches_played = (S.matches_played|0) + 1;
-      }
-      
-      if (isFirstIteration) {
-        S._prison_match_index_when_set = null;
-      }
       
       logSafe("PRISON: You are in custody. Watching from your cell...");
       GameHooks.emit('prison:match');
@@ -1068,16 +1149,7 @@ async function runPrisonLoop() {
       // Simulate match
       const matchResult = await simulatePrisonMatch(opp);
       
-      // Update match statistics
-      if (matchResult.our_goals > matchResult.their_goals) {
-        S.wins = (S.wins|0) + 1;
-        S.points = (S.points|0) + 3;
-      } else if (matchResult.our_goals === matchResult.their_goals) {
-        S.draws = (S.draws|0) + 1;
-        S.points = (S.points|0) + 1;
-      } else {
-        S.losses = (S.losses|0) + 1;
-      }
+      // W/D/L and points come from the table (applyResultToTable below)
       
       // NUKE MORALE - prison matches devastate fan morale
       const moraleDamage = 12 + Math.floor(Math.random() * 4); // 12-15 point hit
@@ -1117,11 +1189,12 @@ async function runPrisonLoop() {
       
       // Simulate other matches
       try {
-        const roundIndex = (S.matches_played|0) - 1;
         if (typeof simulateOtherMatchesForRound === 'function') {
-          simulateOtherMatchesForRound(roundIndex);
+          simulateOtherMatchesForRound(prisonRound);
         }
       } catch (e) {}
+      S.matches_played = prisonRound + 1;
+      GameHooks.emit('matchday:end');
       
       // Refresh UI
       try {
@@ -1507,21 +1580,122 @@ async function maybeRunWorldCupOffSeason() {
   setCompetitionContext('league');
 }
 
+async function applyPendingDebugJump(){
+  const j = window.__kreplinPendingJump;
+  if (!j) return;
+  window.__kreplinPendingJump = null;
+  try {
+    if (j.season && (j.season|0) !== (S.season|0)) {
+      S.season = Math.max(1, Math.min(5, j.season|0));
+      beginNewSeasonState();
+      if (j.opener !== false) {
+        if (S.season === 4 && !S.season4_opener_complete) { await runSeason4Opener(); S.season4_opener_complete = true; }
+        if (S.season === 5 && !S.season5_opener_complete) { await runSeason5Opener(); S.season5_opener_complete = true; }
+      } else {
+        S.season4_opener_complete = S.season4_opener_complete || S.season >= 4;
+        S.season5_opener_complete = S.season5_opener_complete || S.season >= 5;
+      }
+    }
+    // Fast-forward: play our earlier fixtures (random results) through the table.
+    const target = Math.max(0, Math.min(j.match|0, S.season_matches|0));
+    ensureSeasonScheduleAndTable();
+    while ((S.matches_played|0) < target) {
+      const r = S.matches_played|0;
+      const fx = S.rounds[r][0];
+      const gh = Math.floor(Math.random()*4), ga = Math.floor(Math.random()*4);
+      recordTableResult(fx[0], fx[1], gh, ga);
+      simulateOtherMatchesForRound(r);
+      S.matches_played = r + 1;
+    }
+    syncClubRecordFromTable();
+    for (const [path, val] of Object.entries(j.flags || {})) {
+      const parts = path.split('.'); let o = S;
+      while (parts.length > 1) { const k = parts.shift(); if (!o[k] || typeof o[k] !== 'object') o[k] = {}; o = o[k]; }
+      o[parts[0]] = val;
+    }
+    if (j.setup) (0, eval)(j.setup);
+    log(`[debug] Jumped to season ${S.season}, match ${S.matches_played}.`);
+    updateHUD();
+  } catch (e) { console.error('debug jump failed', e); }
+}
+
+// Reset the per-season state (shared by the season transition and the debug jump).
+function beginNewSeasonState(){
+  // Season 4 & 5 have 9 games, others have 16 - will be set correctly by ensureSeasonSchedule()
+  S.matches_played = 0;
+  S.wins = 0;
+  S.draws = 0;
+  S.losses = 0;
+  S.points = 0;
+  S.points_deducted = 0;
+  S.points_adjust = 0;
+  S.manager_fires = 0;
+  S.fired_last_game = false;
+  S.season_matches = (S.season === 4 || S.season === 5) ? 9 : 16;
+
+  // Reset CL active state (will be set when CL starts)
+  S.clActive = false;
+  S.clStage = 'group'; // Reset to group stage for new season
+  S.clGroupMatches = [];
+  S.clGroupStandings = {};
+  S.clKnockoutRound = null;
+  S.clKnockoutBracket = {};
+  S.clScheduledMatches = [];
+  S.clNextMatchIndex = 0;
+
+  // Reset World Cup completion flag for new season
+  S.worldCupCompletedForSeason = false;
+
+  // Reset some risks but keep some progression
+  S.legal_risk = Math.max(0, (S.legal_risk||0) - 10);
+  S.compliance_risk = Math.max(0, (S.compliance_risk||0) - 10);
+  S.police_risk = Math.max(0, (S.police_risk||0) - 5);
+
+  // Clear prison status
+  S.prison = false;
+  if(S.suspensions) {
+    S.suspensions.prison_games = 0;
+  }
+
+  // Reset table + fixtures for new season
+  S.table = {};
+  S.table_order = [];
+  S.rounds = null;
+  S.rounds_done = [];
+  S.leagueTableShownInPresentation = false; // Reset flag for new season
+  S.opponents = [];
+
+  // CRITICAL: Restore currentOpponent function to prevent World Cup/CL opponents contaminating new season
+  restoreCurrentOpponent();
+  ensureSeasonSchedule();
+  ensureLeagueTableInit();
+  ensureSeasonScheduleAndTable();
+  renderLeagueTablePanel();
+}
+
+// The campaign driver: one pass plays the rest of a season (plus prison/rehab weeks)
+// and, at season end, the transition. Iterative so long campaigns can't hit a depth limit.
 async function mainGameLoop() {
- // Prevent infinite recursion
- if (!S._mainGameLoopRecursionDepth) {
-   S._mainGameLoopRecursionDepth = 0;
- }
- S._mainGameLoopRecursionDepth++;
- 
- if (S._mainGameLoopRecursionDepth > 10) {
-   console.error("DEBUG: Infinite recursion detected in mainGameLoop! Depth:", S._mainGameLoopRecursionDepth);
-   logSafe("ERROR: Game loop recursion limit reached. Please refresh the game.");
-   S._mainGameLoopRecursionDepth = 0;
-   return;
- }
- 
+  if (window.__mainGameLoopRunning) { console.warn('mainGameLoop already running'); return; }
+  window.__mainGameLoopRunning = true;
+  try {
+    let stuck = 0, lastSig = '';
+    while (true) {
+      const r = await mainGameLoopPass();
+      if (r !== 'again' || (S && S.game_over)) break;
+      const sig = `${S.season}/${S.matches_played}`;
+      stuck = (sig === lastSig) ? stuck + 1 : 0;
+      lastSig = sig;
+      if (stuck >= 5) { console.error('mainGameLoop: no progress after 5 passes at', sig); logSafe('ERROR: The season cannot advance. Please save and reload.'); break; }
+    }
+  } finally {
+    window.__mainGameLoopRunning = false;
+  }
+}
+
+async function mainGameLoopPass() {
  try {
+  await applyPendingDebugJump();
   // Stop the opening music when the main game loop starts
   const openingMusic = document.getElementById('openingMusic');
   if (openingMusic && !openingMusic.paused) {
@@ -1538,7 +1712,6 @@ async function mainGameLoop() {
   if(S.game_over){
     log('GAME OVER: ' + (S.game_over_reason || 'Unknown reason'));
     log('Your story has come to an end.');
-    S._mainGameLoopRecursionDepth = 0; // Reset on exit
     return; // Exit the game loop
   }
   
@@ -1770,12 +1943,18 @@ async function mainGameLoop() {
       S._initial_delmor_text_sent = true;
     }
     
-    await maybeSecretaryEvent(); 
+    // Week set-up runs once per fixture: if this iteration is retried (an error, or
+    // a choice timeout caught below) we resume at the match without re-charging.
+    const weekKey = `${S.season}/${S.matches_played}`;
+    const weekResumed = (S._week_prepared_for === weekKey);
+    if (!weekResumed) await maybeSecretaryEvent(); 
     const prisonCheck = (S.suspensions?.prison_games|0) > 0;
     const rehabCheck = (S.suspensions?.rehab_games|0) > 0;
     if(S.bankrupt||prisonCheck||rehabCheck||S.game_over) {
       break;
     }
+  if (!weekResumed) {
+  S._week_prepared_for = weekKey;
   await processWages();
   queueUnpaidTransferAgents();
   await maybePreMatchScenarios();
@@ -1798,7 +1977,7 @@ async function mainGameLoop() {
       delete S._pending_lashing;
     }
   }
-  if([3,7].includes(S.matches_played) && Math.random()<0.6);
+  } // end once-per-week set-up
   
   // Champions League scheduler - check if we should play a CL match instead of league
   if (await maybePlayChampionsLeagueFixture()) {
@@ -1845,6 +2024,12 @@ async function mainGameLoop() {
   
  await preMatchPhase();
 
+// Sentenced to rehab during the pre-match (e.g. an overdose): this fixture is
+// played without you by the rehab loop.
+if ((S.suspensions?.rehab_games|0) > 0 || (S.suspensions?.prison_games|0) > 0) {
+  break;
+}
+
 // Check debt obligations before allowing match to proceed
 const canProceedWithMatch = await checkDebtObligationsBeforeMatch();
 if (!canProceedWithMatch) {
@@ -1885,13 +2070,16 @@ if (S.season === 5 && S.season5 && S.season5.injure_best_players_first_match && 
 
 // Ensure we have exactly 5 players before allowing kickoff
 ensureValidLineup();
-if (S.lineup.length < 5) {
+while (S.lineup.length < 5 && !S.game_over) {
   log("You cannot proceed to kickoff with less than 5 players. Please select a full lineup first.");
   await selectLineupMenu();
+  ensureValidLineup();
   // Re-check after lineup selection
   if (S.lineup.length < 5) {
     log("You still don't have enough players. The match cannot proceed.");
-    continue; // This will skip to the next iteration of the main loop
+    // Back to the pre-match menu (transfer window etc.) for the same fixture - no wages re-charged
+    await preMatchPhase();
+    ensureValidLineup();
   }
 }
 
@@ -1902,16 +2090,23 @@ const kickoffOptions = [
 if (!(S.season === 5 && S.season5 && S.season5.first_match_special_event && S.matches_played === 0) && !(S.season === 2 && S.matches_played === 11)) {
   kickoffOptions.push({key:'skip',  label:'Skip to results'});
 }
-const how = await choose(kickoffOptions, "Kickoff Options");
+// Team walkout: no kickoff, the fixture is forfeited 3–0
+const forfeit = !!S._walkout_forfeit;
+S._walkout_forfeit = false;
+const how = forfeit ? 'forfeit' : await choose(kickoffOptions, "Kickoff Options");
 
 // --- capture the opponent AT KICKOFF so logs/table use the same team ---
 const oppAtKickoff = (typeof currentOpponent === 'function') ? currentOpponent() : { team: 'Opposition' };
-// ensure matchContext for postMatchPhase
-S.matchContext = oppAtKickoff;
+// ensure matchContext for postMatchPhase (roundIndex = this fixture's round)
+S.matchContext = Object.assign({}, oppAtKickoff, { roundIndex: S.matches_played|0 });
 
 
 let outcome;
-if (how === 'skip') {
+if (how === 'forfeit') {
+  log(`The players never come out of the tunnel. ${oppAtKickoff.team || 'The opposition'} are awarded the match 3–0.`);
+  S.matchEvents = [];
+  outcome = { our_goals: 0, their_goals: 3, forfeit: true };
+} else if (how === 'skip') {
   // Skip to results - simulate match and show summary
   outcome = await skipToResults();
 } else {
@@ -1962,10 +2157,8 @@ window.lastMatchOutcome = {
 // Wait for match commentary to complete before showing wage decision
 // The playMatch function will handle the timing of when to show "Match Complete"
 
+// Weekly wage bill (the decision also runs debt management once)
 await postMatchWageDecision();
-
-// Process debt management after wage decisions
-await processDebtManagement();
 
 // Check if this is season 5 first match - handle special audio for post-match UI
 const isSeason5FirstMatch = (S.season === 5 && S.matches_played === 0);

@@ -29,6 +29,11 @@ function ensureDrugCore(){
   if (!S.suspensions) S.suspensions = { rehab_games:0, prison_games:0, house_games:0 };
   if (typeof S.suspensions.prison_games !== 'number') S.suspensions.prison_games = 0;
   if (typeof S.suspensions.rehab_games !== 'number') S.suspensions.rehab_games = 0;
+  // migrate the retired S.in_rehab / S.rehab_games_remaining scheme
+  if (S.in_rehab || S.rehab_games_remaining) {
+    S.suspensions.rehab_games = Math.max(S.suspensions.rehab_games|0, S.rehab_games_remaining|0);
+    delete S.in_rehab; delete S.rehab_games_remaining;
+  }
   if (!S.addictions || typeof S.addictions !== 'object') S.addictions = { people: {} };
   if (!S.record_simple) S.record_simple = {W:0,D:0,L:0};
   if (typeof S.fan_morale !== 'number') S.fan_morale = 60;

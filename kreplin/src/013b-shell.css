@@ -393,6 +393,7 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
 .news-popup-close{background:#111!important;color:#fff!important;border:0!important;border-radius:2px!important;min-width:44px;min-height:44px}
 .news-popup-body{color:#111!important;overflow:auto}
 .news-popup-body .btn-secondary{font:12px Georgia,serif!important;background:#fff!important;color:#111!important;border:1px solid #111!important;border-radius:2px!important;padding:6px 10px!important;min-height:36px;cursor:pointer}
+.news-popup-body .btn-secondary.active{background:#111!important;color:#fff!important}
 .news-article-headline{font:900 28px/1.1 Georgia,serif!important;color:#111!important}
 .news-article-section{font:700 11px Georgia,serif;letter-spacing:2px;color:var(--red)!important}
 /* phone */
@@ -597,3 +598,45 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
 #kApp #actions button.k-player .tier{font:700 10px/16px var(--font-ui);font-style:normal;letter-spacing:.5px;padding:0 5px;border-radius:3px;background:var(--panel2);color:var(--text)}
 #kApp #actions button.k-player .t-legendary{background:var(--gold);color:#000} #kApp #actions button.k-player .t-elite{background:#7b5cd6;color:#fff}
 #kApp #actions button.k-player .t-excellent{background:var(--good);color:#000} #kApp #actions button.k-player .t-shit{background:#5a4a3a;color:#e9d9c6}
+
+/* ---------- Ultima Cup live overlay: on the design tokens, no rotating glow/blur (perf), phone-safe ---------- */
+.ultima-cup-overlay{backdrop-filter:none!important;background:rgba(6,8,12,.86)!important}
+.ultima-cup-container{background:var(--panel)!important;border:var(--px) solid var(--gold)!important;border-radius:var(--r)!important;
+  box-shadow:0 4px 0 #000,0 20px 60px rgba(0,0,0,.6)!important;backdrop-filter:none!important;padding:20px!important;gap:14px!important;
+  max-height:calc(100dvh - 24px)!important;overflow:auto!important;will-change:auto!important;transform:none!important;box-sizing:border-box}
+.ultima-cup-container::before{content:none!important;animation:none!important}
+.ultima-cup-title{font:700 28px/1.15 var(--font-ui)!important;color:var(--gold)!important;text-shadow:0 2px 0 #000!important;animation:none!important;letter-spacing:1px!important;margin-bottom:10px!important}
+.ultima-cup-header{padding-bottom:12px!important;border-bottom:var(--px) solid var(--line)!important}
+.ultima-cup-scores{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))!important}
+.ultima-cup-score{border-radius:var(--r)!important}
+.ultima-cup-minute{font-family:var(--font-ui)!important;text-shadow:none!important}
+.ultima-cup-status{flex-wrap:wrap;row-gap:6px}
+.ultima-cup-log-header{font-family:var(--font-ui)!important;text-shadow:none!important;color:var(--gold)!important}
+.ultima-cup-commentary-container,.ultima-cup-log{border-radius:var(--r)!important}
+@media (max-width: 900px){
+  .ultima-cup-container{width:calc(100vw - 16px)!important;padding:14px!important}
+  .ultima-cup-title{font-size:20px!important}
+  .ultima-cup-scores{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+  .ultima-cup-score .score-value{font-size:28px!important}
+  .ultima-cup-speed-control{margin-left:0!important;flex-wrap:wrap}
+}
+/* Ultima Cup announcement: tokens, readable on a phone (the 400px-min button used to cover the content) */
+.ultima-cup-announcement-modal{background:var(--panel)!important;border:var(--px) solid var(--gold)!important;border-radius:var(--r)!important;
+  box-shadow:0 4px 0 #000,0 20px 60px rgba(0,0,0,.6)!important;backdrop-filter:none!important;padding:24px!important;gap:16px!important}
+.ultima-cup-announcement-modal::before{content:none!important;animation:none!important}
+.ultima-cup-announcement-title{font:700 32px/1.15 var(--font-ui)!important;color:var(--gold)!important;text-shadow:0 2px 0 #000!important;animation:none!important;letter-spacing:1px!important}
+.ultima-cup-announcement-text{font:16px/1.6 var(--font-body)!important;color:var(--text)!important}
+.ultima-cup-team-card,.ultima-cup-section{border-radius:var(--r)!important}
+.ultima-cup-announcement-button{font:700 18px/1.2 var(--font-ui)!important;min-width:0!important;padding:12px 24px!important;color:#000!important;background:var(--gold)!important;
+  border:var(--px) solid #000!important;border-radius:var(--r)!important;box-shadow:0 3px 0 #000!important;text-shadow:none!important;letter-spacing:1px!important}
+.ultima-cup-announcement-button:hover{transform:none!important;background:#ffd36e!important}
+@media (max-width: 900px){
+  .ultima-cup-announcement-modal{width:calc(100vw - 16px)!important;padding:14px!important}
+  .ultima-cup-announcement-title{font-size:22px!important}
+  .ultima-cup-announcement-button{font-size:15px!important;width:100%}
+  .ultima-cup-teams-grid{grid-template-columns:1fr!important}
+}
+.ultima-cup-section,.ultima-cup-team-card{background:var(--panel2)!important;border-color:var(--line2)!important;box-shadow:none!important}
+.ultima-cup-section h2,.ultima-cup-section h3,.ultima-cup-team-card h3,.ultima-cup-commentary-header,.score-value{text-shadow:none!important}
+.ultima-cup-section h2{font:700 20px var(--font-ui)!important;color:var(--gold)!important}
+.ultima-cup-skip-btn{box-shadow:0 3px 0 #000!important;border-radius:var(--r)!important}

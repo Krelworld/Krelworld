@@ -1,5 +1,6 @@
 // ========== SEASON 4 OPENING SEQUENCE ==========
 async function runSeason4Opener() {
+  if (typeof updateHUD === 'function') updateHUD(); // top bar shows the new season during the opener
   // Initialize Season 4 state if missing
   if (!S.season4) S.season4 = {};
   

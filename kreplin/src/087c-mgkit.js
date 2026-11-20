@@ -99,7 +99,9 @@
     function fit() {
       const vw = window.innerWidth, vh = window.innerHeight - 44;
       let s = Math.max(1, Math.floor(Math.min(vw / W, vh / H)));
-      if (s * W > vw || s * H > vh) s = Math.min(vw / W, vh / H); // tiny screens: fractional fallback
+      const fr = Math.min(vw / W, vh / H);
+      if (s * W > vw || s * H > vh) s = fr; // tiny screens: fractional fallback
+      else if (s < 2 && fr > 1.25) s = fr; // phones (e.g. 390x664 -> 1.9x): don't drop to a half-screen 1x canvas
       canvas.style.width = (W * s) + 'px'; canvas.style.height = (H * s) + 'px';
     }
     fit(); window.addEventListener('resize', fit);

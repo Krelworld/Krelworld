@@ -1136,6 +1136,7 @@ async function endOfSeason(){
 
 // Season 5 opening sequence
 async function runSeason5Opener() {
+  if (typeof updateHUD === 'function') updateHUD(); // top bar shows the new season during the opener
   // Initialize Season 5 state if missing
   if (!S.season5) S.season5 = {};
   

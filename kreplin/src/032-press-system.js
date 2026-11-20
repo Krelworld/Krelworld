@@ -1771,7 +1771,7 @@ async function openNewsPortal(){
   h2.textContent = 'The Daily Krelmor';
   const dateEl = document.createElement('div');
   dateEl.className = 'news-popup-date';
-  dateEl.textContent = new Date().toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  dateEl.textContent = ((window.KShell && KShell.gameDate && window.S && S.season) ? KShell.gameDate().d : new Date()).toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric', timeZone:'UTC' }); // the game's date, not today's
   headLeft.appendChild(h2); headLeft.appendChild(dateEl);
 
   const closeBtn = document.createElement('button');
@@ -1797,6 +1797,7 @@ async function openNewsPortal(){
     const b = document.createElement('button');
     b.className = 'btn-secondary';
     b.textContent = label;
+    b.dataset.section = key;
     b.onclick = ()=> renderSection(key);
     return b;
   }
@@ -1829,6 +1830,7 @@ async function openNewsPortal(){
   }
 
   function renderSection(section){
+    [...tabs.children].forEach(b => b.classList.toggle('active', b.dataset.section === section));
     // publish newest queued story for this section when opened
     if (Array.isArray(S.press?.queue) && S.press.queue.length){
       publishStoriesFromQueueForSection(section);

@@ -1056,7 +1056,7 @@ async function triggerArrestFlow(context) {
   S.compliance_risk = Math.min(100, (S.compliance_risk || 0) + 6);
   S.reputation = Math.max(0, (S.reputation || 0) - 15);
   
-  log(`CONSEQUENCES: Personal fine £${fineChair.toLocaleString()}, Club fine £${fineClub.toLocaleString()}`);
+  log(`CONSEQUENCES: Personal fine ${money(fineChair)}, Club fine ${money(fineClub)}`);
   log("Your reputation plummets and the FA launches an immediate investigation.");
   
   // Set pending police investigation

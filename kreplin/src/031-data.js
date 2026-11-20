@@ -2390,7 +2390,7 @@ function triggerKrazyManagerConfrontation() {
   if (Math.random() < 0.5) {
     const wagePenalty = Math.floor((S.wage || 100000) * 0.15);
     S.wage = Math.max(50000, (S.wage || 100000) - wagePenalty);
-    log(`💰 Your wage has been reduced by £${wagePenalty.toLocaleString()} due to the scandal.`);
+    log(`💰 Your wage has been reduced by ${money(wagePenalty)} due to the scandal.`);
   }
 }
 

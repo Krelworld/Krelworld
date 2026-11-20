@@ -1051,8 +1051,8 @@ async function showKreplinCertificate() {
       <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; border-bottom: 2px solid #ccc; padding-bottom: 5px;">CRIME & CORRUPTION</h2>
       <p><strong>Bribes Made / Accepted:</strong> ${stats.bribesMadeOrAccepted}</p>
       <p><strong>Players Who Died:</strong> ${stats.playersWhoDied}</p>
-      <p><strong>Amount Gambled:</strong> £${stats.amountGambled.toLocaleString()}</p>
-      <p><strong>Net Gambling Outcome:</strong> £${stats.netGamblingOutcome >= 0 ? '+' : ''}${stats.netGamblingOutcome.toLocaleString()}</p>
+      <p><strong>Amount Gambled:</strong> ${money(stats.amountGambled)}</p>
+      <p><strong>Net Gambling Outcome:</strong> ${stats.netGamblingOutcome >= 0 ? '+' : ''}${money(stats.netGamblingOutcome)}</p>
     `;
     
     // Substance Consumption
@@ -1283,9 +1283,9 @@ function generateCertificatePDF(stats) {
   yPos += lineHeight;
   doc.text(`Players Who Died: ${stats.playersWhoDied}`, margin, yPos);
   yPos += lineHeight;
-  doc.text(`Amount Gambled: £${stats.amountGambled.toLocaleString()}`, margin, yPos);
+  doc.text(`Amount Gambled: ${money(stats.amountGambled)}`, margin, yPos);
   yPos += lineHeight;
-  doc.text(`Net Gambling Outcome: £${stats.netGamblingOutcome >= 0 ? '+' : ''}${stats.netGamblingOutcome.toLocaleString()}`, margin, yPos);
+  doc.text(`Net Gambling Outcome: ${stats.netGamblingOutcome >= 0 ? '+' : ''}${money(stats.netGamblingOutcome)}`, margin, yPos);
   yPos += lineHeight * 1.5;
   
   // Substance Consumption

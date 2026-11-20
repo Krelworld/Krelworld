@@ -118,7 +118,7 @@ async function handleSeason5SurvivalEconomy() {
   log("═══════════════════════════════════════════════════════");
   log("");
   log(`Opponent: ${opp.team || 'Opposition'}`);
-  log(`Required bribe: £${bribeAmount.toLocaleString()}`);
+  log(`Required bribe: ${money(bribeAmount)}`);
   log("");
   log("Failure to comply will have grave consequences.");
   log("");
@@ -131,7 +131,7 @@ async function handleSeason5SurvivalEconomy() {
   // Strategy A: Bribe (always available)
   options.push({
     key: 'bribe',
-    label: `Pay Protection Bribe (avert grave consequences) (£${bribeAmount.toLocaleString()})`
+    label: `Pay Protection Bribe (avert grave consequences) (${money(bribeAmount)})`
   });
   
   // Strategy B: Doping (mid-season unlock)
@@ -309,11 +309,11 @@ async function handleSeason5IntimidationStrategy(bribeAmount) {
     const escalatedBribe = Math.floor(bribeAmount * 2);
     S.season5.survival.current_bribe_amount = escalatedBribe;
     
-    log(`New bribe demand: £${escalatedBribe.toLocaleString()}`);
+    log(`New bribe demand: ${money(escalatedBribe)}`);
     
     // Force bribe or face consequences
     const options = [
-      { key: 'pay', label: `Pay Escalated Bribe (£${escalatedBribe.toLocaleString()})` },
+      { key: 'pay', label: `Pay Escalated Bribe (${money(escalatedBribe)})` },
       { key: 'refuse', label: 'Refuse (Catastrophic)' }
     ];
     

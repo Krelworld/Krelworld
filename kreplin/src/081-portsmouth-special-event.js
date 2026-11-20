@@ -722,7 +722,7 @@ For a performer whose career has depended on testing whether there are any remai
           } else {
             S.club_cash = Math.max(0, (S.club_cash || 0) - bribeAmount);
           }
-          log(`You pay £${Math.round(bribeAmount).toLocaleString()} in bribes. The case disappears.`);
+          log(`You pay ${money(Math.round(bribeAmount))} in bribes. The case disappears.`);
         } else {
           log('The bribe is rejected. You are found guilty.');
           if (!S.suspensions) S.suspensions = {};
@@ -961,7 +961,7 @@ For a performer whose career has depended on testing whether there are any remai
           } else {
             S.club_cash = Math.max(0, (S.club_cash || 0) - bribeAmount);
           }
-          log(`You pay £${Math.round(bribeAmount).toLocaleString()}. The case is dropped.`);
+          log(`You pay ${money(Math.round(bribeAmount))}. The case is dropped.`);
         } else {
           log('Bribe rejected. You are found guilty.');
           const registerGames = 3 + Math.floor(Math.random() * 5);

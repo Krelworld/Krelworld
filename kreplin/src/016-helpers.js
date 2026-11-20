@@ -1,5 +1,6 @@
 // ---------- helpers ----------
-const money=n=>'£'+Number(n).toLocaleString('en-GB');
+// The one money formatter: whole pounds, en-GB grouping, sign in front (-£1,234).
+const money=n=>{ const v=Math.round(Number(n)||0); return (v<0?'-£':'£')+Math.abs(v).toLocaleString('en-GB'); };
 const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 const sample=arr=>arr[Math.floor(Math.random()*arr.length)];
 const now=()=>new Date().toLocaleString();
@@ -13,7 +14,7 @@ function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function actionsRoot(){
   return document.getElementById('actions') || document.getElementById('choices') || document.getElementById('choicesPanel') || document.body;
 }
-function moneyGBP(n){ return "£"+Number(Math.max(0,Math.round(n||0))).toLocaleString('en-GB'); }
+function moneyGBP(n){ return money(Math.max(0,Number(n)||0)); }
 function isInRehab(){ try{ return !!(S && S.suspensions && (S.suspensions.rehab_games|0) > 0); }catch(_){ return false; } }
 function isInPrison(){ try{ return !!(S && S.suspensions && (S.suspensions.prison_games|0) > 0); }catch(_){ return false; } }
 // Make sure the drug/addiction/suspension fields exist on S.
@@ -527,7 +528,7 @@ class SocialManager {
     };
 
     return `🏆 Southampton Chairman Sim Progress:
-Season ${stats.season} | Games: ${stats.games} | W:${stats.wins} | Points: ${stats.points} | Cash: £${stats.cash.toLocaleString()}
+Season ${stats.season} | Games: ${stats.games} | W:${stats.wins} | Points: ${stats.points} | Cash: ${money(stats.cash)}
 
 Play at: ${window.location.href}`;
   }

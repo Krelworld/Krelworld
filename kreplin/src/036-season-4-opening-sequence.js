@@ -878,7 +878,7 @@ async function ultimaCupPreMatchMenu() {
           S.reputation = Math.max(0, (S.reputation|0) - 15);
           S.referee_assaulted = true;
           
-          log(`CONSEQUENCES: Personal fine £${fineChair.toLocaleString()}, Club fine £${fineClub.toLocaleString()}`);
+          log(`CONSEQUENCES: Personal fine ${money(fineChair)}, Club fine ${money(fineClub)}`);
           log("Your reputation plummets and the FA launches an immediate investigation.");
           
           S._pending_police_investigation = { authority: 'police', caseType: 'assault on referee' };

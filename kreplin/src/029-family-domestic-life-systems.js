@@ -428,19 +428,19 @@ async function handleDerangedFinancialConsequences() {
   log("💰 Your wife demands compensation for your outburst...");
   
   const demandAmount = Math.floor(Math.random() * 50000) + 10000; // £10k-£60k
-  log(`💰 She wants £${demandAmount.toLocaleString()} to make up for your behavior.`);
+  log(`💰 She wants ${money(demandAmount)} to make up for your behavior.`);
   
   const paymentChoice = await choose([
-    {key: 'pay_personal', label: `Pay £${demandAmount.toLocaleString()} from your personal funds`, variant: 'good'},
-    {key: 'embezzle', label: `Embezzle £${demandAmount.toLocaleString()} from the club`, variant: 'bad'},
+    {key: 'pay_personal', label: `Pay ${money(demandAmount)} from your personal funds`, variant: 'good'},
+    {key: 'embezzle', label: `Embezzle ${money(demandAmount)} from the club`, variant: 'bad'},
     {key: 'refuse', label: 'Refuse to pay', variant: 'warn'}
   ], 'How do you want to handle this?');
   
   if (paymentChoice === 'pay_personal') {
     if (S.chairman_cash >= demandAmount) {
       S.chairman_cash -= demandAmount;
-      log(`💰 You pay £${demandAmount.toLocaleString()} from your personal funds.`);
-      log(`💰 Personal cash: £${S.chairman_cash.toLocaleString()}`);
+      log(`💰 You pay ${money(demandAmount)} from your personal funds.`);
+      log(`💰 Personal cash: ${money(S.chairman_cash)}`);
       S.family.wifeRel = Math.min(100, S.family.wifeRel + 5); // Slight relationship boost
       log("💕 Wife relationship: +5 (she appreciates you taking responsibility)");
     } else {
@@ -454,9 +454,9 @@ async function handleDerangedFinancialConsequences() {
     if (S.club_cash >= demandAmount) {
       S.club_cash -= demandAmount;
       S.chairman_cash += demandAmount;
-      log(`💰 You embezzle £${demandAmount.toLocaleString()} from the club to your personal funds.`);
-      log(`💰 Club cash: £${S.club_cash.toLocaleString()}`);
-      log(`💰 Personal cash: £${S.chairman_cash.toLocaleString()}`);
+      log(`💰 You embezzle ${money(demandAmount)} from the club to your personal funds.`);
+      log(`💰 Club cash: ${money(S.club_cash)}`);
+      log(`💰 Personal cash: ${money(S.chairman_cash)}`);
       S.compliance_risk = Math.min(100, S.compliance_risk + 15);
       S.legal_risk = Math.min(100, S.legal_risk + 10);
       log("⚠️ Compliance risk: +15");
@@ -1518,7 +1518,7 @@ async function handleCharitableDonation() {
   // Small public image boost
   S.reputation = Math.min(100, (S.reputation || 50) + Math.floor(selected.amount / 5000));
   
-  log(`💷 You make a quiet charitable donation of £${selected.amount.toLocaleString()}.`);
+  log(`💷 You make a quiet charitable donation of ${money(selected.amount)}.`);
   log(`The Special Football Experts Board takes note of your generosity...`);
   log(`Your public image improves slightly.`);
   
@@ -1593,7 +1593,7 @@ async function handlePressQuote() {
     if (Math.random() < 0.25) {
       const favorAmount = Math.floor(Math.random()*15000) + 5000;
       S.chairman_cash = (S.chairman_cash||0) + favorAmount;
-      log(`💰 ${selectedChairman.name} sends a thank-you of £${favorAmount.toLocaleString()}.`);
+      log(`💰 ${selectedChairman.name} sends a thank-you of ${money(favorAmount)}.`);
     }
   } else if (toneChoice === 'aggressive') {
     cpGain = 8; moraleChange = 4; reputationChange = -3; legalRisk = 3;
@@ -2147,7 +2147,7 @@ async function handleSeasonEndChairmanLeague() {
     S.chairman_cash = (S.chairman_cash || 0) + cashReward;
     S.reputation = Math.min(100, (S.reputation || 50) + 10);
     
-    log(`💰 Prize money: £${cashReward.toLocaleString()}`);
+    log(`💰 Prize money: ${money(cashReward)}`);
     log(`⭐ Reputation: +10`);
     log(``);
     log(`This prestigious award will carry over to next season, giving you a head start.`);

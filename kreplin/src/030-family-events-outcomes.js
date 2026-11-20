@@ -1238,7 +1238,7 @@ async function handleMoneyOffer(selectedPerson) {
   
   if (currentCash < 50000) {
     addMessageToPersistentDialogue(selectedPerson.realName, "You don't even have enough money to make a real offer. Pathetic.", false);
-    log(`💸 You don't have enough cash to make a meaningful offer. (You have £${currentCash.toLocaleString()})`);
+    log(`💸 You don't have enough cash to make a meaningful offer. (You have ${money(currentCash)})`);
     // Close popup after insufficient funds
     setTimeout(() => closePersistentDialoguePopup(), 2000);
     return;
@@ -1246,7 +1246,7 @@ async function handleMoneyOffer(selectedPerson) {
   
   const offerAmount = Math.min(100000, Math.floor(currentCash * 0.1)); // 10% of cash, max £100k
   
-  log(`💸 You offer ${selectedPerson.realName} £${offerAmount.toLocaleString()} to reconsider...`);
+  log(`💸 You offer ${selectedPerson.realName} ${money(offerAmount)} to reconsider...`);
   
   // Calculate success chance based on offer amount and person's attractiveness
   let successChance = 0.3; // Base 30% chance
@@ -1630,8 +1630,8 @@ async function startBlackmail(affair) {
   addMessageToPhonePopup(pregnantText, false, 200);
 
   const demandLabel = isWeekly
-    ? `Agree to pay £${affair.demandAmount.toLocaleString()} per match from club funds`
-    : `Pay £${affair.demandAmount.toLocaleString()} now from club funds`;
+    ? `Agree to pay ${money(affair.demandAmount)} per match from club funds`
+    : `Pay ${money(affair.demandAmount)} now from club funds`;
 
   const choice = await chooseInPhone(
     [
@@ -1646,7 +1646,7 @@ async function startBlackmail(affair) {
     if ((S.club_cash || 0) >= amount) {
       S.club_cash = Math.max(0, (S.club_cash || 0) - amount);
       affair.paidOut = (affair.paidOut || 0) + amount;
-      log(`💸 Hush payment of £${amount.toLocaleString()} made from club funds.`);
+      log(`💸 Hush payment of ${money(amount)} made from club funds.`);
       if (typeof addPaper === 'function') {
         addPaper('Club-funded hush payment to mistress', 10 + (affair.severity || 1) * 2);
       }
@@ -1659,7 +1659,7 @@ async function startBlackmail(affair) {
         affair.nextEventWeek = currentWeek + 1 + Math.floor(Math.random() * 2);
       }
     } else {
-      log(`💸 You try to stall, but you simply can’t raise £${amount.toLocaleString()}. She laughs and walks straight to the tabloids.`);
+      log(`💸 You try to stall, but you simply can’t raise ${money(amount)}. She laughs and walks straight to the tabloids.`);
       await triggerAffairScandal(affair);
     }
   } else if (choice === 'refuse') {
@@ -1686,7 +1686,7 @@ async function escalateBlackmail(affair) {
 
   // Reuse the same demand each time for weekly stipends
   const name = affair.name || "Unknown woman";
-  const msg = `“Reminder, sweetheart. Our little arrangement continues until I say otherwise. £${affair.demandAmount.toLocaleString()} per match, or I go public.”`;
+  const msg = `“Reminder, sweetheart. Our little arrangement continues until I say otherwise. ${money(affair.demandAmount)} per match, or I go public.”`;
   // Reminder popup is also not the secretary
   window.S = window.S || {};
   S.isSecretarySessionActive = false;
@@ -1695,7 +1695,7 @@ async function escalateBlackmail(affair) {
 
   const choice = await chooseInPhone(
     [
-      { key: 'pay',    label: `Keep paying £${affair.demandAmount.toLocaleString()} per match`, variant: 'warn' },
+      { key: 'pay',    label: `Keep paying ${money(affair.demandAmount)} per match`, variant: 'warn' },
       { key: 'refuse', label: 'Cut her off and risk a scandal', variant: 'bad' }
     ],
     'Ongoing blackmail:'
@@ -1706,7 +1706,7 @@ async function escalateBlackmail(affair) {
     if ((S.club_cash || 0) >= amount) {
       S.club_cash = Math.max(0, (S.club_cash || 0) - amount);
       affair.paidOut = (affair.paidOut || 0) + amount;
-      log(`💸 Continued hush payment of £${amount.toLocaleString()} made from club funds.`);
+      log(`💸 Continued hush payment of ${money(amount)} made from club funds.`);
       if (typeof addPaper === 'function') {
         addPaper('Ongoing hush stipend to mistress', 8 + (affair.severity || 1));
       }

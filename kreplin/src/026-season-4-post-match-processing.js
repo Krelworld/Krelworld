@@ -694,7 +694,7 @@ Portsmouth FC released a brief statement confirming that the incident took place
       log(`${captainName} immediately resigns from the team and retires from football.`);
       log(`He becomes a drug addict, his life destroyed.`);
       log(``);
-      log(`You receive £${payout.toLocaleString()} for the story.`);
+      log(`You receive ${money(payout)} for the story.`);
       S.reputation = Math.max(0, (S.reputation || 50) - 15);
       incrementRisk('betrayal', 10);
       
@@ -763,7 +763,7 @@ Portsmouth FC released a brief statement confirming that the incident took place
     const stolenAmount = Math.floor(Math.random() * 30000) + 20000; // £20k-50k
     log(`Post-match report: Paul Gascoigne was caught stealing from the club.`);
     log(`"Just borrowing it, like. Forgot to ask."`);
-    log(`£${stolenAmount.toLocaleString()} missing from club funds.`);
+    log(`${money(stolenAmount)} missing from club funds.`);
     S.club_cash = Math.max(0, (S.club_cash || 0) - stolenAmount);
     incrementRisk('theft', 3);
   }
@@ -1274,7 +1274,7 @@ async function presentRefereeBribeFailChoices(){
     if (k==='b'){
       const rec = 200000; S.club_cash = (S.club_cash|0) + rec;
       S.legal_risk = Math.min(100,(S.legal_risk|0) + 4);
-      log(`You threaten the referee and claw back £${rec.toLocaleString()}. Legal risk rises.`);
+      log(`You threaten the referee and claw back ${money(rec)}. Legal risk rises.`);
     } else if (k==='e'){
       S.legal_risk = Math.max(0,(S.legal_risk|0) - 3);
       S.reputation = (S.reputation|0) + 3;
@@ -1299,7 +1299,7 @@ async function presentRefereeBribeFailChoices(){
   [['Blackmail','b'],['Expose','e'],['Do nothing','n']].forEach(([label,key])=>{
     const b = document.createElement('button'); b.className='btn'; b.textContent = label;
     b.onclick = ()=> {
-      if (key==='b'){ const rec=200000; S.club_cash=(S.club_cash|0)+rec; S.legal_risk=Math.min(100,(S.legal_risk|0)+4); log(`You threaten the referee and claw back £${rec.toLocaleString()}. Legal risk rises.`); }
+      if (key==='b'){ const rec=200000; S.club_cash=(S.club_cash|0)+rec; S.legal_risk=Math.min(100,(S.legal_risk|0)+4); log(`You threaten the referee and claw back ${money(rec)}. Legal risk rises.`); }
       if (key==='e'){ 
         S.legal_risk=Math.max(0,(S.legal_risk|0)-3); 
         S.reputation=(S.reputation|0)+3; 
@@ -1335,7 +1335,7 @@ async function presentManagerBribeFailChoices(oppTeam){
       const exposeStory = generateGossipStory('expose', oppTeam);
       queueStory(exposeStory);
     }
-    if (k==='r'){ const claw = Math.random()<0.25 ? 200000 : 0; if (claw){ S.club_cash=(S.club_cash|0)+claw; log(`You claw back £${claw.toLocaleString()}.`);} else { log("Your demand is ignored."); } }
+    if (k==='r'){ const claw = Math.random()<0.25 ? 200000 : 0; if (claw){ S.club_cash=(S.club_cash|0)+claw; log(`You claw back ${money(claw)}.`);} else { log("Your demand is ignored."); } }
     if (k==='n'){ log("You swallow the loss. The board is unimpressed."); S.board_support=Math.max(0,(S.board_support|0)-2); }
     updateHUD?.();
     return;
@@ -1358,7 +1358,7 @@ async function presentManagerBribeFailChoices(oppTeam){
         const exposeStory = generateGossipStory('expose', oppTeam);
         queueStory(exposeStory);
       }
-      if (key==='r'){ const claw = Math.random()<0.25 ? 200000 : 0; if (claw){ S.club_cash=(S.club_cash|0)+claw; log(`You claw back £${claw.toLocaleString()}.`);} else { log("Your demand is ignored."); } }
+      if (key==='r'){ const claw = Math.random()<0.25 ? 200000 : 0; if (claw){ S.club_cash=(S.club_cash|0)+claw; log(`You claw back ${money(claw)}.`);} else { log("Your demand is ignored."); } }
       if (key==='n'){ log("You swallow the loss. The board is unimpressed."); S.board_support=Math.max(0,(S.board_support|0)-2); }
       host.innerHTML = ''; updateHUD?.();
     };
@@ -1687,7 +1687,7 @@ async function presentBriberConfrontsYou(oppTeam){
       {key:'t', label:'Threaten them back'},
       {key:'r', label:'Refuse'}
     ], `${oppTeam} confront you: “We paid you and didn’t get the result.”`);
-    if (k==='h'){ const hush=50000; S.club_cash=(S.club_cash|0)-hush; S.legal_risk=Math.min(100,(S.legal_risk|0)+2); S.offbooks=(S.offbooks|0)+1; log(`You pay £${hush.toLocaleString()} under the table.`); }
+    if (k==='h'){ const hush=50000; S.club_cash=(S.club_cash|0)-hush; S.legal_risk=Math.min(100,(S.legal_risk|0)+2); S.offbooks=(S.offbooks|0)+1; log(`You pay ${money(hush)} under the table.`); }
     if (k==='t'){ S.reputation=Math.max(0,(S.reputation|0)-1); S.legal_risk=Math.min(100,(S.legal_risk|0)+1); log("You push back with counter-threats. Tensions rise."); }
     if (k==='r'){ S.legal_risk=Math.min(100,(S.legal_risk|0)+2); S.reputation=Math.max(0,(S.reputation|0)-1); log("You refuse. Expect blowback later."); }
     updateHUD?.();
@@ -1701,7 +1701,7 @@ async function presentBriberConfrontsYou(oppTeam){
   [['Pay hush money (£50k)','h'],['Threaten them','t'],['Refuse','r']].forEach(([label,key])=>{
     const b = document.createElement('button'); b.className='btn'; b.textContent = label;
     b.onclick = ()=> {
-      if (key==='h'){ const hush=50000; S.club_cash=(S.club_cash|0)-hush; S.legal_risk=Math.min(100,(S.legal_risk|0)+2); S.offbooks=(S.offbooks|0)+1; log(`You pay £${hush.toLocaleString()} under the table.`); }
+      if (key==='h'){ const hush=50000; S.club_cash=(S.club_cash|0)-hush; S.legal_risk=Math.min(100,(S.legal_risk|0)+2); S.offbooks=(S.offbooks|0)+1; log(`You pay ${money(hush)} under the table.`); }
       if (key==='t'){ S.reputation=Math.max(0,(S.reputation|0)-1); S.legal_risk=Math.min(100,(S.legal_risk|0)+1); log("You push back with counter-threats. Tensions rise."); }
       if (key==='r'){ S.legal_risk=Math.min(100,(S.legal_risk|0)+2); S.reputation=Math.max(0,(S.reputation|0)-1); log("You refuse. Expect blowback later."); }
       host.innerHTML = ''; updateHUD?.();
@@ -1731,7 +1731,7 @@ try{
   //   const att = Math.round(Math.min(32000, Math.max(0, 32000 * (0.5 + fm/200))));
   //   const rev = att * 40;
   //   S.club_cash = Math.max(0,(S.club_cash|0) + rev);
-  //   log(`Attendance: ${att.toLocaleString()} (St Mary's). Gate Revenue: £${rev.toLocaleString()}.`);
+  //   log(`Attendance: ${att.toLocaleString()} (St Mary's). Gate Revenue: ${money(rev)}.`);
   // }
 
   // (Fan morale delta for the result is applied once, earlier in postMatchPhase.)

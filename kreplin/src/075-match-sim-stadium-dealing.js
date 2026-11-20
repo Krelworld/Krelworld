@@ -499,9 +499,9 @@ async function showStadiumDealingOffer() {
   }
   
   const choices = [
-    { key: 'allow', label: `Allow (Post-match cut: £${basePayout.toLocaleString()})` },
+    { key: 'allow', label: `Allow (Post-match cut: ${money(basePayout)})` },
     { key: 'refuse', label: 'Refuse' },
-    { key: 'negotiate', label: `Negotiate (Higher cut: £${negotiatedPayout.toLocaleString()}, but riskier)` }
+    { key: 'negotiate', label: `Negotiate (Higher cut: ${money(negotiatedPayout)}, but riskier)` }
   ];
   
   const choice = await choose(choices, `${approachMessage}${warningText}`);
@@ -599,7 +599,7 @@ async function processStadiumDealingResults() {
   // Small morale boost from "edgy" atmosphere
   S.fan_morale = Math.min(100, (S.fan_morale || 50) + 2);
   
-  log(`💰 Illicit Match Cut: £${payout.toLocaleString()}`);
+  log(`💰 Illicit Match Cut: ${money(payout)}`);
   log(`📈 Fan morale +2% (edgy atmosphere)`);
   
   // Clean up
@@ -2569,20 +2569,20 @@ async function conductFundraiser() {
   const basePayout = 20000000; // £20M for St Mary's 2
   
   log(`\n🎯 FUNDRAISER MATCH: Community rallies to help rebuild!`);
-  log(`The fundraiser generates £${basePayout.toLocaleString()} in donations.`);
+  log(`The fundraiser generates ${money(basePayout)} in donations.`);
   
   // Add fundraiser payout
   S.chairman_cash += basePayout;
   S.fan_morale = Math.min(100, (S.fan_morale || 50) + 5);
   
-  log(`💰 Fundraiser proceeds: £${basePayout.toLocaleString()}`);
+  log(`💰 Fundraiser proceeds: ${money(basePayout)}`);
   log(`📈 Fan morale +5% (Community support)`);
   
   // Present rebuild options
   const choices = [
-    { key: 'honest', label: `Use funds properly (Start legitimate stadium project - £${Math.floor(basePayout * 0.8).toLocaleString()})` },
-    { key: 'embezzle', label: `Redirect to personal account (Use your own construction company - £${basePayout.toLocaleString()})` },
-    { key: 'split', label: `Split funds (Partial siphon, partial proper build - £${Math.floor(basePayout * 0.6).toLocaleString()})` }
+    { key: 'honest', label: `Use funds properly (Start legitimate stadium project - ${money(Math.floor(basePayout * 0.8))})` },
+    { key: 'embezzle', label: `Redirect to personal account (Use your own construction company - ${money(basePayout)})` },
+    { key: 'split', label: `Split funds (Partial siphon, partial proper build - ${money(Math.floor(basePayout * 0.6))})` }
   ];
   
   const choice = await choose(choices, 'How do you want to use the fundraiser money?');
@@ -2618,7 +2618,7 @@ function startHonestStadiumRebuild(fundraiserAmount) {
   S.stadium.construction_overrun = 0;
   
   log(`🏗️ Honest stadium construction begins!`);
-  log(`💰 Construction cost: £${cost.toLocaleString()}`);
+  log(`💰 Construction cost: ${money(cost)}`);
   log(`⏱️ Estimated completion: ${S.stadium.active_project.duration} matches`);
   log(`📈 Morale and sponsors will recover over time.`);
 }
@@ -2626,7 +2626,7 @@ function startHonestStadiumRebuild(fundraiserAmount) {
 // Start embezzled stadium rebuild
 function startEmbezzledStadiumRebuild(fundraiserAmount) {
   // Keep all the money
-  log(`💰 £${fundraiserAmount.toLocaleString()} redirected to personal account.`);
+  log(`💰 ${money(fundraiserAmount)} redirected to personal account.`);
   
   // Start shoddy construction for St Mary's 2
   S.stadium.active_project = {
@@ -2646,7 +2646,7 @@ function startEmbezzledStadiumRebuild(fundraiserAmount) {
   S.stadium.construction_overrun = 0;
   
   log(`🏗️ "Construction" begins with your own company...`);
-  log(`💰 Construction cost: £${S.stadium.active_project.cost.toLocaleString()}`);
+  log(`💰 Construction cost: ${money(S.stadium.active_project.cost)}`);
   log(`⏱️ Estimated completion: ${S.stadium.active_project.duration} matches`);
   log(`⚠️ WARNING: Shoddy construction has collapse risk!`);
 }
@@ -2673,9 +2673,9 @@ function startSplitStadiumRebuild(fundraiserAmount) {
   S.stadium.construction_delays = 0;
   S.stadium.construction_overrun = 0;
   
-  log(`💰 £${siphonAmount.toLocaleString()} siphoned to personal account.`);
+  log(`💰 ${money(siphonAmount)} siphoned to personal account.`);
   log(`🏗️ Mixed construction begins...`);
-  log(`💰 Construction cost: £${constructionAmount.toLocaleString()}`);
+  log(`💰 Construction cost: ${money(constructionAmount)}`);
   log(`⏱️ Estimated completion: ${S.stadium.active_project.duration} matches`);
   log(`⚠️ Moderate collapse risk due to corner-cutting.`);
 }

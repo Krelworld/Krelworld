@@ -1989,7 +1989,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
         const cost = 1000000;
         if ((S.chairman_cash || 0) >= cost) {
           S.chairman_cash = Math.max(0, (S.chairman_cash || 0) - cost);
-          log(`You pay Gazza £${cost.toLocaleString()} for his silence.`);
+          log(`You pay Gazza ${money(cost)} for his silence.`);
           log(`He grins. "Right, boss, pet. My lips are sealed, like. Not a word, hinny."`);
           log(``);
           log(`A few weeks later, news breaks: Paul Gascoigne has died from a drug overdose.`);
@@ -2141,7 +2141,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
         const cost = 1000000;
         if ((S.chairman_cash || 0) >= cost) {
           S.chairman_cash = Math.max(0, (S.chairman_cash || 0) - cost);
-          log(`You pay Gazza £${cost.toLocaleString()} for his silence.`);
+          log(`You pay Gazza ${money(cost)} for his silence.`);
           log(`He grins. "Right, boss, pet. My lips are sealed, like. Not a word, hinny."`);
           log(``);
           log(`A few weeks later, news breaks: Paul Gascoigne has died from a drug overdose.`);

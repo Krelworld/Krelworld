@@ -46,7 +46,7 @@ if(Math.random()<0.18 && getSquad().length){
 
 async function buyFlow(){
   if(S.transfer_market.length===0) generateMarketIfNeeded();
-  const opts = S.transfer_market.map(p=>({key:p.id, label:`${p.name} (${p.pos}) | ${p.tier.toUpperCase()} | RAT ${p.rating} | £${p.price.toLocaleString('en-GB')} | £${p.wage.toLocaleString('en-GB')}/wk`}));
+  const opts = S.transfer_market.map(p=>({key:p.id, label:`${p.name} (${p.pos}) | ${p.tier.toUpperCase()} | RAT ${p.rating} | ${money(p.price)} | ${money(p.wage)}/wk`}));
   opts.push({key:"back",label:"Back"});
   const k = await choose(opts,"Choose player to buy");
   if(k==="back") return;
@@ -390,7 +390,7 @@ function openBettingModal() {
     const outcome = document.querySelector('input[name="betOutcome"]:checked')?.value || 'us';
     const odds = outcome === 'us' ? usOdds : themOdds;
     const st = Math.max(0, Number(stake.value||0));
-    pot.textContent = st > 0 ? `Potential return: £${Math.floor(st*odds).toLocaleString('en-GB')}` : '';
+    pot.textContent = st > 0 ? `Potential return: ${money(Math.floor(st*odds))}` : '';
   }
   stake.oninput = refreshPotential;
   document.querySelectorAll('input[name="betOutcome"]').forEach(r => r.onchange = refreshPotential);
@@ -408,7 +408,7 @@ function openBettingModal() {
     S.preMatch.bet = { outcome, stake: st, odds };
     S.preMatch.betLocked = true;
 
-    log(`Bet placed: £${st.toLocaleString('en-GB')} on ${outcome === 'us' ? 'Southampton' : 'Opponents'} @ ${odds}.`);
+    log(`Bet placed: ${money(st)} on ${outcome === 'us' ? 'Southampton' : 'Opponents'} @ ${odds}.`);
     modal.style.display = 'none';
   };
   close.onclick = () => { modal.style.display = 'none'; };
@@ -455,7 +455,7 @@ async function placeBetMenu(){
   const line = odds[market];
   const potential = Math.round(stake * line);
   const conf = await choose([
-    { key:'y', label:`Confirm bet: ${market.toUpperCase()} @ ${line.toFixed(2)} — Stake £${stake.toLocaleString()} → Potential return £${potential.toLocaleString()}` },
+    { key:'y', label:`Confirm bet: ${market.toUpperCase()} @ ${line.toFixed(2)} — Stake ${money(stake)} → Potential return ${money(potential)}` },
     { key:'n', label:'Cancel' }
   ], 'Confirm your bet');
   if (conf !== 'y') { log("Bet cancelled."); render(); return; }
@@ -466,7 +466,7 @@ async function placeBetMenu(){
   S.preMatch.betLocked = true;
   S.bet_locked_this_prematch = true;
 
-  log(`Bet placed: £${stake.toLocaleString('en-GB')} on ${market.toUpperCase()} @ ${line.toFixed(2)}.`);
+  log(`Bet placed: ${money(stake)} on ${market.toUpperCase()} @ ${line.toFixed(2)}.`);
   render();
 }
 
@@ -814,7 +814,7 @@ async function handleManagerConfrontation() {
       S.compliance_risk = Math.min(100, (S.compliance_risk || 0) + 20);
       S.reputation = Math.max(0, (S.reputation || 0) - 25);
       
-      log(`CONSEQUENCES: Personal fine £${fineChair.toLocaleString()}, Club fine £${fineClub.toLocaleString()}`);
+      log(`CONSEQUENCES: Personal fine ${money(fineChair)}, Club fine ${money(fineClub)}`);
       
       // Queue police investigation
       if (!S._pending_police_investigation) {
@@ -979,7 +979,7 @@ async function handleConversationBrickThrowing(contactName) {
   S.compliance_risk = Math.min(100, (S.compliance_risk || 0) + 6);
   S.reputation = Math.max(0, (S.reputation || 0) - 15);
   
-  log(`CONSEQUENCES: Personal fine £${fineChair.toLocaleString()}, Club fine £${fineClub.toLocaleString()}`);
+  log(`CONSEQUENCES: Personal fine ${money(fineChair)}, Club fine ${money(fineClub)}`);
   
   // Queue police investigation
   if (!S._pending_police_investigation) {

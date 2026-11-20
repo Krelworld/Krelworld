@@ -817,7 +817,7 @@ function completeStadiumProject() {
       log(`⚠️ Cost overrun of ${money(overrunAmount)} added to club debt!`);
     }
     
-    log(`💰 ${project.name || 'Stadium project'} completed with ${overrunPercent}% cost overrun! Final cost: £${finalCost.toLocaleString()}`);
+    log(`💰 ${project.name || 'Stadium project'} completed with ${overrunPercent}% cost overrun! Final cost: ${money(finalCost)}`);
   } else {
     log(`🏟️ ${project.name || 'Stadium project'} completed on time and on budget!`);
   }
@@ -890,7 +890,7 @@ function completeStadiumProject() {
   log(`📊 Capacity: ${oldCapacity.toLocaleString()} → ${stadium.capacity.toLocaleString()} (+${(stadium.capacity - oldCapacity).toLocaleString()})`);
   log(`⭐ Quality: ${oldQuality} → ${stadium.quality} (+${stadium.quality - oldQuality})`);
   const newUpkeepDisplay = (stadium.upkeep_per_match && !isNaN(stadium.upkeep_per_match)) ? stadium.upkeep_per_match : oldUpkeep;
-  log(`💰 Upkeep: £${oldUpkeep.toLocaleString()} → £${newUpkeepDisplay.toLocaleString()}/match`);
+  log(`💰 Upkeep: ${money(oldUpkeep)} → ${money(newUpkeepDisplay)}/match`);
   
   // Check for insolvency risk
   checkStadiumInsolvency();
@@ -915,7 +915,7 @@ function checkStadiumInsolvency() {
   const totalUpkeep = (stadium.upkeep_per_match && !isNaN(stadium.upkeep_per_match)) ? stadium.upkeep_per_match : 5000;
   
   if (S.club_cash < totalUpkeep * 3) { // Less than 3 matches of expenses
-    log(`⚠️ Warning: Club finances are tight. Stadium upkeep: £${totalUpkeep.toLocaleString()}/match`);
+    log(`⚠️ Warning: Club finances are tight. Stadium upkeep: ${money(totalUpkeep)}/match`);
     
     // Apply small morale hit and board heat
     S.fan_morale = Math.max(0, (S.fan_morale || 50) - 2);
@@ -967,8 +967,8 @@ window.processHomeMatchRevenue = function() {
   
   // Log the results
   log(`🏟️ Attendance: ${attendance.toLocaleString()} (${projection.utilization.toFixed(1)}% capacity)`);
-  log(`💰 Matchday Revenue: £${revenue.toLocaleString()}`);
-  log(`🔧 Stadium Upkeep: -£${upkeepAmount.toLocaleString()}`);
+  log(`💰 Matchday Revenue: ${money(revenue)}`);
+  log(`🔧 Stadium Upkeep: -${money(upkeepAmount)}`);
   
   
   
@@ -1012,8 +1012,8 @@ function processEastleighMatchRevenue() {
   
   // Log the results
   log(`🏟️ Attendance: ${attendance.toLocaleString()} (Eastleigh F.C. - ${stadium.utilization_percent.toFixed(1)}% capacity)`);
-  log(`💰 Matchday Revenue: £${revenue.toLocaleString()}`);
-  log(`🔧 Stadium Upkeep: -£${eastleighUpkeep.toLocaleString()}`);
+  log(`💰 Matchday Revenue: ${money(revenue)}`);
+  log(`🔧 Stadium Upkeep: -${money(eastleighUpkeep)}`);
   
   // Check for insolvency after processing
   checkStadiumInsolvency();
@@ -1120,7 +1120,7 @@ window.sellItem = function(name, qty = 1) {
     S.chairman_cash = (S.chairman_cash || 0) + totalValue;
     removeItem(name, sellQty);
     
-    log(`You sold ${sellQty}x "${name}" for £${totalValue.toLocaleString('en-GB')}.`);
+    log(`You sold ${sellQty}x "${name}" for ${money(totalValue)}.`);
     updateHUD?.();
     
     return totalValue;
@@ -1220,7 +1220,7 @@ async function sellAccolade(idx){
   S.chairman_cash = (S.chairman_cash||0) + Math.max(0,val);
   // remove from inventory
   S.inventory.accolades.splice(idx,1);
-  log(`You fence "${item.name}" for £${val.toLocaleString('en-GB')}.`);
+  log(`You fence "${item.name}" for ${money(val)}.`);
   updateHUD?.();
   // re-open to refresh list (or update DOM surgically)
   refreshInventoryView();

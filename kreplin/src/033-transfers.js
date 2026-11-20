@@ -1093,9 +1093,9 @@ async function maybeMoralComplianceAudit(){
     const generous = Math.floor(baseAmount * 2.5);
     
     const zakatChoice = await chooseInModal([
-      {key:'min', label:`Minimum: £${minimum.toLocaleString()}`},
-      {key:'rec', label:`Recommended: £${recommended.toLocaleString()}`},
-      {key:'gen', label:`Generous: £${generous.toLocaleString()}`}
+      {key:'min', label:`Minimum: ${money(minimum)}`},
+      {key:'rec', label:`Recommended: ${money(recommended)}`},
+      {key:'gen', label:`Generous: ${money(generous)}`}
     ], 'Select your Zakat contribution:');
     
     let zakatAmount = 0;
@@ -1118,7 +1118,7 @@ async function maybeMoralComplianceAudit(){
     
     if (S.club_cash >= zakatAmount) {
       S.club_cash -= zakatAmount;
-      addToModal(`Zakat Paid: £${zakatAmount.toLocaleString()}`, true);
+      addToModal(`Zakat Paid: ${money(zakatAmount)}`, true);
     } else {
       addToModal('', false);
       addToModal('You cannot afford the minimum contribution.', true);

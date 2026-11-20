@@ -370,7 +370,7 @@
     if (v === 'move') { if (typeof openCashTransferModal === 'function') openCashTransferModal(); else click('transferCashBtn'); }
     if (v === 'debt' && typeof openDebtPaymentModal === 'function') openDebtPaymentModal();
   }
-  const fmtFull = n => '£' + Math.floor(Number(n) || 0).toLocaleString('en-GB');
+  const fmtFull = n => { const v = Math.round(Number(n) || 0); return (v < 0 ? '-£' : '£') + Math.abs(v).toLocaleString('en-GB'); };
   const NAV = {
     matchday: () => { closeMore(); while (closeTopPane()); const f = $('dialoguePanel'); if (f) f.scrollTo({ top: f.scrollHeight, behavior: 'smooth' }); openSheet(); },
     news: () => click('btnReadNews'), phone: () => click('btnUsePhone'), fixtures: () => click('openFixturesBtn'),

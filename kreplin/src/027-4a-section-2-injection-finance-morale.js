@@ -17,7 +17,7 @@
   //   const att = Math.round(Math.max(0, Math.min(CAP, CAP * (0.5 + fm/200))));
   //   const rev = att * TICKET;
   //   S.club_cash = (S.club_cash|0) + rev;
-  //   log(`Attendance: ${att.toLocaleString('en-GB')} (St Mary's). Gate Revenue: £${rev.toLocaleString('en-GB')}.`);
+  //   log(`Attendance: ${att.toLocaleString('en-GB')} (St Mary's). Gate Revenue: ${money(rev)}.`);
   // }
 
   // (Fan morale delta for the result is applied once, earlier in postMatchPhase.)
@@ -299,7 +299,7 @@ if (title) {
   setPhase('boot');
 }
 
-function fmtGBP(n){ n = Math.floor(n||0); return "£" + n.toLocaleString(); }
+function fmtGBP(n){ return money(n); }
 function hudSet(id, val){ const el = document.getElementById(id); if(el) el.textContent = val; }
 
 // Public updateHUD(): redraws the HUD then emits 'hud' so systems can add their pills.
@@ -694,12 +694,12 @@ function showLeagueTablePopup() {
 function takePersonalLoan(amount){
   S.debt_personal = (S.debt_personal||0) + Math.max(0, amount);
   addMoneyPersonal(amount);
-  log('You take a personal loan of £' + amount.toLocaleString() + '.');
+  log('You take a personal loan of ' + money(amount) + '.');
 }
 function takeClubLoan(amount){
   S.debt_club = (S.debt_club||0) + Math.max(0, amount);
   addMoneyClub(amount);
-  log('Club takes on a loan of £' + amount.toLocaleString() + '.');
+  log('Club takes on a loan of ' + money(amount) + '.');
 }
 
 
@@ -862,7 +862,7 @@ async function tickPregnanciesAfterMatch(){
   if((S.baby_care_weekly||0) > 0){
     const cost = S.baby_care_weekly;
     S.chairman_cash = Math.max(0, (S.chairman_cash||0) - cost);
-    log('Paid special baby care: £' + cost.toLocaleString());
+    log('Paid special baby care: ' + money(cost));
   }
 }
 
@@ -908,7 +908,7 @@ async function handleBirth(b){
     S.chairman_cash = Math.max(0, (S.chairman_cash||0) - upfront);
     S.baby_care_weekly = (S.baby_care_weekly||0) + weekly;
     addPaper('Baby requiring special care born', 12);
-    log('Neonatal costs: -£' + upfront.toLocaleString() + ' upfront, plus £' + weekly.toLocaleString() + '/match for special care.');
+    log('Neonatal costs: -' + money(upfront) + ' upfront, plus ' + money(weekly) + '/match for special care.');
   }
 }
 
@@ -1019,7 +1019,7 @@ async function offerStdTreatment(){
   
   const st = await choose(
     [
-      {key:'treat', label:`Private treatment (£${Math.round(price).toLocaleString()})`},
+      {key:'treat', label:`Private treatment (${money(Math.round(price))})`},
       {key:'ignore',label:'Leave untreated', variant:'bad'}
     ],
     'STD treatment opportunity:'
@@ -1099,7 +1099,7 @@ async function offerVeryBadStdTreatment(){
   
   const treat = await choose(
     [
-      {key:'treat', label:`Pay for treatment (£${Math.round(price).toLocaleString()})`, variant:'warn'},
+      {key:'treat', label:`Pay for treatment (${money(Math.round(price))})`, variant:'warn'},
       {key:'ignore',label:'Leave untreated', variant:'bad'}
     ],
     'Very bad STD treatment opportunity:'
@@ -1179,11 +1179,11 @@ async function handleDelayedFemaleBlackmail(b){
     const partnerName = b.partner_name || 'Unknown woman';
     const blackmailAmount = Math.max(50000, Math.round((S.chairman_cash || 0) * (0.15 + Math.random() * 0.15))); // 15-30% of chairman cash
     
-    log(`${partnerName} texts you: "I have photos and evidence of our encounter. Pay me £${blackmailAmount.toLocaleString()} or I'll leak the story to the press."`);
+    log(`${partnerName} texts you: "I have photos and evidence of our encounter. Pay me ${money(blackmailAmount)} or I'll leak the story to the press."`);
     
     const response = await choose(
       [
-        {key:'pay', label:`Pay the blackmail (£${blackmailAmount.toLocaleString()})`, variant:'warn'},
+        {key:'pay', label:`Pay the blackmail (${money(blackmailAmount)})`, variant:'warn'},
         {key:'refuse', label:'Refuse to pay', variant:'bad'}
       ],
       'Blackmail response:'
@@ -1339,10 +1339,10 @@ async function wifeDemandEvent(){
   if (!S.inventory) S.inventory = { accolades: [], drugs: 0 };
 
   const opts = [
-    {key:'pay',     label:'Pay from personal funds (£'+amount.toLocaleString()+')'},
-    {key:'embezzle',label:'Embezzle from club (£'+amount.toLocaleString()+')', variant:'warn'},
-    {key:'loanp',   label:'Take a personal loan (£'+amount.toLocaleString()+')'},
-    {key:'loanc',   label:'Take a club loan (£'+amount.toLocaleString()+')'},
+    {key:'pay',     label:'Pay from personal funds (' + money(amount)+')'},
+    {key:'embezzle',label:'Embezzle from club (' + money(amount)+')', variant:'warn'},
+    {key:'loanp',   label:'Take a personal loan (' + money(amount)+')'},
+    {key:'loanc',   label:'Take a club loan (' + money(amount)+')'},
     {key:'drugs',   label:'Give her drugs to shut her up', variant:'bad'},
     {key:'sex',     label:'Have sex with wife', variant:'sensual'}
   ];
@@ -1456,7 +1456,7 @@ function embezzleFromClub(amount){
   S.compliance_risk = clamp((S.compliance_risk||0) + 6, 0, 100);
   S.legal_risk      = clamp((S.legal_risk||0) + 4, 0, 100);
   addPaper('Rumors swirl about irregular club expenditures', 10);
-  log('You quietly re-route £' + can.toLocaleString() + ' from club to personal funds.');
+  log('You quietly re-route ' + money(can) + ' from club to personal funds.');
 }
 
 function maybeInfectPartner(partner){

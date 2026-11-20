@@ -190,7 +190,7 @@
     const reducedFineC = Math.floor(fineC * 0.8);
     const reducedFineK = Math.floor(fineK * 0.8);
     
-    feedLog(`"I sentence you to: Personal fine £${reducedFineC.toLocaleString()}, Club fine £${reducedFineK.toLocaleString()}."`);
+    feedLog(`"I sentence you to: Personal fine ${money(reducedFineC)}, Club fine ${money(reducedFineK)}."`);
     feedLog("'Additionally, you will be placed on THE SEX OFFENDERS REGISTER for workplace misconduct.'");
     
     addBtn("Accept the reduced sentence.", 'warn', function(){
@@ -432,7 +432,7 @@
     feedLog("The magistrate accepts your no contest plea. 'You neither admit nor deny the charges.'");
     feedLog("'I will impose the standard sentence without the reduction for admitting guilt.'");
     
-    feedLog(`"I sentence you to: Personal fine £${fineC.toLocaleString()}, Club fine £${fineK.toLocaleString()}."`);
+    feedLog(`"I sentence you to: Personal fine ${money(fineC)}, Club fine ${money(fineK)}."`);
     feedLog("'Additionally, you will be placed on THE SEX OFFENDERS REGISTER for workplace misconduct.'");
     
     addBtn("Accept the sentence.", 'warn', function(){
@@ -537,7 +537,7 @@
       const harsherFineC = Math.floor(fineC * 1.5);
       const harsherFineK = Math.floor(fineK * 1.5);
       
-      feedLog(`"I sentence you to: Personal fine £${harsherFineC.toLocaleString()}, Club fine £${harsherFineK.toLocaleString()}."`);
+      feedLog(`"I sentence you to: Personal fine ${money(harsherFineC)}, Club fine ${money(harsherFineK)}."`);
       feedLog("'Additionally, you will be placed on THE SEX OFFENDERS REGISTER for workplace misconduct.'");
       
       addBtn("Accept the harsher sentence.", 'warn', function(){
@@ -645,7 +645,7 @@
       const maxFineC = Math.floor(fineC * 2.0);
       const maxFineK = Math.floor(fineK * 2.0);
       
-      feedLog(`"I sentence you to: Personal fine £${maxFineC.toLocaleString()}, Club fine £${maxFineK.toLocaleString()}."`);
+      feedLog(`"I sentence you to: Personal fine ${money(maxFineC)}, Club fine ${money(maxFineK)}."`);
       feedLog("'Additionally, you will be placed on THE SEX OFFENDERS REGISTER for workplace misconduct.'");
       
       addBtn("Accept the maximum sentence.", 'warn', function(){
@@ -765,7 +765,7 @@
       const harsherFineC = Math.floor(fineC * 1.3);
       const harsherFineK = Math.floor(fineK * 1.3);
       
-      feedLog(`"I sentence you to: Personal fine £${harsherFineC.toLocaleString()}, Club fine £${harsherFineK.toLocaleString()}."`);
+      feedLog(`"I sentence you to: Personal fine ${money(harsherFineC)}, Club fine ${money(harsherFineK)}."`);
       feedLog("'Additionally, you will be placed on THE SEX OFFENDERS REGISTER for workplace misconduct.'");
       
       addBtn("Accept the harsher sentence.", 'warn', function(){
@@ -949,7 +949,7 @@
     const prisonTerm = 0; // Harassment doesn't result in prison time
     
     feedLog(`The officer consults their notes. 'Based on the evidence, we recommend:`);
-    feedLog(`Personal fine: £${fineC.toLocaleString()}, Club fine: £${fineK.toLocaleString()}, Prison: ${prisonTerm} match(es).'`);
+    feedLog(`Personal fine: ${money(fineC)}, Club fine: ${money(fineK)}, Prison: ${prisonTerm} match(es).'`);
     feedLog(`"This is a workplace harassment case. You have the right to a formal plea hearing."`);
     
     // Go directly to harassment plea system
@@ -1097,7 +1097,7 @@
     const fineK = Math.round(fineC * 0.6);
     
     feedLog(`The officer consults their notes. 'Based on the evidence, we recommend:`);
-    feedLog(`Personal fine: £${fineC.toLocaleString()}, Club fine: £${fineK.toLocaleString()}, Prison: ${prisonTerm} match(es).'`);
+    feedLog(`Personal fine: ${money(fineC)}, Club fine: ${money(fineK)}, Prison: ${prisonTerm} match(es).'`);
     
     // Note: Harassment cases are now handled by presentHarassmentDirectInterview
     
@@ -1167,9 +1167,9 @@
       const bribeChance = Math.random() < 0.4; // 40% chance they'll accept a bribe
       if (bribeChance) {
         const bribeAmount = Math.round(fineC * 1.5 + Math.random() * 50000);
-        feedLog(`The officer looks around nervously. 'Well... we might be able to make this go away for £${bribeAmount.toLocaleString()}.'`);
+        feedLog(`The officer looks around nervously. 'Well... we might be able to make this go away for ${money(bribeAmount)}.'`);
         
-        addBtn(`Pay the bribe (£${bribeAmount.toLocaleString()})`, 'bad', function(){
+        addBtn(`Pay the bribe (${money(bribeAmount)})`, 'bad', function(){
           const canPay = (S.chairman_cash||0) >= bribeAmount || (S.club_cash||0) >= bribeAmount;
           if (canPay) {
             if ((S.chairman_cash||0) >= bribeAmount) {
@@ -1528,7 +1528,7 @@
       <h4 style="margin: 0 0 15px 0; color: var(--accent);">🏛️ COURT HEARING — Workplace Harassment Charges</h4>
       <p style="margin: 0 0 10px 0;">You admit guilt. The magistrate nods gravely.</p>
       <p style="margin: 0 0 10px 0;">The magistrate considers your guilty plea. "Given your admission, I can offer some leniency."</p>
-      <p style="margin: 0 0 10px 0;">"I sentence you to: Personal fine £${reducedFineC.toLocaleString()}, Club fine £${reducedFineK.toLocaleString()}."</p>
+      <p style="margin: 0 0 10px 0;">"I sentence you to: Personal fine ${money(reducedFineC)}, Club fine ${money(reducedFineK)}."</p>
       <p style="margin: 0 0 10px 0;"><strong>"Additionally, you will be placed on THE SEX OFFENDERS REGISTER for workplace misconduct."</strong></p>
     `;
     
@@ -1635,7 +1635,7 @@
     stepContent.innerHTML = `
       <h4 style="margin: 0 0 15px 0; color: var(--accent);">🏛️ COURT HEARING — Workplace Harassment Charges</h4>
       <p style="margin: 0 0 10px 0;">You enter a plea of no contest. The magistrate accepts it.</p>
-      <p style="margin: 0 0 10px 0;">"I sentence you to: Personal fine £${fineC.toLocaleString()}, Club fine £${fineK.toLocaleString()}."</p>
+      <p style="margin: 0 0 10px 0;">"I sentence you to: Personal fine ${money(fineC)}, Club fine ${money(fineK)}."</p>
       <p style="margin: 0 0 10px 0;"><strong>"Additionally, you will be placed on THE SEX OFFENDERS REGISTER for workplace misconduct."</strong></p>
     `;
     
@@ -1708,7 +1708,7 @@
         <h4 style="margin: 0 0 15px 0; color: var(--accent);">❌ Convicted</h4>
         <p style="margin: 0 0 10px 0;">${evidenceText}</p>
         <p style="margin: 0 0 10px 0;">The jury finds you guilty. The magistrate imposes a harsher sentence.</p>
-        <p style="margin: 0 0 10px 0;">"I sentence you to: Personal fine £${trialFineC.toLocaleString()}, Club fine £${trialFineK.toLocaleString()}."</p>
+        <p style="margin: 0 0 10px 0;">"I sentence you to: Personal fine ${money(trialFineC)}, Club fine ${money(trialFineK)}."</p>
         <p style="margin: 0 0 10px 0;"><strong>"Additionally, you will be placed on THE SEX OFFENDERS REGISTER for workplace misconduct."</strong></p>
       `;
       
@@ -1762,7 +1762,7 @@
       stepContent.innerHTML = `
         <h4 style="margin: 0 0 15px 0; color: var(--accent);">❌ Claim Rejected</h4>
         <p style="margin: 0 0 10px 0;">They don't believe your story. The case proceeds to sentencing.</p>
-        <p style="margin: 0 0 10px 0;">"I sentence you to: Personal fine £${fineC.toLocaleString()}, Club fine £${fineK.toLocaleString()}."</p>
+        <p style="margin: 0 0 10px 0;">"I sentence you to: Personal fine ${money(fineC)}, Club fine ${money(fineK)}."</p>
         <p style="margin: 0 0 10px 0;"><strong>"Additionally, you will be placed on THE SEX OFFENDERS REGISTER for workplace misconduct."</strong></p>
       `;
       
@@ -1815,7 +1815,7 @@
       stepContent.innerHTML = `
         <h4 style="margin: 0 0 15px 0; color: var(--accent);">❌ Claim Rejected</h4>
         <p style="margin: 0 0 10px 0;">The magistrate dismisses your conspiracy theory. "This is workplace harassment, not a football conspiracy."</p>
-        <p style="margin: 0 0 10px 0;">"I sentence you to: Personal fine £${fineC.toLocaleString()}, Club fine £${fineK.toLocaleString()}."</p>
+        <p style="margin: 0 0 10px 0;">"I sentence you to: Personal fine ${money(fineC)}, Club fine ${money(fineK)}."</p>
         <p style="margin: 0 0 10px 0;"><strong>"Additionally, you will be placed on THE SEX OFFENDERS REGISTER for workplace misconduct."</strong></p>
       `;
       
@@ -2546,7 +2546,7 @@
     const prisonTerm = severity > 50 ? Math.floor(Math.random() * 3) + 1 : 0;
     
     // Safe money formatter
-    const formatMoney = typeof money === 'function' ? money : (val) => '£' + val.toLocaleString();
+    const formatMoney = typeof money === 'function' ? money : (val) => '' + money(val);
     
     stepContent.innerHTML = `
       <h4 style="margin: 0 0 15px 0; color: var(--accent);">⚖️ Sentencing</h4>

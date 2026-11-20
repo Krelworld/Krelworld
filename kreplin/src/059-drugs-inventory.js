@@ -13,14 +13,14 @@
     const cost = 80000;
     if (S.chairman_cash >= cost) {
       S.chairman_cash -= cost;
-      logSafe(`You lose £${cost.toLocaleString('en-GB')} in medical bills.`);
+      logSafe(`You lose ${money(cost)} in medical bills.`);
     } else {
       const remaining = cost - S.chairman_cash;
       S.chairman_cash = 0;
       if (S.club_cash) {
         S.club_cash = Math.max(0, S.club_cash - remaining);
       }
-      logSafe(`You lose all your personal money and £${remaining.toLocaleString('en-GB')} from club funds in medical bills.`);
+      logSafe(`You lose all your personal money and ${money(remaining)} from club funds in medical bills.`);
     }
     
     // Rehab: one scheme only (S.suspensions.rehab_games); the main loop plays these weeks without you

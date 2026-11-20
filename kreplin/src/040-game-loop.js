@@ -585,7 +585,7 @@ async function _hireManagerFlow(title="Hire a Manager"){
   const cands = [_candidate(), _candidate(), _candidate(), _candidate(), _candidate(), _candidate()];
   const opts = cands.map(c => ({
     key:c.id,
-    label: `${c.name} • Skill ${c.skill} • Agreeableness ${c.agreeableness} • £${c.wage.toLocaleString('en-GB')}/week • ${c.description}`
+    label: `${c.name} • Skill ${c.skill} • Agreeableness ${c.agreeableness} • ${money(c.wage)}/week • ${c.description}`
   }));
   opts.push({ key:"cancel", label:"Cancel" });
 
@@ -607,7 +607,7 @@ async function _hireManagerFlow(title="Hire a Manager"){
   };
   S.manager_events = { warned_this_match:false, crisis_this_match:false, fired_this_match:false };
 
-  log(`Hired ${pick.name} (Skill ${pick.skill}) for £${wage.toLocaleString('en-GB')}/week.`);
+  log(`Hired ${pick.name} (Skill ${pick.skill}) for ${money(wage)}/week.`);
   if (typeof updateHUD === 'function') updateHUD();
   if (typeof updateHeaderLine === 'function') updateHeaderLine();
   return true;
@@ -862,7 +862,7 @@ async function managerComplaintDecision(ultimatum=false){
       S.compliance_risk = Math.min(100, (S.compliance_risk|0) + 4);
     S.reputation = Math.max(0, (S.reputation|0) - 10);
     
-    log(`CONSEQUENCES: Personal fine £${fineChair.toLocaleString()}, Club fine £${fineClub.toLocaleString()}`);
+    log(`CONSEQUENCES: Personal fine ${money(fineChair)}, Club fine ${money(fineClub)}`);
     log("Your reputation plummets and the FA launches an immediate investigation.");
     
     // Check if there's already a pending police investigation (e.g., from referee assault)
@@ -1162,12 +1162,12 @@ async function runPrisonLoop() {
       const prisonCost = 75000 + Math.floor(Math.random() * 25000); // £75k-100k per match
       if (typeof S.club_cash === 'number') {
         S.club_cash = Math.max(0, (S.club_cash|0) - prisonCost);
-        logSafe(`PRISON: The club pays £${prisonCost.toLocaleString()} in legal fees and fines.`);
+        logSafe(`PRISON: The club pays ${money(prisonCost)} in legal fees and fines.`);
       } else {
         // Fallback if club_cash doesn't exist
         if (!S.debt_club) S.debt_club = 0;
         S.debt_club = (S.debt_club|0) + prisonCost;
-        logSafe(`PRISON: £${prisonCost.toLocaleString()} added to club debt.`);
+        logSafe(`PRISON: ${money(prisonCost)} added to club debt.`);
       }
       
       // Update league table

@@ -232,7 +232,7 @@ async function handlePlayerDefamationConfrontation(confrontationData) {
       S.compliance_risk = Math.min(100, (S.compliance_risk || 0) + 4);
       S.reputation = Math.max(0, (S.reputation || 50) - 10);
       
-      log(`CONSEQUENCES: Personal fine £${fineChair.toLocaleString()}, Club fine £${fineClub.toLocaleString()}`);
+      log(`CONSEQUENCES: Personal fine ${money(fineChair)}, Club fine ${money(fineClub)}`);
       log("Your reputation plummets and the FA launches an immediate investigation.");
       
       // Make manager quit immediately
@@ -349,7 +349,7 @@ async function processWifeConfrontation() {
   const hushMoneyAmount = minAmount + Math.floor(Math.random() * (maxAmount - minAmount + 1));
   
   const options = [
-    { key: 'pay', label: `Pay hush money (£${hushMoneyAmount.toLocaleString()})` },
+    { key: 'pay', label: `Pay hush money (${money(hushMoneyAmount)})` },
     { key: 'drugs', label: 'Give her drugs from stash' },
     { key: 'ignore', label: 'Ignore her concerns' }
   ];
@@ -373,10 +373,10 @@ async function processWifeConfrontation() {
     // Pay from chairman cash (not club cash)
     if (chairmanCash >= hushMoneyAmount) {
       S.chairman_cash = Math.max(0, chairmanCash - hushMoneyAmount);
-      log(`You pay her £${hushMoneyAmount.toLocaleString()} to "make it right." She stays quiet.`);
+      log(`You pay her ${money(hushMoneyAmount)} to "make it right." She stays quiet.`);
       S.wife_love = clamp((S.wife_love || 60) - 15, 0, 100); // Large decrease in marital risk
     } else {
-      log(`You can't afford the £${hushMoneyAmount.toLocaleString()}. She's furious.`);
+      log(`You can't afford the ${money(hushMoneyAmount)}. She's furious.`);
       S.wife_love = clamp((S.wife_love || 60) + 20, 0, 100); // Large increase in marital risk
     }
   } else if (choice === 'drugs') {
@@ -2918,12 +2918,12 @@ function _applyVideoPenalty() {
   }
   
   // Log the penalty
-  let logMessage = `💳 <strong>Credit Card Fraud:</strong> £${penalty.toLocaleString('en-GB')} stolen from your accounts.`;
+  let logMessage = `💳 <strong>Credit Card Fraud:</strong> ${money(penalty)} stolen from your accounts.`;
   if (deductedFromChairman > 0) {
-    logMessage += ` Personal: -£${deductedFromChairman.toLocaleString('en-GB')}`;
+    logMessage += ` Personal: -${money(deductedFromChairman)}`;
   }
   if (deductedFromClub > 0) {
-    logMessage += ` Club: -£${deductedFromClub.toLocaleString('en-GB')}`;
+    logMessage += ` Club: -${money(deductedFromClub)}`;
   }
   
   log(logMessage);
@@ -3560,7 +3560,7 @@ async function presentLawsuitOptions(lawsuit) {
   ], 'How do you respond?');
   
   if (choice === 'settle') {
-    const canPay = await takeFundsFor(settlementAmount, `Defamation settlement £${settlementAmount.toLocaleString()} — funding source?`);
+    const canPay = await takeFundsFor(settlementAmount, `Defamation settlement ${money(settlementAmount)} — funding source?`);
     if (canPay.ok) {
       S.reputation = clamp((S.reputation || 50) - 2, 0, 100);
       log(`Settlement paid. Your reputation takes a small hit.`);
@@ -3598,14 +3598,14 @@ async function bribeJudge(lawsuit) {
   const bribeAmount = lawsuit.severity * 5000 + Math.random() * 10000;
   const successChance = 70;
   
-  const canBribe = await takeFundsFor(bribeAmount, `Judge bribe £${bribeAmount.toLocaleString()} — funding source?`);
+  const canBribe = await takeFundsFor(bribeAmount, `Judge bribe ${money(bribeAmount)} — funding source?`);
   
   if (canBribe.ok) {
     if (Math.random() * 100 < successChance) {
       log(`Judge accepts the bribe. Case dismissed.`);
     } else {
       const fine = bribeAmount * 2;
-      const canPayFine = await takeFundsFor(fine, `Bribe discovered! Additional fine £${fine.toLocaleString()} — funding source?`);
+      const canPayFine = await takeFundsFor(fine, `Bribe discovered! Additional fine ${money(fine)} — funding source?`);
       if (canPayFine.ok) {
         S.legal_risk = clamp((S.legal_risk || 0) + 10, 0, 100);
         log(`Bribe attempt discovered! Additional fine: ${money(fine)}. Legal risk increased.`);

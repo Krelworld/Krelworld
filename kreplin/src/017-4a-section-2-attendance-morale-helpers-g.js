@@ -2478,15 +2478,15 @@ window.renderStadiumPanel = function(){
         <div class="row"><div class="k">Quality</div><div class="v">${stadium.quality}/100</div></div>
         <div class="row"><div class="k">Safety</div><div class="v">${stadium.safety}/100</div></div>
         <div class="row"><div class="k">Ticket Price</div><div class="v">£${stadium.ticket_price}</div></div>
-        <div class="row"><div class="k">Upkeep per Match</div><div class="v">£${(stadium.upkeep_per_match && !isNaN(stadium.upkeep_per_match) ? stadium.upkeep_per_match : 5000).toLocaleString()}</div></div>
+        <div class="row"><div class="k">Upkeep per Match</div><div class="v">${money((stadium.upkeep_per_match && !isNaN(stadium.upkeep_per_match) ? stadium.upkeep_per_match : 5000))}</div></div>
         <div class="row"><div class="k">Last Attendance</div><div class="v">${stadium.last_home_attendance.toLocaleString()}</div></div>
         <div class="row"><div class="k">Utilization</div><div class="v">${stadium.utilization_percent.toFixed(1)}%</div></div>
       </div>
       
       <div class="panel" style="padding: 16px;">
         <h3 style="margin-top: 0;">Revenue Projections</h3>
-        <div class="row"><div class="k">If Sold Out</div><div class="v">£${soldOutRevenue.toLocaleString()}</div></div>
-        <div class="row"><div class="k">At Current Morale</div><div class="v">£${nextHomeProjection.revenue.toLocaleString()}</div></div>
+        <div class="row"><div class="k">If Sold Out</div><div class="v">${money(soldOutRevenue)}</div></div>
+        <div class="row"><div class="k">At Current Morale</div><div class="v">${money(nextHomeProjection.revenue)}</div></div>
         <div class="row"><div class="k">Projected Attendance</div><div class="v">${nextHomeProjection.attendance.toLocaleString()}</div></div>
         <div class="row"><div class="k">Utilization</div><div class="v">${nextHomeProjection.utilization.toFixed(1)}%</div></div>
       </div>
@@ -2558,13 +2558,13 @@ function renderUpgradeOptions(){
         <div class="row"><div class="k">Capacity</div><div class="v">+${capacityGain}</div></div>
         <div class="row"><div class="k">Quality</div><div class="v">+${upgrade.quality_gain}</div></div>
         <div class="row"><div class="k">Duration</div><div class="v">${duration}</div></div>
-        <div class="row"><div class="k">Cost</div><div class="v">£${cost.toLocaleString()}</div></div>
+        <div class="row"><div class="k">Cost</div><div class="v">${money(cost)}</div></div>
         
         <div style="margin: 12px 0; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px;">
           <div style="font-size: 0.9rem; color: var(--muted); margin-bottom: 4px;">ROI Projections:</div>
-          <div style="font-size: 0.85rem;">40% morale: £${roi40.toLocaleString()}/match</div>
-          <div style="font-size: 0.85rem;">60% morale: £${roi60.toLocaleString()}/match</div>
-          <div style="font-size: 0.85rem;">80% morale: £${roi80.toLocaleString()}/match</div>
+          <div style="font-size: 0.85rem;">40% morale: ${money(roi40)}/match</div>
+          <div style="font-size: 0.85rem;">60% morale: ${money(roi60)}/match</div>
+          <div style="font-size: 0.85rem;">80% morale: ${money(roi80)}/match</div>
         </div>
         
         <div style="margin-top: 12px;">
@@ -2714,7 +2714,7 @@ window.startProject = function(upgradeKey, financing) {
   }
   
   if (!canAfford) {
-    log(`Insufficient funds for ${upgrade.name}. Need £${cost.toLocaleString()}.`);
+    log(`Insufficient funds for ${upgrade.name}. Need ${money(cost)}.`);
     return;
   }
   
@@ -2733,7 +2733,7 @@ window.startProject = function(upgradeKey, financing) {
   S.stadium.construction_delays = 0;
   S.stadium.construction_overrun = 0;
   
-  log(`🏗️ Started ${upgrade.name} project! Duration: ${duration} matches, Cost: £${finalCost.toLocaleString()}`);
+  log(`🏗️ Started ${upgrade.name} project! Duration: ${duration} matches, Cost: ${money(finalCost)}`);
   
   renderStadiumPanel();
   updateHUD();
@@ -2763,7 +2763,7 @@ window.cancelProject = function() {
   S.stadium.construction_delays = 0;
   S.stadium.construction_overrun = 0;
   
-  log(`Project cancelled. Refund: £${refund.toLocaleString()}`);
+  log(`Project cancelled. Refund: ${money(refund)}`);
   renderStadiumPanel();
   updateHUD();
 }
@@ -2774,14 +2774,14 @@ window.accelerateProject = function() {
   const accelerationCost = Math.floor(S.stadium.active_project.cost * 0.1); // 10% of project cost
   
   if (S.club_cash < accelerationCost) {
-    log(`Need £${accelerationCost.toLocaleString()} to accelerate project.`);
+    log(`Need ${money(accelerationCost)} to accelerate project.`);
     return;
   }
   
   S.club_cash -= accelerationCost;
   S.stadium.construction_progress += Math.floor(Math.random() * 2) + 1; // 1-2 matches
   
-  log(`Project accelerated! Cost: £${accelerationCost.toLocaleString()}, Progress: +${S.stadium.construction_progress - (S.stadium.construction_progress - Math.floor(Math.random() * 2) - 1)} matches`);
+  log(`Project accelerated! Cost: ${money(accelerationCost)}, Progress: +${S.stadium.construction_progress - (S.stadium.construction_progress - Math.floor(Math.random() * 2) - 1)} matches`);
   
   // Check if project is complete
   checkProjectCompletion();

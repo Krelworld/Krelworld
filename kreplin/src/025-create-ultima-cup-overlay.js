@@ -1997,7 +1997,7 @@ function resolveActiveBet(resultKey){
     const winnings = Math.floor(bet.stake * bet.odds);
     const cashBefore = S.chairman_cash || 0;
     S.chairman_cash = cashBefore + winnings;
-    log(`✓ Bet WON! Payout: £${winnings.toLocaleString('en-GB')}. (Cash: £${cashBefore.toLocaleString('en-GB')} → £${S.chairman_cash.toLocaleString('en-GB')})`);
+    log(`✓ Bet WON! Payout: ${money(winnings)}. (Cash: ${money(cashBefore)} → ${money(S.chairman_cash)})`);
   } else {
     log(`✗ Bet lost. (Bet on ${bet.outcome}, result was ${resultKey})`);
   }

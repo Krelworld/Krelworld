@@ -196,7 +196,7 @@ async function triggerCocaineHeartAttack(player) {
   S.chairman_cash = Math.max(0, (S.chairman_cash || 0) - fine);
   S.reputation = Math.max(0, (S.reputation || 50) - 10);
 
-  log(`💸 You are fined £${fine.toLocaleString()} over the cocaine scandal and player death.`);
+  log(`💸 You are fined ${money(fine)} over the cocaine scandal and player death.`);
   log(`📉 Your reputation takes a hit, but the focus is on the tragedy rather than systemic abuse.`);
 
   setTimeout(() => {
@@ -427,7 +427,7 @@ function triggerMassiveDopingScandal(player) {
   S.points_deducted = (S.points_deducted || 0) + 6; // Major points deduction
   adjustClubPoints(-6);
   
-  log(`💸 You are fined £${fine.toLocaleString()} for the massive doping scandal.`);
+  log(`💸 You are fined ${money(fine)} for the massive doping scandal.`);
   log(`📉 Your reputation plummets. Points deduction: -6.`);
   
   // Delmor Krunchem abuse texts
@@ -737,7 +737,7 @@ function triggerRoidRage(player) {
         // Fine for property damage
         const damage = 50000 + Math.floor(Math.random() * 100000);
         S.chairman_cash = Math.max(0, (S.chairman_cash || 0) - damage);
-        log(`You must pay £${damage.toLocaleString()} for the property damage.`);
+        log(`You must pay ${money(damage)} for the property damage.`);
       }
     },
     {
@@ -750,7 +750,7 @@ function triggerRoidRage(player) {
         S.reputation = Math.max(0, (S.reputation || 50) - 15);
         S.points_deducted = (S.points_deducted || 0) + 3; // Points deduction
         adjustClubPoints(-3);
-        log(`You are fined £${fine.toLocaleString()} and receive a 3-point deduction for doping violations.`);
+        log(`You are fined ${money(fine)} and receive a 3-point deduction for doping violations.`);
         log('Your reputation takes a significant hit.');
       }
     }
@@ -1370,8 +1370,8 @@ function startPreMatchInitBetting(){
 async function takeFundsFor(amount, prompt="Funding source?"){
   const src = await choose(
     [
-      { key:'o', label:`Pay £${amount.toLocaleString('en-GB')} from personal funds` },
-      { key:'c', label:`Pay £${amount.toLocaleString('en-GB')} from club funds`, variant:'warn' },
+      { key:'o', label:`Pay ${money(amount)} from personal funds` },
+      { key:'c', label:`Pay ${money(amount)} from club funds`, variant:'warn' },
       { key:'x', label:'Cancel' }
     ],
     prompt
@@ -1431,7 +1431,7 @@ async function declineThreatenHushFlow(whoLabel, originalAmount){
 
   // Pay larger hush money (150% of the original bribe)
   const hush = Math.round(originalAmount * 1.5);
-  const can = await takeFundsFor(hush, `Hush payment £${hush.toLocaleString('en-GB')} — funding source?`);
+  const can = await takeFundsFor(hush, `Hush payment ${money(hush)} — funding source?`);
   if (!can.ok){
     log("You can’t raise the hush money. He leaves… and might report you.");
     S.compliance_risk = (S.compliance_risk||0) + 2;
@@ -1632,7 +1632,7 @@ async function preMatchTransfersAndBettingMenu(){
             window.socialManager.achievements.push(achievement);
           }
           
-          log(`CONSEQUENCES: Personal fine £${fineChair.toLocaleString()}, Club fine £${fineClub.toLocaleString()}`);
+          log(`CONSEQUENCES: Personal fine ${money(fineChair)}, Club fine ${money(fineClub)}`);
           log("Your reputation plummets and the FA launches an immediate investigation.");
           
           // Set a flag to ensure the investigation is processed in post-match only
@@ -1720,7 +1720,7 @@ async function preMatchTransfersAndBettingMenu(){
           S.compliance_risk = Math.min(100, (S.compliance_risk|0) + 5);
           S.reputation = Math.max(0, (S.reputation|0) - 12);
           
-          log(`CONSEQUENCES: Personal fine £${fineChair.toLocaleString()}, Club fine £${fineClub.toLocaleString()}`);
+          log(`CONSEQUENCES: Personal fine ${money(fineChair)}, Club fine ${money(fineClub)}`);
           log("Your reputation plummets and the FA launches an immediate investigation.");
           
           // Check if there's already a pending police investigation (e.g., from referee assault)
@@ -1834,7 +1834,7 @@ async function handleInvestigationVisitor(){
 S.chairman_cash = (S.chairman_cash||0) - fine;
   S.police_risk = (S.police_risk||0) + 1;
   S.fa_risk = (S.fa_risk||0) + 1;
-  log(`You’re fined £${fine.toLocaleString()}. Whispers grow louder.`);
+  log(`You’re fined ${money(fine)}. Whispers grow louder.`);
 }
 
 

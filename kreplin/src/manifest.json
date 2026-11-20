@@ -65,5 +65,15 @@
  "085-general-music.js",
  "087-music-control-modal.js",
  "087b-shell.js",
+ "087c-mgkit.js",
+ "087d-mg-penalties.js",
+ "087e-mg-keypad.js",
+ "087f-mg-taunts.js",
+ "087g-mg-boss.js",
+ "087h-mg-driving.js",
+ "087i-mg-brick.js",
+ "087j-mg-toilet.js",
+ "087k-mg-fight.js",
+ "087l-mg-train.js",
  "088-markup.html"
 ]

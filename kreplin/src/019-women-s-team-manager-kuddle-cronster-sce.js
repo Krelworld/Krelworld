@@ -50,7 +50,7 @@ async function handleWifeScandalReaction() {
   const amount = Math.floor((S.chairman_cash || 0) * 0.3); // 30% of personal cash
   if (amount > 0) {
     S.chairman_cash = Math.max(0, (S.chairman_cash || 0) - amount);
-    log(`Your wife is furious. She takes £${amount.toLocaleString()} from your personal funds.`);
+    log(`Your wife is furious. She takes ${money(amount)} from your personal funds.`);
     log('"I can\'t believe you would do this," she says. "This is for my emotional distress."');
     S.wife_love = Math.max(0, (S.wife_love || 60) - 20);
     if (typeof updateHUD === 'function') updateHUD();
@@ -76,11 +76,11 @@ async function handleWomensTeamManagerDemand() {
   log(`"Listen here," she says, hands on hips, "this is absolutely UNACCEPTABLE!"`);
   log(`"The women's team deserves EQUAL PAY! We're rebelling against the PATRIARCHY here!"`);
   log(`"I demand that the women's team be paid the same as the men's team!"`);
-  log(`"And I deserve a LARGE bonus of £${bonusAmount.toLocaleString()} for my management services!"`);
+  log(`"And I deserve a LARGE bonus of ${money(bonusAmount)} for my management services!"`);
   log(`"This is about FEMINISM and EQUALITY, not just money!"`);
   
   const options = [
-    { key: 'pay', label: `Pay her demands (£${(payAmount + bonusAmount).toLocaleString()})`, variant: 'warn' },
+    { key: 'pay', label: `Pay her demands (${money((payAmount + bonusAmount))})`, variant: 'warn' },
     { key: 'refuse', label: 'Refuse with hostile incredulity', variant: 'bad' },
     { key: 'lecherous', label: 'Make a lecherous comment', variant: 'bad' }
   ];
@@ -1010,7 +1010,7 @@ async function cronsterFightingMinigame() {
     const penalty = Math.floor((S.club_cash || 0) * 0.75);
     S.club_cash = Math.max(0, (S.club_cash || 0) - penalty);
     log(`You lose 75% of the club's money in the form of a cheque paid to a women's charity.`);
-    log(`(Lost £${penalty.toLocaleString()})`);
+    log(`(Lost ${money(penalty)})`);
     
     // If secretary was in scene, trigger bill scenario
     if (secretaryInScene) {
@@ -1196,7 +1196,7 @@ async function cronsterFightingMinigame() {
     const penalty = Math.floor((S.club_cash || 0) * 0.75);
     S.club_cash = Math.max(0, (S.club_cash || 0) - penalty);
     log(`You lose 75% of the club's money in the form of a cheque paid to a women's charity.`);
-    log(`(Lost £${penalty.toLocaleString()})`);
+    log(`(Lost ${money(penalty)})`);
     
     // If secretary was in scene, trigger bill scenario
     if (secretaryInScene) {
@@ -1234,14 +1234,14 @@ async function handleSecretaryCronsterDefeatBill() {
   const finalBill = Math.max(500000, billAmount);
   
   const choice = await choose([
-    { key: 'pay', label: `Pay the bill (£${finalBill.toLocaleString()})`, variant: 'warn' },
+    { key: 'pay', label: `Pay the bill (${money(finalBill)})`, variant: 'warn' },
     { key: 'refuse', label: 'Refuse to pay', variant: 'bad' }
   ], `${S.secretary_name} demands payment for clinic treatment:`);
   
   if (choice === 'pay') {
     if ((S.chairman_cash || 0) >= finalBill) {
       S.chairman_cash = Math.max(0, (S.chairman_cash || 0) - finalBill);
-      log(`You reluctantly write a cheque for £${finalBill.toLocaleString()}.`);
+      log(`You reluctantly write a cheque for ${money(finalBill)}.`);
       log(`${S.secretary_name} takes it with a cold nod.`);
       log(`"Thank you. I'll be back in a week. The treatment should restore me."`);
       log(`She leaves without another word.`);
@@ -1698,7 +1698,7 @@ async function playFundraiserVideo(event) {
     closeBtn.style.cursor = 'pointer';
     closeBtn.textContent = 'Close';
     
-    log(`<strong>💰 Fundraising Success!</strong> ${event.name} generated £${reward.toLocaleString()} for the club!`);
+    log(`<strong>💰 Fundraising Success!</strong> ${event.name} generated ${money(reward)} for the club!`);
     
     // Show news story popup for SanMik event
     if (event.id === 'sanmik' && typeof showNewsArticle === 'function') {
@@ -1801,7 +1801,7 @@ async function handleSecretaryAffairConsequences() {
     
     const blackmailAmount = 200000;
     const payChoice = await choose([
-      { key: 'pay', label: `Pay her £${blackmailAmount.toLocaleString()}`, variant: 'warn' },
+      { key: 'pay', label: `Pay her ${money(blackmailAmount)}`, variant: 'warn' },
       { key: 'refuse', label: 'Refuse to pay', variant: 'bad' }
     ], `${S.secretary_name} demands payment:`);
     
@@ -1867,7 +1867,7 @@ async function handleSecretaryAffairConsequences() {
       
       const treatmentCost = hasVeryBadSTD ? 1000000 : 500000;
       const treatmentChoice = await choose([
-        { key: 'pay', label: `Pay for treatment (£${treatmentCost.toLocaleString()})`, variant: 'warn' },
+        { key: 'pay', label: `Pay for treatment (${money(treatmentCost)})`, variant: 'warn' },
         { key: 'refuse', label: 'Refuse to pay', variant: 'bad' }
       ], `${S.secretary_name} demands payment for STD treatment:`);
       
@@ -1946,7 +1946,7 @@ async function handleSecretaryDriveHomeSeduction() {
     
     const blackmailAmount = 200000;
     const payChoice = await choose([
-      { key: 'pay', label: `Pay her £${blackmailAmount.toLocaleString()}`, variant: 'warn' },
+      { key: 'pay', label: `Pay her ${money(blackmailAmount)}`, variant: 'warn' },
       { key: 'refuse', label: 'Refuse to pay', variant: 'bad' }
     ], `${secretaryName} demands payment:`);
     
@@ -1998,7 +1998,7 @@ async function handleSecretaryDriveHomeSeduction() {
       
       const treatmentCost = hasVeryBadSTD ? 1000000 : 500000;
       const treatmentChoice = await choose([
-        { key: 'pay', label: `Pay for treatment (£${treatmentCost.toLocaleString()})`, variant: 'warn' },
+        { key: 'pay', label: `Pay for treatment (${money(treatmentCost)})`, variant: 'warn' },
         { key: 'refuse', label: 'Refuse to pay', variant: 'bad' }
       ], `${secretaryName} demands payment for STD treatment:`);
       
@@ -2140,7 +2140,7 @@ async function handleWifeSecretaryScandalConfrontation() {
   const amount = Math.floor((S.chairman_cash || 0) * 0.3); // 30% of personal cash
   if (amount > 0) {
     S.chairman_cash = Math.max(0, (S.chairman_cash || 0) - amount);
-    log(`Your wife is furious. She takes £${amount.toLocaleString()} from your personal funds.`);
+    log(`Your wife is furious. She takes ${money(amount)} from your personal funds.`);
     log(`"I can't believe you would do this," she says. "This is for my emotional distress."`);
     if (S.wife_love !== undefined) {
       S.wife_love = Math.max(0, (S.wife_love || 60) - 20);

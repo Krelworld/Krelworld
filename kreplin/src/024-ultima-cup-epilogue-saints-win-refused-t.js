@@ -2818,29 +2818,32 @@ async function quickSimulateMatchWithLiveOverlay() {
 // Create the Quick Sim overlay UI
 function createQuickSimOverlay(homeTeam, awayTeam) {
   const overlay = document.createElement('div');
-  overlay.className = 'quick-sim-overlay';
+  overlay.className = 'quick-sim-overlay k-match';
+  const kEsc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const kShort = t => String(t || '').replace(/ FC$/, '');
   overlay.innerHTML = `
-    <div class="quick-sim-container">
-      <div class="quick-sim-header">
-        <div class="quick-sim-teams">
-          <div class="quick-sim-team home-team">${homeTeam}</div>
-          <div class="quick-sim-vs">vs</div>
-          <div class="quick-sim-team away-team">${awayTeam}</div>
+    <div class="quick-sim-container k-match-box" role="dialog" aria-label="Live match">
+      <div class="quick-sim-header k-board">
+        <div class="quick-sim-teams k-board-teams">
+          <div class="quick-sim-team home-team"><img class="px" alt="" src="${(window.KREPLIN_ART || {}).crest || ''}"><span>${kEsc(kShort(homeTeam))}</span></div>
+          <div class="quick-sim-score k-board-score">
+            <span class="score-home">0</span>
+            <span class="score-separator">–</span>
+            <span class="score-away">0</span>
+          </div>
+          <div class="quick-sim-team away-team"><span>${kEsc(kShort(awayTeam))}</span><i class="k-kit" aria-hidden="true"></i></div>
         </div>
-        <div class="quick-sim-score">
-          <span class="score-home">0</span>
-          <span class="score-separator">–</span>
-          <span class="score-away">0</span>
-        </div>
-        <div class="quick-sim-minute">0'</div>
+        <div class="quick-sim-vs" hidden>vs</div>
+        <div class="quick-sim-minute k-board-min">0'</div>
       </div>
-      <div class="quick-sim-log-container">
-        <div class="quick-sim-status">
-          <span id="quickSimCards">🟨 0 🟥 0</span>
-          <span id="quickSimInjuries">🚑 0</span>
-          <span id="quickSimSubs">🔁 0/5</span>
-          <div class="quick-sim-speed-control">
-            <label for="quickSimSpeed">Commentary Speed:</label>
+      <div class="k-pitch" aria-hidden="true"></div>
+      <div class="quick-sim-log-container k-match-low">
+        <div class="quick-sim-status k-chips">
+          <span id="quickSimCards" class="k-chip">🟨 0 🟥 0</span>
+          <span id="quickSimInjuries" class="k-chip">🚑 0</span>
+          <span id="quickSimSubs" class="k-chip">🔁 0/5</span>
+          <div class="quick-sim-speed-control k-speed">
+            <label for="quickSimSpeed">Speed</label>
             <select id="quickSimSpeed" class="quick-sim-speed-select">
               <option value="1">1 (Slowest)</option>
               <option value="2">2 (Slow)</option>
@@ -2850,15 +2853,20 @@ function createQuickSimOverlay(homeTeam, awayTeam) {
             </select>
           </div>
         </div>
-        <div class="quick-sim-log-header">Match Log</div>
-        <div class="quick-sim-log" id="quickSimLog"></div>
+        <div class="quick-sim-log-header" hidden>Match Log</div>
+        <div class="quick-sim-log k-ticker" id="quickSimLog" aria-live="polite"></div>
       </div>
-      <button class="quick-sim-skip-btn">Skip to FT</button>
+      <button class="quick-sim-skip-btn k-btn">Skip to FT ▸▸</button>
     </div>
   `;
   
   // Disable skip button if this is match 11 season 2 (stadium attack match) or first match of season 5 or stadium burn triggered
   const skipBtn = overlay.querySelector('.quick-sim-skip-btn');
+  // Pixel pitch acts out the events revealMatchEvents feeds it (cosmetic only)
+  try {
+    if (window.MatchPitch) overlay._pitch = MatchPitch.mount(overlay.querySelector('.k-pitch'), { home: homeTeam, away: awayTeam });
+  } catch (e) { console.warn('MatchPitch mount failed', e); }
+
   if (skipBtn && ((S.season === 2 && S.matches_played === 11) || (S.season === 5 && S.season5 && S.season5.first_match_special_event && S.matches_played === 0) || S.preMatch?.stadium_burn_triggered)) {
     skipBtn.disabled = true;
     skipBtn.style.opacity = '0.5';

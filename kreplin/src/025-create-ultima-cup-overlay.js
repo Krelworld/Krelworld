@@ -127,6 +127,16 @@ async function promptQuickSimChoice(overlay, {
       const btn = document.createElement('button');
       btn.className = idx === 0 ? primaryClass : secondaryClass;
       btn.textContent = opt.label || opt.id;
+      if (opt.description) {
+        // description shown under its option (the separate list below is hidden by the theme)
+        const sm = document.createElement('small');
+        sm.textContent = opt.description;
+        const wrap = document.createElement('span');
+        wrap.className = 'k-optxt';
+        wrap.append(document.createTextNode(btn.textContent), sm);
+        btn.textContent = '';
+        btn.appendChild(wrap);
+      }
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();

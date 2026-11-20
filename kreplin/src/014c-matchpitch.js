@@ -211,7 +211,12 @@
         case 'OWN_GOAL': if (side) goalSequence(side, true); break;
         case 'GAZ_SHENANIGAN': if (ev.shenaniganType === 'OWN_GOAL') goalSequence('HOME', true); else invader(); break;
         case 'CARD': cardFor(side, String(ev.card || ev.color || '').toUpperCase().includes('RED')); break;
-        case 'RED_CARD': cardFor(side, true); break;
+        case 'RED_CARD': case 'DODGY_RED_CARD': cardFor(side, true); break;
+        case 'YELLOW_CARD': cardFor(side, false); break;
+        case 'SHOT': if (side && !script) { const g = goalOf(side); kickTo({ x: g.x - attackDir(side) * 3, y: g.y + rnd(-16, 16) }, 3.2, 1); } crowdHype = Math.min(1, crowdHype + 0.3); break;
+        case 'CORNER': banner = { text: 'CORNER', color: '#ffffff', t: 0.9 }; break;
+        case 'DODGY_PENALTY': banner = { text: 'PENALTY?!', color: '#f2c14e', t: 1.4 }; crowdHype = 1; break;
+        case 'EARLY_FINAL_WHISTLE': banner = { text: 'WHISTLE?!', color: '#ffffff', t: 1.6 }; break;
         case 'FOUL': banner = { text: 'FOUL!', color: '#f29b2e', t: 1 }; break;
         case 'STRETCHER_INJURY': injury(side); break;
         case 'ATMOSPHERE': crowdHype = Math.min(1, crowdHype + 0.5); break;
@@ -291,8 +296,11 @@
     }
 
     let last = performance.now(), raf = 0, alive = true;
+    let wasConnected = false;
     function loop(now) {
       if (!alive) return;
+      if (canvas.isConnected) wasConnected = true;
+      else if (wasConnected) { alive = false; return; } // overlay removed: stop animating
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
       step(dt); render();
       raf = requestAnimationFrame(loop);

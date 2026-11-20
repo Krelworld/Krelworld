@@ -265,3 +265,75 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
 @media (hover: none){
   #kApp #actions button:hover:not(:disabled){transform:none;border-color:var(--line2)}
 }
+
+/* ===================== live match overlay (quick sim) ===================== */
+.quick-sim-overlay.k-match{position:fixed;inset:0;z-index:var(--z-legacy);display:flex;align-items:center;justify-content:center;padding:16px;
+  background:rgba(6,8,12,.82);backdrop-filter:none;animation:kFade .15s ease-out}
+.k-match .k-match-box{width:min(820px,100%);max-height:calc(100dvh - 32px);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;
+  background:var(--panel);border:var(--px) solid var(--line2);border-radius:var(--r);box-shadow:0 4px 0 #000,0 20px 60px rgba(0,0,0,.6);padding:0;overflow:hidden;color:var(--text);font:14px/1.45 var(--font-body);animation:kPop .14s ease-out}
+.k-match .k-board{display:flex;align-items:center;gap:12px;padding:10px 14px;background:linear-gradient(#1b1f2b,#151924);border-bottom:var(--px) solid var(--red);margin:0;border-radius:0}
+.k-match .k-board-teams{flex:1;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;margin:0}
+.k-match .quick-sim-team{display:flex;align-items:center;gap:8px;font:700 18px/1.1 var(--font-ui);color:var(--white);min-width:0;letter-spacing:.3px;text-transform:uppercase;padding:0;background:none;border:0}
+.k-match .quick-sim-team span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.k-match .home-team{justify-content:flex-end}
+.k-match .quick-sim-team img{width:32px;height:32px;flex:none}
+.k-match .k-kit{width:22px;height:22px;flex:none;border-radius:3px;background:linear-gradient(90deg,#274f9e 0 50%,#ffffff 50%);border:1px solid #000}
+.k-match .k-board-score{display:flex;align-items:center;gap:6px;background:var(--ink);border:var(--px) solid var(--line2);border-radius:var(--r);padding:2px 12px;margin:0}
+.k-match .k-board-score span{font:800 30px/1.1 var(--font-body);font-variant-numeric:tabular-nums;color:var(--gold);background:none;-webkit-text-fill-color:currentColor;text-shadow:none;animation:none;padding:0;min-width:0}
+.k-match .k-board-score .score-separator{color:var(--muted);font-size:22px}
+.k-match .k-board-score span.score-updated,.k-match .k-board-score span.goal{animation:kGoalPop .6s ease-out}
+@keyframes kGoalPop{30%{transform:scale(1.35);color:#fff}}
+.k-match .k-board-min{flex:none;font:700 16px var(--font-ui);color:#fff;background:var(--red);border:1px solid var(--red-l);border-radius:3px;padding:3px 10px;min-width:54px;text-align:center;margin:0}
+.k-match .k-pitch{background:#11141b;border-bottom:var(--px) solid #000;line-height:0}
+.k-match .k-pitch canvas{max-height:46dvh;object-fit:contain}
+.k-match .k-match-low{display:flex;flex-direction:column;min-height:0;padding:0;margin:0;background:none;border:0}
+.k-match .k-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line);margin:0;background:none}
+.k-match .k-chip{font:600 12px var(--font-ui);background:var(--ink);border:1px solid var(--line2);border-radius:3px;padding:3px 8px;color:var(--white);margin:0}
+.k-match .k-speed{margin-left:auto;display:flex;align-items:center;gap:6px;font:12px var(--font-ui);color:var(--muted);padding:0;background:none;border:0}
+.k-match .k-speed select{font:13px var(--font-body);color:var(--text);background:var(--ink);border:1px solid var(--line2);border-radius:3px;padding:4px 6px;min-height:32px}
+.k-match .k-ticker{flex:1;min-height:110px;max-height:none;overflow:auto;padding:8px 12px;margin:0;background:none;border:0;border-radius:0;display:flex;flex-direction:column;gap:4px;overscroll-behavior:contain}
+.k-match .quick-sim-log-entry{font:14px/1.4 var(--font-body);color:var(--text);padding:3px 0 3px 10px;border:0;border-left:var(--px) solid var(--line2);margin:0;background:none;animation:kIn .18s ease-out;overflow-wrap:anywhere}
+.k-match .quick-sim-log-entry:last-child{border-left-color:var(--red);color:var(--white);font-weight:600;background:none}
+.k-match .quick-sim-log-entry.goal,.k-match .quick-sim-log-entry.goal-entry,.k-match .quick-sim-log-entry[class*=goal]{border-left-color:var(--gold);color:var(--gold);font-weight:700}
+.k-match .quick-sim-log-entry .southampton-player{color:#fff;background:linear-gradient(90deg,rgba(215,25,32,.45),rgba(215,25,32,0));padding:0 3px;border-radius:2px;font-weight:700}
+.k-match .quick-sim-log-entry .southampton-player::after{content:none}
+.k-match .quick-sim-skip-btn{margin:0;border-radius:0;border:0;border-top:var(--px) solid var(--line);justify-content:center;width:100%;min-height:46px;font:600 15px var(--font-ui);box-shadow:none;background:var(--panel2);color:var(--text)}
+.k-match .quick-sim-skip-btn:hover:not(:disabled){background:var(--red);color:#fff}
+.k-match .quick-sim-skip-btn:disabled{opacity:.5}
+.quick-sim-overlay.k-match.goal-flash{animation:none}
+.quick-sim-overlay.k-match.goal-flash .k-match-box{box-shadow:0 0 0 3px var(--gold),0 20px 60px rgba(0,0,0,.6)}
+/* half-time / in-match decisions */
+.quick-sim-modal-backdrop{position:fixed;inset:0;z-index:calc(var(--z-legacy) + 5);display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(6,8,12,.7)}
+.quick-sim-modal{width:min(520px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:var(--panel);border:var(--px) solid var(--red);border-radius:var(--r);box-shadow:0 4px 0 #000,0 20px 60px rgba(0,0,0,.6);padding:0;color:var(--text);animation:kPop .14s ease-out}
+.quick-sim-modal h2{margin:0;padding:10px 14px;background:var(--red);color:#fff;font:700 20px var(--font-ui);letter-spacing:.5px;border:0;text-shadow:none;-webkit-text-fill-color:currentColor}
+.quick-sim-modal-subtitle{margin:0;padding:10px 14px 4px;color:var(--white);font:500 15px var(--font-body)}
+.quick-sim-modal-options{display:flex;flex-direction:column;gap:6px;padding:8px 12px 12px;margin:0}
+.quick-sim-modal-options button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;cursor:pointer;background:var(--panel2);border:var(--px) solid var(--line2);border-radius:var(--r);padding:9px 12px;min-height:44px;color:var(--text);font:600 15px/1.3 var(--font-body);box-shadow:0 2px 0 #000;counter-increment:kopt}
+.quick-sim-modal-options{counter-reset:kopt}
+.quick-sim-modal-options button::before{content:counter(kopt);font:700 13px/22px var(--font-ui);width:24px;height:24px;flex:none;text-align:center;background:var(--ink);border:1px solid var(--line2);border-radius:3px;color:var(--gold)}
+.quick-sim-modal-options button:hover{border-color:var(--white)}
+.quick-sim-modal-options button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.quick-sim-modal-descriptions{display:none}
+.quick-sim-modal-options .k-optxt{display:flex;flex-direction:column;min-width:0}
+.quick-sim-modal-options .k-optxt small{font:400 12px/1.3 var(--font-body);color:var(--muted)}
+.quick-sim-modal .quick-sim-modal-options button:focus{background:var(--panel2)}
+.quick-sim-modal .quick-sim-modal-options button:focus-visible,.quick-sim-modal .quick-sim-modal-options button:hover{border-color:var(--white)}
+.k-match .quick-sim-log-entry .southampton-player{-webkit-text-fill-color:#fff;background-clip:border-box;-webkit-background-clip:border-box;text-shadow:none}
+.quick-sim-modal-descriptions li{margin:2px 0}
+@media (max-width: 900px){
+  .quick-sim-overlay.k-match{padding:0;align-items:stretch}
+  .k-match .k-match-box{width:100vw;max-height:none;height:100dvh;border:0;border-radius:0;grid-template-rows:auto auto minmax(0,1fr) auto}
+  .k-match .k-board{padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top));gap:8px}
+  .k-match .k-board-teams{gap:6px}
+  .k-match .quick-sim-team{font-size:13px;gap:4px}
+  .k-match .quick-sim-team img,.k-match .k-kit{width:20px;height:20px}
+  .k-match .k-board-score{padding:2px 8px}
+  .k-match .k-board-score span{font-size:24px}
+  .k-match .k-board-min{min-width:44px;font-size:14px;padding:3px 6px}
+  .k-match .k-pitch canvas{max-height:none}
+  .k-match .k-speed label{display:none}
+  .k-match .quick-sim-skip-btn{padding-bottom:env(safe-area-inset-bottom)}
+  .quick-sim-modal-backdrop{align-items:flex-end;padding:0}
+  .quick-sim-modal{width:100vw;border-radius:8px 8px 0 0;border-width:var(--px) 0 0;padding-bottom:env(safe-area-inset-bottom)}
+}
+.quick-sim-modal .quick-sim-modal-options button.btn,.quick-sim-modal .quick-sim-modal-options button.btn:hover,.quick-sim-modal .quick-sim-modal-options button.btn:focus{background:var(--panel2);color:var(--text);transform:none}

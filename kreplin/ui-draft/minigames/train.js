@@ -235,7 +235,7 @@
       else if (g.phase === 'dead') { ctx.fillStyle = '#7a0a10'; ctx.fillRect(0, 0, W, H); for (let i = 0; i < 9; i++) { ctx.fillStyle = i % 2 ? '#c4121a' : '#a00d14'; ctx.beginPath(); ctx.arc((i * 47) % W, 120 + (i * 61) % 180, 10 + (i % 4) * 7, 0, Math.PI * 2); ctx.fill(); } text('SPLAT', W / 2, 100, { size: 28, color: '#fff' }); }
       else { drawMan(T); if (!(g.phase === 'use' && g.used === 'brick' && g.boomed)) drawTrain(T); }
       if (g.phase === 'use' && g.used === 'brick' && g.brickPos && !g.boomed && mg.sprites.brick) { ctx.save(); ctx.translate(g.brickPos.x, g.brickPos.y); ctx.rotate(g.brickPos.r); ctx.drawImage(mg.sprites.brick, -10, -10, 20, 20); ctx.restore(); }
-      if (g.phase !== 'dead') { drawPockets(T); drawHud(T); }
+      if (g.phase !== 'dead') { drawPockets(T); if (g.phase !== 'rolled') drawHud(T); else text('SAFE!', W / 2, 40, { size: 22, color: C.good }); }
       for (let i = g.pops.length - 1; i >= 0; i--) { const p = g.pops[i]; p.t += dt; if (p.t > 0.8) { g.pops.splice(i, 1); continue; } ctx.globalAlpha = 1 - p.t / 0.8; text(p.s, p.x, p.y - p.t * 24, { size: p.size, color: p.c }); ctx.globalAlpha = 1; }
     });
     return mg.done;

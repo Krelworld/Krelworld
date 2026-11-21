@@ -339,7 +339,7 @@ function onEnterRoom(room) {
   if (G.lastGreet[e.id] && now - G.lastGreet[e.id] < 30) return;
   G.lastGreet[e.id] = now;
   e.dir = Math.sign(marina.x - e.x) || 1;
-  const key = e.id === 'daddy' ? (AI.daddyTired ? 'd_hi_tired' : pick(['d_hi1', 'd_hi2', 'd_hi3'])) : e.id === 'mommy' ? pick(['mo_hi1', 'mo_hi2']) : pick(['r_hi', 'r_hi2', 'r_hi3']);
+  const key = e.id === 'daddy' ? (AI.daddyTired ? 'd_hi_tired' : pick(['d_hi1', 'd_hi2', 'd_hi3'])) : e.id === 'mommy' ? pick(['mo_hi1', 'mo_hi2']) : pick(['r_hi_niece', 'r_hi_niece2', 'r_hi_niece3']);
   say(key, e).then(() => { G.moodCtx = { type: 'greet', who: e }; UI.pulseMoods(); });
 }
 
@@ -992,8 +992,8 @@ const AI = {
     // periodic checks
     if (Math.floor(this.t) !== Math.floor(this.t - dt)) { if (Math.floor(this.t) % 4 === 0) checkMess(); if (Math.floor(this.t) % 60 === 0) this.daddyTired = chance(0.5); }
     // Rory visits
-    if (!G.rory && this.t > 50 && chance(dt / 90)) { G.rory = true; rory.hidden = false; rory.room = 'foyer'; rory.x = 52; rory.state = 'idle'; if (G.room === 'foyer') onEnterRoom('foyer'); else if (G.room !== 'yard') { UI.bigIcon('🚪🧔', 1200); Audio2.sfx('knock'); } }
-    else if (G.rory && !this.held.has(rory) && rory.state === 'idle' && chance(dt / 200)) { if (rory.room !== G.room) { G.rory = false; rory.hidden = true; } }
+    if (false && !G.rory && this.t > 50 && chance(dt / 90)) { G.rory = true; rory.hidden = false; rory.room = 'foyer'; rory.x = 52; rory.state = 'idle'; if (G.room === 'foyer') onEnterRoom('foyer'); else if (G.room !== 'yard') { UI.bigIcon('🚪🧔', 1200); Audio2.sfx('knock'); } }
+    else if (false && G.rory) { if (rory.room !== G.room) { G.rory = false; rory.hidden = true; } }
   },
   person(e, dt) {
     if (e.hidden || this.held.has(e) || e.state === 'toilet' || e.state === 'horse' || e === (G.chase && G.chase.who)) return;
@@ -1037,7 +1037,7 @@ const AI = {
   },
 };
 function iLx(room) { return marina.x < ROOMS[room].w / 2 ? ROOMS[room].w - 6 : 6; }
-function onEnterRoomBy(e) { if (G.busy) return; if (G.lastGreet[e.id] && E.t - G.lastGreet[e.id] < 30) return; G.lastGreet[e.id] = E.t; const k = e === daddy ? pick(['d_hi1', 'd_hi2', 'd_hi3']) : e === mommy ? pick(['mo_hi1', 'mo_hi2']) : pick(['r_hi', 'r_hi2', 'r_hi3']); setTimeout(() => say(k, e).then(() => { G.moodCtx = { type: 'greet', who: e }; UI.pulseMoods(); }), 400); }
+function onEnterRoomBy(e) { if (G.busy) return; if (G.lastGreet[e.id] && E.t - G.lastGreet[e.id] < 30) return; G.lastGreet[e.id] = E.t; const k = e === daddy ? pick(['d_hi1', 'd_hi2', 'd_hi3']) : e === mommy ? pick(['mo_hi1', 'mo_hi2']) : pick(['r_hi_niece', 'r_hi_niece2', 'r_hi_niece3']); setTimeout(() => say(k, e).then(() => { G.moodCtx = { type: 'greet', who: e }; UI.pulseMoods(); }), 400); }
 
 // ---------------------------------------------------------------- boot
 async function boot() {

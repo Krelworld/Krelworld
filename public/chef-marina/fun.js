@@ -34,7 +34,7 @@
     const grid = mk('div', 'stk-grid');
     STK.forEach(([id, ch], i) => { const got = owned.includes(id), c = mk('div', 'stk' + (got ? ' got' : ''), got ? ch : '❔'); c.style.setProperty('--r', ((i * 37) % 13 - 6) + 'deg'); if (got) press(c, () => { c.animate([{ transform: 'scale(1.35) rotate(8deg)' }, { transform: 'none' }], 300); Audio2.blip(pick([0, 4, 7, 12]), 'triangle', 0.1); }); grid.append(c); });
     const found = SECRETS.filter(s => s.found).length;
-    box.append(press(mk('button', 'st-x', '✖️'), () => box.remove()), mk('div', 'stk-h', '📒 <b>' + owned.length + '</b> / ' + STK.length + ' &nbsp; 💎 ' + found + ' / ' + SECRETS.length), grid);
+    box.append(press(mk('button', 'st-x', '✖️'), () => box.remove()), mk('div', 'stk-h', '📒 <b>' + owned.length + '</b> / ' + STK.length + ' &nbsp; 💎 ' + found + ' / ' + SECRETS.length), grid, press(mk('button', 'stk-ok', '✅'), () => box.remove()));
     (hid('title') ? stage : document.getElementById('title')).append(box); try { chip('pop'); } catch (e) { }
   }
   const book = mk('button', 'hud off', '📒'); book.id = 'bookBtn'; book.setAttribute('aria-label', 'sticker book'); press(book, () => { if (!G.busy) openBook(); }); stage.append(book);
@@ -195,7 +195,9 @@
 .stk-toast span{display:flex;align-items:center;justify-content:center;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:#fff;border:6px solid #ffcf4a;font-size:68px;box-shadow:0 0 0 8px rgba(255,207,74,.35),0 8px 0 rgba(0,0,0,.25)}
 @keyframes stkpop{0%{transform:scale(0) rotate(-40deg);opacity:0}15%{transform:scale(1.25) rotate(8deg);opacity:1}28%{transform:scale(1) rotate(0)}70%{transform:scale(1) rotate(0);opacity:1}100%{transform:translate(42vw,34vh) scale(.15);opacity:0}}
 #stkBox{position:fixed;inset:0;z-index:45;background:radial-gradient(circle at 50% 30%,#ffe9a8,#f3b65a);display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 12px) 18px 20px;overflow:auto;font-family:'Lilita One','Arial Rounded MT Bold',sans-serif}
-#title #stkBox{position:fixed}
+#stkBox .st-x{position:fixed;top:calc(env(safe-area-inset-top) + 12px);left:calc(env(safe-area-inset-left) + 12px);width:60px;height:60px;font-size:30px;z-index:3}
+#stkBox .stk-h{margin-top:14px;padding-left:64px}
+.stk-ok{flex:none;width:96px;height:76px;border-radius:24px;border:4px solid #fff;background:#7be07b;font-size:40px;padding:0;margin:10px 0 calc(env(safe-area-inset-bottom) + 8px);box-shadow:0 5px 0 rgba(122,45,28,.3)}
 .stk-h{font-size:26px;color:#7a2d1c;margin-top:6px}.stk-h b{font-size:34px}
 .stk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:8px;width:min(100%,640px)}
 .stk{aspect-ratio:1;border-radius:16px;background:rgba(255,255,255,.35);border:3px dashed rgba(122,45,28,.3);display:flex;align-items:center;justify-content:center;font-size:26px;opacity:.55;filter:grayscale(1)}

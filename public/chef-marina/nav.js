@@ -24,11 +24,19 @@
 
   // ------------------------------------------------------------ alerts: tap to go straight there
   const alertBox = mk('div', ''); alertBox.id = 'alerts'; stage.append(alertBox); const shown = {};
-  const goEnt = e => whenIn(e.room, () => approach(e.x, () => UI.actions(e, entActions(e)), e === niko || e === miles ? 14 : 22));
+  // alerts and face cards whisk her straight there (no walking), and she puts down whatever she was lugging about
+  function zipTo(room, x, then) {
+    if (G.holding && ['blower', 'tp'].includes(G.holding.type)) G.holding = null;
+    if (marina.mount) dismount(); marina.stop(); emit('sparkle', marina.x, marina.y - 40, 10); chip('magic');
+    whenIn(room, () => { const W = ROOMS[room].w; marina.stop(); marina.x = clamp(x, 16, W - 16); marina.y = FLOOR; marina.offY = 0; marina.state = 'idle';
+      E.camX = clamp(marina.x - E.viewW / 2, Math.min(0, (W - E.viewW) / 2), Math.max(0, W - E.viewW)); emit('sparkle', marina.x, marina.y - 40, 14); then(); });
+  }
+  const goEnt = e => { const gap = e === miles ? 32 : e === niko ? 22 : 26, side = e.x > ROOMS[e.room].w - 50 || (e.x > marina.x && e.room === G.room) || e === miles ? -1 : 1;
+    zipTo(e.room, e.x + side * gap, () => { marina.dir = -side; UI.actions(e, entActions(e)); }); };
   function alerts() {
-    const a = [];
-    if (miles.crying && !(miles.here && Math.abs(marina.x - miles.x) < 50)) a.push({ id: 'miles', html: '👶<i>😭</i>', go: () => goEnt(miles) });
-    if (G.poop && !(G.room === 'playroom' && marina.x < 80)) a.push({ id: 'poop', html: '💩<i>🐈</i>', go: () => propGo('playroom', 'tray') });
+    const a = [], ambient = !G.busy && !G.tidy && !G.chase && !G.tv && !(G.fort && G.fort.inside) && !marina.mount && ['idle', 'walk', 'run', 'cheer', 'sad', 'perch', 'sit'].includes(marina.state);
+    if (ambient && miles.crying && !(miles.here && Math.abs(marina.x - miles.x) < 50)) a.push({ id: 'miles', html: '👶<i>😭</i>', go: () => goEnt(miles) });
+    if (ambient && G.poop && !(G.room === 'playroom' && marina.x < 80)) a.push({ id: 'poop', html: '💩<i>🐈</i>', go: () => zipTo('playroom', 50, () => { marina.dir = -1; const p = PROPS.playroom.find(q => q.id === 'tray'); UI.actions(p, propActions(p)); }) });
     const h = G.holding; if (h && h.type === 'pic' && h.url) { a.push({ id: 'picgive', html: '🎁<i>🖼️</i>', go: () => Pics.giftMenu(h.url) }); a.push({ id: 'pickeep', html: '📁', go: () => { G.holding = null; chip('pop'); } }); }
     return a;
   }
@@ -144,3 +152,37 @@
     lit(ease(e, near(e, 42) && !marina.mount), () => _de(e));
   };
 })();
+
+// ------------------------------------------------------------ leaving the yard: the leaf blower stays outside
+(function () { const _cr = changeRoom; changeRoom = function (room, from, x) { if (G.room === 'yard' && room !== 'yard' && G.holding && G.holding.type === 'blower') G.holding = null; return _cr(room, from, x); }; })();
+
+// ------------------------------------------------------------ giving Miles his bottle: a little lullaby scene
+(function () {
+  let feedT = 0;
+  const _so = soothe;
+  soothe = function (kind) {
+    if (kind !== 'bottle' || G.busy) return _so(kind);
+    UI.closeActions(); G.busy = true; const py = miles.spot === 'crib' ? BACK - 10 : 156, D = 5.2;
+    marina.stop(); marina.x = miles.x - 26; marina.dir = 1; marina.offY = 0; feedT = E.t + D;
+    playAnim('marina_feed', { fps: 5, loop: true, proc: 'hug', dur: D });
+    say('m_bottle'); Audio2.sfx('chip_lullaby', { rate: 1, vol: 0.9 });
+    setTimeout(() => { miles.crying = false; miles.cryT = rnd(60, 100); miles.eatT = E.t + D - 1.4; }, 500);
+    const iv = setInterval(() => { if (E.t > feedT - 0.6) return clearInterval(iv);
+      const r = Math.random(); emit('heart', miles.x + rnd(-16, 16), py - rnd(24, 40), 1, r < 0.4 ? { ch: '🎵', vx: rnd(-10, 10), vy: -22, life: 1.6, size: 10 } : r < 0.6 ? { ch: '🍼', vx: rnd(-6, 6), vy: -16, life: 1.4, size: 9 } : r < 0.8 ? { ch: '⭐', vx: rnd(-14, 14), vy: -20, life: 1.3, size: 8 } : undefined);
+      if (chance(0.5)) emit('sparkle', miles.x + rnd(-22, 22), py - rnd(0, 46), 1); }, 260);
+    setTimeout(() => {      // all done: a tiny burp, a giggle, and a happy baby
+      marina.state = 'idle'; marina.anim = null; miles.happyT = 5; Audio2.sfx('burp1', { rate: 1.9, vol: 0.5 }); emit('heart', miles.x + 6, py - 30, 1, { ch: '💨', vx: 14, vy: -10, life: 0.9, size: 9 });
+      setTimeout(() => { Audio2.sfx('baby_coo'); emit('heart', miles.x, py - 30, 12); emit('confetti', miles.x, py - 40, 14); Audio2.voice('m_giggle', 'm'); marina.state = 'cheer'; setTimeout(() => marina.state === 'cheer' && (marina.state = 'idle'), 1400); }, 500);
+      G.busy = false;
+      if (mommy.here) setTimeout(() => say('mo_feed_miles', mommy), 1900); else if (window.reactTo) reactTo('kind', 1900);
+    }, D * 1000);
+  };
+  // a soft spotlight on the two of them while he drinks
+  const _dx = drawExitSigns;
+  drawExitSigns = function () {
+    _dx(); const k = clamp(Math.min(feedT - E.t, 0.6) / 0.6, 0, 1) * clamp((E.t - (feedT - 5.2)) / 0.5, 0, 1); if (k <= 0 || !miles.here) return;
+    const c = E.ctx, x = miles.x - 10 - E.camX, y = 120, g = c.createRadialGradient(x, y, 30, x, y, 190);
+    g.addColorStop(0, 'rgba(40,20,70,0)'); g.addColorStop(1, 'rgba(40,20,70,' + (0.62 * k).toFixed(3) + ')'); c.fillStyle = g; c.fillRect(-10, -40, E.viewW + 20, SH + 60);
+  };
+})();
+(function () { const s = document.createElement('style'); s.textContent = '@media (orientation:landscape){.facecard{top:8px;left:78px;width:min(11vw,84px);border-radius:16px}.facecard.right{left:auto;right:78px}#alerts{top:66px}}'; document.head.append(s); })();

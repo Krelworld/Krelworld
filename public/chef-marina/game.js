@@ -41,7 +41,7 @@ function makeEnts() {
   daddy = new Ent({ id: 'daddy', room: 'living', x: 90, speed: 52, dir: -1 });
   mommy = new Ent({ id: 'mommy', room: 'kitchen', x: 300, speed: 55, dir: -1 });
   rory = new Ent({ id: 'rory', room: 'yard', x: 300, speed: 50, hidden: true });
-  miles = new Ent({ id: 'miles', room: 'living', x: 568, spot: 'crib', crying: false, cryT: rnd(30, 60) });
+  miles = new Ent({ id: 'miles', room: 'living', x: 534, spot: 'crib', crying: false, cryT: rnd(30, 60) });
   niko = new Ent({ id: 'niko', room: 'dining', x: 318, speed: 46, state: 'sleep', perch: 'cattower', t: rnd(15, 25) });
 }
 

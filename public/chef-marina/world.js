@@ -98,9 +98,9 @@ const PROPS = {
     { id: 'bin', k: 'storage_bin', x: 322, y: BACK + 3, nohit: true },
     { id: 'shelf2', k: 'bookshelf', x: 352, y: BACK, a: 'books' },
     { id: 'shelf1', k: 'bookshelf', x: 420, y: BACK, a: 'books' },
-    { id: 'basket', k: 'laundry_basket', x: 470, y: BACK + 4, a: 'basket' },
-    { id: 'dresserw', k: 'dresser_white', x: 506, y: BACK, a: 'dresser' },
-    { id: 'pnp', k: 'pack_n_play', x: 568, y: BACK + 4, a: 'crib' },
+    { id: 'basket', k: 'laundry_basket', x: 448, y: BACK + 4, a: 'basket' },
+    { id: 'dresserw', k: 'dresser_white', x: 480, y: BACK, a: 'dresser' },
+    { id: 'pnp', k: 'pack_n_play', x: 534, y: BACK + 4, a: 'crib' },
     { id: 'bathhall', k: 'p:door', x: 622, y: BACK, w: 30, h: 92, a: 'door', to: 'bathroom', tx: 40 },
   ],
 };

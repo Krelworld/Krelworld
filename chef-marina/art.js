@@ -40,7 +40,7 @@ const Studio = (() => {
   }
   function close() {
     if (!S) return;
-    try { store.set('studioDraft', S.paint.toDataURL('image/png')); } catch (e) { }
+    try { if (S.dirty) save(true); store.set('studioDraft', S.paint.toDataURL('image/png')); } catch (e) { }
     cancelAnimationFrame(S.raf); window.removeEventListener('resize', S.onResize); S.root.remove(); S = null;
     try { setMusic(); } catch (e) { }
   }
@@ -96,7 +96,7 @@ const Studio = (() => {
       for (const k of PAGES) if (has(k)) tile(pageThumb(k), () => { loadPage(k); toggleDrawer(null); });
     } else {
       const g = store.get('gallery', []); if (!g.length) tile('🖼️❓', () => { });
-      g.forEach(u => { const i = mk('img'); i.src = u; const n = tile(i, () => { snap(); const im = new Image(); im.onload = () => { S.pc.drawImage(im, 0, 0, S.W, S.H); }; im.src = u; S.lc.clearRect(0, 0, S.W, S.H); toggleDrawer(null); }); n.classList.add('wide'); });
+      g.forEach(u => { const i = mk('img'); i.src = u; const n = tile(i, () => picMenu(u, false)); n.classList.add('wide'); });
     }
   }
 
@@ -122,16 +122,28 @@ const Studio = (() => {
 
   // ---------------------------------------------------------------- undo / redo / save
   function copy() { const c = document.createElement('canvas'); c.width = S.W; c.height = S.H; c.getContext('2d').drawImage(S.paint, 0, 0); const l = document.createElement('canvas'); l.width = S.W; l.height = S.H; l.getContext('2d').drawImage(S.lines, 0, 0); return [c, l]; }
-  function snap() { S.undo.push(copy()); if (S.undo.length > 10) S.undo.shift(); S.redo = []; syncUndo(); }
+  function snap() { S.dirty = true; S.undo.push(copy()); if (S.undo.length > 10) S.undo.shift(); S.redo = []; syncUndo(); }
   function restore(st) { S.pc.clearRect(0, 0, S.W, S.H); S.pc.drawImage(st[0], 0, 0); S.lc.clearRect(0, 0, S.W, S.H); S.lc.drawImage(st[1], 0, 0); }
   function undo() { if (!S.undo.length) return; S.redo.push(copy()); restore(S.undo.pop()); syncUndo(); Audio2.blip(-5); }
   function redo() { if (!S.redo.length) return; S.undo.push(copy()); restore(S.redo.pop()); syncUndo(); Audio2.blip(5); }
-  function save() {
+  function save(silent) {
     const o = document.createElement('canvas'), k = Math.min(1, 720 / Math.max(S.W, S.H)); o.width = S.W * k; o.height = S.H * k; const x = o.getContext('2d');
     x.fillStyle = S.paper; x.fillRect(0, 0, o.width, o.height); x.drawImage(S.paint, 0, 0, o.width, o.height); x.drawImage(S.lines, 0, 0, o.width, o.height);
-    const g = store.get('gallery', []); g.unshift(o.toDataURL('image/jpeg', 0.8)); store.set('gallery', g.slice(0, 16)); store.set('lastDrawing', o.toDataURL('image/png'));
+    const url = o.toDataURL('image/jpeg', 0.8), g = store.get('gallery', []); g.unshift(url); store.set('gallery', g.slice(0, 24)); store.set('lastDrawing', o.toDataURL('image/png')); S.dirty = false;
+    if (silent === true) return url;
     Audio2.jingle([0, 4, 7, 12, 16], 0.07); try { say('m_did_it'); } catch (e) { }
-    burst(S.W / 2, S.H / 2, 60);
+    burst(S.W / 2, S.H / 2, 60); picMenu(url, true); return url;
+  }
+  // what to do with a picture: keep drawing, hang it on the wall, give it to someone, or bin it
+  function picMenu(url, fresh) {
+    const d = S.drawer; d.dataset.kind = 'pic'; d.classList.remove('hidden'); d.innerHTML = '';
+    const im = mk('img'); im.src = url; const big = mk('div', 's-tile wide'); big.append(im); d.append(big);
+    const b = (ico, label, fn) => { const n = mk('button', 's-tile', ico); n.setAttribute('aria-label', label); onTap(n, fn); d.append(n); return n; };
+    b('🖼️', 'hang on wall', () => { close(); Pics.hang(url); });
+    b('🎁', 'give', () => { close(); Pics.giftMenu(url); });
+    if (!fresh) b('✏️', 'draw on it', () => { snap(); const i2 = new Image(); i2.onload = () => { S.pc.drawImage(i2, 0, 0, S.W, S.H); }; i2.src = url; S.lc.clearRect(0, 0, S.W, S.H); toggleDrawer(null); });
+    const del = b('🗑️', 'trash', () => { if (del.dataset.sure) { Pics.trash(url); Audio2.whoosh(false); toggleDrawer(fresh ? null : 'gallery'); } else { del.dataset.sure = 1; del.textContent = '❓'; } });
+    b('✔️', 'keep', () => toggleDrawer(null));
   }
 
   // ---------------------------------------------------------------- drawing
@@ -214,7 +226,8 @@ const Studio = (() => {
     S.raf = requestAnimationFrame(twinkle);
   }
 
-  return { open, close, get active() { return !!S; } };
+  function load(url) { if (!S) return; snap(); const i = new Image(); i.onload = () => { if (S) { S.pc.clearRect(0, 0, S.W, S.H); S.pc.drawImage(i, 0, 0, S.W, S.H); S.dirty = false; } }; i.src = url; S.lc.clearRect(0, 0, S.W, S.H); }
+  return { open, close, load, get active() { return !!S; } };
 })();
 
 // route "draw" to the studio; maths / spelling / cut-outs keep the existing panel

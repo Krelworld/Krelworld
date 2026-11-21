@@ -40,7 +40,7 @@ const Audio2 = (() => {
     speaker = speaker || key.split('_')[0];
     const url = 'assets/vo/' + key + '.mp3';
     return load(url).then(buf => {
-      if (!buf) { speak(key.replace(/^\w+?_/, '').replace(/_/g, ' ')); return wait(1200); }
+      if (!buf) return wait(700);
       if (voiceNow[speaker]) { try { voiceNow[speaker].stop(); } catch (e) {} }
       duck(buf.duration);
       const s = playBuf(buf, voiceGain, {}); voiceNow[speaker] = s;

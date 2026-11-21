@@ -1,4 +1,4 @@
-// Chef Marina — audio: voice clips, sfx, synthesized Japanese chiptune music & blips
+// Chef Marina — audio: voice clips, sfx, ElevenLabs chiptune loops (+ synthesized Japanese chiptune fallback) & blips
 const Audio2 = (() => {
   let ac = null, master, musicGain, sfxGain, voiceGain;
   const buffers = {}, loading = {};
@@ -71,10 +71,17 @@ const Audio2 = (() => {
     if (!ac) return;
     load('assets/sfx/' + key + '.mp3').then(b => b && playBuf(b, sfxGain, { rate: opt.rate || (0.92 + Math.random() * 0.16), vol: opt.vol || 1 }));
   }
-  const FARTS = ['fart1', 'fart2', 'fart3', 'fart4'];
+  const FARTS = ['fart1', 'fart2', 'fart3', 'fart4', 'fart5', 'fart6', 'fart7', 'fart8'];
+  let lastFart = -1;
   function fart() {
-    if (Math.random() < 0.6) sfx(FARTS[Math.random() * 4 | 0], { rate: 0.7 + Math.random() * 0.7 });
-    else synthFart();
+    if (!ac) return;
+    let i; do { i = Math.random() * FARTS.length | 0; } while (i === lastFart && FARTS.length > 1);
+    lastFart = i;
+    // real recordings; the synth version is only a fallback if the clip can't load
+    load('assets/sfx/' + FARTS[i] + '.mp3').then(b => {
+      if (b) playBuf(b, sfxGain, { rate: 0.88 + Math.random() * 0.3, vol: 1 });
+      else synthFart();
+    });
   }
   function synthFart() {
     const t = ac.currentTime, d = 0.4 + Math.random() * 0.9;
@@ -128,29 +135,83 @@ const Audio2 = (() => {
     gross: { scale: 'in', root: 50, bpm: 92, lead: 'sawtooth', arp: false, drums: 2, micro: 1 },
     night: { scale: 'in', root: 57, bpm: 60, lead: 'triangle', arp: false, drums: 0, bell: true },
     bath: { scale: 'yo', root: 64, bpm: 100, lead: 'triangle', arp: true, drums: 1, micro: 1 },
+    title: { scale: 'yo', root: 64, bpm: 116, lead: 'square', arp: true, drums: 1, bell: true },
+    gym: { scale: 'yo', root: 65, bpm: 128, lead: 'square', arp: true, drums: 2 },
   };
+  // ElevenLabs-composed chiptune loops (assets/music/<file>.mp3). Modes without their own
+  // track either borrow one (MUSIC_FILE alias) or fall back to the synthesized chiptune below.
+  const MUSIC_FILE = {
+    title: 'title', explore: 'explore', kitchen: 'kitchen', fort: 'fort', yard: 'yard', chase: 'chase',
+    tantrum: 'tantrum', dress: 'dress', tv: 'tv', night: 'night', gym: 'gym',
+    crafts: 'explore', bath: 'explore', // snow + gross keep their synthesized themes
+  };
+  const MUSIC_VOL = 0.8, XFADE = 0.6;
+  let synthGain = null;
   const Music = {
     mode: 'explore', step: 0, next: 0, timer: null, mel: 2, phrase: [],
-    set(m) { if (MODES[m] && m !== this.mode) { this.mode = m; this.phrase = []; } },
-    start() { if (this.timer) return; this.next = ac.currentTime + 0.1; this.timer = setInterval(() => this.tick(), 25); },
+    synthOn: false, cur: null, curFile: null, want: 0,
+    set(m) {
+      if (!m || m === this.mode && (this.cur || this.synthOn)) return;
+      this.mode = m; this.phrase = [];
+      if (!MODES[m] && !MUSIC_FILE[m]) return;
+      if (ac) this.apply();
+    },
+    apply() {
+      const file = MUSIC_FILE[this.mode] || null;
+      const token = ++this.want;
+      if (file && file === this.curFile && this.cur) { this.synth(false); return; }
+      if (!file) { this.stopFile(); this.synth(true); return; }
+      load('assets/music/' + file + '.mp3').then(buf => {
+        if (token !== this.want) return;               // mode changed while loading
+        if (!buf) { this.stopFile(); this.synth(true); return; }
+        this.stopFile();
+        const t = ac.currentTime, src = ac.createBufferSource(), g = ac.createGain();
+        src.buffer = buf; src.loop = true;
+        g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(MUSIC_VOL, t + XFADE);
+        src.connect(g); g.connect(musicGain); src.start(t);
+        this.cur = { src, g }; this.curFile = file;
+        this.synth(false);
+      });
+    },
+    stopFile() {
+      if (!this.cur) return;
+      const { src, g } = this.cur, t = ac.currentTime;
+      g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0.0001, t + XFADE);
+      try { src.stop(t + XFADE + 0.05); } catch (e) {}
+      this.cur = null; this.curFile = null;
+    },
+    synth(on) {
+      if (!synthGain) return;
+      const t = ac.currentTime;
+      if (on && !this.synthOn) this.next = t + 0.05;
+      this.synthOn = on;
+      synthGain.gain.cancelScheduledValues(t); synthGain.gain.setValueAtTime(synthGain.gain.value, t);
+      synthGain.gain.linearRampToValueAtTime(on ? 1 : 0.0001, t + XFADE);
+    },
+    start() {
+      if (this.timer) return;
+      synthGain = ac.createGain(); synthGain.gain.value = 0.0001; synthGain.connect(musicGain);
+      this.next = ac.currentTime + 0.1; this.timer = setInterval(() => this.tick(), 25);
+      this.apply();
+    },
     note(midi, t, len, type, vol, detune = 0) {
       const o = ac.createOscillator(), g = ac.createGain(); o.type = type;
       o.frequency.value = 440 * Math.pow(2, (midi - 69) / 12); o.detune.value = detune;
       g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
-      o.connect(g); g.connect(musicGain); o.start(t); o.stop(t + len + 0.02);
+      o.connect(g); g.connect(synthGain); o.start(t); o.stop(t + len + 0.02);
     },
     drum(kind, t) {
       if (kind === 'k') { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.12);
-        g.gain.setValueAtTime(0.7, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.15); o.connect(g); g.connect(musicGain); o.start(t); o.stop(t + 0.16); }
+        g.gain.setValueAtTime(0.7, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.15); o.connect(g); g.connect(synthGain); o.start(t); o.stop(t + 0.16); }
       else { const len = kind === 's' ? 0.12 : 0.03, b = ac.createBuffer(1, ac.sampleRate * len, ac.sampleRate), d = b.getChannelData(0);
         for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
         const s = ac.createBufferSource(); s.buffer = b; const f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = kind === 's' ? 1500 : 7000;
         const g = ac.createGain(); g.gain.setValueAtTime(kind === 's' ? 0.35 : 0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t + len);
-        s.connect(f); f.connect(g); g.connect(musicGain); s.start(t); }
+        s.connect(f); f.connect(g); g.connect(synthGain); s.start(t); }
     },
     tick() {
-      if (!ac || muted) return;
-      const M = MODES[this.mode], sc = SCALES[M.scale], spb = 60 / M.bpm / 4;
+      if (!ac || muted || !this.synthOn) { if (ac) this.next = Math.max(this.next, ac.currentTime + 0.05); return; }
+      const M = MODES[this.mode] || MODES.explore, sc = SCALES[M.scale], spb = 60 / M.bpm / 4;
       while (this.next < ac.currentTime + 0.12) {
         const t = this.next, s = this.step % 16, bar = (this.step >> 4) % 4;
         const deg = i => { const o = Math.floor(i / sc.length); return M.root + sc[((i % sc.length) + sc.length) % sc.length] + 12 * o; };
@@ -178,6 +239,41 @@ const Audio2 = (() => {
     }
   };
 
+
+  // short named chiptune tunes for the toy keyboard (semitones from C5; null = rest)
+  const MELODIES = {
+    twinkle: { n: [0, 0, 7, 7, 9, 9, 7, null, 5, 5, 4, 4, 2, 2, 0], step: 0.22, lead: 'square', bass: [-12, -5, -7, -12] },
+    happy:   { n: [0, 4, 7, 12, 7, 4, 0, null, 4, 7, 12, 16, 19, 16, 12], step: 0.14, lead: 'square', bass: [-12, -8, -5] },
+    fanfare: { n: [7, 7, 7, 12, null, null, 7, 12, 16, null, 19, 19, 24], step: 0.12, lead: 'sawtooth', bass: [-17, -12] },
+    silly:   { n: [12, 0, 12, 0, 14, 2, 15, 3, 19, null, -5, null, -5], step: 0.13, lead: 'square', bass: [-24, -12], wobble: 40 },
+    spooky:  { n: [0, 3, 6, 3, 0, -1, 0, null, 6, 5, 3, 0, null, -6], step: 0.24, lead: 'triangle', bass: [-24, -18], wobble: 25 },
+    lullaby: { n: [4, 2, 0, 2, 4, 4, 4, null, 2, 2, 2, null, 4, 7, 7], step: 0.3, lead: 'triangle', bass: [-12, -8] },
+    rocket:  { n: [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 24, null, 36], step: 0.07, lead: 'square', bass: [-12] },
+    sakura:  { n: [9, 9, 11, null, 9, 9, 11, null, 9, 11, 12, 11, 9, 5, 4], step: 0.26, lead: 'triangle', bass: [-15, -8], micro: true }, // in-scale, koto-ish
+  };
+  function melody(name) {
+    if (!ac) return Promise.resolve();
+    const M = MELODIES[name] || MELODIES[Object.keys(MELODIES)[Math.random() * 8 | 0]];
+    const t0 = ac.currentTime + 0.03, tot = M.n.length * M.step;
+    const tone = (semi, t, len, type, vol, det = 0, wob = 0) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type; o.frequency.value = 523.25 * Math.pow(2, semi / 12); o.detune.value = det;
+      if (wob) { const l = ac.createOscillator(), lg = ac.createGain(); l.frequency.value = 6; lg.gain.value = wob; l.connect(lg); lg.connect(o.detune); l.start(t); l.stop(t + len + 0.05); }
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      o.connect(g); g.connect(sfxGain); o.start(t); o.stop(t + len + 0.05);
+    };
+    M.n.forEach((n, i) => {
+      if (n == null) return;
+      const t = t0 + i * M.step;
+      tone(n, t, M.step * 1.5, M.lead, 0.16, M.micro && i % 3 === 2 ? -30 : 0, M.wobble || 0);
+      tone(n + 12, t, M.step * 0.6, 'square', 0.03);                                   // sparkle octave
+      if (i % 4 === 0) tone(M.bass[(i / 4 | 0) % M.bass.length] - 12, t, M.step * 3, 'triangle', 0.2);
+    });
+    tone(M.n.filter(x => x != null).pop() + 24, t0 + tot, 0.6, 'sine', 0.08);           // little bell at the end
+    duck(tot + 0.4);
+    return wait((tot + 0.6) * 1000);
+  }
+
   // play several voice clips back to back (e.g. a dish name built from words)
   async function chain(keys, speaker = 'marina') {
     if (!ac) return;
@@ -189,5 +285,5 @@ const Audio2 = (() => {
   }
   function toggleMute() { muted = !muted; if (master) master.gain.value = muted ? 0 : 0.9; return muted; }
 
-  return { init, load, preload, chain, voice, speak, sfx, fart, blip, jingle, whoosh, noise, Music, toggleMute, get ctx() { return ac; } };
+  return { init, load, preload, chain, voice, speak, sfx, fart, blip, jingle, whoosh, noise, melody, Music, toggleMute, get ctx() { return ac; } };
 })();

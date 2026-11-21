@@ -54,7 +54,7 @@ function recolor(c, opt) {
     const y = (p / 4 / W) | 0, xx = (p / 4) % W; const [h, s, v] = rgb2hsv(d[p], d[p + 1], d[p + 2]);
     if (opt.noGlasses && y < headBottom && ((h > 235 && h < 300 && s > 0.22) || (h > 300 && h < 330 && s > 0.3 && v > 0.5))) {
       d[p] = skin[0]; d[p + 1] = skin[1]; d[p + 2] = skin[2]; continue; }
-    if (opt.hair && HAIR[opt.hair] && ((h <= 38 || h >= 355) && s > 0.5 && v > 0.25)) {
+    if (opt.hair && HAIR[opt.hair] && ((h <= 38 || h >= 355) && s > 0.36 && v > 0.3 && y < headBottom + (bot - top) * 0.25)) {
       let nh, ns, nv; const H2 = HAIR[opt.hair];
       if (H2 === 'rainbow') { nh = ((y - top) * 18 + xx * 4) % 360; ns = 0.75; nv = Math.min(1, v * 1.1); }
       else { nh = H2[0]; ns = Math.min(1, s * H2[1]); nv = Math.min(1, v * H2[2]); }

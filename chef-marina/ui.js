@@ -209,7 +209,7 @@ const UI = (() => {
 
   // =========================================================== DRESS-UP
   const OUTFITS = [['default', 'marina'], ['fairy', 'o_fairy'], ['princess', 'o_princess'], ['bluedress', 'o_bluedress'], ['furcoat', 'o_furcoat'], ['hero', 'o_hero'], ['pajamas', 'o_pajamas']];
-  const HAIRS = { ginger: '#e8742c', blonde: '#f2cf6b', brown: '#7a4a26', black: '#2a2730', pink: '#ff7ab8', blue: '#4aa8ff', purple: '#a46cf0', green: '#5fcf6a', rainbow: 'conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)' };
+  const HAIRS = { ginger: '#eba864', blonde: '#f2cf6b', brown: '#7a4a26', black: '#2a2730', pink: '#ff7ab8', blue: '#4aa8ff', purple: '#a46cf0', green: '#5fcf6a', rainbow: 'conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)' };
   const ACCS = [null, '🎀', '👑', '🌸', '💎', '⭐', '🦄'];
   function openDress() {
     say('m_pretty');

@@ -59,7 +59,7 @@ function drawEnt(e) {
     case 'marina': return drawMarina(e);
     case 'daddy': case 'rory': {
       if (e.state === 'horse') { drawSprite(e.id + '_horse', e.x, e.y + Math.abs(Math.sin(t * 10)) * -3, { flip }); return; }
-      if (e.state === 'lie') { drawSprite('daddy_lie', e.x, e.y + 2, { flip, opt: e.id === 'rory' ? { tint: [200, 90, 40, 0.0] } : null }); if (chance(0.02)) emit('zzz', e.x, e.y - 30); return; }
+      if (e.state === 'lie') { drawSprite(e.id + '_lie', e.x, e.y + 2, { flip }); if (chance(0.02)) emit('zzz', e.x, e.y - 30); return; }
       if (e.state === 'toilet') return;
       const k = e.moving ? frameKey(e.id + '_walk', t, e.curSpeed > 80 ? 16 : 9) : e.id;
       let sy = 1, rot = 0, oy = 0;
@@ -333,7 +333,7 @@ function hitTest(wx, wy) {
     if (e === miles) { sc = 0.8; ey = e.spot === 'crib' ? BACK - 10 : 156; }
     if (e === niko) { sc = 0.8; if (e.state === 'sleep' && e.perchY) ey = e.perchY; }
     if (e === mommy && e.state === 'sit') key = 'mommy_sit';
-    if ((e === daddy || e === rory) && e.state === 'lie') key = 'daddy_lie';
+    if ((e === daddy || e === rory) && e.state === 'lie') key = e.id + '_lie';
     if ((e === daddy || e === rory) && e.state === 'horse') key = e.id + '_horse';
     const b = visBox(key), pad = 6;
     if (wx > e.x + b[0] * sc - pad && wx < e.x + b[2] * sc + pad && wy > ey + b[1] * sc - pad && wy < ey + b[3] * sc + pad) return { kind: 'ent', e };

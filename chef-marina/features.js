@@ -254,16 +254,16 @@ function openReels() {
   const cv = phone.querySelector('canvas'), x = cv.getContext('2d'); x.imageSmoothingEnabled = false;
   let sy = null; phone.addEventListener('pointerdown', e => sy = e.clientY); phone.addEventListener('pointerup', e => { if (sy != null && sy - e.clientY > 40) next(); sy = null; });
   function play() {
-    t0 = performance.now(); Audio2.voice('reel_' + REELS[idx], 'reel');
+    t0 = performance.now(); { const k = 'reel_' + REELS[idx]; Audio2.load('assets/vo/' + k + '.mp3').then(b => { if (b && !p.classList.contains('hidden') && 'reel_' + REELS[idx] === k) Audio2.chain([k], 'reel'); else if (!b) Audio2.jingle([0, 4, 7, 4, 12], 0.1); }); }
     seen++;
     setTimeout(() => { if (!p.classList.contains('hidden')) say(pick(['m_laugh', 'm_laugh2', 'm_giggle'])); }, 2600);
-    if (seen >= 3 && !daddyCame && !daddy.hidden && daddy.state !== 'toilet') {
+    if (seen >= 6 && !daddyCame && !daddy.hidden && daddy.state !== 'toilet') {
       daddyCame = true;
       setTimeout(() => { if (p.classList.contains('hidden')) return; close(); daddy.room = G.room; daddy.x = clamp(marina.x + 50, 20, ROOMS[G.room].w - 20); daddy.dir = -1; daddy.state = 'idle';
         say(pick(['d_insta1', 'd_insta2']), daddy).then(() => { G.moodCtx = { type: 'tvOff', who: daddy }; UI.pulseMoods(); }); }, 5200);
     }
   }
-  function next() { idx = (idx + 1) % REELS.length; Audio2.whoosh(true); play(); }
+  function next() { try { Audio2.chain([], 'reel'); } catch (e) { } idx = (idx + 1) % REELS.length; Audio2.whoosh(true); play(); }
   function frame() {
     const name = REELS[idx], n = frameCount('reel_' + name), t = (performance.now() - t0) / 1000;
     x.fillStyle = '#111'; x.fillRect(0, 0, 128, 128);

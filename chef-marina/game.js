@@ -137,7 +137,7 @@ function drawMarina(e) {
     drawSprite(k || 'marina_hang', e.x, e.railY - b[1] * S, { flip, scale: S, opt: mOpt(), rot: e.barMoving ? 0 : Math.sin(t * 3) * 0.06 }); return; }
   let k = mBase();
   if (e.moving || st === 'run') k = frameKey(mWalk(), t, e.curSpeed > 90 ? 16 : 11) || k;
-  let sy = 1;
+  let sy = e.squash || 1;
   if (st === 'stomp') { sy = 1 - Math.abs(Math.sin(t * 14)) * 0.08; }
   if (st === 'sad' && chance(0.25)) emit('tear', e.x + (flip ? -6 : 6), y - 50, 1, { vx: rnd(-20, 20), vy: rnd(-30, -10) });
   drawLook(e, k, y, flip, S, 'back');

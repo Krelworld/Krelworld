@@ -28,10 +28,14 @@ if (fs.existsSync(srcDir)) {
   for (const f of fs.readdirSync(mediaOut)) byId[f.split('.')[0]] = f;
 }
 
+// Media is served by jsDelivr (correct MIME types + byte ranges, which iOS video needs), pinned to the
+// commit that added site/media. githack (which serves index.html) mangles video requests.
+// Override with MEDIA_BASE=media/ for a host that serves the folder itself (e.g. GitHub Pages).
+const MEDIA_BASE = process.env.MEDIA_BASE || 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/';
 let html = fs.readFileSync(path.join(root, 'dist', 'KREPLIN.html'), 'utf8');
 let hits = 0; const missing = new Set();
 html = html.replace(/https:\/\/(?:www|dl)\.dropbox(?:usercontent)?\.com\/scl\/fi\/([A-Za-z0-9]+)\/[^"'`\s)<>\\]+/g, (m, id) => {
-  if (byId[id]) { hits++; return 'media/' + byId[id]; }
+  if (byId[id]) { hits++; return MEDIA_BASE + byId[id]; }
   missing.add(id); return m;
 });
 html = html.replace(/type=(["'])audio\/mpeg\1/g, 'type=$1audio/mp4$1').replace(/type=(["'])video\/quicktime\1/g, 'type=$1video/mp4$1');

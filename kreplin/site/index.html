@@ -8277,7 +8277,7 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
 <body>
 <!-- Background music for opening sequence -->
 <audio id="openingMusic" loop>
-  <source src="media/ehi6scemff22ptcsouys3.m4a" type="audio/mp4">
+  <source src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/ehi6scemff22ptcsouys3.m4a" type="audio/mp4">
 </audio>
 
 <!-- LADS GATE SCREEN (pixel scene; art + behaviour in 014d-intro.js / 013d-intro.css) -->
@@ -19029,7 +19029,7 @@ function playCronsterAnthem() {
   if (existingSkip) existingSkip.remove();
   
   // Use Dropbox direct link format for audio playback
-  const audioUrl = 'media/debv5803t72p9qpfo92fv.m4a';
+  const audioUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/debv5803t72p9qpfo92fv.m4a';
   const audio = new Audio(audioUrl);
   
   // Store globally so it continues playing in background
@@ -19516,8 +19516,8 @@ async function handleSecretaryCronsterVictoryAffair() {
 // Play interview video (sober or drunk)
 async function playInterviewVideo(type) {
   const videoUrls = {
-    sober: 'media/td8mibrqvk4vchwuk80s3.mp4',
-    drunk: 'media/jkf1h8beejllm8nk2uj2c.mp4'
+    sober: 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/td8mibrqvk4vchwuk80s3.mp4',
+    drunk: 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/jkf1h8beejllm8nk2uj2c.mp4'
   };
   
   const videoUrl = videoUrls[type];
@@ -19653,28 +19653,28 @@ async function openFundraiserModal() {
       id: 'sanmik',
       name: 'SanMik Concert',
       description: 'The iconic and cheeky British rap artist performs at the stadium',
-      videoUrl: 'media/4qbi0pw9sm7lrulemt47k.mp4',
+      videoUrl: 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/4qbi0pw9sm7lrulemt47k.mp4',
       available: true
     },
     {
       id: 'burger',
       name: 'The Festival of Burger',
       description: 'The annual Festival of Burger is held at the stadium: yumzo!',
-      videoUrl: 'media/9nph4kqvxi816u4z2j325.mp4',
+      videoUrl: 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/9nph4kqvxi816u4z2j325.mp4',
       available: true
     },
     {
       id: 'execution',
       name: 'Public Execution',
       description: 'What excites the masses more than the spectacle of vintage British justice being doled out in the old fashioned way?',
-      videoUrl: 'media/ydxozg67mgj4b09xjr46y.mp4',
+      videoUrl: 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/ydxozg67mgj4b09xjr46y.mp4',
       available: true
     },
     {
       id: 'juice',
       name: "'Juice' the Musical!",
       description: "The brand new Larry Lizards musical that's taking the nation by storm!",
-      videoUrl: 'media/5wxboonwm7wo5i2knjtsw.mp4',
+      videoUrl: 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/5wxboonwm7wo5i2knjtsw.mp4',
       available: currentSeason >= 2  // Only available from season 2 onwards
     }
   ];
@@ -20400,7 +20400,7 @@ async function watchSurveillanceFootage(location) {
     videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid var(--red); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
     
     // Use Dropbox direct download URL (dl=1 makes it a direct download link)
-    const dropboxUrl = 'media/uod1htoycrmns5omda7f2.mp4';
+    const dropboxUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/uod1htoycrmns5omda7f2.mp4';
     
     // Create close handler function
     const closeHandler = () => {
@@ -20512,13 +20512,13 @@ async function watchSurveillanceFootage(location) {
     
     // Video URLs array
     const videoUrls = [
-      'media/nt20si97z5gmzkbh0eqqa.mp4',
-      'media/e4l13hf7agfz2ijwwo5iw.mp4',
-      'media/gjemr9o9u665iypob4960.mp4',
-      'media/lmlquts02mol9k5ga6dlc.mp4',
-      'media/13nygujb2vvlvb3x3oae7.mp4',
-      'media/172t338it5ucnb344qfow.mp4',
-      'media/5ecwcfmyfy7fwavzjh5qz.mp4'
+      'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/nt20si97z5gmzkbh0eqqa.mp4',
+      'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/e4l13hf7agfz2ijwwo5iw.mp4',
+      'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/gjemr9o9u665iypob4960.mp4',
+      'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/lmlquts02mol9k5ga6dlc.mp4',
+      'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/13nygujb2vvlvb3x3oae7.mp4',
+      'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/172t338it5ucnb344qfow.mp4',
+      'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/5ecwcfmyfy7fwavzjh5qz.mp4'
     ];
     
     // Show menu to select which video to watch
@@ -20817,7 +20817,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
     log(`"Mohammed Van Onslaught is currently holding a press conference," the messenger says. "You should watch this."`);
     log(``);
     
-    const videoUrl = 'media/1jrhs2o25ynt4m88hg5k6.mp4';
+    const videoUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/1jrhs2o25ynt4m88hg5k6.mp4';
     
     // Show the video immediately (mandatory to watch)
     const videoDiv = document.createElement('div');
@@ -20936,10 +20936,10 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
         let videoTitle = '';
         
         if (videoToShow === 'origin') {
-          videoUrl = 'media/wyqkxtj0e3xpbgn993klp.mp4';
+          videoUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/wyqkxtj0e3xpbgn993klp.mp4';
           videoTitle = 'Origin Story';
         } else if (videoToShow === 'interview') {
-          videoUrl = 'media/bbh4j4e565i76i7p2ypln.mp4';
+          videoUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/bbh4j4e565i76i7p2ypln.mp4';
           videoTitle = '1960s TV Interview';
         }
         
@@ -21198,7 +21198,7 @@ if (Array.isArray(S.knock_queue) && S.knock_queue.length){
       }
       
       // Play television broadcast music
-      const televisionAudio = new Audio('media/ns7nxuo9mxpwk3swkuwgh.m4a');
+      const televisionAudio = new Audio('https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/ns7nxuo9mxpwk3swkuwgh.m4a');
       televisionAudio.volume = 0.7;
       televisionAudio.play().catch(e => console.error('Error playing television broadcast audio:', e));
       
@@ -29236,7 +29236,7 @@ async function showOminousMassacrePopout() {
     }
     
     // Create and store the post-match audio (but don't play it yet - aftermath UI will start it)
-    const postMatchTrackUrl = 'media/99k3vl0z7pwwv61irqnj3.m4a';
+    const postMatchTrackUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/99k3vl0z7pwwv61irqnj3.m4a';
     const postMatchAudio = new Audio(postMatchTrackUrl);
     postMatchAudio.preload = 'auto';
     postMatchAudio.volume = 1.0;
@@ -29373,7 +29373,7 @@ async function handleTrainDeath() {
   }
   
   // Play death video
-  const deathVideoUrl = 'media/233hhgbp17a1uj3x3btfs.mp4';
+  const deathVideoUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/233hhgbp17a1uj3x3btfs.mp4';
   await playTrainVideo(deathVideoUrl);
   
   // Show game over message
@@ -29519,7 +29519,7 @@ async function showKidnappingSequenceModal() {
   let postMatchAudio = window._season5PostMatchAudio;
   if (!postMatchAudio) {
     // If no existing audio, create new one with correct URL
-    const postMatchTrackUrl = 'media/99k3vl0z7pwwv61irqnj3.m4a';
+    const postMatchTrackUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/99k3vl0z7pwwv61irqnj3.m4a';
     postMatchAudio = new Audio(postMatchTrackUrl);
     postMatchAudio.volume = 1.0;
     window._season5PostMatchAudio = postMatchAudio;
@@ -29697,7 +29697,7 @@ async function showKidnappingSequenceModal() {
       }
       
       // Play confrontation music
-      const confrontationAudio = new Audio('media/ns7nxuo9mxpwk3swkuwgh.m4a');
+      const confrontationAudio = new Audio('https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/ns7nxuo9mxpwk3swkuwgh.m4a');
       confrontationAudio.volume = 0.7;
       confrontationAudio.play().catch(e => console.error('Error playing confrontation audio:', e));
       modalOverlay._confrontationAudio = confrontationAudio;
@@ -29897,7 +29897,7 @@ async function playPanicVideo() {
   videoContainer.style.justifyContent = 'center';
   
   const video = document.createElement('video');
-  video.src = 'media/uv9uwapaxv89ovd4u225w.mp4';
+  video.src = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/uv9uwapaxv89ovd4u225w.mp4';
   video.controls = false;
   video.autoplay = true;
   video.preload = 'auto';
@@ -30070,7 +30070,7 @@ async function playDowningStreetVideo() {
     videoContainer.style.justifyContent = 'center';
     
     const video = document.createElement('video');
-    video.src = 'media/ud8j5efbptqqj5823s2u0.mp4';
+    video.src = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/ud8j5efbptqqj5823s2u0.mp4';
     video.controls = false;
     video.autoplay = true;
     video.preload = 'auto';
@@ -30944,7 +30944,7 @@ async function playNuclearStrikeVideo() {
     
     const video = document.createElement('video');
     // Use direct download format for better compatibility
-    video.src = 'media/sf4ih30kgaxin2aypoabz.mp4';
+    video.src = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/sf4ih30kgaxin2aypoabz.mp4';
     video.controls = false;
     video.autoplay = true;
     video.preload = 'auto';
@@ -31412,7 +31412,7 @@ async function playGemShitVideo() {
     `;
     
     const video = document.createElement('video');
-    video.src = 'media/7mb95d3deq675jblz40zu.mp4';
+    video.src = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/7mb95d3deq675jblz40zu.mp4';
     video.controls = false;
     video.autoplay = true;
     video.preload = 'auto';
@@ -31849,7 +31849,7 @@ async function showKreplinEpilogue() {
     }
     
     // Play epilogue music
-    const epilogueAudio = new Audio('media/qqboc2l8vj7xjhnqfcmpj.m4a');
+    const epilogueAudio = new Audio('https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/qqboc2l8vj7xjhnqfcmpj.m4a');
     epilogueAudio.loop = true;
     epilogueAudio.volume = 0.7;
     epilogueAudio.play().catch(err => {});
@@ -31887,7 +31887,7 @@ async function playNuclearStrikeVideoEpilogue() {
     // Create video element
     const video = document.createElement('video');
     // Convert Dropbox share link to direct download link for video playback
-    video.src = 'media/hdjhzlbwez36q29intpmq.mp4';
+    video.src = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/hdjhzlbwez36q29intpmq.mp4';
     video.style.cssText = `
       width: 100%;
       height: 100%;
@@ -32217,7 +32217,7 @@ async function showNuclearStrikeEpilogue() {
     }
     
     // Play epilogue music
-    const epilogueAudio = new Audio('media/qqboc2l8vj7xjhnqfcmpj.m4a');
+    const epilogueAudio = new Audio('https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/qqboc2l8vj7xjhnqfcmpj.m4a');
     epilogueAudio.loop = true;
     epilogueAudio.volume = 0.7;
     epilogueAudio.play().catch(err => {});
@@ -32526,7 +32526,7 @@ async function showUltimaCupEpilogueSaintsWin() {
     }
     
     // Play epilogue music
-    const epilogueAudio = new Audio('media/qqboc2l8vj7xjhnqfcmpj.m4a');
+    const epilogueAudio = new Audio('https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/qqboc2l8vj7xjhnqfcmpj.m4a');
     epilogueAudio.loop = true;
     epilogueAudio.volume = 0.7;
     epilogueAudio.play().catch(err => {});
@@ -32823,7 +32823,7 @@ async function showUltimaCupEpilogueSaintsLose() {
     }
     
     // Play epilogue music
-    const epilogueAudio = new Audio('media/qqboc2l8vj7xjhnqfcmpj.m4a');
+    const epilogueAudio = new Audio('https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/qqboc2l8vj7xjhnqfcmpj.m4a');
     epilogueAudio.loop = true;
     epilogueAudio.volume = 0.7;
     epilogueAudio.play().catch(err => {});
@@ -33797,10 +33797,10 @@ async function showCredits() {
     let musicUrl = null;
     if (endingType === "kreplin_protocol") {
       // Good ending - collected all kreplin gems
-      musicUrl = 'media/4y3c9nszw6z43ia8aqo6h.m4a';
+      musicUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/4y3c9nszw6z43ia8aqo6h.m4a';
     } else if (endingType === "nuclear_holocaust" || endingType === "suicide_win" || endingType === "suicide_lose") {
       // Bad endings - nuclear holocaust or suicide endings
-      musicUrl = 'media/kbhjolbtkicipdojoqoff.m4a';
+      musicUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/kbhjolbtkicipdojoqoff.m4a';
     }
     
     let creditsAudio = null;
@@ -36463,7 +36463,7 @@ if (S.season === 5 && S.season5 && S.season5.initialized) {
       const videoDiv = document.createElement('div');
       videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid var(--red); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
       
-      const dropboxUrl = 'media/q94f13zzvbbmjyfw48rv1.mp4';
+      const dropboxUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/q94f13zzvbbmjyfw48rv1.mp4';
       
       const xButton = document.createElement('button');
       xButton.textContent = '✕';
@@ -36825,7 +36825,7 @@ async function triggerVanOnslaughtVisit() {
     const videoDiv = document.createElement('div');
     videoDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 800px; height: 60vh; background: #000; border: 3px solid var(--red); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px;';
     
-    const dropboxUrl = 'media/jse4pu6hej5dxkd7yso3e.mp4';
+    const dropboxUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/jse4pu6hej5dxkd7yso3e.mp4';
     
     const xButton = document.createElement('button');
     xButton.textContent = '✕';
@@ -46971,19 +46971,19 @@ const ATTACHMENTS = {
     '<img src="https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=200&h=200&fit=crop&auto=format" alt="Shark" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.src=\'https://via.placeholder.com/200x200/8B0000/ffffff?text=🦈\';">'
   ],
   inappropriate: [ 
-    '<img src="media/t35alqfanyu9gkb7i9vbn.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
-    '<img src="media/xz0b2onn6zthuiq8rrq1w.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
-    '<img src="media/8p6eh6e2bugmvfjwr8tnd.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
-    '<img src="media/xxoddr4fnizd7hh733djd.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
-    '<img src="media/cx6izhu00dyduw4c9gvyw.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
-    '<img src="media/t35alqfanyu9gkb7i9vbn.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
-    '<img src="media/f8b66cr0781a45rm7h83o.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
-    '<img src="media/fc55coe85crahzwuarbyv.webp" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
-    '<img src="media/mnbdg07pent4jr8gr779d.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
-    '<img src="media/ud1wwtks2vh5vv2axwnhz.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
-    '<img src="media/mlemss74em0k8nfhiiz9x.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
-    '<img src="media/0l9a3brahi5vmnkivayhn.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
-    '<img src="media/3d0h4vgn0oneadwn8cwq1.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">'
+    '<img src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/t35alqfanyu9gkb7i9vbn.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
+    '<img src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/xz0b2onn6zthuiq8rrq1w.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
+    '<img src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/8p6eh6e2bugmvfjwr8tnd.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
+    '<img src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/xxoddr4fnizd7hh733djd.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
+    '<img src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/cx6izhu00dyduw4c9gvyw.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
+    '<img src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/t35alqfanyu9gkb7i9vbn.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
+    '<img src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/f8b66cr0781a45rm7h83o.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
+    '<img src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/fc55coe85crahzwuarbyv.webp" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
+    '<img src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/mnbdg07pent4jr8gr779d.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
+    '<img src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/ud1wwtks2vh5vv2axwnhz.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
+    '<img src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/mlemss74em0k8nfhiiz9x.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
+    '<img src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/0l9a3brahi5vmnkivayhn.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">',
+    '<img src="https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/3d0h4vgn0oneadwn8cwq1.jpg" alt="Inappropriate image" style="max-width:200px;max-height:200px;border-radius:8px;object-fit:cover;display:block;margin:5px 0;" onerror="this.style.display=\'none\';">'
   ]
 };
 
@@ -47724,11 +47724,11 @@ async function selectAttachment(type, category) {
     case 'raunchy_video':
       // Randomly select one of the video URLs
       const raunchyVideos = [
-        'media/j33a1c1jxzzeb438m6utd.mp4',
-        'media/osne24v2558zclbp3ofcx.mp4',
-        'media/pgtanci70jfiweun99suk.mp4',
-        'media/bkvxd6cc1eb877gdv69hs.mp4',
-        'media/4fisr3igjf4c1dqvupr6v.mp4'
+        'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/j33a1c1jxzzeb438m6utd.mp4',
+        'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/osne24v2558zclbp3ofcx.mp4',
+        'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/pgtanci70jfiweun99suk.mp4',
+        'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/bkvxd6cc1eb877gdv69hs.mp4',
+        'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/4fisr3igjf4c1dqvupr6v.mp4'
       ];
       const selectedVideo = raunchyVideos[Math.floor(Math.random() * raunchyVideos.length)];
       const videoType = selectedVideo.includes('.mov') ? 'video/quicktime' : 'video/mp4';
@@ -59603,10 +59603,10 @@ async function showEndOfSeasonPresentation() {
   let presentationAudio = null;
   if (S.season >= 1 && S.season <= 3) {
     // Seasons 1, 2, 3: play season.mp3
-    presentationAudio = new Audio('media/opfafuo98zo8qqtbh9sq5.m4a');
+    presentationAudio = new Audio('https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/opfafuo98zo8qqtbh9sq5.m4a');
   } else if (S.season === 4 || S.season === 5) {
     // Seasons 4, 5: play endsrasonmjslim.mp3
-    presentationAudio = new Audio('media/9mog5ttfe8bt5r49ovzt9.m4a');
+    presentationAudio = new Audio('https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/9mog5ttfe8bt5r49ovzt9.m4a');
   }
   
   if (presentationAudio) {
@@ -59685,7 +59685,7 @@ async function showEndOfSeasonPresentation() {
     </div>`);
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    const announcementVideoUrl = 'media/797pgco16i0ybz6x1jtgk.mp4';
+    const announcementVideoUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/797pgco16i0ybz6x1jtgk.mp4';
     
     // Create Watch button container in the modal
     const watchButtonContainer = document.createElement('div');
@@ -61977,7 +61977,7 @@ async function quickSimulateUltimaCupBombPath() {
   document.body.appendChild(overlay);
   
   // Start playing the first audio track when the match starts
-  const firstAudio = new Audio('media/l2c8pfxv3qpduo9dgrw57.m4a');
+  const firstAudio = new Audio('https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/l2c8pfxv3qpduo9dgrw57.m4a');
   firstAudio.loop = true;
   firstAudio.volume = 0.7;
   firstAudio.play().catch(err => {});
@@ -62503,7 +62503,7 @@ async function quickSimulateUltimaCupBombPath() {
       window._ultimaCupFirstAudio.currentTime = 0;
       window._ultimaCupFirstAudio = null;
     }
-    const secondAudio = new Audio('media/f1v29tjkeusk4ar4mscyq.m4a');
+    const secondAudio = new Audio('https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/f1v29tjkeusk4ar4mscyq.m4a');
     secondAudio.loop = true;
     secondAudio.volume = 0.7;
     secondAudio.play().catch(err => {});
@@ -63446,7 +63446,7 @@ async function showUltimaCupVictoryUIBombPath(outcome) {
         }
         
         // Play fullscreen cutscene
-        const cutsceneUrl = 'media/zof0nqcuyc304yos4bklw.mp4';
+        const cutsceneUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/zof0nqcuyc304yos4bklw.mp4';
         
         const videoOverlay = document.createElement('div');
         videoOverlay.style.cssText = `
@@ -64888,7 +64888,7 @@ async function endOfSeason(){
       const videoContainer = document.createElement('div');
       videoContainer.className = 'cinematic-video-container';
       const video = document.createElement('video');
-      video.src = 'media/16lvp83thp5vwfebn2gi9.mp4';
+      video.src = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/16lvp83thp5vwfebn2gi9.mp4';
       video.controls = false;
       video.autoplay = true;
       video.style.width = '100%';
@@ -64943,7 +64943,7 @@ async function endOfSeason(){
         const kreplinVideoContainer = document.createElement('div');
         kreplinVideoContainer.className = 'cinematic-video-container';
         const kreplinVideo = document.createElement('video');
-        kreplinVideo.src = 'media/4sq2vjo372f82x1pcrnzd.mp4';
+        kreplinVideo.src = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/4sq2vjo372f82x1pcrnzd.mp4';
         kreplinVideo.controls = false;
         kreplinVideo.autoplay = true;
         kreplinVideo.style.width = '100%';
@@ -65176,7 +65176,7 @@ async function endOfSeason(){
     document.body.appendChild(modalOverlay);
     
     // Play Season 3 finale audio track
-    const season3FinaleAudio = new Audio('media/zy5uyx3kzj6ugwxfgic6y.m4a');
+    const season3FinaleAudio = new Audio('https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/zy5uyx3kzj6ugwxfgic6y.m4a');
     season3FinaleAudio.volume = 0.7;
     season3FinaleAudio.play().catch(e => console.error('Error playing Season 3 finale audio:', e));
     // Store audio reference for cleanup
@@ -65432,7 +65432,7 @@ async function endOfSeason(){
     }
     
     // Play reckoning music
-    const reckoningAudio = new Audio('media/99k3vl0z7pwwv61irqnj3.m4a');
+    const reckoningAudio = new Audio('https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/99k3vl0z7pwwv61irqnj3.m4a');
     reckoningAudio.volume = 0.7;
     reckoningAudio.play().catch(e => console.error('Error playing reckoning audio:', e));
     
@@ -65644,7 +65644,7 @@ async function endOfSeason(){
         
         // Preload video for instant playback
         const video = document.createElement('video');
-        video.src = 'media/qchb5y8wrsxvj0f9ws1xg.mp4';
+        video.src = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/qchb5y8wrsxvj0f9ws1xg.mp4';
         video.preload = 'auto';
         video.controls = false;
         video.style.width = '100%';
@@ -65770,7 +65770,7 @@ async function runSeason5Opener() {
   const videoContainer = document.createElement('div');
   videoContainer.className = 'cinematic-video-container';
   const video = document.createElement('video');
-  video.src = 'media/4707l9egv54nxdm70uq6f.mp4';
+  video.src = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/4707l9egv54nxdm70uq6f.mp4';
   video.controls = false;
   video.autoplay = true;
   video.style.width = '100%';
@@ -68411,7 +68411,7 @@ if (isSeason5FirstMatch) {
     }
     
     // Create the post-match track
-    const postMatchTrackUrl = 'media/99k3vl0z7pwwv61irqnj3.m4a';
+    const postMatchTrackUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/99k3vl0z7pwwv61irqnj3.m4a';
     postMatchAudio = new Audio(postMatchTrackUrl);
     postMatchAudio.preload = 'auto';
     postMatchAudio.volume = 1.0;
@@ -68480,7 +68480,7 @@ if (S.season === 5 && S.season5 && S.season5.play_panic_video && S.matches_playe
   videoContainer.style.justifyContent = 'center';
   
   const video = document.createElement('video');
-  video.src = 'media/uv9uwapaxv89ovd4u225w.mp4';
+  video.src = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/uv9uwapaxv89ovd4u225w.mp4';
   video.controls = false;
   video.autoplay = true;
   video.preload = 'auto';
@@ -76596,7 +76596,7 @@ async function playGemJingle() {
     }
     
     // Create audio element for gem jingle
-    const jingleUrl = 'media/vyj30vm6yfrnzw5udstw3.m4a';
+    const jingleUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/vyj30vm6yfrnzw5udstw3.m4a';
     const jingleAudio = new Audio(jingleUrl);
     
     // Set audio properties
@@ -76904,7 +76904,7 @@ async function showKreplinGemCelebration() {
 // Play Kreplin gem discovery video for Cronster
 async function playCronsterKreplinGemVideo() {
   // Use Dropbox direct download URL (dl=1 makes it a direct download link)
-  const videoUrl = 'media/ln6y4f8e7az62l1e3rtue.mp4';
+  const videoUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/ln6y4f8e7az62l1e3rtue.mp4';
   
   // Show video player with actual video
   const videoDiv = document.createElement('div');
@@ -76948,7 +76948,7 @@ async function playCronsterKreplinGemVideo() {
 // Play Kreplin gem discovery video
 async function playKreplinGemVideo() {
   // Use Dropbox direct download URL (dl=1 makes it a direct download link)
-  const videoUrl = 'media/vl7erd9evsmbi6ixpnbjw.mp4';
+  const videoUrl = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/vl7erd9evsmbi6ixpnbjw.mp4';
   
   // Show video player with actual video
   const videoDiv = document.createElement('div');
@@ -84435,7 +84435,7 @@ const TINDER_PROFILES = [
   {
     name: "Sarah",
     bio: "Love football, good food, and honest people. Looking for someone real.",
-    image: "media/u5uihbzv4et1063h7k6gw.jpg",
+    image: "https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/u5uihbzv4et1063h7k6gw.jpg",
     alwaysMatches: true,
     personality: "enthusiastic"
   },
@@ -84443,14 +84443,14 @@ const TINDER_PROFILES = [
   {
     name: "SanMik",
     bio: "Lookin 4 sex xx",
-    image: "media/i5yelfr1rh7x5a67dcilw.jpg",
+    image: "https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/i5yelfr1rh7x5a67dcilw.jpg",
     alwaysMatches: false,
     personality: "direct"
   },
   {
     name: "Luke",
     bio: "Looking for love",
-    image: "media/jqs0i5pohx1l5eviqy88v.jpg",
+    image: "https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/jqs0i5pohx1l5eviqy88v.jpg",
     alwaysMatches: false,
     personality: "romantic"
   },
@@ -84458,49 +84458,49 @@ const TINDER_PROFILES = [
   {
     name: null,
     bio: null,
-    image: "media/t8z3rhmr6z3qaqbpfu0cw.jpg",
+    image: "https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/t8z3rhmr6z3qaqbpfu0cw.jpg",
     alwaysMatches: false,
     personality: "generic"
   },
   {
     name: null,
     bio: null,
-    image: "media/ly4hq5ixkpf3p8xkot36y.jpg",
+    image: "https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/ly4hq5ixkpf3p8xkot36y.jpg",
     alwaysMatches: false,
     personality: "generic"
   },
   {
     name: null,
     bio: null,
-    image: "media/enj5yvk54z7azls1v34rn.jpg",
+    image: "https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/enj5yvk54z7azls1v34rn.jpg",
     alwaysMatches: false,
     personality: "generic"
   },
   {
     name: null,
     bio: null,
-    image: "media/8v603xcgqa2d10zw8jwu4.jpg",
+    image: "https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/8v603xcgqa2d10zw8jwu4.jpg",
     alwaysMatches: false,
     personality: "generic"
   },
   {
     name: null,
     bio: null,
-    image: "media/0ypd2zoijwkxo7aoj5yxy.jpg",
+    image: "https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/0ypd2zoijwkxo7aoj5yxy.jpg",
     alwaysMatches: false,
     personality: "generic"
   },
   {
     name: null,
     bio: null,
-    image: "media/hf8arj2wvza07o4di2mg1.jpg",
+    image: "https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/hf8arj2wvza07o4di2mg1.jpg",
     alwaysMatches: false,
     personality: "generic"
   },
   {
     name: null,
     bio: null,
-    image: "media/26zbjygjcb35wei2uopi9.jpg",
+    image: "https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/26zbjygjcb35wei2uopi9.jpg",
     alwaysMatches: false,
     personality: "generic"
   }
@@ -84730,11 +84730,11 @@ async function createTinderProfile() {
     
     if (facetuneChoice === 'yes') {
       S.season4.profile_facetuned = true;
-      S.season4.profile_picture = "media/8wxiwvenb6yvvrr60pg8m.jpg";
+      S.season4.profile_picture = "https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/8wxiwvenb6yvvrr60pg8m.jpg";
       log('You apply filters. Your face looks smoother, younger, less real.');
     } else {
       S.season4.profile_facetuned = false;
-      S.season4.profile_picture = "media/euauva77it1j7s6f9d3z0.png";
+      S.season4.profile_picture = "https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/euauva77it1j7s6f9d3z0.png";
       log('You keep the original. It looks honest, unpolished.');
     }
     log('');
@@ -85740,11 +85740,11 @@ async function handleTinderMessageChoice(profile, choice) {
     } else if (attachType === 'raunchy_video') {
       // Randomly select one of the video URLs
       const raunchyVideos = [
-        'media/j33a1c1jxzzeb438m6utd.mp4',
-        'media/osne24v2558zclbp3ofcx.mp4',
-        'media/pgtanci70jfiweun99suk.mp4',
-        'media/bkvxd6cc1eb877gdv69hs.mp4',
-        'media/4fisr3igjf4c1dqvupr6v.mp4'
+        'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/j33a1c1jxzzeb438m6utd.mp4',
+        'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/osne24v2558zclbp3ofcx.mp4',
+        'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/pgtanci70jfiweun99suk.mp4',
+        'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/bkvxd6cc1eb877gdv69hs.mp4',
+        'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/4fisr3igjf4c1dqvupr6v.mp4'
       ];
       const selectedVideo = raunchyVideos[Math.floor(Math.random() * raunchyVideos.length)];
       const videoType = selectedVideo.includes('.mov') ? 'video/quicktime' : 'video/mp4';
@@ -86372,7 +86372,7 @@ async function showIntroCutscene() {
     videoContainer.style.cssText = 'background: #1a1a1a; padding: 20px; border-radius: 0 0 12px 12px;';
     const video = document.createElement('video');
     // Convert Dropbox share link to direct download link for video playback
-    video.src = 'media/xx11ayx3wn8tcy1zd8hhh.mp4';
+    video.src = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/xx11ayx3wn8tcy1zd8hhh.mp4';
     video.controls = true;
     video.style.cssText = 'max-width: 100%; max-height: 70vh; width: auto; height: auto; display: block; border-radius: 8px;';
     videoContainer.appendChild(video);
@@ -86447,7 +86447,7 @@ async function showBrickVideo() {
     videoContainer.style.cssText = 'background: #1a1a1a; padding: 20px; border-radius: 0 0 12px 12px;';
     const video = document.createElement('video');
     // Convert Dropbox share link to direct download link for video playback
-    video.src = 'media/c9ncbb89nb90kwzb5c0sa.mp4';
+    video.src = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/c9ncbb89nb90kwzb5c0sa.mp4';
     video.controls = true;
     video.style.cssText = 'max-width: 100%; max-height: 70vh; width: auto; height: auto; display: block; border-radius: 8px;';
     videoContainer.appendChild(video);
@@ -86640,19 +86640,19 @@ async function showBrickVideo() {
 
   // General music tracks list (using direct download links)
   const generalMusicTracks = [
-    'media/25y3k21gr285p5tikl2xz.m4a',
-    'media/vc41qr2gbx9ft3gk7qf0m.m4a',
-    'media/pmj9kwnq44mmmdzcu8a15.m4a',
-    'media/1ym67zaflpatzuwcw8jj1.m4a',
-    'media/0z6koe33xtbpmty0s2xzd.m4a',
-    'media/ldbfz56wi3zcklxdc1a4j.m4a',
-    'media/8aargajhl55dj0vi9va0u.m4a',
-    'media/e320jh4a98p5950tdai3p.m4a',
-    'media/p2id7aq51wtz3gjmml4as.m4a',
-    'media/2mylevgpy04dqd8px3g29.m4a',
-    'media/p2tgzj8745tczp8p6t7h7.m4a',
-    'media/x8ded7mh6onog9pf6nsuw.m4a',
-    'media/dwh9fx2uc8af9opuuo42r.m4a'
+    'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/25y3k21gr285p5tikl2xz.m4a',
+    'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/vc41qr2gbx9ft3gk7qf0m.m4a',
+    'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/pmj9kwnq44mmmdzcu8a15.m4a',
+    'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/1ym67zaflpatzuwcw8jj1.m4a',
+    'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/0z6koe33xtbpmty0s2xzd.m4a',
+    'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/ldbfz56wi3zcklxdc1a4j.m4a',
+    'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/8aargajhl55dj0vi9va0u.m4a',
+    'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/e320jh4a98p5950tdai3p.m4a',
+    'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/p2id7aq51wtz3gjmml4as.m4a',
+    'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/2mylevgpy04dqd8px3g29.m4a',
+    'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/p2tgzj8745tczp8p6t7h7.m4a',
+    'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/x8ded7mh6onog9pf6nsuw.m4a',
+    'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/dwh9fx2uc8af9opuuo42r.m4a'
   ];
 
   // General music state
@@ -88617,7 +88617,7 @@ async function showBrickVideo() {
 (function () {
   const ART = () => (window.MG_ART_BASE || '../../art/raw/');
   const RED = '#d71920', GOLD = '#f2c14e', INK = '#0d1016', WHITE = '#f4f1ea', GOOD = '#3fbf6b', BAD = '#e5484d';
-  const VIDEO = 'media/tkhja9j9z60idn2kor9yo.mp4';
+  const VIDEO = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/tkhja9j9z60idn2kor9yo.mp4';
   const CODES = [{ c: '1885', l: 'SAINTS FOUNDED' }, { c: '6969', l: "CHAIRMAN'S PIN" }, { c: '0000', l: 'NEVER CHANGED IT' }];
   const TIME = 20;
   const rnd = (a, b) => a + Math.random() * (b - a);
@@ -88927,8 +88927,8 @@ async function showBrickVideo() {
 */
 (function () {
   const W = 180, H = 320;
-  const BOSS_MUSIC = 'media/i11xhg5i8pxzmk4h3ujta.m4a';
-  const WIN_VIDEO = 'media/sz3lhwrps0hychrh0p0hh.mp4';
+  const BOSS_MUSIC = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/i11xhg5i8pxzmk4h3ujta.m4a';
+  const WIN_VIDEO = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/sz3lhwrps0hychrh0p0hh.mp4';
   const FONT = '"Pixelify Sans", ui-monospace, monospace';
 
   // ---- tiny WebAudio sfx ----
@@ -89432,8 +89432,8 @@ async function showBrickVideo() {
 */
 (function () {
   const W = 180, H = 320;
-  const DRIVE_MUSIC = 'media/oopdvy9ds0jn8ggvinajg.m4a';
-  const WOOD_MUSIC = 'media/orbq7amtkghp0oz63ojou.m4a';
+  const DRIVE_MUSIC = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/oopdvy9ds0jn8ggvinajg.m4a';
+  const WOOD_MUSIC = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/orbq7amtkghp0oz63ojou.m4a';
   const ROAD_L = 40, ROAD_R = 140, LANES = [56, 90, 124], CAR_Y = 236;
   const D_UNI = 1400, D_END = 3000, CRUISE = 95, BOOST = 150;
   const CRITTERS = { squirrel: { r: 7, spd: 46 }, rabbit: { r: 7, spd: 40 }, hedgehog: { r: 7, spd: 14 }, badger: { r: 10, spd: 20 } };
@@ -89973,7 +89973,7 @@ async function showBrickVideo() {
 */
 (function () {
   const ART = (window.KREPLIN_ART_BASE || '../../art/raw/');
-  const MUSIC = 'media/nzz7c60eullrz8m7kvsaa.m4a';
+  const MUSIC = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/nzz7c60eullrz8m7kvsaa.m4a';
   const C = { red: '#d71920', redL: '#ff4a50', ink: '#0d1016', gold: '#f2c14e', good: '#3fbf6b', bad: '#e5484d', text: '#e9e6de', muted: '#8c93a8', panel: '#1d2230', line: '#3a4258' };
 
   // ---- tiny WebAudio sfx (no assets) ----
@@ -90497,11 +90497,11 @@ async function showBrickVideo() {
 */
 (function () {
   const ART = (window.KREPLIN_ART_BASE || '../../art/raw/');
-  const TRAIN_AUDIO = 'media/ziktyumzsjdl3lj4x2h3m.m4a';
+  const TRAIN_AUDIO = 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/ziktyumzsjdl3lj4x2h3m.m4a';
   const VIDEOS = {
-    brick: 'media/ocrti8q88tlvhrf8j1dly.mp4',
-    hgh: 'media/js9ro21itgzyufejmezps.mp4',
-    cocaine: 'media/xt4aysadhw6sxwksl674w.mp4',
+    brick: 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/ocrti8q88tlvhrf8j1dly.mp4',
+    hgh: 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/js9ro21itgzyufejmezps.mp4',
+    cocaine: 'https://cdn.jsdelivr.net/gh/Krelworld/Krelworld@93d063792696fb0ff0996aebdd7c4a5b738149d1/kreplin/site/media/xt4aysadhw6sxwksl674w.mp4',
   };
   const C = { red: '#d71920', redL: '#ff4a50', ink: '#0d1016', gold: '#f2c14e', good: '#3fbf6b', text: '#e9e6de', muted: '#8c93a8' };
 

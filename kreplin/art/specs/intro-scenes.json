@@ -1,0 +1,46 @@
+[
+ {
+  "name": "intro-gate",
+  "w": 384,
+  "h": 216,
+  "outline": "lineless",
+  "shading": "detailed shading",
+  "detail": "highly detailed",
+  "view": "side",
+  "seed": 11,
+  "description": "back entrance of a seedy nightclub at night next to a football stadium, a huge bald bouncer in a black bomber jacket standing arms crossed in the centre in front of a red door, red velvet rope on brass posts, pink neon glow, wet cobbles reflecting light, stadium floodlights glowing in the dark sky behind"
+ },
+ {
+  "name": "intro-gate-no",
+  "w": 384,
+  "h": 216,
+  "outline": "lineless",
+  "shading": "detailed shading",
+  "detail": "highly detailed",
+  "view": "side",
+  "seed": 14,
+  "description": "front view of a huge angry bald nightclub bouncer facing the viewer, black bomber jacket, his right arm stretched out horizontally pointing off to the left side, scowling, standing in front of a red nightclub door at night, red velvet rope on brass posts, harsh red light, wet tiled floor"
+ },
+ {
+  "name": "intro-title",
+  "w": 384,
+  "h": 216,
+  "outline": "lineless",
+  "shading": "detailed shading",
+  "detail": "highly detailed",
+  "view": "side",
+  "seed": 21,
+  "description": "exterior of a modern english football stadium at night seen from across the car park, red and white stands, four tall floodlight pylons blazing white light, glowing crowd haze above the roof, dark stormy navy sky with clouds, wet tarmac reflections, empty dark foreground at the bottom"
+ },
+ {
+  "name": "intro-contract",
+  "w": 384,
+  "h": 216,
+  "outline": "lineless",
+  "shading": "detailed shading",
+  "detail": "highly detailed",
+  "view": "high top-down",
+  "seed": 31,
+  "description": "a football chairman's mahogany desk at night seen from above, a blank contract document with a fountain pen, a glass of whisky, a cigar smoking in an ashtray, warm desk lamp light, red and white football scarf, stacks of banknotes"
+ }
+]

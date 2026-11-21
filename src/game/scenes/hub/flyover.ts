@@ -383,7 +383,13 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
   const NK = 3;
   const NHZ = 91;
   const nTex = sc.textures.exists("bg_kreddle_sky") ? sc.textures.get("bg_kreddle_sky") : null;
-  if (nTex && !nTex.has(CROP)) nTex.add(CROP, 0, 0, 9, 400, NHZ);
+  if (nTex && !nTex.has(CROP)) {
+    // (adding a frame makes it the texture's default: put the whole picture back as the default, or once the crop is
+    // removed again anything drawing "bg_kreddle_sky" plain, like Kreddle itself, has no frame and crashes)
+    const first = nTex.firstFrame;
+    nTex.add(CROP, 0, 0, 9, 400, NHZ);
+    nTex.firstFrame = first;
+  }
   if (nTex) nsky.add(sc.add.image(0, -NHZ * NK, "bg_kreddle_sky", CROP).setOrigin(0.5, 0).setScale(NK * 1.2, NK));
   nsky.add(sc.add.rectangle(0, -2, 2400, 2400, 0x3a1470).setOrigin(0.5, 0));
   nsky.add(sc.add.rectangle(0, -NHZ * NK + 2, 2400, 2400, 0x29025e).setOrigin(0.5, 1));
@@ -882,6 +888,7 @@ export function runFlyover(sc: Phaser.Scene, o: FlyoverOpts): Promise<{ skipped:
       for (const g of made) if (g !== fade && g.active) g.destroy();
       for (const k of [gKey, bKey, kd.groundKey, kd.atlasKey, "__fly_glow"]) if (sc.textures.exists(k)) sc.textures.remove(k);
       if (nTex?.has(CROP)) nTex.remove(CROP);
+      if (nTex && !nTex.has(nTex.firstFrame)) nTex.firstFrame = "__BASE";
       if (fade) {
         sc.tweens.add({ targets: fade, alpha: 0, duration: 380, delay: 60, onComplete: () => fade.destroy() });
       }

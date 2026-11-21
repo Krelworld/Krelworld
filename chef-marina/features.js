@@ -298,7 +298,8 @@ function startScenario(room) {
     () => { G.rory = true; rory.hidden = false; rory.room = room === 'yard' ? 'yard' : room; rory.x = clamp(marina.x + 70, 20, W - 20); rory.state = 'idle'; Audio2.sfx('knock'); setTimeout(() => { say('r_hi', rory).then(() => say('m_hi_rory')); }, 700); },
     () => { if (room === 'yard') return onEnterRoom(room); daddy.room = room; daddy.x = clamp(marina.x + 70, 30, W - 30); daddy.state = 'lie'; emit('zzz', daddy.x, daddy.y - 30); setTimeout(() => say('m_giggle'), 900); },
     () => { addMess(room === 'yard' ? 'living' : room, 4); setTimeout(() => say(pick(['m_uhoh', 'm_giggle'])), 600); },
-    () => { say(pick(['m_yay', 'm_happy', 'm_cooking'])); },
+    () => { say(pick(['m_yay', 'm_happy'])); },
+    () => { setTimeout(() => window.makeWish && makeWish(), 600); },
   ];
   setTimeout(() => pick(events)(), 700);
 }

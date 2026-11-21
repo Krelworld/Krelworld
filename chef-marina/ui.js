@@ -314,7 +314,7 @@ const UI = (() => {
   }
   // runway: she struts across the room, sparkles and camera flashes, family cheers
   function fashionShow() {
-    Audio2.Music.set('dress'); emit('confetti', marina.x, marina.y - 60, 40);
+    Audio2.Music.set('dress'); emit('confetti', marina.x, marina.y - 60, 40); window.reactTo && reactTo('style', 2600);
     say(G.outfit === 'fairy' ? 'm_fairy' : G.outfit === 'princess' ? 'm_princess' : pick(['m_look', 'm_cool', 'm_pretty']));
     const W = ROOMS[G.room].w, to = marina.x < W / 2 ? Math.min(W - 30, marina.x + 150) : Math.max(30, marina.x - 150);
     const iv = setInterval(() => { emit('sparkle', marina.x + rnd(-10, 10), marina.y - rnd(10, 70), 2); if (chance(0.25)) emit('star', marina.x, marina.y - 70, 1); }, 90);

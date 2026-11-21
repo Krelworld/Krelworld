@@ -131,7 +131,7 @@ const Studio = (() => {
     x.fillStyle = S.paper; x.fillRect(0, 0, o.width, o.height); x.drawImage(S.paint, 0, 0, o.width, o.height); x.drawImage(S.lines, 0, 0, o.width, o.height);
     const url = o.toDataURL('image/jpeg', 0.8), g = store.get('gallery', []); g.unshift(url); store.set('gallery', g.slice(0, 24)); store.set('lastDrawing', o.toDataURL('image/png')); S.dirty = false;
     if (silent === true) return url;
-    Audio2.jingle([0, 4, 7, 12, 16], 0.07); try { say('m_did_it'); } catch (e) { }
+    Audio2.jingle([0, 4, 7, 12, 16], 0.07); try { say('m_did_it'); window.reactTo && reactTo('artist', 1800); } catch (e) { }
     burst(S.W / 2, S.H / 2, 60); picMenu(url, true); return url;
   }
   // what to do with a picture: keep drawing, hang it on the wall, give it to someone, or bin it

@@ -14,7 +14,7 @@ const ROOMS = {
   playroom: { name: 'playroom', ico: '🧸', w: 352, wall: '#dcd8cc', wains: true, ceil: 'beams', floor: 'wood', left: 'kitchen', right: 'foyer',
     windows: [{ x: 22, w: 34, y: 34, h: 74 }, { x: 70, w: 34, y: 34, h: 74 }, { x: 236, w: 34, y: 34, h: 74 }] },
   foyer: { name: 'foyer', ico: '🚪', w: 272, wall: '#e3dfd6', ceil: 'beams', floor: 'wood', left: 'playroom', right: 'living', windows: [] },
-  bathroom: { name: 'bathroom', ico: '🚽', w: 252, wall: '#ebe8e2', bead: true, ceil: 'whiteplank', floor: 'marble', left: null, right: null,
+  bathroom: { name: 'bathroom', ico: '🚽', viewL: 'living', viewR: 'foyer', w: 252, wall: '#ebe8e2', bead: true, ceil: 'whiteplank', floor: 'marble', left: null, right: null,
     windows: [{ x: 108, w: 40, y: 30, h: 50 }] },
   living: { name: 'living', ico: '📺', w: 640, wall: '#e9e5dc', bead: true, ceil: 'beams', floor: 'wood', left: 'foyer', right: null,
     windows: [{ x: 10, w: 34, y: 36, h: 66 }, { x: 98, w: 34, y: 36, h: 66 }, { x: 534, w: 34, y: 36, h: 66 }, { x: 578, w: 34, y: 36, h: 66 }] },
@@ -145,9 +145,17 @@ function drawRoomBG(room) {
   if (img) {
     ctx.fillStyle = room === 'yard' ? (WEATHER === 'snow' ? '#dfe8f2' : '#9fd0f2') : '#1d1830'; ctx.fillRect(-10, -10, E.viewW + 20, SH + 20);
     ctx.drawImage(img, Math.round(-E.camX), 0);
-    if (room === 'yard') { // extend past the painted edges
-      if (E.camX < 0) ctx.drawImage(img, 0, 0, 1, SH, 0, 0, Math.ceil(-E.camX), SH);
-    }
+    // wide screens: show the rooms next door (dimmed) instead of empty bars, like a cutaway house
+    const gapL = Math.ceil(-E.camX), gapR = Math.ceil(E.camX + E.viewW - W);
+    const side = (nb, x0, gap, left) => {
+      if (gap <= 0) return; const im = nb && bgFor(nb);
+      if (im) { const nw = ROOMS[nb].w; if (left) ctx.drawImage(im, nw - gap, 0, gap, SH, x0, 0, gap, SH); else ctx.drawImage(im, 0, 0, Math.min(gap, nw), SH, x0, 0, Math.min(gap, nw), SH); }
+      else if (room === 'yard') ctx.drawImage(img, left ? 0 : W - 1, 0, 1, SH, x0, 0, gap, SH);
+      else { ctx.fillStyle = '#3b3050'; ctx.fillRect(x0, -40, gap, SH + 60); }
+      ctx.fillStyle = room === 'yard' ? 'rgba(0,0,0,0)' : 'rgba(20,14,40,.5)'; ctx.fillRect(x0, -40, gap, SH + 60);
+      ctx.fillStyle = '#2a2140'; ctx.fillRect(left ? x0 + gap - 3 : x0, -40, 3, SH + 60); // the wall between rooms
+    };
+    side(R.left || R.viewL, 0, gapL, true); side(R.right || R.viewR, Math.round(W - E.camX), gapR, false);
     return;
   }
   if (R.outside) return drawYardBG();

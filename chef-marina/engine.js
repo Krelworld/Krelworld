@@ -165,8 +165,11 @@ function drawParticles() {
 function resize() {
   const st = document.getElementById('stage'), r = st.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
   E.cv.width = Math.round(r.width * dpr); E.cv.height = Math.round(r.height * dpr);
-  E.scale = (r.height * dpr) / SH; E.viewW = E.cv.width / E.scale; E.dpr = dpr; E.cssScale = r.height / SH;
+  // sideways the picture is zoomed in a little (the ceiling is cropped, the floor stays put) so the room fills the screen
+  const zoom = r.width > r.height ? 1.16 : 1;
+  E.scale = (r.height * dpr) / SH * zoom; E.viewW = E.cv.width / E.scale; E.dpr = dpr; E.cssScale = r.height / SH * zoom;
+  E.offY = E.cv.height - SH * E.scale; E.cssOffY = r.height - SH * E.cssScale;
 }
 // world -> css px in stage
-function toScreen(x, y) { return [(x - E.camX) * E.cssScale, y * E.cssScale]; }
-function toWorld(px, py) { return [px / E.cssScale + E.camX, py / E.cssScale]; }
+function toScreen(x, y) { return [(x - E.camX) * E.cssScale, y * E.cssScale + (E.cssOffY || 0)]; }
+function toWorld(px, py) { return [px / E.cssScale + E.camX, (py - (E.cssOffY || 0)) / E.cssScale]; }

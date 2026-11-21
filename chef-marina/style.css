@@ -215,3 +215,21 @@ h1{margin:4px 0 14px;font-size:54px;color:#ffcf4a;text-shadow:0 4px 0 #b5482f,0 
 .acttray{position:absolute;left:6px;right:6px;top:64px;z-index:7;display:flex;gap:8px;overflow-x:auto;padding:6px 8px 10px;background:rgba(43,35,64,.6);border-radius:22px;scrollbar-width:none;animation:pop .2s both}
 .acttray::-webkit-scrollbar{display:none}
 .acttray .act{position:static;margin:0;flex:0 0 66px;width:66px;height:66px;line-height:66px;font-size:34px}
+
+/* ---- less empty space ---- */
+/* upright: a taller picture, with faces and the stop button in a slim strip under it and the mood faces at the bottom */
+@media (orientation:portrait){
+  #app{--stageH:min(114vw, calc(100% - 190px))}
+  #stage{height:var(--stageH)}
+  #moodbar{flex-wrap:nowrap;align-items:flex-end;align-content:flex-end;padding:8px 8px 14px;gap:6px}
+  .mood{max-width:none;border-radius:22px;font-size:min(11vw,56px)}
+}
+@media (orientation:portrait) and (min-height:150vw){
+  .facecard{position:fixed;top:calc(env(safe-area-inset-top) + var(--stageH) + 8px);width:min(21vw,96px)}
+  #stopBtn{position:fixed;left:50%;transform:translateX(-50%);bottom:auto;top:calc(env(safe-area-inset-top) + var(--stageH) + 16px)}
+}
+/* sideways: mood faces always fit top to bottom */
+@media (orientation:landscape){
+  #moodbar{top:74px;bottom:6px;right:calc(8px + env(safe-area-inset-right));padding:6px;gap:5px;justify-content:space-between}
+  #moodbar .mood{width:auto;height:auto;flex:1 1 0;min-height:0;aspect-ratio:1;max-height:64px;font-size:min(8vh,36px);border-radius:16px}
+}

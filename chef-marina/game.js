@@ -286,8 +286,8 @@ function update(dt) {
   updateFort(dt); updateParticles(dt); AI.update(dt); UI.update(); if (window.featTick) featTick(dt);
 }
 function render() {
-  const ctx = E.ctx; ctx.setTransform(E.scale, 0, 0, E.scale, 0, 0); ctx.imageSmoothingEnabled = false;
-  ctx.fillStyle = '#1d1830'; ctx.fillRect(-10, -10, E.viewW + 20, SH + 20);
+  const ctx = E.ctx; ctx.setTransform(E.scale, 0, 0, E.scale, 0, E.offY || 0); ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = '#1d1830'; ctx.fillRect(-10, -40, E.viewW + 20, SH + 60);
   drawRoomBG(G.room); drawProps(0); drawFort(false); drawMess();
   const items = [];
   for (const p of PROPS[G.room]) if (!isWallProp(p)) items.push({ y: p.y, f: () => drawProp(p) });

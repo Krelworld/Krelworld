@@ -23,7 +23,7 @@
   stage.append(dress);
 
   // ------------------------------------------------------------ alerts: tap to go straight there
-  let calmT = 0;
+  let calmT = 0, tvWas = false;
   const alertBox = mk('div', ''); alertBox.id = 'alerts'; stage.append(alertBox); const shown = {};
   // alerts and face cards whisk her straight there (no walking), and she puts down whatever she was lugging about
   function zipTo(room, x, then) {
@@ -68,6 +68,7 @@
   setInterval(() => {
     if (typeof marina === 'undefined') return;
     const q = quiet(), R = ROOMS[G.room];
+    const tvNow = !!(G.tv && G.room === 'living'); if (tvNow !== tvWas) { tvWas = tvNow; stage.classList.toggle('tvon', tvNow); resize(); }
     for (const { b, side } of arrows) { const to = side < 0 ? R.left : R.right, on = q && to && !G.busy && !G.tidy && !['bars', 'tantrum'].includes(marina.state); b.classList.toggle('off', !on); if (to && b.dataset.to !== to) { b.dataset.to = to; b.firstChild.textContent = ROOMS[to].ico; } }
     // the dress-up button only drifts in when she's standing about with nothing else going on
     const calm = q && !G.busy && !G.tv && !G.tidy && !G.chase && !G.holding && !marina.moving && marina.state === 'idle' && !marina.mount && !document.querySelector('.act,.alertb,.pichint,#wishBtn');
@@ -194,3 +195,5 @@
   };
 })();
 (function () { const s = document.createElement('style'); s.textContent = '@media (orientation:landscape){.facecard{top:8px;left:78px;width:min(11vw,84px);border-radius:16px}.facecard.right{left:auto;right:78px}#alerts{top:66px}}'; document.head.append(s); })();
+
+(function () { const s = document.createElement('style'); s.textContent = '@media (orientation:landscape){#stage.tvon #roombar,#stage.tvon #alerts{opacity:0;pointer-events:none}#roombar{transition:opacity .3s}}'; document.head.append(s); })();

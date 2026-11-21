@@ -120,7 +120,8 @@ function drawMarina(e) {
   if (st === 'swing') { const a = Math.sin(t * 2.6) * 0.6; const px = e.x, py = 60; const len = y - 40 - py; const sx = px + Math.sin(a) * len, sy2 = py + Math.cos(a) * len;
     const c = E.ctx; c.strokeStyle = '#333'; c.lineWidth = 1; c.beginPath(); c.moveTo(px - 4 - E.camX, py); c.lineTo(sx - 4 - E.camX, sy2); c.moveTo(px + 4 - E.camX, py); c.lineTo(sx + 4 - E.camX, sy2); c.stroke();
     rect(sx - 8, sy2, 16, 3, e.swingKind === 'saucer' ? '#2f8fe0' : '#2a7a3a'); drawSprite('marina_sit', sx, sy2 + 4, { flip, scale: S * 0.95, opt, rot: a * 0.5 }); return; }
-  if (st === 'bars') { const sw = Math.sin(t * 6) * 0.25; drawSprite(mBase(), e.x, y + 36, { flip, scale: S, opt, rot: sw }); return; }
+  if (st === 'bars') { const k = e.barMoving ? frameKey('marina_hang', t, 9) : 'marina_hang'; const b = visBox('marina_hang');
+    drawSprite(k || 'marina_hang', e.x, e.railY - b[1] * S, { flip, scale: S, opt: mOpt(), rot: e.barMoving ? 0 : Math.sin(t * 3) * 0.06 }); return; }
   let k = mBase();
   if (e.moving || st === 'run') k = frameKey(mWalk(), t, e.curSpeed > 90 ? 16 : 11) || k;
   let sy = 1;
@@ -153,7 +154,9 @@ function drawProps(z) {
     if (p.snowOnly && WEATHER !== 'snow') continue;
     if (p.id === 'blower' && G.holding && G.holding.type === 'blower') continue;
     if (p.id === 'armchair' && mommy.here && mommy.state === 'sit') continue;
-    if (p.k.startsWith('p:')) { drawProc(p); continue; }
+    if (p.k.startsWith('p:')) {
+      if (BAKED(p.k) && bgFor(G.room)) { if (G.bathLocked && p.to === 'bathroom') { rect(p.x - 7, p.y - 64, 14, 11, '#d33'); emoji('🔒', p.x, p.y - 58, 9); } continue; }
+      drawProc(p); continue; }
     let k = p.k, sc = p.scale || 1, opt = null;
     if (p.id === 'fridge' && G.fridgeOpen > 0) k = 'fridge_open';
     if (p.id === 'leafpile') sc = 0.5 + G.pile * 0.22;
@@ -322,6 +325,7 @@ function onTap(px, py) {
   if (G.chase && G.chase.fleeing) { marina.walkTo(wx, null, 92); return; }
   if (hit) return interact(hit, wx, wy);
   UI.closeActions();
+  if (marina.state === 'bars') { const mb = G.mb; if (!mb) return; if (Math.abs(wx - marina.x) < 14) return dropFromBars(); mb.dir = wx > marina.x ? 1 : -1; mb.go = true; return; }
   if (['tantrum', 'flip', 'swing', 'bars', 'perch'].includes(marina.state)) { if (marina.state === 'perch') return getDown(); if (marina.state === 'swing' || marina.state === 'bars') return leaveYardToy(); return; }
   if (marina.state === 'fort') { exitFort(); }
   if (marina.state === 'sit' || marina.state === 'sad' || marina.state === 'stomp' || marina.state === 'cheer') marina.state = 'idle';
@@ -394,7 +398,8 @@ function selfActions() {
   if (marina.state === 'perch') { a.push(A('🤸', doFlip)); if (daddy.here || rory.here) a.push(A('🐿️', flyingSquirrel)); a.push(A('⬇️', getDown)); return a; }
   if (marina.state === 'ride') { a.push(A('🐴', () => { say('m_giddyup'); say(marina.mount.id === 'daddy' ? 'd_horse' : 'r_horse', marina.mount); })); a.push(A('⬇️', dismount)); return a; }
   if (marina.state === 'wheel') { a.push(A('⬇️', leaveWheelchair)); return a; }
-  if (marina.state === 'swing' || marina.state === 'bars') { a.push(A('⬇️', leaveYardToy)); return a; }
+  if (marina.state === 'bars') { a.push(A('⬅️', () => { G.mb.dir = -1; G.mb.go = true; }), A('⬇️', dropFromBars), A('➡️', () => { G.mb.dir = 1; G.mb.go = true; })); return a; }
+  if (marina.state === 'swing') { a.push(A('⬇️', leaveYardToy)); return a; }
   if (marina.state === 'fort') return fortActions();
   if (G.holding) a.push(A('⬇️', dropHolding));
   a.push(A('🤸', doFlip), A('💃', () => { marina.state = 'cheer'; say(pick(['m_yay', 'm_giggle', 'm_happy'])); emit('note', marina.x, marina.y - 70, 3); setTimeout(() => marina.state === 'cheer' && (marina.state = 'idle'), 2200); }));
@@ -459,7 +464,8 @@ function propActions(p) {
     case 'garage': a.push(A('🔒', () => { Audio2.sfx('knock'); say('m_hmm'); })); break;
     case 'car': a.push(A('📯', () => { Audio2.blip(-5, 'square', 0.3, 0.3); setTimeout(() => Audio2.blip(-5, 'square', 0.3, 0.3), 350); })); break;
     case 'tree': a.push(A('🍂', () => { for (let i = 0; i < 30; i++) emit('leaf', p.x + rnd(-30, 30), p.y - 100 + rnd(0, 40)); Audio2.sfx('leaves'); })); break;
-    case 'swingset': a.push(A('🟦', () => yardToy('saucer', p)), A('🟩', () => yardToy('belt', p)), A('🐒', () => yardToy('bars', p)), A('🧗', () => yardToy('climb', p))); break;
+    case 'monkeybars': a.push(A('🐒', () => monkeyBars(p))); break;
+    case 'swingset': a.push(A('🟦', () => yardToy('saucer', p)), A('🟩', () => yardToy('belt', p)), A('🧗', () => yardToy('climb', p))); break;
     case 'leafpile': if (G.pile >= 2) a.push(A('🦘', jumpLeaves)); a.push(A('🍂', () => { G.pile = Math.min(5, G.pile + 0.4); emit('leaf', p.x, p.y - 10, 8); Audio2.sfx('leaves'); })); break;
     case 'blower': a.push(A('🍃', () => { G.holding = { type: 'blower' }; Audio2.sfx('leafblower'); say('m_leaves'); })); break;
     case 'snowman': a.push(A('⛄', buildSnowman)); if (G.snowman >= 3) a.push(A('💥', () => { G.snowman = 0; for (let i = 0; i < 30; i++) emit('snow', p.x + rnd(-15, 15), p.y - 30, 1, { vy: rnd(-80, -20), vx: rnd(-60, 60), g: 200, life: 1.5 }); Audio2.sfx('crunch_snow'); say('m_giggle'); })); break;
@@ -620,7 +626,7 @@ function finishDish(dish) {
 function serve(e) {
   const d = G.holding.dish; G.busy = true; AI.hold(e, true); e.dir = Math.sign(marina.x - e.x) || 1; e.state = 'idle'; e.stop();
   const isD = e === daddy, P2 = isD ? 'd_' : 'r_';
-  say(pick(['m_hewe', 'm_made'])).then(async () => {
+  (d.say ? Audio2.chain(d.say) : Promise.resolve()).then(() => say(pick(['m_hewe', 'm_made']))).then(async () => {
     G.holding = null; e.plate = d;
     if (d.score >= 3) { e.state = 'eat'; Audio2.jingle([0, 4, 7, 12, 16], 0.07); await sleep(900); await say(isD ? pick(['d_food_great', 'd_food_good']) : 'r_food_great', e); emit('heart', e.x, e.y - 90, 8); emit('star', e.x, e.y - 90, 6); say('m_yay'); marina.state = 'cheer'; }
     else if (d.score >= 1) { e.state = 'eat'; await sleep(700); await say(isD ? 'd_food_good' : 'r_food_good', e); emit('heart', e.x, e.y - 90, 4); say('m_yummy'); }
@@ -889,14 +895,40 @@ function leaveWheelchair() { marina.state = 'idle'; clearTimeout(G.wheelT); Audi
 // ---------------------------------------------------------------- yard
 function yardToy(kind, p) {
   UI.closeActions();
-  if (kind === 'saucer' || kind === 'belt') { approach(kind === 'saucer' ? 430 : 510, () => { marina.state = 'swing'; marina.swingKind = kind; marina.x = kind === 'saucer' ? 430 : 510; say('m_swing'); Audio2.whoosh(true); }, 0); return; }
+  if (kind === 'saucer' || kind === 'belt') { approach(kind === 'saucer' ? 445 : 522, () => { marina.state = 'swing'; marina.swingKind = kind; marina.x = kind === 'saucer' ? 445 : 522; say('m_swing'); Audio2.whoosh(true); }, 0); return; }
   if (kind === 'bars') {
     approach(448, () => { marina.state = 'bars'; marina.x = 448; marina.offY = -88; say('m_monkey'); let dir = 1; clearInterval(G.barIv);
       G.barIv = setInterval(() => { if (marina.state !== 'bars') return clearInterval(G.barIv); marina.x += dir * 0.8; marina.dir = dir; if (marina.x > 492 || marina.x < 446) dir *= -1; if (chance(0.03)) Audio2.blip(pick([0, 4, 7]), 'square', 0.06); }, 30); }, 0); return;
   }
-  if (kind === 'climb') { approach(458, () => { G.busy = true; let t = 0; say('m_monkey'); const iv = setInterval(() => { t += 0.05; marina.offY = -Math.min(1, t / 1.4) * 70; marina.x = 458 + Math.sin(t * 12) * 1.5; if (t >= 1.4) { clearInterval(iv); marina.state = 'perch'; G.busy = false; say('m_did_it'); } }, 50); }, 0); }
+  if (kind === 'climb') { approach(470, () => { G.busy = true; let t = 0; say('m_monkey'); const iv = setInterval(() => { t += 0.05; marina.offY = -Math.min(1, t / 1.4) * 70; marina.x = 470 + Math.sin(t * 12) * 1.5; if (t >= 1.4) { clearInterval(iv); marina.state = 'perch'; G.busy = false; say('m_did_it'); } }, 50); }, 0); }
 }
-function leaveYardToy() { clearInterval(G.barIv); marina.state = 'idle'; marina.offY = 0; Audio2.whoosh(false); }
+function leaveYardToy() { if (marina.state === 'bars') return dropFromBars(); clearInterval(G.barIv); marina.state = 'idle'; marina.offY = 0; Audio2.whoosh(false); }
+// ---- monkey bars: climb the left ladder, swing hand over hand, drop off
+function monkeyBars(p) {
+  const sc = p.scale || 1, b = visBox(p.k), L = p.x + b[0] * sc + 8, R = p.x + b[2] * sc - 8, railY = p.y + b[1] * sc + 4;
+  const start = marina.x > p.x ? R : L;
+  approach(start, () => {
+    G.busy = true; say('m_monkey'); let t = 0; const feetTop = railY + (visBox('marina_hang')[3] - visBox('marina_hang')[1]) * marina.scale;
+    const iv = setInterval(() => { t += 0.05; marina.offY = -(FLOOR - feetTop) * Math.min(1, t / 1.0); marina.x = start + Math.sin(t * 14) * 1.2; if (chance(0.15)) Audio2.blip(pick([0, 2, 4]), 'triangle', 0.04, 0.08);
+      if (t >= 1.0) { clearInterval(iv); marina.x = start; marina.offY = 0; marina.state = 'bars'; marina.railY = railY; G.busy = false;
+        G.mb = { L, R, dir: start === L ? 1 : -1, go: true }; marina.dir = G.mb.dir; clearInterval(G.barIv); G.barIv = setInterval(barStep, 30); } }, 50);
+  }, 0);
+}
+function barStep() {
+  const mb = G.mb; if (!mb || marina.state !== 'bars') { clearInterval(G.barIv); return; }
+  marina.barMoving = mb.go;
+  if (!mb.go) return;
+  marina.dir = mb.dir; marina.x += mb.dir * 0.75;
+  if (Math.floor(marina.x / 9) !== Math.floor((marina.x - mb.dir * 0.75) / 9)) { Audio2.blip(pick([0, 4, 7, 9]), 'square', 0.05, 0.1); if (chance(0.3)) emit('sparkle', marina.x, marina.railY, 2); }
+  if (marina.x >= mb.R || marina.x <= mb.L) { marina.x = clamp(marina.x, mb.L, mb.R); mb.go = false; marina.barMoving = false; mb.done = (mb.done || 0) + 1;
+    setTimeout(() => { if (marina.state === 'bars' && !mb.go) dropFromBars(true); }, 900); }
+}
+function dropFromBars(finished) {
+  if (marina.state !== 'bars') return; clearInterval(G.barIv);
+  const feet = marina.railY + (visBox('marina_hang')[3] - visBox('marina_hang')[1]) * marina.scale;
+  marina.state = 'perch'; marina.offY = feet - FLOOR; marina.barMoving = false; G.mb = null; getDown();
+  setTimeout(() => { emit('dust', marina.x, FLOOR, 6); if (finished) { marina.state = 'cheer'; emit('confetti', marina.x, marina.y - 60, 25); Audio2.jingle([0, 4, 7, 12, 16]); say('m_did_it'); setTimeout(() => marina.state === 'cheer' && (marina.state = 'idle'), 1600); } }, 350);
+}
 function blowLeaves(wx) {
   Audio2.sfx('leafblower', { vol: 0.5 });
   for (let i = 0; i < 16; i++) emit('leaf', marina.x + marina.dir * 14, FLOOR, 1, { vx: Math.sign(260 - marina.x) * rnd(60, 140), vy: rnd(-60, -10) });
@@ -984,7 +1016,7 @@ function onEnterRoomBy(e) { if (G.busy) return; if (G.lastGreet[e.id] && E.t - G
 async function boot() {
   E.cv = document.getElementById('cv'); E.ctx = E.cv.getContext('2d');
   const lb = document.querySelector('#loadbar i');
-  await loadAtlas(); lb.style.width = '40%'; await loadFaces(); lb.style.width = '70%';
+  loadBackgrounds(); await loadAtlas(); lb.style.width = '40%'; await loadFaces(); lb.style.width = '70%';
   resize(); window.addEventListener('resize', () => { resize(); }); window.addEventListener('orientationchange', () => setTimeout(resize, 300));
   makeEnts(); UI.init(); drawTitle(); lb.style.width = '100%';
   requestAnimationFrame(loop);

@@ -178,7 +178,16 @@ const Audio2 = (() => {
     }
   };
 
+  // play several voice clips back to back (e.g. a dish name built from words)
+  async function chain(keys, speaker = 'marina') {
+    if (!ac) return;
+    const bufs = await Promise.all(keys.map(k => load('assets/vo/' + k + '.mp3')));
+    if (voiceNow[speaker]) { try { voiceNow[speaker].stop(); } catch (e) {} }
+    let t = 0.05; const tot = bufs.reduce((s, b) => s + (b ? b.duration : 0), 0); duck(tot + 0.3);
+    for (const b of bufs) { if (!b) continue; const s = playBuf(b, voiceGain, { when: t }); voiceNow[speaker] = s; t += b.duration - 0.04; }
+    return wait(t * 1000);
+  }
   function toggleMute() { muted = !muted; if (master) master.gain.value = muted ? 0 : 0.9; return muted; }
 
-  return { init, load, preload, voice, speak, sfx, fart, blip, jingle, whoosh, noise, Music, toggleMute, get ctx() { return ac; } };
+  return { init, load, preload, chain, voice, speak, sfx, fart, blip, jingle, whoosh, noise, Music, toggleMute, get ctx() { return ac; } };
 })();

@@ -9,12 +9,12 @@ const ROOMS = {
   yard: { name: 'yard', ico: '🌳', w: 560, outside: true, left: null, right: null },
   dining: { name: 'dining', ico: '🎨', w: 340, wall: '#e6e1d8', bead: true, ceil: 'white', floor: 'wood', left: 'yard', right: 'kitchen',
     windows: [{ x: 196, w: 118, y: 34, h: 92, big: true }] },
-  kitchen: { name: 'kitchen', ico: '🍳', w: 390, wall: '#ece9e2', subway: true, ceil: 'beams', floor: 'tile', left: 'dining', right: 'playroom',
+  kitchen: { name: 'kitchen', ico: '🍳', w: 392, wall: '#ece9e2', subway: true, ceil: 'beams', floor: 'tile', left: 'dining', right: 'playroom',
     windows: [{ x: 96, w: 52, y: 36, h: 46 }] },
-  playroom: { name: 'playroom', ico: '🧸', w: 350, wall: '#dcd8cc', wains: true, ceil: 'beams', floor: 'wood', left: 'kitchen', right: 'foyer',
+  playroom: { name: 'playroom', ico: '🧸', w: 352, wall: '#dcd8cc', wains: true, ceil: 'beams', floor: 'wood', left: 'kitchen', right: 'foyer',
     windows: [{ x: 22, w: 34, y: 34, h: 74 }, { x: 70, w: 34, y: 34, h: 74 }, { x: 236, w: 34, y: 34, h: 74 }] },
-  foyer: { name: 'foyer', ico: '🚪', w: 270, wall: '#e3dfd6', ceil: 'beams', floor: 'wood', left: 'playroom', right: 'living', windows: [] },
-  bathroom: { name: 'bathroom', ico: '🚽', w: 250, wall: '#ebe8e2', bead: true, ceil: 'whiteplank', floor: 'marble', left: null, right: null,
+  foyer: { name: 'foyer', ico: '🚪', w: 272, wall: '#e3dfd6', ceil: 'beams', floor: 'wood', left: 'playroom', right: 'living', windows: [] },
+  bathroom: { name: 'bathroom', ico: '🚽', w: 252, wall: '#ebe8e2', bead: true, ceil: 'whiteplank', floor: 'marble', left: null, right: null,
     windows: [{ x: 108, w: 40, y: 30, h: 50 }] },
   living: { name: 'living', ico: '📺', w: 640, wall: '#e9e5dc', bead: true, ceil: 'beams', floor: 'wood', left: 'foyer', right: null,
     windows: [{ x: 22, w: 34, y: 36, h: 66 }, { x: 106, w: 34, y: 36, h: 66 }, { x: 548, w: 34, y: 36, h: 66 }, { x: 596, w: 34, y: 36, h: 66 }] },
@@ -29,9 +29,8 @@ const PROPS = {
     { id: 'sidedoor', k: 'p:yarddoor', x: 178, y: BACK, w: 22, h: 44, a: 'door', to: 'dining', tx: 26 },
     { id: 'frontdoor_out', k: 'p:yarddoor2', x: 330, y: BACK, w: 24, h: 46, a: 'door', to: 'foyer', tx: 60 },
     { id: 'car', k: 'car', x: 70, y: 168, z: 1, a: 'car' },
-    { id: 'oak', k: 'oak_tree', x: 410, y: 150, a: 'tree' },
-    { id: 'pine', k: 'pine_tree', x: 540, y: 148, nohit: true },
-    { id: 'swing', k: 'swingset', x: 470, y: 172, z: 0, a: 'swingset', hitPad: 0 },
+    { id: 'mbars', k: 'monkeybars', x: 372, y: 189, z: 0, a: 'monkeybars', scale: 1.25 },
+    { id: 'swing', k: 'swingset', x: 480, y: 172, z: 0, a: 'swingset', hitPad: 0, scale: 0.88 },
     { id: 'leafpile', k: 'leaf_pile', x: 260, y: 174, z: 1, a: 'leafpile', fallOnly: true },
     { id: 'blower', k: 'leaf_blower', x: 215, y: 172, z: 1, a: 'blower', fallOnly: true },
     { id: 'snowman', k: 'p:snowman', x: 260, y: 174, z: 1, a: 'snowman', snowOnly: true },
@@ -133,8 +132,24 @@ function drawWindow(x, y, w, h, big) {
   if (!big) for (let j = 1; j < rows; j++) rect(x, y + (h / rows) * j - 1, w, 2, '#fbfbf8');
   rect(x - 4, y + h + 2, w + 8, 3, '#f0efe8');
 }
+// detailed painted backgrounds (PixelLab), with the procedural drawing as fallback
+const BG = {};
+const BAKED = k => k.startsWith('p:') && !['p:shower', 'p:tpholder', 'p:snowman'].includes(k);
+function loadBackgrounds() {
+  for (const k of ['dining', 'kitchen', 'playroom', 'foyer', 'bathroom', 'living', 'yard_fall', 'yard_snow']) { const i = new Image(); i.src = 'assets/bg/' + k + '.png'; BG[k] = i; }
+}
+function bgFor(room) { const i = BG[room === 'yard' ? 'yard_' + WEATHER : room]; return i && i.complete && i.naturalWidth ? i : null; }
 function drawRoomBG(room) {
   const R = ROOMS[room], W = R.w, ctx = E.ctx;
+  const img = bgFor(room);
+  if (img) {
+    ctx.fillStyle = room === 'yard' ? (WEATHER === 'snow' ? '#dfe8f2' : '#9fd0f2') : '#1d1830'; ctx.fillRect(-10, -10, E.viewW + 20, SH + 20);
+    ctx.drawImage(img, Math.round(-E.camX), 0);
+    if (room === 'yard') { // extend past the painted edges
+      if (E.camX < 0) ctx.drawImage(img, 0, 0, 1, SH, 0, 0, Math.ceil(-E.camX), SH);
+    }
+    return;
+  }
   if (R.outside) return drawYardBG();
   rect(0, 0, W, WALL_Y, R.wall);
   if (R.bead) for (let x = 0; x < W; x += 7) rect(x, 14, 1, WALL_Y - 14, 'rgba(0,0,0,.06)');
@@ -295,3 +310,7 @@ const SAY_ICON = {
   r_vomit: '🤮', r_tp_thanks: '🧻🙏', r_love: '💖🐻', r_comfort: '🤗', r_climb: '🐒⚠️', r_hi3: '🙌', r_play_yes2: '🤫🏰', r_food_good: '😋', r_comfort2: '🤗', r_tantrum: '🫁💙',
   r_catch: '🙌🐿️', r_horse: '🐴', r_chase: '👹', r_caught: '🤣', r_tidy: '🧹🏁', r_good: '🙌⭐', r_tv: '🫠📺', r_wow: '🤩', r_giggle: '🤣', r_fort_down: '🏚️💤', r_cat: '🐱🫳',
 };
+
+// spoken/display names (clips: assets/vo/w_i_<key>, w_a_<adj>, w_d_<art>)
+const ING_WORD = {"milk": "Milk", "eggs": "Eggs", "cola": "Cola", "juicebox": "Juice Box", "whip": "Whipped Cream", "creamcheese": "Cream Cheese", "mustard": "Mustard", "worcester": "Brown Sauce", "garlic": "Garlic", "pizzabox": "Pizza", "bread": "Bread", "cheese": "Cheese", "strawberry": "Strawberry", "banana": "Banana", "pasta": "Spaghetti", "ketchup": "Ketchup", "chocolate": "Chocolate", "sprinkles": "Sprinkles", "spinach": "Spinach", "fish": "Fish", "carrot": "Carrot", "butter": "Butter", "flour": "Flour", "sugar": "Sugar", "pepper": "Chili", "pickles": "Pickles", "icecream": "Ice Cream", "broccoli": "Broccoli", "sausage": "Sausage", "catfood": "Cat Food", "cinnamon": "Cinnamon", "rice": "Rice", "peanutbutter": "Peanut Butter", "marshmallow": "Marshmallow", "lemon": "Lemon", "onion": "Onion", "tomato": "Tomato", "honey": "Honey", "cereal": "Cereal", "crackers": "Crackers", "apple": "Apple", "blueberry": "Blueberry", "bacon": "Bacon", "beans": "Beans", "oatmeal": "Oatmeal", "yogurt": "Yogurt", "oj": "Orange Juice", "hotsauce": "Hot Sauce", "mayo": "Mayo", "jam": "Jelly", "tortilla": "Tortilla", "ham": "Ham", "nuggets": "Nuggets", "peas": "Peas", "waffles": "Waffles", "avocado": "Avocado", "grapes": "Grapes", "watermelon": "Watermelon", "potato": "Potato", "popcorn": "Popcorn", "goldfish": "Fishy Crackers", "ramen": "Noodles", "soysauce": "Soy Sauce", "pickled_egg": "Pickled Egg", "olives": "Olives", "cocoa": "Cocoa", "babyfood": "Baby Food", "coffee": "Coffee", "sardines": "Sardines", "gummies": "Gummy Bears", "pumpkin": "Pumpkin", "orange": "Orange", "pear": "Pear", "chicken": "Chicken", "cookiedough": "Cookie Dough", "hummus": "Hummus", "pineapple": "Pineapple", "cucumber": "Cucumber", "corn": "Corn", "vanilla": "Vanilla", "syrup": "Maple Syrup", "tuna": "Tuna", "eggnog": "Eggnog"};
+const DISH_WORD = {"cake": "Cake", "cupcakes": "Cupcakes", "pancakes": "Pancakes", "smoothie": "Smoothie", "milkshake": "Milkshake", "soup": "Soup", "sandwich": "Sandwich", "tower": "Tower", "pizza": "Pizza", "spaghetti": "Spaghetti", "omelette": "Omelette", "cookies": "Cookies", "pie": "Pie", "popsicle": "Ice Pop", "sundae": "Sundae", "iceblock": "Ice Block", "salad": "Salad", "burnt": "Charcoal Surprise", "slime": "Slime", "sludge": "Sludge", "friedrice": "Fried Rice", "toast": "Toast", "pudding": "Wobble Pudding", "casserole": "Casserole", "hotdog": "Hot Dog", "fishdish": "Fish Feast", "stew": "Stew", "rainbowcake": "Rainbow Stack", "grossshake": "Swamp Shake", "frozenmess": "Frozen Mystery"};

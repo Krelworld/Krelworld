@@ -117,7 +117,7 @@ const UI = (() => {
       };
       const fill = () => {
         grid.innerHTML = ''; srow.querySelectorAll('.pbtn').forEach((x, i) => x.classList.toggle('on', SHELVES[i][0] === shelf));
-        for (const k of PANTRY[shelf]) grid.append(el('button', { class: 'tile', on: tap(() => { if (chosen.length >= 4) { Audio2.blip(-12); return; } chosen.push(k); Audio2.blip(pick([0, 2, 4, 7, 9, 12])); redraw(); }) }, img('ing_' + k)));
+        for (const k of PANTRY[shelf]) grid.append(el('button', { class: 'tile', on: tap(() => { if (chosen.length >= 4) { Audio2.blip(-12); return; } chosen.push(k); Audio2.blip(pick([0, 2, 4, 7, 9, 12])); Audio2.voice('w_i_' + k, 'marina'); redraw(); }) }, img('ing_' + k)));
       };
       for (const [s, ico] of SHELVES) srow.append(el('button', { class: 'pbtn', style: { fontSize: '36px', minWidth: '70px', height: '66px' }, on: tap(() => { shelf = s; Audio2.whoosh(); fill(); }) }, ico));
       for (const [m, ico] of METHODS) mrow.append(el('button', { class: 'pbtn', style: { fontSize: '38px', minWidth: '70px', height: '70px' }, on: tap(() => runMethod(m, [...chosen])) }, ico));
@@ -188,14 +188,15 @@ const UI = (() => {
       toast: 'Toast', pudding: 'Wobble Pudding', casserole: 'Casserole', hotdog: 'Hot Dog', fishdish: 'Fish Feast', stew: 'Stew', rainbowcake: 'Rainbow Stack', grossshake: 'Swamp Shake', frozenmess: 'Frozen Mystery' };
     const ADJ = { stack: ['Wobbly', 'Mega', 'Tippy'], mix: ['Mixy', 'Swirly', 'Squishy'], fry: ['Crispy', 'Sizzly', 'Golden'], bake: ['Baked', 'Puffy', 'Toasty'], freeze: ['Frosty', 'Brrr', 'Icy'], blend: ['Whizzy', 'Zoomy', 'Bubbly'] };
     const adj = score >= 3 ? pick(['Magic', 'Super', 'Princess', 'Yummy']) : score <= -3 ? pick(['Stinky', 'Spooky', 'Gloopy', 'Monster']) : pick(ADJ[method]);
-    const uniq = [...new Set(ings)]; const name = `${adj} ${ING_NAME[uniq[0]]}${uniq[1] ? ' ' + ING_NAME[uniq[1]] : ''} ${NOUN[art]}`;
-    return { art, score, name, tint, ings, method };
+    const uniq = [...new Set(ings)].slice(0, 2); const name = `${adj} ${uniq.map(k => ING_WORD[k]).join(' ')} ${DISH_WORD[art]}`;
+    const say = ['w_a_' + adj.toLowerCase(), ...uniq.map(k => 'w_i_' + k), 'w_d_' + art];
+    return { art, score, name, tint, ings, method, say };
   }
   function showDish(body, d) {
     body.innerHTML = '';
     const c = document.createElement('canvas'); const s = spriteCanvas('dish_' + d.art, d.tint ? { tint: d.tint } : null); c.width = s.width; c.height = s.height; c.getContext('2d').drawImage(s, 0, 0);
     const faces = d.score >= 3 ? '😋😋😋' : d.score >= 1 ? '😋😋' : d.score >= 0 ? '🙂' : d.score >= -2 ? '😬' : d.score >= -4 ? '🤢🤢' : '🤮🤮🤮';
-    const res = el('div', { class: 'result' }, c, el('div', { class: 'stars' }, faces),
+    c.addEventListener('pointerup', () => Audio2.chain(d.say)); const res = el('div', { class: 'result' }, c, el('div', { class: 'stars' }, faces),
       el('div', { style: { fontSize: '22px', opacity: .85 } }, d.name),
       el('div', { class: 'row' },
         el('button', { class: 'pbtn', style: { width: '90px', height: '90px', fontSize: '48px' }, on: tap(() => { closePanel(); finishDish(d); say('m_yay'); }) }, '✅'),
@@ -203,7 +204,7 @@ const UI = (() => {
     body.append(res);
     Audio2.jingle(d.score >= 0 ? [0, 4, 7, 12, 16] : [12, 11, 6, 1, -6], 0.09, d.score >= 0 ? 'square' : 'sawtooth');
     for (let i = 0; i < 20; i++) emit('confetti', marina.x, marina.y - 60);
-    setTimeout(() => Audio2.speak(d.name), 500);
+    setTimeout(() => Audio2.chain(d.say), 500);
     setTimeout(() => say(d.score >= 1 ? 'm_wow' : d.score >= 0 ? 'm_yummy' : 'm_giggle'), 2400);
   }
 
@@ -371,7 +372,7 @@ const UI = (() => {
       for (const [r, [x, y, w, h]] of Object.entries(L)) {
         const who = [[daddy, '👨'], [mommy, '👩'], [rory, '🧔'], [niko, '🐱'], [miles, '👶']].filter(([e]) => e.room === r && !e.hidden && !(e === miles && mommy.holdingMiles)).map(x => x[1]).join('');
         const extra = (r === 'playroom' && G.poop ? '💩' : '') + (r === 'living' && G.tv ? '📺' : '') + (G.fort && G.fort.room === r ? '🏰' : '');
-        g.append(el('button', { class: 'room' + (G.room === r ? ' here' : ''), style: { left: x + '%', top: y + '%', width: w + '%', height: h + '%', background: r === 'yard' ? '#5f8a3a' : '#7a6aa8' }, on: tap(() => { closePanel(); if (r !== G.room) { if (marina.mount) dismount(); if (marina.state === 'wheel') leaveWheelchair(); if (['perch', 'swing', 'bars', 'fort'].includes(marina.state)) { if (marina.state === 'fort') exitFort(); marina.state = 'idle'; marina.offY = 0; } changeRoom(r, null, r === 'living' ? 300 : ROOMS[r].w / 2); } }) },
+        g.append(el('button', { class: 'room' + (G.room === r ? ' here' : ''), style: { left: x + '%', top: y + '%', width: w + '%', height: h + '%', background: r === 'yard' ? '#5f8a3a' : '#7a6aa8' }, on: tap(() => { closePanel(); if (r !== G.room) { if (marina.mount) dismount(); if (marina.state === 'wheel') leaveWheelchair(); if (marina.state === 'bars') { clearInterval(G.barIv); G.mb = null; } if (['perch', 'swing', 'bars', 'fort'].includes(marina.state)) { if (marina.state === 'fort') exitFort(); marina.state = 'idle'; marina.offY = 0; } changeRoom(r, null, r === 'living' ? 300 : ROOMS[r].w / 2); } }) },
           (r === 'yard' ? (WEATHER === 'snow' ? '⛄' : '🍂') : ROOMS[r].ico) + extra, el('div', { class: 'who' }, who)));
       }
       b.append(g);

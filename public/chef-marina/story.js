@@ -60,7 +60,7 @@
       Promise.race([pr, new Promise(r => setTimeout(r, 30000))]).then(() => setTimeout(() => { if (tok === myT && box) show(i + 1); }, 900));
     }
     function end() {
-      page.innerHTML = '<div class="st-end">⭐<br><span>The End</span></div>'; dots.innerHTML = ''; next.style.visibility = 'hidden'; Audio2.jingle([0, 4, 7, 12, 16], 0.09);
+      window.did && did('story'); page.innerHTML = '<div class="st-end">⭐<br><span>The End</span></div>'; dots.innerHTML = ''; next.style.visibility = 'hidden'; Audio2.jingle([0, 4, 7, 12, 16], 0.09);
       const again = press(mk('button', 'st-again', '🔁'), () => read(s, sp, who)), more = press(mk('button', 'st-again', '📚'), shelf), ok = press(mk('button', 'st-again go', '✅'), () => close(true, who));
       const row = mk('div', 'st-row'); row.append(again, more, ok); page.append(row);
     }

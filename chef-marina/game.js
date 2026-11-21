@@ -653,7 +653,7 @@ function finishDish(dish) {
 function serve(e) {
   const d = G.holding.dish; G.busy = true; AI.hold(e, true); e.dir = Math.sign(marina.x - e.x) || 1; e.state = 'idle'; e.stop();
   const isD = e === daddy, P2 = isD ? 'd_' : 'r_';
-  (d.say ? Audio2.chain(d.say) : Promise.resolve()).then(() => say(pick(['m_hewe', 'm_made']))).then(async () => {
+  announceDish(d).then(() => say('m_hewe')).then(async () => {
     G.holding = null; e.plate = d;
     if (d.score >= 3) { e.state = 'eat'; Audio2.jingle([0, 4, 7, 12, 16], 0.07); await sleep(900); await say(isD ? pick(['d_food_great', 'd_food_good']) : 'r_food_great', e); emit('heart', e.x, e.y - 90, 8); emit('star', e.x, e.y - 90, 6); say('m_yay'); marina.state = 'cheer'; }
     else if (d.score >= 1) { e.state = 'eat'; await sleep(700); await say(isD ? 'd_food_good' : 'r_food_good', e); emit('heart', e.x, e.y - 90, 4); say('m_yummy'); }

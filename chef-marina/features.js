@@ -254,7 +254,7 @@ function openReels() {
   const cv = phone.querySelector('canvas'), x = cv.getContext('2d'); x.imageSmoothingEnabled = false;
   let sy = null; phone.addEventListener('pointerdown', e => sy = e.clientY); phone.addEventListener('pointerup', e => { if (sy != null && sy - e.clientY > 40) next(); sy = null; });
   function play() {
-    t0 = performance.now(); { const k = 'reel_' + REELS[idx]; Audio2.load('assets/vo/' + k + '.mp3').then(b => { if (b && !p.classList.contains('hidden') && 'reel_' + REELS[idx] === k) Audio2.chain([k], 'reel'); else if (!b) Audio2.jingle([0, 4, 7, 4, 12], 0.1); }); }
+    t0 = performance.now(); { const k = 'reel_' + REELS[idx]; Audio2.load('assets/vo/' + k + '.mp3').then(b => { if (b && !p.classList.contains('hidden') && 'reel_' + REELS[idx] === k) Audio2.chain([k], 'reel', 0.75); else if (!b) Audio2.jingle([0, 4, 7, 4, 12], 0.1); }); }
     seen++;
     setTimeout(() => { if (!p.classList.contains('hidden')) say(pick(['m_laugh', 'm_laugh2', 'm_giggle'])); }, 2600);
     if (seen >= 6 && !daddyCame && !daddy.hidden && daddy.state !== 'toilet') {
@@ -600,3 +600,8 @@ featTick = function (dt) {
     const p = pick(ps); G.bounce = { id: p.id, t0: E.t }; emit('sparkle', p.x, p.y - 24, 6);
   }
 };
+
+// ------------------------------------------------------------------ presenting food: "I made... <dish name>!" to anyone
+function announceDish(d) { UI.bubble(marina, '🍽️✨', 2600); return Audio2.load('assets/vo/m_i_made.mp3').then(b => Audio2.chain((b ? ['m_i_made'] : []).concat(d && d.say ? d.say : []), 'marina')); }
+const _serveMommy2 = serveMommy;
+serveMommy = function () { const d = G.holding && G.holding.dish; G.busy = true; mommy.dir = Math.sign(marina.x - mommy.x) || 1; announceDish(d).then(() => { G.busy = false; _serveMommy2(); }); };

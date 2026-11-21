@@ -140,7 +140,7 @@ const UI = (() => {
       ctl.append(undo, clear, next);
       const redraw = () => {
         tray.innerHTML = '';
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 5; i++) {
           const k = cookChosen[i];
           tray.append(k ? el('button', { class: 'slot full', on: tap(() => { Audio2.voice('w_i_' + k, 'marina'); cookChosen.splice(i, 1); Audio2.blip(-5); redraw(); }) }, img('ing_' + k), el('span', { class: 'x' }, '✖'))
             : el('div', { class: 'slot' }, i === cookChosen.length ? '⬇️' : ''));
@@ -152,7 +152,7 @@ const UI = (() => {
         grid.innerHTML = ''; srow.querySelectorAll('.pbtn').forEach((x, i) => x.classList.toggle('on', SHELVES[i][0] === cookShelf));
         for (const k of PANTRY[cookShelf]) grid.append(el('button', { class: 'tile', 'data-k': k, on: tap(() => {
           Audio2.voice('w_i_' + k, 'marina');
-          if (cookChosen.length >= 4) { Audio2.blip(-12); tray.animate([{ transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'none' }], 220); return; }
+          if (cookChosen.length >= 5) { Audio2.blip(-12); tray.animate([{ transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'none' }], 220); return; }
           cookChosen.push(k); Audio2.blip(pick([0, 2, 4, 7, 9, 12])); redraw(); }) }, img('ing_' + k), el('span', { class: 'n' })));
         redraw();
       };
@@ -167,7 +167,6 @@ const UI = (() => {
     for (const [m, ico] of METHODS) grid.append(el('button', { class: 'method', 'data-m': m, on: tap(() => runMethod(m, [...cookChosen])) }, el('span', {}, ico)));
     const back = el('button', { class: 'pbtn', 'aria-label': 'back', on: tap(() => openCook(null, true)) }, '⬅️');
     b.append(tray, grid, el('div', { class: 'row' }, back));
-    Audio2.chain(cookChosen.map(k => 'w_i_' + k));
   }
   async function runMethod(method, ings) {
     const p = document.getElementById('panel'); const body = p.querySelector('.pbody'); body.innerHTML = '';

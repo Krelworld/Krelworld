@@ -109,7 +109,7 @@ h1{margin:4px 0 14px;font-size:54px;color:#ffcf4a;text-shadow:0 4px 0 #b5482f,0 
 .tray.small{min-height:64px}
 .tray.scrollx{justify-content:flex-start;overflow-x:auto;flex:0 0 auto}
 .tray.scrollx .tile{flex:0 0 66px;width:66px}
-.slot{width:72px;height:72px;border-radius:16px;border:3px dashed rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;font-size:30px;position:relative;background:rgba(255,255,255,.08)}
+.slot{width:min(17vw,72px);height:min(17vw,72px);border-radius:16px;border:3px dashed rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;font-size:30px;position:relative;background:rgba(255,255,255,.08)}
 .slot.full{border:3px solid #fff;background:#fff}
 .tray.small .slot{width:56px;height:56px}
 .slot img{width:80%;height:80%;image-rendering:pixelated}

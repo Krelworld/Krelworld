@@ -146,7 +146,7 @@ setMood = function (m) {
 cuddle = function (e) { runScene(async () => { await goTo(e); chip('hug'); await pair('pair_hug_' + e.id, e, { dur: 2.6 }); await say('m_wuv_' + e.id); await say(e === daddy ? pick(['d_love', 'd_cuddle']) : e === mommy ? pick(['mo_love', 'mo_cuddle']) : 'r_love', e); if (e !== rory && chance(0.6)) { chip('kiss'); await pair('pair_kiss_' + e.id, e, { dur: 1.6 }); say('m_kiss'); await say(PX(e) + '_kiss', e); } }); };
 
 // ================================================================== TV: more shows, longer episodes, grumbling parents
-const SHOW_ICON = { fish: '🐟', banana: '🍌', melon: '🍉', egg: '🥚', potty: '🚽', slime: '🫧', prank: '📢', llama: '🦙' };
+const SHOW_ICON = { tasha: '👸', fish: '🐠', banana: '🍌', melon: '🍉', egg: '🥚', potty: '🚽', slime: '🫧', prank: '📢', llama: '🦙' };
 const LEGACY_TV = { fish: ['tv_bro', 'tv_bruh', 'tv_dude'], banana: ['tv_cartoon', 'tv_cartoon2'] };
 function showList() { const s = Object.keys(E.A).map(k => (k.match(/^tvshow_([a-z]+)_a_1$/) || [])[1]).filter(Boolean); for (const k of ['fish', 'banana']) if (!s.includes(k)) s.unshift(k); return [...new Set(s)]; }
 async function playTVClip() {
@@ -155,7 +155,7 @@ async function playTVClip() {
   let key = 'tvs_' + show + '_' + n, buf = await Audio2.load('assets/vo/' + key + '.mp3');
   if (!buf && LEGACY_TV[show]) { key = pick(LEGACY_TV[show]); buf = await Audio2.load('assets/vo/' + key + '.mp3'); }
   if (!buf) { Audio2.jingle([12, 7, 12, 14, 12, 7], 0.12); return 2.5; }
-  if (G.tv !== show) return 0.2; Audio2.chain([key], 'tv'); return buf.duration + 0.25;
+  if (G.tv !== show) return 0.2; Audio2.chain([key], 'tv', 0.6); return buf.duration + 0.25;
 }
 tvOn = function (ch) {
   if (ch === 'cartoon') ch = 'banana';

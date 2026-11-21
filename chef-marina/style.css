@@ -202,3 +202,16 @@ h1{margin:4px 0 14px;font-size:54px;color:#ffcf4a;text-shadow:0 4px 0 #b5482f,0 
 .tabs .pbtn{flex:0 0 auto;min-width:52px;height:54px}
 .dgrid{overflow-y:auto;flex:1 1 auto;min-height:0;align-content:start}
 @media (orientation:landscape){.dprev{width:auto;height:min(42vh,180px)}}
+
+/* keep overlays off the scene: on tall phones the talking faces and the stop button live under the picture */
+#weatherBtn{top:66px;bottom:auto;left:auto;right:10px;width:46px;height:46px;font-size:24px;line-height:46px}
+.facecard{width:min(22vw,104px)}
+@media (orientation:portrait) and (min-height:150vw){
+  #moodbar{align-content:flex-end;padding-bottom:16px}
+  .facecard{position:fixed;top:calc(env(safe-area-inset-top) + min(96vw, 100% - 130px) + 10px);width:24vw}
+  #stopBtn{position:fixed;left:50%;transform:translateX(-50%);bottom:auto;top:calc(env(safe-area-inset-top) + 96vw + 14px)}
+}
+@media (orientation:landscape){#weatherBtn{right:calc(10px + min(13vh,64px) + 30px)}}
+.acttray{position:absolute;left:6px;right:6px;top:64px;z-index:7;display:flex;gap:8px;overflow-x:auto;padding:6px 8px 10px;background:rgba(43,35,64,.6);border-radius:22px;scrollbar-width:none;animation:pop .2s both}
+.acttray::-webkit-scrollbar{display:none}
+.acttray .act{position:static;margin:0;flex:0 0 66px;width:66px;height:66px;line-height:66px;font-size:34px}

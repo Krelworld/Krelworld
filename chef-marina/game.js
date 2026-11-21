@@ -130,7 +130,7 @@ function drawMarina(e) {
   if (st === 'flip') { const n = 1 + Math.min(7, Math.floor(e.flipT * 9)); drawSprite('marina_flip_' + n, e.x, y + 4, { flip, scale: S, opt }); return; }
   if (st === 'cheer') { drawSprite(frameKey('marina_cheer', t, 8), e.x, y, { flip, scale: S, opt }); return; }
   if (st === 'sit' || st === 'fort') { drawSprite('marina_sit', e.x, y + 2, { flip, scale: S * 0.95, opt }); drawHolding(e, y - 52); return; }
-  if (st === 'swing') { const a = Math.sin(t * 2.6) * 0.6; const px = e.x, py = 60; const len = y - 40 - py; const sx = px + Math.sin(a) * len, sy2 = py + Math.cos(a) * len;
+  if (st === 'swing') { const a = Math.sin(t * 2.6) * 0.5; const px = e.x, py = 84, len = 60; const sx = px + Math.sin(a) * len, sy2 = py + Math.cos(a) * len;
     const c = E.ctx; c.strokeStyle = '#333'; c.lineWidth = 1; c.beginPath(); c.moveTo(px - 4 - E.camX, py); c.lineTo(sx - 4 - E.camX, sy2); c.moveTo(px + 4 - E.camX, py); c.lineTo(sx + 4 - E.camX, sy2); c.stroke();
     rect(sx - 8, sy2, 16, 3, e.swingKind === 'saucer' ? '#2f8fe0' : '#2a7a3a'); drawSprite('marina_sit', sx, sy2 + 4, { flip, scale: S * 0.95, opt, rot: a * 0.5 }); return; }
   if (st === 'bars') { const k = e.barMoving ? frameKey('marina_hang', t, 9) : 'marina_hang'; const b = visBox('marina_hang');
@@ -922,7 +922,7 @@ function leaveWheelchair() { marina.state = 'idle'; clearTimeout(G.wheelT); Audi
 // ---------------------------------------------------------------- yard
 function yardToy(kind, p) {
   UI.closeActions();
-  if (kind === 'saucer' || kind === 'belt') { approach(kind === 'saucer' ? 445 : 522, () => { marina.state = 'swing'; marina.swingKind = kind; marina.x = kind === 'saucer' ? 445 : 522; say('m_swing'); Audio2.whoosh(true); }, 0); return; }
+  if (kind === 'saucer' || kind === 'belt') { approach(kind === 'saucer' ? 445 : 522, () => { marina.offY = 0; marina.y = FLOOR; marina.state = 'swing'; marina.swingKind = kind; marina.x = kind === 'saucer' ? 445 : 522; say('m_swing'); Audio2.whoosh(true); }, 0); return; }
   if (kind === 'bars') {
     approach(448, () => { marina.state = 'bars'; marina.x = 448; marina.offY = -88; say('m_monkey'); let dir = 1; clearInterval(G.barIv);
       G.barIv = setInterval(() => { if (marina.state !== 'bars') return clearInterval(G.barIv); marina.x += dir * 0.8; marina.dir = dir; if (marina.x > 492 || marina.x < 446) dir *= -1; if (chance(0.03)) Audio2.blip(pick([0, 4, 7]), 'square', 0.06); }, 30); }, 0); return;

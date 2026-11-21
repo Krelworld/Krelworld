@@ -45,27 +45,47 @@ const UI = (() => {
     closeActions(); if (!list || !list.length) return;
     Audio2.blip(9, 'triangle', 0.06, 0.1);
     acts = { anchor, nodes: [] };
+    // lots of choices: one swipeable strip under the top bar, so nothing in the scene is covered
+    const stW = document.getElementById('stage').clientWidth, tray = list.length * 80 > stW - 8 ? el('div', { class: 'acttray' }) : null;
+    if (tray) { acts.tray = tray; fx().append(tray); }
     list.forEach((a, i) => {
       const n = el('button', { class: 'act', on: tap(() => { closeActions(); Audio2.blip(14, 'square', 0.05, 0.1); a.fn(); }) }, a.img ? img(a.img) : a.ico);
-      n.style.animationDelay = (i * 0.04) + 's'; fx().append(n); acts.nodes.push(n);
+      n.style.animationDelay = (i * 0.04) + 's'; (tray || fx()).append(n); acts.nodes.push(n);
     });
     placeActs();
   }
+  // screen-space box of whatever the buttons belong to
+  function anchorRect(a) {
+    let x0, y0, x1, y1;
+    if (a.prop) { const p = a.prop, sc = p.scale || 1, b = p.k && !p.k.startsWith('p:') ? visBox(p.k).map(n => n * sc) : [-(p.w || 20) / 2, -(p.h || 30), (p.w || 20) / 2, 0]; x0 = p.x + b[0]; y0 = p.y + b[1]; x1 = p.x + b[2]; y1 = p.y + b[3]; }
+    else if (a.id) { const t = entTop(a) + 8; x0 = a.x - 16; x1 = a.x + 16; y0 = t; y1 = (a === marina ? a.y + a.offY : a.id === 'miles' || a.id === 'niko' ? t + 34 : a.y); }
+    else { x0 = a.x - 10; x1 = a.x + 10; y0 = a.y - 8; y1 = a.y + 12; }
+    const [sx0, sy0] = toScreen(x0, y0), [sx1, sy1] = toScreen(x1, y1); return [sx0, sy0, sx1, sy1];
+  }
+  const overlap = (a, b) => Math.max(0, Math.min(a[2], b[2]) - Math.max(a[0], b[0])) * Math.max(0, Math.min(a[3], b[3]) - Math.max(a[1], b[1]));
   function placeActs() {
-    if (!acts) return; const a = acts.anchor;
-    const top = a.prop !== undefined || a.x != null && a.id == null ? a.y : entTop(a);
-    let [sx, sy] = toScreen(a.x, top);
+    if (!acts || acts.tray) return; const a = acts.anchor;
     const st = document.getElementById('stage').getBoundingClientRect(), n = acts.nodes.length;
-    // tidy rows of buttons that never overlap: centred over what was tapped, wrapping when there are many
-    const GAP = 80, per = Math.max(2, Math.min(n, n > 6 ? Math.ceil(n / 2) : n, Math.floor((st.width - 16) / GAP))), rows = Math.ceil(n / per);
-    const cx = clamp(sx, per * GAP / 2 + 6, st.width - per * GAP / 2 - 6);
-    let ty = sy - 14 - rows * GAP + GAP / 2; if (ty < 100) ty = Math.min(st.height - rows * GAP + GAP / 2 - 6, sy + 70); ty = Math.max(GAP / 2 + 6, ty);
+    // tidy rows of buttons that never overlap each other, put where they cover neither the thing tapped, nor Marina, nor the top bar
+    const GAP = 80, per = Math.max(2, Math.min(n, n > 6 ? Math.ceil(n / 2) : n, Math.floor((st.width - 16) / GAP))), rows = Math.ceil(n / per), BW = per * GAP, BH = rows * GAP;
+    const R = anchorRect(a), M = anchorRect(marina), cxA = (R[0] + R[2]) / 2, cyA = (R[1] + R[3]) / 2;
+    const avoid = [[R, 3], [M, 2], [[0, 0, st.width, 62], 4], [[0, st.height - 74, 110, st.height], 2]];
+    for (const e of ENTS) if (e.here && e !== marina && e !== a && e.id !== 'miles') avoid.push([anchorRect(e), 0.6]);
+    const cands = [[cxA - BW / 2, R[1] - BH - 6], [cxA - BW / 2, R[3] + 6], [R[2] + 8, cyA - BH / 2], [R[0] - BW - 8, cyA - BH / 2], [R[2] + 8, R[1] - BH / 2], [R[0] - BW - 8, R[1] - BH / 2], [cxA - BW / 2, st.height - BH - 6], [st.width - BW - 6, 66], [6, 66]];
+    let best = null, bs = 1e18;
+    cands.forEach(([x, y], i) => {
+      const cx = clamp(x, 4, Math.max(4, st.width - BW - 4)), cy = clamp(y, 64, Math.max(64, st.height - BH - 4)), box = [cx, cy, cx + BW, cy + BH];
+      let sc = i * 40 + (Math.abs(cx - x) + Math.abs(cy - y)) * 3 + Math.hypot(cx + BW / 2 - cxA, cy + BH / 2 - cyA) * 0.6;
+      for (const [r, w] of avoid) sc += overlap(box, r) * w;
+      if (sc < bs) { bs = sc; best = [cx, cy]; }
+    });
+    if (acts.pos && Math.hypot(acts.pos[0] - best[0], acts.pos[1] - best[1]) < 40) best = acts.pos; acts.pos = best; // don't jitter while things move
     acts.nodes.forEach((node, i) => {
       const r = Math.floor(i / per), inRow = r === rows - 1 ? n - r * per : per, c = i - r * per;
-      node.style.left = cx + (c - (inRow - 1) / 2) * GAP + 'px'; node.style.top = ty + r * GAP + "px";
+      node.style.left = best[0] + BW / 2 + (c - (inRow - 1) / 2) * GAP + 'px'; node.style.top = best[1] + GAP / 2 + r * GAP + 'px';
     });
   }
-  function closeActions() { if (acts) { acts.nodes.forEach(n => n.remove()); acts = null; } }
+  function closeActions() { if (acts) { acts.nodes.forEach(n => n.remove()); if (acts.tray) acts.tray.remove(); acts = null; } }
 
   function update() {
     const now = performance.now();

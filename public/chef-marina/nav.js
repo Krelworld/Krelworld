@@ -225,7 +225,7 @@
       setTimeout(() => { fly = null; Audio2.sfx('thud', { vol: 0.6 }); emit('dust', tx, ty, 6); emit('sparkle', tx, ty - 6, 6); }, 900);
     }, 1500);
     setTimeout(() => {          // fresh and clean
-      miles.poopy = false; miles.crying = false; miles.happyT = 5; next = 120 + Math.random() * 90; marina.state = 'cheer'; marina.anim = null;
+      window.did && did('nappy'); miles.poopy = false; miles.crying = false; miles.happyT = 5; next = 120 + Math.random() * 90; marina.state = 'cheer'; marina.anim = null;
       emit('sparkle', miles.x, py - 20, 18); emit('heart', miles.x, py - 30, 8); Audio2.jingle([0, 2.5, 7, 9.5, 12, 14.5], 0.09, 'triangle'); Audio2.sfx('baby_coo'); UI.face('miles', 'happy', 2200);
       say('m_did_it'); setTimeout(() => { if (marina.state === 'cheer') marina.state = 'idle'; }, 1500); G.busy = false;
       if (window.reactTo) reactTo('helper', 1700);

@@ -17,7 +17,7 @@ const Pics = (() => {
     walls = walls.filter(w => w.h !== h); const y = 74, x = freeX(room, room === G.room ? marina.x : ROOMS[room].w / 2, y);
     walls.push({ h, room, x, y }); saveWalls();
     if (room === G.room) { marina.dir = 1; playAnim('marina_reach', { fps: 10, dur: frameCount('marina_reach') ? 0 : 0.5 }); emit('sparkle', x, y, 14); emit('confetti', x, y, 16); }
-    chip('pop'); Audio2.jingle([0, 7, 12, 16], 0.06); say(pick(['m_did_it', 'm_look']));
+    chip('pop'); Audio2.jingle([0, 7, 12, 16], 0.06); say(pick(['m_did_it', 'm_look'])); window.did && did('hang');
     const fans = [daddy, mommy, rory].filter(e => e.here && e.state !== 'toilet' && e.state !== 'lie' && !(e === rory && !G.rory));
     if (fans.length && room === G.room) setTimeout(() => { const f = pick(fans); f.dir = Math.sign(x - f.x) || 1; say(f === daddy ? 'd_proud' : f === mommy ? 'mo_proud' : 'r_amazing', f).then(() => emit('heart', f.x, f.y - 90, 5)); }, 1500);
   }
@@ -42,7 +42,7 @@ const Pics = (() => {
       // the proud grown-up puts it up on the fridge
       walls = walls.filter(w => w.h !== h); const n = walls.filter(w => w.gift).length;
       walls.push({ h, room: 'kitchen', x: 250 + (n % 3) * 13 - 6, y: 78 + Math.floor(n / 3 % 2) * 22, gift: who.id }); saveWalls();
-      UI.bigIcon('🖼️💖', 1200);
+      UI.bigIcon('🖼️💖', 1200); window.did && did('gift');
     });
   }
   function actionsFor(w) {

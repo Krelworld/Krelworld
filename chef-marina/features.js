@@ -340,22 +340,22 @@ function lookItems(slot) {
   return sprites.length >= 3 ? sprites.concat(slot === 'hand' ? emo.slice(2) : []) : sprites.concat(emo);
 }
 function lookAnchor(e, k, y, flip, S) {
-  const b = visBox(k), dS = E.depth || 1, s = S * dS, d = flip ? -1 : 1;
-  const top = y + b[1] * s, h = (b[3] - b[1]) * s, cx = e.x + ((b[0] + b[2]) / 2) * s * d;
-  return { top, h, cx, d, s };
+  const b = visBox(k), dS = E.depth || 1, s = S * dS, d = flip ? -1 : 1, w = b[2] - b[0], h = b[3] - b[1];
+  const X = fx => e.x + (b[0] + w * fx) * s * d, Y = fy => y + (b[1] + h * fy) * s; // fx: 0 = back edge, 1 = front edge
+  return { X, Y, s };
 }
 function drawAcc(id, ax, ay, flip, s) {
   if (id.startsWith('e_')) { const it = Object.values(EMOJI_LOOK).flat().find(x => x[0] === id); if (it) emoji(it[1], ax, ay, 11 * s); return; }
   const c = spriteCanvas('acc_' + id); if (!c) return; const m = ACC_META[id] || {}; const an = m.anchor || [16, 28];
-  const ctx = E.ctx; ctx.save(); ctx.translate(Math.round(ax - E.camX), Math.round(ay)); ctx.scale((flip ? -1 : 1) * s * 0.9, s * 0.9); ctx.drawImage(c, -an[0], -an[1]); ctx.restore();
+  const ctx = E.ctx; ctx.save(); ctx.translate(Math.round(ax - E.camX), Math.round(ay)); ctx.scale((flip ? -1 : 1) * s, s); ctx.drawImage(c, -an[0], -an[1]); ctx.restore();
 }
 function drawLook(e, k, y, flip, S, layer) {
   if (!G.look) return; const L = G.look; if (!L.head && !L.face && !L.back && !L.hand) return;
   const a = lookAnchor(e, k, y, flip, S);
-  if (layer === 'back') { if (L.back) drawAcc(L.back, a.cx - 5 * a.d * a.s, a.top + a.h * 0.42, flip, a.s); return; }
-  if (L.face) drawAcc(L.face, a.cx + 3 * a.d * a.s, a.top + a.h * 0.2, flip, a.s);
-  if (L.head) drawAcc(L.head, a.cx, a.top + (L.head.startsWith('e_') ? 2 : 3 * a.s), flip, a.s);
-  if (L.hand) drawAcc(L.hand, a.cx + 11 * a.d * a.s, a.top + a.h * 0.6, flip, a.s);
+  if (layer === 'back') { if (L.back) drawAcc(L.back, a.X(0.3), a.Y(0.4), flip, a.s); return; }
+  if (L.face) drawAcc(L.face, a.X(0.75), a.Y(0.22), flip, a.s);
+  if (L.head) drawAcc(L.head, a.X(0.52), a.Y(L.head.startsWith('e_') ? 0.02 : 0), flip, a.s);
+  if (L.hand) drawAcc(L.hand, a.X(0.85), a.Y(0.55), flip, a.s);
 }
 
 // ------------------------------------------------------------------ room-to-room navigation
@@ -478,4 +478,125 @@ drawProp = function (p) {
   for (let i = 0; i < 3; i++) emoji(['🥫', '🍯', '🥣', '🧂', '🍪'][(i + p.x) % 5], x0 + w * (0.2 + i * 0.3), y0 + h * 0.3, 7);
   rect(x0 - w * 0.5 * k, y0, w * 0.5 * k, h, '#f6f5f0'); rect(x0 + w, y0, w * 0.5 * k, h, '#f6f5f0');
   if (p.id === 'closet' || p.a === 'dresser') for (let i = 0; i < 3; i++) emoji(['👗', '👚', '👒'][i], x0 + w * (0.2 + i * 0.3), y0 + h * 0.7, 8);
+};
+
+// ================================================================== sandbox-play ideas (Toca Life / My PlayHome / Pok Pok style)
+// 1) always-visible room bar  2) swipe between rooms  3) pick Marina up and drop her anywhere
+// 4) drag toys into boxes to tidy  5) everything you tap squishes  6) hidden surprises  7) gentle idle hints
+
+// ---- 1) room bar
+(function roomBar() {
+  const mkEl = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x) n.textContent = x; return n; };
+  const bar = mkEl('div', ''); bar.id = 'roombar';
+  for (const r of ['yard', 'dining', 'kitchen', 'playroom', 'foyer', 'living', 'bathroom']) {
+    const b = mkEl('button', 'rb', ROOMS[r].ico); b.dataset.r = r; b.setAttribute('aria-label', r);
+    b.addEventListener('pointerup', e => { e.stopPropagation(); if (G.busy || r === G.room) return; Audio2.blip(9, 'triangle', 0.06, 0.12); travelTo(r); });
+    bar.append(b);
+  }
+  document.getElementById('stage').append(bar);
+  setInterval(() => { if (typeof marina === 'undefined') return; bar.querySelectorAll('.rb').forEach(b => { const r = b.dataset.r; b.classList.toggle('here', r === G.room);
+    b.classList.toggle('busy', [daddy, mommy, rory].some(e => e.room === r && !e.hidden && !(e === rory && !G.rory))); }); }, 300);
+})();
+
+// ---- 2/3/4) gestures on the stage: swipe rooms, drag Marina, drag toys
+let lastInput = 0;
+(function gestures() {
+  const st = document.getElementById('stage'); let g = null;
+  const world = e => { const r = st.getBoundingClientRect(); return toWorld(e.clientX - r.left, e.clientY - r.top); };
+  st.addEventListener('pointerdown', e => {
+    lastInput = E.t; if (e.target.closest('.act,.hud,.fortbar,#roombar,.actback') || G.busy || typeof marina === 'undefined') return;
+    const [wx, wy] = world(e); g = { x0: e.clientX, y0: e.clientY, kind: null, moved: false };
+    const mess = G.mess.find(m => m.room === G.room && Math.abs(m.x - wx) < 12 && Math.abs(m.y - 6 - wy) < 12);
+    const hit = hitTest(wx, wy);
+    if (mess) { g.kind = 'mess'; g.m = mess; }
+    else if (hit && hit.kind === 'self' && ['idle', 'sit', 'cheer', 'perch'].includes(marina.state) && !marina.mount) g.kind = 'marina';
+    else if (!hit) g.kind = 'swipe';
+  });
+  st.addEventListener('pointermove', e => {
+    if (!g) return; const dx = e.clientX - g.x0, dy = e.clientY - g.y0;
+    if (!g.moved && Math.hypot(dx, dy) < 30) return;
+    const [wx, wy] = world(e);
+    if (g.kind === 'marina') {
+      if (!g.moved) { g.moved = true; UI.closeActions(); marina.stop(); marina.state = 'idle'; G.busy = true; say('m_giggle'); Audio2.whoosh(true); }
+      marina.x = clamp(wx, 6, ROOMS[G.room].w - 6); marina.offY = Math.min(0, wy + 34 - marina.y); marina.rot = Math.sin(E.t * 14) * 0.18; busySince = 0;
+    } else if (g.kind === 'mess') { g.moved = true; g.m.x = clamp(wx, 6, ROOMS[G.room].w - 6); g.m.y = clamp(wy + 6, 60, 178); g.m.rot = Math.sin(E.t * 12) * 0.3; }
+    else if (g.kind === 'swipe') g.moved = true;
+  });
+  const end = e => {
+    if (!g) return; const q = g; g = null; if (!q.moved) return;
+    const [wx, wy] = world(e), dx = e.clientX - q.x0, dy = e.clientY - q.y0, R = ROOMS[G.room];
+    if (q.kind === 'marina') {
+      marina.rot = 0; G.busy = false;
+      const sign = exitSignHit(wx, 112) || (wx < 10 && R.left ? { to: R.left, side: -1 } : wx > R.w - 10 && R.right ? { to: R.right, side: 1 } : null);
+      if (sign) { marina.offY = 0; changeRoom(sign.to, sign.side < 0 ? 'right' : 'left'); return; }
+      const p = PROPS[G.room].find(p => p.climb && propVisible(p) && Math.abs(p.x - wx) < Math.max(14, spriteSize(p.k)[0] * 0.4 || p.w / 2) && wy < p.y + 6 && wy > p.climb - 50);
+      if (p) { marina.x = clamp(wx, p.x - 20, p.x + 20); marina.offY = p.climb - FLOOR; marina.y = FLOOR; marina.state = 'perch'; marina.perchProp = p; Audio2.sfx('boing', { vol: 0.5 }); emit('dust', marina.x, p.climb, 4); afterClimb(); return; }
+      marina.y = clamp(wy + 34, DEPTH_MIN, DEPTH_MAX); const from = marina.offY; let t = 0;
+      const iv = setInterval(() => { t += 0.04; marina.offY = from * Math.max(0, 1 - t / 0.2); if (t >= 0.2) { clearInterval(iv); marina.offY = 0; emit('dust', marina.x, marina.y, 5); Audio2.blip(-5, 'triangle', 0.08, 0.15); } }, 30);
+    } else if (q.kind === 'mess') {
+      const m = q.m; m.rot = 0;
+      const box = PROPS[G.room].find(p => ['toybox', 'toy', 'basket', 'pail', 'books', 'box', 'dresser', 'closet', 'crib'].includes(p.a) && Math.abs(p.x - m.x) < 26 && m.y < p.y + 14);
+      if (box) { G.mess.splice(G.mess.indexOf(m), 1); G.bounce = { id: box.id, t0: E.t }; emit('sparkle', box.x, box.y - 20, 10); Audio2.jingle([7, 12], 0.05);
+        if (!G.mess.some(x => x.room === G.room)) { G.tidy = false; emit('confetti', marina.x, marina.y - 60, 30); Audio2.jingle([0, 4, 7, 12, 16]); const par = parentsHere()[0] || (rory.here ? rory : null); if (par) say(par === daddy ? 'd_good_girl' : par === mommy ? 'mo_good' : 'r_good', par); else say('m_did_it'); } }
+      else { m.y = clamp(m.y, FLOOR - 6, 178); Audio2.blip(-7, 'triangle', 0.06, 0.1); }
+    } else if (q.kind === 'swipe' && Math.abs(dx) > 70 && Math.abs(dy) < 60 && !['bars', 'swing', 'tantrum', 'anim'].includes(marina.state)) {
+      const to = dx < 0 ? R.right : R.left; if (!to) { Audio2.blip(-12, 'triangle', 0.08, 0.1); return; }
+      if (marina.state === 'perch') { marina.offY = 0; marina.state = 'idle'; }
+      changeRoom(to, dx < 0 ? 'left' : 'right');
+    }
+  };
+  st.addEventListener('pointerup', end); st.addEventListener('pointercancel', end);
+})();
+
+// ---- 5) squish feedback on whatever is tapped  +  6) hidden surprises on walls / windows / sky
+const SURPRISES = ['🦋', '🐞', '🕷️', '🐦', '✨', '🎈', '🪰', '🐝'];
+const _onTap3 = onTap;
+onTap = function (px, py) {
+  lastInput = E.t;
+  if (!G.busy) {
+    const [wx, wy] = toWorld(px, py), hit = hitTest(wx, wy);
+    if (hit && hit.kind === 'prop') { G.bounce = { id: hit.p.id, t0: E.t }; Audio2.blip(pick([0, 2, 4, 7]), 'triangle', 0.07, 0.1); }
+    else if (hit && hit.kind === 'ent') { hit.e.squishT = E.t; }
+    else if (!hit && wy < WALL_Y - 6 && !exitSignHit(wx, wy)) {
+      const win = (ROOMS[G.room].windows || []).find(w => wx > w.x && wx < w.x + w.w && wy > w.y && wy < w.y + w.h);
+      if (win || G.room === 'yard') { emit('heart', wx, wy, 1, { ch: WEATHER === 'snow' ? '❄️' : pick(['🐦', '🍂', '🐿️']), vx: rnd(-40, 40), vy: -14, life: 2.2, size: 11 }); Audio2.jingle([19, 24, 21], 0.07, 'sine'); }
+      else if (chance(0.35)) { emit('heart', wx, wy, 1, { ch: pick(SURPRISES), vx: rnd(-25, 25), vy: rnd(-25, 10), life: 2, size: 10 }); Audio2.blip(pick([12, 16, 19]), 'sine', 0.12, 0.08); }
+      else emit('sparkle', wx, wy, 5);
+    }
+  }
+  return _onTap3(px, py);
+};
+const _drawProp3 = drawProp;
+drawProp = function (p) {
+  const b = G.bounce;
+  if (b && b.id === p.id && E.t - b.t0 < 0.35) {
+    const k = (E.t - b.t0) / 0.35, s = Math.sin(k * Math.PI) * 0.12, ctx = E.ctx, cx = Math.round(p.x - E.camX);
+    ctx.save(); ctx.translate(cx, p.y); ctx.scale(1 + s, 1 - s); ctx.translate(-cx, -p.y); _drawProp3(p); ctx.restore(); return;
+  }
+  _drawProp3(p);
+};
+
+// ---- lamp really switches the lights
+G.dark = {};
+const _propActions4 = propActions;
+propActions = function (p) {
+  if (p.a === 'lamp') return [A('💡', () => { G.dark[G.room] = !G.dark[G.room]; Audio2.blip(G.dark[G.room] ? -5 : 12, 'square', 0.06); if (G.dark[G.room]) setTimeout(() => say(pick(['m_wow', 'm_giggle'])), 300); })];
+  return _propActions4(p);
+};
+const _drawExit = drawExitSigns;
+drawExitSigns = function () {
+  if (G.dark[G.room]) { const c = E.ctx; c.fillStyle = 'rgba(12,10,40,.5)'; c.fillRect(-10, -10, E.viewW + 20, SH + 20); for (let i = 0; i < 2; i++) if (chance(0.03)) emit('sparkle', E.camX + rnd(0, E.viewW), rnd(20, 120), 1); }
+  _drawExit();
+};
+
+// ---- 7) idle hint: after a quiet moment, something in the room wiggles to invite a tap
+let hintT = 0;
+const _featTick2 = featTick;
+featTick = function (dt) {
+  _featTick2(dt);
+  hintT += dt;
+  if (hintT > 4 && E.t - lastInput > 10 && !G.busy && document.getElementById('panel').classList.contains('hidden') && !(window.Studio && Studio.active)) {
+    hintT = 0; const ps = PROPS[G.room].filter(p => !p.nohit && propVisible(p) && p.a !== 'door'); if (!ps.length) return;
+    const p = pick(ps); G.bounce = { id: p.id, t0: E.t }; emit('sparkle', p.x, p.y - 24, 6);
+  }
 };

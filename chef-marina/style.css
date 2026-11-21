@@ -186,3 +186,13 @@ h1{margin:4px 0 14px;font-size:54px;color:#ffcf4a;text-shadow:0 4px 0 #b5482f,0 
   .s-drawer{left:80px;right:80px;bottom:10px}
   .s-btn{height:40px;font-size:22px}
 }
+
+/* room bar + moved weather button */
+#roombar{position:absolute;top:10px;left:76px;z-index:5;display:flex;gap:3px;background:rgba(43,35,64,.72);border-radius:16px;padding:4px}
+.rb{width:34px;height:40px;border-radius:11px;background:rgba(255,255,255,.2);font-size:20px;padding:0;position:relative}
+.rb.here{background:#ffcf4a;transform:scale(1.12)}
+.rb.busy:after{content:"";position:absolute;right:2px;top:2px;width:7px;height:7px;border-radius:50%;background:#7bd36b;border:1px solid #fff}
+#weatherBtn{top:auto;left:10px;bottom:78px}
+@media (orientation:landscape){#roombar{left:50%;transform:translateX(-50%)}.rb{width:40px}}
+
+#stage,#cv{touch-action:none}

@@ -23,6 +23,7 @@
   stage.append(dress);
 
   // ------------------------------------------------------------ alerts: tap to go straight there
+  let calmT = 0;
   const alertBox = mk('div', ''); alertBox.id = 'alerts'; stage.append(alertBox); const shown = {};
   // alerts and face cards whisk her straight there (no walking), and she puts down whatever she was lugging about
   function zipTo(room, x, then) {
@@ -31,7 +32,7 @@
     whenIn(room, () => { const W = ROOMS[room].w; marina.stop(); marina.x = clamp(x, 16, W - 16); marina.y = FLOOR; marina.offY = 0; marina.state = 'idle';
       E.camX = clamp(marina.x - E.viewW / 2, Math.min(0, (W - E.viewW) / 2), Math.max(0, W - E.viewW)); emit('sparkle', marina.x, marina.y - 40, 14); then(); });
   }
-  const goEnt = e => { const gap = e === miles ? 32 : e === niko ? 22 : 26, side = e.x > ROOMS[e.room].w - 50 || (e.x > marina.x && e.room === G.room) || e === miles ? -1 : 1;
+  const goEnt = e => { if (e === miles) mommy.holdingMiles = false; const gap = e === miles ? 32 : e === niko ? 22 : 26, side = e.x > ROOMS[e.room].w - 50 || (e.x > marina.x && e.room === G.room) || e === miles ? -1 : 1;
     zipTo(e.room, e.x + side * gap, () => { marina.dir = -side; UI.actions(e, entActions(e)); }); };
   function alerts() {
     const a = [], ambient = !G.busy && !G.tidy && !G.chase && !G.tv && !(G.fort && G.fort.inside) && !marina.mount && ['idle', 'walk', 'run', 'cheer', 'sad', 'perch', 'sit'].includes(marina.state);
@@ -68,7 +69,9 @@
     if (typeof marina === 'undefined') return;
     const q = quiet(), R = ROOMS[G.room];
     for (const { b, side } of arrows) { const to = side < 0 ? R.left : R.right, on = q && to && !G.busy && !G.tidy && !['bars', 'tantrum'].includes(marina.state); b.classList.toggle('off', !on); if (to && b.dataset.to !== to) { b.dataset.to = to; b.firstChild.textContent = ROOMS[to].ico; } }
-    dress.classList.toggle('off', !q || G.busy || !!G.tv);
+    // the dress-up button only drifts in when she's standing about with nothing else going on
+    const calm = q && !G.busy && !G.tv && !G.tidy && !G.chase && !G.holding && !marina.moving && marina.state === 'idle' && !marina.mount && !document.querySelector('.act,.alertb,.pichint,#wishBtn');
+    calmT = calm ? calmT + 0.25 : 0; dress.classList.toggle('off', calmT < 1.5);
     const a = q ? alerts() : []; const ids = a.map(x => x.id);
     for (const id in shown) if (!ids.includes(id)) { shown[id].remove(); delete shown[id]; }
     for (const x of a) if (!shown[x.id]) { const n = mk('button', 'alertb', x.html); n.setAttribute('aria-label', x.id); press(n, () => { if (G.busy && G.sceneOn) return; G.busy = false; UI.closeActions(); Audio2.jingle([0, 7, 12], 0.06); x.go(); }); alertBox.append(n); shown[x.id] = n; }
@@ -162,8 +165,10 @@
   const _so = soothe;
   soothe = function (kind) {
     if (kind !== 'bottle' || G.busy) return _so(kind);
-    UI.closeActions(); G.busy = true; const py = miles.spot === 'crib' ? BACK - 10 : 156, D = 5.2;
-    marina.stop(); marina.x = miles.x - 26; marina.dir = 1; marina.offY = 0; feedT = E.t + D;
+    UI.closeActions(); G.busy = true; mommy.holdingMiles = false;
+    [daddy, mommy, rory, niko].forEach((e, i) => { if (e.here && Math.abs(e.x - (miles.x - 14)) < 56) { e.stop && e.stop(); e.x = clamp(miles.x + (e === niko ? -74 : 52 + i * 16), 16, ROOMS[G.room].w - 16); e.dir = -1; } });
+    const py = miles.spot === 'crib' ? BACK - 10 : 156, D = 5.2;
+    marina.stop(); marina.x = miles.x - 34; marina.dir = 1; marina.offY = 0; feedT = E.t + D;
     playAnim('marina_feed', { fps: 5, loop: true, proc: 'hug', dur: D });
     say('m_bottle'); Audio2.sfx('chip_lullaby', { rate: 1, vol: 0.9 });
     setTimeout(() => { miles.crying = false; miles.cryT = rnd(60, 100); miles.eatT = E.t + D - 1.4; }, 500);
@@ -183,6 +188,9 @@
     _dx(); const k = clamp(Math.min(feedT - E.t, 0.6) / 0.6, 0, 1) * clamp((E.t - (feedT - 5.2)) / 0.5, 0, 1); if (k <= 0 || !miles.here) return;
     const c = E.ctx, x = miles.x - 10 - E.camX, y = 120, g = c.createRadialGradient(x, y, 30, x, y, 190);
     g.addColorStop(0, 'rgba(40,20,70,0)'); g.addColorStop(1, 'rgba(40,20,70,' + (0.62 * k).toFixed(3) + ')'); c.fillStyle = g; c.fillRect(-10, -40, E.viewW + 20, SH + 60);
+    // Miles himself, big and in front, so he is never hidden by the crib or by Marina
+    const fk = frameCount('miles_eat') && E.t < feedT - 0.2 ? frameKey('miles_eat', E.t, 6) : (frameCount('miles_happy') ? frameKey('miles_happy', E.t, 6) : 'miles'), d0 = E.depth; E.depth = 1;
+    drawSprite(fk, miles.x + 4, BACK + 14 + Math.sin(E.t * 5) * 1, { flip: true, scale: 0.8 + 0.5 * k }); E.depth = d0;
   };
 })();
 (function () { const s = document.createElement('style'); s.textContent = '@media (orientation:landscape){.facecard{top:8px;left:78px;width:min(11vw,84px);border-radius:16px}.facecard.right{left:auto;right:78px}#alerts{top:66px}}'; document.head.append(s); })();

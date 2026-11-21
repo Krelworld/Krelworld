@@ -367,14 +367,13 @@ function exitSigns() {
   return out;
 }
 function drawExitSigns() {
-  const b = Math.sin(E.t * 4) * 2;
-  for (const s of exitSigns()) {
-    const x = s.x + (s.side < 0 ? b : -b), y = 112;
-    rect(x - 12, y - 13, 24, 26, 'rgba(43,35,64,.72)'); rect(x - 11, y - 12, 22, 24, 'rgba(255,255,255,.12)');
-    emoji(ROOMS[s.to].ico, x, y - 4, 11); emoji(s.side < 0 ? '◀' : '▶', x, y + 8, 8);
+  const b = Math.sin(E.t * 4) * 1.5;
+  for (const s of exitSigns()) { // small tabs high on the wall, above everyone's heads
+    const x = s.x - s.side * 5 + (s.side < 0 ? b : -b), y = 50;
+    rect(x - 9, y - 10, 18, 20, 'rgba(43,35,64,.7)'); emoji(ROOMS[s.to].ico, x, y - 3, 8); emoji(s.side < 0 ? '◀' : '▶', x, y + 6, 6);
   }
 }
-function exitSignHit(wx, wy) { for (const s of exitSigns()) if (Math.abs(wx - s.x) < 16 && wy > 96 && wy < 128) return s; return null; }
+function exitSignHit(wx, wy) { for (const s of exitSigns()) if (Math.abs(wx - (s.x - s.side * 5)) < 11 && wy > 38 && wy < 64) return s; return null; }
 const _onTap = onTap;
 onTap = function (px, py) {
   if (G.busy) return;
@@ -527,7 +526,7 @@ let lastInput = 0;
     const [wx, wy] = world(e), dx = e.clientX - q.x0, dy = e.clientY - q.y0, R = ROOMS[G.room];
     if (q.kind === 'marina') {
       marina.rot = 0; G.busy = false;
-      const sign = exitSignHit(wx, 112) || (wx < 10 && R.left ? { to: R.left, side: -1 } : wx > R.w - 10 && R.right ? { to: R.right, side: 1 } : null);
+      const sign = exitSignHit(wx, 50) || (wx < 10 && R.left ? { to: R.left, side: -1 } : wx > R.w - 10 && R.right ? { to: R.right, side: 1 } : null);
       if (sign) { marina.offY = 0; changeRoom(sign.to, sign.side < 0 ? 'right' : 'left'); return; }
       const p = PROPS[G.room].find(p => p.climb && propVisible(p) && Math.abs(p.x - wx) < Math.max(14, spriteSize(p.k)[0] * 0.4 || p.w / 2) && wy < p.y + 6 && wy > p.climb - 50);
       if (p) { marina.x = clamp(wx, p.x - 20, p.x + 20); marina.offY = p.climb - FLOOR; marina.y = FLOOR; marina.state = 'perch'; marina.perchProp = p; Audio2.sfx('boing', { vol: 0.5 }); emit('dust', marina.x, p.climb, 4); afterClimb(); return; }

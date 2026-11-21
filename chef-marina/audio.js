@@ -14,12 +14,20 @@ const Audio2 = (() => {
     voiceGain = ac.createGain(); voiceGain.gain.value = 1.0; voiceGain.connect(master);
     // iOS unlock
     const b = ac.createBuffer(1, 1, 22050), s = ac.createBufferSource(); s.buffer = b; s.connect(master); s.start(0);
-    Music.start();
+    Music.start(); warm();
   }
 
+  // voice clips live in a few pack files (many clips, few downloads); the index says where each one is
+  let voIndex = null, voIndexP = null; const voPacks = {};
+  function voReady() { return voIndexP || (voIndexP = fetch('assets/vo_index.json').then(r => r.json()).then(j => (voIndex = j)).catch(() => (voIndex = {}))); }
+  function packBytes(name) { return voPacks[name] || (voPacks[name] = fetch('assets/' + name + '.mp3').then(r => { if (!r.ok) throw new Error(name); return r.arrayBuffer(); })); }
+  function warm() { voReady().then(() => { for (const n of ['vo_m', 'vo_fam', 'vo_w', 'vo_media']) packBytes(n).catch(() => {}); }); }
   function load(url) {
     if (buffers[url]) return Promise.resolve(buffers[url]);
     if (loading[url]) return loading[url];
+    const mk = url.match(/^assets\/vo\/(.+)\.mp3$/);
+    if (mk) return (loading[url] = voReady().then(() => { const e = voIndex[mk[1]]; if (!e) return null;
+      return packBytes(e[0]).then(buf => new Promise((res, rej) => ac.decodeAudioData(buf.slice(e[1], e[1] + e[2]), res, rej))).then(b => (buffers[url] = b)); }).catch(err => { console.warn('audio', url, err); return null; }));
     loading[url] = fetch(url).then(r => { if (!r.ok) throw new Error(url); return r.arrayBuffer(); })
       .then(a => new Promise((res, rej) => ac.decodeAudioData(a, res, rej)))
       .then(b => (buffers[url] = b)).catch(e => { console.warn('audio', url, e); return null; });

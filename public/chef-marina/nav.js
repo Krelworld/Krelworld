@@ -39,6 +39,10 @@
     if (ambient && miles.crying && !(miles.here && Math.abs(marina.x - miles.x) < 50)) a.push({ id: 'miles', html: '👶<i>😭</i>', go: () => goEnt(miles) });
     if (ambient && miles.poopy && !miles.crying && !(miles.here && Math.abs(marina.x - miles.x) < 50)) a.push({ id: 'nappy', html: '👶<i>💩</i>', go: () => goEnt(miles) });
     if (ambient && G.poop && !(G.room === 'playroom' && marina.x < 80)) a.push({ id: 'poop', html: '💩<i>🐈</i>', go: () => zipTo('playroom', 50, () => { marina.dir = -1; const p = PROPS.playroom.find(q => q.id === 'tray'); UI.actions(p, propActions(p)); }) });
+    const hp = G.holding; if (hp && hp.type === 'poop' && !G.busy) {   // carrying Niko's poop: two obvious places to get rid of it
+      a.push({ id: 'pbin', html: '🗑️<i>💩</i>', go: () => { const p = PROPS.living.find(q => q.id === 'pail'); zipTo('living', p.x + 26, () => { marina.dir = -1; binPoop(); }); } });
+      a.push({ id: 'pflush', html: '🚽<i>💩</i>', go: () => { const p = PROPS.bathroom.find(q => q.id === 'toilet'); zipTo('bathroom', p.x - 26, () => { marina.dir = 1; flushPoop(); }); } });
+    }
     const h = G.holding; if (h && h.type === 'pic' && h.url) { a.push({ id: 'picgive', html: '🎁<i>🖼️</i>', go: () => Pics.giftMenu(h.url) }); a.push({ id: 'pickeep', html: '📁', go: () => { G.holding = null; chip('pop'); } }); }
     return a;
   }
@@ -60,7 +64,9 @@
   Pics.carry = function (url) { G.holding = { type: 'pic', url, ico: '🖼️' }; if (['perch', 'sit'].includes(marina.state)) { marina.state = 'idle'; marina.offY = 0; } say(pick(['m_look', 'm_made'])); };
   const _dh = drawHolding;
   drawHolding = function (e, y) {
-    const h = G.holding; if (!h || h.type !== 'pic' || !h.url) return _dh(e, y);
+    const h = G.holding;
+    if (h && h.type === 'poop') { const d0 = E.depth; E.depth = 1; emoji('💩', e.x + (e.dir < 0 ? -16 : 16), y + 60 + Math.sin(E.t * 6), 9); E.depth = d0; if (chance(0.06)) emit('stink', e.x + (e.dir < 0 ? -16 : 16), y + 54, 1); return; }   // held out at arm's length, not floating over her head
+    if (!h || h.type !== 'pic' || !h.url) return _dh(e, y);
     const i = Pics.img(Pics.hash(h.url)), c = E.ctx, x = Math.round(e.x + (e.dir < 0 ? -12 : 12) - E.camX), yy = Math.round(y + 26 + Math.sin(E.t * 3));
     c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(x - 10, yy - 7, 22, 17); c.fillStyle = '#fff'; c.fillRect(x - 11, yy - 9, 22, 17);
     if (i && i.complete && i.naturalWidth) { c.imageSmoothingEnabled = true; c.drawImage(i, x - 10, yy - 8, 20, 15); c.imageSmoothingEnabled = false; }
@@ -116,7 +122,7 @@
 #alerts{position:absolute;z-index:7;top:64px;left:50%;transform:translateX(-50%);display:flex;gap:10px;pointer-events:none}
 .alertb{pointer-events:auto;position:relative;width:66px;height:66px;border-radius:50%;border:4px solid #fff;background:#ff6b6b;font-size:36px;padding:0;box-shadow:0 4px 0 rgba(0,0,0,.3),0 0 0 6px rgba(255,107,107,.35);animation:pulse .55s ease-in-out infinite alternate;touch-action:manipulation}
 .alertb i{position:absolute;right:-8px;bottom:-8px;font-size:24px;font-style:normal}
-.alertb[aria-label^=pic]{background:#7be07b;box-shadow:0 4px 0 rgba(0,0,0,.3)}.alertb[aria-label=pickeep]{background:#fff;animation:none}
+.alertb[aria-label^=pic],.alertb[aria-label^=pbin],.alertb[aria-label^=pflush]{background:#7be07b;box-shadow:0 4px 0 rgba(0,0,0,.3)}.alertb[aria-label=pickeep]{background:#fff;animation:none}
 .facecard{pointer-events:auto;cursor:pointer}
 .pichint{position:absolute;z-index:6;transform:translate(-50%,-50%);width:62px;height:62px;padding:0;font-size:32px;border-radius:18px;background:rgba(255,255,255,.9);border:4px dashed #ff8f3a;animation:pulse .6s ease-in-out infinite alternate;touch-action:manipulation}
 .pichint.gift{border-radius:50%;border:4px solid #fff;background:#7be07b;box-shadow:0 4px 0 rgba(0,0,0,.3)}

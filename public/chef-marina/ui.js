@@ -258,7 +258,7 @@ const UI = (() => {
   function outfitList() { return ['default', ...Object.keys(E.A).filter(k => /^o_[a-z]+$/.test(k)).map(k => k.slice(2))]; }
   const lookStore = { get(k, d) { try { return JSON.parse(localStorage.getItem('cm_' + k)) || d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem('cm_' + k, JSON.stringify(v)); } catch (e) { } } };
   const curLook = () => ({ outfit: G.outfit, hair: G.hair, glasses: G.glasses, dye: G.dye || 0, look: { ...G.look } });
-  const wearLook = L => { if (!L) return; G.outfit = has(L.outfit === 'default' ? 'marina' : 'o_' + L.outfit) ? L.outfit : 'default'; G.hair = L.hair || 'ginger'; G.glasses = L.glasses !== false; G.dye = L.dye || 0; G.look = { head: null, face: null, back: null, hand: null, ...(L.look || {}) }; };
+  const wearLook = L => { if (!L) return; G.outfit = has(L.outfit === 'default' ? 'marina' : 'o_' + L.outfit) ? L.outfit : 'default'; G.hair = L.hair || 'ginger'; G.glasses = L.glasses !== false && !(L.look && L.look.face); G.dye = L.dye || 0; G.look = { head: null, face: null, back: null, hand: null, ...(L.look || {}) }; };
   setTimeout(() => wearLook(lookStore.get('look', null)), 600); // she keeps yesterday's outfit
   const BACKDROPS = [['#ffd6e8', '#c9a4ff'], ['#bfe9ff', '#7bd36b'], ['#2b2340', '#7b4cf0'], ['#fff3b0', '#ff9a5a'], ['#e0fff4', '#58c7d8']];
   let backdrop = 0;
@@ -292,9 +292,12 @@ const UI = (() => {
           saved.forEach((L, i) => { const t = el('button', { class: 'tile', on: tap(choose(() => wearLook(L))) }, el('img', { src: L.pic, class: 'pix' })); area.append(t); });
         } else {
           const items = lookItems(tab);
-          area.append(el('button', { class: 'tile' + (!G.look[tab] ? ' sel' : ''), on: tap(choose(() => { G.look[tab] = null; })) }, '🚫'));
-          if (tab === 'face') area.append(el('button', { class: 'tile' + (G.glasses ? ' sel' : ''), on: tap(choose(() => { G.glasses = !G.glasses; })) }, '👓'));
-          items.forEach(it => area.append(el('button', { class: 'tile' + (G.look[tab] === it.id ? ' sel' : ''), on: tap(choose(() => { G.look[tab] = it.id; })) }, it.key ? img(it.key) : el('span', { style: { fontSize: '40px' } }, it.emoji))));
+          // face: nothing at all, her own purple glasses, or something else INSTEAD of her glasses (never both at once)
+          if (tab === 'face') {
+            area.append(el('button', { class: 'tile' + (!G.look.face && !G.glasses ? ' sel' : ''), 'aria-label': 'no glasses', on: tap(choose(() => { G.look.face = null; G.glasses = false; })) }, '🚫'));
+            area.append(el('button', { class: 'tile' + (!G.look.face && G.glasses ? ' sel' : ''), 'aria-label': 'her own glasses', on: tap(choose(() => { G.look.face = null; G.glasses = true; })) }, '👓'));
+          } else area.append(el('button', { class: 'tile' + (!G.look[tab] ? ' sel' : ''), on: tap(choose(() => { G.look[tab] = null; })) }, '🚫'));
+          items.forEach(it => area.append(el('button', { class: 'tile' + (G.look[tab] === it.id ? ' sel' : ''), on: tap(choose(() => { G.look[tab] = it.id; if (tab === 'face') G.glasses = false; })) }, it.key ? img(it.key) : el('span', { style: { fontSize: '40px' } }, it.emoji))));
         }
       };
       TABS.forEach(([t, ico]) => tabs.append(el('button', { class: 'pbtn', on: tap(() => { tab = t; Audio2.whoosh(); fill(); sync(); }) }, ico)));

@@ -37,6 +37,7 @@
   function alerts() {
     const a = [], ambient = !G.busy && !G.tidy && !G.chase && !G.tv && !(G.fort && G.fort.inside) && !marina.mount && ['idle', 'walk', 'run', 'cheer', 'sad', 'perch', 'sit'].includes(marina.state);
     if (ambient && miles.crying && !(miles.here && Math.abs(marina.x - miles.x) < 50)) a.push({ id: 'miles', html: '👶<i>😭</i>', go: () => goEnt(miles) });
+    if (ambient && miles.poopy && !miles.crying && !(miles.here && Math.abs(marina.x - miles.x) < 50)) a.push({ id: 'nappy', html: '👶<i>💩</i>', go: () => goEnt(miles) });
     if (ambient && G.poop && !(G.room === 'playroom' && marina.x < 80)) a.push({ id: 'poop', html: '💩<i>🐈</i>', go: () => zipTo('playroom', 50, () => { marina.dir = -1; const p = PROPS.playroom.find(q => q.id === 'tray'); UI.actions(p, propActions(p)); }) });
     const h = G.holding; if (h && h.type === 'pic' && h.url) { a.push({ id: 'picgive', html: '🎁<i>🖼️</i>', go: () => Pics.giftMenu(h.url) }); a.push({ id: 'pickeep', html: '📁', go: () => { G.holding = null; chip('pop'); } }); }
     return a;
@@ -197,3 +198,44 @@
 (function () { const s = document.createElement('style'); s.textContent = '@media (orientation:landscape){.facecard{top:8px;left:78px;width:min(11vw,84px);border-radius:16px}.facecard.right{left:auto;right:78px}#alerts{top:66px}}'; document.head.append(s); })();
 
 (function () { const s = document.createElement('style'); s.textContent = '@media (orientation:landscape){#stage.tvon #roombar,#stage.tvon #alerts{opacity:0;pointer-events:none}#roombar{transition:opacity .3s}}'; document.head.append(s); })();
+
+// ------------------------------------------------------------ whatever goes on her face replaces her own glasses (also for looks saved before this rule)
+(function () { const _mo = mOpt; mOpt = function () { const o = _mo(); if (G.look && G.look.face && !(o && o.noGlasses)) return { ...(o || {}), noGlasses: true }; return o; }; })();
+
+// ------------------------------------------------------------ Miles does a poop: stinky nappy, tap him (or the alert) to change it
+(function () {
+  let next = 70 + Math.random() * 60, fly = null;
+  const ambient = () => typeof marina !== 'undefined' && !G.busy && !G.sceneOn && document.getElementById('title').classList.contains('hidden') && document.getElementById('panel').classList.contains('hidden') && !(window.Studio && Studio.active);
+  setInterval(() => {
+    if (typeof miles === 'undefined' || !document.getElementById('title').classList.contains('hidden')) return;
+    if (miles.poopy) { if (miles.here && !G.busy && Math.random() < 0.3) emit('stink', miles.x + rnd(-8, 8), (miles.spot === 'crib' ? BACK - 10 : 156) - rnd(10, 30)); return; }
+    if (!ambient() || miles.crying) return;
+    next -= 0.5; if (next > 0) return; next = 110 + Math.random() * 90;
+    miles.poopy = true; if (miles.here) { Audio2.fart(); UI.face('miles', 'surprised', 1800); setTimeout(() => { if (!G.busy) say('m_stinky'); }, 900); }
+  }, 500);
+  function changeDiaper() {
+    if (G.busy) return; UI.closeActions(); G.busy = true; mommy.holdingMiles = false;
+    const py = miles.spot === 'crib' ? BACK - 10 : 156, pail = G.room === 'living' ? PROPS.living.find(p => p.id === 'pail') : null;
+    marina.stop(); marina.x = miles.x - 38; marina.dir = 1; marina.offY = 0;
+    playAnim('marina_reach', { fps: 8, loop: true, proc: 'hug', dur: 3.2 });
+    say('m_stinky'); Audio2.sfx('chip_tap1');
+    for (let i = 0; i < 3; i++) setTimeout(() => { emit('stink', miles.x + rnd(-14, 14), py - rnd(34, 46), 1); Audio2.blip(pick([0, 3, 7]), 'triangle', 0.05, 0.12); }, 300 + i * 260);
+    setTimeout(() => {          // the old one sails off to the nappy bin
+      const tx = pail ? pail.x : miles.x - 160, ty = pail ? pail.y - 34 : FLOOR - 20; fly = { t0: E.t, x0: miles.x - 8, y0: py - 16, tx, ty, dur: 0.9 }; Audio2.whoosh();
+      setTimeout(() => { fly = null; Audio2.sfx('thud', { vol: 0.6 }); emit('dust', tx, ty, 6); emit('sparkle', tx, ty - 6, 6); }, 900);
+    }, 1500);
+    setTimeout(() => {          // fresh and clean
+      miles.poopy = false; miles.crying = false; miles.happyT = 5; next = 120 + Math.random() * 90; marina.state = 'cheer'; marina.anim = null;
+      emit('sparkle', miles.x, py - 20, 18); emit('heart', miles.x, py - 30, 8); Audio2.jingle([0, 2.5, 7, 9.5, 12, 14.5], 0.09, 'triangle'); Audio2.sfx('baby_coo'); UI.face('miles', 'happy', 2200);
+      say('m_did_it'); setTimeout(() => { if (marina.state === 'cheer') marina.state = 'idle'; }, 1500); G.busy = false;
+      if (window.reactTo) reactTo('helper', 1700);
+    }, 3200);
+  }
+  window.changeDiaper = changeDiaper;
+  const _ea = entActions; entActions = function (e) { const a = _ea(e); if (e === miles && miles.poopy) a.unshift(A('🧷', changeDiaper)); return a; };
+  const _dx = drawExitSigns;
+  drawExitSigns = function () {
+    _dx(); if (!fly) return; const k = clamp((E.t - fly.t0) / fly.dur, 0, 1), x = fly.x0 + (fly.tx - fly.x0) * k, y = fly.y0 + (fly.ty - fly.y0) * k - Math.sin(k * Math.PI) * 46;
+    emoji('💩', x, y, 9); if (chance(0.5)) emit('stink', x, y, 1);
+  };
+})();

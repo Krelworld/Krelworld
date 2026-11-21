@@ -21,7 +21,7 @@ const Audio2 = (() => {
   let voIndex = null, voIndexP = null; const voPacks = {};
   function voReady() { return voIndexP || (voIndexP = fetch('assets/vo_index.json').then(r => r.json()).then(j => (voIndex = j)).catch(() => (voIndex = {}))); }
   function packBytes(name) { return voPacks[name] || (voPacks[name] = fetch('assets/' + name + '.mp3').then(r => { if (!r.ok) throw new Error(name); return r.arrayBuffer(); })); }
-  function warm() { voReady().then(() => { for (const n of ['vo_m', 'vo_fam', 'vo_w', 'vo_media']) packBytes(n).catch(() => {}); }); }
+  function warm() { voReady().then(() => { for (const n of ['vo_m', 'vo_fam', 'vo_w', 'vo_media', 'vo_dish']) packBytes(n).catch(() => {}); }); }
   function load(url) {
     if (buffers[url]) return Promise.resolve(buffers[url]);
     if (loading[url]) return loading[url];

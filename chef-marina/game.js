@@ -42,7 +42,18 @@ function say(key, ent) {
   ent = ent || { marina, daddy, mommy, rory }[lineSpeaker(key)] || marina;
   const icon = SAY_ICON[key] || '💬';
   UI.bubble(ent, icon, 2200);
-  return Audio2.voice(key, lineSpeaker(key) || key);
+  const pr = Audio2.voice(key, lineSpeaker(key) || key);
+  const who = lineSpeaker(key);
+  if (who) UI.face(who, lineMood(key), pr, { sick: /stomach|vomit|burp|diarrhea|notp/.test(key), shake: /notfair|dontlike|cry|hey|_no$|angry|diarrhea|notp|vomit/.test(key) });
+  return pr;
+}
+function lineMood(key) {
+  const k = key.replace(/^(m|d|mo|r)_/, '');
+  if (/stomach|vomit|burp|nervous|ok_ok|^ok$|food_meh|stinky|ugh|uhoh|diarrhea|notp|fort_fall|squirrel|wow|tired/.test(k)) return k === 'wow' ? 'surprised' : /food_meh|nervous|ok/.test(k) ? 'surprised' : /stinky|ugh/.test(k) ? 'angry' : 'surprised';
+  if (/notfair|dontlike|angry|eat_angry|notbrainrot|hey|appropriate|bedtime|climb|tidy|tv|brainrot|cat$|chase|niko_poo|no$/.test(k)) return /chase/.test(k) ? 'happy' : (/cat$|tidy/.test(k) && key.startsWith('r_')) ? 'neutral' : 'angry';
+  if (/cry|sad|eat_sad|comfort|tantrum|fort_down/.test(k)) return /comfort|tantrum|fort_down/.test(k) ? 'neutral' : 'sad';
+  if (/hi|yay|love|wuv|play|food_great|food_good|good|giggle|catch|horse|giddyup|cuddle|happy|yummy|fort|did_it|princess|fairy|pretty|ride|leaves|snowman|monkey|swing|hewe|made|caught|tp_thanks|careful|miles/.test(k)) return 'happy';
+  return 'neutral';
 }
 const sayOne = (keys, ent) => say(pick(keys), ent);
 
@@ -694,19 +705,19 @@ function clearStink() { P.forEach(p => { if (p.type === 'stink' || p.type === 'f
 function flushToilet() { Audio2.sfx('flush'); say('m_flush'); for (let i = 0; i < 20; i++) setTimeout(() => emit('water', 128 + rnd(-6, 6), BACK - 30, 1, { vy: rnd(-60, -20) }), i * 50); }
 
 // ---------------------------------------------------------------- niko
-function petNiko() { niko.stop(); niko.dir = Math.sign(marina.x - niko.x) || 1; Audio2.sfx('purr'); emit('heart', niko.x, (niko.perchY || niko.y) - 30, 5); say('m_pet_niko'); niko.t = Math.max(niko.t, 6); }
+function petNiko() { UI.face('niko', 'happy', 1800); niko.stop(); niko.dir = Math.sign(marina.x - niko.x) || 1; Audio2.sfx('purr'); emit('heart', niko.x, (niko.perchY || niko.y) - 30, 5); say('m_pet_niko'); niko.t = Math.max(niko.t, 6); }
 function feedNiko() {
   say('m_food_niko'); Audio2.jingle([7, 5, 7, 12]);
   if (niko.state === 'held') return;
   niko.room = 'kitchen'; if (G.room !== 'kitchen') return;
   if (!niko.here || niko.x < 0) niko.x = 380;
   niko.state = 'wander'; niko.perchY = null; Audio2.sfx('meow1');
-  niko.walkTo(310, () => { niko.state = 'eat'; niko.dir = -1; niko.t = 8; }, 70);
+  niko.walkTo(310, () => { niko.state = 'eat'; niko.dir = -1; niko.t = 8; UI.face('niko', 'happy', 1500); }, 70);
 }
 function pickupNiko() {
   if (niko.state === 'sleep' && niko.perchY && niko.perchY < 120) { say('m_hmm'); return; }
   niko.stop(); niko.state = 'held'; niko.perchY = null; G.holding = { type: 'niko', struggle: false }; say('m_pickup'); Audio2.sfx('meow1');
-  setTimeout(() => { if (G.holding && G.holding.type === 'niko') { G.holding.struggle = true; Audio2.sfx('meow1', { rate: 1.3 }); } }, 2200);
+  setTimeout(() => { if (G.holding && G.holding.type === 'niko') { G.holding.struggle = true; Audio2.sfx('meow1', { rate: 1.3 }); UI.face('niko', 'surprised', 1400, { shake: true }); } }, 2200);
   setTimeout(() => {
     if (!(G.holding && G.holding.type === 'niko')) return;
     G.holding = null; niko.state = 'wander'; niko.room = G.room; niko.x = marina.x; niko.walkTo(marina.x + marina.dir * 90, null, 110); Audio2.sfx('meow2');
@@ -728,7 +739,7 @@ function soothe(kind) {
   const p = miles.spot === 'crib' ? BACK - 10 : 156;
   say(kind === 'bottle' ? 'm_bottle' : kind === 'cuddle' ? 'm_shh_miles' : 'm_wuv_miles');
   setTimeout(() => {
-    miles.crying = false; miles.happyT = 4; miles.cryT = rnd(40, 80); Audio2.sfx('baby_coo'); emit('heart', miles.x, p - 30, 8);
+    miles.crying = false; miles.happyT = 4; miles.cryT = rnd(40, 80); Audio2.sfx('baby_coo'); UI.face('miles', 'happy', 2200); emit('heart', miles.x, p - 30, 8);
     if (mommy.here) setTimeout(() => say('mo_miles', mommy), 1500);
   }, 1200);
 }
@@ -841,7 +852,7 @@ function fortBedtime() {
 function collapseFort(why) {
   const f = G.fort; if (!f || f.collapsed) return; UI.fortTray(false); UI.closeActions();
   f.collapsed = true; f.collapseT = 2.2; clearTimeout(f.bedT);
-  if (why === 'niko') { Audio2.sfx('meow1', { rate: 1.4 }); niko.state = 'flee'; niko.walkTo(f.x + 140, () => { niko.state = 'wander'; }, 130); }
+  if (why === 'niko') { Audio2.sfx('meow1', { rate: 1.4 }); UI.face('niko', 'surprised', 1500); niko.state = 'flee'; niko.walkTo(f.x + 140, () => { niko.state = 'wander'; }, 130); }
   for (const p of f.pieces) { p.fall = true; p.vx = rnd(-90, 90); p.vy = rnd(-180, -60); p.vr = rnd(-8, 8); }
   Audio2.sfx('thud'); emit('dust', f.x, FLOOR - 10, 30);
   f.guests.forEach(g => { if (g !== niko) { g.state = 'idle'; AI.hold(g, false); } });
@@ -914,7 +925,7 @@ const AI = {
     // miles crying cycle
     miles.happyT = Math.max(0, (miles.happyT || 0) - dt);
     miles.cryT -= dt;
-    if (!miles.crying && miles.cryT <= 0) { miles.crying = true; miles.cryT = rnd(14, 22); if (miles.here) Audio2.sfx('baby_cry'); }
+    if (!miles.crying && miles.cryT <= 0) { miles.crying = true; miles.cryT = rnd(14, 22); if (miles.here) { Audio2.sfx('baby_cry'); UI.face('miles', 'sad', 2200, { shake: true }); } }
     else if (miles.crying) { if (miles.cryT <= 0) { miles.crying = false; miles.cryT = rnd(40, 80); } else if (miles.here && chance(dt / 3)) Audio2.sfx('baby_cry', { vol: 0.6 }); }
     if (miles.crying && !this.held.has(mommy) && mommy.room === 'living' && mommy.state !== 'sit' && !mommy.moving && chance(dt / 4)) { mommy.walkTo(miles.x + 26, () => { mommy.dir = -1; mommy.holdingMiles = true; miles.crying = false; miles.cryT = rnd(40, 80); setTimeout(() => mommy.holdingMiles = false, 15000); }); }
     for (const e of [daddy, mommy, rory]) this.person(e, dt);
@@ -973,7 +984,7 @@ function onEnterRoomBy(e) { if (G.busy) return; if (G.lastGreet[e.id] && E.t - G
 async function boot() {
   E.cv = document.getElementById('cv'); E.ctx = E.cv.getContext('2d');
   const lb = document.querySelector('#loadbar i');
-  await loadAtlas(); lb.style.width = '40%';
+  await loadAtlas(); lb.style.width = '40%'; await loadFaces(); lb.style.width = '70%';
   resize(); window.addEventListener('resize', () => { resize(); }); window.addEventListener('orientationchange', () => setTimeout(resize, 300));
   makeEnts(); UI.init(); drawTitle(); lb.style.width = '100%';
   requestAnimationFrame(loop);

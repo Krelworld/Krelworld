@@ -378,5 +378,36 @@ const UI = (() => {
     });
   }
 
-  return { init, bubble, actions, closeActions, update, pulseMoods, unpulseMoods, markMood, flash, bigIcon, fortTray, openCook, openDress, openCrafts, openMap, closePanel, get panelMode() { return panelMode; } };
+  // ------------- close-up talking portrait card
+  const VIS = ['rest', 'open', 'round', 'teeth', 'smile'];
+  const cards = {};
+  function face(who, mood, until, opt = {}) {
+    if (!FACES.img) return;
+    const has = (m) => FACES.A[`face_${who}_${m}_rest`];
+    if (!has(mood)) mood = has('neutral') ? 'neutral' : null; if (!mood) return;
+    let c = cards[who];
+    if (!c) {
+      const cv = el('canvas', { width: 128, height: 128 });
+      const n = el('div', { class: 'facecard' }, cv); document.getElementById('stage').append(n);
+      c = cards[who] = { n, cv, t: 0 };
+    }
+    // position: speaker's side of the screen
+    const ent = { marina, daddy, mommy, rory, miles, niko }[who];
+    const right = ent && ent.here ? toScreen(ent.x, 0)[0] > document.getElementById('stage').clientWidth / 2 : who !== 'marina';
+    c.n.classList.toggle('right', right); c.n.classList.toggle('sick', !!opt.sick); c.n.classList.toggle('shake', !!opt.shake);
+    c.mood = mood; c.talking = true; c.n.classList.add('show');
+    for (const k in cards) if (k !== who && cards[k].n.classList.contains('right') === right) cards[k].n.classList.remove('show');
+    const tok = c.tok = Symbol();
+    const end = () => { if (c.tok !== tok) return; c.talking = false; setTimeout(() => { if (c.tok === tok) c.n.classList.remove('show'); }, 450); };
+    if (typeof until === 'number') setTimeout(end, until); else Promise.resolve(until).then(end, end);
+    if (!c.loop) { c.loop = true; const step = () => { drawFace(who); if (c.n.classList.contains('show')) setTimeout(step, 95); else c.loop = false; }; step(); }
+  }
+  function drawFace(who) {
+    const c = cards[who], x = c.cv.getContext('2d'); x.imageSmoothingEnabled = false;
+    const v = c.talking ? pick(who === 'miles' || who === 'niko' ? ['open', 'round', 'rest', 'open'] : VIS) : 'rest';
+    const r = FACES.A[`face_${who}_${c.mood}_${v}`] || FACES.A[`face_${who}_${c.mood}_rest`]; if (!r) return;
+    x.clearRect(0, 0, 128, 128); const s = Math.min(128 / r[2], 128 / r[3]);
+    x.drawImage(FACES.img, r[0], r[1], r[2], r[3], (128 - r[2] * s) / 2, (128 - r[3] * s) / 2, r[2] * s, r[3] * s);
+  }
+  return { face, init, bubble, actions, closeActions, update, pulseMoods, unpulseMoods, markMood, flash, bigIcon, fortTray, openCook, openDress, openCrafts, openMap, closePanel, get panelMode() { return panelMode; } };
 })();

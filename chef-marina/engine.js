@@ -17,6 +17,14 @@ function loadAtlas(onProgress) {
     new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = 'assets/atlas.png'; })
   ]).then(([j, img]) => { E.A = j; E.atlas = img; onProgress && onProgress(); });
 }
+// close-up face portraits (talking heads), separate atlas
+const FACES = { A: {}, img: null };
+function loadFaces() {
+  return Promise.all([
+    fetch('assets/faces.json').then(r => r.json()),
+    new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = 'assets/faces.png'; })
+  ]).then(([j, img]) => { FACES.A = j; FACES.img = img; }).catch(e => console.warn('faces', e));
+}
 function has(key) { return !!E.A[key]; }
 function frameCount(base) { let n = 0; while (E.A[base + '_' + (n + 1)]) n++; return n; } // frames 1..n (0 = reference)
 

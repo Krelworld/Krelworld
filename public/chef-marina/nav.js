@@ -39,6 +39,9 @@
     if (ambient && miles.crying && !(miles.here && Math.abs(marina.x - miles.x) < 50)) a.push({ id: 'miles', html: '👶<i>😭</i>', go: () => goEnt(miles) });
     if (ambient && miles.poopy && !miles.crying && !(miles.here && Math.abs(marina.x - miles.x) < 50)) a.push({ id: 'nappy', html: '👶<i>💩</i>', go: () => goEnt(miles) });
     if (ambient && G.poop && !(G.room === 'playroom' && marina.x < 80)) a.push({ id: 'poop', html: '💩<i>🐈</i>', go: () => zipTo('playroom', 50, () => { marina.dir = -1; const p = PROPS.playroom.find(q => q.id === 'tray'); UI.actions(p, propActions(p)); }) });
+    if (G.needTP && G.bathLocked && !G.busy) {   // someone is stuck on the toilet with no paper: one button fetches a roll and delivers it
+      a.push({ id: 'tp', html: '🧻<i>🚽</i>', go: () => { const d = PROPS.foyer.find(q => q.to === 'bathroom'); zipTo('foyer', d.x - 26, () => { marina.dir = 1; takeTP(); setTimeout(() => useDoor(d), 500); }); } });
+    }
     const hp = G.holding; if (hp && hp.type === 'poop' && !G.busy) {   // carrying Niko's poop: two obvious places to get rid of it
       a.push({ id: 'pbin', html: '🗑️<i>💩</i>', go: () => { const p = PROPS.living.find(q => q.id === 'pail'); zipTo('living', p.x + 26, () => { marina.dir = -1; binPoop(); }); } });
       a.push({ id: 'pflush', html: '🚽<i>💩</i>', go: () => { const p = PROPS.bathroom.find(q => q.id === 'toilet'); zipTo('bathroom', p.x - 26, () => { marina.dir = 1; flushPoop(); }); } });
@@ -122,7 +125,7 @@
 #alerts{position:absolute;z-index:7;top:64px;left:50%;transform:translateX(-50%);display:flex;gap:10px;pointer-events:none}
 .alertb{pointer-events:auto;position:relative;width:66px;height:66px;border-radius:50%;border:4px solid #fff;background:#ff6b6b;font-size:36px;padding:0;box-shadow:0 4px 0 rgba(0,0,0,.3),0 0 0 6px rgba(255,107,107,.35);animation:pulse .55s ease-in-out infinite alternate;touch-action:manipulation}
 .alertb i{position:absolute;right:-8px;bottom:-8px;font-size:24px;font-style:normal}
-.alertb[aria-label^=pic],.alertb[aria-label^=pbin],.alertb[aria-label^=pflush]{background:#7be07b;box-shadow:0 4px 0 rgba(0,0,0,.3)}.alertb[aria-label=pickeep]{background:#fff;animation:none}
+.alertb[aria-label^=pic],.alertb[aria-label^=pbin],.alertb[aria-label^=pflush],.alertb[aria-label=tp]{background:#7be07b;box-shadow:0 4px 0 rgba(0,0,0,.3)}.alertb[aria-label=pickeep]{background:#fff;animation:none}
 .facecard{pointer-events:auto;cursor:pointer}
 .pichint{position:absolute;z-index:6;transform:translate(-50%,-50%);width:62px;height:62px;padding:0;font-size:32px;border-radius:18px;background:rgba(255,255,255,.9);border:4px dashed #ff8f3a;animation:pulse .6s ease-in-out infinite alternate;touch-action:manipulation}
 .pichint.gift{border-radius:50%;border:4px solid #fff;background:#7be07b;box-shadow:0 4px 0 rgba(0,0,0,.3)}

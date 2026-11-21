@@ -142,7 +142,7 @@ const UI = (() => {
         tray.innerHTML = '';
         for (let i = 0; i < 5; i++) {
           const k = cookChosen[i];
-          tray.append(k ? el('button', { class: 'slot full', on: tap(() => { Audio2.voice('w_i_' + k, 'marina'); cookChosen.splice(i, 1); Audio2.blip(-5); redraw(); }) }, img('ing_' + k), el('span', { class: 'x' }, '✖'))
+          tray.append(k ? el('button', { class: 'slot full', on: tap(() => { Audio2.voice('w_i_' + k, 'marina', { cut: true }); cookChosen.splice(i, 1); Audio2.blip(-5); redraw(); }) }, img('ing_' + k), el('span', { class: 'x' }, '✖'))
             : el('div', { class: 'slot' }, i === cookChosen.length ? '⬇️' : ''));
         }
         undo.disabled = clear.disabled = !cookChosen.length; next.disabled = !cookChosen.length; next.classList.toggle('pulse', cookChosen.length > 0);
@@ -151,7 +151,7 @@ const UI = (() => {
       const fill = () => {
         grid.innerHTML = ''; srow.querySelectorAll('.pbtn').forEach((x, i) => x.classList.toggle('on', SHELVES[i][0] === cookShelf));
         for (const k of PANTRY[cookShelf]) grid.append(el('button', { class: 'tile', 'data-k': k, on: tap(() => {
-          Audio2.voice('w_i_' + k, 'marina');
+          Audio2.voice('w_i_' + k, 'marina', { cut: true });
           if (cookChosen.length >= 5) { Audio2.blip(-12); tray.animate([{ transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'none' }], 220); return; }
           cookChosen.push(k); Audio2.blip(pick([0, 2, 4, 7, 9, 12])); redraw(); }) }, img('ing_' + k), el('span', { class: 'n' })));
         redraw();
@@ -242,7 +242,7 @@ const UI = (() => {
     body.innerHTML = '';
     const c = document.createElement('canvas'); const s = spriteCanvas('dish_' + d.art, d.tint ? { tint: d.tint } : null); c.width = s.width; c.height = s.height; c.getContext('2d').drawImage(s, 0, 0);
     const faces = d.score >= 3 ? '😋😋😋' : d.score >= 1 ? '😋😋' : d.score >= 0 ? '🙂' : d.score >= -2 ? '😬' : d.score >= -4 ? '🤢🤢' : '🤮🤮🤮';
-    c.addEventListener('pointerup', () => Audio2.chain(d.say)); const res = el('div', { class: 'result' }, c, el('div', { class: 'stars' }, faces),
+    c.addEventListener('pointerup', () => { Audio2.hush('marina'); Audio2.chain(d.say); }); const res = el('div', { class: 'result' }, c, el('div', { class: 'stars' }, faces),
       el('div', { style: { fontSize: '22px', opacity: .85 } }, d.name),
       el('div', { class: 'row' },
         el('button', { class: 'pbtn', style: { width: '90px', height: '90px', fontSize: '48px' }, on: tap(() => { closePanel(); finishDish(d); say('m_yay'); }) }, '✅'),
@@ -261,7 +261,7 @@ const UI = (() => {
   const lookStore = { get(k, d) { try { return JSON.parse(localStorage.getItem('cm_' + k)) || d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem('cm_' + k, JSON.stringify(v)); } catch (e) { } } };
   const curLook = () => ({ outfit: G.outfit, hair: G.hair, glasses: G.glasses, dye: G.dye || 0, look: { ...G.look } });
   const wearLook = L => { if (!L) return; G.outfit = has(L.outfit === 'default' ? 'marina' : 'o_' + L.outfit) ? L.outfit : 'default'; G.hair = L.hair || 'ginger'; G.glasses = L.glasses !== false && !(L.look && L.look.face); G.dye = L.dye || 0; G.look = { head: null, face: null, back: null, hand: null, ...(L.look || {}) }; };
-  setTimeout(() => wearLook(lookStore.get('look', null)), 600); // she keeps yesterday's outfit
+  // every new game starts in her own everyday clothes (saved looks are still in the 💾 tab)
   const BACKDROPS = [['#ffd6e8', '#c9a4ff'], ['#bfe9ff', '#7bd36b'], ['#2b2340', '#7b4cf0'], ['#fff3b0', '#ff9a5a'], ['#e0fff4', '#58c7d8']];
   let backdrop = 0;
   function previewLook(cv, t = 0, walk = false) {

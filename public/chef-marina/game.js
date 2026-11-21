@@ -618,7 +618,7 @@ function tantrum(withParent) {
     G.busy = true; marina.state = 'tantrum'; marina.stop(); setMusic();
     const lines = ['m_notfair', 'm_dontlike', 'm_cry', 'm_notfair', 'm_no'];
     let i = 0; const next = () => { if (marina.state !== 'tantrum') return; say(lines[i++ % lines.length]); };
-    next(); const iv = setInterval(next, 1900);
+    next(); const iv = setInterval(next, 2600);
     const fountain = setInterval(() => emit('tear', marina.x + rnd(-10, 10), marina.y - 20, 6, { vy: rnd(-160, -90) }), 120);
     const ps = family().filter(e => e.state !== 'lie');
     let bedtime = false;

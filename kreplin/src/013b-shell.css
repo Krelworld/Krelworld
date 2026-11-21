@@ -406,8 +406,6 @@ button.k-stat{cursor:pointer} button.k-stat:hover{border-color:var(--line2);back
 #phone-choice-container button:hover,.phone-choice-btn:hover{border-color:var(--white)}
 #phone-choice-container button.btn-primary:first-child{background:var(--red);border-color:var(--red-l);color:#fff}
 /* DOS family keeps its green-screen identity but on the KUI dos look and phone-safe */
-.dos-modal,.dos-modal-content{max-width:calc(100vw - 24px)!important;max-height:calc(100dvh - 24px);overflow:auto;box-sizing:border-box}
-.dos-modal-button{min-height:44px}
 /* eos presentation & fight & ultima announcement: just phone-safe */
 .eos-presentation-modal,.fight-modal,.ultima-cup-announcement-modal,.ultima-cup-announcement-content{max-width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;overflow:auto;box-sizing:border-box}
 

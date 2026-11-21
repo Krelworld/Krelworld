@@ -9,43 +9,48 @@
   <source src="https://www.dropbox.com/scl/fi/ehi6scemff22ptcsouys3/untitled.mp3?rlkey=mn036wym7x6hj2srsece0otkg&st=us8ir7c7&dl=1" type="audio/mpeg">
 </audio>
 
-<!-- LADS GATE SCREEN -->
-<div id="ladsGateScreen">
-  <div class="lads-gate-container" id="ladsGateQuestion">
-    <div class="lads-gate-text">THIS GAME IS FOR THE LADS. ARE YOU ONE OF THE LADS?</div>
-    <div class="lads-gate-buttons">
-      <button class="lads-gate-button" id="ladsGateYes">YES</button>
-      <button class="lads-gate-button" id="ladsGateNo">NO</button>
+<!-- LADS GATE SCREEN (pixel scene; art + behaviour in 014d-intro.js / 013d-intro.css) -->
+<div id="ladsGateScreen" class="ki-full ki-gate">
+  <div class="ki-art" aria-hidden="true"><img class="px ki-art-yes" alt="" data-art="intro-gate"><img class="px ki-art-no" alt="" data-art="intro-gate-no"></div>
+  <div class="ki-gate-panel lads-gate-container" id="ladsGateQuestion">
+    <div class="ki-kicker">DOOR POLICY</div>
+    <div class="lads-gate-text ki-gate-q">THIS GAME IS FOR THE LADS. ARE YOU ONE OF THE LADS?</div>
+    <div class="ki-gate-btns">
+      <button class="ki-pbtn go" id="ladsGateYes">YES</button>
+      <button class="ki-pbtn" id="ladsGateNo">NO</button>
     </div>
   </div>
-  <div class="lads-gate-container" id="ladsGateRejected" style="display: none;">
-    <div class="lads-gate-rejected-text">WELL FUCK OFF THEN</div>
-    <button class="lads-gate-button" id="ladsGateReset">RESET</button>
+  <div class="ki-gate-panel lads-gate-container" id="ladsGateRejected" style="display: none;">
+    <div class="ki-kicker bad">REFUSED ENTRY</div>
+    <div class="lads-gate-rejected-text ki-gate-no">WELL FUCK OFF THEN</div>
+    <div class="ki-gate-btns"><button class="ki-pbtn" id="ladsGateReset">RESET</button></div>
   </div>
 </div>
 
-<!-- DOS-STYLE START SCREEN -->
-<div id="startScreen" class="hidden">
-  <div class="dos-container">
-    <div style="font-size: 4rem; margin: 20px 0; text-align: center;">⚽</div>
-    <div class="dos-title">KREPLIN</div>
-    <div class="dos-subtitle">A SOUTHAMPTON FC CHAIRMAN SIM</div>
-    <div id="sponsorSelection" style="margin: 30px 0; display: none;">
-      <div class="dos-subtitle" style="margin-bottom: 20px;">CHOOSE YOUR SPONSOR</div>
-      <div class="dos-buttons">
-        <button class="dos-button sponsor-btn" data-sponsor="m">MCDONALD'S — £3M + £150K/WEEK</button>
-        <button class="dos-button sponsor-btn" data-sponsor="e">THE EDGE GAY CLUB — £1.5M + £200K/WEEK</button>
-        <button class="dos-button sponsor-btn" data-sponsor="n">NINTENDO — £4M + £200K/WEEK</button>
-        <button class="dos-button sponsor-btn" data-sponsor="p">PORTSMOUTH FC — £8M + £300K/WEEK</button>
-      </div>
+<!-- TITLE SCREEN -->
+<div id="startScreen" class="hidden ki-full ki-title">
+  <div class="ki-title-art" aria-hidden="true">
+    <div class="ki-title-stage">
+      <img class="px ki-t-bg" alt="" data-art="intro-title">
+      <img class="px ki-t-loom" alt="" data-art="intro-looming">
+      <i class="ki-flood" style="left:20.3%;top:36%"></i><i class="ki-flood" style="left:32%;top:48.6%;animation-delay:-1.3s"></i>
+      <i class="ki-flood" style="left:70%;top:48.6%;animation-delay:-.6s"></i><i class="ki-flood" style="left:81.8%;top:36%;animation-delay:-2.1s"></i>
+      <div class="ki-flashes"></div>
     </div>
-    <div class="dos-buttons" id="mainButtons">
-      <button class="dos-button" id="watchIntroBtn">WATCH INTRO CUTSCENE</button>
-      <button class="dos-button" id="quickStartBtn" style="display:none">CONTINUE</button>
-      <button class="dos-button" id="startCampaignBtn">NEW CAMPAIGN</button>
-      <button class="dos-button" id="loadGameBtn">LOAD</button>
+  </div>
+  <div class="ki-title-ui">
+    <div class="ki-logo">
+      <img class="px ki-logo-crest" alt="" data-art="crest">
+      <h1 class="ki-wordmark" aria-label="KREPLIN">KREPLIN</h1>
+      <div class="ki-strap">A SOUTHAMPTON FC CHAIRMAN SIM</div>
     </div>
-    <div class="dos-loading" id="startScreenLoading" style="display:none;">LOADING...</div>
+    <nav class="ki-menu" id="mainButtons" aria-label="Main menu">
+      <button class="ki-pbtn go" id="quickStartBtn" style="display:none">CONTINUE</button>
+      <button class="ki-pbtn" id="startCampaignBtn">NEW CAMPAIGN</button>
+      <button class="ki-pbtn" id="watchIntroBtn">WATCH INTRO CUTSCENE</button>
+      <button class="ki-pbtn" id="loadGameBtn">LOAD</button>
+    </nav>
+    <div class="ki-hint" aria-hidden="true">↑↓ choose · Enter select</div>
   </div>
 </div>
 

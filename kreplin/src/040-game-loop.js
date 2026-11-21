@@ -580,16 +580,23 @@ function managerWeeklyWageForSkill(skill){
 }
 
 
-async function _hireManagerFlow(title="Hire a Manager"){
+async function _hireManagerFlow(title="Hire a Manager", flowOpts={}){
   // Generate more candidates for better variety
   const cands = [_candidate(), _candidate(), _candidate(), _candidate(), _candidate(), _candidate()];
-  const opts = cands.map(c => ({
-    key:c.id,
-    label: `${c.name} • Skill ${c.skill} • Agreeableness ${c.agreeableness} • ${money(c.wage)}/week • ${c.description}`
-  }));
-  opts.push({ key:"cancel", label:"Cancel" });
-
-  const k = await choose(opts, title);
+  let k;
+  if (flowOpts && flowOpts.scene && window.KIntro) {
+    // campaign set-up: the same six candidates as portrait cards
+    const looks = KIntro.managerLooks(cands.length);
+    cands.forEach((c, i) => { c.look = looks[i]; });
+    k = (await KIntro.pickManager(cands, title, money)) || "cancel";
+  } else {
+    const opts = cands.map(c => ({
+      key:c.id,
+      label: `${c.name} • Skill ${c.skill} • Agreeableness ${c.agreeableness} • ${money(c.wage)}/week • ${c.description}`
+    }));
+    opts.push({ key:"cancel", label:"Cancel" });
+    k = await choose(opts, title);
+  }
   if (k === "cancel") return false;
 
   const pick = cands.find(c => c.id === k);
@@ -605,6 +612,8 @@ async function _hireManagerFlow(title="Hire a Manager"){
     quirk: pick.quirk,
     wage
   };
+  if (pick.look) S.manager.look = pick.look;
+  if (window.KIntro) KIntro.applyLooks();
   S.manager_events = { warned_this_match:false, crisis_this_match:false, fired_this_match:false };
 
   log(`Hired ${pick.name} (Skill ${pick.skill}) for ${money(wage)}/week.`);
@@ -1003,8 +1012,14 @@ async function game(){
     await choosePlayerNameModal();
     await chooseSponsorModal();
     await chooseSecretaryQuickHireModal();
-    await showPersonalSummary();
+    const personal = await showPersonalSummary();
+    if (window.KIntro) await KIntro.family(personal);
     await chooseManager();
+    // Step 6 of the set-up: fill the vacant dugout now, on portrait cards (same candidates and
+    // terms as the pre-match "position vacant" prompt, which still asks if you cancel here)
+    if (window.KIntro && typeof managerPresent === 'function' && !managerPresent()) {
+      await _hireManagerFlow("Hire a Manager", { scene: true });
+    }
   } else if (effectiveMode === 'quick') {
     // Resume mode - skip all setup steps, just continue from saved state
     updateHUD();

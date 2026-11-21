@@ -428,6 +428,7 @@ async function showPersonalSummary(){
     "Household: " + (S.kids_count||2) + " child" + ((S.kids_count||2)===1?"":"ren") + ", " + (S.wives_count||1) + " wife" + ((S.wives_count||1)===1?"":"s")
   ];
   log("Personal summary — " + lines.join(" | "));
+  return lines;
 }
 
 // Get current league position

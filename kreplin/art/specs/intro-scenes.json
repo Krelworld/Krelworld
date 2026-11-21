@@ -42,5 +42,16 @@
   "view": "high top-down",
   "seed": 31,
   "description": "a football chairman's mahogany desk at night seen from above, a blank contract document with a fountain pen, a glass of whisky, a cigar smoking in an ashtray, warm desk lamp light, red and white football scarf, stacks of banknotes"
+ },
+ {
+  "name": "intro-looming",
+  "w": 160,
+  "h": 160,
+  "nobg": true,
+  "outline": "single color black outline",
+  "shading": "detailed shading",
+  "detail": "highly detailed",
+  "seed": 71,
+  "description": "head and broad shoulders of a fat bald scheming businessman in a dark pinstripe suit and gold round glasses, smoking a fat cigar, sinister smug grin, lit from below by red light, facing viewer"
  }
 ]

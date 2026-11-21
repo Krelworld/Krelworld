@@ -1,0 +1,224 @@
+/* ===================== KREPLIN — intro / title / setup scenes =====================
+   Lads gate, title screen and the campaign set-up steps (014d-intro.js: KIntro.scene()).
+   Same tokens as the game: Saints red, ink panels, gold kickers, Pixelify Sans + Inter. */
+.ki-full{position:fixed;inset:0;z-index:calc(var(--z-legacy) + 1);background:var(--ink);color:var(--text);overflow:hidden;
+  font:15px/1.5 var(--font-body);display:flex;flex-direction:column}
+.ki-full.hidden{display:none!important}
+.ki-full *,.ki-scene *{box-sizing:border-box}
+.ki-kicker{font:600 13px/1.2 var(--font-ui);letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.ki-kicker.bad{color:var(--red-l)}
+
+/* chunky pixel button (title menu, gate) */
+.ki-pbtn{appearance:none;display:block;width:100%;min-height:52px;padding:10px 18px;margin:0;border-radius:var(--r);cursor:pointer;
+  font:700 19px/1.15 var(--font-ui);letter-spacing:1.5px;text-transform:uppercase;text-align:center;color:var(--text);
+  background:var(--panel2);border:var(--px) solid #000;box-shadow:inset 0 0 0 var(--px) var(--line2),0 4px 0 #000;
+  transition:transform .08s,box-shadow .08s,background .12s;text-shadow:2px 2px 0 #000;-webkit-tap-highlight-color:transparent}
+.ki-pbtn:focus-visible{background:var(--line2);box-shadow:inset 0 0 0 var(--px) var(--white),0 4px 0 #000;outline:none}
+.ki-pbtn:active{transform:translateY(3px);box-shadow:inset 0 0 0 var(--px) var(--line2),0 1px 0 #000}
+.ki-pbtn.go{background:var(--red);box-shadow:inset 0 0 0 var(--px) var(--red-l),inset 0 -5px 0 var(--red-d),0 4px 0 #000;color:#fff}
+.ki-pbtn.go:focus-visible{background:#e8232a;box-shadow:inset 0 0 0 var(--px) #fff,inset 0 -5px 0 var(--red-d),0 4px 0 #000}
+.ki-pbtn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.ki-pbtn .ki-sub{display:block;font:500 12px/1.3 var(--font-body);letter-spacing:.3px;text-transform:none;color:rgba(255,255,255,.78);text-shadow:none;margin-top:2px}
+
+/* ---------- full-bleed art (gate) ---------- */
+.ki-art{position:absolute;inset:0;background:#05060a}
+.ki-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;image-rendering:pixelated;transition:opacity .25s}
+.ki-art::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(5,6,10,.15) 0,rgba(5,6,10,0) 35%,rgba(5,6,10,.55) 62%,rgba(5,6,10,.96) 100%)}
+.ki-art .ki-art-no{opacity:0}
+.ki-gate.rejected .ki-art-yes{opacity:0} .ki-gate.rejected .ki-art-no{opacity:1}
+.ki-gate.rejected .ki-art{animation:kiShake .32s steps(4) 1}
+.ki-gate-panel{position:relative;z-index:1;margin:auto auto 0;width:min(620px,100%);padding:0 20px max(28px,env(safe-area-inset-bottom));text-align:center}
+.ki-gate-q{margin:10px 0 22px;font:700 clamp(24px,3.2vw,36px)/1.2 var(--font-ui);color:#fff;letter-spacing:1px;text-shadow:3px 3px 0 #000,0 0 18px rgba(0,0,0,.8)}
+.ki-gate-no{margin:10px 0 22px;font:700 clamp(40px,7vw,76px)/1.02 var(--font-ui);color:var(--red-l);letter-spacing:2px;
+  text-shadow:3px 3px 0 #000,6px 6px 0 var(--red-d),0 0 30px rgba(215,25,32,.45)}
+.ki-gate-btns{display:flex;gap:14px;justify-content:center}
+.ki-gate-btns .ki-pbtn{width:min(200px,45%);min-height:58px;font-size:24px}
+
+/* ---------- title screen ---------- */
+.ki-title-art{position:absolute;inset:0;overflow:hidden;background:#070a1c}
+.ki-title-stage{position:absolute;left:50%;top:50%;width:max(100vw,calc(100vh * 384 / 216));aspect-ratio:384/216;
+  transform:translate(calc(-50% + var(--px-x,0px)),calc(-50% + var(--px-y,0px))) scale(1.04);transition:transform .4s ease-out}
+.ki-title-stage>img{position:absolute;image-rendering:pixelated}
+.ki-t-bg{inset:0;width:100%;height:100%}
+/* the chairman looms out of the night sky above the stand */
+.ki-t-loom{left:50%;top:-3%;width:31%;transform:translate(calc(-50% + var(--px-x,0px) * -1.4),calc(var(--px-y,0px) * -1.2));
+  opacity:.7;filter:brightness(.42) saturate(.7) drop-shadow(0 0 14px rgba(215,25,32,.55));
+  -webkit-mask-image:linear-gradient(180deg,#000 45%,transparent 82%);mask-image:linear-gradient(180deg,#000 45%,transparent 82%);
+  animation:kiLoom 9s ease-in-out infinite alternate}
+.ki-flood{position:absolute;width:9%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(circle,rgba(255,255,235,.85) 0,rgba(220,230,255,.35) 22%,rgba(160,180,255,0) 62%);animation:kiFlicker 3.4s steps(1) infinite}
+.ki-flashes{position:absolute;left:24%;right:24%;top:54%;height:20%}
+.ki-flashes i{position:absolute;width:.35%;aspect-ratio:1;background:#fff;opacity:0;animation:kiFlash 2.6s steps(1) infinite;box-shadow:0 0 6px #fff}
+.ki-title-art::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 40%,rgba(0,0,0,0) 40%,rgba(3,4,10,.65) 100%),linear-gradient(180deg,rgba(3,4,10,0) 50%,rgba(3,4,10,.9) 100%)}
+.ki-title-ui{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:clamp(16px,4vh,40px);
+  padding:24px 20px max(24px,env(safe-area-inset-bottom));min-height:0}
+.ki-logo{text-align:center;display:flex;flex-direction:column;align-items:center}
+.ki-logo-crest{width:clamp(56px,8vh,84px);height:auto;filter:drop-shadow(3px 3px 0 #000)}
+.ki-wordmark{margin:4px 0 0;padding:0;font:700 clamp(64px,11vw,148px)/.9 var(--font-ui);letter-spacing:clamp(2px,.6vw,8px);color:#fff;
+  text-shadow:4px 4px 0 var(--red),8px 8px 0 #000,0 0 40px rgba(0,0,0,.7);background:none;-webkit-text-fill-color:currentColor;border:0}
+.ki-strap{margin-top:14px;font:600 clamp(12px,1.4vw,17px)/1.2 var(--font-ui);letter-spacing:3px;color:var(--gold);text-shadow:2px 2px 0 #000;
+  padding:5px 12px;background:rgba(5,6,10,.6);border:var(--px) solid rgba(242,193,78,.35);border-radius:var(--r)}
+.ki-menu{display:flex;flex-direction:column;gap:12px;width:min(400px,100%)}
+.ki-hint{font:12px var(--font-ui);color:var(--muted);letter-spacing:1px}
+@media (hover:none){.ki-hint{display:none}}
+
+@keyframes kiFlicker{0%,100%{opacity:1}31%{opacity:.55}33%{opacity:1}72%{opacity:.8}74%{opacity:1}}
+@keyframes kiFlash{0%,100%{opacity:0}4%{opacity:1}9%{opacity:0}}
+@keyframes kiLoom{from{margin-top:0}to{margin-top:1.2%}}
+@keyframes kiShake{0%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}100%{transform:translateX(0)}}
+@keyframes kiIn{from{opacity:0;transform:translateY(8px)}}
+
+/* ---------- set-up scenes (KIntro.scene) ---------- */
+.ki-scene{position:fixed;inset:0;z-index:calc(var(--z-modal) - 1);display:flex;flex-direction:column;background:var(--ink);color:var(--text);
+  font:15px/1.5 var(--font-body);overflow:hidden;animation:kFade .15s ease-out}
+.ki-scene .ki-bgart{position:absolute;inset:-20px;background-size:cover;background-position:center;image-rendering:pixelated;filter:blur(10px) brightness(.32) saturate(.8);transform:scale(1.05)}
+.ki-scene .ki-top{position:relative;z-index:1;display:flex;align-items:center;gap:12px;padding:10px 18px;padding-top:max(10px,env(safe-area-inset-top));
+  background:var(--bg);border-bottom:var(--px) solid var(--red);box-shadow:0 2px 0 #000;flex:none}
+.ki-top .ki-brand{display:flex;align-items:center;gap:8px;font:700 18px var(--font-ui);letter-spacing:2px;color:#fff;text-shadow:2px 2px 0 var(--red-d)}
+.ki-top .ki-brand img{width:30px;height:30px}
+.ki-steps{margin-left:auto;display:flex;align-items:center;gap:10px;font:600 14px var(--font-ui);letter-spacing:1px;color:#c9c6bd;white-space:nowrap}
+.ki-steps b{color:var(--gold);font-weight:700}
+.ki-pips{display:flex;gap:4px}
+.ki-pips i{width:18px;height:8px;background:var(--panel2);border:1px solid #000;box-shadow:inset 0 0 0 1px var(--line2)}
+.ki-pips i.done{background:var(--red-d)} .ki-pips i.now{background:var(--red);box-shadow:inset 0 0 0 1px var(--red-l)}
+.ki-scroll{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.ki-col{width:min(1080px,100%);margin:auto;padding:18px 18px 8px;animation:kiIn .2s ease-out}
+.ki-hero{position:relative;height:clamp(130px,25vh,240px);border:var(--px) solid #000;border-radius:var(--r);overflow:hidden;background:#000;box-shadow:0 4px 0 #000}
+.ki-hero img{width:100%;height:100%;object-fit:cover;display:block;image-rendering:pixelated}
+.ki-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 35%,rgba(10,12,18,.94));pointer-events:none}
+.ki-hero .ki-cap{position:absolute;left:18px;right:18px;bottom:12px;z-index:1}
+.ki-hero h2{margin:3px 0 0;font:700 clamp(22px,3vw,32px)/1.1 var(--font-ui);color:#fff;text-shadow:2px 2px 0 #000;background:none;-webkit-text-fill-color:currentColor;border:0;padding:0}
+.ki-hero h2 em{font-style:normal;color:var(--red-l)}
+.ki-panel{margin-top:16px;background:var(--panel);border:var(--px) solid #000;border-radius:var(--r);box-shadow:inset 0 0 0 1px var(--line2),0 4px 0 #000;overflow:hidden}
+.ki-panel>h3{margin:0;padding:9px 14px;background:var(--red);color:#fff;font:700 16px/1.2 var(--font-ui);letter-spacing:.5px;border-bottom:var(--px) solid #000;text-shadow:1px 1px 0 var(--red-d)}
+.ki-panel>h3 small{float:right;font:500 12px/1.6 var(--font-ui);opacity:.85;letter-spacing:1px}
+.ki-body{padding:14px}
+.ki-lead{margin:0 0 12px;font-size:16px;color:var(--text)}
+.ki-lead.big{font-size:clamp(17px,2vw,20px);line-height:1.5}
+.ki-foot{position:relative;z-index:1;flex:none;display:flex;gap:10px;justify-content:flex-end;align-items:center;padding:10px 18px;
+  padding-bottom:max(10px,env(safe-area-inset-bottom));background:var(--bg);border-top:var(--px) solid #000;box-shadow:0 -1px 0 var(--line)}
+.ki-foot .ki-note{margin-right:auto;font:13px var(--font-body);color:var(--muted)}
+.ki-foot .ki-pbtn{width:auto;min-width:200px;min-height:48px;font-size:17px}
+.ki-foot .ki-pbtn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* cards */
+.ki-cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(var(--ki-card,300px),1fr))}
+.ki-card{appearance:none;position:relative;display:flex;gap:12px;align-items:flex-start;width:100%;min-height:44px;margin:0;padding:10px;text-align:left;cursor:pointer;
+  background:var(--panel2);color:var(--text);border:var(--px) solid #000;border-radius:var(--r);box-shadow:inset 0 0 0 1px var(--line2),0 3px 0 #000;
+  font:14px/1.4 var(--font-body);transition:transform .08s,box-shadow .08s,background .12s;-webkit-tap-highlight-color:transparent}
+.ki-card:focus-visible{background:#2b3245;box-shadow:inset 0 0 0 var(--px) var(--white),0 3px 0 #000;outline:none}
+.ki-card:active{transform:translateY(2px);box-shadow:inset 0 0 0 1px var(--line2),0 1px 0 #000}
+.ki-card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.ki-card kbd{position:absolute;top:8px;right:8px;font:700 12px/18px var(--font-ui);min-width:20px;text-align:center;background:var(--ink);border:1px solid var(--line2);border-radius:3px;color:var(--gold)}
+.ki-card .ki-face{flex:none;width:76px;height:76px;background:var(--ink);border:var(--px) solid #000;border-radius:var(--r);box-shadow:inset 0 0 0 1px var(--line2);
+  image-rendering:pixelated;object-fit:cover;object-position:center top}
+.ki-card .ki-txt{min-width:0;flex:1;padding-right:22px}
+.ki-card .ki-name{display:block;font:700 16px/1.2 var(--font-ui);color:#fff;letter-spacing:.3px}
+.ki-card .ki-meta{display:block;margin-top:3px;font:600 12px/1.3 var(--font-ui);color:var(--gold);letter-spacing:.5px}
+.ki-card .ki-desc{display:block;margin-top:5px;color:#c9c6bd;font-size:13.5px}
+.ki-stats{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:6px}
+.ki-stats span{font:600 11.5px/1 var(--font-ui);padding:4px 6px;border-radius:3px;background:var(--ink);border:1px solid var(--line2);color:var(--text);white-space:nowrap}
+.ki-stats span.money{color:var(--gold)}
+/* sponsor cards: art on top */
+.ki-card.art{flex-direction:column;gap:0;padding:0;overflow:hidden}
+.ki-card.art .ki-pic{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;image-rendering:pixelated;border-bottom:var(--px) solid #000}
+.ki-card.art .ki-txt{padding:10px 12px 12px}
+.ki-card.art kbd{z-index:1}
+.ki-card.art .ki-terms{display:block;margin-top:4px;font:700 15px/1.25 var(--font-body);color:var(--gold);font-variant-numeric:tabular-nums}
+.ki-card.rival{box-shadow:inset 0 0 0 1px var(--rival),0 3px 0 #000}
+
+/* name step: contract + chips */
+.ki-contract{position:relative;margin:0 auto 14px;max-width:560px;padding:16px 20px 14px;background:#efe7d2;color:#2a2116;border:var(--px) solid #000;
+  box-shadow:4px 4px 0 #000;border-radius:2px;transform:rotate(-.6deg);font:14px/1.45 Georgia,serif}
+.ki-contract .ki-ct{font:700 12px var(--font-ui);letter-spacing:2px;color:var(--red-d);text-transform:uppercase}
+.ki-contract .ki-sig{display:flex;align-items:flex-end;gap:10px;margin-top:10px}
+.ki-contract .ki-sig span{font:12px var(--font-ui);color:#6b5c44;letter-spacing:1px}
+.ki-contract .ki-sig b{flex:1;min-height:34px;border-bottom:2px solid #2a2116;font:italic 700 clamp(20px,3vw,28px)/1.2 Georgia,serif;color:#16233f;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ki-pickrow{margin-top:10px}
+.ki-pickrow h4{margin:0 0 8px;font:600 12px var(--font-ui);letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.ki-chips{display:flex;flex-wrap:wrap;gap:8px}
+.ki-chip{appearance:none;min-height:44px;padding:8px 14px;border-radius:var(--r);cursor:pointer;font:600 15px/1.2 var(--font-ui);letter-spacing:.5px;
+  color:var(--text);background:var(--panel2);border:var(--px) solid #000;box-shadow:inset 0 0 0 1px var(--line2),0 3px 0 #000}
+.ki-chip:focus-visible{box-shadow:inset 0 0 0 var(--px) var(--white),0 3px 0 #000;outline:none}
+.ki-chip[aria-pressed="true"]{background:var(--red);color:#fff;box-shadow:inset 0 0 0 var(--px) var(--red-l),0 3px 0 #000}
+
+/* family photo frame */
+.ki-frame{margin:4px auto 0;max-width:640px;padding:14px;background:linear-gradient(135deg,#7a4a22,#4a2a10);border:var(--px) solid #000;border-radius:3px;
+  box-shadow:inset 0 0 0 3px #a8743c,inset 0 0 0 6px #3a200b,5px 5px 0 #000}
+.ki-photo{background:#1b2030;border:3px solid #e9dfc6;padding:12px 10px 8px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+  background-image:linear-gradient(180deg,#2c3650,#151a28)}
+.ki-photo figure{margin:0;text-align:center;min-width:0}
+.ki-photo img{width:100%;max-width:110px;aspect-ratio:1;image-rendering:pixelated;display:block;margin:0 auto;background:#516169;border:2px solid #0d1016}
+.ki-photo figcaption{margin-top:4px;font:600 12px/1.2 var(--font-ui);color:#e9dfc6;overflow-wrap:anywhere}
+.ki-photo figcaption small{display:block;color:var(--gold);font-size:10.5px;letter-spacing:1px;text-transform:uppercase}
+.ki-facts{list-style:none;margin:14px auto 0;padding:0;max-width:640px;display:grid;gap:6px}
+.ki-facts li{padding:8px 12px;background:var(--ink);border:1px solid var(--line2);border-radius:var(--r);font-size:15px}
+.ki-facts li b{font:600 12px var(--font-ui);letter-spacing:1px;color:var(--gold);text-transform:uppercase;margin-right:6px}
+
+/* KIntro.notice — the old green DOS dialog, now a KUI-styled pixel card */
+.k-modal.ki-notice{border-color:#000;box-shadow:inset 0 0 0 1px var(--line2),0 4px 0 #000,0 20px 60px rgba(0,0,0,.6)}
+.k-modal.ki-notice header{background:var(--red);border-bottom:var(--px) solid #000}
+.k-modal.ki-notice header h2{color:#fff;text-shadow:1px 1px 0 var(--red-d)}
+.k-modal.ki-notice header .k-x{color:#fff;border-color:rgba(255,255,255,.5)}
+.k-modal.ki-notice .k-btn{min-height:44px} .k-modal.ki-notice footer{flex-direction:column} .k-modal.ki-notice footer .k-btn{justify-content:flex-start;text-align:left;min-height:44px}
+
+/* hover looks only where there is a real pointer (a tap leaves :hover stuck on phones) */
+@media (hover:hover){
+  .ki-pbtn:hover{background:var(--line2);box-shadow:inset 0 0 0 var(--px) var(--white),0 4px 0 #000}
+  .ki-pbtn.go:hover{background:#e8232a;box-shadow:inset 0 0 0 var(--px) #fff,inset 0 -5px 0 var(--red-d),0 4px 0 #000}
+  .ki-card:hover{background:#2b3245;box-shadow:inset 0 0 0 var(--px) var(--white),0 3px 0 #000}
+  .ki-chip:hover{box-shadow:inset 0 0 0 var(--px) var(--white),0 3px 0 #000}
+}
+@media (min-width:641px){ .ki-facts{grid-template-columns:1fr 1fr} }
+
+/* ---------- phone / portrait ---------- */
+@media (orientation:portrait){
+  /* gate: the art fills the top of the screen; the panel sits underneath */
+  .ki-gate .ki-art{bottom:auto;height:58%}
+  .ki-gate .ki-art img{object-position:50% 50%}
+  .ki-gate .ki-art .ki-art-no{object-position:34% 50%}
+  .ki-gate .ki-art::after{background:linear-gradient(180deg,rgba(5,6,10,0) 55%,var(--ink) 100%)}
+  .ki-title-stage{width:max(100vw,calc(78vh * 384 / 216));top:39%}
+  .ki-t-loom{width:30%}
+}
+@media (max-width:640px){
+  .ki-gate-q{font-size:24px}
+  .ki-gate-no{font-size:44px}
+  .ki-title-ui{gap:18px}
+  .ki-wordmark{font-size:clamp(56px,17vw,80px);text-shadow:3px 3px 0 var(--red),6px 6px 0 #000}
+  .ki-strap{font-size:11px;letter-spacing:2px}
+  .ki-pbtn{font-size:17px;min-height:50px}
+  .ki-scene .ki-top{padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top))}
+  .ki-top .ki-brand span{display:none}
+  .ki-steps{gap:8px;font-size:12px}
+  .ki-pips i{width:12px}
+  .ki-col{padding:12px 12px 6px}
+  .ki-hero{height:132px}
+  .ki-hero .ki-cap{left:12px;right:12px;bottom:8px}
+  .ki-hero h2{font-size:21px}
+  .ki-panel{margin-top:12px}
+  .ki-body{padding:12px}
+  .ki-lead{font-size:15px}
+  .ki-cards{grid-template-columns:1fr;gap:10px}
+  .ki-card .ki-face{width:64px;height:64px}
+  .ki-card.art{flex-direction:row;align-items:stretch}
+  .ki-card.art .ki-pic{width:108px;aspect-ratio:auto;height:auto;min-height:100%;border-bottom:0;border-right:var(--px) solid #000;flex:none}
+  .ki-card.art .ki-txt{padding:9px 28px 10px 10px}
+  .ki-foot{padding:8px 12px;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+  .ki-foot .ki-pbtn{flex:1;min-width:0}
+  .ki-foot .ki-note{display:none}
+  .ki-contract{padding:12px 14px 10px}
+  .ki-chip{padding:8px 11px;font-size:14px}
+  .ki-frame{padding:9px}
+  .ki-photo{gap:4px;padding:8px 6px 6px}
+  .ki-photo figcaption{font-size:11px}
+}
+@media (max-height:560px) and (orientation:landscape){
+  .ki-hero{height:96px} .ki-wordmark{font-size:56px} .ki-logo-crest{display:none} .ki-title-ui{gap:12px} .ki-menu{gap:8px} .ki-pbtn{min-height:44px}
+}
+@media (prefers-reduced-motion:reduce){
+  .ki-flood,.ki-flashes i,.ki-t-loom,.ki-gate.rejected .ki-art,.ki-col,.ki-scene{animation:none!important}
+  .ki-title-stage{transition:none}
+}

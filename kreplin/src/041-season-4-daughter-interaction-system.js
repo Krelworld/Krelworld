@@ -725,83 +725,10 @@ if (window.startScreenMode && window.startScreenMode !== 'none') {
   startScreenMode = window.startScreenMode;
 }
 
-// Show DOS-style modal
+// Pre-game notice / error dialog (was a green DOS box): a KUI modal styled for the intro.
+// Same contract: resolves the picked button key, 'ok' for the default OK, null when dismissed.
 function showDOSModal(title, content, buttons = []) {
-  return new Promise((resolve) => {
-    const overlay = document.createElement('div');
-    overlay.className = 'dos-modal-overlay';
-    overlay.id = 'dosModalOverlay';
-    
-    const modal = document.createElement('div');
-    modal.className = 'dos-modal';
-    
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'dos-modal-close';
-    closeBtn.textContent = '×';
-    closeBtn.onclick = (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      overlay.remove();
-      resolve(null);
-    };
-    
-    const titleEl = document.createElement('div');
-    titleEl.className = 'dos-modal-title';
-    titleEl.textContent = title;
-    
-    const contentEl = document.createElement('div');
-    contentEl.className = 'dos-modal-content';
-    contentEl.innerHTML = content;
-    
-    const buttonsEl = document.createElement('div');
-    buttonsEl.className = 'dos-modal-buttons';
-    
-    if (buttons.length === 0) {
-      const okBtn = document.createElement('button');
-      okBtn.className = 'dos-modal-button';
-      okBtn.textContent = 'OK';
-      okBtn.onclick = (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        overlay.remove();
-        resolve('ok');
-      };
-      buttonsEl.appendChild(okBtn);
-    } else {
-      buttons.forEach(btn => {
-        const button = document.createElement('button');
-        button.className = 'dos-modal-button';
-        button.textContent = btn.label;
-        button.onclick = (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          overlay.remove();
-          resolve(btn.key);
-        };
-        buttonsEl.appendChild(button);
-      });
-    }
-    
-    modal.appendChild(closeBtn);
-    modal.appendChild(titleEl);
-    modal.appendChild(contentEl);
-    modal.appendChild(buttonsEl);
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-    
-    // Close on background click
-    overlay.onclick = (e) => {
-      if (e.target === overlay) {
-        overlay.remove();
-        resolve(null);
-      }
-    };
-    
-    // Prevent clicks on modal from closing it
-    modal.onclick = (e) => {
-      e.stopPropagation();
-    };
-  });
+  return KIntro.notice(title, content, buttons);
 }
 
 // Show intro modal
@@ -809,7 +736,7 @@ async function showIntroModal() {
   const introText = "You are the new chairman of Southampton FC. You're about to discover that it's not as straightforward as you may think!";
   
   // Just show the welcome message - sponsor selection happens later
-  await showDOSModal('WELCOME', introText);
+  await KIntro.welcome(introText);
 }
 
 // Modified choosePlayerName to use modal
@@ -821,28 +748,12 @@ async function choosePlayerNameModal() {
   setPhase('name_selection');
   
   const firsts = uniqueSample(MALE_NAMES, 9);
-  const firstOpts = firsts.map((nm, i) => ({ key: String(i + 1), label: nm }));
-  
-  const firstChoice = await showDOSModal(
-    'PICK YOUR FORENAME',
-    'Select your first name:',
-    firstOpts
-  );
-  
-  if (!firstChoice) return;
-  const firstname = firsts[parseInt(firstChoice, 10) - 1];
-  
   const lasts = uniqueSample(SURNAMES, 9);
-  const lastOpts = lasts.map((sn, i) => ({ key: String(i + 1), label: sn }));
-  
-  const lastChoice = await showDOSModal(
-    'PICK YOUR SURNAME',
-    'Select your surname:',
-    lastOpts
-  );
-  
-  if (!lastChoice) return;
-  const surname = lasts[parseInt(lastChoice, 10) - 1];
+  // One "sign the contract" scene: pick a forename and a surname from the same 9 + 9 choices
+  const picked = await KIntro.pickName(firsts, lasts);
+  if (!picked) return;
+  const firstname = picked.first;
+  const surname = picked.last;
   
   S.player_firstname = firstname;
   S.player_surname = surname;
@@ -918,16 +829,7 @@ async function chooseSecretaryQuickHireModal() {
     }
   ];
   
-  const options = secretaries.map((sec, i) => ({
-    key: String(i + 1),
-    label: `${sec.name} (${sec.age}) - ${sec.description}`
-  }));
-  
-  const choice = await showDOSModal(
-    'SELECT YOUR SECRETARY',
-    'Secretary hiring — skip interviews and choose directly:',
-    options
-  );
+  const choice = await KIntro.pickSecretary(secretaries);
   
   if (!choice) return;
   
@@ -939,9 +841,11 @@ async function chooseSecretaryQuickHireModal() {
   S.secretary_name = selected.name;
   S.compliance_risk = Math.max(0, (S.compliance_risk || 0) - selected.compliance);
   S.secretary_romance_possible = selected.romance;
+  S.secretary_look = ['sec-1', 'sec-2', 'sec-3', 'secretary', 'sec-5', 'sec-6'][selectedIndex] || null;
+  KIntro.applyLooks();
   
   initializeSecretaryMessagingState();
-  log(`You hired ${S.secretary_name}.`);
+  log(`You hired ${S.secretary_name} as your secretary.`);
   render();
 }
 
@@ -951,13 +855,13 @@ async function chooseSponsorModal() {
   window.__selectedSponsor = null;
   
   const sponsorOptions = [
-    {key:'m',label:"McDonald's — upfront £3m, weekly £150k (free burgers)"},
-    {key:'e',label:'The Edge Gay Club — upfront £1.5m, weekly £200k (minor fan/team discontent with "GAY CLUB" being written on team shirts)'},
-    {key:'n',label:'Nintendo — upfront £4m, weekly £200k (conservative company drops you if scandals exposed)'},
-    {key:'p',label:'Portsmouth FC — upfront £8m, weekly £300k (fans furious with the prospect of "PORTSMOUTH FC" being written on club shirts)'}
-  ];
+    {key:'m',name:"McDonald's",terms:'upfront £3m, weekly £150k',note:'free burgers'},
+    {key:'e',name:'The Edge Gay Club',terms:'upfront £1.5m, weekly £200k',note:'minor fan/team discontent with "GAY CLUB" being written on team shirts'},
+    {key:'n',name:'Nintendo',terms:'upfront £4m, weekly £200k',note:'conservative company drops you if scandals exposed'},
+    {key:'p',name:'Portsmouth FC',terms:'upfront £8m, weekly £300k',note:'fans furious with the prospect of "PORTSMOUTH FC" being written on club shirts'}
+  ].map(o => ({ ...o, label: `${o.name} — ${o.terms} (${o.note})` }));
   
-  const s = await showDOSModal('SELECT YOUR SPONSOR', 'Select a lead shirt sponsor:', sponsorOptions);
+  const s = await KIntro.pickSponsor(sponsorOptions);
   
   if (!s) return;
   
@@ -1032,6 +936,7 @@ function setupLadsGateScreen() {
       // Show start screen only if not auto-loaded
       if (startScreen && !window.__gameAutoLoaded) {
         startScreen.classList.remove('hidden');
+        KIntro.focusMenu();
       }
       // Start playing the opening music ONLY if not loading a game
       // (to prevent clash with game background music)
@@ -1059,6 +964,7 @@ function setupLadsGateScreen() {
     ladsGateNo.onclick = function() {
       if (ladsGateQuestion) ladsGateQuestion.style.display = 'none';
       if (ladsGateRejected) ladsGateRejected.style.display = 'block';
+      KIntro.gateRejected(true);
     };
   }
   
@@ -1067,6 +973,7 @@ function setupLadsGateScreen() {
     ladsGateReset.onclick = function() {
       if (ladsGateRejected) ladsGateRejected.style.display = 'none';
       if (ladsGateQuestion) ladsGateQuestion.style.display = 'block';
+      KIntro.gateRejected(false);
     };
   }
 }
@@ -1235,10 +1142,13 @@ function setupStartScreenButtons() {
       const raw = localStorage.getItem(SAVE_KEY);
       const sv = raw ? JSON.parse(raw) : null;
       if (sv && !sv.game_over && (sv.player_firstname || (sv.matches_played|0) > 0 || (sv.season|0) > 1)) {
-        btn.textContent = `CONTINUE — SEASON ${sv.season || 1}, GAME ${Math.min((sv.matches_played|0) + 1, sv.season_matches || 16)}`;
+        btn.innerHTML = `CONTINUE<span class="ki-sub">Season ${sv.season || 1} · Game ${Math.min((sv.matches_played|0) + 1, sv.season_matches || 16)}</span>`;
         btn.style.display = 'block';
       } else btn.style.display = 'none';
     } catch (_) { btn.style.display = 'none'; }
+    // the red (primary) button is CONTINUE when there is a campaign to go back to, else NEW CAMPAIGN
+    const nc = document.getElementById('startCampaignBtn');
+    if (nc) nc.classList.toggle('go', btn.style.display === 'none');
   } else {
     console.warn('Resume button not found!');
   }
@@ -1253,25 +1163,7 @@ function setupStartScreenButtons() {
   } else {
     console.warn('Load Game button not found!');
   }
-  
-  // Wire up sponsor buttons
-  const sponsorButtons = document.querySelectorAll('.sponsor-btn');
-  sponsorButtons.forEach(btn => {
-    btn.onclick = function() {
-      const sponsor = this.getAttribute('data-sponsor');
-      // Store selected sponsor
-      window.__selectedSponsor = sponsor;
-      // Visual feedback
-      sponsorButtons.forEach(b => {
-        b.style.background = '#000';
-        b.style.color = '#00ff00';
-      });
-      this.style.background = '#00ff00';
-      this.style.color = '#000';
-    };
-    btn.style.cursor = 'pointer';
-  });
-  
+
 }
 
 // Setup buttons - handle both cases: DOM already loaded or still loading

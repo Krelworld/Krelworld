@@ -103,7 +103,7 @@ function drawEnt(e) {
       if (e.moving) k = frameKey('niko_walk', t, e.curSpeed > 60 ? 18 : 10);
       if (e.state === 'litter') { sy = 0.9 + Math.sin(t * 6) * 0.03; y = 152; }
       if (e.state === 'eat') { rot = 0.15 * (e.dir > 0 ? 1 : -1); }
-      drawSprite(k, e.x, y, { flip: e.dir < 0, scale: 0.8, rot, sy });
+      drawSprite(k, e.x, y, { flip: e.dir < 0, scale: 0.72, rot, sy });
       return; }
   }
 }
@@ -135,7 +135,7 @@ function drawHolding(e, y) {
   const x = e.x + (e.dir < 0 ? -10 : 10);
   if (h.type === 'dish') drawSprite('dish_' + h.dish.art, x, y + 30, { scale: 0.55, opt: h.dish.tint ? { tint: h.dish.tint } : null });
   else if (h.type === 'tp') drawSprite('tp_roll', x, y + 30, { scale: 0.5 });
-  else if (h.type === 'niko') { drawSprite('niko', e.x + (e.dir < 0 ? -4 : 4), y + 44 + Math.sin(E.t * 30) * (h.struggle ? 2 : 0), { flip: e.dir < 0, scale: 0.6, rot: h.struggle ? Math.sin(E.t * 25) * 0.3 : 0.4 }); }
+  else if (h.type === 'niko') { drawSprite('niko', e.x + (e.dir < 0 ? -4 : 4), y + 44 + Math.sin(E.t * 30) * (h.struggle ? 2 : 0), { flip: e.dir < 0, scale: 0.45, rot: h.struggle ? Math.sin(E.t * 25) * 0.3 : 0.4 }); }
   else if (h.type === 'blower') { drawSprite('leaf_blower', x + 4, y + 50, { flip: e.dir < 0, scale: 0.7 }); }
   else emoji(h.ico || '❓', x, y + 20, 12);
 }
@@ -342,7 +342,7 @@ function hitTest(wx, wy) {
     if (e.state === 'toilet' || (e === niko && e.state === 'held')) continue;
     let key = e.id, sc = 1, ey = e.y;
     if (e === miles) { sc = 0.8; ey = e.spot === 'crib' ? BACK - 10 : 156; }
-    if (e === niko) { sc = 0.8; if (e.state === 'sleep' && e.perchY) ey = e.perchY; }
+    if (e === niko) { sc = 0.72; if (e.state === 'sleep' && e.perchY) ey = e.perchY; }
     if (e === mommy && e.state === 'sit') key = 'mommy_sit';
     if ((e === daddy || e === rory) && e.state === 'lie') key = e.id + '_lie';
     if ((e === daddy || e === rory) && e.state === 'horse') key = e.id + '_horse';

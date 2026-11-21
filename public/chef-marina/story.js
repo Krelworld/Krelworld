@@ -68,6 +68,7 @@
     show(0);
   }
   window.openStory = open;
+  setInterval(() => { if (box && (!document.getElementById('panel').classList.contains('hidden') || (window.Studio && Studio.active))) close(); }, 400);
 
   const _pa = propActions;
   propActions = function (p) { const a = _pa(p); if (p.a === 'books') a.unshift(A('📖', open)); return a; };

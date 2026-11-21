@@ -106,7 +106,7 @@ function makeWish(key) {
   showWish(key);
 }
 function showWish(key) {
-  const w = WISHES[key]; clearWish(); lastWish = E.t; lastWishKey = key;
+  const w = WISHES[key]; clearWish(); lastWish = E.t; lastWishKey = key; ping();
   say(w.line);
   const b = document.createElement('button'); b.id = 'wishBtn'; b.setAttribute('aria-label', 'go'); b.innerHTML = '<span>' + w.ico + '</span><i>➡️</i>';
   let done = false;
@@ -131,7 +131,7 @@ featTick = function (dt) {
   _featTickR(dt);
   wishIdle += dt; if (wishIdle < 2) return; wishIdle = 0;
   if (wishEl && (G.busy || !document.getElementById('panel').classList.contains('hidden'))) clearWish();
-  if (wishEl || E.t - lastWish < 55 || E.t - lastInput < 22 || G.busy || G.sceneOn || G.tidy || G.chase || G.tv) return;
+  if (wishEl || E.t - lastWish < 130 || E.t - lastInput < 30 || !pingOk(60) || G.busy || G.sceneOn || G.tidy || G.chase || G.tv) return;
   if (!document.getElementById('panel').classList.contains('hidden') || (window.Studio && Studio.active) || document.querySelector('.act')) return;
   if (!['idle', 'walk'].includes(marina.state) || !document.getElementById('title').classList.contains('hidden')) return;
   makeWish();

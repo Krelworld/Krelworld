@@ -232,8 +232,10 @@ const UI = (() => {
       toast: 'Toast', pudding: 'Wobble Pudding', casserole: 'Casserole', hotdog: 'Hot Dog', fishdish: 'Fish Feast', stew: 'Stew', rainbowcake: 'Rainbow Stack', grossshake: 'Swamp Shake', frozenmess: 'Frozen Mystery' };
     const ADJ = { stack: ['Wobbly', 'Mega', 'Tippy'], mix: ['Mixy', 'Swirly', 'Squishy'], fry: ['Crispy', 'Sizzly', 'Golden'], bake: ['Baked', 'Puffy', 'Toasty'], freeze: ['Frosty', 'Brrr', 'Icy'], blend: ['Whizzy', 'Zoomy', 'Bubbly'] };
     const adj = score >= 3 ? pick(['Magic', 'Super', 'Princess', 'Yummy']) : score <= -3 ? pick(['Stinky', 'Spooky', 'Gloopy', 'Monster']) : pick(ADJ[method]);
-    const uniq = [...new Set(ings)].slice(0, 2); const name = `${adj} ${uniq.map(k => ING_WORD[k]).join(' ')} ${DISH_WORD[art]}`;
-    const say = ['w_a_' + adj.toLowerCase(), ...uniq.map(k => 'w_i_' + k), 'w_d_' + art];
+    // the name is spoken as whole phrases: "Magic Cake!" + "…with eggs," + "strawberry" + "…and milk!" (every ingredient she put in)
+    const uniq = [...new Set(ings)], words = uniq.map(k => ING_WORD[k]);
+    const name = `${adj} ${DISH_WORD[art]}` + (words.length ? ' with ' + (words.length > 1 ? words.slice(0, -1).join(', ') + ' and ' + words[words.length - 1] : words[0]) : '');
+    const say = ['dn_' + adj.toLowerCase() + '_' + art, ...uniq.map((k, i) => (i === 0 ? 'wi_' : i === uniq.length - 1 ? 'an_' : 'w_i_') + k)];
     return { art, score, name, tint, ings, method, say };
   }
   function showDish(body, d) {

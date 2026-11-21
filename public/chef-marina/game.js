@@ -41,7 +41,7 @@ function makeEnts() {
   daddy = new Ent({ id: 'daddy', room: 'living', x: 90, speed: 52, dir: -1 });
   mommy = new Ent({ id: 'mommy', room: 'kitchen', x: 300, speed: 55, dir: -1 });
   rory = new Ent({ id: 'rory', room: 'yard', x: 300, speed: 50, hidden: true });
-  miles = new Ent({ id: 'miles', room: 'living', x: 534, spot: 'crib', crying: false, cryT: rnd(30, 60) });
+  miles = new Ent({ id: 'miles', room: 'living', x: 534, spot: 'crib', crying: false, cryT: rnd(100, 170) });
   niko = new Ent({ id: 'niko', room: 'dining', x: 318, speed: 46, state: 'sleep', perch: 'cattower', t: rnd(15, 25) });
 }
 
@@ -774,7 +774,7 @@ function soothe(kind) {
   const p = miles.spot === 'crib' ? BACK - 10 : 156;
   say(kind === 'bottle' ? 'm_bottle' : kind === 'cuddle' ? 'm_shh_miles' : 'm_wuv_miles');
   setTimeout(() => {
-    miles.crying = false; miles.happyT = 4; miles.cryT = rnd(40, 80); Audio2.sfx('baby_coo'); UI.face('miles', 'happy', 2200); emit('heart', miles.x, p - 30, 8);
+    miles.crying = false; miles.happyT = 4; miles.cryT = rnd(170, 280); Audio2.sfx('baby_coo'); UI.face('miles', 'happy', 2200); emit('heart', miles.x, p - 30, 8);
     if (mommy.here) setTimeout(() => say('mo_miles', mommy), 1500);
   }, 1200);
 }
@@ -987,7 +987,7 @@ const AI = {
     miles.happyT = Math.max(0, (miles.happyT || 0) - dt);
     miles.cryT -= dt;
     if (!miles.crying && miles.cryT <= 0) { miles.crying = true; miles.cryT = rnd(14, 22); if (miles.here) { Audio2.sfx('baby_cry'); UI.face('miles', 'sad', 2200, { shake: true }); } }
-    else if (miles.crying) { if (miles.cryT <= 0) { miles.crying = false; miles.cryT = rnd(40, 80); } else if (miles.here && chance(dt / 3)) Audio2.sfx('baby_cry', { vol: 0.6 }); }
+    else if (miles.crying) { if (miles.cryT <= 0) { miles.crying = false; miles.cryT = rnd(170, 280); } else if (miles.here && chance(dt / 5)) Audio2.sfx('baby_cry', { vol: 0.6 }); }
     if (miles.crying && !this.held.has(mommy) && mommy.room === 'living' && mommy.state !== 'sit' && !mommy.moving && chance(dt / 4)) { mommy.walkTo(miles.x + 26, () => { mommy.dir = -1; mommy.holdingMiles = true; miles.crying = false; miles.cryT = rnd(40, 80); setTimeout(() => mommy.holdingMiles = false, 15000); }); }
     for (const e of [daddy, mommy, rory]) this.person(e, dt);
     this.cat(dt);
@@ -1027,7 +1027,7 @@ const AI = {
     const r = Math.random();
     const spots = [['dining', 'cattower', 318, BACK - 98], ['living', 'sofa', 60, 128], ['living', 'armchair', 138, 124], ['playroom', 'sofa', 312, 120], ['dining', 'table', 222, 126]];
     if (r < 0.35) { const s = pick(spots); this.catGo(s[0], s[2], () => { niko.state = 'sleep'; niko.perch = s[1]; niko.perchY = s[3]; Audio2.sfx('purr', { vol: 0.4 }); }); }
-    else if (r < 0.5 && !G.poop) { this.catGo('playroom', 30, () => { niko.state = 'litter'; niko.t = 5; }); }
+    else if (r < 0.5 && !G.poop && E.t > (G.poopOkAt || 150)) { this.catGo('playroom', 30, () => { niko.state = 'litter'; niko.t = 5; }); }
     else if (r < 0.65) { this.catGo('kitchen', 310, () => { niko.state = 'eat'; niko.dir = -1; niko.t = 6; }); }
     else { niko.state = 'wander'; niko.perchY = null; if (chance(0.3) && niko.here) Audio2.sfx(pick(['trill1', 'trill2', 'trill3', 'meow1'])); niko.walkTo(rnd(20, ROOMS[niko.room].w - 20), null, null, rnd(154, 176)); }
   },

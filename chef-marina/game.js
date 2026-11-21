@@ -24,6 +24,14 @@ class Ent {
     }
   }
 }
+// Niko's pose: walk cycle when moving; photo-based lounge / lie / sit poses when resting
+function nikoPose(e) {
+  if (e.moving) return [frameKey('niko_walk', e.animT, e.curSpeed > 60 ? 18 : 10), 0.72, e.y];
+  if (e.state === 'sleep') return e.perchY ? ['niko_lounge', 0.6, e.perchY] : ['niko_lie', 0.6, e.y];
+  if (e.state === 'fort') return ['niko_lie', 0.55, e.y];
+  if (e.state === 'eat' || e.state === 'litter') return ['niko', 0.72, e.state === 'litter' ? 152 : e.y];
+  return ['niko_sit', 0.62, e.y];
+}
 function frameKey(base, t, fps = 10) { const n = frameCount(base); if (!n) return null; return base + '_' + (1 + (Math.floor(t * fps) % n)); }
 
 let marina, daddy, mommy, rory, miles, niko;
@@ -97,13 +105,12 @@ function drawEnt(e) {
       if (e.crying && chance(0.15)) emit('tear', e.x - 4, y - 26, 1, { vx: rnd(-30, 30), vy: rnd(-60, -30) });
       return; }
     case 'niko': {
-      let y = e.y, k = 'niko', rot = 0, sy = 1;
       if (e.state === 'held') return;
-      if (e.state === 'sleep' && e.perchY) { y = e.perchY; sy = 0.85; if (chance(0.015)) emit('zzz', e.x, y - 20); }
-      if (e.moving) k = frameKey('niko_walk', t, e.curSpeed > 60 ? 18 : 10);
-      if (e.state === 'litter') { sy = 0.9 + Math.sin(t * 6) * 0.03; y = 152; }
-      if (e.state === 'eat') { rot = 0.15 * (e.dir > 0 ? 1 : -1); }
-      drawSprite(k, e.x, y, { flip: e.dir < 0, scale: 0.72, rot, sy });
+      const [k, sc, y] = nikoPose(e); let rot = 0, sy = 1;
+      if (e.state === 'litter') sy = 0.94 + Math.sin(t * 6) * 0.03;
+      if (e.state === 'eat') rot = 0.12 * (e.dir > 0 ? 1 : -1);
+      if (e.state === 'sleep') { sy = 1 + Math.sin(t * 2) * 0.015; if (chance(0.015)) emit('zzz', e.x, y - 30); }
+      drawSprite(k, e.x, y, { flip: e.dir < 0, scale: sc, rot, sy });
       return; }
   }
 }
@@ -346,7 +353,7 @@ function hitTest(wx, wy) {
     if (e.state === 'toilet' || (e === niko && e.state === 'held')) continue;
     let key = e.id, sc = 1, ey = e.y;
     if (e === miles) { sc = 0.8; ey = e.spot === 'crib' ? BACK - 10 : 156; }
-    if (e === niko) { sc = 0.72; if (e.state === 'sleep' && e.perchY) ey = e.perchY; }
+    if (e === niko) { const np = nikoPose(e); key = np[0].replace(/_\d+$/, '_1'); if (!E.A[key]) key = np[0]; sc = np[1]; ey = np[2]; }
     if (e === mommy && e.state === 'sit') key = 'mommy_sit';
     if ((e === daddy || e === rory) && e.state === 'lie') key = e.id + '_lie';
     if ((e === daddy || e === rory) && e.state === 'horse') key = e.id + '_horse';

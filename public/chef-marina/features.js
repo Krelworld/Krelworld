@@ -293,7 +293,7 @@ function startScenario(room) {
   setMusic();
   const events = [
     () => onEnterRoom(room),
-    () => { niko.room = room; niko.x = clamp(marina.x + 60, 20, W - 20); Audio2.sfx('meow2'); UI.face('niko', 'happy', 1500); setTimeout(() => onEnterRoom(room), 1500); },
+    () => { niko.room = room; niko.x = clamp(marina.x + 60, 20, W - 20); Audio2.sfx(pick(['trill1', 'trill2', 'trill3'])); UI.face('niko', 'happy', 1500); setTimeout(() => onEnterRoom(room), 1500); },
     () => { miles.crying = true; miles.cryT = 12; Audio2.sfx('baby_cry'); setTimeout(() => say('m_uhoh'), 800); },
     () => { G.rory = true; rory.hidden = false; rory.room = room === 'yard' ? 'yard' : room; rory.x = clamp(marina.x + 70, 20, W - 20); rory.state = 'idle'; Audio2.sfx('knock'); setTimeout(() => { say('r_hi', rory).then(() => say('m_hi_rory')); }, 700); },
     () => { if (room === 'yard') return onEnterRoom(room); daddy.room = room; daddy.x = clamp(marina.x + 70, 30, W - 30); daddy.state = 'lie'; emit('zzz', daddy.x, daddy.y - 30); setTimeout(() => say('m_giggle'), 900); },

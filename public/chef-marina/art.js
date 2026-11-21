@@ -139,8 +139,7 @@ const Studio = (() => {
     const d = S.drawer; d.dataset.kind = 'pic'; d.classList.remove('hidden'); d.innerHTML = '';
     const im = mk('img'); im.src = url; const big = mk('div', 's-tile wide'); big.append(im); d.append(big);
     const b = (ico, label, fn) => { const n = mk('button', 's-tile', ico); n.setAttribute('aria-label', label); onTap(n, fn); d.append(n); return n; };
-    b('🖼️', 'hang on wall', () => { close(); Pics.hang(url); });
-    b('🎁', 'give', () => { close(); Pics.giftMenu(url); });
+    const take = b('🖼️👉', 'take it into the house', () => { close(); Pics.carry(url); }); take.style.background = '#7be07b'; take.classList.add('pulse');
     if (!fresh) b('✏️', 'draw on it', () => { snap(); const i2 = new Image(); i2.onload = () => { S.pc.drawImage(i2, 0, 0, S.W, S.H); }; i2.src = url; S.lc.clearRect(0, 0, S.W, S.H); toggleDrawer(null); });
     const del = b('🗑️', 'trash', () => { if (del.dataset.sure) { Pics.trash(url); Audio2.whoosh(false); toggleDrawer(fresh ? null : 'gallery'); } else { del.dataset.sure = 1; del.textContent = '❓'; } });
     b('✔️', 'keep', () => toggleDrawer(null));

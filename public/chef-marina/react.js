@@ -137,8 +137,8 @@ featTick = function (dt) {
   makeWish();
 };
 (function css() { const s = document.createElement('style'); s.textContent =
-  '#wishBtn{position:absolute;left:10px;bottom:84px;z-index:30;width:84px;height:84px;border-radius:50%;border:5px solid #fff;background:#7be07b;box-shadow:0 5px 0 rgba(0,0,0,.3),0 0 0 6px rgba(123,224,123,.35);font-size:44px;display:flex;align-items:center;justify-content:center;padding:0;animation:pulse .6s ease-in-out infinite alternate;touch-action:manipulation}' +
+  '#wishBtn{position:absolute;left:104px;bottom:12px;z-index:30;width:84px;height:84px;border-radius:50%;border:5px solid #fff;background:#7be07b;box-shadow:0 5px 0 rgba(0,0,0,.3),0 0 0 6px rgba(123,224,123,.35);font-size:44px;display:flex;align-items:center;justify-content:center;padding:0;animation:pulse .6s ease-in-out infinite alternate;touch-action:manipulation}' +
   '#wishBtn i{position:absolute;right:-10px;bottom:-8px;font-size:26px;font-style:normal}' +
-  '@media (orientation:landscape){#wishBtn{width:68px;height:68px;font-size:36px;bottom:78px}}' +
+  '@media (orientation:landscape){#wishBtn{width:68px;height:68px;font-size:36px;bottom:8px}}' +
   '@media (orientation:portrait) and (min-height:150vw){#wishBtn{position:fixed;left:auto;right:16px;bottom:auto;top:calc(env(safe-area-inset-top) + var(--stageH) + 10px)}}';
   document.head.append(s); })();

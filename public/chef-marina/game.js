@@ -466,12 +466,12 @@ function propActions(p) {
     case 'table': a.push(A('🎨', () => UI.openCrafts('draw')), A('➕', () => UI.openCrafts('math')), A('🔤', () => UI.openCrafts('spell')), A('🧗', climb)); break;
     case 'chair': case 'stool': case 'kidtable': case 'armchair': a.push(A('🧗', climb)); a.push(A('🪑', () => sitDown(p))); if (p.a === 'kidtable') a.push(A('🎨', () => UI.openCrafts('draw'))); break;
     case 'sofa': a.push(A('🧗', climb), A('🪑', () => sitDown(p))); if (FORT_SPOTS[G.room] && !G.fort) a.push(A('🏰', startFort)); break;
-    case 'cattower': if (niko.perch === 'cattower' && niko.room === 'dining') a.push(A('✋', petNiko)); a.push(A('🧶', () => { emit('star', p.x, p.y - 60, 4); Audio2.sfx('meow2'); })); break;
+    case 'cattower': if (niko.perch === 'cattower' && niko.room === 'dining') a.push(A('✋', petNiko)); a.push(A('🧶', () => { emit('star', p.x, p.y - 60, 4); Audio2.sfx(pick(['trill1', 'trill2', 'trill3'])); })); break;
     case 'litter': if (G.poop) { a.push(A('🧻', wrapPoop)); } else a.push(A('🔍', () => { say('m_hmm'); })); break;
     case 'litterdome': a.push(A('🔍', () => say('m_stinky'))); break;
     case 'bouncy': a.push(A('🦄', () => { marina.state = 'cheer'; say('m_giggle'); emit('star', p.x, p.y - 30, 6); Audio2.jingle([0, 4, 7, 12]); setTimeout(() => marina.state = 'idle', 1800); })); break;
     case 'toy': case 'toybox': case 'books': case 'basket': a.push(A('🧸', () => makeMess(p))); if (p.a === 'basket' && G.needTP) a.push(A('🧻', takeTP)); break;
-    case 'box': a.push(A('📦', () => { if (niko.room === G.room) { niko.state = 'wander'; niko.walkTo(p.x, () => { niko.state = 'sleep'; niko.perchY = p.y - 18; }); Audio2.sfx('meow2'); } else say('m_hmm'); })); if (FORT_SPOTS[G.room] && !G.fort) a.push(A('🏰', startFort)); break;
+    case 'box': a.push(A('📦', () => { if (niko.room === G.room) { niko.state = 'wander'; niko.walkTo(p.x, () => { niko.state = 'sleep'; niko.perchY = p.y - 18; }); Audio2.sfx(pick(['trill1', 'trill2', 'trill3'])); } else say('m_hmm'); })); if (FORT_SPOTS[G.room] && !G.fort) a.push(A('🏰', startFort)); break;
     case 'keyboard': a.push(A('🎹', () => { const s = [0, 2, 4, 7, 9, 12, 14]; for (let i = 0; i < 6; i++) setTimeout(() => Audio2.blip(pick(s), 'square', 0.18, 0.2), i * 170); emit('note', p.x, p.y - 20, 4); })); break;
     case 'broom': a.push(A('🧹', () => { if (G.mess.some(m => m.room === G.room)) startTidy(true); else { emit('dust', p.x, p.y - 10, 6); say('m_ok_tidy'); } })); break;
     case 'rocker': a.push(A('🪑', () => sitDown(p))); break;
@@ -738,7 +738,7 @@ function clearStink() { P.forEach(p => { if (p.type === 'stink' || p.type === 'f
 function flushToilet() { Audio2.sfx('flush'); say('m_flush'); for (let i = 0; i < 20; i++) setTimeout(() => emit('water', 128 + rnd(-6, 6), BACK - 30, 1, { vy: rnd(-60, -20) }), i * 50); }
 
 // ---------------------------------------------------------------- niko
-function petNiko() { UI.face('niko', 'happy', 1800); niko.stop(); niko.dir = Math.sign(marina.x - niko.x) || 1; Audio2.sfx('purr'); emit('heart', niko.x, (niko.perchY || niko.y) - 30, 5); say('m_pet_niko'); niko.t = Math.max(niko.t, 6); }
+function petNiko() { UI.face('niko', 'happy', 1800); Audio2.sfx(pick(['trill1', 'trill3']), { vol: 0.8 }); niko.stop(); niko.dir = Math.sign(marina.x - niko.x) || 1; Audio2.sfx('purr'); emit('heart', niko.x, (niko.perchY || niko.y) - 30, 5); say('m_pet_niko'); niko.t = Math.max(niko.t, 6); }
 function feedNiko() {
   say('m_food_niko'); Audio2.jingle([7, 5, 7, 12]);
   if (niko.state === 'held') return;
@@ -753,12 +753,12 @@ function pickupNiko() {
   setTimeout(() => { if (G.holding && G.holding.type === 'niko') { G.holding.struggle = true; Audio2.sfx('meow1', { rate: 1.3 }); UI.face('niko', 'surprised', 1400, { shake: true }); } }, 2200);
   setTimeout(() => {
     if (!(G.holding && G.holding.type === 'niko')) return;
-    G.holding = null; niko.state = 'wander'; niko.room = G.room; niko.x = marina.x; niko.walkTo(marina.x + marina.dir * 90, null, 110); Audio2.sfx('meow2');
+    G.holding = null; niko.state = 'wander'; niko.room = G.room; niko.x = marina.x; niko.walkTo(marina.x + marina.dir * 90, null, 110); Audio2.sfx(pick(['trill1', 'trill2', 'trill3']));
     const p = parentsHere()[0] || (rory.here ? rory : null); if (p) setTimeout(() => say(p === daddy ? 'd_cat' : p === mommy ? 'mo_cat' : 'r_cat', p).then(() => { G.moodCtx = { type: 'scold', who: p }; UI.pulseMoods(); }), 300);
   }, 3600);
 }
 function chaseNiko() {
-  say('m_chase_niko'); niko.perchY = null; niko.state = 'flee'; Audio2.sfx('meow2');
+  say('m_chase_niko'); niko.perchY = null; niko.state = 'flee'; Audio2.sfx(pick(['trill1', 'trill2', 'trill3']));
   const W = ROOMS[G.room].w; const away = niko.x > marina.x ? W - 10 : 10;
   niko.walkTo(away, () => { niko.state = 'wander'; niko.t = 4; }, 120);
   marina.walkTo(away - Math.sign(away - marina.x) * 30, null, 100);
@@ -860,7 +860,7 @@ function inviteToFort(e) {
   if (!f.inside) enterFort();
   if (e === niko) {
     say('m_play_niko'); niko.room = G.room; if (!niko.here) niko.x = f.x + 120; niko.perchY = null; niko.state = 'wander';
-    niko.walkTo(f.x + 12, () => { niko.state = 'fort'; f.guests.push(niko); Audio2.sfx('meow2'); if (chance(0.55)) setTimeout(() => collapseFort('niko'), 2500); }, 90);
+    niko.walkTo(f.x + 12, () => { niko.state = 'fort'; f.guests.push(niko); Audio2.sfx(pick(['trill1', 'trill2', 'trill3'])); if (chance(0.55)) setTimeout(() => collapseFort('niko'), 2500); }, 90);
     return;
   }
   const key = e === daddy ? 'm_play_daddy' : e === mommy ? 'm_play_mommy' : 'm_play_rory';
@@ -1027,7 +1027,7 @@ const AI = {
     if (r < 0.35) { const s = pick(spots); this.catGo(s[0], s[2], () => { niko.state = 'sleep'; niko.perch = s[1]; niko.perchY = s[3]; Audio2.sfx('purr', { vol: 0.4 }); }); }
     else if (r < 0.5 && !G.poop) { this.catGo('playroom', 30, () => { niko.state = 'litter'; niko.t = 5; }); }
     else if (r < 0.65) { this.catGo('kitchen', 310, () => { niko.state = 'eat'; niko.dir = -1; niko.t = 6; }); }
-    else { niko.state = 'wander'; niko.perchY = null; if (chance(0.3) && niko.here) Audio2.sfx(pick(['meow1', 'meow2'])); niko.walkTo(rnd(20, ROOMS[niko.room].w - 20), null, null, rnd(154, 176)); }
+    else { niko.state = 'wander'; niko.perchY = null; if (chance(0.3) && niko.here) Audio2.sfx(pick(['trill1', 'trill2', 'trill3', 'meow1'])); niko.walkTo(rnd(20, ROOMS[niko.room].w - 20), null, null, rnd(154, 176)); }
   },
   catGo(room, x, cb) {
     niko.perchY = null; niko.state = 'wander';

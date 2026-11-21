@@ -488,7 +488,7 @@ const UI = (() => {
     let c = cards[who];
     if (!c) {
       const cv = el('canvas', { width: 128, height: 128 });
-      const n = el('div', { class: 'facecard' }, cv); document.getElementById('stage').append(n);
+      const n = el('div', { class: 'facecard' }, cv); n.dataset.who = who; document.getElementById('stage').append(n);
       c = cards[who] = { n, cv, t: 0 };
     }
     // position: speaker's side of the screen

@@ -62,7 +62,7 @@ const Pics = (() => {
     }
   }
   function hit(wx, wy) { const l = inRoom(G.room); for (let k = l.length - 1; k >= 0; k--) { const w = l[k], [W, H] = size(w); if (Math.abs(wx - w.x) < W / 2 + 4 && Math.abs(wy - w.y) < H / 2 + 4) return w; } return null; }
-  return { hang, trash, gift, giftMenu, draw, hit, actionsFor, save: saveWalls, get walls() { return walls; } };
+  return { hang, trash, gift, giftMenu, draw, hit, actionsFor, img, hash, save: saveWalls, get walls() { return walls; } };
 })();
 
 // draw on the wall (behind furniture), tap for options, drag to move

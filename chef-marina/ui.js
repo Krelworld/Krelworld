@@ -55,14 +55,14 @@ const UI = (() => {
     if (!acts) return; const a = acts.anchor;
     const top = a.prop !== undefined || a.x != null && a.id == null ? a.y : entTop(a);
     let [sx, sy] = toScreen(a.x, top);
-    const st = document.getElementById('stage').getBoundingClientRect(), n = acts.nodes.length, R = 76;
-    sy = clamp(sy - 10, 80, st.height - 50);
-    const spread = Math.min(Math.PI * 0.95, 0.75 * (n - 1) + 0.001);
+    const st = document.getElementById('stage').getBoundingClientRect(), n = acts.nodes.length;
+    // tidy rows of buttons that never overlap: centred over what was tapped, wrapping when there are many
+    const GAP = 80, per = Math.max(2, Math.min(n, n > 6 ? Math.ceil(n / 2) : n, Math.floor((st.width - 16) / GAP))), rows = Math.ceil(n / per);
+    const cx = clamp(sx, per * GAP / 2 + 6, st.width - per * GAP / 2 - 6);
+    let ty = sy - 14 - rows * GAP + GAP / 2; if (ty < 100) ty = Math.min(st.height - rows * GAP + GAP / 2 - 6, sy + 70); ty = Math.max(GAP / 2 + 6, ty);
     acts.nodes.forEach((node, i) => {
-      const ang = -Math.PI / 2 + (n === 1 ? 0 : -spread / 2 + spread * i / (n - 1));
-      let x = sx + Math.cos(ang) * R, y = sy + Math.sin(ang) * R + 20;
-      x = clamp(x, 36, st.width - 36); y = clamp(y, 40, st.height - 36);
-      node.style.left = x + 'px'; node.style.top = y + 'px';
+      const r = Math.floor(i / per), inRow = r === rows - 1 ? n - r * per : per, c = i - r * per;
+      node.style.left = cx + (c - (inRow - 1) / 2) * GAP + 'px'; node.style.top = ty + r * GAP + "px";
     });
   }
   function closeActions() { if (acts) { acts.nodes.forEach(n => n.remove()); acts = null; } }

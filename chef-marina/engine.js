@@ -37,7 +37,7 @@ function spriteCanvas(key, opt) {
   const r = E.A[key]; if (!r) return null;
   const c = document.createElement('canvas'); c.width = r[2]; c.height = r[3];
   const x = c.getContext('2d'); x.drawImage(E.atlas, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]);
-  if (opt && (opt.hair || opt.noGlasses || opt.tint)) recolor(c, opt);
+  if (opt && (opt.hair || opt.noGlasses || opt.tint || opt.dye)) recolor(c, opt);
   E.cache[ck] = c; return c;
 }
 function rgb2hsv(r, g, b) { r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; let h = 0;
@@ -70,6 +70,9 @@ function recolor(c, opt) {
       else { nh = H2[0]; ns = Math.min(1, s * H2[1]); nv = Math.min(1, v * H2[2]); }
       const [r, g, b] = hsv2rgb(nh, ns, nv); d[p] = r; d[p + 1] = g; d[p + 2] = b;
     }
+    // dye clothes: rotate the hue of anything that isn't skin, hair or glasses
+    if (opt.dye && s > 0.1 && v > 0.12 && !((h <= 48 || h >= 345) && y < headBottom + (bot - top) * 0.3) && !(h > 235 && h < 330 && y < headBottom) && !(h > 10 && h < 40 && s < 0.45 && v > 0.75)) {
+      const [r, g, b] = hsv2rgb((h + opt.dye) % 360, Math.min(1, s * (opt.dye === 999 ? 0 : 1.15)), v); d[p] = r; d[p + 1] = g; d[p + 2] = b; }
     if (opt.tint) { const t = opt.tint; d[p] = d[p] * (1 - t[3]) + t[0] * t[3]; d[p + 1] = d[p + 1] * (1 - t[3]) + t[1] * t[3]; d[p + 2] = d[p + 2] * (1 - t[3]) + t[2] * t[3]; }
   }
   x.putImageData(im, 0, 0);

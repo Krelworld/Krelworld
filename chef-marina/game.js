@@ -67,7 +67,7 @@ function lineMood(key) {
 const sayOne = (keys, ent) => say(pick(keys), ent);
 
 // ---------------------------------------------------------------- marina sprite selection
-function mOpt() { const o = {}; if (G.hair !== 'ginger') o.hair = G.hair; if (!G.glasses) o.noGlasses = true; return Object.keys(o).length ? o : null; }
+function mOpt() { const o = {}; if (G.hair !== 'ginger') o.hair = G.hair; if (!G.glasses) o.noGlasses = true; if (G.dye) o.dye = G.dye; return Object.keys(o).length ? o : null; }
 function mBase() { return G.outfit === 'default' ? 'marina' : 'o_' + G.outfit; }
 function mWalk() { return G.outfit === 'default' ? 'marina_walk' : 'o_' + G.outfit + '_walk'; }
 

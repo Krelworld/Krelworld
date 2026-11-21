@@ -237,25 +237,41 @@ const UI = (() => {
   // =========================================================== DRESS-UP
   const HAIRS = { ginger: '#eba864', blonde: '#f2cf6b', brown: '#7a4a26', black: '#2a2730', pink: '#ff7ab8', blue: '#4aa8ff', purple: '#a46cf0', green: '#5fcf6a', rainbow: 'conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)' };
   function outfitList() { return ['default', ...Object.keys(E.A).filter(k => /^o_[a-z]+$/.test(k)).map(k => k.slice(2))]; }
-  function previewLook(cv) {
-    const x = cv.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height); x.imageSmoothingEnabled = false;
+  const lookStore = { get(k, d) { try { return JSON.parse(localStorage.getItem('cm_' + k)) || d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem('cm_' + k, JSON.stringify(v)); } catch (e) { } } };
+  const curLook = () => ({ outfit: G.outfit, hair: G.hair, glasses: G.glasses, dye: G.dye || 0, look: { ...G.look } });
+  const wearLook = L => { if (!L) return; G.outfit = has(L.outfit === 'default' ? 'marina' : 'o_' + L.outfit) ? L.outfit : 'default'; G.hair = L.hair || 'ginger'; G.glasses = L.glasses !== false; G.dye = L.dye || 0; G.look = { head: null, face: null, back: null, hand: null, ...(L.look || {}) }; };
+  setTimeout(() => wearLook(lookStore.get('look', null)), 600); // she keeps yesterday's outfit
+  const BACKDROPS = [['#ffd6e8', '#c9a4ff'], ['#bfe9ff', '#7bd36b'], ['#2b2340', '#7b4cf0'], ['#fff3b0', '#ff9a5a'], ['#e0fff4', '#58c7d8']];
+  let backdrop = 0;
+  function previewLook(cv, t = 0, walk = false) {
+    const x = cv.getContext('2d'), W = cv.width, H = cv.height; x.imageSmoothingEnabled = false;
+    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, BACKDROPS[backdrop][0]); g.addColorStop(1, BACKDROPS[backdrop][1]); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.fillStyle = 'rgba(255,255,255,.35)'; x.beginPath(); x.ellipse(W / 2, H - 8, 30, 6, 0, 0, 6.3); x.fill();
+    for (let i = 0; i < 6; i++) { const a = t * 0.8 + i; x.fillStyle = `rgba(255,255,255,${0.4 + 0.4 * Math.sin(a * 3)})`; x.fillRect(W / 2 + Math.cos(a) * 40, 20 + ((i * 17 + t * 12) % (H - 40)), 2, 2); }
     const sc = E.ctx, scam = E.camX, sd = E.depth; E.ctx = x; E.camX = 0; E.depth = 1;
-    const k = mBase(); drawLook({ x: 48, dir: 1 }, k, 92, false, 1, 'back'); drawSprite(k, 48, 92, { opt: mOpt() }); drawLook({ x: 48, dir: 1 }, k, 92, false, 1, 'front');
+    const k = walk ? (frameKey(mWalk(), t, 9) || mBase()) : mBase(), bob = walk ? 0 : Math.sin(t * 3) * 1;
+    drawLook({ x: W / 2, dir: 1 }, mBase(), H - 10 + bob, false, 1, 'back'); drawSprite(k, W / 2, H - 10 + bob, { opt: mOpt() }); drawLook({ x: W / 2, dir: 1 }, mBase(), H - 10 + bob, false, 1, 'front');
     E.ctx = sc; E.camX = scam; E.depth = sd;
   }
   function openDress() {
-    say('m_pretty'); let tab = 'outfit';
-    openPanel('dress', '👗', (b) => {
-      const prev = el('canvas', { width: 96, height: 96, class: 'dprev' });
+    say('m_pretty'); let tab = 'outfit', raf = 0, walk = false;
+    const p = openPanel('dress', '👗', (b) => {
+      const prev = el('canvas', { width: 110, height: 96, class: 'dprev' });
       const tabs = el('div', { class: 'row tabs' }); const area = el('div', { class: 'grid dgrid' });
-      const TABS = [['outfit', '👗'], ['hair', '💇'], ['head', '👑'], ['face', '🕶️'], ['back', '🦋'], ['hand', '🪄']];
-      const sync = () => { previewLook(prev); tabs.querySelectorAll('.pbtn').forEach((t, i) => t.classList.toggle('on', TABS[i][0] === tab)); };
-      const choose = (fn) => () => { fn(); Audio2.blip(pick([0, 4, 7, 9, 12])); emit('sparkle', marina.x, marina.y - 50, 4); fill(); sync(); };
+      const TABS = [['outfit', '👗'], ['dye', '🎨'], ['hair', '💇'], ['head', '👑'], ['face', '🕶️'], ['back', '🦋'], ['hand', '🪄'], ['looks', '💾']];
+      const sync = () => { tabs.querySelectorAll('.pbtn').forEach((t, i) => t.classList.toggle('on', TABS[i][0] === tab)); lookStore.set('look', curLook()); };
+      const loop = () => { if (document.getElementById('panel').classList.contains('hidden') || !prev.isConnected) return; previewLook(prev, performance.now() / 1000, walk); raf = requestAnimationFrame(loop); };
+      const choose = (fn) => () => { fn(); Audio2.blip(pick([0, 4, 7, 9, 12])); prev.animate([{ transform: 'scale(1.08) rotate(-3deg)' }, { transform: 'none' }], 220); fill(); sync(); };
       const fill = () => {
         area.innerHTML = '';
         if (tab === 'outfit') outfitList().forEach(id => area.append(el('button', { class: 'tile' + (G.outfit === id ? ' sel' : ''), on: tap(choose(() => { G.outfit = id; Audio2.jingle([0, 7, 12], 0.05); })) }, img(id === 'default' ? 'marina' : 'o_' + id, mOpt()))));
+        else if (tab === 'dye') [0, 40, 80, 130, 180, 220, 270, 310].forEach(h => area.append(el('button', { class: 'tile' + ((G.dye || 0) === h ? ' sel' : ''), on: tap(choose(() => { G.dye = h; })) }, h ? img(mBase(), { ...(mOpt() || {}), dye: h }) : '🚫')));
         else if (tab === 'hair') Object.entries(HAIRS).forEach(([h, c]) => area.append(el('button', { class: 'tile' + (G.hair === h ? ' sel' : ''), on: tap(choose(() => { G.hair = h; })) }, el('span', { class: 'swatch', style: { background: c } }))));
-        else {
+        else if (tab === 'looks') {
+          const saved = lookStore.get('looks', []);
+          area.append(el('button', { class: 'tile', style: { background: '#7bd36b' }, 'aria-label': 'save this look', on: tap(() => { const L = curLook(); const cvs = el('canvas', { width: 110, height: 96 }); previewLook(cvs, 0); L.pic = cvs.toDataURL(); saved.unshift(L); lookStore.set('looks', saved.slice(0, 11)); Audio2.jingle([0, 4, 7, 12]); fill(); }) }, '➕'));
+          saved.forEach((L, i) => { const t = el('button', { class: 'tile', on: tap(choose(() => wearLook(L))) }, el('img', { src: L.pic, class: 'pix' })); area.append(t); });
+        } else {
           const items = lookItems(tab);
           area.append(el('button', { class: 'tile' + (!G.look[tab] ? ' sel' : ''), on: tap(choose(() => { G.look[tab] = null; })) }, '🚫'));
           if (tab === 'face') area.append(el('button', { class: 'tile' + (G.glasses ? ' sel' : ''), on: tap(choose(() => { G.glasses = !G.glasses; })) }, '👓'));
@@ -264,14 +280,32 @@ const UI = (() => {
       };
       TABS.forEach(([t, ico]) => tabs.append(el('button', { class: 'pbtn', on: tap(() => { tab = t; Audio2.whoosh(); fill(); sync(); }) }, ico)));
       const rand = el('button', { class: 'pbtn', 'aria-label': 'random look', on: tap(choose(() => {
-        const os = outfitList(); G.outfit = pick(os); G.hair = chance(0.6) ? 'ginger' : pick(Object.keys(HAIRS));
+        G.outfit = pick(outfitList()); G.hair = chance(0.6) ? 'ginger' : pick(Object.keys(HAIRS)); G.dye = chance(0.4) ? pick([40, 80, 130, 180, 220, 270, 310]) : 0;
         for (const s of ['head', 'face', 'back', 'hand']) { const its = lookItems(s); G.look[s] = chance(0.55) && its.length ? pick(its).id : null; }
         Audio2.jingle([0, 4, 7, 12, 16], 0.05); })) }, '🎲');
-      const done = el('button', { class: 'pbtn go', 'aria-label': 'done', on: tap(() => { closePanel(); emit('confetti', marina.x, marina.y - 60, 40);
-        say(G.outfit === 'fairy' ? 'm_fairy' : G.outfit === 'princess' ? 'm_princess' : pick(['m_pretty', 'm_cool', 'm_look'])); marina.state = 'cheer'; setTimeout(() => marina.state === 'cheer' && (marina.state = 'idle'), 1500);
-        addMess(G.room, 2, ['👗', '👚', '🧦', '👠']); }) }, '✅');
-      b.append(el('div', { class: 'dtop' }, rand, prev, done), tabs, area); fill(); sync();
+      const photo = el('button', { class: 'pbtn', 'aria-label': 'photo', on: tap(() => {
+        const o = el('canvas', { width: 330, height: 288 }), x = o.getContext('2d'); x.imageSmoothingEnabled = false; const c = el('canvas', { width: 110, height: 96 }); previewLook(c, 1.2); x.drawImage(c, 0, 0, 330, 288);
+        const g = lookStore.get('gallery', []); g.unshift(o.toDataURL('image/jpeg', 0.85)); lookStore.set('gallery', g.slice(0, 16));
+        Audio2.noise(0.08, 0.4, 3000); flash(); prev.animate([{ filter: 'brightness(3)' }, { filter: 'none' }], 300); say(pick(['m_cool', 'm_pretty'])); }) }, '📸');
+      const bg = el('button', { class: 'pbtn', 'aria-label': 'backdrop', on: tap(() => { backdrop = (backdrop + 1) % BACKDROPS.length; Audio2.blip(5); }) }, '🌈');
+      const spin = el('button', { class: 'pbtn', 'aria-label': 'walk', on: tap(() => { walk = !walk; spin.classList.toggle('on', walk); Audio2.blip(9); }) }, '🚶');
+      const done = el('button', { class: 'pbtn go', 'aria-label': 'done', on: tap(() => { closePanel(); sync(); addMess(G.room, 2, ['👗', '👚', '🧦', '👠']); fashionShow(); }) }, '✅');
+      b.append(el('div', { class: 'dtop' }, el('div', { class: 'dcol' }, rand, bg, spin), prev, el('div', { class: 'dcol' }, photo, done)), tabs, area); fill(); sync(); loop();
     });
+  }
+  // runway: she struts across the room, sparkles and camera flashes, family cheers
+  function fashionShow() {
+    Audio2.Music.set('dress'); emit('confetti', marina.x, marina.y - 60, 40);
+    say(G.outfit === 'fairy' ? 'm_fairy' : G.outfit === 'princess' ? 'm_princess' : pick(['m_look', 'm_cool', 'm_pretty']));
+    const W = ROOMS[G.room].w, to = marina.x < W / 2 ? Math.min(W - 30, marina.x + 150) : Math.max(30, marina.x - 150);
+    const iv = setInterval(() => { emit('sparkle', marina.x + rnd(-10, 10), marina.y - rnd(10, 70), 2); if (chance(0.25)) emit('star', marina.x, marina.y - 70, 1); }, 90);
+    const fl = setInterval(() => { if (chance(0.6)) { emoji; emit('heart', marina.x + rnd(-60, 60), marina.y - rnd(40, 100), 1, { ch: '📸', vx: 0, vy: -6, life: 0.7, size: 11 }); Audio2.noise(0.04, 0.15, 4000); } }, 450);
+    marina.walkTo(to, () => {
+      clearInterval(iv); clearInterval(fl); marina.state = 'cheer'; setTimeout(() => marina.state === 'cheer' && (marina.state = 'idle'), 1600); setMusic();
+      const fans = [daddy, mommy, rory].filter(e => e.here && !['toilet', 'lie'].includes(e.state) && !(e === rory && !G.rory));
+      if (fans.length) { const f = pick(fans); f.dir = Math.sign(marina.x - f.x) || 1; Audio2.sfx('crowd_cheer', { vol: 0.4 }); say(f === daddy ? pick(['d_amazing', 'd_proud']) : f === mommy ? pick(['mo_amazing', 'mo_proud']) : 'r_amazing', f).then(() => emit('heart', f.x, f.y - 90, 6)); }
+    }, 55, FLOOR);
+    setTimeout(() => { clearInterval(iv); clearInterval(fl); }, 6000);
   }
 
   // =========================================================== CRAFTS

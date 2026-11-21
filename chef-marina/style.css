@@ -196,3 +196,9 @@ h1{margin:4px 0 14px;font-size:54px;color:#ffcf4a;text-shadow:0 4px 0 #b5482f,0 
 @media (orientation:landscape){#roombar{left:50%;transform:translateX(-50%)}.rb{width:40px}}
 
 #stage,#cv{touch-action:none}
+.dprev{width:min(52vw,230px);height:auto;aspect-ratio:110/96}
+.dcol{display:flex;flex-direction:column;gap:8px}
+.tabs{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start}
+.tabs .pbtn{flex:0 0 auto;min-width:52px;height:54px}
+.dgrid{overflow-y:auto;flex:1 1 auto;min-height:0;align-content:start}
+@media (orientation:landscape){.dprev{width:auto;height:min(42vh,180px)}}

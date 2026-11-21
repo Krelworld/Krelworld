@@ -43,17 +43,28 @@ const Audio2 = (() => {
 
   // ---- voices -------------------------------------------------------------
   // returns promise resolving after the clip ends (approx)
-  function voice(key, speaker) {
+  // Each speaker finishes the line they're on before starting the next one (so nobody gets cut off mid-sentence).
+  // A short queue: if two lines are already waiting, a further one is skipped rather than piling up.
+  const voiceQ = {}, voiceWaiting = {}, voiceGen = {};
+  const who = sp => (sp === 'marina' ? 'm' : sp);
+  function line(speaker, play) {
+    speaker = who(speaker); const gen = voiceGen[speaker] = voiceGen[speaker] || 0;
+    if ((voiceWaiting[speaker] || 0) >= 2) return wait(300);
+    voiceWaiting[speaker] = (voiceWaiting[speaker] || 0) + 1;
+    const p = (voiceQ[speaker] || Promise.resolve()).then(() => { voiceWaiting[speaker]--; return gen === voiceGen[speaker] ? play(speaker) : null; });
+    voiceQ[speaker] = p.catch(() => {}); return p;
+  }
+  function hush(speaker) {      // stop this speaker now and forget anything they had queued (also used for "say this instead")
+    speaker = who(speaker); voiceGen[speaker] = (voiceGen[speaker] || 0) + 1; voiceQ[speaker] = Promise.resolve(); voiceWaiting[speaker] = 0;
+    if (voiceNow[speaker]) { try { voiceNow[speaker].stop(); } catch (e) {} voiceNow[speaker] = null; }
+  }
+  function voice(key, speaker, opt) {
     if (!ac) return Promise.resolve();
     speaker = speaker || key.split('_')[0];
+    if (opt && opt.cut) hush(speaker);
     const url = 'assets/vo/' + key + '.mp3';
-    return load(url).then(buf => {
-      if (!buf) return wait(700);
-      if (voiceNow[speaker]) { try { voiceNow[speaker].stop(); } catch (e) {} }
-      duck(buf.duration);
-      const s = playBuf(buf, voiceGain, {}); voiceNow[speaker] = s;
-      return wait(buf.duration * 1000);
-    });
+    const ready = load(url);     // start fetching now, but take our place in the queue straight away so lines stay in the order they were asked for
+    return line(speaker, sp => ready.then(buf => { if (!buf) return wait(700); duck(buf.duration); const s = playBuf(buf, voiceGain, {}); voiceNow[sp] = s; return wait(buf.duration * 1000); }));
   }
   function duck(sec) {
     if (!musicGain) return; const t = ac.currentTime;
@@ -285,13 +296,13 @@ const Audio2 = (() => {
   // play several voice clips back to back (e.g. a dish name built from words)
   async function chain(keys, speaker = 'marina', vol = 1) {
     if (!ac) return;
-    const bufs = await Promise.all(keys.map(k => load('assets/vo/' + k + '.mp3')));
-    if (voiceNow[speaker]) { try { voiceNow[speaker].stop(); } catch (e) {} }
-    let t = 0.05; const tot = bufs.reduce((s, b) => s + (b ? b.duration : 0), 0); duck(tot + 0.3);
-    for (const b of bufs) { if (!b) continue; const s = playBuf(b, voiceGain, { when: t, vol }); voiceNow[speaker] = s; t += b.duration - 0.04; }
-    return wait(t * 1000);
+    const ready = Promise.all(keys.map(k => load('assets/vo/' + k + '.mp3')));
+    return line(speaker, async sp => { const bufs = await ready, srcs = []; let t = 0.05; const tot = bufs.reduce((s, b) => s + (b ? b.duration : 0), 0); duck(tot + 0.3);
+      for (const b of bufs) { if (!b) continue; srcs.push(playBuf(b, voiceGain, { when: t, vol })); t += b.duration - 0.04; }
+      voiceNow[sp] = { stop() { for (const s of srcs) try { s.stop(); } catch (e) {} } };
+      return wait(t * 1000); });
   }
   function toggleMute() { muted = !muted; if (master) master.gain.value = muted ? 0 : 0.9; return muted; }
 
-  return { init, load, preload, chain, voice, speak, sfx, fart, blip, jingle, whoosh, noise, melody, Music, toggleMute, get ctx() { return ac; } };
+  return { init, load, preload, chain, voice, hush, speak, sfx, fart, blip, jingle, whoosh, noise, melody, Music, toggleMute, get ctx() { return ac; } };
 })();

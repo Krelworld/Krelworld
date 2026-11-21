@@ -11,7 +11,7 @@
 
   function close(done, who) {
     tok++; if (held) { AI.hold(held, false); held = null; } if (box) { box.remove(); box = null; } stage.classList.remove('storyon'); G.busy = false; setMusic();
-    for (const sp of ['d', 'mo', 'r']) try { Audio2.voice('st_none', sp); } catch (e) { }
+    for (const sp of ['d', 'mo', 'r']) try { Audio2.hush(sp); } catch (e) { }
     if (done && who) { const e = { daddy, mommy, rory }[who]; marina.state = 'cheer'; emit('heart', (marina.x + e.x) / 2, marina.y - 70, 8); setTimeout(() => { if (marina.state === 'cheer') marina.state = 'idle'; }, 1500);
       say('m_again').then(() => say(e === daddy ? 'd_love' : e === mommy ? 'mo_love' : 'r_love', e)); }
   }
@@ -56,7 +56,7 @@
       pic.src = img(s, i); cap.textContent = s.pages[i][0]; page.classList.remove('turn'); void page.offsetWidth; page.classList.add('turn'); Audio2.whoosh(false);
       dots.innerHTML = s.pages.map((_, k) => '<i class="' + (k === i ? 'on' : '') + '"></i>').join('');
       prev.style.visibility = i ? 'visible' : 'hidden';
-      const pr = Audio2.voice('st_' + sp + '_' + s.id + '_' + (i + 1), sp); UI.face(who, 'happy', pr);
+      const pr = Audio2.voice('st_' + sp + '_' + s.id + '_' + (i + 1), sp, { cut: true }); UI.face(who, 'happy', pr);
       Promise.race([pr, new Promise(r => setTimeout(r, 30000))]).then(() => setTimeout(() => { if (tok === myT && box) show(i + 1); }, 900));
     }
     function end() {

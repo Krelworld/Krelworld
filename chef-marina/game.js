@@ -11,16 +11,17 @@ const SPEAK = { m: 'marina', d: 'daddy', mo: 'mommy', r: 'rory' };
 class Ent {
   constructor(o) { Object.assign(this, { x: 100, y: FLOOR, dir: 1, speed: 60, state: 'idle', animT: 0, scale: 1, hidden: false, vy: 0, rot: 0, offY: 0, path: null }, o); ENTS.push(this); }
   get here() { return this.room === G.room && !this.hidden; }
-  walkTo(x, cb, speed) {
-    this.tx = clamp(x, 8, ROOMS[this.room].w - 8); this.onArrive = cb || null; this.moving = true; if (speed) this.curSpeed = speed; else this.curSpeed = this.speed;
+  walkTo(x, cb, speed, ty) {
+    this.tx = clamp(x, 8, ROOMS[this.room].w - 8); this.ty = ty != null ? clamp(ty, DEPTH_MIN, DEPTH_MAX) : this.y;
+    this.onArrive = cb || null; this.moving = true; if (speed) this.curSpeed = speed; else this.curSpeed = this.speed;
   }
   stop() { this.moving = false; this.onArrive = null; }
   update(dt) {
     this.animT += dt;
     if (this.moving) {
-      const d = this.tx - this.x, s = this.curSpeed * dt;
-      if (Math.abs(d) <= s) { this.x = this.tx; this.moving = false; const cb = this.onArrive; this.onArrive = null; cb && cb(); }
-      else { this.x += Math.sign(d) * s; this.dir = Math.sign(d); }
+      const dx = this.tx - this.x, dy = (this.ty ?? this.y) - this.y, dist = Math.hypot(dx, dy), s = this.curSpeed * dt;
+      if (dist <= s) { this.x = this.tx; this.y = this.ty ?? this.y; this.moving = false; const cb = this.onArrive; this.onArrive = null; cb && cb(); }
+      else { this.x += dx / dist * s; this.y += dy / dist * s; if (Math.abs(dx) > 0.5) this.dir = Math.sign(dx); }
     }
   }
 }
@@ -37,10 +38,10 @@ function frameKey(base, t, fps = 10) { const n = frameCount(base); if (!n) retur
 let marina, daddy, mommy, rory, miles, niko;
 function makeEnts() {
   marina = new Ent({ id: 'marina', room: 'living', x: 300, speed: 78, scale: 1.18 });
-  daddy = new Ent({ id: 'daddy', room: 'living', x: 560, speed: 52, dir: -1 });
+  daddy = new Ent({ id: 'daddy', room: 'living', x: 90, speed: 52, dir: -1 });
   mommy = new Ent({ id: 'mommy', room: 'kitchen', x: 300, speed: 55, dir: -1 });
   rory = new Ent({ id: 'rory', room: 'yard', x: 300, speed: 50, hidden: true });
-  miles = new Ent({ id: 'miles', room: 'living', x: 58, spot: 'crib', crying: false, cryT: rnd(30, 60) });
+  miles = new Ent({ id: 'miles', room: 'living', x: 568, spot: 'crib', crying: false, cryT: rnd(30, 60) });
   niko = new Ent({ id: 'niko', room: 'dining', x: 318, speed: 46, state: 'sleep', perch: 'cattower', t: rnd(15, 25) });
 }
 
@@ -80,25 +81,29 @@ function drawEnt(e) {
       if (e.state === 'horse') { drawSprite(e.id + '_horse', e.x, e.y + Math.abs(Math.sin(t * 10)) * -3, { flip }); return; }
       if (e.state === 'lie') { drawSprite(e.id + '_lie', e.x, e.y + 2, { flip }); if (chance(0.02)) emit('zzz', e.x, e.y - 30); return; }
       if (e.state === 'toilet') return;
+      if (e.state === 'shoulders' && has('daddy_shoulders') && e.id === 'daddy') { drawSprite(e.moving ? (frameKey('daddy_shoulders_walk', t, 12) || 'daddy_shoulders') : 'daddy_shoulders', e.x, e.y + Math.abs(Math.sin(t * 10)) * (e.moving ? -2 : 0), { flip, opt: null }); return; }
+      if (e.hugT > E.t && has(e.id + '_hug')) { drawSprite(e.id + '_hug', e.x, e.y, { flip }); return; }
+      if (e.state === 'eat' && frameCount(e.id + '_eat')) { drawSprite(frameKey(e.id + '_eat', t, 7), e.x, e.y, { flip }); if (chance(0.1)) emit('dust', e.x + e.dir * 10, e.y - 60, 1, { col: '#e8c27a', g: 200, vy: -10 }); return; }
       const k = e.moving ? frameKey(e.id + '_walk', t, e.curSpeed > 80 ? 16 : 9) : e.id;
       let sy = 1, rot = 0, oy = 0;
-      if (e.state === 'eat') { sy = 1 + Math.sin(t * 12) * 0.02; }
+      if (e.state === 'eat') { sy = 1 + Math.sin(t * 12) * 0.03; if (chance(0.1)) emit('dust', e.x + e.dir * 10, e.y - 60, 1, { col: '#e8c27a', g: 200, vy: -10 }); }
       if (e.state === 'sick') { rot = Math.sin(t * 9) * 0.05; }
       if (e.state === 'vomit') { rot = 0.12 * (flip ? -1 : 1); }
       if (e.state === 'sitfort') { oy = 18; }
-      drawSprite(k, e.x, e.y + oy, { flip, sy, rot });
+      drawSprite(k, e.x, e.y + oy, { flip, sy: e.hugT > E.t ? 1 + Math.sin(t * 8) * 0.04 : sy, rot });
+      if (e.state === 'eat' && !frameCount(e.id + '_eat')) { drawSprite('dish_' + ((e.plate && e.plate.art) || 'cake'), e.x + e.dir * 14, e.y - 44, { scale: 0.45 }); emoji('🍴', e.x + e.dir * 8, e.y - 56 + Math.abs(Math.sin(t * 9)) * 6, 9); }
       if (e.state === 'sick' && chance(0.08)) emit('stink', e.x - e.dir * 6, e.y - 30);
       if (e.face) emoji(e.face, e.x + (flip ? -8 : 8), e.y - 78, 12);
       return; }
     case 'mommy': {
       if (e.state === 'sit') { drawSprite('mommy_sit', e.x, e.y - 2, { flip }); if (e.holdingMiles) drawSprite('miles', e.x + (flip ? -10 : 10), e.y - 30, { flip, scale: 0.7 }); return; }
-      const k = e.moving ? frameKey('mommy_roll', t, e.curSpeed > 70 ? 16 : 9) : 'mommy';
+      const k = e.moving ? frameKey('mommy_roll', t, e.curSpeed > 70 ? 16 : 9) : (e.hugT > E.t && frameCount('mommy_hug') ? frameKey('mommy_hug', t, 6) : 'mommy');
       drawSprite(k, e.x, e.y + 2, { flip });
       if (e.holdingMiles) drawSprite('miles', e.x + (flip ? -6 : 6), e.y - 34, { flip, scale: 0.7 });
       return; }
     case 'miles': {
       if (mommy.holdingMiles) return;
-      const base = e.crying ? 'miles_cry' : (e.happyT > 0 ? 'miles_giggle' : null);
+      const base = e.crying ? 'miles_cry' : (e.eatT > E.t && frameCount('miles_eat') ? 'miles_eat' : e.happyT > 0 ? (frameCount('miles_happy') ? 'miles_happy' : 'miles_giggle') : null);
       const k = base ? frameKey(base, t, 6) : 'miles';
       const y = e.spot === 'crib' ? BACK - 10 : 156;
       drawSprite(k, e.x, y, { flip: true, scale: 0.8 });
@@ -119,6 +124,7 @@ function drawMarina(e) {
   let y = e.y + e.offY;
   const st = e.state;
   if (st === 'ride') return; // drawn with mount
+  if (st === 'anim') return drawMarinaAnim(e, y, flip, opt, S);
   if (st === 'wheel') { drawSprite('wheelchair', e.x, y + 2, { flip, scale: 1.1 }); drawSprite('marina_sit', e.x + (flip ? 2 : -2), y - 8, { flip, scale: 0.95, opt }); drawHolding(e, y - 50); return; }
   if (st === 'tantrum') { const k = 'marina_tantrum_' + (5 + Math.floor(t * 12) % 4); drawSprite(k, e.x, y + 6, { flip, scale: S, opt }); if (chance(0.6)) emit('tear', e.x + (flip ? 12 : -12), y - 14, 2); if (chance(0.2)) emit('anger', e.x, y - 30); return; }
   if (st === 'flip') { const n = 1 + Math.min(7, Math.floor(e.flipT * 9)); drawSprite('marina_flip_' + n, e.x, y + 4, { flip, scale: S, opt }); return; }
@@ -134,8 +140,9 @@ function drawMarina(e) {
   let sy = 1;
   if (st === 'stomp') { sy = 1 - Math.abs(Math.sin(t * 14)) * 0.08; }
   if (st === 'sad' && chance(0.25)) emit('tear', e.x + (flip ? -6 : 6), y - 50, 1, { vx: rnd(-20, 20), vy: rnd(-30, -10) });
+  drawLook(e, k, y, flip, S, 'back');
   drawSprite(k, e.x, y, { flip, scale: S, opt, sy, rot: e.rot });
-  if (G.acc) emoji(G.acc, e.x + (flip ? 3 : -3), y - 72 * S + 6, 10);
+  drawLook(e, k, y, flip, S, 'front');
   drawHolding(e, y - 74 * S);
 }
 function drawHolding(e, y) {
@@ -148,32 +155,44 @@ function drawHolding(e, y) {
   else emoji(h.ico || '❓', x, y + 20, 12);
 }
 function drawMounted() {
+  if (drawMounted.f === E.t) return; drawMounted.f = E.t;
   // Marina riding on daddy/rory
   if (marina.state !== 'ride' || !marina.mount || !marina.mount.here) return;
   const m = marina.mount; const bob = Math.abs(Math.sin(m.animT * 10)) * -3;
   drawSprite('marina_sit', m.x + (m.dir < 0 ? 6 : -6), m.y - 40 + bob, { flip: m.dir < 0, scale: 1.05, opt: mOpt() });
 }
-function drawProps(z) {
-  const list = PROPS[G.room];
-  for (const p of list) {
-    if ((p.z || 0) !== z) continue;
-    if (p.fallOnly && WEATHER !== 'fall') continue;
-    if (p.snowOnly && WEATHER !== 'snow') continue;
-    if (p.id === 'blower' && G.holding && G.holding.type === 'blower') continue;
-    if (p.id === 'armchair' && mommy.here && mommy.state === 'sit') continue;
+const isWallProp = p => !p.z && p.y <= BACK + 6;
+function propVisible(p) { return !(p.fallOnly && WEATHER !== 'fall') && !(p.snowOnly && WEATHER !== 'snow'); }
+function drawProps(z) { // z=0: wall props only (floor props are depth-sorted with characters)
+  for (const p of PROPS[G.room]) if (z === 0 && isWallProp(p)) drawProp(p);
+  if (z === 0 && G.room === 'foyer' && G.bathLocked && chance(0.25)) emit('stink', 140 + rnd(-8, 8), BACK - 10 - rnd(0, 60));
+}
+function drawProp(p) {
+  {
+    if (!propVisible(p)) return;
+    if (p.id === 'blower' && G.holding && G.holding.type === 'blower') return;
+    if (p.id === 'armchair' && mommy.here && mommy.state === 'sit') return;
     if (p.k.startsWith('p:')) {
-      if (BAKED(p.k) && bgFor(G.room)) { if (G.bathLocked && p.to === 'bathroom') { rect(p.x - 7, p.y - 64, 14, 11, '#d33'); emoji('🔒', p.x, p.y - 58, 9); } continue; }
-      drawProc(p); continue; }
+      if (BAKED(p.k) && bgFor(G.room)) { drawDoorState(p); return; }
+      drawProc(p); drawDoorState(p); return; }
     let k = p.k, sc = p.scale || 1, opt = null;
     if (p.id === 'fridge' && G.fridgeOpen > 0) k = 'fridge_open';
     if (p.id === 'leafpile') sc = 0.5 + G.pile * 0.22;
-    if (p.id === 'tv') { drawTV(p); continue; }
+    if (p.id === 'tv') { drawTV(p); return; }
     drawSprite(k, p.x, p.y, { flip: !!p.flip, scale: sc, opt });
     if (p.id === 'tray' && G.poop) { emoji('💩', p.x + 4, p.y - 14, 9); if (chance(0.12)) emit('stink', p.x + rnd(-8, 8), p.y - 18); }
     if (p.id === 'stove' && G.cooking) { if (chance(0.3)) emit('steam', p.x + rnd(-10, 10), p.y - 30); }
   }
-  if (z === 0 && G.room === 'living' && mommy.state === 'sit' && mommy.room === 'living' && marina.state !== 'wheel') drawSprite('wheelchair', mommy.x - 34, BACK + 16, { flip: true });
-  if (z === 0 && G.room === 'foyer' && G.bathLocked && chance(0.25)) emit('stink', 140 + rnd(-8, 8), BACK - 10 - rnd(0, 60));
+}
+// doors: lock badge + swing-open animation
+function drawDoorState(p) {
+  if (p.a !== 'door') return;
+  if (G.bathLocked && p.to === 'bathroom') { rect(p.x - 7, p.y - 64, 14, 11, '#d33'); emoji('🔒', p.x, p.y - 58, 9); }
+  const o = G.doorAnim && G.doorAnim.id === p.id && G.doorAnim.room === G.room ? G.doorAnim : null;
+  if (!o || !p.w) return;
+  const k = clamp((E.t - o.t0) / 0.35, 0, 1), w = p.w * (1 - k * 0.85);
+  rect(p.x - p.w / 2, p.y - p.h, p.w, p.h, 'rgba(20,14,10,.85)'); // dark doorway
+  rect(p.x - p.w / 2, p.y - p.h, w, p.h, '#f3f1ea'); rect(p.x - p.w / 2 + w - 2, p.y - p.h, 2, p.h, '#c9c4b8');
 }
 function drawTV(p) {
   rect(p.x - 40, p.y - 46, 80, 46, '#0c0c0e'); rect(p.x - 38, p.y - 44, 76, 40, '#141418');
@@ -248,7 +267,7 @@ function loop(ts) {
 function update(dt) {
   for (const e of ENTS) e.update(dt);
   if (marina.state === 'flip') { marina.flipT += dt; }
-  if (marina.mount) { marina.x = marina.mount.x; marina.room = marina.mount.room; }
+  if (marina.mount) { marina.x = marina.mount.x; marina.y = marina.mount.y; marina.room = marina.mount.room; }
   if (G.holding && G.holding.type === 'niko') niko.x = marina.x, niko.room = marina.room;
   // room edges for marina
   const mv = marina.mount || marina;
@@ -264,18 +283,19 @@ function update(dt) {
   if (G.fridgeOpen > 0) G.fridgeOpen -= dt;
   if (WEATHER === 'snow' && G.room === 'yard' && chance(0.6)) emit('snow', E.camX + rnd(0, E.viewW), -4);
   if (G.chase) updateChase(dt);
-  updateFort(dt); updateParticles(dt); AI.update(dt); UI.update();
+  updateFort(dt); updateParticles(dt); AI.update(dt); UI.update(); if (window.featTick) featTick(dt);
 }
 function render() {
   const ctx = E.ctx; ctx.setTransform(E.scale, 0, 0, E.scale, 0, 0); ctx.imageSmoothingEnabled = false;
   ctx.fillStyle = '#1d1830'; ctx.fillRect(-10, -10, E.viewW + 20, SH + 20);
   drawRoomBG(G.room); drawProps(0); drawFort(false); drawMess();
-  const list = ENTS.filter(e => e.here).sort((a, b) => (a.y + (a.id === 'marina' ? 1 : 0)) - (b.y + (b.id === 'marina' ? 1 : 0)));
-  for (const e of list) drawEnt(e);
-  drawMounted(); drawFort(true); drawProps(1); drawParticles();
-  { const R = ROOMS[G.room], b = Math.sin(E.t * 5) * 2;
-    if (R.left) emoji('⬅️', Math.max(E.camX + 10, 10) + b, 150, 12, 0.75);
-    if (R.right) emoji('➡️', Math.min(E.camX + E.viewW - 10, R.w - 10) - b, 150, 12, 0.75); }
+  const items = [];
+  for (const p of PROPS[G.room]) if (!isWallProp(p)) items.push({ y: p.y, f: () => drawProp(p) });
+  if (G.room === 'living' && mommy.state === 'sit' && mommy.room === 'living' && marina.state !== 'wheel') items.push({ y: BACK + 16, f: () => drawSprite('wheelchair', mommy.x + 36, BACK + 16) });
+  for (const e of ENTS) if (e.here) items.push({ y: e.y + (e === marina ? 0.5 : 0), f: () => { E.depth = depthScale(e.y); drawEnt(e); if (e === marina) drawMounted(); E.depth = 1; } });
+  items.sort((a, b) => a.y - b.y); for (const it of items) it.f();
+  drawFort(true); drawParticles();
+  if (window.drawExitSigns) drawExitSigns();
   if (G.night > 0) { ctx.fillStyle = `rgba(10,10,40,${Math.min(0.85, G.night)})`; ctx.fillRect(-10, -10, E.viewW + 20, SH + 20); }
 }
 
@@ -341,7 +361,7 @@ function onTap(px, py) {
   const RR = ROOMS[G.room];
   if (RR.left && E.camX <= 1 && wx < Math.max(0, E.camX) + 22) wx = 0;
   if (RR.right && E.camX + E.viewW >= RR.w - 1 && wx > Math.min(RR.w, E.camX + E.viewW) - 22) wx = RR.w;
-  mover.walkTo(wx, null, marina.mount ? 75 : marina.state === 'wheel' ? 95 : null);
+  mover.walkTo(wx, null, marina.mount ? 75 : marina.state === 'wheel' ? 95 : null, wy > WALL_Y ? wy + 6 : null);
 }
 function hitTest(wx, wy) {
   // mess items when tidying
@@ -366,7 +386,7 @@ function hitTest(wx, wy) {
   const f = G.fort; if (f && f.room === G.room && !f.collapsed && f.pieces.length && wx > f.L && wx < f.R && wy > f.roofY - 10 && wy < FLOOR + 8) return { kind: 'fort' };
   // props (front first)
   const props = PROPS[G.room].filter(p => !p.nohit && !(p.fallOnly && WEATHER !== 'fall') && !(p.snowOnly && WEATHER !== 'snow'));
-  if (G.room === 'living' && mommy.state === 'sit' && mommy.room === 'living' && marina.state !== 'wheel' && Math.abs(wx - (mommy.x - 34)) < 18 && wy > BACK - 30 && wy < BACK + 18) return { kind: 'prop', p: { id: 'parkedchair', a: 'parkedchair', x: mommy.x - 34, y: BACK + 16 } };
+  if (G.room === 'living' && mommy.state === 'sit' && mommy.room === 'living' && marina.state !== 'wheel' && Math.abs(wx - (mommy.x + 36)) < 18 && wy > BACK - 30 && wy < BACK + 18) return { kind: 'prop', p: { id: 'parkedchair', a: 'parkedchair', x: mommy.x + 36, y: BACK + 16 } };
   for (const z of [1, 0]) for (const p of props.filter(p => (p.z || 0) === z).reverse()) {
     let b; if (p.k.startsWith('p:')) b = [-p.w / 2, -p.h, p.w / 2, 0]; else { const sc = p.scale || 1; const v = visBox(p.k); b = v.map(n => n * sc); }
     const pad = 4;
@@ -381,8 +401,8 @@ function approach(x, cb, gap = 18) {
   if (marina.state === 'fort') exitFort();
   if (['sit', 'sad', 'stomp', 'cheer'].includes(marina.state)) marina.state = 'idle';
   const side = marina.x < x ? -1 : 1; const tx = x + side * gap;
-  if (Math.abs(mover.x - tx) < 4) { mover.dir = Math.sign(x - mover.x) || mover.dir; cb && cb(); return; }
-  mover.walkTo(tx, () => { mover.dir = Math.sign(x - mover.x) || mover.dir; cb && cb(); }, marina.state === 'wheel' ? 95 : null);
+  if (Math.abs(mover.x - tx) < 4 && Math.abs(mover.y - FLOOR) < 3) { mover.dir = Math.sign(x - mover.x) || mover.dir; cb && cb(); return; }
+  mover.walkTo(tx, () => { mover.dir = Math.sign(x - mover.x) || mover.dir; cb && cb(); }, marina.state === 'wheel' ? 95 : null, FLOOR);
 }
 
 function interact(hit, wx, wy) {
@@ -456,7 +476,7 @@ function propActions(p) {
     case 'broom': a.push(A('🧹', () => { if (G.mess.some(m => m.room === G.room)) startTidy(true); else { emit('dust', p.x, p.y - 10, 6); say('m_ok_tidy'); } })); break;
     case 'rocker': a.push(A('🪑', () => sitDown(p))); break;
     case 'crib': if (miles.spot === 'crib' && !mommy.holdingMiles) a.push(A('👶', () => { approach(miles.x, () => UI.actions(miles, entActions(miles)), 12); })); a.push(A('🧸', () => makeMess(p))); break;
-    case 'bouncer': a.push(A('👶', () => { miles.spot = 'bouncer'; miles.x = 346; mommy.holdingMiles = false; Audio2.jingle([0, 7]); })); break;
+    case 'bouncer': a.push(A('👶', () => { miles.spot = 'bouncer'; miles.x = 300; mommy.holdingMiles = false; Audio2.jingle([0, 7]); })); break;
     case 'pail': if (G.holding && G.holding.type === 'poop') a.push(A('🗑️', binPoop)); else a.push(A('🤢', () => { say('m_stinky'); emit('stink', p.x, p.y - 30, 4); })); break;
     case 'tv': case 'fireplace': a.push(A('🐟', () => tvOn('fish')), A('🍌', () => tvOn('cartoon'))); if (G.tv) a.push(A('⏻', tvOff)); break;
     case 'lamp': a.push(A('💡', () => { Audio2.blip(12, 'sine', 0.1); emit('sparkle', p.x, p.y - 74, 6); })); break;
@@ -711,8 +731,8 @@ function useDoor(p) {
     return;
   }
   if (p.to === 'bathroom' && marina.state === 'wheel') {}
-  Audio2.whoosh(true);
-  changeRoom(p.to, null, p.tx);
+  G.doorAnim = { id: p.id, room: G.room, t0: E.t }; Audio2.sfx('door_open'); G.busy = true;
+  setTimeout(() => { G.busy = false; G.doorAnim = null; changeRoom(p.to, null, p.tx); }, 420);
 }
 function clearStink() { P.forEach(p => { if (p.type === 'stink' || p.type === 'fart') p.age = p.life; }); }
 function flushToilet() { Audio2.sfx('flush'); say('m_flush'); for (let i = 0; i < 20; i++) setTimeout(() => emit('water', 128 + rnd(-6, 6), BACK - 30, 1, { vy: rnd(-60, -20) }), i * 50); }
@@ -878,7 +898,7 @@ function tvOn(ch) {
   G.tv = ch; setMusic(); say('m_tv');
   clearInterval(G.tvIv); G.tvIv = setInterval(() => { if (!G.tv) return; if (G.room === 'living') Audio2.voice(G.tv === 'fish' ? pick(['tv_bro', 'tv_bruh', 'tv_dude']) : pick(['tv_cartoon', 'tv_cartoon2']), 'tv'); }, 3800);
   Audio2.voice(ch === 'fish' ? 'tv_bro' : 'tv_cartoon', 'tv');
-  marina.walkTo(400, () => { marina.state = 'sit'; marina.dir = -1; });
+  marina.walkTo(300, () => { marina.state = 'sit'; marina.dir = -1; });
   clearTimeout(G.tvT); G.tvT = setTimeout(tvInterrupt, rnd(9, 15) * 1000);
 }
 function tvOff() { G.tv = null; clearInterval(G.tvIv); clearTimeout(G.tvT); setMusic(); Audio2.blip(-12, 'square', 0.15); }
@@ -888,7 +908,7 @@ function tvInterrupt() {
   AI.hold(p, true);
   if (p.room !== 'living') { p.room = 'living'; p.x = 10; }
   if (G.room !== 'living') { tvOff(); AI.hold(p, false); return; }
-  p.walkTo(330, () => {
+  p.walkTo(215, () => {
     p.dir = 1;
     const k = p === daddy ? pick(['d_tv', 'd_brainrot']) : 'mo_tv';
     say(k, p).then(() => { if (rory.here && chance(0.5)) say('r_tv', rory); tvOff(); if (marina.state === 'sit') marina.state = 'idle'; G.moodCtx = { type: 'tvOff', who: p }; UI.pulseMoods(); AI.hold(p, false); });
@@ -896,7 +916,7 @@ function tvInterrupt() {
 }
 
 // ---------------------------------------------------------------- wheelchair ride
-function rideWheelchair() { approach(mommy.x - 34, () => { marina.state = 'wheel'; marina.x = mommy.x - 34; say('m_ride'); Audio2.whoosh(true); setTimeout(() => say('mo_careful', mommy), 1800); G.wheelT = setTimeout(() => { if (marina.state === 'wheel') { say('mo_careful', mommy); } }, 15000); }, 0); }
+function rideWheelchair() { approach(mommy.x + 36, () => { marina.state = 'wheel'; marina.x = mommy.x + 36; say('m_ride'); Audio2.whoosh(true); setTimeout(() => say('mo_careful', mommy), 1800); G.wheelT = setTimeout(() => { if (marina.state === 'wheel') { say('mo_careful', mommy); } }, 15000); }, 0); }
 function leaveWheelchair() { marina.state = 'idle'; clearTimeout(G.wheelT); Audio2.whoosh(false); }
 
 // ---------------------------------------------------------------- yard
@@ -985,17 +1005,17 @@ const AI = {
     if (e.state === 'lie') e.state = 'idle';
     if (e === mommy) {
       if (e.state === 'sit') { if (chance(0.4)) { e.state = 'idle'; e.x -= 34; } return; }
-      if (e.room === 'living' && chance(0.35) && !(marina.state === 'wheel')) { e.walkTo(SEATS.living.mommy + 30, () => { e.state = 'sit'; e.x = SEATS.living.mommy; e.dir = -1; }); return; }
+      if (e.room === 'living' && chance(0.35) && !(marina.state === 'wheel')) { e.walkTo(SEATS.living.mommy + 30, () => { e.state = 'sit'; e.x = SEATS.living.mommy; e.dir = 1; }); return; }
     }
     if (e === rory && e.here && chance(0.35) && !G.busy && !marina.mount) { e.walkTo(marina.x + (e.x < marina.x ? -24 : 24), () => { e.dir = Math.sign(marina.x - e.x) || 1; say(pick(['r_giggle', 'r_hi2', 'r_chase']), e); emit('star', marina.x, marina.y - 70, 4); }, 70); return; }
-    if (e === daddy && e.room === 'living' && chance(0.15)) { e.walkTo(rnd(440, 600), () => { e.state = 'lie'; }); return; }
+    if (e === daddy && e.room === 'living' && chance(0.15)) { e.walkTo(rnd(200, 460), () => { e.state = 'lie'; }); return; }
     const rooms = e === rory ? ['foyer', 'living', 'kitchen', 'dining', 'playroom'] : ['living', 'kitchen', 'dining', 'playroom', 'foyer', 'living', 'kitchen'];
     if (chance(0.45)) { // change room
       const to = pick(rooms.filter(r => r !== e.room));
       const leave = () => { e.room = to; e.x = rnd(40, ROOMS[to].w - 40); e.state = 'idle'; if (e.here) { e.x = Math.abs(e.x - marina.x) < 40 ? clamp(marina.x + 80, 20, ROOMS[to].w - 20) : e.x; } };
       if (e.here) { const iL = ROOM_ORDER.indexOf(to) < ROOM_ORDER.indexOf(e.room); e.walkTo(iL ? 4 : ROOMS[e.room].w - 4, () => { leave(); if (e.here) onEnterRoomBy(e); }); }
       else { leave(); if (e.here) onEnterRoomBy(e); }
-    } else e.walkTo(rnd(30, ROOMS[e.room].w - 30));
+    } else e.walkTo(rnd(30, ROOMS[e.room].w - 30), null, null, rnd(152, 176));
   },
   cat(dt) {
     if (niko.state === 'held' || niko.state === 'fort') return;
@@ -1003,11 +1023,11 @@ const AI = {
     niko.t = rnd(10, 22);
     if (niko.state === 'litter') { G.poop = true; Audio2.sfx('poop'); if (G.room === 'playroom') { emit('poo', 24, 130); setTimeout(() => say('m_ugh_niko'), 500); const p = parentsHere()[0]; if (p === daddy) setTimeout(() => say('d_niko_poo', daddy), 2600); } niko.state = 'wander'; niko.walkTo(120); return; }
     const r = Math.random();
-    const spots = [['dining', 'cattower', 318, BACK - 98], ['living', 'sofa', 580, 128], ['living', 'armchair', 506, 124], ['playroom', 'sofa', 312, 120], ['dining', 'table', 222, 126]];
+    const spots = [['dining', 'cattower', 318, BACK - 98], ['living', 'sofa', 60, 128], ['living', 'armchair', 138, 124], ['playroom', 'sofa', 312, 120], ['dining', 'table', 222, 126]];
     if (r < 0.35) { const s = pick(spots); this.catGo(s[0], s[2], () => { niko.state = 'sleep'; niko.perch = s[1]; niko.perchY = s[3]; Audio2.sfx('purr', { vol: 0.4 }); }); }
     else if (r < 0.5 && !G.poop) { this.catGo('playroom', 30, () => { niko.state = 'litter'; niko.t = 5; }); }
     else if (r < 0.65) { this.catGo('kitchen', 310, () => { niko.state = 'eat'; niko.dir = -1; niko.t = 6; }); }
-    else { niko.state = 'wander'; niko.perchY = null; if (chance(0.3) && niko.here) Audio2.sfx(pick(['meow1', 'meow2'])); niko.walkTo(rnd(20, ROOMS[niko.room].w - 20)); }
+    else { niko.state = 'wander'; niko.perchY = null; if (chance(0.3) && niko.here) Audio2.sfx(pick(['meow1', 'meow2'])); niko.walkTo(rnd(20, ROOMS[niko.room].w - 20), null, null, rnd(154, 176)); }
   },
   catGo(room, x, cb) {
     niko.perchY = null; niko.state = 'wander';

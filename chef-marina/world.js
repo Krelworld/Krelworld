@@ -17,7 +17,7 @@ const ROOMS = {
   bathroom: { name: 'bathroom', ico: '🚽', w: 252, wall: '#ebe8e2', bead: true, ceil: 'whiteplank', floor: 'marble', left: null, right: null,
     windows: [{ x: 108, w: 40, y: 30, h: 50 }] },
   living: { name: 'living', ico: '📺', w: 640, wall: '#e9e5dc', bead: true, ceil: 'beams', floor: 'wood', left: 'foyer', right: null,
-    windows: [{ x: 22, w: 34, y: 36, h: 66 }, { x: 106, w: 34, y: 36, h: 66 }, { x: 548, w: 34, y: 36, h: 66 }, { x: 596, w: 34, y: 36, h: 66 }] },
+    windows: [{ x: 10, w: 34, y: 36, h: 66 }, { x: 98, w: 34, y: 36, h: 66 }, { x: 534, w: 34, y: 36, h: 66 }, { x: 578, w: 34, y: 36, h: 66 }] },
 };
 const ROOM_ORDER = ['yard', 'dining', 'kitchen', 'playroom', 'foyer', 'living', 'bathroom'];
 
@@ -79,7 +79,7 @@ const PROPS = {
     { id: 'stairs', k: 'stairs', x: 214, y: BACK + 2, a: 'stairs' },
   ],
   bathroom: [
-    { id: 'bathdoor', k: 'p:door', x: 18, y: BACK, w: 30, h: 92, a: 'door', to: 'foyer', tx: 140 },
+    { id: 'bathdoor', k: 'p:door', x: 18, y: BACK, w: 30, h: 92, a: 'door', to: 'living', tx: 600 },
     { id: 'vanity', k: 'vanity', x: 70, y: BACK, a: 'bathsink' },
     { id: 'mirror', k: 'p:mirror', x: 70, y: 86, w: 40, h: 34, a: 'mirror' },
     { id: 'toilet', k: 'toilet', x: 128, y: BACK + 2, a: 'toilet' },
@@ -88,26 +88,26 @@ const PROPS = {
     { id: 'shower', k: 'p:shower', x: 206, y: BACK, w: 64, h: 112, a: 'shower' },
   ],
   living: [
-    { id: 'pnp', k: 'pack_n_play', x: 58, y: BACK + 4, a: 'crib' },
-    { id: 'dresserw', k: 'dresser_white', x: 132, y: BACK, a: 'dresser' },
-    { id: 'basket', k: 'laundry_basket', x: 166, y: BACK + 4, a: 'basket' },
-    { id: 'shelf1', k: 'bookshelf', x: 208, y: BACK, a: 'books' },
-    { id: 'hallway', k: 'p:doorway', x: 252, y: BACK, w: 28, h: 92, a: 'door', to: 'bathroom', tx: 20 },
-    { id: 'shelf2', k: 'bookshelf', x: 296, y: BACK, a: 'books' },
-    { id: 'fireplace', k: 'fireplace', x: 382, y: BACK + 2, a: 'fireplace' },
-    { id: 'tv', k: 'tv', x: 382, y: 70, a: 'tv' },
-    { id: 'bouncer', k: 'bouncer', x: 346, y: 160, a: 'bouncer' },
-    { id: 'pail', k: 'diaper_pail', x: 440, y: BACK + 2, a: 'pail' },
-    { id: 'bin', k: 'storage_bin', x: 340, y: BACK + 3, nohit: true },
-    { id: 'lamp', k: 'floor_lamp', x: 470, y: BACK, a: 'lamp' },
-    { id: 'armchair', k: 'armchair', x: 510, y: 152, a: 'armchair', climb: 118 },
-    { id: 'sectional', k: 'sectional', x: 580, y: 154, a: 'sofa', climb: 112 },
+    { id: 'sectional', k: 'sectional', x: 70, y: 154, a: 'sofa', climb: 112, flip: true },
+    { id: 'armchair', k: 'armchair', x: 142, y: 152, a: 'armchair', climb: 118 },
+    { id: 'lamp', k: 'floor_lamp', x: 180, y: BACK, a: 'lamp' },
+    { id: 'pail', k: 'diaper_pail', x: 204, y: BACK + 2, a: 'pail' },
+    { id: 'fireplace', k: 'fireplace', x: 262, y: BACK + 2, a: 'fireplace' },
+    { id: 'tv', k: 'tv', x: 262, y: 70, a: 'tv' },
+    { id: 'bouncer', k: 'bouncer', x: 300, y: 160, a: 'bouncer' },
+    { id: 'bin', k: 'storage_bin', x: 322, y: BACK + 3, nohit: true },
+    { id: 'shelf2', k: 'bookshelf', x: 352, y: BACK, a: 'books' },
+    { id: 'shelf1', k: 'bookshelf', x: 420, y: BACK, a: 'books' },
+    { id: 'basket', k: 'laundry_basket', x: 470, y: BACK + 4, a: 'basket' },
+    { id: 'dresserw', k: 'dresser_white', x: 506, y: BACK, a: 'dresser' },
+    { id: 'pnp', k: 'pack_n_play', x: 568, y: BACK + 4, a: 'crib' },
+    { id: 'bathhall', k: 'p:door', x: 622, y: BACK, w: 30, h: 92, a: 'door', to: 'bathroom', tx: 40 },
   ],
 };
 
 // spots
-const FORT_SPOTS = { living: 452, playroom: 150 };
-const SEATS = { living: { mommy: 510, daddy: 560, rory: 600 }, dining: { daddy: 222, rory: 262, mommy: 190 }, kitchen: { daddy: 330, rory: 360, mommy: 300 } };
+const FORT_SPOTS = { living: 200, playroom: 150 };
+const SEATS = { living: { mommy: 142, daddy: 70, rory: 40 }, dining: { daddy: 222, rory: 262, mommy: 190 }, kitchen: { daddy: 330, rory: 360, mommy: 300 } };
 
 // ---------------- procedural drawing ----------------
 let WEATHER = 'fall';
@@ -178,7 +178,7 @@ function drawRoomBG(room) {
     for (let k = 0; k < W / 8; k++) rect(r() * W, WALL_Y + r() * 40, 8, 1, 'rgba(120,130,140,.35)');
   }
   // rugs
-  if (room === 'living') { rect(430, 158, 150, 14, '#e8e0d0'); rect(434, 160, 142, 10, '#ddd4c2'); }
+  if (room === 'living') { rect(60, 158, 150, 14, '#e8e0d0'); rect(64, 160, 142, 10, '#ddd4c2'); }
   if (room === 'playroom') { rect(128, 156, 84, 16, '#d5d0d8'); rect(131, 158, 78, 12, '#c4bccb'); }
   if (room === 'foyer') rect(30, 146, 44, 8, '#2a2a2a');
   // open edges hint

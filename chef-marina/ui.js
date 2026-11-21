@@ -104,25 +104,50 @@ const UI = (() => {
 
   // =========================================================== COOKING
   const METHODS = [['stack', '🥪'], ['mix', '🥄'], ['fry', '🍳'], ['bake', '🔥'], ['freeze', '❄️'], ['blend', '🌀']];
-  function openCook(where) {
-    say('m_cooking');
-    const chosen = []; let shelf = where || 'fridge';
-    const SHELVES = [['fridge', '🧊'], ['freezer', '❄️'], ['cabinet', '🗄️'], ['bowl', '🧺']];
-    openPanel('cook', '👩‍🍳', (b) => {
-      const bowl = el('div', { class: 'bowl' }); const grid = el('div', { class: 'grid' }); const mrow = el('div', { class: 'row' }); const srow = el('div', { class: 'row' });
+  // Step 1: pick ingredients (Marina says each one) -> Step 2: pick how to cook -> Step 3: cook -> Step 4: result
+  const SHELVES = [['fridge', '🧊'], ['freezer', '❄️'], ['cabinet', '🗄️'], ['bowl', '🧺']];
+  let cookChosen = [], cookShelf = 'fridge';
+  function openCook(where, keep) {
+    if (!keep) { cookChosen = []; say('m_cooking'); }
+    if (where) cookShelf = where;
+    Audio2.preload(PANTRY[cookShelf].map(k => 'assets/vo/w_i_' + k + '.mp3'));
+    openPanel('cook', '🧑‍🍳', (b) => {
+      const tray = el('div', { class: 'tray' }); const grid = el('div', { class: 'grid ing' }); const srow = el('div', { class: 'row shelves' });
+      const ctl = el('div', { class: 'row' });
+      const undo = el('button', { class: 'pbtn', 'aria-label': 'undo', on: tap(() => { if (cookChosen.pop()) Audio2.blip(-5); redraw(); }) }, '↩️');
+      const clear = el('button', { class: 'pbtn', 'aria-label': 'start over', on: tap(() => { cookChosen = []; Audio2.whoosh(false); redraw(); }) }, '🗑️');
+      const next = el('button', { class: 'pbtn go', 'aria-label': 'next', on: tap(() => { if (cookChosen.length) { Audio2.jingle([0, 4, 7]); chooseMethod(); } }) }, '✅');
+      ctl.append(undo, clear, next);
       const redraw = () => {
-        bowl.innerHTML = ''; if (!chosen.length) bowl.append(el('div', { class: 'big-ico' }, '🥣'));
-        chosen.forEach((k, i) => bowl.append(el('button', { class: 'tile', on: tap(() => { chosen.splice(i, 1); Audio2.blip(-5); redraw(); }) }, img('ing_' + k))));
-        mrow.querySelectorAll('button').forEach(x => x.disabled = !chosen.length);
+        tray.innerHTML = '';
+        for (let i = 0; i < 4; i++) {
+          const k = cookChosen[i];
+          tray.append(k ? el('button', { class: 'slot full', on: tap(() => { Audio2.voice('w_i_' + k, 'marina'); cookChosen.splice(i, 1); Audio2.blip(-5); redraw(); }) }, img('ing_' + k), el('span', { class: 'x' }, '✖'))
+            : el('div', { class: 'slot' }, i === cookChosen.length ? '⬇️' : ''));
+        }
+        undo.disabled = clear.disabled = !cookChosen.length; next.disabled = !cookChosen.length; next.classList.toggle('pulse', cookChosen.length > 0);
+        grid.querySelectorAll('.tile').forEach(t => { const n = cookChosen.filter(c => c === t.dataset.k).length; t.querySelector('.n').textContent = n ? '✔' + (n > 1 ? n : '') : ''; t.classList.toggle('sel', n > 0); });
       };
       const fill = () => {
-        grid.innerHTML = ''; srow.querySelectorAll('.pbtn').forEach((x, i) => x.classList.toggle('on', SHELVES[i][0] === shelf));
-        for (const k of PANTRY[shelf]) grid.append(el('button', { class: 'tile', on: tap(() => { if (chosen.length >= 4) { Audio2.blip(-12); return; } chosen.push(k); Audio2.blip(pick([0, 2, 4, 7, 9, 12])); Audio2.voice('w_i_' + k, 'marina'); redraw(); }) }, img('ing_' + k)));
+        grid.innerHTML = ''; srow.querySelectorAll('.pbtn').forEach((x, i) => x.classList.toggle('on', SHELVES[i][0] === cookShelf));
+        for (const k of PANTRY[cookShelf]) grid.append(el('button', { class: 'tile', 'data-k': k, on: tap(() => {
+          Audio2.voice('w_i_' + k, 'marina');
+          if (cookChosen.length >= 4) { Audio2.blip(-12); tray.animate([{ transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'none' }], 220); return; }
+          cookChosen.push(k); Audio2.blip(pick([0, 2, 4, 7, 9, 12])); redraw(); }) }, img('ing_' + k), el('span', { class: 'n' })));
+        redraw();
       };
-      for (const [s, ico] of SHELVES) srow.append(el('button', { class: 'pbtn', style: { fontSize: '36px', minWidth: '70px', height: '66px' }, on: tap(() => { shelf = s; Audio2.whoosh(); fill(); }) }, ico));
-      for (const [m, ico] of METHODS) mrow.append(el('button', { class: 'pbtn', style: { fontSize: '38px', minWidth: '70px', height: '70px' }, on: tap(() => runMethod(m, [...chosen])) }, ico));
-      b.append(bowl, mrow, srow, grid); redraw(); fill();
+      for (const [s, ico] of SHELVES) srow.append(el('button', { class: 'pbtn', on: tap(() => { cookShelf = s; Audio2.whoosh(); Audio2.preload(PANTRY[s].map(k => 'assets/vo/w_i_' + k + '.mp3')); fill(); }) }, ico));
+      b.append(tray, ctl, srow, grid); fill();
     });
+  }
+  function chooseMethod() {
+    const p = document.getElementById('panel'); const b = p.querySelector('.pbody'); b.innerHTML = '';
+    const tray = el('div', { class: 'tray small' }, ...cookChosen.map(k => el('div', { class: 'slot full' }, img('ing_' + k))));
+    const grid = el('div', { class: 'methods' });
+    for (const [m, ico] of METHODS) grid.append(el('button', { class: 'method', 'data-m': m, on: tap(() => runMethod(m, [...cookChosen])) }, el('span', {}, ico)));
+    const back = el('button', { class: 'pbtn', 'aria-label': 'back', on: tap(() => openCook(null, true)) }, '⬅️');
+    b.append(tray, grid, el('div', { class: 'row' }, back));
+    Audio2.chain(cookChosen.map(k => 'w_i_' + k));
   }
   async function runMethod(method, ings) {
     const p = document.getElementById('panel'); const body = p.querySelector('.pbody'); body.innerHTML = '';
@@ -200,7 +225,8 @@ const UI = (() => {
       el('div', { style: { fontSize: '22px', opacity: .85 } }, d.name),
       el('div', { class: 'row' },
         el('button', { class: 'pbtn', style: { width: '90px', height: '90px', fontSize: '48px' }, on: tap(() => { closePanel(); finishDish(d); say('m_yay'); }) }, '✅'),
-        el('button', { class: 'pbtn', style: { width: '90px', height: '90px', fontSize: '48px' }, on: tap(() => openCook()) }, '🔁')));
+        el('button', { class: 'pbtn', style: { width: '90px', height: '90px', fontSize: '48px' }, 'aria-label': 'other way', on: tap(() => chooseMethod()) }, '⬅️'),
+        el('button', { class: 'pbtn', style: { width: '90px', height: '90px', fontSize: '48px' }, 'aria-label': 'start again', on: tap(() => openCook()) }, '🔁')));
     body.append(res);
     Audio2.jingle(d.score >= 0 ? [0, 4, 7, 12, 16] : [12, 11, 6, 1, -6], 0.09, d.score >= 0 ? 'square' : 'sawtooth');
     for (let i = 0; i < 20; i++) emit('confetti', marina.x, marina.y - 60);
@@ -209,22 +235,42 @@ const UI = (() => {
   }
 
   // =========================================================== DRESS-UP
-  const OUTFITS = [['default', 'marina'], ['fairy', 'o_fairy'], ['princess', 'o_princess'], ['bluedress', 'o_bluedress'], ['furcoat', 'o_furcoat'], ['hero', 'o_hero'], ['pajamas', 'o_pajamas']];
   const HAIRS = { ginger: '#eba864', blonde: '#f2cf6b', brown: '#7a4a26', black: '#2a2730', pink: '#ff7ab8', blue: '#4aa8ff', purple: '#a46cf0', green: '#5fcf6a', rainbow: 'conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)' };
-  const ACCS = [null, '🎀', '👑', '🌸', '💎', '⭐', '🦄'];
+  function outfitList() { return ['default', ...Object.keys(E.A).filter(k => /^o_[a-z]+$/.test(k)).map(k => k.slice(2))]; }
+  function previewLook(cv) {
+    const x = cv.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height); x.imageSmoothingEnabled = false;
+    const sc = E.ctx, scam = E.camX, sd = E.depth; E.ctx = x; E.camX = 0; E.depth = 1;
+    const k = mBase(); drawLook({ x: 48, dir: 1 }, k, 92, false, 1, 'back'); drawSprite(k, 48, 92, { opt: mOpt() }); drawLook({ x: 48, dir: 1 }, k, 92, false, 1, 'front');
+    E.ctx = sc; E.camX = scam; E.depth = sd;
+  }
   function openDress() {
-    say('m_pretty');
+    say('m_pretty'); let tab = 'outfit';
     openPanel('dress', '👗', (b) => {
-      const prev = el('canvas', { width: 96, height: 96, style: { width: '192px', height: '192px', margin: '0 auto', display: 'block', imageRendering: 'pixelated', background: 'rgba(255,255,255,.12)', borderRadius: '24px' } });
-      const draw = () => { const x = prev.getContext('2d'); x.clearRect(0, 0, 96, 96); x.imageSmoothingEnabled = false; const s = spriteCanvas(mBase(), mOpt()); x.drawImage(s, 48 - s.width / 2, 92 - s.height); if (G.acc) { x.font = '16px sans-serif'; x.textAlign = 'center'; x.fillText(G.acc, 46, 96 - s.height + 22); } };
-      const outRow = el('div', { class: 'grid' }); const hairRow = el('div', { class: 'row' }); const accRow = el('div', { class: 'row' });
-      const sync = () => { draw(); outRow.querySelectorAll('.tile').forEach((t, i) => t.classList.toggle('sel', OUTFITS[i][0] === G.outfit)); hairRow.querySelectorAll('.swatch').forEach(t => t.classList.toggle('sel', t.dataset.h === G.hair)); accRow.querySelectorAll('.tile').forEach((t, i) => t.classList.toggle('sel', ACCS[i] === G.acc)); gl.classList.toggle('on', G.glasses); };
-      OUTFITS.forEach(([id, key]) => outRow.append(el('button', { class: 'tile', on: tap(() => { G.outfit = id; Audio2.jingle([0, 7, 12], 0.05); sync(); }) }, img(key))));
-      for (const [h, c] of Object.entries(HAIRS)) { const s = el('button', { class: 'swatch', 'data-h': h, style: { background: c }, on: tap(() => { G.hair = h; Audio2.blip(pick([0, 4, 7, 12])); sync(); }) }); hairRow.append(s); }
-      const gl = el('button', { class: 'pbtn', style: { fontSize: '40px', height: '70px', minWidth: '90px' }, on: tap(() => { G.glasses = !G.glasses; Audio2.blip(G.glasses ? 7 : 0); sync(); }) }, '👓');
-      ACCS.forEach(a => accRow.append(el('button', { class: 'tile', style: { width: '62px' }, on: tap(() => { G.acc = a; Audio2.blip(9); sync(); }) }, a || '🚫')));
-      const done = el('button', { class: 'pbtn', style: { width: '90px', height: '90px', fontSize: '48px', margin: '0 auto' }, on: tap(() => { closePanel(); emit('confetti', marina.x, marina.y - 60, 40); say(G.outfit === 'fairy' ? 'm_fairy' : G.outfit === 'princess' ? 'm_princess' : 'm_pretty'); addMess(G.room, 2, ['👗', '👚', '🧦', '👠']); }) }, '✅');
-      b.append(prev, outRow, hairRow, el('div', { class: 'row' }, gl), accRow, done); sync();
+      const prev = el('canvas', { width: 96, height: 96, class: 'dprev' });
+      const tabs = el('div', { class: 'row tabs' }); const area = el('div', { class: 'grid dgrid' });
+      const TABS = [['outfit', '👗'], ['hair', '💇'], ['head', '👑'], ['face', '🕶️'], ['back', '🦋'], ['hand', '🪄']];
+      const sync = () => { previewLook(prev); tabs.querySelectorAll('.pbtn').forEach((t, i) => t.classList.toggle('on', TABS[i][0] === tab)); };
+      const choose = (fn) => () => { fn(); Audio2.blip(pick([0, 4, 7, 9, 12])); emit('sparkle', marina.x, marina.y - 50, 4); fill(); sync(); };
+      const fill = () => {
+        area.innerHTML = '';
+        if (tab === 'outfit') outfitList().forEach(id => area.append(el('button', { class: 'tile' + (G.outfit === id ? ' sel' : ''), on: tap(choose(() => { G.outfit = id; Audio2.jingle([0, 7, 12], 0.05); })) }, img(id === 'default' ? 'marina' : 'o_' + id, mOpt()))));
+        else if (tab === 'hair') Object.entries(HAIRS).forEach(([h, c]) => area.append(el('button', { class: 'tile' + (G.hair === h ? ' sel' : ''), on: tap(choose(() => { G.hair = h; })) }, el('span', { class: 'swatch', style: { background: c } }))));
+        else {
+          const items = lookItems(tab);
+          area.append(el('button', { class: 'tile' + (!G.look[tab] ? ' sel' : ''), on: tap(choose(() => { G.look[tab] = null; })) }, '🚫'));
+          if (tab === 'face') area.append(el('button', { class: 'tile' + (G.glasses ? ' sel' : ''), on: tap(choose(() => { G.glasses = !G.glasses; })) }, '👓'));
+          items.forEach(it => area.append(el('button', { class: 'tile' + (G.look[tab] === it.id ? ' sel' : ''), on: tap(choose(() => { G.look[tab] = it.id; })) }, it.key ? img(it.key) : el('span', { style: { fontSize: '40px' } }, it.emoji))));
+        }
+      };
+      TABS.forEach(([t, ico]) => tabs.append(el('button', { class: 'pbtn', on: tap(() => { tab = t; Audio2.whoosh(); fill(); sync(); }) }, ico)));
+      const rand = el('button', { class: 'pbtn', 'aria-label': 'random look', on: tap(choose(() => {
+        const os = outfitList(); G.outfit = pick(os); G.hair = chance(0.6) ? 'ginger' : pick(Object.keys(HAIRS));
+        for (const s of ['head', 'face', 'back', 'hand']) { const its = lookItems(s); G.look[s] = chance(0.55) && its.length ? pick(its).id : null; }
+        Audio2.jingle([0, 4, 7, 12, 16], 0.05); })) }, '🎲');
+      const done = el('button', { class: 'pbtn go', 'aria-label': 'done', on: tap(() => { closePanel(); emit('confetti', marina.x, marina.y - 60, 40);
+        say(G.outfit === 'fairy' ? 'm_fairy' : G.outfit === 'princess' ? 'm_princess' : pick(['m_pretty', 'm_cool', 'm_look'])); marina.state = 'cheer'; setTimeout(() => marina.state === 'cheer' && (marina.state = 'idle'), 1500);
+        addMess(G.room, 2, ['👗', '👚', '🧦', '👠']); }) }, '✅');
+      b.append(el('div', { class: 'dtop' }, rand, prev, done), tabs, area); fill(); sync();
     });
   }
 

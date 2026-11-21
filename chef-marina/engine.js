@@ -1,6 +1,8 @@
 // Chef Marina — engine: canvas, atlas, sprites, camera, particles, helpers
 const SH = 180;               // logical scene height (pixels)
-const FLOOR = 164;            // characters' feet line
+const FLOOR = 164;            // characters' default feet line
+const DEPTH_MIN = 150, DEPTH_MAX = 178; // walkable floor band (2.5D)
+const depthScale = y => 0.9 + (clamp(y, DEPTH_MIN, DEPTH_MAX) - DEPTH_MIN) / (DEPTH_MAX - DEPTH_MIN) * 0.2;
 const E = {
   cv: null, ctx: null, scale: 1, viewW: 320, camX: 0, t: 0, dt: 0,
   atlas: null, A: {}, cache: {},
@@ -79,7 +81,7 @@ function drawSprite(key, x, y, { flip = false, scale = 1, alpha = 1, rot = 0, op
   const ctx = E.ctx; ctx.save(); ctx.globalAlpha = alpha;
   ctx.translate(Math.round(x - E.camX), Math.round(y));
   if (rot) { ctx.translate(0, -c.height * scale / 2); ctx.rotate(rot); ctx.translate(0, c.height * scale / 2); }
-  ctx.scale((flip ? -1 : 1) * scale * sx, scale * sy);
+  const dS = E.depth || 1; ctx.scale((flip ? -1 : 1) * scale * sx * dS, scale * sy * dS);
   ctx.drawImage(c, -c.width / 2, -c.height);
   ctx.restore();
 }

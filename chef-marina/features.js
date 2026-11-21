@@ -450,3 +450,32 @@ featTick = function (dt) {
   if (G.busy) { busySince += dt; if (busySince > 14) { G.busy = false; busySince = 0; } } else busySince = 0;
   if (marina.state === 'anim' && marina.anim && !marina.anim.loop && E.t - marina.anim.t0 > marina.anim.dur + 3) { marina.state = 'idle'; marina.anim = null; }
 };
+
+// ------------------------------------------------------------------ opening cupboards / fridge before cooking
+const _propActions2 = propActions;
+propActions = function (p) {
+  const a = _propActions2(p);
+  if (['stove', 'oven', 'sink', 'island', 'fridge', 'dresser', 'closet'].includes(p.a)) for (const act of a) {
+    if (!['🗄️', '🍳', '🧺', '🧊', '❄️', '👗'].includes(act.ico)) continue;
+    const fn = act.fn;
+    act.fn = () => {
+      marina.dir = Math.sign(p.x - marina.x) || marina.dir;
+      playAnim('marina_reach', { fps: 10, dur: frameCount('marina_reach') ? 0 : 0.5 });
+      G.cupOpen = { id: p.id, t0: E.t }; Audio2.sfx(p.a === 'fridge' ? 'door_open' : 'cupboard'); say('m_open');
+      setTimeout(fn, 650); setTimeout(() => { if (G.cupOpen && G.cupOpen.id === p.id) G.cupOpen = null; }, 2500);
+    };
+  }
+  return a;
+};
+const _drawProp = drawProp;
+drawProp = function (p) {
+  _drawProp(p);
+  const o = G.cupOpen; if (!o || o.id !== p.id || p.id === 'fridge') return;
+  const k = clamp((E.t - o.t0) / 0.3, 0, 1); let b;
+  if (p.k.startsWith('p:')) b = [-p.w / 2, -p.h, p.w / 2, 0]; else b = visBox(p.k);
+  const w = (b[2] - b[0]) * 0.45, h = Math.min(30, (b[3] - b[1]) * 0.55), x0 = p.x - w / 2, y0 = p.y - h - 2;
+  rect(x0, y0, w, h, '#3a2a22'); rect(x0 + 2, y0 + h * 0.45, w - 4, 2, '#d8cfc2');
+  for (let i = 0; i < 3; i++) emoji(['🥫', '🍯', '🥣', '🧂', '🍪'][(i + p.x) % 5], x0 + w * (0.2 + i * 0.3), y0 + h * 0.3, 7);
+  rect(x0 - w * 0.5 * k, y0, w * 0.5 * k, h, '#f6f5f0'); rect(x0 + w, y0, w * 0.5 * k, h, '#f6f5f0');
+  if (p.id === 'closet' || p.a === 'dresser') for (let i = 0; i < 3; i++) emoji(['👗', '👚', '👒'][i], x0 + w * (0.2 + i * 0.3), y0 + h * 0.7, 8);
+};

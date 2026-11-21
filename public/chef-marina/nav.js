@@ -118,3 +118,29 @@
   .tdress{right:auto;left:4vw;bottom:8vh;width:min(22vh,100px);height:min(22vh,100px)}
 }`; document.head.append(s);
 })();
+
+// ------------------------------------------------------------ things Marina can use glow softly when she is near them
+(function glow() {
+  const near = (o, r) => typeof marina !== 'undefined' && !G.busy && !G.sceneOn && marina.state !== 'anim' && Math.abs(o.x - marina.x) < r;
+  const ease = (o, on) => (o.glow = clamp((o.glow || 0) + (on ? 0.08 : -0.06), 0, 1));
+  function lit(g, draw) {
+    if (g <= 0.02) return draw();
+    const c = E.ctx; c.save(); c.shadowColor = 'rgba(255,236,150,' + (g * (0.8 + Math.sin(E.t * 4) * 0.2)).toFixed(3) + ')'; c.shadowBlur = E.scale * 4.5; c.shadowOffsetX = c.shadowOffsetY = 0;
+    draw(); c.restore();
+  }
+  const _dp = drawProp;
+  drawProp = function (p) {
+    const usable = !p.nohit && p.a && propVisible(p), g = ease(p, usable && near(p, Math.max(30, (p.w || spriteSize(p.k)[0] * (p.scale || 1) || 40) * 0.5 + 12)));
+    if (g > 0.02 && p.k.startsWith('p:')) {      // painted into the background: a soft pool of light instead of an outline
+      const c = E.ctx, w = (p.w || 50) * 0.6, h = (p.h || 40) * 0.6, x = p.x - E.camX, y = p.y - (p.h || 40) * 0.5;
+      const gr = c.createRadialGradient(x, y, 2, x, y, Math.max(w, h)); gr.addColorStop(0, 'rgba(255,240,170,' + (0.34 * g).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(255,240,170,0)');
+      c.fillStyle = gr; c.fillRect(x - w * 2, y - h * 2, w * 4, h * 4); return _dp(p);
+    }
+    lit(g, () => _dp(p));
+  };
+  const _de = drawEnt;
+  drawEnt = function (e) {
+    if (e === marina || !e.here || e.hidden) return _de(e);
+    lit(ease(e, near(e, 42) && !marina.mount), () => _de(e));
+  };
+})();

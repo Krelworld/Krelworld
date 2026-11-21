@@ -205,7 +205,7 @@ soothe = function (kind) {
   say(kind === 'bottle' ? 'm_bottle' : kind === 'cuddle' ? 'm_shh_miles' : 'm_wuv_miles');
   if (kind === 'bottle') miles.eatT = E.t + 2.5;
   setTimeout(() => {
-    miles.crying = false; miles.happyT = 4; miles.cryT = rnd(40, 80); Audio2.sfx('baby_coo'); emit('heart', miles.x, py - 30, 10);
+    miles.crying = false; miles.happyT = 4; miles.cryT = rnd(170, 280); Audio2.sfx('baby_coo'); emit('heart', miles.x, py - 30, 10);
     UI.face('miles', 'happy', 2200);
     if (mommy.here) setTimeout(() => say(kind === 'bottle' ? 'mo_feed_miles' : 'mo_miles', mommy), 1500);
   }, 1400);
@@ -447,7 +447,7 @@ let busySince = 0;
 const _featTick = featTick;
 featTick = function (dt) {
   _featTick(dt);
-  if (G.busy) { busySince += dt; if (busySince > 14) { G.busy = false; busySince = 0; } } else busySince = 0;
+  if (G.busy && !document.getElementById('storyBox')) { busySince += dt; if (busySince > 30) { G.busy = false; busySince = 0; } } else busySince = 0;
   if (marina.state === 'anim' && marina.anim && !marina.anim.loop && E.t - marina.anim.t0 > marina.anim.dur + 3) { marina.state = 'idle'; marina.anim = null; }
 };
 

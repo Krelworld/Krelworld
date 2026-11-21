@@ -76,7 +76,7 @@
   ];
   function clearReq() { if (reqEl) { reqEl.remove(); reqEl = null; } req = null; }
   function askReq(r) {
-    clearReq(); const e = { daddy, mommy, rory, niko }[r.who]; req = { ...r, ent: e, t: E.t }; lastReq = E.t; lastWish = E.t;
+    clearReq(); const e = { daddy, mommy, rory, niko }[r.who]; req = { ...r, ent: e, t: E.t }; lastReq = E.t; lastWish = E.t; ping();
     e.dir = Math.sign(marina.x - e.x) || 1;
     if (r.line) say(r.line, e); else { Audio2.sfx(pick(['trill1', 'trill2'])); UI.face('niko', 'happy', 1800); UI.bubble(niko, '🥫', 2400); }
     const b = mk('button', '', '<span>' + r.ico + '</span><i>➡️</i><b>' + ({ daddy: '👨‍🦲', mommy: '👩', rory: '🧔', niko: '🐈' })[r.who] + '</b>'); b.id = 'reqBtn'; b.setAttribute('aria-label', 'help ' + r.who);
@@ -88,7 +88,7 @@
   featTick = function (dt) {
     _ft(dt); rt += dt; if (rt < 2) return; rt = 0;
     if (reqEl && (G.busy || !hid('panel'))) { reqEl.remove(); reqEl = null; }
-    if (req || wishEl || !ambient() || E.t - lastReq < 85 || E.t < 40 || E.t - lastInput < 6 || document.querySelector('.act,.alertb,.pichint')) return;
+    if (req || wishEl || !ambient() || E.t - lastReq < 170 || E.t < 60 || !pingOk(60) || E.t - lastInput < 6 || document.querySelector('.act,.alertb,.pichint')) return;
     const here = e => e.here && !e.hidden && !['toilet', 'lie'].includes(e.state);
     const ok = REQS.filter(r => { const e = { daddy, mommy, rory, niko }[r.who]; return here(e) && (r.who !== 'niko' || niko.state !== 'held') && (!r.ok || r.ok()) && r.ev !== (askReq.last || ''); });
     if (!ok.length) { lastReq = E.t - 60; return; }

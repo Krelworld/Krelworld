@@ -5,7 +5,7 @@
   const stage = document.getElementById('stage'), fxL = document.getElementById('fx');
   const mk = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
   const hid = id => document.getElementById(id).classList.contains('hidden');
-  const quiet = () => typeof marina !== 'undefined' && hid('title') && hid('panel') && !(window.Studio && Studio.active) && !document.querySelector('.fortbar,.fortin');
+  const quiet = () => typeof marina !== 'undefined' && hid('title') && hid('panel') && !(window.Studio && Studio.active) && !document.querySelector('.fortbar,.fortin,#storyBox,#stkBox');
   const press = (n, fn) => { n.addEventListener('pointerdown', e => e.stopPropagation()); n.addEventListener('pointerup', e => { e.stopPropagation(); e.preventDefault(); fn(e); }); };
   const free = () => { if (G.busy && !G.sceneOn) return false; return !G.busy; };
 
@@ -179,7 +179,7 @@
     marina.stop(); marina.x = miles.x - 34; marina.dir = 1; marina.offY = 0; feedT = E.t + D;
     playAnim('marina_feed', { fps: 5, loop: true, proc: 'hug', dur: D });
     say('m_bottle'); Audio2.sfx('chip_lullaby', { rate: 1, vol: 0.9 });
-    setTimeout(() => { miles.crying = false; miles.cryT = rnd(60, 100); miles.eatT = E.t + D - 1.4; }, 500);
+    setTimeout(() => { miles.crying = false; miles.cryT = rnd(200, 300); miles.eatT = E.t + D - 1.4; }, 500);
     const iv = setInterval(() => { if (E.t > feedT - 0.6) return clearInterval(iv);
       const r = Math.random(); emit('heart', miles.x + rnd(-16, 16), py - rnd(24, 40), 1, r < 0.4 ? { ch: '🎵', vx: rnd(-10, 10), vy: -22, life: 1.6, size: 10 } : r < 0.6 ? { ch: '🍼', vx: rnd(-6, 6), vy: -16, life: 1.4, size: 9 } : r < 0.8 ? { ch: '⭐', vx: rnd(-14, 14), vy: -20, life: 1.3, size: 8 } : undefined);
       if (chance(0.5)) emit('sparkle', miles.x + rnd(-22, 22), py - rnd(0, 46), 1); }, 260);
@@ -210,13 +210,13 @@
 
 // ------------------------------------------------------------ Miles does a poop: stinky nappy, tap him (or the alert) to change it
 (function () {
-  let next = 70 + Math.random() * 60, fly = null;
+  let next = 200 + Math.random() * 120, fly = null;
   const ambient = () => typeof marina !== 'undefined' && !G.busy && !G.sceneOn && document.getElementById('title').classList.contains('hidden') && document.getElementById('panel').classList.contains('hidden') && !(window.Studio && Studio.active);
   setInterval(() => {
     if (typeof miles === 'undefined' || !document.getElementById('title').classList.contains('hidden')) return;
     if (miles.poopy) { if (miles.here && !G.busy && Math.random() < 0.3) emit('stink', miles.x + rnd(-8, 8), (miles.spot === 'crib' ? BACK - 10 : 156) - rnd(10, 30)); return; }
     if (!ambient() || miles.crying) return;
-    next -= 0.5; if (next > 0) return; next = 110 + Math.random() * 90;
+    next -= 0.5; if (next > 0) return; if (!pingOk(75)) { next = 15; return; } next = 300 + Math.random() * 180;
     miles.poopy = true; if (miles.here) { Audio2.fart(); UI.face('miles', 'surprised', 1800); setTimeout(() => { if (!G.busy) say('m_stinky'); }, 900); }
   }, 500);
   function changeDiaper() {
@@ -231,7 +231,7 @@
       setTimeout(() => { fly = null; Audio2.sfx('thud', { vol: 0.6 }); emit('dust', tx, ty, 6); emit('sparkle', tx, ty - 6, 6); }, 900);
     }, 1500);
     setTimeout(() => {          // fresh and clean
-      window.did && did('nappy'); miles.poopy = false; miles.crying = false; miles.happyT = 5; next = 120 + Math.random() * 90; marina.state = 'cheer'; marina.anim = null;
+      window.did && did('nappy'); miles.poopy = false; miles.crying = false; miles.happyT = 5; next = 300 + Math.random() * 180; marina.state = 'cheer'; marina.anim = null;
       emit('sparkle', miles.x, py - 20, 18); emit('heart', miles.x, py - 30, 8); Audio2.jingle([0, 2.5, 7, 9.5, 12, 14.5], 0.09, 'triangle'); Audio2.sfx('baby_coo'); UI.face('miles', 'happy', 2200);
       say('m_did_it'); setTimeout(() => { if (marina.state === 'cheer') marina.state = 'idle'; }, 1500); G.busy = false;
       if (window.reactTo) reactTo('helper', 1700);
@@ -243,5 +243,40 @@
   drawExitSigns = function () {
     _dx(); if (!fly) return; const k = clamp((E.t - fly.t0) / fly.dur, 0, 1), x = fly.x0 + (fly.tx - fly.x0) * k, y = fly.y0 + (fly.ty - fly.y0) * k - Math.sin(k * Math.PI) * 46;
     emoji('💩', x, y, 9); if (chance(0.5)) emit('stink', x, y, 1);
+  };
+})();
+
+// ------------------------------------------------------------ glasses and masks sit exactly where her own glasses are, on every outfit and every walking frame
+(function () {
+  const spot = {};
+  function eyes(k) {           // centre of her purple glasses in this sprite, found from the pixels themselves
+    if (k in spot) return spot[k];
+    const c = spriteCanvas(k); if (!c) return (spot[k] = null);
+    const W = c.width, H = c.height, d = c.getContext('2d').getImageData(0, 0, W, H).data;
+    let top = H, bot = 0; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3] > 0) { top = Math.min(top, y); bot = Math.max(bot, y); }
+    const headBottom = top + (bot - top) * 0.46, isG = (h, s, v) => (h > 235 && h < 300 && s > 0.22) || (h > 300 && h < 330 && s > 0.3 && v > 0.5);
+    // per row: where the glasses-coloured pixels are, and whether that row also shows her face (skin)
+    const rows = [];
+    for (let y = top; y <= headBottom; y++) { let a = W, b2 = -1, n = 0, skin = 0; for (let x = 0; x < W; x++) { const p = (y * W + x) * 4; if (d[p + 3] < 10) continue; const [h, s, v] = rgb2hsv(d[p], d[p + 1], d[p + 2]);
+        if (isG(h, s, v)) { n++; a = Math.min(a, x); b2 = Math.max(b2, x); } else if (h > 10 && h < 40 && s > 0.12 && s < 0.45 && v > 0.8) skin++; } rows.push({ y, a, b: b2, n, skin }); }
+    // her glasses are the lowest band of those pixels that sits on her face (so a purple hat, tiara or bow above is ignored)
+    let best = null;
+    for (let i = rows.length - 1; i >= 0 && !best; i--) { if (!rows[i].n) continue; let j = i; while (j > 0 && (rows[j - 1].n || (j > 1 && rows[j - 2].n))) j--;
+      let band = rows.slice(j, i + 1).filter(r => r.n); if (i - j > 12) { band = band.filter(r => r.skin >= 2).slice(-7); }   // joined onto a purple hat: keep just the part on her face
+      const n = band.reduce((t, r) => t + r.n, 0), face = band.filter(r => r.skin >= 2).length;
+      if (n >= 6 && face >= Math.min(2, band.length)) best = band; i = j; }
+    if (!best) return (spot[k] = null);
+    const x0 = Math.min(...best.map(r => r.a)), x1 = Math.max(...best.map(r => r.b)), y0 = best[0].y, y1 = best[best.length - 1].y;
+    return (spot[k] = x1 - x0 < W * 0.6 ? [(x0 + x1 + 1) / 2 - W / 2, H - (y0 + y1 + 1) / 2] : null);
+  }
+  const _dl = drawLook;
+  drawLook = function (e, k, y, flip, S, layer) {
+    const L = G.look, f = L && L.face, at = f && layer !== 'back' && !f.startsWith('e_') ? eyes(k) : null;
+    if (!at) return _dl(e, k, y, flip, S, layer);
+    L.face = null; try { _dl(e, k, y, flip, S, layer); } finally { L.face = f; }
+    const s = S * (E.depth || 1), m = ACC_META[f] || {}, c = spriteCanvas('acc_' + f); if (!c) return;
+    // centre the accessory's own drawn pixels on her glasses
+    const b = visBox('acc_' + f), cx = b ? (b[0] + b[2]) / 2 + c.width / 2 : (m.anchor || [c.width / 2])[0], cy = b ? c.height + (b[1] + b[3]) / 2 : (m.anchor || [0, c.height / 2])[1];
+    const ctx = E.ctx; ctx.save(); ctx.translate(Math.round(e.x + at[0] * s * (flip ? -1 : 1) - E.camX), Math.round(y - at[1] * s)); ctx.scale((flip ? -1 : 1) * s, s); ctx.drawImage(c, -cx, -cy); ctx.restore();
   };
 })();

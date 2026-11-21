@@ -298,7 +298,7 @@ function onEnterRoom(room) {
   if (G.lastGreet[e.id] && now - G.lastGreet[e.id] < 30) return;
   G.lastGreet[e.id] = now;
   e.dir = Math.sign(marina.x - e.x) || 1;
-  const key = e.id === 'daddy' ? (AI.daddyTired ? 'd_hi_tired' : pick(['d_hi1', 'd_hi2', 'd_hi3'])) : e.id === 'mommy' ? pick(['mo_hi1', 'mo_hi2']) : pick(['r_hi', 'r_hi2']);
+  const key = e.id === 'daddy' ? (AI.daddyTired ? 'd_hi_tired' : pick(['d_hi1', 'd_hi2', 'd_hi3'])) : e.id === 'mommy' ? pick(['mo_hi1', 'mo_hi2']) : pick(['r_hi', 'r_hi2', 'r_hi3']);
   say(key, e).then(() => { G.moodCtx = { type: 'greet', who: e }; UI.pulseMoods(); });
 }
 
@@ -381,7 +381,7 @@ function A(ico, fn, img) { return { ico, fn, img }; }
 function selfActions() {
   const a = [];
   if (marina.state === 'perch') { a.push(A('🤸', doFlip)); if (daddy.here || rory.here) a.push(A('🐿️', flyingSquirrel)); a.push(A('⬇️', getDown)); return a; }
-  if (marina.state === 'ride') { a.push(A('🐴', () => { say('m_giddyup'); say(marina.mount.id === 'daddy' ? 'd_horse' : 'r_hi2', marina.mount); })); a.push(A('⬇️', dismount)); return a; }
+  if (marina.state === 'ride') { a.push(A('🐴', () => { say('m_giddyup'); say(marina.mount.id === 'daddy' ? 'd_horse' : 'r_horse', marina.mount); })); a.push(A('⬇️', dismount)); return a; }
   if (marina.state === 'wheel') { a.push(A('⬇️', leaveWheelchair)); return a; }
   if (marina.state === 'swing' || marina.state === 'bars') { a.push(A('⬇️', leaveYardToy)); return a; }
   if (marina.state === 'fort') return fortActions();
@@ -412,9 +412,10 @@ function propActions(p) {
   const a = [], climb = () => climbOn(p);
   const cook = A('🍳', () => UI.openCook());
   switch (p.a) {
-    case 'fridge': a.push(A('🧊', () => { G.fridgeOpen = 2.5; Audio2.whoosh(); setTimeout(() => UI.openCook(), 500); })); break;
-    case 'stove': case 'oven': case 'island': a.push(cook); if (p.climb) a.push(A('🧗', climb)); break;
-    case 'sink': a.push(A('🚰', () => { Audio2.sfx('sink'); for (let i = 0; i < 30; i++) setTimeout(() => emit('water', p.x + 4, p.y - 34), i * 40); say('m_wash'); })); break;
+    case 'fridge': a.push(A('🧊', () => { G.fridgeOpen = 2.5; Audio2.whoosh(); setTimeout(() => UI.openCook('fridge'), 500); }), A('❄️', () => { G.fridgeOpen = 2.5; Audio2.whoosh(); setTimeout(() => UI.openCook('freezer'), 500); })); break;
+    case 'stove': case 'oven': a.push(cook, A('🗄️', () => UI.openCook('cabinet'))); if (p.climb) a.push(A('🧗', climb)); break;
+    case 'island': a.push(A('🧺', () => UI.openCook('bowl')), A('🗄️', () => UI.openCook('cabinet'))); if (p.climb) a.push(A('🧗', climb)); break;
+    case 'sink': a.push(A('🗄️', () => UI.openCook('cabinet'))); a.push(A('🚰', () => { Audio2.sfx('sink'); for (let i = 0; i < 30; i++) setTimeout(() => emit('water', p.x + 4, p.y - 34), i * 40); say('m_wash'); })); break;
     case 'dishwasher': a.push(A('🍽️', () => { Audio2.whoosh(); Audio2.noise(0.8, 0.15, 400); })); break;
     case 'bowls': a.push(A('🐟', feedNiko)); break;
     case 'closet': a.push(A('👗', () => UI.openDress())); if (G.needTP) a.push(A('🧻', takeTP)); break;
@@ -492,7 +493,7 @@ function doFlip() {
     t += 0.04; const k = Math.min(1, t / 0.85);
     marina.x = x0 + dx * k; marina.offY = y0 * (1 - k) - Math.sin(k * Math.PI) * 26;
     if (k >= 1) { clearInterval(iv); marina.offY = 0; marina.state = 'idle'; G.busy = false; emit('star', marina.x, marina.y - 20, 6); Audio2.jingle([0, 4, 7, 12], 0.06);
-      if (fortHere) collapseFort('jump'); else setTimeout(() => say(pick(['m_did_it', 'm_yay'])), 200); }
+      if (fortHere) collapseFort('jump'); else if (rory.here && chance(0.6)) setTimeout(() => say(pick(['r_wow', 'r_giggle']), rory), 200); else setTimeout(() => say(pick(['m_did_it', 'm_yay'])), 200); }
   }, 40);
 }
 function flyingSquirrel() {
@@ -506,7 +507,7 @@ function flyingSquirrel() {
       t += 0.04; const k = Math.min(1, t / 0.9);
       marina.x = x0 + (land - x0) * k; marina.offY = y0 + (-46 - y0) * k - Math.sin(k * Math.PI) * 30; marina.rot = Math.sin(k * Math.PI) * 0.5 * marina.dir;
       emit('sparkle', marina.x, marina.y + marina.offY - 40);
-      if (k >= 1) { clearInterval(iv); marina.rot = 0; say(catcher === daddy ? 'd_catch' : 'r_play_yes', catcher); emit('heart', land, marina.y - 90, 6);
+      if (k >= 1) { clearInterval(iv); marina.rot = 0; say(catcher === daddy ? 'd_catch' : 'r_catch', catcher); emit('heart', land, marina.y - 90, 6);
         setTimeout(() => { marina.offY = 0; marina.state = 'idle'; G.busy = false; say('m_giggle'); }, 1200); }
     }, 40);
   }, 900);
@@ -515,7 +516,7 @@ function mount(e) {
   if (e.busy) return;
   approach(e.x, () => {
     marina.state = 'ride'; marina.mount = e; e.state = 'horse'; e.speed0 = e.speed; e.speed = 80; Audio2.whoosh(true);
-    say('m_giddyup').then(() => say(e === daddy ? 'd_horse' : 'r_hi2', e));
+    say('m_giddyup').then(() => say(e === daddy ? 'd_horse' : 'r_horse', e));
     AI.hold(e, true);
   }, 10);
 }
@@ -553,13 +554,13 @@ function setMood(m) {
       marina.state = 'sad'; say(pick(['m_sad', 'm_cry']));
       const e = nearestFamily();
       if (e) { setTimeout(() => { AI.hold(e, true); e.walkTo(marina.x + (e.x < marina.x ? -22 : 22), () => { e.dir = Math.sign(marina.x - e.x) || 1;
-        say(e === daddy ? pick(['d_comfort', 'd_comfort2']) : e === mommy ? 'mo_comfort' : 'r_comfort', e).then(() => { emit('heart', marina.x, marina.y - 70, 8); marina.state = 'idle'; say('m_cuddle'); AI.hold(e, false); }); }, 80); }, 900); }
+        say(e === daddy ? pick(['d_comfort', 'd_comfort2']) : e === mommy ? 'mo_comfort' : pick(['r_comfort', 'r_comfort2']), e).then(() => { emit('heart', marina.x, marina.y - 70, 8); marina.state = 'idle'; say('m_cuddle'); AI.hold(e, false); }); }, 80); }, 900); }
       else setTimeout(() => marina.state === 'sad' && (marina.state = 'idle'), 4000);
       break; }
     case 'angry': {
       stomp(); say(ctx && ctx.type === 'tvOff' ? 'm_notbrainrot' : pick(['m_angry', 'm_notfair']));
       const e = nearestFamily();
-      if (e) setTimeout(() => { e.dir = Math.sign(marina.x - e.x) || 1; say(e === daddy ? pick(['d_hey', 'd_appropriate']) : e === mommy ? pick(['mo_hey', 'mo_appropriate']) : 'r_comfort', e); }, 1500);
+      if (e) setTimeout(() => { e.dir = Math.sign(marina.x - e.x) || 1; say(e === daddy ? pick(['d_hey', 'd_appropriate']) : e === mommy ? pick(['mo_hey', 'mo_appropriate']) : 'r_tantrum', e); }, 1500);
       break; }
     case 'tantrum': tantrum(true); break;
   }
@@ -577,7 +578,7 @@ function tantrum(withParent) {
     let bedtime = false;
     if (withParent && ps.length) setTimeout(() => {
       const e = pick(ps); e.dir = Math.sign(marina.x - e.x) || 1;
-      const k = e === daddy ? pick(['d_hey', 'd_appropriate', 'd_bedtime']) : e === mommy ? pick(['mo_hey', 'mo_appropriate', 'mo_bedtime']) : 'r_comfort';
+      const k = e === daddy ? pick(['d_hey', 'd_appropriate', 'd_bedtime']) : e === mommy ? pick(['mo_hey', 'mo_appropriate', 'mo_bedtime']) : 'r_tantrum';
       if (k.endsWith('bedtime')) bedtime = true;
       say(k, e);
     }, 2600);
@@ -611,7 +612,7 @@ function serve(e) {
   say(pick(['m_hewe', 'm_made'])).then(async () => {
     G.holding = null; e.plate = d;
     if (d.score >= 3) { e.state = 'eat'; Audio2.jingle([0, 4, 7, 12, 16], 0.07); await sleep(900); await say(isD ? pick(['d_food_great', 'd_food_good']) : 'r_food_great', e); emit('heart', e.x, e.y - 90, 8); emit('star', e.x, e.y - 90, 6); say('m_yay'); marina.state = 'cheer'; }
-    else if (d.score >= 1) { e.state = 'eat'; await sleep(700); await say(isD ? 'd_food_good' : 'r_food_great', e); emit('heart', e.x, e.y - 90, 4); say('m_yummy'); }
+    else if (d.score >= 1) { e.state = 'eat'; await sleep(700); await say(isD ? 'd_food_good' : 'r_food_good', e); emit('heart', e.x, e.y - 90, 4); say('m_yummy'); }
     else if (d.score >= 0) { e.state = 'eat'; e.face = '😬'; await sleep(700); await say(isD ? 'd_food_meh' : 'r_food_meh', e); e.face = null; say('m_did_it'); }
     else { e.face = '😅'; await say(isD ? 'd_nervous' : 'r_nervous', e); e.face = null; G.pendingDish = { who: e, dish: d }; G.moodCtx = { type: 'refused', who: e }; UI.pulseMoods(); }
     e.state = e.state === 'eat' ? 'idle' : e.state; G.busy = false; AI.hold(e, false);
@@ -709,7 +710,7 @@ function pickupNiko() {
   setTimeout(() => {
     if (!(G.holding && G.holding.type === 'niko')) return;
     G.holding = null; niko.state = 'wander'; niko.room = G.room; niko.x = marina.x; niko.walkTo(marina.x + marina.dir * 90, null, 110); Audio2.sfx('meow2');
-    const p = parentsHere()[0]; if (p) setTimeout(() => say(p === daddy ? 'd_cat' : 'mo_cat', p).then(() => { G.moodCtx = { type: 'scold', who: p }; UI.pulseMoods(); }), 300);
+    const p = parentsHere()[0] || (rory.here ? rory : null); if (p) setTimeout(() => say(p === daddy ? 'd_cat' : p === mommy ? 'mo_cat' : 'r_cat', p).then(() => { G.moodCtx = { type: 'scold', who: p }; UI.pulseMoods(); }), 300);
   }, 3600);
 }
 function chaseNiko() {
@@ -743,9 +744,9 @@ function checkMess() {
   if (G.tidy || G.chase || G.busy || G.fort && G.fort.inside) return;
   const n = G.mess.filter(m => m.room === G.room).length, total = G.mess.length;
   if ((n >= 5 || total >= 12) && E.t - G.lastTidyAsk > 40) {
-    const ps = parentsHere(); if (!ps.length) return;
+    const ps = parentsHere(); if (rory.here && rory.state !== 'toilet') ps.push(rory); if (!ps.length) return;
     G.lastTidyAsk = E.t; const p = pick(ps); p.dir = Math.sign(marina.x - p.x) || 1;
-    say(p === daddy ? 'd_tidy' : 'mo_tidy', p).then(() => UI.actions(marina, [A('🧹', () => startTidy()), A('🏃', () => startChase(p))]));
+    say(p === daddy ? 'd_tidy' : p === mommy ? 'mo_tidy' : 'r_tidy', p).then(() => UI.actions(marina, [A('🧹', () => startTidy()), A('🏃', () => startChase(p))]));
   }
 }
 function startTidy(self) { G.tidy = true; if (!self) say('m_ok_tidy'); UI.bigIcon('🧹', 900); }
@@ -757,13 +758,13 @@ function pickUpMess(m) {
     if (!G.mess.some(x => x.room === G.room)) {
       G.tidy = G.mess.length > 0 && G.tidy; G.tidy = false;
       Audio2.jingle([0, 4, 7, 12, 7, 12]); emit('confetti', marina.x, marina.y - 60, 30);
-      const p = parentsHere()[0]; if (p) say(p === daddy ? 'd_good_girl' : 'mo_good', p); else say('m_did_it');
+      const p = parentsHere()[0] || (rory.here ? rory : null); if (p) say(p === daddy ? 'd_good_girl' : p === mommy ? 'mo_good' : 'r_good', p); else say('m_did_it');
     }
   }, 6);
 }
 function startChase(p) {
   say('m_noway'); G.chase = { who: p, fleeing: true, t: 0 }; AI.hold(p, true); setMusic();
-  setTimeout(() => say(p === daddy ? 'd_chase' : 'mo_chase', p), 1200);
+  setTimeout(() => say(p === daddy ? 'd_chase' : p === mommy ? 'mo_chase' : 'r_chase', p), 1200);
   const W = ROOMS[G.room].w; marina.walkTo(marina.x < W / 2 ? W - 4 : 4, null, 92);
 }
 function updateChase(dt) {
@@ -773,7 +774,7 @@ function updateChase(dt) {
   p.walkTo(marina.x, null, Math.min(95, sp));
   if (Math.abs(p.x - marina.x) < 16 && c.t > 2) {
     G.chase = null; marina.stop(); p.stop(); AI.hold(p, false); setMusic();
-    say(p === daddy ? 'd_caught' : 'mo_caught', p).then(() => { say('m_giggle'); emit('heart', marina.x, marina.y - 70, 6); setTimeout(() => startTidy(), 1200); });
+    say(p === daddy ? 'd_caught' : p === mommy ? 'mo_caught' : 'r_caught', p).then(() => { say('m_giggle'); emit('heart', marina.x, marina.y - 70, 6); setTimeout(() => startTidy(), 1200); });
   }
 }
 
@@ -822,10 +823,10 @@ function inviteToFort(e) {
   say(key).then(() => {
     AI.hold(e, true);
     if (e.room !== G.room) { e.room = G.room; e.hidden = false; e.x = G.room === 'living' ? 8 : ROOMS[G.room].w - 8; }
-    const keen = e === daddy ? !AI.daddyTired && chance(0.6) : chance(0.75);
+    const keen = e === daddy ? !AI.daddyTired && chance(0.6) : e === rory ? true : chance(0.75);
     e.walkTo(f.x + (f.guests.length % 2 ? -18 : 18) + rnd(-4, 4), () => {
       f.guests.push(e); e.dir = Math.sign(f.x - e.x) || 1;
-      if (keen) { e.state = 'sitfort'; say(e === daddy ? pick(['d_play_yes', 'd_play_yes2']) : e === mommy ? 'mo_play_yes' : 'r_play_yes', e).then(() => { emit('heart', f.x, f.roofY, 6); say('m_yay'); }); }
+      if (keen) { e.state = 'sitfort'; say(e === daddy ? pick(['d_play_yes', 'd_play_yes2']) : e === mommy ? 'mo_play_yes' : pick(['r_play_yes', 'r_play_yes2']), e).then(() => { emit('heart', f.x, f.roofY, 6); say('m_yay'); }); }
       else { say(e === daddy ? pick(['d_play_tired', 'd_play_tired2']) : e === mommy ? 'mo_play_tired' : 'r_play_yes', e).then(() => { if (e !== mommy) e.state = 'lie'; else e.state = 'sitfort'; }); }
     }, 60);
   });
@@ -866,7 +867,7 @@ function tvInterrupt() {
   p.walkTo(330, () => {
     p.dir = 1;
     const k = p === daddy ? pick(['d_tv', 'd_brainrot']) : 'mo_tv';
-    say(k, p).then(() => { tvOff(); if (marina.state === 'sit') marina.state = 'idle'; G.moodCtx = { type: 'tvOff', who: p }; UI.pulseMoods(); AI.hold(p, false); });
+    say(k, p).then(() => { if (rory.here && chance(0.5)) say('r_tv', rory); tvOff(); if (marina.state === 'sit') marina.state = 'idle'; G.moodCtx = { type: 'tvOff', who: p }; UI.pulseMoods(); AI.hold(p, false); });
   });
 }
 
@@ -936,6 +937,7 @@ const AI = {
       if (e.state === 'sit') { if (chance(0.4)) { e.state = 'idle'; e.x -= 34; } return; }
       if (e.room === 'living' && chance(0.35) && !(marina.state === 'wheel')) { e.walkTo(SEATS.living.mommy + 30, () => { e.state = 'sit'; e.x = SEATS.living.mommy; e.dir = -1; }); return; }
     }
+    if (e === rory && e.here && chance(0.35) && !G.busy && !marina.mount) { e.walkTo(marina.x + (e.x < marina.x ? -24 : 24), () => { e.dir = Math.sign(marina.x - e.x) || 1; say(pick(['r_giggle', 'r_hi2', 'r_chase']), e); emit('star', marina.x, marina.y - 70, 4); }, 70); return; }
     if (e === daddy && e.room === 'living' && chance(0.15)) { e.walkTo(rnd(440, 600), () => { e.state = 'lie'; }); return; }
     const rooms = e === rory ? ['foyer', 'living', 'kitchen', 'dining', 'playroom'] : ['living', 'kitchen', 'dining', 'playroom', 'foyer', 'living', 'kitchen'];
     if (chance(0.45)) { // change room
@@ -965,7 +967,7 @@ const AI = {
   },
 };
 function iLx(room) { return marina.x < ROOMS[room].w / 2 ? ROOMS[room].w - 6 : 6; }
-function onEnterRoomBy(e) { if (G.busy) return; if (G.lastGreet[e.id] && E.t - G.lastGreet[e.id] < 30) return; G.lastGreet[e.id] = E.t; const k = e === daddy ? pick(['d_hi1', 'd_hi2', 'd_hi3']) : e === mommy ? pick(['mo_hi1', 'mo_hi2']) : pick(['r_hi', 'r_hi2']); setTimeout(() => say(k, e).then(() => { G.moodCtx = { type: 'greet', who: e }; UI.pulseMoods(); }), 400); }
+function onEnterRoomBy(e) { if (G.busy) return; if (G.lastGreet[e.id] && E.t - G.lastGreet[e.id] < 30) return; G.lastGreet[e.id] = E.t; const k = e === daddy ? pick(['d_hi1', 'd_hi2', 'd_hi3']) : e === mommy ? pick(['mo_hi1', 'mo_hi2']) : pick(['r_hi', 'r_hi2', 'r_hi3']); setTimeout(() => say(k, e).then(() => { G.moodCtx = { type: 'greet', who: e }; UI.pulseMoods(); }), 400); }
 
 // ---------------------------------------------------------------- boot
 async function boot() {

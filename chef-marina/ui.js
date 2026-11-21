@@ -104,19 +104,24 @@ const UI = (() => {
 
   // =========================================================== COOKING
   const METHODS = [['stack', '🥪'], ['mix', '🥄'], ['fry', '🍳'], ['bake', '🔥'], ['freeze', '❄️'], ['blend', '🌀']];
-  function openCook() {
+  function openCook(where) {
     say('m_cooking');
-    const chosen = [];
+    const chosen = []; let shelf = where || 'fridge';
+    const SHELVES = [['fridge', '🧊'], ['freezer', '❄️'], ['cabinet', '🗄️'], ['bowl', '🧺']];
     openPanel('cook', '👩‍🍳', (b) => {
-      const bowl = el('div', { class: 'bowl' }); const grid = el('div', { class: 'grid' }); const mrow = el('div', { class: 'row' });
+      const bowl = el('div', { class: 'bowl' }); const grid = el('div', { class: 'grid' }); const mrow = el('div', { class: 'row' }); const srow = el('div', { class: 'row' });
       const redraw = () => {
         bowl.innerHTML = ''; if (!chosen.length) bowl.append(el('div', { class: 'big-ico' }, '🥣'));
         chosen.forEach((k, i) => bowl.append(el('button', { class: 'tile', on: tap(() => { chosen.splice(i, 1); Audio2.blip(-5); redraw(); }) }, img('ing_' + k))));
         mrow.querySelectorAll('button').forEach(x => x.disabled = !chosen.length);
       };
-      for (const k of Object.keys(ING)) grid.append(el('button', { class: 'tile', on: tap(() => { if (chosen.length >= 4) { Audio2.blip(-12); return; } chosen.push(k); Audio2.blip(pick([0, 2, 4, 7, 9, 12])); redraw(); }) }, img('ing_' + k)));
+      const fill = () => {
+        grid.innerHTML = ''; srow.querySelectorAll('.pbtn').forEach((x, i) => x.classList.toggle('on', SHELVES[i][0] === shelf));
+        for (const k of PANTRY[shelf]) grid.append(el('button', { class: 'tile', on: tap(() => { if (chosen.length >= 4) { Audio2.blip(-12); return; } chosen.push(k); Audio2.blip(pick([0, 2, 4, 7, 9, 12])); redraw(); }) }, img('ing_' + k)));
+      };
+      for (const [s, ico] of SHELVES) srow.append(el('button', { class: 'pbtn', style: { fontSize: '36px', minWidth: '70px', height: '66px' }, on: tap(() => { shelf = s; Audio2.whoosh(); fill(); }) }, ico));
       for (const [m, ico] of METHODS) mrow.append(el('button', { class: 'pbtn', style: { fontSize: '38px', minWidth: '70px', height: '70px' }, on: tap(() => runMethod(m, [...chosen])) }, ico));
-      b.append(bowl, mrow, grid); redraw();
+      b.append(bowl, mrow, srow, grid); redraw(); fill();
     });
   }
   async function runMethod(method, ings) {

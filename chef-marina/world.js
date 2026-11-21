@@ -246,18 +246,36 @@ const ING = {
   bread: 'cv', cheese: 'dv', strawberry: 'sf', banana: 'sf', pasta: 'cv', ketchup: 'v', chocolate: 's', sprinkles: 's', spinach: 'g', fish: 'm', carrot: 'g',
   butter: 'd', flour: 'c', sugar: 's', pepper: 'h', pickles: 'vx', icecream: 'sd', broccoli: 'g', sausage: 'm', catfood: 'xxx', cinnamon: 's', rice: 'c',
   peanutbutter: 'sv', marshmallow: 's', lemon: 'f', onion: 'gx', tomato: 'gv', honey: 's', cereal: 'sck', crackers: 'ck', apple: 'sf', blueberry: 'sf', bacon: 'm', beans: 'v', oatmeal: 'c',
+  yogurt: 'sd', oj: 'sfl', hotsauce: 'hx', mayo: 'dv', jam: 's', tortilla: 'cv', ham: 'm', nuggets: 'mc', peas: 'g', waffles: 'sc', avocado: 'gv', grapes: 'sf', watermelon: 'sf',
+  potato: 'gc', popcorn: 'kv', goldfish: 'ck', ramen: 'cv', soysauce: 'v', pickled_egg: 'xv', olives: 'vx', cocoa: 's', babyfood: 'gx', coffee: 'xl', sardines: 'mx', gummies: 's', pumpkin: 'gs',
+  orange: 'sf', pear: 'sf', chicken: 'm', cookiedough: 's', hummus: 'v', pineapple: 'sf', cucumber: 'g', corn: 'gc', vanilla: 's', syrup: 's', tuna: 'm', eggnog: 'sdl',
+};
+const PANTRY = {
+  fridge: ['milk', 'eggs', 'butter', 'cheese', 'creamcheese', 'yogurt', 'whip', 'oj', 'juicebox', 'cola', 'eggnog', 'ham', 'bacon', 'sausage', 'chicken', 'fish', 'hummus', 'mayo', 'mustard', 'ketchup', 'hotsauce', 'pickles', 'pickled_egg', 'olives', 'garlic', 'jam', 'cookiedough', 'spinach', 'broccoli', 'carrot', 'cucumber', 'tomato', 'onion', 'avocado', 'babyfood', 'pizzabox'],
+  freezer: ['icecream', 'peas', 'waffles', 'nuggets', 'corn'],
+  cabinet: ['flour', 'sugar', 'bread', 'pasta', 'rice', 'ramen', 'tortilla', 'cereal', 'oatmeal', 'crackers', 'goldfish', 'popcorn', 'peanutbutter', 'honey', 'syrup', 'chocolate', 'cocoa', 'marshmallow', 'gummies', 'sprinkles', 'cinnamon', 'vanilla', 'pepper', 'soysauce', 'worcester', 'beans', 'tuna', 'sardines', 'coffee', 'catfood'],
+  bowl: ['apple', 'banana', 'orange', 'pear', 'grapes', 'strawberry', 'blueberry', 'lemon', 'pineapple', 'watermelon', 'potato', 'pumpkin'],
 };
 const ING_NAME = { milk: 'Milky', eggs: 'Eggy', cola: 'Fizzy', juicebox: 'Juicy', whip: 'Creamy', creamcheese: 'Cheesy', mustard: 'Mustardy', worcester: 'Saucy', garlic: 'Garlicky', pizzabox: 'Pizza',
   bread: 'Bready', cheese: 'Cheesy', strawberry: 'Strawberry', banana: 'Banana', pasta: 'Noodle', ketchup: 'Ketchup', chocolate: 'Chocolate', sprinkles: 'Sparkly', spinach: 'Spinach', fish: 'Fishy',
   carrot: 'Carrot', butter: 'Buttery', flour: 'Floury', sugar: 'Sugary', pepper: 'Spicy', pickles: 'Pickle', icecream: 'Ice Cream', broccoli: 'Broccoli', sausage: 'Sausage', catfood: 'Cat Food',
   cinnamon: 'Cinnamon', rice: 'Rice', peanutbutter: 'Peanut', marshmallow: 'Marshmallow', lemon: 'Lemony', onion: 'Oniony', tomato: 'Tomato', honey: 'Honey', cereal: 'Crunchy', crackers: 'Cracker',
-  apple: 'Apple', blueberry: 'Blueberry', bacon: 'Bacon', beans: 'Beany', oatmeal: 'Oaty' };
+  apple: 'Apple', blueberry: 'Blueberry', bacon: 'Bacon', beans: 'Beany', oatmeal: 'Oaty',
+  yogurt: 'Yogurt', oj: 'Orange Juice', hotsauce: 'Fire', mayo: 'Mayo', jam: 'Jelly', tortilla: 'Wrappy', ham: 'Hammy', nuggets: 'Nugget', peas: 'Pea', waffles: 'Waffle', avocado: 'Avocado', grapes: 'Grape',
+  watermelon: 'Watermelon', potato: 'Potato', popcorn: 'Popcorn', goldfish: 'Fishy Cracker', ramen: 'Ramen', soysauce: 'Soy', pickled_egg: 'Pickled Egg', olives: 'Olive', cocoa: 'Cocoa', babyfood: 'Baby Mush',
+  coffee: 'Coffee', sardines: 'Sardine', gummies: 'Gummy', pumpkin: 'Pumpkin', orange: 'Orange', pear: 'Pear', chicken: 'Chicken', cookiedough: 'Cookie Dough', hummus: 'Hummus', pineapple: 'Pineapple',
+  cucumber: 'Cucumber', corn: 'Corn', vanilla: 'Vanilla', syrup: 'Maple', tuna: 'Tuna', eggnog: 'Eggnog' };
 // pairs that are bad together
 const CLASH = [['fish', 's'], ['catfood', '*'], ['mustard', 's'], ['worcester', 's'], ['pickles', 's'], ['garlic', 's'], ['onion', 's'], ['cola', 'm'], ['chocolate', 'g'], ['chocolate', 'm'],
-  ['ketchup', 's'], ['milk', 'h'], ['lemon', 'd'], ['cola', 'd'], ['spinach', 's'], ['broccoli', 's'], ['icecream', 'v'], ['sprinkles', 'm'], ['honey', 'm'], ['marshmallow', 'v'], ['pepper', 's']];
+  ['ketchup', 's'], ['milk', 'h'], ['lemon', 'd'], ['cola', 'd'], ['spinach', 's'], ['broccoli', 's'], ['icecream', 'v'], ['sprinkles', 'm'], ['honey', 'm'], ['marshmallow', 'v'], ['pepper', 's'],
+  ['hotsauce', 's'], ['sardines', '*'], ['babyfood', '*'], ['coffee', '*'], ['pickled_egg', '*'], ['olives', 's'], ['mayo', 's'], ['gummies', 'm'], ['gummies', 'v'], ['oj', 'd'], ['soysauce', 's'], ['tuna', 's'], ['cookiedough', 'm']];
 const GOOD = [['strawberry', 'chocolate'], ['banana', 'peanutbutter'], ['eggs', 'cheese'], ['bread', 'cheese'], ['bread', 'butter'], ['flour', 'sugar'], ['flour', 'eggs'], ['milk', 'chocolate'],
   ['icecream', 'chocolate'], ['icecream', 'strawberry'], ['tomato', 'cheese'], ['pasta', 'tomato'], ['pasta', 'cheese'], ['rice', 'eggs'], ['apple', 'cinnamon'], ['bacon', 'eggs'], ['sausage', 'ketchup'],
-  ['strawberry', 'banana'], ['blueberry', 'milk'], ['honey', 'oatmeal'], ['marshmallow', 'chocolate'], ['whip', 'strawberry'], ['lemon', 'sugar'], ['fish', 'lemon'], ['bread', 'peanutbutter'], ['cereal', 'milk'], ['broccoli', 'cheese'], ['carrot', 'pasta']];
+  ['strawberry', 'banana'], ['blueberry', 'milk'], ['honey', 'oatmeal'], ['marshmallow', 'chocolate'], ['whip', 'strawberry'], ['lemon', 'sugar'], ['fish', 'lemon'], ['bread', 'peanutbutter'], ['cereal', 'milk'], ['broccoli', 'cheese'], ['carrot', 'pasta'],
+  ['yogurt', 'blueberry'], ['yogurt', 'strawberry'], ['yogurt', 'granola'], ['waffles', 'syrup'], ['waffles', 'whip'], ['tortilla', 'cheese'], ['tortilla', 'chicken'], ['tortilla', 'avocado'], ['ham', 'cheese'],
+  ['ham', 'bread'], ['nuggets', 'ketchup'], ['potato', 'butter'], ['potato', 'cheese'], ['popcorn', 'butter'], ['ramen', 'eggs'], ['ramen', 'soysauce'], ['chicken', 'rice'], ['chicken', 'soysauce'],
+  ['cocoa', 'milk'], ['cocoa', 'marshmallow'], ['cookiedough', 'icecream'], ['pineapple', 'ham'], ['orange', 'banana'], ['oj', 'strawberry'], ['corn', 'butter'], ['pumpkin', 'cinnamon'], ['pumpkin', 'sugar'],
+  ['grapes', 'cheese'], ['watermelon', 'lemon'], ['hummus', 'cucumber'], ['hummus', 'carrot'], ['jam', 'peanutbutter'], ['jam', 'bread'], ['avocado', 'tomato'], ['peas', 'rice'], ['tuna', 'mayo'], ['vanilla', 'flour'], ['eggnog', 'cinnamon']];
 
 // Line → icon shown in speech bubble
 const SAY_ICON = {
@@ -274,5 +292,6 @@ const SAY_ICON = {
   mo_hi1: '👋', mo_hi2: '👋💕', mo_comfort: '🤗', mo_hey: '❗', mo_appropriate: '☝️😠', mo_bedtime: '🛏️🌙', mo_climb: '⬇️😠', mo_tidy: '🧹❗', mo_chase: '🏃', mo_caught: '🤣', mo_careful: '⚠️',
   mo_play_yes: '🏰🙌', mo_play_tired: '😩', mo_love: '💖', mo_cat: '🐱❌', mo_miles: '👶💕', mo_fort_down: '🏚️🛏️', mo_tv: '📺❌', mo_good: '👍⭐',
   r_hi: '👋', r_hi2: '👋', r_play_yes: '🏰🙌', r_food_great: '😋⭐', r_food_meh: '😬👍', r_nervous: '😅⏰', r_ok: '😰🍽️', r_stomach: '🤢', r_diarrhea: '🚽😱', r_notp: '🧻❌', r_burp: '💨',
-  r_vomit: '🤮', r_tp_thanks: '🧻🙏', r_love: '💖', r_comfort: '🤗', r_climb: '⚠️',
+  r_vomit: '🤮', r_tp_thanks: '🧻🙏', r_love: '💖🐻', r_comfort: '🤗', r_climb: '🐒⚠️', r_hi3: '🙌', r_play_yes2: '🤫🏰', r_food_good: '😋', r_comfort2: '🤗', r_tantrum: '🫁💙',
+  r_catch: '🙌🐿️', r_horse: '🐴', r_chase: '👹', r_caught: '🤣', r_tidy: '🧹🏁', r_good: '🙌⭐', r_tv: '🫠📺', r_wow: '🤩', r_giggle: '🤣', r_fort_down: '🏚️💤', r_cat: '🐱🫳',
 };

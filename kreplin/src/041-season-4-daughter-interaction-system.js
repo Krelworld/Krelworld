@@ -920,17 +920,22 @@ function setupLadsGateScreen() {
   }
   
   // Show gate screen initially, hide start screen
-  // BUT: Don't show gate screen if we're auto-loading a game
-  if (ladsGateScreen && !window.__gameAutoLoaded) {
+  // BUT: Don't show gate screen if we're auto-loading a game, or once it has been passed
+  // (this runs again from a late DOMContentLoaded / the 100ms fallback; it must not put the
+  // gate back over the title screen or the campaign set-up)
+  if (window.__ladsGatePassed) {
+    // already through the door: leave the screens as they are
+  } else if (ladsGateScreen && !window.__gameAutoLoaded) {
     ladsGateScreen.classList.remove('hidden');
   } else if (ladsGateScreen) {
     ladsGateScreen.classList.add('hidden');
   }
-  if (startScreen) startScreen.classList.add('hidden');
+  if (startScreen && !window.__ladsGatePassed) startScreen.classList.add('hidden');
   
   // Handle YES button - reveal title screen and start music
   if (ladsGateYes) {
     ladsGateYes.onclick = function() {
+      window.__ladsGatePassed = true;
       // Hide gate screen
       if (ladsGateScreen) ladsGateScreen.classList.add('hidden');
       // Show start screen only if not auto-loaded
@@ -993,7 +998,7 @@ function setupStartScreenButtons() {
   }
   
   // Keep start screen hidden initially (will be shown by gate screen)
-  startScreen.classList.add('hidden');
+  if (!window.__ladsGatePassed) startScreen.classList.add('hidden');
   
   // Always show the load button
   if (loadGameBtn) loadGameBtn.style.display = 'block';

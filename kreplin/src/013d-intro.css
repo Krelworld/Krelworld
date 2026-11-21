@@ -4,6 +4,8 @@
 .ki-full{position:fixed;inset:0;z-index:calc(var(--z-legacy) + 1);background:var(--ink);color:var(--text);overflow:hidden;
   font:15px/1.5 var(--font-body);display:flex;flex-direction:column}
 .ki-full.hidden{display:none!important}
+/* the gate sits over the title screen (the page load handler reveals the title behind it) */
+#ladsGateScreen{z-index:calc(var(--z-legacy) + 2)}
 .ki-full *,.ki-scene *{box-sizing:border-box}
 .ki-kicker{font:600 13px/1.2 var(--font-ui);letter-spacing:2px;color:var(--gold);text-transform:uppercase}
 .ki-kicker.bad{color:var(--red-l)}

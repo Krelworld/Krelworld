@@ -102,7 +102,7 @@
       panel.appendChild(body); col.appendChild(panel);
       const acts = o.actions || [];
       if (acts.length || o.footNote) {
-        const foot = el('footer', 'ki-foot');
+        const foot = el('div', 'ki-foot');
         if (o.footNote) foot.appendChild(el('span', 'ki-note', o.footNote));
         acts.forEach(a => {
           const b = el('button', 'ki-pbtn ' + (a.variant || ''), esc(a.label)); b.type = 'button';

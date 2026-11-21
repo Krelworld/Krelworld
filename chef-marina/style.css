@@ -147,3 +147,42 @@ h1{margin:4px 0 14px;font-size:54px;color:#ffcf4a;text-shadow:0 4px 0 #b5482f,0 
 #title{background:#2b2340 url(assets/title.png) center/cover no-repeat;image-rendering:pixelated}
 @media (orientation:portrait){#title{background-image:url(assets/title_portrait.png),url(assets/title.png)}}
 .tcard{background:rgba(30,20,50,.55);padding:16px 20px;border-radius:28px;backdrop-filter:blur(2px)}
+
+/* ---- Art Studio: canvas fills the screen, tools in a tray ---- */
+#studio{position:fixed;inset:0;z-index:40;background:#3a2f57;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.s-top{display:flex;gap:6px;padding:6px 8px;justify-content:space-between;flex:0 0 auto}
+.s-btn{flex:1 1 0;max-width:60px;height:48px;border-radius:14px;background:#fff;font-size:26px;padding:0;box-shadow:0 3px 0 rgba(0,0,0,.3)}
+.s-btn:disabled{opacity:.35}.s-btn.on{background:#c9a4ff}.s-btn.go{background:#7bd36b}.s-btn:active{transform:translateY(2px)}
+.s-area{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:0 6px;position:relative}
+.s-paper{position:relative;border-radius:10px;overflow:hidden;box-shadow:0 4px 0 rgba(0,0,0,.35),0 0 0 3px #fff}
+.s-paper canvas{position:absolute;inset:0;width:100%;height:100%}
+.s-paper .l-lines{pointer-events:none;image-rendering:pixelated}
+.s-colors{display:flex;align-items:center;gap:6px;padding:8px 8px 4px;flex:0 0 auto}
+.s-sizes{display:flex;gap:4px;flex:0 0 auto;background:rgba(255,255,255,.15);border-radius:16px;padding:4px}
+.s-size{width:40px;height:40px;border-radius:12px;background:transparent;display:flex;align-items:center;justify-content:center;padding:0}
+.s-size i{display:block;border-radius:50%;background:#fff}.s-size.on{background:#ffcf4a}.s-size.on i{background:#222}
+.s-strip{display:flex;gap:6px;overflow-x:auto;padding:4px 2px;flex:1 1 auto;scrollbar-width:none}
+.s-strip::-webkit-scrollbar,.s-tools::-webkit-scrollbar,.s-drawer::-webkit-scrollbar{display:none}
+.s-col{flex:0 0 40px;width:40px;height:40px;border-radius:50%;border:3px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.3);padding:0}
+.s-col.on{transform:scale(1.2);border-color:#ffcf4a;box-shadow:0 0 0 3px #fff,0 3px 0 rgba(0,0,0,.3)}
+.s-tools{display:flex;gap:6px;overflow-x:auto;padding:10px 8px 8px;flex:0 0 auto;align-items:flex-end;scrollbar-width:none}
+.s-tool{flex:0 0 56px;width:56px;height:60px;border-radius:16px 16px 10px 10px;background:#fff;font-size:32px;padding:0;box-shadow:0 4px 0 rgba(0,0,0,.3);transition:transform .12s}
+.s-tool.on{background:#ffcf4a;transform:translateY(-8px) scale(1.08)}
+.s-drawer{position:absolute;left:8px;right:8px;bottom:calc(132px + env(safe-area-inset-bottom));z-index:3;background:rgba(43,35,64,.96);border:3px solid #fff;border-radius:20px;padding:8px;display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,60px);grid-auto-columns:60px;gap:6px;overflow-x:auto;animation:pop .18s both}
+.s-tile{border-radius:14px;background:#fff;font-size:34px;padding:2px;display:flex;align-items:center;justify-content:center;color:#000}
+.s-tile img{width:100%;height:100%;object-fit:contain;border-radius:8px}
+.s-tile.wide{grid-row:span 2;width:120px}
+.s-paperdot{width:38px;height:38px;border-radius:10px;border:2px solid #999}
+@media (orientation:landscape){
+  #studio{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto 1fr}
+  .s-top{grid-column:1/4}
+  .s-tools{grid-column:1;grid-row:2;flex-direction:column;overflow-y:auto;overflow-x:hidden;align-items:center;padding:4px 10px}
+  .s-tool{flex:0 0 46px;height:46px;width:52px;font-size:26px;border-radius:12px}.s-tool.on{transform:translateX(6px) scale(1.08)}
+  .s-area{grid-column:2;grid-row:2}
+  .s-colors{grid-column:3;grid-row:2;flex-direction:column;padding:4px 8px;min-height:0}
+  .s-strip{flex-direction:column;overflow-y:auto;overflow-x:hidden;padding:4px}
+  .s-sizes{flex-direction:row}.s-size{width:30px;height:30px}
+  .s-col{flex:0 0 34px;width:34px;height:34px}
+  .s-drawer{left:80px;right:80px;bottom:10px}
+  .s-btn{height:40px;font-size:22px}
+}

@@ -233,3 +233,9 @@ h1{margin:4px 0 14px;font-size:54px;color:#ffcf4a;text-shadow:0 4px 0 #b5482f,0 
   #moodbar{top:74px;bottom:6px;right:calc(8px + env(safe-area-inset-right));padding:6px;gap:5px;justify-content:space-between}
   #moodbar .mood{width:auto;height:auto;flex:1 1 0;min-height:0;aspect-ratio:1;max-height:64px;font-size:min(8vh,36px);border-radius:16px}
 }
+
+/* short sideways screens (browser bars showing): mood faces shrink to fit instead of spilling off the bottom */
+@media (orientation:landscape){
+  #moodbar{overflow:hidden}
+  #moodbar .mood{aspect-ratio:auto;width:min(13vh,58px);width:min(13dvh,58px);font-size:clamp(16px,7vh,34px);font-size:clamp(16px,7dvh,34px);line-height:1;display:flex;align-items:center;justify-content:center;padding:0;overflow:hidden}
+}

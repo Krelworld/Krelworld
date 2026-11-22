@@ -40,9 +40,16 @@ const Pics = (() => {
       await say(who === daddy ? pick(['d_proud', 'd_amazing']) : who === mommy ? pick(['mo_proud', 'mo_amazing']) : 'r_amazing', who); who.face = null;
       chip('hug'); await pair('pair_hug_' + who.id, who, { dur: 2.4 }); await say('m_wuv_' + who.id); await say(who === daddy ? 'd_love' : who === mommy ? 'mo_love' : 'r_love', who);
       // the proud grown-up puts it up on the fridge
-      walls = walls.filter(w => w.h !== h); const n = walls.filter(w => w.gift).length;
-      walls.push({ h, room: 'kitchen', x: 250 + (n % 3) * 13 - 6, y: 78 + Math.floor(n / 3 % 2) * 22, gift: who.id }); saveWalls();
-      UI.bigIcon('🖼️💖', 1200); window.did && did('gift');
+      // the proud grown-up hangs it up right here where she can see it (outdoors: it goes on the fridge)
+      walls = walls.filter(w => w.h !== h);
+      if (!ROOMS[G.room].outside) {
+        const W = ROOMS[G.room].w, x = freeX(G.room, clamp(who.x + (who.x < W / 2 ? 46 : -46), 30, W - 30), 70);
+        who.face = '🖼️'; await new Promise(r => { let done = false; const fin = () => { if (!done) { done = true; r(); } }; who.walkTo(x, fin); setTimeout(fin, 4000); });
+        who.face = null; who.hugT = E.t + 1; walls.push({ h, room: G.room, x, y: 70, gift: who.id }); saveWalls();
+        chip('pop'); Audio2.jingle([0, 7, 12, 16, 19], 0.07); emit('sparkle', x, 70, 18); emit('confetti', x, 66, 20); emit('heart', x, 60, 5);
+        marina.dir = Math.sign(x - marina.x) || 1; marina.state = 'cheer'; setTimeout(() => marina.state === 'cheer' && (marina.state = 'idle'), 1500); await say('m_look');
+      } else { const n = walls.filter(w => w.gift).length; walls.push({ h, room: 'kitchen', x: 250 + (n % 3) * 13 - 6, y: 78 + Math.floor(n / 3 % 2) * 22, gift: who.id }); saveWalls(); UI.bigIcon('🖼️💖', 1200); }
+      window.did && did('gift');
     });
   }
   function actionsFor(w) {

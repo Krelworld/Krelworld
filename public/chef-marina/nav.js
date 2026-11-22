@@ -302,3 +302,13 @@ function giveDishTo(who) {
   G.busy = true; setTimeout(() => { G.busy = false; AI.hold(e, false); if (G.holding && G.holding.type === 'dish') (e === mommy ? serveMommy() : serve(e)); }, 700);
 }
 (function () { const s = document.createElement('style'); s.textContent = '.giverow{align-items:center;gap:10px;margin:2px 0 6px}@media (orientation:landscape){#panel .result{display:grid;grid-template-columns:minmax(110px,26vw) 1fr;column-gap:18px;align-items:center;justify-items:center;align-content:center}#panel .result canvas{grid-row:1 / span 4;height:min(52vh,220px);width:auto;max-width:100%}#panel .result .row{margin:2px 0}#panel .result .pbtn{width:72px !important;height:72px !important;font-size:38px !important}#panel .result .givebtn{width:72px !important;height:72px !important}}.givebtn{width:84px;height:84px;padding:4px;background:#7be07b;border:4px solid #fff;animation:pulse .7s ease-in-out infinite alternate}.givebtn img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}.pichint[aria-label^=give]{}'; document.head.append(s); })();
+
+// ------------------------------------------------------------ straight from the easel to someone: they appear beside her and she gives them the picture
+Pics.giveTo = function (url, who) {
+  const e = { daddy, mommy, rory }[who]; if (!e) return; if (e === rory) G.rory = true; if (G.bathWho === e) { G.bathLocked = false; G.bathWho = null; G.needTP = false; }
+  if (marina.mount) dismount(); const W = ROOMS[G.room].w, side = marina.x > W - 70 ? -1 : 1;
+  e.stop(); e.hidden = false; e.room = G.room; e.state = 'idle'; e.holdingMiles = false; e.x = clamp(marina.x + side * 40, 16, W - 16); e.y = marina.y; e.dir = -side; marina.dir = side; marina.stop(); marina.state = 'idle'; marina.offY = 0;
+  emit('sparkle', e.x, e.y - 50, 14); try { chip('magic'); } catch (x) { }
+  G.holding = { type: 'pic', url, ico: '🖼️' }; G.busy = false; G.sceneOn = false; setTimeout(() => Pics.gift(url, e), 500);
+};
+(function () { const s = document.createElement('style'); s.textContent = '.s-tile{position:relative}.s-tile>i{position:absolute;right:-4px;bottom:-6px;font-size:20px;font-style:normal;line-height:1}.s-give{background:#7be07b;border:3px solid #fff;min-width:60px}.s-give img{image-rendering:pixelated}.s-hang{background:#ffcf4a;border:3px solid #fff}.s-carry{background:#cfe8ff;border:3px solid #fff}'; document.head.append(s); })();

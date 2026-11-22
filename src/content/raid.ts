@@ -1,0 +1,281 @@
+import type { Line } from "../data/types";
+import { dir, say } from "./dsl";
+
+// CHAPTER 6, THE KREDDLE RAID: the lads march through Kreddle with chemical weapons. Everything here is fictional
+// cartoon carnage. The text lives here so the voice extractor finds it; KreddleScene's raid mode plays it.
+
+/** Crossing the bridge into Kreddle, night, rain, sirens. */
+export const RAID_ARRIVE: Line[] = [
+  dir("Midnight. Rain. Kreddle glows on the far side of the bridge like a fruit machine that has never once paid out."),
+  dir("Behind you: the Krelworld Krew, armed to the teeth with things banned under the Krelneva Convention."),
+  say("SCROMBUS", "Right. The plan. We walk down the Strip. We burn everything. We get to the Presidential Palace. Krezwonk plants the bomb. President Klerble gets turned to vapor. We run."),
+  say("KREBON", "Should we turn the power off first?"),
+  say("SCROMBUS", "We're going to turn EVERYTHING off, Krebon. Permanently."),
+  say("FLENKY", "This is for Mollor. My sweet flirtkitten. LIGHT 'EM UP!"),
+  say("GRONNY", "And for Polson."),
+  say("SCROMBUS", "And for Polson. Nobody queue-jumps in Krelworld."),
+  // (Chapter 3: the last time they crossed this bridge, Kreddle fired them home out of a tank: content/takeon.ts)
+  say("CRONGUS", "Last time we came over this bridge they fired us home out of a tank."),
+  say("MIKEY", "This time WE'RE the tank."),
+  dir("HOLD the attack button (mouse / J / the fire button) to spray CHEMICAL FIRE. Walk EAST along the Strip. Burn the barricades to get through."),
+];
+
+/** The lads shouting as they march (each line is shouted by its speaker, in a speech bubble). */
+export const RAID_SHOUTS: Line[] = [
+  say("FLENKY", "This is for the Krel Tower!!"),
+  say("FLENKY", "FOR MOLLOR!!!"),
+  say("FLENKY", "That's for my flirtkitten, you neon CUNTS!"),
+  say("KREZMAR", "We hate you! We've ALWAYS hated you!"),
+  say("KREZMAR", "Ere's what I fink of your casino!"),
+  say("KREZMAR", "Burn, Kreddle, BURN!"),
+  say("KREBLIS", "Breaking news… Kreddle is on fire 👍"),
+  say("KREBLIS", "Breaking news… it's still on fire 👍"),
+  say("KREZWONK", "I have foreseen this. It was brighter in the vision."),
+  say("KREZWONK", "The prophecy said 'and Kreddle shall be lit'. I'd assumed it meant the signs."),
+  say("SCROMBUS", "Lore update: Kreddle is now a crater. I'll write it up later."),
+  say("SCROMBUS", "Stick to the plan! The plan is: everything!"),
+  say("KREBON", "Shall I turn the power off? Oh. It's already off. It's all on fire."),
+  say("KREBON", "Six Krez Years in prison and THIS is the most fun I've had."),
+  say("CRONGUS", "This is definitely against the Krelneva Convention…"),
+  say("CRONGUS", "…oh fuck it. BURN!"),
+  say("GRONNY", "Me no like Kreddle! Me make Kreddle HOT!"),
+  say("GRONNY", "FIRE! Fire good! Kreddle bad!"),
+  say("MIKEY", "For my dignity!! And for POLSON!!", { variants: { MIKEY: "For Polson's shake!! FOR POLSON!!" } }),
+  // Klerble shot Polson in the Krelburger queue
+  say("GRONNY", "This for Polson! Polson big friend!"),
+  say("CRONGUS", "That's for Polson, you queue-jumping CUNTS!"),
+  say("SCROMBUS", "FOR POLSON!! He was nearly at the front!!"),
+  say("KREZMAR", "Polson never hurt nobody! Except the buffet!"),
+  say("MIKEY", "Fragmar was worse than this. Not much worse."),
+  say("MIKEY", "FGM ops never sleep, Kreddle!"),
+  say("KREZMAR", "We hate you!"),
+  say("GRONNY", "We hate you!"),
+  say("FLENKY", "Your president's NEXT!"),
+  say("FLENKY", "Klerble! You owe us a POLSON!"),
+  say("SCROMBUS", "Krelworld Krew UNITE!"),
+  say("KREBLIS", "Breaking news… you lot should've let us drink the juice 👍"),
+  // Kreblis has said "we should invade Kreddle" at every meeting since Chapter One and been told to shut up every time
+  say("KREBLIS", "I TOLD YOU!!! I TOLD YOU ALL!!!"),
+  say("KREBLIS", "Breaking news… we're invading Kreddle 👍👍👍"),
+  say("KREBLIS", "Best day of my life. BEST. DAY. OF. MY. LIFE."),
+  say("KREBLIS", "Since CHAPTER ONE I've been saying this!"),
+  say("KREBLIS", "Every meeting! 'Shut up, Kreblis.' WHO'S SHUTTING UP NOW?!"),
+  say("KREBLIS", "Breaking news… Kreblis was right 👍👍👍👍"),
+  say("KREBLIS", "I'm going to put this in the minutes. In CAPITALS."),
+];
+
+/** Extra Kreblis gloating (he gets more turns than anyone else during the raid). */
+export const KREBLIS_GLOAT: Line[] = [
+  say("KREBLIS", "I TOLD YOU!!!"),
+  say("KREBLIS", "Breaking news… we're invading Kreddle 👍👍👍"),
+  say("KREBLIS", "Best day of my life."),
+  say("KREBLIS", "Since CHAPTER ONE I've been saying this!"),
+  say("KREBLIS", "Remember when you all told me to shut up? REMEMBER?!"),
+  say("KREBLIS", "INVADE KREDDLE! INVADE KREDDLE! WE'RE DOING IT!"),
+];
+
+/** Nudges: walking back toward the bridge too early, and the locked Palace gates. */
+export const RAID_NO_RETREAT: Line = say("SCROMBUS", "No turning back! Not till Kreddle's ash!");
+export const RAID_GATES_LOCKED: Line = say("SCROMBUS", "The Palace gates! Deal with the Krunchers first!");
+
+/** Shouted when a lad fires a rocket at something in the sky. */
+export const RAID_ROCKET_SHOUTS: Line[] = [
+  say("MIKEY", "AIR CONTACT! Rocket out!"),
+  say("KREZMAR", "Get that plane down!"),
+  say("GRONNY", "Bird! Big bird! BOOM bird!"),
+  say("KREBON", "I've turned THAT one off."),
+  say("FLENKY", "Pull up, pull up… no, actually, DON'T pull up!"),
+  say("KREBLIS", "Breaking news… Kreddle Air has cancelled all flights 👍"),
+  say("KREZWONK", "I foresaw that one falling. Slightly to the left. Duck."),
+];
+
+/** Shouted when a lad lobs a chemical weapon. */
+export const RAID_THROW_SHOUTS: Record<"napalm" | "gas" | "nails", Line[]> = {
+  napalm: [say("KREZMAR", "NAPALM, BITCHES!"), say("MIKEY", "Napalm out! Smells like victory!"), say("GRONNY", "Hot barrel! Catch!")],
+  gas: [say("SCROMBUS", "Mustard gas! Hold your breath, lads!"), say("KREBON", "Gas! Nobody light a fag… actually, light a fag."), say("CRONGUS", "Gas, gas, GAS!")],
+  nails: [say("FLENKY", "NAIL BOMB! Get down!"), say("KREBLIS", "Breaking news… nails 👍"), say("MIKEY", "Nail bomb! Proper old-school!")],
+};
+
+/** Kreddlers screaming as they run (shown in bubbles). */
+export const RAID_SCREAMS: Line[] = [
+  say("KREDDLER", "AAAAARGH!!"),
+  say("KREDDLER", "I'M ON FIRE!!"),
+  say("KREDDLER", "IT'S THE TAP-LICKERS!!"),
+  say("KREDDLER", "THE HOUSE ALWAYS WINS?! NOT TONIGHT!!"),
+  say("KREDDLER", "MY CHIPS!! MY CHIIIIPS!!"),
+  say("KREDDLER", "WHY IS THE FIRE GREEN?!"),
+  say("KREDDLER", "RUN! TO THE BUNKERS!"),
+  say("KREDDLER", "I DIDN'T EVEN GAMBLE TODAY!"),
+  say("KREDDLER", "THIS IS AGAINST THE KROZLEN SCRIPTURES!"),
+  say("KREDDLER", "WE ONLY SHOVED YOU A BIT!!"),
+  say("KREDDLER", "MUMMYYYY!"),
+  say("KREDDLER", "Help! HELP! My sequins are melting!"),
+  say("KREDDLER", "Ow. Ow. Ow ow ow OW OW!"),
+  say("KREDDLER", "I'll never shove again!!"),
+];
+
+/** The Kreddle Tannoy, over the sirens. */
+export const RAID_TANNOY: Line[] = [
+  say("KREDDLE TANNOY", "This is an emergency broadcast. All Kreddlers proceed to the bunkers. This is not a drill."),
+  say("KREDDLE TANNOY", "President Klerble is safe. Probably. Please keep gambling on your way to the bunkers."),
+  say("KREDDLE TANNOY", "Reminder: the bunkers have slot machines. Please bring change."),
+  say("KREDDLE TANNOY", "Do not panic. Panicking is a gamble, and gambling is mandatory, so panic responsibly."),
+  say("KREDDLE TANNOY", "The Golden Klaw Casino is closed. The Golden Klaw Casino is on fire. The Golden Klaw Casino is gone."),
+];
+
+/** The flashing red banner across the top of the screen. */
+export const RAID_BANNERS = [
+  "⚠ EMERGENCY EVACUATION ⚠  ALL KREDDLERS TO THE BUNKERS",
+  "⚠ THIS IS NOT A DRILL ⚠",
+  "⚠ PRESIDENT KLERBLE IS SAFE (PROBABLY) ⚠",
+  "⚠ KRELWORLD ATTACK IN PROGRESS ⚠  DO NOT ENGAGE THE TAP-LICKERS",
+  "⚠ BUNKER SLOT MACHINES NOW ACCEPTING TEARS ⚠",
+];
+
+/** Signs dotted along the Strip. */
+export const RAID_SIGNS = ["EVACUATE", "TO THE BUNKERS →", "NOT A DRILL", "KEEP CALM\nAND GAMBLE", "BUNKER\nTHIS WAY", "⚠ DANGER ⚠"];
+
+/** The districts of the Strip, west to east. */
+export const RAID_DISTRICTS = ["THE BRIDGE ARCADES", "THE GOLDEN MILE", "KLERBLE SQUARE", "THE KROZLEN QUARTER", "KRUNCHER ROW", "THE PRESIDENTIAL PALACE"];
+
+/** Barricades blocking the Strip (one per district boundary): burn through them. */
+export const RAID_BARRICADES: { name: string; line: Line }[] = [
+  { name: "KREDDLE CUSTOMS CHECKPOINT", line: say("KREZMAR", "A checkpoint! Torch it! TORCH IT!") },
+  { name: "GOLDEN MILE RIOT LINE", line: say("MIKEY", "Riot police barricade. Burn through it, lad!") },
+  { name: "KLERBLE SQUARE BLOCKADE", line: say("SCROMBUS", "Klerble's personal blockade. Very gold. Very flammable.") },
+  { name: "KRUNCHER ROW GATES", line: say("FLENKY", "The Krunchers are behind there. I can SMELL them.") },
+  { name: "THE PALACE GATES", line: say("KREZWONK", "The Palace. I have foreseen these gates… melting.") },
+];
+
+/** Halfway: a giant Klerble screen comes on. */
+export const RAID_KLERBLE_BROADCAST: Line[] = [
+  dir("A giant neon screen over Klerble Square flickers on. PRESIDENT KLERBLE, sweating, in a bunker that is also a casino."),
+  say("PRESIDENT KLERBLE", "People of Kreddle! Do not be afraid! I am completely safe! YES! YES! YESSS!"),
+  say("PRESIDENT KLERBLE", "I am definitely NOT in the Presidential Palace! Do not look for me in the Palace! Particularly the big bit at the back!"),
+  say("GRONNY", "Him in palace."),
+  say("SCROMBUS", "Him's definitely in the palace."),
+  say("PRESIDENT KLERBLE", "…Oh fuck."),
+  dir("The screen explodes. Mostly because Gronny threw a nail bomb at it."),
+];
+
+/** The Kreddle Krunchers, waiting at the end of the Strip. */
+export const KRUNCHER_STANDOFF: Line[] = [
+  dir("At the end of Kruncher Row, in front of their burning HQ, the Kreddle Krunchers stand in a line. They have not evacuated. They are not clever."),
+  say("KLENKY", "Your never beat us!"),
+  say("SKROMBUS", "Remember when our army fired you home out of a TANK? Return to sender! LOL!"),
+  say("KREDMAR", "We hate you!"),
+  say("LIL' KRUNGUS", "We're kill you!"),
+  say("GRENNY", "Waa waa wee waa! That mean you DEAD!"),
+  say("KREDBLIS", "Breaking news… you're shit 👍"),
+  say("MIKKY K", "Still got your bongo, mate! Pissed in it again this morning!"),
+  say("MIKEY", "…"),
+  say("SKROMBUS", "Our Wonking Machine has a flamethrower setting too, you know!"),
+  say("KREDWONK", "I foresaw you losing. In the vision you were crying."),
+  say("KREDBON", "Shall we turn the power off? Ha! Copied you! WE HATE YOU!"),
+  say("FLENKY", "You pissed in our Tap. You crashed our plane into our tower. Well, technically WE did, but you MADE us."),
+  say("KLENKY", "Your never beat us! NEVER!"),
+  say("YOU", "Watch me."),
+  dir("TORCH THE KRUNCHERS. All of them."),
+];
+
+/** A Kruncher's last words as they go up. */
+export const KRUNCHER_DEATHS: Line[] = [
+  say("KLENKY", "NOOOO! I WAS NEVER BANNED!!"),
+  say("SKROMBUS", "MY WONKING MACHIIIINE!"),
+  say("KREDMAR", "I BET… I'D… SURVIVE…"),
+  say("KREDBLIS", "Breaking news… I'm on fire 👎"),
+  say("KREDWONK", "I DIDN'T FORESEE THIIIIS!"),
+  say("KREDBON", "TURN… THE FIRE… OFF…"),
+  say("LIL' KRUNGUS", "I'M TOO LITTLE TO BURN!"),
+  say("GRENNY", "WAA WAA WEE WAAAAAAA!"),
+  say("MIKKY K", "TAKE THE BONGO! TAKE IIIIIT!"),
+];
+
+/** When the last Kruncher is ash. */
+export const KRUNCHERS_DONE: Line[] = [
+  dir("Nine little piles of ash. The rain hisses on them."),
+  say("MIKEY", "And THAT'S for my dignity.", { variants: { MIKEY: "And THAT'S for Polson's shake." } }),
+  say("FLENKY", "WOOOOOOOO!!!"),
+  say("GRONNY", "Krunchers crunched! Ha ha!"),
+  say("KREBLIS", "Breaking news… the Kreddle Krunchers are cancelled 👍"),
+  say("SCROMBUS", "Right! Palace! Krezwonk, you've got the nuclear bomb?"),
+  say("KREZWONK", "I have the nuclear bomb. It is in my bag. I love rap and hip hop music."),
+];
+
+/** At the Palace steps. */
+export const NUKE_PLANT: Line[] = [
+  dir("THE KLERBLE PALACE. Gold, marble, neon, and a red carpet the length of a motorway. Somewhere inside, a president is hiding under a craps table."),
+  say("KREZWONK", "I have foreseen this moment. Stand back."),
+  dir("Krezwonk unzips his bag and rolls out a nuclear bomb. It has a little digital timer on the front. And a sticker that says 'WON ON THE SLOTS'."),
+  say("KREBON", "Shouldn't we turn the power off on it? Just in case?"),
+  say("KREZWONK", "That's the opposite of what we want, Krebon."),
+  say("CRONGUS", "I just want it on record that this is ALSO against the Krelneva Convention."),
+  say("KREZMAR", "I'll piss on that one an' all if you like, Crongus, ya cunt."),
+  say("KREZWONK", "Four minutes. That's how long we've got before this slag explodes."),
+  say("SCROMBUS", "Four minutes to get back over the bridge and into the Town Hall. Plenty of time. Probably."),
+  say("FLENKY", "This is for you, Mollor."),
+  say("KREZMAR", "And this is for your little press conference, Klerble. Every man, woman and child, you said. Now it's YOUR turn."),
+  say("KREZWONK", "Timer's on. Shall we… run?"),
+  say("GRONNY", "RUUUUUUN!!!"),
+];
+
+/** Shouted while running back. */
+export const ESCAPE_SHOUTS: Line[] = [
+  say("SCROMBUS", "Keep running! West! Over the bridge!"),
+  say("GRONNY", "Run run run run!"),
+  say("KREBON", "Is now a good time to turn the power off?"),
+  say("FLENKY", "Don't look back! Don't look back!"),
+  say("CRONGUS", "My legs are too little for this!"),
+  say("MIKEY", "Fragmar all over again!"),
+  say("KREZWONK", "I have foreseen us making it. Just. Probably. Keep going."),
+  say("KREBLIS", "Breaking news… we are legging it 👍"),
+  say("KREZMAR", "Last one to the Town Hall is a Kreddler!"),
+];
+
+/** The escape gauntlet: Kreddle's security forces waiting on the Strip. Wave callouts (big text) and their tannoy line. */
+export const ESCAPE_WAVES: { title: string; tannoy: string }[] = [
+  { title: "⚠ KPD ROADBLOCK ⚠", tannoy: "KREDDLE POLICE: Stop right there! You are under arrest for arson, treason and not gambling!" },
+  { title: "⚠ KPD AIR SUPPORT ⚠", tannoy: "KREDDLE POLICE: Air unit inbound. Surrender and you may keep one (1) loyalty card." },
+  { title: "⚠ ARMOUR ON THE STRIP ⚠", tannoy: "KREDDLE ARMY: Tanks deployed. Tanks paid for by your losses. Thank you for playing." },
+  { title: "⚠ KLERBLE SQUARE: AIR STRIKE ⚠", tannoy: "KREDDLE POLICE: All units, all units. Shoot the green one. Shoot ALL the green ones." },
+  { title: "⚠ THE KROZLEN BLOCKADE ⚠", tannoy: "KREDDLE ARMY: Blockade established. Nobody leaves Kreddle. House rules." },
+  { title: "⚠ FULL MOBILISATION ⚠", tannoy: "PRESIDENT KLERBLE (recorded): Whoever stops them gets a free spin. A FREE SPIN." },
+  { title: "⚠ THE LAST ROADBLOCK: THE BRIDGE ⚠", tannoy: "KREDDLE POLICE: The bridge is closed. The bridge is CLOSED. Oh no. Oh no no no." },
+];
+
+/** A vehicle merked: the lads cheer it. */
+export const ESCAPE_WRECK_SHOUTS: Line[] = [
+  say("SCROMBUS", "Absolutely MERKED!"),
+  say("GRONNY", "Waa waa wee waa! Get in!"),
+  say("KREBON", "That one turned its own power off."),
+  say("FLENKY", "Flip it! FLIP IT! …It flipped!"),
+  say("CRONGUS", "BOOM! Lil' Crongus says BOOM!"),
+  say("MIKEY", "Next! NEXT!"),
+  say("KREZWONK", "I foresaw that. It was beautiful."),
+  say("KREBLIS", "Breaking news… that's scrap now 👍"),
+  say("KREZMAR", "Add it to the bill, Klerble!"),
+];
+
+/** A tank's turret goes. */
+export const ESCAPE_TANK_SHOUTS: Line[] = [
+  say("SCROMBUS", "Its HAT came off!"),
+  say("GRONNY", "TURRET'S IN ORBIT!"),
+  say("KREZMAR", "Somebody catch that turret!"),
+  say("CRONGUS", "I want the turret. Can I keep the turret?"),
+];
+
+/** A chopper goes down. */
+export const ESCAPE_HELI_SHOUTS: Line[] = [
+  say("FLENKY", "CHOPPER DOWN! CHOPPER DOWN!"),
+  say("KREBLIS", "Breaking news… the traffic helicopter is now traffic 👍"),
+  say("MIKEY", "It's spinning! Look at it SPIN!"),
+  say("KREBON", "Gravity: still on. Good."),
+];
+
+/** You're knocked down: the lads drag you up. */
+export const ESCAPE_DOWNED: Line[] = [
+  say("SCROMBUS", "Up! UP! We're not leaving you in Kreddle!"),
+  say("GRONNY", "Get up get up get up!"),
+  say("KREZWONK", "Not here. Not like this. Up you get."),
+  say("KREZMAR", "Oi! No napping on the Strip!"),
+];

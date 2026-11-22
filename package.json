@@ -1,0 +1,26 @@
+{
+  "name": "krelworld-wonk-til-you-krez",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:alt": "VITE_KREL_ALT=1 vite",
+    "build": "tsc --noEmit && vite build",
+    "build:alt": "VITE_KREL_ALT=1 vite build --outDir dist-alt && python3 scripts/pack-art.py dist-alt && rm -f dist-alt/packed_list.json",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "chat-index": "node scripts/build-chat-index.mjs"
+  },
+  "dependencies": {
+    "phaser": "3.90.0",
+    "three": "0.170.0"
+  },
+  "devDependencies": {
+    "@types/three": "0.170.0",
+    "typescript": "5.8.3",
+    "vite": "6.4.1",
+    "vitest": "3.2.4"
+  }
+}

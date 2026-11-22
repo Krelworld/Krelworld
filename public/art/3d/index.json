@@ -1,0 +1,498 @@
+{
+ "chars": {
+  "FLENKY": {
+   "base": "art/3d/chars/FLENKY.glb",
+   "clips": {
+    "idle": "art/3d/chars/FLENKY.glb#idle",
+    "fall": "art/3d/chars/FLENKY.glb#fall",
+    "getup": "art/3d/chars/FLENKY.glb#getup",
+    "shocked": "art/3d/chars/FLENKY.glb#shocked",
+    "cheer": "art/3d/chars/FLENKY.glb#cheer",
+    "talk": "art/3d/chars/FLENKY.glb#talk",
+    "dance": "art/3d/chars/FLENKY.glb#dance",
+    "walk": "art/3d/chars/FLENKY.glb#walk",
+    "run": "art/3d/chars/FLENKY.glb#run"
+   },
+   "h": 1.78
+  },
+  "KREZMAR": {
+   "base": "art/3d/chars/KREZMAR.glb",
+   "clips": {
+    "idle": "art/3d/chars/KREZMAR.glb#idle",
+    "talk": "art/3d/chars/KREZMAR.glb#talk",
+    "fall": "art/3d/chars/KREZMAR.glb#fall",
+    "getup": "art/3d/chars/KREZMAR.glb#getup",
+    "shocked": "art/3d/chars/KREZMAR.glb#shocked",
+    "cheer": "art/3d/chars/KREZMAR.glb#cheer",
+    "walk": "art/3d/chars/KREZMAR.glb#walk",
+    "dance": "art/3d/chars/KREZMAR.glb#dance",
+    "run": "art/3d/chars/KREZMAR.glb#run"
+   },
+   "h": 1.8
+  },
+  "KREBLIS": {
+   "base": "art/3d/chars/KREBLIS.glb",
+   "clips": {
+    "idle": "art/3d/chars/KREBLIS.glb#idle",
+    "fall": "art/3d/chars/KREBLIS.glb#fall",
+    "getup": "art/3d/chars/KREBLIS.glb#getup",
+    "shocked": "art/3d/chars/KREBLIS.glb#shocked",
+    "cheer": "art/3d/chars/KREBLIS.glb#cheer",
+    "talk": "art/3d/chars/KREBLIS.glb#talk",
+    "dance": "art/3d/chars/KREBLIS.glb#dance",
+    "walk": "art/3d/chars/KREBLIS.glb#walk",
+    "run": "art/3d/chars/KREBLIS.glb#run"
+   },
+   "h": 1.8
+  },
+  "KREZWONK": {
+   "base": "art/3d/chars/KREZWONK.glb",
+   "clips": {
+    "idle": "art/3d/chars/KREZWONK.glb#idle",
+    "fall": "art/3d/chars/KREZWONK.glb#fall",
+    "getup": "art/3d/chars/KREZWONK.glb#getup",
+    "shocked": "art/3d/chars/KREZWONK.glb#shocked",
+    "cheer": "art/3d/chars/KREZWONK.glb#cheer",
+    "talk": "art/3d/chars/KREZWONK.glb#talk",
+    "dance": "art/3d/chars/KREZWONK.glb#dance",
+    "walk": "art/3d/chars/KREZWONK.glb#walk",
+    "run": "art/3d/chars/KREZWONK.glb#run"
+   },
+   "h": 1.78
+  },
+  "SCROMBUS": {
+   "base": "art/3d/chars/SCROMBUS.glb",
+   "clips": {
+    "idle": "art/3d/chars/SCROMBUS.glb#idle",
+    "fall": "art/3d/chars/SCROMBUS.glb#fall",
+    "getup": "art/3d/chars/SCROMBUS.glb#getup",
+    "shocked": "art/3d/chars/SCROMBUS.glb#shocked",
+    "cheer": "art/3d/chars/SCROMBUS.glb#cheer",
+    "talk": "art/3d/chars/SCROMBUS.glb#talk",
+    "dance": "art/3d/chars/SCROMBUS.glb#dance",
+    "walk": "art/3d/chars/SCROMBUS.glb#walk",
+    "run": "art/3d/chars/SCROMBUS.glb#run"
+   },
+   "h": 1.8
+  },
+  "KREBON": {
+   "base": "art/3d/chars/KREBON.glb",
+   "clips": {
+    "idle": "art/3d/chars/KREBON.glb#idle",
+    "fall": "art/3d/chars/KREBON.glb#fall",
+    "getup": "art/3d/chars/KREBON.glb#getup",
+    "shocked": "art/3d/chars/KREBON.glb#shocked",
+    "cheer": "art/3d/chars/KREBON.glb#cheer",
+    "drink": "art/3d/chars/KREBON.glb#drink",
+    "jump": "art/3d/chars/KREBON.glb#jump",
+    "run": "art/3d/chars/KREBON.glb#run",
+    "walk": "art/3d/chars/KREBON.glb#walk",
+    "dance": "art/3d/chars/KREBON.glb#dance",
+    "talk": "art/3d/chars/KREBON.glb#talk"
+   },
+   "h": 1.8
+  },
+  "CRONGUS": {
+   "base": "art/3d/chars/CRONGUS.glb",
+   "clips": {
+    "idle": "art/3d/chars/CRONGUS.glb#idle",
+    "fall": "art/3d/chars/CRONGUS.glb#fall",
+    "getup": "art/3d/chars/CRONGUS.glb#getup",
+    "shocked": "art/3d/chars/CRONGUS.glb#shocked",
+    "cheer": "art/3d/chars/CRONGUS.glb#cheer",
+    "talk": "art/3d/chars/CRONGUS.glb#talk",
+    "run": "art/3d/chars/CRONGUS.glb#run",
+    "walk": "art/3d/chars/CRONGUS.glb#walk"
+   },
+   "h": 1.78
+  },
+  "GRONNY": {
+   "base": "art/3d/chars/GRONNY.glb",
+   "clips": {
+    "idle": "art/3d/chars/GRONNY.glb#idle",
+    "fall": "art/3d/chars/GRONNY.glb#fall",
+    "getup": "art/3d/chars/GRONNY.glb#getup",
+    "shocked": "art/3d/chars/GRONNY.glb#shocked",
+    "cheer": "art/3d/chars/GRONNY.glb#cheer",
+    "talk": "art/3d/chars/GRONNY.glb#talk",
+    "dance": "art/3d/chars/GRONNY.glb#dance",
+    "walk": "art/3d/chars/GRONNY.glb#walk",
+    "run": "art/3d/chars/GRONNY.glb#run"
+   },
+   "h": 1.83
+  },
+  "MIKEY": {
+   "base": "art/3d/chars/MIKEY.glb",
+   "clips": {
+    "idle": "art/3d/chars/MIKEY.glb#idle",
+    "fall": "art/3d/chars/MIKEY.glb#fall",
+    "getup": "art/3d/chars/MIKEY.glb#getup",
+    "shocked": "art/3d/chars/MIKEY.glb#shocked",
+    "cheer": "art/3d/chars/MIKEY.glb#cheer",
+    "talk": "art/3d/chars/MIKEY.glb#talk",
+    "walk": "art/3d/chars/MIKEY.glb#walk",
+    "run": "art/3d/chars/MIKEY.glb#run"
+   },
+   "h": 1.83
+  },
+  "POLSON": {
+   "base": "art/3d/chars/POLSON.glb",
+   "clips": {
+    "idle": "art/3d/chars/POLSON.glb#idle",
+    "fall": "art/3d/chars/POLSON.glb#fall",
+    "getup": "art/3d/chars/POLSON.glb#getup",
+    "shocked": "art/3d/chars/POLSON.glb#shocked",
+    "cheer": "art/3d/chars/POLSON.glb#cheer",
+    "talk": "art/3d/chars/POLSON.glb#talk",
+    "dance": "art/3d/chars/POLSON.glb#dance",
+    "walk": "art/3d/chars/POLSON.glb#walk",
+    "run": "art/3d/chars/POLSON.glb#run"
+   },
+   "h": 1.78
+  },
+  "DRONGUS": {
+   "base": "art/3d/chars/DRONGUS.glb",
+   "clips": {
+    "idle": "art/3d/chars/DRONGUS.glb#idle",
+    "fall": "art/3d/chars/DRONGUS.glb#fall",
+    "getup": "art/3d/chars/DRONGUS.glb#getup",
+    "shocked": "art/3d/chars/DRONGUS.glb#shocked",
+    "cheer": "art/3d/chars/DRONGUS.glb#cheer",
+    "talk": "art/3d/chars/DRONGUS.glb#talk",
+    "dance": "art/3d/chars/DRONGUS.glb#dance",
+    "walk": "art/3d/chars/DRONGUS.glb#walk",
+    "run": "art/3d/chars/DRONGUS.glb#run"
+   },
+   "h": 1.8
+  },
+  "SANMIK": {
+   "base": "art/3d/chars/SANMIK.glb",
+   "clips": {
+    "idle": "art/3d/chars/SANMIK.glb#idle",
+    "fall": "art/3d/chars/SANMIK.glb#fall",
+    "getup": "art/3d/chars/SANMIK.glb#getup",
+    "shocked": "art/3d/chars/SANMIK.glb#shocked",
+    "cheer": "art/3d/chars/SANMIK.glb#cheer",
+    "talk": "art/3d/chars/SANMIK.glb#talk",
+    "shoot": "art/3d/chars/SANMIK.glb#shoot",
+    "sit": "art/3d/chars/SANMIK.glb#sit",
+    "run": "art/3d/chars/SANMIK.glb#run",
+    "walk": "art/3d/chars/SANMIK.glb#walk"
+   },
+   "h": 1.83
+  }
+ },
+ "world": {
+  "kreltower": {
+   "file": "art/3d/world/kreltower.glb",
+   "size": [
+    24.32,
+    120.002,
+    24.331
+   ]
+  },
+  "tap": {
+   "file": "art/3d/world/tap.glb",
+   "basin": {
+    "centre_xz": [
+     -1.38,
+     0.0
+    ],
+    "floor_y": 2.89,
+    "rim_top_y": 3.94,
+    "inner_radius": 2.95,
+    "outer_radius": 3.6,
+    "spout_outlet": [
+     -1.14,
+     6.09,
+     -0.02
+    ]
+   },
+   "size": [
+    10,
+    10.398,
+    7.286
+   ]
+  },
+  "townhall": {
+   "file": "art/3d/world/townhall.glb",
+   "size": [
+    24,
+    21.416,
+    14.639
+   ]
+  },
+  "abandoned": {
+   "file": "art/3d/world/abandoned.glb",
+   "size": [
+    10,
+    8.354,
+    8.748
+   ]
+  },
+  "pub": {
+   "file": "art/3d/world/pub.glb",
+   "size": [
+    12,
+    12.691,
+    8.538
+   ]
+  },
+  "citadel": {
+   "file": "art/3d/world/citadel.glb",
+   "size": [
+    18.015,
+    40,
+    19.06
+   ]
+  },
+  "archive": {
+   "file": "art/3d/world/archive.glb",
+   "size": [
+    16,
+    17.122,
+    10.273
+   ]
+  },
+  "ministry": {
+   "file": "art/3d/world/ministry.glb",
+   "size": [
+    16,
+    13.599,
+    8.948
+   ]
+  },
+  "wildern": {
+   "file": "art/3d/world/wildern.glb",
+   "size": [
+    26,
+    20.386,
+    22.506
+   ]
+  },
+  "police": {
+   "file": "art/3d/world/police.glb",
+   "size": [
+    12,
+    11.619,
+    12.726
+   ]
+  },
+  "gym": {
+   "file": "art/3d/world/gym.glb",
+   "size": [
+    16,
+    11.245,
+    15.545
+   ]
+  },
+  "polson_towers": {
+   "file": "art/3d/world/polson_towers.glb",
+   "size": [
+    28,
+    25.544,
+    20
+   ]
+  },
+  "home": {
+   "file": "art/3d/world/home.glb",
+   "size": [
+    11,
+    8.601,
+    14.116
+   ]
+  },
+  "car": {
+   "file": "art/3d/world/car.glb",
+   "size": [
+    2.122,
+    1.816,
+    3.8
+   ]
+  },
+  "car_b": {
+   "file": "art/3d/world/car_b.glb",
+   "size": [
+    2.122,
+    1.816,
+    3.8
+   ]
+  },
+  "bus": {
+   "file": "art/3d/world/bus.glb",
+   "size": [
+    4.17,
+    4.987,
+    10.5
+   ]
+  },
+  "ped0": {
+   "file": "art/3d/world/ped0.glb",
+   "size": [
+    0.724,
+    1.786,
+    0.454
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped0.glb#Idle",
+    "walk": "art/3d/world/ped0.glb#Casual_Walk"
+   }
+  },
+  "ped1": {
+   "file": "art/3d/world/ped1.glb",
+   "size": [
+    0.518,
+    1.624,
+    0.96
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped1.glb#Idle",
+    "walk": "art/3d/world/ped1.glb#Walking_Woman"
+   }
+  },
+  "ped2": {
+   "file": "art/3d/world/ped2.glb",
+   "size": [
+    0.722,
+    1.582,
+    0.651
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped2.glb#Idle",
+    "walk": "art/3d/world/ped2.glb#Thoughtful_Walk"
+   }
+  },
+  "ped3": {
+   "file": "art/3d/world/ped3.glb",
+   "size": [
+    0.58,
+    1.779,
+    0.352
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped3.glb#Idle",
+    "walk": "art/3d/world/ped3.glb#Casual_Walk"
+   }
+  },
+  "lamppost": {
+   "file": "art/3d/world/lamppost.glb",
+   "size": [
+    1.095,
+    4.2,
+    1.095
+   ]
+  },
+  "bench": {
+   "file": "art/3d/world/bench.glb",
+   "size": [
+    1.8,
+    0.85,
+    0.7
+   ]
+  },
+  "tree": {
+   "file": "art/3d/world/tree.glb",
+   "size": [
+    6.101,
+    6,
+    5.727
+   ]
+  },
+  "stall": {
+   "file": "art/3d/world/stall.glb",
+   "size": [
+    2.419,
+    3,
+    2.78
+   ]
+  },
+  "arch": {
+   "file": "art/3d/world/arch.glb",
+   "size": [
+    14,
+    10.687,
+    5.783
+   ]
+  },
+  "bridge": {
+   "file": "art/3d/world/bridge.glb",
+   "size": [
+    30,
+    18.386,
+    18.003
+   ]
+  },
+  "ped4": {
+   "file": "art/3d/world/ped4.glb",
+   "size": [
+    0.689,
+    1.653,
+    0.703
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped4.glb#Idle",
+    "walk": "art/3d/world/ped4.glb#Casual_Walk"
+   }
+  },
+  "ped5": {
+   "file": "art/3d/world/ped5.glb",
+   "size": [
+    0.636,
+    1.598,
+    0.636
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped5.glb#Idle",
+    "walk": "art/3d/world/ped5.glb#Walking_Woman"
+   }
+  },
+  "ped6": {
+   "file": "art/3d/world/ped6.glb",
+   "size": [
+    0.745,
+    1.724,
+    0.764
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped6.glb#Idle",
+    "walk": "art/3d/world/ped6.glb#Casual_Walk"
+   }
+  },
+  "ped7": {
+   "file": "art/3d/world/ped7.glb",
+   "size": [
+    0.604,
+    1.608,
+    0.628
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped7.glb#Idle",
+    "walk": "art/3d/world/ped7.glb#Walking_Woman"
+   }
+  },
+  "ped8": {
+   "file": "art/3d/world/ped8.glb",
+   "size": [
+    0.703,
+    1.533,
+    0.674
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped8.glb#Idle",
+    "walk": "art/3d/world/ped8.glb#Thoughtful_Walk"
+   }
+  },
+  "ped9": {
+   "file": "art/3d/world/ped9.glb",
+   "size": [
+    0.789,
+    1.75,
+    0.77
+   ],
+   "clips": {
+    "idle": "art/3d/world/ped9.glb#Idle",
+    "walk": "art/3d/world/ped9.glb#Casual_Walk"
+   }
+  }
+ }
+}

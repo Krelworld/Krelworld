@@ -1,0 +1,34 @@
+[
+ {"id": "moon", "ico": "🌙", "title": "Niko and the Moon", "style": "a big fluffy grey Maine coon cat with ear tufts",
+  "pages": [
+   ["One night, Niko the cat saw a big round moon in the window.", "a big fluffy grey Maine coon cat sitting on a windowsill at night looking up at a huge glowing full moon, cozy bedroom"],
+   ["It looks like a giant ball of cheese, thought Niko. I must catch it!", "a big fluffy grey cat with wide excited eyes, thought bubble showing a wheel of yellow cheese, moon in night sky"],
+   ["He climbed the sofa. He climbed the bookshelf. He climbed all the way up to the roof.", "a big fluffy grey cat climbing on the roof of a little house at night, chimney, stars, huge moon above"],
+   ["Niko jumped as high as he could. But the moon was much too far away.", "a big fluffy grey cat leaping high in the air from a rooftop reaching a paw toward the full moon, starry sky"],
+   ["So Niko curled up in the moonlight and purred. The moon could stay in the sky. The end.", "a big fluffy grey cat curled up asleep on a rooftop in soft blue moonlight, smiling moon above, peaceful"]
+  ]},
+ {"id": "pancake", "ico": "🥞", "title": "The Pancake That Ran Away", "style": "a little girl chef with strawberry blonde hair and purple glasses",
+  "pages": [
+   ["Chef Marina flipped a pancake so high, it flew right out of the pan!", "a little girl with strawberry blonde hair, purple glasses and a white chef hat flipping a pancake very high out of a frying pan in a kitchen, surprised face"],
+   ["You can't eat me, giggled the pancake, and it rolled out the door.", "a round golden pancake with a cute smiling face and tiny legs rolling out of a kitchen door, cartoon"],
+   ["It rolled past Daddy. It rolled past Mommy. It rolled past the baby.", "a round smiling pancake rolling fast down a hallway past surprised family legs and a laughing baby, motion lines"],
+   ["Then the pancake saw a big puddle of syrup. Ooh, it said. A swimming pool!", "a round smiling pancake jumping happily into a big shiny puddle of maple syrup on a plate, splash"],
+   ["Marina tiptoed over with her fork. Yum, she said. The best pancake ever. The end.", "a little girl with strawberry blonde hair and purple glasses in a chef hat happily holding a fork next to a plate of pancakes with syrup, cozy kitchen"]
+  ]},
+ {"id": "dragon", "ico": "🐉", "title": "The Dragon Who Was Scared of the Dark", "style": "a small cute green dragon",
+  "pages": [
+   ["Dot was a little green dragon. She was brave all day long.", "a small cute green baby dragon standing proudly on a sunny hill with flowers, blue sky"],
+   ["But at night time, the cave got very, very dark. And Dot was scared.", "a small cute green baby dragon hiding under a blanket in a dark cave at night, big worried eyes"],
+   ["What if there is a monster? she whispered.", "a small cute green baby dragon peeking nervously at a big spooky shadow on a dark cave wall"],
+   ["Dot took a big breath and went, puff! A tiny flame lit up the cave.", "a small cute green baby dragon blowing a small warm orange flame that lights up a cave, glowing light"],
+   ["It was only her own teddy bear! Dot made her own night light, and she slept all night. The end.", "a small cute green baby dragon sleeping happily hugging a teddy bear next to a little glowing lantern in a cozy cave"]
+  ]},
+ {"id": "bubble", "ico": "🫧", "title": "Baby Miles and the Giant Bubble", "style": "a cute bald baby boy in a white onesie",
+  "pages": [
+   ["Baby Miles was in the bath when he blew a bubble.", "a cute bald baby boy sitting in a bathtub full of foam blowing a soap bubble, rubber duck, bathroom"],
+   ["The bubble grew bigger, and bigger, and bigger!", "a cute bald baby boy in a bathtub looking amazed at an enormous shiny soap bubble growing above him"],
+   ["Pop! Miles was inside the bubble, and it floated out the window.", "a cute bald baby boy in a white onesie sitting happily inside a giant floating soap bubble drifting out of an open window"],
+   ["He floated over the house. He waved at the birds. He waved at the cat.", "a cute bald baby boy inside a giant soap bubble floating high above a little house with autumn trees, waving at birds, blue sky"],
+   ["Then the bubble went pop, and Miles landed right in Mommy's arms. Again! said Miles. The end.", "a cute bald baby boy laughing while landing in the arms of a smiling blonde mother, sparkles of a popped bubble around them, garden"]
+  ]}
+]

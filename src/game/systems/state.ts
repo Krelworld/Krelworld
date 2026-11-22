@@ -1,0 +1,287 @@
+import type { BanterLevel, GameState, MetaState, PlayableId, ReactionChoice, Settings } from "../../data/types";
+import { CHARACTERS } from "../../data/characters";
+import { GUNS } from "../../data/guns";
+import { sanitizeLoadout } from "./carry";
+import { clampDifficulty, DEFAULT_DIFFICULTY, LEGACY_DIFFICULTY } from "./difficulty";
+import { clampBanter, DEFAULT_BANTER } from "./banter";
+import { cleanPit } from "./pit";
+import { storageKey } from "../variant";
+import { AUTO_KEY, MANUAL_SLOTS, mostRecentSlot, SLOT_IDS, slotKey, SLOTS_MIGRATED_KEY, summarizeSlot, type SlotId, type SlotSummary } from "./saveSlots";
+
+export const SAVE_VERSION = 4;
+/** The AUTO slot (the old single save's key): see saveSlots.ts. */
+export const SAVE_KEY = AUTO_KEY;
+export const META_KEY = "krelworld.meta";
+
+export interface KVStore {
+  getItem(k: string): string | null;
+  setItem(k: string, v: string): void;
+  removeItem(k: string): void;
+}
+
+/** In-memory fallback so the game still runs when storage is blocked (private windows, previews). */
+export class MemoryStore implements KVStore {
+  private m = new Map<string, string>();
+  getItem(k: string) {
+    return this.m.has(k) ? (this.m.get(k) as string) : null;
+  }
+  setItem(k: string, v: string) {
+    this.m.set(k, v);
+  }
+  removeItem(k: string) {
+    this.m.delete(k);
+  }
+}
+
+export function defaultStore(): KVStore {
+  try {
+    const ls = (globalThis as any).localStorage as Storage | undefined;
+    if (ls) {
+      const probe = "__krel_probe";
+      ls.setItem(probe, "1");
+      ls.removeItem(probe);
+      // (keys are prefixed in the ALT build: see variant.ts)
+      return {
+        getItem: (k) => {
+          try {
+            return ls.getItem(storageKey(k));
+          } catch {
+            return null;
+          }
+        },
+        setItem: (k, v) => {
+          try {
+            ls.setItem(storageKey(k), v);
+          } catch {
+            /* storage full or blocked: ignore */
+          }
+        },
+        removeItem: (k) => {
+          try {
+            ls.removeItem(storageKey(k));
+          } catch {
+            /* ignore */
+          }
+        },
+      };
+    }
+  } catch {
+    /* fall through */
+  }
+  return new MemoryStore();
+}
+
+const emptyReactions = (): Record<ReactionChoice, number> => ({ LIKE: 0, LOVE: 0, LAUGH: 0, ANGRY: 0, SEEN: 0 });
+
+export function newGameState(player: PlayableId, ngPlus = 0, meta?: MetaState, difficulty = DEFAULT_DIFFICULTY, banter: BanterLevel = DEFAULT_BANTER): GameState {
+  const def = CHARACTERS[player];
+  return {
+    version: SAVE_VERSION,
+    player,
+    chapter: 1,
+    phase: "hub",
+    flags: {},
+    revisions: [],
+    upgrades: {},
+    hp: def.maxHp ?? 100,
+    coins: 0,
+    krezz: 40,
+    bottles: 2,
+    bongos: 1,
+    guns: {},
+    gunOrder: [],
+    intoxication: 0,
+    banRisk: 0,
+    banCount: 0,
+    drongusResentment: 10,
+    relationships: {},
+    reactionsGiven: emptyReactions(),
+    quests: {},
+    kills: {},
+    tvWatched: meta ? [...meta.tvWatched] : [],
+    archiveUnlocked: meta ? [...meta.archiveUnlocked] : [],
+    discovered: [],
+    ngPlus,
+    playtimeMs: 0,
+    difficulty: clampDifficulty(difficulty, DEFAULT_DIFFICULTY),
+    banter: clampBanter(banter),
+  };
+}
+
+export const defaultSettings = (): Settings => ({
+  master: 0.8,
+  music: 0.5,
+  sfx: 0.8,
+  shake: true,
+  crt: true,
+  textSpeed: 1,
+  voices: true,
+  voiceVolume: 0.8,
+  voiceSpeed: 1.5,
+  voiceSpeedV: 3,
+  autoAim: true,
+});
+
+export function newMeta(): MetaState {
+  return { version: SAVE_VERSION, archiveUnlocked: [], tvWatched: [], completedWith: [], ngPlusUnlocked: false, settings: defaultSettings() };
+}
+
+/** Repairs a parsed save so missing fields from older versions never crash the game. */
+export function migrateState(raw: any): GameState | null {
+  if (!raw || typeof raw !== "object") return null;
+  if (!raw.player || !CHARACTERS[raw.player] || !CHARACTERS[raw.player].playable) return null;
+  const base = newGameState(raw.player);
+  const s: GameState = { ...base, ...raw };
+  s.flags = { ...(raw.flags || {}) };
+  s.revisions = Array.isArray(raw.revisions) ? raw.revisions.filter((r: unknown) => typeof r === "string") : [];
+  s.upgrades = { ...(raw.upgrades || {}) };
+  s.relationships = { ...(raw.relationships || {}) };
+  s.reactionsGiven = { ...emptyReactions(), ...(raw.reactionsGiven || {}) };
+  s.quests = { ...(raw.quests || {}) };
+  s.kills = { ...(raw.kills || {}) };
+  s.tvWatched = Array.isArray(raw.tvWatched) ? raw.tvWatched : [];
+  s.archiveUnlocked = Array.isArray(raw.archiveUnlocked) ? raw.archiveUnlocked : [];
+  s.guns = raw.guns && typeof raw.guns === "object" ? Object.fromEntries(Object.entries(raw.guns).filter(([, v]) => typeof v === "number" && isFinite(v as number))) as Record<string, number> : {};
+  if (typeof s.gun !== "string" || !(s.gun in s.guns)) s.gun = undefined;
+  s.gunOrder = Array.isArray(raw.gunOrder) ? [...new Set<string>(raw.gunOrder.filter((g: unknown) => typeof g === "string" && g in GUNS))] : [];
+  s.discovered = Array.isArray(raw.discovered) ? raw.discovered.slice(-2000) : [];
+  s.chapter = clampInt(raw.chapter, 1, 7, 1);
+  // saves from before difficulty existed were played on the original balance: level 2
+  s.difficulty = clampDifficulty(raw.difficulty, LEGACY_DIFFICULTY);
+  // saves from before the banter level existed had all of it: MAX BANTER
+  s.banter = clampBanter(raw.banter);
+  if (s.phase !== "hub" && s.phase !== "dungeon" && s.phase !== "ended") s.phase = "hub";
+  // A save made mid-dungeon resumes at the dungeon entrance in the hub: never an impossible state.
+  if (s.phase === "dungeon") s.phase = "hub";
+  s.hp = typeof raw.hp === "number" && raw.hp > 0 ? raw.hp : base.hp;
+  for (const k of ["coins", "krezz", "bottles", "bongos", "intoxication", "banRisk", "banCount", "drongusResentment", "ngPlus", "playtimeMs"] as const) {
+    const v = (raw as any)[k];
+    (s as any)[k] = typeof v === "number" && isFinite(v) ? v : (base as any)[k];
+  }
+  s.banRisk = Math.min(Math.max(s.banRisk, 0), 99);
+  // the LOAD list's details: optional, and only ever plain values
+  if (typeof s.savedAt !== "number" || !isFinite(s.savedAt)) delete s.savedAt;
+  if (typeof s.where !== "string") delete s.where;
+  if (typeof s.objective !== "string") delete s.objective;
+  s.intoxication = Math.min(Math.max(s.intoxication, 0), 100);
+  // THE KRUNCH PIT's records (saves from before it don't have any)
+  if (raw.pit !== undefined) s.pit = cleanPit(raw.pit);
+  // the cuddle tokens went from six finds (four outdoors, then the Wonky Pole and Polson's) to two batches of three:
+  // carry the indoor finds over to their new places, and forget the outdoor ones
+  // (saves from before version 4)
+  if (!(typeof raw.version === "number" && raw.version >= 4)) {
+    const k = (i: number) => `arcspot_arc_cronster_tokens_${i}`;
+    const club = !!s.flags[k(4)];
+    const polson = !!s.flags[k(5)];
+    for (let i = 0; i < 6; i++) delete s.flags[k(i)];
+    if (club) s.flags[k(0)] = true;
+    if (polson) s.flags[k(1)] = true;
+  }
+  // the founding in the Archive is optional now: the side quests open with the Emergency Session (saves from before)
+  if (s.flags.met_emergency && !s.flags.ministerial_quests) s.flags.ministerial_quests = true;
+  s.version = SAVE_VERSION;
+  return s;
+}
+
+function clampInt(v: unknown, lo: number, hi: number, dflt: number) {
+  if (typeof v !== "number" || !isFinite(v)) return dflt;
+  return Math.min(hi, Math.max(lo, Math.round(v)));
+}
+
+export function serialize(s: GameState): string {
+  return JSON.stringify(s);
+}
+
+export function deserialize(json: string | null): GameState | null {
+  if (!json) return null;
+  try {
+    return migrateState(JSON.parse(json));
+  } catch {
+    return null;
+  }
+}
+
+export class SaveManager {
+  constructor(private store: KVStore = defaultStore(), private now: () => number = () => Date.now()) {
+    migrateSlots(store);
+  }
+
+  /** Write a run to a slot (AUTO by default: every G.save()). Stamps when. */
+  save(s: GameState, slot: SlotId = "auto") {
+    s.savedAt = this.now();
+    this.store.setItem(slotKey(slot), serialize(s));
+  }
+  load(slot: SlotId = "auto"): GameState | null {
+    return deserialize(this.store.getItem(slotKey(slot)));
+  }
+  /** Any slot holds a run. */
+  hasSave(): boolean {
+    return SLOT_IDS.some((id) => this.load(id) !== null);
+  }
+  clear(slot: SlotId = "auto") {
+    this.store.removeItem(slotKey(slot));
+  }
+  /** The newest filled slot (what CONTINUE loads), or null. */
+  latest(): SlotId | null {
+    return mostRecentSlot(SLOT_IDS.map((id) => ({ id, s: this.load(id) })));
+  }
+  /** AUTO, SLOT 1-3 as the LOAD list shows them. */
+  summaries(): SlotSummary[] {
+    const now = this.now();
+    return SLOT_IDS.map((id) => summarizeSlot(id, this.load(id), now));
+  }
+  loadMeta(): MetaState {
+    const raw = this.store.getItem(META_KEY);
+    const m = newMeta();
+    if (!raw) return m;
+    try {
+      const p = JSON.parse(raw);
+      return {
+        ...m,
+        ...p,
+        // speech speed's default went 1.5 -> 1.25 (a touch slower): saves still on an old default move over, once
+        settings: { ...m.settings, ...(p.settings || {}), ...((p.settings?.voiceSpeedV ?? 1) < 3 && [undefined, 1.25, 1.3].includes(p.settings?.voiceSpeed) ? { voiceSpeed: 1.5 } : {}), voiceSpeedV: 3 },
+        archiveUnlocked: Array.isArray(p.archiveUnlocked) ? p.archiveUnlocked : [],
+        tvWatched: Array.isArray(p.tvWatched) ? p.tvWatched : [],
+        completedWith: Array.isArray(p.completedWith) ? p.completedWith : [],
+        carry: sanitizeLoadout(p.carry),
+      };
+    } catch {
+      return m;
+    }
+  }
+  saveMeta(m: MetaState) {
+    this.store.setItem(META_KEY, JSON.stringify(m));
+  }
+}
+
+/**
+ * One-off, the first time the game runs with save slots: the old single save (now the AUTO slot) is also copied
+ * into SLOT 1 if that's empty, so a NEW GAME (which writes AUTO) can never cost anyone their old progress.
+ */
+export function migrateSlots(store: KVStore): boolean {
+  if (store.getItem(SLOTS_MIGRATED_KEY)) return false;
+  const raw = store.getItem(AUTO_KEY);
+  let copied = false;
+  if (raw && deserialize(raw) && !MANUAL_SLOTS.some((n) => store.getItem(slotKey(n)))) {
+    store.setItem(slotKey(1), raw);
+    copied = true;
+  }
+  store.setItem(SLOTS_MIGRATED_KEY, "1");
+  return copied;
+}
+
+export function unlockArchive(s: GameState, meta: MetaState | null, id: string): boolean {
+  let fresh = false;
+  if (!s.archiveUnlocked.includes(id)) {
+    s.archiveUnlocked.push(id);
+    fresh = true;
+  }
+  if (meta && !meta.archiveUnlocked.includes(id)) meta.archiveUnlocked.push(id);
+  return fresh;
+}
+
+export function markWatched(s: GameState, meta: MetaState | null, id: string) {
+  if (!s.tvWatched.includes(id)) s.tvWatched.push(id);
+  if (meta && !meta.tvWatched.includes(id)) meta.tvWatched.push(id);
+}

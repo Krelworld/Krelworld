@@ -88,6 +88,8 @@ async function horseplay(force) {
 const _entActionsM = entActions;
 entActions = function (e) {
   const a = _entActionsM(e);
+  if (marina.mount || marina.state === 'ride') {      // riding on someone: the only choices are getting down (and giddy-up on a horsey ride)
+    const m = marina.mount; return [A('⬇️', stopActivity)].concat(m && m.state === 'horse' ? [A('🐴', () => { say('m_giddyup'); say(m === daddy ? 'd_horse' : 'r_horse', m); })] : []); }
   if (e === daddy || e === mommy || e === rory) {
     if (e.state === 'lie') a.unshift(A('⏰', () => wakeUp(e)));
     else { a.push(A('😜', () => tellJoke(e))); if (e === rory && !G.holding && marina.state !== 'ride') a.splice(1, 0, A('🤼', () => horseplay())); }

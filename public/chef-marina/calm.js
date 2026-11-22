@@ -62,3 +62,39 @@ function ping() { lastPing = E.t; }
   const s = document.createElement('style'); s.textContent = '#xFloat{display:none;position:fixed;z-index:60;left:calc(env(safe-area-inset-left) + 10px);bottom:calc(env(safe-area-inset-bottom) + 10px);width:64px;height:64px;border-radius:20px;border:3px solid #fff;background:#fff;font-size:30px;padding:0;box-shadow:0 4px 0 rgba(0,0,0,.35);touch-action:manipulation}#xFloat.on{display:block}#xFloat.art{left:calc(env(safe-area-inset-left) + 72px);width:52px;height:52px;font-size:24px;opacity:.9}';
   document.head.append(s);
 })();
+
+// ------------------------------------------------------------ giggles are a treat, not a tic: at most one laugh per person every 40 seconds, and not the same laugh twice running
+(function () {
+  const LAUGH = /^(m|r|d|mo)_(giggle|laugh2?|joke_laugh)$/, last = {}, lastKey = {}, GAP = 40;
+  const MINE = ['m_giggle', 'm_laugh', 'm_laugh2', 'm_joke_laugh'];
+  function gate(key) {          // -> the clip to play, or null to stay quiet
+    if (!LAUGH.test(key)) return key;
+    const sp = key.split('_')[0], now = performance.now() / 1000;
+    if (now - (last[sp] || -99) < GAP) return null;
+    last[sp] = now;
+    if (sp === 'm') { const opts = MINE.filter(k => k !== lastKey.m); key = opts[(Math.random() * opts.length) | 0]; }
+    lastKey[sp] = key; return key;
+  }
+  const _say = say;
+  say = function (key, ent) { const k = gate(key); return k ? _say(k, ent) : Promise.resolve(); };
+  const _voice = Audio2.voice;
+  Audio2.voice = function (key, speaker, opt) { if (!LAUGH.test(key)) return _voice(key, speaker, opt); const k = gate(key); return k ? _voice(k, speaker, opt) : Promise.resolve(); };
+})();
+
+// ------------------------------------------------------------ riding on shoulders / horsey: she always gets down before anything else starts,
+// and there can never be two Marinas (one riding, one walking about)
+(function () {
+  document.addEventListener('DOMContentLoaded', () => {     // once every script has loaded, so the later ones are covered too
+    for (const name of ['tellJoke', 'wakeUp', 'horseplay', 'cuddle', 'soothe', 'petNiko', 'feedNiko', 'gymMenu', 'startTidy', 'startFort', 'openStory', 'changeDiaper']) {
+      const f = window[name]; if (typeof f !== 'function') continue;
+      window[name] = function () { if (marina.mount) dismount(); return f.apply(this, arguments); };
+    }
+  });
+  setInterval(() => {
+    if (typeof marina === 'undefined') return; const e = marina.mount;
+    if (e && marina.state !== 'ride') {            // something else took over while she was up there: put the grown-up back to normal
+      marina.mount = null; if (['horse', 'shoulders'].includes(e.state)) e.state = 'idle'; e.speed = e.speed0 || 52; if (!G.busy) AI.hold(e, false);
+    } else if (!e && marina.state === 'ride') marina.state = 'idle';
+    for (const g of [daddy, rory]) if (['horse', 'shoulders'].includes(g.state) && marina.mount !== g) { g.state = 'idle'; g.speed = g.speed0 || 52; if (!G.busy) AI.hold(g, false); }   // nobody left crouching with no rider
+  }, 200);
+})();

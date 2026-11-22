@@ -39,6 +39,7 @@
     if (ambient && miles.crying && !(miles.here && Math.abs(marina.x - miles.x) < 50)) a.push({ id: 'miles', html: '👶<i>😭</i>', go: () => goEnt(miles) });
     if (ambient && miles.poopy && !miles.crying && !(miles.here && Math.abs(marina.x - miles.x) < 50)) a.push({ id: 'nappy', html: '👶<i>💩</i>', go: () => goEnt(miles) });
     if (ambient && G.poop && !(G.room === 'playroom' && marina.x < 80)) a.push({ id: 'poop', html: '💩<i>🐈</i>', go: () => zipTo('playroom', 50, () => { marina.dir = -1; const p = PROPS.playroom.find(q => q.id === 'tray'); UI.actions(p, propActions(p)); }) });
+    if (marina.mount && marina.state === 'ride' && !G.busy) a.push({ id: 'down', html: '⬇️<i>🧍</i>', go: () => stopActivity() });   // riding: an obvious way down
     if (G.needTP && G.bathLocked && !G.busy) {   // someone is stuck on the toilet with no paper: one button fetches a roll and delivers it
       a.push({ id: 'tp', html: '🧻<i>🚽</i>', go: () => { const d = PROPS.foyer.find(q => q.to === 'bathroom'); zipTo('foyer', d.x - 26, () => { marina.dir = 1; takeTP(); setTimeout(() => useDoor(d), 500); }); } });
     }
@@ -53,11 +54,12 @@
   const hints = [];
   function clearHints() { while (hints.length) hints.pop().n.remove(); }
   function picHints() {
-    const h = G.holding, on = h && h.type === 'pic' && h.url && !G.busy && quiet() && !document.querySelector('.act');
+    const h = G.holding, pic = h && h.type === 'pic' && h.url, dish = h && h.type === 'dish', on = (pic || dish) && !G.busy && quiet() && !document.querySelector('.act');
     if (!on) return clearHints();
-    const want = [{ id: 'wall', ico: '🖼️', pos: () => [clamp(marina.x, 30, ROOMS[G.room].w - 30), 74], go: () => { G.holding = null; Pics.hang(h.url); } }];
-    if (ROOMS[G.room].outside) want.length = 0;
-    for (const e of [daddy, mommy, rory]) if (e.here && !e.hidden && e.state !== 'toilet') want.push({ id: e.id, ico: '🎁', pos: () => [e.x, e.y - (e === mommy ? 86 : 104)], go: () => Pics.gift(h.url, e) });
+    const want = pic && !ROOMS[G.room].outside ? [{ id: 'wall', ico: '🖼️', pos: () => [clamp(marina.x, 30, ROOMS[G.room].w - 30), 74], go: () => { G.holding = null; Pics.hang(h.url); } }] : [];
+    // carrying a picture or a plate of food: a glowing button over each grown-up to hand it to them
+    for (const e of [daddy, mommy, rory]) if (e.here && !e.hidden && e.state !== 'toilet') want.push({ id: e.id + (dish ? 'D' : ''), ico: dish ? '🍽️' : '🎁', pos: () => [e.x, e.y - (e === mommy ? 86 : 104)],
+      go: () => { if (!dish) return Pics.gift(h.url, e); if (e.state === 'lie') e.state = 'idle'; approach(e.x, () => (e === mommy ? serveMommy() : serve(e)), 26); } });
     if (hints.map(x => x.id).join() !== want.map(x => x.id).join()) {
       clearHints();
       for (const w of want) { const n = mk('button', 'pichint ' + (w.id === 'wall' ? 'wall' : 'gift'), w.ico); n.setAttribute('aria-label', w.id === 'wall' ? 'hang it here' : 'give it'); press(n, () => { clearHints(); UI.closeActions(); w.go(); }); fxL.append(n); hints.push({ ...w, n }); }
@@ -68,6 +70,12 @@
   const _dh = drawHolding;
   drawHolding = function (e, y) {
     const h = G.holding;
+    if (h && h.type === 'dish') {      // the plate held out in front of her, big enough to see what it is
+      const d0 = E.depth, dir = e.dir < 0 ? -1 : 1, px = e.x + dir * 17, py = y + 58 + Math.sin(E.t * 5) * 1.2; E.depth = 1;
+      const c = E.ctx; c.fillStyle = 'rgba(255,240,170,.35)'; c.beginPath(); c.ellipse(px - E.camX, py - 9, 15, 11, 0, 0, 7); c.fill();
+      c.fillStyle = '#fff'; c.beginPath(); c.ellipse(px - E.camX, py, 13, 3.2, 0, 0, 7); c.fill(); c.fillStyle = '#d8d3e6'; c.fillRect(px - E.camX - 9, py + 2, 18, 1);
+      const sz = spriteSize('dish_' + h.dish.art); drawSprite('dish_' + h.dish.art, px, py + 1, { scale: Math.min(0.8, 30 / Math.max(sz[0], sz[1], 1)), opt: h.dish.tint ? { tint: h.dish.tint } : null }); E.depth = d0;
+      if (chance(0.05)) emit(h.dish.score < 0 ? 'stink' : 'sparkle', px + rnd(-8, 8), py - rnd(14, 26), 1); return; }
     if (h && h.type === 'poop') { const d0 = E.depth; E.depth = 1; emoji('💩', e.x + (e.dir < 0 ? -16 : 16), y + 60 + Math.sin(E.t * 6), 9); E.depth = d0; if (chance(0.06)) emit('stink', e.x + (e.dir < 0 ? -16 : 16), y + 54, 1); return; }   // held out at arm's length, not floating over her head
     if (!h || h.type !== 'pic' || !h.url) return _dh(e, y);
     const i = Pics.img(Pics.hash(h.url)), c = E.ctx, x = Math.round(e.x + (e.dir < 0 ? -12 : 12) - E.camX), yy = Math.round(y + 26 + Math.sin(E.t * 3));
@@ -125,7 +133,7 @@
 #alerts{position:absolute;z-index:7;top:64px;left:50%;transform:translateX(-50%);display:flex;gap:10px;pointer-events:none}
 .alertb{pointer-events:auto;position:relative;width:66px;height:66px;border-radius:50%;border:4px solid #fff;background:#ff6b6b;font-size:36px;padding:0;box-shadow:0 4px 0 rgba(0,0,0,.3),0 0 0 6px rgba(255,107,107,.35);animation:pulse .55s ease-in-out infinite alternate;touch-action:manipulation}
 .alertb i{position:absolute;right:-8px;bottom:-8px;font-size:24px;font-style:normal}
-.alertb[aria-label^=pic],.alertb[aria-label^=pbin],.alertb[aria-label^=pflush],.alertb[aria-label=tp]{background:#7be07b;box-shadow:0 4px 0 rgba(0,0,0,.3)}.alertb[aria-label=pickeep]{background:#fff;animation:none}
+.alertb[aria-label^=pic],.alertb[aria-label^=pbin],.alertb[aria-label^=pflush],.alertb[aria-label=tp],.alertb[aria-label=down]{background:#7be07b;box-shadow:0 4px 0 rgba(0,0,0,.3)}.alertb[aria-label=pickeep]{background:#fff;animation:none}
 .facecard{pointer-events:auto;cursor:pointer}
 .pichint{position:absolute;z-index:6;transform:translate(-50%,-50%);width:62px;height:62px;padding:0;font-size:32px;border-radius:18px;background:rgba(255,255,255,.9);border:4px dashed #ff8f3a;animation:pulse .6s ease-in-out infinite alternate;touch-action:manipulation}
 .pichint.gift{border-radius:50%;border:4px solid #fff;background:#7be07b;box-shadow:0 4px 0 rgba(0,0,0,.3)}
@@ -283,3 +291,14 @@
     const ctx = E.ctx; ctx.save(); ctx.translate(Math.round(e.x + at[0] * s * (flip ? -1 : 1) - E.camX), Math.round(y - at[1] * s)); ctx.scale((flip ? -1 : 1) * s, s); ctx.drawImage(c, -cx, -cy); ctx.restore();
   };
 })();
+
+// ------------------------------------------------------------ straight from the cooker to someone: they appear beside her and she hands it over
+function giveDishTo(who) {
+  const e = { daddy, mommy, rory }[who]; if (!e || !G.holding || G.holding.type !== 'dish') return;
+  if (e === rory) G.rory = true; if (G.bathWho === e) { G.bathLocked = false; G.bathWho = null; G.needTP = false; }
+  const W = ROOMS[G.room].w, side = marina.x > W - 70 ? -1 : 1;
+  AI.hold(e, true); e.stop(); e.hidden = false; e.room = G.room; e.state = 'idle'; e.holdingMiles = false; e.x = clamp(marina.x + side * 38, 16, W - 16); e.y = marina.y; e.dir = -side; marina.dir = side; marina.stop();
+  emit('sparkle', e.x, e.y - 50, 14); try { chip('magic'); } catch (x) { }
+  G.busy = true; setTimeout(() => { G.busy = false; AI.hold(e, false); if (G.holding && G.holding.type === 'dish') (e === mommy ? serveMommy() : serve(e)); }, 700);
+}
+(function () { const s = document.createElement('style'); s.textContent = '.giverow{align-items:center;gap:10px;margin:2px 0 6px}@media (orientation:landscape){#panel .result{display:grid;grid-template-columns:minmax(110px,26vw) 1fr;column-gap:18px;align-items:center;justify-items:center;align-content:center}#panel .result canvas{grid-row:1 / span 4;height:min(52vh,220px);width:auto;max-width:100%}#panel .result .row{margin:2px 0}#panel .result .pbtn{width:72px !important;height:72px !important;font-size:38px !important}#panel .result .givebtn{width:72px !important;height:72px !important}}.givebtn{width:84px;height:84px;padding:4px;background:#7be07b;border:4px solid #fff;animation:pulse .7s ease-in-out infinite alternate}.givebtn img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}.pichint[aria-label^=give]{}'; document.head.append(s); })();

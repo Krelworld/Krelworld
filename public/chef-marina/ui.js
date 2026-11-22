@@ -244,8 +244,11 @@ const UI = (() => {
     const faces = d.score >= 3 ? '😋😋😋' : d.score >= 1 ? '😋😋' : d.score >= 0 ? '🙂' : d.score >= -2 ? '😬' : d.score >= -4 ? '🤢🤢' : '🤮🤮🤮';
     c.addEventListener('pointerup', () => { Audio2.hush('marina'); Audio2.chain(d.say); }); const res = el('div', { class: 'result' }, c, el('div', { class: 'stars' }, faces),
       el('div', { style: { fontSize: '22px', opacity: .85 } }, d.name),
+      // give it straight to someone: they come over and she hands it to them
+      el('div', { class: 'row giverow' }, el('span', { style: { fontSize: '34px' } }, '🎁'),
+        ...['daddy', 'mommy', 'rory'].map(w => el('button', { class: 'pbtn givebtn', 'aria-label': 'give it to ' + w, on: tap(() => { closePanel(); finishDish(d); giveDishTo(w); }) }, img(w)))),
       el('div', { class: 'row' },
-        el('button', { class: 'pbtn', style: { width: '90px', height: '90px', fontSize: '48px' }, on: tap(() => { closePanel(); finishDish(d); say('m_yay'); }) }, '✅'),
+        el('button', { class: 'pbtn', 'aria-label': 'carry it', style: { width: '90px', height: '90px', fontSize: '48px' }, on: tap(() => { closePanel(); finishDish(d); say('m_yay'); }) }, '✅'),
         el('button', { class: 'pbtn', style: { width: '90px', height: '90px', fontSize: '48px' }, 'aria-label': 'other way', on: tap(() => chooseMethod()) }, '⬅️'),
         el('button', { class: 'pbtn', style: { width: '90px', height: '90px', fontSize: '48px' }, 'aria-label': 'start again', on: tap(() => openCook()) }, '🔁')));
     body.append(res);

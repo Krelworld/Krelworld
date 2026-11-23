@@ -10,7 +10,8 @@
 //               tab (the Phone settings page), no "Lock mouse"; the death menu, the difficulty and banter pages: 48 px
 //               rows; every page's bottom buttons 44 px
 //   CharSelect  the details panel re-flowed top to bottom (no "Proctus covers as" over the quote), PLAY AS 44 px
-//   Difficulty / Banter / Slots   bottom buttons 44 px and out of the home-indicator strip
+//   Difficulty / Banter   the cards wider and as tall as their words, the notes under them, bottom buttons 44 px
+//   Slots       each slot's lines re-stacked to fit the bigger text, 🗑 44 px, BACK 44 px
 //   TV          the subtitles are reading text (16 CSS px with "Bigger text")
 //   Home        the laptop's group chat: the messages at reading size, newest at the bottom, as many as fit
 //
@@ -248,14 +249,19 @@ function layoutList(m: Menu, root: Phaser.GameObjects.Container, mode: string) {
     top += t.height + 4;
   }
   top += g(4);
-  const pitch = g(mode === "death" ? 54 : 50);
-  const bh = g(44);
-  rows.forEach((b, i) => {
-    resizeButton(b, Math.max(b.width, 460), bh);
-    b.setY(top + i * pitch + pitch / 2);
-  });
-  let y = top + rows.length * pitch + 4;
   const bottomLimit = back.length ? safeBottom() - g(44) - 4 : safeBottom();
+  let pitch = g(mode === "death" ? 54 : 50);
+  const bh = g(44);
+  // (one column if it fits with room for what follows, else two: the difficulty page's five levels at 340 tall)
+  const cols = rows.length > 3 && top + rows.length * pitch + g(40) > bottomLimit ? 2 : 1;
+  const per = Math.ceil(rows.length / cols);
+  if (cols === 2) pitch = Math.max(g(48), Math.min(pitch, Math.floor((bottomLimit - top - g(40)) / per)));
+  rows.forEach((b, i) => {
+    const col = Math.floor(i / per);
+    resizeButton(b, cols === 2 ? 440 : Math.max(b.width, 460), bh);
+    b.setPosition(cols === 2 ? W / 2 + (col === 0 ? -228 : 228) : W / 2, top + (i % per) * pitch + pitch / 2);
+  });
+  let y = top + per * pitch + 4;
   // (a box drawn behind a tip moves with its text)
   const boxes = list.filter((o) => o.type === "Rectangle" && o.y > last + 2 && !o.input);
   for (const t of below.sort((a, b) => a.y - b.y)) {
@@ -270,6 +276,127 @@ function layoutList(m: Menu, root: Phaser.GameObjects.Container, mode: string) {
   for (const b of back) {
     liftButton(b, 240);
     b.setY(safeBottom() - b.height / 2);
+  }
+}
+
+// ------------------------------------------------------------------ Difficulty and Banter (cards to pick from)
+
+/**
+ * The cards: wider, the number on the left, the name with its tag under it in a column, the blurb beside them, each
+ * card as tall as its words; then the notes under the cards; the bottom buttons 44 px and out of the bottom strip.
+ */
+function layoutCards(sc: Phaser.Scene & Bag) {
+  const rows = (sc.rows as { box: Bag; mark: Bag }[]) ?? [];
+  if (!rows.length) return;
+  const kids = sc.children.list as Bag[];
+  const x0 = 26;
+  const RW = W - 2 * x0;
+  const nameW = 230;
+  // ◀ back to the top left (where a phone's back is), the next step bottom right
+  const btns = buttonsIn(kids).filter((b) => b.y > 400);
+  const back = btns.find((b) => /◀/.test(b.label.text));
+  const next = btns.find((b) => b !== back);
+  if (back) {
+    resizeButton(back, 210, g(44));
+    back.setPosition(12 + 105, 6 + g(44) / 2);
+  }
+  if (next) liftButton(next);
+  const head = textIn(kids, /^CHOOSE /);
+  const sub = textIn(kids, /run\. /);
+  if (head) head.setPosition(W / 2 + 60, 8 + head.height / 2);
+  if (sub && head) sub.setPosition(W / 2 + 60, head.y + head.height / 2 + 1);
+  let y = Math.max(back ? 6 + g(44) : 0, sub ? sub.y + sub.height : 70) + 4;
+  const inRow = new Set<Bag>();
+  for (const { box, mark } of rows) {
+    const bx = box.x;
+    const by = box.y;
+    const texts = kids.filter((o) => o.type === "Text" && o !== mark && o.x >= bx - 2 && o.x <= bx + box.width + 2 && o.y >= by - 2 && o.y <= by + box.height + 2);
+    for (const t of texts) inRow.add(t);
+    const num = texts.find((t) => /^\d$/.test(t.text));
+    const blurb = texts.find((t) => t.style?.wordWrapWidth);
+    const tag = texts.find((t) => t.originX === 1);
+    const name = texts.find((t) => t !== num && t !== blurb && t !== tag);
+    if (blurb) blurb.setWordWrapWidth(RW - nameW - 20);
+    if (tag) tag.setOrigin(0, 0);
+    const left = (name?.height ?? 0) + (tag ? tag.height + 2 : 0);
+    const h = Math.max(g(44), left + 10, (blurb?.height ?? 0) + 10);
+    box.setPosition(x0, y).setSize(RW, h);
+    box.updateDisplayOrigin?.();
+    if (box.input?.hitArea) {
+      box.input.hitArea.width = RW;
+      box.input.hitArea.height = h;
+    }
+    if (num) num.setPosition(x0 + 30, y + h / 2);
+    if (name) name.setPosition(x0 + 62, y + (h - left) / 2);
+    if (tag && name) tag.setPosition(x0 + 62, name.y + name.height + 2);
+    if (blurb) blurb.setPosition(x0 + nameW, y + (h - blurb.height) / 2);
+    mark.setPosition(x0 - 13, y + h / 2);
+    y += h + 3;
+  }
+  // the notes under the cards, beside the next button; what doesn't fit goes, the how-to line first
+  const notes = kids
+    .filter((o) => o.type === "Text" && !inRow.has(o) && o !== sub && o !== head && o.y > 300 && !rows.some((r) => r.mark === o) && !btns.some((b) => (b.list as unknown[]).includes(o)) && o.text.trim())
+    .sort((a, b) => a.y - b.y);
+  const right = next ? next.x - next.width / 2 - 10 : W - 20;
+  const nextTop = next ? next.y - next.height / 2 : H;
+  const howTo = notes.find((t) => /^Tap one, then/.test(t.text));
+  // (the multipliers line: the blurbs already say it in words)
+  const stats = notes.find((t) => /^\d\/\d vs /.test(t.text));
+  const place = (...skip: (Bag | undefined)[]) => {
+    let ny = y + 2;
+    for (const t of notes) {
+      if (skip.includes(t)) {
+        t.setVisible(false);
+        continue;
+      }
+      // (the whole width above the next button, beside it below its top)
+      t.setOrigin(0, 0).setWordWrapWidth(W - 2 * x0).setPosition(x0, ny).setVisible(true);
+      if (ny + t.height > nextTop - 2) t.setWordWrapWidth(right - x0);
+      ny += t.height + 1;
+    }
+    return ny;
+  };
+  if (place() > H - 4 && place(howTo) > H - 4) place(howTo, stats);
+}
+
+// ------------------------------------------------------------------ save slots
+
+/** A slot's five small lines become four (chapter and place on one), the objective kept to one line, 🗑 44 px. */
+function layoutSlots(sl: Phaser.Scene & Bag) {
+  const list = (sl.root?.list as Bag[]) ?? [];
+  const rows = list.filter((o) => o.type === "Rectangle" && o.width >= 600 && o.height >= 80 && o.height <= 100);
+  for (const bg of rows) {
+    const y = bg.y;
+    const left = bg.x - bg.width / 2;
+    const near = (dy: number) => list.filter((o) => o.type === "Text" && Math.abs(o.y - (y + dy)) < 1.5);
+    const l1 = near(-40);
+    if (!l1.length) continue;
+    const chapter = near(-22)[0];
+    const where = near(-5)[0];
+    const obj = near(11)[0];
+    const bits = near(27)[0];
+    const lh = Math.max(...l1.map((t) => t.height));
+    const top = y - bg.height / 2 + 3;
+    for (const t of l1) t.setY(top);
+    const saved = l1.find((t) => t.originX === 1);
+    const del = buttonsIn(list).find((b) => Math.abs(b.y - (y + 24)) < 2 && b.x > left + bg.width - 60);
+    if (del) {
+      const s = g(44);
+      resizeButton(del, s, s);
+      del.setPosition(left + bg.width - s / 2 - 6, y);
+    }
+    if (saved && del) saved.setX(del.x - del.width / 2 - 8);
+    const tx = chapter?.x ?? left + 88;
+    const right = (del ? del.x - del.width / 2 : left + bg.width) - 8;
+    let ly = top + lh + 1;
+    if (chapter) chapter.setY(ly);
+    if (where && chapter) where.setPosition(chapter.x + chapter.width + 14, ly);
+    ly += (chapter?.height ?? lh) + 1;
+    if (obj) {
+      obj.setY(ly).setFixedSize(Math.max(40, right - tx), 0);
+      ly += obj.height + 1;
+    }
+    if (bits) bits.setY(ly);
   }
 }
 
@@ -492,7 +619,8 @@ function patchScenes() {
   wrap(TitleScene.prototype as unknown as Bag, "create", (t) => layoutTitle(t as unknown as Phaser.Scene));
   wrap(CharSelectScene.prototype as unknown as Bag, "select", (c) => layoutCharDetail(c as Phaser.Scene & Bag));
   wrap(SaveSlotsScene.prototype as unknown as Bag, "render", (sl) => {
-    for (const b of buttonsIn(((sl.root as Bag)?.list as unknown[]) ?? [])) if (b.y > 440) liftButton(b);
+    if (readability()?.on) layoutSlots(sl as Phaser.Scene & Bag);
+    for (const b of buttonsIn(((sl.root as Bag)?.list as unknown[]) ?? [])) if (b.y > 440 && b.x > 300 && b.x < 660) liftButton(b);
   });
   wrap(HomeScene.prototype as unknown as Bag, "laptopPanel", (h) => layoutLaptop(h as unknown as Phaser.Scene));
   wrap(CharSelectScene.prototype as unknown as Bag, "create", (c) => {
@@ -505,6 +633,6 @@ function patchScenes() {
 /** Scenes that are only a create(): their bottom buttons, and the TV's subtitles. Called when a scene is created. */
 export function onSceneCreate(scene: Phaser.Scene) {
   const key = scene.sys.settings.key;
-  if (key === "Difficulty" || key === "Banter") for (const b of buttonsIn(scene.children.list)) if (b.y > 440) liftButton(b);
+  if (key === "Difficulty" || key === "Banter") layoutCards(scene as Phaser.Scene & Bag);
   if (key === "TV") markReading((scene as Bag).subs as Phaser.GameObjects.Text);
 }

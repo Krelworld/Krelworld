@@ -194,6 +194,10 @@ describe("touch wording added in stage 2", () => {
     expect(touchWording("↑/↓ or 1–5 to pick · ENTER / A to go on · tap twice on touch")).toBe("Tap one, then tap it again to go on");
     expect(touchWording("↑/↓ or 1–3 to pick · ENTER / A to start · tap twice on touch")).toBe("Tap one, then tap it again to start");
     expect(touchWording("WASD · Mouse · Click · Space · E · Q · B · R · Esc")).toBe("");
+    // (as the pixel font's clean-up hands it over: the en dash already " - ")
+    expect(touchWording("↑/↓ or 1 - 5 to pick · ENTER / A to go on · tap twice on touch")).toBe("Tap one, then tap it again to go on");
+    expect(touchWording("↑↓ choose · Enter load · Del delete · Esc back   (tap a slot to load it)")).toBe("Tap a slot to load it");
+    expect(touchWording("Pick a slot to save to. AUTO saves itself as you play.   ↑↓ · Enter · Del · Esc")).toBe("Pick a slot to save to. AUTO saves itself as you play.");
   });
 });
 

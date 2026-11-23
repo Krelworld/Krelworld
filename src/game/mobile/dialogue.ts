@@ -41,6 +41,9 @@ const BODY_BOTTOM = 520;
 /** Scenes whose dialogue box opens the pause menu on Esc (as DialogueBox's own PAUSABLE). */
 export const PAUSABLE_SCENES = new Set(["Meeting", "Vignette", "Cutscene"]);
 
+/** Scenes that cover a conversation when they run (its pills hide). */
+const COVERING = ["Menu", "Slots", "TV", "KrelCue", "WeaponPick"];
+
 /** Every box that has played and is not destroyed, oldest first. */
 const boxes: Box[] = [];
 let patched = false;
@@ -383,8 +386,31 @@ export class PhoneDialogue {
     if (!b || !b.active || b.destroyed || !b.root?.visible) return false;
     const sys = b.scene.sys;
     if (!sys.isActive() || sys.isPaused() || !sys.isVisible()) return false;
-    if (this.game.scene.isActive("Menu") || this.game.scene.isActive("TV") || this.game.scene.isActive("KrelCue")) return false;
+    // (a screen over it: the pause menu, the save slots, a broadcast, a Kreltality, the weapon picker)
+    for (const k of COVERING) if (this.game.scene.isActive(k)) return false;
+    if (this.ownControls(b)) return false;
     return !this.blocked();
+  }
+
+  private ownCheck = { at: 0, scene: "", on: false };
+
+  /**
+   * The Krezz Arms' table chats bring their own bar (NEXT LINE, SKIP THIS CONVO, END) where the pills would go: the
+   * pills step aside while it shows (looked up a few times a second).
+   */
+  private ownControls(b: Box): boolean {
+    const key = b.scene.scene.key as string;
+    if (key !== "Pub") return false;
+    const t = performance.now();
+    if (this.ownCheck.scene === key && t - this.ownCheck.at < 250) return this.ownCheck.on;
+    let on = false;
+    for (const o of b.scene.children.list as Bag[]) {
+      if (o.type !== "Container" || !o.visible) continue;
+      for (const c of o.list as Bag[]) if (c.type === "Container" && c.visible && (c.list as Bag[]).some((x) => x.type === "Text" && /SKIP THIS CONVO/.test(x.text))) on = true;
+      if (on) break;
+    }
+    this.ownCheck = { at: t, scene: key, on };
+    return on;
   }
 
   get logOpen(): boolean {

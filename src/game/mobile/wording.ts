@@ -37,6 +37,8 @@ export const TOUCH_WORDING: WordingRule[] = [
   // "Tap / SPACE", "SPACE / tap", "Space / E / click": all just "Tap"
   { id: "tap-space", re: /\b(?:[Tt]ap|TAP)\s*\/\s*(?:SPACE|Space)\b/g, to: "Tap" },
   { id: "space-tap", re: /\b(?:SPACE|Space)\s*\/\s*(?:[Tt]ap|TAP)\b/g, to: "Tap" },
+  // the telly's "D" (ON DEMAND) caption
+  { id: "tv-d", re: /^D$/, to: "" },
   // the Kreddle machines: "SPACE or SPIN" → "Tap SPIN", "SPACE / DROP" → "Tap DROP"
   { id: "space-or-button", re: /\b(?:SPACE|Space) (?:or|\/) ([A-Z]{2,})\b/g, to: "Tap $1" },
   { id: "space-slash-button", re: /\b(?:SPACE|Space)\s*\/\s*([A-Z]{2,})\b/g, to: "Tap $1" },
@@ -52,13 +54,17 @@ export const TOUCH_WORDING: WordingRule[] = [
   // walking: "WASD to walk" / "WASD / arrows to walk"
   { id: "wasd-walk", re: /\bWASD(?:\s*\/\s*arrows)?(?:\s*\(or the stick\))? to walk\b/g, to: "Drag on the left to walk" },
   // key captions on their own (a button already says what it does): nothing at all
-  { id: "caption-keys", re: /^(?:Space \/ E \/ click|Space \/ E|Enter \/ E|Tab|Esc|ESC|Enter)$/, to: "" },
+  { id: "caption-keys", re: /^(?:Space \/ E \/ click|Space \/ E|Space \/ click|Enter \/ E|Tab|Esc|ESC|Enter)$/, to: "" },
   // (stage 2) the dialogue box's footer "▼ E / Space · Tab skip": the arrow alone (the SKIP pill does the skipping)
   { id: "dialogue-footer", re: /^▼ E \/ Space\s*·\s*Tab skip$/, to: "▼" },
   // the Messenger reaction card's "REACT  (1-5 or click)"
   { id: "react-keys", re: /^REACT\s+\(1-5 or click\)$/, to: "REACT" },
   // the Difficulty / Banter screens: "↑/↓ or 1–5 to pick · ENTER / A to go on · tap twice on touch"
-  { id: "pick-twice", re: /^↑\/↓ or 1–\d to pick · ENTER \/ A to (go on|start) · tap twice on touch$/, to: "Tap one, then tap it again to $1" },
+  // (the pixel font's own clean-up has already turned the en dash into " - " by the time a phone sees the text)
+  { id: "pick-twice", re: /^↑\/↓ or 1\s*(?:–|-)\s*\d to pick · ENTER \/ A to (go on|start) · tap twice on touch$/, to: "Tap one, then tap it again to $1" },
+  // the save slots: "↑↓ choose · Enter load · Del delete · Esc back   (tap a slot to load it)", "...   ↑↓ · Enter · Del · Esc"
+  { id: "slots-load", re: /^↑↓ choose · Enter load · Del delete · Esc back\s+\(tap a slot to load it\)$/, to: "Tap a slot to load it" },
+  { id: "slots-save", re: /\s+↑↓ · Enter · Del · Esc$/, to: "" },
   // the title's key line "WASD · Mouse · Click · Space · E · Q · B · R · Esc": nothing on a phone
   { id: "title-keys", re: /^WASD · Mouse · Click · Space · E · Q · B · R · Esc$/, to: "" },
 ];
@@ -167,8 +173,11 @@ export const UI_TEXTS: Record<string, RegExp[]> = {
   Enter: [/^PRESS ANY KEY$/, /^OR CLICK \/ TAP$/],
   // (stage 2) the title's key line, and the Difficulty / Banter screens' "↑/↓ or 1–5 to pick · ENTER / A ..."
   Title: [/^WASD · Mouse · Click · Space/],
-  Difficulty: [/^↑\/↓ or 1–\d to pick/],
-  Banter: [/^↑\/↓ or 1–\d to pick/],
+  Difficulty: [/^↑\/↓ or 1\s*(?:–|-)\s*\d to pick/],
+  Banter: [/^↑\/↓ or 1\s*(?:–|-)\s*\d to pick/],
+  Slots: [/^↑↓ choose · Enter load/, /↑↓ · Enter · Del · Esc$/],
+  // the telly's buttons: the key under each ("Space / click", "Tab", "D", "Esc"): the button already says what it does
+  TV: [/^(?:Space \/ click|Tab|D|Esc)$/],
 };
 
 /** Phones only: watches the scenes above and applies the wording. */

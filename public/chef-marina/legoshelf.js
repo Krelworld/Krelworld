@@ -63,7 +63,8 @@
 
   // ------------------------------------------------------------------ the shelf on the wall of the den
   // white cubbies above the two chairs, standing on the wall's ledge rail: four across, two up. Each back is the colour of that toy's plate.
-  const P = { id: 'legoshelf', k: 'p:legoshelf', x: 246, y: 97, w: 98, h: 46, a: 'legoshelf' }, CW = 23, CH = 20;
+  // (its top stays just under the room buttons along the top edge of a phone held sideways)
+  const CW = 23, CH = 19, P = { id: 'legoshelf', k: 'p:legoshelf', x: 246, y: 97, w: 98, h: 2 + 2 * (CH + 2), a: 'legoshelf' };
   const D = { glow: 0, tw: null, twAt: -9, dance: null };
   const cub = i => { const c = i % COLS, r = (i / COLS) | 0; return { x: P.x - P.w / 2 + 1 + c * (CW + 1) + (c > 1 ? 1 : 0), y: P.y - P.h + 2 + r * (CH + 2), w: CW, h: CH }; };
   function star(x, y, k) {                            // a four-point twinkle, k = 0..1
@@ -76,7 +77,7 @@
     if (D.glow > 0.02) { const x = p.x - E.camX, y = p.y - p.h / 2, gr = ctx.createRadialGradient(x, y, 4, x, y, 64); gr.addColorStop(0, 'rgba(255,240,170,' + (0.4 * D.glow * (0.85 + Math.sin(t * 4) * 0.15)).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(255,240,170,0)'); ctx.fillStyle = gr; ctx.fillRect(x - 70, y - 50, 140, 100); }
     const bo = typeof G !== 'undefined' && G.bounce && G.bounce.id === p.id && t - G.bounce.t0 < 0.35 ? Math.sin((t - G.bounce.t0) / 0.35 * Math.PI) : 0;
     rect(L + 2, T + 3, p.w, p.h - 1, 'rgba(70,50,30,.16)');
-    rect(L, T, p.w, p.h, WHITE); rect(L, T, p.w, 1, '#ffffff'); rect(L + p.w - 1, T + 1, 1, p.h - 1, SHADE); rect(L, p.y - 1, p.w, 1, SHADE); rect(L, T + 23, p.w, 1, SHADE);
+    rect(L, T, p.w, p.h, WHITE); rect(L, T, p.w, 1, '#ffffff'); rect(L + p.w - 1, T + 1, 1, p.h - 1, SHADE); rect(L, p.y - 1, p.w, 1, SHADE); rect(L, T + CH + 3, p.w, 1, SHADE);
     for (let i = 0; i < MAX; i++) { const c = cub(i), e = all.find(q => q.s === i);
       rect(c.x, c.y, c.w, c.h, BACKS[e ? e.kind : 'none']); rect(c.x, c.y, c.w, 2, 'rgba(30,25,60,.16)'); rect(c.x, c.y + 2, 1, c.h - 2, 'rgba(30,25,60,.10)');
       if (e) rect(c.x, c.y + c.h - 1, c.w, 1, BASE[e.kind]); }
@@ -91,7 +92,7 @@
       const c = cub(e.s); let hop = bo * 2;
       if (dn) { const k = (t - dn.t0 - n * 0.3) / 0.42; if (k > 0 && k < 1) hop += Math.sin(k * Math.PI) * 5; }
       if (D.tw && D.tw.s === e.s) hop += Math.sin(Math.min(1, (t - D.tw.t0) / 0.3) * Math.PI) * 1.5;
-      try { b && b.drawPieces(ctx, e.kind, e.pieces, c.x + c.w / 2 - E.camX, c.y + c.h - 1 - hop, 17, { w: 21 }); } catch (err) { }
+      try { b && b.drawPieces(ctx, e.kind, e.pieces, c.x + c.w / 2 - E.camX, c.y + c.h - 1 - hop, CH - 3, { w: CW - 2 }); } catch (err) { }
     });
     if (D.tw) { const k = (t - D.tw.t0) / 0.7; if (k >= 1) D.tw = null; else { const c = cub(D.tw.s); star(c.x + c.w - 6, c.y + 5, k); star(c.x + 6, c.y + 11, lim(k * 1.4 - 0.4, 0, 1)); } }
   }

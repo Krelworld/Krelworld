@@ -603,7 +603,10 @@
   const hop = (x1, off1, dur, arc) => { const x0 = marina.x, o0 = marina.offY; return run(dur || 0.4, k => { marina.x = lerp(x0, x1, k); marina.offY = lerp(o0, off1, k) - Math.sin(k * Math.PI) * (arc == null ? 16 : arc); }); };
   const poseTo = (pose, x1, y1, dur, o) => { const x0 = pose.x, y0 = pose.y, s0 = pose.s, r0 = pose.rot || 0; o = o || {}; return run(dur, k => { const e = o.ease ? o.ease(k) : k; pose.x = marina.x = lerp(x0, x1, e); pose.y = lerp(y0, y1, e) - Math.sin(k * Math.PI) * (o.arc || 0); if (o.s != null) pose.s = lerp(s0, o.s, e); if (o.rot != null) pose.rot = lerp(r0, o.rot, e); if (o.a != null) pose.a = lerp(1, o.a, e); if (o.step) o.step(k); }); };
   const climbBlip = (k, t, dt) => { if (every(t, dt, 6)) Audio2.blip(Math.round(k * 10), 'triangle', 0.05, 0.1); };
-  const yay = (lines, ev, react) => { cheer(1200); say(pick(lines || ['m_yay', 'm_again'])); if (ev) got(ev); if (react && window.reactTo) reactTo(react, 1200); return nap(1.0); };
+  // the happy ending of every game: her cheer, a sticker, maybe the family's reaction, and (once her line is over) maybe Grandpa Jeff's
+  const JCHEER = { climb: ['j_treetop', 'j_strong'], trampoline: ['j_strong', 'j_wow'], seesaw: ['j_giggle'], mud: ['j_giggle'], mudpie: ['j_giggle'], tire: ['j_giggle', 'j_wow'], lemonade: ['j_thanks'], picnic: ['j_food_good'], tea: ['j_food_good'] };
+  const yay = (lines, ev, react) => { cheer(1200); const pr = say(pick(lines || ['m_yay', 'm_again'])); if (ev) got(ev); if (react && window.reactTo) reactTo(react, 1200);
+    Promise.resolve(pr).then(() => setTimeout(() => jeffCheer(JCHEER[ev] || ['j_wow', 'j_giggle']), 250)).catch(() => { }); return nap(1.0); };
   // sitting on something that swings from (px, py) on a rope of length L, at angle a
   function seat(pose, px, py, L, a, drop) { const h = 64 * msc() * pose.s, sx = px - L * Math.sin(a), sy = py + L * Math.cos(a) + (drop || 0); pose.rot = a; pose.x = sx + h / 2 * Math.sin(a); pose.y = sy + h / 2 - h / 2 * Math.cos(a); marina.x = sx; }
 
@@ -914,7 +917,7 @@
   // ---- up the ladder and in; back down by the ladder or the tube slide
   async function climbUp(p) {
     const b = p.b, sp = SPOTS[b.spot], top = sp.y - DECK + 2; if (G.busy || S.act) return; UI.closeActions(); if (marina.mount) dismount(); G.busy = true; S.act = { p, b };
-    try { await walkTo(sp.ladX); focus(sp.x); const pose = P({ key: 'walk', x: sp.ladX, flip: sp.side < 0 }); say('m_monkey');
+    try { await walkTo(sp.ladX); focus(sp.x); const pose = P({ key: 'walk', x: sp.ladX, flip: sp.side < 0 }); say('m_monkey'); setTimeout(() => jeffCheer(['j_tree'], sp.x), 1300);
       await run(2.0, (k, t, dt) => { pose.y = lerp(FLOOR, top, k); pose.s = lerp(1, 0.5, k); pose.x = sp.ladX + Math.sin(t * 9); climbBlip(k, t, dt); });
       await poseTo(pose, sp.x, top, 0.5); Audio2.sfx('door_open', { vol: 0.5 }); await poseTo(pose, sp.x, top - 1, 0.3, { s: 0.36, a: 0 });
     } catch (e) { warn('climb', e); }

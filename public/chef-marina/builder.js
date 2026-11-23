@@ -3,6 +3,11 @@
 // each one customised (colour, style, extras, where), built in a little time-lapse, saved, playable,
 // and taken down again when she wants the planks back. Tree houses are real little rooms up a ladder.
 // Everything is additive and lives in this one file; its pictures are assets/build/build.png + build.json.
+//
+//   Builder.open({ onSay })   the build menu (onSay(kind) is asked for Jeff's voice: hello, start, done, full, down, recolor)
+//   Builder.close()           Builder.list() → [{ kind, spot, colour, style, addons }]      Builder.lumberLeft()      Builder.has(kind)
+//   Builder.onSay = fn        used when open() was not given one
+// Saved in localStorage 'cm_builds'. Spots: p1..p5 on the ground, oak / pine for a tree house, oak_b / pine_b for things that hang from a branch.
 (function () {
   if (typeof ROOMS === 'undefined' || !ROOMS.backyard || !PROPS.backyard) return;
   const BY = window.Backyard || { W: 1040, door: 92, bench: 232, plots: [{ id: 'p1', x: 348 }, { id: 'p2', x: 458 }, { id: 'p3', x: 568 }, { id: 'p4', x: 678 }, { id: 'p5', x: 872 }],
@@ -13,7 +18,9 @@
   const lerp = (a, b, k) => a + (b - a) * k, ease = k => k * k * (3 - 2 * k);
   const px = (c, x, y, w, h, col) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), w, h); };
   const line = (c, x0, y0, x1, y1, col, lw) => { c.strokeStyle = col; c.lineWidth = lw || 1; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); };
-  const emo = (c, ch, x, y, size, rot, alpha) => { c.save(); if (alpha != null) c.globalAlpha = alpha; c.translate(x, y); if (rot) c.rotate(rot); c.font = size + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(ch, 0, 0); c.restore(); };
+  // (an emoji takes on the see-through-ness of the last fill colour, so that is reset before drawing one)
+  const emo = (c, ch, x, y, size, rot, alpha) => { c.save(); c.fillStyle = '#000'; if (alpha != null) c.globalAlpha = alpha; c.translate(x, y); if (rot) c.rotate(rot); c.font = size + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(ch, 0, 0); c.restore(); };
+  const em = (ch, x, y, size, alpha, rot) => { E.ctx.fillStyle = '#000'; emoji(ch, x, y, size, alpha, rot); };
   const got = ev => { try { window.did && did(ev); } catch (e) { } };
   const warn = (w, e) => { try { console.warn('builder ' + w, e); } catch (x) { } };
 
@@ -21,8 +28,8 @@
   // ground plots p1..p5, a tree-house spot up in each big tree, and a branch on each tree for things that hang
   const SPOTS = {};
   for (const p of BY.plots) SPOTS[p.id] = { id: p.id, type: 'ground', x: p.x, y: GY };
-  for (const t of BY.trees) { const side = t.id === 'pine' ? -1 : 1, br = t.houseY + 16;            // the branch sticks out on one side; the ladder hangs on the other
-    SPOTS[t.id] = { id: t.id, type: 'tree', x: t.x, y: t.houseY + DECK, tree: t, side, ladX: t.x - side * 36 };
+  for (const t of BY.trees) { const side = t.id === 'pine' ? -1 : 1, br = t.houseY + 24;            // the branch sticks out on one side; the ladder hangs on the other
+    SPOTS[t.id] = { id: t.id, type: 'tree', x: t.x, y: t.houseY + DECK + 8, tree: t, side, ladX: t.x - side * 36 };     // (a little lower than houseY, so more of the roof shows when the phone is held sideways)
     SPOTS[t.id + '_b'] = { id: t.id + '_b', type: 'branch', x: t.x + side * (t.trunk / 2 + 26), y: GY - 13, tree: t, side, br }; }
   const SPOT_ORDER = Object.keys(SPOTS);
 
@@ -85,7 +92,7 @@
     { id: 'treehouse', ico: '🏡', cost: 5, spot: 'tree', col: 'red', w: 116, h: 70, styleKind: 'spr', styles: [['gable', 'th_gable'], ['round', 'th_round'], ['fort', 'th_fort'], ['tent', 'th_tent']], addons: ['lights', 'flag', 'tube'], back: thBack,
       acts: p => [A('🪜', () => climbUp(p))].concat(p.b.addons.includes('tube') ? [A('🛝', () => play(p, tubeRide))] : []) },
     { id: 'slide', ico: '🛝', cost: 2, spot: 'ground', col: 'blue', spr: 'slide', w: 88, h: 72, addons: ['flag', 'balloons'], acts: p => [A('🛝', () => play(p, slideDown)), A('🙃', () => play(p, slideDown, 'flip'))] },
-    { id: 'swing', ico: '🪢', cost: 3, spot: 'ground', col: 'red', spr: 'swing', w: 96, h: 80, addons: ['balloons', 'flowers'], front: swingFront, acts: p => [A('🌬️', () => play(p, swingHigh)), A('🦘', () => play(p, swingHigh, true))] },
+    { id: 'swing', ico: '🪢', cost: 3, spot: 'ground', col: 'red', spr: 'swing', w: 96, h: 80, addons: ['balloons', 'flowers'], front: swingFront, acts: p => [A('↔️', () => play(p, swingHigh)), A('🦘', () => play(p, swingHigh, true))] },
     { id: 'seesaw', ico: '⚖️', cost: 1, spot: 'ground', col: 'green', spr: 'seesaw', w: 64, h: 17, pivot: 8, addons: ['flowers'], acts: p => [A('🧸', () => play(p, seesaw))] },
     { id: 'sandbox', ico: '🏖️', cost: 1, spot: 'ground', col: 'blue', spr: 'sandbox', w: 88, h: 38, addons: ['balloons', 'flowers'], front: sandFront, acts: p => [A('⛏️', () => play(p, digTreasure)), A('🏰', () => play(p, sandCastle))] },
     { id: 'trampoline', ico: '🤸', cost: 2, spot: 'ground', col: 'purple', spr: 'trampoline', w: 80, h: 40, addons: ['balloons', 'flowers'], acts: p => [A('🤸', () => play(p, trampBounce)), A('🌟', () => play(p, trampBounce, true))] },
@@ -128,16 +135,16 @@
       c.drawImage(canvas, L, T); c.shadowColor = 'transparent'; c.shadowBlur = 0; }
     if (cat.front && rv > 0) cat.front(c, b, cx, by, t, o, st);
     for (const it of st.items || []) emo(c, it.ch, cx + it.dx, by + it.dy, it.size || 10, it.rot || 0, it.a);
-    if (rv >= 1) extras(c, b, cat, key, L, T, w, h, t);
+    if (rv >= 1) extras(c, b, cat, key, L, T, w, h, t, o);
     c.restore();
     if (rv > 0 && rv < 1) { const y = by - Math.ceil(h * rv); for (let x = L - 3; x < L + w + 3; x += 6) px(c, x, y, 3, 1, 'rgba(255,255,255,.9)'); }
   }
   // the extras she can switch on: flowers along the bottom, a string of fairy lights, balloons, a flag
   const FLOWER = ['#ff6fae', '#ffd23e', '#ffffff', '#e8453c', '#b98aff'], BULB = ['#ff5a5a', '#ffd23e', '#6fe07a', '#5ab8ff', '#ff8fd6'];
-  function extras(c, b, cat, key, L, T, w, h, t) {
+  function extras(c, b, cat, key, L, T, w, h, t, o) {
     const on = b.addons || [], pr = prof(key); if (!on.length || !pr) return; const by = T + h;
-    if (on.includes('flowers')) { const hanging = cat.hang, x0 = hanging ? L - 14 : L - 3, ww = hanging ? w + 28 : w + 6, base = hanging ? by + (cat.up ? 999 : 14) : by + 1;
-      if (base < by + 100) for (let i = 0, n = Math.max(3, Math.round(ww / 12)); i < n; i++) { const x = Math.round(x0 + ww * (i + 0.5) / n + (i * 7) % 5 - 2), sw = Math.round(Math.sin(t * 2 + i) * 0.7), hh = 5 + (i * 3) % 4;
+    if (on.includes('flowers')) { const hanging = cat.hang, x0 = hanging ? L - 14 : L - 3, ww = hanging ? w + 28 : w + 6, base = hanging ? (o.ground > by ? o.ground : by + 14) : by + 1;       // under a hanging thing they grow on the ground below
+      for (let i = 0, n = Math.max(3, Math.round(ww / 12)); i < n; i++) { const x = Math.round(x0 + ww * (i + 0.5) / n + (i * 7) % 5 - 2), sw = Math.round(Math.sin(t * 2 + i) * 0.7), hh = 5 + (i * 3) % 4;
         px(c, x, base - hh, 1, hh, '#3c8a3a'); px(c, x - 1, base - 3, 1, 1, '#58b052'); px(c, x - 1 + sw, base - hh - 2, 3, 3, FLOWER[i % 5]); px(c, x + sw, base - hh - 1, 1, 1, i % 5 === 1 ? '#ff9a2e' : '#ffe14a'); } }
     if (on.includes('lights')) { const xs = [3, w >> 1, w - 4], pts = xs.map(x => [L + x, T + Math.min(pr.top[x], h - 6) - 1]); let n = 0;
       for (let s = 0; s < pts.length - 1; s++) { const [x0, y0] = pts[s], [x1, y1] = pts[s + 1], len = Math.hypot(x1 - x0, y1 - y0), m = Math.max(3, Math.round(len / 7));
@@ -294,7 +301,9 @@
     if (p.th) return thProp(p);
     if (p === benchProp) return drawBench(p);
     if (!p.bl) return _dp(p);
-    if (p.bl === 2) return;
+    if (p.bl === 1) drawBuilt(p);
+  };
+  function drawBuilt(p) {
     const c = E.ctx, b = p.b, sp = SPOTS[b.spot], cx = Math.round(p.x - E.camX);
     const near = !G.busy && !G.sceneOn && marina.state !== 'anim' && Math.abs(p.x - marina.x) < Math.max(30, p.w * 0.5 + 12);
     p.glow = clamp((p.glow || 0) + (near ? 0.08 : -0.06), 0, 1);
@@ -483,7 +492,8 @@
   function viewDown() {
     const w = M.want, grid = mk('div', 'bd-grid bd-downs'), left = lumberLeft();
     if (w) { const need = mk('div', 'bd-need'); need.append(picImg({ kind: w.id, colour: w.col, style: stylesOf(w)[0][0], addons: [] }), w.cost > left ? planks(w.cost, left) : mk('div', 'bd-nospot', (w.spot === 'ground' ? '🟩' : '🌳') + '<b>🚫</b>')); M.body.append(need); }
-    for (const b of D.builds) { const c = CATBY[b.kind], card = mk('button', 'bd-card bd-down'); card.setAttribute('aria-label', 'take down the ' + c.id);
+    const helps = b => !w || (w.cost > left ? true : SPOTS[b.spot].type === w.spot);                    // which ones would make room for what she wanted
+    for (const b of D.builds) { const c = CATBY[b.kind], card = mk('button', 'bd-card bd-down' + (helps(b) ? '' : ' dim')); card.setAttribute('aria-label', 'take down the ' + c.id);
       card.append(picImg(b), planks(c.cost), mk('span', 'bd-broom', '🧹'));
       press(card, () => { if (card.classList.contains('sure')) return menuDown(b, card); grid.querySelectorAll('.sure').forEach(n => { n.classList.remove('sure'); n.querySelector('.bd-broom').textContent = '🧹'; n.setAttribute('aria-label', n.getAttribute('aria-label').replace(' — sure?', '')); });
         card.classList.add('sure'); card.querySelector('.bd-broom').textContent = '❓'; card.setAttribute('aria-label', card.getAttribute('aria-label') + ' — sure?'); Audio2.blip(2, 'square', 0.08, 0.14); });
@@ -913,19 +923,19 @@
     switch (p.id) {
       case 'th_hatch': rect(x - 20, y - 31, 40, 20, '#8a6238'); rect(x - 18, y - 29, 36, 16, '#a9773f'); for (let i = 1; i < 4; i++) rect(x - 18 + i * 9, y - 29, 1, 16, '#8a6238'); rect(x - 3, y - 20, 6, 3, '#4a3120');
         rect(x - 20, y - 12, 40, 12, '#4a3120'); rect(x - 18, y - 11, 36, 10, '#241a12'); rect(x - 10, y - 20, 2, 16, '#d2b077'); rect(x + 8, y - 20, 2, 16, '#d2b077'); rect(x - 10, y - 14, 20, 2, '#a9773f'); rect(x - 10, y - 7, 20, 2, '#8a6238');
-        emoji('⬇️', x, y - 22 + Math.sin(t * 3) * 1.5, 8, 0.9); break;
-      case 'th_bell': { const a = t < T.bellT ? Math.sin((T.bellT - t) * 14) * 0.5 * (T.bellT - t) : Math.sin(t * 1.2) * 0.03; rect(x - 5, 34, 10, 3, '#5a3d26'); rect(x, 37, 1, 12, '#d2b077'); emoji('🔔', x + Math.sin(a) * 8, 57, 15, 1, a); rect(x + Math.sin(a) * 14, 66, 1, 14, '#d2b077'); rect(x - 1 + Math.sin(a) * 14, 80, 3, 4, col); break; }
+        em('⬇️', x, y - 22 + Math.sin(t * 3) * 1.5, 8, 0.9); break;
+      case 'th_bell': { const a = t < T.bellT ? Math.sin((T.bellT - t) * 14) * 0.5 * (T.bellT - t) : Math.sin(t * 1.2) * 0.03; rect(x - 5, 34, 10, 3, '#5a3d26'); rect(x, 37, 1, 12, '#d2b077'); em('🔔', x + Math.sin(a) * 8, 57, 15, 1, a); rect(x + Math.sin(a) * 14, 66, 1, 14, '#d2b077'); rect(x - 1 + Math.sin(a) * 14, 80, 3, 4, col); break; }
       case 'th_bucket': { const by = T.bucket ? T.bucket.y : 62; rect(x - 9, 34, 18, 3, '#5a3d26'); rect(x - 1, 37, 3, 6, '#5a3d26'); c.fillStyle = '#8d8f98'; c.beginPath(); c.arc(Math.round(x + 0.5 - E.camX), 46, 4, 0, 7); c.fill(); rect(x, 45, 1, 2, '#3a3a44'); rect(x + 3, 46, 1, Math.max(0, by - 56), '#d2b077');
-        if (by < 132) { if (T.bucket && T.bucket.ch) emoji(T.bucket.ch, x + 3, by - 13, 10); poly([[x - 4, by - 9], [x + 11, by - 9], [x + 9, by + 3], [x - 2, by + 3]], '#7d8794'); rect(x - 4, by - 9, 15, 2, '#aab3bf'); rect(x - 2, by + 1, 11, 2, '#5d6672'); rect(x - 3, by - 5, 13, 1, dk); } break; }
+        if (by < 132) { if (T.bucket && T.bucket.ch) em(T.bucket.ch, x + 3, by - 13, 10); poly([[x - 4, by - 9], [x + 11, by - 9], [x + 9, by + 3], [x - 2, by + 3]], '#7d8794'); rect(x - 4, by - 9, 15, 2, '#aab3bf'); rect(x - 2, by + 1, 11, 2, '#5d6672'); rect(x - 3, by - 5, 13, 1, dk); } break; }
       case 'th_wall': { const any = typeof Pics !== 'undefined' && Pics.walls.some(w => w.room === G.room); rect(66, 50, 100, 1, '#6b4423'); for (const sx of T.slots) { rect(sx - 1, 49, 2, 3, '#ffd23e'); }
-        if (!any) { rect(x - 17, 61, 34, 28, '#8a5a2e'); rect(x - 15, 63, 30, 24, '#fffaf0'); emoji('🖼️', x, 75, 12, 0.5 + Math.sin(t * 3) * 0.15); } else emoji('➕', 166, 58 + Math.sin(t * 3), 7, 0.8); break; }
+        if (!any) { rect(x - 17, 61, 34, 28, '#8a5a2e'); rect(x - 15, 63, 30, 24, '#fffaf0'); em('🖼️', x, 75, 12, 0.5 + Math.sin(t * 3) * 0.15); } else em('➕', 166, 58 + Math.sin(t * 3), 7, 0.8); break; }
       case 'th_bean': { const sq = t < T.sat ? 3 : 0; c.fillStyle = dk; c.beginPath(); c.ellipse(Math.round(x - E.camX), y - 10 + sq, 22, 12 - sq, 0, 0, 7); c.fill(); c.fillStyle = col; c.beginPath(); c.ellipse(Math.round(x - 1 - E.camX), y - 12 + sq, 20, 10 - sq, 0, 0, 7); c.fill(); c.fillStyle = 'rgba(255,255,255,.3)'; c.beginPath(); c.ellipse(Math.round(x - 6 - E.camX), y - 15 + sq, 9, 3, -0.3, 0, 7); c.fill(); rect(x + 9, y - 11 + sq, 5, 1, dk); break; }
       case 'th_scope': { c.strokeStyle = '#4a3120'; c.lineWidth = 2; const cx = x - E.camX; for (const dx of [-9, 0, 9]) { c.beginPath(); c.moveTo(cx, y - 30); c.lineTo(cx + dx, y); c.stroke(); }
         c.save(); c.translate(cx, y - 32); c.rotate(0.45); px(c, -20, -4, 30, 8, '#2a2230'); px(c, -19, -3, 28, 6, '#d8a23c'); px(c, -19, -3, 28, 2, '#f3cf74'); px(c, -22, -5, 5, 10, '#2a2230'); px(c, 8, -4, 4, 8, '#8a6238'); c.restore(); break; }
       case 'th_lamp': { const on = !!b.lamp; rect(x - 6, y - 38, 12, 2, '#5a3d26'); rect(x, y - 36, 1, 8, '#3a3a44'); if (on) { const g = c.createRadialGradient(x - E.camX, y - 14, 2, x - E.camX, y - 14, 34); g.addColorStop(0, 'rgba(255,214,120,.55)'); g.addColorStop(1, 'rgba(255,214,120,0)'); c.fillStyle = g; c.fillRect(x - 36 - E.camX, y - 50, 72, 72); }
-        rect(x - 6, y - 28, 13, 3, '#2a2230'); rect(x - 5, y - 25, 11, 16, on ? '#ffe9a0' : '#b7c3d0'); rect(x - 5, y - 25, 1, 16, '#2a2230'); rect(x + 5, y - 25, 1, 16, '#2a2230'); rect(x, y - 25, 1, 16, 'rgba(42,34,48,.5)'); rect(x - 7, y - 9, 15, 3, '#2a2230'); if (on) emoji('🔥', x + 0.5, y - 15 + Math.sin(t * 15) * 0.5, 7); break; }
+        rect(x - 6, y - 28, 13, 3, '#2a2230'); rect(x - 5, y - 25, 11, 16, on ? '#ffe9a0' : '#b7c3d0'); rect(x - 5, y - 25, 1, 16, '#2a2230'); rect(x + 5, y - 25, 1, 16, '#2a2230'); rect(x, y - 25, 1, 16, 'rgba(42,34,48,.5)'); rect(x - 7, y - 9, 15, 3, '#2a2230'); if (on) em('🔥', x + 0.5, y - 15 + Math.sin(t * 15) * 0.5, 7); break; }
       case 'th_shelf': { rect(x - 21, y - 62, 3, 62, '#6b4423'); rect(x + 18, y - 62, 3, 62, '#6b4423'); for (const sy of [y - 2, y - 30, y - 58]) { rect(x - 21, sy, 42, 3, '#8a5a2e'); rect(x - 21, sy, 42, 1, '#b98448'); } rect(x - 18, y - 60, 36, 58, 'rgba(90,60,40,.12)');
-        (b.toys || []).slice(0, 8).forEach((ch, i) => { if (ch === T.toyOut) return; emoji(ch, x - 14 + (i % 4) * 9.5, y - 8 - (i < 4 ? 28 : 0) + Math.sin(t * 2 + i) * 0.4, 9); }); break; }
+        (b.toys || []).slice(0, 8).forEach((ch, i) => { if (ch === T.toyOut) return; em(ch, x - 14 + (i % 4) * 9.5, y - 8 - (i < 4 ? 28 : 0) + Math.sin(t * 2 + i) * 0.4, 9); }); break; }
     }
     c.restore();
   }
@@ -934,7 +944,7 @@
     const nk = E.t < T.napT ? clamp(Math.min(T.napT - E.t, E.t - T.nap0) / 0.6, 0, 1) : 0, a = Math.max(b.lamp ? 0.4 : 0, nk * 0.6); if (a <= 0) return;
     c.fillStyle = 'rgba(14,12,52,' + a.toFixed(3) + ')'; c.fillRect(-10, -40, E.viewW + 20, SH + 60);
     if (b.lamp) { const x = 248 - E.camX, g = c.createRadialGradient(x, 66, 6, x, 66, 120); g.addColorStop(0, 'rgba(255,196,96,.34)'); g.addColorStop(1, 'rgba(255,196,96,0)'); c.fillStyle = g; c.fillRect(x - 120, -54, 240, 240); }
-    if (nk) emoji('🌙', E.camX + E.viewW - 40, 44, 16, nk);
+    if (nk) em('🌙', E.camX + E.viewW - 40, 44, 16, nk);
   }
   const busyFor = fn => async (...a) => { if (G.busy) return; UI.closeActions(); G.busy = true; try { await fn(...a); } catch (e) { warn('room', e); } S.actors.length = 0; marina.offY = 0; if (!['idle', 'cheer'].includes(marina.state)) { marina.state = 'idle'; marina.anim = null; } G.busy = false; };
   const ringBell = busyFor(async p => { await walkTo(p.x + 16); marina.dir = -1; playAnim('marina_reach', { fps: 12, proc: 'hug', dur: 0.5 }); await nap(0.3); T.bellT = E.t + 1.4;
@@ -973,7 +983,7 @@
       case 'th_bucket': return [A('🪣', () => pullBucket(p))];
       case 'th_wall': return [A('🖼️', galleryPick)];
       case 'th_bean': return [A('🪑', () => beanSit(p)), A('😴', () => beanSit(p, true))];
-      case 'th_scope': return [A('🔭', () => approach(p.x - 16, () => { UI.closeActions(); if (typeof TreeClimb !== 'undefined' && TreeClimb && TreeClimb.view) { try { TreeClimb.view({}); return; } catch (e) { warn('view', e); } } scopeView(); }, 0))];
+      case 'th_scope': return [A('🔭', () => approach(p.x - 16, () => { UI.closeActions(); if (typeof TreeClimb !== 'undefined' && TreeClimb && TreeClimb.view) { try { TreeClimb.view({ from: ROOMS[G.room].treehouse }); return; } catch (e) { warn('view', e); } } scopeView(); }, 0))];
       case 'th_lamp': return [A('💡', () => lampToggle(p))];
       case 'th_shelf': return [A('🧺', toyPicker)].concat(b ? (b.toys || []).slice(0, 8).map(ch => A(ch, () => playToy(p, ch))) : []);
     }
@@ -1032,7 +1042,8 @@
 .bd-card.off{filter:grayscale(.8);opacity:.5}
 .bd-tag{position:absolute;left:-5px;top:-8px;font-size:24px;line-height:1}
 .bd-broom{position:absolute;right:-7px;top:-9px;width:46px;height:46px;border-radius:50%;background:#fff;font-size:26px;line-height:46px;text-align:center;box-shadow:0 3px 0 rgba(0,0,0,.3)}
-.bd-down.sure{border-color:#ff6a6a;animation:wig .5s infinite}
+.bd-down.dim{opacity:.55}
+.bd-down.sure{border-color:#ff6a6a;animation:wig .5s infinite;opacity:1}
 .bd-down.sure .bd-broom{background:#ffcf4a;transform:scale(1.25)}
 .bd-down.gone{transition:transform .45s,opacity .45s;transform:scale(.15) rotate(50deg);opacity:0;animation:none}
 .bd-need{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;background:rgba(255,255,255,.14);border-radius:18px;padding:6px 12px;min-height:76px}
@@ -1043,14 +1054,14 @@
 .bd-prev{width:100%;height:100%;display:block;image-rendering:pixelated}
 .bd-opts{flex:none;display:flex;flex-direction:column;gap:8px;min-width:0}
 .bd-row{display:flex;gap:6px 8px;justify-content:center;align-items:center;flex-wrap:wrap;flex:none}
-.bd-cols{gap:2px;justify-content:space-between}
-.bd-sw{flex:none;width:60px;height:60px;border-radius:50%;border:4px solid #fff;box-shadow:0 4px 0 rgba(0,0,0,.3);padding:0;touch-action:manipulation}
+.bd-cols{gap:2px;justify-content:space-between;flex-wrap:nowrap}
+.bd-sw{flex:0 1 60px;min-width:0;aspect-ratio:1;border-radius:50%;border:4px solid #fff;box-shadow:0 4px 0 rgba(0,0,0,.3);padding:0;touch-action:manipulation}
 .bd-sw.sel{box-shadow:0 0 0 4px #ffcf4a,0 6px 0 3px rgba(0,0,0,.3);transform:scale(.9)}
 .bd-group{display:flex;gap:6px;padding:4px;border-radius:20px;background:rgba(255,255,255,.14)}
 .bd-opt{flex:none;width:60px;height:60px;border-radius:16px;background:#fff;box-shadow:0 4px 0 rgba(0,0,0,.3);padding:5px;font-size:30px;line-height:1;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
 .bd-opt.sel,.bd-opt.on{background:#ffcf4a;box-shadow:0 0 0 3px #fff,0 4px 0 3px rgba(0,0,0,.3)}
 .bd-opt img,.bd-opt canvas{width:100%;height:100%;object-fit:contain;image-rendering:pixelated;pointer-events:none}
-.bd-where{flex:none;display:flex;gap:8px;align-items:center;min-width:0}
+.bd-where{flex:none;display:flex;gap:8px;align-items:center;justify-content:center;min-width:0}
 .bd-map{flex:1 1 auto;min-width:0;height:98px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border-radius:16px;border:3px solid #fff;background:#86ad55}
 .bd-mapin{position:relative;height:92px}
 .bd-mapcv{display:block;image-rendering:pixelated}
@@ -1080,6 +1091,7 @@
         D.builds.push({ kind: b.kind, spot: b.spot, colour: COLOURS.includes(b.colour) ? b.colour : c.col, style: stylesOf(c).some(s => s[0] === b.style) ? b.style : stylesOf(c)[0][0], addons: (b.addons || []).filter(a => c.addons.includes(a)), toys: Array.isArray(b.toys) ? b.toys.filter(t => TOYS.includes(t)).slice(0, 8) : undefined, lamp: !!b.lamp || undefined }); } } } catch (e) { }
   const _sync = syncProps; syncProps = function () { _sync(); syncFloor(); }; syncProps();
   const API = { open, close, list: () => D.builds.map(b => ({ kind: b.kind, spot: b.spot, colour: b.colour, style: b.style, addons: (b.addons || []).slice() })), lumberLeft, has: kind => D.builds.some(b => b.kind === kind), onSay: null,
-    lumber: LUMBER, spots: SPOTS, catalogue: CAT.map(c => ({ id: c.id, cost: c.cost, spot: c.spot, ico: c.ico })) };
+    lumber: LUMBER, spots: SPOTS, catalogue: CAT.map(c => ({ id: c.id, cost: c.cost, spot: c.spot, ico: c.ico })),
+    draw: spot => { const p = PROPS.backyard.find(p => p.bl === 1 && p.b.spot === spot); if (p && G.room === 'backyard') drawBuilt(p); } };      // draw(spot): paint that thing again right now (for a file that draws tree foliage over it)
   window.Builder = API;
 })();

@@ -4,6 +4,12 @@
 //   Bricks.close()                        same as the ❌ (keeps the build, does not call onDone)
 //   Bricks.has(kind) / Bricks.count(kind) is there a saved build / how many pieces
 //   Bricks.drawModel(ctx, kind, x, y, h)  the saved build as a little model standing on (x, y), about h pixels tall
+//   Bricks.drawPieces(ctx, kind, pieces, x, y, h, {w})   ANY build ([[piece, colour, x, y], ...]) standing on (x, y), at most h tall / w wide in the
+//                                         context's own units, drawn in whole device pixels so it stays sharp at any size (the Lego shelf uses this)
+//   Bricks.picture(kind, pieces, maxW, maxH, maxStud)  a new canvas holding the build as large as fits (pixels)
+//   Bricks.pieces(kind) / blueprint(kind) / load(kind, pieces, bp)   what is on the plate now / put something else on it
+//   Bricks.tidy(kind, pieces)             pieces that really fit on the plate;  Bricks.stash()  lend the panel to another screen -> { resume(), drop() }
+// With legoshelf.js loaded a "keep" button (a picture of the shelf) appears once there is something worth keeping: a copy flies up to the shelf.
 // The plate is one small pixel canvas scaled up (a canvas, not buttons: calm.js cancels taps on buttons when the
 // finger moves, and here a moving finger paints). Everything else is picture buttons, because she cannot read.
 (function () {
@@ -26,11 +32,11 @@
     lego: { cols: 13, rows: 12, cell: 12, mx: 3, top: 5, bot: 8, pad: 3, ico: '🧱', letters: 'roygbpkw', minRows: 7,
       col: ['#e5352d', '#ff8a1c', '#ffd32a', '#35b84b', '#2b8cea', '#8b55e8', '#ff6fb7', '#f4f4ef'],
       pcs: [{ id: 'b1', w: 1 }, { id: 'b2', w: 2 }, { id: 'b3', w: 3 }, { id: 'b4', w: 4 }, { id: 'eye', w: 1 }, { id: 'sl', w: 1 }, { id: 'sr', w: 1 }, { id: 'win', w: 1 }, { id: 'whl', w: 1 }, { id: 'flw', w: 1 }],
-      cpr: 5, ppr: 5, first: 'b2', brick: ['', 'b1', 'b2', 'b3', 'b4'] },
+      cpr: 5, ppr: 5, first: 'b2', brick: ['', 'b1', 'b2', 'b3', 'b4'], keep: 4 },
     tiles: { cols: 8, rows: 8, cell: 20, mx: 3, top: 4, bot: 5, pad: 2, ico: '🔷', letters: 'rogbpk', minRows: 4,
       col: ['#ff4d6d', '#ffb627', '#2ee59d', '#3d9bff', '#b06cff', '#ff7ad9'],
       pcs: [{ id: 'sq', w: 1 }, { id: 'tbr', w: 1, tri: 'br' }, { id: 'tbl', w: 1, tri: 'bl' }, { id: 'ttl', w: 1, tri: 'tl' }, { id: 'ttr', w: 1, tri: 'tr' }],
-      cpr: 4, ppr: 5, first: 'sq', brick: ['', 'sq'] }
+      cpr: 4, ppr: 5, first: 'sq', brick: ['', 'sq'], keep: 3 }
   };
 
   // ------------------------------------------------------------------ blueprints (pictures to copy)
@@ -205,6 +211,48 @@
     const sm = ctx.imageSmoothingEnabled; ctx.imageSmoothingEnabled = false; ctx.drawImage(c, Math.round(x - c.width / 2), Math.round(y - c.height)); ctx.imageSmoothingEnabled = sm;
     return true;
   }
+  // ---- any build at any size (the Lego shelf). A list of pieces is looked at once and remembered, so treat a list as finished: hand over a new one when it changes.
+  const SEEN = new WeakMap();
+  function seen(K, pieces) {
+    const list = Array.isArray(pieces) ? pieces : []; let e = SEEN.get(list);
+    if (!e || e.K !== K || e.n !== list.length) { const pcs = clean(K, list.map(p => Array.isArray(p) ? p : p && typeof p === 'object' ? [p.t, p.c, p.x, p.y] : null)); e = { K, n: list.length, pcs, b: pcs.length ? bbox(K, pcs) : null, cv: {} }; SEEN.set(list, e); }
+    return e;
+  }
+  function model(K, e, u) {                           // the build as a picture, u pixels per stud: the little version below a real piece's size, the real pieces above
+    let c = e.cv[u]; if (c) return c; const b = e.b;
+    if (u < K.cell) c = mini(K, e.pcs, u, b.x0, b.y0, b.bw, b.bh);
+    else { const C = K.cell, P = K.pad, s = Math.ceil(u / C), o = document.createElement('canvas'); o.width = b.bw * C + P * 2; o.height = b.bh * C + P; const g = o.getContext('2d');
+      for (const p of e.pcs.slice().sort((a, q) => q.y - a.y)) g.drawImage(sprite(K, p.t, p.c), (p.x - b.x0) * C, (p.y - b.y0) * C);
+      c = o; if (s > 1) { c = document.createElement('canvas'); c.width = o.width * s; c.height = o.height * s; const g2 = c.getContext('2d'); g2.imageSmoothingEnabled = false; g2.drawImage(o, 0, 0, c.width, c.height); }
+      if (u !== s * C) { const big = c; c = document.createElement('canvas'); c.width = Math.max(1, Math.round(o.width * u / C)); c.height = Math.max(1, Math.round(o.height * u / C));      // an in-between size: the next whole size up, brought down smoothly
+        const g3 = c.getContext('2d'); g3.imageSmoothingEnabled = true; g3.imageSmoothingQuality = 'high'; g3.drawImage(big, 0, 0, c.width, c.height); } }
+    return (e.cv[u] = c);
+  }
+  // pixels per stud so the build fits W x H; `whole` = only whole multiples of the real pieces once they are that big (pin-sharp, for the close-up)
+  const studPx = (K, b, W, H, whole) => { let u = Math.floor(Math.min(H / Math.max(b.bh, K.minRows), W / b.bw)); if (whole && u >= K.cell) u = Math.floor(u / K.cell) * K.cell; return Math.max(1, u); };
+  function drawPieces(ctx, kind, pieces, x, y, h, o) {
+    const K = KINDS[kind]; if (!K || !ctx) return null; const e = seen(K, pieces); if (!e.b) return null;
+    const m = ctx.getTransform ? ctx.getTransform() : { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }, sc = Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) || 1;
+    h = Math.max(1, +h || 20); const c = model(K, e, studPx(K, e.b, ((o && o.w) || h * 1.25) * sc, h * sc));
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false; if (o && o.alpha != null) ctx.globalAlpha *= o.alpha;
+    ctx.drawImage(c, Math.round(m.a * x + m.c * y + m.e - c.width / 2), Math.round(m.b * x + m.d * y + m.f - c.height)); ctx.restore();
+    return { w: c.width / sc, h: c.height / sc };
+  }
+  function picture(kind, pieces, maxW, maxH, maxStud) {      // a new canvas: the build as large as fits maxW x maxH pixels (a stud no bigger than maxStud)
+    const K = KINDS[kind], c = document.createElement('canvas'); c.width = c.height = 1; if (!K) return c; const e = seen(K, pieces); if (!e.b) return c;
+    let u = studPx(K, e.b, Math.max(1, maxW || 64), Math.max(1, (maxH || maxW || 64) * Math.max(e.b.bh, K.minRows) / e.b.bh), true);      // a picture fills its box: a low build is not kept small here
+    if (maxStud && u > maxStud) u = Math.max(K.cell, Math.floor(maxStud / K.cell) * K.cell);
+    const src = model(K, e, u); c.width = src.width; c.height = src.height; c.getContext('2d').drawImage(src, 0, 0); return c;
+  }
+  const tidy = (kind, pieces) => KINDS[kind] ? pack(seen(KINDS[kind], pieces).pcs) : [];
+  const livePieces = kind => S && S.kind === kind ? S.pieces : savedPieces(kind);
+  function blueprint(kind) { if (S && S.kind === kind) return S.bp ? S.bp.id : null; const sv = read()[kind]; return sv && typeof sv.bp === 'string' ? sv.bp : null; }
+  function load(kind, pieces, bp) {                   // put a build on the plate (it replaces what is there; the builder shows it at once if it is open)
+    const K = KINDS[kind]; if (!K) return false; const pcs = clean(K, tidy(kind, pieces)), b = K.bps.find(q => q.id === bp) || null;
+    if (S && S.kind === kind) { stopAuto(); pushUndo(); S.pieces = pcs; S.bp = b; rebuild(); S.was = complete(); S.hers = pcs.length > 0; persist(); sync(); }
+    else { const st = read(true); st[kind] = { v: 1, p: pack(pcs), bp: b ? b.id : null, ok: 0 }; write(); }
+    return true;
+  }
 
   // ------------------------------------------------------------------ sound (all optional)
   const au = () => (typeof Audio2 !== 'undefined' && Audio2) || null;
@@ -271,6 +319,17 @@
 .bk-strip .bk-tools>*{flex:1 0 60px}
 .bk-narrow{justify-content:flex-start}
 .bk-narrow .bk-grp{grid-template-columns:repeat(auto-fill,minmax(60px,1fr));grid-auto-rows:60px;flex:0 0 auto;max-height:none}
+.bk-keep{background:#ffe08a;width:60px;height:60px;flex:0 0 auto;border-radius:18px;animation:bk-pop .3s both,bk-nudge 3.4s 1.4s ease-in-out infinite;touch-action:manipulation}
+@keyframes bk-nudge{0%,84%,100%{transform:none}88%{transform:rotate(-7deg) scale(1.06)}92%{transform:rotate(6deg) scale(1.06)}96%{transform:rotate(-3deg)}}
+.bk-top .ttl{display:flex;align-items:center;justify-content:center;min-width:0}
+.bk-keep canvas{width:48px;max-width:none;image-rendering:auto}
+.bk-keep.bk-hop{animation:bk-hop .26s 4 alternate}
+@keyframes bk-pop{from{transform:scale(.3)}60%{transform:scale(1.14)}}
+.bk-tools.bk-two{grid-template-columns:minmax(0,1fr) 76px}
+.bk-narrow .bk-tools.bk-two{grid-template-columns:repeat(auto-fill,minmax(60px,1fr))}
+.bk-tools.bk-two .bk-keep{width:auto;height:auto}
+.bk-fly{position:fixed;z-index:70;pointer-events:none;image-rendering:pixelated;transform-origin:50% 50%;filter:drop-shadow(0 6px 0 rgba(0,0,0,.25))}
+.bk-star{position:fixed;z-index:71;pointer-events:none;font-size:22px;line-height:1;text-shadow:0 0 6px #fff6a8}
 `;
     document.head.append(s);
   }
@@ -288,7 +347,8 @@
     // top row: ❌ first (the sideways ❌ and the rest of the game look for it there), picture title, undo, clear
     const top = S.top = mk('div', 'ptop bk-top');
     S.undoB = tap('pbtn', '↩️', 'undo', undo);
-    top.append(tap('pbtn', '❌', 'close', () => finish(false)), mk('div', 'ttl', K.ico), S.undoB, tap('pbtn', '🗑️', 'clear', clearTap));
+    const ttl = S.ttl = mk('div', 'ttl'); ttl.append(S.ico = mk('span', '', K.ico));
+    top.append(tap('pbtn', '❌', 'close', () => finish(false)), ttl, S.undoB, tap('pbtn', '🗑️', 'clear', clearTap));
     const body = S.body = mk('div', 'bk-body bk-' + kind), stage = S.stage = mk('div', 'bk-stage'), cv = S.cv = mk('canvas', 'bk-cv');
     cv.width = K.LW; cv.height = K.LH; S.g = cv.getContext('2d'); S.g.imageSmoothingEnabled = false;
     // pictures to copy
@@ -307,6 +367,7 @@
     if (opts && opts.partner) {                        // someone building with her: their round face on the corner of the plate takes a turn when tapped
       const pt = opts.partner, b = S.partB = tap('bk-partner', pt.ico || '🙋', 'partner turn', () => { const r = help(pt.n || 2); try { pt.onTurn && pt.onTurn(r); } catch (e) { } });
       try { pt.paint && pt.paint(b); } catch (e) { } stage.append(b); }
+    if (window.LegoShelf && typeof LegoShelf.keep === 'function') { const b = S.keepB = tap('bk-b bk-keep bk-off', '', 'keep on the shelf', keepTap); b.append(S.keepC = mk('canvas')); }      // a copy onto the shelf in Nunu's living room
     body.append(stage, side); panel.append(top, body);
     rebuild(); S.was = complete(); layout(); sync(); bind();
     S.onResize = () => { layout(); clearTimeout(S.rzT); const st = S; S.rzT = setTimeout(() => { if (S === st) layout(); }, 320); };
@@ -320,7 +381,7 @@
 
   // the plate as large as it can be: colours and pieces below it when upright, beside it when sideways
   function layout() {
-    if (!S) return; const K = S.K, land = innerWidth > innerHeight, asp = K.LW / K.LH, M = 4, SP = 8;
+    if (!S || S.away) return; const K = S.K, land = innerWidth > innerHeight, asp = K.LW / K.LH, M = 4, SP = 8;
     S.top.classList.toggle('bk-land', land); S.body.classList.toggle('bk-land', land); S.side.classList.remove('bk-strip', 'bk-narrow');
     const W = S.body.clientWidth, H = S.body.clientHeight, rows = Math.ceil((K.col.length + 2) / K.cpr) + Math.ceil(K.pcs.length / K.ppr);
     let pw, ph, strip = false;
@@ -341,6 +402,8 @@
     d.classList.toggle('pbtn', !land); d.classList.toggle('go', !land); d.classList.toggle('bk-b', land); d.classList.toggle('bk-go', land);
     const ideas = strip ? S.gt : S.gc; if (S.bpB.parentNode !== ideas) ideas.append(S.bpB, S.diceB);
     S.gt.classList.toggle('bk-off', !land && !strip);
+    // the shelf button: in the middle of the top row when upright (the toy's picture makes way for it), beside ✅ when sideways
+    const kb = S.keepB; if (kb) { const kh = land ? S.gt : S.ttl; if (kb.parentNode !== kh) kh.append(kb); keepVis(); }
   }
   function sync() {
     if (!S) return; const K = S.K;
@@ -351,6 +414,7 @@
       c.style.width = Math.round(s.width * (K.name === 'lego' ? [0, 2.6, 2.2, 1.6, 1.25][K.byId[b.dataset.id].w] : 2.1)) + 'px'; });
     S.iconCol = S.color; S.undoB.disabled = !S.undo.length;
     S.bpB.textContent = S.bp ? S.bp.ico : '💡'; S.bpB.classList.toggle('on', !!S.bp); S.diceB.classList.toggle('bk-roll', !!S.auto);
+    keepVis();
   }
 
   // ---------------------------------------------------------------- pieces on the plate
@@ -370,7 +434,7 @@
   function pushUndo() { S.undo.push(JSON.stringify(pack(S.pieces))); if (S.undo.length > 40) S.undo.shift(); S.undoB.disabled = false; }
   function touch() { clearTimeout(S.saveT); const st = S; S.saveT = setTimeout(() => { if (S === st) persist(); }, 400); }
   function persist() { if (!S) return; clearTimeout(S.saveT); const st = read(true); st[S.kind] = { v: 1, p: pack(S.pieces), bp: S.bp ? S.bp.id : null, ok: complete() ? 1 : 0 }; write(); }
-  function after() { const c = complete(); if (c && !S.was) celebrate(); S.was = c; touch(); }
+  function after() { const c = complete(); if (c && !S.was) celebrate(); S.was = c; touch(); keepVis(); }
   const cellX = (K, q) => K.mx + q * K.cell, cellY = (K, r) => K.top + r * K.cell;
   function put(t, c, x, y) {
     const K = S.K, now = performance.now(); S.pieces.push({ t, c, x, y, t0: now }); rebuild(); placeSound(K, y);
@@ -464,9 +528,58 @@
     S.doneB.classList.remove('bk-hop'); void S.doneB.offsetWidth; S.doneB.classList.add('bk-hop');
   }
 
+  // ---------------------------------------------------------------- keeping a creation: a copy flies up to the shelf
+  // the button is a picture of the shelf; it is only there when the plate holds enough pieces and this very build is not on the shelf already
+  function keepVis() {
+    const kb = S && S.keepB; if (!kb) return; const L = window.LegoShelf, land = S.body.classList.contains('bk-land'); let on = !!S.keeping;
+    if (!on && L && !S.auto && S.pieces.length >= S.K.keep) { try { on = !L.has(S.kind, pack(S.pieces)); } catch (e) { } }
+    const was = !kb.classList.contains('bk-off'); kb.classList.toggle('bk-off', !on); S.ico.classList.toggle('bk-off', on && !land); S.gt.classList.toggle('bk-two', on && land);
+    if (on) paintKeep();
+  }
+  function paintKeep() { try { LegoShelf.icon(S.keepC, { kind: S.kind, pieces: pack(S.pieces), hold: !S.landed }); } catch (e) { } }      // her model in a little shelf box: faint until it has landed there
+  function keepTap() {
+    const L = window.LegoShelf; if (!L || !S || S.keeping || S.pieces.length < S.K.keep) return; stopAuto(); persist();
+    let r = null; try { r = L.keep(S.kind); } catch (e) { }
+    if (r === false) { blip(-9, 'triangle', 0.16, 0.13); try { L.open({ full: true, pending: S.kind }); } catch (e) { } return; }      // no room left: the big shelf opens so she can take one off first
+    if (r) flyUp(); else keepVis();
+  }
+  function burst(el) {                                // stars pop out of a button
+    const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    for (let i = 0; i < 9; i++) { const s = mk('div', 'bk-star', i % 3 ? '✨' : '⭐'), a = i / 9 * 6.283 + Math.random() * 0.5, d = 44 + Math.random() * 34; s.style.left = cx + 'px'; s.style.top = cy + 'px'; document.body.append(s);
+      const an = s.animate ? s.animate([{ transform: 'translate(-50%,-50%) scale(.3)', opacity: 1 }, { transform: `translate(calc(-50% + ${(Math.cos(a) * d).toFixed(1)}px),calc(-50% + ${(Math.sin(a) * d).toFixed(1)}px)) scale(1.15)`, opacity: 0 }], { duration: 650 + Math.random() * 350, easing: 'ease-out' }) : null;
+      if (an) an.onfinish = () => s.remove(); else setTimeout(() => s.remove(), 600); }
+  }
+  function flyUp() {                                  // the model lifts off the plate, shrinks and lands in the shelf picture; the plate itself stays as it is
+    const st = S, K = S.K, kb = S.keepB, now = performance.now(); S.keeping = true; S.landed = false; keepVis(); whoosh(true); S.wig = now;
+    for (const p of S.pieces) if (Math.random() < 0.35) S.fx.push({ spark: 1, x: cellX(K, p.x) + 2 + (Math.random() * (K.cell - 4) | 0), y: cellY(K, p.y) + 2 + (Math.random() * (K.cell - 4) | 0), c: Math.random() < 0.5 ? '#ffffff' : '#fff3a0', t0: now + Math.random() * 700, life: 0.5 });
+    const land = () => {
+      if (S !== st) return; st.landed = true; paintKeep(); jingle([7, 12, 16, 19, 24], 0.07); popSound(); kb.classList.remove('bk-hop'); void kb.offsetWidth; kb.classList.add('bk-hop'); burst(kb);
+      setTimeout(() => { if (S !== st) return; st.keeping = st.landed = false; kb.classList.remove('bk-hop'); keepVis(); }, 1500);
+    };
+    let f = null;
+    try {
+      const b = bbox(K, S.pieces), r = S.cv.getBoundingClientRect(), k = r.width / K.LW, src = picture(S.kind, pack(S.pieces), b.bw * K.cell, b.bh * K.cell), t = kb.getBoundingClientRect();
+      f = src; f.className = 'bk-fly'; const w = f.width * k, h = f.height * k, x = r.left + (cellX(K, b.x0) - K.pad) * k, y = r.top + (cellY(K, b.y0) - K.pad) * k;
+      f.style.left = x + 'px'; f.style.top = y + 'px'; f.style.width = w + 'px'; f.style.height = h + 'px'; document.body.append(f);
+      const dx = t.left + t.width / 2 - (x + w / 2), dy = t.top + t.height / 2 - (y + h / 2), z = Math.min(1, 30 / Math.max(w, h));
+      const an = f.animate([{ transform: 'translate(0,0) scale(1)', offset: 0, easing: 'ease-out' }, { transform: 'translate(0,-16px) scale(1.07)', offset: 0.28, easing: 'cubic-bezier(.5,0,.4,1)' }, { transform: `translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px) scale(${z.toFixed(3)})`, opacity: 1, offset: 0.93 }, { transform: `translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px) scale(${(z * 0.4).toFixed(3)})`, opacity: 0, offset: 1 }], { duration: 950, fill: 'forwards' });
+      an.onfinish = an.oncancel = () => { f.remove(); land(); };
+    } catch (e) { if (f) f.remove(); land(); }
+  }
+  // another screen borrows the panel for a moment (the big shelf, when it is full): nothing is lost, and resume() puts the builder back as it was
+  function stash() {
+    if (!S || S.away) return null; const st = S; stopAuto(); persist(); st.away = true; cancelAnimationFrame(st.raf); st.ptr = null; st.top.remove(); st.body.remove();
+    return {
+      resume() { if (S !== st || !st.away) return false; st.away = false; st.panel.innerHTML = ''; st.panel.classList.remove('hidden'); st.panel.append(st.top, st.body);
+        const sv = read(true)[st.kind] || {}, was = JSON.stringify(pack(st.pieces)); st.pieces = clean(st.K, sv.p); if (JSON.stringify(pack(st.pieces)) !== was) { st.undo.push(was); st.bp = st.K.bps.find(b => b.id === sv.bp) || null; st.hers = st.pieces.length > 0; }
+        rebuild(); st.was = complete(); layout(); sync(); st.raf = requestAnimationFrame(frame); return true; },
+      drop() { if (S !== st) return; persist(); teardown(); if (typeof st.opts.onClose === 'function') st.opts.onClose(); }      // the panel went to something else: just tidy up
+    };
+  }
+
   // ---------------------------------------------------------------- drawing the plate
   function frame(now) {
-    if (!S) return;
+    if (!S || S.away) return;
     if (!S.body.isConnected || S.panel.classList.contains('hidden')) { const st = S; persist(); teardown(); try { if (typeof setMusic === 'function') setMusic(); } catch (e) { } if (typeof st.opts.onClose === 'function') st.opts.onClose(); return; }   // something else closed the panel
     draw(now); S.raf = requestAnimationFrame(frame);
   }
@@ -527,5 +640,6 @@
       grid: { cols: S.K.cols, rows: S.K.rows, cell: S.K.cell, mx: S.K.mx, top: S.K.top, LW: S.K.LW, LH: S.K.LH }, ghost: S.bp ? Array.from(S.bp.cells.keys()) : [], ideas: S.K.bps.map(b => ({ id: b.id, ico: b.ico, pieces: pack(b.pieces) })) };
   }
 
-  window.Bricks = { open, close: () => finish(false), has, count, drawModel, state, help, get active() { return !!S; } };
+  window.Bricks = { open, close: () => finish(false), has, count, drawModel, state, help, get active() { return !!S; },
+    drawPieces, picture, tidy, pieces: kind => pack(livePieces(kind)), blueprint, load, stash, minKeep: kind => (KINDS[kind] || {}).keep || 1 };
 })();

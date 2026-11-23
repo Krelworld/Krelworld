@@ -123,8 +123,8 @@
 
   function buildTree(kind) {
     const K = KIND[kind], r = rng(kind === 'oak' ? 11 : 23), xs = clamp((S.VW - 40) / 230, 0.66, 1), n = K.plan.length;
-    const T = { kind, K, n, step: K.step, H: n * K.step, xs, nodes: [], br: [], toys: [], cols: [], canopy: [], lv: [], birds: [], rope: null };
-    T.tip = T.H + (kind === 'pine' ? 46 : 8);
+    const T = { kind, K, n, step: K.step, H: n * K.step, xs, nodes: [], br: [], toys: [], cols: [], canopy: [], lv: [], rope: null };
+    T.tip = T.H + (kind === 'pine' ? 88 : 8);
     T.hw = h => lerp(K.w0, K.w1, Math.pow(clamp(h / T.tip, 0, 1), K.taper)) / 2 * (h > T.H ? Math.max(0.25, 1 - (h - T.H) / (T.tip - T.H + 1) * 0.8) : 1) + 9 * Math.exp(-Math.max(0, h) / 12);
     const limb = (lv, side, len, rise, th, deco) => { const b = { side, len, rise, th, h0: lv * K.step - rise * 0.75, dip: 0, v: 0, load: 0, wob: 0, wobT: 0, lv, leaves: [], deco, ph: r() * 9 }; T.br.push(b); return b; };
     K.plan.forEach((specs, i) => {
@@ -142,7 +142,7 @@
     });
     // leaves
     for (const b of T.br) {
-      if (kind === 'oak') { const m = b.deco ? 1 : 2; for (let j = 0; j < m; j++) b.leaves.push({ t: (b.deco ? 0.9 : 0.94) + j * 0.24 + r() * 0.06, k: OAKLEAF[(r() * OAKLEAF.length) | 0], up: 2 + r() * 10, ph: r() * 9, front: j === m - 1 && r() < 0.4 }); }
+      if (kind === 'oak') { const m = b.deco ? 1 : 2; for (let j = 0; j < m; j++) b.leaves.push({ t: (b.deco ? 0.9 : 0.94) + j * 0.24 + r() * 0.06, k: OAKLEAF[(r() * OAKLEAF.length) | 0], up: 2 + r() * 10, ph: r() * 9, front: !!b.deco && r() < 0.5 }); }
       else { const m = b.len > 60 ? 3 : b.len > 36 ? 2 : 1; for (let j = 0; j < m; j++) b.leaves.push({ t: 0.42 + j * 0.3 + r() * 0.08, k: r() < 0.88 ? 'pine_a' : 'pine_b', up: -3 + r() * 3, ph: r() * 9 }); }
     }
     if (kind === 'oak') for (let i = 0; i < 64; i++) {              // the great crown behind everything, thickest out at the sides
@@ -172,7 +172,7 @@
       else if (t === 'woodpecker') { toy.x = () => T.hw(nd.h0 + 60) + 3; toy.h = () => nd.h0 + 52; toy.beat = 3; }
       else if (t === 'kite' || t === 'balloon') { toy.x = () => nd.x + nd.side * 16; toy.h = () => nodeH(nd) + 66; }
       else { const ax = clamp(nd.ax + out * (t === 'raccoon' ? 30 : 23), T.hw(nd.lv * K.step) + 12, nd.br.len - 4); toy.x = () => nd.side * ax; toy.h = () => brTop(nd.br, ax); toy.ax = ax; }
-      if (t === 'rope') { toy.px = 0; toy.ph_ = nd.lv * K.step + 128; T.rope = toy; toy.to = T.lv[nd.lv].find(q => q.hidden); }
+      if (t === 'rope') { toy.ph_ = nd.lv * K.step + 128; T.rope = toy; toy.to = T.lv[nd.lv].find(q => q.hidden); }
       if (t === 'nest') toy.chicks = kind === 'pine';
       T.toys.push(toy);
     }
@@ -196,11 +196,10 @@
 #panel>.tc-top.tc-land{position:absolute;left:calc(8px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));width:60px;flex-direction:column;gap:6px;z-index:2}
 #panel>.tc-top.tc-land .tc-gap{display:none}
 #panel>.tc-body.tc-land{margin:0 0 0 68px}
-.tc-pick{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:28px;pointer-events:none}
+.tc-pick{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:112px;padding-top:9%;pointer-events:none}
 .tc-pick button{pointer-events:auto;width:96px;height:96px;margin:0;padding:0;border-radius:50%;border:5px solid #fff;background:#ffe9a8;font-size:48px;line-height:1;box-shadow:0 6px 0 rgba(0,0,0,.35);animation:tc-in .35s both,tc-bob .7s .35s infinite alternate ease-in-out}
 .tc-pick button+button{background:#ffc9a0;animation-delay:.12s,.7s}
 .tc-pick button:active{transform:scale(.94)}
-.tc-go{background:#7bd36b!important}
 .tc-nudge{animation:tc-bob .5s 6 alternate ease-in-out}
 @keyframes tc-in{from{opacity:0;transform:scale(.3)}}
 @keyframes tc-bob{to{transform:translateY(-8px) scale(1.05)}}
@@ -217,7 +216,7 @@
     try { clearWish(); } catch (e) { }
     addCss(); voIndex(); panel.innerHTML = ''; panel.classList.remove('hidden');
     const kind = KIND[opts.tree] ? opts.tree : 'oak';
-    S = { mode, opts, kind, panel, t: 0, last: 0, phase: 'load', fx: [], timers: [], gust: 0, speed: 0, said: {}, got: [], best: 0, reached: false, done: false, VW: 190, VH: 190, sc: 2, AY: 110, cam: { x: 0, h: 0, vx: 0, vh: 0 }, hint: 0, shake: 0, flash: 0, iris: null };
+    S = { mode, opts, kind, panel, t: 0, last: 0, phase: 'load', fx: [], timers: [], gust: 0, speed: 0, said: {}, got: [], best: 0, reached: false, VW: 190, VH: 190, sc: 2, AY: 110, cam: { x: 0, h: 0, vx: 0, vh: 0 }, hint: 0, shake: 0, iris: null };
     S.from = mode === 'view' ? (['oak', 'pine', 'house'].includes(opts.from) ? opts.from : 'oak') : kind;
     // top row: ❌ first (the sideways ❌ and the rest of the game look for it there); the view adds its picture buttons after it
     const top = S.top = mk('div', 'ptop tc-top'); S.xB = btn('pbtn', '❌', 'close', quit); top.append(S.xB, mk('div', 'tc-gap'));
@@ -273,7 +272,7 @@
   function bind() {
     const cv = S.cv, at = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * S.VW, y: (e.clientY - r.top) / r.height * S.VH }; };
     cv.addEventListener('pointerdown', e => {
-      e.preventDefault(); if (!S || e.isPrimary === false || e.button > 0) return; const p = at(e); S.idleAll = 0;
+      e.preventDefault(); if (!S || e.isPrimary === false || e.button > 0) return; const p = at(e);
       try { const c = ac(); if (c && c.state === 'suspended') c.resume(); } catch (err) { }
       if (S.phase === 'view') { try { cv.setPointerCapture(e.pointerId); } catch (err) { } S.ptr = { id: e.pointerId, x0: e.clientX, lx: e.clientX, moved: 0, t: S.t, p }; S.V.vel = 0; return; }
       if (S.phase === 'climb') tapClimb(p); else if (S.phase === 'leaf') steer(p); else if (S.phase === 'topfx' && S.t - S.topAt > 1.2) S.topSkip = true;
@@ -413,7 +412,7 @@
     else if (t === 'kite' || t === 'balloon') { if (toy.st) return; toy.st = 1; toy.t = 0; tone(500, 1500, 1.1, 'sine', 0.07); if (arrived) { const n = toy.nd; S.M.busy = true; push({ d: 0.5, f: k => { M.pose = 'reach'; M.ft = Math.min(4, k * 8); M.flip = n.side < 0; }, end: () => { M.pose = 'stand'; } }); } leaves(x, h - 6, 6, 12); rustle(0.1); }
     else if (t === 'treasure') { if (toy.st) return; toy.st = 1; toy.t = 0; jingle([0, 4, 7, 12, 16], 0.07, 'triangle'); speak('m_found', 5); sparkle(x, h + 20, 14); after(1.0, () => { if (S) { S.got.push('chest'); sparkle(x, h + 20, 8); } }); }
     else if (t === 'web') { const i = arrived ? -1 : toy.pick || 0; if (i < 0) for (let j = 0; j < 5; j++) { after(j * 0.09, () => { if (S) { toy.str[j] = 1; blip([0, 2, 4, 7, 9][j] + 5, 'triangle', 0.5, 0.11); } }); } else { toy.str[i] = 1; blip([0, 2, 4, 7, 9][i] + 5, 'triangle', 0.6, 0.14); } sparkle(x, h, 3, '#bfe9ff'); }
-    else if (t === 'woodpecker') { if (arrived) { toy.listen = 1; toy.taps = 0; toy.next = 0.3; } else if (toy.drum) drumTap(toy); else toy.next = 0; }
+    else if (t === 'woodpecker') { if (arrived) { toy.taps = 0; toy.next = 0.3; } else if (toy.drum) drumTap(toy); else toy.next = 0; }
     else if (t === 'rope' && arrived) ropeSwing(toy);
   }
   function drumTap(toy) {                                       // she copies the woodpecker's knock on the trunk
@@ -648,7 +647,7 @@
   }
   function drawTop(g) {
     const T = S.T, n = T.nodes[T.nodes.length - 1], t = T.topT;
-    if (T.K.top === 'bell') { const bh = T.tip - 6, sw = t != null ? Math.sin(t * 9) * 0.5 * Math.max(0, 1 - t / 3) : Math.sin(S.t * 1.5) * 0.06 * wind(bh); put(g, 'bell', X(wx(0, bh)) + 1, Y(bh) + 30, { rot: sw, sx: 0.8, sy: 0.8 }); if (t != null && t < 2.5 && Math.sin(t * 9) > 0.9) sparkle(wx(0, bh), bh - 14, 1); }
+    if (T.K.top === 'bell') { const bh = T.tip - 6, sw = t != null ? Math.sin(t * 9) * 0.5 * Math.max(0, 1 - t / 3) : Math.sin(S.t * 1.5) * 0.06 * wind(bh); put(g, 'bell', X(wx(0, bh)) + 1, Y(bh) + 22, { rot: sw, sx: 0.8, sy: 0.8 }); if (t != null && t < 2.5 && Math.sin(t * 9) > 0.9) sparkle(wx(0, bh), bh - 10, 1); }
     else if (t != null) { const k = clamp(t / 0.5, 0, 1), x = X(wx(n.x + 14, T.H)), y = Y(T.H), len = Math.round(34 * back(k)); px(g, x, y - len, 2, len, '#f4ecd8'); px(g, x, y - len - 2, 2, 2, '#ffd76a');
       if (k >= 1) for (let i = 0; i < 16; i++) { const wv = Math.sin(S.t * 8 - i * 0.6) * (1 + i * 0.12) * (0.6 + wind(T.H) * 0.4); px(g, x + 2 + i, y - len + 1 + wv, 1, 11 - (i > 11 ? (i - 11) * 2 : 0), i % 5 === 2 ? '#ffffff' : '#ff5fa8'); } }
   }
@@ -658,11 +657,12 @@
     const M = S.M, T = S.T; if (M.hide) return; const hd = hands(M.pose), h = M.h, x = X(wx(M.x, h)), y = Y(h), w = wind(h);
     const lean = (hd || M.busy) ? 0 : Math.sin(S.t * 1.3) * 0.02 * w, bob = (!M.busy && M.pose === 'stand') ? Math.sin(S.t * 2.4) * 0.012 : 0;
     // hair blowing in the wind (more the higher she is)
-    const blow = () => { if (w < 0.3 || M.pose === 'sit') return; const hx = x + (M.flip ? 3 : -3), hy = y - (hd ? -22 : 46), n = 2 + (w > 0.7 ? 1 : 0); for (let s = 0; s < n; s++) for (let i = 0; i < 4 + w * 6; i++) { const yy = hy + s * 4 + Math.sin(S.t * 9 + i * 0.7 + s) * (1 + i * 0.22) * Math.min(1.6, w); px(g, hx + 9 + i, yy, 1, 1, i % 3 ? '#ffb479' : '#ad6b3a'); } };
+    const blow = () => { if (w < 0.28) return; const hx = x + (M.flip ? 3 : -3) + 11, hy = y - (hd ? -24 : M.pose === 'sit' ? 30 : 44), n = 2 + (w > 0.7 ? 1 : 0), len = 5 + Math.min(1.6, w) * 9; for (let s = 0; s < n; s++) for (let i = 0; i < len; i++) { const yy = hy + s * 5 + Math.sin(S.t * 9 + i * 0.6 + s * 2) * (0.6 + i * 0.25) * Math.min(1.6, w) + i * 0.25; px(g, hx + i, yy, 1, i < 4 ? 2 : 1, (i + s) % 4 ? '#ffb479' : '#ad6b3a'); if (i === Math.floor(len) - 1) px(g, hx + i, yy, 2, 2, '#5aa0e0'); } };
     if (S.leafOn) put(g, 'giantleaf', x, y + 4, { rot: M.rot * 0.6 + Math.sin(S.t * 3) * 0.05, sx: 1.25, sy: 1.25 });
     if (M.pose === 'sit') {                                     // sitting on the limb, legs dangling and kicking
       put(g, 'm_sit', x, y, { flip: M.flip }); for (const [ox, ph] of [[-5, 0], [3, 1.6]]) { const k = Math.sin(S.t * 3.2 + ph) * 2.5; px(g, x + ox, y - 1, 5, 4, '#4b4d5c'); px(g, x + ox + (k > 1 ? 1 : 0), y + 3, 4, 9, '#3e4050'); px(g, x + ox + k * 0.6, y + 11, 6, 3, '#d6336c'); px(g, x + ox + k * 0.6, y + 13, 6, 1, '#ffffff'); }
-    } else { blow(); put(g, frameOf(M), x, y, { flip: M.flip, sx: M.sx, sy: M.sy + bob, rot: M.rot + lean }); }
+    } else { put(g, frameOf(M), x, y, { flip: M.flip, sx: M.sx, sy: M.sy + bob, rot: M.rot + lean }); }
+    if (!M.rot || Math.abs(M.rot) < 0.2) blow();
     const hb = M.head; if (hb) put(g, 'robin', X(wx(hb.x, hb.h)), Y(hb.h) + (hb.st === 'on' ? -Math.abs(Math.sin(hb.t * 5)) * 1.5 : Math.sin(hb.t * 20) * 2), { flip: hb.st === 'in' ? false : Math.sin(hb.t * 0.7) > 0, sx: 0.8, sy: 0.8 });
   }
   // the picture meter: a little tree with her face rising up it; and the heap of things she has found
@@ -703,7 +703,7 @@
     V.boats = [[408, 13, 0], [418, 17, 1], [427, 12, 2], [436, 19, 0], [446, 14, 1], [455, 18, 2], [465, 12, 0], [474, 16, 1], [486, 19, 2], [497, 14, 0], [432, 23, 1], [470, 22, 0]];
     S.phase = 'view'; S.ptr = null; viewLayout();
     V.todB = btn('pbtn', TOD[0].ico, 'time of day', nextTod); S.top.append(V.todB);
-    if (fromClimb) { V.downB = btn('pbtn tc-go', '⬇️', 'down', choose); S.top.append(V.downB); S.iris = { x: S.VW / 2, y: S.VH * 0.4, k: 0 }; whoosh(true); }
+    if (fromClimb) { V.downB = btn('pbtn go', '⬇️', 'down', choose); S.top.append(V.downB); S.iris = { x: S.VW / 2, y: S.VH * 0.4, k: 0 }; whoosh(true); }
     jingle([0, 7, 12, 16], 0.09, 'triangle'); after(0.9, () => S && line('m_tree_sea', 'm_look', 0)); after(1.5, () => S && S.V && SND.gull());
   }
   function closeView() { const V = S.V; if (!V) return; if (V.todB) V.todB.remove(); if (V.downB) V.downB.remove(); S.V = null; S.iris = null; loopSet('sea', 0, 400); }
@@ -852,5 +852,6 @@
     if (S.V) { const V = S.V; o.az = V.az; o.tod = V.tod; o.binoc = V.binoc ? V.binoc.sp.id : null; o.spots = SPOTS.map(sp => { const q = spotPos(sp); return { id: sp.id, vis: q.x > 4 && q.x < S.VW - 4, ...toCss(q.x, q.y) }; }); }
     return o;
   }
+  const warm = setInterval(() => { try { if (IMG) clearInterval(warm); else if (typeof G !== 'undefined' && G && G.room === 'backyard') loadArt(); } catch (e) { } }, 2500);
   window.TreeClimb = { open: o => start('climb', o), view: o => start('view', o), close: () => { if (S) quit(); }, preload: loadArt, state, get active() { return !!S; } };
 })();

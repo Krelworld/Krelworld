@@ -5,6 +5,7 @@
 // Art: assets/wild/wild.png + wild.json  (f = frames [sx,sy,w,h,dx,dy] drawn from the animal's feet, a = animations).
 (function () {
   const ROOM = 'backyard', NOP = () => { };
+  const warned = {}, safe = (f, tag) => { try { return f(); } catch (e) { if (!warned[tag]) { warned[tag] = 1; console.warn('wildlife ' + tag, e); } } };   // a slip here must never stop the game's own loop
   const hid = id => { const n = document.getElementById(id); return !n || n.classList.contains('hidden'); };
   const sgn = v => (v < 0 ? -1 : 1), lerp = (a, b, k) => a + (b - a) * k;
   const BY = () => window.Backyard || { bench: 232, plots: [], trees: [{ x: 772, trunk: 34 }, { x: 978, trunk: 26 }] };
@@ -40,14 +41,14 @@
     snap() { Audio2.noise(0.05, 0.16, 900); Audio2.blip(-10, 'square', 0.03, 0.05); },
     sniff() { Audio2.noise(0.05, 0.03, 3500); setTimeout(() => Audio2.noise(0.05, 0.03, 3500), 130); },
     crunch() { try { Audio2.sfx('eat_chomp', { vol: 0.5 }); } catch (e) { } Audio2.noise(0.06, 0.07, 1200); },
-    chirp() { Audio2.jingle([28, 31, 28, 33], 0.05, 'sine'); },
+    chirp() { [28, 31, 28, 33].forEach((n, i) => setTimeout(() => Audio2.blip(n, 'sine', 0.06, 0.05), i * 55)); },
     squeak() { Audio2.blip(30, 'sine', 0.05, 0.05); setTimeout(() => Audio2.blip(34, 'sine', 0.05, 0.05), 70); },
     thump() { Audio2.blip(-22, 'sine', 0.07, 0.09); },
     scratch() { Audio2.noise(0.09, 0.045, 1400); },
   };
 
   // ---------------------------------------------------------------- the thickets at the edge of the woods (the animals' doorways)
-  const GATES = [168, 296, 404, 512, 622, 744, 806, 946].map((x, i) => ({ x, y: 142, hw: 34, bh: i % 2 ? 36 : 31, shake: 0, alt: i % 2 }));
+  const GATES = [296, 404, 512, 622, 744, 806, 946].map((x, i) => ({ x, y: 142, hw: 34, bh: i % 2 ? 36 : 31, shake: 0, alt: i % 2 }));
   const peek = (d, g, show) => d.h * 0.9 - (g.bh - 1) - show;   // how far to duck so that `show` pixels of the animal stick out above the bush
   function builtXs() {                                         // things Grandpa Jeff has built (if the builder is there): where they stand
     const out = []; try { const l = window.Builder && Builder.list && Builder.list(); for (const it of l || []) { const p = BY().plots.find(q => q.id === (it.plot || it.spot || it.id)); const x = typeof it.x === 'number' ? it.x : p ? p.x : null; if (x != null) out.push(x); } } catch (e) { }
@@ -65,8 +66,9 @@
   const KIND = { doe: { s: 1, hw: 21, h: 64 }, buck: { s: 1, hw: 24, h: 74 }, fawna: { s: 0.72, hw: 13, h: 34, fawn: true }, fawnb: { s: 0.68, hw: 12, h: 32, fawn: true } };
   const GAIT = { walk: ['walk', 9, 30], creep: ['walk', 5, 12], trot: ['walk', 15, 52], lope: ['run', 12, 104], run: ['run', 13, 128], bolt: ['run', 15, 165], pronk: ['pronk', 12, 92], sprint: ['run', 17, 178] };
   let hideBase = false;                                        // true while the game's own tap test runs (ours handles the animals)
+  const ENTLIKE = { state: 'idle', moving: false, animT: 0, scale: 1, offY: 0, speed: 0, busy: true, stop: NOP, walkTo: NOP };   // enough like the game's own characters for code that walks the list of everybody
   function mkDeer(kind) {
-    const d = { wild: 'deer', kind, id: 'wild_' + kind, room: ROOM, x: 0, y: 150, dir: 1, an: 'stand', at: 0, fps: 8, mode: 'loop', rev: false, q: [], cur: null, behind: false, sink: 0, sinkTo: 0, z: 0, rot: 0, alpha: 1, hidden: false, glow: 0, lastF: 0, update: NOP, ...KIND[kind] };
+    const d = { ...ENTLIKE, wild: 'deer', kind, id: 'wild_' + kind, room: ROOM, x: 0, y: 150, dir: 1, an: 'stand', at: 0, fps: 8, mode: 'loop', rev: false, q: [], cur: null, behind: false, sink: 0, sinkTo: 0, z: 0, rot: 0, alpha: 1, hidden: false, glow: 0, lastF: 0, update: NOP, ...KIND[kind] };
     Object.defineProperty(d, 'here', { get() { return this.room === G.room && !this.hidden && !this.behind && !hideBase; } }); return d;
   }
   const play = (d, an, o) => { o = o || {}; d.an = an; d.at = 0; d.fps = o.fps || 8; d.mode = o.mode || 'loop'; d.rev = !!o.rev; };
@@ -113,12 +115,13 @@
   function slots(cx) {                                         // where each one stands when the family settles around cx
     // upright phone: the picture is narrow, so they stand close together in depth, fawns nearest to Marina; sideways: spread out
     const n = narrow(), f = n ? sgn(cx - marina.x || 1) : V.flipS ? -1 : 1, o = n ? { fawna: [-20, 161], doe: [-2, 151], fawnb: [9, 166], buck: [8, 148] } : { doe: [-20, 151], buck: [30, 149], fawna: [-42, 160], fawnb: [6, 163] }, out = {};
-    for (const k in o) { let x = clamp(cx + o[k][0] * f, LX, RX); if (Math.abs(x - marina.x) < 15) x += 17 * sgn(x - marina.x || f); out[k] = [x, o[k][1]]; }
+    const tight = !n && E.viewW < 300 ? 0.8 : 1;                 // a small phone held sideways: a little closer together
+    for (const k in o) { let x = clamp(cx + o[k][0] * f * tight, LX, RX); if (Math.abs(x - marina.x) < 15) x += 17 * sgn(x - marina.x || f); out[k] = [x, o[k][1]]; }
     return out;
   }
   function beside() {                                          // a spot for the family next to Marina, inside the lawn
     // her left is the clear side of the picture (the buttons live on the right), so that is where they settle when there is room
-    const off = narrow() ? 46 : 74; let s = -1, cx = marina.x + s * off;
+    const off = narrow() ? 46 : E.viewW < 300 ? 60 : 74; let s = -1, cx = marina.x + s * off;
     if (cx < LX + 34 || cx > RX - 30) { s = -s; cx = marina.x + s * off; } return clamp(cx, LX + 26, RX - 26);
   }
   // the bushes they come out of: near enough to see, but not right behind Marina
@@ -191,7 +194,8 @@
     },
     // bounding off across the yard in a line and back again; one fawn dawdles and has to sprint to catch up
     cross() {
-      const away = sgn(V.cx - marina.x || 1), far = clamp(V.cx + away * rnd(170, 240), LX + 20, RX - 20), back = beside(), sl0 = slots(far), [doe, buck, fa, fb] = V.deer;
+      let away = sgn(V.cx - marina.x || 1), far = clamp(V.cx + away * rnd(170, 240), LX + 20, RX - 20); if (Math.abs(far - V.cx) < 110) { away = -away; far = clamp(V.cx + away * rnd(170, 240), LX + 20, RX - 20); }   // not much lawn that way: go the other way, round behind her
+      const back = beside(), sl0 = slots(far), [doe, buck, fa, fb] = V.deer;
       V.flipS = !V.flipS; const sl1 = slots(back); V.cx = back;
       const line = [[doe, 'lope'], [fa, 'pronk'], [buck, 'lope']];
       line.forEach(([d, g], i) => Q(d, act('alert', 0.25 + i * 0.32, { fps: 12, mode: 'hold', face: far }), go(sl0[d.kind][0], 150 + i * 2, g), act(i ? 'stand' : 'look', 0.9 + (2 - i) * 0.3, { fps: 7, mode: 'hold' }), go(sl1[d.kind][0], sl1[d.kind][1], g), act('stand', 9)));
@@ -350,7 +354,7 @@
   const small = [], air = [], leaves = [];
   let smallT = 8, leafT = 3, airT = 14;
   function critter(type, o) {
-    const c = { wild: type, type, id: 'wild_' + type, room: ROOM, x: 0, y: 150, z: 0, dir: 1, t: 0, at: 0, an: 'stand', fps: 8, hidden: false, behind: false, sink: 0, rot: 0, update: NOP, hw: 8, h: 14, ...o };
+    const c = { ...ENTLIKE, wild: type, type, id: 'wild_' + type, room: ROOM, x: 0, y: 150, z: 0, dir: 1, t: 0, at: 0, an: 'stand', fps: 8, hidden: false, behind: false, sink: 0, rot: 0, update: NOP, hw: 8, h: 14, ...o };
     Object.defineProperty(c, 'here', { get() { return this.room === G.room && !this.hidden && !this.behind && !hideBase; } });
     small.push(c); if (!c.behind) ENTS.push(c); return c;
   }
@@ -391,8 +395,8 @@
     },
     // a rabbit pops out from behind the bushes, freezes, and hops away if she comes close
     rabbit() {
-      const gs = freeGates().filter(g => onScreen(g.x, -20) && Math.abs(g.x - marina.x) > 46); if (!gs.length) return false;
-      const g = pick(gs), s = chance(0.5) ? 1 : -1, c = critter('rabbit', { s: 0.64, behind: true, x: g.x + s * 8, y: g.y - 1, dir: s, st: 'out', an: 'hop', fps: 12, t: rnd(8, 13), g, hw: 7, h: 20, tx: g.x + s * (g.hw + 10) });
+      const gs = freeGates().filter(g => onScreen(g.x + sgn(g.x - marina.x || 1) * (g.hw + 10), -12) && Math.abs(g.x - marina.x) > 24); if (!gs.length) return false;
+      const g = pick(gs), s = sgn(g.x - marina.x || 1), c = critter('rabbit', { s: 0.64, behind: true, x: g.x + s * 8, y: g.y - 1, dir: s, st: 'out', an: 'hop', fps: 12, t: rnd(8, 13), g, hw: 7, h: 20, tx: g.x + s * (g.hw + 10) });
       g.shake = 0.7;
       c.hide = () => { if (c.st !== 'home') { c.st = 'home'; c.an = 'hop'; c.at = 0; c.fps = 13; c.dir = sgn(c.g.x - c.x || 1); c.tx = c.g.x; } };
       c.tap = () => { snd.thump(); emit('dust', c.x, c.y - 2, 3, { life: 0.4 }); const o = freeGates().filter(q => q !== c.g && Math.abs(q.x - c.x) < 260).sort((a, b) => Math.abs(a.x - c.x) - Math.abs(b.x - c.x))[0]; if (o) c.g = o; c.hide(); };
@@ -404,19 +408,21 @@
     },
     // a chipmunk nips over to the workbench and makes off with a nut
     chip() {
-      const bx = BY().bench; if (!onScreen(bx, -10) || mNear({ x: bx }, 40)) return false;
-      const g = nearGate(bx + (chance(0.5) ? 70 : -70)), s = sgn(bx - g.x || 1), c = critter('chip', { s: 0.56, x: g.x + s * (g.hw + 4), y: 147, dir: s, st: 'to', an: 'run', fps: 16, tx: bx - s * rnd(8, 30), home: g.x + s * g.hw, hw: 7, h: 10, nut: false, t: 0 });
-      c.tap = () => { snd.squeak(); c.st = 'back'; c.dir = sgn(c.home - c.x || 1); c.an = 'run'; c.fast = true; };
+      const bx = BY().bench, g = nearGate(bx + 60), s = sgn(bx - g.x || 1), home = g.x + s * 12; if (!onScreen(bx, -10) || mNear({ x: bx }, 46) || mNear({ x: home }, 44)) return false;
+      const c = critter('chip', { s: 0.56, x: home, y: 146, dir: s, st: 'to', an: 'run', fps: 16, tx: bx + s * rnd(16, 34), home, alpha: 0, hw: 7, h: 10, nut: false, t: 0 });
+      g.shake = 0.5;
+      c.tap = () => { snd.squeak(); emit('sparkle', c.x, c.y - 8, 3); c.st = 'back'; c.dir = sgn(c.home - c.x || 1); c.an = 'run'; c.fast = true; };
       c.tick = dt => {
-        if (c.st === 'to') { c.x += c.dir * 46 * dt; if (sgn(c.tx - c.x) !== c.dir) { c.st = 'look'; c.t = 1.5; c.an = 'stand'; } if (mNear(c, 30)) c.tap(); }
-        else if (c.st === 'look') { c.t -= dt; if (c.t < 0.8 && !c.nut) { c.nut = true; emit('sparkle', c.x, c.y - 9, 3); Audio2.blip(33, 'sine', 0.04, 0.04); } if (c.t <= 0 || mNear(c, 30)) { c.st = 'back'; c.dir = sgn(c.home - c.x || 1); c.an = 'run'; } }
-        else { c.x += c.dir * (c.fast ? 90 : 62) * dt; if (sgn(c.home - c.x) !== c.dir) gone(c); }
+        const far = Math.abs(c.x - c.home); c.alpha = clamp(far / 8, c.st === 'to' ? 0.3 : 0, 1); c.y = lerp(146, 156, clamp(far / 18, 0, 1));   // out from under the bushes, along the front of the bench
+        if (c.st === 'to') { c.x += c.dir * 46 * dt; if (sgn(c.tx - c.x) !== c.dir) { c.st = 'look'; c.t = 1.6; c.an = 'stand'; } if (mNear(c, 26)) c.tap(); }
+        else if (c.st === 'look') { c.t -= dt; if (c.t < 0.8 && !c.nut) { c.nut = true; emit('sparkle', c.x, c.y - 9, 3); Audio2.blip(33, 'sine', 0.04, 0.04); } if (c.t <= 0 || mNear(c, 26)) { c.st = 'back'; c.dir = sgn(c.home - c.x || 1); c.an = 'run'; } }
+        else { c.x += c.dir * (c.fast ? 92 : 62) * dt; if (sgn(c.home - c.x) !== c.dir) { g.shake = 0.5; gone(c); } }
       };
     },
   };
   function drawCritter(c, back) {
     const y = c.y - c.z + c.sink, fr = frame(c.type, c.an, c.at, c.fps, c.an === 'peck' ? 'hold' : 'loop');
-    put(fr, c.x, y, { s: c.s, flip: c.dir < 0, rot: c.rot, depth: back ? 0.9 : 0 });
+    put(fr, c.x, y, { s: c.s, flip: c.dir < 0, rot: c.rot, alpha: c.alpha, depth: back ? 0.9 : 0 });
     if (c.type === 'chip' && c.nut) emoji('🌰', c.x + c.dir * 5, c.y - 7, 4);
   }
   // butterflies by day, fireflies when it is dark; leaves drifting down
@@ -468,7 +474,7 @@
     } else if (here && seenYard && quiet()) { next -= dt; if (next <= 0) startVisit(); }
     if (here && !screenUp()) smallTick(dt);
   }
-  { const _ft = featTick; featTick = function (dt) { _ft(dt); try { tick(dt); } catch (e) { if (!tick.warned) { tick.warned = 1; console.warn('wildlife', e); } } }; }
+  { const _ft = featTick; featTick = function (dt) { _ft(dt); safe(() => tick(dt), 'tick'); }; }
 
   // ---------------------------------------------------------------- drawing: behind the bushes, among everybody else, and in the air
   function drawBack() {                                        // called before the furniture along the back
@@ -481,8 +487,8 @@
       drawGate(g);
     }
   }
-  { const _dps = drawProps; drawProps = function (z) { if (z === 0) { try { drawBack(); } catch (e) { } } return _dps(z); }; }
-  { const _de = drawEnt; drawEnt = function (e) { if (!e.wild) return _de(e); if (!ART.ok) return; e.wild === 'deer' ? drawDeer(e, false) : drawCritter(e, false); }; }
+  { const _dps = drawProps; drawProps = function (z) { if (z === 0) safe(drawBack, 'back'); return _dps(z); }; }
+  { const _de = drawEnt; drawEnt = function (e) { if (!e.wild) return _de(e); if (ART.ok) safe(() => (e.wild === 'deer' ? drawDeer(e, false) : drawCritter(e, false)), 'draw'); }; }
   function drawLate() {
     if (!ART.ok || G.room !== ROOM) return; const c = E.ctx;
     for (const l of leaves) { const x = l.x - E.camX; c.save(); c.globalAlpha = l.age > 3 ? Math.max(0, 1 - (l.age - 3) / 2) : 1; c.translate(Math.round(x), Math.round(l.y)); if (l.y < l.gy) c.rotate(Math.sin(l.rot) * 0.9); c.fillStyle = l.c; c.fillRect(-l.s, -l.s / 2, l.s * 2, l.s); c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(-l.s, -0.3, l.s * 2, 0.6); c.restore(); }
@@ -495,7 +501,7 @@
       const t = tab(); if (t) { const bob = Math.sin(E.t * 4) * 1.5 * t.side; rect(t.x - 9 + bob, t.y - 10, 18, 20, 'rgba(43,35,64,.7)'); emoji('🦌', t.x + bob, t.y - 3, 8); emoji(t.side < 0 ? '◀' : '▶', t.x + bob, t.y + 6, 6); }
     }
   }
-  { const _dx = drawExitSigns; drawExitSigns = function () { _dx(); try { drawLate(); } catch (e) { } }; }
+  { const _dx = drawExitSigns; drawExitSigns = function () { _dx(); safe(drawLate, 'late'); }; }
   function tab() {
     if (!V || V.phase === 'enter' && V.t < 2.4 || V.phase === 'exit') return null; const herd = V.deer.filter(d => !d.hidden); if (!herd.length || herd.some(d => onScreen(d.x, -6))) return null;
     const hx = herd.reduce((a, d) => a + d.x, 0) / herd.length, side = hx < E.camX ? -1 : 1; return { side, hx, x: side < 0 ? Math.max(E.camX, 0) + 14 : Math.min(E.camX + E.viewW, ROOMS[ROOM].w) - 14, y: 86 };

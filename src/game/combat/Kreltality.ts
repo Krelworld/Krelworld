@@ -6,6 +6,8 @@ import { G } from "../G";
 import { ELEGANT, ELEGANT_NAMES, TAME_NAMES, runElegant, type Elegant, type KrelCtx } from "./KrelFinishers";
 import { krelCinema } from "./KrelCinema";
 import { Actor, Victim, bit, cutEdge, prop, stick, MEATY, type Bit } from "./KrelArt";
+import { isMobile } from "../mobile/flag";
+import { phoneHooks } from "../mobile/boot";
 
 /**
  * KRELTALITY. After a boss goes down: "FUCKING KILL THEM!!" — press it (or don't) for an over-the-top,
@@ -141,8 +143,10 @@ export function prompt(sc: Phaser.Scene): Promise<boolean> {
       b.on("pointerdown", fn);
       return b;
     };
-    const yesB = mk(-140, sc.input.gamepad?.total ? "☠ KRELTALITY (K / Ⓐ)" : "☠ KRELTALITY (K)", "#991b1b", () => done(true));
-    mk(150, sc.input.gamepad?.total ? "spare them (ESC / Ⓑ)" : "spare them (ESC)", "#1f2937", () => done(false));
+    // (phones: the buttons without keys, and a big ☠ KRELTALITY under the right thumb; src/game/mobile/brawl.ts)
+    const yesB = mk(-140, isMobile() ? "☠ KRELTALITY" : sc.input.gamepad?.total ? "☠ KRELTALITY (K / Ⓐ)" : "☠ KRELTALITY (K)", "#991b1b", () => done(true));
+    mk(150, isMobile() ? "spare them" : sc.input.gamepad?.total ? "spare them (ESC / Ⓑ)" : "spare them (ESC)", "#1f2937", () => done(false));
+    const closePhone = isMobile() ? (phoneHooks()?.finisher?.({ yes: () => done(true), no: () => done(false) }) ?? null) : null;
     sc.tweens.add({ targets: yesB, scale: { from: k, to: k * 1.08 }, yoyo: true, repeat: -1, duration: 300 });
     const bar = pin(sc.add.rectangle(cx - 200 * k, cy + 70 * k, 400 * k, 6 * k, 0xef4444).setOrigin(0, 0.5).setDepth(D + 52));
     sc.tweens.add({ targets: bar, scaleX: 0, duration: 7000, onComplete: () => done(false) });
@@ -162,6 +166,7 @@ export function prompt(sc: Phaser.Scene): Promise<boolean> {
     function done(v: boolean) {
       if (fin) return;
       fin = true;
+      closePhone?.();
       kb?.off("keydown-K", onK);
       kb?.off("keydown-ESC", onEsc);
       gp?.off("down", onPad);

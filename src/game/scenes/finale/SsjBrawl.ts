@@ -9,6 +9,8 @@ import { charMeta, hdFactor } from "../../gfx/HD";
 import { keysFor } from "../../systems/keybinds";
 import { padHeld } from "../../systems/padbinds";
 import { TOUCH, isTouchDevice } from "../../ui/TouchControls";
+import { isMobile } from "../../mobile/flag";
+import { phoneHooks } from "../../mobile/boot";
 import { FONT } from "../../ui/theme";
 import { CHARACTERS, LADS } from "../../../data/characters";
 import * as FB from "../../../content/finaleKrelford";
@@ -453,7 +455,8 @@ export class SsjBrawl {
     sc.input.on("pointerdown", onDown);
     sc.events.once("shutdown", () => sc.input.off("pointerdown", onDown));
     this.touchUi = TOUCH.enabled || isTouchDevice(sc.game) || !!(window as unknown as { __brawlTouch?: boolean }).__brawlTouch;
-    if (this.touchUi) this.touchPad();
+    // (phones: big controls from the phone layer instead of this pad; src/game/mobile/brawl.ts)
+    if (this.touchUi && !(isMobile() && phoneHooks()?.brawl?.(this))) this.touchPad();
   }
 
   /** On-screen stick and buttons (phones, tablets): the UI scene's pad is hidden while this plays. */

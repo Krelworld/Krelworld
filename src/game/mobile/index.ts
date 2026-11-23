@@ -25,6 +25,8 @@ import { rankFollowerLast } from "./observe";
 import { hint } from "./wording";
 import { whenRunning } from "./shell";
 import { installCombat } from "./combat";
+import { installBrawl, showFinisher } from "./brawl";
+import { phoneHooks, setPhoneHooks } from "./boot";
 
 export { isMobile, setMobileForTests, mobileWhy, rememberPhoneMode } from "./flag";
 export { registerModeController, unregisterModeController, type ModeController, type ModeContext, type ControlSpec, TouchControl, TouchLayer } from "./touchLayer";
@@ -86,6 +88,13 @@ export function installMobile(game: Phaser.Game) {
   shell.setLayer(layer);
   // stage 2: the top-down fights (FIRE, auto-fire and aim, DODGE, SWAP, SPECIAL, READY, HEAL, the chips, the phone HUD)
   const combat = installCombat(game, layer);
+  // stage 2 part 2: the finale's brawl, the Kreltality prompt, a controller handed over (brawl.ts, pad.ts)
+  const brawl = installBrawl(game, layer);
+  setPhoneHooks({
+    ...(phoneHooks() ?? {}),
+    brawl: (b) => brawl.attach(b),
+    finisher: (p) => showFinisher(layer, p),
+  });
   layer.onFullscreen = () => shell.goFullscreen();
   const guide = new HomeScreenGuide(parent, {
     hasSave: () => !!G.saves.latest(),
@@ -157,6 +166,7 @@ export function installMobile(game: Phaser.Game) {
     guide,
     diag,
     combat,
+    brawl,
     snapshot: () => layer.snapshot(),
     shellState: () => shell.snapshot(),
     // (the same module instances the game uses, for tests that add a rule or a controller)

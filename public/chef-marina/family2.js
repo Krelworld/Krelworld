@@ -142,7 +142,7 @@ const GRAND = (() => {
     const down = DOWN.includes(G.room);
     if (!down) S.downSince = 0; else if (!S.downSince) S.downSince = E.t;
     // "there's a smell down here…"
-    if (down && nunu.here && !AI.held.has(nunu) && E.t - S.downSince > 25 && E.t - S.smellAt > 170 && pingOk(50) && chance(dt / 14)) smell();
+    if (down && nunu.here && !AI.held.has(nunu) && E.t - S.downSince > 25 && E.t - S.smellAt > 170 && pingOk(50) && chance(dt / 14) && !(window.Clarity && Clarity.is('G26') && G.septic)) smell(); /* G26 */
     // a little love now and then
     else if (nunu.here && !AI.held.has(nunu) && nunu.state !== 'sit' && E.t - S.loveAt > 120 && E.t - S.downSince > 50 && pingOk(70) && chance(dt / 40)) { S.loveAt = E.t; ping(); AI.hold(nunu, true); nunu.walkTo(marina.x + (nunu.x < marina.x ? -24 : 24), () => { nunu.dir = Math.sign(marina.x - nunu.x) || 1; emit('heart', nunu.x, nunu.y - 86, 5); sayG(pick(['nu_love1', 'nu_love2', 'nu_love3', 'nu_love4', 'nu_kiss']), nunu).then(() => AI.hold(nunu, false)); }, 60); setTimeout(() => AI.hold(nunu, false), 9000); }
     // the deer have come out of the woods

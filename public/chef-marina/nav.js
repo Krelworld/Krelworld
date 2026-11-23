@@ -58,13 +58,13 @@
     if (!on) return clearHints();
     const want = pic && !ROOMS[G.room].outside ? [{ id: 'wall', ico: '🖼️', pos: () => [clamp(marina.x, 30, ROOMS[G.room].w - 30), 74], go: () => { G.holding = null; Pics.hang(h.url); } }] : [];
     // carrying a picture or a plate of food: a glowing button over each grown-up to hand it to them
-    for (const e of [daddy, mommy, rory]) if (e.here && !e.hidden && e.state !== 'toilet') want.push({ id: e.id + (dish ? 'D' : ''), ico: dish ? '🍽️' : '🎁', pos: () => [e.x, e.y - (e === mommy ? 86 : 104)],
-      go: () => { if (!dish) return Pics.gift(h.url, e); if (e.state === 'lie') e.state = 'idle'; approach(e.x, () => (e === mommy ? serveMommy() : serve(e)), 26); } });
+    for (const e of (window.Clarity && Clarity.is('G17') ? Clarity.G17.people(dish) : [daddy, mommy, rory])) if (e.here && !e.hidden && e.state !== 'toilet') want.push({ id: e.id + (dish ? 'D' : ''), ico: dish ? '🍽️' : '🎁', pos: () => [e.x, window.Clarity && Clarity.is('G17') && (e === nunu || e === jeff) ? Clarity.G17.top(e) : e.y - (e === mommy ? 86 : 104)], /* G17 */
+      go: () => { if (!dish) return Pics.gift(h.url, e); if (e === jeff && window.Clarity && Clarity.is('G17')) return Clarity.G17.serveJeff(); /* G17 */ if (e.state === 'lie') e.state = 'idle'; approach(e.x, () => (e === mommy ? serveMommy() : serve(e)), 26); } });
     if (hints.map(x => x.id).join() !== want.map(x => x.id).join()) {
       clearHints();
       for (const w of want) { const n = mk('button', 'pichint ' + (w.id === 'wall' ? 'wall' : 'gift'), w.ico); n.setAttribute('aria-label', w.id === 'wall' ? 'hang it here' : 'give it'); press(n, () => { clearHints(); UI.closeActions(); w.go(); }); fxL.append(n); hints.push({ ...w, n }); }
     }
-    for (const x of hints) { x.pos = want.find(w => w.id === x.id).pos; const [sx, sy] = toScreen(...x.pos()); x.n.style.left = sx + 'px'; x.n.style.top = sy + 'px'; }
+    for (const x of hints) { x.pos = want.find(w => w.id === x.id).pos; const [sx, sy] = toScreen(...x.pos()); x.n.style.left = sx + 'px'; x.n.style.top = sy + 'px'; } if (window.Clarity && Clarity.is('G17')) Clarity.G17.place(hints); /* G17 */
   }
   Pics.carry = function (url) { G.holding = { type: 'pic', url, ico: '🖼️' }; if (['perch', 'sit'].includes(marina.state)) { marina.state = 'idle'; marina.offY = 0; } say(pick(['m_look', 'm_made'])); };
   const _dh = drawHolding;

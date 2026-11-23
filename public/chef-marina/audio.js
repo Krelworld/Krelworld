@@ -15,6 +15,8 @@ const Audio2 = (() => {
     // iOS unlock
     const b = ac.createBuffer(1, 1, 22050), s = ac.createBufferSource(); s.buffer = b; s.connect(master); s.start(0);
     Music.start(); warm();
+    // iPhone: the audio system can be paused (app switch, lock, a call) and stay 'suspended'/'interrupted'; any touch wakes it again
+    document.addEventListener('pointerdown', () => { if (ac && ac.state !== 'running') { try { ac.resume(); } catch (e) { } } }, { capture: true, passive: true });
   }
 
   // voice clips live in a few pack files (many clips, few downloads); the index says where each one is
@@ -22,16 +24,18 @@ const Audio2 = (() => {
   function voReady() { return voIndexP || (voIndexP = fetch('assets/vo_index.json').then(r => r.json()).then(j => (voIndex = j)).catch(() => (voIndex = {}))); }
   function packBytes(name) { return voPacks[name] || (voPacks[name] = fetch('assets/' + name + '.mp3').then(r => { if (!r.ok) throw new Error(name); return r.arrayBuffer(); })); }
   function warm() { voReady().then(() => { for (const n of ['vo_m', 'vo_fam', 'vo_w', 'vo_media', 'vo_dish', 'vo_gp']) packBytes(n).catch(() => {}); }); }
+  // never wait forever on a decode: on iPhone decodeAudioData can hang while audio is paused; give up after 8 s (and allow a retry later)
+  const decode = (a, url) => Promise.race([new Promise((res, rej) => ac.decodeAudioData(a, res, rej)), wait(8000).then(() => { delete loading[url]; return null; })]);
   function load(url) {
     if (buffers[url]) return Promise.resolve(buffers[url]);
     if (loading[url]) return loading[url];
     const mk = url.match(/^assets\/vo\/(.+)\.mp3$/);
     if (mk) return (loading[url] = voReady().then(() => { const e = voIndex[mk[1]];
-      if (!e) return fetch(url).then(r => (r.ok ? r.arrayBuffer() : null)).then(a => a && new Promise((res, rej) => ac.decodeAudioData(a, res, rej))).then(b => b && (buffers[url] = b));      // a clip not packed yet: try the single file
-      return packBytes(e[0]).then(buf => new Promise((res, rej) => ac.decodeAudioData(buf.slice(e[1], e[1] + e[2]), res, rej))).then(b => (buffers[url] = b)); }).catch(err => { console.warn('audio', url, err); return null; }));
+      if (!e) return fetch(url).then(r => (r.ok ? r.arrayBuffer() : null)).then(a => a && decode(a, url)).then(b => b && (buffers[url] = b));      // a clip not packed yet: try the single file
+      return packBytes(e[0]).then(buf => decode(buf.slice(e[1], e[1] + e[2]), url)).then(b => b && (buffers[url] = b)); }).catch(err => { console.warn('audio', url, err); return null; }));
     loading[url] = fetch(url).then(r => { if (!r.ok) throw new Error(url); return r.arrayBuffer(); })
-      .then(a => new Promise((res, rej) => ac.decodeAudioData(a, res, rej)))
-      .then(b => (buffers[url] = b)).catch(e => { console.warn('audio', url, e); return null; });
+      .then(a => decode(a, url))
+      .then(b => b && (buffers[url] = b)).catch(e => { console.warn('audio', url, e); return null; });
     return loading[url];
   }
   function preload(urls, onEach) { return Promise.all(urls.map(u => load(u).then(() => onEach && onEach()))); }
@@ -64,7 +68,7 @@ const Audio2 = (() => {
     speaker = speaker || key.split('_')[0];
     if (opt && opt.cut) hush(speaker);
     const url = 'assets/vo/' + key + '.mp3';
-    const ready = load(url);     // start fetching now, but take our place in the queue straight away so lines stay in the order they were asked for
+    const ready = Promise.race([load(url), wait(4000).then(() => null)]);     // a line whose sound isn't ready in 4 s is skipped, so nobody waits forever; start fetching now, but take our place in the queue straight away so lines stay in the order they were asked for
     return line(speaker, sp => ready.then(buf => { if (!buf) return wait(700); duck(buf.duration); const s = playBuf(buf, voiceGain, {}); voiceNow[sp] = s; return wait(buf.duration * 1000); }));
   }
   function duck(sec) {
@@ -297,7 +301,7 @@ const Audio2 = (() => {
   // play several voice clips back to back (e.g. a dish name built from words)
   async function chain(keys, speaker = 'marina', vol = 1) {
     if (!ac) return;
-    const ready = Promise.all(keys.map(k => load('assets/vo/' + k + '.mp3')));
+    const ready = Promise.race([Promise.all(keys.map(k => load('assets/vo/' + k + '.mp3'))), wait(4000).then(() => [])]);   // never wait forever
     return line(speaker, async sp => { const bufs = await ready, srcs = []; let t = 0.05; const tot = bufs.reduce((s, b) => s + (b ? b.duration : 0), 0); duck(tot + 0.3);
       for (const b of bufs) { if (!b) continue; srcs.push(playBuf(b, voiceGain, { when: t, vol })); t += b.duration - 0.04; }
       voiceNow[sp] = { stop() { for (const s of srcs) try { s.stop(); } catch (e) {} } };

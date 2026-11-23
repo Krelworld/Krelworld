@@ -93,7 +93,7 @@ Hooks that exist now (stage 1):
 | `src/game/scenes/TitleScene.ts` `fullscreenButton()` | `if (isMobile()) { if (homeScreenEntryWanted()) button(... "📲 ADD TO HOME SCREEN" ... openHomeScreenGuide("title")); return; }` (imports from `mobile/flag` and `mobile/boot`) | The title's corner opens the Add to Home Screen guide on a phone, replacing FULLSCREEN and the one-line iPhone hint (so it never shows twice). Laptops: unchanged |
 | `src/game/scenes/MenuScene.ts` pause rows | `isMobile() && homeScreenEntryWanted() ? ["📲 ADD TO HOME SCREEN", () => openHomeScreenGuide("pause")] : [the FULLSCREEN row as it was]` (imports from `mobile/flag` and `mobile/boot`) | The guide from the pause menu, same row count (no layout change). Laptops: unchanged |
 | `src/main.ts` | `import { installMobile } from "./game/mobile/boot"` and `installMobile(game)` right after the game is created | The one entry point. On a phone it fetches the phone chunk at once (the rotate screen covers the load from then on). The invariants test ignores install calls named *mobile* |
-| `src/game/scenes/UIScene.ts` `setupTouch()` | `if (isMobile() && !(this.mode === "dungeon" && Dungeon.side)) { destroy the old pad; return; }` | On phones the controls are this layer, drawn above every scene: town and interiors (stage 1, blocker B1) and the top-down fights (stage 2). The side-scrolling rooms keep the old pad until stage 2 part 2 (drop the `side` condition then) |
+| `src/game/scenes/UIScene.ts` `setupTouch()` | `if (isMobile()) { destroy the old pad; return; }` | On phones the controls are this layer, drawn above every scene: town and interiors (stage 1, blocker B1), the top-down fights and the side-scrolling rooms (stage 2; part 2 dropped the `Dungeon.side` condition) |
 
 Hooks added in stage 2, part 1 (the top-down fights). Every one is `if (isMobile()) ...` (or `isMobile() ? a : b`), and
 the phone chunk's hooks come through `boot.ts`'s `phoneHooks()`, which is null on a laptop:
@@ -104,6 +104,19 @@ the phone chunk's hooks come through `boot.ts`'s `phoneHooks()`, which is null o
 | `src/game/scenes/DungeonScene.ts` `update()` | `if (isMobile()) phoneHooks()?.combatStep?.(this, this.controls, dt);` right before `player.update` | Target, aim, auto-fire (`TOUCH.attack`) and phone assist are worked out inside the Dungeon's frame, so the player acts on them that same frame (no frame of lag on FIRE or auto-fire) |
 | `src/game/scenes/UIScene.ts` `update()` and the toast code | `phone = isMobile() && dungeon && !this.touch`: no key hints (as on touch), the gun readout hidden (the weapon chip shows it), the top-left block at phone size (HP 15 px, KREZZ + WONK % beside the bars, a slim WONK bar, money beside the name, the status line under the chips), the specials prompt says `TAP WONK!` / `TAP IBS!`, the boss bar up top between the HUD and the chip, the room name hidden under it; the toast column ends where `phoneHooks().toastRight()` says (left of pause, the fullscreen offer and the weapon chip; P10) and starts under the boss bar; the weapon card up top (`cy` 132) | DEFERRED P10, research M16 / S1. The laptop's expressions are the same numbers (`960 - w - 10`, `506`...) |
 | `src/game/scenes/MenuScene.ts` settings | `if (isMobile()) { /* no row */ } else if (pk_autoaim) ... else if (TOUCH.enabled) "Touch aim assist" ...` | DEFERRED R8 item 7: one switch in one place. On a phone aiming reads only the phone setting `aimAssist`; the game's row (and the Krezz-Assist row) would be a switch that does nothing there. Tablets keep it |
+
+Hooks added in stage 2, part 2 (side rooms, the brawl, finishers, a controller). All `if (isMobile())` / `isMobile() ? a : b`:
+
+| Where | What | Why |
+|---|---|---|
+| `src/game/combat/Player.ts` `update()` side branch | `} else if (side && isMobile() && phoneHooks()?.sideMove?.(this, body, c, mv, speed, dt, now)) { } else if (side) {` (and the two imports) | The phone's jump feel (buffer, coyote, tap = hop, deliberate drop, air control, ledge pop, corner correction, platform carry) in side.ts. The laptop's branch is untouched |
+| `src/game/scenes/DungeonScene.ts` one-way platform callback | `b.bottom <= pb.top + (isMobile() ? (phoneHooks()?.ledgeTol?.() ?? 14) : 14)` | Ledge forgiveness 20 px under phone assist |
+| `src/game/scenes/side/SideLevel.ts` crusher and steam hit tests | `... * (isMobile() ? (phoneHooks()?.hazardScale?.() ?? 1) : 1)` (and imports) | Hazard reach x0.88 under phone assist |
+| `src/game/scenes/UIScene.ts` `setupTouch()` | the `Dungeon.side` condition dropped (see the stage 1 row) | Side rooms are on the layer now |
+| `src/game/scenes/finale/SsjBrawl.ts` `inputs()` | `if (this.touchUi && !(isMobile() && phoneHooks()?.brawl?.(this))) this.touchPad();` (and imports) | The brawl's big phone controls instead of its small canvas pad |
+| `src/game/combat/Kreltality.ts` `prompt()` | button labels `isMobile() ? "☠ KRELTALITY" : ...` / `isMobile() ? "spare them" : ...`; `const closePhone = isMobile() ? phoneHooks()?.finisher?.(...) : null;` and `closePhone?.()` in `done()` (and imports) | No key names on a phone; one big target under the thumb (M14) |
+| `src/game/combat/Controls.ts` `aim()` (inside the existing phone block) | a connected pad's right stick past 0.5 aims | A controller on the phone (S6) |
+| `src/game/scenes/MenuScene.ts` `openControls()` | first line: `if (isMobile() && phoneHooks()?.controlsPicture?.()) return;` (and `phoneHooks` added to the boot import) | The Controls picture. No row added or moved, so the other builder's PHONE SETTINGS row merges cleanly |
 
 Things the phone chunk does to the running game from outside (phones only, no scene file edited): the walking scenes'
 prompt Texts and a few UI Texts get touch wording (`wordText`); "toast" events are reworded before the UI scene draws
@@ -127,10 +140,12 @@ topmost running scene per rule):
 | Boot, Enter, Title, CharSelect, Difficulty, Banter, ChapterSelect, DebugSkip, Menu, Slots, WeaponPick, Dialogue, Meeting, Cutscene, Vignette, TV, Archive, KrazyFact, Exile, Ending, Tutorial, Lair, RoofCutscene, KrelCue, `__p3d*` | none | – | – |
 | Minigame, Whack, Drive, BeepBeep | tap | – (stage 3) | yes |
 | Pub, Pit, PitLoan, PolsonHome | none | – | – |
-| Finale | brawl (legacy pad) | – | yes |
+| Finale with the Super Saiyan brawl running (stage 2 part 2, `brawl.ts`) | brawl: the phone stick (`"2d"`), PUNCH / BLOCK / VANISH / KICK / KI; the rush is a tap anywhere | – | yes |
+| Finale, any other beat | brawl (legacy pad) | – | yes |
 | WeaponPick over a top-down Dungeon (stage 2, in front of everything) | combat, `picker: true` (the thumb that opened it slides onto a gun; CLOSE where FIRE was) | – | yes |
 | Dungeon, top-down room (stage 2) | combat: the phone stick (`"2d"`, gutter included), FIRE / DODGE / SWAP / SPECIAL / READY / HEAL / ACTION, the chips; `mash: true` while the WONK gauge (or the roof's group wonk) is up; none while busy (scripted moments, dying, changing rooms) | the layer's II (`edge`); none while busy (coming back shows "tap to carry on") | yes |
-| Dungeon, side-scrolling room | side (legacy pad) until stage 2 part 2 | the canvas pad's II | yes |
+| WeaponPick over a side room | side, `picker: true`, stick `"x"` | – | yes |
+| Dungeon, side-scrolling room (stage 2 part 2) | side: the stick `"x"` (left / right only), JUMP / FIRE / DODGE / SPECIAL / READY / HEAL / ACTION, the chips; none while busy | the layer's II (`edge`) | yes |
 | Home, Hub | walk (none while busy) | `edge`: the scene's own Esc path | – |
 | Club, Kreddle, Venue | walk (none while busy or a machine is open) | `menu`: the pause menu over the scene (on a laptop Esc walks you out; each has an exit to walk to) | – |
 | Kreddle with the raid / rout running | walk | `edge` (their own Esc → pause menu) | yes |
@@ -257,6 +272,62 @@ code passes such narrator control lines through `hint()` (this file never routes
 
 `window.__krelMobile.combat`: `snapshot()` (target, aim, manual / snapped, autoFiring, fireHeld, ready, heal, picker,
 mash, mashPresses, taught) and `resetTeaching()`.
+
+## Side rooms, the brawl, finishers, a controller (stage 2 part 2)
+
+**Side-scrolling rooms** (`combat.ts` serves mode `side` too; `side.ts`, `jump.ts`): every side room (Crobley factory,
+SanMik Zone / Catford, the Nu Warehouse trip, the Cuddle Tower and the citadel's towers and corridors, the plane, the
+colon) drops the old canvas pad on a phone. Layout v2: **JUMP** (84, prime corner, touch area to the corner), **FIRE**
+(60) left of it, DODGE / SPECIAL / READY / HEAL / ACTION / the chips as in top-down rooms, no SWAP button (the weapon
+chip swaps). The stick is `"x"`: left / right only, full speed at 35% of the travel. Aim: the way you face plus
+auto-aim (no slide-aim); auto-fire is the same setting as top-down rooms (on by default).
+
+Jump feel on a phone (the Player's side branch asks `phoneHooks().sideMove()` first; gravity, take-off speeds and run
+speed are the game's):
+
+| | Laptop (unchanged) | Phone (`JUMP_TUNE`) |
+|---|---|---|
+| Trigger | W / Up / stick up | JUMP on touch-down (a pad's up / stick up still works) |
+| Buffer | none | 150 ms (40 ms with phone assist off) |
+| Coyote | 110 ms | 140 ms (110 with phone assist off) |
+| Height | always the full jump | released early = cut at the later of the release and 80 ms after take-off, to 300 px/s (air jump 260): tap about 76-78 px, hold about 140-145 px. Worked out from the height already climbed, so a slow frame doesn't give a taller hop |
+| Double jump | release the stick and push up again | a second press of JUMP (buffered like the first) |
+| Air control | 140 ms easing | 100 ms (140 with assist off) |
+| Drop through | stick down past 0.6 | stick held down past 0.7 (sideways under 0.35) for 150 ms, or stick down + JUMP on a platform (`DropRule`); the layer's `stickRaw` keeps the stick's y for this even though it drives x only |
+| One-way landing | 14 px | 20 px (phone assist) |
+| Ledge pop / corner correction | none | feet within 8 px below a top, beside it and moving toward it, are put on it (platform tops 4 px wider); a head clipping a solid corner by up to 40% of the body is nudged past it (phone assist) |
+| Moving platforms | carried while standing | their speed kept 100 ms after stepping / jumping off |
+| Crushers / steam | art-sized | reach x0.88 (phone assist, `ASSIST.hazard`) |
+| Camera | lerp 0.12, 80 x 60 dead zone | dead zone 0 x 200, player at 35% / 65% of the width (follow offset -/+144), turning after 0.4 s the other way, eased; the view leads 60 px down while falling |
+
+`window.__krelMobile.combat.side.snapshot()`: held, jumps, the waiting press, coyote, the stick's raw direction, the
+look-ahead, and the last jumps (`log`: kind, take-off and apex, ms waited in the buffer, ms since the ground).
+
+**The finale brawl** (`brawl.ts`): `SsjBrawl` asks `phoneHooks().brawl(this)` instead of drawing its canvas pad. The
+layer shows PUNCH (prime, 84), BLOCK (left, hold), VANISH (upLeft), KICK (up), KI (ready slot, hold), always captioned,
+and the town's stick; they feed the brawl's own `pad.edges` / `pad.held`, so its hits, freezes and shakes are the game's.
+During the finishing rush the buttons hide and a full-screen overlay makes every finger a punch. Wording (UI only,
+`BRAWL_WORDING`): the boss card's `HOLD R TO BLAST KI` line, `MASH PUNCH!` → `TAP TAP TAP!`, the corner's
+`Esc: skip fight` hides. **The Krezz Arms pub brawl** needs nothing: the Pub is mode none (every touch reaches the
+canvas, which swings on any tap) and its line already reads `BRAWL! Tap to swing`.
+
+**The Kreltality prompt** (`Kreltality.ts` `prompt()`, any fight): on a phone its buttons drop the key names and
+`phoneHooks().finisher()` adds a big pulsing ☠ KRELTALITY (1.25x the prime slot) under the right thumb and SPARE at the
+ACTION slot; the game's own buttons still work; the prompt's close removes them.
+
+**A controller** (`pad.ts`, research S6 / DEFERRED R11): polled each game step; the first button or stick push sets
+`input: "pad"` in the decision (`setInputSource`), the layer root gets `padin` and every control hides; the next
+touchstart anywhere brings them back. A pushed right stick aims (`Controls.aim`'s guarded block; combat.ts's aim hook
+steps aside). Note for the phone settings page: `PAD_NOTE` in controlsPicture.ts ("A Bluetooth controller works...").
+
+**The Controls picture** (`controlsPicture.ts`, research S10): `MenuScene.openControls()` asks
+`phoneHooks().controlsPicture()` first on a phone, so the pause menu's CONTROLS (and the settings page's) shows a
+drawing of the screen with each control where `layer.slots` / the placed chips really are, numbered, with one plain
+line each, in tabs WALKING / FIGHTS / SIDE ROOMS / BRAWL (it opens on the one for the fight underneath). CLOSE goes back
+to the menu.
+
+**Fullscreen offer in fights** (Android, after leaving fullscreen): shown in combat / side / brawl too (not over a mash
+or the picker), at the `fullscreenFight` slot under pause, clear of the weapon chip and READY.
 
 ## Input rules the layer keeps
 
@@ -454,7 +525,7 @@ npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layou
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,guide,optout,town,dungeon,combat,android,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,guide,optout,town,dungeon,combat,side,brawl,android,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
 
 # the laptop must not change (both must end with DESKTOP FINGERPRINT: OK)
@@ -467,7 +538,8 @@ for p in touchlaptop ipad fire7; do node scripts/desktop-fingerprint.cjs --url h
 node scripts/desktop-fingerprint.cjs --url http://localhost:5202/ --no-alt --profile androidtab --only front,newgame,hub --check
 ```
 
-On a phone (or devtools device emulation) `window.__krelMobile` has `snapshot()`, `shellState()`, `view()`, `layer`,
+On a phone (or devtools device emulation) `window.__krelMobile` has `combat` (part 1; `combat.side` for the jump), `brawl`
+(`snapshot()`), `pad` (the controller handover), `picture` (the Controls picture: `show(tab)`, `snapshot()`), `snapshot()`, `shellState()`, `view()`, `layer`,
 `shell`, `setInsets({top,right,bottom,left})` (emulators report no safe-area insets; `{0,47,21,47}` is an iPhone 14
 home-screen app; CDP `Emulation.setSafeAreaInsetsOverride` plus a resize drives the real `env()` path), `settings.get() /
 set(patch) / list()`, `readability`, `guide`, `diag`, `plumbing()` and `fakeInstallPrompt(outcome)` (dispatches a

@@ -158,7 +158,7 @@ const Audio2 = (() => {
     title: { scale: 'yo', root: 64, bpm: 116, lead: 'square', arp: true, drums: 1, bell: true },
     gym: { scale: 'yo', root: 65, bpm: 128, lead: 'square', arp: true, drums: 2 },
   };
-  // ElevenLabs-composed chiptune loops (assets/music/<file>.mp3). Modes without their own
+  // ElevenLabs-composed loops (assets/music/<file>.mp3): gentle Japanese microtonal chiptune ambient. Modes without their own
   // track either borrow one (MUSIC_FILE alias) or fall back to the synthesized chiptune below.
   const MUSIC_FILE = {
     title: 'title', explore: 'explore', kitchen: 'kitchen', fort: 'fort', yard: 'yard', chase: 'chase',

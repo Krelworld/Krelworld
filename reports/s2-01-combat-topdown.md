@@ -178,9 +178,9 @@ already easy), any rhythm or QTE window. Part 2 adds the jump help under the sam
 
 | Screen | FIRE | DODGE / SWAP / SPECIAL / READY | HEAL / ACTION | weapon chip | drink chips | smallest gap between round controls | picture covered |
 |---|---|---|---|---|---|---|---|
-| 844x390 (iPhone 14, insets 47/47/21) | 84 | 60 | 56 | 140 x 44 | 64 / 56 / 98 x 32 | 16 (READY-SPECIAL, all shown); 23 in the measured state | 9.8% (FIRE, DODGE, SWAP, SPECIAL, chip, 3 drink chips) |
-| 750x340 (Safari with bars) | 73 | 52 | 52 | 122 x 44 | 56 / 49 / 85 x 30 | 14 | 7.6% (with READY) |
-| 740x360 (small Android) | 78 | 55 | 52 | 129 x 44 | 59 / 52 / 90 x 30 | 15 | 8.3% (with READY) |
+| 844x390 (iPhone 14, insets 47/47/21) | 84 | 60 | 56 | 140 x 44 | 64 / 56 / 98 / 76 x 32 | 16 (READY-SPECIAL, all shown); 23 in the measured state | 10.7% (FIRE, DODGE, SWAP, SPECIAL, pause, chip, 4 drink chips) |
+| 750x340 (Safari with bars) | 73 | 52 | 52 | 122 x 44 | 56 / 49 / 85 / 66 x 30 | 14 | 8.6% (with READY) |
+| 740x360 (small Android) | 78 | 55 | 52 | 129 x 44 | 59 / 52 / 90 / 70 x 30 | 15 | 9.2% (with READY) |
 
 Worst case at 844x390 with every pop-in and chip up at once (FIRE, DODGE, SWAP, SPECIAL, READY, HEAL, ACTION, chip, all
 four drink chips): about 14.6% of the picture, worked out from the drawn shapes. The old pad covered the lower-right
@@ -295,8 +295,8 @@ All run on the final code by me, dev servers from this worktree (5202 normal, 52
 | b | `--profile` touchlaptop / ipad / fire7 (front, newgame); androidtab (front, newgame, hub: the old pad pinned) | 16/16, 16/16, 16/16, 29/29: all **OK** |
 | c | `npx vitest run tests/desktopInvariants.test.ts`; that file, `tests/fingerprints/` and `index.html` unedited (`git diff e8cf3f4f` empty) | **19 of 19**, unedited |
 | d | `npx tsc --noEmit`; `npx vitest run` | clean; **427 tests, 40 files**, all pass (32 new in `mobileCombat.test.ts`) |
-| e1 | `mobile-smoke.cjs --url http://localhost:5202/` (all sections) | SMOKE_MAIN |
-| e2 | `mobile-smoke.cjs --url http://localhost:5212/` (ALT) | SMOKE_ALT |
+| e1 | `mobile-smoke.cjs --url http://localhost:5202/` (all sections, incl. the new `combat`) | **221 of 221, MOBILE SMOKE: OK** (499 s) |
+| e2 | `mobile-smoke.cjs --url http://localhost:5212/` (ALT) | **221 of 221, MOBILE SMOKE: OK** (464 s) |
 | f | Played by touch: Wildern rooms 1 to 3 and the boss (section 9) | rooms cleared; the boss beaten with the chapter 2 kit |
 
 The fingerprint and profile runs were made after the last change to `UIScene`, `DungeonScene`, `Controls` and

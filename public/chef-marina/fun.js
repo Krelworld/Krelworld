@@ -79,8 +79,8 @@
   function askReq(r) {
     clearReq(); const e = { daddy, mommy, rory, niko }[r.who]; req = { ...r, ent: e, t: E.t }; lastReq = E.t; lastWish = E.t; ping();
     e.dir = Math.sign(marina.x - e.x) || 1;
-    if (r.line) say(r.line, e); else { Audio2.sfx(pick(['trill1', 'trill2'])); UI.face('niko', 'happy', 1800); UI.bubble(niko, '🥫', 2400); }
-    const b = mk('button', '', '<span>' + r.ico + '</span><i>➡️</i><b>' + ({ daddy: '👨‍🦲', mommy: '👩', rory: '🧔', niko: '🐈' })[r.who] + '</b>'); b.id = 'reqBtn'; b.setAttribute('aria-label', 'help ' + r.who);
+    const ico = (window.Clarity && Clarity.is('G31') && ({ '🥫': '🐟' })[r.ico]) || r.ico; if (r.line) say(r.line, e); else { Audio2.sfx(pick(['trill1', 'trill2'])); UI.face('niko', 'happy', 1800); UI.bubble(niko, ico, 2400); } /* G31 */
+    const b = mk('button', '', '<span>' + ico + '</span><i>➡️</i><b>' + ({ daddy: '👨‍🦲', mommy: '👩', rory: '🧔', niko: '🐈' })[r.who] + '</b>'); b.id = 'reqBtn'; b.setAttribute('aria-label', 'help ' + r.who); /* G31 */
     press(b, () => { if (G.busy && G.sceneOn) return; b.remove(); reqEl = null; G.busy = false; UI.closeActions(); Audio2.jingle([0, 7, 12], 0.06); try { r.go(); } catch (x) { console.warn('req', x); } });
     stage.append(b); reqEl = b; const mine = req; setTimeout(() => { if (reqEl === b) { b.remove(); reqEl = null; } }, 25000); setTimeout(() => { if (req === mine && !mine.done) req = null; }, 150000);
   }

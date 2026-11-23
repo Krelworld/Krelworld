@@ -180,10 +180,13 @@ describe("phone mode: which phone", () => {
   const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
   const ANDROID_UA = "Mozilla/5.0 (Linux; Android 13; SM-A135F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36";
   it("tells iPhone from Android, and spots a home-screen app and an in-app browser", () => {
-    expect(platformFrom({ ua: IOS_UA })).toEqual({ ios: true, android: false, standalone: false, inApp: false });
-    expect(platformFrom({ ua: ANDROID_UA })).toEqual({ ios: false, android: true, standalone: false, inApp: false });
+    expect(platformFrom({ ua: IOS_UA })).toEqual({ ios: true, android: false, standalone: false, inApp: false, inAppName: null, browser: "safari" });
+    expect(platformFrom({ ua: ANDROID_UA })).toEqual({ ios: false, android: true, standalone: false, inApp: false, inAppName: null, browser: "chrome" });
     expect(platformFrom({ ua: IOS_UA, navStandalone: true }).standalone).toBe(true);
     expect(platformFrom({ ua: ANDROID_UA, media: (q) => q === "(display-mode: fullscreen)" }).standalone).toBe(true);
+    // the game's own fullscreen in a browser tab also matches display-mode: fullscreen: that is not the home screen
+    expect(platformFrom({ ua: ANDROID_UA, media: (q) => q === "(display-mode: fullscreen)", inElementFullscreen: true }).standalone).toBe(false);
+    expect(platformFrom({ ua: ANDROID_UA, media: (q) => q === "(display-mode: standalone)", inElementFullscreen: true }).standalone).toBe(true);
     expect(platformFrom({ ua: IOS_UA + " Instagram 300.0" }).inApp).toBe(true);
     expect(platformFrom({ ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)", maxTouchPoints: 5 }).ios).toBe(true);
   });

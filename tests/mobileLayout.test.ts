@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   BOTTOM_CLEAR,
   controlScale,
@@ -17,7 +17,7 @@ import {
   stickZone,
   type Viewport,
 } from "../src/game/mobile/layout";
-import { DEFAULT_PHONE_SETTINGS, normalizePhoneSettings, onPhoneSettingsChange, phoneSettings, resetPhoneSettingsForTests, updatePhoneSettings, usePhoneSettingsStore } from "../src/game/mobile/settings";
+import { DEFAULT_PHONE_SETTINGS } from "../src/game/mobile/settings";
 
 /** iPhone 14 landscape in a home-screen app: 47 px each side (notch / rounded corners), 21 px home indicator. */
 const IPHONE: Viewport = { w: 844, h: 390, insets: { top: 0, right: 47, bottom: 21, left: 47 } };
@@ -182,31 +182,4 @@ describe("phone layout: the stick", () => {
   });
 });
 
-describe("phone settings", () => {
-  afterEach(() => resetPhoneSettingsForTests());
-
-  it("defaults: right-handed, medium, 30%", () => {
-    expect(phoneSettings()).toEqual({ leftHanded: false, buttonSize: "M", opacity: 0.3 });
-  });
-
-  it("cleans up whatever it is given", () => {
-    expect(normalizePhoneSettings(null)).toEqual(DEFAULT_PHONE_SETTINGS);
-    expect(normalizePhoneSettings({ leftHanded: "yes", buttonSize: "XL", opacity: 5 })).toEqual({ leftHanded: false, buttonSize: "M", opacity: 0.8 });
-    expect(normalizePhoneSettings({ leftHanded: true, buttonSize: "S", opacity: 0 })).toEqual({ leftHanded: true, buttonSize: "S", opacity: 0.2 });
-  });
-
-  it("tells listeners about changes and saves them through the store part 2 provides", () => {
-    const seen: unknown[] = [];
-    const saved: unknown[] = [];
-    onPhoneSettingsChange((s) => seen.push({ ...s }));
-    usePhoneSettingsStore({ load: () => ({ leftHanded: true }), save: (s) => saved.push({ ...s }) });
-    expect(phoneSettings().leftHanded).toBe(true);
-    updatePhoneSettings({ buttonSize: "L" });
-    updatePhoneSettings({ buttonSize: "L" });
-    expect(seen).toEqual([
-      { leftHanded: true, buttonSize: "M", opacity: 0.3 },
-      { leftHanded: true, buttonSize: "L", opacity: 0.3 },
-    ]);
-    expect(saved).toEqual([{ leftHanded: true, buttonSize: "L", opacity: 0.3 }]);
-  });
-});
+// (the phone settings store is tested in mobileSettings.test.ts)

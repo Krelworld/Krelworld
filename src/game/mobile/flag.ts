@@ -76,6 +76,53 @@ export function resolveMobile(env: MobileEnv): { mobile: boolean; remember: "1" 
   return { mobile: detectPhone(env), remember: null };
 }
 
+/** Why phone mode is on or off: which rule decided, and how each device test came out (for ?mobilediag). */
+export interface MobileWhy {
+  mobile: boolean;
+  /** "address" (?mobile=), "remembered" (an earlier ?mobile= choice), "device" (the tests below), "no browser" (node). */
+  by: "address" | "remembered" | "device" | "no browser";
+  coarse: boolean;
+  noHover: boolean;
+  touchPoints: number;
+  shortSide: number;
+  /** The device tests alone say phone. */
+  device: boolean;
+  param: "on" | "off" | "auto" | null;
+  stored: string | null;
+}
+
+/** The decision with its reasons (pure). */
+export function explainMobile(env: MobileEnv): MobileWhy {
+  const q = (s: string) => {
+    try {
+      return typeof env.media === "function" && env.media(s);
+    } catch {
+      return false;
+    }
+  };
+  const param = parseMobileParam(env.search);
+  const stored = env.stored ?? null;
+  const by: MobileWhy["by"] = param === "on" || param === "off" ? "address" : param !== "auto" && (stored === "1" || stored === "0") ? "remembered" : "device";
+  return {
+    mobile: resolveMobile(env).mobile,
+    by,
+    coarse: q("(pointer: coarse)"),
+    noHover: q("(hover: none)"),
+    touchPoints: env.maxTouchPoints ?? 0,
+    shortSide: Math.min(env.screen?.width ?? 0, env.screen?.height ?? 0),
+    device: detectPhone(env),
+    param,
+    stored,
+  };
+}
+
+let why: MobileWhy = { mobile: false, by: "no browser", coarse: false, noHover: false, touchPoints: 0, shortSide: 0, device: false, param: null, stored: null };
+
+/** Why phone mode is what it is (decided once at load). */
+export function mobileWhy(): Readonly<MobileWhy> {
+  return why;
+}
+
 /** Read the real browser, decide, and remember an address choice. Never throws. */
 function decideAtStartup(): boolean {
   if (typeof window === "undefined" || typeof document === "undefined") return false;
@@ -94,6 +141,11 @@ function decideAtStartup(): boolean {
     stored,
   };
   const r = resolveMobile(env);
+  try {
+    why = explainMobile(env);
+  } catch {
+    /* only for the diagnostics */
+  }
   try {
     if (r.remember === "1" || r.remember === "0") window.localStorage?.setItem(key, r.remember);
     else if (r.remember === "clear" && stored !== null) window.localStorage?.removeItem(key);

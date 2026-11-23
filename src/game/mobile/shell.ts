@@ -7,7 +7,7 @@
 //    the sound context pause, and the game saves; all of it picks up again when the page comes back;
 //  - Safari's bars collapsing (visualViewport) and rotations: the game re-measures;
 //  - Android: the Enter-gate tap asks for fullscreen and locks landscape, and a small control offers it again if the
-//    player leaves fullscreen; iPhone keeps the title screen's Add to Home Screen hint;
+//    player leaves fullscreen (iPhone has no fullscreen: the Add to Home Screen guide, homeScreen.ts, is its route);
 //  - the back gesture: one guard entry in the history, so a stray back swipe pauses the game instead of leaving it
 //    (a second back while paused does leave).
 import type Phaser from "phaser";
@@ -275,6 +275,15 @@ export class Shell {
 
   private canFullscreen(): boolean {
     return this.platform.android && !this.platform.standalone && !!this.game.device?.fullscreen?.available;
+  }
+
+  /** Android, not in fullscreen now, and the browser can do it (the Add to Home Screen guide offers it). */
+  canGoFullscreen(): boolean {
+    try {
+      return this.canFullscreen() && !this.game.scale.isFullscreen;
+    } catch {
+      return false;
+    }
   }
 
   private enterGateTapped() {

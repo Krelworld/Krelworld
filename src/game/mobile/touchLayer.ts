@@ -31,6 +31,7 @@ import {
 import { onPhoneSettingsChange, phoneSettings } from "./settings";
 import { NONE, resolveMode, sameDecision, type LayerMode, type ModeDecision } from "./modes";
 import { dropEdges, pressInteract, pressPause, pressSanmik, promptRect, readView } from "./observe";
+import { haptic } from "./haptics";
 
 /** A touch that moves less than this is still a tap (Android uses 8 dp, iOS 10 pt). */
 export const TAP_SLOP = 10;
@@ -88,6 +89,8 @@ interface StickTouch {
   moved: boolean;
   /** The mode moved on while it was down: it does nothing more, and is no tap. */
   dead: boolean;
+  /** The "Stick: stays put" setting: the base sits at its resting place and does not follow the thumb. */
+  fixed: boolean;
 }
 
 interface FakeEvent {
@@ -388,11 +391,15 @@ export class TouchLayer {
   private startStick(t: Touch) {
     const x = t.clientX;
     const y = t.clientY;
-    this.stick = { id: t.identifier, x0: x, y0: y, t0: now(), bx: x, by: y, moved: false, dead: false };
+    // floating (the default): the stick appears under the thumb; fixed: it stays at its resting place
+    const fixed = phoneSettings().stick === "fixed";
+    const b = fixed ? ghostStick(this.viewport, phoneSettings()) : { x, y };
+    this.stick = { id: t.identifier, x0: x, y0: y, t0: now(), bx: b.x, by: b.y, moved: false, dead: false, fixed };
     this.stickEl.classList.remove("ghost");
     this.stickEl.classList.add("live");
-    this.stickEl.style.transform = `translate(${x}px,${y}px)`;
+    this.stickEl.style.transform = `translate(${b.x}px,${b.y}px)`;
     this.knobEl.style.transform = "translate(0px,0px)";
+    if (fixed) this.moveStick(x, y);
   }
 
   private moveStick(x: number, y: number) {
@@ -400,12 +407,13 @@ export class TouchLayer {
     if (!s || s.dead) return;
     if (!s.moved && Math.hypot(x - s.x0, y - s.y0) > TAP_SLOP) s.moved = true;
     const g = this.geo;
-    const nb = followBase({ x: s.bx, y: s.by }, { x, y }, g.travel);
+    const nb = s.fixed ? { x: s.bx, y: s.by } : followBase({ x: s.bx, y: s.by }, { x, y }, g.travel);
     if (nb.x !== s.bx || nb.y !== s.by) {
       s.bx = nb.x;
       s.by = nb.y;
       this.stickEl.style.transform = `translate(${s.bx}px,${s.by}px)`;
     }
+    // (fixed: the knob stops at the rim; the direction still counts from anywhere in the zone)
     const v = stickVector(x - s.bx, y - s.by, g);
     TOUCH.mx = v.x;
     TOUCH.my = v.y;
@@ -413,7 +421,14 @@ export class TouchLayer {
       this.learnedMove = true;
       this.capEl.style.display = "none";
     }
-    this.knobEl.style.transform = `translate(${x - s.bx}px,${y - s.by}px)`;
+    let kx = x - s.bx;
+    let ky = y - s.by;
+    const kd = Math.hypot(kx, ky);
+    if (kd > g.travel) {
+      kx *= g.travel / kd;
+      ky *= g.travel / kd;
+    }
+    this.knobEl.style.transform = `translate(${kx}px,${ky}px)`;
   }
 
   private endStick(mayTap: boolean) {
@@ -608,6 +623,8 @@ export class TouchLayer {
   }
 
   private press(n: ButtonName) {
+    // (a little buzz where the phone can: Android, with the Vibration setting on)
+    haptic(n === "action" ? "press" : "tap");
     if (n === "action") this.edge("interact");
     else if (n === "sanmik") this.edge("sanmik");
     else if (n === "pause") this.pause();

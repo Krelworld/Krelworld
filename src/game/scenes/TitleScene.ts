@@ -8,6 +8,8 @@ import { synth } from "../audio/Synth";
 import { continueRun, switchTo, fadeThen } from "../Flow";
 import { formatPlaytime, slotLabel } from "../systems/saveSlots";
 import { LADS } from "../../data/characters";
+import { isMobile } from "../mobile/flag";
+import { homeScreenEntryWanted, openHomeScreenGuide } from "../mobile/homeScreen";
 
 const LEAK = ["[citation needed]", "Seen by 9", "Hello?", "KREZZ", "Drongi", "WONK", "pls", "Krebon is coming", "lore withdrawn", "THE KREZZING HOUR", "Krez-ousers", "purple", "Big Bertha", "12 Midday", "cheesegate"];
 
@@ -22,6 +24,11 @@ export class TitleScene extends Phaser.Scene {
    * already running from the home screen.
    */
   private fullscreenButton() {
+    // phones: this corner opens the Add to Home Screen guide instead, unless already on the home screen (src/game/mobile)
+    if (isMobile()) {
+      if (homeScreenEntryWanted()) button(this, this.scale.width - 150, 34, "📲 ADD TO HOME SCREEN", () => openHomeScreenGuide("title"), { w: 280, h: 48, size: 17, color: 0x1e3a5f });
+      return;
+    }
     const standalone = matchMedia?.("(display-mode: fullscreen)").matches || matchMedia?.("(display-mode: standalone)").matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
     if (standalone) return;
     const { width: W, height: H } = this.scale;

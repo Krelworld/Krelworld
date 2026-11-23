@@ -9,6 +9,7 @@ import { G } from "../G";
 import { isMikey, sanmikForced } from "../systems/sanmik";
 import type { GameView, ModeDecision, SceneState } from "./modes";
 import type { Rect } from "./layout";
+import { rawText } from "./wording";
 
 type Bag = Record<string, unknown>;
 
@@ -53,7 +54,8 @@ export function readView(game: Phaser.Game): GameView {
     try {
       const r = ad(sc as unknown as Bag);
       const pt = liveText(r.promptOwner.prompt);
-      st = { key, busy: r.busy, prompt: pt ? pt.text : null, side: r.side, sub: r.sub ?? null };
+      // (the prompt as the scene wrote it: on a phone it is shown in touch wording, "Tap: ..." instead of "E: ...")
+      st = { key, busy: r.busy, prompt: pt ? rawText(pt as Phaser.GameObjects.Text & { __krelRaw?: string }) : null, side: r.side, sub: r.sub ?? null };
     } catch {
       /* a scene mid-restart: read it as plain */
     }

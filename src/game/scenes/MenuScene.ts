@@ -1,4 +1,6 @@
 import { canFullscreen, fullscreenLabel, toggleFullscreen } from "../systems/fullscreen";
+import { isMobile } from "../mobile/flag";
+import { homeScreenEntryWanted, openHomeScreenGuide } from "../mobile/homeScreen";
 import { afterKreddle } from "../systems/moodMusic";
 import { dialogueLog } from "../ui/dialogueLog";
 import Phaser from "phaser";
@@ -297,7 +299,8 @@ export class MenuScene extends Phaser.Scene {
           ["CONTROLS", () => this.openControls("pause")],
           ["SETTINGS", () => this.render("settings")],
           // fullscreen (Alt+Enter does it any time). On an iPhone the browser won't: say how instead.
-          [canFullscreen(this.game) ? `${fullscreenLabel(this.game)}   (Alt+Enter)` : "⛶ FULLSCREEN", () => {
+          // (phones not already on the home screen: the Add to Home Screen guide, src/game/mobile/homeScreen.ts)
+          isMobile() && homeScreenEntryWanted() ? ["📲 ADD TO HOME SCREEN", () => openHomeScreenGuide("pause")] : [canFullscreen(this.game) ? `${fullscreenLabel(this.game)}   (Alt+Enter)` : "⛶ FULLSCREEN", () => {
             if (toggleFullscreen(this.game)) this.time.delayedCall(250, () => this.render("pause"));
             else G.emit("toast", { title: "FULLSCREEN ON iPHONE", text: "Safari can't do it from inside a page. Tap Share ⬆ then \"Add to Home Screen\": the game then opens full screen, no browser bars." });
           }],

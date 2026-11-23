@@ -99,7 +99,7 @@ const UI = (() => {
   function unpulseMoods() { document.getElementById('moodbar').classList.remove('pulse'); }
   function markMood(m) { document.querySelectorAll('.mood').forEach(b => b.classList.toggle('cur', b.dataset.mood === m)); document.getElementById('moodToggle').textContent = { love: '🥰', happy: '😄', sad: '😢', angry: '😠', tantrum: '😭' }[m]; }
   function flash() { let f = document.querySelector('.flash'); if (!f) { f = el('div', { class: 'flash' }); document.body.append(f); } f.style.transition = 'none'; f.style.opacity = 0.8; requestAnimationFrame(() => { f.style.transition = 'opacity .35s'; f.style.opacity = 0; }); }
-  function bigIcon(ch, ms = 1200) { const n = el('div', { style: { position: 'absolute', left: '50%', top: '40%', transform: 'translate(-50%,-50%)', fontSize: '90px', pointerEvents: 'none', animation: 'pop .3s both', zIndex: 8, textShadow: '0 6px 0 rgba(0,0,0,.3)' } }, ch); fx().append(n); setTimeout(() => n.remove(), ms); }
+  function bigIcon(ch, ms = 1200) { const n = el('div', { style: { position: 'absolute', left: '50%', top: '40%', ...(window.Clarity && Clarity.is('G5') && CSS.supports('translate', '1px') ? { translate: '-50% -50%' } /* G5 */ : { transform: 'translate(-50%,-50%)' }), fontSize: '90px', pointerEvents: 'none', animation: 'pop .3s both', zIndex: 8, textShadow: '0 6px 0 rgba(0,0,0,.3)' } }, ch); fx().append(n); setTimeout(() => n.remove(), ms); }
 
   // ------------- fort tray
   function fortTray(show) {

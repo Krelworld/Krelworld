@@ -140,7 +140,7 @@ const Studio = (() => {
     const im = mk('img'); im.src = url; const big = mk('div', 's-tile wide'); big.append(im); d.append(big);
     const b = (ico, label, fn) => { const n = mk('button', 's-tile', ico); n.setAttribute('aria-label', label); onTap(n, fn); d.append(n); return n; };
     // three clear things to do with it: give it to someone, hang it up right here, or carry it off
-    for (const w of ['daddy', 'mommy', 'rory']) { const n = b('', 'give it to ' + w, () => { close(); Pics.giveTo(url, w); }); n.classList.add('s-give'); const c = spriteCanvas(w); if (c) { const i = mk('img'); i.src = c.toDataURL(); i.className = 'pix'; n.append(i); } n.append(mk('i', '', '🎁')); }
+    for (const w of ['daddy', 'mommy', 'rory', 'nunu', 'jeff'].filter(w => spriteCanvas(w))) { const n = b('', 'give it to ' + w, () => { close(); Pics.giveTo(url, w); }); n.classList.add('s-give'); const c = spriteCanvas(w); if (c) { const i = mk('img'); i.src = c.toDataURL(); i.className = 'pix'; n.append(i); } n.append(mk('i', '', '🎁')); }
     const hangB = b('🖼️', 'hang it on the wall', () => { close(); Pics.hang(url); }); hangB.classList.add('s-hang'); hangB.append(mk('i', '', '🔨'));
     const take = b('🚶', 'carry it', () => { close(); Pics.carry(url); }); take.append(mk('i', '', '🖼️')); take.classList.add('s-carry');
     if (!fresh) b('✏️', 'draw on it', () => { snap(); const i2 = new Image(); i2.onload = () => { S.pc.drawImage(i2, 0, 0, S.W, S.H); }; i2.src = url; S.lc.clearRect(0, 0, S.W, S.H); toggleDrawer(null); });

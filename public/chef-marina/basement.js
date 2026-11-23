@@ -186,7 +186,10 @@
   const lock = ms => { G.busy = true; setTimeout(() => { G.busy = false; }, ms); };
   const got = ev => { try { window.did && did(ev); } catch (e) { } };
   const near = (p, fn, gap) => approach(p.x, fn, gap == null ? 16 : gap);
-  function bricks(kind, p) { if (!window.Bricks) return say('m_hmm'); near(p, () => { UI.closeActions(); Bricks.open({ kind, onDone: r => { if (r && r.count) { cheer(1800); emit('confetti', marina.x, marina.y - 60, 24); say(pick(['m_did_it', 'm_look', 'm_made'])); got('lego'); if (window.reactTo) reactTo('artist', 1800); } } }); }, 30); }
+  function bricks(kind, p) { if (!window.Bricks) return say('m_hmm'); near(p, () => { UI.closeActions(); const G2 = window.GRAND, withNunu = G2 && kind === 'lego' && nunu.here;
+    Bricks.open({ kind, onClose: () => { if (G2) G2.nunuAtBricks(false); },
+      onDone: r => { if (G2) G2.nunuAtBricks(false); if (r && r.count) { cheer(1800); emit('confetti', marina.x, marina.y - 60, 24); say(pick(['m_did_it', 'm_look', 'm_made'])).then(() => { if (withNunu && nunu.here) say(pick(['nu_lego_done', 'nu_lego_nice1', 'nu_proud']), nunu); }); got('lego'); if (window.reactTo && !withNunu) reactTo('artist', 1800); } } });
+    if (withNunu) G2.nunuAtBricks(true); }, 30); }
   function petTux(p) { near(p, () => { marina.dir = Math.sign(p.x - marina.x) || 1; playAnim('marina_pet', { fps: 6, proc: 'hug', dur: 1.4 }); Audio2.sfx('purr'); emit('heart', p.x, p.y - 22, 5); S.tuxUp = E.t + 3; say('m_niko_love'); }, 24); }
   function playTux(p) { near(p, () => { S.tuxUp = E.t + 3.5; Audio2.sfx(pick(['trill1', 'trill3'])); emit('star', p.x, p.y - 20, 6); say('m_giggle'); cheer(1200); }, 28); }
   function stackStone(p) { near(p, () => { S.stones = (S.stones || 0) + 1; Audio2.blip(S.stones * 2, 'triangle', 0.1, 0.16); emit('dust', p.x, p.y - 14 - S.stones * 4, 2);
@@ -222,12 +225,12 @@
   const _pa = propActions;
   propActions = function (p) {
     switch (p.a) {
-      case 'legotable': return [A('🧱', () => bricks('lego', p)), A('🧗', () => climbOn({ ...p, climb: 146 }))];
+      case 'legotable': return [A('🧱', () => bricks('lego', p)), A('🎨', () => near(p, () => { UI.closeActions(); if (nunu.here) { const pr = Audio2.voice('nu_draw', 'nu'); UI.face('nunu', 'happy', pr); } UI.openCrafts('draw'); }, 30)), A('🧗', () => climbOn({ ...p, climb: 146 }))];
       case 'tiles': return [A('🔷', () => bricks('tiles', p))];
       case 'tuxcat': return [A('✋', () => petTux(p)), A('🧶', () => playTux(p))];
       case 'ottoman': return [A('🦘', () => bounceOn(p)), A('🪑', () => sitDown(p))];
       case 'stones': return [A('🪨', () => stackStone(p))];
-      case 'btv': return [A('🐠', () => near(p, () => { G.btvOn = !G.btvOn; Audio2.blip(G.btvOn ? 12 : -5, 'square', 0.08); if (G.btvOn) say('m_tv'); }, 30))];
+      case 'btv': return [...(window.Movies && window.GRAND ? [A('🎬', () => GRAND.movieNight())] : []), A('🐠', () => near(p, () => { G.btvOn = !G.btvOn; Audio2.blip(G.btvOn ? 12 : -5, 'square', 0.08); if (G.btvOn) say('m_tv'); }, 30))];
       case 'bfire': return [A('🔥', () => near(p, () => { G.bfireOn = !G.bfireOn; Audio2.noise(0.4, 0.2, 700); if (G.bfireOn) { say('m_cool'); clearInterval(S.fireIv); S.fireIv = setInterval(() => { if (!G.bfireOn) return clearInterval(S.fireIv); if (G.room === 'den' && chance(0.6)) Audio2.noise(0.12, 0.05, 1800); }, 600); } }, 34))];
       case 'dutch': return [A('👋', () => near(p, () => { S.dutchT = E.t + 4; Audio2.sfx('door_open'); setTimeout(() => { Audio2.blip(19, 'sine', 0.1, 0.12); Audio2.blip(24, 'sine', 0.1, 0.1); }, 500); say('m_wow'); emit('leaf', p.x, p.y - 70, 3); }, 26))];
       case 'boxes': { const a = [A('🙈', () => peekaboo(p))]; if (FORT_SPOTS[G.room] && !G.fort) a.push(A('🏰', startFort)); return a; }

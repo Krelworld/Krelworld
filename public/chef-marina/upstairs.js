@@ -166,7 +166,7 @@
   drawProp = function (p) {
     if (G.room === 'foyer' && p.id === 'stairs') {       // the staircase: rail, and the chair wherever it is
       const k0 = p.k; if (has('u_stairs')) p.k = 'u_stairs'; _dp(p); p.k = k0;
-      const a = liftP(0), b = liftP(1), c = E.ctx; c.strokeStyle = '#e9e7df'; c.lineWidth = 2; c.beginPath(); c.moveTo(a.x + 5 - E.camX, a.y); c.lineTo(b.x + 4 - E.camX, b.y); c.stroke();
+      const a = liftP(0), b = liftP(1), c = E.ctx; c.strokeStyle = '#a9a69d'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(a.x + 5 - E.camX, a.y); c.lineTo(b.x + 4 - E.camX, b.y); c.stroke();
       const q = liftP(S.lift); drawChair(q.x, q.y, q.s); return;
     }
     if (!isUp(G.room)) return _dp(p);
@@ -188,12 +188,12 @@
     if (p.id === 'bidet' && E.t < (S.bidetT || 0)) { const c = E.ctx, x = Math.round(p.x - 6 - E.camX), h = 46 * Math.min(1, (S.bidetT - E.t) / 0.4, (E.t - S.bidet0) / 0.25); c.fillStyle = 'rgba(140,205,245,.85)'; c.fillRect(x - 1, p.y - 24 - h, 3, h); c.fillStyle = 'rgba(220,240,255,.9)'; c.fillRect(x - 4, p.y - 27 - h, 9, 4); if (chance(0.6)) emit('water', p.x - 6 + rnd(-8, 8), p.y - 24 - h); }
   }
   // the stuffies she arranged, drawn small on her bunk bed
-  const BUNK = { top: 0.30, bottom: 0.72, rail: 0.14, x0: 0.06, x1: 0.80, ladder: 0.90 };      // fractions of the bunk picture (tuned to the sprite)
+  const BUNK = { top: 0.25, bottom: 0.74, rail: 0.08, x0: 0.09, x1: 0.71, ladder: 0.89 };      // fractions of the bunk picture (tuned to the sprite)
   function minis(p) {
     if (!window.Stuffies || !Stuffies.saved) return; let list; try { list = Stuffies.saved() || []; } catch (e) { return; } if (!list.length) return;
     const [w, h] = spriteSize(p.k); if (!w) return; const L = p.x - w / 2, T = p.y - h, d0 = E.depth; E.depth = 1;
     for (const s of list.slice(0, 24)) { const u = clamp(s.u == null ? 0.5 : s.u, 0, 1); let x = L + w * (BUNK.x0 + (BUNK.x1 - BUNK.x0) * u), y;
-      if (s.level === 'top') y = T + h * BUNK.top; else if (s.level === 'rail') y = T + h * BUNK.rail; else if (s.level === 'ladder') { x = L + w * BUNK.ladder; y = T + h * (0.35 + 0.5 * u); } else if (s.level === 'floor') y = p.y + 4; else y = T + h * BUNK.bottom;
+      if (s.level === 'top') y = T + h * BUNK.top; else if (s.level === 'rail') y = T + h * BUNK.rail; else if (s.level === 'ladder') { x = L + w * BUNK.ladder; y = T + h * (0.36 + 0.5 * u); } else if (s.level === 'floor') y = p.y + 4; else y = T + h * BUNK.bottom;
       y -= (s.stack || 0) * 7; emoji(s.ch, x, y - 4, 8); if ((s.asleep || E.t < (S.nightT || 0)) && chance(0.004)) emit('zzz', x, y - 10); }
     E.depth = d0;
   }

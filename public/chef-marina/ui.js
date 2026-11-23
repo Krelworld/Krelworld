@@ -246,7 +246,7 @@ const UI = (() => {
       el('div', { style: { fontSize: '22px', opacity: .85 } }, d.name),
       // give it straight to someone: they come over and she hands it to them
       el('div', { class: 'row giverow' }, el('span', { style: { fontSize: '34px' } }, '🎁'),
-        ...['daddy', 'mommy', 'rory'].map(w => el('button', { class: 'pbtn givebtn', 'aria-label': 'give it to ' + w, on: tap(() => { closePanel(); finishDish(d); giveDishTo(w); }) }, img(w)))),
+        ...['daddy', 'mommy', 'rory', 'jeff'].filter(w => spriteCanvas(w)).map(w => el('button', { class: 'pbtn givebtn', 'aria-label': 'give it to ' + w, on: tap(() => { closePanel(); finishDish(d); giveDishTo(w); }) }, img(w)))),
       el('div', { class: 'row' },
         el('button', { class: 'pbtn', 'aria-label': 'carry it', style: { width: '90px', height: '90px', fontSize: '48px' }, on: tap(() => { closePanel(); finishDish(d); say('m_yay'); }) }, '✅'),
         el('button', { class: 'pbtn', style: { width: '90px', height: '90px', fontSize: '48px' }, 'aria-label': 'other way', on: tap(() => chooseMethod()) }, '⬅️'),
@@ -500,7 +500,7 @@ const UI = (() => {
       c = cards[who] = { n, cv, t: 0 };
     }
     // position: speaker's side of the screen
-    const ent = { marina, daddy, mommy, rory, miles, niko }[who];
+    const ent = { marina, daddy, mommy, rory, miles, niko, nunu, jeff }[who];
     const right = ent && ent.here ? toScreen(ent.x, 0)[0] > document.getElementById('stage').clientWidth / 2 : who !== 'marina';
     c.n.classList.toggle('right', right); c.n.classList.toggle('sick', !!opt.sick); c.n.classList.toggle('shake', !!opt.shake);
     c.mood = mood; c.talking = true; c.n.classList.add('show');

@@ -5,14 +5,15 @@
   const stage = document.getElementById('stage');
   const mk = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
   const press = (n, fn) => { n.addEventListener('pointerdown', e => e.stopPropagation()); n.addEventListener('pointerup', e => { e.stopPropagation(); e.preventDefault(); fn(e); }); return n; };
-  const READERS = [['d', 'daddy'], ['mo', 'mommy'], ['r', 'rory']];
+  const READERS = [['d', 'daddy'], ['mo', 'mommy'], ['r', 'rory'], ['nu', 'nunu']];
+  const entOf = who => ({ daddy, mommy, rory, nunu })[who];
   let box = null, tok = 0, held = null;
   const img = (s, i) => 'assets/story/' + s.id + '_' + (i + 1) + '.png';
 
   function close(done, who) {
     tok++; if (held) { AI.hold(held, false); held = null; } if (box) { box.remove(); box = null; } stage.classList.remove('storyon'); G.busy = false; setMusic();
-    for (const sp of ['d', 'mo', 'r']) try { Audio2.hush(sp); } catch (e) { }
-    if (done && who) { const e = { daddy, mommy, rory }[who]; marina.state = 'cheer'; emit('heart', (marina.x + e.x) / 2, marina.y - 70, 8); setTimeout(() => { if (marina.state === 'cheer') marina.state = 'idle'; }, 1500);
+    for (const sp of ['d', 'mo', 'r', 'nu']) try { Audio2.hush(sp); } catch (e) { }
+    if (done && who) { const e = entOf(who); marina.state = 'cheer'; emit('heart', (marina.x + e.x) / 2, marina.y - 70, 8); setTimeout(() => { if (marina.state === 'cheer') marina.state = 'idle'; }, 1500);
       say('m_again').then(() => say(e === daddy ? 'd_love' : e === mommy ? 'mo_love' : 'r_love', e)); }
   }
   function open() {
@@ -34,7 +35,7 @@
   function readers(s) {
     box.innerHTML = ''; box.append(closeBtn(), press(mk('button', 'st-back', '◀'), shelf));
     const g = mk('div', 'st-who');
-    for (const [sp, who] of READERS) {
+    for (const [sp, who] of READERS.filter(r => spriteCanvas(r[1]))) {
       const b = mk('button', 'st-reader', '<canvas width="64" height="64"></canvas>'); b.setAttribute('aria-label', who + ' reads');
       const sc = spriteCanvas(who), x = b.firstChild.getContext('2d'); x.imageSmoothingEnabled = false; if (sc) { const k = Math.min(1, 64 / sc.height); x.drawImage(sc, 32 - sc.width * k / 2, 64 - sc.height * k, sc.width * k, sc.height * k); }
       press(b, () => { chip('yes'); read(s, sp, who); }); g.append(b);
@@ -43,7 +44,7 @@
   }
   function read(s, sp, who) {
     // the reader comes and sits with her
-    const e = { daddy, mommy, rory }[who]; if (e === rory) { G.rory = true; }
+    const e = entOf(who); if (e === rory) { G.rory = true; }
     if (held && held !== e) AI.hold(held, false); held = e; AI.hold(e, true); e.hidden = false; e.room = G.room; e.state = 'idle'; e.stop && e.stop(); e.x = clamp(marina.x + (marina.x > ROOMS[G.room].w - 60 ? -30 : 30), 20, ROOMS[G.room].w - 20); e.y = marina.y; e.dir = Math.sign(marina.x - e.x) || 1; marina.dir = -e.dir;
     box.innerHTML = '';
     const pic = mk('img', 'st-pic'), cap = mk('div', 'st-cap'), dots = mk('div', 'st-dots'), prev = mk('button', 'st-nav l', '◀'), next = mk('button', 'st-nav r', '▶');
@@ -85,8 +86,8 @@
 .st-book b{position:absolute;left:-10px;top:-12px;width:44px;height:44px;border-radius:50%;background:#fff6dc;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 rgba(0,0,0,.35);font-weight:400}
 .st-book span,.st-cover span{font-size:15px;color:#fff6dc;padding:5px 6px 7px;line-height:1.1;font-family:inherit}
 .st-cover{width:min(50vw,200px);border-radius:14px;border:5px solid #fff6dc;background:#3a2a55;display:flex;flex-direction:column;text-align:center}
-.st-who{display:flex;gap:14px}
-.st-reader{width:min(26vw,104px);height:min(26vw,104px);border-radius:50%;border:5px solid #fff;background:#ffe9b8;padding:6px;box-shadow:0 6px 0 rgba(0,0,0,.35);animation:pulse .7s ease-in-out infinite alternate}
+.st-who{display:flex;gap:10px;justify-content:center}
+.st-reader{width:min(21vw,104px);height:min(21vw,104px);border-radius:50%;border:5px solid #fff;background:#ffe9b8;padding:6px;box-shadow:0 6px 0 rgba(0,0,0,.35);animation:pulse .7s ease-in-out infinite alternate}
 .st-reader canvas{width:100%;height:100%;image-rendering:pixelated}
 .st-page{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:100%;max-height:100%}
 .st-page.turn{animation:stturn .35s ease-out}

@@ -24,7 +24,7 @@ const Pics = (() => {
   function takeDown(w) { walls = walls.filter(q => q !== w); saveWalls(); emit('dust', w.x, w.y, 6); chip('drop'); }
   function trash(url) { const h = hash(url); walls = walls.filter(w => w.h !== h); saveWalls(); store.set('gallery', gallery().filter(u => u !== url)); delete imgs[h]; }
   function giftMenu(url, fromWall) {
-    const who = [[daddy, '👨'], [mommy, '👩'], [rory, '🧔']].filter(([e]) => !e.hidden || e === rory).filter(([e]) => e.state !== 'toilet');
+    const who = [[daddy, '👨'], [mommy, '👩'], [rory, '🧔'], [nunu, '👵'], [jeff, '👴']].filter(([e]) => !e.hidden || e === rory).filter(([e]) => e.state !== 'toilet').filter(([e]) => (e !== nunu && e !== jeff) || e.here);
     UI.actions(marina, who.map(([e, ico]) => A(ico, () => gift(url, e, fromWall))));
   }
   function gift(url, who, fromWall) {

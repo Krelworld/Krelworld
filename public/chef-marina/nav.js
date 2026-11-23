@@ -98,7 +98,7 @@
   const _ft = featTick; featTick = function (dt) { _ft(dt); picHints(); };
 
   // face cards: tap one to run to that person / baby / cat
-  stage.addEventListener('pointerup', e => { const c = e.target.closest('.facecard'); if (!c) return; e.stopPropagation(); const who = c.dataset.who, ent = { daddy, mommy, rory, miles, niko }[who]; if (!ent || ent.hidden || G.busy || !quiet()) return; UI.closeActions(); Audio2.jingle([0, 7, 12], 0.06); goEnt(ent); }, true);
+  stage.addEventListener('pointerup', e => { const c = e.target.closest('.facecard'); if (!c) return; e.stopPropagation(); const who = c.dataset.who, ent = { daddy, mommy, rory, miles, niko, nunu, jeff }[who]; if (!ent || ent.hidden || G.busy || !quiet()) return; UI.closeActions(); Audio2.jingle([0, 7, 12], 0.06); goEnt(ent); }, true);
   stage.addEventListener('pointerdown', e => { if (e.target.closest('.facecard')) e.stopPropagation(); }, true);
 
   // ------------------------------------------------------------ outfits stay on when she cheers, sits, swings or rides
@@ -294,7 +294,7 @@
 
 // ------------------------------------------------------------ straight from the cooker to someone: they appear beside her and she hands it over
 function giveDishTo(who) {
-  const e = { daddy, mommy, rory }[who]; if (!e || !G.holding || G.holding.type !== 'dish') return;
+  const e = { daddy, mommy, rory, jeff }[who]; if (!e || !G.holding || G.holding.type !== 'dish') return;
   if (e === rory) G.rory = true; if (G.bathWho === e) { G.bathLocked = false; G.bathWho = null; G.needTP = false; }
   const W = ROOMS[G.room].w, side = marina.x > W - 70 ? -1 : 1;
   AI.hold(e, true); e.stop(); e.hidden = false; e.room = G.room; e.state = 'idle'; e.holdingMiles = false; e.x = clamp(marina.x + side * 38, 16, W - 16); e.y = marina.y; e.dir = -side; marina.dir = side; marina.stop();
@@ -305,7 +305,7 @@ function giveDishTo(who) {
 
 // ------------------------------------------------------------ straight from the easel to someone: they appear beside her and she gives them the picture
 Pics.giveTo = function (url, who) {
-  const e = { daddy, mommy, rory }[who]; if (!e) return; if (e === rory) G.rory = true; if (G.bathWho === e) { G.bathLocked = false; G.bathWho = null; G.needTP = false; }
+  const e = { daddy, mommy, rory, nunu, jeff }[who]; if (!e) return; if (e === rory) G.rory = true; if (G.bathWho === e) { G.bathLocked = false; G.bathWho = null; G.needTP = false; }
   if (marina.mount) dismount(); const W = ROOMS[G.room].w, side = marina.x > W - 70 ? -1 : 1;
   e.stop(); e.hidden = false; e.room = G.room; e.state = 'idle'; e.holdingMiles = false; e.x = clamp(marina.x + side * 40, 16, W - 16); e.y = marina.y; e.dir = -side; marina.dir = side; marina.stop(); marina.state = 'idle'; marina.offY = 0;
   emit('sparkle', e.x, e.y - 50, 14); try { chip('magic'); } catch (x) { }

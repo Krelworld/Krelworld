@@ -23,11 +23,11 @@
   // ------------------------------------------------------------------ the two toys
   // cols x rows studs, `cell` logical pixels each; w = studs wide; tri = which corner of a triangle is the square one
   const KINDS = {
-    lego: { cols: 13, rows: 12, cell: 12, mx: 3, top: 5, bot: 8, pad: 3, ico: '🧱', letters: 'roygbpkw', minRows: 5,
+    lego: { cols: 13, rows: 12, cell: 12, mx: 3, top: 5, bot: 8, pad: 3, ico: '🧱', letters: 'roygbpkw', minRows: 7,
       col: ['#e5352d', '#ff8a1c', '#ffd32a', '#35b84b', '#2b8cea', '#8b55e8', '#ff6fb7', '#f4f4ef'],
       pcs: [{ id: 'b1', w: 1 }, { id: 'b2', w: 2 }, { id: 'b3', w: 3 }, { id: 'b4', w: 4 }, { id: 'eye', w: 1 }, { id: 'sl', w: 1 }, { id: 'sr', w: 1 }, { id: 'win', w: 1 }, { id: 'whl', w: 1 }, { id: 'flw', w: 1 }],
       cpr: 5, ppr: 5, first: 'b2', brick: ['', 'b1', 'b2', 'b3', 'b4'] },
-    tiles: { cols: 8, rows: 8, cell: 20, mx: 3, top: 4, bot: 5, pad: 2, ico: '🔷', letters: 'rogbpk', minRows: 3,
+    tiles: { cols: 8, rows: 8, cell: 20, mx: 3, top: 4, bot: 5, pad: 2, ico: '🔷', letters: 'rogbpk', minRows: 4,
       col: ['#ff4d6d', '#ffb627', '#2ee59d', '#3d9bff', '#b06cff', '#ff7ad9'],
       pcs: [{ id: 'sq', w: 1 }, { id: 'tbr', w: 1, tri: 'br' }, { id: 'tbl', w: 1, tri: 'bl' }, { id: 'ttl', w: 1, tri: 'tl' }, { id: 'ttr', w: 1, tri: 'tr' }],
       cpr: 4, ppr: 5, first: 'sq', brick: ['', 'sq'] }
@@ -242,7 +242,7 @@
 .bk-col.on::after{content:"";width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(0,0,0,.45)}
 .bk-pc{background:#e4ecf8}
 .bk-pc.on{background:#ffcf4a;box-shadow:0 0 0 4px #fff}
-.bk-tiles .bk-pc{background:#1d2448}
+.bk-tiles .bk-pc{background:#1d2448;box-shadow:0 0 0 2px #3b4686,0 4px 0 rgba(0,0,0,.3)}
 .bk-tiles .bk-pc.on{background:#3d4ca0;box-shadow:0 0 0 4px #ffcf4a}
 .bk-go{background:#7bd36b}
 .bk-hop{animation:bk-hop .32s 6 alternate}
@@ -274,7 +274,7 @@
 
   function open(opts) {
     opts = opts || {}; const kind = KINDS[opts.kind] ? opts.kind : 'lego', K = KINDS[kind], panel = document.getElementById('panel'); if (!panel) return false;
-    if (S) teardown();
+    if (S) { persist(); teardown(); }
     try { UI.closeActions(); } catch (e) { }
     try { clearWish(); } catch (e) { }
     css(); panel.innerHTML = ''; panel.classList.remove('hidden');
@@ -283,8 +283,8 @@
     S.hers = S.pieces.length > 0;
     // top row: ❌ first (the sideways ❌ and the rest of the game look for it there), picture title, undo, clear
     const top = S.top = mk('div', 'ptop bk-top');
-    S.undoB = tap('pbtn', '↩️', 'undo', undo); S.clearB = tap('pbtn', '🗑️', 'clear', clearTap);
-    top.append(tap('pbtn', '❌', 'close', () => finish(false)), mk('div', 'ttl', K.ico), S.undoB, S.clearB);
+    S.undoB = tap('pbtn', '↩️', 'undo', undo);
+    top.append(tap('pbtn', '❌', 'close', () => finish(false)), mk('div', 'ttl', K.ico), S.undoB, tap('pbtn', '🗑️', 'clear', clearTap));
     const body = S.body = mk('div', 'bk-body bk-' + kind), stage = S.stage = mk('div', 'bk-stage'), cv = S.cv = mk('canvas', 'bk-cv');
     cv.width = K.LW; cv.height = K.LH; S.g = cv.getContext('2d'); S.g.imageSmoothingEnabled = false;
     // pictures to copy
@@ -396,7 +396,7 @@
       if (fx < -0.7 || fy < -0.7 || fx > K.cols + 0.7 || fy > K.rows + 0.9) return null;
       const col = clampI(Math.floor(fx), 0, K.cols - 1), row = clampI(Math.floor(fy), 0, K.rows - 1); return { col, row, u: clampI(fx - col, 0, 0.999), v: clampI(fy - row, 0, 0.999) }; };
     cv.addEventListener('pointerdown', e => {
-      e.preventDefault(); if (!S || S.auto || e.isPrimary === false) return;
+      e.preventDefault(); if (!S || S.auto || e.isPrimary === false || e.button > 0) return;
       const c = at(e.clientX, e.clientY); if (!c) return; try { cv.setPointerCapture(e.pointerId); } catch (err) { }
       S.hers = true; S.ptr = { id: e.pointerId, x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY, last: c.row * S.K.cols + c.col, on: false, mode: press(c) };
     });
@@ -452,7 +452,7 @@
   // ---------------------------------------------------------------- drawing the plate
   function frame(now) {
     if (!S) return;
-    if (!S.body.isConnected || S.panel.classList.contains('hidden')) { const st = S; persist(); teardown(); try { if (typeof setMusic === 'function') setMusic(); } catch (e) { } if (st.opts.onClose) st.opts.onClose(); return; }   // something else closed the panel
+    if (!S.body.isConnected || S.panel.classList.contains('hidden')) { const st = S; persist(); teardown(); try { if (typeof setMusic === 'function') setMusic(); } catch (e) { } if (typeof st.opts.onClose === 'function') st.opts.onClose(); return; }   // something else closed the panel
     draw(now); S.raf = requestAnimationFrame(frame);
   }
   function draw(now) {
@@ -467,12 +467,13 @@
     }
     const wk = S.wig ? (now - S.wig) / 1700 : 1, wa = wk < 1 ? 1 - wk : 0; if (wk >= 1) S.wig = 0;      // the finished model dances
     const hop = wa ? -Math.round(Math.abs(Math.sin(wk * Math.PI * 6)) * 3 * wa) : 0;
-    const off = p => { let dx = 0, dy = hop; if (wa) dx = Math.round(Math.sin(wk * Math.PI * 10 + p.y * 0.8) * 2 * wa);
-      if (p.t0) { const k = (now - p.t0) / 130; if (k < 1) dy -= Math.round((1 - k) * (1 - k) * 5); else p.t0 = 0; } return [dx, dy]; };
-    for (const p of S.order) { const [dx, dy] = off(p); g.drawImage(sprite(K, p.t, p.c), cellX(K, p.x) - P + dx, cellY(K, p.y) - P + dy); }
+    let dx = 0, dy = 0;
+    const off = p => { dx = wa ? Math.round(Math.sin(wk * Math.PI * 10 + p.y * 0.8) * 2 * wa) : 0; dy = hop;      // each row sways; a piece just put down drops into place
+      if (p.t0) { const k = (now - p.t0) / 130; if (k < 1) dy -= Math.round((1 - k) * (1 - k) * 5); else p.t0 = 0; } };
+    for (const p of S.order) { off(p); g.drawImage(sprite(K, p.t, p.c), cellX(K, p.x) - P + dx, cellY(K, p.y) - P + dy); }
     if (!lego) {                                      // tiles glow: a soft halo each, brighter where they join
       g.globalCompositeOperation = 'lighter';
-      for (const p of S.order) { const [dx, dy] = off(p); g.drawImage(sprite(K, p.t, p.c, true), cellX(K, p.x) - P + dx, cellY(K, p.y) - P + dy); }
+      for (const p of S.order) { off(p); g.drawImage(sprite(K, p.t, p.c, true), cellX(K, p.x) - P + dx, cellY(K, p.y) - P + dy); }
       if (!wa) { g.fillStyle = `rgba(255,255,255,${(0.11 + 0.06 * Math.sin(now / 420)).toFixed(3)})`; for (const e of S.edges) g.fillRect(e[0], e[1], e[2], e[3]); }
       g.globalCompositeOperation = 'source-over';
     }
@@ -502,7 +503,7 @@
     const res = { kind: st.kind, count: st.pieces.length, complete: complete(), blueprint: st.bp ? st.bp.id : null, icon: st.bp ? st.bp.ico : null };
     teardown(); st.panel.classList.add('hidden'); st.panel.innerHTML = '';
     try { if (typeof setMusic === 'function') setMusic(); } catch (e) { }
-    if (done) { jingle([0, 4, 7, 12], 0.06); if (typeof st.opts.onDone === 'function') st.opts.onDone(res); }
+    if (done) { if (res.count) jingle([0, 4, 7, 12], 0.06); if (typeof st.opts.onDone === 'function') st.opts.onDone(res); }
     else if (typeof st.opts.onClose === 'function') st.opts.onClose(res);
   }
   function state() {                                  // a peek for tests

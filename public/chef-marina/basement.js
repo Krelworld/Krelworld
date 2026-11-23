@@ -9,11 +9,10 @@
     storage: { name: 'storage', ico: '📦', w: B.storage, basement: true, left: 'den', right: 'laundry', windows: [] },
     laundry: { name: 'laundry', ico: '🧺', w: B.laundry, basement: true, left: 'storage', right: null, windows: [] },
   });
-  ROOM_ORDER.push('nunuroom', 'den', 'storage', 'laundry');
-  const DOWN = ['nunuroom', 'den', 'storage', 'laundry'], UP = ['yard', 'dining', 'kitchen', 'playroom', 'foyer', 'living', 'bathroom'];
+  const DOWN = ['nunuroom', 'den', 'storage', 'laundry'];
   const isDown = r => !!(ROOMS[r] && ROOMS[r].basement);
   const STAIR_X = 104, DOOR_X = 100;      // where she stands at the bottom of the stairs / by the door upstairs
-  for (const k of DOWN) { const i = new Image(); i.src = 'assets/bg/' + k + '.png'; BG[k] = i; }
+  Floors.add({ id: 'down', level: -1, rooms: DOWN, ico: '🛋️', arrive: { room: 'den', x: STAIR_X }, back: { room: 'foyer', x: DOOR_X + 4 } });
   Object.assign(FORT_SPOTS, { den: 236, storage: 150, nunuroom: 190 });
 
   // ---------------------------------------------------------------- what is in each room
@@ -247,50 +246,7 @@
     return _pa(p);
   };
 
-  // ---------------------------------------------------------------- stairs: sounds, where she lands, the room strip and the map
-  const _cr = changeRoom;
-  changeRoom = function (room, from, x) {
-    const was = G.room, d0 = isDown(was), d1 = isDown(room);
-    if (was !== room) { S.hidden = null; S.rocket = null; S.ball = null; }
-    const r = _cr(room, from, x);
-    if (d0 !== d1 && was !== room) { Audio2.jingle(d1 ? [9, 7, 5, 4, 2, 0, -3] : [-3, 0, 2, 4, 5, 7, 9], 0.07, 'triangle'); marina.dir = 1; }
-    return r;
-  };
-  const _tt = travelTo;
-  travelTo = function (r) {
-    if (r === G.room) return; const d0 = isDown(G.room), d1 = isDown(r);
-    if (d0 === d1 && !d1) return _tt(r);                                   // upstairs to upstairs: exactly as before
-    if (marina.mount) dismount(); if (marina.state === 'wheel') leaveWheelchair(); if (marina.state === 'bars') { clearInterval(G.barIv); G.mb = null; }
-    if (['perch', 'swing', 'bars', 'sit', 'anim'].includes(marina.state)) { marina.state = 'idle'; marina.offY = 0; marina.anim = null; }
-    changeRoom(r, null, d0 !== d1 ? (r === 'den' ? STAIR_X : r === 'foyer' ? DOOR_X + 4 : ROOMS[r].w / 2) : ROOMS[r].w / 2);
-  };
-  // the strip of rooms at the top shows the floor she is on, plus one "stairs" button to the other floor
-  const bar = document.getElementById('roombar'); let shown = null;
-  function strip() {
-    if (!bar || typeof marina === 'undefined') return; const down = isDown(G.room); if (shown === down) return; shown = down; bar.innerHTML = ''; bar.classList.toggle('floor-b', down);
-    const add = (r, html, cls) => { const b = document.createElement('button'); b.className = 'rb' + (cls ? ' ' + cls : ''); b.innerHTML = html; b.dataset.r = r; b.setAttribute('aria-label', cls ? (down ? 'upstairs' : 'downstairs') : r);
-      b.addEventListener('pointerup', e => { e.stopPropagation(); if (G.busy || r === G.room) return; Audio2.blip(9, 'triangle', 0.06, 0.12); travelTo(r); }); bar.append(b); };
-    if (down) add('foyer', '🪜<i>⬆️</i>', 'stairs');
-    for (const r of down ? DOWN : UP) add(r, ROOMS[r].ico);
-    if (!down) add('den', '🪜<i>⬇️</i>', 'stairs');
-  }
-  setInterval(strip, 200);
-  // the picture map gets a row for downstairs
-  if (typeof openIsoMap === 'function') { const _om = openIsoMap; openIsoMap = function () { _om(); const p = document.getElementById('panel'); if (p.querySelector('.bmap')) return;
-    const row = document.createElement('div'); row.className = 'bmap';
-    const mk = (r, html) => { const b = document.createElement('button'); b.className = 'bmaproom' + (r === G.room ? ' here' : ''); b.innerHTML = html; b.setAttribute('aria-label', r); if (bgFor(r)) b.style.backgroundImage = 'url(assets/bg/' + r + '.png)';
-      b.addEventListener('pointerup', e => { e.stopPropagation(); p.classList.add('hidden'); travelTo(r); }); row.append(b); };
-    const lab = document.createElement('div'); lab.className = 'bmaplab'; lab.textContent = '🪜⬇️'; row.append(lab); for (const r of DOWN) mk(r, '<b>' + ROOMS[r].ico + '</b>'); p.append(row); }; }
-
-  const st = document.createElement('style'); st.textContent = `
-#roombar .rb.stairs{position:relative;background:#ffe9b8}#roombar .rb.stairs i{position:absolute;right:-3px;bottom:-4px;font-size:13px;font-style:normal;line-height:1}
-#roombar.floor-b{background:rgba(92,70,48,.78)}
-@media (orientation:portrait){#roombar:not(.floor-b) .rb{width:35px}}
-@media (orientation:landscape){#roombar:not(.floor-b) .rb{width:46px}}
-.bmap{display:flex;gap:10px;justify-content:center;align-items:center;padding:8px 6px calc(env(safe-area-inset-bottom) + 6px);flex:none}
-.bmaplab{font-size:26px}
-.bmaproom{position:relative;width:min(20vw,120px);aspect-ratio:16/10;border-radius:14px;border:4px solid #fff6dc;background:#6b5a48 center 70%/cover;image-rendering:pixelated;box-shadow:0 4px 0 rgba(0,0,0,.35);padding:0}
-.bmaproom.here{border-color:#ffcf4a}.bmaproom b{position:absolute;left:-6px;top:-8px;width:34px;height:34px;border-radius:50%;background:#fff6dc;font-size:20px;display:flex;align-items:center;justify-content:center;font-weight:400}`;
-  document.head.append(st);
+  // leaving a room: put away anything mid-game
+  Floors.hooks.push(() => { S.hidden = null; S.rocket = null; S.ball = null; });
   window.Basement = { rooms: DOWN, isDown, S, paint: basementBG, bits: drawBits };
 })();

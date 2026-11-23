@@ -15,6 +15,8 @@ import { addSceneRule, type SceneRule } from "./modes";
 import { registerModeController, type TouchControl, type TouchLayer } from "./touchLayer";
 import { haptic } from "./haptics";
 import type { Placed } from "./layout";
+import { UI_TEXTS, addWording } from "./wording";
+import { BRAWL_TEXTS, BRAWL_WORDING } from "./combatWording";
 
 interface BrawlLike {
   on: boolean;
@@ -43,6 +45,7 @@ export function brawlRule(active: () => boolean): SceneRule {
 
 export class BrawlControls {
   brawl: BrawlLike | null = null;
+  private started = false;
   readonly c: Record<string, TouchControl> = {};
   private mash: HTMLDivElement;
   mashPresses = 0;
@@ -65,7 +68,8 @@ export class BrawlControls {
         onDown: () => {
           const p = this.brawl?.pad;
           if (!p) return;
-          p.edges.add(b.key);
+          // (BLOCK and KI are read as held; the rest as presses)
+          if (!b.hold) p.edges.add(b.key);
           p.held.add(b.key);
         },
         onUp: () => this.brawl?.pad.held.delete(b.key),
@@ -96,17 +100,26 @@ export class BrawlControls {
   /** The brawl starts (SsjBrawl's guarded hook). True: the phone has the controls (its canvas pad isn't drawn). */
   attach(b: unknown): boolean {
     this.brawl = b as BrawlLike;
+    this.started = false;
     return true;
   }
 
   active(): boolean {
     const b = this.brawl;
     if (!b) return false;
-    if (!b.on || !b.sc?.sys?.isActive?.()) {
-      if (!b.on) this.brawl = null;
+    // (before the fight: its intro is still talking; after it: done, forgotten)
+    if (!b.sc?.sys?.isActive?.()) {
+      if (this.started || !b.sc?.sys) this.forget();
       return false;
     }
-    return true;
+    if (b.on) this.started = true;
+    else if (this.started) this.forget();
+    return b.on;
+  }
+
+  private forget() {
+    this.brawl = null;
+    this.started = false;
   }
 
   frame() {
@@ -225,6 +238,8 @@ export function installBrawl(game: Phaser.Game, layer: TouchLayer): BrawlControl
     document.head.appendChild(st);
   }
   const bc = new BrawlControls(game, layer);
+  UI_TEXTS.Finale = [...(UI_TEXTS.Finale ?? []), ...BRAWL_TEXTS];
+  for (const r of BRAWL_WORDING) addWording(r);
   addSceneRule(brawlRule(() => bc.active()), "front");
   registerModeController({
     id: "brawl",

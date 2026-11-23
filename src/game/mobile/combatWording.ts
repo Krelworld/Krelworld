@@ -32,6 +32,18 @@ export const COMBAT_WORDING: WordingRule[] = [
 ];
 
 /**
+ * The finale brawl's own UI on a phone (brawl.ts adds them; UI_TEXTS.Finale): the boss card's how-to line named the
+ * R key, the corner's "Esc: skip fight" has no key to press on a phone (it hides), and the finishing rush's
+ * "MASH PUNCH!" is a tap anywhere on a phone (the buttons hide for it).
+ */
+export const BRAWL_WORDING: WordingRule[] = [
+  { id: "ssj-card", re: /^MASH FOR A FLURRY\. HOLD R TO BLAST KI\. VANISH BEHIND IT\.$/, to: "MASH PUNCH FOR A FLURRY. HOLD KI TO BLAST. VANISH BEHIND IT." },
+  { id: "finale-esc-skip", re: /^Esc: skip (?:fight|scene)$/, to: "" },
+  { id: "ssj-rush", re: /^MASH PUNCH!$/, to: "TAP TAP TAP!" },
+];
+export const BRAWL_TEXTS: RegExp[] = [/^MASH FOR A FLURRY\. HOLD R TO BLAST KI/, /^Esc: skip (?:fight|scene)$/, /^MASH PUNCH!$/];
+
+/**
  * Fight hints that name a key in the middle of a sentence (checked before stage 1's rules): the finale's "INJECT THE
  * LADS" toast, and the Cronster's narrated TIP (only where the dialogue code passes narrator control tips through
  * hint(); this file never routes dialogue).

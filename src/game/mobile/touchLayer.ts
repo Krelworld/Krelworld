@@ -433,6 +433,18 @@ const now = () => (typeof performance !== "undefined" ? performance.now() : Date
 
 type BuiltIn = "action" | "sanmik" | "pause" | "fullscreen";
 
+/** Android, after leaving fullscreen: where the offer to go back in shows (fights too, stage 2; never over a mash). */
+function fsWanted(d: ModeDecision): boolean {
+  if (d.legacyPad) return false;
+  if (d.mode === "walk" || d.mode === "none" || d.mode === "tap") return true;
+  return (d.mode === "combat" || d.mode === "side" || d.mode === "brawl") && !d.mash && !d.picker;
+}
+
+function fsSlot(d: ModeDecision, pauseShown: boolean): SlotId {
+  if (d.mode === "combat" || d.mode === "side" || d.mode === "brawl") return "fullscreenFight";
+  return pauseShown ? "fullscreen" : "pause";
+}
+
 export class TouchLayer {
   readonly root: HTMLDivElement;
   readonly game: Phaser.Game;
@@ -667,8 +679,9 @@ export class TouchLayer {
     this.builtIn.sanmik.show(walk && !!d.sanmik);
     const pauseWas = this.builtIn.pause.shown;
     this.builtIn.pause.show(!!d.pause && !!d.pauseButton && !d.legacyPad);
-    if (pauseWas !== this.builtIn.pause.shown) this.builtIn.fullscreen.setSlot(this.builtIn.pause.shown ? "fullscreen" : "pause");
-    this.builtIn.fullscreen.show(this.fsOffer && !d.legacyPad && (d.mode === "walk" || d.mode === "none" || d.mode === "tap"));
+    void pauseWas;
+    this.builtIn.fullscreen.setSlot(fsSlot(d, this.builtIn.pause.shown));
+    this.builtIn.fullscreen.show(this.fsOffer && fsWanted(d));
     this.capEl.style.display = this.learnedMove ? "none" : "";
     this.updateGhost();
   }
@@ -677,7 +690,8 @@ export class TouchLayer {
   setFullscreenOffer(on: boolean) {
     this.fsOffer = on;
     const d = this.decision;
-    this.builtIn.fullscreen.show(on && !d.legacyPad && (d.mode === "walk" || d.mode === "none" || d.mode === "tap"));
+    this.builtIn.fullscreen.setSlot(fsSlot(d, this.builtIn.pause.shown));
+    this.builtIn.fullscreen.show(on && fsWanted(d));
   }
 
   // ------------------------------------------------------------------ the stick

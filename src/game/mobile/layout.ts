@@ -99,6 +99,8 @@ export const SLOTS = {
   pause: { corner: "tr", in: 26, down: 32, size: 52, mirror: false },
   /** Android, after leaving fullscreen: the offer to go back in, left of pause. */
   fullscreen: { corner: "tr", in: 92, down: 32, size: 52, mirror: false },
+  /** The same offer in a fight (the weapon chip is left of pause there): under pause, clear of READY. */
+  fullscreenFight: { corner: "tr", in: 26, down: 86, size: 44, mirror: false },
 } as const satisfies Record<string, SlotSpec>;
 
 export type SlotId = keyof typeof SLOTS;

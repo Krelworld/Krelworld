@@ -2179,6 +2179,32 @@ async function sideRooms(browser) {
       return { fx: Math.round(c.followOffset.x), dz: c.deadzone ? Math.round(c.deadzone.width) : null, share: (d.player.x - c.worldView.x) / c.worldView.width };
     });
     check("the camera looks ahead (follow offset about -144: the player left of centre)", cam.fx < -100 && cam.dz === 0, cam);
+    // ---- the Kreltality prompt: one big target under the right thumb, no key names
+    await ph.ev(async () => {
+      const m = await import("/src/game/combat/Kreltality.ts");
+      window.__kp = null;
+      m.prompt(window.__krel.game.scene.getScene("Dungeon")).then((v) => (window.__kp = v));
+    });
+    await sleep(600);
+    const fin = await ph.ev(() => {
+      const y = document.querySelector(".kt-fin-b.yes");
+      const b = y && y.getBoundingClientRect();
+      const keys = [];
+      for (const o of window.__krel.game.scene.getScene("Dungeon").sys.displayList.list) if (o.type === "Text" && /KRELTALITY|spare/.test(o.text)) keys.push(o.text);
+      return b ? { w: Math.round(b.width), x: Math.round(b.x + b.width / 2), y: Math.round(b.y + b.height / 2), keys } : null;
+    });
+    if (fin) await ph.tapCss(fin.x, fin.y);
+    await sleep(400);
+    const kp = await ph.ev(() => ({ v: window.__kp, left: !!document.querySelector(".kt-fin") }));
+    check("the Kreltality prompt: a big KRELTALITY (84 px+) under the right thumb, no key names; a tap on it says yes and it goes", fin && fin.w >= 84 && fin.x > 600 && !fin.keys.some((t) => /\(K|ESC/.test(t)) && kp.v === true && !kp.left, { fin, kp });
+    // ---- Android, after leaving fullscreen: the offer to go back in shows in a fight too, under pause, clear of the rest
+    await ph.ev(() => window.__krelMobile.layer.setFullscreenOffer(true));
+    await sleep(300);
+    s = await ph.snap();
+    const fsC = s.controls.find((c) => c.id === "fullscreen");
+    const hitsAny = (a) => s.controls.filter((c) => c.shown && c.id !== "fullscreen" && c.face.w > 0).filter((c) => a.x < c.face.x + c.face.w && c.face.x < a.x + a.w && a.y < c.face.y + c.face.h && c.face.y < a.y + a.h).map((c) => c.id);
+    check("in a fight the fullscreen offer shows under pause, overlapping no other control (Android gate note)", fsC && fsC.shown && hitsAny(fsC.face).length === 0, { face: fsC && fsC.face, overlaps: fsC ? hitsAny(fsC.face) : null });
+    await ph.ev(() => window.__krelMobile.layer.setFullscreenOffer(false));
     // ---- a controller connected to the phone takes over; the next touch brings the controls back (S6 / R11)
     await ph.ev(() => {
       window.__fakePad = { connected: true, id: "test pad", index: 0, buttons: Array.from({ length: 17 }, (_, i) => ({ pressed: i === 0, value: i === 0 ? 1 : 0, touched: false })), axes: [0, 0, 0, 0], mapping: "standard", timestamp: 1 };
@@ -2218,7 +2244,82 @@ async function sideRooms(browser) {
 }
 
 async function brawl(browser) {
-  console.log("BRAWL (placeholder until brawl mode lands)");
+  console.log("BRAWL (the finale's Super Saiyan brawl by touch: PUNCH, BLOCK, the rush by tapping anywhere)");
+  const { ctx, page, ph, errors } = await phoneAtTitle(browser);
+  const B = () => ph.ev(() => window.__krelMobile.brawl.snapshot());
+  const ctlOf = async (id) => (await ph.snap()).controls.find((c) => c.id === id);
+  const mid = (c) => [c.face.x + c.face.w / 2, c.face.y + c.face.h / 2];
+  const raw = () =>
+    ph.ev(() => {
+      const b = window.__krelMobile.brawl.brawl;
+      return b ? { lastPunch: b.lastPunch, hp: Math.round(b.e?.hp ?? -1), padUi: !!b.padUi, rushHits: b.rushHits, finishing: b.finishing } : null;
+    });
+  try {
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    await ph.ev(() => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.setChapter(7, { ch1_home: true, home_seen: true, flyover_seen: true });
+      k.go("Finale", { beat: "brawl" });
+    });
+    await ph.scene("Finale");
+    // (the intro: a few lines and two cut-ins; taps move the conversation on)
+    let on = false;
+    for (let i = 0; i < 90 && !on; i++) {
+      const b = await B().catch(() => ({ active: false }));
+      const st = await raw().catch(() => null);
+      on = b.active && st && !st.finishing && (await ph.mode()).startsWith("brawl") && !(await ph.active()).includes("Dialogue");
+      if (!on) {
+        await ph.tapCss(420, 150);
+        await sleep(900);
+      }
+    }
+    check("the finale brawl runs on the phone layer (brawl mode), its own small canvas pad not drawn", on && !(await raw()).padUi, { mode: await ph.mode(), raw: await raw() });
+    const s = await ph.snap();
+    const shown = (id) => !!s.controls.find((c) => c.id === id && c.shown);
+    const pc = s.controls.find((c) => c.id === "b-punch");
+    check("PUNCH is the big one in the prime corner (84 px); BLOCK, VANISH, KICK and KI around it, each labelled", ["b-punch", "b-block", "b-vanish", "b-kick", "b-ki"].every(shown) && pc && Math.abs(pc.face.w - 84) <= 1 && s.decision.stick === "2d", s.controls.filter((c) => c.shown).map((c) => `${c.id}:${c.caption ?? ""}`));
+    await ph.shot("brawl");
+    const r0 = await raw();
+    await ph.touch("touchStart", [{ x: mid(pc)[0], y: mid(pc)[1], id: 80 }]);
+    await sleep(80);
+    await ph.touch("touchEnd", []);
+    await sleep(500);
+    const r1 = await raw();
+    check("a tap on PUNCH throws a punch (the brawl's own punch, on touch-down)", r1.lastPunch > r0.lastPunch, { r0, r1 });
+    const bl = await ctlOf("b-block");
+    await ph.touch("touchStart", [{ x: mid(bl)[0], y: mid(bl)[1], id: 81 }]);
+    await sleep(300);
+    const held = await B();
+    await ph.touch("touchEnd", []);
+    await sleep(300);
+    const after = await B();
+    check("BLOCK is held while the thumb is down, and lets go with it", held.held.includes("block") && !after.held.includes("block"), { held: held.held, after: after.held });
+    // the finishing rush: every finger anywhere is a punch
+    await ph.ev(() => {
+      const b = window.__krelMobile.brawl.brawl;
+      b.finisher(b.sc.time.now);
+    });
+    await sleep(1500);
+    const m0 = await B();
+    const h0 = (await raw()).rushHits;
+    for (let i = 0; i < 8; i++) {
+      await ph.touch("touchStart", [{ x: 200 + i * 40, y: 200, id: 90 + i }]);
+      await ph.touch("touchEnd", []);
+      await sleep(120);
+    }
+    const m1 = await B();
+    const h1 = (await raw())?.rushHits ?? h0;
+    const words = await ph.ev(() => {
+      const out = [];
+      for (const sc of window.__krel.game.scene.getScenes(true)) for (const o of sc.sys.displayList.list) if (o.type === "Text" && o.visible) out.push(o.text);
+      return out.filter((t) => /MASH|TAP|Esc/.test(t));
+    });
+    check("the rush: the buttons hide, a tap anywhere is a punch (MASH PUNCH! reads TAP TAP TAP! on a phone)", m0.mash && m1.mashPresses >= m0.mashPresses + 8 && h1 > h0 && !words.some((t) => /Esc|MASH PUNCH/.test(t)), { m0, m1, h0, h1, words });
+    check("no page errors (brawl)", errors.length === 0, errors);
+  } finally {
+    await ctx.close();
+  }
 }
 
 async function android(browser) {

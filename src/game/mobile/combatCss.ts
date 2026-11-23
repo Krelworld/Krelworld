@@ -30,11 +30,11 @@ export const COMBAT_CSS = `
 .kt-c.dim .kt-face{opacity:.45}
 .kt-c.dim.on .kt-face{opacity:.6}
 /* chips: the weapon readout up top, the drinks / fart / SanMik line under the bars */
-.kt-chip .kt-face{border-radius:12px;justify-content:flex-start;gap:6px;padding:0 9px;font-size:13px;text-align:left}
+.kt-chip .kt-face{border-radius:12px;justify-content:flex-start;gap:5px;padding:0 8px;font-size:13px;text-align:left;letter-spacing:0}
 .kt-chip .kt-ic{width:30px;height:24px;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px}
 .kt-chip .kt-ic img{max-width:30px;max-height:24px;image-rendering:pixelated;filter:drop-shadow(0 1px 1px #000)}
 .kt-chip .kt-tx{display:flex;flex-direction:column;min-width:0;gap:2px}
-.kt-chip .kt-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;opacity:.9}
+.kt-chip .kt-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11.5px;opacity:.9}
 .kt-chip .kt-am{font-size:13px;color:#ffe066}
 .kt-chip .kt-am.low{color:#facc15}.kt-chip .kt-am.out{color:#ff7b7b}
 .kt-wchip .kt-face{border-color:rgba(103,232,249,calc(var(--kt-a) + .25))}

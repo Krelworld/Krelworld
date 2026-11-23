@@ -347,6 +347,12 @@ async function phone(browser) {
       return m ? [+m[1], +m[2]] : null;
     });
     await ph.ev(() => window.__krelMobile.settings.set({ stick: "fixed" }));
+    // (room to walk right: the drags above can leave the player against Home's right wall, depending on frame timing)
+    await ph.ev(() => {
+      const me = window.__krel.game.scene.getScene("Home").me;
+      if (me.x > 760) me.body && me.body.reset ? me.body.reset(700, me.y) : me.setPosition(700, me.y);
+    });
+    await sleep(200);
     a = await ph.me();
     await ph.touch("touchStart", [{ x: restAt[0] + 70, y: restAt[1], id: 21 }]);
     await sleep(600);
@@ -1641,6 +1647,24 @@ async function combat(browser) {
     await sleep(800);
     const g2 = await P();
     check("slide onto a gun and let go: that gun, the picker closed, back to the fight", g2.gun === want2.id && !g2.picking && !(await ph.active()).includes("WeaponPick") && (await ph.mode()) === "combat:Dungeon", { want: want2.id, got: g2.gun });
+    // SWAP held and let go without sliding: the picker stays up for a tap, and tapping a gun picks it
+    const sw2 = await ctlOf("c-swap");
+    await ph.touch("touchStart", [{ x: mid(sw2)[0], y: mid(sw2)[1], id: 20 }]);
+    await sleep(700);
+    await ph.touch("touchEnd", []);
+    await sleep(500);
+    const stays = (await ph.active()).includes("WeaponPick");
+    const gBefore = (await P()).gun;
+    const tiles2 = await ph.ev(() => {
+      const wp = window.__krel.game.scene.getScene("WeaponPick");
+      const cb = window.__krel.game.scale.canvasBounds;
+      const k = cb.width / 960;
+      return wp.tiles.map((t) => ({ x: cb.x + t.box.getBounds().centerX * k, y: cb.y + t.box.getBounds().centerY * k, id: t.w.id, empty: t.w.empty }));
+    });
+    const tapTo = tiles2.find((t) => !t.empty && t.id !== gBefore) ?? tiles2[0];
+    await ph.tapCss(tapTo.x, tapTo.y);
+    await sleep(800);
+    check("SWAP held and let go in place: the picker stays up, and a tap on a gun picks it", stays && (await P()).gun === tapTo.id && !(await ph.active()).includes("WeaponPick"), { stays, want: tapTo.id, got: (await P()).gun });
     // the weapon chip: tap = next, hold = picker, then CLOSE
     const g3 = (await P()).gun;
     await sleep(400);

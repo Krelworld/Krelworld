@@ -30,7 +30,7 @@ import { SCENE_RULES, addSceneRule } from "./modes";
 import { registerModeController, type ModeContext, type TouchControl, type TouchLayer } from "./touchLayer";
 import { ACQUIRE, AIM_TUNE, MELEE_REACH, SLIDE_PX, aimPointFor, autoFireOk, pickTarget, snapAim, type AimTarget, type Pt } from "./aim";
 import { DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healWanted, readyAbility, spamGap, specialFill, specialWord, type ReadyId } from "./combatLogic";
-import { controlScale, safeRect, type Placed, type Rect } from "./layout";
+import { controlScale, MIN_CONTROL, safeRect, type Placed, type Rect } from "./layout";
 import { COMBAT_CSS, COMBAT_STYLE_ID } from "./combatCss";
 import { haptic } from "./haptics";
 import { UI_TEXTS, addWording, wordText } from "./wording";
@@ -273,6 +273,7 @@ export class CombatControls {
     const ready = L.addControl({
       id: "c-ready",
       slot: "ready",
+      place: (l) => this.placeReady(l),
       group: grp,
       className: "kt-c kt-ready",
       label: "WONK!",
@@ -336,6 +337,35 @@ export class CombatControls {
     const cx = right - w / 2;
     const cy = top + h / 2;
     return { cx, cy, size: h, w, h, hit: { x: cx - w / 2 - 10, y: 0, w: w + 20, h: cy + h / 2 + 10 } };
+  }
+
+  /**
+   * READY: its layout v2 slot, kept clear of what sits above it (pause; left-handed, the drink chips) and of SPECIAL
+   * below it. Only bites with big buttons (L) on short screens: it moves down and, if it must, shrinks (never under
+   * 52 px).
+   */
+  private placeReady(l: TouchLayer): Placed | null {
+    const base = l.slots?.ready;
+    const sp = l.slots?.up;
+    const pause = l.slots?.pause;
+    if (!base || !sp || !pause) return base ?? null;
+    const st = phoneSettings();
+    let top = pause.cy + pause.size / 2;
+    if (st.leftHanded) {
+      const cb = this.game.scale.canvasBounds;
+      const k = cb.width / 960;
+      top = cb.y + 61 * k + Math.max(30, 32 * controlScale(l.viewport.h, st.buttonSize));
+    }
+    const minTop = top + 10;
+    const maxBottom = sp.cy - sp.size / 2 - 12;
+    let size = base.size;
+    let cy = base.cy;
+    if (cy - size / 2 < minTop) cy = minTop + size / 2;
+    if (cy + size / 2 > maxBottom) {
+      size = Math.max(MIN_CONTROL, Math.min(size, maxBottom - minTop));
+      cy = Math.max(minTop + size / 2, Math.min(cy, maxBottom - size / 2));
+    }
+    return { cx: base.cx, cy, size, hit: base.hit };
   }
 
   /** The drink / fart / SanMik chips, left to right under the health bars (only the ones that can do something). */

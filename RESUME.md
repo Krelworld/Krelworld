@@ -39,6 +39,23 @@ Stage 2's flow:
 | Fix | fix confirmed findings | not started |
 | Gate | final gate, looped up to 3 rounds | not started |
 
+## PAUSED by the user at 14:53 UTC ("Pause work, I'll resume once I have more usage")
+
+The workflow was stopped with TaskStop. Servers and browsers were killed.
+
+Finished, so they replay from cache on resume:
+- "combat: top-down fights and HUD": commits a8f15076, a1d6f030, d0e089d8, c65091f4.
+- "menus: readability, dialogue, phone settings": commits f38e23a4, cac70ab0, 6574b6a2.
+
+Interrupted, so they re-run on resume:
+- "combat: side rooms, jumping, brawls, controller": had made no commits; the worktree was clean.
+- "menus: lists, shops, wording sweep": committed 07bfb301, 046c1bab, 727b92a7. Only a README edit was left uncommitted. It is still in the worktree and also saved as the remote branch `mobile-ui-wip-uncommitted`.
+
+On a re-run, these two agents see the commits already in their worktree and should continue from there. Consider adding a line to their prompts saying so. Note that editing a prompt changes the cache key: only edit the two interrupted agents' prompts, never the finished ones.
+
+To resume: `Workflow({scriptPath: "<script>", resumeFromRunId: "wf_574a5950-314"})`. Start the backup loop first if it is not running:
+`setsid nohup <SP>/backup/loop.sh >/dev/null 2>&1 &`
+
 ## How to resume
 
 ### Case A: same session, container still alive

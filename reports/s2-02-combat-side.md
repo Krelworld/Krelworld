@@ -1,4 +1,4 @@
-# Stage 2, part 2: side rooms and jumping, brawls, finishers, controllers
+# Stage 2, part 2: side rooms and jumping, brawls, finishers, controllers (DONE)
 
 Worktree `scratchpad/mobile-wt`, branch `mobile`. This run picked up after a usage cut-off: the earlier run had made no
 commits, so everything below is new. All of it is phone-only (`isMobile()`); the laptop checks are at the end.
@@ -11,7 +11,6 @@ Commits (oldest first):
 - 6c3c708a Phone: pause → CONTROLS shows a labelled picture of the touch controls (walking, fights, side rooms, brawl)
 - 6c8b2aa9 Phone fights: fullscreen offer in fights (Android), brawl wording without keys, smoke tests for the brawl and the Kreltality prompt
 - 920701c3 Phone module README: side rooms and jumping, the brawl, the Kreltality prompt, controllers, the Controls picture
-- (see git log for any later fix commits)
 
 ## 1. Side-scrolling rooms (`combat.ts` mode `side`, `side.ts`, `jump.ts`)
 
@@ -158,6 +157,64 @@ rooms or the Kreltality prompt. Part 1's list (dungeons.ts Wildern CONTROLS narr
   pad, the five buttons, PUNCH on touch-down, BLOCK held / let go, the rush by tapping anywhere with its wording, no
   errors).
 
-## 9. Verification
+## 9. Play-through (by real touches only)
 
-(filled in below)
+A scripted thumb (`scratchpad/mobile/work/s2-combat2/play.cjs`, iPhone 14 landscape profile, CDP touches): stick held
+right, a full JUMP (held 350 ms) when a gap is within 90 px, a wall blocks or it stops moving, a second press in the
+air if stuck, auto-fire on, chapter kit, no debug powers.
+- **Catford High Street** (SanMik Zone, 3400 px, 3 pits, 2 moving platforms, 2 steam vents): end to end in 22 s,
+  10 jumps, no pit falls, 12 HP lost, next room reached.
+- **The Factory Floor** (Crobley, 3600 px, 3 pits, 3 movers, crushers and steam): end to end in 18 s, 5 jumps, 50 HP
+  lost (crushers / enemies; the bot does not time crushers), next room reached.
+- **Krezz Arms brawl**: drunk (80) and into `brawl()`; the HUD read "BRAWL! Tap to swing · 4 still standing"; 12 taps
+  anywhere on the screen won it and the game threw me out to Home as on a laptop.
+- **Finisher**: the Kreltality prompt by its big button (smoke), and the finale brawl's rush by tapping anywhere
+  (smoke: 8 taps = 10 rush hits).
+- Found and fixed while playing / testing: the tap's hop came out taller on slow frames (fixed, section 1); the brawl's
+  controls never appeared (fixed, section 2). A test-only finding: Chrome's CDP `touchEnd` lifts every finger, so the
+  bot re-grabs the stick after each jump (a real phone keeps the other thumb down).
+
+Judged as a player (honest): running and jumping with JUMP under the right thumb feels direct, the hop / full split
+works, and nothing jumps or drops by accident (the stick cannot jump; a drift down never drops). What I could not judge
+here: the real end-to-end delay on a phone (one frame of read latency is inherent), whether 84 px JUMP plus FIRE at
+60 px is reachable in one thumb roll on the smallest phone, and whether the tower rooms want the camera to lead upward.
+
+## 10. Verification
+
+- (a) Laptop: `--only shell,front,newgame,hub,meeting,dungeon` 40 of 40 states identical, DESKTOP FINGERPRINT: OK;
+  `--only boss,side,places,minigames,finale,alt` 25 of 25 identical, DESKTOP FINGERPRINT: OK (the `side` chain covers
+  the laptop's jump arc).
+- (b) touchlaptop, ipad, fire7 (front,newgame) and androidtab (front,newgame,hub): all DESKTOP FINGERPRINT: OK.
+- (c) `tests/desktopInvariants.test.ts` passes; it, `tests/fingerprints/` and `index.html` are unedited (git diff vs
+  e8cf3f4f is empty for them).
+- (d) `npx tsc --noEmit` clean; `npx vitest run`: 41 files, 455 tests pass.
+- (e) Phone smoke main build (5202): 246 of 246, MOBILE SMOKE: OK. ALT build (5212): 237 of 238 in the full run; the one
+  failure was the older `dungeon` section timing out while loading the room under load (load average 8); re-run on its
+  own: 9 of 9, OK. The new `side` and `brawl` sections passed in the ALT full run.
+
+## 11. Research deviations
+
+- SWAP has no button in side rooms (layout v2's table gives its slot to FIRE); the weapon chip swaps.
+- BLOCK sits at the `left` slot and KI at the `ready` slot in the brawl (the game has five moves; PUNCH takes the
+  prime corner as the research asks for the main action).
+- The Kreltality prompt's big target is 1.25x the prime slot (105 px on an iPhone 14) rather than "raise the 32 px
+  buttons to 48": the game's own buttons stay as they were (key names dropped) and the big DOM target is the one to
+  press; SPARE sits at the ACTION slot.
+- Buffer / coyote are 150 / 140 ms as specified; with phone assist off they fall back to the game's (coyote 110) and a
+  one-frame buffer, tap = hop stays.
+- The camera's vertical rule is a 0 x 200 dead zone plus a 60 px lead when falling, not a separate re-centre on landing.
+- Platform tops count 4 px wider only for the ledge pop (Arcade's collider itself is unchanged).
+
+## 12. Left for later (gaps)
+
+- Not tried on a real phone: end-to-end jump latency, thumb reach JUMP / FIRE / DODGE on the smallest phone, the
+  84 px JUMP size, Bluetooth pads on iOS Safari / Chrome Android (the handover was tested with a faked
+  `navigator.getGamepads`).
+- The Kreddle raid / rout (fights inside a walking scene with their own canvas FIRE) still untouched (part 1's note).
+- The finale's other beats (emerge, transform, spirit) still use the stage 1 legacy rule; only the brawl beat is
+  on the phone layer. On a phone there is no "skip fight" (the laptop's Esc); the hint is hidden.
+- Tower rooms (Cuddle Tower, Ascent, Final Stairs) were not played end to end; the look-ahead is horizontal only.
+- The fullscreen offer in fights sits 1 px above READY's slot on a 390 px tall screen; on shorter screens with large
+  buttons READY's own placement logic has not been checked against it.
+- The phone settings page should show `PAD_NOTE` (other builder).
+- The plane and colon side rooms get these controls too but their frame-rate work is stage 3.

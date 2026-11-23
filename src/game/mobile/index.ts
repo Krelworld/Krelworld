@@ -26,6 +26,7 @@ import { hint } from "./wording";
 import { whenRunning } from "./shell";
 import { installCombat } from "./combat";
 import { installBrawl, showFinisher } from "./brawl";
+import { PAD_CSS, PadHandover } from "./pad";
 import { phoneHooks, setPhoneHooks } from "./boot";
 
 export { isMobile, setMobileForTests, mobileWhy, rememberPhoneMode } from "./flag";
@@ -90,6 +91,17 @@ export function installMobile(game: Phaser.Game) {
   const combat = installCombat(game, layer);
   // stage 2 part 2: the finale's brawl, the Kreltality prompt, a controller handed over (brawl.ts, pad.ts)
   const brawl = installBrawl(game, layer);
+  const pad = new PadHandover();
+  pad.start((fn) => {
+    game.events.on("prestep", fn);
+    return () => game.events.off("prestep", fn);
+  });
+  if (!document.getElementById("kt-pad-css")) {
+    const st = document.createElement("style");
+    st.id = "kt-pad-css";
+    st.textContent = PAD_CSS;
+    document.head.appendChild(st);
+  }
   setPhoneHooks({
     ...(phoneHooks() ?? {}),
     brawl: (b) => brawl.attach(b),
@@ -167,6 +179,7 @@ export function installMobile(game: Phaser.Game) {
     diag,
     combat,
     brawl,
+    pad,
     snapshot: () => layer.snapshot(),
     shellState: () => shell.snapshot(),
     // (the same module instances the game uses, for tests that add a rule or a controller)

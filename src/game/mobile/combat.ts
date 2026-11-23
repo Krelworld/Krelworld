@@ -26,7 +26,8 @@ import { isMikey, sanmikForced } from "../systems/sanmik";
 import { storageKey } from "../variant";
 import { setPhoneHooks } from "./boot";
 import { phoneSettings } from "./settings";
-import { SCENE_RULES, addSceneRule } from "./modes";
+import { SCENE_RULES, addSceneRule, currentInputSource } from "./modes";
+import { rightStick } from "./pad";
 import { registerModeController, type ModeContext, type TouchControl, type TouchLayer } from "./touchLayer";
 import { ACQUIRE, AIM_TUNE, MELEE_REACH, SLIDE_PX, aimPointFor, autoFireOk, pickTarget, snapAim, type AimTarget, type Pt } from "./aim";
 import { DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healWanted, readyAbility, spamGap, specialFill, specialWord, type ReadyId } from "./combatLogic";
@@ -681,11 +682,20 @@ export class CombatControls {
 
   aim(scene: Phaser.Scene, _px: number, _py: number): number | null {
     if (!this.ours(scene) || this.aimAngle === null) return null;
+    // a controller's right stick, pushed: the game's own pad aim (Controls.aim) does it
+    if (currentInputSource() === "pad") {
+      const r = rightStick();
+      if (r && Math.hypot(r.x, r.y) > 0.5) return null;
+    }
     return this.aimAngle;
   }
 
   aimPoint(scene: Phaser.Scene): Pt | null {
     if (!this.ours(scene)) return null;
+    if (currentInputSource() === "pad") {
+      const r = rightStick();
+      if (r && Math.hypot(r.x, r.y) > 0.5) return null;
+    }
     return this.aimPt;
   }
 

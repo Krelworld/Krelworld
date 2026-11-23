@@ -8,6 +8,7 @@ import { TOUCH } from "../ui/TouchControls";
 import { G } from "../G";
 import { isMikey, sanmikForced } from "../systems/sanmik";
 import type { GameView, ModeDecision, SceneState } from "./modes";
+import { currentInputSource } from "./modes";
 import type { Rect } from "./layout";
 import { rawText } from "./wording";
 
@@ -67,6 +68,7 @@ export function mashOverlay(sc: Bag): boolean {
 /** What the layer needs to know about the game right now. Cheap: a handful of property reads. */
 export function readView(game: Phaser.Game): GameView {
   const scenes: SceneState[] = [];
+  const input = currentInputSource();
   const mgr = game.scene;
   for (const sc of mgr.scenes as Phaser.Scene[]) {
     if (sc.sys.settings.status !== RUNNING) continue;
@@ -93,7 +95,7 @@ export function readView(game: Phaser.Game): GameView {
   } catch {
     sanmikToggle = false;
   }
-  return { scenes, sanmikToggle };
+  return input === "pad" ? { scenes, sanmikToggle, input } : { scenes, sanmikToggle };
 }
 
 /**

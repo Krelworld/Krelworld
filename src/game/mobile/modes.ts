@@ -51,6 +51,21 @@ export interface GameView {
   scenes: SceneState[];
   /** Playing as Mikey (the SANMIK toggle exists), and not in the SanMikverse where it's forced. */
   sanmikToggle?: boolean;
+  /** What the player is using: the screen, or a controller connected to the phone (research S6, DEFERRED R11). */
+  input?: InputSource;
+}
+
+export type InputSource = "touch" | "pad";
+
+let inputSource: InputSource = "touch";
+
+/** A controller took over ("pad": the touch controls hide), or a finger came back ("touch"). */
+export function setInputSource(s: InputSource) {
+  inputSource = s;
+}
+
+export function currentInputSource(): InputSource {
+  return inputSource;
 }
 
 export interface ModeDecision {
@@ -164,10 +179,16 @@ export function resolveMode(view: GameView, rules: readonly SceneRule[] = SCENE_
       if (!rule.match(sc.key)) continue;
       const d = rule.decide(sc, view);
       if (!d) continue;
-      return { ...NONE, scene: sc.key, ...d };
+      return withInput({ ...NONE, scene: sc.key, ...d }, view);
     }
   }
-  return { ...NONE };
+  return withInput({ ...NONE }, view);
+}
+
+/** A controller in use: the decision says so (`input: "pad"`, the layer hides its controls); touch adds nothing. */
+function withInput(d: ModeDecision, view: GameView): ModeDecision {
+  if (view.input === "pad") d.input = "pad";
+  return d;
 }
 
 /** Two decisions show the same thing: every field, including any a stage 2 rule added (shallow). */

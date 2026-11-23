@@ -204,3 +204,25 @@ describe("phone ledge forgiveness and air control", () => {
     expect(l.x).toBeGreaterThan(130);
   });
 });
+
+import { padActive } from "../src/game/mobile/pad";
+import { resolveMode, setInputSource, currentInputSource } from "../src/game/mobile/modes";
+
+describe("a controller on the phone (S6 / R11)", () => {
+  it("a button press or a pushed stick counts; a resting pad (slight drift) doesn't", () => {
+    expect(padActive({ buttons: [{ pressed: false, value: 0 }], axes: [0.1, -0.2, 0, 0] })).toBe(false);
+    expect(padActive({ buttons: [{ pressed: true }], axes: [0, 0] })).toBe(true);
+    expect(padActive({ buttons: [], axes: [0, 0.6] })).toBe(true);
+    expect(padActive({ connected: false, buttons: [{ pressed: true }], axes: [] })).toBe(false);
+    expect(padActive(null)).toBe(false);
+  });
+  it("the decision carries input: pad only while a pad is in use (touch adds nothing)", () => {
+    const view = { scenes: [{ key: "Hub" }] };
+    expect("input" in resolveMode(view)).toBe(false);
+    expect(resolveMode({ ...view, input: "pad" }).input).toBe("pad");
+    setInputSource("pad");
+    expect(currentInputSource()).toBe("pad");
+    setInputSource("touch");
+    expect(currentInputSource()).toBe("touch");
+  });
+});

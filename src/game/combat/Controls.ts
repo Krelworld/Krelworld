@@ -90,6 +90,9 @@ export class Controls {
       // phones: the phone combat controls aim (auto-aim, FIRE's slide-to-aim); null leaves it to the code below
       const a = phoneHooks()?.aim?.(this.scene, px, py);
       if (a !== null && a !== undefined) return (this.pointerAngle = a);
+      // a controller connected to the phone: its right stick aims when pushed (research S6)
+      const rp = this.pad();
+      if (rp && Math.hypot(rp.rightStick.x, rp.rightStick.y) > 0.5) return (this.pointerAngle = Math.atan2(rp.rightStick.y, rp.rightStick.x));
     }
     if (TOUCH.enabled && !this.scene.input.mousePointer?.isDown && this.scene.input.activePointer.wasTouch) {
       this.pointerAngle = (autoAimAllowed() ? this.autoAim : null) ?? this.lastMoveAngle;

@@ -658,6 +658,8 @@ export class TouchLayer {
       if (prev.stick !== d.stick) this.geo = stickGeometry(this.viewport.h, phoneSettings().buttonSize, d.stick === "x" ? "x" : "2d");
       for (const c of controllersFor(d.mode)) c.enter?.({ layer: this, game: this.game, decision: d });
     }
+    // a controller in use (pad.ts): every touch control hides until the next finger on the screen
+    this.root.classList.toggle("padin", d.input === "pad");
     const walk = d.mode === "walk" && !d.legacyPad;
     const act = this.builtIn.action;
     if (d.action) act.setLabel(d.action);

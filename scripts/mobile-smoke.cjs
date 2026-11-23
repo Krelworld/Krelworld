@@ -1430,16 +1430,16 @@ async function dungeon(browser) {
 // ------------------------------------------------------------------ combat: the top-down fights on the phone controls (stage 2)
 
 /** Into a top-down fight through DebugSkip's own preparation (a later chapter's kit), calm and in combat mode. */
-async function toFight(ph, dungeon, room, ch) {
+async function toFight(ph, dungeon, room, ch, who = "FLENKY") {
   await ph.ev(
-    ({ dungeon, room, ch }) => {
+    ({ dungeon, room, ch, who }) => {
       const k = window.__krel;
-      k.newRun("FLENKY");
+      k.newRun(who);
       k.setChapter(ch, { ch1_home: true, home_seen: true, flyover_seen: true, tut_dungeon: true });
       k.go("DebugSkip");
       window.__fightTo = { dungeon, room, ch };
     },
-    { dungeon, room, ch },
+    { dungeon, room, ch, who },
   );
   await ph.scene("DebugSkip");
   await sleep(800);
@@ -1449,6 +1449,11 @@ async function toFight(ph, dungeon, room, ch) {
     // DebugSkip's boss jump (its own preparation: the chapter's guns, money, debug powers off below)
     d.goBoss({ boss: "x", dungeon: t.dungeon, room: t.room, ch: t.ch });
   });
+  // (the dungeon's entry swoop and title card play first, once per run: a tap skips them)
+  for (let i = 0; i < 150 && !(await ph.active().catch(() => [])).includes("Dungeon"); i++) {
+    await sleep(1000);
+    if (i > 2) await ph.tapCss(560, 150);
+  }
   await ph.scene("Dungeon");
   let calm = 0;
   for (let i = 0; i < 90 && calm < 5; i++) {
@@ -1507,7 +1512,7 @@ async function combat(browser) {
   try {
     await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
     await ph.ev(() => window.__krelMobile.combat.resetTeaching());
-    check("a top-down room reached through DebugSkip: combat mode", await toFight(ph, "wildern", 0, 2), await ph.mode());
+    check("a top-down room reached through DebugSkip (as Mikey): combat mode", await toFight(ph, "wildern", 0, 2, "MIKEY"), await ph.mode());
     let s = await ph.snap();
     const shown = (id) => !!s.controls.find((c) => c.id === id && c.shown);
     const pad = await ph.ev(() => window.__krel.game.scene.getScene("UI").touch);
@@ -1535,7 +1540,12 @@ async function combat(browser) {
     const victim = await ph.ev(() => {
       const d = window.__krel.game.scene.getScene("Dungeon");
       const p = d.player;
-      const e = d.enemies.find((x) => !x.dead && !x.isBoss);
+      // (a room already cleared by auto-fire: a fresh enemy of the room's own kind)
+      let e = d.enemies.find((x) => !x.dead && !x.isBoss);
+      if (!e) {
+        const kind = (d.room.waves && d.room.waves[0] && d.room.waves[0][0] && d.room.waves[0][0][0]) || "drongle";
+        e = d.spawnEnemy(kind, p.x + 140, p.y - 30, { noDrops: true });
+      }
       if (!e) return null;
       for (const o of d.enemies) if (o !== e && !o.dead) o.setPosition(p.x - 900, p.y - 900);
       e.hp = 3;
@@ -1610,7 +1620,7 @@ async function combat(browser) {
     const sp0 = (await P()).specialCd;
     await press("c-special", 80, 4);
     await sleep(300);
-    check("SPECIAL fires the lad's special (DASH for Flenky)", (await P()).specialCd > sp0 && (await ctlOf("c-special")).shown, { before: sp0, after: (await P()).specialCd });
+    check("SPECIAL fires the lad's special (NUKE for Mikey)", (await P()).specialCd > sp0 && (await ctlOf("c-special")).shown, { before: sp0, after: (await P()).specialCd });
     // ---- SWAP: tap = next gun; hold = picker, slide onto a gun and let go
     await ph.ev(() => {
       const s = window.__krel.G.s;
@@ -1681,16 +1691,40 @@ async function combat(browser) {
     await sleep(300);
     await quiet("SWAP, the chip and the picker");
     // ---- READY pops in when WONK is full (and ignores a press in its first moments), and opens the mash overlay
-    await ph.ev(() => window.__krel.fullWonk());
-    await ph.until(() => window.__krelMobile.snapshot().controls.find((c) => c.id === "c-ready").shown, null, 5000, "READY").catch(() => 0);
+    // (the meters fill by themselves as you fight: empty them first, so READY really pops in)
+    await ph.ev(() => {
+      window.__krel.G.rt.wonk = 0;
+      window.__krel.G.rt.fart = 0;
+      window.__krel.G.s.flags.golden_charge = false;
+    });
+    await ph.until(() => !window.__krelMobile.snapshot().controls.find((c) => c.id === "c-ready").shown, null, 5000, "READY gone").catch(() => 0);
+    await sleep(300);
+    // (the first pop-ins pulse: forget what was taught so this one counts as a first)
+    await ph.ev(() => window.__krelMobile.combat.resetTeaching());
+    // in the page: the frame READY appears, a finger lands on it at once (a real thumb can't be that quick through CDP)
+    const early = await ph.ev(
+      () =>
+        new Promise((res) => {
+          window.__krel.fullWonk();
+          const t0 = performance.now();
+          const tick = () => {
+            const el = document.querySelector('[data-ctl="c-ready"]');
+            if (!el || !el.classList.contains("show")) {
+              if (performance.now() - t0 < 4000) return requestAnimationFrame(tick);
+              return res({ shown: false });
+            }
+            const b = el.getBoundingClientRect();
+            const t = new Touch({ identifier: 777, target: el, clientX: b.x + b.width / 2, clientY: b.y + b.height / 2 });
+            el.dispatchEvent(new TouchEvent("touchstart", { touches: [t], targetTouches: [t], changedTouches: [t], bubbles: true, cancelable: true }));
+            el.dispatchEvent(new TouchEvent("touchend", { touches: [], targetTouches: [], changedTouches: [t], bubbles: true, cancelable: true }));
+            setTimeout(() => res({ shown: true, wonk: window.__krel.game.scene.getScene("Dungeon").player.wonk, pulse: el.classList.contains("pulse") }), 300);
+          };
+          requestAnimationFrame(tick);
+        }),
+    );
     const rd = await ctlOf("c-ready");
-    const [rx, ry] = mid(rd);
-    await ph.touch("touchStart", [{ x: rx, y: ry, id: 10 }]);
-    await ph.touch("touchEnd", []);
-    await sleep(250);
-    const early = await ph.ev(() => window.__krel.game.scene.getScene("Dungeon").player.wonk);
-    check("READY pops in when the WONK meter is full, says WONK!, and pulses (S1, S10)", rd.shown && rd.label === "WONK!" && (await ph.ev(() => document.querySelector('[data-ctl="c-ready"]').classList.contains("pulse"))), rd);
-    check("a press in READY's first moments does nothing (pop-ins ignore presses briefly, S11)", early >= 100, { wonk: early });
+    check("READY pops in when the WONK meter is full, says WONK!, and pulses (S1, S10)", early.shown && rd.shown && rd.label === "WONK!" && early.pulse, { early, label: rd.label });
+    check("a press in READY's very first moments does nothing (pop-ins ignore presses briefly, S11)", early.shown && early.wonk >= 100, early);
     await ph.shot("combat-ready");
     await sleep(300);
     await press("c-ready", 80, 11);
@@ -1796,6 +1830,61 @@ async function combat(browser) {
     check("HUD: the toast column ends left of the weapon chip; the old gun readout is gone (P10, M16)", hud.toastRight <= hud.chipLeft && !hud.gunT, hud);
     check("fight: no page errors", errors.length === 0, errors.slice(0, 3));
     await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true }));
+    // ---- the drink chips: 🍺 drinks a bongo
+    await ph.ev(() => (window.__krel.G.s.bongos = 2));
+    await sleep(500);
+    await press("c-bongo", 80, 42);
+    await sleep(500);
+    const bongos = await ph.ev(() => window.__krel.G.s.bongos);
+    check("the 🍺 chip drinks a fizzy bongo (B)", bongos === 1, { bongos });
+    // as Mikey: the SANMIK chip swaps the form (V); the drinks above came first, so nothing is busy
+    await ph.until(() => window.__krelMobile.snapshot().controls.find((c) => c.id === "c-sanmik").shown, null, 5000, "SANMIK chip").catch(() => 0);
+    const mk = await ph.ev(() => !!window.__krel.G.s.flags.sanmik_form);
+    let mk2 = mk;
+    for (let i = 0; i < 3 && mk2 === mk; i++) {
+      await sleep(400);
+      await press("c-sanmik", 80, 43 + i);
+      await sleep(700);
+      mk2 = await ph.ev(() => !!window.__krel.G.s.flags.sanmik_form);
+    }
+    check("as Mikey the SANMIK chip is up and swaps the form (V)", mk2 !== mk, { before: mk, after: mk2 });
+    await ph.ev(() => (window.__krel.G.s.flags.sanmik_form = false));
+    // ---- READY: GOLD with golden juice in you, then CUME while golden
+    await ph.ev(() => {
+      window.__krel.G.s.flags.golden_charge = true;
+      window.__krel.G.rt.wonk = 0;
+      window.__krel.G.rt.fart = 0;
+    });
+    await ph.until(() => window.__krelMobile.snapshot().controls.find((c) => c.id === "c-ready").label === "GOLD", null, 5000, "GOLD").catch(() => 0);
+    const gold = await ctlOf("c-ready");
+    await sleep(450);
+    await press("c-ready", 80, 40);
+    await sleep(700);
+    const frozenHidden = await ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const sh = (id) => window.__krelMobile.snapshot().controls.find((c) => c.id === id).shown;
+      return d.hitStopUntil - d.now() > 400 && !sh("c-fire") && !sh("c-ready");
+    });
+    await ph
+      .until(
+        () => {
+          const d = window.__krel.game.scene.getScene("Dungeon");
+          const r = window.__krelMobile.snapshot().controls.find((c) => c.id === "c-ready");
+          return d.now() < d.player.superUntil && r.shown && r.label === "CUME";
+        },
+        null,
+        15000,
+        "CUME",
+      )
+      .catch(() => 0);
+    const cume = await ctlOf("c-ready");
+    await sleep(450);
+    const cd0 = await ph.ev(() => window.__krel.game.scene.getScene("Dungeon").player.cumeCd);
+    await press("c-ready", 80, 41);
+    await sleep(900);
+    const cd1 = await ph.ev(() => window.__krel.game.scene.getScene("Dungeon").player.cumeCd);
+    check("READY: GOLD transforms (golden juice in you); no buttons during its cut-in; then CUME fires the beam (T, C)", gold.label === "GOLD" && frozenHidden && cume.shown && cume.label === "CUME" && cd1 > cd0, { gold: gold.label, frozenHidden, cume: cume.label, cd0, cd1 });
+    await sleep(300);
     // ---- a boss, through DebugSkip's boss jump
     check("a boss fight (Krandall) reached through DebugSkip: combat mode", await toFight(ph, "wildern", 3, 2), await ph.mode());
     await sleep(1500);

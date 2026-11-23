@@ -89,6 +89,7 @@ interface DungeonLike extends Phaser.Scene {
   pickups?: { spr: Phaser.GameObjects.Image; kind: string }[];
   shots?: { spr: Phaser.GameObjects.Image & { __mBig?: boolean }; o: { owner: string } }[];
   rule?: { kind?: string } | null;
+  hitStopUntil?: number;
   now(): number;
   openWeaponPicker?(): void;
   swapSlow?(on: boolean): void;
@@ -724,7 +725,10 @@ export class CombatControls {
     const s = G.s;
     const picker = !!d.picker;
     const mash = !!d.mash;
-    const fight = !picker && !mash && !!p && !p.dead;
+    // (a long freeze, like the golden transformation's cut-in, is not a moment anything can be pressed: the buttons
+    // wait it out instead of queueing presses for afterwards; the short hit-stops of a fight don't count)
+    const frozen = !!dun && (dun.hitStopUntil ?? 0) - dun.now() > FROZEN_MS;
+    const fight = !picker && !mash && !frozen && !!p && !p.dead;
     const show = (id: CtlId, on: boolean, pop = false) => {
       const c = this.c[id];
       if (!on && c.pressed) return;
@@ -801,7 +805,8 @@ export class CombatControls {
     show("bongo", fight && s.bongos > 0);
     const lv = fartLevel();
     show("fart", fight && lv >= 1);
-    show("sanmik", fight && isMikey(s) && !sanmikForced(s));
+    // (Mikey ⇄ SanMik can't happen while golden: the game says no, so the chip isn't there)
+    show("sanmik", fight && isMikey(s) && !sanmikForced(s) && !!dun && !!p && dun.now() >= p.superUntil);
     if (fight) this.drinkChips(lv);
     // ---- captions (first fights) and pulses (the first time each matters)
     for (const [id, word] of [
@@ -1002,6 +1007,9 @@ export class CombatControls {
     saveTaught(this.teach);
   }
 }
+
+/** A freeze longer than this (ms left) hides the fight buttons: a cut-in, not a hit-stop (those are 35 to 200 ms). */
+const FROZEN_MS = 400;
 
 /** Phone assist's numbers (S9; *mine*, starting values for the device test). */
 export const ASSIST = Object.freeze({

@@ -51,6 +51,7 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `combat.ts` | Stage 2: the top-down fights (FIRE with auto-fire and slide-to-aim, DODGE, SWAP, SPECIAL, READY, HEAL, ACTION, the weapon chip, the drink chips, the mash overlay), the hooks it lends the game (`setPhoneHooks`), phone assist, the fight's touch wording |
 | `aim.ts` | Pure: target choice (nearest, stick-biased, sticky, objects as a fallback), snap, lead, auto-fire's "in range, on screen, no barrel by your feet" |
 | `combatLogic.ts` | Pure: READY's order, HEAL's rule, tap / hold (`HoldTracker`), SPECIAL's word and fill, the Dungeon's two mode rows |
+| `combatWording.ts` | Pure: the fights' touch wording rows (the weapon picker's how-to line, the first dungeon's how-to-play rows, the finale's inject hint) |
 | `combatCss.ts` | The fight controls' CSS (its own `<style>`, phones only) |
 | `index.ts` | The phone chunk's `installMobile()`, `mobileLayer()`, `mobileShell()` and re-exports |
 
@@ -217,6 +218,9 @@ touch that lands on one goes to the control whose centre is nearest if it is ins
 else to the control whose drawing is nearest within 20 px (`routeTouch`, layout.ts; `ControlSpec.group`). FIRE,
 DODGE, SPECIAL and READY act on touch-down. A control under a thumb stays (and stays live) until the thumb lifts, even if
 its mode has moved on; then it hides. Pop-ins (SWAP, READY, HEAL, ACTION) animate in and ignore presses for 160 ms.
+During a long freeze (more than 400 ms of hit-stop left: the golden transformation's cut-in, a boss's phase break) the
+fight buttons hide rather than queue presses for afterwards; the short hit-stops of a fight don't count. SANMIK is
+only there when the game would let you swap (not while golden).
 
 **Aiming** (`aim.ts`, research M2): every frame the target is the nearest enemy within 520 world px and on screen,
 scored `distance x (1 - bias x cos(angle to the stick))` (bias 0.35 normal, 0.5 strong, 0 off), sticky (a new one must

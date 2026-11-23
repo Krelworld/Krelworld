@@ -39,7 +39,9 @@ Stage 2's flow:
 | Fix | fix confirmed findings | not started |
 | Gate | final gate, looped up to 3 rounds | not started |
 
-## PAUSED by the user at 14:53 UTC ("Pause work, I'll resume once I have more usage")
+## RESUMED with $20 of credits (run wf_574a5950-314 relaunched as task w3128oxb4). If credits ran out again: same resume command, same run id. The two interrupted agents now have a RESUME_NOTE telling them to continue from existing commits and commit every 30-45 min.
+
+## (earlier) PAUSED by the user at 14:53 UTC ("Pause work, I'll resume once I have more usage")
 
 The workflow was stopped with TaskStop. Servers and browsers were killed.
 

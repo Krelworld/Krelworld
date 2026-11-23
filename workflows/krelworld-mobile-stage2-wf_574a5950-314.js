@@ -10,6 +10,7 @@ export const meta = {
   ],
 }
 
+const RESUME_NOTE = "\n## RESUMING AFTER AN INTERRUPTION (read this first)\nAn earlier run of your role was cut off by a usage limit. Check \"git log e8cf3f4f..HEAD\" and \"git status\" in your worktree: anything already committed or left uncommitted there is that earlier run's work. Keep it and continue from it; do not redo finished parts.\nUsage may run out again at any time. COMMIT IN SMALL WORKING STEPS (at least every 30 to 45 minutes of work, each commit building and passing tsc), so nothing is lost if you are cut off. Write your report file early and keep it updated as you go.\n"
 const SP = '/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad'
 const WT = SP + '/mobile-wt'
 const UI_WT = SP + '/mobile-ui-wt'
@@ -172,6 +173,7 @@ Update src/game/mobile/README.md (combat section). Write ${REPORTS}/s2-01-combat
 
 const combatSide = (c1) => agent(`${CTX}
 # Your role: COMBAT BUILDER, part 2 of 2: side-scrolling rooms and jumping, brawls, finishers, controllers
+${RESUME_NOTE}
 Worktree: ${WT} (branch "mobile"). Vite ports: ${5202} and ALT ${5212}. Scratch: ${SP}/mobile/work/s2-combat2/.
 Part 1 just built the top-down combat controls and the phone HUD in this worktree: read ${REPORTS}/s2-01-combat-topdown.md and the README's combat section first. Its summary:
 ${c1 ? c1.apiSummary : '(part 1 returned nothing: read its report and the git log)'}
@@ -247,6 +249,7 @@ Update the README. Write ${REPORTS}/s2-03-ui-readability-dialogue.md: what chang
 
 const uiLists = (u1) => agent(`${CTX}
 # Your role: MENUS AND DIALOGUE BUILDER, part 2 of 2: lists, shops, character select, the touch wording sweep
+${RESUME_NOTE}
 Worktree: ${UI_WT} (branch "mobile-ui"; work ONLY here). Vite ports: ${5222} and ALT ${5232}. Scratch: ${SP}/mobile/work/s2-ui2/.
 Part 1 just made reading text comfortable, added dialogue SKIP/LOG/AUTO and the Phone settings page: read ${REPORTS}/s2-03-ui-readability-dialogue.md and the README first. Its summary:
 ${u1 ? u1.apiSummary : '(part 1 returned nothing: read its report and the git log)'}

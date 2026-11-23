@@ -326,7 +326,7 @@
 .bk-keep.bk-hop{animation:bk-hop .26s 4 alternate}
 @keyframes bk-pop{from{transform:scale(.3)}60%{transform:scale(1.14)}}
 .bk-tools.bk-two{grid-template-columns:minmax(0,1fr) 76px}
-.bk-narrow .bk-tools.bk-two{grid-template-columns:repeat(auto-fill,minmax(60px,1fr))}
+#panel>.bk-top.bk-land.bk-tall .ttl{min-height:60px}
 .bk-tools.bk-two .bk-keep{width:auto;height:auto}
 .bk-fly{position:fixed;z-index:70;pointer-events:none;image-rendering:pixelated;transform-origin:50% 50%;filter:drop-shadow(0 6px 0 rgba(0,0,0,.25))}
 .bk-star{position:fixed;z-index:71;pointer-events:none;font-size:22px;line-height:1;text-shadow:0 0 6px #fff6a8}
@@ -402,8 +402,9 @@
     d.classList.toggle('pbtn', !land); d.classList.toggle('go', !land); d.classList.toggle('bk-b', land); d.classList.toggle('bk-go', land);
     const ideas = strip ? S.gt : S.gc; if (S.bpB.parentNode !== ideas) ideas.append(S.bpB, S.diceB);
     S.gt.classList.toggle('bk-off', !land && !strip);
-    // the shelf button: in the middle of the top row when upright (the toy's picture makes way for it), beside ✅ when sideways
-    const kb = S.keepB; if (kb) { const kh = land ? S.gt : S.ttl; if (kb.parentNode !== kh) kh.append(kb); keepVis(); }
+    // the shelf button: in the middle of the top row when upright (the toy's picture makes way for it), beside ✅ when sideways;
+    // on a small sideways screen ✅ is down where the side scrolls, so it goes under ❌ instead (that spot is kept 60 px tall: nothing jumps when it comes and goes)
+    const kb = S.keepB; if (kb) { const nar = land && S.side.classList.contains('bk-narrow'), kh = land && !nar ? S.gt : S.ttl; S.top.classList.toggle('bk-tall', nar); if (kb.parentNode !== kh) kh.append(kb); keepVis(); }
   }
   function sync() {
     if (!S) return; const K = S.K;
@@ -531,9 +532,9 @@
   // ---------------------------------------------------------------- keeping a creation: a copy flies up to the shelf
   // the button is a picture of the shelf; it is only there when the plate holds enough pieces and this very build is not on the shelf already
   function keepVis() {
-    const kb = S && S.keepB; if (!kb) return; const L = window.LegoShelf, land = S.body.classList.contains('bk-land'); let on = !!S.keeping;
+    const kb = S && S.keepB; if (!kb) return; const L = window.LegoShelf, top = kb.parentNode === S.ttl; let on = !!S.keeping;
     if (!on && L && !S.auto && S.pieces.length >= S.K.keep) { try { on = !L.has(S.kind, pack(S.pieces)); } catch (e) { } }
-    const was = !kb.classList.contains('bk-off'); kb.classList.toggle('bk-off', !on); S.ico.classList.toggle('bk-off', on && !land); S.gt.classList.toggle('bk-two', on && land);
+    const was = !kb.classList.contains('bk-off'); kb.classList.toggle('bk-off', !on); S.ico.classList.toggle('bk-off', on && top); S.gt.classList.toggle('bk-two', on && !top);
     if (on) paintKeep();
   }
   function paintKeep() { try { LegoShelf.icon(S.keepC, { kind: S.kind, pieces: pack(S.pieces), hold: !S.landed }); } catch (e) { } }      // her model in a little shelf box: faint until it has landed there

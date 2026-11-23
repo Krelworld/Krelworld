@@ -116,7 +116,7 @@
     }
     if (p.a === 'pool') return [A('🏊', () => { if (!window.Pool) return say('m_hmm'); approach(p.x, () => { UI.closeActions(); Pool.open({ onDone: () => { marina.state = 'cheer'; setTimeout(() => marina.state === 'cheer' && (marina.state = 'idle'), 1400); say('m_yay'); try { did('swim'); } catch (e) { } } }); }, 60); })];
     if (p.a === 'bigtree') return [A('🧗', () => { if (!window.TreeClimb) return say('m_hmm'); approach(p.x, () => { UI.closeActions(); const jf = typeof jeff !== 'undefined' && jeff.here ? jeff : null; if (jf) setTimeout(() => { try { UI.face('jeff', 'surprised', Audio2.voice('j_tree', 'j')); } catch (e) { } }, 1800);
-      TreeClimb.open({ tree: p.tree, onDone: r => { marina.state = 'cheer'; setTimeout(() => marina.state === 'cheer' && (marina.state = 'idle'), 1400); if (r && r.top) { try { did('treetop'); } catch (e) { } say('m_did_it').then(() => { if (jf && jf.here) { jf.dir = Math.sign(marina.x - jf.x) || 1; say('j_treetop', jf); } else if (window.reactTo) reactTo('brave', 400); }); } } }); }, 20); })];
+      TreeClimb.open({ tree: p.tree, onDone: r => { marina.state = 'cheer'; setTimeout(() => marina.state === 'cheer' && (marina.state = 'idle'), 1400); if (r && r.top) { try { did('treetop'); } catch (e) { } say('m_did_it').then(() => { if (jf && jf.here) { jf.dir = Math.sign(marina.x - jf.x) || 1; return say('j_treetop', jf); } if (daddy.here && daddy.state !== 'toilet') { daddy.dir = Math.sign(marina.x - daddy.x) || 1; return say('d_tree_wave', daddy); } if (window.reactTo) reactTo('brave', 400); }); } } }); }, 20); })];
     return _pa(p);
   };
   window.Outdoor = { rooms: ['pool', 'backyard'], paint };

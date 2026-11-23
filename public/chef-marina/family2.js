@@ -114,6 +114,12 @@ const GRAND = (() => {
     if (window.LegoShelf && !S.hookL) { S.hookL = 1; LegoShelf.onEvent = (kind) => { try { const v = k => { const pr = Audio2.voice(k, k.split('_')[0]); try { chatter(pr); } catch (e) { } return pr; };
         if (kind === 'keep') { v('m_shelf').then(() => { if (nunu.room === G.room) v('nu_shelf1'); }); } else if (kind === 'full') { if (nunu.room === G.room) v('nu_shelf_full'); } else if (kind === 'look' && nunu.room === G.room && chance(0.5)) v('nu_shelf2'); } catch (e) { } }; }
     if (window.Builder && !S.hookB) { S.hookB = 1; Builder.onSay = k => jeffSays(k); }
+    if (window.Wildlife && !S.hookW) { S.hookW = 1; Wildlife.onEvent = (kind) => { try {          // Grandpa Jeff points out the turkeys and grumbles about his squirrel
+        if (G.room !== 'backyard' || !jeff.here || AI.held.has(jeff) || G.busy) return;
+        const k = kind === 'turkeys' || kind === 'turkey_display' ? 'j_turkey' : kind === 'squirrel' ? 'j_squirrel' : null; if (!k) return;
+        if (E.t - (S.wildSay || -99) < 90 || !pingOk(30)) return; S.wildSay = E.t; ping();
+        setTimeout(() => { if (jeff.here && !G.busy) { jeff.dir = Math.sign(marina.x - jeff.x) || 1; say(k, jeff); } }, 1500);
+      } catch (e) { } }; }
   }
   function happenings(dt) {
     hooks();

@@ -602,6 +602,6 @@ featTick = function (dt) {
 };
 
 // ------------------------------------------------------------------ presenting food: "I made... <dish name>!" to anyone
-function announceDish(d) { UI.bubble(marina, '🍽️✨', 2600); return Audio2.load('assets/vo/m_i_made.mp3').then(b => Audio2.chain((b ? ['m_i_made'] : []).concat(d && d.say ? d.say : []), 'marina')); }
+function announceDish(d) { UI.bubble(marina, '🍽️✨', 2600); return Audio2.load('assets/vo/m_i_made.mp3').then(b => Audio2.chain((b ? ['m_i_made'] : []).concat(d && d.say ? d.say.slice(0, 1) : []), 'marina')); }   // giving it: just "I made… Magic Cake!", not every ingredient again
 const _serveMommy2 = serveMommy;
 serveMommy = function () { const d = G.holding && G.holding.dish; G.busy = true; mommy.dir = Math.sign(marina.x - mommy.x) || 1; announceDish(d).then(() => { G.busy = false; _serveMommy2(); }); };

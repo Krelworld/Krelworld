@@ -120,17 +120,19 @@
 
   // ---------------------------------------------------------------- drawing a built thing (the same code draws it in the yard, in the menu preview and on the little map)
   // cx = its centre, by = its base line; o.reveal 0..1 = how much is built so far; o.ground, o.side, o.br place the tree parts; b._ = what is going on right now
+  // o.part: 'back' = only the parts behind it (a tree house's braces, ladder and tube), 'body' = everything but those
   function drawThing(c, b, cx, by, t, o) {
-    o = o || {}; const { c: cat, key, canvas } = look(b), st = b._ || {};
-    if (!canvas) { emo(c, cat.ico, cx, by - 14, 24); return; }
+    o = o || {}; const { c: cat, key, canvas } = look(b), st = b._ || {}, doBack = o.part !== 'body', doBody = o.part !== 'back';
+    if (!canvas) { if (doBody) emo(c, cat.ico, cx, by - 14, 24); return; }
     const w = canvas.width, h = canvas.height, X = cx + (cat.ox || 0), L = X - (w >> 1), T = by - h, rv = o.reveal == null ? 1 : o.reveal;
-    if (cat.hang && rv >= 1) branch(c, cx, by, o);
+    if (cat.hang && rv >= 1 && doBack) branch(c, cx, by, o);
     c.save();
     if (st.dy) c.translate(0, Math.round(st.dy));
     if (st.rot || st.sx != null) { const pv = cat.hang ? (o.br == null ? T - 30 : o.br) : by - (cat.pivot || 0); c.translate(X, pv); if (st.rot) c.rotate(st.rot); if (st.sx != null) c.scale(st.sx, 1); c.translate(-X, -pv); }
     if (st.sy != null) { c.translate(0, by); c.scale(1, st.sy); c.translate(0, -by); }
     if (rv < 1) { c.globalAlpha = 0.2; c.drawImage(canvas, L, T); c.globalAlpha = 1; c.beginPath(); c.rect(L - 60, by - Math.ceil(h * rv), w + 120, h + 200); c.clip(); }
-    if (cat.back && rv > 0) cat.back(c, b, cx, by, t, o, st, T);
+    if (cat.back && rv > 0 && doBack) cat.back(c, b, cx, by, t, o, st, T);
+    if (!doBody) { c.restore(); return; }
     if (rv > 0) { if (o.glow > 0.02) { c.shadowColor = 'rgba(255,236,150,' + (o.glow * (0.8 + Math.sin(t * 4) * 0.2)).toFixed(3) + ')'; c.shadowBlur = (o.blur || 8); }
       c.drawImage(canvas, L, T); c.shadowColor = 'transparent'; c.shadowBlur = 0; }
     if (cat.front && rv > 0) cat.front(c, b, cx, by, t, o, st);
@@ -207,22 +209,30 @@
 
   // ---------------------------------------------------------------- moving parts shared by everything below
   // S.pose = how Marina is drawn while she is on a thing; S.cam = what the camera watches; S.jeff = Jeff while he works; S.fx = extra drawing on top
-  const S = { act: null, pose: null, cam: null, camX: 0, jeff: null, fx: [], planks: [], opts: null, benchT: 0 };
+  const S = { act: null, pose: null, cam: null, camX: 0, jeff: null, held: null, fx: [], planks: [], opts: null, benchT: 0 };
   const tweens = [];
   const run = (dur, step) => new Promise(res => tweens.push({ t: 0, dur, step, res }));           // step(k 0..1, seconds so far, dt) once a frame, in game time
   const nap = s => run(s, () => { });
   const _ft = window.featTick;
   window.featTick = function (dt) {
     if (_ft) _ft(dt);
+    if (drawExitSigns !== hookLate.top) hookLate();                                              // another file added its own late drawing after us: stay the last one
     for (const w of tweens.slice()) { w.t += dt; try { w.step(Math.min(1, w.t / w.dur), w.t, dt); } catch (e) { warn('step', e); w.t = w.dur; } if (w.t >= w.dur) { tweens.splice(tweens.indexOf(w), 1); w.res(); } }
     if (S.cam != null && S.soft && (marina.moving || Math.abs(marina.x - S.softX) > 3 || G.room !== 'backyard')) S.cam = null;
     if (S.cam != null && G.room === 'backyard') { const cs = E.cssScale || 1, target = clamp(S.cam - E.viewW / 2, -62 / cs, ROOMS.backyard.w - E.viewW + 78 / cs); S.camX += (target - S.camX) * Math.min(1, dt * 5); E.camX = S.camX; }
   };
   const focus = x => { if (S.cam == null) S.camX = E.camX; S.cam = x; S.soft = false; }, unfocus = () => { S.soft = true; S.softX = marina.x; };      // afterwards the camera stays on the thing until she walks off
-  const _dx = drawExitSigns;
-  drawExitSigns = function () { _dx(); try { late(); } catch (e) { if (!late.warned) { late.warned = 1; warn('draw', e); } } };
+  // our late drawing goes after everyone else's (tree foliage drawn over the characters included), so a tree house sits in front of its leaves;
+  // if a file loaded later wraps drawExitSigns too, we wrap again on the next frame and only the outermost of our wrappers draws
+  let lateDepth = 0;
+  function hookLate() {
+    const inner = drawExitSigns, w = function () { lateDepth++; try { inner.apply(this, arguments); } finally { lateDepth--; } if (!lateDepth) { try { late(); } catch (e) { if (!late.warned) { late.warned = 1; warn('draw', e); } } } };
+    drawExitSigns = hookLate.top = w;
+  }
+  hookLate();
   function late() {
     const c = E.ctx;
+    if (G.room === 'backyard') for (const p of PROPS.backyard) if (p.bl === 1 && p.th2) drawBuilt(p, 'body');
     for (const q of S.planks) { const k = clamp((E.t - q.t0) / q.dur, 0, 1), x = lerp(q.x0, q.x1, k) - E.camX, y = lerp(q.y0, q.y1, k) - Math.sin(k * Math.PI) * q.arc; c.save(); c.translate(x, y); c.rotate(q.rot + k * q.spin); px(c, -9, -2, 18, 5, '#6b4423'); px(c, -8, -2, 16, 3, '#d9a868'); px(c, -8, 1, 16, 1, '#b98448'); c.restore(); }
     for (const f of S.fx) f(c);
     drawActors(c); thLate(c);
@@ -266,15 +276,41 @@
     if (pose === 'hammer' || pose === 'idle') { px(c, -1, 15, 2, 11, '#8a5a2e'); px(c, -4, 24, 9, 5, '#6d7078'); }
     c.restore();
   }
-  // Jeff walks over to a building spot (the real Jeff steps aside while this one works, and is put back afterwards)
-  async function jeffComes(b, jx, jy) {
-    const j = rj(), from = j && j.room === 'backyard' && !j.hidden ? j.x : BY.bench - 52;
-    if (j) { j._bh = !!j.hidden; j.hidden = true; try { j.stop && j.stop(); } catch (e) { } }
-    const J = S.jeff = { b, x: clamp(from, jx - 150, jx + 150), y: FLOOR - 3, pose: 'walk', dir: 1 }, x0 = J.x; J.dir = Math.sign(jx - x0) || 1;
-    await run(Math.max(0.25, Math.abs(jx - x0) / 190), k => { J.x = lerp(x0, jx, k); if (chance(0.25)) emit('dust', J.x, FLOOR, 1); });
-    J.y = jy == null ? FLOOR - 3 : jy; return J;
+  // Jeff walks over to a building spot. The real Jeff (family2.js) is held back from his own wandering while he works (AI.hold), walks over himself,
+  // hammers with his own pictures, and is let go again afterwards; if he is not about (hidden in the bathroom, in a fort...) a stand-in does the job.
+  // Both are handled through the same little handle J: x, y = where his feet are (y above the ground = up on the thing), pose, dir.
+  const realJ = () => { const j = rj(); return j && !j.hidden && j.state !== 'toilet' && !(G.fort && G.fort.guests && G.fort.guests.includes(j)) ? j : null; };
+  function jeffHandle(j, b) {
+    return { b, real: j, get x() { return j.x; }, set x(v) { j.x = v; }, get y() { return j.y + (j.offY || 0); }, set y(v) { j.offY = Math.round(v - j.y); },
+      get dir() { return j.dir; }, set dir(v) { j.dir = v; }, get pose() { return j.state; }, set pose(v) { j.state = v === 'walk' ? 'idle' : v; } };
   }
-  function jeffDone(x) { const j = rj(); S.jeff = null; if (!j) return; j.hidden = j._bh; if (!j.hidden) { j.room = 'backyard'; j.x = clamp(x, 20, ROOMS.backyard.w - 20); j.y = FLOOR; j.state = 'idle'; j.dir = Math.sign(marina.x - j.x) || 1; } }
+  function holdJeff(j) { if (!j) return; if (S.held !== j) { AI.hold(j, true); S.held = j; } j.stop(); j.offY = 0; j.face = null; if (j.state !== 'idle') j.state = 'idle'; j.carry = false; }
+  function freeJeff() { const j = S.held; S.held = null; if (!j) return; j.offY = 0; if (j.state === 'hammer') j.state = 'idle'; j.wait = Math.max(j.wait || 0, rnd(2.5, 4.5)); AI.hold(j, false); }
+  async function jeffComes(b, jx) {
+    const j = realJ(), R = ROOMS.backyard;
+    if (j) {
+      holdJeff(j); const edge = E.viewW / 2 + 24;
+      if (j.room !== 'backyard') { j.room = 'backyard'; j.x = clamp(jx + (jx > R.w / 2 ? edge : -edge), 10, R.w - 10); j.y = FLOOR - 3; }    // from wherever he was, in from the side
+      else if (Math.abs(j.x - jx) > edge + 60) j.x = jx + Math.sign(j.x - jx) * edge;                                                      // from far off: he arrives from just out of sight
+      const d = Math.abs(jx - j.x);
+      await new Promise(res => { let done = false; const fin = () => { if (!done) { done = true; res(); } }; if (d < 3) return fin(); j.walkTo(jx, fin, clamp(d / 1.7, 85, 160), FLOOR - 3); setTimeout(fin, 4200); });
+      j.stop(); j.x = jx; j.y = FLOOR - 3; j.offY = 0; return (S.jeff = jeffHandle(j, b));
+    }
+    const from = BY.bench - 52, J = S.jeff = { b, x: clamp(from, jx - 150, jx + 150), y: FLOOR - 3, pose: 'walk', dir: 1 }, x0 = J.x; J.dir = Math.sign(jx - x0) || 1;
+    await run(Math.max(0.25, Math.abs(jx - x0) / 190), k => { J.x = lerp(x0, jx, k); if (chance(0.25)) emit('dust', J.x, FLOOR, 1); });
+    return J;
+  }
+  function jeffDone(J) {                // back to the ground, a wave to her, and off he goes about his own business again
+    S.jeff = null; const j = J && J.real; if (!j) return freeJeff();
+    j.offY = 0; j.y = FLOOR - 3; j.dir = Math.sign(marina.x - j.x) || 1; if (j.state === 'hammer') j.state = 'idle'; freeJeff();
+  }
+  // Grandpa Jeff likes to watch: now and then, if he is out here and free, he cheers at what she does on the things he built
+  let cheerAt = -99;
+  function jeffCheer(keys, x) {
+    const j = realJ(); if (!j || !j.here || AI.held.has(j) || j.moving || G.sceneOn || E.t - cheerAt < 22 || Math.abs(j.x - (x == null ? marina.x : x)) > E.viewW * 0.75 || !chance(0.6)) return;
+    cheerAt = E.t; j.dir = Math.sign(marina.x - j.x) || 1; if (['idle', 'hammer'].includes(j.state)) j.state = 'wave'; j.wait = Math.max(j.wait || 0, 3);
+    setTimeout(() => { if (j.state === 'wave' && !AI.held.has(j)) j.state = 'idle'; }, 2600); say(pick(keys), j);
+  }
 
   // ---------------------------------------------------------------- in the backyard: the workbench with the plank pile, and one prop per built thing
   const PINE = { leaf: '#2f5a34', bark: '#4a281c', bark2: '#8a4c34' };
@@ -296,22 +332,41 @@
     for (let i = 0; i < n; i++) { const r = (i / 3) | 0, k = i % 3, X = x + 46 + k * 2 - (r % 2) * 3, Y = y - 5 - r * 5; px(c, X, Y, 24, 5, '#6b4423'); px(c, X + 1, Y, 22, 3, '#d9a868'); px(c, X + 1, Y + 3, 22, 1, '#b98448'); px(c, X + 20 - k * 6, Y + 1, 1, 1, '#8a5a2e'); }
     if (!n) emo(c, '🪵', x + 58, y - 12, 9, 0, 0.35);
   }
+  // outdoor.js's plank pile beside the workbench (o_lumber: a sawhorse with a stack of planks) shows what is left: the stack sinks as planks
+  // are used, is gone when they all are, and grows back when something is taken down
+  const LUMB = {};
+  function lumberPic(n) {
+    if (LUMB[n]) return LUMB[n]; const src = spriteCanvas('o_lumber'); if (!src || src.width !== 72 || src.height !== 40) return null;     // only for the picture this was made for
+    const c = document.createElement('canvas'), x = c.getContext('2d'); c.width = 72; c.height = 40;
+    const stack = document.createElement('canvas'), sx = stack.getContext('2d'); stack.width = 72; stack.height = 40; sx.drawImage(src, 0, 0);
+    sx.clearRect(0, 0, 72, 14); sx.clearRect(0, 14, 31, 3); sx.clearRect(0, 17, 16, 23);                       // the stack alone
+    x.drawImage(src, 0, 0); x.clearRect(31, 14, 41, 26); x.clearRect(16, 17, 15, 23);                           // the sawhorse alone...
+    const leg = (x0, y0, x1, y1, col) => { for (let y = y0; y <= y1; y++) { const X = Math.round(lerp(x0, x1, (y - y0) / (y1 - y0))); x.fillStyle = '#2b1a20'; x.fillRect(X - 1, y, 3, 1); x.fillStyle = col; x.fillRect(X, y, 1, 1); } };
+    leg(23, 16, 19, 36, '#6e3b38'); leg(28, 16, 32, 39, '#ad6f50');                                            // ...with the two legs the full stack hides
+    if (n > 0) x.drawImage(stack, 0, Math.round((1 - n / LUMBER) * 25));
+    return (LUMB[n] = c);
+  }
+  function drawLumber(p) { const cv = lumberPic(clamp(lumberLeft(), 0, LUMBER)); if (!cv) return _dp(p); E.ctx.drawImage(cv, Math.round(p.x - E.camX) - (cv.width >> 1), Math.round(p.y) - cv.height); }
   const _dp = drawProp;
   drawProp = function (p) {
     if (p.th) return thProp(p);
     if (p === benchProp) return drawBench(p);
+    if (p.id === 'lumber' && p.k === 'o_lumber' && G.room === 'backyard') return drawLumber(p);
     if (!p.bl) return _dp(p);
     if (p.bl === 1) drawBuilt(p);
   };
-  function drawBuilt(p) {
+  // part: null = all of it; a finished tree house is drawn in two goes: its braces, ladder and tube with the other props ('back'),
+  // and the house itself at the very end ('body', from late()) so the big trees' leaves never hide it
+  function drawBuilt(p, part) {
     const c = E.ctx, b = p.b, sp = SPOTS[b.spot], cx = Math.round(p.x - E.camX);
-    const near = !G.busy && !G.sceneOn && marina.state !== 'anim' && Math.abs(p.x - marina.x) < Math.max(30, p.w * 0.5 + 12);
-    p.glow = clamp((p.glow || 0) + (near ? 0.08 : -0.06), 0, 1);
+    p.th2 = CATBY[b.kind].spot === 'tree' && !b._site;
+    if (!part && p.th2) part = 'back';
+    if (part !== 'body') { const near = !G.busy && !G.sceneOn && marina.state !== 'anim' && Math.abs(p.x - marina.x) < Math.max(30, p.w * 0.5 + 12); p.glow = clamp((p.glow || 0) + (near ? 0.08 : -0.06), 0, 1); }
     const bo = G.bounce && G.bounce.id === p.id && E.t - G.bounce.t0 < 0.35 ? Math.sin((E.t - G.bounce.t0) / 0.35 * Math.PI) * 0.1 : 0;
     c.save(); if (bo) { c.translate(cx, p.y); c.scale(1 + bo, 1 - bo); c.translate(-cx, -p.y); }
-    drawThing(c, b, cx, p.y, E.t, Object.assign({ reveal: b._site ? b._site.k : 1, glow: p.glow, blur: E.scale * 4.5, ground: GY + 2, side: sp.side, br: sp.br }, sp.tree && sp.tree.id === 'pine' ? PINE : null));
+    drawThing(c, b, cx, p.y, E.t, Object.assign({ reveal: b._site ? b._site.k : 1, glow: p.glow, blur: E.scale * 4.5, ground: GY + 2, side: sp.side, br: sp.br, part }, sp.tree && sp.tree.id === 'pine' ? PINE : null));
     c.restore();
-    if (S.jeff && S.jeff.b === b) drawJeff(c, S.jeff.x - E.camX, S.jeff.y, S.jeff.pose, S.jeff.dir, E.t);
+    if (S.jeff && S.jeff.b === b && !S.jeff.real && part !== 'body') drawJeff(c, S.jeff.x - E.camX, S.jeff.y, S.jeff.pose, S.jeff.dir, E.t);
   };
   const _pa = propActions;
   propActions = function (p) {
@@ -327,44 +382,61 @@
 
   // ---------------------------------------------------------------- building, taking down, repainting
   function plankFly(x0, y0, x1, y1, dur, done) { const q = { x0, y0, x1, y1, t0: E.t, dur, arc: 30 + Math.random() * 30, rot: rnd(-1, 1), spin: rnd(4, 9) }; S.planks.push(q); run(dur, () => { }).then(() => { S.planks.splice(S.planks.indexOf(q), 1); done && done(); }); }
-  async function arrive(b) {            // Marina stands where she can watch, the camera looks at the spot, Jeff comes over
+  const pileX = () => { const p = PROPS.backyard.find(p => p.id === 'lumber'); return p ? p.x : BY.bench + 50; };
+  async function arrive(b) {            // the camera looks at the spot; Marina walks to where she can watch while Jeff walks over to work
     const sp = SPOTS[b.spot], R = ROOMS.backyard, tree = sp.type !== 'ground';
     G.busy = true; UI.closeActions(); if (marina.mount) dismount(); marina.stop(); if (marina.state !== 'idle') { marina.state = 'idle'; marina.anim = null; marina.offY = 0; }
     if (G.room !== 'backyard') changeRoom('backyard', null, clamp(sp.x - 70, 20, R.w - 20));
     focus(sp.x);
-    await walkTo(clamp(sp.type === 'tree' ? sp.x + sp.side * 54 : sp.type === 'branch' ? sp.x + sp.side * 40 : sp.x - Math.min(74, E.viewW / 2 - 18), 14, R.w - 14), FLOOR + (tree ? 6 : 4)); marina.dir = Math.sign(sp.x - marina.x) || 1;
     const jx = sp.type === 'tree' ? sp.ladX - sp.side * 2 : sp.type === 'branch' ? sp.x - sp.side * 24 : sp.x + 46;
-    const J = await jeffComes(b, jx); J.dir = Math.sign(sp.x - J.x) || 1; J.home = jx; return J;
+    const mx = clamp(sp.type === 'tree' ? sp.x + sp.side * 54 : sp.type === 'branch' ? sp.x + sp.side * 40 : sp.x - Math.min(74, E.viewW / 2 - 18), 14, R.w - 14);
+    const [, J] = await Promise.all([walkTo(mx, FLOOR + (tree ? 6 : 4)).then(() => { marina.dir = Math.sign(sp.x - marina.x) || 1; }), jeffComes(b, jx)]);
+    J.dir = Math.sign(sp.x - J.x) || 1; J.home = jx; return J;
   }
-  function leave(J) { jeffDone(J.home); unfocus(); G.busy = false; }
+  function leave(J) { if (J) jeffDone(J); else freeJeff(); unfocus(); G.busy = false; }
+  async function handHammer(J) {        // "Hand me that hammer, would you? ... Thanks, helper!" — she tosses it over
+    J.dir = Math.sign(marina.x - J.x) || 1; marina.dir = -J.dir; J.pose = 'idle'; say('j_helper', J.real); await nap(1.05);
+    playAnim('marina_reach', { fps: 12, proc: 'hug', dur: 0.5 }); Audio2.whoosh(true);
+    const h = actor('🔨', marina.x + marina.dir * 10, FLOOR - 44, 12); await run(0.55, k => { h.x = lerp(marina.x + marina.dir * 10, J.x - J.dir * 4, k); h.y = lerp(FLOOR - 44, FLOOR - 52, k) - Math.sin(k * Math.PI) * 30; h.rot = k * 9; });
+    gone(h); Audio2.blip(12, 'triangle', 0.06, 0.12); emit('star', J.x, FLOOR - 58, 4); if (marina.state === 'anim') { marina.state = 'idle'; marina.anim = null; } cheer(700);
+  }
   async function construct(b) {
-    const sp = SPOTS[b.spot], c = CATBY[b.kind], p0 = propY(b);
-    b._site = { k: 0 }; syncProps(); hook('start');
-    const J = await arrive(b); if (sp.type === 'tree') { J.y = sp.y + 34; emit('dust', J.x, J.y - 20, 6); }
-    J.pose = 'hammer'; const dur = 3.5, top = () => p0 - c.h * b._site.k; let tb = 0, n = 0, sent = 0, ph = 0;
-    await run(dur, (k, t, dt) => {
-      b._site.k = clamp(ease(k) * 1.02, 0.03, 1); tb -= dt;
-      if (tb <= 0) { tb = 0.15 + Math.random() * 0.07; n++; bang(n); chips(sp.x + rnd(-c.w * 0.35, c.w * 0.35), top(), 2); if (n % 3 === 0) emit('dust', sp.x + rnd(-c.w * 0.4, c.w * 0.4), top() + 4, 2); if (n % 7 === 3) saw(); }
-      if (sent < c.cost && t > sent * dur * 0.75 / c.cost) { sent++; plankFly(sp.x - 150, top() - 50, sp.x + rnd(-c.w * 0.3, c.w * 0.3), top(), 0.55, () => { Audio2.blip(-19, 'triangle', 0.07, 0.2); emit('dust', sp.x, top(), 2); }); }
-      if (sp.type === 'ground') { const q = k < 0.3 ? 0 : k < 0.55 ? 1 : k < 0.85 ? 2 : 3;                               // a time-lapse Jeff: this side, that side, on top, done
-        if (q !== ph) { ph = q; emit('dust', J.x, J.y - 20, 5); Audio2.whoosh(q % 2 === 1); }
-        if (q === 1) { J.x = sp.x - 30; J.y = FLOOR - 3; J.dir = 1; } else if (q === 2) { J.x = sp.x + 6; J.y = top() + 3; J.dir = -1; } else { J.x = J.home; J.y = FLOOR - 3; J.dir = -1; } }
-    });
-    delete b._site; J.pose = 'wave'; if (sp.type === 'ground') { J.x = J.home; J.y = FLOOR - 3; }
-    Audio2.jingle([0, 4, 7, 12, 16, 19, 24], 0.08, 'triangle'); Audio2.sfx('chip_cheer', { vol: 0.6 });
-    for (let i = -1; i <= 1; i++) emit('confetti', sp.x + i * 28, p0 - c.h - 6, 16); emit('star', sp.x, p0 - c.h * 0.6, 10); UI.bigIcon('🎉', 900);
-    marina.state = 'cheer'; say(pick(['m_wow', 'm_yay', 'm_cool'])); hook('done'); got('build');
-    await nap(1.9); if (marina.state === 'cheer') marina.state = 'idle';
-    leave(J);
+    const sp = SPOTS[b.spot], c = CATBY[b.kind], p0 = propY(b), j = realJ(), helper = c.spot !== 'tree' && !!j && j.room === 'backyard' && chance(0.4);
+    b._site = { k: 0 }; syncProps(); if (!helper) hook(c.spot === 'tree' ? 'treehouse' : 'start');
+    let J = null;
+    try {
+      J = await arrive(b); if (helper && J.real) await handHammer(J);
+      if (sp.type === 'tree') { J.y = sp.y + 34; emit('dust', J.x, FLOOR - 20, 6); }
+      J.pose = 'hammer'; const dur = 3.5, top = () => p0 - c.h * b._site.k, from = Math.max(pileX(), sp.x - 160); let tb = 0, n = 0, sent = 0, ph = 0;
+      await run(dur, (k, t, dt) => {
+        b._site.k = clamp(ease(k) * 1.02, 0.03, 1); tb -= dt;
+        if (tb <= 0) { tb = 0.15 + Math.random() * 0.07; n++; bang(n); chips(sp.x + rnd(-c.w * 0.35, c.w * 0.35), top(), 2); if (n % 3 === 0) emit('dust', sp.x + rnd(-c.w * 0.4, c.w * 0.4), top() + 4, 2); if (n % 7 === 3) saw(); }
+        if (sent < c.cost && t > sent * dur * 0.75 / c.cost) { sent++; plankFly(from, top() - 50, sp.x + rnd(-c.w * 0.3, c.w * 0.3), top(), 0.55, () => { Audio2.blip(-19, 'triangle', 0.07, 0.2); emit('dust', sp.x, top(), 2); }); }
+        if (sp.type === 'ground') { const q = k < 0.3 ? 0 : k < 0.55 ? 1 : k < 0.85 ? 2 : 3;                               // a time-lapse Jeff: this side, that side, on top, done
+          if (q !== ph) { ph = q; emit('dust', J.x, J.y - 20, 5); Audio2.whoosh(q % 2 === 1); }
+          if (q === 1) { J.x = sp.x - 30; J.y = FLOOR - 3; J.dir = 1; } else if (q === 2) { J.x = sp.x + 6; J.y = top() + 3; J.dir = -1; } else { J.x = J.home; J.y = FLOOR - 3; J.dir = -1; } }
+      });
+      delete b._site; J.pose = 'wave'; if (sp.type === 'ground') { J.x = J.home; J.y = FLOOR - 3; }
+      Audio2.jingle([0, 4, 7, 12, 16, 19, 24], 0.08, 'triangle'); Audio2.sfx('chip_cheer', { vol: 0.6 });
+      for (let i = -1; i <= 1; i++) emit('confetti', sp.x + i * 28, p0 - c.h - 6, 16); emit('star', sp.x, p0 - c.h * 0.6, 10); UI.bigIcon('🎉', 900);
+      marina.state = 'cheer'; say(pick(['m_wow', 'm_yay', 'm_cool'])); hook('done'); got('build');
+      await nap(1.9); if (marina.state === 'cheer') marina.state = 'idle';
+      if (sp.type === 'tree') { J.pose = 'walk'; await run(0.5, k => { J.y = lerp(sp.y + 34, FLOOR - 3, k); }); }      // down the ladder again
+    } catch (e) { warn('build', e); delete b._site; }
+    finally { leave(J); }
   }
   async function takeDown(b) {
     if (G.busy || !D.builds.includes(b) || b._site) return; const sp = SPOTS[b.spot], c = CATBY[b.kind], p0 = propY(b);
-    b._site = { k: 1 }; const J = await arrive(b); J.pose = 'hammer'; hook('down'); let tb = 0, n = 0, sent = 0;
-    await run(1.5, (k, t, dt) => { b._site.k = 1 - ease(k); const top = p0 - c.h * b._site.k; tb -= dt;
-      if (tb <= 0) { tb = 0.13; n++; bang(n); emit('dust', sp.x + rnd(-c.w * 0.4, c.w * 0.4), top + 6, 2); }
-      if (sent < c.cost && t > sent * 1.2 / c.cost) { sent++; plankFly(sp.x + rnd(-20, 20), top, sp.x - 150, top - 60, 0.6); } });
-    remove(b); Audio2.sfx('thud', { vol: 0.7 }); emit('dust', sp.x, p0 - 6, 14); Audio2.jingle([7, 4, 0], 0.09, 'triangle'); J.pose = 'wave'; say(pick(['m_bye', 'm_okay']));
-    await nap(1.1); leave(J);
+    b._site = { k: 1 }; let J = null;
+    try {
+      J = await arrive(b); if (sp.type === 'tree') J.y = sp.y + 34; J.pose = 'hammer'; hook('down'); let tb = 0, n = 0, sent = 0; const to = Math.max(pileX(), sp.x - 160);
+      await run(1.5, (k, t, dt) => { b._site.k = 1 - ease(k); const top = p0 - c.h * b._site.k; tb -= dt;
+        if (tb <= 0) { tb = 0.13; n++; bang(n); emit('dust', sp.x + rnd(-c.w * 0.4, c.w * 0.4), top + 6, 2); }
+        if (sent < c.cost && t > sent * 1.2 / c.cost) { sent++; plankFly(sp.x + rnd(-20, 20), top, to, top - 60, 0.6); } });
+      remove(b); Audio2.sfx('thud', { vol: 0.7 }); emit('dust', sp.x, p0 - 6, 14); Audio2.jingle([7, 4, 0], 0.09, 'triangle'); J.pose = 'wave'; if (sp.type === 'tree') J.y = FLOOR - 3; say(pick(['m_bye', 'm_okay']));
+      await nap(1.1);
+    } catch (e) { warn('down', e); if (D.builds.includes(b)) remove(b); }
+    finally { leave(J); }
   }
   function remove(b) { const i = D.builds.indexOf(b); if (i >= 0) D.builds.splice(i, 1); delete b._site; save(); syncProps(); }
   async function repaintShow(b) {       // after re-customising: a sparkle sweeps up it
@@ -393,13 +465,14 @@
   function open(opts) {
     opts = opts || {}; if (typeof marina === 'undefined' || G.busy || S.act) return;
     UI.closeActions(); S.opts = opts; const p = panel(); p.innerHTML = ''; p.classList.remove('hidden');
+    const j = realJ(); if (j && j.here && !AI.held.has(j)) { holdJeff(j); j.dir = Math.sign(marina.x - j.x) || 1; }         // he waits by her while she chooses
     const top = mk('div', 'ptop'), x = press(mk('button', 'pbtn', '❌'), close), second = mk('button', 'pbtn'), jf = mk('div', 'bd-jeff', '<canvas width="60" height="60"></canvas><b>🙅</b>'), pile = mk('div', 'bd-pile'), body = mk('div', 'bd-body');
     x.setAttribute('aria-label', 'close'); press(second, () => { Audio2.blip(4, 'triangle', 0.06, 0.12); show(M.view === 'cat' ? 'down' : M.edit ? null : 'cat'); });
     top.append(x, second, mk('div', 'ttl', '🔨'), jf, pile); p.append(top, body);
     M = { want: null, edit: null, draft: null, view: null, body, second, pile, jeff: jf }; jeffFace(jf.firstChild);
     if (opts.edit && D.builds.includes(opts.edit)) custom(CATBY[opts.edit.kind], opts.edit); else { show('cat'); hook('hello'); Audio2.jingle([0, 7, 12], 0.06); }
   }
-  function close() { const p = panel(); if (M) cancelAnimationFrame(M.raf); M = null; p.classList.add('hidden'); p.innerHTML = ''; document.querySelectorAll('.bd-fly').forEach(n => n.remove()); setMusic(); }
+  function close() { const p = panel(); if (M) cancelAnimationFrame(M.raf); M = null; p.classList.add('hidden'); p.innerHTML = ''; document.querySelectorAll('.bd-fly').forEach(n => n.remove()); setMusic(); if (!S.jeff) freeJeff(); }
   function show(view) {
     if (!M) return; if (!view) return close(); cancelAnimationFrame(M.raf); M.view = view; M.body.innerHTML = '';
     M.second.textContent = view === 'cat' ? '🧹' : '◀️'; M.second.setAttribute('aria-label', view === 'cat' ? 'take something down' : 'back'); M.second.style.visibility = view === 'cat' && !D.builds.length ? 'hidden' : 'visible';

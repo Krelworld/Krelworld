@@ -24,7 +24,7 @@
   const BACKS = { lego: '#a8dcf3', tiles: '#171c3d', none: '#ddd5c3' }, BASE = { lego: '#43b453', tiles: '#4350a0' }, WHITE = '#fbfaf5', SHADE = '#d6d0c0';
 
   // ------------------------------------------------------------------ what is on the shelf
-  let raw, items = [], readAt = 0, memOnly = false, newest = -1, home = null, fresh = null;
+  let raw, items = [], readAt = 0, memOnly = false, newest = -1, fresh = null;
   const sig = pieces => pieces.map(p => p.join(',')).sort().join(';');
   function parse(s) {
     let a = null; try { a = JSON.parse(s); } catch (e) { } const out = [], used = {}, b = B(); if (!Array.isArray(a) || !b || !b.tidy) return out;
@@ -46,12 +46,12 @@
   const at = s => read().find(e => e.s === s) || null;
   const list = () => read(true).map(e => ({ kind: e.kind, pieces: e.pieces, bp: e.bp, t: e.t, slot: e.s }));
   function has(kind, pieces) { const b = B(); if (!b || !Array.isArray(pieces)) return false; let k; try { k = sig(b.tidy(kind, pieces)); } catch (e) { return false; } return read().some(e => e.kind === kind && e.g === k); }
-  const fire = kind => { try { if (typeof api.onEvent === 'function') api.onEvent(kind); } catch (e) { } };
+  const fire = kind => { try { const L = window.LegoShelf; if (L && typeof L.onEvent === 'function') L.onEvent(kind); } catch (e) { } };      // looked up each time: other files set onEvent later
   function keep(kind) {
     const b = B(); if (!b || !b.pieces) return null; let p = []; try { p = b.pieces(kind); } catch (e) { } if (!p || !p.length) return null;
     read(true); const g = sig(p); if (items.some(e => e.kind === kind && e.g === g)) return null;
     if (items.length >= MAX) { fire('full'); return false; }
-    let s = home && home.kind === kind && !items.some(e => e.s === home.s) ? home.s : 0; while (items.some(e => e.s === s)) s++; home = null;      // a model that was taken down goes back where it stood
+    let s = 0; while (items.some(e => e.s === s)) s++;
     items.push({ kind, pieces: p, bp: b.blueprint ? b.blueprint(kind) : null, t: Date.now(), s, g }); write(); newest = s; fresh = { s, n: 4 };
     setTimeout(() => { try { window.did && did('legoshelf'); } catch (e) { } }, 1300);      // the sticker pops once it has landed
     fire('keep'); return true;
@@ -299,7 +299,7 @@
   function takeTap(btn, ico) {
     const e = at(Gy.sel), b = B(); if (!e || !b || !b.load) return; let plate = []; try { plate = b.pieces(e.kind); } catch (err) { }
     sure(btn, ico, plate.length > 0 && !has(e.kind, plate), () => {      // the plate holds something that is not on the shelf: ask before it is swept away
-      const i = Gy.sel; closeHero(); Gy.mode = 'shelf'; Gy.sel = -1; if (!dropSlot(i)) return; home = { kind: e.kind, s: i };
+      closeHero(); Gy.mode = 'shelf'; Gy.sel = -1;      // a copy goes down to the table: the one on the shelf stays where it is (nothing is ever lost by building on it)
       b.load(e.kind, e.pieces, e.bp); whoosh(false); jingle([12, 7, 4], 0.06); fire('takedown'); close({ table: e.kind });
     });
   }

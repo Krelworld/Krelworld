@@ -2,6 +2,8 @@ import Phaser from "phaser";
 import type { RoomDef } from "../../../data/dungeons";
 import { ENEMIES } from "../../../data/enemies";
 import { synth } from "../../audio/Synth";
+import { isMobile } from "../../mobile/flag";
+import { phoneHooks } from "../../mobile/boot";
 
 /**
  * Platforming extras for side-scrolling rooms: pits in the floor, moving platforms, crushers, steam vents,
@@ -277,7 +279,7 @@ export class SideLevel {
       if (t >= warnAt && t < slamAt) c.block.setX(c.x + Math.sin(now / 30) * 2);
       else c.block.setX(c.x);
       const slamming = t >= slamAt || t < 120;
-      if (slamming && now > c.hitAt && Math.abs(p.x - c.x) < c.w / 2 + 6 && p.y > y - 10) {
+      if (slamming && now > c.hitAt && Math.abs(p.x - c.x) < (c.w / 2 + 6) * (isMobile() ? (phoneHooks()?.hazardScale?.() ?? 1) : 1) && p.y > y - 10) {
         c.hitAt = now + 900;
         sc.damagePlayer(20, { x: c.x, y: gy }, { unblockable: true, label: "-20 (SQUASHED)" });
         pb.setVelocityX((p.x < c.x ? -1 : 1) * 400);
@@ -292,7 +294,7 @@ export class SideLevel {
       const warnAt = blastAt - 700;
       if (t >= blastAt) {
         v.puff.setFillStyle(this.room.ventColor ?? 0xf1f5f9, 0.75).setScale(1, 1);
-        if (Math.abs(p.x - v.x) < 30 && p.y > gy - 280 && now > v.nextTick) {
+        if (Math.abs(p.x - v.x) < 30 * (isMobile() ? (phoneHooks()?.hazardScale?.() ?? 1) : 1) && p.y > gy - 280 && now > v.nextTick) {
           v.nextTick = now + 380;
           sc.damagePlayer(9, { x: v.x, y: gy }, { unblockable: true, label: `-9 (${this.room.ventLabel ?? "STEAM"})` });
         }

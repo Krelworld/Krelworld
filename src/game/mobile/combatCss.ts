@@ -13,6 +13,8 @@ export const COMBAT_CSS = `
 .kt-fire .kt-face{border-color:rgba(255,110,110,calc(var(--kt-a) + .3))}
 .kt-fire.auto .kt-face{box-shadow:0 0 0 2px rgba(0,0,0,.5),0 0 0 5px rgba(255,90,90,.35)}
 .kt-dodge .kt-face{border-color:rgba(103,232,249,calc(var(--kt-a) + .25))}
+.kt-jump .kt-face{border-color:rgba(134,239,172,calc(var(--kt-a) + .35))}
+.kt-jump svg{width:46%;height:46%}
 .kt-swap .kt-face{border-color:rgba(103,232,249,calc(var(--kt-a) + .15))}
 .kt-special .kt-face{border-color:rgba(192,132,252,calc(var(--kt-a) + .35));font-size:12px}
 .kt-special .kt-fill{position:absolute;left:0;right:0;bottom:0;background:rgba(192,132,252,.38);pointer-events:none}

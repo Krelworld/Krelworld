@@ -33,6 +33,8 @@ import { DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, PICKER_RULE, READY, RELABEL_M
 import { controlScale, MIN_CONTROL, safeRect, type Placed, type Rect } from "./layout";
 import { COMBAT_CSS, COMBAT_STYLE_ID } from "./combatCss";
 import { haptic } from "./haptics";
+import { SideMove } from "./side";
+import { JUMP_TUNE } from "./jump";
 import { UI_TEXTS, addWording, wordText } from "./wording";
 import { COMBAT_WORDING, COMBAT_WORDING_FIRST, TUTORIAL_TEXT } from "./combatWording";
 
@@ -119,6 +121,7 @@ function dungeonOf(game: Phaser.Game): DungeonLike | null {
 
 const svg = (body: string) => `<svg viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`;
 const ICON = {
+  jump: svg(`<path d="M12 3l7.5 8H15v6H9v-6H4.5z" fill="#fff" stroke="#0b1220" stroke-width="1.2" stroke-linejoin="round"/><path d="M7 21h10" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>`),
   fire: svg(`<circle cx="12" cy="12" r="7" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="12" cy="12" r="2.2" fill="#ff6e6e"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5" stroke="#fff" stroke-width="2.4"/>`),
   dodge: svg(`<path d="M4 6l6 6-6 6M12 6l6 6-6 6" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>`),
   swap: svg(`<path d="M5 9h12l-3.5-3.5M19 15H7l3.5 3.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`),
@@ -153,7 +156,7 @@ function saveTaught(t: Taught) {
 
 // ------------------------------------------------------------------ the controller
 
-type CtlId = "fire" | "dodge" | "swap" | "special" | "ready" | "heal" | "action" | "chip" | "juice" | "bongo" | "fart" | "sanmik" | "close";
+type CtlId = "fire" | "sfire" | "jump" | "dodge" | "swap" | "special" | "ready" | "heal" | "action" | "chip" | "juice" | "bongo" | "fart" | "sanmik" | "close";
 
 /** Everything the combat controls know right now (for the smoke test and ?mobilediag). */
 export interface CombatSnapshot {
@@ -210,6 +213,10 @@ export class CombatControls {
   private chipsKey = "";
   private canvasKey = "";
   private active = false;
+  /** Side-scrolling rooms: the jump feel, the drop rule and the camera's look-ahead (side.ts). */
+  readonly side = new SideMove();
+  /** Facing in a side room (1 right, -1 left): what FIRE and auto-fire shoot at without a target. */
+  private facing = 1;
 
   constructor(
     readonly game: Phaser.Game,
@@ -226,26 +233,30 @@ export class CombatControls {
       html: ICON.fire,
       caption: "FIRE",
       haptic: "tap",
-      onDown: () => {
-        this.fireHeld = true;
-        this.manual = null;
-        this.graceUntil = 0;
-        // (on touch-down, no wait: the Dungeon reads it on its next frame)
-        TOUCH.attack = true;
-      },
+      onDown: () => this.fireDown(),
       onSlide: (_c, dx, dy) => {
         if (Math.hypot(dx, dy) >= SLIDE_PX) {
           const raw = Math.atan2(dy, dx);
           this.manual = { raw, angle: raw, snapped: this.manual?.snapped ?? null };
         } else this.manual = null;
       },
-      onUp: (_c, i) => {
-        this.fireHeld = false;
-        this.manual = null;
-        // auto-fire off: the stream carries on a moment, so hopping to DODGE and back doesn't break it (M1)
-        this.graceUntil = !i.cancelled && !phoneSettings().autoFire ? realNow() + FIRE_GRACE_MS : 0;
-        TOUCH.attack = this.graceUntil > realNow() || this.autoFiring;
-      },
+      onUp: (_c, i) => this.fireUp(i.cancelled),
+    });
+    // side-scrolling rooms (layout v2): JUMP is the big corner button, FIRE sits left of it (no slide-aim: facing +
+    // auto-aim), DODGE and SPECIAL stay where they are in top-down rooms
+    const sfire = L.addControl({ id: "c-sfire", slot: "left", group: grp, className: "kt-c kt-fire", html: ICON.fire, caption: "FIRE", haptic: "tap", onDown: () => this.fireDown(), onUp: (_c, i) => this.fireUp(i.cancelled) });
+    const jump = L.addControl({
+      id: "c-jump",
+      slot: "prime",
+      group: grp,
+      toCorner: true,
+      className: "kt-c kt-jump",
+      html: ICON.jump,
+      caption: "JUMP",
+      haptic: "press",
+      // (on touch-down: the jump goes on the Dungeon's next frame; held = the full jump, a tap = a hop)
+      onDown: () => this.side.press(dungeonOf(this.game) as never),
+      onUp: () => this.side.release(dungeonOf(this.game) as never),
     });
     const dodge = L.addControl({ id: "c-dodge", slot: "upLeft", group: grp, className: "kt-c kt-dodge", html: ICON.dodge, caption: "DODGE", haptic: "press", onDown: () => TOUCH.edges.add("dodge") });
     const swapSpec = (id: string, slot: "left" | "prime", extra: object) => ({
@@ -302,7 +313,7 @@ export class CombatControls {
     const fart = drink("c-fart", "fart", () => TOUCH.edges.add("fart"));
     const sanmik = drink("c-sanmik", "sanmik", () => TOUCH.edges.add("sanmik"));
     const close = L.addControl({ id: "c-close", slot: "prime", className: "kt-c kt-close", label: "✕", caption: "CLOSE", haptic: "tap", onDown: () => this.closePicker() });
-    this.c = { fire, dodge, swap, special, ready, heal, action, chip, juice, bongo, fart, sanmik, close };
+    this.c = { fire, sfire, jump, dodge, swap, special, ready, heal, action, chip, juice, bongo, fart, sanmik, close };
     // the mash overlay: every finger anywhere on the screen is a press (research M14)
     const m = document.createElement("div");
     m.className = "kt-mash";
@@ -322,6 +333,22 @@ export class CombatControls {
     for (const ev of ["touchmove", "touchend", "touchcancel"]) m.addEventListener(ev, (e) => e.cancelable && e.preventDefault(), { passive: false });
     L.root.appendChild(m);
     this.mash = m;
+  }
+
+  private fireDown() {
+    this.fireHeld = true;
+    this.manual = null;
+    this.graceUntil = 0;
+    // (on touch-down, no wait: the Dungeon reads it on its next frame)
+    TOUCH.attack = true;
+  }
+
+  private fireUp(cancelled: boolean) {
+    this.fireHeld = false;
+    this.manual = null;
+    // auto-fire off: the stream carries on a moment, so hopping to DODGE and back doesn't break it (M1)
+    this.graceUntil = !cancelled && !phoneSettings().autoFire ? realNow() + FIRE_GRACE_MS : 0;
+    TOUCH.attack = this.graceUntil > realNow() || this.autoFiring;
   }
 
   // ------------------------------------------------------------------ placement of the chips
@@ -524,7 +551,7 @@ export class CombatControls {
 
   /** Is this a fight the phone controls run (a top-down Dungeon room)? */
   private ours(scene: Phaser.Scene): scene is DungeonLike {
-    return scene.sys?.settings?.key === "Dungeon" && (scene as DungeonLike).side !== true;
+    return scene.sys?.settings?.key === "Dungeon";
   }
 
   /**
@@ -543,8 +570,18 @@ export class CombatControls {
     const st = phoneSettings();
     this.tune = AIM_TUNE[st.aimAssist] ?? AIM_TUNE.normal;
     const me: Pt = { x: p.x, y: p.y };
-    const sx = TOUCH.mx;
-    const sy = TOUCH.my;
+    const sideView = dun.side === true;
+    let sx = TOUCH.mx;
+    let sy = TOUCH.my;
+    if (sideView) {
+      // side-on: you face the way you last ran; targets ahead count for more; no slide-aim (research M6)
+      if (Math.abs(sx) > 0.2) this.facing = sx > 0 ? 1 : -1;
+      sx = this.facing;
+      sy = 0;
+      this.manual = null;
+      this.side.raw = this.layer.stickRaw;
+      if (!dun.busy) this.side.camera(dun as never, dt, TOUCH.mx);
+    }
     if (Math.hypot(sx, sy) > 0.2) this.lastMove = Math.atan2(sy, sx);
     const view = dun.cameras.main.worldView;
     const vr = { x: view.x, y: view.y, w: view.width, h: view.height };
@@ -585,7 +622,7 @@ export class CombatControls {
     }
     // aim: a slide by hand (snapped), else the target, else straight ahead
     const d = this.layer.decision;
-    const fighting = d.mode === "combat" && !d.mash && !d.picker;
+    const fighting = (d.mode === "combat" || d.mode === "side") && !d.mash && !d.picker;
     if (this.manual) {
       const sn = snapAim(me, this.manual.raw, enemies, this.tune, ACQUIRE, vr);
       this.manual.angle = sn.angle;
@@ -660,7 +697,7 @@ export class CombatControls {
     let left = Infinity;
     // (in a top-down fight the weapon chip's place is kept even before it shows: a room's first toasts come early)
     const dun = dungeonOf(this.game);
-    const fight = _mode === "dungeon" && !!dun && dun.side !== true;
+    const fight = _mode === "dungeon" && !!dun;
     for (const id of ["pause", "fullscreen", "c-chip"]) {
       const ctl = this.layer.control(id);
       if (!ctl || ctl.faceRect.w <= 0 || ctl.faceRect.y >= cb.y + 60) continue;
@@ -692,6 +729,8 @@ export class CombatControls {
     this.layer.occluders = [];
     TOUCH.attack = this.fireHeld;
     this.drawAim(null);
+    // (a jump held or waiting when the room or the mode changes must not go off later)
+    this.side.reset();
     // (a press meant for the fight that no frame has read yet must not go off later, somewhere else)
     dropFightEdges();
   }
@@ -705,6 +744,7 @@ export class CombatControls {
     TOUCH.attack = false;
     TOUCH.held.delete("special");
     TOUCH.held.delete("swap");
+    this.side.reset();
     if (this.swapBy) {
       this.swapBy = null;
       this.swapHold.reset();
@@ -748,12 +788,17 @@ export class CombatControls {
     }
     const teaching = this.teach.rooms <= TEACH_ROOMS;
     // ---- the cluster
-    show("fire", fight);
+    const side = d.mode === "side";
+    show("fire", fight && !side);
+    show("sfire", fight && side);
+    show("jump", fight && side);
+    if (!side && !this.c.jump.pressed && this.side.touchHeld) this.side.reset();
     show("dodge", fight);
     const sig = p?.def?.signature;
     show("special", fight && (!!sig || !!p?.headbuttMode));
     const choices = weaponList(s).filter((w) => !w.empty).length;
-    show("swap", fight && choices >= 2, true);
+    // (side rooms: the weapon chip swaps; layout v2 gives SWAP's place to FIRE)
+    show("swap", fight && !side && choices >= 2, true);
     show("action", fight && !!d.action, true);
     if (d.action) this.c.action.setLabel(String(d.action));
     show("close", picker);
@@ -811,6 +856,8 @@ export class CombatControls {
     // ---- captions (first fights) and pulses (the first time each matters)
     for (const [id, word] of [
       ["fire", "FIRE"],
+      ["sfire", "FIRE"],
+      ["jump", "JUMP"],
       ["dodge", "DODGE"],
       ["swap", "SWAP"],
       ["heal", "HEAL"],
@@ -821,6 +868,7 @@ export class CombatControls {
     // ---- feedback: a flash on the button that just did something (FIRE flashes with auto-fire's shots too)
     if (p) this.flashes(p);
     this.c.fire.el.classList.toggle("auto", this.autoFiring);
+    this.c.sfire.el.classList.toggle("auto", this.autoFiring);
     this.swapTick();
     // ---- the target ring, the aim line, and what controls must not hide
     this.drawAim(fight && dun ? dun : null);
@@ -1013,6 +1061,8 @@ const FROZEN_MS = 400;
 
 /** Phone assist's numbers (S9; *mine*, starting values for the device test). */
 export const ASSIST = Object.freeze({
+  /** Side rooms: crushers' and steam vents' reach (research: 10-15% smaller under phone assist). */
+  hazard: 0.88,
   /** Pick-ups start coming to you from this far (world px; the game's own pull starts at 90). */
   magnet: 140,
   /** How fast they come (px per ms; the game's own pull is 0.4)... */
@@ -1060,21 +1110,28 @@ export function installCombat(game: Phaser.Game, layer: TouchLayer): CombatContr
   else addSceneRule(DUNGEON_RULE, "back");
   addSceneRule(PICKER_RULE, "front");
   const cc = new CombatControls(game, layer);
-  registerModeController({
-    id: "combat-topdown",
-    mode: "combat",
-    enter: (ctx) => cc.enter(ctx),
-    frame: (ctx) => cc.frame(ctx),
-    layout: () => cc.layout(),
-    release: () => cc.release(),
-    leave: () => cc.leave(),
-  });
+  for (const [id, mode] of [
+    ["combat-topdown", "combat"],
+    ["combat-side", "side"],
+  ] as const)
+    registerModeController({
+      id,
+      mode,
+      enter: (ctx) => cc.enter(ctx),
+      frame: (ctx) => cc.frame(ctx),
+      layout: () => cc.layout(),
+      release: () => cc.release(),
+      leave: () => cc.leave(),
+    });
   setPhoneHooks({
     combatStep: (sc, ctl, dt) => cc.combatStep(sc, ctl, dt),
     aim: (sc, px, py) => cc.aim(sc, px, py),
     aimPoint: (sc) => cc.aimPoint(sc),
     toastRight: (m) => cc.toastRight(m),
     readyWord: (w) => cc.readyWord(w),
+    sideMove: (pl, body, ctl, mv, speed, dt, now) => cc.side.sideMove(pl as never, body as never, ctl as never, mv, speed, dt, now),
+    ledgeTol: () => (phoneSettings().phoneAssist ? JUMP_TUNE.ledgeTol : JUMP_TUNE.gameLedgeTol),
+    hazardScale: () => (phoneSettings().phoneAssist ? ASSIST.hazard : 1),
   });
   // touch wording for the fight's own UI hints (never dialogue): the weapon picker's how-to line, and the first
   // dungeon's how-to-play pages, which named the old pad's buttons

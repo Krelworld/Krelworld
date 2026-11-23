@@ -441,6 +441,8 @@ export class TouchLayer {
   zoneRect: Rect = { x: 0, y: 0, w: 0, h: 0 };
   geo!: StickGeometry;
   decision: ModeDecision = { ...NONE };
+  /** The stick's raw direction while a thumb drives it (1 = the rim; y counts even for an "x" stick), else null. */
+  stickRaw: { x: number; y: number } | null = null;
   /** Called when the player taps the fullscreen offer (set by the shell). */
   onFullscreen: (() => void) | null = null;
   /** The shell is holding (page hidden, upright, the guide or the carry-on card up): no control acts. */
@@ -755,6 +757,8 @@ export class TouchLayer {
     const v = stickVector(x - s.bx, y - s.by, g);
     TOUCH.mx = v.x;
     TOUCH.my = v.y;
+    // (the raw direction, y included even for an "x" stick: the side rooms' deliberate drop-through reads it)
+    this.stickRaw = { x: (x - s.bx) / g.travel, y: (y - s.by) / g.travel };
     if (v.mag > 0.5 && !this.learnedMove) {
       this.learnedMove = true;
       this.capEl.style.display = "none";
@@ -773,6 +777,7 @@ export class TouchLayer {
     const s = this.stick;
     if (!s) return;
     this.stick = null;
+    this.stickRaw = null;
     if (!s.dead) {
       TOUCH.mx = 0;
       TOUCH.my = 0;
@@ -787,6 +792,7 @@ export class TouchLayer {
 
   /** The stick lets go now (its touch stays owned until it lifts, but does nothing more). */
   private releaseStick() {
+    this.stickRaw = null;
     if (this.stick) {
       this.stick.dead = true;
       TOUCH.mx = 0;

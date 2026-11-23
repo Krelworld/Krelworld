@@ -158,9 +158,9 @@ export class UIScene extends Phaser.Scene {
 
   private setupTouch() {
     if (!isTouchDevice(this.game)) return;
-    // phones: the phone touch layer (src/game/mobile) has the controls, drawn above every scene: walking in town, and
-    // the top-down fights (stage 2). The side-scrolling rooms keep this pad until their phone controls land.
-    if (isMobile() && !(this.mode === "dungeon" && (this.scene.get("Dungeon") as unknown as { side?: boolean } | null)?.side === true)) {
+    // phones: the phone touch layer (src/game/mobile) has the controls, drawn above every scene: walking in town, the
+    // top-down fights and the side-scrolling rooms (stage 2).
+    if (isMobile()) {
       this.touch?.destroy();
       this.touch = null;
       return;

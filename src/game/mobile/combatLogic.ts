@@ -143,16 +143,15 @@ export const TEACH_ROOMS = 3;
 
 // ------------------------------------------------------------------ the rules (replacing stage 1's dungeon row)
 
-/** The Dungeon: top-down rooms are ours ("combat"); side-scrolling rooms stay on the old pad until part 2. */
+/** The Dungeon: top-down rooms ("combat") and side-scrolling rooms ("side": an x-only stick, JUMP in the corner). */
 export const DUNGEON_RULE: SceneRule = {
   name: "dungeon",
   match: (k) => k === "Dungeon",
   decide: (s) => {
-    if (s.side) return s.busy ? { mode: "none", legacyPad: true } : { mode: "side", legacyPad: true, pause: "edge", pauseButton: false, live: true };
     // (a scripted moment, dying, moving rooms: no buttons; coming back to it shows "tap to carry on")
     if (s.busy) return { mode: "none", live: true };
     const mash = s.sub === "mash";
-    return { mode: "combat", legacyPad: false, pause: "edge", pauseButton: true, live: true, stick: "2d", action: mash ? null : verbFromPrompt(s.prompt), mash };
+    return { mode: s.side ? "side" : "combat", legacyPad: false, pause: "edge", pauseButton: true, live: true, stick: s.side ? "x" : "2d", action: mash ? null : verbFromPrompt(s.prompt), mash };
   },
 };
 
@@ -162,8 +161,8 @@ export const PICKER_RULE: SceneRule = {
   match: (k) => k === "WeaponPick",
   decide: (_s, view) => {
     const dun = view.scenes.find((x) => x.key === "Dungeon");
-    if (!dun || dun.side) return null;
-    return { mode: "combat", scene: "Dungeon", legacyPad: false, pause: null, pauseButton: false, live: true, stick: "2d", action: null, picker: true };
+    if (!dun) return null;
+    return { mode: dun.side ? "side" : "combat", scene: "Dungeon", legacyPad: false, pause: null, pauseButton: false, live: true, stick: dun.side ? "x" : "2d", action: null, picker: true };
   },
 };
 

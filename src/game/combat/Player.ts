@@ -20,6 +20,8 @@ import { modLevel, moddedFart, moddedGun } from "../systems/armoury";
 import { releaseFart } from "./Farts";
 import { hasVfx, vfx } from "../gfx/Vfx";
 import { startWonk } from "./Wonk";
+import { isMobile } from "../mobile/flag";
+import { phoneHooks } from "../mobile/boot";
 
 export interface Turret {
   spr: Phaser.GameObjects.Sprite;
@@ -224,6 +226,8 @@ export class Player {
         const ghost = this.world.sc.add.sprite(this.x, this.y, this.spr.texture.key, this.spr.frame.name).setScale(2).setAlpha(0.45).setTint(this.def.color).setDepth(499).setFlipX(this.spr.flipX);
         this.world.sc.tweens.add({ targets: ghost, alpha: 0, duration: 220, onComplete: () => ghost.destroy() });
       }
+    } else if (side && isMobile() && phoneHooks()?.sideMove?.(this, body, c, mv, speed, dt, now)) {
+      // (phones: the same run and jump with the phone's jump feel: buffer, coyote, tap = hop; src/game/mobile/side.ts)
     } else if (side) {
       // platformer: run left/right, jump (and one more in the air), down drops through platforms
       const grounded = body.blocked.down || body.touching.down;

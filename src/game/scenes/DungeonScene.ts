@@ -453,7 +453,7 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
         const b = (a.body ?? a) as Phaser.Physics.Arcade.Body;
         const pb = plat.body as Phaser.Physics.Arcade.StaticBody;
         if (a === this.player.spr && this.now() < this.player.dropUntil) return false;
-        return b.velocity.y >= 0 && b.bottom <= pb.top + 14;
+        return b.velocity.y >= 0 && b.bottom <= pb.top + (isMobile() ? (phoneHooks()?.ledgeTol?.() ?? 14) : 14);
       };
       this.physics.add.collider(this.player.spr, this.platforms, undefined, oneWay);
       this.physics.add.collider(this.enemyGroup, this.platforms, undefined, oneWay);

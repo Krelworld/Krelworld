@@ -286,13 +286,14 @@ describe("phone combat: the Dungeon's rows in the mode table", () => {
     expect(run([{ key: "Dungeon", busy: true }])).toMatchObject({ mode: "none", live: true, pause: null, scene: "Dungeon" });
   });
 
-  it("side-scrolling rooms stay on the old pad (stage 2 part 2)", () => {
-    expect(run([{ key: "Dungeon", side: true }])).toMatchObject({ mode: "side", legacyPad: true });
+  it("side-scrolling rooms are ours too: an x-only stick, no old pad (stage 2 part 2)", () => {
+    expect(run([{ key: "Dungeon", side: true }])).toMatchObject({ mode: "side", legacyPad: false, stick: "x", pause: "edge", pauseButton: true, live: true });
+    expect(run([{ key: "Dungeon", side: true, busy: true }])).toMatchObject({ mode: "none", live: true });
   });
 
-  it("the weapon picker over a top-down fight is still combat (picker); over a side room it isn't ours", () => {
+  it("the weapon picker over a fight keeps the fight's mode (picker)", () => {
     expect(run([{ key: "Dungeon" }, { key: "UI" }, { key: "WeaponPick" }])).toMatchObject({ mode: "combat", picker: true, scene: "Dungeon", pause: null });
-    expect(run([{ key: "Dungeon", side: true }, { key: "WeaponPick" }]).mode).toBe("none");
+    expect(run([{ key: "Dungeon", side: true }, { key: "WeaponPick" }])).toMatchObject({ mode: "side", picker: true, stick: "x" });
   });
 
   it("a conversation or the pause menu over the fight: no fight buttons", () => {

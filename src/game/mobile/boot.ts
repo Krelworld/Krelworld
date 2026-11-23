@@ -55,6 +55,12 @@ export interface PhoneHooks {
   toastRight?(mode: "hub" | "dungeon"): number | null;
   /** The HUD's "special ready" prompt: the word on the touch button to press instead of a key (null: none). */
   readyWord?(which: "burst" | "fart"): string | null;
+  /** Player.update's side-scrolling branch (run, jump, drop): true = the phone did it (jump feel, research M6). */
+  sideMove?(player: unknown, body: unknown, controls: unknown, mv: { x: number; y: number }, speed: number, dt: number, now: number): boolean;
+  /** One-way platforms accept a landing this far below their top (the game's is 14). */
+  ledgeTol?(): number;
+  /** Crushers' and steam vents' reach, as a share of the game's (phone assist: a little smaller). */
+  hazardScale?(): number;
 }
 
 let hooks: PhoneHooks | null = null;

@@ -2179,6 +2179,38 @@ async function sideRooms(browser) {
       return { fx: Math.round(c.followOffset.x), dz: c.deadzone ? Math.round(c.deadzone.width) : null, share: (d.player.x - c.worldView.x) / c.worldView.width };
     });
     check("the camera looks ahead (follow offset about -144: the player left of centre)", cam.fx < -100 && cam.dz === 0, cam);
+    // ---- a controller connected to the phone takes over; the next touch brings the controls back (S6 / R11)
+    await ph.ev(() => {
+      window.__fakePad = { connected: true, id: "test pad", index: 0, buttons: Array.from({ length: 17 }, (_, i) => ({ pressed: i === 0, value: i === 0 ? 1 : 0, touched: false })), axes: [0, 0, 0, 0], mapping: "standard", timestamp: 1 };
+      navigator.getGamepads = () => [window.__fakePad];
+    });
+    await sleep(500);
+    const hidden = await ph.ev(() => ({ cls: document.querySelector(".kt").className, input: window.__krelMobile.snapshot().decision.input ?? null, vis: getComputedStyle(document.querySelector(".kt-jump") || document.body).visibility }));
+    await ph.ev(() => {
+      window.__fakePad.buttons[0] = { pressed: false, value: 0, touched: false };
+    });
+    await ph.touch("touchStart", [{ x: 420, y: 120, id: 70 }]);
+    await ph.touch("touchEnd", []);
+    await sleep(500);
+    const back = await ph.ev(() => ({ cls: document.querySelector(".kt").className, input: window.__krelMobile.snapshot().decision.input ?? null }));
+    check("a controller's button hides the touch controls (input: pad); a touch brings them back", hidden.input === "pad" && /padin/.test(hidden.cls) && hidden.vis === "hidden" && back.input === null && !/padin/.test(back.cls), { hidden, back });
+    // ---- the Controls picture from the pause menu (side rooms first)
+    const pause = await ctlOf("pause");
+    await ph.tapCss(...mid(pause));
+    await ph.scene("Menu");
+    await sleep(800);
+    await ph.tapText("CONTROLS");
+    await sleep(800);
+    const pic = await ph.ev(() => window.__krelMobile.picture.snapshot());
+    await ph.shot("side-controls-picture");
+    check("pause → CONTROLS on a phone shows the picture of the touch controls (side rooms tab, a dot per control)", pic.open && pic.tab === "side" && pic.rows >= 7 && pic.dots >= 6, pic);
+    await ph.tapSel(".kcp-tab[data-tab=brawl]");
+    await sleep(300);
+    const pic2 = await ph.ev(() => window.__krelMobile.picture.snapshot());
+    await ph.tapSel(".kcp-x");
+    await sleep(300);
+    const pic3 = await ph.ev(() => window.__krelMobile.picture.snapshot());
+    check("its tabs switch (brawl) and CLOSE goes back to the pause menu", pic2.tab === "brawl" && pic2.dots >= 5 && !pic3.open && (await ph.active()).includes("Menu"), { pic2, pic3 });
     check("no page errors (side)", errors.length === 0, errors);
   } finally {
     await ctx.close();

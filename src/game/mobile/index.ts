@@ -27,6 +27,7 @@ import { whenRunning } from "./shell";
 import { installCombat } from "./combat";
 import { installBrawl, showFinisher } from "./brawl";
 import { PAD_CSS, PadHandover } from "./pad";
+import { ControlsPicture, tabFor } from "./controlsPicture";
 import { phoneHooks, setPhoneHooks } from "./boot";
 
 export { isMobile, setMobileForTests, mobileWhy, rememberPhoneMode } from "./flag";
@@ -91,6 +92,7 @@ export function installMobile(game: Phaser.Game) {
   const combat = installCombat(game, layer);
   // stage 2 part 2: the finale's brawl, the Kreltality prompt, a controller handed over (brawl.ts, pad.ts)
   const brawl = installBrawl(game, layer);
+  const picture = new ControlsPicture(layer);
   const pad = new PadHandover();
   pad.start((fn) => {
     game.events.on("prestep", fn);
@@ -106,6 +108,10 @@ export function installMobile(game: Phaser.Game) {
     ...(phoneHooks() ?? {}),
     brawl: (b) => brawl.attach(b),
     finisher: (p) => showFinisher(layer, p),
+    controlsPicture: () => {
+      picture.show(tabFor(fightUnder(game)));
+      return true;
+    },
   });
   layer.onFullscreen = () => shell.goFullscreen();
   const guide = new HomeScreenGuide(parent, {
@@ -180,6 +186,7 @@ export function installMobile(game: Phaser.Game) {
     combat,
     brawl,
     pad,
+    picture,
     snapshot: () => layer.snapshot(),
     shellState: () => shell.snapshot(),
     // (the same module instances the game uses, for tests that add a rule or a controller)
@@ -201,4 +208,16 @@ export function installMobile(game: Phaser.Game) {
       return { asked: () => asked };
     },
   };
+}
+
+/** The fight under the pause menu, for the Controls picture's first tab ("side", "combat", "brawl", else walking). */
+function fightUnder(game: Phaser.Game): string {
+  try {
+    const live = (k: string) => game.scene.isActive(k) || game.scene.isPaused(k);
+    if (live("Finale")) return "brawl";
+    if (live("Dungeon")) return (game.scene.getScene("Dungeon") as unknown as { side?: boolean }).side ? "side" : "combat";
+  } catch {
+    /* mid-change */
+  }
+  return "walk";
 }

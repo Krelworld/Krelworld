@@ -1,6 +1,6 @@
 import { canFullscreen, fullscreenLabel, toggleFullscreen } from "../systems/fullscreen";
 import { isMobile } from "../mobile/flag";
-import { homeScreenEntryWanted, openHomeScreenGuide } from "../mobile/boot";
+import { homeScreenEntryWanted, openHomeScreenGuide, phoneHooks } from "../mobile/boot";
 import { afterKreddle } from "../systems/moodMusic";
 import { dialogueLog } from "../ui/dialogueLog";
 import Phaser from "phaser";
@@ -245,6 +245,8 @@ export class MenuScene extends Phaser.Scene {
   private keyListener: ((e: KeyboardEvent) => void) | null = null;
 
   private openControls(from: Mode) {
+    // (phones: a picture of the touch controls instead of the keyboard's list; src/game/mobile/controlsPicture.ts)
+    if (isMobile() && phoneHooks()?.controlsPicture?.()) return;
     this.controlsFrom = from;
     this.listening = null;
     if (!this.keyListener) {

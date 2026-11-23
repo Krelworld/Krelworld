@@ -1,12 +1,7 @@
-# Stage 2 part 2: side rooms and jumping, brawls, finishers, controllers (IN PROGRESS)
+# Stage 2 part 2: side rooms and jumping, brawls, finishers, controllers (IN PROGRESS: verification running)
 
-Worktree: scratchpad/mobile-wt (branch mobile). Resumed run. Status is updated as work lands.
-
-## Done so far
-- 41dbfdc5: side-scrolling rooms on phones get layout v2 (JUMP 84 px prime corner, FIRE left of it, DODGE / SPECIAL
-  above, READY / HEAL / chip as part 1), x-only stick, phone jump feel (src/game/mobile/jump.ts, side.ts), camera
-  look-ahead, phone-assist forgiveness. Unit tests tests/mobileJump.test.ts (30/60/120 Hz).
-
-## Still to do (if this file still says IN PROGRESS, a later run picks up here)
-- browser check of side rooms (smoke "side" section), brawl mode, finishers / mash by touch, pad handover (R11),
-  Controls picture, fullscreen re-offer in fights, README, verification.
+Commits so far (branch mobile, worktree scratchpad/mobile-wt): 41dbfdc5, 9246f67e, 240a3d36, 937aab23, 6c3c708a,
+6c8b2aa9. Built: side mode (jump.ts, side.ts, combat.ts side branch), brawl + Kreltality prompt (brawl.ts), pad
+handover (pad.ts), Controls picture (controlsPicture.ts), fullscreen offer in fights. Smoke sections "side" and "brawl"
+pass on the main build. Still to do: laptop fingerprints, device profiles, full vitest, smoke both builds, README,
+play-through notes, final report.

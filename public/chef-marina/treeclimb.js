@@ -212,7 +212,7 @@
 
   function start(mode, opts) {
     opts = opts || {}; const panel = document.getElementById('panel'); if (!panel) return false;
-    if (S) teardown();
+    if (S) { const old = S; teardown(); report(old); }
     try { UI.closeActions(); } catch (e) { }
     try { clearWish(); } catch (e) { }
     addCss(); voIndex(); panel.innerHTML = ''; panel.classList.remove('hidden');
@@ -253,11 +253,12 @@
   }
   // back to the game; tells the caller how it went (once)
   function finish() {
-    if (!S) return; const st = S, res = st.mode === 'view' ? undefined : { top: !!st.reached };
+    if (!S) return; const st = S;
     teardown(); st.panel.classList.add('hidden'); st.panel.innerHTML = '';
     try { if (typeof setMusic === 'function') setMusic(); } catch (e) { }
-    if (typeof st.opts.onDone === 'function') { try { st.opts.onDone(res); } catch (e) { console.warn('treeclimb onDone', e); } }
+    report(st);
   }
+  function report(st) { if (typeof st.opts.onDone === 'function') { try { st.opts.onDone(st.mode === 'view' ? undefined : { top: !!st.reached }); } catch (e) { console.warn('treeclimb onDone', e); } } }
   // the ❌: from part-way up she slides down the trunk the quick way; anywhere else it just leaves
   function quit() {
     if (!S) return;
@@ -273,13 +274,13 @@
     const cv = S.cv, at = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * S.VW, y: (e.clientY - r.top) / r.height * S.VH }; };
     cv.addEventListener('pointerdown', e => {
       e.preventDefault(); if (!S || e.isPrimary === false || e.button > 0) return; const p = at(e); S.idleAll = 0;
-      try { const a = au(); a && a.init && a.init(); } catch (err) { }
+      try { const c = ac(); if (c && c.state === 'suspended') c.resume(); } catch (err) { }
       if (S.phase === 'view') { try { cv.setPointerCapture(e.pointerId); } catch (err) { } S.ptr = { id: e.pointerId, x0: e.clientX, lx: e.clientX, moved: 0, t: S.t, p }; S.V.vel = 0; return; }
       if (S.phase === 'climb') tapClimb(p); else if (S.phase === 'leaf') steer(p); else if (S.phase === 'topfx' && S.t - S.topAt > 1.2) S.topSkip = true;
     });
     cv.addEventListener('pointermove', e => {
       const P = S && S.ptr; if (!P || P.id !== e.pointerId || S.phase !== 'view') return; const r = cv.getBoundingClientRect(), dx = (e.clientX - P.lx) / r.width * S.VW;
-      P.moved += Math.abs(e.clientX - P.lx); P.lx = e.clientX; if (P.moved > 6 && !S.V.binoc) { S.V.az -= dx; S.V.vel = lerp(S.V.vel, -dx / Math.max(0.008, S.dt), 0.5); S.V.dragged = true; }
+      P.moved += Math.abs(e.clientX - P.lx); P.lx = e.clientX; if (P.moved > 6 && !S.V.binoc) { S.V.az -= dx; S.V.vel = clamp(lerp(S.V.vel, -dx / Math.max(0.008, S.dt), 0.5), -420, 420); S.V.dragged = true; }
     });
     const up = e => { const P = S && S.ptr; if (!P || P.id !== e.pointerId) return; S.ptr = null; if (S.phase === 'view' && e.type === 'pointerup' && P.moved < 9 && S.t - P.t < 0.7) tapView(P.p); };
     cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); cv.addEventListener('lostpointercapture', up);
@@ -484,7 +485,7 @@
   // ------------------------------------------------------------------ one frame
   function frame(now) {
     if (!S) return;
-    if (!S.body.isConnected || S.panel.classList.contains('hidden')) { const st = S; teardown(); try { if (typeof setMusic === 'function') setMusic(); } catch (e) { } if (typeof st.opts.onDone === 'function') st.opts.onDone(st.mode === 'view' ? undefined : { top: !!st.reached }); return; }   // something else closed the panel
+    if (!S.body.isConnected || S.panel.classList.contains('hidden')) { const st = S; teardown(); try { if (typeof setMusic === 'function') setMusic(); } catch (e) { } report(st); return; }   // something else closed the panel
     const dt = S.dt = clamp((now - S.last) / 1000 || 0.016, 0.001, 0.05); S.last = now; S.t += dt; S.raf = requestAnimationFrame(frame);
     for (let i = S.timers.length - 1; i >= 0; i--) if (S.timers[i].t <= S.t) { const f = S.timers[i].fn; S.timers.splice(i, 1); f(); if (!S) return; }
     const g = S.g; g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
@@ -578,8 +579,8 @@
     if (gy < VH + 10) { const hw = T.hw(0); px(g, X(-hw - 6), gy - 2, hw * 2 + 12, 4, T.K.bark[1]); px(g, X(-hw - 10), gy + 1, hw * 2 + 20, 2, 'rgba(40,60,30,.4)'); }
     // holds on the trunk
     for (const n of T.nodes) if (!n.br && n.toy !== 'top' && vis(n.h0)) { const x = X(wx(n.x, n.h0)), y = Y(n.h0); px(g, x - 5, y - 1, 10, 4, T.K.bark[3]); px(g, x - 4, y - 2, 8, 2, T.K.bark[2]); px(g, x - 3, y, 6, 2, T.K.bark[1]); }
-    for (const toy of T.toys) if (toy.x && vis(toy.h()) && (toy.type === 'owl' || toy.type === 'treasure' || toy.type === 'web')) drawToy(g, toy);
     for (const b of T.br) if (vis(b.h0)) drawLimb(g, b, true);
+    for (const toy of T.toys) if (toy.x && vis(toy.h()) && (toy.type === 'owl' || toy.type === 'treasure' || toy.type === 'web')) drawToy(g, toy);
     if (T.rope) drawRope(g, T.rope);
     for (const toy of T.toys) if (toy.x && vis(toy.h()) && toy.type !== 'owl' && toy.type !== 'treasure' && toy.type !== 'web' && toy.type !== 'rope') drawToy(g, toy);
     // things to collect bob above their spots
@@ -613,7 +614,7 @@
     if (!leavesToo) {
       for (let ax = Math.max(0, Math.floor(hwb)); ax < b.len; ax += 2) { const t = ax / b.len, h = brTop(b, ax), th = Math.max(2, Math.round(lerp(b.th, 2, t))), x = X(wx(sd * ax, h)) - (sd < 0 ? 2 : 0), y = Y(h);
         px(g, x, y, 2, th, K.bark[0]); px(g, x, y, 2, 1, b.bouncy ? '#b9d67a' : K.bark[2]); px(g, x, y + th - 1, 2, 1, K.bark[3]); if (b.bouncy && (ax >> 1) % 4 === 0) px(g, x, y + 1, 2, 1, '#8fbf52'); if (b.wobbly && ax > b.len * 0.3 && (ax >> 1) % 9 === 0) px(g, x, y + 1, 1, th - 2, K.bark[3]); }
-      if (b.bouncy) { const ax = b.len * 0.5, h = brTop(b, ax), x = X(wx(sd * ax, h)), y = Y(h) + 12, p = Math.abs(Math.sin(S.t * 4)); for (let i = 0; i < 3; i++) { px(g, x - 5 + i, y + i * 3 + p * 2, 10 - i * 2, 1, 'rgba(255,255,255,.75)'); } }
+      if (b.bouncy) for (let ax = Math.floor(hwb) + 8; ax < b.len - 4; ax += 9) { const h = brTop(b, ax), x = X(wx(sd * ax, h)), y = Y(h); px(g, x, y - 3, 1, 3, '#6fae4e'); px(g, x - 2, y - 4, 2, 2, '#8fd05a'); px(g, x + 1, y - 5, 2, 2, '#a8e070'); }      // a young, springy limb with fresh sprouts
       return;
     }
     for (const l of b.leaves) if (!l.front) drawLeaf(g, b, l);
@@ -685,7 +686,7 @@
   const TOD = [
     { sky: ['#3f86d6', '#8cc0ee', '#cfe8f8'], sea: ['#7db6de', '#3f7fba'], mul: null, add: null, cloud: null, star: 0, ico: '☀️' },
     { sky: ['#3a3f8a', '#c9578a', '#ffb347'], sea: ['#f0a868', '#6a5a9a'], mul: '#ffb890', add: ['#5a2a6a', 0.14], cloud: '#ffb0a0', star: 0.15, ico: '🌇' },
-    { sky: ['#060a22', '#101c48', '#27407a'], sea: ['#1d3266', '#0e1838'], mul: '#5a6cb4', add: ['#0a1040', 0.42], cloud: '#5a6898', star: 1, ico: '🌙' }
+    { sky: ['#060a22', '#101c48', '#27407a'], sea: ['#1d3266', '#0e1838'], mul: '#8494dc', add: ['#0c1648', 0.3], cloud: '#5a6898', star: 1, ico: '🌙' }
   ].map(t => ({ ...t, sky: t.sky.map(hex), sea: t.sea.map(hex) }));
   const SPOTS = [
     { id: 'tower', x: 346, y: -30, cu: 'cu_tower' }, { id: 'harbor', x: 452, y: 16, cu: 'cu_harbor' }, { id: 'light', x: 529, y: -3, cu: 'cu_light' }, { id: 'sealight', x: 160, y: -9, cu: 'cu_sealight' },
@@ -725,7 +726,7 @@
   }
   function updateView(dt) {
     const V = S.V; V.t += dt; V.idle += dt; if (V.mix < 1) V.mix = Math.min(1, V.mix + dt / 1.6);
-    if (!S.ptr && !V.binoc) { if (V.auto > 0) { V.auto -= dt; V.az += Math.sin(Math.min(1, V.auto / 2) * Math.PI) * 26 * dt * -1; } V.az += V.vel * dt; V.vel *= Math.pow(0.08, dt); if (Math.abs(V.vel) < 1) V.vel = 0; }
+    if (!S.ptr && !V.binoc) { if (V.auto > 0) { V.auto -= dt; V.az += Math.sin(Math.min(1, V.auto / 2) * Math.PI) * 26 * dt * -1; } V.az += V.vel * dt; V.vel *= Math.pow(0.03, dt); if (Math.abs(V.vel) < 1) V.vel = 0; }
     V.az = ((V.az % PANO.PW) + PANO.PW) % PANO.PW;
     if (V.binoc) { V.binoc.t += dt; if (V.binoc.out != null && V.binoc.t - V.binoc.out > 0.22) V.binoc = null; }
     for (const c of V.clouds) c.x = (c.x + c.v * dt) % 1224;

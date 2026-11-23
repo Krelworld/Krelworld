@@ -63,7 +63,7 @@
 
   // ---------------------------------------------------------------- deer
   const KIND = { doe: { s: 1, hw: 21, h: 64 }, buck: { s: 1, hw: 24, h: 74 }, fawna: { s: 0.72, hw: 13, h: 34, fawn: true }, fawnb: { s: 0.68, hw: 12, h: 32, fawn: true } };
-  const GAIT = { walk: ['walk', 9, 30], creep: ['walk', 5, 12], trot: ['walk', 15, 52], lope: ['run', 12, 104], run: ['run', 13, 128], bolt: ['run', 16, 190], pronk: ['pronk', 12, 92], sprint: ['run', 17, 178] };
+  const GAIT = { walk: ['walk', 9, 30], creep: ['walk', 5, 12], trot: ['walk', 15, 52], lope: ['run', 12, 104], run: ['run', 13, 128], bolt: ['run', 15, 165], pronk: ['pronk', 12, 92], sprint: ['run', 17, 178] };
   let hideBase = false;                                        // true while the game's own tap test runs (ours handles the animals)
   function mkDeer(kind) {
     const d = { wild: 'deer', kind, id: 'wild_' + kind, room: ROOM, x: 0, y: 150, dir: 1, an: 'stand', at: 0, fps: 8, mode: 'loop', rev: false, q: [], cur: null, behind: false, sink: 0, sinkTo: 0, z: 0, rot: 0, alpha: 1, hidden: false, glow: 0, lastF: 0, update: NOP, ...KIND[kind] };
@@ -92,7 +92,7 @@
       const dx = c.go[0] - d.x, dy = c.go[1] - d.y, dist = Math.hypot(dx, dy), s = c.v * dt;
       if (Math.abs(dx) > 0.6) d.dir = sgn(dx);
       if (c.arc) { const tot = Math.hypot(c.go[0] - c.x0, c.go[1] - c.y0) || 1; d.z = Math.sin(clamp(1 - dist / tot, 0, 1) * Math.PI) * c.arc; }
-      if (dist <= s) { d.x = c.go[0]; d.y = c.go[1]; d.z = 0; d.cur = null; }
+      if (dist <= s) { d.x = c.go[0]; d.y = c.go[1]; d.z = 0; d.cur = null; if (!d.fawn && !d.behind && narrow() && !(d.q[0] && (d.q[0].go || d.q[0].fn)) && Math.abs(d.x - marina.x) < 90) face(d, marina.x); }
       else { d.x += dx / dist * s; d.y += dy / dist * s; }
       if (d.an !== 'walk') { const f = Math.floor(d.at * d.fps / count(d.kind, d.an)); if (f !== d.lastF) { d.lastF = f; snd.hoof(d); } }   // one soft thud per bound
     } else if ((c.t -= dt) <= 0) d.cur = null;
@@ -112,19 +112,20 @@
   const mover = () => marina.mount || marina;
   function slots(cx) {                                         // where each one stands when the family settles around cx
     // upright phone: the picture is narrow, so they stand close together in depth, fawns nearest to Marina; sideways: spread out
-    const n = narrow(), f = n ? sgn(cx - marina.x || 1) : V.flipS ? -1 : 1, o = n ? { fawna: [-20, 161], doe: [-2, 151], fawnb: [9, 165], buck: [13, 148] } : { doe: [-20, 151], buck: [30, 149], fawna: [-42, 160], fawnb: [6, 163] }, out = {};
+    const n = narrow(), f = n ? sgn(cx - marina.x || 1) : V.flipS ? -1 : 1, o = n ? { fawna: [-20, 161], doe: [-2, 151], fawnb: [9, 166], buck: [8, 148] } : { doe: [-20, 151], buck: [30, 149], fawna: [-42, 160], fawnb: [6, 163] }, out = {};
     for (const k in o) { let x = clamp(cx + o[k][0] * f, LX, RX); if (Math.abs(x - marina.x) < 15) x += 17 * sgn(x - marina.x || f); out[k] = [x, o[k][1]]; }
     return out;
   }
-  function beside(sideOf) {                                    // a spot for the family next to Marina, on the given side, inside the lawn
-    const n = narrow(), off = n ? 46 : 72; let s = n ? 1 : sideOf || (chance(0.5) ? 1 : -1), cx = marina.x + s * off;   // (upright: the right-hand side has the most room)
-    if (cx < LX + 30 || cx > RX - 30) { s = -s; cx = marina.x + s * off; } return clamp(cx, LX + 26, RX - 26);
+  function beside() {                                          // a spot for the family next to Marina, inside the lawn
+    // her left is the clear side of the picture (the buttons live on the right), so that is where they settle when there is room
+    const off = narrow() ? 46 : 74; let s = -1, cx = marina.x + s * off;
+    if (cx < LX + 34 || cx > RX - 30) { s = -s; cx = marina.x + s * off; } return clamp(cx, LX + 26, RX - 26);
   }
   // the bushes they come out of: near enough to see, but not right behind Marina
   const pickGate = () => { const list = freeGates(), half = E.viewW / 2 - 30; return (list.length ? list : GATES).reduce((a, g) => { const d = Math.abs(g.x - marina.x), sc = d < 34 ? 60 + (34 - d) : Math.abs(d - Math.min(60, half)); return !a || sc < a[1] ? [g, sc] : a; }, null)[0]; };
   function startVisit(kind) {
     if (V || !ART.ok || typeof marina === 'undefined' || G.room !== ROOM || !hid('title') || !hid('panel')) return false;
-    const gate = pickGate(), cx = beside(Math.abs(gate.x - marina.x) > 12 ? sgn(gate.x - marina.x) : 0);
+    const gate = pickGate(), cx = beside();
     V = { t: 0, len: rnd(26, 35), gate, cx, deer: ['doe', 'buck', 'fawna', 'fawnb'].map(mkDeer), timers: [], done: [], first: kind || null, phase: 'enter', wait: 0, lock: false, wary: 0, flipS: chance(0.5), wish: null, fed: [], over: false, friendT: rnd(9, 15), said: false, fx: {} };
     for (const d of V.deer) { d.hidden = true; ENTS.push(d); }
     for (const c of small.slice()) if (c.type === 'bird') c.flee(); else if (c.type === 'rabbit') c.hide && c.hide();
@@ -157,7 +158,8 @@
   const tumble = () => { let k = 0; return (d, dt) => { k += dt / 0.55; d.rot = Math.sin(k * Math.PI) * 0.9 * d.dir; d.z = Math.sin(k * Math.PI) * 5; d.x += d.dir * 26 * dt; if (k >= 1) { d.rot = 0; d.z = 0; return false; } }; };   // a little head-over-heels
   function notice() {                                          // Marina spots them
     if (!V || V.said || G.busy || !V.deer.some(d => !d.hidden && onScreen(d.x))) return; V.said = true;
-    marina.dir = sgn(V.deer[0].x - marina.x); try { if (chance(0.7)) say(pick(['m_look', 'm_wow'])); else UI.bubble(marina, '🦌', 1800); } catch (e) { }
+    if (!mover().moving) marina.dir = sgn(V.deer[0].x - marina.x);
+    try { if (typeof jeff === 'undefined' && chance(0.7)) say(pick(['m_look', 'm_wow'])); else UI.bubble(marina, '🦌', 1800); } catch (e) { }   // (with Grandpa Jeff about, the family code has her call out "deer!")
   }
   // --- going home again
   function leave(scared) {
@@ -170,7 +172,7 @@
     herd.forEach((d, i) => {
       const s = sgn(d.x - g.x || 1), gait = scared ? 'bolt' : d.fawn ? 'pronk' : 'lope', last = !scared && d.fawn && i >= herd.length - 1;
       if (d.behind) { clear(d); d.sinkTo = d.h; Q(d, act('stand', 0.2 + d.h / 70), fn(x => { x.hidden = true; })); return; }
-      clear(d); if (scared) { emit('sparkle', d.x - d.dir * d.hw * 0.8, d.y - d.h * 0.62, 4, { col: '#ffffff', life: 0.5 }); Q(d, act('alert', 0.16 + i * 0.05, { fps: 14, mode: 'hold', face: mx })); }
+      clear(d); if (scared) { emit('sparkle', d.x - d.dir * d.hw * 0.8, d.y - d.h * 0.62, 4, { col: '#ffffff', life: 0.5 }); Q(d, act('alert', 0.3 + i * 0.08, { fps: 14, mode: 'hold', face: mx })); }
       else Q(d, act('alert', 0.5 + i * 0.45, { fps: 8, mode: 'hold' }));
       Q(d, go(g.x + s * (g.hw + 22), g.y - 1, gait));
       if (last) Q(d, act('alert', 0.9, { fps: 9, mode: 'hold', face: () => marina.x }), fn(x => { snd.bleat(x); if (onScreen(x.x)) emit('heart', x.x, x.y - x.h - 4, 1, { size: 8 }); }), act('wag', 0.9, { fps: 10 }));
@@ -189,7 +191,7 @@
     },
     // bounding off across the yard in a line and back again; one fawn dawdles and has to sprint to catch up
     cross() {
-      const away = sgn(V.cx - marina.x || 1), far = clamp(V.cx + away * rnd(170, 240), LX + 20, RX - 20), back = beside(-away), sl0 = slots(far), [doe, buck, fa, fb] = V.deer;
+      const away = sgn(V.cx - marina.x || 1), far = clamp(V.cx + away * rnd(170, 240), LX + 20, RX - 20), back = beside(), sl0 = slots(far), [doe, buck, fa, fb] = V.deer;
       V.flipS = !V.flipS; const sl1 = slots(back); V.cx = back;
       const line = [[doe, 'lope'], [fa, 'pronk'], [buck, 'lope']];
       line.forEach(([d, g], i) => Q(d, act('alert', 0.25 + i * 0.32, { fps: 12, mode: 'hold', face: far }), go(sl0[d.kind][0], 150 + i * 2, g), act(i ? 'stand' : 'look', 0.9 + (2 - i) * 0.3, { fps: 7, mode: 'hold' }), go(sl1[d.kind][0], sl1[d.kind][1], g), act('stand', 9)));
@@ -199,11 +201,12 @@
     },
     // the fawns play chase in a circle, then one jumps right over the other
     chase() {
-      const sl = slots(V.cx), [doe, buck, fa, fb] = V.deer, cx = clamp(V.cx + (V.flipS ? 8 : -8), LX + 30, RX - 30), R = narrow() ? 22 : 32, T = 4.2, t0 = V.t; let th = 0;
+      const sl = slots(V.cx), [doe, buck, fa, fb] = V.deer, f = V.flipS ? -1 : 1, R = narrow() ? 18 : 30, T = 4.2, t0 = V.t, cy = narrow() ? 167 : 163; let th = 0, cx = narrow() ? V.cx + 6 * sgn(marina.x - V.cx || 1) : V.cx - 62 * f;
+      if (!narrow() && Math.abs(cx - marina.x) < 48) cx = V.cx + 70 * f; cx = clamp(cx, LX + 34, RX - 34);
       Q(doe, go(sl.doe[0], 149, 'walk'), act('look', 2.2, { fps: 5, mode: 'hold' }), graze(6)); Q(buck, go(sl.buck[0], 148, 'walk'), graze(3), act('alert', 6, { fps: 6, mode: 'hold' }));
-      const ring = lag => (d, dt) => { if (d === fa) th += dt * (V.t - t0 < T / 2 ? 3.3 : -3.3); const a = th - lag * (V.t - t0 < T / 2 ? 1 : -1), px = d.x, k = Math.min(1, dt * 9); d.x = lerp(d.x, cx + Math.cos(a) * R, k); d.y = lerp(d.y, 162 + Math.sin(a) * 6, k); if (Math.abs(d.x - px) > 0.05) d.dir = sgn(d.x - px); if (d.an !== 'run') play(d, 'run', { fps: 15 }); const f = Math.floor(d.at * 2.2); if (f !== d.lastF) { d.lastF = f; snd.hoof(d); } return V.t - t0 < T; };
-      for (const [d, lag] of [[fa, 0], [fb, 2.5]]) { clear(d); Q(d, go(cx + Math.cos(-lag) * R, 162 + Math.sin(-lag) * 6, 'run'), fn(x => { x.motion = ring(lag); })); }
-      after(T + 0.9, () => { clear(fa); clear(fb); Q(fb, go(cx, 163, 'walk'), act('alert', 3, { fps: 6, mode: 'hold', face: cx - 60 })); Q(fa, go(cx - 46, 163, 'run'), act('wag', 0.5, { fps: 12 }), go(cx + 44, 163, 'run', { arc: 30, v: 120 }), fn(d => { emit('star', cx, 140, 2); snd.bleat(d); }), act('pronk', 0.67, { fps: 12 }), act('stand', 4)); });
+      const ring = lag => (d, dt) => { if (d === fa) th += dt * (V.t - t0 < T / 2 ? 3.3 : -3.3); const a = th - lag * (V.t - t0 < T / 2 ? 1 : -1), px = d.x, k = Math.min(1, dt * 9); d.x = lerp(d.x, cx + Math.cos(a) * R, k); d.y = lerp(d.y, cy + Math.sin(a) * 6, k); if (Math.abs(d.x - px) > 0.05) d.dir = sgn(d.x - px); if (d.an !== 'run') play(d, 'run', { fps: 15 }); const f = Math.floor(d.at * 2.2); if (f !== d.lastF) { d.lastF = f; snd.hoof(d); } return V.t - t0 < T; };
+      for (const [d, lag] of [[fa, 0], [fb, 2.5]]) { clear(d); Q(d, go(cx + Math.cos(-lag) * R, cy + Math.sin(-lag) * 6, 'run'), fn(x => { x.motion = ring(lag); })); }
+      after(T + 0.9, () => { clear(fa); clear(fb); const j = narrow() ? 30 : 44; Q(fb, go(cx, cy, 'walk'), act('alert', 3, { fps: 6, mode: 'hold', face: cx - 60 })); Q(fa, go(cx - j, cy, 'run'), act('wag', 0.5, { fps: 12 }), go(cx + j, cy, 'run', { arc: 30, v: 120 }), fn(d => { emit('star', cx, cy - 24, 2); snd.bleat(d); }), act('pronk', 0.67, { fps: 12 }), act('stand', 4)); });
       return T + 4.6;
     },
     // a fawn creeps up to sniff something: a thing Grandpa Jeff built, his workbench, a flower... or Marina herself
@@ -250,7 +253,7 @@
   };
   function befriend(f) {                                       // a fawn tiptoes right up to Marina, sniffs her and stays a moment
     const s = sgn(f.x - marina.x || 1), x = marina.x + s * 21, y = marina.y + 1; V.friendT = 1e9;
-    clear(f); Q(f, act('alert', 0.8, { fps: 8, mode: 'hold', face: marina.x }), go(lerp(f.x, x, 0.55), lerp(f.y, y, 0.55), 'creep', { v: 17 }), act('alert', 0.6, { fps: 9, mode: 'hold' }), go(x, y, 'creep', { v: 14 }), fn(d => { face(d, marina.x); snd.sniff(); V.friend = d; if (!G.busy && !mover().moving) marina.dir = s; }),
+    clear(f); Q(f, act('alert', 0.8, { fps: 8, mode: 'hold', face: marina.x }), go(lerp(f.x, x, 0.55), lerp(f.y, y, 0.55), 'creep', { v: 17 }), act('alert', 0.6, { fps: 9, mode: 'hold' }), go(x, y, 'creep', { v: 14 }), fn(d => { face(d, marina.x); snd.sniff(); V.friend = d; d.tame = E.t + 16; if (!G.busy && !mover().moving) marina.dir = s; }),
       act('sniff', 1.5, { fps: 7 }), fn(d => { emit('heart', d.x, d.y - d.h - 3, 1, { size: 8 }); snd.bleat(d); }), act('wag', 4.5, { fps: 8 }), fn(() => { V.friend = null; }));
   }
   function nextBeat() {
@@ -265,12 +268,13 @@
     const m = mover(), herd = V.deer.filter(d => !d.hidden && !d.behind);
     for (const g of GATES) g.shake = Math.max(0, g.shake - dt * 1.6);
     // Marina charging straight at them: heads up first, then white tails and away
-    if (!m.moving) V.invited = false;
+    if (!m.moving) { V.invited = false; V.runT = 0; }
     if (V.phase !== 'exit' && herd.length && !V.lock && !V.invited && m.moving && (m.curSpeed || 78) >= 55 && Math.abs(m.tx - marina.x) > 6) {
-      const way = sgn(m.tx - marina.x), reach = Math.abs(m.tx - marina.x), ahead = herd.filter(d => sgn(d.x - marina.x) === way && reach > Math.abs(d.x - marina.x) - 36);
+      const way = sgn(m.tx - marina.x), reach = Math.abs(m.tx - marina.x), ahead = herd.filter(d => !(d.tame > E.t) && sgn(d.x - marina.x) === way && reach > Math.abs(d.x - marina.x) - 36);
       const dist = ahead.reduce((a, d) => Math.min(a, Math.abs(d.x - marina.x)), 1e9);
-      if (dist < 44) { for (const d of herd) snd.hoof(d); return leave(true); }
-      if (dist < 104) { if (V.wary <= 0) for (const d of herd) { if (d.motion) continue; d.q.unshift(act('alert', 1.1, { fps: 16, mode: 'hold', face: marina.x })); d.cur = null; } V.wary = 1.1; }
+      if (dist < 104) V.runT = (V.runT || 0) + dt;
+      if (dist < 44 && V.runT > 0.3) { for (const d of herd) snd.hoof(d); return leave(true); }
+      if (dist < 104) { if (V.wary <= 0) for (const d of herd) { if (d.motion || d.tame > E.t) continue; d.q.unshift(act('alert', 1.1, { fps: 16, mode: 'hold', face: marina.x })); d.cur = null; } V.wary = 1.1; }
     }
     V.wary = Math.max(0, V.wary - dt); V.wait = Math.max(0, V.wait - dt);
     stillT = m.moving || marina.state !== 'idle' ? 0 : stillT + dt;
@@ -303,7 +307,8 @@
     const m = mover(); m.stop && m.stop(); marina.dir = s; hand.on = true; reachOut(); try { chip('pop'); } catch (e) { }
     const done = () => { if (!V) return; V.lock = false; hand.on = false; armDown(); busy(false); V.wait = Math.max(V.wait, 7); };
     const safety = setTimeout(() => { if (V && V.lock && hand.on) { clear(d); done(); } }, 9000);
-    clear(d); if (V.friend === d) V.friend = null;
+    clear(d); if (V.friend === d) V.friend = null; if (V.wish && V.wish.d === d) V.wish = null; d.tame = E.t + 20;
+    for (const o of V.deer) if (o !== d && !o.hidden && !o.behind && Math.abs(o.x - x) < 15 && Math.abs(o.y - y) < 8) { clear(o); o.tame = E.t + 20; Q(o, go(clamp(x + s * 24, 130, 1030), y + 2, 'walk'), fn(q => face(q, marina.x)), act('wag', 2, { fps: 8 })); }   // make room
     Q(d, act('alert', 0.5, { fps: 9, mode: 'hold', face: marina.x }), go(x, y, far > 110 ? 'trot' : 'walk'), fn(q => { face(q, marina.x); snd.sniff(); }), act(d.fawn ? 'sniff' : d.kind === 'doe' ? 'lick' : 'down', d.fawn ? 1 : 0.8, { fps: d.fawn ? 8 : 4, mode: d.fawn ? 'loop' : 'hold' }),
       fn(q => { clearTimeout(safety); hand.on = false; snd.crunch(); emit('heart', q.x, q.y - q.h - 2, 5); armDown(); marina.state = 'cheer'; setTimeout(() => marina.state === 'cheer' && (marina.state = 'idle'), 1300); got(); V.fed.push(q.kind);
         try { say(pick(['m_yay', 'm_giggle', 'm_wow'])); } catch (e) { } }),
@@ -311,11 +316,11 @@
   }
   function wantToo(first, s) {                                 // "me too!": another fawn trots up wanting an apple as well
     const o = fawns().find(f => f !== first && !V.fed.includes(f.kind) && !f.hidden && !f.behind); if (!o || V.phase !== 'beats') return;
-    clear(o); Q(o, act('alert', 0.4, { fps: 12, mode: 'hold', face: marina.x }), go(clamp(marina.x + s * (first.fawn ? 50 : 25), 130, 1030), marina.y + 3, 'pronk'), fn(q => { face(q, marina.x); snd.bleat(q); V.wish = { d: q, until: E.t + 11 }; }), act('wag', 2, { fps: 9 }), act('alert', 6, { fps: 5, mode: 'hold' }));
+    clear(o); Q(o, act('alert', 0.4, { fps: 12, mode: 'hold', face: marina.x }), go(clamp(marina.x + s * (first.fawn ? 50 : 25), 130, 1030), marina.y + 3, 'pronk'), fn(q => { face(q, marina.x); snd.bleat(q); q.tame = E.t + 20; V.wish = { d: q, until: E.t + 11 }; }), act('wag', 2, { fps: 9 }), act('alert', 6, { fps: 5, mode: 'hold' }));
   }
   function pet(f) {
     if (!V || V.lock || V.phase === 'exit' || f.hidden) return; V.lock = true; busy(true); UI.closeActions();
-    const s = sgn(f.x - marina.x || 1), m = mover(); m.stop && m.stop(); marina.dir = s; clear(f); if (V.friend === f) V.friend = null;
+    const s = sgn(f.x - marina.x || 1), m = mover(); m.stop && m.stop(); marina.dir = s; clear(f); if (V.friend === f) V.friend = null; f.tame = E.t + 20;
     const done = () => { if (!V) return; V.lock = false; busy(false); V.wait = Math.max(V.wait, 4); };
     const safety = setTimeout(done, 8000);
     Q(f, go(marina.x + s * 20, marina.y + 1, 'walk'), fn(q => {
@@ -537,6 +542,6 @@
     },
     small(kind) { return SMALL[kind] ? SMALL[kind]() !== false : false; },   // bird, squirrel, rabbit, chip (testing)
     gates: GATES, beats: Object.keys(BEATS),
-    get state() { return V ? { t: +V.t.toFixed(2), phase: V.phase, beat: V.beat || null, cx: Math.round(V.cx), lock: V.lock, wary: V.wary > 0, wish: V.wish ? V.wish.d.kind : null, deer: V.deer.map(d => ({ kind: d.kind, x: Math.round(d.x), y: Math.round(d.y), an: d.an, dir: d.dir, hidden: d.hidden, behind: d.behind })) } : { next: Math.round(next), small: small.map(c => c.type), air: air.length, leaves: leaves.length }; },
+    get state() { return V ? { t: +V.t.toFixed(2), phase: V.phase, beat: V.beat || null, cx: Math.round(V.cx), lock: V.lock, wary: V.wary > 0, wish: V.wish ? V.wish.d.kind : null, deer: V.deer.map(d => ({ kind: d.kind, x: Math.round(d.x), y: Math.round(d.y), an: d.an, dir: d.dir, hidden: d.hidden, behind: d.behind })) } : { next: Math.round(next), small: small.map(c => ({ type: c.type, x: Math.round(c.x), y: Math.round(c.y - c.z), st: c.st })), air: air.map(b => [Math.round(b.x), Math.round(b.y), b.sit > 0 ? 1 : 0]), leaves: leaves.map(l => [Math.round(l.x), Math.round(l.y), l.y < l.gy ? 1 : 0]) }; },
   };
 })();

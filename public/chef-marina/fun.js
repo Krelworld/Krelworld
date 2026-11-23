@@ -18,7 +18,7 @@
   const STK = [['cook', '🍳'], ['gross', '🤢'], ['serve', '🍽️'], ['meal', '🍝'], ['draw', '🖍️'], ['hang', '🖼️'], ['gift', '🎁'], ['fort', '⛺'], ['dress', '👗'], ['story', '📖'], ['bars', '🐒'], ['swing', '🛝'],
     ['leaves', '🍂'], ['yard', '🍁'], ['snowman', '⛄'], ['bottle', '🍼'], ['nappy', '🧷'], ['niko', '🐈'], ['feedniko', '🥫'], ['poop', '💩'], ['tidy', '🧹'], ['joke', '😜'], ['wake', '⏰'], ['horse', '🤼'],
     ['gym', '🤸'], ['song', '🎹'], ['tv', '📺'], ['ride', '🐴'], ['bath', '🛁'], ['tea', '🫖'], ['secret', '💎'], ['secretall', '👑'], ['helper', '⭐'], ['superhelper', '🏆'], ['lego', '🧱'], ['wash', '🫧'], ['hoop', '🏀'], ['upstairs', '🪜'], ['lift', '💺'], ['spa', '🦆'], ['stuffies', '🧸'], ['sleep', '😴'], ['slide', '🧗'], ['trampoline', '🤸'], ['cape', '🦸'],
-    ['swim', '🏊'], ['treetop', '🌲'], ['build', '🔨'], ['treehouse', '🏡'], ['deer', '🦌'], ['movie', '🎬'], ['septic', '📞']];
+    ['swim', '🏊'], ['treetop', '🌲'], ['build', '🔨'], ['treehouse', '🏡'], ['deer', '🦌'], ['movie', '🎬'], ['septic', '📞'], ['phone', '📱'], ['minka', '🐈‍⬛'], ['legoshelf', '🗄️']];
   let owned = store.get('stickers', []);
   function award(id) {
     const s = STK.find(x => x[0] === id); if (!s || owned.includes(id)) return;

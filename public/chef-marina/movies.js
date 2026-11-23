@@ -45,40 +45,40 @@
         fly: { ch: [0, 4, 3, 4], lead: ['0.2.4.7.4.2.4.7.', '4.6.8.b.8.6.8.b.', '3.5.7.a.7.5.7.a.', '4.6.8.b.8.b.8.6.'], bass: 'r.r.r.r.r.r.r.r.', dr: 'k.h.k.h.k.h.k.hh' },
         party: { base: 'a', dr: 'k.h.s.h.k.k.s.hh' } } },
       shots: [
-        { pic: 'kitchen', cam: [128, 72, 1, 112, 84, 1.3], vo: ['mv_sneeze_1'], mus: 'a', fx: [['dust', 9]],
-          a: [{ s: 'cake', x: 44, y: 120 }, { s: 'pepper', x: 57, y: 45 }, { s: 'pickle', x: 112, y: 141, m: [['bob', 0, 0, 1, 2.2], ['sway', 0, 0, 3, 1.1]] }],
+        { pic: 'kitchen', cam: [124, 80, 1.2, 112, 92, 1.6], vo: ['mv_sneeze_1'], mus: 'a', fx: [['dust', 9]],
+          a: [{ s: 'cake', x: 44, y: 120 }, { s: 'pepper', x: 58, y: 50 }, { s: 'pickle', x: 112, y: 137, m: [['bob', 0, 0, 1, 2.2], ['sway', 0, 0, 3, 1.1]] }],
           ev: [[3.7, 'burst', 'star', 44, 92, 5], [3.7, 'sfx', 'sparkle']] },
-        { pic: 'kitchen', cam: [66, 70, 1.9, 98, 92, 1.9, 'smooth'], vo: ['mv_sneeze_2'],
+        { pic: 'kitchen', cam: [92, 74, 1.35, 104, 90, 1.75, 'smooth'], vo: ['mv_sneeze_2'],
           a: [{ s: 'cake', x: 44, y: 120 },
-            { s: 'pepper', piv: 'c', x: [[1.5, 57], [2.1, 78, 'in']], y: [[1.5, 45], [2.1, 100, 'in']], rot: [[0, 0], [0.3, -9], [0.6, 9], [0.9, -12], [1.2, 12], [1.5, 0], [2.1, 115]], m: [['shiver', 0.2, 1.5, 0.6]] },
-            { f: [[0, 'pickle'], [3.7, 'pickle_sn_0'], [4.6, 'pickle_sn_1'], [5.4, 'pickle_sn_2']], x: 112, y: 141, m: [['bob', 0, 3.6, 1, 2.2], ['shiver', 3.7, 0, 0.7]] }],
-          fx: [['puffs', 78, 96, 110, 100, 2.1, 0]],
-          ev: [[0.15, 'sfx', 'uhoh'], [2.1, 'sfx', 'clink'], [2.1, 'burst', 'pepper', 78, 98, 16], [3.5, 'mus', 'tick'], [3.9, 'sfx', 'tick'], [4.5, 'sfx', 'tick'], [5.0, 'sfx', 'tick'], [5.5, 'sfx', 'tick']] },
+            { s: 'pepper', piv: 'c', x: [[1.5, 58], [2.1, 86, 'in']], y: [[1.5, 50], [2.1, 100, 'in']], rot: [[0, 0], [0.3, -9], [0.6, 9], [0.9, -12], [1.2, 12], [1.5, 0], [2.1, 115]], m: [['shiver', 0.2, 1.5, 0.6]] },
+            { f: [[0, 'pickle'], [3.7, 'pickle_sn_0'], [4.6, 'pickle_sn_1'], [5.4, 'pickle_sn_2']], x: 112, y: 137, m: [['bob', 0, 3.6, 1, 2.2], ['shiver', 3.7, 0, 0.7]] }],
+          fx: [['puffs', 86, 94, 112, 102, 2.1]],
+          ev: [[0.15, 'sfx', 'uhoh'], [2.1, 'sfx', 'clink'], [2.1, 'burst', 'pepper', 86, 96, 16], [3.5, 'mus', 'tick'], [3.9, 'sfx', 'tick'], [4.5, 'sfx', 'tick'], [5.0, 'sfx', 'tick'], [5.5, 'sfx', 'tick']] },
         { pic: 'kitchen', cam: [110, 104, 2.5, 110, 102, 2.9], pre: 0.35, vo: ['mv_sneeze_3'], pad: 1.2,
-          a: [{ f: [[0, 'pickle_sn_0'], [0.45, 'pickle_sn_2'], [0.95, 'pickle_sn_3'], [1.4, 'pickle_sn_4'], [1.68, 'pickle_sn_5'], [2.5, 'pickle_sn_6']], x: [[1.4, 112], [1.68, 110], [1.8, 118, 'out']], y: 141,
+          a: [{ f: [[0, 'pickle_sn_0'], [0.45, 'pickle_sn_2'], [0.95, 'pickle_sn_3'], [1.4, 'pickle_sn_4'], [1.68, 'pickle_sn_5'], [2.5, 'pickle_sn_6']], x: [[1.4, 112], [1.68, 110], [1.8, 118, 'out']], y: 137,
             rot: [[0.4, 0], [0.55, -7], [0.95, -4], [1.1, -12], [1.4, -9], [1.66, -19], [1.8, 16, 'in'], [2.4, 0]], m: [['shiver', 0, 1.6, 0.5]] }],
           ev: [[0.45, 'sfx', 'gasp'], [0.95, 'sfx', 'gasp'], [1.4, 'sfx', 'gasp'], [1.7, 'sfx', 'boom'], [1.7, 'shake', 7, 0.9], [1.7, 'burst', 'flour', 100, 108, 40], [1.74, 'flash', '#ffffff', 0.4, 9], [1.8, 'say', 'funny']] },
-        { pic: 'flour', tr: 'white', cam: [128, 74, 1, 122, 84, 1.25], vo: ['mv_sneeze_4'], mus: 'a', fx: [['fall', 46, '#ffffff']],
-          a: [{ s: 'cake', x: 44, y: 120 }, { f: [[0, 'pickle_sn_6'], [1.2, 'pickle'], [3.2, 'pickle_sn_7'], [4.4, 'pickle']], x: 116, y: 141, tint: 'flour', m: [['shiver', 3.2, 4.3, 0.8]] }],
+        { pic: 'flour', tr: 'white', cam: [128, 84, 1.3, 120, 98, 1.7], vo: ['mv_sneeze_4'], mus: 'a', fx: [['fall', 46, '#ffffff']],
+          a: [{ s: 'cake', x: 44, y: 120 }, { f: [[0, 'pickle_sn_6'], [1.2, 'pickle'], [3.2, 'pickle_sn_7'], [4.4, 'pickle']], x: 116, y: 137, tint: 'flour', m: [['shiver', 3.2, 4.3, 0.8]] }],
           ev: [[0.3, 'sfx', 'poof'], [3.3, 'burst', 'flour', 116, 100, 14], [3.3, 'say', 'funny']] },
         { pic: 'flour', cam: [96, 86, 1.5, 120, 56, 1.3, 'smooth'], len: 4.2, fx: [['fall', 30, '#ffffff']],
-          a: [{ f: [[0, 'pickle_sn_0'], [0.5, 'pickle_sn_2'], [1.0, 'pickle_sn_3'], [1.25, 'pickle_sn_4'], [1.5, 'pickle_sn_5'], [2.2, 'pickle_sn_0']], x: 116, y: 141, flip: 1, tint: 'flour',
+          a: [{ f: [[0, 'pickle_sn_0'], [0.5, 'pickle_sn_2'], [1.0, 'pickle_sn_3'], [1.25, 'pickle_sn_4'], [1.5, 'pickle_sn_5'], [2.2, 'pickle_sn_0']], x: 116, y: 137, flip: 1, tint: 'flour',
             rot: [[0.3, 0], [1.4, 14], [1.55, -14, 'in'], [2.2, 0]], arc: [[2.4, 2.8, 8], [2.9, 3.3, 8]] },
             { s: 'cake', piv: 'c', x: [[1.55, 44], [2.5, 156, 'lin']], y: [[1.55, 120], [2.5, 46, 'out']], sc: [[1.55, 1], [2.5, 0.45]], rot: [[1.55, 0], [2.5, 400, 'lin']], al: [[2.45, 1], [2.55, 0]] }],
           ev: [[0.2, 'vo', 'mv_sneeze_3'], [1.5, 'sfx', 'boom'], [1.5, 'shake', 5, 0.6], [1.5, 'burst', 'flour', 70, 112, 26], [1.55, 'sfx', 'whoosh'], [1.6, 'say', 'funny'], [2.55, 'vo', 'mv_sneeze_5'], [2.55, 'mus', 'fly']] },
         { pic: 'roofs', cont: 1, cam: [128, 68, 1, 272, 68, 1], len: 3.6, fx: [['speed', 9]],
           a: [{ f: 'pickle_run*9', tint: 'flour', sc: 0.62, x: [[0, -10], [3.6, 250, 'lin']], y: [[0, 96], [0.9, 112], [1.8, 104], [2.7, 116], [3.6, 108]], arc: [[0.2, 0.8, 16], [1.1, 1.7, 14], [2.0, 2.6, 18], [2.9, 3.5, 14]] },
-            { s: 'cake', piv: 'c', air: 1, sc: 0.8, x: [[0, 30], [3.6, 372, 'lin']], y: [[0, 52], [1.2, 30], [2.4, 46], [3.6, 26]], rot: [[0, 0], [3.6, 720, 'lin']] }],
+            { s: 'cake', piv: 'c', air: 1, sc: 0.8, x: [[0, 30], [3.6, 372, 'lin']], y: [[0, 72], [1.2, 52], [2.4, 66], [3.6, 48]], rot: [[0, 0], [3.6, 720, 'lin']] }],
           ev: [[0.1, 'sfx', 'whoosh'], [1.3, 'sfx', 'meow'], [2.2, 'sfx', 'whoosh']] },
         { pic: 'door', cam: [128, 78, 1.15, 134, 88, 1.35], vo: ['mv_sneeze_6'], mus: 'a',
           a: [{ f: [[0, 'dot_sad'], [0.75, 'dot']], sc: 0.72, x: 100, y: 119, arc: [[0.45, 0.75, 9], [1.5, 1.8, 7], [1.9, 2.2, 7], [2.3, 2.6, 7]] },
             { s: 'cake', x: 152, y: [[0, -20], [0.38, 124, 'in']], m: [['squash', 0.38, 0.9, 0.22, 3]] }],
           ev: [[0.38, 'sfx', 'plop'], [0.38, 'shake', 3, 0.3], [0.38, 'burst', 'dust', 152, 124, 10], [0.5, 'say', 'funny'], [3.3, 'burst', 'star', 152, 84, 5], [3.3, 'sfx', 'sparkle']] },
-        { pic: 'door', cam: [140, 88, 1.35, 148, 88, 1.5], vo: ['mv_sneeze_7'], pad: 1.3,
+        { pic: 'door', cam: [146, 88, 1.3, 150, 88, 1.42], vo: ['mv_sneeze_7'], pad: 1.3,
           a: [{ s: 'dot', sc: 0.72, x: 100, y: 119, arc: [[0.3, 0.6, 8], [0.75, 1.05, 8], [2.0, 2.3, 6]] }, { s: 'cake', x: 152, y: 124 },
-            { f: [[0, 'pickle_run*9'], [1.5, 'pickle']], tint: 'flour', flip: 1, x: [[0, 290], [1.5, 214, 'out']], y: 136, m: [['bob', 1.5, 0, 1.5, 3]] }],
+            { f: [[0, 'pickle_run*9'], [1.5, 'pickle']], tint: 'flour', flip: 1, x: [[0, 290], [1.5, 206, 'out']], y: 136, m: [['bob', 1.5, 0, 1.5, 3]] }],
           ev: [[2.0, 'burst', 'heart', 126, 84, 7], [2.0, 'say', 'sweet'], [2.0, 'sfx', 'sparkle']] },
-        { pic: 'party', cam: [128, 76, 1, 150, 88, 1.4], vo: ['mv_sneeze_8'], len: 8.4, mus: 'party', fx: [['confetti', 0.2, 5]],
+        { pic: 'party', cam: [128, 76, 1, 158, 88, 1.3], vo: ['mv_sneeze_8'], len: 8.4, mus: 'party', fx: [['confetti', 0.2, 5]],
           a: [{ f: [[0, 'pickle'], [6.9, 'pickle_sn_0'], [7.6, 'pickle']], x: 96, y: 136, m: [['bob', 0, 6.8, 1.5, 2.2]], arc: [[7.0, 7.4, 10]] },
             { s: 'cake', x: 176, y: 99, sc: [[1.7, 0.85], [2.0, 0.6, 'step'], [2.7, 0.6], [3.0, 0.36, 'step'], [3.6, 0.36], [3.9, 0, 'step']] },
             { s: 'dot', sc: 0.72, x: [[6.9, 214], [7.2, 236, 'out']], y: 122, rot: [[6.9, 0], [7.2, 30, 'out'], [7.9, 0]], m: [['bob', 0, 5.0, 1.2, 3], ['shiver', 5.3, 6.8, 0.7]], arc: [[6.9, 7.5, 12]] }],
@@ -107,7 +107,7 @@
           a: [{ f: [[0, 'pim_walk*10'], [1.5, 'pim']], x: [[0, 6], [1.5, 84, 'lin']], y: 132, m: [['bob', 0, 1.5, 1, 3.3]] }],
           ev: [[1.4, 'sfx', 'wind']] },
         { pic: 'cave', cam: [128, 72, 1, 142, 72, 1.22], vo: ['mv_dragon_5'], len: 9.0, fx: [['vig', 0.45]],
-          a: [{ s: 'dragon', sil: '#1c0a14', al: [[1.3, 0], [1.9, 0.62]], sc: [[1.3, 2.6], [8, 3.1, 'lin']], x: 168, y: 150, air: 1, m: [['sway', 0, 0, 4, 0.7], ['squash', 0, 0, 0.06, 1.3]] },
+          a: [{ s: 'dragon', sil: '#1c0a14', al: [[1.3, 0], [1.9, 0.55]], sc: [[1.3, 1.9], [8, 2.25, 'lin']], x: 166, y: 128, air: 1, m: [['sway', 0, 0, 4, 0.7], ['squash', 0, 0, 0.06, 1.3]] },
             { f: [[0, 'pim_walk*10'], [1.0, 'pim'], [7.75, 'pim_brave_1'], [7.9, 'pim_brave_3'], [8.15, 'pim_brave_4'], [8.4, 'pim_brave_5']], sc: 0.85, x: [[0, 4], [1.0, 44, 'lin']], y: 134, arc: [[4.85, 5.15, 7], [5.85, 6.15, 7], [7.8, 8.2, 6]], m: [['shiver', 2.0, 6.6, 0.4]] }],
           ev: [[1.5, 'say', 'scary'], [1.5, 'sfx', 'spook'], [4.8, 'sfx', 'rumble'], [4.8, 'shake', 3, 0.5], [5.8, 'sfx', 'rumble'], [5.8, 'shake', 3, 0.5], [6.9, 'vo', 'mv_dragon_3'], [6.9, 'mus', 'a'], [7.95, 'sfx', 'tada']] },
         { pic: 'nest', cam: [124, 82, 1.3, 150, 92, 1.75, 'smooth'], vo: ['mv_dragon_6'], mus: 'soft',
@@ -121,8 +121,8 @@
         { pic: 'nest', cam: [150, 90, 1.95, 150, 88, 2.1], len: 2.05, ev: [[0.25, 'vo', 'mv_dragon_8'], [0.9, 'burst', 'heart', 150, 84, 9], [0.9, 'say', 'sweet'], [0.9, 'sfx', 'sparkle']],
           a: [{ s: 'pim', sc: 0.9, x: [[0, 108], [0.7, 142, 'out']], y: 128, arc: [[0.1, 0.5, 5]] }, { f: 'dragon_wing*8', x: 182, y: 122, m: [['bob', 0, 0, 1.4, 2.5]] }] },
         { pic: 'sky', cont: 1, tr: 'fade', cam: [128, 72, 1, 262, 72, 1], len: 8.4, mus: 'fly', fx: [['stars', 40, 12], ['trail', 0, 'spark', 14]],
-          a: [{ f: 'dragon_wing*9', flip: 1, air: 1, x: [[0, 20], [6.2, 300, 'lin'], [8.4, 318, 'out']], y: [[0, 84], [1.5, 60], [3.0, 74], [4.5, 54], [6.2, 66], [8.4, 76]], rot: [[0, -6], [1.5, 4], [3.0, -5], [4.5, 4], [6.2, 0]], m: [['bob', 0, 0, 2, 1.6]] },
-            { f: [[0, 'pim'], [6.7, 'pim_brave_3'], [7.0, 'pim_brave_4'], [7.4, 'pim_brave_5']], sc: 0.7, air: 1, x: [[0, 12], [6.2, 292, 'lin'], [8.4, 310, 'out']], y: [[0, 62], [1.5, 38], [3.0, 52], [4.5, 32], [6.2, 44], [8.4, 54]], m: [['bob', 0, 0, 2, 1.6]] }],
+          a: [{ f: 'dragon_wing*9', flip: 1, air: 1, x: [[0, 20], [6.2, 300, 'lin'], [8.4, 318, 'out']], y: [[0, 96], [1.5, 74], [3.0, 88], [4.5, 68], [6.2, 80], [8.4, 88]], rot: [[0, -6], [1.5, 4], [3.0, -5], [4.5, 4], [6.2, 0]], m: [['bob', 0, 0, 2, 1.6]] },
+            { f: [[0, 'pim'], [6.7, 'pim_brave_3'], [7.0, 'pim_brave_4'], [7.4, 'pim_brave_5']], sc: 0.7, air: 1, x: [[0, 12], [6.2, 292, 'lin'], [8.4, 310, 'out']], y: [[0, 74], [1.5, 52], [3.0, 66], [4.5, 46], [6.2, 58], [8.4, 66]], m: [['bob', 0, 0, 2, 1.6]] }],
           ev: [[0.1, 'sfx', 'whoosh'], [5.9, 'vo', 'mv_dragon_3'], [6.95, 'sfx', 'tada'], [7.0, 'burst', 'star', 150, 40, 12]] }
       ] },
     // ---------------------------------------------------------------- bedtime: the fairy who woke the moon
@@ -137,7 +137,7 @@
           a: [{ f: 'lumi*10', air: 1, x: [[0, 270], [2.2, 150, 'out']], y: [[0, 20], [2.2, 74, 'out']], m: [['float', 0, 0, 3]] }],
           ev: [[0.2, 'sfx', 'hush'], [0.6, 'sfx', 'twinkle']] },
         { pic: 'garden', cam: [84, 96, 1.7, 176, 98, 1.7, 'smooth'], vo: ['mv_moon_2'], pad: 0.9, fx: [['dark', 0.66, 0, 50], ['fireflies', 5], ['trail', 0, 'spark', 8]],
-          a: [{ f: 'lumi*10', air: 1, x: [[0, 104], [2.0, 100], [3.4, 168], [6, 174]], y: [[0, 78], [4.4, 80], [5.2, 66]], m: [['float', 0, 0, 3]] },
+          a: [{ f: 'lumi*10', air: 1, x: [[0, 124], [2.0, 122], [3.4, 168], [6, 174]], y: [[0, 106], [4.4, 106], [5.2, 94]], m: [['float', 0, 0, 3]] },
             { s: 'bunny', x: [[0, 84], [0.9, 96], [1.6, 82]], y: 116, m: [['look', 0, 0, 0.8]], arc: [[0.2, 0.5, 6], [0.9, 1.2, 6], [1.5, 1.8, 6]] },
             { s: 'frog', x: [[2.3, 204], [3.0, 190], [3.6, 204]], y: 120, m: [['look', 2.2, 0, 0.7]], arc: [[2.3, 2.6, 7], [3.0, 3.3, 7], [3.6, 3.9, 7]] }],
           ev: [[1.5, 'sfx', 'sad'], [3.7, 'sfx', 'sad'], [2.3, 'sfx', 'boing'], [5.0, 'sfx', 'twinkle']] },
@@ -152,7 +152,7 @@
           a: [{ f: [[0, 'moon_0'], [2.5, 'moon_1'], [3.0, 'moon_2'], [3.25, 'moon_3'], [3.5, 'moon_2'], [3.75, 'moon_3'], [4.0, 'moon_2']], x: 140, y: 133, m: [['squash', 0, 2.4, 0.035, 0.66], ['shiver', 1.3, 2.4, 0.9], ['squash', 3.0, 0, 0.05, 4]], arc: [[2.5, 2.9, 9]] },
             { f: 'lumi*12', air: 1, x: [[0, 66], [1.3, 104], [1.6, 178], [1.9, 140], [2.3, 196, 'out']], y: [[0, 84], [1.3, 104], [1.6, 106], [1.9, 62], [2.3, 70]], flip: [[0, 0], [1.6, 1], [1.9, 0], [2.3, 1]], m: [['float', 0, 0, 2]] }],
           ev: [[1.3, 'sfx', 'tick'], [1.6, 'sfx', 'tick'], [1.9, 'sfx', 'tick'], [2.5, 'sfx', 'pop'], [2.5, 'burst', 'star', 140, 84, 12], [2.6, 'say', 'funny'], [3.0, 'sfx', 'giggle'], [3.0, 'mus', 'a']] },
-        { pic: 'clouds', over: 121, cam: [138, 82, 1.55, 128, 72, 1.08, 'smooth'], vo: ['mv_moon_6'], pad: 1.1, fx: [['stars', 50, 10], ['glow', 0, [[0, 30], [2.4, 46], [3.2, 150]], '#dfeaff', 0.5], ['trail', 1, 'spark', 16]],
+        { pic: 'clouds', over: 121, cam: [138, 82, 1.55, 128, 72, 1.08, 'smooth'], vo: ['mv_moon_6'], pad: 1.1, fx: [['stars', 50, 10], ['glow', 0, [[0, 30], [2.4, 46], [3.2, 120]], '#dfeaff', 0.28], ['trail', 1, 'spark', 16]],
           a: [{ f: [[0, 'moon_2'], [0.25, 'moon_3'], [0.5, 'moon_2'], [0.75, 'moon_3'], [1.0, 'moon_1'], [2.4, 'moon_3']], x: 140, y: 133, m: [['squash', 0, 1.0, 0.05, 4]] },
             { f: 'lumi*12', air: 1, flip: 1, x: [[0, 196], [2, 204]], y: [[0, 70], [2.4, 60], [2.9, 44, 'out'], [3.4, 60]], m: [['float', 0, 0, 3]] }],
           ev: [[0.1, 'sfx', 'giggle'], [2.45, 'sfx', 'magic'], [2.45, 'flash', '#eaf2ff', 0.9, 0.1], [2.6, 'say', 'sweet'], [2.6, 'burst', 'star', 140, 80, 14]] },
@@ -179,7 +179,7 @@
         sad: { ch: [0, 5], lead: ['b.......a...9...', '7...............'], bass: 'r...............', lw: 'triangle' },
         roll: { ch: [4, 4], lead: ['4.5.6.7.8.9.a.b.', 'c.c.c.c.cccccccc'], bass: 'r.r.r.r.r.r.r.r.', dr: 'ssssssssssssssss' } } },
       shots: [
-        { pic: 'counter', cam: [128, 76, 1, 96, 92, 1.5, 'smooth'], vo: ['mv_disco_1'], pad: 1.1, mus: 'soft', fx: [['wash', '#ffd9a0', [[0, 0.3], [0.9, 0.3], [0.95, 0, 'step']]], ['beams', 3, 3.6, 3]],
+        { pic: 'counter', cam: [128, 76, 1, 112, 92, 1.38, 'smooth'], vo: ['mv_disco_1'], pad: 1.1, mus: 'soft', fx: [['wash', '#ffd9a0', [[0, 0.3], [0.9, 0.3], [0.95, 0, 'step']]], ['beams', 3, 3.6, 3]],
           a: [{ s: 'carrot', x: [[1.4, 44], [1.9, 86, 'lin']], y: [[1.4, 100], [1.9, 119]], sc: [[1.4, 0.3], [1.9, 1]], al: [[1.35, 0], [1.45, 1]], arc: [[1.4, 1.9, 22]], m: [['bob', 2, 0, 1.5, 2.1]] },
             { s: 'tomato', x: [[1.8, 48], [2.3, 130, 'lin']], y: [[1.8, 100], [2.3, 119]], sc: [[1.8, 0.3], [2.3, 1]], al: [[1.75, 0], [1.85, 1]], arc: [[1.8, 2.3, 26]], m: [['bob', 2.4, 0, 1.5, 2.1]] },
             { s: 'broccoli', x: [[2.2, 52], [2.7, 174, 'lin']], y: [[2.2, 100], [2.7, 119]], sc: [[2.2, 0.3], [2.7, 1]], al: [[2.15, 0], [2.25, 1]], arc: [[2.2, 2.7, 30]], m: [['bob', 2.8, 0, 1.5, 2.1]] },
@@ -205,7 +205,7 @@
           a: [{ s: 'ball', air: 1, x: 200, y: 44, m: [['sway', 0, 0, 4, 0.5]] },
             ...['potato', 'carrot', 'tomato', 'broccoli'].map((v, i) => ({ f: [[0, v], [2.6, v + '_d*8']], piv: 'c', x: [[0, 330 + i * 26], [2.5, 104 + i * 50, 'smooth']], y: 108, rot: [[0, 0], [2.5, -720 - i * 360, 'smooth']], arc: [[0.5 + i * 0.1, 0.9 + i * 0.1, 8], [1.4 + i * 0.1, 1.8 + i * 0.1, 8]], dance: [2.9, 99, 2.6] }))],
           ev: [[0.2, 'sfx', 'whoosh'], [0.6, 'vo', 'mv_disco_7'], [2.9, 'vo', 'mv_disco_2'], [5.3, 'hold', 1], [5.3, 'sfx', 'clink'], [5.4, 'say', 'funny']] },
-        { pic: 'morning', tr: 'fade', cam: [128, 72, 1.3, 128, 76, 1, 'smooth'], vo: ['mv_disco_8'], pad: 1.5, mus: 'soft', fx: [['dust', 12]],
+        { pic: 'morning', tr: 'fade', cam: [128, 80, 1.2, 128, 76, 1, 'smooth'], vo: ['mv_disco_8'], pad: 1.5, mus: 'soft', fx: [['dust', 12]],
           a: [...['carrot', 'tomato', 'broccoli'].map((v, i) => ({ s: v, x: [[0.5 + i * 0.5, 70 + i * 44], [1.1 + i * 0.5, 216, 'lin']], y: [[0.5 + i * 0.5, 128], [1.1 + i * 0.5, 104]], sc: [[0.5 + i * 0.5, 1], [1.1 + i * 0.5, 0.25]], al: [[1.05 + i * 0.5, 1], [1.12 + i * 0.5, 0]], arc: [[0.5 + i * 0.5, 1.1 + i * 0.5, 30]], m: [['bob', 0, 0.5 + i * 0.5, 1.2, 2.5]] })),
             { f: [[0, 'potato'], [3.9, 'potato_d*8']], x: [[2.2, 196], [2.8, 216, 'lin'], [3.85, 216], [4.3, 128, 'out']], y: [[2.2, 128], [2.8, 104], [3.85, 104], [4.3, 134, 'out']], sc: [[2.2, 1], [2.8, 0.25], [3.85, 0.25], [4.3, 2.1, 'back']], al: [[2.75, 1], [2.82, 0], [3.84, 0], [3.9, 1]], arc: [[2.2, 2.8, 30], [3.85, 4.3, 26]], m: [['bob', 0, 2.2, 1.2, 2.5], ['squash', 4.4, 0, 0.05, 2.5]] }],
           ev: [[0.5, 'sfx', 'boing'], [1.0, 'sfx', 'boing'], [1.5, 'sfx', 'boing'], [2.2, 'sfx', 'boing'], [3.9, 'sfx', 'tada'], [3.9, 'mus', 'a'], [4.3, 'burst', 'star', 128, 70, 14], [4.3, 'say', 'sweet']] }
@@ -354,7 +354,7 @@
     let f = A.F[0]; for (const q of A.F) if (q.t <= t) f = q; if (f.name) return f.name; if (!f.n) return f.base;
     const i = Math.floor((t - f.t) * f.fps); return f.base + '_' + (f.once ? Math.min(f.n - 1, i) : ((i % f.n) + f.n) % f.n);
   }
-  const beatNow = () => { const b = Seq.beat(); return b == null ? S.ft * (S.film.music.bpm / 60) : b; };
+  const beatNow = () => { const b = Seq.beat(); return Math.max(0, b == null ? S.ft * (S.film.music.bpm / 60) : b); };
   function actorAt(A, t, D) {
     const st = { fr: frameOf(A, t), x: kv(A.x, t, 0), y: kv(A.y, t, 0), sc: kv(A.sc, t, 1), rot: kv(A.rot, t, 0), al: kv(A.al, t, 1), sx: 1, sy: 1, flip: Array.isArray(A.flip) ? A.flip.reduce((v, k) => (k[0] <= t ? k[1] : v), 0) : A.flip };
     st.gy = st.y;
@@ -452,7 +452,7 @@
     else if (n === 'flick') { const p = W2S(f[1], f[2]), r = f[3] * cam.z * (1 + 0.08 * Math.sin(t * 9) + 0.05 * Math.sin(t * 23)), gr = g.createRadialGradient(p[0], p[1], 1, p[0], p[1], r); gr.addColorStop(0, hexA(f[4], 0.35)); gr.addColorStop(1, hexA(f[4], 0)); g.globalCompositeOperation = 'lighter'; g.fillStyle = gr; g.fillRect(p[0] - r, p[1] - r, r * 2, r * 2); g.globalCompositeOperation = 'source-over'; }
     else if (n === 'beams') {                 // disco lights: coloured cones sweeping down from the mirror ball
       if (t < f[2] || S.held) return; const cols = ['#ff4d8d', '#4dd2ff', '#ffe14d', '#7dff6a', '#c77dff'], b = beatNow(), bp = pos[f[3]], ox = bp ? bp.x : FW / 2, oy = bp ? bp.y : 0; g.globalCompositeOperation = 'lighter';
-      for (let i = 0; i < f[1]; i++) { const a = Math.PI / 2 + Math.sin(t * (0.7 + i * 0.23) + i * 1.9) * 0.95, wd = 0.11, L = 190; g.fillStyle = hexA(cols[(i + Math.floor(b / 2)) % cols.length], 0.2); g.beginPath(); g.moveTo(ox, oy); g.lineTo(ox + Math.cos(a - wd) * L, oy + Math.sin(a - wd) * L); g.lineTo(ox + Math.cos(a + wd) * L, oy + Math.sin(a + wd) * L); g.closePath(); g.fill(); }
+      for (let i = 0; i < f[1]; i++) { const a = Math.PI / 2 + Math.sin(t * (0.7 + i * 0.23) + i * 1.9) * 0.95, wd = 0.11, L = 190; g.fillStyle = hexA(cols[(i + Math.floor(b / 2)) % cols.length] || cols[0], 0.2); g.beginPath(); g.moveTo(ox, oy); g.lineTo(ox + Math.cos(a - wd) * L, oy + Math.sin(a - wd) * L); g.lineTo(ox + Math.cos(a + wd) * L, oy + Math.sin(a + wd) * L); g.closePath(); g.fill(); }
       if (b % 1 < 0.12) { g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(0, 0, FW, FH); } g.globalCompositeOperation = 'source-over';
     }
     else if (n === 'dizzy') { if (t > f[2] && t < f[3]) { const p = pos[f[1]]; if (p) for (let i = 0; i < 3; i++) { const a = t * 7 + i * TAU / 3; glyph(g, 'star', p.x + Math.cos(a) * 16, p.y - p.h / 2 - 4 + Math.sin(a) * 4, 1, '#fff6a8'); } } }
@@ -505,9 +505,10 @@
     const sh = F.shots[F.shots.length - 1], kind = F.end || 'star', c = F.endAt || [FW / 2, FH / 2];
     if (t < 1.9) { drawShot(g, F, sh, sh.D - 0.001, 0); const u = EASE.in(clamp(t / 1.7, 0, 1)), r = lerp(190, 0, u); g.fillStyle = '#05030f'; g.beginPath(); g.rect(0, 0, FW, FH); if (r > 1) shapePath(g, kind, lerp(c[0], FW / 2, u), lerp(c[1], FH / 2, u), r); g.fill('evenodd'); }
     else {
-      g.fillStyle = '#05030f'; g.fillRect(0, 0, FW, FH); const q = t - 1.9, s = 34 * EASE.back(clamp(q / 0.5, 0, 1)) * (1 + 0.06 * Math.sin(q * 4));
-      const gr = g.createRadialGradient(FW / 2, FH / 2, 4, FW / 2, FH / 2, 90); gr.addColorStop(0, hexA(F.tint, 0.3)); gr.addColorStop(1, hexA(F.tint, 0)); g.fillStyle = gr; g.fillRect(0, 0, FW, FH);
-      g.fillStyle = F.tint; g.beginPath(); shapePath(g, kind, FW / 2, FH / 2 + 2, s); g.fill(); g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(FW / 2 - s * 0.32, FH / 2 - s * 0.3, s * 0.13, s * 0.2, -0.5, 0, TAU); g.fill();
+      const up = S.up = clamp((S.up || 0) + (S.mode === 'rate' ? dt * 2 : -9), 0, 1), cy = FH / 2 + 2 - 26 * EASE.smooth(up);     // it moves up to make room for her stars
+      g.fillStyle = '#05030f'; g.fillRect(0, 0, FW, FH); const q = t - 1.9, s = (34 - 12 * EASE.smooth(up)) * EASE.back(clamp(q / 0.5, 0, 1)) * (1 + 0.06 * Math.sin(q * 4));
+      const gr = g.createRadialGradient(FW / 2, cy, 4, FW / 2, cy, 90); gr.addColorStop(0, hexA(F.tint, 0.3)); gr.addColorStop(1, hexA(F.tint, 0)); g.fillStyle = gr; g.fillRect(0, 0, FW, FH);
+      g.fillStyle = F.tint; g.beginPath(); shapePath(g, kind, FW / 2, cy, s); g.fill(); g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(FW / 2 - s * 0.32, cy - s * 0.32, s * 0.13, s * 0.2, -0.5, 0, TAU); g.fill();
       for (let i = 0; i < 12; i++) { const a = Math.sin(q * 3 + i * 1.7); if (a > 0.3) { const an = i / 12 * TAU + q * 0.3, d = 52 + hash(i) * 22; glyph(g, a > 0.8 ? 'star' : 'spark', FW / 2 + Math.cos(an) * d * 1.5, FH / 2 + Math.sin(an) * d * 0.72, 1, `rgba(255,255,235,${a})`); } }
     }
     drawParts(g);
@@ -567,8 +568,8 @@
   function fgSprites() {
     let hair = 'brown'; try { if (typeof G !== 'undefined' && G.hair && HAIRC[G.hair]) hair = G.hair; } catch (e) { }       // long brown hair, unless she has dyed it in the dress-up
     if (FGS && FGS.hair === hair) return FGS; const o = { hair };
-    // Nunu: blonde wavy bob, a cosy sage cardigan
-    let c = cnv(64, 72), g = c.getContext('2d'); const B = HAIRC.blonde;
+    // Nunu: dark-blonde wavy bob, a cosy sage cardigan
+    let c = cnv(64, 72), g = c.getContext('2d'); const B = ['#d2aa5c', '#b08a42', '#e9cb86'];
     ell(g, 32, 58, 29, 20, '#8fb08a', 38); ell(g, 32, 60, 27, 20, '#9fc09a', 40); px(g, 27, 30, 10, 9, '#efc6a4'); px(g, 27, 36, 10, 2, '#d9ab88'); px(g, 20, 39, 24, 2, '#7d9e78');
     ell(g, 32, 16, 16, 15.5, B[0]); px(g, 16, 16, 33, 13, B[0]); for (let i = 0; i < 7; i++) ell(g, 18 + i * 4.7, 29, 3, 3.2, i & 1 ? B[0] : B[1]);
     for (const [x, y0, y1] of [[21, 9, 27], [26, 4, 28], [38, 4, 28], [43, 9, 27]]) px(g, x, y0, 1, y1 - y0, B[1]); for (const [x, y0, y1] of [[23, 6, 24], [29, 2, 20], [35, 2, 22], [41, 7, 25]]) px(g, x, y0, 1, y1 - y0, B[2]);
@@ -598,7 +599,7 @@
     o.blanket = c; o.top = top;
     // each one again as it looks in the dark, and the thin edge the TV lights up
     for (const k of ['nunu', 'marina', 'bowl', 'sofa', 'blanket']) {
-      const s = o[k], d = cnv(s.width, s.height), q = d.getContext('2d'); q.drawImage(s, 0, 0); q.globalCompositeOperation = 'source-atop'; q.fillStyle = 'rgba(12,9,30,.84)'; q.fillRect(0, 0, s.width, s.height); o[k + 'D'] = d;
+      const s = o[k], d = cnv(s.width, s.height), q = d.getContext('2d'); q.drawImage(s, 0, 0); q.globalCompositeOperation = 'source-atop'; q.fillStyle = 'rgba(14,10,38,.6)'; q.fillRect(0, 0, s.width, s.height); o[k + 'D'] = d;
       const r = cnv(s.width, s.height), rq = r.getContext('2d'); try { const a = s.getContext('2d').getImageData(0, 0, s.width, s.height).data; rq.fillStyle = '#fff'; for (let y = 0; y < s.height; y++) for (let x = 0; x < s.width; x++) if (a[(y * s.width + x) * 4 + 3] > 40 && (y === 0 || a[((y - 1) * s.width + x) * 4 + 3] < 40)) rq.fillRect(x, y, 1, 1); } catch (e) { } o[k + 'R'] = r;
     }
     return (FGS = o);
@@ -628,7 +629,7 @@
     // the shelf
     const cols = land ? 4 : 2, rows = 4 / cols, gap = 12, pw = Math.floor(Math.min((w - gap * (cols + 1)) / cols, ((h - gap * (rows + 1)) / rows - 30) * 0.75)); S.shelf.style.setProperty('--pw', Math.max(60, pw) + 'px'); S.shelf.style.gridTemplateColumns = `repeat(${cols},auto)`;
     // the cinema: the TV as wide (or as tall) as the screen allows
-    const ap = Math.min(w / (TVW + 4), h / (TVH + 14)), Wap = Math.round(w / ap), Hap = Math.round(h / ap); Object.assign(S, { ap, Wap, Hap, cw: w, ch: h });
+    const ap = Math.min(w / (TVW + 4), h / (TVH + 28)), Wap = Math.round(w / ap), Hap = Math.round(h / ap); Object.assign(S, { ap, Wap, Hap, cw: w, ch: h });
     S.cv.width = Wap * K; S.cv.height = Hap * K; S.cv.style.width = w + 'px'; S.cv.style.height = h + 'px'; S.g = S.cv.getContext('2d'); S.g.imageSmoothingEnabled = false;
     S.tvX = Math.floor((Wap - TVW) / 2); const free = Hap - TVH; S.tvY = free > 120 ? Math.round(clamp(free * 0.2, 40, 90)) : 2;
     const line = (S.tvY + TVH - 13) * K;              // the heads may rise this high: over the TV's lower edge and the black bar, not over the story
@@ -638,7 +639,7 @@
   function place() {         // the DOM bits that sit on top of the canvas
     const k = S.cw / (S.Wap * K), bx = (S.fgx + 65 * S.fs) * k, by = (S.fgTop + 26 * S.fs) * k, bw = Math.max(68, 34 * S.fs * k), bh = Math.max(66, 30 * S.fs * k);
     const top = clamp(by - bh / 2, 0, S.ch - bh); Object.assign(S.pop.style, { left: (bx - bw / 2) + 'px', top: top + 'px', width: bw + 'px', height: bh + 'px' });
-    S.rateEl.style.top = ((S.tvY + TVH / 2) * K * k - 32) + 'px';
+    S.rateEl.style.top = ((S.tvY + TVH * 0.7) * K * k - 32) + 'px';
   }
 
   // ---- the two on the sofa, the popcorn, the blanket
@@ -663,7 +664,7 @@
     const jm = h.jump >= 0 ? Math.sin(Math.min(1, h.jump / 0.45) * Math.PI) : 0, la = h.laugh > 0 ? Math.sin(T * 24) * Math.min(1, h.laugh * 2) : 0, ch = h.cheer > 0 ? Math.abs(Math.sin(T * 7.5)) * Math.min(1, h.cheer) : 0, mu = h.munch > -0.55 && h.munch < 0 ? Math.abs(Math.sin(h.munch * 17)) : 0;
     const my = 10 + Math.sin(T * 1.25) * 0.5 - jm * 6 + la * 0.9 - ch * 5 + mu * 1.3, ny = Math.sin(T * 1.05 + 2) * 0.5 - jm * 3.5 + la * 0.7 - ch * 3.5 + mu * 1.1, bl = (S.bl += clamp((S.blanket ? 1 : 0) - S.bl, -dt * 3, dt * 3));
     if (h.cheer > 0) for (const [cx, cy, sl, len] of [[26, my + 30, '#c6adf2', 16], [58, my + 30, '#c6adf2', 16], [76, ny + 34, '#9fc09a', 22], [120, ny + 34, '#9fc09a', 22]]) {      // arms up!
-      const a = Math.sin(T * 9 + cx) * 0.25 + (cx < 40 || (cx > 70 && cx < 100) ? -0.3 : 0.3); g.save(); g.translate(x0 + cx * fs, y0 + cy * fs); g.rotate(a); g.fillStyle = d > 0.5 ? '#2a2440' : sl; g.fillRect(-2.5 * fs, -len * fs, 5 * fs, len * fs); g.fillStyle = d > 0.5 ? '#3a3050' : '#f3cfae'; g.fillRect(-3 * fs, (-len - 5) * fs, 6 * fs, 6 * fs); g.restore(); }
+      const a = Math.sin(T * 9 + cx) * 0.25 + (cx < 40 || (cx > 70 && cx < 100) ? -0.3 : 0.3); g.save(); g.translate(x0 + cx * fs, y0 + cy * fs); g.rotate(a); g.fillStyle = d > 0.75 ? '#4a4068' : sl; g.fillRect(-2.5 * fs, -len * fs, 5 * fs, len * fs); g.fillStyle = d > 0.75 ? '#6a5670' : '#f3cfae'; g.fillRect(-3 * fs, (-len - 5) * fs, 6 * fs, 6 * fs); g.restore(); }
     part('marina', 40 + h.lean * 3, my + 36, h.lean * 0.16 + la * 0.03, 24, 36); part('nunu', 96 - h.lean * 2.5, ny + 40, -h.lean * 0.1 - la * 0.025, 32, 40);
     S.bowlT += dt; const bj = S.bowlT < 0.3 ? Math.sin(S.bowlT * 40) * (0.3 - S.bowlT) * 6 : 0; part('bowl', 65 + bj * 0.4, 20 + bj, 0, 16, 0);
     part('sofa', 65, 52, 0, 85, 0);
@@ -683,7 +684,7 @@
   function drawStage(dt) {
     const g = S.g, W = S.cv.width, H = S.cv.height, d = S.dim, tx = (S.tvX + BEZ) * K, ty = (S.tvY + BEZ) * K, sw = FW * K, sh = FH * K;
     g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.imageSmoothingEnabled = false; g.drawImage(S.room, 0, 0, W, H);
-    if (d > 0.01) { g.fillStyle = `rgba(9,7,26,${(d * 0.86).toFixed(3)})`; g.fillRect(0, 0, W, H); }
+    if (d > 0.01) { g.fillStyle = `rgba(9,7,26,${(d * 0.78).toFixed(3)})`; g.fillRect(0, 0, W, H); }
     const on = S.tvOn;
     if (on > 0.02 && d > 0.05) {                      // the TV lights the wall and the dresser top
       const c = S.glow, cx = tx + sw / 2, cy = ty + sh / 2, r = sw * 0.95, gr = g.createRadialGradient(cx, cy, sw * 0.3, cx, cy, r); gr.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${(0.5 * d * on).toFixed(3)})`); gr.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
@@ -717,6 +718,7 @@
     if (document.getElementById('mv-css')) return; const s = document.createElement('style'); s.id = 'mv-css';
     s.textContent = `
 .mv-off{display:none!important}
+#panel.mv-on{background:#1b1430}
 .mv-top .pbtn{flex:0 0 auto;width:60px;padding:0;position:relative}
 .mv-top .mv-bl canvas{width:44px;height:44px;image-rendering:pixelated;pointer-events:none;display:block;margin:auto}
 #panel>.mv-top.mv-land{position:absolute;left:calc(8px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));width:60px;flex-direction:column;gap:6px;z-index:2}
@@ -752,7 +754,7 @@
     const panel = document.getElementById('panel'); if (!panel) return false;
     if (S) { quiet(); teardown(); }
     try { UI.closeActions(); } catch (e) { } try { clearWish(); } catch (e) { }
-    css(); panel.innerHTML = ''; panel.classList.remove('hidden'); const st = store();
+    css(); panel.innerHTML = ''; panel.classList.remove('hidden'); panel.classList.add('mv-on'); const st = store();
     S = { opts: opts || {}, panel, mode: 'pick', film: null, seg: null, si: 0, t: 0, D: 1, ft: 0, T: 0, ei: 0, paused: false, held: false, bars: 0, parts: [], sp: [], dim: 0, dimTo: 0, tvOn: 0, glow: [120, 130, 160], blanket: !!st.blanket, bl: st.blanket ? 1 : 0, pops: 0, bowlT: 9, watched: [], last: performance.now(),
       heads: { lean: 0, leanTo: 0, leanT: 0, laugh: 0, cheer: 0, jump: -1, munch: -1 }, fc: cnv(FW * K, FH * K), tok: 0 };
     S.fg = S.fc.getContext('2d');
@@ -822,7 +824,7 @@
     if (!S || S.mode === 'pick') return; quiet(); S.tok++; S.mode = 'pick'; S.seg = null; S.film = null; S.paused = false; S.busy = false; S.dimTo = S.dim = 0; S.tvOn = 0; S.spin = false; ui(); posters(); gameMusic(); if (byHand) whoosh(false);
   }
   function teardown() {
-    if (!S) return; cancelAnimationFrame(S.raf); clearTimeout(S.rzT); removeEventListener('resize', S.onResize); removeEventListener('orientationchange', S.onResize); document.removeEventListener('visibilitychange', S.onHide); S = null;
+    if (!S) return; cancelAnimationFrame(S.raf); clearTimeout(S.rzT); removeEventListener('resize', S.onResize); removeEventListener('orientationchange', S.onResize); document.removeEventListener('visibilitychange', S.onHide); S.panel.classList.remove('mv-on'); S = null;
   }
   function finish() {          // the ❌, or Movies.close(): everything stops, the panel is given back
     if (!S) return; const st = S, res = { watched: st.watched.slice(), last: st.watched[st.watched.length - 1] || null };
@@ -833,14 +835,15 @@
     if (!S) return;
     if (!S.body.isConnected || S.panel.classList.contains('hidden')) { const st = S, res = { watched: st.watched.slice(), last: st.watched[st.watched.length - 1] || null }; quiet(); teardown(); gameMusic(); if (typeof st.opts.onDone === 'function') try { st.opts.onDone(res); } catch (e) { } return; }   // something else closed the panel
     const sp = api._speed || 1, dt = Math.min(0.1, Math.max(0, (now - S.last) / 1000)) * sp; S.last = now; S.T += dt;
-    if (S.mode !== 'pick') {
+    if (S.mode !== 'pick') try {
       S.dim += clamp(S.dimTo - S.dim, -dt / 1.1, dt / 1.1);
       if (S.seg) S.tvOn = clamp(S.tvOn + dt * 2.2, 0, 1);
       if (S.mode === 'dim') { S.mt += dt; if (S.mt > 0.9) { enter('logo'); S.mode = 'film'; sync(); } }
       if (S.mode === 'film' && !S.paused) { if ((S.gt = (S.gt || 0) + dt) > 0.5) { S.gt = 0; hushGame(); } filmTick(dt); }
       else if (S.mode === 'rate') { stepParts(dt); S.t += dt; S.mt += dt; if (S.mt > S.rateFor) toShelf(); }
-      if (S && S.mode !== 'pick') { if (S.seg && S.film) drawFilm(S.paused ? 0 : dt); if (((S.fr = (S.fr || 0) + 1) % 6) === 0) sampleGlow(); drawStage(dt); }
-    }
+      if (S && S.mode !== 'pick') { if (S.seg && S.film) drawFilm(S.paused && S.mode === 'film' ? 0 : dt); if (((S.fr = (S.fr || 0) + 1) % 6) === 0) sampleGlow(); drawStage(dt); }
+      if (S) S.bad = 0;
+    } catch (e) { if (S) { if (!S.bad) console.warn('movies', e); if ((S.bad = (S.bad || 0) + 1) > 60) { S.bad = 0; toShelf(); } } }
     if (S) S.raf = requestAnimationFrame(frame);
   }
   function list() { const st = store(); return FILMS.map(F => ({ id: F.id, ico: F.ico, mood: F.mood, shots: F.shots.length, secs: F.secs || null, clips: [...new Set(F.shots.flatMap(sh => (sh.vo || []).concat((sh.ev || []).filter(e => e[1] === 'vo').map(e => e[2]))))], seen: st.seen[F.id] || 0, stars: st.stars[F.id] || 0 })); }
@@ -849,6 +852,7 @@
     return { open: true, mode: S.mode, film: S.film && S.film.id, seg: S.seg, shot: S.si, shots: S.film ? S.film.shots.length : 0, t: +S.t.toFixed(2), D: S.D, paused: S.paused, dim: +S.dim.toFixed(2), tvOn: +S.tvOn.toFixed(2), blanket: S.blanket, pops: S.pops, voice: !!voSrc || performance.now() < voTill, packed: !!(voIdx && S.film && voIdx[S.film.shots[0].E.find(e => e[1] === 'vo')[2]]), music: Seq.on, held: S.held, watched: S.watched.slice(), particles: S.parts.length, secs: S.film && S.film.secs };
   }
   const api = window.Movies = { open, close: finish, list, state, _speed: 1, get active() { return !!S; },
+    _fire: k => fire(k),
     // for tests: load a film without playing it, then freeze any moment of it on the TV
     _prep: id => prep(FILMS.find(f => f.id === id)).then(() => FILMS.find(f => f.id === id).shots.map(sh => sh.D)),
     _peek(id, si, t, seg) { const F = FILMS.find(f => f.id === id); S.film = F; S.seg = seg || 'shot'; S.si = si; S.t = t; S.D = seg ? 9 : F.shots[si].D; S.bars = seg ? 0 : 1; S.parts.length = 0; S.flash = S.shk = null; S.paused = true; S.mode = 'film'; S.tvOn = 1; S.dim = S.dimTo = 1; ui(); return S.fc; } };

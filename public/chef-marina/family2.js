@@ -3,8 +3,8 @@
 // Grandpa Jeff: builds things (builder.js), eats what Marina cooks (with all the usual consequences), high fives, juggles his tools.
 const sayG = (k, e) => Promise.race([say(k, e), new Promise(r => setTimeout(r, 9000))]);
 const GRAND = (() => {
-  const NU = 'hi1 hi2 hi3 hi4 love1 love2 love3 love4 hug kiss proud smell1 smell2 smell3 septic1 septic2 septic3 septic_thanks lego_start lego_idea lego_nice1 lego_nice2 lego_done lego_oops movie_start movie_funny movie_scary movie_sweet movie_end popcorn tv_on story draw draw_nice pic nofood nofood2 joke_laugh joke_groan whos_there europe_who why_house fort bye comfort clutter wash night dance giggle wow play_yes cat peekaboo hoop tidy deer'.split(' ');
-  const JF = 'hi1 hi2 hi3 hi4 build_hello1 build_hello2 build_hello3 build_start1 build_start2 build_start3 build_start4 build_done1 build_done2 build_done3 build_done4 build_full1 build_full2 build_down build_down2 treehouse recolor hug love highfive juggle magic strong food_great food_good food_meh nervous ok burp stomach vomit diarrhea notp tp_thanks joke_laugh joke_groan whos_there europe_who why_house comfort tantrum deer tree treetop pic giggle work1 work2 work3 play_yes wow pool thanks helper'.split(' ');
+  const NU = 'hi1 hi2 hi3 hi4 love1 love2 love3 love4 hug kiss proud smell1 smell2 smell3 septic1 septic2 septic3 septic_thanks lego_start lego_idea lego_nice1 lego_nice2 lego_done lego_oops movie_start movie_funny movie_scary movie_sweet movie_end popcorn tv_on story draw draw_nice pic nofood nofood2 joke_laugh joke_groan whos_there europe_who why_house fort bye comfort clutter wash night dance giggle wow play_yes cat peekaboo hoop tidy deer sweep1 sweep2 laundry1 laundry2 laundry3 clean1 clean2 help help_thanks lotr1 lotr2 lotr3 lotr4 lotr5 lotr6 lotr7 lotr8 lotr9 lotr10 lotr11 lotr_movie precious_laugh minka_where minka_found minka_shy catfight1 catfight2 minka_trust shelf1 shelf2 shelf_full'.split(' ');
+  const JF = 'hi1 hi2 hi3 hi4 build_hello1 build_hello2 build_hello3 build_start1 build_start2 build_start3 build_start4 build_done1 build_done2 build_done3 build_done4 build_full1 build_full2 build_down build_down2 treehouse recolor hug love highfive juggle magic strong food_great food_good food_meh nervous ok burp stomach vomit diarrhea notp tp_thanks joke_laugh joke_groan whos_there europe_who why_house comfort tantrum deer tree treetop pic giggle work1 work2 work3 play_yes wow pool thanks helper turkey squirrel oak'.split(' ');
   const KEYS = new Set([...NU.map(k => 'nu_' + k), ...JF.map(k => 'j_' + k)]);
   // lines the older code asks the "third grown-up" (Uncle Rory) for, said instead in their own words
   const ALT = {
@@ -18,7 +18,7 @@ const GRAND = (() => {
   const _voice = Audio2.voice;
   Audio2.voice = function (key, speaker, opt) { if (speaker === 'ghost' && G.bathWho === jeff && /^r_/.test(key)) key = own(jeff, key) || key; return _voice.call(Audio2, key, speaker, opt); };
 
-  const DOWN = ['den', 'nunuroom', 'storage', 'laundry'];
+  const DOWN = ['den', 'nunuroom', 'storage', 'laundry'], CHORES = ['sweep', 'fold', 'dust', 'point'];
   const sofa = () => (PROPS.den || []).find(p => p.id === 'bsofa') || { x: 420, y: BACK + 8 };
   const S = { smellAt: 0, downSince: 0, loveAt: 0, jugT: 0, jug: null, lastHi: {}, bang: 0 };
 
@@ -27,9 +27,15 @@ const GRAND = (() => {
     const t = e.animT, flip = e.dir < 0, id = e.id;
     if (e.state === 'toilet') return;
     if (!has(id)) { emoji(id === 'nunu' ? '👵' : '👴', e.x, e.y - 34, 40); return; }                    // until the art has loaded
-    if (e.moving && ['sit', 'hammer', 'wave'].includes(e.state)) { if (e.state === 'sit') e.y = Math.max(e.y, FLOOR - 8); e.state = 'idle'; }          // asked to come over: get up first
+    if (e.moving && ['sit', 'hammer', 'wave', 'sweep', 'fold', 'dust', 'point'].includes(e.state)) { if (e.state === 'sit') e.y = Math.max(e.y, FLOOR - 8); e.state = 'idle'; }          // asked to come over: get up first
     const y = e.y + (e.offY || 0);
     if (id === 'nunu' && e.state === 'sit') { drawSprite(has('nunu_sit') ? 'nunu_sit' : 'nunu', e.x, y, { flip }); if (e.face) emoji(e.face, e.x + (flip ? -8 : 8), y - 70, 12); return; }
+    if (id === 'nunu' && CHORES.includes(e.state)) { const base = 'nunu_' + e.state, n = frameCount(base);          // sweeping, folding laundry, dusting, or an "ooh!" about her films
+      if (n) drawSprite(base + '_' + (1 + Math.floor(t * (e.state === 'sweep' ? 7 : 5)) % n), e.x, y, { flip }); else { drawSprite('nunu', e.x, y, { flip, rot: Math.sin(t * 6) * 0.03 }); emoji({ sweep: '🧹', fold: '🧺', dust: '🪶', point: '✨' }[e.state], e.x + e.dir * 16, y - 34 + Math.sin(t * 8) * 3, 14); }
+      if (e.state === 'sweep' && chance(0.1)) emit('dust', e.x + e.dir * 22, y - 2, 1);
+      if (e.face) emoji(e.face, e.x + (flip ? -8 : 8), y - 78, 12); return; }
+    if (id === 'nunu' && e.carry) { const k = (e.moving && frameKey('nunu_basket', t, 9)) || (has('nunu_basket_0') ? 'nunu_basket_0' : has('nunu_basket') ? 'nunu_basket' : null);     // off to the laundry with a basket
+      if (k) drawSprite(k, e.x, y, { flip }); else { drawSprite(e.moving ? (frameKey('nunu_walk', t, 9) || 'nunu') : 'nunu', e.x, y, { flip }); emoji('🧺', e.x + e.dir * 12, y - 30, 14); } return; }
     if (e.state === 'eat' && frameCount(id + '_eat')) { drawSprite(frameKey(id + '_eat', t, 7), e.x, y, { flip }); if (chance(0.1)) emit('dust', e.x + e.dir * 10, y - 60, 1, { col: '#e8c27a', g: 200, vy: -10 }); return; }
     if (e.state === 'hammer' && frameCount('jeff_hammer')) { const n = frameCount('jeff_hammer'), f = 1 + (Math.floor(t * 9) % n); drawSprite('jeff_hammer_' + f, e.x, y, { flip });
       if (f === n && S.bang !== Math.floor(t * 9)) { S.bang = Math.floor(t * 9); emit('dust', e.x + e.dir * 22, y - 34, 2, { col: '#d9b27a' }); if (e.here && !inActivity()) Audio2.noise(0.04, 0.12, 900); } return; }
@@ -59,11 +65,25 @@ const GRAND = (() => {
       const back = () => { e.room = home[0]; e.x = e === nunu ? 300 : 262; e.y = FLOOR; e.state = 'idle'; e.face = null; };
       if (e.here) e.walkTo(e.x < ROOMS[e.room].w / 2 ? 4 : ROOMS[e.room].w - 4, back, 70); else back(); return;
     }
-    if (e === nunu) {
-      if (e.state === 'sit') { if (chance(0.35)) { e.state = 'idle'; e.y = FLOOR; e.x -= 26; } return; }
-      if (e.room === 'den' && chance(0.4)) { const s = sofa(); return e.walkTo(s.x - 34, () => { e.state = 'sit'; e.x = s.x - 8; e.y = s.y + 2; e.dir = 1; }, null, FLOOR - 4); }
-      if (!e.here && chance(0.3)) { const R = ROOMS[e.room], to = pick([R.left, R.right].filter(r => DOWN.includes(r))); if (to) { e.room = to; e.x = rnd(60, ROOMS[to].w - 60); e.y = FLOOR; if (e.here) e.x = marina.x < ROOMS[to].w / 2 ? ROOMS[to].w - 20 : 20; } return; }
-      e.walkTo(rnd(50, ROOMS[e.room].w - 50), null, null, rnd(154, 172));
+    if (e === nunu) {                                  // she is always busy: sweeping, dusting, laundry — and now and then a sit down
+      if (CHORES.includes(e.state)) e.state = 'idle';
+      if (e.state === 'sit') { if (chance(0.5)) { e.state = 'idle'; e.y = FLOOR; e.x -= 26; } return; }
+      const R = ROOMS[e.room], r = Math.random();
+      const doing = (kind, x) => { e.carry = false; e.walkTo(clamp(x, 30, R.w - 30), () => { e.state = kind; e.dir = kind === 'sweep' ? pick([-1, 1]) : e.dir; e.wait = rnd(7, 12); choreSay(kind); }, null, rnd(156, 168)); };
+      if (e.room !== 'den' && !e.carry && (e.goDen || r > 0.72)) {          // back to her den after a job elsewhere
+        const right = e.room === 'nunuroom', next = right ? R.right : R.left, hop = () => { e.room = next; e.x = right ? 12 : ROOMS[next].w - 12; e.y = FLOOR; e.wait = 0.5; if (next === 'den') e.goDen = false; };
+        if (e.here) e.walkTo(right ? R.w - 4 : 4, hop, 56); else { e.room = 'den'; e.x = rnd(200, 420); e.y = FLOOR; e.goDen = false; } return; }
+      if (e.carry || r < 0.22) {                        // laundry: carry the basket to the laundry room, then fold at the dryer
+        e.carry = true;
+        if (e.room !== 'laundry') { const next = R.right && DOWN.includes(R.right) ? R.right : 'laundry', hop = () => { e.room = next; e.x = 12; e.y = FLOOR; e.wait = 0.5; };
+          if (e.here) { choreSay('laundry'); e.walkTo(R.w - 4, hop, 56); } else { e.room = 'laundry'; e.x = 60; } return; }
+        const d = (PROPS.laundry || []).find(p => p.id === 'dryer') || { x: 150 }; e.walkTo(d.x - 20, () => { e.carry = false; e.goDen = true; e.dir = 1; e.state = 'fold'; e.wait = rnd(8, 13); choreSay('fold'); }, null, FLOOR - 2); return;
+      }
+      if (r < 0.52) return doing('sweep', rnd(50, R.w - 50));
+      if (r < 0.66) { const ps = (PROPS[e.room] || []).filter(p => ['tvdresser', 'ledge', 'legoshelf', 'shades', 'totes', 'alcove', 'rack', 'ntotes', 'usink'].includes(p.id)); return doing('dust', ps.length ? pick(ps).x - 14 : rnd(60, R.w - 60)); }
+      if (e.room === 'den' && r < 0.8) { const s = sofa(); return e.walkTo(s.x - 34, () => { e.state = 'sit'; e.x = s.x - 8; e.y = s.y + 2; e.dir = 1; }, null, FLOOR - 4); }
+      if (!e.here && r < 0.9) { const to = pick([R.left, R.right].filter(x => DOWN.includes(x))); if (to) { e.room = to; e.x = rnd(60, ROOMS[to].w - 60); e.y = FLOOR; if (e.here) e.x = marina.x < ROOMS[to].w / 2 ? ROOMS[to].w - 20 : 20; } return; }
+      e.walkTo(rnd(50, R.w - 50), null, null, rnd(154, 172));
     } else {
       if (e.state === 'hammer' || e.state === 'wave') { e.state = 'idle'; if (chance(0.5)) return; }
       const B = window.Backyard || { bench: 232, plots: [] };
@@ -73,7 +93,39 @@ const GRAND = (() => {
       e.walkTo(pick(spots) + rnd(-10, 10), null, null, rnd(156, 172));
     }
   }
+  const CHORE_SAY = { sweep: ['nu_sweep1', 'nu_sweep2', 'nu_clutter', 'nu_lotr5'], laundry: ['nu_laundry1', 'nu_laundry2'], fold: ['nu_laundry3', 'nu_laundry2'], dust: ['nu_clean1', 'nu_clean2'] };
+  function choreSay(kind) { if (!nunu.here || E.t - (S.choreSay || -99) < 55 || !pingOk(40)) return; S.choreSay = E.t; ping(); say(pick(CHORE_SAY[kind] || CHORE_SAY.sweep), nunu); }
+  const LOTR = ['nu_lotr1', 'nu_lotr2', 'nu_lotr3', 'nu_lotr4', 'nu_lotr6', 'nu_lotr7', 'nu_lotr8', 'nu_lotr9', 'nu_lotr11'];
+  function filmTalk() { S.lotrAt = E.t; ping(); const was = nunu.state, k = pick(LOTR.filter(x => x !== S.lotrLast)); S.lotrLast = k; if (was !== 'sit') { nunu.stop(); nunu.state = 'point'; nunu.wait = Math.max(nunu.wait || 0, 4); } nunu.dir = Math.sign(marina.x - nunu.x) || 1;
+    sayG(k, nunu).then(() => { if (nunu.state === 'point') nunu.state = 'idle'; if (k === 'nu_lotr3' && nunu.here && !G.busy && chance(0.8)) return sayG('m_precious').then(() => sayG('nu_precious_laugh', nunu)); }); }
+  const PHONE = ['d_phone1', 'd_phone2', 'd_phone3', 'd_phone5', 'd_phone6', 'd_phone7', 'd_phone8'];
+  function phoneScene() {
+    if (G.busy) return; UI.closeActions(); G.busy = true; AI.hold(daddy, true); daddy.dir = Math.sign(marina.x - daddy.x) || 1; marina.dir = -daddy.dir;
+    sayG('m_phone2').then(() => sayG(pick(['d_phone1', 'd_phone2', 'd_phone4', 'd_phone5']), daddy)).then(() => sayG('m_phone')).then(() => { daddy.state = 'idle'; daddy.face = '😅'; return sayG(pick(['d_phone_off', 'd_phone_off2']), daddy); })
+      .then(() => { daddy.face = null; S.phoneAt = E.t; G.busy = false; AI.hold(daddy, false); emit('heart', daddy.x, daddy.y - 86, 4); try { did('phone'); } catch (x) { } });
+  }
+  function hooks() {                                   // other files' events → the family's reactions
+    if (window.Minka && !S.hookM) { S.hookM = 1; Minka.onEvent = (kind) => { try {
+        if (kind === 'hiding') { if (nunu.here && !AI.held.has(nunu) && pingOk(30)) { ping(); say('nu_minka_where', nunu); } }
+        else if (kind === 'found') { say('m_minka_found').then(() => { if (nunu.here && !G.busy) say('nu_minka_found', nunu); }); }
+        else if (kind === 'fight') { if (E.t - (S.fightSay || -99) < 50) return; S.fightSay = E.t; const who = [nunu, daddy, mommy, rory].find(e => e.here && !AI.held.has(e) && e.state !== 'lie' && e.state !== 'toilet'); if (who) setTimeout(() => { if (who.here) say(who === nunu ? pick(['nu_catfight1', 'nu_catfight2']) : who === daddy ? 'd_catfight' : who === mommy ? 'mo_catfight' : 'r_catfight', who); }, 900); }
+        else if (kind === 'pet') { if (E.t - (S.petSay || -99) < 70) return; S.petSay = E.t; if (nunu.here && chance(0.5)) say(pick(['nu_minka_trust', 'nu_minka_shy']), nunu); else say('m_minka_love'); }
+      } catch (e) { } }; }
+    if (window.LegoShelf && !S.hookL) { S.hookL = 1; LegoShelf.onEvent = (kind) => { try { const v = k => { const pr = Audio2.voice(k, k.split('_')[0]); try { chatter(pr); } catch (e) { } return pr; };
+        if (kind === 'keep') { v('m_shelf').then(() => { if (nunu.room === G.room) v('nu_shelf1'); }); } else if (kind === 'full') { if (nunu.room === G.room) v('nu_shelf_full'); } else if (kind === 'look' && nunu.room === G.room && chance(0.5)) v('nu_shelf2'); } catch (e) { } }; }
+    if (window.Builder && !S.hookB) { S.hookB = 1; Builder.onSay = k => jeffSays(k); }
+  }
   function happenings(dt) {
+    hooks();
+    // sweeping: she works her way slowly along the floor
+    if (nunu.state === 'sweep' && !AI.held.has(nunu)) { const W = ROOMS[nunu.room].w; nunu.x += nunu.dir * 5 * dt; if (nunu.x < 40) nunu.dir = 1; if (nunu.x > W - 40) nunu.dir = -1; if (nunu.here && !inActivity() && Math.floor(E.t * 1.6) !== Math.floor((E.t - dt) * 1.6)) Audio2.noise(0.12, 0.035, 2600); }
+    // her favourite films
+    if (nunu.here && !AI.held.has(nunu) && !nunu.moving && !nunu.carry && E.t - (S.lotrAt || -60) > 130 && S.downSince && E.t - S.downSince > 30 && pingOk(55) && chance(dt / 25)) filmTalk();
+    // Daddy on his phone, making a game
+    if (daddy.state === 'phone' && (daddy.moving || AI.held.has(daddy) || E.t > (S.phoneEnd || 0)) && !G.busy) daddy.state = 'idle';
+    if (daddy.state === 'idle' && !daddy.hidden && !daddy.moving && !AI.held.has(daddy) && Floors.MAIN.includes(daddy.room) && !daddy.holdingMiles && !G.pendingDish && !(G.chase && G.chase.who === daddy) && E.t - (S.phoneAt || -40) > 75 && chance(dt / 45)) {
+      daddy.state = 'phone'; S.phoneAt = E.t; S.phoneEnd = E.t + rnd(16, 30); daddy.wait = S.phoneEnd - E.t;
+      if (daddy.here && pingOk(50) && E.t - (S.phoneSay || -99) > 100) { S.phoneSay = E.t; ping(); setTimeout(() => { if (daddy.here && daddy.state === 'phone' && !G.busy) say(pick(PHONE), daddy); }, 1200); } }
     const down = DOWN.includes(G.room);
     if (!down) S.downSince = 0; else if (!S.downSince) S.downSince = E.t;
     // "there's a smell down here…"
@@ -87,7 +139,7 @@ const GRAND = (() => {
     if (jeff.here && !AI.held.has(jeff) && !jeff.moving && E.t - (S.workAt || 0) > 100 && Math.abs(jeff.x - marina.x) < 130 && pingOk(70) && chance(dt / 45)) { S.workAt = E.t; ping(); jeff.dir = Math.sign(marina.x - jeff.x) || 1; say(pick(['j_work1', 'j_work2', 'j_work3', 'j_helper']), jeff); }
   }
   async function smell() {
-    S.smellAt = E.t; ping(); AI.hold(nunu, true); nunu.stop(); if (nunu.state === 'sit') { nunu.state = 'idle'; nunu.y = FLOOR; }
+    S.smellAt = E.t; ping(); AI.hold(nunu, true); stand(nunu);
     nunu.face = '👃'; const iv = setInterval(() => { if (nunu.here) emit('stink', nunu.x + rnd(-50, 50), nunu.y - rnd(10, 70), 1); }, 220);
     try {
       await sayG(pick(['nu_smell1', 'nu_smell2', 'nu_smell3']), nunu); nunu.face = '😤'; nunu.dir = Math.sign(marina.x - nunu.x) || 1;
@@ -116,7 +168,7 @@ const GRAND = (() => {
 
   // ---------------------------------------------------------------- things to do with them
   const near = (e, fn, gap) => approach(e.x + (marina.x < e.x ? -(gap || 26) : (gap || 26)), () => { marina.dir = Math.sign(e.x - marina.x) || 1; e.dir = -marina.dir; fn(); }, 0);
-  const stand = e => { e.stop(); if (e.state === 'sit') { e.y = FLOOR; } if (['sit', 'hammer', 'wave', 'lie'].includes(e.state)) e.state = 'idle'; };
+  const stand = e => { e.stop(); if (e.state === 'sit') { e.y = FLOOR; } if (['sit', 'hammer', 'wave', 'lie', 'phone', ...CHORES].includes(e.state)) e.state = 'idle'; e.carry = false; };
   function hug(e) {
     if (G.busy) return; UI.closeActions(); stand(e); AI.hold(e, true);
     near(e, async () => { G.busy = true; try { emit('heart', (marina.x + e.x) / 2, marina.y - 70, 6); chip('hug'); const pr = pair('pair_hug_' + e.id, e, { dur: 2.2 });
@@ -182,14 +234,22 @@ const GRAND = (() => {
     approach(s.x + 22, () => { marina.dir = 1; nunu.walkTo(s.x - 30, go, 80); setTimeout(() => { if (G.busy && nunu.state !== 'sit') go(); }, 4000); }, 0);
   }
 
+  function helpNunu() {                                 // Marina lends a hand with the chores
+    if (G.busy) return; UI.closeActions(); const kind = nunu.carry ? 'fold' : nunu.state; AI.hold(nunu, true);
+    near(nunu, async () => { G.busy = true; try { await sayG('m_help_nunu'); say('nu_help', nunu); marina.state = 'cheer';
+        for (let i = 0; i < 6; i++) { Audio2.noise(0.12, 0.05, 2400); emit(kind === 'sweep' ? 'dust' : 'sparkle', marina.x + marina.dir * 14, marina.y - (kind === 'sweep' ? 2 : 40), 3); marina.offY = -3; await sleep(180); marina.offY = 0; await sleep(260); }
+        emit('star', (marina.x + nunu.x) / 2, marina.y - 70, 8); Audio2.jingle([0, 4, 7, 12], 0.07); await sayG('nu_help_thanks', nunu); try { did('helper'); } catch (x) { } } catch (x) { }
+      if (marina.state === 'cheer') marina.state = 'idle'; marina.offY = 0; G.busy = false; AI.hold(nunu, false); }, 30);
+  }
   const _ea = entActions;
   entActions = function (e) {
-    if (e === nunu) { const a = [A('🤗', () => hug(nunu))];
+    if (e === nunu) { const busy = CHORES.includes(nunu.state) && nunu.state !== 'point' || nunu.carry, a = [A('🤗', () => hug(nunu))];
+      if (busy) a.push(A('🧹', helpNunu));
       if (G.holding && G.holding.type === 'dish') a.unshift(A('🍽️', noFood));
       if (typeof openStory === 'function') a.push(A('📖', () => { UI.closeActions(); say('nu_story', nunu).then(() => openStory()); }));
       if (G.room === 'den' && window.Bricks) a.push(A('🧱', legoWith));
       if (G.room === 'den' && window.Movies) a.push(A('🎬', movieNight));
-      a.push(A('😜', () => { stand(nunu); tellJoke(nunu); }));
+      if (!busy) a.push(A('😜', () => { stand(nunu); tellJoke(nunu); }));
       if (G.fort && G.fort.complete && G.fort.room === G.room) a.push(A('🏰', () => inviteToFort(nunu)));
       return a; }
     if (e === jeff) { const a = [];
@@ -200,6 +260,7 @@ const GRAND = (() => {
       return a; }
     const a = _ea(e);
     if (e === daddy && G.septic && daddy.state !== 'toilet') a.unshift(A('📞', tellDaddy));
+    if (e === daddy && daddy.state === 'phone') a.unshift(A('📱', phoneScene));
     return a;
   };
 

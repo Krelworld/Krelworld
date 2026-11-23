@@ -85,6 +85,7 @@ function drawEnt(e) {
       if (e.state === 'toilet') return;
       if (e.state === 'shoulders' && has('daddy_shoulders') && e.id === 'daddy') { drawSprite(e.moving ? (frameKey('daddy_shoulders_walk', t, 12) || 'daddy_shoulders') : 'daddy_shoulders', e.x, e.y + Math.abs(Math.sin(t * 10)) * (e.moving ? -2 : 0), { flip, opt: null }); return; }
       if (e.hugT > E.t && has(e.id + '_hug')) { drawSprite(e.id + '_hug', e.x, e.y, { flip }); return; }
+      if (e.state === 'phone' && !e.moving) { if (frameCount(e.id + '_phone')) drawSprite(frameKey(e.id + '_phone', t, 3), e.x, e.y, { flip }); else { drawSprite(e.id, e.x, e.y, { flip }); emoji('📱', e.x + e.dir * 9, e.y - 48 + Math.sin(t * 5), 9); } return; }
       if (e.state === 'eat' && frameCount(e.id + '_eat')) { drawSprite(frameKey(e.id + '_eat', t, 7), e.x, e.y, { flip }); if (chance(0.1)) emit('dust', e.x + e.dir * 10, e.y - 60, 1, { col: '#e8c27a', g: 200, vy: -10 }); return; }
       const k = e.moving ? frameKey(e.id + '_walk', t, e.curSpeed > 80 ? 16 : 9) : e.id;
       let sy = 1, rot = 0, oy = 0;

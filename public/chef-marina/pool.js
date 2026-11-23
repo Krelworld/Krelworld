@@ -706,7 +706,7 @@
         if (G.ph === 'gather') { if (aMove(A, 270, dt) || G.t > 7) { go('spin'); G.th = Math.PI; G.cx = 196; bub(A, '🌀', 1.4); if (A.c !== 'd' || !line('d_spin')) SND.whee(); } break; }
         A.lying = false; A.y = floorAt(A.x);
         if (G.ph === 'spin') {
-          const pw = Math.min(1, G.t / 1.5) * clamp((9.5 - G.t) / 1.2, 0, 1); S.swell = 4.5 * pw; G.pw = pw; A.pose = 'throw';
+          const pw = Math.min(1, G.t / 1.5) * clamp((9.5 - G.t) / 1.2, 0, 1); S.swell = 6.5 * pw; G.pw = pw; if (chance(0.5 * pw)) foam(G.cx + rnd(-90, 90), rnd(-60, 60)); A.pose = 'throw';
           if (Math.floor(G.t / 0.24) > Math.floor((G.t - dt) / 0.24)) { A.dir = -A.dir; poke(A.x + A.dir * 14, 70 * pw, 9); drop(A.x + A.dir * 16, surf(A.x) - 2, A.dir * rnd(30, 80), rnd(-120, -60)); if (chance(0.4)) SND.stroke(); }
           if (M.st === 'swim' || M.st === 'float') { if (M.st === 'float') leaveSeat(M, false); M.st = 'held'; M.tx = null; G.th = Math.atan2((M.y - 27) / 18, (M.x - G.cx) / 80); }
           if (M.st === 'held') {
@@ -922,9 +922,7 @@
   // a finger on the pool at world x, y. -> true if she is now swimming after the finger (so a drag keeps steering)
   function tapWorld(x, y) {
     const M = S.M, A = S.A, G = S.game; if (S.leaving) return false; S.taps++;
-    for (const t of S.toys) if (t.st === 'deck' && Math.abs(x - t.x) < (t.dive ? 6.5 : t.w + 3) && Math.abs(y - t.y) < 11) { throwIn(t); return false; }
-    if (S.cat.st === 0 && Math.abs(x - CAT.x) < 16 && y > CAT.y - 40 && y < CAT.y + 4) { S.cat.hop = S.t; try { Audio2.sfx(chance(0.5) ? 'meow1' : 'purr'); } catch (e) { } return false; }
-    if (Math.hypot(x - S.fly.x, y - S.fly.y) < 10) { S.fly.scare = S.t + 2.5; SND.sparkle(); return false; }
+    for (const t of S.toys) if (t.st === 'deck' && t.dive && Math.abs(x - t.x) < 6.5 && Math.abs(y - t.y) < 11) { throwIn(t); return false; }       // the treasure row: throw one in
     if (G && G.ph !== 'gather') {                     // in a game the finger means what the game needs
       if (G.id === 'ride') { G.tgt = { x: clamp(x, X0 + 40, X1 - 50), y: clamp(y, 0, 60) }; S.ping = { x, y: Math.max(y, 0), t: S.t }; return true; }
       if (G.id === 'war') { if (G.ph === 'war' && S.t - G.last > 0.1) { G.last = S.t; warSplash(G, M, A, 9); G.n++; G.mT = 1.3; } return false; }
@@ -938,14 +936,17 @@
       if (t.st !== 'float') continue; const dx = Math.abs(x - t.x), dy = y - t.y;
       if (t.k === 'ball') { if (dx < 16 && Math.abs(dy) < 16) { bop(t, A && A.wet ? sgn(A.x - t.x) * rnd(30, 90) : rnd(-70, 70), -205); return false; } }
       else if (t.k === 'duck') { if (dx < 13 && Math.abs(dy) < 15) { t.vy = -70; poke(t.x, 20, 5); tone('square', 950, 700, 0.09, 0.14); tone('square', 1000, 640, 0.1, 0.14, 0.12); return false; } }
-      else if (t.big) { if (dx < t.w + 2 && dy > -32 && dy < 16) {
-        if (t.rider === M) leaveSeat(M, true); else if (t.rider && t.rider === A) { if (A.act) A.act.tip = 1; } else if (M.wet && M.st === 'swim' && !G) swimTo(M, t.x, 0, { seat: t }); else if (onDeck(M) && M.st !== 'bounce') hopIn(M, t.x - 30);
+      else if (t.big) { if (dx < t.w - 3 && dy > -30 && dy < 10) {
+        if (t.rider === M) leaveSeat(M, true); else if (t.rider && t.rider === A) { if (A.act) A.act.tip = 1; } else if (M.wet && (M.st === 'swim' || M.st === 'float') && !G) swimTo(M, t.x, 0, { seat: t }); else if (onDeck(M) && M.st !== 'bounce') hopIn(M, t.x - 30);
         return false; } }
       else if (dx < 16 && Math.abs(dy) < 12) {
         if (t.held === M) { if (t.k === 'blaster') squirt(); else { t.held = null; if (M.noodle === t) M.noodle = null; if (M.fin === t) M.fin = null; t.x = M.x; } return false; }
-        if (M.wet && M.st === 'swim' && !G) { swimTo(M, t.x - (t.k === 'blaster' ? 10 * sgn(t.x - M.x) : 0), 0, { [t.k === 'blaster' ? 'gun' : t.k]: t }); return false; }
+        if (M.wet && (M.st === 'swim' || M.st === 'float') && !G) { swimTo(M, t.x - (t.k === 'blaster' ? 10 * sgn(t.x - M.x) : 0), 0, { [t.k === 'blaster' ? 'gun' : t.k]: t }); return false; }
       }
     }
+    for (const t of S.toys) if (t.st === 'deck' && !t.dive && Math.abs(x - t.x) < t.w + 3 && Math.abs(y - t.y) < 11) { throwIn(t); return false; }             // toys waiting on the far edge hop in
+    if (S.cat.st === 0 && Math.abs(x - CAT.x) < 16 && y > CAT.y - 40 && y < CAT.y + 4) { S.cat.hop = S.t; try { Audio2.sfx(chance(0.5) ? 'meow1' : 'purr'); } catch (e) { } return false; }
+    if (Math.hypot(x - S.fly.x, y - S.fly.y) < 10) { S.fly.scare = S.t + 2.5; SND.sparkle(); return false; }
     if (Math.abs(x - M.x) < 16 && Math.abs(y - M.y) < 27) {       // herself
       if (M.st === 'float') leaveSeat(M, true); else if (M.gun) squirt(); else if (M.st === 'swim') trick(M); else if (M.st === 'deck') { M.hopT = S.t; SND.plip(0.2); }
       return false;
@@ -1131,7 +1132,7 @@
     for (let L = 0; L < 2; L++) { g.globalAlpha = L ? 0.2 : 0.26; const ox = ((L ? -t * 5 : t * 8) % 128 + 128) % 128, oy = ((L ? t * 3 : t * 2.2) % 64 + 64) % 64; for (let x = X0 - ox; x < X1; x += 128) for (let y = 4 - oy; y < DEEP; y += 64) g.drawImage(S.caus, x, y); }
     g.globalAlpha = 0.07; g.fillStyle = '#ffffff'; for (let i = 0; i < 5; i++) { const x = X0 + 30 + i * 58 + Math.sin(t * 0.6 + i * 2) * 12, w = 10 + (i % 3) * 5; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + w, 0); g.lineTo(x + w + 34, DEEP); g.lineTo(x + 26, DEEP); g.fill(); }
     g.restore();
-    if (G && G.id === 'whirl' && G.ph === 'spin') { g.strokeStyle = 'rgba(255,255,255,' + (0.55 * G.pw).toFixed(2) + ')'; g.lineWidth = 1; for (let i = 0; i < 5; i++) { const a0 = G.th * (0.6 + i * 0.1) + i * 1.3, r = 0.32 + i * 0.17; g.beginPath(); g.ellipse(G.cx, 27, 84 * r, 19 * r + 3, 0, a0, a0 + 1.5); g.stroke(); } }
+    if (G && G.id === 'whirl' && G.ph === 'spin') { g.strokeStyle = 'rgba(255,255,255,' + (0.8 * G.pw).toFixed(2) + ')'; g.lineWidth = 1.6; for (let i = 0; i < 6; i++) { const a0 = G.th * (0.6 + i * 0.1) + i * 1.3, r = 0.28 + i * 0.16; g.beginPath(); g.ellipse(G.cx, 27, 84 * r, 19 * r + 3, 0, a0, a0 + 1.7); g.stroke(); } }
     // the hand-rail by the steps, the little ladder by the board, the board itself
     g.lineWidth = 2; g.strokeStyle = '#c3ccd6'; g.beginPath(); g.moveTo(X1 + 12, DECK); g.lineTo(X1 + 12, DECK - 12); g.quadraticCurveTo(X1 + 10, DECK - 20, X1 + 2, DECK - 17); g.lineTo(X1 - 20, 8); g.stroke(); g.lineWidth = 1; g.strokeStyle = '#f2f6fa'; g.beginPath(); g.moveTo(X1 + 11, DECK - 1); g.lineTo(X1 + 11, DECK - 12); g.quadraticCurveTo(X1 + 9, DECK - 20, X1 + 2, DECK - 18); g.lineTo(X1 - 20, 7); g.stroke();
     px(g, X0 - 7, DECK - 11, 2, 11, '#c3ccd6'); px(g, X0 - 7, DECK - 12, 11, 2, '#dfe6ee'); px(g, X0 + 3, DECK - 11, 2, 36, '#c3ccd6'); for (let y = 4; y < 24; y += 8) px(g, X0, y, 4, 1, '#dfe6ee');
@@ -1141,10 +1142,8 @@
     for (let x = BRD0 + 6; x < TIP + 5; x += 2) { const y = Math.round(plankY(x)); px(g, x, y, 2, 1, (x >> 2) & 1 ? '#7fd8f0' : '#ffffff'); px(g, x, y + 1, 2, 2, '#f1f5f9'); px(g, x, y + 3, 2, 2, x > TIP + 2 ? '#1c8fb3' : '#2aa6c9'); }
     for (const q of S.toys) if (q.st === 'sunk' || q.st === 'sink' || (q.st === 'fly' && q.dive)) drawToy(g, q);
     // people and toys
-    const uni = S.toys.find(q => q.k === 'unicorn'), aOnUni = A && uni && uni.rider === A;
-    if (S.B) drawAdult(g, S.B); if (A && !aOnUni) drawAdult(g, A);
-    for (const q of S.toys) if (q.st === 'float' && q.big) drawToy(g, q);
-    if (aOnUni) drawAdult(g, A);
+    for (const q of S.toys) if (q.st === 'float' && q.big) drawToy(g, q);           // the big floats sit behind people, so nobody's face is hidden
+    if (S.B) drawAdult(g, S.B); if (A) drawAdult(g, A);
     drawMarina(g);
     for (const q of S.toys) if ((q.st === 'float' && !q.big) || (q.st === 'fly' && !q.dive)) drawToy(g, q);
     // the water over everything that is in it: a see-through tint, deeper = bluer, and the living line on top

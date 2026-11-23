@@ -1,9 +1,13 @@
 // Chef Marina — the spa bath upstairs: choose a swimsuit, climb in through the little door, fill the tub, bubble bath,
 // three jets (whirlpool / floor bubbles / colour lights), bath toys, the hand shower and lots of splashing.
-// Everything is drawn on one small pixel canvas inside #panel; every touch is a pointer event on that canvas.
+// Everything is drawn on one small pixel canvas inside #panel; every touch is a pointer event on that canvas (no words anywhere).
 //   Spa.open({ onDone(result) })   result = { suit, toys, jets, bubbles, toyList, jetList, overflow, splashes }
-//                                  (toys / jets / bubbles are counts: different toys played with, different jets tried, squirts of bubble bath)
-//   Spa.close()                    leave at once (the ❌ button does the same)
+//                                  suit: 'rainbow' | 'dots' | 'mermaid' | 'shark' | 'sunflower' | 'hero'
+//                                  toys / jets / bubbles are counts (different toys played with, different jets tried, squirts of bubble bath);
+//                                  toyList / jetList name them. onDone is only called when she finishes with ✅, not after ❌.
+//   Spa.close()                    leave at once (the ❌ button does the same): stops every sound and timer
+// Pictures live in assets/spa/: scene_p.png + scene_l.png (the room, upright and sideways), tub.png, props.png (toys, basket, bottle, shower),
+// marina.png, suit_<name>.png, towel.png (her 64x64 sprites; the face is in the same place on every one so the blinks line up).
 (function () {
   'use strict';
   const DIR = 'assets/spa/';
@@ -26,7 +30,7 @@
   // ---- two paintings of the room, one for a phone held upright and one for sideways. tx/ty = where the tub stands in the painting.
   const MODES = {
     p: { bg: 'scene_p', w: 152, h: 300, minW: 148, minH: 228, tx: 6, ty: 148, ay: 0.75, stand: [58, 126], doorY: 104, go: [98, 109], basket: [1, 98], bottle: [73, -32], hook: [132, -32] },
-    l: { bg: 'scene_l', w: 304, h: 152, minW: 290, minH: 136, tx: 102, ty: 38, ay: 0.62, stand: [-20, 102], doorY: 100, go: [98, 96], basket: [-68, 68], bottle: [173, 36], hook: [160, -12] },
+    l: { bg: 'scene_l', w: 304, h: 152, minW: 290, minH: 136, tx: 102, ty: 38, ay: 0.62, stand: [-20, 102], doorY: 100, go: [98, 93], basket: [-68, 68], bottle: [173, 36], hook: [160, -12] },
   };
 
   // ---- pictures
@@ -56,7 +60,7 @@
     } catch (e) { }
     return h;
   }
-  function hushAll() { for (const h of [...live]) h.stop(); snd('hush', 'm'); }
+  function hushAll(keepVoice) { for (const h of [...live]) h.stop(); if (!keepVoice) snd('hush', 'm'); }
 
   // ---- little helpers
   const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[(Math.random() * a.length) | 0];
@@ -102,7 +106,7 @@
       '.spa-cv{display:block;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;border-radius:14px;background:#6aa99a;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;box-shadow:0 5px 0 rgba(0,0,0,.3)}' +
       '.spa-top .pbtn{flex:0 0 auto}' +
       '@media (orientation:landscape){.ptop.spa-top{position:absolute;left:calc(8px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));z-index:3;min-height:0;pointer-events:none}' +
-      '.ptop.spa-top .pbtn{pointer-events:auto;min-width:56px;height:56px;border:3px solid #fff}.ptop.spa-top .ttl{display:none}}';
+      '.ptop.spa-top .pbtn{pointer-events:auto;min-width:60px;height:60px;border:2px solid #fff}.ptop.spa-top .ttl{display:none}}';
     document.head.append(s);
   }
 
@@ -124,7 +128,7 @@
       m: { x: 0, y: 0, oy: 0, layer: 'out', pose: 'stand', sprite: 'marina', next: null, twirl: 0, flip: false, walk: false, look: [0, 0], lookT: 0, blink: 0, nextBlink: 2, face: null, faceT: 0, shake: 0, jump: 0, hat: 0, beard: 0, shrug: 0, rinse: 0 },
       L: 0, tap: false, tapSnd: null, soap: 0, foam: new Float32Array(NF), energy: 0, ripples: [], jets: [false, false, false], jetOn: [0, 0, 0], sput: [0, 0, 0], hue: 190, over: 0, settle: 0,
       toys: [], left: TOYS.slice(), basketBump: 0, parts: [], puddles: [], ffoam: [], drags: new Map(), door: 0, doorTo: 0,
-      shower: { held: false, x: 0, y: 0, snd: 0 }, bottle: { t: -1 }, donePress: 0, idle: 0, lastTalk: -9, lastLine: '', sndT: {},
+      shower: { held: false, x: 0, y: 0, back: 0 }, bottle: { t: -1 }, donePress: 0, idle: 0, lastTalk: -9, lastLine: '', sndT: {},
       stats: { toys: new Set(), jets: new Set(), bubbles: 0, overflow: false, splashes: 0, tap: false, wow: false },
     };
     layout(); S.m.x = S.M.stand[0]; S.m.y = S.M.stand[1];
@@ -146,12 +150,12 @@
     jingle([0, 4, 7, 12], 0.07, 'triangle');
   }
 
-  function teardown() {
+  function teardown(keepVoice) {
     const me = S; if (!me) return; S = null;
-    cancelAnimationFrame(me.raf); if (me.off) me.off(); me.q.length = 0; hushAll();
+    cancelAnimationFrame(me.raf); if (me.off) me.off(); me.q.length = 0; hushAll(keepVoice);
   }
-  function close() {
-    const was = S; teardown();
+  function close(keepVoice) {
+    const was = S; teardown(keepVoice === true);
     const p = document.getElementById('panel');
     if (p && (was ? was.cv.isConnected : !!p.querySelector('.spa-cv'))) { p.classList.add('hidden'); p.innerHTML = ''; }
     try { if (typeof setMusic === 'function') setMusic(); } catch (e) { }
@@ -159,7 +163,7 @@
   function finish() {
     const st = S.stats, cb = S.opts.onDone;
     const res = { suit: S.suit, toys: st.toys.size, jets: st.jets.size, bubbles: st.bubbles, toyList: [...st.toys], jetList: [...st.jets], overflow: st.overflow, splashes: st.splashes };
-    close();
+    close(true);                 // let her finish her happy shout
     if (typeof cb === 'function') { try { cb(res); } catch (e) { console.error('spa onDone', e); } }
   }
 
@@ -459,6 +463,7 @@
       return;
     }
     if (once('home', 0.15)) { const m = S.m; if (m.hat) popHat(); S.toys.forEach((o, i) => { if (o.st !== 'fly' || o.dest !== 'home') sendHome(o, i * 0.1); }); }
+    if (S.ev.home) for (const o of S.toys) if (o.st !== 'fly') sendHome(o);          // one that was still in the air when the plug was pulled
     if (S.pt > 0.5 && !S.toys.length || S.pt > 2.5) { S.phase = 'exit'; S.pt = 0; S.ev = {}; S.doorTo = 1; sfx('door_open', { vol: 0.7 }); }
   }
   function stepExit() {
@@ -511,14 +516,13 @@
     if (S.hintTap > 0) S.hintTap -= dt;
 
     // jets
-    const anyJet = S.jets[0] || S.jets[1];
     if (S.jets[0]) {
       const ph = Math.sin(t * 0.9);
       for (const [x, y] of nozzles(0)) if (y > wyAt(x) + 1) { const dir = x < 70 ? 1 : -1, pw = 0.55 + 0.45 * (dir > 0 ? ph : -ph); for (let k = 0; k < 3; k++) part({ k: 'bub', x, y: y + rnd(-1, 1), vx: dir * rnd(55, 110) * (0.6 + pw * 0.5), vy: rnd(-14, 3), life: rnd(0.5, 1.1), in: true, jet: true, r: Math.random() < 0.4 ? 2 : 1 }); }
       if (every('jw', 0.24)) { noise(0.3, 0.035, 240); blip(-31, 'sine', 0.22, 0.09); }
     }
     if (S.jets[1]) {
-      for (const [x, y] of nozzles(1)) if (Math.random() < 0.6) part({ k: 'bub', x: x + rnd(-3, 3), y, vx: rnd(-5, 5), vy: rnd(-70, -36), life: 1.2, in: true, r: Math.random() < 0.3 ? 2 : 1 });
+      for (const [x, y] of nozzles(1)) for (let k = 0; k < 2; k++) if (Math.random() < 0.75) part({ k: 'bub', x: x + rnd(-4, 4), y: y + rnd(-1, 2), vx: rnd(-6, 6), vy: rnd(-74, -34), life: 1.2, in: true, r: Math.random() < 0.45 ? 2 : 1 });
       if (every('jf', 0.11)) blip(pick([17, 19, 21, 24, 26]) + rnd(-1, 1), 'sine', 0.045, 0.045);
       if (every('jfn', 0.3)) noise(0.3, 0.025, 1400);
     }
@@ -615,12 +619,10 @@
     c.save(); c.beginPath(); c.rect(-60, -120, 320, 120 + FRONT); c.clip();
     drawLights(c);
     if (S.tap) drawStream(c);
-    drawParts(c, q => q.in && q.k === 'bub' && q.jet);
     if (m.layer === 'in') drawMarina(c);
     for (const o of S.toys) if (o.st === 'head') drawToy(c, pr, o);
     for (const o of S.toys) if (o.st === 'free' || (o.st === 'held' && o.sub)) drawToy(c, pr, o);
-    drawParts(c, q => q.in && q.k === 'bub' && !q.jet);
-    drawWater(c); drawFoam(c);
+    drawWater(c); drawJetStreams(c); drawParts(c, q => q.in && q.k === 'bub'); drawFoam(c);
     for (const o of S.toys) if (o.st === 'free') { c.save(); c.beginPath(); c.rect(o.x - 20, -120, 40, 120 + Math.min(FRONT, wyAt(o.x) + 1)); c.clip(); drawToy(c, pr, o); c.restore(); }   // toys bob in front of the suds, not behind them
     drawParts(c, q => q.in && q.k !== 'bub');
     c.restore();
@@ -634,7 +636,7 @@
     if (S.bottle.t >= 0) drawBottle(c, pr, true);
     if (S.shower.held) drawShower(c, pr);
     drawParts(c, q => !q.in && q.k !== 'spill');
-    if (S.jets[2] && wet()) { c.globalCompositeOperation = 'lighter'; c.fillStyle = `hsla(${S.hue | 0},90%,55%,.07)`; c.fillRect(-140, -200, 480, 420); c.globalCompositeOperation = 'source-over'; }
+    if (S.jets[2] && wet()) { c.globalCompositeOperation = 'lighter'; c.fillStyle = `hsla(${hue()},90%,55%,.07)`; c.fillRect(-140, -200, 480, 420); c.globalCompositeOperation = 'source-over'; }
     drawHints(c);
     // --- screen space: swimsuit cards and the all-done button
     c.setTransform(1, 0, 0, 1, 0, 0);
@@ -683,14 +685,18 @@
     box(c, x - 1, y1 - 2, 6, 2, '#d6f2ff');
   }
   function drawLights(c) {
-    if (S.jets[0] && wet()) for (const [x, y] of nozzles(0)) {        // whirlpool jets: white streaks shooting out of the side nozzles
-      if (y < wyAt(x) + 1) continue; const dir = x < 70 ? 1 : -1;
-      for (let k = 0; k < 3; k++) { const d = 3 + ((S.t * 70 + k * 11 + y * 3) % 30); box(c, x + dir * d - (dir < 0 ? 4 : 0), y + (k % 2) - 1, 5 - (d > 20 ? 2 : 0), 1, d > 20 ? 'rgba(255,255,255,.45)' : 'rgba(255,255,255,.85)'); }
-    }
     if (!S.jets[2] || !wet()) return;
-    nozzles(2).forEach(([x, y], i) => { if (y < wyAt(x)) return; const h = (S.hue + i * 40) % 360; disc(c, x, y, 7, `hsla(${h | 0},95%,65%,.35)`); disc(c, x, y, 4, `hsla(${h | 0},95%,75%,.6)`); disc(c, x, y, 2, '#ffffff'); });
+    nozzles(2).forEach(([x, y], i) => { if (y < wyAt(x)) return; const h = hue(i * 40); disc(c, x, y, 7, `hsla(${h},95%,65%,.35)`); disc(c, x, y, 4, `hsla(${h},95%,75%,.6)`); disc(c, x, y, 2, '#ffffff'); });
   }
-  function waterCol(a, light) { return S.jets[2] ? `hsla(${S.hue | 0},88%,${light || 60}%,${a})` : `rgba(${light ? '150,215,250' : '74,170,235'},${a})`; }
+  function drawJetStreams(c) {      // whirlpool jets: white streaks shooting out of the side nozzles
+    if (!S.jets[0] || !wet()) return;
+    for (const [x, y] of nozzles(0)) {
+      if (y < wyAt(x) + 1) continue; const dir = x < 70 ? 1 : -1;
+      for (let k = 0; k < 4; k++) { const d = 2 + ((S.t * 80 + k * 10 + y * 3) % 40), far = d > 24; box(c, x + dir * d - (dir < 0 ? 5 : 0), y + (k % 3) - 1, far ? 3 : 6, 1, far ? 'rgba(255,255,255,.5)' : '#ffffff'); }
+    }
+  }
+  const hue = d => ((((S.hue + (d || 0)) % 360) / 6) | 0) * 6;
+  function waterCol(a, light) { return S.jets[2] ? `hsla(${hue()},88%,${light || 60}%,${a})` : `rgba(${light ? '150,215,250' : '74,170,235'},${a})`; }
   function drawWater(c) {
     if (S.L <= 0.004) return;
     const t = S.t, lit = S.jets[2];
@@ -703,14 +709,15 @@
     c.fillStyle = 'rgba(255,255,255,.35)';                                  // little glints sliding along under the surface
     for (let i = 0; i < 5; i++) { const x = IX0 + ((i * 29 + t * (7 + i * 2)) % (IX1 - IX0 - 8)), y = ys[x | 0] + 5 + (i * 5) % 12; if (y < FRONT - 1) c.fillRect(R(x), R(y), 5 - (i % 2) * 2, 1); }
     if (S.phase === 'drain' && S.L > 0.02) {                                // the whirl over the plug hole
-      const y = wyAt(DRAIN); for (let k = 0; k < 3; k++) { const a = t * 9 + k * 2.1, rr = 3 + k * 2.5; box(c, DRAIN + Math.cos(a) * rr * 1.6, y + 1 + Math.sin(a) * rr * 0.35, 2, 1, '#ffffff'); }
-      box(c, DRAIN - 1, y + 1, 2, Math.max(1, R(FRONT - y - 1)), 'rgba(255,255,255,.5)');
+      const y = wyAt(DRAIN);
+      for (let k = 0; k < 18; k++) { const a = t * 11 - k * 0.55, rr = 1 + k * 0.62; box(c, DRAIN + Math.cos(a) * rr * 1.7, y + 2 + Math.sin(a) * rr * 0.42, k > 9 ? 2 : 1, 1, k % 3 ? '#ffffff' : 'rgba(255,255,255,.6)'); }
+      for (let yy = y + 3; yy < FRONT; yy += 2) box(c, DRAIN + Math.sin(yy * 0.9 + t * 14) * 1.5, yy, 1, 2, 'rgba(255,255,255,.75)');       // the twisting funnel going down the plug hole
     }
   }
   function drawFoam(c) {
     const F = S.foam; let any = false; for (let i = 0; i < NF; i++) if (F[i] > 0.7) { any = true; break; } if (!any) return;
     c.save(); c.beginPath(); c.rect(IX0, -140, IX1 - IX0, 140 + FRONT); c.clip();
-    const tint = S.jets[2] ? `hsl(${S.hue | 0},70%,82%)` : '#b9d6ec', L = [];
+    const tint = S.jets[2] ? `hsl(${hue()},70%,82%)` : '#b9d6ec', L = [];
     for (let i = 0; i < NF; i++) {
       const h = F[i]; if (h < 0.7) continue; const x = IX0 + 1 + i * 2, base = wyAt(x), n = Math.max(1, Math.ceil(h / 3.4));
       for (let j = 0; j < n; j++) { const r = 2 + ((i * 7 + j * 3) % 3 === 0 ? 1 : 0) + (h > 9 && j < n - 1 ? 1 : 0); L.push(x + ((i * 13 + j * 7) % 3) - 1, base - Math.min(h, j * 3.4 + 0.6) + 1, r); }
@@ -753,7 +760,7 @@
   function drawJets(c) {
     for (let i = 0; i < 3; i++) {
       const [x, y] = JET[i], on = S.jets[i], sp = S.sput[i] > 0, t = S.t, press = on ? 1 : 0;
-      if (on) { const pulse = 12 + (Math.sin(t * 6 + i) > 0 ? 1 : 0); disc(c, x, y, pulse, i === 2 ? `hsla(${S.hue | 0},95%,70%,.55)` : JCOL[i][1]); }
+      if (on) { const pulse = 12 + (Math.sin(t * 6 + i) > 0 ? 1 : 0); disc(c, x, y, pulse, i === 2 ? `hsla(${hue()},95%,70%,.55)` : JCOL[i][1]); }
       disc(c, x, y + 1, 10, '#7f8aa3'); disc(c, x, y + press - 1, 10, '#2a2d3f'); disc(c, x, y + press - 1, 9, on ? JCOL[i][0] : sp && Math.sin(t * 40) > 0 ? '#ffd9d9' : '#ffffff');
       if (!on) disc(c, x, y + press, 7, '#e8edf4'); else disc(c, x - 3, y + press - 5, 2, 'rgba(255,255,255,.6)');
       const ic = ICON[JNAME[i]], ix = x - 5, iy = y + press - (i === 2 ? 4 : 6);
@@ -775,22 +782,22 @@
       else if (S.L > 0.25 && !st.bubbles) at = [M.bottle[0] + 8, M.bottle[1] - 2, M.bottle[0] + 8, M.bottle[1] + 11];
       else if (S.L > 0.25 && !st.jets.size) at = [JET[1][0], 62, JET[1][0], 75];
       else if (!st.toys.size) at = [M.basket[0] + 22, M.basket[1] - 10, M.basket[0] + 22, M.basket[1] + 12];
+      else if (S.m.hat && !st.shower && S.over <= 0 && S.idle > 5) at = [M.hook[0] - 2, M.hook[1] - 12, M.hook[0] - 1, M.hook[1] + 3];
     }
     if (!at) return; const y = at[1] - 17 - Math.abs(Math.sin(t * 5)) * 5, rr = 13 + ((t * 9) % 6);
     ring(c, at[2], at[3], rr, 'rgba(255,255,255,' + (0.9 - (rr - 13) / 7).toFixed(2) + ')'); ring(c, at[2], at[3], rr + 1, 'rgba(255,214,62,' + (0.9 - (rr - 13) / 7).toFixed(2) + ')');
     bmp(c, ICON.hint, at[0] - 6, y, { '#': '#5a3b00', o: '#ffd23e', w: '#fff3b0' });
   }
   function drawCards(c) {
-    const t = S.cardT, out = S.phase === 'enter' ? S.pt / 0.35 : 0, sp = img('marina');
+    const t = S.cardT, out = S.phase === 'enter' ? S.pt / 0.35 : 0, sp = img('marina'); if (!ok(sp)) return;
     for (const cd of cards()) {
       const u = clamp((t - cd.i * 0.07) / 0.35, 0, 1), drop = (1 - ease(u)) * -(cd.y + cd.h + 6) - out * (cd.y + cd.h + 10), sel = S.suit === cd.name;
       const x = cd.x + (S.cardShake > 0 ? R(Math.sin(S.t * 50 + cd.i) * 2) : 0), y = R(cd.y + drop + (sel ? -1 : Math.sin(S.t * 2 + cd.i * 1.3) * 0.8));
       rbox(c, x + 1, y + 3, cd.w, cd.h, 'rgba(30,22,50,.35)');
       if (sel) { rbox(c, x - 2, y - 2, cd.w + 4, cd.h + 4, '#ffffff'); rbox(c, x - 1, y - 1, cd.w + 2, cd.h + 2, '#ffb400'); } else rbox(c, x, y, cd.w, cd.h, '#3a2f57');
       rbox(c, x + 1, y + 1, cd.w - 2, cd.h - 2, '#ffffff'); rbox(c, x + 2, y + 2, cd.w - 4, cd.h - 4, cd.bg);
-      const im = img('suit_' + cd.name), sh = cd.h - 5;
-      if (ok(im)) { c.save(); c.beginPath(); c.rect(x + 2, y + 2, cd.w - 4, cd.h - 4); c.clip(); c.drawImage(im, 14, 5, 36, sh, x + R((cd.w - 36) / 2), y + 3, 36, sh); c.restore(); }
-      else if (ok(sp)) c.drawImage(sp, 14, 5, 36, sh, x + R((cd.w - 36) / 2), y + 3, 36, sh);
+      const im = img('suit_' + cd.name), sh = cd.h - 4, sy = cd.h < 48 ? 11 : 7;
+      c.save(); c.beginPath(); c.rect(x + 2, y + 2, cd.w - 4, cd.h - 4); c.clip(); c.drawImage(ok(im) ? im : sp, 14, sy, 36, sh, x + R((cd.w - 36) / 2), y + 2, 36, sh); c.restore();
       if (sel) { disc(c, x + cd.w - 6, y + 6, 6, '#ffffff'); disc(c, x + cd.w - 6, y + 6, 5, '#3cba6a'); bmp(c, ['....#', '#..#.', '.##..'], x + cd.w - 9, y + 5, { '#': '#ffffff' }); if (Math.sin(S.t * 7) > 0.6) bmp(c, ICON.star, x + 3, y + 3, { '#': '#ffffff' }); }
     }
   }
@@ -843,5 +850,5 @@
     if (m.shrug > 0) { const x = R(m.x) + 10, y = R(m.y + m.oy) - 74; disc(c, x, y, 8, '#3a2f57'); disc(c, x, y, 7, '#ffffff'); disc(c, x - 7, y + 9, 2, '#ffffff'); bmp(c, ICON.drop, x - 2, y - 4, { '#': '#49b4f2' }); box(c, x - 6, y - 1, 12, 2, '#ee4b5a'); }
   }
 
-  window.Spa = { open, close, _state: () => S };   // _state is only for tests
+  window.Spa = { open, close: () => close(), _state: () => S };   // _state is only for tests
 })();

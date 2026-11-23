@@ -51,5 +51,54 @@ export const BRAWL_TEXTS: RegExp[] = [/^MASH FOR A FLURRY\. HOLD R TO BLAST KI/,
 export const COMBAT_WORDING_FIRST: WordingRule[] = [
   { id: "walk-up-press-e", re: /\(walk up, press E\)/g, to: "(walk up, tap ACTION)" },
   { id: "mash-attack-dodge", re: /\bMash ATTACK \/ DODGE if he gets you\b/g, to: "Mash FIRE / DODGE if he gets you" },
+  // the fights' own toasts (system hints, G "toast"; matched whole so no other "Press E" line is reached)
+  { id: "crate-walk-over", re: /^Something glowing dropped in\. Walk over and press E\.$/, to: "Something glowing dropped in. Walk over and tap ACTION." },
+  { id: "crate-open", re: /^A weapons crate appeared\. Press E to open it\.$/, to: "A weapons crate appeared. Tap ACTION to open it." },
+  { id: "wonk-full", re: /^WONK FULL\. KREZZ FULL\. Press R\.$/, to: "WONK FULL. KREZZ FULL. Tap WONK!" },
+  { id: "ibs-ready", re: /^Press G \(or the 💨 button\) to unleash it\.$/, to: "Tap 💨 (top left) to unleash it." },
+  { id: "krezz-shield", re: /\bhit him with a KREZZ BURST \(R\) to break the shield\./g, to: "hit him with a KREZZ BURST (WONK!) to break the shield." },
+  { id: "hostage-press-e", re: /^(Get to .{1,40} first) and press E, (or he'll cuddle them for health\.)$/, to: "$1 and tap ACTION, $2" },
+  { id: "headbutt-staggered", re: /\bHEADBUTT him \(F \/ right click\)!/g, to: "HEADBUTT him (tap HEADBUTT)!" },
+];
+
+/**
+ * Narrated control tips in fights (research rule 3's exception: the game's own NARRATOR / stage-direction voice, never a
+ * character). combat.ts adds them to wording.ts's NARRATOR_TIPS on a phone, which the dialogue box applies to narrator
+ * lines only (dialogue.ts). Each row swaps the control words alone; the rest of the line stays as written.
+ */
+export const COMBAT_NARRATOR_TIPS: WordingRule[] = [
+  // data/dungeons.ts (Wildern's arrival)
+  COMBAT_WORDING.find((r) => r.id === "wildern-controls")!,
+  // data/dungeons.ts (the first side-on room): the control sentences only, not "The exit is on the far right..."
+  {
+    id: "side-on-controls",
+    re: /^SIDE-ON CONTROLS: A \/ D to run · W \(or up\) to jump, press again in the air to double jump · S to drop through platforms · aim and attack with the mouse as normal · Space to dash\./,
+    to: "SIDE-ON CONTROLS: drag left / right to run · JUMP (bottom right) to jump, tap it again in the air to double jump · hold the stick down to drop through platforms · FIRE shoots · DODGE to dash.",
+  },
+  // content/citadel.ts (the run-and-gun and climb legends)
+  {
+    id: "run-and-gun",
+    re: /^RUN AND GUN: A \/ D move · W or SPACE jump \(again in the air to double jump\) · S drop through · hold the mouse to shoot\./,
+    to: "RUN AND GUN: drag left / right to move · JUMP (again in the air to double jump) · hold the stick down to drop through · FIRE shoots.",
+  },
+  {
+    id: "climb",
+    re: /^CLIMB: W \/ SPACE jump \(again in the air to double jump\) · A \/ D move · S drop through · shoot as normal\./,
+    to: "CLIMB: JUMP (again in the air to double jump) · drag left / right to move · hold the stick down to drop through · FIRE shoots.",
+  },
+  // content/bosses.ts (Alistair) and ClubScene (before his fight)
+  { id: "press-f-headbutt", re: /\bget close and press F to HEADBUTT\./g, to: "get close and tap HEADBUTT." },
+  { id: "headbutt-f", re: /\bonly goes down to a headbutt \(F\)\./g, to: "only goes down to a headbutt (tap HEADBUTT)." },
+  // content/bosses.ts (the Jam Queen)
+  { id: "jump-w-up", re: /\bJUMP over her \(W \/ up\)\./g, to: "JUMP over her (the JUMP button)." },
+  // content/bosses.ts (the Cronster)
+  ...COMBAT_WORDING_FIRST.filter((r) => r.id === "walk-up-press-e" || r.id === "mash-attack-dodge"),
+  // systems/squeeze.ts (the golden juice, said in town about the next dungeon)
+  {
+    id: "golden-how",
+    re: /\bIn a dungeon: press T \(or ⚡T\) to transform\. ATTACK becomes a huge golden mega melee\. C \(or CUME\) fires the CUMEHAMEHA\./g,
+    to: "In a dungeon: tap GOLD to transform. FIRE becomes a huge golden mega melee. CUME fires the CUMEHAMEHA.",
+  },
+  { id: "golden-ready", re: /\bPress T in your next dungeon\./g, to: "Tap GOLD in your next dungeon." },
 ];
 

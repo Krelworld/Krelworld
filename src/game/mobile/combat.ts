@@ -36,8 +36,8 @@ import { COMBAT_CSS, COMBAT_STYLE_ID } from "./combatCss";
 import { haptic } from "./haptics";
 import { SideMove } from "./side";
 import { JUMP_TUNE } from "./jump";
-import { UI_TEXTS, addWording, wordText } from "./wording";
-import { COMBAT_WORDING, COMBAT_WORDING_FIRST, TUTORIAL_TEXT } from "./combatWording";
+import { NARRATOR_TIPS, UI_TEXTS, addWording, wordText } from "./wording";
+import { COMBAT_NARRATOR_TIPS, COMBAT_WORDING, COMBAT_WORDING_FIRST, TUTORIAL_TEXT } from "./combatWording";
 
 // ------------------------------------------------------------------ what we read off the Dungeon (from outside)
 
@@ -1150,6 +1150,8 @@ export function installCombat(game: Phaser.Game, layer: TouchLayer): CombatContr
   for (const r of COMBAT_WORDING) addWording(r);
   // (in front of stage 1's "Press E" → "Tap", which would leave "walk up, Tap")
   for (const r of COMBAT_WORDING_FIRST) addWording(r, "front");
+  // the fights' narrated control tips, through the dialogue box's narrator-only path (dialogue.ts, NARRATOR_TIPS)
+  for (const r of COMBAT_NARRATOR_TIPS) if (!NARRATOR_TIPS.includes(r)) NARRATOR_TIPS.push(r);
   // Kreddle's money counter sits under pause on a phone: it moves left of it (P10)
   registerModeController({ id: "phone-hud-walk", mode: "walk", frame: () => kreddleCounter(game, cc) });
   installed = cc;

@@ -1,6 +1,11 @@
 // Phone combat (stage 2, part 1): aim selection, auto-fire rules, the right-hand cluster's layout and its shared touch
 // surface (gap routing), tap / hold recognition, READY / HEAL and the Dungeon's mode rows. All pure.
 import { describe, expect, it } from "vitest";
+import dungeonsSrc from "../src/data/dungeons.ts?raw";
+import bossesSrc from "../src/content/bosses.ts?raw";
+import citadelSrc from "../src/content/citadel.ts?raw";
+import clubSrc from "../src/game/scenes/ClubScene.ts?raw";
+import squeezeSrc from "../src/game/systems/squeeze.ts?raw";
 import { ACQUIRE, AIM_TUNE, aimPointFor, angleDiff, autoFireOk, barrelInTheWay, BARREL_DANGER, pickTarget, snapAim, targetScore, type AimTarget } from "../src/game/mobile/aim";
 import {
   DUNGEON_RULE,
@@ -317,5 +322,47 @@ describe("phone combat: touch wording for the fights (UI hints only)", async () 
   it("the weapon picker's how-to line and the finale's inject hint speak touch", () => {
     expect(touchWording("(the world's slowed right down) · Tap one · or ←/→ and SPACE · or 1–9 · or let go of SWAP on it · ESC to cancel", rules)).toBe("(the world's slowed right down) · Tap one, or slide onto one and let go · ✕ to close");
     expect(touchWording("Inject each of the lads (walk up, press E). Don't get hit.", rules)).toBe("Inject each of the lads (walk up, tap ACTION). Don't get hit.");
+  });
+});
+
+describe("phone combat: the fights' toasts and narrated control tips (merged with the dialogue's narrator path)", async () => {
+  const { touchWording, TOUCH_WORDING, narratorTip, NARRATOR_TIPS } = await import("../src/game/mobile/wording");
+  const { COMBAT_WORDING, COMBAT_WORDING_FIRST, COMBAT_NARRATOR_TIPS } = await import("../src/game/mobile/combatWording");
+  const rules = [...COMBAT_WORDING_FIRST, ...TOUCH_WORDING, ...COMBAT_WORDING];
+  const SRC: Record<string, string> = {
+    "src/data/dungeons.ts": dungeonsSrc,
+    "src/content/bosses.ts": bossesSrc,
+    "src/content/citadel.ts": citadelSrc,
+    "src/game/scenes/ClubScene.ts": clubSrc,
+    "src/game/systems/squeeze.ts": squeezeSrc,
+  };
+  const src = (f: string) => SRC[f];
+  it("fight toasts name the phone's buttons", () => {
+    expect(touchWording("WONK FULL. KREZZ FULL. Press R.", rules)).toBe("WONK FULL. KREZZ FULL. Tap WONK!");
+    expect(touchWording("A weapons crate appeared. Press E to open it.", rules)).toBe("A weapons crate appeared. Tap ACTION to open it.");
+    expect(touchWording("Get to Bob first and press E, or he'll cuddle them for health.", rules)).toBe("Get to Bob first and tap ACTION, or he'll cuddle them for health.");
+    expect(touchWording("Alistair is dazed. Get close and HEADBUTT him (F / right click)!", rules)).toBe("Alistair is dazed. Get close and HEADBUTT him (tap HEADBUTT)!");
+  });
+  it("every narrated fight tip still exists as written in the game and is reworded on a phone only by its control words", () => {
+    const lines: [string, RegExp][] = [
+      ["src/data/dungeons.ts", /"(SIDE-ON CONTROLS: [^"]+)"/],
+      ["src/data/dungeons.ts", /"(CONTROLS: WASD move[^"]+)"/],
+      ["src/content/bosses.ts", /"(TIP: Alistair only goes down to a headbutt\.[^"]+)"/],
+      ["src/content/bosses.ts", /"(TIP: She rolls along the floor\.[^"]+)"/],
+      ["src/content/bosses.ts", /"(TIP: Free the hostages[^"]+)"/],
+      ["src/content/citadel.ts", /"(RUN AND GUN: [^"]+)"/],
+      ["src/content/citadel.ts", /"(CLIMB: [^"]+)"/],
+      ["src/game/scenes/ClubScene.ts", /"(He picks up a Les Paul[^"]+)"/],
+      ["src/game/systems/squeeze.ts", /"(In a dungeon: press T[^"]+)"/],
+      ["src/game/systems/squeeze.ts", /"(⚡ GOLDEN JUICE: ready\.[^"]+)"/],
+    ];
+    const all = [...NARRATOR_TIPS, ...COMBAT_NARRATOR_TIPS];
+    for (const [f, re] of lines) {
+      const m = src(f).match(re);
+      expect(m, `${f} ${re}`).toBeTruthy();
+      const out = narratorTip(m![1], all);
+      expect(out, m![1]).not.toBe(m![1]);
+      expect(out, out).not.toMatch(/\b(WASD|A \/ D|W \/ SPACE|press [EFT]\b|Press T\b|\(F\)|\(W \/ up\)|mouse)/);
+    }
   });
 });

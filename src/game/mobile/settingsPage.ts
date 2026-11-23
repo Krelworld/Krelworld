@@ -112,7 +112,8 @@ export class PhoneSettingsPage {
       .join("")}</div></div>`;
     html += `</div>`;
     if (this.layoutChoice === "off") html += `<div class="kps-note">The phone layout goes off the next time you open the game. <button type="button" class="kps-b kps-reload">RELOAD NOW</button></div>`;
-    html += `<div class="kps-pad">🎮 A Bluetooth controller works: pair it with your phone and play.</div>`;
+    // (the same words as the Controls picture's PAD_NOTE, controlsPicture.ts: what pad.ts's handover does)
+    html += `<div class="kps-pad">🎮 A Bluetooth controller works: pair it, press any button on it and the touch buttons hide. Touch the screen to bring them back.</div>`;
     this.body.innerHTML = html;
     for (const e of list) this.bindRow(e);
     for (const b of Array.from(this.body.querySelectorAll<HTMLElement>("[data-layout]"))) {

@@ -310,8 +310,11 @@ the weapon chip in town and in fights (P10), and Kreddle's money counter moves l
 
 Touch wording added for the fights (UI hints, never a character's line; `COMBAT_WORDING`): the weapon picker's how-to
 line, the first dungeon's how-to-play rows (which named the old pad's ATTACK, GUN, E, PJ, WONK, 💨, 🍺, ⚡T buttons and
-"Esc pauses..."), and a rule for Wildern's narrated `CONTROLS: WASD move ...` line that only applies where the dialogue
-code passes such narrator control lines through `hint()` (this file never routes dialogue).
+"Esc pauses..."), and the fights' own toasts (`COMBAT_WORDING_FIRST`: the weapon crate's "press E", "WONK FULL... Press
+R.", the IBS "Press G (or the 💨 button)", the Krezz shield's "(R)", the Cronster's hostage "press E", Alistair's
+"HEADBUTT him (F / right click)!"). The fights' **narrated** control tips (`COMBAT_NARRATOR_TIPS`; combat.ts adds them to
+`NARRATOR_TIPS`, so dialogue.ts applies them to NARRATOR / stage-direction lines only) are listed under "Narrator
+control tips" below.
 
 `window.__krelMobile.combat`: `snapshot()` (target, aim, manual / snapped, autoFiring, fireHeld, ready, heal, picker,
 mash, mashPresses, taught) and `resetTeaching()`.
@@ -646,9 +649,13 @@ stage-direction lines only, phones only): Home's `TIP: WASD / arrows (or the sti
 `and press E to` → `and tap to`; `talk to the locals (E)` → `talk to the locals (tap them)`; `Tap / SPACE` → `Tap`;
 Mikey's SanMik tip `Press V (or the SANMIK button)` → `Tap the SANMIK button`, `Press it again to go back to being
 you` → `Tap it again...`; the raid's `(mouse / J / the fire button)` → `(the fire button)`.
-Every other word of those lines stays. The combat and side-room tips (F to headbutt, W to jump, the dungeon's CONTROLS
-line, the run-and-gun legends, "walk up, press E" in boss fights) are left for the combat controls, whose button names
-they would need.
+Every other word of those lines stays. The fights' tips (`COMBAT_NARRATOR_TIPS` in combatWording.ts, added at the
+merge of the two stage 2 tracks): Wildern's `CONTROLS: WASD move ...` and the first side room's `SIDE-ON CONTROLS: A / D
+to run ...` (data/dungeons.ts), the Citadel's `RUN AND GUN:` and `CLIMB:` legends (content/citadel.ts), Alistair's
+`press F to HEADBUTT` (content/bosses.ts) and `a headbutt (F)` (ClubScene), the Jam Queen's `JUMP over her (W / up)`,
+the Cronster's `(walk up, press E)` and `Mash ATTACK / DODGE`, and the golden juice's `press T (or ⚡T) ... C (or CUME)`
+and `Press T in your next dungeon` (systems/squeeze.ts): each swaps its control words for the phone's buttons (FIRE,
+JUMP, DODGE, ACTION, HEADBUTT, GOLD, CUME). tests/mobileCombat.test.ts checks each line still exists as written.
 
 Applied in stage 1, from outside the scenes (`PromptWording`): the interact prompt Text (`scene.prompt`) of Home, Hub,
 Club, Kreddle and the Venue (every `setText` on it goes through the table; the scene's own text stays in `__krelRaw`, which

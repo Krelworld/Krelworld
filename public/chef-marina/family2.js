@@ -80,6 +80,10 @@ const GRAND = (() => {
     if (down && nunu.here && !AI.held.has(nunu) && E.t - S.downSince > 25 && E.t - S.smellAt > 170 && pingOk(50) && chance(dt / 14)) smell();
     // a little love now and then
     else if (nunu.here && !AI.held.has(nunu) && nunu.state !== 'sit' && E.t - S.loveAt > 120 && E.t - S.downSince > 50 && pingOk(70) && chance(dt / 40)) { S.loveAt = E.t; ping(); AI.hold(nunu, true); nunu.walkTo(marina.x + (nunu.x < marina.x ? -24 : 24), () => { nunu.dir = Math.sign(marina.x - nunu.x) || 1; emit('heart', nunu.x, nunu.y - 86, 5); sayG(pick(['nu_love1', 'nu_love2', 'nu_love3', 'nu_love4', 'nu_kiss']), nunu).then(() => AI.hold(nunu, false)); }, 60); setTimeout(() => AI.hold(nunu, false), 9000); }
+    // the deer have come out of the woods
+    const deer = !!(window.Wildlife && Wildlife.active && Wildlife.active());
+    if (deer && !S.deer && G.room === 'backyard' && !inActivity()) { ping(); setTimeout(() => { if (G.room !== 'backyard' || G.busy) return; say('m_deer').then(() => { if (jeff.here && !AI.held.has(jeff) && !G.busy) { jeff.dir = Math.sign(marina.x - jeff.x) || 1; say('j_deer', jeff); } }); }, 2500); }
+    S.deer = deer;
     if (jeff.here && !AI.held.has(jeff) && !jeff.moving && E.t - (S.workAt || 0) > 100 && Math.abs(jeff.x - marina.x) < 130 && pingOk(70) && chance(dt / 45)) { S.workAt = E.t; ping(); jeff.dir = Math.sign(marina.x - jeff.x) || 1; say(pick(['j_work1', 'j_work2', 'j_work3', 'j_helper']), jeff); }
   }
   async function smell() {

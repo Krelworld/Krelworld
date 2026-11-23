@@ -26,11 +26,11 @@
     lego: { cols: 13, rows: 12, cell: 12, mx: 3, top: 5, bot: 8, pad: 3, ico: '🧱', letters: 'roygbpkw', minRows: 5,
       col: ['#e5352d', '#ff8a1c', '#ffd32a', '#35b84b', '#2b8cea', '#8b55e8', '#ff6fb7', '#f4f4ef'],
       pcs: [{ id: 'b1', w: 1 }, { id: 'b2', w: 2 }, { id: 'b3', w: 3 }, { id: 'b4', w: 4 }, { id: 'eye', w: 1 }, { id: 'sl', w: 1 }, { id: 'sr', w: 1 }, { id: 'win', w: 1 }, { id: 'whl', w: 1 }, { id: 'flw', w: 1 }],
-      cpr: 4, ppr: 5, first: 'b2', brick: ['', 'b1', 'b2', 'b3', 'b4'] },
+      cpr: 5, ppr: 5, first: 'b2', brick: ['', 'b1', 'b2', 'b3', 'b4'] },
     tiles: { cols: 8, rows: 8, cell: 20, mx: 3, top: 4, bot: 5, pad: 2, ico: '🔷', letters: 'rogbpk', minRows: 3,
       col: ['#ff4d6d', '#ffb627', '#2ee59d', '#3d9bff', '#b06cff', '#ff7ad9'],
       pcs: [{ id: 'sq', w: 1 }, { id: 'tbr', w: 1, tri: 'br' }, { id: 'tbl', w: 1, tri: 'bl' }, { id: 'ttl', w: 1, tri: 'tl' }, { id: 'ttr', w: 1, tri: 'tr' }],
-      cpr: 3, ppr: 5, first: 'sq', brick: ['', 'sq'] }
+      cpr: 4, ppr: 5, first: 'sq', brick: ['', 'sq'] }
   };
 
   // ------------------------------------------------------------------ blueprints (pictures to copy)
@@ -247,7 +247,7 @@
 .bk-go{background:#7bd36b}
 .bk-hop{animation:bk-hop .32s 6 alternate}
 @keyframes bk-hop{to{transform:translateY(-7px) scale(1.07)}}
-.pbtn.bk-ask{background:#ffcf4a;animation:bk-ask .25s 4 alternate}
+.pbtn.bk-ask,.bk-b.bk-ask{background:#ffcf4a;animation:bk-ask .25s 4 alternate}
 @keyframes bk-ask{to{transform:rotate(-9deg) scale(1.08)}}
 .bk-roll{animation:bk-roll .5s linear infinite}
 @keyframes bk-roll{50%{transform:rotate(14deg) scale(1.08)}}
@@ -280,6 +280,7 @@
     css(); panel.innerHTML = ''; panel.classList.remove('hidden');
     const sv = read(true)[kind] || {};
     S = { K, kind, opts, panel, pieces: clean(K, sv.p), undo: [], color: 0, piece: K.first, bp: K.bps.find(b => b.id === sv.bp) || null, fly: [], fx: [], edges: [], wob: null, wig: 0, auto: null, ptr: null, iconCol: -1 };
+    S.hers = S.pieces.length > 0;
     // top row: ❌ first (the sideways ❌ and the rest of the game look for it there), picture title, undo, clear
     const top = S.top = mk('div', 'ptop bk-top');
     S.undoB = tap('pbtn', '↩️', 'undo', undo); S.clearB = tap('pbtn', '🗑️', 'clear', clearTap);
@@ -293,13 +294,12 @@
     // colours, pieces, tools
     const side = S.side = mk('div', 'bk-side');
     const grp = (cls, n, items) => { const d = mk('div', 'bk-grp ' + cls); d.style.setProperty('--n', n); d.style.setProperty('--r', Math.ceil(items / n)); side.append(d); return d; };
-    const gc = grp('bk-cols', K.cpr, K.col.length);
+    const gc = S.gc = grp('bk-cols', K.cpr, K.col.length + 2);
     K.col.forEach((c, i) => { const b = tap('bk-b bk-col', '', 'colour ' + (i + 1), () => { S.color = i; blip(i * 2, 'triangle', 0.06, 0.12); sync(); }); b.style.background = c; gc.append(b); });
     const gp = grp('bk-pcs', K.ppr, K.pcs.length);
     K.pcs.forEach(d => { const b = tap('bk-b bk-pc', '', 'piece ' + d.id, () => { S.piece = d.id; blip(7, 'square', 0.05, 0.1); sync(); }); b.dataset.id = d.id; b.append(mk('canvas')); gp.append(b); });
-    const gt = grp('bk-tools', 3, 3);
-    S.bpB = tap('bk-b', '💡', 'ideas', () => toggleDrawer()); S.diceB = tap('bk-b', '🎲', 'surprise', dice); S.doneB = tap('bk-b bk-go', '✅', 'done', () => finish(true));
-    gt.append(S.bpB, S.diceB, S.doneB);
+    S.gt = grp('bk-tools', 1, 1);
+    S.bpB = tap('bk-b', '💡', 'ideas', () => toggleDrawer()); S.diceB = tap('bk-b', '🎲', 'surprise', dice); S.doneB = tap('', '✅', 'done', () => finish(true));
     body.append(stage, side); panel.append(top, body);
     rebuild(); S.was = complete(); layout(); sync(); bind();
     S.onResize = () => { layout(); clearTimeout(S.rzT); const st = S; S.rzT = setTimeout(() => { if (S === st) layout(); }, 320); };
@@ -315,12 +315,12 @@
   function layout() {
     if (!S) return; const K = S.K, land = innerWidth > innerHeight, asp = K.LW / K.LH, M = 4, SP = 8;
     S.top.classList.toggle('bk-land', land); S.body.classList.toggle('bk-land', land); S.side.classList.remove('bk-strip', 'bk-narrow');
-    const W = S.body.clientWidth, H = S.body.clientHeight, rows = Math.ceil(K.col.length / K.cpr) + Math.ceil(K.pcs.length / K.ppr) + 1;
-    let pw, ph;
+    const W = S.body.clientWidth, H = S.body.clientHeight, rows = Math.ceil((K.col.length + 2) / K.cpr) + Math.ceil(K.pcs.length / K.ppr);
+    let pw, ph, strip = false;
     if (!land) {
       const fit = room => Math.min((W - M * 2) / asp, room - M * 2 - 4);
-      let h = fit(H - GAP - (rows * 60 + (rows + 1) * GAP + SP)); const hs = fit(H - GAP - (3 * 72 + SP));
-      if (h < hs * 0.86) { S.side.classList.add('bk-strip'); h = hs; }      // a short screen: colours and pieces become three sideways-scrolling strips
+      let h = fit(H - GAP - (rows * 60 + (rows - 1) * GAP + SP)); const hs = fit(H - GAP - (3 * 68 + 2 * GAP + SP));
+      if (h < hs * 0.86) { strip = true; S.side.classList.add('bk-strip'); h = hs; }      // a short screen: colours and pieces become sideways-scrolling strips
       ph = Math.max(h, 80); pw = ph * asp; S.stage.style.width = ''; S.stage.style.height = Math.round(ph + M * 2 + 4) + 'px';
     } else {
       const fit = room => Math.min((H - M * 2 - 4) * asp, room - M * 2);
@@ -329,6 +329,11 @@
       pw = Math.max(w, 80); ph = pw / asp; S.stage.style.height = ''; S.stage.style.width = Math.round(pw + M * 2) + 'px';
     }
     S.cv.style.width = Math.floor(pw) + 'px'; S.cv.style.height = Math.floor(ph) + 'px'; S.cellCss = pw / K.LW * K.cell;
+    // ✅ sits top right when upright (where the drawing studio keeps its save) and under the pieces when sideways; 💡 🎲 follow the colours
+    const d = S.doneB, home = land ? S.gt : S.top; if (d.parentNode !== home) home.append(d);
+    d.classList.toggle('pbtn', !land); d.classList.toggle('go', !land); d.classList.toggle('bk-b', land); d.classList.toggle('bk-go', land);
+    const ideas = strip ? S.gt : S.gc; if (S.bpB.parentNode !== ideas) ideas.append(S.bpB, S.diceB);
+    S.gt.classList.toggle('bk-off', !land && !strip);
   }
   function sync() {
     if (!S) return; const K = S.K;
@@ -393,7 +398,7 @@
     cv.addEventListener('pointerdown', e => {
       e.preventDefault(); if (!S || S.auto || e.isPrimary === false) return;
       const c = at(e.clientX, e.clientY); if (!c) return; try { cv.setPointerCapture(e.pointerId); } catch (err) { }
-      S.ptr = { id: e.pointerId, x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY, last: c.row * S.K.cols + c.col, on: false, mode: press(c) };
+      S.hers = true; S.ptr = { id: e.pointerId, x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY, last: c.row * S.K.cols + c.col, on: false, mode: press(c) };
     });
     // a finger sliding over empty studs leaves a trail of single bricks
     cv.addEventListener('pointermove', e => {
@@ -409,12 +414,14 @@
   }
 
   // ---------------------------------------------------------------- buttons
-  function undo() { stopAuto(); if (!S.undo.length) return; let a = []; try { a = JSON.parse(S.undo.pop()); } catch (e) { } S.pieces = clean(S.K, a); rebuild(); S.was = complete(); blip(-5); touch(); sync(); }
-  function clearTap(b) {                              // two taps, like the drawing studio: the first only asks
-    const calm = () => { clearTimeout(S && S.sureT); delete b.dataset.sure; b.textContent = '🗑️'; b.classList.remove('bk-ask'); };
-    if (b.dataset.sure) { calm(); stopAuto(); if (!S.pieces.length) return; pushUndo(); S.pieces.forEach(p => fling(p, true)); S.pieces = []; rebuild(); S.was = false; whoosh(false); touch(); sync(); return; }
-    b.dataset.sure = 1; b.textContent = '❓'; b.classList.add('bk-ask'); blip(2, 'triangle', 0.08, 0.12); const st = S; S.sureT = setTimeout(() => { if (S === st) calm(); }, 2000);
+  function undo() { stopAuto(); if (!S.undo.length) return; let a = []; try { a = JSON.parse(S.undo.pop()); } catch (e) { } S.pieces = clean(S.K, a); rebuild(); S.was = complete(); S.hers = S.pieces.length > 0; blip(-5); touch(); sync(); }
+  // anything that sweeps her work away takes two taps, like the bin in the drawing studio: the first tap only asks (❓ for 2 s)
+  function sure(b, ico, ask, go) {
+    const calm = () => { clearTimeout(b._t); delete b.dataset.sure; b.textContent = ico; b.classList.remove('bk-ask'); };
+    if (b.dataset.sure || !ask) { calm(); go(); return; }
+    b.dataset.sure = 1; b.textContent = '❓'; b.classList.add('bk-ask'); blip(2, 'triangle', 0.08, 0.12); b._t = setTimeout(calm, 2000);
   }
+  function clearTap(b) { sure(b, '🗑️', true, () => { stopAuto(); if (!S.pieces.length) return; pushUndo(); S.pieces.forEach(p => fling(p, true)); S.pieces = []; rebuild(); S.was = S.hers = false; whoosh(false); touch(); sync(); }); }
   function toggleDrawer(show) {
     const d = S.drawer; if (show == null) show = d.classList.contains('bk-off'); if (show === !d.classList.contains('bk-off')) return;
     d.classList.toggle('bk-off', !show); if (show) { whoosh(true); for (const b of d.children) b.classList.toggle('on', !!S.bp && b.dataset.id === S.bp.id); }
@@ -424,9 +431,10 @@
     jingle(S.bp ? [0, 7, 12] : [12, 7], 0.06); touch(); sync();
   }
   function stopAuto() { if (S && S.auto) { clearInterval(S.auto); S.auto = null; sync(); } }
-  function dice() {                                   // builds a surprise picture brick by brick
+  function dice(b) { sure(b, '🎲', S.hers && S.pieces.length > 0 && !S.auto, roll); }      // only asks when it would sweep away something she built herself
+  function roll() {                                   // builds a surprise picture brick by brick
     stopAuto(); toggleDrawer(false); const K = S.K, st = S, opts = K.bps.filter(b => b !== S.bp), bp = opts[(Math.random() * opts.length) | 0]; if (!bp) return;
-    pushUndo(); S.pieces.forEach(p => fling(p, true)); S.pieces = []; rebuild(); S.bp = bp; S.was = false; whoosh(true); touch();
+    pushUndo(); S.pieces.forEach(p => fling(p, true)); S.pieces = []; rebuild(); S.bp = bp; S.was = S.hers = false; whoosh(true); touch();
     let i = 0; const iv = S.auto = setInterval(() => {
       if (S !== st || S.auto !== iv) { clearInterval(iv); return; }
       const p = bp.pieces[i++]; if (!p) { clearInterval(iv); S.auto = null; sync(); return; }
@@ -484,7 +492,7 @@
 
   // ---------------------------------------------------------------- leaving
   function teardown() {
-    if (!S) return; cancelAnimationFrame(S.raf); clearInterval(S.auto); clearTimeout(S.saveT); clearTimeout(S.sureT); clearTimeout(S.rzT);
+    if (!S) return; cancelAnimationFrame(S.raf); clearInterval(S.auto); clearTimeout(S.saveT); clearTimeout(S.rzT);
     removeEventListener('resize', S.onResize); removeEventListener('orientationchange', S.onResize);
     document.removeEventListener('visibilitychange', S.onHide); removeEventListener('pagehide', S.onHide);
     S = null;
@@ -500,7 +508,7 @@
   function state() {                                  // a peek for tests
     if (!S) return { open: false };
     return { open: true, kind: S.kind, count: S.pieces.length, pieces: pack(S.pieces), blueprint: S.bp ? S.bp.id : null, complete: complete(), auto: !!S.auto, undo: S.undo.length, color: S.color, piece: S.piece,
-      grid: { cols: S.K.cols, rows: S.K.rows, cell: S.K.cell, mx: S.K.mx, top: S.K.top, LW: S.K.LW, LH: S.K.LH }, ghost: S.bp ? Array.from(S.bp.cells.keys()) : [] };
+      grid: { cols: S.K.cols, rows: S.K.rows, cell: S.K.cell, mx: S.K.mx, top: S.K.top, LW: S.K.LW, LH: S.K.LH }, ghost: S.bp ? Array.from(S.bp.cells.keys()) : [], ideas: S.K.bps.map(b => ({ id: b.id, ico: b.ico, pieces: pack(b.pieces) })) };
   }
 
   window.Bricks = { open, close: () => finish(false), has, count, drawModel, state, get active() { return !!S; } };

@@ -6,7 +6,7 @@ const Floors = (() => {
   const MAIN = ['yard', 'dining', 'kitchen', 'playroom', 'foyer', 'living', 'bathroom'];
   const list = [{ id: 'main', level: 0, rooms: MAIN }];
   const of = r => list.find(f => f.rooms.includes(r)) || list[0];
-  const at = n => list.find(f => f.level === n);
+  const at = n => (n == null || isNaN(n) ? undefined : list.find(f => f.level === n));
   const hooks = [];
   let shown = null;
   // f = { id, level (+1 up / -1 down), rooms: [...], arrive: {room, x} (bottom/top of the stairs on that floor),
@@ -15,8 +15,8 @@ const Floors = (() => {
     list.push(f); shown = null;
     for (const r of f.rooms) { if (!ROOM_ORDER.includes(r)) ROOM_ORDER.push(r); const i = new Image(); i.src = 'assets/bg/' + r + '.png'; BG[r] = i; }
   }
-  const landing = (from, to) => (to.id === 'main' ? (from.back || { room: 'foyer', x: 136 }) : to.arrive);
-  function go(dir) { if (typeof marina === 'undefined' || G.busy) return; const a = of(G.room), b = at(a.level + dir); if (!b) return; Audio2.blip(dir > 0 ? 12 : 4, 'triangle', 0.06, 0.12); travelTo(landing(a, b).room); }
+  const landing = (from, to) => (to.id === 'main' ? from.back : to.arrive) || null;
+  function go(dir) { if (typeof marina === 'undefined' || G.busy) return; const a = of(G.room), b = a.level == null ? null : at(a.level + dir); if (!b) return; const l = landing(a, b); if (!l) return; Audio2.blip(dir > 0 ? 12 : 4, 'triangle', 0.06, 0.12); travelTo(l.room); }
 
   // ---- travelling: same-floor trips on the main floor are exactly as before; anything else lands by the stairs or mid-room
   const _tt = travelTo;
@@ -33,7 +33,7 @@ const Floors = (() => {
   changeRoom = function (room, from, x) {
     const was = G.room, res = _cr(room, from, x);
     if (was !== room) { const a = of(was), b = of(room);
-      if (a !== b) Audio2.jingle(b.level > a.level ? [-3, 0, 2, 4, 5, 7, 9] : [9, 7, 5, 4, 2, 0, -3], 0.07, 'triangle');
+      if (a !== b && a.level != null && b.level != null) Audio2.jingle(b.level > a.level ? [-3, 0, 2, 4, 5, 7, 9] : [9, 7, 5, 4, 2, 0, -3], 0.07, 'triangle');
       for (const h of hooks) { try { h(was, room); } catch (e) { console.warn('floor hook', e); } } }
     return res;
   };
@@ -45,7 +45,7 @@ const Floors = (() => {
     if (shown === f.id) return; const first = shown === null; shown = f.id;
     if (first && f.id === 'main' && bar.querySelectorAll('.rb').length === MAIN.length) return;      // already built by the game
     bar.innerHTML = ''; bar.dataset.floor = f.id;
-    for (const r of f.rooms) { const b = document.createElement('button'); b.className = 'rb'; b.textContent = ROOMS[r].ico; b.dataset.r = r; b.setAttribute('aria-label', r);
+    for (const r of f.strip || f.rooms) { const b = document.createElement('button'); b.className = 'rb'; b.textContent = ROOMS[r].ico; b.dataset.r = r; b.setAttribute('aria-label', r);
       b.addEventListener('pointerup', e => { e.stopPropagation(); if (G.busy || r === G.room) return; Audio2.blip(9, 'triangle', 0.06, 0.12); travelTo(r); }); bar.append(b); }
   }
   // ---- two stairs buttons under the map button: up and down a floor
@@ -55,7 +55,7 @@ const Floors = (() => {
   const upB = mkBtn(1, 'upstairs'), downB = mkBtn(-1, 'downstairs'); stage.append(pill);
   function pillTick() {
     if (typeof marina === 'undefined') return; const a = of(G.room);
-    for (const [b, dir] of [[upB, 1], [downB, -1]]) { const t = at(a.level + dir); b.classList.toggle('off', !t); if (t) { const html = '<b>' + (dir > 0 ? '⬆️' : '⬇️') + '</b><i>' + ((t.id === 'main' ? '🏠' : t.ico) || '🪜') + '</i>'; if (b.dataset.h !== html) { b.dataset.h = html; b.innerHTML = html; } } }
+    for (const [b, dir] of [[upB, 1], [downB, -1]]) { const t = a.level == null ? null : at(a.level + dir); b.classList.toggle('off', !t); if (t) { const html = '<b>' + (dir > 0 ? '⬆️' : '⬇️') + '</b><i>' + ((t.id === 'main' ? '🏠' : t.ico) || '🪜') + '</i>'; if (b.dataset.h !== html) { b.dataset.h = html; b.innerHTML = html; } } }
     pill.classList.toggle('off', !!G.tidy || !!G.chase || upB.classList.contains('off') && downB.classList.contains('off'));
   }
   setInterval(() => { strip(); pillTick(); }, 200);
@@ -63,7 +63,7 @@ const Floors = (() => {
   // ---- the picture map gets the other floors' rooms underneath
   if (typeof openIsoMap === 'function') { const _om = openIsoMap; openIsoMap = function () { _om(); const p = document.getElementById('panel'); if (p.querySelector('.fmap')) return;
     const box = document.createElement('div'); box.className = 'fmap';
-    for (const f of list.filter(f => f.id !== 'main').sort((x, y) => y.level - x.level)) { const g = document.createElement('div'); g.className = 'fmaprow'; const lab = document.createElement('div'); lab.className = 'fmaplab'; lab.textContent = f.level > 0 ? '⬆️' : '⬇️'; g.append(lab);
+    for (const f of list.filter(f => f.id !== 'main').sort((x, y) => (y.level == null ? -9 : y.level) - (x.level == null ? -9 : x.level))) { const g = document.createElement('div'); g.className = 'fmaprow'; const lab = document.createElement('div'); lab.className = 'fmaplab'; lab.textContent = f.level == null ? '🌳' : f.level > 0 ? '⬆️' : '⬇️'; g.append(lab);
       for (const r of f.rooms) { const b = document.createElement('button'); b.className = 'fmaproom' + (r === G.room ? ' here' : ''); b.innerHTML = '<b>' + ROOMS[r].ico + '</b>'; b.setAttribute('aria-label', r); if (bgFor(r)) b.style.backgroundImage = 'url(assets/bg/' + r + '.png)';
         b.addEventListener('pointerup', e => { e.stopPropagation(); p.classList.add('hidden'); travelTo(r); }); g.append(b); }
       box.append(g); }

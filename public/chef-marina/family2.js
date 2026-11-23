@@ -167,16 +167,18 @@ const GRAND = (() => {
   }
 
   // ---------------------------------------------------------------- hello when she walks in
+  const replyAt = {}; /* G20: when Marina last said hello back to nunu / jeff (game seconds) */
   const _oer = onEnterRoom;
   onEnterRoom = function (room) {
     // coming down the stairs: Nunu is in her den, not off in the laundry
     if (DOWN.includes(room) && !DOWN.includes(S.prev) && !AI.held.has(nunu) && DOWN.includes(nunu.room) && nunu.room !== room) { nunu.stop(); nunu.room = 'den'; nunu.x = room === 'den' ? clamp(marina.x + 120, 200, 420) : 330; nunu.y = FLOOR; nunu.state = 'idle'; nunu.dir = -1; nunu.wait = 6; }
     S.prev = room;
+    const g0 = window.Clarity && Clarity.is('G20') ? { nunu: G.lastGreet.nunu, jeff: G.lastGreet.jeff } : null; /* G20: their stamps before this call */
     _oer(room);
     // the game's own hello has just picked one of them: Grandpa looks up from his work, and Marina says hi back
-    const e = [nunu, jeff].find(x => x.here && G.lastGreet[x.id] != null && E.t - G.lastGreet[x.id] < 0.5); if (!e) return;
+    const e = [nunu, jeff].find(x => x.here && G.lastGreet[x.id] != null && E.t - G.lastGreet[x.id] < 0.5 && (!g0 || G.lastGreet[x.id] !== g0[x.id])); if (!e) return; /* G20: only if THIS call greeted */
     if (e === jeff) { if (jeff.state === 'hammer') jeff.state = 'wave'; jeff.wait = Math.max(jeff.wait || 0, 3.5); setTimeout(() => { if (jeff.state === 'wave') jeff.state = 'idle'; }, 2600); }
-    setTimeout(() => { if (!e.here || G.busy || inActivity()) return; if (e === nunu && G.septicTold) { G.septicTold = false; say('nu_septic_thanks', nunu); } else say(e === nunu ? 'm_hi_nunu' : 'm_hi_jeff'); }, 2600);
+    setTimeout(() => { if (!e.here || G.busy || inActivity()) return; const g20 = window.Clarity && Clarity.is('G20'); if (e === nunu && G.septicTold) { G.septicTold = false; if (g20) replyAt.nunu = E.t; say('nu_septic_thanks', nunu); } else { if (g20) { if (E.t - (replyAt[e.id] ?? -Infinity) < 10) return; replyAt[e.id] = E.t; } say(e === nunu ? 'm_hi_nunu' : 'm_hi_jeff'); } }, 2600); /* G20: per-person 10 s reply gate */
   };
 
   // ---------------------------------------------------------------- things to do with them

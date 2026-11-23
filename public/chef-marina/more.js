@@ -111,7 +111,7 @@ AI.person = function (e, dt) {
   if (G.fort && G.fort.guests.includes(e)) return;
   e.wait = (e.wait || rnd(6, 12)) - dt; if (e.moving || e.wait > 0) return; e.wait = rnd(9, 18);
   if (e.state === 'lie') { if (chance(0.6)) return; e.state = 'idle'; }
-  if (e.here && chance(0.4) && !G.busy && !marina.mount) { e.walkTo(marina.x + (e.x < marina.x ? -24 : 24), () => { e.dir = Math.sign(marina.x - e.x) || 1; say(pick(['r_giggle', 'r_hi_niece3', 'r_chase', 'r_hi_niece']), e); emit('star', marina.x, marina.y - 70, 4); }, 70); return; }
+  if (e.here && chance(0.4) && !G.busy && !marina.mount) { const g21 = window.Clarity && Clarity.is('G21') && Clarity.G21; if (g21 && g21.held()) { e.dir = Math.sign(marina.x - e.x) || 1; return; } e.walkTo(marina.x + (e.x < marina.x ? -24 : 24), () => { e.dir = Math.sign(marina.x - e.x) || 1; const g = window.Clarity && Clarity.is('G21') && Clarity.G21; if (g && !g.line()) return; say(pick(['r_giggle', 'r_hi_niece3', 'r_chase', 'r_hi_niece']), e); emit('star', marina.x, marina.y - 70, 4); }, 70); return; } /* G21: stays put while her body is busy; line + stars at most once per 90 s */
   const home = ['yard', 'dining'];
   if (chance(home.includes(e.room) ? 0.18 : 0.6)) {
     const to = chance(0.85) ? pick(home.filter(r => r !== e.room)) : pick(['kitchen', 'living', 'playroom'].filter(r => r !== e.room));

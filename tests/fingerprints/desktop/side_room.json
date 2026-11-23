@@ -1,0 +1,583 @@
+{
+ "state": "side_room",
+ "chain": "side",
+ "build": "main",
+ "how": {
+  "toGetThere": [
+   "Space (fly-in shot)", "wait (DungeonIntro)", "wait (DungeonIntro)", "wait (DungeonIntro)",
+   "wait (DungeonIntro)", "wait (DungeonIntro)", "wait (DungeonIntro)", "wait (DungeonIntro)", "wait",
+   "Tab (conversation)"
+  ]
+ },
+ "clock": [1809120,1773502209120],
+ "scenes": {
+  "live": ["Dungeon RUNNING active visible","UI RUNNING active visible"],
+  "order": [
+   "Boot", "Title", "CharSelect", "Difficulty", "Banter", "Cutscene", "Meeting", "DebugSkip", "ChapterSelect",
+   "Hub", "Dungeon", "UI", "TV", "Archive", "Pub", "KrazyFact", "Exile", "Vignette", "Minigame", "Venue", "Pit",
+   "PitLoan", "Club", "Kreddle", "Whack", "WeaponPick", "Enter", "Home", "Drive", "BeepBeep", "Lair", "Finale",
+   "RoofCutscene", "Menu", "Slots", "Tutorial", "Ending", "PolsonHome", "DungeonIntro", "Dialogue"
+  ]
+ },
+ "display": [
+  {
+   "key": "Dungeon",
+   "status": "RUNNING",
+   "count": {"top":114,"all":148,"hidden":2,"interactive":0},
+   "cam": {
+    "x": 0,
+    "y": 0,
+    "w": 960,
+    "h": 540,
+    "scrollX": 0,
+    "scrollY": 0,
+    "zoom": [1,1],
+    "bg": "0,0,0,0",
+    "roundPixels": true,
+    "bounds": [0,0,3600,540],
+    "follow": {"lerp":[0.12,0.12],"offset":[0,0],"deadzone":[80,60]}
+   },
+   "input": {
+    "enabled": true,
+    "topOnly": true,
+    "listeners": {"pointermove":1},
+    "keyboard": {"enabled":true,"keys":[9,16,27,32,37,38,39,40,65,66,67,68,69,70,71,74,75,76,81,82,83,84,87,88],"listeners":{}}
+   },
+   "timers": 0,
+   "tweens": 7,
+   "physics": {"bodies":1,"statics":34,"gravity":[0,0],"fps":60,"timeScale":1,"paused":false,"bounds":[24,0,3552,940]},
+   "objs": [
+    {"t":"Graphics","x":0,"y":0,"d":-20,"sf":[0,0],"gfx":{"n":21,"h":"f599e9b1"}},
+    {"t":"TileSprite","x":0,"y":0,"w":960,"h":540,"o":[0,0],"d":-10,"sf":[0,0],"tex":"92b4b3db-df97-44c2-92ff-915437a1457e:__BASE","tile":[0,0]},
+    {"t":"Rectangle","x":260.63,"y":146.25,"w":311.25,"h":14,"fill":"#000000 0","body":{"w":311.25,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":1659.38,"y":146.25,"w":311.25,"h":14,"fill":"#000000 0","body":{"w":311.25,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":90,"y":303.75,"w":180,"h":14,"fill":"#000000 0","body":{"w":180,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":1830,"y":303.75,"w":180,"h":14,"fill":"#000000 0","body":{"w":180,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":380.63,"y":305.63,"w":198.75,"h":14,"fill":"#000000 0","body":{"w":198.75,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":1539.38,"y":305.63,"w":198.75,"h":14,"fill":"#000000 0","body":{"w":198.75,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":607.5,"y":384.38,"w":165,"h":14,"fill":"#000000 0","body":{"w":165,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":1312.5,"y":384.38,"w":165,"h":14,"fill":"#000000 0","body":{"w":165,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":710.63,"y":236.25,"w":93.75,"h":14,"fill":"#000000 0","body":{"w":93.75,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":1209.38,"y":236.25,"w":93.75,"h":14,"fill":"#000000 0","body":{"w":93.75,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":888.75,"y":238.13,"w":142.5,"h":14,"fill":"#000000 0","body":{"w":142.5,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":1031.25,"y":238.13,"w":142.5,"h":14,"fill":"#000000 0","body":{"w":142.5,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":888.75,"y":384.38,"w":142.5,"h":14,"fill":"#000000 0","body":{"w":142.5,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":1031.25,"y":384.38,"w":142.5,"h":14,"fill":"#000000 0","body":{"w":142.5,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":2180.63,"y":146.25,"w":311.25,"h":14,"fill":"#000000 0","body":{"w":311.25,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":3579.38,"y":146.25,"w":311.25,"h":14,"fill":"#000000 0","body":{"w":311.25,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":2010,"y":303.75,"w":180,"h":14,"fill":"#000000 0","body":{"w":180,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":2300.63,"y":305.63,"w":198.75,"h":14,"fill":"#000000 0","body":{"w":198.75,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":3459.38,"y":305.63,"w":198.75,"h":14,"fill":"#000000 0","body":{"w":198.75,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":2527.5,"y":384.38,"w":165,"h":14,"fill":"#000000 0","body":{"w":165,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":3232.5,"y":384.38,"w":165,"h":14,"fill":"#000000 0","body":{"w":165,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":2630.63,"y":236.25,"w":93.75,"h":14,"fill":"#000000 0","body":{"w":93.75,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":3129.38,"y":236.25,"w":93.75,"h":14,"fill":"#000000 0","body":{"w":93.75,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":2808.75,"y":238.13,"w":142.5,"h":14,"fill":"#000000 0","body":{"w":142.5,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":2951.25,"y":238.13,"w":142.5,"h":14,"fill":"#000000 0","body":{"w":142.5,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":2808.75,"y":384.38,"w":142.5,"h":14,"fill":"#000000 0","body":{"w":142.5,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":2951.25,"y":384.38,"w":142.5,"h":14,"fill":"#000000 0","body":{"w":142.5,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":360,"y":512,"w":720,"h":56,"fill":"#000000 0","body":{"w":720,"h":56,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":1219,"y":512,"w":658,"h":56,"fill":"#000000 0","body":{"w":658,"h":56,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":2062,"y":512,"w":628,"h":56,"fill":"#000000 0","body":{"w":628,"h":56,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":3078,"y":512,"w":1044,"h":56,"fill":"#000000 0","body":{"w":1044,"h":56,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":792,"y":294.75,"w":110,"h":14,"fill":"#000000 0","body":{"w":110,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":1575.22,"y":344,"w":120,"h":14,"fill":"#000000 0","body":{"w":120,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":2448,"y":276.87,"w":110,"h":14,"fill":"#000000 0","body":{"w":110,"h":14,"ox":0,"oy":0,"immovable":true,"noGravity":true}},
+    {"t":"Rectangle","x":720,"y":507.82,"w":170,"h":56,"o":[0,0],"d":1,"fill":"#5b3416 1"},
+    {"t":"Rectangle","x":720,"y":507.82,"w":170,"h":6,"o":[0,0],"d":1,"fill":"#ffffff 0.25"},
+    {"t":"Rectangle","x":1548,"y":507.82,"w":200,"h":56,"o":[0,0],"d":1,"fill":"#5b3416 1"},
+    {"t":"Rectangle","x":1548,"y":507.82,"w":200,"h":6,"o":[0,0],"d":1,"fill":"#ffffff 0.25"},
+    {"t":"Rectangle","x":2376,"y":507.82,"w":180,"h":56,"o":[0,0],"d":1,"fill":"#5b3416 1"},
+    {"t":"Rectangle","x":2376,"y":507.82,"w":180,"h":6,"o":[0,0],"d":1,"fill":"#ffffff 0.25"},
+    {"t":"Image","x":1224,"y":506,"w":70.2,"h":62.4,"o":[0.5,1],"s":[1.3,1.3],"d":1.5,"tex":"side_vent:__BASE"},
+    {"t":"Image","x":2808,"y":506,"w":70.2,"h":62.4,"o":[0.5,1],"s":[1.3,1.3],"d":1.5,"tex":"side_vent:__BASE"},
+    {"t":"TileSprite","x":0,"y":484,"w":720,"h":56,"o":[0,0],"d":2,"tint":"#8a8a9a","tex":"42cbe26e-7ecd-4efe-9c22-954b7969670d:__BASE","tile":[0,0]},
+    {"t":"TileSprite","x":890,"y":484,"w":658,"h":56,"o":[0,0],"d":2,"tint":"#8a8a9a","tex":"4b4dfaa8-92d5-4bd8-8979-637fa0ec8922:__BASE","tile":[0,0]},
+    {"t":"TileSprite","x":1748,"y":484,"w":628,"h":56,"o":[0,0],"d":2,"tint":"#8a8a9a","tex":"a32d7301-6f52-4813-b4e6-8bf3b670f8bc:__BASE","tile":[0,0]},
+    {"t":"TileSprite","x":2556,"y":484,"w":1044,"h":56,"o":[0,0],"d":2,"tint":"#8a8a9a","tex":"5425d61f-c291-4354-9116-2e53bf2ef633:__BASE","tile":[0,0]},
+    {"t":"Text","x":805,"y":524,"w":85,"h":15,"d":2,"a":0.85,"text":"CHOCOLATE RIVER","font":"Krel Regular 10px","asked":"ui 11px","color":"#ffffff","stroke":"#000 3"},
+    {"t":"Text","x":1648,"y":524,"w":85,"h":15,"d":2,"a":0.85,"text":"CHOCOLATE RIVER","font":"Krel Regular 10px","asked":"ui 11px","color":"#ffffff","stroke":"#000 3"},
+    {"t":"Text","x":2466,"y":524,"w":85,"h":15,"d":2,"a":0.85,"text":"CHOCOLATE RIVER","font":"Krel Regular 10px","asked":"ui 11px","color":"#ffffff","stroke":"#000 3"},
+    {"t":"Rectangle","x":0,"y":484,"w":720,"h":4,"o":[0,0],"d":3,"fill":"#000000 0.6"},
+    {"t":"Rectangle","x":890,"y":484,"w":658,"h":4,"o":[0,0],"d":3,"fill":"#000000 0.6"},
+    {"t":"Rectangle","x":1748,"y":484,"w":628,"h":4,"o":[0,0],"d":3,"fill":"#000000 0.6"},
+    {"t":"Rectangle","x":2556,"y":484,"w":1044,"h":4,"o":[0,0],"d":3,"fill":"#000000 0.6"},
+    {"t":"Ellipse","x":972,"y":482,"w":130,"h":12,"d":3,"fill":"#000000 0"},
+    {"t":"Ellipse","x":2160,"y":482,"w":130,"h":12,"d":3,"fill":"#000000 0"},
+    {"t":"Ellipse","x":3096,"y":482,"w":130,"h":12,"d":3,"fill":"#000000 0"},
+    {"t":"Rectangle","x":260.63,"y":140.25,"w":311.25,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":1659.38,"y":140.25,"w":311.25,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":90,"y":297.75,"w":180,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":1830,"y":297.75,"w":180,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":380.63,"y":299.63,"w":198.75,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":1539.38,"y":299.63,"w":198.75,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":607.5,"y":378.38,"w":165,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":1312.5,"y":378.38,"w":165,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":710.63,"y":230.25,"w":93.75,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":1209.38,"y":230.25,"w":93.75,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":888.75,"y":232.13,"w":142.5,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":1031.25,"y":232.13,"w":142.5,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":888.75,"y":378.38,"w":142.5,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":1031.25,"y":378.38,"w":142.5,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":2180.63,"y":140.25,"w":311.25,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":3579.38,"y":140.25,"w":311.25,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":2010,"y":297.75,"w":180,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":2300.63,"y":299.63,"w":198.75,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":3459.38,"y":299.63,"w":198.75,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":2527.5,"y":378.38,"w":165,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":3232.5,"y":378.38,"w":165,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":2630.63,"y":230.25,"w":93.75,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":3129.38,"y":230.25,"w":93.75,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":2808.75,"y":232.13,"w":142.5,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":2951.25,"y":232.13,"w":142.5,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":2808.75,"y":378.38,"w":142.5,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"Rectangle","x":2951.25,"y":378.38,"w":142.5,"h":2,"d":4,"fill":"#fff1c1 0.35"},
+    {"t":"TileSprite","x":792,"y":294.75,"w":110,"h":14,"d":4,"tint":"#ffd6a5","tex":"7277a8e0-b995-477f-98cc-d3da242d400b:__BASE","tile":[0,0]},
+    {"t":"TileSprite","x":1575.22,"y":344,"w":120,"h":14,"d":4,"tint":"#ffd6a5","tex":"03e91708-223b-45dc-880f-b7e3f8f9bcda:__BASE","tile":[0,0]},
+    {"t":"TileSprite","x":2448,"y":276.87,"w":110,"h":14,"d":4,"tint":"#ffd6a5","tex":"a0791bca-1753-47d1-a1b1-101f323b008a:__BASE","tile":[0,0]},
+    {"t":"Rectangle","x":792,"y":287.75,"w":110,"h":3,"d":5,"fill":"#22d3ee 0.9"},
+    {"t":"Rectangle","x":792,"y":303.75,"w":66,"h":4,"d":5,"fill":"#000000 0.5"},
+    {"t":"Rectangle","x":1575.22,"y":337,"w":120,"h":3,"d":5,"fill":"#22d3ee 0.9"},
+    {"t":"Rectangle","x":1575.22,"y":353,"w":72,"h":4,"d":5,"fill":"#000000 0.5"},
+    {"t":"Rectangle","x":2448,"y":269.87,"w":110,"h":3,"d":5,"fill":"#22d3ee 0.9"},
+    {"t":"Rectangle","x":2448,"y":285.87,"w":66,"h":4,"d":5,"fill":"#000000 0.5"},
+    {"t":"Image","x":3530,"y":454,"w":72.6,"h":75.02,"s":[1.21,1.21],"d":6,"tex":"p_door_locked:__BASE"},
+    {"t":"Text","x":3530,"y":406,"w":39,"h":13,"d":6,"text":"EXIT →","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff","bg":"#000000aa"},
+    {"t":"Rectangle","x":1224,"y":484,"w":54,"h":280,"o":[0.5,1],"d":7,"fill":"#f1f5f9 0.75"},
+    {"t":"Rectangle","x":2808,"y":484,"w":54,"h":280,"o":[0.5,1],"d":7,"fill":"#f1f5f9 0.75"},
+    {"t":"Container","x":972,"y":454,"w":0,"h":0,"d":8,"n":3,"kids":[
+     {"t":"Rectangle","x":0,"y":-200,"w":16,"h":400,"fill":"#52525b 1","line":"#111827 1 2"},
+     {"t":"Image","x":0,"y":30,"w":130,"h":166.19,"o":[0.5,1],"s":[1.34,1.34],"tex":"side_crusher:__BASE"},
+     {"t":"Text","x":0,"y":-4,"w":121,"h":18,"text":"CROBLEY PRESS","font":"Krel Bold 12px","asked":"impact 14px","color":"#fff","stroke":"#111827 4"}
+    ]},
+    {"t":"Container","x":2160,"y":454,"w":0,"h":0,"d":8,"n":3,"kids":[
+     {"t":"Rectangle","x":0,"y":-200,"w":16,"h":400,"fill":"#52525b 1","line":"#111827 1 2"},
+     {"t":"Image","x":0,"y":30,"w":130,"h":166.19,"o":[0.5,1],"s":[1.34,1.34],"tex":"side_crusher:__BASE"},
+     {"t":"Text","x":0,"y":-4,"w":121,"h":18,"text":"CROBLEY PRESS","font":"Krel Bold 12px","asked":"impact 14px","color":"#fff","stroke":"#111827 4"}
+    ]},
+    {"t":"Container","x":3096,"y":349.89,"w":0,"h":0,"d":8,"n":3,"kids":[
+     {"t":"Rectangle","x":0,"y":-200,"w":16,"h":400,"fill":"#52525b 1","line":"#111827 1 2"},
+     {"t":"Image","x":0,"y":30,"w":130,"h":166.19,"o":[0.5,1],"s":[1.34,1.34],"tex":"side_crusher:__BASE"},
+     {"t":"Text","x":0,"y":-4,"w":121,"h":18,"text":"CROBLEY PRESS","font":"Krel Bold 12px","asked":"impact 14px","color":"#fff","stroke":"#111827 4"}
+    ]},
+    {"t":"Container","x":520,"y":462,"w":0,"h":0,"d":9,"n":2,"kids":[
+     {"t":"Image","x":0,"y":0,"w":36,"h":44,"tex":"sp_barrel:__BASE"},
+     {"t":"Text","x":0,"y":24,"w":48,"h":14,"text":"KREZZ","font":"Krel Bold 12px","asked":"impact 9px","color":"#facc15"}
+    ]},
+    {"t":"Container","x":580,"y":462,"w":0,"h":0,"d":9,"n":2,"kids":[
+     {"t":"Image","x":0,"y":0,"w":36,"h":44,"tex":"sp_barrel:__BASE"},
+     {"t":"Text","x":0,"y":24,"w":48,"h":14,"text":"KREZZ","font":"Krel Bold 12px","asked":"impact 9px","color":"#facc15"}
+    ]},
+    {"t":"Container","x":1314.84,"y":462,"w":0,"h":0,"d":9,"n":4,"kids":[
+     {"t":"Arc","x":0,"y":4,"w":52,"h":52,"a":0.138,"fill":"#22d3ee 0.15","r":26},
+     {"t":"Image","x":0,"y":0,"w":40,"h":34,"tex":"sp_crate:__BASE"},
+     {"t":"Rectangle","x":0,"y":0,"w":30,"h":12,"fill":"#0e7490 1","line":"#ffffff 0.6 1"},
+     {"t":"Text","x":0,"y":0,"w":42,"h":14,"text":"AMMO","font":"Krel Bold 12px","asked":"impact 9px","color":"#ffffff"}
+    ]},
+    {"t":"Container","x":1905.99,"y":462,"w":0,"h":0,"d":9,"n":2,"kids":[
+     {"t":"Image","x":0,"y":0,"w":36,"h":44,"tex":"sp_barrel:__BASE"},
+     {"t":"Text","x":0,"y":24,"w":48,"h":14,"text":"KREZZ","font":"Krel Bold 12px","asked":"impact 9px","color":"#facc15"}
+    ]},
+    {"t":"Container","x":1965.99,"y":462,"w":0,"h":0,"d":9,"n":2,"kids":[
+     {"t":"Image","x":0,"y":0,"w":36,"h":44,"tex":"sp_barrel:__BASE"},
+     {"t":"Text","x":0,"y":24,"w":48,"h":14,"text":"KREZZ","font":"Krel Bold 12px","asked":"impact 9px","color":"#facc15"}
+    ]},
+    {"t":"Container","x":2607.48,"y":462,"w":0,"h":0,"d":9,"n":4,"kids":[
+     {"t":"Arc","x":0,"y":4,"w":52,"h":52,"a":0.138,"fill":"#4ade80 0.15","r":26},
+     {"t":"Image","x":0,"y":0,"w":40,"h":34,"tex":"sp_crate:__BASE"},
+     {"t":"Rectangle","x":0,"y":0,"w":30,"h":12,"fill":"#166534 1","line":"#ffffff 0.6 1"},
+     {"t":"Text","x":0,"y":0,"w":57,"h":14,"text":"SUPPLY","font":"Krel Bold 12px","asked":"impact 9px","color":"#ffffff"}
+    ]},
+    {"t":"Container","x":2667.48,"y":462,"w":0,"h":0,"d":9,"n":2,"kids":[
+     {"t":"Image","x":0,"y":0,"w":36,"h":44,"tex":"sp_barrel:__BASE"},
+     {"t":"Text","x":0,"y":24,"w":48,"h":14,"text":"KREZZ","font":"Krel Bold 12px","asked":"impact 9px","color":"#facc15"}
+    ]},
+    {"t":"Container","x":3076.57,"y":462,"w":0,"h":0,"d":9,"n":2,"kids":[
+     {"t":"Image","x":0,"y":0,"w":36,"h":44,"tex":"sp_barrel:__BASE"},
+     {"t":"Text","x":0,"y":24,"w":48,"h":14,"text":"KREZZ","font":"Krel Bold 12px","asked":"impact 9px","color":"#facc15"}
+    ]},
+    {"t":"Container","x":3136.57,"y":462,"w":0,"h":0,"d":9,"n":2,"kids":[
+     {"t":"Image","x":0,"y":0,"w":36,"h":44,"tex":"sp_barrel:__BASE"},
+     {"t":"Text","x":0,"y":24,"w":48,"h":14,"text":"KREZZ","font":"Krel Bold 12px","asked":"impact 9px","color":"#facc15"}
+    ]},
+    {"t":"Container","x":1798.82,"y":458,"w":0,"h":0,"d":9,"n":3,"kids":[
+     {"t":"Sprite","x":0,"y":-6,"w":46.25,"h":46.25,"s":[0.723,0.723],"rot":0.067,"tex":"spr_CRONGUS:0"},
+     {"t":"Graphics","x":0,"y":0,"gfx":{"n":35,"h":"88f4c801"}},
+     {"t":"Text","x":0,"y":-56.89,"w":48,"h":16,"text":"HELP!","font":"Krel Bold 12px","asked":"impact 14px","color":"#ffffff","bg":"#dc2626","pad":[4,1,4,1]}
+    ]},
+    {"t":"Sprite","cls":"ArcadeSprite","x":90,"y":450.4,"w":84,"h":84,"s":[1.313,1.313],"d":451.4,"tex":"spr_FLENKY:4","body":{"w":28,"h":28,"ox":21.33,"oy":34.13}}
+   ]
+  },
+  {
+   "key": "UI",
+   "status": "RUNNING",
+   "count": {"top":29,"all":32,"hidden":11,"interactive":0},
+   "cam": {"x":0,"y":0,"w":960,"h":540,"scrollX":0,"scrollY":0,"zoom":[1,1],"bg":"0,0,0,0","roundPixels":true},
+   "input": {"enabled":true,"topOnly":true,"listeners":{},"keyboard":{"enabled":true,"keys":[],"listeners":{}}},
+   "timers": 1,
+   "tweens": 0,
+   "physics": {"bodies":0,"statics":0,"gravity":[0,0],"fps":60,"timeScale":1,"paused":false,"bounds":[0,0,960,540]},
+   "objs": [
+    {"t":"Graphics","x":0,"y":0,"gfx":{"n":531,"h":"c98ed523"}},
+    {"t":"Image","x":300,"y":63,"w":16,"h":16,"o":[0,0.5],"s":[0.5,0.5],"tex":"ico_coin:__BASE"},
+    {"t":"Text","x":320,"y":63,"w":8,"h":15,"o":[0,0.5],"text":"0","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#ffd23f","shadow":"1,1 #000 0"},
+    {"t":"Image","x":34,"y":34,"w":52,"h":52,"s":[0.813,0.813],"tex":"pt_flenky:__BASE"},
+    {"t":"Rectangle","x":34,"y":34,"w":54,"h":54,"line":"#3b6cff 1 2"},
+    {"t":"Text","x":68,"y":6,"w":79,"h":14,"o":[0,0],"text":"FLENKY JENKY","font":"Krel Regular 12px","asked":"ui 13px bold","color":"#ffd23f","shadow":"1,1 #000 0"},
+    {"t":"Text","x":68,"y":56,"w":144,"h":13,"o":[0,0],"text":"🍼 ×2/3 [Q] heal   🍺 ×1 [B]","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff","lineSpacing":2,"shadow":"1,1 #000 0"},
+    {"t":"Text","x":455,"y":6,"w":0,"h":13,"o":[0.5,0],"text":"","font":"Krel Regular 11px","asked":"ui 12px","color":"#c9c3e6","shadow":"1,1 #000 0"},
+    {"t":"Text","x":744,"y":122,"w":17,"h":23,"a":0.45,"text":"R","font":"Krel Bold 20px","asked":"impact 26px","color":"#ffffff","shadow":"2,2 #000 0"},
+    {"t":"Text","x":744,"y":159,"w":39,"h":12,"o":[0.5,0],"text":"WONK 0%","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#9aa0a6","shadow":"1,1 #000 0"},
+    {"t":"Text","x":820,"y":122,"w":17,"h":23,"a":0.45,"text":"G","font":"Krel Bold 20px","asked":"impact 26px","color":"#ffffff","shadow":"2,2 #000 0"},
+    {"t":"Text","x":820,"y":159,"w":23,"h":12,"o":[0.5,0],"text":"FART","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#9aa0a6","shadow":"1,1 #000 0"},
+    {"t":"Text","x":896,"y":122,"w":17.27,"h":23.37,"s":[1.016,1.016],"text":"Q","font":"Krel Bold 20px","asked":"impact 26px","color":"#ffffff","shadow":"2,2 #000 0"},
+    {"t":"Text","x":896,"y":159,"w":48,"h":12,"o":[0.5,0],"text":"JUICE 2/3","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ffffff","shadow":"1,1 #000 0"},
+    {"t":"Text","x":940,"y":520,"w":143,"h":26,"o":[1,1],"text":"💨 Fart Blaster  ∞","font":"Krel Regular 14px","asked":"ui 15px bold","color":"#ffffff","bg":"#0b0614cc","align":"right","pad":[8,5,8,5],"shadow":"1,1 #000 0"},
+    {"t":"Text","x":72,"y":24,"w":48,"h":13,"o":[0,0],"d":5,"text":"HP 90/90","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffffff","shadow":"1,1 #000 0"},
+    {"t":"Text","x":300,"y":41,"w":44,"h":12,"o":[0,0],"d":5,"text":"KREZZ 43","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","shadow":"1,1 #000 0"},
+    {"t":"Container","x":650,"y":8,"w":0,"h":0,"d":100,"n":3,"kids":[
+     {"t":"Rectangle","x":0,"y":0,"w":300,"h":48,"o":[0,0],"fill":"#141628 0.96","line":"#ffd23f 1 2"},
+     {"t":"Text","x":10,"y":6,"w":59,"h":12,"o":[0,0],"text":"RUN AND GUN","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ffd23f"},
+     {"t":"Text","x":10,"y":24,"w":167,"h":13,"o":[0,0],"text":"Push right. They'll come to you.","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff","wrap":280}
+    ]}
+   ]
+  }
+ ],
+ "game": {
+  "width": 960,
+  "height": 540,
+  "zoom": 1,
+  "parent": "game",
+  "scaleMode": 3,
+  "autoCenter": 1,
+  "autoRound": false,
+  "expandParent": true,
+  "fullscreenTarget": null,
+  "renderType": 2,
+  "renderer": 2,
+  "pixelArt": true,
+  "roundPixels": true,
+  "antialias": false,
+  "antialiasGL": false,
+  "transparent": false,
+  "clearBeforeRender": true,
+  "preserveDrawingBuffer": false,
+  "premultipliedAlpha": true,
+  "powerPreference": "default",
+  "batchSize": 4096,
+  "maxLights": 10,
+  "mipmapFilter": "",
+  "backgroundColor": "rgba(11,7,16,1)",
+  "fps": null,
+  "loop": {"targetFps":60,"fpsLimit":0,"smoothStep":true,"delta":16,"running":true},
+  "input": {
+   "keyboard": true,
+   "keyboardCapture": [],
+   "mouse": true,
+   "mousePreventDefaultDown": true,
+   "mousePreventDefaultUp": true,
+   "mousePreventDefaultMove": true,
+   "mousePreventDefaultWheel": true,
+   "touch": false,
+   "touchCapture": true,
+   "activePointers": 1,
+   "smoothFactor": 0,
+   "windowEvents": true,
+   "gamepad": true,
+   "disableContextMenu": true,
+   "pointers": 2,
+   "touchManager": false,
+   "mouseManager": true,
+   "mouseLocked": true,
+   "defaultCursor": ""
+  },
+  "physics": {"default":"arcade","arcade":{"debug":false}},
+  "audio": {},
+  "device": {"desktop":true,"touch":false,"fullscreen":true,"webGL":true},
+  "scale": {
+   "size": [960,540],
+   "display": [1280,720],
+   "parent": [1280,720],
+   "displayScale": [0.75,0.75],
+   "orientation": "landscape-primary",
+   "fullscreen": false
+  },
+  "listeners": {
+   "game": {"blur":2,"destroy":7,"focus":2,"hidden":1,"poststep":3,"prerender":1,"prestep":2,"visible":2},
+   "scale": {"resize":42},
+   "input": {"gameout":2,"gameover":2,"process":2},
+   "textures": {}
+  },
+  "textures": 2548,
+  "anims": 42
+ },
+ "dom": {
+  "window": [1280,720],
+  "dpr": 1,
+  "htmlClass": "",
+  "bodyClass": "fonts-loaded",
+  "htmlAttrs": ["lang=en"],
+  "bodyAttrs": ["class=fonts-loaded"],
+  "head": [
+   "script", "meta", "meta[name=viewport]", "link[rel=manifest]", "link[rel=icon]", "link[rel=apple-touch-icon]",
+   "meta[name=theme-color]", "meta[name=mobile-web-app-capable]", "meta[name=apple-mobile-web-app-capable]",
+   "meta[name=apple-mobile-web-app-status-bar-style]", "meta[name=apple-mobile-web-app-title]", "title",
+   "style 421ch #212c1044", "link[rel=preload]", "link[rel=preload]"
+  ],
+  "viewportMeta": "width=device-width,initial-scale=1,viewport-fit=cover",
+  "body": [
+   {"tag":"div","id":"game"},
+   {"tag":"script"},
+   {
+    "tag": "div",
+    "style": "position: fixed; left: 624px; top: 384px; pointer-events: none; z-index: 99999; display: block; line-height: 0; transition: transform 70ms ease-out;"
+   }
+  ],
+  "game": {
+   "rect": [0,0,1280,720],
+   "children": [
+    {
+     "tag": "canvas",
+     "style": "image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px; cursor: url(\"data:image/svg+xml;utf8,%3Csvg%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%203… #ad954f71"
+    }
+   ]
+  },
+  "canvas": {
+   "rect": [0,0,1280,720],
+   "width": 960,
+   "height": 540,
+   "style": "image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px; cursor: url(\"data:image/svg+xml;utf8,%3Csvg%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%229.5%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%224.5%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%229.5%22%20fill%3D%22none%22%20stroke%3D%22%23ffd23f%22%20stroke-width%3D%222%22%2F%3E%3Cline%20x1%3D%2216%22%20y1%3D%222%22%20x2%3D%2216%22%20y2%3D%229%22%20stroke%3D%22%23000%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2216%22%20y1%3D%222%22%20x2%3D%2216%22%20y2%3D%229%22%20stroke%3D%22%23ff3fa4%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2216%22%20y1%3D%2223%22%20x2%3D%2216%22%20y2%3D%2230%22%20stroke%3D%22%23000%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2216%22%20y1%3D%2223%22%20x2%3D%2216%22%20y2%3D%2230%22%20stroke%3D%22%23ff3fa4%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%222%22%20y1%3D%2216%22%20x2%3D%229%22%20y2%3D%2216%22%20stroke%3D%22%23000%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%222%22%20y1%3D%2216%22%20x2%3D%229%22%20y2%3D%2216%22%20stroke%3D%22%23ff3fa4%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2223%22%20y1%3D%2216%22%20x2%3D%2230%22%20y2%3D%2216%22%20stroke%3D%22%23000%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2223%22%20y1%3D%2216%22%20x2%3D%2230%22%20y2%3D%2216%22%20stroke%3D%22%23ff3fa4%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%222.4%22%20fill%3D%22%23fff%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%2F%3E%3C%2Fsvg%3E\") 16 16, crosshair;",
+   "attrs": ["height","style","width"]
+  },
+  "css": {
+   "html": {
+    "display": "block",
+    "position": "static",
+    "overflow": "hidden",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgb(11, 7, 16)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "body": {
+    "display": "block",
+    "position": "static",
+    "overflow": "hidden",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgb(11, 7, 16)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "game": {
+    "display": "flex",
+    "position": "static",
+    "overflow": "visible",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "canvas": {
+    "display": "block",
+    "position": "static",
+    "overflow": "clip",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "url(\"data:image/svg+xml;utf8,%3Csvg%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%229.5%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%224.5%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%229.5%22%20fill%3D%22none%22%20stroke%3D%22%23ffd23f%22%20stroke-width%3D%222%22%2F%3E%3Cline%20x1%3D%2216%22%20y1%3D%222%22%20x2%3D%2216%22%20y2%3D%229%22%20stroke%3D%22%23000%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2216%22%20y1%3D%222%22%20x2%3D%2216%22%20y2%3D%229%22%20stroke%3D%22%23ff3fa4%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2216%22%20y1%3D%2223%22%20x2%3D%2216%22%20y2%3D%2230%22%20stroke%3D%22%23000%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2216%22%20y1%3D%2223%22%20x2%3D%2216%22%20y2%3D%2230%22%20stroke%3D%22%23ff3fa4%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%222%22%20y1%3D%2216%22%20x2%3D%229%22%20y2%3D%2216%22%20stroke%3D%22%23000%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%222%22%20y1%3D%2216%22%20x2%3D%229%22%20y2%3D%2216%22%20stroke%3D%22%23ff3fa4%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2223%22%20y1%3D%2216%22%20x2%3D%2230%22%20y2%3D%2216%22%20stroke%3D%22%23000%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2223%22%20y1%3D%2216%22%20x2%3D%2230%22%20y2%3D%2216%22%20stroke%3D%22%23ff3fa4%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%222.4%22%20fill%3D%22%23fff%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%2F%3E%3C%2Fsvg%3E\") 16 16, crosshair",
+    "image-rendering": "pixelated",
+    "margin-left": "0px",
+    "margin-top": "0px"
+   }
+  },
+  "active": "body",
+  "fullscreen": false,
+  "pointerLock": "canvas",
+  "on": {"window":["onblur","onfocus"],"document":[]},
+  "globals": ["Phaser","__krel"]
+ },
+ "listeners": {
+  "added": {
+   "ScreenOrientation": {"change":1},
+   "audio": {"ended":1},
+   "canvas": {
+    "contextmenu": 2,
+    "mousedown": 1,
+    "mousemove": 1,
+    "mouseout passive": 1,
+    "mouseover passive": 1,
+    "mouseup": 1,
+    "webglcontextlost": 2,
+    "webglcontextrestored": 1,
+    "wheel active": 1
+   },
+   "document": {
+    "MSFullscreenChange": 1,
+    "MSFullscreenError": 1,
+    "fullscreenchange": 2,
+    "fullscreenerror": 1,
+    "mozfullscreenchange": 1,
+    "mozfullscreenerror": 1,
+    "mozpointerlockchange capture": 1,
+    "pointerlockchange": 1,
+    "pointerlockchange capture": 1,
+    "visibilitychange": 1,
+    "webkitfullscreenchange": 2,
+    "webkitfullscreenerror": 1,
+    "webkitpointerlockchange capture": 1
+   },
+   "window": {
+    "beforeunload": 1,
+    "error": 1,
+    "gamepadconnected": 9,
+    "gamepaddisconnected": 9,
+    "keydown": 2,
+    "keydown capture": 1,
+    "keyup": 1,
+    "mousedown": 1,
+    "mousedown capture": 1,
+    "mousedown passive": 1,
+    "mouseup passive": 1,
+    "pagehide": 1,
+    "resize": 2,
+    "unhandledrejection": 1
+   }
+  },
+  "removed": {"canvas":{"webglcontextlost":2},"window":{"gamepadconnected":8,"gamepaddisconnected":8,"keydown":1}}
+ },
+ "storage": {
+  "written": ["krel_alive","krel_crumb","krelworld.meta","krelworld.save","krelworld.slots.v1"],
+  "removed": [],
+  "now": {
+   "krel_alive": 1,
+   "krel_crumb": {"err":"","t":1773502208000,"where":"Dungeon+UI · crobley_factory room 1"},
+   "krelworld.meta": {
+    "archiveUnlocked": [],
+    "completedWith": [],
+    "heardMusic": ["title","crobley_factory"],
+    "ngPlusUnlocked": false,
+    "settings": {
+     "autoAim": true,
+     "crt": true,
+     "master": 0.8,
+     "music": 0.5,
+     "sfx": 0.8,
+     "shake": true,
+     "textSpeed": 1,
+     "voiceSpeed": 1.5,
+     "voiceSpeedV": 3,
+     "voiceVolume": 0.8,
+     "voices": true
+    },
+    "tutDungeon": true,
+    "tvWatched": [],
+    "version": 4
+   },
+   "krelworld.save": {
+    "archiveUnlocked": [],
+    "banCount": 0,
+    "banRisk": 0,
+    "banter": "max",
+    "bongos": 1,
+    "bottles": 2,
+    "chapter": 4,
+    "coins": 0,
+    "difficulty": 3,
+    "discovered": [],
+    "drongusResentment": 10,
+    "flags": {
+     "ch1_clear": true,
+     "ch1_fact": true,
+     "ch1_intro": true,
+     "ch2_clear": true,
+     "ch2_fact": true,
+     "ch2_intro": true,
+     "ch3_clear": true,
+     "ch3_fact": true,
+     "ch3_intro": true,
+     "flyover_seen": true,
+     "founding_seen": true,
+     "home_seen": true,
+     "met_emergency": true,
+     "ministerial_quests": true,
+     "p3d_swoop_crobley_factory": true,
+     "prologue_done": true,
+     "trails_v1": true,
+     "tv_klerble_welcome": true
+    },
+    "gunOrder": [],
+    "guns": {},
+    "hp": 90,
+    "intoxication": 0,
+    "kills": {},
+    "krezz": 40,
+    "ngPlus": 0,
+    "objective": "SIDE QUEST (before the chapter kicks off): The Gentko Trilogy — Find Mollor, a philosophy student, at Krelford University. Impress her.",
+    "phase": "dungeon",
+    "player": "FLENKY",
+    "playtimeMs": 0,
+    "quests": {},
+    "reactionsGiven": {"ANGRY":0,"LAUGH":0,"LIKE":0,"LOVE":0,"SEEN":0},
+    "relationships": {},
+    "revisions": [],
+    "savedAt": 1773502202128,
+    "tvWatched": [],
+    "upgrades": {},
+    "version": 4
+   },
+   "krelworld.slots.v1": 1
+  }
+ },
+ "audio": {
+  "contexts": 2,
+  "elements": [" paused vol 0 rate 1","audio/crobley_factory.mp3 playing loop vol 0.54 rate 1"],
+  "music": "crobley_factory"
+ },
+ "media": {
+  "coarse": false,
+  "fine": true,
+  "hover": true,
+  "anyCoarse": false,
+  "maxTouchPoints": 0,
+  "ontouchstart": false,
+  "landscape": true,
+  "standalone": false
+ },
+ "run": {
+  "player": "FLENKY",
+  "chapter": 4,
+  "phase": "dungeon",
+  "hp": 90,
+  "coins": 0,
+  "krezz": 43.17,
+  "gun": null,
+  "difficulty": 3,
+  "banter": "max",
+  "playtimeMs": 7008
+ },
+ "errors": []
+}

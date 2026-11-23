@@ -1,0 +1,7 @@
+{
+ "state": "probe_hub_pause",
+ "chain": "hub",
+ "build": "main",
+ "probe": {"input":"press Escape in town","scenesBefore":["Hub","UI"],"scenesAfter":["Hub (paused)","UI","Menu"]},
+ "errors": []
+}

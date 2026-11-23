@@ -1,0 +1,455 @@
+{
+ "state": "pub",
+ "chain": "places",
+ "build": "main",
+ "clock": [1804032,1773502204032],
+ "scenes": {
+  "live": ["UI RUNNING active visible","Pub RUNNING active visible"],
+  "order": [
+   "Boot", "Title", "CharSelect", "Difficulty", "Banter", "Cutscene", "Meeting", "DebugSkip", "ChapterSelect",
+   "Hub", "Dungeon", "UI", "Dialogue", "TV", "Archive", "Pub", "KrazyFact", "Exile", "Vignette", "Minigame",
+   "Venue", "Pit", "PitLoan", "Club", "Kreddle", "Whack", "WeaponPick", "Enter", "Home", "Drive", "BeepBeep",
+   "Lair", "Finale", "RoofCutscene", "Menu", "Slots", "Tutorial", "Ending", "PolsonHome"
+  ]
+ },
+ "display": [
+  {
+   "key": "UI",
+   "status": "RUNNING",
+   "count": {"top":19,"all":22,"hidden":10,"interactive":0},
+   "cam": {"x":0,"y":0,"w":960,"h":540,"scrollX":0,"scrollY":0,"zoom":[1,1],"bg":"0,0,0,0","roundPixels":true},
+   "input": {"enabled":true,"topOnly":true,"listeners":{},"keyboard":{"enabled":true,"keys":[],"listeners":{}}},
+   "timers": 1,
+   "tweens": 1,
+   "physics": {"bodies":0,"statics":0,"gravity":[0,0],"fps":60,"timeScale":1,"paused":false,"bounds":[0,0,960,540]},
+   "objs": [
+    {"t":"Graphics","x":0,"y":0,"gfx":{"n":0,"h":"811c9dc5"}},
+    {"t":"Image","x":68,"y":33,"w":16,"h":16,"o":[0,0.5],"s":[0.5,0.5],"tex":"ico_coin:__BASE"},
+    {"t":"Text","x":88,"y":33,"w":8,"h":15,"o":[0,0.5],"text":"0","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#ffd23f","shadow":"1,1 #000 0"},
+    {"t":"Image","x":34,"y":34,"w":52,"h":52,"s":[0.813,0.813],"tex":"pt_flenky:__BASE"},
+    {"t":"Rectangle","x":34,"y":34,"w":54,"h":54,"line":"#3b6cff 1 2"},
+    {"t":"Text","x":68,"y":6,"w":79,"h":14,"o":[0,0],"text":"FLENKY JENKY","font":"Krel Regular 12px","asked":"ui 13px bold","color":"#ffd23f","shadow":"1,1 #000 0"},
+    {"t":"Text","x":68,"y":44,"w":0,"h":13,"o":[0,0],"text":"","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff","lineSpacing":2,"shadow":"1,1 #000 0"},
+    {"t":"Text","x":455,"y":6,"w":114,"h":13,"o":[0.5,0],"text":"CHAPTER 1 · KRELFORD","font":"Krel Regular 11px","asked":"ui 12px","color":"#c9c3e6","shadow":"1,1 #000 0"},
+    {"t":"Container","x":480,"y":150,"w":0,"h":0,"d":900,"n":3,"kids":[
+     {"t":"Rectangle","x":0,"y":32.5,"w":615,"h":81,"fill":"#0b0820 0.88","line":"#ffd23f 1 2"},
+     {"t":"Text","x":0,"y":-2,"w":120,"h":14,"text":"★ NEW OBJECTIVE ★","font":"Krel Regular 12px","asked":"ui 13px bold","color":"#ffd23f"},
+     {"t":"Text","x":0,"y":14,"w":555,"h":35,"o":[0.5,0],"text":"Enter Wildern Academy. Find Kranky Krandall, the zany new headmaster, and turn the Tap back on","font":"Krel Regular 14px","asked":"ui 16px","color":"#ffffff","align":"center","wrap":560,"lineSpacing":3}
+    ]}
+   ]
+  },
+  {
+   "key": "Pub",
+   "status": "RUNNING",
+   "count": {"top":13,"all":81,"hidden":11,"interactive":8},
+   "cam": {"x":0,"y":0,"w":960,"h":540,"scrollX":0,"scrollY":0,"zoom":[1,1],"bg":"0,0,0,0","roundPixels":true},
+   "input": {
+    "enabled": true,
+    "topOnly": true,
+    "listeners": {"pointerdown":1},
+    "keyboard": {"enabled":true,"keys":[],"listeners":{"keydown":1}}
+   },
+   "timers": 1,
+   "tweens": 1,
+   "physics": {"bodies":0,"statics":0,"gravity":[0,0],"fps":60,"timeScale":1,"paused":false,"bounds":[0,0,960,540]},
+   "objs": [
+    {"t":"Image","x":480,"y":270,"w":960,"h":544,"s":[2,2],"d":-10,"sf":[0,0],"tex":"bg_pub:__BASE"},
+    {"t":"Rectangle","x":480,"y":270,"w":960,"h":540,"d":-9,"sf":[0,0],"fill":"#0a0614 0.2"},
+    {"t":"Image","x":480,"y":330,"w":192.01,"h":147.7,"s":[2.954,2.954],"tex":"p_table:__BASE"},
+    {"t":"Container","x":0,"y":0,"w":0,"h":0,"n":0},
+    {"t":"Graphics","x":0,"y":0,"gfx":{"n":124,"h":"4add3f6e"}},
+    {"t":"Text","x":30,"y":14,"w":222,"h":28,"o":[0,0],"text":"THE KREZZ ARMS","font":"Krel Bold 21px","asked":"ui 26px bold","color":"#e0a35a","stroke":"#000000 4"},
+    {"t":"Text","x":31,"y":46,"w":245,"h":12,"o":[0,0],"text":"Fizzy Bongos on tap. Pussy juice on the other tap.","font":"Krel Regular 10px","asked":"ui 11px","color":"#d6c49a"},
+    {"t":"Graphics","x":0,"y":0,"gfx":{"n":132,"h":"51a3d8c1"}},
+    {"t":"Text","x":712,"y":14,"w":108,"h":12,"o":[0,0],"text":"📺 Krezz Sketch Show","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#7dd3fc"},
+    {"t":"Text","x":822,"y":44,"w":94,"h":12,"text":"KREZZ SKETCH SHOW","font":"Krel Regular 10px","asked":"ui 10px","color":"#ffffff","align":"center","wrap":222},
+    {"t":"Container","x":0,"y":0,"w":0,"h":0,"d":10,"n":19,"kids":[
+     {"t":"Rectangle","x":0,"y":0,"w":960,"h":540,"o":[0,0],"fill":"#05030a 0.5"},
+     {"t":"NineSlice","x":480,"y":225,"w":900,"h":306,"tex":"ui_chalkboard:__BASE"},
+     {"t":"Text","x":196,"y":100,"w":83,"h":15,"text":"AT THE TABLE","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#e0a35a"},
+     {"t":"Graphics","x":0,"y":0,"gfx":{"n":19,"h":"c74882a3"}},
+     {"t":"Container","x":62,"y":128,"w":0,"h":0,"n":5,"kids":[
+      {"t":"Graphics","x":0,"y":0,"gfx":{"n":125,"h":"ac90c600"}},
+      {"t":"Image","x":36,"y":31.01,"w":53.76,"h":53.76,"s":[0.84,0.84],"tex":"pubicon_sit:__BASE"},
+      {"t":"Text","x":68,"y":21,"w":57,"h":16,"o":[0,0.5],"text":"Sit down","font":"Krel Regular 14px","asked":"ui 16px bold","color":"#f5efd9"},
+      {"t":"Text","x":68,"y":44,"w":135,"h":13,"o":[0,0.5],"text":"With whoever's in tonight","font":"Krel Regular 11px","asked":"ui 12px","color":"#a9b8a8"},
+      {"t":"Rectangle","x":0,"y":0,"w":268,"h":64,"o":[0,0],"fill":"#000000 0","hit":{"shape":"rect","x":0,"y":0,"w":268,"h":64,"cursor":"pointer"}}
+     ]},
+     {"t":"Container","x":62,"y":200,"w":0,"h":0,"n":5,"kids":[
+      {"t":"Graphics","x":0,"y":0,"gfx":{"n":125,"h":"01d1c6fa"}},
+      {"t":"Image","x":36,"y":32,"w":48,"h":48,"s":[0.75,0.75],"tex":"pubicon_stag:__BASE"},
+      {"t":"Text","x":68,"y":21,"w":85,"h":16,"o":[0,0.5],"text":"Jenko's stag","font":"Krel Regular 14px","asked":"ui 16px bold","color":"#f5efd9"},
+      {"t":"Text","x":68,"y":48,"w":170,"h":22,"o":[0,0.5],"text":"Organise it in the group chat (+40 Krezzcoin per new chat)","font":"Krel Regular 10px","asked":"ui 10px","color":"#a9b8a8","wrap":190,"lineSpacing":-2},
+      {"t":"Rectangle","x":0,"y":0,"w":268,"h":64,"o":[0,0],"fill":"#000000 0","hit":{"shape":"rect","x":0,"y":0,"w":268,"h":64,"cursor":"pointer"}}
+     ]},
+     {"t":"Text","x":480,"y":100,"w":96,"h":15,"text":"ENTERTAINMENT","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#7dd3fc"},
+     {"t":"Graphics","x":0,"y":0,"gfx":{"n":19,"h":"011c86ca"}},
+     {"t":"Container","x":346,"y":128,"w":0,"h":0,"n":5,"kids":[
+      {"t":"Graphics","x":0,"y":0,"gfx":{"n":125,"h":"30e51ccd"}},
+      {"t":"Image","x":36,"y":32,"w":48,"h":48,"s":[0.75,0.75],"tex":"pubicon_tv:__BASE"},
+      {"t":"Text","x":68,"y":21,"w":103,"h":16,"o":[0,0.5],"text":"Watch the telly","font":"Krel Regular 14px","asked":"ui 16px bold","color":"#f5efd9"},
+      {"t":"Text","x":68,"y":44,"w":108,"h":13,"o":[0,0.5],"text":"KrelTV, over the bar","font":"Krel Regular 11px","asked":"ui 12px","color":"#a9b8a8"},
+      {"t":"Rectangle","x":0,"y":0,"w":268,"h":64,"o":[0,0],"fill":"#000000 0","hit":{"shape":"rect","x":0,"y":0,"w":268,"h":64,"cursor":"pointer"}}
+     ]},
+     {"t":"Container","x":346,"y":200,"w":0,"h":0,"n":5,"kids":[
+      {"t":"Graphics","x":0,"y":0,"gfx":{"n":125,"h":"30e51ccd"}},
+      {"t":"Image","x":36,"y":32,"w":48,"h":48,"s":[0.75,0.75],"tex":"pubicon_riff:__BASE"},
+      {"t":"Text","x":68,"y":21,"w":122,"h":16,"o":[0,0.5],"text":"Kreblis & Drongus","font":"Krel Regular 14px","asked":"ui 16px bold","color":"#f5efd9"},
+      {"t":"Text","x":68,"y":48,"w":162,"h":22,"o":[0,0.5],"text":"Watch them riff. +3 Krokens, +40 Krezzcoin each","font":"Krel Regular 10px","asked":"ui 10px","color":"#a9b8a8","wrap":190,"lineSpacing":-2},
+      {"t":"Rectangle","x":0,"y":0,"w":268,"h":64,"o":[0,0],"fill":"#000000 0","hit":{"shape":"rect","x":0,"y":0,"w":268,"h":64,"cursor":"pointer"}}
+     ]},
+     {"t":"Text","x":764,"y":100,"w":100,"h":15,"text":"THE BACK ROOMS","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#f472b6"},
+     {"t":"Graphics","x":0,"y":0,"gfx":{"n":19,"h":"15105b9b"}},
+     {"t":"Container","x":630,"y":128,"w":0,"h":0,"n":5,"kids":[
+      {"t":"Graphics","x":0,"y":0,"gfx":{"n":125,"h":"9587e9a2"}},
+      {"t":"Image","x":36,"y":32,"w":48,"h":48,"s":[0.75,0.75],"tex":"pubicon_sanmik:__BASE"},
+      {"t":"Text","x":68,"y":21,"w":113,"h":16,"o":[0,0.5],"text":"SanMik & SanChz","font":"Krel Regular 14px","asked":"ui 16px bold","color":"#f5efd9"},
+      {"t":"Text","x":68,"y":44,"w":121,"h":13,"o":[0,0.5],"text":"On now. Live, mid-song","font":"Krel Regular 11px","asked":"ui 12px","color":"#a9b8a8"},
+      {"t":"Rectangle","x":0,"y":0,"w":268,"h":64,"o":[0,0],"fill":"#000000 0","hit":{"shape":"rect","x":0,"y":0,"w":268,"h":64,"cursor":"pointer"}}
+     ]},
+     {"t":"Container","x":630,"y":200,"w":0,"h":0,"n":5,"kids":[
+      {"t":"Graphics","x":0,"y":0,"gfx":{"n":125,"h":"9587e9a2"}},
+      {"t":"Image","x":36,"y":32,"w":48,"h":48,"s":[0.75,0.75],"tex":"pubicon_gig:__BASE"},
+      {"t":"Text","x":68,"y":21,"w":108,"h":16,"o":[0,0.5],"text":"Twitcher Mutiny","font":"Krel Regular 14px","asked":"ui 16px bold","color":"#f5efd9"},
+      {"t":"Text","x":68,"y":44,"w":139,"h":13,"o":[0,0.5],"text":"On now. It's getting rowdy","font":"Krel Regular 11px","asked":"ui 12px","color":"#a9b8a8"},
+      {"t":"Rectangle","x":0,"y":0,"w":268,"h":64,"o":[0,0],"fill":"#000000 0","hit":{"shape":"rect","x":0,"y":0,"w":268,"h":64,"cursor":"pointer"}}
+     ]},
+     {"t":"Container","x":630,"y":272,"w":0,"h":0,"n":5,"kids":[
+      {"t":"Graphics","x":0,"y":0,"gfx":{"n":125,"h":"9587e9a2"}},
+      {"t":"Image","x":36,"y":32,"w":48,"h":48,"s":[0.75,0.75],"tex":"pubicon_pole:__BASE"},
+      {"t":"Text","x":68,"y":21,"w":104,"h":16,"o":[0,0.5],"text":"The Wonky Pole","font":"Krel Regular 14px","asked":"ui 16px bold","color":"#f5efd9"},
+      {"t":"Text","x":68,"y":44,"w":107,"h":13,"o":[0,0.5],"text":"Through the curtain","font":"Krel Regular 11px","asked":"ui 12px","color":"#a9b8a8"},
+      {"t":"Rectangle","x":0,"y":0,"w":268,"h":64,"o":[0,0],"fill":"#000000 0","hit":{"shape":"rect","x":0,"y":0,"w":268,"h":64,"cursor":"pointer"}}
+     ]},
+     {"t":"Container","x":790,"y":484,"w":0,"h":0,"n":5,"kids":[
+      {"t":"Graphics","x":0,"y":0,"gfx":{"n":125,"h":"b45a8a75"}},
+      {"t":"Image","x":30,"y":24,"w":36,"h":36,"s":[0.563,0.563],"tex":"pubicon_door:__BASE"},
+      {"t":"Text","x":56,"y":16,"w":40,"h":16,"o":[0,0.5],"text":"Leave","font":"Krel Regular 14px","asked":"ui 16px bold","color":"#f5efd9"},
+      {"t":"Text","x":56,"y":33,"w":19,"h":13,"o":[0,0.5],"text":"Esc","font":"Krel Regular 11px","asked":"ui 12px","color":"#a9b8a8"},
+      {"t":"Rectangle","x":0,"y":0,"w":140,"h":48,"o":[0,0],"fill":"#000000 0","hit":{"shape":"rect","x":0,"y":0,"w":140,"h":48,"cursor":"pointer"}}
+     ]},
+     {"t":"Graphics","x":0,"y":0,"gfx":{"n":59,"h":"50813b4c"}},
+     {"t":"Text","x":42,"y":508,"w":225,"h":13,"o":[0,0.5],"text":"🍺 1 bongos   💰 0 Krezzcoin   Sober (0%)","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffd23f"},
+     {"t":"Text","x":774,"y":508,"w":122,"h":26,"o":[1,0.5],"text":"Arrows: choose\nEnter / E: go   Esc: leave","font":"Krel Regular 10px","asked":"ui 11px","color":"#b9bdd0","align":"right","lineSpacing":2}
+    ]}
+   ]
+  }
+ ],
+ "game": {
+  "width": 960,
+  "height": 540,
+  "zoom": 1,
+  "parent": "game",
+  "scaleMode": 3,
+  "autoCenter": 1,
+  "autoRound": false,
+  "expandParent": true,
+  "fullscreenTarget": null,
+  "renderType": 2,
+  "renderer": 2,
+  "pixelArt": true,
+  "roundPixels": true,
+  "antialias": false,
+  "antialiasGL": false,
+  "transparent": false,
+  "clearBeforeRender": true,
+  "preserveDrawingBuffer": false,
+  "premultipliedAlpha": true,
+  "powerPreference": "default",
+  "batchSize": 4096,
+  "maxLights": 10,
+  "mipmapFilter": "",
+  "backgroundColor": "rgba(11,7,16,1)",
+  "fps": null,
+  "loop": {"targetFps":60,"fpsLimit":0,"smoothStep":true,"delta":16,"running":true},
+  "input": {
+   "keyboard": true,
+   "keyboardCapture": [],
+   "mouse": true,
+   "mousePreventDefaultDown": true,
+   "mousePreventDefaultUp": true,
+   "mousePreventDefaultMove": true,
+   "mousePreventDefaultWheel": true,
+   "touch": false,
+   "touchCapture": true,
+   "activePointers": 1,
+   "smoothFactor": 0,
+   "windowEvents": true,
+   "gamepad": true,
+   "disableContextMenu": true,
+   "pointers": 2,
+   "touchManager": false,
+   "mouseManager": true,
+   "mouseLocked": true,
+   "defaultCursor": ""
+  },
+  "physics": {"default":"arcade","arcade":{"debug":false}},
+  "audio": {},
+  "device": {"desktop":true,"touch":false,"fullscreen":true,"webGL":true},
+  "scale": {
+   "size": [960,540],
+   "display": [1280,720],
+   "parent": [1280,720],
+   "displayScale": [0.75,0.75],
+   "orientation": "landscape-primary",
+   "fullscreen": false
+  },
+  "listeners": {
+   "game": {"blur":4,"destroy":7,"focus":2,"hidden":1,"poststep":3,"prerender":1,"prestep":2,"visible":2},
+   "scale": {"resize":41},
+   "input": {"gameout":2,"gameover":2,"process":2},
+   "textures": {}
+  },
+  "textures": 2536,
+  "anims": 42
+ },
+ "dom": {
+  "window": [1280,720],
+  "dpr": 1,
+  "htmlClass": "",
+  "bodyClass": "fonts-loaded",
+  "htmlAttrs": ["lang=en"],
+  "bodyAttrs": ["class=fonts-loaded"],
+  "head": [
+   "script", "meta", "meta[name=viewport]", "link[rel=manifest]", "link[rel=icon]", "link[rel=apple-touch-icon]",
+   "meta[name=theme-color]", "meta[name=mobile-web-app-capable]", "meta[name=apple-mobile-web-app-capable]",
+   "meta[name=apple-mobile-web-app-status-bar-style]", "meta[name=apple-mobile-web-app-title]", "title",
+   "style 421ch #212c1044", "link[rel=preload]", "link[rel=preload]"
+  ],
+  "viewportMeta": "width=device-width,initial-scale=1,viewport-fit=cover",
+  "body": [
+   {"tag":"div","id":"game"},
+   {"tag":"script"},
+   {
+    "tag": "div",
+    "style": "position: fixed; left: 639px; top: 399px; pointer-events: none; z-index: 99999; display: block; line-height: 0; transition: transform 70ms ease-out;"
+   }
+  ],
+  "game": {
+   "rect": [0,0,1280,720],
+   "children": [
+    {"tag":"canvas","style":"image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px;"}
+   ]
+  },
+  "canvas": {
+   "rect": [0,0,1280,720],
+   "width": 960,
+   "height": 540,
+   "style": "image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px;",
+   "attrs": ["height","style","width"]
+  },
+  "css": {
+   "html": {
+    "display": "block",
+    "position": "static",
+    "overflow": "hidden",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgb(11, 7, 16)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "body": {
+    "display": "block",
+    "position": "static",
+    "overflow": "hidden",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgb(11, 7, 16)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "game": {
+    "display": "flex",
+    "position": "static",
+    "overflow": "visible",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "canvas": {
+    "display": "block",
+    "position": "static",
+    "overflow": "clip",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto",
+    "image-rendering": "pixelated",
+    "margin-left": "0px",
+    "margin-top": "0px"
+   }
+  },
+  "active": "body",
+  "fullscreen": false,
+  "pointerLock": "canvas",
+  "on": {"window":["onblur","onfocus"],"document":[]},
+  "globals": ["Phaser","__krel"]
+ },
+ "listeners": {
+  "added": {
+   "ScreenOrientation": {"change":1},
+   "audio": {"ended":1},
+   "canvas": {
+    "contextmenu": 1,
+    "mousedown": 1,
+    "mousemove": 1,
+    "mouseout passive": 1,
+    "mouseover passive": 1,
+    "mouseup": 1,
+    "webglcontextlost": 2,
+    "webglcontextrestored": 1,
+    "wheel active": 1
+   },
+   "document": {
+    "MSFullscreenChange": 1,
+    "MSFullscreenError": 1,
+    "fullscreenchange": 2,
+    "fullscreenerror": 1,
+    "mozfullscreenchange": 1,
+    "mozfullscreenerror": 1,
+    "mozpointerlockchange capture": 1,
+    "pointerlockchange": 1,
+    "pointerlockchange capture": 1,
+    "visibilitychange": 1,
+    "webkitfullscreenchange": 2,
+    "webkitfullscreenerror": 1,
+    "webkitpointerlockchange capture": 1
+   },
+   "window": {
+    "beforeunload": 1,
+    "error": 1,
+    "gamepadconnected": 6,
+    "gamepaddisconnected": 6,
+    "keydown": 2,
+    "keydown capture": 1,
+    "keyup": 1,
+    "mousedown": 1,
+    "mousedown capture": 1,
+    "mousedown passive": 1,
+    "mouseup passive": 1,
+    "pagehide": 1,
+    "resize": 2,
+    "unhandledrejection": 1
+   }
+  },
+  "removed": {"canvas":{"webglcontextlost":2},"window":{"gamepadconnected":4,"gamepaddisconnected":4}}
+ },
+ "storage": {
+  "written": ["krel_alive","krel_crumb","krelworld.meta","krelworld.save","krelworld.slots.v1"],
+  "removed": [],
+  "now": {
+   "krel_alive": 1,
+   "krel_crumb": {"err":"","t":1773502204000,"where":"UI+Pub"},
+   "krelworld.meta": {
+    "archiveUnlocked": [],
+    "completedWith": [],
+    "heardMusic": ["title","pub"],
+    "ngPlusUnlocked": false,
+    "settings": {
+     "autoAim": true,
+     "crt": true,
+     "master": 0.8,
+     "music": 0.5,
+     "sfx": 0.8,
+     "shake": true,
+     "textSpeed": 1,
+     "voiceSpeed": 1.5,
+     "voiceSpeedV": 3,
+     "voiceVolume": 0.8,
+     "voices": true
+    },
+    "tvWatched": [],
+    "version": 4
+   },
+   "krelworld.save": {
+    "archiveUnlocked": [],
+    "banCount": 0,
+    "banRisk": 0,
+    "banter": "max",
+    "bongos": 1,
+    "bottles": 2,
+    "chapter": 1,
+    "coins": 0,
+    "difficulty": 3,
+    "discovered": [],
+    "drongusResentment": 10,
+    "flags": {
+     "flyover_seen": true,
+     "home_seen": true,
+     "met_emergency": true,
+     "prologue_done": true,
+     "trails_v1": true,
+     "tv_klerble_welcome": true
+    },
+    "gunOrder": [],
+    "guns": {},
+    "hp": 90,
+    "intoxication": 0,
+    "kills": {},
+    "krezz": 40,
+    "ngPlus": 0,
+    "objective": "Enter Wildern Academy. Find Kranky Krandall, the zany new headmaster, and turn the Tap back on",
+    "phase": "hub",
+    "player": "FLENKY",
+    "playtimeMs": 0,
+    "quests": {},
+    "reactionsGiven": {"ANGRY":0,"LAUGH":0,"LIKE":0,"LOVE":0,"SEEN":0},
+    "relationships": {},
+    "revisions": [],
+    "savedAt": 1773502202112,
+    "tvWatched": [],
+    "upgrades": {},
+    "version": 4
+   },
+   "krelworld.slots.v1": 1
+  }
+ },
+ "audio": {"contexts":2,"elements":[" paused vol 0 rate 1","audio/pub.mp3 playing loop vol 0.4 rate 1"],"music":"pub"},
+ "media": {
+  "coarse": false,
+  "fine": true,
+  "hover": true,
+  "anyCoarse": false,
+  "maxTouchPoints": 0,
+  "ontouchstart": false,
+  "landscape": true,
+  "standalone": false
+ },
+ "run": {
+  "player": "FLENKY",
+  "chapter": 1,
+  "phase": "hub",
+  "hp": 90,
+  "coins": 0,
+  "krezz": 40,
+  "gun": null,
+  "difficulty": 3,
+  "banter": "max",
+  "playtimeMs": 1920
+ },
+ "errors": []
+}

@@ -1,0 +1,63 @@
+{
+ "state": "shell_windows",
+ "chain": "shell",
+ "build": "main",
+ "probe": {
+  "1280x720": {
+   "window": [1280,720],
+   "canvas": [0,0,1280,720],
+   "canvasStyle": "image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px;",
+   "canvasMargin": ["0px","0px"],
+   "game": [0,0,1280,720],
+   "body": [0,0,1280,720],
+   "gutters": {"left":0,"right":0,"top":0,"bottom":0},
+   "scale": {"display":[1280,720],"parent":[1280,720],"displayScale":[0.75,0.75],"orientation":"landscape-primary"},
+   "backing": [960,540]
+  },
+  "1440x900": {
+   "window": [1440,900],
+   "canvas": [0,67.5,1440,810],
+   "canvasStyle": "image-rendering: pixelated; width: 1440px; height: 810px; margin-left: 0px; margin-top: 45px;",
+   "canvasMargin": ["0px","45px"],
+   "game": [0,0,1440,900],
+   "body": [0,0,1440,900],
+   "gutters": {"left":0,"right":0,"top":67.5,"bottom":22.5},
+   "scale": {"display":[1440,810],"parent":[1440,900],"displayScale":[0.667,0.667],"orientation":"landscape-primary"},
+   "backing": [960,540]
+  },
+  "1024x768": {
+   "window": [1024,768],
+   "canvas": [0,144,1024,576],
+   "canvasStyle": "image-rendering: pixelated; width: 1024px; height: 576px; margin-left: 0px; margin-top: 96px;",
+   "canvasMargin": ["0px","96px"],
+   "game": [0,0,1024,768],
+   "body": [0,0,1024,768],
+   "gutters": {"left":0,"right":0,"top":144,"bottom":48},
+   "scale": {"display":[1024,576],"parent":[1024,768],"displayScale":[0.938,0.938],"orientation":"landscape-primary"},
+   "backing": [960,540]
+  },
+  "1720x720": {
+   "window": [1720,720],
+   "canvas": [330,0,1280,720],
+   "canvasStyle": "image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 220px; margin-top: 0px;",
+   "canvasMargin": ["220px","0px"],
+   "game": [0,0,1720,720],
+   "body": [0,0,1720,720],
+   "gutters": {"left":330,"right":110,"top":0,"bottom":0},
+   "scale": {"display":[1280,720],"parent":[1720,720],"displayScale":[0.75,0.75],"orientation":"landscape-primary"},
+   "backing": [960,540]
+  },
+  "1280x720 (back again)": {
+   "window": [1280,720],
+   "canvas": [0,0,1280,720],
+   "canvasStyle": "image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px;",
+   "canvasMargin": ["0px","0px"],
+   "game": [0,0,1280,720],
+   "body": [0,0,1280,720],
+   "gutters": {"left":0,"right":0,"top":0,"bottom":0},
+   "scale": {"display":[1280,720],"parent":[1280,720],"displayScale":[0.75,0.75],"orientation":"landscape-primary"},
+   "backing": [960,540]
+  }
+ },
+ "errors": []
+}

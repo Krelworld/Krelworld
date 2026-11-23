@@ -1,0 +1,410 @@
+{
+ "state": "chapter_select",
+ "chain": "boss",
+ "build": "main",
+ "clock": [1803296,1773502203296],
+ "scenes": {
+  "live": ["ChapterSelect RUNNING active visible"],
+  "order": [
+   "Boot", "Title", "CharSelect", "Difficulty", "Banter", "Cutscene", "Meeting", "DebugSkip", "ChapterSelect",
+   "Hub", "Dungeon", "UI", "Dialogue", "TV", "Archive", "Pub", "KrazyFact", "Exile", "Vignette", "Minigame",
+   "Venue", "Pit", "PitLoan", "Club", "Kreddle", "Whack", "WeaponPick", "Enter", "Home", "Drive", "BeepBeep",
+   "Lair", "Finale", "RoofCutscene", "Menu", "Slots", "Tutorial", "Ending", "PolsonHome"
+  ]
+ },
+ "display": [
+  {
+   "key": "ChapterSelect",
+   "status": "RUNNING",
+   "count": {"top":27,"all":69,"hidden":0,"interactive":21},
+   "cam": {"x":0,"y":0,"w":960,"h":540,"scrollX":0,"scrollY":0,"zoom":[1,1],"bg":"0,0,0,0","roundPixels":true},
+   "input": {
+    "enabled": true,
+    "topOnly": true,
+    "listeners": {},
+    "keyboard": {
+     "enabled": true,
+     "keys": [],
+     "listeners": {
+      "keydown-A": 1,
+      "keydown-C": 1,
+      "keydown-D": 1,
+      "keydown-DOWN": 1,
+      "keydown-ENTER": 1,
+      "keydown-ESC": 1,
+      "keydown-LEFT": 1,
+      "keydown-RIGHT": 1,
+      "keydown-S": 1,
+      "keydown-SPACE": 1,
+      "keydown-UP": 1,
+      "keydown-V": 1,
+      "keydown-W": 1
+     }
+    }
+   },
+   "timers": 0,
+   "tweens": 0,
+   "physics": {"bodies":0,"statics":0,"gravity":[0,0],"fps":60,"timeScale":1,"paused":false,"bounds":[0,0,960,540]},
+   "objs": [
+    {"t":"Rectangle","x":480,"y":270,"w":960,"h":540,"fill":"#10101e 1"},
+    {"t":"Text","x":480,"y":24,"w":209,"h":23,"text":"CHAPTER SELECT","font":"Krel Bold 20px","asked":"ui 24px bold","color":"#ffd23f","align":"center","shadow":"3,3 #000 0"},
+    {"t":"Text","x":480,"y":48,"w":432,"h":12,"text":"Starts a fresh save at the start of whatever you pick. This replaces your current save.","font":"Krel Regular 10px","asked":"ui 11px","color":"#ff9b9b"},
+    {"t":"Container","x":325,"y":78,"w":300,"h":30,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":300,"h":30,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":300,"h":30,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":160,"h":13,"text":"PLAYING AS: FLENKY JENKY  (C)","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffffff","align":"center","wrap":288}
+    ]},
+    {"t":"Container","x":640,"y":78,"w":310,"h":30,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":310,"h":30,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":310,"h":30,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":150,"h":13,"text":"DIFFICULTY 3/5: NORMAL  (V)","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f","align":"center","wrap":298}
+    ]},
+    {"t":"Text","x":150,"y":108,"w":54,"h":14,"text":"CHAPTERS","font":"Krel Regular 12px","asked":"ui 13px bold","color":"#86efac"},
+    {"t":"Container","x":150,"y":138,"w":270,"h":36,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":270,"h":36,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":270,"h":36,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":112,"h":13,"text":"1. THE GREAT SILENCE","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffffff","align":"center","wrap":258}
+    ]},
+    {"t":"Container","x":150,"y":182,"w":270,"h":36,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":270,"h":36,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":270,"h":36,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":108,"h":13,"text":"2. THE INTERVENTION","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffffff","align":"center","wrap":258}
+    ]},
+    {"t":"Container","x":150,"y":226,"w":270,"h":36,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":270,"h":36,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":270,"h":36,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":127,"h":13,"text":"3. THE CUDDLE CRONSTER","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffffff","align":"center","wrap":258}
+    ]},
+    {"t":"Container","x":150,"y":270,"w":270,"h":36,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":270,"h":36,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":270,"h":36,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":124,"h":13,"text":"4. NIBBLE ON A CROBLEY","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffffff","align":"center","wrap":258}
+    ]},
+    {"t":"Container","x":150,"y":314,"w":270,"h":36,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":270,"h":36,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":270,"h":36,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":104,"h":13,"text":"5. THE SANMIKVERSE","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffffff","align":"center","wrap":258}
+    ]},
+    {"t":"Container","x":150,"y":358,"w":270,"h":36,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":270,"h":36,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":270,"h":36,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":127,"h":13,"text":"6. THE KREDDLE EXPRESS","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffffff","align":"center","wrap":258}
+    ]},
+    {"t":"Container","x":150,"y":402,"w":270,"h":36,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":270,"h":36,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":270,"h":36,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":120,"h":13,"text":"7. DA DRONGUS DUNGEON","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffffff","align":"center","wrap":258}
+    ]},
+    {"t":"Text","x":635,"y":108,"w":240,"h":14,"text":"SIDE QUESTS (goes straight to the quest)","font":"Krel Regular 12px","asked":"ui 13px bold","color":"#86efac"},
+    {"t":"Container","x":482,"y":130,"w":300,"h":32,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":300,"h":32,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":300,"h":32,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":123,"h":12,"text":"Ch 2 · The Gentko Trilogy","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ffffff","align":"center","wrap":288}
+    ]},
+    {"t":"Container","x":482,"y":166,"w":300,"h":32,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":300,"h":32,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":300,"h":32,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":119,"h":12,"text":"Ch 2 · Supple Structures","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ffffff","align":"center","wrap":288}
+    ]},
+    {"t":"Container","x":482,"y":202,"w":300,"h":32,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":300,"h":32,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":300,"h":32,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":142,"h":12,"text":"Ch 3 · The Kreddle Krunchers","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ffffff","align":"center","wrap":288}
+    ]},
+    {"t":"Container","x":482,"y":238,"w":300,"h":32,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":300,"h":32,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":300,"h":32,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":130,"h":12,"text":"Ch 3 · The Cuddle Cronster","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ffffff","align":"center","wrap":288}
+    ]},
+    {"t":"Container","x":482,"y":274,"w":300,"h":32,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":300,"h":32,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":300,"h":32,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":105,"h":12,"text":"Ch 3 · Polson Gets Fit","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ffffff","align":"center","wrap":288}
+    ]},
+    {"t":"Container","x":790,"y":130,"w":300,"h":32,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":300,"h":32,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":300,"h":32,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":113,"h":12,"text":"Ch 3 · Do The Crocodile","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ffffff","align":"center","wrap":288}
+    ]},
+    {"t":"Container","x":790,"y":166,"w":300,"h":32,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":300,"h":32,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":300,"h":32,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":95,"h":12,"text":"Ch 4 · Flenky Jenky","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ffffff","align":"center","wrap":288}
+    ]},
+    {"t":"Container","x":790,"y":202,"w":300,"h":32,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":300,"h":32,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":300,"h":32,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":115,"h":12,"text":"Ch 4 · Sick Fucking Shit","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ffffff","align":"center","wrap":288}
+    ]},
+    {"t":"Container","x":790,"y":238,"w":300,"h":32,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":300,"h":32,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":300,"h":32,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":131,"h":12,"text":"Ch 6 · The Kreddle Express","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ffffff","align":"center","wrap":288}
+    ]},
+    {"t":"Container","x":790,"y":274,"w":300,"h":32,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":300,"h":32,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":300,"h":32,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":112,"h":12,"text":"Ch 6 · The 50p Crusade","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ffffff","align":"center","wrap":288}
+    ]},
+    {"t":"Container","x":90,"y":516,"w":140,"h":30,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":140,"h":30,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":140,"h":30,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":43,"h":14,"text":"◀ BACK","font":"Krel Regular 12px","asked":"ui 13px bold","color":"#ffffff","align":"center","wrap":128}
+    ]},
+    {"t":"Container","x":150,"y":454,"w":270,"h":40,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":270,"h":40,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":270,"h":40,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":93,"h":15,"text":"⚔ BOSS FIGHTS","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#ffffff","align":"center","wrap":258}
+    ]},
+    {"t":"Text","x":480,"y":516,"w":472,"h":12,"text":"Later chapters start you with the everyday guns from the chapters before, and some Krezzcoin.","font":"Krel Regular 10px","asked":"ui 11px","color":"#86efac"}
+   ]
+  }
+ ],
+ "game": {
+  "width": 960,
+  "height": 540,
+  "zoom": 1,
+  "parent": "game",
+  "scaleMode": 3,
+  "autoCenter": 1,
+  "autoRound": false,
+  "expandParent": true,
+  "fullscreenTarget": null,
+  "renderType": 2,
+  "renderer": 2,
+  "pixelArt": true,
+  "roundPixels": true,
+  "antialias": false,
+  "antialiasGL": false,
+  "transparent": false,
+  "clearBeforeRender": true,
+  "preserveDrawingBuffer": false,
+  "premultipliedAlpha": true,
+  "powerPreference": "default",
+  "batchSize": 4096,
+  "maxLights": 10,
+  "mipmapFilter": "",
+  "backgroundColor": "rgba(11,7,16,1)",
+  "fps": null,
+  "loop": {"targetFps":60,"fpsLimit":0,"smoothStep":true,"delta":16,"running":true},
+  "input": {
+   "keyboard": true,
+   "keyboardCapture": [],
+   "mouse": true,
+   "mousePreventDefaultDown": true,
+   "mousePreventDefaultUp": true,
+   "mousePreventDefaultMove": true,
+   "mousePreventDefaultWheel": true,
+   "touch": false,
+   "touchCapture": true,
+   "activePointers": 1,
+   "smoothFactor": 0,
+   "windowEvents": true,
+   "gamepad": true,
+   "disableContextMenu": true,
+   "pointers": 2,
+   "touchManager": false,
+   "mouseManager": true,
+   "mouseLocked": true,
+   "defaultCursor": ""
+  },
+  "physics": {"default":"arcade","arcade":{"debug":false}},
+  "audio": {},
+  "device": {"desktop":true,"touch":false,"fullscreen":true,"webGL":true},
+  "scale": {
+   "size": [960,540],
+   "display": [1280,720],
+   "parent": [1280,720],
+   "displayScale": [0.75,0.75],
+   "orientation": "landscape-primary",
+   "fullscreen": false
+  },
+  "listeners": {
+   "game": {"blur":3,"destroy":7,"focus":2,"hidden":1,"poststep":3,"prerender":1,"prestep":2,"visible":2},
+   "scale": {"resize":41},
+   "input": {"gameout":1,"gameover":1,"process":1},
+   "textures": {}
+  },
+  "textures": 2515,
+  "anims": 42
+ },
+ "dom": {
+  "window": [1280,720],
+  "dpr": 1,
+  "htmlClass": "",
+  "bodyClass": "fonts-loaded",
+  "htmlAttrs": ["lang=en"],
+  "bodyAttrs": ["class=fonts-loaded"],
+  "head": [
+   "script", "meta", "meta[name=viewport]", "link[rel=manifest]", "link[rel=icon]", "link[rel=apple-touch-icon]",
+   "meta[name=theme-color]", "meta[name=mobile-web-app-capable]", "meta[name=apple-mobile-web-app-capable]",
+   "meta[name=apple-mobile-web-app-status-bar-style]", "meta[name=apple-mobile-web-app-title]", "title",
+   "style 421ch #212c1044", "link[rel=preload]", "link[rel=preload]"
+  ],
+  "viewportMeta": "width=device-width,initial-scale=1,viewport-fit=cover",
+  "body": [
+   {"tag":"div","id":"game"},
+   {"tag":"script"},
+   {
+    "tag": "div",
+    "style": "position: fixed; left: 639px; top: 351px; pointer-events: none; z-index: 99999; display: block; line-height: 0; transition: transform 70ms ease-out;"
+   }
+  ],
+  "game": {
+   "rect": [0,0,1280,720],
+   "children": [
+    {"tag":"canvas","style":"image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px;"}
+   ]
+  },
+  "canvas": {
+   "rect": [0,0,1280,720],
+   "width": 960,
+   "height": 540,
+   "style": "image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px;",
+   "attrs": ["height","style","width"]
+  },
+  "css": {
+   "html": {
+    "display": "block",
+    "position": "static",
+    "overflow": "hidden",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgb(11, 7, 16)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "body": {
+    "display": "block",
+    "position": "static",
+    "overflow": "hidden",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgb(11, 7, 16)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "game": {
+    "display": "flex",
+    "position": "static",
+    "overflow": "visible",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "canvas": {
+    "display": "block",
+    "position": "static",
+    "overflow": "clip",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto",
+    "image-rendering": "pixelated",
+    "margin-left": "0px",
+    "margin-top": "0px"
+   }
+  },
+  "active": "body",
+  "fullscreen": false,
+  "pointerLock": "canvas",
+  "on": {"window":["onblur","onfocus"],"document":[]},
+  "globals": ["Phaser","__krel"]
+ },
+ "listeners": {
+  "added": {
+   "ScreenOrientation": {"change":1},
+   "audio": {"ended":1},
+   "canvas": {
+    "contextmenu": 1,
+    "mousedown": 1,
+    "mousemove": 1,
+    "mouseout passive": 1,
+    "mouseover passive": 1,
+    "mouseup": 1,
+    "webglcontextlost": 2,
+    "webglcontextrestored": 1,
+    "wheel active": 1
+   },
+   "document": {
+    "MSFullscreenChange": 1,
+    "MSFullscreenError": 1,
+    "fullscreenchange": 2,
+    "fullscreenerror": 1,
+    "mozfullscreenchange": 1,
+    "mozfullscreenerror": 1,
+    "mozpointerlockchange capture": 1,
+    "pointerlockchange": 1,
+    "pointerlockchange capture": 1,
+    "visibilitychange": 1,
+    "webkitfullscreenchange": 2,
+    "webkitfullscreenerror": 1,
+    "webkitpointerlockchange capture": 1
+   },
+   "input": {"keydown":1},
+   "window": {
+    "beforeunload": 1,
+    "error": 1,
+    "gamepadconnected": 5,
+    "gamepaddisconnected": 5,
+    "keydown": 1,
+    "keydown capture": 1,
+    "keyup": 1,
+    "mousedown": 1,
+    "mousedown capture": 1,
+    "mousedown passive": 1,
+    "mouseup passive": 1,
+    "pagehide": 1,
+    "resize": 3,
+    "unhandledrejection": 1
+   }
+  },
+  "removed": {"canvas":{"webglcontextlost":2},"window":{"gamepadconnected":4,"gamepaddisconnected":4,"resize":1}}
+ },
+ "storage": {
+  "written": ["krel_alive","krel_crumb","krelworld.meta","krelworld.slots.v1"],
+  "removed": [],
+  "now": {
+   "krel_alive": 1,
+   "krel_crumb": {"err":"","t":1773502202000,"where":"Title"},
+   "krelworld.meta": {
+    "archiveUnlocked": [],
+    "chapterSelectOk": true,
+    "completedWith": [],
+    "heardMusic": ["title"],
+    "ngPlusUnlocked": false,
+    "settings": {
+     "autoAim": true,
+     "crt": true,
+     "master": 0.8,
+     "music": 0.5,
+     "sfx": 0.8,
+     "shake": true,
+     "textSpeed": 1,
+     "voiceSpeed": 1.5,
+     "voiceSpeedV": 3,
+     "voiceVolume": 0.8,
+     "voices": true
+    },
+    "tvWatched": [],
+    "version": 4
+   },
+   "krelworld.slots.v1": 1
+  }
+ },
+ "audio": {"contexts":2,"elements":["audio/krel_world.mp3 playing vol 0.4 rate 1"],"music":"title"},
+ "media": {
+  "coarse": false,
+  "fine": true,
+  "hover": true,
+  "anyCoarse": false,
+  "maxTouchPoints": 0,
+  "ontouchstart": false,
+  "landscape": true,
+  "standalone": false
+ },
+ "run": null,
+ "errors": []
+}

@@ -1,0 +1,13 @@
+{
+ "state": "probe_boss_swap",
+ "chain": "boss",
+ "build": "main",
+ "probe": {
+  "input": "tap X (swap gun) twice, 20 frames apart",
+  "before": {"gun":"disco","ammo":13,"owned":6},
+  "afterOne": {"gun":"kreddler","ammo":900,"owned":6},
+  "afterTwo": {"gun":"flush","ammo":90,"owned":6},
+  "scenes": ["Dungeon","UI"]
+ },
+ "errors": []
+}

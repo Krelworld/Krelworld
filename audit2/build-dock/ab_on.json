@@ -1,0 +1,640 @@
+{
+ "menu :: gymnastics | qfx49l#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "dock": [
+   "[]",
+   "[]"
+  ]
+ },
+ "menu :: gymnastics | qfx49l#2": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[]",
+   "[]"
+  ],
+  "dock": [
+   "[]",
+   "[]"
+  ]
+ },
+ "menu :: gymnastics | qfx49l#3": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[]",
+   "[]"
+  ],
+  "dock": [
+   "[]",
+   "[]"
+  ]
+ },
+ "menu :: gymnastics | qfx49l#4": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[]",
+   "[]"
+  ],
+  "dock": [
+   "[]",
+   "[]"
+  ]
+ },
+ "menu :: gymnastics | qfx49l#5": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[]",
+   "[]"
+  ],
+  "dock": [
+   "[]",
+   "[]"
+  ]
+ },
+ "menu :: gymnastics | qfx49l#6": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "dock": [
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ]
+ },
+ "menu :: gymnastics | qfx49l#8": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[]",
+   "[]"
+  ],
+  "dock": [
+   "[]",
+   "[]"
+  ]
+ },
+ "obj backyard/tr_apple | 1ygm7f6#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[]",
+   "[]"
+  ],
+  "dock": [
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ]
+ },
+ "obj den/barm | 1a3zqcq#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]"
+  ]
+ },
+ "obj den/barm | qbbnaf#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ]
+ },
+ "obj den/bsofa | 1a3zqcq#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]"
+  ]
+ },
+ "obj den/bsofa | qbbnaf#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ]
+ },
+ "obj den/ottoman | qbbnaf#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ]
+ },
+ "obj dining/dresser | 1tmr7qh#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ]
+ },
+ "obj foyer/stairs | sk26k2#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"room:\\\"foyer\\\"→\\\"uphall\\\"\",\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"room:\\\"foyer\\\"→\\\"uphall\\\"\",\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "dock": [
+   "[\"room:\\\"foyer\\\"→\\\"uphall\\\"\",\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"room:\\\"foyer\\\"→\\\"uphall\\\"\",\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ]
+ },
+ "obj foyer/stairs | t8h16x#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"room:\\\"foyer\\\"→\\\"uphall\\\"\"]",
+   "[\"room:\\\"foyer\\\"→\\\"uphall\\\"\"]"
+  ],
+  "dock": [
+   "[\"room:\\\"foyer\\\"→\\\"uphall\\\"\"]",
+   "[\"room:\\\"foyer\\\"→\\\"uphall\\\"\"]"
+  ]
+ },
+ "obj kitchen/oven | 1tmr7qh#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]",
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]",
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]"
+  ]
+ },
+ "obj kitchen/sink | 1tmr7qh#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]",
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]",
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]"
+  ]
+ },
+ "obj kitchen/stove | 1tmr7qh#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]",
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]",
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]"
+  ]
+ },
+ "obj kitchen/stove | 1tmr7qh#2": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]",
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]",
+   "[\"panel:null→\\\"🧑‍🍳\\\"\"]"
+  ]
+ },
+ "obj living/dresserw | 1tmr7qh#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ]
+ },
+ "obj living/fireplace | 1g8y4d2#5": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]"
+  ]
+ },
+ "obj living/fireplace | 1g8y4d2#6": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]"
+  ]
+ },
+ "obj living/fireplace | 1g8y4d2#8": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]"
+  ]
+ },
+ "obj living/fireplace | 1g8y4d2#9": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]"
+  ]
+ },
+ "obj living/tv | 1g8y4d2#5": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]"
+  ]
+ },
+ "obj living/tv | 1g8y4d2#6": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\",\"tv:false→true\"]"
+  ]
+ },
+ "obj milesroom/airbed | tgg1yn#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ]
+ },
+ "obj milesroom/daybed | 1a3zqcq#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]"
+  ]
+ },
+ "obj mroom/bunk | ppzuzf#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"🧸\\\"\"]",
+   "[\"panel:null→\\\"🧸\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"🧸\\\"\"]",
+   "[\"panel:null→\\\"🧸\\\"\"]"
+  ]
+ },
+ "obj mroom/mcloset | 1tmr7qh#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ]
+ },
+ "obj mroom/mstack | 1fug1u9#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[]"
+  ]
+ },
+ "obj nunuroom/folded | 1tmr7qh#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ]
+ },
+ "obj nunuroom/nbed | tjso09#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ]
+ },
+ "obj nunuroom/rack | 1tmr7qh#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ]
+ },
+ "obj parents/pbed | 1a3zqcq#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]"
+  ]
+ },
+ "obj parents/pdresser | 1tmr7qh#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ]
+ },
+ "obj playroom/keys | 1dnhujd#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ]
+ },
+ "obj playroom/keys | 1dnhujd#3": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ]
+ },
+ "obj playroom/keys | 1dnhujd#6": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ]
+ },
+ "obj pool/lounger1 | kcbic#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]"
+  ]
+ },
+ "obj storage/bigbox | z3ojvy#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ]
+ },
+ "obj storage/boxes | z3ojvy#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ]
+ },
+ "obj storage/tiles | r3p83j#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"🔷\\\"\"]",
+   "[\"panel:null→\\\"🔷\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"🔷\\\"\"]",
+   "[\"panel:null→\\\"🔷\\\"\"]"
+  ]
+ },
+ "obj treehouse_oak/th_scope | wfggdj#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]"
+  ]
+ },
+ "obj treehouse_pine/th_scope | wfggdj#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]"
+  ]
+ },
+ "obj uphall/ustairs | 1s1fdse#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"room:\\\"uphall\\\"→\\\"foyer\\\"\",\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"room:\\\"uphall\\\"→\\\"foyer\\\"\",\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "dock": [
+   "[\"room:\\\"uphall\\\"→\\\"foyer\\\"\",\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"room:\\\"uphall\\\"→\\\"foyer\\\"\",\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ]
+ },
+ "obj uphall/uwheel | 9x65of#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"wheel\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"wheel\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"wheel\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"wheel\\\"\"]"
+  ]
+ },
+ "obj yard/leafpile :: carrying blower | 1bj2rwa#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ]
+ },
+ "self :: on furniture with Daddy near | 4ihzep#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"perch\\\"→\\\"idle\\\"\"]",
+   "[\"state:\\\"perch\\\"→\\\"idle\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"perch\\\"→\\\"idle\\\"\"]",
+   "[\"state:\\\"perch\\\"→\\\"idle\\\"\"]"
+  ]
+ },
+ "self :: on monkey bars | 1qe7r55#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"bars\\\"→\\\"idle\\\"\"]",
+   "[\"state:\\\"bars\\\"→\\\"idle\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"bars\\\"→\\\"idle\\\"\"]",
+   "[\"state:\\\"bars\\\"→\\\"idle\\\"\"]"
+  ]
+ },
+ "who daddy :: fort built here | 1tpe5rr#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"ride\\\"\",\"mount:null→\\\"daddy\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"ride\\\"\",\"mount:null→\\\"daddy\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"ride\\\"\",\"mount:null→\\\"daddy\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"ride\\\"\",\"mount:null→\\\"daddy\\\"\"]"
+  ]
+ },
+ "who miles :: Marina holding a nice dish | qpltx4#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "dock": [
+   "[]",
+   "[]"
+  ]
+ },
+ "who mommy :: fort built here | 8y7uyb#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sad\\\"\"]"
+  ]
+ },
+ "who niko :: fort built here | 11g728q#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[]",
+   "[]"
+  ],
+  "dock": [
+   "[]",
+   "[]"
+  ]
+ },
+ "who niko :: Marina holding something | 11g728q#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[]",
+   "[]"
+  ],
+  "dock": [
+   "[]",
+   "[]"
+  ]
+ },
+ "who niko :: normal | 11g728q#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[]",
+   "[]"
+  ],
+  "dock": [
+   "[]",
+   "[]"
+  ]
+ },
+ "who rory :: normal | uyuani#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"ride\\\"\",\"mount:null→\\\"rory\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"ride\\\"\",\"mount:null→\\\"rory\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"ride\\\"\",\"mount:null→\\\"rory\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"ride\\\"\",\"mount:null→\\\"rory\\\"\"]"
+  ]
+ }
+}

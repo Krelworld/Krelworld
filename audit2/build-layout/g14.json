@@ -1,0 +1,1391 @@
+{
+ "portSmall TODAY": {
+  "living": {
+   "bar": [
+    76,
+    382
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 338,
+    "x1": 378,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [
+    "bathroom"
+   ],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "living matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "dining rgb(123, 211, 107)",
+    "living rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "yard": {
+   "bar": [
+    76,
+    382
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 338,
+    "x1": 378,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [
+    "bathroom"
+   ],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "yard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "yard rgb(123, 211, 107)",
+    "dining rgb(123, 211, 107)"
+   ],
+   "weather": [
+    319,
+    66,
+    365,
+    112
+   ],
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "den": {
+   "bar": [
+    76,
+    253
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "laundry",
+    "x0": 209,
+    "x1": 249,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "den matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "den rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "nunuroom,den,storage,laundry"
+  },
+  "mroom": {
+   "bar": [
+    76,
+    296
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "milesroom",
+    "x0": 252,
+    "x1": 292,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "mroom matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "mroom rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "parents,uphall,spa,mroom,milesroom"
+  },
+  "pool": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 166,
+    "x1": 206,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "pool matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "pool rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "backyard": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 163.6,
+    "x1": 208.4,
+    "w": 40,
+    "hit": "ok",
+    "here": "matrix(1.12, 0, 0, 1.12, 0, 0)",
+    "dot": "rgb(123, 211, 107)"
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "backyard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "backyard rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "errors": []
+ },
+ "portSmall G14": {
+  "living": {
+   "bar": [
+    76,
+    367
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 325.1,
+    "x1": 363,
+    "w": 38,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "38",
+   "here": [
+    "living matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "living rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "yard": {
+   "bar": [
+    76,
+    367
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 325.1,
+    "x1": 363,
+    "w": 38,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "38",
+   "here": [
+    "yard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "yard rgb(123, 211, 107)",
+    "dining rgb(123, 211, 107)",
+    "living rgb(123, 211, 107)"
+   ],
+   "weather": [
+    319,
+    66,
+    365,
+    112
+   ],
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "den": {
+   "bar": [
+    76,
+    253
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "laundry",
+    "x0": 209,
+    "x1": 249,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "den matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "den rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "nunuroom,den,storage,laundry"
+  },
+  "mroom": {
+   "bar": [
+    76,
+    296
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "milesroom",
+    "x0": 252,
+    "x1": 292,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "mroom matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "mroom rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "parents,uphall,spa,mroom,milesroom"
+  },
+  "pool": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 166,
+    "x1": 206,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "pool matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "pool rgb(123, 211, 107)",
+    "yard rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "backyard": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 163.6,
+    "x1": 208.4,
+    "w": 40,
+    "hit": "ok",
+    "here": "matrix(1.12, 0, 0, 1.12, 0, 0)",
+    "dot": "rgb(123, 211, 107)"
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "backyard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "yard rgb(123, 211, 107)",
+    "backyard rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "errors": []
+ },
+ "port TODAY": {
+  "living": {
+   "bar": [
+    76,
+    382
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 338,
+    "x1": 378,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "living matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "dining rgb(123, 211, 107)",
+    "living rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "yard": {
+   "bar": [
+    76,
+    382
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 338,
+    "x1": 378,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "yard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "yard rgb(123, 211, 107)",
+    "dining rgb(123, 211, 107)",
+    "living rgb(123, 211, 107)"
+   ],
+   "weather": [
+    334,
+    66,
+    380,
+    112
+   ],
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "den": {
+   "bar": [
+    76,
+    253
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "laundry",
+    "x0": 209,
+    "x1": 249,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "den matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "den rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "nunuroom,den,storage,laundry"
+  },
+  "mroom": {
+   "bar": [
+    76,
+    296
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "milesroom",
+    "x0": 252,
+    "x1": 292,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "mroom matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "mroom rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "parents,uphall,spa,mroom,milesroom"
+  },
+  "pool": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 166,
+    "x1": 206,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "pool matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "pool rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "backyard": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 163.6,
+    "x1": 208.4,
+    "w": 40,
+    "hit": "ok",
+    "here": "matrix(1.12, 0, 0, 1.12, 0, 0)",
+    "dot": "rgb(123, 211, 107)"
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "backyard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "backyard rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "errors": []
+ },
+ "port G14": {
+  "living": {
+   "bar": [
+    76,
+    382
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 338,
+    "x1": 378,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "living matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "living rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "yard": {
+   "bar": [
+    76,
+    382
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 338,
+    "x1": 378,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "yard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "yard rgb(123, 211, 107)",
+    "living rgb(123, 211, 107)"
+   ],
+   "weather": [
+    334,
+    66,
+    380,
+    112
+   ],
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "den": {
+   "bar": [
+    76,
+    253
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "laundry",
+    "x0": 209,
+    "x1": 249,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "den matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "den rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "nunuroom,den,storage,laundry"
+  },
+  "mroom": {
+   "bar": [
+    76,
+    296
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "milesroom",
+    "x0": 252,
+    "x1": 292,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "mroom matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "mroom rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "parents,uphall,spa,mroom,milesroom"
+  },
+  "pool": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 166,
+    "x1": 206,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "pool matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "pool rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "backyard": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 163.6,
+    "x1": 208.4,
+    "w": 40,
+    "hit": "ok",
+    "here": "matrix(1.12, 0, 0, 1.12, 0, 0)",
+    "dot": "rgb(123, 211, 107)"
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "backyard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "backyard rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "errors": []
+ },
+ "375x553 TODAY": {
+  "living": {
+   "bar": [
+    76,
+    382
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 338,
+    "x1": 378,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [
+    "bathroom"
+   ],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "living matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "living rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "yard": {
+   "bar": [
+    76,
+    382
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 338,
+    "x1": 378,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [
+    "bathroom"
+   ],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "yard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "yard rgb(123, 211, 107)",
+    "dining rgb(123, 211, 107)",
+    "living rgb(123, 211, 107)"
+   ],
+   "weather": [
+    319,
+    66,
+    365,
+    112
+   ],
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "den": {
+   "bar": [
+    76,
+    253
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "laundry",
+    "x0": 209,
+    "x1": 249,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "den matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "den rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "nunuroom,den,storage,laundry"
+  },
+  "mroom": {
+   "bar": [
+    76,
+    296
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "milesroom",
+    "x0": 252,
+    "x1": 292,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "mroom matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "mroom rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "parents,uphall,spa,mroom,milesroom"
+  },
+  "pool": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 166,
+    "x1": 206,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "pool matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "pool rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "backyard": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 163.6,
+    "x1": 208.4,
+    "w": 40,
+    "hit": "ok",
+    "here": "matrix(1.12, 0, 0, 1.12, 0, 0)",
+    "dot": "rgb(123, 211, 107)"
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "backyard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "backyard rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "errors": []
+ },
+ "375x553 G14": {
+  "living": {
+   "bar": [
+    76,
+    367
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 325.1,
+    "x1": 363,
+    "w": 38,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "38",
+   "here": [
+    "living matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "yard rgb(123, 211, 107)",
+    "kitchen rgb(123, 211, 107)",
+    "living rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "yard": {
+   "bar": [
+    76,
+    367
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 325.1,
+    "x1": 363,
+    "w": 38,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "38",
+   "here": [
+    "yard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "yard rgb(123, 211, 107)",
+    "kitchen rgb(123, 211, 107)"
+   ],
+   "weather": [
+    319,
+    66,
+    365,
+    112
+   ],
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "den": {
+   "bar": [
+    76,
+    253
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "laundry",
+    "x0": 209,
+    "x1": 249,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "den matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "den rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "nunuroom,den,storage,laundry"
+  },
+  "mroom": {
+   "bar": [
+    76,
+    296
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "milesroom",
+    "x0": 252,
+    "x1": 292,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "mroom matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [],
+   "weather": null,
+   "order": "parents,uphall,spa,mroom,milesroom"
+  },
+  "pool": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 166,
+    "x1": 206,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "pool matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "pool rgb(123, 211, 107)",
+    "yard rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "backyard": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 163.6,
+    "x1": 208.4,
+    "w": 40,
+    "hit": "ok",
+    "here": "matrix(1.12, 0, 0, 1.12, 0, 0)",
+    "dot": "rgb(123, 211, 107)"
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "backyard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "yard rgb(123, 211, 107)",
+    "backyard rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "errors": []
+ },
+ "390x664 TODAY": {
+  "living": {
+   "bar": [
+    76,
+    382
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 338,
+    "x1": 378,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "living matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "dining rgb(123, 211, 107)",
+    "living rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "yard": {
+   "bar": [
+    76,
+    382
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 338,
+    "x1": 378,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "yard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "yard rgb(123, 211, 107)",
+    "dining rgb(123, 211, 107)",
+    "living rgb(123, 211, 107)"
+   ],
+   "weather": [
+    334,
+    66,
+    380,
+    112
+   ],
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "den": {
+   "bar": [
+    76,
+    253
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "laundry",
+    "x0": 209,
+    "x1": 249,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "den matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "den rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "nunuroom,den,storage,laundry"
+  },
+  "mroom": {
+   "bar": [
+    76,
+    296
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "milesroom",
+    "x0": 252,
+    "x1": 292,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "mroom matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "mroom rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "parents,uphall,spa,mroom,milesroom"
+  },
+  "pool": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 166,
+    "x1": 206,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "pool matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "pool rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "backyard": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 163.6,
+    "x1": 208.4,
+    "w": 40,
+    "hit": "ok",
+    "here": "matrix(1.12, 0, 0, 1.12, 0, 0)",
+    "dot": "rgb(123, 211, 107)"
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "backyard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "backyard rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "errors": []
+ },
+ "390x664 G14": {
+  "living": {
+   "bar": [
+    76,
+    382
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 338,
+    "x1": 378,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "living matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "yard rgb(123, 211, 107)",
+    "playroom rgb(123, 211, 107)",
+    "living rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "yard": {
+   "bar": [
+    76,
+    382
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "bathroom",
+    "x0": 338,
+    "x1": 378,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "yard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "yard rgb(123, 211, 107)",
+    "playroom rgb(123, 211, 107)"
+   ],
+   "weather": [
+    334,
+    66,
+    380,
+    112
+   ],
+   "order": "yard,dining,kitchen,playroom,foyer,living,bathroom"
+  },
+  "den": {
+   "bar": [
+    76,
+    253
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "laundry",
+    "x0": 209,
+    "x1": 249,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "den matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "den rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "nunuroom,den,storage,laundry"
+  },
+  "mroom": {
+   "bar": [
+    76,
+    296
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "milesroom",
+    "x0": 252,
+    "x1": 292,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "mroom matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "mroom rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "parents,uphall,spa,mroom,milesroom"
+  },
+  "pool": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 166,
+    "x1": 206,
+    "w": 40,
+    "hit": "ok",
+    "here": "",
+    "dot": ""
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "pool matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "pool rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "backyard": {
+   "bar": [
+    76,
+    210
+   ],
+   "gapToMap": 8,
+   "last": {
+    "r": "backyard",
+    "x0": 163.6,
+    "x1": 208.4,
+    "w": 40,
+    "hit": "ok",
+    "here": "matrix(1.12, 0, 0, 1.12, 0, 0)",
+    "dot": "rgb(123, 211, 107)"
+   },
+   "offscreen": [],
+   "covered": [],
+   "widths": "40",
+   "here": [
+    "backyard matrix(1.12, 0, 0, 1.12, 0, 0)"
+   ],
+   "dots": [
+    "backyard rgb(123, 211, 107)"
+   ],
+   "weather": null,
+   "order": "pool,yard,backyard"
+  },
+  "errors": []
+ }
+}

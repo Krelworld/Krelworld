@@ -1,0 +1,104 @@
+{
+ "a_tidyFreePlay": {
+  "lineAfterS": 40.6,
+  "ringAfterS": 44,
+  "lastTidyAskWrites": [
+   40.5
+  ],
+  "chaseStartedS": 0,
+  "tidyAfterChaseS": 6,
+  "errors": []
+ },
+ "b_cookingHold": {
+  "duringCooking60s": {
+   "lta": -91.422,
+   "rings": 0,
+   "tidyLines": 0
+  },
+  "lastTidyAskUnchanged": true,
+  "firstAskAfterCloseS": 11.5,
+  "errors": []
+ },
+ "c_lineThenCook": {
+  "asked": true,
+  "lineAtS": 9.4,
+  "underPanel": {
+   "acts": 0,
+   "back": 0
+  },
+  "afterClose": {
+   "acts": 0,
+   "back": 0,
+   "x": 196
+  },
+  "firstTapWalks": true,
+  "nextAskAfterCloseS": 36.4,
+  "errors": []
+ },
+ "d_ringUnderOpenScreen": {
+  "ring": "🎁🖼️",
+  "studio": true,
+  "give": 0,
+  "errors": []
+ },
+ "e_leftoverBackdrop": {
+  "underPanel": {
+   "acts": 0,
+   "back": 0
+  },
+  "firstTapAfterCloseWalks": true,
+  "errors": []
+ },
+ "f_ownRingSurvivesMap": {
+  "before": 2,
+  "underMap": 2,
+  "afterClose": {
+   "acts": 2,
+   "back": 1,
+   "map": false
+  },
+  "errors": []
+ },
+ "g_tidyRingAndScreens": {
+  "underMap": {
+   "acts": 0,
+   "back": 0
+  },
+  "afterMap": {
+   "acts": 0,
+   "back": 0
+  },
+  "tidyRingWhileCooking": 0,
+  "afterCooking": {
+   "acts": 0,
+   "back": 0
+  },
+  "errors": []
+ },
+ "k_reactMess": {
+  "prop": "foam",
+  "lines": [
+   "d_mess1",
+   "d_mess2"
+  ],
+  "ring": "🧹🏃",
+  "errors": []
+ },
+ "k2_reactMessDuringTV": {
+  "prop": "shelf2",
+  "tv": true,
+  "lines": [
+   "mo_mess1",
+   "d_mess2"
+  ],
+  "ring": "",
+  "errors": []
+ },
+ "j_tidyWishAndRequest": {
+  "wishShown": true,
+  "wishStartsTidy": true,
+  "requestShown": true,
+  "requestStartsTidy": true,
+  "errors": []
+ }
+}

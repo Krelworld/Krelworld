@@ -1,0 +1,130 @@
+{
+ "obj den/wicker | ounozi#1 🧗": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "obj storage/shades | 1bu00z4#1 🎩": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "who miles :: crying | jy3ac3#1 🤗": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "sameSet": false,
+  "overlap": true
+ },
+ "who miles :: dirty nappy | jy3ac3#1 🤗": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "sameSet": false,
+  "overlap": true
+ },
+ "who miles :: fort built here | qpltx4#1 ✋": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "who miles :: Marina holding a nice dish | qpltx4#1 ✋": {
+  "HEAD": [
+   "[]",
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[]",
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "who mommy :: Marina holding a nice dish | 8y7uyb#1 📱": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sad\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]"
+  ],
+  "mine": [
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sad\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "who mommy :: normal | 8y7uyb#1 📱": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sad\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sad\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]"
+  ],
+  "mine": [
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sad\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ }
+}

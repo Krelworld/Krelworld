@@ -1,0 +1,332 @@
+[
+ {
+  "K": 0,
+  "room": "living",
+  "t0": 4.116000000000001,
+  "wishes": [
+   {
+    "t": 4.25,
+    "ico": "🍳➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 4.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_cook@4.2"
+  ],
+  "errors": []
+ },
+ {
+  "K": 1,
+  "room": "living",
+  "t0": 4.724000000000002,
+  "wishes": [
+   {
+    "t": 4.25,
+    "ico": "🌳➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 4.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_outside@4.2"
+  ],
+  "errors": []
+ },
+ {
+  "K": 2,
+  "room": "living",
+  "t0": 3.780000000000001,
+  "wishes": [
+   {
+    "t": 4.25,
+    "ico": "📺➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 1
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 4.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 1,
+    "req": false,
+    "cry": true,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_tv@4.2"
+  ],
+  "errors": []
+ },
+ {
+  "K": 3,
+  "room": "living",
+  "t0": 3.9880000000000013,
+  "wishes": [
+   {
+    "t": 4.25,
+    "ico": "🍳➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 4.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_cook@4.2"
+  ],
+  "errors": []
+ },
+ {
+  "K": 4,
+  "room": "living",
+  "t0": 4.756000000000002,
+  "wishes": [
+   {
+    "t": 4.25,
+    "ico": "⛺➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 4.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_fort@4.2"
+  ],
+  "errors": []
+ },
+ {
+  "K": 5,
+  "room": "living",
+  "t0": 3.700000000000001,
+  "wishes": [
+   {
+    "t": 4.25,
+    "ico": "🌳➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 4.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_outside@4.2"
+  ],
+  "errors": []
+ },
+ {
+  "K": 6,
+  "room": "living",
+  "t0": 3.460000000000001,
+  "wishes": [
+   {
+    "t": 4.25,
+    "ico": "🐈➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 4.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_niko@4.2"
+  ],
+  "errors": []
+ },
+ {
+  "K": 7,
+  "room": "living",
+  "t0": 3.636000000000001,
+  "wishes": [
+   {
+    "t": 1.35,
+    "ico": "🌳➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   },
+   {
+    "t": 4.25,
+    "ico": "🍳➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 1.3,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   },
+   {
+    "t": 4.2,
+    "wishEl": true,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_outside@1.3",
+   "m_want_cook@4.2"
+  ],
+  "errors": []
+ }
+]

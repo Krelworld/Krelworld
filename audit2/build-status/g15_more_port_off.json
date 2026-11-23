@@ -1,0 +1,53 @@
+{
+ "pulse": {
+  "started": true,
+  "sceneAtTap": true,
+  "mid": {
+   "transform": "matrix(1.00093, -0.031623, 0.031623, 1.00093, 0, 0)",
+   "translate": "none",
+   "anims": [
+    "pulse:running"
+   ],
+   "opacity": "1"
+  },
+  "bar": "none pulse=true",
+  "after": {
+   "transform": "matrix(1.03117, -0.0226229, 0.0226229, 1.03117, 0, 0)",
+   "translate": "none",
+   "anims": [
+    "pulse:running"
+   ],
+   "opacity": "1"
+  },
+  "nope": 0,
+  "skipped": [],
+  "mood": "sad"
+ },
+ "req": {
+  "started": true,
+  "sceneAtTap": true,
+  "look": null,
+  "tapped": false,
+  "shakes": 0,
+  "nope": 0,
+  "post": {
+   "req": false,
+   "room": "living"
+  },
+  "pre": {
+   "req": false,
+   "room": "living"
+  }
+ },
+ "map": {
+  "started": true,
+  "during": {
+   "scene": true,
+   "app": "",
+   "o": "1",
+   "f": "none"
+  },
+  "opened": true
+ },
+ "errors": []
+}

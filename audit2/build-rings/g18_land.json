@@ -1,0 +1,97 @@
+{
+ "stove": {
+  "before": [
+   "sink:1.00"
+  ],
+  "walkSamples": 11,
+  "walkOthersLit": [],
+  "walkTarget": [
+   "stove"
+  ],
+  "ringOthersLit": [],
+  "stoveGlowAtRing": [
+   "stove:1.00"
+  ],
+  "propActionsCalls": 1,
+  "ringAfterS": 1.05,
+  "afterClose": {
+   "t": 10.03,
+   "target": null,
+   "ring": false,
+   "ringDom": false,
+   "moving": false,
+   "x": 44,
+   "lit": [
+    "stove:1.00"
+   ],
+   "room": "kitchen",
+   "busy": false
+  },
+  "ringAfterS_off": 1.1,
+  "arriveX_off": 44
+ },
+ "clear_pool": "no point for towels",
+ "clear_backyard": "no point for lumber",
+ "clear_kitchen": "no door in view",
+ "retarget": {
+  "afterA": {
+   "target": "fridge",
+   "moving": true
+  },
+  "afterB": {
+   "target": "oven",
+   "moving": true
+  },
+  "glowFridgeOven": [
+   0,
+   1
+  ],
+  "end": {
+   "target": "oven",
+   "ring": true,
+   "lit": [
+    "oven:1.00"
+   ]
+  }
+ },
+ "person": {
+  "walkAway": {
+   "target": "daddy",
+   "daddyGlow": 1,
+   "daddyX": 337
+  },
+  "ringOpen": {
+   "ring": "🤗 🧍 😜",
+   "target": "daddy",
+   "ringFlag": true,
+   "daddyGlow": 1
+  },
+  "othersLitWhileRingOpen": [],
+  "afterDaddyLeft": {
+   "target": null,
+   "ringDom": false,
+   "lit": [
+    "fridge:1.00",
+    "bowls:1.00"
+   ]
+  }
+ },
+ "scene": {
+  "bottlePressed": true,
+  "busy": true,
+  "target": null,
+  "lit": []
+ },
+ "drag": {
+  "busyDuringDrag": true,
+  "targetDuringDrag": null,
+  "litDuringDrag": []
+ },
+ "longWalk": {
+  "prop": "toolbox",
+  "walkS": 2.17,
+  "targetAllWalk": false,
+  "ring": true
+ },
+ "errors": []
+}

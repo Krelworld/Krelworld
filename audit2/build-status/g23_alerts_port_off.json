@@ -1,0 +1,191 @@
+{
+ "nappy": {
+  "at1s": {
+   "born": null,
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 66,
+   "h": 66,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "xrrn2"
+  },
+  "at16s": {
+   "born": null,
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 69,
+   "h": 69,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "xrrn2"
+  },
+  "sameLook": false
+ },
+ "room": {
+  "at07": {
+   "born": null,
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 77,
+   "h": 77,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "xrrn2"
+  },
+  "at32": {
+   "born": null,
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 68,
+   "h": 68,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "xrrn2"
+  },
+  "at54": {
+   "born": null,
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 67,
+   "h": 67,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "xrrn2"
+  }
+ },
+ "screen": {
+  "during": null,
+  "after1": {
+   "born": null,
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 73,
+   "h": 73,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "tt356"
+  },
+  "after16": {
+   "born": null,
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 76,
+   "h": 76,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "tt356"
+  }
+ },
+ "tapSettled": {
+  "wasSettled": false,
+  "room": "living",
+  "nearMiles": true,
+  "ring": "🧷🍼🤗✋"
+ },
+ "tp": {
+  "born": null,
+  "settled": false,
+  "anim": "pulse:running",
+  "w": 70,
+  "h": 70,
+  "html": "🧻<i>🚽</i>",
+  "bg": "rgb(123, 224, 123)",
+  "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px",
+  "node": "as3ao",
+  "badge": "🚽"
+ },
+ "tpFlow": {
+  "ms": 7111,
+  "need": false,
+  "locked": false,
+  "room": "foyer",
+  "hold": null
+ },
+ "green": {
+  "picgive": "rgb(123, 224, 123) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px",
+  "pickeep": "rgb(255, 255, 255) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px",
+  "pbin": "rgb(123, 224, 123) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px",
+  "pflush": "rgb(123, 224, 123) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px",
+  "down": "rgb(123, 224, 123) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px"
+ },
+ "settledShake": {
+  "settled": false,
+  "opacity": "0.45",
+  "mid": {
+   "anim": "pulse",
+   "translate": "-1.328px",
+   "waapi": 1
+  }
+ },
+ "arrSample": [
+  {
+   "side": "l",
+   "off": false,
+   "arrive": false,
+   "rect": "4,196,54,92",
+   "anim": "navl",
+   "iT": "none"
+  },
+  {
+   "side": "r",
+   "off": false,
+   "arrive": false,
+   "rect": "332,196,54,92",
+   "anim": "navr",
+   "iT": "none"
+  }
+ ],
+ "arrows": [
+  {
+   "side": "l",
+   "samples": 43,
+   "rects": [
+    "1,196,54,92",
+    "2,196,54,92",
+    "3,196,54,92",
+    "4,196,54,92",
+    "0,196,54,92"
+   ],
+   "anims": [
+    "navl"
+   ],
+   "arriveSeen": 0,
+   "iMoves": 0,
+   "iNoneAfter": "none",
+   "arriveAtEnd": false
+  },
+  {
+   "side": "r",
+   "samples": 43,
+   "rects": [
+    "335,196,54,92",
+    "334,196,54,92",
+    "333,196,54,92",
+    "332,196,54,92",
+    "336,196,54,92"
+   ],
+   "anims": [
+    "navr"
+   ],
+   "arriveSeen": 0,
+   "iMoves": 0,
+   "iNoneAfter": "none",
+   "arriveAtEnd": false
+  }
+ ],
+ "hide": {
+  "busy": "true:0 true:0",
+  "tidy": "true:1.03281e-07 true:1.03281e-07",
+  "tantrum": "true:0 true:0",
+  "idle": "false:1:navl false:1:navr"
+ },
+ "errors": []
+}

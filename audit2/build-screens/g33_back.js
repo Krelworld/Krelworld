@@ -1,0 +1,4 @@
+const { boot, realErrors } = require('./boot.js'); const { TLIB } = require('./tlib.js');
+(async () => { for (const v of ['land', 'landSmall']) { const g = await boot({ port: 8910, view: v, room: 'living' }); await g.calm(); await g.ev(TLIB);
+  const xy = await g.ev(async () => { await T.reset(); G.busy = false; openStory(); await T.sleep(400); T.press('#storyBox .st-book'); await T.sleep(3500); const r = document.querySelector('#storyBox .st-back').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, [...document.querySelectorAll('.facecard.show')].length]; });
+  await g.tapXY(xy[0], xy[1]); await g.wait(300); console.log(v, 'faceCardsShowing', xy[2], 'back->shelf', await g.ev(() => !!document.querySelector('#storyBox .st-shelf')), realErrors(g.errors)); await g.close(); } })();

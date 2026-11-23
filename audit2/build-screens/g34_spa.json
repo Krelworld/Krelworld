@@ -1,0 +1,1244 @@
+{
+ "port": {
+  "phase": "play",
+  "timing": {
+   "before": {
+    "idle": "under 2.5",
+    "hand": false,
+    "arrow": false,
+    "at": false
+   },
+   "after": {
+    "idle": "over 2.5",
+    "hand": true,
+    "arrow": false,
+    "at": true
+   }
+  },
+  "tap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": [
+    121,
+    168
+   ],
+   "arrow": null,
+   "LW": 148,
+   "LH": 300,
+   "target": [
+    123,
+    158
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    125,
+    168
+   ],
+   "tipBelowCentre": 10,
+   "tipDx": 2
+  },
+  "bottle": {
+   "at": [
+    81,
+    -34,
+    81,
+    -21
+   ],
+   "hand": [
+    83,
+    137
+   ],
+   "arrow": null,
+   "LW": 148,
+   "LH": 300,
+   "target": [
+    85,
+    127
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    87,
+    137
+   ],
+   "tipBelowCentre": 10,
+   "tipDx": 2
+  },
+  "jets": {
+   "at": [
+    41,
+    62,
+    41,
+    75
+   ],
+   "hand": [
+    43,
+    233
+   ],
+   "arrow": null,
+   "LW": 148,
+   "LH": 300,
+   "target": [
+    45,
+    223
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    47,
+    233
+   ],
+   "tipBelowCentre": 10,
+   "tipDx": 2
+  },
+  "basket": {
+   "at": [
+    23,
+    88,
+    23,
+    110
+   ],
+   "hand": [
+    25,
+    267
+   ],
+   "arrow": null,
+   "LW": 148,
+   "LH": 300,
+   "target": [
+    27,
+    258
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    29,
+    267
+   ],
+   "tipBelowCentre": 9,
+   "tipDx": 2
+  },
+  "hook": {
+   "at": [
+    130,
+    -44,
+    131,
+    -29
+   ],
+   "hand": [
+    133,
+    129
+   ],
+   "arrow": null,
+   "LW": 148,
+   "LH": 300,
+   "target": [
+    135,
+    119
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    137,
+    129
+   ],
+   "tipBelowCentre": 10,
+   "tipDx": 2
+  },
+  "hintTap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": [
+    121,
+    167
+   ],
+   "arrow": null,
+   "LW": 148,
+   "LH": 300,
+   "target": [
+    123,
+    158
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    125,
+    167
+   ],
+   "tipBelowCentre": 9,
+   "tipDx": 2
+  }
+ },
+ "port errors": [],
+ "land": {
+  "phase": "play",
+  "timing": {
+   "before": {
+    "idle": "under 2.5",
+    "hand": false,
+    "arrow": false,
+    "at": false
+   },
+   "after": {
+    "idle": "over 2.5",
+    "hand": true,
+    "arrow": false,
+    "at": true
+   }
+  },
+  "tap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": [
+    217,
+    46
+   ],
+   "arrow": null,
+   "LW": 301,
+   "LH": 136,
+   "target": [
+    219,
+    38
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    221,
+    46
+   ],
+   "tipBelowCentre": 8,
+   "tipDx": 2
+  },
+  "bottle": {
+   "at": [
+    181,
+    34,
+    181,
+    47
+   ],
+   "hand": [
+    279,
+    86
+   ],
+   "arrow": null,
+   "LW": 301,
+   "LH": 136,
+   "target": [
+    281,
+    75
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    283,
+    86
+   ],
+   "tipBelowCentre": 11,
+   "tipDx": 2
+  },
+  "jets": {
+   "at": [
+    41,
+    62,
+    41,
+    75
+   ],
+   "hand": [
+    139,
+    111
+   ],
+   "arrow": null,
+   "LW": 301,
+   "LH": 136,
+   "target": [
+    141,
+    103
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    143,
+    111
+   ],
+   "tipBelowCentre": 8,
+   "tipDx": 2
+  },
+  "basket": {
+   "at": [
+    -46,
+    58,
+    -46,
+    80
+   ],
+   "hand": [
+    52,
+    119
+   ],
+   "arrow": null,
+   "LW": 301,
+   "LH": 136,
+   "target": [
+    54,
+    108
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    56,
+    119
+   ],
+   "tipBelowCentre": 11,
+   "tipDx": 2
+  },
+  "hook": {
+   "at": [
+    158,
+    -24,
+    159,
+    -9
+   ],
+   "hand": [
+    257,
+    26
+   ],
+   "arrow": null,
+   "LW": 301,
+   "LH": 136,
+   "target": [
+    259,
+    19
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    261,
+    26
+   ],
+   "tipBelowCentre": 7,
+   "tipDx": 2
+  },
+  "hintTap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": [
+    217,
+    49
+   ],
+   "arrow": null,
+   "LW": 301,
+   "LH": 136,
+   "target": [
+    219,
+    38
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    221,
+    49
+   ],
+   "tipBelowCentre": 11,
+   "tipDx": 2
+  }
+ },
+ "land errors": [],
+ "landSmall": {
+  "phase": "play",
+  "timing": {
+   "before": {
+    "idle": "under 2.5",
+    "hand": false,
+    "arrow": false,
+    "at": false
+   },
+   "after": {
+    "idle": "over 2.5",
+    "hand": true,
+    "arrow": false,
+    "at": true
+   }
+  },
+  "tap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": [
+    212,
+    57
+   ],
+   "arrow": null,
+   "LW": 290,
+   "LH": 152,
+   "target": [
+    214,
+    48
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    216,
+    57
+   ],
+   "tipBelowCentre": 9,
+   "tipDx": 2
+  },
+  "bottle": {
+   "at": [
+    181,
+    34,
+    181,
+    47
+   ],
+   "hand": [
+    274,
+    95
+   ],
+   "arrow": null,
+   "LW": 290,
+   "LH": 152,
+   "target": [
+    276,
+    85
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    278,
+    95
+   ],
+   "tipBelowCentre": 10,
+   "tipDx": 2
+  },
+  "jets": {
+   "at": [
+    41,
+    62,
+    41,
+    75
+   ],
+   "hand": [
+    134,
+    122
+   ],
+   "arrow": null,
+   "LW": 290,
+   "LH": 152,
+   "target": [
+    136,
+    113
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    138,
+    122
+   ],
+   "tipBelowCentre": 9,
+   "tipDx": 2
+  },
+  "basket": {
+   "at": [
+    -46,
+    58,
+    -46,
+    80
+   ],
+   "hand": [
+    47,
+    128
+   ],
+   "arrow": null,
+   "LW": 290,
+   "LH": 152,
+   "target": [
+    49,
+    118
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    51,
+    128
+   ],
+   "tipBelowCentre": 10,
+   "tipDx": 2
+  },
+  "hook": {
+   "at": [
+    158,
+    -24,
+    159,
+    -9
+   ],
+   "hand": [
+    252,
+    37
+   ],
+   "arrow": null,
+   "LW": 290,
+   "LH": 152,
+   "target": [
+    254,
+    29
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    256,
+    37
+   ],
+   "tipBelowCentre": 8,
+   "tipDx": 2
+  },
+  "hintTap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": [
+    212,
+    58
+   ],
+   "arrow": null,
+   "LW": 290,
+   "LH": 152,
+   "target": [
+    214,
+    48
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    216,
+    58
+   ],
+   "tipBelowCentre": 10,
+   "tipDx": 2
+  }
+ },
+ "landSmall errors": [],
+ "844x340i47": {
+  "phase": "play",
+  "timing": {
+   "before": {
+    "idle": "under 2.5",
+    "hand": false,
+    "arrow": false,
+    "at": false
+   },
+   "after": {
+    "idle": "over 2.5",
+    "hand": true,
+    "arrow": false,
+    "at": true
+   }
+  },
+  "tap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": [
+    219,
+    46
+   ],
+   "arrow": null,
+   "LW": 304,
+   "LH": 136,
+   "target": [
+    221,
+    38
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    223,
+    46
+   ],
+   "tipBelowCentre": 8,
+   "tipDx": 2
+  },
+  "bottle": {
+   "at": [
+    181,
+    34,
+    181,
+    47
+   ],
+   "hand": [
+    281,
+    86
+   ],
+   "arrow": null,
+   "LW": 304,
+   "LH": 136,
+   "target": [
+    283,
+    75
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    285,
+    86
+   ],
+   "tipBelowCentre": 11,
+   "tipDx": 2
+  },
+  "jets": {
+   "at": [
+    41,
+    62,
+    41,
+    75
+   ],
+   "hand": [
+    141,
+    112
+   ],
+   "arrow": null,
+   "LW": 304,
+   "LH": 136,
+   "target": [
+    143,
+    103
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    145,
+    112
+   ],
+   "tipBelowCentre": 9,
+   "tipDx": 2
+  },
+  "basket": {
+   "at": [
+    -46,
+    58,
+    -46,
+    80
+   ],
+   "hand": [
+    54,
+    119
+   ],
+   "arrow": null,
+   "LW": 304,
+   "LH": 136,
+   "target": [
+    56,
+    108
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    58,
+    119
+   ],
+   "tipBelowCentre": 11,
+   "tipDx": 2
+  },
+  "hook": {
+   "at": [
+    158,
+    -24,
+    159,
+    -9
+   ],
+   "hand": [
+    259,
+    26
+   ],
+   "arrow": null,
+   "LW": 304,
+   "LH": 136,
+   "target": [
+    261,
+    19
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    263,
+    26
+   ],
+   "tipBelowCentre": 7,
+   "tipDx": 2
+  },
+  "hintTap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": [
+    219,
+    49
+   ],
+   "arrow": null,
+   "LW": 304,
+   "LH": 136,
+   "target": [
+    221,
+    38
+   ],
+   "handInside": true,
+   "centreCovered": false,
+   "fingertip": [
+    223,
+    49
+   ],
+   "tipBelowCentre": 11,
+   "tipDx": 2
+  }
+ },
+ "844x340i47 errors": [],
+ "port G34off": {
+  "phase": "play",
+  "timing": {
+   "before": {
+    "idle": "under 2.5",
+    "hand": false,
+    "arrow": false,
+    "at": false
+   },
+   "after": {
+    "idle": "over 2.5",
+    "hand": false,
+    "arrow": true,
+    "at": true
+   }
+  },
+  "tap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": null,
+   "arrow": [
+    117,
+    126
+   ],
+   "LW": 148,
+   "LH": 300,
+   "target": [
+    123,
+    158
+   ]
+  },
+  "bottle": {
+   "at": [
+    81,
+    -34,
+    81,
+    -21
+   ],
+   "hand": null,
+   "arrow": [
+    79,
+    92
+   ],
+   "LW": 148,
+   "LH": 300,
+   "target": [
+    85,
+    127
+   ]
+  },
+  "jets": {
+   "at": [
+    41,
+    62,
+    41,
+    75
+   ],
+   "hand": null,
+   "arrow": [
+    39,
+    191
+   ],
+   "LW": 148,
+   "LH": 300,
+   "target": [
+    45,
+    223
+   ]
+  },
+  "basket": {
+   "at": [
+    23,
+    88,
+    23,
+    110
+   ],
+   "hand": null,
+   "arrow": [
+    21,
+    214
+   ],
+   "LW": 148,
+   "LH": 300,
+   "target": [
+    27,
+    258
+   ]
+  },
+  "hook": {
+   "at": [
+    130,
+    -44,
+    131,
+    -29
+   ],
+   "hand": null,
+   "arrow": [
+    128,
+    87
+   ],
+   "LW": 148,
+   "LH": 300,
+   "target": [
+    135,
+    119
+   ]
+  },
+  "hintTap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": null,
+   "arrow": [
+    117,
+    122
+   ],
+   "LW": 148,
+   "LH": 300,
+   "target": [
+    123,
+    158
+   ]
+  }
+ },
+ "portG34 errors": [],
+ "land G34off": {
+  "phase": "play",
+  "timing": {
+   "before": {
+    "idle": "under 2.5",
+    "hand": false,
+    "arrow": false,
+    "at": false
+   },
+   "after": {
+    "idle": "over 2.5",
+    "hand": false,
+    "arrow": true,
+    "at": true
+   }
+  },
+  "tap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": null,
+   "arrow": [
+    213,
+    5
+   ],
+   "LW": 301,
+   "LH": 136,
+   "target": [
+    219,
+    38
+   ]
+  },
+  "bottle": {
+   "at": [
+    181,
+    34,
+    181,
+    47
+   ],
+   "hand": null,
+   "arrow": [
+    275,
+    40
+   ],
+   "LW": 301,
+   "LH": 136,
+   "target": [
+    281,
+    75
+   ]
+  },
+  "jets": {
+   "at": [
+    41,
+    62,
+    41,
+    75
+   ],
+   "hand": null,
+   "arrow": [
+    135,
+    71
+   ],
+   "LW": 301,
+   "LH": 136,
+   "target": [
+    141,
+    103
+   ]
+  },
+  "basket": {
+   "at": [
+    -46,
+    58,
+    -46,
+    80
+   ],
+   "hand": null,
+   "arrow": [
+    48,
+    64
+   ],
+   "LW": 301,
+   "LH": 136,
+   "target": [
+    54,
+    108
+   ]
+  },
+  "hook": {
+   "at": [
+    158,
+    -24,
+    159,
+    -9
+   ],
+   "hand": null,
+   "arrow": null,
+   "LW": 301,
+   "LH": 136,
+   "target": [
+    259,
+    19
+   ]
+  },
+  "hintTap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": null,
+   "arrow": [
+    213,
+    2
+   ],
+   "LW": 301,
+   "LH": 136,
+   "target": [
+    219,
+    38
+   ]
+  }
+ },
+ "landG34 errors": [],
+ "landSmall G34off": {
+  "phase": "play",
+  "timing": {
+   "before": {
+    "idle": "under 2.5",
+    "hand": false,
+    "arrow": false,
+    "at": false
+   },
+   "after": {
+    "idle": "over 2.5",
+    "hand": false,
+    "arrow": true,
+    "at": true
+   }
+  },
+  "tap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": null,
+   "arrow": [
+    208,
+    15
+   ],
+   "LW": 290,
+   "LH": 152,
+   "target": [
+    214,
+    48
+   ]
+  },
+  "bottle": {
+   "at": [
+    181,
+    34,
+    181,
+    47
+   ],
+   "hand": null,
+   "arrow": [
+    270,
+    50
+   ],
+   "LW": 290,
+   "LH": 152,
+   "target": [
+    276,
+    85
+   ]
+  },
+  "jets": {
+   "at": [
+    41,
+    62,
+    41,
+    75
+   ],
+   "hand": null,
+   "arrow": [
+    130,
+    81
+   ],
+   "LW": 290,
+   "LH": 152,
+   "target": [
+    136,
+    113
+   ]
+  },
+  "basket": {
+   "at": [
+    -46,
+    58,
+    -46,
+    80
+   ],
+   "hand": null,
+   "arrow": [
+    43,
+    74
+   ],
+   "LW": 290,
+   "LH": 152,
+   "target": [
+    49,
+    118
+   ]
+  },
+  "hook": {
+   "at": [
+    158,
+    -24,
+    159,
+    -9
+   ],
+   "hand": null,
+   "arrow": [
+    247,
+    -4
+   ],
+   "LW": 290,
+   "LH": 152,
+   "target": [
+    254,
+    29
+   ]
+  },
+  "hintTap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": null,
+   "arrow": [
+    208,
+    12
+   ],
+   "LW": 290,
+   "LH": 152,
+   "target": [
+    214,
+    48
+   ]
+  }
+ },
+ "landSmallG34 errors": [],
+ "844x340i47 G34off": {
+  "phase": "play",
+  "timing": {
+   "before": {
+    "idle": "under 2.5",
+    "hand": false,
+    "arrow": false,
+    "at": false
+   },
+   "after": {
+    "idle": "over 2.5",
+    "hand": false,
+    "arrow": true,
+    "at": true
+   }
+  },
+  "tap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": null,
+   "arrow": [
+    215,
+    3
+   ],
+   "LW": 304,
+   "LH": 136,
+   "target": [
+    221,
+    38
+   ]
+  },
+  "bottle": {
+   "at": [
+    181,
+    34,
+    181,
+    47
+   ],
+   "hand": null,
+   "arrow": [
+    277,
+    42
+   ],
+   "LW": 304,
+   "LH": 136,
+   "target": [
+    283,
+    75
+   ]
+  },
+  "jets": {
+   "at": [
+    41,
+    62,
+    41,
+    75
+   ],
+   "hand": null,
+   "arrow": [
+    137,
+    68
+   ],
+   "LW": 304,
+   "LH": 136,
+   "target": [
+    143,
+    103
+   ]
+  },
+  "basket": {
+   "at": [
+    -46,
+    58,
+    -46,
+    80
+   ],
+   "hand": null,
+   "arrow": [
+    50,
+    69
+   ],
+   "LW": 304,
+   "LH": 136,
+   "target": [
+    56,
+    108
+   ]
+  },
+  "hook": {
+   "at": [
+    158,
+    -24,
+    159,
+    -9
+   ],
+   "hand": null,
+   "arrow": null,
+   "LW": 304,
+   "LH": 136,
+   "target": [
+    261,
+    19
+   ]
+  },
+  "hintTap": {
+   "at": [
+    119,
+    -4,
+    119,
+    10
+   ],
+   "hand": null,
+   "arrow": [
+    215,
+    5
+   ],
+   "LW": 304,
+   "LH": 136,
+   "target": [
+    221,
+    38
+   ]
+  }
+ },
+ "844x340i47G34 errors": []
+}

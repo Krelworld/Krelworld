@@ -1,0 +1,82 @@
+{
+ "obj backyard/tr_apple | 1ygm7f6#1 🍎": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[]"
+  ],
+  "mine": [
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "obj den/wicker | ounozi#1 🧗": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "obj storage/shades | 1bu00z4#1 🎩": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "who miles :: fort built here | qpltx4#1 ✋": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "who miles :: normal | qpltx4#1 ✋": {
+  "HEAD": [
+   "[]",
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"anim\\\"\"]",
+   "[]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ }
+}

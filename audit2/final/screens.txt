@@ -1,0 +1,635 @@
+# WORKER BRIEF: screens  (overlay file: clarity-screens.js)
+Items to build: G3, G9, G10, G12, G32, G33, G34
+
+## Your surface
+Full screens. Owns: #xFloat (glyph text, lane logic, studio slot); #panel.cm-lane and body.cm-xon; the cooking and dress-up panel CSS; Bricks' narrow side column; #stkBox (.st-x, .stk-ok, padding); #storyBox .st-x and .st-back; the studio's landscape tools and drawer; the glyph edits in story, fun, legoshelf and builder; the Lego shelf wave and the spa hand. Must NOT touch: map content inside #panel (wayfinding); the title (layout); HUD elements; fun.js askReq (dock).
+
+## Local edits allowed
+story.js:26, ✖️ to ❌ (G33). fun.js:38, ✖️ to ❌ (G33). legoshelf.js frame(): sync the glyph to Gy.mode (G33). legoshelf.js open() and the wave condition near frame():260 (G34). builder.js:398, :402, :503, :595 and :596: 🧹 to 🗑️ (G33). spa.js drawHints, about lines 777-790: the hand (G34). All call-time guarded by Clarity.is and marked /* Gn */.
+
+## Order notes
+Worker index 6, ports 8910-8919. Merge 7th. Owns MutationObservers on #panel, #stage and #title (G3) and on #panel (G9). Integration: G3 × G37/G38 (the landscape map with the lane: rows wrap, no tile under #xFloat, house picture size unchanged).
+
+## Shared core API (already built, in the game folder)
+Two new files, both in /home/user/Krelworld/public/chef-marina/. Global: window.Clarity (C below).
+
+A. clarity-flags.js (loaded FIRST, before audio.js)
+- Clarity.ids = ['G1'..'G39']; Clarity.on = {G1:true ... G39:true} (the switches, decided at page load).
+- Test overrides, never stored: URL ?clarity=off | ?clarity=-G3,-G19 | ?clarity=only:G3,G9 ; or window.CLARITY_OFF = 'all' | 'G3,G19' | ['G3'] set before load. Playwright: await ctx.addInitScript(v => { window.CLARITY_OFF = v; }, 'G3,G9') then goto or reload.
+- Clarity.ready: false until DOMContentLoaded, i.e. until every clarity file has loaded. Clarity.is(id) === (Clarity.ready && Clarity.on[id] === true).
+- LOCAL EDITS in game files test `window.Clarity && Clarity.is('G6')`. This works at any time and is false while the page is still loading.
+- Overlay code that runs at load reads Clarity.on.Gn directly.
+
+B. clarity-core.js (loaded after trees.js). Clarity.core === 1 once it has loaded.
+
+SWITCHES AT RUN TIME
+- Clarity.set(id, bool): flips a switch. Hooks, listeners, ticks, pointer and appear callbacks stop or resume at once. CSS follows at once.
+- Clarity.onToggle(id, fn(on)): callbacks so an item can undo or redo inline state when its switch flips.
+- Setting Clarity.on.Gn = false by hand also works, except for onToggle; CSS then follows within 250 ms.
+- Clarity.item(id, setupFn): runs setupFn once at load, only if the switch is on, inside try/catch.
+
+HOOKS (use these instead of wrapping a game function): Clarity.hook(point, id, { before(call), after(call), order })
+- Points, each wrapped ONCE by the core and outermost over every game wrapper: 'UI.actions', 'UI.closeActions', 'UI.bigIcon', 'UI.pulseMoods', 'UI.bubble', 'UI.update', 'Audio2.blip', 'onTap', 'hitTest', 'interact', 'currentActivity', 'onEnterRoomBy', 'checkMess', 'showWish', 'openIsoMap', 'drawProp', 'drawExitSigns', 'featTick'. Clarity.points() lists them.
+- call = { name, self, args, result, skip }.
+- before(call) may set call.skip = true, and call.result if needed, so the game's own function is not called. The first skip stops the remaining before-hooks.
+- after(call) runs after the game's function. It also runs after a skip, so check call.skip. It may replace call.result.
+- In both, this === call.self. Never mutate call.args.
+- order: lower runs first (default 0); equal orders run in registration order.
+- Hooks run only while Clarity.on[id] is true.
+- A hook that throws is reported once (console.warn 'clarity: Gn before X') and its changes to skip/result are undone.
+- With nothing registered, or every hook switched off, the wrapper is exactly the game's call: same this, arguments and return value.
+- Clarity.inner(point): the game's own function under the hooks. Call it to bypass every clarity hook, e.g. to replay a deferred icon: Clarity.inner('UI.bigIcon')(ch, ms).
+- drawExitSigns: builder.js:234 re-wraps it once on the next frame. The core's wrapper sits inside builder's and still runs exactly once per frame (measured 60/s). Never re-wrap anything yourself.
+- Not hook points:
+  - ui.js internals: actions() and openPanel() call the private closeActions; placeActs is private. Use local edits (G6, G7).
+  - askReq is private to fun.js. Use a local edit (G31) or Clarity.appear('#reqBtn').
+  - changeRoom: use the 'room' event.
+  - say: G22 is a static table.
+  - resize and the camera: only the layout worker changes framing, through engine.js:169, game.js:286 and calls to resize() and render() by name.
+- Example: Clarity.hook('checkMess', 'G2', { order: 10, before(c) { if (Clarity.busyNow() || Clarity.quietFor() < 10) c.skip = true; } });
+- Example: Clarity.hook('hitTest', 'G8', { order: 10, after(c) { const h = c.result; if (h && h.kind === 'prop') c.result = see(h, c.args[0], c.args[1]); } });
+
+EVENTS: Clarity.listen(evt, id, fn)
+- 'room' (was, room): after every real room change. Dispatched from a Floors.hooks entry, i.e. from floors.js's changeRoom, which is the outermost one.
+- 'screenOpen' / 'screenClose': Clarity.screenOpen() turned true / false.
+- 'activityStart' / 'activityEnd': Clarity.busyNow() turned true / false. On activityEnd, Clarity.endedAt = E.t (game seconds).
+- The start of a game (the title closing) is a screenClose and an activityEnd.
+- Edges are sampled every 100 ms, and also synchronously whenever Clarity.quietFor() or Clarity.sample() is called, so an edge fires once, never late for a reader.
+- Example: Clarity.listen('activityEnd', 'G1', () => { lastInput = E.t; });
+
+TIMER: Clarity.every(ms, id, fn(nowMs))
+- One shared 50 ms setInterval. fn runs at most every ms (minimum 50) while the switch is on.
+- Example: Clarity.every(100, 'G15', tick);
+
+TOUCHES: Clarity.pointer('down' | 'up', id, fn(event))
+- One window capture listener per type (passive), installed on first use. It runs before any game handler sees the event.
+- Look only: never preventDefault or stopPropagation.
+- Example: Clarity.pointer('down', 'G1', () => { lastInput = E.t; });
+
+NEW NODES: Clarity.appear(selector, id, fn(node))
+- One MutationObserver on body (childList, subtree), installed on first use.
+- fn runs as a microtask, before paint, for every added element matching selector, whether it is the added node itself or inside an added subtree.
+- The node may already be gone again, so check isConnected.
+- Example: Clarity.appear('.stk-toast', 'G27', t => { if (Clarity.screenOpen()) { t.style.display = 'none'; queue.push(t.textContent); } });
+
+CSS: Clarity.css(id, cssText) returns a <style data-clarity='Gn'> appended to <head>.
+- Clarity styles are kept after every game stylesheet: Bricks, LegoShelf, Pool, Movies, Stuffies and Spa append theirs the first time they open, and the core moves ours back to the end.
+- media='not all' while the switch is off.
+- Call it as often as you like per item.
+- Example: Clarity.css('G14', '@media (orientation:portrait){#roombar{max-width:calc(100% - 84px)}.rb{flex:0 1 40px;min-width:34px}}');
+
+STATE HELPERS
+- Clarity.bodyBusy(): marina.state is swing, bars, ride or wheel, or a looping anim. False before the game exists.
+- Clarity.screenOpen(): any of the following is up:
+  - the title;
+  - any #panel screen, including the map, the fort builder and interior, Lego/tiles, the shelf, pool, films, stuffies, spa, tree climb and the builder;
+  - Studio.active, #storyBox or #stkBox.
+  The TV and the fort tray are not screens.
+- Clarity.busyNow(): inActivity() || bodyBusy().
+- Clarity.quietFor(): game seconds since the last activity ended. 0 while one is going on; Infinity before any ended.
+- Clarity.endedAt: E.t of the last activity end (null before). Clarity.sample(): re-evaluate the edges now.
+- Clarity.playing(): marina exists and the title is hidden.
+- Clarity.landscape(): innerWidth > innerHeight.
+
+GEOMETRY HELPERS
+- Clarity.hudRects(st?, opt?) returns [[x0,y0,x1,y1], weight, kind, element] for every visible HUD control.
+  - Kinds: strip (#roombar .rb), pill (#floorpill .fl:not(.off)), map, arrow (.navarrow:not(.off)), weather (#weatherBtn:not(.hidden)), alert (#alerts .alertb), face (.facecard.show), stop (#stopBtn:not(.hidden)), book and dress (not .off), wish, req, give (#fx .pichint), call (.cm-call), mood (#moodbar .mood), moodToggle.
+  - Skipped: zero-size controls, visibility:hidden, and opacity < 0.05 on the control or an ancestor.
+  - Weight 4. In landscape, mood and moodToggle get weight 6 and are widened 8 px to the left.
+  - Coordinates are relative to st (a DOMRect, e.g. placeActs' stage rect) or to #stage. opt.client gives viewport coordinates.
+  - opt.kinds and opt.except filter by kind.
+  - Cached 250 ms (dropped on resize and orientationchange). opt.fresh measures now.
+  - Controls outside the picture (the tall-portrait dock, the portrait mood row) are included; they overlap nothing in it.
+  - Example (G6): if (window.Clarity && Clarity.is('G6')) { acts.hud = acts.hud || Clarity.hudRects(st, { fresh: true }); for (const x of acts.hud) avoid.push(x); }
+- Clarity.stageRect(): #stage's DOMRect, cached 250 ms.
+- Clarity.toClient(wx, wy) gives viewport px. Clarity.fromClient(cx, cy) gives world coordinates.
+- Clarity.onCanvas(cx, cy): elementFromPoint there is #cv, i.e. nothing covers the picture at that point.
+- Clarity.overlap(a, b): overlap area of two [x0,y0,x1,y1] rects.
+- Clarity.nudgeX(box, rects, { gap = 4, max, bounds: [minX, maxX] }) returns the smallest sideways shift in px that clears every rect at the box's height (hudRects entries or plain rects), or null if none within max.
+  - Example: const dx = Clarity.nudgeX(b, Clarity.hudRects(null, { except: ['give', 'call'] }), { max: 62, bounds: [0, st.width] });
+- Clarity.floorLevel(room): main 0, up +1, basement -1, outside 0, tree houses 0.5, unknown rooms 0.
+- Clarity.floorDir(from, to): +1 up, -1 down, 0 same level.
+  - Example (G39): const fd = window.Clarity && Clarity.is('G39') ? Clarity.floorDir(prev, G.room) : 0;
+
+MOTION HELPER
+- Clarity.shake(el, { px = 4, ms = 150, times = 2 }) returns an Animation or null.
+- It is a side-shake on the individual translate property only, with composite 'add'. Without composite support it starts from the element's computed translate.
+- So transforms, CSS animations, :active scales and centring translates keep working, and a CSS animation:none cannot cancel it.
+- Example: Clarity.shake(btn); Audio2.blip(-12, 'triangle', 0.08, 0.1);
+
+MISC
+- Clarity.warnOnce(key, err).
+- Item state and item helpers live on Clarity.Gn, e.g. Clarity.G18 = { target: null } and Clarity.G23 = { hintGap() {...} }. Never on G, never in localStorage.
+
+Tools in /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/arch/:
+- regress-flags.js: run regress.js with switches off. CLARITY_OFF=all|G3,G9 NODE_PATH=$(npm root -g) node regress-flags.js <port> <out.json> [gameDir] [only=flows].
+- core_boot.js, core_hooks.js and core_flags.js: the core proofs, reusable as templates.
+
+## Load order
+Script order in index.html and in artifact.html. The two lists are identical, checked with diff.
+
+clarity-flags.js (NEW, first)
+audio.js engine.js world.js ui.js game.js features.js fort.js art.js scenes.js pics.js play.js calm.js react.js more.js nav.js story.js fun.js floors.js basement.js upstairs.js outdoor.js bricks.js spa.js stuffies.js family2.js minka.js legoshelf.js builder.js pool.js movies.js wildlife.js treeclimb.js trees.js (unchanged)
+clarity-core.js (NEW)
+clarity-prompts.js, clarity-status.js, clarity-rings.js, clarity-bubbles.js, clarity-dock.js, clarity-layout.js, clarity-screens.js, clarity-wayfinding.js (8 NEW empty stubs, one per worker, in workers-list order)
+
+Files created in /home/user/Krelworld/public/chef-marina/: clarity-flags.js, clarity-core.js, and the 8 stubs. Each stub holds only a header comment, a load guard (`const C = window.Clarity; if (!C || !C.core) return;`) and an empty IIFE. index.html and artifact.html are edited. Nothing is committed.
+
+Why this order:
+- Flags first, so any game file, including load-time code and the earliest timers, can call Clarity.is or read Clarity.on.
+- The core after trees.js, so each of its 18 wrappers is outermost over every game wrapper. The one exception is by design: builder.js re-wraps drawExitSigns once to keep its late drawing last, and the core's wrapper runs inside it.
+- Worker files after the core, so they can register hooks at load.
+- The order among worker files does not matter:
+  - hooks carry explicit order numbers (see conventions);
+  - CSS is split by property ownership, so no two workers set the same property on the same element;
+  - the only shared load-time writes (G22 fills missing SAY_ICON keys; G31 sets the existing m_want_fort) commute.
+- Load-time literals and loops in early files are never edited: REQS in fun.js, ROOMS.nunuroom in basement.js:7, the tree-house loop at builder.js:928. Those changes are applied from the overlay at load (G31 WISHES/SAY_ICON, G36 ROOMS icons, G22 SAY_ICON) or at call time (G31 askReq).
+
+Merge order of the worker branches: prompts, status, rings, bubbles, dock, layout, screens, wayfinding.
+- rings must come before layout, because G19 narrows the landscape picture and relies on G7's wrapping tray.
+- Local edits are line-disjoint across workers, so any order merges cleanly.
+
+## Conventions (must follow)
+1. YOUR FILES
+- Each worker owns one overlay file: its stub clarity-<name>.js, already loaded by index.html and artifact.html.
+- It also owns the local edits listed for it under workers, and nothing else.
+- Never edit: clarity-flags.js, clarity-core.js, index.html, artifact.html, style.css, or lines owned by another worker.
+- If you need a core change, report it. Do not patch the core.
+
+2. SWITCHES. Every item's code checks its own switch.
+- Hooks, listeners, ticks, pointer and appear callbacks, and Clarity.css registered with the item id are gated by the core.
+- Load-time overlay code: if (Clarity.on.Gn) {...}. Add Clarity.onToggle(id, fn) to undo it when the switch flips.
+- Local edits in game files: window.Clarity && Clarity.is('Gn').
+- A switch that is off must give byte-for-byte today's code path and look.
+- Test with ?clarity=-Gn, ?clarity=off, or CLARITY_OFF via an init script.
+
+3. LOCAL EDITS
+- Mark the changed line /* Gn */. Keep edits as small as possible, ideally one line.
+- The switch-off branch is today's exact expression.
+- Never add a top-level let, const or function to a game file. Classic scripts share one global scope, and a duplicate name is a SyntaxError that kills that whole file. Put state inside the file's existing IIFE or closure next to the edit, or on Clarity.Gn. more.js is top-level code, so G21 keeps its state on Clarity.G21.
+- Never edit object literals or loops that run at load: REQS in fun.js, ROOMS in basement.js:7, builder.js:928. Apply those changes from the overlay at load or at call time.
+- Find code by its text. Line numbers are as of this core and shift.
+
+4. HOOKS, NEVER WRAPPERS
+- Never reassign a game global or a UI or Audio2 method. Use Clarity.hook.
+- Assigned orders (lower runs first):
+  - UI.actions: before G2:10 | after G7:10, G30:20, G2:40 (only records whether a tidy ring opened), G18:30.
+  - UI.closeActions: after G18:10, G27:20.
+  - onTap: before G18:5 (never skips), G15:10 (never skips), G35:20 (may skip).
+  - interact: before G18:10.
+  - hitTest: after G8:10.
+  - currentActivity: after G17:10.
+  - onEnterRoomBy: before G20:10.
+  - checkMess: before G2:10.
+  - UI.bigIcon: before G27:10.
+  - UI.pulseMoods: before G24:10.
+  - UI.bubble: after G26:10.
+  - UI.update: after G5:10.
+  - Audio2.blip: before G15:10.
+  - openIsoMap: after G36:10, G37:20, G38:30.
+  - drawProp: after G35:10.
+  - drawExitSigns: after G35:10.
+  - featTick: after G26:10.
+  - showWish: free; use 10.
+- After-hooks must check call.skip.
+- To call a hooked function without re-entering its hooks, use Clarity.inner(name).
+- Events: room (G4, G18, G23, G35); activityEnd (G1); screenOpen (G2, G27); screenClose (G27).
+- Pointer: G1 down; G15 up.
+- Appear: G23 '#alerts .alertb' (or a tick), G25 '#reqBtn' and '#wishBtn', G27 '.stk-toast'.
+- Ticks: G4 200 ms, G15 100 ms, G23 250 ms, G35 250 ms, G37 300 ms, G38 200 ms.
+- G3, G9 and G16 use MutationObservers of their own, on elements they own.
+
+5. CSS
+- Only through Clarity.css(id, text), one or more per item. Never edit style.css or inject <style> yourself.
+- Prefix every new class or keyframe with cm-.
+- Property ownership on shared elements. Two workers never set the same property on the same element:
+  - #xFloat: screens.
+  - #panel and its screens (cooking, dress-up, crafts, Bricks, the canvas screens), #studio, #storyBox and #stkBox: screens. Two exceptions: the map's content (.fmap, .fmaprow, .fmaproom and the .isosvg additions) belongs to wayfinding, and .isoroom.here's transform-box/transform-origin belongs to bubbles (G5).
+  - #title padding and .tpick: layout (G13).
+  - #moodbar and #moodToggle: layout owns position, size, display, the folded slot, background, handle and chevron in landscape. status owns .mood opacity, filter and shake, and the animation of #moodbar.pulse and .mood.
+  - .navarrow: layout owns the right offset. status owns the animation and the inner <i> bob.
+  - #roombar / .rb: layout owns position, landscape centring, max-width and .rb size/flex. wayfinding owns the #roombar background and the .rb.cm-gp dot. status owns .rb opacity, filter and shake.
+  - #floorpill / .fl: wayfinding owns the colour ring (box-shadow), data-dest and .fl i font-size. status owns .fl opacity, filter and shake.
+  - #alerts / .alertb: layout owns #alerts' landscape centring. status owns .alertb animation, .settled, data-born, the tp colour, opacity, filter and shake.
+  - .facecard: layout owns .facecard.right's landscape offset. status may only shake a face card; nobody dims them.
+  - #weatherBtn: layout.
+  - #dressBtn / #bookBtn: dock owns tall-portrait position, size, visibility guard, glide and wiggle. layout owns the landscape right offsets.
+  - #stopBtn: nobody moves, translates or rescales it. Its glyph comes from the currentActivity hook (bubbles, G17).
+  - #wishBtn / #reqBtn: dock owns position, size, glow animation, badge, span glyph and the ghost. status owns #reqBtn opacity, filter and shake.
+  - .say, .pichint, .cm-call and the bigIcon look: bubbles. The timing of ✨ big icons: dock (G27).
+  - .act, .acttray, .actback, .cm-badge and ring placement: rings.
+  - .stk-toast and the fly layer: dock.
+  - Canvas drawing: rings (the glow in nav.js, the deer tab); wayfinding (signs, edge tabs, the floor slide); status (the idle wiggle); layout (zoom and camera).
+  - #app classes: status adds cm-strip, cm-mood and cm-alert; layout may add its own cm-* classes.
+
+6. POSITION AND MOTION
+- HUD and dock buttons are positioned with left/top/right/bottom and the individual translate property, never transform. Game rules such as :active, pulse and .facecard scale use transform.
+- Transient motion: Clarity.shake, el.animate on translate, or a pointer-events:none ghost element.
+- Clarity code never calls preventDefault or stopPropagation. A tap is never swallowed or retargeted, with one documented exception: G35's tab tap.
+
+7. DATA
+- Nothing new on G, in localStorage or sessionStorage, or in saved data. Item state lives on Clarity.Gn.
+- Never call propActions or entActions just to look: fun.js's wrapper marks treasures found. G18 also never calls hitTest.
+
+8. TESTING SETUP
+- Serve your worktree: H.boot({ port, view, room, dir: '<worktree>/public/chef-marina' }).
+- Ports: worker k (0-based position in the workers list) uses 8850+10k to 8859+10k:
+  - prompts 8850-8859, status 8860-8869, rings 8870-8879, bubbles 8880-8889
+  - dock 8890-8899, layout 8900-8909, screens 8910-8919, wayfinding 8920-8929
+- harness.serve() reuses any server already listening on a port, whatever directory it serves. Never point one port at a second directory.
+- Views: port, land, portSmall, landSmall, plus the sizes a check names (pass {width,height} as view): 844x340, 390x664, 390x585, 375x553 and others.
+- Desktop env() is 0, so simulate safe-area insets with padding, as the verdicts did. Checks that name her iPhone stay owner checks.
+- Scratch files only under /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/build-<name>/.
+
+9. REGRESSION SWEEP
+- Run: cd .../scratchpad/audit && NODE_PATH=$(npm root -g) node regress.js <port> <out.json> <worktree>/public/chef-marina
+- Then: node regress-diff.js .../audit2/arch/head1.json <out.json> .../audit2/arch/head2.json
+  head1/head2 are today's committed game, without clarity, run twice: the clean baseline and the noise reference.
+- The core build is .../audit2/core_regress.json.
+- Diffing against after3.json also works, but expect the rows already explained in core_tests: the fixes committed after after3.json was recorded.
+- Switch-off sweep: CLARITY_OFF=<your ids or all> NODE_PATH=$(npm root -g) node .../audit2/arch/regress-flags.js <port> <out.json> <dir>
+- Run sweeps one at a time on an idle machine. Under load the game's dt cap slows game time, and the 1.6 s samples catch earlier states.
+
+10. DONE MEANS, PER WORKER
+a. Every item is built exactly as its reconcile entry says.
+b. Each item's must-still-work list from the draft and every EXTRA CHECK of BOTH lenses has been run in the harness and passes. Results are saved in your scratch folder. A check that needs another worker's item is written down as an integration check with its expected result, never silently skipped.
+c. Zero page errors in port, land, portSmall and landSmall, with all switches on and with your switches off. The pre-existing chip_love.mp3 warning is the only allowed message.
+d. The regress sweep has no LOST SITUATION, LOST CHOICE, BROKEN or failed flow. Every remaining difference is noise or one of the expected renames listed in your items.
+e. The switch-off sweep for your ids shows no difference beyond noise.
+f. The worktree diff touches only your overlay file and your listed /* Gn */ lines.
+g. Commit only on your worktree branch, never on main, never push, unless the orchestrator says otherwise.
+
+11. AFTER MERGING (integration phase)
+Integration checks:
+- G19 × G7: keyboard (8) and TV (9) lists at 667x375 and 844x390 show every choice without scrolling.
+- G19 × G11 / G35 / G17 / G26 / G6: tabs, signs, bubbles and rings clear of ▶ at right:0 and of the column.
+- G19 × G16 / G27: 📒 and 👗 stay at today's landscape spots, and the sticker flight lands there.
+- G4 × G39: a cross-floor arrival in the living room in landscape runs one animation with no stretched frame.
+- G3 × G37 / G38: the landscape map with the lane still wraps its rows, no tile sits under #xFloat, and the house picture keeps its size.
+- G15 × G25: #reqBtn dims during scenes.
+- G30 × G35 / G36 / G39: the up/down badges match.
+- G22 × G31: m_want_fort shows 🏰 with G31 on and ⛺ with it off.
+Then a full sweep vs head1/head2 with all expected renames, and a CLARITY_OFF=all sweep equal to today.
+
+## Critic addenda for you
+- Ports. harness.serve() reuses any server already on a port, whatever directory it serves. Before your first run, and whenever a result looks wrong, check: for p in $(seq <lo> <hi>); do pid=$(pgrep -f "http.server $p --bind"); [ -n "$pid" ] && echo $p $(readlink /proc/$pid/cwd); done. Every line must be your worktree's public/chef-marina; kill any other with kill <pid>. Stale main-tree servers that were in 8850–8929 have been stopped.
+- Sweeps. Wrap every regress.js and regress-flags.js run in: flock -x /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/sweep.lock <command>. Before calling any BEHAVES DIFF or flow difference a regression or noise, re-press it A/B against HEAD (port 8847 serves arch/head) under identical conditions; /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/critic/ab_rows.js is a template. Under load, the stool and wicker 🧗 'perch', the Miles 🤗 'anim' and 'tap floor walks' flip by themselves.
+- Events. room, screen and activity listeners may run synchronously inside any Clarity.quietFor() or Clarity.sample() call, including inside another item's hook (G2's checkMess hook runs inside AI.update). Keep them cheap and re-entrancy-safe, and never assume they run from the timer.
+- Switches. Register hooks, ticks, listeners, pointer and appear callbacks and Clarity.css unconditionally at load; the core gates them, so turning a switch ON at run time works. Use `if (Clarity.on.Gn)` at load only for one-time data changes, paired with Clarity.onToggle(id, on => ...) that both applies and restores.
+- DOM and names:
+- Create DOM nodes only while your switch is on.
+- Never reuse a game id or class (.act, .pichint, .say, .alertb, .stk-toast, #wishBtn, #reqBtn…); game code and regress.js query them.
+- Name new classes and @keyframes cm-gN-… (with your item id) unless the reconcile already names them; class and keyframe names are global and can collide across workers.
+- Rings close in places the UI.closeActions hook never sees. ui.js closes them through its PRIVATE closeActions when a new ring replaces an old one, in openPanel(), and in update() when the ring's anchor leaves the room. If your item needs 'is a ring open', read document.querySelector('#fx .act').
+- Insets and core changes:
+- Simulated insets (padding in the harness) leave env() at 0. Anything absolutely positioned inside #stage is already offset by env(safe-area-inset-left) through #app's padding; never add env() to its left or right, or her iPhone gets the inset twice and no harness check can show it.
+- Core changes from the critic: hook lists are copy-on-write (a hook registered during a call applies from the next call), and Clarity.nudgeX takes opt.dir (+1 or -1).
+- G3: on switch-off (onToggle), restore #xFloat's text to ❌; calm.js never resets it. Optional hardening: the lane class is dropped by a MutationObserver microtask. That is safe today, because every canvas screen opens from the room with #panel already hidden. To make it timing-proof, drive the padding from a marker on the classic screen's own .ptop (#panel:has(>.ptop.cm-g3-lane)); the marker vanishes synchronously when a canvas screen replaces #panel's children.
+
+## Open critic issues touching your items
+- [minor] G36 (wayfinding): run-time toggles: The nav.js arrows cache their icon per destination (dataset.to), and floors.js caches the strip per floor. Flipping G36 at run time therefore leaves old icons on screen. A reload is correct. → onToggle rewrites the arrow text and the .rb[data-r=nunuroom|treehouse_pine] text directly (addendum).
+- [minor] G37 (wayfinding) × screens: #panel: Centring the portrait map stack could tempt wayfinding to style #panel, which the screens worker owns (G3's lane padding lives there). → Use .fmap, .isowrap, .fmaprow or a wrapper of its own (addendum).
+
+## Cross-item conflicts involving your items
+- G33: Built-thing recolour 🎨→🖌️. The functionality lens keeps it; the child lens calls it churn: 🎨 already means 'change its colour', and 🖌️ is a studio drawing tool. Also: should the movie ⏹️ become ◀️? → The child lens wins on 🖌️: it is pointless for her, so 🎨 stays. Both lenses keep Movies ⏹️, because ◀️ next to the paused ▶️ reads as rewind. Take-down 🧹→🗑️ is applied at all five builder places (398, 402, 503, 595, 596). The story's ✖️→❌ comes with .st-back moved to left:80px.
+- G34: Popcorn hand and Nunu's 🧱 badge. The functionality lens keeps both, with fixes. The child lens drops them: the popcorn hand invites a mid-film tap that triggers Nunu's voice and face card; the badge is clipped or covers her face and adds a second pulsing thing. → The child lens wins: both are pointless or harmful for her, and dropping a hint is always functionally safe. Both lenses drop the treetop change, because the landmarks already twinkle. What is built: the shelf's one-time hop wave (Gy.pending is never touched) and the spa hand.
+- G12/G3/G33: Sticker-book ✅. The draft pins it top-right; both lenses measured that it covers the 💎 header and first-row stickers. The functionality lens's alternative and the child lens's choice are both a sticky ✅ at the bottom. #stkBox is also padded by G3 and restyled by G33. → ✅ is sticky at the bottom (both accept it). All three items are in the screens worker, so #stkBox has one owner.
+- G32: Numbers for the studio's floating ❌: the functionality lens uses a column cut of 64 px and 6 px from the bottom, the child lens 72 px and 10 px. Only the functionality lens adds the body:has(>#studio) guard. → The child's 72 px and 10 px (a gap of at least 10 px below the last tool), plus the functionality guard. A 52 px button inside the 60 px column; the paper bitmap unchanged.
+- G9: Pass bar for landscape cooking. The child lens says 3 rows of food are unreachable and accepts 2 full rows plus a partial one. The functionality lens says constrain the grid rows so only the food scrolls, then require 3. → Constrain the rows (functionality). Aim for 3 rows; never fewer than 2 full rows plus a partial one. The meter scroll is computed from getBoundingClientRect, not offsetTop.
+- G3: The draft computes the lane in a 250 ms tick. The functionality lens measured that a late lane skews the crafts canvas (kx 1.095) and moves tiles between pointerdown and pointerup. → The functionality lens wins: a synchronous MutationObserver recompute; cm-lane is removed before canvas screens lay out; #xFloat.on is never read.
+- G5/G6/G7/G17/G18/G23/G26/G31/G33/G37/G39/G20: Five game files are edited by two workers: ui.js (G5 vs G6/G7), nav.js (G17 vs G18), features.js (G23 vs G37/G39), fun.js (G33 vs G31) and family2.js (G26 vs G20). → Every edit is on different, non-adjacent lines. ui.js: G7 at :49, G6 at :72-73, G5 at :101. nav.js: G17 at :61-67, G18 at the glow IIFE :153-174. features.js: G39 at :395-397, G37 at :413, G23 at :598-599. fun.js: G33 at :38, G31 at :82-83. family2.js: G26 at :145, G20 at :171-179. Each worker locates its code by text, and merges are line-disjoint.
+
+
+==================== G3 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with the functionality amendment, which replaces the draft's 250 ms tick. (1) Recompute synchronously, from a MutationObserver on #panel (attributes: class; childList), on #stage and #title (childList, for #stkBox and #storyBox), and on resize/orientationchange. (2) lane = landscape AND #panel is visible AND its :scope>.ptop exists with flexDirection row and position static AND no canvas screen is open (Bricks, LegoShelf, Pool, Movies, Stuffies, Spa, TreeClimb) AND the studio is not open AND calm.js's target() would return a button. Re-implement target() in the overlay. Never read #xFloat.on, which calm sets every 250 ms. (3) Remove cm-lane the moment #panel is hidden or its children are replaced, before re-evaluating, so no canvas screen ever runs its layout() with it. (4) From the same recompute, toggle body.cm-xon and set #xFloat's text: the target button's first text node when it is a single emoji, else ❌. That gives 🚪 in the fort interior. calm.js is not edited. (5) CSS in landscape: #panel.cm-lane{padding-left:calc(80px + env(safe-area-inset-left))} #panel.cm-lane>.ptop{margin-left:-72px} body.cm-xon #stkBox{padding-left:calc(env(safe-area-inset-left) + 84px)}. Add the same for #storyBox only if the harness shows content under the button. DONE = the draft list and both lenses' EXTRA CHECKS: crafts opened straight on ✂️ and on ➕→🖍️ give canvas.width/rect.width == canvas.height/rect.height, and strokes land under the finger; a canvas screen opened right after a classic one never sees cm-lane, and the Lego ❌ column stays at x ≥ 8; elementsFromPoint at #xFloat's centre on about 18 screens at land, landSmall and 844x340 with 47 px insets; the fort interior shows 🚪 and runs closeFortInside; cooking's ❌ still discards; builder and map cards are all reachable. Expected regress renames: #xFloat glyphs (🚪 in the fort interior; ❌ or ◀️ per G33).
+Depends on: -
+Interactions: Same worker as G9, G10 and G12 (all checked with the lane on), G32 (#xFloat in the studio) and G33 (the glyphs it copies). Integration with G37/G38: the landscape map with the lane must still wrap its rows, put no tile under #xFloat, and keep the house picture's size.
+
+### DRAFT ITEM
+### G3 Landscape: the extra ❌ gets an empty lane of its own and copies the picture of the button it presses
+- problem: #xFloat (calm.js:47-63) is a 64x64 button fixed at the bottom-left, z60. It sits on top of whatever the screen draws there: the first ingredient (89% covered) and the 🥪 method, the first outfit (75%), the first fort piece and fort toy, the builder's castle and picnic cards, and map tiles. Tapping 'the milk' closes cooking and throws away her picks. Tapping the first fort toy takes her out of the fort: there the button shows ❌ but acts as 🚪. ALREADY_FIXED lists this as the open design question.
+- change: Both ways out stay exactly as they are: each screen's own top-left ❌ and the floating one at the bottom-left. In landscape, while the floating ❌ shows on a classic screen, the screen's content starts one button-width further right. The bottom-left corner then holds nothing else, and the whole left edge reads as 'the way out'. The floating button shows the picture of the button it presses: 🚪 in the fort interior, the screen's own ❌ (or ◀️, see G33) elsewhere.
+- implementation: clarity.js block G3, run from a 250 ms tick.
+- on = #xFloat has class 'on' && innerWidth > innerHeight. Then document.body.classList.toggle('cm-xon', on).
+- For a visible #panel:
+  - top = panel.querySelector(':scope>.ptop').
+  - lane = on && top && getComputedStyle(top).flexDirection === 'row' && position === 'static' && none of the canvas screens is open. The canvas screens are Bricks, LegoShelf, Pool, Movies, Stuffies, Spa and TreeClimb; their own left rail already keeps the corner empty.
+  - panel.classList.toggle('cm-lane', lane).
+- CSS inside @media (orientation:landscape):
+  - #panel.cm-lane{padding-left:calc(80px + env(safe-area-inset-left))} and #panel.cm-lane>.ptop{margin-left:-72px}. Padding is used rather than margins on the children, so .fortcv and .fortin (width:100%, style.css:130) do not overflow.
+  - body.cm-xon #stkBox{padding-left:calc(env(safe-area-inset-left) + 84px)}.
+  - Do the same for the #storyBox content only if the harness shows content under the button.
+- Glyph: the same tick finds the target in calm.js's order: '#stkBox .st-x', the studio close, '#storyBox .st-x', then '#panel:not(.hidden) .ptop button'.
+  - If there is no target, do nothing.
+  - Otherwise copy only that button's first text node, trimmed, when it is a single emoji; else use '❌'.
+- calm.js is not edited: fire() and target() still press the same button.
+- must still work: Each screen's own top-left close and the floating close close or leave exactly as today on every screen (cooking's ❌ discards as today; the fort interior runs closeFortInside); The first ingredient, first outfit, first fort piece and toy, the builder cards and the map tiles are tappable and do their own thing; The Lego/tiles, Lego shelf, Pool, Movies, Stuffies, Spa and Tree climb layouts are unchanged; Portrait is unchanged (the floating ❌ appears only in landscape); The scroll guard (calm.js:27-39) still works on panels; The studio is covered by G32
+- benefit: Removes the only common tap that destroys her work by accident: aiming at the first food, outfit or toy no longer throws her out and loses her picks. The bottom-left button also says honestly what it does.
+- risk: Low to medium. Classic landscape screens lose 72 px of width: the cooking grid loses about one column (G9 re-lays cooking), and the map and builder grid shift right. Verify with document.elementsFromPoint at #xFloat's centre on about 18 screens, at land, landSmall and 844x340 with 47 px insets: nothing interactive other than #xFloat may be under it.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G3 [bugs] Landscape: the extra ❌ gets an empty lane of its own and copies the picture of the button it presses => AMEND (child:keep, functionality:amend)
+
+**child: keep** — Verified by injecting the lane CSS in the harness (verify/bugs-child/v3.js, v7.js). Today, elementsFromPoint at #xFloat's centre hits the first ingredient tile, the first outfit tile, the crafts row, the map row, the first fort tray tile and the builder's first card, in both land and landSmall. With the lane on, it hits only the panel background on all six screens, the top-left ❌ stays at 8,8, and there is no horizontal overflow (shots/g3_land_cook_lane.png, g3_land_fort_lane.png). Content moves only 72 px to the right, she does not lose a control, and a tap on the first food or toy no longer throws her out and discards her picks. That benefit is concrete. The glyph copy (🚪 in the fort interior) makes the button tell the truth, and the fort's own exit is 🚪 already.
+
+- EXTRA CHECKS: Fort interior in land: #xFloat shows 🚪 and still runs closeFortInside. Builder shows ❌. After G33, the Lego shelf hero view shows ◀️ and Movies shows ◀️. The glyph does not flicker between ticks. | Sticker book on landSmall: the first sticker (x 18 today) is clear of #xFloat once #stkBox gets the extra left padding. Check the story the same way before adding anything there. | Repeat elementsFromPoint at #xFloat's centre at 844x340 with a 47 px left inset: the lane padding and xFloat's left both use env(safe-area-inset-left), so nothing interactive lies under it. | Builder and map: every card and tile is still reachable after the 72 px shift (measured: builder cards start at x 86 with no overflow).
+
+**functionality: amend** — The lane itself is functionally safe. With the drafted CSS applied at land and landSmall, nothing interactive remains under #xFloat on cooking, dress-up, map, crafts (dio, math, spell, gal, cut), fort builder, builder or the sticker book. Nothing new goes off-screen except tiles in trays that already scroll sideways. The canvas screens keep their column .ptop, so the flexDirection test excludes them. The 250 ms tick is the problem, and I measured it. When crafts opens directly on ✂️ in landscape and the lane arrives 250 ms later, the cut canvas bitmap stays 828 px wide but is shown 756 px wide (kx 1.095, ky 1.000). ui.js pos() uses the x ratio for both axes, so her cut path lands up to about 9.5% below her finger (about 19 px at the bottom of the canvas), and the picture is squashed. Applied at open (delay 0), kx = ky = 1.000. The same late jump would also move ingredient and outfit tiles 72 px between pointerdown and pointerup.
+
+- AMENDED CHANGE (functionality): Same design as drafted (both ways out unchanged; in landscape, classic screens start one button-width further right so the bottom-left corner holds only the floating button; the floating button shows the glyph of the button it presses), with three implementation changes. (1) The lane must be in place before the screen lays itself out, never added later by a timer. Recompute the lane in a MutationObserver on #panel (attributes: class; childList) and on resize/orientationchange; MutationObserver callbacks run as microtasks, before paint and before the crafts canvases size themselves 30 ms after opening (ui.js:365, :389). lane = landscape && #panel visible && :scope>.ptop exists with flexDirection row and position static && no canvas screen is open && the studio is not open && calm.js's own target() would return a button. Do not read #xFloat.classList 'on': calm.js sets it from a 250 ms interval. (2) Remove cm-lane the moment #panel is hidden or its children are replaced, before re-evaluating, so that Bricks, LegoShelf, Pool, Movies, Stuffies, Spa and TreeClimb never run their own layout() while the class is present. Bricks.layout() measures body.clientWidth synchronously at open, and `.ptop{margin-left:-72px}` would push its absolutely positioned ❌ column off-screen. (3) Toggle body.cm-xon, and set the floating button's glyph, from the same synchronous recompute. Also observe #stage and #title childList for #stkBox and #storyBox. calm.js is still not edited.
+
+- EXTRA CHECKS: Landscape (land, landSmall, 844x340): open crafts straight on ✂️ and on ➕ then tap 🖍️. In both, canvas.width/rect.width must equal canvas.height/rect.height, and a stroke at the bottom-right corner must land under the finger. | Open each canvas screen right after closing a classic one (map -> Lego, cooking -> Movies). #panel must never have cm-lane while their layout() runs, and the Lego ❌ column must stay at x >= 8. | elementsFromPoint at #xFloat's centre on about 18 screens at land, landSmall and 844x340: nothing interactive other than #xFloat. | The fort interior's floating button shows 🚪 and still runs closeFortInside. Cooking's floating button still discards the picks as today. | Pre-existing, not caused by G3 (fort.js:38 and :130): the fort builder and fort interior map taps over the whole letterboxed canvas box (object-fit:contain). At land, a piece drawn at canvas x 60 is read as x 100 (98 with the lane); in portrait the y axis is off. Confirm that piece and toy selection is no worse after the lane; do not fold a fix into G3. | Add the #xFloat glyph changes (🚪 in the fort interior, ✖️ while the story or sticker book is open until G33) to the expected renames for regress.js.
+
+
+==================== G9 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD (both keep), with the functionality lens's checks built in. (1) CSS in landscape; every ingredient rule is scoped under #panel .pbody:has(>.grid.ing): display:grid; grid-template-columns:minmax(200px,36%) 1fr; column-gap:10px. .tray and the non-shelf .row go in column 1; .row.shelves in column 2, row 1; .grid.ing in column 2, rows 2-4. (2) Constrain the rows so only the food scrolls, e.g. grid-template-rows:auto auto 1fr and .grid.ing{min-height:0;overflow:auto}. The column-1 .tray may wrap. (3) #panel .methods{grid-template-columns:repeat(6,1fr);align-content:center} #panel .method{aspect-ratio:auto;height:min(120px,26vh);font-size:min(60px,14vh)} #panel .meter{flex:0 0 40px;min-height:36px}. (4) A MutationObserver on #panel: when a .meter is added in landscape, scroll the pbody ONCE so the .meter and the 🛑 after it are fully inside the pbody's visible rect. Compute the scroll from getBoundingClientRect differences: offsetTop is measured from #panel and over-scrolls. Never use scrollIntoView. (5) Without :has() support the ingredient step keeps today's layout. Pass bar: aim for 3 rows of food at 844x390, 667x375 and 844x340 with 47 px insets; never fewer than 2 full rows plus a partly visible row; ✅ and the slots never scroll out of view; the first tile is clear of #xFloat. DONE = the draft list and both lenses' EXTRA CHECKS: all 36 tiles on each shelf are reachable; a scroll-then-lift is not a pick; the meter scroll runs once and never moves 🛑 while the knob runs; the same stop fraction gives the same good/ok/burnt result; the methods and meter rules alone do not break the layout without :has().
+Depends on: G3
+Interactions: Built and checked with G3's lane on (same worker). Only #panel cooking rules; dress-up's .row.tabs (G10) is untouched.
+
+### DRAFT ITEM
+### G9 Landscape cooking shows the food, all six ways to cook, and a timing bar she can see
+- problem: - Ingredients: the empty slots, the ↩️🗑️✅ row and the shelf tabs use up the height before any food. Only 11 of 36 tiles are visible on 844x390, and none on 667x375 or in Safari at 844x340.
+- Methods: they become 268 px squares (style.css:117-121, aspect-ratio:1), so bake, freeze, blend and ⬅️ are below the edge.
+- Timing bar: the fry/bake .meter (style.css:60) is squeezed to 5 px (land) or 0 px (landSmall). Its zones vanish, and the dish 'burns' for no visible reason.
+- change: Landscape only. Same buttons, same order, same rules.
+- Ingredient step: two columns. The slots and ↩️🗑️✅ are on the left; the shelf tabs sit over a food grid that fills the height on the right.
+- Methods: all 6 in one row (🥪🥄🍳🔥❄️🌀), with ⬅️ under them.
+- The timing bar keeps a 40 px height. When it appears, the panel scrolls once so that the bar and 🛑 are both in view.
+- implementation: CSS block G9 inside @media (orientation:landscape).
+- Every ingredient-step rule is scoped under #panel .pbody:has(>.grid.ing), so dress-up's .row.tabs is not touched:
+  - display:grid; grid-template-columns:minmax(200px,36%) 1fr; grid-auto-rows:min-content; column-gap:10px;
+  - .tray and the non-shelf .row go in column 1;
+  - .row.shelves goes in column 2, row 1;
+  - .grid.ing goes in column 2, rows 2–4, with overflow:auto.
+- #panel .methods{grid-template-columns:repeat(6,1fr);align-content:center}
+- #panel .method{aspect-ratio:auto;height:min(120px,26vh);font-size:min(60px,14vh)}
+- #panel .meter{flex:0 0 40px;min-height:36px}
+- JS: a MutationObserver on #panel. When a .meter is added in landscape, set pbody.scrollTop = stop.offsetTop + stop.offsetHeight - pbody.clientHeight once, where stop is the 🛑 added after the meter (ui.js:193-194). Never use scrollIntoView.
+- Confirm the class names against ui.js:126-201 before use.
+- Without :has() support, the ingredient step keeps today's layout.
+- must still work: Up to 5 ingredients; ↩️, 🗑️ and ✅ behave as today, and ✅ still leads to the methods; The same 6 methods in the same order with the same results; ⬅️ still goes back to the ingredients; The timing game keeps the same speed, the same good/ok/burnt thresholds and the same 🛑; The result screen's give, carry, change and again are unchanged; Portrait cooking is unchanged except for the meter's minimum height
+- benefit: Cooking, the heart of the game, works sideways: she can see food to pick, every way to cook, and the green zone she has to stop in.
+- risk: Medium-low: CSS on her favourite screen, but the landscape layout is broken there today. With G3's lane on, verify at 844x390, 667x375 and 844x340 with 47 px insets: at least 3 rows of food, all 6 methods and ⬅️, the bar at least 36 px tall, and 🛑 visible. Test :has() on her iPhone.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G9 [bugs] Landscape cooking shows the food, all six ways to cook, and a timing bar she can see => KEEP (child:keep, functionality:keep)
+
+**child: keep** — Verified with G3's lane on (verify/bugs-child/v6.js; shots/g9_land_fix_ing.png, g9_land_fix_meth.png, g9_landSmall_fix_meter.png). Full ingredient tiles go from 11/36 to 12/36 on land (now 2 full rows plus a visibly cut third row as a scroll cue), from 0/36 to 8/36 on landSmall, and from 0/36 to 12/36 at 844x340. All six methods are visible in one row with ⬅️ under them; today none are visible on land and only 3 on landSmall. The meter goes from 5 px / 0 px to 40 px, and 🛑 is visible after the one-time scroll in every size. The class names in the plan match ui.js (.tray, .row, .row.shelves, .grid.ing, .methods, .method, .meter, 🛑 appended after the meter). This is her favourite screen, so the habit cost is real, but landscape cooking is broken today. One correction: the plan's own pass bar, 'at least 3 rows of food', is not reachable with the lane at these sizes, so the builder would wrongly fail it.
+
+- EXTRA CHECKS: Replace 'at least 3 rows of food' with: at least 2 full rows (6 per row on land and 844x340, 4 on landSmall) plus a partly visible next row, the first tile not under #xFloat, and the grid scrolling to all 36 tiles on every shelf tab. | Without :has() (simulate by removing the rule): the ingredient step falls back to today's layout, and the methods and meter rules alone do not break it. | The meter auto-scroll runs once per meter and does not move 🛑 while the knob runs. Bake (slower) behaves the same.
+
+**functionality: keep** — I could not refute it. The ingredient, method and timing logic and their order are untouched. :has(>.grid.ing) matches only the ingredient step: chooseMethod and runMethod empty the pbody, so the meter and result screens fall back to the normal layout. The timing outcome depends on the fraction x (ui.js:197-199), not on the bar's width. I applied the drafted CSS with the G3 lane at land, landSmall and 844x340: ↩️🗑️✅ and all four shelf tabs are visible and tappable, picked slots still remove on tap, all six methods and ⬅️ are visible. Two shortfalls to fix while building: the food grid shows only 12/36 tiles at land and 8/36 (2 rows) at landSmall, because grid-auto-rows:min-content leaves .grid.ing unconstrained so the whole pbody scrolls (shelf tabs and ✅ scroll away with the food, as today); and the five slots squeeze to 29x72 px at landSmall.
+
+- EXTRA CHECKS: Constrain the rows so only the food scrolls: for example grid-template-rows:auto auto 1fr on the pbody, and min-height:0;overflow:auto on .grid.ing. Let column 1's .tray wrap. Then verify at least 3 rows of food at 844x390, 667x375 and 844x340 with 47 px insets, and that ✅ and the slots never scroll out of view. | Every one of the 36 tiles on each shelf is reachable by scrolling, and a scroll-then-lift is not counted as a pick (calm.js guard). | After the meter appears, both .meter and 🛑 are fully inside pbody's visible rect. Compute the scroll from getBoundingClientRect differences: stop.offsetTop is measured from #panel (the pbody is not positioned), so the drafted formula over-scrolls by the ptop height. | good/ok/burnt thresholds give the same results for the same stop fraction.
+
+
+==================== G10 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD as drafted (both lenses keep). CSS: #panel .tabs{flex:0 0 auto}; @media (orientation:portrait){#panel .tabs{flex-wrap:wrap;justify-content:center;overflow-x:visible}}; @media (orientation:landscape){#panel .dtop .dcol{flex-direction:row}#panel .dprev{height:min(30vh,140px)}}. DONE = the draft list and both lenses' EXTRA CHECKS: portSmall keeps at least one full outfit row above the fold; at land and landSmall with the lane on, at least one full outfit row shows and no tab or tile sits under #xFloat; all 8 tabs are 54 px tall; a tab tap switches tabs and never changes the outfit; ✅ still plays the fashion show; dress-up from the closet and dresser props still works.
+Depends on: G3
+Interactions: Checked with G3's lane (same worker). Touches only #panel .tabs, .dcol and .dprev.
+
+### DRAFT ITEM
+### G10 Dress-up: the tab row is never squashed, all 8 tabs show in portrait, and outfits are visible sideways
+- problem: The tab row (.tabs: nowrap plus overflow-x, style.css:202-203) shrinks in landscape to 26 px (land) or 15 px (landSmall), with the outfit grid drawn over it. A tap on the 💇 tab changed nothing (land) or put Marina in the astronaut outfit (landSmall). In portrait the row is 484 px wide on a 374 px screen, so 🪄 is half off-screen and 💾 (saved looks) is fully off-screen. In landscape, 0 of 19 outfits are fully visible on 667x375.
+- change: Same tabs, same order, same buttons.
+- The tab row always keeps its full height.
+- In portrait it wraps onto two rows, so all 8 tabs, including 🪄 and 💾, are visible.
+- In landscape, the small buttons beside the preview (🎲🌈🚶 and 📸✅) sit in short rows instead of tall columns, and the preview is a little smaller, so at least one full row of outfits shows.
+- implementation: CSS block G10:
+- #panel .tabs{flex:0 0 auto}
+- @media (orientation:portrait){#panel .tabs{flex-wrap:wrap;justify-content:center;overflow-x:visible}}
+- @media (orientation:landscape){#panel .dtop .dcol{flex-direction:row}#panel .dprev{height:min(30vh,140px)}}
+.dcol and .dprev are used only by UI.openDress (ui.js:283, 320).
+- must still work: Every tab, outfit, colour, hair, accessory and saved look; 🎲 🌈 🚶 📸 ✅ do the same thing, and the ✅ fashion show still plays; Tapping a tab switches tabs and never changes the outfit; Dress-up from the closet and dresser props
+- benefit: Tab taps do what she aims at. Saved looks (💾) and the wand tab (🪄) can be found in portrait, and outfits are visible sideways.
+- risk: Low. In landscape, 🎲🌈🚶 and 📸✅ move from columns to rows beside the preview (position only). Verify with G3's lane on at land and landSmall: at least one full outfit row, and tabs 54 px tall everywhere.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G10 [bugs] Dress-up: the tab row is never squashed, all 8 tabs show in portrait, and outfits are visible sideways => KEEP (child:keep, functionality:keep)
+
+**child: keep** — Verified after fix 3 (verify/bugs-child/v3.js; shots/g10_landSmall_today.png vs g10_landSmall_fix.png). The landscape tab row is still squashed to 26 px (land) and 15 px (landSmall), and every tab's centre hits .pbody or an outfit tile. With the fix, all 8 tabs are 54 px tall and uncovered, and landSmall full outfits go from 0/19 to 8/19. Portrait: today 🪄 sits at x 377 and 💾 at x 438, off a 374 px row. With the wrap, both are on screen and the first six tabs move only 7 px on 390 px. The habit cost is small; the gain is tabs that do what she aims at, plus two tabs she could not find.
+
+- EXTRA CHECKS: portSmall: the two-row tab block (116 px) lowers full outfits from 12/19 to 8/19, and 🦋 moves to row 2. Confirm at least one full outfit row stays visible above the fold. | Landscape with G3's lane: the first outfit tile is clear of #xFloat (in the fix shot without the lane it is still under it).
+
+**functionality: keep** — I could not refute it. The change is CSS only. .tabs, .dcol and .dprev are used only by UI.openDress (ui.js:283-320), and no file wraps openDress or injects CSS for these classes. With the drafted CSS, all 8 tabs are 54 px tall and tappable at their centre on port, portSmall, land and landSmall. Full outfit tiles visible: port 19, portSmall 8, land 11, landSmall 8. Moving 🎲🌈🚶 and 📸✅ into rows changes position only; the 📸 photo is drawn from previewLook, not from the preview's CSS size.
+
+- EXTRA CHECKS: With G3's lane on at land and landSmall: at least one full outfit row, and no tab or outfit tile under #xFloat. | Tapping each tab switches tabs and never changes the outfit; ✅ still plays the fashion show.
+
+
+==================== G12 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with both amendments. (1) Lego, both lenses: .bk-side.bk-narrow>.bk-tools{position:sticky;bottom:0;z-index:2;padding-top:4px;background:<opaque panel colour, e.g. #1e1632; measure it>}, plus a small top shadow. 'inherit' resolves to transparent there. Fall back to order:-1 only if sticky misbehaves on iOS. (2) Sticker book: ✅ is sticky at the bottom. This is the child's version, and the functionality lens offers it as its own alternative: #stkBox .stk-ok{position:sticky;bottom:calc(env(safe-area-inset-bottom) + 8px);z-index:3}. It is never pinned at the top-right, where it would cover the 📒/💎 header and the first-row stickers. DONE = both lenses' EXTRA CHECKS: at landSmall every colour and piece scrolls to a spot where elementFromPoint returns it; ✅ runs finish(true), ❌ just leaves, and the build is kept either way; land, 844x340 and portrait Lego layouts are unchanged; the keep-on-shelf button stays under ❌; the sticker ✅ is visible at scroll 0 and at maximum scroll; the header is never under ✅; every sticker can be tapped (wiggles) at some scroll position, in the game and on the title, with G3's cm-xon padding on; ✅ and ✖️/❌ both close the book.
+Depends on: G3
+Interactions: #stkBox is shared with G3 (left padding while the floating ❌ shows) and G33 (.st-x restyle); all three are in this worker. The Lego half lives only in Bricks' narrow side column.
+
+### DRAFT ITEM
+### G12 The 'done' ✅ is never off-screen: Lego on small phones, and the sticker book
+- problem: On 667x375 the Lego side column (.bk-side.bk-narrow, bricks.js:320-321, 395-396) has 596 px of content scrolling in 359 px. ✅ (in .bk-tools, added last) sits at y 540, off-screen, with no sign that the column scrolls, and a touch where it should be did nothing. The sticker book's ✅ (.stk-ok, fun.js:38, 201) comes after the whole grid, below the fold in every view.
+- change: Lego: on narrow landscape screens, the group holding ✅ sticks to the bottom of its column, and the colours and pieces scroll above it. Sticker book: ✅ is pinned at the top-right, mirroring the close button at the top-left. Same buttons, same actions.
+- implementation: CSS block G12:
+- .bk-side.bk-narrow>.bk-tools{position:sticky;bottom:0;z-index:2;background:inherit;padding-top:4px}. Use the column's own colour if inherit is transparent. If sticky misbehaves, fall back to order:-1.
+- #stkBox .stk-ok{position:fixed;top:calc(env(safe-area-inset-top) + 12px);right:calc(env(safe-area-inset-right) + 12px);margin:0;z-index:3}
+- must still work: The Lego ✅ still runs finish(true), ❌ still just leaves, and the build is kept either way; Every colour and piece can be reached by scrolling; wide landscape and portrait Lego layouts are unchanged; the keep-on-shelf button's placement is unchanged; The sticker book's ✅ and its close button both close it, in the game and on the title; Stickers still wiggle when tapped
+- benefit: She can finish a Lego build on a small phone held sideways, and close the sticker book with the ✅ she is looking for, without discovering a hidden scroll.
+- risk: Very low. Check that the sticker ✅ does not cover the 📒 n/N header or the first row of stickers on a 375 px phone.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G12 [bugs] The 'done' ✅ is never off-screen: Lego on small phones, and the sticker book => AMEND (child:amend, functionality:amend)
+
+**child: amend** — The Lego half is right. On landSmall today ✅ is at y 540 in a 359 px column and cannot be tapped. With the sticky rule it sits at y 303 and elementFromPoint hits it. ✅ is the only route to finish(true) and the room's reaction (bricks.js:630-636), so this restores an outcome. But both .bk-tools and .bk-side compute to a transparent background, so 'inherit' gives transparent and the colours and pieces show through around ✅, which half-hides the first piece (shots/g12lego_landSmall_fix.png). The sticker half fails its own risk check: pinned fixed at the top-right, ✅ covers the '💎 n/5' count (2052 px² at 390, 2318 at 375) and the first row's right-hand stickers (shots/g12_port_pinTR.png). It also puts a second always-on close button at the top of a main-floor screen she knows, while ✖️ (❌ after G33) already exits from the top-left. Keeping ✅ where it already lives, at the bottom, but always visible gets the benefit without the habit cost or the covering (shots/g12_port_stickyBottom.png).
+
+- AMENDED CHANGE (child): Lego: .bk-side.bk-narrow>.bk-tools{position:sticky;bottom:0;z-index:2;padding-top:4px;background:#2b2340} (an opaque colour matching the panel, because inherit resolves to transparent here), with a small top shadow. Keep the order:-1 fallback only if sticky misbehaves on iOS. Sticker book: do not pin ✅ at the top-right. Use #stkBox .stk-ok{position:sticky;bottom:calc(env(safe-area-inset-bottom) + 8px);z-index:3}. ✅ stays bottom-centre, where it is today, and is visible at every scroll position. At the end of the scroll it rests in its usual place after the grid, so no sticker is permanently covered, and the header and 💎 count are never covered.
+
+- EXTRA CHECKS: landSmall Lego: every colour and piece can be scrolled to a spot where elementFromPoint returns that tile (not ✅). ✅ runs finish(true), ❌ runs finish(false), and the build is kept both ways. Land and 844x340 (not narrow) are unchanged (measured identical). | Sticker book in port, portSmall, land and landSmall, in the game and on the title: ✅ is visible at scroll 0 and at maximum scroll, and every sticker can be tapped (wiggles) at some scroll position.
+
+**functionality: amend** — Lego is safe. With the drafted rule at 667x375, ✅ is visible and tappable at rest and at the end of the scroll; every colour and piece can be reached; at rest the sticky group covers pieces b1-b3, which scroll clear. The sticker part as drafted puts the fixed 96x76 ✅ over the header and over the first-row stickers. Overlap in px²: port 2050 header, 282 and 1031 stickers (25% of one); portSmall 2335, 330, 983; landSmall 304 and 1008; land 96. The first row is at the top of the scroll, so it can never be scrolled out from under the ✅, and part of each of those stickers' wiggle tap goes to the ✅ (which closes the book).
+
+- AMENDED CHANGE (functionality): Lego: on narrow landscape screens, the group holding ✅ sticks to the bottom of its column, and the colours and pieces scroll above it: .bk-side.bk-narrow>.bk-tools{position:sticky;bottom:0;z-index:2;padding-top:4px}, with an opaque background in the panel's colour (for example #1e1632). .bk-side has no background, so 'inherit' would be transparent and show pieces that cannot be tapped through the group. Sticker book: ✅ is pinned at the top-right, mirroring the close at the top-left, and its space is reserved so it covers nothing: for example #stkBox{padding-top:calc(env(safe-area-inset-top) + 92px)}. The ✖️ and ✅ are fixed, so only the header and grid move down. Alternatively, make it position:sticky at the bottom of #stkBox, like the Lego fix. Same buttons, same actions.
+
+- EXTRA CHECKS: elementFromPoint at the centre and the four inset corners of every sticker, and of the n/N 💎 header, must not hit .stk-ok, in port, portSmall, land and landSmall, in the game and on the title, with G3's cm-xon padding on. | The sticker ✅ and ✖️ both close the book, in the game and on the title. | Lego narrow: ✅ runs finish(true), ❌ just leaves, the build is kept either way; the wide-landscape and portrait Lego layouts are unchanged; the keep-on-shelf button is still placed under ❌.
+
+
+==================== G32 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD combining both amendments. Both require a 52 px button inside the 60 px tool column. The child's 72/10 px numbers give the larger gap; the functionality lens's body:has(>#studio) guard makes the button vanish the moment the studio closes. (1) CSS in @media (orientation:landscape): #studio .s-tools{align-self:start;max-height:calc(100% - 72px)} body:has(>#studio) #xFloat.art{display:block;left:calc(env(safe-area-inset-left) + 4px);bottom:calc(env(safe-area-inset-bottom) + 10px);width:52px;height:52px;font-size:26px;opacity:1} #studio .s-drawer{left:calc(env(safe-area-inset-left) + 80px)}. (2) The top ❌ stays. calm.js is unchanged: target() returns the studio's close, so a tap saves and closes exactly like the top ❌. Without :has() support the studio keeps only today's top ❌. (3) State the cost in the plan: 1-2 tools move below the column's fold at rest, reached by the same scroll. DONE = both lenses' EXTRA CHECKS: all four corners and the centre of #xFloat hit only #xFloat, and (paper.left+1, y) hits the paper across the button's height; a stroke starting at the paper's bottom-left draws and keeps the studio open; S.W×S.H matches today's values measured the same way (650x338 land, 473x323 landSmall, 650x288 at 844x340 with no insets); 🧽 scrolled to the end sits above the ❌ with at least 8 px gap; the drawers and the after-save menu are clear of it; the floating ❌ closes the studio and saves the draft and gallery like the top ❌; ✋ right after closing is not swallowed; in portrait #xFloat is display:none.
+Depends on: -
+Interactions: Same worker as G3 (#xFloat). calm.js keeps setting .art and .on; G32 only styles #xFloat.art in landscape while the studio exists.
+
+### DRAFT ITEM
+### G32 Studio sideways: the floating ❌ comes back in its own slot under the tools, never on the paper
+- problem: Fix 9 hid the floating ❌ in the studio because it sat on the paper. The studio is now the only landscape screen whose only way out is a 60x40 ❌ 6 px from the top edge (style.css:188, art.js:56), under Safari's bar and the notch. This is the dad's '✖ unreachable in landscape' complaint.
+- change: Landscape only. The tool column ends one button-height above the bottom (it already scrolls), and the same floating ❌ every other screen has sits in that empty slot, under the tools and never on the paper. The sticker drawer moves right by the notch inset, so the ❌ never covers its first tile. The top ❌ stays.
+- implementation: CSS block G32 inside @media (orientation:landscape):
+- #studio .s-tools{align-self:start;max-height:calc(100% - 80px)}
+- #xFloat.art{display:block;left:calc(env(safe-area-inset-left) + 8px);width:64px;height:64px;font-size:30px;opacity:1}
+- #studio .s-drawer{left:calc(env(safe-area-inset-left) + 80px)}
+calm.js already sets .art while the studio is active (calm.js:59), and its target() already returns the studio's close button, so a tap closes and saves exactly like the top ❌.
+- must still work: The studio's top ❌ is unchanged; Drawing anywhere on the paper, including its bottom-left corner, never closes the studio; Every tool can be reached (the column scrolls); The sticker drawer is fully clear and usable; The portrait studio is unchanged; The paper bitmap S.W×S.H set when the studio opens (art.js:28-31) is identical to today in land, landSmall and 844x340, so studioDraft and loaded pictures are not stretched
+- benefit: Every landscape screen has the same easy bottom-left way out, and the studio no longer depends on a thin button at the top edge.
+- risk: Low. It undoes fix 9's blanket hide, in landscape only. Verify with elementsFromPoint at the button's centre that no paper, tool or drawer tile is under it, with 0 and 47 px insets.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G32 [screens] Studio sideways: the floating ❌ comes back in its own slot under the tools, never on the paper => AMEND (functionality:amend, child:amend)
+
+**functionality: amend** — Drafted as written, the floating ❌ lands on the drawing paper. I measured it with the harness (verify/screens-functionality/g32.js, g32.json). In landscape the studio's tool column is only 60 px wide, not 72, and the paper starts at inset+66. A 64 px button at inset+8 ends at inset+72, so it covers the paper's left 6 px for the bottom 64 px. A point on the paper at (69,360) on land, or (116,339) with a 47 px inset, hits #xFloat instead of the canvas. A stroke that starts at the left edge of the paper then closes the studio. That is fix 9's bug again, only smaller. The plan's verification checks only the button's centre, which lands on the studio background, so it would miss this. I also measured an amended version (g32_amended.js): a 52x52 tile (the size calm.js originally designed for .art) at left inset+4 and bottom inset+6, with the column cut to 100%-64px. It sits inside the column, 10 px clear of the paper. All four of its corners hit the studio background. Points at paper.left+1 hit .l-fx. All drawers (stickers, pages, gallery) stay clear. The eraser 🧽, scrolled to the end, sits above the button. A tap closes the studio and writes cm_studioDraft. The bitmap is identical to today in all six cases (650x338, 556x317, 473x323, 379x302, 650x288, 556x267). The remaining cost, which the plan should state: shortening the column moves 1–2 tools below its hidden fold. Tools visible at rest go from 6 to 5 on land and landSmall and from 5 to 4 at 844x340. With 47 px insets they go from 6 to 4 (land), 5 to 4 (landSmall) and 5 to 3 (844x340). Every tool is still reached by the same scroll, with no extra tap. Before fix 9, 💡 sat under the floating ❌ in landscape anyway (tapping it closed the studio).
+
+- AMENDED CHANGE (functionality): Landscape only. The studio's tool column ends 64 px above the bottom; it already scrolls. calm.js already sets .art on the floating ❌ while the studio is open; that button sits in the empty slot as a 52x52 white tile with a red ❌, entirely inside the 60 px tool column and at least 10 px clear of the paper. The drawer (stickers, pages, gallery and the after-save menu) moves right by the left inset. The top ❌ stays. CSS block G32 inside @media (orientation:landscape): #studio .s-tools{align-self:start;max-height:calc(100% - 64px)} body:has(>#studio) #xFloat.art{display:block;left:calc(env(safe-area-inset-left) + 4px);bottom:calc(env(safe-area-inset-bottom) + 6px);width:52px;height:52px;font-size:26px;opacity:1} #studio .s-drawer{left:calc(env(safe-area-inset-left) + 80px)}. Because of body:has(>#studio), the button disappears the moment the studio is removed instead of up to 250 ms later on the game screen; without :has() support the studio simply keeps today's top ❌ only. calm.js is not edited: target() still returns the studio's close, so a tap saves and closes exactly like the top ❌. The plan states the cost: one tool (💡, or 🌈 on 844x340) moves below the tool column's fold, or two with 47 px insets; all remain reachable by the same scroll.
+
+- EXTRA CHECKS: elementFromPoint at all four corners and at the middle of the right edge of #xFloat in the studio (not only the centre): only #xFloat. Then elementFromPoint at (paper.left+1, y) for every y across the button's height must hit .l-fx. Run at land, landSmall and 844x340 with 0 and 47 px left/right insets plus a 21 px bottom inset | S.W x S.H (the .l-paint canvas width/height) identical to today: 650x338 land, 473x323 landSmall, 650x288 at 844x340, and 556x317 / 379x302 / 556x267 with insets | Scroll .s-tools to the end: the 🧽 bottom is above the #xFloat top and 🧽 can be hit-tested; also record the number of tools visible at rest per view in the plan | Open each drawer (🦄 stickers, 📄 pages, 🖼️ gallery, and the after-save menu from 💾): no overlap with #xFloat, and the first tile can be hit-tested | Tap #xFloat after drawing: Studio.active is false, cm_studioDraft is written and the gallery gets the silent save, the same as the top ❌ | Close the studio via the top ❌, give, hang and carry: #xFloat is display:none on the game screen immediately, and a tap on ✋ at bottom-left right after closing is not swallowed | Portrait studio: #xFloat is display:none and the tools row is unchanged
+
+**child: amend** — Bringing a bottom-left ❌ back to the studio in landscape is worth doing. It is also low habit cost: before fixes 4 and 9 the floating ❌ already sat at bottom-left in the studio (10,316, 64x64; screens-classic D6), so she has used it in this exact spot. The size the plan gives it is wrong, though. I measured it in the harness with the plan's CSS (verify/screens-child/g32.js, crop_plan_land.png). The tool column is only 60 px wide (x 0..60, or 47..107 with a 47 px inset), and the paper starts at x=66 (or 113). A 64 px button at inset+8 reaches to inset+72, so it covers about 6 px of the paper's bottom-left corner in every view (land, landSmall, 844x340, with 0 and 47 px insets). elementsFromPoint at its right-hand corners returns .l-paint/.s-paper. On touch, pointerup goes to the element the finger first touched, so a stroke that starts in that strip lands on #xFloat and closes the studio. That breaks the item's own 'bottom-left corner never closes' check, and a check at the centre point would not catch it. A 52x52 button at inset+4 sits fully inside the column (crop_amend_land.png). Cost: fully visible tools at rest drop from 6 to 5 (land), 6 to 4 with a 5th partly visible (landSmall), and 5 to 4 (844x340). That is the same as her habit before fix 9, when the floating ❌ covered the 6th tool and tapping it closed the studio. Paper bitmaps are unchanged (650x338 / 603x338 / 473x323 / 426x323 / 650x288 / 603x288). With a 47 px inset the drawer shift is still needed, and with it the first drawer tiles are clear. One correction to the problem statement: #studio already pads by the safe-area insets, so the top ❌ is not under the notch. What remains is only the top-edge and Safari-bar awkwardness.
+
+- AMENDED CHANGE (child): Landscape only, CSS block G32 inside @media (orientation:landscape):
+- #studio .s-tools{align-self:start;max-height:calc(100% - 72px)}. This leaves a gap of at least 10 px between the last tool and the ❌.
+- #xFloat.art{display:block;left:calc(env(safe-area-inset-left) + 4px);bottom:calc(env(safe-area-inset-bottom) + 10px);width:52px;height:52px;font-size:26px;opacity:1}. The button must sit entirely inside the tool column: width at most 56 px, and its right edge at least 6 px left of the paper's left edge. Do not widen the column, because that changes S.W×S.H.
+- #studio .s-drawer{left:calc(env(safe-area-inset-left) + 80px)}.
+- calm.js is unchanged. The top ❌ stays as it is.
+Replace the item's 'verify at the button's centre' with a check of all four corners (see the extra checks).
+
+- EXTRA CHECKS: elementsFromPoint at the centre and at all four corners (2 px in) of #xFloat must show nothing from .s-paper, .s-tool, .s-tile or .s-drawer under the button. Run in land, landSmall and 844x340, each with 0 and 47 px left inset. | Start a touch-drag at (paper.left+1, paper.bottom-2) and move it into the paper. It must draw a line, and the studio must stay open (Studio.active stays true). | Fully visible tools at rest: at least 5 in land, at least 4 in landSmall (5th partly visible), at least 4 in 844x340. With the column scrolled to the end, 🧽 must be fully above the ❌ with a gap of at least 8 px, and a hit-test at its centre must return the eraser. | Open the sticker drawer, the pages drawer and the after-save menu (picMenu) at 0 and 47 px inset. The first 4 tiles must not be covered, and the drawer box must not overlap #xFloat. | S.W×S.H when the studio opens must match today exactly. Measured today: land 650x338 at inset 0 and 603x338 at inset 47; landSmall 473x323 and 426x323; 844x340 650x288 and 603x288. | Portrait: #xFloat is display:none while the studio is open. Rotate portrait→landscape→portrait with the studio open: the button appears and disappears, and the paper is not stretched. | Tap the floating ❌ with a dirty picture. The studio closes, the gallery gains one picture and studioDraft is kept, exactly like the top ❌.
+
+
+==================== G33 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD combining both amendments. 🎨→🖌️ is DROPPED (child lens: churn with no gain, since 🎨 already means 'change its colour'). Movies ⏹️ stays (both lenses).
+(1) Local edits /* G33 */, guarded at call time by Clarity.is('G33'): story.js:26 and fun.js:38, '✖️' → '❌'.
+(2) CSS: .st-x{width:60px;height:60px;border-radius:18px;background:#fff;font-size:30px;box-shadow:0 4px 0 rgba(0,0,0,.3)} plus #storyBox .st-back{left:80px}, which keeps the 10 px gap. If the first book's badge still touches the tile at 375x667, keep the story's .st-x at 52x52 (glyph change only).
+(3) Lego shelf: one line in legoshelf.js frame(). It sets the stored first .ls-top button's text to Gy.mode === 'shelf' ? '❌' : '◀️' whenever it differs. This covers pickUp, putBack, binTap, takeTap, startMove, endMove, dropAt, swap, remove and layout()'s rebuild. aria-label 'close' and the handler are untouched.
+(4) Builder: 🧹 → 🗑️ everywhere take-down appears, all together:
+- builder.js:398, the ring;
+- :402, the .bd-sec list, which becomes ['🎨','🗑️','❓'];
+- :503, the catalogue's second button (view 'cat');
+- :595, the take-down card badge;
+- :596, the text that badge resets to.
+(5) Unchanged: the fort piece-delete ❌, the wall-picture bin, the fort interior's 🚪, and the main-floor 🧹 (broom, tidy ring, Daddy's request, Nunu's chores).
+Expected regress renames: story and sticker ✖️ → ❌; Lego shelf hero/move ❌ → ◀️; builder 🧹 → 🗑️. No Movies rename and no 🎨 rename.
+DONE = both lenses' EXTRA CHECKS:
+- story: gap of at least 8 px and no badge overlap, in port, portSmall, land and landSmall;
+- landscape readers view: record whether .st-back is under Marina's card (this predates the plan), and never move it under one;
+- the shelf glyph follows the mode through every transition, including rotation; #xFloat copies it; leaving from the hero still takes 2 taps; the full-shelf pending flow still works;
+- builder: no 🧹 for built things anywhere, including after the ❓ 2 s reset; .bd-sec still applies to 🎨/🗑️/❓; take-down still needs ❓ and refunds the planks;
+- the Movies row is unchanged.
+Depends on: -
+Interactions: Same worker as G3 (the floating ❌ copies these glyphs), G12 (#stkBox) and G34 (legoshelf.js). fun.js:38 is this worker's; fun.js askReq (lines 82-83) belongs to G31 (dock).
+
+### DRAFT ITEM
+### G33 One way-out look, and ❌ only ever closes
+- problem: - The story and the sticker book close with a black ✖️ on a 52 px tile (story.js:26/80, fun.js:38), while every other screen uses a red ❌ on a 60x60 white tile. In landscape they show ✖️ at the top and a red ❌ at the bottom for the same action.
+- In the new screens the same glyphs mean other things:
+  - the Lego shelf's top-left ❌ only goes back one step in the hero and move views (legoshelf.js:197);
+  - Movies uses ⏹️ to mean 'back to the posters' (movies.js:893);
+  - on Grandpa Jeff's built things, 🧹 means 'take it down' and 🎨 means 'recolour' (builder.js:398).
+- change: One way out on every screen: a red ❌ on a white 60x60 tile at the top-left, doing exactly what it does today. ◀️ means one step back, and 🗑️ means throw away. Only glyphs change:
+- story and sticker book ✖️ → ❌, on the same tile;
+- Lego shelf hero and move views ❌ → ◀️ (❌ stays only on the shelf view);
+- Movies ⏹️ → ◀️;
+- built things: 🧹 → 🗑️ and 🎨 → 🖌️.
+Deliberately unchanged:
+- the fort builder's piece-delete ❌, because a 🗑️ there would sit next to the clear-all 🗑️, which has no undo (fort.js:18);
+- the wall picture's 'tap the bin again' confirm;
+- the fort interior's 🚪.
+- implementation: - Local glyph edits, marked /* G33 */:
+  - story.js:26 and fun.js:38: '✖️' → '❌';
+  - legoshelf.js:197, and every place Gy.mode changes (hero, move, shelf): set the button text for the mode;
+  - movies.js:893;
+  - builder.js:398, plus its glyph list at builder.js:402 (['🎨','🧹','❓'] → ['🖌️','🗑️','❓']), so the secondary .bd-sec styling stays. Grep builder.js for other ico lookups of 🧹/🎨 on built things and update them together.
+- CSS block G33: .st-x{width:60px;height:60px;border-radius:18px;background:#fff;font-size:30px;box-shadow:0 4px 0 rgba(0,0,0,.3)}.
+- calm.js target() finds buttons by class and aria-label, so the floating ❌ keeps working and copies the new glyph (G3).
+- must still work: Every close button closes the same screen the same way (the story, and the sticker book in the game and on the title); The story's back button (.st-back) is unchanged; Lego shelf putBack, endMove and close; Movies goes back to the posters; Take-down (with its ❓ confirm) and recolour of built things; The fort piece delete, wall-picture delete and studio bin, with their confirms, are unchanged
+- benefit: She can trust ❌ completely ('this gets me out'), and the way out looks the same on every screen.
+- risk: Low. A small habit cost on the story and sticker book ✖️ (same place, same X shape, now red). Add these to regress.js's list of expected renames.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G33 [screens] One way-out look, and ❌ only ever closes => AMEND (functionality:amend, child:amend)
+
+**functionality: amend** — The glyph swaps are safe for every handler: calm.js target() finds buttons by class and aria-label, regress.js keys choices by handler source, and builder.js's ring handlers are unchanged. Four parts still need fixing. (1) Story: the generic .st-x 60x60 rule grows the story's ✖ from 52 to 60 px at the same (10,10). Measured in every view (g33_story_readers_*.png), the gap between ✖ (close the whole story) and ◀ (back to the shelf) drops from 10 px to 2 px. On portSmall the tile also overlaps the first book's 🌙 badge by 3 px (tile bottom at 70, badge top at 67; g33_story_shelf_portSmall.png), so a tap there would close the story instead of opening the book. (2) Lego shelf: 'set the text at every place Gy.mode changes' means eight places: pickUp, putBack, binTap, takeTap, startMove, endMove, dropAt, and layout()'s re-pickUp on resize or rotation. Missing one leaves ◀️ on a button that leaves the screen, or ❌ on one that only steps back, which breaks the very rule G33 sets. (3) Builder: take-down uses 🧹 in three places, not one: the built-thing ring (builder.js:398), Jeff's builder-menu second button on the catalogue (builder.js:503, 'take something down') and the take-down cards' .bd-broom badge (595), whose reset at 596 writes 🧹 back after a ❓ is cancelled. Changing only the ring makes take-down 🗑️ in the yard but 🧹 in Jeff's menu. Changing 595 without 596 makes the badge flip back to 🧹. (4) Movies: ⏹️ becomes ◀️ in the same small control row as the play button, which reads ▶️ whenever the film is paused (movies.js:916). A mirrored ▶️/◀️ pair reads as play/rewind, and tapping ◀️ runs toShelf(true): the film stops and her place in it is lost. A confusable glyph that leads to that outcome is a regression risk. ⏹️ is the standard media 'stop' and it really does stop the film. One defect I noticed that predates this plan (not caused by G33): in the landscape story readers view, Marina's left face card (z25 while a story is open) covers the ◀ back button while it shows (g33_story_readers_land.png).
+
+- AMENDED CHANGE (functionality): One way out on every screen: a red ❌ on a white tile at the top-left, doing exactly what it does today. ◀️ means one step back and 🗑️ means throw away. Only glyphs change, plus one 8 px shift: (a) story and sticker book ✖️ become ❌ (story.js:26, fun.js:38). CSS: .st-x{border-radius:18px;background:#fff;box-shadow:0 4px 0 rgba(0,0,0,.3)} with 60x60 and font-size 30px. Because the story tile grows from 52 to 60, also add #storyBox .st-back{left:80px} to keep today's 10 px gap. If the first book's badge still touches the tile on a 375x667 portrait screen, keep the story's .st-x at 52x52 (glyph change only). The sticker book's #stkBox .st-x is already 60x60. (b) Lego shelf: the first .ls-top button shows ◀️ in the hero and move views and ❌ on the shelf view, set from one place. In legoshelf.js frame(), before draw(): const want = Gy.mode === 'shelf' ? '❌' : '◀️'; if (btn.textContent !== want) btn.textContent = want; where btn is the stored close button. Its aria-label 'close' and its handler are untouched. (c) Built things: 🧹 becomes 🗑️ and 🎨 becomes 🖌️ everywhere take-down and recolour appear, together: the ring at builder.js:398, the .bd-sec list at builder.js:402 (['🖌️','🗑️','❓']), the builder menu's catalogue second button at builder.js:503 ('🗑️' / 'take something down'), the take-down card badge at builder.js:595, and its reset at builder.js:596. (d) Movies: unchanged; ⏹️ stays, because ◀️ would sit beside the paused ▶️. Deliberately unchanged: the fort builder's piece-delete ❌, the wall picture's 'tap the bin again' confirm, and the fort interior's 🚪. regress.js renames: story and sticker ✖️ to ❌, Lego shelf hero/move ❌ to ◀️, built-thing 🧹/🎨 to 🗑️/🖌️ (handler sources unchanged).
+
+- EXTRA CHECKS: Story at port, portSmall, land and landSmall: gap between .st-x and .st-back is at least 8 px; .st-x does not overlap any .st-book or its badge (elementFromPoint at each badge's top-left) | Story landscape readers view: while Marina's face card shows, record whether .st-back is under it (this predates the plan); if .st-back moves, it must not land under a face card | Lego shelf: open, then pick up a model (◀️), put it back (❌), start a move (◀️), drop it (❌), bin with ❓ confirm (❌), and rotate while in the hero view (◀️ stays). LegoShelf.state().mode matches the glyph each time; the landscape #xFloat copies the same glyph and does the same thing | Builder: in Jeff's menu the catalogue's second button shows 🗑️; tap a take-down card (badge becomes ❓), then tap another card: the first badge returns to 🗑️, not 🧹; the take-down still refunds planks | Built thing ring: 🖌️ and 🗑️ keep the .bd-sec look; 🗑️ opens the ❓ sub-ring and takeDown still runs | Movies: ⏹️ still returns to the posters; the ❌ and the landscape #xFloat still close the screen
+
+**child: amend** — The goal is right: ❌ should be trustworthy, and 🗑️ should mean remove. Four of the details are wrong. (1) Story/sticker ✖️→❌ is fine: same place, same X shape, now the red ❌ she already knows from cooking and dress-up, so habit cost is negligible. But the global .st-x 60x60 rule grows the story's close from 52 to 60 px while .st-back stays at left:72. I measured the gap between the close and the ◀ back-to-shelf button on the readers page: it falls from 10 px to 2 px in port, portSmall and land (verify/screens-child/g33.js, g33_story_port_G33.png). A miss aimed at ◀ would then close the whole story. (2) Movies ⏹️→◀️ makes things worse. The top row is a media row, ❌ ⏸️ ⏭️ ⏹️, and ⏸️ becomes ▶️ when paused (movies.js:916). A ◀️ (the Unicode 'reverse button') next to ▶️ and ⏭️ reads as rewind or previous, the opposite of what it does. ⏹️ 'stop' honestly describes stopping the film, and there is no ❌ conflict to fix. (3) 🧹 has three meanings: on the main floor it means tidy up (game.js:482/799/802, react.js:58/94, fun.js:67) and help Nunu (family2.js:262), and in the builder it means take down. Moving take-down to 🗑️ removes the collision with a glyph she uses a lot. But it must cover every 🧹 in the builder: builder.js:503 (catalogue second button) and :595-596 (take-down card badge .bd-broom and its reset), not only :398/:402. Otherwise take-down has two pictures. (4) 🎨→🖌️ gains nothing. 🎨 already means 'change its colour' on the dress-up dye tab, and 🖌️ is one of the studio's drawing tools. It is churn with no benefit. (5) The Lego shelf's ❌→◀️ in hero and move views is fine (a new area; same 2 taps to leave). But Gy.mode is set in seven places (legoshelf.js:288, 302, 304, 315, 319, 320, 322), and also during the resize rebuild in layout(). Syncing the glyph in each place is fragile.
+
+- AMENDED CHANGE (child): Local glyph edits, marked /* G33 */:
+- story.js:26 and fun.js:38: '✖️' → '❌'.
+- CSS block G33: .st-x{width:60px;height:60px;border-radius:18px;background:#fff;font-size:30px;box-shadow:0 4px 0 rgba(0,0,0,.3)} plus #storyBox .st-back{left:80px}, which keeps the 10 px gap to the close button.
+- Lego shelf: one line in legoshelf.js frame(): const xb = Gy.top.firstChild, want = Gy.mode === 'shelf' ? '❌' : '◀️'; if (xb.textContent !== want) xb.textContent = want. This replaces editing every place Gy.mode changes. The button's handler is unchanged.
+- Built things: 🧹 → 🗑️ in builder.js:398 (yard bubble), :402 (the bd-sec list becomes ['🎨','🗑️','❓']), :503 (catalogue second button, view 'cat') and :595-596 (take-down card badge .bd-broom, including the text it resets to).
+- Keep 🎨 for recolour. Keep Movies ⏹️.
+- Fort piece-delete ❌, wall-picture bin and fort-interior 🚪: unchanged, as the plan already says.
+Expected renames in regress.js: story and sticker ✖️→❌; Lego shelf hero/move ❌→◀️; built-thing and builder 🧹→🗑️. No Movies rename and no 🎨 rename.
+
+- EXTRA CHECKS: Story readers page in port, portSmall and land: the gap between .st-x and .st-back is at least 8 px; ◀ goes back to the shelf and ❌ closes. | Sticker book opened from the title (.tbook) and from 📒: ❌ closes it. In landscape the floating button shows ❌ (G3 glyph copy). | Lego shelf: the top-left glyph follows Gy.mode after pickUp, putBack, startMove, endMove, swap, remove, take-down, and after rotating while in hero view (layout() rebuild). The landscape floating button shows ◀️ in hero/move and ❌ on the shelf. Leaving from hero still takes 2 taps. In the full-shelf pending flow the shelf-view ❌ still returns to the stashed builder. | Builder: no 🧹 appears for built things anywhere. Check the yard bubble, the tree-house bubble, the catalogue second button, the take-down cards, and the cards after the ❓ 2 s reset. .bd-sec is still applied to 🎨/🗑️/❓. Take-down still needs ❓, and the planks still fly back. | Movies top row is unchanged: ❌ ⏸️/▶️ ⏭️ ⏹️ 🎬 blanket. | Main-floor 🧹 (broom prop, tidy ring, Daddy's 🧹 request, Nunu's 🧹) is untouched.
+
+
+==================== G34 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD two of the five parts: the shelf hop wave and the spa hand.
+(1) Three parts are DROPPED:
+- the popcorn hand during films (child: it invites a tap that triggers Nunu's voice and face card mid-film, an interruption);
+- the 🧱 badge on Nunu's face (child: .bk-partner clips it or it covers her face, and it adds a second pulsing thing);
+- the treetop change (both lenses: the landmarks already twinkle from t=0, and line 803 is the drag hint).
+(2) Lego shelf, legoshelf.js /* G34 */. When the shelf opens with models, is not full (!o.full) and has nothing pending (!Gy.pending), each model does its existing small hop once, in a wave. Use either Gy.anim[i] = { type:'hop', t0: now + 300 + n*140, dur: 340 } per model in open() (functionality), or a one-shot Gy.waveOnce window allowed by frame()'s wave condition (child). Never set Gy.pending, Gy.wave or setPending. No sound.
+(3) Spa, spa.js drawHints (about lines 777-790) /* G34 */. Copy treeclimb's 12-row HAND pattern and pat() into spa.js, and draw the hand instead of the yellow ⬇ ICON.hint:
+- the fingertip on the target point, the hand body below it;
+- clamped inside the canvas, with the same bob;
+- the ring, the targets, the 2.5 s / 5 s timing and the hintTap case are unchanged.
+DONE = both lenses' EXTRA CHECKS for the kept parts:
+- shelf opened with 0, 1 and 7 models, full, and with a pending model: LegoShelf.state() count and slots, and the shelf's localStorage entry, byte-identical before and after; exactly one wave about 0.4 s after opening, then still; a model tapped mid-hop opens the hero;
+- spa: all five hint stages and the 'jets without water' hintTap case, in port, land and landSmall: the hand is fully on the canvas, does not cover the target's centre, and appears and disappears at the same moments as today's arrow;
+- git diff shows no change to treeclimb.js, bricks.js or movies.js.
+Depends on: -
+Interactions: legoshelf.js is shared with G33 (same worker): the frame() glyph line and the wave. spa.js only. No change to treeclimb.js, bricks.js or movies.js.
+
+### DRAFT ITEM
+### G34 Hidden hot spots in the new screens look tappable, and there is one pointing hand everywhere
+- problem: Several new screens rely on guessing:
+- the popcorn in Movies is an invisible 94x83 button (movies.js:895);
+- shelf models give no cue that they open (legoshelf.js:176-197);
+- Nunu's face on the Lego plate looks like a portrait, but tapping it picks an idea (bricks.js:278, 506-513);
+- treetop landmarks hint only after she has dragged (treeclimb.js:803-804).
+The 'tap here' idle hint has three looks: a yellow ⬇ arrow in the spa (spa.js:777-790; yet another ⬇ meaning, and it resembles the spa's green ⬆ go button), a 👆 ghost in Stuffies, and a pixel hand in the tree.
+- change: Reuse patterns the game already has, with no change to what any tap does:
+- on opening, the shelf models do their existing hop-wave once;
+- during a film, after 8 s with no tap, the existing pointing hand shows once over the popcorn;
+- Nunu's face on the plate gets a small 🧱 badge with the keep button's soft pulse;
+- treetop landmarks twinkle faintly from the start;
+- the spa's idle ⬇ arrow becomes the same pointing hand as the tree and Stuffies, with the same targets and timing.
+- implementation: - Local edits, marked /* G34 */:
+  - legoshelf.js open(): call the existing full-shelf wave once;
+  - movies.js near :895: an idle timer that draws the stuffies.js:766-774 ghost hand once;
+  - spa.js:777-790: draw treeclimb's HAND pattern instead of the ⬇;
+  - treeclimb.js:803: twinkle from t=0.
+- CSS block G34: an ::after '🧱' badge on Bricks' partner-face element, with the keep button's pulse and pointer-events:none.
+- must still work: Every hot spot does exactly what it does today (popcorn, models, Nunu's turn, landmarks, spa steps); The spa's idle-hint timing; No new tappable areas
+- benefit: In the screens she has not met yet, the things she can touch announce themselves, and 'tap here' always looks the same.
+- risk: Low. These areas are new, so there is no habit cost.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G34 [screens] Hidden hot spots in the new screens look tappable, and there is one pointing hand everywhere => AMEND (functionality:amend, child:amend)
+
+**functionality: amend** — All five hints are visual only, but three of the five implementation pointers are wrong or risky. (1) Lego shelf: no callable 'full-shelf wave' exists. The hop wave in draw() runs only while Gy.pending is set, and Gy.pending/setPending means a model is waiting to be kept. landPending() then calls keep(kind), which writes a new model into saved shelf data. Setting Gy.wave alone does nothing, and faking Gy.pending would change saved data. (2) Bricks: .bk-partner has overflow:hidden and border-radius:50% (measured). An ::after badge at its corner is clipped to a sliver (g34_partner_badge_outside.png). (3) Treetop: the landmarks already twinkle from the first frame. treeclimb.js:798-800 draws them every frame unless the binoculars are up; a twinkle is visible at 1 s in g34_tree_view_t1s_crop.png. treeclimb.js:803-804 is the hand hint: first the drag hint, then pointing at a landmark. 'Twinkle from t=0 at :803' therefore either does nothing or replaces the drag hint that teaches her the picture slides. (4) Spa: HAND and pat() are private to treeclimb.js's closure, so spa.js cannot call them. HAND's fingertip points up, so drawn in the ⬇'s place above the target it would point away from it. (5) Movies: the popcorn hit area .mv-hit listens on pointerdown (movies.js:895). A DOM hand over it would swallow the munch it advertises. Nothing in G34 changes what any tap does, provided these are fixed.
+
+- AMENDED CHANGE (functionality): Reuse looks the game already has, with no change to what any tap does and no new tappable areas: (a) Lego shelf: when the shelf opens with models, not full (!o.full) and nothing pending (!Gy.pending), each model does its existing small hop once, in a wave. In open(): for each item e at index n, Gy.anim[e.s] = {type:'hop', t0: performance.now() + 300 + n*140, dur: 340}. Never set Gy.pending, Gy.wave or setPending. (b) Movies: during a film, once per Movies.open, after 8 s with no tap and only while S.mode === 'film' && !S.paused, a pointing hand is drawn on the movie canvas over the bowl (in drawStage, the stuffies.js:766-774 look). It is never a DOM node over .mv-hit (if DOM, pointer-events:none), never shown in the 'rate' or 'pick' modes, and gone after her first munch. (c) Bricks: a small 🧱 badge with the keep button's soft pulse, drawn as .bk-stage:has(>.bk-partner)::after just under the partner's face (or inside the circle), with pointer-events:none. Not an ::after on .bk-partner, which is clipped. (d) Treetop: no change; the landmarks already twinkle from the first frame (treeclimb.js:798-800). Optionally make those existing twinkles a little larger; treeclimb.js:803-804 is untouched. (e) Spa: copy treeclimb's 12-row HAND pattern and pat() into spa.js and draw it in place of the yellow ⬇ ICON.hint, below the target with its fingertip on the ring centre (at[2]-2, at[3]+6, as treeclimb does). The ring, the targets and the idle timing stay exactly as in drawHints.
+
+- EXTRA CHECKS: Lego shelf: open with 0, 1 and 7 models, full (8, o.full) and with a pending model from the builder's keep: LegoShelf.state() count and slots are identical before and after the opening hop; the shelf's localStorage entry is byte-identical; tapping a model mid-hop still opens the hero | Movies: with the hand showing, the first tap on the bowl increments Movies.state().pops and plays the munch; the hand never appears in pick or rate mode or while paused | Bricks with Nunu: the partner tap still runs help(2); a tap at the badge's centre does what it does today (places a brick on the plate, or nothing); the ideas drawer's ❤️ card under the face can still be tapped | Spa: walk all five hint stages (tap, bottle, jets, basket, shower hook) at port and landSmall: the whole hand is on the canvas, its fingertip on the target, and it appears after the same 2.5 s / 5 s idle as today | Tree view: the drag hint still appears first after 5 s idle, then the landmark hand after the first drag (unchanged)
+
+**child: amend** — Only two of the five parts hold up. (a) Treetop twinkle: already done. treeclimb.js:798-800 draws soft twinkles on every landmark (SPOTS) whenever the binoculars are closed, from t=0; they are visible in screens-new F_landSmall_oak_06_view.png. Line 803, the one the plan cites, is the hand-hint logic. Editing it 'to twinkle from t=0' would reorder the drag hint, which matters because the panorama is wider than the screen. (b) Popcorn hand during a film: drop it. The bowl is drawn, and the hit area sits exactly over it, so tapping the bowl already works. A hand the game puts up by itself during a film invites a tap that triggers Nunu's nu_popcorn voice plus a face card mid-film (movies.js:774 → family2.js:245 onEvent). That is the interruption-during-an-activity pattern the dad complained about, so the benefit is speculative and the cost is real. (c) Nunu's 🧱 badge: drop it. .bk-partner has overflow:hidden and border-radius:50% (bricks.js:278), so an ::after badge is either clipped or covers her face. The face already bobs (bkpt) and looks like the round face buttons she taps on the story's 'who reads' page, which is a convention she knows. A second pulsing thing on the plate goes against 'motion means new'. (d) The shelf models' hop on opening is fine (a new area, cheap). But there is no wave function to call: the wave is inline in frame() (legoshelf.js:260) and only runs while Gy.pending. It needs a one-shot time window. (e) Spa ⬇ arrow → pixel hand: zero habit cost and in line with the tree. It must be placed so the hand points at the target without covering it, since the tree draws its hand below the target with the finger up.
+
+- AMENDED CHANGE (child): Keep two parts and drop the rest.
+
+1. Lego shelf (legoshelf.js, /* G34 */):
+- In open(), when !o.full and items.length > 0, set Gy.waveOnce = performance.now() + 400.
+- In frame()'s wave condition at :260, also allow one pass while now < Gy.waveOnce + 3000 and Gy.mode === 'shelf'.
+- Same hop shape. No added sound. Taps on models during the wave work as today.
+
+2. Spa (spa.js drawHints, :777-790, /* G34 */):
+- Draw the treeclimb HAND pixel pattern instead of ICON.hint. Fingertip at the target point, hand body below it, clamped inside the canvas, with the same bob.
+- Keep the white/yellow ring, the targets, the 2.5 s / 5 s idle timing and the hintTap case exactly as today.
+
+Drop: the popcorn hand (movies.js untouched), the 🧱 badge on Nunu's face (bricks.js untouched) and the treetop change (treeclimb.js untouched; its twinkles already exist).
+
+- EXTRA CHECKS: Lego shelf opened from the den cubbies with 1+ models: exactly one hop wave about 0.4 s after opening, then still. Opened with o.full / a pending model: the existing repeating wave is unchanged. No extra blip. Tapping a model mid-wave opens the hero view. | Spa in port, land and landSmall: for each hint target (tap, bottle, jets, basket, hook) and for the 'jets without water' hintTap case, the hand is fully inside the canvas, does not cover the target's centre point, and appears and disappears at the same moments as today's arrow. | git diff shows no change to treeclimb.js, bricks.js or movies.js for G34.

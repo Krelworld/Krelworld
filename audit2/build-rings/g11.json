@@ -1,0 +1,326 @@
+{
+ "port": {
+  "visit": true,
+  "left": {
+   "tab": {
+    "x": 927,
+    "y": 140
+   },
+   "centre": {
+    "cx": 32,
+    "cy": 346,
+    "el": "cv"
+   },
+   "today": {
+    "x": 928,
+    "y": 86,
+    "cx": 35,
+    "cy": 212,
+    "el": "in:navarrow.l"
+   },
+   "offDrawn": {
+    "x": 927,
+    "y": 86
+   },
+   "afterTap": {
+    "moving": true,
+    "towardHerd": true,
+    "tx": 300,
+    "expectTx": 334,
+    "room": "backyard",
+    "ring": 0
+   }
+  },
+  "right": {
+   "tab": {
+    "x": 88,
+    "y": 86
+   },
+   "centre": {
+    "cx": 279,
+    "cy": 212,
+    "el": "cv"
+   },
+   "today": {
+    "x": 119,
+    "y": 86,
+    "cx": 355,
+    "cy": 212,
+    "el": "cv"
+   },
+   "offDrawn": {
+    "x": 120,
+    "y": 86
+   },
+   "afterTap": {
+    "moving": true,
+    "towardHerd": true,
+    "tx": 789,
+    "expectTx": 755,
+    "room": "backyard",
+    "ring": 0
+   }
+  },
+  "turkey": {
+   "started": true,
+   "on": [
+    "forage",
+    {
+     "side": -1,
+     "hx": 251.1895689617068,
+     "x": 927.682434807057,
+     "y": 140
+    }
+   ],
+   "off": [
+    "forage",
+    {
+     "side": -1,
+     "hx": 251.70592033805286,
+     "x": 927.682434807057,
+     "y": 140
+    }
+   ],
+   "same": false
+  },
+  "errors": []
+ },
+ "land": {
+  "visit": true,
+  "left": {
+   "tab": {
+    "x": 751,
+    "y": 66
+   },
+   "centre": {
+    "cx": 35,
+    "cy": 103,
+    "el": "cv"
+   },
+   "today": {
+    "x": 751,
+    "y": 86,
+    "cx": 35,
+    "cy": 154,
+    "el": "cv"
+   },
+   "offDrawn": {
+    "x": 752,
+    "y": 86
+   },
+   "afterTap": {
+    "moving": true,
+    "towardHerd": true,
+    "tx": 670,
+    "expectTx": 670,
+    "room": "backyard",
+    "ring": 0
+   }
+  },
+  "right": {
+   "tab": {
+    "x": 265,
+    "y": 86
+   },
+   "centre": {
+    "cx": 729,
+    "cy": 154,
+    "el": "cv"
+   },
+   "today": {
+    "x": 297,
+    "y": 86,
+    "cx": 809,
+    "cy": 154,
+    "el": "mood"
+   },
+   "offDrawn": {
+    "x": 297,
+    "y": 86
+   },
+   "afterTap": {
+    "moving": true,
+    "towardHerd": true,
+    "tx": 768,
+    "expectTx": 736,
+    "room": "backyard",
+    "ring": 0
+   }
+  },
+  "turkey": {
+   "started": true,
+   "on": [
+    "exit",
+    null
+   ],
+   "off": [
+    "exit",
+    null
+   ],
+   "same": true
+  },
+  "errors": []
+ },
+ "landSmall": {
+  "visit": true,
+  "left": {
+   "tab": {
+    "x": 813,
+    "y": 66
+   },
+   "centre": {
+    "cx": 37,
+    "cy": 100,
+    "el": "cv"
+   },
+   "today": {
+    "x": 812,
+    "y": 86,
+    "cx": 34,
+    "cy": 148,
+    "el": "cv"
+   },
+   "offDrawn": {
+    "x": 811,
+    "y": 86
+   },
+   "afterTap": {
+    "moving": true,
+    "towardHerd": true,
+    "tx": 670,
+    "expectTx": 670,
+    "room": "backyard",
+    "ring": 0
+   }
+  },
+  "right": {
+   "tab": {
+    "x": 201,
+    "y": 86
+   },
+   "centre": {
+    "cx": 548,
+    "cy": 148,
+    "el": "cv"
+   },
+   "today": {
+    "x": 236,
+    "y": 86,
+    "cx": 633,
+    "cy": 148,
+    "el": "mood"
+   },
+   "offDrawn": {
+    "x": 237,
+    "y": 86
+   },
+   "afterTap": {
+    "moving": true,
+    "towardHerd": true,
+    "tx": 751,
+    "expectTx": 721,
+    "room": "backyard",
+    "ring": 0
+   }
+  },
+  "turkey": {
+   "started": true,
+   "on": [
+    "exit",
+    null
+   ],
+   "off": [
+    "exit",
+    null
+   ],
+   "same": true
+  },
+  "errors": []
+ },
+ "844x340": {
+  "visit": true,
+  "left": {
+   "tab": {
+    "x": 705,
+    "y": 66
+   },
+   "centre": {
+    "cx": 29,
+    "cy": 90,
+    "el": "cv"
+   },
+   "today": {
+    "x": 706,
+    "y": 86,
+    "cx": 31,
+    "cy": 134,
+    "el": "cv"
+   },
+   "offDrawn": {
+    "x": 707,
+    "y": 86
+   },
+   "afterTap": {
+    "moving": true,
+    "towardHerd": true,
+    "tx": 670,
+    "expectTx": 668,
+    "room": "backyard",
+    "ring": 0
+   }
+  },
+  "right": {
+   "tab": {
+    "x": 307,
+    "y": 86
+   },
+   "centre": {
+    "cx": 735,
+    "cy": 134,
+    "el": "cv"
+   },
+   "today": {
+    "x": 343,
+    "y": 86,
+    "cx": 813,
+    "cy": 134,
+    "el": "mood"
+   },
+   "offDrawn": {
+    "x": 344,
+    "y": 86
+   },
+   "afterTap": {
+    "moving": true,
+    "towardHerd": true,
+    "tx": 755,
+    "expectTx": 723,
+    "room": "backyard",
+    "ring": 0
+   }
+  },
+  "turkey": {
+   "started": true,
+   "on": [
+    "forage",
+    {
+     "side": -1,
+     "hx": 236.75343818227785,
+     "x": 706.2312373225152,
+     "y": 66
+    }
+   ],
+   "off": [
+    "forage",
+    {
+     "side": -1,
+     "hx": 235.81355143097215,
+     "x": 706.2312373225152,
+     "y": 66
+    }
+   ],
+   "same": false
+  },
+  "errors": []
+ }
+}

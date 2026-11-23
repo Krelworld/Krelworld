@@ -1,0 +1,20 @@
+{
+ "obj den/barm | 1a3zqcq#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]"
+  ],
+  "dock": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]"
+  ]
+ },
+ "obj mroom/bunk | ppzuzf#1": {
+  "verdict": "noise (same outcome seen in both)",
+  "HEAD": [
+   "[\"panel:null→\\\"🧸\\\"\"]"
+  ],
+  "dock": [
+   "[\"panel:null→\\\"🧸\\\"\"]"
+  ]
+ }
+}

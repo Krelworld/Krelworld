@@ -1,0 +1,140 @@
+{
+ "mode": "off",
+ "seed": 2,
+ "hides": [
+  {
+   "start": "laundry",
+   "target": "den",
+   "spot": "sofa",
+   "tin": 13.76200000000008,
+   "tEnd": 24.962000000000238,
+   "found": true,
+   "foundAtS": 10.8,
+   "endedAtS": null,
+   "path": "laundry>storage>den"
+  },
+  {
+   "start": "nunuroom",
+   "target": "den",
+   "spot": "sofa",
+   "tin": 28.812000000000292,
+   "tEnd": 49.961999999999314,
+   "found": true,
+   "foundAtS": 20.8,
+   "endedAtS": null,
+   "path": "nunuroom>den"
+  },
+  {
+   "start": "nunuroom",
+   "target": "den",
+   "spot": "armchair",
+   "tin": 53.811999999999095,
+   "tEnd": 73.96199999999796,
+   "found": true,
+   "foundAtS": 19.2,
+   "endedAtS": null,
+   "path": "nunuroom>den"
+  },
+  {
+   "start": "den",
+   "target": "nunuroom",
+   "spot": "bed",
+   "tin": 78.5119999999977,
+   "tEnd": 88.71199999999712,
+   "found": true,
+   "foundAtS": 9.7,
+   "endedAtS": null,
+   "path": "den>nunuroom"
+  },
+  {
+   "start": "storage",
+   "target": "den",
+   "spot": "armchair",
+   "tin": 93.26199999999686,
+   "tEnd": 99.46199999999651,
+   "found": true,
+   "foundAtS": 6.1,
+   "endedAtS": null,
+   "path": "storage>den"
+  }
+ ],
+ "farMews": 8,
+ "farMewsWith3Paws": 3,
+ "farMewsNoPaws": 5,
+ "pawsWrongSide": 0,
+ "mews": [
+  {
+   "t": 17.91,
+   "room": "laundry",
+   "paws": 3,
+   "sides": "-1",
+   "target": "den",
+   "expect": -1,
+   "sideOk": true
+  },
+  {
+   "t": 33.56,
+   "room": "nunuroom",
+   "paws": 0,
+   "sides": "",
+   "target": "den",
+   "expect": 1,
+   "sideOk": null
+  },
+  {
+   "t": 38.26,
+   "room": "nunuroom",
+   "paws": 0,
+   "sides": "",
+   "target": "den",
+   "expect": 1,
+   "sideOk": null
+  },
+  {
+   "t": 51.66,
+   "room": "nunuroom",
+   "paws": 0,
+   "sides": "",
+   "target": "den",
+   "expect": 1,
+   "sideOk": null
+  },
+  {
+   "t": 63.46,
+   "room": "nunuroom",
+   "paws": 0,
+   "sides": "",
+   "target": "den",
+   "expect": 1,
+   "sideOk": null
+  },
+  {
+   "t": 68.26,
+   "room": "nunuroom",
+   "paws": 0,
+   "sides": "",
+   "target": "den",
+   "expect": 1,
+   "sideOk": null
+  },
+  {
+   "t": 81.86,
+   "room": "den",
+   "paws": 3,
+   "sides": "-1",
+   "target": "nunuroom",
+   "expect": -1,
+   "sideOk": true
+  },
+  {
+   "t": 93.31,
+   "room": "storage",
+   "paws": 3,
+   "sides": "-1",
+   "target": "den",
+   "expect": -1,
+   "sideOk": true
+  }
+ ],
+ "errors": []
+}

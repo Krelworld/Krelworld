@@ -1,0 +1,537 @@
+# WORKER BRIEF: prompts  (overlay file: clarity-prompts.js)
+Items to build: G1, G2, G20, G21, G28, G29
+
+## Your surface
+When prompts and chatter happen; no DOM and no CSS of its own. Owns: lastInput writes (the top-level let at features.js:502) through Clarity.pointer('down') and the activityEnd event (G1); the checkMess before-hook (G2, order 10); the UI.actions before-hook that blocks the 🧹🏃 tidy ring while a screen is up (G2, order 10); the UI.actions after-hook that only records whether a tidy ring opened (G2, order 40); the screenOpen listener that clears a leftover backdrop or tidy ring (G2); the onEnterRoomBy before-hook (G20, order 10); the timing local edits. Must NOT touch: any HUD, dock or ring element or CSS, ring placement (rings), SAY_ICON or bubbles (bubbles), family2.js:145 (bubbles, G26), the look of the wish/request buttons (dock).
+
+## Local edits allowed
+All guarded by window.Clarity && Clarity.is('Gn') and marked /* Gn */. react.js:58, reactMess step 2 (G2): add && !inActivity() to the 🧹🏃 ring condition. react.js:125, startScenario's 4.2 s wish callback (G28): tryWish retry, declared inside the function body. minka.js:611, the hide-cue early return (G2): add || inActivity(). minka.js:622, the far-room mew branch (G29): farMewAt declared inside minka.js's IIFE. upstairs.js:301, the visit early return (G2): add || inActivity(). more.js:114, Rory's walk-up (G21): state on Clarity.G21, no top-level declarations. family2.js:171-179, the onEnterRoom wrapper (G20): stamp check plus a per-person replyAt declared inside family2.js's IIFE. Not family2.js:145, which belongs to bubbles.
+
+## Order notes
+Worker index 0, ports 8850-8859. Merge 1st. Registers: pointer down (G1); listen activityEnd (G1); hook checkMess before 10 (G2); hook UI.actions before 10, may skip (G2); hook UI.actions after 40, records the tidy ring (G2); listen screenOpen (G2); hook onEnterRoomBy before 10 (G20). Integration checks to hand over: G2 × G27 (shared screen edges); G20 × G24 (two independent greeting throttles); G1 × G23 (hintGap resets on every lastInput write).
+
+## Shared core API (already built, in the game folder)
+Two new files, both in /home/user/Krelworld/public/chef-marina/. Global: window.Clarity (C below).
+
+A. clarity-flags.js (loaded FIRST, before audio.js)
+- Clarity.ids = ['G1'..'G39']; Clarity.on = {G1:true ... G39:true} (the switches, decided at page load).
+- Test overrides, never stored: URL ?clarity=off | ?clarity=-G3,-G19 | ?clarity=only:G3,G9 ; or window.CLARITY_OFF = 'all' | 'G3,G19' | ['G3'] set before load. Playwright: await ctx.addInitScript(v => { window.CLARITY_OFF = v; }, 'G3,G9') then goto or reload.
+- Clarity.ready: false until DOMContentLoaded, i.e. until every clarity file has loaded. Clarity.is(id) === (Clarity.ready && Clarity.on[id] === true).
+- LOCAL EDITS in game files test `window.Clarity && Clarity.is('G6')`. This works at any time and is false while the page is still loading.
+- Overlay code that runs at load reads Clarity.on.Gn directly.
+
+B. clarity-core.js (loaded after trees.js). Clarity.core === 1 once it has loaded.
+
+SWITCHES AT RUN TIME
+- Clarity.set(id, bool): flips a switch. Hooks, listeners, ticks, pointer and appear callbacks stop or resume at once. CSS follows at once.
+- Clarity.onToggle(id, fn(on)): callbacks so an item can undo or redo inline state when its switch flips.
+- Setting Clarity.on.Gn = false by hand also works, except for onToggle; CSS then follows within 250 ms.
+- Clarity.item(id, setupFn): runs setupFn once at load, only if the switch is on, inside try/catch.
+
+HOOKS (use these instead of wrapping a game function): Clarity.hook(point, id, { before(call), after(call), order })
+- Points, each wrapped ONCE by the core and outermost over every game wrapper: 'UI.actions', 'UI.closeActions', 'UI.bigIcon', 'UI.pulseMoods', 'UI.bubble', 'UI.update', 'Audio2.blip', 'onTap', 'hitTest', 'interact', 'currentActivity', 'onEnterRoomBy', 'checkMess', 'showWish', 'openIsoMap', 'drawProp', 'drawExitSigns', 'featTick'. Clarity.points() lists them.
+- call = { name, self, args, result, skip }.
+- before(call) may set call.skip = true, and call.result if needed, so the game's own function is not called. The first skip stops the remaining before-hooks.
+- after(call) runs after the game's function. It also runs after a skip, so check call.skip. It may replace call.result.
+- In both, this === call.self. Never mutate call.args.
+- order: lower runs first (default 0); equal orders run in registration order.
+- Hooks run only while Clarity.on[id] is true.
+- A hook that throws is reported once (console.warn 'clarity: Gn before X') and its changes to skip/result are undone.
+- With nothing registered, or every hook switched off, the wrapper is exactly the game's call: same this, arguments and return value.
+- Clarity.inner(point): the game's own function under the hooks. Call it to bypass every clarity hook, e.g. to replay a deferred icon: Clarity.inner('UI.bigIcon')(ch, ms).
+- drawExitSigns: builder.js:234 re-wraps it once on the next frame. The core's wrapper sits inside builder's and still runs exactly once per frame (measured 60/s). Never re-wrap anything yourself.
+- Not hook points:
+  - ui.js internals: actions() and openPanel() call the private closeActions; placeActs is private. Use local edits (G6, G7).
+  - askReq is private to fun.js. Use a local edit (G31) or Clarity.appear('#reqBtn').
+  - changeRoom: use the 'room' event.
+  - say: G22 is a static table.
+  - resize and the camera: only the layout worker changes framing, through engine.js:169, game.js:286 and calls to resize() and render() by name.
+- Example: Clarity.hook('checkMess', 'G2', { order: 10, before(c) { if (Clarity.busyNow() || Clarity.quietFor() < 10) c.skip = true; } });
+- Example: Clarity.hook('hitTest', 'G8', { order: 10, after(c) { const h = c.result; if (h && h.kind === 'prop') c.result = see(h, c.args[0], c.args[1]); } });
+
+EVENTS: Clarity.listen(evt, id, fn)
+- 'room' (was, room): after every real room change. Dispatched from a Floors.hooks entry, i.e. from floors.js's changeRoom, which is the outermost one.
+- 'screenOpen' / 'screenClose': Clarity.screenOpen() turned true / false.
+- 'activityStart' / 'activityEnd': Clarity.busyNow() turned true / false. On activityEnd, Clarity.endedAt = E.t (game seconds).
+- The start of a game (the title closing) is a screenClose and an activityEnd.
+- Edges are sampled every 100 ms, and also synchronously whenever Clarity.quietFor() or Clarity.sample() is called, so an edge fires once, never late for a reader.
+- Example: Clarity.listen('activityEnd', 'G1', () => { lastInput = E.t; });
+
+TIMER: Clarity.every(ms, id, fn(nowMs))
+- One shared 50 ms setInterval. fn runs at most every ms (minimum 50) while the switch is on.
+- Example: Clarity.every(100, 'G15', tick);
+
+TOUCHES: Clarity.pointer('down' | 'up', id, fn(event))
+- One window capture listener per type (passive), installed on first use. It runs before any game handler sees the event.
+- Look only: never preventDefault or stopPropagation.
+- Example: Clarity.pointer('down', 'G1', () => { lastInput = E.t; });
+
+NEW NODES: Clarity.appear(selector, id, fn(node))
+- One MutationObserver on body (childList, subtree), installed on first use.
+- fn runs as a microtask, before paint, for every added element matching selector, whether it is the added node itself or inside an added subtree.
+- The node may already be gone again, so check isConnected.
+- Example: Clarity.appear('.stk-toast', 'G27', t => { if (Clarity.screenOpen()) { t.style.display = 'none'; queue.push(t.textContent); } });
+
+CSS: Clarity.css(id, cssText) returns a <style data-clarity='Gn'> appended to <head>.
+- Clarity styles are kept after every game stylesheet: Bricks, LegoShelf, Pool, Movies, Stuffies and Spa append theirs the first time they open, and the core moves ours back to the end.
+- media='not all' while the switch is off.
+- Call it as often as you like per item.
+- Example: Clarity.css('G14', '@media (orientation:portrait){#roombar{max-width:calc(100% - 84px)}.rb{flex:0 1 40px;min-width:34px}}');
+
+STATE HELPERS
+- Clarity.bodyBusy(): marina.state is swing, bars, ride or wheel, or a looping anim. False before the game exists.
+- Clarity.screenOpen(): any of the following is up:
+  - the title;
+  - any #panel screen, including the map, the fort builder and interior, Lego/tiles, the shelf, pool, films, stuffies, spa, tree climb and the builder;
+  - Studio.active, #storyBox or #stkBox.
+  The TV and the fort tray are not screens.
+- Clarity.busyNow(): inActivity() || bodyBusy().
+- Clarity.quietFor(): game seconds since the last activity ended. 0 while one is going on; Infinity before any ended.
+- Clarity.endedAt: E.t of the last activity end (null before). Clarity.sample(): re-evaluate the edges now.
+- Clarity.playing(): marina exists and the title is hidden.
+- Clarity.landscape(): innerWidth > innerHeight.
+
+GEOMETRY HELPERS
+- Clarity.hudRects(st?, opt?) returns [[x0,y0,x1,y1], weight, kind, element] for every visible HUD control.
+  - Kinds: strip (#roombar .rb), pill (#floorpill .fl:not(.off)), map, arrow (.navarrow:not(.off)), weather (#weatherBtn:not(.hidden)), alert (#alerts .alertb), face (.facecard.show), stop (#stopBtn:not(.hidden)), book and dress (not .off), wish, req, give (#fx .pichint), call (.cm-call), mood (#moodbar .mood), moodToggle.
+  - Skipped: zero-size controls, visibility:hidden, and opacity < 0.05 on the control or an ancestor.
+  - Weight 4. In landscape, mood and moodToggle get weight 6 and are widened 8 px to the left.
+  - Coordinates are relative to st (a DOMRect, e.g. placeActs' stage rect) or to #stage. opt.client gives viewport coordinates.
+  - opt.kinds and opt.except filter by kind.
+  - Cached 250 ms (dropped on resize and orientationchange). opt.fresh measures now.
+  - Controls outside the picture (the tall-portrait dock, the portrait mood row) are included; they overlap nothing in it.
+  - Example (G6): if (window.Clarity && Clarity.is('G6')) { acts.hud = acts.hud || Clarity.hudRects(st, { fresh: true }); for (const x of acts.hud) avoid.push(x); }
+- Clarity.stageRect(): #stage's DOMRect, cached 250 ms.
+- Clarity.toClient(wx, wy) gives viewport px. Clarity.fromClient(cx, cy) gives world coordinates.
+- Clarity.onCanvas(cx, cy): elementFromPoint there is #cv, i.e. nothing covers the picture at that point.
+- Clarity.overlap(a, b): overlap area of two [x0,y0,x1,y1] rects.
+- Clarity.nudgeX(box, rects, { gap = 4, max, bounds: [minX, maxX] }) returns the smallest sideways shift in px that clears every rect at the box's height (hudRects entries or plain rects), or null if none within max.
+  - Example: const dx = Clarity.nudgeX(b, Clarity.hudRects(null, { except: ['give', 'call'] }), { max: 62, bounds: [0, st.width] });
+- Clarity.floorLevel(room): main 0, up +1, basement -1, outside 0, tree houses 0.5, unknown rooms 0.
+- Clarity.floorDir(from, to): +1 up, -1 down, 0 same level.
+  - Example (G39): const fd = window.Clarity && Clarity.is('G39') ? Clarity.floorDir(prev, G.room) : 0;
+
+MOTION HELPER
+- Clarity.shake(el, { px = 4, ms = 150, times = 2 }) returns an Animation or null.
+- It is a side-shake on the individual translate property only, with composite 'add'. Without composite support it starts from the element's computed translate.
+- So transforms, CSS animations, :active scales and centring translates keep working, and a CSS animation:none cannot cancel it.
+- Example: Clarity.shake(btn); Audio2.blip(-12, 'triangle', 0.08, 0.1);
+
+MISC
+- Clarity.warnOnce(key, err).
+- Item state and item helpers live on Clarity.Gn, e.g. Clarity.G18 = { target: null } and Clarity.G23 = { hintGap() {...} }. Never on G, never in localStorage.
+
+Tools in /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/arch/:
+- regress-flags.js: run regress.js with switches off. CLARITY_OFF=all|G3,G9 NODE_PATH=$(npm root -g) node regress-flags.js <port> <out.json> [gameDir] [only=flows].
+- core_boot.js, core_hooks.js and core_flags.js: the core proofs, reusable as templates.
+
+## Load order
+Script order in index.html and in artifact.html. The two lists are identical, checked with diff.
+
+clarity-flags.js (NEW, first)
+audio.js engine.js world.js ui.js game.js features.js fort.js art.js scenes.js pics.js play.js calm.js react.js more.js nav.js story.js fun.js floors.js basement.js upstairs.js outdoor.js bricks.js spa.js stuffies.js family2.js minka.js legoshelf.js builder.js pool.js movies.js wildlife.js treeclimb.js trees.js (unchanged)
+clarity-core.js (NEW)
+clarity-prompts.js, clarity-status.js, clarity-rings.js, clarity-bubbles.js, clarity-dock.js, clarity-layout.js, clarity-screens.js, clarity-wayfinding.js (8 NEW empty stubs, one per worker, in workers-list order)
+
+Files created in /home/user/Krelworld/public/chef-marina/: clarity-flags.js, clarity-core.js, and the 8 stubs. Each stub holds only a header comment, a load guard (`const C = window.Clarity; if (!C || !C.core) return;`) and an empty IIFE. index.html and artifact.html are edited. Nothing is committed.
+
+Why this order:
+- Flags first, so any game file, including load-time code and the earliest timers, can call Clarity.is or read Clarity.on.
+- The core after trees.js, so each of its 18 wrappers is outermost over every game wrapper. The one exception is by design: builder.js re-wraps drawExitSigns once to keep its late drawing last, and the core's wrapper runs inside it.
+- Worker files after the core, so they can register hooks at load.
+- The order among worker files does not matter:
+  - hooks carry explicit order numbers (see conventions);
+  - CSS is split by property ownership, so no two workers set the same property on the same element;
+  - the only shared load-time writes (G22 fills missing SAY_ICON keys; G31 sets the existing m_want_fort) commute.
+- Load-time literals and loops in early files are never edited: REQS in fun.js, ROOMS.nunuroom in basement.js:7, the tree-house loop at builder.js:928. Those changes are applied from the overlay at load (G31 WISHES/SAY_ICON, G36 ROOMS icons, G22 SAY_ICON) or at call time (G31 askReq).
+
+Merge order of the worker branches: prompts, status, rings, bubbles, dock, layout, screens, wayfinding.
+- rings must come before layout, because G19 narrows the landscape picture and relies on G7's wrapping tray.
+- Local edits are line-disjoint across workers, so any order merges cleanly.
+
+## Conventions (must follow)
+1. YOUR FILES
+- Each worker owns one overlay file: its stub clarity-<name>.js, already loaded by index.html and artifact.html.
+- It also owns the local edits listed for it under workers, and nothing else.
+- Never edit: clarity-flags.js, clarity-core.js, index.html, artifact.html, style.css, or lines owned by another worker.
+- If you need a core change, report it. Do not patch the core.
+
+2. SWITCHES. Every item's code checks its own switch.
+- Hooks, listeners, ticks, pointer and appear callbacks, and Clarity.css registered with the item id are gated by the core.
+- Load-time overlay code: if (Clarity.on.Gn) {...}. Add Clarity.onToggle(id, fn) to undo it when the switch flips.
+- Local edits in game files: window.Clarity && Clarity.is('Gn').
+- A switch that is off must give byte-for-byte today's code path and look.
+- Test with ?clarity=-Gn, ?clarity=off, or CLARITY_OFF via an init script.
+
+3. LOCAL EDITS
+- Mark the changed line /* Gn */. Keep edits as small as possible, ideally one line.
+- The switch-off branch is today's exact expression.
+- Never add a top-level let, const or function to a game file. Classic scripts share one global scope, and a duplicate name is a SyntaxError that kills that whole file. Put state inside the file's existing IIFE or closure next to the edit, or on Clarity.Gn. more.js is top-level code, so G21 keeps its state on Clarity.G21.
+- Never edit object literals or loops that run at load: REQS in fun.js, ROOMS in basement.js:7, builder.js:928. Apply those changes from the overlay at load or at call time.
+- Find code by its text. Line numbers are as of this core and shift.
+
+4. HOOKS, NEVER WRAPPERS
+- Never reassign a game global or a UI or Audio2 method. Use Clarity.hook.
+- Assigned orders (lower runs first):
+  - UI.actions: before G2:10 | after G7:10, G30:20, G2:40 (only records whether a tidy ring opened), G18:30.
+  - UI.closeActions: after G18:10, G27:20.
+  - onTap: before G18:5 (never skips), G15:10 (never skips), G35:20 (may skip).
+  - interact: before G18:10.
+  - hitTest: after G8:10.
+  - currentActivity: after G17:10.
+  - onEnterRoomBy: before G20:10.
+  - checkMess: before G2:10.
+  - UI.bigIcon: before G27:10.
+  - UI.pulseMoods: before G24:10.
+  - UI.bubble: after G26:10.
+  - UI.update: after G5:10.
+  - Audio2.blip: before G15:10.
+  - openIsoMap: after G36:10, G37:20, G38:30.
+  - drawProp: after G35:10.
+  - drawExitSigns: after G35:10.
+  - featTick: after G26:10.
+  - showWish: free; use 10.
+- After-hooks must check call.skip.
+- To call a hooked function without re-entering its hooks, use Clarity.inner(name).
+- Events: room (G4, G18, G23, G35); activityEnd (G1); screenOpen (G2, G27); screenClose (G27).
+- Pointer: G1 down; G15 up.
+- Appear: G23 '#alerts .alertb' (or a tick), G25 '#reqBtn' and '#wishBtn', G27 '.stk-toast'.
+- Ticks: G4 200 ms, G15 100 ms, G23 250 ms, G35 250 ms, G37 300 ms, G38 200 ms.
+- G3, G9 and G16 use MutationObservers of their own, on elements they own.
+
+5. CSS
+- Only through Clarity.css(id, text), one or more per item. Never edit style.css or inject <style> yourself.
+- Prefix every new class or keyframe with cm-.
+- Property ownership on shared elements. Two workers never set the same property on the same element:
+  - #xFloat: screens.
+  - #panel and its screens (cooking, dress-up, crafts, Bricks, the canvas screens), #studio, #storyBox and #stkBox: screens. Two exceptions: the map's content (.fmap, .fmaprow, .fmaproom and the .isosvg additions) belongs to wayfinding, and .isoroom.here's transform-box/transform-origin belongs to bubbles (G5).
+  - #title padding and .tpick: layout (G13).
+  - #moodbar and #moodToggle: layout owns position, size, display, the folded slot, background, handle and chevron in landscape. status owns .mood opacity, filter and shake, and the animation of #moodbar.pulse and .mood.
+  - .navarrow: layout owns the right offset. status owns the animation and the inner <i> bob.
+  - #roombar / .rb: layout owns position, landscape centring, max-width and .rb size/flex. wayfinding owns the #roombar background and the .rb.cm-gp dot. status owns .rb opacity, filter and shake.
+  - #floorpill / .fl: wayfinding owns the colour ring (box-shadow), data-dest and .fl i font-size. status owns .fl opacity, filter and shake.
+  - #alerts / .alertb: layout owns #alerts' landscape centring. status owns .alertb animation, .settled, data-born, the tp colour, opacity, filter and shake.
+  - .facecard: layout owns .facecard.right's landscape offset. status may only shake a face card; nobody dims them.
+  - #weatherBtn: layout.
+  - #dressBtn / #bookBtn: dock owns tall-portrait position, size, visibility guard, glide and wiggle. layout owns the landscape right offsets.
+  - #stopBtn: nobody moves, translates or rescales it. Its glyph comes from the currentActivity hook (bubbles, G17).
+  - #wishBtn / #reqBtn: dock owns position, size, glow animation, badge, span glyph and the ghost. status owns #reqBtn opacity, filter and shake.
+  - .say, .pichint, .cm-call and the bigIcon look: bubbles. The timing of ✨ big icons: dock (G27).
+  - .act, .acttray, .actback, .cm-badge and ring placement: rings.
+  - .stk-toast and the fly layer: dock.
+  - Canvas drawing: rings (the glow in nav.js, the deer tab); wayfinding (signs, edge tabs, the floor slide); status (the idle wiggle); layout (zoom and camera).
+  - #app classes: status adds cm-strip, cm-mood and cm-alert; layout may add its own cm-* classes.
+
+6. POSITION AND MOTION
+- HUD and dock buttons are positioned with left/top/right/bottom and the individual translate property, never transform. Game rules such as :active, pulse and .facecard scale use transform.
+- Transient motion: Clarity.shake, el.animate on translate, or a pointer-events:none ghost element.
+- Clarity code never calls preventDefault or stopPropagation. A tap is never swallowed or retargeted, with one documented exception: G35's tab tap.
+
+7. DATA
+- Nothing new on G, in localStorage or sessionStorage, or in saved data. Item state lives on Clarity.Gn.
+- Never call propActions or entActions just to look: fun.js's wrapper marks treasures found. G18 also never calls hitTest.
+
+8. TESTING SETUP
+- Serve your worktree: H.boot({ port, view, room, dir: '<worktree>/public/chef-marina' }).
+- Ports: worker k (0-based position in the workers list) uses 8850+10k to 8859+10k:
+  - prompts 8850-8859, status 8860-8869, rings 8870-8879, bubbles 8880-8889
+  - dock 8890-8899, layout 8900-8909, screens 8910-8919, wayfinding 8920-8929
+- harness.serve() reuses any server already listening on a port, whatever directory it serves. Never point one port at a second directory.
+- Views: port, land, portSmall, landSmall, plus the sizes a check names (pass {width,height} as view): 844x340, 390x664, 390x585, 375x553 and others.
+- Desktop env() is 0, so simulate safe-area insets with padding, as the verdicts did. Checks that name her iPhone stay owner checks.
+- Scratch files only under /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/build-<name>/.
+
+9. REGRESSION SWEEP
+- Run: cd .../scratchpad/audit && NODE_PATH=$(npm root -g) node regress.js <port> <out.json> <worktree>/public/chef-marina
+- Then: node regress-diff.js .../audit2/arch/head1.json <out.json> .../audit2/arch/head2.json
+  head1/head2 are today's committed game, without clarity, run twice: the clean baseline and the noise reference.
+- The core build is .../audit2/core_regress.json.
+- Diffing against after3.json also works, but expect the rows already explained in core_tests: the fixes committed after after3.json was recorded.
+- Switch-off sweep: CLARITY_OFF=<your ids or all> NODE_PATH=$(npm root -g) node .../audit2/arch/regress-flags.js <port> <out.json> <dir>
+- Run sweeps one at a time on an idle machine. Under load the game's dt cap slows game time, and the 1.6 s samples catch earlier states.
+
+10. DONE MEANS, PER WORKER
+a. Every item is built exactly as its reconcile entry says.
+b. Each item's must-still-work list from the draft and every EXTRA CHECK of BOTH lenses has been run in the harness and passes. Results are saved in your scratch folder. A check that needs another worker's item is written down as an integration check with its expected result, never silently skipped.
+c. Zero page errors in port, land, portSmall and landSmall, with all switches on and with your switches off. The pre-existing chip_love.mp3 warning is the only allowed message.
+d. The regress sweep has no LOST SITUATION, LOST CHOICE, BROKEN or failed flow. Every remaining difference is noise or one of the expected renames listed in your items.
+e. The switch-off sweep for your ids shows no difference beyond noise.
+f. The worktree diff touches only your overlay file and your listed /* Gn */ lines.
+g. Commit only on your worktree branch, never on main, never push, unless the orchestrator says otherwise.
+
+11. AFTER MERGING (integration phase)
+Integration checks:
+- G19 × G7: keyboard (8) and TV (9) lists at 667x375 and 844x390 show every choice without scrolling.
+- G19 × G11 / G35 / G17 / G26 / G6: tabs, signs, bubbles and rings clear of ▶ at right:0 and of the column.
+- G19 × G16 / G27: 📒 and 👗 stay at today's landscape spots, and the sticker flight lands there.
+- G4 × G39: a cross-floor arrival in the living room in landscape runs one animation with no stretched frame.
+- G3 × G37 / G38: the landscape map with the lane still wraps its rows, no tile sits under #xFloat, and the house picture keeps its size.
+- G15 × G25: #reqBtn dims during scenes.
+- G30 × G35 / G36 / G39: the up/down badges match.
+- G22 × G31: m_want_fort shows 🏰 with G31 on and ⛺ with it off.
+Then a full sweep vs head1/head2 with all expected renames, and a CLARITY_OFF=all sweep equal to today.
+
+## Critic addenda for you
+- Ports. harness.serve() reuses any server already on a port, whatever directory it serves. Before your first run, and whenever a result looks wrong, check: for p in $(seq <lo> <hi>); do pid=$(pgrep -f "http.server $p --bind"); [ -n "$pid" ] && echo $p $(readlink /proc/$pid/cwd); done. Every line must be your worktree's public/chef-marina; kill any other with kill <pid>. Stale main-tree servers that were in 8850–8929 have been stopped.
+- Sweeps. Wrap every regress.js and regress-flags.js run in: flock -x /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/sweep.lock <command>. Before calling any BEHAVES DIFF or flow difference a regression or noise, re-press it A/B against HEAD (port 8847 serves arch/head) under identical conditions; /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/critic/ab_rows.js is a template. Under load, the stool and wicker 🧗 'perch', the Miles 🤗 'anim' and 'tap floor walks' flip by themselves.
+- Events. room, screen and activity listeners may run synchronously inside any Clarity.quietFor() or Clarity.sample() call, including inside another item's hook (G2's checkMess hook runs inside AI.update). Keep them cheap and re-entrancy-safe, and never assume they run from the timer.
+- Switches. Register hooks, ticks, listeners, pointer and appear callbacks and Clarity.css unconditionally at load; the core gates them, so turning a switch ON at run time works. Use `if (Clarity.on.Gn)` at load only for one-time data changes, paired with Clarity.onToggle(id, on => ...) that both applies and restores.
+- DOM and names:
+- Create DOM nodes only while your switch is on.
+- Never reuse a game id or class (.act, .pichint, .say, .alertb, .stk-toast, #wishBtn, #reqBtn…); game code and regress.js query them.
+- Name new classes and @keyframes cm-gN-… (with your item id) unless the reconcile already names them; class and keyframe names are global and can collide across workers.
+- Rings close in places the UI.closeActions hook never sees. ui.js closes them through its PRIVATE closeActions when a new ring replaces an old one, in openPanel(), and in update() when the ring's anchor leaves the room. If your item needs 'is a ring open', read document.querySelector('#fx .act').
+- Insets and core changes:
+- Simulated insets (padding in the harness) leave env() at 0. Anything absolutely positioned inside #stage is already offset by env(safe-area-inset-left) through #app's padding; never add env() to its left or right, or her iPhone gets the inset twice and no harness check can show it.
+- Core changes from the critic: hook lists are copy-on-write (a hook registered during a call applies from the next call), and Clarity.nudgeX takes opt.dir (+1 or -1).
+- G29: build the child lens's amended change. It is G29's only amendment, so by the reconcile rule it supersedes the draft; the functionality lens kept the draft but did not amend it. At minka.js:622, keep Audio2.sfx('minka_mew', { vol: 0.2 }) exactly as today, and when window.Clarity && Clarity.is('G29') call pawHint(s.room) on every far-room cue (today: 60%). No 30 s limit and no farMewAt. Checks:
+- every far mew is followed by 3 🐾 at the correct edge;
+- same-room and hintFrom mews are unchanged;
+- the find rate within 100 s is unchanged over about 20 seeded hides;
+- switched off, today's 60% returns.
+Build the architect's 30 s mute only if the orchestrator confirms it with the owner.
+- G2: the screenOpen listener's UI.closeActions() also runs the after-hooks of G18 (rings, clears its target) and G27 (dock, must defer). Do not depend on their order. G2's checkMess hook calls quietFor(), which can fire screen and activity listeners synchronously inside AI.update.
+
+## Open critic issues touching your items
+- [major] G27 (dock): UI.closeActions after-hook replay of deferred ✨: ui.js:52's choice handler runs UI.closeActions() before a.fn(). A choice that opens a screen therefore opens it immediately after the hook returns. Measured with the dining table's 🎨 (critic/g27_closeorder.js): screenOpen() is false inside the hook and true when the same tap handler returns. A replay inside the hook plays 💎✨ under the screen, where it expires unseen. That breaks 'never dropped' and the check 'treasure then a choice that opens the studio: the icon appears once, after the studio closes'. → Never replay synchronously in the hook. Schedule it with setTimeout 0 or the next tick, re-check screenOpen(), and otherwise wait for screenClose. The same applies when G2's screenOpen listener calls UI.closeActions().
+- [major] G29 reconcile entry (prompts): Only the child lens amended G29; the functionality lens kept the draft without amending it. By the stated rule the child's amendment supersedes the draft. Yet the entry keeps the draft's once-per-30 s far-mew limit and only grafts on the child's always-paws rule. That is inconsistent with how G18, G22, G23 and G24 were reconciled (single-lens amendments applied in full). The child's version is functionally safe: mews as today, plus more silent canvas paw hints. → Addendum for prompts: keep the far mew exactly as today and call pawHint(s.room) on every far cue while G29 is on; no farMewAt limit. Keeping the 30 s mute would need an explicit owner decision, because it weakens a hide-and-seek cue.
+- [minor] G18 (rings): ring-open state: ui.js also closes rings privately: a new ring replacing an old one (actions()), openPanel(), and update() when the anchor leaves the room. None of these fire the UI.closeActions hook. G18 would then keep 'ring open' and hold every other prop's glow at 0 until her next tap or a room change. → Derive 'ring open' live from '#fx .act' (addendum).
+- [minor] G19 (layout) × G15/G24 (status): folded column: The ownership table does not say how folded faces are hidden. If layout uses opacity or filter on .mood, status's dim rule (#app.cm-mood #moodbar .mood:not(.cm-awake){opacity:.45}) outranks it and shows folded faces at 45%. → Layout hides folded faces with visibility:hidden, or display:none on .mood. Status may additionally scope its dim to #moodbar:not(.collapsed).
+- [minor] G25 (dock): landscape and short-portrait slot left:calc(env(safe-area-inset-left) + 122px): #wishBtn and #reqBtn are absolute inside #stage, which already starts at env(safe-area-inset-left) (#app padding). The rule double-counts 47–59 px on her iPhone. Tests that simulate insets with padding leave env() at 0, so the harness cannot catch it. #stopBtn is width:auto, so 122 px needs checking against the widest ✋ chip. → Use stage-relative left:122px and measure #stopBtn with every currentActivity glyph (addendum).
+- [minor] G25 (dock): glide ghost: A cloneNode ghost would carry id wishBtn or reqBtn. Duplicate ids would feed hudRects, G23's hintGap selector and getElementById, and would re-trigger appear('#wishBtn'). → The ghost has no id and only cm-g25 classes (addendum).
+- [minor] G15 (status): dim CSS: 'transition:opacity .2s' replaces the existing .mood{transition:transform .1s}, so the press scale snaps while the faces are dimmed. → List both transitions (addendum).
+
+## Cross-item conflicts involving your items
+- G29: The child lens wants no limit on far-room mews: the mew is the cue that she is in another room. It wants paws shown with every mew instead. The functionality lens keeps the draft's limit of one far mew per 30 s, with paws when a mew is skipped. → The functionality lens's limit stays. The child's 'every far mew comes with its direction' is added, so pawHint now shows on every far-room cue, with the mew or instead of it. Both hold. The find-rate check guards the child's concern.
+- G20: Marina's duplicate 'hi Nunu' reply. The child lens's fix: reply only if this call changed the stamp. The functionality lens's fix: a per-person replyAt with a 10 s window. The draft's single global timer would block the other grandparent's reply. → Both together in the same /* G20 */ edit. The stamp check stops duplicate calls; the per-person replyAt also covers the septic-thanks branch. The draft's global timer is dropped.
+- G21: The child lens keeps the draft's extra walk-up condition. The functionality lens showed it makes Rory leave the yard about 1.7 times as often while she swings. → The functionality lens wins: the condition is unchanged. Inside the branch, while bodyBusy, Rory stays put and turns to her.
+- G28: Start wish. The child lens retries only for alerts, requests and crying. The functionality lens also waits for .act, inActivity and bodyBusy. Both skip when the start event already brought a wish. → The functionality lens's wider wait set, plus the shared skip-when-a-wish-shows rule. With nothing asking at 4.2 s, the behaviour is identical to today.
+- G2/G37: The draft's G2 closes 'any ring still open when a full screen opens'. A harness check on today's game showed a ring she opened survives opening and closing the map, because openIsoMap never closes rings. Closing it would change something she can do today. → Narrowed. On the screen-open edge, UI.closeActions() runs only to clear a leftover backdrop with no ring (the openPanel case that ate her first tap) or an open 🧹🏃 tidy ring. Any ring she opened herself stays exactly as today. Both lenses' G2 EXTRA CHECKS still pass.
+- G36/G31/G22/G1: Changes evaluated at load in early files (REQS in fun.js, ROOMS in basement.js:7, the builder.js:928 loop) run before any late overlay exists. A guarded local edit there would never take effect, and an unguarded one could not be switched off. → clarity-flags.js loads first, so Clarity.on and Clarity.is exist from the first script. Load-time data is still never edited in place. G36 sets ROOMS icons from the overlay at load (every reader is lazy). G31 sets WISHES and SAY_ICON at overlay load, and maps the request icon at call time in askReq. G22 fills SAY_ICON at load. Local edits use Clarity.is(), which is false until every clarity file has loaded.
+- G5/G6/G7/G17/G18/G23/G26/G31/G33/G37/G39/G20: Five game files are edited by two workers: ui.js (G5 vs G6/G7), nav.js (G17 vs G18), features.js (G23 vs G37/G39), fun.js (G33 vs G31) and family2.js (G26 vs G20). → Every edit is on different, non-adjacent lines. ui.js: G7 at :49, G6 at :72-73, G5 at :101. nav.js: G17 at :61-67, G18 at the glow IIFE :153-174. features.js: G39 at :395-397, G37 at :413, G23 at :598-599. fun.js: G33 at :38, G31 at :82-83. family2.js: G26 at :145, G20 at :171-179. Each worker locates its code by text, and merges are line-disjoint.
+
+
+==================== G1 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD exactly as drafted (both lenses keep; no amendment). (1) Register Clarity.pointer('down','G1', () => { lastInput = E.t; }) and Clarity.listen('activityEnd','G1', () => { lastInput = E.t; }). lastInput is the top-level let at features.js:502 and can be assigned by name from the overlay. (2) The core supplies the edge (busyNow = inActivity() || bodyBusy() turning true→false, sampled every 100 ms and on demand) and Clarity.endedAt / quietFor(). (3) features.js:507/:555 and calm.js stay untouched; the listener only looks. (4) Plan text: the start of a game (the title closing) is also an activity end. A child who goes straight from one activity to the next will see fewer idle wishes, by design (child lens). DONE = the draft's must-still-work list and both lenses' EXTRA CHECKS. These include logging every activity edge with its cause in the 15-min sims (no edge from an event she did not start) and wish/request counts per room before and after.
+Depends on: -
+Interactions: Shares the core's activity edge with G2 (quietFor), G27 (screen edges) and G28. G23's hintGap counts wiggles since lastInput, so it resets on every touch and every activity end. G21 and G28 use Clarity.bodyBusy, the same body-state list.
+
+### DRAFT ITEM
+### G1 Every touch counts, and finishing an activity restarts the idle clock
+- problem: lastInput is set only by pointerdowns on #stage (features.js:507) and in onTap (features.js:555). #panel, #studio, #storyBox, #stkBox and #title are outside #stage, so five minutes of building Lego or cooking count as five minutes idle. When she closes a screen, the wish gate (react.js:134, 30 s idle), the request gate (fun.js:92, 6 s) and the idle wiggle (features.js:598, 10 s) all pass at once. In 10 of 10 activities a wish appeared 0–2.4 s after closing, together with a bubble, a face card, 📒 and 👗. After she stopped the swing, the 💩 alert came at +0.3 s and a wish at +2 s.
+- change: Any touch anywhere counts as a touch. The moment an activity ends also counts as a touch: a screen closing, a scene ending, or getting off a swing, the bars, a ride, the wheelchair or a looping bounce. The rules themselves stay the same: a wish after 30 s untouched and 130 s apart, a request after 6 s, the wiggle after 10 s. They are just measured from her real last touch.
+- implementation: clarity.js core plus block G1.
+- Add a passive capture listener: document.addEventListener('pointerdown', () => { if (typeof E !== 'undefined') lastInput = E.t; }, { capture: true, passive: true }). lastInput is the top-level let at features.js:502, so a later classic script can write to it.
+- Core 250 ms tick, shared with G2 and G27:
+  - act = inActivity() || Clarity.bodyBusy().
+  - bodyBusy() = ['swing','bars','ride','wheel'].includes(marina.state) || (marina.state === 'anim' && marina.anim && marina.anim.loop). This mirrors currentActivity, features.js:54-62.
+  - When act goes from true to false: set Clarity.endedAt = E.t, and, when the G1 flag is on, lastInput = E.t.
+- features.js:507 and :555 stay as they are. calm.js is not touched.
+- must still work: Every wish, request and idle wiggle still happens, with the same lines and rules (130 s between wishes, 30 s idle, 6 s for requests, 10 s for the wiggle); Taps in panels, the studio, the story and the sticker book work exactly as before (passive listener, no preventDefault); Swipes, dragging Marina and dragging toys are unchanged; The game-start wish (react.js:121-126) is unchanged; Crying, poop and nappy timing (calm.js:17, nav.js:230) is unchanged
+- benefit: Finishing something becomes her own quiet moment to look at what she made. This answers the dad's first complaint in all ten activities.
+- risk: Very low: one passive listener and one edge detector. Wishes after activities simply come later.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G1 [bugs] Every touch counts, and finishing an activity restarts the idle clock => KEEP (child:keep, functionality:keep)
+
+**child: keep** — Holds up. lastInput is a top-level let (features.js:502) that only #stage pointerdowns (507) and onTap (555) write, so taps inside #panel, #studio, #storyBox, #stkBox and #title never count. That is why a wish arrives 0–2.4 s after every screen closes (prompts REPORT §3 table). Every autonomous G.busy setter I checked is started by a tap: phoneScene, the door animation (game.js:740), wildlife busy() and the tantrum. So treating the end of an activity as a touch only adds about one scene-length of delay. Idle wishes keep their 30 s / 130 s rules. Nothing she sees moves, the brief explicitly allows changing when prompts appear, and it directly serves the dad's first complaint. One honest side-effect belongs in the plan text: an active child who goes straight from one activity to the next will see fewer wishes (like the 'walk' simulation's 0 per 15 min), because the wish was always meant as an idle prompt.
+
+- EXTRA CHECKS: Re-run prompts/acttable.js: after each of the 10 activities closes, the first wish comes no sooner than 30 s and the request no sooner than 6 s; with no further touches, a wish still appears. | Re-run the 15-min idle simulations (main, basement, upstairs, backyard): wishes stay at about 4–6 per 15 min when idle. | Confirm the document capture listener never calls preventDefault or stopPropagation: the calm.js scroll guard, studio drawing, sticker wiggles and story page turns behave identically. | Confirm the game-start 30% wish at 4.2 s (react.js:121-126) still fires, since it does not read lastInput.
+
+**functionality: keep** — I could not refute it. lastInput (features.js:502) is a top-level let. It is read in only three places: the hint wiggle (features.js:598), the request gate (fun.js:92) and the wish gate (react.js:134). It is written in only two: features.js:507 and :555. A passive document capture listener (no preventDefault) does not change any tap, swipe, drag or the calm.js scroll guard. The inActivity()||bodyBusy() edge only moves the start of the existing 30 s / 6 s / 10 s windows, which the brief allows as 'when prompts appear'. The game-start wish (react.js:121-126) runs on its own 4.2 s timer and is untouched, and crying, poop and nappy timing never read lastInput. I checked every G.busy=true site in minka, wildlife, family2, upstairs, basement and nav (phoneScene, tellDaddy, deer feed and so on). All of them start from her own choice, so the edge does not fire on events the game starts by itself, and no room is starved of wishes.
+
+- EXTRA CHECKS: In the 15-minute simulations, log every act true->false edge with its cause (panel, studio, story, stk, title, busy, sceneOn, tidy, chase, tv, fort, swing/bars/ride/wheel/bounce). No edge may come from an event she did not start. | Count wishes and requests per room (main floor, basement, upstairs, backyard, pool) before and after. Every room that gets them today must still get them. | A wish must still appear about 30 s after the last touch in free play, and a request about 6 s after (with the 170 s gap rule unchanged).
+
+
+==================== G2 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD as drafted (both lenses keep), with one narrowing found while reconciling. (1) Clarity.hook('checkMess','G2',{order:10, before(c){ if (Clarity.busyNow() || Clarity.quietFor() < 10) c.skip = true; }}). A held-back check never touches G.lastTidyAsk. (2) Clarity.hook('UI.actions','G2',{order:10, before(c){ const a = c.args[0], l = c.args[1]; if (a === marina && l && l.length === 2 && l[0].ico === '🧹' && l[1].ico === '🏃' && Clarity.screenOpen()) c.skip = true; }}). (3) Screen-open edge: Clarity.listen('screenOpen','G2'). Call UI.closeActions() (the features.js version, which also removes .actback) only when either (a) a leftover .actback exists with no #fx .act, which is the openPanel case: it removes ring nodes but not the backdrop; or (b) the open ring is the 🧹🏃 tidy ring, as recorded by a UI.actions after-hook (order 40). Any other ring she opened herself stays exactly as today. Verified: today a ring survives opening and closing the map, because openIsoMap never closes rings. Only the open edge acts, so a ring opened while a screen is already up (the studio's give) is never closed. (4) Local edits /* G2 */, guarded by window.Clarity && Clarity.is('G2'): react.js:58, add && !inActivity() to the 🧹🏃 step; minka.js:611, add || inActivity() to the early return; upstairs.js:301, add || inActivity(). (5) Plan text: the nag also waits while the TV, tidy, chase or the fort tray is on (inActivity counts them), and comes at least 10 s after she leaves a screen. DONE = the draft list and both lenses' EXTRA CHECKS: with 5+ toys and a parent, the tidy line and ring arrive within about 54 s; the tidy line followed by cooking within 1 s leaves no ring or .actback, and the first tap after closing works; the studio's give ring survives; Minka's cue rate and 100 s timeout; upstairs visits every 12-24 s in free play and none during the studio or a story.
+Depends on: -
+Interactions: Its UI.actions before-hook (order 10) skips the original. The rings worker's after-hooks (G7, G30, G18) then see call.skip and must do nothing. The screen-open clean-up runs UI.closeActions after-hooks: G18 clears its target; G27 keeps a deferred ✨ icon until the screen closes. react.js and minka.js are shared with G28 and G29 (same worker). Opening the map: see conflicts; today a ring survives the map, and it still will.
+
+### DRAFT ITEM
+### G2 Nothing waits under a screen or reaches through it: the tidy order, its ring, stray rings, Minka's cues and upstairs visits
+- problem: Several things leak into or under full screens.
+- checkMess (game.js:793-800, every 4 s) checks only tidy, chase, busy and the fort. While she cooks or draws, Daddy orders 'tidy up' about every 44 s, and a 🧹🏃 ring opens behind the screen. It also opens from say().then at game.js:799 when the line started just before the screen opened. reactMess's second step (react.js:58) has the same gap.
+- openPanel (ui.js:117) calls UI's internal closeActions, which leaves features.js's .actback backdrop behind. After she closes the screen, the leftover ring and backdrop eat her first tap (14 of 240 taps in first-minutes).
+- Minka's hide cues check only panelUp() (minka.js:611), so Minka mews behind the drawing studio (heard at 73 s and 82 s).
+- Upstairs visits check only #panel (upstairs.js:301), so a parent walks in behind the studio or a story.
+- change: - The tidy order and its 🧹/🏃 choice happen only in free play. They wait while a screen or activity is open, while she swings, hangs or rides, and for 10 s afterwards.
+- No ring can wait under a screen. Any ring still open when a full screen opens is closed together with its backdrop, and the 🧹🏃 ring never opens while a screen is up.
+- Minka's hide cues and the upstairs visits pause during any activity.
+- The lines, the choice, the chase, the 40 s spacing, the mess thresholds, hide-and-seek and the visits are all unchanged.
+- implementation: Block G2.
+- Wrap the global checkMess. AI.update calls it by name (game.js:999). New version: if (inActivity() || Clarity.bodyBusy() || E.t - (Clarity.endedAt || -99) < 10) return; otherwise call the original.
+- In the overlay's single outermost UI.actions wrapper: if anchor === marina && list && list.length === 2 && list[0].ico === '🧹' && list[1].ico === '🏃' && Clarity.screenOpen(), do not open the ring.
+  - screenOpen() = #panel not hidden || Studio.active || #storyBox || #stkBox || #title not hidden.
+  - The fort interior and the TV are deliberately excluded, because they use rings of their own.
+- Core tick: when screenOpen() goes from false to true, call UI.closeActions(). This is the features.js:443 version, which also removes .actback.
+- Local edits, each marked /* G2 */:
+  - react.js:58: add && !inActivity() to the ring step.
+  - minka.js:611: add || inActivity() to the early return.
+  - upstairs.js:301: add || inActivity() to the early return.
+- must still work: The tidy nag still plays in free play, with the same lines (d_tidy, mo_tidy, r_tidy), the same 🧹/🏃 choice, startTidy and the chase; The 40 s spacing (G.lastTidyAsk) still applies, and checks that are held back do not reset it; Daddy's 🧹 request (d_req_tidy) and the 'tidy' wish are unchanged; reactMess's first scold in free play is unchanged; Dragging toys into boxes and the tidy confetti are unchanged; Rings inside the fort interior and on the TV are unaffected; Minka's 100 s hide, the 🔍 markers and the found scene work as before in free play; Upstairs visits still happen while she plays in upstairs rooms
+- benefit: Cooking and drawing are no longer interrupted by an order she cannot see. Closing a screen never leaves her first tap eaten by a ring she did not ask for. Drawing in the basement is quiet.
+- risk: Low. The tidy nag can now come 10–14 s after she leaves a screen, and it also waits while the TV is on, because inActivity() counts the TV. A ring opened while a screen is already up (for example the studio's give) is not touched: only the screen-open edge closes rings.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G2 [bugs] Nothing waits under a screen or reaches through it: the tidy order, its ring, stray rings, Minka's cues and upstairs visits => KEEP (child:keep, functionality:keep)
+
+**child: keep** — The leak is real (prompts §1 'Tidy/mess nag'; shots/p7_after_cook_close.png). The fix is a gate plus local early-returns, so no control moves. Two notes. (1) Fix 1 in ALREADY_FIXED already removes .actback when a choice opens a screen, so the '14 of 240 taps' figure is probably mostly the old bug. The screen-open-edge UI.closeActions() is now insurance against self-opening rings (tidy, Rory's 🔁, Minka's comfort ring). It is cheap and safe: no screen opens a UI.actions ring of its own at open time. The studio's give buttons are DOM buttons, not a ring. (2) The react.js:58 edit is mostly redundant with the UI.actions wrapper for screens, but it also covers TV, tidy and chase, so it is harmless. The TV is included because inActivity() counts G.tv, which fits the dad's 'interruptions during activities' complaint.
+
+- EXTRA CHECKS: Free play with 5 or more mess items and a parent present: the tidy line and the 🧹🏃 ring still arrive within 40–54 s, and G.lastTidyAsk is not reset by held-back checks. | Start the tidy line, then open cooking before it ends: no ring appears behind the panel, and after closing, the next ask comes no sooner than 10 s later (it is still 40 s after the spoken one). | Basement: draw in the studio during an active Minka hide: no mews or 🐾. After closing, the mews resume and the 100 s timeout still ends the hide. | Upstairs: in the studio, no parent walks in; in free play, visits still come about every 12–24 s.
+
+**functionality: keep** — I could not refute it. checkMess is a global function declaration called by name from AI.update (game.js:999), so a wrapper there catches every call. Returning early leaves G.lastTidyAsk alone. The only 🧹/🏃 rings in the code are game.js:799 and react.js:58, both the tidy nag. Daddy's 🧹 request, the broom prop (game.js:482) and the built-thing 🧹 (builder.js:398) do not match the anchor===marina && [🧹,🏃] test. None of the full-screen activity files opens a ring (I grepped pool, spa, stuffies, treeclimb, bricks, movies, legoshelf), so closing rings on the screen-open edge cannot remove a choice that belongs to a screen. openPanel already closes the ring nodes internally; the new step only adds removing the leftover .actback. Hide-and-seek never holds G.busy (minka.js:513-552 uses its own H.busy), so adding inActivity() to the cue gate (minka.js:611) only pauses cues during real activities. G.tv ends by itself after 24-38 s (tvInterrupt), so the tidy nag is delayed, never lost.
+
+- EXTRA CHECKS: Free play with 5 or more toys out and a parent present: the d_tidy/mo_tidy/r_tidy line and the 🧹/🏃 ring must still come within about 54 s (40 s spacing + 10 s hold + 4 s tick). 🏃 must still start the chase, and the chase must still end in tidy. | Start the tidy line, then open cooking within 1 s: no 🧹/🏃 ring and no .actback may remain after closing cooking. The first tap after closing must work. | A ring opened while the studio is already open (give) must not be closed. | Basement hide-and-seek in free play: the number of cues per minute (peek, mew, tail, ear, wob, eyes) and the 100 s timeout must be unchanged. | Upstairs visit: a parent still walks in after about 12 s of free play in an upstairs room, and does not walk in while the studio or a story is open.
+
+
+==================== G20 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD combining both amendments.
+(1) Walk-ins. Clarity.hook('onEnterRoomBy','G20',{order:10, before(c){ const e = c.args[0], t = G.lastGreet && G.lastGreet[e.id]; if (t && E.t - t < 180) c.skip = true; }}).
+- It only reads, so a held-back call writes nothing.
+- It is outermost over family2.js's full-screen guard.
+- It covers wanderers, Rory and upstairs visits.
+- Her own room entries keep the 30 s rule (family2.js:171-179 relies on it).
+(2) Marina's reply: local edit in family2.js's onEnterRoom wrapper /* G20 */, guarded by Clarity.is('G20'). State is declared inside family2.js's IIFE, never at the top level.
+- Child: save G.lastGreet.nunu and .jeff before _oer(room), and treat a grandparent as just greeted only if this call changed their stamp.
+- Functionality: a per-person replyAt map. At reply time, skip m_hi_nunu or m_hi_jeff if E.t - replyAt[e.id] < 10; otherwise play it and stamp the time.
+- The nu_septic_thanks branch runs first, is never skipped, and stamps replyAt.nunu.
+(3) With the switch off: today's 0.5 s test and reply.
+DONE = both lenses' EXTRA CHECKS:
+- two onEnterRoom('den') calls 0.2-0.4 s apart: exactly one m_hi_nunu, or exactly one nu_septic_thanks when G.septicTold;
+- backyard → back door → den within 10 s: both replies play;
+- upstairs, a parent held back walks in silently, and visits resume after they leave;
+- a held-back greeting leaves G.lastGreet unchanged;
+- 15-min sims: at most one walk-in hello per person per 180 s; her own entries follow the 30 s rule; G.moodCtx 'greet' is set after every hello that plays; every hello key is still heard.
+Depends on: -
+Interactions: G24 (status) throttles the greeting glow per person (300 s); G20 throttles walk-in hellos (180 s). They are independent and both keyed by person. family2.js is also edited by G26 (bubbles), at line 145. G22 gives m_hi_nunu and m_hi_jeff their 👋👵 and 👋👴 icons.
+
+### DRAFT ITEM
+### G20 Grown-ups say hello once per real visit, and Marina's reply isn't said twice
+- problem: onEnterRoomBy (game.js:1046) greets her with only a 30 s per-person cooldown. Grown-ups change room every 8–18 s with a 45% chance, so while she stands in the kitchen she hears 'Hi sweetie!' from Mommy, then Daddy, then Mommy again: 13–19 hellos per 15 idle minutes on the main floor, 22–24 upstairs. Each brings a face card and makes the mood faces invite her for 7 s. 'Hi Nunu' was heard twice 0.4 s apart.
+- change: - A grown-up who walks back into her room greets her at most once every 3 minutes, which means once per real visit.
+- When she walks into a room herself, the greeting rule is unchanged.
+- Marina's reply to Nunu or Jeff plays at most once per 10 s.
+- Every hello line stays.
+- implementation: - Block G20, the outermost wrapper: const GAP = 180; const _oeb = onEnterRoomBy; onEnterRoomBy = function (e) { const t = G.lastGreet && G.lastGreet[e.id]; if (Clarity.on.G20 && t && E.t - t < GAP) return; return _oeb.apply(this, arguments); }.
+  - It sits over family2.js's full-screen guard.
+  - It covers the wanderers (game.js:1022-1023, more.js:119-120) and the upstairs visits (upstairs.js:304), which all call onEnterRoomBy by name.
+  - It only reads G.lastGreet.
+  - onEnterRoom (her own room entries, game.js:339-349) keeps its 30 s rule, because family2.js:171-179 relies on it.
+- Local edit family2.js:179, marked /* G20 */: skip m_hi_nunu or m_hi_jeff if Marina's reply played less than 10 s ago (a module-level time). The nu_septic_thanks branch is untouched.
+- must still work: Every hello line is still used; The first hello of each real visit still plays, with its face card and the mood invitation; Grown-ups still wander and still walk in to see her upstairs (silently when held back); Greetings when she enters a room herself are unchanged; Marina's reply to Nunu and Jeff still plays on each arrival, and Nunu's nu_septic_thanks too; G.moodCtx 'greet' is set after every hello that plays
+- benefit: The main nagging voice of free play drops from about 13–19 hellos to about 5–6 per 15 min, and with it the matching face invitations that tempt her into 7-second dead scenes.
+- risk: Low. The house is a little quieter: a parent popping back after 2 min doesn't greet. To revert, set GAP to 30.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G20 [prompts] Grown-ups say hello once per real visit, and Marina's reply isn't said twice => AMEND (child:amend, functionality:amend)
+
+**child: amend** — Keep the 180 s walk-in limit. It only affects onEnterRoomBy (game.js:1046, wrapped by family2.js:61). Her own room entries keep the 30 s rule, every line still plays, and G.lastGreet is shared, so a walk-in after her own greeting stays quiet, as intended. One detail is wrong. The reply bug comes from the family2.js:177 wrapper, which treats any greet stamped less than 0.5 s ago as 'just greeted'. A second onEnterRoom call within 0.5 s (travelTo's 450 ms timer, startScenario's event 0 at 700 ms, the Niko event at 1500 ms) therefore schedules a second reply even though _oer greeted no one. The proposed '10 s since m_hi_* played' timer misses one case: on the first call G.septicTold is true, so it plays nu_septic_thanks and clears the flag, and the duplicate call then plays m_hi_nunu straight after it.
+
+- AMENDED CHANGE (child): Same walk-in rule (Block G20 outer wrapper on onEnterRoomBy, GAP 180 s, reads G.lastGreet only). Change the reply fix: in the family2.js:171-179 onEnterRoom wrapper (/* G20 */), save G.lastGreet.nunu and G.lastGreet.jeff before calling _oer(room). Schedule the 2.6 s reply only if this call changed that person's stamp, so the game's hello really was made in this call. When Clarity.on.G20 is off, today's 0.5 s test applies. This covers both branches, nu_septic_thanks and m_hi_nunu/m_hi_jeff, and needs no extra timer.
+
+- EXTRA CHECKS: Call onEnterRoom('den') twice 200 ms apart with Nunu in the den and G.septicTold=true: exactly one line plays (nu_septic_thanks), and m_hi_nunu does not follow it | Call it twice with G.septicTold=false: m_hi_nunu plays exactly once | 15-min main idle simulation: at most one walk-in hello per person per 180 s; her own-entry hellos still follow the 30 s rule; G.moodCtx 'greet' is set after every hello that plays | Upstairs: the parent visit (upstairs.js:304) still walks in and turns to her when the hello is held back
+
+**functionality: amend** — The 180 s gate on onEnterRoomBy is safe. It is the outermost wrapper, it only reads G.lastGreet (in memory, never saved), and a held-back call writes nothing. onEnterRoom (her own room entries) and family2.js:177's <0.5 s test are untouched. Upstairs visits just walk in silently, then visitT stops because a grown-up is present. The family2.js:179 reply gate is the problem: a single module-level time blocks across people. Example: she enters the backyard, Jeff says hello and m_hi_jeff plays at +2.6 s. Within 10 s she goes through the back door into the den, where family2's onEnterRoom has just moved Nunu (DOWN && !DOWN.includes(S.prev)). Nunu says hello and m_hi_nunu is skipped. That breaks the item's own must-still-work ('Marina's reply to Nunu and Jeff still plays on each arrival'). The 0.4 s double reply it targets is the same person twice: two onEnterRoom calls within 0.5 s both find Nunu. A per-person gate fixes that without hiding the other grandparent's reply.
+
+- AMENDED CHANGE (functionality): Unchanged: a grown-up who walks back into her room says hello at most once every 3 minutes (outermost onEnterRoomBy wrapper, GAP = 180, reads G.lastGreet only). Unchanged: her own room entries keep the 30 s rule. Marina's reply is gated PER PERSON. In the family2.js:179 setTimeout, marked /* G20 */, keep a module-level map replyAt = {} keyed by e.id. At the moment the reply would play, skip m_hi_nunu / m_hi_jeff if E.t - (replyAt[e.id] ?? -Infinity) < 10; otherwise play it and set replyAt[e.id] = E.t. The nu_septic_thanks branch still runs first and is never skipped. It also stamps replyAt.nunu, so a duplicate call 0.4 s later does not add 'Hi Nunu' straight after the thanks. Every hello line, face card and the G.moodCtx 'greet' after each hello that plays stay as today.
+
+- EXTRA CHECKS: Backyard -> back door -> den within 10 s: Jeff's hello + m_hi_jeff, then Nunu's hello + m_hi_nunu. Both replies must play. | Force two onEnterRoom('den') calls 0.4 s apart with Nunu present: exactly one m_hi_nunu, or exactly one nu_septic_thanks when G.septicTold. | Upstairs: a parent who said hello under 3 min ago walks in silently. No further visit while they are present, and visits resume after they leave. | A greeting held back by the 180 s gate leaves G.lastGreet[e.id] unchanged, so the next real visit after 3 min greets. | 15-min idle sims (main, upstairs): count hellos. Every hello key in game.js:348/1046 is still heard at least once across runs.
+
+
+==================== G21 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with the functionality amendment. It replaces the draft's extra walk-up condition, which made Rory leave the yard about 1.7 times as often. (1) more.js:114 local edit /* G21 */: keep the condition exactly (e.here && chance(0.4) && !G.busy && !marina.mount). (2) Inside the branch, first: if (window.Clarity && Clarity.is('G21') && Clarity.bodyBusy()) { e.dir = Math.sign(marina.x - e.x) || 1; return; }. He stays put and turns to her, so his room odds are today's. (3) In the walkTo callback, say(...) and emit('star', ...) run only if E.t - lineAt > 90; lineAt lives on Clarity.G21, starts at -Infinity, and is set when the line plays. Otherwise he only turns to her. (4) With the switch off, today's code runs. DONE = both lenses' EXTRA CHECKS: 5 min on the swing and 5 min on the bars give zero walk-ups, with room changes within noise of a same-seed run; 15 min idle gives at most one line per 90 s, and the first one plays; all four lines occur over a long run; requests, horseplay, chase and hellos still happen; typeof guards keep more.js from ever throwing.
+Depends on: -
+Interactions: Uses Clarity.bodyBusy() from the core. more.js is top-level code, so state lives on Clarity.G21, never in a new top-level let.
+
+### DRAFT ITEM
+### G21 Uncle Rory doesn't walk up to chat while she swings, hangs on the bars or rides, and giggles at most once per 90 s
+- problem: Rory's walk-up (more.js:114: every 9–18 s, 40% chance) checks only !G.busy and !marina.mount. While she was swinging (the game itself shows ✋ then), he walked up and giggled 12–13 times in 5 minutes, and he said three lines in 28 s while she stood idle.
+- change: - Rory does not walk up while she is on a swing, on the monkey bars, in the wheelchair or in a looping bounce. Riding is already excluded.
+- When he does walk up, his line and stars come at most once every 90 s. Otherwise he simply arrives and turns to her.
+- He still wanders, greets her, asks his requests, does horseplay and plays chase.
+- implementation: Local edits in more.js:114, marked /* G21 */:
+- add && !(window.Clarity && Clarity.on.G21 && Clarity.bodyBusy()) to the walk-up condition;
+- inside the walkTo callback, run say(pick([...]), e) and emit('star', ...) only if E.t − roryLineAt > 90 (a module-level let, set when the line plays) or the flag is off. Otherwise only set e.dir toward Marina, as today.
+- must still work: All four lines (r_giggle, r_hi_niece, r_hi_niece3, r_chase) and the stars still play; His wandering, hellos, requests, horseplay and chase are unchanged; Walk-ups still happen whenever she is not swinging, on the bars, in the wheelchair or bouncing; The swing, the bars, rides and ✋ are unchanged
+- benefit: Swinging, the dad's kind of activity, is no longer peppered with Rory's giggles, and his giggle becomes a treat again.
+- risk: Very low: two added conditions.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G21 [prompts] Uncle Rory doesn't walk up to chat while she swings, hangs on the bars or rides, and giggles at most once per 90 s => AMEND (child:keep, functionality:amend)
+
+**child: keep** — This holds up. Rory's walk-up (more.js:114) only checks !G.busy and !marina.mount. minka.js:67's quiet() already treats swing, bars and ride as 'leave her alone', so bodyBusy() just follows a rule the game already has. Nothing she does changes: the four lines and the stars still play, he still wanders and greets her, and chase and horseplay are reached through his ring as before. Walking up silently after the line keeps today's movement, so nobody stands somewhere new. The cost is a slightly quieter Rory, and it buys a swing that isn't interrupted every ~23 s.
+
+- EXTRA CHECKS: Swing for 5 min with Rory in the yard: no walk-ups while marina.state is swing, bars or wheel, or during a looping anim; ✋ (🛝✋) and leaveYardToy unchanged | 15 min idle: at most one Rory line plus stars per 90 s; over a long run all four lines (r_giggle, r_hi_niece, r_hi_niece3, r_chase) still occur | With G21 off, behaviour is identical to today
+
+**functionality: amend** — The intent is safe, but the wording 'add && !bodyBusy() to the walk-up condition' changes Rory's wandering. In more.js:114 chance(0.4) is rolled first. When she is bodyBusy the branch then fails and falls through to the room-change roll. In the yard, his chance of leaving per tick rises from 0.6×0.18 ≈ 0.11 to 0.18, about 1.7×. So while she swings, Rory leaves the yard more often and is less likely to be there for horseplay, chase or his requests when she gets off. A walk-up roll that hits while she is busy should just leave Rory where he is, so his room odds match today. The 90 s line gate is fine: calm.js already gates r_giggle at 40 s, all four lines still play elsewhere, and r_chase in the walk-up has no side effect.
+
+- AMENDED CHANGE (functionality): Local edit more.js:114, marked /* G21 */. Keep the walk-up condition exactly as today (e.here && chance(0.4) && !G.busy && !marina.mount). Inside that branch, first: if (window.Clarity && Clarity.on.G21 && Clarity.bodyBusy()) { e.dir = Math.sign(marina.x - e.x) || 1; return; }. Rory stays put and turns to her, and his room-change and wander odds are exactly today's. Otherwise walk up as today. In the walkTo callback, say(pick([...]), e) and emit('star', ...) only if E.t - roryLineAt > 90, with roryLineAt a module-level let starting at -Infinity and set when the line plays; otherwise just set e.dir toward her. With the flag off, the code is today's.
+
+- EXTRA CHECKS: 5 min on the swing and 5 min on the bars: zero Rory walk-ups. His room changes per 5 min are within noise of today's same-seed run. | 15 min idle on the main floor: Rory walk-up lines at most 1 per 90 s, and the first walk-up line of a session plays (roryLineAt starts at -Infinity). | Rory's requests (gym, joke, tea), horseplay 🤼, chase and his hellos still happen in a 15-min run. | window.Clarity / Clarity.bodyBusy guarded with typeof so more.js never throws before clarity.js has loaded.
+
+
+==================== G28 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD combining both amendments: both skip when a wish is already showing, and the functionality lens's wider wait set is used. (1) react.js:125 local edit /* G28 */: replace the 4.2 s callback with a retry, declared inside startScenario's function body, never at the top level. (2) tryWish(n): if (G.busy || G.sceneOn) return; if (window.Clarity && Clarity.is('G28')) { if (wishEl) return; if (document.querySelector('#reqBtn,.alertb,.act') || miles.crying || inActivity() || Clarity.bodyBusy()) { if (n < 20) setTimeout(() => tryWish(n + 1), 1000); return; } } makeWish(); (3) The first call stays at 4200 ms. After 20 tries the normal idle-wish rule takes over. With nothing asking at 4.2 s this is exactly today's behaviour; with the switch off, today's code runs. DONE = both lenses' EXTRA CHECKS: for each of the 8 start events with willWish forced, at most one wish button and one m_want_* in the first 25 s; never a wish during an .act ring, the TV, tidy, a fort or the swing; a crying start shows no wish while Miles' ring is open; calm starts show the wish at 4.2 s as today; the room picker, 🎲 and the outfit reset are unchanged; moods.js time to the first working tap is unchanged.
+Depends on: -
+Interactions: react.js is shared with G2 (line 58, same worker). Uses inActivity() and Clarity.bodyBusy().
+
+### DRAFT ITEM
+### G28 The start of a game brings one thing at a time
+- problem: startScenario picks one of 8 start events (features.js:294-304), and react.js:121-126 adds an independent 30% wish at 4.2 s without checking anything. Seen: a crying alert with 'uh-oh', then a ⛺ wish within 4.5 s; and a 🐈 wish replaced by 🤸 2.5 s later, with a second voice line.
+- change: Keep the lively start event. The extra start wish waits while something else is already asking (a wish, a request, an alert, or Miles crying), checking every second for up to 20 s, and then comes as today. If something is still asking after 20 s, the normal idle-wish rule takes over.
+- implementation: Local edit react.js:125, marked /* G28 */: replace the 4.2 s callback with a retry.
+const tryWish = n => { if (G.busy || G.sceneOn) return; if (window.Clarity && Clarity.on.G28 && (wishEl || document.querySelector('#reqBtn,.alertb') || miles.crying)) { if (n < 20) setTimeout(() => tryWish(n + 1), 1000); return; } makeWish(); }; setTimeout(() => tryWish(0), 4200);
+- must still work: All 8 start events; The start wish in calm starts; The room picker, 🎲 and the outfit reset (calm.js:43-45); Wishes later in the game
+- benefit: The first seconds of every session bring one clear thing instead of a pile-up.
+- risk: Low. The optional start wish sometimes comes a little later, or is left to the idle rule.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G28 [prompts] The start of a game brings one thing at a time => AMEND (child:amend, functionality:amend)
+
+**child: amend** — The aim is right, but the retry leaves the worst case in place. Start event 7 (features.js:302) makes a wish at about 1.3 s. That wish lives 14 s (react.js:117), so the retry fires the 30% start wish at about 16 s: two different 'I want to…' lines in a row, the same pile-up a few seconds later. The start event's wish already is the 'she arrives with a plan' moment. Skipping the extra one when a wish is already showing means she sees one wish, which is what she effectively sees today because the second replaces the first. Waiting is right only for alerts and crying.
+
+- AMENDED CHANGE (child): Local edit react.js:125 (/* G28 */): at 4.2 s, if G.busy or G.sceneOn, return as today. If wishEl exists (the start already brought a wish), skip the extra start wish. Otherwise, if a #reqBtn or .alertb exists or miles.crying, retry every 1 s for up to 20 s, then call makeWish(); after 20 s, leave it to the idle rule. With the flag off, today's code runs.
+
+- EXTRA CHECKS: All 8 start events × several seeds, port and land: never two different wishes within 20 s of the start; the crying start gets its wish only after the alert is gone (or none) | The 30% start wish still appears on calm starts at about 4.2 s | Room picker, 🎲 and the outfit reset (calm.js:43-45) unchanged
+
+**functionality: amend** — The retry stretches the start wish's window from one instant (4.2 s) to up to 24 s, and the wait condition misses states the idle-wish rule already respects (react.js:134-136). Within those 24 s it is likely she has opened a choice ring (an alert tap zips her there and opens one), sat at the TV, started tidy or a fort, or got on the swing. makeWish then pops a wish and Marina's 'I want…' voice in the middle of choosing or watching. family2's showWish guard only covers full screens, and featTick clears a wish only on busy or a panel, not on the TV, tidy or fort. That adds exactly the kind of interruption the plan removes elsewhere. Also, the 'something asking' that most often blocks it is the start event's own wish (features.js:302, 600 ms). Today the extra wish replaces that one, so she sees one wish. As written, G28 shows a second wish about 15 s later. No restart-token concern: the title cannot reappear in a running game.
+
+- AMENDED CHANGE (functionality): Local edit react.js:125, marked /* G28 */. Keep the 30% roll and the 4.2 s first check. tryWish(n): if (G.busy || G.sceneOn) return (no wish, as today). If Clarity.on.G28 and a WISH is already showing (wishEl), return without a new wish: today the extra wish would only have replaced it, so she still gets exactly one start wish. If Clarity.on.G28 and anything else is asking or she is occupied — document.querySelector('#reqBtn,.alertb,.act') || miles.crying || inActivity() || Clarity.bodyBusy() — retry in 1 s while n < 20, then give up and leave it to the normal idle-wish rule. Otherwise makeWish(). With nothing asking at 4.2 s, this is today's behaviour exactly.
+
+- EXTRA CHECKS: Each of the 8 start events × willWish forced true: at most one wish button and one m_want_* line in the first 25 s, except the idle rule later. No wish appears while an .act ring, the TV, tidy, a fort or the swing is active. | Start event 'crying' + willWish: she taps the alert and Miles' ring opens. The wish does not pop while the ring is open. | Calm starts with willWish: the wish appears at 4.2 s exactly as today. | Re-run first-minutes moods.js: time to the first working tap is unchanged.
+
+
+==================== G29 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD the draft (functionality keeps it), PLUS the child's rule that every far-room mew comes with its direction. The child wanted no mew limit at all; see conflicts. (1) minka.js:622 local edit /* G29 */, in the far-room branch, when Clarity.is('G29'): play Audio2.sfx('minka_mew', { vol: 0.2 }) only if E.t - farMewAt >= 30. farMewAt lives inside minka.js's IIFE, starts at -Infinity, and is set when the mew plays. (2) Call pawHint(s.room) every time in that branch, with the mew and instead of it. (3) With the switch off: today's mew and 60% paws. (4) Same-room cues, hintFrom(), the 🔍 markers, found(), the 100 s timeout and the 40 s leave rule are unchanged. DONE = both lenses' EXTRA CHECKS: the first far mew of each hide plays; in the 15-min basement sim, far mews are at least 30 s apart; every far mew, and every skipped one, shows 3 🐾 at the correct edge; same-room and hintFrom mews are unchanged; the find rate within 100 s is unchanged over about 20 seeded hides.
+Depends on: -
+Interactions: minka.js is shared with G2 (line 611, same worker). Paw hints are canvas particles at the screen edge, below the side arrows; they take no taps.
+
+### DRAFT ITEM
+### G29 Minka's mews from other rooms come at most once per 30 s; her silent hints keep their pace
+- problem: hideTick (minka.js:603-623) gives a cue every 2.6–4.8 s. In other basement rooms that cue is, 35% of the time, a faint mew plus (60%) a 🐾 hint (minka.js:622). Together with the same-room cues, that is about 55 mews and 48 paw hints per 15 min of walking in the basement: roughly 100 sounds.
+- change: - The faint far-room mew plays at most once every 30 s. When it is skipped, the silent 🐾 hint shows instead.
+- Same-room cues (peek, tail, ear, eyes, wobble, mew) are unchanged, so she is exactly as findable.
+- implementation: Local edit minka.js:622, marked /* G29 */. In the far-room branch, play Audio2.sfx('minka_mew', { vol: 0.2 }) only if E.t − farMewAt ≥ 30 (a module-level let, set when it plays). When it is skipped, call pawHint(s.room) unconditionally. Otherwise keep the existing 60% pawHint chance.
+- must still work: Hide-and-seek, the 100 s timeout and the end 40 s after she leaves the basement; The 🔍 markers, the 🔍 choice and the found scene; The silent cues and the same-room mews; Nunu's and Marina's 'where is Minka' lines
+- benefit: The basement stops meowing every few seconds, so a mew means something again.
+- risk: Low. Measure basement-walking sounds per 15 min, and how often she finds Minka within the 100 s hide, before and after; the find rate should not change, because the paw hints and same-room cues are kept.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G29 [prompts] Minka's mews from other rooms come at most once per 30 s; her silent hints keep their pace => AMEND (child:amend, functionality:keep)
+
+**child: amend** — Muting the far-room mew should be dropped. The mew IS the hide-and-seek cue that tells a non-reader 'she's in another room'. It is faint already (vol 0.2, minka.js:622, ~1 per 10 s and only during a hide of ≤100 s), and she has not played this game yet, so a weaker cue risks her never finding Minka. The plan admits this by asking for a find-rate check. The problem statement also miscounts: the 48 🐾 hints are silent particles, so '~100 sounds' is really ~55 mews, many of them same-room ones the item keeps. The useful idea inside the item is the opposite one: every far-room mew should come with its direction. Today only 60% of far mews show 🐾 at the edge pointing toward Minka's room.
+
+- AMENDED CHANGE (child): Local edit minka.js:622 (/* G29 */): in the far-room branch, keep the mew exactly as today and always call pawHint(s.room) when the flag is on (today it is 60%), so every far-room mew comes with paw prints pointing the way. Mew frequency, volume and all same-room cues are unchanged.
+
+- EXTRA CHECKS: During a hide, standing in another basement room: every far mew is followed by the 3 🐾 at the correct edge | Hide-and-seek, the 100 s timeout, the 40 s end after leaving the basement, the 🔍 markers and the found scene are unchanged; the find rate does not drop
+
+**functionality: keep** — It touches only the far-room branch of hideTick (minka.js:622). The same-room cues and mews, hintFrom()'s mew and paws after a wrong 🔍 guess (minka.js:565-568), the 🔍 markers, found(), the 100 s timeout and the 40 s leave rule are untouched. The skipped mew is replaced by the silent 🐾 directional hint, which is the cue that actually tells her which way to go. The mew is not directional. So she can find Minka just as easily, and only the sound frequency drops. The paw hints become somewhat more frequent (all skipped mews now show paws). They are drawn on the canvas near the floor at the screen edge, below the side arrows (y≈158 world vs arrows at screen 196–288 in portrait), and cannot be tapped.
+
+- EXTRA CHECKS: farMewAt starts at -Infinity, so the first far-room mew of each hide plays. | Basement-walking 15-min sim, same seed: far-room mews at least 30 s apart, and same-room mews and the hintFrom() mew unchanged. | Find rate within the 100 s hide is unchanged across about 20 seeded hides (walker heading toward the 🐾 side).

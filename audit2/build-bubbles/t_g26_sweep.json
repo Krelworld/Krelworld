@@ -1,0 +1,986 @@
+{
+ "port": {
+  "sweep": [
+   {
+    "f": 0,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.05,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.05,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.1,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.1,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.15,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.15,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.2,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.2,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.25,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.25,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.3,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.3,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.35,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.35,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.4,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.4,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.45,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.45,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.5,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.5,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.55,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.55,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.6,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.6,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.65,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.65,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.7,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.7,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.75,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.75,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.8,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.8,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.85,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.85,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.9,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.9,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.95,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.95,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 1,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 1,
+    "talk": true,
+    "shown": false
+   }
+  ],
+  "errors": []
+ },
+ "land": {
+  "sweep": [
+   {
+    "f": 0,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.05,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.05,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.1,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.1,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.15,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.15,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.2,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.2,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.25,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.25,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.3,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.3,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.35,
+    "talk": false,
+    "shown": true,
+    "hits": [
+     "rb:346",
+     "rb:519"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.35,
+    "talk": true,
+    "shown": true,
+    "hits": [
+     "rb:346",
+     "rb:519"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.4,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.4,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.45,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.45,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.5,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.5,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.55,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.55,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.6,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.6,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.65,
+    "talk": false,
+    "shown": true,
+    "hits": [
+     "rb:639",
+     "rb:226"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.65,
+    "talk": true,
+    "shown": true,
+    "hits": [
+     "rb:639",
+     "rb:226"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.7,
+    "talk": false,
+    "shown": true,
+    "hits": [
+     "rb:21",
+     "rb:733"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.7,
+    "talk": true,
+    "shown": true,
+    "hits": [
+     "rb:21",
+     "rb:733"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.75,
+    "talk": false,
+    "shown": true,
+    "hits": [
+     "rb:179"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.75,
+    "talk": true,
+    "shown": true,
+    "hits": [
+     "rb:179"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.8,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.8,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.85,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.85,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.9,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.9,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.95,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.95,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 1,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 1,
+    "talk": true,
+    "shown": false
+   }
+  ],
+  "errors": []
+ },
+ "landSmall": {
+  "sweep": [
+   {
+    "f": 0,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.05,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.05,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.1,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.1,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.15,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.15,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.2,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.2,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.25,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.25,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.3,
+    "talk": false,
+    "shown": true,
+    "hits": [
+     "rb:537",
+     "rb:505"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.3,
+    "talk": true,
+    "shown": true,
+    "hits": [
+     "rb:537",
+     "rb:505"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.35,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.35,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.4,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.4,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.45,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.45,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.5,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.5,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.55,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.55,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.6,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.6,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.65,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.65,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.7,
+    "talk": false,
+    "shown": true,
+    "hits": [
+     "rb:688",
+     "rb:355"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.7,
+    "talk": true,
+    "shown": true,
+    "hits": [
+     "rb:688",
+     "rb:355"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.75,
+    "talk": false,
+    "shown": true,
+    "hits": [
+     "rb:99",
+     "rb:884"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.75,
+    "talk": true,
+    "shown": true,
+    "hits": [
+     "rb:99",
+     "rb:884"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.8,
+    "talk": false,
+    "shown": true,
+    "hits": [
+     "rb:446"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.8,
+    "talk": true,
+    "shown": true,
+    "hits": [
+     "rb:446"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.85,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.85,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.9,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.9,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.95,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.95,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 1,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 1,
+    "talk": true,
+    "shown": false
+   }
+  ],
+  "errors": []
+ },
+ "portSmall": {
+  "sweep": [
+   {
+    "f": 0,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.05,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.05,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.1,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.1,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.15,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.15,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.2,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.2,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.25,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.25,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.3,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.3,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.35,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.35,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.4,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.4,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.45,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.45,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.5,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.5,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.55,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.55,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.6,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.6,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.65,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.65,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.7,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.7,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.75,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.75,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.8,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.8,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.85,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.85,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.9,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.9,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.95,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.95,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 1,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 1,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   }
+  ],
+  "errors": []
+ }
+}

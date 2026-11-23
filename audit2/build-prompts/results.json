@@ -1,0 +1,20 @@
+{
+ "worker": "prompts",
+ "items": ["G1", "G2", "G20", "G21", "G28", "G29"],
+ "scripts": {
+  "lib.js": "boot helper (ports 8850-8859, worktree dir, CLARITY_OFF, virtual time, seeded random)",
+  "sim2.js / inst.js / inst2.js / runjobs.sh": "sped-up seeded play sessions with instrumentation (logs/on*_, logs/off*_)",
+  "an1.js / anact.js / an21.js / an29.js": "analysis of the sims",
+  "t0_boot.js": "4 views x (all on, my switches off): page errors + a little play -> t0_boot.json",
+  "t_g1.js / t_g1b.js": "G1 passive listener (same propagation/defaultPrevented/outcomes) and the 6 s / 30 s idle rules",
+  "t_g2.js / t_g2b.js": "G2 tidy nag, stray rings/backdrop, studio ring, map ring, reactMess, tidy wish/request; Minka cues; upstairs visits",
+  "t_g20.js": "G20 double calls, septic thanks, backyard->den replies, upstairs held-back walk-in, own-entry 30 s rule",
+  "t_g21b.js": "G21 Rory's requests and ring still work",
+  "t_g28.js": "G28 8 start events x forced start wish (port, land), busy scenarios (ring, TV, tidy, fort, swing, crying)",
+  "t_g29.js": "G29 20 seeded hides with a paw-following walker: find rate, paws per far mew, edge side",
+  "t_shots.js": "screenshots shots/g29_*.png, shots/g2_*.png",
+  "t_toggle.js": "switches flipped at run time",
+  "t_moods.js": "first-minutes mood lockout (time to first working tap)",
+  "sweeps.sh / ab.js": "regression sweep (all on), switch-off sweep (my ids), A/B re-press against HEAD"
+ }
+}

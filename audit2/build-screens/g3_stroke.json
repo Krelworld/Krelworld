@@ -1,0 +1,346 @@
+{
+ "land": {
+  "draw": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    80,
+    182,
+    836,
+    382
+   ],
+   "lane": true,
+   "stroke": [
+    {
+     "bx": 716,
+     "by": 180,
+     "inked": true
+    },
+    {
+     "bx": 731,
+     "by": 187,
+     "inked": true
+    },
+    {
+     "bx": 746,
+     "by": 194,
+     "inked": true
+    }
+   ],
+   "above": false
+  },
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    80,
+    182,
+    836,
+    382
+   ],
+   "lane": true
+  },
+  "errors": []
+ },
+ "land G3off": {
+  "draw": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    8,
+    182,
+    836,
+    382
+   ],
+   "lane": false,
+   "stroke": [
+    {
+     "bx": 788,
+     "by": 180,
+     "inked": true
+    },
+    {
+     "bx": 803,
+     "by": 187,
+     "inked": true
+    },
+    {
+     "bx": 818,
+     "by": 194,
+     "inked": true
+    }
+   ],
+   "above": false
+  },
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    8,
+    182,
+    836,
+    382
+   ],
+   "lane": false
+  },
+  "errors": []
+ },
+ "landSmall": {
+  "draw": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    80,
+    167,
+    659,
+    367
+   ],
+   "lane": true,
+   "stroke": [
+    {
+     "bx": 539,
+     "by": 180,
+     "inked": true
+    },
+    {
+     "bx": 554,
+     "by": 187,
+     "inked": true
+    },
+    {
+     "bx": 569,
+     "by": 194,
+     "inked": true
+    }
+   ],
+   "above": false
+  },
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    80,
+    167,
+    659,
+    367
+   ],
+   "lane": true
+  },
+  "errors": []
+ },
+ "landSmall G3off": {
+  "draw": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    8,
+    167,
+    659,
+    367
+   ],
+   "lane": false,
+   "stroke": [
+    {
+     "bx": 611,
+     "by": 180,
+     "inked": true
+    },
+    {
+     "bx": 626,
+     "by": 187,
+     "inked": true
+    },
+    {
+     "bx": 641,
+     "by": 194,
+     "inked": true
+    }
+   ],
+   "above": false
+  },
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    8,
+    167,
+    659,
+    367
+   ],
+   "lane": false
+  },
+  "errors": []
+ },
+ "844x340": {
+  "draw": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    80,
+    132,
+    836,
+    332
+   ],
+   "lane": true,
+   "stroke": [
+    {
+     "bx": 716,
+     "by": 180,
+     "inked": true
+    },
+    {
+     "bx": 731,
+     "by": 187,
+     "inked": true
+    },
+    {
+     "bx": 746,
+     "by": 194,
+     "inked": true
+    }
+   ],
+   "above": false
+  },
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    80,
+    132,
+    836,
+    332
+   ],
+   "lane": true
+  },
+  "errors": []
+ },
+ "844x340 G3off": {
+  "draw": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    8,
+    132,
+    836,
+    332
+   ],
+   "lane": false,
+   "stroke": [
+    {
+     "bx": 788,
+     "by": 180,
+     "inked": true
+    },
+    {
+     "bx": 803,
+     "by": 187,
+     "inked": true
+    },
+    {
+     "bx": 818,
+     "by": 194,
+     "inked": true
+    }
+   ],
+   "above": false
+  },
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    8,
+    132,
+    836,
+    332
+   ],
+   "lane": false
+  },
+  "errors": []
+ },
+ "844x340i47": {
+  "draw": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    127,
+    111,
+    789,
+    311
+   ],
+   "lane": true,
+   "stroke": [
+    {
+     "bx": 622,
+     "by": 180,
+     "inked": true
+    },
+    {
+     "bx": 637,
+     "by": 187,
+     "inked": true
+    },
+    {
+     "bx": 652,
+     "by": 194,
+     "inked": true
+    }
+   ],
+   "above": false
+  },
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    127,
+    111,
+    789,
+    311
+   ],
+   "lane": true
+  },
+  "errors": []
+ },
+ "844x340i47 G3off": {
+  "draw": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    55,
+    111,
+    789,
+    311
+   ],
+   "lane": false,
+   "stroke": [
+    {
+     "bx": 694,
+     "by": 180,
+     "inked": true
+    },
+    {
+     "bx": 709,
+     "by": 187,
+     "inked": true
+    },
+    {
+     "bx": 724,
+     "by": 194,
+     "inked": true
+    }
+   ],
+   "above": false
+  },
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "r": [
+    55,
+    111,
+    789,
+    311
+   ],
+   "lane": false
+  },
+  "errors": []
+ }
+}

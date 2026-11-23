@@ -1,0 +1,10022 @@
+{
+ "land TODAY": {
+  "120": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": -25,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "moodToggle": 3,
+       "moodbar": 1
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 20,
+      "covBy": {
+       "moodbar": 20
+      },
+      "centre": "moodbar"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "wishBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": -25,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 19,
+      "covBy": {
+       "face": 15,
+       "moodToggle": 3,
+       "moodbar": 1
+      },
+      "centre": ""
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 20,
+      "covBy": {
+       "moodbar": 20
+      },
+      "centre": "moodbar"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "300": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": 136,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 15,
+      "cov": 6,
+      "covBy": {
+       "arrow": 6
+      },
+      "centre": "navarrow"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 15,
+      "covBy": {
+       "strip": 15
+      },
+      "centre": "strip"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 15,
+      "covBy": {
+       "moodbar": 15
+      },
+      "centre": "moodbar"
+     },
+     "dresserw": {
+      "n": 5,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": 136,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 15,
+      "cov": 6,
+      "covBy": {
+       "arrow": 6
+      },
+      "centre": "navarrow"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 15,
+      "covBy": {
+       "strip": 15
+      },
+      "centre": "strip"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "face": 3
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 15,
+      "covBy": {
+       "moodbar": 15
+      },
+      "centre": "moodbar"
+     },
+     "dresserw": {
+      "n": 5,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "420": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": 256,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 15,
+      "cov": 7,
+      "covBy": {
+       "pill": 2,
+       "arrow": 5
+      },
+      "centre": ""
+     },
+     "tv": {
+      "n": 15,
+      "cov": 8,
+      "covBy": {
+       "mapBtn": 6,
+       "pill": 2
+      },
+      "centre": "mapBtn"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": 256,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 15,
+      "cov": 7,
+      "covBy": {
+       "pill": 2,
+       "arrow": 5
+      },
+      "centre": ""
+     },
+     "tv": {
+      "n": 15,
+      "cov": 11,
+      "covBy": {
+       "mapBtn": 6,
+       "pill": 2,
+       "face": 3
+      },
+      "centre": "mapBtn"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 9,
+      "covBy": {
+       "sx": 1,
+       "B": 6,
+       "reqBtn": 1,
+       "SPAN": 1
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "alert": 4
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "560": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": 337,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 20,
+      "cov": 13,
+      "covBy": {
+       "pill": 9,
+       "arrow": 4
+      },
+      "centre": ""
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": 337,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 20,
+      "cov": 13,
+      "covBy": {
+       "pill": 9,
+       "arrow": 4
+      },
+      "centre": ""
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "face": 4
+      },
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "L": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": -25,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "moodToggle": 3,
+       "moodbar": 1
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 20,
+      "covBy": {
+       "moodbar": 20
+      },
+      "centre": "moodbar"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": -25,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 19,
+      "covBy": {
+       "face": 15,
+       "moodToggle": 3,
+       "moodbar": 1
+      },
+      "centre": ""
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 20,
+      "covBy": {
+       "moodbar": 20
+      },
+      "centre": "moodbar"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "R": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": 337,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 20,
+      "cov": 13,
+      "covBy": {
+       "pill": 9,
+       "arrow": 4
+      },
+      "centre": ""
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": 337,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 20,
+      "cov": 13,
+      "covBy": {
+       "pill": 9,
+       "arrow": 4
+      },
+      "centre": ""
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 7,
+      "covBy": {
+       "face": 4,
+       "say": 3
+      },
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "errors": []
+ },
+ "land G4": {
+  "120": {
+   "calm": {
+    "zoom": 1,
+    "camX": -29,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 6,
+      "covBy": {
+       "bookBtn": 1,
+       "dressBtn": 5
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 15,
+      "cov": 15,
+      "covBy": {
+       "moodbar": 15
+      },
+      "centre": "moodbar"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": -29,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 1,
+      "covBy": {
+       "reqBtn": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "face": 2
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 15,
+      "cov": 15,
+      "covBy": {
+       "moodbar": 15
+      },
+      "centre": "moodbar"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "300": {
+   "calm": {
+    "zoom": 1,
+    "camX": 110,
+    "props": {
+     "sectional": {
+      "n": 5,
+      "cov": 2,
+      "covBy": {
+       "arrow": 2
+      },
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 25,
+      "covBy": {
+       "moodbar": 25
+      },
+      "centre": "moodbar"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 110,
+    "props": {
+     "sectional": {
+      "n": 5,
+      "cov": 2,
+      "covBy": {
+       "arrow": 2
+      },
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "arrow": 4,
+       "B": 1
+      },
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 25,
+      "covBy": {
+       "moodbar": 25
+      },
+      "centre": "moodbar"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "420": {
+   "calm": {
+    "zoom": 1,
+    "camX": 230,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 10,
+      "covBy": {
+       "mapBtn": 2,
+       "pill": 8
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 10,
+      "cov": 7,
+      "covBy": {
+       "moodbar": 7
+      },
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 230,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 14,
+      "covBy": {
+       "mapBtn": 2,
+       "pill": 8,
+       "face": 4
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 9,
+      "covBy": {
+       "B": 3,
+       "reqBtn": 2,
+       "SPAN": 4
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "alert": 3
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 10,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "560": {
+   "calm": {
+    "zoom": 1,
+    "camX": 288,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 288,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 7,
+      "covBy": {
+       "stopBtn": 1,
+       "si": 6
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "L": {
+   "calm": {
+    "zoom": 1,
+    "camX": -29,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 6,
+      "covBy": {
+       "bookBtn": 1,
+       "dressBtn": 5
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 15,
+      "cov": 15,
+      "covBy": {
+       "moodbar": 15
+      },
+      "centre": "moodbar"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": -29,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 1,
+      "covBy": {
+       "reqBtn": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "face": 2
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 15,
+      "cov": 15,
+      "covBy": {
+       "moodbar": 15
+      },
+      "centre": "moodbar"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "R": {
+   "calm": {
+    "zoom": 1,
+    "camX": 288,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 288,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 7,
+      "covBy": {
+       "stopBtn": 1,
+       "si": 6
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "errors": []
+ },
+ "land G4+G19": {
+  "120": {
+   "calm": {
+    "zoom": 1,
+    "camX": -29,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 6,
+      "covBy": {
+       "bookBtn": 1,
+       "dressBtn": 5
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": -29,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 1,
+      "covBy": {
+       "reqBtn": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "face": 2
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "300": {
+   "calm": {
+    "zoom": 1,
+    "camX": 110,
+    "props": {
+     "sectional": {
+      "n": 5,
+      "cov": 2,
+      "covBy": {
+       "arrow": 2
+      },
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 110,
+    "props": {
+     "sectional": {
+      "n": 5,
+      "cov": 2,
+      "covBy": {
+       "arrow": 2
+      },
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "arrow": 4,
+       "B": 1
+      },
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "420": {
+   "calm": {
+    "zoom": 1,
+    "camX": 230,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 9,
+      "covBy": {
+       "pill": 8,
+       "mapBtn": 1
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 230,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 9,
+      "covBy": {
+       "pill": 8,
+       "mapBtn": 1
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 9,
+      "covBy": {
+       "B": 3,
+       "reqBtn": 3,
+       "SPAN": 3
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "alert": 3
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "560": {
+   "calm": {
+    "zoom": 1,
+    "camX": 289,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 289,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 7,
+      "covBy": {
+       "stopBtn": 1,
+       "si": 6
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "L": {
+   "calm": {
+    "zoom": 1,
+    "camX": -29,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 6,
+      "covBy": {
+       "bookBtn": 1,
+       "dressBtn": 5
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": -29,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 1,
+      "covBy": {
+       "reqBtn": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "face": 2
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "R": {
+   "calm": {
+    "zoom": 1,
+    "camX": 289,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 289,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 7,
+      "covBy": {
+       "stopBtn": 1,
+       "si": 6
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "say": 3
+      },
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "errors": []
+ },
+ "landSmall TODAY": {
+  "120": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": -14,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "arrow": 2
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 15,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 10,
+      "cov": 10,
+      "covBy": {
+       "moodToggle": 8,
+       "moodbar": 2
+      },
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": -14,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "arrow": 2,
+       "B": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 15,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 10,
+      "cov": 10,
+      "covBy": {
+       "moodToggle": 8,
+       "moodbar": 2
+      },
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "300": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": 166,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 24,
+      "covBy": {
+       "pill": 10,
+       "arrow": 14
+      },
+      "centre": ""
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 15,
+      "covBy": {
+       "strip": 15
+      },
+      "centre": "strip"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 10,
+      "covBy": {
+       "moodbar": 10
+      },
+      "centre": "moodbar"
+     },
+     "basket": {
+      "n": 10,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": 166,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 24,
+      "covBy": {
+       "pill": 10,
+       "arrow": 14
+      },
+      "centre": ""
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 15,
+      "covBy": {
+       "strip": 15
+      },
+      "centre": "strip"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 11,
+      "covBy": {
+       "face": 1,
+       "moodbar": 10
+      },
+      "centre": "moodbar"
+     },
+     "basket": {
+      "n": 10,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "420": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": 286,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "pill": 1,
+       "arrow": 3
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 5,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 15,
+      "covBy": {
+       "moodbar": 15
+      },
+      "centre": "moodbar"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": 286,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "pill": 1,
+       "arrow": 3
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 5,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "si": 3,
+       "sx": 1
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "face": 2
+      },
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 6,
+      "covBy": {
+       "alert": 4,
+       "say": 2
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 15,
+      "covBy": {
+       "moodbar": 15
+      },
+      "centre": "moodbar"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "560": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": 398,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 12,
+      "covBy": {
+       "arrow": 6,
+       "pill": 6
+      },
+      "centre": ""
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": 398,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 12,
+      "covBy": {
+       "arrow": 6,
+       "pill": 6
+      },
+      "centre": ""
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "L": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": -26,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 10,
+      "cov": 10,
+      "covBy": {
+       "moodbar": 10
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 5,
+      "cov": 5,
+      "covBy": {
+       "moodToggle": 4,
+       "moodbar": 1
+      },
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": -26,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 10,
+      "cov": 10,
+      "covBy": {
+       "moodbar": 10
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 5,
+      "cov": 5,
+      "covBy": {
+       "moodToggle": 4,
+       "moodbar": 1
+      },
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "R": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": 398,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 12,
+      "covBy": {
+       "arrow": 6,
+       "pill": 6
+      },
+      "centre": ""
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": 398,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 12,
+      "covBy": {
+       "arrow": 6,
+       "pill": 6
+      },
+      "centre": ""
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "say": 3
+      },
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "errors": []
+ },
+ "landSmall G4": {
+  "120": {
+   "calm": {
+    "zoom": 1,
+    "camX": -30,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 1,
+      "covBy": {
+       "wishBtn": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 10,
+      "covBy": {
+       "moodbar": 10
+      },
+      "centre": "moodbar"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 10,
+      "covBy": {
+       "moodToggle": 2,
+       "moodbar": 8
+      },
+      "centre": "moodbar"
+     },
+     "bouncer": {
+      "n": 5,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "wishBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": -30,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 1,
+      "covBy": {
+       "reqBtn": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 10,
+      "covBy": {
+       "moodbar": 10
+      },
+      "centre": "moodbar"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 13,
+      "covBy": {
+       "face": 3,
+       "moodToggle": 2,
+       "moodbar": 8
+      },
+      "centre": "moodbar"
+     },
+     "bouncer": {
+      "n": 5,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "300": {
+   "calm": {
+    "zoom": 1,
+    "camX": 145,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 10,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "pill": 2
+      },
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 25,
+      "covBy": {
+       "moodbar": 25
+      },
+      "centre": "moodbar"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 145,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 10,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "pill": 2
+      },
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "B": 3
+      },
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 25,
+      "covBy": {
+       "moodbar": 25
+      },
+      "centre": "moodbar"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "420": {
+   "calm": {
+    "zoom": 1,
+    "camX": 265,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 10,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 10,
+      "cov": 10,
+      "covBy": {
+       "mapBtn": 2,
+       "pill": 8
+      },
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 265,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 10,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 10,
+      "cov": 10,
+      "covBy": {
+       "mapBtn": 2,
+       "pill": 8
+      },
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 12,
+      "covBy": {
+       "si": 2,
+       "sx": 6,
+       "B": 4
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 7,
+      "covBy": {
+       "alert": 3,
+       "say": 4
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "560": {
+   "calm": {
+    "zoom": 1,
+    "camX": 359,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 10,
+      "cov": 8,
+      "covBy": {
+       "arrow": 6,
+       "pill": 2
+      },
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 359,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 10,
+      "cov": 8,
+      "covBy": {
+       "arrow": 6,
+       "pill": 2
+      },
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "L": {
+   "calm": {
+    "zoom": 1,
+    "camX": -30,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 10,
+      "covBy": {
+       "moodbar": 10
+      },
+      "centre": "moodbar"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 10,
+      "covBy": {
+       "moodToggle": 2,
+       "moodbar": 8
+      },
+      "centre": "moodbar"
+     },
+     "bouncer": {
+      "n": 5,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": -30,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 1,
+      "covBy": {
+       "reqBtn": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 10,
+      "covBy": {
+       "moodbar": 10
+      },
+      "centre": "moodbar"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 13,
+      "covBy": {
+       "face": 3,
+       "moodToggle": 2,
+       "moodbar": 8
+      },
+      "centre": "moodbar"
+     },
+     "bouncer": {
+      "n": 5,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "R": {
+   "calm": {
+    "zoom": 1,
+    "camX": 359,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 10,
+      "cov": 8,
+      "covBy": {
+       "arrow": 6,
+       "pill": 2
+      },
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 359,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 10,
+      "cov": 8,
+      "covBy": {
+       "arrow": 6,
+       "pill": 2
+      },
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "say": 3
+      },
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "errors": []
+ },
+ "landSmall G4+G19": {
+  "120": {
+   "calm": {
+    "zoom": 1,
+    "camX": -30,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 10,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 10,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": -30,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 1,
+      "covBy": {
+       "reqBtn": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 10,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 10,
+      "cov": 3,
+      "covBy": {
+       "face": 3
+      },
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "300": {
+   "calm": {
+    "zoom": 1,
+    "camX": 144,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 10,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "pill": 2
+      },
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 15,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 144,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 10,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "pill": 2
+      },
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "B": 3
+      },
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 15,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "420": {
+   "calm": {
+    "zoom": 1,
+    "camX": 264,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 10,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 10,
+      "cov": 10,
+      "covBy": {
+       "mapBtn": 2,
+       "pill": 8
+      },
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 20,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 264,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 10,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 10,
+      "cov": 10,
+      "covBy": {
+       "mapBtn": 2,
+       "pill": 8
+      },
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 12,
+      "covBy": {
+       "si": 2,
+       "sx": 6,
+       "B": 4
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 7,
+      "covBy": {
+       "alert": 3,
+       "say": 4
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 20,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "560": {
+   "calm": {
+    "zoom": 1,
+    "camX": 359,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 10,
+      "cov": 8,
+      "covBy": {
+       "arrow": 6,
+       "pill": 2
+      },
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 359,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 10,
+      "cov": 8,
+      "covBy": {
+       "arrow": 6,
+       "pill": 2
+      },
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "L": {
+   "calm": {
+    "zoom": 1,
+    "camX": -30,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 10,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 10,
+      "cov": 3,
+      "covBy": {
+       "face": 3
+      },
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": -30,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 1,
+      "covBy": {
+       "reqBtn": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 10,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 10,
+      "cov": 3,
+      "covBy": {
+       "face": 3
+      },
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "R": {
+   "calm": {
+    "zoom": 1,
+    "camX": 359,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 10,
+      "cov": 8,
+      "covBy": {
+       "arrow": 6,
+       "pill": 2
+      },
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 359,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "shelf2": {
+      "n": 10,
+      "cov": 8,
+      "covBy": {
+       "arrow": 6,
+       "pill": 2
+      },
+      "centre": "off"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "say": 3
+      },
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "errors": []
+ },
+ "844x340 TODAY": {
+  "120": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": -28,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "strip": 4
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "bookBtn": 1,
+       "dressBtn": 3
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 15,
+      "cov": 12,
+      "covBy": {
+       "moodbar": 12
+      },
+      "centre": "moodbar"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": -28,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 1,
+      "covBy": {
+       "reqBtn": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "alert": 3
+      },
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "say": 2
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 9,
+      "covBy": {
+       "strip": 4,
+       "face": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 15,
+      "cov": 12,
+      "covBy": {
+       "moodbar": 12
+      },
+      "centre": "moodbar"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "300": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": 112,
+    "props": {
+     "sectional": {
+      "n": 5,
+      "cov": 3,
+      "covBy": {
+       "arrow": 3
+      },
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 7,
+      "covBy": {
+       "arrow": 7
+      },
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 20,
+      "covBy": {
+       "strip": 20
+      },
+      "centre": "strip"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 25,
+      "covBy": {
+       "moodbar": 25
+      },
+      "centre": "moodbar"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": 112,
+    "props": {
+     "sectional": {
+      "n": 5,
+      "cov": 3,
+      "covBy": {
+       "arrow": 3
+      },
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 8,
+      "covBy": {
+       "arrow": 7,
+       "B": 1
+      },
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 20,
+      "covBy": {
+       "strip": 20
+      },
+      "centre": "strip"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "face": 2
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 25,
+      "covBy": {
+       "moodbar": 25
+      },
+      "centre": "moodbar"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "420": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": 232,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 7,
+      "covBy": {
+       "pill": 4,
+       "arrow": 3
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 12,
+      "covBy": {
+       "mapBtn": 9,
+       "pill": 3
+      },
+      "centre": "mapBtn"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 10,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": 232,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 7,
+      "covBy": {
+       "pill": 4,
+       "arrow": 3
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 22,
+      "covBy": {
+       "mapBtn": 9,
+       "pill": 3,
+       "face": 10
+      },
+      "centre": "mapBtn"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 11,
+      "covBy": {
+       "B": 3,
+       "reqBtn": 5,
+       "SPAN": 3
+      },
+      "centre": "reqBtn"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 8,
+      "covBy": {
+       "alert": 7,
+       "say": 1
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 10,
+      "cov": 5,
+      "covBy": {
+       "moodbar": 5
+      },
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "560": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": 292,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 3,
+      "covBy": {
+       "arrow": 3
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": 292,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 9,
+      "covBy": {
+       "arrow": 3,
+       "si": 6
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "face": 5
+      },
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "L": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": -28,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "strip": 4
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "bookBtn": 1,
+       "dressBtn": 3
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 15,
+      "cov": 12,
+      "covBy": {
+       "moodbar": 12
+      },
+      "centre": "moodbar"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": -28,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 1,
+      "covBy": {
+       "reqBtn": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "alert": 3
+      },
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 9,
+      "covBy": {
+       "strip": 4,
+       "face": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 15,
+      "cov": 12,
+      "covBy": {
+       "moodbar": 12
+      },
+      "centre": "moodbar"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "R": {
+   "calm": {
+    "zoom": 1.16,
+    "camX": 292,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 3,
+      "covBy": {
+       "arrow": 3
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1.16,
+    "camX": 292,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 5,
+      "cov": 4,
+      "covBy": {
+       "arrow": 4
+      },
+      "centre": "off"
+     },
+     "tv": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bouncer": {
+      "n": 20,
+      "cov": 9,
+      "covBy": {
+       "arrow": 3,
+       "si": 6
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 8,
+      "covBy": {
+       "face": 5,
+       "say": 3
+      },
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "errors": []
+ },
+ "844x340 G4": {
+  "120": {
+   "calm": {
+    "zoom": 1,
+    "camX": -33,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "bookBtn": 3
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 10,
+      "cov": 9,
+      "covBy": {
+       "moodbar": 9
+      },
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": -33,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "sx": 1,
+       "SPAN": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 10,
+      "cov": 8,
+      "covBy": {
+       "moodbar": 8
+      },
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "300": {
+   "calm": {
+    "zoom": 1,
+    "camX": 82,
+    "props": {
+     "sectional": {
+      "n": 10,
+      "cov": 3,
+      "covBy": {
+       "arrow": 3
+      },
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 10,
+      "cov": 10,
+      "covBy": {
+       "moodbar": 10
+      },
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 82,
+    "props": {
+     "sectional": {
+      "n": 10,
+      "cov": 5,
+      "covBy": {
+       "arrow": 3,
+       "si": 1,
+       "sx": 1
+      },
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 7,
+      "covBy": {
+       "B": 6,
+       "reqBtn": 1
+      },
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 6,
+      "covBy": {
+       "strip": 5,
+       "alert": 1
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 10,
+      "cov": 10,
+      "covBy": {
+       "moodbar": 10
+      },
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "420": {
+   "calm": {
+    "zoom": 1,
+    "camX": 202,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 15,
+      "cov": 9,
+      "covBy": {
+       "arrow": 9
+      },
+      "centre": "navarrow"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "pill": 1,
+       "arrow": 3
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 20,
+      "covBy": {
+       "moodbar": 20
+      },
+      "centre": "moodbar"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 202,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 15,
+      "cov": 9,
+      "covBy": {
+       "arrow": 9
+      },
+      "centre": "navarrow"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "pill": 1,
+       "arrow": 3
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 11,
+      "covBy": {
+       "face": 11
+      },
+      "centre": ""
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "reqBtn": 3
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 8,
+      "covBy": {
+       "alert": 6,
+       "say": 2
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 20,
+      "covBy": {
+       "moodbar": 20
+      },
+      "centre": "moodbar"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "560": {
+   "calm": {
+    "zoom": 1,
+    "camX": 237,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 8,
+      "covBy": {
+       "pill": 2,
+       "arrow": 6
+      },
+      "centre": "navarrow"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 8,
+      "covBy": {
+       "mapBtn": 2,
+       "pill": 6
+      },
+      "centre": ""
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 237,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 8,
+      "covBy": {
+       "pill": 2,
+       "arrow": 6
+      },
+      "centre": "navarrow"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 8,
+      "covBy": {
+       "mapBtn": 2,
+       "pill": 6
+      },
+      "centre": ""
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 23,
+      "covBy": {
+       "B": 19,
+       "reqBtn": 1,
+       "SPAN": 3
+      },
+      "centre": ""
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "L": {
+   "calm": {
+    "zoom": 1,
+    "camX": -33,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "bookBtn": 3
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 10,
+      "cov": 10,
+      "covBy": {
+       "moodbar": 10
+      },
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": -33,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "sx": 1,
+       "SPAN": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 10,
+      "cov": 10,
+      "covBy": {
+       "moodbar": 10
+      },
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "R": {
+   "calm": {
+    "zoom": 1,
+    "camX": 237,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 8,
+      "covBy": {
+       "pill": 2,
+       "arrow": 6
+      },
+      "centre": "navarrow"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 8,
+      "covBy": {
+       "mapBtn": 2,
+       "pill": 6
+      },
+      "centre": ""
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 237,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 8,
+      "covBy": {
+       "pill": 2,
+       "arrow": 6
+      },
+      "centre": "navarrow"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 8,
+      "covBy": {
+       "mapBtn": 2,
+       "pill": 6
+      },
+      "centre": ""
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 23,
+      "covBy": {
+       "B": 19,
+       "reqBtn": 1,
+       "SPAN": 3
+      },
+      "centre": ""
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "say": 3
+      },
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "errors": []
+ },
+ "844x340 G4+G19": {
+  "120": {
+   "calm": {
+    "zoom": 1,
+    "camX": -33,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "bookBtn": 3
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": -33,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "sx": 1,
+       "SPAN": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "300": {
+   "calm": {
+    "zoom": 1,
+    "camX": 80,
+    "props": {
+     "sectional": {
+      "n": 10,
+      "cov": 3,
+      "covBy": {
+       "arrow": 3
+      },
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 20,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 80,
+    "props": {
+     "sectional": {
+      "n": 10,
+      "cov": 6,
+      "covBy": {
+       "arrow": 3,
+       "si": 1,
+       "B": 2
+      },
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 6,
+      "covBy": {
+       "B": 4,
+       "reqBtn": 2
+      },
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 8,
+      "covBy": {
+       "strip": 5,
+       "alert": 3
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 20,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "420": {
+   "calm": {
+    "zoom": 1,
+    "camX": 200,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 15,
+      "cov": 9,
+      "covBy": {
+       "arrow": 9
+      },
+      "centre": "navarrow"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "pill": 1,
+       "arrow": 3
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 200,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 15,
+      "cov": 9,
+      "covBy": {
+       "arrow": 9
+      },
+      "centre": "navarrow"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 4,
+      "covBy": {
+       "pill": 1,
+       "arrow": 3
+      },
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "reqBtn": 2
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 6,
+      "covBy": {
+       "alert": 6
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "560": {
+   "calm": {
+    "zoom": 1,
+    "camX": 233,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 8,
+      "covBy": {
+       "pill": 2,
+       "arrow": 6
+      },
+      "centre": "navarrow"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 11,
+      "covBy": {
+       "pill": 9,
+       "mapBtn": 2
+      },
+      "centre": "fl"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 233,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 8,
+      "covBy": {
+       "pill": 2,
+       "arrow": 6
+      },
+      "centre": "navarrow"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 11,
+      "covBy": {
+       "pill": 9,
+       "mapBtn": 2
+      },
+      "centre": "fl"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 23,
+      "covBy": {
+       "B": 15,
+       "reqBtn": 2,
+       "SPAN": 6
+      },
+      "centre": ""
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 1,
+      "covBy": {
+       "alert": 1
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "L": {
+   "calm": {
+    "zoom": 1,
+    "camX": -33,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "bookBtn": 3
+      },
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": -33,
+    "props": {
+     "sectional": {
+      "n": 25,
+      "cov": 2,
+      "covBy": {
+       "sx": 1,
+       "SPAN": 1
+      },
+      "centre": "cv"
+     },
+     "armchair": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "lamp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pail": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "fireplace": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 5,
+      "covBy": {
+       "strip": 5
+      },
+      "centre": "cv"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "basket": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "dresserw": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pnp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "bathhall": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "R": {
+   "calm": {
+    "zoom": 1,
+    "camX": 233,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 8,
+      "covBy": {
+       "pill": 2,
+       "arrow": 6
+      },
+      "centre": "navarrow"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 11,
+      "covBy": {
+       "pill": 9,
+       "mapBtn": 2
+      },
+      "centre": "fl"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     }
+    },
+    "shown": "dressBtn,bookBtn"
+   },
+   "prompts": {
+    "zoom": 1,
+    "camX": 233,
+    "props": {
+     "sectional": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "armchair": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "lamp": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "pail": {
+      "n": 0,
+      "cov": 0,
+      "covBy": {},
+      "centre": "off"
+     },
+     "fireplace": {
+      "n": 20,
+      "cov": 8,
+      "covBy": {
+       "pill": 2,
+       "arrow": 6
+      },
+      "centre": "navarrow"
+     },
+     "tv": {
+      "n": 25,
+      "cov": 11,
+      "covBy": {
+       "pill": 9,
+       "mapBtn": 2
+      },
+      "centre": "fl"
+     },
+     "bouncer": {
+      "n": 25,
+      "cov": 23,
+      "covBy": {
+       "B": 15,
+       "reqBtn": 2,
+       "SPAN": 6
+      },
+      "centre": ""
+     },
+     "shelf2": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "shelf1": {
+      "n": 25,
+      "cov": 1,
+      "covBy": {
+       "alert": 1
+      },
+      "centre": "cv"
+     },
+     "basket": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "dresserw": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "pnp": {
+      "n": 25,
+      "cov": 0,
+      "covBy": {},
+      "centre": "cv"
+     },
+     "bathhall": {
+      "n": 25,
+      "cov": 3,
+      "covBy": {
+       "say": 3
+      },
+      "centre": "cv"
+     }
+    },
+    "shown": "stopBtn,alertb,wishBtn,reqBtn"
+   }
+  },
+  "errors": []
+ }
+}

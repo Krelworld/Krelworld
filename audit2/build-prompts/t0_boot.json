@@ -1,0 +1,82 @@
+{
+ "on port": {
+  "ready": true,
+  "on": "G1:true G2:true G20:true G21:true G28:true G29:true",
+  "G21": true,
+  "G2": true,
+  "checkMess": "checkMess",
+  "oerb": "onEnterRoomBy",
+  "ua": "UI.actions",
+  "errors": []
+ },
+ "on land": {
+  "ready": true,
+  "on": "G1:true G2:true G20:true G21:true G28:true G29:true",
+  "G21": true,
+  "G2": true,
+  "checkMess": "checkMess",
+  "oerb": "onEnterRoomBy",
+  "ua": "UI.actions",
+  "errors": []
+ },
+ "on portSmall": {
+  "ready": true,
+  "on": "G1:true G2:true G20:true G21:true G28:true G29:true",
+  "G21": true,
+  "G2": true,
+  "checkMess": "checkMess",
+  "oerb": "onEnterRoomBy",
+  "ua": "UI.actions",
+  "errors": []
+ },
+ "on landSmall": {
+  "ready": true,
+  "on": "G1:true G2:true G20:true G21:true G28:true G29:true",
+  "G21": true,
+  "G2": true,
+  "checkMess": "checkMess",
+  "oerb": "onEnterRoomBy",
+  "ua": "UI.actions",
+  "errors": []
+ },
+ "off port": {
+  "ready": true,
+  "on": "G1:false G2:false G20:false G21:false G28:false G29:false",
+  "G21": true,
+  "G2": true,
+  "checkMess": "checkMess",
+  "oerb": "onEnterRoomBy",
+  "ua": "UI.actions",
+  "errors": []
+ },
+ "off land": {
+  "ready": true,
+  "on": "G1:false G2:false G20:false G21:false G28:false G29:false",
+  "G21": true,
+  "G2": true,
+  "checkMess": "checkMess",
+  "oerb": "onEnterRoomBy",
+  "ua": "UI.actions",
+  "errors": []
+ },
+ "off portSmall": {
+  "ready": true,
+  "on": "G1:false G2:false G20:false G21:false G28:false G29:false",
+  "G21": true,
+  "G2": true,
+  "checkMess": "checkMess",
+  "oerb": "onEnterRoomBy",
+  "ua": "UI.actions",
+  "errors": []
+ },
+ "off landSmall": {
+  "ready": true,
+  "on": "G1:false G2:false G20:false G21:false G28:false G29:false",
+  "G21": true,
+  "G2": true,
+  "checkMess": "checkMess",
+  "oerb": "onEnterRoomBy",
+  "ua": "UI.actions",
+  "errors": []
+ }
+}

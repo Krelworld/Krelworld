@@ -1,0 +1,1156 @@
+{
+ "land": {
+  "geo": {
+   "xDisp": "block",
+   "x": [
+    4,
+    328,
+    56,
+    380
+   ],
+   "paper": [
+    66,
+    52,
+    716,
+    390
+   ],
+   "WH": "650x338",
+   "aspect": 1.923,
+   "bitmapAspect": 1.923,
+   "text": "❌"
+  },
+  "points": {
+   "c": {
+    "top": "#xFloat",
+    "bad": []
+   },
+   "tl": {
+    "top": "#studio",
+    "bad": []
+   },
+   "tr": {
+    "top": "#studio",
+    "bad": []
+   },
+   "bl": {
+    "top": "#studio",
+    "bad": []
+   },
+   "br": {
+    "top": "#studio",
+    "bad": []
+   },
+   "mr": {
+    "top": "#xFloat",
+    "bad": []
+   }
+  },
+  "paperEdge": {
+   "checked": 27,
+   "bad": []
+  },
+  "tools": {
+   "toolsBox": [
+    52,
+    318
+   ],
+   "fullAtRest": 5,
+   "partAtRest": 1,
+   "eraserBottom": 314,
+   "xTop": 328,
+   "gap": 14,
+   "eraserHit": true,
+   "last": "🧽"
+  },
+  "drawers": {
+   "stickers": {
+    "kind": "stickers",
+    "hidden": false,
+    "box": [
+     80,
+     232,
+     764,
+     380
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "pages": {
+    "kind": "pages",
+    "hidden": false,
+    "box": [
+     80,
+     232,
+     764,
+     380
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "gallery": {
+    "kind": "gallery",
+    "hidden": false,
+    "box": [
+     80,
+     232,
+     764,
+     380
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true
+    ]
+   },
+   "save": {
+    "kind": "pic",
+    "hidden": false,
+    "box": [
+     80,
+     232,
+     764,
+     380
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   }
+  },
+  "edgeStroke": {
+   "studioOpen": true,
+   "inkedNearStart": false,
+   "inkedMid": false
+  }
+ },
+ "land errors": [],
+ "land G32off": {
+  "geo": {
+   "xDisp": "none",
+   "x": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "paper": [
+    66,
+    52,
+    716,
+    390
+   ],
+   "WH": "650x338",
+   "aspect": 1.923,
+   "bitmapAspect": 1.923,
+   "text": "❌"
+  }
+ },
+ "landG32 errors": [],
+ "land i47": {
+  "geo": {
+   "xDisp": "block",
+   "x": [
+    51,
+    307,
+    103,
+    359
+   ],
+   "paper": [
+    113,
+    52,
+    669,
+    369
+   ],
+   "WH": "556x317",
+   "aspect": 1.754,
+   "bitmapAspect": 1.754,
+   "text": "❌"
+  },
+  "points": {
+   "c": {
+    "top": "#xFloat",
+    "bad": []
+   },
+   "tl": {
+    "top": "#studio",
+    "bad": []
+   },
+   "tr": {
+    "top": "#studio",
+    "bad": []
+   },
+   "bl": {
+    "top": "#studio",
+    "bad": []
+   },
+   "br": {
+    "top": "#studio",
+    "bad": []
+   },
+   "mr": {
+    "top": "#xFloat",
+    "bad": []
+   }
+  },
+  "paperEdge": {
+   "checked": 27,
+   "bad": []
+  },
+  "tools": {
+   "toolsBox": [
+    52,
+    297
+   ],
+   "fullAtRest": 4,
+   "partAtRest": 1,
+   "eraserBottom": 293,
+   "xTop": 307,
+   "gap": 14,
+   "eraserHit": true,
+   "last": "🧽"
+  },
+  "drawers": {
+   "stickers": {
+    "kind": "stickers",
+    "hidden": false,
+    "box": [
+     127,
+     232,
+     764,
+     380
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "pages": {
+    "kind": "pages",
+    "hidden": false,
+    "box": [
+     127,
+     232,
+     764,
+     380
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "gallery": {
+    "kind": "gallery",
+    "hidden": false,
+    "box": [
+     127,
+     232,
+     764,
+     380
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true
+    ]
+   },
+   "save": {
+    "kind": "pic",
+    "hidden": false,
+    "box": [
+     446,
+     306,
+     446,
+     306
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     false,
+     false,
+     false,
+     false
+    ]
+   }
+  },
+  "edgeStroke": {
+   "studioOpen": true,
+   "inkedNearStart": false,
+   "inkedMid": false
+  }
+ },
+ "land i47 errors": [],
+ "land i47 G32off": {
+  "geo": {
+   "xDisp": "none",
+   "x": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "paper": [
+    113,
+    52,
+    669,
+    369
+   ],
+   "WH": "556x317",
+   "aspect": 1.754,
+   "bitmapAspect": 1.754,
+   "text": "❌"
+  }
+ },
+ "land i47G32 errors": [],
+ "landSmall": {
+  "geo": {
+   "xDisp": "block",
+   "x": [
+    4,
+    313,
+    56,
+    365
+   ],
+   "paper": [
+    66,
+    52,
+    539,
+    375
+   ],
+   "WH": "473x323",
+   "aspect": 1.464,
+   "bitmapAspect": 1.464,
+   "text": "❌"
+  },
+  "points": {
+   "c": {
+    "top": "#xFloat",
+    "bad": []
+   },
+   "tl": {
+    "top": "#studio",
+    "bad": []
+   },
+   "tr": {
+    "top": "#studio",
+    "bad": []
+   },
+   "bl": {
+    "top": "#studio",
+    "bad": []
+   },
+   "br": {
+    "top": "#studio",
+    "bad": []
+   },
+   "mr": {
+    "top": "#xFloat",
+    "bad": []
+   }
+  },
+  "paperEdge": {
+   "checked": 27,
+   "bad": []
+  },
+  "tools": {
+   "toolsBox": [
+    52,
+    303
+   ],
+   "fullAtRest": 4,
+   "partAtRest": 1,
+   "eraserBottom": 299,
+   "xTop": 313,
+   "gap": 14,
+   "eraserHit": true,
+   "last": "🧽"
+  },
+  "drawers": {
+   "stickers": {
+    "kind": "stickers",
+    "hidden": false,
+    "box": [
+     80,
+     217,
+     587,
+     365
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "pages": {
+    "kind": "pages",
+    "hidden": false,
+    "box": [
+     80,
+     217,
+     587,
+     365
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "gallery": {
+    "kind": "gallery",
+    "hidden": false,
+    "box": [
+     84,
+     218,
+     583,
+     364
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true
+    ]
+   },
+   "save": {
+    "kind": "pic",
+    "hidden": false,
+    "box": [
+     80,
+     217,
+     587,
+     365
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   }
+  },
+  "edgeStroke": {
+   "studioOpen": true,
+   "inkedNearStart": false,
+   "inkedMid": false
+  }
+ },
+ "landSmall errors": [],
+ "landSmall G32off": {
+  "geo": {
+   "xDisp": "none",
+   "x": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "paper": [
+    66,
+    52,
+    539,
+    375
+   ],
+   "WH": "473x323",
+   "aspect": 1.464,
+   "bitmapAspect": 1.464,
+   "text": "❌"
+  }
+ },
+ "landSmallG32 errors": [],
+ "landSmall i47": {
+  "geo": {
+   "xDisp": "block",
+   "x": [
+    51,
+    292,
+    103,
+    344
+   ],
+   "paper": [
+    113,
+    52,
+    492,
+    354
+   ],
+   "WH": "379x302",
+   "aspect": 1.255,
+   "bitmapAspect": 1.255,
+   "text": "❌"
+  },
+  "points": {
+   "c": {
+    "top": "#xFloat",
+    "bad": []
+   },
+   "tl": {
+    "top": "#studio",
+    "bad": []
+   },
+   "tr": {
+    "top": "#studio",
+    "bad": []
+   },
+   "bl": {
+    "top": "#studio",
+    "bad": []
+   },
+   "br": {
+    "top": "#studio",
+    "bad": []
+   },
+   "mr": {
+    "top": "#xFloat",
+    "bad": []
+   }
+  },
+  "paperEdge": {
+   "checked": 27,
+   "bad": []
+  },
+  "tools": {
+   "toolsBox": [
+    52,
+    282
+   ],
+   "fullAtRest": 4,
+   "partAtRest": 1,
+   "eraserBottom": 278,
+   "xTop": 292,
+   "gap": 14,
+   "eraserHit": true,
+   "last": "🧽"
+  },
+  "drawers": {
+   "stickers": {
+    "kind": "stickers",
+    "hidden": false,
+    "box": [
+     127,
+     217,
+     587,
+     365
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "pages": {
+    "kind": "pages",
+    "hidden": false,
+    "box": [
+     127,
+     217,
+     587,
+     365
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "gallery": {
+    "kind": "gallery",
+    "hidden": false,
+    "box": [
+     127,
+     217,
+     587,
+     365
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true
+    ]
+   },
+   "save": {
+    "kind": "pic",
+    "hidden": false,
+    "box": [
+     182,
+     235,
+     532,
+     347
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   }
+  },
+  "edgeStroke": {
+   "studioOpen": true,
+   "inkedNearStart": false,
+   "inkedMid": false
+  }
+ },
+ "landSmall i47 errors": [],
+ "landSmall i47 G32off": {
+  "geo": {
+   "xDisp": "none",
+   "x": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "paper": [
+    113,
+    52,
+    492,
+    354
+   ],
+   "WH": "379x302",
+   "aspect": 1.255,
+   "bitmapAspect": 1.255,
+   "text": "❌"
+  }
+ },
+ "landSmall i47G32 errors": [],
+ "844x340": {
+  "geo": {
+   "xDisp": "block",
+   "x": [
+    4,
+    278,
+    56,
+    330
+   ],
+   "paper": [
+    66,
+    52,
+    716,
+    340
+   ],
+   "WH": "650x288",
+   "aspect": 2.257,
+   "bitmapAspect": 2.257,
+   "text": "❌"
+  },
+  "points": {
+   "c": {
+    "top": "#xFloat",
+    "bad": []
+   },
+   "tl": {
+    "top": "#studio",
+    "bad": []
+   },
+   "tr": {
+    "top": "#studio",
+    "bad": []
+   },
+   "bl": {
+    "top": "#studio",
+    "bad": []
+   },
+   "br": {
+    "top": "#studio",
+    "bad": []
+   },
+   "mr": {
+    "top": "#xFloat",
+    "bad": []
+   }
+  },
+  "paperEdge": {
+   "checked": 27,
+   "bad": []
+  },
+  "tools": {
+   "toolsBox": [
+    52,
+    268
+   ],
+   "fullAtRest": 4,
+   "partAtRest": 1,
+   "eraserBottom": 264,
+   "xTop": 278,
+   "gap": 14,
+   "eraserHit": true,
+   "last": "🧽"
+  },
+  "drawers": {
+   "stickers": {
+    "kind": "stickers",
+    "hidden": false,
+    "box": [
+     161,
+     200,
+     683,
+     312
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "pages": {
+    "kind": "pages",
+    "hidden": false,
+    "box": [
+     80,
+     182,
+     764,
+     330
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "gallery": {
+    "kind": "gallery",
+    "hidden": false,
+    "box": [
+     80,
+     182,
+     764,
+     330
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true
+    ]
+   },
+   "save": {
+    "kind": "pic",
+    "hidden": false,
+    "box": [
+     80,
+     182,
+     764,
+     330
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   }
+  },
+  "edgeStroke": {
+   "studioOpen": true,
+   "inkedNearStart": false,
+   "inkedMid": false
+  }
+ },
+ "844x340 errors": [],
+ "844x340 G32off": {
+  "geo": {
+   "xDisp": "none",
+   "x": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "paper": [
+    66,
+    52,
+    716,
+    340
+   ],
+   "WH": "650x288",
+   "aspect": 2.257,
+   "bitmapAspect": 2.257,
+   "text": "❌"
+  }
+ },
+ "844x340G32 errors": [],
+ "844x340 i47": {
+  "geo": {
+   "xDisp": "block",
+   "x": [
+    51,
+    257,
+    103,
+    309
+   ],
+   "paper": [
+    113,
+    52,
+    669,
+    319
+   ],
+   "WH": "556x267",
+   "aspect": 2.082,
+   "bitmapAspect": 2.082,
+   "text": "❌"
+  },
+  "points": {
+   "c": {
+    "top": "#xFloat",
+    "bad": []
+   },
+   "tl": {
+    "top": "#studio",
+    "bad": []
+   },
+   "tr": {
+    "top": "#studio",
+    "bad": []
+   },
+   "bl": {
+    "top": "#studio",
+    "bad": []
+   },
+   "br": {
+    "top": "#studio",
+    "bad": []
+   },
+   "mr": {
+    "top": "#xFloat",
+    "bad": []
+   }
+  },
+  "paperEdge": {
+   "checked": 27,
+   "bad": []
+  },
+  "tools": {
+   "toolsBox": [
+    52,
+    247
+   ],
+   "fullAtRest": 3,
+   "partAtRest": 1,
+   "eraserBottom": 243,
+   "xTop": 257,
+   "gap": 14,
+   "eraserHit": true,
+   "last": "🧽"
+  },
+  "drawers": {
+   "stickers": {
+    "kind": "stickers",
+    "hidden": false,
+    "box": [
+     362,
+     237,
+     529,
+     275
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "pages": {
+    "kind": "pages",
+    "hidden": false,
+    "box": [
+     128,
+     182,
+     763,
+     330
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   "gallery": {
+    "kind": "gallery",
+    "hidden": false,
+    "box": [
+     127,
+     182,
+     764,
+     330
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true
+    ]
+   },
+   "save": {
+    "kind": "pic",
+    "hidden": false,
+    "box": [
+     242,
+     209,
+     649,
+     303
+    ],
+    "overlapX": 0,
+    "first4Hit": [
+     true,
+     true,
+     true,
+     true
+    ]
+   }
+  },
+  "edgeStroke": {
+   "studioOpen": true,
+   "inkedNearStart": false,
+   "inkedMid": false
+  }
+ },
+ "844x340 i47 errors": [],
+ "844x340 i47 G32off": {
+  "geo": {
+   "xDisp": "none",
+   "x": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "paper": [
+    113,
+    52,
+    669,
+    319
+   ],
+   "WH": "556x267",
+   "aspect": 2.082,
+   "bitmapAspect": 2.082,
+   "text": "❌"
+  }
+ },
+ "844x340 i47G32 errors": [],
+ "WH land": {
+  "on": "650x338",
+  "off": "650x338",
+  "same": true,
+  "xOnDisp": "block",
+  "xOffDisp": "none"
+ },
+ "WH land i47": {
+  "on": "556x317",
+  "off": "556x317",
+  "same": true,
+  "xOnDisp": "block",
+  "xOffDisp": "none"
+ },
+ "WH landSmall": {
+  "on": "473x323",
+  "off": "473x323",
+  "same": true,
+  "xOnDisp": "block",
+  "xOffDisp": "none"
+ },
+ "WH landSmall i47": {
+  "on": "379x302",
+  "off": "379x302",
+  "same": true,
+  "xOnDisp": "block",
+  "xOffDisp": "none"
+ },
+ "WH 844x340": {
+  "on": "650x288",
+  "off": "650x288",
+  "same": true,
+  "xOnDisp": "block",
+  "xOffDisp": "none"
+ },
+ "WH 844x340 i47": {
+  "on": "556x267",
+  "off": "556x267",
+  "same": true,
+  "xOnDisp": "block",
+  "xOffDisp": "none"
+ },
+ "closing land": {
+  "xFloat": {
+   "active": false,
+   "galleryAdded": 1,
+   "draftWritten": true,
+   "draftChanged": true,
+   "xDispAfter": "none"
+  },
+  "topX": {
+   "studioGone": true,
+   "xDisp": "none",
+   "artClass": true,
+   "stop": null
+  },
+  "give it to daddy": {
+   "studioGone": true,
+   "xDisp": "none",
+   "artClass": true,
+   "stop": {
+    "t": 40,
+    "under": "span.sx",
+    "isStop": true,
+    "xDisp": "none",
+    "xArt": false,
+    "xy": [
+     61.9375,
+     351
+    ]
+   }
+  },
+  "hang it on the wall": {
+   "studioGone": true,
+   "xDisp": "none",
+   "artClass": true,
+   "stop": null
+  },
+  "carry it": {
+   "studioGone": true,
+   "xDisp": "none",
+   "artClass": true,
+   "stop": {
+    "t": 180,
+    "under": "span.sx",
+    "isStop": true,
+    "xDisp": "none",
+    "xArt": false,
+    "xy": [
+     61.9375,
+     351
+    ]
+   },
+   "afterStopTap": {
+    "holding": false
+   }
+  }
+ },
+ "closing errors land": [],
+ "closing landSmall i47": {
+  "xFloat": {
+   "active": false,
+   "galleryAdded": 1,
+   "draftWritten": true,
+   "draftChanged": true,
+   "xDispAfter": "none"
+  },
+  "topX": {
+   "studioGone": true,
+   "xDisp": "none",
+   "artClass": true,
+   "stop": null
+  },
+  "give it to daddy": {
+   "studioGone": true,
+   "xDisp": "none",
+   "artClass": true,
+   "stop": {
+    "t": 80,
+    "under": "span.sx",
+    "isStop": true,
+    "xDisp": "none",
+    "xArt": true,
+    "xy": [
+     108.9375,
+     315
+    ]
+   }
+  },
+  "hang it on the wall": {
+   "studioGone": true,
+   "xDisp": "none",
+   "artClass": true,
+   "stop": null
+  },
+  "carry it": {
+   "studioGone": true,
+   "xDisp": "none",
+   "artClass": true,
+   "stop": {
+    "t": 40,
+    "under": "span.sx",
+    "isStop": true,
+    "xDisp": "none",
+    "xArt": false,
+    "xy": [
+     108.9375,
+     315
+    ]
+   },
+   "afterStopTap": {
+    "holding": false
+   }
+  }
+ },
+ "closing errors landSmall i47": [],
+ "portrait port": {
+  "xFloat": "none",
+  "toolsSame": true,
+  "rotation": [
+   {
+    "xDisp": "block",
+    "WH": "390x646",
+    "aspect": 0.604,
+    "bitmapAspect": 0.604
+   },
+   {
+    "xDisp": "none",
+    "WH": "390x646",
+    "aspect": 0.585,
+    "bitmapAspect": 0.604
+   }
+  ],
+  "errors": [
+   [],
+   []
+  ]
+ },
+ "portrait portSmall": {
+  "xFloat": "none",
+  "toolsSame": true,
+  "rotation": [
+   {
+    "xDisp": "block",
+    "WH": "375x469",
+    "aspect": 0.8,
+    "bitmapAspect": 0.8
+   },
+   {
+    "xDisp": "none",
+    "WH": "375x469",
+    "aspect": 0.774,
+    "bitmapAspect": 0.8
+   }
+  ],
+  "errors": [
+   [],
+   []
+  ]
+ }
+}

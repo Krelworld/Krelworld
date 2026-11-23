@@ -1,0 +1,480 @@
+{
+ "grid": {
+  "port": {
+   "kitchenSame": false,
+   "denSame": false,
+   "n": 11750,
+   "errors": [
+    [],
+    []
+   ],
+   "kitchenDiffPts": 3254
+  },
+  "land": {
+   "kitchenSame": true,
+   "denSame": true,
+   "n": 20148,
+   "errors": [
+    [],
+    []
+   ]
+  },
+  "portSmall": {
+   "kitchenSame": false,
+   "denSame": false,
+   "n": 10800,
+   "errors": [
+    [],
+    []
+   ],
+   "kitchenDiffPts": 3664
+  }
+ },
+ "taps": {
+  "port:on": {
+   "label0": "yard top=poly",
+   "label1": "dining top=poly",
+   "label2": "kitchen top=poly",
+   "label3": "playroom top=poly",
+   "label4": "foyer top=poly",
+   "label5": "living top=poly",
+   "label6": "bathroom top=poly",
+   "meGlyph": "kitchen+map top=poly",
+   "tileBottom:nunuroom": "nunuroom top=BUTTON.fmaproom[nunuroom]",
+   "tileTopRight:nunuroom": "nunuroom top=BUTTON.fmaproom[nunuroom]",
+   "tileBottom:den": "den top=BUTTON.fmaproom[den]",
+   "tileTopRight:den": "den top=BUTTON.fmaproom[den]",
+   "tileBottom:storage": "storage top=BUTTON.fmaproom[storage]",
+   "tileTopRight:storage": "storage top=BUTTON.fmaproom[storage]",
+   "tileBottom:backyard": "backyard top=BUTTON.fmaproom[backyard]",
+   "tileTopRight:backyard": "backyard top=BUTTON.fmaproom[backyard]",
+   "denTileFace": "den top=BUTTON.fmaproom here",
+   "denTilePeople": "den top=BUTTON.fmaproom here"
+  },
+  "port:off": {
+   "label0": "yard top=poly",
+   "label1": "dining top=poly",
+   "label2": "kitchen top=poly",
+   "label3": "playroom top=poly",
+   "label4": "foyer top=poly",
+   "label5": "living top=poly",
+   "label6": "bathroom top=poly",
+   "meGlyph": "kitchen+map top=svg.isosvg[]",
+   "tileBottom:nunuroom": "nunuroom top=BUTTON.fmaproom[nunuroom]",
+   "tileTopRight:nunuroom": "nunuroom top=BUTTON.fmaproom[nunuroom]",
+   "tileBottom:den": "den top=BUTTON.fmaproom[den]",
+   "tileTopRight:den": "den top=BUTTON.fmaproom[den]",
+   "tileBottom:storage": "storage top=BUTTON.fmaproom[storage]",
+   "tileTopRight:storage": "storage top=BUTTON.fmaproom[storage]",
+   "tileBottom:backyard": "backyard top=BUTTON.fmaproom[backyard]",
+   "tileTopRight:backyard": "backyard top=BUTTON.fmaproom[backyard]",
+   "denTileFace": "den top=BUTTON.fmaproom here",
+   "denTilePeople": "den top=BUTTON.fmaproom here"
+  },
+  "land:on": {
+   "label0": "yard top=poly",
+   "label1": "dining top=poly",
+   "label2": "kitchen top=poly",
+   "label3": "playroom top=poly",
+   "label4": "foyer top=poly",
+   "label5": "living top=poly",
+   "label6": "bathroom top=poly",
+   "meGlyph": "kitchen+map top=svg.isosvg[]",
+   "tileBottom:nunuroom": "nunuroom top=BUTTON.fmaproom[nunuroom]",
+   "tileTopRight:nunuroom": "nunuroom top=BUTTON.fmaproom[nunuroom]",
+   "tileBottom:den": "den top=BUTTON.fmaproom[den]",
+   "tileTopRight:den": "den top=BUTTON.fmaproom[den]",
+   "tileBottom:storage": "storage top=BUTTON.fmaproom[storage]",
+   "tileTopRight:storage": "storage top=BUTTON.fmaproom[storage]",
+   "tileBottom:backyard": "backyard top=BUTTON.fmaproom[backyard]",
+   "tileTopRight:backyard": "backyard top=BUTTON.fmaproom[backyard]",
+   "denTileFace": "den top=BUTTON.fmaproom here",
+   "denTilePeople": "den top=BUTTON.fmaproom here"
+  },
+  "land:off": {
+   "label0": "yard top=poly",
+   "label1": "dining top=poly",
+   "label2": "kitchen top=poly",
+   "label3": "playroom top=poly",
+   "label4": "foyer top=poly",
+   "label5": "living top=poly",
+   "label6": "bathroom top=poly",
+   "meGlyph": "kitchen+map top=svg.isosvg[]",
+   "tileBottom:nunuroom": "nunuroom top=BUTTON.fmaproom[nunuroom]",
+   "tileTopRight:nunuroom": "nunuroom top=BUTTON.fmaproom[nunuroom]",
+   "tileBottom:den": "den top=BUTTON.fmaproom[den]",
+   "tileTopRight:den": "den top=BUTTON.fmaproom[den]",
+   "tileBottom:storage": "storage top=BUTTON.fmaproom[storage]",
+   "tileTopRight:storage": "storage top=BUTTON.fmaproom[storage]",
+   "tileBottom:backyard": "backyard top=BUTTON.fmaproom[backyard]",
+   "tileTopRight:backyard": "backyard top=BUTTON.fmaproom[backyard]",
+   "denTileFace": "den top=BUTTON.fmaproom here",
+   "denTilePeople": "den top=BUTTON.fmaproom here"
+  },
+  "portSmall:on": {
+   "label0": "yard top=poly",
+   "label1": "dining top=poly",
+   "label2": "kitchen top=poly",
+   "label3": "playroom top=poly",
+   "label4": "foyer top=poly",
+   "label5": "living top=poly",
+   "label6": "bathroom top=poly",
+   "meGlyph": "kitchen+map top=poly",
+   "tileBottom:nunuroom": "nunuroom top=BUTTON.fmaproom[nunuroom]",
+   "tileTopRight:nunuroom": "nunuroom top=BUTTON.fmaproom[nunuroom]",
+   "tileBottom:den": "den top=BUTTON.fmaproom[den]",
+   "tileTopRight:den": "den top=BUTTON.fmaproom[den]",
+   "tileBottom:storage": "storage top=BUTTON.fmaproom[storage]",
+   "tileTopRight:storage": "storage top=BUTTON.fmaproom[storage]",
+   "tileBottom:backyard": "backyard top=BUTTON.fmaproom[backyard]",
+   "tileTopRight:backyard": "backyard top=BUTTON.fmaproom[backyard]",
+   "denTileFace": "den top=BUTTON.fmaproom here",
+   "denTilePeople": "den top=BUTTON.fmaproom here"
+  },
+  "portSmall:off": {
+   "label0": "yard top=poly",
+   "label1": "dining top=poly",
+   "label2": "kitchen top=poly",
+   "label3": "playroom top=poly",
+   "label4": "foyer top=poly",
+   "label5": "living top=poly",
+   "label6": "bathroom top=poly",
+   "meGlyph": "kitchen+map top=svg.isosvg[]",
+   "tileBottom:nunuroom": "nunuroom top=BUTTON.fmaproom[nunuroom]",
+   "tileTopRight:nunuroom": "nunuroom top=BUTTON.fmaproom[nunuroom]",
+   "tileBottom:den": "den top=BUTTON.fmaproom[den]",
+   "tileTopRight:den": "den top=BUTTON.fmaproom[den]",
+   "tileBottom:storage": "storage top=BUTTON.fmaproom[storage]",
+   "tileTopRight:storage": "storage top=BUTTON.fmaproom[storage]",
+   "tileBottom:backyard": "backyard top=BUTTON.fmaproom[backyard]",
+   "tileTopRight:backyard": "backyard top=BUTTON.fmaproom[backyard]",
+   "denTileFace": "den top=BUTTON.fmaproom here",
+   "denTilePeople": "den top=BUTTON.fmaproom here"
+  }
+ },
+ "port": {
+  "port": {
+   "on": {
+    "xCentre": true,
+    "xCorner": true,
+    "house": [
+     374,
+     280.5,
+     264,
+     544
+    ],
+    "scroll": 0,
+    "tilesOwn": true,
+    "minGapToX": 151,
+    "allInView": true,
+    "upRow": [
+     219,
+     258
+    ],
+    "upToHouse": 6,
+    "upAboveHouse": true,
+    "stack": [
+     151,
+     157
+    ]
+   },
+   "rotLand": {
+    "house": [
+     290.6,
+     217.9
+    ],
+    "moved": false,
+    "spacers": 0,
+    "tilesOwn": true,
+    "underX": [],
+    "allInView": true,
+    "rowsOrder": "up,down,out,tree"
+   },
+   "rotBack": {
+    "moved": true,
+    "house": 280.5
+   },
+   "onErrors": [],
+   "off": {
+    "xCentre": true,
+    "xCorner": true,
+    "house": [
+     374,
+     280.5,
+     219,
+     499
+    ],
+    "scroll": 0,
+    "tilesOwn": true,
+    "minGapToX": 588,
+    "allInView": true,
+    "upRow": [
+     656,
+     695
+    ],
+    "upToHouse": -476,
+    "upAboveHouse": false,
+    "stack": [
+     151,
+     6
+    ]
+   },
+   "rotLandOff": [
+    290.6,
+    217.9
+   ],
+   "offErrors": []
+  },
+  "portSmall": {
+   "on": {
+    "xCentre": true,
+    "xCorner": true,
+    "house": [
+     359,
+     269.3,
+     182,
+     452
+    ],
+    "scroll": 0,
+    "tilesOwn": true,
+    "minGapToX": 71,
+    "allInView": true,
+    "upRow": [
+     139,
+     176
+    ],
+    "upToHouse": 6,
+    "upAboveHouse": true,
+    "stack": [
+     71,
+     77
+    ]
+   },
+   "onErrors": [],
+   "off": {
+    "xCentre": true,
+    "xCorner": true,
+    "house": [
+     359,
+     269.3,
+     139,
+     408
+    ],
+    "scroll": 0,
+    "tilesOwn": true,
+    "minGapToX": 417,
+    "allInView": true,
+    "upRow": [
+     485,
+     523
+    ],
+    "upToHouse": -384,
+    "upAboveHouse": false,
+    "stack": [
+     71,
+     6
+    ]
+   },
+   "offErrors": []
+  },
+  "390x664": {
+   "on": {
+    "xCentre": true,
+    "xCorner": true,
+    "house": [
+     374,
+     280.5,
+     174,
+     454
+    ],
+    "scroll": 0,
+    "tilesOwn": true,
+    "minGapToX": 61,
+    "allInView": true,
+    "upRow": [
+     129,
+     168
+    ],
+    "upToHouse": 6,
+    "upAboveHouse": true,
+    "stack": [
+     61,
+     67
+    ]
+   },
+   "onErrors": [],
+   "off": {
+    "xCentre": true,
+    "xCorner": true,
+    "house": [
+     374,
+     280.5,
+     129,
+     409
+    ],
+    "scroll": 0,
+    "tilesOwn": true,
+    "minGapToX": 408,
+    "allInView": true,
+    "upRow": [
+     476,
+     515
+    ],
+    "upToHouse": -386,
+    "upAboveHouse": false,
+    "stack": [
+     61,
+     6
+    ]
+   },
+   "offErrors": []
+  },
+  "390x585": {
+   "on": {
+    "xCentre": true,
+    "xCorner": true,
+    "house": [
+     374,
+     280.5,
+     134,
+     415
+    ],
+    "scroll": 0,
+    "tilesOwn": true,
+    "minGapToX": 21,
+    "allInView": true,
+    "upRow": [
+     89,
+     128
+    ],
+    "upToHouse": 6,
+    "upAboveHouse": true,
+    "stack": [
+     21,
+     27
+    ]
+   },
+   "onErrors": [],
+   "off": {
+    "xCentre": true,
+    "xCorner": true,
+    "house": [
+     374,
+     280.5,
+     89,
+     370
+    ],
+    "scroll": 0,
+    "tilesOwn": true,
+    "minGapToX": 329,
+    "allInView": true,
+    "upRow": [
+     397,
+     436
+    ],
+    "upToHouse": -347,
+    "upAboveHouse": false,
+    "stack": [
+     21,
+     6
+    ]
+   },
+   "offErrors": []
+  },
+  "375x553": {
+   "on": {
+    "xCentre": true,
+    "xCorner": true,
+    "house": [
+     359,
+     269.3,
+     128,
+     397
+    ],
+    "scroll": 0,
+    "tilesOwn": true,
+    "minGapToX": 16,
+    "allInView": true,
+    "upRow": [
+     84,
+     122
+    ],
+    "upToHouse": 6,
+    "upAboveHouse": true,
+    "stack": [
+     16,
+     18
+    ]
+   },
+   "onErrors": [],
+   "off": {
+    "xCentre": true,
+    "xCorner": true,
+    "house": [
+     359,
+     269.3,
+     82,
+     351
+    ],
+    "scroll": 0,
+    "tilesOwn": true,
+    "minGapToX": 303,
+    "allInView": true,
+    "upRow": [
+     371,
+     409
+    ],
+    "upToHouse": -327,
+    "upAboveHouse": false,
+    "stack": [
+     14,
+     6
+    ]
+   },
+   "offErrors": []
+  }
+ },
+ "minkaBefore": [
+  "storage"
+ ],
+ "hide": "shelf",
+ "hideState": {
+  "hiding": {
+   "spot": "shelf",
+   "room": "den",
+   "in": true,
+   "round": 1,
+   "checked": []
+  },
+  "room": "den",
+  "hidden": true
+ },
+ "minkaWhileHiding": [],
+ "minkaAfter": [
+  "laundry"
+ ],
+ "dotsDown": "nunuroom den+gp storage laundry",
+ "dotsOut": "pool yard+busy backyard+gp",
+ "dotStyle": "7px 7px rgb(123, 211, 107) rgb(255, 255, 255) 2px 2px",
+ "dotsMain": "yard+busy dining kitchen+busy playroom foyer living+busy bathroom",
+ "noFaces": {
+  "label": "👧👨",
+  "hiddenMe": 0,
+  "images": 0
+ },
+ "noFacesDen": {
+  "people": "👧👵",
+  "img": 0,
+  "here": true
+ },
+ "misc": {
+  "errors": []
+ },
+ "labels_on": {
+  "kitchen": "👧👨👩🐱",
+  "overlaps": []
+ },
+ "labels_off": {
+  "overlaps": []
+ }
+}

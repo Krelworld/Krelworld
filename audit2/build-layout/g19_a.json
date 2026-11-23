@@ -1,0 +1,1012 @@
+{
+ "land G19": {
+  "stripHits": {
+   "cards": "LR",
+   "rb": [
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  "s0": {
+   "stageW": 767.31,
+   "viewW": 305.17,
+   "cvw": 767,
+   "arrowR": 711.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "folded": {
+   "stageW": 767.31,
+   "viewW": 305.17,
+   "cvw": 767,
+   "arrowR": 711.3,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "hidden",
+   "barDisp": "flex",
+   "chevron": "\"◂\"",
+   "toggleText": "😊"
+  },
+  "afterHello": {
+   "stageW": 767.31,
+   "viewW": 305.17,
+   "cvw": 767,
+   "arrowR": 711.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "folded2": {
+   "stageW": 767.31,
+   "viewW": 305.17,
+   "cvw": 767,
+   "arrowR": 711.3,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "hidden",
+   "barDisp": "flex",
+   "chevron": "\"◂\"",
+   "toggleText": "😊"
+  },
+  "unfolded": {
+   "stageW": 767.31,
+   "viewW": 305.17,
+   "cvw": 767,
+   "arrowR": 711.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "handleTop": "moodToggle / rightCard=true",
+  "unfoldWhileTalking": {
+   "stageW": 767.31,
+   "viewW": 305.17,
+   "cvw": 767,
+   "arrowR": 711.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "afterSad": {
+   "stageW": 767.31,
+   "viewW": 305.17,
+   "cvw": 767,
+   "arrowR": 711.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😢"
+  },
+  "pixelAfterPulse": "6,2,0,255 rs=0",
+  "errors": []
+ },
+ "land TODAY": {
+  "stripHits": {
+   "cards": "LR",
+   "rb": [
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  "s0": {
+   "stageW": 844,
+   "viewW": 335.81,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "folded": {
+   "stageW": 844,
+   "viewW": 335.81,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "visible",
+   "barDisp": "none",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "afterHello": {
+   "stageW": 844,
+   "viewW": 335.81,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "folded2": {
+   "stageW": 844,
+   "viewW": 335.81,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "visible",
+   "barDisp": "none",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "unfolded": {
+   "stageW": 844,
+   "viewW": 335.81,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "handleTop": "moodToggle / rightCard=true",
+  "unfoldWhileTalking": {
+   "stageW": 844,
+   "viewW": 335.81,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "afterSad": {
+   "stageW": 844,
+   "viewW": 335.81,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😢"
+  },
+  "pixelAfterPulse": "254,247,227,255 rs=0",
+  "errors": []
+ },
+ "landSmall G19": {
+  "stripHits": {
+   "cards": "LR",
+   "rb": [
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  "s0": {
+   "stageW": 592.25,
+   "viewW": 244.97,
+   "cvw": 592,
+   "arrowR": 536.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "folded": {
+   "stageW": 592.25,
+   "viewW": 244.97,
+   "cvw": 592,
+   "arrowR": 536.3,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "hidden",
+   "barDisp": "flex",
+   "chevron": "\"◂\"",
+   "toggleText": "😊"
+  },
+  "afterHello": {
+   "stageW": 592.25,
+   "viewW": 244.97,
+   "cvw": 592,
+   "arrowR": 536.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "folded2": {
+   "stageW": 592.25,
+   "viewW": 244.97,
+   "cvw": 592,
+   "arrowR": 536.3,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "hidden",
+   "barDisp": "flex",
+   "chevron": "\"◂\"",
+   "toggleText": "😊"
+  },
+  "unfolded": {
+   "stageW": 592.25,
+   "viewW": 244.97,
+   "cvw": 592,
+   "arrowR": 536.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "handleTop": "moodToggle / rightCard=true",
+  "unfoldWhileTalking": {
+   "stageW": 592.25,
+   "viewW": 244.97,
+   "cvw": 592,
+   "arrowR": 536.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "afterSad": {
+   "stageW": 592.25,
+   "viewW": 244.97,
+   "cvw": 592,
+   "arrowR": 536.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😢"
+  },
+  "pixelAfterPulse": "255,180,121,255 rs=0",
+  "errors": []
+ },
+ "landSmall TODAY": {
+  "stripHits": {
+   "cards": "LR",
+   "rb": [
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  "s0": {
+   "stageW": 667,
+   "viewW": 276,
+   "cvw": 667,
+   "arrowR": 537,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "folded": {
+   "stageW": 667,
+   "viewW": 276,
+   "cvw": 667,
+   "arrowR": 537,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "visible",
+   "barDisp": "none",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "afterHello": {
+   "stageW": 667,
+   "viewW": 276,
+   "cvw": 667,
+   "arrowR": 537,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "folded2": {
+   "stageW": 667,
+   "viewW": 276,
+   "cvw": 667,
+   "arrowR": 537,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "visible",
+   "barDisp": "none",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "unfolded": {
+   "stageW": 667,
+   "viewW": 276,
+   "cvw": 667,
+   "arrowR": 537,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "handleTop": "moodToggle / rightCard=true",
+  "unfoldWhileTalking": {
+   "stageW": 667,
+   "viewW": 276,
+   "cvw": 667,
+   "arrowR": 537,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "afterSad": {
+   "stageW": 667,
+   "viewW": 276,
+   "cvw": 667,
+   "arrowR": 537,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😢"
+  },
+  "pixelAfterPulse": "254,247,227,255 rs=0",
+  "errors": []
+ },
+ "844x340 G19": {
+  "stripHits": {
+   "cards": "RL",
+   "rb": [
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  "s0": {
+   "stageW": 773.81,
+   "viewW": 353.25,
+   "cvw": 774,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "folded": {
+   "stageW": 773.81,
+   "viewW": 353.25,
+   "cvw": 774,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "hidden",
+   "barDisp": "flex",
+   "chevron": "\"◂\"",
+   "toggleText": "😊"
+  },
+  "afterHello": {
+   "stageW": 773.81,
+   "viewW": 353.25,
+   "cvw": 774,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "folded2": {
+   "stageW": 773.81,
+   "viewW": 353.25,
+   "cvw": 774,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "hidden",
+   "barDisp": "flex",
+   "chevron": "\"◂\"",
+   "toggleText": "😊"
+  },
+  "unfolded": {
+   "stageW": 773.81,
+   "viewW": 353.25,
+   "cvw": 774,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "handleTop": "moodToggle / rightCard=true",
+  "unfoldWhileTalking": {
+   "stageW": 773.81,
+   "viewW": 353.25,
+   "cvw": 774,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "afterSad": {
+   "stageW": 773.81,
+   "viewW": 353.25,
+   "cvw": 774,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😢"
+  },
+  "pixelAfterPulse": "254,247,227,255 rs=0",
+  "errors": []
+ },
+ "844x340 TODAY": {
+  "stripHits": {
+   "cards": "RL",
+   "rb": [
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  "s0": {
+   "stageW": 844,
+   "viewW": 385.19,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "folded": {
+   "stageW": 844,
+   "viewW": 385.19,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "visible",
+   "barDisp": "none",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "afterHello": {
+   "stageW": 844,
+   "viewW": 385.19,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "folded2": {
+   "stageW": 844,
+   "viewW": 385.19,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "visible",
+   "barDisp": "none",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "unfolded": {
+   "stageW": 844,
+   "viewW": 385.19,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "handleTop": "moodToggle / rightCard=true",
+  "unfoldWhileTalking": {
+   "stageW": 844,
+   "viewW": 385.19,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "afterSad": {
+   "stageW": 844,
+   "viewW": 385.19,
+   "cvw": 844,
+   "arrowR": 714,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😢"
+  },
+  "pixelAfterPulse": "254,247,227,255 rs=0",
+  "errors": []
+ },
+ "land_in47 G19": {
+  "stripHits": {
+   "cards": "LR",
+   "rb": [
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  "s0": {
+   "stageW": 673.31,
+   "viewW": 283.01,
+   "cvw": 673,
+   "arrowR": 664.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "folded": {
+   "stageW": 673.31,
+   "viewW": 283.01,
+   "cvw": 673,
+   "arrowR": 664.3,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "hidden",
+   "barDisp": "flex",
+   "chevron": "\"◂\"",
+   "toggleText": "😊"
+  },
+  "afterHello": {
+   "stageW": 673.31,
+   "viewW": 283.01,
+   "cvw": 673,
+   "arrowR": 664.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "folded2": {
+   "stageW": 673.31,
+   "viewW": 283.01,
+   "cvw": 673,
+   "arrowR": 664.3,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "hidden",
+   "barDisp": "flex",
+   "chevron": "\"◂\"",
+   "toggleText": "😊"
+  },
+  "unfolded": {
+   "stageW": 673.31,
+   "viewW": 283.01,
+   "cvw": 673,
+   "arrowR": 664.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "handleTop": "moodToggle / rightCard=true",
+  "unfoldWhileTalking": {
+   "stageW": 673.31,
+   "viewW": 283.01,
+   "cvw": 673,
+   "arrowR": 664.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "afterSad": {
+   "stageW": 673.31,
+   "viewW": 283.01,
+   "cvw": 673,
+   "arrowR": 664.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😢"
+  },
+  "pixelAfterPulse": "255,180,121,255 rs=0",
+  "errors": []
+ },
+ "land_in47 TODAY": {
+  "stripHits": {
+   "cards": "LR",
+   "rb": [
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  "s0": {
+   "stageW": 750,
+   "viewW": 315.39,
+   "cvw": 750,
+   "arrowR": 667,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "folded": {
+   "stageW": 750,
+   "viewW": 315.39,
+   "cvw": 750,
+   "arrowR": 667,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "visible",
+   "barDisp": "none",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "afterHello": {
+   "stageW": 750,
+   "viewW": 315.39,
+   "cvw": 750,
+   "arrowR": 667,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "folded2": {
+   "stageW": 750,
+   "viewW": 315.39,
+   "cvw": 750,
+   "arrowR": 667,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "visible",
+   "barDisp": "none",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "unfolded": {
+   "stageW": 750,
+   "viewW": 315.39,
+   "cvw": 750,
+   "arrowR": 667,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "handleTop": "moodToggle / rightCard=true",
+  "unfoldWhileTalking": {
+   "stageW": 750,
+   "viewW": 315.39,
+   "cvw": 750,
+   "arrowR": 667,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "afterSad": {
+   "stageW": 750,
+   "viewW": 315.39,
+   "cvw": 750,
+   "arrowR": 667,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😢"
+  },
+  "pixelAfterPulse": "254,247,227,255 rs=0",
+  "errors": []
+ },
+ "landSmall_in59 G19": {
+  "stripHits": {
+   "cards": "LR",
+   "rb": [
+    "COVERED by ",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "COVERED by "
+   ]
+  },
+  "s0": {
+   "stageW": 474.25,
+   "viewW": 207.77,
+   "cvw": 474,
+   "arrowR": 477.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "folded": {
+   "stageW": 474.25,
+   "viewW": 207.77,
+   "cvw": 474,
+   "arrowR": 477.3,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "hidden",
+   "barDisp": "flex",
+   "chevron": "\"◂\"",
+   "toggleText": "😊"
+  },
+  "afterHello": {
+   "stageW": 474.25,
+   "viewW": 207.77,
+   "cvw": 474,
+   "arrowR": 477.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "folded2": {
+   "stageW": 474.25,
+   "viewW": 207.77,
+   "cvw": 474,
+   "arrowR": 477.3,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "hidden",
+   "barDisp": "flex",
+   "chevron": "\"◂\"",
+   "toggleText": "😊"
+  },
+  "unfolded": {
+   "stageW": 474.25,
+   "viewW": 207.77,
+   "cvw": 474,
+   "arrowR": 477.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "handleTop": "moodToggle / rightCard=true",
+  "unfoldWhileTalking": {
+   "stageW": 474.25,
+   "viewW": 207.77,
+   "cvw": 474,
+   "arrowR": 477.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😊"
+  },
+  "afterSad": {
+   "stageW": 474.25,
+   "viewW": 207.77,
+   "cvw": 474,
+   "arrowR": 477.3,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "\"▸\"",
+   "toggleText": "😢"
+  },
+  "pixelAfterPulse": "255,180,121,255 rs=0",
+  "errors": []
+ },
+ "landSmall_in59 TODAY": {
+  "stripHits": {
+   "cards": "LR",
+   "rb": [
+    "COVERED by ",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "COVERED by "
+   ]
+  },
+  "s0": {
+   "stageW": 549,
+   "viewW": 240.65,
+   "cvw": 549,
+   "arrowR": 478,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "folded": {
+   "stageW": 549,
+   "viewW": 240.65,
+   "cvw": 549,
+   "arrowR": 478,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "visible",
+   "barDisp": "none",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "afterHello": {
+   "stageW": 549,
+   "viewW": 240.65,
+   "cvw": 549,
+   "arrowR": 478,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "folded2": {
+   "stageW": 549,
+   "viewW": 240.65,
+   "cvw": 549,
+   "arrowR": 478,
+   "rs": 0,
+   "collapsed": true,
+   "faceVis": "visible",
+   "barDisp": "none",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "unfolded": {
+   "stageW": 549,
+   "viewW": 240.65,
+   "cvw": 549,
+   "arrowR": 478,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "handleTop": "moodToggle / rightCard=true",
+  "unfoldWhileTalking": {
+   "stageW": 549,
+   "viewW": 240.65,
+   "cvw": 549,
+   "arrowR": 478,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😊"
+  },
+  "afterSad": {
+   "stageW": 549,
+   "viewW": 240.65,
+   "cvw": 549,
+   "arrowR": 478,
+   "rs": 0,
+   "collapsed": false,
+   "faceVis": "visible",
+   "barDisp": "flex",
+   "chevron": "none",
+   "toggleText": "😢"
+  },
+  "pixelAfterPulse": "254,247,227,255 rs=0",
+  "errors": []
+ }
+}

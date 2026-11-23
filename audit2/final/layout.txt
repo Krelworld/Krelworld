@@ -1,0 +1,472 @@
+# WORKER BRIEF: layout  (overlay file: clarity-layout.js)
+Items to build: G4, G13, G14, G19
+
+## Your surface
+How the picture is framed and where the HUD sits around it. Owns: zoom and camera (engine.js:169, game.js:286, and the resize() + render() calls); in landscape, #moodbar and #moodToggle layout and look (column, handle, chevron, folded slot, hiding during the story); .navarrow.r's right offset; the landscape right offsets of .facecard.right, #weatherBtn, #dressBtn and #bookBtn; landscape centring of #roombar and #alerts; portrait #roombar max-width and .rb flex sizing (G14); #title padding and the .tpick grid in landscape (G13). Must NOT touch: strip and pill colours (wayfinding); dims and animations (status); the tall-portrait dock (dock); #xFloat and panels (screens).
+
+## Local edits allowed
+engine.js:169, the zoom test (G4). game.js:286, padR (G19). Both guarded by Clarity.is and marked /* Gn */.
+
+## Order notes
+Worker index 5, ports 8900-8909. Merge 6th, after rings. Registers: every(200) and listen room (G4). Integration: G19 × G7 (lists); G19 × G11/G35 (tabs and signs); G19 × G17/G26 (bubbles); G19 × G16/G27 (📒/👗 spots); G4 × G39 (the floor slide); G19 × G24 (unfold, no resize); G19 × G15 (dimmed column).
+
+## Shared core API (already built, in the game folder)
+Two new files, both in /home/user/Krelworld/public/chef-marina/. Global: window.Clarity (C below).
+
+A. clarity-flags.js (loaded FIRST, before audio.js)
+- Clarity.ids = ['G1'..'G39']; Clarity.on = {G1:true ... G39:true} (the switches, decided at page load).
+- Test overrides, never stored: URL ?clarity=off | ?clarity=-G3,-G19 | ?clarity=only:G3,G9 ; or window.CLARITY_OFF = 'all' | 'G3,G19' | ['G3'] set before load. Playwright: await ctx.addInitScript(v => { window.CLARITY_OFF = v; }, 'G3,G9') then goto or reload.
+- Clarity.ready: false until DOMContentLoaded, i.e. until every clarity file has loaded. Clarity.is(id) === (Clarity.ready && Clarity.on[id] === true).
+- LOCAL EDITS in game files test `window.Clarity && Clarity.is('G6')`. This works at any time and is false while the page is still loading.
+- Overlay code that runs at load reads Clarity.on.Gn directly.
+
+B. clarity-core.js (loaded after trees.js). Clarity.core === 1 once it has loaded.
+
+SWITCHES AT RUN TIME
+- Clarity.set(id, bool): flips a switch. Hooks, listeners, ticks, pointer and appear callbacks stop or resume at once. CSS follows at once.
+- Clarity.onToggle(id, fn(on)): callbacks so an item can undo or redo inline state when its switch flips.
+- Setting Clarity.on.Gn = false by hand also works, except for onToggle; CSS then follows within 250 ms.
+- Clarity.item(id, setupFn): runs setupFn once at load, only if the switch is on, inside try/catch.
+
+HOOKS (use these instead of wrapping a game function): Clarity.hook(point, id, { before(call), after(call), order })
+- Points, each wrapped ONCE by the core and outermost over every game wrapper: 'UI.actions', 'UI.closeActions', 'UI.bigIcon', 'UI.pulseMoods', 'UI.bubble', 'UI.update', 'Audio2.blip', 'onTap', 'hitTest', 'interact', 'currentActivity', 'onEnterRoomBy', 'checkMess', 'showWish', 'openIsoMap', 'drawProp', 'drawExitSigns', 'featTick'. Clarity.points() lists them.
+- call = { name, self, args, result, skip }.
+- before(call) may set call.skip = true, and call.result if needed, so the game's own function is not called. The first skip stops the remaining before-hooks.
+- after(call) runs after the game's function. It also runs after a skip, so check call.skip. It may replace call.result.
+- In both, this === call.self. Never mutate call.args.
+- order: lower runs first (default 0); equal orders run in registration order.
+- Hooks run only while Clarity.on[id] is true.
+- A hook that throws is reported once (console.warn 'clarity: Gn before X') and its changes to skip/result are undone.
+- With nothing registered, or every hook switched off, the wrapper is exactly the game's call: same this, arguments and return value.
+- Clarity.inner(point): the game's own function under the hooks. Call it to bypass every clarity hook, e.g. to replay a deferred icon: Clarity.inner('UI.bigIcon')(ch, ms).
+- drawExitSigns: builder.js:234 re-wraps it once on the next frame. The core's wrapper sits inside builder's and still runs exactly once per frame (measured 60/s). Never re-wrap anything yourself.
+- Not hook points:
+  - ui.js internals: actions() and openPanel() call the private closeActions; placeActs is private. Use local edits (G6, G7).
+  - askReq is private to fun.js. Use a local edit (G31) or Clarity.appear('#reqBtn').
+  - changeRoom: use the 'room' event.
+  - say: G22 is a static table.
+  - resize and the camera: only the layout worker changes framing, through engine.js:169, game.js:286 and calls to resize() and render() by name.
+- Example: Clarity.hook('checkMess', 'G2', { order: 10, before(c) { if (Clarity.busyNow() || Clarity.quietFor() < 10) c.skip = true; } });
+- Example: Clarity.hook('hitTest', 'G8', { order: 10, after(c) { const h = c.result; if (h && h.kind === 'prop') c.result = see(h, c.args[0], c.args[1]); } });
+
+EVENTS: Clarity.listen(evt, id, fn)
+- 'room' (was, room): after every real room change. Dispatched from a Floors.hooks entry, i.e. from floors.js's changeRoom, which is the outermost one.
+- 'screenOpen' / 'screenClose': Clarity.screenOpen() turned true / false.
+- 'activityStart' / 'activityEnd': Clarity.busyNow() turned true / false. On activityEnd, Clarity.endedAt = E.t (game seconds).
+- The start of a game (the title closing) is a screenClose and an activityEnd.
+- Edges are sampled every 100 ms, and also synchronously whenever Clarity.quietFor() or Clarity.sample() is called, so an edge fires once, never late for a reader.
+- Example: Clarity.listen('activityEnd', 'G1', () => { lastInput = E.t; });
+
+TIMER: Clarity.every(ms, id, fn(nowMs))
+- One shared 50 ms setInterval. fn runs at most every ms (minimum 50) while the switch is on.
+- Example: Clarity.every(100, 'G15', tick);
+
+TOUCHES: Clarity.pointer('down' | 'up', id, fn(event))
+- One window capture listener per type (passive), installed on first use. It runs before any game handler sees the event.
+- Look only: never preventDefault or stopPropagation.
+- Example: Clarity.pointer('down', 'G1', () => { lastInput = E.t; });
+
+NEW NODES: Clarity.appear(selector, id, fn(node))
+- One MutationObserver on body (childList, subtree), installed on first use.
+- fn runs as a microtask, before paint, for every added element matching selector, whether it is the added node itself or inside an added subtree.
+- The node may already be gone again, so check isConnected.
+- Example: Clarity.appear('.stk-toast', 'G27', t => { if (Clarity.screenOpen()) { t.style.display = 'none'; queue.push(t.textContent); } });
+
+CSS: Clarity.css(id, cssText) returns a <style data-clarity='Gn'> appended to <head>.
+- Clarity styles are kept after every game stylesheet: Bricks, LegoShelf, Pool, Movies, Stuffies and Spa append theirs the first time they open, and the core moves ours back to the end.
+- media='not all' while the switch is off.
+- Call it as often as you like per item.
+- Example: Clarity.css('G14', '@media (orientation:portrait){#roombar{max-width:calc(100% - 84px)}.rb{flex:0 1 40px;min-width:34px}}');
+
+STATE HELPERS
+- Clarity.bodyBusy(): marina.state is swing, bars, ride or wheel, or a looping anim. False before the game exists.
+- Clarity.screenOpen(): any of the following is up:
+  - the title;
+  - any #panel screen, including the map, the fort builder and interior, Lego/tiles, the shelf, pool, films, stuffies, spa, tree climb and the builder;
+  - Studio.active, #storyBox or #stkBox.
+  The TV and the fort tray are not screens.
+- Clarity.busyNow(): inActivity() || bodyBusy().
+- Clarity.quietFor(): game seconds since the last activity ended. 0 while one is going on; Infinity before any ended.
+- Clarity.endedAt: E.t of the last activity end (null before). Clarity.sample(): re-evaluate the edges now.
+- Clarity.playing(): marina exists and the title is hidden.
+- Clarity.landscape(): innerWidth > innerHeight.
+
+GEOMETRY HELPERS
+- Clarity.hudRects(st?, opt?) returns [[x0,y0,x1,y1], weight, kind, element] for every visible HUD control.
+  - Kinds: strip (#roombar .rb), pill (#floorpill .fl:not(.off)), map, arrow (.navarrow:not(.off)), weather (#weatherBtn:not(.hidden)), alert (#alerts .alertb), face (.facecard.show), stop (#stopBtn:not(.hidden)), book and dress (not .off), wish, req, give (#fx .pichint), call (.cm-call), mood (#moodbar .mood), moodToggle.
+  - Skipped: zero-size controls, visibility:hidden, and opacity < 0.05 on the control or an ancestor.
+  - Weight 4. In landscape, mood and moodToggle get weight 6 and are widened 8 px to the left.
+  - Coordinates are relative to st (a DOMRect, e.g. placeActs' stage rect) or to #stage. opt.client gives viewport coordinates.
+  - opt.kinds and opt.except filter by kind.
+  - Cached 250 ms (dropped on resize and orientationchange). opt.fresh measures now.
+  - Controls outside the picture (the tall-portrait dock, the portrait mood row) are included; they overlap nothing in it.
+  - Example (G6): if (window.Clarity && Clarity.is('G6')) { acts.hud = acts.hud || Clarity.hudRects(st, { fresh: true }); for (const x of acts.hud) avoid.push(x); }
+- Clarity.stageRect(): #stage's DOMRect, cached 250 ms.
+- Clarity.toClient(wx, wy) gives viewport px. Clarity.fromClient(cx, cy) gives world coordinates.
+- Clarity.onCanvas(cx, cy): elementFromPoint there is #cv, i.e. nothing covers the picture at that point.
+- Clarity.overlap(a, b): overlap area of two [x0,y0,x1,y1] rects.
+- Clarity.nudgeX(box, rects, { gap = 4, max, bounds: [minX, maxX] }) returns the smallest sideways shift in px that clears every rect at the box's height (hudRects entries or plain rects), or null if none within max.
+  - Example: const dx = Clarity.nudgeX(b, Clarity.hudRects(null, { except: ['give', 'call'] }), { max: 62, bounds: [0, st.width] });
+- Clarity.floorLevel(room): main 0, up +1, basement -1, outside 0, tree houses 0.5, unknown rooms 0.
+- Clarity.floorDir(from, to): +1 up, -1 down, 0 same level.
+  - Example (G39): const fd = window.Clarity && Clarity.is('G39') ? Clarity.floorDir(prev, G.room) : 0;
+
+MOTION HELPER
+- Clarity.shake(el, { px = 4, ms = 150, times = 2 }) returns an Animation or null.
+- It is a side-shake on the individual translate property only, with composite 'add'. Without composite support it starts from the element's computed translate.
+- So transforms, CSS animations, :active scales and centring translates keep working, and a CSS animation:none cannot cancel it.
+- Example: Clarity.shake(btn); Audio2.blip(-12, 'triangle', 0.08, 0.1);
+
+MISC
+- Clarity.warnOnce(key, err).
+- Item state and item helpers live on Clarity.Gn, e.g. Clarity.G18 = { target: null } and Clarity.G23 = { hintGap() {...} }. Never on G, never in localStorage.
+
+Tools in /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/arch/:
+- regress-flags.js: run regress.js with switches off. CLARITY_OFF=all|G3,G9 NODE_PATH=$(npm root -g) node regress-flags.js <port> <out.json> [gameDir] [only=flows].
+- core_boot.js, core_hooks.js and core_flags.js: the core proofs, reusable as templates.
+
+## Load order
+Script order in index.html and in artifact.html. The two lists are identical, checked with diff.
+
+clarity-flags.js (NEW, first)
+audio.js engine.js world.js ui.js game.js features.js fort.js art.js scenes.js pics.js play.js calm.js react.js more.js nav.js story.js fun.js floors.js basement.js upstairs.js outdoor.js bricks.js spa.js stuffies.js family2.js minka.js legoshelf.js builder.js pool.js movies.js wildlife.js treeclimb.js trees.js (unchanged)
+clarity-core.js (NEW)
+clarity-prompts.js, clarity-status.js, clarity-rings.js, clarity-bubbles.js, clarity-dock.js, clarity-layout.js, clarity-screens.js, clarity-wayfinding.js (8 NEW empty stubs, one per worker, in workers-list order)
+
+Files created in /home/user/Krelworld/public/chef-marina/: clarity-flags.js, clarity-core.js, and the 8 stubs. Each stub holds only a header comment, a load guard (`const C = window.Clarity; if (!C || !C.core) return;`) and an empty IIFE. index.html and artifact.html are edited. Nothing is committed.
+
+Why this order:
+- Flags first, so any game file, including load-time code and the earliest timers, can call Clarity.is or read Clarity.on.
+- The core after trees.js, so each of its 18 wrappers is outermost over every game wrapper. The one exception is by design: builder.js re-wraps drawExitSigns once to keep its late drawing last, and the core's wrapper runs inside it.
+- Worker files after the core, so they can register hooks at load.
+- The order among worker files does not matter:
+  - hooks carry explicit order numbers (see conventions);
+  - CSS is split by property ownership, so no two workers set the same property on the same element;
+  - the only shared load-time writes (G22 fills missing SAY_ICON keys; G31 sets the existing m_want_fort) commute.
+- Load-time literals and loops in early files are never edited: REQS in fun.js, ROOMS.nunuroom in basement.js:7, the tree-house loop at builder.js:928. Those changes are applied from the overlay at load (G31 WISHES/SAY_ICON, G36 ROOMS icons, G22 SAY_ICON) or at call time (G31 askReq).
+
+Merge order of the worker branches: prompts, status, rings, bubbles, dock, layout, screens, wayfinding.
+- rings must come before layout, because G19 narrows the landscape picture and relies on G7's wrapping tray.
+- Local edits are line-disjoint across workers, so any order merges cleanly.
+
+## Conventions (must follow)
+1. YOUR FILES
+- Each worker owns one overlay file: its stub clarity-<name>.js, already loaded by index.html and artifact.html.
+- It also owns the local edits listed for it under workers, and nothing else.
+- Never edit: clarity-flags.js, clarity-core.js, index.html, artifact.html, style.css, or lines owned by another worker.
+- If you need a core change, report it. Do not patch the core.
+
+2. SWITCHES. Every item's code checks its own switch.
+- Hooks, listeners, ticks, pointer and appear callbacks, and Clarity.css registered with the item id are gated by the core.
+- Load-time overlay code: if (Clarity.on.Gn) {...}. Add Clarity.onToggle(id, fn) to undo it when the switch flips.
+- Local edits in game files: window.Clarity && Clarity.is('Gn').
+- A switch that is off must give byte-for-byte today's code path and look.
+- Test with ?clarity=-Gn, ?clarity=off, or CLARITY_OFF via an init script.
+
+3. LOCAL EDITS
+- Mark the changed line /* Gn */. Keep edits as small as possible, ideally one line.
+- The switch-off branch is today's exact expression.
+- Never add a top-level let, const or function to a game file. Classic scripts share one global scope, and a duplicate name is a SyntaxError that kills that whole file. Put state inside the file's existing IIFE or closure next to the edit, or on Clarity.Gn. more.js is top-level code, so G21 keeps its state on Clarity.G21.
+- Never edit object literals or loops that run at load: REQS in fun.js, ROOMS in basement.js:7, builder.js:928. Apply those changes from the overlay at load or at call time.
+- Find code by its text. Line numbers are as of this core and shift.
+
+4. HOOKS, NEVER WRAPPERS
+- Never reassign a game global or a UI or Audio2 method. Use Clarity.hook.
+- Assigned orders (lower runs first):
+  - UI.actions: before G2:10 | after G7:10, G30:20, G2:40 (only records whether a tidy ring opened), G18:30.
+  - UI.closeActions: after G18:10, G27:20.
+  - onTap: before G18:5 (never skips), G15:10 (never skips), G35:20 (may skip).
+  - interact: before G18:10.
+  - hitTest: after G8:10.
+  - currentActivity: after G17:10.
+  - onEnterRoomBy: before G20:10.
+  - checkMess: before G2:10.
+  - UI.bigIcon: before G27:10.
+  - UI.pulseMoods: before G24:10.
+  - UI.bubble: after G26:10.
+  - UI.update: after G5:10.
+  - Audio2.blip: before G15:10.
+  - openIsoMap: after G36:10, G37:20, G38:30.
+  - drawProp: after G35:10.
+  - drawExitSigns: after G35:10.
+  - featTick: after G26:10.
+  - showWish: free; use 10.
+- After-hooks must check call.skip.
+- To call a hooked function without re-entering its hooks, use Clarity.inner(name).
+- Events: room (G4, G18, G23, G35); activityEnd (G1); screenOpen (G2, G27); screenClose (G27).
+- Pointer: G1 down; G15 up.
+- Appear: G23 '#alerts .alertb' (or a tick), G25 '#reqBtn' and '#wishBtn', G27 '.stk-toast'.
+- Ticks: G4 200 ms, G15 100 ms, G23 250 ms, G35 250 ms, G37 300 ms, G38 200 ms.
+- G3, G9 and G16 use MutationObservers of their own, on elements they own.
+
+5. CSS
+- Only through Clarity.css(id, text), one or more per item. Never edit style.css or inject <style> yourself.
+- Prefix every new class or keyframe with cm-.
+- Property ownership on shared elements. Two workers never set the same property on the same element:
+  - #xFloat: screens.
+  - #panel and its screens (cooking, dress-up, crafts, Bricks, the canvas screens), #studio, #storyBox and #stkBox: screens. Two exceptions: the map's content (.fmap, .fmaprow, .fmaproom and the .isosvg additions) belongs to wayfinding, and .isoroom.here's transform-box/transform-origin belongs to bubbles (G5).
+  - #title padding and .tpick: layout (G13).
+  - #moodbar and #moodToggle: layout owns position, size, display, the folded slot, background, handle and chevron in landscape. status owns .mood opacity, filter and shake, and the animation of #moodbar.pulse and .mood.
+  - .navarrow: layout owns the right offset. status owns the animation and the inner <i> bob.
+  - #roombar / .rb: layout owns position, landscape centring, max-width and .rb size/flex. wayfinding owns the #roombar background and the .rb.cm-gp dot. status owns .rb opacity, filter and shake.
+  - #floorpill / .fl: wayfinding owns the colour ring (box-shadow), data-dest and .fl i font-size. status owns .fl opacity, filter and shake.
+  - #alerts / .alertb: layout owns #alerts' landscape centring. status owns .alertb animation, .settled, data-born, the tp colour, opacity, filter and shake.
+  - .facecard: layout owns .facecard.right's landscape offset. status may only shake a face card; nobody dims them.
+  - #weatherBtn: layout.
+  - #dressBtn / #bookBtn: dock owns tall-portrait position, size, visibility guard, glide and wiggle. layout owns the landscape right offsets.
+  - #stopBtn: nobody moves, translates or rescales it. Its glyph comes from the currentActivity hook (bubbles, G17).
+  - #wishBtn / #reqBtn: dock owns position, size, glow animation, badge, span glyph and the ghost. status owns #reqBtn opacity, filter and shake.
+  - .say, .pichint, .cm-call and the bigIcon look: bubbles. The timing of ✨ big icons: dock (G27).
+  - .act, .acttray, .actback, .cm-badge and ring placement: rings.
+  - .stk-toast and the fly layer: dock.
+  - Canvas drawing: rings (the glow in nav.js, the deer tab); wayfinding (signs, edge tabs, the floor slide); status (the idle wiggle); layout (zoom and camera).
+  - #app classes: status adds cm-strip, cm-mood and cm-alert; layout may add its own cm-* classes.
+
+6. POSITION AND MOTION
+- HUD and dock buttons are positioned with left/top/right/bottom and the individual translate property, never transform. Game rules such as :active, pulse and .facecard scale use transform.
+- Transient motion: Clarity.shake, el.animate on translate, or a pointer-events:none ghost element.
+- Clarity code never calls preventDefault or stopPropagation. A tap is never swallowed or retargeted, with one documented exception: G35's tab tap.
+
+7. DATA
+- Nothing new on G, in localStorage or sessionStorage, or in saved data. Item state lives on Clarity.Gn.
+- Never call propActions or entActions just to look: fun.js's wrapper marks treasures found. G18 also never calls hitTest.
+
+8. TESTING SETUP
+- Serve your worktree: H.boot({ port, view, room, dir: '<worktree>/public/chef-marina' }).
+- Ports: worker k (0-based position in the workers list) uses 8850+10k to 8859+10k:
+  - prompts 8850-8859, status 8860-8869, rings 8870-8879, bubbles 8880-8889
+  - dock 8890-8899, layout 8900-8909, screens 8910-8919, wayfinding 8920-8929
+- harness.serve() reuses any server already listening on a port, whatever directory it serves. Never point one port at a second directory.
+- Views: port, land, portSmall, landSmall, plus the sizes a check names (pass {width,height} as view): 844x340, 390x664, 390x585, 375x553 and others.
+- Desktop env() is 0, so simulate safe-area insets with padding, as the verdicts did. Checks that name her iPhone stay owner checks.
+- Scratch files only under /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/build-<name>/.
+
+9. REGRESSION SWEEP
+- Run: cd .../scratchpad/audit && NODE_PATH=$(npm root -g) node regress.js <port> <out.json> <worktree>/public/chef-marina
+- Then: node regress-diff.js .../audit2/arch/head1.json <out.json> .../audit2/arch/head2.json
+  head1/head2 are today's committed game, without clarity, run twice: the clean baseline and the noise reference.
+- The core build is .../audit2/core_regress.json.
+- Diffing against after3.json also works, but expect the rows already explained in core_tests: the fixes committed after after3.json was recorded.
+- Switch-off sweep: CLARITY_OFF=<your ids or all> NODE_PATH=$(npm root -g) node .../audit2/arch/regress-flags.js <port> <out.json> <dir>
+- Run sweeps one at a time on an idle machine. Under load the game's dt cap slows game time, and the 1.6 s samples catch earlier states.
+
+10. DONE MEANS, PER WORKER
+a. Every item is built exactly as its reconcile entry says.
+b. Each item's must-still-work list from the draft and every EXTRA CHECK of BOTH lenses has been run in the harness and passes. Results are saved in your scratch folder. A check that needs another worker's item is written down as an integration check with its expected result, never silently skipped.
+c. Zero page errors in port, land, portSmall and landSmall, with all switches on and with your switches off. The pre-existing chip_love.mp3 warning is the only allowed message.
+d. The regress sweep has no LOST SITUATION, LOST CHOICE, BROKEN or failed flow. Every remaining difference is noise or one of the expected renames listed in your items.
+e. The switch-off sweep for your ids shows no difference beyond noise.
+f. The worktree diff touches only your overlay file and your listed /* Gn */ lines.
+g. Commit only on your worktree branch, never on main, never push, unless the orchestrator says otherwise.
+
+11. AFTER MERGING (integration phase)
+Integration checks:
+- G19 × G7: keyboard (8) and TV (9) lists at 667x375 and 844x390 show every choice without scrolling.
+- G19 × G11 / G35 / G17 / G26 / G6: tabs, signs, bubbles and rings clear of ▶ at right:0 and of the column.
+- G19 × G16 / G27: 📒 and 👗 stay at today's landscape spots, and the sticker flight lands there.
+- G4 × G39: a cross-floor arrival in the living room in landscape runs one animation with no stretched frame.
+- G3 × G37 / G38: the landscape map with the lane still wraps its rows, no tile sits under #xFloat, and the house picture keeps its size.
+- G15 × G25: #reqBtn dims during scenes.
+- G30 × G35 / G36 / G39: the up/down badges match.
+- G22 × G31: m_want_fort shows 🏰 with G31 on and ⛺ with it off.
+Then a full sweep vs head1/head2 with all expected renames, and a CLARITY_OFF=all sweep equal to today.
+
+## Critic addenda for you
+- Ports. harness.serve() reuses any server already on a port, whatever directory it serves. Before your first run, and whenever a result looks wrong, check: for p in $(seq <lo> <hi>); do pid=$(pgrep -f "http.server $p --bind"); [ -n "$pid" ] && echo $p $(readlink /proc/$pid/cwd); done. Every line must be your worktree's public/chef-marina; kill any other with kill <pid>. Stale main-tree servers that were in 8850–8929 have been stopped.
+- Sweeps. Wrap every regress.js and regress-flags.js run in: flock -x /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/sweep.lock <command>. Before calling any BEHAVES DIFF or flow difference a regression or noise, re-press it A/B against HEAD (port 8847 serves arch/head) under identical conditions; /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/critic/ab_rows.js is a template. Under load, the stool and wicker 🧗 'perch', the Miles 🤗 'anim' and 'tap floor walks' flip by themselves.
+- Events. room, screen and activity listeners may run synchronously inside any Clarity.quietFor() or Clarity.sample() call, including inside another item's hook (G2's checkMess hook runs inside AI.update). Keep them cheap and re-entrancy-safe, and never assume they run from the timer.
+- Switches. Register hooks, ticks, listeners, pointer and appear callbacks and Clarity.css unconditionally at load; the core gates them, so turning a switch ON at run time works. Use `if (Clarity.on.Gn)` at load only for one-time data changes, paired with Clarity.onToggle(id, on => ...) that both applies and restores.
+- DOM and names:
+- Create DOM nodes only while your switch is on.
+- Never reuse a game id or class (.act, .pichint, .say, .alertb, .stk-toast, #wishBtn, #reqBtn…); game code and regress.js query them.
+- Name new classes and @keyframes cm-gN-… (with your item id) unless the reconcile already names them; class and keyframe names are global and can collide across workers.
+- Rings close in places the UI.closeActions hook never sees. ui.js closes them through its PRIVATE closeActions when a new ring replaces an old one, in openPanel(), and in update() when the ring's anchor leaves the room. If your item needs 'is a ring open', read document.querySelector('#fx .act').
+- Insets and core changes:
+- Simulated insets (padding in the harness) leave env() at 0. Anything absolutely positioned inside #stage is already offset by env(safe-area-inset-left) through #app's padding; never add env() to its left or right, or her iPhone gets the inset twice and no harness check can show it.
+- Core changes from the critic: hook lists are copy-on-write (a hook registered during a call applies from the next call), and Clarity.nudgeX takes opt.dir (+1 or -1).
+- G19: hide a folded column's faces only with visibility:hidden (or display:none on .mood), never opacity or filter. Status owns .mood opacity and filter, and its selector outranks yours. After a resize you trigger yourself (onToggle, boot), call Clarity.hudRects(null, { fresh: true }) once; the core drops its 250 ms cache only on window resize and orientationchange.
+- G4: changeRoom snaps E.camX using the OLD viewW, before your 'room' listener resizes. After resize() on an arrival in or departure from the living room in landscape, re-snap the camera: E.camX = clamp(marina.x - E.viewW / 2, 0, Math.max(0, ROOMS[G.room].w - E.viewW)), then render(). Do this for the room-change resize only, not for TV toggles. Add a check: E.camX equals the snapped value on the first frame after arrival, and no camera glide shows.
+
+## Open critic issues touching your items
+- [minor] G19 (layout) × G15/G24 (status): folded column: The ownership table does not say how folded faces are hidden. If layout uses opacity or filter on .mood, status's dim rule (#app.cm-mood #moodbar .mood:not(.cm-awake){opacity:.45}) outranks it and shows folded faces at 45%. → Layout hides folded faces with visibility:hidden, or display:none on .mood. Status may additionally scope its dim to #moodbar:not(.collapsed).
+- [minor] G4 (layout): resize on arrival: changeRoom snaps E.camX using the old viewW before G4's 'room' listener resizes. Every landscape arrival in or departure from the living room would show an extra camera glide of about half the viewW change, on top of the slide. → After resize() in the room listener, re-snap E.camX as changeRoom does, then render() (addendum).
+
+## Cross-item conflicts involving your items
+- G19: Folding the mood column. The child lens says folding never resizes the picture: the folded column keeps its slot. The functionality lens keeps the draft's 'folding widens the picture', guarded by width-change checks. With widening, every hello re-unfolds a folded column and the picture jumps 77 px under her finger. → Use the child's rule: the slot stays, shown as a purple lane under the 😊 handle, with the faces hidden. Every functionality constraint (a)-(e) and every functionality EXTRA CHECK still holds. Controls keep today's screen spots in both states, resize() runs only on real width changes, and the right face card can never cover 😊. Nothing she can do today is lost, because nothing in the room is under a face any more. The functionality version would not be pointless, but it would add an untested jump.
+- G7/G19: G7's tray top moved by a 250 ms tick would slide choices under her finger when an alert arrives. G19 narrows the landscape picture, which turns the keyboard's 8 choices into a tray at 667x375. → The tray top is set once, when the list opens (functionality). rings merges before layout, and G19's 'keyboard 8 and TV 9 show every choice' check runs after both are merged.
+- G4/G39: Arriving in the living room from another floor in landscape changes the zoom (a resize) while G39's vertical slide runs on the same canvas. → Integration check after merging layout and wayfinding: exactly one #cv animation, no stretched frame, same landing spot. G4 calls render() right after resize(), so no blank frame shows.
+- G11/G19/G35/G17/G26/G6: G19 narrows the landscape picture and moves ▶ to right:0. Deer and turkey tabs (clearZone/tabY), G35's signs and tabs, G17's and G26's bubbles, and G6's mood avoidance were all measured with today's overlay column. → Every placement reads live geometry: wildlife's clearZone, Clarity.hudRects and Clarity.nudgeX, with no fixed offsets. After merging: check at the backyard's right end, at land and landSmall, with the column open and folded.
+
+
+==================== G4 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD (child keeps; the functionality lens only amends the wording). (1) engine.js:169 local edit /* G4 */: the zoom test becomes !(typeof G !== 'undefined' && G && G.room === 'living' && (G.tv || (window.Clarity && Clarity.is('G4')))). With the switch off this is today's expression. (2) Watcher: Clarity.every(200,'G4') plus Clarity.listen('room','G4'). Call resize() and then render() whenever (G.room === 'living') changes while landscape. This covers changeRoom, travelTo and startScenario, which sets G.room directly. (3) nav.js:89 stays untouched. (4) Plan wording (functionality): the TV now hangs mostly below the strip. Its top edge still touches strip buttons (5-7 of 35 sample points, against 14 today), and a showing alert can sit on its right edge. DONE = both lenses' EXTRA CHECKS: living-room prop coverage with Marina at x 120/300/420/560 in land, landSmall and 844x340, where no prop newly falls under the pill, map, arrows, moods, 📒/👗, ✋, prompts or alerts; the landSmall lamp is reachable by walking; every entry route (strip, arrow, swipe, map, door, startScenario('living')) reaches zoom 1 within 200 ms, and leaving returns to 1.16; rotating keeps zoom 1; the TV on/off strip and pill hiding is unchanged.
+Depends on: -
+Interactions: Same worker as G19: the TV centre must hit #cv with the strip kept at its old screen centre, and both call resize(). Integration with G39: arriving in the living room changes the zoom during the floor slide; there must be one animation and no stretched frame. Integration with G35: living-room signs are re-placed after the zoom.
+
+### DRAFT ITEM
+### G4 Landscape living room: the TV always hangs below the room strip
+- problem: In landscape the scene is zoomed 1.16 (engine.js:169) except while a show plays. With the TV off, 62–66% of the TV is under the centred room strip, and the TV's centre is the 'dining' strip button. Tapping the TV takes her to the dining room instead of offering the shows. This is the dad's 'buttons covering the TV in landscape' complaint, still there whenever the TV is off.
+- change: In landscape the living room always uses the framing the game already uses while a show plays (zoom 1). The TV hangs below the strip, so a tap on it reaches the TV. No button moves.
+- implementation: - Local edit engine.js:169, marked /* G4 */: the zoom test G.tv && G.room === 'living' becomes G.room === 'living' && (G.tv || (window.Clarity && Clarity.on.G4)). With the flag off, the code is today's.
+- Block G4: a 200 ms watcher calls resize() whenever (G.room === 'living') changes while in landscape. This covers changeRoom, travelTo and startScenario. startScenario sets G.room directly (features.js:284), after startGame has already called resize() (features.js:310).
+- nav.js:89 (the stage.tvon class and the resize when the TV turns on or off) is untouched.
+- must still work: Tapping the TV opens the same shows; the fireplace still opens its list; TV-on framing is identical to today; The strip and pill still hide while the TV is on in landscape (stage.tvon); Portrait is unaffected; Every other room keeps the 1.16 zoom; A landscape game started in the kitchen runs at 1.16; one started in the living room runs at 1
+- benefit: Her favourite main-floor object works from its middle in landscape. A TV tap no longer whisks her to another room.
+- risk: Low. People in that one room are drawn about 14% smaller in landscape, as they already are whenever a show is on. The size jump now happens when she walks in rather than when the TV switches on. Re-check that no living-room prop newly lands under the pill or the arrows.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G4 [bugs] Landscape living room: the TV always hangs below the room strip => AMEND (child:keep, functionality:amend)
+
+**child: keep** — Verified (verify/bugs-child/v2.js; shots/g4_land_today.png vs g4_land_g4.png). Living room, land, TV off, today: 12 of 25 TV sample points are room-strip buttons and the TV's centre hits a .rb. With zoom 1: 0 of 25 are covered and the centre hits the canvas. On landSmall, 16 of 25 drops to 5 of 25 (only the top edge is under the strip; the centre is clear). No control moves. Everything in that one room is drawn 14% smaller, which is the same framing she already sees whenever a show plays. Her favourite object now does what she aims at, and this is the dad's own 'buttons covering the TV' complaint.
+
+- EXTRA CHECKS: landSmall at the G4 framing: the lamp at the left end sits 20/25 under the map, pill and arrow when the camera rests there (today it is off-screen). Confirm it becomes reachable by walking, and re-check together with G19's column. | Enter the living room by strip, arrow, swipe, map, door and startScenario('living'): the zoom is 1 within 200 ms each time and the bigIcon room picture is not drawn at the old zoom. Leave to the kitchen: back to 1.16. | Rotate the phone while in the living room: the game's own resize path reads the flag and keeps zoom 1 in landscape.
+
+**functionality: amend** — The change is only a zoom. All taps, rings and bubbles go through toScreen/toWorld, TV-on mode already runs this framing, and resize() already runs mid-game on every TV toggle (nav.js:89). So no choice or outcome changes. But the claim 'the TV always hangs below the strip' is overstated. I simulated zoom 1 with the TV off. TV box at land: 244-417 x 52-152 (strip buttons end at about y 58-64). The centre (331,102) hits the TV at land, landSmall and 844x340. Still, 5-7 of 35 points on the top row are 'rb' buttons, and a 💩🐈 alert at 389-455 x 66-132 overlaps the TV's right edge. In landSmall with Marina at x 120, the mood column still covers part of the TV, as it does today with the TV on.
+
+- AMENDED CHANGE (functionality): In landscape, the living room always uses the framing the game already uses while a show plays (zoom 1). The TV then hangs mostly below the room strip: its centre and lower part answer as the TV, so a tap on the middle of the TV opens the shows instead of taking her to the dining room. Its top edge still touches the strip buttons (5-7 of 35 sample points at 844x390, 667x375 and 844x340 with Marina at x 300, against 14 of 35 today). An alert circle, when one is showing, sits on the TV's right edge. No button moves. Implementation unchanged: the engine.js:169 one-liner behind the G4 flag, plus the 200 ms watcher that calls resize() when (G.room === 'living') changes in landscape.
+
+- EXTRA CHECKS: Hit coverage for every living-room prop at land, landSmall and 844x340, at Marina x 120/300/420/560, before and after. No prop may newly fall under the pill, the map, the arrows, the mood column, 📒/👗, ✋, the wish/request buttons or the alerts. | A landscape game started in the living room runs at zoom 1 within 200 ms; one started in the kitchen runs at 1.16. Walking living -> foyer -> living toggles the zoom with no stuck frame. | TV on/off still hides and shows the strip and pill (stage.tvon) exactly as today.
+
+
+==================== G13 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with the functionality CSS, which replaces the draft's unscoped padding (that padding would move the portrait title). CSS: @media (orientation:landscape){#title{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}.tpick{max-width:100%}.tpick .tcardr[aria-label=foyer]{grid-column:2}}. The portrait title stays pixel-identical; .tdress and .tbook do not move. DONE = both lenses' EXTRA CHECKS: every card centre and 🎲 hits its own card at 844x390 and 667x375, with 0 and 47 px of simulated side padding (desktop env() is 0); the landSmall foyer card keeps its gap to 📒; the title art and ▶ are not pushed under 👗/📒; ▶, every card and 🎲 start where they do today; 👗 opens dress-up after starting and 📒 opens the sticker book.
+Depends on: -
+Interactions: Title only. Independent of G3's lane, because the title is not #panel. Independent of the in-game 👗/📒 (G16 and G19 own #dressBtn and #bookBtn; the title uses .tdress and .tbook).
+
+### DRAFT ITEM
+### G13 Landscape title room picker: no card under 👗 and 📒, and nothing in the notch
+- problem: In the landscape picker (4-column grid, more.js:179-186), the big 👗 (nav.js:148) and 📒 sit on the foyer card (5,848 + 3,640 px² of overlap; the card's centre is under 👗), so tapping the hall starts dress-up. #title has no safe-area padding, so the cards at x 25 sit in the notch zone.
+- change: In landscape, 👗 and 📒 stay at the bottom-left, as she knows them. The picker's second row moves one column to the right into the empty fourth cell, so it reads [empty][foyer][yard][🎲], and the empty cell sits under 👗/📒. The title layer is inset by the safe areas. Portrait is unchanged.
+- implementation: CSS block G13:
+- #title{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+- @media (orientation:landscape){.tpick .tcardr[aria-label=foyer]{grid-column:2}}
+The card order is living, kitchen, dining, playroom, foyer, yard, 🎲 (more.js:132-136), so yard and 🎲 follow the foyer automatically.
+- must still work: ▶, the six room cards and 🎲 start the game where they do today; The title 👗 still opens dress-up after starting, and 📒 still opens the sticker book; The portrait title layout is unchanged
+- benefit: The first choice of every landscape session (where to start) goes where she taps.
+- risk: Low. Foyer, yard and 🎲 shift one column. Verify with elementFromPoint at every card centre and at 🎲, at 844x390, 667x375 and with a 47 px inset, and that the title art is not covered.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G13 [bugs] Landscape title room picker: no card under 👗 and 📒, and nothing in the notch => AMEND (child:keep, functionality:amend)
+
+**child: keep** — Verified (verify/bugs-child/v3.js after opening the picker with .tplay). Land today: the foyer card (25–214 × 211–341) has its centre under the title's 👗 or 📒 (hit 'B'). With the fix, foyer moves to x 227, yard to 428 and 🎲 to 688, and every card's centre hits its own card. 📒's right edge is 206 (land) and 193 (landSmall), so the empty first cell absorbs 👗 and 📒. The cost is that foyer, yard and 🎲 shift one column on the first landscape screen. The gain is that the first choice of every landscape session goes where she taps instead of opening dress-up.
+
+- EXTRA CHECKS: landSmall: the moved foyer card (180–328 × 172–274) and 📒 (125–193 × 278–346) are only 4 px apart vertically. Re-check with a 47 px left inset and the new #title padding, and confirm every card centre and 🎲 hit themselves. | With a 47 px inset, the title art and ▶ are not pushed under 👗 or 📒.
+
+**functionality: amend** — The foyer move is right. Grid auto-placement puts foyer at row 2 column 2, then yard at column 3 and 🎲 at column 4. 👗 (34-120 x 273-359) and 📒 (136-206 x 289-359) then sit over the empty cell at land and landSmall, and every card and 🎲 is uncovered at its centre. Two flaws in the drafted CSS. (1) The padding is not scoped: on notched iPhones in portrait, padding-top equal to the top inset pushes the logo, ▶ and the room cards down by 47-59 px, and padding-bottom pulls ▶ up, so 'portrait unchanged' is false. (2) .tpick has an explicit width (min(94vw,860px)) and #title centres it, so padding alone does not move the cards. With a simulated 47 px side padding, the living card stayed at x 25, inside the notch zone. Adding max-width:100% moves it to x 47 (land 47-226; landSmall 47-181), and 📒 (125-193) still clears foyer (from 193) on landSmall.
+
+- AMENDED CHANGE (functionality): In landscape, 👗 and 📒 stay at the bottom-left, as she knows them. The picker's second row moves one column to the right, so it reads [empty][foyer][yard][🎲], and the empty cell sits under 👗/📒. In landscape only, the title's sides are inset by the safe areas, and the picker is not allowed to grow past them: @media (orientation:landscape){#title{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}.tpick{max-width:100%}.tpick .tcardr[aria-label=foyer]{grid-column:2}}. Portrait gets no new padding and is unchanged. 👗 (.tdress, left:4vw) and 📒 (.tbook) are absolutely positioned and do not move.
+
+- EXTRA CHECKS: Run elementFromPoint at every card centre and at 🎲, at 844x390 and 667x375. Simulate 0 and 47 px side insets with padding, since desktop Chromium reports env() as 0. Confirm on her iPhone as well. | Portrait title layout pixel-identical before and after. | 👗 on the title still opens dress-up after starting, 📒 still opens the sticker book, and ▶, each card and 🎲 start the game where they do today.
+
+
+==================== G14 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD as drafted (both lenses keep). CSS: @media (orientation:portrait){#roombar{max-width:calc(100% - 84px)}.rb{flex:0 1 40px;min-width:34px}}. DONE = both lenses' EXTRA CHECKS: at 375 px the strip ends at or before x 363 with 38 px buttons, every button hits at its centre, 🚽 is fully on screen, and the green dots still show; at 390 px nothing changes (40 px buttons); the basement, upstairs and outside strips are unchanged at 375 and 390.
+Depends on: -
+Interactions: #roombar is shared by property: G14 and G19 (this worker) own its size and position; G38 (wayfinding) its background colour; G37 (wayfinding) the .rb.cm-gp dot; G15 (status) .rb opacity, filter and shake.
+
+### DRAFT ITEM
+### G14 The portrait room strip fits on small phones
+- problem: #roombar (left:76) holds 7 buttons of 40 px with 3 px gaps. On a 375 px phone the 🚽 button runs to x 378, past the edge of the screen (hud-portrait room_portSmall_living_idle.png).
+- change: The strip never runs off the edge: on narrow screens its buttons shrink by a few pixels to fit. Same buttons, same order.
+- implementation: CSS block G14: @media (orientation:portrait){#roombar{max-width:calc(100% - 84px)}.rb{flex:0 1 40px;min-width:34px}}
+- must still work: Strip buttons, their order, the current-room highlight and the family dots; Other floors' strips; The strip's position next to the map
+- benefit: The bathroom button is fully on screen on a small iPhone.
+- risk: Very low.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G14 [bugs] The portrait room strip fits on small phones => KEEP (child:keep, functionality:keep)
+
+**child: keep** — Verified on portSmall (verify/bugs-child/v3.js; shots/g14_living_*.png). Today the 🚽 button runs to x 378 on a 375 px screen. With the fix the strip ends at 363 and the buttons shrink only from 40 to 38 px (the 34 px min-width is never reached). In the yard the strip still clears the weather button (319–365 × 66–112). Same buttons, same order. The tap-size cost is negligible and it answers 'too close to the edge'. The benefit is small but the risk is nil.
+
+- EXTRA CHECKS: 390 px portrait: the strip keeps 40 px buttons (the max-width does not bind there). | Basement, upstairs and outside strips (fewer buttons) are unchanged.
+
+**functionality: keep** — I could not refute it. The change is CSS only, inside a portrait media query. .rb.here enlarges with transform:scale, not width, so flex-basis does not shrink the highlight. Other floors' strips have fewer buttons and are unaffected. With the drafted CSS, the main-floor strip fits at 375 px (last button 325-363) and is unchanged at 390 px (338-378).
+
+- EXTRA CHECKS: At 375 px, every strip button is tappable at its centre, the 🚽 button is fully on screen, and the green family dots (.rb.busy:after) still show. | Basement, upstairs and outside strips unchanged at 375 and 390.
+
+
+==================== G19 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD combining both amendments. On fold behaviour the child's rule is used; see conflicts. Landscape only.
+(1) Column. #moodbar becomes a flex item of #app beside the picture, at today's screen place: position:relative; top, right and bottom auto; flex:0 0 auto; align-self:stretch; margin:74px 8px 6px 6px.
+(2) game.js:286 local edit /* G19 */: the +76 in padR becomes (window.Clarity && Clarity.is('G19') ? 0 : 76).
+(3) .navarrow.r{right:0}.
+(4) 😊 (#moodToggle) becomes the column's purple header handle:
+- position:fixed at today's spot; background #3a2f57; border-radius 16px 16px 8px 8px;
+- it still shows the current mood, with an ::after ▸/◂ chevron;
+- one tap folds or unfolds it, and a hello still unfolds it.
+(5) Every control on the picture keeps today's screen position:
+- #roombar and #alerts stay centred on the screen: left:calc(50vw - env(safe-area-inset-left)) with today's translateX(-50%);
+- the right offsets of .facecard.right, #weatherBtn, #dressBtn and #bookBtn shrink by the measured slot width (the column plus its 6 px margin).
+(6) Folding never resizes the picture (child). A folded column keeps its slot as a purple lane under the handle, with the faces hidden; override #moodbar.collapsed{display:none}. So the reduced offsets hold in both states, and the right face card never covers 😊.
+(7) resize() runs only after boot and on orientation or size changes, only when #stage's width actually changed, and is followed at once by render(). Never from a #moodbar class observer.
+(8) #stage.storyon ~ #moodbar and #stage.storyon #moodToggle{visibility:hidden}, so the landscape story looks as it does today.
+DONE = both lenses' EXTRA CHECKS:
+- screen rects of 📒, 👗, ◀, ▶, the right face card, weather, 😊, the strip, the alerts, ✋, the prompts and the five faces stay within 2-3 px of today's, at 844x390, 667x375, 844x340 and with 47/59 px insets, column open and folded;
+- every .rb centre hits its .rb while both face cards show;
+- fold, unfold and pulse while folded: #stage width and E.viewW unchanged, ▶ does not move;
+- a folded column with Daddy talking on the right: a tap on 😊 unfolds;
+- the story at 667x375 and 844x390;
+- the TV framing with G4;
+- the deer and turkey tabs and Minka's 🔍 markers are clear;
+- the trees.js nudge never moves a ring;
+- no blank frame on a greeting pulse;
+- moods.js in landscape: time to the first working tap unchanged.
+Depends on: -
+Interactions: Merge AFTER rings (G7): the narrower picture turns the keyboard's 8 choices into a tray at 667x375. Integration checks with G11 and G35 (tabs and signs at the right end), G17 and G26 (bubbles vs ▶ at right:0), G6 (mood entries leave the picture), G24 (a hello unfolds a folded column, which no longer resizes), G15 (the dimmed column), G16 and G27 (📒/👗 must keep their landscape spots). G4 is in this worker.
+
+### DRAFT ITEM
+### G19 Landscape: the mood faces get their own column, and the picture stops where the faces start
+- problem: In landscape #moodbar floats over the right ~70 px of every room (style.css:26, 233-241; z6).
+- 33 of the 50 covered props sit under faces: the keyboard 96% under 😭, the den ottoman 100%, the backyard toolbox 100%.
+- A tap on Daddy at the right edge started a 😢 scene, then about 10 s of dead taps.
+- Rings land on faces in 13 of 44 menus, and the deer's right tab sits under the column.
+- The right arrow floats 74 px in from the edge (nav.js:145).
+- The 😊 toggle above the column looks like a sixth feeling.
+- change: Landscape only. The faces become a real column beside the picture: the same five faces, in the same order and the same place on screen. The picture ends where the faces begin, so nothing in the room is ever under a face, and the right arrow sits at the edge of the picture, as in portrait. The 😊 toggle becomes the column's header handle: purple like the column, still showing the current mood, with a small ▸/◂. One tap still folds or unfolds it, folding widens the picture, and a hello still unfolds a folded column.
+- implementation: - CSS block G19 inside @media (orientation:landscape). #app is already a flex row (style.css:24).
+  - #moodbar{position:relative;top:auto;right:auto;bottom:auto;flex:0 0 auto;align-self:stretch;margin:74px 8px 6px 6px}
+  - #moodToggle{position:fixed;top:calc(env(safe-area-inset-top) + 8px);right:calc(env(safe-area-inset-right) + 8px);background:#3a2f57;border-radius:16px 16px 8px 8px}, with an ::after chevron (◂ while the column is folded)
+  - .navarrow.r{right:0}
+  - .facecard.right and #weatherBtn: right offsets reduced by the old overlay width
+- Local edit game.js:286, marked /* G19 */: the +76 in the landscape padR becomes (window.Clarity && Clarity.on.G19 ? 0 : 76).
+- JS: a MutationObserver on #moodbar's class calls resize() on the next frame. That covers both the 😊 tap and pulseMoods' unfold (ui.js:97). Also call resize() once after boot.
+- must still work: All five moods, their scenes and the tantrum; 😊 folds and unfolds with one tap and shows the current mood; A hello still unfolds a folded column, so answering stays one tap; The right arrow travels as before; Face cards, the weather button and the deer and turkey tabs are visible; Full-screen activities and xFloat are unaffected; Portrait is unchanged; G4's living-room framing still puts the TV below the strip
+- benefit: Ends the accidental mood scenes, and the dead seconds after them, when she aims at things on the right. Everything on the right side of every room becomes tappable.
+- risk: Medium. The landscape picture shows about 9% less of each room (viewW 336 → about 309 units), and the canvas resizes when she folds the column. Check: the trees.js:303-318 nudge (now does nothing), wildlife's clearZone() and tabs, the TV framing, and 667x375 with insets.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G19 [hud] Landscape: the mood faces get their own column, and the picture stops where the faces start => AMEND (child:amend, functionality:amend)
+
+**child: amend** — Keep it. The benefit is measured: 33 of 50 covered landscape props sit under faces, a Daddy tap became a 😢 scene with about 10 s of dead taps, and rings land on faces. Prototyping the draft CSS (verify/hud-child/g19.js, shots/g19_land_before/after.png) confirmed:
+- the faces stay exactly where they are: column [773,74,63,310] before and after;
+- ▶ stays put (710→709);
+- the visible width drops 336→305 units, and sprites keep their size.
+
+The same run showed three things the draft misses, each of which moves something she knows:
+(1) #dressBtn and #bookBtn are positioned from the stage's right edge (right:78 and right:144). They move 77 px left on 844x390 (👗 708→631, 📒 642→565) and 75 px on 667x375, further into the picture. The draft keeps 📒/👗 bottom-right in landscape on purpose, as habit, and this silently breaks that.
+(2) The centred room strip and the alert row move 38 px left (strip 234→196).
+(3) Folding widens the stage back to 844 and throws ▶ from x 711 to 788. Because pulseMoods unfolds the column on every hello, the next greeting throws it back. While folded, the picture and the arrow would jump 77 px under her finger at each hello.
+
+- AMENDED CHANGE (child): As drafted, landscape only:
+- #moodbar becomes a flex column beside the stage in today's screen place (margin 74px 8px 6px 6px), and the picture ends where it starts;
+- game.js:286's +76 becomes 0 under the flag;
+- .navarrow.r{right:0};
+- 😊 becomes the column's purple handle (position:fixed, same spot, current mood shown, small ▸/◂), and one tap still folds or unfolds;
+- .facecard.right and #weatherBtn right offsets are reduced by the slot width.
+
+Additions:
+(1) Reduce #dressBtn's and #bookBtn's landscape right offsets by the slot width too (today 78px and 144px, so about 1px and 67px, or computed from the column's outer width plus margins). 👗 and 📒 then keep their exact screen spots.
+(2) Keep #roombar and #alerts at today's screen centre by offsetting their left:50% by half the slot width.
+(3) Folding never resizes the picture. A folded column keeps its slot, shown as the purple lane under the 😊 handle with the faces hidden. Call resize() only after boot and on orientation or size changes, never from the #moodbar class observer. 😊 still folds and unfolds with one tap, and a hello still unfolds a folded column.
+
+- EXTRA CHECKS: At land, landSmall, 844x340 and with 47 px side insets, compare screen rects before and after for 📒, 👗, ◀, ▶, the right face card, weather, 😊, the room strip, the alert row and the five faces: each within 2 px. verify/hud-child/g19.js prints both sets. | Fold, unfold, and call UI.pulseMoods() while folded: #stage width and E.viewW stay unchanged and ▶ does not move. | G4 interaction: in the living room with the TV off, the TV centre hits #cv, not a strip button, with the strip kept at its old screen centre. | Deer and turkey right-edge tabs (clearZone/tabY) and the trees.js:303-318 ring nudge still place things inside the narrower stage. Check at the backyard's right end, where padR is now 0.
+
+**functionality: amend** — I injected the drafted CSS in the harness (verify/hud-functionality/g19.js and g19strip.js). The column lands exactly where today's overlay is (844x390: x 773, y 74, 63x310 before and after), and viewW drops from 336 to 305 (667x375: 276 to 245). The mood handlers are untouched, and #panel, #studio, #stkBox and #title are fixed, so they are unaffected. But the narrower picture moves every control that is positioned relative to it. (1) The room strip is centred on the picture (style.css:197), so it slides left about 38 px. At 667x375 the 🌳 yard button's centre then falls under the left face card (left:78px, z6 over the strip's z5): elementFromPoint returns the face card (g19strip_landSmall_0.png). A tap meant for the yard would run to whoever is talking, a changed outcome. At 844 with 47 or 59 px insets the card covers 9-21 px of 🌳. (2) Cutting .facecard.right's offset means that when the column is folded (full-width picture) the right face card covers the 😊 handle: at 844x390 the handle's centre returned the face card (g19_land_folded_face.png), so she could not unfold the faces while someone talks. (3) #dressBtn (right:78px) and #bookBtn (right:144px) are not in the draft's list. They would move 77 px further into the room (dress x 708 to 631, book 642 to 565), an unplanned habit change on the main floor. (4) The landscape story box is absolute inside #stage (story.js:78). Today it covers the column; with the draft, the column and handle sit beside the story, dead (G.busy) but visible and tappable. (5) A MutationObserver on every class change would call resize() on each greeting's pulse add and remove, reallocating the canvas with nothing to repaint until the next frame. (6) With the picture narrower, the ring-or-tray test in ui.js:46 flips: the toy keyboard's 8 choices become a tray at 667x375 (tray:false today, tray:true with the draft), where the last item can need a scroll unless G7's wrapping tray ships first.
+
+- AMENDED CHANGE (functionality): Landscape only, as drafted: the five faces become a column in the flex row beside the picture, in the same place on screen; the picture ends where they start; .navarrow.r sits at right:0 (its screen spot is within 3 px of today's); game.js:286 drops the +76 while Clarity.on.G19; 😊 becomes the purple header handle with ▸/◂; one tap folds or unfolds, folding widens the picture, and a hello unfolds. Added rule: every control that sits on the picture keeps exactly today's on-screen position, whether the column is open or folded. (a) #roombar and #alerts stay centred on the screen, using left:calc(50vw - env(safe-area-inset-left)) with today's translateX(-50%), instead of 50% of the picture. (b) .facecard.right, #weatherBtn, #dressBtn and #bookBtn have their right offsets reduced by the measured column width (column width plus its 6 px left margin) only while the column is open. The same observer sets a class on #app (for example cm-col) when the column is open and removes it when folded, so folded uses today's offsets and the right face card never covers 😊. (c) resize() runs only when #stage's width actually changed (compare getBoundingClientRect().width; pulse-only class changes do nothing) and is followed at once by render(), so no blank frame shows. (d) While #stage.storyon: #stage.storyon ~ #moodbar and #stage.storyon #moodToggle {visibility:hidden}, so landscape story time looks as it does today, without changing the layout width. (e) Ship G19 together with or after G7, so a ring that becomes a tray because the picture is narrower still shows every choice without scrolling.
+
+- EXTRA CHECKS: At 844x390, 667x375, 844x340, and 844 with 47 and 59 px side insets: every .rb, #floorpill .fl, #mapBtn, #weatherBtn, #dressBtn, #bookBtn, #stopBtn, #reqBtn/#wishBtn and both face cards are within ±3 px of today's screen rect, with the column open and with it folded. elementFromPoint at the centre of every .rb returns that button while a left face card and a right face card are shown. | Folded column with Daddy talking on the right: a tap on 😊 unfolds the column. Unfolded: the handle is not over the first face. | Landscape story at 667x375 and 844x390: the column and handle are invisible, the story picture, caption, ◀ ▶, ✖ and the reader's face card are fully visible, and nothing overflows #storyBox. | With G7 in: the toy keyboard (8) and TV (9) choices at 667x375 and 844x390, column open, show every choice without scrolling. | Greeting pulse while walking: no blank or dark canvas frame, and resize() is not called when the width did not change. Fold and unfold mid-walk: Marina's world position and any open ring stay attached to their anchors. | Living room with the TV on in landscape: the whole TV is still on screen and still below the strip (G4). Backyard deer and turkey tabs and Minka's 🔍 markers are not under the right arrow or the column. trees.js nudge never moves a ring. | Re-run first-minutes moods.js in landscape: the time to the first working mood tap is unchanged, and no tap that was meant for the right edge of the room starts a mood scene.

@@ -1,0 +1,162 @@
+{
+ "menu :: gymnastics | qfx49l#1 🤸": {
+  "HEAD": [
+   "[]",
+   "[]",
+   "[]",
+   "[]"
+  ],
+  "mine": [
+   "[]",
+   "[]",
+   "[]",
+   "[]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "obj backyard/tr_apple | 1ygm7f6#1 🍎": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "sameSet": false,
+  "overlap": true
+ },
+ "obj den/wicker | ounozi#1 🧗": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"perch\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "obj dining/closet :: TP needed | 1tmr7qh#1 👗": {
+  "HEAD": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ],
+  "mine": [
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]",
+   "[\"panel:null→\\\"👗\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "obj kitchen/stool1 | 1a3zqcq#1 🪑": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sit\\\"\"]",
+   "[]",
+   "[]"
+  ],
+  "mine": [
+   "[]",
+   "[]",
+   "[]",
+   "[]"
+  ],
+  "sameSet": false,
+  "overlap": true
+ },
+ "obj storage/shades | 1bu00z4#1 🎩": {
+  "HEAD": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"cheer\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "obj treehouse_pine/th_scope | wfggdj#1 🔭": {
+  "HEAD": [
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]"
+  ],
+  "mine": [
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "who mommy :: fort built here | 8y7uyb#1 📱": {
+  "HEAD": [
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sad\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]"
+  ],
+  "mine": [
+   "[\"state:\\\"idle\\\"→\\\"sad\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"panel:null→\\\"panel\\\"\"]",
+   "[\"state:\\\"idle\\\"→\\\"sad\\\"\"]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "who niko :: fort built here | 11g728q#1 ✋": {
+  "HEAD": [
+   "[]",
+   "[]",
+   "[]",
+   "[]"
+  ],
+  "mine": [
+   "[]",
+   "[]",
+   "[]",
+   "[]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ },
+ "who niko :: Marina holding a nice dish | 11g728q#1 ✋": {
+  "HEAD": [
+   "[]",
+   "[]",
+   "[]",
+   "[]"
+  ],
+  "mine": [
+   "[]",
+   "[]",
+   "[]",
+   "[]"
+  ],
+  "sameSet": true,
+  "overlap": true
+ }
+}

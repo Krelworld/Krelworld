@@ -1,0 +1,900 @@
+{
+ "ingredients land": {
+  "fridge": {
+   "tiles": 36,
+   "cols": 6,
+   "tilePx": 72,
+   "fullyVisible": 18,
+   "fullRows": 3,
+   "partialRowPx": 0,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "36/36",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  },
+  "freezer": {
+   "tiles": 5,
+   "cols": 5,
+   "tilePx": 72,
+   "fullyVisible": 5,
+   "fullRows": 1,
+   "partialRowPx": 0,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "5/5",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  },
+  "cabinet": {
+   "tiles": 30,
+   "cols": 6,
+   "tilePx": 72,
+   "fullyVisible": 18,
+   "fullRows": 3,
+   "partialRowPx": 0,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "30/30",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  },
+  "bowl": {
+   "tiles": 12,
+   "cols": 6,
+   "tilePx": 72,
+   "fullyVisible": 12,
+   "fullRows": 2,
+   "partialRowPx": 0,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "12/12",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  }
+ },
+ "picks land": {
+  "picks": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   5
+  ],
+  "afterSlotTap": 4,
+  "afterUndo": 3,
+  "afterClear": 0,
+  "scrollLift": {
+   "before": 0,
+   "afterScrollLift": 0,
+   "afterPlainTap": 1,
+   "gridScrolls": true
+  },
+  "methods": {
+   "order": "🥪🥄🍳🔥❄️🌀",
+   "allVisible": true,
+   "size": "116x101",
+   "backVisible": true
+  },
+  "backKept": {
+   "ing": true,
+   "picks": 2
+  }
+ },
+ "meter land fry good": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 0,
+  "stopAt": [
+   413,
+   323
+  ],
+  "stopMoves": "still",
+  "x": 0.45,
+  "burnt": false
+ },
+ "meter land fry burnt": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 0,
+  "stopAt": [
+   413,
+   323
+  ],
+  "stopMoves": "still",
+  "x": 0.88,
+  "burnt": true
+ },
+ "meter land bake good": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 0,
+  "stopAt": [
+   413,
+   323
+  ],
+  "stopMoves": "still",
+  "x": 0.44,
+  "burnt": false
+ },
+ "meter land bake burnt": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 0,
+  "stopAt": [
+   413,
+   323
+  ],
+  "stopMoves": "still",
+  "x": 0.83,
+  "burnt": true
+ },
+ "result land": {
+  "buttons": [
+   "give it to daddy",
+   "give it to mommy",
+   "give it to rory",
+   "give it to jeff",
+   "carry it",
+   "other way",
+   "start again"
+  ],
+  "allHit": true,
+  "otherWayToMethods": true
+ },
+ "noHas land": {
+  "kept": [
+   "#panel .methods",
+   "#panel .method",
+   "#panel .meter"
+  ],
+  "ingDisplay": "flex",
+  "ingLayout": [
+   "button.pbtn@8,8,60,60",
+   "button.pbtn@360,172,60,60",
+   "button.pbtn@428,172,60,60",
+   "button.pbtn.go@496,172,60,60",
+   "button.pbtn.on@302,240,72,66",
+   "button.pbtn@382,240,72,66",
+   "button.pbtn@462,240,72,66",
+   "button.pbtn@542,240,72,66",
+   "button.tile@80,314,68,68",
+   "button.tile@156,314,68,68",
+   "button.tile@233,314,68,68",
+   "button.tile@309,314,68,68",
+   "button.tile@386,314,68,68",
+   "button.tile@462,314,68,68",
+   "button.tile@538,314,68,68",
+   "button.tile@615,314,68,68",
+   "button.tile@691,314,68,68",
+   "button.tile@768,314,68,68",
+   "button.tile@80,390,68,68",
+   "button.tile@156,390,68,68",
+   "button.tile@233,390,68,68",
+   "button.tile@309,390,68,68",
+   "button.tile@386,390,68,68",
+   "button.tile@462,390,68,68",
+   "button.tile@538,390,68,68",
+   "button.tile@615,390,68,68",
+   "button.tile@691,390,68,68",
+   "button.tile@768,390,68,68",
+   "button.tile@80,467,68,68",
+   "button.tile@156,467,68,68",
+   "button.tile@233,467,68,68",
+   "button.tile@309,467,68,68",
+   "button.tile@386,467,68,68",
+   "button.tile@462,467,68,68",
+   "button.tile@538,467,68,68",
+   "button.tile@615,467,68,68",
+   "button.tile@691,467,68,68",
+   "button.tile@768,467,68,68",
+   "button.tile@80,543,68,68",
+   "button.tile@156,543,68,68",
+   "button.tile@233,543,68,68",
+   "button.tile@309,543,68,68",
+   "button.tile@386,543,68,68",
+   "button.tile@462,543,68,68"
+  ],
+  "methodsAllOnScreen": true
+ },
+ "errors land": [],
+ "noHasEqualsOff land": true,
+ "ingredients landSmall": {
+  "fridge": {
+   "tiles": 36,
+   "cols": 5,
+   "tilePx": 66,
+   "fullyVisible": 15,
+   "fullRows": 3,
+   "partialRowPx": 2,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "36/36",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  },
+  "freezer": {
+   "tiles": 5,
+   "cols": 5,
+   "tilePx": 66,
+   "fullyVisible": 5,
+   "fullRows": 1,
+   "partialRowPx": 0,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "5/5",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  },
+  "cabinet": {
+   "tiles": 30,
+   "cols": 5,
+   "tilePx": 66,
+   "fullyVisible": 15,
+   "fullRows": 3,
+   "partialRowPx": 2,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "30/30",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  },
+  "bowl": {
+   "tiles": 12,
+   "cols": 5,
+   "tilePx": 66,
+   "fullyVisible": 12,
+   "fullRows": 3,
+   "partialRowPx": 0,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "12/12",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  }
+ },
+ "picks landSmall": {
+  "picks": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   5
+  ],
+  "afterSlotTap": 4,
+  "afterUndo": 3,
+  "afterClear": 0,
+  "scrollLift": {
+   "before": 0,
+   "afterScrollLift": 0,
+   "afterPlainTap": 1,
+   "gridScrolls": true
+  },
+  "methods": {
+   "order": "🥪🥄🍳🔥❄️🌀",
+   "allVisible": true,
+   "size": "87x98",
+   "backVisible": true
+  },
+  "backKept": {
+   "ing": true,
+   "picks": 2
+  }
+ },
+ "meter landSmall fry good": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 0,
+  "stopAt": [
+   325,
+   308
+  ],
+  "stopMoves": "still",
+  "x": 0.44,
+  "burnt": false
+ },
+ "meter landSmall fry burnt": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 0,
+  "stopAt": [
+   325,
+   308
+  ],
+  "stopMoves": "still",
+  "x": 0.95,
+  "burnt": true
+ },
+ "meter landSmall bake good": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 0,
+  "stopAt": [
+   325,
+   308
+  ],
+  "stopMoves": "still",
+  "x": 0.45,
+  "burnt": false
+ },
+ "meter landSmall bake burnt": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 0,
+  "stopAt": [
+   325,
+   308
+  ],
+  "stopMoves": "still",
+  "x": 0.82,
+  "burnt": true
+ },
+ "result landSmall": {
+  "buttons": [
+   "give it to daddy",
+   "give it to mommy",
+   "give it to rory",
+   "give it to jeff",
+   "carry it",
+   "other way",
+   "start again"
+  ],
+  "allHit": true,
+  "otherWayToMethods": true
+ },
+ "noHas landSmall": {
+  "kept": [
+   "#panel .methods",
+   "#panel .method",
+   "#panel .meter"
+  ],
+  "ingDisplay": "flex",
+  "ingLayout": [
+   "button.pbtn@8,8,60,60",
+   "button.pbtn@272,172,60,60",
+   "button.pbtn@340,172,60,60",
+   "button.pbtn.go@408,172,60,60",
+   "button.pbtn.on@214,240,72,66",
+   "button.pbtn@294,240,72,66",
+   "button.pbtn@374,240,72,66",
+   "button.pbtn@454,240,72,66",
+   "button.tile@80,314,76,76",
+   "button.tile@164,314,76,76",
+   "button.tile@248,314,76,76",
+   "button.tile@332,314,76,76",
+   "button.tile@415,314,76,76",
+   "button.tile@499,314,76,76",
+   "button.tile@583,314,76,76",
+   "button.tile@80,398,76,76",
+   "button.tile@164,398,76,76",
+   "button.tile@248,398,76,76",
+   "button.tile@332,398,76,76",
+   "button.tile@415,398,76,76",
+   "button.tile@499,398,76,76",
+   "button.tile@583,398,76,76",
+   "button.tile@80,482,76,76",
+   "button.tile@164,482,76,76",
+   "button.tile@248,482,76,76",
+   "button.tile@332,482,76,76",
+   "button.tile@415,482,76,76",
+   "button.tile@499,482,76,76",
+   "button.tile@583,482,76,76",
+   "button.tile@80,566,76,76",
+   "button.tile@164,566,76,76",
+   "button.tile@248,566,76,76",
+   "button.tile@332,566,76,76",
+   "button.tile@415,566,76,76",
+   "button.tile@499,566,76,76",
+   "button.tile@583,566,76,76",
+   "button.tile@80,649,76,76",
+   "button.tile@164,649,76,76",
+   "button.tile@248,649,76,76",
+   "button.tile@332,649,76,76",
+   "button.tile@415,649,76,76",
+   "button.tile@499,649,76,76",
+   "button.tile@583,649,76,76",
+   "button.tile@80,733,76,76"
+  ],
+  "methodsAllOnScreen": true
+ },
+ "errors landSmall": [],
+ "noHasEqualsOff landSmall": true,
+ "ingredients 844x340i47": {
+  "fridge": {
+   "tiles": 36,
+   "cols": 6,
+   "tilePx": 62,
+   "fullyVisible": 12,
+   "fullRows": 2,
+   "partialRowPx": 26,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "36/36",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  },
+  "freezer": {
+   "tiles": 5,
+   "cols": 5,
+   "tilePx": 62,
+   "fullyVisible": 5,
+   "fullRows": 1,
+   "partialRowPx": 0,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "5/5",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  },
+  "cabinet": {
+   "tiles": 30,
+   "cols": 6,
+   "tilePx": 62,
+   "fullyVisible": 12,
+   "fullRows": 2,
+   "partialRowPx": 26,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "30/30",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  },
+  "bowl": {
+   "tiles": 12,
+   "cols": 6,
+   "tilePx": 62,
+   "fullyVisible": 12,
+   "fullRows": 2,
+   "partialRowPx": 0,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "12/12",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  }
+ },
+ "picks 844x340i47": {
+  "picks": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   5
+  ],
+  "afterSlotTap": 4,
+  "afterUndo": 3,
+  "afterClear": 0,
+  "scrollLift": {
+   "before": 0,
+   "afterScrollLift": 0,
+   "afterPlainTap": 1,
+   "gridScrolls": true
+  },
+  "methods": {
+   "order": "🥪🥄🍳🔥❄️🌀",
+   "allVisible": true,
+   "size": "100x88",
+   "backVisible": true
+  },
+  "backKept": {
+   "ing": true,
+   "picks": 2
+  }
+ },
+ "meter 844x340i47 fry good": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 20,
+  "stopAt": [
+   413,
+   252
+  ],
+  "stopMoves": "still",
+  "x": 0.37,
+  "burnt": false
+ },
+ "meter 844x340i47 fry burnt": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 20,
+  "stopAt": [
+   413,
+   252
+  ],
+  "stopMoves": "still",
+  "x": 0.95,
+  "burnt": true
+ },
+ "meter 844x340i47 bake good": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 20,
+  "stopAt": [
+   413,
+   252
+  ],
+  "stopMoves": "still",
+  "x": 0.45,
+  "burnt": false
+ },
+ "meter 844x340i47 bake burnt": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 20,
+  "stopAt": [
+   413,
+   252
+  ],
+  "stopMoves": "still",
+  "x": 0.83,
+  "burnt": true
+ },
+ "result 844x340i47": {
+  "buttons": [
+   "give it to daddy",
+   "give it to mommy",
+   "give it to rory",
+   "give it to jeff",
+   "carry it",
+   "other way",
+   "start again"
+  ],
+  "allHit": true,
+  "otherWayToMethods": true
+ },
+ "noHas 844x340i47": {
+  "kept": [
+   "#panel .methods",
+   "#panel .method",
+   "#panel .meter"
+  ],
+  "ingDisplay": "flex",
+  "ingLayout": [
+   "button.pbtn@55,8,60,60",
+   "button.pbtn@360,172,60,60",
+   "button.pbtn@428,172,60,60",
+   "button.pbtn.go@496,172,60,60",
+   "button.pbtn.on@302,240,72,66",
+   "button.pbtn@382,240,72,66",
+   "button.pbtn@462,240,72,66",
+   "button.pbtn@542,240,72,66",
+   "button.tile@127,314,66,66",
+   "button.tile@201,314,66,66",
+   "button.tile@276,314,66,66",
+   "button.tile@350,314,66,66",
+   "button.tile@425,314,66,66",
+   "button.tile@499,314,66,66",
+   "button.tile@574,314,66,66",
+   "button.tile@648,314,66,66",
+   "button.tile@723,314,66,66",
+   "button.tile@127,388,66,66",
+   "button.tile@201,388,66,66",
+   "button.tile@276,388,66,66",
+   "button.tile@350,388,66,66",
+   "button.tile@425,388,66,66",
+   "button.tile@499,388,66,66",
+   "button.tile@574,388,66,66",
+   "button.tile@648,388,66,66",
+   "button.tile@723,388,66,66",
+   "button.tile@127,463,66,66",
+   "button.tile@201,463,66,66",
+   "button.tile@276,463,66,66",
+   "button.tile@350,463,66,66",
+   "button.tile@425,463,66,66",
+   "button.tile@499,463,66,66",
+   "button.tile@574,463,66,66",
+   "button.tile@648,463,66,66",
+   "button.tile@723,463,66,66",
+   "button.tile@127,537,66,66",
+   "button.tile@201,537,66,66",
+   "button.tile@276,537,66,66",
+   "button.tile@350,537,66,66",
+   "button.tile@425,537,66,66",
+   "button.tile@499,537,66,66",
+   "button.tile@574,537,66,66",
+   "button.tile@648,537,66,66",
+   "button.tile@723,537,66,66"
+  ],
+  "methodsAllOnScreen": true
+ },
+ "errors 844x340i47": [],
+ "noHasEqualsOff 844x340i47": true,
+ "ingredients 844x340": {
+  "fridge": {
+   "tiles": 36,
+   "cols": 7,
+   "tilePx": 61,
+   "fullyVisible": 14,
+   "fullRows": 2,
+   "partialRowPx": 50,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "36/36",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  },
+  "freezer": {
+   "tiles": 5,
+   "cols": 5,
+   "tilePx": 61,
+   "fullyVisible": 5,
+   "fullRows": 1,
+   "partialRowPx": 0,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "5/5",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  },
+  "cabinet": {
+   "tiles": 30,
+   "cols": 7,
+   "tilePx": 61,
+   "fullyVisible": 14,
+   "fullRows": 2,
+   "partialRowPx": 50,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "30/30",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  },
+  "bowl": {
+   "tiles": 12,
+   "cols": 7,
+   "tilePx": 61,
+   "fullyVisible": 12,
+   "fullRows": 2,
+   "partialRowPx": 0,
+   "firstTileClearOfXFloat": true,
+   "controlsAtTop": "ok",
+   "controlsAfterGridScroll": "ok",
+   "pbodyScrolled": 0,
+   "reachable": "12/12",
+   "miss": [],
+   "display": "grid",
+   "lane": true
+  }
+ },
+ "picks 844x340": {
+  "picks": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   5
+  ],
+  "afterSlotTap": 4,
+  "afterUndo": 3,
+  "afterClear": 0,
+  "scrollLift": {
+   "before": 0,
+   "afterScrollLift": 0,
+   "afterPlainTap": 1,
+   "gridScrolls": true
+  },
+  "methods": {
+   "order": "🥪🥄🍳🔥❄️🌀",
+   "allVisible": true,
+   "size": "116x88",
+   "backVisible": true
+  },
+  "backKept": {
+   "ing": true,
+   "picks": 2
+  }
+ },
+ "meter 844x340 fry good": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 0,
+  "stopAt": [
+   413,
+   273
+  ],
+  "stopMoves": "still",
+  "x": 0.44,
+  "burnt": false
+ },
+ "meter 844x340 fry burnt": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 0,
+  "stopAt": [
+   413,
+   273
+  ],
+  "stopMoves": "still",
+  "x": 0.94,
+  "burnt": true
+ },
+ "meter 844x340 bake good": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 0,
+  "stopAt": [
+   413,
+   273
+  ],
+  "stopMoves": "still",
+  "x": 0.45,
+  "burnt": false
+ },
+ "meter 844x340 bake burnt": {
+  "meterH": 40,
+  "inside": true,
+  "scrolls": 1,
+  "pbodyScrollTop": 0,
+  "stopAt": [
+   413,
+   273
+  ],
+  "stopMoves": "still",
+  "x": 0.86,
+  "burnt": true
+ },
+ "result 844x340": {
+  "buttons": [
+   "give it to daddy",
+   "give it to mommy",
+   "give it to rory",
+   "give it to jeff",
+   "carry it",
+   "other way",
+   "start again"
+  ],
+  "allHit": true,
+  "otherWayToMethods": true
+ },
+ "noHas 844x340": {
+  "kept": [
+   "#panel .methods",
+   "#panel .method",
+   "#panel .meter"
+  ],
+  "ingDisplay": "flex",
+  "ingLayout": [
+   "button.pbtn@8,8,60,60",
+   "button.pbtn@360,172,60,60",
+   "button.pbtn@428,172,60,60",
+   "button.pbtn.go@496,172,60,60",
+   "button.pbtn.on@302,240,72,66",
+   "button.pbtn@382,240,72,66",
+   "button.pbtn@462,240,72,66",
+   "button.pbtn@542,240,72,66",
+   "button.tile@80,314,68,68",
+   "button.tile@156,314,68,68",
+   "button.tile@233,314,68,68",
+   "button.tile@309,314,68,68",
+   "button.tile@386,314,68,68",
+   "button.tile@462,314,68,68",
+   "button.tile@538,314,68,68",
+   "button.tile@615,314,68,68",
+   "button.tile@691,314,68,68",
+   "button.tile@768,314,68,68",
+   "button.tile@80,390,68,68",
+   "button.tile@156,390,68,68",
+   "button.tile@233,390,68,68",
+   "button.tile@309,390,68,68",
+   "button.tile@386,390,68,68",
+   "button.tile@462,390,68,68",
+   "button.tile@538,390,68,68",
+   "button.tile@615,390,68,68",
+   "button.tile@691,390,68,68",
+   "button.tile@768,390,68,68",
+   "button.tile@80,467,68,68",
+   "button.tile@156,467,68,68",
+   "button.tile@233,467,68,68",
+   "button.tile@309,467,68,68",
+   "button.tile@386,467,68,68",
+   "button.tile@462,467,68,68",
+   "button.tile@538,467,68,68",
+   "button.tile@615,467,68,68",
+   "button.tile@691,467,68,68",
+   "button.tile@768,467,68,68",
+   "button.tile@80,543,68,68",
+   "button.tile@156,543,68,68",
+   "button.tile@233,543,68,68",
+   "button.tile@309,543,68,68",
+   "button.tile@386,543,68,68",
+   "button.tile@462,543,68,68"
+  ],
+  "methodsAllOnScreen": true
+ },
+ "errors 844x340": [],
+ "noHasEqualsOff 844x340": true,
+ "portrait port identical on/off": {
+  "ing": true,
+  "methods": true,
+  "meter": true,
+  "meterOn": [
+   300,
+   40,
+   0
+  ],
+  "meterOff": [
+   300,
+   40,
+   0
+  ]
+ },
+ "portrait portSmall identical on/off": {
+  "ing": true,
+  "methods": true,
+  "meter": true,
+  "meterOn": [
+   300,
+   40,
+   0
+  ],
+  "meterOff": [
+   300,
+   40,
+   0
+  ]
+ }
+}

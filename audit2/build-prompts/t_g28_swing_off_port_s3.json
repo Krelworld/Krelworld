@@ -1,0 +1,41 @@
+[
+ {
+  "K": 6,
+  "room": "yard",
+  "during": "0.5:swing 2.5:swing 4.5:swing 6.5:swing 8.5:swing 10.5:swing 12.5:swing 14.5:swing",
+  "t0": 3.444000000000001,
+  "wishes": [
+   {
+    "t": 4.25,
+    "ico": "🤸➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "swing",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 4.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": true,
+    "st": "swing"
+   }
+  ],
+  "want": [
+   "m_want_gym@4.2"
+  ],
+  "errors": []
+ }
+]

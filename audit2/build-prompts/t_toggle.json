@@ -1,0 +1,15 @@
+{
+ "offAtLoad": {
+  "lastInputMovedOnPanelTap": false,
+  "tidyRingUnderScreen": 2
+ },
+ "setOn": {
+  "lastInputMovedOnPanelTap": true,
+  "tidyRingUnderScreen": 0
+ },
+ "setOffAgain": {
+  "lastInputMovedOnPanelTap": false,
+  "tidyRingUnderScreen": 2
+ },
+ "errors": []
+}

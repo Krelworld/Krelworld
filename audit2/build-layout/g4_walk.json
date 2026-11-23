@@ -1,0 +1,497 @@
+{
+ "land TODAY": {
+  "sectional": {
+   "calm": "ok 25/25@67",
+   "busy": "ok 25/25@67"
+  },
+  "armchair": {
+   "calm": "ok 25/25@142",
+   "busy": "ok 25/25@142"
+  },
+  "lamp": {
+   "calm": "ok 25/25@180",
+   "busy": "ok 22/25@180"
+  },
+  "pail": {
+   "calm": "ok 25/25@204",
+   "busy": "ok 25/25@204"
+  },
+  "fireplace": {
+   "calm": "ok 25/25@262",
+   "busy": "ok 23/25@262"
+  },
+  "tv": {
+   "calm": "COVERED:rb 10/25@262",
+   "busy": "COVERED:rb 7/25@262"
+  },
+  "bouncer": {
+   "calm": "ok 25/25@300",
+   "busy": "ok 25/25@300"
+  },
+  "shelf2": {
+   "calm": "ok 25/25@352",
+   "busy": "COVERED:say 18/25@352"
+  },
+  "shelf1": {
+   "calm": "ok 25/25@420",
+   "busy": "COVERED:say 18/25@420"
+  },
+  "basket": {
+   "calm": "ok 25/25@448",
+   "busy": "ok 25/25@448"
+  },
+  "dresserw": {
+   "calm": "ok 25/25@480",
+   "busy": "ok 25/25@480"
+  },
+  "pnp": {
+   "calm": "ok 25/25@534",
+   "busy": "ok 25/25@534"
+  },
+  "bathhall": {
+   "calm": "ok 25/25@622",
+   "busy": "ok 19/25@622"
+  },
+  "errors": []
+ },
+ "land G4": {
+  "sectional": {
+   "calm": "ok 25/25@67",
+   "busy": "ok 24/25@67"
+  },
+  "armchair": {
+   "calm": "ok 25/25@142",
+   "busy": "ok 25/25@142"
+  },
+  "lamp": {
+   "calm": "ok 25/25@180",
+   "busy": "ok 23/25@180"
+  },
+  "pail": {
+   "calm": "ok 25/25@204",
+   "busy": "ok 25/25@204"
+  },
+  "fireplace": {
+   "calm": "ok 25/25@262",
+   "busy": "ok 23/25@262"
+  },
+  "tv": {
+   "calm": "ok 25/25@262",
+   "busy": "COVERED:alertb 15/25@262"
+  },
+  "bouncer": {
+   "calm": "ok 25/25@300",
+   "busy": "ok 25/25@300"
+  },
+  "shelf2": {
+   "calm": "ok 25/25@352",
+   "busy": "ok 22/25@352"
+  },
+  "shelf1": {
+   "calm": "ok 25/25@420",
+   "busy": "COVERED:say 18/25@420"
+  },
+  "basket": {
+   "calm": "ok 25/25@448",
+   "busy": "ok 25/25@448"
+  },
+  "dresserw": {
+   "calm": "ok 25/25@480",
+   "busy": "ok 24/25@480"
+  },
+  "pnp": {
+   "calm": "ok 25/25@534",
+   "busy": "ok 25/25@534"
+  },
+  "bathhall": {
+   "calm": "ok 25/25@622",
+   "busy": "ok 23/25@622"
+  },
+  "errors": []
+ },
+ "land G4+G19": {
+  "sectional": {
+   "calm": "ok 25/25@64",
+   "busy": "ok 24/25@64"
+  },
+  "armchair": {
+   "calm": "ok 25/25@142",
+   "busy": "ok 25/25@142"
+  },
+  "lamp": {
+   "calm": "ok 25/25@180",
+   "busy": "ok 25/25@180"
+  },
+  "pail": {
+   "calm": "ok 25/25@204",
+   "busy": "ok 25/25@204"
+  },
+  "fireplace": {
+   "calm": "ok 25/25@262",
+   "busy": "ok 23/25@262"
+  },
+  "tv": {
+   "calm": "ok 25/25@262",
+   "busy": "COVERED:alertb 15/25@262"
+  },
+  "bouncer": {
+   "calm": "ok 25/25@300",
+   "busy": "ok 25/25@300"
+  },
+  "shelf2": {
+   "calm": "ok 25/25@352",
+   "busy": "COVERED:say 18/25@352"
+  },
+  "shelf1": {
+   "calm": "ok 25/25@420",
+   "busy": "COVERED:say 18/25@420"
+  },
+  "basket": {
+   "calm": "ok 25/25@448",
+   "busy": "ok 25/25@448"
+  },
+  "dresserw": {
+   "calm": "ok 25/25@480",
+   "busy": "ok 24/25@480"
+  },
+  "pnp": {
+   "calm": "ok 25/25@534",
+   "busy": "ok 25/25@534"
+  },
+  "bathhall": {
+   "calm": "ok 25/25@601",
+   "busy": "COVERED:say 22/25@601"
+  },
+  "errors": []
+ },
+ "landSmall TODAY": {
+  "sectional": {
+   "calm": "ok 25/25@68",
+   "busy": "ok 25/25@68"
+  },
+  "armchair": {
+   "calm": "ok 25/25@142",
+   "busy": "ok 25/25@142"
+  },
+  "lamp": {
+   "calm": "ok 25/25@180",
+   "busy": "ok 20/25@180"
+  },
+  "pail": {
+   "calm": "ok 25/25@204",
+   "busy": "ok 25/25@204"
+  },
+  "fireplace": {
+   "calm": "ok 25/25@262",
+   "busy": "ok 23/25@262"
+  },
+  "tv": {
+   "calm": "COVERED:rb 10/25@262",
+   "busy": "COVERED:rb 7/25@262"
+  },
+  "bouncer": {
+   "calm": "ok 25/25@300",
+   "busy": "ok 25/25@300"
+  },
+  "shelf2": {
+   "calm": "ok 25/25@352",
+   "busy": "COVERED:say 18/25@352"
+  },
+  "shelf1": {
+   "calm": "ok 25/25@420",
+   "busy": "COVERED:say 17/25@420"
+  },
+  "basket": {
+   "calm": "ok 25/25@448",
+   "busy": "ok 25/25@448"
+  },
+  "dresserw": {
+   "calm": "ok 25/25@480",
+   "busy": "ok 24/25@480"
+  },
+  "pnp": {
+   "calm": "ok 25/25@534",
+   "busy": "ok 25/25@534"
+  },
+  "bathhall": {
+   "calm": "ok 25/25@622",
+   "busy": "ok 23/25@622"
+  },
+  "errors": []
+ },
+ "landSmall G4": {
+  "sectional": {
+   "calm": "ok 25/25@77",
+   "busy": "ok 24/25@77"
+  },
+  "armchair": {
+   "calm": "ok 25/25@142",
+   "busy": "ok 25/25@142"
+  },
+  "lamp": {
+   "calm": "ok 25/25@180",
+   "busy": "ok 23/25@180"
+  },
+  "pail": {
+   "calm": "ok 25/25@204",
+   "busy": "ok 25/25@204"
+  },
+  "fireplace": {
+   "calm": "ok 25/25@262",
+   "busy": "ok 23/25@262"
+  },
+  "tv": {
+   "calm": "ok 20/25@262",
+   "busy": "COVERED:alertb 9/25@262"
+  },
+  "bouncer": {
+   "calm": "ok 25/25@300",
+   "busy": "ok 25/25@300"
+  },
+  "shelf2": {
+   "calm": "ok 25/25@352",
+   "busy": "COVERED:say 18/25@352"
+  },
+  "shelf1": {
+   "calm": "ok 25/25@420",
+   "busy": "COVERED:say 18/25@420"
+  },
+  "basket": {
+   "calm": "ok 25/25@448",
+   "busy": "ok 25/25@448"
+  },
+  "dresserw": {
+   "calm": "ok 25/25@480",
+   "busy": "ok 24/25@480"
+  },
+  "pnp": {
+   "calm": "ok 25/25@534",
+   "busy": "ok 25/25@534"
+  },
+  "bathhall": {
+   "calm": "ok 25/25@622",
+   "busy": "ok 25/25@622"
+  },
+  "errors": []
+ },
+ "landSmall G4+G19": {
+  "sectional": {
+   "calm": "ok 24/25@82",
+   "busy": "ok 24/25@82"
+  },
+  "armchair": {
+   "calm": "ok 25/25@142",
+   "busy": "ok 25/25@142"
+  },
+  "lamp": {
+   "calm": "ok 25/25@180",
+   "busy": "ok 17/25@180"
+  },
+  "pail": {
+   "calm": "ok 25/25@204",
+   "busy": "ok 25/25@204"
+  },
+  "fireplace": {
+   "calm": "ok 25/25@262",
+   "busy": "ok 23/25@262"
+  },
+  "tv": {
+   "calm": "ok 20/25@262",
+   "busy": "COVERED:alertb 11/25@262"
+  },
+  "bouncer": {
+   "calm": "ok 25/25@300",
+   "busy": "ok 25/25@300"
+  },
+  "shelf2": {
+   "calm": "ok 25/25@352",
+   "busy": "COVERED:say 17/25@352"
+  },
+  "shelf1": {
+   "calm": "ok 25/25@420",
+   "busy": "COVERED:say 18/25@420"
+  },
+  "basket": {
+   "calm": "ok 25/25@448",
+   "busy": "ok 25/25@448"
+  },
+  "dresserw": {
+   "calm": "ok 25/25@480",
+   "busy": "ok 24/25@480"
+  },
+  "pnp": {
+   "calm": "ok 25/25@534",
+   "busy": "ok 25/25@534"
+  },
+  "bathhall": {
+   "calm": "ok 25/25@600",
+   "busy": "COVERED:say 22/25@600"
+  },
+  "errors": []
+ },
+ "844x340 TODAY": {
+  "sectional": {
+   "calm": "ok 25/25@66",
+   "busy": "ok 24/25@66"
+  },
+  "armchair": {
+   "calm": "ok 25/25@142",
+   "busy": "ok 25/25@142"
+  },
+  "lamp": {
+   "calm": "ok 25/25@180",
+   "busy": "ok 18/25@180"
+  },
+  "pail": {
+   "calm": "ok 25/25@204",
+   "busy": "ok 25/25@204"
+  },
+  "fireplace": {
+   "calm": "ok 25/25@262",
+   "busy": "ok 22/25@262"
+  },
+  "tv": {
+   "calm": "COVERED:rb 5/25@262",
+   "busy": "COVERED:rb 3/25@262"
+  },
+  "bouncer": {
+   "calm": "ok 25/25@300",
+   "busy": "ok 25/25@300"
+  },
+  "shelf2": {
+   "calm": "ok 25/25@352",
+   "busy": "COVERED:say 16/25@352"
+  },
+  "shelf1": {
+   "calm": "ok 25/25@420",
+   "busy": "COVERED:say 15/25@420"
+  },
+  "basket": {
+   "calm": "ok 25/25@448",
+   "busy": "ok 25/25@448"
+  },
+  "dresserw": {
+   "calm": "ok 25/25@480",
+   "busy": "ok 24/25@480"
+  },
+  "pnp": {
+   "calm": "ok 25/25@534",
+   "busy": "ok 25/25@534"
+  },
+  "bathhall": {
+   "calm": "ok 25/25@622",
+   "busy": "ok 18/25@622"
+  },
+  "errors": []
+ },
+ "844x340 G4": {
+  "sectional": {
+   "calm": "ok 25/25@67",
+   "busy": "ok 23/25@67"
+  },
+  "armchair": {
+   "calm": "ok 25/25@142",
+   "busy": "ok 25/25@142"
+  },
+  "lamp": {
+   "calm": "ok 25/25@180",
+   "busy": "ok 22/25@180"
+  },
+  "pail": {
+   "calm": "ok 25/25@204",
+   "busy": "ok 25/25@204"
+  },
+  "fireplace": {
+   "calm": "ok 25/25@262",
+   "busy": "ok 25/25@262"
+  },
+  "tv": {
+   "calm": "ok 20/25@262",
+   "busy": "COVERED:alertb 8/25@262"
+  },
+  "bouncer": {
+   "calm": "ok 25/25@300",
+   "busy": "ok 25/25@300"
+  },
+  "shelf2": {
+   "calm": "ok 25/25@352",
+   "busy": "COVERED:say 14/25@352"
+  },
+  "shelf1": {
+   "calm": "ok 25/25@420",
+   "busy": "COVERED:say 14/25@420"
+  },
+  "basket": {
+   "calm": "ok 25/25@448",
+   "busy": "ok 25/25@448"
+  },
+  "dresserw": {
+   "calm": "ok 25/25@480",
+   "busy": "ok 23/25@480"
+  },
+  "pnp": {
+   "calm": "ok 25/25@534",
+   "busy": "ok 24/25@534"
+  },
+  "bathhall": {
+   "calm": "ok 25/25@622",
+   "busy": "COVERED:say 22/25@622"
+  },
+  "errors": []
+ },
+ "844x340 G4+G19": {
+  "sectional": {
+   "calm": "ok 25/25@54",
+   "busy": "ok 23/25@54"
+  },
+  "armchair": {
+   "calm": "ok 25/25@142",
+   "busy": "ok 25/25@142"
+  },
+  "lamp": {
+   "calm": "ok 25/25@180",
+   "busy": "ok 22/25@180"
+  },
+  "pail": {
+   "calm": "ok 25/25@204",
+   "busy": "ok 25/25@204"
+  },
+  "fireplace": {
+   "calm": "ok 25/25@262",
+   "busy": "ok 23/25@262"
+  },
+  "tv": {
+   "calm": "ok 20/25@262",
+   "busy": "COVERED:alertb 8/25@262"
+  },
+  "bouncer": {
+   "calm": "ok 25/25@300",
+   "busy": "ok 25/25@300"
+  },
+  "shelf2": {
+   "calm": "ok 25/25@352",
+   "busy": "COVERED:say 14/25@352"
+  },
+  "shelf1": {
+   "calm": "ok 25/25@420",
+   "busy": "COVERED:say 14/25@420"
+  },
+  "basket": {
+   "calm": "ok 25/25@448",
+   "busy": "ok 25/25@448"
+  },
+  "dresserw": {
+   "calm": "ok 25/25@480",
+   "busy": "ok 23/25@480"
+  },
+  "pnp": {
+   "calm": "ok 25/25@534",
+   "busy": "ok 24/25@534"
+  },
+  "bathhall": {
+   "calm": "ok 25/25@596",
+   "busy": "COVERED:say 22/25@596"
+  },
+  "errors": []
+ }
+}

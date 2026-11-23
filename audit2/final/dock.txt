@@ -1,0 +1,521 @@
+# WORKER BRIEF: dock  (overlay file: clarity-dock.js)
+Items to build: G16, G25, G27, G31
+
+## Your surface
+Marina's own buttons, wishes, requests and stickers. Owns: tall-portrait position, size, visibility guard, glide and wiggle of #bookBtn and #dressBtn; position, size, glow animation, badge, span glyph and ghost of #wishBtn and #reqBtn; WISHES.fort.ico and SAY_ICON.m_want_fort (G31); .stk-toast handling and the fixed fly layer; the UI.bigIcon before-hook (G27 10); the UI.closeActions after-hook (G27 20); the screenOpen and screenClose listeners (G27); appear on '#wishBtn', '#reqBtn' and '.stk-toast'. Must NOT touch: #stopBtn (never moved, translated or rescaled); face cards; the landscape offsets of #dressBtn and #bookBtn (layout, G19); #reqBtn opacity, filter or shake (status, G15); the bigIcon look (bubbles, G5); sticker data (STK, cm_stickers).
+
+## Local edits allowed
+fun.js askReq, lines 82-83 (G31): a call-time icon map for the button span and Niko's bubble. Never the REQS literal; not fun.js:38, which belongs to screens. Guarded by Clarity.is('G31') and marked /* G31 */.
+
+## Order notes
+Worker index 4, ports 8890-8899. Merge 5th. Integration: G27 × G19 (📒's landscape home spot); G25 × G15 (#reqBtn dim); G16/G25 × G6 (rings avoid them); G31 × G22 (m_want_fort).
+
+## Shared core API (already built, in the game folder)
+Two new files, both in /home/user/Krelworld/public/chef-marina/. Global: window.Clarity (C below).
+
+A. clarity-flags.js (loaded FIRST, before audio.js)
+- Clarity.ids = ['G1'..'G39']; Clarity.on = {G1:true ... G39:true} (the switches, decided at page load).
+- Test overrides, never stored: URL ?clarity=off | ?clarity=-G3,-G19 | ?clarity=only:G3,G9 ; or window.CLARITY_OFF = 'all' | 'G3,G19' | ['G3'] set before load. Playwright: await ctx.addInitScript(v => { window.CLARITY_OFF = v; }, 'G3,G9') then goto or reload.
+- Clarity.ready: false until DOMContentLoaded, i.e. until every clarity file has loaded. Clarity.is(id) === (Clarity.ready && Clarity.on[id] === true).
+- LOCAL EDITS in game files test `window.Clarity && Clarity.is('G6')`. This works at any time and is false while the page is still loading.
+- Overlay code that runs at load reads Clarity.on.Gn directly.
+
+B. clarity-core.js (loaded after trees.js). Clarity.core === 1 once it has loaded.
+
+SWITCHES AT RUN TIME
+- Clarity.set(id, bool): flips a switch. Hooks, listeners, ticks, pointer and appear callbacks stop or resume at once. CSS follows at once.
+- Clarity.onToggle(id, fn(on)): callbacks so an item can undo or redo inline state when its switch flips.
+- Setting Clarity.on.Gn = false by hand also works, except for onToggle; CSS then follows within 250 ms.
+- Clarity.item(id, setupFn): runs setupFn once at load, only if the switch is on, inside try/catch.
+
+HOOKS (use these instead of wrapping a game function): Clarity.hook(point, id, { before(call), after(call), order })
+- Points, each wrapped ONCE by the core and outermost over every game wrapper: 'UI.actions', 'UI.closeActions', 'UI.bigIcon', 'UI.pulseMoods', 'UI.bubble', 'UI.update', 'Audio2.blip', 'onTap', 'hitTest', 'interact', 'currentActivity', 'onEnterRoomBy', 'checkMess', 'showWish', 'openIsoMap', 'drawProp', 'drawExitSigns', 'featTick'. Clarity.points() lists them.
+- call = { name, self, args, result, skip }.
+- before(call) may set call.skip = true, and call.result if needed, so the game's own function is not called. The first skip stops the remaining before-hooks.
+- after(call) runs after the game's function. It also runs after a skip, so check call.skip. It may replace call.result.
+- In both, this === call.self. Never mutate call.args.
+- order: lower runs first (default 0); equal orders run in registration order.
+- Hooks run only while Clarity.on[id] is true.
+- A hook that throws is reported once (console.warn 'clarity: Gn before X') and its changes to skip/result are undone.
+- With nothing registered, or every hook switched off, the wrapper is exactly the game's call: same this, arguments and return value.
+- Clarity.inner(point): the game's own function under the hooks. Call it to bypass every clarity hook, e.g. to replay a deferred icon: Clarity.inner('UI.bigIcon')(ch, ms).
+- drawExitSigns: builder.js:234 re-wraps it once on the next frame. The core's wrapper sits inside builder's and still runs exactly once per frame (measured 60/s). Never re-wrap anything yourself.
+- Not hook points:
+  - ui.js internals: actions() and openPanel() call the private closeActions; placeActs is private. Use local edits (G6, G7).
+  - askReq is private to fun.js. Use a local edit (G31) or Clarity.appear('#reqBtn').
+  - changeRoom: use the 'room' event.
+  - say: G22 is a static table.
+  - resize and the camera: only the layout worker changes framing, through engine.js:169, game.js:286 and calls to resize() and render() by name.
+- Example: Clarity.hook('checkMess', 'G2', { order: 10, before(c) { if (Clarity.busyNow() || Clarity.quietFor() < 10) c.skip = true; } });
+- Example: Clarity.hook('hitTest', 'G8', { order: 10, after(c) { const h = c.result; if (h && h.kind === 'prop') c.result = see(h, c.args[0], c.args[1]); } });
+
+EVENTS: Clarity.listen(evt, id, fn)
+- 'room' (was, room): after every real room change. Dispatched from a Floors.hooks entry, i.e. from floors.js's changeRoom, which is the outermost one.
+- 'screenOpen' / 'screenClose': Clarity.screenOpen() turned true / false.
+- 'activityStart' / 'activityEnd': Clarity.busyNow() turned true / false. On activityEnd, Clarity.endedAt = E.t (game seconds).
+- The start of a game (the title closing) is a screenClose and an activityEnd.
+- Edges are sampled every 100 ms, and also synchronously whenever Clarity.quietFor() or Clarity.sample() is called, so an edge fires once, never late for a reader.
+- Example: Clarity.listen('activityEnd', 'G1', () => { lastInput = E.t; });
+
+TIMER: Clarity.every(ms, id, fn(nowMs))
+- One shared 50 ms setInterval. fn runs at most every ms (minimum 50) while the switch is on.
+- Example: Clarity.every(100, 'G15', tick);
+
+TOUCHES: Clarity.pointer('down' | 'up', id, fn(event))
+- One window capture listener per type (passive), installed on first use. It runs before any game handler sees the event.
+- Look only: never preventDefault or stopPropagation.
+- Example: Clarity.pointer('down', 'G1', () => { lastInput = E.t; });
+
+NEW NODES: Clarity.appear(selector, id, fn(node))
+- One MutationObserver on body (childList, subtree), installed on first use.
+- fn runs as a microtask, before paint, for every added element matching selector, whether it is the added node itself or inside an added subtree.
+- The node may already be gone again, so check isConnected.
+- Example: Clarity.appear('.stk-toast', 'G27', t => { if (Clarity.screenOpen()) { t.style.display = 'none'; queue.push(t.textContent); } });
+
+CSS: Clarity.css(id, cssText) returns a <style data-clarity='Gn'> appended to <head>.
+- Clarity styles are kept after every game stylesheet: Bricks, LegoShelf, Pool, Movies, Stuffies and Spa append theirs the first time they open, and the core moves ours back to the end.
+- media='not all' while the switch is off.
+- Call it as often as you like per item.
+- Example: Clarity.css('G14', '@media (orientation:portrait){#roombar{max-width:calc(100% - 84px)}.rb{flex:0 1 40px;min-width:34px}}');
+
+STATE HELPERS
+- Clarity.bodyBusy(): marina.state is swing, bars, ride or wheel, or a looping anim. False before the game exists.
+- Clarity.screenOpen(): any of the following is up:
+  - the title;
+  - any #panel screen, including the map, the fort builder and interior, Lego/tiles, the shelf, pool, films, stuffies, spa, tree climb and the builder;
+  - Studio.active, #storyBox or #stkBox.
+  The TV and the fort tray are not screens.
+- Clarity.busyNow(): inActivity() || bodyBusy().
+- Clarity.quietFor(): game seconds since the last activity ended. 0 while one is going on; Infinity before any ended.
+- Clarity.endedAt: E.t of the last activity end (null before). Clarity.sample(): re-evaluate the edges now.
+- Clarity.playing(): marina exists and the title is hidden.
+- Clarity.landscape(): innerWidth > innerHeight.
+
+GEOMETRY HELPERS
+- Clarity.hudRects(st?, opt?) returns [[x0,y0,x1,y1], weight, kind, element] for every visible HUD control.
+  - Kinds: strip (#roombar .rb), pill (#floorpill .fl:not(.off)), map, arrow (.navarrow:not(.off)), weather (#weatherBtn:not(.hidden)), alert (#alerts .alertb), face (.facecard.show), stop (#stopBtn:not(.hidden)), book and dress (not .off), wish, req, give (#fx .pichint), call (.cm-call), mood (#moodbar .mood), moodToggle.
+  - Skipped: zero-size controls, visibility:hidden, and opacity < 0.05 on the control or an ancestor.
+  - Weight 4. In landscape, mood and moodToggle get weight 6 and are widened 8 px to the left.
+  - Coordinates are relative to st (a DOMRect, e.g. placeActs' stage rect) or to #stage. opt.client gives viewport coordinates.
+  - opt.kinds and opt.except filter by kind.
+  - Cached 250 ms (dropped on resize and orientationchange). opt.fresh measures now.
+  - Controls outside the picture (the tall-portrait dock, the portrait mood row) are included; they overlap nothing in it.
+  - Example (G6): if (window.Clarity && Clarity.is('G6')) { acts.hud = acts.hud || Clarity.hudRects(st, { fresh: true }); for (const x of acts.hud) avoid.push(x); }
+- Clarity.stageRect(): #stage's DOMRect, cached 250 ms.
+- Clarity.toClient(wx, wy) gives viewport px. Clarity.fromClient(cx, cy) gives world coordinates.
+- Clarity.onCanvas(cx, cy): elementFromPoint there is #cv, i.e. nothing covers the picture at that point.
+- Clarity.overlap(a, b): overlap area of two [x0,y0,x1,y1] rects.
+- Clarity.nudgeX(box, rects, { gap = 4, max, bounds: [minX, maxX] }) returns the smallest sideways shift in px that clears every rect at the box's height (hudRects entries or plain rects), or null if none within max.
+  - Example: const dx = Clarity.nudgeX(b, Clarity.hudRects(null, { except: ['give', 'call'] }), { max: 62, bounds: [0, st.width] });
+- Clarity.floorLevel(room): main 0, up +1, basement -1, outside 0, tree houses 0.5, unknown rooms 0.
+- Clarity.floorDir(from, to): +1 up, -1 down, 0 same level.
+  - Example (G39): const fd = window.Clarity && Clarity.is('G39') ? Clarity.floorDir(prev, G.room) : 0;
+
+MOTION HELPER
+- Clarity.shake(el, { px = 4, ms = 150, times = 2 }) returns an Animation or null.
+- It is a side-shake on the individual translate property only, with composite 'add'. Without composite support it starts from the element's computed translate.
+- So transforms, CSS animations, :active scales and centring translates keep working, and a CSS animation:none cannot cancel it.
+- Example: Clarity.shake(btn); Audio2.blip(-12, 'triangle', 0.08, 0.1);
+
+MISC
+- Clarity.warnOnce(key, err).
+- Item state and item helpers live on Clarity.Gn, e.g. Clarity.G18 = { target: null } and Clarity.G23 = { hintGap() {...} }. Never on G, never in localStorage.
+
+Tools in /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/arch/:
+- regress-flags.js: run regress.js with switches off. CLARITY_OFF=all|G3,G9 NODE_PATH=$(npm root -g) node regress-flags.js <port> <out.json> [gameDir] [only=flows].
+- core_boot.js, core_hooks.js and core_flags.js: the core proofs, reusable as templates.
+
+## Load order
+Script order in index.html and in artifact.html. The two lists are identical, checked with diff.
+
+clarity-flags.js (NEW, first)
+audio.js engine.js world.js ui.js game.js features.js fort.js art.js scenes.js pics.js play.js calm.js react.js more.js nav.js story.js fun.js floors.js basement.js upstairs.js outdoor.js bricks.js spa.js stuffies.js family2.js minka.js legoshelf.js builder.js pool.js movies.js wildlife.js treeclimb.js trees.js (unchanged)
+clarity-core.js (NEW)
+clarity-prompts.js, clarity-status.js, clarity-rings.js, clarity-bubbles.js, clarity-dock.js, clarity-layout.js, clarity-screens.js, clarity-wayfinding.js (8 NEW empty stubs, one per worker, in workers-list order)
+
+Files created in /home/user/Krelworld/public/chef-marina/: clarity-flags.js, clarity-core.js, and the 8 stubs. Each stub holds only a header comment, a load guard (`const C = window.Clarity; if (!C || !C.core) return;`) and an empty IIFE. index.html and artifact.html are edited. Nothing is committed.
+
+Why this order:
+- Flags first, so any game file, including load-time code and the earliest timers, can call Clarity.is or read Clarity.on.
+- The core after trees.js, so each of its 18 wrappers is outermost over every game wrapper. The one exception is by design: builder.js re-wraps drawExitSigns once to keep its late drawing last, and the core's wrapper runs inside it.
+- Worker files after the core, so they can register hooks at load.
+- The order among worker files does not matter:
+  - hooks carry explicit order numbers (see conventions);
+  - CSS is split by property ownership, so no two workers set the same property on the same element;
+  - the only shared load-time writes (G22 fills missing SAY_ICON keys; G31 sets the existing m_want_fort) commute.
+- Load-time literals and loops in early files are never edited: REQS in fun.js, ROOMS.nunuroom in basement.js:7, the tree-house loop at builder.js:928. Those changes are applied from the overlay at load (G31 WISHES/SAY_ICON, G36 ROOMS icons, G22 SAY_ICON) or at call time (G31 askReq).
+
+Merge order of the worker branches: prompts, status, rings, bubbles, dock, layout, screens, wayfinding.
+- rings must come before layout, because G19 narrows the landscape picture and relies on G7's wrapping tray.
+- Local edits are line-disjoint across workers, so any order merges cleanly.
+
+## Conventions (must follow)
+1. YOUR FILES
+- Each worker owns one overlay file: its stub clarity-<name>.js, already loaded by index.html and artifact.html.
+- It also owns the local edits listed for it under workers, and nothing else.
+- Never edit: clarity-flags.js, clarity-core.js, index.html, artifact.html, style.css, or lines owned by another worker.
+- If you need a core change, report it. Do not patch the core.
+
+2. SWITCHES. Every item's code checks its own switch.
+- Hooks, listeners, ticks, pointer and appear callbacks, and Clarity.css registered with the item id are gated by the core.
+- Load-time overlay code: if (Clarity.on.Gn) {...}. Add Clarity.onToggle(id, fn) to undo it when the switch flips.
+- Local edits in game files: window.Clarity && Clarity.is('Gn').
+- A switch that is off must give byte-for-byte today's code path and look.
+- Test with ?clarity=-Gn, ?clarity=off, or CLARITY_OFF via an init script.
+
+3. LOCAL EDITS
+- Mark the changed line /* Gn */. Keep edits as small as possible, ideally one line.
+- The switch-off branch is today's exact expression.
+- Never add a top-level let, const or function to a game file. Classic scripts share one global scope, and a duplicate name is a SyntaxError that kills that whole file. Put state inside the file's existing IIFE or closure next to the edit, or on Clarity.Gn. more.js is top-level code, so G21 keeps its state on Clarity.G21.
+- Never edit object literals or loops that run at load: REQS in fun.js, ROOMS in basement.js:7, builder.js:928. Apply those changes from the overlay at load or at call time.
+- Find code by its text. Line numbers are as of this core and shift.
+
+4. HOOKS, NEVER WRAPPERS
+- Never reassign a game global or a UI or Audio2 method. Use Clarity.hook.
+- Assigned orders (lower runs first):
+  - UI.actions: before G2:10 | after G7:10, G30:20, G2:40 (only records whether a tidy ring opened), G18:30.
+  - UI.closeActions: after G18:10, G27:20.
+  - onTap: before G18:5 (never skips), G15:10 (never skips), G35:20 (may skip).
+  - interact: before G18:10.
+  - hitTest: after G8:10.
+  - currentActivity: after G17:10.
+  - onEnterRoomBy: before G20:10.
+  - checkMess: before G2:10.
+  - UI.bigIcon: before G27:10.
+  - UI.pulseMoods: before G24:10.
+  - UI.bubble: after G26:10.
+  - UI.update: after G5:10.
+  - Audio2.blip: before G15:10.
+  - openIsoMap: after G36:10, G37:20, G38:30.
+  - drawProp: after G35:10.
+  - drawExitSigns: after G35:10.
+  - featTick: after G26:10.
+  - showWish: free; use 10.
+- After-hooks must check call.skip.
+- To call a hooked function without re-entering its hooks, use Clarity.inner(name).
+- Events: room (G4, G18, G23, G35); activityEnd (G1); screenOpen (G2, G27); screenClose (G27).
+- Pointer: G1 down; G15 up.
+- Appear: G23 '#alerts .alertb' (or a tick), G25 '#reqBtn' and '#wishBtn', G27 '.stk-toast'.
+- Ticks: G4 200 ms, G15 100 ms, G23 250 ms, G35 250 ms, G37 300 ms, G38 200 ms.
+- G3, G9 and G16 use MutationObservers of their own, on elements they own.
+
+5. CSS
+- Only through Clarity.css(id, text), one or more per item. Never edit style.css or inject <style> yourself.
+- Prefix every new class or keyframe with cm-.
+- Property ownership on shared elements. Two workers never set the same property on the same element:
+  - #xFloat: screens.
+  - #panel and its screens (cooking, dress-up, crafts, Bricks, the canvas screens), #studio, #storyBox and #stkBox: screens. Two exceptions: the map's content (.fmap, .fmaprow, .fmaproom and the .isosvg additions) belongs to wayfinding, and .isoroom.here's transform-box/transform-origin belongs to bubbles (G5).
+  - #title padding and .tpick: layout (G13).
+  - #moodbar and #moodToggle: layout owns position, size, display, the folded slot, background, handle and chevron in landscape. status owns .mood opacity, filter and shake, and the animation of #moodbar.pulse and .mood.
+  - .navarrow: layout owns the right offset. status owns the animation and the inner <i> bob.
+  - #roombar / .rb: layout owns position, landscape centring, max-width and .rb size/flex. wayfinding owns the #roombar background and the .rb.cm-gp dot. status owns .rb opacity, filter and shake.
+  - #floorpill / .fl: wayfinding owns the colour ring (box-shadow), data-dest and .fl i font-size. status owns .fl opacity, filter and shake.
+  - #alerts / .alertb: layout owns #alerts' landscape centring. status owns .alertb animation, .settled, data-born, the tp colour, opacity, filter and shake.
+  - .facecard: layout owns .facecard.right's landscape offset. status may only shake a face card; nobody dims them.
+  - #weatherBtn: layout.
+  - #dressBtn / #bookBtn: dock owns tall-portrait position, size, visibility guard, glide and wiggle. layout owns the landscape right offsets.
+  - #stopBtn: nobody moves, translates or rescales it. Its glyph comes from the currentActivity hook (bubbles, G17).
+  - #wishBtn / #reqBtn: dock owns position, size, glow animation, badge, span glyph and the ghost. status owns #reqBtn opacity, filter and shake.
+  - .say, .pichint, .cm-call and the bigIcon look: bubbles. The timing of ✨ big icons: dock (G27).
+  - .act, .acttray, .actback, .cm-badge and ring placement: rings.
+  - .stk-toast and the fly layer: dock.
+  - Canvas drawing: rings (the glow in nav.js, the deer tab); wayfinding (signs, edge tabs, the floor slide); status (the idle wiggle); layout (zoom and camera).
+  - #app classes: status adds cm-strip, cm-mood and cm-alert; layout may add its own cm-* classes.
+
+6. POSITION AND MOTION
+- HUD and dock buttons are positioned with left/top/right/bottom and the individual translate property, never transform. Game rules such as :active, pulse and .facecard scale use transform.
+- Transient motion: Clarity.shake, el.animate on translate, or a pointer-events:none ghost element.
+- Clarity code never calls preventDefault or stopPropagation. A tap is never swallowed or retargeted, with one documented exception: G35's tab tap.
+
+7. DATA
+- Nothing new on G, in localStorage or sessionStorage, or in saved data. Item state lives on Clarity.Gn.
+- Never call propActions or entActions just to look: fun.js's wrapper marks treasures found. G18 also never calls hitTest.
+
+8. TESTING SETUP
+- Serve your worktree: H.boot({ port, view, room, dir: '<worktree>/public/chef-marina' }).
+- Ports: worker k (0-based position in the workers list) uses 8850+10k to 8859+10k:
+  - prompts 8850-8859, status 8860-8869, rings 8870-8879, bubbles 8880-8889
+  - dock 8890-8899, layout 8900-8909, screens 8910-8919, wayfinding 8920-8929
+- harness.serve() reuses any server already listening on a port, whatever directory it serves. Never point one port at a second directory.
+- Views: port, land, portSmall, landSmall, plus the sizes a check names (pass {width,height} as view): 844x340, 390x664, 390x585, 375x553 and others.
+- Desktop env() is 0, so simulate safe-area insets with padding, as the verdicts did. Checks that name her iPhone stay owner checks.
+- Scratch files only under /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/build-<name>/.
+
+9. REGRESSION SWEEP
+- Run: cd .../scratchpad/audit && NODE_PATH=$(npm root -g) node regress.js <port> <out.json> <worktree>/public/chef-marina
+- Then: node regress-diff.js .../audit2/arch/head1.json <out.json> .../audit2/arch/head2.json
+  head1/head2 are today's committed game, without clarity, run twice: the clean baseline and the noise reference.
+- The core build is .../audit2/core_regress.json.
+- Diffing against after3.json also works, but expect the rows already explained in core_tests: the fixes committed after after3.json was recorded.
+- Switch-off sweep: CLARITY_OFF=<your ids or all> NODE_PATH=$(npm root -g) node .../audit2/arch/regress-flags.js <port> <out.json> <dir>
+- Run sweeps one at a time on an idle machine. Under load the game's dt cap slows game time, and the 1.6 s samples catch earlier states.
+
+10. DONE MEANS, PER WORKER
+a. Every item is built exactly as its reconcile entry says.
+b. Each item's must-still-work list from the draft and every EXTRA CHECK of BOTH lenses has been run in the harness and passes. Results are saved in your scratch folder. A check that needs another worker's item is written down as an integration check with its expected result, never silently skipped.
+c. Zero page errors in port, land, portSmall and landSmall, with all switches on and with your switches off. The pre-existing chip_love.mp3 warning is the only allowed message.
+d. The regress sweep has no LOST SITUATION, LOST CHOICE, BROKEN or failed flow. Every remaining difference is noise or one of the expected renames listed in your items.
+e. The switch-off sweep for your ids shows no difference beyond noise.
+f. The worktree diff touches only your overlay file and your listed /* Gn */ lines.
+g. Commit only on your worktree branch, never on main, never push, unless the orchestrator says otherwise.
+
+11. AFTER MERGING (integration phase)
+Integration checks:
+- G19 × G7: keyboard (8) and TV (9) lists at 667x375 and 844x390 show every choice without scrolling.
+- G19 × G11 / G35 / G17 / G26 / G6: tabs, signs, bubbles and rings clear of ▶ at right:0 and of the column.
+- G19 × G16 / G27: 📒 and 👗 stay at today's landscape spots, and the sticker flight lands there.
+- G4 × G39: a cross-floor arrival in the living room in landscape runs one animation with no stretched frame.
+- G3 × G37 / G38: the landscape map with the lane still wraps its rows, no tile sits under #xFloat, and the house picture keeps its size.
+- G15 × G25: #reqBtn dims during scenes.
+- G30 × G35 / G36 / G39: the up/down badges match.
+- G22 × G31: m_want_fort shows 🏰 with G31 on and ⛺ with it off.
+Then a full sweep vs head1/head2 with all expected renames, and a CLARITY_OFF=all sweep equal to today.
+
+## Critic addenda for you
+- Ports. harness.serve() reuses any server already on a port, whatever directory it serves. Before your first run, and whenever a result looks wrong, check: for p in $(seq <lo> <hi>); do pid=$(pgrep -f "http.server $p --bind"); [ -n "$pid" ] && echo $p $(readlink /proc/$pid/cwd); done. Every line must be your worktree's public/chef-marina; kill any other with kill <pid>. Stale main-tree servers that were in 8850–8929 have been stopped.
+- Sweeps. Wrap every regress.js and regress-flags.js run in: flock -x /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/sweep.lock <command>. Before calling any BEHAVES DIFF or flow difference a regression or noise, re-press it A/B against HEAD (port 8847 serves arch/head) under identical conditions; /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/critic/ab_rows.js is a template. Under load, the stool and wicker 🧗 'perch', the Miles 🤗 'anim' and 'tap floor walks' flip by themselves.
+- Events. room, screen and activity listeners may run synchronously inside any Clarity.quietFor() or Clarity.sample() call, including inside another item's hook (G2's checkMess hook runs inside AI.update). Keep them cheap and re-entrancy-safe, and never assume they run from the timer.
+- Switches. Register hooks, ticks, listeners, pointer and appear callbacks and Clarity.css unconditionally at load; the core gates them, so turning a switch ON at run time works. Use `if (Clarity.on.Gn)` at load only for one-time data changes, paired with Clarity.onToggle(id, on => ...) that both applies and restores.
+- DOM and names:
+- Create DOM nodes only while your switch is on.
+- Never reuse a game id or class (.act, .pichint, .say, .alertb, .stk-toast, #wishBtn, #reqBtn…); game code and regress.js query them.
+- Name new classes and @keyframes cm-gN-… (with your item id) unless the reconcile already names them; class and keyframe names are global and can collide across workers.
+- Rings close in places the UI.closeActions hook never sees. ui.js closes them through its PRIVATE closeActions when a new ring replaces an old one, in openPanel(), and in update() when the ring's anchor leaves the room. If your item needs 'is a ring open', read document.querySelector('#fx .act').
+- Insets and core changes:
+- Simulated insets (padding in the harness) leave env() at 0. Anything absolutely positioned inside #stage is already offset by env(safe-area-inset-left) through #app's padding; never add env() to its left or right, or her iPhone gets the inset twice and no harness check can show it.
+- Core changes from the critic: hook lists are copy-on-write (a hook registered during a call applies from the next call), and Clarity.nudgeX takes opt.dir (+1 or -1).
+- G27: never replay from inside the UI.closeActions after-hook. ui.js:52 calls UI.closeActions() before a.fn(), so a choice that opens a screen opens it right after your hook. Measured with 🎨 on the dining table: screenOpen() is false in the hook and true when the tap handler returns (critic/g27_closeorder.js). Schedule with setTimeout(...,0) or the next tick, re-check Clarity.screenOpen(), and otherwise wait for 'screenClose'. The same applies when G2's screenOpen listener calls UI.closeActions(). Also mark your own toasts (e.g. data-cm), because moving one into the fixed fly layer fires appear('.stk-toast') again.
+- G25: the landscape and short-portrait slot is stage-relative. Use left:122px, not calc(env(safe-area-inset-left) + 122px): #wishBtn and #reqBtn sit inside #stage, which already starts at the inset. Verify 122 px against the widest ✋ chip by measuring #stopBtn (width:auto) with each currentActivity glyph, including 🖼️✋ (G17), 🍽️✋, ♿ and 🧍. The glide ghost must have no id (never cloneNode with id wishBtn or reqBtn) and only cm-g25 classes.
+
+## Open critic issues touching your items
+- [major] G27 (dock): UI.closeActions after-hook replay of deferred ✨: ui.js:52's choice handler runs UI.closeActions() before a.fn(). A choice that opens a screen therefore opens it immediately after the hook returns. Measured with the dining table's 🎨 (critic/g27_closeorder.js): screenOpen() is false inside the hook and true when the same tap handler returns. A replay inside the hook plays 💎✨ under the screen, where it expires unseen. That breaks 'never dropped' and the check 'treasure then a choice that opens the studio: the icon appears once, after the studio closes'. → Never replay synchronously in the hook. Schedule it with setTimeout 0 or the next tick, re-check screenOpen(), and otherwise wait for screenClose. The same applies when G2's screenOpen listener calls UI.closeActions().
+- [minor] G25 (dock): landscape and short-portrait slot left:calc(env(safe-area-inset-left) + 122px): #wishBtn and #reqBtn are absolute inside #stage, which already starts at env(safe-area-inset-left) (#app padding). The rule double-counts 47–59 px on her iPhone. Tests that simulate insets with padding leave env() at 0, so the harness cannot catch it. #stopBtn is width:auto, so 122 px needs checking against the widest ✋ chip. → Use stage-relative left:122px and measure #stopBtn with every currentActivity glyph (addendum).
+- [minor] G25 (dock): glide ghost: A cloneNode ghost would carry id wishBtn or reqBtn. Duplicate ids would feed hudRects, G23's hintGap selector and getElementById, and would re-trigger appear('#wishBtn'). → The ghost has no id and only cm-g25 classes (addendum).
+
+## Cross-item conflicts involving your items
+- G25/G16: Prompt placement in tall portrait. The child lens wants one re-centred row [✋][📒][👗][prompt] that shrinks members and shifts ✋. The functionality lens measured that this moves buttons under her finger: a wish tap became ✋ and dropped her dish. → The functionality lens wins: each item gets one fixed slot, chosen per screen size, and nothing moves because another button came or went. The child's parts that fit inside that slot are kept: the asker's face badge for all four askers in every layout, the prompt as big as fits (84, then 72, then 64 px, then today's corner), the box-shadow glow, and the glide as a pointer-events:none ghost.
+- G27: The child lens says do not defer stickers: some are deliberately timed to pop inside their screen (Lego shelf, story end, film end), and it wants 📒 shown and tappable for 2.5 s when the toast lands. The functionality lens says hide the toast during screens and replay it after, with no look-only peek. It showed the peek would put a visible but dead 📒 over the picture, recreating G16's mis-tap. → The functionality lens wins on both points. Its version is safe and still teaches her where stickers go. The jingle, the stars and m_sticker still play at the moment of earning; only the picture waits. The child's rule that a deferred treasure icon is never dropped is added. Owner note: the in-screen sticker moments the dad built now show their picture after the screen closes.
+- G31: Draw wish and request 🖍️→🎨. The functionality lens keeps it; the child lens drops it, because 🎨 is the dining room's strip icon and the dress-up colour tab, and 🖍️ is the studio's first tool and the draw sticker. → The child lens wins. The functionality version would make this part worse for her: a 🎨➡️ wish reads as 'go to the dining room'. Dropping it is a safe subset of the functionality version. The chip 🐱→🐈 is dropped by both lenses. The fort 🏰 and Niko 🐟 swaps stay, applied at call time or at load behind the switch, never in a load-time literal.
+- G22/G31: Both write SAY_ICON at load. The verdicts ask whether the order matters, since G22 must not overwrite m_want_fort. → G22 fills only keys that do not exist, and m_want_fort already exists. The two writes commute, so the worker files can load in any order.
+- G15/G23/G24/G25: Shared elements with competing animations and transforms: .alertb (G15's shake vs G23's settle), .mood (G15's shake vs G24's pulse), and #reqBtn (G15's dim and shake vs G25's position and glow). → G15, G23 and G24 share one worker (status). Clarity.shake animates only the translate property with composite 'add', so no CSS animation or transform wins over it. #reqBtn is split by property: dock owns position, size, box-shadow glow and badge; status owns opacity, filter and the translate shake.
+- G36/G31/G22/G1: Changes evaluated at load in early files (REQS in fun.js, ROOMS in basement.js:7, the builder.js:928 loop) run before any late overlay exists. A guarded local edit there would never take effect, and an unguarded one could not be switched off. → clarity-flags.js loads first, so Clarity.on and Clarity.is exist from the first script. Load-time data is still never edited in place. G36 sets ROOMS icons from the overlay at load (every reader is lazy). G31 sets WISHES and SAY_ICON at overlay load, and maps the request icon at call time in askReq. G22 fills SAY_ICON at load. Local edits use Clarity.is(), which is false until every clarity file has loaded.
+- G5/G6/G7/G17/G18/G23/G26/G31/G33/G37/G39/G20: Five game files are edited by two workers: ui.js (G5 vs G6/G7), nav.js (G17 vs G18), features.js (G23 vs G37/G39), fun.js (G33 vs G31) and family2.js (G26 vs G20). → Every edit is on different, non-adjacent lines. ui.js: G7 at :49, G6 at :72-73, G5 at :101. nav.js: G17 at :61-67, G18 at the glow IIFE :153-174. features.js: G39 at :395-397, G37 at :413, G23 at :598-599. fun.js: G33 at :38, G31 at :82-83. family2.js: G26 at :145, G20 at :171-179. Each worker locates its code by text, and merges are line-disjoint.
+
+
+==================== G16 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with both amendments. (1) Clarity.css inside @media (orientation:portrait) and (min-height:150vw): #bookBtn,#dressBtn{position:fixed;top:calc(env(safe-area-inset-top) + var(--stageH) + 16px);bottom:auto;right:auto;width:64px;height:64px} #bookBtn{left:calc(50% - 70px)} #dressBtn{left:calc(50% + 6px)}. (2) Functionality guard in the same block: #stopBtn:not(.hidden) ~ #dressBtn, #stopBtn:not(.hidden) ~ #bookBtn{visibility:hidden}. #stopBtn is an earlier sibling, so this closes the 200/250 ms race between the two timers. (3) The visibility rules (nav.js:92-93, fun.js:41-42) are untouched. (4) Glide: for the first 3 appearances per session, each button is watched separately, starting when its own .off is removed (📒 follows 👗 up to 250 ms later). Run a 500 ms el.animate on the individual translate property, from (old spot minus new spot) to 0. The button has pointer-events:none until the animation ends or is cancelled (both lenses). Nothing is saved. (5) Short portrait (where min-height:150vw is false, e.g. 375x553) and landscape keep today's spots; say so in the plan. DONE = the draft list and both lenses' EXTRA CHECKS: mid-glide, elementFromPoint at the moving button's centre is #cv, and at the end it is the button; in triple.js (fridge) and the first-minutes P_kitchen and P_yard sessions no scene tap opens the book or dress-up; sitting or starting the TV right after they appear never leaves ✋ and 👗/📒 both visible and tappable; at 390x585 and with 59/34 insets the buttons end at least 20 px above the moods and clear both face cards and the prompts; rotating back and forth restores both layouts.
+Depends on: -
+Interactions: Same worker as G25 (its prompt slot sits under this row) and G27 (📒 is the sticker toast's target and wiggles via translate). G19 (layout) owns the landscape right offsets of #dressBtn and #bookBtn; G16 touches tall portrait only. G6 and G17 avoid the buttons through hudRects.
+
+### DRAFT ITEM
+### G16 Portrait: 📒 and 👗 move off the picture into Marina's row under it
+- problem: After 1.5 s standing still, the 64 px 📒 and 👗 fade in at about x 316, y 299 and 371 (fun.js:193, nav.js:132), over the right-hand floor of the picture.
+- Taps meant for Daddy, Niko, the fridge (3 of 3 taps), the monkey bars, the front door, the den sofa or the toy keyboard open the sticker book or dress-up instead.
+- They blink on and off 29–72 times per 15 min of walking.
+- Meanwhile 135–315 px of the purple band under the picture is empty.
+- change: On portrait screens tall enough to already put the face cards and ✋ under the picture (the existing min-height:150vw rule), 📒 and 👗 sit side by side in ✋'s slot, centred between the face-card corners. Same pictures, colours and 64 px size, same 1.5 s idle rule, same single tap. ✋ and 📒/👗 can never show at the same time: one needs her idle, the other needs an activity. To help her find the new spot, the first 3 times per session they glide in from their old place on the right.
+- implementation: CSS block G16:
+@media (orientation:portrait) and (min-height:150vw){#bookBtn,#dressBtn{position:fixed;top:calc(env(safe-area-inset-top) + var(--stageH) + 16px);bottom:auto;right:auto;width:64px;height:64px}#bookBtn{left:calc(50% - 70px)}#dressBtn{left:calc(50% + 6px)}}
+This overrides nav.js:132 and fun.js:193 by load order. The visibility rules (nav.js:92-93, fun.js:41-42) are untouched.
+Glide bridge:
+- a MutationObserver on #dressBtn's class;
+- when .off is removed and an in-memory count is under 3 for this session, run a 500 ms animation on the individual translate property, from (today's spot minus the new spot) to 0, on both buttons;
+- no transform is used (see G5), and nothing is saved.
+- must still work: 📒 opens the sticker book and 👗 opens dress-up with one tap, under the same idle conditions as today; ✋ still appears in its slot whenever an activity runs; Face cards at both corners and the mood faces are not covered (check 390x844, 390x664, 375x667); They still hide while a wish shows; Landscape and title positions are unchanged
+- benefit: The most common wrong outcome on the main floor goes away: tapping a person or thing no longer opens the sticker book or dress-up. Her own buttons now live in one predictable place.
+- risk: Medium habit cost on the main floor: the buttons sit about 150 px lower and nearer the middle, and the glide shows where they went. Check the band on the smallest tall portrait (buttons end at stageH+80; the faces start at about stageH+136).
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G16 [hud] Portrait: 📒 and 👗 move off the picture into Marina's row under it => AMEND (child:amend, functionality:amend)
+
+**child: amend** — This survives refutation. The misfires are real taps:
+- 3 of 3 fridge taps opened the sticker book (crit/five-year-old/triple_port_kitchen_fridge_1.png);
+- monkey bars and the front door opened the book in the first-minutes sessions;
+- a tap on Daddy's chest opened it too.
+To a non-reader, a grid of grey '?' tiles has no link to the fridge she tapped.
+
+I injected the draft CSS (verify/hud-child/g16.js, shots/g16_*.png). In port, portSmall, 390x664 and the notch app:
+- the buttons land between the face cards with 0 px² overlap with the cards, the moods and a showing request;
+- elementFromPoint at each centre returns the button;
+- there is a 55-200 px gap above the moods.
+
+The habit cost is real but modest. The new spot is high-contrast in an otherwise empty band, the same 1.5 s idle rule applies, and nothing in the scene can sit under the buttons any more.
+
+One flaw: the glide bridge animates the buttons across the picture from their old spot. While they are tappable mid-flight, they can catch exactly the scene tap this item is meant to stop. Also note that short portrait (375x553, Safari on a small phone) fails min-height:150vw and keeps today's spot over the picture (measured).
+
+- AMENDED CHANGE (child): As drafted: the tall-portrait CSS block puts 📒 at left:calc(50% - 70px) and 👗 at left:calc(50% + 6px), top:calc(env(safe-area-inset-top) + var(--stageH) + 16px), 64x64. The idle and wish rules are unchanged, and the buttons glide in from their old right-hand spot the first 3 times per session using the translate property.
+
+One change: during the 500 ms glide both buttons have pointer-events:none. They become tappable only once they reach their slot, so a button crossing the picture can never take a tap meant for Daddy, Niko, the fridge or the monkey bars.
+
+State in the plan that short portrait screens (where min-height:150vw fails, e.g. 375x553) keep today's position.
+
+- EXTRA CHECKS: Mid-glide (about 250 ms in), elementFromPoint at the moving button's centre returns #cv. At the end of the glide it returns the button. | Re-run crit/five-year-old/triple.js (portrait kitchen, fridge, 3 taps) and the first-minutes P_kitchen and P_yard sessions: no scene tap opens the sticker book or dress-up in tall portrait. | With G25 off, a request at the right (283-381 px) has 0 px² overlap with 👗 (201-265) at port, portSmall, 390x664 and with 59/34 insets. My prototype measured 0; re-check on the build. | Rotate to landscape while 📒/👗 are showing: they return to today's landscape bottom-right spots. Rotate back: they return to the band.
+
+**functionality: amend** — I ran the drafted CSS through the harness (verify/hud-functionality/g16.js; screenshots g16_*.png) at 390x844, 375x667, 390x664 and 390x590. In every case 📒 and 👗 sit at stageH+16..+80 and are not covered (elementFromPoint returns the buttons). They clear both face cards (10-92 and 298-380), the pulsing #reqBtn (283-381; #reqBtn does not hide 👗, nav.js:92) and the mood row (gap of 26 px or more). One touchscreen tap on 👗 opened dress-up in every view. At 375x562 the 150vw query is off, so the old layout is kept. Visibility rules and handlers are untouched, and ✋ and 📒/👗 are exclusive by state: the calm rule needs state 'idle', no G.holding, no G.tv and no mount, and every currentActivity() branch breaks one of those. Two gaps remain. (a) The stop tick runs every 200 ms and the dress tick every 250 ms, so for up to 250 ms ✋ can already show while 👗/📒 are still on. In the new layout they overlap the centred ✋, and because 👗 and 📒 come later in #stage's DOM they sit on top. A tap there opens dress-up from 'sit' (nav.js:22 accepts sit). (b) During the 500 ms glide from the old spot, the live buttons cross the right side of the picture, which recreates the mis-tap that G16 is meant to remove. Also, 📒 follows 👗's .off up to 250 ms later (fun.js:42), so its glide would run while it is still invisible.
+
+- AMENDED CHANGE (functionality): As drafted (same CSS block, sizes, idle rule and single tap, glide for the first 3 times per session), plus three guards. (1) Inside the same @media (orientation:portrait) and (min-height:150vw) block: #stopBtn:not(.hidden) ~ #dressBtn, #stopBtn:not(.hidden) ~ #bookBtn {visibility:hidden}. #stopBtn is an earlier sibling in #stage, so this only closes the 250 ms tick race, and the buttons' own rule already wants them off then. (2) During the 500 ms glide each button has pointer-events:none, restored when the animation ends. (3) Each button's glide starts when its own .off class is removed (observe #bookBtn separately), and uses only the individual translate property.
+
+- EXTRA CHECKS: Sit on a chair or start the TV right after 👗/📒 have shown: in no frame are ✋ and 👗/📒 both visible and tappable. | Tap the picture under the glide path during the first glide: the picture tap goes through (prop or person choices), and no sticker book or dress-up opens. | Notch mode (insets 59/34) and 390x585: the buttons end at least 20 px above the mood row and clear both face cards and #reqBtn/#wishBtn while they pulse. | With G25 merged, re-check the dock when a request (which does not hide 👗) and 👗/📒 show together.
+
+
+==================== G25 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD the FUNCTIONALITY fixed-slot version, with the child's badge and size preference. The child's re-centred row is rejected: it moved buttons under her finger, so a wish tap became ✋ and dropped her dish.
+(1) The slot is chosen once per screen size (on load, resize and orientationchange), never per prompt. Nothing else moves for a prompt, and the prompt never moves for anything else.
+(2) Tall portrait (min-height:150vw):
+- (a) a second line, centred under the ✋ / 📒👗 row, at top = safe-top + stageH + 88 px. Its size is the largest of 84, 72 and 64 px that ends at least 6 px above the mood faces. This holds at 390x844 and 375x667;
+- (b) otherwise (e.g. 390x664) today's right-corner spot. Document that it can cover the asker's card there; the face badge mitigates it.
+(3) Landscape and short portrait: left is fixed at calc(env(safe-area-inset-left) + 122px), whether or not ✋ shows.
+(4) ✋ is never moved, translated or rescaled. 📒 and 👗 keep their own spots.
+(5) Request badge, via Clarity.appear('#reqBtn','G25'):
+- replace the <b> emoji with a 40 px canvas of FACES face_<who>_happy_rest (use the bare name FACES; draw it as pool.js faceIcon does);
+- for all four askers, Niko included;
+- keep the emoji when FACES or that face is missing.
+(6) Tall portrait: a glow animation (box-shadow only) instead of growing.
+(7) For the first 3 appearances per session, a pointer-events:none ghost copy glides in from the old spot. The real button is tappable in its slot from its first frame.
+(8) Unchanged: colours, ➡️, handlers, go(), the 14 s and 25 s lifetimes, and the 150 s window.
+DONE = both lenses' EXTRA CHECKS:
+- log every member's rect every 100 ms through 'request + stand/walk' and through 'dish + wish + hug': no visible member moves;
+- elementFromPoint at each member's centre returns it, at 390x844, 390x664, 375x667, 375x548, 844x390, 667x375 and 844x340, with 0/47/59 px insets;
+- after a wish appears while she holds TP, ✋'s old centre still returns #stopBtn;
+- in layout (a) no face card is covered, and the prompt stays at least 6 px clear of the moods;
+- Niko's badge shows a cat picture or 🐈;
+- the ghost never blocks a tap on ✋.
+Expected regress rename: the #reqBtn badge text (emoji → canvas).
+Depends on: -
+Interactions: Same worker as G16 (the row above the slot), G27 and G31 (the #reqBtn span glyph). G15 (status) dims #reqBtn and shakes it through translate, so G25 never uses translate or opacity on the real buttons; its ghost is a separate element. G23's hintGap reads #wishBtn and #reqBtn. Rings (G6) and bubbles (G17) avoid them through hudRects.
+
+### DRAFT ITEM
+### G25 Wishes and requests join Marina's row under the picture, never on a face card or on ✋, and a request shows who is asking
+- problem: - In tall portrait, #wishBtn and #reqBtn sit at right:16, top stageH+10 (react.js:143, fun.js:210), on the right face card. When Daddy asks for something, his face card, the only picture that says WHO is asking, is under the blue button (80x82 px overlap). Their scale pulse grows to 99 px.
+- The request's badge is a generic emoji (👨‍🦲 for Daddy, fun.js:83).
+- In landscape and in short portrait both sit at left:104, overlapping ✋ by 11–15 px, and a request can sit completely under a wish.
+- change: - Tall portrait: one centred row between the face cards holds Marina's things, left to right: [✋] [📒][👗] [wish or request]. Nothing in it ever overlaps anything else, and both face-card corners stay free. Wish and request are 72 px there, and they pulse with a glow ring instead of growing.
+- Elsewhere: when ✋ shows, the wish or request sits 8 px to its right; otherwise it stays where it is today.
+- A request's badge becomes the asker's face portrait, the same picture as their face card. The wish keeps its activity picture.
+- The first 3 times per session that a prompt appears in the portrait row, it glides in from its old right-hand spot.
+- Same colours, same ➡️, same tap, same 14 s and 25 s lifetimes.
+- implementation: Block G25.
+- CSS @media (orientation:portrait) and (min-height:150vw): #wishBtn,#reqBtn{position:fixed;top:calc(env(safe-area-inset-top) + var(--stageH) + 12px);right:auto;bottom:auto;width:72px;height:72px;animation:cmGlow .7s ease-in-out infinite alternate}. cmGlow animates box-shadow only.
+- Row layout, run from a MutationObserver on #stage (childList) and from the 250 ms tick, while a prompt exists:
+  - take the visible members in order: #stopBtn, then #bookBtn and #dressBtn (only when Clarity.on.G16), then #wishBtn, then #reqBtn;
+  - measure them and set each one's left (and #stopBtn's translate) so the row is centred with 6 px gaps;
+  - if the row is wider than the space between the face cards (100vw − 2×(21vw+10px)), scale all members down evenly, never below 56 px;
+  - when no prompt shows, clear these inline styles, so ✋ and 📒/👗 return to their CSS spots.
+- Other layouts: if #stopBtn is visible, set prompt.style.left = (stopBtn's right edge − stage left + 8) px; otherwise clear it.
+- Badge: on a new #reqBtn, read who from its aria-label 'help <who>'. Replace its <b> emoji with a 40 px canvas drawn from FACES face_<who>_happy_rest, as pool.js:879 faceIcon does. Keep the emoji if FACES is not loaded.
+- Glide: an in-memory count, and a 500 ms translate keyframe.
+- Everything is positioned with left/translate, never transform (G5).
+- must still work: Every wish and request, its voice line, its button, its go() and its lifetime (react.js:117, fun.js:85), and the 150 s completion window; ✋ still works when shown in the pair, and keeps its press feedback; Face cards keep both corners and still zip her to that person; 📒/👗 still hide while a wish shows (nav.js:92), and stay visible and tappable while a request shows; Requests are still removed during screens and busy moments, as today; Niko's request
+- benefit: She can see who is asking, which makes a request feel like pleasing Daddy rather than a random blue button. Nothing she might want to press is ever hidden under another button, and her own things live in one row.
+- risk: Low-medium habit cost: in portrait, prompts move about 110 px from the right to the centre (they pulse when new, so they are easy to spot). Check on 375 px that the [📒][👗][request] row keeps every member at least 56 px and clear of the 79 px face cards, and check 390x664 and notch insets.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G25 [prompts] Wishes and requests join Marina's row under the picture, never on a face card or on ✋, and a request shows who is asking => AMEND (child:amend, functionality:amend)
+
+**child: amend** — The strongest part is cheap: the request badge becomes the asker's face. A face card is only on screen while its clip plays plus 450 ms (ui.js), so the right card is covered for just the 2–3 s of the request line. The badge says WHO for the whole 25 s, on every layout. Portraits exist for daddy, mommy, rory and niko. But FACES is a const (engine.js:23), so window.FACES is undefined and the code must use the bare name FACES. The landscape 'sit 8 px right of ✋' fix is simple and correct. Two details of the portrait dock should change. (1) It shrinks the wish/request from 84 to 72 px and can scale the whole row down to 56 px, which goes against the dad's 'buttons too small' complaint. The 3-member case ([📒][👗][request]) needs 224 px at 84 px and still overflows the 206 px gap at 72 px, so the shrink should land on 📒/👗 first. [prompt] alone or [✋][prompt] fits at today's 84 px even on 375 px (104+6+84=194 ≤ 197.5). (2) Centring the row translates ✋, a learned main-floor control, by about 45 px whenever a prompt appears while she holds something (wishes and requests can both show while she carries TP, Niko, poop or the blower). A tap on ✋'s old right third would then start the wish.
+
+- AMENDED CHANGE (child): Keep: (a) the request's <b> badge becomes a 40 px canvas of face_<who>_happy_rest from FACES (bare name; keep the emoji if !FACES.img), for all four askers incl. Niko, in every layout; (b) landscape and short portrait: when #stopBtn is visible, the prompt's left = ✋'s measured right edge + 8 px; (c) tall-portrait dock row with the glide bridge and the glow-ring pulse instead of growth. Change: the wish/request keep today's 84 px in the row. When the row is too wide (only [📒][👗][request]), shrink 📒/👗 first (floor 56 px), then the prompt (floor 72 px). ✋ may shift by at most a quarter of its width, so a tap on its old centre still lands on ✋. Animate the shift over 200 ms rather than jumping. If that still doesn't fit, the prompt sits right of ✋ and may overlap a talking right-hand face card for its clip, which the face badge now covers.
+
+- EXTRA CHECKS: On 375x667, 390x844 and 390x664 with 0/47/59 px insets: elementFromPoint at ✋'s pre-prompt centre still returns #stopBtn after a wish appears while holding TP | Every row member stays at or above its floor (📒/👗 56, prompt 72, ✋ unchanged); no member overlaps another or a face-card corner | : all four askers show the face badge, including Niko, and the emoji badge appears if FACES has not loaded | Wish and request lifetimes (14 s, 25 s), go(), the 150 s completion window and the thanks line are unchanged
+
+**functionality: amend** — Refuted as written: the re-centred row moves buttons under her finger and changes what a tap does. I verified in the harness (verify/prompts-functionality/coexist.js) that the members coexist in the ways that cause this. (1) A request shows, and 1.5 s after she stops, 📒 and 👗 fade in alongside it (nav.js:92 does not test #reqBtn). They vanish when she walks (they toggle 29–72 times per 15 min). With the row, the request alone sits centred at 159–231 on 390. Once 📒/👗 join, the row is 212 px wide in a 206 px space, so it scales and puts 👗 at about 160–222, on the spot she was aiming at. Her tap opens dress-up instead of the request, and the request jumps back every time she moves. (2) Holding a dish shows ✋ (🍽️✋) together with a wish (shot: dish_with_wish.png). When ✋ appears, or reappears after any G.busy moment (stopBtn hides while busy, features.js:79), the wish slides right and ✋ takes its old centre. A tap meant for the wish hits ✋, and stopActivity sets G.holding = null (features.js:70): the dish she cooked is gone. The landscape rule ('8 px right of ✋ when ✋ shows') also makes the prompt jump about 18 px each time ✋ comes or goes. The glide can also carry the live z30 prompt across ✋ for 500 ms. The fix is fixed slots that never depend on which other buttons are showing. The badge, the glow and the lifetimes are safe. Space check (measured): the moods start at 760 on 390x844, 586 on 375x667 and 580 on 390x664, with stageH 445/428/445. A second line of 64 px at stageH+88 fits on 390x844 and 375x667 (6 px clear) but not on 390x664.
+
+- AMENDED CHANGE (functionality): Wishes and requests get one fixed place of their own. Nothing else moves to make room, and they never move to make room for anything else. Tall portrait (min-height:150vw): the prompt slot is chosen once per screen size (on resize), never per prompt. (a) If a slot centred on a second line under the ✋ / 📒👗 row (top = stageH + 88 px, 64 px, 72 px where there is room) ends at least 6 px above the mood faces, the prompt sits there; this is true at 390x844 and 375x667. (b) Otherwise, e.g. 390x664 Safari, the prompt keeps today's right-corner spot. ✋ keeps today's centred spot, and 📒/👗 keep their own spots (G16's when that flag is on). No member is ever measured and re-centred, rescaled or translated because a prompt or another member came or went, and #stopBtn gets no translate. Landscape and short portrait: the prompt's left is fixed at calc(env(safe-area-inset-left) + 122px), i.e. ✋'s 10 px offset + 104 px width + 8 px, whether or not ✋ is visible. So it never overlaps ✋ and never jumps. A request's <b> badge becomes the asker's face portrait drawn from FACES (face_<who>_happy_rest, as pool.js faceIcon does), keeping the emoji if FACES or that face is missing. In tall portrait the prompts glow (box-shadow only) instead of growing. The first 3 appearances per session may show a glide, but only as a pointer-events:none ghost copy travelling from the old spot; the real button sits in its slot, tappable from its first frame. Same colours, ➡️, handlers, go(), 14 s / 25 s lifetimes and 150 s completion window.
+
+- EXTRA CHECKS: Positions never move while visible: with a request up, stand 2 s, walk, stand 2 s (📒/👗 toggling). With a dish held and a wish up, trigger a hug so ✋ hides and returns. Log every member's getBoundingClientRect each 100 ms and assert no visible member's box changes. | elementFromPoint at the centre of each visible member returns that member, at 390x844, 390x664, 375x667, 375x548 (short portrait), land 844x390, landSmall 667x375 and 844x340, with 0/47/59 px insets. | In layout (a), the right and left face cards are never overlapped by the prompt. In (b), document that the request still covers the asker's card there, mitigated by the face badge. | The prompt never overlaps a .mood (≥ 6 px clear) on any tall-portrait size. If a size gives less, it must fall to (b). | Niko's request shows a cat picture or falls back to 🐈. Add the #reqBtn text change (emoji badge → canvas) to regress.js's expected renames. | With the glide ghost on screen, a tap on ✋ still runs stopActivity.
+
+
+==================== G27 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD the FUNCTIONALITY version, plus the child's never-drop rule for treasures. Stickers DO wait for the screen to close; the child's 'no deferral' and its tappable peek are rejected (see conflicts).
+(1) Toasts. Clarity.appear('.stk-toast','G27'): while Clarity.screenOpen(), hide the toast (display:none) and queue its glyph.
+(2) Replay. On Clarity.listen('screenClose','G27'), replay the queue over the room ONE AFTER ANOTHER, each exactly once, ignoring the overlay's own replays. If a screen opens during a replay, hide that toast and keep it queued.
+(3) Flight. Every toast flies to #bookBtn's home rect (its box exists even with .off), via @keyframes cmStkFly ending at translate(var(--tx),var(--ty)) scale(.15). When that rect lies outside #stage (the tall-portrait dock), fly in a position:fixed, pointer-events:none layer on body, so #stage's overflow does not clip it.
+(4) No look-only peek. 📒 is never shown while it has .off. If 📒 is visible and tappable when the toast lands, it gets one Clarity.shake wiggle; otherwise a short sparkle (fixed layer, pointer-events:none) marks its home spot.
+(5) Treasures. Clarity.hook('UI.bigIcon','G27',{order:10,before}) defers glyphs ending in '✨' while an .act exists, until Clarity.hook('UI.closeActions','G27',{order:20,after}) or 1.5 s. If a screen is open by then, wait for screenClose. Replay with Clarity.inner('UI.bigIcon'), exactly once, never dropped.
+(6) Unchanged and at the same moments: award(), saves, the jingle, the stars, m_sticker and m_found.
+DONE = both lenses' EXTRA CHECKS:
+- cook + gross + serve in one cooking session: three toasts after closing, each once, saved at the moment of earning;
+- no toast visible over any screen, including one that opens mid-replay;
+- tall portrait with G16: the toast visibly reaches the dock; landscape: it reaches 📒's bottom-right spot;
+- no state in which 📒 is visible while it has .off;
+- a treasure right next to its prop: 💎✨ appears after the ring closes or at 1.5 s;
+- a treasure followed by a choice that opens the studio: the icon appears once, after the studio closes;
+- the legoshelf, story and movie stickers are still awarded at the same moment.
+Depends on: -
+Interactions: Same worker as G16 (📒's home rect is the dock spot in tall portrait) and G25. Uses the core's screen edges, shared with G2. G2 may close a ring when a screen opens; a deferred ✨ icon must then wait for the screen to close. G5 (bubbles) owns the bigIcon look, and G39's arrival icon never ends in ✨. G19 keeps 📒's landscape spot where it is today.
+
+### DRAFT ITEM
+### G27 A new sticker's picture waits for the room and flies into the 📒; a treasure's 💎 waits for the choices to close
+- problem: award() (fun.js:23-31) pops a 120 px gold disc at z40 over whatever screen is open: the Lego model, 'The End', the dress-up show. It then flies to a fixed corner (fun.js:197: translate(42vw,34vh)), where 📒 usually is not, because 📒 shows only when she is idle. So she never sees stickers go into the book. A found treasure's 💎 (fun.js:107-112) pops over the ring that is opening at that moment.
+- change: - Same sticker, same moment of earning, same jingle and voice line, same save.
+- If a full screen is open, the picture waits and pops over the room when she closes it. It then flies to where 📒 lives.
+- If nothing else is in Marina's row at that moment, 📒 peeks for 2.5 s with a small wiggle. This is look only: it never makes 📒 tappable when it otherwise wouldn't be.
+- A treasure's 💎 pops after the choices close, or 1.5 s after they open.
+- implementation: Block G27.
+- A MutationObserver on #stage and #title watches for .stk-toast. If Clarity.screenOpen(), set it to display:none and queue its glyph. On the core tick's screenOpen() true→false edge, create the toast again.
+- When it plays, set --tx/--ty from the toast centre to #bookBtn's computed home rect, and use @keyframes cmStkFly whose 100% step is translate(var(--tx),var(--ty)) scale(.15).
+- If #stopBtn, #wishBtn and #reqBtn are all absent, add the class cm-peek for 2.5 s with the CSS #bookBtn.off.cm-peek{opacity:1}. It applies only while .off is on, which already blocks taps, and it is a class because fun.js:42 re-toggles 'off' every 250 ms.
+- UI.bigIcon wrapper (the overlay's only one): a glyph ending in '✨' (fun.js:112) that arrives while an .act exists is deferred until UI.closeActions or 1.5 s.
+- The m_sticker and m_found voices are not moved.
+- must still work: Every sticker is awarded and saved at the same moment (store 'stickers'), with the jingle, m_sticker, and confetti for the full set; Treasures are found and saved, with m_found and secretall; The sticker book's contents; 📒's tap rules are unchanged
+- benefit: Nothing pops over what she is building, and she learns that stickers go into the 📒 book and where that book lives.
+- risk: Low. Check that each queued sticker replays exactly once, and never over a screen that has just opened.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G27 [prompts] A new sticker's picture waits for the room and flies into the 📒; a treasure's 💎 waits for the choices to close => AMEND (child:amend, functionality:amend)
+
+**child: amend** — Holding the sticker picture back until a screen closes would cut the sticker off from the deed that earned it. Several stickers are timed on purpose to pop INSIDE their screen: legoshelf.js:61 says 'the sticker pops once it has landed'; story.js:64 awards at 'The End'; movies.js:650 at the film's end. The toast has pointer-events:none (fun.js:195), so it blocks no taps; it is a 2.3 s celebration, not one of the interruptions the dad listed. Deferring it would also split the jingle and voice (now) from the picture (later). The picture would then land in the busy moment after closing, which G1 is trying to calm. The worthwhile parts are aiming the fly-out at 📒's real home and showing 📒 receive it, but only when the room is visible. The planned peek makes 📒 visible while it ignores taps (.off keeps pointer-events:none), and a button that looks tappable but does nothing is exactly what confuses a non-reader. The treasure 💎 delay of up to 1.5 s is fine, but as written it can be lost under a screen if her choice opens one first.
+
+- AMENDED CHANGE (child): Stickers: no deferral. Earned over a screen, the toast plays exactly as today. Earned in the room, the stkpop end point aims at #bookBtn's home rect (--tx/--ty), not the fixed translate(42vw,34vh). If she is standing still (!marina.moving), 📒 then shows for 2.5 s with a small wiggle AND accepts taps (opening the book is today's 📒 action, so it is never visible-but-dead). If she is moving, there is no peek and the picture simply lands on the 📒 spot. Treasures: UI.bigIcon glyphs ending in '✨' that arrive while an .act exists wait until UI.closeActions or 1.5 s. If a full screen is open by then, they wait for it to close and are never dropped. The m_sticker and m_found voices and every award/save stay where they are.
+
+- EXTRA CHECKS: Lego shelf: the 'legoshelf' sticker still pops inside the shelf screen ~1.3 s after the model lands; the story sticker still pops on The End | In the room, in portrait and landscape: the toast ends on 📒's home rect; during the peek a tap on 📒 opens the sticker book | Treasure found, then a choice tapped that opens the studio at once: the 💎 big icon appears after the studio closes, exactly once
+
+**functionality: amend** — Holding the toast back while a screen is up and deferring the treasure's ✨ big icon are visual only. award() saves and plays the jingle, the stars and m_sticker at the same moment, and bigIcon has pointer-events:none and no return value. Two parts are not safe as written. (1) The look-only peek (#bookBtn.off.cm-peek{opacity:1}) shows a 📒 that cannot be pressed. In landscape and short portrait 📒 sits on the picture (642,324 on land), and #bookBtn.off has pointer-events:none, so her tap on the 📒 she can see falls through to #stage, and onTap walks Marina there or opens whatever prop is under it. In the tall-portrait dock it is simply a dead tap. That is exactly the 'broken button' confusion G15 tries to remove, now created on purpose for 2.5 s after every sticker. (2) The toast is appended to #stage, which has overflow:hidden (style.css:4). With G16 putting 📒 in the band under the picture, the flight to 📒 is clipped at the picture's bottom edge and never visibly reaches the book. Also note the deferral catches every glyph ending in ✨, including play.js:57's '✨🌳✨'. That is harmless, but it should be known.
+
+- AMENDED CHANGE (functionality): Same sticker, same moment of earning, same save, jingle, stars and m_sticker. While a full screen is open (Clarity.screenOpen()), the toast is hidden (display:none) and its glyph queued. On the screenOpen() true→false edge the queued toasts replay over the room ONE AFTER ANOTHER, each exactly once, ignoring clarity's own replays in the MutationObserver. Every toast flies to #bookBtn's home rect (cmStkFly with --tx/--ty). When that rect lies outside #stage (tall-portrait dock), the toast is moved for its flight into a position:fixed, pointer-events:none layer on body, so it is not clipped by #stage's overflow:hidden. No look-only peek: if 📒 is visible and tappable when the toast lands, it gives one wiggle; otherwise a short sparkle (pointer-events:none, fixed layer) marks its home spot. 📒 is never shown while it has .off. UI.bigIcon wrapper: a glyph ending in '✨' that arrives while an .act exists waits until UI.closeActions or 1.5 s. m_sticker and m_found are not moved.
+
+- EXTRA CHECKS: Earn cook + gross + serve inside one cooking session: three toasts replay one after another after the panel closes, each once, and the save holds all three ids at the moment of earning. | No .stk-toast is ever visible while #panel, the studio, #storyBox, #stkBox or #title is up, including a screen that opens during a replay (hide the replay if it does). | Tall portrait with G16: the toast visibly reaches the 📒 dock. Landscape: it reaches 📒's bottom-right home. | No state exists in which #bookBtn is visible while it has .off. A tap at 📒's home spot while .off behaves exactly as today. | Treasure found right next to the prop (ring opens at once): 💎✨ appears after the ring closes or at 1.5 s. m_found and did('secret') fire at the same time as today.
+
+
+==================== G31 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD the fort and Niko swaps only. Two swaps are DROPPED: draw 🖍️→🎨 (child lens: 🎨 is the dining room's strip icon and the dress-up colour tab) and the chip 🐱→🐈 (both lenses: the 🐱🤗 pick-up bubble shows at that same moment). (1) Fort wish: at overlay load, if Clarity.on.G31, set WISHES.fort.ico = '🏰' and SAY_ICON.m_want_fort = '🏰'. Clarity.onToggle('G31') restores ⛺ or sets 🏰 again. (2) Niko's request: local edit in fun.js askReq (lines 82-83), never the REQS literal, which is built at load /* G31 */: const ico = (window.Clarity && Clarity.is('G31') && ({ '🥫': '🐟' })[r.ico]) || r.ico; use ico in the button's <span> and in Niko's UI.bubble(niko, ico, 2400). (3) Unchanged: WISHES and REQS keys, order, ev, after, go and sticker ids; stickers keep ⛺ and 🥫. DONE = both lenses' EXTRA CHECKS, minus the dropped parts: showWish('fort') shows 🏰 on the span and bubble, goes to the living room and opens the fort builder, and is never picked while G.fort is set; askRequest('feedniko') with Niko present shows 🐟 on the span and bubble, goes to the kitchen, Niko eats and the request completes; showWish('draw') and askRequest('draw') still show 🖍️; picking Niko up still shows 🐱✋; flipping the switch off at run time and raising a new request shows 🥫 again; a reload with it off shows ⛺; the sticker book is unchanged; the wish-tour flow visits the same rooms and screens.
+Depends on: -
+Interactions: Same worker as G25 (#reqBtn: span vs badge). G22 (bubbles) fills only missing SAY_ICON keys and never touches m_want_fort. Stickers (fun.js STK) and the ✋ chip (G17's currentActivity hook) are not touched.
+
+### DRAFT ITEM
+### G31 A wish, a request and the ✋ chip show the same picture as the choice they point to
+- problem: Wishes, requests and the stop chip use a second picture for the same activity.
+- Drawing is 🎨 on the tables and as the dining room's icon (game.js:472, world.js:10), but 🖍️ on the wish and on Mommy's request (react.js:87, fun.js:69).
+- The fort is 🏰 on the sofa (game.js:474), but ⛺ on the wish (react.js:88).
+- Feeding Niko is 🐟 on the bowls (game.js:469), but 🥫 on Niko's request and its bubble (fun.js:76, 82).
+- Niko is 🐈 everywhere except 🐱 on the ✋ chip while she carries him (features.js:59).
+- change: Each prompt shows the picture of the choice it points to:
+- 🖍️ → 🎨, ⛺ → 🏰 and 🥫 → 🐟 on wishes, requests and their speech bubbles;
+- 🐱 → 🐈 on the ✋ chip.
+Not changed: stickers (her earned collection), the swing's 🛝, the fort-invite buttons, and every choice glyph.
+- implementation: - Block G31, at load: WISHES.draw.ico = '🎨' and WISHES.fort.ico = '🏰' (WISHES is a top-level const in react.js); Object.assign(SAY_ICON, { m_want_draw: '🎨', m_want_fort: '🏰', mo_req_draw: '🎨' }).
+- Local edits, marked /* G31 */, inside fun.js's closure (REQS is private there): fun.js:69 ico '🎨'; fun.js:76 ico '🐟'; fun.js:82 UI.bubble(niko, '🐟', 2400).
+- currentActivity wrapper (shared with G17): niko → '🐈'.
+- WISHES and REQS keys and sticker ids are unchanged.
+- must still work: Every wish, request and stop chip works as before; Stickers already earned still show as earned (fun.js:18-21 untouched); The swing choices and the fort invite; Speech bubbles for other lines
+- benefit: One picture leads to one thing: when Marina says 'I want to draw' and shows 🎨, the 🎨 on the table is the same idea.
+- risk: Low. A small habit cost on the wish pictures she has seen (🖍️, ⛺); the choices she taps are unchanged.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G31 [menus-icons] A wish, a request and the ✋ chip show the same picture as the choice they point to => AMEND (child:amend, functionality:amend)
+
+**child: amend** — Two of the four swaps move a prompt onto the picture the game already uses everywhere else for that thing, and should stay. The other two are wrong in detail. KEEP fort ⛺→🏰: 🏰 is the sofa, bed and box choice, the fort builder's own title (fort.js:20), the inside view ✨🏰✨, 'enter fort', m_fort_build/done, every grown-up's fort reaction and the map marker. ⛺ appears only on the wish, its bubble and the sticker. Habit cost is small: first-minutes saw her get the ⛺ start wish once. KEEP Niko's request 🥫→🐟: 🐟 is the bowls choice, the m_food_niko bubble that plays when she feeds him, and Minka's treat. 🥫 otherwise means kitchen mess and pantry art. The request's asker badge (🐈, or Niko's face under G25) tells it apart from the TV's 🐟 fish show. DROP draw 🖍️→🎨: 🖍️ is already the drawing picture in more places. The wish opens the studio with the 🖍️ marker as its first tool, and 🖍️ is also the m_draw bubble on opening, the crafts draw tab, the gallery's 🖍️➕ new-drawing card and the draw sticker. 🎨 already has four meanings: dress-up's colour tab (ui.js:285), the crafts panel title, Jeff's recolour and the dining-room strip icon. So a 🎨➡️ wish could read as 'go to the dining room', and the swap trades one mismatch for a worse one, with a habit cost on a main-floor wish and request she has seen. DROP the ✋-chip 🐱→🐈: the premise 'Niko is 🐈 everywhere except the chip' is false. The pickup line m_pickup 🐱🤗 (game.js:758) shows at the very moment the chip turns 🐱, and 🐱 is also used for m_pet_niko, m_chase_niko, the cat scolds, the map's people labels and both fort invite rows. menus-main even proposes 🐱 for pickup because the chip already uses it. 🐈 would also look more like Minka's 🐈‍⬛ in the basement.
+
+- AMENDED CHANGE (child): Only the fort wish and Niko's feeding request change picture; draw and the carry chip stay as today. (1) Fort wish: WISHES.fort.ico = '🏰' and SAY_ICON.m_want_fort = '🏰'. Apply them only while Clarity.on.G31 (better at call time, through a tiny showWish/say-icon check or by setting and restoring on flag change), so turning the flag off gives ⛺ back. (2) Niko's request, local edits marked /* G31 */ inside fun.js's closure: fun.js:76 ico '🐟' and fun.js:82 UI.bubble(niko, '🐟', 2400), each choosing '🐟' when window.Clarity && Clarity.on.G31 and '🥫' otherwise. Not changed: the draw wish and Mommy's draw request (🖍️, including SAY_ICON m_want_draw and mo_req_draw); the ✋ chip while carrying Niko (stays 🐱, so the shared currentActivity wrapper holds only G17's 🖼️ entry); every sticker (⛺ fort and 🥫 feedniko stay); every choice glyph; WISHES/REQS keys, order and ev ids. Fix the plan's problem text: 'Niko is 🐈 everywhere' is wrong, and drawing uses 🖍️ in more places than 🎨.
+
+- EXTRA CHECKS: showWish('fort'): #wishBtn span is 🏰, the m_want_fort voice plays with a 🏰 bubble, and a tap goes to the living room and opens the fort builder; with G.fort set the fort wish is still never picked | askRequest('feedniko') with Niko in the room: the bubble over Niko and #reqBtn span are 🐟, the asker badge (or G25's face) is unchanged, and a tap goes to the kitchen and runs feedNiko (m_food_niko, Niko moves to the kitchen); the 'feedniko' sticker is still awarded and still shows 🥫 in the book | showWish('draw') and askRequest('draw') still show 🖍️ and open the studio; picking Niko up still shows 🐱 on #stopBtn alongside the 🐱🤗 bubble | With Clarity.on.G31 false: fort wish ⛺, Niko request 🥫, byte-identical to today | Earned stickers render unchanged (⛺, 🥫, 🖍️, 🐈); no WISHES/REQS key, order or sticker id changes
+
+**functionality: amend** — The wish, request and bubble picture swaps are display-only. WISHES[k].ico is read only by showWish (react.js:110); REQS[].ico only by askReq's button (fun.js:83). Completion is keyed on ev/did(), stickers on STK ids, and nothing is saved, so taps, go() targets, lifetimes and stickers are unchanged. regress.js flows ('wish buttons take her to each activity', 'request') do not key on glyphs. Harness check: setting WISHES.draw/fort.ico and SAY_ICON from a later classic script gives #wishBtn 🎨/🏰 and Marina's bubble 🎨. 🐟 does not clash with the TV (the fish show is 🐠, scenes.js:149) and matches the bowls (game.js:469), the feeding line m_food_niko 🐟 and Minka's treat. Two problems remain. (1) The ✋-chip part rests on a false premise. Niko is not '🐈 everywhere': at the very moment the chip turns 🐱✋, pickupNiko says m_pickup, whose bubble is 🐱🤗 (game.js:758; captured in the harness: bubbles ['🐱🤗'], chip '🐱'). The grown-ups' scold that follows is 🐱❌/🐱🫳 (game.js:763), and the map labels (features.js:417, ui.js:480) and fort invites also show 🐱. Switching the chip to 🐈 creates a new mismatch in that same second, so that sub-change is dropped. (2) Implementation: the REQS array is built when fun.js loads, long before clarity.js exists. A '/* G31 */ Clarity.on.G31 ? ...' test written inside the REQS literal is always false, so the request part would silently never apply. An unconditional literal would break the 'flag off restores today' rule. The swap must happen at call time in askReq.
+
+- AMENDED CHANGE (functionality): Wishes, requests and their speech bubbles show the picture of the choice they lead to: 🖍️ → 🎨 (the draw wish and Mommy's draw request), ⛺ → 🏰 (the fort wish), 🥫 → 🐟 (Niko's request button and his bubble). Not changed: stickers (🖍️ ⛺ 🥫 stay in the book and on the toast), the swing's 🛝, the fort invites, every choice glyph, and the ✋ chip while carrying Niko, which stays 🐱✋ to match the 🐱🤗 pick-up bubble and the 🐱❌ scold shown with it. Implementation: in clarity.js at load, if Clarity.on.G31: WISHES.draw.ico='🎨'; WISHES.fort.ico='🏰'; Object.assign(SAY_ICON,{m_want_draw:'🎨',m_want_fort:'🏰',mo_req_draw:'🎨'}). One local edit marked /* G31 */ inside askReq (fun.js:82-83), not in the REQS literal: const ico = (window.Clarity && Clarity.on.G31 && ({'🖍️':'🎨','🥫':'🐟'})[r.ico]) || r.ico; use ico in the button's <span> and in the Niko branch's UI.bubble(niko, ico, 2400). REQS keys, ev, after, go and sticker ids are unchanged. G31 adds nothing to the currentActivity wrapper (G17's 🖼️ stays there alone). Coordinate with G25, which edits the same button's <b> badge.
+
+- EXTRA CHECKS: showWish for all 11 keys: only draw (🎨) and fort (🏰) change picture; regress flow 'wish buttons take her to each activity' gives the same room/screen/menu for every key; the voice lines are unchanged. | askRequest('draw') with Mommy present: span 🎨, bubble 🎨, tap opens the Studio. askRequest('feedniko') with Niko present: span 🐟, Niko's bubble 🐟, tap goes to the kitchen and Niko eats; the request completes (purr/heart, 'helped' count +1). | Set Clarity.on.G31=false at runtime, then raise a new request: it shows 🖍️/🥫 again (proves the check runs at call time); a wish raised after a reload with the flag off shows 🖍️/⛺. | Sticker book and sticker toasts unchanged: 'draw' 🖍️, 'fort' ⛺, 'feedniko' 🥫; stored cm_stickers ids unchanged. | Pick up Niko: chip reads 🐱✋, the same as the 🐱🤗 bubble; ✋ still drops him (stopActivity unchanged). | G22 must not overwrite m_want_draw, m_want_fort or mo_req_draw (they already have entries); check the order of the two Object.assign calls.

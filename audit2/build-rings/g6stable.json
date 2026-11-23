@@ -1,0 +1,20 @@
+{
+ "land": {
+  "opened": "409.267px,104px 489.267px,104px 569.267px,104px",
+  "afterAlert": "409.267px,104px 489.267px,104px 569.267px,104px",
+  "alertUp": 1,
+  "sameAfterAlert": true,
+  "afterRoryMoved": "409.267px,104px 489.267px,104px 569.267px,104px",
+  "sameAfterMove": true,
+  "errors": []
+ },
+ "port": {
+  "opened": "184px,106px 264px,106px 344px,106px",
+  "afterAlert": "184px,106px 264px,106px 344px,106px",
+  "alertUp": 1,
+  "sameAfterAlert": true,
+  "afterRoryMoved": "184px,106px 264px,106px 344px,106px",
+  "sameAfterMove": true,
+  "errors": []
+ }
+}

@@ -1,0 +1,30 @@
+{
+ "HEAD": {
+  "backyard/tr_apple 🍎": "idle,idle,idle,idle",
+  "den/wicker 🧗": "idle,idle,idle,idle",
+  "kitchen/stool1 🪑": "idle,idle,idle,idle",
+  "mroom/mstack 📚": "idle,idle,idle,idle",
+  "storage/shades 🎩": "cheer,cheer,cheer,cheer",
+  "living/miles 🤗": "anim,idle,idle,idle",
+  "living/miles 🤗 (crying)": "idle,idle,idle,anim",
+  "living/miles ✋": "anim,idle,idle,idle",
+  "living/miles ✋ (dish)": "anim,anim,anim,idle",
+  "living/miles ✋ (fort)": "idle,idle,idle,idle",
+  "flow": "walked:true table:0 | walked:false table:0 | walked:false table:0 | walked:false table:0",
+  "errors": 0
+ },
+ "screens": {
+  "backyard/tr_apple 🍎": "idle,idle,idle,idle",
+  "den/wicker 🧗": "idle,idle,idle,idle",
+  "kitchen/stool1 🪑": "idle,idle,idle,idle",
+  "mroom/mstack 📚": "idle,idle,idle,idle",
+  "storage/shades 🎩": "cheer,cheer,cheer,cheer",
+  "living/miles 🤗": "anim,anim,idle,idle",
+  "living/miles 🤗 (crying)": "idle,idle,idle,anim",
+  "living/miles ✋": "anim,idle,idle,idle",
+  "living/miles ✋ (dish)": "idle,idle,idle,idle",
+  "living/miles ✋ (fort)": "idle,idle,idle,idle",
+  "flow": "walked:true table:0 | walked:false table:0 | walked:false table:0 | walked:false table:0",
+  "errors": 0
+ }
+}

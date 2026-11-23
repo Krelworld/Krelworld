@@ -1,0 +1,531 @@
+# WORKER BRIEF: bubbles  (overlay file: clarity-bubbles.js)
+Items to build: G5, G17, G22, G26
+
+## Your surface
+Pictures and bubbles over people. Owns: the .say translate and its per-frame clamp (UI.update after 10); the bigIcon look (ui.js:101); the .pichint look and translate; the give-bubble people list and positioning (nav.js picHints); the ✋ chip glyph via the currentActivity after-hook (G17 10); the .cm-call bubble (featTick after 10, UI.bubble after 10); missing SAY_ICON keys (G22); .isoroom.here transform-box/origin (G5 only); the smell gate (family2.js:145). Must NOT touch: #stopBtn's position; ring placement; the timing of ✨ big icons (dock, G27); map content beyond .isoroom.here's transform-origin; SAY_ICON keys that already exist (G31 owns m_want_fort).
+
+## Local edits allowed
+ui.js:101, the bigIcon style (G5). nav.js:61-62, the give-bubble people and actions, and nav.js:67, the bubble positioning loop (G17); not the glow IIFE, which belongs to rings. family2.js:145, the smell condition (G26); not family2.js:171-179, which belongs to prompts. All guarded by Clarity.is and marked /* Gn */.
+
+## Order notes
+Worker index 3, ports 8880-8889. Merge 4th. Integration: G17/G26 × G19 (▶ at right:0 and the column, folded and open); G5 × G27/G39 (bigIcon); G6's rings avoid the kinds give and call.
+
+## Shared core API (already built, in the game folder)
+Two new files, both in /home/user/Krelworld/public/chef-marina/. Global: window.Clarity (C below).
+
+A. clarity-flags.js (loaded FIRST, before audio.js)
+- Clarity.ids = ['G1'..'G39']; Clarity.on = {G1:true ... G39:true} (the switches, decided at page load).
+- Test overrides, never stored: URL ?clarity=off | ?clarity=-G3,-G19 | ?clarity=only:G3,G9 ; or window.CLARITY_OFF = 'all' | 'G3,G19' | ['G3'] set before load. Playwright: await ctx.addInitScript(v => { window.CLARITY_OFF = v; }, 'G3,G9') then goto or reload.
+- Clarity.ready: false until DOMContentLoaded, i.e. until every clarity file has loaded. Clarity.is(id) === (Clarity.ready && Clarity.on[id] === true).
+- LOCAL EDITS in game files test `window.Clarity && Clarity.is('G6')`. This works at any time and is false while the page is still loading.
+- Overlay code that runs at load reads Clarity.on.Gn directly.
+
+B. clarity-core.js (loaded after trees.js). Clarity.core === 1 once it has loaded.
+
+SWITCHES AT RUN TIME
+- Clarity.set(id, bool): flips a switch. Hooks, listeners, ticks, pointer and appear callbacks stop or resume at once. CSS follows at once.
+- Clarity.onToggle(id, fn(on)): callbacks so an item can undo or redo inline state when its switch flips.
+- Setting Clarity.on.Gn = false by hand also works, except for onToggle; CSS then follows within 250 ms.
+- Clarity.item(id, setupFn): runs setupFn once at load, only if the switch is on, inside try/catch.
+
+HOOKS (use these instead of wrapping a game function): Clarity.hook(point, id, { before(call), after(call), order })
+- Points, each wrapped ONCE by the core and outermost over every game wrapper: 'UI.actions', 'UI.closeActions', 'UI.bigIcon', 'UI.pulseMoods', 'UI.bubble', 'UI.update', 'Audio2.blip', 'onTap', 'hitTest', 'interact', 'currentActivity', 'onEnterRoomBy', 'checkMess', 'showWish', 'openIsoMap', 'drawProp', 'drawExitSigns', 'featTick'. Clarity.points() lists them.
+- call = { name, self, args, result, skip }.
+- before(call) may set call.skip = true, and call.result if needed, so the game's own function is not called. The first skip stops the remaining before-hooks.
+- after(call) runs after the game's function. It also runs after a skip, so check call.skip. It may replace call.result.
+- In both, this === call.self. Never mutate call.args.
+- order: lower runs first (default 0); equal orders run in registration order.
+- Hooks run only while Clarity.on[id] is true.
+- A hook that throws is reported once (console.warn 'clarity: Gn before X') and its changes to skip/result are undone.
+- With nothing registered, or every hook switched off, the wrapper is exactly the game's call: same this, arguments and return value.
+- Clarity.inner(point): the game's own function under the hooks. Call it to bypass every clarity hook, e.g. to replay a deferred icon: Clarity.inner('UI.bigIcon')(ch, ms).
+- drawExitSigns: builder.js:234 re-wraps it once on the next frame. The core's wrapper sits inside builder's and still runs exactly once per frame (measured 60/s). Never re-wrap anything yourself.
+- Not hook points:
+  - ui.js internals: actions() and openPanel() call the private closeActions; placeActs is private. Use local edits (G6, G7).
+  - askReq is private to fun.js. Use a local edit (G31) or Clarity.appear('#reqBtn').
+  - changeRoom: use the 'room' event.
+  - say: G22 is a static table.
+  - resize and the camera: only the layout worker changes framing, through engine.js:169, game.js:286 and calls to resize() and render() by name.
+- Example: Clarity.hook('checkMess', 'G2', { order: 10, before(c) { if (Clarity.busyNow() || Clarity.quietFor() < 10) c.skip = true; } });
+- Example: Clarity.hook('hitTest', 'G8', { order: 10, after(c) { const h = c.result; if (h && h.kind === 'prop') c.result = see(h, c.args[0], c.args[1]); } });
+
+EVENTS: Clarity.listen(evt, id, fn)
+- 'room' (was, room): after every real room change. Dispatched from a Floors.hooks entry, i.e. from floors.js's changeRoom, which is the outermost one.
+- 'screenOpen' / 'screenClose': Clarity.screenOpen() turned true / false.
+- 'activityStart' / 'activityEnd': Clarity.busyNow() turned true / false. On activityEnd, Clarity.endedAt = E.t (game seconds).
+- The start of a game (the title closing) is a screenClose and an activityEnd.
+- Edges are sampled every 100 ms, and also synchronously whenever Clarity.quietFor() or Clarity.sample() is called, so an edge fires once, never late for a reader.
+- Example: Clarity.listen('activityEnd', 'G1', () => { lastInput = E.t; });
+
+TIMER: Clarity.every(ms, id, fn(nowMs))
+- One shared 50 ms setInterval. fn runs at most every ms (minimum 50) while the switch is on.
+- Example: Clarity.every(100, 'G15', tick);
+
+TOUCHES: Clarity.pointer('down' | 'up', id, fn(event))
+- One window capture listener per type (passive), installed on first use. It runs before any game handler sees the event.
+- Look only: never preventDefault or stopPropagation.
+- Example: Clarity.pointer('down', 'G1', () => { lastInput = E.t; });
+
+NEW NODES: Clarity.appear(selector, id, fn(node))
+- One MutationObserver on body (childList, subtree), installed on first use.
+- fn runs as a microtask, before paint, for every added element matching selector, whether it is the added node itself or inside an added subtree.
+- The node may already be gone again, so check isConnected.
+- Example: Clarity.appear('.stk-toast', 'G27', t => { if (Clarity.screenOpen()) { t.style.display = 'none'; queue.push(t.textContent); } });
+
+CSS: Clarity.css(id, cssText) returns a <style data-clarity='Gn'> appended to <head>.
+- Clarity styles are kept after every game stylesheet: Bricks, LegoShelf, Pool, Movies, Stuffies and Spa append theirs the first time they open, and the core moves ours back to the end.
+- media='not all' while the switch is off.
+- Call it as often as you like per item.
+- Example: Clarity.css('G14', '@media (orientation:portrait){#roombar{max-width:calc(100% - 84px)}.rb{flex:0 1 40px;min-width:34px}}');
+
+STATE HELPERS
+- Clarity.bodyBusy(): marina.state is swing, bars, ride or wheel, or a looping anim. False before the game exists.
+- Clarity.screenOpen(): any of the following is up:
+  - the title;
+  - any #panel screen, including the map, the fort builder and interior, Lego/tiles, the shelf, pool, films, stuffies, spa, tree climb and the builder;
+  - Studio.active, #storyBox or #stkBox.
+  The TV and the fort tray are not screens.
+- Clarity.busyNow(): inActivity() || bodyBusy().
+- Clarity.quietFor(): game seconds since the last activity ended. 0 while one is going on; Infinity before any ended.
+- Clarity.endedAt: E.t of the last activity end (null before). Clarity.sample(): re-evaluate the edges now.
+- Clarity.playing(): marina exists and the title is hidden.
+- Clarity.landscape(): innerWidth > innerHeight.
+
+GEOMETRY HELPERS
+- Clarity.hudRects(st?, opt?) returns [[x0,y0,x1,y1], weight, kind, element] for every visible HUD control.
+  - Kinds: strip (#roombar .rb), pill (#floorpill .fl:not(.off)), map, arrow (.navarrow:not(.off)), weather (#weatherBtn:not(.hidden)), alert (#alerts .alertb), face (.facecard.show), stop (#stopBtn:not(.hidden)), book and dress (not .off), wish, req, give (#fx .pichint), call (.cm-call), mood (#moodbar .mood), moodToggle.
+  - Skipped: zero-size controls, visibility:hidden, and opacity < 0.05 on the control or an ancestor.
+  - Weight 4. In landscape, mood and moodToggle get weight 6 and are widened 8 px to the left.
+  - Coordinates are relative to st (a DOMRect, e.g. placeActs' stage rect) or to #stage. opt.client gives viewport coordinates.
+  - opt.kinds and opt.except filter by kind.
+  - Cached 250 ms (dropped on resize and orientationchange). opt.fresh measures now.
+  - Controls outside the picture (the tall-portrait dock, the portrait mood row) are included; they overlap nothing in it.
+  - Example (G6): if (window.Clarity && Clarity.is('G6')) { acts.hud = acts.hud || Clarity.hudRects(st, { fresh: true }); for (const x of acts.hud) avoid.push(x); }
+- Clarity.stageRect(): #stage's DOMRect, cached 250 ms.
+- Clarity.toClient(wx, wy) gives viewport px. Clarity.fromClient(cx, cy) gives world coordinates.
+- Clarity.onCanvas(cx, cy): elementFromPoint there is #cv, i.e. nothing covers the picture at that point.
+- Clarity.overlap(a, b): overlap area of two [x0,y0,x1,y1] rects.
+- Clarity.nudgeX(box, rects, { gap = 4, max, bounds: [minX, maxX] }) returns the smallest sideways shift in px that clears every rect at the box's height (hudRects entries or plain rects), or null if none within max.
+  - Example: const dx = Clarity.nudgeX(b, Clarity.hudRects(null, { except: ['give', 'call'] }), { max: 62, bounds: [0, st.width] });
+- Clarity.floorLevel(room): main 0, up +1, basement -1, outside 0, tree houses 0.5, unknown rooms 0.
+- Clarity.floorDir(from, to): +1 up, -1 down, 0 same level.
+  - Example (G39): const fd = window.Clarity && Clarity.is('G39') ? Clarity.floorDir(prev, G.room) : 0;
+
+MOTION HELPER
+- Clarity.shake(el, { px = 4, ms = 150, times = 2 }) returns an Animation or null.
+- It is a side-shake on the individual translate property only, with composite 'add'. Without composite support it starts from the element's computed translate.
+- So transforms, CSS animations, :active scales and centring translates keep working, and a CSS animation:none cannot cancel it.
+- Example: Clarity.shake(btn); Audio2.blip(-12, 'triangle', 0.08, 0.1);
+
+MISC
+- Clarity.warnOnce(key, err).
+- Item state and item helpers live on Clarity.Gn, e.g. Clarity.G18 = { target: null } and Clarity.G23 = { hintGap() {...} }. Never on G, never in localStorage.
+
+Tools in /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/arch/:
+- regress-flags.js: run regress.js with switches off. CLARITY_OFF=all|G3,G9 NODE_PATH=$(npm root -g) node regress-flags.js <port> <out.json> [gameDir] [only=flows].
+- core_boot.js, core_hooks.js and core_flags.js: the core proofs, reusable as templates.
+
+## Load order
+Script order in index.html and in artifact.html. The two lists are identical, checked with diff.
+
+clarity-flags.js (NEW, first)
+audio.js engine.js world.js ui.js game.js features.js fort.js art.js scenes.js pics.js play.js calm.js react.js more.js nav.js story.js fun.js floors.js basement.js upstairs.js outdoor.js bricks.js spa.js stuffies.js family2.js minka.js legoshelf.js builder.js pool.js movies.js wildlife.js treeclimb.js trees.js (unchanged)
+clarity-core.js (NEW)
+clarity-prompts.js, clarity-status.js, clarity-rings.js, clarity-bubbles.js, clarity-dock.js, clarity-layout.js, clarity-screens.js, clarity-wayfinding.js (8 NEW empty stubs, one per worker, in workers-list order)
+
+Files created in /home/user/Krelworld/public/chef-marina/: clarity-flags.js, clarity-core.js, and the 8 stubs. Each stub holds only a header comment, a load guard (`const C = window.Clarity; if (!C || !C.core) return;`) and an empty IIFE. index.html and artifact.html are edited. Nothing is committed.
+
+Why this order:
+- Flags first, so any game file, including load-time code and the earliest timers, can call Clarity.is or read Clarity.on.
+- The core after trees.js, so each of its 18 wrappers is outermost over every game wrapper. The one exception is by design: builder.js re-wraps drawExitSigns once to keep its late drawing last, and the core's wrapper runs inside it.
+- Worker files after the core, so they can register hooks at load.
+- The order among worker files does not matter:
+  - hooks carry explicit order numbers (see conventions);
+  - CSS is split by property ownership, so no two workers set the same property on the same element;
+  - the only shared load-time writes (G22 fills missing SAY_ICON keys; G31 sets the existing m_want_fort) commute.
+- Load-time literals and loops in early files are never edited: REQS in fun.js, ROOMS.nunuroom in basement.js:7, the tree-house loop at builder.js:928. Those changes are applied from the overlay at load (G31 WISHES/SAY_ICON, G36 ROOMS icons, G22 SAY_ICON) or at call time (G31 askReq).
+
+Merge order of the worker branches: prompts, status, rings, bubbles, dock, layout, screens, wayfinding.
+- rings must come before layout, because G19 narrows the landscape picture and relies on G7's wrapping tray.
+- Local edits are line-disjoint across workers, so any order merges cleanly.
+
+## Conventions (must follow)
+1. YOUR FILES
+- Each worker owns one overlay file: its stub clarity-<name>.js, already loaded by index.html and artifact.html.
+- It also owns the local edits listed for it under workers, and nothing else.
+- Never edit: clarity-flags.js, clarity-core.js, index.html, artifact.html, style.css, or lines owned by another worker.
+- If you need a core change, report it. Do not patch the core.
+
+2. SWITCHES. Every item's code checks its own switch.
+- Hooks, listeners, ticks, pointer and appear callbacks, and Clarity.css registered with the item id are gated by the core.
+- Load-time overlay code: if (Clarity.on.Gn) {...}. Add Clarity.onToggle(id, fn) to undo it when the switch flips.
+- Local edits in game files: window.Clarity && Clarity.is('Gn').
+- A switch that is off must give byte-for-byte today's code path and look.
+- Test with ?clarity=-Gn, ?clarity=off, or CLARITY_OFF via an init script.
+
+3. LOCAL EDITS
+- Mark the changed line /* Gn */. Keep edits as small as possible, ideally one line.
+- The switch-off branch is today's exact expression.
+- Never add a top-level let, const or function to a game file. Classic scripts share one global scope, and a duplicate name is a SyntaxError that kills that whole file. Put state inside the file's existing IIFE or closure next to the edit, or on Clarity.Gn. more.js is top-level code, so G21 keeps its state on Clarity.G21.
+- Never edit object literals or loops that run at load: REQS in fun.js, ROOMS in basement.js:7, builder.js:928. Apply those changes from the overlay at load or at call time.
+- Find code by its text. Line numbers are as of this core and shift.
+
+4. HOOKS, NEVER WRAPPERS
+- Never reassign a game global or a UI or Audio2 method. Use Clarity.hook.
+- Assigned orders (lower runs first):
+  - UI.actions: before G2:10 | after G7:10, G30:20, G2:40 (only records whether a tidy ring opened), G18:30.
+  - UI.closeActions: after G18:10, G27:20.
+  - onTap: before G18:5 (never skips), G15:10 (never skips), G35:20 (may skip).
+  - interact: before G18:10.
+  - hitTest: after G8:10.
+  - currentActivity: after G17:10.
+  - onEnterRoomBy: before G20:10.
+  - checkMess: before G2:10.
+  - UI.bigIcon: before G27:10.
+  - UI.pulseMoods: before G24:10.
+  - UI.bubble: after G26:10.
+  - UI.update: after G5:10.
+  - Audio2.blip: before G15:10.
+  - openIsoMap: after G36:10, G37:20, G38:30.
+  - drawProp: after G35:10.
+  - drawExitSigns: after G35:10.
+  - featTick: after G26:10.
+  - showWish: free; use 10.
+- After-hooks must check call.skip.
+- To call a hooked function without re-entering its hooks, use Clarity.inner(name).
+- Events: room (G4, G18, G23, G35); activityEnd (G1); screenOpen (G2, G27); screenClose (G27).
+- Pointer: G1 down; G15 up.
+- Appear: G23 '#alerts .alertb' (or a tick), G25 '#reqBtn' and '#wishBtn', G27 '.stk-toast'.
+- Ticks: G4 200 ms, G15 100 ms, G23 250 ms, G35 250 ms, G37 300 ms, G38 200 ms.
+- G3, G9 and G16 use MutationObservers of their own, on elements they own.
+
+5. CSS
+- Only through Clarity.css(id, text), one or more per item. Never edit style.css or inject <style> yourself.
+- Prefix every new class or keyframe with cm-.
+- Property ownership on shared elements. Two workers never set the same property on the same element:
+  - #xFloat: screens.
+  - #panel and its screens (cooking, dress-up, crafts, Bricks, the canvas screens), #studio, #storyBox and #stkBox: screens. Two exceptions: the map's content (.fmap, .fmaprow, .fmaproom and the .isosvg additions) belongs to wayfinding, and .isoroom.here's transform-box/transform-origin belongs to bubbles (G5).
+  - #title padding and .tpick: layout (G13).
+  - #moodbar and #moodToggle: layout owns position, size, display, the folded slot, background, handle and chevron in landscape. status owns .mood opacity, filter and shake, and the animation of #moodbar.pulse and .mood.
+  - .navarrow: layout owns the right offset. status owns the animation and the inner <i> bob.
+  - #roombar / .rb: layout owns position, landscape centring, max-width and .rb size/flex. wayfinding owns the #roombar background and the .rb.cm-gp dot. status owns .rb opacity, filter and shake.
+  - #floorpill / .fl: wayfinding owns the colour ring (box-shadow), data-dest and .fl i font-size. status owns .fl opacity, filter and shake.
+  - #alerts / .alertb: layout owns #alerts' landscape centring. status owns .alertb animation, .settled, data-born, the tp colour, opacity, filter and shake.
+  - .facecard: layout owns .facecard.right's landscape offset. status may only shake a face card; nobody dims them.
+  - #weatherBtn: layout.
+  - #dressBtn / #bookBtn: dock owns tall-portrait position, size, visibility guard, glide and wiggle. layout owns the landscape right offsets.
+  - #stopBtn: nobody moves, translates or rescales it. Its glyph comes from the currentActivity hook (bubbles, G17).
+  - #wishBtn / #reqBtn: dock owns position, size, glow animation, badge, span glyph and the ghost. status owns #reqBtn opacity, filter and shake.
+  - .say, .pichint, .cm-call and the bigIcon look: bubbles. The timing of ✨ big icons: dock (G27).
+  - .act, .acttray, .actback, .cm-badge and ring placement: rings.
+  - .stk-toast and the fly layer: dock.
+  - Canvas drawing: rings (the glow in nav.js, the deer tab); wayfinding (signs, edge tabs, the floor slide); status (the idle wiggle); layout (zoom and camera).
+  - #app classes: status adds cm-strip, cm-mood and cm-alert; layout may add its own cm-* classes.
+
+6. POSITION AND MOTION
+- HUD and dock buttons are positioned with left/top/right/bottom and the individual translate property, never transform. Game rules such as :active, pulse and .facecard scale use transform.
+- Transient motion: Clarity.shake, el.animate on translate, or a pointer-events:none ghost element.
+- Clarity code never calls preventDefault or stopPropagation. A tap is never swallowed or retargeted, with one documented exception: G35's tab tap.
+
+7. DATA
+- Nothing new on G, in localStorage or sessionStorage, or in saved data. Item state lives on Clarity.Gn.
+- Never call propActions or entActions just to look: fun.js's wrapper marks treasures found. G18 also never calls hitTest.
+
+8. TESTING SETUP
+- Serve your worktree: H.boot({ port, view, room, dir: '<worktree>/public/chef-marina' }).
+- Ports: worker k (0-based position in the workers list) uses 8850+10k to 8859+10k:
+  - prompts 8850-8859, status 8860-8869, rings 8870-8879, bubbles 8880-8889
+  - dock 8890-8899, layout 8900-8909, screens 8910-8919, wayfinding 8920-8929
+- harness.serve() reuses any server already listening on a port, whatever directory it serves. Never point one port at a second directory.
+- Views: port, land, portSmall, landSmall, plus the sizes a check names (pass {width,height} as view): 844x340, 390x664, 390x585, 375x553 and others.
+- Desktop env() is 0, so simulate safe-area insets with padding, as the verdicts did. Checks that name her iPhone stay owner checks.
+- Scratch files only under /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/build-<name>/.
+
+9. REGRESSION SWEEP
+- Run: cd .../scratchpad/audit && NODE_PATH=$(npm root -g) node regress.js <port> <out.json> <worktree>/public/chef-marina
+- Then: node regress-diff.js .../audit2/arch/head1.json <out.json> .../audit2/arch/head2.json
+  head1/head2 are today's committed game, without clarity, run twice: the clean baseline and the noise reference.
+- The core build is .../audit2/core_regress.json.
+- Diffing against after3.json also works, but expect the rows already explained in core_tests: the fixes committed after after3.json was recorded.
+- Switch-off sweep: CLARITY_OFF=<your ids or all> NODE_PATH=$(npm root -g) node .../audit2/arch/regress-flags.js <port> <out.json> <dir>
+- Run sweeps one at a time on an idle machine. Under load the game's dt cap slows game time, and the 1.6 s samples catch earlier states.
+
+10. DONE MEANS, PER WORKER
+a. Every item is built exactly as its reconcile entry says.
+b. Each item's must-still-work list from the draft and every EXTRA CHECK of BOTH lenses has been run in the harness and passes. Results are saved in your scratch folder. A check that needs another worker's item is written down as an integration check with its expected result, never silently skipped.
+c. Zero page errors in port, land, portSmall and landSmall, with all switches on and with your switches off. The pre-existing chip_love.mp3 warning is the only allowed message.
+d. The regress sweep has no LOST SITUATION, LOST CHOICE, BROKEN or failed flow. Every remaining difference is noise or one of the expected renames listed in your items.
+e. The switch-off sweep for your ids shows no difference beyond noise.
+f. The worktree diff touches only your overlay file and your listed /* Gn */ lines.
+g. Commit only on your worktree branch, never on main, never push, unless the orchestrator says otherwise.
+
+11. AFTER MERGING (integration phase)
+Integration checks:
+- G19 × G7: keyboard (8) and TV (9) lists at 667x375 and 844x390 show every choice without scrolling.
+- G19 × G11 / G35 / G17 / G26 / G6: tabs, signs, bubbles and rings clear of ▶ at right:0 and of the column.
+- G19 × G16 / G27: 📒 and 👗 stay at today's landscape spots, and the sticker flight lands there.
+- G4 × G39: a cross-floor arrival in the living room in landscape runs one animation with no stretched frame.
+- G3 × G37 / G38: the landscape map with the lane still wraps its rows, no tile sits under #xFloat, and the house picture keeps its size.
+- G15 × G25: #reqBtn dims during scenes.
+- G30 × G35 / G36 / G39: the up/down badges match.
+- G22 × G31: m_want_fort shows 🏰 with G31 on and ⛺ with it off.
+Then a full sweep vs head1/head2 with all expected renames, and a CLARITY_OFF=all sweep equal to today.
+
+## Critic addenda for you
+- Ports. harness.serve() reuses any server already on a port, whatever directory it serves. Before your first run, and whenever a result looks wrong, check: for p in $(seq <lo> <hi>); do pid=$(pgrep -f "http.server $p --bind"); [ -n "$pid" ] && echo $p $(readlink /proc/$pid/cwd); done. Every line must be your worktree's public/chef-marina; kill any other with kill <pid>. Stale main-tree servers that were in 8850–8929 have been stopped.
+- Sweeps. Wrap every regress.js and regress-flags.js run in: flock -x /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/sweep.lock <command>. Before calling any BEHAVES DIFF or flow difference a regression or noise, re-press it A/B against HEAD (port 8847 serves arch/head) under identical conditions; /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/critic/ab_rows.js is a template. Under load, the stool and wicker 🧗 'perch', the Miles 🤗 'anim' and 'tap floor walks' flip by themselves.
+- Events. room, screen and activity listeners may run synchronously inside any Clarity.quietFor() or Clarity.sample() call, including inside another item's hook (G2's checkMess hook runs inside AI.update). Keep them cheap and re-entrancy-safe, and never assume they run from the timer.
+- Switches. Register hooks, ticks, listeners, pointer and appear callbacks and Clarity.css unconditionally at load; the core gates them, so turning a switch ON at run time works. Use `if (Clarity.on.Gn)` at load only for one-time data changes, paired with Clarity.onToggle(id, on => ...) that both applies and restores.
+- DOM and names:
+- Create DOM nodes only while your switch is on.
+- Never reuse a game id or class (.act, .pichint, .say, .alertb, .stk-toast, #wishBtn, #reqBtn…); game code and regress.js query them.
+- Name new classes and @keyframes cm-gN-… (with your item id) unless the reconcile already names them; class and keyframe names are global and can collide across workers.
+- Rings close in places the UI.closeActions hook never sees. ui.js closes them through its PRIVATE closeActions when a new ring replaces an old one, in openPanel(), and in update() when the ring's anchor leaves the room. If your item needs 'is a ring open', read document.querySelector('#fx .act').
+- Insets and core changes:
+- Simulated insets (padding in the harness) leave env() at 0. Anything absolutely positioned inside #stage is already offset by env(safe-area-inset-left) through #app's padding; never add env() to its left or right, or her iPhone gets the inset twice and no harness check can show it.
+- Core changes from the critic: hook lists are copy-on-write (a hook registered during a call applies from the next call), and Clarity.nudgeX takes opt.dir (+1 or -1).
+- G17/G26: use Clarity.nudgeX(box, rects, { dir: Math.sign(roomCentreScreenX - bubbleCentreX) || 0, max: bubbleWidth, bounds: [0, stageW] }) for 'sideways only, toward the room's centre'. G5: hudRects 'strip' entries are the .rb buttons only. If the .say clamp must also clear the dark #roombar backing between and around the buttons, add #roombar's own rect.
+
+## Open critic issues touching your items
+(none)
+
+## Cross-item conflicts involving your items
+- G17: Give-bubble placement. The child lens nudges a bubble sideways, then downward until it is clear. The functionality lens says moving a bubble down onto a head turns a tap on that person into serve or give. It also found that a fixed x-clamp makes neighbouring bubbles overlap. → The functionality lens wins. Bubbles move sideways only, by the smallest shift that clears the live HUD rects (Clarity.nudgeX). Overlapping bubbles are spread apart around their midpoint. If nothing within one bubble width works, the bubble keeps today's spot. This works both before and after G19 ships, which removes the draft's assumption that G19 is not yet in.
+- G26: The child lens wants to drop the !G.septic gate at family2.js:145, because the repeated smell is the only reminder in the basement and a comedy scene. The functionality lens keeps the gate as a safe spacing of an event the game starts by itself. → The functionality lens wins: the gate stays. It is safe, and the still 📞 bubble over Daddy now carries the job. The child's extra rule is added: no .cm-call while Daddy's own speech bubble shows. The functionality conditions (inActivity, bodyBusy, no .act or .pichint) already cover the TV, give bubbles, rides and tidy.
+- G5: The draft's ✋ :active fix. The functionality lens measured no bug: #stopBtn's id rule beats .hud:active. Separately, the child lens showed bubbles moved up by translate would land on the alert row or under the strip. → The #stopBtn part is dropped; no new press dip. The child's per-frame clamp is added: computed analytically, with cached HUD rects, never measuring the moved node. Both hold.
+- G22/G31: Both write SAY_ICON at load. The verdicts ask whether the order matters, since G22 must not overwrite m_want_fort. → G22 fills only keys that do not exist, and m_want_fort already exists. The two writes commute, so the worker files can load in any order.
+- G36/G31/G22/G1: Changes evaluated at load in early files (REQS in fun.js, ROOMS in basement.js:7, the builder.js:928 loop) run before any late overlay exists. A guarded local edit there would never take effect, and an unguarded one could not be switched off. → clarity-flags.js loads first, so Clarity.on and Clarity.is exist from the first script. Load-time data is still never edited in place. G36 sets ROOMS icons from the overlay at load (every reader is lazy). G31 sets WISHES and SAY_ICON at overlay load, and maps the request icon at call time in askReq. G22 fills SAY_ICON at load. Local edits use Clarity.is(), which is false until every clarity file has loaded.
+- G5/G6/G7/G17/G18/G23/G26/G31/G33/G37/G39/G20: Five game files are edited by two workers: ui.js (G5 vs G6/G7), nav.js (G17 vs G18), features.js (G23 vs G37/G39), fun.js (G33 vs G31) and family2.js (G26 vs G20). → Every edit is on different, non-adjacent lines. ui.js: G7 at :49, G6 at :72-73, G5 at :101. nav.js: G17 at :61-67, G18 at the glow IIFE :153-174. features.js: G39 at :395-397, G37 at :413, G23 at :598-599. fun.js: G33 at :38, G31 at :82-83. family2.js: G26 at :145, G20 at :171-179. Each worker locates its code by text, and merges are line-disjoint.
+- G11/G19/G35/G17/G26/G6: G19 narrows the landscape picture and moves ▶ to right:0. Deer and turkey tabs (clearZone/tabY), G35's signs and tabs, G17's and G26's bubbles, and G6's mood avoidance were all measured with today's overlay column. → Every placement reads live geometry: wildlife's clearZone, Clarity.hudRects and Clarity.nudgeX, with no fixed offsets. After merging: check at the backyard's right end, at land and landSmall, with the column open and folded.
+
+
+==================== G5 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with both amendments. (a) ui.js:101 local edit /* G5 */: when Clarity.is('G5') and CSS.supports('translate','1px'), bigIcon uses translate:'-50% -50%' instead of transform:'translate(-50%,-50%)'; otherwise today's style. (b) Clarity.css: .say{transform:none;translate:-50% -100%}, plus the child's per-frame clamp in a UI.update after-hook (order 10). For each #fx .say: compute its would-be box analytically from style.left, style.top and its size, i.e. [left-w/2, top-h-8, left+w/2, top]. Cache offsetWidth/offsetHeight per node and never measure the moved node. If the box intersects Clarity.hudRects(null,{kinds:['strip','pill','map','alert']}), set node.style.translate = '-50% ' + (lowestBottom + 4 - top) + 'px'; otherwise clear it. (c) .pichint{transform:none;translate:-50% -50%}. (d) .isoroom.here{transform-box:fill-box;transform-origin:center}. (e) The #stopBtn:active part is DROPPED: the functionality lens measured that ✋ does not jump today, so no new dip is added. Without translate support (iOS before 14.1) the rules are ignored and today's look stays. DONE = the draft list and both lenses' EXTRA CHECKS: with 1-3 alerts showing and grown-ups at y 150/164/178 in port, land, landSmall and 844x340, elementFromPoint at each bubble centre returns .say, never .alertb, .rb or .fl; with no alerts, a y-164 bubble sits above the head; no frame-to-frame jump while the speaker stands still; give hints still serve and give and stay off the strip and alert row; a bigIcon never blocks an alert tap.
+Depends on: -
+Interactions: Its .pichint centring is what G17's sideways nudges compute from, and G26's .cm-call copies it; all three are in this worker. G27 (dock) defers ✨ big icons through a before-hook. G39 (wayfinding) passes a two-glyph arrival picture through bigIcon. G37 must not restyle .isoroom; G5 touches only transform-box and transform-origin of .isoroom.here.
+
+### DRAFT ITEM
+### G5 Pictures and bubbles land where they belong: the room picture, speech bubbles, give buttons, the map's 'here', and ✋ under her finger
+- problem: Animation keyframes overwrite the transforms that centre things.
+- UI.bigIcon (ui.js:101): the inline translate(-50%,-50%) is replaced by 'pop .3s both' (style.css:35). The 90 px room picture on every room change (and 🧹, 💎, 📞👨) lands 56 px right and 54 px down, on top of Marina.
+- .say (style.css:36): translate(-50%,-100%) is replaced by 'pop .2s both'. Every speech bubble's top-left corner sits on the speaker's head (measured at 187,172), so bubbles cover faces instead of sitting above them.
+- .pichint (nav.js:138): the 'pulse' keyframe makes the give buttons swing about 25 px diagonally twice a second, onto the arrows and the pill.
+- .isoroom.here (style.css:147) scales around the picture's top-left corner, so the map's 'here' outline drifts off its room.
+- #stopBtn: in tall portrait it is centred with transform:translateX(-50%) (style.css:213, 230). .hud:active{transform:translateY(2px)} (style.css:10) replaces that, so the chip jumps half its width to the right under her finger.
+- change: Same animations, same moments, same buttons. Each one simply stays where it belongs.
+- implementation: - Local edit ui.js:101, marked /* G5 */: transform:'translate(-50%,-50%)' becomes translate:'-50% -50%'. The separate translate property combines with pop's scale. Every caller goes through UI.bigIcon.
+- CSS block G5:
+  - .say{transform:none;translate:-50% -100%}
+  - .pichint{transform:none;translate:-50% -50%}
+  - .isoroom.here{transform-box:fill-box;transform-origin:center}
+  - Inside both portrait media rules that centre #stopBtn: #stopBtn:active{transform:translateX(-50%) translateY(2px)}
+- A rule for every later item: dock and HUD buttons are positioned with left/top/translate, never with transform.
+- must still work: Every bigIcon (room change, treasure, 🧹, 🧻, 📞👨, 🌙/☀️, rocket) still appears for the same time with the same glyph; Speech bubbles show the same icons for the same time, cannot be tapped, and their tail still points at the speaker; Give hints still pulse and still do the same thing when tapped; The map's current room still pulses; ✋ still works and still dips when pressed
+- benefit: The main 'you are now in the kitchen' cue stops covering Marina. Speech bubbles stop hiding the speaker's face. The give buttons the dad wants more obvious stop jittering onto the arrows. ✋ stops sliding away from her finger.
+- risk: Very low. Bubbles now sit about one bubble-height higher: check in port and land that a grown-up's bubble does not slip under the strip or the alert row, and does not land on a face card. The translate property needs iOS 14.1 or later.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G5 [bugs] Pictures and bubbles land where they belong: the room picture, speech bubbles, give buttons, the map's 'here', and ✋ under her finger => AMEND (child:amend, functionality:amend)
+
+**child: amend** — The bigIcon, .pichint, .isoroom.here and #stopBtn:active parts are clean wins. The speech-bubble part causes a regression I measured (verify/bugs-child/v1.js; shot g5_land_fixed_y150.png). With .say{translate:-50% -100%}, a grown-up standing near the middle of the screen at the default feet line (y 164) gets a bubble at 375–469 × 84–124 in land. That box sits inside the alert row (66–132), and elementFromPoint at the bubble's centre, where its emoji is, returns .alertb. The same happens on landSmall. At y 150 (back of the floor band) the bubble also runs into the room strip (bubble 48–88 vs strip 10–66; .say z4 is under the strip's z5). In portrait, a y-150 bubble lands on the alert row too. Alerts are on screen 55–87% of the time on the main floor (prompts §3). The change would trade 'bubble covers the speaker's face' for 'bubble hidden under an alert', which is worse for a non-reader, because the emoji is the only cue to what is being said.
+
+- AMENDED CHANGE (child): Keep the bigIcon (ui.js:101 translate), .pichint, .isoroom.here and #stopBtn:active parts exactly as written. Speech bubbles: .say{transform:none;translate:-50% -100%}, plus a per-frame clamp in the overlay's UI.update wrapper. UI.update is called by name from the game loop, after place() sets left/top. For each #fx .say node, compute its would-be box analytically from style.left/style.top, offsetWidth and offsetHeight+8 (the tail): [left−w/2, top−h−8, left+w/2, top]. Never measure the moved node, so it cannot oscillate. If that box intersects the stage-relative rect of #roombar, #floorpill .fl:not(.off), #mapBtn or any visible #alerts .alertb, set node.style.translate to '-50% ' + (lowestBottom + 4 − top) + 'px', so its top sits 4 px below the lowest element it would touch. Otherwise leave '-50% -100%'. A clamped bubble overlaps the speaker's head as it does today, but it is centred and fully visible. It never goes under the strip, the pill or an alert. No ui.js edit is needed for this part.
+
+- EXTRA CHECKS: Daddy and Mommy at y 150, 164 and 178, centred on screen, with 1–3 alerts showing, in port, land, landSmall and 844x340: elementFromPoint at every bubble's centre returns the bubble (.say), never .alertb, .rb or .fl. | With no alerts, a y-164 grown-up's bubble sits fully above the head (bubble bottom ≤ head top + 8). | Bubbles still follow a walking speaker smoothly (no frame-to-frame jump between the clamped and unclamped positions while the speaker stands still). | bigIcon at 40% of the stage: in land it spans about 111–201 and passes over the centred alert row for 0.65 s with pointer-events:none. Confirm that taps on alerts are never blocked.
+
+**functionality: amend** — (a)-(d) are correct: the keyframes with fill 'both' override the centring transforms. bigIcon and .say have pointer-events:none, and .pichint keeps its handler, so nothing functional changes. The ✋ claim is false. I forced :active on #stopBtn through CDP at 390x844 while holding a dish. Its computed transform stayed matrix(1,0,0,1,-51.9,0) and its left edge stayed at x 143, before and after.
+
+- AMENDED CHANGE (functionality): Same animations, same moments, same buttons; each one stays where it belongs. (a) ui.js:101 (G5): bigIcon uses translate:'-50% -50%' instead of transform. (b) .say{transform:none;translate:-50% -100%}. (c) .pichint{transform:none;translate:-50% -50%}. (d) .isoroom.here{transform-box:fill-box;transform-origin:center}. Drop the #stopBtn bullet from the problem and the fix: ✋ does not jump today. The #stopBtn ID rule (specificity 1,0,0) beats .hud:active (0,2,0), so translateX(-50%) holds while pressed. If a press dip is wanted for consistency, describe #stopBtn:active{transform:translateX(-50%) translateY(2px)} as a new 2 px dip, not as a fix.
+
+- EXTRA CHECKS: Give hints (.pichint) now sit centred on the grown-up's head, about 15 px higher on average. Check in port and land that a hint does not slip under the strip or the alert row, and that a tap on it still serves or gives. | Speech bubbles sit one bubble-height higher. Check that a grown-up's bubble near the top is not hidden under the strip or alerts in landscape (cosmetic only).
+
+
+==================== G17 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with both lenses' chip and person list, and the FUNCTIONALITY positioning, which replaces the draft's x-clamp and the child's downward nudge.
+(1) Chip. Clarity.hook('currentActivity','G17',{order:10, after(c){ if (c.result === '✋' && G.holding && G.holding.type === 'pic') c.result = '🖼️'; }}). It is the only currentActivity hook: G31's 🐈 is dropped.
+(2) People, nav.js:61-62 local edit /* G17 */, guarded by Clarity.is('G17'):
+- with a dish: bubbles over daddy, mommy, rory and jeff;
+- with a picture: the same, plus nunu;
+- only for people who are here, not hidden and not in the toilet;
+- Jeff's dish bubble runs approach(jeff.x, () => { const a = entActions(jeff).find(x => x.ico === '🍽️'); a && a.fn(); }, 26). His first 🍽️ is serve;
+- pictures keep Pics.gift(h.url, e);
+- Nunu's and Jeff's heights come from their sprite tops (as UI's entTop); Daddy, Mommy and Rory keep today's heights.
+(3) Positioning, nav.js:67 /* G17 */:
+- keep today's height;
+- shift sideways only, toward the room's centre, by the smallest amount that clears Clarity.hudRects(null,{except:['give','call']}). Use Clarity.nudgeX with max = one bubble width and bounds = the stage;
+- then, if two give bubbles overlap, spread them apart around their shared midpoint, so each stays nearest its own person;
+- if no clear spot exists within one bubble width, leave today's spot;
+- never move a bubble down onto a person or onto Marina;
+- the 'hang it here' bubble follows the same sideways-only rule.
+DONE = the draft list and both lenses' EXTRA CHECKS:
+- Mommy at the left edge with Daddy 40-60 px to her right: each bubble nearest its own person, no overlap, the right person served or gifted;
+- tapping a grown-up's head or chest still opens their ring;
+- Jeff serves with his j_* lines, including when G.pendingDish === jeff;
+- Nunu: no dish bubble, and her ring still offers 🍽️ noFood;
+- a picture given to Nunu or Jeff through the bubble plays the same scene, lines, placement and sticker as 👵/👴 in the 🎁🖼️ ring;
+- at 844x390 and 667x375, no bubble sits on ▶ or the moods, with the column open and folded;
+- no bubble over a hidden grown-up or one in the toilet.
+Expected regress rename: the stop chip ✋✋ becomes 🖼️✋ while she carries a picture.
+Depends on: G5
+Interactions: Same worker as G5 (.pichint centring) and G26 (.cm-call never shows together with a give bubble). Integration with G19: ▶ moves to right:0 of a narrower picture, and the live rects handle both states. G6's rings avoid the kind give.
+
+### DRAFT ITEM
+### G17 Carrying something: the ✋ chip shows it, and everyone who takes it gets a give bubble clear of the buttons
+- problem: - While she holds a picture, the yellow stop chip reads ✋✋, because currentActivity() has no 'pic' entry (features.js:59).
+- The glowing give bubbles appear over Daddy, Mommy and Rory only (nav.js:61). Grandpa Jeff accepts dishes (his ring's 🍽️, family2.js:271), and Nunu and Jeff accept pictures (the 🎁🖼️ gift ring offers 👵/👴, pics.js:26), yet nothing over them says so.
+- The bubbles use fixed heights (e.y−104 or −86) with no clamping, so they land on the side arrows (up to 1,710 px² of overlap) and on the ⬇️ pill.
+- In landscape the dashed 'hang it here' bubble sits under the 🎁🖼️ and 📁 alerts.
+This is the dad's 'giving isn't obvious' complaint.
+- change: - With a picture, the stop chip reads 🖼️✋, like 🍽️✋ for a dish.
+- With a dish, give bubbles appear over Daddy, Mommy, Rory and Jeff. Nunu gets none, because she refuses food.
+- With a picture, they appear over all of those plus Nunu.
+- Each bubble does exactly what that person's own give choice does today.
+- Bubbles sit over the head but are nudged clear of the side arrows, the pill and the alert row, and 'hang it here' drops below the alerts.
+- No new ring choices.
+- implementation: - currentActivity wrapper (the overlay's only one; G31 adds its Niko picture to the same map): if the result is '✋' && G.holding && G.holding.type === 'pic', return '🖼️'. The stop button interval (features.js:79) calls it by name.
+- Local edit nav.js:61-62, marked /* G17 */:
+  - the person list becomes [daddy, mommy, rory], plus jeff, plus nunu when the held thing is a picture, while Clarity.on.G17 (with typeof guards);
+  - Jeff's dish bubble: approach(jeff.x, () => { const a = entActions(jeff).find(x => x.ico === '🍽️'); a && a.fn(); }, 26). His first 🍽️ is serve; the second is pressureEat;
+  - pictures keep Pics.gift(h.url, e);
+  - Nunu's and Jeff's heights come from their sprite tops (as UI's entTop does), while Daddy, Mommy and Rory keep today's heights.
+- In the positioning loop (nav.js:67): clamp x to [arrowW+35, stageW−arrowW−35]; if a bubble's box overlaps #floorpill or #alerts, push it below them. The wall bubble too.
+- must still work: ✋ still drops the picture (same stopActivity); The 📁 and 🎁🖼️ alerts are unchanged and still shown; Daddy's, Mommy's and Rory's bubbles and their serve and gift scenes are unchanged; Nunu still refuses food through her own ring, and Jeff's ring is unchanged; Pics.giftMenu, the studio's give and the cook give row are unchanged; Bubbles still hide while a ring is open or while busy; Picture gifts to Nunu and Jeff are voiced by them (family2.js:9-19 maps r_amazing and r_love to nu_* and j_*)
+- benefit: The new grandparents look like people who take her gifts, the bubbles stay over the right person, and the carry chip finally shows what she is carrying.
+- risk: Low. These are one-tap shortcuts to outcomes that already exist. Like today's bubbles, an open bubble also hides 📒/👗 and holds back requests (nav.js:92, fun.js:92), now for Nunu and Jeff too. Check that Jeff's bubble at the edge of the backyard is not on an arrow.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G17 [hud] Carrying something: the ✋ chip shows it, and everyone who takes it gets a give bubble clear of the buttons => AMEND (child:amend, functionality:amend)
+
+**child: amend** — Keep the substance:
+- ✋✋ is meaningless and 🖼️✋ costs her no habit.
+- Bubbles over Jeff (dish) and over Nunu and Jeff (picture) are one-tap routes to outcomes that already exist. Jeff's ring has 🍽️ → stand+serve whenever she holds a dish (family2.js:271). Pics.gift handles Nunu and Jeff, and their lines are mapped to nu_/j_ (family2.js:9-19).
+- The change answers the dad's 'giving isn't obvious' complaint in exactly the new areas.
+
+The clamp as written is wrong. [arrowW+35, stageW−arrowW−35] assumes the right arrow sits at the screen edge. In landscape it sits at right:74 and the mood column overlays the right edge, and stays there until G19 ships: G17 is in wave 1, G19 in wave 2. On 844x390 the clamp limit gives a bubble centre of 753, so the bubble spans 722-784 and still lies on ▶ (710-766) and the column (773+). That is the same collision hud-landscape measured in landSmall (1802 px² with 🥰).
+
+- AMENDED CHANGE (child): As drafted:
+- The chip reads 🖼️✋ while she holds a picture (currentActivity wrapper).
+- With a dish, give bubbles show over Daddy, Mommy, Rory and Jeff. Jeff's bubble approaches him and runs his ring's first 🍽️ (serve).
+- With a picture, the same people plus Nunu get bubbles, each running Pics.gift(url, e).
+- Heights for Nunu and Jeff come from their sprite tops.
+
+Change the placement. Do not use a fixed [arrowW+35, stageW−arrowW−35] clamp. After positioning each bubble (and the wall 'hang it here' bubble), nudge it sideways toward the stage centre, then downward, until its box clears every rect in Clarity.hudRects(st). That covers both arrows, the pill, the alert row, the weather button, face cards, and in landscape the mood column and 😊 while they overlay the picture. Keep it inside the stage. If no clear spot exists within about 60 px of the head, use the nearest clear spot below the alert row.
+
+- EXTRA CHECKS: land and landSmall with G19 off, column unfolded and folded: Daddy's and Mommy's 🍽️ and 🎁 bubbles have 0 px² overlap with ◀, ▶, ⬇️, the mood column and 😊. Portrait: 0 px² with the arrows and the pill. | Backyard holding a dish: tapping Jeff's bubble walks to him and runs serve (j_food_* lines), never pressureEat. | Holding a picture in the den and the backyard: the bubble gift to Nunu and to Jeff plays the same Pics.gift scene and nu_/j_ voice lines as choosing 👵/👴 in the 🎁🖼️ ring. | No bubble over Jeff or Nunu while they are hidden or in the toilet, matching the existing filter for Daddy, Mommy and Rory.
+
+**functionality: amend** — The new give targets do exactly what existing choices do. Jeff's final entActions is family2.js:270-276, where the first 🍽️ is the serve choice whenever a dish is held (pressureEat is pushed after it), and minka.js:392 only intercepts Niko. Pics.gift(url, nunu or jeff) is the same call as the 👵/👴 choice in the 🎁🖼️ ring (pics.js:26-28), and family2.js maps r_* lines to nu_* and j_*. Nunu gets no dish bubble, which matches her 🍽️ noFood choice. currentActivity is a mutable function declaration that features.js:79 calls by name, so the '🖼️' wrapper works. The positioning rule changes outcomes, though. (1) 'Push it below the pill or alerts' moves a bubble down onto the person. In portrait, Daddy's bubble sits at world y 60 (screen 117-179). Clearing #floorpill (bottom 170) or the alert row (64-141) puts its centre at about screen 172-201, which is world 70-81: over his head and chest. A tap on a grown-up's head would then serve the dish or give the picture at once, instead of opening their ring (🤗, 📞 tell Daddy, 📱…). The landscape 'hang it here' bubble likewise drops onto Marina's head (alerts end at 132-143; her head top is at about 149), turning a tap on Marina into 'hang'. (2) A fixed x-clamp to [arrowW+35, stageW−arrowW−35] can make two bubbles overlap. With Mommy at the left edge and Daddy 40-60 px to her right, the clamped bubbles overlap by about 20 px, and the later DOM node takes taps meant for the other person. The clamp also pulls bubbles away when that arrow is .off, and the landscape right arrow is not at stageW−56: it sits at right:74px beside the mood column (nav.js:145).
+
+- AMENDED CHANGE (functionality): Keep the chip (🖼️✋ via the currentActivity wrapper) and the person list exactly as drafted: dish bubbles over Daddy, Mommy, Rory and Jeff; picture bubbles over those four plus Nunu; Jeff's dish bubble runs approach(jeff.x, () => the first 🍽️ in entActions(jeff), 26); pictures go through Pics.gift. Replace the positioning rule. Every bubble keeps today's height above the head (Daddy, Mommy and Rory exactly as today; Nunu and Jeff at entTop), and no bubble is ever moved down onto a person or onto Marina. Nudge only sideways, using the live getBoundingClientRect of the controls actually visible: .navarrow without .off, #floorpill without .off, #mapBtn, #weatherBtn, #roombar, #alerts, shown .facecard, and in landscape #moodbar and #moodToggle. Shift toward the room's centre by the smallest amount that clears them. Then, if two give bubbles overlap, spread them apart horizontally around their shared midpoint so each stays nearest its own person and none covers another. If no clear spot exists within one bubble width of the head, leave the bubble where today's code puts it. The 'hang it here' bubble follows the same sideways-only rule (it still hangs at marina.x, so the outcome is unchanged).
+
+- EXTRA CHECKS: Mommy at the left edge with Daddy 40-60 px to her right, holding a dish and then a picture: each bubble's centre is nearest its own person, the bubbles do not overlap, and tapping each one serves or gifts the right person. | Tap each grown-up's head and chest while carrying: their ring opens exactly as today (🍽️ first plus their other choices). No bubble covers their head. In landscape, a tap on Marina's head while carrying a picture still opens her own ring. | Jeff with a dish, including when G.pendingDish.who === jeff: the bubble runs serve(jeff) with the same j_* lines as his ring 🍽️. Nunu with a dish: no bubble, and her ring still offers 🍽️ noFood. | A picture to Nunu and to Jeff through the bubble gives the same scene, lines, wall or kitchen-wall placement and gift sticker as 👵/👴 in the 🎁🖼️ ring, indoors and in the backyard. | Landscape 844x390 and 667x375: no bubble overlaps the right arrow (right:74px today, right:0 with G19) or the mood column. Backyard: Jeff's bubble is clear of the left arrow and the deer and turkey tab zones. | regress.js against after3.json: add to the expected diffs the stop chip changing from ✋✋ to 🖼️✋ while carrying a picture, and the new give bubbles over Nunu and Jeff.
+
+
+==================== G22 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with the child's expanded list and the functionality checks. One static table, applied at overlay load, only for keys where !(k in SAY_ICON). say() is not wrapped.
+(a) Every nu_X and j_X in GRAND's NU and JF lists (family2.js:6-7) copies the icon of the same-suffix r_X, d_X or mo_X key, when that icon is generic: hi 👋, comfort 🤗, giggle 🤣, wow 🤩, whos_there ❓, food_good/great/meh, stomach, vomit, diarrhea, notp, tp_thanks, burp, kiss 😘, proud, play_yes, dance, tidy.
+(b) Love and hug lines (nu_love1-4, nu_hug, j_hug, m_wuv_nunu, m_wuv_jeff) get 💖 or 🤗.
+(c) m_hi_nunu gets '👋👵' and m_hi_jeff '👋👴'.
+(d) Topic lines use the picture of the matching sticker or choice:
+- Lego 🧱; films and lotr 🎬 (m_precious 💍); the Lego shelf 🗄️;
+- Jeff's build and work lines 🔨;
+- smell 👃; septic lines, m_septic and d_septic '📞👨';
+- Daddy's phone and m_phone 📱;
+- deer 🦌, turkey 🦃, squirrel 🐿️;
+- chores 🧹, laundry 🧺, dusting 🪶, clutter 🧸.
+(e) Do not touch the Minka keys; they already have '🐈‍⬛❓'.
+(f) Build the key list from runtime say() logging in the 15-min basement, backyard and upstairs sims (which catch the remapped nu_ and j_ keys), plus the literal grep.
+DONE = both lenses' EXTRA CHECKS:
+- every key in NU and JF, and every quoted say/sayG key in family2, wildlife, minka, basement, upstairs and outdoor, has an entry;
+- a SAY_ICON snapshot shows no existing entry changed;
+- the den Nunu hello shows 👋 and the backyard deer arrival 🦌;
+- two-emoji bubbles do not clip;
+- s3_icons.js shows no 💬 for the listed lines.
+Depends on: -
+Interactions: G31 (dock) sets SAY_ICON.m_want_fort, which already exists. G22 fills only keys that do not exist yet, so the two files can load in any order. Keys that game files add later are not pre-empted: trees.js:79 and wildlife.js:382 run at their own load, before clarity; confirm there is no lazy assignment.
+
+### DRAFT ITEM
+### G22 Every speech bubble shows a picture of what it is about, not an empty 💬
+- problem: say() falls back to a blank 💬 when a line has no SAY_ICON (game.js:54). About 50 new lines have none: Nunu's sweeping, laundry, dusting, clutter and film talk; her smell and septic lines; Daddy's phone lines; Jeff's work and helper lines; the deer, turkey and squirrel lines; the hello replies to Nunu and Jeff; 'where's Minka'. To a non-reader, a voice with 💬 is just noise, and in the basement and backyard that is most of the bubbles.
+- change: Each of those lines shows an existing emoji for its topic:
+- chores 🧹 or 🧺, dusting 🪶, clutter 🧸;
+- films 🎬, m_precious 💍;
+- smell 👃, septic and 'tell Daddy' 📞;
+- Daddy's phone 📱, Jeff's work 🔨;
+- deer 🦌, turkeys 🦃, squirrel 🐿️;
+- hello replies 👋, 'where's Minka' 🐈‍⬛.
+The voices and face cards are unchanged.
+- implementation: Block G22: Object.assign(SAY_ICON, {...}), adding only keys that have no entry yet (check !(k in SAY_ICON)). The keys are enumerated from the say('…') and sayG('…') calls in family2.js, wildlife.js, minka.js, basement.js, upstairs.js and outdoor.js that lack an entry; the prompts report §1 lists them. This is a static table: say() is not wrapped. SAY_ICON is the global object at world.js:308.
+- must still work: Every voice line and face card; Existing bubble icons are untouched (only missing keys are filled)
+- benefit: Every time someone speaks she gets a picture of what they mean, which turns the grandparents' chatter from mumbling into 'Nunu is doing the laundry'.
+- risk: Very low.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G22 [prompts] Every speech bubble shows a picture of what it is about, not an empty 💬 => AMEND (child:amend, functionality:keep)
+
+**child: amend** — Right in spirit, but the list is wrong and far too short. (1) The 'where's Minka' lines already have icons: minka.js:1049 sets m_minka_where and nu_minka_where to '🐈‍⬛❓' (checked in the page). (2) The biggest gap is missing. family2.js's say() override turns every Rory or Daddy line said by Nunu or Jeff into a nu_*/j_* key. None of those ~150 keys has an icon, so even Nunu's and Jeff's hellos, hugs, comfort, giggles and Jeff's gross-food reactions show 💬. The basement log shows Nunu's nu_hi3 with a 💬 bubble, where Rory's same hello shows 👋. (3) The hello replies should follow the existing pattern m_hi_rory '👋🧔' rather than a bare 👋. Picking each icon to match the sticker or choice she earns or taps for that topic (fun.js:18-21: 🧱 lego, 🎬 movie, 🔨 build, 📞 septic, 📱 phone, 🦌 deer, 🗄️ legoshelf) ties each bubble to a picture she already collects.
+
+- AMENDED CHANGE (child): Block G22, one static table filled only for keys with no entry (!(k in SAY_ICON)), with say() not wrapped. (a) For every nu_X/j_X in GRAND's NU and JF lists (family2.js:6-7), copy the icon of the same-suffix r_X, d_X or mo_X key when that icon is generic. Verified examples: hi→👋, comfort→🤗, giggle→🤣, wow→🤩, whos_there→❓, food_good/great/meh, stomach, vomit, diarrhea, notp, tp_thanks, burp, kiss→😘, proud, play_yes, dance, tidy. (b) Love and hug lines (nu_love1-4, nu_hug, j_hug, m_wuv_nunu/jeff) get 💖 or 🤗. (c) Hello replies: m_hi_nunu '👋👵', m_hi_jeff '👋👴'. (d) Topic lines use the sticker or choice picture for that topic: Lego 🧱, films and lotr 🎬 (m_precious 💍), the Lego shelf 🗄️, Jeff's build and work lines 🔨, smell 👃, septic lines and m_septic/d_septic '📞👨' (the same picture as the big icon at family2.js:160), Daddy's phone and m_phone 📱, deer 🦌, turkey 🦃, squirrel 🐿️, chores 🧹 / laundry 🧺 / dusting 🪶 / clutter 🧸. Do not touch the Minka keys.
+
+- EXTRA CHECKS: After load: every key in NU/JF and every quoted say/sayG key in family2, wildlife, minka, basement, upstairs and outdoor has a SAY_ICON entry | Snapshot SAY_ICON before and after: no existing entry changed | Den: Nunu's hello bubble shows 👋, not 💬; the backyard deer arrival shows 🦌; two-emoji bubbles do not clip in portrait or landscape
+
+**functionality: keep** — Purely visual. game.js:54 reads SAY_ICON[key] || '💬' for the bubble only. No code checks for '💬' (the only other '💬' is decoration in the reels phone, features.js:248). SAY_ICON is a mutable const object, and filling only missing keys at clarity.js load (after trees.js) cannot override any icon. Voices, face cards and lineMood do not read SAY_ICON. The only caveat is coverage, not safety: lines that Nunu and Jeff speak through family2's own() remap (r_/d_/mo_ → nu_*/j_*, family2.js:14-16) do not appear as literal say('nu_…') strings, so enumerating only literal calls will miss some.
+
+- EXTRA CHECKS: Build the key list from runtime say() calls (log the final key game.js:54 receives over the 15-min basement, backyard and upstairs sims), not only from grep of literal say('…'), so remapped nu_*/j_* keys are covered. | Assert the G22 key set is disjoint from every key any file assigns to SAY_ICON (grep Object.assign(SAY_ICON and the guarded assignments at trees.js:79 and wildlife.js:382), so nothing assigned later is pre-empted. | Diff SAY_ICON before and after for keys that existed before: identical. | Re-run the prompts s3_icons.js: no 💬 bubbles for the listed lines.
+
+
+==================== G26 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD the FUNCTIONALITY version, which keeps the !G.septic gate the child wanted dropped (see conflicts), plus the child's speech-bubble rule.
+(1) family2.js:145 local edit /* G26 */: add && !(window.Clarity && Clarity.is('G26') && G.septic). No new smell starts while the first one is untold.
+(2) One button, .cm-call: styled like .pichint.gift (white-bordered green disc), with no animation, centred with translate:-50% -50%. It is NOT a .pichint, so nav.js:92 and fun.js:92 ignore it.
+(3) It shows over Daddy only while all of these hold:
+- G.septic && daddy.here && !daddy.hidden && daddy.state !== 'toilet';
+- !inActivity() && !Clarity.bodyBusy();
+- !document.querySelector('.act,.pichint');
+- Daddy's own .say bubble is not showing. Track it with Clarity.hook('UI.bubble','G26',{order:10,after}), which records Daddy's until-time.
+(4) Position: every frame, from Clarity.hook('featTick','G26',{order:10,after}), at Daddy's head (at G17's height), shifted sideways only with Clarity.nudgeX as G17 does.
+(5) Tap: approach(daddy.x, () => { const a = entActions(daddy).find(x => x.ico === '📞'); a && a.fn(); }, 26).
+(6) Unchanged: tellDaddy, its lines, the 📞 sticker, nu_septic_thanks, and 📞 first in Daddy's ring.
+DONE = both lenses' EXTRA CHECKS:
+- holding a dish or a picture with G.septic in Daddy's room: only the give bubble shows;
+- TV on with Daddy on the sofa: no bubble;
+- tidy, chase, a shoulder ride or the swing: no bubble, and his ring still offers 📞 first;
+- Daddy lying down or on his phone: a bubble tap gives the same result as his 📞 choice;
+- one smell per 15-min basement run while untold, and smells resume after tellDaddy;
+- the bubble never overlaps a .say, a give bubble, the alerts, the arrows or the pill.
+Depends on: -
+Interactions: Same worker as G17: the bubble never shows while a give bubble (.pichint) or a ring exists, so the two never share Daddy's head. G5's translate centring applies. G6's rings avoid .cm-call. family2.js:145 is this worker's; family2.js:171-179 belongs to G20 (prompts).
+
+### DRAFT ITEM
+### G26 Nunu's 'go tell Daddy' job: no repeat while it's untold, and a still 📞 bubble over Daddy
+- problem: smell() (family2.js:154-162) sets G.septic and shows an off-centre 📞👨 for 1.3 s, then nothing more. The job then lives only as 📞, the first choice in Daddy's ring (family2.js:277), and Daddy is usually a floor away. The smell repeats while the first one is still untold: family2.js:145 has no !G.septic check, and 2 smells per 15 min were measured.
+- change: - No new smell starts while the first is still untold.
+- Until she tells Daddy, a still green 📞 bubble floats over his head whenever he is in her room. It looks like the give bubbles but does not pulse, and tapping it walks her to Daddy and does exactly what his 📞 choice does.
+- tellDaddy, its lines, the 📞 sticker and Nunu's thanks are unchanged.
+- implementation: - Local edit family2.js:145, marked /* G26 */: add && !G.septic.
+- Block G26, in the overlay's outermost featTick wrapper:
+  - keep one button with its own class .cm-call (styled like .pichint.gift, no animation) over Daddy while G.septic && daddy.here && !daddy.hidden && daddy.state !== 'toilet' && !G.busy && no .act is open;
+  - clamp it as in G17;
+  - tap: approach(daddy.x, () => { const a = entActions(daddy).find(x => x.ico === '📞'); a && a.fn(); }, 26).
+- It is not a .pichint, because nav.js:92 hides 📒/👗 and fun.js:92 holds back requests whenever a .pichint exists.
+- must still work: The smell scene, its stink clouds and G.septic; tellDaddy, its lines, the 📞 sticker and nu_septic_thanks at her next hello; 📞 is still first in Daddy's ring; 📒/👗 and requests are not affected by the bubble
+- benefit: The basement's little story becomes a goal a non-reader can see and follow up the stairs.
+- risk: Low. The smell happens at most once until it is told.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G26 [prompts] Nunu's 'go tell Daddy' job: no repeat while it's untold, and a still 📞 bubble over Daddy => AMEND (child:amend, functionality:amend)
+
+**child: amend** — The 📞 bubble over Daddy is a good, contained wayfinding aid. It is a tappable shortcut to the existing 📞 choice (family2.js:277), shown only after a basement event she hasn't met yet, so the habit cost is about zero. Two parts need changing. (1) Gating the smell with !G.septic changes a game rule/timer (family2.js:145), and the gain is doubtful. The repeated smell (≥170 s apart, with stink clouds and the 📞👨 picture) is the only reminder of the job inside the basement, and it is a comedy scene a 5-year-old will enjoy. Keep it. (2) The bubble shares Daddy's head space with things already there: his own .say speech bubble (UI.bubble follows the head; he speaks often: hellos, phone lines) and G17's give bubble whenever she carries a dish or picture. It must also respect the dad's 'nothing over the TV in landscape' rule. G.septic is not saved, so the bubble cannot outlive the session.
+
+- AMENDED CHANGE (child): Drop the family2.js:145 !G.septic gate: the smell keeps its current timing and doubles as the reminder. Keep Block G26's still 📞 button (.cm-call, styled like .pichint.gift, no animation, not a .pichint) over Daddy while G.septic && daddy.here && !daddy.hidden && daddy.state !== 'toilet' && !G.busy && !G.sceneOn && no .act. Also hide it while G.tv is on, while she holds a dish or picture (his give bubble owns that spot), and while Daddy's speech bubble is showing; or place it beside his head so the two never overlap. Clamp as in G17. Tap: approach(daddy.x, () => entActions(daddy).find(a => a.ico === '📞')?.fn(), 26).
+
+- EXTRA CHECKS: A second smell while untold still plays as today; G.septic stays true; the 📞👨 big icon shows again | The bubble never overlaps Daddy's .say bubble, a give bubble, the alert row, the side arrows or the pill (portrait and landscape) | One tap runs tellDaddy once: m_septic, d_septic, the 📞 sticker, the bubble gone, nu_septic_thanks at the next Nunu hello | Hidden while the TV is on in the living room, in landscape
+
+**functionality: amend** — The !G.septic gate on family2.js:145 is fine. It only spaces a game-started event, smell() and tellDaddy are untouched, and G.septic is in-memory only. The 📞 bubble mirrors a path she already has: family2.js:277 unshifts 📞 into Daddy's ring in every state, even while riding (after more.js's riding filter). entActions has no side effects in any wrapper. Two collisions are new, though. (1) While she carries a dish or picture, G17's give bubble over Daddy (🍽️ or 🎁, same head anchor e.y−104, same clamp) and the 📞 bubble land on the same spot. A tap meant to give Daddy the dish can run tellDaddy instead, or the reverse. (2) The bubble's conditions omit G.tv, tidy, chase, the fort and riding or swinging. So it would hang over Daddy on the sofa while the TV plays (the dad's 'buttons covering the TV' complaint), and it would invite a tellDaddy scene in the middle of tidy, chase or a shoulder ride. There, approach() moves Daddy himself, because mover = marina.mount.
+
+- AMENDED CHANGE (functionality): Local edit family2.js:145, marked /* G26 */: add && !G.septic, so no new smell starts while the first one is untold. Block G26: one .cm-call button (styled like .pichint.gift, no animation, not a .pichint) over Daddy only while G.septic && daddy.here && !daddy.hidden && daddy.state !== 'toilet' && !inActivity() && !Clarity.bodyBusy() && !document.querySelector('.act,.pichint'). inActivity() covers busy, scene, TV, tidy, chase, fort and screens; bodyBusy() covers ride, swing, bars, wheelchair and loops. So the bubble never sits over the TV, never shares Daddy's head with a give bubble, and never offers a scene in the middle of an activity. Clamp it clear of the arrows, the pill and the alert row as in G17. Tap: approach(daddy.x, () => { const a = entActions(daddy).find(x => x.ico === '📞'); a && a.fn(); }, 26). tellDaddy, its lines, the 📞 sticker, nu_septic_thanks and 📞 first in Daddy's ring are unchanged.
+
+- EXTRA CHECKS: Holding a dish, and holding a picture, with G.septic in Daddy's room: only the give bubble shows over Daddy, and tapping it serves or gifts as today. | TV on in the living room (port and land) with Daddy on the sofa and G.septic: no .cm-call. | During tidy, chase, a shoulder ride on Daddy and the swing: no .cm-call. Daddy's ring still offers 📞 first as today. | Daddy lying on the sofa and Daddy on his phone: the bubble tap gives the same result as picking 📞 from his ring (lie→idle, lines, sticker, G.septic false). | Smell count over a 15-min basement run is 1 while untold, and smells resume after tellDaddy.

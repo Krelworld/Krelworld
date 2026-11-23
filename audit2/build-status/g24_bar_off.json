@@ -1,0 +1,104 @@
+{
+ "port": {
+  "barTransforms": "varies (26 values)",
+  "pulse": true,
+  "faceAnim": [
+   "pulse"
+  ],
+  "faces": {
+   "x0": "-7.9",
+   "x1": "420.6",
+   "y0": "750.3",
+   "y1": "868.6",
+   "W": 390,
+   "H": 844
+  },
+  "inside": false,
+  "errors": []
+ },
+ "land": {
+  "barTransforms": "varies (27 values)",
+  "pulse": true,
+  "faceAnim": [
+   "pulse"
+  ],
+  "faces": {
+   "x0": "760.3",
+   "x1": "849.0",
+   "y0": "58.4",
+   "y1": "399.6",
+   "W": 844,
+   "H": 390
+  },
+  "inside": false,
+  "errors": []
+ },
+ "portSmall": {
+  "barTransforms": "varies (28 values)",
+  "pulse": true,
+  "faceAnim": [
+   "pulse"
+  ],
+  "faces": {
+   "x0": "-12.9",
+   "x1": "399.0",
+   "y0": "569.6",
+   "y1": "683.5",
+   "W": 375,
+   "H": 667
+  },
+  "inside": false,
+  "errors": []
+ },
+ "landSmall": {
+  "barTransforms": "varies (24 values)",
+  "pulse": true,
+  "faceAnim": [
+   "pulse"
+  ],
+  "faces": {
+   "x0": "586.2",
+   "x1": "671.1",
+   "y0": "59.5",
+   "y1": "383.5",
+   "W": 667,
+   "H": 375
+  },
+  "inside": false,
+  "errors": []
+ },
+ "844x340": {
+  "barTransforms": "varies (28 values)",
+  "pulse": true,
+  "faceAnim": [
+   "pulse"
+  ],
+  "faces": {
+   "x0": "769.9",
+   "x1": "846.0",
+   "y0": "61.9",
+   "y1": "346.1",
+   "W": 844,
+   "H": 340
+  },
+  "inside": false,
+  "errors": []
+ },
+ "390x664": {
+  "barTransforms": "varies (25 values)",
+  "pulse": true,
+  "faceAnim": [
+   "pulse"
+  ],
+  "faces": {
+   "x0": "-14.9",
+   "x1": "414.2",
+   "y0": "561.4",
+   "y1": "680.4",
+   "W": 390,
+   "H": 664
+  },
+  "inside": false,
+  "errors": []
+ }
+}

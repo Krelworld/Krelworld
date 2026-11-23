@@ -1,0 +1,120 @@
+{
+ "yard": {
+  "candidates": 6,
+  "onPicture": 3,
+  "covered": [
+   "garage<offscreen",
+   "car<offscreen",
+   "swing<offscreen"
+  ],
+  "seeAgrees": true,
+  "wiggles": 39,
+  "wiggledOff": [],
+  "distinctWiggled": 3
+ },
+ "dining": {
+  "candidates": 6,
+  "onPicture": 6,
+  "covered": [],
+  "seeAgrees": true,
+  "wiggles": 40,
+  "wiggledOff": [],
+  "distinctWiggled": 6
+ },
+ "kitchen": {
+  "candidates": 10,
+  "onPicture": 8,
+  "covered": [
+   "stove<offscreen",
+   "stool3<moodbar"
+  ],
+  "seeAgrees": true,
+  "wiggles": 39,
+  "wiggledOff": [],
+  "distinctWiggled": 8
+ },
+ "playroom": {
+  "candidates": 14,
+  "onPicture": 11,
+  "covered": [
+   "loveseat<navarrow",
+   "keys<bookBtn",
+   "broom<moodbar"
+  ],
+  "seeAgrees": true,
+  "wiggles": 40,
+  "wiggledOff": [],
+  "distinctWiggled": 11
+ },
+ "foyer": {
+  "candidates": 1,
+  "onPicture": 1,
+  "covered": [],
+  "seeAgrees": true,
+  "wiggles": 39,
+  "wiggledOff": [],
+  "distinctWiggled": 1
+ },
+ "living": {
+  "candidates": 12,
+  "onPicture": 6,
+  "covered": [
+   "sectional<offscreen",
+   "armchair<navarrow",
+   "tv<rb",
+   "basket<mood",
+   "dresserw<offscreen",
+   "pnp<offscreen"
+  ],
+  "seeAgrees": true,
+  "wiggles": 40,
+  "wiggledOff": [],
+  "distinctWiggled": 6
+ },
+ "bathroom": {
+  "candidates": 6,
+  "onPicture": 6,
+  "covered": [],
+  "seeAgrees": true,
+  "wiggles": 40,
+  "wiggledOff": [],
+  "distinctWiggled": 6
+ },
+ "den": {
+  "candidates": 12,
+  "onPicture": 5,
+  "covered": [
+   "ottoman<mood",
+   "tripod<offscreen",
+   "bsofa<offscreen",
+   "ltable<offscreen",
+   "btv<offscreen",
+   "bfire<offscreen",
+   "stones<offscreen"
+  ],
+  "seeAgrees": true,
+  "wiggles": 40,
+  "wiggledOff": [],
+  "distinctWiggled": 5
+ },
+ "backyard": {
+  "candidates": 13,
+  "onPicture": 3,
+  "covered": [
+   "tr_dogwood<mood",
+   "tr_birch<offscreen",
+   "tr_willow<offscreen",
+   "feeder<offscreen",
+   "lumber<offscreen",
+   "bench<offscreen",
+   "toolbox<offscreen",
+   "oak<offscreen",
+   "leafpile<offscreen",
+   "pine<offscreen"
+  ],
+  "seeAgrees": true,
+  "wiggles": 40,
+  "wiggledOff": [],
+  "distinctWiggled": 3
+ }
+}

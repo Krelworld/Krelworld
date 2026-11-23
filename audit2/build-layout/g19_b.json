@@ -1,0 +1,322 @@
+{
+ "landSmall_G19": {
+  "foldedTapAtFace": "moodbar",
+  "story": {
+   "box": [
+    0,
+    592
+   ],
+   "stage": [
+    0,
+    592
+   ],
+   "over": [],
+   "barVis": "hidden",
+   "togVis": "hidden",
+   "atFaceSpot": "app"
+  },
+  "storyPage": {
+   "over": []
+  },
+  "afterStory": {
+   "storyGone": true,
+   "barVis": "visible"
+  },
+  "screens": {
+   "cook": "covered/covered",
+   "dress": "covered/covered",
+   "bricks": "covered/covered",
+   "pool": "covered/covered",
+   "map": "covered/covered"
+  },
+  "arrow": {
+   "expected": "playroom",
+   "now": "playroom"
+  },
+  "moods": {
+   "love": {
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "st": "cheer",
+    "cur": "love",
+    "toggle": "🥰"
+   },
+   "happy": {
+    "mood": "happy",
+    "busy": true,
+    "scene": true,
+    "st": "cheer",
+    "cur": "happy",
+    "toggle": "😄"
+   },
+   "sad": {
+    "mood": "sad",
+    "busy": true,
+    "scene": true,
+    "st": "sad",
+    "cur": "sad",
+    "toggle": "😢"
+   },
+   "angry": {
+    "mood": "angry",
+    "busy": false,
+    "scene": false,
+    "st": "idle",
+    "cur": "angry",
+    "toggle": "😠"
+   },
+   "tantrum": {
+    "mood": "tantrum",
+    "busy": true,
+    "scene": true,
+    "st": "tantrum",
+    "cur": "tantrum",
+    "toggle": "😭"
+   }
+  },
+  "errors": [
+   "warning: audio assets/sfx/chip_love.mp3 Error: assets/sfx/chip_love.mp3\n    at http://127.0.0.1:8901/audio.js:32:60"
+  ]
+ },
+ "landSmall_TODAY": {
+  "foldedTapAtFace": "cv",
+  "story": {
+   "box": [
+    0,
+    667
+   ],
+   "stage": [
+    0,
+    667
+   ],
+   "over": [],
+   "barVis": "visible",
+   "togVis": "visible",
+   "atFaceSpot": "storyBox"
+  },
+  "storyPage": {
+   "over": []
+  },
+  "afterStory": {
+   "storyGone": true,
+   "barVis": "visible"
+  },
+  "screens": {
+   "cook": "covered/covered",
+   "dress": "covered/covered",
+   "bricks": "covered/covered",
+   "pool": "covered/covered",
+   "map": "covered/covered"
+  },
+  "arrow": {
+   "expected": "playroom",
+   "now": "playroom"
+  },
+  "moods": {
+   "love": {
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "st": "cheer",
+    "cur": "love",
+    "toggle": "🥰"
+   },
+   "happy": {
+    "mood": "happy",
+    "busy": true,
+    "scene": true,
+    "st": "cheer",
+    "cur": "happy",
+    "toggle": "😄"
+   },
+   "sad": {
+    "mood": "sad",
+    "busy": true,
+    "scene": true,
+    "st": "sad",
+    "cur": "sad",
+    "toggle": "😢"
+   },
+   "angry": {
+    "mood": "angry",
+    "busy": true,
+    "scene": true,
+    "st": "stomp",
+    "cur": "angry",
+    "toggle": "😠"
+   },
+   "tantrum": {
+    "mood": "tantrum",
+    "busy": true,
+    "scene": true,
+    "st": "tantrum",
+    "cur": "tantrum",
+    "toggle": "😭"
+   }
+  },
+  "errors": [
+   "warning: audio assets/sfx/chip_love.mp3 Error: assets/sfx/chip_love.mp3\n    at http://127.0.0.1:8901/audio.js:32:60"
+  ]
+ },
+ "land_G19": {
+  "foldedTapAtFace": "moodbar",
+  "story": {
+   "box": [
+    0,
+    767
+   ],
+   "stage": [
+    0,
+    767
+   ],
+   "over": [],
+   "barVis": "hidden",
+   "togVis": "hidden",
+   "atFaceSpot": "app"
+  },
+  "storyPage": {
+   "over": []
+  },
+  "afterStory": {
+   "storyGone": true,
+   "barVis": "visible"
+  },
+  "screens": {
+   "cook": "covered/covered",
+   "dress": "covered/covered",
+   "bricks": "covered/covered",
+   "pool": "covered/covered",
+   "map": "covered/covered"
+  },
+  "arrow": {
+   "expected": "playroom",
+   "now": "playroom"
+  },
+  "moods": {
+   "love": {
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "st": "idle",
+    "cur": "love",
+    "toggle": "🥰"
+   },
+   "happy": {
+    "mood": "happy",
+    "busy": true,
+    "scene": true,
+    "st": "pair",
+    "cur": "happy",
+    "toggle": "😄"
+   },
+   "sad": {
+    "mood": "sad",
+    "busy": true,
+    "scene": true,
+    "st": "sad",
+    "cur": "sad",
+    "toggle": "😢"
+   },
+   "angry": {
+    "mood": "angry",
+    "busy": false,
+    "scene": false,
+    "st": "idle",
+    "cur": "angry",
+    "toggle": "😠"
+   },
+   "tantrum": {
+    "mood": "tantrum",
+    "busy": true,
+    "scene": true,
+    "st": "tantrum",
+    "cur": "tantrum",
+    "toggle": "😭"
+   }
+  },
+  "errors": [
+   "warning: audio assets/sfx/chip_love.mp3 Error: assets/sfx/chip_love.mp3\n    at http://127.0.0.1:8901/audio.js:32:60"
+  ]
+ },
+ "land_TODAY": {
+  "foldedTapAtFace": "cv",
+  "story": {
+   "box": [
+    0,
+    844
+   ],
+   "stage": [
+    0,
+    844
+   ],
+   "over": [],
+   "barVis": "visible",
+   "togVis": "visible",
+   "atFaceSpot": "storyBox"
+  },
+  "storyPage": {
+   "over": []
+  },
+  "afterStory": {
+   "storyGone": true,
+   "barVis": "visible"
+  },
+  "screens": {
+   "cook": "covered/covered",
+   "dress": "covered/covered",
+   "bricks": "covered/covered",
+   "pool": "covered/covered",
+   "map": "covered/covered"
+  },
+  "arrow": {
+   "expected": "playroom",
+   "now": "playroom"
+  },
+  "moods": {
+   "love": {
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "st": "cheer",
+    "cur": "love",
+    "toggle": "🥰"
+   },
+   "happy": {
+    "mood": "happy",
+    "busy": true,
+    "scene": true,
+    "st": "cheer",
+    "cur": "happy",
+    "toggle": "😄"
+   },
+   "sad": {
+    "mood": "sad",
+    "busy": true,
+    "scene": true,
+    "st": "sad",
+    "cur": "sad",
+    "toggle": "😢"
+   },
+   "angry": {
+    "mood": "angry",
+    "busy": false,
+    "scene": false,
+    "st": "idle",
+    "cur": "angry",
+    "toggle": "😠"
+   },
+   "tantrum": {
+    "mood": "tantrum",
+    "busy": true,
+    "scene": true,
+    "st": "tantrum",
+    "cur": "tantrum",
+    "toggle": "😭"
+   }
+  },
+  "errors": [
+   "warning: audio assets/sfx/chip_love.mp3 Error: assets/sfx/chip_love.mp3\n    at http://127.0.0.1:8901/audio.js:32:60"
+  ]
+ }
+}

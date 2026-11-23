@@ -1,0 +1,7 @@
+BEHAVES DIFF    obj den/barm | 1a3zqcq#1 🪑→🪑
+      before: ok ["state:\"idle\"→\"sit\""] 
+      after:  ok [] 
+--
+BEHAVES DIFF    obj mroom/bunk | ppzuzf#1 🧸→🧸
+      before: ok ["panel:null→\"🧸\""] 
+      after:  ok [] 

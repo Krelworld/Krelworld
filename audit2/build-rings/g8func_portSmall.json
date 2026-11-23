@@ -1,0 +1,51 @@
+{
+ "islandPoint": [
+  334,
+  131
+ ],
+ "islandRing": "🧺 🗄️ 🧗",
+ "islandClimb": {
+  "state": "perch",
+  "top": 120,
+  "perch": "island"
+ },
+ "islandDishRing": "🧺 🗄️ 🧗 ⬇️",
+ "dishAfterDown": null,
+ "seatPoint": [
+  322,
+  146
+ ],
+ "stoolSeatHit": "stool1",
+ "seatPre": [
+  255,
+  347,
+  "cv",
+  214.42105263157896,
+  290,
+  false
+ ],
+ "stoolSeatRing": "🧗 🪑",
+ "seatPost": [
+  "kitchen",
+  308,
+  "idle",
+  false,
+  false,
+  false,
+  "hidden"
+ ],
+ "rockerPoint": [
+  187,
+  117
+ ],
+ "rockerRing": "🪑",
+ "rockerSit": {
+  "state": "sit",
+  "x": 196
+ },
+ "shelfHit": "toyshelf",
+ "shelfRing": "🧸",
+ "tidyFirst": "mess",
+ "personFirst": "ent:daddy",
+ "errors": []
+}

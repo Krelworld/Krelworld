@@ -1,0 +1,1050 @@
+{
+ "land in0 TODAY": {
+  "pre": {
+   "play": [
+    369,
+    186,
+    475,
+    292
+   ],
+   "art": [
+    648,
+    278,
+    827,
+    386
+   ],
+   "logo": [
+    199,
+    3,
+    646,
+    103
+   ],
+   "dress": [
+    34,
+    273,
+    120,
+    359
+   ],
+   "book": [
+    136,
+    289,
+    206,
+    359
+   ],
+   "playUnder": 0,
+   "artUnder": 0,
+   "logoUnder": 0
+  },
+  "hits": {
+   "living": {
+    "box": [
+     25,
+     69,
+     215,
+     199
+    ],
+    "hit": "own"
+   },
+   "kitchen": {
+    "box": [
+     227,
+     69,
+     416,
+     199
+    ],
+    "hit": "own"
+   },
+   "dining": {
+    "box": [
+     428,
+     69,
+     617,
+     199
+    ],
+    "hit": "own"
+   },
+   "playroom": {
+    "box": [
+     629,
+     69,
+     819,
+     199
+    ],
+    "hit": "own"
+   },
+   "foyer": {
+    "box": [
+     25,
+     211,
+     215,
+     341
+    ],
+    "hit": "COVERED:"
+   },
+   "yard": {
+    "box": [
+     227,
+     211,
+     416,
+     341
+    ],
+    "hit": "own"
+   },
+   "surprise me": {
+    "box": [
+     487,
+     240,
+     559,
+     312
+    ],
+    "hit": "own"
+   },
+   "_gap": {
+    "book": [
+     136,
+     289,
+     206,
+     359
+    ],
+    "dress": [
+     34,
+     273,
+     120,
+     359
+    ],
+    "foyerToBookY": -53,
+    "foyerToBookX": -180
+   },
+   "_livingLeft": 25,
+   "_padL": "0px"
+  },
+  "errors": []
+ },
+ "land in0 G13": {
+  "pre": {
+   "play": [
+    363,
+    180,
+    481,
+    299
+   ],
+   "art": [
+    648,
+    278,
+    827,
+    386
+   ],
+   "logo": [
+    198,
+    -3,
+    646,
+    104
+   ],
+   "dress": [
+    34,
+    273,
+    120,
+    359
+   ],
+   "book": [
+    136,
+    289,
+    206,
+    359
+   ],
+   "playUnder": 0,
+   "artUnder": 0,
+   "logoUnder": 0
+  },
+  "hits": {
+   "living": {
+    "box": [
+     25,
+     69,
+     215,
+     199
+    ],
+    "hit": "own"
+   },
+   "kitchen": {
+    "box": [
+     227,
+     69,
+     416,
+     199
+    ],
+    "hit": "own"
+   },
+   "dining": {
+    "box": [
+     428,
+     69,
+     617,
+     199
+    ],
+    "hit": "own"
+   },
+   "playroom": {
+    "box": [
+     629,
+     69,
+     819,
+     199
+    ],
+    "hit": "own"
+   },
+   "foyer": {
+    "box": [
+     227,
+     211,
+     416,
+     341
+    ],
+    "hit": "own"
+   },
+   "yard": {
+    "box": [
+     428,
+     211,
+     617,
+     341
+    ],
+    "hit": "own"
+   },
+   "surprise me": {
+    "box": [
+     688,
+     240,
+     760,
+     312
+    ],
+    "hit": "own"
+   },
+   "_gap": {
+    "book": [
+     136,
+     289,
+     206,
+     359
+    ],
+    "dress": [
+     34,
+     273,
+     120,
+     359
+    ],
+    "foyerToBookY": -53,
+    "foyerToBookX": 21
+   },
+   "_livingLeft": 25,
+   "_padL": "0px"
+  },
+  "errors": []
+ },
+ "land in47 TODAY": {
+  "pre": {
+   "play": [
+    371,
+    188,
+    473,
+    290
+   ],
+   "art": [
+    648,
+    257,
+    827,
+    365
+   ],
+   "logo": [
+    198,
+    1,
+    646,
+    103
+   ],
+   "dress": [
+    34,
+    273,
+    120,
+    359
+   ],
+   "book": [
+    136,
+    289,
+    206,
+    359
+   ],
+   "playUnder": 0,
+   "artUnder": 0,
+   "logoUnder": 0
+  },
+  "hits": {
+   "living": {
+    "box": [
+     25,
+     69,
+     215,
+     199
+    ],
+    "hit": "own"
+   },
+   "kitchen": {
+    "box": [
+     227,
+     69,
+     416,
+     199
+    ],
+    "hit": "own"
+   },
+   "dining": {
+    "box": [
+     428,
+     69,
+     617,
+     199
+    ],
+    "hit": "own"
+   },
+   "playroom": {
+    "box": [
+     629,
+     69,
+     819,
+     199
+    ],
+    "hit": "own"
+   },
+   "foyer": {
+    "box": [
+     25,
+     211,
+     215,
+     341
+    ],
+    "hit": "COVERED:"
+   },
+   "yard": {
+    "box": [
+     227,
+     211,
+     416,
+     341
+    ],
+    "hit": "own"
+   },
+   "surprise me": {
+    "box": [
+     487,
+     240,
+     559,
+     312
+    ],
+    "hit": "own"
+   },
+   "_gap": {
+    "book": [
+     136,
+     289,
+     206,
+     359
+    ],
+    "dress": [
+     34,
+     273,
+     120,
+     359
+    ],
+    "foyerToBookY": -53,
+    "foyerToBookX": -180
+   },
+   "_livingLeft": 25,
+   "_padL": "0px"
+  },
+  "errors": []
+ },
+ "land in47 G13": {
+  "pre": {
+   "play": [
+    371,
+    188,
+    473,
+    291
+   ],
+   "art": [
+    648,
+    257,
+    827,
+    365
+   ],
+   "logo": [
+    198,
+    0,
+    646,
+    103
+   ],
+   "dress": [
+    34,
+    273,
+    120,
+    359
+   ],
+   "book": [
+    136,
+    289,
+    206,
+    359
+   ],
+   "playUnder": 0,
+   "artUnder": 0,
+   "logoUnder": 0
+  },
+  "hits": {
+   "living": {
+    "box": [
+     47,
+     69,
+     226,
+     192
+    ],
+    "hit": "own"
+   },
+   "kitchen": {
+    "box": [
+     238,
+     69,
+     416,
+     192
+    ],
+    "hit": "own"
+   },
+   "dining": {
+    "box": [
+     428,
+     69,
+     607,
+     192
+    ],
+    "hit": "own"
+   },
+   "playroom": {
+    "box": [
+     619,
+     69,
+     797,
+     192
+    ],
+    "hit": "own"
+   },
+   "foyer": {
+    "box": [
+     238,
+     204,
+     416,
+     326
+    ],
+    "hit": "own"
+   },
+   "yard": {
+    "box": [
+     428,
+     204,
+     607,
+     326
+    ],
+    "hit": "own"
+   },
+   "surprise me": {
+    "box": [
+     672,
+     229,
+     744,
+     301
+    ],
+    "hit": "own"
+   },
+   "_gap": {
+    "book": [
+     136,
+     289,
+     206,
+     359
+    ],
+    "dress": [
+     34,
+     273,
+     120,
+     359
+    ],
+    "foyerToBookY": -38,
+    "foyerToBookX": 32
+   },
+   "_livingLeft": 47,
+   "_padL": "47px"
+  },
+  "errors": []
+ },
+ "landSmall in0 TODAY": {
+  "pre": {
+   "play": [
+    284,
+    176,
+    383,
+    276
+   ],
+   "art": [
+    481,
+    268,
+    654,
+    371
+   ],
+   "logo": [
+    139,
+    3,
+    529,
+    90
+   ],
+   "dress": [
+    27,
+    263,
+    109,
+    345
+   ],
+   "book": [
+    125,
+    278,
+    193,
+    345
+   ],
+   "playUnder": 0,
+   "artUnder": 0,
+   "logoUnder": 0
+  },
+  "hits": {
+   "living": {
+    "box": [
+     20,
+     58,
+     168,
+     160
+    ],
+    "hit": "own"
+   },
+   "kitchen": {
+    "box": [
+     180,
+     58,
+     328,
+     160
+    ],
+    "hit": "own"
+   },
+   "dining": {
+    "box": [
+     340,
+     58,
+     487,
+     160
+    ],
+    "hit": "own"
+   },
+   "playroom": {
+    "box": [
+     499,
+     58,
+     647,
+     160
+    ],
+    "hit": "own"
+   },
+   "foyer": {
+    "box": [
+     20,
+     172,
+     168,
+     273
+    ],
+    "hit": "own"
+   },
+   "yard": {
+    "box": [
+     180,
+     172,
+     328,
+     273
+    ],
+    "hit": "own"
+   },
+   "surprise me": {
+    "box": [
+     377,
+     186,
+     449,
+     258
+    ],
+    "hit": "own"
+   },
+   "_gap": {
+    "book": [
+     125,
+     278,
+     193,
+     345
+    ],
+    "dress": [
+     27,
+     263,
+     109,
+     345
+    ],
+    "foyerToBookY": 4,
+    "foyerToBookX": -173
+   },
+   "_livingLeft": 20,
+   "_padL": "0px"
+  },
+  "errors": []
+ },
+ "landSmall in0 G13": {
+  "pre": {
+   "play": [
+    283,
+    176,
+    384,
+    276
+   ],
+   "art": [
+    481,
+    268,
+    654,
+    371
+   ],
+   "logo": [
+    139,
+    1,
+    529,
+    90
+   ],
+   "dress": [
+    27,
+    263,
+    109,
+    345
+   ],
+   "book": [
+    125,
+    278,
+    193,
+    345
+   ],
+   "playUnder": 0,
+   "artUnder": 0,
+   "logoUnder": 0
+  },
+  "hits": {
+   "living": {
+    "box": [
+     20,
+     58,
+     168,
+     160
+    ],
+    "hit": "own"
+   },
+   "kitchen": {
+    "box": [
+     180,
+     58,
+     328,
+     160
+    ],
+    "hit": "own"
+   },
+   "dining": {
+    "box": [
+     340,
+     58,
+     487,
+     160
+    ],
+    "hit": "own"
+   },
+   "playroom": {
+    "box": [
+     499,
+     58,
+     647,
+     160
+    ],
+    "hit": "own"
+   },
+   "foyer": {
+    "box": [
+     180,
+     172,
+     328,
+     273
+    ],
+    "hit": "own"
+   },
+   "yard": {
+    "box": [
+     340,
+     172,
+     487,
+     273
+    ],
+    "hit": "own"
+   },
+   "surprise me": {
+    "box": [
+     537,
+     186,
+     609,
+     258
+    ],
+    "hit": "own"
+   },
+   "_gap": {
+    "book": [
+     125,
+     278,
+     193,
+     345
+    ],
+    "dress": [
+     27,
+     263,
+     109,
+     345
+    ],
+    "foyerToBookY": 4,
+    "foyerToBookX": -13
+   },
+   "_livingLeft": 20,
+   "_padL": "0px"
+  },
+  "errors": []
+ },
+ "landSmall in47 TODAY": {
+  "pre": {
+   "play": [
+    277,
+    170,
+    390,
+    282
+   ],
+   "art": [
+    481,
+    247,
+    654,
+    350
+   ],
+   "logo": [
+    139,
+    1,
+    529,
+    90
+   ],
+   "dress": [
+    27,
+    263,
+    109,
+    345
+   ],
+   "book": [
+    125,
+    278,
+    193,
+    345
+   ],
+   "playUnder": 0,
+   "artUnder": 0,
+   "logoUnder": 0
+  },
+  "hits": {
+   "living": {
+    "box": [
+     20,
+     58,
+     168,
+     160
+    ],
+    "hit": "own"
+   },
+   "kitchen": {
+    "box": [
+     180,
+     58,
+     328,
+     160
+    ],
+    "hit": "own"
+   },
+   "dining": {
+    "box": [
+     340,
+     58,
+     487,
+     160
+    ],
+    "hit": "own"
+   },
+   "playroom": {
+    "box": [
+     499,
+     58,
+     647,
+     160
+    ],
+    "hit": "own"
+   },
+   "foyer": {
+    "box": [
+     20,
+     172,
+     168,
+     273
+    ],
+    "hit": "own"
+   },
+   "yard": {
+    "box": [
+     180,
+     172,
+     328,
+     273
+    ],
+    "hit": "own"
+   },
+   "surprise me": {
+    "box": [
+     377,
+     186,
+     449,
+     258
+    ],
+    "hit": "own"
+   },
+   "_gap": {
+    "book": [
+     125,
+     278,
+     193,
+     345
+    ],
+    "dress": [
+     27,
+     263,
+     109,
+     345
+    ],
+    "foyerToBookY": 4,
+    "foyerToBookX": -173
+   },
+   "_livingLeft": 20,
+   "_padL": "0px"
+  },
+  "errors": []
+ },
+ "landSmall in47 G13": {
+  "pre": {
+   "play": [
+    279,
+    172,
+    388,
+    280
+   ],
+   "art": [
+    481,
+    247,
+    654,
+    350
+   ],
+   "logo": [
+    138,
+    -1,
+    529,
+    90
+   ],
+   "dress": [
+    27,
+    263,
+    109,
+    345
+   ],
+   "book": [
+    125,
+    278,
+    193,
+    345
+   ],
+   "playUnder": 0,
+   "artUnder": 0,
+   "logoUnder": 0
+  },
+  "hits": {
+   "living": {
+    "box": [
+     47,
+     58,
+     181,
+     150
+    ],
+    "hit": "own"
+   },
+   "kitchen": {
+    "box": [
+     193,
+     58,
+     328,
+     150
+    ],
+    "hit": "own"
+   },
+   "dining": {
+    "box": [
+     340,
+     58,
+     474,
+     150
+    ],
+    "hit": "own"
+   },
+   "playroom": {
+    "box": [
+     486,
+     58,
+     620,
+     150
+    ],
+    "hit": "own"
+   },
+   "foyer": {
+    "box": [
+     193,
+     162,
+     328,
+     255
+    ],
+    "hit": "own"
+   },
+   "yard": {
+    "box": [
+     340,
+     162,
+     474,
+     255
+    ],
+    "hit": "own"
+   },
+   "surprise me": {
+    "box": [
+     517,
+     173,
+     589,
+     245
+    ],
+    "hit": "own"
+   },
+   "_gap": {
+    "book": [
+     125,
+     278,
+     193,
+     345
+    ],
+    "dress": [
+     27,
+     263,
+     109,
+     345
+    ],
+    "foyerToBookY": 23,
+    "foyerToBookX": 1
+   },
+   "_livingLeft": 47,
+   "_padL": "47px"
+  },
+  "errors": []
+ },
+ "portrait port": [],
+ "portrait port notch": [],
+ "portrait portSmall": [],
+ "portrait portSmall notch": [],
+ "taps land": {
+  "living": {
+   "titleHidden": true,
+   "room": "living"
+  },
+  "kitchen": {
+   "titleHidden": true,
+   "room": "kitchen"
+  },
+  "dining": {
+   "titleHidden": true,
+   "room": "dining"
+  },
+  "playroom": {
+   "titleHidden": true,
+   "room": "playroom"
+  },
+  "foyer": {
+   "titleHidden": true,
+   "room": "foyer"
+  },
+  "yard": {
+   "titleHidden": true,
+   "room": "yard"
+  },
+  "surprise me": {
+   "titleHidden": true,
+   "room": "yard"
+  },
+  "dress": {
+   "titleHidden": true,
+   "panel": true,
+   "dressTabs": true
+  },
+  "book": {
+   "stkBox": true
+  }
+ },
+ "taps landSmall": {
+  "living": {
+   "titleHidden": true,
+   "room": "living"
+  },
+  "kitchen": {
+   "titleHidden": true,
+   "room": "kitchen"
+  },
+  "dining": {
+   "titleHidden": true,
+   "room": "dining"
+  },
+  "playroom": {
+   "titleHidden": true,
+   "room": "playroom"
+  },
+  "foyer": {
+   "titleHidden": true,
+   "room": "foyer"
+  },
+  "yard": {
+   "titleHidden": true,
+   "room": "yard"
+  },
+  "surprise me": {
+   "titleHidden": true,
+   "room": "living"
+  },
+  "dress": {
+   "titleHidden": true,
+   "panel": true,
+   "dressTabs": true
+  },
+  "book": {
+   "stkBox": true
+  }
+ }
+}

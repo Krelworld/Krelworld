@@ -1,0 +1,26 @@
+{
+ "alertNonScene": {
+  "during": {
+   "busy": true,
+   "scene": false,
+   "app": "cm-strip cm-mood",
+   "alert": "1"
+  },
+  "shakes": 0,
+  "nope": 0,
+  "after": {
+   "busy": false,
+   "acts": "👨👩🧔"
+  }
+ },
+ "drag": {
+  "x": 150,
+  "state": "idle",
+  "busy": false,
+  "room": "living"
+ },
+ "swipe": {
+  "room": "living",
+  "right": null
+ }
+}

@@ -1,0 +1,696 @@
+{
+ "port": {
+  "shows": {
+   "box": [
+    203,
+    117,
+    265,
+    179
+   ],
+   "txt": "📞"
+  },
+  "noSeptic": null,
+  "hidden": null,
+  "toilet": null,
+  "elsewhere": null,
+  "dish": {
+   "call": null,
+   "give": "🍽️"
+  },
+  "pic": {
+   "call": null,
+   "give": "🖼️🎁"
+  },
+  "dishTap": {
+   "lines": "m_hewe d_food_good",
+   "holding": false,
+   "septic": true
+  },
+  "ringOpen": null,
+  "ringFirst": "📞",
+  "daddyTalking": null,
+  "afterTalking": {
+   "box": [
+    203,
+    117,
+    265,
+    179
+   ],
+   "txt": "📞"
+  },
+  "tidy": null,
+  "tidyRingFirst": "📞",
+  "chase": null,
+  "chaseRingFirst": "📞",
+  "ride": null,
+  "rideRingFirst": [
+   "ride",
+   "📞⬇️"
+  ],
+  "swing": null,
+  "tv": null,
+  "tap_lie_bubble": {
+   "shownBefore": true,
+   "shownDuring": false,
+   "lines": "m_septic d_septic",
+   "did": "septic",
+   "septic": false,
+   "daddyState": "idle",
+   "after": null
+  },
+  "tap_lie_ring": {
+   "shownBefore": true,
+   "shownDuring": false,
+   "lines": "m_septic d_septic",
+   "did": "septic",
+   "septic": false,
+   "daddyState": "idle",
+   "after": null
+  },
+  "tap_phone_bubble": {
+   "shownBefore": true,
+   "shownDuring": false,
+   "lines": "m_septic d_septic",
+   "did": "septic",
+   "septic": false,
+   "daddyState": "idle",
+   "after": null
+  },
+  "tap_phone_ring": {
+   "shownBefore": true,
+   "shownDuring": false,
+   "lines": "m_septic d_septic2",
+   "did": "septic",
+   "septic": false,
+   "daddyState": "idle",
+   "after": null
+  },
+  "sweep": [
+   {
+    "f": 0,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.05,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.05,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.1,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.1,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.15,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.15,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.2,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.2,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.25,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.25,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.3,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.3,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.35,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.35,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.4,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.4,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.45,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.45,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.5,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.5,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.55,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.55,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.6,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.6,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.65,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.65,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.7,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.7,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.75,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.75,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.8,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.8,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.85,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.85,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.9,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.9,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.95,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "f": 0.95,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "f": 1,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "f": 1,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": false
+   }
+  ],
+  "dressWithCall": {
+   "call": true,
+   "dressOn": true
+  },
+  "once": {
+   "lines": "m_septic d_septic",
+   "did": "septic",
+   "septic": false,
+   "told": true,
+   "callAfter": null,
+   "nunuHello": "nu_hi4 nu_septic_thanks"
+  },
+  "errors": []
+ },
+ "land": {
+  "shows": {
+   "box": [
+    475,
+    57,
+    537,
+    119
+   ],
+   "txt": "📞"
+  },
+  "noSeptic": null,
+  "hidden": null,
+  "toilet": null,
+  "elsewhere": null,
+  "dish": {
+   "call": null,
+   "give": "🍽️"
+  },
+  "pic": {
+   "call": null,
+   "give": "🖼️🎁"
+  },
+  "dishTap": {
+   "lines": "m_hewe d_food_good",
+   "holding": false,
+   "septic": true
+  },
+  "ringOpen": null,
+  "ringFirst": "📞",
+  "daddyTalking": null,
+  "afterTalking": {
+   "box": [
+    475,
+    57,
+    537,
+    119
+   ],
+   "txt": "📞"
+  },
+  "tidy": null,
+  "tidyRingFirst": "📞",
+  "chase": null,
+  "chaseRingFirst": "📞",
+  "ride": null,
+  "rideRingFirst": [
+   "ride",
+   "📞⬇️"
+  ],
+  "swing": null,
+  "tv": null,
+  "tap_lie_bubble": {
+   "shownBefore": true,
+   "shownDuring": false,
+   "lines": "m_septic d_septic",
+   "did": "septic",
+   "septic": false,
+   "daddyState": "idle",
+   "after": null
+  },
+  "tap_lie_ring": {
+   "shownBefore": true,
+   "shownDuring": false,
+   "lines": "m_septic d_septic2",
+   "did": "septic",
+   "septic": false,
+   "daddyState": "idle",
+   "after": null
+  },
+  "tap_phone_bubble": {
+   "shownBefore": true,
+   "shownDuring": false,
+   "lines": "m_septic d_septic",
+   "did": "septic",
+   "septic": false,
+   "daddyState": "idle",
+   "after": null
+  },
+  "tap_phone_ring": {
+   "shownBefore": true,
+   "shownDuring": false,
+   "lines": "m_septic d_septic",
+   "did": "septic",
+   "septic": false,
+   "daddyState": "idle",
+   "after": null
+  },
+  "sweep": [
+   {
+    "f": 0,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.05,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.05,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.1,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.1,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.15,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.15,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.2,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.2,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.25,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.25,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.3,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.3,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.35,
+    "talk": false,
+    "shown": true,
+    "hits": [
+     "rb:346",
+     "rb:519"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.35,
+    "talk": true,
+    "shown": true,
+    "hits": [
+     "rb:346",
+     "rb:519"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.4,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.4,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.45,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.45,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.5,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.5,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.55,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.55,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.6,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.6,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 0.65,
+    "talk": false,
+    "shown": true,
+    "hits": [
+     "rb:639",
+     "rb:226"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.65,
+    "talk": true,
+    "shown": true,
+    "hits": [
+     "rb:639",
+     "rb:226"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.7,
+    "talk": false,
+    "shown": true,
+    "hits": [
+     "rb:21",
+     "rb:733"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.7,
+    "talk": true,
+    "shown": true,
+    "hits": [
+     "rb:21",
+     "rb:733"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.75,
+    "talk": false,
+    "shown": true,
+    "hits": [
+     "rb:179"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.75,
+    "talk": true,
+    "shown": true,
+    "hits": [
+     "rb:179"
+    ],
+    "inStage": true
+   },
+   {
+    "f": 0.8,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.8,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.85,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.85,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.9,
+    "talk": false,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.9,
+    "talk": true,
+    "shown": true,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "f": 0.95,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 0.95,
+    "talk": true,
+    "shown": false
+   },
+   {
+    "f": 1,
+    "talk": false,
+    "shown": false
+   },
+   {
+    "f": 1,
+    "talk": true,
+    "shown": false
+   }
+  ],
+  "dressWithCall": {
+   "call": true,
+   "dressOn": true
+  },
+  "once": {
+   "lines": "m_septic d_septic2",
+   "did": "septic",
+   "septic": false,
+   "told": true,
+   "callAfter": null,
+   "nunuHello": "nu_hi3 nu_clutter nu_septic_thanks"
+  },
+  "errors": []
+ }
+}

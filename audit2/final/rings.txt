@@ -1,0 +1,553 @@
+# WORKER BRIEF: rings  (overlay file: clarity-rings.js)
+Items to build: G6, G7, G8, G11, G18, G30
+
+## Your surface
+Choice rings and what a tap on the picture reaches. Owns: .act, .acttray and .actback placement and look; .cm-badge; placeActs and the ring-or-tray decision (ui.js:49, :72-73); UI.actions after-hooks (G7 10, G30 20, G18 30); the UI.closeActions after-hook (G18 10); the interact before-hook (G18 10); the hitTest after-hook (G8 10); the onTap before-hook at order 5, which never skips (G18); the room listener (G18); the target glow in nav.js's glow IIFE; the deer tab (wildlife.js tab()); Clarity.G18. Must NOT touch: HUD elements or their CSS; bubbles (.say, .pichint, .cm-call); alerts; the map; the turkey tab's behaviour.
+
+## Local edits allowed
+ui.js:49, the tray test (G7). ui.js:72-73, the placeActs avoid list (G6). nav.js glow IIFE, about lines 153-174 (G18: the target lit at full strength, every other thing at 0 while its ring is open); NOT nav.js:61-67, which belongs to bubbles. wildlife.js:974-977, tab() (G11), plus tabY's free() test only if the arrow-cache check fails. All guarded by Clarity.is and marked /* Gn */.
+
+## Order notes
+Worker index 2, ports 8870-8879. Merge 3rd, before layout: G19 relies on G7's wrapping tray. G30 ships with G6. Integration: G7 × G19 (lists at 667x375 and 844x390); G6 × G16/G17/G25/G26 (rings avoid the kinds dress, book, give, call, wish, req); G11 × G19 (clearZone at the backyard's right end); G30's badges × wayfinding's badges.
+
+## Shared core API (already built, in the game folder)
+Two new files, both in /home/user/Krelworld/public/chef-marina/. Global: window.Clarity (C below).
+
+A. clarity-flags.js (loaded FIRST, before audio.js)
+- Clarity.ids = ['G1'..'G39']; Clarity.on = {G1:true ... G39:true} (the switches, decided at page load).
+- Test overrides, never stored: URL ?clarity=off | ?clarity=-G3,-G19 | ?clarity=only:G3,G9 ; or window.CLARITY_OFF = 'all' | 'G3,G19' | ['G3'] set before load. Playwright: await ctx.addInitScript(v => { window.CLARITY_OFF = v; }, 'G3,G9') then goto or reload.
+- Clarity.ready: false until DOMContentLoaded, i.e. until every clarity file has loaded. Clarity.is(id) === (Clarity.ready && Clarity.on[id] === true).
+- LOCAL EDITS in game files test `window.Clarity && Clarity.is('G6')`. This works at any time and is false while the page is still loading.
+- Overlay code that runs at load reads Clarity.on.Gn directly.
+
+B. clarity-core.js (loaded after trees.js). Clarity.core === 1 once it has loaded.
+
+SWITCHES AT RUN TIME
+- Clarity.set(id, bool): flips a switch. Hooks, listeners, ticks, pointer and appear callbacks stop or resume at once. CSS follows at once.
+- Clarity.onToggle(id, fn(on)): callbacks so an item can undo or redo inline state when its switch flips.
+- Setting Clarity.on.Gn = false by hand also works, except for onToggle; CSS then follows within 250 ms.
+- Clarity.item(id, setupFn): runs setupFn once at load, only if the switch is on, inside try/catch.
+
+HOOKS (use these instead of wrapping a game function): Clarity.hook(point, id, { before(call), after(call), order })
+- Points, each wrapped ONCE by the core and outermost over every game wrapper: 'UI.actions', 'UI.closeActions', 'UI.bigIcon', 'UI.pulseMoods', 'UI.bubble', 'UI.update', 'Audio2.blip', 'onTap', 'hitTest', 'interact', 'currentActivity', 'onEnterRoomBy', 'checkMess', 'showWish', 'openIsoMap', 'drawProp', 'drawExitSigns', 'featTick'. Clarity.points() lists them.
+- call = { name, self, args, result, skip }.
+- before(call) may set call.skip = true, and call.result if needed, so the game's own function is not called. The first skip stops the remaining before-hooks.
+- after(call) runs after the game's function. It also runs after a skip, so check call.skip. It may replace call.result.
+- In both, this === call.self. Never mutate call.args.
+- order: lower runs first (default 0); equal orders run in registration order.
+- Hooks run only while Clarity.on[id] is true.
+- A hook that throws is reported once (console.warn 'clarity: Gn before X') and its changes to skip/result are undone.
+- With nothing registered, or every hook switched off, the wrapper is exactly the game's call: same this, arguments and return value.
+- Clarity.inner(point): the game's own function under the hooks. Call it to bypass every clarity hook, e.g. to replay a deferred icon: Clarity.inner('UI.bigIcon')(ch, ms).
+- drawExitSigns: builder.js:234 re-wraps it once on the next frame. The core's wrapper sits inside builder's and still runs exactly once per frame (measured 60/s). Never re-wrap anything yourself.
+- Not hook points:
+  - ui.js internals: actions() and openPanel() call the private closeActions; placeActs is private. Use local edits (G6, G7).
+  - askReq is private to fun.js. Use a local edit (G31) or Clarity.appear('#reqBtn').
+  - changeRoom: use the 'room' event.
+  - say: G22 is a static table.
+  - resize and the camera: only the layout worker changes framing, through engine.js:169, game.js:286 and calls to resize() and render() by name.
+- Example: Clarity.hook('checkMess', 'G2', { order: 10, before(c) { if (Clarity.busyNow() || Clarity.quietFor() < 10) c.skip = true; } });
+- Example: Clarity.hook('hitTest', 'G8', { order: 10, after(c) { const h = c.result; if (h && h.kind === 'prop') c.result = see(h, c.args[0], c.args[1]); } });
+
+EVENTS: Clarity.listen(evt, id, fn)
+- 'room' (was, room): after every real room change. Dispatched from a Floors.hooks entry, i.e. from floors.js's changeRoom, which is the outermost one.
+- 'screenOpen' / 'screenClose': Clarity.screenOpen() turned true / false.
+- 'activityStart' / 'activityEnd': Clarity.busyNow() turned true / false. On activityEnd, Clarity.endedAt = E.t (game seconds).
+- The start of a game (the title closing) is a screenClose and an activityEnd.
+- Edges are sampled every 100 ms, and also synchronously whenever Clarity.quietFor() or Clarity.sample() is called, so an edge fires once, never late for a reader.
+- Example: Clarity.listen('activityEnd', 'G1', () => { lastInput = E.t; });
+
+TIMER: Clarity.every(ms, id, fn(nowMs))
+- One shared 50 ms setInterval. fn runs at most every ms (minimum 50) while the switch is on.
+- Example: Clarity.every(100, 'G15', tick);
+
+TOUCHES: Clarity.pointer('down' | 'up', id, fn(event))
+- One window capture listener per type (passive), installed on first use. It runs before any game handler sees the event.
+- Look only: never preventDefault or stopPropagation.
+- Example: Clarity.pointer('down', 'G1', () => { lastInput = E.t; });
+
+NEW NODES: Clarity.appear(selector, id, fn(node))
+- One MutationObserver on body (childList, subtree), installed on first use.
+- fn runs as a microtask, before paint, for every added element matching selector, whether it is the added node itself or inside an added subtree.
+- The node may already be gone again, so check isConnected.
+- Example: Clarity.appear('.stk-toast', 'G27', t => { if (Clarity.screenOpen()) { t.style.display = 'none'; queue.push(t.textContent); } });
+
+CSS: Clarity.css(id, cssText) returns a <style data-clarity='Gn'> appended to <head>.
+- Clarity styles are kept after every game stylesheet: Bricks, LegoShelf, Pool, Movies, Stuffies and Spa append theirs the first time they open, and the core moves ours back to the end.
+- media='not all' while the switch is off.
+- Call it as often as you like per item.
+- Example: Clarity.css('G14', '@media (orientation:portrait){#roombar{max-width:calc(100% - 84px)}.rb{flex:0 1 40px;min-width:34px}}');
+
+STATE HELPERS
+- Clarity.bodyBusy(): marina.state is swing, bars, ride or wheel, or a looping anim. False before the game exists.
+- Clarity.screenOpen(): any of the following is up:
+  - the title;
+  - any #panel screen, including the map, the fort builder and interior, Lego/tiles, the shelf, pool, films, stuffies, spa, tree climb and the builder;
+  - Studio.active, #storyBox or #stkBox.
+  The TV and the fort tray are not screens.
+- Clarity.busyNow(): inActivity() || bodyBusy().
+- Clarity.quietFor(): game seconds since the last activity ended. 0 while one is going on; Infinity before any ended.
+- Clarity.endedAt: E.t of the last activity end (null before). Clarity.sample(): re-evaluate the edges now.
+- Clarity.playing(): marina exists and the title is hidden.
+- Clarity.landscape(): innerWidth > innerHeight.
+
+GEOMETRY HELPERS
+- Clarity.hudRects(st?, opt?) returns [[x0,y0,x1,y1], weight, kind, element] for every visible HUD control.
+  - Kinds: strip (#roombar .rb), pill (#floorpill .fl:not(.off)), map, arrow (.navarrow:not(.off)), weather (#weatherBtn:not(.hidden)), alert (#alerts .alertb), face (.facecard.show), stop (#stopBtn:not(.hidden)), book and dress (not .off), wish, req, give (#fx .pichint), call (.cm-call), mood (#moodbar .mood), moodToggle.
+  - Skipped: zero-size controls, visibility:hidden, and opacity < 0.05 on the control or an ancestor.
+  - Weight 4. In landscape, mood and moodToggle get weight 6 and are widened 8 px to the left.
+  - Coordinates are relative to st (a DOMRect, e.g. placeActs' stage rect) or to #stage. opt.client gives viewport coordinates.
+  - opt.kinds and opt.except filter by kind.
+  - Cached 250 ms (dropped on resize and orientationchange). opt.fresh measures now.
+  - Controls outside the picture (the tall-portrait dock, the portrait mood row) are included; they overlap nothing in it.
+  - Example (G6): if (window.Clarity && Clarity.is('G6')) { acts.hud = acts.hud || Clarity.hudRects(st, { fresh: true }); for (const x of acts.hud) avoid.push(x); }
+- Clarity.stageRect(): #stage's DOMRect, cached 250 ms.
+- Clarity.toClient(wx, wy) gives viewport px. Clarity.fromClient(cx, cy) gives world coordinates.
+- Clarity.onCanvas(cx, cy): elementFromPoint there is #cv, i.e. nothing covers the picture at that point.
+- Clarity.overlap(a, b): overlap area of two [x0,y0,x1,y1] rects.
+- Clarity.nudgeX(box, rects, { gap = 4, max, bounds: [minX, maxX] }) returns the smallest sideways shift in px that clears every rect at the box's height (hudRects entries or plain rects), or null if none within max.
+  - Example: const dx = Clarity.nudgeX(b, Clarity.hudRects(null, { except: ['give', 'call'] }), { max: 62, bounds: [0, st.width] });
+- Clarity.floorLevel(room): main 0, up +1, basement -1, outside 0, tree houses 0.5, unknown rooms 0.
+- Clarity.floorDir(from, to): +1 up, -1 down, 0 same level.
+  - Example (G39): const fd = window.Clarity && Clarity.is('G39') ? Clarity.floorDir(prev, G.room) : 0;
+
+MOTION HELPER
+- Clarity.shake(el, { px = 4, ms = 150, times = 2 }) returns an Animation or null.
+- It is a side-shake on the individual translate property only, with composite 'add'. Without composite support it starts from the element's computed translate.
+- So transforms, CSS animations, :active scales and centring translates keep working, and a CSS animation:none cannot cancel it.
+- Example: Clarity.shake(btn); Audio2.blip(-12, 'triangle', 0.08, 0.1);
+
+MISC
+- Clarity.warnOnce(key, err).
+- Item state and item helpers live on Clarity.Gn, e.g. Clarity.G18 = { target: null } and Clarity.G23 = { hintGap() {...} }. Never on G, never in localStorage.
+
+Tools in /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/arch/:
+- regress-flags.js: run regress.js with switches off. CLARITY_OFF=all|G3,G9 NODE_PATH=$(npm root -g) node regress-flags.js <port> <out.json> [gameDir] [only=flows].
+- core_boot.js, core_hooks.js and core_flags.js: the core proofs, reusable as templates.
+
+## Load order
+Script order in index.html and in artifact.html. The two lists are identical, checked with diff.
+
+clarity-flags.js (NEW, first)
+audio.js engine.js world.js ui.js game.js features.js fort.js art.js scenes.js pics.js play.js calm.js react.js more.js nav.js story.js fun.js floors.js basement.js upstairs.js outdoor.js bricks.js spa.js stuffies.js family2.js minka.js legoshelf.js builder.js pool.js movies.js wildlife.js treeclimb.js trees.js (unchanged)
+clarity-core.js (NEW)
+clarity-prompts.js, clarity-status.js, clarity-rings.js, clarity-bubbles.js, clarity-dock.js, clarity-layout.js, clarity-screens.js, clarity-wayfinding.js (8 NEW empty stubs, one per worker, in workers-list order)
+
+Files created in /home/user/Krelworld/public/chef-marina/: clarity-flags.js, clarity-core.js, and the 8 stubs. Each stub holds only a header comment, a load guard (`const C = window.Clarity; if (!C || !C.core) return;`) and an empty IIFE. index.html and artifact.html are edited. Nothing is committed.
+
+Why this order:
+- Flags first, so any game file, including load-time code and the earliest timers, can call Clarity.is or read Clarity.on.
+- The core after trees.js, so each of its 18 wrappers is outermost over every game wrapper. The one exception is by design: builder.js re-wraps drawExitSigns once to keep its late drawing last, and the core's wrapper runs inside it.
+- Worker files after the core, so they can register hooks at load.
+- The order among worker files does not matter:
+  - hooks carry explicit order numbers (see conventions);
+  - CSS is split by property ownership, so no two workers set the same property on the same element;
+  - the only shared load-time writes (G22 fills missing SAY_ICON keys; G31 sets the existing m_want_fort) commute.
+- Load-time literals and loops in early files are never edited: REQS in fun.js, ROOMS.nunuroom in basement.js:7, the tree-house loop at builder.js:928. Those changes are applied from the overlay at load (G31 WISHES/SAY_ICON, G36 ROOMS icons, G22 SAY_ICON) or at call time (G31 askReq).
+
+Merge order of the worker branches: prompts, status, rings, bubbles, dock, layout, screens, wayfinding.
+- rings must come before layout, because G19 narrows the landscape picture and relies on G7's wrapping tray.
+- Local edits are line-disjoint across workers, so any order merges cleanly.
+
+## Conventions (must follow)
+1. YOUR FILES
+- Each worker owns one overlay file: its stub clarity-<name>.js, already loaded by index.html and artifact.html.
+- It also owns the local edits listed for it under workers, and nothing else.
+- Never edit: clarity-flags.js, clarity-core.js, index.html, artifact.html, style.css, or lines owned by another worker.
+- If you need a core change, report it. Do not patch the core.
+
+2. SWITCHES. Every item's code checks its own switch.
+- Hooks, listeners, ticks, pointer and appear callbacks, and Clarity.css registered with the item id are gated by the core.
+- Load-time overlay code: if (Clarity.on.Gn) {...}. Add Clarity.onToggle(id, fn) to undo it when the switch flips.
+- Local edits in game files: window.Clarity && Clarity.is('Gn').
+- A switch that is off must give byte-for-byte today's code path and look.
+- Test with ?clarity=-Gn, ?clarity=off, or CLARITY_OFF via an init script.
+
+3. LOCAL EDITS
+- Mark the changed line /* Gn */. Keep edits as small as possible, ideally one line.
+- The switch-off branch is today's exact expression.
+- Never add a top-level let, const or function to a game file. Classic scripts share one global scope, and a duplicate name is a SyntaxError that kills that whole file. Put state inside the file's existing IIFE or closure next to the edit, or on Clarity.Gn. more.js is top-level code, so G21 keeps its state on Clarity.G21.
+- Never edit object literals or loops that run at load: REQS in fun.js, ROOMS in basement.js:7, builder.js:928. Apply those changes from the overlay at load or at call time.
+- Find code by its text. Line numbers are as of this core and shift.
+
+4. HOOKS, NEVER WRAPPERS
+- Never reassign a game global or a UI or Audio2 method. Use Clarity.hook.
+- Assigned orders (lower runs first):
+  - UI.actions: before G2:10 | after G7:10, G30:20, G2:40 (only records whether a tidy ring opened), G18:30.
+  - UI.closeActions: after G18:10, G27:20.
+  - onTap: before G18:5 (never skips), G15:10 (never skips), G35:20 (may skip).
+  - interact: before G18:10.
+  - hitTest: after G8:10.
+  - currentActivity: after G17:10.
+  - onEnterRoomBy: before G20:10.
+  - checkMess: before G2:10.
+  - UI.bigIcon: before G27:10.
+  - UI.pulseMoods: before G24:10.
+  - UI.bubble: after G26:10.
+  - UI.update: after G5:10.
+  - Audio2.blip: before G15:10.
+  - openIsoMap: after G36:10, G37:20, G38:30.
+  - drawProp: after G35:10.
+  - drawExitSigns: after G35:10.
+  - featTick: after G26:10.
+  - showWish: free; use 10.
+- After-hooks must check call.skip.
+- To call a hooked function without re-entering its hooks, use Clarity.inner(name).
+- Events: room (G4, G18, G23, G35); activityEnd (G1); screenOpen (G2, G27); screenClose (G27).
+- Pointer: G1 down; G15 up.
+- Appear: G23 '#alerts .alertb' (or a tick), G25 '#reqBtn' and '#wishBtn', G27 '.stk-toast'.
+- Ticks: G4 200 ms, G15 100 ms, G23 250 ms, G35 250 ms, G37 300 ms, G38 200 ms.
+- G3, G9 and G16 use MutationObservers of their own, on elements they own.
+
+5. CSS
+- Only through Clarity.css(id, text), one or more per item. Never edit style.css or inject <style> yourself.
+- Prefix every new class or keyframe with cm-.
+- Property ownership on shared elements. Two workers never set the same property on the same element:
+  - #xFloat: screens.
+  - #panel and its screens (cooking, dress-up, crafts, Bricks, the canvas screens), #studio, #storyBox and #stkBox: screens. Two exceptions: the map's content (.fmap, .fmaprow, .fmaproom and the .isosvg additions) belongs to wayfinding, and .isoroom.here's transform-box/transform-origin belongs to bubbles (G5).
+  - #title padding and .tpick: layout (G13).
+  - #moodbar and #moodToggle: layout owns position, size, display, the folded slot, background, handle and chevron in landscape. status owns .mood opacity, filter and shake, and the animation of #moodbar.pulse and .mood.
+  - .navarrow: layout owns the right offset. status owns the animation and the inner <i> bob.
+  - #roombar / .rb: layout owns position, landscape centring, max-width and .rb size/flex. wayfinding owns the #roombar background and the .rb.cm-gp dot. status owns .rb opacity, filter and shake.
+  - #floorpill / .fl: wayfinding owns the colour ring (box-shadow), data-dest and .fl i font-size. status owns .fl opacity, filter and shake.
+  - #alerts / .alertb: layout owns #alerts' landscape centring. status owns .alertb animation, .settled, data-born, the tp colour, opacity, filter and shake.
+  - .facecard: layout owns .facecard.right's landscape offset. status may only shake a face card; nobody dims them.
+  - #weatherBtn: layout.
+  - #dressBtn / #bookBtn: dock owns tall-portrait position, size, visibility guard, glide and wiggle. layout owns the landscape right offsets.
+  - #stopBtn: nobody moves, translates or rescales it. Its glyph comes from the currentActivity hook (bubbles, G17).
+  - #wishBtn / #reqBtn: dock owns position, size, glow animation, badge, span glyph and the ghost. status owns #reqBtn opacity, filter and shake.
+  - .say, .pichint, .cm-call and the bigIcon look: bubbles. The timing of ✨ big icons: dock (G27).
+  - .act, .acttray, .actback, .cm-badge and ring placement: rings.
+  - .stk-toast and the fly layer: dock.
+  - Canvas drawing: rings (the glow in nav.js, the deer tab); wayfinding (signs, edge tabs, the floor slide); status (the idle wiggle); layout (zoom and camera).
+  - #app classes: status adds cm-strip, cm-mood and cm-alert; layout may add its own cm-* classes.
+
+6. POSITION AND MOTION
+- HUD and dock buttons are positioned with left/top/right/bottom and the individual translate property, never transform. Game rules such as :active, pulse and .facecard scale use transform.
+- Transient motion: Clarity.shake, el.animate on translate, or a pointer-events:none ghost element.
+- Clarity code never calls preventDefault or stopPropagation. A tap is never swallowed or retargeted, with one documented exception: G35's tab tap.
+
+7. DATA
+- Nothing new on G, in localStorage or sessionStorage, or in saved data. Item state lives on Clarity.Gn.
+- Never call propActions or entActions just to look: fun.js's wrapper marks treasures found. G18 also never calls hitTest.
+
+8. TESTING SETUP
+- Serve your worktree: H.boot({ port, view, room, dir: '<worktree>/public/chef-marina' }).
+- Ports: worker k (0-based position in the workers list) uses 8850+10k to 8859+10k:
+  - prompts 8850-8859, status 8860-8869, rings 8870-8879, bubbles 8880-8889
+  - dock 8890-8899, layout 8900-8909, screens 8910-8919, wayfinding 8920-8929
+- harness.serve() reuses any server already listening on a port, whatever directory it serves. Never point one port at a second directory.
+- Views: port, land, portSmall, landSmall, plus the sizes a check names (pass {width,height} as view): 844x340, 390x664, 390x585, 375x553 and others.
+- Desktop env() is 0, so simulate safe-area insets with padding, as the verdicts did. Checks that name her iPhone stay owner checks.
+- Scratch files only under /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/build-<name>/.
+
+9. REGRESSION SWEEP
+- Run: cd .../scratchpad/audit && NODE_PATH=$(npm root -g) node regress.js <port> <out.json> <worktree>/public/chef-marina
+- Then: node regress-diff.js .../audit2/arch/head1.json <out.json> .../audit2/arch/head2.json
+  head1/head2 are today's committed game, without clarity, run twice: the clean baseline and the noise reference.
+- The core build is .../audit2/core_regress.json.
+- Diffing against after3.json also works, but expect the rows already explained in core_tests: the fixes committed after after3.json was recorded.
+- Switch-off sweep: CLARITY_OFF=<your ids or all> NODE_PATH=$(npm root -g) node .../audit2/arch/regress-flags.js <port> <out.json> <dir>
+- Run sweeps one at a time on an idle machine. Under load the game's dt cap slows game time, and the 1.6 s samples catch earlier states.
+
+10. DONE MEANS, PER WORKER
+a. Every item is built exactly as its reconcile entry says.
+b. Each item's must-still-work list from the draft and every EXTRA CHECK of BOTH lenses has been run in the harness and passes. Results are saved in your scratch folder. A check that needs another worker's item is written down as an integration check with its expected result, never silently skipped.
+c. Zero page errors in port, land, portSmall and landSmall, with all switches on and with your switches off. The pre-existing chip_love.mp3 warning is the only allowed message.
+d. The regress sweep has no LOST SITUATION, LOST CHOICE, BROKEN or failed flow. Every remaining difference is noise or one of the expected renames listed in your items.
+e. The switch-off sweep for your ids shows no difference beyond noise.
+f. The worktree diff touches only your overlay file and your listed /* Gn */ lines.
+g. Commit only on your worktree branch, never on main, never push, unless the orchestrator says otherwise.
+
+11. AFTER MERGING (integration phase)
+Integration checks:
+- G19 × G7: keyboard (8) and TV (9) lists at 667x375 and 844x390 show every choice without scrolling.
+- G19 × G11 / G35 / G17 / G26 / G6: tabs, signs, bubbles and rings clear of ▶ at right:0 and of the column.
+- G19 × G16 / G27: 📒 and 👗 stay at today's landscape spots, and the sticker flight lands there.
+- G4 × G39: a cross-floor arrival in the living room in landscape runs one animation with no stretched frame.
+- G3 × G37 / G38: the landscape map with the lane still wraps its rows, no tile sits under #xFloat, and the house picture keeps its size.
+- G15 × G25: #reqBtn dims during scenes.
+- G30 × G35 / G36 / G39: the up/down badges match.
+- G22 × G31: m_want_fort shows 🏰 with G31 on and ⛺ with it off.
+Then a full sweep vs head1/head2 with all expected renames, and a CLARITY_OFF=all sweep equal to today.
+
+## Critic addenda for you
+- Ports. harness.serve() reuses any server already on a port, whatever directory it serves. Before your first run, and whenever a result looks wrong, check: for p in $(seq <lo> <hi>); do pid=$(pgrep -f "http.server $p --bind"); [ -n "$pid" ] && echo $p $(readlink /proc/$pid/cwd); done. Every line must be your worktree's public/chef-marina; kill any other with kill <pid>. Stale main-tree servers that were in 8850–8929 have been stopped.
+- Sweeps. Wrap every regress.js and regress-flags.js run in: flock -x /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/sweep.lock <command>. Before calling any BEHAVES DIFF or flow difference a regression or noise, re-press it A/B against HEAD (port 8847 serves arch/head) under identical conditions; /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/critic/ab_rows.js is a template. Under load, the stool and wicker 🧗 'perch', the Miles 🤗 'anim' and 'tap floor walks' flip by themselves.
+- Events. room, screen and activity listeners may run synchronously inside any Clarity.quietFor() or Clarity.sample() call, including inside another item's hook (G2's checkMess hook runs inside AI.update). Keep them cheap and re-entrancy-safe, and never assume they run from the timer.
+- Switches. Register hooks, ticks, listeners, pointer and appear callbacks and Clarity.css unconditionally at load; the core gates them, so turning a switch ON at run time works. Use `if (Clarity.on.Gn)` at load only for one-time data changes, paired with Clarity.onToggle(id, on => ...) that both applies and restores.
+- DOM and names:
+- Create DOM nodes only while your switch is on.
+- Never reuse a game id or class (.act, .pichint, .say, .alertb, .stk-toast, #wishBtn, #reqBtn…); game code and regress.js query them.
+- Name new classes and @keyframes cm-gN-… (with your item id) unless the reconcile already names them; class and keyframe names are global and can collide across workers.
+- Rings close in places the UI.closeActions hook never sees. ui.js closes them through its PRIVATE closeActions when a new ring replaces an old one, in openPanel(), and in update() when the ring's anchor leaves the room. If your item needs 'is a ring open', read document.querySelector('#fx .act').
+- Insets and core changes:
+- Simulated insets (padding in the harness) leave env() at 0. Anything absolutely positioned inside #stage is already offset by env(safe-area-inset-left) through #app's padding; never add env() to its left or right, or her iPhone gets the inset twice and no harness check can show it.
+- Core changes from the critic: hook lists are copy-on-write (a hook registered during a call applies from the next call), and Clarity.nudgeX takes opt.dir (+1 or -1).
+- G6: measure Clarity.hudRects(st, { fresh: true, except: ['give', 'call', 'book', 'dress'] }). The give bubbles, .cm-call and 📒/👗 are in the DOM when the ring opens but are hidden by the ring itself: picHints and nav.js calm both require no .act, and 📒 follows 👗 (see critic/g6_vanish.json). Avoiding them would move Daddy's ring off its usual spot while she carries a dish. Keep wish, req, stop, alert, arrow, pill, map, strip, weather, face and mood. The integration check becomes 'rings avoid wish and req'.
+- G18: compute 'target ring open' each frame as Clarity.G18.ring && !!document.querySelector('#fx .act'). The ring can close privately (anchor walked out, ring replaced, openPanel). Otherwise every other prop's glow stays at 0 until her next tap or a room change. Add a check: open Daddy's ring, make him walk to another room, and the kitchen's proximity glow returns.
+- G30: badge only the 2-choice stairs rings, which are never trays. Inside .acttray an .act is position:static, so a badge would anchor to the tray.
+
+## Open critic issues touching your items
+- [major] G6 (rings): ui.js placeActs local edit; architecture integration note 'rings avoid the kinds dress, book, give, call, wish, req': The edit measures hudRects(st, {fresh:true}) at ring-open time. At that moment it includes buttons that the opening ring itself hides: the .pichint give bubbles (nav.js picHints requires no .act), 📒/👗 (nav.js calm requires no .act, and 📒 follows 👗) and G26's .cm-call (hidden while an .act exists). Measured in critic/g6_vanish.json, in port, land, portSmall and landSmall: 1–3 'give' rects (e.g. over Daddy's head while she holds a dish) and 'book'/'dress' are present at open, and gone right after (hintsAfter 0, dress and book off). Rings would be pushed off their usual spot, e.g. Daddy's ring while she carries a dish, for no benefit: a main-floor habit change. → Use Clarity.hudRects(st, {fresh:true, except:['give','call','book','dress']}). Correct the integration note to 'wish, req'.
+- [minor] G18 (rings): ring-open state: ui.js also closes rings privately: a new ring replacing an old one (actions()), openPanel(), and update() when the anchor leaves the room. None of these fire the UI.closeActions hook. G18 would then keep 'ring open' and hold every other prop's glow at 0 until her next tap or a room change. → Derive 'ring open' live from '#fx .act' (addendum).
+
+## Cross-item conflicts involving your items
+- G24/G18: The draft swaps the mood faces' wobble for a yellow glow ring. The child lens keeps the existing per-face wobble and only stops the whole bar from moving. The glow is also G18's 'this is what you picked' cue. → The child lens wins: a look-only change, which avoids giving the warm glow two meanings. The functionality lens has no safety stake. The CSS is only #moodbar.pulse{animation:none!important}, plus the greeting-throttle hook.
+- G8: Which of the rocker and the toy shelf is painted on top. The child lens says the rocker is in front; the functionality lens says the shelf is (both are wall props, drawn in PROPS order, rocker first). → Both lenses state one principle: the prop she can see at that point answers. The worker checks the real paint order in the code and applies the matching rule. Never hand a visibly-on-top shelf pixel (a toy bin she may have learned) to the rocker. No bounding boxes anywhere.
+- G7/G19: G7's tray top moved by a 250 ms tick would slide choices under her finger when an alert arrives. G19 narrows the landscape picture, which turns the keyboard's 8 choices into a tray at 667x375. → The tray top is set once, when the list opens (functionality). rings merges before layout, and G19's 'keyboard 8 and TV 9 show every choice' check runs after both are merged.
+- G30/G6: The draft's badge has pointer-events:none. Both lenses measured that a tap on the arrow then falls through to the backdrop (the ring closes and no trip starts), or onto a mood face in landscape. In the draft, a badge can also sit over the mood column until G6 ships. → No pointer-events:none, and line-height:1, so the badge is part of its own button. G30 and G6 are in the same worker and ship together. No regress rename is expected; the badge is checked in the DOM.
+- G5/G6/G7/G17/G18/G23/G26/G31/G33/G37/G39/G20: Five game files are edited by two workers: ui.js (G5 vs G6/G7), nav.js (G17 vs G18), features.js (G23 vs G37/G39), fun.js (G33 vs G31) and family2.js (G26 vs G20). → Every edit is on different, non-adjacent lines. ui.js: G7 at :49, G6 at :72-73, G5 at :101. nav.js: G17 at :61-67, G18 at the glow IIFE :153-174. features.js: G39 at :395-397, G37 at :413, G23 at :598-599. fun.js: G33 at :38, G31 at :82-83. family2.js: G26 at :145, G20 at :171-179. Each worker locates its code by text, and merges are line-disjoint.
+- G11/G19/G35/G17/G26/G6: G19 narrows the landscape picture and moves ▶ to right:0. Deer and turkey tabs (clearZone/tabY), G35's signs and tabs, G17's and G26's bubbles, and G6's mood avoidance were all measured with today's overlay column. → Every placement reads live geometry: wildlife's clearZone, Clarity.hudRects and Clarity.nudgeX, with no fixed offsets. After merging: check at the backyard's right end, at land and landSmall, with the column open and folded.
+
+
+==================== G6 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD as drafted (both lenses keep). (1) Local edit in ui.js placeActs, right after the avoid list (line 72) /* G6 */: if (window.Clarity && Clarity.is('G6')) { acts.hud = acts.hud || Clarity.hudRects(st, { fresh: true }); for (const x of acts.hud) avoid.push(x); }. It is measured once per ring, because acts is new on every actions() call, so an open ring never jumps. (2) The core's hudRects already covers strip, pill, map, arrows, weather, alerts, shown face cards, ✋, 📒/👗, wish, request, .pichint, .cm-call, and the moods and 😊 (weight 6, widened 8 px, in landscape). Hidden and zero-size controls are skipped. (3) Candidates, clamps, the 40 px anti-jitter rule and the trees.js nudge are unchanged. (4) Child's weight check: if place.js shows a bigger overlap with the tapped thing (R, weight 3), push non-mood HUD entries with weight 2.5 instead of 4. DONE = the draft list and both lenses' EXTRA CHECKS: in place_land.json and place_port_merged.json, HUD overlap is about 0, distance grows by at most 40 px, and overlap with R or Marina does not grow; Daddy's 🤗 and 🧍 stay fully visible under the 💩 and 🧻 alerts; in landscape the dining table, TV, gym, Niko and Miles rings stay clear of .mood; prompts and alerts still win their own taps while a ring is open.
+Depends on: -
+Interactions: Ship with G30 (same worker). Rings now avoid G17's give bubbles (kind give), G26's .cm-call (kind call), G25's prompts, G16's dock buttons and the mood column. With G19 the column leaves the picture, so those entries stop mattering (integration).
+
+### DRAFT ITEM
+### G6 Choice rings never land on another button
+- problem: placeActs' avoid list (ui.js:72) holds only the tapped thing, Marina, the top 62 px and a bottom-left box, so rings land on other buttons.
+- Daddy's 🤗 and 🧍 hide under the 💩 and 🧻 alerts, and Nunu's 🧱 under 👶😭.
+- In landscape, 13 of 44 rings cover a mood face (🧗 on 🥰, Miles' ✋ on 😢), and the keyboard's songs land on ⬆️/⬇️.
+- In portrait, rings sit on the floor pill (10 times) and on the map (8 times).
+Two buttons then share one spot, and she presses the wrong one or cannot see one.
+- change: Rings treat every visible button as 'do not cover'. Each ring keeps its size and order and is still placed by the same rules, just clear of other buttons.
+- implementation: - Local edit in ui.js placeActs after line 72, marked /* G6 */. st (the stage rect) is already computed there. The code: if (window.Clarity && Clarity.on.G6) { acts.hud = acts.hud || Clarity.hudRects(st); for (const x of acts.hud) avoid.push(x); }
+- hudRects(st), in clarity.js, is read once per ring. It returns rects relative to #stage, with weight 4, for: '#alerts .alertb, #floorpill .fl:not(.off), #mapBtn, .navarrow:not(.off), #weatherBtn:not(.hidden), #bookBtn:not(.off), #dressBtn:not(.off), #stopBtn:not(.hidden), #wishBtn, #reqBtn, .facecard.show, .pichint, .cm-call'.
+- In landscape, while the mood column is drawn over the picture (G19 off), it also adds #moodbar .mood and #moodToggle, widened 8 px to the left, with weight 6.
+- Rects of zero size are skipped.
+- The candidates, the clamps and the 40 px anti-jitter rule are unchanged. The trees.js nudge stays.
+- must still work: Every ring shows the same choices in the same order and size; Rings still avoid the tapped thing and Marina; Alerts, arrows, the pill, the map and the moods stay tappable while a ring is open; Ring positions stay stable while people move (anti-jitter)
+- benefit: What she opened is fully visible, and the buttons around it stay pressable. In landscape this stops the accidental mood scenes started by tapping a choice drawn over a face.
+- risk: Low. Some rings sit a little further from their thing. Re-run the menus-main placement scripts (place_land.json, place_port_merged.json): overlaps with the HUD should drop to near 0, and the average distance to the thing should not grow by more than about 40 px. A button that appears after the ring opened is not avoided, on purpose, so an open ring never jumps under her finger.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G6 [bugs] Choice rings never land on another button => KEEP (child:keep, functionality:keep)
+
+**child: keep** — A choice drawn under an alert, or a mood face half-covered by a ring, is a real hidden choice or mis-tap for a non-reader. Rings have no fixed spot she has learned, so the habit cost is near zero. One correction to the stated benefit: .act (z7, #fx has no z-index) paints above #moodbar (z6), so a tap on a ring button over a face hits the ring button. The accidental mood scenes come from taps on the uncovered part of a half-covered face. The fix is still right. One weighting concern: HUD rects get weight 4 but the tapped thing (R) keeps weight 3, so for an equal overlap the scorer would now rather cover the thing she tapped than a HUD button. That would weaken the link between her tap and its choices, so it needs a check.
+
+- EXTRA CHECKS: Re-run place.js (place_land.json, place_port_merged.json): besides HUD overlap dropping to near 0 and distance growing by 40 px or less, mean and maximum overlap with the tapped thing's own box (R) must not grow. If it does, lower the HUD weight to 2.5, below R's 3. | Portrait with 💩 and 🧻 alerts up: Daddy's ring shows 🤗 and 🧍 fully, with elementFromPoint at each centre returning the .act. | Landscape: the dining table, TV, gym, Niko and Miles rings no longer overlap any .mood.
+
+**functionality: keep** — I could not refute it. The change only adds weighted rects to placeActs' avoid list. The candidates, clamps, 40 px anti-jitter rule, ring size, order and handlers are unchanged, and the trees.js nudge still runs after. hudRects is cached per ring (acts is reassigned on every actions() call), so an open ring never jumps because a button appears. Rects outside #stage (the dock buttons fixed below the picture in tall portrait) overlap nothing and are harmless. While a ring is open, .actback (z6) already covers the z5 HUD, so avoiding the HUD changes only where the ring is drawn, not what she can press.
+
+- EXTRA CHECKS: Re-run place_land.json and place_port_merged.json: HUD overlaps near 0, average distance to the tapped thing up by no more than about 40 px, and no ring clamped so that it covers the tapped thing or Marina more than today. | Check that the wish and request buttons and the alerts still win their own taps while a ring is open.
+
+
+==================== G7 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with the functionality amendment. (1) CSS as drafted: .acttray{flex-wrap:wrap;justify-content:center;overflow:visible;row-gap:8px} and @media (max-width:380px){.acttray .act{flex-basis:60px;width:60px;height:60px;line-height:60px;font-size:30px}}. (2) ui.js:49 local edit /* G7 */: when Clarity.is('G7') and innerWidth > innerHeight, tray = Math.ceil(list.length/2)*80 > stW - 8; otherwise today's test. (3) The tray's top is set ONCE, in a UI.actions after-hook (order 10; do nothing if call.skip). If #alerts has children at that moment, tray.style.top = alerts.offsetTop + alerts.offsetHeight + 8 px; otherwise keep the default 64 px. (4) It is never moved while the list is open: there is no 250 ms re-positioning, because an alert arriving mid-pick must not slide the choices under her finger. DONE = the draft list and both lenses' EXTRA CHECKS: with a list open, set G.poop and the tray's rect must not change until the list closes; 375 px fits 5 per row and no third row reaches the stage bottom; at landSmall and 844x340 the TV, fireplace, gym and tree-house rings fit and every item is one tap; every list keeps the same items and order as after3.json.
+Depends on: -
+Interactions: Same worker as G6. G19 (layout) narrows the landscape picture, which turns the keyboard's 8 choices into a tray at 667x375. Merge rings before layout, then run G19's check (keyboard 8 and TV 9 show every choice without scrolling) with both in.
+
+### DRAFT ITEM
+### G7 Long choice lists show every choice: the strip wraps into rows below the alerts, and in landscape a two-row ring is used when it fits
+- problem: When count×80 is more than the stage width − 8, UI.actions (ui.js:49) builds a one-row .acttray with a hidden scrollbar (style.css:216-218). That means 5 or more choices in portrait, 9 or more in landSmall and 11 or more in land. Only 5 choices show (4 on a 375 px phone), and these stay hidden:
+- the TV's 🚽📢🫧👸;
+- the keyboard's 🌙🚀🌸;
+- the gym's 🧘🌀⭐⚪;
+- the table's ⬇️ 'put the dish here';
+- Nunu's and Jeff's 😜 while she holds a dish;
+- 4 of the 9 tree-house toys.
+The alert circles (top:64, z7) are drawn over tray choices. On landSmall the TV and gym lists become a strip that hides the whole TV, although a two-row ring would fit.
+- change: Same choices, same order, same buttons.
+- The strip wraps onto a second row (rarely a third), so all 5–10 choices are on screen. When alerts are showing, it starts just below them.
+- In landscape, a list that fits as the two-row ring placeActs already draws (ui.js:70) is shown as that ring instead of a strip.
+- In portrait, the strip-or-ring decision is unchanged.
+- implementation: - CSS block G7:
+  - .acttray{flex-wrap:wrap;justify-content:center;overflow:visible;row-gap:8px}
+  - @media (max-width:380px){.acttray .act{flex-basis:60px;width:60px;height:60px;line-height:60px;font-size:30px}}, so 5 fit per row.
+- JS, in the overlay's UI.actions wrapper and the 250 ms tick: if a .acttray exists and #alerts has children, set tray.style.top = alerts.offsetTop + alerts.offsetHeight + 8 px; otherwise clear it.
+- Local edit ui.js:49, marked /* G7 */: when window.Clarity && Clarity.on.G7 && innerWidth > innerHeight, tray = Math.ceil(list.length/2)*80 > stW - 8. Otherwise the test is today's.
+- must still work: Every choice in every list, in the same order and doing the same thing (diff against after3.json); The dim backdrop still closes the list; Alerts stay tappable while a list is open; Rings of 4 or fewer are unchanged; calm.js's scroll guard is harmless (nothing scrolls sideways any more); Each item of a landscape 7–10 item ring is one tap
+- benefit: Hidden choices become real for a non-reader: every cartoon including 👸, all the gym moves and songs, 'put the dish here', and the grandparents' joke.
+- risk: Low. In portrait, two rows cover about 150 px at the top of the picture while the list is open (the TV is under it while she picks a show, as today). Check that 375 px gives 5 per row, and that no third row reaches the bottom of the stage.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G7 [bugs] Long choice lists show every choice: the strip wraps into rows below the alerts, and in landscape a two-row ring is used when it fits => AMEND (child:keep, functionality:amend)
+
+**child: keep** — Verified (verify/bugs-child/v4.js; shots/g7_port_today.png vs g7_port_fix.png). Today, on the living-room TV in portrait, 🚽📢🫧👸 sit at x 384–672, off a 390 px screen, with a hidden scrollbar a non-reader will not discover. With the wrap CSS, all 9 show in two rows. Row 1 keeps the same five shows at exactly the same x on 390 px, so the habit cost is nil there. On 375 px the CSS makes the buttons 60 px and still fits 5 per row. The two-row block ends at y 294 of a 445 px stage. The landscape ring-instead-of-strip change only affects landSmall (9 items) and lists of 11 or more on land, where a ring is already how land shows 9 shows.
+
+- EXTRA CHECKS: landSmall: the 9-show TV ring and the 9-item gym ring fit inside the stage, leave part of the TV visible, and (with G6) do not sit on the mood column. | Portrait with alerts showing: the tray starts 8 px below the alert row and every alert stays tappable. With no alerts, the tray is at its old top. | Keyboard (8) and the tree-house toys (9): every item is visible and fires the same handler as in after3.json.
+
+**functionality: amend** — The wrap itself is safe. With the drafted CSS, a 9-choice TV list and the gym list show every choice, tappable at its centre and inside the stage, on port (tray 64-220, or 138-294 below an alert; stage bottom 445) and on portSmall (138-282; stage bottom 428). The calm.js scroll guard does not mind, because nothing scrolls. The flaw is moving the tray from the 250 ms tick. Alerts are not suppressed while a list is open (nav.js quiet() ignores .act), so an alert arriving mid-pick would slide every choice down about 74 px. Choices fire on pointerup (ui.js tap()), so a finger already down would release on a different choice or on the backdrop. That is a changed outcome. G6 already refuses to move open rings for the same reason. My run also showed the opposite effect: a tray placed below an alert stays there after the alert goes (harmless).
+
+- AMENDED CHANGE (functionality): Same choices, same order, same buttons. The strip wraps onto a second row (rarely a third), so all 5-10 choices are on screen. In landscape, a list that fits as the two-row ring placeActs already draws is shown as that ring. The portrait strip-or-ring decision is unchanged. The strip's top is set once, in the overlay's UI.actions wrapper, when the list opens: just below #alerts if alerts are showing at that moment, otherwise the default 64 px. It is never moved while the list is open (no 250 ms re-positioning). CSS as drafted (.acttray wrap rules, 60 px buttons at max-width 380 px). Local edit ui.js:49 as drafted.
+
+- EXTRA CHECKS: With a list open, set G.poop = true. The tray's rect must not change until the list closes. | At 375 px: 5 choices per row, and no third row reaches the stage bottom. In landSmall and 844x340, the 9-10 item TV, fireplace, gym and tree-house rings fit inside the stage and every item is one tap. | Diff every list against after3.json: same items, same order.
+
+
+==================== G8 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with both lenses' pixel rule, which replaces the draft's seat line and bounding box. (1) Clarity.hook('hitTest','G8',{order:10, after(c){...}}). The core's wrapper is outermost over the minka, pics, play, trees and wildlife wrappers. Act only when c.result && c.result.kind === 'prop'. (2) Pixel lookup: spriteCanvas(k) alpha at px = floor((wx - p.x)/sc + w/2), py = floor((wy - p.y)/sc + h), the same mapping as visBox. See-through means alpha ≤ 20 at every pixel within 2 world units; opaque means alpha > 20 within 1 unit. Cache alpha arrays per sprite key. (3) Kitchen: a stool won, the stool is see-through at the point, and the point lies inside the island's painted rect (|wx - isl.x| < isl.w/2 and isl.y - isl.h ≤ wy ≤ isl.y). Then return { kind:'prop', p: island }. (4) Playroom: the toyshelf won and the rocker sprite is opaque at the point. Return the rocker only where the rocker is the prop painted on top there. Check the real paint order in the code: the functionality lens says both are wall props drawn in PROPS order, rocker first, so the shelf is on top and must also be see-through there; the child lens measured the rocker in front. Whatever the code shows, never hand a visibly-on-top shelf pixel to the rocker. (5) Everything else is returned unchanged; people, Marina, tidy-mode mess, pictures and toys still win first. (6) Plan wording: today the island answers only in a ~4-unit band at its top and the rocker in a ~4-unit strip, i.e. almost never. DONE = both lenses' grid tests: every opaque stool pixel gives 🧗🪑; every opaque shelf pixel gives 🧸; the rocker gives 🪑 on its visible pixels; the island gives 🧺🗄️🧗 between the stools, plus ⬇️ while holding a dish. Also: ⬇️ puts the dish down (game.js:506); 🧗 climbs to climb:120; treasures are found; dragging toys and tidy are unchanged.
+Depends on: -
+Interactions: G18 (same worker) never calls hitTest. G35 (wayfinding) calls hitTest to check sign and tab spots and sees G8's answers; doors and stairs are unaffected. Hidden treasures placed on the rocker, the shelf or a stool must still be findable.
+
+### DRAFT ITEM
+### G8 The kitchen island and the playroom rocker can be tapped again
+- problem: Hit-testing picks front props first. The three bar stools (z:1, world.js:56-58) cover every point of the kitchen island (world.js:55). A tap on the island always gives a stool's 🧗🪑, so the island's own 🧺 🗄️ 🧗 and the ⬇️ 'put the dish here' can never be reached. The playroom rocker's box lies inside the toy shelf's (world.js:66-67), so a tap on the rocker always gives the shelf's 🧸.
+- change: - A tap on the island's counter, above the stools' seats, picks the island.
+- A tap inside the rocker's own picture picks the rocker.
+- Taps on the stools' seats and legs, and on the rest of the shelf, behave as now.
+- implementation: Block G8 wraps the global hitTest as the outermost wrapper (it is also reassigned at minka.js:376, trees.js:319 and wildlife.js:992). Let h = _ht(wx, wy); return h unless it is a prop.
+- Kitchen: if G.room === 'kitchen' && h.p.a === 'stool':
+  - isl = PROPS.kitchen.find(p => p.id === 'island');
+  - seat = h.p.y + visBox(h.p.k)[1] * (h.p.scale || 1) + 4;
+  - if (isl && wy < seat && Math.abs(wx - isl.x) < isl.w / 2), return the island. The island is painted ('p:island'), so its own w is used, not visBox, which returns [0,0,0,0] for it.
+- Playroom: if h.p.id === 'toyshelf' and the point lies inside the rocker's visBox × scale, return the rocker.
+- Everything else is returned unchanged.
+- must still work: Stools still give their choices on their seats and legs; The toy shelf still gives 🧸 outside the rocker; People and Marina standing in front still win the tap; Tidy-mode mess still hits first; The island's choices are exactly propActions(island): 🧺 🗄️ 🧗, plus ⬇️ while holding a dish; Dragging toys and tidying are unchanged
+- benefit: Two main-floor things that 'don't work' start working: she can climb the island or put her dish on it, and sit in the rocker.
+- risk: Low. Verify with menus-main's dbg_island grid that the island's coverage is above 0, that each stool keeps most of its own area, and that both the rocker's 🪑 and the shelf's 🧸 can be reached.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G8 [bugs] The kitchen island and the playroom rocker can be tapped again => AMEND (child:amend, functionality:amend)
+
+**child: amend** — Right in spirit, but the detail does not do what it says. I measured the geometry (verify/bugs-child/v4.js and v5.js; shots/g8_island_port.png). The kitchen stools are ladder-backs: their sprite top (y 124) is the top of the backrest, and the woven seat is about 20 units lower (≈ y 144). The plan's 'seat = top + 4' (y 128) therefore only hands the island the top 4 units of the backrests. The island already answers in its own top band (y 120–124; 59 of 819 grid points in land), so G8 grows its tappable strip from about 10 px to about 20 px tall. That is still far thinner than her finger, and the island's cabinet face, visible through the stools' gaps, still answers as a stool. Playroom: the rocker's box covers 850 of the toy shelf's 1548 hit points (55%). A box rule would hand over half the shelf, including shelf pixels seen through the rocker's gaps, where she may have learned 🧸. A drawn-pixel test fixes both and keeps 'what you see is what you tap'.
+
+- AMENDED CHANGE (child): In the outermost hitTest wrapper (same place as the plan), decide by the sprite's drawn pixels instead of a seat line. Pixel lookup: spriteCanvas(k) alpha at px = floor((wx − p.x)/sc + w/2), py = floor((wy − p.y)/sc + h), which is the same mapping visBox uses (engine.js:95-100). Count a point as solid if any pixel within 2 world units has alpha > 20, so thin rungs stay easy to hit. Cache the alpha arrays per key. Kitchen: if h is a stool and the point is NOT solid on that stool, and it lies inside the island's painted box (|wx − isl.x| < isl.w/2 and isl.y − isl.h ≤ wy ≤ isl.y), return the island. Solid stool pixels (backrest rungs, woven seat, legs) stay the stool. Playroom: if h is the toyshelf and the point IS solid on the rocker sprite (the rocker is drawn in front: y 145 > 143), return the rocker. Shelf pixels seen through the rocker stay the shelf. Everything else is returned unchanged.
+
+- EXTRA CHECKS: Kitchen grid over the island's painted box (2-unit grid, port and land, family moved away): the island's share rises well above today's ~7%, the woven seat and backrest rungs of every stool still return that stool, and a tap on a stool's seat still offers 🧗🪑. | Playroom: the rocker answers 🪑 on its drawn parts. The toy shelf keeps at least its right half plus every see-through gap and still offers 🧸 there. | Holding a dish: a tap on the island face offers ⬇️ and puts the dish on the island (game.js:506). | Tidy mode and people standing in front still win, as before.
+
+**functionality: amend** — I simulated both rules on a world grid. Playroom: the drafted bounding-box rule moves 238 grid points from the shelf to the rocker, and 126 of them are on opaque, front-drawn shelf pixels. Taps on visible toy bins would open the rocker's 🪑 instead of the shelf's 🧸: a changed outcome on a main-floor toy box. The alpha rule moves only 58 points, all where the rocker is really visible. Kitchen: the drafted seat-band rule (wy < stool top + 4) gives the island the 4-unit pad band plus the top 4 units of each stool's visible seat, about 108 points. The alpha rule gives the island 155 points in the gaps between the stools under the counter, and every opaque stool pixel stays a stool.
+
+- AMENDED CHANGE (functionality): Block G8 wraps the global hitTest as the outermost wrapper. Let h = _ht(wx, wy); return h unless h.kind === 'prop'. Rule: when the prop that won the tap is see-through under her finger, the prop she can actually see there answers. 'See-through' means the winning prop's sprite alpha is 20 or less at that world point, testing a 2-unit neighbourhood so legs and edges stay generous. Kitchen: h.p.a === 'stool', the stool is see-through there, and the point is inside the island's painted rect (x ± w/2, y − h .. y): return the island. Playroom: h.p.id === 'toyshelf', the shelf is see-through there, and the rocker sprite is opaque there (alpha > 20, 1-unit neighbourhood): return the rocker. Do NOT use the rocker's bounding box. The toy shelf is drawn in front of the rocker: both are wall props (isWallProp, game.js:168), drawn in array order, rocker first. Cache each sprite's alpha data (visBox already reads it). Everything else is returned unchanged: stools still answer on their own seats and legs, the shelf on every visible pixel, people, Marina and tidy-mode mess still win first. Wording fix: today the island answers only in a ~4-unit band at its top edge, and the rocker in a ~4-unit strip at its left edge ('almost never', not 'never').
+
+- EXTRA CHECKS: Grid test (as in verify/bugs-functionality/g8c.js and g8d.js, with everyone moved out of the room): every opaque stool pixel still answers 🧗🪑; every opaque toy-shelf pixel still answers 🧸; the rocker answers 🪑 on its visible pixels; the island answers 🧺🗄️🧗 between the stools, plus ⬇️ while holding a dish. | The island's ⬇️ while holding a dish puts the dish down (game.js:506), and its 🧗 climbs to climb:120. | Hidden treasure (SECRETS) placed on the rocker, the shelf or a stool can still be found. | Dragging toys into the shelf and the tidy confetti are unchanged (they do not use hitTest).
+
+
+==================== G11 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD as drafted (both lenses keep). (1) wildlife.js tab() local edit /* G11 */, guarded by Clarity.is('G11'): x = side < 0 ? Math.max(E.camX, 0) + 14 : Math.min(clearZone()[1] - 6, ROOMS[ROOM].w - 14); return { side, hx, x, y: tabY(side, x) }. This mirrors ttab(). The drawing (line 966) and the tap test read t.x and t.y. (2) Child's cache check: build tabY's cache while a scene has the arrows .off, end the scene, and check that the deer tab's centre is not under .navarrow. If it is, extend the same /* G11 */ edit so that tabY's free() treats .navarrow rects as blocked even when .off, or skips caching while the arrows are .off. DONE = both lenses' EXTRA CHECKS: with the herd off-screen on each side, in port, land, landSmall and 844x340, elementFromPoint at the tab centre is #cv (not ◀/▶, a mood, 📒/👗 or a face card); a tap walks toward the herd and sets V.invited; the turkey tab is unchanged.
+Depends on: -
+Interactions: Integration with G19 (layout): clearZone and tabY at the backyard's right end with the narrower picture. G35's edge tabs use the same placement idea but appear only in the bathroom, the spa and the tree houses, never together with the deer tab.
+
+### DRAFT ITEM
+### G11 The deer's 'they went this way' tab is placed like the turkey tab, clear of the arrows and faces
+- problem: The deer edge tab (wildlife.js:974-977) uses a fixed y of 86, and x = camX+14 or camX+viewW−14. In portrait it is drawn exactly under the left ◀ arrow, so a tap there takes her out of the backyard to the yard. In landscape the right-hand tab is under the mood column, so a tap starts a mood scene. The turkey tab, built the same way, already finds a free height with clearZone()/tabY() (wildlife.js:652-666).
+- change: The deer tab uses the turkey tab's placement, so it is visible and tappable, and a tap walks her toward the deer as intended.
+- implementation: Local edit in wildlife.js tab(), marked /* G11 */:
+- const x = side < 0 ? Math.max(E.camX, 0) + 14 : Math.min(clearZone()[1] - 6, ROOMS[ROOM].w - 14);
+- return { side, hx, x, y: tabY(side, x) }.
+This mirrors ttab() at wildlife.js:652-655. Drawing (line 966) and the tap test (line 1006) already read t.x and t.y.
+- must still work: Deer visits, the 🍎 wish over a deer and tapping a deer are unchanged; The tab still appears only when the herd is off-screen, and still walks her toward them; The turkey tab is unchanged
+- benefit: The backyard's best moment, the deer, can be found when they wander off, and the tab stops being a trap door back to the yard.
+- risk: Very low. Confirm that clearZone and tabY are in scope in tab() (same file and closure as ttab).
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G11 [bugs] The deer's 'they went this way' tab is placed like the turkey tab, clear of the arrows and faces => KEEP (child:keep, functionality:keep)
+
+**child: keep** — Code-checked: tab() (wildlife.js:974-977) uses a fixed y of 86 and the right x = camX+viewW−14, while ttab() and tabY() are in the same IIFE (wildlife.js:391, 652-666), so the one-line swap is in scope. It is in a new area, so there is no habit cost, and it removes a trap door (a tap on the deer tab changes room in portrait) and a hidden tab under the landscape mood column. One inherited weakness to test: tabY caches its free height per screen shape using elementFromPoint, and .navarrow.off has pointer-events:none (nav.js:129). If the cache is first built while the arrows are hidden (during any G.busy scene), it can pick y 86 under the arrow for the rest of the session, and the deer tab would now share that.
+
+- EXTRA CHECKS: Portrait and land: start a scene (G.busy) in the backyard, trigger Wildlife.visit() so the herd leaves the view while the arrows are off, end the scene, and check that the deer tab's centre is not under .navarrow. If it is, make tabY's free() test also treat .navarrow rects as blocked when they are .off, or skip caching while the arrows are .off. | The deer tab still walks her toward the herd (wildlife.js:1009-1010), and the turkey tab's position is unchanged.
+
+**functionality: keep** — I could not refute it. tab(), ttab(), clearZone() and tabY() live in the same IIFE (wildlife.js:12-1042), and both the drawing (line 966) and the tap test in the onTap wrapper read t.x and t.y, so they move together. tabY's free() test is the same one the turkey tab already uses. The two tabs share the TABY cache but are never shown together (ttab needs !V). The walk-toward-the-herd action is unchanged.
+
+- EXTRA CHECKS: Force a deer visit with the herd off-screen on each side, in port, land, landSmall and 844x340. elementFromPoint at the tab centre must be #cv (not ◀/▶, a mood face, 📒/👗 or a face card), and a tap must walk Marina toward the deer and set V.invited. | Turkey tab placement unchanged.
+
+
+==================== G18 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with the child's three changes and the functionality hazard rule.
+(1) Target. Clarity.hook('interact','G18',{order:10,before}). For a prop or person hit (not Marina, the fort, mess, a picture or a toy) while !G.busy:
+- set Clarity.G18 = { target, t: E.t, ring: false };
+- emit('sparkle', x, y - 24, 3) once.
+(2) Ring open. Clarity.hook('UI.actions','G18',{order:30,after}): when !call.skip and the anchor is the target (or its prop anchor), mark the ring open.
+(3) Clearing the target:
+- on Clarity.hook('UI.closeActions','G18',{order:10,after});
+- on her next stage tap: Clarity.hook('onTap','G18',{order:5,before}) clears it, and interact sets the new one within the same call;
+- on Clarity.listen('room','G18');
+- as soon as G.busy || G.sceneOn;
+- instead of the draft's 5 s timeout: when she has arrived (not moving) and no ring has opened within 0.6 s (walk-only props, doors).
+(4) Glow, local edit in the nav.js glow IIFE (about lines 154-174) /* G18 */:
+- the target is lit at full strength;
+- while the target's ring is open, every other prop and person eases to 0;
+- with no ring open, the proximity glow is today's;
+- nothing is lit during scenes.
+(5) Stored on Clarity.G18, never on G.
+DONE = the draft list and both lenses' EXTRA CHECKS:
+- tapping the stove while standing by the sink: only the stove glows during the walk and while its ring is open, and the others' glow returns after it closes;
+- the towel rack, the lumber pile and a door clear within 0.6 s of arrival or on the room change;
+- tap A, then B mid-walk: A clears and B lights;
+- walk timing unchanged;
+- the five treasures are found at the same moments;
+- no glow during scenes, the bottle, the nappy or dragging Marina;
+- a person who walks away keeps the glow.
+Depends on: -
+Interactions: Same worker as G8. Never call hitTest, propActions or entActions: fun.js's propActions wrapper marks treasures found. Registers onTap before at order 5 (clears first, never skips), interact before, UI.actions after at order 30, UI.closeActions after at order 10, and the room event. The nav.js glow lines are this worker's; nav.js:61-67 belong to G17 (bubbles).
+
+### DRAFT ITEM
+### G18 The thing she tapped lights up at once and stays lit until its choices close
+- problem: 16 of 30 taps on things make Marina walk first. The choices appear after a median of 0.95 s (up to 3 s), and nothing marks the target meanwhile. She taps again, and the backdrop eats that tap just as the ring appears. A third tap hits Marina, now standing in front of the stove, and offers 🤸💃.
+- change: Keep the walk and its timing. From the tap until the choices close, the tapped thing glows at full strength, with the same warm glow she sees when she stands next to things. One sparkle appears as she sets off. Nothing is lit during scenes.
+- implementation: Block G18.
+- Wrap the global interact(hit, wx, wy) as the outermost wrapper. For a prop, person or fort hit other than Marina, while !G.busy: set Clarity.target = the hit's object and Clarity.targetT = E.t, and emit('sparkle', x, y−24, 3) once.
+- Clear the target on UI.closeActions (wrapper), on her next tap elsewhere, on a room change, after 5 s without a ring, and as soon as G.busy || G.sceneOn becomes true (nav.js's near() is false then).
+- Local edit in the nav.js glow code (nav.js:152-176), marked /* G18 */: treat Clarity.target like a nearby thing at full strength.
+- The target is stored on Clarity, never on G, which is saved state.
+- No touch-down ring, no trail of dots.
+- must still work: Walking, approach distances and arrival timing; Doors are still used on arrival; The choices and their order; The proximity glow when she stands next to things; Nothing glows during scenes
+- benefit: She sees that the game understood her tap, so she waits instead of tapping again, and the link between 'I tapped the oven' and the oven's choices stays visible.
+- risk: Low. A little light, only after her own taps.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G18 [hud] The thing she tapped lights up at once and stays lit until its choices close => AMEND (child:amend, functionality:keep)
+
+**child: amend** — Weakly supported, but there is no habit cost, so keep it, trimmed to where it actually helps.
+
+The tap is already acknowledged:
+- the tapped prop squishes with a blip, or the person squishes (features.js:557-559);
+- Marina starts walking within 50-100 ms;
+- a sparkle fires when the ring opens (features.js:436).
+The 'backdrop eats the next tap' part of the evidence was mostly the leftover-.actback bug, now fixed (ALREADY_FIXED 1). The remaining gain is a marker on the target during the walk (median 0.95 s).
+
+As drafted, three details undercut it:
+- When the ring opens, every usable thing within about 30-40 units of her already glows at full proximity strength (nav.js:154-161). In the kitchen that means the stove, oven, sink and fridge together, so the 'this is what you picked' glow does not single out the target.
+- Walk-only props (towel rack, lumber pile, doors) would glow for up to 5 s for nothing.
+- The fort has no glow drawing.
+
+- AMENDED CHANGE (child): As drafted: wrap interact as the outermost wrapper; store the target on Clarity, not G; emit one 3-particle sparkle as she sets off; the nav.js:152-176 glow treats Clarity.target as 'near' at full strength; nothing is lit during scenes; clear the target on closeActions, on a tap elsewhere, on a room change, and when G.busy or G.sceneOn turns true.
+
+Changes:
+(1) Props and people only. A fort hit sets no target.
+(2) Replace the 5 s timeout: clear the target when she arrives and no ring has opened within 0.6 s.
+(3) While the target's ring is open, every other prop and person keeps a proximity glow of 0, so the thing she tapped is the only lit thing beside its choices. The proximity glow is unchanged whenever no ring is open.
+
+- EXTRA CHECKS: Kitchen, standing by the sink, tap the stove. During the walk and while the stove's ring is open, only the stove glows. After the ring closes, the sink and fridge proximity glow returns. | Tap the pool towel rack, the backyard lumber pile and a door: the glow clears within 0.6 s of arrival or on the room change. | Tap A, then B during the walk: A's glow clears and B lights. Walk timing and approach distances are unchanged (compare arrival times with first-minutes logs).
+
+**functionality: keep** — interact is only called from game.js:359 (onTap, which already returns on G.busy). An outermost wrapper that records the hit and calls through with the same arguments and return value changes nothing she can do. ui.js actions() calls the inner closeActions, not the UI.closeActions property (ui.js:43), so the target survives until a choice or the scrim closes the ring, which do go through UI.closeActions (ui.js:51, features.js:439). The glow edit only adds to near() in a draw wrapper. Nothing is stored on G; .glow is already written on props and entities today. Built things (builder.js:383, 1029), the Lego shelf (legoshelf.js:80) and Minka (minka.js:186) have their own glow code, so they won't light up. That is an inconsistency, not a regression. One hazard to keep out of the build: the wrapper must not call propActions or entActions to decide whether something has choices. fun.js's propActions wrapper (fun.js:108-112) marks a hidden treasure found as a side effect, and my own probe that called propActions in a loop set off a treasure find on screen (verify/hud-functionality/g19tray_landSmall_g19_keys.png).
+
+- EXTRA CHECKS: Confirm the wrapper never calls propActions, entActions or hitTest: play the five hidden treasures and check each is still found on arrival, with the 💎 at the same moment as today. | Wide rooms (backyard 1040, living): a long walk to a far prop takes more than 5 s. Check that the glow does not drop out mid-walk, or count the 5 s from arrival instead. | Doors and the stairs: the glow clears on the room change. A prop with no choices does not stay lit for 5 s looking active (or accept that and note it). | No glow during scenes, the bottle, the nappy change or dragging Marina. A tapped person who walks away keeps the glow on them, not on an empty spot.
+
+
+==================== G30 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with the functionality CSS. Both lenses found the same tap trap: drop pointer-events:none. (1) Clarity.hook('UI.actions','G30',{order:20, after(c){ if (c.skip) return; const p = c.args[0] && c.args[0].prop; if (!p || (p.a !== 'stairs' && p.a !== 'ustairs')) return; ... }}). (2) For each '#fx .act' that has no .cm-badge and whose textContent is exactly '🪜' or '💺' (checked before appending), append <i class='cm-badge'>⬆️</i> at the foyer (a 'stairs') or ⬇️ on the landing (a 'ustairs'). (3) CSS: .act .cm-badge{position:absolute;right:-4px;bottom:-4px;font-size:22px;line-height:1;font-style:normal}. line-height:1 is required. There is NO pointer-events:none: a tap on the arrow must reach its own button. (4) a.ico never changes; no sprites; no other ring gets a badge (bunk, tree-house ladder, hatch, built things). (5) regress.js takes ico from the list, so expect NO rename. Audit scripts that match '🪜'/'💺' by exact textContent must switch to startsWith. DONE = both lenses' EXTRA CHECKS: at the foyer and the uphall, in port, portSmall, land and landSmall plus 47 px insets, the badge centre returns its own .act and runs the same trip and landing spot as the button centre; a point 10 px outside the circle still just closes the ring; the badge rect is 22-28 px tall and at most 4 px past its .act; badges never stack when the ring reopens; ring contents are unchanged while riding, holding a dish, in tidy mode and with a treasure; with the switch off, the rings are identical to today.
+Depends on: G6
+Interactions: Ship with G6 (same worker), so a ring and its badge never sit on a mood face, the pill or the map. The badge arrows match G35's signs, G36's pill and G39's arrival arrow (wayfinding); this is glyph consistency only, with no code dependency.
+
+### DRAFT ITEM
+### G30 The stairs choices say up or down
+- problem: The foyer stairs and the landing's stair top offer the same two pictures, 🪜 (climb) and 💺 (Mommy's stairlift) (upstairs.js:275-276), whether they go up or down. 💺 is also the landing's room icon on the strip and on the arrows.
+- change: On the stairs rings, both choices carry a small ⬆️ (foyer) or ⬇️ (landing) corner badge, the same arrow as the pill and the stair signs (G35). Glyphs, order and actions are unchanged.
+- implementation: In the overlay's UI.actions wrapper, after the original runs: if anchor.prop && ['stairs','ustairs'].includes(anchor.prop.a), append <i class=cm-badge>⬆️</i> or ⬇️ to the .act nodes whose text is 🪜 or 💺. CSS: .act .cm-badge{position:absolute;right:-6px;bottom:-6px;font-size:20px;font-style:normal;pointer-events:none}. No sprite images are used (ui.js:52's a.img path renders '' for a missing sprite).
+- must still work: Stairs and stairlift trips and their landing spots; The ring order; Choices are still identified by their handler in regress.js (the badge is a child element)
+- benefit: Before she taps, she can see whether the stairs and the chair go up or down.
+- risk: Very low. These are new-area choices.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G30 [menus-icons] The stairs choices say up or down => AMEND (child:amend, functionality:amend)
+
+**child: amend** — Right in spirit. No glyph, order or position changes, and it helps most on the landing, where the stair top looks like a balcony rail and a ⬇️ tells her it goes down. But the detail as written breaks the tap. With the planned CSS (badge at right:-6px, bottom:-6px, pointer-events:none), the badge sits in the corner of a round 72 px button, which is outside the circle's hit area. I tested it with the harness on port 8828 (script: /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/verify/menus-icons-child/g30.js). In all 12 cases (port, portSmall and land; foyer and landing; 🪜 and 💺), elementFromPoint at the badge centre returned the dim .actback backdrop. In landscape at the foyer, the 💺 badge sat on a mood face instead. A real touch tap on the arrow, the very part a child would press to say 'up', closed the ring and no trip started. With pointer-events left on, the badge is a child of the button, so the tap bubbles to the button's pointerup. The same tap then started the climb or walk every time (G.busy true, Marina moving). Screenshot: /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/verify/menus-icons-child/g30_port_foyer.png. The badge is legible and matches the pill's badge style. One more correction: the plan's TEST section lists G30 as an expected regress.js rename. regress.js reads a.ico from the list, not the DOM, so G30 makes no regress diff at all, and the badge must be checked in the DOM.
+
+- AMENDED CHANGE (child): On the stairs rings (anchor.prop.a 'stairs' at the foyer, 'ustairs' on the landing), add a small ⬆️ (foyer) or ⬇️ (landing) corner badge to the 🪜 and 💺 choices, the same arrow as the pill. Glyphs, order, size and actions are unchanged. Implementation: in the overlay's single outermost UI.actions wrapper, after the original and the builder.js:402 and features.js:434 wrappers have run, and only while Clarity.on.G30: for each '#fx .act' whose own first text node is exactly 🪜 or 💺, append <i class=cm-badge>⬆️ or ⬇️</i>. CSS: .act .cm-badge{position:absolute;right:-6px;bottom:-6px;font-size:20px;font-style:normal;line-height:1}. Do NOT set pointer-events:none. The badge is inside the button, so a tap on it is a tap on that choice; with pointer-events:none it falls through to .actback (the ring closes, no trip) or onto a mood face in landscape. Don't badge any other ring: the bunk, tree-house ladder and hatch 🪜, and Jeff's built things are excluded by the anchor.prop.a test. No sprites. Remove 'G30' from the expected regress.js renames: regress.js identifies choices by handler and takes ico from the list, so expect no diff and check the badge in the DOM.
+
+- EXTRA CHECKS: At the foyer stairs and the landing stair top, in port, portSmall, land and landSmall (plus 47 px insets in landscape): for every badge, document.elementFromPoint(badge centre).closest('.act') is its own choice, never .actback, .mood or another button | A real touchscreen tap at each badge centre runs the same trip as a tap at the button centre: climbUp/rideUp at the foyer, walkDown/rideDown on the landing, with the same landing spot (compare G.room, marina.x and G.busy after 400 ms) | Opening the stairs ring twice in a row never stacks two badges; the bunk, tree-house ladder, hatch and built-thing rings get no badge | No badge is clipped by the stage edge at 375 px and in landSmall (the ring clamp leaves about 2 px, so check the 💺 badge when the ring is pushed to the right edge) | With Clarity.on.G30 false, the stairs rings render exactly as today
+
+**functionality: amend** — Adding an arrow is a picture-only change, and the ring is always exactly [🪜 climbUp/walkDown, 💺 rideUp/rideDown] (upstairs.js:275-276 returns before any earlier wrapper, and no later wrapper adds to these props), so no choice or action changes. But the CSS as written fails in two ways I measured with the harness. (1) .act has line-height:72px (style.css:105), and the <i> inherits it. The badge becomes a 25x72 box and the arrow is drawn at the button's mid-right edge, not in the corner (g30_draft_port_foyer.png). (2) With pointer-events:none, the badge sits mostly outside the round button's hit area (border-radius is respected), so a tap on the arrow lands on .actback and silently closes the ring. Tapping the badge centre closed the ring and did nothing, in port foyer for both 🪜 and 💺 and in land uphall. Without pointer-events:none, the same taps ran climbUp/rideUp and walkDown/rideDown (the tap bubbles to the .act's pointerup listener; the stage handlers all use closest('.act'), features.js:506 and ui.js:14). This would be a new trap: the arrow is exactly what she will aim at to 'go up'. Two smaller points. regress.js records list icons from propActions, not the DOM, so G30 produces NO regress rename; the TEST note should not expect one (a rename would mean a.ico was changed, which must not happen). And a few pixels of badge could sit over a mood face while rings can still overlap the mood column, so ship it with G6 on. Evidence: /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/verify/menus-icons-functionality/g30_draft_port_foyer.png, g30_amended_port_uphall.png, g30b.js, g30c.js.
+
+- AMENDED CHANGE (functionality): On the stairs rings (foyer prop a='stairs' → ⬆️, landing prop a='ustairs' → ⬇️), the 🪜 and 💺 choices each carry a small arrow badge at their bottom-right, the same arrow as the floor pill. Glyphs, order and actions are unchanged, and a.ico is never changed. The badge is part of its own button: a tap on the arrow does exactly what a tap on the picture does, and it never falls through to the dim backdrop. Implementation: in the overlay's outermost UI.actions wrapper, after the original runs, if anchor && anchor.prop && (anchor.prop.a === 'stairs' || anchor.prop.a === 'ustairs'), then for each '#fx .act' with no .cm-badge whose textContent is exactly '🪜' or '💺' (checked before appending), append <i class="cm-badge">⬆️</i> or ⬇️. CSS: .act .cm-badge{position:absolute;right:-4px;bottom:-4px;font-size:22px;line-height:1;font-style:normal}. line-height:1 is required. Do NOT set pointer-events:none. The badge may stick out at most 4 px past the 72 px button, which keeps it inside the 8 px gap between the 80 px ring slots. Ship together with G6, so the ring and its badge never sit over a mood face, the pill or the map.
+
+- EXTRA CHECKS: Foyer and uphall at port, land, portSmall and landSmall: tap the centre of each badge, the centre of each button and a point about 10 px outside the circle away from the badge. Badge and button must run climbUp/rideUp (foyer) or walkDown/rideDown (uphall) and land in the same room and spot as today (Upstairs.S.lift ends at 1 after 💺 up); the outside point must still just close the ring. | Measure each .cm-badge rect: about 22-28 px tall (not 72), its right edge at most 4 px past its .act and not touching the next .act; elementFromPoint at the badge centre returns the badge or its .act, never .actback. | With G6 on, no badge rect intersects #moodbar .mood, #floorpill .fl, #mapBtn, .navarrow or #alerts in land foyer, where today's ring can land on the mood column. | Ring contents stay exactly [🪜,💺] while riding Daddy (marina.mount), holding a dish, during tidy mode and with a treasure hidden on the stairs; the badge is added once per opening, also when UI.actions is called again on an open ring. | regress.js against after3.json: no diff for obj foyer/stairs and obj uphall/ustairs (the icons stay '🪜 💺' with the same handler ids). Audit scripts that find .act by exact textContent '🪜'/'💺' must switch to startsWith.

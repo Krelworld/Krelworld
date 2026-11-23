@@ -1,0 +1,1112 @@
+{
+ "portSmall": {
+  "foyer": {
+   "opened": true,
+   "geo": [
+    {
+     "t": "🪜",
+     "badge": "⬆️",
+     "act": [
+      213,
+      70,
+      285,
+      142
+     ],
+     "b": [
+      262,
+      124,
+      289,
+      146
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    },
+    {
+     "t": "💺",
+     "badge": "⬆️",
+     "act": [
+      293,
+      70,
+      365,
+      142
+     ],
+     "b": [
+      342,
+      124,
+      369,
+      146
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    }
+   ],
+   "againBadges": [
+    1,
+    1
+   ],
+   "taps": {
+    "🪜badge": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 207,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "🪜centre": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 207,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "🪜outside": {
+     "at": "actback",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "💺badge": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 223,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "cheer",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "💺centre": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 238,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "cheer",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "💺outside": {
+     "at": "actback",
+     "lift0": 1,
+     "s400": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    }
+   }
+  },
+  "uphall": {
+   "opened": true,
+   "geo": [
+    {
+     "t": "🪜",
+     "badge": "⬇️",
+     "act": [
+      213,
+      70,
+      285,
+      142
+     ],
+     "b": [
+      262,
+      124,
+      289,
+      146
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    },
+    {
+     "t": "💺",
+     "badge": "⬇️",
+     "act": [
+      293,
+      70,
+      365,
+      142
+     ],
+     "b": [
+      342,
+      124,
+      369,
+      146
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    }
+   ],
+   "againBadges": [
+    1,
+    1
+   ],
+   "taps": {
+    "🪜badge": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 198,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 231,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "🪜centre": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "uphall",
+      "busy": true,
+      "x": 70,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 231,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "🪜outside": {
+     "at": "actback",
+     "lift0": 1,
+     "s400": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "💺badge": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "uphall",
+      "busy": true,
+      "x": 28,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 240,
+      "state": "cheer",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "💺centre": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "uphall",
+      "busy": true,
+      "x": 60,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 240,
+      "state": "cheer",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "💺outside": {
+     "at": "actback",
+     "lift0": 0,
+     "s400": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    }
+   }
+  },
+  "special": {
+   "plain": "🪜 💺",
+   "dish": "🪜 💺",
+   "tidy": "🪜 💺",
+   "ride": {
+    "state": "idle",
+    "icons": "🪜 💺",
+    "dom": "🪜⬆️ 💺⬆️"
+   }
+  },
+  "others": {
+   "mainStairsProp": "🪜 💺",
+   "bunk": "🧸 😴 🪜",
+   "hatch": "🪜",
+   "built": "🪜",
+   "marina": "🪜 💺"
+  },
+  "off": [
+   "🪜",
+   "💺"
+  ],
+  "errors": []
+ },
+ "land": {
+  "foyer": {
+   "opened": true,
+   "geo": [
+    {
+     "t": "🪜",
+     "badge": "⬆️",
+     "act": [
+      318,
+      140,
+      390,
+      212
+     ],
+     "b": [
+      367,
+      194,
+      394,
+      216
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    },
+    {
+     "t": "💺",
+     "badge": "⬆️",
+     "act": [
+      398,
+      140,
+      470,
+      212
+     ],
+     "b": [
+      447,
+      194,
+      474,
+      216
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    }
+   ],
+   "againBadges": [
+    1,
+    1
+   ],
+   "taps": {
+    "🪜badge": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 207,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "🪜centre": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 207,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "🪜outside": {
+     "at": "actback",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "💺badge": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 223,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "cheer",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "💺centre": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 238,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "cheer",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "💺outside": {
+     "at": "actback",
+     "lift0": 1,
+     "s400": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    }
+   }
+  },
+  "uphall": {
+   "opened": true,
+   "geo": [
+    {
+     "t": "🪜",
+     "badge": "⬇️",
+     "act": [
+      345,
+      186,
+      417,
+      258
+     ],
+     "b": [
+      394,
+      240,
+      421,
+      262
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    },
+    {
+     "t": "💺",
+     "badge": "⬇️",
+     "act": [
+      425,
+      186,
+      497,
+      258
+     ],
+     "b": [
+      474,
+      240,
+      501,
+      262
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    }
+   ],
+   "againBadges": [
+    1,
+    1
+   ],
+   "taps": {
+    "🪜badge": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "uphall",
+      "busy": true,
+      "x": 70,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 231,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "🪜centre": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 196,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 231,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "🪜outside": {
+     "at": "actback",
+     "lift0": 1,
+     "s400": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "💺badge": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "uphall",
+      "busy": true,
+      "x": 28,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 240,
+      "state": "cheer",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "💺centre": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "uphall",
+      "busy": true,
+      "x": 60,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 240,
+      "state": "cheer",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "💺outside": {
+     "at": "actback",
+     "lift0": 0,
+     "s400": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    }
+   }
+  },
+  "special": {
+   "plain": "🪜 💺",
+   "dish": "🪜 💺",
+   "tidy": "🪜 💺",
+   "ride": {
+    "state": "idle",
+    "icons": "🪜 💺",
+    "dom": "🪜⬆️ 💺⬆️"
+   }
+  },
+  "others": {
+   "mainStairsProp": "🪜 💺",
+   "bunk": "🧸 😴 🪜",
+   "hatch": "🪜",
+   "built": "🪜",
+   "marina": "🪜 💺"
+  },
+  "off": [
+   "🪜",
+   "💺"
+  ],
+  "errors": []
+ },
+ "landSmall": {
+  "foyer": {
+   "opened": true,
+   "geo": [
+    {
+     "t": "🪜",
+     "badge": "⬆️",
+     "act": [
+      150,
+      134,
+      222,
+      206
+     ],
+     "b": [
+      198,
+      188,
+      226,
+      210
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    },
+    {
+     "t": "💺",
+     "badge": "⬆️",
+     "act": [
+      230,
+      134,
+      302,
+      206
+     ],
+     "b": [
+      278,
+      188,
+      306,
+      210
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    }
+   ],
+   "againBadges": [
+    1,
+    1
+   ],
+   "taps": {
+    "🪜badge": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 207,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "🪜centre": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 207,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "🪜outside": {
+     "at": "actback",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "💺badge": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 223,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "cheer",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "💺centre": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 238,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "cheer",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "💺outside": {
+     "at": "actback",
+     "lift0": 1,
+     "s400": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    }
+   }
+  },
+  "uphall": {
+   "opened": true,
+   "geo": [
+    {
+     "t": "🪜",
+     "badge": "⬇️",
+     "act": [
+      334,
+      177,
+      406,
+      249
+     ],
+     "b": [
+      383,
+      231,
+      410,
+      253
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    },
+    {
+     "t": "💺",
+     "badge": "⬇️",
+     "act": [
+      414,
+      177,
+      486,
+      249
+     ],
+     "b": [
+      463,
+      231,
+      490,
+      253
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    }
+   ],
+   "againBadges": [
+    1,
+    1
+   ],
+   "taps": {
+    "🪜badge": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 196,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 231,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "🪜centre": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "uphall",
+      "busy": true,
+      "x": 70,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 231,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "🪜outside": {
+     "at": "actback",
+     "lift0": 1,
+     "s400": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "💺badge": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "uphall",
+      "busy": true,
+      "x": 28,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 240,
+      "state": "cheer",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "💺centre": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "uphall",
+      "busy": true,
+      "x": 60,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 240,
+      "state": "cheer",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "💺outside": {
+     "at": "actback",
+     "lift0": 0,
+     "s400": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    }
+   }
+  },
+  "special": {
+   "plain": "🪜 💺",
+   "dish": "🪜 💺",
+   "tidy": "🪜 💺",
+   "ride": {
+    "state": "idle",
+    "icons": "🪜 💺",
+    "dom": "🪜⬆️ 💺⬆️"
+   }
+  },
+  "others": {
+   "mainStairsProp": "🪜 💺",
+   "bunk": "🧸 😴 🪜",
+   "hatch": "🪜",
+   "built": "🪜",
+   "marina": "🪜 💺"
+  },
+  "off": [
+   "🪜",
+   "💺"
+  ],
+  "errors": []
+ }
+}

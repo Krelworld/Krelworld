@@ -1,0 +1,68 @@
+{
+ "twoCalls_septicTold_false": {
+  "nunuHello": [
+   "nu_hi1@5.7"
+  ],
+  "marinaReply": [
+   "m_hi_nunu@8.3",
+   "m_hi_nunu@8.6"
+  ],
+  "greetCtx": [
+   "nunu"
+  ],
+  "errors": []
+ },
+ "twoCalls_septicTold_true": {
+  "nunuHello": [
+   "nu_hi4@10.8"
+  ],
+  "marinaReply": [
+   "nu_septic_thanks@13.4",
+   "m_hi_nunu@13.7"
+  ],
+  "greetCtx": [
+   "nunu",
+   "nunu"
+  ],
+  "errors": []
+ },
+ "backyardThenDen": {
+  "room": "den",
+  "t1": 6,
+  "jeff": [
+   "j_hi3@8.6",
+   "m_hi_jeff@11.2"
+  ],
+  "nunu": [
+   "nu_hi3@13.1",
+   "m_hi_nunu@15.7"
+  ],
+  "errors": []
+ },
+ "upstairsHeldBack": {
+  "firstArrival": [
+   20.7,
+   "daddy"
+  ],
+  "helloLines": [
+   "d_hi1@29.7"
+  ],
+  "facedHer": null,
+  "lastGreetUnchanged": false,
+  "arrivalsWithin30sWhilePresent": 2,
+  "visitAfterTheyLeftS": 12.7,
+  "oerb": [
+   "daddy:greeted",
+   "daddy:greeted"
+  ],
+  "errors": []
+ },
+ "ownEntries30sRule": {
+  "hellosAtEntries_0_23_47s": [
+   1,
+   0,
+   1
+  ],
+  "errors": []
+ }
+}

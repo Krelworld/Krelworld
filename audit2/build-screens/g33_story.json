@@ -1,0 +1,984 @@
+{
+ "port": {
+  "shelves": [
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     72,
+     56,
+     116
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     72,
+     56,
+     116
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     72,
+     56,
+     116
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     80,
+     56,
+     124
+    ]
+   }
+  ],
+  "readers": {
+   "gap": 10,
+   "x": [
+    10,
+    52
+   ],
+   "back": [
+    72,
+    10,
+    52
+   ]
+  },
+  "faceOverBack": {
+   "cards": [
+    "facecard show 10 453 92 534"
+   ],
+   "backCentreHits": "button.st-back",
+   "covered": false
+  },
+  "backToShelf": true,
+  "xCloses": true
+ },
+ "port errors": [],
+ "portSmall": {
+  "shelves": [
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     76,
+     56,
+     120
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     67,
+     56,
+     111
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     67,
+     56,
+     111
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     67,
+     56,
+     111
+    ]
+   }
+  ],
+  "readers": {
+   "gap": 10,
+   "x": [
+    10,
+    52
+   ],
+   "back": [
+    72,
+    10,
+    52
+   ]
+  },
+  "faceOverBack": {
+   "cards": [
+    "facecard show 10 436 89 514"
+   ],
+   "backCentreHits": "button.st-back",
+   "covered": false
+  },
+  "backToShelf": true,
+  "xCloses": true
+ },
+ "portSmall errors": [],
+ "land": {
+  "shelves": [
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     112,
+     109,
+     156,
+     153
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     112,
+     109,
+     156,
+     153
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     112,
+     109,
+     156,
+     153
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     112,
+     109,
+     156,
+     153
+    ]
+   }
+  ],
+  "readers": {
+   "gap": 10,
+   "x": [
+    10,
+    52
+   ],
+   "back": [
+    72,
+    10,
+    52
+   ]
+  },
+  "faceOverBack": {
+   "cards": [
+    "facecard show 78 8 162 92"
+   ],
+   "backCentreHits": "canvas",
+   "covered": true
+  },
+  "backToShelf": false,
+  "xCloses": true,
+  "xFloatGlyph": "❌"
+ },
+ "land errors": [],
+ "landSmall": {
+  "shelves": [
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     83,
+     114,
+     127,
+     158
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     83,
+     114,
+     127,
+     158
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     83,
+     114,
+     127,
+     158
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     83,
+     114,
+     127,
+     158
+    ]
+   }
+  ],
+  "readers": {
+   "gap": 10,
+   "x": [
+    10,
+    52
+   ],
+   "back": [
+    72,
+    10,
+    52
+   ]
+  },
+  "faceOverBack": {
+   "cards": [
+    "facecard show 78 8 151 81"
+   ],
+   "backCentreHits": "canvas",
+   "covered": true
+  },
+  "backToShelf": false,
+  "xCloses": true,
+  "xFloatGlyph": "❌"
+ },
+ "landSmall errors": [],
+ "844x340i47": {
+  "shelves": [
+   {
+    "glyph": "❌",
+    "x": [
+     57,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     126,
+     76,
+     170,
+     120
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     57,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     126,
+     76,
+     170,
+     120
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     57,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     126,
+     76,
+     170,
+     120
+    ]
+   },
+   {
+    "glyph": "❌",
+    "x": [
+     57,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     126,
+     76,
+     170,
+     120
+    ]
+   }
+  ],
+  "readers": {
+   "gap": 10,
+   "x": [
+    57,
+    52
+   ],
+   "back": [
+    119,
+    10,
+    52
+   ]
+  },
+  "faceOverBack": {
+   "cards": [
+    "facecard show 125 8 209 92"
+   ],
+   "backCentreHits": "canvas",
+   "covered": true
+  },
+  "backToShelf": false,
+  "xCloses": true
+ },
+ "844x340i47 errors": [],
+ "port G33off": {
+  "shelves": [
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     80,
+     56,
+     124
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     72,
+     56,
+     116
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     72,
+     56,
+     116
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     72,
+     56,
+     116
+    ]
+   }
+  ],
+  "readers": {
+   "gap": 10,
+   "x": [
+    10,
+    52
+   ],
+   "back": [
+    72,
+    10,
+    52
+   ]
+  },
+  "faceOverBack": {
+   "cards": [
+    "facecard show 10 453 92 534"
+   ],
+   "backCentreHits": "button.st-back",
+   "covered": false
+  },
+  "backToShelf": true,
+  "xCloses": true
+ },
+ "portG33 errors": [],
+ "portSmall G33off": {
+  "shelves": [
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     76,
+     56,
+     120
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     67,
+     56,
+     111
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     67,
+     56,
+     111
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     12,
+     67,
+     56,
+     111
+    ]
+   }
+  ],
+  "readers": {
+   "gap": 10,
+   "x": [
+    10,
+    52
+   ],
+   "back": [
+    72,
+    10,
+    52
+   ]
+  },
+  "faceOverBack": {
+   "cards": [
+    "facecard show 10 436 89 514"
+   ],
+   "backCentreHits": "button.st-back",
+   "covered": false
+  },
+  "backToShelf": true,
+  "xCloses": true
+ },
+ "portSmallG33 errors": [],
+ "land G33off": {
+  "shelves": [
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     112,
+     109,
+     156,
+     153
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     112,
+     109,
+     156,
+     153
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     112,
+     109,
+     156,
+     153
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     112,
+     109,
+     156,
+     153
+    ]
+   }
+  ],
+  "readers": {
+   "gap": 10,
+   "x": [
+    10,
+    52
+   ],
+   "back": [
+    72,
+    10,
+    52
+   ]
+  },
+  "faceOverBack": {
+   "cards": [
+    "facecard show 78 8 162 92"
+   ],
+   "backCentreHits": "canvas",
+   "covered": true
+  },
+  "backToShelf": false,
+  "xCloses": true
+ },
+ "landG33 errors": [],
+ "landSmall G33off": {
+  "shelves": [
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     83,
+     114,
+     127,
+     158
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     83,
+     114,
+     127,
+     158
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     83,
+     114,
+     127,
+     158
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     10,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     83,
+     114,
+     127,
+     158
+    ]
+   }
+  ],
+  "readers": {
+   "gap": 10,
+   "x": [
+    10,
+    52
+   ],
+   "back": [
+    72,
+    10,
+    52
+   ]
+  },
+  "faceOverBack": {
+   "cards": [
+    "facecard show 78 8 151 81"
+   ],
+   "backCentreHits": "canvas",
+   "covered": true
+  },
+  "backToShelf": false,
+  "xCloses": true
+ },
+ "landSmallG33 errors": [],
+ "844x340i47 G33off": {
+  "shelves": [
+   {
+    "glyph": "✖️",
+    "x": [
+     57,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     126,
+     76,
+     170,
+     120
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     57,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     126,
+     76,
+     170,
+     120
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     57,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     126,
+     76,
+     170,
+     120
+    ]
+   },
+   {
+    "glyph": "✖️",
+    "x": [
+     57,
+     10,
+     52,
+     52
+    ],
+    "badgeHitsX": false,
+    "badgeOverlapX": 0,
+    "bookOverlapX": 0,
+    "badge0": [
+     126,
+     76,
+     170,
+     120
+    ]
+   }
+  ],
+  "readers": {
+   "gap": 10,
+   "x": [
+    57,
+    52
+   ],
+   "back": [
+    119,
+    10,
+    52
+   ]
+  },
+  "faceOverBack": {
+   "cards": [
+    "facecard show 125 8 209 92"
+   ],
+   "backCentreHits": "canvas",
+   "covered": true
+  },
+  "backToShelf": false,
+  "xCloses": true
+ },
+ "844x340i47G33 errors": []
+}

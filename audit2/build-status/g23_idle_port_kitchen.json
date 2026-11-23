@@ -1,0 +1,62 @@
+{
+ "view": "port",
+ "room": "kitchen",
+ "secs": 100,
+ "on": {
+  "build": "G23 on",
+  "gameS": 100.1,
+  "wiggles": 6,
+  "visible": 6,
+  "first": 10.02,
+  "gaps": [
+   8,
+   16,
+   20,
+   20,
+   20
+  ],
+  "alertUpS": 0,
+  "heldBackS": 0,
+  "wishS": 0,
+  "reqS": 0,
+  "lastInputMoved": false,
+  "errors": []
+ },
+ "off": {
+  "build": "G23 off (today)",
+  "gameS": 101.2,
+  "wiggles": 23,
+  "visible": 10,
+  "first": 10.02,
+  "gaps": [
+   4,
+   4,
+   4.1,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4
+  ],
+  "alertUpS": 8.8,
+  "heldBackS": 8.8,
+  "wishS": 0,
+  "reqS": 0,
+  "lastInputMoved": false,
+  "errors": []
+ }
+}

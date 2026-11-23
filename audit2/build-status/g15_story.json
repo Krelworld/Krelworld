@@ -1,0 +1,112 @@
+{
+ "port": {
+  "readers": [
+   "daddy reads",
+   "mommy reads",
+   "rory reads",
+   "nunu reads"
+  ],
+  "pages": [
+   {
+    "cap": "One night, Niko the cat saw a ",
+    "faces": [
+     "daddy o=1 f=none z=25"
+    ],
+    "app": [
+     "cm-strip cm-mood"
+    ]
+   },
+   {
+    "cap": "It looks like a giant ball of ",
+    "faces": [
+     "daddy o=1 f=none z=25"
+    ],
+    "app": [
+     "cm-strip cm-mood"
+    ]
+   },
+   {
+    "cap": "He climbed the sofa. He climbe",
+    "faces": [
+     "daddy o=1 f=none z=25"
+    ],
+    "app": [
+     "cm-strip cm-mood"
+    ]
+   },
+   {
+    "cap": "Niko jumped as high as he coul",
+    "faces": [
+     "daddy o=1 f=none z=25"
+    ],
+    "app": [
+     "cm-strip cm-mood"
+    ]
+   }
+  ],
+  "faceTap": {
+   "tapped": true,
+   "shakes": [
+    "daddy"
+   ],
+   "blips": [],
+   "same": true
+  },
+  "errors": []
+ },
+ "land": {
+  "readers": [
+   "daddy reads",
+   "mommy reads",
+   "rory reads",
+   "nunu reads"
+  ],
+  "pages": [
+   {
+    "cap": "Chef Marina flipped a pancake ",
+    "faces": [
+     "daddy o=1 f=none z=25"
+    ],
+    "app": [
+     "cm-strip cm-mood"
+    ]
+   },
+   {
+    "cap": "You can't eat me, giggled the ",
+    "faces": [
+     "daddy o=1 f=none z=25"
+    ],
+    "app": [
+     "cm-strip cm-mood"
+    ]
+   },
+   {
+    "cap": "It rolled past Daddy. It rolle",
+    "faces": [
+     "daddy o=1 f=none z=25"
+    ],
+    "app": [
+     "cm-strip cm-mood"
+    ]
+   },
+   {
+    "cap": "Then the pancake saw a big pud",
+    "faces": [
+     "daddy o=1 f=none z=25"
+    ],
+    "app": [
+     "cm-strip cm-mood"
+    ]
+   }
+  ],
+  "faceTap": {
+   "tapped": true,
+   "shakes": [
+    "daddy"
+   ],
+   "blips": [],
+   "same": true
+  },
+  "errors": []
+ }
+}

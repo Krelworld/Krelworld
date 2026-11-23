@@ -1,0 +1,807 @@
+{
+"nu_love1": [
+"NU",
+"family2.js"
+],
+"nu_love2": [
+"NU",
+"family2.js"
+],
+"nu_love3": [
+"NU",
+"family2.js"
+],
+"nu_love4": [
+"NU",
+"family2.js"
+],
+"nu_hug": [
+"NU",
+"family2.js"
+],
+"nu_kiss": [
+"NU",
+"family2.js"
+],
+"nu_wow": [
+"NU",
+"family2.js"
+],
+"nu_proud": [
+"NU",
+"basement.js",
+"family2.js"
+],
+"nu_pic": [
+"NU",
+"family2.js"
+],
+"nu_comfort": [
+"NU",
+"family2.js"
+],
+"nu_play_yes": [
+"NU",
+"family2.js"
+],
+"nu_hi1": [
+"NU",
+"family2.js"
+],
+"nu_hi2": [
+"NU",
+"family2.js"
+],
+"nu_hi4": [
+"NU",
+"family2.js"
+],
+"nu_hi3": [
+"NU",
+"family2.js"
+],
+"nu_giggle": [
+"NU",
+"family2.js"
+],
+"nu_dance": [
+"NU",
+"family2.js"
+],
+"nu_tidy": [
+"NU",
+"family2.js"
+],
+"nu_clutter": [
+"NU",
+"family2.js"
+],
+"nu_joke_laugh": [
+"NU",
+"family2.js"
+],
+"nu_joke_groan": [
+"NU",
+"family2.js"
+],
+"j_hug": [
+"JF",
+"family2.js"
+],
+"j_love": [
+"JF",
+"family2.js"
+],
+"j_play_yes": [
+"JF",
+"family2.js"
+],
+"j_thanks": [
+"JF",
+"family2.js"
+],
+"j_wow": [
+"JF",
+"family2.js"
+],
+"j_pic": [
+"JF",
+"family2.js"
+],
+"j_comfort": [
+"JF",
+"family2.js"
+],
+"j_hi1": [
+"JF",
+"family2.js"
+],
+"j_hi2": [
+"JF",
+"family2.js"
+],
+"j_hi4": [
+"JF",
+"family2.js"
+],
+"j_hi3": [
+"JF",
+"family2.js"
+],
+"j_giggle": [
+"JF",
+"family2.js"
+],
+"j_ok": [
+"JF",
+"family2.js"
+],
+"j_joke_laugh": [
+"JF",
+"family2.js"
+],
+"j_joke_groan": [
+"JF",
+"family2.js"
+],
+"j_food_good": [
+"JF",
+"family2.js"
+],
+"j_food_great": [
+"JF",
+"family2.js"
+],
+"nu_sweep1": [
+"NU",
+"family2.js"
+],
+"nu_sweep2": [
+"NU",
+"family2.js"
+],
+"nu_lotr5": [
+"NU",
+"family2.js"
+],
+"nu_laundry1": [
+"NU",
+"family2.js"
+],
+"nu_laundry2": [
+"NU",
+"family2.js"
+],
+"nu_laundry3": [
+"NU",
+"family2.js"
+],
+"nu_clean1": [
+"NU",
+"family2.js"
+],
+"nu_clean2": [
+"NU",
+"family2.js"
+],
+"nu_lotr1": [
+"NU",
+"family2.js"
+],
+"nu_lotr2": [
+"NU",
+"family2.js"
+],
+"nu_lotr3": [
+"NU",
+"family2.js"
+],
+"nu_lotr4": [
+"NU",
+"family2.js"
+],
+"nu_lotr6": [
+"NU",
+"family2.js"
+],
+"nu_lotr7": [
+"NU",
+"family2.js"
+],
+"nu_lotr8": [
+"NU",
+"family2.js"
+],
+"nu_lotr9": [
+"NU",
+"family2.js"
+],
+"nu_lotr11": [
+"NU",
+"family2.js"
+],
+"m_precious": [
+"family2.js"
+],
+"nu_precious_laugh": [
+"NU",
+"family2.js"
+],
+"d_phone1": [
+"family2.js"
+],
+"d_phone2": [
+"family2.js"
+],
+"d_phone3": [
+"family2.js"
+],
+"d_phone5": [
+"family2.js"
+],
+"d_phone6": [
+"family2.js"
+],
+"d_phone7": [
+"family2.js"
+],
+"d_phone8": [
+"family2.js"
+],
+"m_phone2": [
+"family2.js"
+],
+"d_phone4": [
+"family2.js"
+],
+"m_phone": [
+"family2.js"
+],
+"d_phone_off": [
+"family2.js"
+],
+"d_phone_off2": [
+"family2.js"
+],
+"nu_minka_where": [
+"NU",
+"family2.js"
+],
+"m_minka_found": [
+"family2.js"
+],
+"nu_minka_found": [
+"NU",
+"family2.js"
+],
+"nu_catfight1": [
+"NU",
+"family2.js"
+],
+"nu_catfight2": [
+"NU",
+"family2.js"
+],
+"d_catfight": [
+"family2.js"
+],
+"mo_catfight": [
+"family2.js"
+],
+"r_catfight": [
+"family2.js"
+],
+"nu_minka_trust": [
+"NU",
+"family2.js"
+],
+"nu_minka_shy": [
+"NU",
+"family2.js"
+],
+"m_minka_love": [
+"family2.js",
+"minka.js"
+],
+"m_shelf": [
+"family2.js"
+],
+"nu_shelf1": [
+"NU",
+"family2.js"
+],
+"nu_shelf_full": [
+"NU",
+"family2.js"
+],
+"nu_shelf2": [
+"NU",
+"family2.js"
+],
+"j_turkey": [
+"JF",
+"family2.js"
+],
+"j_squirrel": [
+"JF",
+"family2.js"
+],
+"m_deer": [
+"family2.js"
+],
+"j_deer": [
+"JF",
+"family2.js"
+],
+"j_work1": [
+"JF",
+"family2.js"
+],
+"j_work2": [
+"JF",
+"family2.js"
+],
+"j_work3": [
+"JF",
+"family2.js"
+],
+"j_helper": [
+"JF",
+"family2.js",
+"outdoor.js"
+],
+"nu_smell1": [
+"NU",
+"family2.js"
+],
+"nu_smell2": [
+"NU",
+"family2.js"
+],
+"nu_smell3": [
+"NU",
+"family2.js"
+],
+"nu_septic1": [
+"NU",
+"family2.js"
+],
+"nu_septic2": [
+"NU",
+"family2.js"
+],
+"nu_septic3": [
+"NU",
+"family2.js"
+],
+"m_giggle": [
+"basement.js",
+"family2.js",
+"minka.js",
+"upstairs.js",
+"wildlife.js"
+],
+"m_septic": [
+"family2.js"
+],
+"d_septic": [
+"family2.js"
+],
+"d_septic2": [
+"family2.js"
+],
+"nu_septic_thanks": [
+"NU",
+"family2.js"
+],
+"m_hi_nunu": [
+"family2.js"
+],
+"m_hi_jeff": [
+"family2.js"
+],
+"m_wuv_nunu": [
+"family2.js"
+],
+"m_wuv_jeff": [
+"family2.js"
+],
+"nu_nofood": [
+"NU",
+"family2.js"
+],
+"nu_nofood2": [
+"NU",
+"family2.js"
+],
+"j_highfive": [
+"JF",
+"family2.js"
+],
+"m_highfive": [
+"family2.js"
+],
+"j_juggle": [
+"JF",
+"family2.js"
+],
+"m_joke_laugh": [
+"family2.js"
+],
+"m_wow": [
+"basement.js",
+"family2.js",
+"minka.js",
+"upstairs.js",
+"wildlife.js"
+],
+"m_hmm": [
+"basement.js",
+"family2.js",
+"minka.js",
+"outdoor.js",
+"upstairs.js"
+],
+"j_build_hello1": [
+"JF",
+"family2.js"
+],
+"j_build_hello2": [
+"JF",
+"family2.js"
+],
+"j_build_hello3": [
+"JF",
+"family2.js"
+],
+"j_build_start1": [
+"JF",
+"family2.js"
+],
+"j_build_start2": [
+"JF",
+"family2.js"
+],
+"j_build_start3": [
+"JF",
+"family2.js"
+],
+"j_build_start4": [
+"JF",
+"family2.js"
+],
+"j_build_done1": [
+"JF",
+"family2.js"
+],
+"j_build_done2": [
+"JF",
+"family2.js"
+],
+"j_build_done3": [
+"JF",
+"family2.js"
+],
+"j_build_done4": [
+"JF",
+"family2.js"
+],
+"j_build_full1": [
+"JF",
+"family2.js"
+],
+"j_build_full2": [
+"JF",
+"family2.js"
+],
+"j_build_down": [
+"JF",
+"family2.js"
+],
+"j_build_down2": [
+"JF",
+"family2.js"
+],
+"j_treehouse": [
+"JF",
+"family2.js"
+],
+"j_recolor": [
+"JF",
+"family2.js"
+],
+"nu_lego_start": [
+"NU",
+"family2.js"
+],
+"nu_lego_nice1": [
+"NU",
+"basement.js",
+"family2.js"
+],
+"nu_lego_nice2": [
+"NU",
+"family2.js"
+],
+"nu_lego_idea": [
+"NU",
+"family2.js"
+],
+"nu_lego_done": [
+"NU",
+"basement.js",
+"family2.js"
+],
+"nu_lego_oops": [
+"NU",
+"family2.js"
+],
+"nu_movie_start": [
+"NU",
+"family2.js"
+],
+"nu_lotr_movie": [
+"NU",
+"family2.js"
+],
+"nu_lotr10": [
+"NU",
+"family2.js"
+],
+"nu_movie_funny": [
+"NU",
+"family2.js"
+],
+"nu_movie_end": [
+"NU",
+"family2.js"
+],
+"nu_movie_scary": [
+"NU",
+"family2.js"
+],
+"nu_movie_sweet": [
+"NU",
+"family2.js"
+],
+"nu_popcorn": [
+"NU",
+"family2.js"
+],
+"m_help_nunu": [
+"family2.js"
+],
+"nu_help": [
+"NU",
+"family2.js"
+],
+"nu_help_thanks": [
+"NU",
+"family2.js"
+],
+"nu_story": [
+"NU",
+"family2.js"
+],
+"m_look": [
+"basement.js",
+"outdoor.js",
+"upstairs.js",
+"wildlife.js"
+],
+"m_yay": [
+"basement.js",
+"outdoor.js",
+"upstairs.js",
+"wildlife.js"
+],
+"m_turkey": [
+"wildlife.js"
+],
+"m_minka_where": [
+"minka.js"
+],
+"m_uhoh": [
+"basement.js",
+"minka.js",
+"upstairs.js"
+],
+"m_nofight": [
+"minka.js"
+],
+"m_did_it": [
+"basement.js",
+"outdoor.js",
+"upstairs.js"
+],
+"m_made": [
+"basement.js"
+],
+"m_niko_love": [
+"basement.js"
+],
+"m_vroom": [
+"basement.js"
+],
+"m_blow": [
+"basement.js"
+],
+"m_pretty": [
+"basement.js",
+"upstairs.js"
+],
+"m_snack": [
+"basement.js"
+],
+"m_wash": [
+"basement.js"
+],
+"m_clean": [
+"basement.js",
+"upstairs.js"
+],
+"m_cuddle": [
+"basement.js"
+],
+"m_happy": [
+"basement.js",
+"outdoor.js"
+],
+"m_nite": [
+"basement.js",
+"upstairs.js"
+],
+"nu_draw": [
+"NU",
+"basement.js"
+],
+"m_tv": [
+"basement.js"
+],
+"m_cool": [
+"basement.js",
+"upstairs.js"
+],
+"m_flush": [
+"basement.js",
+"upstairs.js"
+],
+"m_bye": [
+"basement.js",
+"upstairs.js"
+],
+"m_monkey": [
+"upstairs.js"
+],
+"m_ride": [
+"upstairs.js"
+],
+"m_yummy": [
+"outdoor.js",
+"upstairs.js"
+],
+"m_shh_miles": [
+"upstairs.js"
+],
+"m_stinky": [
+"upstairs.js"
+],
+"m_found": [
+"outdoor.js",
+"upstairs.js"
+],
+"m_ugh_niko": [
+"upstairs.js"
+],
+"m_again": [
+"outdoor.js",
+"upstairs.js"
+],
+"m_bounce": [
+"upstairs.js"
+],
+"m_roar": [
+"upstairs.js"
+],
+"m_leaves": [
+"outdoor.js"
+],
+"j_tree": [
+"JF",
+"outdoor.js"
+],
+"j_treetop": [
+"JF",
+"outdoor.js"
+],
+"d_tree_wave": [
+"outdoor.js"
+],
+"nu_tv_on": [
+"NU"
+],
+"nu_draw_nice": [
+"NU"
+],
+"nu_whos_there": [
+"NU"
+],
+"nu_europe_who": [
+"NU"
+],
+"nu_why_house": [
+"NU"
+],
+"nu_fort": [
+"NU"
+],
+"nu_bye": [
+"NU"
+],
+"nu_wash": [
+"NU"
+],
+"nu_night": [
+"NU"
+],
+"nu_cat": [
+"NU"
+],
+"nu_peekaboo": [
+"NU"
+],
+"nu_hoop": [
+"NU"
+],
+"nu_deer": [
+"NU"
+],
+"j_magic": [
+"JF"
+],
+"j_strong": [
+"JF"
+],
+"j_food_meh": [
+"JF"
+],
+"j_nervous": [
+"JF"
+],
+"j_burp": [
+"JF"
+],
+"j_stomach": [
+"JF"
+],
+"j_vomit": [
+"JF"
+],
+"j_diarrhea": [
+"JF"
+],
+"j_notp": [
+"JF"
+],
+"j_tp_thanks": [
+"JF"
+],
+"j_whos_there": [
+"JF"
+],
+"j_europe_who": [
+"JF"
+],
+"j_why_house": [
+"JF"
+],
+"j_tantrum": [
+"JF"
+],
+"j_pool": [
+"JF"
+],
+"j_oak": [
+"JF"
+]
+}

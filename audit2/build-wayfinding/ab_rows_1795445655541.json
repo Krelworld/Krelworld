@@ -1,0 +1,35 @@
+{
+ "HEAD": {
+  "den/wicker 🧗": "idle,idle,idle,idle",
+  "storage/shades 🎩": "cheer,cheer,cheer,cheer",
+  "living/miles 🤗 (crying)": "idle,idle,idle,anim",
+  "living/miles 🤗 (nappy)": "anim,idle,anim,idle",
+  "living/miles ✋": "idle,anim,idle,anim",
+  "living/miles ✋ (fort)": "anim,idle,anim,idle",
+  "dining/mommy 📱": "idle,idle+panel,sad,idle",
+  "dining/mommy 📱 (dish)": "idle+panel,idle+panel,idle+panel,idle+panel",
+  "errors": 0
+ },
+ "wt all on": {
+  "den/wicker 🧗": "idle,idle,idle,idle",
+  "storage/shades 🎩": "cheer,cheer,cheer,cheer",
+  "living/miles 🤗 (crying)": "idle,anim,idle,idle",
+  "living/miles 🤗 (nappy)": "idle,idle,idle,anim",
+  "living/miles ✋": "anim,idle,anim,anim",
+  "living/miles ✋ (fort)": "anim,idle,idle,idle",
+  "dining/mommy 📱": "idle,idle+panel,idle+panel,idle",
+  "dining/mommy 📱 (dish)": "idle+panel,idle+panel,idle+panel,idle+panel",
+  "errors": 0
+ },
+ "wt G35-39 off": {
+  "den/wicker 🧗": "idle,idle,idle,idle",
+  "storage/shades 🎩": "cheer,cheer,cheer,cheer",
+  "living/miles 🤗 (crying)": "idle,idle,idle,idle",
+  "living/miles 🤗 (nappy)": "anim,idle,anim,idle",
+  "living/miles ✋": "idle,anim,idle,idle",
+  "living/miles ✋ (fort)": "idle,idle,anim,anim",
+  "dining/mommy 📱": "idle,idle+panel,idle+panel,idle",
+  "dining/mommy 📱 (dish)": "idle,sad+panel,idle+panel,sad",
+  "errors": 0
+ }
+}

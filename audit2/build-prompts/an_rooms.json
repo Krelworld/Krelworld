@@ -1,0 +1,64 @@
+{
+ "runs": {
+  "on": 24,
+  "off": 24
+ },
+ "mins": {
+  "on": 360.0000666665546,
+  "off": 360.0001899998881
+ },
+ "agg": {
+  "on": {
+   "main": {
+    "wish": 44,
+    "req": 4
+   },
+   "upstairs": {
+    "wish": 17,
+    "req": 1
+   },
+   "basement": {
+    "wish": 7,
+    "req": 1
+   },
+   "backyard": {
+    "wish": 10,
+    "req": 0
+   },
+   "pool": {
+    "wish": 11,
+    "req": 0
+   },
+   "main(yard)": {
+    "wish": 16,
+    "req": 0
+   }
+  },
+  "off": {
+   "main": {
+    "wish": 42,
+    "req": 6
+   },
+   "upstairs": {
+    "wish": 17,
+    "req": 2
+   },
+   "basement": {
+    "wish": 7,
+    "req": 2
+   },
+   "backyard": {
+    "wish": 9,
+    "req": 0
+   },
+   "pool": {
+    "wish": 11,
+    "req": 0
+   },
+   "main(yard)": {
+    "wish": 15,
+    "req": 1
+   }
+  }
+ }
+}

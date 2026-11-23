@@ -1,0 +1,203 @@
+{
+ "G33 shelf land": [
+  "open {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "pickUp {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"◀️\"}",
+  "putBack(top) {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "startMove {\"btn\":\"◀️\",\"mode\":\"move\",\"xFloat\":\"◀️\"}",
+  "dropAt(empty 6) {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "slot6 now lego",
+  "startMove2 {\"btn\":\"◀️\",\"mode\":\"move\",\"xFloat\":\"◀️\"}",
+  "swap(1) {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "startMove3 {\"btn\":\"◀️\",\"mode\":\"move\",\"xFloat\":\"◀️\"}",
+  "endMove(top) {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "pickUp(2) {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"◀️\"}",
+  "rotated {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"-\"}",
+  "rotatedBack {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"◀️\"}",
+  "xFloat in hero {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "move (xFloat shows) {\"btn\":\"◀️\",\"mode\":\"move\",\"xFloat\":\"◀️\"}",
+  "xFloat in move {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "pickUp(0) {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"◀️\"}",
+  "tapsToLeaveFromHero 2",
+  "bin ask: ❓ {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"◀️\"}",
+  "bin confirmed {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "count 4 -> 3",
+  "takeDown -> shelf false, table false"
+ ],
+ "G33 shelf errors land": [],
+ "G33 shelf port": [
+  "open {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"-\"}",
+  "pickUp {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"-\"}",
+  "putBack(top) {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"-\"}",
+  "startMove {\"btn\":\"◀️\",\"mode\":\"move\",\"xFloat\":\"-\"}",
+  "dropAt(empty 6) {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"-\"}",
+  "slot6 now lego",
+  "startMove2 {\"btn\":\"◀️\",\"mode\":\"move\",\"xFloat\":\"-\"}",
+  "swap(1) {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"-\"}",
+  "startMove3 {\"btn\":\"◀️\",\"mode\":\"move\",\"xFloat\":\"-\"}",
+  "endMove(top) {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"-\"}",
+  "pickUp(2) {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"-\"}",
+  "rotated {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"◀️\"}",
+  "rotatedBack {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"-\"}",
+  "pickUp(0) {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"-\"}",
+  "tapsToLeaveFromHero 1",
+  "bin ask: ❓ {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"-\"}",
+  "bin confirmed {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"-\"}",
+  "count 4 -> 3",
+  "takeDown -> shelf false, table false"
+ ],
+ "G33 shelf errors port": [],
+ "G33 shelf landSmall": [
+  "open {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "pickUp {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"◀️\"}",
+  "putBack(top) {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "startMove {\"btn\":\"◀️\",\"mode\":\"move\",\"xFloat\":\"◀️\"}",
+  "dropAt(empty 6) {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "slot6 now lego",
+  "startMove2 {\"btn\":\"◀️\",\"mode\":\"move\",\"xFloat\":\"◀️\"}",
+  "swap(1) {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "startMove3 {\"btn\":\"◀️\",\"mode\":\"move\",\"xFloat\":\"◀️\"}",
+  "endMove(top) {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "pickUp(2) {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"◀️\"}",
+  "rotated {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"-\"}",
+  "rotatedBack {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"◀️\"}",
+  "xFloat in hero {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "move (xFloat shows) {\"btn\":\"◀️\",\"mode\":\"move\",\"xFloat\":\"◀️\"}",
+  "xFloat in move {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "pickUp(0) {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"◀️\"}",
+  "tapsToLeaveFromHero 2",
+  "bin ask: ❓ {\"btn\":\"◀️\",\"mode\":\"hero\",\"xFloat\":\"◀️\"}",
+  "bin confirmed {\"btn\":\"❌\",\"mode\":\"shelf\",\"xFloat\":\"❌\"}",
+  "count 4 -> 3",
+  "takeDown -> shelf false, table false"
+ ],
+ "G33 shelf errors landSmall": [],
+ "pendingFlow": {
+  "keepShown": true,
+  "shelf": true,
+  "pending": "lego",
+  "g": {
+   "btn": "❌",
+   "mode": "shelf",
+   "xFloat": "❌"
+  },
+  "storage": 3396,
+  "afterX": {
+   "shelf": false,
+   "builderBack": true,
+   "count": 8
+  }
+ },
+ "pending errors": [],
+ "pendingFlow off": {
+  "keepShown": true,
+  "shelf": true,
+  "pending": "lego",
+  "g": {
+   "btn": "❌",
+   "mode": "shelf",
+   "xFloat": "❌"
+  },
+  "storage": 3396,
+  "afterX": {
+   "shelf": false,
+   "builderBack": true,
+   "count": 8
+  }
+ },
+ "pending errorsG33,G34": [],
+ "G34 wave n=0": {
+  "n": 0,
+  "count": 0,
+  "storageSame": true,
+  "countSame": true,
+  "slots": 0,
+  "sounds": 1,
+  "movingFrom": null,
+  "movingTo": null,
+  "movingFrames": 0
+ },
+ "G34 wave n=1": {
+  "n": 1,
+  "count": 1,
+  "storageSame": true,
+  "countSame": true,
+  "slots": 1,
+  "sounds": 1,
+  "movingFrom": 444,
+  "movingTo": 750,
+  "movingFrames": 7
+ },
+ "G34 wave n=7": {
+  "n": 7,
+  "count": 7,
+  "storageSame": true,
+  "countSame": true,
+  "slots": 7,
+  "sounds": 1,
+  "movingFrom": 430,
+  "movingTo": 1597,
+  "movingFrames": 62
+ },
+ "G34 wave n=8": {
+  "n": 8,
+  "count": 8,
+  "storageSame": true,
+  "countSame": true,
+  "slots": 8,
+  "sounds": 1,
+  "movingFrom": 440,
+  "movingTo": 1720,
+  "movingFrames": 58
+ },
+ "G34 tap mid-hop": {
+  "btn": "◀️",
+  "mode": "hero",
+  "xFloat": "◀️"
+ },
+ "G34 errors": [],
+ "G34 wave off n=0": {
+  "n": 0,
+  "count": 0,
+  "storageSame": true,
+  "countSame": true,
+  "slots": 0,
+  "sounds": 1,
+  "movingFrom": null,
+  "movingTo": null,
+  "movingFrames": 0
+ },
+ "G34 wave off n=1": {
+  "n": 1,
+  "count": 1,
+  "storageSame": true,
+  "countSame": true,
+  "slots": 1,
+  "sounds": 1,
+  "movingFrom": null,
+  "movingTo": null,
+  "movingFrames": 0
+ },
+ "G34 wave off n=7": {
+  "n": 7,
+  "count": 7,
+  "storageSame": true,
+  "countSame": true,
+  "slots": 7,
+  "sounds": 1,
+  "movingFrom": null,
+  "movingTo": null,
+  "movingFrames": 0
+ },
+ "G34 wave off n=8": {
+  "n": 8,
+  "count": 8,
+  "storageSame": true,
+  "countSame": true,
+  "slots": 8,
+  "sounds": 1,
+  "movingFrom": null,
+  "movingTo": null,
+  "movingFrames": 0
+ },
+ "G34 errorsG34": []
+}

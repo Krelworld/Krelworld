@@ -1,0 +1,198 @@
+{
+ "portSmall foyer up": {
+  "text": "⬆️💺",
+  "box": [
+   188,
+   171,
+   375,
+   389
+  ],
+  "inViewport": true,
+  "inStage": true,
+  "marinaMid": [
+   180,
+   295
+  ],
+  "transform": "matrix(1, 0, 0, 1, 0, 0)"
+ },
+ "portSmall uphall down": {
+  "text": "⬇️🚪",
+  "box": [
+   188,
+   171,
+   375,
+   389
+  ],
+  "inViewport": true,
+  "inStage": true,
+  "marinaMid": [
+   221,
+   295
+  ],
+  "transform": "matrix(1, 0, 0, 1, 0, 0)"
+ },
+ "portSmall kitchen down": {
+  "text": "⬇️🛋️",
+  "box": [
+   281,
+   280,
+   281,
+   280
+  ],
+  "inViewport": true,
+  "inStage": true,
+  "marinaMid": [
+   185,
+   295
+  ],
+  "transform": "matrix(0, 0, 0, 0, 0, 0)"
+ },
+ "portSmall errors": [],
+ "port foyer up": {
+  "text": "⬆️💺",
+  "box": [
+   195,
+   178,
+   390,
+   396
+  ],
+  "inViewport": true,
+  "inStage": true,
+  "marinaMid": [
+   187,
+   306
+  ],
+  "transform": "matrix(1, 0, 0, 1, 0, 0)"
+ },
+ "port uphall down": {
+  "text": "⬇️🚪",
+  "box": [
+   195,
+   178,
+   390,
+   396
+  ],
+  "inViewport": true,
+  "inStage": true,
+  "marinaMid": [
+   228,
+   306
+  ],
+  "transform": "matrix(1, 0, 0, 1, 0, 0)"
+ },
+ "port kitchen down": {
+  "text": "⬇️🛋️",
+  "box": [
+   195,
+   178,
+   390,
+   396
+  ],
+  "inViewport": true,
+  "inStage": true,
+  "marinaMid": [
+   187,
+   306
+  ],
+  "transform": "matrix(1, 0, 0, 1, 0, 0)"
+ },
+ "port errors": [],
+ "landSmall foyer up": {
+  "text": "⬆️💺",
+  "box": [
+   334,
+   150,
+   558,
+   259
+  ],
+  "inViewport": true,
+  "inStage": true,
+  "marinaMid": [
+   294,
+   240
+  ],
+  "transform": "matrix(1, 0, 0, 1, 0, 0)"
+ },
+ "landSmall uphall down": {
+  "text": "⬇️🚪",
+  "box": [
+   334,
+   150,
+   558,
+   259
+  ],
+  "inViewport": true,
+  "inStage": true,
+  "marinaMid": [
+   450,
+   240
+  ],
+  "transform": "matrix(1, 0, 0, 1, 0, 0)"
+ },
+ "landSmall kitchen down": {
+  "text": "⬇️🛋️",
+  "box": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "inViewport": true,
+  "inStage": true,
+  "marinaMid": [
+   293,
+   240
+  ],
+  "transform": ""
+ },
+ "landSmall errors": [],
+ "land foyer up": {
+  "text": "⬆️💺",
+  "box": [
+   425,
+   158,
+   643,
+   263
+  ],
+  "inViewport": true,
+  "inStage": true,
+  "marinaMid": [
+   308,
+   249
+  ],
+  "transform": "matrix(0.969413, 0, 0, 0.969413, 0, 0)"
+ },
+ "land uphall down": {
+  "text": "⬇️🚪",
+  "box": [
+   422,
+   156,
+   647,
+   265
+  ],
+  "inViewport": true,
+  "inStage": true,
+  "marinaMid": [
+   606,
+   249
+  ],
+  "transform": "matrix(1, 0, 0, 1, 0, 0)"
+ },
+ "land kitchen down": {
+  "text": "⬇️🛋️",
+  "box": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "inViewport": true,
+  "inStage": true,
+  "marinaMid": [
+   323,
+   249
+  ],
+  "transform": ""
+ },
+ "land errors": []
+}

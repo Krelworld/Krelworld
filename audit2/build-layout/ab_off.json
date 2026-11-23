@@ -1,0 +1,29 @@
+{
+ "rows": [
+  "obj den/wicker | ounozi#1",
+  "obj kitchen/stool1 | 1a3zqcq#1",
+  "obj storage/shades | 1bu00z4#1",
+  "who miles :: crying | jy3ac3#1",
+  "who miles :: normal | jy3ac3#1",
+  "who miles :: normal | qpltx4#1",
+  "who mommy :: normal | 8y7uyb#1"
+ ],
+ "HEAD": {
+  "obj den/wicker | ounozi": "- , - , - , -",
+  "obj kitchen/stool1 | 1a3zqcq": "state:sit , - , state:sit , -",
+  "obj storage/shades | 1bu00z4": "state:cheer , state:cheer , state:cheer , state:cheer",
+  "who miles :: crying | jy3ac3": "state:anim , - , - , state:anim",
+  "who miles :: normal | jy3ac3": "- , - , state:anim , -",
+  "who miles :: normal | qpltx4": "state:anim , state:anim , state:anim , -",
+  "who mommy :: normal | 8y7uyb": "- , - , - , -"
+ },
+ "WT": {
+  "obj den/wicker | ounozi": "- , - , - , -",
+  "obj kitchen/stool1 | 1a3zqcq": "state:sit , - , - , state:sit",
+  "obj storage/shades | 1bu00z4": "state:cheer , state:cheer , state:cheer , state:cheer",
+  "who miles :: crying | jy3ac3": "state:anim , - , - , state:anim",
+  "who miles :: normal | jy3ac3": "- , - , - , -",
+  "who miles :: normal | qpltx4": "- , - , - , state:anim",
+  "who mommy :: normal | 8y7uyb": "- , - , - , -"
+ }
+}

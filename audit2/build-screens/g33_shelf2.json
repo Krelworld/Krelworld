@@ -1,0 +1,46 @@
+{
+ "on": {
+  "hero": {
+   "btn": "◀️",
+   "mode": "hero",
+   "xFloat": "-"
+  },
+  "tapsToLeave": 2,
+  "takeDown": {
+   "shelf": false,
+   "table": true,
+   "room": "den",
+   "panel": true,
+   "bricksSaved": true
+  },
+  "fullPending": {
+   "open": true,
+   "pending": "lego",
+   "changes": 135,
+   "frames": 240
+  },
+  "errors": []
+ },
+ "G33,G34": {
+  "hero": {
+   "btn": "❌",
+   "mode": "hero",
+   "xFloat": "-"
+  },
+  "tapsToLeave": 2,
+  "takeDown": {
+   "shelf": false,
+   "table": true,
+   "room": "den",
+   "panel": true,
+   "bricksSaved": true
+  },
+  "fullPending": {
+   "open": true,
+   "pending": "lego",
+   "changes": 153,
+   "frames": 267
+  },
+  "errors": []
+ }
+}

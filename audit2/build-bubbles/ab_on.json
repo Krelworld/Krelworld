@@ -1,0 +1,78 @@
+{
+ "HEAD": {
+  "menu :: gymnastics | qfx49l#3": [
+   "(none)",
+   "(none)",
+   "(none)",
+   "(none)"
+  ],
+  "obj den/wicker | ounozi#1": [
+   "state:\"idle\"→\"perch\"",
+   "state:\"idle\"→\"perch\"",
+   "state:\"idle\"→\"perch\"",
+   "state:\"idle\"→\"perch\""
+  ],
+  "obj kitchen/stool1 | ounozi#1": [
+   "(none)",
+   "state:\"idle\"→\"perch\"",
+   "(none)",
+   "(none)"
+  ],
+  "obj storage/shades | 1bu00z4#1": [
+   "state:\"idle\"→\"cheer\"",
+   "state:\"idle\"→\"cheer\"",
+   "state:\"idle\"→\"cheer\"",
+   "state:\"idle\"→\"cheer\""
+  ],
+  "who miles :: Marina holding a nice dish | qpltx4#1": [
+   "state:\"idle\"→\"anim\"",
+   "state:\"idle\"→\"anim\"",
+   "state:\"idle\"→\"anim\"",
+   "state:\"idle\"→\"anim\""
+  ],
+  "who miles :: normal | jy3ac3#1": [
+   "state:\"idle\"→\"anim\"",
+   "state:\"idle\"→\"anim\"",
+   "state:\"idle\"→\"anim\"",
+   "state:\"idle\"→\"anim\""
+  ]
+ },
+ "bubbles": {
+  "menu :: gymnastics | qfx49l#3": [
+   "(none)",
+   "(none)",
+   "(none)",
+   "state:\"idle\"→\"anim\""
+  ],
+  "obj den/wicker | ounozi#1": [
+   "state:\"idle\"→\"perch\"",
+   "state:\"idle\"→\"perch\"",
+   "state:\"idle\"→\"perch\"",
+   "state:\"idle\"→\"perch\""
+  ],
+  "obj kitchen/stool1 | ounozi#1": [
+   "state:\"idle\"→\"perch\"",
+   "(none)",
+   "(none)",
+   "state:\"idle\"→\"perch\""
+  ],
+  "obj storage/shades | 1bu00z4#1": [
+   "state:\"idle\"→\"cheer\"",
+   "state:\"idle\"→\"cheer\"",
+   "state:\"idle\"→\"cheer\"",
+   "state:\"idle\"→\"cheer\""
+  ],
+  "who miles :: Marina holding a nice dish | qpltx4#1": [
+   "(none)",
+   "state:\"idle\"→\"anim\"",
+   "state:\"idle\"→\"anim\"",
+   "state:\"idle\"→\"anim\""
+  ],
+  "who miles :: normal | jy3ac3#1": [
+   "(none)",
+   "(none)",
+   "state:\"idle\"→\"anim\"",
+   "state:\"idle\"→\"anim\""
+  ]
+ }
+}

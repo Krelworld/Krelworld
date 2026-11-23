@@ -1,0 +1,43 @@
+{
+ "g29_on_port": {
+  "room": "den",
+  "paws": [
+   "1@364",
+   "1@357"
+  ],
+  "camX": 228,
+  "viewW": 158
+ },
+ "g29_on_land": {
+  "room": "den",
+  "paws": [
+   "1@465",
+   "1@458"
+  ],
+  "camX": 151,
+  "viewW": 336
+ },
+ "g2_on": {
+  "acts": 0,
+  "back": 0
+ },
+ "g29_off_port": {
+  "room": "den",
+  "paws": [
+   "1@364",
+   "1@357"
+  ],
+  "camX": 228,
+  "viewW": 158
+ },
+ "g29_off_land": {
+  "room": "den",
+  "paws": [],
+  "camX": 151,
+  "viewW": 336
+ },
+ "g2_off": {
+  "acts": 2,
+  "back": 1
+ }
+}

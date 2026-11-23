@@ -1,0 +1,183 @@
+{
+ "nappy": {
+  "at1s": {
+   "born": "12992.40000000596",
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 66,
+   "h": 66,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "3a1xi"
+  },
+  "at16s": {
+   "born": "12992.40000000596",
+   "settled": true,
+   "anim": "none:-",
+   "w": 66,
+   "h": 66,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "3a1xi"
+  },
+  "sameLook": true
+ },
+ "room": {
+  "at07": {
+   "born": "12992.40000000596",
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 73,
+   "h": 73,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "3a1xi"
+  },
+  "at32": {
+   "born": "12992.40000000596",
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 77,
+   "h": 77,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "3a1xi"
+  },
+  "at54": {
+   "born": "12992.40000000596",
+   "settled": true,
+   "anim": "none:-",
+   "w": 66,
+   "h": 66,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "3a1xi"
+  }
+ },
+ "screen": {
+  "during": null,
+  "after1": {
+   "born": "38328.30000000447",
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 77,
+   "h": 77,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "9yg4h"
+  },
+  "after16": {
+   "born": "38328.30000000447",
+   "settled": true,
+   "anim": "none:-",
+   "w": 66,
+   "h": 66,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "9yg4h"
+  }
+ },
+ "tapSettled": {
+  "wasSettled": true,
+  "room": "living",
+  "nearMiles": true,
+  "ring": "🧷🍼🤗✋"
+ },
+ "tp": {
+  "born": "58227.90000000596",
+  "settled": false,
+  "anim": "pulse:running",
+  "w": 77,
+  "h": 77,
+  "html": "🧻<i>🚽</i>",
+  "bg": "rgb(255, 107, 107)",
+  "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+  "node": "ncdrk",
+  "badge": "🚽"
+ },
+ "tpFlow": {
+  "ms": 7372,
+  "need": false,
+  "locked": false,
+  "room": "foyer",
+  "hold": null
+ },
+ "green": {
+  "picgive": "rgb(123, 224, 123) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px",
+  "pickeep": "rgb(255, 255, 255) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px",
+  "pbin": "rgb(123, 224, 123) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px",
+  "pflush": "rgb(123, 224, 123) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px",
+  "down": "rgb(123, 224, 123) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px"
+ },
+ "settledShake": {
+  "settled": true,
+  "opacity": "0.45",
+  "mid": {
+   "anim": "none",
+   "translate": "4px",
+   "waapi": 1
+  }
+ },
+ "arrSample": [
+  {
+   "side": "l",
+   "off": false,
+   "arrive": false,
+   "rect": "0,179,56,86",
+   "anim": "none",
+   "iT": "none"
+  },
+  {
+   "side": "r",
+   "off": false,
+   "arrive": false,
+   "rect": "714,179,56,86",
+   "anim": "none",
+   "iT": "none"
+  }
+ ],
+ "arrows": [
+  {
+   "side": "l",
+   "samples": 29,
+   "rects": [
+    "0,179,56,86"
+   ],
+   "anims": [
+    "none"
+   ],
+   "arriveSeen": 23,
+   "iMoves": 23,
+   "iNoneAfter": "none",
+   "arriveAtEnd": false
+  },
+  {
+   "side": "r",
+   "samples": 29,
+   "rects": [
+    "714,179,56,86"
+   ],
+   "anims": [
+    "none"
+   ],
+   "arriveSeen": 23,
+   "iMoves": 23,
+   "iNoneAfter": "none",
+   "arriveAtEnd": false
+  }
+ ],
+ "hide": {
+  "busy": "true:0 true:0",
+  "tidy": "true:0 true:0",
+  "tantrum": "true:0.0753648 true:0.0753648",
+  "idle": "false:1:none false:1:none"
+ },
+ "errors": []
+}

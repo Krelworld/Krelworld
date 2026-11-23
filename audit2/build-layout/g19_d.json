@@ -1,0 +1,154 @@
+{
+ "land TODAY": {
+  "rightEnd": {
+   "roomEndPx": 763,
+   "stageW": 844,
+   "camX": 736.5,
+   "viewW": 335.8,
+   "endUnder": "cv"
+  },
+  "rings": [
+   "tr_dogwood: ringRight 752 stageRight 844 barLeft 768 nudge idle",
+   "tr_willow: ringRight 603 stageRight 844 barLeft 763 nudge idle",
+   "tr_maple: ringRight 750 stageRight 844 barLeft 771 nudge idle",
+   "tr_spruce: ringRight 765 stageRight 844 barLeft 773 nudge idle",
+   "oak: ringRight 765 stageRight 844 barLeft 773 nudge idle",
+   "pine: ringRight 549 stageRight 844 barLeft 773 nudge idle"
+  ],
+  "deer": {
+   "side": -1,
+   "x": 751,
+   "phase": "enter",
+   "points": "cv,cv,cv,cv,cv"
+  },
+  "turkey": {
+   "side": 1,
+   "x": 265,
+   "y": 86,
+   "points": "cv,cv,cv,cv,cv"
+  },
+  "minka": {
+   "covered": [
+    "den@0.5 shelf centre fl ring cv,,floorpill,fl",
+    "storage@0.02 boxes centre cv ring cv,cv,rb,cv"
+   ],
+   "shown": 36
+  },
+  "errors": []
+ },
+ "land G19": {
+  "rightEnd": {
+   "roomEndPx": 761,
+   "stageW": 767,
+   "camX": 737.2,
+   "viewW": 305.2,
+   "endUnder": "cv"
+  },
+  "rings": [
+   "tr_dogwood: ringRight 751 stageRight 767 barLeft 766 nudge idle",
+   "tr_willow: ringRight 603 stageRight 767 barLeft 763 nudge idle",
+   "tr_maple: ringRight 242 stageRight 767 barLeft 772 nudge idle",
+   "tr_spruce: ringRight 242 stageRight 767 barLeft 773 nudge idle",
+   "oak: ringRight 420 stageRight 767 barLeft 773 nudge idle",
+   "pine: ringRight 548 stageRight 767 barLeft 773 nudge idle"
+  ],
+  "deer": {
+   "side": -1,
+   "x": 751,
+   "phase": "enter",
+   "points": "cv,cv,cv,cv,cv"
+  },
+  "turkey": {
+   "side": 1,
+   "x": 234,
+   "y": 86,
+   "points": "cv,cv,cv,cv,cv"
+  },
+  "minka": {
+   "covered": [
+    "den@0.5 shelf centre fl ring cv,,floorpill,fl",
+    "storage@0.02 boxes centre cv ring cv,cv,rb,cv"
+   ],
+   "shown": 36
+  },
+  "errors": []
+ },
+ "landSmall TODAY": {
+  "rightEnd": {
+   "roomEndPx": 585,
+   "stageW": 667,
+   "camX": 797.9,
+   "viewW": 276,
+   "endUnder": "cv"
+  },
+  "rings": [
+   "tr_dogwood: ringRight 581 stageRight 667 barLeft 586 NUDGE-MOVES",
+   "tr_willow: ringRight 512 stageRight 667 barLeft 595 nudge idle",
+   "tr_maple: ringRight 242 stageRight 667 barLeft 590 nudge idle",
+   "tr_spruce: ringRight 242 stageRight 667 barLeft 598 nudge idle",
+   "oak: ringRight 331 stageRight 667 barLeft 598 nudge idle",
+   "pine: ringRight 380 stageRight 667 barLeft 598 nudge idle"
+  ],
+  "deer": {
+   "side": -1,
+   "x": 812,
+   "phase": "enter",
+   "points": "cv,cv,cv,cv,cv"
+  },
+  "turkey": {
+   "side": 1,
+   "x": 202,
+   "y": 86,
+   "points": "cv,cv,cv,cv,cv"
+  },
+  "minka": {
+   "covered": [
+    "den@0.5 sofa centre cv ring cv,navarrow,cv,cv",
+    "den@0.98 sofa centre  ring navarrow,,,",
+    "storage@0.02 boxes centre cv ring cv,cv,rb,cv",
+    "laundry@0.98 dryer centre say ring say,cv,say,cv",
+    "nunuroom@0.5 ntotes centre cv ring cv,moodbar,cv,cv"
+   ],
+   "shown": 31
+  },
+  "errors": []
+ },
+ "landSmall G19": {
+  "rightEnd": {
+   "roomEndPx": 586,
+   "stageW": 592,
+   "camX": 797.5,
+   "viewW": 245,
+   "endUnder": "cv"
+  },
+  "rings": [
+   "tr_dogwood: ringRight 582 stageRight 592 barLeft 593 nudge idle",
+   "tr_willow: ringRight 479 stageRight 592 barLeft 597 nudge idle",
+   "tr_maple: ringRight 242 stageRight 592 barLeft 585 nudge idle",
+   "tr_spruce: ringRight 343 stageRight 592 barLeft 598 nudge idle",
+   "oak: ringRight 337 stageRight 592 barLeft 598 nudge idle",
+   "pine: ringRight 381 stageRight 592 barLeft 598 nudge idle"
+  ],
+  "deer": {
+   "side": -1,
+   "x": 812,
+   "phase": "enter",
+   "points": "cv,cv,cv,cv,cv"
+  },
+  "turkey": {
+   "side": 1,
+   "x": 171,
+   "y": 86,
+   "points": "cv,cv,cv,cv,cv"
+  },
+  "minka": {
+   "covered": [
+    "den@0.5 sofa centre cv ring cv,navarrow,cv,cv",
+    "den@0.98 sofa centre  ring navarrow,,,",
+    "storage@0.02 boxes centre cv ring cv,cv,rb,cv"
+   ],
+   "shown": 30
+  },
+  "errors": []
+ }
+}

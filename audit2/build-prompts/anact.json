@@ -1,0 +1,272 @@
+{
+ "basement_act-lego_8m_port_s2": {
+  "off2": {
+   "wish": 1,
+   "req": null,
+   "alert": null,
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 236,
+   "req": null,
+   "alert": null,
+   "wishesAfter": 1,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "basement_act-movie_8m_port_s2": {
+  "off2": {
+   "wish": 2.2,
+   "req": null,
+   "alert": null,
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 134.9,
+   "req": null,
+   "alert": null,
+   "wishesAfter": 1,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "main_act-cook_8m_port_s2": {
+  "off2": {
+   "wish": 1.8,
+   "req": null,
+   "alert": "96.5 miles",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 81.8,
+   "req": 141.8,
+   "alert": "19.8 miles",
+   "wishesAfter": 1,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "main_act-cook_8m_port_s5": {
+  "off2": {
+   "wish": 2,
+   "req": null,
+   "alert": "96.8 miles",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 164,
+   "req": 8,
+   "alert": "103 miles",
+   "wishesAfter": 1,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "main_act-draw_8m_port_s2": {
+  "off2": {
+   "wish": 1.5,
+   "req": 61.5,
+   "alert": "156.2 miles",
+   "wishesAfter": 1,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 81.5,
+   "req": 141.5,
+   "alert": "20 miles",
+   "wishesAfter": 1,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "main_act-draw_8m_port_s5": {
+  "off2": {
+   "wish": 2,
+   "req": 218,
+   "alert": "97 miles",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 80.5,
+   "req": 140.5,
+   "alert": "20 miles",
+   "wishesAfter": 1,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "main_act-dress_8m_port_s2": {
+  "off2": {
+   "wish": 1.8,
+   "req": 217.8,
+   "alert": "96.3 miles",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 82,
+   "req": 142,
+   "alert": "20 miles",
+   "wishesAfter": 1,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "main_act-story_8m_port_s2": {
+  "off2": {
+   "wish": 1.5,
+   "req": 61.5,
+   "alert": "156.5 miles",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 80.5,
+   "req": null,
+   "alert": "20 miles",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "main_act-swing_8m_port_s2": {
+  "off2": {
+   "wish": 54.5,
+   "req": null,
+   "alert": "0.2 miles,poop",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 31.5,
+   "req": null,
+   "alert": "0.3 poop",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "main_act-tv_8m_port_s2": {
+  "off2": {
+   "wish": null,
+   "req": null,
+   "alert": "39.3 nappy",
+   "wishesAfter": 0,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": null,
+   "req": null,
+   "alert": "20 miles",
+   "wishesAfter": 0,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "outside_act-build_8m_port_s2": {
+  "off2": {
+   "wish": 0.5,
+   "req": null,
+   "alert": null,
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 86.2,
+   "req": null,
+   "alert": "19.7 miles",
+   "wishesAfter": 1,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "outside_act-pool_8m_port_s2": {
+  "off2": {
+   "wish": 1.8,
+   "req": null,
+   "alert": "96.5 miles",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 81,
+   "req": null,
+   "alert": "20 miles",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "outside_act-tree_8m_port_s2": {
+  "off2": {
+   "wish": 2,
+   "req": null,
+   "alert": "112.3 miles",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 121.5,
+   "req": null,
+   "alert": "20 miles",
+   "wishesAfter": 1,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "upstairs_act-spa_8m_port_s2": {
+  "off2": {
+   "wish": 0.3,
+   "req": null,
+   "alert": "94.8 miles",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 81.3,
+   "req": null,
+   "alert": "20 miles",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  }
+ },
+ "upstairs_act-stuffies_8m_port_s2": {
+  "off2": {
+   "wish": 1.8,
+   "req": 217.7,
+   "alert": "96.5 miles",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  },
+  "on2": {
+   "wish": 80.8,
+   "req": null,
+   "alert": "19.8 miles",
+   "wishesAfter": 2,
+   "post": 240,
+   "errors": 0
+  }
+ }
+}

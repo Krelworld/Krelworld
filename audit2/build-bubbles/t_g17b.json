@@ -1,0 +1,9737 @@
+{
+ "port": {
+  "sweep": [
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:785",
+     "🍽️xfl.down[downstairs]:433"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:1514",
+     "🍽️xfl.down[downstairs]:835"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:2168",
+     "🍽️xfl.down[downstairs]:1196"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 44,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 25,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.85,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.9,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 1,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:59",
+     "🍽️xfl.down[downstairs]:966"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:113",
+     "🍽️xfl.down[downstairs]:1863"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:163",
+     "🍽️xfl.down[downstairs]:2668"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 44,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 25,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.85,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.9,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 1,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xnavarrow.l[room to the left]:491",
+     "🍽️xfl.down[downstairs]:383"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xnavarrow.l[room to the left]:851",
+     "🍽️xfl.down[downstairs]:738"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xnavarrow.l[room to the left]:869",
+     "🍽️xfl.down[downstairs]:1057"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 44,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 25,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.8,
+    "hints": 1,
+    "dx": -15,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.85,
+    "hints": 1,
+    "dx": -34,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.9,
+    "hints": 1,
+    "dx": -53,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xnavarrow.r[room to the right]:917"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xnavarrow.r[room to the right]:527"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:785",
+     "🎁xfl.down[downstairs]:433"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:1514",
+     "🎁xfl.down[downstairs]:835"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:2168",
+     "🎁xfl.down[downstairs]:1196"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:1514",
+     "🎁xfl.down[downstairs]:835"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:785",
+     "🎁xfl.down[downstairs]:433"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:533",
+     "🎁xfl.up[upstairs]:56",
+     "🎁xfl.down[downstairs]:31"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:1186"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.35,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:2256"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.4,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:3294"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.45,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:2384",
+     "🎁xalertb[pickeep]:308"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:1251",
+     "🎁xalertb[pickeep]:1232"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:633",
+     "🎁xalertb[pickeep]:2156"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:2938"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:2061"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:1137"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:213"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.85,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.9,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:59",
+     "🎁xfl.down[downstairs]:966"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:113",
+     "🎁xfl.down[downstairs]:1863"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:163",
+     "🎁xfl.down[downstairs]:2668"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:113",
+     "🎁xfl.down[downstairs]:1863"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:59",
+     "🎁xfl.down[downstairs]:966"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:111",
+     "🎁xfl.up[upstairs]:4",
+     "🎁xfl.down[downstairs]:69"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:309"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.35,
+    "hints": 2,
+    "dx": -8,
+    "hits": [
+     "🎁xalertb[picgive]:660"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.4,
+    "hints": 2,
+    "dx": -17,
+    "hits": [
+     "🎁xalertb[picgive]:932"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.45,
+    "hints": 2,
+    "dx": -27,
+    "hits": [
+     "🎁xalertb[picgive]:754"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 29,
+    "hits": [
+     "🎁xalertb[pickeep]:704"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 19,
+    "hits": [
+     "🎁xalertb[pickeep]:794"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 10,
+    "hits": [
+     "🎁xalertb[pickeep]:685"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:557"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:307"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:58"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.85,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.9,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xnavarrow.l[room to the left]:550",
+     "🎁xfl.down[downstairs]:383"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xnavarrow.l[room to the left]:863",
+     "🎁xfl.down[downstairs]:738"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xnavarrow.l[room to the left]:907",
+     "🎁xfl.down[downstairs]:1057"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 44,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 25,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 5,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.35,
+    "hints": 2,
+    "dx": -10,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.4,
+    "hints": 2,
+    "dx": -17,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.45,
+    "hints": 2,
+    "dx": -27,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 29,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 19,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 10,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.8,
+    "hints": 2,
+    "dx": -15,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.85,
+    "hints": 2,
+    "dx": -34,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.9,
+    "hints": 2,
+    "dx": -52,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xnavarrow.r[room to the right]:910"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xnavarrow.r[room to the right]:524"
+    ],
+    "inStage": false
+   }
+  ],
+  "pair": [
+   {
+    "gapW": 40,
+    "kind": "dish",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      -75,
+      148
+     ],
+     [
+      -174,
+      193
+     ]
+    ],
+    "people": [
+     -174,
+     -75
+    ],
+    "tappedGoesTo": "none:m_hewe,none:"
+   },
+   {
+    "gapW": 40,
+    "kind": "pic",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      114,
+      148
+     ],
+     [
+      15,
+      193
+     ]
+    ],
+    "people": [
+     15,
+     114
+    ],
+    "tappedGoesTo": "daddy,mommy"
+   },
+   {
+    "gapW": 50,
+    "kind": "dish",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      15,
+      148
+     ],
+     [
+      -108,
+      193
+     ]
+    ],
+    "people": [
+     -108,
+     15
+    ],
+    "tappedGoesTo": "none:m_hewe,none:m_hewe"
+   },
+   {
+    "gapW": 50,
+    "kind": "pic",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      35,
+      148
+     ],
+     [
+      -88,
+      193
+     ]
+    ],
+    "people": [
+     -88,
+     35
+    ],
+    "tappedGoesTo": "daddy,none:m_made"
+   },
+   {
+    "gapW": 60,
+    "kind": "dish",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      101,
+      148
+     ],
+     [
+      -94,
+      193
+     ]
+    ],
+    "people": [
+     -94,
+     55
+    ],
+    "tappedGoesTo": "none:m_hewe,none:m_hewe"
+   },
+   {
+    "gapW": 60,
+    "kind": "pic",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      59,
+      148
+     ],
+     [
+      -89,
+      193
+     ]
+    ],
+    "people": [
+     -89,
+     59
+    ],
+    "tappedGoesTo": "daddy,mommy"
+   }
+  ],
+  "heads": [
+   {
+    "who": "daddy",
+    "part": "head",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   },
+   {
+    "who": "daddy",
+    "part": "chest",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   },
+   {
+    "who": "mommy",
+    "part": "head",
+    "topAtPoint": "pichint gift",
+    "ring": ""
+   },
+   {
+    "who": "mommy",
+    "part": "chest",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗📱😜"
+   },
+   {
+    "who": "rory",
+    "part": "head",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   },
+   {
+    "who": "rory",
+    "part": "chest",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   }
+  ],
+  "errors": []
+ },
+ "land": {
+  "sweep": [
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmapBtn:962",
+     "🍽️xfl.up[upstairs]:214"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 61,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 19,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:159"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:1838"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.35,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:939",
+     "🍽️xrb.busy[dining]:1408"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[dining]:1369",
+     "🍽️xrb.busy[kitchen]:1178"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:2057",
+     "🍽️xrb[playroom]:549"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:256",
+     "🍽️xrb[playroom]:1989",
+     "🍽️xrb[foyer]:119"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[playroom]:549",
+     "🍽️xrb[foyer]:1798"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[foyer]:979",
+     "🍽️xrb[living]:1369"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[living]:1408",
+     "🍽️xrb[bathroom]:939"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:1838"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:159"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.85,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.9,
+    "hints": 1,
+    "dx": -41,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:2601",
+     "🍽️xmood[love]:259"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:962",
+     "🍽️xmood[love]:446"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmapBtn:223",
+     "🍽️xfl.up[upstairs]:924"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 61,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 19,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:18"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:213"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:109",
+     "🍽️xrb.busy[dining]:163"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[dining]:158",
+     "🍽️xrb.busy[kitchen]:206"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:361",
+     "🍽️xrb[playroom]:63"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:45",
+     "🍽️xrb[playroom]:230",
+     "🍽️xrb[foyer]:14"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[playroom]:63",
+     "🍽️xrb[foyer]:208"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[foyer]:113",
+     "🍽️xrb[living]:158"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[living]:163",
+     "🍽️xrb[bathroom]:109"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:213"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:18"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.85,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.9,
+    "hints": 1,
+    "dx": -23,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:602",
+     "🍽️xmood[love]:1997"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:223",
+     "🍽️xmood[love]:670"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:534",
+     "🍽️xfl.down[downstairs]:684"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 61,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 19,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 9,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.85,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.9,
+    "hints": 1,
+    "dx": -23,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmood[love]:2180",
+     "🍽️xmood[happy]:709"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmood[love]:731",
+     "🍽️xmood[happy]:238"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2574",
+     "🎁xmapBtn:962",
+     "🎁xfl.up[upstairs]:214"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 61,
+    "hits": [
+     "🖼️xalertb[picgive]:2716"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 19,
+    "hits": [
+     "🖼️xalertb[picgive]:2449"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2683"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2444"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2610",
+     "🎁xrb[yard]:159"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2744",
+     "🎁xrb[yard]:1838"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.35,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2467",
+     "🎁xrb[yard]:939",
+     "🎁xrb.busy[dining]:1408"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.4,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2556",
+     "🎁xrb.busy[dining]:1369",
+     "🎁xrb.busy[kitchen]:1178",
+     "🎁xalertb[picgive]:389"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.45,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2799",
+     "🎁xrb.busy[kitchen]:2057",
+     "🎁xrb[playroom]:549",
+     "🎁xalertb[picgive]:1485"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2610",
+     "🎁xrb.busy[kitchen]:256",
+     "🎁xrb[playroom]:1989",
+     "🎁xrb[foyer]:119",
+     "🎁xalertb[picgive]:600",
+     "🎁xalertb[pickeep]:474"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2449",
+     "🎁xrb[playroom]:549",
+     "🎁xrb[foyer]:1798",
+     "🎁xalertb[pickeep]:1089"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2700",
+     "🎁xrb[foyer]:979",
+     "🎁xrb[living]:1369",
+     "🎁xalertb[pickeep]:321"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2716",
+     "🎁xrb[living]:1408",
+     "🎁xrb[bathroom]:939"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2446",
+     "🎁xrb[bathroom]:1838"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2700",
+     "🎁xrb[bathroom]:159"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2775"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.85,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2486"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.9,
+    "hints": 2,
+    "dx": -23,
+    "hits": [
+     "🖼️xalertb[picgive]:2449"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2799",
+     "🎁xmoodToggle:2601",
+     "🎁xmood[love]:214"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2540",
+     "🎁xmoodToggle:962",
+     "🎁xmood[love]:72"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2629",
+     "🎁xmapBtn:223",
+     "🎁xfl.up[upstairs]:924"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 61,
+    "hits": [
+     "🖼️xalertb[picgive]:2797"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 19,
+    "hits": [
+     "🖼️xalertb[picgive]:2557"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2467"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2755"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2648",
+     "🎁xrb[yard]:18"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2444",
+     "🎁xrb[yard]:213"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.35,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2683",
+     "🎁xrb[yard]:109",
+     "🎁xrb.busy[dining]:163"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.4,
+    "hints": 2,
+    "dx": -10,
+    "hits": [
+     "🖼️xalertb[picgive]:2697",
+     "🎁xrb.busy[dining]:203",
+     "🎁xrb.busy[kitchen]:133",
+     "🎁xalertb[picgive]:794"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.45,
+    "hints": 2,
+    "dx": -31,
+    "hits": [
+     "🖼️xalertb[picgive]:1324",
+     "🖼️xalertb[pickeep]:745",
+     "🎁xrb.busy[dining]:106",
+     "🎁xrb.busy[kitchen]:291",
+     "🎁xalertb[picgive]:1565"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 14,
+    "hits": [
+     "🖼️xalertb[picgive]:2246",
+     "🎁xrb[playroom]:193",
+     "🎁xrb[foyer]:78",
+     "🎁xalertb[picgive]:845",
+     "🎁xalertb[pickeep]:2136"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2789",
+     "🎁xrb[playroom]:63",
+     "🎁xrb[foyer]:208",
+     "🎁xalertb[pickeep]:3193"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2498",
+     "🎁xrb[foyer]:113",
+     "🎁xrb[living]:158",
+     "🎁xalertb[pickeep]:940"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.65,
+    "hints": 3,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2540",
+     "🎁xrb[living]:163",
+     "🎁xrb[bathroom]:109"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2794",
+     "🎁xrb[bathroom]:213"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2541",
+     "🎁xrb[bathroom]:18"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2486"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.85,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2800"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.9,
+    "hints": 2,
+    "dx": -23,
+    "hits": [
+     "🖼️xalertb[picgive]:2574"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2454",
+     "🎁xmoodToggle:602",
+     "🎁xmood[love]:1997"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2789",
+     "🎁xmoodToggle:223",
+     "🎁xmood[love]:670"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2593",
+     "🎁xfl.up[upstairs]:534",
+     "🎁xfl.down[downstairs]:684"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 61,
+    "hits": [
+     "🖼️xalertb[picgive]:2454"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 19,
+    "hits": [
+     "🖼️xalertb[picgive]:2789"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2666"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2444"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2647"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2794"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.35,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2511"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.4,
+    "hints": 2,
+    "dx": -10,
+    "hits": [
+     "🖼️xalertb[picgive]:2200",
+     "🎁xalertb[picgive]:340"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.45,
+    "hints": 2,
+    "dx": -31,
+    "hits": [
+     "🖼️xalertb[picgive]:1746",
+     "🖼️xalertb[pickeep]:745",
+     "🎁xalertb[picgive]:1557"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 14,
+    "hits": [
+     "🖼️xalertb[picgive]:1979",
+     "🎁xalertb[picgive]:478",
+     "🎁xalertb[pickeep]:1577"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2730",
+     "🎁xalertb[pickeep]:2357"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2744",
+     "🎁xalertb[pickeep]:694"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2444"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2628"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2794"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2511"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.85,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2510"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.9,
+    "hints": 2,
+    "dx": -23,
+    "hits": [
+     "🖼️xalertb[picgive]:2797"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2449",
+     "🎁xmood[love]:2180",
+     "🎁xmood[happy]:709"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2766",
+     "🎁xmood[love]:731",
+     "🎁xmood[happy]:238"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmapBtn:962",
+     "🍽️xfl.up[upstairs]:214"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 61,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 19,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:159"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:1838"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:939",
+     "🍽️xrb.busy[dining]:1408"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[dining]:1369",
+     "🍽️xrb.busy[kitchen]:1178"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:2057",
+     "🍽️xrb[playroom]:549"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:256",
+     "🍽️xrb[playroom]:1989",
+     "🍽️xrb[foyer]:119"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[playroom]:549",
+     "🍽️xrb[foyer]:1798"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[foyer]:979",
+     "🍽️xrb[living]:1369"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[living]:1408",
+     "🍽️xrb[bathroom]:939"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:1838"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:159"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.85,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.9,
+    "hints": 1,
+    "dx": -27,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:2601"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:962"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmapBtn:223",
+     "🍽️xfl.up[upstairs]:924"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 61,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 19,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:18"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:213"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:109",
+     "🍽️xrb.busy[dining]:163"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[dining]:158",
+     "🍽️xrb.busy[kitchen]:206"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:361",
+     "🍽️xrb[playroom]:63"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:45",
+     "🍽️xrb[playroom]:230",
+     "🍽️xrb[foyer]:14"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[playroom]:63",
+     "🍽️xrb[foyer]:208"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[foyer]:113",
+     "🍽️xrb[living]:158"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[living]:163",
+     "🍽️xrb[bathroom]:109"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:213"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:18"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.85,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.9,
+    "hints": 1,
+    "dx": -27,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:602"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:223"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:534",
+     "🍽️xfl.down[downstairs]:684"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 61,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 19,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.85,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.9,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2444",
+     "🎁xmapBtn:962",
+     "🎁xfl.up[upstairs]:214"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 61,
+    "hits": [
+     "🖼️xalertb[picgive]:2716"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 19,
+    "hits": [
+     "🖼️xalertb[picgive]:2775"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2460"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2574"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2799",
+     "🎁xrb[yard]:159"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2716",
+     "🎁xrb[yard]:1838"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.35,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2454",
+     "🎁xrb[yard]:939",
+     "🎁xrb.busy[dining]:1408"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.4,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2716",
+     "🎁xrb.busy[dining]:1369",
+     "🎁xrb.busy[kitchen]:1178",
+     "🎁xalertb[picgive]:497"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.45,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2666",
+     "🎁xrb.busy[kitchen]:2057",
+     "🎁xrb[playroom]:549",
+     "🎁xalertb[picgive]:1351"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2444",
+     "🎁xrb.busy[kitchen]:256",
+     "🎁xrb[playroom]:1989",
+     "🎁xrb[foyer]:119",
+     "🎁xalertb[picgive]:474",
+     "🎁xalertb[pickeep]:474"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2665",
+     "🎁xrb[playroom]:549",
+     "🎁xrb[foyer]:1798",
+     "🎁xalertb[pickeep]:1089"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2789",
+     "🎁xrb[foyer]:979",
+     "🎁xrb[living]:1369",
+     "🎁xalertb[pickeep]:321"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2511",
+     "🎁xrb[living]:1408",
+     "🎁xrb[bathroom]:939"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2449",
+     "🎁xrb[bathroom]:1838"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2775",
+     "🎁xrb[bathroom]:159"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2648"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.85,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2486"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.9,
+    "hints": 2,
+    "dx": -27,
+    "hits": [
+     "🖼️xalertb[picgive]:2797"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2611",
+     "🎁xmoodToggle:2601"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2446",
+     "🎁xmoodToggle:962"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2700",
+     "🎁xmapBtn:223",
+     "🎁xfl.up[upstairs]:924"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 61,
+    "hits": [
+     "🖼️xalertb[picgive]:2797"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 19,
+    "hits": [
+     "🖼️xalertb[picgive]:2486"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2510"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2775"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2460",
+     "🎁xrb[yard]:18"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2573",
+     "🎁xrb[yard]:213"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.35,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2799",
+     "🎁xrb[yard]:109",
+     "🎁xrb.busy[dining]:163"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.4,
+    "hints": 2,
+    "dx": -10,
+    "hits": [
+     "🖼️xalertb[picgive]:2310",
+     "🎁xrb.busy[dining]:203",
+     "🎁xrb.busy[kitchen]:133",
+     "🎁xalertb[picgive]:532"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.45,
+    "hints": 2,
+    "dx": -31,
+    "hits": [
+     "🖼️xalertb[picgive]:1368",
+     "🖼️xalertb[pickeep]:745",
+     "🎁xrb.busy[dining]:106",
+     "🎁xrb.busy[kitchen]:291",
+     "🎁xalertb[picgive]:1615"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 14,
+    "hits": [
+     "🖼️xalertb[picgive]:2490",
+     "🎁xrb[playroom]:193",
+     "🎁xrb[foyer]:78",
+     "🎁xalertb[picgive]:1028",
+     "🎁xalertb[pickeep]:2136"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2611",
+     "🎁xrb[playroom]:63",
+     "🎁xrb[foyer]:208",
+     "🎁xalertb[pickeep]:3193"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2459",
+     "🎁xrb[foyer]:113",
+     "🎁xrb[living]:158",
+     "🎁xalertb[pickeep]:940"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2789",
+     "🎁xrb[living]:163",
+     "🎁xrb[bathroom]:109"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2666",
+     "🎁xrb[bathroom]:213"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2444",
+     "🎁xrb[bathroom]:18"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2665"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.85,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2783"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.9,
+    "hints": 2,
+    "dx": -27,
+    "hits": [
+     "🖼️xalertb[picgive]:2486"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2610",
+     "🎁xmoodToggle:602"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2789",
+     "🎁xmoodToggle:223"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2511",
+     "🎁xfl.up[upstairs]:534",
+     "🎁xfl.down[downstairs]:684"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 61,
+    "hits": [
+     "🖼️xalertb[picgive]:2510"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 19,
+    "hits": [
+     "🖼️xalertb[picgive]:2789"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2591"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2789"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2486"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2556"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.35,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2799"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.4,
+    "hints": 2,
+    "dx": -10,
+    "hits": [
+     "🖼️xalertb[picgive]:2338",
+     "🎁xalertb[picgive]:412"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.45,
+    "hints": 2,
+    "dx": -31,
+    "hits": [
+     "🖼️xalertb[picgive]:1332",
+     "🖼️xalertb[pickeep]:745",
+     "🎁xalertb[picgive]:1165"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 14,
+    "hits": [
+     "🖼️xalertb[picgive]:2445",
+     "🎁xalertb[picgive]:757",
+     "🎁xalertb[pickeep]:1577"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2716",
+     "🎁xalertb[pickeep]:2357"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2444",
+     "🎁xalertb[pickeep]:694"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2647"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2789"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2511"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2497"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.85,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2783"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.9,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2716"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2743"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2717"
+    ],
+    "inStage": false
+   }
+  ],
+  "pair": [
+   {
+    "gapW": 40,
+    "kind": "dish",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      108,
+      88
+     ],
+     [
+      7,
+      134
+     ]
+    ],
+    "people": [
+     7,
+     108
+    ],
+    "tappedGoesTo": "none:m_hewe,none:"
+   },
+   {
+    "gapW": 40,
+    "kind": "pic",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      110,
+      88
+     ],
+     [
+      9,
+      134
+     ]
+    ],
+    "people": [
+     9,
+     110
+    ],
+    "tappedGoesTo": "none:m_made,none:m_made"
+   },
+   {
+    "gapW": 50,
+    "kind": "dish",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      110,
+      88
+     ],
+     [
+      -16,
+      134
+     ]
+    ],
+    "people": [
+     -16,
+     110
+    ],
+    "tappedGoesTo": "none:m_want_gym,none:"
+   },
+   {
+    "gapW": 50,
+    "kind": "pic",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      109,
+      88
+     ],
+     [
+      -17,
+      134
+     ]
+    ],
+    "people": [
+     -17,
+     109
+    ],
+    "tappedGoesTo": "none:m_made,none:"
+   },
+   {
+    "gapW": 60,
+    "kind": "dish",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      110,
+      88
+     ],
+     [
+      -41,
+      134
+     ]
+    ],
+    "people": [
+     -41,
+     110
+    ],
+    "tappedGoesTo": "none:m_hewe,none:"
+   },
+   {
+    "gapW": 60,
+    "kind": "pic",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      110,
+      88
+     ],
+     [
+      -41,
+      134
+     ]
+    ],
+    "people": [
+     -41,
+     110
+    ],
+    "tappedGoesTo": "none:m_made,none:"
+   }
+  ],
+  "heads": [
+   {
+    "who": "daddy",
+    "part": "head",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   },
+   {
+    "who": "daddy",
+    "part": "chest",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   },
+   {
+    "who": "mommy",
+    "part": "head",
+    "topAtPoint": "pichint gift",
+    "ring": ""
+   },
+   {
+    "who": "mommy",
+    "part": "chest",
+    "topAtPoint": "cv",
+    "ring": ""
+   },
+   {
+    "who": "rory",
+    "part": "head",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   },
+   {
+    "who": "rory",
+    "part": "chest",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   }
+  ],
+  "marinaHead": {
+   "topAtPoint": "cv",
+   "ring": "⬇️🤸💃"
+  },
+  "errors": []
+ },
+ "landSmall": {
+  "sweep": [
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmapBtn:1004",
+     "🍽️xfl.up[upstairs]:172"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmapBtn:2600",
+     "🍽️xfl.up[upstairs]:444"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 36,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:623"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:2018"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:1272",
+     "🍽️xrb.busy[dining]:1196"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[dining]:2092",
+     "🍽️xrb.busy[kitchen]:534"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[dining]:699",
+     "🍽️xrb.busy[kitchen]:2026"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:1759",
+     "🍽️xrb[playroom]:948"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:268",
+     "🍽️xrb[playroom]:2092",
+     "🍽️xrb[foyer]:125"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[playroom]:948",
+     "🍽️xrb[foyer]:1521"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[foyer]:1770",
+     "🍽️xrb[living]:699"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[foyer]:374",
+     "🍽️xrb[living]:2092"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[living]:1196",
+     "🍽️xrb[bathroom]:1272"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:2018"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:623"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.85,
+    "hints": 1,
+    "dx": -11,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.9,
+    "hints": 1,
+    "dx": -44,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:2600",
+     "🍽️xmood[love]:106"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:1004",
+     "🍽️xmood[love]:37"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmapBtn:294",
+     "🍽️xfl.up[upstairs]:882"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmapBtn:761",
+     "🍽️xfl.up[upstairs]:2283"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 36,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:119"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:386"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:243",
+     "🍽️xrb.busy[dining]:229"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[dining]:400",
+     "🍽️xrb.busy[kitchen]:130"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[dining]:134",
+     "🍽️xrb.busy[kitchen]:493"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:428",
+     "🍽️xrb[playroom]:181"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:65",
+     "🍽️xrb[playroom]:400",
+     "🍽️xrb[foyer]:24"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[playroom]:181",
+     "🍽️xrb[foyer]:291"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[foyer]:338",
+     "🍽️xrb[living]:134"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[foyer]:72",
+     "🍽️xrb[living]:400"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[living]:229",
+     "🍽️xrb[bathroom]:243"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:386"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:119"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.85,
+    "hints": 1,
+    "dx": -11,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.9,
+    "hints": 1,
+    "dx": -44,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:761",
+     "🍽️xmood[love]:1755"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:294",
+     "🍽️xmood[love]:612"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:634",
+     "🍽️xfl.down[downstairs]:584"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:1640",
+     "🍽️xfl.down[downstairs]:1513"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 36,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.85,
+    "hints": 1,
+    "dx": -6,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.9,
+    "hints": 1,
+    "dx": -39,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmood[love]:2182",
+     "🍽️xmood[happy]:597"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmood[love]:761",
+     "🍽️xmood[happy]:208"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2741",
+     "🎁xmapBtn:1004",
+     "🎁xfl.up[upstairs]:172"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3078",
+     "🎁xmapBtn:2600",
+     "🎁xfl.up[upstairs]:444"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 36,
+    "hits": [
+     "🖼️xalertb[picgive]:2960"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2744"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2792",
+     "🎁xrb[yard]:623"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3025",
+     "🎁xrb[yard]:2018"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2749",
+     "🎁xrb[yard]:1272",
+     "🎁xrb.busy[dining]:1196"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.35,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2905",
+     "🎁xrb.busy[dining]:2092",
+     "🎁xrb.busy[kitchen]:534",
+     "🎁xalertb[picgive]:87"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.4,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3092",
+     "🎁xrb.busy[dining]:699",
+     "🎁xrb.busy[kitchen]:2026",
+     "🎁xalertb[picgive]:897"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.45,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2851",
+     "🎁xrb.busy[kitchen]:1759",
+     "🎁xrb[playroom]:948",
+     "🎁xalertb[picgive]:1100"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2762",
+     "🎁xrb.busy[kitchen]:268",
+     "🎁xrb[playroom]:2092",
+     "🎁xrb[foyer]:125",
+     "🎁xalertb[picgive]:436",
+     "🎁xalertb[pickeep]:420"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3050",
+     "🎁xrb[playroom]:948",
+     "🎁xrb[foyer]:1521",
+     "🎁xalertb[pickeep]:959"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2905",
+     "🎁xrb[foyer]:1770",
+     "🎁xrb[living]:699",
+     "🎁xalertb[pickeep]:571"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2744",
+     "🎁xrb[foyer]:374",
+     "🎁xrb[living]:2092",
+     "🎁xalertb[pickeep]:32"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3050",
+     "🎁xrb[living]:1196",
+     "🎁xrb[bathroom]:1272"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2887",
+     "🎁xrb[bathroom]:2018"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2770",
+     "🎁xrb[bathroom]:623"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.85,
+    "hints": 2,
+    "dx": -11,
+    "hits": [
+     "🖼️xalertb[picgive]:3078"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.9,
+    "hints": 2,
+    "dx": -44,
+    "hits": [
+     "🖼️xalertb[picgive]:2942"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2819",
+     "🎁xmoodToggle:2600",
+     "🎁xmood[love]:106"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3088",
+     "🎁xmoodToggle:1004",
+     "🎁xmood[love]:37"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2851",
+     "🎁xmapBtn:294",
+     "🎁xfl.up[upstairs]:882"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2792",
+     "🎁xmapBtn:761",
+     "🎁xfl.up[upstairs]:2283"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 36,
+    "hits": [
+     "🖼️xalertb[picgive]:3070"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2869"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3050",
+     "🎁xrb[yard]:119"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3011",
+     "🎁xrb[yard]:386"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2744",
+     "🎁xrb[yard]:243",
+     "🎁xrb.busy[dining]:229"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.35,
+    "hints": 2,
+    "dx": -2,
+    "hits": [
+     "🖼️xalertb[picgive]:3050",
+     "🎁xrb.busy[dining]:400",
+     "🎁xrb.busy[kitchen]:109",
+     "🎁xalertb[picgive]:275"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.4,
+    "hints": 2,
+    "dx": -19,
+    "hits": [
+     "🖼️xalertb[picgive]:2365",
+     "🖼️xalertb[pickeep]:294",
+     "🎁xrb.busy[dining]:283",
+     "🎁xrb.busy[kitchen]:290",
+     "🎁xalertb[picgive]:1106"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.45,
+    "hints": 2,
+    "dx": 31,
+    "hits": [
+     "🖼️xalertb[picgive]:1479",
+     "🎁xrb.busy[kitchen]:94",
+     "🎁xrb[playroom]:400",
+     "🎁xrb[foyer]:3",
+     "🎁xalertb[picgive]:1441",
+     "🎁xalertb[pickeep]:1166"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 14,
+    "hits": [
+     "🖼️xalertb[picgive]:2778",
+     "🎁xrb[playroom]:336",
+     "🎁xrb[foyer]:136",
+     "🎁xalertb[picgive]:986",
+     "🎁xalertb[pickeep]:2000"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.55,
+    "hints": 2,
+    "dx": -19,
+    "hits": [
+     "🖼️xalertb[picgive]:2782",
+     "🎁xrb[playroom]:336",
+     "🎁xrb[foyer]:136",
+     "🎁xalertb[picgive]:989",
+     "🎁xalertb[pickeep]:2000"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2738",
+     "🎁xrb[foyer]:338",
+     "🎁xrb[living]:134",
+     "🎁xalertb[pickeep]:1765"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3025",
+     "🎁xrb[foyer]:72",
+     "🎁xrb[living]:400",
+     "🎁xalertb[pickeep]:97"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3026",
+     "🎁xrb[living]:229",
+     "🎁xrb[bathroom]:243"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2749",
+     "🎁xrb[bathroom]:386"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2868",
+     "🎁xrb[bathroom]:119"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.85,
+    "hints": 2,
+    "dx": -11,
+    "hits": [
+     "🖼️xalertb[picgive]:3092"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.9,
+    "hints": 2,
+    "dx": -44,
+    "hits": [
+     "🖼️xalertb[picgive]:2906"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3088",
+     "🎁xmoodToggle:761",
+     "🎁xmood[love]:1755"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2749",
+     "🎁xmoodToggle:294",
+     "🎁xmood[love]:612"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2904",
+     "🎁xfl.up[upstairs]:634",
+     "🎁xfl.down[downstairs]:584"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3094",
+     "🎁xfl.up[upstairs]:1640",
+     "🎁xfl.down[downstairs]:1513"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 36,
+    "hits": [
+     "🖼️xalertb[picgive]:2869"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2770"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3050"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2979"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2739"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.35,
+    "hints": 2,
+    "dx": -2,
+    "hits": [
+     "🖼️xalertb[picgive]:2819",
+     "🎁xalertb[picgive]:58"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.4,
+    "hints": 2,
+    "dx": -19,
+    "hits": [
+     "🖼️xalertb[picgive]:2082",
+     "🖼️xalertb[pickeep]:294",
+     "🎁xalertb[picgive]:790"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.45,
+    "hints": 2,
+    "dx": 31,
+    "hits": [
+     "🖼️xalertb[picgive]:1711",
+     "🎁xalertb[picgive]:1492",
+     "🎁xalertb[pickeep]:1030"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 14,
+    "hits": [
+     "🖼️xalertb[picgive]:2709",
+     "🎁xalertb[picgive]:839",
+     "🎁xalertb[pickeep]:1767"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2744",
+     "🎁xalertb[pickeep]:2621"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2904",
+     "🎁xalertb[pickeep]:1559"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3092",
+     "🎁xalertb[pickeep]:86"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2749"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2886"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3094"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.85,
+    "hints": 2,
+    "dx": -6,
+    "hits": [
+     "🖼️xalertb[picgive]:3026"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.9,
+    "hints": 2,
+    "dx": -39,
+    "hits": [
+     "🖼️xalertb[picgive]:3050"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3011",
+     "🎁xmood[love]:2182",
+     "🎁xmood[happy]:597"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2741",
+     "🎁xmood[love]:761",
+     "🎁xmood[happy]:208"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmapBtn:1004",
+     "🍽️xfl.up[upstairs]:172"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmapBtn:2600",
+     "🍽️xfl.up[upstairs]:444"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 36,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:623"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:2018"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:1272",
+     "🍽️xrb.busy[dining]:1196"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[dining]:2092",
+     "🍽️xrb.busy[kitchen]:534"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[dining]:699",
+     "🍽️xrb.busy[kitchen]:2026"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:1759",
+     "🍽️xrb[playroom]:948"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:268",
+     "🍽️xrb[playroom]:2092",
+     "🍽️xrb[foyer]:125"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[playroom]:948",
+     "🍽️xrb[foyer]:1521"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[foyer]:1770",
+     "🍽️xrb[living]:699"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[foyer]:374",
+     "🍽️xrb[living]:2092"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[living]:1196",
+     "🍽️xrb[bathroom]:1272"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:2018"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:623"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.85,
+    "hints": 1,
+    "dx": -11,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.9,
+    "hints": 1,
+    "dx": -44,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:2600"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 150,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:1004"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmapBtn:294",
+     "🍽️xfl.up[upstairs]:882"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmapBtn:761",
+     "🍽️xfl.up[upstairs]:2283"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.1,
+    "hints": 1,
+    "dx": -33,
+    "hits": [
+     "🍽️xmapBtn:761",
+     "🍽️xfl.up[upstairs]:2283"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:119"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:386"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[yard]:243",
+     "🍽️xrb.busy[dining]:229"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[dining]:400",
+     "🍽️xrb.busy[kitchen]:130"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[dining]:134",
+     "🍽️xrb.busy[kitchen]:493"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:428",
+     "🍽️xrb[playroom]:181"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb.busy[kitchen]:65",
+     "🍽️xrb[playroom]:400",
+     "🍽️xrb[foyer]:24"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[playroom]:181",
+     "🍽️xrb[foyer]:291"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[foyer]:338",
+     "🍽️xrb[living]:134"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[foyer]:72",
+     "🍽️xrb[living]:400"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[living]:229",
+     "🍽️xrb[bathroom]:243"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:386"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xrb[bathroom]:119"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.85,
+    "hints": 1,
+    "dx": -11,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.9,
+    "hints": 1,
+    "dx": -44,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:761"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 164,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xmoodToggle:294"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:634",
+     "🍽️xfl.down[downstairs]:584"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:1640",
+     "🍽️xfl.down[downstairs]:1513"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 36,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.85,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.9,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "dish",
+    "y": 178,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2887",
+     "🎁xmapBtn:1004",
+     "🎁xfl.up[upstairs]:172"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3094",
+     "🎁xmapBtn:2600",
+     "🎁xfl.up[upstairs]:444"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 36,
+    "hits": [
+     "🖼️xalertb[picgive]:2770"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2819"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3061",
+     "🎁xrb[yard]:623"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2905",
+     "🎁xrb[yard]:2018"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2770",
+     "🎁xrb[yard]:1272",
+     "🎁xrb.busy[dining]:1196"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.35,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3061",
+     "🎁xrb.busy[dining]:2092",
+     "🎁xrb.busy[kitchen]:534",
+     "🎁xalertb[picgive]:153"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.4,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2995",
+     "🎁xrb.busy[dining]:699",
+     "🎁xrb.busy[kitchen]:2026",
+     "🎁xalertb[picgive]:801"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.45,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2741",
+     "🎁xrb.busy[kitchen]:1759",
+     "🎁xrb[playroom]:948",
+     "🎁xalertb[picgive]:963"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2923",
+     "🎁xrb.busy[kitchen]:268",
+     "🎁xrb[playroom]:2092",
+     "🎁xrb[foyer]:125",
+     "🎁xalertb[picgive]:555",
+     "🎁xalertb[pickeep]:420"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3078",
+     "🎁xrb[playroom]:948",
+     "🎁xrb[foyer]:1521",
+     "🎁xalertb[pickeep]:959"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2924",
+     "🎁xrb[foyer]:1770",
+     "🎁xrb[living]:699",
+     "🎁xalertb[pickeep]:571"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3050",
+     "🎁xrb[foyer]:374",
+     "🎁xrb[living]:2092",
+     "🎁xalertb[pickeep]:32"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2960",
+     "🎁xrb[living]:1196",
+     "🎁xrb[bathroom]:1272"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2739",
+     "🎁xrb[bathroom]:2018"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2960",
+     "🎁xrb[bathroom]:623"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.85,
+    "hints": 2,
+    "dx": -11,
+    "hits": [
+     "🖼️xalertb[picgive]:3070"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.9,
+    "hints": 2,
+    "dx": -44,
+    "hits": [
+     "🖼️xalertb[picgive]:2762"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2762",
+     "🎁xmoodToggle:2600"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 150,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3092",
+     "🎁xmoodToggle:1004"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2887",
+     "🎁xmapBtn:294",
+     "🎁xfl.up[upstairs]:882"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2748",
+     "🎁xmapBtn:761",
+     "🎁xfl.up[upstairs]:2283"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 36,
+    "hits": [
+     "🖼️xalertb[picgive]:3050"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3061"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2744",
+     "🎁xrb[yard]:119"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2923",
+     "🎁xrb[yard]:386"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3094",
+     "🎁xrb[yard]:243",
+     "🎁xrb.busy[dining]:229"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.35,
+    "hints": 2,
+    "dx": -2,
+    "hits": [
+     "🖼️xalertb[picgive]:2835",
+     "🎁xrb.busy[dining]:400",
+     "🎁xrb.busy[kitchen]:109",
+     "🎁xalertb[picgive]:79"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.4,
+    "hints": 2,
+    "dx": -19,
+    "hits": [
+     "🖼️xalertb[picgive]:2459",
+     "🖼️xalertb[pickeep]:294",
+     "🎁xrb.busy[dining]:283",
+     "🎁xrb.busy[kitchen]:290",
+     "🎁xalertb[picgive]:1178"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.45,
+    "hints": 2,
+    "dx": 31,
+    "hits": [
+     "🖼️xalertb[picgive]:1888",
+     "🎁xrb.busy[kitchen]:94",
+     "🎁xrb[playroom]:400",
+     "🎁xrb[foyer]:3",
+     "🎁xalertb[picgive]:1856",
+     "🎁xalertb[pickeep]:1166"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 14,
+    "hits": [
+     "🖼️xalertb[picgive]:2209",
+     "🎁xrb[playroom]:336",
+     "🎁xrb[foyer]:136",
+     "🎁xalertb[picgive]:601",
+     "🎁xalertb[pickeep]:2000"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2924",
+     "🎁xrb[playroom]:181",
+     "🎁xrb[foyer]:291",
+     "🎁xalertb[pickeep]:2968"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2806",
+     "🎁xrb[foyer]:338",
+     "🎁xrb[living]:134",
+     "🎁xalertb[pickeep]:1765"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3010",
+     "🎁xrb[foyer]:72",
+     "🎁xrb[living]:400",
+     "🎁xalertb[pickeep]:97"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2770",
+     "🎁xrb[living]:229",
+     "🎁xrb[bathroom]:243"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3077",
+     "🎁xrb[bathroom]:386"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2961",
+     "🎁xrb[bathroom]:119"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.85,
+    "hints": 2,
+    "dx": -11,
+    "hits": [
+     "🖼️xalertb[picgive]:2739"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.9,
+    "hints": 2,
+    "dx": -44,
+    "hits": [
+     "🖼️xalertb[picgive]:2960"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3084",
+     "🎁xmoodToggle:761"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 164,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2793",
+     "🎁xmoodToggle:294"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2792",
+     "🎁xfl.up[upstairs]:634",
+     "🎁xfl.down[downstairs]:584"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3070",
+     "🎁xfl.up[upstairs]:1640",
+     "🎁xfl.down[downstairs]:1513"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 36,
+    "hits": [
+     "🖼️xalertb[picgive]:2995"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2770"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3010"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2943"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2741"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.35,
+    "hints": 2,
+    "dx": -2,
+    "hits": [
+     "🖼️xalertb[picgive]:3092",
+     "🎁xalertb[picgive]:283"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.4,
+    "hints": 2,
+    "dx": -19,
+    "hits": [
+     "🖼️xalertb[picgive]:2170",
+     "🖼️xalertb[pickeep]:294",
+     "🎁xalertb[picgive]:850"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.45,
+    "hints": 2,
+    "dx": 31,
+    "hits": [
+     "🖼️xalertb[picgive]:1539",
+     "🎁xalertb[picgive]:1330",
+     "🎁xalertb[pickeep]:1030"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 14,
+    "hits": [
+     "🖼️xalertb[picgive]:2753",
+     "🎁xalertb[picgive]:867",
+     "🎁xalertb[pickeep]:1767"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2961",
+     "🎁xalertb[pickeep]:2621"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2739",
+     "🎁xalertb[pickeep]:1559"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2834",
+     "🎁xalertb[pickeep]:86"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3089"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2820"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2792"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.85,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:3070"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.9,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2943"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2738"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": true,
+    "kind": "pic",
+    "y": 178,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🖼️xalertb[picgive]:2977"
+    ],
+    "inStage": false
+   }
+  ],
+  "pair": [
+   {
+    "gapW": 40,
+    "kind": "dish",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      32,
+      85
+     ],
+     [
+      -65,
+      128
+     ]
+    ],
+    "people": [
+     -65,
+     32
+    ],
+    "tappedGoesTo": "none:m_hewe,none:"
+   },
+   {
+    "gapW": 40,
+    "kind": "pic",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      99,
+      85
+     ],
+     [
+      -34,
+      129
+     ]
+    ],
+    "people": [
+     -34,
+     63
+    ],
+    "tappedGoesTo": "none:m_made,none:"
+   },
+   {
+    "gapW": 50,
+    "kind": "dish",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      101,
+      85
+     ],
+     [
+      -43,
+      128
+     ]
+    ],
+    "people": [
+     -43,
+     77
+    ],
+    "tappedGoesTo": "none:m_hewe,none:"
+   },
+   {
+    "gapW": 50,
+    "kind": "pic",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      135,
+      85
+     ],
+     [
+      15,
+      128
+     ]
+    ],
+    "people": [
+     15,
+     135
+    ],
+    "tappedGoesTo": "none:m_made,none:m_want_dress"
+   },
+   {
+    "gapW": 60,
+    "kind": "dish",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      160,
+      85
+     ],
+     [
+      15,
+      129
+     ]
+    ],
+    "people": [
+     15,
+     160
+    ],
+    "tappedGoesTo": "none:m_hewe,none:"
+   },
+   {
+    "gapW": 60,
+    "kind": "pic",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      160,
+      85
+     ],
+     [
+      15,
+      129
+     ]
+    ],
+    "people": [
+     15,
+     160
+    ],
+    "tappedGoesTo": "none:m_made,none:"
+   }
+  ],
+  "heads": [
+   {
+    "who": "daddy",
+    "part": "head",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   },
+   {
+    "who": "daddy",
+    "part": "chest",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   },
+   {
+    "who": "mommy",
+    "part": "head",
+    "topAtPoint": "pichint gift",
+    "ring": ""
+   },
+   {
+    "who": "mommy",
+    "part": "chest",
+    "topAtPoint": "cv",
+    "ring": ""
+   },
+   {
+    "who": "rory",
+    "part": "head",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   },
+   {
+    "who": "rory",
+    "part": "chest",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   }
+  ],
+  "marinaHead": {
+   "topAtPoint": "cv",
+   "ring": "⬇️🤸💃"
+  },
+  "errors": []
+ },
+ "portSmall": {
+  "sweep": [
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:877",
+     "🍽️xfl.down[downstairs]:341"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:1660",
+     "🍽️xfl.down[downstairs]:646"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:2422",
+     "🍽️xfl.down[downstairs]:943"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 47,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 28,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 9,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.85,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.9,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 150,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:179",
+     "🍽️xfl.down[downstairs]:966"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:338",
+     "🍽️xfl.down[downstairs]:1829"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xfl.up[upstairs]:493",
+     "🍽️xfl.down[downstairs]:2668"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 47,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 28,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 9,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.8,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.85,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.9,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 164,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xnavarrow.l[room to the left]:575",
+     "🍽️xfl.down[downstairs]:530"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.05,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xnavarrow.l[room to the left]:926",
+     "🍽️xfl.down[downstairs]:1004"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xnavarrow.l[room to the left]:908",
+     "🍽️xfl.down[downstairs]:1465"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.15,
+    "hints": 1,
+    "dx": 47,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.2,
+    "hints": 1,
+    "dx": 28,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.25,
+    "hints": 1,
+    "dx": 9,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.3,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.35,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.4,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.45,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.5,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.55,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.6,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.65,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.7,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.75,
+    "hints": 1,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.8,
+    "hints": 1,
+    "dx": -15,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.85,
+    "hints": 1,
+    "dx": -35,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.9,
+    "hints": 1,
+    "dx": -55,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 0.95,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xnavarrow.r[room to the right]:892"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "dish",
+    "y": 178,
+    "f": 1,
+    "hints": 1,
+    "dx": 0,
+    "hits": [
+     "🍽️xnavarrow.r[room to the right]:571"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:877",
+     "🎁xfl.down[downstairs]:341"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:1660",
+     "🎁xfl.down[downstairs]:646"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:2422",
+     "🎁xfl.down[downstairs]:943"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:1785",
+     "🎁xfl.down[downstairs]:695"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:1002",
+     "🎁xfl.down[downstairs]:390"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:468",
+     "🎁xfl.up[upstairs]:219",
+     "🎁xfl.down[downstairs]:85"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:1522"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.35,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:2942"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.4,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:3375"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.45,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:2325",
+     "🎁xalertb[pickeep]:375"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:1684",
+     "🎁xalertb[pickeep]:1346"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:720",
+     "🎁xalertb[pickeep]:2316"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:3209"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:2368"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:1397"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:427"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.85,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.9,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 150,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:179",
+     "🎁xfl.down[downstairs]:966"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:338",
+     "🎁xfl.down[downstairs]:1829"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.1,
+    "hints": 2,
+    "dx": -19,
+    "hits": [
+     "🎁xfl.up[upstairs]:338",
+     "🎁xfl.down[downstairs]:1829"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:363",
+     "🎁xfl.down[downstairs]:1967"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xfl.up[upstairs]:204",
+     "🎁xfl.down[downstairs]:1104"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:281",
+     "🎁xfl.up[upstairs]:45",
+     "🎁xfl.down[downstairs]:242"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[picgive]:511"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.35,
+    "hints": 2,
+    "dx": -9,
+    "hits": [
+     "🎁xalertb[picgive]:911"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.4,
+    "hints": 2,
+    "dx": -18,
+    "hits": [
+     "🎁xalertb[picgive]:1059"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.45,
+    "hints": 2,
+    "dx": -28,
+    "hits": [
+     "🎁xalertb[picgive]:1030"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 29,
+    "hits": [
+     "🎁xalertb[picgive]:32",
+     "🎁xalertb[pickeep]:1018"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 20,
+    "hits": [
+     "🎁xalertb[pickeep]:1147"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 10,
+    "hits": [
+     "🎁xalertb[pickeep]:1004"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:846"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:500"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xalertb[pickeep]:153"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.8,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.85,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.9,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 164,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xnavarrow.l[room to the left]:569",
+     "🎁xfl.down[downstairs]:530"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.05,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xnavarrow.l[room to the left]:928",
+     "🎁xfl.down[downstairs]:1004"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xnavarrow.l[room to the left]:908",
+     "🎁xfl.down[downstairs]:1465"
+    ],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.15,
+    "hints": 2,
+    "dx": 47,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.2,
+    "hints": 2,
+    "dx": 28,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.25,
+    "hints": 2,
+    "dx": 9,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.3,
+    "hints": 2,
+    "dx": 0,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.35,
+    "hints": 2,
+    "dx": -9,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.4,
+    "hints": 2,
+    "dx": -18,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.45,
+    "hints": 2,
+    "dx": -28,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.5,
+    "hints": 2,
+    "dx": 29,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.55,
+    "hints": 2,
+    "dx": 20,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.6,
+    "hints": 2,
+    "dx": 10,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.65,
+    "hints": 2,
+    "dx": 1,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.7,
+    "hints": 2,
+    "dx": 1,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.75,
+    "hints": 2,
+    "dx": 1,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.8,
+    "hints": 2,
+    "dx": -17,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.85,
+    "hints": 2,
+    "dx": -35,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.9,
+    "hints": 2,
+    "dx": -52,
+    "hits": [],
+    "inStage": true
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 0.95,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xnavarrow.r[room to the right]:876"
+    ],
+    "inStage": false
+   },
+   {
+    "fold": false,
+    "kind": "pic",
+    "y": 178,
+    "f": 1,
+    "hints": 2,
+    "dx": 0,
+    "hits": [
+     "🎁xnavarrow.r[room to the right]:506"
+    ],
+    "inStage": false
+   }
+  ],
+  "pair": [
+   {
+    "gapW": 40,
+    "kind": "dish",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      -73,
+      143
+     ],
+     [
+      -168,
+      185
+     ]
+    ],
+    "people": [
+     -168,
+     -73
+    ],
+    "tappedGoesTo": "none:m_hewe,none:"
+   },
+   {
+    "gapW": 40,
+    "kind": "pic",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      109,
+      143
+     ],
+     [
+      14,
+      185
+     ]
+    ],
+    "people": [
+     14,
+     109
+    ],
+    "tappedGoesTo": "daddy,mommy"
+   },
+   {
+    "gapW": 50,
+    "kind": "dish",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      18,
+      142
+     ],
+     [
+      -101,
+      185
+     ]
+    ],
+    "people": [
+     -101,
+     18
+    ],
+    "tappedGoesTo": "none:m_hewe,mommy"
+   },
+   {
+    "gapW": 50,
+    "kind": "pic",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      33,
+      143
+     ],
+     [
+      -85,
+      185
+     ]
+    ],
+    "people": [
+     -85,
+     33
+    ],
+    "tappedGoesTo": "daddy,mommy"
+   },
+   {
+    "gapW": 60,
+    "kind": "dish",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      103,
+      143
+     ],
+     [
+      -78,
+      185
+     ]
+    ],
+    "people": [
+     -78,
+     65
+    ],
+    "tappedGoesTo": "none:m_hewe,none:m_hewe"
+   },
+   {
+    "gapW": 60,
+    "kind": "pic",
+    "n": 2,
+    "near": "daddy,mommy",
+    "overlap": 0,
+    "centres": [
+     [
+      75,
+      143
+     ],
+     [
+      -68,
+      185
+     ]
+    ],
+    "people": [
+     -68,
+     75
+    ],
+    "tappedGoesTo": "daddy,none:m_want_miles m_made"
+   }
+  ],
+  "heads": [
+   {
+    "who": "daddy",
+    "part": "head",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   },
+   {
+    "who": "daddy",
+    "part": "chest",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   },
+   {
+    "who": "mommy",
+    "part": "head",
+    "topAtPoint": "pichint gift",
+    "ring": ""
+   },
+   {
+    "who": "mommy",
+    "part": "chest",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗📱😜"
+   },
+   {
+    "who": "rory",
+    "part": "head",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   },
+   {
+    "who": "rory",
+    "part": "chest",
+    "topAtPoint": "cv",
+    "ring": "🍽️🤗😜"
+   }
+  ],
+  "errors": []
+ }
+}

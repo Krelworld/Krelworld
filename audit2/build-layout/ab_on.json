@@ -1,0 +1,38 @@
+{
+ "rows": [
+  "menu :: gymnastics | qfx49l#6",
+  "obj backyard/tr_apple | 1ygm7f6#1",
+  "obj den/wicker | ounozi#1",
+  "obj mroom/mstack | 1fug1u9#1",
+  "obj storage/shades | 1bu00z4#1",
+  "who miles :: crying | jy3ac3#1",
+  "who miles :: dirty nappy | jy3ac3#1",
+  "who miles :: fort built here | qpltx4#1",
+  "who mommy :: Marina holding a nice dish | 8y7uyb#1",
+  "who mommy :: normal | 8y7uyb#1"
+ ],
+ "HEAD": {
+  "menu :: gymnastics | qfx49l": "- , - , - , -",
+  "obj backyard/tr_apple | 1ygm7f6": "state:anim , state:anim , state:anim , state:anim",
+  "obj den/wicker | ounozi": "- , - , - , -",
+  "obj mroom/mstack | 1fug1u9": "state:anim , state:anim , state:anim , state:anim",
+  "obj storage/shades | 1bu00z4": "state:cheer , state:cheer , state:cheer , state:cheer",
+  "who miles :: crying | jy3ac3": "- , state:anim , - , -",
+  "who miles :: dirty nappy | jy3ac3": "state:anim , - , state:anim , state:anim",
+  "who miles :: fort built here | qpltx4": "state:anim , - , - , -",
+  "who mommy :: Marina holding a nice dish | 8y7uyb": "- , - , - , -",
+  "who mommy :: normal | 8y7uyb": "- , - , - , -"
+ },
+ "WT": {
+  "menu :: gymnastics | qfx49l": "- , - , - , -",
+  "obj backyard/tr_apple | 1ygm7f6": "state:anim , state:anim , state:anim , state:anim",
+  "obj den/wicker | ounozi": "- , - , - , -",
+  "obj mroom/mstack | 1fug1u9": "state:anim , state:anim , state:anim , state:anim",
+  "obj storage/shades | 1bu00z4": "state:cheer , state:cheer , state:cheer , state:cheer",
+  "who miles :: crying | jy3ac3": "- , - , state:anim , -",
+  "who miles :: dirty nappy | jy3ac3": "- , state:anim , state:anim , state:anim",
+  "who miles :: fort built here | qpltx4": "- , state:anim , - , -",
+  "who mommy :: Marina holding a nice dish | 8y7uyb": "- , - , - , -",
+  "who mommy :: normal | 8y7uyb": "- , - , - , -"
+ }
+}

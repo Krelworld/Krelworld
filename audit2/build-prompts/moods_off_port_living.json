@@ -1,0 +1,102 @@
+[
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "love",
+  "who": "daddy,miles,niko",
+  "deadTaps": 0,
+  "firstWorkingTapMs": 1082,
+  "busyEndedByMs": null,
+  "arrowsHiddenSamples": 1
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "happy",
+  "who": "daddy,mommy,miles,niko",
+  "deadTaps": 1,
+  "firstWorkingTapMs": 2055,
+  "busyEndedByMs": null,
+  "arrowsHiddenSamples": 2
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "sad",
+  "who": "daddy,mommy,miles,niko",
+  "deadTaps": 6,
+  "firstWorkingTapMs": 6627,
+  "busyEndedByMs": 6071,
+  "arrowsHiddenSamples": 6
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "angry",
+  "who": "daddy,mommy,miles,niko",
+  "deadTaps": 5,
+  "firstWorkingTapMs": 7465,
+  "busyEndedByMs": 7007,
+  "arrowsHiddenSamples": 5
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "tantrum",
+  "who": "daddy,mommy,miles,niko",
+  "deadTaps": 21,
+  "firstWorkingTapMs": 19702,
+  "busyEndedByMs": 19253,
+  "arrowsHiddenSamples": 21
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "love",
+  "who": "daddy,mommy,miles",
+  "deadTaps": 0,
+  "firstWorkingTapMs": 1318,
+  "busyEndedByMs": null,
+  "arrowsHiddenSamples": 1
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "happy",
+  "who": "daddy,mommy,miles",
+  "deadTaps": 10,
+  "firstWorkingTapMs": 10045,
+  "busyEndedByMs": 9255,
+  "arrowsHiddenSamples": 10
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "sad",
+  "who": "daddy,miles",
+  "deadTaps": 16,
+  "firstWorkingTapMs": 16190,
+  "busyEndedByMs": 9932,
+  "arrowsHiddenSamples": 10
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "angry",
+  "who": "daddy,mommy,miles,niko",
+  "deadTaps": 10,
+  "firstWorkingTapMs": 10366,
+  "busyEndedByMs": 9631,
+  "arrowsHiddenSamples": 10
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "tantrum",
+  "who": "daddy,mommy,miles,niko",
+  "deadTaps": 6,
+  "firstWorkingTapMs": 6436,
+  "busyEndedByMs": null,
+  "arrowsHiddenSamples": 6
+ }
+]

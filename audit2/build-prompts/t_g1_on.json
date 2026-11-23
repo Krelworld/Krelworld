@@ -1,0 +1,28 @@
+{
+ "floorTap": {
+  "walked": true,
+  "lastInputMoved": true,
+  "events": "down:cv up:cv"
+ },
+ "cookTile": {
+  "lastInputMoved": true,
+  "bowlChanged": true,
+  "events": "down:pix"
+ },
+ "studioStroke": {
+  "changedPixels": 3015,
+  "events": "down:l-fx:PD up:l-fx"
+ },
+ "story": {
+  "bookOpensReaders": true,
+  "backToShelf": true,
+  "scrollGestureIgnored": true,
+  "events": ""
+ },
+ "stickers": {
+  "tapped": "#stkBox .stk.got",
+  "animationsInBook": 1,
+  "events": ""
+ },
+ "errors": []
+}

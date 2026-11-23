@@ -1,0 +1,696 @@
+{
+ "place": {
+  "port/bathroom/far": {
+   "drawn": true,
+   "x": 140,
+   "y": 158,
+   "side": -1,
+   "exitX": 18,
+   "camX": 126,
+   "viewW": 158,
+   "client": [
+    35,
+    390
+   ],
+   "probs": []
+  },
+  "port/bathroom/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "port/spa/far": {
+   "drawn": true,
+   "x": 176,
+   "y": 168,
+   "side": -1,
+   "exitX": 22,
+   "camX": 162,
+   "viewW": 158,
+   "client": [
+    35,
+    415
+   ],
+   "probs": []
+  },
+  "port/spa/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "port/treehouse_oak/far": {
+   "drawn": true,
+   "x": 188,
+   "y": 158,
+   "side": -1,
+   "exitX": 36,
+   "camX": 174,
+   "viewW": 158,
+   "client": [
+    35,
+    390
+   ],
+   "probs": []
+  },
+  "port/treehouse_oak/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "port/treehouse_pine/far": {
+   "drawn": true,
+   "x": 188,
+   "y": 158,
+   "side": -1,
+   "exitX": 36,
+   "camX": 174,
+   "viewW": 158,
+   "client": [
+    35,
+    390
+   ],
+   "probs": []
+  },
+  "port/treehouse_pine/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "port/errors": [],
+  "portSmall/bathroom/far": {
+   "drawn": true,
+   "x": 141,
+   "y": 158,
+   "side": -1,
+   "exitX": 18,
+   "camX": 127,
+   "viewW": 158,
+   "client": [
+    33,
+    375
+   ],
+   "probs": []
+  },
+  "portSmall/bathroom/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "portSmall/spa/far": {
+   "drawn": true,
+   "x": 177,
+   "y": 168,
+   "side": -1,
+   "exitX": 22,
+   "camX": 163,
+   "viewW": 158,
+   "client": [
+    33,
+    399
+   ],
+   "probs": []
+  },
+  "portSmall/spa/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "portSmall/treehouse_oak/far": {
+   "drawn": true,
+   "x": 189,
+   "y": 158,
+   "side": -1,
+   "exitX": 36,
+   "camX": 175,
+   "viewW": 158,
+   "client": [
+    33,
+    375
+   ],
+   "probs": []
+  },
+  "portSmall/treehouse_oak/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "portSmall/treehouse_pine/far": {
+   "drawn": true,
+   "x": 189,
+   "y": 158,
+   "side": -1,
+   "exitX": 36,
+   "camX": 175,
+   "viewW": 158,
+   "client": [
+    33,
+    375
+   ],
+   "probs": []
+  },
+  "portSmall/treehouse_pine/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "portSmall/errors": [],
+  "land/bathroom/far": {
+   "drawn": false,
+   "tab": null
+  },
+  "land/bathroom/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "land/spa/far": {
+   "drawn": false,
+   "tab": null
+  },
+  "land/spa/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "land/treehouse_oak/far": {
+   "drawn": false,
+   "tab": null
+  },
+  "land/treehouse_oak/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "land/treehouse_pine/far": {
+   "drawn": false,
+   "tab": null
+  },
+  "land/treehouse_pine/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "land/errors": [],
+  "landSmall/bathroom/far": {
+   "drawn": false,
+   "tab": null
+  },
+  "landSmall/bathroom/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "landSmall/spa/far": {
+   "drawn": true,
+   "x": 60,
+   "y": 161,
+   "side": -1,
+   "exitX": 22,
+   "camX": 46,
+   "viewW": 276,
+   "client": [
+    34,
+    329
+   ],
+   "probs": []
+  },
+  "landSmall/spa/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "landSmall/treehouse_oak/far": {
+   "drawn": false,
+   "tab": null
+  },
+  "landSmall/treehouse_oak/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "landSmall/treehouse_pine/far": {
+   "drawn": false,
+   "tab": null
+  },
+  "landSmall/treehouse_pine/nearExit": {
+   "drawn": false,
+   "tab": null
+  },
+  "landSmall/errors": []
+ },
+ "things": {
+  "port/on/bathroom/mirror": {
+   "mx": 88,
+   "w": [
+    52,
+    88
+   ],
+   "tabX": 38,
+   "res": "🪞"
+  },
+  "port/on/bathroom/vanity": {
+   "mx": 88,
+   "w": [
+    52,
+    141
+   ],
+   "tabX": 38,
+   "res": "🚰"
+  },
+  "port/on/spa/linen": {
+   "mx": 88,
+   "w": [
+    52,
+    146
+   ],
+   "tabX": 38,
+   "res": "🦸"
+  },
+  "port/on/spa/uvanity": {
+   "mx": 88,
+   "w": [
+    100,
+    105
+   ],
+   "tabX": 38,
+   "res": "🚰"
+  },
+  "port/on/treehouse_oak/th_wall": {
+   "mx": 124,
+   "w": [
+    88,
+    100
+   ],
+   "tabX": 74,
+   "res": "🖼️"
+  },
+  "port/on/treehouse_oak/th_bell": {
+   "res": "never on the picture together with the tab"
+  },
+  "port/on/treehouse_oak/th_bucket": {
+   "mx": 124,
+   "w": [
+    60,
+    88
+   ],
+   "tabX": 74,
+   "res": "🪣"
+  },
+  "port/on/treehouse_pine/th_wall": {
+   "mx": 124,
+   "w": [
+    88,
+    100
+   ],
+   "tabX": 74,
+   "res": "🖼️"
+  },
+  "port/on/treehouse_pine/th_bell": {
+   "res": "never on the picture together with the tab"
+  },
+  "port/on/treehouse_pine/th_bucket": {
+   "mx": 124,
+   "w": [
+    60,
+    88
+   ],
+   "tabX": 74,
+   "res": "🪣"
+  },
+  "port/on/errors": [],
+  "port/off/bathroom/mirror": {
+   "mx": 88,
+   "w": [
+    52,
+    88
+   ],
+   "res": "🪞"
+  },
+  "port/off/bathroom/vanity": {
+   "mx": 88,
+   "w": [
+    52,
+    141
+   ],
+   "res": "🚰"
+  },
+  "port/off/spa/linen": {
+   "mx": 88,
+   "w": [
+    52,
+    146
+   ],
+   "res": "🦸"
+  },
+  "port/off/spa/uvanity": {
+   "mx": 88,
+   "w": [
+    100,
+    105
+   ],
+   "res": "🚰"
+  },
+  "port/off/treehouse_oak/th_wall": {
+   "mx": 124,
+   "w": [
+    88,
+    100
+   ],
+   "res": "🖼️"
+  },
+  "port/off/treehouse_oak/th_bell": {
+   "res": "never on the picture together with the tab"
+  },
+  "port/off/treehouse_oak/th_bucket": {
+   "mx": 124,
+   "w": [
+    60,
+    88
+   ],
+   "res": "🪣"
+  },
+  "port/off/treehouse_pine/th_wall": {
+   "mx": 124,
+   "w": [
+    88,
+    100
+   ],
+   "res": "🖼️"
+  },
+  "port/off/treehouse_pine/th_bell": {
+   "res": "never on the picture together with the tab"
+  },
+  "port/off/treehouse_pine/th_bucket": {
+   "mx": 124,
+   "w": [
+    60,
+    88
+   ],
+   "res": "🪣"
+  },
+  "port/off/errors": [],
+  "portSmall/on/bathroom/mirror": {
+   "mx": 88,
+   "w": [
+    52,
+    88
+   ],
+   "tabX": 38,
+   "res": "🪞"
+  },
+  "portSmall/on/bathroom/vanity": {
+   "mx": 88,
+   "w": [
+    52,
+    141
+   ],
+   "tabX": 38,
+   "res": "🚰"
+  },
+  "portSmall/on/spa/linen": {
+   "mx": 88,
+   "w": [
+    52,
+    146
+   ],
+   "tabX": 38,
+   "res": "🦸"
+  },
+  "portSmall/on/spa/uvanity": {
+   "mx": 88,
+   "w": [
+    100,
+    105
+   ],
+   "tabX": 38,
+   "res": "🚰"
+  },
+  "portSmall/on/treehouse_oak/th_wall": {
+   "mx": 100,
+   "w": [
+    64,
+    100
+   ],
+   "tabX": 50,
+   "res": "🖼️"
+  },
+  "portSmall/on/treehouse_oak/th_bell": {
+   "res": "never on the picture together with the tab"
+  },
+  "portSmall/on/treehouse_oak/th_bucket": {
+   "mx": 100,
+   "w": [
+    36,
+    88
+   ],
+   "tabX": 50,
+   "res": "🪣"
+  },
+  "portSmall/on/treehouse_pine/th_wall": {
+   "mx": 100,
+   "w": [
+    64,
+    100
+   ],
+   "tabX": 50,
+   "res": "🖼️"
+  },
+  "portSmall/on/treehouse_pine/th_bell": {
+   "res": "never on the picture together with the tab"
+  },
+  "portSmall/on/treehouse_pine/th_bucket": {
+   "mx": 100,
+   "w": [
+    36,
+    88
+   ],
+   "tabX": 50,
+   "res": "🪣"
+  },
+  "portSmall/on/errors": [],
+  "portSmall/off/bathroom/mirror": {
+   "mx": 88,
+   "w": [
+    52,
+    88
+   ],
+   "res": "🪞"
+  },
+  "portSmall/off/bathroom/vanity": {
+   "mx": 88,
+   "w": [
+    52,
+    141
+   ],
+   "res": "🚰"
+  },
+  "portSmall/off/spa/linen": {
+   "mx": 88,
+   "w": [
+    52,
+    146
+   ],
+   "res": "🦸"
+  },
+  "portSmall/off/spa/uvanity": {
+   "mx": 88,
+   "w": [
+    100,
+    105
+   ],
+   "res": "🚰"
+  },
+  "portSmall/off/treehouse_oak/th_wall": {
+   "mx": 100,
+   "w": [
+    64,
+    100
+   ],
+   "res": "no ring, room=treehouse_oak ms=idle"
+  },
+  "portSmall/off/treehouse_oak/th_bell": {
+   "res": "never on the picture together with the tab"
+  },
+  "portSmall/off/treehouse_oak/th_bucket": {
+   "mx": 100,
+   "w": [
+    36,
+    88
+   ],
+   "res": "🪣"
+  },
+  "portSmall/off/treehouse_pine/th_wall": {
+   "mx": 100,
+   "w": [
+    64,
+    100
+   ],
+   "res": "no ring, room=treehouse_pine ms=idle"
+  },
+  "portSmall/off/treehouse_pine/th_bell": {
+   "res": "never on the picture together with the tab"
+  },
+  "portSmall/off/treehouse_pine/th_bucket": {
+   "mx": 100,
+   "w": [
+    36,
+    88
+   ],
+   "res": "🪣"
+  },
+  "portSmall/off/errors": []
+ },
+ "tap": {
+  "port/bathroom": {
+   "room": "bathroom",
+   "from": 228,
+   "to": 38,
+   "exitX": 18,
+   "state": "idle",
+   "target": 38,
+   "thenExit": "living "
+  },
+  "port/spa": {
+   "room": "spa",
+   "from": 264,
+   "to": 42,
+   "exitX": 22,
+   "state": "idle",
+   "target": 42,
+   "thenExit": "uphall "
+  },
+  "port/treehouse_oak": {
+   "room": "treehouse_oak",
+   "from": 276,
+   "to": 56,
+   "exitX": 36,
+   "state": "idle",
+   "target": 56,
+   "thenExit": "treehouse_oak 🪜🛝"
+  },
+  "port/treehouse_pine": {
+   "room": "treehouse_pine",
+   "from": 276,
+   "to": 56,
+   "exitX": 36,
+   "state": "idle",
+   "target": 56,
+   "thenExit": "treehouse_pine 🪜"
+  },
+  "portSmall/bathroom": {
+   "room": "bathroom",
+   "from": 228,
+   "to": 38,
+   "exitX": 18,
+   "state": "idle",
+   "target": 38,
+   "thenExit": "living "
+  },
+  "portSmall/spa": {
+   "room": "spa",
+   "from": 264,
+   "to": 42,
+   "exitX": 22,
+   "state": "idle",
+   "target": 42,
+   "thenExit": "uphall "
+  },
+  "portSmall/treehouse_oak": {
+   "room": "treehouse_oak",
+   "from": 276,
+   "to": 56,
+   "exitX": 36,
+   "state": "idle",
+   "target": 56,
+   "thenExit": "treehouse_oak 🪜🛝"
+  },
+  "portSmall/treehouse_pine": {
+   "room": "treehouse_pine",
+   "from": 276,
+   "to": 56,
+   "exitX": 36,
+   "state": "idle",
+   "target": 56,
+   "thenExit": "treehouse_pine 🪜"
+  }
+ },
+ "bath": {
+  "on": {
+   "before": {
+    "x": 206,
+    "busy": true,
+    "tabDrawn": false,
+    "P": 48
+   },
+   "after": {
+    "x": 206,
+    "busy": true,
+    "P": 59,
+    "bubbles": 47
+   },
+   "busySec": "7.50",
+   "errors": []
+  },
+  "off": {
+   "before": {
+    "x": 206,
+    "busy": true,
+    "tabDrawn": false,
+    "P": 47
+   },
+   "after": {
+    "x": 206,
+    "busy": true,
+    "P": 59,
+    "bubbles": 44
+   },
+   "busySec": "7.53",
+   "errors": []
+  }
+ },
+ "ride": {
+  "on": {
+   "tab": true,
+   "r0": {
+    "m": 212,
+    "d": 212
+   },
+   "mid": {
+    "m": 167,
+    "d": 167,
+    "mount": true
+   },
+   "end": {
+    "m": 36,
+    "d": 36,
+    "mount": "daddy",
+    "state": "ride",
+    "room": "bathroom"
+   }
+  },
+  "off": {
+   "tab": false,
+   "r0": {
+    "m": 212,
+    "d": 212
+   },
+   "mid": {
+    "m": 167,
+    "d": 167,
+    "mount": true
+   },
+   "end": {
+    "m": 140,
+    "d": 140,
+    "mount": "daddy",
+    "state": "ride",
+    "room": "bathroom"
+   }
+  }
+ },
+ "wheel": {
+  "on": {
+   "tab": true,
+   "from": 222,
+   "end": {
+    "x": 38,
+    "state": "wheel",
+    "room": "bathroom"
+   }
+  },
+  "off": {
+   "tab": false,
+   "from": 222,
+   "end": {
+    "x": 140,
+    "state": "wheel",
+    "room": "bathroom"
+   }
+  }
+ }
+}

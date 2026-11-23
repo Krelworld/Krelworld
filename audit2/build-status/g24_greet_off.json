@@ -1,0 +1,88 @@
+{
+ "land": {
+  "first": {
+   "pulse": true,
+   "collapsed": false,
+   "ctx": "greet:daddy"
+  },
+  "lastGlowDaddy": false,
+  "repeat": {
+   "pulse": true,
+   "collapsed": false,
+   "ctx": "greet:daddy"
+  },
+  "afterMoodTap": {
+   "pulse": false,
+   "collapsed": false,
+   "ctx": null,
+   "scene": true,
+   "mood": "happy"
+  },
+  "otherPerson": {
+   "pulse": true,
+   "collapsed": false,
+   "ctx": "greet:mommy"
+  },
+  "after5min": {
+   "pulse": true,
+   "collapsed": false,
+   "ctx": "greet:daddy"
+  },
+  "others": {
+   "scold": "true,true",
+   "refused": "true,true",
+   "refused_insta": "true,true",
+   "tvOff": "true,true",
+   "fortFell": "true,true",
+   "pressureEat": true
+  },
+  "stopsOnSetMood": {
+   "before": true,
+   "after": false
+  },
+  "errors": []
+ },
+ "port": {
+  "first": {
+   "pulse": true,
+   "collapsed": false,
+   "ctx": "greet:daddy"
+  },
+  "lastGlowDaddy": false,
+  "repeat": {
+   "pulse": true,
+   "collapsed": false,
+   "ctx": "greet:daddy"
+  },
+  "afterMoodTap": {
+   "pulse": false,
+   "collapsed": false,
+   "ctx": null,
+   "scene": true,
+   "mood": "happy"
+  },
+  "otherPerson": {
+   "pulse": true,
+   "collapsed": false,
+   "ctx": "greet:mommy"
+  },
+  "after5min": {
+   "pulse": true,
+   "collapsed": false,
+   "ctx": "greet:daddy"
+  },
+  "others": {
+   "scold": "true,true",
+   "refused": "true,true",
+   "refused_insta": "true,true",
+   "tvOff": "true,true",
+   "fortFell": "true,true",
+   "pressureEat": true
+  },
+  "stopsOnSetMood": {
+   "before": true,
+   "after": false
+  },
+  "errors": []
+ }
+}

@@ -1,0 +1,519 @@
+# WORKER BRIEF: status  (overlay file: clarity-status.js)
+Items to build: G15, G23, G24
+
+## Your surface
+What moves and what sleeps on the HUD. Owns: the #app classes cm-strip, cm-mood and cm-alert; opacity, filter and shake of .rb, .fl, .mood, .alertb and #reqBtn; the shake only of .facecard (never dimmed); .mood.cm-awake; the animation of #moodbar.pulse and .mood; .alertb animation, .settled, data-born and the tp colour; .navarrow animation and the inner <i> arrival bob (.cm-arrive); the grey scene-tap ring in #fx; the Audio2.blip before-hook (G15); the onTap before-hook at order 10 (G15); the UI.pulseMoods before-hook (G24); the idle wiggle (features.js:598-599). Must NOT touch: position, size or layout of any HUD element (layout, dock); #moodbar/#moodToggle layout (layout); #reqBtn position, size, badge or glow (dock); strip and pill colours (wayfinding); ring placement (rings).
+
+## Local edits allowed
+features.js:598-599 only (G23): the idle-wiggle gap (Clarity.G23.hintGap()), the filter that keeps only visible props, and the wiggle counter (Clarity.G23.n). Guarded by Clarity.is('G23') and marked /* G23 */.
+
+## Order notes
+Worker index 1, ports 8860-8869. Merge 2nd. Registers: every(100) (G15); pointer up (G15); hook Audio2.blip before 10 (G15); hook onTap before 10, never skips (G15); appear '#alerts .alertb' or every(250) (G23); listen room (G23); hook UI.pulseMoods before 10 (G24). Integration: G15 × G25 (#reqBtn dims while dock owns its box); G15 × G19 (the dimmed landscape column); G23 × G19 (arrow bob with .navarrow.r at right:0); G24 × G19 (a hello unfolds a folded column, no resize).
+
+## Shared core API (already built, in the game folder)
+Two new files, both in /home/user/Krelworld/public/chef-marina/. Global: window.Clarity (C below).
+
+A. clarity-flags.js (loaded FIRST, before audio.js)
+- Clarity.ids = ['G1'..'G39']; Clarity.on = {G1:true ... G39:true} (the switches, decided at page load).
+- Test overrides, never stored: URL ?clarity=off | ?clarity=-G3,-G19 | ?clarity=only:G3,G9 ; or window.CLARITY_OFF = 'all' | 'G3,G19' | ['G3'] set before load. Playwright: await ctx.addInitScript(v => { window.CLARITY_OFF = v; }, 'G3,G9') then goto or reload.
+- Clarity.ready: false until DOMContentLoaded, i.e. until every clarity file has loaded. Clarity.is(id) === (Clarity.ready && Clarity.on[id] === true).
+- LOCAL EDITS in game files test `window.Clarity && Clarity.is('G6')`. This works at any time and is false while the page is still loading.
+- Overlay code that runs at load reads Clarity.on.Gn directly.
+
+B. clarity-core.js (loaded after trees.js). Clarity.core === 1 once it has loaded.
+
+SWITCHES AT RUN TIME
+- Clarity.set(id, bool): flips a switch. Hooks, listeners, ticks, pointer and appear callbacks stop or resume at once. CSS follows at once.
+- Clarity.onToggle(id, fn(on)): callbacks so an item can undo or redo inline state when its switch flips.
+- Setting Clarity.on.Gn = false by hand also works, except for onToggle; CSS then follows within 250 ms.
+- Clarity.item(id, setupFn): runs setupFn once at load, only if the switch is on, inside try/catch.
+
+HOOKS (use these instead of wrapping a game function): Clarity.hook(point, id, { before(call), after(call), order })
+- Points, each wrapped ONCE by the core and outermost over every game wrapper: 'UI.actions', 'UI.closeActions', 'UI.bigIcon', 'UI.pulseMoods', 'UI.bubble', 'UI.update', 'Audio2.blip', 'onTap', 'hitTest', 'interact', 'currentActivity', 'onEnterRoomBy', 'checkMess', 'showWish', 'openIsoMap', 'drawProp', 'drawExitSigns', 'featTick'. Clarity.points() lists them.
+- call = { name, self, args, result, skip }.
+- before(call) may set call.skip = true, and call.result if needed, so the game's own function is not called. The first skip stops the remaining before-hooks.
+- after(call) runs after the game's function. It also runs after a skip, so check call.skip. It may replace call.result.
+- In both, this === call.self. Never mutate call.args.
+- order: lower runs first (default 0); equal orders run in registration order.
+- Hooks run only while Clarity.on[id] is true.
+- A hook that throws is reported once (console.warn 'clarity: Gn before X') and its changes to skip/result are undone.
+- With nothing registered, or every hook switched off, the wrapper is exactly the game's call: same this, arguments and return value.
+- Clarity.inner(point): the game's own function under the hooks. Call it to bypass every clarity hook, e.g. to replay a deferred icon: Clarity.inner('UI.bigIcon')(ch, ms).
+- drawExitSigns: builder.js:234 re-wraps it once on the next frame. The core's wrapper sits inside builder's and still runs exactly once per frame (measured 60/s). Never re-wrap anything yourself.
+- Not hook points:
+  - ui.js internals: actions() and openPanel() call the private closeActions; placeActs is private. Use local edits (G6, G7).
+  - askReq is private to fun.js. Use a local edit (G31) or Clarity.appear('#reqBtn').
+  - changeRoom: use the 'room' event.
+  - say: G22 is a static table.
+  - resize and the camera: only the layout worker changes framing, through engine.js:169, game.js:286 and calls to resize() and render() by name.
+- Example: Clarity.hook('checkMess', 'G2', { order: 10, before(c) { if (Clarity.busyNow() || Clarity.quietFor() < 10) c.skip = true; } });
+- Example: Clarity.hook('hitTest', 'G8', { order: 10, after(c) { const h = c.result; if (h && h.kind === 'prop') c.result = see(h, c.args[0], c.args[1]); } });
+
+EVENTS: Clarity.listen(evt, id, fn)
+- 'room' (was, room): after every real room change. Dispatched from a Floors.hooks entry, i.e. from floors.js's changeRoom, which is the outermost one.
+- 'screenOpen' / 'screenClose': Clarity.screenOpen() turned true / false.
+- 'activityStart' / 'activityEnd': Clarity.busyNow() turned true / false. On activityEnd, Clarity.endedAt = E.t (game seconds).
+- The start of a game (the title closing) is a screenClose and an activityEnd.
+- Edges are sampled every 100 ms, and also synchronously whenever Clarity.quietFor() or Clarity.sample() is called, so an edge fires once, never late for a reader.
+- Example: Clarity.listen('activityEnd', 'G1', () => { lastInput = E.t; });
+
+TIMER: Clarity.every(ms, id, fn(nowMs))
+- One shared 50 ms setInterval. fn runs at most every ms (minimum 50) while the switch is on.
+- Example: Clarity.every(100, 'G15', tick);
+
+TOUCHES: Clarity.pointer('down' | 'up', id, fn(event))
+- One window capture listener per type (passive), installed on first use. It runs before any game handler sees the event.
+- Look only: never preventDefault or stopPropagation.
+- Example: Clarity.pointer('down', 'G1', () => { lastInput = E.t; });
+
+NEW NODES: Clarity.appear(selector, id, fn(node))
+- One MutationObserver on body (childList, subtree), installed on first use.
+- fn runs as a microtask, before paint, for every added element matching selector, whether it is the added node itself or inside an added subtree.
+- The node may already be gone again, so check isConnected.
+- Example: Clarity.appear('.stk-toast', 'G27', t => { if (Clarity.screenOpen()) { t.style.display = 'none'; queue.push(t.textContent); } });
+
+CSS: Clarity.css(id, cssText) returns a <style data-clarity='Gn'> appended to <head>.
+- Clarity styles are kept after every game stylesheet: Bricks, LegoShelf, Pool, Movies, Stuffies and Spa append theirs the first time they open, and the core moves ours back to the end.
+- media='not all' while the switch is off.
+- Call it as often as you like per item.
+- Example: Clarity.css('G14', '@media (orientation:portrait){#roombar{max-width:calc(100% - 84px)}.rb{flex:0 1 40px;min-width:34px}}');
+
+STATE HELPERS
+- Clarity.bodyBusy(): marina.state is swing, bars, ride or wheel, or a looping anim. False before the game exists.
+- Clarity.screenOpen(): any of the following is up:
+  - the title;
+  - any #panel screen, including the map, the fort builder and interior, Lego/tiles, the shelf, pool, films, stuffies, spa, tree climb and the builder;
+  - Studio.active, #storyBox or #stkBox.
+  The TV and the fort tray are not screens.
+- Clarity.busyNow(): inActivity() || bodyBusy().
+- Clarity.quietFor(): game seconds since the last activity ended. 0 while one is going on; Infinity before any ended.
+- Clarity.endedAt: E.t of the last activity end (null before). Clarity.sample(): re-evaluate the edges now.
+- Clarity.playing(): marina exists and the title is hidden.
+- Clarity.landscape(): innerWidth > innerHeight.
+
+GEOMETRY HELPERS
+- Clarity.hudRects(st?, opt?) returns [[x0,y0,x1,y1], weight, kind, element] for every visible HUD control.
+  - Kinds: strip (#roombar .rb), pill (#floorpill .fl:not(.off)), map, arrow (.navarrow:not(.off)), weather (#weatherBtn:not(.hidden)), alert (#alerts .alertb), face (.facecard.show), stop (#stopBtn:not(.hidden)), book and dress (not .off), wish, req, give (#fx .pichint), call (.cm-call), mood (#moodbar .mood), moodToggle.
+  - Skipped: zero-size controls, visibility:hidden, and opacity < 0.05 on the control or an ancestor.
+  - Weight 4. In landscape, mood and moodToggle get weight 6 and are widened 8 px to the left.
+  - Coordinates are relative to st (a DOMRect, e.g. placeActs' stage rect) or to #stage. opt.client gives viewport coordinates.
+  - opt.kinds and opt.except filter by kind.
+  - Cached 250 ms (dropped on resize and orientationchange). opt.fresh measures now.
+  - Controls outside the picture (the tall-portrait dock, the portrait mood row) are included; they overlap nothing in it.
+  - Example (G6): if (window.Clarity && Clarity.is('G6')) { acts.hud = acts.hud || Clarity.hudRects(st, { fresh: true }); for (const x of acts.hud) avoid.push(x); }
+- Clarity.stageRect(): #stage's DOMRect, cached 250 ms.
+- Clarity.toClient(wx, wy) gives viewport px. Clarity.fromClient(cx, cy) gives world coordinates.
+- Clarity.onCanvas(cx, cy): elementFromPoint there is #cv, i.e. nothing covers the picture at that point.
+- Clarity.overlap(a, b): overlap area of two [x0,y0,x1,y1] rects.
+- Clarity.nudgeX(box, rects, { gap = 4, max, bounds: [minX, maxX] }) returns the smallest sideways shift in px that clears every rect at the box's height (hudRects entries or plain rects), or null if none within max.
+  - Example: const dx = Clarity.nudgeX(b, Clarity.hudRects(null, { except: ['give', 'call'] }), { max: 62, bounds: [0, st.width] });
+- Clarity.floorLevel(room): main 0, up +1, basement -1, outside 0, tree houses 0.5, unknown rooms 0.
+- Clarity.floorDir(from, to): +1 up, -1 down, 0 same level.
+  - Example (G39): const fd = window.Clarity && Clarity.is('G39') ? Clarity.floorDir(prev, G.room) : 0;
+
+MOTION HELPER
+- Clarity.shake(el, { px = 4, ms = 150, times = 2 }) returns an Animation or null.
+- It is a side-shake on the individual translate property only, with composite 'add'. Without composite support it starts from the element's computed translate.
+- So transforms, CSS animations, :active scales and centring translates keep working, and a CSS animation:none cannot cancel it.
+- Example: Clarity.shake(btn); Audio2.blip(-12, 'triangle', 0.08, 0.1);
+
+MISC
+- Clarity.warnOnce(key, err).
+- Item state and item helpers live on Clarity.Gn, e.g. Clarity.G18 = { target: null } and Clarity.G23 = { hintGap() {...} }. Never on G, never in localStorage.
+
+Tools in /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/arch/:
+- regress-flags.js: run regress.js with switches off. CLARITY_OFF=all|G3,G9 NODE_PATH=$(npm root -g) node regress-flags.js <port> <out.json> [gameDir] [only=flows].
+- core_boot.js, core_hooks.js and core_flags.js: the core proofs, reusable as templates.
+
+## Load order
+Script order in index.html and in artifact.html. The two lists are identical, checked with diff.
+
+clarity-flags.js (NEW, first)
+audio.js engine.js world.js ui.js game.js features.js fort.js art.js scenes.js pics.js play.js calm.js react.js more.js nav.js story.js fun.js floors.js basement.js upstairs.js outdoor.js bricks.js spa.js stuffies.js family2.js minka.js legoshelf.js builder.js pool.js movies.js wildlife.js treeclimb.js trees.js (unchanged)
+clarity-core.js (NEW)
+clarity-prompts.js, clarity-status.js, clarity-rings.js, clarity-bubbles.js, clarity-dock.js, clarity-layout.js, clarity-screens.js, clarity-wayfinding.js (8 NEW empty stubs, one per worker, in workers-list order)
+
+Files created in /home/user/Krelworld/public/chef-marina/: clarity-flags.js, clarity-core.js, and the 8 stubs. Each stub holds only a header comment, a load guard (`const C = window.Clarity; if (!C || !C.core) return;`) and an empty IIFE. index.html and artifact.html are edited. Nothing is committed.
+
+Why this order:
+- Flags first, so any game file, including load-time code and the earliest timers, can call Clarity.is or read Clarity.on.
+- The core after trees.js, so each of its 18 wrappers is outermost over every game wrapper. The one exception is by design: builder.js re-wraps drawExitSigns once to keep its late drawing last, and the core's wrapper runs inside it.
+- Worker files after the core, so they can register hooks at load.
+- The order among worker files does not matter:
+  - hooks carry explicit order numbers (see conventions);
+  - CSS is split by property ownership, so no two workers set the same property on the same element;
+  - the only shared load-time writes (G22 fills missing SAY_ICON keys; G31 sets the existing m_want_fort) commute.
+- Load-time literals and loops in early files are never edited: REQS in fun.js, ROOMS.nunuroom in basement.js:7, the tree-house loop at builder.js:928. Those changes are applied from the overlay at load (G31 WISHES/SAY_ICON, G36 ROOMS icons, G22 SAY_ICON) or at call time (G31 askReq).
+
+Merge order of the worker branches: prompts, status, rings, bubbles, dock, layout, screens, wayfinding.
+- rings must come before layout, because G19 narrows the landscape picture and relies on G7's wrapping tray.
+- Local edits are line-disjoint across workers, so any order merges cleanly.
+
+## Conventions (must follow)
+1. YOUR FILES
+- Each worker owns one overlay file: its stub clarity-<name>.js, already loaded by index.html and artifact.html.
+- It also owns the local edits listed for it under workers, and nothing else.
+- Never edit: clarity-flags.js, clarity-core.js, index.html, artifact.html, style.css, or lines owned by another worker.
+- If you need a core change, report it. Do not patch the core.
+
+2. SWITCHES. Every item's code checks its own switch.
+- Hooks, listeners, ticks, pointer and appear callbacks, and Clarity.css registered with the item id are gated by the core.
+- Load-time overlay code: if (Clarity.on.Gn) {...}. Add Clarity.onToggle(id, fn) to undo it when the switch flips.
+- Local edits in game files: window.Clarity && Clarity.is('Gn').
+- A switch that is off must give byte-for-byte today's code path and look.
+- Test with ?clarity=-Gn, ?clarity=off, or CLARITY_OFF via an init script.
+
+3. LOCAL EDITS
+- Mark the changed line /* Gn */. Keep edits as small as possible, ideally one line.
+- The switch-off branch is today's exact expression.
+- Never add a top-level let, const or function to a game file. Classic scripts share one global scope, and a duplicate name is a SyntaxError that kills that whole file. Put state inside the file's existing IIFE or closure next to the edit, or on Clarity.Gn. more.js is top-level code, so G21 keeps its state on Clarity.G21.
+- Never edit object literals or loops that run at load: REQS in fun.js, ROOMS in basement.js:7, builder.js:928. Apply those changes from the overlay at load or at call time.
+- Find code by its text. Line numbers are as of this core and shift.
+
+4. HOOKS, NEVER WRAPPERS
+- Never reassign a game global or a UI or Audio2 method. Use Clarity.hook.
+- Assigned orders (lower runs first):
+  - UI.actions: before G2:10 | after G7:10, G30:20, G2:40 (only records whether a tidy ring opened), G18:30.
+  - UI.closeActions: after G18:10, G27:20.
+  - onTap: before G18:5 (never skips), G15:10 (never skips), G35:20 (may skip).
+  - interact: before G18:10.
+  - hitTest: after G8:10.
+  - currentActivity: after G17:10.
+  - onEnterRoomBy: before G20:10.
+  - checkMess: before G2:10.
+  - UI.bigIcon: before G27:10.
+  - UI.pulseMoods: before G24:10.
+  - UI.bubble: after G26:10.
+  - UI.update: after G5:10.
+  - Audio2.blip: before G15:10.
+  - openIsoMap: after G36:10, G37:20, G38:30.
+  - drawProp: after G35:10.
+  - drawExitSigns: after G35:10.
+  - featTick: after G26:10.
+  - showWish: free; use 10.
+- After-hooks must check call.skip.
+- To call a hooked function without re-entering its hooks, use Clarity.inner(name).
+- Events: room (G4, G18, G23, G35); activityEnd (G1); screenOpen (G2, G27); screenClose (G27).
+- Pointer: G1 down; G15 up.
+- Appear: G23 '#alerts .alertb' (or a tick), G25 '#reqBtn' and '#wishBtn', G27 '.stk-toast'.
+- Ticks: G4 200 ms, G15 100 ms, G23 250 ms, G35 250 ms, G37 300 ms, G38 200 ms.
+- G3, G9 and G16 use MutationObservers of their own, on elements they own.
+
+5. CSS
+- Only through Clarity.css(id, text), one or more per item. Never edit style.css or inject <style> yourself.
+- Prefix every new class or keyframe with cm-.
+- Property ownership on shared elements. Two workers never set the same property on the same element:
+  - #xFloat: screens.
+  - #panel and its screens (cooking, dress-up, crafts, Bricks, the canvas screens), #studio, #storyBox and #stkBox: screens. Two exceptions: the map's content (.fmap, .fmaprow, .fmaproom and the .isosvg additions) belongs to wayfinding, and .isoroom.here's transform-box/transform-origin belongs to bubbles (G5).
+  - #title padding and .tpick: layout (G13).
+  - #moodbar and #moodToggle: layout owns position, size, display, the folded slot, background, handle and chevron in landscape. status owns .mood opacity, filter and shake, and the animation of #moodbar.pulse and .mood.
+  - .navarrow: layout owns the right offset. status owns the animation and the inner <i> bob.
+  - #roombar / .rb: layout owns position, landscape centring, max-width and .rb size/flex. wayfinding owns the #roombar background and the .rb.cm-gp dot. status owns .rb opacity, filter and shake.
+  - #floorpill / .fl: wayfinding owns the colour ring (box-shadow), data-dest and .fl i font-size. status owns .fl opacity, filter and shake.
+  - #alerts / .alertb: layout owns #alerts' landscape centring. status owns .alertb animation, .settled, data-born, the tp colour, opacity, filter and shake.
+  - .facecard: layout owns .facecard.right's landscape offset. status may only shake a face card; nobody dims them.
+  - #weatherBtn: layout.
+  - #dressBtn / #bookBtn: dock owns tall-portrait position, size, visibility guard, glide and wiggle. layout owns the landscape right offsets.
+  - #stopBtn: nobody moves, translates or rescales it. Its glyph comes from the currentActivity hook (bubbles, G17).
+  - #wishBtn / #reqBtn: dock owns position, size, glow animation, badge, span glyph and the ghost. status owns #reqBtn opacity, filter and shake.
+  - .say, .pichint, .cm-call and the bigIcon look: bubbles. The timing of ✨ big icons: dock (G27).
+  - .act, .acttray, .actback, .cm-badge and ring placement: rings.
+  - .stk-toast and the fly layer: dock.
+  - Canvas drawing: rings (the glow in nav.js, the deer tab); wayfinding (signs, edge tabs, the floor slide); status (the idle wiggle); layout (zoom and camera).
+  - #app classes: status adds cm-strip, cm-mood and cm-alert; layout may add its own cm-* classes.
+
+6. POSITION AND MOTION
+- HUD and dock buttons are positioned with left/top/right/bottom and the individual translate property, never transform. Game rules such as :active, pulse and .facecard scale use transform.
+- Transient motion: Clarity.shake, el.animate on translate, or a pointer-events:none ghost element.
+- Clarity code never calls preventDefault or stopPropagation. A tap is never swallowed or retargeted, with one documented exception: G35's tab tap.
+
+7. DATA
+- Nothing new on G, in localStorage or sessionStorage, or in saved data. Item state lives on Clarity.Gn.
+- Never call propActions or entActions just to look: fun.js's wrapper marks treasures found. G18 also never calls hitTest.
+
+8. TESTING SETUP
+- Serve your worktree: H.boot({ port, view, room, dir: '<worktree>/public/chef-marina' }).
+- Ports: worker k (0-based position in the workers list) uses 8850+10k to 8859+10k:
+  - prompts 8850-8859, status 8860-8869, rings 8870-8879, bubbles 8880-8889
+  - dock 8890-8899, layout 8900-8909, screens 8910-8919, wayfinding 8920-8929
+- harness.serve() reuses any server already listening on a port, whatever directory it serves. Never point one port at a second directory.
+- Views: port, land, portSmall, landSmall, plus the sizes a check names (pass {width,height} as view): 844x340, 390x664, 390x585, 375x553 and others.
+- Desktop env() is 0, so simulate safe-area insets with padding, as the verdicts did. Checks that name her iPhone stay owner checks.
+- Scratch files only under /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/build-<name>/.
+
+9. REGRESSION SWEEP
+- Run: cd .../scratchpad/audit && NODE_PATH=$(npm root -g) node regress.js <port> <out.json> <worktree>/public/chef-marina
+- Then: node regress-diff.js .../audit2/arch/head1.json <out.json> .../audit2/arch/head2.json
+  head1/head2 are today's committed game, without clarity, run twice: the clean baseline and the noise reference.
+- The core build is .../audit2/core_regress.json.
+- Diffing against after3.json also works, but expect the rows already explained in core_tests: the fixes committed after after3.json was recorded.
+- Switch-off sweep: CLARITY_OFF=<your ids or all> NODE_PATH=$(npm root -g) node .../audit2/arch/regress-flags.js <port> <out.json> <dir>
+- Run sweeps one at a time on an idle machine. Under load the game's dt cap slows game time, and the 1.6 s samples catch earlier states.
+
+10. DONE MEANS, PER WORKER
+a. Every item is built exactly as its reconcile entry says.
+b. Each item's must-still-work list from the draft and every EXTRA CHECK of BOTH lenses has been run in the harness and passes. Results are saved in your scratch folder. A check that needs another worker's item is written down as an integration check with its expected result, never silently skipped.
+c. Zero page errors in port, land, portSmall and landSmall, with all switches on and with your switches off. The pre-existing chip_love.mp3 warning is the only allowed message.
+d. The regress sweep has no LOST SITUATION, LOST CHOICE, BROKEN or failed flow. Every remaining difference is noise or one of the expected renames listed in your items.
+e. The switch-off sweep for your ids shows no difference beyond noise.
+f. The worktree diff touches only your overlay file and your listed /* Gn */ lines.
+g. Commit only on your worktree branch, never on main, never push, unless the orchestrator says otherwise.
+
+11. AFTER MERGING (integration phase)
+Integration checks:
+- G19 × G7: keyboard (8) and TV (9) lists at 667x375 and 844x390 show every choice without scrolling.
+- G19 × G11 / G35 / G17 / G26 / G6: tabs, signs, bubbles and rings clear of ▶ at right:0 and of the column.
+- G19 × G16 / G27: 📒 and 👗 stay at today's landscape spots, and the sticker flight lands there.
+- G4 × G39: a cross-floor arrival in the living room in landscape runs one animation with no stretched frame.
+- G3 × G37 / G38: the landscape map with the lane still wraps its rows, no tile sits under #xFloat, and the house picture keeps its size.
+- G15 × G25: #reqBtn dims during scenes.
+- G30 × G35 / G36 / G39: the up/down badges match.
+- G22 × G31: m_want_fort shows 🏰 with G31 on and ⛺ with it off.
+Then a full sweep vs head1/head2 with all expected renames, and a CLARITY_OFF=all sweep equal to today.
+
+## Critic addenda for you
+- Ports. harness.serve() reuses any server already on a port, whatever directory it serves. Before your first run, and whenever a result looks wrong, check: for p in $(seq <lo> <hi>); do pid=$(pgrep -f "http.server $p --bind"); [ -n "$pid" ] && echo $p $(readlink /proc/$pid/cwd); done. Every line must be your worktree's public/chef-marina; kill any other with kill <pid>. Stale main-tree servers that were in 8850–8929 have been stopped.
+- Sweeps. Wrap every regress.js and regress-flags.js run in: flock -x /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/sweep.lock <command>. Before calling any BEHAVES DIFF or flow difference a regression or noise, re-press it A/B against HEAD (port 8847 serves arch/head) under identical conditions; /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/critic/ab_rows.js is a template. Under load, the stool and wicker 🧗 'perch', the Miles 🤗 'anim' and 'tap floor walks' flip by themselves.
+- Events. room, screen and activity listeners may run synchronously inside any Clarity.quietFor() or Clarity.sample() call, including inside another item's hook (G2's checkMess hook runs inside AI.update). Keep them cheap and re-entrancy-safe, and never assume they run from the timer.
+- Switches. Register hooks, ticks, listeners, pointer and appear callbacks and Clarity.css unconditionally at load; the core gates them, so turning a switch ON at run time works. Use `if (Clarity.on.Gn)` at load only for one-time data changes, paired with Clarity.onToggle(id, on => ...) that both applies and restores.
+- DOM and names:
+- Create DOM nodes only while your switch is on.
+- Never reuse a game id or class (.act, .pichint, .say, .alertb, .stk-toast, #wishBtn, #reqBtn…); game code and regress.js query them.
+- Name new classes and @keyframes cm-gN-… (with your item id) unless the reconcile already names them; class and keyframe names are global and can collide across workers.
+- Rings close in places the UI.closeActions hook never sees. ui.js closes them through its PRIVATE closeActions when a new ring replaces an old one, in openPanel(), and in update() when the ring's anchor leaves the room. If your item needs 'is a ring open', read document.querySelector('#fx .act').
+- Insets and core changes:
+- Simulated insets (padding in the harness) leave env() at 0. Anything absolutely positioned inside #stage is already offset by env(safe-area-inset-left) through #app's padding; never add env() to its left or right, or her iPhone gets the inset twice and no harness check can show it.
+- Core changes from the critic: hook lists are copy-on-write (a hook registered during a call applies from the next call), and Clarity.nudgeX takes opt.dir (+1 or -1).
+- G15 dim CSS: do not clobber existing transitions. .mood has transition:transform .1s (its press scale), so use transition:opacity .2s, transform .1s there. Check the other dimmed elements' existing transitions before writing the shorthand.
+- G15/G24 × G19: in landscape, layout hides a folded column's faces with visibility:hidden. Your dim rule must never make a folded face visible: opacity does not override visibility, but scope the landscape dim to #moodbar:not(.collapsed) .mood to be safe. G23: while a ring is open, .actback covers the stage, so no prop passes Clarity.onCanvas and there are no wiggles while a ring is open. That is acceptable; say so in your results.
+
+## Open critic issues touching your items
+- [minor] G19 (layout) × G15/G24 (status): folded column: The ownership table does not say how folded faces are hidden. If layout uses opacity or filter on .mood, status's dim rule (#app.cm-mood #moodbar .mood:not(.cm-awake){opacity:.45}) outranks it and shows folded faces at 45%. → Layout hides folded faces with visibility:hidden, or display:none on .mood. Status may additionally scope its dim to #moodbar:not(.collapsed).
+- [minor] G15 (status): dim CSS: 'transition:opacity .2s' replaces the existing .mood{transition:transform .1s}, so the press scale snaps while the faces are dimmed. → List both transitions (addendum).
+
+## Cross-item conflicts involving your items
+- G24/G18: The draft swaps the mood faces' wobble for a yellow glow ring. The child lens keeps the existing per-face wobble and only stops the whole bar from moving. The glow is also G18's 'this is what you picked' cue. → The child lens wins: a look-only change, which avoids giving the warm glow two meanings. The functionality lens has no safety stake. The CSS is only #moodbar.pulse{animation:none!important}, plus the greeting-throttle hook.
+- G15: The draft dims face cards; both lenses say never, because they are the talking portraits in every scene and the story. Which mood stays bright: the functionality lens keeps .mood:not(.cur), but the child lens showed .cur is a dead 😢 during ring-started hugs and jokes. → Face cards are never dimmed; they only shake on a dead tap. All five moods dim, except the face whose scene was started by a live tap within 500 ms. Purely visual, so both hold. #reqBtn joins the dim set (child). Dead taps are decided from the live rules at tap time (both lenses). The shake is translate-only through the core's Clarity.shake. That also fixes the specificity clashes the lenses flagged with .alertb.settled (G23) and #moodbar.pulse .mood (G24): a WAAPI animation cannot be cancelled by animation:none.
+- G15/G23/G24/G25: Shared elements with competing animations and transforms: .alertb (G15's shake vs G23's settle), .mood (G15's shake vs G24's pulse), and #reqBtn (G15's dim and shake vs G25's position and glow). → G15, G23 and G24 share one worker (status). Clarity.shake animates only the translate property with composite 'add', so no CSS animation or transform wins over it. #reqBtn is split by property: dock owns position, size, box-shadow glow and badge; status owns opacity, filter and the translate shake.
+- G5/G6/G7/G17/G18/G23/G26/G31/G33/G37/G39/G20: Five game files are edited by two workers: ui.js (G5 vs G6/G7), nav.js (G17 vs G18), features.js (G23 vs G37/G39), fun.js (G33 vs G31) and family2.js (G26 vs G20). → Every edit is on different, non-adjacent lines. ui.js: G7 at :49, G6 at :72-73, G5 at :101. nav.js: G17 at :61-67, G18 at the glow IIFE :153-174. features.js: G39 at :395-397, G37 at :413, G23 at :598-599. fun.js: G33 at :38, G31 at :82-83. family2.js: G26 at :145, G20 at :171-179. Each worker locates its code by text, and merges are line-disjoint.
+
+
+==================== G15 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD combining both amendments. The draft's face-card dimming is dropped by both lenses.
+(1) Asleep look. A Clarity.every(100,'G15') tick sets three classes on #app, each after a 400 ms hold, and clears them at once:
+- cm-strip while G.busy;
+- cm-mood while G.sceneOn || (G.busy && marina.state !== 'tantrum');
+- cm-alert while G.busy && G.sceneOn.
+The CSS dims child buttons only, so the container rules keep winning: #app.cm-strip #roombar .rb, #app.cm-strip #floorpill .fl, #app.cm-mood #moodbar .mood:not(.cm-awake), #app.cm-alert #alerts .alertb, #app.cm-alert #reqBtn {opacity:.45;filter:grayscale(.7);transition:opacity .2s}.
+(2) Moods (child). All five dim, except one: if a live mood tap is followed within 500 ms by G.sceneOn turning true, record it at tap time and give that face .cm-awake until the scene ends. Never key anything on .cur; the .cur outline stays, dimmed. Face cards are never dimmed (both lenses).
+(3) 'Not now'. Clarity.pointer('up','G15') decides at tap time from each control's LIVE rule, never from the class:
+- .rb and .fl are dead while G.busy;
+- .mood is dead while G.sceneOn || (G.busy && marina.state !== 'tantrum');
+- .alertb and #reqBtn are dead while G.busy && G.sceneOn;
+- .facecard is dead when nav.js:101's test fails (G.busy, !quiet(), or the person is missing or hidden).
+A dead tap gets Clarity.shake(el) (translate only, composite add) and Audio2.blip(-12,'triangle',0.08,0.1). Face cards get no blip while #storyBox exists. Marina's own card (data-who=marina) gets a small wiggle and a soft blip.
+(4) Mood blip. After a dead .mood tap, for 60 ms, Clarity.hook('Audio2.blip','G15',{order:10,before}) skips exactly one call whose arguments are exactly (12,'square',0.08). The 'not now' blip itself is never skipped.
+(5) Scene taps. Clarity.hook('onTap','G15',{order:10,before}) acts only while G.sceneOn: it adds a 36 px grey ring at the finger in #fx, with inline style pointer-events:none, for 400 ms, plus the low blip. It never skips.
+(6) Nothing happens in bathTime or other busy states that are not scenes. If the strip's nope blip piles onto the bath sound, skip it while G.busy && !G.sceneOn && marina.state === 'cheer'.
+(7) Never stopPropagation or preventDefault. The map is never dimmed.
+DONE = the draft list and both lenses' EXTRA CHECKS:
+- story: the reader's card stays full colour;
+- a hug or joke from Daddy's ring after a 😢 scene: all five faces dim;
+- 🥰 from the bar: only 🥰 stays bright;
+- the first tap after busy clears works, with no shake and no blip;
+- 15-min blip count: the only calls that disappear are (12,'square',0.08) on dead mood taps;
+- after a shake, .rb.here keeps its 1.12 scale and the pulses keep running;
+- the ring element has computed pointer-events:none;
+- tantrum outside a scene: faces bright and working; bathTime: bubbles and no ring;
+- moods.js: time to the first working tap unchanged, and every dead tap gets exactly one answer.
+Depends on: -
+Interactions: Same worker as G23 and G24 (alerts and moods). Shares #reqBtn with G25 and G31 (dock owns its position, size, glow, badge and span); G15 only sets opacity and filter and shakes through translate. Face cards: G19 moves the right card in landscape; G15 never dims them. Its onTap before-hook (order 10) acts only while G.sceneOn; G35's (order 20) only when !G.busy; G18's (order 5) never skips.
+
+### DRAFT ITEM
+### G15 While a scene plays, the controls that can't work look asleep, and every ignored tap gets a 'not now'
+- problem: During a mood scene, hug, joke, ride, nap or story (G.busy, 7 s at the median, up to 17 s), the side arrows hide (nav.js:90), but other controls look fully live and ignore her.
+- The room strip and the ⬆️/⬇️ pill return before their blip (features.js:493, floors.js:19 and :49).
+- The mood faces return in setMood (game.js:577, and scenes.js:83 during sceneOn, which includes the mood-bar tantrum), although ui.js:19 has already played its cheerful blip.
+- Face cards return when busy (nav.js:101).
+- Scene taps are dropped in silence.
+- Her own face card never does anything.
+In random poking, 28% of touches landed in this window, and 28 of 82 room-button touches were dead; in one run she never left the yard. She cannot tell 'wait' from 'broken'.
+- change: One 'asleep' look, used exactly when a control's own handler would ignore a tap:
+- the control fades to about 45% with a little grey;
+- a tap on it gives a tiny side-shake and the game's existing low dead-end blip;
+- it brightens the moment it works again.
+During a scene, a tap on the room gets a small grey ring at her finger. The face whose scene is playing stays bright. During a tantrum outside a scene, the faces stay bright, because they work then. Her own face card answers with a little wiggle. Nothing new acts: scenes, timers and outcomes are untouched.
+- implementation: Block G15. A 100 ms tick sets four flags on #app, each held for 400 ms before anything dims, so drags and very short busy moments never flash; brightening is immediate:
+- cm-strip when G.busy (copying features.js:493 and floors.js:19/49);
+- cm-mood when G.sceneOn || (G.busy && marina.state !== 'tantrum');
+- cm-face when nav.js:101's own test fails (G.busy or not quiet);
+- cm-alert when G.busy && G.sceneOn (nav.js:96).
+CSS dims only the child buttons, so the container rules (#stage.tvon #roombar, #floorpill.off) keep winning: #app.cm-strip #roombar .rb, #app.cm-strip #floorpill .fl, #app.cm-mood #moodbar .mood:not(.cur), #app.cm-face .facecard, #app.cm-alert #alerts .alertb {opacity:.45;filter:grayscale(.7);transition:opacity .2s}.
+Taps on asleep controls (a capture-phase pointerup on document):
+- add .cm-nope (±4 px, 150 ms, twice) and play Audio2.blip(-12,'triangle',0.08,0.1), the dead-end blip at features.js:543;
+- on a .mood, check the mood rule live at tap time; if dead, set a 60 ms one-shot flag that the overlay's thin Audio2.blip wrapper reads to skip the mood's own blip(12,'square',…) from ui.js:19, so she hears only 'not now';
+- never call stopPropagation or preventDefault: setMood and every wrapper still run and return as today.
+Scene taps: in the overlay's outermost onTap wrapper, if G.sceneOn, add a 36 px grey ring at the finger in #fx (pointer-events:none, 400 ms) and the low blip, then call the original. This is not done in other G.busy states, because bathTime (fun.js:166-175) turns stage taps into bubbles.
+Her own face card: .facecard[data-who=marina] gets .cm-nope and a soft blip.
+- must still work: Every scene, hug, joke, ride, nap and story keeps the same length, lines and outcome; Moods still switch during a tantrum outside scenes, and look bright then; Alerts still work during busy moments that are not scenes (nav.js:96); The map still opens during a scene, as today (it is not dimmed); The strip, pill, moods and face cards work the instant busy clears; The .cur outline is still visible; Landscape TV-on hiding of the strip and pill is unchanged; bathTime's tap-for-bubbles still works; Dragging Marina and swipes are unchanged, and no tap is eaten or delayed
+- benefit: The most common confusing moment becomes readable: 'wait a moment' instead of 'that button is broken'. She stops hammering the faces, which used to restart the wait.
+- risk: Low. If a dead rule drifts from its handler, a working control would look asleep. Re-run the first-minutes moods.js trials: time to the first working tap must be unchanged, and every dead tap must now be answered. Long busy moments (family dinner, gift scenes) show dimmed controls throughout, which is accurate.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G15 [hud] While a scene plays, the controls that can't work look asleep, and every ignored tap gets a 'not now' => AMEND (child:amend, functionality:amend)
+
+**child: amend** — The problem is real. first-minutes 2.2 measured a median 7 s and a maximum 17 s of silent dead taps after a mood tap, hug or joke, and the strip and pill look live while they are dead. 'Not now' feedback is the textbook answer (Apple HIG: 'indicate when a gesture isn't available'; Sesame: 'only look touchable when touchable'), and nothing moves, so the habit cost is low. Two parts of the draft would mislead her, though.
+
+(1) Dimming the face cards greys out the scenes themselves. They are the talking, mouth-moving portraits. I measured (verify/hud-child/g15_scene.js) a face card on screen for 76-81% of a mood scene, 50-55% of a hug and 100% of a joke, in port and land. So cm-face would show every scene's main expressive picture at 45% grey (shots/g15_port_joke_daddy.png shows Marina's laughing card during the joke).
+
+(2) '.mood:not(.cur)' keeps the wrong face bright. During Daddy's 🤗 and 😜 (both started from his ring after an earlier sad scene), .cur was still 😢. The only bright face during a joke would be a dead 😢.
+
+Smaller fixes:
+- A nope decided from the dim class could answer a tap that actually works (the 400 ms hold, or the instant after busy clears).
+- The shake must not use transform, because .mood:active scale, #moodbar.pulse, the .alertb pulse and the facecard .shake all use it.
+- #reqBtn is also dead during scenes (fun.js:84) but was left out.
+
+- AMENDED CHANGE (child): Same 'asleep' look and 'not now' answer as drafted, with these changes.
+
+(1) Face cards are never dimmed. They are the talking portraits during every scene. A tap on a face card whose nav.js:101 test fails gets only the side-shake and the low blip. Marina's own card keeps its little wiggle and soft blip.
+
+(2) Mood faces: while G.sceneOn || (G.busy && marina.state !== 'tantrum'), all five dim, with one exception. When a live mood tap is followed within 500 ms by G.sceneOn turning true, that face stays bright until the scene ends. Record this in the capture listener at tap time. Never key the exception on .cur.
+
+(3) Whether a tap gets the nope is decided from each control's live rule at tap time, never from the dim class:
+- strip and pill: G.busy;
+- mood: the scenes.js setMood rule;
+- alerts and #reqBtn: G.busy && G.sceneOn;
+- face card: the nav.js:101 test.
+This way a tap during the 400 ms hold, or right after busy clears, is never told 'not now' when it works.
+
+(4) .cm-nope animates the individual translate property only. It never touches transform, so the mood press-scale, the mood pulse, the alert pulse, the face card .shake and #stopBtn's centring keep working.
+
+(5) The Audio2.blip skip consumes exactly one call whose first two arguments are (12,'square') inside the 60 ms window.
+
+(6) #reqBtn joins the cm-alert dim set.
+
+Unchanged from the draft: the 100 ms tick, the 400 ms hold before dimming and immediate brightening, CSS on child buttons only, the grey finger ring plus low blip on canvas taps only while G.sceneOn, and no stopPropagation or preventDefault.
+
+- EXTRA CHECKS: Port and land: run a mood scene, then a 🤗 hug and a 😜 joke started from Daddy's ring after an earlier 😢 scene. Face cards stay full colour throughout. During the hug and joke all five faces dim (none bright). During a 🥰 scene started from the bar only 🥰 is bright. Re-use verify/hud-child/g15_scene.js. | Tap a strip button and a mood face 0-400 ms after G.busy clears: the trip or scene happens, with no shake and no low blip. | A dead mood tap plays exactly one sound (the low blip). A live mood tap plays exactly the original blip(12,'square'). | bathTime (G.busy, not a scene): canvas taps still make bubbles with no grey ring. Check that a strip tap's nope blip does not pile on top of the bath's bubble sound; if it does, skip the nope while G.busy && !G.sceneOn && marina.state==='cheer'. | Re-run first-minutes moods.js: the distribution of time to the first working tap is unchanged, and every dead tap gets exactly one answer. | Screenshot a mood scene in port and land, and look at the dimmed bar and alerts with the .cur outline still visible.
+
+**functionality: amend** — The dead-rules match the handlers: strip features.js:493 and floors.js:49 return on G.busy; Floors.go floors.js:19 returns on G.busy; the scenes.js:81-85 and game.js:577 mood chain is dead exactly when G.sceneOn || (G.busy && marina.state!=='tantrum'); alerts nav.js:96 are dead when G.busy && G.sceneOn; features.js:379 drops every stage tap while G.busy. Dimming never changes pointer-events, so nothing becomes unreachable. Problems with the draft: (1) Dimming face cards with cm-face is wrong. say() (game.js:52-60) shows the speaker's face card for every voiced line, so in every scene the talking face would turn 45% grey. During story time (G.busy, and quiet() false because of #storyBox) the reader's face card is deliberately lifted to z-index 25 over the story (story.js:79, UI.face at story.js:60), and it would sit dimmed for the whole book. Face cards are content, not just controls. (2) The 60 ms 'skip the next blip' flag could swallow the overlay's own 'not now' blip, or any game blip that happens in that window. It must match the mood blip's exact arguments. (3) A CSS-animation shake replaces existing animations and transforms: .rb.here scale(1.12) (style.css:194), .facecard.show scale (style.css:93), the .alertb pulse and #moodbar.pulse. (4) #fx>*{pointer-events:auto} (style.css:7) beats a class rule, so the scene-tap ring needs pointer-events:none inline. (5) If the tap-time test reads the class, which lags up to 100 ms after busy clears, the first working tap could shake and then act anyway.
+
+- AMENDED CHANGE (functionality): Same 'asleep' look as drafted, but only for #roombar .rb, #floorpill .fl, #moodbar .mood:not(.cur) and #alerts .alertb, with the same flags (400 ms hold before dimming, immediate brightening). Face cards are never dimmed. A tap on a face card whose nav.js:101 test fails (G.busy, !quiet(), or ent missing or hidden) only gets the tiny side-shake, with no blip while #storyBox exists. Marina's own card gets the wiggle. Whether a tapped control is asleep is decided at tap time from the live rule, never from the #app class. The shake uses the individual translate property through el.animate(..., {composite:'add'}), never transform or the animation shorthand, so .rb.here keeps its scale and the pulses keep running. The thin Audio2.blip wrapper skips only one call whose arguments are exactly (12,'square',0.08), and only within 60 ms after a dead .mood tap. The 'not now' blip itself, Audio2.blip(-12,'triangle',0.08,0.1), is never skipped. The scene-tap ring is created with inline style pointer-events:none. As drafted: no stopPropagation or preventDefault anywhere, the map is not dimmed, and nothing happens in bathTime or in non-scene busy states.
+
+- EXTRA CHECKS: Story time in portrait and in landscape: the reader's face card stays at full opacity with no grey filter on every page. During a love, happy and sad mood scene, every talking face card is at full opacity. | Tap the strip, the pill, each mood and the alerts during a scene: the outcome matches today's (nothing happens). The first tap after G.busy clears works and does not shake or play the low blip. | Tantrum outside a scene: the faces are bright and switching mood works. bathTime: tapping the stage still makes bubbles with no grey ring. | Count Audio2.blip calls over a 15-minute random-poke simulation before and after. The only calls that disappear are (12,'square',0.08) on dead mood taps. Nothing else is suppressed, including the -12 triangle blip. | After a shake, .rb.here is still scaled 1.12, the alert and #moodbar.pulse animations are still running, and the face card scale is intact. | The scene-tap ring element has computed pointer-events:none. A tap 100 ms after a scene ends at the same spot reaches onTap normally.
+
+
+==================== G23 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD. The functionality lens keeps it; the child's wording and measurement changes apply.
+(1) Alerts:
+- stamp data-born on each new .alertb, through Clarity.appear('#alerts .alertb','G23') or a 250 ms tick;
+- add .settled after 15 s;
+- Clarity.listen('room','G23') removes .settled for 4 s;
+- alerts are rebuilt after every screen, so they pulse again afterwards.
+(2) CSS:
+- .alertb.settled{animation:none};
+- .alertb[aria-label=tp]{background:#ff6b6b;box-shadow:0 4px 0 rgba(0,0,0,.3),0 0 0 6px rgba(255,107,107,.35)} (equal specificity, loaded after nav.js);
+- .navarrow{animation:none!important};
+- .navarrow.cm-arrive i{display:inline-block;animation:navl .6s ease-in-out 4 alternate}, with navr for .r. .cm-arrive is added for 2.4 s on each room event, and the button box never moves.
+(3) features.js:598-599 local edit /* G23 */:
+- the gap becomes hintT > (window.Clarity && Clarity.is('G23') && Clarity.G23 ? Clarity.G23.hintGap() : 4);
+- hintGap() is Infinity while '.alertb:not(.settled):not([aria-label=pickeep]),#wishBtn,#reqBtn' exists (pickeep counts as settled from the start), else 4, 8, 16 or 20 by Clarity.G23.n;
+- n counts wiggles since lastInput: n++ inside the edit when a wiggle fires, never by watching G.bounce; reset when lastInput changes;
+- the props list skips any prop whose screen centre, converted with Clarity.toClient, is not on the picture (Clarity.onCanvas).
+(4) Unchanged: the first wiggle still comes after 10 s untouched; fun.js:92 is unchanged.
+(5) Plan wording (child): 'only things she can see wiggle, and less often'.
+DONE = both lenses' EXTRA CHECKS:
+- visible wiggles per 15 min in the kitchen, den and backyard, in port and land;
+- the arrow's rect is constant during the bob;
+- alerts pulse again for 15 s after a screen closes;
+- report how many seconds per 15 min a nappy or poop alert blocks requests (do not change the gate);
+- green shortcuts keep their green; tp is red with its 🚽 badge;
+- a wiggle still fires in every main-floor room and never on a prop under ✋, an arrow, a face card or the strip.
+Depends on: -
+Interactions: Same worker as G15 and G24. The nope shake uses a WAAPI translate, so '.alertb.settled{animation:none}' and the arrow rule cannot cancel it. hintGap waits while G25's #wishBtn and #reqBtn exist, and resets with lastInput, which G1 now also sets when an activity ends. G19 (layout) owns .navarrow's right offset; G23 owns its animation and the inner <i>.
+
+### DRAFT ITEM
+### G23 Motion means 'new': alerts pulse when they arrive and then rest, arrows bob on arrival, the idle wiggle backs off, and 🧻🚽 turns red
+- problem: - .alertb pulses forever (nav.js:134). Nappy, poop and toilet-paper alerts stay until solved, so they pulse 598–785 s of every 900, often two or three at once.
+- The side arrows wiggle endlessly and move the whole button 4 px into the scene (nav.js:127-130).
+- The idle wiggle bounces a random prop with sparkles every 4 s after 10 s untouched: 222 times per idle 15 min, sometimes a prop under a button (features.js:592-602).
+- So nothing stands out, and a crying baby or a fresh wish gets lost.
+- 🧻🚽 ('someone is stuck') is green, like the 'with what you hold' shortcuts.
+- change: - An alert pulses for its first 15 s, and for 4 s whenever she changes room. In between it rests: the same red disc, same size, same picture, same single tap, just still.
+- The side arrows bob for about 2 s when she arrives in a room, and only the ◀/▶ glyph moves, so the button no longer creeps into the scene.
+- The idle 'try me' wiggle still first appears after 10 s without a touch. Then it backs off to every 8 s, 16 s, then 20 s, and starts over on any touch. It never picks a prop whose middle is under a button, and it waits while a fresh alert, wish or request is pulsing.
+- 🧻🚽 turns red. Red means someone needs you; green means do something with what you hold.
+- The rule that alerts hold back requests (fun.js:92) is unchanged, and no alert changes size.
+- implementation: - Block G23 tick: stamp data-born on each new .alertb, and add .settled after 15 s. A Floors.hooks entry removes .settled for 4 s on every room change.
+- CSS:
+  - .alertb.settled{animation:none}
+  - .alertb[aria-label=tp]{background:#ff6b6b;box-shadow:0 4px 0 rgba(0,0,0,.3),0 0 0 6px rgba(255,107,107,.35)}
+  - .navarrow{animation:none!important}
+  - .navarrow.cm-arrive i{display:inline-block;animation:navl .6s ease-in-out 4 alternate}, with navr for .r. The class is added for 2.4 s on each room change.
+- Local edit features.js:598, marked /* G23 */:
+  - hintT > 4 becomes hintT > (window.Clarity && Clarity.on.G23 ? Clarity.hintGap() : 4);
+  - the props list skips any prop whose screen centre does not hit #cv with elementFromPoint.
+- Clarity.hintGap() returns 4, 8, 16 or 20 by how many wiggles have happened since lastInput, and Infinity while '.alertb:not(.settled),#wishBtn,#reqBtn' exists.
+- must still work: Every alert still appears, zips her there and runs the same choices; Nappy, poop and toilet paper still stay until solved; The 'with what you hold' shortcuts keep their function and their green; Alerts are still hidden during screens and the TV; The arrows still travel, show where they go and hide while busy; The idle wiggle still fires after 10 s untouched; The request gate (fun.js:92) is unchanged
+- benefit: When something moves, it is new or it matters. A crying baby or a fresh wish stands out instead of drowning in constant motion.
+- risk: Low. A settled alert is less insistent, by design; it is still visible and one tap away. Small habit cost: 🧻🚽 changes from green to red.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G23 [prompts] Motion means 'new': alerts pulse when they arrive and then rest, arrows bob on arrival, the idle wiggle backs off, and 🧻🚽 turns red => AMEND (child:amend, functionality:keep)
+
+**child: amend** — Most of this survives. Alerts are persistent elements (nav.js:95, shown{}), so a per-element birth stamp works. They are rebuilt after any screen or busy spell, so they pulse again when she comes back, which is good. Calming the endless arrow wiggle and the alerts costs no function, and a red 🧻🚽 matches the other 'someone needs you' discs; she sees it rarely, so the habit cost is tiny. One claim is overstated. The idle-wiggle list today includes props that are off-screen. Measured in this session (efp.js): in the den in portrait 10 of 12 candidates are off-screen, and in the kitchen 6 of 9. Most of today's '222 wiggles' are therefore invisible. The new elementFromPoint filter also drops off-screen props, so the VISIBLE wiggle rate barely falls, and in wide rooms it can rise. That is fine, because each wiggle now lands on something she can see and tap, but the benefit should be measured as visible wiggles. A second-order risk: a settled nappy or poop alert may be dealt with later, which keeps requests blocked longer (fun.js:92). Measure it rather than change the gate.
+
+- AMENDED CHANGE (child): As drafted: alerts pulse for 15 s after they appear and for 4 s on each room change (Floors.hooks fires on every changeRoom, floors.js:37); the arrows bob only on arrival, glyph only; 🧻🚽 turns red (the override must come after nav.js's rule, at equal specificity); the idle wiggle backs off 10 s, then 8, 16, 20 s, skips props whose centre is not on #cv, and waits while an unsettled alert, wish or request shows. Wording: describe the wiggle change as 'only things she can see wiggle, and less often', not '222 → fewer'. In the hintGap selector, treat pickeep (animation:none) as settled from the start.
+
+- EXTRA CHECKS: Count VISIBLE wiggles per 15 min (prop on-screen and not under a button) before and after, in the kitchen, den and backyard, portrait and landscape | The arrow's getBoundingClientRect never changes during the arrival bob | After closing a screen, existing alerts pulse again for 15 s | Measure, before and after, how many seconds per 15 min a nappy/poop alert blocks requests; if it rises noticeably, report it rather than touch fun.js:92 | Green shortcuts (pic*, pbin, pflush, down) keep their colour; tp is red with its 🚽 badge
+
+**functionality: keep** — Everything changed is look and timing of hints. Alert handlers, their ids, the fun.js:92 request gate (it tests for .alertb, which is still present when settled), arrow travel (nav.js:16-18) and arrow on/off are untouched. The tp alert's colour change is CSS at equal specificity injected later, so it wins without touching the handler. The idle wiggle only sets G.bounce, which is visual: builder, legoshelf and trees.js rustle only draw. Skipping props under buttons and backing off the rate changes no outcome. Two build cautions. First, other items' CSS can clash: G15's .cm-nope shake on alerts loses to '.alertb.settled{animation:none}' (0,2,0) if .cm-nope is a single class. Second, counting wiggles must not watch G.bounce, because taps (features.js:558), toys (play.js:103) and trees.js:165-167 also write it.
+
+- EXTRA CHECKS: Count wiggles inside the features.js:598 local edit itself (e.g. Clarity.hintN++ when it fires; reset when lastInput changes), not by observing G.bounce. | The elementFromPoint test converts the prop's stage coordinates to client coordinates (stage rect offset). After 10 s untouched a wiggle still fires in every main-floor room in port and land, and never on a prop under ✋, an arrow, a face card or the strip. | With G15 on: a tap on a settled, dimmed alert still shows the .cm-nope shake (give .cm-nope enough specificity or !important). | 🧻🚽: still appears with G.needTP && G.bathLocked, zips to the foyer, takes the paper and delivers it. Only the colour changes. | Arrow boxes are identical before and after a room change (only the inner <i> moves). Arrows still hide while busy, tidy, bars or tantrum. | Alerts recreated after a screen closes pulse for 15 s again and then settle.
+
+
+==================== G24 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with the child's amendment. The draft's yellow glow is dropped: it would give the warm glow a second meaning (G18 uses it) and change how her biggest buttons say 'answer me'. The functionality lens has no safety stake in it.
+(1) CSS only: #moodbar.pulse{animation:none!important}. The bar never moves; each face keeps its existing wobble (style.css:20).
+(2) Clarity.hook('UI.pulseMoods','G24',{order:10, before(c){ const m = G.moodCtx; if (m && m.type === 'greet' && m.who) { const last = lastGlow[m.who.id]; if (last != null && E.t - last < 300) { document.getElementById('moodbar').classList.remove('collapsed'); c.skip = true; return; } lastGlow[m.who.id] = E.t; } }}). lastGlow is kept on Clarity.G24.
+(3) Only greetings are throttled. Scold, refused, refused_insta, tvOff, fortFell and pressureEat pulse as today. G.moodCtx, the 7 s timer and unpulseMoods are untouched.
+DONE = both lenses' EXTRA CHECKS:
+- #moodbar's computed transform stays 'none' through a pulse, and the faces stay inside the viewport, in port, land, portSmall, landSmall, 844x340 and 390x664;
+- a repeat hello within 5 min: no pulse, the folded column unfolds, and a mood tap gives the greeting answer;
+- every other context still pulses and stops on setMood.
+Depends on: -
+Interactions: Same worker as G15: a dead tap on a wobbling face still shakes, because the WAAPI translate composes with the pulse transform. With G19 (layout), a hello still unfolds a folded column, which no longer resizes the picture. G20 throttles the hellos themselves.
+
+### DRAFT ITEM
+### G24 The mood faces glow in place, and only when a feeling-answer fits
+- problem: UI.pulseMoods (ui.js:97) adds .pulse to #moodbar. The generic .pulse rule (style.css:107-108) then animates the whole bar on top of each face's own tilt. In portrait the faces spill to x −22..412 and down to y 864 on an 844 screen; in landscape they overlap and 😭 is cut off. This happens after every hello, 14–23 times per 15 min, so her five biggest buttons wobble with nothing to answer, and pressing one locks taps for about 7 s.
+- change: - The bar never moves. Each face gets a soft yellow glow ring and a swell of at most 4%, in place.
+- They glow after a scold, a refused dish, the TV being switched off, the fort falling, and after the first hello from a person in 5 minutes.
+- A repeat hello within 5 minutes still sets up the greeting, so a mood tap still answers it, and still unfolds a folded landscape column. It just doesn't glow.
+- implementation: - CSS block G24:
+  - #moodbar.pulse{animation:none!important}
+  - #moodbar.pulse .mood{animation:cmMoodGlow .6s ease-in-out infinite alternate}
+  - @keyframes cmMoodGlow{to{box-shadow:0 5px 0 rgba(0,0,0,.3),0 0 0 6px #ffcf4a;scale:1.04}}. The separate scale property is used, so each face keeps its own tilt.
+- Wrap UI.pulseMoods:
+  - if G.moodCtx && G.moodCtx.type === 'greet' and that person's last glow was less than 300 s ago, only remove .collapsed from #moodbar (today's unfold) and return;
+  - otherwise record the time and call the original.
+- G.moodCtx, the 7 s timer and unpulseMoods are untouched.
+- must still work: Every mood scene; setMood's greeting, scold and refusal contexts (game.js:580); The 😊 toggle; A hello still unfolds a folded landscape column, so answering stays one tap; The glow stops when she picks a mood
+- benefit: The biggest buttons stop wobbling off the screen and inviting her for no reason, which means fewer accidental mood scenes and fewer dead seconds.
+- risk: Low; there are fewer glows, by design. Check that G.moodCtx records who greeted; if it does not, key the 5-minute rule by the face card shown with the hello.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G24 [prompts] The mood faces glow in place, and only when a feeling-answer fits => AMEND (child:amend, functionality:keep)
+
+**child: amend** — The bug is real and confirmed in this session. The generic '.pulse' rule (style.css:108) animates #moodbar itself: measured matrix(1.096,-0.076…), bar x −34..424 and bottom 878 on a 390x844 screen. Removing only the bar animation ('#moodbar.pulse{animation:none!important}') fixes the spill. With each face's own wobble left as today, the faces stay at x 2..388 / bottom 836 (port), 775..835 (land), 2..373 / 659 of 667 (portSmall) and 600..657 (landSmall), with at most 4–6 px brief neighbour overlap at the peak of the wobble (moods2.js, mood_barfix_*.png). Swapping the per-face wobble for a yellow glow is therefore not needed. It would change how her most-used main-floor buttons say 'answer me', and it would give the glow two meanings, because the plan also uses that glow for 'this is what you picked' (G18). The text's caller list is also incomplete: refused_insta (features.js:240) and pressureEat (game.js:673) pulse as well. The wrapper only filters 'greet', so they are unaffected, but the text should say so.
+
+- AMENDED CHANGE (child): CSS block G24: only #moodbar.pulse{animation:none!important}. Each face keeps its existing wobble (style.css:20), so she sees the same invitation she knows, now in place. Wrap UI.pulseMoods: if G.moodCtx.type === 'greet' and that person's face last pulsed for a greeting less than 300 s ago, only remove .collapsed from #moodbar and return. Otherwise record the time and call the original. Every other context (scold, refused, refused_insta, tvOff, fortFell, pressureEat) pulses exactly as today. G.moodCtx, the 7 s timer and unpulseMoods are untouched.
+
+- EXTRA CHECKS: #moodbar's computed transform is 'none' throughout a pulse in port, land, portSmall, landSmall, 844x340 and 390x664; all faces stay inside the viewport | A throttled hello still sets G.moodCtx {type:'greet', who}, so the mood tap gives the greeting answer, and still unfolds a folded landscape column | Scold, refused dish, Mommy refusing reels, TV off, fort falling and 'eat it' still pulse every time
+
+**functionality: keep** — No logic reads #moodbar.pulse: only CSS uses it (style.css:20 and :108). G.moodCtx is set by the callers before UI.pulseMoods (game.js:349/1046 and the others) and is consumed only in setMood and scenes.js:82, so a greet context set without a glow is still answered by a mood tap. The wrapper keeps the unfold (.collapsed removal) for repeat hellos, so answering in landscape stays one tap. Scold, refused, refused_insta, tvOff and fortFell all go through the original call. G.moodCtx.who exists, so per-person keying works. The only side effect is cosmetic: a repeat hello no longer extends an earlier pulse's 7 s timer.
+
+- EXTRA CHECKS: A repeat hello within 5 min: no glow, the landscape column unfolds, and a mood tap then runs the same greet answer as today. | Scold (climb), refused dish, pressureEat, Mommy's refused reels, TV switched off, fort fall: all still glow, and the glow stops on setMood. | With G15 on: a dead tap on a glowing face still shows the 'not now' shake (cmMoodGlow on '#moodbar.pulse .mood' has specificity 1,2,0, so .cm-nope needs more). | Portrait 390x844 and 375x667, land, landSmall: the face boxes never leave the viewport during a glow.

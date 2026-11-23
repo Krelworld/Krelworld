@@ -1,0 +1,22 @@
+{
+ "jeffHint": 2,
+ "withRingOpen": 0,
+ "whileBusy": 0,
+ "afterBusy": 2,
+ "bigIconBox": [
+  366,
+  102,
+  478,
+  211
+ ],
+ "alertPoint": [
+  422,
+  128
+ ],
+ "afterAlertTap": {
+  "room": "bathroom",
+  "marinaMovingOrNearMiles": false,
+  "milesRoom": "bathroom"
+ },
+ "errors": []
+}

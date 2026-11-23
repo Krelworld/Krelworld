@@ -1,0 +1,5609 @@
+{
+ "when": "2026-11-23T02:33:39.384Z",
+ "dir": "/tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/before_game/public/chef-marina",
+ "contexts": [
+  {
+   "key": "obj yard/garage",
+   "icons": "🔒",
+   "ids": [
+    "dxydmd"
+   ]
+  },
+  {
+   "key": "obj yard/sidedoor",
+   "icons": "",
+   "ids": []
+  },
+  {
+   "key": "obj yard/frontdoor_out",
+   "icons": "",
+   "ids": []
+  },
+  {
+   "key": "obj yard/car",
+   "icons": "📯",
+   "ids": [
+    "1v8ds0x"
+   ]
+  },
+  {
+   "key": "obj yard/mbars",
+   "icons": "🐒",
+   "ids": [
+    "1t3hrpr"
+   ]
+  },
+  {
+   "key": "obj yard/swing",
+   "icons": "🟦 🟩 🧗",
+   "ids": [
+    "yttn45",
+    "1llowyx",
+    "a74wvz"
+   ]
+  },
+  {
+   "key": "obj yard/leafpile",
+   "icons": "🦘 🍃 🌪️",
+   "ids": [
+    "1bj2rwa",
+    "5j4v38",
+    "1kmzip2"
+   ]
+  },
+  {
+   "key": "obj yard/blower",
+   "icons": "🍃",
+   "ids": [
+    "5j4v38"
+   ]
+  },
+  {
+   "key": "obj yard/snowman",
+   "icons": "⛄",
+   "ids": [
+    "1u66s56"
+   ]
+  },
+  {
+   "key": "obj dining/sidedoor",
+   "icons": "",
+   "ids": []
+  },
+  {
+   "key": "obj dining/closet",
+   "icons": "👗",
+   "ids": [
+    "1tmr7qh"
+   ]
+  },
+  {
+   "key": "obj dining/dresser",
+   "icons": "👗",
+   "ids": [
+    "1tmr7qh"
+   ]
+  },
+  {
+   "key": "obj dining/cattower",
+   "icons": "🧶",
+   "ids": [
+    "1kgwd18"
+   ]
+  },
+  {
+   "key": "obj dining/table",
+   "icons": "🍽️ 🎨 ➕ 🔤 🧗",
+   "ids": [
+    "1ibnn4s",
+    "1jwgrkh",
+    "1fqhp8h",
+    "yey8dz",
+    "ounozi"
+   ]
+  },
+  {
+   "key": "obj dining/chair1",
+   "icons": "🧗 🪑",
+   "ids": [
+    "ounozi",
+    "1a3zqcq"
+   ]
+  },
+  {
+   "key": "obj dining/chair2",
+   "icons": "🧗 🪑",
+   "ids": [
+    "ounozi",
+    "1a3zqcq"
+   ]
+  },
+  {
+   "key": "obj kitchen/stove",
+   "icons": "🍳 🗄️",
+   "ids": [
+    "1tmr7qh",
+    "1tmr7qh"
+   ]
+  },
+  {
+   "key": "obj kitchen/sink",
+   "icons": "🗄️ 🚰",
+   "ids": [
+    "1tmr7qh",
+    "ltw8ha"
+   ]
+  },
+  {
+   "key": "obj kitchen/dishwasher",
+   "icons": "🍽️",
+   "ids": [
+    "1ceuovn"
+   ]
+  },
+  {
+   "key": "obj kitchen/oven",
+   "icons": "🍳 🗄️",
+   "ids": [
+    "1tmr7qh",
+    "1tmr7qh"
+   ]
+  },
+  {
+   "key": "obj kitchen/fridge",
+   "icons": "🧊 ❄️",
+   "ids": [
+    "1tmr7qh",
+    "1tmr7qh"
+   ]
+  },
+  {
+   "key": "obj kitchen/bowls",
+   "icons": "🐟",
+   "ids": [
+    "11g728q"
+   ]
+  },
+  {
+   "key": "obj kitchen/island",
+   "icons": "🧺 🗄️ 🧗",
+   "ids": [
+    "1tmr7qh",
+    "1tmr7qh",
+    "ounozi"
+   ]
+  },
+  {
+   "key": "obj kitchen/stool1",
+   "icons": "🧗 🪑",
+   "ids": [
+    "ounozi",
+    "1a3zqcq"
+   ]
+  },
+  {
+   "key": "obj kitchen/stool2",
+   "icons": "🧗 🪑",
+   "ids": [
+    "ounozi",
+    "1a3zqcq"
+   ]
+  },
+  {
+   "key": "obj kitchen/stool3",
+   "icons": "🧗 🪑",
+   "ids": [
+    "ounozi",
+    "1a3zqcq"
+   ]
+  },
+  {
+   "key": "obj playroom/tray",
+   "icons": "🔍",
+   "ids": [
+    "1yxyj8q"
+   ]
+  },
+  {
+   "key": "obj playroom/dome",
+   "icons": "🔍",
+   "ids": [
+    "14k10q5"
+   ]
+  },
+  {
+   "key": "obj playroom/bouncy",
+   "icons": "🦄",
+   "ids": [
+    "w5quf4"
+   ]
+  },
+  {
+   "key": "obj playroom/foam",
+   "icons": "🧸",
+   "ids": [
+    "lkrs8s"
+   ]
+  },
+  {
+   "key": "obj playroom/kidtable",
+   "icons": "🫖 🧗 🪑 🎨",
+   "ids": [
+    "1ucwc0h",
+    "ounozi",
+    "1a3zqcq",
+    "1jwgrkh"
+   ]
+  },
+  {
+   "key": "obj playroom/rocker",
+   "icons": "🪑",
+   "ids": [
+    "1a3zqcq"
+   ]
+  },
+  {
+   "key": "obj playroom/toyshelf",
+   "icons": "🧸",
+   "ids": [
+    "lkrs8s"
+   ]
+  },
+  {
+   "key": "obj playroom/cart1",
+   "icons": "🧸",
+   "ids": [
+    "lkrs8s"
+   ]
+  },
+  {
+   "key": "obj playroom/cart2",
+   "icons": "🧸",
+   "ids": [
+    "lkrs8s"
+   ]
+  },
+  {
+   "key": "obj playroom/pmat",
+   "icons": "🧸",
+   "ids": [
+    "lkrs8s"
+   ]
+  },
+  {
+   "key": "obj playroom/loveseat",
+   "icons": "🧗 🦘 🪑 🏰",
+   "ids": [
+    "ounozi",
+    "qbbnaf",
+    "1a3zqcq",
+    "11g728q"
+   ]
+  },
+  {
+   "key": "obj playroom/keys",
+   "icons": "🌟 🎉 🎺 🤪 👻 🌙 🚀 🌸",
+   "ids": [
+    "1dnhujd",
+    "1dnhujd",
+    "1dnhujd",
+    "1dnhujd",
+    "1dnhujd",
+    "1dnhujd",
+    "1dnhujd",
+    "1dnhujd"
+   ]
+  },
+  {
+   "key": "obj playroom/broom",
+   "icons": "🧹",
+   "ids": [
+    "ci6c0f"
+   ]
+  },
+  {
+   "key": "obj playroom/box",
+   "icons": "📦 🏰",
+   "ids": [
+    "1ptbkl6",
+    "11g728q"
+   ]
+  },
+  {
+   "key": "obj foyer/frontdoor",
+   "icons": "",
+   "ids": []
+  },
+  {
+   "key": "obj foyer/halldoor",
+   "icons": "",
+   "ids": []
+  },
+  {
+   "key": "obj foyer/stairs",
+   "icons": "🪜",
+   "ids": [
+    "1omurnw"
+   ]
+  },
+  {
+   "key": "obj bathroom/bathdoor",
+   "icons": "",
+   "ids": []
+  },
+  {
+   "key": "obj bathroom/vanity",
+   "icons": "🚰",
+   "ids": [
+    "1vc0c0b"
+   ]
+  },
+  {
+   "key": "obj bathroom/mirror",
+   "icons": "🪞",
+   "ids": [
+    "t4tnkd"
+   ]
+  },
+  {
+   "key": "obj bathroom/toilet",
+   "icons": "🚽 🧗",
+   "ids": [
+    "2ez1j0",
+    "ounozi"
+   ]
+  },
+  {
+   "key": "obj bathroom/tpholder",
+   "icons": "🧻",
+   "ids": [
+    "1mea6x"
+   ]
+  },
+  {
+   "key": "obj bathroom/fresh",
+   "icons": "🌸",
+   "ids": [
+    "wcw6vh"
+   ]
+  },
+  {
+   "key": "obj bathroom/shower",
+   "icons": "🛁 🚿",
+   "ids": [
+    "ka3fa4",
+    "qqhyhu"
+   ]
+  },
+  {
+   "key": "obj living/sectional",
+   "icons": "🧗 🦘 🪑 🏰",
+   "ids": [
+    "ounozi",
+    "qbbnaf",
+    "1a3zqcq",
+    "11g728q"
+   ]
+  },
+  {
+   "key": "obj living/armchair",
+   "icons": "🧗 🦘 🪑",
+   "ids": [
+    "ounozi",
+    "qbbnaf",
+    "1a3zqcq"
+   ]
+  },
+  {
+   "key": "obj living/lamp",
+   "icons": "💡",
+   "ids": [
+    "1ug2vvy"
+   ]
+  },
+  {
+   "key": "obj living/pail",
+   "icons": "🤢",
+   "ids": [
+    "1ygtttv"
+   ]
+  },
+  {
+   "key": "obj living/fireplace",
+   "icons": "🍌 🥚 🐠 🦙 🍉 🚽 📢 🫧 👸",
+   "ids": [
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2"
+   ]
+  },
+  {
+   "key": "obj living/tv",
+   "icons": "🍌 🥚 🐠 🦙 🍉 🚽 📢 🫧 👸",
+   "ids": [
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2"
+   ]
+  },
+  {
+   "key": "obj living/bouncer",
+   "icons": "👶",
+   "ids": [
+    "infde9"
+   ]
+  },
+  {
+   "key": "obj living/shelf2",
+   "icons": "📖 🧸",
+   "ids": [
+    "7gjg77",
+    "lkrs8s"
+   ]
+  },
+  {
+   "key": "obj living/shelf1",
+   "icons": "📖 🧸",
+   "ids": [
+    "7gjg77",
+    "lkrs8s"
+   ]
+  },
+  {
+   "key": "obj living/basket",
+   "icons": "🧸",
+   "ids": [
+    "lkrs8s"
+   ]
+  },
+  {
+   "key": "obj living/dresserw",
+   "icons": "👗",
+   "ids": [
+    "1tmr7qh"
+   ]
+  },
+  {
+   "key": "obj living/pnp",
+   "icons": "👶 🧸",
+   "ids": [
+    "14a0k79",
+    "lkrs8s"
+   ]
+  },
+  {
+   "key": "obj living/bathhall",
+   "icons": "",
+   "ids": []
+  },
+  {
+   "key": "obj playroom/tray :: Niko pooped",
+   "icons": "🧻",
+   "ids": [
+    "1sy8718"
+   ]
+  },
+  {
+   "key": "obj living/pail :: holding poop",
+   "icons": "🗑️",
+   "ids": [
+    "1bj2rwa"
+   ]
+  },
+  {
+   "key": "obj bathroom/toilet :: holding poop",
+   "icons": "💩 🚽 🧗",
+   "ids": [
+    "1bj2rwa",
+    "2ez1j0",
+    "ounozi"
+   ]
+  },
+  {
+   "key": "obj living/tv :: TV on",
+   "icons": "⏻ 🍌 🥚 🐠 🦙 🍉 🚽 📢 🫧 👸",
+   "ids": [
+    "1g95hbf",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2",
+    "1g8y4d2"
+   ]
+  },
+  {
+   "key": "obj living/basket :: TP needed",
+   "icons": "🧸 🧻",
+   "ids": [
+    "lkrs8s",
+    "1mea6x"
+   ]
+  },
+  {
+   "key": "obj dining/closet :: TP needed",
+   "icons": "👗 🧻",
+   "ids": [
+    "1tmr7qh",
+    "1mea6x"
+   ]
+  },
+  {
+   "key": "obj yard/snowman :: snowman big",
+   "icons": "⛄ 💥",
+   "ids": [
+    "1u66s56",
+    "108vgnp"
+   ]
+  },
+  {
+   "key": "obj yard/leafpile :: carrying blower",
+   "icons": "🦘 🌪️",
+   "ids": [
+    "1bj2rwa",
+    "1kmzip2"
+   ]
+  },
+  {
+   "key": "who daddy :: normal",
+   "icons": "🤗 🧍 😜",
+   "ids": [
+    "1x8gpx8",
+    "1tpe5rr",
+    "zwi5tl"
+   ]
+  },
+  {
+   "key": "who daddy :: Marina holding a nice dish",
+   "icons": "🍽️ 🤗 😜",
+   "ids": [
+    "v5km0k",
+    "1x8gpx8",
+    "zwi5tl"
+   ]
+  },
+  {
+   "key": "who daddy :: fort built here",
+   "icons": "🤗 🧍 🏰 😜",
+   "ids": [
+    "1x8gpx8",
+    "1tpe5rr",
+    "1w75npa",
+    "zwi5tl"
+   ]
+  },
+  {
+   "key": "who daddy :: asleep",
+   "icons": "⏰ 🤗",
+   "ids": [
+    "oguhlq",
+    "1x8gpx8"
+   ]
+  },
+  {
+   "key": "who daddy :: Marina riding",
+   "icons": "⬇️",
+   "ids": [
+    "1xjtl77"
+   ]
+  },
+  {
+   "key": "who daddy :: refused gross dish",
+   "icons": "🍽️ 🤗 🧍 😜",
+   "ids": [
+    "1h26yye",
+    "1x8gpx8",
+    "1tpe5rr",
+    "zwi5tl"
+   ]
+  },
+  {
+   "key": "who daddy :: Marina holding a gross dish",
+   "icons": "🍽️ 🤗 😜",
+   "ids": [
+    "v5km0k",
+    "1x8gpx8",
+    "zwi5tl"
+   ]
+  },
+  {
+   "key": "who mommy :: normal",
+   "icons": "🤗 📱 😜",
+   "ids": [
+    "1x8gpx8",
+    "8y7uyb",
+    "zwi5tl"
+   ]
+  },
+  {
+   "key": "who mommy :: Marina holding a nice dish",
+   "icons": "🍽️ 🤗 📱 😜",
+   "ids": [
+    "kz45gq",
+    "1x8gpx8",
+    "8y7uyb",
+    "zwi5tl"
+   ]
+  },
+  {
+   "key": "who mommy :: fort built here",
+   "icons": "🤗 🏰 📱 😜",
+   "ids": [
+    "1x8gpx8",
+    "1w75npa",
+    "8y7uyb",
+    "zwi5tl"
+   ]
+  },
+  {
+   "key": "who rory :: normal",
+   "icons": "🤗 🤼 🐴 😜",
+   "ids": [
+    "1x8gpx8",
+    "1mlal5t",
+    "uyuani",
+    "zwi5tl"
+   ]
+  },
+  {
+   "key": "who rory :: Marina holding a nice dish",
+   "icons": "🍽️ 🤗 😜",
+   "ids": [
+    "v5km0k",
+    "1x8gpx8",
+    "zwi5tl"
+   ]
+  },
+  {
+   "key": "who rory :: fort built here",
+   "icons": "🤗 🤼 🐴 🏰 😜",
+   "ids": [
+    "1x8gpx8",
+    "1mlal5t",
+    "uyuani",
+    "1w75npa",
+    "zwi5tl"
+   ]
+  },
+  {
+   "key": "who rory :: asleep",
+   "icons": "⏰ 🤗",
+   "ids": [
+    "oguhlq",
+    "1x8gpx8"
+   ]
+  },
+  {
+   "key": "who rory :: Marina riding",
+   "icons": "⬇️ 🐴",
+   "ids": [
+    "1xjtl77",
+    "1llf5r3"
+   ]
+  },
+  {
+   "key": "who rory :: refused gross dish",
+   "icons": "🍽️ 🤼 🤗 🐴 😜",
+   "ids": [
+    "1h26yye",
+    "1mlal5t",
+    "1x8gpx8",
+    "uyuani",
+    "zwi5tl"
+   ]
+  },
+  {
+   "key": "who rory :: Marina holding a gross dish",
+   "icons": "🍽️ 🤗 😜",
+   "ids": [
+    "v5km0k",
+    "1x8gpx8",
+    "zwi5tl"
+   ]
+  },
+  {
+   "key": "who niko :: normal",
+   "icons": "✋ 🤗 🏃",
+   "ids": [
+    "11g728q",
+    "1xt3opd",
+    "x5xv54"
+   ]
+  },
+  {
+   "key": "who niko :: Marina holding a nice dish",
+   "icons": "✋ 🏃",
+   "ids": [
+    "11g728q",
+    "x5xv54"
+   ]
+  },
+  {
+   "key": "who niko :: fort built here",
+   "icons": "✋ 🤗 🏃 🏰",
+   "ids": [
+    "11g728q",
+    "1xt3opd",
+    "x5xv54",
+    "acapdk"
+   ]
+  },
+  {
+   "key": "who niko :: Marina holding something",
+   "icons": "✋ 🏃",
+   "ids": [
+    "11g728q",
+    "x5xv54"
+   ]
+  },
+  {
+   "key": "who miles :: normal",
+   "icons": "🍼 🤗 ✋",
+   "ids": [
+    "13o29ns",
+    "jy3ac3",
+    "qpltx4"
+   ]
+  },
+  {
+   "key": "who miles :: Marina holding a nice dish",
+   "icons": "🍼 🤗 ✋",
+   "ids": [
+    "13o29ns",
+    "jy3ac3",
+    "qpltx4"
+   ]
+  },
+  {
+   "key": "who miles :: fort built here",
+   "icons": "🍼 🤗 ✋",
+   "ids": [
+    "13o29ns",
+    "jy3ac3",
+    "qpltx4"
+   ]
+  },
+  {
+   "key": "who miles :: crying",
+   "icons": "🍼 🤗 ✋",
+   "ids": [
+    "13o29ns",
+    "jy3ac3",
+    "qpltx4"
+   ]
+  },
+  {
+   "key": "who miles :: dirty nappy",
+   "icons": "🧷 🍼 🤗 ✋",
+   "ids": [
+    "1vbdudl",
+    "13o29ns",
+    "jy3ac3",
+    "qpltx4"
+   ]
+  },
+  {
+   "key": "self :: idle",
+   "icons": "🤸 💃",
+   "ids": [
+    "11g728q",
+    "100ddwm"
+   ]
+  },
+  {
+   "key": "self :: holding a dish",
+   "icons": "⬇️ 🤸 💃",
+   "ids": [
+    "14mbm5p",
+    "11g728q",
+    "100ddwm"
+   ]
+  },
+  {
+   "key": "self :: holding Niko",
+   "icons": "⬇️ 🤸 💃",
+   "ids": [
+    "14mbm5p",
+    "11g728q",
+    "100ddwm"
+   ]
+  },
+  {
+   "key": "self :: on furniture",
+   "icons": "🤸 ⬇️",
+   "ids": [
+    "11g728q",
+    "4ihzep"
+   ]
+  },
+  {
+   "key": "self :: on furniture with Daddy near",
+   "icons": "🤸 🐿️ ⬇️",
+   "ids": [
+    "11g728q",
+    "1kibgrt",
+    "4ihzep"
+   ]
+  },
+  {
+   "key": "self :: sitting",
+   "icons": "🤸 💃",
+   "ids": [
+    "11g728q",
+    "100ddwm"
+   ]
+  },
+  {
+   "key": "self :: in wheelchair",
+   "icons": "⬇️",
+   "ids": [
+    "1u68cpx"
+   ]
+  },
+  {
+   "key": "self :: on swing",
+   "icons": "⬇️",
+   "ids": [
+    "1umfai5"
+   ]
+  },
+  {
+   "key": "self :: on monkey bars",
+   "icons": "⬅️ ⬇️ ➡️",
+   "ids": [
+    "1613i9o",
+    "1qe7r55",
+    "tvlo7l"
+   ]
+  },
+  {
+   "key": "self :: in yard",
+   "icons": "🤸 💃",
+   "ids": [
+    "11g728q",
+    "100ddwm"
+   ]
+  },
+  {
+   "key": "self :: fort built",
+   "icons": "🤸 💃",
+   "ids": [
+    "11g728q",
+    "100ddwm"
+   ]
+  },
+  {
+   "key": "menu :: gymnastics",
+   "icons": "🎲 🤸 🙃 🔄 🔃 🧘 🌀 ⭐ ⚪",
+   "ids": [
+    "15p4wvx",
+    "qfx49l",
+    "qfx49l",
+    "qfx49l",
+    "qfx49l",
+    "qfx49l",
+    "qfx49l",
+    "qfx49l",
+    "qfx49l"
+   ]
+  }
+ ],
+ "results": [
+  {
+   "key": "menu :: gymnastics",
+   "id": "15p4wvx#1",
+   "ico": "🎲",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_gym_roll",
+    "m_want_tv"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "menu :: gymnastics",
+   "id": "qfx49l#1",
+   "ico": "🤸",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_gym_cartwheel",
+    "m_want_draw"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "menu :: gymnastics",
+   "id": "qfx49l#2",
+   "ico": "🙃",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 3,
+   "said": [
+    "m_gym_handstand",
+    "m_want_swing",
+    "m_sticker"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "menu :: gymnastics",
+   "id": "qfx49l#3",
+   "ico": "🔄",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_gym_backflip"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "menu :: gymnastics",
+   "id": "qfx49l#4",
+   "ico": "🔃",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_flip",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "menu :: gymnastics",
+   "id": "qfx49l#5",
+   "ico": "🧘",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_gym_splits"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "menu :: gymnastics",
+   "id": "qfx49l#6",
+   "ico": "🌀",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 2,
+   "said": [
+    "m_gym_roundoff",
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "menu :: gymnastics",
+   "id": "qfx49l#7",
+   "ico": "⭐",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_gym_starjump"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "menu :: gymnastics",
+   "id": "qfx49l#8",
+   "ico": "⚪",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_gym_roll"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj bathroom/fresh",
+   "id": "wcw6vh#1",
+   "ico": "🌸",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj bathroom/mirror",
+   "id": "t4tnkd#1",
+   "ico": "🪞",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_pretty"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj bathroom/shower",
+   "id": "ka3fa4#1",
+   "ico": "🛁",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 3,
+   "said": [
+    "m_bath",
+    "m_giggle",
+    "m_clean"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj bathroom/shower",
+   "id": "qqhyhu#1",
+   "ico": "🚿",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "r",
+   "saidN": 1,
+   "said": [
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj bathroom/toilet :: holding poop",
+   "id": "1bj2rwa#1",
+   "ico": "💩",
+   "early": [
+    "holding:\"poop\"→null"
+   ],
+   "late": [
+    "holding:\"poop\"→null"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 3,
+   "said": [
+    "m_flush",
+    "m_want_cook",
+    "m_bye"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj bathroom/toilet :: holding poop",
+   "id": "2ez1j0#1",
+   "ico": "🚽",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_flush"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj bathroom/toilet :: holding poop",
+   "id": "ounozi#1",
+   "ico": "🧗",
+   "early": [
+    "state:\"idle\"→\"perch\""
+   ],
+   "late": [
+    "state:\"idle\"→\"perch\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_want_swing"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj bathroom/toilet",
+   "id": "2ez1j0#1",
+   "ico": "🚽",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 2,
+   "said": [
+    "m_flush",
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj bathroom/toilet",
+   "id": "ounozi#1",
+   "ico": "🧗",
+   "early": [
+    "state:\"idle\"→\"perch\""
+   ],
+   "late": [
+    "state:\"idle\"→\"perch\""
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj bathroom/tpholder",
+   "id": "1mea6x#1",
+   "ico": "🧻",
+   "early": [
+    "holding:null→\"tp\""
+   ],
+   "late": [
+    "holding:null→\"tp\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_okay"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj bathroom/vanity",
+   "id": "1vc0c0b#1",
+   "ico": "🚰",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_wash",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/cattower",
+   "id": "1kgwd18#1",
+   "ico": "🧶",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_found",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/chair1",
+   "id": "1a3zqcq#1",
+   "ico": "🪑",
+   "early": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_want_niko"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/chair1",
+   "id": "ounozi#1",
+   "ico": "🧗",
+   "early": [
+    "state:\"idle\"→\"perch\""
+   ],
+   "late": [
+    "state:\"idle\"→\"perch\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_giggle",
+    "m_found"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/chair2",
+   "id": "1a3zqcq#1",
+   "ico": "🪑",
+   "early": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/chair2",
+   "id": "ounozi#1",
+   "ico": "🧗",
+   "early": [],
+   "late": [
+    "state:\"idle\"→\"perch\""
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/closet :: TP needed",
+   "id": "1mea6x#1",
+   "ico": "🧻",
+   "early": [
+    "holding:null→\"tp\""
+   ],
+   "late": [
+    "holding:null→\"tp\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_found"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/closet :: TP needed",
+   "id": "1tmr7qh#1",
+   "ico": "👗",
+   "early": [
+    "panel:null→\"👗\""
+   ],
+   "late": [
+    "panel:null→\"👗\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 4,
+   "said": [
+    "m_open",
+    "m_uhoh",
+    "m_found",
+    "m_pretty"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/closet",
+   "id": "1tmr7qh#1",
+   "ico": "👗",
+   "early": [
+    "panel:null→\"👗\""
+   ],
+   "late": [
+    "panel:null→\"👗\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 3,
+   "said": [
+    "m_open",
+    "m_want_tv",
+    "m_pretty"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/dresser",
+   "id": "1tmr7qh#1",
+   "ico": "👗",
+   "early": [
+    "panel:null→\"👗\""
+   ],
+   "late": [
+    "panel:null→\"👗\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 3,
+   "said": [
+    "m_open",
+    "m_giggle",
+    "m_pretty"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/table",
+   "id": "1fqhp8h#1",
+   "ico": "➕",
+   "early": [
+    "panel:null→\"🎨\"",
+    "mess:0→2"
+   ],
+   "late": [
+    "panel:null→\"🎨\"",
+    "mess:0→2"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_hmm",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/table",
+   "id": "1ibnn4s#1",
+   "ico": "🍽️",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "dmmor",
+   "saidN": 6,
+   "said": [
+    "m_dinner",
+    "r_hi",
+    "m_hi_rory",
+    "d_meal",
+    "mo_meal",
+    "r_meal"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/table",
+   "id": "1jwgrkh#1",
+   "ico": "🎨",
+   "early": [
+    "overlays:\"\"→\"studio\""
+   ],
+   "late": [
+    "overlays:\"\"→\"studio\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_draw"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/table",
+   "id": "ounozi#1",
+   "ico": "🧗",
+   "early": [
+    "state:\"idle\"→\"perch\""
+   ],
+   "late": [
+    "state:\"idle\"→\"perch\""
+   ],
+   "stuck": false,
+   "saidKinds": "r",
+   "saidN": 1,
+   "said": [
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj dining/table",
+   "id": "yey8dz#1",
+   "ico": "🔤",
+   "early": [
+    "panel:null→\"🎨\"",
+    "mess:0→2"
+   ],
+   "late": [
+    "panel:null→\"🎨\"",
+    "mess:0→2"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_hmm"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj foyer/stairs",
+   "id": "1omurnw#1",
+   "ico": "🪜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_tired",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/bowls",
+   "id": "11g728q#1",
+   "ico": "🐟",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 3,
+   "said": [
+    "m_food_niko",
+    "r_hi",
+    "m_sticker"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/dishwasher",
+   "id": "1ceuovn#1",
+   "ico": "🍽️",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/fridge",
+   "id": "1tmr7qh#1",
+   "ico": "🧊",
+   "early": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "late": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_open",
+    "m_cooking"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/fridge",
+   "id": "1tmr7qh#2",
+   "ico": "❄️",
+   "early": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "late": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_open",
+    "m_cooking"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/island",
+   "id": "1tmr7qh#1",
+   "ico": "🧺",
+   "early": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "late": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_open",
+    "m_cooking"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/island",
+   "id": "1tmr7qh#2",
+   "ico": "🗄️",
+   "early": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "late": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 4,
+   "said": [
+    "m_open",
+    "m_uhoh",
+    "m_found",
+    "m_cooking"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/island",
+   "id": "ounozi#1",
+   "ico": "🧗",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_want_outside"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/oven",
+   "id": "1tmr7qh#1",
+   "ico": "🍳",
+   "early": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "late": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 5,
+   "said": [
+    "m_open",
+    "m_found",
+    "m_uhoh",
+    "m_cooking",
+    "m_sticker"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/oven",
+   "id": "1tmr7qh#2",
+   "ico": "🗄️",
+   "early": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "late": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 3,
+   "said": [
+    "m_open",
+    "m_uhoh",
+    "m_cooking"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/sink",
+   "id": "1tmr7qh#1",
+   "ico": "🗄️",
+   "early": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "late": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 4,
+   "said": [
+    "m_open",
+    "m_want_niko",
+    "m_found",
+    "m_cooking"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/sink",
+   "id": "ltw8ha#1",
+   "ico": "🚰",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_wash"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/stool1",
+   "id": "1a3zqcq#1",
+   "ico": "🪑",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 2,
+   "said": [
+    "m_found",
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/stool1",
+   "id": "ounozi#1",
+   "ico": "🧗",
+   "early": [],
+   "late": [
+    "state:\"idle\"→\"perch\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/stool2",
+   "id": "1a3zqcq#1",
+   "ico": "🪑",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "r",
+   "saidN": 1,
+   "said": [
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/stool2",
+   "id": "ounozi#1",
+   "ico": "🧗",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_found"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/stool3",
+   "id": "1a3zqcq#1",
+   "ico": "🪑",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_want_swing"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/stool3",
+   "id": "ounozi#1",
+   "ico": "🧗",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/stove",
+   "id": "1tmr7qh#1",
+   "ico": "🍳",
+   "early": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "late": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 3,
+   "said": [
+    "m_open",
+    "m_uhoh",
+    "m_cooking"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj kitchen/stove",
+   "id": "1tmr7qh#2",
+   "ico": "🗄️",
+   "early": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "late": [
+    "panel:null→\"🧑‍🍳\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_open",
+    "m_cooking"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/armchair",
+   "id": "1a3zqcq#1",
+   "ico": "🪑",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/armchair",
+   "id": "ounozi#1",
+   "ico": "🧗",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/armchair",
+   "id": "qbbnaf#1",
+   "ico": "🦘",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_want_tv",
+    "m_found"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/basket :: TP needed",
+   "id": "1mea6x#1",
+   "ico": "🧻",
+   "early": [
+    "holding:null→\"tp\""
+   ],
+   "late": [
+    "holding:null→\"tp\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_uhoh",
+    "m_found"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/basket :: TP needed",
+   "id": "lkrs8s#1",
+   "ico": "🧸",
+   "early": [
+    "mess:0→5"
+   ],
+   "late": [
+    "mess:0→5"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_wow",
+    "m_should_tidy"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/basket",
+   "id": "lkrs8s#1",
+   "ico": "🧸",
+   "early": [
+    "mess:0→5"
+   ],
+   "late": [
+    "mess:0→5"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_wow"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/bouncer",
+   "id": "infde9#1",
+   "ico": "👶",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/dresserw",
+   "id": "1tmr7qh#1",
+   "ico": "👗",
+   "early": [
+    "panel:null→\"👗\""
+   ],
+   "late": [
+    "panel:null→\"👗\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 4,
+   "said": [
+    "m_open",
+    "m_found",
+    "m_giggle",
+    "m_pretty"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/fireplace",
+   "id": "1g8y4d2#1",
+   "ico": "🍌",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/fireplace",
+   "id": "1g8y4d2#2",
+   "ico": "🥚",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/fireplace",
+   "id": "1g8y4d2#3",
+   "ico": "🐠",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/fireplace",
+   "id": "1g8y4d2#4",
+   "ico": "🦙",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_tv"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/fireplace",
+   "id": "1g8y4d2#5",
+   "ico": "🍉",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 3,
+   "said": [
+    "m_tv",
+    "r_hi",
+    "m_sticker"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/fireplace",
+   "id": "1g8y4d2#6",
+   "ico": "🚽",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 3,
+   "said": [
+    "m_tv",
+    "m_want_dress",
+    "m_found"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/fireplace",
+   "id": "1g8y4d2#7",
+   "ico": "📢",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_tv"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/fireplace",
+   "id": "1g8y4d2#8",
+   "ico": "🫧",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/fireplace",
+   "id": "1g8y4d2#9",
+   "ico": "👸",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_tv"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/lamp",
+   "id": "1ug2vvy#1",
+   "ico": "💡",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_uhoh",
+    "m_wow"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/pail :: holding poop",
+   "id": "1bj2rwa#1",
+   "ico": "🗑️",
+   "early": [
+    "holding:\"poop\"→null"
+   ],
+   "late": [
+    "holding:\"poop\"→null"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_did_it",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/pail",
+   "id": "1ygtttv#1",
+   "ico": "🤢",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_stinky",
+    "m_want_gym"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/pnp",
+   "id": "14a0k79#1",
+   "ico": "👶",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/pnp",
+   "id": "lkrs8s#1",
+   "ico": "🧸",
+   "early": [
+    "mess:0→5"
+   ],
+   "late": [
+    "mess:0→5"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_wow"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/sectional",
+   "id": "11g728q#1",
+   "ico": "🏰",
+   "early": [
+    "panel:null→\"🏰\""
+   ],
+   "late": [
+    "panel:null→\"🏰\""
+   ],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 2,
+   "said": [
+    "m_fort_build",
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/sectional",
+   "id": "1a3zqcq#1",
+   "ico": "🪑",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/sectional",
+   "id": "ounozi#1",
+   "ico": "🧗",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/sectional",
+   "id": "qbbnaf#1",
+   "ico": "🦘",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/shelf1",
+   "id": "7gjg77#1",
+   "ico": "📖",
+   "early": [
+    "story:false→true",
+    "overlays:\"\"→\"storyBox\""
+   ],
+   "late": [
+    "story:false→true",
+    "overlays:\"\"→\"storyBox\""
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/shelf1",
+   "id": "lkrs8s#1",
+   "ico": "🧸",
+   "early": [
+    "mess:0→5"
+   ],
+   "late": [
+    "mess:0→5"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/shelf2",
+   "id": "7gjg77#1",
+   "ico": "📖",
+   "early": [
+    "story:false→true",
+    "overlays:\"\"→\"storyBox\""
+   ],
+   "late": [
+    "story:false→true",
+    "overlays:\"\"→\"storyBox\""
+   ],
+   "stuck": false,
+   "saidKinds": "r",
+   "saidN": 1,
+   "said": [
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/shelf2",
+   "id": "lkrs8s#1",
+   "ico": "🧸",
+   "early": [
+    "mess:0→5"
+   ],
+   "late": [
+    "mess:0→5"
+   ],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 2,
+   "said": [
+    "m_toy_play",
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv :: TV on",
+   "id": "1g8y4d2#1",
+   "ico": "🍌",
+   "early": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv :: TV on",
+   "id": "1g8y4d2#2",
+   "ico": "🥚",
+   "early": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv :: TV on",
+   "id": "1g8y4d2#3",
+   "ico": "🐠",
+   "early": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv :: TV on",
+   "id": "1g8y4d2#4",
+   "ico": "🦙",
+   "early": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "m_want_swing"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv :: TV on",
+   "id": "1g8y4d2#5",
+   "ico": "🍉",
+   "early": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv :: TV on",
+   "id": "1g8y4d2#6",
+   "ico": "🚽",
+   "early": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_tv"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv :: TV on",
+   "id": "1g8y4d2#7",
+   "ico": "📢",
+   "early": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv :: TV on",
+   "id": "1g8y4d2#8",
+   "ico": "🫧",
+   "early": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv :: TV on",
+   "id": "1g8y4d2#9",
+   "ico": "👸",
+   "early": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv :: TV on",
+   "id": "1g95hbf#1",
+   "ico": "⏻",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:true→false"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:true→false"
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv",
+   "id": "1g8y4d2#1",
+   "ico": "🍌",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_tv"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv",
+   "id": "1g8y4d2#2",
+   "ico": "🥚",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_tv"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv",
+   "id": "1g8y4d2#3",
+   "ico": "🐠",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv",
+   "id": "1g8y4d2#4",
+   "ico": "🦙",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv",
+   "id": "1g8y4d2#5",
+   "ico": "🍉",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_tv"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv",
+   "id": "1g8y4d2#6",
+   "ico": "🚽",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_tv",
+    "m_want_cook"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv",
+   "id": "1g8y4d2#7",
+   "ico": "📢",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_tv"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv",
+   "id": "1g8y4d2#8",
+   "ico": "🫧",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_tv"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj living/tv",
+   "id": "1g8y4d2#9",
+   "ico": "👸",
+   "early": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\"",
+    "tv:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_tv"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/bouncy",
+   "id": "w5quf4#1",
+   "ico": "🦄",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_giggle",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/box",
+   "id": "11g728q#1",
+   "ico": "🏰",
+   "early": [
+    "panel:null→\"🏰\""
+   ],
+   "late": [
+    "panel:null→\"🏰\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_fort_build",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/box",
+   "id": "1ptbkl6#1",
+   "ico": "📦",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_hmm",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/broom",
+   "id": "ci6c0f#1",
+   "ico": "🧹",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_ok_tidy",
+    "m_want_swing"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/cart1",
+   "id": "lkrs8s#1",
+   "ico": "🧸",
+   "early": [
+    "mess:0→5"
+   ],
+   "late": [
+    "mess:0→5"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_wow",
+    "m_should_tidy"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/cart2",
+   "id": "lkrs8s#1",
+   "ico": "🧸",
+   "early": [
+    "mess:0→5"
+   ],
+   "late": [
+    "mess:0→5"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_toy_play"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/dome",
+   "id": "14k10q5#1",
+   "ico": "🔍",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_stinky"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/foam",
+   "id": "lkrs8s#1",
+   "ico": "🧸",
+   "early": [
+    "mess:0→5"
+   ],
+   "late": [
+    "mess:0→5"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/keys",
+   "id": "1dnhujd#1",
+   "ico": "🌟",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/keys",
+   "id": "1dnhujd#2",
+   "ico": "🎉",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_sticker"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/keys",
+   "id": "1dnhujd#3",
+   "ico": "🎺",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/keys",
+   "id": "1dnhujd#4",
+   "ico": "🤪",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/keys",
+   "id": "1dnhujd#5",
+   "ico": "👻",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_giggle",
+    "m_sticker"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/keys",
+   "id": "1dnhujd#6",
+   "ico": "🌙",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_want_outside",
+    "m_found"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/keys",
+   "id": "1dnhujd#7",
+   "ico": "🚀",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/keys",
+   "id": "1dnhujd#8",
+   "ico": "🌸",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/kidtable",
+   "id": "1a3zqcq#1",
+   "ico": "🪑",
+   "early": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/kidtable",
+   "id": "1jwgrkh#1",
+   "ico": "🎨",
+   "early": [
+    "overlays:\"\"→\"studio\""
+   ],
+   "late": [
+    "overlays:\"\"→\"studio\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_draw"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/kidtable",
+   "id": "1ucwc0h#1",
+   "ico": "🫖",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_tea",
+    "m_want_dress"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/kidtable",
+   "id": "ounozi#1",
+   "ico": "🧗",
+   "early": [
+    "state:\"idle\"→\"perch\""
+   ],
+   "late": [
+    "state:\"idle\"→\"perch\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/loveseat",
+   "id": "11g728q#1",
+   "ico": "🏰",
+   "early": [
+    "panel:null→\"🏰\""
+   ],
+   "late": [
+    "panel:null→\"🏰\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 3,
+   "said": [
+    "m_fort_build",
+    "m_found",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/loveseat",
+   "id": "1a3zqcq#1",
+   "ico": "🪑",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/loveseat",
+   "id": "ounozi#1",
+   "ico": "🧗",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/loveseat",
+   "id": "qbbnaf#1",
+   "ico": "🦘",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/pmat",
+   "id": "lkrs8s#1",
+   "ico": "🧸",
+   "early": [
+    "mess:0→5"
+   ],
+   "late": [
+    "mess:0→5"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_wow"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/rocker",
+   "id": "1a3zqcq#1",
+   "ico": "🪑",
+   "early": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "late": [
+    "state:\"idle\"→\"sit\""
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/toyshelf",
+   "id": "lkrs8s#1",
+   "ico": "🧸",
+   "early": [
+    "mess:0→5"
+   ],
+   "late": [
+    "mess:0→5"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 4,
+   "said": [
+    "m_toy_play",
+    "m_uhoh",
+    "m_found",
+    "m_sticker"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/tray :: Niko pooped",
+   "id": "1sy8718#1",
+   "ico": "🧻",
+   "early": [
+    "holding:null→\"poop\"",
+    "poop:true→false"
+   ],
+   "late": [
+    "holding:null→\"poop\"",
+    "poop:true→false"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_stinky",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj playroom/tray",
+   "id": "1yxyj8q#1",
+   "ico": "🔍",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_hmm"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/blower",
+   "id": "5j4v38#1",
+   "ico": "🍃",
+   "early": [
+    "holding:null→\"blower\""
+   ],
+   "late": [
+    "holding:null→\"blower\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_blow"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/car",
+   "id": "1v8ds0x#1",
+   "ico": "📯",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/garage",
+   "id": "dxydmd#1",
+   "ico": "🔒",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_hmm"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/leafpile :: carrying blower",
+   "id": "1bj2rwa#1",
+   "ico": "🦘",
+   "early": [],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 3,
+   "said": [
+    "m_giggle",
+    "m_leaves",
+    "m_again"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/leafpile :: carrying blower",
+   "id": "1kmzip2#1",
+   "ico": "🌪️",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/leafpile",
+   "id": "1bj2rwa#1",
+   "ico": "🦘",
+   "early": [],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 3,
+   "said": [
+    "m_want_niko",
+    "m_leaves",
+    "m_again"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/leafpile",
+   "id": "1kmzip2#1",
+   "ico": "🌪️",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/leafpile",
+   "id": "5j4v38#1",
+   "ico": "🍃",
+   "early": [
+    "holding:null→\"blower\""
+   ],
+   "late": [
+    "holding:null→\"blower\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_blow"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/mbars",
+   "id": "1t3hrpr#1",
+   "ico": "🐒",
+   "early": [],
+   "late": [
+    "state:\"idle\"→\"bars\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_uhoh",
+    "m_monkey"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/snowman :: snowman big",
+   "id": "108vgnp#1",
+   "ico": "💥",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/snowman :: snowman big",
+   "id": "1u66s56#1",
+   "ico": "⛄",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 3,
+   "said": [
+    "m_did_it",
+    "m_uhoh",
+    "m_sticker"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/snowman",
+   "id": "1u66s56#1",
+   "ico": "⛄",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_snowman",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/swing",
+   "id": "1llowyx#1",
+   "ico": "🟩",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_found"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/swing",
+   "id": "a74wvz#1",
+   "ico": "🧗",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "obj yard/swing",
+   "id": "yttn45#1",
+   "ico": "🟦",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: fort built",
+   "id": "100ddwm#1",
+   "ico": "💃",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_giggle",
+    "m_want_dress"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: fort built",
+   "id": "11g728q#1",
+   "ico": "🤸",
+   "early": [
+    "menu:0→9"
+   ],
+   "late": [
+    "menu:0→9"
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: holding a dish",
+   "id": "100ddwm#1",
+   "ico": "💃",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_yay"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: holding a dish",
+   "id": "11g728q#1",
+   "ico": "🤸",
+   "early": [
+    "menu:0→9"
+   ],
+   "late": [
+    "menu:0→9"
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: holding a dish",
+   "id": "14mbm5p#1",
+   "ico": "⬇️",
+   "early": [
+    "holding:\"dish\"→null"
+   ],
+   "late": [
+    "holding:\"dish\"→null"
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: holding Niko",
+   "id": "100ddwm#1",
+   "ico": "💃",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: holding Niko",
+   "id": "11g728q#1",
+   "ico": "🤸",
+   "early": [
+    "menu:0→9"
+   ],
+   "late": [
+    "menu:0→9"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: holding Niko",
+   "id": "14mbm5p#1",
+   "ico": "⬇️",
+   "early": [
+    "holding:\"niko\"→null"
+   ],
+   "late": [
+    "holding:\"niko\"→null"
+   ],
+   "stuck": false,
+   "saidKinds": "r",
+   "saidN": 1,
+   "said": [
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: idle",
+   "id": "100ddwm#1",
+   "ico": "💃",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_giggle",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: idle",
+   "id": "11g728q#1",
+   "ico": "🤸",
+   "early": [
+    "menu:0→9"
+   ],
+   "late": [
+    "menu:0→9"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: in wheelchair",
+   "id": "1u68cpx#1",
+   "ico": "⬇️",
+   "early": [
+    "state:\"wheel\"→\"idle\""
+   ],
+   "late": [
+    "state:\"wheel\"→\"idle\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: in yard",
+   "id": "100ddwm#1",
+   "ico": "💃",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_yay"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: in yard",
+   "id": "11g728q#1",
+   "ico": "🤸",
+   "early": [
+    "menu:0→9"
+   ],
+   "late": [
+    "menu:0→9"
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: on furniture with Daddy near",
+   "id": "11g728q#1",
+   "ico": "🤸",
+   "early": [
+    "menu:0→9"
+   ],
+   "late": [
+    "menu:0→9"
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: on furniture with Daddy near",
+   "id": "1kibgrt#1",
+   "ico": "🐿️",
+   "early": [
+    "state:\"perch\"→\"idle\""
+   ],
+   "late": [
+    "state:\"perch\"→\"idle\""
+   ],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 4,
+   "said": [
+    "m_squirrel",
+    "m_want_cook",
+    "d_catch",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: on furniture with Daddy near",
+   "id": "4ihzep#1",
+   "ico": "⬇️",
+   "early": [
+    "state:\"perch\"→\"idle\""
+   ],
+   "late": [
+    "state:\"perch\"→\"idle\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: on furniture",
+   "id": "11g728q#1",
+   "ico": "🤸",
+   "early": [
+    "menu:0→9"
+   ],
+   "late": [
+    "menu:0→9"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: on furniture",
+   "id": "4ihzep#1",
+   "ico": "⬇️",
+   "early": [
+    "state:\"perch\"→\"idle\""
+   ],
+   "late": [
+    "state:\"perch\"→\"idle\""
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: on monkey bars",
+   "id": "1613i9o#1",
+   "ico": "⬅️",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: on monkey bars",
+   "id": "1qe7r55#1",
+   "ico": "⬇️",
+   "early": [
+    "state:\"bars\"→\"idle\""
+   ],
+   "late": [
+    "state:\"bars\"→\"idle\""
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: on monkey bars",
+   "id": "tvlo7l#1",
+   "ico": "➡️",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: on swing",
+   "id": "1umfai5#1",
+   "ico": "⬇️",
+   "early": [
+    "state:\"swing\"→\"idle\""
+   ],
+   "late": [
+    "state:\"swing\"→\"idle\""
+   ],
+   "stuck": false,
+   "saidKinds": "",
+   "saidN": 0,
+   "said": [],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: sitting",
+   "id": "100ddwm#1",
+   "ico": "💃",
+   "early": [
+    "state:\"sit\"→\"cheer\""
+   ],
+   "late": [
+    "state:\"sit\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_happy",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "self :: sitting",
+   "id": "11g728q#1",
+   "ico": "🤸",
+   "early": [
+    "menu:0→9"
+   ],
+   "late": [
+    "menu:0→9"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: asleep",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 5,
+   "said": [
+    "m_uhoh",
+    "m_wuv_daddy",
+    "d_cuddle",
+    "m_kiss",
+    "d_kiss"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: asleep",
+   "id": "oguhlq#1",
+   "ico": "⏰",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 2,
+   "said": [
+    "m_wake_daddy",
+    "d_wake"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: fort built here",
+   "id": "1tpe5rr#1",
+   "ico": "🧍",
+   "early": [
+    "state:\"idle\"→\"ride\"",
+    "mount:null→\"daddy\""
+   ],
+   "late": [
+    "state:\"idle\"→\"ride\"",
+    "mount:null→\"daddy\""
+   ],
+   "stuck": false,
+   "saidKinds": "d",
+   "saidN": 1,
+   "said": [
+    "d_shoulders"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: fort built here",
+   "id": "1w75npa#1",
+   "ico": "🏰",
+   "early": [
+    "panel:null→\"✨🏰✨\"",
+    "fortUI:false→true"
+   ],
+   "late": [
+    "panel:null→\"✨🏰✨\"",
+    "fortUI:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_fort_magic",
+    "m_play_daddy"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: fort built here",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 4,
+   "said": [
+    "m_wuv_daddy",
+    "d_love",
+    "m_kiss",
+    "d_kiss"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: fort built here",
+   "id": "zwi5tl#1",
+   "ico": "😜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 5,
+   "said": [
+    "m_joke_house",
+    "m_uhoh",
+    "d_why_house",
+    "m_joke_house2",
+    "d_joke2"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: Marina holding a gross dish",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 4,
+   "said": [
+    "m_wuv_daddy",
+    "d_cuddle",
+    "m_kiss",
+    "d_kiss"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: Marina holding a gross dish",
+   "id": "v5km0k#1",
+   "ico": "🍽️",
+   "early": [],
+   "late": [
+    "holding:\"dish\"→null"
+   ],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 3,
+   "said": [
+    "m_want_music",
+    "m_hewe",
+    "d_nervous"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: Marina holding a gross dish",
+   "id": "zwi5tl#1",
+   "ico": "😜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "dmr",
+   "saidN": 6,
+   "said": [
+    "m_joke_house",
+    "r_hi",
+    "m_hi_rory",
+    "d_why_house",
+    "m_joke_house2",
+    "d_joke2"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: Marina holding a nice dish",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 3,
+   "said": [
+    "m_uhoh",
+    "m_wuv_daddy",
+    "d_cuddle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: Marina holding a nice dish",
+   "id": "v5km0k#1",
+   "ico": "🍽️",
+   "early": [],
+   "late": [
+    "state:\"idle\"→\"cheer\"",
+    "holding:\"dish\"→null"
+   ],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 4,
+   "said": [
+    "m_giggle",
+    "m_hewe",
+    "d_food_good",
+    "m_yay"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: Marina holding a nice dish",
+   "id": "zwi5tl#1",
+   "ico": "😜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 5,
+   "said": [
+    "m_joke_house",
+    "d_hi1",
+    "d_why_house",
+    "m_joke_house2",
+    "d_joke2"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: Marina riding",
+   "id": "1xjtl77#1",
+   "ico": "⬇️",
+   "early": [
+    "state:\"ride\"→\"idle\"",
+    "mount:\"daddy\"→null"
+   ],
+   "late": [
+    "state:\"ride\"→\"idle\"",
+    "mount:\"daddy\"→null"
+   ],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 3,
+   "said": [
+    "m_get_down",
+    "d_shoulders_down",
+    "d_hi1"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: normal",
+   "id": "1tpe5rr#1",
+   "ico": "🧍",
+   "early": [
+    "state:\"idle\"→\"ride\"",
+    "mount:null→\"daddy\""
+   ],
+   "late": [
+    "state:\"idle\"→\"ride\"",
+    "mount:null→\"daddy\""
+   ],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 2,
+   "said": [
+    "m_giggle",
+    "d_shoulders"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: normal",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 5,
+   "said": [
+    "d_hi3",
+    "m_wuv_daddy",
+    "d_love",
+    "m_kiss",
+    "d_kiss"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: normal",
+   "id": "zwi5tl#1",
+   "ico": "😜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 7,
+   "said": [
+    "m_knock",
+    "d_hi2",
+    "d_whos_there",
+    "m_europe",
+    "d_europe_who",
+    "m_poo"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: refused gross dish",
+   "id": "1h26yye#1",
+   "ico": "🍽️",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_eat_it",
+    "m_want_music"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: refused gross dish",
+   "id": "1tpe5rr#1",
+   "ico": "🧍",
+   "early": [
+    "state:\"idle\"→\"ride\"",
+    "mount:null→\"daddy\""
+   ],
+   "late": [
+    "state:\"idle\"→\"ride\"",
+    "mount:null→\"daddy\""
+   ],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 3,
+   "said": [
+    "d_shoulders",
+    "m_sticker",
+    "d_hi3"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: refused gross dish",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 5,
+   "said": [
+    "m_uhoh",
+    "m_wuv_daddy",
+    "d_love",
+    "m_kiss",
+    "d_kiss"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who daddy :: refused gross dish",
+   "id": "zwi5tl#1",
+   "ico": "😜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "dm",
+   "saidN": 6,
+   "said": [
+    "m_knock",
+    "d_whos_there",
+    "m_europe",
+    "d_europe_who",
+    "m_poo",
+    "d_joke_poo"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: crying",
+   "id": "13o29ns#1",
+   "ico": "🍼",
+   "early": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_bottle",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: crying",
+   "id": "jy3ac3#1",
+   "ico": "🤗",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_shh_miles",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: crying",
+   "id": "qpltx4#1",
+   "ico": "✋",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_wuv_miles"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: dirty nappy",
+   "id": "13o29ns#1",
+   "ico": "🍼",
+   "early": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_bottle",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: dirty nappy",
+   "id": "1vbdudl#1",
+   "ico": "🧷",
+   "early": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "late": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_stinky",
+    "m_did_it"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: dirty nappy",
+   "id": "jy3ac3#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "late": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_shh_miles"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: dirty nappy",
+   "id": "qpltx4#1",
+   "ico": "✋",
+   "early": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "late": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 2,
+   "said": [
+    "m_wuv_miles",
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: fort built here",
+   "id": "13o29ns#1",
+   "ico": "🍼",
+   "early": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_bottle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: fort built here",
+   "id": "jy3ac3#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "late": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_shh_miles",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: fort built here",
+   "id": "qpltx4#1",
+   "ico": "✋",
+   "early": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "late": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_wuv_miles",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: Marina holding a nice dish",
+   "id": "13o29ns#1",
+   "ico": "🍼",
+   "early": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_bottle",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: Marina holding a nice dish",
+   "id": "jy3ac3#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "late": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_shh_miles"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: Marina holding a nice dish",
+   "id": "qpltx4#1",
+   "ico": "✋",
+   "early": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "late": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_wuv_miles"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: normal",
+   "id": "13o29ns#1",
+   "ico": "🍼",
+   "early": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_bottle",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: normal",
+   "id": "jy3ac3#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "late": [
+    "state:\"idle\"→\"anim\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_shh_miles"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who miles :: normal",
+   "id": "qpltx4#1",
+   "ico": "✋",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_wuv_miles"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who mommy :: fort built here",
+   "id": "1w75npa#1",
+   "ico": "🏰",
+   "early": [
+    "panel:null→\"✨🏰✨\"",
+    "fortUI:false→true"
+   ],
+   "late": [
+    "panel:null→\"✨🏰✨\"",
+    "fortUI:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_fort_magic",
+    "m_play_mommy"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who mommy :: fort built here",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mmor",
+   "saidN": 6,
+   "said": [
+    "r_hi",
+    "m_hi_rory",
+    "m_wuv_mommy",
+    "mo_love",
+    "m_kiss",
+    "mo_kiss"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who mommy :: fort built here",
+   "id": "8y7uyb#1",
+   "ico": "📱",
+   "early": [],
+   "late": [
+    "state:\"idle\"→\"sad\""
+   ],
+   "stuck": false,
+   "saidKinds": "mmo",
+   "saidN": 3,
+   "said": [
+    "m_insta",
+    "m_uhoh",
+    "mo_insta_no"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who mommy :: fort built here",
+   "id": "zwi5tl#1",
+   "ico": "😜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mmo",
+   "saidN": 7,
+   "said": [
+    "m_knock",
+    "m_uhoh",
+    "mo_whos_there",
+    "m_europe",
+    "mo_europe_who",
+    "m_poo"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who mommy :: Marina holding a nice dish",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mmo",
+   "saidN": 2,
+   "said": [
+    "m_wuv_mommy",
+    "mo_cuddle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who mommy :: Marina holding a nice dish",
+   "id": "8y7uyb#1",
+   "ico": "📱",
+   "early": [],
+   "late": [
+    "panel:null→\"panel\""
+   ],
+   "stuck": false,
+   "saidKinds": "mmo",
+   "saidN": 3,
+   "said": [
+    "m_insta",
+    "m_uhoh",
+    "mo_insta_yes"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who mommy :: Marina holding a nice dish",
+   "id": "kz45gq#1",
+   "ico": "🍽️",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mmo",
+   "saidN": 3,
+   "said": [
+    "m_uhoh",
+    "m_hewe",
+    "mo_food_redirect"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who mommy :: Marina holding a nice dish",
+   "id": "zwi5tl#1",
+   "ico": "😜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mmo",
+   "saidN": 5,
+   "said": [
+    "m_joke_house",
+    "m_giggle",
+    "mo_why_house",
+    "m_joke_house2",
+    "mo_joke2"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who mommy :: normal",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mmo",
+   "saidN": 2,
+   "said": [
+    "m_wuv_mommy",
+    "mo_love"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who mommy :: normal",
+   "id": "8y7uyb#1",
+   "ico": "📱",
+   "early": [],
+   "late": [
+    "panel:null→\"panel\""
+   ],
+   "stuck": false,
+   "saidKinds": "mmo",
+   "saidN": 3,
+   "said": [
+    "m_insta",
+    "mo_hi1",
+    "mo_insta_yes"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who mommy :: normal",
+   "id": "zwi5tl#1",
+   "ico": "😜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mmo",
+   "saidN": 4,
+   "said": [
+    "m_joke_house",
+    "mo_why_house",
+    "m_joke_house2",
+    "mo_joke1"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who niko :: fort built here",
+   "id": "11g728q#1",
+   "ico": "✋",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 3,
+   "said": [
+    "m_pet_niko",
+    "m_want_swing",
+    "m_sticker"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who niko :: fort built here",
+   "id": "1xt3opd#1",
+   "ico": "🤗",
+   "early": [
+    "holding:null→\"niko\""
+   ],
+   "late": [
+    "holding:null→\"niko\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_pickup",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who niko :: fort built here",
+   "id": "acapdk#1",
+   "ico": "🏰",
+   "early": [
+    "panel:null→\"✨🏰✨\"",
+    "fortUI:false→true"
+   ],
+   "late": [
+    "panel:null→\"✨🏰✨\"",
+    "fortUI:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_fort_magic",
+    "m_play_niko"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who niko :: fort built here",
+   "id": "x5xv54#1",
+   "ico": "🏃",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 2,
+   "said": [
+    "m_chase_niko",
+    "r_hi"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who niko :: Marina holding a nice dish",
+   "id": "11g728q#1",
+   "ico": "✋",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_pet_niko",
+    "m_sticker"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who niko :: Marina holding a nice dish",
+   "id": "x5xv54#1",
+   "ico": "🏃",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_chase_niko",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who niko :: Marina holding something",
+   "id": "11g728q#1",
+   "ico": "✋",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_pet_niko"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who niko :: Marina holding something",
+   "id": "x5xv54#1",
+   "ico": "🏃",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_chase_niko"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who niko :: normal",
+   "id": "11g728q#1",
+   "ico": "✋",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_pet_niko",
+    "m_giggle"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who niko :: normal",
+   "id": "1xt3opd#1",
+   "ico": "🤗",
+   "early": [
+    "holding:null→\"niko\""
+   ],
+   "late": [
+    "holding:null→\"niko\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_pickup",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who niko :: normal",
+   "id": "x5xv54#1",
+   "ico": "🏃",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_chase_niko"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: asleep",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 2,
+   "said": [
+    "m_wuv_rory",
+    "r_love"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: asleep",
+   "id": "oguhlq#1",
+   "ico": "⏰",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 3,
+   "said": [
+    "m_wake_daddy",
+    "m_want_music",
+    "r_wow"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: fort built here",
+   "id": "1mlal5t#1",
+   "ico": "🤼",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 3,
+   "said": [
+    "r_tickle",
+    "m_want_outside",
+    "m_again"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: fort built here",
+   "id": "1w75npa#1",
+   "ico": "🏰",
+   "early": [
+    "panel:null→\"✨🏰✨\"",
+    "fortUI:false→true"
+   ],
+   "late": [
+    "panel:null→\"✨🏰✨\"",
+    "fortUI:false→true"
+   ],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 3,
+   "said": [
+    "m_fort_magic",
+    "r_hi",
+    "m_play_rory"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: fort built here",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 4,
+   "said": [
+    "r_hi",
+    "m_hi_rory",
+    "m_wuv_rory",
+    "r_love"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: fort built here",
+   "id": "uyuani#1",
+   "ico": "🐴",
+   "early": [
+    "state:\"idle\"→\"ride\"",
+    "mount:null→\"rory\""
+   ],
+   "late": [
+    "state:\"idle\"→\"ride\"",
+    "mount:null→\"rory\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_uhoh",
+    "m_giddyup"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: fort built here",
+   "id": "zwi5tl#1",
+   "ico": "😜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 6,
+   "said": [
+    "m_joke_house",
+    "r_hi",
+    "m_hi_rory",
+    "r_why_house",
+    "m_joke_house2",
+    "r_joke1"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: Marina holding a gross dish",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 3,
+   "said": [
+    "m_want_cook",
+    "m_wuv_rory",
+    "r_love"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: Marina holding a gross dish",
+   "id": "v5km0k#1",
+   "ico": "🍽️",
+   "early": [],
+   "late": [
+    "holding:\"dish\"→null"
+   ],
+   "stuck": false,
+   "saidKinds": "dmr",
+   "saidN": 3,
+   "said": [
+    "m_hewe",
+    "r_nervous",
+    "d_hi2"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: Marina holding a gross dish",
+   "id": "zwi5tl#1",
+   "ico": "😜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 8,
+   "said": [
+    "m_knock",
+    "r_hi",
+    "r_whos_there",
+    "m_hi_rory",
+    "m_europe",
+    "r_europe_who"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: Marina holding a nice dish",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 3,
+   "said": [
+    "m_giggle",
+    "m_wuv_rory",
+    "r_love"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: Marina holding a nice dish",
+   "id": "v5km0k#1",
+   "ico": "🍽️",
+   "early": [],
+   "late": [
+    "state:\"idle\"→\"cheer\"",
+    "holding:\"dish\"→null"
+   ],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 4,
+   "said": [
+    "m_uhoh",
+    "m_hewe",
+    "r_food_great",
+    "m_yay"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: Marina holding a nice dish",
+   "id": "zwi5tl#1",
+   "ico": "😜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 7,
+   "said": [
+    "m_knock",
+    "m_giggle",
+    "r_whos_there",
+    "m_europe",
+    "r_europe_who",
+    "m_poo"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: Marina riding",
+   "id": "1llf5r3#1",
+   "ico": "🐴",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 3,
+   "said": [
+    "m_giddyup",
+    "r_horse",
+    "m_uhoh"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: Marina riding",
+   "id": "1xjtl77#1",
+   "ico": "⬇️",
+   "early": [
+    "state:\"ride\"→\"idle\"",
+    "mount:\"rory\"→null"
+   ],
+   "late": [
+    "state:\"ride\"→\"idle\"",
+    "mount:\"rory\"→null"
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_get_down",
+    "m_want_fort"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: normal",
+   "id": "1mlal5t#1",
+   "ico": "🤼",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 3,
+   "said": [
+    "r_tickle",
+    "r_hi_niece3",
+    "m_again"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: normal",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 3,
+   "said": [
+    "m_uhoh",
+    "m_wuv_rory",
+    "r_love"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: normal",
+   "id": "uyuani#1",
+   "ico": "🐴",
+   "early": [
+    "state:\"idle\"→\"ride\"",
+    "mount:null→\"rory\""
+   ],
+   "late": [
+    "state:\"idle\"→\"ride\"",
+    "mount:null→\"rory\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_uhoh",
+    "m_giddyup"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: normal",
+   "id": "zwi5tl#1",
+   "ico": "😜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 7,
+   "said": [
+    "m_knock",
+    "r_hi_niece3",
+    "r_whos_there",
+    "m_europe",
+    "r_europe_who",
+    "m_poo"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: refused gross dish",
+   "id": "1h26yye#1",
+   "ico": "🍽️",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 1,
+   "said": [
+    "m_eat_it"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: refused gross dish",
+   "id": "1mlal5t#1",
+   "ico": "🤼",
+   "early": [
+    "state:\"idle\"→\"cheer\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 3,
+   "said": [
+    "r_gotcha",
+    "m_giggle",
+    "m_again"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: refused gross dish",
+   "id": "1x8gpx8#1",
+   "ico": "🤗",
+   "early": [
+    "state:\"idle\"→\"pair\""
+   ],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 3,
+   "said": [
+    "m_uhoh",
+    "m_wuv_rory",
+    "r_love"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: refused gross dish",
+   "id": "uyuani#1",
+   "ico": "🐴",
+   "early": [
+    "state:\"idle\"→\"ride\"",
+    "mount:null→\"rory\""
+   ],
+   "late": [
+    "state:\"idle\"→\"ride\"",
+    "mount:null→\"rory\""
+   ],
+   "stuck": false,
+   "saidKinds": "m",
+   "saidN": 2,
+   "said": [
+    "m_uhoh",
+    "m_giddyup"
+   ],
+   "errors": [],
+   "result": "ok"
+  },
+  {
+   "key": "who rory :: refused gross dish",
+   "id": "zwi5tl#1",
+   "ico": "😜",
+   "early": [],
+   "late": [],
+   "stuck": false,
+   "saidKinds": "mr",
+   "saidN": 6,
+   "said": [
+    "m_knock",
+    "r_whos_there",
+    "m_europe",
+    "r_europe_who",
+    "m_poo",
+    "r_joke_poo"
+   ],
+   "errors": [],
+   "result": "ok"
+  }
+ ],
+ "flows": {
+  "title → play → room picker → start": "play:1 cards:6 dice:1 dress:1 book:1 started:true in kitchen",
+  "navigation: arrows, room strip, map": "right→playroom left→kitchen strip→yard strip buttons:7 map rooms:7 map→moved:true",
+  "tap floor walks; tap object opens its choices": "walked:true table choices:0 daddy choices:0",
+  "mood love with Daddy": "during:idle said:yes ended:true mood:love | errors: warning: audio assets/sfx/chip_love.mp3 Error: assets/sfx/chip_love.mp3\n    at http://127.0.0.1:8782/audio.js:31:60",
+  "mood happy with Daddy": "during:idle said:yes ended:true mood:happy",
+  "mood sad with Daddy": "during:sad said:yes ended:true mood:sad",
+  "mood angry with Daddy": "during:idle said:yes ended:true mood:angry",
+  "mood tantrum with Daddy": "during:tantrum said:yes ended:true mood:tantrum",
+  "cooking: pick → method → result → give Daddy": "tiles>20:true chosen:2 methods:6 give:3 rowBtns:3 named:true daddyCame:true served:true",
+  "cooking: all four shelves, carry, hand-over hint": "fridge:true freezer:true cabinet:true bowl:true holding:dish hints:1",
+  "dress-up: tabs, pick outfit, done": "tabs:8 tiles:19/8/9/13/5/5/9/1 outfit:bluedress buttons:14 closed:true still:bluedress",
+  "drawing: draw, save, hang": "top:8 tools>5:true colours>5:true menu:picture|give it to daddy|give it to mommy|give it to rory|hang it on the wall|carry it|trash|keep hung:1 closed:true",
+  "drawing: give to Mommy (she hangs it)": "finished:true wallsAdded:1 gift:mommy",
+  "crafts tabs open": "math:11 spell:16 cut:7 dio:26 gal:7",
+  "story: pick book, reader, read to the end": "books:3 readers:3 endButtons:3 closed:true",
+  "sticker book opens and closes": "stickers:34 closed:true",
+  "wish buttons take her to each activity": "cook→kitchen+panel draw→dining+studio fort→living+panel dress→dining+panel outside→yard tv→living+menu9 niko→kitchen+menu3 gym→dining+menu9 swing→yard+swing miles→living+menu3 music→playroom+menu8",
+  "request: ask, do it, get thanked": "button:1 menu:true thanked:true",
+  "alerts: crying, poops, nappy, toilet paper, get down": "cry:1 →living/3 poop→playroom/1 bin+flush:2 binned:true@living nappy→living/4 tp→foyer freed:true riding:ride down:1 →idle",
+  "scenes: dinner, tea party, bath": "dinner:true/3 tea:true/true bath:true/true",
+  "saved things survive a reload": "keys:cm_gallery,cm_helped,cm_lastDrawing,cm_look,cm_looks,cm_stickers,cm_studioDraft,cm_walls stickerKept:true newGameOutfit:default"
+ }
+}

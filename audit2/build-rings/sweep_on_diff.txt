@@ -1,0 +1,99 @@
+(noisy)         menu :: gymnastics | 15p4wvx#1 🎲: differs, but it also differs between two runs of the unchanged game
+(minor)         menu :: gymnastics | qfx49l#4 🔃: said m/1 → mr/3;  → 
+(minor)         obj backyard/bench | 18v4231#1 🔨: said /0 → m/1;  → 
+(minor)         obj backyard/feeder | 1sh375y#1 🌾: said /0 → m/1;  → 
+(minor)         obj backyard/leafpile | 16vxgoq#1 🍂: said m/1 → r/1;  → 
+(minor)         obj backyard/oak | 1ygm7f6#1 🦉: said /0 → m/1;  → 
+(minor)         obj backyard/pine | 1ygm7f6#1 🌰: said /0 → r/1;  → 
+(minor)         obj backyard/tr_maple | 1ygm7f6#1 🍁: said m/2 → mr/3;  → 
+(minor)         obj bathroom/toilet :: holding poop | 1bj2rwa#1 💩: said m/3 → mr/3;  → 
+(minor)         obj bathroom/tpholder | 1mea6x#1 🧻: said m/2 → mr/2;  → 
+(minor)         obj den/barm | qbbnaf#1 🦘: said m/1 → mr/2;  → 
+(minor)         obj den/bstool | ounozi#1 🧗: said /0 → r/1;  → 
+(minor)         obj den/btv | 1dw0lsf#1 🐠: said r/1 → /0;  → 
+(minor)         obj den/legoshelf | 1p8xvs2#1 🧱: said r/1 → m/1;  → 
+(noisy)         obj den/ltable | 5ukym1#1 🧱: differs, but it also differs between two runs of the unchanged game
+(minor)         obj den/ottoman | qbbnaf#1 🦘: said mr/2 → m/2;  → 
+(minor)         obj den/stones | 1ia2kjf#1 🪨: said m/1 → r/1;  → 
+(noisy)         obj den/wicker | 1a3zqcq#1 🪑: differs, but it also differs between two runs of the unchanged game
+BEHAVES DIFF    obj den/wicker | ounozi#1 🧗→🧗
+      before: ok [] 
+      after:  ok ["state:\"idle\"→\"perch\""] 
+(minor)         obj dining/chair1 | 1a3zqcq#1 🪑: said m/1 → r/1;  → 
+(minor)         obj kitchen/dishwasher | 1ceuovn#1 🍽️: said m/1 → /0;  → 
+(minor)         obj kitchen/fridge | 1tmr7qh#2 ❄️: said m/4 → mr/3;  → 
+(minor)         obj kitchen/island | ounozi#1 🧗: said /0 → m/1;  → 
+(minor)         obj kitchen/stool1 | 1a3zqcq#1 🪑: said m/1 → /0;  → 
+(minor)         obj kitchen/stool1 | ounozi#1 🧗: said /0 → m/1;  → 
+(minor)         obj kitchen/stool2 | ounozi#1 🧗: said /0 → m/1;  → 
+(minor)         obj living/bouncer | infde9#1 👶: said m/1 → r/1;  → 
+(minor)         obj living/fireplace | 1g8y4d2#6 🚽: said m/2 → mr/2;  → 
+(minor)         obj living/sectional | qbbnaf#1 🦘: said /0 → m/1;  → 
+(minor)         obj living/tv :: TV on | 1g8y4d2#8 🫧: said m/2 → mr/2;  → 
+(minor)         obj living/tv | 1g8y4d2#8 🫧: said m/2 → mr/2;  → 
+(minor)         obj living/tv | 1g8y4d2#9 👸: said m/1 → mr/2;  → 
+(minor)         obj milesroom/arch | 1wlliyu#1 🙈: said m/1 → /0;  → 
+(minor)         obj milesroom/daybed | 1a3zqcq#1 🪑: said /0 → m/1;  → 
+(minor)         obj mroom/mhamper | lkrs8s#1 🧸: said m/1 → mr/2; mess:0→5 → mess:0→5
+(minor)         obj mroom/mknee | 1sp67z4#1 🔦: said m/1 → r/1;  → 
+(minor)         obj parents/pbasket | lkrs8s#1 🧸: said m/1 → mr/2; mess:0→5 → mess:0→5
+(minor)         obj parents/pbed | 1a3zqcq#1 🪑: said /0 → r/1;  → 
+(noisy)         obj parents/pbed | qbbnaf#1 🦘: differs, but it also differs between two runs of the unchanged game
+(minor)         obj parents/stuffpile | bmcuh4#1 🤿: said /0 → m/1;  → 
+(minor)         obj parents/suitcase | rgsigp#1 🧳: said m/1 → /0;  → 
+(minor)         obj playroom/keys | 1dnhujd#4 🤪: said r/1 → m/2;  → 
+(noisy)         obj pool/umbrella | gqu1g3#1 🍋: differs, but it also differs between two runs of the unchanged game
+BEHAVES DIFF    obj storage/shades | 1bu00z4#1 🎩→🎩
+      before: ok [] 
+      after:  ok ["state:\"idle\"→\"cheer\""] 
+(minor)         obj treehouse_oak/th_bean | 1qsfai8#1 🪑: said m/1 → mr/3;  → 
+(minor)         obj treehouse_oak/th_scope | wfggdj#1 🔭: said /0 → m/1;  → 
+(minor)         obj treehouse_oak/th_shelf | 1qlntyv#1 🧺: said /0 → m/1;  → 
+(minor)         obj treehouse_pine/th_bean | 1qsfai8#1 🪑: said m/1 → mr/3;  → 
+(minor)         obj treehouse_pine/th_wall | 1pvbo5d#1 🖼️: said m/1 → r/1;  → 
+(minor)         obj uphall/ustairs | 1uffdcd#1 🪜: said m/1 → /0;  → 
+(minor)         obj yard/snowman | 1u66s56#1 ⛄: said m/1 → mr/2;  → 
+(minor)         self :: fort built | 11g728q#1 🤸: said /0 → m/1;  → 
+(minor)         self :: on furniture | 11g728q#1 🤸: said m/1 → /0;  → 
+(minor)         self :: on monkey bars | tvlo7l#1 ➡️: said /0 → m/1;  → 
+(minor)         who daddy :: refused gross dish | 1tpe5rr#1 🧍: said dm/2 → dmr/3;  → 
+(noisy)         who miles :: crying | 13o29ns#1 🍼: differs, but it also differs between two runs of the unchanged game
+BEHAVES DIFF    who miles :: crying | jy3ac3#1 🤗→🤗
+      before: ok ["state:\"idle\"→\"anim\""] 
+      after:  ok [] 
+(noisy)         who miles :: dirty nappy | 13o29ns#1 🍼: differs, but it also differs between two runs of the unchanged game
+BEHAVES DIFF    who miles :: dirty nappy | jy3ac3#1 🤗→🤗
+      before: ok ["state:\"idle\"→\"anim\""] 
+      after:  ok [] 
+(noisy)         who miles :: fort built here | 13o29ns#1 🍼: differs, but it also differs between two runs of the unchanged game
+BEHAVES DIFF    who miles :: fort built here | qpltx4#1 ✋→✋
+      before: ok ["state:\"idle\"→\"anim\""] 
+      after:  ok [] 
+(noisy)         who miles :: Marina holding a nice dish | 13o29ns#1 🍼: differs, but it also differs between two runs of the unchanged game
+BEHAVES DIFF    who miles :: Marina holding a nice dish | qpltx4#1 ✋→✋
+      before: ok ["state:\"idle\"→\"anim\""] 
+      after:  ok [] 
+(noisy)         who miles :: normal | 13o29ns#1 🍼: differs, but it also differs between two runs of the unchanged game
+BEHAVES DIFF    who mommy :: Marina holding a nice dish | 8y7uyb#1 📱→📱
+      before: ok ["panel:null→\"panel\""] 
+      after:  ok ["state:\"idle\"→\"sad\""] 
+BEHAVES DIFF    who mommy :: normal | 8y7uyb#1 📱→📱
+      before: ok ["state:\"idle\"→\"sad\""] 
+      after:  ok ["panel:null→\"panel\""] 
+(minor)         who niko :: fort built here | c79z31#1 🤗: said m/1 → mr/2;  → 
+(noisy flow)    mood love with Daddy
+      before: during:pair said:yes ended:true mood:love | errors: warning: audio assets/sfx/chip_love.mp3 Error: assets/sfx/chip_love.mp3
+    at http://127.0.0.1:8847/audio.js:32:60
+      after:  during:pair said:no ended:true mood:love | errors: warning: audio assets/sfx/chip_love.mp3 Error: assets/sfx/chip_love.mp3
+    at http://127.0.0.1:8871/audio.js:32:60
+(noisy flow)    mood happy with Daddy
+      before: during:anim said:yes ended:true mood:happy
+      after:  during:idle said:yes ended:true mood:happy
+(noisy flow)    wish buttons take her to each activity
+      before: cook→living+menu9+floorpill draw→yard+floorpill fort→living+panel+floorpill dress→dining+panel+floorpill outside→yard+floorpill tv→living+menu9+floorpill niko→dining+panel+floorpill gym→dining+menu9+floorpill swing→yard+swing+floorpill miles→living+menu3+floorpill music→playroom+menu8+floorpill
+      after:  cook→kitchen+panel+floorpill draw→dining+studio+floorpill,studio fort→living+panel+floorpill dress→dining+panel+floorpill outside→yard+floorpill tv→living+menu9+floorpill niko→kitchen+menu3+floorpill gym→dining+menu9+floorpill swing→yard+swing+floorpill miles→dining+panel+floorpill music→playroom+menu8+floorpill
+FLOW DIFFERS    request: ask, do it, get thanked
+      before: button:1 menu:true thanked:true
+      after:  button:1 menu:false thanked:false
+
+209 situations, 379 choices pressed: 361 identical, 10 noisy.  HARD problems: 0   differences to review: 9

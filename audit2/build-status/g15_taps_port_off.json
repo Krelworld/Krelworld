@@ -1,0 +1,605 @@
+{
+ "sceneOn": {
+  "room": "living",
+  "mood": "love",
+  "busy": true,
+  "scene": true,
+  "panel": false,
+  "holding": "pic",
+  "req": false,
+  "alerts": "picgive,pickeep",
+  "mx": 340,
+  "moving": false
+ },
+ "dead": {
+  "#roombar .rb[data-r=kitchen]": {
+   "sameOutcome": true,
+   "pre": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "post": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "shakes": 0,
+   "shakeOpt": [],
+   "nope": 0,
+   "moodBlipIn": 0,
+   "moodBlipRan": 0,
+   "skipped": [],
+   "blips": [],
+   "rings": 0,
+   "mid": {
+    "transform": "none",
+    "translate": "none",
+    "anims": [],
+    "opacity": "1"
+   }
+  },
+  "#roombar .rb.here": {
+   "sameOutcome": true,
+   "pre": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "post": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "shakes": 0,
+   "shakeOpt": [],
+   "nope": 0,
+   "moodBlipIn": 0,
+   "moodBlipRan": 0,
+   "skipped": [],
+   "blips": [],
+   "rings": 0,
+   "mid": {
+    "transform": "matrix(1.12, 0, 0, 1.12, 0, 0)",
+    "translate": "none",
+    "anims": [],
+    "opacity": "1"
+   }
+  },
+  "#floorpill .fl.up": {
+   "sameOutcome": true,
+   "pre": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "post": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "shakes": 0,
+   "shakeOpt": [],
+   "nope": 0,
+   "moodBlipIn": 0,
+   "moodBlipRan": 0,
+   "skipped": [],
+   "blips": [],
+   "rings": 0,
+   "mid": {
+    "transform": "none",
+    "translate": "none",
+    "anims": [],
+    "opacity": "1"
+   }
+  },
+  "#floorpill .fl.down": {
+   "sameOutcome": true,
+   "pre": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "post": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "shakes": 0,
+   "shakeOpt": [],
+   "nope": 0,
+   "moodBlipIn": 0,
+   "moodBlipRan": 0,
+   "skipped": [],
+   "blips": [],
+   "rings": 0,
+   "mid": {
+    "transform": "none",
+    "translate": "none",
+    "anims": [],
+    "opacity": "1"
+   }
+  },
+  ".mood[data-mood=happy]": {
+   "sameOutcome": true,
+   "pre": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "post": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "shakes": 0,
+   "shakeOpt": [],
+   "nope": 0,
+   "moodBlipIn": 1,
+   "moodBlipRan": 1,
+   "skipped": [],
+   "blips": [
+    "12,square,0.08"
+   ],
+   "rings": 0,
+   "mid": {
+    "transform": "none",
+    "translate": "none",
+    "anims": [],
+    "opacity": "1"
+   }
+  },
+  "#alerts .alertb[aria-label=picgive]": {
+   "sameOutcome": true,
+   "pre": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "post": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "shakes": 0,
+   "shakeOpt": [],
+   "nope": 0,
+   "moodBlipIn": 0,
+   "moodBlipRan": 0,
+   "skipped": [],
+   "blips": [],
+   "rings": 0,
+   "mid": {
+    "transform": "matrix(1.00018, -0.00012579, 0.00012579, 1.00018, 0, 0)",
+    "translate": "none",
+    "anims": [
+     "pulse:running"
+    ],
+    "opacity": "1"
+   }
+  },
+  "#alerts .alertb[aria-label=pickeep]": {
+   "sameOutcome": true,
+   "pre": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "post": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "shakes": 0,
+   "shakeOpt": [],
+   "nope": 0,
+   "moodBlipIn": 0,
+   "moodBlipRan": 0,
+   "skipped": [],
+   "blips": [],
+   "rings": 0,
+   "mid": {
+    "transform": "none",
+    "translate": "none",
+    "anims": [],
+    "opacity": "1"
+   }
+  },
+  ".facecard.show:not([data-who=marina])": "not on screen",
+  ".facecard.show[data-who=marina]": {
+   "sameOutcome": true,
+   "pre": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "post": {
+    "room": "living",
+    "mood": "love",
+    "busy": true,
+    "scene": true,
+    "panel": false,
+    "holding": "pic",
+    "req": false,
+    "alerts": "picgive,pickeep",
+    "mx": 340,
+    "moving": false
+   },
+   "shakes": 0,
+   "shakeOpt": [],
+   "nope": 0,
+   "moodBlipIn": 0,
+   "moodBlipRan": 0,
+   "skipped": [],
+   "blips": [],
+   "rings": 0,
+   "mid": {
+    "transform": "matrix(1, 0, 0, 1, 0, 0)",
+    "translate": "none",
+    "anims": [],
+    "opacity": "1"
+   }
+  }
+ },
+ "compose": {
+  "moodMid": {
+   "transform": "matrix(1.01784, -0.0389383, 0.0389383, 1.01784, 0, 0)",
+   "translate": "none",
+   "anims": [
+    "pulse:running"
+   ],
+   "opacity": "1"
+  },
+  "bar": "none",
+  "rbHereMid": {
+   "transform": "matrix(1.12, 0, 0, 1.12, 0, 0)",
+   "translate": "none",
+   "anims": [],
+   "opacity": "1"
+  },
+  "alertMid": {
+   "transform": "matrix(1.04183, -0.0307652, 0.0307652, 1.04183, 0, 0)",
+   "translate": "none",
+   "anims": [
+    "pulse:running"
+   ],
+   "opacity": "1"
+  },
+  "faceMid": {
+   "transform": "matrix(1, 0, 0, 1, 0, 0)",
+   "translate": "none",
+   "anims": [],
+   "opacity": "1"
+  },
+  "after": {
+   "rbHere": {
+    "transform": "matrix(1.12, 0, 0, 1.12, 0, 0)",
+    "translate": "none",
+    "anims": [],
+    "opacity": "1"
+   },
+   "alert": {
+    "transform": "matrix(1.09666, -0.0761474, 0.0761474, 1.09666, 0, 0)",
+    "translate": "none",
+    "anims": [
+     "pulse:running"
+    ],
+    "opacity": "1"
+   },
+   "mood": {
+    "transform": "matrix(1.01286, -0.00912521, 0.00912521, 1.01286, 0, 0)",
+    "translate": "none",
+    "anims": [
+     "pulse:running"
+    ],
+    "opacity": "1"
+   },
+   "face": {
+    "transform": "matrix(1, 0, 0, 1, 0, 0)",
+    "translate": "none",
+    "anims": [],
+    "opacity": "1"
+   }
+  }
+ },
+ "ring": {
+  "live": null,
+  "rings": [],
+  "nope": 0,
+  "taps": [
+   {
+    "t": 16549.09999999404,
+    "busy": true,
+    "scene": true,
+    "px": 14.10243034362793,
+    "py": 370.4947814941406
+   }
+  ],
+  "goneAfter400": true
+ },
+ "afterScene": {
+  "taps": [
+   {
+    "t": 20038,
+    "busy": false,
+    "scene": false,
+    "px": 14.10243034362793,
+    "py": 370.4947814941406
+   }
+  ],
+  "rings": 0,
+  "nope": 0,
+  "walked": true,
+  "pre": {
+   "room": "living",
+   "mood": "love",
+   "busy": false,
+   "scene": false,
+   "panel": false,
+   "holding": "pic",
+   "req": false,
+   "alerts": "picgive,pickeep",
+   "mx": 340,
+   "moving": false
+  },
+  "post": {
+   "room": "living",
+   "mood": "love",
+   "busy": false,
+   "scene": false,
+   "panel": false,
+   "holding": "pic",
+   "req": false,
+   "alerts": "picgive,pickeep",
+   "mx": 298,
+   "moving": false
+  }
+ },
+ "req": {
+  "op": "1 none",
+  "shakes": 0,
+  "nope": 0,
+  "post": {
+   "room": "kitchen",
+   "mood": "happy",
+   "busy": false,
+   "scene": false,
+   "panel": false,
+   "holding": null,
+   "req": false,
+   "alerts": "",
+   "mx": 192,
+   "moving": true
+  },
+  "sameOutcome": false
+ },
+ "first": [
+  {
+   "delay": 0,
+   "kind": "strip",
+   "appAtTap": "",
+   "shakes": 0,
+   "nope": 0,
+   "worked": true,
+   "stripBlip": 1,
+   "moodBlipRan": 0
+  },
+  {
+   "delay": 0,
+   "kind": "mood",
+   "appAtTap": "",
+   "shakes": 0,
+   "nope": 0,
+   "worked": true,
+   "stripBlip": 0,
+   "moodBlipRan": 1
+  },
+  {
+   "delay": 150,
+   "kind": "strip",
+   "appAtTap": "",
+   "shakes": 0,
+   "nope": 0,
+   "worked": true,
+   "stripBlip": 1,
+   "moodBlipRan": 0
+  },
+  {
+   "delay": 150,
+   "kind": "mood",
+   "appAtTap": "",
+   "shakes": 0,
+   "nope": 0,
+   "worked": true,
+   "stripBlip": 0,
+   "moodBlipRan": 1
+  },
+  {
+   "delay": 350,
+   "kind": "strip",
+   "appAtTap": "",
+   "shakes": 0,
+   "nope": 0,
+   "worked": true,
+   "stripBlip": 1,
+   "moodBlipRan": 0
+  },
+  {
+   "delay": 350,
+   "kind": "mood",
+   "appAtTap": "",
+   "shakes": 0,
+   "nope": 0,
+   "worked": true,
+   "stripBlip": 0,
+   "moodBlipRan": 1
+  }
+ ],
+ "tantrum": {
+  "during": {
+   "app": "",
+   "st": "tantrum",
+   "busy": true,
+   "scene": false,
+   "moods": {
+    "love": 1,
+    "happy": 1,
+    "sad": 1,
+    "angry": 1,
+    "tantrum": 1
+   }
+  },
+  "tap": {
+   "shakes": 0,
+   "nope": 0,
+   "moodBlipRan": 1,
+   "mood": "happy",
+   "scene": true
+  }
+ },
+ "bath": {
+  "ringViaTap": true,
+  "state": {
+   "busy": true,
+   "scene": false,
+   "st": "cheer",
+   "app": ""
+  },
+  "canvasTap": {
+   "bubbles": 12,
+   "rings": 0,
+   "nope": 0,
+   "taps": 1,
+   "blips": [
+    "19,sine,0.12,0.14"
+   ]
+  },
+  "stripTap": {
+   "shakes": 0,
+   "nope": 0,
+   "blips": [
+    "17,sine,0.12,0.14"
+   ],
+   "room": "bathroom"
+  }
+ },
+ "marinaCard": {
+  "shakes": [],
+  "blips": [],
+  "same": true
+ },
+ "map": {
+  "during": {
+   "scene": false,
+   "o": "1",
+   "f": "none"
+  },
+  "opened": true
+ },
+ "errors": []
+}

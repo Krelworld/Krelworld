@@ -1,0 +1,130 @@
+{
+ "on": {
+  "req_gym": {
+   "button": "🤸➡️🧔",
+   "after": {
+    "panel": null,
+    "busy": false,
+    "scene": false,
+    "voices": [
+     "r_req_gym"
+    ]
+   }
+  },
+  "req_joke": {
+   "button": "😜➡️🧔",
+   "after": {
+    "panel": null,
+    "busy": true,
+    "scene": false,
+    "voices": [
+     "r_req_joke",
+     "m_joke_house",
+     "r_why_house"
+    ]
+   }
+  },
+  "req_tea": {
+   "button": "🫖➡️🧔",
+   "after": {
+    "panel": null,
+    "busy": true,
+    "scene": false,
+    "voices": [
+     "r_req_tea",
+     "r_joke1",
+     "m_tea",
+     "r_tea"
+    ]
+   }
+  },
+  "ring": "🤗🤼🐴😜",
+  "ring_🤼": {
+   "pressed": true,
+   "after": {
+    "chase": false,
+    "busy": false,
+    "rory": "idle",
+    "mst": "idle",
+    "voices": [
+     "r_gotcha",
+     "m_again"
+    ]
+   }
+  },
+  "ring_🏃": {
+   "pressed": false,
+   "after": {
+    "chase": false,
+    "busy": false,
+    "rory": "idle",
+    "mst": "idle",
+    "voices": []
+   }
+  },
+  "errors": []
+ },
+ "off": {
+  "req_gym": {
+   "button": "🤸➡️🧔",
+   "after": {
+    "panel": null,
+    "busy": false,
+    "scene": false,
+    "voices": []
+   }
+  },
+  "req_joke": {
+   "button": "😜➡️🧔",
+   "after": {
+    "panel": null,
+    "busy": true,
+    "scene": false,
+    "voices": [
+     "m_joke_house",
+     "r_why_house"
+    ]
+   }
+  },
+  "req_tea": {
+   "button": "🫖➡️🧔",
+   "after": {
+    "panel": null,
+    "busy": true,
+    "scene": false,
+    "voices": [
+     "r_joke1",
+     "m_tea",
+     "r_hi_niece3",
+     "r_tea"
+    ]
+   }
+  },
+  "ring": "🤗🤼🐴😜",
+  "ring_🤼": {
+   "pressed": true,
+   "after": {
+    "chase": false,
+    "busy": false,
+    "rory": "idle",
+    "mst": "idle",
+    "voices": [
+     "r_gotcha",
+     "r_airplane",
+     "m_yummy"
+    ]
+   }
+  },
+  "ring_🏃": {
+   "pressed": false,
+   "after": {
+    "chase": false,
+    "busy": false,
+    "rory": "idle",
+    "mst": "idle",
+    "voices": []
+   }
+  },
+  "errors": []
+ }
+}

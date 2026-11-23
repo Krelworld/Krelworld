@@ -1,0 +1,35 @@
+{
+ "playroom/rocker": {
+  "point": [
+   189,
+   119
+  ],
+  "ring": "🪑",
+  "found": "🌟✨"
+ },
+ "kitchen/stool1": {
+  "point": [
+   331,
+   155
+  ],
+  "ring": "🧗 🪑",
+  "found": "🔑✨"
+ },
+ "errors": [],
+ "playroom/toyshelf": {
+  "point": [
+   214,
+   123
+  ],
+  "ring": "🧸",
+  "found": "🦄✨"
+ },
+ "kitchen/island": {
+  "point": [
+   314,
+   128
+  ],
+  "ring": "🧺 🗄️ 🧗",
+  "found": "🦕✨"
+ }
+}

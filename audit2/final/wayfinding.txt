@@ -1,0 +1,627 @@
+# WORKER BRIEF: wayfinding  (overlay file: clarity-wayfinding.js)
+Items to build: G35, G36, G37, G38, G39
+
+## Your surface
+Where am I, and where does it go. Owns: door and stair signs (drawProp after 10); edge tabs (drawExitSigns after 10, onTap before 20); the icons of ROOMS.nunuroom and ROOMS.treehouse_pine; map content added through openIsoMap after-hooks (G36 10, G37 20, G38 30): cm-outline polygons, the face, people rows, the moved row, data-floor and data-r; #roombar's background per floor; the .rb.cm-gp dot; #floorpill .fl colour ring, data-dest and .fl i size; the floor slide and arrival arrow (features.js:395-397); basement.js:139. Must NOT touch: .isoroom's own fill, stroke or classes; #roombar position or size (layout); .rb/.fl opacity (status); the #panel lane (screens).
+
+## Local edits allowed
+features.js:395-397, the changeRoom slide and arrival icon (G39). features.js:413, data-r on the room polygon and its text (G37). basement.js:139, 🛋️ beside the ⬇️ (G35). Not floors.js:66 (G36's label is set in its openIsoMap hook), not basement.js:7, not builder.js:928. All guarded by Clarity.is and marked /* Gn */.
+
+## Order notes
+Worker index 7, ports 8920-8929. Merge last. Registers: listen room (G35); every(250) for the G35 tab; every(300) for the G37 dots; every(200) for G38's data-dest. Integration: G35 × G19/G4 (landscape); G39 × G4; badges × G30; G37/G38 × G3 (lane).
+
+## Shared core API (already built, in the game folder)
+Two new files, both in /home/user/Krelworld/public/chef-marina/. Global: window.Clarity (C below).
+
+A. clarity-flags.js (loaded FIRST, before audio.js)
+- Clarity.ids = ['G1'..'G39']; Clarity.on = {G1:true ... G39:true} (the switches, decided at page load).
+- Test overrides, never stored: URL ?clarity=off | ?clarity=-G3,-G19 | ?clarity=only:G3,G9 ; or window.CLARITY_OFF = 'all' | 'G3,G19' | ['G3'] set before load. Playwright: await ctx.addInitScript(v => { window.CLARITY_OFF = v; }, 'G3,G9') then goto or reload.
+- Clarity.ready: false until DOMContentLoaded, i.e. until every clarity file has loaded. Clarity.is(id) === (Clarity.ready && Clarity.on[id] === true).
+- LOCAL EDITS in game files test `window.Clarity && Clarity.is('G6')`. This works at any time and is false while the page is still loading.
+- Overlay code that runs at load reads Clarity.on.Gn directly.
+
+B. clarity-core.js (loaded after trees.js). Clarity.core === 1 once it has loaded.
+
+SWITCHES AT RUN TIME
+- Clarity.set(id, bool): flips a switch. Hooks, listeners, ticks, pointer and appear callbacks stop or resume at once. CSS follows at once.
+- Clarity.onToggle(id, fn(on)): callbacks so an item can undo or redo inline state when its switch flips.
+- Setting Clarity.on.Gn = false by hand also works, except for onToggle; CSS then follows within 250 ms.
+- Clarity.item(id, setupFn): runs setupFn once at load, only if the switch is on, inside try/catch.
+
+HOOKS (use these instead of wrapping a game function): Clarity.hook(point, id, { before(call), after(call), order })
+- Points, each wrapped ONCE by the core and outermost over every game wrapper: 'UI.actions', 'UI.closeActions', 'UI.bigIcon', 'UI.pulseMoods', 'UI.bubble', 'UI.update', 'Audio2.blip', 'onTap', 'hitTest', 'interact', 'currentActivity', 'onEnterRoomBy', 'checkMess', 'showWish', 'openIsoMap', 'drawProp', 'drawExitSigns', 'featTick'. Clarity.points() lists them.
+- call = { name, self, args, result, skip }.
+- before(call) may set call.skip = true, and call.result if needed, so the game's own function is not called. The first skip stops the remaining before-hooks.
+- after(call) runs after the game's function. It also runs after a skip, so check call.skip. It may replace call.result.
+- In both, this === call.self. Never mutate call.args.
+- order: lower runs first (default 0); equal orders run in registration order.
+- Hooks run only while Clarity.on[id] is true.
+- A hook that throws is reported once (console.warn 'clarity: Gn before X') and its changes to skip/result are undone.
+- With nothing registered, or every hook switched off, the wrapper is exactly the game's call: same this, arguments and return value.
+- Clarity.inner(point): the game's own function under the hooks. Call it to bypass every clarity hook, e.g. to replay a deferred icon: Clarity.inner('UI.bigIcon')(ch, ms).
+- drawExitSigns: builder.js:234 re-wraps it once on the next frame. The core's wrapper sits inside builder's and still runs exactly once per frame (measured 60/s). Never re-wrap anything yourself.
+- Not hook points:
+  - ui.js internals: actions() and openPanel() call the private closeActions; placeActs is private. Use local edits (G6, G7).
+  - askReq is private to fun.js. Use a local edit (G31) or Clarity.appear('#reqBtn').
+  - changeRoom: use the 'room' event.
+  - say: G22 is a static table.
+  - resize and the camera: only the layout worker changes framing, through engine.js:169, game.js:286 and calls to resize() and render() by name.
+- Example: Clarity.hook('checkMess', 'G2', { order: 10, before(c) { if (Clarity.busyNow() || Clarity.quietFor() < 10) c.skip = true; } });
+- Example: Clarity.hook('hitTest', 'G8', { order: 10, after(c) { const h = c.result; if (h && h.kind === 'prop') c.result = see(h, c.args[0], c.args[1]); } });
+
+EVENTS: Clarity.listen(evt, id, fn)
+- 'room' (was, room): after every real room change. Dispatched from a Floors.hooks entry, i.e. from floors.js's changeRoom, which is the outermost one.
+- 'screenOpen' / 'screenClose': Clarity.screenOpen() turned true / false.
+- 'activityStart' / 'activityEnd': Clarity.busyNow() turned true / false. On activityEnd, Clarity.endedAt = E.t (game seconds).
+- The start of a game (the title closing) is a screenClose and an activityEnd.
+- Edges are sampled every 100 ms, and also synchronously whenever Clarity.quietFor() or Clarity.sample() is called, so an edge fires once, never late for a reader.
+- Example: Clarity.listen('activityEnd', 'G1', () => { lastInput = E.t; });
+
+TIMER: Clarity.every(ms, id, fn(nowMs))
+- One shared 50 ms setInterval. fn runs at most every ms (minimum 50) while the switch is on.
+- Example: Clarity.every(100, 'G15', tick);
+
+TOUCHES: Clarity.pointer('down' | 'up', id, fn(event))
+- One window capture listener per type (passive), installed on first use. It runs before any game handler sees the event.
+- Look only: never preventDefault or stopPropagation.
+- Example: Clarity.pointer('down', 'G1', () => { lastInput = E.t; });
+
+NEW NODES: Clarity.appear(selector, id, fn(node))
+- One MutationObserver on body (childList, subtree), installed on first use.
+- fn runs as a microtask, before paint, for every added element matching selector, whether it is the added node itself or inside an added subtree.
+- The node may already be gone again, so check isConnected.
+- Example: Clarity.appear('.stk-toast', 'G27', t => { if (Clarity.screenOpen()) { t.style.display = 'none'; queue.push(t.textContent); } });
+
+CSS: Clarity.css(id, cssText) returns a <style data-clarity='Gn'> appended to <head>.
+- Clarity styles are kept after every game stylesheet: Bricks, LegoShelf, Pool, Movies, Stuffies and Spa append theirs the first time they open, and the core moves ours back to the end.
+- media='not all' while the switch is off.
+- Call it as often as you like per item.
+- Example: Clarity.css('G14', '@media (orientation:portrait){#roombar{max-width:calc(100% - 84px)}.rb{flex:0 1 40px;min-width:34px}}');
+
+STATE HELPERS
+- Clarity.bodyBusy(): marina.state is swing, bars, ride or wheel, or a looping anim. False before the game exists.
+- Clarity.screenOpen(): any of the following is up:
+  - the title;
+  - any #panel screen, including the map, the fort builder and interior, Lego/tiles, the shelf, pool, films, stuffies, spa, tree climb and the builder;
+  - Studio.active, #storyBox or #stkBox.
+  The TV and the fort tray are not screens.
+- Clarity.busyNow(): inActivity() || bodyBusy().
+- Clarity.quietFor(): game seconds since the last activity ended. 0 while one is going on; Infinity before any ended.
+- Clarity.endedAt: E.t of the last activity end (null before). Clarity.sample(): re-evaluate the edges now.
+- Clarity.playing(): marina exists and the title is hidden.
+- Clarity.landscape(): innerWidth > innerHeight.
+
+GEOMETRY HELPERS
+- Clarity.hudRects(st?, opt?) returns [[x0,y0,x1,y1], weight, kind, element] for every visible HUD control.
+  - Kinds: strip (#roombar .rb), pill (#floorpill .fl:not(.off)), map, arrow (.navarrow:not(.off)), weather (#weatherBtn:not(.hidden)), alert (#alerts .alertb), face (.facecard.show), stop (#stopBtn:not(.hidden)), book and dress (not .off), wish, req, give (#fx .pichint), call (.cm-call), mood (#moodbar .mood), moodToggle.
+  - Skipped: zero-size controls, visibility:hidden, and opacity < 0.05 on the control or an ancestor.
+  - Weight 4. In landscape, mood and moodToggle get weight 6 and are widened 8 px to the left.
+  - Coordinates are relative to st (a DOMRect, e.g. placeActs' stage rect) or to #stage. opt.client gives viewport coordinates.
+  - opt.kinds and opt.except filter by kind.
+  - Cached 250 ms (dropped on resize and orientationchange). opt.fresh measures now.
+  - Controls outside the picture (the tall-portrait dock, the portrait mood row) are included; they overlap nothing in it.
+  - Example (G6): if (window.Clarity && Clarity.is('G6')) { acts.hud = acts.hud || Clarity.hudRects(st, { fresh: true }); for (const x of acts.hud) avoid.push(x); }
+- Clarity.stageRect(): #stage's DOMRect, cached 250 ms.
+- Clarity.toClient(wx, wy) gives viewport px. Clarity.fromClient(cx, cy) gives world coordinates.
+- Clarity.onCanvas(cx, cy): elementFromPoint there is #cv, i.e. nothing covers the picture at that point.
+- Clarity.overlap(a, b): overlap area of two [x0,y0,x1,y1] rects.
+- Clarity.nudgeX(box, rects, { gap = 4, max, bounds: [minX, maxX] }) returns the smallest sideways shift in px that clears every rect at the box's height (hudRects entries or plain rects), or null if none within max.
+  - Example: const dx = Clarity.nudgeX(b, Clarity.hudRects(null, { except: ['give', 'call'] }), { max: 62, bounds: [0, st.width] });
+- Clarity.floorLevel(room): main 0, up +1, basement -1, outside 0, tree houses 0.5, unknown rooms 0.
+- Clarity.floorDir(from, to): +1 up, -1 down, 0 same level.
+  - Example (G39): const fd = window.Clarity && Clarity.is('G39') ? Clarity.floorDir(prev, G.room) : 0;
+
+MOTION HELPER
+- Clarity.shake(el, { px = 4, ms = 150, times = 2 }) returns an Animation or null.
+- It is a side-shake on the individual translate property only, with composite 'add'. Without composite support it starts from the element's computed translate.
+- So transforms, CSS animations, :active scales and centring translates keep working, and a CSS animation:none cannot cancel it.
+- Example: Clarity.shake(btn); Audio2.blip(-12, 'triangle', 0.08, 0.1);
+
+MISC
+- Clarity.warnOnce(key, err).
+- Item state and item helpers live on Clarity.Gn, e.g. Clarity.G18 = { target: null } and Clarity.G23 = { hintGap() {...} }. Never on G, never in localStorage.
+
+Tools in /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/arch/:
+- regress-flags.js: run regress.js with switches off. CLARITY_OFF=all|G3,G9 NODE_PATH=$(npm root -g) node regress-flags.js <port> <out.json> [gameDir] [only=flows].
+- core_boot.js, core_hooks.js and core_flags.js: the core proofs, reusable as templates.
+
+## Load order
+Script order in index.html and in artifact.html. The two lists are identical, checked with diff.
+
+clarity-flags.js (NEW, first)
+audio.js engine.js world.js ui.js game.js features.js fort.js art.js scenes.js pics.js play.js calm.js react.js more.js nav.js story.js fun.js floors.js basement.js upstairs.js outdoor.js bricks.js spa.js stuffies.js family2.js minka.js legoshelf.js builder.js pool.js movies.js wildlife.js treeclimb.js trees.js (unchanged)
+clarity-core.js (NEW)
+clarity-prompts.js, clarity-status.js, clarity-rings.js, clarity-bubbles.js, clarity-dock.js, clarity-layout.js, clarity-screens.js, clarity-wayfinding.js (8 NEW empty stubs, one per worker, in workers-list order)
+
+Files created in /home/user/Krelworld/public/chef-marina/: clarity-flags.js, clarity-core.js, and the 8 stubs. Each stub holds only a header comment, a load guard (`const C = window.Clarity; if (!C || !C.core) return;`) and an empty IIFE. index.html and artifact.html are edited. Nothing is committed.
+
+Why this order:
+- Flags first, so any game file, including load-time code and the earliest timers, can call Clarity.is or read Clarity.on.
+- The core after trees.js, so each of its 18 wrappers is outermost over every game wrapper. The one exception is by design: builder.js re-wraps drawExitSigns once to keep its late drawing last, and the core's wrapper runs inside it.
+- Worker files after the core, so they can register hooks at load.
+- The order among worker files does not matter:
+  - hooks carry explicit order numbers (see conventions);
+  - CSS is split by property ownership, so no two workers set the same property on the same element;
+  - the only shared load-time writes (G22 fills missing SAY_ICON keys; G31 sets the existing m_want_fort) commute.
+- Load-time literals and loops in early files are never edited: REQS in fun.js, ROOMS.nunuroom in basement.js:7, the tree-house loop at builder.js:928. Those changes are applied from the overlay at load (G31 WISHES/SAY_ICON, G36 ROOMS icons, G22 SAY_ICON) or at call time (G31 askReq).
+
+Merge order of the worker branches: prompts, status, rings, bubbles, dock, layout, screens, wayfinding.
+- rings must come before layout, because G19 narrows the landscape picture and relies on G7's wrapping tray.
+- Local edits are line-disjoint across workers, so any order merges cleanly.
+
+## Conventions (must follow)
+1. YOUR FILES
+- Each worker owns one overlay file: its stub clarity-<name>.js, already loaded by index.html and artifact.html.
+- It also owns the local edits listed for it under workers, and nothing else.
+- Never edit: clarity-flags.js, clarity-core.js, index.html, artifact.html, style.css, or lines owned by another worker.
+- If you need a core change, report it. Do not patch the core.
+
+2. SWITCHES. Every item's code checks its own switch.
+- Hooks, listeners, ticks, pointer and appear callbacks, and Clarity.css registered with the item id are gated by the core.
+- Load-time overlay code: if (Clarity.on.Gn) {...}. Add Clarity.onToggle(id, fn) to undo it when the switch flips.
+- Local edits in game files: window.Clarity && Clarity.is('Gn').
+- A switch that is off must give byte-for-byte today's code path and look.
+- Test with ?clarity=-Gn, ?clarity=off, or CLARITY_OFF via an init script.
+
+3. LOCAL EDITS
+- Mark the changed line /* Gn */. Keep edits as small as possible, ideally one line.
+- The switch-off branch is today's exact expression.
+- Never add a top-level let, const or function to a game file. Classic scripts share one global scope, and a duplicate name is a SyntaxError that kills that whole file. Put state inside the file's existing IIFE or closure next to the edit, or on Clarity.Gn. more.js is top-level code, so G21 keeps its state on Clarity.G21.
+- Never edit object literals or loops that run at load: REQS in fun.js, ROOMS in basement.js:7, builder.js:928. Apply those changes from the overlay at load or at call time.
+- Find code by its text. Line numbers are as of this core and shift.
+
+4. HOOKS, NEVER WRAPPERS
+- Never reassign a game global or a UI or Audio2 method. Use Clarity.hook.
+- Assigned orders (lower runs first):
+  - UI.actions: before G2:10 | after G7:10, G30:20, G2:40 (only records whether a tidy ring opened), G18:30.
+  - UI.closeActions: after G18:10, G27:20.
+  - onTap: before G18:5 (never skips), G15:10 (never skips), G35:20 (may skip).
+  - interact: before G18:10.
+  - hitTest: after G8:10.
+  - currentActivity: after G17:10.
+  - onEnterRoomBy: before G20:10.
+  - checkMess: before G2:10.
+  - UI.bigIcon: before G27:10.
+  - UI.pulseMoods: before G24:10.
+  - UI.bubble: after G26:10.
+  - UI.update: after G5:10.
+  - Audio2.blip: before G15:10.
+  - openIsoMap: after G36:10, G37:20, G38:30.
+  - drawProp: after G35:10.
+  - drawExitSigns: after G35:10.
+  - featTick: after G26:10.
+  - showWish: free; use 10.
+- After-hooks must check call.skip.
+- To call a hooked function without re-entering its hooks, use Clarity.inner(name).
+- Events: room (G4, G18, G23, G35); activityEnd (G1); screenOpen (G2, G27); screenClose (G27).
+- Pointer: G1 down; G15 up.
+- Appear: G23 '#alerts .alertb' (or a tick), G25 '#reqBtn' and '#wishBtn', G27 '.stk-toast'.
+- Ticks: G4 200 ms, G15 100 ms, G23 250 ms, G35 250 ms, G37 300 ms, G38 200 ms.
+- G3, G9 and G16 use MutationObservers of their own, on elements they own.
+
+5. CSS
+- Only through Clarity.css(id, text), one or more per item. Never edit style.css or inject <style> yourself.
+- Prefix every new class or keyframe with cm-.
+- Property ownership on shared elements. Two workers never set the same property on the same element:
+  - #xFloat: screens.
+  - #panel and its screens (cooking, dress-up, crafts, Bricks, the canvas screens), #studio, #storyBox and #stkBox: screens. Two exceptions: the map's content (.fmap, .fmaprow, .fmaproom and the .isosvg additions) belongs to wayfinding, and .isoroom.here's transform-box/transform-origin belongs to bubbles (G5).
+  - #title padding and .tpick: layout (G13).
+  - #moodbar and #moodToggle: layout owns position, size, display, the folded slot, background, handle and chevron in landscape. status owns .mood opacity, filter and shake, and the animation of #moodbar.pulse and .mood.
+  - .navarrow: layout owns the right offset. status owns the animation and the inner <i> bob.
+  - #roombar / .rb: layout owns position, landscape centring, max-width and .rb size/flex. wayfinding owns the #roombar background and the .rb.cm-gp dot. status owns .rb opacity, filter and shake.
+  - #floorpill / .fl: wayfinding owns the colour ring (box-shadow), data-dest and .fl i font-size. status owns .fl opacity, filter and shake.
+  - #alerts / .alertb: layout owns #alerts' landscape centring. status owns .alertb animation, .settled, data-born, the tp colour, opacity, filter and shake.
+  - .facecard: layout owns .facecard.right's landscape offset. status may only shake a face card; nobody dims them.
+  - #weatherBtn: layout.
+  - #dressBtn / #bookBtn: dock owns tall-portrait position, size, visibility guard, glide and wiggle. layout owns the landscape right offsets.
+  - #stopBtn: nobody moves, translates or rescales it. Its glyph comes from the currentActivity hook (bubbles, G17).
+  - #wishBtn / #reqBtn: dock owns position, size, glow animation, badge, span glyph and the ghost. status owns #reqBtn opacity, filter and shake.
+  - .say, .pichint, .cm-call and the bigIcon look: bubbles. The timing of ✨ big icons: dock (G27).
+  - .act, .acttray, .actback, .cm-badge and ring placement: rings.
+  - .stk-toast and the fly layer: dock.
+  - Canvas drawing: rings (the glow in nav.js, the deer tab); wayfinding (signs, edge tabs, the floor slide); status (the idle wiggle); layout (zoom and camera).
+  - #app classes: status adds cm-strip, cm-mood and cm-alert; layout may add its own cm-* classes.
+
+6. POSITION AND MOTION
+- HUD and dock buttons are positioned with left/top/right/bottom and the individual translate property, never transform. Game rules such as :active, pulse and .facecard scale use transform.
+- Transient motion: Clarity.shake, el.animate on translate, or a pointer-events:none ghost element.
+- Clarity code never calls preventDefault or stopPropagation. A tap is never swallowed or retargeted, with one documented exception: G35's tab tap.
+
+7. DATA
+- Nothing new on G, in localStorage or sessionStorage, or in saved data. Item state lives on Clarity.Gn.
+- Never call propActions or entActions just to look: fun.js's wrapper marks treasures found. G18 also never calls hitTest.
+
+8. TESTING SETUP
+- Serve your worktree: H.boot({ port, view, room, dir: '<worktree>/public/chef-marina' }).
+- Ports: worker k (0-based position in the workers list) uses 8850+10k to 8859+10k:
+  - prompts 8850-8859, status 8860-8869, rings 8870-8879, bubbles 8880-8889
+  - dock 8890-8899, layout 8900-8909, screens 8910-8919, wayfinding 8920-8929
+- harness.serve() reuses any server already listening on a port, whatever directory it serves. Never point one port at a second directory.
+- Views: port, land, portSmall, landSmall, plus the sizes a check names (pass {width,height} as view): 844x340, 390x664, 390x585, 375x553 and others.
+- Desktop env() is 0, so simulate safe-area insets with padding, as the verdicts did. Checks that name her iPhone stay owner checks.
+- Scratch files only under /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/build-<name>/.
+
+9. REGRESSION SWEEP
+- Run: cd .../scratchpad/audit && NODE_PATH=$(npm root -g) node regress.js <port> <out.json> <worktree>/public/chef-marina
+- Then: node regress-diff.js .../audit2/arch/head1.json <out.json> .../audit2/arch/head2.json
+  head1/head2 are today's committed game, without clarity, run twice: the clean baseline and the noise reference.
+- The core build is .../audit2/core_regress.json.
+- Diffing against after3.json also works, but expect the rows already explained in core_tests: the fixes committed after after3.json was recorded.
+- Switch-off sweep: CLARITY_OFF=<your ids or all> NODE_PATH=$(npm root -g) node .../audit2/arch/regress-flags.js <port> <out.json> <dir>
+- Run sweeps one at a time on an idle machine. Under load the game's dt cap slows game time, and the 1.6 s samples catch earlier states.
+
+10. DONE MEANS, PER WORKER
+a. Every item is built exactly as its reconcile entry says.
+b. Each item's must-still-work list from the draft and every EXTRA CHECK of BOTH lenses has been run in the harness and passes. Results are saved in your scratch folder. A check that needs another worker's item is written down as an integration check with its expected result, never silently skipped.
+c. Zero page errors in port, land, portSmall and landSmall, with all switches on and with your switches off. The pre-existing chip_love.mp3 warning is the only allowed message.
+d. The regress sweep has no LOST SITUATION, LOST CHOICE, BROKEN or failed flow. Every remaining difference is noise or one of the expected renames listed in your items.
+e. The switch-off sweep for your ids shows no difference beyond noise.
+f. The worktree diff touches only your overlay file and your listed /* Gn */ lines.
+g. Commit only on your worktree branch, never on main, never push, unless the orchestrator says otherwise.
+
+11. AFTER MERGING (integration phase)
+Integration checks:
+- G19 × G7: keyboard (8) and TV (9) lists at 667x375 and 844x390 show every choice without scrolling.
+- G19 × G11 / G35 / G17 / G26 / G6: tabs, signs, bubbles and rings clear of ▶ at right:0 and of the column.
+- G19 × G16 / G27: 📒 and 👗 stay at today's landscape spots, and the sticker flight lands there.
+- G4 × G39: a cross-floor arrival in the living room in landscape runs one animation with no stretched frame.
+- G3 × G37 / G38: the landscape map with the lane still wraps its rows, no tile sits under #xFloat, and the house picture keeps its size.
+- G15 × G25: #reqBtn dims during scenes.
+- G30 × G35 / G36 / G39: the up/down badges match.
+- G22 × G31: m_want_fort shows 🏰 with G31 on and ⛺ with it off.
+Then a full sweep vs head1/head2 with all expected renames, and a CLARITY_OFF=all sweep equal to today.
+
+## Critic addenda for you
+- Ports. harness.serve() reuses any server already on a port, whatever directory it serves. Before your first run, and whenever a result looks wrong, check: for p in $(seq <lo> <hi>); do pid=$(pgrep -f "http.server $p --bind"); [ -n "$pid" ] && echo $p $(readlink /proc/$pid/cwd); done. Every line must be your worktree's public/chef-marina; kill any other with kill <pid>. Stale main-tree servers that were in 8850–8929 have been stopped.
+- Sweeps. Wrap every regress.js and regress-flags.js run in: flock -x /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/sweep.lock <command>. Before calling any BEHAVES DIFF or flow difference a regression or noise, re-press it A/B against HEAD (port 8847 serves arch/head) under identical conditions; /tmp/claude-0/-home-user-Krelworld/be5a56b8-2f71-5309-b8d4-9cbd99e75323/scratchpad/audit2/critic/ab_rows.js is a template. Under load, the stool and wicker 🧗 'perch', the Miles 🤗 'anim' and 'tap floor walks' flip by themselves.
+- Events. room, screen and activity listeners may run synchronously inside any Clarity.quietFor() or Clarity.sample() call, including inside another item's hook (G2's checkMess hook runs inside AI.update). Keep them cheap and re-entrancy-safe, and never assume they run from the timer.
+- Switches. Register hooks, ticks, listeners, pointer and appear callbacks and Clarity.css unconditionally at load; the core gates them, so turning a switch ON at run time works. Use `if (Clarity.on.Gn)` at load only for one-time data changes, paired with Clarity.onToggle(id, on => ...) that both applies and restores.
+- DOM and names:
+- Create DOM nodes only while your switch is on.
+- Never reuse a game id or class (.act, .pichint, .say, .alertb, .stk-toast, #wishBtn, #reqBtn…); game code and regress.js query them.
+- Name new classes and @keyframes cm-gN-… (with your item id) unless the reconcile already names them; class and keyframe names are global and can collide across workers.
+- Rings close in places the UI.closeActions hook never sees. ui.js closes them through its PRIVATE closeActions when a new ring replaces an old one, in openPanel(), and in update() when the ring's anchor leaves the room. If your item needs 'is a ring open', read document.querySelector('#fx .act').
+- Insets and core changes:
+- Simulated insets (padding in the harness) leave env() at 0. Anything absolutely positioned inside #stage is already offset by env(safe-area-inset-left) through #app's padding; never add env() to its left or right, or her iPhone gets the inset twice and no harness check can show it.
+- Core changes from the critic: hook lists are copy-on-write (a hook registered during a call applies from the next call), and Clarity.nudgeX takes opt.dir (+1 or -1).
+- G37/G38: centre the portrait map stack and colour the rows using .fmap, .isowrap, .fmaprow or a wrapper of your own. Never style #panel itself: the screens worker owns it, and G3's landscape lane padding lives on it.
+- G35: the edge tab is drawn in the drawExitSigns after-hook, i.e. before builder.js's late() pass. In a tree house with the lantern on, or during a nap, thLate's night overlay is drawn over the tab, so screenshot that case. Never re-wrap drawExitSigns. Choose sign spots against the permanent HUD kinds (strip, pill, map, arrow, weather, mood, moodToggle). Treat transient ones (face, give, book, dress, wish, req) as 'skip drawing this frame' only; otherwise a sign can stay undrawn for a whole visit because a face card was talking on arrival.
+- G36: when the switch flips at run time, the nav.js arrows (icon cached by dataset.to) and floors.js (strip cached per floor) keep the old icons. onToggle must also rewrite .navarrow's icon text and .rb[data-r=nunuroom] / .rb[data-r=treehouse_pine] directly. Checks may reload instead.
+
+## Open critic issues touching your items
+- [minor] G36 (wayfinding): run-time toggles: The nav.js arrows cache their icon per destination (dataset.to), and floors.js caches the strip per floor. Flipping G36 at run time therefore leaves old icons on screen. A reload is correct. → onToggle rewrites the arrow text and the .rb[data-r=nunuroom|treehouse_pine] text directly (addendum).
+- [minor] G37 (wayfinding) × screens: #panel: Centring the portrait map stack could tempt wayfinding to style #panel, which the screens worker owns (G3's lane padding lives there). → Use .fmap, .isowrap, .fmaprow or a wrapper of its own (addendum).
+
+## Cross-item conflicts involving your items
+- G35: What the edge tab does. The child lens wants it to approach the exit and then use the door, keeping the side arrows' promise to travel. The functionality lens wants it to walk only, exactly like the existing exit-sign tap, and never change room by itself. The two lenses also differ on where signs are drawn: in the prop pass behind people, or in drawExitSigns. → The functionality lens wins on the action: a tab that travels would be a new travel route, which the brief forbids. It has the canvas turkey-tab look, not the DOM side-arrow look, so it does not borrow the arrows' promise. Drawing: both hold. Signs are drawn in a drawProp after-hook, behind people; the edge tab in a drawExitSigns after-hook. The core wraps drawExitSigns once, and builder.js re-wraps it once by design. New signs are still; the existing basement sign keeps its bob.
+- G37: Room icon beside people on the main map painting. The draft and functionality lens keep it; the child lens calls it clutter on a main-floor screen she knows. Also: the child wants the 'here' room's outline solid, while the functionality lens forbids restyling .isoroom. → The child lens wins on the icon: a look-only change with less clutter, and the functionality lens has no safety stake. The outlines are separate cm-outline polygons with pointer-events:none, so the 'here' outline can be solid without restyling .isoroom. Both hold.
+- G38: Pill colour. The child lens wants today's light fill, with the floor colour replacing the white border. The functionality lens wants the white border kept, with a tint or a thick border on the light fill. → Both hold. Today's fill, white 3 px border and glyphs stay. The destination floor's colour is a 4 px outer ring via box-shadow, keeping the existing drop shadow, so no box size changes. Map-row colour uses background, shadow or outline only, never padding.
+- G2/G37: The draft's G2 closes 'any ring still open when a full screen opens'. A harness check on today's game showed a ring she opened survives opening and closing the map, because openIsoMap never closes rings. Closing it would change something she can do today. → Narrowed. On the screen-open edge, UI.closeActions() runs only to clear a leftover backdrop with no ring (the openPanel case that ate her first tap) or an open 🧹🏃 tidy ring. Any ring she opened herself stays exactly as today. Both lenses' G2 EXTRA CHECKS still pass.
+- G36/G31/G22/G1: Changes evaluated at load in early files (REQS in fun.js, ROOMS in basement.js:7, the builder.js:928 loop) run before any late overlay exists. A guarded local edit there would never take effect, and an unguarded one could not be switched off. → clarity-flags.js loads first, so Clarity.on and Clarity.is exist from the first script. Load-time data is still never edited in place. G36 sets ROOMS icons from the overlay at load (every reader is lazy). G31 sets WISHES and SAY_ICON at overlay load, and maps the request icon at call time in askReq. G22 fills SAY_ICON at load. Local edits use Clarity.is(), which is false until every clarity file has loaded.
+- G35: builder.js:234 re-wraps drawExitSigns on every featTick until its own wrapper is outermost again. If clarity also insisted on being outermost, the two would add a wrapper every frame. → The core wraps drawExitSigns once at load. builder re-wraps once and then stays on top. The core's hook runs inside it, exactly once per frame (measured 60/s). No worker ever re-wraps anything.
+- G5/G6/G7/G17/G18/G23/G26/G31/G33/G37/G39/G20: Five game files are edited by two workers: ui.js (G5 vs G6/G7), nav.js (G17 vs G18), features.js (G23 vs G37/G39), fun.js (G33 vs G31) and family2.js (G26 vs G20). → Every edit is on different, non-adjacent lines. ui.js: G7 at :49, G6 at :72-73, G5 at :101. nav.js: G17 at :61-67, G18 at the glow IIFE :153-174. features.js: G39 at :395-397, G37 at :413, G23 at :598-599. fun.js: G33 at :38, G31 at :82-83. family2.js: G26 at :145, G20 at :171-179. Each worker locates its code by text, and merges are line-disjoint.
+- G4/G39: Arriving in the living room from another floor in landscape changes the zoom (a resize) while G39's vertical slide runs on the same canvas. → Integration check after merging layout and wayfinding: exactly one #cv animation, no stretched frame, same landing spot. G4 calls render() right after resize(), so no blank frame shows.
+- G11/G19/G35/G17/G26/G6: G19 narrows the landscape picture and moves ▶ to right:0. Deer and turkey tabs (clearZone/tabY), G35's signs and tabs, G17's and G26's bubbles, and G6's mood avoidance were all measured with today's overlay column. → Every placement reads live geometry: wildlife's clearZone, Clarity.hudRects and Clarity.nudgeX, with no fixed offsets. After merging: check at the backyard's right end, at land and landSmall, with the column open and folded.
+
+
+==================== G35 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD combining both amendments. The edge tab only WALKS (functionality); the child's 'approach, then use the door' is rejected as a new travel route (see conflicts).
+(1) SIGNS on six doorways:
+- foyer stairs ⬆️🛏️; landing stair top ⬇️🏠; den stairs ⬆️🏠; backyard back door ⬇️🛋️; den Dutch door ⬆️🦌;
+- 🛋️ added beside the foyer basement doorway's existing bobbing ⬇️, through a basement.js:139 local edit /* G35 */ with the same bob, layer and size;
+- same-floor doors get no sign.
+Drawing:
+- in Clarity.hook('drawProp','G35',{order:10,after}), right after the door's own drawing, so behind people (child);
+- emoji size 10, on the wall-tab plate rect 'rgba(43,35,64,.7)';
+- new signs are still; the existing basement sign keeps its bob.
+Placement:
+- inside the door's own hit box, below its top edge (aim for T + 30-46, like basement.js:139's T + min(46, h/2));
+- valid only if hitTest returns that same prop at the sign's centre and corners, exitSignHit is null there, the box is more than 14 world units from the view's left and right edges between y 38 and 150, and no part is under Clarity.hudRects() (cached 250 ms; includes the strip, moods, 😊 and the map);
+- choose the spot on Clarity.listen('room') and when the camera settles, not every frame;
+- if no valid spot, do not draw. Never draw on the title, during the TV in landscape, or with a screen open.
+(2) EDGE TAB:
+- only in the bathroom, the spa and the tree houses, and only while the way out is off-screen;
+- the turkey-tab look (canvas, not a DOM arrow), drawn from Clarity.hook('drawExitSigns','G35',{order:10,after}). The core wraps drawExitSigns once and builder.js re-wraps it once; never re-wrap;
+- placed at the view edge where the whole tab box has hitTest null and no HUD over it, preferring the floor band (y 150-168);
+- re-checked at least every 250 ms (Clarity.every), never cached per screen shape;
+- hidden while G.busy, G.sceneOn, G.tidy or G.chase, in bars, swing or tantrum, or with a screen open.
+Tap: Clarity.hook('onTap','G35',{order:20,before}) takes the tap only when the tab is drawn, the point is inside it, !G.busy, and hitTest there is null. It then runs exactly the exit-sign steps of features.js:381-385:
+- UI.closeActions();
+- perch, sit, cheer and sad → idle;
+- mover = marina.mount || marina;
+- Audio2.blip(9,'triangle',0.05,0.1);
+- mover.walkTo(exit.x ± 20, null, marina.mount ? 75 : null, FLOOR).
+It never changes room by itself.
+DONE = both lenses' EXTRA CHECKS:
+- every sign box: hitTest = its door and exitSignHit null, in port, portSmall, land and landSmall, with the camera at both ends and mid-room;
+- g.tapWorld on a sign does exactly what tapping the door does;
+- elementFromPoint at each sign centre is #cv, including 844x340 and 0/47 px insets;
+- portrait foyer, arriving at x 136: the sign never touches ▶📺, and first-minutes P_living 'tapped the stairs, went to the living room' does not increase;
+- people are drawn in front; no flicker as HUD elements come and go;
+- tab boxes give hitTest null, and the mirror, vanity, linen, uvanity, th_wall, th_bell and th_bucket still open their own choices;
+- a tab tap during bathTime makes bubbles only;
+- riding or in the wheelchair, a tab tap moves the mount with her;
+- drawExitSigns is not re-wrapped every frame.
+Depends on: -
+Interactions: Same worker as G39 (the Dutch door reads ⬆️🦌 because floorDir counts den→backyard as up) and G36 (the same 🛏️/🏠/🛋️ badges as the pill). Uses hitTest, which returns G8's answers (doors unaffected), hudRects (including G19's column and G16's dock) and exitSignHit. onTap before at order 20, after G18 (5) and G15 (10). Integration: landscape signs with G19's narrower picture and G4's living-room zoom.
+
+### DRAFT ITEM
+### G35 Every door and staircase to another floor or outside shows where it leads, and rooms with no arrows point to their way out
+- problem: Only the foyer's basement doorway (basement.js:139) and the tree-house hatch show where they lead. The foyer stairs, the landing's stair top (it reads as a balcony rail), the den stairs, the den's Dutch door and the backyard back door show nothing, and several are surprising: the back door goes DOWN, and the den stairs take her upstairs in 1.1 s. In the bathroom, the spa and the tree houses there are no side arrows, and the only way out starts off-screen. The pool and the backyard were reached in only 1–2 of 9 random runs.
+- change: (1) Each door or staircase that changes floor, or goes between inside and outside, gets the sign the basement doorway already has. It is drawn on the picture (not a button), stays still, and shows only while the doorway is on screen. It uses the same badge as the ⬆️/⬇️ button that makes the same trip:
+- foyer stairs ⬆️🛏️;
+- landing stair top ⬇️🏠;
+- den stairs ⬆️🏠;
+- backyard back door ⬇️🛋️;
+- den Dutch door 🦌;
+- the foyer basement doorway's ⬇️ gains 🛋️.
+A sign is drawn over a part of its doorway that is not under a side arrow, the pill, the strip or the faces. In portrait the foyer stairs sit under ▶📺, and a sign there must not lure taps onto the arrow. If no clear spot exists, it is not drawn that frame.
+(2) In rooms with no side arrows (bathroom, spa, tree houses), when the way out is off-screen, a small edge tab like the turkey tab shows the destination's icon with ◀ or ▶. Tapping it walks her toward that exit, just like tapping the floor on that side.
+- implementation: Block G35 wraps the global drawExitSigns (features.js:370, also wrapped by wildlife.js) as the outermost wrapper, and draws after the original.
+- Signs:
+  - which props: PROPS[G.room] doors whose destination is in a different Floors.of() group, plus the foyer and landing stair props;
+  - how: emoji(arrow + badge, x, p.y − (p.h || 60) − 6, 8, .9), exactly as basement.js:139 does;
+  - badge: the floors.js:58 pill rule for that level change (🛏️ up from the main floor, 🛋️ down from it, 🏠 back to it), or ROOMS[dest].ico for the Dutch door;
+  - x is chosen within the prop's width to avoid Clarity.hudRects(), converted with toWorld.
+- Edge tab:
+  - port wildlife's tab drawing and its tabY() free-height search (wildlife.js:652-666), and store the tab's rect;
+  - the overlay's onTap wrapper checks that rect first and calls marina.walkTo(exit.x ± 20, null, null, FLOOR).
+- must still work: Every door, stair and hatch still works by tapping it, with the same landing spots; The stairs' 🪜/💺 choices, the Dutch door, the back door and the hatch; Signs cannot be tapped: taps reach the door; The basement doorway's existing sign; The deer and turkey tabs; The idle wiggle
+- benefit: The new floors and the outside become discoverable from the rooms themselves, and every way out says where it goes before she uses it. That is how a non-reader builds a picture of the house.
+- risk: Low. Check at the 1.16 landscape zoom that no sign lands under the strip. In portrait foyer runs (first-minutes P_living), check that 'tapped the stairs, went to the living room' does not increase.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G35 [wayfinding] Every door and staircase to another floor or outside shows where it leads, and rooms with no arrows point to their way out => AMEND (child:amend, functionality:amend)
+
+**child: amend** — Showing where a door or staircase leads on the door itself, with the same picture as the matching ⬆️/⬇️ button, is the right idea, and in rooms she has not seen yet there is almost no habit cost. But the specified spot does not work. I mocked it with the harness (verify/wayfinding-child/signs.js, hits.js, shots/sign_*.png). (1) 'Above the prop', at y = p.y − h − 6, misses the HUD in too few cases. At the 1.16 landscape zoom, the foyer stairs, foyer basement doorway and den Dutch door signs land under the room strip (land and landSmall). The den stairs sign is off the top of the screen in landscape and under 🗺️ in portrait. Shifting x cannot clear a full-width strip, so under the plan's 'skip if no clear spot' rule most landscape signs would never draw. (2) hitTest at the 'above' spot returns nothing for all six props, so a tap on the sign just walks her to the wall. The plan's 'taps reach the door' is false for its own position, and a non-reader WILL tap the picture. Inside the doorway, at basement.js:139's height (T + min(46, h/2)), the spot hits the door or stairs in all six, and it sat on #cv whenever the door was fully on screen, in all four views. (3) Drawing from drawExitSigns paints over people, so an in-door sign would cover Marina's head as she walks through. basement.js draws its ⬇️ in the prop pass. (4) The Dutch door gets a bare 🦌. G39 treats den (−1) → backyard (outside, counted as 0) as UP, and the back door is ⬇️🛋️, so the pair should read ⬆️🦌 / ⬇️🛋️. (5) At size 8 a two-glyph sign is about 20 px, smaller than the 17→22 px badges that G36 itself calls too small, and 🦌 on the white Dutch door has little contrast. (6) Edge tabs: a ◀📺 or ◀💺 tab looks exactly like the side arrows, which TRAVEL. A tab that only walks her to the door and stops teaches that the familiar look sometimes 'doesn't work'.
+
+- AMENDED CHANGE (child): (1) Signs go on: foyer stairs ⬆️🛏️, landing stair top ⬇️🏠, den stairs ⬆️🏠, backyard back door ⬇️🛋️, den Dutch door ⬆️🦌, and 🛋️ added beside the existing foyer basement ⬇️. Same-floor doors get no sign, which includes every main-floor door to the yard (foyer front door, dining side door and the yard's two doors). Placement: inside the prop's own hit area, at y = p.y − h + min(46, h/2), the height basement.js:139 uses (h = p.h, or the sprite height for 'stairs'). x is chosen within the prop's width so the sign's box clears Clarity.hudRects(). Choose the spot when she enters the room and when the camera settles, not every frame, so the sign does not jump as 📒/👗 or face cards come and go. If no clear spot exists, do not draw it. Draw it in the prop pass, behind people: one wrapper on drawProp that runs after the original for these prop ids. Do not use drawExitSigns. Look: emoji size 10 (about 24 px) on the game's existing wall-tab plate (rect 'rgba(43,35,64,.7)', features.js:374). Use one motion rule for all signs, either still or the basement sign's 2-unit bob. Add the basement doorway's 🛋️ as a local edit at basement.js:139, marked /* G35 */, using the same bob, layer and size as its ⬇️. (2) Edge tab in the bathroom, spa and tree houses, shown only while the exit is off-screen: same look and tabY placement as the turkey tab. A tap does exactly what tapping that exit does, approach(exit) then the prop's own action: the door travels, and the hatch opens its 🪜/🛝 ring. So ◀[room] keeps the side arrows' promise and still shows the walk. Signs and tabs are display only and change no door, stair or hatch behaviour.
+
+- EXTRA CHECKS: hitTest(sign centre) returns the sign's own door/stairs prop for all six signs (today the plan's 'above' spot returns nothing) | elementFromPoint at each drawn sign's centre is #cv in port, portSmall, land, landSmall and 844x340 with 0/47 px insets. Test at mid-room arrival, at the pill landing (x=104) and at the door's own landing tx. Record any frame where the sign is skipped | Foyer portrait, arriving mid-foyer (x=136): the ⬆️🛏️ sign is never under or touching the ▶📺 arrow, and first-minutes P_living 'tapped the stairs, went to the living room' does not increase | Marina and other people standing in a doorway are drawn in front of its sign | Sign does not flicker as 📒/👗, face cards or rings appear (fixed per room entry or camera settle) | Edge-tab tap in the bathroom, spa and tree house ends in the same room or ring as tapping the door or hatch, and the tab is not drawn when the exit is on screen (landscape bathroom and spa) | Signs and tabs do not appear on the title screen, during the TV in landscape, or while any full screen is open
+
+**functionality: amend** — Three things in the draft would change what a tap does. I checked each one in the harness (verify/wayfinding-functionality/check1.js, check3.js).
+(1) Most signs sit outside the door's hit box. The formula y = p.y − (p.h||60) − 6 puts 5 of the 6 signs just above the hit box, which is p.y−h−4 to p.y+4 (game.js:395-398). Those five are the foyer basement doorway (sign y 45, box 47..147), the landing stair top (77 vs 79..147), the den stairs (13 vs 15..147), the Dutch door (45 vs 47..147) and the back door (59 vs 61..147). hitTest at those signs returns null, so tapping the sign makes her walk instead of using the door. Only the foyer stairs sprite (sign y 79) lands inside its box. The den-stairs sign at y 13 also sits under the portrait room strip at every x, so it would never be drawn. basement.js:139 itself draws its ⬇️ inside the doorway (T+46), not above it.
+(2) The edge tab steals taps from things in the room. Ported from wildlife's tab()/tabY(), in portrait it sits on the bathroom mirror and vanity, the spa linen and vanity, and the tree-house wall (hitTest at the tab box: prop:mirror/vanity, linen/uvanity, th_wall). Those taps would walk her toward the exit instead of opening those things' choices. The mirror is a main-floor thing she already knows. tabY also caches its height per screen shape, so a tab can later end up under 📒/👗/✋ when they appear.
+(3) The tab's tap ignores the game's guards. The drafted handler calls marina.walkTo with no G.busy check. During bathTime (fun.js:166-175, G.busy, taps make bubbles through a stage pointerdown listener) a tap on the tab would walk her out mid-bath. It also skips the mount, wheelchair, perch, sit and bars/swing/tantrum handling that the existing exit-sign tap does at features.js:381-385.
+Smaller points:
+- builder.js:234 re-wraps drawExitSigns on every featTick until it is outermost again, so G35 cannot be the 'outermost wrapper'. If clarity.js tried to re-wrap too, the two would add a wrapper every frame.
+- hudRects() leaves out #roombar and (in portrait) #moodbar.
+- hudRects() is meant to run once per ring, not every frame; calling it each frame forces a layout every frame.
+- The existing wall exit-sign hit zones (features.js:376, y 38–64 at the view edges) and the deer/turkey tab zones are checked in onTap before hitTest, so a sign drawn there would send the tap to a different room.
+- The wording 'or goes between inside and outside' does not match the six listed doorways: the front and side doors are main-group to main-group and get no sign.
+- G39 shows ⬆️🦌 on arriving in the backyard through the Dutch door, so that sign should carry the same ⬆️.
+With the amendments below, free floor-band spots exist for the tab in all three rooms in port and portSmall (y 154–166 in the bathroom, 162–166 in the spa, 114 and 166 in the tree house).
+
+- AMENDED CHANGE (functionality): (1) Signs. Six doorways get a still sign drawn on the picture (not a button). These are the foyer stairs ⬆️🛏️, the landing stair top ⬇️🏠, the den stairs ⬆️🏠, the backyard back door ⬇️🛋️, the den Dutch door ⬆️🦌, and the foyer basement doorway, whose existing bobbing ⬇️ gets 🛋️ drawn beside it. A sign is drawn only where every point of its box would do exactly what tapping that door does today:
+- the sign box lies inside the door's own hit box, below its top edge (aim for T + 30–46, as basement.js:139 does);
+- hitTest(x, y) returns that same door or stairs prop at the box centre and corners (so no person, mess, wall picture or other prop is in front);
+- exitSignHit(x, y) is null, and the box is more than 14 world units from the view's left and right edges between y 38 and 150, where the wall exit tabs and the deer/turkey tabs take taps first;
+- no part is under the HUD: hudRects() plus #roombar .rb, #moodbar .mood, #moodToggle and #mapBtn.
+If no such spot exists in that frame, the sign is not drawn. Cache the HUD rects for 250 ms instead of reading them every frame. Wrap drawExitSigns once at load and never re-wrap: builder.js:234 will wrap it again on the next frame, and the signs then draw before builder's late drawing, which is fine.
+(2) Edge tab, only in the bathroom, the spa and the tree houses, and only while the way out is off-screen. The tab is placed at the view edge on that side, at a height where the whole tab box has hitTest() null and no button, face card, ✋, 📒/👗, wish or request is over it. Prefer the floor band (y 150–168), where a tap today already walks her toward that side. The spot is re-checked at least every 250 ms, not cached per screen shape. The tab is hidden while G.busy, G.sceneOn, G.tidy or G.chase is set, while marina.state is bars, swing or tantrum, or while any screen is open. On tap, the overlay's onTap wrapper takes the tap only when all of these hold: the tab is drawn, the point is inside it, !G.busy, and hitTest at the tap point is null. Every other tap goes to the original onTap unchanged. When it takes the tap, it runs the same steps as the exit-sign tap at features.js:381-385:
+- UI.closeActions();
+- reset perch, sit, cheer and sad to idle;
+- mover = marina.mount || marina;
+- Audio2.blip(9, 'triangle', 0.05, 0.1);
+- mover.walkTo(exit.x ± 20, null, marina.mount ? 75 : null, FLOOR).
+What each door does, its landing spot and the 🪜/💺 choices are unchanged.
+
+- EXTRA CHECKS: Signs: for every sign, check port, portSmall, land and landSmall with the camera at both room ends and mid-room. Sample every drawn sign box: hitTest must return that door prop and exitSignHit must be null. Then g.tapWorld on the sign centre must do exactly what tapping the door centre does (useDoor and the room reached, or the 🪜/💺 ring). | Edge tab: in port and portSmall in the bathroom, spa, treehouse_oak and treehouse_pine, the tab box must have hitTest null. Tapping the mirror, vanity, linen, uvanity, th_wall, th_bell and th_bucket must still open their own choices (compare with after3.json). Tapping the tab must walk her toward the exit and must not change room by itself. | bathTime: start the shower bath, then tap where the tab would be. You get bubbles, Marina does not move, and the bath still ends at 7.5 s. | Riding Daddy (marina.mount) or in the wheelchair in the bathroom: tapping the tab moves the mount or chair together with her, with no position desync. | Wrapper depth: after 20 s in the backyard with tree houses built, check that drawExitSigns is not re-wrapped every frame (time it, or count calls per frame) and that frame time is unchanged. | Run first-minutes P_living in portrait foyer runs: 'tapped the stairs, went to the living room' must not increase.
+
+
+==================== G36 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD with the functionality implementation: no edits to basement.js:7 or builder.js:928, which are load-time literals and loops. (1) At overlay load, if Clarity.on.G36: ROOMS.nunuroom && (ROOMS.nunuroom.ico = '👵'); ROOMS.treehouse_pine && (ROOMS.treehouse_pine.ico = '🌲'). treehouse_pine always exists, built or not. Clarity.onToggle('G36') restores 🛏️ and 🏡. Every reader of these icons is lazy: the strip rebuild, the arrows, the map and bigIcon. (2) The tree-house map row's label becomes 🏡, set in Clarity.hook('openIsoMap','G36',{order:10,after}). Identify rows by Floors.list order, never by label text; floors.js:66 is not edited. (3) Clarity.css: #floorpill .fl i{font-size:22px}, still anchored right/bottom -5px as today. (4) The ⬆️🛏️ and ⬇️🏠 pill badges stay. DONE = both lenses' EXTRA CHECKS: with the switch on, the basement strip, the den's ◀ arrow, the map tile and the arrival icon all show 👵, and the pine shows 🌲 on the strip and the map; with it off, today's icons; every route still travels; the 22 px badge stays clear of the glyph and the map button, and ⬇️'s centre still hits ⬇️; saved tree houses load, are entered by the ladder and left by the hatch. Expected regress renames: room icons only.
+Depends on: -
+Interactions: Same worker as G37 (👵 badge on Nunu's tile, people row separate) and G38 (pill colour ring vs badge size). G39's arrival icon and G35's signs read the ROOMS icons lazily, so they show 👵 and 🌲 too.
+
+### DRAFT ITEM
+### G36 One picture per place: Nunu's room is 👵, the pine tree house is 🌲, and the ⬆️/⬇️ badges are bigger
+- problem: - The ⬆️ badge on the main floor is 🛏️ (upstairs.js:15, 'up to the bedrooms'). But in the basement strip, on the den's ◀ arrow and on the map, 🛏️ is Nunu's room DOWNSTAIRS (basement.js:7).
+- Both tree houses are 🏡 (builder.js:928).
+- The tree-house map row is labelled 🌳, like the yard and the outside row (floors.js:66).
+- The pill badges are 17 px.
+- change: - Nunu's room's icon becomes 👵, like 👧 (Marina's room) and 👶 (Miles' room), so 🛏️ means only 'upstairs'. The ⬆️🛏️ and ⬇️🏠 pill badges she used to find the new floors stay as they are.
+- The pine tree house becomes 🌲; the oak keeps 🏡.
+- The tree-house map row is labelled 🏡.
+- The pill badges grow to 22 px.
+- implementation: - Local edits, marked /* G36 */:
+  - basement.js:7: the nunuroom ico '🛏️' → '👵';
+  - builder.js:928: ico becomes t.id === 'pine' ? '🌲' : '🏡';
+  - floors.js:66: the label becomes f.id === 'tree' ? '🏡' : today's rule.
+- CSS block G36: #floorpill .fl i{font-size:22px}.
+- must still work: Every strip button, arrow, map tile and pill route travels the same; Room ids, ROOMS keys and saved builds are unchanged (only display icons change); no code compares ROOMS[].ico against 🛏️; Tree houses are still entered by the ladder and left by the hatch
+- benefit: The button she uses to find the new floors stops pointing two ways, and the two tree houses look different.
+- risk: Very low; new areas only. Check that the 22 px badge fits the 58x46 pill buttons.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G36 [wayfinding] One picture per place: Nunu's room is 👵, the pine tree house is 🌲, and the ⬆️/⬇️ badges are bigger => AMEND (child:keep, functionality:amend)
+
+**child: keep** — Of the four parts, 👵 has the clearest payoff. It follows the game's own rule that a person's room shows that person (👫 parents, 👧 Marina, 👶 Miles), and it stops 🛏️ pointing two ways on the very button she used to find the new floors (first-minutes: 'first finds of basement/upstairs were almost always through the ⬆️/⬇️ pill'). That conflict grows once G35 puts ⬆️🛏️ on the stairs. I grepped: no code compares ROOMS[].ico, and nunuroom's icon is only displayed on the strip, the arrows, the map, the arrival picture and the title (main rooms only), so behaviour is unchanged. The 22 px badge is visibly more legible in my mock (shots/col_port_grid.png). It keeps today's right/bottom −5px anchor, so it overlaps the neighbouring button exactly as much as today. 🌲 for the pine is marginal but harmless: the two tree houses exist only once both are built, 🌲 has rendered on iOS for years, and nothing in navigation uses it. Its only other use is the 'treetop' sticker (fun.js:21), which never appears in navigation. 🏡 as the tree-house map row label removes one of the three 🌳 meanings. Every part touches only new areas, so there is no habit cost.
+
+- EXTRA CHECKS: With G37 on, Nunu's room tile shows the 👵 room badge and a separate, smaller people row. Nunu as a person must never be drawn as a second top-left badge, so she can tell room from person | 22 px pill badges stay clear of the ⬆️/⬇️ glyph and of the map button at 58x46 (portrait) and 58x44 (landscape), and with G38's floor colouring | Saved tree-house builds load and both tree houses are entered by the ladder and left by the hatch, with 🏡 (oak) and 🌲 (pine) on the strip, the map tiles and the arrival picture
+
+**functionality: amend** — The display change itself is safe:
+- 🛏️ appears in code only as basement.js:7 (nunuroom) and upstairs.js:15 (the up-floor pill badge), plus some speech-bubble strings.
+- Nothing compares ROOMS[].ico, and ROOMS is not saved (cm_builds stores kind and spot, not icons).
+- 🌲 is used elsewhere only as the treetop sticker (fun.js:21). No ring choice uses it (the pine's choices are 🧗 and 🌰).
+- The 22 px badge stays anchored right:-5px/bottom:-5px, so it does not reach further into the ⬇️ button than today's 17 px badge does; it only grows up and left inside its own button.
+The implementation is the problem. basement.js:7 is an object literal run at load, and builder.js:928 is a loop run at load. Both run long before clarity.js, which loads last. A local edit there guarded by Clarity.on.G36 would see Clarity undefined and never take effect, and an unguarded edit could not be switched off, which breaks the plan's 'flag off restores today's code' rule. All readers of these icons read them lazily: the floors.js strip rebuild, nav.js:90 arrows, the map at open, and bigIcon at changeRoom. The main strip built at load holds only main-floor rooms. So the change can safely be applied from clarity.js at load.
+
+- AMENDED CHANGE (functionality): Same visible change: Nunu's room 👵, the pine tree house 🌲 (the oak keeps 🏡), the tree-house map row labelled 🏡, and pill badges at 22 px. Implementation:
+- Do not edit basement.js:7 or builder.js:928. In clarity.js, at load: if (Clarity.on.G36) { ROOMS.nunuroom && (ROOMS.nunuroom.ico = '👵'); ROOMS.treehouse_pine && (ROOMS.treehouse_pine.ico = '🌲'); }. treehouse_pine always exists in ROOMS, built or not.
+- The tree-row label is set inside the overlay's openIsoMap wrapper, or through the local floors.js:66 edit, which runs at map-open time so it can read the flag.
+- CSS #floorpill .fl i{font-size:22px} is placed after floors.js's style.
+- G37/G38 must identify map rows by the Floors.list order, not by label text.
+
+- EXTRA CHECKS: With the flag on: the basement strip, the den's ◀ arrow, the map tile and the arrival bigIcon all show 👵, and the pine tree house shows 🌲 on the strip and the map. With the flag off: all show today's 🛏️/🏡. | Every strip button, arrow, map tile and pill route still reaches the same room and spot. In the regress.js diff against after3.json, the only changes are the icon renames. | Pill at port, land, portSmall and landSmall: the 22 px badge does not cover the other pill button's tap area (elementFromPoint at the centre of ⬇️ returns the ⬇️ button).
+
+
+==================== G37 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD combining both amendments. The draft's room icon beside people on the main painting is dropped (child lens; look only).
+(1) features.js:413 local edit /* G37 */: poly.dataset.r = r, and the same on its <text>, so rooms are matched by key.
+(2) Clarity.hook('openIsoMap','G37',{order:20,after}):
+- (a) Portrait only: move the ⬆️ row directly above the house picture, with a gap of at most 16 px, at least 16 px below the ❌ tile, and the stack centred under the title row. On an orientation change while the map is open, put it back or re-lay the map.
+- (b) 'You are here': Marina's face portrait (FACES face_marina_happy_rest), with a pulsing ring, replaces the 👧 in her room's label on the painting; it is never added beside it. On other floors it sits about 28 px at the top-right of her tile. When FACES is not ready, today's 👧 and yellow outline stay.
+- (c) The main painting keeps today's label rule. Other floors' tiles get a small people row along their bottom edge: today's emoji plus 👵 Nunu, 👴 Jeff and 🐈‍⬛ Minka, everyone by today's !e.hidden rule, and Minka also left off while hide-and-seek runs. The row is clipped inside the tile.
+- (d) Faint dashed outlines, drawn as separate polygons with class cm-outline, appended after the hit polygons. The 'here' room's outline is solid.
+- (e) .fmaproom.here pulses with a box-shadow ring, not a transform.
+- (f) data-floor on each .fmaprow, from the Floors.list order (for G38).
+- Every added element (image, ring, texts, outlines, people rows) has pointer-events:none.
+(3) Strip: a Clarity.every(300,'G37') tick toggles .rb.cm-gp wherever Nunu or Jeff is present and not hidden (not Minka). CSS: .rb.cm-gp:after uses the same dot as .rb.busy:after.
+DONE = both lenses' EXTRA CHECKS:
+- grid test over .isosvg in port, land and portSmall, with the 'here' animation paused: the same polygon at every point;
+- regress 'map rooms:' and 'map→moved' unchanged;
+- taps on the face, the icons and the people rows reach the same room;
+- the ❌ centre and inner corner still return ❌ at 390x844, 375x667 and 390x664, and no tile lies within 16 px of it;
+- the house picture is not smaller; no tile under #xFloat after rotating;
+- no 🐈‍⬛ during hide-and-seek;
+- without FACES: 👧 and no broken image;
+- four people in the kitchen at 375 px: no label overlap.
+Depends on: -
+Interactions: Same worker as G36 and G38 (data-floor on rows). G5 (bubbles) owns only .isoroom.here's transform-origin; G37 never restyles .isoroom and never adds that class. Integration with G3's landscape lane (rows wrap, no tile under #xFloat) and with G2 (a ring open under the map stays, as today).
+
+### DRAFT ITEM
+### G37 The map reads like the house: upstairs above, her own face as 'you are here', and every room's icon and people
+- problem: - The map's floor rows are added after the house picture (floors.js:64-70), so in portrait upstairs is drawn BELOW the main floor.
+- Off the main floor, her place is only a static yellow border on a 62x39 tile. On the main floor her room pulses with 👧, which is also the icon of her room upstairs.
+- Room labels show only who is there (features.js:417-418), not the room itself.
+- Nunu, Jeff and Minka never appear.
+- Room shapes are invisible (fill .01, no stroke).
+- The strip's green 'someone is here' dot skips Nunu and Jeff (features.js:497-498).
+- change: Same tiles and the same one-tap jumps.
+- In portrait the ⬆️ row sits above the house picture; the ⬇️ and 🌳 rows stay below.
+- 'You are here' is the same everywhere: Marina's own face-card portrait in a small circle with a pulsing ring, on her room in the house picture or on her tile.
+- Each room shows its strip icon beside today's people emoji (15 px, with the 💩 and 🏰 markers kept), now including 👵 Nunu, 👴 Jeff and 🐈‍⬛ Minka. Other floors' tiles get the same small people row.
+- Every room shape gets a faint dashed outline, so all rooms look tappable.
+- On the strip, the green dot also lights up for Nunu and Jeff.
+- implementation: - Local edit features.js:413, marked /* G37 */: poly.dataset.r = r (and the same on its <text>), so rooms are matched by key rather than by index (features.js:411 skips some rooms).
+- Block G37 wraps openIsoMap as the outermost wrapper, after floors.js:
+  - in portrait, move the .fmaprow labelled ⬆️ before .isowrap;
+  - add the room icon as a separate text beside the existing label;
+  - add a 34 px <image> drawn from FACES face_marina_happy_rest at her room's label point, or an <img class=cm-you> inside .fmaproom.here;
+  - give .fmaproom.here the .isoroom.here pulse keyframe;
+  - set data-floor on each .fmaprow, for G38.
+- CSS: .isoroom{stroke:rgba(255,255,255,.55);stroke-width:1.5;stroke-dasharray:4 3}.
+- Strip dots: a 300 ms tick toggles .cm-gp on .rb[data-r] wherever Nunu or Jeff is present and not hidden. CSS: .rb.cm-gp:after uses the same dot as .rb.busy:after.
+- must still work: Every room shape and tile still travels with one tap; The map's ❌ and the floating ❌ still close it; The 💩 and 🏰 map markers; The rows still wrap in landscape (fix 7); The existing dots for Daddy, Mommy and Rory; 👧 still names her room on the strip; The map button is unchanged
+- benefit: Wherever she is, opening the map shows her own face on her own place, with upstairs drawn up, and 'go to Nunu' can be answered from the map.
+- risk: Low. Check that room hit areas are unchanged (the playroom is 45x27), that labels are legible at 375 px, and that the face image falls back to today's 👧 if FACES isn't ready.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G37 [wayfinding] The map reads like the house: upstairs above, her own face as 'you are here', and every room's icon and people => AMEND (child:amend, functionality:amend)
+
+**child: amend** — Her own face as 'you are here' is a strong, unambiguous cue, and it removes the 👧 'my room' / 'me' clash. Upstairs drawn above matches the research (R13). Showing Nunu, Jeff and Minka on tiles answers 'where's Nunu'. But I mocked the portrait move (verify/wayfinding-child/map.js, shots/map_port_mock.png), and putting the ⬆️ row 'before .isowrap' places it at y=68. That is flush under the map's ❌, whose tile ends at y=68, and the 👫 tile starts at x=46. A slightly low tap on ❌, the control she uses most on this screen, could send her upstairs. The row also floats 177 px above the house picture (283–564), so it does not read as 'the floor above'. Adding the room icon beside the people on the main-floor painting is clutter on a main-floor screen she knows: the kitchen label already reads 👧👨👩🐱, and the painting already shows each room. A 34 px face plus a fifth glyph would cover the kitchen and spill onto its neighbours, and the playroom is 45x27. The plan also never says Minka is left off while she hides. Showing 🐈‍⬛ on the room where she hides would give away hide-and-seek (mk.hidden is true while tucked, minka.js:518), which changes how that game plays.
+
+- AMENDED CHANGE (child): Same tiles and the same one-tap jumps. (1) Portrait: the ⬆️ row sits directly above the house picture (gap of 16 px or less), with the ⬇️, then the 🌳/🏡 rows directly below. The whole stack is centred in the space under the title row, and the ⬆️ row keeps at least 16 px of clearance below the ❌ tile. Landscape is unchanged. (2) 'You are here': Marina's face-card portrait (FACES face_marina_happy_rest, with a pulsing ring) replaces the 👧 in her room's people label on the painting. It is never added beside it. On a floor tile it sits about 28 px at the tile's top-right corner, opposite the room badge. If FACES is not ready, today's 👧 and yellow outline stay. (3) The main-floor painting keeps today's label rule (people if anyone is there, otherwise the room icon). No room icon is added beside people. Other floors' tiles get a small people row along their bottom edge, using today's emoji plus 👵 Nunu, 👴 Jeff and 🐈‍⬛ Minka. Everyone, Minka included, follows today's !e.hidden rule, and Minka is also left off while her hide-and-seek is running. (4) Faint dashed outlines on every room shape, but .isoroom.here keeps a solid, unbroken stroke (stroke-dasharray:none), so 'here' stays the one unique mark. (5) .fmaproom.here pulses with a box-shadow ring, not the scale/rotate 'pulse' keyframe, so it never grows onto the next tile in a wrapped row. (6) The strip's green dot also shows for Nunu and Jeff (not Minka), using the same rule as Daddy, Mommy and Rory. Rows also get a data-floor attribute for G38.
+
+- EXTRA CHECKS: Portrait 390x844, 375x667 and 390x664: elementFromPoint at the ❌'s centre and at a point 8 px inside its bottom-right corner returns the ❌. No travel tile lies within 16 px of the ❌ tile | The house picture keeps at least its current height (281 px at 390x844, 269 px at 375x667) and no tile or row needs scrolling | Every room polygon and tile still travels with one tap, and the playroom polygon's hit area is unchanged | Start hide-and-seek (Minka.hideNow()), open the map: no 🐈‍⬛ anywhere. After she is found, Minka shows on her room's tile | Main-floor map with four people in the kitchen: no label overlaps a neighbouring room's label at 375 px | Fix 7 (rows wrap in landscape) and G3's landscape lane still hold with the people rows added
+
+**functionality: amend** — Checked in the harness (check2.js).
+(1) The proposed outline CSS (.isoroom{stroke:rgba(255,255,255,.55);stroke-width:1.5;stroke-dasharray:4 3}) changes which room a map tap reaches. Chromium hit-tests the dashed stroke: 1,012 sampled CSS px in portrait and 603 in landscape stop reaching any room (1,000 and 595 of them now hit nothing, so the tap neither travels nor closes the map). Keeping width 2 with the dash still changes 749 and 451 points.
+(2) A 34 px SVG <image> at her room's label point takes the tap (elementFromPoint returns 'image'). It covers part of small neighbouring rooms like the playroom, so a tap there would do nothing instead of travelling or closing the map.
+(3) regress.js:102 counts document.querySelectorAll('.isoroom') and dispatches pointerup on one of them. Any extra outline or ring element carrying the .isoroom class breaks that test.
+(4) The new room-icon text, the people rows inside other floors' tiles, and the cm-you image must not catch taps or reach past their own tile; otherwise a tap over tile B could travel to tile A.
+What checked out fine:
+- Moving the ⬆️ row above the house in portrait keeps all 13 tiles on screen and clear of the ❌ on port, portSmall and 390x664 (house size unchanged).
+- Applying the pulse's end state (scale 1.1, rotate −4°) to .fmaproom.here took no neighbour edge points in any of the 6 views.
+- If she rotates to landscape with the map open, the moved row stays above the house.
+
+- AMENDED CHANGE (functionality): Same map content: upstairs row above the house in portrait, her face as 'you are here', a room icon plus people (now including 👵 👴 🐈‍⬛) for every room, a faint outline on every room shape, and green strip dots for Nunu and Jeff. With these constraints:
+- Do not restyle .isoroom's fill or stroke and do not add the .isoroom class to anything. Draw the dashed outlines as separate polygons (class cm-outline) with pointer-events:none, appended after the hit polygons. The 'here' polygon keeps today's classes.
+- The face <image> (or its 👧 fallback), its pulsing ring, and the added room-icon <text> all get pointer-events:none, so a tap anywhere reaches the polygon under it exactly as today.
+- On other floors' tiles, the people row and the img.cm-you sit inside the tile's own box (overflow clipped) with pointer-events:none. The 'here' tile's pulse is either a non-transform ring (box-shadow or outline animation) or the pulse keyframe only after verifying it covers no neighbour.
+- The ⬆️ row is moved before .isowrap only in portrait. On an orientation change while the map is open, it goes back into .fmap in its original position (or the map re-lays itself out).
+- features.js:413's data-r edit, the 300 ms .cm-gp tick and data-floor on each .fmaprow (set from the Floors.list order, not from label text) stay as drafted.
+
+- EXTRA CHECKS: Grid test (as check2.js) over .isosvg at port, land and portSmall, with the 'here' animation paused: the polygon returned by elementFromPoint at every point must be identical before and after G37. | regress.js 'map rooms:' count and 'map→moved' result must be unchanged. | Tap the centre of the face image, of each new icon text and of each people row: the same room is reached (or the map closes for her own room) as with the build without G37. | At port, portSmall and 390x664 with tree houses, all .fmaproom centres return their own tile and none sits under the ❌. Rotate to landscape with the map open: no tile under #xFloat or off-screen, and the house picture is not smaller than without G37. | With FACES not loaded, she still has a 👧 marker and no broken image.
+
+
+==================== G38 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD combining both amendments. One colour per floor: main = today's purple, untouched; upstairs sky blue; basement warm brown; outside and tree houses a deeper grass green, about rgba(40,105,55,.88) (child). (1) Strip: #roombar[data-floor][data-floor=up]{background:rgba(70,130,190,.8)}, the same selector for down with rgba(110,78,50,.82), and for out and tree with rgba(40,105,55,.88). These win by coming after floors.js: the core keeps clarity styles last. Add one more attribute repeat so they win regardless of order. (2) Map rows: colour .fmaprow[data-floor=...] through background, or a box-shadow or outline only. No padding, margin or border on .fmaprow or .fmap, so the house picture and tiles keep today's sizes. Set data-floor in G38's own openIsoMap after-hook (order 30) when it is missing. (3) Pill: keep today's light fills (#ffe2b0 / #e7d3bd), the white 3 px border and the glyphs. Show the destination floor's colour as a 4 px outer ring via box-shadow, keeping the existing 0 3px 0 drop shadow. data-dest is set by a Clarity.every(200,'G38') tick to Floors.at(Floors.of(G.room).level ± 1).id. (4) The 'here' highlight, the green dots and the TV-on hiding are untouched. DONE = both lenses' EXTRA CHECKS: on the landscape map at land, landSmall and 844x340, the house picture and every .isoroom box are identical with and without G38, and no tile sits under #xFloat; the computed #roombar background on each floor is the new colour, and the main floor's is byte-identical; pill screenshots on each floor in port and land, with ⬆️/⬇️ and the badges legible (check on her iPhone); the strip stays visible against the backyard and pool art; strip and pill taps travel as before.
+Depends on: -
+Interactions: Same worker as G37 (row data-floor; G38 sets it itself if G37's switch is off) and G36 (pill badge size). #roombar is split by property: layout (G14, G19) owns size and position, status (G15) dims .rb and .fl, and G38 owns only background colours, the pill's colour ring and data-dest.
+
+### DRAFT ITEM
+### G38 Each floor has one colour on its strip, on the ⬆️/⬇️ button that goes there, and on its map row
+- problem: The basement, upstairs, outside and the tree houses share one brown strip (floors.js:80), so the strip cannot say which floor she is on, and nothing ties the ⬆️/⬇️ buttons or the map rows to a floor.
+- change: One colour per floor wherever it appears:
+- main floor: today's purple;
+- upstairs: sky blue;
+- basement: warm brown;
+- outside and tree houses: grass green.
+It is used on that floor's strip background, on the ⬆️/⬇️ button that goes there, and on its map row. Positions, sizes and glyphs are unchanged, and the strip's yellow 'here' highlight is unchanged.
+- implementation: - CSS block G38, using the floor ids floors.js writes (main, up, down, out, tree):
+  - #roombar[data-floor][data-floor=up]{background:rgba(70,130,190,.8)}
+  - [data-floor=down]{background:rgba(110,78,50,.82)}
+  - [data-floor=out],[data-floor=tree]{background:rgba(60,130,70,.8)}
+  - The doubled attribute selector beats floors.js:80's #roombar[data-floor]:not([data-floor=main]).
+  - #floorpill .fl[data-dest=...] gets the same colours. A 200 ms tick sets data-dest from Floors.of(G.room).level ± 1.
+  - .fmaprow[data-floor=...] uses the same colours (the attribute is set in G37's wrapper).
+- No yard chip, no change to the strip's position.
+- must still work: Every strip button travels; The 'here' highlight and the green dots; The pill and the map work the same; The strip still hides while the TV is on in landscape (nav.js:217); The main floor's strip colour is unchanged
+- benefit: Colour alone tells her which floor she is on, and which floor a button leads to.
+- risk: Low. The pill buttons she uses on the main floor change colour (their glyphs don't). Check that the emoji stay legible on each colour.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G38 [wayfinding] Each floor has one colour on its strip, on the ⬆️/⬇️ button that goes there, and on its map row => AMEND (child:amend, functionality:amend)
+
+**child: amend** — Strip colour per floor is cheap and only changes new areas, since the main strip keeps its purple. Sky blue for up, brown for down and green for outside is a natural mapping a 5-year-old can pick up. The pill part is the problem. I mocked the plan's CSS (verify/wayfinding-child/colours.js, shots/col_port_grid.png and col_land_grid.png). Filling the main-floor ⬆️ button sky blue makes the blue ⬆️ emoji tile nearly vanish into its background, and iOS's light-blue arrow tile will blend the same way. Filling ⬇️ brown, and turning the basement/upstairs return button dark purple, changes her most-used main-floor travel control from today's light peach/beige buttons to dark tiles. That is a real look change to a habit control, made to add a cue the destination badge (enlarged by G36) already gives. On the backyard, the semi-transparent green strip also melts into the painted trees.
+
+- AMENDED CHANGE (child): One colour per floor: main = today's purple, upstairs = sky blue, basement = warm brown, outside and tree houses = grass green. (1) The room strip background takes the floor colour, as planned. The main floor is unchanged, and so are the 'here' highlight and the green dots. For outside, use a deeper, more opaque green (about rgba(40,105,55,.88)) so the strip still stands apart from the backyard and pool art. (2) Map rows: the row label or backing takes its floor's colour, as planned. (3) Floor pill: keep today's light fills (#ffe2b0 / #e7d3bd) and glyphs. Show the destination floor's colour only as the button's border, replacing the 3 px white border (or as a 4 px outer ring), set from data-dest by the 200 ms tick. Nothing else about the pill changes: no position, size or fill change.
+
+- EXTRA CHECKS: Side-by-side screenshots of the pill on the main floor, in the basement and upstairs, in port and land: ⬆️/⬇️ and the 22 px badges are as legible as today (check on her iPhone, Apple emoji) | The strip on pool and backyard is clearly visible against the painted greenery | The strip still hides while the TV is on in landscape (nav.js:217), and the main-floor strip colour is byte-identical to today
+
+**functionality: amend** — Colour alone does not change what any button does, but the draft leaves a few things loose.
+(1) Map rows. Checked in the harness (check1.js): when the rows get a coloured box with padding (simulated as padding 4px 8px), the landscape map's main-floor house picture shrinks from 291x218 to 269x202 at 844x390 and from 224x168 to 203x152 at 844x340. Every main-floor room polygon on the map gets 7–10% smaller (the playroom is only 45x27), which makes her most-used map targets harder to hit. No tile went under #xFloat or off-screen.
+(2) The 'doubled attribute selector beats floors.js:80' claim is wrong. #roombar[data-floor][data-floor=up] and #roombar[data-floor]:not([data-floor=main]) are both (1,2,0). It wins only by coming later in source order. The same holds for #floorpill .fl[data-dest] against #floorpill .fl.down.
+(3) The pill buttons she uses on the main floor change from light peach/tan to translucent blue/brown/purple. The ⬆️ glyph is a blue square on iOS and can blend into a sky-blue fill. Glyph legibility on her most-used floor control needs checking before shipping.
+
+- AMENDED CHANGE (functionality): Same idea: one colour per floor (main purple as today, upstairs sky blue, basement warm brown, outside and tree houses grass green) on that floor's strip, on the ⬆️/⬇️ button that goes there, and on its map row. Constraints:
+- The map row colour must not change any box size. Use background on the existing row box, or a box-shadow spread / outline, with no added padding, margin or border on .fmaprow or .fmap, so the house picture and tiles keep exactly today's sizes.
+- The strip and pill rules must win by being appended after floors.js's style (clarity.js loads last). Optionally add one more attribute repeat so they win regardless of order.
+- The pill keeps its white 3 px border and uses a light tint of each floor colour (or the floor colour as a thick border on today's light fill), so the blue ⬆️/⬇️ emoji stay clearly visible.
+- data-dest is set by the 200 ms tick from Floors.at(Floors.of(G.room).level ± 1).id. The 'here' highlight, the green dots and the TV-on hiding are untouched.
+
+- EXTRA CHECKS: House picture size and every .isoroom bounding box on the landscape map (land, landSmall, 844x340) are identical with and without G38. No .fmaproom is under #xFloat. | Computed background of #roombar on each floor (main, down, up, out, tree) shows the new colour, and on the main floor it is unchanged. | Screenshot the pill on each floor at port and land, and check on her iPhone that ⬆️/⬇️ and their badges read clearly on each colour. | Strip and pill taps still travel as before (regress.js strip and pill lines).
+
+
+==================== G39 ====================
+### ARCHITECT'S RECONCILIATION (what to build)
+BUILD as drafted (both lenses keep), with the child's wording fix: the arrival picture shares the ARROW with the pill and the signs, not the badge. ⬆️🛏️ on the pill arrives as ⬆️💺. (1) features.js:395-397 local edit /* G39 */, inside the changeRoom wrapper: const fd = window.Clarity && Clarity.is('G39') ? Clarity.floorDir(prev, G.room) : 0. (2) When fd !== 0, the existing cv.animate uses translateY(fd > 0 ? '-30%' : '30%') instead of translateX: the same 320 ms on the same element, so there is still only one animation. (3) UI.bigIcon((fd > 0 ? '⬆️' : fd < 0 ? '⬇️' : '') + ROOMS[room].ico, 650). (4) floorDir levels: main 0, up +1, basement -1, outside 0, tree houses 0.5. DONE = both lenses' EXTRA CHECKS: floorDir gives den→backyard up, backyard→den down, backyard→tree house up, tree house→backyard down, yard↔pool/backyard 0 and main↔main 0, including for a tree house absent from Floors.list. Every cross-floor route (pill, map, outside strip↔yard, 🪜/💺 both ways, basement doorway, den stairs, back door, Dutch door, oak ladder, hatch 🪜/🛝, and the alert, wish and request teleports) lands in the same room and x, with cv.getAnimations().length === 1. Same-floor slides are unchanged. Waking on the bunk shows ⬇️📺 and ☀️ normally. The two-glyph icon fits at 375 px.
+Depends on: -
+Interactions: Clarity.floorDir is in the core. Same worker as G35 (the Dutch door must read ⬆️🦌). Integration with G4 (the zoom changes when arriving in the living room in landscape) and with G27 and G5 (bigIcon: the arrival icon never ends in ✨; G5 centres it).
+
+### DRAFT ITEM
+### G39 Changing floor slides up or down, and the arrival picture shows the arrow
+- problem: Every room change slides the picture sideways or fades it in (features.js:395-396), and the 650 ms arrival picture shows only the room. Changing floor shows no up or down: a 👶😭 tap moves her from the den to the living room in 0.35 s, with no hint that she went upstairs.
+- change: When a trip changes floor, the new floor drops in from above when she goes up, and rises from below when she goes down. The arrival picture shows the arrow with the room (for example ⬆️🛋️). This works whether the trip came from the pill, the map, stairs, doors, alerts, wishes or face cards, because all of them go through changeRoom. Trips on the same floor are unchanged, and so are landing spots, timing and outcomes.
+- implementation: Local edit features.js:395-397, marked /* G39 */:
+- const fd = window.Clarity && Clarity.on.G39 ? Clarity.floorDir(prev, G.room) : 0;
+- when fd is not 0, the existing cv.animate uses translateY(fd > 0 ? '-30%' : '30%') instead of translateX, with the same 320 ms on the same element, so there is still only one animation;
+- UI.bigIcon((fd > 0 ? '⬆️' : fd < 0 ? '⬇️' : '') + ROOMS[room].ico, 650).
+Clarity.floorDir compares Floors.of(room).level, treating outside (null) as 0 and tree houses as 0.5.
+- must still work: Every route lands in the same room and spot; The swipe slide; The floor jingles; Arrows still hide while busy; The arrival picture still shows for 650 ms
+- benefit: Her sense of 'I went up' finally matches what the screen does, which is how a pre-reader learns the shape of the house.
+- risk: Very low.
+
+### REVIEW VERDICTS (amendments supersede the draft; run every EXTRA CHECK)
+## G39 [wayfinding] Changing floor slides up or down, and the arrival picture shows the arrow => KEEP (child:keep, functionality:keep)
+
+**child: keep** — This is a cheap, accurate cue that fixes a real gap: cross-floor trips from alerts, wishes, requests, the map and the pill are instant cuts today, with no sign that she went up or down. The direction matches the research's R15 ('going up, the scene moves down'): translateY(-30%) → none moves the scene down. It reuses the one cv.animate the code already starts, so the room-change timing is unchanged. Same-floor trips, including yard ↔ pool/backyard (main 0 vs outside 0), are untouched, and the main-floor room-to-room slide she knows is unchanged. One wording fix for the plan's principles: the arrival picture shares the ARROW with the pill and the signs, not the badge. ⬆️🛏️ on the pill arrives as ⬆️💺 (uphall's icon), and ⬆️🏠 arrives as ⬆️🚪. Arrow plus actual room is the right picture for 'where you are now', so keep it and just correct the 'same badge' claim.
+
+- EXTRA CHECKS: floorDir: den→backyard (Dutch door) = up, backyard→den = down, backyard→tree house = up, tree house→backyard (ladder and tube) = down, yard↔pool/backyard = 0, main↔main = 0. Check also a tree-house room while treeFloor is absent from Floors.list (Floors.of falls back to main) | Cross-floor alert/wish/request zips (😭 from the den, 🍳 wish from the backyard with the cook panel opening) land in the same room and spot, and only one canvas animation runs | With G4 on, entering the living room from another floor in landscape (resize during the animation) shows no jump or stretched frame | The two-glyph arrival picture (about 180 px) stays fully on screen at 375 px and does not cover Marina, after G5's translate fix
+
+**functionality: keep** — I could not find a functional regression:
+- It edits the one existing cv.animate at features.js:396; no other code animates or styles #cv's transform. It keeps the same 320 ms on the same element, so there is still a single animation.
+- #stage has overflow:hidden (style.css:4), so the vertical slide is clipped and cannot cover the face cards, moods or ✋ below the picture in portrait.
+- toWorld uses E.cssScale and cssOffY, not the canvas rect, so taps during the slide map exactly as they do during today's sideways slide.
+- Landing rooms and spots come from travelTo/changeRoom and are untouched.
+- The overlay's only UI.bigIcon filter acts on glyphs ending in ✨, so the ⬆️/⬇️ prefix does not interact with it.
+- Clarity.floorDir is read at call time behind a window.Clarity guard, and Floors.of() falls back to the main floor for unknown rooms.
+- The ⬆️🦌 shown when the Dutch door leads up into the backyard should match G35's Dutch-door sign (amended there to ⬆️🦌).
+
+- EXTRA CHECKS: For every cross-floor route, confirm that #cv has exactly one running animation (cv.getAnimations().length === 1) and that she lands in the same room and x as before. The routes are: the pill, the map, the outside strip ↔ the yard, stairs by 🪜 and 💺 in both directions, the basement doorway, the den stairs, the back door, the Dutch door, the oak ladder, the hatch 🪜/🛝, and the Miles/poop alert, wish and request teleports. | Same-floor arrows, strip and swipes still slide sideways exactly as today. | Waking from the bunk upstairs (game.js:645-649): the ⬇️📺 arrival icon and ☀️ both show for their normal times, and nothing is left on screen afterwards. | Landscape living room with G4 on: the floor-change slide still plays cleanly when the room's zoom changes on arrival.

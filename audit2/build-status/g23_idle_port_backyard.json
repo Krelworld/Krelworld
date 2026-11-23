@@ -1,0 +1,62 @@
+{
+ "view": "port",
+ "room": "backyard",
+ "secs": 100,
+ "on": {
+  "build": "G23 on",
+  "gameS": 101,
+  "wiggles": 6,
+  "visible": 6,
+  "first": 10.02,
+  "gaps": [
+   8,
+   16,
+   20,
+   20,
+   20
+  ],
+  "alertUpS": 0,
+  "heldBackS": 0,
+  "wishS": 0,
+  "reqS": 0,
+  "lastInputMoved": false,
+  "errors": []
+ },
+ "off": {
+  "build": "G23 off (today)",
+  "gameS": 100.3,
+  "wiggles": 23,
+  "visible": 2,
+  "first": 10.02,
+  "gaps": [
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4
+  ],
+  "alertUpS": 0,
+  "heldBackS": 0,
+  "wishS": 0,
+  "reqS": 0,
+  "lastInputMoved": false,
+  "errors": []
+ }
+}

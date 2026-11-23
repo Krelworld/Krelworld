@@ -1,0 +1,50 @@
+{
+ "allOn": {
+  "kitchen/stove": {
+   "found": "🎀✨",
+   "msAfterTap": 313,
+   "ring": "🍳 🗄️"
+  },
+  "foyer/stairs": {
+   "found": "",
+   "msAfterTap": null,
+   "ring": "🪜⬆️ 💺⬆️"
+  },
+  "playroom/rocker": {
+   "found": "🧚✨",
+   "msAfterTap": 184,
+   "ring": "🪑"
+  },
+  "ride": {
+   "state": "ride",
+   "mount": true,
+   "icons": "🪜 💺",
+   "dom": "🪜⬆️ 💺⬆️"
+  },
+  "errors": []
+ },
+ "G18": {
+  "kitchen/stove": {
+   "found": "🎀✨",
+   "msAfterTap": 266,
+   "ring": "🍳 🗄️"
+  },
+  "foyer/stairs": {
+   "found": "",
+   "msAfterTap": null,
+   "ring": "🪜⬆️ 💺⬆️"
+  },
+  "playroom/rocker": {
+   "found": "🦄✨",
+   "msAfterTap": 250,
+   "ring": "🪑"
+  },
+  "ride": {
+   "state": "ride",
+   "mount": true,
+   "icons": "🪜 💺",
+   "dom": "🪜⬆️ 💺⬆️"
+  },
+  "errors": []
+ }
+}

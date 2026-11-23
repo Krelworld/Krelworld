@@ -1,0 +1,30 @@
+{
+ "islandPoint": [
+  312,
+  135
+ ],
+ "islandRing": "🧺 🗄️ 🧗",
+ "islandClimb": {
+  "state": "perch",
+  "top": 120,
+  "perch": "island"
+ },
+ "islandDishRing": "🧺 🗄️ 🧗 ⬇️",
+ "dishAfterDown": null,
+ "stoolSeatHit": "stool2",
+ "stoolSeatRing": "🧗 🪑",
+ "rockerPoint": [
+  187,
+  117
+ ],
+ "rockerRing": "🪑",
+ "rockerSit": {
+  "state": "sit",
+  "x": 196
+ },
+ "shelfHit": "toyshelf",
+ "shelfRing": "🧸",
+ "tidyFirst": "mess",
+ "personFirst": "ent:daddy",
+ "errors": []
+}

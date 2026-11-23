@@ -1,0 +1,47 @@
+{
+ "alertNonScene": {
+  "jokeStarted": true,
+  "during": {
+   "busy": true,
+   "scene": false,
+   "app": "",
+   "alert": "1"
+  },
+  "tapped": true,
+  "shakes": 0,
+  "nope": 0,
+  "after": {
+   "busy": false,
+   "panel": false,
+   "acts": "👨👩🧔"
+  }
+ },
+ "pillAfterBusy": {
+  "shakes": 0,
+  "nope": 0,
+  "upBlip": 1,
+  "room": "uphall"
+ },
+ "liveFace": {
+  "tapped": true,
+  "shakes": 0,
+  "nope": 0,
+  "ring": "🤗🧍😜",
+  "nearDaddy": true
+ },
+ "drag": {
+  "x": 136,
+  "state": "idle",
+  "busy": false,
+  "room": "foyer"
+ },
+ "swipe": "foyer",
+ "barsArrows": "true,true",
+ "ringOpenWiggles": {
+  "ringOpen": true,
+  "wiggles": 20,
+  "afterClose": 30
+ },
+ "toggle": "false->true->false",
+ "errors": []
+}

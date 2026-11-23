@@ -1,0 +1,1785 @@
+{
+ "views": {
+  "port": {
+   "cases": [
+    {
+     "nAlerts": 0,
+     "y": 150,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        114,
+        108,
+        171,
+        148
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 0,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        223,
+        108,
+        280,
+        148
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 5,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 164,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        112,
+        143,
+        169,
+        183
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 0,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        221,
+        143,
+        278,
+        183
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 5,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 178,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        112,
+        177,
+        169,
+        217
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 0,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        221,
+        177,
+        278,
+        217
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 5,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 150,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        112,
+        140,
+        169,
+        180
+       ],
+       "translate": "-50% -8px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 32,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        221,
+        140,
+        278,
+        180
+       ],
+       "translate": "-50% -8px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 37,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 164,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        112,
+        141,
+        169,
+        181
+       ],
+       "translate": "-50% -42px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": -2,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        221,
+        141,
+        278,
+        181
+       ],
+       "translate": "-50% -42px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 3,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 178,
+     "alerts": "miles",
+     "out": []
+    },
+    {
+     "nAlerts": 2,
+     "y": 150,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        112,
+        140,
+        169,
+        180
+       ],
+       "translate": "-50% -8px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 32,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        221,
+        140,
+        278,
+        180
+       ],
+       "translate": "-50% -8px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 37,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 164,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        112,
+        141,
+        169,
+        181
+       ],
+       "translate": "-50% -42px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": -2,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        221,
+        141,
+        278,
+        181
+       ],
+       "translate": "-50% -42px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 3,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 178,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        112,
+        177,
+        169,
+        217
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 0,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        221,
+        177,
+        278,
+        217
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 5,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 150,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        112,
+        140,
+        169,
+        180
+       ],
+       "translate": "-50% -8px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 32,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        221,
+        140,
+        278,
+        180
+       ],
+       "translate": "-50% -8px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 37,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 164,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        112,
+        141,
+        169,
+        181
+       ],
+       "translate": "-50% -42px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": -2,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        221,
+        141,
+        278,
+        181
+       ],
+       "translate": "-50% -42px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 3,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 178,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        112,
+        177,
+        169,
+        217
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 0,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        221,
+        177,
+        278,
+        217
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 5,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    }
+   ],
+   "jitter": {
+    "translates": [
+     "-50% -42px"
+    ],
+    "maxStepPx": 0,
+    "frames": 85,
+    "framesReplacedByGame": 0
+   },
+   "walk": {
+    "maxStepX": 7.42,
+    "maxStepY": 0,
+    "frames": 63,
+    "framesReplacedByGame": 0
+   },
+   "big": {
+    "centreOff": [
+     0,
+     0
+    ],
+    "box": [
+     139,
+     123,
+     251,
+     232
+    ],
+    "pe": "none",
+    "anim": "pop",
+    "translate": "-50% -50%",
+    "transform": "",
+    "alerts": [
+     {
+      "a": "miles",
+      "top": true,
+      "overlapsIcon": true
+     },
+     {
+      "a": "poop",
+      "top": true,
+      "overlapsIcon": true
+     }
+    ]
+   },
+   "errors": []
+  },
+  "land": {
+   "cases": [
+    {
+     "nAlerts": 0,
+     "y": 150,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        338,
+        70,
+        395,
+        110
+       ],
+       "translate": "-50% -18px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 22,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        449,
+        70,
+        506,
+        110
+       ],
+       "translate": "-50% -18px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 27,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 164,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        338,
+        84,
+        395,
+        124
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 0,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        449,
+        84,
+        506,
+        124
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 5,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 178,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        338,
+        119,
+        395,
+        159
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 0,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        449,
+        119,
+        506,
+        159
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 5,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 150,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        338,
+        142,
+        395,
+        182
+       ],
+       "translate": "-50% 54px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 94,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        449,
+        142,
+        506,
+        182
+       ],
+       "translate": "-50% 54px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 99,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 164,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        338,
+        143,
+        395,
+        183
+       ],
+       "translate": "-50% 19px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 59,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        449,
+        143,
+        506,
+        183
+       ],
+       "translate": "-50% 19px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 64,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 178,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        338,
+        143,
+        395,
+        183
+       ],
+       "translate": "-50% -16px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 24,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        449,
+        143,
+        506,
+        183
+       ],
+       "translate": "-50% -16px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 29,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 150,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        338,
+        142,
+        395,
+        182
+       ],
+       "translate": "-50% 54px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 94,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        449,
+        142,
+        506,
+        182
+       ],
+       "translate": "-50% 54px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 99,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 164,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        338,
+        143,
+        395,
+        183
+       ],
+       "translate": "-50% 19px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 59,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        449,
+        143,
+        506,
+        183
+       ],
+       "translate": "-50% 19px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 64,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 178,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        338,
+        143,
+        395,
+        183
+       ],
+       "translate": "-50% -16px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 24,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        449,
+        143,
+        506,
+        183
+       ],
+       "translate": "-50% -16px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 29,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 150,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        338,
+        142,
+        395,
+        182
+       ],
+       "translate": "-50% 54px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 94,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        449,
+        142,
+        506,
+        182
+       ],
+       "translate": "-50% 54px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 99,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 164,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        338,
+        143,
+        395,
+        183
+       ],
+       "translate": "-50% 19px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 59,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        449,
+        143,
+        506,
+        183
+       ],
+       "translate": "-50% 19px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 64,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 178,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        338,
+        143,
+        395,
+        183
+       ],
+       "translate": "-50% -16px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 24,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        449,
+        143,
+        506,
+        183
+       ],
+       "translate": "-50% -16px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 29,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    }
+   ],
+   "jitter": {
+    "translates": [
+     "-50% 19px"
+    ],
+    "maxStepPx": 0,
+    "frames": 92,
+    "framesReplacedByGame": 0
+   },
+   "walk": {
+    "maxStepX": 7.53,
+    "maxStepY": 0,
+    "frames": 76,
+    "framesReplacedByGame": 0
+   },
+   "big": {
+    "centreOff": [
+     0,
+     0
+    ],
+    "box": [
+     366,
+     102,
+     478,
+     211
+    ],
+    "pe": "none",
+    "anim": "pop",
+    "translate": "-50% -50%",
+    "transform": "",
+    "alerts": [
+     {
+      "a": "miles",
+      "top": true,
+      "overlapsIcon": true
+     },
+     {
+      "a": "poop",
+      "top": true,
+      "overlapsIcon": true
+     }
+    ]
+   },
+   "errors": []
+  },
+  "landSmall": {
+   "cases": [
+    {
+     "nAlerts": 0,
+     "y": 150,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        252,
+        70,
+        309,
+        110
+       ],
+       "translate": "-50% -15px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 25,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        358,
+        70,
+        415,
+        110
+       ],
+       "translate": "-50% -15px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 30,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 164,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        252,
+        79,
+        309,
+        119
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 0,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        358,
+        79,
+        415,
+        119
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 5,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 178,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        252,
+        113,
+        309,
+        153
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 0,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        358,
+        113,
+        415,
+        153
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 5,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 150,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        252,
+        143,
+        309,
+        183
+       ],
+       "translate": "-50% 58px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 98,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        358,
+        143,
+        415,
+        183
+       ],
+       "translate": "-50% 58px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 103,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 164,
+     "alerts": "miles",
+     "out": []
+    },
+    {
+     "nAlerts": 1,
+     "y": 178,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        252,
+        143,
+        309,
+        183
+       ],
+       "translate": "-50% -10px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 30,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        358,
+        143,
+        415,
+        183
+       ],
+       "translate": "-50% -10px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 35,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 150,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        252,
+        143,
+        309,
+        183
+       ],
+       "translate": "-50% 58px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 98,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        358,
+        143,
+        415,
+        183
+       ],
+       "translate": "-50% 58px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 103,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 164,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        252,
+        143,
+        309,
+        183
+       ],
+       "translate": "-50% 24px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 64,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        358,
+        143,
+        415,
+        183
+       ],
+       "translate": "-50% 24px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 69,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 178,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        252,
+        143,
+        309,
+        183
+       ],
+       "translate": "-50% -10px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 30,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        358,
+        143,
+        415,
+        183
+       ],
+       "translate": "-50% -10px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 35,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 150,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        252,
+        143,
+        309,
+        183
+       ],
+       "translate": "-50% 58px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 98,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        358,
+        143,
+        415,
+        183
+       ],
+       "translate": "-50% 58px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 103,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 164,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        252,
+        143,
+        309,
+        183
+       ],
+       "translate": "-50% 24px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 64,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        358,
+        143,
+        415,
+        183
+       ],
+       "translate": "-50% 24px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 69,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 178,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        252,
+        143,
+        309,
+        183
+       ],
+       "translate": "-50% -10px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 30,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        358,
+        143,
+        415,
+        183
+       ],
+       "translate": "-50% -10px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 35,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    }
+   ],
+   "jitter": {
+    "translates": [
+     "-50% 24px"
+    ],
+    "maxStepPx": 0,
+    "frames": 62,
+    "framesReplacedByGame": 0
+   },
+   "walk": {
+    "maxStepX": 7.25,
+    "maxStepY": 0,
+    "frames": 63,
+    "framesReplacedByGame": 0
+   },
+   "big": {
+    "centreOff": [
+     0,
+     0
+    ],
+    "box": [
+     277,
+     96,
+     390,
+     205
+    ],
+    "pe": "none",
+    "anim": "pop",
+    "translate": "-50% -50%",
+    "transform": "",
+    "alerts": [
+     {
+      "a": "miles",
+      "top": true,
+      "overlapsIcon": true
+     },
+     {
+      "a": "poop",
+      "top": true,
+      "overlapsIcon": true
+     }
+    ]
+   },
+   "errors": []
+  },
+  "s844x340": {
+   "cases": [
+    {
+     "nAlerts": 0,
+     "y": 150,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        345,
+        70,
+        403,
+        110
+       ],
+       "translate": "-50% -7px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 33,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        441,
+        70,
+        499,
+        110
+       ],
+       "translate": "-50% -7px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 37,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 164,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        345,
+        70,
+        403,
+        110
+       ],
+       "translate": "-50% -38px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 2,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        441,
+        70,
+        499,
+        110
+       ],
+       "translate": "-50% -38px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 7,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 178,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        345,
+        98,
+        403,
+        138
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 0,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        441,
+        98,
+        499,
+        138
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 4,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 150,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        345,
+        143,
+        403,
+        183
+       ],
+       "translate": "-50% 66px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 106,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        441,
+        143,
+        499,
+        183
+       ],
+       "translate": "-50% 66px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 110,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 164,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        345,
+        143,
+        403,
+        183
+       ],
+       "translate": "-50% 35px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 75,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        441,
+        143,
+        499,
+        183
+       ],
+       "translate": "-50% 35px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 80,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 178,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        345,
+        142,
+        403,
+        182
+       ],
+       "translate": "-50% 4px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 44,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        441,
+        142,
+        499,
+        182
+       ],
+       "translate": "-50% 4px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 48,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 150,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        345,
+        143,
+        403,
+        183
+       ],
+       "translate": "-50% 66px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 106,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        441,
+        143,
+        499,
+        183
+       ],
+       "translate": "-50% 66px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 110,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 164,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        345,
+        143,
+        403,
+        183
+       ],
+       "translate": "-50% 35px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 75,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        441,
+        143,
+        499,
+        183
+       ],
+       "translate": "-50% 35px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 80,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 178,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        345,
+        142,
+        403,
+        182
+       ],
+       "translate": "-50% 4px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 44,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        441,
+        142,
+        499,
+        182
+       ],
+       "translate": "-50% 4px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 48,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 150,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        345,
+        143,
+        403,
+        183
+       ],
+       "translate": "-50% 66px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 106,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        441,
+        143,
+        499,
+        183
+       ],
+       "translate": "-50% 66px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 110,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 164,
+     "alerts": "miles,poop,tp",
+     "out": []
+    },
+    {
+     "nAlerts": 3,
+     "y": 178,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        345,
+        142,
+        403,
+        182
+       ],
+       "translate": "-50% 4px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 44,
+       "centreXminusSpeaker": 0
+      },
+      {
+       "who": "mommy",
+       "box": [
+        441,
+        142,
+        499,
+        182
+       ],
+       "translate": "-50% 4px",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 48,
+       "centreXminusSpeaker": 0
+      }
+     ]
+    }
+   ],
+   "jitter": {
+    "translates": [
+     "-50% 35px"
+    ],
+    "maxStepPx": 0,
+    "frames": 65,
+    "framesReplacedByGame": 0
+   },
+   "walk": {
+    "maxStepX": 6.58,
+    "maxStepY": 2,
+    "frames": 68,
+    "framesReplacedByGame": 0
+   },
+   "big": {
+    "centreOff": [
+     0,
+     0
+    ],
+    "box": [
+     366,
+     82,
+     478,
+     191
+    ],
+    "pe": "none",
+    "anim": "pop",
+    "translate": "-50% -50%",
+    "transform": "",
+    "alerts": [
+     {
+      "a": "miles",
+      "top": true,
+      "overlapsIcon": true
+     },
+     {
+      "a": "poop",
+      "top": true,
+      "overlapsIcon": true
+     }
+    ]
+   },
+   "errors": []
+  }
+ }
+}

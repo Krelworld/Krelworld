@@ -1,0 +1,632 @@
+{
+ "on": {
+  "den": {
+   "room": "den",
+   "strip": "nunuroom:👵 den:🛋️ storage:📦 laundry:🧺",
+   "arrowL": "nunuroom:👵",
+   "rooms": "👵🌲🏡"
+  },
+  "denMap": {
+   "tiles": "parents:👫 uphall:💺 spa:🛁 mroom:👧 milesroom:👶 nunuroom:👵 den:🛋️ storage:📦 laundry:🧺 pool:🏊 backyard:🦌 treehouse_oak:🏡 treehouse_pine:🌲",
+   "labs": "⬆️⬇️🌳🏡"
+  },
+  "arriveNunu": "",
+  "backyard": {
+   "room": "backyard",
+   "strip": "pool:🏊 yard:🌳 backyard:🦌",
+   "arrowL": "yard:🌳",
+   "rooms": "👵🌲🏡"
+  },
+  "byMap": {
+   "tiles": "parents:👫 uphall:💺 spa:🛁 mroom:👧 milesroom:👶 nunuroom:👵 den:🛋️ storage:📦 laundry:🧺 pool:🏊 backyard:🦌 treehouse_oak:🏡 treehouse_pine:🌲",
+   "labs": "⬆️⬇️🌳🏡"
+  },
+  "arrivePine": "",
+  "inPine": "treehouse_pine@66",
+  "pineStrip": {
+   "room": "treehouse_pine",
+   "strip": "pool:🏊 yard:🌳 backyard:🦌 treehouse_oak:🏡 treehouse_pine:🌲",
+   "arrowL": "yard:🌳",
+   "rooms": "👵🌲🏡"
+  },
+  "outPine": "⬇️🦌",
+  "afterPine": "backyard@1014",
+  "arriveOak": "⬆️🏡",
+  "inOak": "treehouse_oak@66",
+  "outOak": "⬇️🦌",
+  "afterOak": "backyard@736",
+  "flipOff": {
+   "room": "den",
+   "strip": "nunuroom:🛏️ den:🛋️ storage:📦 laundry:🧺",
+   "arrowL": "nunuroom:🛏️",
+   "rooms": "🛏️🏡🏡"
+  },
+  "flipOn": {
+   "room": "den",
+   "strip": "nunuroom:👵 den:🛋️ storage:📦 laundry:🧺",
+   "arrowL": "nunuroom:👵",
+   "rooms": "👵🌲🏡"
+  },
+  "nunuTile": {
+   "badge": "👵",
+   "badgeFont": "18px",
+   "people": "👵",
+   "peopleFont": "11px",
+   "peopleAtBottom": 4,
+   "badges": 1
+  },
+  "errors": []
+ },
+ "off": {
+  "den": {
+   "room": "den",
+   "strip": "nunuroom:🛏️ den:🛋️ storage:📦 laundry:🧺",
+   "arrowL": "nunuroom:🛏️",
+   "rooms": "🛏️🏡🏡"
+  },
+  "denMap": {
+   "tiles": "parents:👫 uphall:💺 spa:🛁 mroom:👧 milesroom:👶 nunuroom:🛏️ den:🛋️ storage:📦 laundry:🧺 pool:🏊 backyard:🦌 treehouse_oak:🏡 treehouse_pine:🏡",
+   "labs": "⬆️⬇️🌳🌳"
+  },
+  "arriveNunu": "",
+  "backyard": {
+   "room": "backyard",
+   "strip": "pool:🏊 yard:🌳 backyard:🦌",
+   "arrowL": "yard:🌳",
+   "rooms": "🛏️🏡🏡"
+  },
+  "byMap": {
+   "tiles": "parents:👫 uphall:💺 spa:🛁 mroom:👧 milesroom:👶 nunuroom:🛏️ den:🛋️ storage:📦 laundry:🧺 pool:🏊 backyard:🦌 treehouse_oak:🏡 treehouse_pine:🏡",
+   "labs": "⬆️⬇️🌳🌳"
+  },
+  "arrivePine": "",
+  "inPine": "treehouse_pine@66",
+  "pineStrip": {
+   "room": "treehouse_pine",
+   "strip": "pool:🏊 yard:🌳 backyard:🦌 treehouse_oak:🏡 treehouse_pine:🏡",
+   "arrowL": "yard:🌳",
+   "rooms": "🛏️🏡🏡"
+  },
+  "outPine": "⬇️🦌",
+  "afterPine": "backyard@1014",
+  "arriveOak": "⬆️🏡",
+  "inOak": "treehouse_oak@66",
+  "outOak": "⬇️🦌",
+  "afterOak": "backyard@736",
+  "errors": []
+ },
+ "pill": {
+  "port": {
+   "kitchen": {
+    "map": [
+     10,
+     10,
+     68,
+     68
+    ],
+    "up": {
+     "box": [
+      10,
+      74,
+      68,
+      120
+     ],
+     "badge": [
+      42.5,
+      100,
+      70,
+      122
+     ],
+     "glyph": [
+      24,
+      85,
+      54,
+      109
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 104,
+     "badgeOverMap": 0,
+     "dest": "up",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(70, 130, 190) 0px 0px 0px 4px",
+     "badgeOverOtherButton": 0
+    },
+    "down": {
+     "box": [
+      10,
+      124,
+      68,
+      170
+     ],
+     "badge": [
+      42.5,
+      150,
+      70,
+      172
+     ],
+     "glyph": [
+      24,
+      135,
+      54,
+      159
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 104,
+     "badgeOverMap": 0,
+     "dest": "down",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(110, 78, 50) 0px 0px 0px 4px",
+     "badgeOverOtherButton": 0
+    }
+   },
+   "den": {
+    "map": [
+     10,
+     10,
+     68,
+     68
+    ],
+    "up": {
+     "box": [
+      10,
+      74,
+      68,
+      120
+     ],
+     "badge": [
+      42.5,
+      100,
+      70,
+      122
+     ],
+     "glyph": [
+      24,
+      85,
+      54,
+      109
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 104,
+     "badgeOverMap": 0,
+     "dest": "main",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(43, 35, 64) 0px 0px 0px 4px"
+    }
+   },
+   "uphall": {
+    "map": [
+     10,
+     10,
+     68,
+     68
+    ],
+    "down": {
+     "box": [
+      10,
+      74,
+      68,
+      120
+     ],
+     "badge": [
+      42.5,
+      100,
+      70,
+      122
+     ],
+     "glyph": [
+      24,
+      85,
+      54,
+      109
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 104,
+     "badgeOverMap": 0,
+     "dest": "main",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(43, 35, 64) 0px 0px 0px 4px"
+    }
+   },
+   "errors": []
+  },
+  "land": {
+   "kitchen": {
+    "map": [
+     10,
+     10,
+     68,
+     68
+    ],
+    "up": {
+     "box": [
+      10,
+      74,
+      68,
+      118
+     ],
+     "badge": [
+      42.5,
+      98,
+      70,
+      120
+     ],
+     "glyph": [
+      24,
+      84,
+      54,
+      108
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 115,
+     "badgeOverMap": 0,
+     "dest": "up",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(70, 130, 190) 0px 0px 0px 4px",
+     "badgeOverOtherButton": 0
+    },
+    "down": {
+     "box": [
+      10,
+      122,
+      68,
+      166
+     ],
+     "badge": [
+      42.5,
+      146,
+      70,
+      168
+     ],
+     "glyph": [
+      24,
+      132,
+      54,
+      156
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 115,
+     "badgeOverMap": 0,
+     "dest": "down",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(110, 78, 50) 0px 0px 0px 4px",
+     "badgeOverOtherButton": 0
+    }
+   },
+   "den": {
+    "map": [
+     10,
+     10,
+     68,
+     68
+    ],
+    "up": {
+     "box": [
+      10,
+      74,
+      68,
+      118
+     ],
+     "badge": [
+      42.5,
+      98,
+      70,
+      120
+     ],
+     "glyph": [
+      24,
+      84,
+      54,
+      108
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 115,
+     "badgeOverMap": 0,
+     "dest": "main",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(43, 35, 64) 0px 0px 0px 4px"
+    }
+   },
+   "uphall": {
+    "map": [
+     10,
+     10,
+     68,
+     68
+    ],
+    "down": {
+     "box": [
+      10,
+      74,
+      68,
+      118
+     ],
+     "badge": [
+      42.5,
+      98,
+      70,
+      120
+     ],
+     "glyph": [
+      24,
+      84,
+      54,
+      108
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 115,
+     "badgeOverMap": 0,
+     "dest": "main",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(43, 35, 64) 0px 0px 0px 4px"
+    }
+   },
+   "errors": []
+  },
+  "portSmall": {
+   "kitchen": {
+    "map": [
+     10,
+     10,
+     68,
+     68
+    ],
+    "up": {
+     "box": [
+      10,
+      74,
+      68,
+      120
+     ],
+     "badge": [
+      42.5,
+      100,
+      70,
+      122
+     ],
+     "glyph": [
+      24,
+      85,
+      54,
+      109
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 104,
+     "badgeOverMap": 0,
+     "dest": "up",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(70, 130, 190) 0px 0px 0px 4px",
+     "badgeOverOtherButton": 0
+    },
+    "down": {
+     "box": [
+      10,
+      124,
+      68,
+      170
+     ],
+     "badge": [
+      42.5,
+      150,
+      70,
+      172
+     ],
+     "glyph": [
+      24,
+      135,
+      54,
+      159
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 104,
+     "badgeOverMap": 0,
+     "dest": "down",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(110, 78, 50) 0px 0px 0px 4px",
+     "badgeOverOtherButton": 0
+    }
+   },
+   "den": {
+    "map": [
+     10,
+     10,
+     68,
+     68
+    ],
+    "up": {
+     "box": [
+      10,
+      74,
+      68,
+      120
+     ],
+     "badge": [
+      42.5,
+      100,
+      70,
+      122
+     ],
+     "glyph": [
+      24,
+      85,
+      54,
+      109
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 104,
+     "badgeOverMap": 0,
+     "dest": "main",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(43, 35, 64) 0px 0px 0px 4px"
+    }
+   },
+   "uphall": {
+    "map": [
+     10,
+     10,
+     68,
+     68
+    ],
+    "down": {
+     "box": [
+      10,
+      74,
+      68,
+      120
+     ],
+     "badge": [
+      42.5,
+      100,
+      70,
+      122
+     ],
+     "glyph": [
+      24,
+      85,
+      54,
+      109
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 104,
+     "badgeOverMap": 0,
+     "dest": "main",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(43, 35, 64) 0px 0px 0px 4px"
+    }
+   },
+   "errors": []
+  },
+  "landSmall": {
+   "kitchen": {
+    "map": [
+     10,
+     10,
+     68,
+     68
+    ],
+    "up": {
+     "box": [
+      10,
+      74,
+      68,
+      118
+     ],
+     "badge": [
+      42.5,
+      98,
+      70,
+      120
+     ],
+     "glyph": [
+      24,
+      84,
+      54,
+      108
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 115,
+     "badgeOverMap": 0,
+     "dest": "up",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(70, 130, 190) 0px 0px 0px 4px",
+     "badgeOverOtherButton": 0
+    },
+    "down": {
+     "box": [
+      10,
+      122,
+      68,
+      166
+     ],
+     "badge": [
+      42.5,
+      146,
+      70,
+      168
+     ],
+     "glyph": [
+      24,
+      132,
+      54,
+      156
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 115,
+     "badgeOverMap": 0,
+     "dest": "down",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(110, 78, 50) 0px 0px 0px 4px",
+     "badgeOverOtherButton": 0
+    }
+   },
+   "den": {
+    "map": [
+     10,
+     10,
+     68,
+     68
+    ],
+    "up": {
+     "box": [
+      10,
+      74,
+      68,
+      118
+     ],
+     "badge": [
+      42.5,
+      98,
+      70,
+      120
+     ],
+     "glyph": [
+      24,
+      84,
+      54,
+      108
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 115,
+     "badgeOverMap": 0,
+     "dest": "main",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(43, 35, 64) 0px 0px 0px 4px"
+    }
+   },
+   "uphall": {
+    "map": [
+     10,
+     10,
+     68,
+     68
+    ],
+    "down": {
+     "box": [
+      10,
+      74,
+      68,
+      118
+     ],
+     "badge": [
+      42.5,
+      98,
+      70,
+      120
+     ],
+     "glyph": [
+      24,
+      84,
+      54,
+      108
+     ],
+     "font": "22px",
+     "centreHitsSelf": true,
+     "badgeOverGlyph": 115,
+     "badgeOverMap": 0,
+     "dest": "main",
+     "shadow": "rgba(0, 0, 0, 0.25) 0px 3px 0px 0px, rgb(43, 35, 64) 0px 0px 0px 4px"
+    }
+   },
+   "errors": []
+  }
+ }
+}

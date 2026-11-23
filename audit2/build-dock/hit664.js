@@ -1,0 +1,6 @@
+const L = require('./lib.js');
+(async () => { for (const [v, top] of [['390x664', 59], ['390x664', 47], ['portSmall', 59]]) { const g = await L.boot({ port: 8896, view: L.viewOf(v), room: 'kitchen', insets: { top, bottom: 34, left: 0, right: 0 } }); await g.calm();
+  await g.ev(() => { G.holding = null; marina.state = 'idle'; miles.crying = false; miles.cryT = 999; for (const e of [mommy, rory, niko]) if (e.room === G.room) e.room = 'yard'; daddy.room = G.room; daddy.hidden = false; daddy.x = marina.x + 120; askRequest('cook'); });
+  await g.page.waitForFunction(() => !document.getElementById('bookBtn').classList.contains('off'), null, { timeout: 9000 }).catch(() => { });
+  const rows = []; for (let i = 0; i < 8; i++) { rows.push(await g.ev(() => ['bookBtn', 'dressBtn', 'reqBtn'].map(id => { const n = document.getElementById(id), b = n.getBoundingClientRect(), t = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return id[0] + ':' + ((t === n || n.contains(t)) ? 'ok' : (t && (t.id || t.className))) + '/pe=' + getComputedStyle(n).pointerEvents + '/an=' + n.getAnimations().length; }).join(' '))); await g.wait(150); }
+  await g.shot(L.OUT + 'shots/hit_' + v + '_' + top + '.png'); console.log(v, top, JSON.stringify(rows), g.errs()); await g.close(); } })();

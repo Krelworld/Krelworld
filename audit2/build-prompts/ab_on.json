@@ -1,0 +1,313 @@
+[
+ {
+  "row": "menu :: gymnastics | qfx49l#1 🤸→🤸",
+  "HEAD": {
+   "(no change)": 4
+  },
+  "MINE": {
+   "(no change)": 3,
+   "state:\"idle\"→\"anim\"": 1
+  },
+  "overlap": true
+ },
+ {
+  "row": "menu :: gymnastics | qfx49l#2 🙃→🙃",
+  "HEAD": {
+   "(no change)": 4
+  },
+  "MINE": {
+   "(no change)": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "menu :: gymnastics | qfx49l#3 🔄→🔄",
+  "HEAD": {
+   "(no change)": 4
+  },
+  "MINE": {
+   "(no change)": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "menu :: gymnastics | qfx49l#5 🧘→🧘",
+  "HEAD": {
+   "(no change)": 4
+  },
+  "MINE": {
+   "(no change)": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "menu :: gymnastics | qfx49l#6 🌀→🌀",
+  "HEAD": {
+   "(no change)": 4
+  },
+  "MINE": {
+   "(no change)": 3,
+   "state:\"idle\"→\"anim\"": 1
+  },
+  "overlap": true
+ },
+ {
+  "row": "menu :: gymnastics | qfx49l#7 ⭐→⭐",
+  "HEAD": {
+   "(no change)": 4
+  },
+  "MINE": {
+   "(no change)": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj backyard/tr_apple | 1ygm7f6#1 🍎→🍎",
+  "HEAD": {
+   "(no change)": 2,
+   "state:\"idle\"→\"cheer\"": 2
+  },
+  "MINE": {
+   "state:\"idle\"→\"cheer\"": 2,
+   "(no change)": 2
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj den/bsofa | ounozi#1 🧗→🧗",
+  "HEAD": {
+   "state:\"idle\"→\"perch\"": 4
+  },
+  "MINE": {
+   "state:\"idle\"→\"perch\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj dining/chair2 | 1a3zqcq#1 🪑→🪑",
+  "HEAD": {
+   "state:\"idle\"→\"sit\"": 4
+  },
+  "MINE": {
+   "state:\"idle\"→\"sit\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj dining/dresser | 1tmr7qh#1 👗→👗",
+  "HEAD": {
+   "panel:null→\"👗\"": 4
+  },
+  "MINE": {
+   "panel:null→\"👗\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj foyer/stairs | sk26k2#1 💺→💺",
+  "HEAD": {
+   "room:\"foyer\"→\"uphall\" state:\"idle\"→\"cheer\"": 4
+  },
+  "MINE": {
+   "room:\"foyer\"→\"uphall\" state:\"idle\"→\"cheer\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj kitchen/fridge | 1tmr7qh#1 🧊→🧊",
+  "HEAD": {
+   "panel:null→\"🧑‍🍳\"": 4
+  },
+  "MINE": {
+   "panel:null→\"🧑‍🍳\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj kitchen/fridge | 1tmr7qh#2 ❄️→❄️",
+  "HEAD": {
+   "panel:null→\"🧑‍🍳\"": 4
+  },
+  "MINE": {
+   "panel:null→\"🧑‍🍳\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj living/dresserw | 1tmr7qh#1 👗→👗",
+  "HEAD": {
+   "panel:null→\"👗\"": 4
+  },
+  "MINE": {
+   "panel:null→\"👗\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj living/tv | 1g8y4d2#6 🚽→🚽",
+  "HEAD": {
+   "state:\"idle\"→\"sit\" tv:false→true": 4
+  },
+  "MINE": {
+   "state:\"idle\"→\"sit\" tv:false→true": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj nunuroom/rack | 1tmr7qh#1 👗→👗",
+  "HEAD": {
+   "panel:null→\"👗\"": 4
+  },
+  "MINE": {
+   "panel:null→\"👗\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj playroom/keys | 1dnhujd#4 🤪→🤪",
+  "HEAD": {
+   "state:\"idle\"→\"cheer\"": 4
+  },
+  "MINE": {
+   "state:\"idle\"→\"cheer\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj storage/shades | 1bu00z4#1 🎩→🎩",
+  "HEAD": {
+   "state:\"idle\"→\"cheer\"": 4
+  },
+  "MINE": {
+   "state:\"idle\"→\"cheer\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj storage/tiles | r3p83j#1 🔷→🔷",
+  "HEAD": {
+   "panel:null→\"🔷\"": 4
+  },
+  "MINE": {
+   "panel:null→\"🔷\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj uphall/ustairs | 1s1fdse#1 💺→💺",
+  "HEAD": {
+   "room:\"uphall\"→\"foyer\" state:\"idle\"→\"cheer\"": 4
+  },
+  "MINE": {
+   "room:\"uphall\"→\"foyer\" state:\"idle\"→\"cheer\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj yard/mbars | 1t3hrpr#1 🐒→🐒",
+  "HEAD": {
+   "state:\"idle\"→\"bars\"": 4
+  },
+  "MINE": {
+   "state:\"idle\"→\"bars\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "self :: in yard | 100ddwm#1 💃→💃",
+  "HEAD": {
+   "state:\"idle\"→\"cheer\"": 4
+  },
+  "MINE": {
+   "state:\"idle\"→\"cheer\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "who miles :: fort built here | qpltx4#1 ✋→✋",
+  "HEAD": {
+   "state:\"idle\"→\"anim\"": 4
+  },
+  "MINE": {
+   "state:\"idle\"→\"anim\"": 3,
+   "(no change)": 1
+  },
+  "overlap": true
+ },
+ {
+  "row": "who miles :: Marina holding a nice dish | qpltx4#1 ✋→✋",
+  "HEAD": {
+   "(no change)": 3,
+   "state:\"idle\"→\"anim\"": 1
+  },
+  "MINE": {
+   "(no change)": 1,
+   "state:\"idle\"→\"anim\"": 3
+  },
+  "overlap": true
+ },
+ {
+  "row": "who miles :: normal | jy3ac3#1 🤗→🤗",
+  "HEAD": {
+   "state:\"idle\"→\"anim\"": 2,
+   "(no change)": 2
+  },
+  "MINE": {
+   "state:\"idle\"→\"anim\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "who mommy :: fort built here | 8y7uyb#1 📱→📱",
+  "HEAD": {
+   "state:\"idle\"→\"sad\"": 3,
+   "panel:null→\"panel\"": 1
+  },
+  "MINE": {
+   "panel:null→\"panel\"": 3,
+   "state:\"idle\"→\"sad\"": 1
+  },
+  "overlap": true
+ },
+ {
+  "row": "who mommy :: Marina holding a nice dish | 8y7uyb#1 📱→📱",
+  "HEAD": {
+   "panel:null→\"panel\"": 4
+  },
+  "MINE": {
+   "panel:null→\"panel\"": 2,
+   "state:\"idle\"→\"sad\"": 2
+  },
+  "overlap": true
+ },
+ {
+  "row": "who niko :: fort built here | 11g728q#1 ✋→✋",
+  "HEAD": {
+   "(no change)": 4
+  },
+  "MINE": {
+   "(no change)": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "who niko :: Marina holding a nice dish | 11g728q#1 ✋→✋",
+  "HEAD": {
+   "(no change)": 4
+  },
+  "MINE": {
+   "(no change)": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "who niko :: Marina holding something | 11g728q#1 ✋→✋",
+  "HEAD": {
+   "(no change)": 4
+  },
+  "MINE": {
+   "(no change)": 4
+  },
+  "overlap": true
+ }
+]

@@ -1,0 +1,49 @@
+{
+ "view": "port",
+ "mins": 15,
+ "off": "G15",
+ "taps": 1460,
+ "kinds": {
+  "rb": 231,
+  "mood": 189,
+  "canvas": 677,
+  "anywhere": 229,
+  "navarrow": 73,
+  "fl": 28,
+  "facecard": 25,
+  "act": 4,
+  "alertb": 4
+ },
+ "moodTaps": 189,
+ "deadMoodTaps": 112,
+ "blipCalls": 786,
+ "reachedGame": 786,
+ "skipped": 0,
+ "skippedAreDeadMoodBlips": 0,
+ "skippedOther": [],
+ "nope": 0,
+ "nopeSkipped": 0,
+ "bySig": {
+  "0": 1,
+  "9,triangle,0.06,0.12": 99,
+  "12,square,0.08": 207,
+  "4,triangle,0.04,0.05": 1,
+  "12,triangle,0.06,0.12": 8,
+  "7,triangle,0.05,0.08": 240,
+  "16,sine,0.12,0.08": 13,
+  "2,triangle,0.07,0.1": 20,
+  "7,triangle,0.07,0.1": 22,
+  "4,triangle,0.06,0.12": 11,
+  "4,triangle,0.07,0.1": 25,
+  "9,triangle,0.06,0.1": 88,
+  "12,sine,0.12,0.08": 6,
+  "19,sine,0.12,0.08": 13,
+  "0,triangle,0.07,0.1": 21,
+  "14,square,0.05,0.1": 9,
+  "-7,sine,0.3,0.05": 1,
+  "12,sine,0.04,0.04": 1
+ },
+ "errors": [
+  "error: Ignored attempt to cancel a touchstart event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
+ ]
+}

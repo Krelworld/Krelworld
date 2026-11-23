@@ -1,0 +1,26 @@
+{
+ "on": {
+  "hides": 20,
+  "found": 20,
+  "farMews": 41,
+  "with3": 41,
+  "none": 0,
+  "firstSideWrong": 0,
+  "wrongCases": [],
+  "meanFoundS": 19.9,
+  "medianFoundS": 17.2,
+  "pawShare": 1
+ },
+ "off": {
+  "hides": 20,
+  "found": 20,
+  "farMews": 43,
+  "with3": 21,
+  "none": 22,
+  "firstSideWrong": 0,
+  "wrongCases": [],
+  "meanFoundS": 21.4,
+  "medianFoundS": 19.2,
+  "pawShare": 0.49
+ }
+}

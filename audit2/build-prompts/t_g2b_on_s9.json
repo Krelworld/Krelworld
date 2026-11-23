@@ -1,0 +1,65 @@
+{
+ "minkaStudio": {
+  "spot": "boxes",
+  "hiddenAt": 7.7459999999999924,
+  "studioOpen40s": {
+   "cues": 0,
+   "mews": 0,
+   "paws": 0
+  },
+  "freePlay30sAfter": {
+   "cues": 9,
+   "mews": 2,
+   "paws": 6
+  },
+  "hideEndedAfterTuckS": 100.2,
+  "errors": []
+ },
+ "minkaFreePlaySameRoom60s": {
+  "cues": 16,
+  "mews": 7,
+  "paws": 0,
+  "stillHiding": true,
+  "errors": []
+ },
+ "minkaFreePlayFarRoom60s": {
+  "cues": 17,
+  "mews": 3,
+  "paws": 9,
+  "farMews": 3,
+  "errors": []
+ },
+ "upstairs_studio": {
+  "arrivalsWhileOpen60s": 0,
+  "arrivalsFirst60sAfterClose": [
+   [
+    11.9,
+    "daddy"
+   ]
+  ],
+  "errors": []
+ },
+ "upstairs_story": {
+  "arrivalsWhileOpen60s": 0,
+  "arrivalsFirst60sAfterClose": [
+   [
+    11.7,
+    "mommy"
+   ],
+   [
+    50.7,
+    "daddy"
+   ]
+  ],
+  "errors": []
+ },
+ "upstairs_freePlay_secondsToVisit": {
+  "gaps": [
+   32.6,
+   21.6,
+   21.6,
+   9.6
+  ],
+  "errors": []
+ }
+}

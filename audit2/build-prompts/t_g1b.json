@@ -1,0 +1,22 @@
+{
+ "on request": {
+  "secondsAfterLastTouch": 6.5,
+  "tapCountedAsInput": true,
+  "errors": []
+ },
+ "on wish": {
+  "secondsAfterLastTouch": 30.5,
+  "tapCountedAsInput": true,
+  "errors": []
+ },
+ "off request": {
+  "secondsAfterLastTouch": 8,
+  "tapCountedAsInput": true,
+  "errors": []
+ },
+ "off wish": {
+  "secondsAfterLastTouch": 30.5,
+  "tapCountedAsInput": true,
+  "errors": []
+ }
+}

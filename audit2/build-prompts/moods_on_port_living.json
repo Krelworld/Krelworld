@@ -1,0 +1,102 @@
+[
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "love",
+  "who": "mommy,miles",
+  "deadTaps": 0,
+  "firstWorkingTapMs": 1220,
+  "busyEndedByMs": null,
+  "arrowsHiddenSamples": 1
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "happy",
+  "who": "mommy,miles",
+  "deadTaps": 2,
+  "firstWorkingTapMs": 2806,
+  "busyEndedByMs": null,
+  "arrowsHiddenSamples": 3
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "sad",
+  "who": "mommy,miles",
+  "deadTaps": 6,
+  "firstWorkingTapMs": 8365,
+  "busyEndedByMs": 7014,
+  "arrowsHiddenSamples": 6
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "angry",
+  "who": "mommy,miles",
+  "deadTaps": 6,
+  "firstWorkingTapMs": 8229,
+  "busyEndedByMs": 7717,
+  "arrowsHiddenSamples": 6
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "tantrum",
+  "who": "mommy,miles",
+  "deadTaps": 6,
+  "firstWorkingTapMs": 6236,
+  "busyEndedByMs": 5675,
+  "arrowsHiddenSamples": 7
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "love",
+  "who": "mommy,miles",
+  "deadTaps": 0,
+  "firstWorkingTapMs": 916,
+  "busyEndedByMs": null,
+  "arrowsHiddenSamples": 1
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "happy",
+  "who": "mommy,miles",
+  "deadTaps": 2,
+  "firstWorkingTapMs": 2623,
+  "busyEndedByMs": null,
+  "arrowsHiddenSamples": 3
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "sad",
+  "who": "mommy,miles,niko",
+  "deadTaps": 14,
+  "firstWorkingTapMs": 12790,
+  "busyEndedByMs": 12239,
+  "arrowsHiddenSamples": 15
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "angry",
+  "who": "mommy,miles,niko",
+  "deadTaps": 7,
+  "firstWorkingTapMs": 8359,
+  "busyEndedByMs": 7944,
+  "arrowsHiddenSamples": 7
+ },
+ {
+  "view": "port",
+  "room": "living",
+  "mood": "tantrum",
+  "who": "mommy,miles,niko",
+  "deadTaps": 5,
+  "firstWorkingTapMs": 5919,
+  "busyEndedByMs": null,
+  "arrowsHiddenSamples": 6
+ }
+]

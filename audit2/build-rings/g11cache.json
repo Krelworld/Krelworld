@@ -1,0 +1,40 @@
+{
+ "port": {
+  "visit": true,
+  "arrowsOff": "navarrow l off|navarrow r off tabBefore={} phase=enter",
+  "arrowsDuring": "navarrow l off|navarrow r off",
+  "builtWhileBusy": {
+   "x": 904,
+   "y": 86
+  },
+  "afterScene": {
+   "x": 927,
+   "y": 140,
+   "cx": 32,
+   "cy": 346,
+   "el": "cv",
+   "underArrow": [],
+   "arrows": "navarrow l|navarrow r off"
+  },
+  "errors": []
+ },
+ "land": {
+  "visit": true,
+  "arrowsOff": "navarrow l off|navarrow r off tabBefore={} phase=enter",
+  "arrowsDuring": "navarrow l off|navarrow r off",
+  "builtWhileBusy": {
+   "x": 740,
+   "y": 86
+  },
+  "afterScene": {
+   "x": 751,
+   "y": 66,
+   "cx": 34,
+   "cy": 103,
+   "el": "cv",
+   "underArrow": [],
+   "arrows": "navarrow l|navarrow r off"
+  },
+  "errors": []
+ }
+}

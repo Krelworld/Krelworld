@@ -1,0 +1,92 @@
+{
+ "twoCalls_septicTold_false": {
+  "all": [
+   "m_hi_nunu@9.2",
+   "m_hi_nunu@9.5"
+  ],
+  "nunuHello": [],
+  "marinaReply": [
+   "m_hi_nunu@9.2",
+   "m_hi_nunu@9.5"
+  ],
+  "greetCtx": [
+   "nunu"
+  ],
+  "errors": []
+ },
+ "twoCalls_septicTold_true": {
+  "all": [
+   "nu_septic_thanks@11.8",
+   "m_hi_nunu@12.1"
+  ],
+  "nunuHello": [],
+  "marinaReply": [
+   "nu_septic_thanks@11.8",
+   "m_hi_nunu@12.1"
+  ],
+  "greetCtx": [
+   "nunu"
+  ],
+  "errors": []
+ },
+ "backyardThenDen": {
+  "room": "den",
+  "t1": 6,
+  "jeff": [
+   "j_hi3@7.7",
+   "m_hi_jeff@10.3"
+  ],
+  "nunu": [
+   "nu_hi2@12.2",
+   "m_hi_nunu@14.8"
+  ],
+  "errors": []
+ },
+ "upstairsHeldBack": {
+  "firstArrival": [
+   20.2,
+   "daddy"
+  ],
+  "helloLines": [
+   "d_hi3@29.4"
+  ],
+  "facedHer": false,
+  "lastGreetUnchanged": false,
+  "arrivalsWithin30sWhilePresent": 2,
+  "visitAfterTheyLeftS": 0.2,
+  "arrivals": [
+   [
+    26.5,
+    "daddy",
+    ""
+   ],
+   [
+    38.5,
+    "mommy",
+    ""
+   ],
+   [
+    63.5,
+    "daddy",
+    ""
+   ]
+  ],
+  "allVoices": [
+   "d_hi3@29.4",
+   "mo_hi1@41.3"
+  ],
+  "oerb": [
+   "daddy:greeted",
+   "mommy:greeted"
+  ],
+  "errors": []
+ },
+ "ownEntries30sRule": {
+  "hellosAtEntries_0_23_47s": [
+   1,
+   0,
+   1
+  ],
+  "errors": []
+ }
+}

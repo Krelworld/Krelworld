@@ -1,0 +1,55 @@
+{
+ "G35": {
+  "on": true,
+  "off": false,
+  "onAgain": true
+ },
+ "G38": {
+  "on": "rgba(110, 78, 50, 0.82) dest=main,-",
+  "off": "rgba(92, 70, 48, 0.78) dest=-,- shadow=rgba(0, 0, 0, 0.25) 0px 3px 0px 0px",
+  "onAgain": "rgba(110, 78, 50, 0.82) dest=main,-"
+ },
+ "G36": {
+  "on": "22px",
+  "off": "17px 🛏️ strip:🛏️",
+  "onAgain": "22px 👵 strip:👵"
+ },
+ "G37": {
+  "on": {
+   "moved": true,
+   "spacers": 2,
+   "faces": 1,
+   "ppl": 2,
+   "lines": 7,
+   "dots": 1,
+   "rows": "⬇️🌳🏡",
+   "hereAnim": "cm-g37-here"
+  },
+  "off": {
+   "moved": false,
+   "spacers": 0,
+   "faces": 0,
+   "ppl": 0,
+   "lines": 0,
+   "dots": 0,
+   "rows": "⬆️⬇️🌳🏡",
+   "hereAnim": "none"
+  },
+  "onAgain": {
+   "moved": true,
+   "spacers": 2,
+   "faces": 0,
+   "ppl": 0,
+   "lines": 0,
+   "dots": 1,
+   "rows": "⬇️🌳🏡",
+   "hereAnim": "cm-g37-here"
+  }
+ },
+ "G39": {
+  "on": "translateY(-30%)",
+  "off": "translateX(0%)",
+  "onAgain": "translateY(-30%)"
+ },
+ "errors": []
+}

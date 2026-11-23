@@ -1,0 +1,60 @@
+{
+ "pulse": {
+  "started": true,
+  "sceneAtTap": true,
+  "mid": {
+   "transform": "matrix(1.00089, -0.0316056, 0.0316056, 1.00089, 0, 0)",
+   "translate": "1.328px",
+   "anims": [
+    "pulse:running",
+    "waapi:running"
+   ],
+   "opacity": "0.45"
+  },
+  "bar": "none pulse=true",
+  "after": {
+   "transform": "matrix(1.04006, -0.0293944, 0.0293944, 1.04006, 0, 0)",
+   "translate": "none",
+   "anims": [
+    "pulse:running"
+   ],
+   "opacity": "0.45"
+  },
+  "nope": 1,
+  "skipped": [
+   [
+    12,
+    "square",
+    0.08
+   ]
+  ],
+  "mood": "sad"
+ },
+ "req": {
+  "started": true,
+  "sceneAtTap": true,
+  "look": "0.45 grayscale(0.7)",
+  "tapped": true,
+  "shakes": 1,
+  "nope": 1,
+  "post": {
+   "req": true,
+   "room": "living"
+  },
+  "pre": {
+   "req": true,
+   "room": "living"
+  }
+ },
+ "map": {
+  "started": true,
+  "during": {
+   "scene": true,
+   "app": "cm-strip cm-mood cm-alert",
+   "o": "1",
+   "f": "none"
+  },
+  "opened": true
+ },
+ "errors": []
+}

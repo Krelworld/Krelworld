@@ -1,0 +1,14 @@
+{
+ "HEAD": [
+  "button:1 menu:true thanked:true at:dining/170/idle/busy:false",
+  "button:1 menu:true thanked:true at:dining/170/idle/busy:false",
+  "button:1 menu:true thanked:true at:dining/170/idle/busy:false",
+  "button:1 menu:true thanked:true at:dining/170/idle/busy:false"
+ ],
+ "mine": [
+  "button:1 menu:true thanked:true at:dining/170/idle/busy:false",
+  "button:1 menu:true thanked:true at:dining/170/idle/busy:false",
+  "button:1 menu:true thanked:true at:dining/170/idle/busy:false",
+  "button:1 menu:true thanked:true at:dining/170/idle/busy:false"
+ ]
+}

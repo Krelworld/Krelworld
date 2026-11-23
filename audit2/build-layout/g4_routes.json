@@ -1,0 +1,908 @@
+{
+ "land TODAY": {
+  "strip": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 132.1,
+    "viewW": 335.81,
+    "mx": 300,
+    "snap": 132.1,
+    "zoom": 1.16
+   },
+   "firstZoom": 1.16,
+   "finalZoom": 1.16,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 514,
+   "firstCamX": 133.29,
+   "snapWanted": 132.09,
+   "glidePxAfterArrival": 7,
+   "tvon": false
+  },
+  "arrow": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 132.1,
+    "viewW": 335.81,
+    "mx": 300,
+    "snap": 132.1,
+    "zoom": 1.16
+   },
+   "firstZoom": 1.16,
+   "finalZoom": 1.16,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 377,
+   "firstCamX": 132.49,
+   "snapWanted": 132.09,
+   "glidePxAfterArrival": 9,
+   "tvon": false
+  },
+  "swipe": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 0,
+    "viewW": 335.81,
+    "mx": 14,
+    "snap": 0,
+    "zoom": 1.16
+   },
+   "firstZoom": 1.16,
+   "finalZoom": 1.16,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 424,
+   "firstCamX": -2.46,
+   "snapWanted": 0,
+   "glidePxAfterArrival": 56,
+   "tvon": false
+  },
+  "map": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 132.1,
+    "viewW": 335.81,
+    "mx": 300,
+    "snap": 132.1,
+    "zoom": 1.16
+   },
+   "firstZoom": 1.16,
+   "finalZoom": 1.16,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 427,
+   "firstCamX": 132.49,
+   "snapWanted": 132.09,
+   "glidePxAfterArrival": 9,
+   "tvon": false
+  },
+  "walk-edge": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 0,
+    "viewW": 335.81,
+    "mx": 14,
+    "snap": 0,
+    "zoom": 1.16
+   },
+   "firstZoom": 1.16,
+   "finalZoom": 1.16,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 271,
+   "firstCamX": -2.47,
+   "snapWanted": 0,
+   "glidePxAfterArrival": 56,
+   "tvon": false
+  },
+  "travelTo": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 132.1,
+    "viewW": 335.81,
+    "mx": 300,
+    "snap": 132.1,
+    "zoom": 1.16
+   },
+   "firstZoom": 1.16,
+   "finalZoom": 1.16,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 13,
+   "firstCamX": 132.49,
+   "snapWanted": 132.09,
+   "glidePxAfterArrival": 9,
+   "tvon": false
+  },
+  "leave": 1.16,
+  "walkSeq": "living:1.16 foyer:1.16 living:1.16",
+  "tvOff0": {
+   "tvon": false,
+   "strip": "1",
+   "pill": "1",
+   "zoom": 1.16
+  },
+  "tvOn": {
+   "tvon": true,
+   "strip": "0",
+   "pill": "0",
+   "zoom": 1
+  },
+  "tvOff": {
+   "tvon": false,
+   "strip": "1",
+   "pill": "1",
+   "zoom": 1.16
+  },
+  "rotPortrait": 1,
+  "rotBack": {
+   "zoom": 1.16,
+   "cvw": 844,
+   "stageW": 844
+  },
+  "errors": []
+ },
+ "land G4": {
+  "strip": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 105.23,
+    "viewW": 389.54,
+    "mx": 300,
+    "snap": 105.23,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 321,
+   "firstCamX": 105.69,
+   "snapWanted": 105.23,
+   "glidePxAfterArrival": 9,
+   "tvon": false
+  },
+  "arrow": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 105.23,
+    "viewW": 389.54,
+    "mx": 300,
+    "snap": 105.23,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 54,
+   "firstCamX": 105.69,
+   "snapWanted": 105.23,
+   "glidePxAfterArrival": 9,
+   "tvon": false
+  },
+  "swipe": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 0,
+    "viewW": 389.54,
+    "mx": 14,
+    "snap": 0,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 467,
+   "firstCamX": -2.85,
+   "snapWanted": 0,
+   "glidePxAfterArrival": 56,
+   "tvon": false
+  },
+  "map": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 105.23,
+    "viewW": 389.54,
+    "mx": 300,
+    "snap": 105.23,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 447,
+   "firstCamX": 105.69,
+   "snapWanted": 105.23,
+   "glidePxAfterArrival": 9,
+   "tvon": false
+  },
+  "walk-edge": {
+   "arrived": false
+  },
+  "travelTo": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 105.23,
+    "viewW": 389.54,
+    "mx": 300,
+    "snap": 105.23,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 26,
+   "firstCamX": 106.62,
+   "snapWanted": 105.23,
+   "glidePxAfterArrival": 7,
+   "tvon": false
+  },
+  "leave": 1.16,
+  "walkSeq": "living:1.00 foyer:1.16 living:1.00",
+  "tvOff0": {
+   "tvon": false,
+   "strip": "1",
+   "pill": "1",
+   "zoom": 1
+  },
+  "tvOn": {
+   "tvon": true,
+   "strip": "0",
+   "pill": "0",
+   "zoom": 1
+  },
+  "tvOff": {
+   "tvon": false,
+   "strip": "1",
+   "pill": "1",
+   "zoom": 1
+  },
+  "rotPortrait": 1,
+  "rotBack": {
+   "zoom": 1,
+   "cvw": 844,
+   "stageW": 844
+  },
+  "errors": []
+ },
+ "land G4+G19": {
+  "strip": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 123,
+    "viewW": 354,
+    "mx": 300,
+    "snap": 123,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 469,
+   "firstCamX": 121.71,
+   "snapWanted": 123,
+   "glidePxAfterArrival": 25,
+   "tvon": false
+  },
+  "arrow": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 123,
+    "viewW": 354,
+    "mx": 300,
+    "snap": 123,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 128,
+   "firstCamX": 121.71,
+   "snapWanted": 123,
+   "glidePxAfterArrival": 25,
+   "tvon": false
+  },
+  "swipe": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 0,
+    "viewW": 354,
+    "mx": 14,
+    "snap": 0,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 649,
+   "firstCamX": -2.87,
+   "snapWanted": 0,
+   "glidePxAfterArrival": 56,
+   "tvon": false
+  },
+  "map": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 123,
+    "viewW": 354,
+    "mx": 300,
+    "snap": 123,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 859,
+   "firstCamX": 119.12,
+   "snapWanted": 123,
+   "glidePxAfterArrival": 20,
+   "tvon": false
+  },
+  "walk-edge": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 0,
+    "viewW": 354,
+    "mx": 14,
+    "snap": 0,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 304,
+   "firstCamX": -2.85,
+   "snapWanted": 0,
+   "glidePxAfterArrival": 56,
+   "tvon": false
+  },
+  "travelTo": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 123,
+    "viewW": 354,
+    "mx": 300,
+    "snap": 123,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 194,
+   "firstCamX": 121.71,
+   "snapWanted": 123,
+   "glidePxAfterArrival": 25,
+   "tvon": false
+  },
+  "leave": 1.16,
+  "walkSeq": "living:1.00 foyer:1.16 living:1.00",
+  "tvOff0": {
+   "tvon": false,
+   "strip": "1",
+   "pill": "1",
+   "zoom": 1
+  },
+  "tvOn": {
+   "tvon": true,
+   "strip": "0",
+   "pill": "0",
+   "zoom": 1
+  },
+  "tvOff": {
+   "tvon": false,
+   "strip": "1",
+   "pill": "1",
+   "zoom": 1
+  },
+  "rotPortrait": 1,
+  "rotBack": {
+   "zoom": 1,
+   "cvw": 767,
+   "stageW": 767
+  },
+  "errors": []
+ },
+ "landSmall TODAY": {
+  "strip": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 162,
+    "viewW": 276,
+    "mx": 300,
+    "snap": 162,
+    "zoom": 1.16
+   },
+   "firstZoom": 1.16,
+   "finalZoom": 1.16,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 511,
+   "firstCamX": 163.24,
+   "snapWanted": 162,
+   "glidePxAfterArrival": 7,
+   "tvon": false
+  },
+  "arrow": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 162,
+    "viewW": 276,
+    "mx": 300,
+    "snap": 162,
+    "zoom": 1.16
+   },
+   "firstZoom": 1.16,
+   "finalZoom": 1.16,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 139,
+   "firstCamX": 162.41,
+   "snapWanted": 162,
+   "glidePxAfterArrival": 9,
+   "tvon": false
+  },
+  "swipe": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 0,
+    "viewW": 276,
+    "mx": 14,
+    "snap": 0,
+    "zoom": 1.16
+   },
+   "firstZoom": 1.16,
+   "finalZoom": 1.16,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 748,
+   "firstCamX": -2.56,
+   "snapWanted": 0,
+   "glidePxAfterArrival": 56,
+   "tvon": false
+  },
+  "map": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 162,
+    "viewW": 276,
+    "mx": 300,
+    "snap": 162,
+    "zoom": 1.16
+   },
+   "firstZoom": 1.16,
+   "finalZoom": 1.16,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 788,
+   "firstCamX": 163.24,
+   "snapWanted": 162,
+   "glidePxAfterArrival": 7,
+   "tvon": false
+  },
+  "walk-edge": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 0,
+    "viewW": 276,
+    "mx": 14,
+    "snap": 0,
+    "zoom": 1.16
+   },
+   "firstZoom": 1.16,
+   "finalZoom": 1.16,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 412,
+   "firstCamX": -2.56,
+   "snapWanted": 0,
+   "glidePxAfterArrival": 56,
+   "tvon": false
+  },
+  "travelTo": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 162,
+    "viewW": 276,
+    "mx": 300,
+    "snap": 162,
+    "zoom": 1.16
+   },
+   "firstZoom": 1.16,
+   "finalZoom": 1.16,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 28,
+   "firstCamX": 162.41,
+   "snapWanted": 162,
+   "glidePxAfterArrival": 9,
+   "tvon": false
+  },
+  "leave": 1.16,
+  "walkSeq": "living:1.16 foyer:1.16 living:1.16",
+  "tvOff0": {
+   "tvon": false,
+   "strip": "1",
+   "pill": "1",
+   "zoom": 1.16
+  },
+  "tvOn": {
+   "tvon": true,
+   "strip": "1",
+   "pill": "1",
+   "zoom": 1
+  },
+  "tvOff": {
+   "tvon": false,
+   "strip": "1",
+   "pill": "1",
+   "zoom": 1.16
+  },
+  "rotPortrait": 1,
+  "rotBack": {
+   "zoom": 1.16,
+   "cvw": 667,
+   "stageW": 667
+  },
+  "errors": []
+ },
+ "landSmall G4": {
+  "strip": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 139.92,
+    "viewW": 320.16,
+    "mx": 300,
+    "snap": 139.92,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 192,
+   "firstCamX": 140.4,
+   "snapWanted": 139.92,
+   "glidePxAfterArrival": 9,
+   "tvon": false
+  },
+  "arrow": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 139.92,
+    "viewW": 320.16,
+    "mx": 300,
+    "snap": 139.92,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 181,
+   "firstCamX": 140.4,
+   "snapWanted": 139.92,
+   "glidePxAfterArrival": 9,
+   "tvon": false
+  },
+  "swipe": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 0,
+    "viewW": 320.16,
+    "mx": 14,
+    "snap": 0,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 775,
+   "firstCamX": -2.96,
+   "snapWanted": 0,
+   "glidePxAfterArrival": 56,
+   "tvon": false
+  },
+  "map": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 139.92,
+    "viewW": 320.16,
+    "mx": 300,
+    "snap": 139.92,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 1732,
+   "firstCamX": 141.36,
+   "snapWanted": 139.92,
+   "glidePxAfterArrival": 7,
+   "tvon": false
+  },
+  "walk-edge": {
+   "arrived": false
+  },
+  "travelTo": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 139.92,
+    "viewW": 320.16,
+    "mx": 300,
+    "snap": 139.92,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 9,
+   "firstCamX": 140.4,
+   "snapWanted": 139.92,
+   "glidePxAfterArrival": 9,
+   "tvon": false
+  },
+  "leave": 1.16,
+  "walkSeq": "living:1.00 foyer:1.16 living:1.00",
+  "tvOff0": {
+   "tvon": false,
+   "strip": "1",
+   "pill": "1",
+   "zoom": 1
+  },
+  "tvOn": {
+   "tvon": true,
+   "strip": "0",
+   "pill": "0",
+   "zoom": 1
+  },
+  "tvOff": {
+   "tvon": false,
+   "strip": "1",
+   "pill": "1",
+   "zoom": 1
+  },
+  "rotPortrait": 1,
+  "rotBack": {
+   "zoom": 1,
+   "cvw": 667,
+   "stageW": 667
+  },
+  "errors": []
+ },
+ "landSmall G4+G19": {
+  "strip": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 157.92,
+    "viewW": 284.16,
+    "mx": 300,
+    "snap": 157.92,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 596,
+   "firstCamX": 156.58,
+   "snapWanted": 157.92,
+   "glidePxAfterArrival": 25,
+   "tvon": false
+  },
+  "arrow": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 157.92,
+    "viewW": 284.16,
+    "mx": 300,
+    "snap": 157.92,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 156,
+   "firstCamX": 156.57,
+   "snapWanted": 157.92,
+   "glidePxAfterArrival": 25,
+   "tvon": false
+  },
+  "swipe": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 0,
+    "viewW": 284.16,
+    "mx": 14,
+    "snap": 0,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 564,
+   "firstCamX": -2.98,
+   "snapWanted": 0,
+   "glidePxAfterArrival": 56,
+   "tvon": false
+  },
+  "map": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 157.92,
+    "viewW": 284.16,
+    "mx": 300,
+    "snap": 157.92,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 705,
+   "firstCamX": 153.89,
+   "snapWanted": 157.92,
+   "glidePxAfterArrival": 20,
+   "tvon": false
+  },
+  "walk-edge": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 0,
+    "viewW": 284.16,
+    "mx": 14,
+    "snap": 0,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 330,
+   "firstCamX": -8.93,
+   "snapWanted": 0,
+   "glidePxAfterArrival": 43,
+   "tvon": false
+  },
+  "travelTo": {
+   "arrived": true,
+   "atRoomEvent": {
+    "room": "living",
+    "camX": 157.92,
+    "viewW": 284.16,
+    "mx": 300,
+    "snap": 157.92,
+    "zoom": 1
+   },
+   "firstZoom": 1,
+   "finalZoom": 1,
+   "framesAtOtherZoom": 0,
+   "msToFinalZoom": 20,
+   "firstCamX": 156.57,
+   "snapWanted": 157.92,
+   "glidePxAfterArrival": 25,
+   "tvon": false
+  },
+  "leave": 1.16,
+  "walkSeq": "living:1.00 foyer:1.16 living:1.00",
+  "tvOff0": {
+   "tvon": false,
+   "strip": "1",
+   "pill": "1",
+   "zoom": 1
+  },
+  "tvOn": {
+   "tvon": true,
+   "strip": "0",
+   "pill": "0",
+   "zoom": 1
+  },
+  "tvOff": {
+   "tvon": false,
+   "strip": "1",
+   "pill": "1",
+   "zoom": 1
+  },
+  "rotPortrait": 1,
+  "rotBack": {
+   "zoom": 1,
+   "cvw": 592,
+   "stageW": 592
+  },
+  "errors": []
+ },
+ "start land TODAY living": {
+  "room": "living",
+  "finalZoom": 1.16,
+  "msToFinalZoom": 2,
+  "visibleFrames": 11,
+  "visibleFramesAtOtherZoom": 0
+ },
+ "start land TODAY kitchen": {
+  "room": "kitchen",
+  "finalZoom": 1.16,
+  "msToFinalZoom": 11,
+  "visibleFrames": 24,
+  "visibleFramesAtOtherZoom": 0
+ },
+ "start land G4+G19 living": {
+  "room": "living",
+  "finalZoom": 1,
+  "msToFinalZoom": 268,
+  "visibleFrames": 10,
+  "visibleFramesAtOtherZoom": 0
+ },
+ "start land G4+G19 kitchen": {
+  "room": "kitchen",
+  "finalZoom": 1.16,
+  "msToFinalZoom": 1110,
+  "visibleFrames": 10,
+  "visibleFramesAtOtherZoom": 0
+ },
+ "start landSmall TODAY living": {
+  "room": "living",
+  "finalZoom": 1.16,
+  "msToFinalZoom": 11,
+  "visibleFrames": 41,
+  "visibleFramesAtOtherZoom": 0
+ },
+ "start landSmall TODAY kitchen": {
+  "room": "kitchen",
+  "finalZoom": 1.16,
+  "msToFinalZoom": 11,
+  "visibleFrames": 50,
+  "visibleFramesAtOtherZoom": 0
+ },
+ "start landSmall G4+G19 living": {
+  "room": "living",
+  "finalZoom": 1,
+  "msToFinalZoom": 1,
+  "visibleFrames": 37,
+  "visibleFramesAtOtherZoom": 0
+ },
+ "start landSmall G4+G19 kitchen": {
+  "room": "kitchen",
+  "finalZoom": 1.16,
+  "msToFinalZoom": 403,
+  "visibleFrames": 45,
+  "visibleFramesAtOtherZoom": 0
+ },
+ "portrait port TODAY": {
+  "living": 1,
+  "kitchen": 1
+ },
+ "portrait port G4+G19": {
+  "living": 1,
+  "kitchen": 1
+ },
+ "portrait portSmall TODAY": {
+  "living": 1,
+  "kitchen": 1
+ },
+ "portrait portSmall G4+G19": {
+  "living": 1,
+  "kitchen": 1
+ },
+ "portrait 375x553 TODAY": {
+  "living": 1.16,
+  "kitchen": 1.16
+ },
+ "portrait 375x553 G4+G19": {
+  "living": 1.16,
+  "kitchen": 1.16
+ }
+}

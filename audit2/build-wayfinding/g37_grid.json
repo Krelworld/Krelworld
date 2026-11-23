@@ -1,0 +1,65 @@
+{
+ "port": {
+  "kitchen": {
+   "points": 26180,
+   "differ": 0,
+   "lenSame": true
+  },
+  "den": {
+   "points": 26180,
+   "differ": 0,
+   "lenSame": true
+  },
+  "playroom": {
+   "points": 26180,
+   "differ": 0,
+   "lenSame": true
+  },
+  "errors": [
+   [],
+   []
+  ]
+ },
+ "land": {
+  "kitchen": {
+   "points": 15805,
+   "differ": 0,
+   "lenSame": true
+  },
+  "den": {
+   "points": 15805,
+   "differ": 0,
+   "lenSame": true
+  },
+  "playroom": {
+   "points": 15805,
+   "differ": 0,
+   "lenSame": true
+  },
+  "errors": [
+   [],
+   []
+  ]
+ },
+ "portSmall": {
+  "kitchen": {
+   "points": 24165,
+   "differ": 0,
+   "lenSame": true
+  },
+  "den": {
+   "points": 24165,
+   "differ": 0,
+   "lenSame": true
+  },
+  "playroom": {
+   "points": 24165,
+   "differ": 0,
+   "lenSame": true
+  },
+  "errors": [
+   [],
+   []
+  ]
+ }
+}

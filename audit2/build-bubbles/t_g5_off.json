@@ -1,0 +1,1924 @@
+{
+ "views": {
+  "port": {
+   "cases": [
+    {
+     "nAlerts": 0,
+     "y": 150,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        146,
+        148,
+        203,
+        188
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        254,
+        148,
+        312,
+        188
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 164,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        141,
+        183,
+        198,
+        223
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        249,
+        183,
+        307,
+        223
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 178,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        141,
+        217,
+        198,
+        257
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        249,
+        217,
+        307,
+        257
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 150,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        141,
+        148,
+        198,
+        188
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        249,
+        148,
+        307,
+        188
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 164,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        141,
+        183,
+        198,
+        223
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        249,
+        183,
+        307,
+        223
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 178,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        169,
+        237,
+        169,
+        237
+       ],
+       "translate": "",
+       "centreTop": "#cv",
+       "hits": [],
+       "bottomMinusHead": 20,
+       "centreXminusSpeaker": 28
+      },
+      {
+       "who": "mommy",
+       "box": [
+        278,
+        237,
+        278,
+        237
+       ],
+       "translate": "",
+       "centreTop": "#cv",
+       "hits": [],
+       "bottomMinusHead": 25,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 150,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        141,
+        148,
+        198,
+        188
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        249,
+        148,
+        307,
+        188
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 164,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        141,
+        183,
+        198,
+        223
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        249,
+        183,
+        307,
+        223
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 178,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        141,
+        217,
+        198,
+        257
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        249,
+        217,
+        307,
+        257
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 150,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        141,
+        148,
+        198,
+        188
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        249,
+        148,
+        307,
+        188
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 164,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        141,
+        183,
+        198,
+        223
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        249,
+        183,
+        307,
+        223
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 178,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        141,
+        217,
+        198,
+        257
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        249,
+        217,
+        307,
+        257
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    }
+   ],
+   "jitter": {
+    "translates": [
+     ""
+    ],
+    "maxStepPx": 0,
+    "frames": 56
+   },
+   "walk": {
+    "maxStepX": 4.94,
+    "maxStepY": 0,
+    "frames": 84
+   },
+   "big": {
+    "centreOff": [
+     56,
+     54
+    ],
+    "box": [
+     195,
+     178,
+     307,
+     287
+    ],
+    "pe": "none",
+    "anim": "pop",
+    "translate": "",
+    "transform": "translate(-50%, -50%)",
+    "alerts": [
+     {
+      "a": "miles",
+      "top": true,
+      "overlapsIcon": false
+     },
+     {
+      "a": "poop",
+      "top": true,
+      "overlapsIcon": false
+     }
+    ]
+   },
+   "errors": []
+  },
+  "land": {
+   "cases": [
+    {
+     "nAlerts": 0,
+     "y": 150,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        367,
+        88,
+        424,
+        128
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        477,
+        88,
+        535,
+        128
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 164,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        367,
+        124,
+        424,
+        164
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        477,
+        124,
+        535,
+        164
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 178,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        367,
+        159,
+        424,
+        199
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        477,
+        159,
+        535,
+        199
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 150,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        367,
+        88,
+        424,
+        128
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[miles]:1560"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        477,
+        88,
+        535,
+        128
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 164,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        367,
+        124,
+        424,
+        164
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [
+        ".alertb[miles]:280"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        477,
+        124,
+        535,
+        164
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 178,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        367,
+        159,
+        424,
+        199
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        477,
+        159,
+        535,
+        199
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 150,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        367,
+        88,
+        424,
+        128
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[miles]:2080"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        477,
+        88,
+        535,
+        128
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [
+        ".alertb[poop]:680"
+       ],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 164,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        367,
+        124,
+        424,
+        164
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [
+        ".alertb[miles]:715",
+        ".alertb[poop]:12"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        477,
+        124,
+        535,
+        164
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [
+        ".alertb[poop]:240"
+       ],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 178,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        367,
+        159,
+        424,
+        199
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        477,
+        159,
+        535,
+        199
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 150,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        395,
+        108,
+        395,
+        108
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [],
+       "bottomMinusHead": 20,
+       "centreXminusSpeaker": 28
+      },
+      {
+       "who": "mommy",
+       "box": [
+        506,
+        108,
+        506,
+        108
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [],
+       "bottomMinusHead": 25,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 164,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        384,
+        135,
+        407,
+        152
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 28,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        494,
+        135,
+        518,
+        152
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 33,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 178,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        367,
+        159,
+        424,
+        199
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        477,
+        159,
+        535,
+        199
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    }
+   ],
+   "jitter": {
+    "translates": [
+     ""
+    ],
+    "maxStepPx": 4.54,
+    "frames": 83
+   },
+   "walk": {
+    "maxStepX": 7.55,
+    "maxStepY": 0,
+    "frames": 47
+   },
+   "big": {
+    "centreOff": [
+     56,
+     55
+    ],
+    "box": [
+     478,
+     211,
+     478,
+     211
+    ],
+    "pe": "none",
+    "anim": "pop",
+    "translate": "",
+    "transform": "translate(-50%, -50%)",
+    "alerts": [
+     {
+      "a": "miles",
+      "top": true,
+      "overlapsIcon": false
+     },
+     {
+      "a": "poop",
+      "top": true,
+      "overlapsIcon": false
+     }
+    ]
+   },
+   "errors": []
+  },
+  "landSmall": {
+   "cases": [
+    {
+     "nAlerts": 0,
+     "y": 150,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        280,
+        85,
+        338,
+        125
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        387,
+        85,
+        444,
+        125
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 164,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        280,
+        119,
+        338,
+        159
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        387,
+        119,
+        444,
+        159
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 178,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        309,
+        173,
+        309,
+        173
+       ],
+       "translate": "",
+       "centreTop": "#cv",
+       "hits": [],
+       "bottomMinusHead": 20,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        415,
+        173,
+        415,
+        173
+       ],
+       "translate": "",
+       "centreTop": "#cv",
+       "hits": [],
+       "bottomMinusHead": 25,
+       "centreXminusSpeaker": 28
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 150,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        280,
+        85,
+        338,
+        125
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[miles]:1520"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        387,
+        85,
+        444,
+        125
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 164,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        280,
+        119,
+        338,
+        159
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [
+        ".alertb[miles]:640"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        387,
+        119,
+        444,
+        159
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 178,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        280,
+        153,
+        338,
+        193
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        387,
+        153,
+        444,
+        193
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 150,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        280,
+        85,
+        338,
+        125
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[miles]:2040"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        387,
+        85,
+        444,
+        125
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [
+        ".alertb[poop]:720"
+       ],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 164,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        280,
+        119,
+        338,
+        159
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [
+        ".alertb[miles]:637",
+        ".alertb[poop]:51"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        387,
+        119,
+        444,
+        159
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [
+        ".alertb[poop]:357"
+       ],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 178,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        280,
+        153,
+        338,
+        193
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        387,
+        153,
+        444,
+        193
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 150,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        280,
+        85,
+        338,
+        125
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[miles]:440",
+        ".alertb[poop]:1600"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        387,
+        85,
+        444,
+        125
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[tp]:2280"
+       ],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 164,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        280,
+        119,
+        338,
+        159
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [
+        ".alertb[miles]:288",
+        ".alertb[poop]:532"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        387,
+        119,
+        444,
+        159
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [
+        ".alertb[tp]:728"
+       ],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 178,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        280,
+        153,
+        338,
+        193
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        387,
+        153,
+        444,
+        193
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    }
+   ],
+   "jitter": {
+    "translates": [
+     ""
+    ],
+    "maxStepPx": 0,
+    "frames": 48
+   },
+   "walk": {
+    "maxStepX": 7.25,
+    "maxStepY": 0,
+    "frames": 51
+   },
+   "big": {
+    "centreOff": [
+     56,
+     55
+    ],
+    "box": [
+     335,
+     152,
+     444,
+     257
+    ],
+    "pe": "none",
+    "anim": "pop",
+    "translate": "",
+    "transform": "translate(-50%, -50%)",
+    "alerts": [
+     {
+      "a": "miles",
+      "top": true,
+      "overlapsIcon": false
+     },
+     {
+      "a": "poop",
+      "top": true,
+      "overlapsIcon": false
+     }
+    ]
+   },
+   "errors": []
+  },
+  "s844x340": {
+   "cases": [
+    {
+     "nAlerts": 0,
+     "y": 150,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        374,
+        77,
+        431,
+        117
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        470,
+        77,
+        528,
+        117
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 44,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 164,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        374,
+        108,
+        431,
+        148
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        470,
+        108,
+        528,
+        148
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 0,
+     "y": 178,
+     "alerts": "",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        403,
+        158,
+        403,
+        158
+       ],
+       "translate": "",
+       "centreTop": "#cv",
+       "hits": [],
+       "bottomMinusHead": 20,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        499,
+        158,
+        499,
+        158
+       ],
+       "translate": "",
+       "centreTop": "#cv",
+       "hits": [],
+       "bottomMinusHead": 24,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 150,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        382,
+        83,
+        423,
+        111
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[miles]:952"
+       ],
+       "bottomMinusHead": 34,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        479,
+        83,
+        519,
+        111
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 38,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 164,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        374,
+        108,
+        431,
+        148
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [
+        ".alertb[miles]:1008"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        470,
+        108,
+        528,
+        148
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 1,
+     "y": 178,
+     "alerts": "miles",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        374,
+        138,
+        431,
+        178
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        470,
+        138,
+        528,
+        178
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 44,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 150,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        374,
+        77,
+        431,
+        117
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[miles]:1760",
+        ".alertb[poop]:280"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        470,
+        77,
+        528,
+        117
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [
+        ".alertb[poop]:1040"
+       ],
+       "bottomMinusHead": 44,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 164,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        374,
+        108,
+        431,
+        148
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[miles]:1170",
+        ".alertb[poop]:300"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        470,
+        108,
+        528,
+        148
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[poop]:870"
+       ],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 2,
+     "y": 178,
+     "alerts": "miles,poop",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        374,
+        138,
+        431,
+        178
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        470,
+        138,
+        528,
+        178
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 44,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 150,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        374,
+        77,
+        431,
+        117
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[miles]:400",
+        ".alertb[poop]:1680"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        470,
+        77,
+        528,
+        117
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[tp]:2320"
+       ],
+       "bottomMinusHead": 44,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 164,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        374,
+        108,
+        431,
+        148
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[miles]:252",
+        ".alertb[poop]:1288"
+       ],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        470,
+        108,
+        528,
+        148
+       ],
+       "translate": "",
+       "centreTop": ".alertb",
+       "hits": [
+        ".alertb[tp]:1682"
+       ],
+       "bottomMinusHead": 45,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    },
+    {
+     "nAlerts": 3,
+     "y": 178,
+     "alerts": "miles,poop,tp",
+     "out": [
+      {
+       "who": "daddy",
+       "box": [
+        374,
+        138,
+        431,
+        178
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 40,
+       "centreXminusSpeaker": 29
+      },
+      {
+       "who": "mommy",
+       "box": [
+        470,
+        138,
+        528,
+        178
+       ],
+       "translate": "",
+       "centreTop": ".say",
+       "hits": [],
+       "bottomMinusHead": 44,
+       "centreXminusSpeaker": 29
+      }
+     ]
+    }
+   ],
+   "jitter": {
+    "translates": [
+     ""
+    ],
+    "maxStepPx": 0,
+    "frames": 26
+   },
+   "walk": {
+    "maxStepX": 9.95,
+    "maxStepY": 11.51,
+    "frames": 59
+   },
+   "big": {
+    "centreOff": [
+     56,
+     55
+    ],
+    "box": [
+     422,
+     136,
+     534,
+     245
+    ],
+    "pe": "none",
+    "anim": "pop",
+    "translate": "",
+    "transform": "translate(-50%, -50%)",
+    "alerts": [
+     {
+      "a": "miles",
+      "top": true,
+      "overlapsIcon": false
+     },
+     {
+      "a": "poop",
+      "top": true,
+      "overlapsIcon": false
+     }
+    ]
+   },
+   "errors": []
+  }
+ }
+}

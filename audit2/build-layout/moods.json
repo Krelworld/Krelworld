@@ -1,0 +1,330 @@
+{
+ "land TODAY": [
+  {
+   "mood": "love",
+   "who": "daddy",
+   "dead": 8,
+   "freed": 6879,
+   "busyEnd": 6510,
+   "offPic": 0
+  },
+  {
+   "mood": "happy",
+   "who": "daddy",
+   "dead": 5,
+   "freed": 4584,
+   "busyEnd": 4230,
+   "offPic": 0
+  },
+  {
+   "mood": "sad",
+   "who": "daddy",
+   "dead": 24,
+   "freed": 19168,
+   "busyEnd": 12585,
+   "offPic": 4
+  },
+  {
+   "mood": "angry",
+   "who": "daddy",
+   "dead": 8,
+   "freed": 7098,
+   "busyEnd": 6751,
+   "offPic": 0
+  },
+  {
+   "mood": "tantrum",
+   "who": "",
+   "dead": 7,
+   "freed": 6136,
+   "busyEnd": 5793,
+   "offPic": 0
+  },
+  {
+   "mood": "love",
+   "who": "niko",
+   "dead": 0,
+   "freed": 872,
+   "busyEnd": null,
+   "offPic": 0
+  },
+  {
+   "mood": "happy",
+   "who": "niko",
+   "dead": 9,
+   "freed": 7920,
+   "busyEnd": 7586,
+   "offPic": 0
+  },
+  {
+   "mood": "sad",
+   "who": "",
+   "dead": 60,
+   "freed": null,
+   "busyEnd": 5376,
+   "offPic": 28
+  },
+  {
+   "mood": "angry",
+   "who": "",
+   "dead": 60,
+   "freed": null,
+   "busyEnd": 1318,
+   "offPic": 29
+  },
+  {
+   "mood": "tantrum",
+   "who": "daddy",
+   "dead": 20,
+   "freed": 17437,
+   "busyEnd": 17088,
+   "offPic": 0
+  }
+ ],
+ "land G19": [
+  {
+   "mood": "love",
+   "who": "daddy,rory",
+   "dead": 14,
+   "freed": 13028,
+   "busyEnd": 12599,
+   "offPic": 0
+  },
+  {
+   "mood": "happy",
+   "who": "daddy,rory",
+   "dead": 8,
+   "freed": 7950,
+   "busyEnd": 7595,
+   "offPic": 0
+  },
+  {
+   "mood": "sad",
+   "who": "daddy",
+   "dead": 15,
+   "freed": 13103,
+   "busyEnd": 12735,
+   "offPic": 0
+  },
+  {
+   "mood": "angry",
+   "who": "mommy",
+   "dead": 23,
+   "freed": 19864,
+   "busyEnd": 14571,
+   "offPic": 3
+  },
+  {
+   "mood": "tantrum",
+   "who": "mommy",
+   "dead": 6,
+   "freed": 6049,
+   "busyEnd": 5710,
+   "offPic": 0
+  },
+  {
+   "mood": "love",
+   "who": "",
+   "dead": 7,
+   "freed": 6576,
+   "busyEnd": 6239,
+   "offPic": 0
+  },
+  {
+   "mood": "happy",
+   "who": "",
+   "dead": 3,
+   "freed": 3041,
+   "busyEnd": 2699,
+   "offPic": 0
+  },
+  {
+   "mood": "sad",
+   "who": "",
+   "dead": 6,
+   "freed": 5296,
+   "busyEnd": 4955,
+   "offPic": 0
+  },
+  {
+   "mood": "angry",
+   "who": "",
+   "dead": 3,
+   "freed": 3050,
+   "busyEnd": 2713,
+   "offPic": 0
+  },
+  {
+   "mood": "tantrum",
+   "who": "niko",
+   "dead": 7,
+   "freed": 6250,
+   "busyEnd": 5906,
+   "offPic": 0
+  }
+ ],
+ "landSmall TODAY": [
+  {
+   "mood": "love",
+   "who": "daddy,mommy",
+   "dead": 8,
+   "freed": 7075,
+   "busyEnd": 6707,
+   "offPic": 0
+  },
+  {
+   "mood": "happy",
+   "who": "daddy,mommy",
+   "dead": 6,
+   "freed": 5635,
+   "busyEnd": 5283,
+   "offPic": 0
+  },
+  {
+   "mood": "sad",
+   "who": "daddy,mommy",
+   "dead": 7,
+   "freed": 6271,
+   "busyEnd": 5919,
+   "offPic": 0
+  },
+  {
+   "mood": "angry",
+   "who": "daddy,mommy",
+   "dead": 4,
+   "freed": 3903,
+   "busyEnd": 3550,
+   "offPic": 0
+  },
+  {
+   "mood": "tantrum",
+   "who": "daddy,mommy",
+   "dead": 20,
+   "freed": 15917,
+   "busyEnd": 15571,
+   "offPic": 0
+  },
+  {
+   "mood": "love",
+   "who": "mommy",
+   "dead": 14,
+   "freed": 11297,
+   "busyEnd": 10959,
+   "offPic": 0
+  },
+  {
+   "mood": "happy",
+   "who": "mommy",
+   "dead": 2,
+   "freed": 2329,
+   "busyEnd": null,
+   "offPic": 1
+  },
+  {
+   "mood": "sad",
+   "who": "",
+   "dead": 6,
+   "freed": 5362,
+   "busyEnd": 5016,
+   "offPic": 0
+  },
+  {
+   "mood": "angry",
+   "who": "daddy",
+   "dead": 20,
+   "freed": 15712,
+   "busyEnd": 15352,
+   "offPic": 0
+  },
+  {
+   "mood": "tantrum",
+   "who": "daddy,mommy",
+   "dead": 60,
+   "freed": null,
+   "busyEnd": 15615,
+   "offPic": 20
+  }
+ ],
+ "landSmall G19": [
+  {
+   "mood": "love",
+   "who": "mommy,niko",
+   "dead": 0,
+   "freed": 905,
+   "busyEnd": null,
+   "offPic": 0
+  },
+  {
+   "mood": "happy",
+   "who": "mommy,niko",
+   "dead": 9,
+   "freed": 7731,
+   "busyEnd": 7381,
+   "offPic": 0
+  },
+  {
+   "mood": "sad",
+   "who": "niko",
+   "dead": 14,
+   "freed": 11347,
+   "busyEnd": 10999,
+   "offPic": 0
+  },
+  {
+   "mood": "angry",
+   "who": "niko",
+   "dead": 1,
+   "freed": 1551,
+   "busyEnd": 1201,
+   "offPic": 0
+  },
+  {
+   "mood": "tantrum",
+   "who": "niko",
+   "dead": 7,
+   "freed": 6173,
+   "busyEnd": 5807,
+   "offPic": 0
+  },
+  {
+   "mood": "love",
+   "who": "niko",
+   "dead": 0,
+   "freed": 828,
+   "busyEnd": null,
+   "offPic": 0
+  },
+  {
+   "mood": "happy",
+   "who": "niko",
+   "dead": 0,
+   "freed": 833,
+   "busyEnd": 479,
+   "offPic": 0
+  },
+  {
+   "mood": "sad",
+   "who": "niko",
+   "dead": 13,
+   "freed": 10583,
+   "busyEnd": 10246,
+   "offPic": 0
+  },
+  {
+   "mood": "angry",
+   "who": "niko",
+   "dead": 1,
+   "freed": 1554,
+   "busyEnd": 1194,
+   "offPic": 0
+  },
+  {
+   "mood": "tantrum",
+   "who": "niko",
+   "dead": 7,
+   "freed": 6061,
+   "busyEnd": 5730,
+   "offPic": 0
+  }
+ ]
+}

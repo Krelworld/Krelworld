@@ -1,0 +1,176 @@
+{
+ "mode": "on",
+ "seed": 3,
+ "hides": [
+  {
+   "start": "laundry",
+   "target": "nunuroom",
+   "spot": "rack",
+   "tin": 12.270000000000053,
+   "tEnd": 35.470000000000134,
+   "found": true,
+   "foundAtS": 23.2,
+   "endedAtS": null,
+   "path": "laundry>storage>den>nunuroom"
+  },
+  {
+   "start": "nunuroom",
+   "target": "laundry",
+   "spot": "washer",
+   "tin": 39.319999999999915,
+   "tEnd": 65.46999999999844,
+   "found": true,
+   "foundAtS": 25.2,
+   "endedAtS": null,
+   "path": "nunuroom>den>storage>laundry"
+  },
+  {
+   "start": "laundry",
+   "target": "den",
+   "spot": "sofa",
+   "tin": 70.01999999999818,
+   "tEnd": 81.21999999999754,
+   "found": true,
+   "foundAtS": 10.4,
+   "endedAtS": null,
+   "path": "laundry>storage>den"
+  },
+  {
+   "start": "nunuroom",
+   "target": "laundry",
+   "spot": "dryer",
+   "tin": 85.06999999999732,
+   "tEnd": 112.21999999999578,
+   "found": true,
+   "foundAtS": 26.9,
+   "endedAtS": null,
+   "path": "nunuroom>den>nunuroom>den>storage>laundry"
+  },
+  {
+   "start": "laundry",
+   "target": "nunuroom",
+   "spot": "ntotes",
+   "tin": 116.76999999999552,
+   "tEnd": 125.969999999995,
+   "found": true,
+   "foundAtS": 8.6,
+   "endedAtS": null,
+   "path": "laundry>storage>den>nunuroom"
+  }
+ ],
+ "farMews": 12,
+ "farMewsWith3Paws": 12,
+ "farMewsNoPaws": 0,
+ "pawsWrongSide": 1,
+ "mews": [
+  {
+   "t": 12.32,
+   "room": "laundry",
+   "paws": 3,
+   "sides": "-1",
+   "target": "nunuroom",
+   "expect": -1,
+   "sideOk": true
+  },
+  {
+   "t": 30.67,
+   "room": "den",
+   "paws": 3,
+   "sides": "-1",
+   "target": "nunuroom",
+   "expect": -1,
+   "sideOk": true
+  },
+  {
+   "t": 51.62,
+   "room": "nunuroom",
+   "paws": 3,
+   "sides": "1",
+   "target": "laundry",
+   "expect": 1,
+   "sideOk": true
+  },
+  {
+   "t": 58.47,
+   "room": "den",
+   "paws": 3,
+   "sides": "1",
+   "target": "laundry",
+   "expect": 1,
+   "sideOk": true
+  },
+  {
+   "t": 70.07,
+   "room": "laundry",
+   "paws": 3,
+   "sides": "-1",
+   "target": "den",
+   "expect": -1,
+   "sideOk": true
+  },
+  {
+   "t": 74.22,
+   "room": "storage",
+   "paws": 3,
+   "sides": "-1",
+   "target": "den",
+   "expect": -1,
+   "sideOk": true
+  },
+  {
+   "t": 88.92,
+   "room": "nunuroom",
+   "paws": 3,
+   "sides": "1,-1",
+   "target": "laundry",
+   "expect": 1,
+   "sideOk": false
+  },
+  {
+   "t": 92.62,
+   "room": "nunuroom",
+   "paws": 3,
+   "sides": "1",
+   "target": "laundry",
+   "expect": 1,
+   "sideOk": true
+  },
+  {
+   "t": 96.52,
+   "room": "den",
+   "paws": 3,
+   "sides": "1",
+   "target": "laundry",
+   "expect": 1,
+   "sideOk": true
+  },
+  {
+   "t": 105.57,
+   "room": "storage",
+   "paws": 3,
+   "sides": "1",
+   "target": "laundry",
+   "expect": 1,
+   "sideOk": true
+  },
+  {
+   "t": 116.82,
+   "room": "laundry",
+   "paws": 3,
+   "sides": "-1",
+   "target": "nunuroom",
+   "expect": -1,
+   "sideOk": true
+  },
+  {
+   "t": 120.62,
+   "room": "storage",
+   "paws": 3,
+   "sides": "-1",
+   "target": "nunuroom",
+   "expect": -1,
+   "sideOk": true
+  }
+ ],
+ "errors": []
+}

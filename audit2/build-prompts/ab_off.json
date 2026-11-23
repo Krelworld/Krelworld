@@ -1,0 +1,91 @@
+[
+ {
+  "row": "obj backyard/tr_apple | 1ygm7f6#1 🍎→🍎",
+  "HEAD": {
+   "state:\"idle\"→\"cheer\"": 2,
+   "(no change)": 2
+  },
+  "MINE": {
+   "(no change)": 3,
+   "state:\"idle\"→\"cheer\"": 1
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj den/wicker | ounozi#1 🧗→🧗",
+  "HEAD": {
+   "state:\"idle\"→\"perch\"": 4
+  },
+  "MINE": {
+   "state:\"idle\"→\"perch\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj kitchen/stool1 | 1a3zqcq#1 🪑→🪑",
+  "HEAD": {
+   "state:\"idle\"→\"sit\"": 2,
+   "(no change)": 2
+  },
+  "MINE": {
+   "state:\"idle\"→\"sit\"": 1,
+   "(no change)": 3
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj kitchen/stool1 | ounozi#1 🧗→🧗",
+  "HEAD": {
+   "(no change)": 3,
+   "state:\"idle\"→\"perch\"": 1
+  },
+  "MINE": {
+   "(no change)": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "obj storage/shades | 1bu00z4#1 🎩→🎩",
+  "HEAD": {
+   "state:\"idle\"→\"cheer\"": 4
+  },
+  "MINE": {
+   "state:\"idle\"→\"cheer\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "who miles :: crying | jy3ac3#1 🤗→🤗",
+  "HEAD": {
+   "(no change)": 2,
+   "state:\"idle\"→\"anim\"": 2
+  },
+  "MINE": {
+   "state:\"idle\"→\"anim\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "who miles :: normal | jy3ac3#1 🤗→🤗",
+  "HEAD": {
+   "(no change)": 1,
+   "state:\"idle\"→\"anim\"": 3
+  },
+  "MINE": {
+   "state:\"idle\"→\"anim\"": 4
+  },
+  "overlap": true
+ },
+ {
+  "row": "who miles :: normal | qpltx4#1 ✋→✋",
+  "HEAD": {
+   "state:\"idle\"→\"anim\"": 2,
+   "(no change)": 2
+  },
+  "MINE": {
+   "state:\"idle\"→\"anim\"": 2,
+   "(no change)": 2
+  },
+  "overlap": true
+ }
+]

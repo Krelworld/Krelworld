@@ -1,0 +1,87 @@
+{
+ "chipPic": "🖼️✋",
+ "chipDish": "🍽️✋",
+ "chipTapDrops": true,
+ "livingDish": "🍽️:give it@103 🍽️:give it@195 🍽️:give it@293",
+ "livingPic": "🖼️:hang it here@160 🎁:give it@94 🎁:give it@225 🎁:give it@293",
+ "backyardDish": "🍽️:give it@273",
+ "backyardPic": "🎁:give it@273",
+ "backyardPicJeffHidden": "",
+ "backyardPicJeffToilet": "",
+ "denDish": "",
+ "nunuRingWithDish": "🍽️🤗📖🧱🎬😜",
+ "denPic": "🖼️:hang it here@187 🎁:give it@273",
+ "denPicNunuHidden": "🖼️:hang it here@187",
+ "denPicNunuToilet": "🖼️:hang it here@187",
+ "nunuRingOpened": "🍽️🤗📖🧱🎬😜",
+ "nunuNoFoodLines": [
+  "nu_nofood2",
+  "m_minka_where"
+ ],
+ "nunuNoFoodStillHolding": true,
+ "jeff_bubble_tapped": true,
+ "jeff_bubble_lines": "m_hewe j_food_good m_yummy",
+ "jeff_bubble_after": {
+  "holding": false,
+  "plate": true,
+  "pending": null
+ },
+ "jeff_ring_ring": "🍽️🔨🤗🙌🤹😜",
+ "jeff_ring_lines": "m_hewe j_food_good m_yummy",
+ "jeff_ring_after": {
+  "holding": false,
+  "plate": true,
+  "pending": null
+ },
+ "jeff_bubble+pending_tapped": true,
+ "jeff_bubble+pending_lines": "m_hewe j_food_good m_yummy",
+ "jeff_bubble+pending_after": {
+  "holding": false,
+  "plate": true,
+  "pending": "jeff"
+ },
+ "jeff_ring+pending_ring": "🍽️🍽️🔨🤗🙌🤹😜",
+ "jeff_ring+pending_lines": "m_hewe j_food_good m_yummy",
+ "jeff_ring+pending_after": {
+  "holding": false,
+  "plate": true,
+  "pending": "jeff"
+ },
+ "nunu_pic_bubble_tapped": true,
+ "nunu_pic_bubble_lines": "m_made nu_proud m_wuv_nunu nu_love4 m_look",
+ "nunu_pic_bubble_did": "gift",
+ "nunu_pic_bubble_wall": {
+  "room": "den",
+  "gift": "nunu",
+  "y": 70
+ },
+ "nunu_pic_bubble_holding": false,
+ "nunu_pic_ring": "👨👩🧔👵",
+ "nunu_pic_ring_lines": "m_made nu_wow m_wuv_nunu nu_love2 m_look",
+ "nunu_pic_ring_did": "gift",
+ "nunu_pic_ring_wall": {
+  "room": "den",
+  "gift": "nunu",
+  "y": 70
+ },
+ "nunu_pic_ring_holding": false,
+ "jeff_pic_bubble_tapped": true,
+ "jeff_pic_bubble_lines": "m_made j_wow m_wuv_jeff j_love",
+ "jeff_pic_bubble_did": "gift",
+ "jeff_pic_bubble_wall": {
+  "room": "kitchen",
+  "gift": "jeff",
+  "y": 78
+ },
+ "jeff_pic_bubble_holding": false,
+ "jeff_pic_ring": "👨👩🧔👴",
+ "jeff_pic_ring_lines": "m_made j_pic m_wuv_jeff j_love",
+ "jeff_pic_ring_did": "gift",
+ "jeff_pic_ring_wall": {
+  "room": "kitchen",
+  "gift": "jeff",
+  "y": 100
+ },
+ "jeff_pic_ring_holding": false,
+ "errors": []
+}

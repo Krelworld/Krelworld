@@ -1,0 +1,476 @@
+{
+ "port": {
+  "love_bar": {
+   "started": true,
+   "busySamples": 48,
+   "sceneSamples": 48,
+   "dimmedSamples": 45,
+   "awake": [
+    "love"
+   ],
+   "cur": [
+    "love"
+   ],
+   "curOutline": [
+    "solid 5px"
+   ],
+   "moodOpacity": {
+    "love": [
+     1
+    ],
+    "happy": [
+     1,
+     0.491281,
+     0.45
+    ],
+    "sad": [
+     1,
+     0.491281,
+     0.45
+    ],
+    "angry": [
+     1,
+     0.491281,
+     0.45
+    ],
+    "tantrum": [
+     1,
+     0.491281,
+     0.45
+    ]
+   },
+   "faceCards": [
+    "marina o=1 f=none",
+    "daddy o=1 f=none"
+   ],
+   "stripOpacity": [
+    1,
+    0.491281,
+    0.45
+   ],
+   "mapOpacity": [
+    1
+   ],
+   "appClasses": [
+    "",
+    "cm-strip cm-mood cm-alert"
+   ],
+   "afterEnd": {
+    "t": 18866.5,
+    "busy": false,
+    "scene": false,
+    "st": "idle",
+    "room": "living",
+    "mood": "love",
+    "app": "cm-strip cm-mood cm-alert",
+    "awake": [
+     "love"
+    ],
+    "cur": "love",
+    "moods": {
+     "love": 1,
+     "happy": 0.45,
+     "sad": 0.45,
+     "angry": 0.45,
+     "tantrum": 0.45
+    },
+    "curOutline": "solid 5px",
+    "rb": {
+     "o": 0.45,
+     "f": "grayscale(0.7)"
+    },
+    "fl": {
+     "o": 0.45,
+     "f": "grayscale(0.7)"
+    },
+    "map": {
+     "o": 1,
+     "f": "none"
+    },
+    "alerts": [],
+    "req": null,
+    "faces": [
+     {
+      "who": "daddy",
+      "o": 1,
+      "f": "none"
+     }
+    ]
+   }
+  },
+  "sad_bar": {
+   "started": true,
+   "busySamples": 69,
+   "sceneSamples": 69,
+   "dimmedSamples": 66,
+   "awake": [
+    "sad"
+   ],
+   "cur": [
+    "sad"
+   ],
+   "curOutline": [
+    "solid 5px"
+   ],
+   "moodOpacity": {
+    "love": [
+     0.775562,
+     0.45
+    ],
+    "happy": [
+     0.775562,
+     0.45
+    ],
+    "sad": [
+     1
+    ],
+    "angry": [
+     0.775562,
+     0.45
+    ],
+    "tantrum": [
+     0.775562,
+     0.45
+    ]
+   },
+   "faceCards": [
+    "marina o=1 f=none",
+    "daddy o=1 f=none"
+   ],
+   "stripOpacity": [
+    0.775562,
+    0.45
+   ],
+   "mapOpacity": [
+    1
+   ],
+   "appClasses": [
+    "",
+    "cm-strip cm-mood cm-alert"
+   ],
+   "afterEnd": {
+    "t": 31173.60000000149,
+    "busy": false,
+    "scene": false,
+    "st": "idle",
+    "room": "living",
+    "mood": "sad",
+    "app": "",
+    "awake": [],
+    "cur": "sad",
+    "moods": {
+     "love": 1,
+     "happy": 1,
+     "sad": 1,
+     "angry": 1,
+     "tantrum": 1
+    },
+    "curOutline": "solid 5px",
+    "rb": {
+     "o": 1,
+     "f": "none"
+    },
+    "fl": {
+     "o": 1,
+     "f": "none"
+    },
+    "map": {
+     "o": 1,
+     "f": "none"
+    },
+    "alerts": [],
+    "req": null,
+    "faces": [
+     {
+      "who": "daddy",
+      "o": 1,
+      "f": "none"
+     }
+    ]
+   }
+  },
+  "hug_ring": {
+   "started": true,
+   "busySamples": 48,
+   "sceneSamples": 48,
+   "dimmedSamples": 44,
+   "awake": [],
+   "cur": [
+    "sad"
+   ],
+   "curOutline": [
+    "solid 5px"
+   ],
+   "moodOpacity": {
+    "love": [
+     0.519543,
+     0.45
+    ],
+    "happy": [
+     0.519543,
+     0.45
+    ],
+    "sad": [
+     0.519543,
+     0.45
+    ],
+    "angry": [
+     0.519543,
+     0.45
+    ],
+    "tantrum": [
+     0.519543,
+     0.45
+    ]
+   },
+   "faceCards": [
+    "marina o=1 f=none",
+    "daddy o=1 f=none"
+   ],
+   "stripOpacity": [
+    0.519543,
+    0.45
+   ],
+   "mapOpacity": [
+    1
+   ],
+   "appClasses": [
+    "",
+    "cm-strip cm-mood cm-alert"
+   ],
+   "afterEnd": {
+    "t": 40963.10000000149,
+    "busy": false,
+    "scene": false,
+    "st": "idle",
+    "room": "living",
+    "mood": "sad",
+    "app": "cm-strip cm-mood cm-alert",
+    "awake": [],
+    "cur": "sad",
+    "moods": {
+     "love": 0.45,
+     "happy": 0.45,
+     "sad": 0.45,
+     "angry": 0.45,
+     "tantrum": 0.45
+    },
+    "curOutline": "solid 5px",
+    "rb": {
+     "o": 0.45,
+     "f": "grayscale(0.7)"
+    },
+    "fl": {
+     "o": 0.45,
+     "f": "grayscale(0.7)"
+    },
+    "map": {
+     "o": 1,
+     "f": "none"
+    },
+    "alerts": [],
+    "req": null,
+    "faces": [
+     {
+      "who": "marina",
+      "o": 1,
+      "f": "none"
+     },
+     {
+      "who": "daddy",
+      "o": 1,
+      "f": "none"
+     }
+    ]
+   }
+  },
+  "joke_ring": {
+   "started": true,
+   "busySamples": 62,
+   "sceneSamples": 0,
+   "dimmedSamples": 59,
+   "awake": [],
+   "cur": [
+    "sad"
+   ],
+   "curOutline": [
+    "solid 5px"
+   ],
+   "moodOpacity": {
+    "love": [
+     0.961059,
+     0.452165,
+     0.45
+    ],
+    "happy": [
+     0.961059,
+     0.452165,
+     0.45
+    ],
+    "sad": [
+     0.961059,
+     0.452165,
+     0.45
+    ],
+    "angry": [
+     0.961059,
+     0.452165,
+     0.45
+    ],
+    "tantrum": [
+     0.961059,
+     0.452165,
+     0.45
+    ]
+   },
+   "faceCards": [
+    "marina o=1 f=none",
+    "daddy o=1 f=none"
+   ],
+   "stripOpacity": [
+    0.961059,
+    0.452165,
+    0.45
+   ],
+   "mapOpacity": [
+    1
+   ],
+   "appClasses": [
+    "",
+    "cm-strip cm-mood"
+   ],
+   "afterEnd": {
+    "t": 53513.90000000596,
+    "busy": false,
+    "scene": false,
+    "st": "idle",
+    "room": "living",
+    "mood": "sad",
+    "app": "cm-strip cm-mood",
+    "awake": [],
+    "cur": "sad",
+    "moods": {
+     "love": 0.45,
+     "happy": 0.45,
+     "sad": 0.45,
+     "angry": 0.45,
+     "tantrum": 0.45
+    },
+    "curOutline": "solid 5px",
+    "rb": {
+     "o": 0.45,
+     "f": "grayscale(0.7)"
+    },
+    "fl": {
+     "o": 0.45,
+     "f": "grayscale(0.7)"
+    },
+    "map": {
+     "o": 1,
+     "f": "none"
+    },
+    "alerts": [],
+    "req": null,
+    "faces": [
+     {
+      "who": "daddy",
+      "o": 1,
+      "f": "none"
+     }
+    ]
+   }
+  },
+  "happy_bar": {
+   "started": true,
+   "busySamples": 45,
+   "sceneSamples": 45,
+   "dimmedSamples": 42,
+   "awake": [
+    "happy"
+   ],
+   "cur": [
+    "happy"
+   ],
+   "curOutline": [
+    "solid 5px"
+   ],
+   "moodOpacity": {
+    "love": [
+     0.87859,
+     0.45
+    ],
+    "happy": [
+     1
+    ],
+    "sad": [
+     0.87859,
+     0.45
+    ],
+    "angry": [
+     0.87859,
+     0.45
+    ],
+    "tantrum": [
+     0.87859,
+     0.45
+    ]
+   },
+   "faceCards": [
+    "marina o=1 f=none",
+    "daddy o=1 f=none"
+   ],
+   "stripOpacity": [
+    0.87859,
+    0.45
+   ],
+   "mapOpacity": [
+    1
+   ],
+   "appClasses": [
+    "",
+    "cm-strip cm-mood cm-alert"
+   ],
+   "afterEnd": {
+    "t": 62641.10000000149,
+    "busy": false,
+    "scene": false,
+    "st": "idle",
+    "room": "living",
+    "mood": "happy",
+    "app": "",
+    "awake": [],
+    "cur": "happy",
+    "moods": {
+     "love": 1,
+     "happy": 1,
+     "sad": 1,
+     "angry": 1,
+     "tantrum": 1
+    },
+    "curOutline": "solid 5px",
+    "rb": {
+     "o": 1,
+     "f": "none"
+    },
+    "fl": {
+     "o": 1,
+     "f": "none"
+    },
+    "map": {
+     "o": 1,
+     "f": "none"
+    },
+    "alerts": [],
+    "req": null,
+    "faces": [
+     {
+      "who": "marina",
+      "o": 1,
+      "f": "none"
+     }
+    ]
+   }
+  },
+  "errors": []
+ }
+}

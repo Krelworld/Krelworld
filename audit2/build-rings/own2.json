@@ -1,0 +1,54 @@
+{
+ "port": {
+  "wish": {
+   "own": true,
+   "x": 332,
+   "y": 496.59375,
+   "ring": true,
+   "after": {
+    "btnGone": true,
+    "ringClosed": true,
+    "room": "kitchen",
+    "busy": false
+   }
+  },
+  "req": {
+   "own": true,
+   "x": 332,
+   "y": 496.59375,
+   "ring": true,
+   "after": {
+    "btnGone": true,
+    "ringClosed": true,
+    "room": "kitchen",
+    "busy": false
+   }
+  }
+ },
+ "land": {
+  "wish": {
+   "own": true,
+   "x": 138,
+   "y": 348,
+   "ring": true,
+   "after": {
+    "btnGone": true,
+    "ringClosed": true,
+    "room": "kitchen",
+    "busy": false
+   }
+  },
+  "req": {
+   "own": true,
+   "x": 138.00000381469727,
+   "y": 348,
+   "ring": true,
+   "after": {
+    "btnGone": true,
+    "ringClosed": true,
+    "room": "kitchen",
+    "busy": false
+   }
+  }
+ }
+}

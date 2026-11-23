@@ -1,0 +1,3248 @@
+{
+ "acttable": [
+  {
+   "mode": "off",
+   "act": "act-lego",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 2,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+2.0 wish=🍳➡️",
+   "postS": 120
+  },
+  {
+   "mode": "off",
+   "act": "act-movie",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 0.3,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+0.3 wish=🛝➡️",
+   "postS": 120
+  },
+  {
+   "mode": "off",
+   "act": "act-cook",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 1,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+1.0 wish=🖍️➡️",
+   "postS": 120
+  },
+  {
+   "mode": "off",
+   "act": "act-draw",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 0.3,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+0.3 wish=⛺➡️",
+   "postS": 120
+  },
+  {
+   "mode": "off",
+   "act": "act-dress",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 1.8,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+1.8 wish=👶➡️",
+   "postS": 120
+  },
+  {
+   "mode": "off",
+   "act": "act-story",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 1,
+   "firstReqAfterCloseS": 61,
+   "firstPromptAfterClose": "+1.0 wish=🌳➡️",
+   "postS": 120
+  },
+  {
+   "mode": "off",
+   "act": "act-swing",
+   "insideCount": 8,
+   "firstWishAfterCloseS": 60,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+0.3 alerts=poop",
+   "postS": 120
+  },
+  {
+   "mode": "off",
+   "act": "act-tv",
+   "insideCount": 6,
+   "firstWishAfterCloseS": null,
+   "firstReqAfterCloseS": 0,
+   "firstPromptAfterClose": "+0.0 req=📖➡️👨‍🦲",
+   "postS": 120
+  },
+  {
+   "mode": "off",
+   "act": "act-build",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 0.3,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+0.3 wish=🍳➡️",
+   "postS": 120
+  },
+  {
+   "mode": "off",
+   "act": "act-pool",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 1,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+1.0 wish=👶➡️",
+   "postS": 120
+  },
+  {
+   "mode": "off",
+   "act": "act-tree",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 0.8,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+0.8 wish=🛝➡️",
+   "postS": 120
+  },
+  {
+   "mode": "off",
+   "act": "act-spa",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 2,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+2.0 wish=🐈➡️",
+   "postS": 120
+  },
+  {
+   "mode": "off",
+   "act": "act-stuffies",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 2,
+   "firstReqAfterCloseS": 62,
+   "firstPromptAfterClose": "+2.0 wish=🌳➡️",
+   "postS": 120
+  },
+  {
+   "mode": "on",
+   "act": "act-lego",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 65.5,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+65.5 wish=🖍️➡️",
+   "postS": 120
+  },
+  {
+   "mode": "on",
+   "act": "act-movie",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 68.3,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+68.3 wish=🎹➡️",
+   "postS": 120
+  },
+  {
+   "mode": "on",
+   "act": "act-cook",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 0.3,
+   "firstReqAfterCloseS": 60.3,
+   "firstPromptAfterClose": "+0.3 wish=🌳➡️",
+   "postS": 120
+  },
+  {
+   "mode": "on",
+   "act": "act-draw",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 0.3,
+   "firstReqAfterCloseS": 60.3,
+   "firstPromptAfterClose": "+0.3 wish=👶➡️",
+   "postS": 120
+  },
+  {
+   "mode": "on",
+   "act": "act-dress",
+   "insideCount": 0,
+   "firstWishAfterCloseS": null,
+   "firstReqAfterCloseS": 8,
+   "firstPromptAfterClose": "+8.0 req=🥫➡️🐈",
+   "postS": 120
+  },
+  {
+   "mode": "on",
+   "act": "act-story",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 80,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+19.7 alerts=miles",
+   "postS": 120
+  },
+  {
+   "mode": "on",
+   "act": "act-swing",
+   "insideCount": 1,
+   "firstWishAfterCloseS": 31.5,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+31.5 wish=🍳➡️",
+   "postS": 120
+  },
+  {
+   "mode": "on",
+   "act": "act-tv",
+   "insideCount": 4,
+   "firstWishAfterCloseS": null,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+19.8 alerts=miles",
+   "postS": 120
+  },
+  {
+   "mode": "on",
+   "act": "act-build",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 97,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+97.0 wish=🍳➡️",
+   "postS": 120
+  },
+  {
+   "mode": "on",
+   "act": "act-pool",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 81.3,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+19.8 alerts=miles",
+   "postS": 120
+  },
+  {
+   "mode": "on",
+   "act": "act-tree",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 84,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+19.8 alerts=miles",
+   "postS": 120
+  },
+  {
+   "mode": "on",
+   "act": "act-spa",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 82,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+20.0 alerts=miles",
+   "postS": 120
+  },
+  {
+   "mode": "on",
+   "act": "act-stuffies",
+   "insideCount": 0,
+   "firstWishAfterCloseS": 79.7,
+   "firstReqAfterCloseS": null,
+   "firstPromptAfterClose": "+20.0 alerts=miles",
+   "postS": 120
+  }
+ ],
+ "perRun": [
+  {
+   "mode": "off",
+   "run": "basement_act-lego_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 2,
+   "wishRooms": {
+    "den": 2
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 7.2,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 14,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 1,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 1,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "basement_act-movie_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 2,
+   "wishRooms": {
+    "den": 2
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 7.2,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 7,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 1,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 3,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "basement_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 3,
+   "wishRooms": {
+    "den": 3
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "den": 1
+   },
+   "wishIdleMin": 290.2,
+   "reqIdleMin": 852.2,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 25,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 17,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "basement_idle_15m_port_s4",
+   "minutes": 15,
+   "wishes": 4,
+   "wishRooms": {
+    "den": 4
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "den": 1
+   },
+   "wishIdleMin": 296.1,
+   "reqIdleMin": 514.1,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 24,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 15,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "basement_walk_15m_port_s3",
+   "minutes": 15,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 40,
+   "farMews": 23,
+   "pawParticles": 39,
+   "hellos": 3,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 13,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "dining_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "dining": 5
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "dining": 1
+   },
+   "wishIdleMin": 190.1,
+   "reqIdleMin": 250.1,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 18,
+   "walkups": 10,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_hi_niece@198 r_giggle@212 r_chase@224 r_hi_niece@263 r_giggle@273 r_chase@307 r_hi_niece3@317 r_hi_niece3@502 r_giggle@534 r_chase@841",
+   "roryRoomChanges": 13,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "dining_idle_15m_port_s2",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "dining": 5
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "dining": 1
+   },
+   "wishIdleMin": 176.1,
+   "reqIdleMin": 236.1,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 3,
+   "hellos": 21,
+   "walkups": 13,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_hi_niece3@94 r_hi_niece3@173 r_hi_niece3@237 r_giggle@474 r_hi_niece3@507 r_giggle@613 r_hi_niece@627 r_chase@640 r_giggle@655 r_hi_niece@741 r_hi_niece3@774 r_hi_niece@876",
+   "roryRoomChanges": 16,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "dining_idle_15m_port_s3",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "dining": 5
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "dining": 1
+   },
+   "wishIdleMin": 138.1,
+   "reqIdleMin": 198.1,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 16,
+   "walkups": 14,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_chase@25 r_chase@42 r_chase@53 r_hi_niece@101 r_chase@118 r_hi_niece3@129 r_hi_niece3@189 r_hi_niece3@355 r_chase@368 r_chase@487 r_hi_niece@723 r_hi_niece@755 r_chase@816 r_giggle@829",
+   "roryRoomChanges": 10,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_act-cook_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 2,
+   "wishRooms": {
+    "kitchen": 2
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 6.3,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 3,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_act-draw_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 2,
+   "wishRooms": {
+    "playroom": 2
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 7.2,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 1,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 2,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_act-dress_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "kitchen": 1
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 252,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 2,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 1,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_act-story_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "living": 1
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "living": 1
+   },
+   "wishIdleMin": 250,
+   "reqIdleMin": 310,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 2,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 0,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_act-swing_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "yard": 1
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 310,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 7,
+   "walkups": 10,
+   "walkupsBodyBusy": 7,
+   "roryStays": 0,
+   "roryWalkupLines": "r_hi_niece3@11 r_giggle@38 r_hi_niece3@46 r_giggle@105 r_giggle@200 r_hi_niece@270 r_giggle@311",
+   "roryRoomChanges": 2,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_act-tv_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 2,
+   "wishRooms": {
+    "living": 2
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "living": 1
+   },
+   "wishIdleMin": 7.4,
+   "reqIdleMin": 250.1,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 3,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 6,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_idle_15m_land_s4",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "kitchen": 5
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 184.2,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 11,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 19,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 6,
+   "wishRooms": {
+    "kitchen": 6
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 134.1,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 9,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 12,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_idle_15m_port_s4",
+   "minutes": 15,
+   "wishes": 6,
+   "wishRooms": {
+    "kitchen": 6
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 138,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 16,
+   "walkups": 1,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_hi_niece3@264",
+   "roryRoomChanges": 18,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_still-bars_5m_port_s1",
+   "minutes": 5,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 3,
+   "walkupsBodyBusy": 3,
+   "roryStays": 0,
+   "roryWalkupLines": "r_chase@44 r_chase@93",
+   "roryRoomChanges": 6,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_still-bars_5m_port_s2",
+   "minutes": 5,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 3,
+   "walkups": 3,
+   "walkupsBodyBusy": 3,
+   "roryStays": 0,
+   "roryWalkupLines": "r_giggle@31 r_hi_niece3@71 r_chase@171",
+   "roryRoomChanges": 5,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_still-swing_5m_port_s1",
+   "minutes": 5,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 2,
+   "walkups": 2,
+   "walkupsBodyBusy": 2,
+   "roryStays": 0,
+   "roryWalkupLines": "r_giggle@80 r_giggle@139",
+   "roryRoomChanges": 4,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_still-swing_5m_port_s2",
+   "minutes": 5,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 2,
+   "walkups": 4,
+   "walkupsBodyBusy": 4,
+   "roryStays": 0,
+   "roryWalkupLines": "r_giggle@281 r_hi_niece3@292",
+   "roryRoomChanges": 3,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "main_walk_15m_port_s3",
+   "minutes": 15,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 1,
+   "reqRooms": {
+    "playroom": 1
+   },
+   "wishIdleMin": null,
+   "reqIdleMin": 6.8,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 3,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 13,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 11,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "outside_act-build_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "backyard": 1
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 250.2,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 1,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 0,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "outside_act-pool_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 2,
+   "wishRooms": {
+    "pool": 2
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 8.1,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 2,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "outside_act-tree_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 2,
+   "wishRooms": {
+    "backyard": 2
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 8.3,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 1,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 1,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "outside_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 4,
+   "wishRooms": {
+    "backyard": 4
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 250.1,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 20,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "outside_idle_15m_port_s4",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "backyard": 5
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 192.2,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 16,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "outside_walk_15m_port_s3",
+   "minutes": 15,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 12,
+   "walkups": 4,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_hi_niece@104 r_chase@663 r_hi_niece@888",
+   "roryRoomChanges": 16,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "pool_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 6,
+   "wishRooms": {
+    "pool": 6
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 138.1,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 13,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "pool_idle_15m_port_s4",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "pool": 5
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 176,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 9,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "upstairs_act-spa_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "spa": 1
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 252,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 4,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "upstairs_act-stuffies_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 2,
+   "wishRooms": {
+    "mroom": 2
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "mroom": 1
+   },
+   "wishIdleMin": 7.3,
+   "reqIdleMin": 312.1,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 2,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 5,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "upstairs_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 6,
+   "wishRooms": {
+    "mroom": 6
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 152.1,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 20,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 13,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "upstairs_idle_15m_port_s4",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "mroom": 5
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "mroom": 1
+   },
+   "wishIdleMin": 166.1,
+   "reqIdleMin": 226.1,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 18,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 16,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "upstairs_walk_15m_port_s3",
+   "minutes": 15,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 1,
+   "reqRooms": {
+    "milesroom": 1
+   },
+   "wishIdleMin": null,
+   "reqIdleMin": 6.8,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 20,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 15,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "yard_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "yard": 5
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 182.1,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 16,
+   "walkups": 20,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_hi_niece@24 r_chase@47 r_chase@77 r_hi_niece3@86 r_hi_niece3@97 r_giggle@112 r_giggle@196 r_hi_niece@235 r_hi_niece3@250 r_chase@275 r_hi_niece3@297 r_giggle@355 r_hi_niece3@513 r_chase@563 r_hi_niece@605 r_hi_niece3@683 r_chase@721 r_hi_niece@743 r_hi_niece@786 r_giggle@868",
+   "roryRoomChanges": 10,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "yard_idle_15m_port_s2",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "yard": 5
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "yard": 1
+   },
+   "wishIdleMin": 194.1,
+   "reqIdleMin": 254.1,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 17,
+   "walkups": 24,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_giggle@14 r_hi_niece3@31 r_hi_niece@70 r_hi_niece@114 r_giggle@125 r_hi_niece3@181 r_hi_niece3@192 r_hi_niece@220 r_giggle@232 r_hi_niece3@315 r_giggle@341 r_hi_niece3@566 r_hi_niece3@607 r_hi_niece@755 r_giggle@769 r_giggle@830 r_hi_niece@837 r_hi_niece@878 r_hi_niece@890",
+   "roryRoomChanges": 8,
+   "errors": 0
+  },
+  {
+   "mode": "off",
+   "run": "yard_idle_15m_port_s3",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "yard": 5
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 148.1,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 11,
+   "walkups": 17,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_hi_niece@13 r_chase@154 r_giggle@167 r_hi_niece@182 r_chase@220 r_hi_niece3@479 r_chase@495 r_chase@512 r_giggle@649 r_hi_niece3@662 r_chase@720 r_giggle@759 r_chase@829 r_hi_niece@839 r_hi_niece3@851 r_hi_niece3@888 r_chase@898",
+   "roryRoomChanges": 8,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "basement_act-lego_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "den": 1
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 65.4,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 1,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 2,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "basement_act-movie_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 2,
+   "wishRooms": {
+    "den": 2
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 4.2,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 10,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 1,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 2,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "basement_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 3,
+   "wishRooms": {
+    "den": 3
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "den": 1
+   },
+   "wishIdleMin": 132.7,
+   "reqIdleMin": 658.7,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 38,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 13,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "basement_idle_15m_port_s4",
+   "minutes": 15,
+   "wishes": 4,
+   "wishRooms": {
+    "den": 4
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 178.6,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 17,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 23,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "basement_walk_15m_port_s3",
+   "minutes": 15,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 47,
+   "farMews": 22,
+   "pawParticles": 66,
+   "hellos": 4,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 14,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "dining_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "dining": 5
+   },
+   "reqs": 2,
+   "reqRooms": {
+    "dining": 2
+   },
+   "wishIdleMin": 131.3,
+   "reqIdleMin": 191.3,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 9,
+   "walkups": 10,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_chase@71 r_chase@183 r_hi_niece@349 r_hi_niece@757",
+   "roryRoomChanges": 13,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "dining_idle_15m_port_s2",
+   "minutes": 15,
+   "wishes": 6,
+   "wishRooms": {
+    "dining": 6
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 139.5,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 9,
+   "walkups": 3,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_giggle@526 r_hi_niece@618",
+   "roryRoomChanges": 11,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "dining_idle_15m_port_s3",
+   "minutes": 15,
+   "wishes": 6,
+   "wishRooms": {
+    "dining": 6
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 135,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 11,
+   "walkups": 15,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_hi_niece3@54 r_hi_niece@271 r_hi_niece@438 r_chase@680 r_chase@780 r_hi_niece3@904",
+   "roryRoomChanges": 6,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_act-cook_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "kitchen": 1
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "kitchen": 1
+   },
+   "wishIdleMin": 0.2,
+   "reqIdleMin": 60.2,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 1,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 1,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_act-draw_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "playroom": 1
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "playroom": 1
+   },
+   "wishIdleMin": 0.2,
+   "reqIdleMin": 60.2,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 2,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 1,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_act-dress_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 1,
+   "reqRooms": {
+    "kitchen": 1
+   },
+   "wishIdleMin": null,
+   "reqIdleMin": 8,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 2,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 2,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_act-story_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 2,
+   "wishRooms": {
+    "living": 2
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 4.3,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 2,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 5,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_act-swing_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "yard": 1
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 31.5,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 2,
+   "walkups": 3,
+   "walkupsBodyBusy": 0,
+   "roryStays": 6,
+   "roryWalkupLines": "r_chase@326",
+   "roryRoomChanges": 3,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_act-tv_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 1,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 8,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_idle_15m_land_s4",
+   "minutes": 15,
+   "wishes": 6,
+   "wishRooms": {
+    "kitchen": 6
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 142.6,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 6,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 9,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "kitchen": 5
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "kitchen": 1
+   },
+   "wishIdleMin": 165.1,
+   "reqIdleMin": 225.1,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 8,
+   "walkups": 4,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_hi_niece@701",
+   "roryRoomChanges": 15,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_idle_15m_port_s4",
+   "minutes": 15,
+   "wishes": 6,
+   "wishRooms": {
+    "kitchen": 6
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 131.2,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 8,
+   "walkups": 1,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_hi_niece3@91",
+   "roryRoomChanges": 18,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_still-bars_5m_port_s1",
+   "minutes": 5,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 4,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 2,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_still-bars_5m_port_s2",
+   "minutes": 5,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 4,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 4,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_still-swing_5m_port_s1",
+   "minutes": 5,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 1,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 9,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 2,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_still-swing_5m_port_s2",
+   "minutes": 5,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 9,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 2,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "main_walk_15m_port_s3",
+   "minutes": 15,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 3,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 11,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 7,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "outside_act-build_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "backyard": 1
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 97,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 1,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 2,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "outside_act-pool_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "pool": 1
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 81.2,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 1,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "outside_act-tree_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "backyard": 1
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 83.9,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 1,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 5,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "outside_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "backyard": 5
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 131.3,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 13,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "outside_idle_15m_port_s4",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "backyard": 5
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 187.1,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 17,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "outside_walk_15m_port_s3",
+   "minutes": 15,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 10,
+   "walkups": 4,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_hi_niece3@403 r_hi_niece@542 r_giggle@759",
+   "roryRoomChanges": 14,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "pool_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 6,
+   "wishRooms": {
+    "pool": 6
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 152.9,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 17,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "pool_idle_15m_port_s4",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "pool": 5
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 165.2,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 16,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "upstairs_act-spa_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "spa": 1
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 82,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 0,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 1,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "upstairs_act-stuffies_6m_port_s2",
+   "minutes": 6.1,
+   "wishes": 1,
+   "wishRooms": {
+    "mroom": 1
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 79.7,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 2,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 0,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "upstairs_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 6,
+   "wishRooms": {
+    "mroom": 6
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 159.2,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 7,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 13,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "upstairs_idle_15m_port_s4",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "mroom": 5
+   },
+   "reqs": 1,
+   "reqRooms": {
+    "mroom": 1
+   },
+   "wishIdleMin": 172.6,
+   "reqIdleMin": 232.6,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 7,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 12,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "upstairs_walk_15m_port_s3",
+   "minutes": 15,
+   "wishes": 0,
+   "wishRooms": {},
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": null,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 10,
+   "walkups": 0,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "",
+   "roryRoomChanges": 13,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "yard_idle_15m_port_s1",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "yard": 5
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 165.6,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 5,
+   "walkups": 22,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_giggle@34 r_giggle@153 r_giggle@244 r_hi_niece3@393 r_giggle@484 r_chase@668 r_chase@769 r_hi_niece3@887",
+   "roryRoomChanges": 8,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "yard_idle_15m_port_s2",
+   "minutes": 15,
+   "wishes": 6,
+   "wishRooms": {
+    "yard": 6
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 151,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 6,
+   "walkups": 12,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_hi_niece3@25 r_hi_niece3@127 r_chase@238 r_hi_niece@376 r_chase@547",
+   "roryRoomChanges": 17,
+   "errors": 0
+  },
+  {
+   "mode": "on",
+   "run": "yard_idle_15m_port_s3",
+   "minutes": 15,
+   "wishes": 5,
+   "wishRooms": {
+    "yard": 5
+   },
+   "reqs": 0,
+   "reqRooms": {},
+   "wishIdleMin": 191.7,
+   "reqIdleMin": null,
+   "tidyLines": 0,
+   "tidyLinesInAct": 0,
+   "tidyRingsInAct": 0,
+   "mews": 0,
+   "farMews": 0,
+   "pawParticles": 0,
+   "hellos": 3,
+   "walkups": 5,
+   "walkupsBodyBusy": 0,
+   "roryStays": 0,
+   "roryWalkupLines": "r_hi_niece@453 r_chase@790",
+   "roryRoomChanges": 10,
+   "errors": 0
+  }
+ ],
+ "edges": {
+  "off panel:?": [
+   "basement_act-lego_s2@250",
+   "basement_act-movie_s2@250",
+   "outside_act-build_s2@250",
+   "outside_act-pool_s2@251",
+   "outside_act-tree_s2@251",
+   "upstairs_act-spa_s2@250",
+   "upstairs_act-stuffies_s2@250"
+  ],
+  "off panel:cook": [
+   "main_act-cook_s2@249"
+  ],
+  "off studio": [
+   "main_act-draw_s2@250"
+  ],
+  "off panel:dress": [
+   "main_act-dress_s2@250"
+  ],
+  "off story,busy": [
+   "main_act-story_s2@249"
+  ],
+  "off swing": [
+   "main_act-swing_s2@250"
+  ],
+  "off tv": [
+   "main_act-tv_s2@47",
+   "main_act-tv_s2@88",
+   "main_act-tv_s2@131",
+   "main_act-tv_s2@173",
+   "main_act-tv_s2@217",
+   "main_act-tv_s2@248"
+  ],
+  "on panel:?": [
+   "basement_act-lego_s2@251",
+   "basement_act-movie_s2@250",
+   "outside_act-build_s2@251",
+   "outside_act-pool_s2@251",
+   "outside_act-tree_s2@250",
+   "upstairs_act-spa_s2@250",
+   "upstairs_act-stuffies_s2@250"
+  ],
+  "on panel:cook": [
+   "main_act-cook_s2@250"
+  ],
+  "on studio": [
+   "main_act-draw_s2@250"
+  ],
+  "on panel:dress": [
+   "main_act-dress_s2@250"
+  ],
+  "on story,busy": [
+   "main_act-story_s2@250"
+  ],
+  "on swing": [
+   "main_act-swing_s2@251"
+  ],
+  "on tv": [
+   "main_act-tv_s2@45",
+   "main_act-tv_s2@79",
+   "main_act-tv_s2@120",
+   "main_act-tv_s2@151",
+   "main_act-tv_s2@190",
+   "main_act-tv_s2@231",
+   "main_act-tv_s2@250"
+  ]
+ },
+ "g20": {
+  "off basement_act-lego_6m_port_s2": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "nunu": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off basement_act-movie_6m_port_s2": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "nunu": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off basement_idle_15m_port_s1": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "nunu": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off basement_idle_15m_port_s4": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 2,
+   "ownMinGapS": {
+    "mommy": null,
+    "nunu": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off basement_walk_15m_port_s3": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 4,
+   "ownMinGapS": {
+    "nunu": 108
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off dining_idle_15m_port_s1": {
+   "walkInHellos": 14,
+   "held": 0,
+   "walkInMinGapS": {
+    "daddy": 152,
+    "mommy": 51,
+    "rory": 31
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece@198",
+    "r_hi_niece@263",
+    "r_hi_niece3@317",
+    "r_hi_niece3@502"
+   ]
+  },
+  "off dining_idle_15m_port_s2": {
+   "walkInHellos": 14,
+   "held": 0,
+   "walkInMinGapS": {
+    "mommy": 327,
+    "rory": 64,
+    "daddy": 49
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece3@94",
+    "r_hi_niece3@173",
+    "r_hi_niece3@237",
+    "r_hi_niece3@507",
+    "r_hi_niece@741",
+    "r_hi_niece3@774",
+    "r_hi_niece@876"
+   ]
+  },
+  "off dining_idle_15m_port_s3": {
+   "walkInHellos": 11,
+   "held": 0,
+   "walkInMinGapS": {
+    "daddy": 101,
+    "mommy": 121,
+    "rory": 81
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece@101",
+    "r_hi_niece3@129",
+    "r_hi_niece3@189",
+    "r_hi_niece3@355",
+    "r_hi_niece@723",
+    "r_hi_niece@755"
+   ]
+  },
+  "off main_act-cook_6m_port_s2": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "off main_act-draw_6m_port_s2": {
+   "walkInHellos": 1,
+   "held": 0,
+   "walkInMinGapS": {
+    "mommy": null
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "off main_act-dress_6m_port_s2": {
+   "walkInHellos": 2,
+   "held": 0,
+   "walkInMinGapS": {
+    "daddy": null,
+    "mommy": null
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "daddy": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off main_act-story_6m_port_s2": {
+   "walkInHellos": 1,
+   "held": 0,
+   "walkInMinGapS": {
+    "mommy": null
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "daddy": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off main_act-swing_6m_port_s2": {
+   "walkInHellos": 1,
+   "held": 0,
+   "walkInMinGapS": {
+    "rory": null
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "rory": null
+   },
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece3@11",
+    "r_hi_niece3@46",
+    "r_hi_niece3@82",
+    "r_hi_niece@146",
+    "r_hi_niece@270"
+   ]
+  },
+  "off main_act-tv_6m_port_s2": {
+   "walkInHellos": 3,
+   "held": 0,
+   "walkInMinGapS": {
+    "mommy": 70
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "off main_idle_15m_land_s4": {
+   "walkInHellos": 11,
+   "held": 0,
+   "walkInMinGapS": {
+    "daddy": 57,
+    "mommy": 95
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "mommy": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off main_idle_15m_port_s1": {
+   "walkInHellos": 9,
+   "held": 0,
+   "walkInMinGapS": {
+    "mommy": 33,
+    "daddy": 31
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "off main_idle_15m_port_s4": {
+   "walkInHellos": 15,
+   "held": 0,
+   "walkInMinGapS": {
+    "daddy": 79,
+    "mommy": 37,
+    "rory": null
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece3@264"
+   ]
+  },
+  "off main_still-bars_5m_port_s1": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 2,
+   "ownMinGapS": {
+    "daddy": null,
+    "rory": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off main_still-bars_5m_port_s2": {
+   "walkInHellos": 2,
+   "held": 0,
+   "walkInMinGapS": {
+    "rory": 236
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "rory": null
+   },
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece3@71"
+   ]
+  },
+  "off main_still-swing_5m_port_s1": {
+   "walkInHellos": 2,
+   "held": 0,
+   "walkInMinGapS": {
+    "rory": 72
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "daddy": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off main_still-swing_5m_port_s2": {
+   "walkInHellos": 1,
+   "held": 0,
+   "walkInMinGapS": {
+    "rory": null
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "daddy": null
+   },
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece3@292"
+   ]
+  },
+  "off main_walk_15m_port_s3": {
+   "walkInHellos": 8,
+   "held": 0,
+   "walkInMinGapS": {
+    "mommy": 156,
+    "daddy": 149
+   },
+   "ownEntryHellos": 6,
+   "ownMinGapS": {
+    "rory": null,
+    "mommy": 48
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off outside_act-build_6m_port_s2": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "jeff": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off outside_act-pool_6m_port_s2": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "off outside_act-tree_6m_port_s2": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "jeff": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off outside_idle_15m_port_s1": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "jeff": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off outside_idle_15m_port_s4": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 2,
+   "ownMinGapS": {
+    "daddy": null,
+    "jeff": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off outside_walk_15m_port_s3": {
+   "walkInHellos": 1,
+   "held": 0,
+   "walkInMinGapS": {
+    "rory": null
+   },
+   "ownEntryHellos": 10,
+   "ownMinGapS": {
+    "daddy": null,
+    "jeff": 96,
+    "rory": 222
+   },
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece@104",
+    "r_hi_niece@888"
+   ]
+  },
+  "off pool_idle_15m_port_s1": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "off pool_idle_15m_port_s4": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "off upstairs_act-spa_6m_port_s2": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "off upstairs_act-stuffies_6m_port_s2": {
+   "walkInHellos": 2,
+   "held": 0,
+   "walkInMinGapS": {
+    "daddy": 64
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "off upstairs_idle_15m_port_s1": {
+   "walkInHellos": 20,
+   "held": 0,
+   "walkInMinGapS": {
+    "daddy": 36,
+    "mommy": 32
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": [
+    "d_hi1@911"
+   ]
+  },
+  "off upstairs_idle_15m_port_s4": {
+   "walkInHellos": 18,
+   "held": 0,
+   "walkInMinGapS": {
+    "mommy": 34,
+    "daddy": 54
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "off upstairs_walk_15m_port_s3": {
+   "walkInHellos": 17,
+   "held": 0,
+   "walkInMinGapS": {
+    "daddy": 60,
+    "mommy": 38
+   },
+   "ownEntryHellos": 3,
+   "ownMinGapS": {
+    "mommy": null,
+    "daddy": 117
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "off yard_idle_15m_port_s1": {
+   "walkInHellos": 5,
+   "held": 0,
+   "walkInMinGapS": {
+    "rory": 84
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece@24",
+    "r_hi_niece3@86",
+    "r_hi_niece3@97",
+    "r_hi_niece@235",
+    "r_hi_niece3@250",
+    "r_hi_niece3@297",
+    "r_hi_niece3@513",
+    "r_hi_niece@605",
+    "r_hi_niece3@683",
+    "r_hi_niece@743",
+    "r_hi_niece@786"
+   ]
+  },
+  "off yard_idle_15m_port_s2": {
+   "walkInHellos": 4,
+   "held": 0,
+   "walkInMinGapS": {
+    "rory": 56
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece3@31",
+    "r_hi_niece@70",
+    "r_hi_niece@114",
+    "r_hi_niece3@181",
+    "r_hi_niece3@192",
+    "r_hi_niece@220",
+    "r_hi_niece3@315",
+    "r_hi_niece3@566",
+    "r_hi_niece3@607",
+    "r_hi_niece@755",
+    "r_hi_niece@837",
+    "r_hi_niece@878",
+    "r_hi_niece@890"
+   ]
+  },
+  "off yard_idle_15m_port_s3": {
+   "walkInHellos": 4,
+   "held": 0,
+   "walkInMinGapS": {
+    "rory": 165
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece@13",
+    "r_hi_niece@182",
+    "r_hi_niece3@479",
+    "r_hi_niece3@662",
+    "r_hi_niece@839",
+    "r_hi_niece3@851",
+    "r_hi_niece3@888"
+   ]
+  },
+  "on basement_act-lego_6m_port_s2": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "nunu": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on basement_act-movie_6m_port_s2": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "nunu": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on basement_idle_15m_port_s1": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "nunu": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on basement_idle_15m_port_s4": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "nunu": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on basement_walk_15m_port_s3": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 5,
+   "ownMinGapS": {
+    "nunu": 108
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on dining_idle_15m_port_s1": {
+   "walkInHellos": 7,
+   "held": 6,
+   "walkInMinGapS": {
+    "daddy": 246,
+    "mommy": 188,
+    "rory": 408
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece@757"
+   ]
+  },
+  "on dining_idle_15m_port_s2": {
+   "walkInHellos": 8,
+   "held": 2,
+   "walkInMinGapS": {
+    "rory": 279,
+    "daddy": 291,
+    "mommy": 184
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "daddy": null
+   },
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece@618"
+   ]
+  },
+  "on dining_idle_15m_port_s3": {
+   "walkInHellos": 7,
+   "held": 4,
+   "walkInMinGapS": {
+    "mommy": 481,
+    "daddy": 182,
+    "rory": 430
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "rory": null
+   },
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece3@54",
+    "r_hi_niece@271",
+    "r_hi_niece@438",
+    "r_hi_niece3@904"
+   ]
+  },
+  "on main_act-cook_6m_port_s2": {
+   "walkInHellos": 1,
+   "held": 1,
+   "walkInMinGapS": {
+    "mommy": null
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "on main_act-draw_6m_port_s2": {
+   "walkInHellos": 1,
+   "held": 0,
+   "walkInMinGapS": {
+    "mommy": null
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "daddy": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on main_act-dress_6m_port_s2": {
+   "walkInHellos": 2,
+   "held": 1,
+   "walkInMinGapS": {
+    "daddy": null,
+    "mommy": null
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "on main_act-story_6m_port_s2": {
+   "walkInHellos": 2,
+   "held": 3,
+   "walkInMinGapS": {
+    "mommy": null,
+    "daddy": null
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "on main_act-swing_6m_port_s2": {
+   "walkInHellos": 2,
+   "held": 0,
+   "walkInMinGapS": {
+    "rory": 265
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "on main_act-tv_6m_port_s2": {
+   "walkInHellos": 1,
+   "held": 2,
+   "walkInMinGapS": {
+    "mommy": null
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "mommy": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on main_idle_15m_land_s4": {
+   "walkInHellos": 6,
+   "held": 3,
+   "walkInMinGapS": {
+    "daddy": 203,
+    "mommy": 322
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "on main_idle_15m_port_s1": {
+   "walkInHellos": 7,
+   "held": 7,
+   "walkInMinGapS": {
+    "daddy": 204,
+    "mommy": 222,
+    "rory": null
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece@701"
+   ]
+  },
+  "on main_idle_15m_port_s4": {
+   "walkInHellos": 7,
+   "held": 3,
+   "walkInMinGapS": {
+    "mommy": 328,
+    "rory": null,
+    "daddy": 297
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "daddy": null
+   },
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece3@91"
+   ]
+  },
+  "on main_still-bars_5m_port_s1": {
+   "walkInHellos": 1,
+   "held": 0,
+   "walkInMinGapS": {
+    "daddy": null
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "rory": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on main_still-bars_5m_port_s2": {
+   "walkInHellos": 0,
+   "held": 2,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "rory": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on main_still-swing_5m_port_s1": {
+   "walkInHellos": 1,
+   "held": 0,
+   "walkInMinGapS": {
+    "rory": null
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "on main_still-swing_5m_port_s2": {
+   "walkInHellos": 0,
+   "held": 1,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "rory": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on main_walk_15m_port_s3": {
+   "walkInHellos": 6,
+   "held": 6,
+   "walkInMinGapS": {
+    "daddy": 429,
+    "mommy": 662,
+    "rory": null
+   },
+   "ownEntryHellos": 5,
+   "ownMinGapS": {
+    "daddy": 507,
+    "mommy": 58
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on outside_act-build_6m_port_s2": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "jeff": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on outside_act-pool_6m_port_s2": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "on outside_act-tree_6m_port_s2": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "jeff": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on outside_idle_15m_port_s1": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "jeff": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on outside_idle_15m_port_s4": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "jeff": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on outside_walk_15m_port_s3": {
+   "walkInHellos": 0,
+   "held": 4,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 9,
+   "ownMinGapS": {
+    "jeff": 96,
+    "rory": 103
+   },
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece3@403",
+    "r_hi_niece@542"
+   ]
+  },
+  "on pool_idle_15m_port_s1": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "on pool_idle_15m_port_s4": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "on upstairs_act-spa_6m_port_s2": {
+   "walkInHellos": 0,
+   "held": 0,
+   "walkInMinGapS": {},
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "daddy": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on upstairs_act-stuffies_6m_port_s2": {
+   "walkInHellos": 2,
+   "held": 2,
+   "walkInMinGapS": {
+    "daddy": null,
+    "mommy": null
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "on upstairs_idle_15m_port_s1": {
+   "walkInHellos": 7,
+   "held": 18,
+   "walkInMinGapS": {
+    "mommy": 191,
+    "daddy": 198
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "daddy": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on upstairs_idle_15m_port_s4": {
+   "walkInHellos": 7,
+   "held": 18,
+   "walkInMinGapS": {
+    "mommy": 214,
+    "daddy": 223
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": []
+  },
+  "on upstairs_walk_15m_port_s3": {
+   "walkInHellos": 9,
+   "held": 17,
+   "walkInMinGapS": {
+    "daddy": 185,
+    "mommy": 181
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "mommy": null
+   },
+   "hellosWithoutGreetCtx": []
+  },
+  "on yard_idle_15m_port_s1": {
+   "walkInHellos": 3,
+   "held": 1,
+   "walkInMinGapS": {
+    "rory": 243
+   },
+   "ownEntryHellos": 1,
+   "ownMinGapS": {
+    "rory": null
+   },
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece3@393",
+    "r_hi_niece3@887"
+   ]
+  },
+  "on yard_idle_15m_port_s2": {
+   "walkInHellos": 4,
+   "held": 5,
+   "walkInMinGapS": {
+    "rory": 184
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece3@25",
+    "r_hi_niece3@127",
+    "r_hi_niece@376"
+   ]
+  },
+  "on yard_idle_15m_port_s3": {
+   "walkInHellos": 2,
+   "held": 0,
+   "walkInMinGapS": {
+    "rory": 334
+   },
+   "ownEntryHellos": 0,
+   "ownMinGapS": {},
+   "hellosWithoutGreetCtx": [
+    "r_hi_niece@453"
+   ]
+  }
+ },
+ "g21": {},
+ "helloKeys": {
+  "on": {
+   "nu_hi4": 3,
+   "nu_hi2": 2,
+   "nu_hi1": 1,
+   "d_hi1": 14,
+   "mo_hi2": 19,
+   "r_hi_niece": 14,
+   "d_hi2": 12,
+   "d_hi3": 12,
+   "r_hi_niece2": 8,
+   "r_hi_niece3": 20,
+   "mo_hi1": 19,
+   "d_hi_tired": 1,
+   "j_hi4": 2,
+   "j_hi2": 2,
+   "j_hi1": 1,
+   "j_hi3": 1
+  },
+  "off": {
+   "nu_hi3": 2,
+   "nu_hi2": 2,
+   "nu_hi1": 1,
+   "d_hi1": 24,
+   "mo_hi2": 31,
+   "d_hi3": 23,
+   "r_hi_niece2": 14,
+   "r_hi_niece": 42,
+   "r_hi_niece3": 46,
+   "d_hi2": 21,
+   "mo_hi1": 36,
+   "j_hi4": 3,
+   "j_hi3": 2,
+   "j_hi1": 1,
+   "d_hi_tired": 1
+  }
+ }
+}

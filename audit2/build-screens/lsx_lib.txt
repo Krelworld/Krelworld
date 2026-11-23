@@ -1,0 +1,14 @@
+const LIB = () => {
+  window.LSX = {};
+  LSX.seed = async n => {            // n different models on the shelf, made from the builder's own ideas
+    localStorage.removeItem('cm_brickshelf'); const all = [];
+    for (const kind of ['lego', 'tiles']) { Bricks.open({ kind }); await T.sleep(250); for (const i of Bricks.state().ideas) all.push([kind, i]); Bricks.close(); await T.sleep(100); }
+    for (let k = 0; k < n && k < all.length; k++) { const [kind, idea] = all[k]; Bricks.load(kind, idea.pieces, idea.id); LegoShelf.keep(kind); }
+    localStorage.removeItem('cm_bricks'); return LegoShelf.count;
+  };
+  LSX.g = () => { const b = document.querySelector('#panel .ls-top > button'), st = LegoShelf.state(), x = document.getElementById('xFloat'); return { btn: b ? b.textContent : null, mode: st.open ? st.mode : 'closed', xFloat: getComputedStyle(x).display === 'none' ? '-' : x.textContent }; };
+  LSX.slot = i => { const s = LegoShelf.state().slots[i]; return [s.x + s.w / 2, s.y + s.h / 2]; };
+  LSX.occ = k => { const s = LegoShelf.state().slots.filter(q => q.kind)[k]; return s ? [s.x + s.w / 2, s.y + s.h / 2] : null; };
+  LSX.btnXY = sel => { const n = document.querySelector(sel); if (!n) return null; const r = n.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+  LSX.hash = () => { const c = document.querySelector('#panel .ls-cv'); if (!c) return 0; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let h = 0; for (let i = 0; i < d.length; i += 16) h = (h * 31 + d[i] + d[i + 1] * 3) | 0; return h; };
+};

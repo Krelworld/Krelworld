@@ -1,0 +1,47 @@
+{
+ "worktree": "/home/user/Krelworld/.wt/dock (branch clarity/dock)",
+ "files": [
+  "public/chef-marina/clarity-dock.js (overlay)",
+  "public/chef-marina/fun.js askReq 2 lines /* G31 */"
+ ],
+ "G16": {
+  "scripts": [
+   "t16.js (a,b) -> t16a.out t16b.out",
+   "t16b.js glide/race/rot -> t16b_glide.out t16b_race.out t16b_rot.out",
+   "triple.js -> triple.out",
+   "fm/run.js P_kitchen,P_yard -> fm/log_*.json (fm/ana.js)",
+   "glideperson2.js",
+   "insets.js -> insets.out",
+   "hit664.js",
+   "title.js"
+  ]
+ },
+ "G25": {
+  "scripts": [
+   "t25.js stable/hits/faces/ghost -> t25_*.out",
+   "t25c.js -> t25c.out",
+   "sliver.js (badge vs stop chip)",
+   "ghoststart.js",
+   "badgeshot.js"
+  ]
+ },
+ "G27": {
+  "scripts": [
+   "t27.js queue/treasure -> t27_queue.out t27_treasure.out",
+   "t27f.js -> t27f2.out",
+   "t27b.js mid/titlefade/secret/story -> t27b_story.out"
+  ]
+ },
+ "G31": {
+  "scripts": [
+   "t31.js -> t31.out"
+  ]
+ },
+ "global": {
+  "errors": "errs.js -> errs.out",
+  "runtime switches": "toggle.js",
+  "sweep on": "sweep_on.json / diff_on.txt",
+  "sweep off": "sweep_off.json / diff_off.txt",
+  "A/B": "ab_rows.js -> ab_on.json ab_off.json; ab_tapflow.js; ab_wish.js -> ab_wish.log"
+ }
+}

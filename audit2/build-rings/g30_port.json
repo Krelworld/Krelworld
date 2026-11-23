@@ -1,0 +1,372 @@
+{
+ "port": {
+  "foyer": {
+   "opened": true,
+   "geo": [
+    {
+     "t": "🪜",
+     "badge": "⬆️",
+     "act": [
+      228,
+      70,
+      300,
+      142
+     ],
+     "b": [
+      277,
+      124,
+      304,
+      146
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    },
+    {
+     "t": "💺",
+     "badge": "⬆️",
+     "act": [
+      308,
+      70,
+      380,
+      142
+     ],
+     "b": [
+      357,
+      124,
+      384,
+      146
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    }
+   ],
+   "againBadges": [
+    1,
+    1
+   ],
+   "taps": {
+    "🪜badge": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 207,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "🪜centre": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 207,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "🪜outside": {
+     "at": "actback",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "💺badge": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 223,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "cheer",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "💺centre": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "foyer",
+      "busy": true,
+      "x": 238,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 104,
+      "state": "cheer",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "💺outside": {
+     "at": "actback",
+     "lift0": 1,
+     "s400": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 218,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    }
+   }
+  },
+  "uphall": {
+   "opened": true,
+   "geo": [
+    {
+     "t": "🪜",
+     "badge": "⬇️",
+     "act": [
+      228,
+      70,
+      300,
+      142
+     ],
+     "b": [
+      277,
+      124,
+      304,
+      146
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    },
+    {
+     "t": "💺",
+     "badge": "⬇️",
+     "act": [
+      308,
+      70,
+      380,
+      142
+     ],
+     "b": [
+      357,
+      124,
+      384,
+      146
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    }
+   ],
+   "againBadges": [
+    1,
+    1
+   ],
+   "taps": {
+    "🪜badge": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "uphall",
+      "busy": true,
+      "x": 70,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 231,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "🪜centre": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "uphall",
+      "busy": true,
+      "x": 70,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 231,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "🪜outside": {
+     "at": "actback",
+     "lift0": 1,
+     "s400": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "state": "idle",
+      "lift": 1,
+      "moving": false
+     }
+    },
+    "💺badge": {
+     "at": "act",
+     "lift0": 1,
+     "s400": {
+      "room": "uphall",
+      "busy": true,
+      "x": 28,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 240,
+      "state": "cheer",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "💺centre": {
+     "at": "act",
+     "lift0": 0,
+     "s400": {
+      "room": "uphall",
+      "busy": true,
+      "x": 60,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "foyer",
+      "busy": false,
+      "x": 240,
+      "state": "cheer",
+      "lift": 0,
+      "moving": false
+     }
+    },
+    "💺outside": {
+     "at": "actback",
+     "lift0": 0,
+     "s400": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "moving": false,
+      "ring": 0
+     },
+     "fin": {
+      "room": "uphall",
+      "busy": false,
+      "x": 60,
+      "state": "idle",
+      "lift": 0,
+      "moving": false
+     }
+    }
+   }
+  },
+  "special": {
+   "plain": "🪜 💺",
+   "dish": "🪜 💺",
+   "tidy": "🪜 💺",
+   "ride": {
+    "state": "idle",
+    "icons": "🪜 💺",
+    "dom": "🪜⬆️ 💺⬆️"
+   }
+  },
+  "others": {
+   "mainStairsProp": "🪜 💺",
+   "bunk": "🧸 😴 🪜",
+   "hatch": "🪜",
+   "built": "🪜",
+   "marina": "🪜 💺"
+  },
+  "off": [
+   "🪜",
+   "💺"
+  ],
+  "errors": []
+ }
+}

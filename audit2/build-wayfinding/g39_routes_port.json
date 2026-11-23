@@ -1,0 +1,994 @@
+{
+ "on": {
+  "pill up main→up": {
+   "arr": [
+    {
+     "was": "foyer",
+     "room": "uphall",
+     "n": 1,
+     "kf": "translateY(-30%)",
+     "big": "⬆️⁠💺"
+    }
+   ],
+   "room": "uphall",
+   "x": 104,
+   "panel": false,
+   "left": 0,
+   "big1": "⬆️⁠💺"
+  },
+  "pill down main→down": {
+   "arr": [
+    {
+     "was": "kitchen",
+     "room": "den",
+     "n": 1,
+     "kf": "translateY(30%)",
+     "big": "⬇️⁠🛋️"
+    }
+   ],
+   "room": "den",
+   "x": 104,
+   "panel": false,
+   "left": 0,
+   "big1": "⬇️⁠🛋️"
+  },
+  "pill up down→main": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "foyer",
+     "n": 1,
+     "kf": "translateY(-30%)",
+     "big": "⬆️⁠🚪"
+    }
+   ],
+   "room": "foyer",
+   "x": 104,
+   "panel": false,
+   "left": 0,
+   "big1": "⬆️⁠🚪"
+  },
+  "pill down up→main": {
+   "arr": [
+    {
+     "was": "uphall",
+     "room": "foyer",
+     "n": 1,
+     "kf": "translateY(30%)",
+     "big": "⬇️⁠🚪"
+    }
+   ],
+   "room": "foyer",
+   "x": 236,
+   "panel": false,
+   "left": 0,
+   "big1": "⬇️⁠🚪"
+  },
+  "map kitchen→den": {
+   "arr": [
+    {
+     "was": "kitchen",
+     "room": "den",
+     "n": 1,
+     "kf": "translateY(30%)",
+     "big": "⬇️⁠🛋️"
+    }
+   ],
+   "room": "den",
+   "x": 104,
+   "panel": false,
+   "left": 0,
+   "big1": "⬇️⁠🛋️"
+  },
+  "map kitchen→uphall": {
+   "arr": [
+    {
+     "was": "kitchen",
+     "room": "uphall",
+     "n": 1,
+     "kf": "translateY(-30%)",
+     "big": "⬆️⁠💺"
+    }
+   ],
+   "room": "uphall",
+   "x": 104,
+   "panel": false,
+   "left": 0,
+   "big1": "⬆️⁠💺"
+  },
+  "map den→kitchen": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "kitchen",
+     "n": 1,
+     "kf": "translateY(-30%)",
+     "big": "⬆️⁠🍳"
+    }
+   ],
+   "room": "kitchen",
+   "x": 196,
+   "panel": false,
+   "left": 0,
+   "big1": "⬆️⁠🍳"
+  },
+  "strip backyard→yard": {
+   "arr": [
+    {
+     "was": "backyard",
+     "room": "yard",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🌳"
+    }
+   ],
+   "room": "yard",
+   "x": 280,
+   "panel": false,
+   "left": 0,
+   "big1": "🌳"
+  },
+  "strip pool→backyard": {
+   "arr": [
+    {
+     "was": "pool",
+     "room": "backyard",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🦌"
+    }
+   ],
+   "room": "backyard",
+   "x": 520,
+   "panel": false,
+   "left": 0,
+   "big1": "🦌"
+  },
+  "arrow yard→pool": {
+   "arr": [
+    {
+     "was": "yard",
+     "room": "pool",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🏊"
+    }
+   ],
+   "room": "pool",
+   "x": 240,
+   "panel": false,
+   "left": 0,
+   "big1": "🏊"
+  },
+  "stairs 🪜 up": {
+   "arr": [
+    {
+     "was": "foyer",
+     "room": "uphall",
+     "n": 1,
+     "kf": "translateY(-30%)",
+     "big": "⬆️⁠💺"
+    }
+   ],
+   "room": "uphall",
+   "x": 104,
+   "panel": false,
+   "left": 1,
+   "r": "ok",
+   "big1": "⬆️⁠💺"
+  },
+  "stairs 💺 up": {
+   "arr": [
+    {
+     "was": "foyer",
+     "room": "uphall",
+     "n": 1,
+     "kf": "translateY(-30%)",
+     "big": "⬆️⁠💺"
+    }
+   ],
+   "room": "uphall",
+   "x": 104,
+   "panel": false,
+   "left": 1,
+   "r": "ok",
+   "big1": "⬆️⁠💺"
+  },
+  "ustairs 🪜 down": {
+   "arr": [
+    {
+     "was": "uphall",
+     "room": "foyer",
+     "n": 1,
+     "kf": "translateY(30%)",
+     "big": "⬇️⁠🚪"
+    }
+   ],
+   "room": "foyer",
+   "x": 231,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "⬇️⁠🚪"
+  },
+  "ustairs 💺 down": {
+   "arr": [
+    {
+     "was": "uphall",
+     "room": "foyer",
+     "n": 1,
+     "kf": "translateY(30%)",
+     "big": "⬇️⁠🚪"
+    }
+   ],
+   "room": "foyer",
+   "x": 220,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "⬇️⁠🚪"
+  },
+  "basement doorway": {
+   "arr": [
+    {
+     "was": "foyer",
+     "room": "den",
+     "n": 1,
+     "kf": "translateY(30%)",
+     "big": "⬇️⁠🛋️"
+    }
+   ],
+   "room": "den",
+   "x": 104,
+   "panel": false,
+   "left": 1,
+   "r": "ok",
+   "big1": "⬇️⁠🛋️"
+  },
+  "den stairs": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "foyer",
+     "n": 1,
+     "kf": "translateY(-30%)",
+     "big": "⬆️⁠🚪"
+    }
+   ],
+   "room": "foyer",
+   "x": 100,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "⬆️⁠🚪"
+  },
+  "back door": {
+   "arr": [
+    {
+     "was": "backyard",
+     "room": "den",
+     "n": 1,
+     "kf": "translateY(30%)",
+     "big": "⬇️⁠🛋️"
+    }
+   ],
+   "room": "den",
+   "x": 474,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "⬇️⁠🛋️"
+  },
+  "Dutch door": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "backyard",
+     "n": 1,
+     "kf": "translateY(-30%)",
+     "big": "⬆️⁠🦌"
+    }
+   ],
+   "room": "backyard",
+   "x": 96,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "⬆️⁠🦌"
+  },
+  "oak ladder": {
+   "arr": [
+    {
+     "was": "backyard",
+     "room": "treehouse_oak",
+     "n": 1,
+     "kf": "translateY(-30%)",
+     "big": "⬆️⁠🏡"
+    }
+   ],
+   "room": "treehouse_oak",
+   "x": 66,
+   "panel": false,
+   "left": 1,
+   "r": "🪜🛝🎨🧹",
+   "big1": ""
+  },
+  "pine ladder": {
+   "arr": [
+    {
+     "was": "backyard",
+     "room": "treehouse_pine",
+     "n": 1,
+     "kf": "translateY(-30%)",
+     "big": "⬆️⁠🌲"
+    }
+   ],
+   "room": "treehouse_pine",
+   "x": 66,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": ""
+  },
+  "hatch 🪜": {
+   "arr": [
+    {
+     "was": "treehouse_oak",
+     "room": "backyard",
+     "n": 1,
+     "kf": "translateY(30%)",
+     "big": "⬇️⁠🦌"
+    }
+   ],
+   "room": "backyard",
+   "x": 736,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "⬇️⁠🦌"
+  },
+  "hatch 🛝": {
+   "arr": [
+    {
+     "was": "treehouse_oak",
+     "room": "backyard",
+     "n": 1,
+     "kf": "translateY(30%)",
+     "big": "⬇️⁠🦌"
+    }
+   ],
+   "room": "backyard",
+   "x": 814,
+   "panel": false,
+   "left": 1,
+   "r": "ok",
+   "big1": "⬇️⁠🦌"
+  },
+  "pine hatch 🪜": {
+   "arr": [
+    {
+     "was": "treehouse_pine",
+     "room": "backyard",
+     "n": 1,
+     "kf": "translateY(30%)",
+     "big": "⬇️⁠🦌"
+    }
+   ],
+   "room": "backyard",
+   "x": 1014,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "⬇️⁠🦌"
+  },
+  "alert 😭 from den": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "living",
+     "n": 1,
+     "kf": "translateY(-30%)",
+     "big": "⬆️⁠📺"
+    }
+   ],
+   "room": "living",
+   "x": 502,
+   "panel": false,
+   "left": 1,
+   "big1": "⬆️⁠📺"
+  },
+  "wish 🍳 from backyard": {
+   "arr": [
+    {
+     "was": "backyard",
+     "room": "kitchen",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🍳"
+    }
+   ],
+   "room": "kitchen",
+   "x": 60,
+   "panel": true,
+   "left": 1,
+   "big1": "🍳"
+  },
+  "request from uphall": {
+   "arr": [
+    {
+     "was": "uphall",
+     "room": "kitchen",
+     "n": 1,
+     "kf": "translateY(30%)",
+     "big": "⬇️⁠🍳"
+    }
+   ],
+   "room": "kitchen",
+   "x": 60,
+   "panel": true,
+   "left": 1,
+   "big1": "⬇️⁠🍳"
+  },
+  "same floor arrow kitchen→playroom": {
+   "arr": [
+    {
+     "was": "kitchen",
+     "room": "playroom",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🧸"
+    }
+   ],
+   "room": "playroom",
+   "x": 176,
+   "panel": false,
+   "left": 0,
+   "big1": "🧸"
+  },
+  "same floor strip den→nunuroom": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "nunuroom",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "👵"
+    }
+   ],
+   "room": "nunuroom",
+   "x": 160,
+   "panel": false,
+   "left": 0,
+   "big1": "👵"
+  },
+  "same floor map den→laundry": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "laundry",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🧺"
+    }
+   ],
+   "room": "laundry",
+   "x": 144,
+   "panel": false,
+   "left": 0,
+   "big1": "🧺"
+  },
+  "bunk wake mroom→living": {
+   "arr": [
+    {
+     "was": "mroom",
+     "room": "living",
+     "n": 1,
+     "kf": "translateY(30%)",
+     "big": "⬇️⁠📺"
+    }
+   ],
+   "room": "living",
+   "x": 300,
+   "panel": false,
+   "left": 1,
+   "big1": "⬇️⁠📺 ☀️"
+  },
+  "errors": []
+ },
+ "off": {
+  "pill up main→up": {
+   "arr": [
+    {
+     "was": "foyer",
+     "room": "uphall",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "💺"
+    }
+   ],
+   "room": "uphall",
+   "x": 104,
+   "panel": false,
+   "left": 0,
+   "big1": "💺"
+  },
+  "pill down main→down": {
+   "arr": [
+    {
+     "was": "kitchen",
+     "room": "den",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🛋️"
+    }
+   ],
+   "room": "den",
+   "x": 104,
+   "panel": false,
+   "left": 1,
+   "big1": "🛋️"
+  },
+  "pill up down→main": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "foyer",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🚪"
+    }
+   ],
+   "room": "foyer",
+   "x": 104,
+   "panel": false,
+   "left": 0,
+   "big1": "🚪"
+  },
+  "pill down up→main": {
+   "arr": [
+    {
+     "was": "uphall",
+     "room": "foyer",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🚪"
+    }
+   ],
+   "room": "foyer",
+   "x": 236,
+   "panel": false,
+   "left": 0,
+   "big1": "🚪"
+  },
+  "map kitchen→den": {
+   "arr": [
+    {
+     "was": "kitchen",
+     "room": "den",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🛋️"
+    }
+   ],
+   "room": "den",
+   "x": 104,
+   "panel": false,
+   "left": 0,
+   "big1": "🛋️"
+  },
+  "map kitchen→uphall": {
+   "arr": [
+    {
+     "was": "kitchen",
+     "room": "uphall",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "💺"
+    }
+   ],
+   "room": "uphall",
+   "x": 104,
+   "panel": false,
+   "left": 0,
+   "big1": "💺"
+  },
+  "map den→kitchen": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "kitchen",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🍳"
+    }
+   ],
+   "room": "kitchen",
+   "x": 196,
+   "panel": false,
+   "left": 0,
+   "big1": "🍳"
+  },
+  "strip backyard→yard": {
+   "arr": [
+    {
+     "was": "backyard",
+     "room": "yard",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🌳"
+    }
+   ],
+   "room": "yard",
+   "x": 280,
+   "panel": false,
+   "left": 0,
+   "big1": "🌳"
+  },
+  "strip pool→backyard": {
+   "arr": [
+    {
+     "was": "pool",
+     "room": "backyard",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🦌"
+    }
+   ],
+   "room": "backyard",
+   "x": 520,
+   "panel": false,
+   "left": 0,
+   "big1": "🦌"
+  },
+  "arrow yard→pool": {
+   "arr": [
+    {
+     "was": "yard",
+     "room": "pool",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🏊"
+    }
+   ],
+   "room": "pool",
+   "x": 240,
+   "panel": false,
+   "left": 0,
+   "big1": "🏊"
+  },
+  "stairs 🪜 up": {
+   "arr": [
+    {
+     "was": "foyer",
+     "room": "uphall",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "💺"
+    }
+   ],
+   "room": "uphall",
+   "x": 104,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "💺"
+  },
+  "stairs 💺 up": {
+   "arr": [
+    {
+     "was": "foyer",
+     "room": "uphall",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "💺"
+    }
+   ],
+   "room": "uphall",
+   "x": 104,
+   "panel": false,
+   "left": 1,
+   "r": "ok",
+   "big1": "💺"
+  },
+  "ustairs 🪜 down": {
+   "arr": [
+    {
+     "was": "uphall",
+     "room": "foyer",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🚪"
+    }
+   ],
+   "room": "foyer",
+   "x": 231,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "🚪"
+  },
+  "ustairs 💺 down": {
+   "arr": [
+    {
+     "was": "uphall",
+     "room": "foyer",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🚪"
+    }
+   ],
+   "room": "foyer",
+   "x": 220,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "🚪"
+  },
+  "basement doorway": {
+   "arr": [
+    {
+     "was": "foyer",
+     "room": "den",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🛋️"
+    }
+   ],
+   "room": "den",
+   "x": 104,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "🛋️"
+  },
+  "den stairs": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "foyer",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🚪"
+    }
+   ],
+   "room": "foyer",
+   "x": 100,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "🚪"
+  },
+  "back door": {
+   "arr": [
+    {
+     "was": "backyard",
+     "room": "den",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🛋️"
+    }
+   ],
+   "room": "den",
+   "x": 474,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "🛋️"
+  },
+  "Dutch door": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "backyard",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🦌"
+    }
+   ],
+   "room": "backyard",
+   "x": 96,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "🦌"
+  },
+  "oak ladder": {
+   "arr": [
+    {
+     "was": "backyard",
+     "room": "treehouse_oak",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🏡"
+    }
+   ],
+   "room": "treehouse_oak",
+   "x": 66,
+   "panel": false,
+   "left": 1,
+   "r": "🪜🛝🎨🧹",
+   "big1": ""
+  },
+  "pine ladder": {
+   "arr": [
+    {
+     "was": "backyard",
+     "room": "treehouse_pine",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🌲"
+    }
+   ],
+   "room": "treehouse_pine",
+   "x": 66,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": ""
+  },
+  "hatch 🪜": {
+   "arr": [
+    {
+     "was": "treehouse_oak",
+     "room": "backyard",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🦌"
+    }
+   ],
+   "room": "backyard",
+   "x": 736,
+   "panel": false,
+   "left": 1,
+   "r": "ok",
+   "big1": "🦌"
+  },
+  "hatch 🛝": {
+   "arr": [
+    {
+     "was": "treehouse_oak",
+     "room": "backyard",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🦌"
+    }
+   ],
+   "room": "backyard",
+   "x": 814,
+   "panel": false,
+   "left": 1,
+   "r": "ok",
+   "big1": "🦌"
+  },
+  "pine hatch 🪜": {
+   "arr": [
+    {
+     "was": "treehouse_pine",
+     "room": "backyard",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🦌"
+    }
+   ],
+   "room": "backyard",
+   "x": 1014,
+   "panel": false,
+   "left": 0,
+   "r": "ok",
+   "big1": "🦌"
+  },
+  "alert 😭 from den": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "living",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "📺"
+    }
+   ],
+   "room": "living",
+   "x": 502,
+   "panel": false,
+   "left": 1,
+   "big1": "📺"
+  },
+  "wish 🍳 from backyard": {
+   "arr": [
+    {
+     "was": "backyard",
+     "room": "kitchen",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🍳"
+    }
+   ],
+   "room": "kitchen",
+   "x": 60,
+   "panel": true,
+   "left": 1,
+   "big1": "🍳"
+  },
+  "request from uphall": {
+   "arr": [
+    {
+     "was": "uphall",
+     "room": "kitchen",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🍳"
+    }
+   ],
+   "room": "kitchen",
+   "x": 60,
+   "panel": true,
+   "left": 1,
+   "big1": "🍳"
+  },
+  "same floor arrow kitchen→playroom": {
+   "arr": [
+    {
+     "was": "kitchen",
+     "room": "playroom",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🧸"
+    }
+   ],
+   "room": "playroom",
+   "x": 176,
+   "panel": false,
+   "left": 0,
+   "big1": "🧸"
+  },
+  "same floor strip den→nunuroom": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "nunuroom",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "👵"
+    }
+   ],
+   "room": "nunuroom",
+   "x": 160,
+   "panel": false,
+   "left": 0,
+   "big1": "👵"
+  },
+  "same floor map den→laundry": {
+   "arr": [
+    {
+     "was": "den",
+     "room": "laundry",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "🧺"
+    }
+   ],
+   "room": "laundry",
+   "x": 144,
+   "panel": false,
+   "left": 0,
+   "big1": "🧺"
+  },
+  "bunk wake mroom→living": {
+   "arr": [
+    {
+     "was": "mroom",
+     "room": "living",
+     "n": 1,
+     "kf": "translateX(0%)",
+     "big": "📺"
+    }
+   ],
+   "room": "living",
+   "x": 300,
+   "panel": false,
+   "left": 1,
+   "big1": "📺 ☀️"
+  },
+  "errors": []
+ }
+}

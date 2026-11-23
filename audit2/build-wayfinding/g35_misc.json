@@ -1,0 +1,871 @@
+{
+ "tapeq": {
+  "port foyer/stairs": {
+   "same": true,
+   "sign": {
+    "x": 214,
+    "y": 83,
+    "mx": 214
+   },
+   "signPoint": {
+    "c": [
+     187,
+     205
+    ],
+    "top": "cv",
+    "hit": "prop:stairs"
+   },
+   "viaSign": {
+    "room": "foyer",
+    "x": 218,
+    "acts": "🪜💺",
+    "state": "idle"
+   },
+   "doorPoint": [
+    184,
+    136
+   ],
+   "viaDoor": {
+    "room": "foyer",
+    "x": 218,
+    "acts": "🪜💺",
+    "state": "idle"
+   }
+  },
+  "port foyer/basedoor": {
+   "same": false,
+   "sign": {
+    "x": 105,
+    "y": 97,
+    "basement": true,
+    "mx": 104
+   },
+   "signPoint": {
+    "c": [
+     189,
+     240
+    ],
+    "top": "cv",
+    "hit": "self:"
+   },
+   "viaSign": {
+    "room": "foyer",
+    "x": 104,
+    "acts": "🤸💃",
+    "state": "idle"
+   },
+   "doorPoint": [
+    85,
+    137
+   ],
+   "viaDoor": {
+    "room": "den",
+    "x": 104,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "port uphall/ustairs": {
+   "same": true,
+   "sign": {
+    "x": 68,
+    "y": 113,
+    "mx": 104
+   },
+   "signPoint": {
+    "c": [
+     98,
+     279
+    ],
+    "top": "cv",
+    "hit": "prop:ustairs"
+   },
+   "viaSign": {
+    "room": "uphall",
+    "x": 60,
+    "acts": "🪜💺",
+    "state": "idle"
+   },
+   "doorPoint": [
+    29,
+    137
+   ],
+   "viaDoor": {
+    "room": "uphall",
+    "x": 60,
+    "acts": "🪜💺",
+    "state": "idle"
+   }
+  },
+  "port den/bstairs": {
+   "same": true,
+   "sign": {
+    "x": 60,
+    "y": 65,
+    "mx": 104
+   },
+   "signPoint": {
+    "c": [
+     78,
+     161
+    ],
+    "top": "cv",
+    "hit": "prop:bstairs"
+   },
+   "viaSign": {
+    "room": "foyer",
+    "x": 100,
+    "acts": "",
+    "state": "idle"
+   },
+   "doorPoint": [
+    31,
+    137
+   ],
+   "viaDoor": {
+    "room": "foyer",
+    "x": 100,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "port den/dutch": {
+   "same": true,
+   "sign": {
+    "x": 474,
+    "y": 97,
+    "mx": 474
+   },
+   "signPoint": {
+    "c": [
+     187,
+     240
+    ],
+    "top": "cv",
+    "hit": "prop:dutch"
+   },
+   "viaSign": {
+    "room": "backyard",
+    "x": 96,
+    "acts": "",
+    "state": "idle"
+   },
+   "doorPoint": [
+    456,
+    137
+   ],
+   "viaDoor": {
+    "room": "backyard",
+    "x": 96,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "port backyard/bkdoor": {
+   "same": true,
+   "sign": {
+    "x": 92,
+    "y": 98,
+    "mx": 96
+   },
+   "signPoint": {
+    "c": [
+     177,
+     242
+    ],
+    "top": "cv",
+    "hit": "prop:bkdoor"
+   },
+   "viaSign": {
+    "room": "den",
+    "x": 474,
+    "acts": "",
+    "state": "idle"
+   },
+   "doorPoint": [
+    74,
+    137
+   ],
+   "viaDoor": {
+    "room": "den",
+    "x": 474,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "port errors": [],
+  "land foyer/stairs": {
+   "same": true,
+   "sign": {
+    "x": 214,
+    "y": 83,
+    "mx": 214
+   },
+   "signPoint": {
+    "c": [
+     560,
+     146
+    ],
+    "top": "cv",
+    "hit": "prop:stairs"
+   },
+   "viaSign": {
+    "room": "foyer",
+    "x": 218,
+    "acts": "🪜💺",
+    "state": "idle"
+   },
+   "doorPoint": [
+    184,
+    136
+   ],
+   "viaDoor": {
+    "room": "foyer",
+    "x": 218,
+    "acts": "🪜💺",
+    "state": "idle"
+   }
+  },
+  "land foyer/basedoor": {
+   "same": false,
+   "sign": {
+    "x": 105,
+    "y": 97,
+    "basement": true,
+    "mx": 104
+   },
+   "signPoint": {
+    "c": [
+     326,
+     181
+    ],
+    "top": "cv",
+    "hit": "self:"
+   },
+   "viaSign": {
+    "room": "foyer",
+    "x": 104,
+    "acts": "🤸💃",
+    "state": "idle"
+   },
+   "doorPoint": [
+    85,
+    137
+   ],
+   "viaDoor": {
+    "room": "den",
+    "x": 104,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "land uphall/ustairs": {
+   "same": true,
+   "sign": {
+    "x": 56,
+    "y": 113,
+    "mx": 104
+   },
+   "signPoint": {
+    "c": [
+     203,
+     222
+    ],
+    "top": "cv",
+    "hit": "prop:ustairs"
+   },
+   "viaSign": {
+    "room": "uphall",
+    "x": 60,
+    "acts": "🪜💺",
+    "state": "idle"
+   },
+   "doorPoint": [
+    26,
+    137
+   ],
+   "viaDoor": {
+    "room": "uphall",
+    "x": 60,
+    "acts": "🪜💺",
+    "state": "idle"
+   }
+  },
+  "land den/bstairs": {
+   "same": true,
+   "sign": {
+    "x": 52,
+    "y": 65,
+    "mx": 104
+   },
+   "signPoint": {
+    "c": [
+     193,
+     101
+    ],
+    "top": "cv",
+    "hit": "prop:bstairs"
+   },
+   "viaSign": {
+    "room": "foyer",
+    "x": 100,
+    "acts": "",
+    "state": "idle"
+   },
+   "doorPoint": [
+    22,
+    137
+   ],
+   "viaDoor": {
+    "room": "foyer",
+    "x": 100,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "land den/dutch": {
+   "same": true,
+   "sign": {
+    "x": 474,
+    "y": 97,
+    "mx": 474
+   },
+   "signPoint": {
+    "c": [
+     384,
+     181
+    ],
+    "top": "cv",
+    "hit": "prop:dutch"
+   },
+   "viaSign": {
+    "room": "backyard",
+    "x": 96,
+    "acts": "",
+    "state": "idle"
+   },
+   "doorPoint": [
+    492,
+    137
+   ],
+   "viaDoor": {
+    "room": "backyard",
+    "x": 96,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "land backyard/bkdoor": {
+   "same": true,
+   "sign": {
+    "x": 92,
+    "y": 98,
+    "mx": 96
+   },
+   "signPoint": {
+    "c": [
+     293,
+     184
+    ],
+    "top": "cv",
+    "hit": "prop:bkdoor"
+   },
+   "viaSign": {
+    "room": "den",
+    "x": 474,
+    "acts": "",
+    "state": "idle"
+   },
+   "doorPoint": [
+    74,
+    137
+   ],
+   "viaDoor": {
+    "room": "den",
+    "x": 474,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "land errors": [],
+  "portSmall foyer/stairs": {
+   "same": true,
+   "sign": {
+    "x": 214,
+    "y": 95,
+    "mx": 262
+   },
+   "signPoint": {
+    "c": [
+     159,
+     226
+    ],
+    "top": "cv",
+    "hit": "prop:stairs"
+   },
+   "viaSign": {
+    "room": "foyer",
+    "x": 218,
+    "acts": "🪜💺",
+    "state": "idle"
+   },
+   "doorPoint": [
+    217,
+    136
+   ],
+   "viaDoor": {
+    "room": "foyer",
+    "x": 218,
+    "acts": "🪜💺",
+    "state": "idle"
+   }
+  },
+  "portSmall foyer/basedoor": {
+   "same": false,
+   "sign": {
+    "x": 105,
+    "y": 97,
+    "basement": true,
+    "mx": 104
+   },
+   "signPoint": {
+    "c": [
+     182,
+     230
+    ],
+    "top": "cv",
+    "hit": "self:"
+   },
+   "viaSign": {
+    "room": "foyer",
+    "x": 104,
+    "acts": "🤸💃",
+    "state": "idle"
+   },
+   "doorPoint": [
+    85,
+    137
+   ],
+   "viaDoor": {
+    "room": "den",
+    "x": 104,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "portSmall uphall/ustairs": {
+   "same": true,
+   "sign": {
+    "x": 68,
+    "y": 113,
+    "mx": 104
+   },
+   "signPoint": {
+    "c": [
+     94,
+     268
+    ],
+    "top": "cv",
+    "hit": "prop:ustairs"
+   },
+   "viaSign": {
+    "room": "uphall",
+    "x": 60,
+    "acts": "🪜💺",
+    "state": "idle"
+   },
+   "doorPoint": [
+    29,
+    137
+   ],
+   "viaDoor": {
+    "room": "uphall",
+    "x": 60,
+    "acts": "🪜💺",
+    "state": "idle"
+   }
+  },
+  "portSmall den/bstairs": {
+   "same": true,
+   "sign": {
+    "x": 60,
+    "y": 65,
+    "mx": 104
+   },
+   "signPoint": {
+    "c": [
+     75,
+     154
+    ],
+    "top": "cv",
+    "hit": "prop:bstairs"
+   },
+   "viaSign": {
+    "room": "foyer",
+    "x": 100,
+    "acts": "",
+    "state": "idle"
+   },
+   "doorPoint": [
+    31,
+    137
+   ],
+   "viaDoor": {
+    "room": "foyer",
+    "x": 100,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "portSmall den/dutch": {
+   "same": true,
+   "sign": {
+    "x": 474,
+    "y": 97,
+    "mx": 474
+   },
+   "signPoint": {
+    "c": [
+     179,
+     230
+    ],
+    "top": "cv",
+    "hit": "prop:dutch"
+   },
+   "viaSign": {
+    "room": "backyard",
+    "x": 96,
+    "acts": "",
+    "state": "idle"
+   },
+   "doorPoint": [
+    456,
+    137
+   ],
+   "viaDoor": {
+    "room": "backyard",
+    "x": 96,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "portSmall backyard/bkdoor": {
+   "same": true,
+   "sign": {
+    "x": 92,
+    "y": 98,
+    "mx": 96
+   },
+   "signPoint": {
+    "c": [
+     170,
+     233
+    ],
+    "top": "cv",
+    "hit": "prop:bkdoor"
+   },
+   "viaSign": {
+    "room": "den",
+    "x": 474,
+    "acts": "",
+    "state": "idle"
+   },
+   "doorPoint": [
+    74,
+    137
+   ],
+   "viaDoor": {
+    "room": "den",
+    "x": 474,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "portSmall errors": [],
+  "landSmall foyer/stairs": {
+   "same": true,
+   "sign": {
+    "x": 214,
+    "y": 83,
+    "mx": 214
+   },
+   "signPoint": {
+    "c": [
+     389,
+     141
+    ],
+    "top": "cv",
+    "hit": "prop:stairs"
+   },
+   "viaSign": {
+    "room": "foyer",
+    "x": 218,
+    "acts": "🪜💺",
+    "state": "idle"
+   },
+   "doorPoint": [
+    184,
+    136
+   ],
+   "viaDoor": {
+    "room": "foyer",
+    "x": 218,
+    "acts": "🪜💺",
+    "state": "idle"
+   }
+  },
+  "landSmall foyer/basedoor": {
+   "same": false,
+   "sign": {
+    "x": 105,
+    "y": 97,
+    "basement": true,
+    "mx": 104
+   },
+   "signPoint": {
+    "c": [
+     298,
+     174
+    ],
+    "top": "cv",
+    "hit": "self:"
+   },
+   "viaSign": {
+    "room": "foyer",
+    "x": 104,
+    "acts": "🤸💃",
+    "state": "idle"
+   },
+   "doorPoint": [
+    85,
+    137
+   ],
+   "viaDoor": {
+    "room": "den",
+    "x": 104,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "landSmall uphall/ustairs": {
+   "same": true,
+   "sign": {
+    "x": 56,
+    "y": 113,
+    "mx": 104
+   },
+   "signPoint": {
+    "c": [
+     180,
+     213
+    ],
+    "top": "cv",
+    "hit": "prop:ustairs"
+   },
+   "viaSign": {
+    "room": "uphall",
+    "x": 60,
+    "acts": "🪜💺",
+    "state": "idle"
+   },
+   "doorPoint": [
+    26,
+    137
+   ],
+   "viaDoor": {
+    "room": "uphall",
+    "x": 60,
+    "acts": "🪜💺",
+    "state": "idle"
+   }
+  },
+  "landSmall den/bstairs": {
+   "same": true,
+   "sign": {
+    "x": 52,
+    "y": 65,
+    "mx": 104
+   },
+   "signPoint": {
+    "c": [
+     170,
+     97
+    ],
+    "top": "cv",
+    "hit": "prop:bstairs"
+   },
+   "viaSign": {
+    "room": "foyer",
+    "x": 100,
+    "acts": "",
+    "state": "idle"
+   },
+   "doorPoint": [
+    22,
+    137
+   ],
+   "viaDoor": {
+    "room": "foyer",
+    "x": 100,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "landSmall den/dutch": {
+   "same": true,
+   "sign": {
+    "x": 474,
+    "y": 97,
+    "mx": 474
+   },
+   "signPoint": {
+    "c": [
+     296,
+     174
+    ],
+    "top": "cv",
+    "hit": "prop:dutch"
+   },
+   "viaSign": {
+    "room": "backyard",
+    "x": 96,
+    "acts": "",
+    "state": "idle"
+   },
+   "doorPoint": [
+    456,
+    137
+   ],
+   "viaDoor": {
+    "room": "backyard",
+    "x": 96,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "landSmall backyard/bkdoor": {
+   "same": true,
+   "sign": {
+    "x": 92,
+    "y": 98,
+    "mx": 96
+   },
+   "signPoint": {
+    "c": [
+     284,
+     177
+    ],
+    "top": "cv",
+    "hit": "prop:bkdoor"
+   },
+   "viaSign": {
+    "room": "den",
+    "x": 474,
+    "acts": "",
+    "state": "idle"
+   },
+   "doorPoint": [
+    74,
+    137
+   ],
+   "viaDoor": {
+    "room": "den",
+    "x": 474,
+    "acts": "",
+    "state": "idle"
+   }
+  },
+  "landSmall errors": []
+ },
+ "front": {
+  "start": {
+   "spot": [
+    60,
+    65
+   ],
+   "drawn": true
+  },
+  "withNunu": {
+   "ok": false,
+   "drawn": false,
+   "hitAtSign": "prop:bstairs"
+  },
+  "errors": []
+ },
+ "flicker": {
+  "before": "60,65",
+  "face card": "60,65",
+  "ring on Marina": "60,65",
+  "dress-up / book buttons": "60,65",
+  "wish button": "60,65"
+ },
+ "screens": {
+  "cookOpen": true,
+  "afterClose": true,
+  "mapOpen": true,
+  "title": {
+   "playing": false,
+   "signs": 0,
+   "tab": false
+  },
+  "tvLand": {
+   "tvon": true,
+   "signsHere": 0,
+   "tab": false
+  }
+ },
+ "wrap": {
+  "sameAfter20s": true,
+  "start": "outer:true",
+  "errors": []
+ },
+ "frames": {
+  "on backyard": {
+   "calls": 353,
+   "frames": 353,
+   "perFrame": 1,
+   "wrapperChanges": 0,
+   "medianDt": 16.7,
+   "p95Dt": 16.8
+  },
+  "on den": {
+   "calls": 358,
+   "frames": 358,
+   "perFrame": 1,
+   "wrapperChanges": 0,
+   "medianDt": 16.7,
+   "p95Dt": 16.7
+  },
+  "off backyard": {
+   "calls": 354,
+   "frames": 354,
+   "perFrame": 1,
+   "wrapperChanges": 0,
+   "medianDt": 16.7,
+   "p95Dt": 16.8
+  },
+  "off den": {
+   "calls": 360,
+   "frames": 360,
+   "perFrame": 1,
+   "wrapperChanges": 0,
+   "medianDt": 16.7,
+   "p95Dt": 16.7
+  }
+ },
+ "lantern": {
+  "lamp": {
+   "kind": "treehouse",
+   "spot": "oak",
+   "colour": "red",
+   "style": "gable",
+   "addons": [
+    "lights",
+    "flag",
+    "tube"
+   ]
+  },
+  "tab": true,
+  "errors": []
+ }
+}

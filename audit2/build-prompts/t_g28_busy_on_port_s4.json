@@ -1,0 +1,282 @@
+[
+ {
+  "K": 6,
+  "room": "living",
+  "during": "ring 3-14 s",
+  "t0": 3.412000000000001,
+  "wishes": [
+   {
+    "t": 14.25,
+    "ico": "👶➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 14.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_miles@14.2"
+  ],
+  "errors": []
+ },
+ {
+  "K": 6,
+  "room": "living",
+  "during": "tv 3-15 s",
+  "t0": 3.604000000000001,
+  "wishes": [
+   {
+    "t": 15.25,
+    "ico": "🛝➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "sit",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 15.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "sit"
+   }
+  ],
+  "want": [
+   "m_want_swing@15.2"
+  ],
+  "errors": []
+ },
+ {
+  "K": 6,
+  "room": "living",
+  "during": "tidy 3-15 s",
+  "t0": 4.436000000000002,
+  "wishes": [
+   {
+    "t": 15.25,
+    "ico": "🖍️➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 15.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_draw@15.2"
+  ],
+  "errors": []
+ },
+ {
+  "K": 6,
+  "room": "living",
+  "during": "fort 3-15 s",
+  "t0": 2.8840000000000003,
+  "wishes": [
+   {
+    "t": 15.25,
+    "ico": "🍳➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 15.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_cook@15.2"
+  ],
+  "errors": []
+ },
+ {
+  "K": 6,
+  "room": "yard",
+  "during": "swing 3-15 s (state at 15 s: swing)",
+  "t0": 3.412000000000001,
+  "wishes": [
+   {
+    "t": 4.25,
+    "ico": "🍳➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 4.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_cook@4.2"
+  ],
+  "errors": []
+ },
+ {
+  "K": 2,
+  "room": "living",
+  "during": {
+   "alertTapped": true,
+   "ringSamples": [
+    "🍼🤗✋"
+   ]
+  },
+  "t0": 3.604000000000001,
+  "wishes": [
+   {
+    "t": 13.25,
+    "ico": "⛺➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 13.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_fort@13.2"
+  ],
+  "errors": []
+ },
+ {
+  "K": 2,
+  "room": "living",
+  "during": {
+   "alertGoneAtS": 0.5
+  },
+  "t0": 3.604000000000001,
+  "wishes": [
+   {
+    "t": 13.25,
+    "ico": "🖍️➡️",
+    "act": 0,
+    "tv": false,
+    "tidy": false,
+    "panel": false,
+    "st": "idle",
+    "alert": 0
+   }
+  ],
+  "makeWish": [
+   {
+    "t": 13.2,
+    "wishEl": false,
+    "act": 0,
+    "alert": 0,
+    "req": false,
+    "cry": false,
+    "busy": false,
+    "scene": false,
+    "tv": false,
+    "tidy": false,
+    "inAct": false,
+    "body": false,
+    "st": "idle"
+   }
+  ],
+  "want": [
+   "m_want_draw@13.2"
+  ],
+  "errors": []
+ }
+]

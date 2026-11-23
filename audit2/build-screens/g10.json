@@ -1,0 +1,477 @@
+{
+ "port": {
+  "tabH": [
+   54
+  ],
+  "tabsOnScreen": 8,
+  "tabsHit": 8,
+  "tabRows": 2,
+  "outfits": 19,
+  "fullTiles": 19,
+  "fullRows": 4,
+  "tabsUnderX": 0,
+  "tilesUnderX": 0,
+  "xShown": false,
+  "sideHit": [
+   true,
+   true,
+   true,
+   true,
+   true
+  ],
+  "sideRow": [
+   76,
+   144,
+   212,
+   110,
+   178
+  ],
+  "prevH": 177,
+  "lane": false
+ },
+ "taps port": {
+  "tabTaps": [
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "outfitBefore": "default",
+  "outfitAfter": "default",
+  "side": {
+   "photo": 1,
+   "walk": true,
+   "backdrop": "pressed",
+   "diceChanges": 4,
+   "done": {
+    "panelHidden": true,
+    "music": [
+     "explore",
+     "dress"
+    ],
+    "walked": -51
+   }
+  },
+  "props": {
+   "mroom/mcloset": "dress",
+   "parents/pdresser": "dress",
+   "living/dresserw": "dress"
+  }
+ },
+ "port errors": [],
+ "portSmall": {
+  "tabH": [
+   54
+  ],
+  "tabsOnScreen": 8,
+  "tabsHit": 8,
+  "tabRows": 2,
+  "outfits": 19,
+  "fullTiles": 8,
+  "fullRows": 2,
+  "tabsUnderX": 0,
+  "tilesUnderX": 0,
+  "xShown": false,
+  "sideHit": [
+   true,
+   true,
+   true,
+   true,
+   true
+  ],
+  "sideRow": [
+   76,
+   144,
+   212,
+   110,
+   178
+  ],
+  "prevH": 170,
+  "lane": false
+ },
+ "taps portSmall": {
+  "tabTaps": [
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "outfitBefore": "default",
+  "outfitAfter": "default",
+  "side": {
+   "photo": 1,
+   "walk": true,
+   "backdrop": "pressed",
+   "diceChanges": 4,
+   "done": {
+    "panelHidden": true,
+    "music": [
+     "explore",
+     "dress"
+    ],
+    "walked": -45
+   }
+  },
+  "props": {
+   "mroom/mcloset": "dress",
+   "parents/pdresser": "dress",
+   "living/dresserw": "dress"
+  }
+ },
+ "portSmall errors": [],
+ "land": {
+  "tabH": [
+   54
+  ],
+  "tabsOnScreen": 8,
+  "tabsHit": 8,
+  "tabRows": 1,
+  "outfits": 19,
+  "fullTiles": 10,
+  "fullRows": 1,
+  "tabsUnderX": 0,
+  "tilesUnderX": 0,
+  "xShown": true,
+  "sideHit": [
+   true,
+   true,
+   true,
+   true,
+   true
+  ],
+  "sideRow": [
+   105,
+   105,
+   105,
+   105,
+   105
+  ],
+  "prevH": 117,
+  "lane": true
+ },
+ "taps land": {
+  "tabTaps": [
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "outfitBefore": "default",
+  "outfitAfter": "default",
+  "side": {
+   "photo": 1,
+   "walk": true,
+   "backdrop": "pressed",
+   "diceChanges": 4,
+   "done": {
+    "panelHidden": true,
+    "music": [
+     "explore",
+     "dress"
+    ],
+    "walked": -50
+   }
+  },
+  "props": {
+   "mroom/mcloset": "dress",
+   "parents/pdresser": "dress",
+   "living/dresserw": "dress"
+  }
+ },
+ "land errors": [],
+ "landSmall": {
+  "tabH": [
+   54
+  ],
+  "tabsOnScreen": 8,
+  "tabsHit": 8,
+  "tabRows": 1,
+  "outfits": 19,
+  "fullTiles": 7,
+  "fullRows": 1,
+  "tabsUnderX": 0,
+  "tilesUnderX": 0,
+  "xShown": true,
+  "sideHit": [
+   true,
+   true,
+   true,
+   true,
+   true
+  ],
+  "sideRow": [
+   102,
+   102,
+   102,
+   102,
+   102
+  ],
+  "prevH": 113,
+  "lane": true
+ },
+ "taps landSmall": {
+  "tabTaps": [
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "outfitBefore": "default",
+  "outfitAfter": "default",
+  "side": {
+   "photo": 1,
+   "walk": true,
+   "backdrop": "pressed",
+   "diceChanges": 4,
+   "done": {
+    "panelHidden": true,
+    "music": [
+     "explore",
+     "dress"
+    ],
+    "walked": -51
+   }
+  },
+  "props": {
+   "mroom/mcloset": "dress",
+   "parents/pdresser": "dress",
+   "living/dresserw": "dress"
+  }
+ },
+ "landSmall errors": [],
+ "844x340i47": {
+  "tabH": [
+   54
+  ],
+  "tabsOnScreen": 8,
+  "tabsHit": 8,
+  "tabRows": 1,
+  "outfits": 19,
+  "fullTiles": 0,
+  "fullRows": 0,
+  "tabsUnderX": 0,
+  "tilesUnderX": 0,
+  "xShown": true,
+  "sideHit": [
+   true,
+   true,
+   true,
+   true,
+   true
+  ],
+  "sideRow": [
+   97,
+   97,
+   97,
+   97,
+   97
+  ],
+  "prevH": 102,
+  "lane": true
+ },
+ "taps 844x340i47": {
+  "tabTaps": [
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok",
+   "ok"
+  ],
+  "outfitBefore": "default",
+  "outfitAfter": "default",
+  "side": {
+   "photo": 1,
+   "walk": true,
+   "backdrop": "pressed",
+   "diceChanges": 4,
+   "done": {
+    "panelHidden": true,
+    "music": [
+     "explore",
+     "dress"
+    ],
+    "walked": -52
+   }
+  },
+  "props": {
+   "mroom/mcloset": "dress",
+   "parents/pdresser": "dress",
+   "living/dresserw": "dress"
+  }
+ },
+ "844x340i47 errors": [],
+ "G10off port": {
+  "tabH": [
+   54
+  ],
+  "tabsOnScreen": 6,
+  "tabsHit": 6,
+  "tabRows": 1,
+  "outfits": 19,
+  "fullTiles": 19,
+  "fullRows": 4,
+  "tabsUnderX": 0,
+  "tilesUnderX": 0,
+  "xShown": false,
+  "sideHit": [
+   true,
+   true,
+   true,
+   true,
+   true
+  ],
+  "sideRow": [
+   76,
+   144,
+   212,
+   110,
+   178
+  ],
+  "prevH": 177,
+  "lane": false
+ },
+ "G10off port errors": [],
+ "G10off portSmall": {
+  "tabH": [
+   54
+  ],
+  "tabsOnScreen": 6,
+  "tabsHit": 6,
+  "tabRows": 1,
+  "outfits": 19,
+  "fullTiles": 12,
+  "fullRows": 3,
+  "tabsUnderX": 0,
+  "tilesUnderX": 0,
+  "xShown": false,
+  "sideHit": [
+   true,
+   true,
+   true,
+   true,
+   true
+  ],
+  "sideRow": [
+   76,
+   144,
+   212,
+   110,
+   178
+  ],
+  "prevH": 170,
+  "lane": false
+ },
+ "G10off portSmall errors": [],
+ "G10off land": {
+  "tabH": [
+   54
+  ],
+  "tabsOnScreen": 8,
+  "tabsHit": 0,
+  "tabRows": 1,
+  "outfits": 19,
+  "fullTiles": 10,
+  "fullRows": 1,
+  "tabsUnderX": 0,
+  "tilesUnderX": 0,
+  "xShown": true,
+  "sideHit": [
+   true,
+   true,
+   true,
+   true,
+   true
+  ],
+  "sideRow": [
+   76,
+   144,
+   212,
+   110,
+   178
+  ],
+  "prevH": 164,
+  "lane": true
+ },
+ "G10off land errors": [],
+ "G10off landSmall": {
+  "tabH": [
+   54
+  ],
+  "tabsOnScreen": 8,
+  "tabsHit": 0,
+  "tabRows": 1,
+  "outfits": 19,
+  "fullTiles": 0,
+  "fullRows": 0,
+  "tabsUnderX": 0,
+  "tilesUnderX": 0,
+  "xShown": true,
+  "sideHit": [
+   true,
+   true,
+   true,
+   true,
+   true
+  ],
+  "sideRow": [
+   76,
+   144,
+   212,
+   110,
+   178
+  ],
+  "prevH": 158,
+  "lane": true
+ },
+ "G10off landSmall errors": [],
+ "G10off 844x340i47": {
+  "tabH": [
+   54
+  ],
+  "tabsOnScreen": 8,
+  "tabsHit": 0,
+  "tabRows": 1,
+  "outfits": 19,
+  "fullTiles": 0,
+  "fullRows": 0,
+  "tabsUnderX": 0,
+  "tilesUnderX": 0,
+  "xShown": true,
+  "sideHit": [
+   true,
+   true,
+   true,
+   true,
+   true
+  ],
+  "sideRow": [
+   76,
+   144,
+   212,
+   110,
+   178
+  ],
+  "prevH": 143,
+  "lane": true
+ },
+ "G10off 844x340i47 errors": []
+}

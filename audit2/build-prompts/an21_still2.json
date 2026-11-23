@@ -1,0 +1,238 @@
+{
+ "rows": [
+  {
+   "m": "off",
+   "run": "still-bars_5m_port_s10",
+   "busyWalkups": 1,
+   "stays": 0,
+   "leaveWalks": 2,
+   "roomChanges": 4,
+   "stops": 0
+  },
+  {
+   "m": "on",
+   "run": "still-bars_5m_port_s10",
+   "busyWalkups": 0,
+   "stays": 8,
+   "leaveWalks": 3,
+   "roomChanges": 5,
+   "stops": 0
+  },
+  {
+   "m": "off",
+   "run": "still-bars_5m_port_s5",
+   "busyWalkups": 1,
+   "stays": 0,
+   "leaveWalks": 1,
+   "roomChanges": 2,
+   "stops": 0
+  },
+  {
+   "m": "on",
+   "run": "still-bars_5m_port_s5",
+   "busyWalkups": 0,
+   "stays": 6,
+   "leaveWalks": 1,
+   "roomChanges": 1,
+   "stops": 0
+  },
+  {
+   "m": "off",
+   "run": "still-bars_5m_port_s6",
+   "busyWalkups": 4,
+   "stays": 0,
+   "leaveWalks": 2,
+   "roomChanges": 3,
+   "stops": 0
+  },
+  {
+   "m": "on",
+   "run": "still-bars_5m_port_s6",
+   "busyWalkups": 0,
+   "stays": 4,
+   "leaveWalks": 2,
+   "roomChanges": 4,
+   "stops": 0
+  },
+  {
+   "m": "off",
+   "run": "still-bars_5m_port_s7",
+   "busyWalkups": 5,
+   "stays": 0,
+   "leaveWalks": 2,
+   "roomChanges": 5,
+   "stops": 0
+  },
+  {
+   "m": "on",
+   "run": "still-bars_5m_port_s7",
+   "busyWalkups": 0,
+   "stays": 5,
+   "leaveWalks": 3,
+   "roomChanges": 7,
+   "stops": 0
+  },
+  {
+   "m": "off",
+   "run": "still-bars_5m_port_s8",
+   "busyWalkups": 4,
+   "stays": 0,
+   "leaveWalks": 2,
+   "roomChanges": 4,
+   "stops": 0
+  },
+  {
+   "m": "on",
+   "run": "still-bars_5m_port_s8",
+   "busyWalkups": 0,
+   "stays": 3,
+   "leaveWalks": 4,
+   "roomChanges": 7,
+   "stops": 0
+  },
+  {
+   "m": "off",
+   "run": "still-bars_5m_port_s9",
+   "busyWalkups": 1,
+   "stays": 0,
+   "leaveWalks": 1,
+   "roomChanges": 5,
+   "stops": 0
+  },
+  {
+   "m": "on",
+   "run": "still-bars_5m_port_s9",
+   "busyWalkups": 0,
+   "stays": 10,
+   "leaveWalks": 1,
+   "roomChanges": 2,
+   "stops": 0
+  },
+  {
+   "m": "off",
+   "run": "still-swing_5m_port_s10",
+   "busyWalkups": 9,
+   "stays": 0,
+   "leaveWalks": 0,
+   "roomChanges": 0,
+   "stops": 0
+  },
+  {
+   "m": "on",
+   "run": "still-swing_5m_port_s10",
+   "busyWalkups": 0,
+   "stays": 2,
+   "leaveWalks": 2,
+   "roomChanges": 3,
+   "stops": 0
+  },
+  {
+   "m": "off",
+   "run": "still-swing_5m_port_s5",
+   "busyWalkups": 5,
+   "stays": 0,
+   "leaveWalks": 1,
+   "roomChanges": 4,
+   "stops": 0
+  },
+  {
+   "m": "on",
+   "run": "still-swing_5m_port_s5",
+   "busyWalkups": 0,
+   "stays": 6,
+   "leaveWalks": 3,
+   "roomChanges": 5,
+   "stops": 0
+  },
+  {
+   "m": "off",
+   "run": "still-swing_5m_port_s6",
+   "busyWalkups": 12,
+   "stays": 0,
+   "leaveWalks": 1,
+   "roomChanges": 2,
+   "stops": 0
+  },
+  {
+   "m": "on",
+   "run": "still-swing_5m_port_s6",
+   "busyWalkups": 0,
+   "stays": 3,
+   "leaveWalks": 1,
+   "roomChanges": 2,
+   "stops": 0
+  },
+  {
+   "m": "off",
+   "run": "still-swing_5m_port_s7",
+   "busyWalkups": 8,
+   "stays": 0,
+   "leaveWalks": 1,
+   "roomChanges": 3,
+   "stops": 0
+  },
+  {
+   "m": "on",
+   "run": "still-swing_5m_port_s7",
+   "busyWalkups": 0,
+   "stays": 9,
+   "leaveWalks": 1,
+   "roomChanges": 3,
+   "stops": 0
+  },
+  {
+   "m": "off",
+   "run": "still-swing_5m_port_s8",
+   "busyWalkups": 2,
+   "stays": 0,
+   "leaveWalks": 2,
+   "roomChanges": 7,
+   "stops": 0
+  },
+  {
+   "m": "on",
+   "run": "still-swing_5m_port_s8",
+   "busyWalkups": 0,
+   "stays": 8,
+   "leaveWalks": 1,
+   "roomChanges": 2,
+   "stops": 0
+  },
+  {
+   "m": "off",
+   "run": "still-swing_5m_port_s9",
+   "busyWalkups": 6,
+   "stays": 0,
+   "leaveWalks": 1,
+   "roomChanges": 5,
+   "stops": 0
+  },
+  {
+   "m": "on",
+   "run": "still-swing_5m_port_s9",
+   "busyWalkups": 0,
+   "stays": 3,
+   "leaveWalks": 2,
+   "roomChanges": 6,
+   "stops": 0
+  }
+ ],
+ "agg": {
+  "on": {
+   "runs": 12,
+   "busyWalkups": 0,
+   "stays": 67,
+   "leaveWalks": 24,
+   "roomChanges": 47,
+   "stops": 0
+  },
+  "off": {
+   "runs": 12,
+   "busyWalkups": 58,
+   "stays": 0,
+   "leaveWalks": 16,
+   "roomChanges": 44,
+   "stops": 0
+  }
+ }
+}

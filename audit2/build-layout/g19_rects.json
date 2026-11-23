@@ -1,0 +1,16014 @@
+{
+ "land TODAY": {
+  "calm/open": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    714,
+    179.4,
+    770,
+    265.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "calm/folded": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    714,
+    179.4,
+    770,
+    265.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "talk/open": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    714,
+    179.4,
+    770,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "talk/folded": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    714,
+    179.4,
+    770,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "stop/open": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    714,
+    179.4,
+    770,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    10,
+    322,
+    113.9,
+    380
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "stop/folded": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    714,
+    179.4,
+    770,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    10,
+    322,
+    113.9,
+    380
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "wish/open": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    714,
+    179.4,
+    770,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "wish/folded": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    714,
+    179.4,
+    770,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "req/open": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    714,
+    179.4,
+    770,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "req/folded": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    714,
+    179.4,
+    770,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "yard/open": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    714,
+    179.4,
+    770,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    707.3,
+    66,
+    753.3,
+    112
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "yard/folded": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    714,
+    179.4,
+    770,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    707.3,
+    66,
+    753.3,
+    112
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "land G19": {
+  "calm/open": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    711.3,
+    179.4,
+    767.3,
+    265.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "calm/folded": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    711.3,
+    179.4,
+    767.3,
+    265.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "talk/open": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    711.3,
+    179.4,
+    767.3,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "talk/folded": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    711.3,
+    179.4,
+    767.3,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "stop/open": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    711.3,
+    179.4,
+    767.3,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    10,
+    322,
+    113.9,
+    380
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "stop/folded": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    711.3,
+    179.4,
+    767.3,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    10,
+    322,
+    113.9,
+    380
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "wish/open": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    711.3,
+    179.4,
+    767.3,
+    265.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "wish/folded": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    711.3,
+    179.4,
+    767.3,
+    265.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "req/open": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    711.3,
+    179.4,
+    767.3,
+    265.4
+   ],
+   ".facecard.show.right": [
+    766,
+    8,
+    766,
+    8
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "req/folded": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    711.3,
+    179.4,
+    767.3,
+    265.4
+   ],
+   ".facecard.show.right": [
+    766,
+    8,
+    766,
+    8
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "yard/open": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    711.3,
+    179.4,
+    767.3,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    707.3,
+    66,
+    753.3,
+    112
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    779.3,
+    80,
+    830,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    779.3,
+    140.6,
+    830,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    779.3,
+    201.2,
+    830,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.8,
+    830,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.3,
+    322.4,
+    830,
+    378
+   ]
+  },
+  "yard/folded": {
+   "#bookBtn": [
+    642,
+    324,
+    700,
+    382
+   ],
+   "#dressBtn": [
+    708,
+    324,
+    766,
+    382
+   ],
+   ".navarrow.l": [
+    0,
+    179.4,
+    56,
+    265.4
+   ],
+   ".navarrow.r": [
+    711.3,
+    179.4,
+    767.3,
+    265.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    707.3,
+    66,
+    753.3,
+    112
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    314,
+    172,
+    382
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    778.3,
+    78.7,
+    829.7,
+    135
+   ],
+   ".mood[data-mood=happy]": [
+    778.6,
+    139.8,
+    830,
+    196.1
+   ],
+   ".mood[data-mood=sad]": [
+    779,
+    200.9,
+    830.3,
+    257.1
+   ],
+   ".mood[data-mood=angry]": [
+    779.3,
+    261.9,
+    830.7,
+    318.2
+   ],
+   ".mood[data-mood=tantrum]": [
+    779.6,
+    323,
+    831,
+    379.3
+   ]
+  }
+ },
+ "landSmall TODAY": {
+  "calm/open": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    537,
+    172.5,
+    593,
+    258.5
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "calm/folded": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    537,
+    172.5,
+    593,
+    258.5
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "talk/open": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    537,
+    172.5,
+    593,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    300.5,
+    66,
+    366.5,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "talk/folded": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    537,
+    172.5,
+    593,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    300.5,
+    66,
+    366.5,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "stop/open": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    537,
+    172.5,
+    593,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    10,
+    307,
+    113.9,
+    365
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "stop/folded": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    537,
+    172.5,
+    593,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    10,
+    307,
+    113.9,
+    365
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "wish/open": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    537,
+    172.5,
+    593,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "wish/folded": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    537,
+    172.5,
+    593,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "req/open": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    537,
+    172.5,
+    593,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "req/folded": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    537,
+    172.5,
+    593,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "yard/open": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    537,
+    172.5,
+    593,
+    258.5
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    532.3,
+    66,
+    578.3,
+    112
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "yard/folded": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    537,
+    172.5,
+    593,
+    258.5
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    532.3,
+    66,
+    578.3,
+    112
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "landSmall G19": {
+  "calm/open": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    536.3,
+    172.5,
+    592.3,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "calm/folded": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    536.3,
+    172.5,
+    592.3,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "talk/open": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    536.3,
+    172.5,
+    592.3,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    300.5,
+    66,
+    366.5,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "talk/folded": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    536.3,
+    172.5,
+    592.3,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    300.5,
+    66,
+    366.5,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "stop/open": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    536.3,
+    172.5,
+    592.3,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    10,
+    307,
+    113.9,
+    365
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "stop/folded": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    536.3,
+    172.5,
+    592.3,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    10,
+    307,
+    113.9,
+    365
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "wish/open": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    536.3,
+    172.5,
+    592.3,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "wish/folded": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    536.3,
+    172.5,
+    592.3,
+    258.5
+   ],
+   ".facecard.show.right": [
+    515.6,
+    8,
+    589,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "req/open": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    536.3,
+    172.5,
+    592.3,
+    258.5
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "req/folded": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    536.3,
+    172.5,
+    592.3,
+    258.5
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    151.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "yard/open": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    536.3,
+    172.5,
+    592.3,
+    258.5
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    532.3,
+    66,
+    578.3,
+    112
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  },
+  "yard/folded": {
+   "#bookBtn": [
+    465,
+    309,
+    523,
+    367
+   ],
+   "#dressBtn": [
+    531,
+    309,
+    589,
+    367
+   ],
+   ".navarrow.l": [
+    0,
+    172.5,
+    56,
+    258.5
+   ],
+   ".navarrow.r": [
+    536.3,
+    172.5,
+    592.3,
+    258.5
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    532.3,
+    66,
+    578.3,
+    112
+   ],
+   "#moodToggle": [
+    599,
+    10,
+    657,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    299,
+    172,
+    367
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    604.3,
+    80,
+    653,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    604.3,
+    137.6,
+    653,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    604.3,
+    195.2,
+    653,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    604.3,
+    252.8,
+    653,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    604.3,
+    310.4,
+    653,
+    363
+   ]
+  }
+ },
+ "844x340 TODAY": {
+  "calm/open": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "calm/folded": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "talk/open": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "talk/folded": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "stop/open": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    10,
+    272,
+    113.9,
+    330
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "stop/folded": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    10,
+    272,
+    113.9,
+    330
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "wish/open": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    264,
+    172,
+    332
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "wish/folded": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    264,
+    172,
+    332
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "req/open": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    264,
+    172,
+    332
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "req/folded": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    264,
+    172,
+    332
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "yard/open": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    713.8,
+    66,
+    759.8,
+    112
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    264,
+    172,
+    332
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "yard/folded": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    713.8,
+    66,
+    759.8,
+    112
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    264,
+    172,
+    332
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "844x340 G19": {
+  "calm/open": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "calm/folded": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "talk/open": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "talk/folded": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "stop/open": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    10,
+    272,
+    113.9,
+    330
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "stop/folded": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    10,
+    272,
+    113.9,
+    330
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "wish/open": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    264,
+    172,
+    332
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "wish/folded": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    104,
+    264,
+    172,
+    332
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "req/open": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    78,
+    8,
+    162,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    264,
+    172,
+    332
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "req/folded": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": [
+    682,
+    8,
+    766,
+    92
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    264,
+    172,
+    332
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "yard/open": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    713.8,
+    66,
+    759.8,
+    112
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    264,
+    172,
+    332
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  },
+  "yard/folded": {
+   "#bookBtn": [
+    642,
+    274,
+    700,
+    332
+   ],
+   "#dressBtn": [
+    708,
+    274,
+    766,
+    332
+   ],
+   ".navarrow.l": [
+    0,
+    156.4,
+    56,
+    242.4
+   ],
+   ".navarrow.r": [
+    714,
+    156.4,
+    770,
+    242.4
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    713.8,
+    66,
+    759.8,
+    112
+   ],
+   "#moodToggle": [
+    776,
+    10,
+    834,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    104,
+    264,
+    172,
+    332
+   ],
+   "#mapBtn": [
+    10,
+    10,
+    68,
+    68
+   ],
+   "#floorpill": [
+    10,
+    74,
+    68,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    785.8,
+    80,
+    830,
+    125.6
+   ],
+   ".mood[data-mood=happy]": [
+    785.8,
+    130.6,
+    830,
+    176.2
+   ],
+   ".mood[data-mood=sad]": [
+    785.8,
+    181.2,
+    830,
+    226.8
+   ],
+   ".mood[data-mood=angry]": [
+    785.8,
+    231.8,
+    830,
+    277.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    785.8,
+    282.4,
+    830,
+    328
+   ]
+  }
+ },
+ "land_in47 TODAY": {
+  "calm/open": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    667,
+    169.7,
+    723,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "calm/folded": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    667,
+    169.7,
+    723,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "talk/open": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    667,
+    169.7,
+    723,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "talk/folded": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    667,
+    169.7,
+    723,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "stop/open": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    667,
+    169.7,
+    723,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    57,
+    301,
+    160.9,
+    359
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "stop/folded": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    667,
+    169.7,
+    723,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    57,
+    301,
+    160.9,
+    359
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "wish/open": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    667,
+    169.7,
+    723,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "wish/folded": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    667,
+    169.7,
+    723,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "req/open": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    667,
+    169.7,
+    723,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "req/folded": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    667,
+    169.7,
+    723,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "yard/open": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    667,
+    169.7,
+    723,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    660.3,
+    66,
+    706.3,
+    112
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "yard/folded": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    667,
+    169.7,
+    723,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    660.3,
+    66,
+    706.3,
+    112
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "land_in47 G19": {
+  "calm/open": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    664.3,
+    169.7,
+    720.3,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "calm/folded": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    664.3,
+    169.7,
+    720.3,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "talk/open": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    664.3,
+    169.7,
+    720.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "talk/folded": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    664.3,
+    169.7,
+    720.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "stop/open": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    664.3,
+    169.7,
+    720.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    57,
+    301,
+    160.9,
+    359
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "stop/folded": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    664.3,
+    169.7,
+    720.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    57,
+    301,
+    160.9,
+    359
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "wish/open": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    664.3,
+    169.7,
+    720.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "wish/folded": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    664.3,
+    169.7,
+    720.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    209,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "req/open": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    664.3,
+    169.7,
+    720.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "req/folded": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    664.3,
+    169.7,
+    720.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    635,
+    8,
+    719,
+    92
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "yard/open": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    664.3,
+    169.7,
+    720.3,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    660.3,
+    66,
+    706.3,
+    112
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  },
+  "yard/folded": {
+   "#bookBtn": [
+    595,
+    303,
+    653,
+    361
+   ],
+   "#dressBtn": [
+    661,
+    303,
+    719,
+    361
+   ],
+   ".navarrow.l": [
+    47,
+    169.7,
+    103,
+    255.7
+   ],
+   ".navarrow.r": [
+    664.3,
+    169.7,
+    720.3,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    660.3,
+    66,
+    706.3,
+    112
+   ],
+   "#moodToggle": [
+    729,
+    10,
+    787,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    293,
+    219,
+    361
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    732.3,
+    80,
+    783,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    732.3,
+    140.6,
+    783,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    732.3,
+    201.2,
+    783,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    732.3,
+    261.8,
+    783,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    732.3,
+    322.4,
+    783,
+    378
+   ]
+  }
+ },
+ "land_in59 TODAY": {
+  "calm/open": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    655,
+    169.7,
+    711,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "calm/folded": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    655,
+    169.7,
+    711,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "talk/open": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    655,
+    169.7,
+    711,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "talk/folded": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    655,
+    169.7,
+    711,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "stop/open": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    655,
+    169.7,
+    711,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    69,
+    301,
+    172.9,
+    359
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "stop/folded": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    655,
+    169.7,
+    711,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    69,
+    301,
+    172.9,
+    359
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "wish/open": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    655,
+    169.7,
+    711,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    163,
+    293,
+    231,
+    361
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "wish/folded": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    655,
+    169.7,
+    711,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    163,
+    293,
+    231,
+    361
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "req/open": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    655,
+    169.7,
+    711,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    163,
+    293,
+    231,
+    361
+   ],
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "req/folded": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    655,
+    169.7,
+    711,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    163,
+    293,
+    231,
+    361
+   ],
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "yard/open": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    655,
+    169.7,
+    711,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    648.3,
+    66,
+    694.3,
+    112
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    163,
+    293,
+    231,
+    361
+   ],
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "yard/folded": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    655,
+    169.7,
+    711,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    648.3,
+    66,
+    694.3,
+    112
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    163,
+    293,
+    231,
+    361
+   ],
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "land_in59 G19": {
+  "calm/open": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    652.3,
+    169.7,
+    708.3,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "calm/folded": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    652.3,
+    169.7,
+    708.3,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "talk/open": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    652.3,
+    169.7,
+    708.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "talk/folded": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    652.3,
+    169.7,
+    708.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    389,
+    66,
+    455,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "stop/open": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    652.3,
+    169.7,
+    708.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    69,
+    301,
+    172.9,
+    359
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "stop/folded": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    652.3,
+    169.7,
+    708.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    69,
+    301,
+    172.9,
+    359
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "wish/open": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    652.3,
+    169.7,
+    708.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    163,
+    293,
+    231,
+    361
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "wish/folded": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    652.3,
+    169.7,
+    708.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    163,
+    293,
+    231,
+    361
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "req/open": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    652.3,
+    169.7,
+    708.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    163,
+    293,
+    231,
+    361
+   ],
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "req/folded": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    652.3,
+    169.7,
+    708.3,
+    255.7
+   ],
+   ".facecard.show.right": [
+    623,
+    8,
+    707,
+    92
+   ],
+   ".facecard.show:not(.right)": [
+    137,
+    8,
+    221,
+    92
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    163,
+    293,
+    231,
+    361
+   ],
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "yard/open": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    652.3,
+    169.7,
+    708.3,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    648.3,
+    66,
+    694.3,
+    112
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    163,
+    293,
+    231,
+    361
+   ],
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  },
+  "yard/folded": {
+   "#bookBtn": [
+    583,
+    303,
+    641,
+    361
+   ],
+   "#dressBtn": [
+    649,
+    303,
+    707,
+    361
+   ],
+   ".navarrow.l": [
+    59,
+    169.7,
+    115,
+    255.7
+   ],
+   ".navarrow.r": [
+    652.3,
+    169.7,
+    708.3,
+    255.7
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    648.3,
+    66,
+    694.3,
+    112
+   ],
+   "#moodToggle": [
+    717,
+    10,
+    775,
+    68
+   ],
+   "#roombar": [
+    234,
+    10,
+    610,
+    66
+   ],
+   "#alerts": [
+    422,
+    66,
+    422,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    163,
+    293,
+    231,
+    361
+   ],
+   "#mapBtn": [
+    69,
+    10,
+    127,
+    68
+   ],
+   "#floorpill": [
+    69,
+    74,
+    127,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    720.3,
+    80,
+    771,
+    135.6
+   ],
+   ".mood[data-mood=happy]": [
+    720.3,
+    140.6,
+    771,
+    196.2
+   ],
+   ".mood[data-mood=sad]": [
+    720.3,
+    201.2,
+    771,
+    256.8
+   ],
+   ".mood[data-mood=angry]": [
+    720.3,
+    261.8,
+    771,
+    317.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    720.3,
+    322.4,
+    771,
+    378
+   ]
+  }
+ },
+ "landSmall_in47 TODAY": {
+  "calm/open": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    490,
+    162.8,
+    546,
+    248.8
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "calm/folded": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    490,
+    162.8,
+    546,
+    248.8
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "talk/open": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    490,
+    162.8,
+    546,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    300.5,
+    66,
+    366.5,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "talk/folded": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    490,
+    162.8,
+    546,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    300.5,
+    66,
+    366.5,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "stop/open": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    490,
+    162.8,
+    546,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    57,
+    286,
+    160.9,
+    344
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "stop/folded": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    490,
+    162.8,
+    546,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    57,
+    286,
+    160.9,
+    344
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "wish/open": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    490,
+    162.8,
+    546,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    151,
+    278,
+    219,
+    346
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "wish/folded": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    490,
+    162.8,
+    546,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    151,
+    278,
+    219,
+    346
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "req/open": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    490,
+    162.8,
+    546,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    278,
+    219,
+    346
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "req/folded": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    490,
+    162.8,
+    546,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    278,
+    219,
+    346
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "yard/open": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    490,
+    162.8,
+    546,
+    248.8
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    485.3,
+    66,
+    531.3,
+    112
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    278,
+    219,
+    346
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "yard/folded": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    490,
+    162.8,
+    546,
+    248.8
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    485.3,
+    66,
+    531.3,
+    112
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    278,
+    219,
+    346
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=happy]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=sad]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=angry]": [
+    0,
+    0,
+    0,
+    0
+   ],
+   ".mood[data-mood=tantrum]": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "landSmall_in47 G19": {
+  "calm/open": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    489.3,
+    162.8,
+    545.3,
+    248.8
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "calm/folded": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    489.3,
+    162.8,
+    545.3,
+    248.8
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "talk/open": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    489.3,
+    162.8,
+    545.3,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    300.5,
+    66,
+    366.5,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "talk/folded": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    489.3,
+    162.8,
+    545.3,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    300.5,
+    66,
+    366.5,
+    132
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "stop/open": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    489.3,
+    162.8,
+    545.3,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    57,
+    286,
+    160.9,
+    344
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "stop/folded": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    489.3,
+    162.8,
+    545.3,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    57,
+    286,
+    160.9,
+    344
+   ],
+   "#wishBtn": null,
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "wish/open": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    489.3,
+    162.8,
+    545.3,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    151,
+    278,
+    219,
+    346
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "wish/folded": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    489.3,
+    162.8,
+    545.3,
+    248.8
+   ],
+   ".facecard.show.right": [
+    468.6,
+    8,
+    542,
+    81.4
+   ],
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": [
+    151,
+    278,
+    219,
+    346
+   ],
+   "#reqBtn": null,
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "req/open": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    489.3,
+    162.8,
+    545.3,
+    248.8
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    278,
+    219,
+    346
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "req/folded": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    489.3,
+    162.8,
+    545.3,
+    248.8
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": [
+    125,
+    8,
+    198.4,
+    81.4
+   ],
+   "#weatherBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    278,
+    219,
+    346
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "yard/open": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    489.3,
+    162.8,
+    545.3,
+    248.8
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    485.3,
+    66,
+    531.3,
+    112
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    278,
+    219,
+    346
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  },
+  "yard/folded": {
+   "#bookBtn": [
+    418,
+    288,
+    476,
+    346
+   ],
+   "#dressBtn": [
+    484,
+    288,
+    542,
+    346
+   ],
+   ".navarrow.l": [
+    47,
+    162.8,
+    103,
+    248.8
+   ],
+   ".navarrow.r": [
+    489.3,
+    162.8,
+    545.3,
+    248.8
+   ],
+   ".facecard.show.right": null,
+   ".facecard.show:not(.right)": null,
+   "#weatherBtn": [
+    485.3,
+    66,
+    531.3,
+    112
+   ],
+   "#moodToggle": [
+    552,
+    10,
+    610,
+    68
+   ],
+   "#roombar": [
+    145.5,
+    10,
+    521.5,
+    66
+   ],
+   "#alerts": [
+    333.5,
+    66,
+    333.5,
+    66
+   ],
+   "#stopBtn": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "#wishBtn": null,
+   "#reqBtn": [
+    151,
+    278,
+    219,
+    346
+   ],
+   "#mapBtn": [
+    57,
+    10,
+    115,
+    68
+   ],
+   "#floorpill": [
+    57,
+    74,
+    115,
+    166
+   ],
+   ".mood[data-mood=love]": [
+    557.3,
+    80,
+    606,
+    132.6
+   ],
+   ".mood[data-mood=happy]": [
+    557.3,
+    137.6,
+    606,
+    190.2
+   ],
+   ".mood[data-mood=sad]": [
+    557.3,
+    195.2,
+    606,
+    247.8
+   ],
+   ".mood[data-mood=angry]": [
+    557.3,
+    252.8,
+    606,
+    305.4
+   ],
+   ".mood[data-mood=tantrum]": [
+    557.3,
+    310.4,
+    606,
+    363
+   ]
+  }
+ }
+}

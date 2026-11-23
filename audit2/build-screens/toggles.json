@@ -1,0 +1,56 @@
+{
+ "on": {
+  "before": {
+   "lane": true,
+   "pad": "80px",
+   "xon": true,
+   "x": "🚪",
+   "marker": true
+  },
+  "flipped": {
+   "lane": false,
+   "pad": "8px",
+   "xon": false,
+   "x": "❌",
+   "marker": false
+  },
+  "stkGlyph": "✖️",
+  "stkGlyphAfterFlipBack": "❌",
+  "cook": {
+   "lane": false,
+   "pad": "8px",
+   "xon": false,
+   "x": "❌",
+   "marker": false,
+   "display": "flex"
+  },
+  "errors": []
+ },
+ "off": {
+  "before": {
+   "lane": false,
+   "pad": "8px",
+   "xon": false,
+   "x": "❌",
+   "marker": false
+  },
+  "flipped": {
+   "lane": true,
+   "pad": "80px",
+   "xon": true,
+   "x": "🚪",
+   "marker": true
+  },
+  "stkGlyph": "❌",
+  "stkGlyphAfterFlipBack": "✖️",
+  "cook": {
+   "lane": true,
+   "pad": "80px",
+   "xon": true,
+   "x": "❌",
+   "marker": true,
+   "display": "grid"
+  },
+  "errors": []
+ }
+}

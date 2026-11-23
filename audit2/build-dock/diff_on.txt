@@ -1,0 +1,254 @@
+BEHAVES DIFF    menu :: gymnastics | qfx49l#1 🤸→🤸
+      before: ok [] 
+      after:  ok ["state:\"idle\"→\"anim\""] 
+BEHAVES DIFF    menu :: gymnastics | qfx49l#2 🙃→🙃
+      before: ok [] 
+      after:  ok ["state:\"idle\"→\"anim\""] 
+BEHAVES DIFF    menu :: gymnastics | qfx49l#3 🔄→🔄
+      before: ok [] 
+      after:  ok ["state:\"idle\"→\"anim\""] 
+BEHAVES DIFF    menu :: gymnastics | qfx49l#4 🔃→🔃
+      before: ok [] 
+      after:  ok ["state:\"idle\"→\"anim\""] 
+BEHAVES DIFF    menu :: gymnastics | qfx49l#5 🧘→🧘
+      before: ok [] 
+      after:  ok ["state:\"idle\"→\"anim\""] 
+BEHAVES DIFF    menu :: gymnastics | qfx49l#6 🌀→🌀
+      before: ok [] 
+      after:  ok ["state:\"idle\"→\"anim\""] 
+BEHAVES DIFF    menu :: gymnastics | qfx49l#8 ⚪→⚪
+      before: ok [] 
+      after:  ok ["state:\"idle\"→\"anim\""] 
+(minor)         obj backyard/bench | 18v4231#1 🔨: said /0 → m/1;  → 
+(minor)         obj backyard/leafpile | 16vxgoq#1 🍂: said m/1 → mr/2;  → 
+(minor)         obj backyard/oak | 1ygm7f6#1 🦉: said /0 → m/1;  → 
+(minor)         obj backyard/pine | 1ygm7f6#1 🌰: said /0 → m/2;  → 
+BEHAVES DIFF    obj backyard/tr_apple | 1ygm7f6#1 🍎→🍎
+      before: ok [] 
+      after:  ok ["state:\"idle\"→\"anim\""] 
+(minor)         obj backyard/tr_spruce | 1ygm7f6#1 🐦: said m/2 → /0;  → 
+BEHAVES DIFF    obj den/barm | 1a3zqcq#1 🪑→🪑
+      before: ok ["state:\"idle\"→\"sit\""] 
+      after:  ok [] 
+BEHAVES DIFF    obj den/barm | qbbnaf#1 🦘→🦘
+      before: ok ["state:\"idle\"→\"anim\""] 
+      after:  ok [] 
+BEHAVES DIFF    obj den/bsofa | 1a3zqcq#1 🪑→🪑
+      before: ok ["state:\"idle\"→\"sit\""] 
+      after:  ok [] 
+BEHAVES DIFF    obj den/bsofa | qbbnaf#1 🦘→🦘
+      before: ok ["state:\"idle\"→\"anim\""] 
+      after:  ok [] 
+(minor)         obj den/bstool | ounozi#1 🧗: said /0 → m/1;  → 
+(noisy)         obj den/legoshelf | 1p8xvs2#1 🧱: differs, but it also differs between two runs of the unchanged game
+(noisy)         obj den/ltable | 1qxzoqn#1 🎨: differs, but it also differs between two runs of the unchanged game
+(minor)         obj den/ltable | 5ukym1#1 🧱: said m/1 → /0;  → 
+(minor)         obj den/ltable | i9480q#1 🧗: said r/1 → /0;  → 
+BEHAVES DIFF    obj den/ottoman | qbbnaf#1 🦘→🦘
+      before: ok ["state:\"idle\"→\"anim\""] 
+      after:  ok ["state:\"idle\"→\"perch\""] 
+(minor)         obj den/stones | 1ia2kjf#1 🪨: said m/1 → /0;  → 
+(minor)         obj den/wicker | 1a3zqcq#1 🪑: said /0 → m/1;  → 
+(noisy)         obj dining/closet | 1tmr7qh#1 👗: differs, but it also differs between two runs of the unchanged game
+BEHAVES DIFF    obj dining/dresser | 1tmr7qh#1 👗→👗
+      before: ok ["panel:null→\"👗\""] 
+      after:  ok ["state:\"idle\"→\"anim\"","panel:null→\"👗\""] 
+BEHAVES DIFF    obj foyer/stairs | sk26k2#1 💺→💺
+      before: ok ["room:\"foyer\"→\"uphall\"","state:\"idle\"→\"cheer\""] 
+      after:  ok [] 
+BEHAVES DIFF    obj foyer/stairs | t8h16x#1 🪜→🪜
+      before: ok ["room:\"foyer\"→\"uphall\""] 
+      after:  ok [] 
+(minor)         obj kitchen/dishwasher | 1ceuovn#1 🍽️: said m/1 → /0;  → 
+(minor)         obj kitchen/island | 1tmr7qh#1 🧺: said m/3 → mr/3;  → 
+(minor)         obj kitchen/island | ounozi#1 🧗: said /0 → m/1;  → 
+BEHAVES DIFF    obj kitchen/oven | 1tmr7qh#1 🍳→🍳
+      before: ok ["panel:null→\"🧑‍🍳\""] 
+      after:  ok ["state:\"idle\"→\"anim\"","panel:null→\"🧑‍🍳\""] 
+BEHAVES DIFF    obj kitchen/sink | 1tmr7qh#1 🗄️→🗄️
+      before: ok ["panel:null→\"🧑‍🍳\""] 
+      after:  ok ["state:\"idle\"→\"anim\"","panel:null→\"🧑‍🍳\""] 
+(minor)         obj kitchen/stool1 | 1a3zqcq#1 🪑: said m/1 → /0;  → 
+(minor)         obj kitchen/stool1 | ounozi#1 🧗: said /0 → m/2;  → 
+(minor)         obj kitchen/stool2 | ounozi#1 🧗: said /0 → m/1;  → 
+BEHAVES DIFF    obj kitchen/stove | 1tmr7qh#1 🍳→🍳
+      before: ok ["panel:null→\"🧑‍🍳\""] 
+      after:  ok ["state:\"idle\"→\"anim\"","panel:null→\"🧑‍🍳\""] 
+BEHAVES DIFF    obj kitchen/stove | 1tmr7qh#2 🗄️→🗄️
+      before: ok ["panel:null→\"🧑‍🍳\""] 
+      after:  ok ["state:\"idle\"→\"anim\"","panel:null→\"🧑‍🍳\""] 
+(minor)         obj laundry/dryer | scd2m1#1 🌀: said m/2 → mr/3;  → 
+(minor)         obj laundry/usink | 119toue#1 🚰: said m/2 → mr/2;  → 
+(minor)         obj living/armchair | ounozi#1 🧗: said m/2 → /0;  → 
+(minor)         obj living/bouncer | infde9#1 👶: said m/1 → /0;  → 
+BEHAVES DIFF    obj living/dresserw | 1tmr7qh#1 👗→👗
+      before: ok ["panel:null→\"👗\""] 
+      after:  ok ["state:\"idle\"→\"anim\"","panel:null→\"👗\""] 
+BEHAVES DIFF    obj living/fireplace | 1g8y4d2#5 🍉→🍉
+      before: ok ["state:\"idle\"→\"sit\"","tv:false→true"] 
+      after:  ok ["tv:false→true"] 
+BEHAVES DIFF    obj living/fireplace | 1g8y4d2#6 🚽→🚽
+      before: ok ["state:\"idle\"→\"sit\"","tv:false→true"] 
+      after:  ok ["tv:false→true"] 
+BEHAVES DIFF    obj living/fireplace | 1g8y4d2#8 🫧→🫧
+      before: ok ["state:\"idle\"→\"sit\"","tv:false→true"] 
+      after:  ok ["tv:false→true"] 
+BEHAVES DIFF    obj living/fireplace | 1g8y4d2#9 👸→👸
+      before: ok ["state:\"idle\"→\"sit\"","tv:false→true"] 
+      after:  ok ["tv:false→true"] 
+(minor)         obj living/sectional | qbbnaf#1 🦘: said /0 → m/1;  → 
+(minor)         obj living/shelf2 | 7gjg77#1 📖: said /0 → r/1; overlays:"floorpill"→"floorpill,storyBox" → overlays:"floorpill"→"floorpill,storyBox"
+(minor)         obj living/tv :: TV on | 1g8y4d2#2 🥚: said m/2 → mr/2;  → 
+BEHAVES DIFF    obj living/tv | 1g8y4d2#5 🍉→🍉
+      before: ok ["state:\"idle\"→\"sit\"","tv:false→true"] 
+      after:  ok ["tv:false→true"] 
+BEHAVES DIFF    obj living/tv | 1g8y4d2#6 🚽→🚽
+      before: ok ["state:\"idle\"→\"sit\"","tv:false→true"] 
+      after:  ok ["tv:false→true"] 
+(minor)         obj living/tv | 1g8y4d2#8 🫧: said m/2 → mr/2;  → 
+BEHAVES DIFF    obj milesroom/airbed | tgg1yn#1 🤸→🤸
+      before: ok ["state:\"idle\"→\"cheer\""] 
+      after:  ok [] 
+(minor)         obj milesroom/arch | 1wlliyu#1 🙈: said m/1 → /0;  → 
+BEHAVES DIFF    obj milesroom/daybed | 1a3zqcq#1 🪑→🪑
+      before: ok ["state:\"idle\"→\"sit\""] 
+      after:  ok [] 
+BEHAVES DIFF    obj mroom/bunk | ppzuzf#1 🧸→🧸
+      before: ok ["panel:null→\"🧸\""] 
+      after:  ok [] 
+BEHAVES DIFF    obj mroom/mcloset | 1tmr7qh#1 👗→👗
+      before: ok ["panel:null→\"👗\""] 
+      after:  ok ["state:\"idle\"→\"anim\"","panel:null→\"👗\""] 
+(minor)         obj mroom/mknee | 1sp67z4#1 🔦: said m/1 → /0;  → 
+BEHAVES DIFF    obj mroom/mstack | 1fug1u9#1 📚→📚
+      before: ok ["state:\"idle\"→\"anim\""] 
+      after:  ok [] 
+BEHAVES DIFF    obj nunuroom/folded | 1tmr7qh#1 👗→👗
+      before: ok ["panel:null→\"👗\""] 
+      after:  ok ["state:\"idle\"→\"anim\"","panel:null→\"👗\""] 
+BEHAVES DIFF    obj nunuroom/nbed | tjso09#1 😴→😴
+      before: ok ["state:\"idle\"→\"cheer\""] 
+      after:  ok [] 
+BEHAVES DIFF    obj nunuroom/rack | 1tmr7qh#1 👗→👗
+      before: ok ["panel:null→\"👗\""] 
+      after:  ok ["state:\"idle\"→\"anim\"","panel:null→\"👗\""] 
+BEHAVES DIFF    obj parents/pbed | 1a3zqcq#1 🪑→🪑
+      before: ok ["state:\"idle\"→\"sit\""] 
+      after:  ok [] 
+(noisy)         obj parents/pbed | qbbnaf#1 🦘: differs, but it also differs between two runs of the unchanged game
+BEHAVES DIFF    obj parents/pdresser | 1tmr7qh#1 👗→👗
+      before: ok ["panel:null→\"👗\""] 
+      after:  ok ["state:\"idle\"→\"anim\"","panel:null→\"👗\""] 
+(minor)         obj parents/ptotes | 1pp4td9#1 🧃: said m/2 → /0;  → 
+(minor)         obj parents/suitcase | rgsigp#1 🧳: said m/1 → /0;  → 
+BEHAVES DIFF    obj playroom/keys | 1dnhujd#1 🌟→🌟
+      before: ok ["state:\"idle\"→\"cheer\""] 
+      after:  ok [] 
+BEHAVES DIFF    obj playroom/keys | 1dnhujd#3 🎺→🎺
+      before: ok ["state:\"idle\"→\"cheer\""] 
+      after:  ok [] 
+(minor)         obj playroom/keys | 1dnhujd#4 🤪: said r/1 → m/1;  → 
+(minor)         obj playroom/keys | 1dnhujd#5 👻: said m/1 → /0;  → 
+BEHAVES DIFF    obj playroom/keys | 1dnhujd#6 🌙→🌙
+      before: ok ["state:\"idle\"→\"cheer\""] 
+      after:  ok [] 
+(minor)         obj playroom/keys | 1dnhujd#8 🌸: said /0 → m/1;  → 
+(minor)         obj playroom/loveseat | ounozi#1 🧗: said m/1 → /0;  → 
+BEHAVES DIFF    obj pool/lounger1 | kcbic#1 😎→😎
+      before: ok ["state:\"idle\"→\"sit\""] 
+      after:  ok [] 
+(minor)         obj pool/umbrella | gqu1g3#1 🍋: said m/2 → /0;  → 
+(minor)         obj pool/water | svifiq#1 🏊: said /0 → m/1;  → 
+(minor)         obj spa/tub | 11l0jro#1 🛁: said m/1 → /0;  → 
+(noisy)         obj storage/bball | p476c9#1 🏀: differs, but it also differs between two runs of the unchanged game
+BEHAVES DIFF    obj storage/bigbox | z3ojvy#1 🙈→🙈
+      before: ok ["state:\"idle\"→\"cheer\""] 
+      after:  ok [] 
+BEHAVES DIFF    obj storage/boxes | z3ojvy#1 🙈→🙈
+      before: ok ["state:\"idle\"→\"cheer\""] 
+      after:  ok [] 
+BEHAVES DIFF    obj storage/tiles | r3p83j#1 🔷→🔷
+      before: ok ["panel:null→\"🔷\""] 
+      after:  ok [] 
+BEHAVES DIFF    obj treehouse_oak/th_scope | wfggdj#1 🔭→🔭
+      before: ok ["panel:null→\"panel\""] 
+      after:  ok [] 
+(minor)         obj treehouse_oak/th_shelf | 1qlntyv#1 🧺: said /0 → r/1;  → 
+(minor)         obj treehouse_pine/th_lamp | 76qbjo#1 💡: said m/1 → /0;  → 
+BEHAVES DIFF    obj treehouse_pine/th_scope | wfggdj#1 🔭→🔭
+      before: ok ["panel:null→\"panel\""] 
+      after:  ok [] 
+(minor)         obj treehouse_pine/th_wall | 1pvbo5d#1 🖼️: said m/1 → /0;  → 
+BEHAVES DIFF    obj uphall/ustairs | 1s1fdse#1 💺→💺
+      before: ok ["room:\"uphall\"→\"foyer\"","state:\"idle\"→\"cheer\""] 
+      after:  ok [] 
+BEHAVES DIFF    obj uphall/uwheel | 9x65of#1 🦽→🦽
+      before: ok ["state:\"idle\"→\"wheel\""] 
+      after:  ok [] 
+(minor)         obj yard/garage | dxydmd#1 🔒: said m/4 → mr/2;  → 
+BEHAVES DIFF    obj yard/leafpile :: carrying blower | 1bj2rwa#1 🦘→🦘
+      before: ok ["state:\"idle\"→\"cheer\""] 
+      after:  ok [] 
+(minor)         obj yard/snowman | 1u66s56#1 ⛄: said m/1 → mr/2;  → 
+(minor)         self :: fort built | 11g728q#1 🤸: said /0 → m/1;  → 
+(minor)         self :: holding Niko | 100ddwm#1 💃: said m/2 → mr/2;  → 
+(minor)         self :: holding Niko | 11g728q#1 🤸: said /0 → m/1;  → 
+BEHAVES DIFF    self :: on furniture with Daddy near | 4ihzep#1 ⬇️→⬇️
+      before: ok ["state:\"perch\"→\"idle\""] 
+      after:  ok [] 
+(minor)         self :: on furniture | 4ihzep#1 ⬇️: said m/1 → r/1;  → 
+BEHAVES DIFF    self :: on monkey bars | 1qe7r55#1 ⬇️→⬇️
+      before: ok ["state:\"bars\"→\"idle\""] 
+      after:  ok ["state:\"bars\"→\"perch\""] 
+BEHAVES DIFF    who daddy :: fort built here | 1tpe5rr#1 🧍→🧍
+      before: ok ["state:\"idle\"→\"ride\"","mount:null→\"daddy\""] 
+      after:  ok [] 
+(minor)         who daddy :: fort built here | 1x8gpx8#1 🤗: said dm/5 → dmr/6;  → 
+(noisy)         who miles :: crying | qpltx4#1 ✋: differs, but it also differs between two runs of the unchanged game
+(minor)         who miles :: dirty nappy | 13o29ns#1 🍼: said m/2 → mr/3;  → 
+(minor)         who miles :: dirty nappy | 1vbdudl#1 🧷: said m/3 → mr/4;  → 
+(noisy)         who miles :: fort built here | 13o29ns#1 🍼: differs, but it also differs between two runs of the unchanged game
+(noisy)         who miles :: Marina holding a nice dish | 13o29ns#1 🍼: differs, but it also differs between two runs of the unchanged game
+(noisy)         who miles :: Marina holding a nice dish | jy3ac3#1 🤗: differs, but it also differs between two runs of the unchanged game
+BEHAVES DIFF    who miles :: Marina holding a nice dish | qpltx4#1 ✋→✋
+      before: ok ["state:\"idle\"→\"anim\""] 
+      after:  ok [] 
+(noisy)         who miles :: normal | 13o29ns#1 🍼: differs, but it also differs between two runs of the unchanged game
+BEHAVES DIFF    who mommy :: fort built here | 8y7uyb#1 📱→📱
+      before: ok ["panel:null→\"panel\""] 
+      after:  ok ["state:\"idle\"→\"sad\""] 
+(minor)         who mommy :: Marina holding a nice dish | 1x8gpx8#1 🤗: said mmo/3 → mmor/6;  → 
+BEHAVES DIFF    who niko :: fort built here | 11g728q#1 ✋→✋
+      before: ok [] 
+      after:  ok ["state:\"idle\"→\"anim\""] 
+(minor)         who niko :: Marina holding a nice dish | c79z31#1 🏃: said m/2 → mr/2;  → 
+BEHAVES DIFF    who niko :: Marina holding something | 11g728q#1 ✋→✋
+      before: ok [] 
+      after:  ok ["state:\"idle\"→\"anim\""] 
+BEHAVES DIFF    who niko :: normal | 11g728q#1 ✋→✋
+      before: ok [] 
+      after:  ok ["state:\"idle\"→\"anim\""] 
+(minor)         who niko :: normal | c79z31#1 🤗: said m/2 → mr/2;  → 
+(minor)         who rory :: Marina riding | 1xjtl77#1 ⬇️: said mr/2 → m/2;  → 
+BEHAVES DIFF    who rory :: normal | uyuani#1 🐴→🐴
+      before: ok ["state:\"idle\"→\"ride\"","mount:null→\"rory\""] 
+      after:  ok [] 
+FLOW DIFFERS    tap floor walks; tap object opens its choices
+      before: walked:true table choices:0 daddy choices:0
+      after:  walked:true table choices:5 daddy choices:3
+(noisy flow)    mood love with Daddy
+      before: during:pair said:yes ended:true mood:love | errors: warning: audio assets/sfx/chip_love.mp3 Error: assets/sfx/chip_love.mp3
+    at http://127.0.0.1:8847/audio.js:32:60
+      after:  during:idle said:yes ended:true mood:love | errors: warning: audio assets/sfx/chip_love.mp3 Error: assets/sfx/chip_love.mp3
+    at http://127.0.0.1:8890/audio.js:32:60
+(noisy flow)    mood happy with Daddy
+      before: during:anim said:yes ended:true mood:happy
+      after:  during:idle said:yes ended:true mood:happy
+(noisy flow)    crafts tabs open
+      before: math:11 spell:15 cut:7 dio:26 gal:7
+      after:  math:11 spell:16 cut:7 dio:26 gal:7
+(noisy flow)    wish buttons take her to each activity
+      before: cook→living+menu9+floorpill draw→yard+floorpill fort→living+panel+floorpill dress→dining+panel+floorpill outside→yard+floorpill tv→living+menu9+floorpill niko→dining+panel+floorpill gym→dining+menu9+floorpill swing→yard+swing+floorpill miles→living+menu3+floorpill music→playroom+menu8+floorpill
+      after:  cook→kitchen+panel+floorpill draw→dining+studio+floorpill,studio fort→living+panel+floorpill dress→dining+panel+floorpill outside→yard+floorpill tv→living+menu9+floorpill niko→kitchen+menu3+floorpill gym→dining+menu9+floorpill swing→yard+swing+floorpill miles→kitchen+menu3+floorpill music→playroom+menu8+floorpill
+
+209 situations, 379 choices pressed: 311 identical, 10 noisy.  HARD problems: 0   differences to review: 59

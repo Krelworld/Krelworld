@@ -1,0 +1,494 @@
+{
+ "landSmall": {
+  "tv": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    667,
+    375
+   ],
+   "n": 9,
+   "rows": 2,
+   "perRow": [
+    5,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🍌 🥚 🐠 🦙 🍉 🚽 📢 🫧 👸",
+   "onMood": [],
+   "bottom": 254,
+   "alerts": []
+  },
+  "fireplace": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    667,
+    375
+   ],
+   "n": 9,
+   "rows": 2,
+   "perRow": [
+    5,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🍌 🥚 🐠 🦙 🍉 🚽 📢 🫧 👸",
+   "onMood": [],
+   "bottom": 220,
+   "alerts": []
+  },
+  "gym": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    667,
+    375
+   ],
+   "n": 9,
+   "rows": 2,
+   "perRow": [
+    5,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🎲 🤸 🙃 🔄 🔃 🧘 🌀 ⭐ ⚪",
+   "onMood": [],
+   "bottom": 220,
+   "alerts": []
+  },
+  "keys": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    667,
+    375
+   ],
+   "n": 8,
+   "rows": 2,
+   "perRow": [
+    4,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🌟 🎉 🎺 🤪 👻 🌙 🚀 🌸",
+   "onMood": [],
+   "bottom": 367,
+   "alerts": []
+  },
+  "table+dish": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    667,
+    375
+   ],
+   "n": 6,
+   "rows": 1,
+   "perRow": [
+    6
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🍽️ 🎨 ➕ 🔤 🧗 ⬇️",
+   "onMood": [],
+   "bottom": 142,
+   "alerts": []
+  },
+  "th-toys9": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    667,
+    375
+   ],
+   "n": 9,
+   "rows": 2,
+   "perRow": [
+    5,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🧺 🧸 🦄 🦖 🪀 🧩 📚 🫖 🔦",
+   "onMood": [],
+   "bottom": 220,
+   "alerts": []
+  },
+  "tapLast": {
+   "t": "👸",
+   "ringClosed": true,
+   "tv": true
+  },
+  "backdrop": {
+   "pt": [
+    70,
+    355
+   ],
+   "closed": true
+  },
+  "errors": []
+ },
+ "844x340": {
+  "tv": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    844,
+    340
+   ],
+   "n": 9,
+   "rows": 2,
+   "perRow": [
+    5,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🍌 🥚 🐠 🦙 🍉 🚽 📢 🫧 👸",
+   "onMood": [],
+   "bottom": 220,
+   "alerts": []
+  },
+  "fireplace": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    844,
+    340
+   ],
+   "n": 9,
+   "rows": 2,
+   "perRow": [
+    5,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🍌 🥚 🐠 🦙 🍉 🚽 📢 🫧 👸",
+   "onMood": [],
+   "bottom": 220,
+   "alerts": []
+  },
+  "gym": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    844,
+    340
+   ],
+   "n": 9,
+   "rows": 2,
+   "perRow": [
+    5,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🎲 🤸 🙃 🔄 🔃 🧘 🌀 ⭐ ⚪",
+   "onMood": [],
+   "bottom": 220,
+   "alerts": []
+  },
+  "keys": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    844,
+    340
+   ],
+   "n": 8,
+   "rows": 2,
+   "perRow": [
+    4,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🌟 🎉 🎺 🤪 👻 🌙 🚀 🌸",
+   "onMood": [],
+   "bottom": 273,
+   "alerts": []
+  },
+  "table+dish": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    844,
+    340
+   ],
+   "n": 6,
+   "rows": 1,
+   "perRow": [
+    6
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🍽️ 🎨 ➕ 🔤 🧗 ⬇️",
+   "onMood": [],
+   "bottom": 142,
+   "alerts": []
+  },
+  "th-toys9": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    844,
+    340
+   ],
+   "n": 9,
+   "rows": 2,
+   "perRow": [
+    5,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🧺 🧸 🦄 🦖 🪀 🧩 📚 🫖 🔦",
+   "onMood": [],
+   "bottom": 220,
+   "alerts": []
+  },
+  "tapLast": {
+   "t": "👸",
+   "ringClosed": true,
+   "tv": true
+  },
+  "backdrop": {
+   "pt": [
+    70,
+    320
+   ],
+   "closed": true
+  },
+  "errors": []
+ },
+ "land": {
+  "tv": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    844,
+    390
+   ],
+   "n": 9,
+   "rows": 2,
+   "perRow": [
+    5,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🍌 🥚 🐠 🦙 🍉 🚽 📢 🫧 👸",
+   "onMood": [],
+   "bottom": 220,
+   "alerts": []
+  },
+  "fireplace": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    844,
+    390
+   ],
+   "n": 9,
+   "rows": 2,
+   "perRow": [
+    5,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🍌 🥚 🐠 🦙 🍉 🚽 📢 🫧 👸",
+   "onMood": [],
+   "bottom": 220,
+   "alerts": []
+  },
+  "gym": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    844,
+    390
+   ],
+   "n": 9,
+   "rows": 2,
+   "perRow": [
+    5,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🎲 🤸 🙃 🔄 🔃 🧘 🌀 ⭐ ⚪",
+   "onMood": [],
+   "bottom": 220,
+   "alerts": []
+  },
+  "keys": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    844,
+    390
+   ],
+   "n": 8,
+   "rows": 2,
+   "perRow": [
+    4,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🌟 🎉 🎺 🤪 👻 🌙 🚀 🌸",
+   "onMood": [],
+   "bottom": 222,
+   "alerts": []
+  },
+  "table+dish": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    844,
+    390
+   ],
+   "n": 6,
+   "rows": 1,
+   "perRow": [
+    6
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🍽️ 🎨 ➕ 🔤 🧗 ⬇️",
+   "onMood": [],
+   "bottom": 142,
+   "alerts": []
+  },
+  "th-toys9": {
+   "tray": null,
+   "trayTopStyle": null,
+   "stage": [
+    0,
+    0,
+    844,
+    390
+   ],
+   "n": 9,
+   "rows": 2,
+   "perRow": [
+    5,
+    4
+   ],
+   "size": 72,
+   "allOneTap": true,
+   "allInStage": true,
+   "allOnScreen": true,
+   "notOneTap": [],
+   "icons": "🧺 🧸 🦄 🦖 🪀 🧩 📚 🫖 🔦",
+   "onMood": [],
+   "bottom": 225,
+   "alerts": []
+  },
+  "tapLast": {
+   "t": "👸",
+   "ringClosed": true,
+   "tv": true
+  },
+  "backdrop": {
+   "pt": [
+    70,
+    370
+   ],
+   "closed": true
+  },
+  "errors": []
+ }
+}

@@ -1,0 +1,146 @@
+{
+ "yard": {
+  "candidates": 6,
+  "onPicture": 2,
+  "covered": [
+   "garage<offscreen",
+   "car<offscreen",
+   "mbars<offscreen",
+   "swing<offscreen"
+  ],
+  "seeAgrees": true,
+  "wiggles": 36,
+  "wiggledOff": [],
+  "distinctWiggled": 2
+ },
+ "dining": {
+  "candidates": 6,
+  "onPicture": 3,
+  "covered": [
+   "closet<offscreen",
+   "cattower<offscreen",
+   "chair2<offscreen"
+  ],
+  "seeAgrees": true,
+  "wiggles": 38,
+  "wiggledOff": [],
+  "distinctWiggled": 3
+ },
+ "kitchen": {
+  "candidates": 10,
+  "onPicture": 3,
+  "covered": [
+   "stove<offscreen",
+   "fridge<B",
+   "bowls<offscreen",
+   "island<offscreen",
+   "stool1<offscreen",
+   "stool2<offscreen",
+   "stool3<offscreen"
+  ],
+  "seeAgrees": true,
+  "wiggles": 40,
+  "wiggledOff": [],
+  "distinctWiggled": 3
+ },
+ "playroom": {
+  "candidates": 14,
+  "onPicture": 5,
+  "covered": [
+   "tray<offscreen",
+   "dome<offscreen",
+   "bouncy<offscreen",
+   "cart1<navarrow",
+   "cart2<offscreen",
+   "pmat<offscreen",
+   "loveseat<offscreen",
+   "keys<offscreen",
+   "broom<offscreen"
+  ],
+  "seeAgrees": true,
+  "wiggles": 40,
+  "wiggledOff": [],
+  "distinctWiggled": 5
+ },
+ "foyer": {
+  "candidates": 1,
+  "onPicture": 0,
+  "covered": [
+   "stairs<B"
+  ],
+  "seeAgrees": true,
+  "wiggles": 0,
+  "wiggledOff": [],
+  "distinctWiggled": 0
+ },
+ "living": {
+  "candidates": 12,
+  "onPicture": 4,
+  "covered": [
+   "sectional<offscreen",
+   "armchair<offscreen",
+   "lamp<offscreen",
+   "pail<offscreen",
+   "shelf1<offscreen",
+   "basket<offscreen",
+   "dresserw<offscreen",
+   "pnp<offscreen"
+  ],
+  "seeAgrees": true,
+  "wiggles": 39,
+  "wiggledOff": [],
+  "distinctWiggled": 4
+ },
+ "bathroom": {
+  "candidates": 6,
+  "onPicture": 6,
+  "covered": [],
+  "seeAgrees": true,
+  "wiggles": 38,
+  "wiggledOff": [],
+  "distinctWiggled": 6
+ },
+ "den": {
+  "candidates": 12,
+  "onPicture": 1,
+  "covered": [
+   "legoshelf<offscreen",
+   "candle<navarrow",
+   "wicker<offscreen",
+   "barm<offscreen",
+   "ottoman<offscreen",
+   "tripod<offscreen",
+   "bsofa<offscreen",
+   "ltable<offscreen",
+   "btv<offscreen",
+   "bfire<offscreen",
+   "stones<offscreen"
+  ],
+  "seeAgrees": true,
+  "wiggles": 40,
+  "wiggledOff": [],
+  "distinctWiggled": 1
+ },
+ "backyard": {
+  "candidates": 13,
+  "onPicture": 1,
+  "covered": [
+   "tr_apple<I",
+   "tr_dogwood<offscreen",
+   "tr_birch<offscreen",
+   "tr_willow<offscreen",
+   "tr_spruce<offscreen",
+   "feeder<offscreen",
+   "lumber<offscreen",
+   "bench<offscreen",
+   "toolbox<offscreen",
+   "oak<offscreen",
+   "leafpile<offscreen",
+   "pine<offscreen"
+  ],
+  "seeAgrees": true,
+  "wiggles": 40,
+  "wiggledOff": [],
+  "distinctWiggled": 1
+ }
+}

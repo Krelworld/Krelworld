@@ -1,0 +1,1232 @@
+{
+ "port/0": {
+  "foyer/stairs@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "foyer/stairs@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "foyer/stairs@136": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "foyer/stairs@236": {
+   "drawn": "8/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "foyer/stairs@262": {
+   "drawn": "8/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "uphall/ustairs@10": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@104": {
+   "drawn": "8/8",
+   "spots": "[68,113]",
+   "probs": []
+  },
+  "uphall/ustairs@152": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "uphall/ustairs@294": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@10": {
+   "drawn": "7/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@104": {
+   "drawn": "8/8",
+   "spots": "[60,65]",
+   "probs": []
+  },
+  "den/dutch@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@474": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@474": {
+   "drawn": "8/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "den/bstairs@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@10": {
+   "drawn": "5/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@96": {
+   "drawn": "8/8",
+   "spots": "[92,98]",
+   "probs": []
+  },
+  "backyard/bkdoor@200": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@520": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@1030": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "errors": []
+ },
+ "port/47": {
+  "foyer/stairs@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "foyer/stairs@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "foyer/stairs@136": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "foyer/stairs@236": {
+   "drawn": "8/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "foyer/stairs@262": {
+   "drawn": "8/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "uphall/ustairs@10": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@104": {
+   "drawn": "8/8",
+   "spots": "[68,113]",
+   "probs": []
+  },
+  "uphall/ustairs@152": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "uphall/ustairs@294": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@10": {
+   "drawn": "6/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@104": {
+   "drawn": "8/8",
+   "spots": "[60,65]",
+   "probs": []
+  },
+  "den/dutch@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@474": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@474": {
+   "drawn": "5/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "den/bstairs@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@10": {
+   "drawn": "7/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@96": {
+   "drawn": "8/8",
+   "spots": "[92,98]",
+   "probs": []
+  },
+  "backyard/bkdoor@200": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@520": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@1030": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "errors": []
+ },
+ "portSmall/0": {
+  "foyer/stairs@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "foyer/stairs@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "foyer/stairs@136": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "foyer/stairs@236": {
+   "drawn": "8/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "foyer/stairs@262": {
+   "drawn": "8/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "uphall/ustairs@10": {
+   "drawn": "7/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@104": {
+   "drawn": "2/8",
+   "spots": "[68,113]",
+   "probs": []
+  },
+  "uphall/ustairs@152": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "uphall/ustairs@294": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@10": {
+   "drawn": "7/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@104": {
+   "drawn": "7/8",
+   "spots": "[60,65]",
+   "probs": []
+  },
+  "den/dutch@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@474": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@474": {
+   "drawn": "7/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "den/bstairs@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@10": {
+   "drawn": "8/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@96": {
+   "drawn": "7/8",
+   "spots": "[92,98]",
+   "probs": []
+  },
+  "backyard/bkdoor@200": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@520": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@1030": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "errors": []
+ },
+ "portSmall/47": {
+  "foyer/stairs@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "foyer/stairs@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "foyer/stairs@136": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "foyer/stairs@236": {
+   "drawn": "8/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "foyer/stairs@262": {
+   "drawn": "6/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "uphall/ustairs@10": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@104": {
+   "drawn": "7/8",
+   "spots": "[68,113]",
+   "probs": []
+  },
+  "uphall/ustairs@152": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "uphall/ustairs@294": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@10": {
+   "drawn": "5/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@104": {
+   "drawn": "8/8",
+   "spots": "[72,65]",
+   "probs": []
+  },
+  "den/dutch@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@474": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@474": {
+   "drawn": "7/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "den/bstairs@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@10": {
+   "drawn": "8/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@96": {
+   "drawn": "8/8",
+   "spots": "[92,98]",
+   "probs": []
+  },
+  "backyard/bkdoor@200": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@520": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@1030": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "errors": []
+ },
+ "land/0": {
+  "foyer/stairs@10": {
+   "drawn": "8/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@104": {
+   "drawn": "8/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@136": {
+   "drawn": "7/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@236": {
+   "drawn": "7/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "foyer/stairs@262": {
+   "drawn": "8/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "uphall/ustairs@10": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@104": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@152": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@294": {
+   "drawn": "8/8",
+   "spots": "[64,113]",
+   "probs": []
+  },
+  "den/bstairs@10": {
+   "drawn": "7/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@104": {
+   "drawn": "8/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@474": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@474": {
+   "drawn": "8/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "den/bstairs@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@598": {
+   "drawn": "7/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "backyard/bkdoor@10": {
+   "drawn": "8/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@96": {
+   "drawn": "6/8",
+   "spots": "[92,98]",
+   "probs": []
+  },
+  "backyard/bkdoor@200": {
+   "drawn": "6/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@520": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@1030": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "errors": []
+ },
+ "land/47": {
+  "foyer/stairs@10": {
+   "drawn": "8/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@104": {
+   "drawn": "8/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@136": {
+   "drawn": "5/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@236": {
+   "drawn": "8/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "foyer/stairs@262": {
+   "drawn": "4/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "uphall/ustairs@10": {
+   "drawn": "5/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@104": {
+   "drawn": "7/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@152": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@294": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "den/bstairs@10": {
+   "drawn": "8/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@104": {
+   "drawn": "8/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@304": {
+   "drawn": "8/8",
+   "spots": "[470,85]",
+   "probs": []
+  },
+  "den/bstairs@474": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@474": {
+   "drawn": "8/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "den/bstairs@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@598": {
+   "drawn": "8/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "backyard/bkdoor@10": {
+   "drawn": "8/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@96": {
+   "drawn": "5/8",
+   "spots": "[92,98]",
+   "probs": []
+  },
+  "backyard/bkdoor@200": {
+   "drawn": "5/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@520": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@1030": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "errors": []
+ },
+ "landSmall/0": {
+  "foyer/stairs@10": {
+   "drawn": "7/8",
+   "spots": "[202,83]",
+   "probs": []
+  },
+  "foyer/stairs@104": {
+   "drawn": "5/8",
+   "spots": "[210,83]",
+   "probs": []
+  },
+  "foyer/stairs@136": {
+   "drawn": "8/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@236": {
+   "drawn": "8/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "foyer/stairs@262": {
+   "drawn": "6/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "uphall/ustairs@10": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@104": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@152": {
+   "drawn": "7/8",
+   "spots": "[72,113]",
+   "probs": []
+  },
+  "uphall/ustairs@294": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@10": {
+   "drawn": "8/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@104": {
+   "drawn": "6/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@474": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@474": {
+   "drawn": "8/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "den/bstairs@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@598": {
+   "drawn": "8/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "backyard/bkdoor@10": {
+   "drawn": "4/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@96": {
+   "drawn": "8/8",
+   "spots": "[92,98]",
+   "probs": []
+  },
+  "backyard/bkdoor@200": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@520": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@1030": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "errors": []
+ },
+ "landSmall/47": {
+  "foyer/stairs@10": {
+   "drawn": "7/8",
+   "spots": "[214,83]",
+   "probs": []
+  },
+  "foyer/stairs@104": {
+   "drawn": "7/8",
+   "spots": "[214,83]",
+   "probs": []
+  },
+  "foyer/stairs@136": {
+   "drawn": "8/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@236": {
+   "drawn": "6/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "foyer/stairs@262": {
+   "drawn": "7/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "uphall/ustairs@10": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@104": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@152": {
+   "drawn": "8/8",
+   "spots": "[76,113]",
+   "probs": []
+  },
+  "uphall/ustairs@294": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@10": {
+   "drawn": "8/8",
+   "spots": "[52,71]",
+   "probs": []
+  },
+  "den/dutch@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@104": {
+   "drawn": "8/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@474": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@474": {
+   "drawn": "8/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "den/bstairs@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@598": {
+   "drawn": "8/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "backyard/bkdoor@10": {
+   "drawn": "8/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@96": {
+   "drawn": "8/8",
+   "spots": "[92,98]",
+   "probs": []
+  },
+  "backyard/bkdoor@200": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@520": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@1030": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "errors": []
+ },
+ "844x340/0": {
+  "foyer/stairs@10": {
+   "drawn": "7/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@104": {
+   "drawn": "7/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@136": {
+   "drawn": "8/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@236": {
+   "drawn": "8/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "foyer/stairs@262": {
+   "drawn": "8/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "uphall/ustairs@10": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@104": {
+   "drawn": "6/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@152": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@294": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "den/bstairs@10": {
+   "drawn": "8/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@104": {
+   "drawn": "8/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@474": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@474": {
+   "drawn": "8/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "den/bstairs@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@598": {
+   "drawn": "8/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "backyard/bkdoor@10": {
+   "drawn": "8/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@96": {
+   "drawn": "7/8",
+   "spots": "[92,98]",
+   "probs": []
+  },
+  "backyard/bkdoor@200": {
+   "drawn": "7/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@520": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@1030": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "errors": []
+ },
+ "844x340/47": {
+  "foyer/stairs@10": {
+   "drawn": "8/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@104": {
+   "drawn": "8/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@136": {
+   "drawn": "8/8",
+   "spots": "[214,95]",
+   "probs": []
+  },
+  "foyer/stairs@236": {
+   "drawn": "6/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "foyer/stairs@262": {
+   "drawn": "8/8",
+   "spots": "[202,95]",
+   "probs": []
+  },
+  "uphall/ustairs@10": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@104": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@152": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "uphall/ustairs@294": {
+   "drawn": "8/8",
+   "spots": "[56,113]",
+   "probs": []
+  },
+  "den/bstairs@10": {
+   "drawn": "7/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@10": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@104": {
+   "drawn": "8/8",
+   "spots": "[52,65]",
+   "probs": []
+  },
+  "den/dutch@104": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/bstairs@304": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@304": {
+   "drawn": "8/8",
+   "spots": "[474,85]",
+   "probs": []
+  },
+  "den/bstairs@474": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@474": {
+   "drawn": "7/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "den/bstairs@598": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "den/dutch@598": {
+   "drawn": "8/8",
+   "spots": "[474,97]",
+   "probs": []
+  },
+  "backyard/bkdoor@10": {
+   "drawn": "8/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@96": {
+   "drawn": "7/8",
+   "spots": "[92,98]",
+   "probs": []
+  },
+  "backyard/bkdoor@200": {
+   "drawn": "8/8",
+   "spots": "[92,104]",
+   "probs": []
+  },
+  "backyard/bkdoor@520": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "backyard/bkdoor@1030": {
+   "drawn": "0/8",
+   "spots": "",
+   "probs": []
+  },
+  "errors": []
+ }
+}

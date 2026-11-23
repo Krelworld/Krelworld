@@ -1,0 +1,34 @@
+{
+ "on port": {
+  "errors": [],
+  "on": "G35:true G36:true G37:true G38:true G39:true"
+ },
+ "on land": {
+  "errors": [],
+  "on": "G35:true G36:true G37:true G38:true G39:true"
+ },
+ "on portSmall": {
+  "errors": [],
+  "on": "G35:true G36:true G37:true G38:true G39:true"
+ },
+ "on landSmall": {
+  "errors": [],
+  "on": "G35:true G36:true G37:true G38:true G39:true"
+ },
+ "off port": {
+  "errors": [],
+  "on": "G35:false G36:false G37:false G38:false G39:false"
+ },
+ "off land": {
+  "errors": [],
+  "on": "G35:false G36:false G37:false G38:false G39:false"
+ },
+ "off portSmall": {
+  "errors": [],
+  "on": "G35:false G36:false G37:false G38:false G39:false"
+ },
+ "off landSmall": {
+  "errors": [],
+  "on": "G35:false G36:false G37:false G38:false G39:false"
+ }
+}

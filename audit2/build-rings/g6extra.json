@@ -1,0 +1,77 @@
+{
+ "port": {
+  "g6true": {
+   "alerts": [
+    "poop",
+    "tp"
+   ],
+   "acts": [
+    {
+     "t": "🤗",
+     "visible": true,
+     "onAlert": true,
+     "onHud": [
+      "alertb:💩",
+      "alertb:🧻"
+     ]
+    },
+    {
+     "t": "🧍",
+     "visible": true,
+     "onAlert": true,
+     "onHud": [
+      "alertb:🧻"
+     ]
+    },
+    {
+     "t": "😜",
+     "visible": true,
+     "onAlert": false,
+     "onHud": []
+    }
+   ]
+  },
+  "ownTaps": {
+   "alert": true,
+   "wish": false,
+   "req": true,
+   "ringOpen": true,
+   "alertTap": {
+    "room": "playroom",
+    "ring": "🧻"
+   }
+  },
+  "g6false": {
+   "alerts": [
+    "tp",
+    "poop"
+   ],
+   "acts": [
+    {
+     "t": "🤗",
+     "visible": true,
+     "onAlert": true,
+     "onHud": [
+      "alertb:🧻",
+      "alertb:💩"
+     ]
+    },
+    {
+     "t": "🧍",
+     "visible": true,
+     "onAlert": true,
+     "onHud": [
+      "alertb:💩"
+     ]
+    },
+    {
+     "t": "😜",
+     "visible": true,
+     "onAlert": false,
+     "onHud": []
+    }
+   ]
+  },
+  "errors": []
+ }
+}

@@ -1,0 +1,1700 @@
+{
+ "map": {
+  "land": {
+   "on:kitchen": {
+    "img": "276.7,68,290.6,217.9",
+    "rooms": "318.8,200.2,244.8,77 | 309.4,161,74.1,39.2 | 370.5,144.2,79.5,37.3 | 427.1,131.9,34.9,21.1 | 385.7,167.5,59.6,50.9 | 429.3,171.2,128.6,58.8 | 462,133.4,36.3,16",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "113,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "181.4,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "249.9,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "318.3,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "386.8,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "491.2,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "559.7,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "628.1,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "696.6,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "284.1,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "352.5,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "457,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "525.5,337,62.5,39",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(70, 130, 190, 0.8):85,291.9,364.3,39",
+     "down:rgba(110, 78, 50, 0.82):463.2,291.9,295.8,39",
+     "out:rgba(40, 105, 55, 0.88):256.1,337,158.9,39",
+     "tree:rgba(40, 105, 55, 0.88):429,337,158.9,39"
+    ]
+   },
+   "on:den": {
+    "img": "276.7,68,290.6,217.9",
+    "rooms": "318.8,200.2,244.8,77 | 309.4,161,74.1,39.2 | 356.6,147.9,70.5,29.1 | 427.1,131.9,34.9,21.1 | 385.7,167.5,59.6,50.9 | 429.3,171.2,128.6,58.8 | 462,133.4,36.3,16",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "113,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "181.4,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "249.9,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "318.3,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "386.8,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "491.2,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "559.7,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "628.1,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "696.6,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "284.1,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "352.5,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "457,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "525.5,337,62.5,39",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(70, 130, 190, 0.8):85,291.9,364.3,39",
+     "down:rgba(110, 78, 50, 0.82):463.2,291.9,295.8,39",
+     "out:rgba(40, 105, 55, 0.88):256.1,337,158.9,39",
+     "tree:rgba(40, 105, 55, 0.88):429,337,158.9,39"
+    ]
+   },
+   "on:uphall": {
+    "img": "276.7,68,290.6,217.9",
+    "rooms": "318.8,200.2,244.8,77 | 309.4,161,74.1,39.2 | 356.6,147.9,70.5,29.1 | 427.1,131.9,34.9,21.1 | 385.7,167.5,59.6,50.9 | 429.3,171.2,128.6,58.8 | 462,133.4,36.3,16",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "113,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "181.4,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "249.9,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "318.3,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "386.8,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "491.2,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "559.7,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "628.1,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "696.6,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "284.1,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "352.5,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "457,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "525.5,337,62.5,39",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(70, 130, 190, 0.8):85,291.9,364.3,39",
+     "down:rgba(110, 78, 50, 0.82):463.2,291.9,295.8,39",
+     "out:rgba(40, 105, 55, 0.88):256.1,337,158.9,39",
+     "tree:rgba(40, 105, 55, 0.88):429,337,158.9,39"
+    ]
+   },
+   "on:errors": [],
+   "off:kitchen": {
+    "img": "276.7,68,290.6,217.9",
+    "rooms": "318.8,200.2,244.8,77 | 309.4,161,74.1,39.2 | 370.4,144.2,79.5,37.2 | 427.1,131.9,34.9,21.1 | 385.7,167.5,59.6,50.9 | 429.3,171.2,128.6,58.8 | 462,133.4,36.3,16",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "113,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "181.4,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "249.9,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "318.3,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "386.8,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "491.2,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "559.7,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "628.1,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "696.6,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "284.1,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "352.5,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "457,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "525.5,337,62.5,39",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(0, 0, 0, 0):85,291.9,364.3,39",
+     "down:rgba(0, 0, 0, 0):463.2,291.9,295.8,39",
+     "out:rgba(0, 0, 0, 0):256.1,337,158.9,39",
+     "tree:rgba(0, 0, 0, 0):429,337,158.9,39"
+    ]
+   },
+   "off:den": {
+    "img": "276.7,68,290.6,217.9",
+    "rooms": "318.8,200.2,244.8,77 | 309.4,161,74.1,39.2 | 356.6,147.9,70.5,29.1 | 427.1,131.9,34.9,21.1 | 385.7,167.5,59.6,50.9 | 429.3,171.2,128.6,58.8 | 462,133.4,36.3,16",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "113,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "181.4,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "249.9,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "318.3,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "386.8,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "491.2,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "559.7,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "628.1,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "696.6,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "284.1,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "352.5,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "457,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "525.5,337,62.5,39",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(0, 0, 0, 0):85,291.9,364.3,39",
+     "down:rgba(0, 0, 0, 0):463.2,291.9,295.8,39",
+     "out:rgba(0, 0, 0, 0):256.1,337,158.9,39",
+     "tree:rgba(0, 0, 0, 0):429,337,158.9,39"
+    ]
+   },
+   "off:uphall": {
+    "img": "276.7,68,290.6,217.9",
+    "rooms": "318.8,200.2,244.8,77 | 309.4,161,74.1,39.2 | 356.6,147.9,70.5,29.1 | 427.1,131.9,34.9,21.1 | 385.7,167.5,59.6,50.9 | 429.3,171.2,128.6,58.8 | 462,133.4,36.3,16",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "113,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "181.4,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "249.9,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "318.3,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "386.8,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "491.2,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "559.7,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "628.1,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "696.6,291.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "284.1,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "352.5,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "457,337,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "525.5,337,62.5,39",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(0, 0, 0, 0):85,291.9,364.3,39",
+     "down:rgba(0, 0, 0, 0):463.2,291.9,295.8,39",
+     "out:rgba(0, 0, 0, 0):256.1,337,158.9,39",
+     "tree:rgba(0, 0, 0, 0):429,337,158.9,39"
+    ]
+   },
+   "off:errors": []
+  },
+  "landSmall": {
+   "on:kitchen": {
+    "img": "187.3,68,292.5,219.3",
+    "rooms": "229.7,201.1,246.4,77.5 | 220.2,161.6,74.6,39.5 | 281.7,144.7,80,37.5 | 338.6,132.3,35.1,21.2 | 296.9,168.2,60,51.2 | 340.8,171.8,129.4,59.2 | 373.7,133.8,36.6,16.1",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "83.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "138.8,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "194.1,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "249.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "304.8,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "396.2,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "451.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "506.9,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "562.2,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "221.8,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "277.2,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "368.5,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "423.8,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(70, 130, 190, 0.8):55.5,293.3,298.7,30.8",
+     "down:rgba(110, 78, 50, 0.82):368.2,293.3,243.4,30.8",
+     "out:rgba(40, 105, 55, 0.88):193.8,330.2,132.7,30.8",
+     "tree:rgba(40, 105, 55, 0.88):340.5,330.2,132.7,30.8"
+    ]
+   },
+   "on:den": {
+    "img": "187.3,68,292.5,219.3",
+    "rooms": "229.7,201.1,246.4,77.5 | 220.2,161.6,74.6,39.5 | 267.7,148.4,70.9,29.2 | 338.6,132.3,35.1,21.2 | 296.9,168.2,60,51.2 | 340.8,171.8,129.4,59.2 | 373.7,133.8,36.6,16.1",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "83.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "138.8,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "194.1,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "249.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "304.8,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "396.2,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "451.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "506.9,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "562.2,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "221.8,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "277.2,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "368.5,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "423.8,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(70, 130, 190, 0.8):55.5,293.3,298.7,30.8",
+     "down:rgba(110, 78, 50, 0.82):368.2,293.3,243.4,30.8",
+     "out:rgba(40, 105, 55, 0.88):193.8,330.2,132.7,30.8",
+     "tree:rgba(40, 105, 55, 0.88):340.5,330.2,132.7,30.8"
+    ]
+   },
+   "on:uphall": {
+    "img": "187.3,68,292.5,219.3",
+    "rooms": "229.7,201.1,246.4,77.5 | 220.2,161.6,74.6,39.5 | 267.7,148.4,70.9,29.2 | 338.6,132.3,35.1,21.2 | 296.9,168.2,60,51.2 | 340.8,171.8,129.4,59.2 | 373.7,133.8,36.6,16.1",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "83.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "138.8,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "194.1,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "249.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "304.8,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "396.2,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "451.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "506.9,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "562.2,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "221.8,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "277.2,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "368.5,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "423.8,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(70, 130, 190, 0.8):55.5,293.3,298.7,30.8",
+     "down:rgba(110, 78, 50, 0.82):368.2,293.3,243.4,30.8",
+     "out:rgba(40, 105, 55, 0.88):193.8,330.2,132.7,30.8",
+     "tree:rgba(40, 105, 55, 0.88):340.5,330.2,132.7,30.8"
+    ]
+   },
+   "on:errors": [],
+   "off:kitchen": {
+    "img": "187.3,68,292.5,219.3",
+    "rooms": "229.7,201.1,246.4,77.5 | 220.2,161.6,74.6,39.5 | 267.7,148.4,70.9,29.2 | 338.6,132.3,35.1,21.2 | 296.9,168.2,60,51.2 | 340.8,171.8,129.4,59.2 | 373.7,133.8,36.6,16.1",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "83.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "138.8,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "194.1,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "249.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "304.8,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "396.2,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "451.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "506.9,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "562.2,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "221.8,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "277.2,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "368.5,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "423.8,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(0, 0, 0, 0):55.5,293.3,298.7,30.8",
+     "down:rgba(0, 0, 0, 0):368.2,293.3,243.4,30.8",
+     "out:rgba(0, 0, 0, 0):193.8,330.2,132.7,30.8",
+     "tree:rgba(0, 0, 0, 0):340.5,330.2,132.7,30.8"
+    ]
+   },
+   "off:den": {
+    "img": "187.3,68,292.5,219.3",
+    "rooms": "229.7,201.1,246.4,77.5 | 220.2,161.6,74.6,39.5 | 267.7,148.4,70.9,29.2 | 338.6,132.3,35.1,21.2 | 296.9,168.2,60,51.2 | 340.8,171.8,129.4,59.2 | 373.7,133.8,36.6,16.1",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "83.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "138.8,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "194.1,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "249.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "304.8,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "396.2,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "451.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "506.9,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "562.2,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "221.8,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "277.2,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "368.5,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "423.8,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(0, 0, 0, 0):55.5,293.3,298.7,30.8",
+     "down:rgba(0, 0, 0, 0):368.2,293.3,243.4,30.8",
+     "out:rgba(0, 0, 0, 0):193.8,330.2,132.7,30.8",
+     "tree:rgba(0, 0, 0, 0):340.5,330.2,132.7,30.8"
+    ]
+   },
+   "off:uphall": {
+    "img": "187.3,68,292.5,219.3",
+    "rooms": "229.7,201.1,246.4,77.5 | 220.2,161.6,74.6,39.5 | 267.7,148.4,70.9,29.2 | 338.6,132.3,35.1,21.2 | 296.9,168.2,60,51.2 | 340.8,171.8,129.4,59.2 | 373.7,133.8,36.6,16.1",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "83.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "138.8,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "194.1,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "249.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "304.8,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "396.2,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "451.5,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "506.9,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "562.2,293.3,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "221.8,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "277.2,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "368.5,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "423.8,330.2,49.3,30.8",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(0, 0, 0, 0):55.5,293.3,298.7,30.8",
+     "down:rgba(0, 0, 0, 0):368.2,293.3,243.4,30.8",
+     "out:rgba(0, 0, 0, 0):193.8,330.2,132.7,30.8",
+     "tree:rgba(0, 0, 0, 0):340.5,330.2,132.7,30.8"
+    ]
+   },
+   "off:errors": []
+  },
+  "844x340": {
+   "on:kitchen": {
+    "img": "310,68,223.9,167.9",
+    "rooms": "342.5,169.9,188.6,59.3 | 335.2,139.7,57.1,30.2 | 382.3,126.7,61.3,28.7 | 425.9,117.3,26.9,16.2 | 394,144.7,45.9,39.2 | 427.6,147.5,99.1,45.3 | 452.8,118.4,28,12.3",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "113,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "181.4,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "249.9,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "318.3,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "386.8,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "491.2,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "559.7,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "628.1,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "696.6,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "284.1,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "352.5,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "457,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "525.5,287,62.5,39",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(70, 130, 190, 0.8):85,241.9,364.3,39",
+     "down:rgba(110, 78, 50, 0.82):463.2,241.9,295.8,39",
+     "out:rgba(40, 105, 55, 0.88):256.1,287,158.9,39",
+     "tree:rgba(40, 105, 55, 0.88):429,287,158.9,39"
+    ]
+   },
+   "on:den": {
+    "img": "310,68,223.9,167.9",
+    "rooms": "342.5,169.9,188.6,59.3 | 335.2,139.7,57.1,30.2 | 371.6,129.6,54.3,22.4 | 425.9,117.3,26.9,16.2 | 394,144.7,45.9,39.2 | 427.6,147.5,99.1,45.3 | 452.8,118.4,28,12.3",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "113,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "181.4,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "249.9,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "318.3,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "386.8,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "491.2,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "559.7,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "628.1,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "696.6,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "284.1,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "352.5,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "457,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "525.5,287,62.5,39",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(70, 130, 190, 0.8):85,241.9,364.3,39",
+     "down:rgba(110, 78, 50, 0.82):463.2,241.9,295.8,39",
+     "out:rgba(40, 105, 55, 0.88):256.1,287,158.9,39",
+     "tree:rgba(40, 105, 55, 0.88):429,287,158.9,39"
+    ]
+   },
+   "on:uphall": {
+    "img": "310,68,223.9,167.9",
+    "rooms": "342.5,169.9,188.6,59.3 | 335.2,139.7,57.1,30.2 | 371.6,129.6,54.3,22.4 | 425.9,117.3,26.9,16.2 | 394,144.7,45.9,39.2 | 427.6,147.5,99.1,45.3 | 452.8,118.4,28,12.3",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "113,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "181.4,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "249.9,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "318.3,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "386.8,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "491.2,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "559.7,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "628.1,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "696.6,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "284.1,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "352.5,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "457,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "525.5,287,62.5,39",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(70, 130, 190, 0.8):85,241.9,364.3,39",
+     "down:rgba(110, 78, 50, 0.82):463.2,241.9,295.8,39",
+     "out:rgba(40, 105, 55, 0.88):256.1,287,158.9,39",
+     "tree:rgba(40, 105, 55, 0.88):429,287,158.9,39"
+    ]
+   },
+   "on:errors": [],
+   "off:kitchen": {
+    "img": "310,68,223.9,167.9",
+    "rooms": "342.5,169.9,188.6,59.3 | 335.2,139.7,57.1,30.2 | 382.3,126.7,61.3,28.7 | 425.9,117.3,26.9,16.2 | 394,144.7,45.9,39.2 | 427.6,147.5,99.1,45.3 | 452.8,118.4,28,12.3",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "113,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "181.4,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "249.9,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "318.3,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "386.8,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "491.2,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "559.7,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "628.1,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "696.6,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "284.1,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "352.5,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "457,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "525.5,287,62.5,39",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(0, 0, 0, 0):85,241.9,364.3,39",
+     "down:rgba(0, 0, 0, 0):463.2,241.9,295.8,39",
+     "out:rgba(0, 0, 0, 0):256.1,287,158.9,39",
+     "tree:rgba(0, 0, 0, 0):429,287,158.9,39"
+    ]
+   },
+   "off:den": {
+    "img": "310,68,223.9,167.9",
+    "rooms": "342.5,169.9,188.6,59.3 | 335.2,139.7,57.1,30.2 | 371.6,129.6,54.3,22.4 | 425.9,117.3,26.9,16.2 | 394,144.7,45.9,39.2 | 427.6,147.5,99.1,45.3 | 452.8,118.4,28,12.3",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "113,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "181.4,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "249.9,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "318.3,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "386.8,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "491.2,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "559.7,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "628.1,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "696.6,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "284.1,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "352.5,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "457,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "525.5,287,62.5,39",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(0, 0, 0, 0):85,241.9,364.3,39",
+     "down:rgba(0, 0, 0, 0):463.2,241.9,295.8,39",
+     "out:rgba(0, 0, 0, 0):256.1,287,158.9,39",
+     "tree:rgba(0, 0, 0, 0):429,287,158.9,39"
+    ]
+   },
+   "off:uphall": {
+    "img": "310,68,223.9,167.9",
+    "rooms": "342.5,169.9,188.6,59.3 | 335.2,139.7,57.1,30.2 | 371.6,129.6,54.3,22.4 | 425.9,117.3,26.9,16.2 | 394,144.7,45.9,39.2 | 427.6,147.5,99.1,45.3 | 452.8,118.4,28,12.3",
+    "tiles": [
+     {
+      "r": "parents",
+      "box": "113,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "uphall",
+      "box": "181.4,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "spa",
+      "box": "249.9,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "mroom",
+      "box": "318.3,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "milesroom",
+      "box": "386.8,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "nunuroom",
+      "box": "491.2,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "den",
+      "box": "559.7,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "storage",
+      "box": "628.1,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "laundry",
+      "box": "696.6,241.9,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "pool",
+      "box": "284.1,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "backyard",
+      "box": "352.5,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_oak",
+      "box": "457,287,62.5,39",
+      "own": true,
+      "under": false
+     },
+     {
+      "r": "treehouse_pine",
+      "box": "525.5,287,62.5,39",
+      "own": true,
+      "under": false
+     }
+    ],
+    "rows": [
+     "up:rgba(0, 0, 0, 0):85,241.9,364.3,39",
+     "down:rgba(0, 0, 0, 0):463.2,241.9,295.8,39",
+     "out:rgba(0, 0, 0, 0):256.1,287,158.9,39",
+     "tree:rgba(0, 0, 0, 0):429,287,158.9,39"
+    ]
+   },
+   "off:errors": []
+  }
+ },
+ "strip": {
+  "port:on": {
+   "kitchen": "- rgba(43, 35, 64, 0.72)",
+   "den": "down rgba(110, 78, 50, 0.82)",
+   "kitchen2": "main rgba(43, 35, 64, 0.72)",
+   "uphall": "up rgba(70, 130, 190, 0.8)",
+   "pool": "out rgba(40, 105, 55, 0.88)",
+   "backyard": "out rgba(40, 105, 55, 0.88)",
+   "treehouse_oak": "tree rgba(40, 105, 55, 0.88)",
+   "errors": []
+  },
+  "port:off": {
+   "kitchen": "- rgba(43, 35, 64, 0.72)",
+   "den": "down rgba(92, 70, 48, 0.78)",
+   "kitchen2": "main rgba(43, 35, 64, 0.72)",
+   "uphall": "up rgba(92, 70, 48, 0.78)",
+   "pool": "out rgba(92, 70, 48, 0.78)",
+   "backyard": "out rgba(92, 70, 48, 0.78)",
+   "treehouse_oak": "tree rgba(92, 70, 48, 0.78)",
+   "errors": []
+  },
+  "land:on": {
+   "kitchen": "- rgba(43, 35, 64, 0.72)",
+   "den": "down rgba(110, 78, 50, 0.82)",
+   "kitchen2": "main rgba(43, 35, 64, 0.72)",
+   "uphall": "up rgba(70, 130, 190, 0.8)",
+   "pool": "out rgba(40, 105, 55, 0.88)",
+   "backyard": "out rgba(40, 105, 55, 0.88)",
+   "treehouse_oak": "tree rgba(40, 105, 55, 0.88)",
+   "errors": []
+  },
+  "land:off": {
+   "kitchen": "- rgba(43, 35, 64, 0.72)",
+   "den": "down rgba(92, 70, 48, 0.78)",
+   "kitchen2": "main rgba(43, 35, 64, 0.72)",
+   "uphall": "up rgba(92, 70, 48, 0.78)",
+   "pool": "out rgba(92, 70, 48, 0.78)",
+   "backyard": "out rgba(92, 70, 48, 0.78)",
+   "treehouse_oak": "tree rgba(92, 70, 48, 0.78)",
+   "errors": []
+  }
+ },
+ "tv": {
+  "port:on": {
+   "tvon": true,
+   "roombarOpacity": "1",
+   "pill": "0"
+  },
+  "port:off": {
+   "tvon": true,
+   "roombarOpacity": "1",
+   "pill": "0"
+  },
+  "land:on": {
+   "tvon": true,
+   "roombarOpacity": "0",
+   "pill": "0"
+  },
+  "land:off": {
+   "tvon": true,
+   "roombarOpacity": "0",
+   "pill": "0"
+  }
+ }
+}

@@ -1,0 +1,194 @@
+{
+ "builder": {
+  "seeded": [
+   {
+    "kind": "treehouse",
+    "spot": "oak"
+   },
+   {
+    "kind": "seesaw",
+    "spot": "p1"
+   },
+   {
+    "kind": "sandbox",
+    "spot": "p2"
+   }
+  ],
+  "builds": [
+   "treehouse@oak",
+   "seesaw@p1",
+   "sandbox@p2"
+  ],
+  "rings": {
+   "treehouse": [
+    "(direct)",
+    "🪜",
+    "🎨(sec)",
+    "🗑️(sec)"
+   ],
+   "seesaw": [
+    "(direct)",
+    "🧸",
+    "🎨(sec)",
+    "🗑️(sec)"
+   ],
+   "sandbox": [
+    "🤸",
+    "💃"
+   ]
+  },
+  "takeDownFromRing": {
+   "glyph": "🗑️",
+   "subRing": [
+    "❓(sec)"
+   ],
+   "before": {
+    "n": 3,
+    "left": 5
+   },
+   "after": {
+    "n": 2,
+    "left": 6
+   }
+  },
+  "menu": {
+   "catSecond": "🗑️ [take something down]",
+   "downCards": [
+    "🗑️",
+    "🗑️"
+   ],
+   "second": "◀️",
+   "afterTapA": [
+    "❓",
+    "🗑️"
+   ],
+   "afterTapB": [
+    "🗑️",
+    "❓"
+   ],
+   "confirmB": {
+    "before": {
+     "n": 2,
+     "left": 6
+    },
+    "after": {
+     "n": 1,
+     "left": 7
+    }
+   },
+   "broomsInDom": 0
+  },
+  "movies": {
+   "pickRow": "❌ ⏸️ ⏭️ ⏹️ blanket",
+   "filmRow": "❌ ⏸️ ⏭️ ⏹️ blanket",
+   "mode": "film",
+   "afterStop": "pick",
+   "xFloatGlyph": "❌",
+   "xFloatCloses": true
+  },
+  "broomChoices": {
+   "props": [
+    "playroom/broom"
+   ],
+   "sayTidy": "🧹"
+  }
+ },
+ "errors": [],
+ "builder G33off": {
+  "seeded": [
+   {
+    "kind": "treehouse",
+    "spot": "oak"
+   },
+   {
+    "kind": "seesaw",
+    "spot": "p1"
+   },
+   {
+    "kind": "sandbox",
+    "spot": "p2"
+   }
+  ],
+  "builds": [
+   "treehouse@oak",
+   "seesaw@p1",
+   "sandbox@p2"
+  ],
+  "rings": {
+   "treehouse": [
+    "(direct)",
+    "🪜",
+    "🎨(sec)",
+    "🧹(sec)"
+   ],
+   "seesaw": [
+    "(direct)",
+    "🧸",
+    "🎨(sec)",
+    "🧹(sec)"
+   ],
+   "sandbox": [
+    "⛏️",
+    "🏰",
+    "🎨(sec)",
+    "🧹(sec)"
+   ]
+  },
+  "takeDownFromRing": {
+   "glyph": "🧹",
+   "subRing": [
+    "❓(sec)"
+   ],
+   "before": {
+    "n": 3,
+    "left": 5
+   },
+   "after": {
+    "n": 2,
+    "left": 6
+   }
+  },
+  "menu": {
+   "catSecond": "🧹 [take something down]",
+   "downCards": [
+    "🧹",
+    "🧹"
+   ],
+   "second": "◀️",
+   "afterTapA": [
+    "❓",
+    "🧹"
+   ],
+   "afterTapB": [
+    "🧹",
+    "❓"
+   ],
+   "confirmB": {
+    "before": {
+     "n": 2,
+     "left": 6
+    },
+    "after": {
+     "n": 1,
+     "left": 7
+    }
+   },
+   "broomsInDom": 1
+  },
+  "movies": {
+   "pickRow": "❌ ⏸️ ⏭️ ⏹️ blanket",
+   "filmRow": "❌ ⏸️ ⏭️ ⏹️ blanket",
+   "mode": "film",
+   "afterStop": "pick",
+   "xFloatGlyph": "❌",
+   "xFloatCloses": true
+  },
+  "broomChoices": {
+   "props": [
+    "playroom/broom"
+   ],
+   "sayTidy": "🧹"
+  }
+ },
+ "errorsG33": []
+}

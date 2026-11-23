@@ -1,0 +1,647 @@
+{
+ "crafts land": {
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "lane": true
+  },
+  "draw": {
+   "kx": 1,
+   "ky": 1
+  },
+  "strokeUnderFinger": {
+   "bx": 737,
+   "by": 190,
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "inked": false
+  }
+ },
+ "crafts land G3off": {
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "lane": false
+  },
+  "draw": {
+   "kx": 1,
+   "ky": 1
+  },
+  "strokeUnderFinger": {
+   "bx": 809,
+   "by": 190,
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "inked": false
+  }
+ },
+ "crafts landSmall": {
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "lane": true
+  },
+  "draw": {
+   "kx": 1,
+   "ky": 1
+  },
+  "strokeUnderFinger": {
+   "bx": 560,
+   "by": 190,
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "inked": false
+  }
+ },
+ "crafts landSmall G3off": {
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "lane": false
+  },
+  "draw": {
+   "kx": 1,
+   "ky": 1
+  },
+  "strokeUnderFinger": {
+   "bx": 632,
+   "by": 190,
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "inked": false
+  }
+ },
+ "crafts 844x340": {
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "lane": true
+  },
+  "draw": {
+   "kx": 1,
+   "ky": 1
+  },
+  "strokeUnderFinger": {
+   "bx": 737,
+   "by": 190,
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "inked": false
+  }
+ },
+ "crafts 844x340 G3off": {
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "lane": false
+  },
+  "draw": {
+   "kx": 1,
+   "ky": 1
+  },
+  "strokeUnderFinger": {
+   "bx": 809,
+   "by": 190,
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "inked": false
+  }
+ },
+ "crafts 844x340i47": {
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "lane": true
+  },
+  "draw": {
+   "kx": 1,
+   "ky": 1
+  },
+  "strokeUnderFinger": {
+   "bx": 643,
+   "by": 190,
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "inked": false
+  }
+ },
+ "crafts 844x340i47 G3off": {
+  "cut": {
+   "kx": 1,
+   "ky": 1,
+   "lane": false
+  },
+  "draw": {
+   "kx": 1,
+   "ky": 1
+  },
+  "strokeUnderFinger": {
+   "bx": 715,
+   "by": 190,
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "inked": false
+  }
+ },
+ "canvasAfterClassic land": {
+  "mapToLego": [
+   {
+    "atOpen": {
+     "cls": false,
+     "pad": "8px"
+    },
+    "afterLayout": {
+     "cls": false,
+     "pad": "8px",
+     "xLeft": 8,
+     "ptopMargin": "0px"
+    }
+   },
+   {
+    "laneOnMapBefore": true,
+    "xLeftLater": 8,
+    "lane": false
+   }
+  ],
+  "cookToMovies": [
+   {
+    "atOpen": {
+     "cls": false,
+     "pad": "8px"
+    },
+    "afterLayout": {
+     "cls": false,
+     "pad": "8px",
+     "xLeft": 8,
+     "ptopMargin": "0px"
+    }
+   },
+   {
+    "laneOnCookBefore": true,
+    "xLeftLater": 8,
+    "lane": false
+   }
+  ],
+  "cookDirectLego": [
+   {
+    "atOpen": {
+     "cls": true,
+     "pad": "80px"
+    },
+    "afterLayout": {
+     "cls": true,
+     "pad": "8px",
+     "xLeft": 8,
+     "ptopMargin": "0px"
+    }
+   },
+   {
+    "xLeftLater": 8,
+    "lane": false
+   }
+  ],
+  "cookDirectMovies": [
+   {
+    "atOpen": {
+     "cls": true,
+     "pad": "80px"
+    },
+    "afterLayout": {
+     "cls": true,
+     "pad": "8px",
+     "xLeft": 8,
+     "ptopMargin": "0px"
+    }
+   },
+   {
+    "xLeftLater": 8,
+    "lane": false
+   }
+  ]
+ },
+ "canvasAfterClassic landSmall": {
+  "mapToLego": [
+   {
+    "atOpen": {
+     "cls": false,
+     "pad": "8px"
+    },
+    "afterLayout": {
+     "cls": false,
+     "pad": "8px",
+     "xLeft": 8,
+     "ptopMargin": "0px"
+    }
+   },
+   {
+    "laneOnMapBefore": true,
+    "xLeftLater": 8,
+    "lane": false
+   }
+  ],
+  "cookToMovies": [
+   {
+    "atOpen": {
+     "cls": false,
+     "pad": "8px"
+    },
+    "afterLayout": {
+     "cls": false,
+     "pad": "8px",
+     "xLeft": 8,
+     "ptopMargin": "0px"
+    }
+   },
+   {
+    "laneOnCookBefore": true,
+    "xLeftLater": 8,
+    "lane": false
+   }
+  ],
+  "cookDirectLego": [
+   {
+    "atOpen": {
+     "cls": true,
+     "pad": "80px"
+    },
+    "afterLayout": {
+     "cls": true,
+     "pad": "8px",
+     "xLeft": 8,
+     "ptopMargin": "0px"
+    }
+   },
+   {
+    "xLeftLater": 8,
+    "lane": false
+   }
+  ],
+  "cookDirectMovies": [
+   {
+    "atOpen": {
+     "cls": true,
+     "pad": "80px"
+    },
+    "afterLayout": {
+     "cls": true,
+     "pad": "8px",
+     "xLeft": 8,
+     "ptopMargin": "0px"
+    }
+   },
+   {
+    "xLeftLater": 8,
+    "lane": false
+   }
+  ]
+ },
+ "canvasAfterClassic 844x340i47": {
+  "mapToLego": [
+   {
+    "atOpen": {
+     "cls": false,
+     "pad": "55px"
+    },
+    "afterLayout": {
+     "cls": false,
+     "pad": "55px",
+     "xLeft": 55,
+     "ptopMargin": "0px"
+    }
+   },
+   {
+    "laneOnMapBefore": true,
+    "xLeftLater": 55,
+    "lane": false
+   }
+  ],
+  "cookToMovies": [
+   {
+    "atOpen": {
+     "cls": false,
+     "pad": "55px"
+    },
+    "afterLayout": {
+     "cls": false,
+     "pad": "55px",
+     "xLeft": 55,
+     "ptopMargin": "0px"
+    }
+   },
+   {
+    "laneOnCookBefore": true,
+    "xLeftLater": 55,
+    "lane": false
+   }
+  ],
+  "cookDirectLego": [
+   {
+    "atOpen": {
+     "cls": true,
+     "pad": "127px"
+    },
+    "afterLayout": {
+     "cls": true,
+     "pad": "55px",
+     "xLeft": 55,
+     "ptopMargin": "0px"
+    }
+   },
+   {
+    "xLeftLater": 55,
+    "lane": false
+   }
+  ],
+  "cookDirectMovies": [
+   {
+    "atOpen": {
+     "cls": true,
+     "pad": "127px"
+    },
+    "afterLayout": {
+     "cls": true,
+     "pad": "55px",
+     "xLeft": 55,
+     "ptopMargin": "0px"
+    }
+   },
+   {
+    "xLeftLater": 55,
+    "lane": false
+   }
+  ]
+ },
+ "fortAndCook": {
+  "fortGlyphsOver2s": [
+   "🚪"
+  ],
+  "fort": {
+   "closeFortInsideCalls": 1,
+   "inside": false,
+   "panelHidden": true,
+   "marinaHidden": false
+  },
+  "cookBefore": {
+   "slots": 2,
+   "holding": null
+  },
+  "xFloatDisplay": "block",
+  "cookAfterXFloat": {
+   "panelHidden": true,
+   "holding": null,
+   "picksOnReopen": 0
+  },
+  "builderGlyphs": [
+   "❌"
+  ],
+  "errors": []
+ },
+ "fortAndCook G3off": {
+  "fortGlyphsOver2s": [
+   "❌"
+  ],
+  "fort": {
+   "closeFortInsideCalls": 1,
+   "inside": false,
+   "panelHidden": true,
+   "marinaHidden": false
+  },
+  "cookBefore": {
+   "slots": 2,
+   "holding": null
+  },
+  "xFloatDisplay": "block",
+  "cookAfterXFloat": {
+   "panelHidden": true,
+   "holding": null,
+   "picksOnReopen": 0
+  },
+  "builderGlyphs": [
+   "❌"
+  ],
+  "errors": []
+ },
+ "reach land": {
+  "cat": {
+   "n": 21,
+   "ok": 21,
+   "bad": [],
+   "maxRight": 830
+  },
+  "lane": true,
+  "down": {
+   "n": 3,
+   "ok": 3,
+   "bad": [],
+   "maxRight": 202
+  },
+  "isomap": {
+   "n": 20,
+   "ok": 20,
+   "bad": [],
+   "maxRight": 795
+  },
+  "uimap": {
+   "n": 8,
+   "ok": 8,
+   "bad": [],
+   "maxRight": 836
+  },
+  "vw": 844
+ },
+ "reach landSmall": {
+  "cat": {
+   "n": 21,
+   "ok": 21,
+   "bad": [],
+   "maxRight": 653
+  },
+  "lane": true,
+  "down": {
+   "n": 3,
+   "ok": 3,
+   "bad": [],
+   "maxRight": 220
+  },
+  "isomap": {
+   "n": 20,
+   "ok": 20,
+   "bad": [],
+   "maxRight": 648
+  },
+  "uimap": {
+   "n": 8,
+   "ok": 8,
+   "bad": [],
+   "maxRight": 659
+  },
+  "vw": 667
+ },
+ "reach 844x340i47": {
+  "cat": {
+   "n": 21,
+   "ok": 21,
+   "bad": [],
+   "maxRight": 783
+  },
+  "lane": true,
+  "down": {
+   "n": 3,
+   "ok": 3,
+   "bad": [],
+   "maxRight": 255
+  },
+  "isomap": {
+   "n": 20,
+   "ok": 20,
+   "bad": [],
+   "maxRight": 745
+  },
+  "uimap": {
+   "n": 8,
+   "ok": 8,
+   "bad": [],
+   "maxRight": 789
+  },
+  "vw": 844
+ },
+ "fortMapping land": {
+  "builder": {
+   "box": [
+    756,
+    162
+   ],
+   "x60readAs": 98,
+   "y100readAs": 100
+  },
+  "inside": {
+   "box": [
+    756,
+    166
+   ],
+   "x60readAs": 121,
+   "y100readAs": 100
+  }
+ },
+ "fortMapping landSmall": {
+  "builder": {
+   "box": [
+    579,
+    147
+   ],
+   "x60readAs": 93.9,
+   "y100readAs": 100
+  },
+  "inside": {
+   "box": [
+    579,
+    151
+   ],
+   "x60readAs": 113.6,
+   "y100readAs": 100
+  }
+ },
+ "fortMapping land G3off": {
+  "builder": {
+   "box": [
+    828,
+    162
+   ],
+   "x60readAs": 99.9,
+   "y100readAs": 100
+  },
+  "inside": {
+   "box": [
+    828,
+    166
+   ],
+   "x60readAs": 124.4,
+   "y100readAs": 100
+  }
+ },
+ "fortMapping landSmall G3off": {
+  "builder": {
+   "box": [
+    651,
+    147
+   ],
+   "x60readAs": 96.8,
+   "y100readAs": 100
+  },
+  "inside": {
+   "box": [
+    651,
+    151
+   ],
+   "x60readAs": 118.8,
+   "y100readAs": 100
+  }
+ },
+ "layoutOnVsOff port": {
+  "screens": 19,
+  "differ": [
+   "story_shelf",
+   "canvas_pool"
+  ],
+  "errors": [
+   0,
+   0
+  ]
+ },
+ "layoutOnVsOff portSmall": {
+  "screens": 19,
+  "differ": [
+   "canvas_pool",
+   "canvas_movies"
+  ],
+  "errors": [
+   0,
+   0
+  ]
+ },
+ "layoutOnVsOff land": {
+  "screens": 8,
+  "differ": [
+   "canvas_pool",
+   "canvas_movies"
+  ],
+  "errors": [
+   0,
+   0
+  ]
+ },
+ "layoutOnVsOff landSmall": {
+  "screens": 8,
+  "differ": [
+   "canvas_movies"
+  ],
+  "errors": [
+   0,
+   0
+  ]
+ }
+}

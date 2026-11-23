@@ -1,0 +1,36 @@
+{
+ "port kitchen": {
+  "islBox": 777,
+  "islBoxIslandOff": 37,
+  "islBoxIslandOn": 219,
+  "stoolOff": 1140,
+  "stoolOpaque": 474
+ },
+ "port playroom": {
+  "shelfOff": 483,
+  "shelfSeeThrough": 227,
+  "shelfSeeThroughKept": 193,
+  "shelfRightHalf": 168,
+  "rockerVisible": 38,
+  "rockerVisibleAnswersR": 21,
+  "shelfOpaque": 256,
+  "rockerVisibleAnswersR_today": 1
+ },
+ "land kitchen": {
+  "islBox": 777,
+  "islBoxIslandOff": 37,
+  "islBoxIslandOn": 219,
+  "stoolOff": 1140,
+  "stoolOpaque": 474
+ },
+ "land playroom": {
+  "shelfOff": 483,
+  "shelfSeeThrough": 227,
+  "shelfSeeThroughKept": 193,
+  "shelfRightHalf": 168,
+  "rockerVisible": 38,
+  "rockerVisibleAnswersR": 21,
+  "shelfOpaque": 256,
+  "rockerVisibleAnswersR_today": 1
+ }
+}

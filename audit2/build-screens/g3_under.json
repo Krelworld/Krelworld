@@ -1,0 +1,7104 @@
+{
+ "land": {
+  "cook_fridge": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_freezer": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_cabinet": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_bowl": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_methods": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_meter": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_result": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "dress_outfit": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "dress_looks": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "dress_face": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_draw": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_cut": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_dio": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_gal": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_math": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_spell": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "isomap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "uimap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "fort_builder": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "fort_inside": {
+   "shown": true,
+   "text": "🚪",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "builder_cat": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "builder_down": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "stickers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#stkBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "story_shelf": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "story_readers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "errors": []
+ },
+ "landSmall": {
+  "cook_fridge": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_freezer": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_cabinet": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_bowl": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_methods": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_meter": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_result": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "dress_outfit": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "dress_looks": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "dress_face": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_draw": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_cut": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_dio": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_gal": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_math": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_spell": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "isomap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "uimap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "fort_builder": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "fort_inside": {
+   "shown": true,
+   "text": "🚪",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "builder_cat": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "builder_down": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "stickers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#stkBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "story_shelf": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "story_readers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "errors": []
+ },
+ "844x340i47": {
+  "cook_fridge": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "cook_freezer": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "cook_cabinet": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "cook_bowl": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "cook_methods": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "cook_meter": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "cook_result": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "dress_outfit": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "dress_looks": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "dress_face": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "crafts_draw": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "crafts_cut": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "crafts_dio": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "crafts_gal": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "crafts_math": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "crafts_spell": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "isomap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "uimap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "fort_builder": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "fort_inside": {
+   "shown": true,
+   "text": "🚪",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "builder_cat": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "builder_down": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "127px"
+  },
+  "stickers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#stkBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "story_shelf": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "span",
+     "hits": [
+      "button.st-book"
+     ]
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "story_readers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "errors": []
+ },
+ "844x340": {
+  "cook_fridge": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_freezer": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_cabinet": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_bowl": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_methods": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_meter": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "cook_result": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "dress_outfit": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "dress_looks": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "dress_face": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_draw": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_cut": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_dio": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_gal": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_math": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "crafts_spell": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "isomap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "uimap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "fort_builder": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "fort_inside": {
+   "shown": true,
+   "text": "🚪",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "builder_cat": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "builder_down": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "tr": {
+     "top": "#panel",
+     "hits": []
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "#panel",
+     "hits": []
+    }
+   },
+   "lane": true,
+   "panelPad": "80px"
+  },
+  "stickers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#stkBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "story_shelf": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "story_readers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "errors": []
+ },
+ "land G3off": {
+  "cook_fridge": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_freezer": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_cabinet": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_bowl": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_methods": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "br": {
+     "top": "div.row",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_meter": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_result": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.result",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.result",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "dress_outfit": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "button.tile.sel",
+     "hits": [
+      "button.tile.sel"
+     ]
+    },
+    "tr": {
+     "top": "button.tile.sel",
+     "hits": [
+      "button.tile.sel"
+     ]
+    },
+    "bl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "br": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "dress_looks": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tr": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    },
+    "br": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "dress_face": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tr": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    },
+    "br": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_draw": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tr": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "bl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "br": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_cut": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tr": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "bl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "br": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_dio": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.row",
+     "hits": []
+    },
+    "bl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "br": {
+     "top": "div.row",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_gal": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div",
+     "hits": []
+    },
+    "tr": {
+     "top": "div",
+     "hits": []
+    },
+    "bl": {
+     "top": "div",
+     "hits": []
+    },
+    "br": {
+     "top": "div",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_math": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.row",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "br": {
+     "top": "div.row",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_spell": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.letters",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.letters",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.letters",
+     "hits": []
+    },
+    "br": {
+     "top": "div.letters",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "isomap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.fmap",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.fmap",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.fmap",
+     "hits": []
+    },
+    "br": {
+     "top": "div.fmap",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "uimap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.room"
+     ]
+    },
+    "tl": {
+     "top": "button.room",
+     "hits": [
+      "button.room"
+     ]
+    },
+    "tr": {
+     "top": "button.room",
+     "hits": [
+      "button.room"
+     ]
+    },
+    "bl": {
+     "top": "div.mapgrid",
+     "hits": []
+    },
+    "br": {
+     "top": "div.mapgrid",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "fort_builder": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    },
+    "tr": {
+     "top": "img.pix",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "fort_inside": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    },
+    "tr": {
+     "top": "img.pix",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "builder_cat": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.bd-card"
+     ]
+    },
+    "tl": {
+     "top": "div.bd-grid",
+     "hits": []
+    },
+    "tr": {
+     "top": "i.bd-pl",
+     "hits": [
+      "button.bd-card"
+     ]
+    },
+    "bl": {
+     "top": "div.bd-grid",
+     "hits": []
+    },
+    "br": {
+     "top": "button.bd-card",
+     "hits": [
+      "button.bd-card"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "builder_down": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    },
+    "br": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "stickers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#stkBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "story_shelf": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "story_readers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    316,
+    74,
+    380
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "errors": []
+ },
+ "landSmall G3off": {
+  "cook_fridge": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_freezer": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_cabinet": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_bowl": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_methods": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "br": {
+     "top": "div.row",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_meter": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_result": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.result",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.result",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "dress_outfit": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "button.tile.sel",
+     "hits": [
+      "button.tile.sel"
+     ]
+    },
+    "tr": {
+     "top": "img.pix",
+     "hits": [
+      "button.tile.sel"
+     ]
+    },
+    "bl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "br": {
+     "top": "img.pix",
+     "hits": [
+      "button.tile"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "dress_looks": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tr": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    },
+    "br": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "dress_face": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tr": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    },
+    "br": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_draw": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tr": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "bl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "br": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_cut": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tr": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "bl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "br": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_dio": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "canvas.bg",
+     "hits": [
+      "canvas.bg"
+     ]
+    },
+    "tr": {
+     "top": "canvas.bg",
+     "hits": [
+      "canvas.bg"
+     ]
+    },
+    "bl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "br": {
+     "top": "div.row",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_gal": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div",
+     "hits": []
+    },
+    "tr": {
+     "top": "div",
+     "hits": []
+    },
+    "bl": {
+     "top": "div",
+     "hits": []
+    },
+    "br": {
+     "top": "div",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_math": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.row",
+     "hits": []
+    },
+    "bl": {
+     "top": "div",
+     "hits": []
+    },
+    "br": {
+     "top": "div",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_spell": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.letters",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.letters",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.letters",
+     "hits": []
+    },
+    "br": {
+     "top": "div.letters",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "isomap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.fmap",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.fmaplab",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.fmap",
+     "hits": []
+    },
+    "br": {
+     "top": "div.fmap",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "uimap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.room"
+     ]
+    },
+    "tl": {
+     "top": "button.room",
+     "hits": [
+      "button.room"
+     ]
+    },
+    "tr": {
+     "top": "button.room",
+     "hits": [
+      "button.room"
+     ]
+    },
+    "bl": {
+     "top": "button.room",
+     "hits": [
+      "button.room"
+     ]
+    },
+    "br": {
+     "top": "button.room",
+     "hits": [
+      "button.room"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "fort_builder": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    },
+    "tr": {
+     "top": "img.pix",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "fort_inside": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    },
+    "tr": {
+     "top": "img.pix",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "builder_cat": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.bd-card"
+     ]
+    },
+    "tl": {
+     "top": "div.bd-grid",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.bd-cost",
+     "hits": [
+      "button.bd-card"
+     ]
+    },
+    "bl": {
+     "top": "div.bd-grid",
+     "hits": []
+    },
+    "br": {
+     "top": "button.bd-card",
+     "hits": [
+      "button.bd-card"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "builder_down": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    },
+    "br": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "stickers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.stk",
+     "hits": []
+    },
+    "bl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "br": {
+     "top": "div.stk",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "story_shelf": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "story_readers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    301,
+    74,
+    365
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "errors": []
+ },
+ "844x340i47 G3off": {
+  "cook_fridge": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "button.pbtn",
+     "hits": [
+      "button.pbtn"
+     ]
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "cook_freezer": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "button.pbtn",
+     "hits": [
+      "button.pbtn"
+     ]
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "cook_cabinet": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "button.pbtn",
+     "hits": [
+      "button.pbtn"
+     ]
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "cook_bowl": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "button.pbtn",
+     "hits": [
+      "button.pbtn"
+     ]
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "cook_methods": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "br": {
+     "top": "div.row",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "cook_meter": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "cook_result": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "canvas"
+     ]
+    },
+    "tl": {
+     "top": "div.result",
+     "hits": []
+    },
+    "tr": {
+     "top": "canvas",
+     "hits": [
+      "canvas"
+     ]
+    },
+    "bl": {
+     "top": "div.result",
+     "hits": []
+    },
+    "br": {
+     "top": "div.result",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "dress_outfit": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile.sel"
+     ]
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "button.tile.sel",
+     "hits": [
+      "button.tile.sel"
+     ]
+    },
+    "br": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "dress_looks": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "br": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "dress_face": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "br": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "crafts_draw": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.row",
+     "hits": []
+    },
+    "bl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "br": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "crafts_cut": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tr": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "bl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "br": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "crafts_dio": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "canvas.bg"
+     ]
+    },
+    "tl": {
+     "top": "canvas.bg",
+     "hits": [
+      "canvas.bg"
+     ]
+    },
+    "tr": {
+     "top": "canvas.bg",
+     "hits": [
+      "canvas.bg"
+     ]
+    },
+    "bl": {
+     "top": "div",
+     "hits": []
+    },
+    "br": {
+     "top": "canvas.bg",
+     "hits": [
+      "canvas.bg"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "crafts_gal": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div",
+     "hits": []
+    },
+    "tr": {
+     "top": "div",
+     "hits": []
+    },
+    "bl": {
+     "top": "div",
+     "hits": []
+    },
+    "br": {
+     "top": "div",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "crafts_math": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.row",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "br": {
+     "top": "div.row",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "crafts_spell": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.big-ico",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.big-ico",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.letters",
+     "hits": []
+    },
+    "br": {
+     "top": "div.letters",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "isomap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.fmap",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.fmap",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.fmap",
+     "hits": []
+    },
+    "br": {
+     "top": "div.fmap",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "uimap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "button.room",
+     "hits": [
+      "button.room"
+     ]
+    },
+    "tr": {
+     "top": "button.room",
+     "hits": [
+      "button.room"
+     ]
+    },
+    "bl": {
+     "top": "button.room",
+     "hits": [
+      "button.room"
+     ]
+    },
+    "br": {
+     "top": "button.room",
+     "hits": [
+      "button.room"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "fort_builder": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    },
+    "tr": {
+     "top": "img.pix",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "fort_inside": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    },
+    "tr": {
+     "top": "img.pix",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "builder_cat": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.bd-card"
+     ]
+    },
+    "tl": {
+     "top": "div.bd-grid",
+     "hits": []
+    },
+    "tr": {
+     "top": "button.bd-card",
+     "hits": [
+      "button.bd-card"
+     ]
+    },
+    "bl": {
+     "top": "div.bd-grid",
+     "hits": []
+    },
+    "br": {
+     "top": "div.bd-cost",
+     "hits": [
+      "button.bd-card"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "builder_down": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    },
+    "br": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "stickers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.stk",
+     "hits": []
+    },
+    "bl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "br": {
+     "top": "div.stk",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "story_shelf": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "span",
+     "hits": [
+      "button.st-book"
+     ]
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "story_readers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    57,
+    245,
+    121,
+    309
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "55px"
+  },
+  "errors": []
+ },
+ "844x340 G3off": {
+  "cook_fridge": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "button.pbtn",
+     "hits": [
+      "button.pbtn"
+     ]
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_freezer": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "button.pbtn",
+     "hits": [
+      "button.pbtn"
+     ]
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_cabinet": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "button.pbtn",
+     "hits": [
+      "button.pbtn"
+     ]
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_bowl": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "button.pbtn",
+     "hits": [
+      "button.pbtn"
+     ]
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_methods": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "br": {
+     "top": "div.row",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_meter": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.pbody",
+     "hits": []
+    },
+    "br": {
+     "top": "div.pbody",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "cook_result": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.result",
+     "hits": []
+    },
+    "tr": {
+     "top": "canvas",
+     "hits": [
+      "canvas"
+     ]
+    },
+    "bl": {
+     "top": "div.result",
+     "hits": []
+    },
+    "br": {
+     "top": "div.result",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "dress_outfit": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile.sel"
+     ]
+    },
+    "tl": {
+     "top": "button.tile.sel",
+     "hits": [
+      "button.tile.sel"
+     ]
+    },
+    "tr": {
+     "top": "button.tile.sel",
+     "hits": [
+      "button.tile.sel"
+     ]
+    },
+    "bl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "br": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "dress_looks": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tr": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    },
+    "br": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "dress_face": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tr": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    },
+    "br": {
+     "top": "div.grid.dgrid",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_draw": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tl": {
+     "top": "div",
+     "hits": []
+    },
+    "tr": {
+     "top": "div",
+     "hits": []
+    },
+    "bl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "br": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_cut": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "tr": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "bl": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    },
+    "br": {
+     "top": "#drawCv",
+     "hits": [
+      "#drawCv"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_dio": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "canvas.bg"
+     ]
+    },
+    "tl": {
+     "top": "canvas.bg",
+     "hits": [
+      "canvas.bg"
+     ]
+    },
+    "tr": {
+     "top": "canvas.bg",
+     "hits": [
+      "canvas.bg"
+     ]
+    },
+    "bl": {
+     "top": "button.tile",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "br": {
+     "top": "div.row",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_gal": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div",
+     "hits": []
+    },
+    "tr": {
+     "top": "div",
+     "hits": []
+    },
+    "bl": {
+     "top": "div",
+     "hits": []
+    },
+    "br": {
+     "top": "div",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_math": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.row",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.row",
+     "hits": []
+    },
+    "br": {
+     "top": "div.row",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "crafts_spell": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.letters",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.letters",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.letters",
+     "hits": []
+    },
+    "br": {
+     "top": "div.letters",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "isomap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.fmap",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.fmap",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.fmap",
+     "hits": []
+    },
+    "br": {
+     "top": "div.fmap",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "uimap": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.room"
+     ]
+    },
+    "tl": {
+     "top": "div.mapgrid",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.mapgrid",
+     "hits": []
+    },
+    "bl": {
+     "top": "button.room",
+     "hits": [
+      "button.room"
+     ]
+    },
+    "br": {
+     "top": "button.room",
+     "hits": [
+      "button.room"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "fort_builder": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    },
+    "tr": {
+     "top": "img.pix",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "fort_inside": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "tl": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    },
+    "tr": {
+     "top": "img.pix",
+     "hits": [
+      "button.tile"
+     ]
+    },
+    "bl": {
+     "top": "#panel",
+     "hits": []
+    },
+    "br": {
+     "top": "div.tray.scrollx",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "builder_cat": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": [
+      "button.bd-card"
+     ]
+    },
+    "tl": {
+     "top": "div.bd-grid",
+     "hits": []
+    },
+    "tr": {
+     "top": "button.bd-card",
+     "hits": [
+      "button.bd-card"
+     ]
+    },
+    "bl": {
+     "top": "div.bd-grid",
+     "hits": []
+    },
+    "br": {
+     "top": "button.bd-card",
+     "hits": [
+      "button.bd-card"
+     ]
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "builder_down": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    },
+    "tr": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    },
+    "bl": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    },
+    "br": {
+     "top": "div.bd-grid.bd-downs",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "stickers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#stkBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#stkBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "story_shelf": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "story_readers": {
+   "shown": true,
+   "text": "❌",
+   "rect": [
+    10,
+    266,
+    74,
+    330
+   ],
+   "pts": {
+    "c": {
+     "top": "#xFloat",
+     "hits": []
+    },
+    "tl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "tr": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "bl": {
+     "top": "#storyBox",
+     "hits": []
+    },
+    "br": {
+     "top": "#storyBox",
+     "hits": []
+    }
+   },
+   "lane": false,
+   "panelPad": "8px"
+  },
+  "errors": []
+ }
+}

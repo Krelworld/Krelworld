@@ -1,0 +1,280 @@
+{
+ "land47": {
+  "foyer": {
+   "opened": true,
+   "geo": [
+    {
+     "t": "🪜",
+     "badge": "⬆️",
+     "act": [
+      271,
+      140,
+      343,
+      212
+     ],
+     "b": [
+      320,
+      194,
+      347,
+      216
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    },
+    {
+     "t": "💺",
+     "badge": "⬆️",
+     "act": [
+      351,
+      140,
+      423,
+      212
+     ],
+     "b": [
+      400,
+      194,
+      427,
+      216
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    }
+   ],
+   "againBadges": [
+    1,
+    1
+   ]
+  },
+  "uphall": {
+   "opened": true,
+   "geo": [
+    {
+     "t": "🪜",
+     "badge": "⬇️",
+     "act": [
+      392,
+      186,
+      464,
+      258
+     ],
+     "b": [
+      441,
+      240,
+      468,
+      262
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    },
+    {
+     "t": "💺",
+     "badge": "⬇️",
+     "act": [
+      472,
+      186,
+      544,
+      258
+     ],
+     "b": [
+      521,
+      240,
+      548,
+      262
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    }
+   ],
+   "againBadges": [
+    1,
+    1
+   ]
+  },
+  "special": {
+   "plain": "🪜 💺",
+   "dish": "🪜 💺",
+   "tidy": "🪜 💺",
+   "ride": {
+    "state": "idle",
+    "icons": "🪜 💺",
+    "dom": "🪜⬆️ 💺⬆️"
+   }
+  },
+  "others": {
+   "mainStairsProp": "🪜 💺",
+   "bunk": "🧸 😴 🪜",
+   "hatch": "🪜",
+   "built": "🪜",
+   "marina": "🪜 💺"
+  },
+  "off": [
+   "🪜",
+   "💺"
+  ],
+  "errors": []
+ },
+ "landSmall47": {
+  "foyer": {
+   "opened": true,
+   "geo": [
+    {
+     "t": "🪜",
+     "badge": "⬆️",
+     "act": [
+      417,
+      68,
+      489,
+      140
+     ],
+     "b": [
+      465,
+      122,
+      493,
+      144
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    },
+    {
+     "t": "💺",
+     "badge": "⬆️",
+     "act": [
+      497,
+      68,
+      569,
+      140
+     ],
+     "b": [
+      545,
+      122,
+      573,
+      144
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    }
+   ],
+   "againBadges": [
+    1,
+    1
+   ]
+  },
+  "uphall": {
+   "opened": true,
+   "geo": [
+    {
+     "t": "🪜",
+     "badge": "⬇️",
+     "act": [
+      376,
+      105,
+      448,
+      177
+     ],
+     "b": [
+      424,
+      159,
+      452,
+      181
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [],
+     "clipped": false
+    },
+    {
+     "t": "💺",
+     "badge": "⬇️",
+     "act": [
+      456,
+      105,
+      528,
+      177
+     ],
+     "b": [
+      504,
+      159,
+      532,
+      181
+     ],
+     "h": 22,
+     "pastRight": 4,
+     "pastBottom": 4,
+     "touchesNext": false,
+     "ownAct": true,
+     "at": "cm-badge",
+     "hud": [
+      "navarrow r"
+     ],
+     "clipped": false
+    }
+   ],
+   "againBadges": [
+    1,
+    1
+   ]
+  },
+  "special": {
+   "plain": "🪜 💺",
+   "dish": "🪜 💺",
+   "tidy": "🪜 💺",
+   "ride": {
+    "state": "idle",
+    "icons": "🪜 💺",
+    "dom": "🪜⬆️ 💺⬆️"
+   }
+  },
+  "others": {
+   "mainStairsProp": "🪜 💺",
+   "bunk": "🧸 😴 🪜",
+   "hatch": "🪜",
+   "built": "🪜",
+   "marina": "🪜 💺"
+  },
+  "off": [
+   "🪜",
+   "💺"
+  ],
+  "errors": []
+ }
+}

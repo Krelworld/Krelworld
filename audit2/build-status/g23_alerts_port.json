@@ -1,0 +1,183 @@
+{
+ "nappy": {
+  "at1s": {
+   "born": "9827.39999999851",
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 77,
+   "h": 77,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "f6uuc"
+  },
+  "at16s": {
+   "born": "9827.39999999851",
+   "settled": true,
+   "anim": "none:-",
+   "w": 66,
+   "h": 66,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "f6uuc"
+  },
+  "sameLook": false
+ },
+ "room": {
+  "at07": {
+   "born": "9827.39999999851",
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 74,
+   "h": 74,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "f6uuc"
+  },
+  "at32": {
+   "born": "9827.39999999851",
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 68,
+   "h": 68,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "f6uuc"
+  },
+  "at54": {
+   "born": "9827.39999999851",
+   "settled": true,
+   "anim": "none:-",
+   "w": 66,
+   "h": 66,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "f6uuc"
+  }
+ },
+ "screen": {
+  "during": null,
+  "after1": {
+   "born": "34306.5",
+   "settled": false,
+   "anim": "pulse:running",
+   "w": 76,
+   "h": 76,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "ct56g"
+  },
+  "after16": {
+   "born": "34306.5",
+   "settled": true,
+   "anim": "none:-",
+   "w": 66,
+   "h": 66,
+   "html": "👶<i>💩</i>",
+   "bg": "rgb(255, 107, 107)",
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+   "node": "ct56g"
+  }
+ },
+ "tapSettled": {
+  "wasSettled": true,
+  "room": "living",
+  "nearMiles": true,
+  "ring": "🧷🍼🤗✋"
+ },
+ "tp": {
+  "born": "53561.60000000149",
+  "settled": false,
+  "anim": "pulse:running",
+  "w": 75,
+  "h": 75,
+  "html": "🧻<i>🚽</i>",
+  "bg": "rgb(255, 107, 107)",
+  "shadow": "rgba(0, 0, 0, 0.3) 0px 4px 0px 0px, rgba(255, 107, 107, 0.35) 0px 0px 0px 6px",
+  "node": "qgszz",
+  "badge": "🚽"
+ },
+ "tpFlow": {
+  "ms": 7117,
+  "need": false,
+  "locked": false,
+  "room": "foyer",
+  "hold": null
+ },
+ "green": {
+  "picgive": "rgb(123, 224, 123) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px",
+  "pickeep": "rgb(255, 255, 255) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px",
+  "pbin": "rgb(123, 224, 123) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px",
+  "pflush": "rgb(123, 224, 123) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px",
+  "down": "rgb(123, 224, 123) | rgba(0, 0, 0, 0.3) 0px 4px 0px 0px"
+ },
+ "settledShake": {
+  "settled": true,
+  "opacity": "0.45",
+  "mid": {
+   "anim": "none",
+   "translate": "1.328px",
+   "waapi": 1
+  }
+ },
+ "arrSample": [
+  {
+   "side": "l",
+   "off": false,
+   "arrive": false,
+   "rect": "0,196,54,92",
+   "anim": "none",
+   "iT": "none"
+  },
+  {
+   "side": "r",
+   "off": false,
+   "arrive": false,
+   "rect": "336,196,54,92",
+   "anim": "none",
+   "iT": "none"
+  }
+ ],
+ "arrows": [
+  {
+   "side": "l",
+   "samples": 25,
+   "rects": [
+    "0,196,54,92"
+   ],
+   "anims": [
+    "none"
+   ],
+   "arriveSeen": 22,
+   "iMoves": 22,
+   "iNoneAfter": "none",
+   "arriveAtEnd": false
+  },
+  {
+   "side": "r",
+   "samples": 25,
+   "rects": [
+    "336,196,54,92"
+   ],
+   "anims": [
+    "none"
+   ],
+   "arriveSeen": 22,
+   "iMoves": 22,
+   "iNoneAfter": "none",
+   "arriveAtEnd": false
+  }
+ ],
+ "hide": {
+  "busy": "true:0.0396156 true:0.0396156",
+  "tidy": "true:1 true:1",
+  "tantrum": "true:0 true:0",
+  "idle": "false:1:none false:1:none"
+ },
+ "errors": []
+}

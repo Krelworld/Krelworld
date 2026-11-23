@@ -656,13 +656,13 @@
   }
   let TABY = { key: '' };
   function tabY(side, x) {                                     // a height for the tab where none of the side buttons sits over it (looked up once per screen shape)
-    const key = [E.viewW, E.scale, E.offY, E.cssOffY].map(v => Math.round((v || 0) * 10)).join(',');
+    const key = [E.viewW, E.scale, E.offY, E.cssOffY].map(v => Math.round((v || 0) * 10)).join(','), off = window.Clarity && Clarity.is('G11') ? document.querySelectorAll('.navarrow.off').length : -1; if (off >= 0 && off < TABY.off) TABY.key = ''; /* G11: heights found while a scene hid the side arrows are looked up again once the arrows are back */
     if (TABY.key !== key) {
       TABY = { key }; const st = document.getElementById('stage'), r = st && st.getBoundingClientRect();
       const free = (wx, wy) => { if (!r) return true; for (const [dx, dy] of [[-9, -10], [9, -10], [-9, 10], [9, 10], [0, 0]]) { const [sx, sy] = toScreen(wx + dx, wy + dy), n = document.elementFromPoint(r.left + sx, r.top + sy); if (n && n.closest && n.closest('button:not(.act),#moodbar,.hud')) return false; } return true; };
       for (const s of [-1, 1]) { const tx = s < 0 ? E.camX + 14 : clearZone()[1] - 6; TABY[s] = [86, 104, 122, 140, 66, 150].find(y => free(tx, y)) || (s < 0 ? 140 : 86); }
     }
-    return TABY[side] || 86;
+    if (off >= 0 && TABY.off == null) TABY.off = off; /* G11 */ return TABY[side] || 86;
   }
 
   // ---------------------------------------------------------------- small life, the rest of the time (sparse)
@@ -973,7 +973,7 @@
   { const _dx = drawExitSigns; drawExitSigns = function () { _dx(); safe(drawLate, 'late'); }; }
   function tab() {
     if (!V || V.phase === 'enter' && V.t < 2.4 || V.phase === 'exit') return null; const herd = V.deer.filter(d => !d.hidden); if (!herd.length || herd.some(d => onScreen(d.x, -6))) return null;
-    const hx = herd.reduce((a, d) => a + d.x, 0) / herd.length, side = hx < E.camX ? -1 : 1; return { side, hx, x: side < 0 ? Math.max(E.camX, 0) + 14 : Math.min(E.camX + E.viewW, ROOMS[ROOM].w) - 14, y: 86 };
+    const hx = herd.reduce((a, d) => a + d.x, 0) / herd.length, side = hx < E.camX ? -1 : 1; if (window.Clarity && Clarity.is('G11')) { const x = side < 0 ? Math.max(E.camX, 0) + 14 : Math.min(clearZone()[1] - 6, ROOMS[ROOM].w - 14); return { side, hx, x, y: tabY(side, x) }; } /* G11: placed like the turkeys' tab */ return { side, hx, x: side < 0 ? Math.max(E.camX, 0) + 14 : Math.min(E.camX + E.viewW, ROOMS[ROOM].w) - 14, y: 86 };
   }
 
   // ---------------------------------------------------------------- taps

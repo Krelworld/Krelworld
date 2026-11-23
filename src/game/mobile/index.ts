@@ -29,6 +29,11 @@ import { installBrawl, showFinisher } from "./brawl";
 import { PAD_CSS, PadHandover } from "./pad";
 import { ControlsPicture, tabFor } from "./controlsPicture";
 import { phoneHooks, setPhoneHooks } from "./boot";
+import { PhoneDialogue } from "./dialogue";
+import { PhoneSettingsPage } from "./settingsPage";
+import { onSceneCreate, PhoneScreens } from "./screens";
+import { PhoneLists, liveScene } from "./listScenes";
+import { PhoneShops } from "./shops";
 
 export { isMobile, setMobileForTests, mobileWhy, rememberPhoneMode } from "./flag";
 export { registerModeController, unregisterModeController, type ModeController, type ModeContext, type ControlSpec, TouchControl, TouchLayer } from "./touchLayer";
@@ -59,6 +64,8 @@ interface Installed {
   wording: PromptWording;
   guide: HomeScreenGuide;
   diag: DiagOverlay | null;
+  dialogue: PhoneDialogue;
+  settingsPage: PhoneSettingsPage;
 }
 
 let installed: Installed | null = null;
@@ -144,7 +151,37 @@ export function installMobile(game: Phaser.Game) {
   const read = new Readability(game);
   const wording = new PromptWording(game);
   const diag = diagWanted(location.search) ? new DiagOverlay(game, parent, layer, shell.platform, () => ({ on: read.on, param: read.param })) : null;
-  installed = { shell, layer, readability: read, wording, guide, diag };
+  // stage 2: the Phone settings page, the menus laid out for thumbs, and the conversation pills (SKIP / LOG / AUTO)
+  const settingsPage = new PhoneSettingsPage(parent);
+  new PhoneScreens(game, read, (from) => settingsPage.open(from));
+  const dialogue = new PhoneDialogue(game, parent, () => layer.viewport, () => guide.isOpen || settingsPage.isOpen);
+  // Android Back: the topmost phone overlay first, then a conversation (dialogue.ts), then the shell's own rules
+  shell.addBackHandler(() => settingsPage.onBack());
+  shell.addBackHandler(() => {
+    if (!guide.isOpen) return false;
+    guide.close(true);
+    return true;
+  });
+  shell.addBackHandler(() => dialogue.onBack());
+  // stage 2 part 2: the long lists (M10) and the shops (S13) as phone lists
+  const lists = new PhoneLists(game, parent);
+  const shops = new PhoneShops(game, parent);
+  // Android Back on a Home panel or the loaner rack closes it (what Esc does there on a laptop)
+  shell.addBackHandler(() => {
+    const open = lists.openList();
+    if (!open) return false;
+    if (["rack", "jukebox", "trophies"].includes(open.name)) {
+      const h = liveScene(game, "Home");
+      h?.__mfPanel?.close?.();
+      return !!h;
+    }
+    if (open.name === "pitloan") {
+      liveScene(game, "PitLoan")?.close?.();
+      return true;
+    }
+    return false;
+  });
+  installed = { shell, layer, readability: read, wording, guide, diag, dialogue, settingsPage };
   // (now, if the phone chunk arrived after the game had already booted)
   whenRunning(game, () => {
     // spare touch pointers: a tap handed over from the stick zone while another finger is on the canvas
@@ -155,6 +192,8 @@ export function installMobile(game: Phaser.Game) {
     }
     wording.hookScenes();
     setFrameCap(game, phoneSettings().batterySaver);
+    // scenes laid out for a phone when they are built (screens.ts)
+    for (const sc of game.scene.scenes as Phaser.Scene[]) sc.sys.events.on("create", () => onSceneCreate(sc));
   });
   onPhoneSettingsChange((s, changed) => {
     if (changed.includes("batterySaver")) setFrameCap(game, s.batterySaver);
@@ -166,6 +205,9 @@ export function installMobile(game: Phaser.Game) {
     rankFollowerLast(game);
     layer.frame();
     read.frame();
+    dialogue.frame();
+    lists.frame();
+    shops.frame();
     // the first phone run: the Add to Home Screen guide once, over the title, before a game is started
     if (!guide.isOpen && !shell.rotate.visible && game.scene.isActive("Title") && !game.scene.isActive("Menu") && !game.scene.isActive("Slots")) {
       const t = performance.now();
@@ -187,6 +229,20 @@ export function installMobile(game: Phaser.Game) {
     brawl,
     pad,
     picture,
+    dialogue,
+    settingsPage,
+    lists: {
+      host: lists,
+      shops,
+      /** The phone list showing now (its name, rows, and its scroller), or null. */
+      open: () => {
+        const l = lists.openList() ?? (shops.list.isOpen ? shops.list : null);
+        if (!l) return null;
+        const sp = l.current;
+        const sc = l.scroller;
+        return { name: l.name, title: sp?.title ?? "", rows: sp?.rows.map((r) => ({ id: r.id, label: r.label, selected: !!r.selected })) ?? [], scrollTop: sc?.scrollTop ?? 0, scrollHeight: sc?.scrollHeight ?? 0, clientHeight: sc?.clientHeight ?? 0, stats: { ...l.stats } };
+      },
+    },
     snapshot: () => layer.snapshot(),
     shellState: () => shell.snapshot(),
     // (the same module instances the game uses, for tests that add a rule or a controller)

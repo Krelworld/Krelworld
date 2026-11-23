@@ -527,9 +527,10 @@
       const sh = F.shots[S.si]; S.D = sh.D;
       if (!Seq.on) Seq.start(F.music, sh.mus || lastMus(F, S.si)); else if (sh.mus) Seq.set(sh.mus);
       if (!sh.E.some(e => e[1] === 'hold')) holdMusic(false);
-    } else { S.D = ENDLEN; holdMusic(false); Seq.stop(); voStop(); jingle([0, 4, 7, 12, 16, 19, 24], 0.12, F.mood === 'gentle' ? 'triangle' : 'square'); later(1900, () => snd('twinkle')); fire('end'); try { window.did && window.did('movie'); } catch (e) { } const st = store(); st.seen[F.id] = (st.seen[F.id] || 0) + 1; save(st); S.watched.push(F.id); }
+    } else { S.D = ENDLEN; holdMusic(false); Seq.stop(); voStop(); jingle([0, 4, 7, 12, 16, 19, 24], 0.12, F.mood === 'gentle' ? 'triangle' : 'square'); later(1900, () => snd('twinkle')); fire('end'); S.owed = true; const st = store(); st.seen[F.id] = (st.seen[F.id] || 0) + 1; save(st); S.watched.push(F.id); }
     sync();
   }
+  function credit() { if (S && S.owed) { S.owed = false; try { window.did && window.did('movie'); } catch (e) { } } }      // a film watched to the end: tell the game (stickers, wishes)
   function lastMus(F, i) { for (; i >= 0; i--) if (F.shots[i].mus) return F.shots[i].mus; return Object.keys(F.music.parts)[0]; }
   function holdMusic(b) { S.held = Seq.held = !!b; }
   function nextSeg() {
@@ -810,7 +811,7 @@
   }
   function skip() { wake(); if (S.mode === 'rate') return toShelf(true); if (S.mode !== 'film') return; voStop(); whoosh(true); if (S.paused) { S.paused = false; } nextSeg(); sync(); }
   function rate() {             // the film is over: lights half up, cheering, and five big stars to tap
-    S.mode = 'rate'; S.mt = 0; S.rateFor = 14; S.dimTo = 0.55; S.paused = false; for (const b of S.rateEl.children) b.classList.remove('on'); ui(); place();
+    credit(); S.mode = 'rate'; S.mt = 0; S.rateFor = 14; S.dimTo = 0.55; S.paused = false; for (const b of S.rateEl.children) b.classList.remove('on'); ui(); place();
     snd('cheer'); try { if (typeof say === 'function') say('m_yay'); } catch (e) { }
   }
   function star(n) {
@@ -819,7 +820,7 @@
     for (let i = 0; i < 6 + n * 2; i++) { const a = Math.random() * TAU, v = rnd(60, 220) * S.fs / 3; S.sp.push({ k: 'star', x: (r.left + r.width / 2 - br.left) * k, y: (r.top + r.height / 2 - br.top) * k, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, g: 300, life: rnd(0.6, 1.1), age: 0, s: S.fs * 2, c: '#ffe36a' }); }
     confetti(10 + n * 4);
   }
-  function quiet() { voStop(); Seq.stop(); if (S) S.held = false; Seq.held = false; }
+  function quiet() { voStop(); Seq.stop(); credit(); if (S) S.held = false; Seq.held = false; }
   function toShelf(byHand) {
     if (!S || S.mode === 'pick') return; quiet(); S.tok++; S.mode = 'pick'; S.seg = null; S.film = null; S.paused = false; S.busy = false; S.dimTo = S.dim = 0; S.tvOn = 0; S.spin = false; ui(); posters(); gameMusic(); if (byHand) whoosh(false);
   }

@@ -53,15 +53,15 @@
   const RB = ['#ff4d4d', '#ff9a3c', '#ffe14d', '#4fd05a', '#3fa7ff', '#a86bff'].map(hx), PASTEL = ['#ffb3c7', '#ffd9a0', '#fff3a6', '#b8f0c0', '#a9dcff', '#d6b8ff'].map(hx);
   // f(u, w, x, y): u = 0 at the neck .. 1 at the bottom of the suit, w = -1 .. 1 across it, x / y = pixel in the frame
   const SUITS = [
-    { id: 'pink', cap: '#ffffff', f: () => PINK },
+    { id: 'pink', cap: '#3cc8f0', f: () => PINK },
     { id: 'sun', cap: '#ff8a3c', f: (u, w, x, y) => ((x * 3 + y * 5) % 11 === 0 ? [255, 150, 40] : YEL) },
     { id: 'stripes', cap: '#e8404a', f: u => (Math.floor(u * 6.99) & 1 ? WHITE : NAVY) },
-    { id: 'dots', cap: '#ffffff', f: (u, w, x, y) => (y % 4 === 0 && (x + (y >> 2 & 1) * 2) % 4 === 0 ? WHITE : RED) },
-    { id: 'rainbow', cap: '#3fa7ff', f: u => RB[clamp(Math.floor(u * 6), 0, 5)] },
+    { id: 'dots', cap: '#3a66d8', f: (u, w, x, y) => (y % 4 === 0 && (x + (y >> 2 & 1) * 2) % 4 === 0 ? WHITE : RED) },
+    { id: 'rainbow', cap: '#a86bff', f: u => RB[clamp(Math.floor(u * 6), 0, 5)] },
     { id: 'mermaid', cap: '#a060e8', f: (u, w, x, y) => { const b = mixc(TEAL, PURP, clamp(u * 1.5 - 0.35, 0, 1)), k = (x + ((y >> 1) & 1) * 2) % 4; return k === 0 && !(y & 1) ? mixc(b, WHITE, 0.55) : k === 2 && (y & 1) ? mixc(b, NAVY, 0.4) : b; } },
     { id: 'melon', cap: '#3bb54a', f: (u, w, x, y) => (u > 0.84 ? [52, 168, 70] : u > 0.72 ? [238, 250, 226] : (x + y * 2) % 5 === 0 && y % 3 === 0 ? [40, 30, 34] : [255, 92, 122]) },
     { id: 'shark', cap: '#708eb8', f: (u, w, x, y) => (u > 0.34 && u < 0.5 ? ((x + (u > 0.42 ? 1 : 0)) & 1 ? WHITE : [200, 44, 60]) : Math.abs(w) < 0.42 && u >= 0.5 ? [236, 242, 248] : GREY) },
-    { id: 'unicorn', cap: '#d6b8ff', f: (u, w, x, y) => { const k = ((x + y) >> 1) % 8; return k < 6 && ((x + y) >> 1) % 2 === 0 ? PASTEL[k] : [250, 246, 255]; } },
+    { id: 'unicorn', cap: '#ff9ad5', f: (u, w, x, y) => { const k = ((x + y) >> 1) % 8; return k < 6 && ((x + y) >> 1) % 2 === 0 ? PASTEL[k] : [250, 246, 255]; } },
     { id: 'stars', cap: '#ffd640', f: (u, w, x, y) => ((x * 7 + y * 13) % 17 === 0 ? [255, 226, 90] : (x * 5 + y * 3) % 23 === 0 ? WHITE : [52, 44, 130]) },
   ];
   const EXTRAS = ['gog', 'arm', 'cap', 'tail'];
@@ -101,7 +101,7 @@
       const c = cls[i]; if (!c) continue; const x = i % W, y = (i / W) | 0, v = val[i];
       if (c === 1) put(i, suit.f(U(x, y), lying ? (y - sy0) / sh * 2 - 1 : (x - sx0) / sw * 2 - 1, x, y), clamp(v / 0.86, 0.26, 1.08));
       else if (c === 2 && X.gog) put(i, gogC, clamp(v / 0.72, 0.4, 1.1));
-      else if (c === 3 && X.cap && Math.hypot(x - hcx, y - hcy) < 12.5) put(i, capC, clamp(v / 0.87, 0.3, 1) * (v < 0.5 ? 0.75 : 1));
+      else if (c === 3 && X.cap && y < hcy + 4.5 && Math.hypot(x - hcx, y - hcy) < 17) put(i, capC, clamp(v / 0.87, 0.34, 1) * (v < 0.5 ? 0.8 : 1) * ((x + y * 2) % 9 === 0 ? 1.18 : 1));      // a swim cap: the hair on top of her head (her braids stay out)
       else if (c === 4 && X.arm && sx1 >= 0 && Math.hypot(x - hcx, y - hcy) > 10.5) {          // arm floaties: the bit of bare arm next to her shoulders
         let near = false;
         for (let dy = -3; dy <= 3 && !near; dy++) for (let dx = -3; dx <= 3; dx++) { const xx = x + dx, yy = y + dy; if (xx < 0 || yy < 0 || xx >= W || yy >= H || cls[yy * W + xx] !== 1) continue; const u = U(xx, yy); if (u < 0.4 && u > -0.01) { near = true; break; } }

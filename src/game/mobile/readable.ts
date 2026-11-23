@@ -1,9 +1,18 @@
 // PHONE MODE: the pure maths of readability.ts (no Phaser, so it is unit-tested in node). See readability.ts.
 import type { PhoneSettings } from "./settings";
 
-/** No text under this many CSS px on the screen (normal text size). */
-export const MIN_TEXT_CSS = 10;
-/** The "large" text size multiplies the floor by this. */
+/** No text under this many CSS px on the screen (normal text size): labels, hints, menus (research M7: 11). */
+export const MIN_TEXT_CSS = 11;
+/**
+ * Reading text (dialogue body, choices, subtitles, Messenger pings, book and chat reading) is this many CSS px on the
+ * screen (research M7: 16 to 17 px on a 390 px tall screen; Ren'Py's phone preset, 46 px at 1080p, the BBC).
+ */
+export const READ_TEXT_CSS = 16;
+/** The speaker's name over a line: a little smaller than the line itself, bigger than a label. */
+export const NAME_TEXT_CSS = 14;
+/** The word on a menu button the thumb aims at: bigger than small print. */
+export const BUTTON_TEXT_CSS = 12.5;
+/** The "large" text size multiplies the floor (and the reading size) by this. */
 export const LARGE_TEXT_K = 1.25;
 /** Tap areas at least this many CSS px each way. */
 export const MIN_HIT_CSS = 44;
@@ -34,6 +43,27 @@ export function readabilityWanted(setting: boolean, param: boolean | null): bool
 /** The floor in CSS px for a text size setting. */
 export function minTextCss(textSize: PhoneSettings["textSize"]): number {
   return textSize === "large" ? MIN_TEXT_CSS * LARGE_TEXT_K : MIN_TEXT_CSS;
+}
+
+/** The reading size in CSS px for a text size setting (16, or 20 with "large"). */
+export function readTextCss(textSize: PhoneSettings["textSize"]): number {
+  return textSize === "large" ? READ_TEXT_CSS * LARGE_TEXT_K : READ_TEXT_CSS;
+}
+
+/** The speaker name size in CSS px for a text size setting. */
+export function nameTextCss(textSize: PhoneSettings["textSize"]): number {
+  return textSize === "large" ? NAME_TEXT_CSS * LARGE_TEXT_K : NAME_TEXT_CSS;
+}
+
+/** The CSS px floor for a text's role (a label, a menu button's word, a speaker name, reading text). */
+export function roleTextCss(role: "read" | "name" | "button" | undefined, textSize: PhoneSettings["textSize"]): number {
+  const base = role === "read" ? READ_TEXT_CSS : role === "name" ? NAME_TEXT_CSS : role === "button" ? BUTTON_TEXT_CSS : MIN_TEXT_CSS;
+  return textSize === "large" ? base * LARGE_TEXT_K : base;
+}
+
+/** Game px that show at least `css` CSS px at canvas scale `k` (what a layout asks for: "16 CSS px" or "44 CSS px"). */
+export function gamePx(k: number, css: number): number {
+  return textFloorPx(k, 1, css);
 }
 
 /**

@@ -24,6 +24,9 @@ import { homeScreenEntryWanted, openHomeScreenGuide } from "./homeScreen";
 import { rankFollowerLast } from "./observe";
 import { hint } from "./wording";
 import { whenRunning } from "./shell";
+import { PhoneDialogue } from "./dialogue";
+import { PhoneSettingsPage } from "./settingsPage";
+import { onSceneCreate, PhoneScreens } from "./screens";
 
 export { isMobile, setMobileForTests, mobileWhy, rememberPhoneMode } from "./flag";
 export { registerModeController, unregisterModeController, type ModeController, type ModeContext, type ControlSpec, TouchControl, TouchLayer } from "./touchLayer";
@@ -54,6 +57,8 @@ interface Installed {
   wording: PromptWording;
   guide: HomeScreenGuide;
   diag: DiagOverlay | null;
+  dialogue: PhoneDialogue;
+  settingsPage: PhoneSettingsPage;
 }
 
 let installed: Installed | null = null;
@@ -114,7 +119,19 @@ export function installMobile(game: Phaser.Game) {
   const read = new Readability(game);
   const wording = new PromptWording(game);
   const diag = diagWanted(location.search) ? new DiagOverlay(game, parent, layer, shell.platform, () => ({ on: read.on, param: read.param })) : null;
-  installed = { shell, layer, readability: read, wording, guide, diag };
+  // stage 2: the Phone settings page, the menus laid out for thumbs, and the conversation pills (SKIP / LOG / AUTO)
+  const settingsPage = new PhoneSettingsPage(parent);
+  new PhoneScreens(game, read, (from) => settingsPage.open(from));
+  const dialogue = new PhoneDialogue(game, parent, () => layer.viewport, () => guide.isOpen || settingsPage.isOpen);
+  // Android Back: the topmost phone overlay first, then a conversation (dialogue.ts), then the shell's own rules
+  shell.addBackHandler(() => settingsPage.onBack());
+  shell.addBackHandler(() => {
+    if (!guide.isOpen) return false;
+    guide.close(true);
+    return true;
+  });
+  shell.addBackHandler(() => dialogue.onBack());
+  installed = { shell, layer, readability: read, wording, guide, diag, dialogue, settingsPage };
   // (now, if the phone chunk arrived after the game had already booted)
   whenRunning(game, () => {
     // spare touch pointers: a tap handed over from the stick zone while another finger is on the canvas
@@ -125,6 +142,8 @@ export function installMobile(game: Phaser.Game) {
     }
     wording.hookScenes();
     setFrameCap(game, phoneSettings().batterySaver);
+    // scenes laid out for a phone when they are built (screens.ts)
+    for (const sc of game.scene.scenes as Phaser.Scene[]) sc.sys.events.on("create", () => onSceneCreate(sc));
   });
   onPhoneSettingsChange((s, changed) => {
     if (changed.includes("batterySaver")) setFrameCap(game, s.batterySaver);
@@ -136,6 +155,7 @@ export function installMobile(game: Phaser.Game) {
     rankFollowerLast(game);
     layer.frame();
     read.frame();
+    dialogue.frame();
     // the first phone run: the Add to Home Screen guide once, over the title, before a game is started
     if (!guide.isOpen && !shell.rotate.visible && game.scene.isActive("Title") && !game.scene.isActive("Menu") && !game.scene.isActive("Slots")) {
       const t = performance.now();
@@ -153,6 +173,8 @@ export function installMobile(game: Phaser.Game) {
     readability: read,
     guide,
     diag,
+    dialogue,
+    settingsPage,
     snapshot: () => layer.snapshot(),
     shellState: () => shell.snapshot(),
     // (the same module instances the game uses, for tests that add a rule or a controller)

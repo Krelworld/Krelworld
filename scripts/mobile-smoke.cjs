@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,guide,optout,town,dungeon,android,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,guide,optout,town,dungeon,android,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -14,14 +14,25 @@
 //          Also (part 2): the Add to Home Screen guide shows itself once over the title on the first run and NOT NOW
 //          closes it; the title's corner button, the pause menu's row and the turn-your-phone screen's button open it;
 //          the interact prompt reads "Tap: ..." (touch wording) while ACTION still gets its verb; a Home panel's
-//          "ESC or ✕ to close" reads "✕ to close"; readability is off and has patched nothing.
+//          "ESC or ✕ to close" reads "✕ to close"; readability ("Bigger text") is on by default (stage 2).
 // upright  the phone held upright from the start: the rotate screen covers the loading, the art loads behind it,
 //          then the loop sleeps; turned sideways the game runs and the Enter gate takes a tap.
 // settings the phone settings store: defaults, nothing written until a change, live re-layout of the controls
 //          (size, left-handed, opacity), saved under its own key and loaded on the next visit, battery saver caps the
 //          loop at 30, and private mode (storage throws) breaks nothing.
-// read     readability on (?mobileread=1) at 750x340: no text under 10 CSS px on the title and the settings menu,
-//          a tap just outside a small button reaches it; turned off, every text is back at the size the game asked.
+// read     readability on (by default since stage 2) at 750x340: no text under 11 CSS px on the title and the settings
+//          menu, a tap just outside a small button reaches it; turned off, every text is back at the size the game
+//          asked; ?mobileread=0 turns it off for a visit.
+// dialogue (stage 2) a conversation over the Hub: SKIP / LOG / AUTO pills (44 px, on screen), reading text at 16 CSS px,
+//          a tap advances and a tap while typing completes the line, a long line in more boxes with identical words,
+//          LOG (native scroll), Back closes the LOG and does nothing else in a town conversation, choices (48 px rows,
+//          no key numbers, reading size, an early tap ignored, a deliberate one picks), AUTO plays on by itself, SKIP
+//          stops at the choice with every effect applied and then runs to the end; a cutscene's II and Back open its
+//          pause menu; at 750x340 four choices take the screen with the question above them, nothing under 11 / 15.
+// settings2 (stage 2) the title, the settings menu and the pause menu: every target 44 CSS px, no text under 11, the
+//          objective clear of RESUME; the Phone settings page from the 📱 PHONE tab and the pause menu's row (two
+//          columns, 48 px rows, help lines, Phone layout, "a Bluetooth controller works"), every row working by tap,
+//          Bigger text off and on live, Back and DONE close it; character select at 750x340 with no overlaps.
 // guide    the Add to Home Screen guide per browser (user agent): iPhone Safari / Chrome / Edge / Firefox,
 //          Instagram, Messenger, Android Chrome (with and without the install prompt; INSTALL calls it), Edge,
 //          Samsung Internet, Firefox, an Android in-app browser; at 844x390, 740x360 and 750x340; never shown from
@@ -51,7 +62,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,guide,optout,town,dungeon,android,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,guide,optout,town,dungeon,android,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -260,7 +271,7 @@ async function phone(browser) {
     await sleep(400);
     check("✕ closes it", !(await ph.guide()).open);
     const rs = await ph.readState();
-    check("readability is off by default and has touched nothing (no patch, no text resized)", !rs.on && rs.refreshes === 0 && !rs.patched && rs.marked === 0, rs);
+    check("readability (Bigger text) is on by default since stage 2: the floor is in and has raised small texts", rs.on && rs.patched && rs.marked > 0, rs);
     // the back gesture where the game can't pause (the title): nothing happens, twice in a row, no touch between (R3)
     const url0 = ph.page.url();
     await ph.ev(() => history.back());
@@ -784,7 +795,7 @@ async function settings(browser) {
   try {
     const key = await ph.ev(async () => (await import("/src/game/variant.ts")).storageKey("krelworld.phone.settings"));
     let st = await ph.ev((k) => ({ s: window.__krelMobile.settings.get(), stored: localStorage.getItem(k), n: window.__krelMobile.settings.list().length }), key);
-    check("defaults: right-handed, M, 30%, auto-fire, normal aim assist, phone assist on, battery saver off, readability off, haptics on", JSON.stringify(st.s) === JSON.stringify({ leftHanded: false, buttonSize: "M", opacity: 0.3, stick: "floating", autoFire: true, aimAssist: "normal", phoneAssist: true, batterySaver: false, readability: false, textSize: "normal", haptics: true, syncOffsetMs: 0, playOverMyMusic: false }), st.s);
+    check("defaults: right-handed, M, 30%, auto-fire, normal aim assist, phone assist on, battery saver off, readability ON (stage 2), haptics on", JSON.stringify(st.s) === JSON.stringify({ leftHanded: false, buttonSize: "M", opacity: 0.3, stick: "floating", autoFire: true, aimAssist: "normal", phoneAssist: true, batterySaver: false, readability: true, textSize: "normal", haptics: true, syncOffsetMs: 0, playOverMyMusic: false }), st.s);
     check("nothing is written just by loading", st.stored === null);
     check("the typed list a settings screen renders has every setting", st.n === 13, st.n);
     const before = await ph.snap();
@@ -889,10 +900,8 @@ function textSizes() {
 }
 
 async function read(browser) {
-  console.log("READABILITY (?mobileread=1, iPhone in Safari with its bars, 750x340)");
-  const u = new URL(URL0);
-  u.searchParams.set("mobileread", "1");
-  const { ctx, ph, errors } = await openPage(browser, { ...IPHONE, viewport: { width: 750, height: 340 } }, u.toString());
+  console.log("READABILITY (on by default since stage 2; iPhone in Safari with its bars, 750x340)");
+  let { ctx, ph, errors } = await openPage(browser, { ...IPHONE, viewport: { width: 750, height: 340 } }, URL0);
   try {
     await ph.page.waitForTimeout(1200);
     await ph.tapCss(375, 260);
@@ -901,35 +910,37 @@ async function read(browser) {
     await ph.ev(() => window.__krelMobile.guide.close());
     await ph.page.waitForTimeout(1500);
     const rs = await ph.readState();
-    check("?mobileread=1 turns it on (the setting itself stays off)", rs.on && rs.patched && !(await ph.ev(() => window.__krelMobile.settings.get().readability)), rs);
+    check("on by default (the setting says on; nothing in the address)", rs.on && rs.patched && (await ph.ev(() => window.__krelMobile.settings.get().readability)), rs);
     let t = (await ph.ev(textSizes)).filter((x) => x.on && !x.tw);
     let min = Math.min(...t.map((x) => x.css));
-    check("title: no text under 10 CSS px", min >= 10 - 1e-6, { min: +min.toFixed(2), count: t.length, small: t.filter((x) => x.css < 10).slice(0, 4) });
-    check("title: the rendered glyph boxes are at least 10 CSS px too", Math.min(...t.map((x) => x.glyph)) >= 10 - 1e-6, Math.min(...t.map((x) => x.glyph)).toFixed(2));
-    check("title: some texts were raised (they were under 10)", t.some((x) => x.req !== null && x.req < parseFloat(x.fs)), t.filter((x) => x.req !== null).length);
+    check("title: no text under 11 CSS px", min >= 11 - 1e-6, { min: +min.toFixed(2), count: t.length, small: t.filter((x) => x.css < 11).slice(0, 4) });
+    check("title: the rendered glyph boxes are at least 11 CSS px too", Math.min(...t.map((x) => x.glyph)) >= 11 - 1e-6, Math.min(...t.map((x) => x.glyph)).toFixed(2));
+    check("title: some texts were raised (they were under 11)", t.some((x) => x.req !== null && x.req < parseFloat(x.fs)), t.filter((x) => x.req !== null).length);
     await ph.shot("read-on-title-750x340");
     await ph.tapText("SETTINGS", { scene: "Title" });
     await ph.scene("Menu");
     await ph.page.waitForTimeout(1200);
     t = (await ph.ev(textSizes)).filter((x) => x.on && !x.tw && x.scene === "Menu");
     min = Math.min(...t.map((x) => x.css));
-    check("settings menu: no text under 10 CSS px", min >= 10 - 1e-6, { min: +min.toFixed(2), count: t.length });
+    check("settings menu: no text under 11 CSS px", min >= 11 - 1e-6, { min: +min.toFixed(2), count: t.length });
     await ph.shot("read-on-settings-750x340");
-    // a tap just below the BACK button's drawing (inside its 44 CSS px tap area) reaches it
-    const back = await ph.ev(() => {
+    await ph.tapText("BACK", { scene: "Menu" });
+    await ph.until(() => !window.__krel.active().includes("Menu"), null, 5000, "BACK").catch(() => 0);
+    // a tap just below a small button's drawing (the title's DEBUG, 19 CSS px tall; inside its 44 CSS px tap area)
+    const dbg = await ph.ev(() => {
       const g = window.__krel.game;
-      const sc = g.scene.getScene("Menu");
-      const o = sc.input._list.find((x) => x.parentContainer && x.parentContainer.list.some((c) => c.type === "Text" && /BACK/.test(c.text)));
+      const sc = g.scene.getScene("Title");
+      const o = sc.input._list.find((x) => x.parentContainer && x.parentContainer.list.some((c) => c.type === "Text" && /DEBUG/.test(c.text)));
+      if (!o) return null;
       const b = o.getBounds();
       const cb = g.scale.canvasBounds;
       const k = cb.width / 960;
       return { x: cb.x + b.centerX * k, bottom: cb.y + b.bottom * k, h: b.height * k };
     });
     const snaps0 = await ph.ev(() => window.__krelMobile.readability.stats.snaps);
-    await ph.tapCss(back.x, back.bottom + Math.min(8, (44 - back.h) / 2 - 1));
-    await ph.until(() => !window.__krel.active().includes("Menu"), null, 5000, "BACK").catch(() => 0);
-    const closed = await ph.ev(() => !window.__krel.active().includes("Menu"));
-    check("a tap just outside a small button (inside its 44 CSS px tap area) reaches it", closed && (await ph.ev(() => window.__krelMobile.readability.stats.snaps)) > snaps0, back);
+    if (dbg) await ph.tapCss(dbg.x, dbg.bottom + Math.min(8, (44 - dbg.h) / 2 - 1));
+    await ph.until(() => window.__krel.active().includes("DebugSkip"), null, 5000, "DEBUG").catch(() => 0);
+    check("a tap just outside a small button (inside its 44 CSS px tap area) reaches it", !!dbg && (await ph.ev(() => window.__krel.active().includes("DebugSkip"))) && (await ph.ev(() => window.__krelMobile.readability.stats.snaps)) > snaps0, dbg);
     // off again: every text back at the size the game asked for
     await ph.ev(() => window.__krelMobile.readability.set(false));
     await sleep(500);
@@ -937,6 +948,16 @@ async function read(browser) {
     const wrong = t.filter((x) => x.req !== null && Math.abs(parseFloat(x.fs) - x.req) > 0.01);
     check("turned off: every text is back at the size the game asked for", wrong.length === 0, wrong.slice(0, 4));
     check("no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+  // ?mobileread=0: off for this visit (the setting is untouched)
+  const u = new URL(URL0);
+  u.searchParams.set("mobileread", "0");
+  ({ ctx, ph, errors } = await quickPage(browser, { ...IPHONE, viewport: { width: 750, height: 340 } }, u.toString()));
+  try {
+    const st = await ph.ev(() => ({ on: window.__krelMobile.readability.on, setting: window.__krelMobile.settings.get().readability }));
+    check("?mobileread=0 turns it off for the visit (the setting stays on)", !st.on && st.setting, st);
   } finally {
     await ctx.close();
   }
@@ -1084,7 +1105,7 @@ async function guide(browser) {
     try {
       await sleep(1200);
       const d = await ph.ev(() => ({ el: !!document.querySelector(".kdiag"), text: document.querySelector(".kdiag") ? document.querySelector(".kdiag").textContent : "" }));
-      const want = [/fps \d/, /textures \d+ · ~[\d.]+ MB/, /sound \d+ decoded · ~[\d.]+ MB · audio/, /window 844x390 · visual 844x390/, /dpr 3/, /canvas 693x390 at 75,0 · scale 0\.722/, /safe area L0 R0 T0 B0/, /touch mode /, /phone mode ON by device: coarse yes · no hover yes · touch \d+ · short side 390/, /iPhone safari/, /readability off/, /last error: /];
+      const want = [/fps \d/, /textures \d+ · ~[\d.]+ MB/, /sound \d+ decoded · ~[\d.]+ MB · audio/, /window 844x390 · visual 844x390/, /dpr 3/, /canvas 693x390 at 75,0 · scale 0\.722/, /safe area L0 R0 T0 B0/, /touch mode /, /phone mode ON by device: coarse yes · no hover yes · touch \d+ · short side 390/, /iPhone safari/, /readability on/, /last error: /];
       const missing = want.filter((re) => !re.test(d.text)).map(String);
       check("?mobilediag: the read-out shows fps, textures, sound, sizes, canvas scale, safe area, touch mode, why phone mode is on, last error", d.el && missing.length === 0, missing.length ? { missing, text: d.text } : undefined);
       await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
@@ -1208,6 +1229,391 @@ const setVisibility = (ph, v) =>
     Object.defineProperty(document, "hidden", { configurable: true, get: () => v === "hidden" });
     document.dispatchEvent(new Event("visibilitychange"));
   }, v);
+
+// ------------------------------------------------------------------ conversations (stage 2)
+
+/** The script the conversation checks play over the Hub (or as a cutscene): narration, a long line, a choice, more. */
+const TEST_LINES = [
+  { s: "NARRATOR", t: "A test line from the narrator.", dir: true, set: { t_dir: true } },
+  {
+    s: "FLENKY",
+    t: "This is a deliberately long line, so that it needs more than one box on a phone at the reading size. It keeps going with another sentence about nothing in particular. And then one more sentence to be sure it spills over into a second page, maybe even a third if the box is small.",
+    set: { t_long: true },
+  },
+  {
+    s: "KREZMAR",
+    t: "Pick one?",
+    choice: [
+      { label: "Option one, the first and best", set: { t_one: true }, lines: [{ s: "FLENKY", t: "You picked one.", set: { t_picked: true } }] },
+      { label: "Option two", set: { t_two: true } },
+      { label: "Option three, a longer choice label that might need to wrap onto a second line on a small phone", set: { t_three: true } },
+    ],
+  },
+  { s: "FLENKY", t: "After the choice.", set: { t_after: true } },
+  { s: "FLENKY", t: "Last line.", set: { t_last: true } },
+];
+
+/** Play TEST_LINES over the Hub through the game's own runDialogue; window.__dlgDone turns true at the end. */
+function startTalk(ph) {
+  return ph.ev(async (lines) => {
+    const { runDialogue } = await import("/src/game/scenes/DialogueScene.ts");
+    for (const k of Object.keys(window.__krel.G.s.flags)) if (k.startsWith("t_")) delete window.__krel.G.s.flags[k];
+    window.__dlgDone = false;
+    runDialogue(window.__krel.game.scene.getScene("Hub"), lines).then(() => (window.__dlgDone = true));
+  }, TEST_LINES);
+}
+
+const testFlags = (ph) => ph.ev(() => Object.keys(window.__krel.G.s.flags).filter((k) => k.startsWith("t_")).sort().join(","));
+const dlg = (ph) => ph.ev(() => window.__krelMobile.dialogue.snapshot());
+const boxNow = (ph) =>
+  ph.ev(() => {
+    const b = window.__krelMobile.dialogue.current();
+    return b ? { full: String(b.fullText), shown: b.bodyText.text, typing: !!b.typing, waiting: !!b.advanceResolve } : null;
+  });
+
+/** Every visible text on the scenes now, with its role ("read" for reading text), size in CSS px. */
+function textRoles() {
+  const g = window.__krel.game;
+  const k = g.scale.canvasBounds.width / g.scale.width;
+  const out = [];
+  for (const sc of g.scene.getScenes(true)) {
+    const cam = sc.cameras.main;
+    const walk = (o, s, a) => {
+      if (!o || o.visible === false || o.active === false) return;
+      const al = a * (o.alpha === undefined ? 1 : o.alpha);
+      if (o.type === "Container") return o.list.forEach((c) => walk(c, s * Math.abs(o.scaleY), al));
+      if (o.type !== "Text" || !o.text.trim() || al < 0.05) return;
+      out.push({ scene: sc.sys.settings.key, text: o.text.slice(0, 30), role: o.__mfRole || null, css: parseFloat(o.style.fontSize) * s * Math.abs(o.scaleY) * (cam.zoom || 1) * k });
+    };
+    sc.sys.displayList.list.forEach((o) => walk(o, 1, 1));
+  }
+  return out;
+}
+
+async function dialogue(browser) {
+  console.log("DIALOGUE (conversations on a phone: tap, SKIP, LOG, AUTO, choices, Back; iPhone 14 landscape)");
+  let { ctx, page, ph, errors } = await phoneAtTitle(browser);
+  try {
+    await toWalk(ph, "Hub");
+    await startTalk(ph);
+    await ph.until(() => window.__krelMobile.dialogue.snapshot().showing, null, 10000, "the conversation");
+    await sleep(500);
+    let s = await dlg(ph);
+    check("a town conversation shows AUTO, LOG and SKIP (no II: a town conversation has no pause menu)", s.pills.auto && s.pills.log && s.pills.skip && !s.pills.pause, s.pills);
+    const pr = await ph.ev(() => [...document.querySelectorAll(".kd-pill.show")].map((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }));
+    check("each pill's tap area is at least 44 CSS px, on screen and out of the bottom strip", pr.length >= 3 && pr.every((r) => r.h >= 44 && r.w >= 44 && r.x >= 0 && r.x + r.w <= 844 && r.y >= 0 && r.y + r.h <= 390 - 21), pr);
+    let t = (await ph.ev(textRoles)).filter((x) => x.scene === "Dialogue");
+    check("the line is reading text at 16 CSS px (no reading text under 15, nothing under 11)", t.some((x) => x.role === "read" && x.css >= 15.9) && t.filter((x) => x.role === "read").every((x) => x.css >= 15) && t.every((x) => x.css >= 11 - 1e-6), t);
+    check("the narrator's line is drawn as it is written", (await boxNow(ph)).full === "A test line from the narrator.");
+    check("the box's footer has no key names (▼ only)", t.some((x) => x.text === "▼") && !t.some((x) => /Space|Tab skip/.test(x.text)));
+    await ph.shot("dialogue-pills");
+    // a tap advances; a tap while a line is typing completes it
+    await ph.tapCss(420, 180);
+    await sleep(60);
+    let b = await boxNow(ph);
+    const typed = b.typing && b.shown.length < b.full.length;
+    await ph.tapCss(420, 180);
+    await sleep(80);
+    const after = await boxNow(ph);
+    check("a tap advances, and a tap while the line is typing completes it (not the next line)", typed && !after.typing && after.shown === after.full && after.full === b.full, { typed, after: { typing: after.typing, n: after.shown.length, of: after.full.length } });
+    // the long line in boxes: the words are identical (the box's own pages, as it draws them; its first page is up)
+    const pg = await ph.ev((text) => {
+      const b = window.__krelMobile.dialogue.current();
+      const pages = b.pages({ s: "FLENKY", t: text });
+      return { pages, now: String(b.fullText) };
+    }, TEST_LINES[1].t);
+    const joined = pg.pages.join(" ").replace(/\s*…\s*/g, " ").replace(/\s+/g, " ").trim();
+    check("a long line is split into more boxes on a phone, the first drawn as the box says, and the words are identical", pg.pages.length >= 2 && pg.now === pg.pages[0] && after.full === pg.pages[0] && joined === TEST_LINES[1].t, { pages: pg.pages.length, now: pg.now.slice(0, 60), first: pg.pages[0].slice(0, 60), joinedOk: joined === TEST_LINES[1].t });
+    await ph.tapCss(420, 180);
+    await sleep(100);
+    // LOG: the lines already shown, in a native-scroll list
+    s = await dlg(ph);
+    await ph.tapSel(".kd-log");
+    await sleep(400);
+    const log = await ph.ev(() => {
+      const l = document.querySelector(".kdl-list");
+      return { open: window.__krelMobile.dialogue.logOpen, rows: [...document.querySelectorAll(".kdl-row")].map((r) => r.textContent), scroll: getComputedStyle(l).overflowY, touch: getComputedStyle(l).touchAction };
+    });
+    check("LOG shows the lines already shown in this conversation (whole), in a native-scroll list", log.open && log.rows.some((r) => r.includes("A test line from the narrator.")) && log.rows.some((r) => r.includes(TEST_LINES[1].t)) && log.scroll === "auto" && /pan-y/.test(log.touch), { n: log.rows.length, scroll: log.scroll });
+    await ph.shot("dialogue-log");
+    // Android Back closes the log, and the conversation is still there
+    await ph.ev(() => history.back());
+    await sleep(700);
+    check("Back closes the LOG (the conversation stays)", !(await ph.ev(() => window.__krelMobile.dialogue.logOpen)) && (await dlg(ph)).showing);
+    await ph.ev(() => history.back());
+    await sleep(700);
+    check("Back in a town conversation does nothing (no skip, no menu)", (await dlg(ph)).showing && !(await ph.active()).includes("Menu"));
+    await ph.until(() => window.__krelMobile.dialogue.snapshot().choosing, null, 15000, "the choice").catch(() => 0);
+    if (!(await dlg(ph)).choosing) {
+      await ph.tapCss(420, 180);
+      await ph.until(() => window.__krelMobile.dialogue.snapshot().choosing, null, 8000, "the choice").catch(() => 0);
+    }
+    // choices: big rows, no key numbers, a deliberate tap
+    const rows = await ph.ev(() => {
+      const g = window.__krel.game;
+      const k = g.scale.canvasBounds.width / 960;
+      const b = window.__krelMobile.dialogue.current();
+      return b.overlay.list.filter((o) => o.type === "Rectangle" && o.input).map((o) => { const t = b.overlay.list[b.overlay.list.indexOf(o) + 1]; return { h: o.height * k, w: o.width * k, text: t.text }; });
+    });
+    check("choices: rows at least 48 CSS px tall, nearly full width, no key numbers, the words as written", rows.length === 3 && rows.every((r) => r.h >= 48 - 0.5 && r.w >= 560) && rows[0].text === "Option one, the first and best" && rows[2].text === TEST_LINES[2].choice[2].label, rows);
+    t = (await ph.ev(textRoles)).filter((x) => x.scene === "Dialogue" && x.role === "read");
+    check("choice text is reading text (16 CSS px)", t.length >= 4 && t.every((x) => x.css >= 15), t.map((x) => +x.css.toFixed(1)));
+    await ph.shot("dialogue-choices");
+    const o1 = await ph.find("Option one", { scene: "Dialogue" });
+    await ph.ev(() => (window.__krelMobile.dialogue.current().__mfChoiceShownAt = performance.now()));
+    await ph.tapGame(o1.x, o1.y);
+    await sleep(200);
+    check("a tap in the first 180 ms after the rows appear is ignored", (await dlg(ph)).choosing && !(await testFlags(ph)).includes("t_one"));
+    await sleep(200);
+    await ph.tapGame(o1.x, o1.y);
+    await sleep(500);
+    check("a deliberate tap picks the row (its effects applied)", !(await dlg(ph)).choosing && (await testFlags(ph)).includes("t_one"), await testFlags(ph));
+    // AUTO: moves on by itself (to the end of the script here)
+    await ph.tapSel(".kd-auto");
+    const lit = await ph.ev(() => document.querySelector(".kd-auto").classList.contains("lit"));
+    await ph.until(() => window.__dlgDone, null, 30000, "AUTO to the end").catch(() => 0);
+    check("AUTO lights up and plays the conversation on by itself to the end", lit && (await ph.ev(() => window.__dlgDone)) && (await testFlags(ph)) === "t_after,t_dir,t_last,t_long,t_one,t_picked", await testFlags(ph));
+    await ph.ev(() => (window.__krelMobile.dialogue.auto = false));
+    // SKIP: to the next choice (every effect applied, the choice never skipped), then to the end
+    await startTalk(ph);
+    await ph.until(() => window.__krelMobile.dialogue.snapshot().showing, null, 10000, "the conversation again");
+    await sleep(300);
+    await ph.tapSel(".kd-skip");
+    await ph.until(() => window.__krelMobile.dialogue.snapshot().choosing, null, 8000, "the choice").catch(() => 0);
+    s = await dlg(ph);
+    check("SKIP runs to the choice (the skipped lines' effects applied) and stops there; SKIP is hidden while choosing", s.choosing && (await testFlags(ph)) === "t_dir,t_long" && !s.pills.skip && s.pills.log, { flags: await testFlags(ph), pills: s.pills });
+    // (row two, by its own place: the rows share one container, so a search by text would find row one)
+    const o2 = await ph.ev(() => {
+      const b = window.__krelMobile.dialogue.current();
+      const r = b.overlay.list.filter((o) => o.type === "Rectangle" && o.input)[1].getBounds();
+      return { x: r.centerX, y: r.centerY };
+    });
+    await sleep(250);
+    await ph.tapGame(o2.x, o2.y);
+    await sleep(400);
+    await ph.tapSel(".kd-skip");
+    await ph.until(() => window.__dlgDone, null, 8000, "SKIP to the end").catch(() => 0);
+    check("SKIP after the choice runs to the end of the conversation, every line's effects applied", (await ph.ev(() => window.__dlgDone)) && (await testFlags(ph)) === "t_after,t_dir,t_last,t_long,t_two", await testFlags(ph));
+    await ph.until(() => window.__krelMobile.snapshot().decision.mode === "walk", null, 10000, "walk mode").catch(() => 0);
+    check("back to walking after the conversation (pills gone)", (await ph.mode()).startsWith("walk") && !(await dlg(ph)).showing);
+    // a cutscene (it has a pause menu): II, and Back opens the pause menu (the laptop's Esc)
+    await ph.ev((lines) => window.__krel.go("Cutscene", { bg: "townhall", lines, next: { scene: "Hub" } }), TEST_LINES);
+    await ph.until(() => window.__krelMobile.dialogue.snapshot().showing, null, 20000, "the cutscene");
+    await sleep(400);
+    s = await dlg(ph);
+    check("a cutscene shows II as well (its pause menu)", s.pills.pause && s.scene === "Cutscene", s.pills);
+    await ph.tapSel(".kd-pause");
+    await sleep(800);
+    check("II opens the pause menu over the cutscene", (await ph.active()).includes("Menu") && !(await dlg(ph)).showing);
+    await ph.tapText("RESUME", { scene: "Menu" });
+    await sleep(800);
+    check("RESUME: the cutscene carries on, pills back", !(await ph.active()).includes("Menu") && (await dlg(ph)).showing);
+    const line0 = (await boxNow(ph)).full;
+    await ph.ev(() => history.back());
+    await sleep(900);
+    const line1 = await ph.ev(() => String(window.__krelMobile.dialogue.current().fullText));
+    check("Back in a cutscene opens its pause menu (the laptop's Esc), never skips", (await ph.active()).includes("Menu") && line1 === line0, { menu: (await ph.active()).includes("Menu"), line0: line0.slice(0, 30), line1: line1.slice(0, 30), guard: await ph.ev(() => window.__krelMobile.shellState().guard) });
+    await ph.tapText("RESUME", { scene: "Menu" });
+    await sleep(500);
+    check("no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+  // Safari with its bars (750x340): four choices take the screen, the question above them
+  ({ ctx, page, ph, errors } = await phoneAtTitle(browser, { ...IPHONE, viewport: { width: 750, height: 340 } }));
+  try {
+    await ph.ev(() => {
+      window.__krel.newRun("FLENKY");
+      window.__krel.go("Cutscene", { bg: "townhall", next: { scene: "Hub" }, lines: [{ s: "PROCTUS", t: "Right. Next item on the agenda.", choice: [{ label: "Next item" }, { label: "Leave" }, { label: "Ask about the list" }, { label: "Say nothing at all and wait" }] }, { s: "PROCTUS", t: "Done." }] });
+    });
+    await ph.until(() => window.__krelMobile.dialogue.snapshot().choosing, null, 20000, "four choices");
+    await sleep(400);
+    const lay = await ph.ev(() => {
+      const g = window.__krel.game;
+      const cb = g.scale.canvasBounds;
+      const k = cb.width / 960;
+      const b = window.__krelMobile.dialogue.current();
+      const rows = b.overlay.list.filter((o) => o.type === "Rectangle" && o.input).map((o) => { const r = o.getBounds(); return { top: r.top * k, bottom: r.bottom * k, h: r.height * k }; });
+      const q = b.bodyText.getBounds();
+      return { rows, q: { visible: b.bodyText.visible, bottom: q.bottom * k, text: b.bodyText.text }, frame: b.frame ? b.frame.visible : null };
+    });
+    const ok = lay.rows.length === 4 && lay.rows.every((r, i) => r.h >= 47.5 && r.bottom <= 340 && (i === 0 || r.top >= lay.rows[i - 1].bottom + 7));
+    check("750x340: four choice rows fit on the screen (48 CSS px, 8+ apart), the box steps aside", ok && lay.frame === false, lay.rows);
+    check("750x340: the question stays above them, readable", lay.q.visible && lay.q.text === "Right. Next item on the agenda." && lay.q.bottom <= lay.rows[0].top, lay.q);
+    const t = (await ph.ev(textRoles)).filter((x) => x.scene === "Cutscene");
+    check("750x340: no reading text under 15 CSS px, no text under 11", t.filter((x) => x.role === "read").every((x) => x.css >= 15) && t.every((x) => x.css >= 11 - 1e-6), t.filter((x) => x.css < 15).slice(0, 4));
+    await ph.shot("dialogue-choices-750x340");
+    check("no page errors (750x340)", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
+// ------------------------------------------------------------------ the Phone settings page and the menus (stage 2)
+
+/** Every tappable canvas object in a scene: its box in CSS px. */
+function tapBoxes(scene) {
+  const g = window.__krel.game;
+  const sc = g.scene.getScene(scene);
+  const k = g.scale.canvasBounds.width / 960;
+  return sc.input._list
+    .filter((o) => o.input && o.input.enabled && o.visible && (!o.parentContainer || o.parentContainer.visible))
+    .map((o) => {
+      const b = o.getBounds();
+      const p = o.parentContainer;
+      const t = p ? p.list.find((c) => c.type === "Text") : null;
+      return { label: t ? t.text.slice(0, 24) : o.type, x: b.x * k, y: b.y * k, w: b.width * k, h: b.height * k };
+    })
+    .filter((b) => b.w < 900 * k);
+}
+
+async function settings2(browser) {
+  console.log("SETTINGS2 (the Phone settings page; menus at 44 CSS px; text sizes)");
+  let { ctx, page, ph, errors } = await phoneAtTitle(browser);
+  try {
+    // the title: every menu target 44 CSS px; ADD TO HOME SCREEN too (P14)
+    let boxes = (await ph.ev(tapBoxes, "Title")).filter((b) => !/DEBUG/.test(b.label));
+    check("title: every menu button and ADD TO HOME SCREEN at least 44 CSS px tall", boxes.length >= 4 && boxes.every((b) => b.h >= 44 - 0.5), boxes.map((b) => `${b.label}:${b.h.toFixed(0)}`));
+    let t = await ph.ev(textRoles);
+    check("title: no text under 11 CSS px", t.filter((x) => x.scene === "Title").every((x) => x.css >= 11 - 1e-6), t.filter((x) => x.css < 11).slice(0, 3));
+    await ph.tapText("SETTINGS", { scene: "Title" });
+    await ph.scene("Menu");
+    await sleep(800);
+    boxes = await ph.ev(tapBoxes, "Menu");
+    check("settings (from the title): three tabs with 📱 PHONE, every target at least 44 CSS px", boxes.some((b) => /PHONE/.test(b.label)) && boxes.every((b) => b.h >= 44 - 0.5 && b.w >= 44 - 0.5), boxes.filter((b) => b.h < 44).map((b) => b.label));
+    t = (await ph.ev(textRoles)).filter((x) => x.scene === "Menu");
+    check("settings: no text under 11 CSS px", t.every((x) => x.css >= 11 - 1e-6), t.filter((x) => x.css < 11).slice(0, 3));
+    await ph.shot("settings2-settings");
+    await ph.tapText("📱 PHONE", { scene: "Menu" });
+    await sleep(500);
+    const pg = await ph.ev(() => {
+      const p = window.__krelMobile.settingsPage;
+      const rows = [...document.querySelectorAll(".kps-row")];
+      const lefts = [...new Set(rows.map((r) => Math.round(r.getBoundingClientRect().x)))];
+      const btns = [...document.querySelectorAll(".kps button")].filter((b) => b.offsetParent).map((b) => b.getBoundingClientRect().height);
+      return { open: p.isOpen, n: rows.length, keys: p.rows().map((r) => r.key), lefts, minRow: Math.min(...rows.map((r) => r.getBoundingClientRect().height)), minBtn: Math.min(...btns), pad: (document.querySelector(".kps-pad") || {}).textContent || "", helps: [...document.querySelectorAll(".kps-h")].length };
+    });
+    check("the 📱 PHONE tab opens the Phone settings page: every setting, Phone layout, two columns, 48 px rows, a help line each", pg.open && pg.n === 14 && pg.keys.includes("phoneLayout") && pg.lefts.length === 2 && pg.minRow >= 47.5 && pg.helps === 14, pg);
+    check("its buttons are at least 44 CSS px; it says a Bluetooth controller works", pg.minBtn >= 44 - 0.5 && /Bluetooth controller works/.test(pg.pad), { minBtn: pg.minBtn, pad: pg.pad });
+    await ph.shot("settings2-phone-page");
+    // every row works
+    const get = () => ph.ev(() => window.__krelMobile.settings.get());
+    const into = (sel) => ph.ev((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), sel);
+    const tapIn = async (key, sel) => {
+      await into(`.kps-row[data-key="${key}"] ${sel}`);
+      await sleep(60);
+      await ph.tapSel(`.kps-row[data-key="${key}"] ${sel}`);
+    };
+    const s0 = await get();
+    const fails = [];
+    for (const key of ["leftHanded", "haptics", "autoFire", "phoneAssist", "readability", "batterySaver", "playOverMyMusic"]) {
+      const before = (await get())[key];
+      await into(`.kps-row[data-key="${key}"]`);
+      await sleep(60);
+      await ph.tapSel(`.kps-row[data-key="${key}"]`);
+      await sleep(150);
+      const mid = (await get())[key];
+      await ph.tapSel(`.kps-row[data-key="${key}"]`);
+      await sleep(150);
+      if (mid === before || (await get())[key] !== before) fails.push(key);
+    }
+    for (const [key, vals] of [["buttonSize", ["S", "L", "M"]], ["stick", ["fixed", "floating"]], ["aimAssist", ["strong", "off", "normal"]], ["textSize", ["large", "normal"]]]) {
+      for (const v of vals) {
+        await tapIn(key, `[data-v="${v}"]`);
+        await sleep(150);
+        if ((await get())[key] !== v) fails.push(`${key}=${v}`);
+      }
+    }
+    for (const [key, d, want] of [["opacity", "1", 0.4], ["opacity", "-1", 0.3], ["syncOffsetMs", "1", 5], ["syncOffsetMs", "-1", 0]]) {
+      await tapIn(key, `[data-d="${d}"]`);
+      await sleep(150);
+      if (Math.abs((await get())[key] - want) > 1e-6) fails.push(`${key}${d}`);
+    }
+    const mk = await ph.ev(async () => (await import("/src/game/variant.ts")).storageKey("krelworld.mobile"));
+    await tapIn("phoneLayout", '[data-layout="off"]');
+    await sleep(150);
+    const off = await ph.ev((k) => ({ v: localStorage.getItem(k), note: !!document.querySelector(".kps-reload") }), mk);
+    await tapIn("phoneLayout", '[data-layout="auto"]');
+    await sleep(150);
+    const auto = await ph.ev((k) => localStorage.getItem(k), mk);
+    if (off.v !== "0" || !off.note || auto !== null) fails.push(`phoneLayout ${JSON.stringify({ off, auto })}`);
+    check("every row works by tap (toggles both ways, every choice, sliders up and down, Phone layout off then auto)", fails.length === 0, fails);
+    check("and the settings end where they started", JSON.stringify(await get()) === JSON.stringify(s0));
+    // Bigger text off: the menu behind is drawn again at the game's own sizes; on again
+    await into('.kps-row[data-key="readability"]');
+    await ph.tapSel('.kps-row[data-key="readability"]');
+    await sleep(500);
+    const offState = await ph.ev(() => ({ on: window.__krelMobile.readability.on, menu: window.__krel.active().includes("Menu") }));
+    await ph.tapSel('.kps-row[data-key="readability"]');
+    await sleep(500);
+    check("Bigger text off and on again, live (the settings menu behind stays up)", !offState.on && offState.menu && (await ph.ev(() => window.__krelMobile.readability.on)), offState);
+    await ph.ev(() => history.back());
+    await sleep(600);
+    check("Back closes the Phone settings page (the settings menu stays)", !(await ph.ev(() => window.__krelMobile.settingsPage.isOpen)) && (await ph.active()).includes("Menu"));
+    await ph.tapText("BACK", { scene: "Menu" });
+    await sleep(600);
+    // the pause menu: two or three columns, 44 px rows, the objective clear of RESUME, a 📱 PHONE SETTINGS row
+    await ph.ev(() => window.__krel.game.scene.isActive("Menu") && window.__krel.game.scene.stop("Menu"));
+    await toWalk(ph, "Hub");
+    await ph.ev(() => window.__krelMobile.layer.pause());
+    await ph.scene("Menu");
+    await sleep(800);
+    boxes = await ph.ev(tapBoxes, "Menu");
+    const obj = await ph.ev(() => {
+      const m = window.__krel.game.scene.getScene("Menu");
+      const k = window.__krel.game.scale.canvasBounds.width / 960;
+      const o = m.root.list.find((x) => x.type === "Text" && /^Objective:/.test(x.text));
+      return o ? o.getBounds().bottom * k : null;
+    });
+    const top = Math.min(...boxes.map((b) => b.y));
+    check("pause menu: every row at least 44 CSS px, the objective line clear of RESUME, 📱 PHONE SETTINGS there", boxes.every((b) => b.h >= 44 - 0.5) && (obj === null || obj <= top + 0.5) && boxes.some((b) => /PHONE SETTINGS/.test(b.label)), { obj, top, rows: boxes.map((b) => `${b.label}:${b.h.toFixed(0)}`) });
+    t = (await ph.ev(textRoles)).filter((x) => x.scene === "Menu");
+    check("pause menu: no text under 11 CSS px", t.every((x) => x.css >= 11 - 1e-6), t.filter((x) => x.css < 11).slice(0, 3));
+    await ph.shot("settings2-pause");
+    await ph.tapText("PHONE SETTINGS", { scene: "Menu" });
+    await sleep(500);
+    check("the pause menu's 📱 PHONE SETTINGS row opens the page", await ph.ev(() => window.__krelMobile.settingsPage.isOpen));
+    await ph.tapSel(".kps-done");
+    await sleep(400);
+    check("DONE closes it, back to the pause menu", !(await ph.ev(() => window.__krelMobile.settingsPage.isOpen)) && (await ph.active()).includes("Menu"));
+    check("no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+  // Safari with its bars (750x340): character select's details never overlap; nothing under 11
+  ({ ctx, page, ph, errors } = await phoneAtTitle(browser, { ...IPHONE, viewport: { width: 750, height: 340 } }));
+  try {
+    await ph.tapText("NEW GAME", { scene: "Title" });
+    await ph.scene("CharSelect");
+    await sleep(1500);
+    const over = [];
+    for (let i = 0; i < 9; i++) {
+      const r = await ph.ev((i) => {
+        const cs = window.__krel.game.scene.getScene("CharSelect");
+        cs.select(i);
+        const ts = cs.detail.list.filter((o) => o.type === "Text" && o.visible && o.text.trim()).map((o) => ({ text: o.text.slice(0, 20), b: o.getBounds() }));
+        const bad = [];
+        for (let a = 0; a < ts.length; a++) for (let c = a + 1; c < ts.length; c++) {
+          const A = ts[a].b, B = ts[c].b;
+          if (A.x < B.right - 1 && B.x < A.right - 1 && A.y < B.bottom - 1 && B.y < A.bottom - 1) bad.push(`${ts[a].text} / ${ts[c].text}`);
+        }
+        const panel = cs.detail.list[0].getBounds();
+        const low = ts.filter((x) => x.b.bottom > panel.bottom + 1).map((x) => x.text);
+        return { bad, low };
+      }, i);
+      if (r.bad.length || r.low.length) over.push({ i, ...r });
+    }
+    check("character select at 750x340: no two texts in the details overlap, all inside the panel (all nine)", over.length === 0, over.slice(0, 3));
+    const t = (await ph.ev(textRoles)).filter((x) => x.scene === "CharSelect");
+    check("character select: no text under 11 CSS px", t.every((x) => x.css >= 11 - 1e-6), t.filter((x) => x.css < 11).slice(0, 3));
+    const boxes = await ph.ev(tapBoxes, "CharSelect");
+    check("character select: ◀ BACK and PLAY AS at least 44 CSS px", boxes.filter((b) => /BACK|PLAY AS/.test(b.label)).length === 2 && boxes.filter((b) => /BACK|PLAY AS/.test(b.label)).every((b) => b.h >= 44 - 0.5), boxes.filter((b) => /BACK|PLAY/.test(b.label)));
+    await ph.shot("settings2-charselect-750x340");
+    check("no page errors (750x340)", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
 
 // ------------------------------------------------------------------ town (the Hub)
 
@@ -1587,6 +1993,8 @@ async function desktop(browser) {
       ["upright", upright],
       ["settings", settings],
       ["read", read],
+      ["dialogue", dialogue],
+      ["settings2", settings2],
       ["guide", guide],
       ["optout", optout],
       ["town", town],

@@ -224,6 +224,27 @@ export function ghostStick(vp: Viewport, settings: Pick<PhoneSettings, "leftHand
   return { x, y };
 }
 
+/**
+ * The idle stick off the player (stage 2; the gate's note: at 750x340 it sat over the player at Home's far left).
+ * `at` is the ring's resting centre, `r` its radius; if the ring (with a margin) covers the player, it moves to the
+ * nearest clear place inside the stick zone: beside the player (the side away from the screen edge first), then above
+ * or below. Null when nowhere in the zone is clear (the caller then shows it see-through where it is).
+ */
+export function ghostClear(at: { x: number; y: number }, r: number, player: Rect | null, zone: Rect, margin = 8): { x: number; y: number } | null {
+  const ring = (p: { x: number; y: number }): Rect => ({ x: p.x - r - margin, y: p.y - r - margin, w: 2 * (r + margin), h: 2 * (r + margin) });
+  if (!player || !overlaps(ring(at), player)) return at;
+  const inZone = (p: { x: number; y: number }) => p.x - r >= zone.x && p.x + r <= zone.x + zone.w && p.y - r >= zone.y && p.y + r <= zone.y + zone.h;
+  const cands = [
+    { x: player.x + player.w + r + margin + 2, y: at.y },
+    { x: player.x - r - margin - 2, y: at.y },
+    { x: at.x, y: player.y - r - margin - 2 },
+    { x: at.x, y: player.y + player.h + r + margin + 2 },
+  ].filter((p) => inZone(p) && !overlaps(ring(p), player));
+  if (!cands.length) return null;
+  cands.sort((a, b) => Math.hypot(a.x - at.x, a.y - at.y) - Math.hypot(b.x - at.x, b.y - at.y));
+  return cands[0];
+}
+
 /** Is a point inside a rectangle? */
 export function inRect(r: Rect | null | undefined, x: number, y: number): boolean {
   return !!r && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;

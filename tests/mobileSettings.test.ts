@@ -58,7 +58,8 @@ describe("phone settings: defaults and cleaning", () => {
       aimAssist: "normal",
       phoneAssist: true,
       batterySaver: false,
-      readability: false,
+      // (stage 2: on by default, now every menu and conversation is laid out for it)
+      readability: true,
       textSize: "normal",
       haptics: true,
       syncOffsetMs: 0,
@@ -149,17 +150,17 @@ describe("phone settings: storage", () => {
     const st = memStorage();
     usePhoneSettingsStore(localPhoneSettingsStore(st));
     expect(st.writes).toEqual([]);
-    updatePhoneSettings({ leftHanded: true, buttonSize: "L", readability: true });
+    updatePhoneSettings({ leftHanded: true, buttonSize: "L", readability: false });
     expect(st.writes).toEqual([KEY]);
     const stored = JSON.parse(st.data.get(KEY)!);
     // (only what the player chose: never the defaults)
-    expect(stored).toEqual({ v: 2, leftHanded: true, buttonSize: "L", readability: true });
+    expect(stored).toEqual({ v: 2, leftHanded: true, buttonSize: "L", readability: false });
     // next visit
     resetPhoneSettingsForTests();
     const heard: string[][] = [];
     onPhoneSettingsChange((_s, changed) => heard.push(changed));
     usePhoneSettingsStore(localPhoneSettingsStore(st));
-    expect(phoneSettings()).toMatchObject({ leftHanded: true, buttonSize: "L", readability: true, opacity: 0.3 });
+    expect(phoneSettings()).toMatchObject({ leftHanded: true, buttonSize: "L", readability: false, opacity: 0.3 });
     expect(heard).toEqual([["leftHanded", "buttonSize", "readability"]]);
   });
 
@@ -200,7 +201,8 @@ describe("phone settings: storage", () => {
   });
 
   it("a version 1 object (every field stored) counts only the values that differ from version 1's defaults (R5)", () => {
-    const v1 = { v: 1, ...DEFAULT_PHONE_SETTINGS, buttonSize: "L", haptics: false };
+    // (version 1 was written while readability's default was still off)
+    const v1 = { v: 1, ...DEFAULT_PHONE_SETTINGS, readability: false, buttonSize: "L", haptics: false };
     expect(chosenFromStored(v1)).toEqual({ buttonSize: "L", haptics: false });
     const st = memStorage({ [KEY]: JSON.stringify(v1) });
     setPhoneDefaultsForTests({ readability: true });

@@ -30,10 +30,10 @@ describe("readability: the switch", () => {
     expect(readabilityWanted(true, false)).toBe(false);
   });
 
-  it("ships with the floor at 10 CSS px (12.5 large) and taps at 44", () => {
-    expect(MIN_TEXT_CSS).toBe(10);
-    expect(minTextCss("normal")).toBe(10);
-    expect(minTextCss("large")).toBe(10 * LARGE_TEXT_K);
+  it("ships with the floor at 11 CSS px (13.75 large) and taps at 44 (stage 2, research M7)", () => {
+    expect(MIN_TEXT_CSS).toBe(11);
+    expect(minTextCss("normal")).toBe(11);
+    expect(minTextCss("large")).toBe(11 * LARGE_TEXT_K);
     expect(MIN_HIT_CSS).toBe(44);
     expect(BACKDROP_FRAC).toBeLessThan(0.5);
   });

@@ -1,32 +1,38 @@
 // PHONE MODE: readability. The game is a 960x540 picture shown at about 0.63 to 0.72 of its size on a phone, so an
-// 11 px label ends up 7 to 8 CSS px and a 25 px tall menu row 18 px. This is the mechanism the audit's phase 3 asks
-// for, phones only:
+// 11 px label ends up 7 to 8 CSS px and a 25 px tall menu row 18 px. Phones only:
 //
-//  1. A FONT FLOOR. Every canvas text is drawn at least MIN_TEXT_CSS (10) CSS px tall on the real screen (12.5 with
-//     the "large" text size): font px x the text's own scale x its containers' scale x the camera zoom x the canvas
-//     scale. Applied where every Phaser Text is (re)drawn (Text.updateText), so all 1,200 `add.text` calls get it
-//     without being edited; the size the game asked for is kept, so turning it off puts every text back exactly.
-//  2. A MINIMUM TAP SIZE. A touch that lands on nothing (or only on a big backdrop such as a tap-anywhere zone) goes to
-//     the nearest small interactive object whose tap area, grown to at least MIN_HIT_CSS (44) CSS px each way about
-//     its own middle, contains the touch. The drawing never moves, and a touch that lands ON a control always goes to
-//     that control (so two close buttons can never steal each other's taps: the nearest wins in the gap).
+//  1. A FONT FLOOR (the "Bigger text" setting, ON by default since stage 2). Every canvas text is drawn at least
+//     MIN_TEXT_CSS (11) CSS px tall on the real screen (13.75 with the "large" text size): font px x the text's own
+//     scale x its containers' scale x the camera zoom x the canvas scale. Applied where every Phaser Text is
+//     (re)drawn (Text.updateText), so all 1,200 `add.text` calls get it without being edited; the size the game asked
+//     for is kept, so turning it off puts every text back exactly. READING text (marked with `markReading()`: the
+//     dialogue body, choices, Messenger pings, TV subtitles, the book and the group chat) gets READ_TEXT_CSS (16) instead,
+//     and speaker names NAME_TEXT_CSS (14). The screens that would overflow are laid out for it (screens.ts,
+//     dialogue.ts).
+//  2. A MINIMUM TAP SIZE (always on in phone mode, whatever the text size). A touch that lands on nothing (or only on
+//     a big backdrop such as a tap-anywhere zone) goes to the nearest small interactive object whose tap area, grown to
+//     at least MIN_HIT_CSS (44) CSS px each way about its own middle, contains the touch. The drawing never moves, and
+//     a touch that lands ON a control always goes to that control (so two close buttons can never steal each other's
+//     taps: the nearest wins in the gap). The menus are spaced so every control gets its 44 px (screens.ts).
 //
-// Raising fonts overflows some of today's layouts until stage 2 fixes them screen by screen, so this ships OFF:
-//   - the phone setting `readability` (settings.ts), default false; `textSize` normal / large;
-//   - "?mobileread=1" / "?mobileread=0" in the address overrides the setting for that visit (not stored).
-// While it has never been on, nothing is patched at all: phone text is exactly what it was before. On a laptop none
-// of this is ever loaded into action (installMobile returns before it).
+// The switch: the phone setting `readability` (settings.ts, default true; "Bigger text" on the Phone settings page),
+// `textSize` normal / large; "?mobileread=1" / "?mobileread=0" in the address overrides it for one visit (not stored).
+// On a laptop none of this is ever loaded (installMobile returns before it).
 import Phaser from "phaser";
 import { onPhoneSettingsChange, phoneSettings } from "./settings";
-import { BACKDROP_FRAC, growBy, MIN_HIT_CSS, minTextCss, parseReadParam, readabilityWanted, SWEEP_EVERY, textFloorPx, flooredSize, usableFactor, type Box } from "./readable";
+import { BACKDROP_FRAC, gamePx, growBy, MIN_HIT_CSS, minTextCss, nameTextCss, parseReadParam, readabilityWanted, readTextCss, roleTextCss, SWEEP_EVERY, textFloorPx, flooredSize, usableFactor, type Box } from "./readable";
 
 export * from "./readable";
 
 // ------------------------------------------------------------------ the live mechanism (phones only)
 
+/** What a text is for: reading text and speaker names get a bigger floor than labels. */
+export type TextRole = "read" | "name" | "button";
+
 type AnyText = Phaser.GameObjects.Text & {
   __mfFactor?: number;
   __mfLast?: number;
+  __mfRole?: TextRole;
   parentContainer?: Phaser.GameObjects.Container | null;
 };
 type AnyStyle = Phaser.GameObjects.TextStyle & { __mfReq?: number; __mfApplied?: string; fontSize: string | number };
@@ -60,7 +66,7 @@ function patchOnce() {
   IP.hitTestPointer = function (this: Bag, pointer: Phaser.Input.Pointer) {
     const over = innerHit.call(this, pointer);
     const R = active;
-    if (!R || !R.on || !pointer || !(pointer as unknown as Bag).wasTouch) return over;
+    if (!R || !pointer || !(pointer as unknown as Bag).wasTouch) return over;
     try {
       return R.snap(this, pointer, over);
     } catch {
@@ -84,6 +90,7 @@ export class Readability {
   private off: () => void;
   /** For tests / diagnostics: how many texts were raised by the last refresh, and how many snaps happened. */
   stats = { raised: 0, snaps: 0, refreshes: 0 };
+  private changeListeners = new Set<() => void>();
 
   constructor(
     readonly game: Phaser.Game,
@@ -92,10 +99,15 @@ export class Readability {
     this.param = parseReadParam(search);
     active = this;
     this.measure();
+    // (the tap snap is on in phone mode whatever the text size: the patch goes in now)
+    patchOnce();
     this.set(readabilityWanted(phoneSettings().readability, this.param));
     this.off = onPhoneSettingsChange((s, changed) => {
       if (changed.includes("readability")) this.set(readabilityWanted(s.readability, this.param));
-      else if (changed.includes("textSize") && this.on) this.refreshAll();
+      else if (changed.includes("textSize") && this.on) {
+        this.refreshAll();
+        this.changed();
+      }
     });
   }
 
@@ -104,20 +116,62 @@ export class Readability {
     return minTextCss(phoneSettings().textSize);
   }
 
+  /** The reading size in CSS px now (16, or 20 with large text). */
+  get readCss(): number {
+    return readTextCss(phoneSettings().textSize);
+  }
+
+  /** Game px a layout needs to show `css` CSS px at the canvas scale now (e.g. 44 for a tap row). */
+  gameFor(css: number): number {
+    return gamePx(this.k, css);
+  }
+
+  /**
+   * The reading font for a layout (game px, at scale 1): READ_TEXT_CSS when the floor is on, else `fallback` (what
+   * the game itself uses). Layouts that re-flow for reading text call this.
+   */
+  readPx(fallback: number): number {
+    return this.on ? Math.max(fallback, gamePx(this.k, this.readCss)) : fallback;
+  }
+
+  /** The speaker-name font (game px): NAME_TEXT_CSS when the floor is on, else `fallback`. */
+  namePx(fallback: number): number {
+    return this.on ? Math.max(fallback, gamePx(this.k, nameTextCss(phoneSettings().textSize))) : fallback;
+  }
+
+  /** Something that lays itself out for the floor (screens.ts, dialogue.ts): told when the floor changes. */
+  onChange(fn: () => void): () => void {
+    this.changeListeners.add(fn);
+    return () => this.changeListeners.delete(fn);
+  }
+
+  private changed() {
+    for (const fn of [...this.changeListeners]) {
+      try {
+        fn();
+      } catch {
+        /* one broken layout must not stop the others */
+      }
+    }
+  }
+
   /** Turn it on or off (every text on every scene is redrawn at once, both ways). */
   set(on: boolean) {
     if (on === this.on) return;
     this.on = on;
     if (on) patchOnce();
     if (patched) this.refreshAll();
+    this.changed();
   }
 
   /** Every game frame (phones only). */
   frame() {
     if (!this.on) return;
     if (++this.frames % SWEEP_EVERY) return;
-    if (this.measure()) this.refreshAll();
-    else this.sweep();
+    if (this.measure()) {
+      this.refreshAll();
+      this.changed();
+    } else this.sweep();
   }
 
   /** Re-read the canvas scale; true when the floor changed (Safari's bars came or went). Upright is ignored. */
@@ -142,9 +196,9 @@ export class Readability {
     return parseFloat(cur) || 16;
   }
 
-  /** The floor for one text (game px). */
+  /** The floor for one text (game px): reading text and names get theirs, everything else the label floor. */
   floorFor(t: AnyText): number {
-    return textFloorPx(this.k, t.__mfFactor ?? 1, this.minCss);
+    return textFloorPx(this.k, t.__mfFactor ?? 1, roleTextCss(t.__mfRole, phoneSettings().textSize));
   }
 
   /** Text.updateText, phones with readability ever turned on. */
@@ -327,4 +381,22 @@ function hitBox(go: Bag): Box | null {
 /** The running mechanism (phones only), or null. */
 export function readability(): Readability | null {
   return active;
+}
+
+/**
+ * Mark a text as reading text ("read": 16 CSS px) or a speaker name ("name": 14) for the floor (null: a label again).
+ * Phones only (the floor only exists there); harmless on a text that is already marked. Redraws it at once when the
+ * floor is on.
+ */
+export function markReading(t: Phaser.GameObjects.Text | null | undefined, role: TextRole | null = "read") {
+  const a = t as AnyText | null | undefined;
+  if (!a || (a.__mfRole ?? null) === role) return;
+  a.__mfRole = role ?? undefined;
+  if (active?.on && a.scene) {
+    try {
+      a.updateText();
+    } catch {
+      /* a text mid-destroy */
+    }
+  }
 }

@@ -32,9 +32,9 @@ export interface PhoneSettings {
   phoneAssist: boolean;
   /** Cap the game at 30 frames a second (cooler phone, longer battery). */
   batterySaver: boolean;
-  /** Bigger text and bigger tap areas on the canvas (readability.ts). Off until stage 2 has fixed the layouts. */
+  /** Bigger text on the canvas (readability.ts): labels at least 11 CSS px, reading text 16. On by default (stage 2). */
   readability: boolean;
-  /** With readability on: normal (no text under 10 CSS px) or large (12.5). */
+  /** With readability on: normal (labels 11 CSS px, reading 16) or large (x1.25). */
   textSize: TextSize;
   /** A short buzz on presses where the phone supports it (Android; iPhone browsers cannot vibrate). */
   haptics: boolean;
@@ -55,7 +55,8 @@ export const DEFAULT_PHONE_SETTINGS: Readonly<PhoneSettings> = Object.freeze({
   aimAssist: "normal",
   phoneAssist: true,
   batterySaver: false,
-  readability: false,
+  // (on since stage 2, when every menu and conversation was laid out for it; anyone who turned it off keeps it off)
+  readability: true,
   textSize: "normal",
   haptics: true,
   syncOffsetMs: 0,
@@ -330,12 +331,12 @@ export const PHONE_SETTINGS: SettingSpec[] = [
   { key: "leftHanded", type: "toggle", group: "controls", live: true, label: "Left-handed", help: "Stick on the right, buttons on the left." },
   { key: "buttonSize", type: "choice", group: "controls", live: true, label: "Button size", help: "How big the touch buttons are.", options: [{ value: "S", label: "S" }, { value: "M", label: "M" }, { value: "L", label: "L" }] },
   { key: "opacity", type: "slider", group: "controls", live: true, label: "Button visibility", help: "How see-through the buttons are.", min: 0.2, max: 0.8, step: 0.1, unit: "%" },
-  { key: "stick", type: "choice", group: "controls", live: true, label: "Stick", help: "Follows your thumb, or stays in one place.", options: [{ value: "floating", label: "FOLLOWS THUMB" }, { value: "fixed", label: "STAYS PUT" }] },
+  { key: "stick", type: "choice", group: "controls", live: true, label: "Stick", help: "Follows your thumb, or stays in one place.", options: [{ value: "floating", label: "FOLLOWS" }, { value: "fixed", label: "STAYS" }] },
   { key: "haptics", type: "toggle", group: "controls", live: true, label: "Vibration", help: "A little buzz on presses (Android only)." },
   { key: "autoFire", type: "toggle", group: "combat", live: false, label: "Auto-fire", help: "Shoots by itself when an enemy is in range." },
   { key: "aimAssist", type: "choice", group: "combat", live: false, label: "Aim assist", help: "How much the game aims for you.", options: [{ value: "off", label: "OFF" }, { value: "normal", label: "NORMAL" }, { value: "strong", label: "STRONG" }] },
   { key: "phoneAssist", type: "toggle", group: "combat", live: false, label: "Phone assist", help: "Kinder timing and jumping for thumbs." },
-  { key: "readability", type: "toggle", group: "display", live: true, label: "Bigger text", help: "Bigger words and easier taps." },
+  { key: "readability", type: "toggle", group: "display", live: true, label: "Bigger text", help: "Bigger words in menus and conversations." },
   { key: "textSize", type: "choice", group: "display", live: true, label: "Text size", help: "How big the bigger text is.", options: [{ value: "normal", label: "NORMAL" }, { value: "large", label: "LARGE" }] },
   { key: "batterySaver", type: "toggle", group: "display", live: true, label: "Battery saver", help: "30 frames a second: cooler phone, longer battery." },
   { key: "syncOffsetMs", type: "slider", group: "sound", live: false, label: "Rhythm sync", help: "Taps judged late? Move it up.", min: -300, max: 300, step: 5, unit: "ms" },

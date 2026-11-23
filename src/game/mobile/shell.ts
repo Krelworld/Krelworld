@@ -14,7 +14,9 @@
 //    player leaves fullscreen (iPhone has no fullscreen: the Add to Home Screen guide, homeScreen.ts, is its route).
 //    Messages the game pins to <body> (the crash guard's notices) are moved into the fullscreen element so they show;
 //  - the back gesture: one guard entry in the history, so a stray back swipe pauses the game instead of leaving it,
-//    and does nothing where the game can't pause (the title, a conversation, a menu). A back while the pause menu is
+//    closes a phone overlay first (the conversation log, the Phone settings page, the guide), opens the pause menu in
+//    a meeting / cutscene / vignette (the laptop's Esc), and does nothing where the game can't pause (the title, a
+//    town conversation, a menu). A back while the pause menu is
 //    showing leaves.
 import type Phaser from "phaser";
 import { synth } from "../audio/Synth";
@@ -453,9 +455,31 @@ export class Shell {
     }
   }
 
+  /** Phone overlays and conversations that answer Back first (dialogue.ts, settingsPage.ts, the guide): true = done. */
+  private backHandlers: (() => boolean)[] = [];
+
+  /** Something that answers Android's Back before the game does (in the order added). */
+  addBackHandler(fn: () => boolean) {
+    this.backHandlers.push(fn);
+  }
+
   private onBack() {
     if (!this.guardArmed) return;
     this.guardArmed = false;
+    // a phone overlay closes (the conversation log, the Phone settings page, the guide), or a conversation with a pause
+    // menu opens it (dialogue.ts): the guard goes straight back up
+    for (const fn of this.backHandlers) {
+      let done = false;
+      try {
+        done = fn();
+      } catch {
+        done = false;
+      }
+      if (done) {
+        this.armGuard();
+        return;
+      }
+    }
     // a back while the pause menu is showing leaves the game (the guard is already gone: go back past it)
     if (this.pauseMenuShowing()) {
       try {

@@ -25,6 +25,7 @@ import { synth } from "../audio/Synth";
 import {
   followBase,
   ghostStick,
+  ghostClear,
   inRect,
   layoutSlots,
   outsideZone,
@@ -43,6 +44,7 @@ import { onPhoneSettingsChange, phoneSettings } from "./settings";
 import { NONE, resolveMode, sameDecision, type LayerMode, type ModeDecision } from "./modes";
 import { dropEdges, playerRect, pressInteract, pressPause, pressSanmik, promptRect, readView, releaseLegacyPad, targetRect } from "./observe";
 import { haptic, type HapticKind } from "./haptics";
+import { cueSeen, markCue } from "./cues";
 
 /** A touch that moves less than this is still a tap (Android uses 8 dp, iOS 10 pt). */
 export const TAP_SLOP = 10;
@@ -389,6 +391,9 @@ export class TouchLayer {
   private learnedMove = false;
   private stickFreeAt = 0;
   private ghostOn: boolean | null = null;
+  /** Where the idle stick is drawn now ("x,y,see"), so it is only moved when that changes. */
+  private ghostKey = "";
+  private ghostCheck = 0;
   private insetsOverride: Insets | null = null;
   /** Edges this layer set, and when (dropped if the mode moves on before a scene reads them). */
   private myEdges = new Map<string, number>();
@@ -416,7 +421,19 @@ export class TouchLayer {
     this.bindTap("bubble");
     this.bindTap("target");
     this.builtIn = {
-      action: this.addControl({ id: "action", slot: "prime", className: "kt-action", haptic: "press", onDown: () => this.edge("interact") }),
+      action: this.addControl({
+        id: "action",
+        slot: "prime",
+        className: "kt-action",
+        haptic: "press",
+        onDown: (c) => {
+          if (!cueSeen("action")) {
+            markCue("action");
+            c.el.classList.remove("cue");
+          }
+          this.edge("interact");
+        },
+      }),
       sanmik: this.addControl({ id: "sanmik", slot: "walkExtra", className: "kt-sanmik", label: "SANMIK", onDown: () => this.edge("sanmik") }),
       pause: this.addControl({ id: "pause", slot: "pause", className: "kt-pause", html: `<span class="kt-bars"><i></i><i></i></span>`, fade: false, onDown: () => this.pause() }),
       fullscreen: this.addControl({
@@ -511,10 +528,30 @@ export class TouchLayer {
     for (const c of controllersFor(this.decision.mode)) c.layout?.(ctx);
   }
 
+  /**
+   * The idle stick's resting place: kept off the player (the gate's note: at 750x340 it covered the player at Home's
+   * far left). A floating stick's hint ring moves beside the player; a fixed stick stays put and goes see-through.
+   */
   private placeGhost() {
-    const p = ghostStick(this.viewport, phoneSettings());
-    this.stickEl.style.transform = `translate(${p.x}px,${p.y}px)`;
+    const p0 = ghostStick(this.viewport, phoneSettings());
+    let p: { x: number; y: number } | null = p0;
+    if (this.ghostOn && this.decision.mode === "walk") {
+      let me: Rect | null = null;
+      try {
+        me = playerRect(this.game, this.decision);
+      } catch {
+        me = null;
+      }
+      p = phoneSettings().stick === "fixed" ? (ghostClear(p0, this.geo.base / 2, me, this.zoneRect) === p0 ? p0 : null) : ghostClear(p0, this.geo.base / 2, me, this.zoneRect);
+    }
+    const see = p === null;
+    const at = p ?? p0;
+    const key = `${Math.round(at.x)},${Math.round(at.y)},${see}`;
+    if (key === this.ghostKey) return;
+    this.ghostKey = key;
+    this.stickEl.style.transform = `translate(${at.x}px,${at.y}px)`;
     this.knobEl.style.transform = "translate(0px,0px)";
+    this.stickEl.classList.toggle("see", see);
   }
 
   // ------------------------------------------------------------------ modes
@@ -558,6 +595,8 @@ export class TouchLayer {
     const act = this.builtIn.action;
     if (d.action) act.setLabel(d.action);
     act.show(walk && !!d.action, true);
+    // the first time ACTION matters it pulses (research S10), until it is pressed once on this phone
+    act.el.classList.toggle("cue", act.shown && !cueSeen("action"));
     this.builtIn.sanmik.show(walk && !!d.sanmik);
     const pauseWas = this.builtIn.pause.shown;
     this.builtIn.pause.show(!!d.pause && !!d.pauseButton && !d.legacyPad);
@@ -648,6 +687,7 @@ export class TouchLayer {
       s.bx = nb.x;
       s.by = nb.y;
       this.stickEl.style.transform = `translate(${s.bx}px,${s.by}px)`;
+      this.ghostKey = "";
     }
     // (fixed: the knob stops at the rim; the direction still counts from anywhere in the zone)
     const v = stickVector(x - s.bx, y - s.by, g);
@@ -656,6 +696,11 @@ export class TouchLayer {
     if (v.mag > 0.5 && !this.learnedMove) {
       this.learnedMove = true;
       this.capEl.style.display = "none";
+    }
+    // (the first-time pulse on the idle stick: done once the player has walked with it, on this phone for good)
+    if (v.mag > 0.5 && !cueSeen("move")) {
+      markCue("move");
+      this.stickEl.classList.remove("cue");
     }
     let kx = x - s.bx;
     let ky = g.axis === "x" ? 0 : y - s.by;
@@ -703,9 +748,14 @@ export class TouchLayer {
     const d = this.decision;
     const stickMode = !!d.stick && !d.legacyPad;
     const on = stickMode && !this.stick && (!this.learnedMove || now() - this.stickFreeAt < GHOST_FADE_MS);
+    // (while it shows, keep it off the player: checked every few frames, moved only when that changes)
+    if (on && !this.stick && ++this.ghostCheck % 6 === 0) this.placeGhost();
     if (on === this.ghostOn) return;
     this.ghostOn = on;
     this.stickEl.classList.toggle("ghost", on);
+    // the first time it matters, the idle stick pulses (research S10), until the player has walked with it
+    this.stickEl.classList.toggle("cue", on && d.mode === "walk" && !cueSeen("move"));
+    if (on && !this.stick) this.placeGhost();
   }
 
   // ------------------------------------------------------------------ taps: the prompt's ACTION, or the game

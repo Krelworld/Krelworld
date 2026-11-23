@@ -53,7 +53,40 @@ export const TOUCH_WORDING: WordingRule[] = [
   { id: "wasd-walk", re: /\bWASD(?:\s*\/\s*arrows)?(?:\s*\(or the stick\))? to walk\b/g, to: "Drag on the left to walk" },
   // key captions on their own (a button already says what it does): nothing at all
   { id: "caption-keys", re: /^(?:Space \/ E \/ click|Space \/ E|Enter \/ E|Tab|Esc|ESC|Enter)$/, to: "" },
+  // (stage 2) the dialogue box's footer "▼ E / Space · Tab skip": the arrow alone (the SKIP pill does the skipping)
+  { id: "dialogue-footer", re: /^▼ E \/ Space\s*·\s*Tab skip$/, to: "▼" },
+  // the Messenger reaction card's "REACT  (1-5 or click)"
+  { id: "react-keys", re: /^REACT\s+\(1-5 or click\)$/, to: "REACT" },
+  // the Difficulty / Banter screens: "↑/↓ or 1–5 to pick · ENTER / A to go on · tap twice on touch"
+  { id: "pick-twice", re: /^↑\/↓ or 1–\d to pick · ENTER \/ A to (go on|start) · tap twice on touch$/, to: "Tap one, then tap it again to $1" },
+  // the title's key line "WASD · Mouse · Click · Space · E · Q · B · R · Esc": nothing on a phone
+  { id: "title-keys", re: /^WASD · Mouse · Click · Space · E · Q · B · R · Esc$/, to: "" },
 ];
+
+/**
+ * Hard rule 3's one exception: control instructions said by the game's own NARRATOR (stage directions, "TIP:" lines),
+ * never a character's line. Shown in touch wording on a phone only (the dialogue box's shownText, dialogue.ts); the
+ * laptop line is unchanged, and so is every other word of the line. Each rule names the exact phrase it swaps; the
+ * stage 2 report lists every line they reach. Combat and side-room tips (F to headbutt, W to jump, the dungeon's
+ * CONTROLS line, the run-and-gun legends) are left for the combat controls, whose button names they would need.
+ */
+export const NARRATOR_TIPS: WordingRule[] = [
+  // Home's welcome: "TIP: WASD / arrows (or the stick) to walk. E to use things. Have a look round: ..."
+  { id: "home-walk", re: /^TIP: WASD \/ arrows \(or the stick\) to walk\. E to use things\./, to: "TIP: Drag on the left to walk. Tap things to use them." },
+  // Home: "(The telly's on the left: walk up and press E.)", "Walk up to it and press E." (the telly, the gun rack)
+  { id: "walk-up-press-e", re: /\b([Ww]alk up(?: to it)?) and press E\b/g, to: "$1 and tap it" },
+  // the playground side quest: "...walk up to the playground fence and press E to throw a sweetie", "... and press E to take the photo"
+  { id: "and-press-e-to", re: /\band press E to\b/g, to: "and tap to" },
+  // Kreddle: "TIP: talk to the locals (E). Play the machines..."
+  { id: "locals-e", re: /\btalk to the locals \(E\)/g, to: "talk to the locals (tap them)" },
+  // Krebon's stage: "Tap / SPACE to prance."
+  { id: "tap-space", re: /\bTap \/ SPACE\b/g, to: "Tap" },
+];
+
+/** A narrator line as a phone shows it (pure: the table walk). Only ever called for NARRATOR / stage-direction lines. */
+export function narratorTip(text: string, rules: readonly WordingRule[] = NARRATOR_TIPS): string {
+  return touchWording(text, rules);
+}
 
 /** Add a rule (at the end by default, so the stage 1 rows run first). */
 export function addWording(rule: WordingRule, at: "front" | "back" = "back") {
@@ -132,6 +165,10 @@ export const UI_TEXTS: Record<string, RegExp[]> = {
   Home: [/^ESC or ✕ to close$/],
   // the Enter gate's "PRESS ANY KEY" / "OR CLICK / TAP"
   Enter: [/^PRESS ANY KEY$/, /^OR CLICK \/ TAP$/],
+  // (stage 2) the title's key line, and the Difficulty / Banter screens' "↑/↓ or 1–5 to pick · ENTER / A ..."
+  Title: [/^WASD · Mouse · Click · Space/],
+  Difficulty: [/^↑\/↓ or 1–\d to pick/],
+  Banter: [/^↑\/↓ or 1–\d to pick/],
 };
 
 /** Phones only: watches the scenes above and applies the wording. */

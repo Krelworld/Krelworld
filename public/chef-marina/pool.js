@@ -670,7 +670,7 @@
         }
         break; }
       case 'marco': {                                 // he shuts his eyes and calls; she answers; he wades to where she WAS. Under the water she can sneak right past.
-        if (G.ph === 'gather') { if (aMove(A, clamp(A.x, STAND0 + 30, STAND1 - 30), dt) || G.t > 6) { go('seek'); G.callT = 0.7; G.calls = 0; G.ansT = 0; G.tx = null; bub(A, '🙈', 1.5); } break; }
+        if (G.ph === 'gather') { if (aMove(A, clamp(A.x, STAND0 + 30, STAND1 - 30), dt) || G.t > 6) { go('seek'); G.callT = 0.7; G.calls = 0; G.ansT = 0; G.tx = null; bub(A, '🙈', 1.5); bub(M, '🏃', 1.5); } break; }
         A.lying = false; A.y = floorAt(A.x);
         if (G.ph === 'seek') {
           A.pose = 'eyes'; G.callT -= dt;
@@ -680,7 +680,7 @@
             else { bub(A, '❓', 1.2); G.tx = clamp(A.x + rnd(-34, 34), STAND0, STAND1); } } }
           if (G.tx != null) { const d = G.tx - A.x; if (Math.abs(d) > 2) { A.dir = sgn(d); A.x += A.dir * 38 * dt; A.dip = Math.abs(Math.sin(S.t * 6)) * 2; A.stepT -= dt; if (A.stepT <= 0) { A.stepT = 0.4; poke(A.x + A.dir * 9, 18, 6); } } else { G.tx = null; A.dip = 0; } }
           const near = Math.abs(M.x - A.x) < 21 && M.wet;
-          if (near && (M.st === 'swim' || M.st === 'float') && !M.under) { go('tag'); A.pose = 'up'; A.dip = 0; A.dir = sgn(M.x - A.x); bub(A, '🤗', 1.6); if (!line(A.c + '_caught')) SND.win(); bub(M, '😆', 1.6); for (let i = 0; i < 14; i++) spark(M.x + rnd(-14, 14), M.y - rnd(0, 30)); }
+          if (near && G.t > 3.6 && (M.st === 'swim' || M.st === 'float') && !M.under) { go('tag'); A.pose = 'up'; A.dip = 0; A.dir = sgn(M.x - A.x); bub(A, '🤗', 1.6); if (!line(A.c + '_caught')) SND.win(); bub(M, '😆', 1.6); for (let i = 0; i < 14; i++) spark(M.x + rnd(-14, 14), M.y - rnd(0, 30)); }
           else if (near && M.under && S.t > (G.sneak || 0)) { G.sneak = S.t + 3; for (let i = 0; i < 10; i++) spark(M.x + rnd(-10, 10), M.y + rnd(-8, 8)); SND.sparkle(); bub(M, '🤫', 1.2); }
         } else { A.pose = 'up'; if (G.t > 2.5) endGame(); }
         break; }
@@ -1172,6 +1172,7 @@
     for (const l of S.lens) { if (t < l.t) continue; const a = clamp(1 - (t - l.t) / l.life, 0, 1), x = l.x * V.w, y = l.y * V.h; g.fillStyle = 'rgba(214,246,255,' + (0.4 * a).toFixed(2) + ')'; g.beginPath(); g.arc(x, y, l.r, 0, TAU); g.fill(); px(g, x, y - l.r - 4, 1, 4, 'rgba(214,246,255,' + (0.22 * a).toFixed(2) + ')'); px(g, x - l.r / 3, y - l.r / 3, 1, 1, 'rgba(255,255,255,' + (0.95 * a).toFixed(2) + ')'); }
   }
 
-  window.Pool = { open, close: () => finish(), suit: () => { readLook(); return LOOK.known ? LOOK.suit : null; }, state, get active() { return !!S; } };
+  window.Pool = { open, close: () => finish(), suit: () => { readLook(); return LOOK.known ? LOOK.suit : null; }, state, get active() { return !!S; },
+    _peek: (key, suit, x) => (ART ? mframe(key, { suit: suit || LOOK.suit, x: x || {} }) : null), _suits: SUITS.map(s => s.id), _load: loadArt };        // _peek: one of her frames in a given suit (for tests)
   setTimeout(() => { try { loadArt(); voIndex(); } catch (e) { } }, 7000);          // fetch the pictures quietly once the game itself has settled
 })();

@@ -54,10 +54,17 @@ const GRAND = (() => {
         const x = e.x - 13 + 26 * ph, yy = drop ? y - 30 + (u - 0.72) * 260 : y - 62 - Math.sin(ph * Math.PI) * 34; E.ctx.save(); E.ctx.translate(Math.round(x - E.camX), Math.round(Math.min(yy, y - 4))); E.ctx.rotate(E.t * 9 + i * 2); E.ctx.font = '11px serif'; E.ctx.textAlign = 'center'; E.ctx.textBaseline = 'middle'; E.ctx.fillText(['🔨', '🔧', '🪛'][i], 0, 0); E.ctx.restore(); } }
   };
 
+  // ---------------------------------------------------------------- while a full-screen activity is open (pool, building, a film, drawing, a story…) the house keeps quiet:
+  // nobody wanders up to chat, nobody greets her from the doorway, and no "I want to…" wish pops up behind it
+  const fullScreen = () => { const p = document.getElementById('panel'); return (p && !p.classList.contains('hidden')) || !!(window.Studio && Studio.active) || !!document.querySelector('#storyBox,#stkBox'); };
+  { const _ap = AI.person; AI.person = function (e, dt) { if (fullScreen()) return; return _ap.call(this, e, dt); }; }
+  { const _ob = onEnterRoomBy; onEnterRoomBy = function (e) { if (fullScreen()) return; return _ob(e); }; }
+  if (typeof showWish === 'function') { const _sw = showWish; showWish = function (k) { if (fullScreen()) return; return _sw(k); }; }
   // ---------------------------------------------------------------- what they do on their own
   const _up = AI.update;
   AI.update = function (dt) { _up.call(this, dt); try { live(nunu, dt); live(jeff, dt); happenings(dt); } catch (e) { if (!S.warned) { S.warned = 1; console.warn('grand', e); } } };
   function live(e, dt) {
+    if (fullScreen()) return;
     if (e.hidden || AI.held.has(e) || e.state === 'toilet' || (G.fort && G.fort.guests.includes(e))) return;
     e.wait = (e.wait || rnd(3, 7)) - dt; if (e.moving || e.wait > 0) return; e.wait = rnd(7, 15);
     const home = e === nunu ? DOWN : ['backyard'];

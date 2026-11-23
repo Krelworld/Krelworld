@@ -398,7 +398,7 @@
   function tapMinka() {
     UI.closeActions();
     if (NK.on) return UI.actions(anchor, [A('🙅', stepIn)]);
-    if (M.scene || !(vis() || mk.watch)) return;
+    if (M.scene || H.on || !(vis() || mk.watch)) return;
     const L = lvl(), d = Math.abs(marina.x - mk.x), want = [56, 34, 24][L];
     UI.actions(anchor, choices());
     if (d > want + 8 && !marina.mount && !['sit', 'perch', 'anim', 'wheel'].includes(marina.state)) {      // she tiptoes over, quiet as a mouse
@@ -415,6 +415,7 @@
   }
   function slowBlink() { mk.blinkT = E.t + 0.9; setTimeout(() => { if (mk) mk.blinkT = E.t + 0.7; }, 1500); if (lvl() >= 1) setTimeout(() => { if (vis()) emit('heart', mk.x, feetY() - 22, 1, { size: 8 }); }, 700); }
   function scene(fn) {
+    if (H.on && !H.in) endHide('scene', true);
     if (M.tok) M.tok.dead = true; job(); mk.stop(); mk.trip = null; M.scene = true;
     const tok = run(fn, t => { if (M.tok !== t) return; M.tok = null; M.scene = false; mk.creep = false; mk.rot = 0; if (mk.an && !mk.anUntil) mk.an = null; if (FX.treat && FX.treat.tok === t) FX.treat = null; if (FX.feather && FX.feather.tok === t) FX.feather = null; });
     M.tok = tok; return tok;
@@ -599,10 +600,10 @@
     await W(tok, 1900);
   }
   function hideTick(dt) {
-    const s = H.spot; if (!s) { H.on = false; return; } if (!H.in) return;
+    const s = H.spot; if (!s) { H.on = false; return; } if (!H.in) { if (!M.scene && E.t - H.t0 > 10) endHide('stuck', true); return; }
     const p = propOf(s); if (!p) return endHide('gone');
     if (!isDown(G.room)) { if (!H.leftAt) H.leftAt = E.t; if (E.t - H.leftAt > 40) return endHide('timeout'); } else { H.leftAt = 0; if (!H.said) announce(); }
-    if (E.t - H.t0 > 240) return endHide('timeout');
+    if (E.t - H.t0 > 100) return endHide('timeout');                 // nobody came looking: she comes out by herself
     const cl = H.cl, here = G.room === s.room, d = here ? Math.abs(marina.x - p.x) : 999;
     cl.rise += ((cl.riseTo || 0) - cl.rise) * Math.min(1, dt * 7);
     if (here && d < 30 && !H.busy) cl.riseTo = 0;            // she ducks when Marina is right beside her
@@ -628,7 +629,7 @@
     if (!(b in prev)) return null; let cur = b; while (prev[cur] && prev[cur][0] !== a) cur = prev[cur][0]; return [cur, prev[cur][1]];
   }
   function travel(to, cb, sp) {
-    const j = job(); mk.stop(); mk.watch = null; mk.trip = j; sp = sp || 46;
+    const j = job(); mk.stop(); mk.watch = null; mk.trip = j; mk.tripT = E.t; sp = sp || 46;
     const step = () => {
       if (mk.job !== j) return;
       if (mk.room === to) { mk.trip = null; mk.hidden = false; cb && cb(); return; }
@@ -677,7 +678,8 @@
     return true;
   }
   function edgeSpot() {      // upstairs she keeps to the edges of a room, along the wall
-    const R = RW(mk.room), x = chance(0.5) ? rnd(18, 64) : rnd(R - 64, R - 18), j = job();
+    const R = RW(mk.room), j = job(), [va, vb] = viewB(mk.room), seen = mk.room === G.room && chance(0.6);       // the ends of the room, or the edges of what Marina can see
+    const x = seen ? (chance(0.5) ? va + rnd(0, 14) : vb - rnd(0, 14)) : chance(0.5) ? rnd(18, 64) : rnd(R - 64, R - 18);
     mk.walkTo(x, () => { if (mk.job !== j) return; mk.state = pick(['sit', 'sit', 'loaf', 'stand']); mk.dir = x < R / 2 ? 1 : -1; }, 34, 150);
   }
   function goHome(fast) {
@@ -688,6 +690,7 @@
 
   // ================================================================ her own life
   function think(dt) {
+    if (mk.trip && E.t - (mk.tripT || 0) > 50 && !M.scene && !NK.hold) { mk.trip = null; mk.hidden = false; mk.alpha = 1; mk.oy = 0; if (isDown(mk.room) || M.mode !== 'up') { M.mode = 'home'; const n = naps(mk.room); restAt(n.length ? pick(n) : NAPS[0]); } else goHome(); return; }
     if (mk.trip || M.scene || H.on || NK.hold) return;
     if (mk.resume) { if (E.t < mk.freezeT) return; const r = mk.resume; mk.resume = null; mk.state = 'stand'; mk.walkTo(r.tx, r.cb, r.sp, r.ty); return; }
     if (mk.an && mk.anUntil && E.t > mk.anUntil) { mk.an = null; mk.anUntil = 0; }
@@ -822,7 +825,7 @@
   function encounter(kind, forced) {
     if (NK.hold) abortNK('restart', true); endScene(); finishArcs(mk); const j = job(); mk.stop(); mk.trip = null; mk.watch = null; mk.resume = null; mk.an = null;
     holdNiko(); NK.on = true; NK.kind = kind; NK.fight = FIGHTS.includes(kind); NK.last = kind; if (NK.fight || forced) NK.lastFight = E.t;
-    NK.tok = run(async tok => { await SEQ[kind](tok); }, tok => { if (NK.tok === tok) endNK(kind); });
+    NK.tok = run(async tok => { if (mk.perchY != null) { mk.dir = Math.sign(niko.x - mk.x) || 1; setAn('minka_leap', { once: true, dur: 0.4, move: true }); await mJump(mk.x - mk.dir * 10, null, 0.4, 8); mk.an = null; mk.state = 'sit'; mk.y = clamp(mk.y, 152, 176); if (tok.dead) throw STOP; } await SEQ[kind](tok); }, tok => { if (NK.tok === tok) endNK(kind); });
   }
   function endNK(kind, aborted) {
     const was = NK.on; NK.on = false; NK.tok = null; NK.lastEnd = E.t; FX.cloud = null; mk.hideDraw = false; mk.puff = 1; mk.alpha = 1; mk.rot = 0; mk.oy = 0; if (mk.an && !mk.anUntil) mk.an = null; mk.creep = false;
@@ -851,8 +854,8 @@
     NK.p = { k: 'mk:nk_creep_2' }; await W(tok, 650);                                 // freeze
     NK.p = nb('nk_stalk', { fps: 11, shake: true }); Audio2.blip(-8, 'triangle', 0.04, 0.05); await W(tok, 1150);      // bottom wiggle
   }
-  function viewB(room) { const R = RW(room); if (room !== G.room) return [24, R - 24]; const RR = ROOMS[room], land = E.cv.width > E.cv.height, cs = E.cssScale || 1;      // what Marina can see, clear of the side buttons
-    let a = Math.max(24, E.camX + ((RR.left ? 62 : 6) + 16) / cs), b = Math.min(R - 24, E.camX + E.viewW - ((land ? (RR.right ? 62 : 6) + 76 : 78) + 16) / cs); if (b - a < 130) { const m = (a + b) / 2; a = Math.max(24, m - 65); b = Math.min(R - 24, a + 130); } return [a, b]; }
+  function viewB(room) { const R = RW(room); if (room !== G.room) return [24, R - 24]; const RR = ROOMS[room], land = E.cv.width > E.cv.height, cs = E.cssScale || 1;      // what Marina can see, clear of the side buttons (sideways, the picture-book and dress-up buttons sit low on the right)
+    let a = Math.max(24, E.camX + ((RR.left ? 62 : 6) + 16) / cs), b = Math.min(R - 24, E.camX + E.viewW - ((land ? (RR.right ? 62 : 6) + 76 + 70 : 78) + 16) / cs); if (b - a < 130) { const m = (a + b) / 2; a = Math.max(24, m - 65); b = Math.min(R - 24, a + 130); } return [a, b]; }
   const far = (x, d) => { const R = RW(mk.room); return x + d < 24 || x + d > R - 24 ? clamp(x - d, 24, R - 24) : x + d; };
   const SEQ = {
     // he pounces — and she isn't there any more: face first into a cushion
@@ -960,21 +963,21 @@
     },
     // the moment he gets up from his sunny spot, she has it
     async sunspot(tok) {
-      const R = RW(mk.room), sx = clamp(niko.x, 70, R - 70); FX.sun = { room: mk.room, x: sx, y: 160, t0: E.t, until: E.t + 60 };
+      const [va, vb] = viewB(mk.room), sx = clamp(niko.x, va + 34, vb - 34), gap = Math.min(92, (vb - va) * 0.45); FX.sun = { room: mk.room, x: sx, y: 160, t0: E.t, until: E.t + 60 };
       NK.p = { k: 'niko' }; await go(tok, niko, sx, 40, 160); NK.p = { k: 'niko_lie' }; niko.dir = 1;
-      const side = mk.x < sx ? -1 : 1; mk.state = 'stand'; await go(tok, mk, clamp(sx + side * 92, 20, R - 20), 36, 156); mk.dir = -side; mk.state = 'sit'; await W(tok, 1800);
+      const side = mk.x < sx ? -1 : 1; mk.state = 'stand'; await go(tok, mk, clamp(sx + side * gap, va, vb), 36, 156); mk.dir = -side; mk.state = 'sit'; await W(tok, 1800);
       ev('fight', 'sunspot'); NK.p = { k: 'niko' }; emo(niko, '❗', 900); await W(tok, 500);
-      niko.dir = side === 1 ? -1 : 1; const sniffAt = clamp(sx - side * 60, 20, R - 20); go(tok, niko, sniffAt, 40).catch(() => { }); await W(tok, 300);
+      niko.dir = side === 1 ? -1 : 1; const sniffAt = clamp(sx - side * 60, va, vb); go(tok, niko, sniffAt, 40).catch(() => { }); await W(tok, 300);
       mk.state = 'stand'; await go(tok, mk, sx, 72, 160); mk.state = 'nap'; mk.dir = 1; snd('purr', { vol: 0.6 }); emo(mk, '😌', 2200);
       await W(tok, 1600); niko.dir = Math.sign(mk.x - niko.x) || 1; NK.p = { k: 'niko' }; emo(niko, '😾', 1600); sndN('meow1', { rate: 0.85, vol: 0.6 }); await W(tok, 1700);
-      await go(tok, niko, clamp(sniffAt - side * 30, 20, R - 20), 30); NK.p = { k: 'niko_lie' }; niko.dir = -niko.dir; emo(niko, '💢', 1200); await W(tok, 1800);
+      await go(tok, niko, clamp(sniffAt - side * 30, va, vb), 30); NK.p = { k: 'niko_lie' }; niko.dir = -niko.dir; emo(niko, '💢', 1200); await W(tok, 1800);
     },
     // he gets right behind her, she turns: nose to nose, both leap straight up — and dash off opposite ways
     async boing(tok) {
       mk.state = 'sit'; await stalk(tok, 46, false); await W(tok, 250);
       ev('fight', 'boing'); const side = Math.sign(niko.x - mk.x) || 1; mk.dir = side; await W(tok, 250);
       emo(mk, '❗', 900); emo(niko, '❗', 900); snd('cat_yowl', { vol: 0.75 });
-      mk.an = { k: 'mk:minka_hiss_2', t0: E.t }; NK.p = { k: 'mk:nk_startle_3', oy: 0 }; mJump(mk.x, mk.y, 0.6, 24); nJump(niko.x, 0, 0.6, 22); await W(tok, 650); mk.an = null;
+      mk.an = { k: 'mk:minka_hiss_2', t0: E.t }; NK.p = { k: 'mk:nk_startle_3', oy: 0 }; mJump(mk.x, null, 0.6, 24); nJump(niko.x, 0, 0.6, 22); await W(tok, 650); mk.an = null;
       Audio2.noise(0.1, 0.2, 300); emit('dust', mk.x, mk.y, 4); emit('dust', niko.x, niko.y, 4);
       NK.p = { k: 'niko' }; const R = RW(mk.room);
       const [va, vb] = viewB(mk.room), ml = mk.x < niko.x, a = go(tok, mk, ml ? va : vb, 112, 154), b = go(tok, niko, ml ? vb : va, 100, 162); await a; await b;
@@ -987,7 +990,7 @@
     if (NK.tok) NK.tok.dead = true; NK.tok = null; FX.cloud = null; finishArcs(mk); finishArcs(niko); twKill(mk); mk.hideDraw = false; mk.puff = 1; mk.oy = 0; mk.alpha = 1; NK.on = false; NK.lastEnd = E.t;
     if (FX.cush) FX.cush.until = E.t + 1; if (FX.sun) FX.sun.until = E.t + 2;
     ev('fight_end', 'stopped');
-    if (mk.perchY != null && mk.perchY >= 112) mk.perchY = null;
+    if (mk.perchY != null && mk.perchY >= 112) mJump(mk.x, null, 0.3, 4);
     say1('m_nofight'); emit('heart', marina.x, marina.y - 86, 1, { ch: '🙅', size: 14, vx: 0, vy: -8, life: 1.4 });
     NK.tok = run(async tok => {
       mk.stop(); niko.stop(); mk.an = null; mk.state = mk.perchY != null ? 'sit' : 'wary'; NK.p = { k: 'mk:nk_down_1' }; emo(niko, '😳', 1700); emo(mk, '😳', 1700, { dx: 0 });
@@ -1004,12 +1007,12 @@
     if (H.on) endHide('fight', true); endScene(); if (NK.hold) abortNK('restart', true);
     const R = RW(G.room); if (!canGo(G.room)) return null;
     // bring them both to where Marina is
-    mk.trip = null; job(); mk.stop(); mk.watch = null; mk.hidden = false; mk.alpha = 1; mk.oy = 0;
-    const [va, vb] = viewB(G.room), wide = vb - va > 250, s = marina.x - va > vb - marina.x ? -1 : 1;     // both of them on screen, in front of Marina
-    mk.room = G.room; mk.perchY = null; mk.x = wide ? clamp(marina.x + s * 34, va, vb) : (s > 0 ? va + (vb - va) * 0.3 : vb - (vb - va) * 0.3); mk.y = 168;
+    mk.trip = null; job(); mk.stop(); finishArcs(mk); twKill(mk); finishArcs(niko); twKill(niko); mk.watch = null; mk.hidden = false; mk.alpha = 1; mk.oy = 0; mk.an = null;
+    const [va, vb] = viewB(G.room), wide = vb - va > 190, s = marina.x - va > vb - marina.x ? -1 : 1;     // both of them on screen, in front of Marina
+    mk.room = G.room; mk.perchY = null; mk.x = wide ? clamp(marina.x + s * 30, va, vb) : (s > 0 ? va + (vb - va) * 0.25 : vb - (vb - va) * 0.25); mk.y = 168;
 
     if (niko.state === 'held') { G.holding = null; }
-    niko.room = G.room; niko.x = wide ? clamp(marina.x + s * 170, va - 10, vb + 10) : (s > 0 ? vb + 8 : va - 8); niko.state = 'wander'; niko.perchY = null; niko.y = 172;
+    niko.room = G.room; niko.x = wide ? clamp(marina.x + s * 170, va + 28, vb - 28) : (s > 0 ? vb - 40 : va + 40);      // his whole big body on the screen niko.state = 'wander'; niko.perchY = null; niko.y = 172;
     if (!valid(kind)) kind = 'stare';
     encounter(kind, true); return kind;
   }
@@ -1057,7 +1060,7 @@
       niko: typeof niko !== 'undefined' ? { room: niko.room, x: Math.round(niko.x), state: niko.state } : null }; },
     spots: SPOTS.map(s => s.id), spotRooms: Object.fromEntries(SPOTS.map(s => [s.id, s.room])), kinds: FIGHTS.concat(CALM), fights: FIGHTS.slice(), calm: CALM.slice(),
     get icon() { return null; },
-    _debug: { M, H, NK, FX, LOG, spotIcon: id => spotIcon(SPOTS.find(s => s.id === id)), spotHead: id => spotHead(SPOTS.find(s => s.id === id)), NAPS, HIGH, restAt: id => restAt(NAPS.find(n => n.id === id)), present: () => present(0, true),
+    _debug: { M, H, NK, FX, LOG, spotIcon: id => spotIcon(SPOTS.find(s => s.id === id)), spotHead: id => spotHead(SPOTS.find(s => s.id === id)), NAPS, HIGH, restAt: id => restAt(NAPS.find(n => n.id === id)), present: () => present(0, true), nikoTrip: () => { NK.tripAt = -999; M.downT = 99; maybeNikoTrip(999); },
       place(room, x, state, y) { if (NK.hold) abortNK('test', true); endScene(); if (H.on) endHide('test', true); job(); mk.stop(); mk.trip = null; mk.watch = null; mk.resume = null; mk.an = null; finishArcs(mk); mk.hidden = false; mk.alpha = 1; mk.oy = 0; mk.perchY = null; mk.room = room; mk.x = x; mk.y = y || 156; mk.state = state || 'sit'; M.mode = 'home'; mk.wait = 40; M.lastStartle = -99; M.creepAt = E.t; M.stillT = 0; }, watchAt: id => watchAt(SPOTS.find(s => s.id === id)), startle, cue: c => { const cl = H.cl; if (!cl) return; if (c === 'peek') cl.riseTo = 1; if (c === 'eyes') cl.eyesT = E.t + 3; if (c === 'wob') cl.wobT = E.t + 0.6; if (c === 'tail') cl.twT = E.t + 2; if (c === 'down') cl.riseTo = 0; }, search: id => search(SPOTS.find(s => s.id === id)) },
   };
 })();

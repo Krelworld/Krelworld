@@ -14,6 +14,7 @@
 // everything else is picture buttons.
 (function () {
   'use strict';
+  if (window.Pool) return;               // already loaded (a test may add the file twice)
   const DIR = 'assets/pool/', KEY = 'cm_swimsuit', KEYX = 'cm_swimsuit_x';
   const TAU = Math.PI * 2, clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, k) => a + (b - a) * k, rnd = (a, b) => a + Math.random() * (b - a);
   const pick = a => a[(Math.random() * a.length) | 0], ease = k => k * k * (3 - 2 * k), chance = p => Math.random() < p, sgn = v => (v < 0 ? -1 : 1);
@@ -462,7 +463,7 @@
     if (M.tx != null) {
       const deep = M.ty > 8, ty = deep ? Math.min(M.ty, floorAt(M.tx) - 9) : sy + 4, dx = M.tx - M.x, dy = ty - M.y, d = Math.hypot(dx, dy);
       if (d < 4.5 || (!deep && Math.abs(dx) < 3)) arrive(M);
-      else { const k = Math.min(1, dt * (fins ? 7 : 5)); M.vx += (dx / d * sp - M.vx) * k; M.vy += (dy / d * sp - M.vy) * k; if (Math.abs(dx) > 2) M.dir = sgn(dx); }
+      else { const k = Math.min(1, dt * (fins ? 7 : 5)), v = fins && !goal ? sp * clamp(d / 30, 0.3, 1) : sp; M.vx += (dx / d * v - M.vx) * k; M.vy += (dy / d * v - M.vy) * k; if (Math.abs(dx) > 2) M.dir = sgn(dx); }      // in flippers she eases in at the end, so the glide does not carry her far past
       M.idle = 0;
       if (fins && M.tx != null) { M.kickT = (M.kickT || 0) - dt; if (M.kickT <= 0) { M.kickT = 0.46; M.surge = 1; finKick(M, sy); } }
     } else {
@@ -887,7 +888,7 @@
     star: g => fit(g, 'm_star', 30, 30, 56),
     flip: g => { fit(g, 'm_tuck', 30, 31, 36, 0.6); g.strokeStyle = '#ff7a1a'; g.lineWidth = 4; g.beginPath(); g.arc(30, 30, 25, -2.2, 2.6); g.stroke(); g.fillStyle = '#ff7a1a'; g.beginPath(); g.moveTo(3, 47); g.lineTo(17, 44); g.lineTo(9, 56); g.fill(); },
     belly: g => { fit(g, 'm_star', 30, 24, 46, Math.PI / 2); g.fillStyle = '#39b8e8'; g.fillRect(4, 50, 52, 5); g.fillStyle = '#fff'; for (let i = 0; i < 6; i++) g.fillRect(6 + i * 9, 46, 4, 4); },
-    dive: g => { g.fillStyle = '#ff7a1a'; for (let i = 0; i < 6; i++) { const a = -2.6 + i * 0.32; g.fillRect(24 + Math.cos(a) * 22, 40 + Math.sin(a) * 30, 3, 3); } fit(g, 'm_glide', 34, 34, 54, 0.85); g.fillStyle = '#39b8e8'; g.fillRect(4, 54, 52, 5); g.fillStyle = '#fff'; g.fillRect(44, 50, 3, 4); g.fillRect(50, 48, 3, 6); },
+    dive: g => { g.fillStyle = '#ff7a1a'; for (let i = 0; i < 6; i++) { const a = -2.6 + i * 0.32; g.fillRect(24 + Math.cos(a) * 22, 40 + Math.sin(a) * 30, 3, 3); } fit(g, 'm_glide', 30, 33, 52, 0.85); g.fillStyle = '#39b8e8'; g.fillRect(4, 54, 52, 5); g.fillStyle = '#fff'; g.fillRect(44, 50, 3, 4); g.fillRect(50, 48, 3, 6); },
     twirl: g => { const sw = (y, a0, a1) => { g.beginPath(); g.ellipse(30, y, 22, 6, 0, a0, a1); g.stroke(); }; g.lineWidth = 3.5; g.strokeStyle = '#a86bff'; sw(22, Math.PI * 1.05, Math.PI * 1.95); sw(42, Math.PI * 1.05, Math.PI * 1.95);
       fit(g, 'm_pencil', 30, 30, 54); g.strokeStyle = '#a86bff'; sw(22, 0.1, Math.PI * 0.9); sw(42, 0.1, Math.PI * 0.9); g.fillStyle = '#a86bff'; g.beginPath(); g.moveTo(6, 46); g.lineTo(13, 38); g.lineTo(15, 48); g.fill(); g.fillStyle = '#ffd640'; g.fillRect(50, 8, 4, 4); g.fillRect(6, 12, 3, 3); },
     super: g => { g.fillStyle = '#ffcf4a'; for (let i = 0; i < 5; i++) g.fillRect(2, 14 + i * 9, 16 - (i % 2) * 6, 3); fit(g, 'm_leap', 36, 30, 56); g.font = '18px sans-serif'; g.fillText('⭐', 0, 58); },

@@ -1,8 +1,14 @@
 // Chef Marina — backyard life. Now and then a family of deer (a doe, a young buck and two spotted fawns) comes out of
-// the woods for a little visit; in between there is small life: a squirrel, robins, butterflies or fireflies, drifting
-// leaves, a rabbit and a chipmunk at the workbench. Nothing here needs reading and nothing blocks Marina: you look, you
-// tap, something small and nice happens.
+// the woods for a little visit; now and then (never at the same time) a flock of wild turkeys pecks its way across the
+// lawn, the tom fanning his tail. In between there is small life: squirrels (one up a tree, or two chasing round a trunk),
+// robins, a cardinal and a blue jay at the bird feeder (more birds when she has just filled it), a crow, a chipmunk at the
+// workbench or popping out of a hole in the lawn, a rabbit, butterflies or fireflies, drifting leaves. Nothing here needs
+// reading and nothing blocks Marina: you look, you tap, something small and nice happens.
 // Art: assets/wild/wild.png + wild.json  (f = frames [sx,sy,w,h,dx,dy] drawn from the animal's feet, a = animations).
+// Every animal is an entry in ENTS (so it is depth-sorted with everybody by its y = where its feet touch the grass; a
+// climbing or perched one keeps that y and goes up by z) and our own tap test (wildAt) finds it before the game's.
+// Sounds: Audio2 blips and noise, plus assets/sfx/turkey_gobble.mp3 and turkey_cluck.mp3.
+// Wildlife.onEvent (set by another file) hears 'turkeys', 'turkey_display' and 'squirrel' as they happen.
 (function () {
   const ROOM = 'backyard', NOP = () => { };
   const warned = {}, safe = (f, tag) => { try { return f(); } catch (e) { if (!warned[tag]) { warned[tag] = 1; console.warn('wildlife ' + tag, e); } } };   // a slip here must never stop the game's own loop
@@ -424,10 +430,11 @@
     if (b.poult && b.mom && !b.mom.hidden && !b.mom.behind) { x = b.mom.x - T.fdir * (8 + b.k * 7); y = b.mom.y + 2 + b.k * 3; }
     else { const k = T.bunch == null ? 1 : T.bunch; x = T.fx - T.fdir * b.ox * k; y = T.fy + b.oy * (2.5 - 1.5 * k); }     // bunched up (k < 1) when they cannot go on
     const gap = b.poult ? 18 : b.kind === 'tom' ? 34 : 26;      // a little room round Marina: never on her toes, never hidden behind her
-    if (Math.abs(x - marina.x) < gap) x = marina.x + sgn(x - marina.x || b.x - marina.x || -T.fdir) * gap;
+    if (Math.abs(x - marina.x) < gap) { if (T.pass) y = Math.max(151, Math.min(y, marina.y - 10)); else x = marina.x + sgn(x - marina.x || b.x - marina.x || -T.fdir) * gap; }   // (passing by: behind her)
     return [clamp(x, LX + 4, RX - 4), clamp(y, 151, 173)];
   }
-  const blocked = () => sgn(marina.x - T.fx) === T.fdir && Math.abs(marina.x - T.fx) < 46;   // she is standing just ahead of the flock: they wait (and peck) where they are
+  const passing = () => { const a = T.fx + T.fdir * 20, b = T.fx - T.fdir * (T.span + 20); return marina.x > Math.min(a, b) && marina.x < Math.max(a, b); };   // the line is going by her: they hurry a little
+  const blocked = () => !T.pass && sgn(marina.x - T.fx) === T.fdir && Math.abs(marina.x - T.fx) < 46;   // she is standing just ahead of the flock: they wait (and peck) where they are
   function showSpot(t) {                                       // where the tom can show off in full view: not under the buttons, not on top of her
     const L = E.camX + (narrow() ? 40 : 56), R = clearZone()[1] - 30, G0 = narrow() ? 30 : 36; if (R <= L) return null;
     let x = clamp(t.x, L, R); if (Math.abs(x - marina.x) < G0) { const a = marina.x - G0, b = marina.x + G0; x = a >= L && (b > R || Math.abs(a - t.x) < Math.abs(b - t.x)) ? a : b <= R ? b : null; }
@@ -443,6 +450,7 @@
     const n = narrow(), sp = n ? 0.7 : 1, line = n ? ['hen', 'poult', 'poult', 'hen2', 'tom'] : ['hen', 'poult', 'poult', 'hen2'].concat(chance(0.5) ? ['poult'] : [], ['tom'], chance(0.4) ? ['hen3'] : []);   // (an upright phone has room for fewer)
     const g = pickTGate(), mid = E.camX + E.viewW / 2, fdir = sgn(mid - g.x || marina.x - g.x || 1);
     T = { t: 0, birds: [], timers: [], gate: g, fdir, fx: g.x + fdir * 30, fy: 160, speed: narrow() ? rnd(2.2, 3) : rnd(3.5, 5), left: rnd(42, 58), phase: 'enter', lock: false, wary: 0, wait: 0, disp: false, corn: null, kern: [], gobT: rnd(5, 9), dispT: rnd(8, 13), over: false, arrived: false, said: false, exitT: 0 };   // (slowly: an upright phone shows very little lawn)
+    T.pass = n && fdir < 0 && g.x > marina.x;                  // upright phone, coming from under the buttons: they walk on past behind her into the clear part
     let ox = 0, mom = null, k = 0, na = 0;
     line.forEach((kind, i) => {
       const b = mkTurkey(kind, i);
@@ -450,6 +458,7 @@
       else { if (mom) ox += (26 + 9 * k) * sp; mom = b; k = 0; b.ox = ox; b.oy = [0, 6, -3, 4, 1][na++ % 5]; }
       T.birds.push(b); ENTS.push(b);
     });
+    T.span = Math.max(...T.birds.map(b => b.ox || 0));
     let d = 0.4; for (const b of T.birds) { d += b.poult ? rnd(0.3, 0.5) : rnd(0.9, 1.3); tAfter(d, () => emerge(b)); }
     tAfter(d + 3, () => { if (T.phase === 'enter') T.phase = 'forage'; });
     for (const c of small.slice()) if (c.type === 'bird' || c.type === 'crow') c.flee(); else if (c.type === 'rabbit' || c.type === 'hole') c.hide && c.hide();
@@ -605,7 +614,7 @@
     // the flock drifts on across the lawn (not while the tom shows off, or there is corn, or she has just said hello)
     T.bunch = clamp((T.bunch == null ? 1 : T.bunch) + (blocked() && T.phase !== 'exit' ? -dt : dt) * 0.25, narrow() ? 0.45 : 0.7, 1);
     if (T.phase === 'enter') { if (!blocked()) T.fx += T.fdir * (narrow() ? 4 : 7) * dt; }
-    else if (T.phase === 'forage' && !T.corn) { T.left -= dt; if (!T.disp && T.wait <= 0 && T.wary <= 0) { if (!blocked()) T.fx += T.fdir * T.speed * dt; T.fy = 160 + Math.sin(T.t * 0.21) * 6; } }
+    else if (T.phase === 'forage' && !T.corn) { T.left -= dt; if (!T.disp && T.wait <= 0 && T.wary <= 0) { if (!blocked()) T.fx += T.fdir * T.speed * (T.pass && passing() ? 2.6 : 1) * dt; T.fy = 160 + Math.sin(T.t * 0.21) * 6; } }
     if (T.phase === 'forage' && !T.corn && !T.disp && (T.left <= 0 || T.fx < LX + 24 || T.fx > RX - 24)) return leaveT(false);
     // the tom: a gobble now and then, and now and then the full show (where she can see it, not under the buttons)
     const tom = tomOf();
@@ -684,7 +693,7 @@
         if (c.st === 'run') { c.x += c.dir * (c.fast ? 100 : 68) * dt; if (c.sat && Math.abs(c.x - (E.camX + E.viewW * c.sat)) < 3 && !mNear(c, 24)) { c.st = 'sit'; c.t = rnd(1.6, 2.6); c.an = 'sit'; c.fps = 6; c.sat = 0; }
           if (sgn(c.tx - c.x) !== c.dir) { if (c.tree) { c.st = 'climb'; c.x = c.tx; c.rot = c.dir > 0 ? -Math.PI / 2 : Math.PI / 2; c.t = 0; } else gone(c); } }
         else if (c.st === 'sit') { c.t -= dt; if (c.t <= 0 || mNear(c, 20)) { c.st = 'run'; c.an = 'run'; c.fps = 15; } }
-        else { c.t -= dt; if (c.t <= 0) c.z += (c.fast ? 95 : 60) * dt; c.fps = c.t > 0 ? 0.01 : 14; if (c.y - c.z < 26) gone(c); }   // (climbing = height: it stays sorted at the foot of the tree, in front of it)
+        else { c.t -= dt; if (c.t <= 0) c.z += (c.fast ? 95 : 60) * dt; c.fps = c.t > 0 ? 0.01 : 14; if (c.y - c.z < canopy() - 4) gone(c); }   // (climbing = height: it stays sorted at the foot of the tree, in front of it)
       };
     },
     // a rabbit pops out from behind the bushes, freezes, and hops away if she comes close
@@ -721,9 +730,9 @@
     },
     // a chipmunk pops up out of a hole in the lawn, looks round, sits up and stuffs its cheeks, and pops back down again
     hole() {
-      const x = clamp(viewX(34), LX + 14, RX - 14), y = rnd(157, 171); if (!ART.a.chip || !ART.a.chip.stuff || Math.abs(x - marina.x) < 46 || builtXs().some(b => Math.abs(b - x) < 44)) return false;
+      const x = spotNear(34, 70), y = rnd(157, 171); if (x == null || !ART.a.chip || !ART.a.chip.stuff || builtXs().some(b => Math.abs(b - x) < 44)) return false;
       const s = chance(0.5) ? 1 : -1;
-      const c = critter('hole', { art: 'chip', s: 0.6, x, y, hx: x, hy: y, clipY: y + 0.5, dir: s, st: 'open', an: 'stand', fps: 8, sink: 15, open: 0, t: 0, hw: 7, h: 12, nx: clamp(x + s * rnd(10, 16), LX, RX), seeds: 0, peeks: 0 });
+      const c = critter('hole', { art: 'chip', s: 0.7, x, y, hx: x, hy: y, clipY: y + 0.5, dir: s, st: 'open', an: 'stand', fps: 8, sink: 15, open: 0, t: 0, hw: 7, h: 12, nx: clamp(x + s * rnd(10, 16), LX, RX), seeds: 0, peeks: 0 });
       c.hide = () => { if (!['down', 'close', 'peek'].includes(c.st)) { c.st = 'back'; c.dir = sgn(c.hx - c.x || c.dir); c.an = 'run'; c.fps = 18; c.fast = true; } };
       c.tap = () => { snd.squeak(); emit('sparkle', c.x, c.y - 10, 3); if (c.sink > 2 && c.st !== 'close' && c.st !== 'open') { c.st = 'peek'; c.t = 1.7; c.peeks++; } else c.hide(); };
       c.tick = dt => {
@@ -746,7 +755,7 @@
     // two squirrels chase each other round and round a big tree trunk, all the way up into the leaves
     chase() {
       const tree = BY().trees.filter(t => onScreen(t.x, -16) && Math.abs(t.x - marina.x) > 20).sort((a, b) => Math.abs(a.x - marina.x) - Math.abs(b.x - marina.x))[0]; if (!tree) return false;
-      const eL = E.camX - 16, eR = E.camX + E.viewW + 16, from = Math.abs(tree.x - eL) > Math.abs(tree.x - eR) ? -1 : 1, x0 = from > 0 ? eR : eL, R = (tree.trunk || 30) / 2 + 1;
+      const from = sgn(tree.x - marina.x || 1), x0 = tree.x + from * rnd(70, 90), R = trunkR(tree);
       const mk = (lag, lead) => {
         const c = critter('squirrel', { kind: 'chase', s: 0.62, x: x0 + from * lag * 22, y: 152 + lag * 1.5, dir: -from, st: 'run', an: 'run', fps: 15, tree, R, lag, lead, th: 0, spin: 1, alpha: 1, hw: 9, h: 13, scr: 0 });
         c.tap = () => { for (const q of small.filter(q => q.kind === 'chase')) { q.paused = 0.7; q.fast = true; } snd.squeak(); setTimeout(() => snd.squeak(), 140); emit('sparkle', c.x, c.y - c.z - 8, 3); };
@@ -755,10 +764,11 @@
           const sp = c.fast ? 1.35 : 1;
           if (c.st === 'run') { c.fps = 15; c.x += c.dir * (lead ? 112 : 100) * sp * dt; const ax = c.tree.x - c.dir * c.R; if (sgn(ax - c.x) !== c.dir) { c.st = 'spiral'; c.x = ax; c.th = -c.dir * Math.PI / 2; c.spin = c.dir; } }
           else {
-            c.th += c.spin * 3.3 * sp * dt; c.z += 23 * sp * dt; const cs = Math.cos(c.th); c.x = c.tree.x + Math.sin(c.th) * c.R;
+            c.th += c.spin * 3.3 * sp * dt; c.z += 17 * sp * dt; const cs = Math.cos(c.th); c.x = c.tree.x + Math.sin(c.th) * c.R;
             c.alpha = clamp(cs * 3 + 0.4, 0, 1); c.dir = sgn(cs * c.spin || 1); c.rot = c.dir > 0 ? -1.05 : 1.05; c.fps = 16;    // round the back of the trunk it disappears
             if ((c.scr -= dt) <= 0 && cs > 0) { c.scr = 0.45; if (onScreen(c.x)) Audio2.noise(0.05, 0.03, 1500); }
-            if (c.z > 108) { if (onScreen(c.x)) emit('leaf', c.x, c.y - c.z, 2, { vx: rnd(-20, 20), vy: rnd(-20, 0), life: 2 }); gone(c); }
+            const top = c.y - canopy(); if (c.z > top - 8) c.alpha = Math.min(c.alpha, clamp((top - c.z) / 8, 0, 1));         // into the leaves
+            if (c.z > top) { if (onScreen(c.x)) emit('leaf', c.x, c.y - c.z, 2, { vx: rnd(-20, 20), vy: rnd(-20, 0), life: 2 }); gone(c); }
           }
         };
         return c;
@@ -767,11 +777,18 @@
     },
     // a crow drops in, struts about with a nod of the head, pecks, says "caw" and flaps off again
     crow() {
-      const x = clamp(viewX(30), LX, RX), y = rnd(152, 170); if (!ART.a.crow || Math.abs(x - marina.x) < 50) return false;
+      const x = spotNear(44, 90), y = rnd(152, 170); if (x == null || !ART.a.crow) return false;
       const from = chance(0.5) ? 1 : -1, c = critter('crow', { art: 'crow', s: 0.5, x: x + from * 120, y, z: 90, lx: x, dir: -from, st: 'in', an: 'fly', fps: 10, life: rnd(14, 24), wait: 0.6, hw: 9, h: 19 });
       crowAct(c); return c;
     },
   };
+  function spotNear(lo, hi) {                                  // a place on the lawn lo..hi from Marina, in the picture and not under the buttons
+    const [z0, z1] = clearZone(); for (const s of chance(0.5) ? [-1, 1] : [1, -1]) { const x = clamp(marina.x + s * rnd(lo, hi), Math.max(z0 - 20, LX + 10), Math.min(z1, RX - 10)); if (Math.abs(x - marina.x) >= lo) return x; }
+    return null;
+  }
+  // the big trees: how far round the trunk is, and where the leaves start (trees.js paints them much bigger than the old placeholders)
+  const trunkR = t => (window.Trees ? (t.id === 'oak' ? 26 : 13) : (t.trunk || 30) / 2 + 1);
+  const canopy = () => (window.Trees ? 98 : 30);
   function crowAct(c) {
     c.flee = () => { if (c.st !== 'out') { c.st = 'out'; c.dir = sgn(c.x - marina.x || c.dir); c.an = 'fly'; c.fps = 10; snd.caw(c); } };
     c.tap = () => { snd.caw(c); emit('note', c.x, c.y - c.z - 20, 1, { size: 8 }); if (c.st === 'ground' && !c.tapped) { c.tapped = true; c.hopT = 0.35; c.dir = sgn(c.x - marina.x || 1); } else c.flee(); };

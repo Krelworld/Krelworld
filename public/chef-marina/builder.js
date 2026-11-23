@@ -15,6 +15,7 @@
 // outdoor.js's workbench (its 🔨 opens this menu) and plank pile are used as they are; the pile is redrawn to show the planks left.
 // A finished tree house is drawn after everything else in the scene, so the big trees' leaves never cover it.
 (function () {
+  if (window.Builder) return;            // already loaded (a test may add the file twice)
   if (typeof ROOMS === 'undefined' || !ROOMS.backyard || !PROPS.backyard) return;
   const BY = window.Backyard || { W: 1040, door: 92, bench: 232, plots: [{ id: 'p1', x: 348 }, { id: 'p2', x: 458 }, { id: 'p3', x: 568 }, { id: 'p4', x: 678 }, { id: 'p5', x: 872 }],
     trees: [{ id: 'oak', x: 772, houseY: 62, trunk: 34 }, { id: 'pine', x: 978, houseY: 54, trunk: 26 }] };

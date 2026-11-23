@@ -23,7 +23,7 @@
     Audio2.Music.set('night'); chip('magic');
     shelf();
   }
-  const closeBtn = () => press(mk('button', 'st-x', '✖️'), () => close());
+  const closeBtn = () => press(mk('button', 'st-x', window.Clarity && Clarity.is('G33') ? '❌' : '✖️'), () => close());      /* G33 */
   function shelf() {
     box.innerHTML = ''; box.append(closeBtn());
     const g = mk('div', 'st-shelf');

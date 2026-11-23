@@ -240,11 +240,13 @@ const GRAND = (() => {
     if (G.busy || !window.Movies) return say('m_hmm'); UI.closeActions(); const s = sofa(); G.busy = true; AI.hold(nunu, true); stand(nunu);
     const go = () => { nunu.state = 'sit'; nunu.x = s.x - 8; nunu.y = s.y + 2; nunu.dir = 1; G.busy = false; G.btvOn = true;
       const talk = (k, mood) => { const pr = Audio2.voice(k, 'nu'); UI.face('nunu', mood || 'happy', pr); return pr; };
-      sayG('nu_movie_start', nunu).then(() => { Movies.open({
-        onEvent: (kind) => { const k = { funny: 'nu_movie_funny', scary: 'nu_movie_scary', sweet: 'nu_movie_sweet', end: 'nu_movie_end', popcorn: 'nu_popcorn' }[kind]; if (k && E.t - (S.movieSay || 0) > 6) { S.movieSay = E.t; talk(k, kind === 'scary' ? 'surprised' : 'happy'); } },
+      { const pr = Audio2.voice('nu_movie_start', 'nu'); UI.face('nunu', 'happy', pr); } Promise.resolve().then(() => { Movies.open({
+        onEvent: (kind, id) => { const fav = id === 'quest';          // her favourite kind of film: a ring, a wizard and a sneaky little creature
+          const k = fav && kind === 'start' ? 'nu_lotr_movie' : fav && kind === 'funny' ? pick(['nu_lotr10', 'nu_lotr7', 'nu_movie_funny']) : fav && kind === 'end' ? pick(['nu_lotr4', 'nu_movie_end']) : { funny: 'nu_movie_funny', scary: 'nu_movie_scary', sweet: 'nu_movie_sweet', end: 'nu_movie_end', popcorn: 'nu_popcorn' }[kind]; if (k && (kind === 'start' || E.t - (S.movieSay || 0) > 6)) { S.movieSay = E.t; talk(k, kind === 'scary' ? 'surprised' : 'happy'); } },
         onDone: () => { G.btvOn = false; AI.hold(nunu, false); marina.state = 'cheer'; setTimeout(() => marina.state === 'cheer' && (marina.state = 'idle'), 1400); emit('heart', (marina.x + nunu.x) / 2, marina.y - 70, 6); } }); }); };
     if (nunu.room !== 'den') { nunu.room = 'den'; nunu.x = s.x - 60; }
-    approach(s.x + 22, () => { marina.dir = 1; nunu.walkTo(s.x - 30, go, 80); setTimeout(() => { if (G.busy && nunu.state !== 'sit') go(); }, 4000); }, 0);
+    let went = false; const go1 = () => { if (went) return; went = true; go(); };
+    approach(s.x + 22, () => { marina.dir = 1; nunu.walkTo(s.x - 30, go1, 110); setTimeout(() => { if (G.busy && nunu.state !== 'sit') { nunu.stop(); go1(); } }, 1600); }, 0);
   }
 
   function helpNunu() {                                 // Marina lends a hand with the chores

@@ -11,6 +11,7 @@
 // No words or digits anywhere: she cannot read. Everything on screen is a picture.
 (function () {
   'use strict';
+  if (window.Movies) return;               // already loaded (a test may add the file twice)
   const FW = 256, FH = 144, K = 3, BAR = 9, DIR = 'assets/movies/', KEY = 'cm_movies', TAU = Math.PI * 2;
   const LOGO = 3.7, ENDLEN = 4.6, TVW = 266, TVH = 154, BEZ = 5;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, u) => a + (b - a) * u, rnd = (a, b) => a + Math.random() * (b - a);

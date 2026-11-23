@@ -284,7 +284,7 @@
           break; }
         case 'high': {
           if (layer !== 'front') break; const x = p.x + (s.dx || 0), y = p.y;
-          drawSprite('mk:minka_loaf' + '', x, y + 1, { scale: MS * 0.92, flip: true }); tailTip(x + 9, y + 2, 0.25, 1.4, q.tw);
+          drawSprite('mk:minka_loaf', x, y + 1, { scale: MS * 0.92, flip: true }); tailTip(x + 9, y + 2, 0.25, 1.4, q.tw);
           break; }
       }
     } finally { E.depth = d0; }
@@ -399,7 +399,7 @@
     UI.closeActions();
     if (NK.on) return UI.actions(anchor, [A('🙅', stepIn)]);
     if (M.scene || H.on || !(vis() || mk.watch)) return;
-    const L = lvl(), d = Math.abs(marina.x - mk.x), want = [56, 34, 24][L];
+    const L = lvl(), d = Math.abs(marina.x - mk.x), want = [44, 32, 24][L];
     UI.actions(anchor, choices());
     if (d > want + 8 && !marina.mount && !['sit', 'perch', 'anim', 'wheel'].includes(marina.state)) {      // she tiptoes over, quiet as a mouse
       const side = marina.x < mk.x ? -1 : 1; marina.stop(); UI.bubble(marina, '🤫', 1100);
@@ -428,7 +428,7 @@
     marina.dir = -side;
   }
   async function hopDown(tok, always) {
-    if (mk.watch) { const w = mk.watch; mk.watch = null; mk.y = 158; mk.state = 'low'; mk.creep = true; if (tok) await W(tok, 250); mk.creep = false; mk.state = 'stand'; return true; }
+    if (mk.watch) { mk.watch = null; mk.y = 158; mk.state = 'low'; mk.creep = true; if (tok) await W(tok, 250); mk.creep = false; mk.state = 'stand'; return true; }
     if (mk.perchY == null) return true;
     if (!always && mk.perchY < 112 && lvl() === 0) return false;     // up high and shy: she stays up there
     setAn('minka_leap', { once: true, dur: 0.45, move: true }); await mJump(mk.x + mk.dir * 12, null, 0.45, 8); mk.an = null; mk.state = 'stand'; mk.y = clamp(mk.y, 150, 176);
@@ -441,7 +441,7 @@
       const down = await hopDown(tok);
       if (!down) { mk.dir = dirTo(mk, marina); snd('minka_mew', { vol: 0.6 }); emo(mk, '❔', 1200); UI.bubble(bubAt, '🐟❔', 1800); return; }     // too high to reach: a little mew from up there
       const kind = L >= 1 || close;
-      await tiptoe(tok, kind ? 24 : 46);
+      await tiptoe(tok, kind ? 24 : 38);
       marina.dir = dirTo(marina, mk); playAnim('marina_reach', { fps: 8, proc: 'hug', dur: 1.1 });
       if (kind) {
         mk.state = 'stand'; mk.creep = true; await go(tok, mk, marina.x + (mk.x < marina.x ? -16 : 16), 18, clamp(marina.y - 1, 150, 176)); mk.creep = false; mk.dir = dirTo(mk, marina); sniff(); await W(tok, 700);
@@ -452,7 +452,7 @@
         // a polite sniff from further off, then a few steps back — no scolding, just not yet
         mk.dir = dirTo(mk, marina); mk.state = 'stand'; mk.rot = mk.dir * 0.05; sniff(); await W(tok, 900); mk.rot = 0;
         snd('minka_mew', { vol: 0.55, rate: 1.1 });
-        await go(tok, mk, mk.x + (mk.x < marina.x ? -26 : 26), 40); mk.dir = dirTo(mk, marina); mk.state = 'sit'; UI.bubble(bubAt, '🐟❔', 2000); slowBlink(); gain(2, 'hand0', 10);
+        await go(tok, mk, mk.x + (mk.x < marina.x ? -13 : 13), 40); mk.dir = dirTo(mk, marina); mk.state = 'sit'; UI.bubble(bubAt, '🐟❔', 2000); slowBlink(); gain(2, 'hand0', 10);
         await W(tok, 600);
       }
     });
@@ -703,7 +703,7 @@
     const v = vis(), r = Math.random();
     if (!v) { mk.wait = rnd(25, 60); mk.hidden = false; if (r < 0.65) restAt(pick(NAPS)); else if (r < 0.85) watchAt(pick(WATCH)); return; }
     mk.wait = rnd(9, 18);
-    if (mk.watch) { if (r < 0.5) { const w = mk.watch; mk.watch = null; mk.y = 158; mk.state = 'stand'; const n = naps(mk.room); if (n.length) restAt(pick(n)); else mk.walkTo(rnd(30, RW(mk.room) - 30), null, 34, WALL); } return; }
+    if (mk.watch) { if (r < 0.5) { mk.watch = null; mk.y = 158; mk.state = 'stand'; const n = naps(mk.room); if (n.length) restAt(pick(n)); else mk.walkTo(rnd(30, RW(mk.room) - 30), null, 34, WALL); } return; }
     const here = naps(mk.room);
     if (r < 0.3 && here.length) { restAt(pick(here)); mk.wait = rnd(18, 34); return; }
     if (r < 0.5) { const go2 = () => mk.walkTo(rnd(28, RW(mk.room) - 28), () => { mk.state = pick(['sit', 'sit', 'loaf']); }, 32, rnd(150, 152)); if (mk.perchY != null) mJump(mk.x + mk.dir * 12, null, 0.4, 8).then(go2); else go2(); return; }
@@ -780,7 +780,7 @@
     const back = () => { if (mk.job !== j) { mk.hidden = false; return; } mk.hidden = false; mk.carry = '🐭'; mk.state = 'stand';
       mk.x = side < 0 ? 6 : R.w - 6; mk.walkTo(marina.x + (ex < marina.x ? -18 : 18), () => { if (mk.job !== j) { mk.carry = null; return; } mk.carry = null; const mx = marina.x + (ex < marina.x ? -9 : 9);
         G.mess.push({ room: G.room, x: mx, y: FLOOR + 6, ico: '🐭', rot: 0 }); snd('minka_mrrp'); mk.state = 'sit'; mk.dir = dirTo(mk, marina); emit('heart', mk.x, feetY() - 20, 4); emit('sparkle', mx, FLOOR, 6);
-        T.gifts = (T.gifts || 0) + 1; save(); ev('present'); setTimeout(() => say1('m_wow'), 600); }, 56, clamp(marina.y, 150, 176)); };
+        T.gifts = (T.gifts || 0) + 1; save(); ev('present'); setTimeout(() => say1('m_wow'), 600); }, 72, clamp(marina.y, 150, 176)); };
     const walk = () => mk.walkTo(ex, () => { if (mk.job !== j) return; mk.hidden = true; setTimeout(back, 1600); }, 62, WALL);
     if (mk.perchY != null) mJump(mk.x + mk.dir * 12, null, 0.4, 8).then(walk); else walk();
   }
@@ -1059,7 +1059,6 @@
       hiding: H.on ? { spot: H.spot && H.spot.id, room: H.spot && H.spot.room, in: H.in, round: H.round, checked: Object.keys(H.checked) } : null, trust: T.t, level: lvl(), finds: T.finds, fight: NK.on ? NK.kind : null, nikoHeld: NK.hold, last: NK.last, art: ART.ok,
       niko: typeof niko !== 'undefined' ? { room: niko.room, x: Math.round(niko.x), state: niko.state } : null }; },
     spots: SPOTS.map(s => s.id), spotRooms: Object.fromEntries(SPOTS.map(s => [s.id, s.room])), kinds: FIGHTS.concat(CALM), fights: FIGHTS.slice(), calm: CALM.slice(),
-    get icon() { return null; },
     _debug: { M, H, NK, FX, LOG, spotIcon: id => spotIcon(SPOTS.find(s => s.id === id)), spotHead: id => spotHead(SPOTS.find(s => s.id === id)), NAPS, HIGH, restAt: id => restAt(NAPS.find(n => n.id === id)), present: () => present(0, true), nikoTrip: () => { NK.tripAt = -999; M.downT = 99; maybeNikoTrip(999); },
       place(room, x, state, y) { if (NK.hold) abortNK('test', true); endScene(); if (H.on) endHide('test', true); job(); mk.stop(); mk.trip = null; mk.watch = null; mk.resume = null; mk.an = null; finishArcs(mk); mk.hidden = false; mk.alpha = 1; mk.oy = 0; mk.perchY = null; mk.room = room; mk.x = x; mk.y = y || 156; mk.state = state || 'sit'; M.mode = 'home'; mk.wait = 40; M.lastStartle = -99; M.creepAt = E.t; M.stillT = 0; }, watchAt: id => watchAt(SPOTS.find(s => s.id === id)), startle, cue: c => { const cl = H.cl; if (!cl) return; if (c === 'peek') cl.riseTo = 1; if (c === 'eyes') cl.eyesT = E.t + 3; if (c === 'wob') cl.wobT = E.t + 0.6; if (c === 'tail') cl.twT = E.t + 2; if (c === 'down') cl.riseTo = 0; }, search: id => search(SPOTS.find(s => s.id === id)) },
   };

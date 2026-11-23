@@ -10,6 +10,7 @@
 // Sounds: Audio2 blips and noise, plus assets/sfx/turkey_gobble.mp3 and turkey_cluck.mp3.
 // Wildlife.onEvent (set by another file) hears 'turkeys', 'turkey_display' and 'squirrel' as they happen.
 (function () {
+  if (window.Wildlife) return;               // already loaded (a test may add the file twice)
   const ROOM = 'backyard', NOP = () => { };
   const warned = {}, safe = (f, tag) => { try { return f(); } catch (e) { if (!warned[tag]) { warned[tag] = 1; console.warn('wildlife ' + tag, e); } } };   // a slip here must never stop the game's own loop
   const hid = id => { const n = document.getElementById(id); return !n || n.classList.contains('hidden'); };
@@ -416,7 +417,8 @@
   function drawTurkey(b, back) {
     const y = b.y + b.sink - b.z, near = T && !T.over && !back && T.phase !== 'exit' && !G.busy && Math.abs(b.x - marina.x) < 40; b.glow = clamp(b.glow + (near ? 0.08 : -0.06), 0, 1);
     const pf = b.puff > 0 ? 1 + Math.sin(E.t * 7) * 0.025 * b.puff : 1;
-    lit(b.glow, () => put(frame(b.art, b.an, b.at, b.fps, b.mode, b.rev), b.x, y, { s: b.s, flip: b.dir < 0, rot: b.rot, alpha: b.alpha, depth: back ? 0.9 : 0, sx: b.sx * pf, sy: pf }));
+    const nod = b.poult && b.an === 'peck' ? Math.max(0, Math.sin(b.at * 15)) * 0.4 * b.dir : 0;     // (a poult's peck is a quick nod forward)
+    lit(b.glow, () => put(frame(b.art, b.an, b.at, b.fps, b.mode, b.rev), b.x, y, { s: b.s, flip: b.dir < 0, rot: b.rot + nod, alpha: b.alpha, depth: back ? 0.9 : 0, sx: b.sx * pf, sy: pf }));
   }
   // the bush they come out of: never one right behind Marina; best one at the clear (left) side of the picture or just off it,
   // so that they walk out and across in front of her rather than out from under the buttons
@@ -649,7 +651,18 @@
   }
   function ttab() {                                            // the flock is out but off the picture: a little tab at the edge shows which way
     if (!T || T.phase !== 'forage' || V) return null; const l = tLive(); if (!l.length || l.some(b => onScreen(b.x, -6))) return null;
-    const hx = l.reduce((a, b) => a + b.x, 0) / l.length, side = hx < E.camX ? -1 : 1; return { side, hx, x: side < 0 ? Math.max(E.camX, 0) + 14 : Math.min(E.camX + E.viewW, ROOMS[ROOM].w) - 14, y: 86 };
+    const hx = l.reduce((a, b) => a + b.x, 0) / l.length, side = hx < E.camX ? -1 : 1, x = side < 0 ? Math.max(E.camX, 0) + 14 : Math.min(clearZone()[1] - 6, ROOMS[ROOM].w - 14);
+    return { side, hx, x, y: tabY(side, x) };
+  }
+  let TABY = { key: '' };
+  function tabY(side, x) {                                     // a height for the tab where none of the side buttons sits over it (looked up once per screen shape)
+    const key = [E.viewW, E.scale, E.offY, E.cssOffY].map(v => Math.round((v || 0) * 10)).join(',');
+    if (TABY.key !== key) {
+      TABY = { key }; const st = document.getElementById('stage'), r = st && st.getBoundingClientRect();
+      const free = (wx, wy) => { if (!r) return true; for (const [dx, dy] of [[-9, -10], [9, -10], [-9, 10], [9, 10], [0, 0]]) { const [sx, sy] = toScreen(wx + dx, wy + dy), n = document.elementFromPoint(r.left + sx, r.top + sy); if (n && n.closest && n.closest('button:not(.act),#moodbar,.hud')) return false; } return true; };
+      for (const s of [-1, 1]) { const tx = s < 0 ? E.camX + 14 : clearZone()[1] - 6; TABY[s] = [86, 104, 122, 140, 66, 150].find(y => free(tx, y)) || (s < 0 ? 140 : 86); }
+    }
+    return TABY[side] || 86;
   }
 
   // ---------------------------------------------------------------- small life, the rest of the time (sparse)
@@ -1022,7 +1035,7 @@
       else if (what === 'corn') scatterCorn(); else if (what === 'wave') waveT(); else if (what === 'gobbleBack') gobbleBack(); else if (what === 'scare') leaveT(true); else if (what === 'leave') leaveT(false); else return false;
       return true;
     },
-    get turkeyState() { return T ? { t: +T.t.toFixed(2), phase: T.phase, fx: Math.round(T.fx), fdir: T.fdir, gate: T.gate.x, corn: !!T.corn, kern: T.kern.length, disp: T.disp, lock: T.lock, scared: !!T.scared, birds: T.birds.map(b => ({ kind: b.kind, x: Math.round(b.x), y: Math.round(b.y), z: Math.round(b.z), an: b.an, dir: b.dir, sx: +b.sx.toFixed(2), hidden: b.hidden, behind: b.behind })) } : { next: Math.round(tnext), got: tGot }; },
+    get turkeyState() { return T ? { t: +T.t.toFixed(2), phase: T.phase, tab: ttab(), fx: Math.round(T.fx), fdir: T.fdir, gate: T.gate.x, corn: !!T.corn, kern: T.kern.length, disp: T.disp, lock: T.lock, scared: !!T.scared, birds: T.birds.map(b => ({ kind: b.kind, x: Math.round(b.x), y: Math.round(b.y), z: Math.round(b.z), an: b.an, dir: b.dir, sx: +b.sx.toFixed(2), hidden: b.hidden, behind: b.behind })) } : { next: Math.round(tnext), got: tGot }; },
     gates: GATES, beats: Object.keys(BEATS),
     get state() { return V ? { t: +V.t.toFixed(2), phase: V.phase, beat: V.beat || null, cx: Math.round(V.cx), lock: V.lock, wary: V.wary > 0, wish: V.wish ? V.wish.d.kind : null, deer: V.deer.map(d => ({ kind: d.kind, x: Math.round(d.x), y: Math.round(d.y), an: d.an, dir: d.dir, hidden: d.hidden, behind: d.behind })) } : { next: Math.round(next), small: small.map(c => ({ type: c.type, x: Math.round(c.x), y: Math.round(c.y - c.z), st: c.st })), air: air.map(b => [Math.round(b.x), Math.round(b.y), b.sit > 0 ? 1 : 0]), leaves: leaves.map(l => [Math.round(l.x), Math.round(l.y), l.y < l.gy ? 1 : 0]) }; },
   };

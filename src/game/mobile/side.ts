@@ -146,7 +146,7 @@ export class SideMove {
     // run: the game's easing, quicker in the air
     body.velocity.x += (mv.x * speed - body.velocity.x) * Math.min(1, dt / easeMs(grounded, assist));
     // jump
-    const o = this.brain.step({ now, grounded, vy: body.velocity.y, held: this.touchHeld || this.extHeld, assist });
+    const o = this.brain.step({ now, grounded, vy: body.velocity.y, held: this.touchHeld || this.extHeld, assist, rise: this.cur ? this.cur.y0 - body.bottom : undefined });
     if (o.jumpVy !== undefined) {
       body.setVelocityY(o.jumpVy);
       const first = o.kind === "first";

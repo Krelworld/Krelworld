@@ -63,6 +63,11 @@ export interface JumpStepIn {
   vy: number;
   /** Is JUMP (the button, or a pad's jump) held right now? */
   held: boolean;
+  /**
+   * How far the feet are above the take-off point now (px), if known. With it the cut is frame-rate independent: a
+   * slow frame that reads the release late still gives the same hop (the climb left is worked out from the height).
+   */
+  rise?: number;
   /** Phone assist (S9): off gives the game's own coyote time and no buffer, but keeps tap = hop (that's the control). */
   assist?: boolean;
 }
@@ -156,7 +161,15 @@ export class JumpBrain {
       if (i.vy >= 0) this.cutDone = true;
       else if (!i.held && !this.heldNow && i.now - this.takeoffAt >= T.minRiseMs) {
         const cap = this.takeoffKind === "air" ? T.airCutVy : T.cutVy;
-        if (-i.vy > cap) out.cutVy = -cap;
+        const vy0 = this.takeoffKind === "air" ? T.airVy : T.firstVy;
+        if (i.rise !== undefined) {
+          // the height the hop should reach: climbing until the cut moment, then cap^2 / 2g more
+          const tc = Math.max(T.minRiseMs, this.releasedAt - this.takeoffAt) / 1000;
+          const target = jumpHeight(vy0, tc * 1000, cap);
+          const left = target - i.rise;
+          const v = left > 0 ? Math.sqrt(2 * T.gravity * left) : 0;
+          if (-i.vy > v + 1) out.cutVy = -v;
+        } else if (-i.vy > cap) out.cutVy = -cap;
         this.cutDone = true;
       }
     }

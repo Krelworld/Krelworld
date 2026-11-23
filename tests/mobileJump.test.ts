@@ -19,7 +19,7 @@ function sim(hz: number, script: (t: number) => { press?: boolean; held: boolean
     if (s.press) b.press(t);
     if (wasHeld && !s.held) b.release(t);
     wasHeld = s.held;
-    const o = b.step({ now: t, grounded, vy, held: s.held });
+    const o = b.step({ now: t, grounded, vy, held: s.held, rise: -y });
     if (o.jumpVy !== undefined) {
       vy = o.jumpVy;
       takeoffs.push({ t, kind: o.kind! });
@@ -48,7 +48,7 @@ describe("phone jump: variable height (tap = hop, hold = the game's full jump)",
     expect(jumpHeight(660, null, 300)).toBeCloseTo(145.2, 1);
     expect(jumpHeight(660, 80, 300)).toBeCloseTo(78, 0);
   });
-  for (const hz of [30, 60, 120]) {
+  for (const hz of [10, 30, 60, 120]) {
     it(`${hz} Hz: a tap hops about 78 px, a hold jumps about 145 px`, () => {
       const tap = sim(hz, (t) => ({ press: t === 0, held: t < 40 }));
       const hold = sim(hz, (t) => ({ press: t === 0, held: t < 600 }));

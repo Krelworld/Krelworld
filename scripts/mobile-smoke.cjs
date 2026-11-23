@@ -59,7 +59,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,guide,optout,town,dungeon,combat,android,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,guide,optout,town,dungeon,combat,side,brawl,android,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -1430,7 +1430,7 @@ async function dungeon(browser) {
 // ------------------------------------------------------------------ combat: the top-down fights on the phone controls (stage 2)
 
 /** Into a top-down fight through DebugSkip's own preparation (a later chapter's kit), calm and in combat mode. */
-async function toFight(ph, dungeon, room, ch, who = "FLENKY") {
+async function toFight(ph, dungeon, room, ch, who = "FLENKY", want = "combat:Dungeon") {
   await ph.ev(
     ({ dungeon, room, ch, who }) => {
       const k = window.__krel;
@@ -1454,12 +1454,17 @@ async function toFight(ph, dungeon, room, ch, who = "FLENKY") {
     await sleep(1000);
     if (i > 2) await ph.tapCss(560, 150);
   }
+  // (a room can hand over to a short scripted scene first: keep tapping it along)
+  for (let i = 0; i < 120 && !(await ph.active().catch(() => [])).includes("Dungeon"); i++) {
+    await ph.tapCss(560, 150).catch(() => {});
+    await sleep(1000);
+  }
   await ph.scene("Dungeon");
   let calm = 0;
   for (let i = 0; i < 90 && calm < 5; i++) {
     const m = await ph.mode();
     const act = await ph.active();
-    if (m === "combat:Dungeon" && !act.includes("Dialogue") && !act.includes("Tutorial")) {
+    if (m === want && !act.includes("Dialogue") && !act.includes("Tutorial")) {
       calm++;
       await sleep(500);
       continue;
@@ -1954,6 +1959,236 @@ async function combat(browser) {
 
 // ------------------------------------------------------------------ Android: fullscreen, the gate, notices, in-app
 
+// ------------------------------------------------------------------ side-scrolling rooms (stage 2 part 2)
+
+async function sideRooms(browser) {
+  console.log("SIDE (side-scrolling rooms: JUMP, buffer, coyote, hop vs full, drop-through, no stuck input)");
+  const { ctx, page, ph, errors } = await phoneAtTitle(browser);
+  const S = () => ph.ev(() => window.__krelMobile.combat.side.snapshot());
+  const ctlOf = async (id) => (await ph.snap()).controls.find((c) => c.id === id);
+  const mid = (c) => [c.face.x + c.face.w / 2, c.face.y + c.face.h / 2];
+  const P = () =>
+    ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const b = d.player.spr.body;
+      return { x: Math.round(d.player.x), y: Math.round(d.player.y), bottom: Math.round(b.bottom), vy: Math.round(b.velocity.y), grounded: b.blocked.down || b.touching.down, now: d.now() };
+    });
+  const T = () =>
+    ph.ev(async () => {
+      const T = (await import("/src/game/ui/TouchControls.ts")).TOUCH;
+      return { mx: +T.mx.toFixed(2), my: +T.my.toFixed(2), attack: T.attack, edges: [...T.edges], held: [...T.held] };
+    });
+  const land = async () => {
+    for (let i = 0; i < 40; i++) {
+      const p = await P();
+      if (p.grounded && Math.abs(p.vy) < 5) return p;
+      await sleep(100);
+    }
+    return P();
+  };
+  // a calm spot: no enemies near, nothing overhead; the player put on the floor at x
+  const calmSpot = () =>
+    ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      for (const e of d.enemies) if (!e.dead) e.setPosition(-5000, -5000);
+      const s = window.__krel.G.s;
+      s.hp = 99999;
+      // (a stretch of floor with no platform over it and no gap under it)
+      const plats = d.platforms ? d.platforms.getChildren().map((o) => o.body) : [];
+      const gaps = d.sideLevel?.gaps ?? [];
+      for (let x = 160; x < d.room.w - 200; x += 40) {
+        if (gaps.some(([a, b]) => x > a - 120 && x < b + 120)) continue;
+        if (plats.some((pb) => x > pb.left - 60 && x < pb.right + 60)) continue;
+        d.player.spr.body.reset(x, d.groundY - 60);
+        return x;
+      }
+      return null;
+    });
+  const jumpBtn = async () => mid(await ctlOf("c-jump"));
+  const hop = async (ms) => {
+    const [x, y] = await jumpBtn();
+    const n0 = (await S()).log.length;
+    await ph.touch("touchStart", [{ x, y, id: 60 }]);
+    await sleep(ms);
+    await ph.touch("touchEnd", []);
+    await sleep(1300);
+    const s = await S();
+    const j = s.log[s.log.length - 1];
+    return s.log.length > n0 && j ? Math.round(j.y0 - j.apex) : null;
+  };
+  try {
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    check("a side-scrolling room (Catford High Street) reached: side mode", await toFight(ph, "arena_sanmik", 1, 5, "FLENKY", "side:Dungeon"), await ph.mode());
+    let s = await ph.snap();
+    const shown = (id) => !!s.controls.find((c) => c.id === id && c.shown);
+    const pad = await ph.ev(() => window.__krel.game.scene.getScene("UI").touch);
+    check("the old canvas pad is gone; JUMP, FIRE, DODGE, SPECIAL, the weapon chip and pause are up; no SWAP, no top-down FIRE", pad === null && ["c-jump", "c-sfire", "c-dodge", "c-special", "c-chip", "pause"].every(shown) && !shown("c-swap") && !shown("c-fire"), s.controls.filter((c) => c.shown).map((c) => c.id));
+    const jc = s.controls.find((c) => c.id === "c-jump");
+    const fc = s.controls.find((c) => c.id === "c-sfire");
+    const [jx, jy] = mid(jc);
+    check("JUMP is the big one in the prime corner (84 px, centre 52 in / 52 up from the safe corner); FIRE left of it", Math.abs(jc.face.w - 84) <= 1 && Math.abs(jx - (844 - 47 - 52)) <= 2 && Math.abs(jy - (390 - 21 - 52)) <= 2 && mid(fc)[0] < jx - 60, { jump: jc.face, fire: fc.face });
+    check("the stick drives left / right only (stick x)", s.decision.stick === "x", s.decision);
+    await ph.shot("side-room");
+    await ph.ev(() => window.__krelMobile.settings.set({ autoFire: false }));
+    check("a calm stretch of floor found", (await calmSpot()) !== null);
+    await land();
+    // ---- JUMP acts on touch-down (the player is rising while the thumb is still down)
+    const p0 = await P();
+    await ph.touch("touchStart", [{ x: jx, y: jy, id: 60 }]);
+    await sleep(160);
+    const p1 = await P();
+    await ph.touch("touchEnd", []);
+    check("JUMP acts on touch-down (rising while the thumb is still down)", p1.bottom < p0.bottom - 20, { before: p0.bottom, during: p1.bottom, vy: p1.vy });
+    await land();
+    // ---- hop vs full
+    const tap = await hop(0);
+    await land();
+    const full = await hop(650);
+    await land();
+    // (a tap's height depends on when the page sees the finger lift: under a loaded test machine it reads a little high)
+    check("a tap hops (about 78 px), a hold jumps the full height (about 145 px)", tap !== null && full !== null && tap >= 60 && tap <= 110 && full >= 130 && full <= 155 && full - tap >= 30, { tap, full });
+    // ---- buffer: a press just before landing jumps on landing
+    await calmSpot();
+    await land();
+    const buf = await ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const p = d.player;
+      p.spr.body.reset(p.x, p.y - 110);
+      const sm = window.__krelMobile.combat.side;
+      sm.brain.jumps = 0;
+      sm.brain.coyoteUntil = 0;
+      return d.now();
+    });
+    // (a fall of 110 px takes about 380 ms; press with about 100 ms to go)
+    for (let i = 0; i < 40; i++) {
+      const p = await P();
+      if (p.now - buf >= 270) break;
+      await sleep(15);
+    }
+    const nb = (await S()).log.length;
+    await ph.touch("touchStart", [{ x: jx, y: jy, id: 61 }]);
+    const pressed = (await P()).now;
+    await sleep(400);
+    await ph.touch("touchEnd", []);
+    let sb = await S();
+    const bj = sb.log[sb.log.length - 1];
+    check("buffer: a press in the air with no jump left fires on landing (waited > 0, under 150 ms)", sb.log.length > nb && bj && bj.kind === "first" && bj.waited > 0 && bj.waited <= 150, { jump: bj, pressedAfterDrop: pressed - buf });
+    await land();
+    // ---- coyote: just off the ground, the first jump still works; much later it's the air jump
+    const coy = async (afterMs) => {
+      await land();
+      // (the round trips to the page are slower than the timings under test: the game loop sleeps exactly afterMs of
+      // game time after the player leaves the ground, JUMP is pressed by a real touch, and the loop wakes)
+      await ph.ev(
+        (ms) =>
+          new Promise((res) => {
+            const d = window.__krel.game.scene.getScene("Dungeon");
+            d.player.spr.body.reset(d.player.x, d.player.y - 420);
+            const t0 = d.now();
+            const tick = () => {
+              if (d.now() - t0 >= ms) {
+                d.events.off("postupdate", tick);
+                window.__krel.game.loop.sleep();
+                res(d.now() - t0);
+              }
+            };
+            d.events.on("postupdate", tick);
+          }),
+        afterMs,
+      );
+      const n = (await S()).log.length;
+      await ph.touch("touchStart", [{ x: jx, y: jy, id: 62 }]);
+      await sleep(50);
+      await ph.ev(() => window.__krel.game.loop.wake());
+      await sleep(250);
+      await ph.touch("touchEnd", []);
+      const s = await S();
+      return s.log.length > n ? s.log[s.log.length - 1] : null;
+    };
+    const c1 = await coy(40);
+    const c2 = await coy(300);
+    check("coyote: off the ground a moment ago, JUMP is still the first jump; long after, it's the air jump", c1 && c1.kind === "first" && c1.sinceGround > 0 && c1.sinceGround <= 140 && c2 && c2.kind === "air", { soon: c1, late: c2 });
+    await land();
+    // ---- drop-through only when deliberate
+    const plat = await ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const ps = (d.platforms ? d.platforms.getChildren() : []).map((o) => o.body).filter((b) => b.width >= 80 && b.top < d.groundY - 60 && !(d.sideLevel?.movers ?? []).some((m) => m.rect.body === b));
+      const b = ps[0];
+      if (!b) return null;
+      d.player.spr.body.reset((b.left + b.right) / 2, b.top - 40);
+      return { top: Math.round(b.top) };
+    });
+    if (!plat) check("a platform to stand on", false);
+    else {
+      await land();
+      const on = await P();
+      const stick = async (dx, dy, ms) => {
+        await ph.touch("touchStart", [{ x: 160, y: 250, id: 3 }]);
+        for (let i = 1; i <= 5; i++) {
+          await ph.touch("touchMove", [{ x: 160 + (dx * i) / 5, y: 250 + (dy * i) / 5, id: 3 }]);
+          await sleep(25);
+        }
+        await sleep(ms);
+        await ph.touch("touchEnd", []);
+        await sleep(500);
+      };
+      await stick(8, 26, 500); // a drift: a little down while the thumb rests
+      const after1 = await land();
+      await stick(4, 52, 400); // held well down
+      const after2 = await land();
+      check("drop-through: a drift down keeps you on the platform; the stick held well down drops you through", Math.abs(on.bottom - plat.top) <= 3 && Math.abs(after1.bottom - plat.top) <= 3 && after2.bottom > plat.top + 30, { plat, on: on.bottom, drift: after1.bottom, held: after2.bottom });
+    }
+    // ---- no stuck input: JUMP held while the room goes busy (a scripted moment), let go meanwhile
+    await calmSpot();
+    await land();
+    await ph.touch("touchStart", [{ x: jx, y: jy, id: 63 }]);
+    await sleep(60);
+    await ph.ev(() => (window.__krel.game.scene.getScene("Dungeon").busy = true));
+    await sleep(500);
+    await ph.touch("touchEnd", []);
+    const nStuck = (await S()).log.length;
+    await ph.ev(() => (window.__krel.game.scene.getScene("Dungeon").busy = false));
+    await sleep(1200);
+    const sx = await S();
+    const t = await T();
+    check("no stuck input: JUMP held across a mode change lets go, nothing fires afterwards", !sx.touchHeld && sx.pressAt === null && sx.log.length === nStuck && t.mx === 0 && !t.attack, { side: sx, touch: t });
+    // ---- auto-fire in side rooms (on by default)
+    await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true }));
+    const shot = await ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const p = d.player;
+      const e = d.enemies.find((x) => !x.dead && !x.isBoss) ?? d.spawnEnemy("crobley_minion", p.x + 200, p.y, { noDrops: true });
+      if (!e) return null;
+      e.hp = 3;
+      e.body.reset(p.x + 200, p.y);
+      return e.uid;
+    });
+    let dead = false;
+    for (let i = 0; i < 30 && shot !== null && !dead; i++) {
+      await sleep(200);
+      dead = await ph.ev((uid) => {
+        const e = window.__krel.game.scene.getScene("Dungeon").enemies.find((x) => x.uid === uid);
+        return !e || e.dead;
+      }, shot);
+    }
+    check("auto-fire (on by default) shoots an enemy ahead in a side room", dead, shot);
+    // ---- the camera looks ahead
+    const cam = await ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const c = d.cameras.main;
+      return { fx: Math.round(c.followOffset.x), dz: c.deadzone ? Math.round(c.deadzone.width) : null, share: (d.player.x - c.worldView.x) / c.worldView.width };
+    });
+    check("the camera looks ahead (follow offset about -144: the player left of centre)", cam.fx < -100 && cam.dz === 0, cam);
+    check("no page errors (side)", errors.length === 0, errors);
+  } finally {
+    await ctx.close();
+  }
+}
+
+async function brawl(browser) {
+  console.log("BRAWL (placeholder until brawl mode lands)");
+}
+
 async function android(browser) {
   console.log("ANDROID (Chrome 740x360)");
   const AND = { ...ANDROID, userAgent: UA.androidChrome };
@@ -2131,6 +2366,8 @@ async function desktop(browser) {
       ["town", town],
       ["dungeon", dungeon],
       ["combat", combat],
+      ["side", sideRooms],
+      ["brawl", brawl],
       ["android", android],
       ["desktop", desktop],
     ]) {

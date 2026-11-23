@@ -395,11 +395,11 @@
     if (p.th) return thActions(p);
     if (p.a !== 'built' || !p.bl) return _pa(p);
     const b = p.b, m = mainProp(b); if (b._site || S.act || !m) return [];
-    return CATBY[b.kind].acts(m).concat([A('🎨', () => open({ edit: b })), A('🧹', () => UI.actions({ x: p.x, y: p.y - p.h - 4, prop: p }, [A('❓', () => takeDown(b))]))]);
+    return CATBY[b.kind].acts(m).concat([A('🎨', () => open({ edit: b })), A((window.Clarity && Clarity.is('G33') ? '🗑️' : '🧹'), () => UI.actions({ x: p.x, y: p.y - p.h - 4, prop: p }, [A('❓', () => takeDown(b))]))]);      /* G33: take-down is 🗑️ (🧹 stays the main floor's tidy-up) */
   };
   // the two small "tools" choices on a built thing look a little different from the things to play
   const _ua = UI.actions;
-  UI.actions = function (anchor, list) { _ua(anchor, list); if (anchor && anchor.prop && anchor.prop.a === 'built') document.querySelectorAll('#fx .act').forEach(n => { if (['🎨', '🧹', '❓'].includes(n.textContent)) n.classList.add('bd-sec'); }); };
+  UI.actions = function (anchor, list) { _ua(anchor, list); if (anchor && anchor.prop && anchor.prop.a === 'built') document.querySelectorAll('#fx .act').forEach(n => { if (['🎨', (window.Clarity && Clarity.is('G33') ? '🗑️' : '🧹'), '❓'].includes(n.textContent)) n.classList.add('bd-sec'); }); };      /* G33 */
 
   // ---------------------------------------------------------------- building, taking down, repainting
   function plankFly(x0, y0, x1, y1, dur, done) { const q = { x0, y0, x1, y1, t0: E.t, dur, arc: 30 + Math.random() * 30, rot: rnd(-1, 1), spin: rnd(4, 9) }; S.planks.push(q); run(dur, () => { }).then(() => { S.planks.splice(S.planks.indexOf(q), 1); done && done(); }); }
@@ -500,7 +500,7 @@
   function close() { const p = panel(); if (M) cancelAnimationFrame(M.raf); M = null; p.classList.add('hidden'); p.innerHTML = ''; document.querySelectorAll('.bd-fly').forEach(n => n.remove()); setMusic(); if (!S.jeff) freeJeff(); }
   function show(view) {
     if (!M) return; if (!view) return close(); cancelAnimationFrame(M.raf); M.view = view; M.body.innerHTML = '';
-    M.second.textContent = view === 'cat' ? '🧹' : '◀️'; M.second.setAttribute('aria-label', view === 'cat' ? 'take something down' : 'back'); M.second.style.visibility = view === 'cat' && !D.builds.length ? 'hidden' : 'visible';
+    M.second.textContent = view === 'cat' ? (window.Clarity && Clarity.is('G33') ? '🗑️' : '🧹') : '◀️'; M.second.setAttribute('aria-label', view === 'cat' ? 'take something down' : 'back'); M.second.style.visibility = view === 'cat' && !D.builds.length ? 'hidden' : 'visible';      /* G33 */
     pileDraw(); ({ cat: viewCat, cust: viewCust, down: viewDown })[view]();
   }
   function pileDraw() { const left = lumberLeft(), will = M.view === 'cust' && !M.edit ? CATBY[M.draft.kind].cost : 0; M.pile.innerHTML = ''; M.pile.setAttribute('aria-label', left + ' planks left');
@@ -592,8 +592,8 @@
     if (w) { const need = mk('div', 'bd-need'); need.append(picImg({ kind: w.id, colour: w.col, style: stylesOf(w)[0][0], addons: [] }), w.cost > left ? planks(w.cost, left) : mk('div', 'bd-nospot', (w.spot === 'ground' ? '🟩' : '🌳') + '<b>🚫</b>')); M.body.append(need); }
     const helps = b => !w || (w.cost > left ? true : SPOTS[b.spot].type === w.spot);                    // which ones would make room for what she wanted
     for (const b of D.builds) { const c = CATBY[b.kind], card = mk('button', 'bd-card bd-down' + (helps(b) ? '' : ' dim')); card.setAttribute('aria-label', 'take down the ' + c.id);
-      card.append(picImg(b), planks(c.cost), mk('span', 'bd-broom', '🧹'));
-      press(card, () => { if (card.classList.contains('sure')) return menuDown(b, card); grid.querySelectorAll('.sure').forEach(n => { n.classList.remove('sure'); n.querySelector('.bd-broom').textContent = '🧹'; n.setAttribute('aria-label', n.getAttribute('aria-label').replace(' — sure?', '')); });
+      card.append(picImg(b), planks(c.cost), mk('span', 'bd-broom', (window.Clarity && Clarity.is('G33') ? '🗑️' : '🧹')));      /* G33 */
+      press(card, () => { if (card.classList.contains('sure')) return menuDown(b, card); grid.querySelectorAll('.sure').forEach(n => { n.classList.remove('sure'); n.querySelector('.bd-broom').textContent = (window.Clarity && Clarity.is('G33') ? '🗑️' : '🧹'); n.setAttribute('aria-label', n.getAttribute('aria-label').replace(' — sure?', '')); });      /* G33 */
         card.classList.add('sure'); card.querySelector('.bd-broom').textContent = '❓'; card.setAttribute('aria-label', card.getAttribute('aria-label') + ' — sure?'); Audio2.blip(2, 'square', 0.08, 0.14); });
       grid.append(card); }
     M.body.append(grid);

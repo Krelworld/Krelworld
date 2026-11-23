@@ -35,7 +35,7 @@
     const grid = mk('div', 'stk-grid');
     STK.forEach(([id, ch], i) => { const got = owned.includes(id), c = mk('div', 'stk' + (got ? ' got' : ''), got ? ch : '❔'); c.style.setProperty('--r', ((i * 37) % 13 - 6) + 'deg'); if (got) press(c, () => { c.animate([{ transform: 'scale(1.35) rotate(8deg)' }, { transform: 'none' }], 300); Audio2.blip(pick([0, 4, 7, 12]), 'triangle', 0.1); }); grid.append(c); });
     const found = SECRETS.filter(s => s.found).length;
-    box.append(press(mk('button', 'st-x', '✖️'), () => box.remove()), mk('div', 'stk-h', '📒 <b>' + owned.length + '</b> / ' + STK.length + ' &nbsp; 💎 ' + found + ' / ' + SECRETS.length), grid, press(mk('button', 'stk-ok', '✅'), () => box.remove()));
+    box.append(press(mk('button', 'st-x', window.Clarity && Clarity.is('G33') ? '❌' : '✖️'), () => box.remove()), mk('div', 'stk-h', '📒 <b>' + owned.length + '</b> / ' + STK.length + ' &nbsp; 💎 ' + found + ' / ' + SECRETS.length), grid, press(mk('button', 'stk-ok', '✅'), () => box.remove()));      /* G33 */
     (hid('title') ? stage : document.getElementById('title')).append(box); try { chip('pop'); } catch (e) { }
   }
   const book = mk('button', 'hud off', '📒'); book.id = 'bookBtn'; book.setAttribute('aria-label', 'sticker book'); press(book, () => { if (!G.busy) openBook(); }); stage.append(book);

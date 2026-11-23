@@ -786,8 +786,11 @@
     }
     if (!at) return; const y = at[1] - 17 - Math.abs(Math.sin(t * 5)) * 5, rr = 13 + ((t * 9) % 6);
     ring(c, at[2], at[3], rr, 'rgba(255,255,255,' + (0.9 - (rr - 13) / 7).toFixed(2) + ')'); ring(c, at[2], at[3], rr + 1, 'rgba(255,214,62,' + (0.9 - (rr - 13) / 7).toFixed(2) + ')');
-    bmp(c, ICON.hint, at[0] - 6, y, { '#': '#5a3b00', o: '#ffd23e', w: '#fff3b0' });
+    if (window.Clarity && Clarity.is('G34')) { const x0 = S.vx - M.tx, y0 = S.vy - M.ty; bmp(c, HAND_G34, clamp(at[2] - 2, x0, x0 + S.LW - 9), clamp(at[3] + 6 + Math.abs(Math.sin(t * 5)) * 5, y0, y0 + S.LH - 12), { k: '#2b2340', W: '#ffffff', o: '#2b2340' }); }      /* G34 */
+    else bmp(c, ICON.hint, at[0] - 6, y, { '#': '#5a3b00', o: '#ffd23e', w: '#fff3b0' });
   }
+  // G34: the tree climb's pointing hand (treeclimb.js HAND), fingertip up, drawn just under the ring's centre instead of the ⬇ arrow
+  const HAND_G34 = ['...ko....', '..kWWk...', '..kWWk...', '..kWWk...', '..kWWkk..', '..kWWWWkk', 'kkkWWWWWk', 'kWWWWWWWk', 'kWWWWWWWk', '.kWWWWWWk', '..kWWWWk.', '..kkkkkk.'];      /* G34 */
   function drawCards(c) {
     const t = S.cardT, out = S.phase === 'enter' ? S.pt / 0.35 : 0, sp = img('marina'); if (!ok(sp)) return;
     for (const cd of cards()) {

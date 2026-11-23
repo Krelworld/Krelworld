@@ -86,6 +86,8 @@ export const TOUCH_WORDING: WordingRule[] = [
   { id: "click-to-skip", re: /^click to skip$/, to: "tap to skip" },
   // the story stills: "click / Tab: skip"
   { id: "cine-skip", re: /^click \/ Tab: skip$/, to: "tap: skip" },
+  // the flyovers: "SKIP  ▸▸   (Space / Esc / tap)"
+  { id: "flyover-skip", re: /^SKIP\s+▸▸\s+\(Space \/ Esc \/ tap\)$/, to: "SKIP ▸▸ (tap)" },
   // the pause menu's fullscreen row (only on a phone already on the home screen): "⛶ FULLSCREEN   (Alt+Enter)"
   { id: "alt-enter", re: /\s*\(Alt\+Enter\)/g, to: "" },
   // the telly's guide: "↑↓ pick · ←→ channel · ENTER watch · ESC whatever's on"
@@ -240,12 +242,14 @@ export const UI_TEXTS: Record<string, RegExp[]> = {
 export const STORY_UI_LINES: Record<string, RegExp[]> = {
   // the guide's key line (when the guide is short enough to stay the game's own)
   TV: [/^↑↓ pick · ←→ channel · ENTER watch · ESC whatever's on$/],
-  // the Lair's "Esc: skip scene" (a button on a phone: screens.ts)
+  // the Lair's and the Citadel roof's "Esc: skip scene" (a button on a phone: screens.ts)
   Lair: [/^Esc: skip scene$/],
+  RoofCutscene: [/^Esc: skip scene$/],
   // the ending's "(click, or press 1 · 2 · 3 · 4)", "(click, or press 1 / 2)", "click to skip"
   Ending: [/^\(click, or press 1(?: · 2 · 3 · 4| \/ 2)\)$/, /^click to skip$/],
-  // the story stills' "click / Tab: skip", wherever they play (gfx/Cine.ts)
-  "*": [/^click \/ Tab: skip$/],
+  // the story stills' "click / Tab: skip" (gfx/Cine.ts) and the flyovers' "SKIP  ▸▸   (Space / Esc / tap)" (hub/flyover.ts),
+  // wherever they play
+  "*": [/^click \/ Tab: skip$/, /^SKIP\s+▸▸\s+\(Space \/ Esc \/ tap\)$/],
 };
 
 /** Extra patterns per scene (UI_TEXTS rows that later stage 2 rows add to a scene already listed). */

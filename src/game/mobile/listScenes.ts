@@ -297,10 +297,15 @@ const gunRack: Adapter = {
           synth.play("select");
           redraw();
         },
-        actions: [
-          { label: "▲", id: `up-${id}`, disabled: i === 0, fn: () => reorder(id, i - 1) },
-          { label: "▼", id: `down-${id}`, disabled: i === order.length - 1, fn: () => reorder(id, i + 1) },
-        ],
+        // (▲ ▼ on the picked gun: room for the names on the rest; the ⋮⋮ handle drags any of them)
+        actions:
+          id === sel
+            ? [
+                // (yellow ⬆ ⬇: moving the gun, not the ▲ ▼ that page the list)
+                { label: "⬆", id: `up-${id}`, kind: "on", disabled: i === 0, fn: () => reorder(id, i - 1) },
+                { label: "⬇", id: `down-${id}`, kind: "on", disabled: i === order.length - 1, fn: () => reorder(id, i + 1) },
+              ]
+            : undefined,
       };
     });
     rows.push({ id: "fart", label: `${order.length + 1}. 💨 Fart Blaster`, sub: "Always last. Infinite ammo.", dim: true });
@@ -322,14 +327,14 @@ const gunRack: Adapter = {
     }
     st.qty = Math.max(can ? 1 : 0, Math.min(can, st.qty));
     const n = st.qty;
-    const buyLabel = q.full ? "AMMO FULL" : !can ? `SKINT: A BOX IS ${q.unit}🪙` : `BUY ${n} BOX${n === 1 ? "" : "ES"} · ${n * q.unit}🪙`;
+    const buyLabel = q.full ? "AMMO FULL" : !can ? `SKINT: A BOX IS ${q.unit}🪙` : `BUY ${n} · ${n * q.unit}🪙`;
     return {
       id: "rack",
       rect: RACK_RECT,
       title: `🪙 ${s.coins} Krezzcoin · #1 is what you start a dungeon with`,
       rows,
       onReorder: (id, to) => reorder(id, to),
-      note: touchWording(`Drag ⋮⋮ or use ▲▼ to set your order.${h.ruined ? " No shops left: ammo's HALF PRICE." : ""}`),
+      note: touchWording(`Drag ⋮⋮ (or pick a gun and use ⬆ ⬇) to set your order.${h.ruined ? " No shops left: ammo's HALF PRICE." : ""}`),
       accent: "#67e8f9",
       detail: {
         actionsFirst: true,

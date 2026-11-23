@@ -101,6 +101,7 @@ describe("the touch wording sweep (stage 2 part 2)", () => {
     ["(click, or press 1 / 2)", "(tap one)"],
     ["click to skip", "tap to skip"],
     ["click / Tab: skip", "tap: skip"],
+    ["SKIP  ▸▸   (Space / Esc / tap)", "SKIP ▸▸ (tap)"],
     ["⛶ FULLSCREEN   (Alt+Enter)", "⛶ FULLSCREEN"],
     ["↑↓ pick · ←→ channel · ENTER watch · ESC whatever's on", ""],
     ["DONE (ESC)", "DONE"],
@@ -142,6 +143,8 @@ describe("the touch wording sweep (stage 2 part 2)", () => {
       ["TV", "↑↓ pick · ←→ channel · ENTER watch · ESC whatever's on"],
       ["Lair", "Esc: skip scene"],
       ["*", "click / Tab: skip"],
+      ["*", "SKIP  ▸▸   (Space / Esc / tap)"],
+      ["RoofCutscene", "Esc: skip scene"],
     ];
     for (const [scene, line] of story) expect(STORY_UI_LINES[scene].some((p) => p.test(line)), `${scene}: ${line}`).toBe(true);
     // the playground's narrated how-to (a NARRATOR line, NARRATOR_TIPS' job) is not a Hub sign

@@ -590,6 +590,11 @@ function passwordUp(t: Phaser.Scene & Bag) {
   box.__mfUp = true;
   const dy = -128;
   for (const o of box.list as Bag[]) if (!(o.type === "Rectangle" && o.width >= 900)) o.setY(o.y + dy);
+  // (the text box grows downwards to 44 px: "Wrong password." and the buttons move down to make room)
+  for (const o of box.list as Bag[]) {
+    if (o.type === "Text" && Math.abs(o.y - (296 + dy)) < 2) o.setY(o.y + 26);
+    if (o.type === "Container" && Math.abs(o.y - (340 + dy)) < 2) o.setY(o.y + 16);
+  }
   const inp = Array.from(document.querySelectorAll<HTMLInputElement>('input[type="password"]')).pop();
   if (!inp) return;
   const place = () => {
@@ -597,7 +602,7 @@ function passwordUp(t: Phaser.Scene & Bag) {
     const sx = r.width / 960;
     const sy = r.height / 540;
     const h = Math.max(44, 32 * sy);
-    Object.assign(inp.style, { left: `${r.left + 360 * sx}px`, top: `${r.top + (244 + dy) * sy - (h - 32 * sy) / 2}px`, width: `${240 * sx}px`, height: `${h}px` });
+    Object.assign(inp.style, { left: `${r.left + 360 * sx}px`, top: `${r.top + (244 + dy) * sy}px`, width: `${240 * sx}px`, height: `${h}px` });
   };
   place();
   // (after the scene's own resize handler, which puts it back where a laptop has it)
@@ -704,11 +709,15 @@ function patchScenes() {
 export function onSceneCreate(scene: Phaser.Scene) {
   const key = scene.sys.settings.key;
   if (key === "Difficulty" || key === "Banter") layoutCards(scene as Phaser.Scene & Bag);
-  // the Lair's "Esc: skip scene": on a phone a button that does what Esc does there (the scene's own finish(true))
-  if (key === "Lair") {
+  // the Lair's and the Citadel roof's "Esc: skip scene": on a phone a button that does what Esc does there (the scene's
+  // own finish(true))
+  if (key === "Lair" || key === "RoofCutscene") {
     const sc = scene as Phaser.Scene & Bag;
-    const t = (scene.children.list as Bag[]).find((o) => o.type === "Text" && /^(?:Esc: skip scene|SKIP SCENE ▸▸)$/.test(o.text));
-    if (t && typeof sc.finish === "function") {
+    // (the label can be made a moment after create: the scene's create is a story that awaits)
+    const fix = () => {
+      const t = (scene.children.list as Bag[]).find((o) => o.type === "Text" && /^(?:Esc: skip scene|SKIP SCENE ▸▸)$/.test(o.text));
+      if (!t || t.__mfSkip || typeof sc.finish !== "function") return;
+      t.__mfSkip = true;
       wordText(t as Phaser.GameObjects.Text);
       t.setPadding(10, 8, 10, 8).setBackgroundColor("#000000aa").setY(6).setInteractive({ useHandCursor: true });
       let down = false;
@@ -718,7 +727,9 @@ export function onSceneCreate(scene: Phaser.Scene) {
         down = false;
         sc.finish(true);
       });
-    }
+    };
+    fix();
+    for (const ms of [50, 300, 1000]) scene.time.delayedCall(ms, fix);
   }
   // the archive's ◀ LEAVE: 44 px, out of the home-indicator strip
   if (key === "Archive") for (const b of buttonsIn(scene.children.list)) if (/LEAVE/.test(b.label.text)) liftButton(b, 200);

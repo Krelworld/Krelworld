@@ -595,8 +595,8 @@ const _featTick2 = featTick;
 featTick = function (dt) {
   _featTick2(dt);
   hintT += dt;
-  if (hintT > 4 && E.t - lastInput > 10 && !G.busy && document.getElementById('panel').classList.contains('hidden') && !(window.Studio && Studio.active)) {
-    hintT = 0; const ps = PROPS[G.room].filter(p => !p.nohit && propVisible(p) && p.a !== 'door'); if (!ps.length) return;
+  if (hintT > (window.Clarity && Clarity.is('G23') && Clarity.G23 ? Clarity.G23.hintGap() : 4) && E.t - lastInput > 10 && !G.busy && document.getElementById('panel').classList.contains('hidden') && !(window.Studio && Studio.active)) { /* G23 */
+    hintT = 0; const ps = PROPS[G.room].filter(window.Clarity && Clarity.is('G23') && Clarity.G23 ? p => !p.nohit && propVisible(p) && p.a !== 'door' && Clarity.G23.see(p) : p => !p.nohit && propVisible(p) && p.a !== 'door'); if (!ps.length) return; if (window.Clarity && Clarity.is('G23') && Clarity.G23) Clarity.G23.n++; /* G23 */
     const p = pick(ps); G.bounce = { id: p.id, t0: E.t }; emit('sparkle', p.x, p.y - 24, 6);
   }
 };

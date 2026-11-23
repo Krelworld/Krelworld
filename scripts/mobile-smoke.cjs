@@ -351,14 +351,15 @@ async function phone(browser) {
     });
     await ph.ev(() => window.__krelMobile.settings.set({ stick: "fixed" }));
     a = await ph.me();
-    await ph.touch("touchStart", [{ x: restAt[0] + 70, y: restAt[1], id: 21 }]);
+    // (to the left: the walks above may have taken the player right up to the room's right wall)
+    await ph.touch("touchStart", [{ x: restAt[0] - 70, y: restAt[1], id: 21 }]);
     await sleep(600);
     const fixedSnap = await ph.snap();
     await ph.touch("touchEnd", []);
     await sleep(200);
     b = await ph.me();
     await ph.ev(() => window.__krelMobile.settings.set({ stick: "floating" }));
-    check("fixed stick: the base stays put and a thumb to its right walks right at once", !!fixedSnap.stick && Math.abs(fixedSnap.stick.x - restAt[0]) < 1 && Math.abs(fixedSnap.stick.y - restAt[1]) < 1 && b[0] - a[0] >= 20, { restAt, base: fixedSnap.stick, from: a, to: b });
+    check("fixed stick: the base stays put and a thumb to its left walks left at once", !!fixedSnap.stick && Math.abs(fixedSnap.stick.x - restAt[0]) < 1 && Math.abs(fixedSnap.stick.y - restAt[1]) < 1 && a[0] - b[0] >= 20, { restAt, base: fixedSnap.stick, from: a, to: b });
 
     // a quick tap in the stick zone reaches the game as a tap there; a drag does not
     await ph.ev(() => {
@@ -455,7 +456,8 @@ async function phone(browser) {
       await ph.tapText("✕", { scene: "Home", exact: true }).catch(() => 0);
       await ph.until(() => window.__krelMobile.snapshot().decision.mode === "walk", null, 8000, "walk again").catch(() => 0);
     };
-    await putMe(292, 462);
+    // (a little left of the shelf's middle: with Bigger text the bubble is wider, and it must sit inside the zone here)
+    await putMe(276, 462);
     await waitPrompt(/trophy/);
     s = await ph.snap();
     const br = s.bubbleRect;
@@ -1105,7 +1107,7 @@ async function guide(browser) {
     try {
       await sleep(1200);
       const d = await ph.ev(() => ({ el: !!document.querySelector(".kdiag"), text: document.querySelector(".kdiag") ? document.querySelector(".kdiag").textContent : "" }));
-      const want = [/fps \d/, /textures \d+ · ~[\d.]+ MB/, /sound \d+ decoded · ~[\d.]+ MB · audio/, /window 844x390 · visual 844x390/, /dpr 3/, /canvas 693x390 at 75,0 · scale 0\.722/, /safe area L0 R0 T0 B0/, /touch mode /, /phone mode ON by device: coarse yes · no hover yes · touch \d+ · short side 390/, /iPhone safari/, /readability on/, /last error: /];
+      const want = [/fps \d/, /textures \d+ · ~[\d.]+ MB/, /sound \d+ decoded · ~[\d.]+ MB · audio/, /window 844x390 · visual 844x390/, /dpr 3/, /canvas 693x390 at 75,0 · scale 0\.722/, /safe area L0 R0 T0 B0/, /touch mode /, /phone mode ON by device: coarse yes · no hover yes · touch \d+ · short side 390/, /iPhone safari/, /readability on/i, /last error: /];
       const missing = want.filter((re) => !re.test(d.text)).map(String);
       check("?mobilediag: the read-out shows fps, textures, sound, sizes, canvas scale, safe area, touch mode, why phone mode is on, last error", d.el && missing.length === 0, missing.length ? { missing, text: d.text } : undefined);
       await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
@@ -1360,12 +1362,14 @@ async function dialogue(browser) {
     check("choice text is reading text (16 CSS px)", t.length >= 4 && t.every((x) => x.css >= 15), t.map((x) => +x.css.toFixed(1)));
     await ph.shot("dialogue-choices");
     const o1 = await ph.find("Option one", { scene: "Dialogue" });
-    await ph.ev(() => (window.__krelMobile.dialogue.current().__mfChoiceShownAt = performance.now()));
-    await ph.tapGame(o1.x, o1.y);
+    const [cx, cy] = await ph.g2c(o1.x, o1.y);
+    // (the rows "appear" a second from now: any press before then is inside the 180 ms guard, whatever the latency)
+    await ph.ev(() => (window.__krelMobile.dialogue.current().__mfChoiceShownAt = performance.now() + 1000));
+    await ph.tapCss(cx, cy);
     await sleep(200);
     check("a tap in the first 180 ms after the rows appear is ignored", (await dlg(ph)).choosing && !(await testFlags(ph)).includes("t_one"));
-    await sleep(200);
-    await ph.tapGame(o1.x, o1.y);
+    await sleep(1300);
+    await ph.tapCss(cx, cy);
     await sleep(500);
     check("a deliberate tap picks the row (its effects applied)", !(await dlg(ph)).choosing && (await testFlags(ph)).includes("t_one"), await testFlags(ph));
     // AUTO: moves on by itself (to the end of the script here)

@@ -87,6 +87,12 @@ export const NARRATOR_TIPS: WordingRule[] = [
   { id: "locals-e", re: /\btalk to the locals \(E\)/g, to: "talk to the locals (tap them)" },
   // Krebon's stage: "Tap / SPACE to prance."
   { id: "tap-space", re: /\bTap \/ SPACE\b/g, to: "Tap" },
+  // Home, playing as Mikey: "TIP: You can become SANMIK whenever you like. Press V (or the SANMIK button) and you're
+  // SanMik: ... Press it again to go back to being you."
+  { id: "sanmik-key", re: /\bPress [A-Za-z0-9]{1,8} \(or the SANMIK button\)/g, to: "Tap the SANMIK button" },
+  { id: "sanmik-again", re: /\bPress it again to go back to being you\b/g, to: "Tap it again to go back to being you" },
+  // the Kreddle raid: "HOLD the attack button (mouse / J / the fire button) to spray CHEMICAL FIRE."
+  { id: "raid-fire", re: /\(mouse \/ J \/ the fire button\)/g, to: "(the fire button)" },
 ];
 
 /** A narrator line as a phone shows it (pure: the table walk). Only ever called for NARRATOR / stage-direction lines. */
@@ -176,8 +182,6 @@ export const UI_TEXTS: Record<string, RegExp[]> = {
   Difficulty: [/^↑\/↓ or 1\s*(?:–|-)\s*\d to pick/],
   Banter: [/^↑\/↓ or 1\s*(?:–|-)\s*\d to pick/],
   Slots: [/^↑↓ choose · Enter load/, /↑↓ · Enter · Del · Esc$/],
-  // the telly's buttons: the key under each ("Space / click", "Tab", "D", "Esc"): the button already says what it does
-  TV: [/^(?:Space \/ click|Tab|D|Esc)$/],
 };
 
 /** Phones only: watches the scenes above and applies the wording. */

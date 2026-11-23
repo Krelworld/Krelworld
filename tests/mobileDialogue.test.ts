@@ -176,6 +176,10 @@ describe("narrator control tips (hard rule 3's exception)", () => {
     expect(narratorTip("TIP: talk to the locals (E). Play the machines. Win things.")).toBe("TIP: talk to the locals (tap them). Play the machines. Win things.");
     expect(narratorTip("HOW IT WORKS: walk up to the playground fence and press E to throw a sweetie.")).toBe("HOW IT WORKS: walk up to the playground fence and tap to throw a sweetie.");
     expect(narratorTip("Move left and right across the stage. Tap / SPACE to prance.")).toBe("Move left and right across the stage. Tap to prance.");
+    expect(
+      narratorTip("TIP: You can become SANMIK whenever you like. Press V (or the SANMIK button) and you're SanMik: afro, shades, drawn-on goatee, and a big YEE. Press it again to go back to being you."),
+    ).toBe("TIP: You can become SANMIK whenever you like. Tap the SANMIK button and you're SanMik: afro, shades, drawn-on goatee, and a big YEE. Tap it again to go back to being you.");
+    expect(narratorTip("HOLD the attack button (mouse / J / the fire button) to spray CHEMICAL FIRE. Walk EAST along the Strip.")).toBe("HOLD the attack button (the fire button) to spray CHEMICAL FIRE. Walk EAST along the Strip.");
   });
 
   it("leaves every other word alone, and every line with no tip in it", () => {

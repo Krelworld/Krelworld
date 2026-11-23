@@ -25,6 +25,7 @@ import { HomeScene } from "../scenes/HomeScene";
 import { button } from "../ui/theme";
 import { buttonsIn, isGameButton, resizeButton, type GameButton } from "./canvasUi";
 import { gamePx, markReading, readability, type Readability } from "./readability";
+import { wordText } from "./wording";
 
 type Bag = Record<string, any>;
 const W = 960;
@@ -634,5 +635,17 @@ function patchScenes() {
 export function onSceneCreate(scene: Phaser.Scene) {
   const key = scene.sys.settings.key;
   if (key === "Difficulty" || key === "Banter") layoutCards(scene as Phaser.Scene & Bag);
-  if (key === "TV") markReading((scene as Bag).subs as Phaser.GameObjects.Text);
+  if (key === "TV") {
+    markReading((scene as Bag).subs as Phaser.GameObjects.Text);
+    // the key under each of the telly's buttons ("Space / click", "Tab", "D", "Esc"), and only those: the four
+    // captions in the button column right of the picture (the telly's shows are never touched)
+    const ui = (scene as Bag).ui as Phaser.GameObjects.Container | undefined;
+    for (const o of [...((ui?.list as Bag[]) ?? []), ...(scene.children.list as Bag[])]) {
+      const walk = (x: Bag) => {
+        if (x.type === "Container") return (x.list as Bag[]).forEach(walk);
+        if (x.type === "Text" && /^(?:Space \/ click|Tab|D|Esc)$/.test(x.text) && (x.parentContainer?.x ?? 0) + x.x > 780) wordText(x as Phaser.GameObjects.Text);
+      };
+      walk(o);
+    }
+  }
 }

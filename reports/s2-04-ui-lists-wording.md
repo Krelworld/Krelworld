@@ -13,7 +13,20 @@ key hints read in touch words, and a smoke check walks the menus and walking sce
 dialogue. **No game file outside `src/game/mobile/` was edited** (`git diff 07bfb301 -- src ':!src/game/mobile'` is
 empty): everything is done from the phone chunk, which a laptop never downloads.
 
-CHECKS_TABLE
+## Checks (all run at `ff8374b5`, both dev servers started from this worktree)
+
+| Check | Result |
+|---|---|
+| (a) laptop fingerprint, `shell,front,newgame,hub,meeting,dungeon` (main + ALT) | 40 of 40 states identical, **DESKTOP FINGERPRINT: OK** |
+| (a) laptop fingerprint, `boss,side,places,minigames,finale,alt` (main + ALT) | 25 of 25 states identical, **DESKTOP FINGERPRINT: OK** |
+| (b) `touchlaptop`, `ipad`, `fire7` (front, newgame); `androidtab` (front, newgame, hub) | all **OK** |
+| (c) `tests/desktopInvariants.test.ts` | 19 of 19 pass; it, `tests/fingerprints/`, `index.html` and `src/main.ts` unedited since `e8cf3f4f` |
+| (d) `npx tsc --noEmit` / `npx vitest run` | clean / 461 of 461 tests in 41 files |
+| (e) phone smoke, main (5222) | 142 + 94 + 33 = **269 of 269** (run in three `--only` slices: phone..settings2; lists, wording, guide, optout; town, dungeon, android, desktop), MOBILE SMOKE: OK |
+| (e) phone smoke, ALT (5232) | 142 + 94 + 33 = **269 of 269**, the same three slices, MOBILE SMOKE: OK |
+
+Note: an earlier full run was cut off at the `lists` section's end by the usage limit (the browser was closed under it),
+which is why the smoke was re-run in slices; nothing failed on its own.
 
 ## What changed, list by list (phones only)
 
@@ -203,6 +216,10 @@ shops (33 CSS px drawn, 44 px tap area) are smaller than the phone list's own; e
 
 ## Commits (branch `mobile-ui`, on `07bfb301`)
 
-COMMITS_TABLE
+| Commit | What changed for the player |
+|---|---|
+| `046c1bab` | Phone mode: long lists scroll with your thumb, shops pick before they buy, character select waits for PLAY AS |
+| `727b92a7` | Phone mode: skip buttons for the Lair and the Citadel roof, tidier gun rack and password box, flyover skip in touch words |
+| `ff8374b5` | Phone mode README: the lists, the shops, character select and the touch wording sweep (stage 2 part 2) |
 
 The worktree is clean; the servers are stopped; nothing was pushed.

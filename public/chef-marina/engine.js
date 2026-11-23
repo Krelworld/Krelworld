@@ -166,7 +166,7 @@ function resize() {
   const st = document.getElementById('stage'), r = st.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
   E.cv.width = Math.round(r.width * dpr); E.cv.height = Math.round(r.height * dpr);
   // sideways the picture is zoomed in a little (the ceiling is cropped, the floor stays put) so the room fills the screen
-  const zoom = r.width > r.height && !(typeof G !== 'undefined' && G && G.tv && G.room === 'living') ? 1.16 : 1;   // TV on: show the whole wall so the screen isn't cropped
+  const zoom = r.width > r.height && !(typeof G !== 'undefined' && G && (/* G4 */ window.Clarity && Clarity.is('G4') && Clarity.landscape() ? G.room === 'living' : G.tv && G.room === 'living')) ? 1.16 : 1;   // TV on: show the whole wall so the screen isn't cropped
   E.scale = (r.height * dpr) / SH * zoom; E.viewW = E.cv.width / E.scale; E.dpr = dpr; E.cssScale = r.height / SH * zoom;
   E.offY = E.cv.height - SH * E.scale; E.cssOffY = r.height - SH * E.cssScale;
 }

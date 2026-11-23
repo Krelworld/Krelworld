@@ -56,7 +56,7 @@ function ping() { lastPing = E.t; }
     const p = document.getElementById('panel'); if (p && !p.classList.contains('hidden')) return p.querySelector('.ptop button');
     return null;
   };
-  setInterval(() => { b.classList.toggle('on', innerWidth > innerHeight && !!target()); b.classList.toggle('art', !!(window.Studio && Studio.active)); }, 250);
+  setInterval(() => { const art = !!(window.Studio && Studio.active); b.classList.toggle('on', innerWidth > innerHeight && !!target() && !art); b.classList.toggle('art', art); }, 250);   // the studio keeps its own big ❌ at the top-left; a floating one there would sit on the paper
   const fire = e => { e.stopPropagation(); e.preventDefault(); const t = target(); if (!t) return; for (const type of ['pointerdown', 'pointerup']) t.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: 99, clientX: 0, clientY: 0 })); };
   b.addEventListener('pointerdown', e => e.stopPropagation()); b.addEventListener('pointerup', fire);
   const s = document.createElement('style'); s.textContent = '#xFloat{display:none;position:fixed;z-index:60;left:calc(env(safe-area-inset-left) + 10px);bottom:calc(env(safe-area-inset-bottom) + 10px);width:64px;height:64px;border-radius:20px;border:3px solid #fff;background:#fff;font-size:30px;padding:0;box-shadow:0 4px 0 rgba(0,0,0,.35);touch-action:manipulation}#xFloat.on{display:block}#xFloat.art{left:calc(env(safe-area-inset-left) + 72px);width:52px;height:52px;font-size:24px;opacity:.9}';

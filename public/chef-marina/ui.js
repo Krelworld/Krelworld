@@ -49,7 +49,7 @@ const UI = (() => {
     const stW = document.getElementById('stage').clientWidth, tray = list.length * 80 > stW - 8 ? el('div', { class: 'acttray' }) : null;
     if (tray) { acts.tray = tray; fx().append(tray); }
     list.forEach((a, i) => {
-      const n = el('button', { class: 'act', on: tap(() => { closeActions(); Audio2.blip(14, 'square', 0.05, 0.1); a.fn(); }) }, a.img ? img(a.img) : a.ico);
+      const n = el('button', { class: 'act', on: tap(() => { if (typeof UI !== 'undefined' && UI.closeActions) UI.closeActions(); else closeActions(); Audio2.blip(14, 'square', 0.05, 0.1); a.fn(); }) }, a.img ? img(a.img) : a.ico);
       n.style.animationDelay = (i * 0.04) + 's'; (tray || fx()).append(n); acts.nodes.push(n);
     });
     placeActs();
@@ -246,7 +246,7 @@ const UI = (() => {
       el('div', { style: { fontSize: '22px', opacity: .85 } }, d.name),
       // give it straight to someone: they come over and she hands it to them
       el('div', { class: 'row giverow' }, el('span', { style: { fontSize: '34px' } }, '🎁'),
-        ...['daddy', 'mommy', 'rory'].map(w => el('button', { class: 'pbtn givebtn', 'aria-label': 'give it to ' + w, on: tap(() => { closePanel(); finishDish(d); giveDishTo(w); }) }, img(w)))),
+        ...['daddy', 'mommy', 'rory', 'jeff'].filter(w => spriteCanvas(w)).map(w => el('button', { class: 'pbtn givebtn', 'aria-label': 'give it to ' + w, on: tap(() => { closePanel(); finishDish(d); giveDishTo(w); }) }, img(w)))),
       el('div', { class: 'row' },
         el('button', { class: 'pbtn', 'aria-label': 'carry it', style: { width: '90px', height: '90px', fontSize: '48px' }, on: tap(() => { closePanel(); finishDish(d); say('m_yay'); }) }, '✅'),
         el('button', { class: 'pbtn', style: { width: '90px', height: '90px', fontSize: '48px' }, 'aria-label': 'other way', on: tap(() => chooseMethod()) }, '⬅️'),
@@ -418,12 +418,12 @@ const UI = (() => {
       stage.append(n); Audio2.blip(7);
     };
     store.get('cutouts', []).forEach(u => tray.append(el('button', { class: 'tile', style: { width: '64px' }, on: tap(() => addPiece(u)) }, el('img', { src: u }))));
-    ['marina', 'daddy', 'mommy', 'rory', 'miles', 'niko', 'oak_tree', 'snowman', 'dish_cake', 'cat_tower', 'sectional', 'leaf_pile'].forEach(k => tray.append(el('button', { class: 'tile', style: { width: '64px' }, on: tap(() => addPiece(imgURL(k), true)) }, img(k))));
+    ['marina', 'daddy', 'mommy', 'rory', 'miles', 'niko', 'yd_bush', 'snowman', 'dish_cake', 'cat_tower', 'sectional', 'leaf_pile'].forEach(k => tray.append(el('button', { class: 'tile', style: { width: '64px' }, on: tap(() => addPiece(imgURL(k), true)) }, img(k))));
     const save = el('button', { class: 'pbtn', style: { background: '#7bd36b' }, on: tap(() => {
       const r = stage.getBoundingClientRect(), o = document.createElement('canvas'); o.width = 480; o.height = Math.round(480 * r.height / r.width); const x = o.getContext('2d'); x.imageSmoothingEnabled = false;
       x.drawImage(bgc, 0, 0, o.width, o.height); stage.querySelectorAll('.piece').forEach(p => { const pr = p.getBoundingClientRect(), k = o.width / r.width; x.drawImage(p, (pr.left - r.left) * k, (pr.top - r.top) * k, pr.width * k, pr.height * k); });
       saveArt(o.toDataURL('image/jpeg', 0.75)); say('m_did_it'); Audio2.jingle([0, 4, 7, 12, 16]); }) }, '💾');
-    area.append(bgRow, stage, el('div', { class: 'row', style: { flexWrap: 'nowrap', overflowX: 'auto', justifyContent: 'flex-start' } }, ...tray.children), el('div', { class: 'row' }, save));
+    area.append(bgRow, stage, el('div', { class: 'row', style: { flexWrap: 'nowrap', overflowX: 'auto', justifyContent: 'flex-start', flex: 'none', minHeight: '72px' } }, ...tray.children), el('div', { class: 'row', style: { flex: 'none' } }, save));
   }
   function galTab(area) {
     const g = store.get('gallery', []); const grid = el('div', { class: 'gallery' });
@@ -444,7 +444,7 @@ const UI = (() => {
     const row = el('div', { class: 'row' });
     [...opts].sort(() => Math.random() - 0.5).forEach(n => row.append(el('button', { class: 'letter', style: { width: '96px', height: '96px', fontSize: '52px' }, on: tap(e => {
       Audio2.speak(NUMW[n] || String(n));
-      if (n === ans) { e.currentTarget.style.background = '#7bd36b'; Audio2.jingle([0, 4, 7, 12, 16]); emit('confetti', marina.x, marina.y - 60, 30); setTimeout(() => say('m_did_it'), 400); setTimeout(() => { area.innerHTML = ''; mathTab(area); }, 2200); }
+      if (n === ans) { e.currentTarget.style.background = '#7bd36b'; Audio2.jingle([0, 4, 7, 12, 16]); emit('confetti', marina.x, marina.y - 60, 30); setTimeout(() => say('m_did_it'), 400); setTimeout(() => { if (craftTab !== 'math' || !area.isConnected) return; area.innerHTML = ''; mathTab(area); }, 2200); }
       else { e.currentTarget.style.background = '#ffb0a0'; e.currentTarget.animate([{ transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'none' }], 250); say('m_hmm'); }
     }) }, String(n))));
     area.append(q, nums, row, el('div', { class: 'row' }, el('button', { class: 'pbtn', on: tap(() => Audio2.speak(`${NUMW[a]} ${add ? 'plus' : 'take away'} ${NUMW[b]}`)) }, '🔊')));
@@ -462,7 +462,7 @@ const UI = (() => {
     letters.forEach(L => tiles.append(el('button', { class: 'letter', on: tap(e => {
       const b = e.currentTarget; Audio2.speak(L, { rate: 0.8 });
       if (L === w[i]) { slots.children[i].textContent = L.toUpperCase(); b.disabled = true; b.style.opacity = .25; b.classList.remove('hint'); i++; Audio2.blip(i * 2);
-        if (i === w.length) { setTimeout(() => { Audio2.speak(w.split('').join(', ') + '. ' + w + '!', { rate: 0.8 }); }, 400); Audio2.jingle([0, 4, 7, 12, 16]); emit('confetti', marina.x, marina.y - 60, 30); setTimeout(() => say('m_did_it'), 2600); setTimeout(() => { area.innerHTML = ''; spellTab(area); }, 4800); }
+        if (i === w.length) { setTimeout(() => { Audio2.speak(w.split('').join(', ') + '. ' + w + '!', { rate: 0.8 }); }, 400); Audio2.jingle([0, 4, 7, 12, 16]); emit('confetti', marina.x, marina.y - 60, 30); setTimeout(() => say('m_did_it'), 2600); setTimeout(() => { if (craftTab !== 'spell' || !area.isConnected) return; area.innerHTML = ''; spellTab(area); }, 4800); }
       } else { b.animate([{ transform: 'rotate(-12deg)' }, { transform: 'rotate(12deg)' }, { transform: 'none' }], 250); hint(); }
     }) }, L)));
     const big = el('div', { class: 'big-ico', style: { fontSize: '96px' } }, pic);
@@ -500,7 +500,7 @@ const UI = (() => {
       c = cards[who] = { n, cv, t: 0 };
     }
     // position: speaker's side of the screen
-    const ent = { marina, daddy, mommy, rory, miles, niko }[who];
+    const ent = { marina, daddy, mommy, rory, miles, niko, nunu, jeff }[who];
     const right = ent && ent.here ? toScreen(ent.x, 0)[0] > document.getElementById('stage').clientWidth / 2 : who !== 'marina';
     c.n.classList.toggle('right', right); c.n.classList.toggle('sick', !!opt.sick); c.n.classList.toggle('shake', !!opt.shake);
     c.mood = mood; c.talking = true; c.n.classList.add('show');

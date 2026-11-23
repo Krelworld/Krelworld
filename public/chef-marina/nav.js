@@ -98,7 +98,7 @@
   const _ft = featTick; featTick = function (dt) { _ft(dt); picHints(); };
 
   // face cards: tap one to run to that person / baby / cat
-  stage.addEventListener('pointerup', e => { const c = e.target.closest('.facecard'); if (!c) return; e.stopPropagation(); const who = c.dataset.who, ent = { daddy, mommy, rory, miles, niko }[who]; if (!ent || ent.hidden || G.busy || !quiet()) return; UI.closeActions(); Audio2.jingle([0, 7, 12], 0.06); goEnt(ent); }, true);
+  stage.addEventListener('pointerup', e => { const c = e.target.closest('.facecard'); if (!c) return; e.stopPropagation(); const who = c.dataset.who, ent = { daddy, mommy, rory, miles, niko, nunu, jeff }[who]; if (!ent || ent.hidden || G.busy || !quiet()) return; UI.closeActions(); Audio2.jingle([0, 7, 12], 0.06); goEnt(ent); }, true);
   stage.addEventListener('pointerdown', e => { if (e.target.closest('.facecard')) e.stopPropagation(); }, true);
 
   // ------------------------------------------------------------ outfits stay on when she cheers, sits, swings or rides
@@ -294,18 +294,18 @@
 
 // ------------------------------------------------------------ straight from the cooker to someone: they appear beside her and she hands it over
 function giveDishTo(who) {
-  const e = { daddy, mommy, rory }[who]; if (!e || !G.holding || G.holding.type !== 'dish') return;
+  const e = { daddy, mommy, rory, jeff }[who]; if (!e || !G.holding || G.holding.type !== 'dish') return;
   if (e === rory) G.rory = true; if (G.bathWho === e) { G.bathLocked = false; G.bathWho = null; G.needTP = false; }
   const W = ROOMS[G.room].w, side = marina.x > W - 70 ? -1 : 1;
   AI.hold(e, true); e.stop(); e.hidden = false; e.room = G.room; e.state = 'idle'; e.holdingMiles = false; e.x = clamp(marina.x + side * 38, 16, W - 16); e.y = marina.y; e.dir = -side; marina.dir = side; marina.stop();
   emit('sparkle', e.x, e.y - 50, 14); try { chip('magic'); } catch (x) { }
   G.busy = true; setTimeout(() => { G.busy = false; AI.hold(e, false); if (G.holding && G.holding.type === 'dish') (e === mommy ? serveMommy() : serve(e)); }, 700);
 }
-(function () { const s = document.createElement('style'); s.textContent = '.giverow{align-items:center;gap:10px;margin:2px 0 6px}@media (orientation:landscape){#panel .result{display:grid;grid-template-columns:minmax(110px,26vw) 1fr;column-gap:18px;align-items:center;justify-items:center;align-content:center}#panel .result canvas{grid-row:1 / span 4;height:min(52vh,220px);width:auto;max-width:100%}#panel .result .row{margin:2px 0}#panel .result .pbtn{width:72px !important;height:72px !important;font-size:38px !important}#panel .result .givebtn{width:72px !important;height:72px !important}}.givebtn{width:84px;height:84px;padding:4px;background:#7be07b;border:4px solid #fff;animation:pulse .7s ease-in-out infinite alternate}.givebtn img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}.pichint[aria-label^=give]{}'; document.head.append(s); })();
+(function () { const s = document.createElement('style'); s.textContent = '.giverow{align-items:center;gap:10px;margin:2px 0 6px}@media (orientation:landscape){#panel .result{display:grid;grid-template-columns:minmax(110px,26vw) 1fr;column-gap:18px;align-items:center;justify-items:center;align-content:center}#panel .result canvas{grid-row:1 / span 4;height:min(52vh,220px);width:auto;max-width:100%}#panel .result .row{margin:2px 0}#panel .result .pbtn{width:72px !important;height:72px !important;font-size:38px !important}#panel .result .givebtn{width:72px !important;height:72px !important}}.givebtn{width:min(84px,20vw);height:min(84px,20vw);padding:4px;background:#7be07b;border:4px solid #fff;animation:pulse .7s ease-in-out infinite alternate}.givebtn img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}.pichint[aria-label^=give]{}'; document.head.append(s); })();
 
 // ------------------------------------------------------------ straight from the easel to someone: they appear beside her and she gives them the picture
 Pics.giveTo = function (url, who) {
-  const e = { daddy, mommy, rory }[who]; if (!e) return; if (e === rory) G.rory = true; if (G.bathWho === e) { G.bathLocked = false; G.bathWho = null; G.needTP = false; }
+  const e = { daddy, mommy, rory, nunu, jeff }[who]; if (!e) return; if (e === rory) G.rory = true; if (G.bathWho === e) { G.bathLocked = false; G.bathWho = null; G.needTP = false; }
   if (marina.mount) dismount(); const W = ROOMS[G.room].w, side = marina.x > W - 70 ? -1 : 1;
   e.stop(); e.hidden = false; e.room = G.room; e.state = 'idle'; e.holdingMiles = false; e.x = clamp(marina.x + side * 40, 16, W - 16); e.y = marina.y; e.dir = -side; marina.dir = side; marina.stop(); marina.state = 'idle'; marina.offY = 0;
   emit('sparkle', e.x, e.y - 50, 14); try { chip('magic'); } catch (x) { }

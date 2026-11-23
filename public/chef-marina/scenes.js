@@ -74,7 +74,7 @@ const come = (e, gap = 24) => new Promise(r => { AI.hold(e, true); if (e.state =
 const goTo = (e, gap = 24) => new Promise(r => { approach(e.x, r, gap); setTimeout(r, 4000); });
 const PX = e => e === daddy ? 'd' : e === mommy ? 'mo' : 'r';
 let lastScene = '';
-function chooseScene(list) { const ok = list.filter(s => s[1]); let c = ok.filter(s => s[0] !== lastScene); if (!c.length) c = ok; const s = pick(c); lastScene = s[0]; return s[2]; }
+function chooseScene(list) { const ok = list.filter(s => s[1]); let c = ok.filter(s => s[0] !== lastScene); if (!c.length) c = ok; if (!c.length) return async () => { }; const s = pick(c); lastScene = s[0]; return s[2]; }
 async function runScene(fn) { if (G.sceneOn) return; G.sceneOn = true; G.busy = true; try { await fn(); } catch (e) { console.warn('scene', e); } G.busy = false; G.sceneOn = false; for (const e of [daddy, mommy, rory]) AI.hold(e, false); if (['cheer', 'sad', 'stomp'].includes(marina.state)) marina.state = 'idle'; }
 
 const _setMood = setMood;

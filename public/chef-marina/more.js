@@ -11,7 +11,7 @@ lineMood = function (key) {
   if (/whos_there|europe_who|why_house|d_wake/.test(key)) return 'surprised';
   return _lineMoodM(key);
 };
-const idOf = e => e === daddy ? 'd' : e === mommy ? 'mo' : 'r';
+const idOf = e => e === daddy ? 'd' : e === mommy ? 'mo' : e === nunu ? 'nu' : e === jeff ? 'j' : 'r';
 const sayW = (k, e) => Promise.race([say(k, e), new Promise(r => setTimeout(r, 9000))]);   // never hang a scene on a clip
 const nap = ms => new Promise(r => setTimeout(r, ms));
 
@@ -26,12 +26,12 @@ async function tellJoke(e) {
       await sayW('m_europe'); await sayW(id + '_europe_who', e);
       marina.state = 'cheer'; Audio2.fart(); for (let i = 0; i < 6; i++) emit('heart', e.x + rnd(-14, 14), e.y - rnd(60, 95), 1, { ch: '💩', vx: rnd(-20, 20), vy: -30, life: 1.2, size: 12 });
       await sayW('m_poo');
-      await sayW(id + '_joke_poo', e);
+      await sayW(id === 'nu' || id === 'j' ? id + '_joke_groan' : id + '_joke_poo', e);
     } else {
       await sayW('m_joke_house'); await sayW(id + '_why_house', e);
       marina.state = 'cheer'; emit('confetti', marina.x, marina.y - 60, 14);
       await sayW('m_joke_house2');
-      await sayW(id === 'd' ? 'd_joke2' : id === 'mo' ? pick(['mo_joke1', 'mo_joke2']) : 'r_joke1', e);
+      await sayW(id === 'd' ? 'd_joke2' : id === 'mo' ? pick(['mo_joke1', 'mo_joke2']) : id === 'nu' || id === 'j' ? id + '_joke_laugh' : 'r_joke1', e);
     }
     emit('heart', e.x, e.y - 90, 5); Audio2.voice('m_joke_laugh', 'm');
   } catch (err) { console.warn('joke', err); }

@@ -7,6 +7,7 @@
 // Everything is added on top of the game: the old ornament cat on the ottoman goes, Niko's own life is only paused
 // while the two of them are busy with each other and is handed straight back to his AI afterwards.
 (function () {
+  if (window.Minka) return;              // already loaded (a test may add the file twice)
   if (window.Minka && window.Minka._v) return;
   const MS = 0.52, NS = 0.72, NSIT = 0.62;              // draw scales: Minka; Niko's new poses (made on his walking canvas); his sitting ones
   const DOWN = ['nunuroom', 'den', 'storage', 'laundry'], UP = ['foyer', 'living', 'playroom', 'kitchen', 'dining'];

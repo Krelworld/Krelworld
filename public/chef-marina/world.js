@@ -14,7 +14,7 @@ const ROOMS = {
   playroom: { name: 'playroom', ico: '🧸', w: 352, wall: '#dcd8cc', wains: true, ceil: 'beams', floor: 'wood', left: 'kitchen', right: 'foyer',
     windows: [{ x: 22, w: 34, y: 34, h: 74 }, { x: 70, w: 34, y: 34, h: 74 }, { x: 236, w: 34, y: 34, h: 74 }] },
   foyer: { name: 'foyer', ico: '🚪', w: 272, wall: '#e3dfd6', ceil: 'beams', floor: 'wood', left: 'playroom', right: 'living', windows: [] },
-  bathroom: { name: 'bathroom', ico: '🚽', viewL: 'living', viewR: 'foyer', w: 252, wall: '#ebe8e2', bead: true, ceil: 'whiteplank', floor: 'marble', left: null, right: null,
+  bathroom: { name: 'bathroom', ico: '🚽', viewL: 'foyer', w: 252, wall: '#ebe8e2', bead: true, ceil: 'whiteplank', floor: 'marble', left: null, right: null,
     windows: [{ x: 108, w: 40, y: 30, h: 50 }] },
   living: { name: 'living', ico: '📺', w: 640, wall: '#e9e5dc', bead: true, ceil: 'beams', floor: 'wood', left: 'foyer', right: null,
     windows: [{ x: 10, w: 34, y: 36, h: 66 }, { x: 98, w: 34, y: 36, h: 66 }, { x: 534, w: 34, y: 36, h: 66 }, { x: 578, w: 34, y: 36, h: 66 }] },
@@ -79,7 +79,7 @@ const PROPS = {
     { id: 'stairs', k: 'stairs', x: 214, y: BACK + 2, a: 'stairs' },
   ],
   bathroom: [
-    { id: 'bathdoor', k: 'p:door', x: 18, y: BACK, w: 30, h: 92, a: 'door', to: 'living', tx: 600 },
+    { id: 'bathdoor', k: 'p:door', x: 18, y: BACK, w: 30, h: 92, a: 'door', to: 'foyer', tx: 140 }, // the bathroom opens only onto the hallway
     { id: 'vanity', k: 'vanity', x: 70, y: BACK, a: 'bathsink' },
     { id: 'mirror', k: 'p:mirror', x: 70, y: 86, w: 40, h: 34, a: 'mirror' },
     { id: 'toilet', k: 'toilet', x: 128, y: BACK + 2, a: 'toilet' },
@@ -101,7 +101,7 @@ const PROPS = {
     { id: 'basket', k: 'laundry_basket', x: 448, y: BACK + 4, a: 'basket' },
     { id: 'dresserw', k: 'dresser_white', x: 480, y: BACK, a: 'dresser' },
     { id: 'pnp', k: 'pack_n_play', x: 534, y: BACK + 4, a: 'crib' },
-    { id: 'bathhall', k: 'p:door', x: 622, y: BACK, w: 30, h: 92, a: 'door', to: 'bathroom', tx: 40 },
+    { id: 'bathhall', k: 'p:door', x: 622, y: BACK, w: 30, h: 92, a: 'door', to: 'foyer', tx: 92 }, // the living room's far end leads back to the hallway's front-door end
   ],
 };
 

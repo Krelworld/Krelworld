@@ -49,7 +49,7 @@ const UI = (() => {
     const stW = document.getElementById('stage').clientWidth, tray = list.length * 80 > stW - 8 ? el('div', { class: 'acttray' }) : null;
     if (tray) { acts.tray = tray; fx().append(tray); }
     list.forEach((a, i) => {
-      const n = el('button', { class: 'act', on: tap(() => { closeActions(); Audio2.blip(14, 'square', 0.05, 0.1); a.fn(); }) }, a.img ? img(a.img) : a.ico);
+      const n = el('button', { class: 'act', on: tap(() => { if (typeof UI !== 'undefined' && UI.closeActions) UI.closeActions(); else closeActions(); Audio2.blip(14, 'square', 0.05, 0.1); a.fn(); }) }, a.img ? img(a.img) : a.ico);
       n.style.animationDelay = (i * 0.04) + 's'; (tray || fx()).append(n); acts.nodes.push(n);
     });
     placeActs();

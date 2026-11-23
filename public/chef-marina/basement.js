@@ -136,7 +136,7 @@
       for (let i = 0; i < 5; i++) rect(L + i * 4, y - 15 + i * 3, w - i * 4, 1, '#e0d4bd');
       rect(L + 3, T + 14, 3, 5, '#333'); rect(L + 1, T + 19, 7, 7, '#fff0b8'); rect(L, T + 16, 9, 12, 'rgba(255,240,180,.18)');
       for (let i = 0; i < 6; i++) rect(L + w - 5 - i * 3, y - 34 + i * 5, 3, 2, '#5a3a22');
-      emoji('⬇️', x, T + 46 + Math.sin(E.t * 3) * 2, 9, 0.9);
+      if (window.Clarity && Clarity.is('G35')) { emoji('⬇️', x - 5, T + 46 + Math.sin(E.t * 3) * 2, 9, 0.9); emoji('🛋️', x + 5, T + 46 + Math.sin(E.t * 3) * 2, 9, 0.9); } else emoji('⬇️', x, T + 46 + Math.sin(E.t * 3) * 2, 9, 0.9); /* G35 */
     } else if (p.k === 'p:btv') { // Nunu's TV on the pine dresser
       rect(L, T, w, h - 3, '#16161a'); rect(L + 2, T + 2, w - 4, h - 7, G.btvOn ? '#0b2c44' : '#23232b'); rect(x - 8, y - 3, 16, 3, '#16161a');
       if (G.btvOn) { const k = frameKey('tvshow_fish_a', E.t, 6), c = k && spriteCanvas(k); if (c) { const ctx = E.ctx; ctx.drawImage(c, Math.round(L + 2 - E.camX), Math.round(T + 2), w - 4, h - 7); } else emoji('🐠', x + Math.sin(E.t * 2) * 10, T + h / 2 - 2, 12); }

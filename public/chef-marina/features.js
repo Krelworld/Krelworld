@@ -393,8 +393,9 @@ changeRoom = function (room, from, x) {
   const prev = G.room; _changeRoom(room, from, x);
   if (G.room === prev) return;
   const cv = E.cv, dx = from === 'left' ? 40 : from === 'right' ? -40 : 0;
-  cv.animate([{ transform: `translateX(${dx}%)`, opacity: 0.2 }, { transform: 'none', opacity: 1 }], { duration: 320, easing: 'cubic-bezier(.2,.8,.3,1)' });
-  UI.bigIcon(ROOMS[room].ico, 650);
+  const fd = window.Clarity && Clarity.is('G39') ? Clarity.floorDir(prev, G.room) : 0; /* G39 */
+  cv.animate([{ transform: fd ? `translateY(${fd > 0 ? '-30%' : '30%'})` : `translateX(${dx}%)`, opacity: 0.2 }, { transform: 'none', opacity: 1 }], { duration: 320, easing: 'cubic-bezier(.2,.8,.3,1)' }); /* G39 */
+  UI.bigIcon(fd ? (fd > 0 ? '⬆️' : '⬇️') + (Clarity.is('G5') && CSS.supports('translate', '1px') ? '\u2060' : '') + ROOMS[room].ico : ROOMS[room].ico, 650); /* G39: one line once G5 centres it */
 };
 
 // ------------------------------------------------------------------ isometric house map
@@ -410,7 +411,7 @@ function openIsoMap() {
   for (const [r, d] of Object.entries(rooms)) {
     if (!ROOMS[r] || !d.polygon) continue;
     const poly = document.createElementNS(svg.namespaceURI, 'polygon'); poly.setAttribute('points', d.polygon.map(q => q.join(',')).join(' '));
-    poly.classList.add('isoroom'); if (r === G.room) poly.classList.add('here');
+    poly.classList.add('isoroom'); if (r === G.room) poly.classList.add('here'); if (window.Clarity && Clarity.is('G37')) poly.dataset.r = r; /* G37 */
     poly.addEventListener('pointerup', e => { e.stopPropagation(); p.classList.add('hidden'); travelTo(r); });
     svg.append(poly);
     const c = d.door || centroid(d.polygon);

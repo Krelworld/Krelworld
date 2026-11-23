@@ -1,0 +1,1093 @@
+// PHONE MODE: the top-down fights (stage 2, part 1). Phones only; nothing here runs on a laptop.
+//
+// The old twelve-button canvas pad is replaced, in the top-down rooms and boss fights, by the layer's floating stick
+// (the town's zone, gutter included) and a right-hand cluster laid out as research "layout v2":
+//
+//   FIRE (prime corner)  hold = fire, slide = aim by hand (snaps onto an enemy). Auto-fire (on by default) shoots by
+//                        itself at an enemy in range with a clear line: the right thumb is free to dodge.
+//   DODGE (up-left)      SWAP (left: tap = next gun, hold = the weapon picker)      SPECIAL (up: the lad's special,
+//   its Krezz cost as a fill)      READY (pops in when WONK, the golden transformation, the Cumehameha or IBS is ready)
+//   HEAL (pops in under 40% health)      ACTION (pops in with a prompt, like walking)
+//   up top: the weapon chip (tap = next, hold = picker) beside pause; under the health bars the drink / fart / SanMik
+//   chips (what the HUD always showed, now tappable).
+//
+// The game is driven the way the old pad drove it (TOUCH.attack, TOUCH.edges, TOUCH.held), plus two hooks the game's
+// files call behind isMobile(): Controls.aim / aimPoint (phone aim) and the Dungeon's step (auto-fire, phone assist).
+// Side-scrolling rooms keep the old pad until part 2 replaces it (their rule says legacyPad).
+import Phaser from "phaser";
+import { TOUCH } from "../ui/TouchControls";
+import { G } from "../G";
+import { GUNS } from "../combat/Guns";
+import { gunUsable, moddedFart, moddedGun } from "../systems/armoury";
+import { fartLevel } from "../combat/Farts";
+import { maxHp, maxBottles } from "../systems/stats";
+import { weaponList } from "../ui/weapons";
+import { isMikey, sanmikForced } from "../systems/sanmik";
+import { storageKey } from "../variant";
+import { setPhoneHooks } from "./boot";
+import { phoneSettings } from "./settings";
+import { SCENE_RULES, addSceneRule } from "./modes";
+import { registerModeController, type ModeContext, type TouchControl, type TouchLayer } from "./touchLayer";
+import { ACQUIRE, AIM_TUNE, MELEE_REACH, SLIDE_PX, aimPointFor, autoFireOk, pickTarget, snapAim, type AimTarget, type Pt } from "./aim";
+import { DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healWanted, readyAbility, spamGap, specialFill, specialWord, type ReadyId } from "./combatLogic";
+import { controlScale, safeRect, type Placed, type Rect } from "./layout";
+import { COMBAT_CSS, COMBAT_STYLE_ID } from "./combatCss";
+import { haptic } from "./haptics";
+import { UI_TEXTS, addWording, wordText } from "./wording";
+
+// ------------------------------------------------------------------ what we read off the Dungeon (from outside)
+
+interface Body {
+  velocity: { x: number; y: number };
+}
+interface EnemyLike {
+  uid: number;
+  x: number;
+  y: number;
+  dead: boolean;
+  active: boolean;
+  visible: boolean;
+  alpha: number;
+  depth: number;
+  radius: number;
+  body?: Body | null;
+}
+interface PlayerLike {
+  x: number;
+  y: number;
+  spr: Phaser.GameObjects.Sprite;
+  aim: number;
+  wonk: number;
+  superUntil: number;
+  cumeCd: number;
+  specialCd: number;
+  noSpecialUntil: number;
+  noHealUntil: number;
+  headbuttMode: boolean;
+  attackAnimUntil: number;
+  dodgeUntil: number;
+  iframesUntil: number;
+  dead: boolean;
+  def: { signature?: { id: string; cost: number } };
+}
+interface Breakable {
+  kind: string;
+  x: number;
+  y: number;
+  r: number;
+  dead: boolean;
+}
+interface DungeonLike extends Phaser.Scene {
+  player?: PlayerLike;
+  enemies?: EnemyLike[];
+  spice?: { breakables?: Breakable[] } | null;
+  side?: boolean;
+  busy?: boolean;
+  picking?: boolean;
+  prompt?: Phaser.GameObjects.Text;
+  pickups?: { spr: Phaser.GameObjects.Image; kind: string }[];
+  shots?: { spr: Phaser.GameObjects.Image & { __mBig?: boolean }; o: { owner: string } }[];
+  rule?: { kind?: string } | null;
+  now(): number;
+  openWeaponPicker?(): void;
+  swapSlow?(on: boolean): void;
+  __mG?: { ring: Phaser.GameObjects.Graphics; line: Phaser.GameObjects.Graphics };
+}
+interface WeaponPickLike extends Phaser.Scene {
+  tiles?: { box: Phaser.GameObjects.Rectangle; w: { empty: boolean } }[];
+  cur?: number;
+  done?: boolean;
+  focus?(i: number): void;
+  pick?(i: number): void;
+  close?(): void;
+}
+
+const realNow = () => performance.now();
+
+function dungeonOf(game: Phaser.Game): DungeonLike | null {
+  try {
+    if (!game.scene.isActive("Dungeon") && !game.scene.isPaused("Dungeon")) return null;
+    return game.scene.getScene("Dungeon") as unknown as DungeonLike;
+  } catch {
+    return null;
+  }
+}
+
+// ------------------------------------------------------------------ icons (drawn, so no font or emoji differences)
+
+const svg = (body: string) => `<svg viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`;
+const ICON = {
+  fire: svg(`<circle cx="12" cy="12" r="7" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="12" cy="12" r="2.2" fill="#ff6e6e"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5" stroke="#fff" stroke-width="2.4"/>`),
+  dodge: svg(`<path d="M4 6l6 6-6 6M12 6l6 6-6 6" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>`),
+  swap: svg(`<path d="M5 9h12l-3.5-3.5M19 15H7l3.5 3.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`),
+  heal: svg(`<path d="M9.5 2h5v3.2l1.6 2.3c.6.9.9 1.9.9 3V20a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-9.5c0-1.1.3-2.1.9-3L9.5 5.2z" fill="#ff9ecf" stroke="#fff" stroke-width="1.4"/><path d="M12 11.5v5M9.5 14h5" stroke="#7a1144" stroke-width="2"/>`),
+};
+
+// ------------------------------------------------------------------ the first fights: captions and pulses (S10)
+
+interface Taught {
+  rooms: number;
+  ready: number;
+  heal: number;
+  swap: number;
+}
+const TAUGHT_KEY = () => storageKey("krelworld.phone.combatTaught");
+
+function loadTaught(): Taught {
+  try {
+    const raw = JSON.parse(localStorage.getItem(TAUGHT_KEY()) ?? "null") as Partial<Taught> | null;
+    return { rooms: raw?.rooms ?? 0, ready: raw?.ready ?? 0, heal: raw?.heal ?? 0, swap: raw?.swap ?? 0 };
+  } catch {
+    return { rooms: 0, ready: 0, heal: 0, swap: 0 };
+  }
+}
+function saveTaught(t: Taught) {
+  try {
+    localStorage.setItem(TAUGHT_KEY(), JSON.stringify(t));
+  } catch {
+    /* private mode: it's taught again next visit */
+  }
+}
+
+// ------------------------------------------------------------------ the controller
+
+type CtlId = "fire" | "dodge" | "swap" | "special" | "ready" | "heal" | "action" | "chip" | "juice" | "bongo" | "fart" | "sanmik" | "close";
+
+/** Everything the combat controls know right now (for the smoke test and ?mobilediag). */
+export interface CombatSnapshot {
+  target: { id: AimTarget["id"]; kind: AimTarget["kind"]; x: number; y: number } | null;
+  aim: number | null;
+  manual: boolean;
+  snapped: boolean;
+  autoFiring: boolean;
+  fireHeld: boolean;
+  ready: ReadyId | null;
+  heal: boolean;
+  picker: boolean;
+  mash: boolean;
+  mashPresses: number;
+  taught: Taught;
+}
+
+export class CombatControls {
+  readonly c: Record<CtlId, TouchControl>;
+  private mash: HTMLDivElement;
+  private tune = AIM_TUNE.normal;
+  // aiming
+  private target: AimTarget | null = null;
+  private manual: { raw: number; angle: number; snapped: AimTarget | null } | null = null;
+  private aimAngle: number | null = null;
+  private aimPt: Pt | null = null;
+  private lastMove = 0;
+  // firing
+  private fireHeld = false;
+  private graceUntil = 0;
+  private burstSince = 0;
+  private autoFiring = false;
+  // swap / picker
+  private swapHold = new HoldTracker();
+  private swapBy: TouchControl | null = null;
+  private pickerOpen = false;
+  private pickTile = -1;
+  /** SWAP's slow motion is ours to undo (a press that became neither a tap nor the picker). */
+  private swapSlowOn = false;
+  // READY
+  private readyId: ReadyId | null = null;
+  // feedback
+  private seen = { attack: 0, dodge: 0, special: 0 };
+  private lastGun: string | null | undefined = undefined;
+  private lastAmmo = -1;
+  private gunIcons = new Map<string, string>();
+  private teach: Taught = loadTaught();
+  /** The room counted last (its Player: the Dungeon scene object itself is reused from room to room). */
+  private teachRoomCounted: unknown = null;
+  private pulseUntil: Partial<Record<CtlId, number>> = {};
+  private mashPresses = 0;
+  private wasMash = false;
+  private dodgeSeen = 0;
+  private chipsKey = "";
+  private canvasKey = "";
+  private active = false;
+
+  constructor(
+    readonly game: Phaser.Game,
+    readonly layer: TouchLayer,
+  ) {
+    const L = layer;
+    const grp = "rc";
+    const fire = L.addControl({
+      id: "c-fire",
+      slot: "prime",
+      group: grp,
+      toCorner: true,
+      className: "kt-c kt-fire",
+      html: ICON.fire,
+      caption: "FIRE",
+      haptic: "tap",
+      onDown: () => {
+        this.fireHeld = true;
+        this.manual = null;
+        this.graceUntil = 0;
+        // (on touch-down, no wait: the Dungeon reads it on its next frame)
+        TOUCH.attack = true;
+      },
+      onSlide: (_c, dx, dy) => {
+        if (Math.hypot(dx, dy) >= SLIDE_PX) {
+          const raw = Math.atan2(dy, dx);
+          this.manual = { raw, angle: raw, snapped: this.manual?.snapped ?? null };
+        } else this.manual = null;
+      },
+      onUp: (_c, i) => {
+        this.fireHeld = false;
+        this.manual = null;
+        // auto-fire off: the stream carries on a moment, so hopping to DODGE and back doesn't break it (M1)
+        this.graceUntil = !i.cancelled && !phoneSettings().autoFire ? realNow() + FIRE_GRACE_MS : 0;
+        TOUCH.attack = this.graceUntil > realNow() || this.autoFiring;
+      },
+    });
+    const dodge = L.addControl({ id: "c-dodge", slot: "upLeft", group: grp, className: "kt-c kt-dodge", html: ICON.dodge, caption: "DODGE", haptic: "press", onDown: () => TOUCH.edges.add("dodge") });
+    const swapSpec = (id: string, slot: "left" | "prime", extra: object) => ({
+      id,
+      slot,
+      haptic: "tap" as const,
+      onDown: (c: TouchControl) => this.swapDown(c),
+      onSlide: (c: TouchControl, dx: number, dy: number, x: number, y: number) => this.swapSlide(c, dx, dy, x, y),
+      onUp: (c: TouchControl, i: { cancelled: boolean }) => this.swapUp(c, i.cancelled),
+      ...extra,
+    });
+    const swap = L.addControl(swapSpec("c-swap", "left", { group: grp, className: "kt-c kt-swap", html: ICON.swap, caption: "SWAP" }));
+    const special = L.addControl({
+      id: "c-special",
+      slot: "up",
+      group: grp,
+      className: "kt-c kt-special",
+      html: `<div class="kt-fill"></div><span class="kt-w">SPECIAL</span>`,
+      caption: "SPECIAL",
+      haptic: "press",
+      onDown: () => {
+        TOUCH.edges.add("special");
+        TOUCH.held.add("special");
+      },
+      onUp: () => TOUCH.held.delete("special"),
+    });
+    const ready = L.addControl({
+      id: "c-ready",
+      slot: "ready",
+      group: grp,
+      className: "kt-c kt-ready",
+      label: "WONK!",
+      caption: "",
+      haptic: "big",
+      onDown: () => {
+        const id = this.readyId;
+        if (id) TOUCH.edges.add(READY[id].edge);
+      },
+    });
+    const heal = L.addControl({ id: "c-heal", slot: "heal", group: grp, className: "kt-c kt-heal", html: ICON.heal, caption: "HEAL", haptic: "press", onDown: () => TOUCH.edges.add("bottle") });
+    const action = L.addControl({ id: "c-action", slot: "combatAction", group: grp, className: "kt-c kt-caction", label: "USE", haptic: "press", onDown: () => TOUCH.edges.add("interact") });
+    const chip = L.addControl(
+      swapSpec("c-chip", "left", { className: "kt-c kt-chip kt-wchip", html: "", place: (l: TouchLayer) => this.placeWeaponChip(l) }),
+    );
+    const drink = (id: string, kind: "juice" | "bongo" | "fart" | "sanmik", onDown: () => void) =>
+      L.addControl({ id, slot: "left", className: "kt-c kt-chip kt-dchip", html: "", haptic: "tap", place: (l) => this.placeDrink(l, kind), onDown });
+    const juice = drink("c-juice", "juice", () => {
+      const s = G.s;
+      // (a full health bar or no juice: nothing; a laptop's Q would waste a bottle at full health)
+      if (s.bottles > 0 && s.hp < maxHp(s)) TOUCH.edges.add("bottle");
+    });
+    const bongo = drink("c-bongo", "bongo", () => TOUCH.edges.add("bongo"));
+    const fart = drink("c-fart", "fart", () => TOUCH.edges.add("fart"));
+    const sanmik = drink("c-sanmik", "sanmik", () => TOUCH.edges.add("sanmik"));
+    const close = L.addControl({ id: "c-close", slot: "prime", className: "kt-c kt-close", label: "✕", caption: "CLOSE", haptic: "tap", onDown: () => this.closePicker() });
+    this.c = { fire, dodge, swap, special, ready, heal, action, chip, juice, bongo, fart, sanmik, close };
+    // the mash overlay: every finger anywhere on the screen is a press (research M14)
+    const m = document.createElement("div");
+    m.className = "kt-mash";
+    m.addEventListener(
+      "touchstart",
+      (e) => {
+        if (e.cancelable) e.preventDefault();
+        if (this.layer.held) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          TOUCH.edges.add("burst");
+          this.mashPresses++;
+        }
+        haptic("tap");
+      },
+      { passive: false },
+    );
+    for (const ev of ["touchmove", "touchend", "touchcancel"]) m.addEventListener(ev, (e) => e.cancelable && e.preventDefault(), { passive: false });
+    L.root.appendChild(m);
+    this.mash = m;
+  }
+
+  // ------------------------------------------------------------------ placement of the chips
+
+  /** The weapon chip: top, 24 px left of pause (research M16 / layout v2), hit area up to the top edge. */
+  private placeWeaponChip(l: TouchLayer): Placed | null {
+    const vp = l.viewport;
+    const pause = l.slots?.pause;
+    if (!pause) return null;
+    const s = controlScale(vp.h, phoneSettings().buttonSize);
+    const w = Math.round(Math.max(120, 140 * s));
+    const h = Math.round(Math.max(44, 44 * s));
+    const right = pause.cx - pause.size / 2 - Math.max(16, 24 * s);
+    const top = Math.max(safeRect(vp).y, 0) + 6 * s;
+    const cx = right - w / 2;
+    const cy = top + h / 2;
+    return { cx, cy, size: h, w, h, hit: { x: cx - w / 2 - 10, y: 0, w: w + 20, h: cy + h / 2 + 10 } };
+  }
+
+  /** The drink / fart / SanMik chips, left to right under the health bars (only the ones that can do something). */
+  private placeDrink(l: TouchLayer, kind: "juice" | "bongo" | "fart" | "sanmik"): Placed | null {
+    const cb = this.game.scale.canvasBounds;
+    const k = cb.width / 960;
+    if (!k) return null;
+    const vp = l.viewport;
+    const s = controlScale(vp.h, phoneSettings().buttonSize);
+    const h = Math.round(Math.max(30, 32 * s));
+    const widths: Record<typeof kind, number> = { juice: 64, bongo: 56, fart: 98, sanmik: 76 };
+    const order: (typeof kind)[] = ["juice", "bongo", "fart", "sanmik"];
+    let x = cb.x + 66 * k;
+    for (const o of order) {
+      const ctl = this.c?.[o];
+      if (o !== kind && ctl && !ctl.shown) continue;
+      const w = Math.round(widths[o] * s);
+      if (o === kind) {
+        const top = cb.y + 61 * k;
+        const zoneTop = l.zoneRect.y || vp.h * 0.2;
+        const cx = x + w / 2;
+        const cy = top + h / 2;
+        const hy0 = Math.max(0, top - 6);
+        const hy1 = Math.min(zoneTop, top + h + 6);
+        return { cx, cy, size: h, w, h, hit: { x: x - 4, y: hy0, w: w + 8, h: Math.max(h, hy1 - hy0) } };
+      }
+      x += w + 8;
+    }
+    return null;
+  }
+
+  // ------------------------------------------------------------------ SWAP (and the weapon chip): tap = next, hold = picker
+
+  private swapDown(c: TouchControl) {
+    const dun = dungeonOf(this.game);
+    if (!dun || this.pickerOpen) return;
+    this.swapBy = c;
+    this.swapHold.down(0, 0, realNow());
+    // (the action slows the moment you reach for another gun, as on a laptop)
+    dun.swapSlow?.(true);
+    this.swapSlowOn = true;
+  }
+
+  /** Undo SWAP's slow motion (only if it is still ours: a tap hands it to the game, the picker has its own). */
+  private swapSlowOff() {
+    if (!this.swapSlowOn) return;
+    this.swapSlowOn = false;
+    dungeonOf(this.game)?.swapSlow?.(false);
+  }
+
+  private swapSlide(c: TouchControl, dx: number, dy: number, x: number, y: number) {
+    if (c !== this.swapBy) return;
+    if (this.pickerOpen) {
+      this.hoverTile(x, y);
+      return;
+    }
+    // (a thumb that slides off before the hold is recognised: neither a tap nor a hold)
+    if (this.swapHold.move(dx, dy) === "cancel") this.swapSlowOff();
+  }
+
+  private swapUp(c: TouchControl, cancelled: boolean) {
+    if (c !== this.swapBy) return;
+    this.swapBy = null;
+    const ev = this.swapHold.up(realNow());
+    if (this.pickerOpen) {
+      // let go on a gun: that one; anywhere else: the picker stays up for a tap (CLOSE where FIRE was)
+      if (!cancelled && this.pickTile >= 0) this.pickAt(this.pickTile);
+      this.pickTile = -1;
+      return;
+    }
+    if (!cancelled && ev === "tap") {
+      // (the game's own tap: the next gun, its card, and the slow motion eased back)
+      this.swapSlowOn = false;
+      TOUCH.edges.add("swap");
+    } else this.swapSlowOff();
+  }
+
+  /** Every frame while SWAP is down: at HOLD_MS the picker opens. */
+  private swapTick() {
+    if (!this.swapBy || this.pickerOpen) return;
+    // (the swap control's own touch keeps its offset: a moving thumb was already checked in swapSlide)
+    if (this.swapHold.tick(realNow()) === "hold") {
+      const dun = dungeonOf(this.game);
+      if (!dun?.openWeaponPicker || dun.picking) return;
+      dun.openWeaponPicker();
+      this.pickerOpen = true;
+      // (the picker runs its own slow motion and puts the speed back when it closes)
+      this.swapSlowOn = false;
+      this.pickTile = -1;
+      haptic("press");
+      dun.events.once("weapon-picked", () => {
+        this.pickerOpen = false;
+        this.pickTile = -1;
+      });
+    }
+  }
+
+  private picker(): WeaponPickLike | null {
+    try {
+      if (!this.game.scene.isActive("WeaponPick")) return null;
+      return this.game.scene.getScene("WeaponPick") as unknown as WeaponPickLike;
+    } catch {
+      return null;
+    }
+  }
+
+  /** The finger is over this point: highlight the gun under it. */
+  private hoverTile(x: number, y: number) {
+    const wp = this.picker();
+    if (!wp?.tiles) return;
+    const cb = this.game.scale.canvasBounds;
+    const k = cb.width / 960;
+    const ky = cb.height / 540;
+    const gx = (x - cb.x) / k;
+    const gy = (y - cb.y) / ky;
+    let hit = -1;
+    wp.tiles.forEach((t, i) => {
+      if (t.w.empty || !t.box.active) return;
+      const b = t.box.getBounds();
+      if (gx >= b.x - 6 && gx <= b.right + 6 && gy >= b.y - 6 && gy <= b.bottom + 6) hit = i;
+    });
+    if (hit !== this.pickTile) {
+      this.pickTile = hit;
+      if (hit >= 0) {
+        try {
+          wp.focus?.(hit);
+        } catch {
+          /* picker closing */
+        }
+        haptic("tap");
+      }
+    }
+  }
+
+  private pickAt(i: number) {
+    const wp = this.picker();
+    try {
+      if (wp && !wp.done) wp.pick?.(i);
+    } catch {
+      /* already closed */
+    }
+  }
+
+  private closePicker() {
+    const wp = this.picker();
+    try {
+      if (wp && !wp.done) wp.close?.();
+    } catch {
+      /* already closed */
+    }
+  }
+
+  // ------------------------------------------------------------------ the game's hooks (boot.ts PhoneHooks)
+
+  /** Is this a fight the phone controls run (a top-down Dungeon room)? */
+  private ours(scene: Phaser.Scene): scene is DungeonLike {
+    return scene.sys?.settings?.key === "Dungeon" && (scene as DungeonLike).side !== true;
+  }
+
+  /**
+   * The Dungeon, every frame, just before the player moves: pick the target, work out the aim, decide auto-fire,
+   * and the phone assist. Runs inside the Dungeon's update, so what it sets is used this very frame.
+   */
+  combatStep(scene: Phaser.Scene, controls: unknown, dt: number) {
+    if (!this.ours(scene)) return;
+    const dun = scene;
+    const p = dun.player;
+    const ctl = controls as { autoAim: number | null; autoAimPoint: Pt | null };
+    // (the Krezz-Assist perk's lock-on would bypass Controls.aim: on a phone, aiming is ours)
+    ctl.autoAim = null;
+    ctl.autoAimPoint = null;
+    if (!p || !p.spr?.active) return;
+    const st = phoneSettings();
+    this.tune = AIM_TUNE[st.aimAssist] ?? AIM_TUNE.normal;
+    const me: Pt = { x: p.x, y: p.y };
+    const sx = TOUCH.mx;
+    const sy = TOUCH.my;
+    if (Math.hypot(sx, sy) > 0.2) this.lastMove = Math.atan2(sy, sx);
+    const view = dun.cameras.main.worldView;
+    const vr = { x: view.x, y: view.y, w: view.width, h: view.height };
+    const enemies: AimTarget[] = [];
+    for (const e of dun.enemies ?? []) {
+      if (!e || e.dead || !e.active || e.visible === false || e.alpha < 0.3) continue;
+      const v = e.body?.velocity;
+      enemies.push({ id: e.uid, x: e.x, y: e.y, r: e.radius || 12, kind: "enemy", vx: v?.x ?? 0, vy: v?.y ?? 0 });
+    }
+    const objects: AimTarget[] = [];
+    const barrels: AimTarget[] = [];
+    (dun.spice?.breakables ?? []).forEach((b, i) => {
+      if (b.dead || b.kind === "hostage") return;
+      const t: AimTarget = { id: `b${i}`, x: b.x, y: b.y, r: b.r || 14, kind: "object" };
+      objects.push(t);
+      if (b.kind === "barrel") barrels.push(t);
+    });
+    const prev = this.target?.id ?? null;
+    this.target = pickTarget({ me, stick: { x: sx, y: sy }, enemies, objects, prev, tune: this.tune, view: vr, reach: ACQUIRE });
+    // the weapon's reach and shot speed
+    const s = G.s;
+    const golden = dun.now() < p.superUntil;
+    let range: number;
+    let speed: number;
+    const gid = s.gun && s.guns && s.gun in s.guns && gunUsable(s.gun, s) ? s.gun : null;
+    if (golden) {
+      // (golden: the attack is a lunging melee combo; auto-fire never moves you, so it waits for FIRE)
+      range = MELEE_REACH;
+      speed = 0;
+    } else if (gid && (s.guns![gid] ?? 0) > 0) {
+      const g = moddedGun(GUNS[gid], s);
+      range = g.range;
+      speed = g.speed;
+    } else {
+      const f = moddedFart(s);
+      range = f.range;
+      speed = f.speed;
+    }
+    // aim: a slide by hand (snapped), else the target, else straight ahead
+    const d = this.layer.decision;
+    const fighting = d.mode === "combat" && !d.mash && !d.picker;
+    if (this.manual) {
+      const sn = snapAim(me, this.manual.raw, enemies, this.tune, ACQUIRE, vr);
+      this.manual.angle = sn.angle;
+      this.manual.snapped = sn.snapped;
+      this.aimAngle = sn.angle;
+      this.aimPt = sn.snapped ? { x: sn.snapped.x, y: sn.snapped.y } : { x: me.x + Math.cos(sn.angle) * 180, y: me.y + Math.sin(sn.angle) * 180 };
+    } else {
+      const autoAims = this.target && (st.aimAssist !== "off" || (st.autoFire && this.target.kind === "enemy"));
+      if (autoAims && this.target) {
+        const pt = aimPointFor(me, this.target, speed, this.tune.lead);
+        this.aimAngle = Math.atan2(pt.y - me.y, pt.x - me.x);
+        this.aimPt = pt;
+      } else {
+        this.aimAngle = this.lastMove;
+        this.aimPt = { x: me.x + Math.cos(this.lastMove) * 180, y: me.y + Math.sin(this.lastMove) * 180 };
+      }
+    }
+    // auto-fire: an enemy in range, on screen, no barrel by your feet in the way; never a special, never in an overlay
+    const now = realNow();
+    let auto = st.autoFire && fighting && !golden && !dun.busy && !dun.picking && autoFireOk({ me, target: this.target, range, view: vr, barrels });
+    // (a "don't hold the trigger" room: let go for a moment every two seconds, the way a laptop player taps)
+    if (auto && dun.rule?.kind === "NO_ATTACK_SPAM") {
+      if (!this.burstSince) this.burstSince = now;
+      if (spamGap(now, this.burstSince)) auto = false;
+    } else if (!auto) this.burstSince = 0;
+    this.autoFiring = auto;
+    TOUCH.attack = (fighting && (this.fireHeld || now < this.graceUntil)) || auto;
+    if (st.phoneAssist) this.assist(dun, p, dt);
+  }
+
+  /**
+   * Phone assist (research S9; never slows the game): pick-ups come to you from further away and faster, a dodge's
+   * safe window is a little longer (touch and frame delay), and enemy bullets are drawn a bit bigger (they are hard
+   * to see at a phone's scale; their hit size is unchanged).
+   */
+  private assist(dun: DungeonLike, p: PlayerLike, dt: number) {
+    for (const pk of dun.pickups ?? []) {
+      if (pk.kind === "quest" || !pk.spr?.active) continue;
+      const d = Math.hypot(pk.spr.x - p.x, pk.spr.y - p.y);
+      if (d >= ASSIST.magnet || d < 1) continue;
+      // (inside the game's own 90 px its pull still runs as well; this adds to it)
+      const step = Math.min(d, dt * (d < ASSIST.reach ? 2 : ASSIST.pull));
+      pk.spr.x += ((p.x - pk.spr.x) / d) * step;
+      pk.spr.y += ((p.y - pk.spr.y) / d) * step;
+    }
+    if (p.dodgeUntil > this.dodgeSeen) {
+      this.dodgeSeen = p.dodgeUntil;
+      p.iframesUntil = Math.max(p.iframesUntil, p.dodgeUntil + 90 + ASSIST.dodgeMs);
+    }
+    for (const sh of dun.shots ?? []) {
+      if (sh.o.owner !== "enemy" || sh.spr.__mBig || !sh.spr.active) continue;
+      sh.spr.__mBig = true;
+      sh.spr.setScale(sh.spr.scaleX * ASSIST.bullet, sh.spr.scaleY * ASSIST.bullet);
+    }
+  }
+
+  aim(scene: Phaser.Scene, _px: number, _py: number): number | null {
+    if (!this.ours(scene) || this.aimAngle === null) return null;
+    return this.aimAngle;
+  }
+
+  aimPoint(scene: Phaser.Scene): Pt | null {
+    if (!this.ours(scene)) return null;
+    return this.aimPt;
+  }
+
+  /** The HUD's toast column ends left of the top-right controls (pause, the fullscreen offer, the weapon chip). */
+  toastRight(_mode: "hub" | "dungeon"): number | null {
+    const cb = this.game.scale.canvasBounds;
+    const k = cb.width / 960;
+    if (!k) return null;
+    let left = Infinity;
+    // (in a top-down fight the weapon chip's place is kept even before it shows: a room's first toasts come early)
+    const dun = dungeonOf(this.game);
+    const fight = _mode === "dungeon" && !!dun && dun.side !== true;
+    for (const id of ["pause", "fullscreen", "c-chip"]) {
+      const ctl = this.layer.control(id);
+      if (!ctl || ctl.faceRect.w <= 0 || ctl.faceRect.y >= cb.y + 60) continue;
+      if (ctl.shown || (id === "c-chip" && fight) || (id === "pause" && this.layer.decision.mode !== "none")) left = Math.min(left, ctl.faceRect.x);
+    }
+    if (!Number.isFinite(left)) return null;
+    return Math.min(950, Math.floor((left - 8 - cb.x) / k));
+  }
+
+  readyWord(which: "burst" | "fart"): string | null {
+    if (!this.active) return null;
+    return which === "burst" ? READY.wonk.word : READY.ibs.word;
+  }
+
+  // ------------------------------------------------------------------ the mode controller
+
+  enter(ctx: ModeContext) {
+    this.active = true;
+    this.frame(ctx);
+  }
+
+  leave() {
+    this.active = false;
+    // (a control under a thumb stays until the thumb lifts: research M3 / S1)
+    for (const c of Object.values(this.c)) if (!c.pressed) c.show(false);
+    this.mash.classList.remove("show");
+    this.autoFiring = false;
+    this.target = null;
+    this.layer.occluders = [];
+    TOUCH.attack = this.fireHeld;
+    this.drawAim(null);
+    // (a press meant for the fight that no frame has read yet must not go off later, somewhere else)
+    dropFightEdges();
+  }
+
+  release() {
+    // (page hidden, upright, blur: everything lets go)
+    this.fireHeld = false;
+    this.manual = null;
+    this.graceUntil = 0;
+    this.autoFiring = false;
+    TOUCH.attack = false;
+    TOUCH.held.delete("special");
+    TOUCH.held.delete("swap");
+    if (this.swapBy) {
+      this.swapBy = null;
+      this.swapHold.reset();
+      this.swapSlowOff();
+    }
+    dropFightEdges();
+  }
+
+  layout() {
+    // (chips follow the canvas: re-placed whenever the layer lays out)
+    this.canvasKey = "";
+  }
+
+  frame(ctx: ModeContext) {
+    const d = ctx.decision;
+    const dun = dungeonOf(this.game);
+    const p = dun?.player;
+    const s = G.s;
+    const picker = !!d.picker;
+    const mash = !!d.mash;
+    const fight = !picker && !mash && !!p && !p.dead;
+    const show = (id: CtlId, on: boolean, pop = false) => {
+      const c = this.c[id];
+      if (!on && c.pressed) return;
+      if (on !== c.shown) c.show(on, pop);
+    };
+    // the mash overlay: the whole screen
+    this.mash.classList.toggle("show", mash);
+    if (mash) TOUCH.attack = false;
+    // (a tap in its last moment must not reach the fight as a WONK press: "WONK 0%")
+    else if (this.wasMash) TOUCH.edges.delete("burst");
+    this.wasMash = mash;
+    // the room counts toward the first-fights captions once it's really a fight
+    if (fight && dun && p && this.teachRoomCounted !== p && (dun.enemies?.length ?? 0) > 0) {
+      this.teachRoomCounted = p;
+      this.teach.rooms++;
+      saveTaught(this.teach);
+    }
+    const teaching = this.teach.rooms <= TEACH_ROOMS;
+    // ---- the cluster
+    show("fire", fight);
+    show("dodge", fight);
+    const sig = p?.def?.signature;
+    show("special", fight && (!!sig || !!p?.headbuttMode));
+    const choices = weaponList(s).filter((w) => !w.empty).length;
+    show("swap", fight && choices >= 2, true);
+    show("action", fight && !!d.action, true);
+    if (d.action) this.c.action.setLabel(String(d.action));
+    show("close", picker);
+    // READY: the meter ability that's ready (never relabelled under a thumb; a fresh word ignores presses briefly)
+    let rid: ReadyId | null = null;
+    if (fight && p && dun) {
+      const now = dun.now();
+      rid = readyAbility({ golden: now < p.superUntil, cumeReady: now >= p.cumeCd, canTransform: !!s.flags.golden_charge, wonk: p.wonk ?? 0, fartLevel: fartLevel() });
+    }
+    const rc = this.c.ready;
+    if (!rc.pressed && rid !== this.readyId) {
+      const was = this.readyId;
+      this.readyId = rid;
+      if (rid) {
+        rc.setLabel(READY[rid].word);
+        rc.setCaption(teaching ? READY[rid].caption : null);
+        if (was && rc.shown) rc.disarmFor(RELABEL_MS);
+        if (this.teach.ready < 3) {
+          this.teach.ready++;
+          saveTaught(this.teach);
+          this.pulseUntil.ready = realNow() + 3000;
+        }
+      }
+    }
+    show("ready", !!this.readyId, true);
+    // HEAL under 40% health with juice to drink
+    const hw = fight && !!p && !!dun && healWanted(s.hp, maxHp(s), s.bottles, dun.now() < p.noHealUntil);
+    if (hw && !this.c.heal.shown && this.teach.heal < 2) {
+      this.teach.heal++;
+      saveTaught(this.teach);
+      this.pulseUntil.heal = realNow() + 3000;
+    }
+    show("heal", hw, true);
+    if (this.c.heal.shown) this.c.heal.setHtml(`${ICON.heal}<span class="kt-n">${s.bottles}</span>`);
+    // SPECIAL: its word and its Krezz cost as a fill; dim when it can't go
+    if (fight && p && dun) {
+      const cost = p.headbuttMode ? 0 : Math.max(0, sig?.cost ?? 0);
+      const fill = specialFill(s.krezz, cost);
+      const can = fill >= 1 && dun.now() >= p.noSpecialUntil;
+      const word = specialWord(sig?.id, p.headbuttMode);
+      this.c.special.setHtml(`<div class="kt-fill" style="height:${Math.round(fill * 50) * 2}%"></div><span class="kt-w">${word}</span>`);
+      this.c.special.el.classList.toggle("dim", !can);
+      this.c.special.setCaption(teaching ? "SPECIAL" : null);
+    }
+    // ---- the chips
+    show("chip", fight);
+    if (fight) this.weaponChip();
+    show("juice", fight);
+    show("bongo", fight && s.bongos > 0);
+    const lv = fartLevel();
+    show("fart", fight && lv >= 1);
+    show("sanmik", fight && isMikey(s) && !sanmikForced(s));
+    if (fight) this.drinkChips(lv);
+    // ---- captions (first fights) and pulses (the first time each matters)
+    for (const [id, word] of [
+      ["fire", "FIRE"],
+      ["dodge", "DODGE"],
+      ["swap", "SWAP"],
+      ["heal", "HEAL"],
+    ] as const)
+      this.c[id].setCaption(teaching ? word : null);
+    const t = realNow();
+    for (const id of ["ready", "heal", "swap"] as const) this.c[id].el.classList.toggle("pulse", (this.pulseUntil[id] ?? 0) > t && this.c[id].shown);
+    // ---- feedback: a flash on the button that just did something (FIRE flashes with auto-fire's shots too)
+    if (p) this.flashes(p);
+    this.c.fire.el.classList.toggle("auto", this.autoFiring);
+    this.swapTick();
+    // ---- the target ring, the aim line, and what controls must not hide
+    this.drawAim(fight && dun ? dun : null);
+    this.layer.occluders = fight && dun && p ? this.occluders(dun, p) : [];
+    // the prompt over the player's head speaks touch ("Tap: Untie Mollor": tapping it, or ACTION, does it)
+    const pr = dun?.prompt as (Phaser.GameObjects.Text & { __krelWorded?: boolean }) | undefined;
+    if (pr && !pr.__krelWorded && pr.scene) wordText(pr);
+  }
+
+  /** The weapon chip: icon, name, ammo. Only touches the DOM when something changed. */
+  private weaponChip() {
+    const s = G.s;
+    const gid = s.gun && s.guns && s.gun in s.guns && gunUsable(s.gun, s) ? s.gun : null;
+    const ammo = gid ? s.guns![gid] ?? 0 : -1;
+    // the gun went dry and the game moved on: the first times, SWAP says "I'm here"
+    if (this.lastGun !== undefined && this.lastGun && gid !== this.lastGun && (s.guns?.[this.lastGun] ?? 0) <= 0 && this.teach.swap < 2) {
+      this.teach.swap++;
+      saveTaught(this.teach);
+      this.pulseUntil.swap = realNow() + 2500;
+    }
+    if (gid === this.lastGun && ammo === this.lastAmmo) return;
+    this.lastGun = gid;
+    this.lastAmmo = ammo;
+    let icon = "💨";
+    let name = "Fart Blaster";
+    let am = "∞";
+    let cls = "";
+    if (gid) {
+      const g = GUNS[gid];
+      name = g.name.replace(/^The /, "").replace(/\s*\(.*\)\s*$/, "");
+      const img = this.gunIcon(gid, g.tex);
+      if (img) icon = `<img src="${img}" alt="">`;
+      am = ammo > 0 ? `${ammo}` : "EMPTY";
+      cls = ammo <= 0 ? "out" : ammo < (g.maxAmmo ?? 1) * 0.2 ? "low" : "";
+    }
+    this.c.chip.setHtml(`<span class="kt-ic">${icon}</span><span class="kt-tx"><span class="kt-nm">${esc(name)}</span><span class="kt-am ${cls}">${am}</span></span>`);
+  }
+
+  private gunIcon(id: string, tex: string): string | null {
+    if (this.gunIcons.has(id)) return this.gunIcons.get(id) || null;
+    let url = "";
+    try {
+      const tm = this.game.textures;
+      if (tm.exists(tex)) url = (tm as unknown as { getBase64(k: string): string }).getBase64(tex) || "";
+    } catch {
+      url = "";
+    }
+    this.gunIcons.set(id, url);
+    return url || null;
+  }
+
+  private drinkChips(lv: number) {
+    const s = G.s;
+    const full = s.hp >= maxHp(s);
+    this.c.juice.setHtml(`<span>🍼</span><span>${s.bottles}/${maxBottles(s)}</span>`);
+    this.c.juice.el.classList.toggle("dim", s.bottles <= 0 || full);
+    this.c.bongo.setHtml(`<span>🍺</span><span>${s.bongos}</span>`);
+    const names = ["", "FAIRY", "BEANS", "CABBAGE", "IBS!"];
+    this.c.fart.setHtml(`<span>💨</span><span>${names[lv] ?? ""}</span>`);
+    this.c.sanmik.setHtml(`<span>SANMIK</span>`);
+    // (the line re-flows when one comes or goes, and when the canvas moves)
+    const cb = this.game.scale.canvasBounds;
+    const key = `${this.c.juice.shown}${this.c.bongo.shown}${this.c.fart.shown}${this.c.sanmik.shown}`;
+    const ck = `${Math.round(cb.x)},${Math.round(cb.y)},${Math.round(cb.width)}`;
+    if (key !== this.chipsKey || ck !== this.canvasKey) {
+      this.chipsKey = key;
+      this.canvasKey = ck;
+      for (const id of ["juice", "bongo", "fart", "sanmik", "chip"] as const) if (!this.c[id].pressed) this.c[id].place();
+    }
+  }
+
+  /** A short flash on the button whose action just happened (research M15). */
+  private flashes(p: PlayerLike) {
+    const fl = (c: TouchControl) => {
+      if (!c.shown) return;
+      try {
+        c.face.animate([{ filter: "brightness(1.9)", transform: "scale(1.06)" }, { filter: "brightness(1)", transform: "scale(1)" }], { duration: 140, easing: "ease-out" });
+      } catch {
+        /* no WAAPI */
+      }
+    };
+    if (p.attackAnimUntil > this.seen.attack) {
+      this.seen.attack = p.attackAnimUntil;
+      fl(this.c.fire);
+    }
+    if (p.dodgeUntil > this.seen.dodge) {
+      this.seen.dodge = p.dodgeUntil;
+      fl(this.c.dodge);
+    }
+    if (p.specialCd > this.seen.special) {
+      this.seen.special = p.specialCd;
+      fl(this.c.special);
+    }
+  }
+
+  /** The ring at the target's feet, and the aim line while FIRE is slid. Drawn in the Dungeon (moves with it). */
+  private drawAim(dun: DungeonLike | null) {
+    const last = this.lastDrawn;
+    if (last && (!dun || last !== dun)) {
+      if (last.__mG?.ring.scene) last.__mG.ring.clear();
+      if (last.__mG?.line.scene) last.__mG.line.clear();
+    }
+    this.lastDrawn = dun;
+    if (!dun) return;
+    let gs = dun.__mG;
+    if (!gs || !gs.ring.scene || !gs.line.scene) {
+      gs = { ring: dun.add.graphics(), line: dun.add.graphics().setDepth(640) };
+      dun.__mG = gs;
+    }
+    gs.ring.clear();
+    gs.line.clear();
+    const p = dun.player;
+    if (!p) return;
+    const st = phoneSettings();
+    const t = this.manual?.snapped ?? this.target;
+    const showRing = !!t && (st.aimAssist !== "off" || this.autoFiring || !!this.manual?.snapped);
+    if (t && showRing) {
+      const r = t.r + 8;
+      const col = t.kind === "enemy" ? 0xff4d4d : 0xffa94d;
+      gs.ring.setDepth(t.y - 1);
+      gs.ring.lineStyle(this.autoFiring || this.fireHeld ? 3 : 2, col, this.autoFiring || this.fireHeld ? 0.95 : 0.7);
+      gs.ring.strokeEllipse(t.x, t.y + t.r * 0.55, r * 2, r * 0.9);
+      gs.ring.lineStyle(1, 0x000000, 0.5);
+      gs.ring.strokeEllipse(t.x, t.y + t.r * 0.55, r * 2 + 4, r * 0.9 + 3);
+    }
+    if (this.manual) {
+      const a = this.manual.angle;
+      const len = 240;
+      const snapped = !!this.manual.snapped;
+      gs.line.lineStyle(4, 0x000000, 0.35);
+      gs.line.lineBetween(p.x + Math.cos(a) * 22, p.y + Math.sin(a) * 22, p.x + Math.cos(a) * len, p.y + Math.sin(a) * len);
+      gs.line.lineStyle(2, snapped ? 0xffd23f : 0xffffff, snapped ? 0.95 : 0.7);
+      gs.line.lineBetween(p.x + Math.cos(a) * 22, p.y + Math.sin(a) * 22, p.x + Math.cos(a) * len, p.y + Math.sin(a) * len);
+    }
+  }
+  private lastDrawn: DungeonLike | null = null;
+
+  /** The player and the target, on the page: a control over either goes see-through. */
+  private occluders(dun: DungeonLike, p: PlayerLike): Rect[] {
+    const out: Rect[] = [];
+    const cam = dun.cameras.main;
+    const cb = this.game.scale.canvasBounds;
+    const k = cb.width / 960;
+    const page = (x: number, y: number) => ({ x: cb.x + ((x - cam.scrollX - cam.width / 2) * cam.zoom + cam.x + cam.width / 2) * k, y: cb.y + ((y - cam.scrollY - cam.height / 2) * cam.zoom + cam.y + cam.height / 2) * k });
+    try {
+      const b = p.spr.getBounds();
+      const a = page(b.x, b.y);
+      const z = page(b.right, b.bottom);
+      out.push({ x: a.x, y: a.y, w: z.x - a.x, h: z.y - a.y });
+    } catch {
+      /* no sprite */
+    }
+    const t = this.target;
+    if (t) {
+      const a = page(t.x - t.r - 6, t.y - t.r * 2);
+      const z = page(t.x + t.r + 6, t.y + t.r + 6);
+      out.push({ x: a.x, y: a.y, w: z.x - a.x, h: z.y - a.y });
+    }
+    return out;
+  }
+
+  /** For tests and ?mobilediag. */
+  snapshot(): CombatSnapshot {
+    const t = this.target;
+    return {
+      target: t ? { id: t.id, kind: t.kind, x: Math.round(t.x), y: Math.round(t.y) } : null,
+      aim: this.aimAngle,
+      manual: !!this.manual,
+      snapped: !!this.manual?.snapped,
+      autoFiring: this.autoFiring,
+      fireHeld: this.fireHeld,
+      ready: this.readyId,
+      heal: this.c.heal.shown,
+      picker: this.pickerOpen,
+      mash: this.mash.classList.contains("show"),
+      mashPresses: this.mashPresses,
+      taught: { ...this.teach },
+    };
+  }
+
+  /** Tests: forget the first-fights teaching (captions and pulses come back). */
+  resetTeaching() {
+    this.teach = { rooms: 0, ready: 0, heal: 0, swap: 0 };
+    saveTaught(this.teach);
+  }
+}
+
+/** Phone assist's numbers (S9; *mine*, starting values for the device test). */
+export const ASSIST = Object.freeze({
+  /** Pick-ups start coming to you from this far (world px; the game's own pull starts at 90). */
+  magnet: 140,
+  /** How fast they come (px per ms; the game's own pull is 0.4)... */
+  pull: 0.5,
+  /** ...and inside this distance they come quickly enough to be collected at once. */
+  reach: 60,
+  /** A dodge's safe window lasts this much longer (ms; about 1.25x the 260 ms window, the audit's timing lever). */
+  dodgeMs: 60,
+  /** Enemy bullets are drawn this much bigger (their hit size is unchanged). */
+  bullet: 1.25,
+});
+
+/** The actions the fight's buttons send (TOUCH edges the Dungeon reads on its next frame). */
+const FIGHT_EDGES = ["dodge", "special", "bottle", "bongo", "fart", "burst", "transform", "cume", "interact", "swap", "sanmik"];
+
+/** Drop fight presses no frame has read (the fight just went behind a conversation, the pause menu, the page hiding). */
+function dropFightEdges() {
+  for (const e of FIGHT_EDGES) TOUCH.edges.delete(e);
+}
+
+const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] ?? c);
+
+let installed: CombatControls | null = null;
+
+/** The combat controls, once installed (phones only). */
+export function combatControls(): CombatControls | null {
+  return installed;
+}
+
+/**
+ * Phones: install the top-down fight controls. Replaces stage 1's dungeon row in the mode table (in place, so the
+ * overlays above it still win), adds the weapon-picker row in front, registers the controller and lends the game its
+ * hooks.
+ */
+export function installCombat(game: Phaser.Game, layer: TouchLayer): CombatControls {
+  if (installed) return installed;
+  if (typeof document !== "undefined" && !document.getElementById(COMBAT_STYLE_ID)) {
+    const st = document.createElement("style");
+    st.id = COMBAT_STYLE_ID;
+    st.textContent = COMBAT_CSS;
+    document.head.appendChild(st);
+  }
+  const i = SCENE_RULES.findIndex((r) => r.name === "dungeon");
+  if (i >= 0) SCENE_RULES.splice(i, 1, DUNGEON_RULE);
+  else addSceneRule(DUNGEON_RULE, "back");
+  addSceneRule(PICKER_RULE, "front");
+  const cc = new CombatControls(game, layer);
+  registerModeController({
+    id: "combat-topdown",
+    mode: "combat",
+    enter: (ctx) => cc.enter(ctx),
+    frame: (ctx) => cc.frame(ctx),
+    layout: () => cc.layout(),
+    release: () => cc.release(),
+    leave: () => cc.leave(),
+  });
+  setPhoneHooks({
+    combatStep: (sc, ctl, dt) => cc.combatStep(sc, ctl, dt),
+    aim: (sc, px, py) => cc.aim(sc, px, py),
+    aimPoint: (sc) => cc.aimPoint(sc),
+    toastRight: (m) => cc.toastRight(m),
+    readyWord: (w) => cc.readyWord(w),
+  });
+  // touch wording for the fight's own UI hints (never dialogue): the weapon picker's how-to line, and the first
+  // dungeon's how-to-play pages, which named the old pad's buttons
+  UI_TEXTS.WeaponPick = [/^\(the world's slowed right down\) · Tap one/];
+  UI_TEXTS.Tutorial = [TUTORIAL_TEXT];
+  for (const r of COMBAT_WORDING) addWording(r);
+  // Kreddle's money counter sits under pause on a phone: it moves left of it (P10)
+  registerModeController({ id: "phone-hud-walk", mode: "walk", frame: () => kreddleCounter(game, cc) });
+  installed = cc;
+  return cc;
+}
+
+/** The first dungeon's how-to-play texts that name a touch button (TutorialScene's touch column). */
+export const TUTORIAL_TEXT = /^(?:ATTACK button \(hold|DODGE button$|GUN button$|E button$|SPECIAL button\. |WONK button\. |💨 button\. |PJ button\. |🍺 button\. |Later on: ⚡T, then CUME\.$|Esc pauses at any time; CONTROLS)/;
+
+/**
+ * Touch wording for the fights (phones only, through hint() / wordText(); UI hints and control instructions, never
+ * a character's line). The tutorial rows named the old pad's buttons (ATTACK, GUN, E, PJ, WONK, 💨, 🍺, ⚡T).
+ */
+export const COMBAT_WORDING = [
+  { id: "weapon-pick", re: /^\(the world's slowed right down\) · Tap one · .*$/, to: "(the world's slowed right down) · Tap one, or slide onto one and let go · ✕ to close" },
+  { id: "tut-shoot", re: /^ATTACK button \(hold; aims at the nearest enemy\)$/, to: "FIRE (bottom right) shoots by itself at enemies in range. Hold it to fire anyway, slide it to aim" },
+  { id: "tut-dodge", re: /^DODGE button$/, to: "DODGE button. Dodge right as you get hit for a PERFECT DODGE (slow-mo)" },
+  { id: "tut-swap", re: /^GUN button$/, to: "SWAP button, or tap your gun up top. Hold either to choose. Empty guns swap automatically" },
+  { id: "tut-use", re: /^E button$/, to: "ACTION pops up when there's something to use (or tap what it says over your head)" },
+  { id: "tut-special", re: /^SPECIAL button\. /, to: "SPECIAL button (it says what yours is). " },
+  { id: "tut-wonk", re: /^WONK button\. /, to: "WONK! pops up on the right when it's ready. " },
+  { id: "tut-fart", re: /^💨 button\. /, to: "💨 at the top left. " },
+  { id: "tut-juice", re: /^PJ button\. /, to: "🍼 at the top left, and HEAL pops up when you're hurt. " },
+  { id: "tut-bongo", re: /^🍺 button\. /, to: "🍺 at the top left. " },
+  { id: "tut-golden", re: /^Later on: ⚡T, then CUME\.$/, to: "Later on: GOLD, then CUME. They pop up on the right." },
+  { id: "tut-pause", re: /^Esc pauses at any time; CONTROLS in the pause menu lets you rebind every key\.$/, to: "II (top right) pauses at any time." },
+  // the first dungeon's narrated controls line (a pure control instruction in the game's own voice, research rule 3's
+  // exception): only where the dialogue code passes such lines through hint(); this file never routes dialogue
+  {
+    id: "wildern-controls",
+    re: /^CONTROLS: WASD move · Mouse aim · Left click attack · .* · Esc pause$/,
+    to: "CONTROLS: drag on the left to move · FIRE shoots by itself (hold it to fire, slide it to aim) · DODGE, SPECIAL and SWAP on the right · WONK!, HEAL and the rest pop up when they're ready · II pause",
+  },
+];
+
+/** Walking, Kreddle: its money counter (top right) moves left of pause and the fullscreen offer. */
+function kreddleCounter(game: Phaser.Game, cc: CombatControls) {
+  let kr: { coinText?: Phaser.GameObjects.Text } | null = null;
+  try {
+    if (!game.scene.isActive("Kreddle")) return;
+    kr = game.scene.getScene("Kreddle") as unknown as { coinText?: Phaser.GameObjects.Text };
+  } catch {
+    return;
+  }
+  const t = kr?.coinText;
+  if (!t?.scene) return;
+  const x = Math.min(950, cc.toastRight("hub") ?? 950);
+  if (Math.abs(t.x - x) > 0.5) t.setX(x);
+}

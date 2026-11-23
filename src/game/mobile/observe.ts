@@ -40,8 +40,29 @@ const ADAPTERS: Record<string, (sc: Bag) => { busy: boolean; promptOwner: Bag; s
     if (sub) return { busy: sub.busy === true, promptOwner: sub, sub: raid ? "raid" : "rout" };
     return { busy: sc.busy === true || !!sc.panelRoot, promptOwner: sc };
   },
-  Dungeon: (sc) => ({ busy: false, promptOwner: sc, side: sc.side === true }),
+  // (stage 2: busy covers the room's scripted moments, dying and moving rooms; "mash" a tap-anywhere mash overlay)
+  Dungeon: (sc) => ({
+    busy: sc.busy === true || sc.dying === true || sc.transitioning === true || !sc.player,
+    promptOwner: sc,
+    side: sc.side === true,
+    sub: mashOverlay(sc) ? "mash" : null,
+  }),
 };
+
+/**
+ * A fight's tap-anywhere mash overlay is up (the WONK YOUR THANG gauge, the roof's group wonk): an interactive
+ * rectangle over the whole screen in the Dungeon (nothing else in a fight is one). A few objects to look at: only the
+ * scene's interactive ones.
+ */
+export function mashOverlay(sc: Bag): boolean {
+  const list = ((sc.input as Bag | undefined)?._list as unknown[] | undefined) ?? [];
+  for (const o of list) {
+    const r = o as { active?: boolean; visible?: boolean; width?: number; height?: number; parentContainer?: { visible?: boolean; active?: boolean } | null; input?: { enabled?: boolean } };
+    if (!r || !r.active || r.visible === false || !r.input?.enabled) continue;
+    if ((r.width ?? 0) >= 940 && (r.height ?? 0) >= 520 && r.parentContainer?.visible !== false && r.parentContainer?.active !== false) return true;
+  }
+  return false;
+}
 
 /** What the layer needs to know about the game right now. Cheap: a handful of property reads. */
 export function readView(game: Phaser.Game): GameView {

@@ -66,6 +66,8 @@ import { dressingFor } from "./dressing/rooms";
 import { floorFallbackTint, floorTile } from "./dressing/floors";
 import { beatenBosses, bossEscorts, bossWaveHp, breatherSec, gauntletBossFor, gauntletPool, gauntletScale, gauntletWave, GAUNTLET_KILL_COIN_MULT, heatScale, isBossWave, pitRecord, recordGauntlet, recordRematch, REMATCH_BY_ID, REMATCH_KILL_COIN_MULT, rematchPay, wavePay } from "../systems/pit";
 import type { PitResult } from "../G";
+import { isMobile } from "../mobile/flag";
+import { phoneHooks } from "../mobile/boot";
 
 interface Shot {
   spr: Phaser.GameObjects.Image;
@@ -4365,6 +4367,8 @@ export class DungeonScene extends Phaser.Scene implements CombatWorld {
     const ne = this.nearestEnemy(this.player.x, this.player.y, 520);
     this.controls.autoAim = ne ? Math.atan2(ne.y - this.player.y, ne.x - this.player.x) : null;
     this.controls.autoAimPoint = ne ? { x: ne.x, y: ne.y } : { x: this.player.x + Math.cos(this.player.aim) * 180, y: this.player.y + Math.sin(this.player.aim) * 180 };
+    // phones: the phone combat controls aim, fire and help (src/game/mobile/combat.ts); nothing on a laptop
+    if (isMobile()) phoneHooks()?.combatStep?.(this, this.controls, dt);
     if (!this.busy && !this.picking) this.player.update(dt, now, this.controls);
     else (this.player.spr.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
     {

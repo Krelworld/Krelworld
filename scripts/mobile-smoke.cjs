@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,guide,optout,town,dungeon,android,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,guide,optout,town,dungeon,combat,android,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -29,9 +29,17 @@
 // optout   the same phone with ?mobile=0: no layer, no "mobile" class, no phone CSS, no phone global.
 // town     the Hub on a phone: with Mikey following, a door's ACTION is ENTER (not SHOVE); SHOVE when he's all
 //          there is; the shoving match on the bridge shows SHOVE and it shoves; the first toasts speak touch.
-// dungeon  Wildern room 1 on the old pad: the page hidden mid-press lets go of the old stick and ATTACK; coming back
-//          (hidden → visible, upright → sideways, the guide from the rotate screen) opens the pause menu instead of
-//          dropping into the fight; a fight with no pause menu waits behind "tap to carry on".
+// dungeon  Wildern room 1: the phone controls, not the old pad; the page hidden mid-press lets go of the stick and
+//          FIRE; coming back (hidden → visible, upright → sideways, the guide from the rotate screen) opens the pause
+//          menu instead of dropping into the fight; a fight with no pause menu waits behind "tap to carry on".
+// combat   stage 2's top-down fight controls, iPhone 14 with its safe areas: a room and a boss reached through
+//          DebugSkip; the old pad gone and the new controls up (captions the first fights); the stick from the
+//          gutter; auto-fire kills a test enemy with no thumb on FIRE; FIRE hold, slide-to-aim, the 200 ms grace with
+//          auto-fire off; DODGE; SPECIAL; SWAP tap and hold (slide onto a gun in the picker); the weapon chip tap and
+//          hold, CLOSE; READY pops in (ignores a press at once), WONK!'s mash overlay takes taps anywhere; HEAL pops
+//          in and heals; a touch in the gap goes to the nearest control; stick + FIRE + DODGE at once; pause, hidden
+//          and upright mid-fight, with no stuck input after each; toasts clear of the chip and pause; the boss bar up
+//          top and auto-fire on the boss; sizes, spacing and cover at 844x390, 750x340 and 740x360.
 // android  Android Chrome 740x360: a press held past the Enter gate's fade still gets fullscreen and the back guard;
 //          the guide's written steps leave fullscreen (and closing it goes back in); the crash guard's notices show
 //          in fullscreen; an in-app browser shows "open it in Chrome first" during the load.
@@ -51,7 +59,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,guide,optout,town,dungeon,android,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,guide,optout,town,dungeon,combat,android,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -1323,14 +1331,14 @@ async function dungeon(browser) {
       await sleep(700);
     }
     const inFight = await ph.mode();
-    check("in the fight: combat mode on the old pad", inFight === "combat:Dungeon" && (await ph.ev(() => !!window.__krel.game.scene.getScene("UI").touch)), inFight);
+    check("in the fight: combat mode on the phone controls (the old canvas pad gone)", inFight === "combat:Dungeon" && (await ph.ev(() => !window.__krel.game.scene.getScene("UI").touch)), inFight);
     const paused = () => ph.ev(() => ({ menu: window.__krel.active().includes("Menu"), dungeon: window.__krel.game.scene.isPaused("Dungeon"), hp: window.__krel.G.s.hp, running: window.__krel.game.loop.running }));
     const resume = async () => {
       await ph.tapText("RESUME", { scene: "Menu", exact: true }).catch(() => 0);
       await ph.until(() => !window.__krel.active().includes("Menu"), null, 8000, "resume").catch(() => 0);
       await sleep(300);
     };
-    // thumbs on the old stick and ATTACK when the page hides (no touchcancel): both let go (R9)
+    // thumbs on the stick and FIRE when the page hides (no touchcancel): both let go (R9; FIRE sits where ATTACK was)
     const [sx, sy] = await ph.g2c(150, 400);
     const [ax, ay] = await ph.g2c(860, 440);
     await ph.touch("touchStart", [{ x: sx, y: sy, id: 1 }]);
@@ -1350,7 +1358,7 @@ async function dungeon(browser) {
       const T = (await import("/src/game/ui/TouchControls.ts")).TOUCH;
       return { mx: T.mx, my: T.my, attack: T.attack, held: [...T.held] };
     });
-    check("hidden mid-fight with thumbs on the old stick and ATTACK: both let go (R9)", held.mx > 0.5 && held.attack && let1.mx === 0 && let1.my === 0 && !let1.attack && let1.held.length === 0, { held, let1 });
+    check("hidden mid-fight with thumbs on the stick and FIRE: both let go (R9)", held.mx > 0.5 && held.attack && let1.mx === 0 && let1.my === 0 && !let1.attack && let1.held.length === 0, { held, let1 });
     const hp0 = await ph.ev(() => window.__krel.G.s.hp);
     await setVisibility(ph, "visible");
     await sleep(900);
@@ -1408,6 +1416,424 @@ async function dungeon(browser) {
     const c3 = await ph.loop();
     check("a tap carries on", c3.running && !(await ph.ev(() => window.__krelMobile.shellState().card)), c3);
     check("dungeon: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
+// ------------------------------------------------------------------ combat: the top-down fights on the phone controls (stage 2)
+
+/** Into a top-down fight through DebugSkip's own preparation (a later chapter's kit), calm and in combat mode. */
+async function toFight(ph, dungeon, room, ch) {
+  await ph.ev(
+    ({ dungeon, room, ch }) => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.setChapter(ch, { ch1_home: true, home_seen: true, flyover_seen: true, tut_dungeon: true });
+      k.go("DebugSkip");
+      window.__fightTo = { dungeon, room, ch };
+    },
+    { dungeon, room, ch },
+  );
+  await ph.scene("DebugSkip");
+  await sleep(800);
+  await ph.ev(() => {
+    const d = window.__krel.game.scene.getScene("DebugSkip");
+    const t = window.__fightTo;
+    // DebugSkip's boss jump (its own preparation: the chapter's guns, money, debug powers off below)
+    d.goBoss({ boss: "x", dungeon: t.dungeon, room: t.room, ch: t.ch });
+  });
+  await ph.scene("Dungeon");
+  let calm = 0;
+  for (let i = 0; i < 90 && calm < 5; i++) {
+    const m = await ph.mode();
+    const act = await ph.active();
+    if (m === "combat:Dungeon" && !act.includes("Dialogue") && !act.includes("Tutorial")) {
+      calm++;
+      await sleep(500);
+      continue;
+    }
+    calm = 0;
+    await ph.tapCss(560, 150);
+    await sleep(650);
+  }
+  // nothing in this test may die (and no debug powers: the real game's numbers, empty meters)
+  await ph.ev(() => {
+    const s = window.__krel.G.s;
+    s.flags.debug_mode = false;
+    s.hp = 99999;
+    window.__krel.G.rt.fart = 0;
+    window.__krel.G.rt.wonk = 0;
+  });
+  await sleep(400);
+  return calm >= 5;
+}
+
+async function combat(browser) {
+  console.log("COMBAT (top-down fights on the phone controls, iPhone 14 with its safe areas)");
+  const { ctx, page, ph, errors } = await phoneAtTitle(browser);
+  const T = () =>
+    ph.ev(async () => {
+      const T = (await import("/src/game/ui/TouchControls.ts")).TOUCH;
+      return { mx: +T.mx.toFixed(2), my: +T.my.toFixed(2), attack: T.attack, edges: [...T.edges], held: [...T.held] };
+    });
+  const C = () => ph.ev(() => window.__krelMobile.combat.snapshot());
+  const ctlOf = async (id) => (await ph.snap()).controls.find((c) => c.id === id);
+  const mid = (c) => [c.face.x + c.face.w / 2, c.face.y + c.face.h / 2];
+  const P = () =>
+    ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const s = window.__krel.G.s;
+      return { x: Math.round(d.player.x), y: Math.round(d.player.y), gun: s.gun ?? null, hp: s.hp, bottles: s.bottles, picking: d.picking, dodgeUntil: d.player.dodgeUntil, specialCd: d.player.specialCd };
+    });
+  const quiet = async (what) => {
+    // (auto-fire off for this check: TOUCH.attack must be the thumb's alone)
+    const t = await T();
+    check(`no stuck input after ${what}`, t.mx === 0 && t.my === 0 && !t.attack && t.held.length === 0, t);
+  };
+  const press = async (id, ms = 90, tid = 50) => {
+    const c = await ctlOf(id);
+    const [x, y] = mid(c);
+    await ph.touch("touchStart", [{ x, y, id: tid }]);
+    await sleep(ms);
+    await ph.touch("touchEnd", []);
+  };
+  try {
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    await ph.ev(() => window.__krelMobile.combat.resetTeaching());
+    check("a top-down room reached through DebugSkip: combat mode", await toFight(ph, "wildern", 0, 2), await ph.mode());
+    let s = await ph.snap();
+    const shown = (id) => !!s.controls.find((c) => c.id === id && c.shown);
+    const pad = await ph.ev(() => window.__krel.game.scene.getScene("UI").touch);
+    check("the old canvas pad is gone; FIRE, DODGE, SPECIAL, the weapon chip, the juice chip and pause are up", pad === null && ["c-fire", "c-dodge", "c-special", "c-chip", "c-juice", "pause"].every(shown), s.controls.filter((c) => c.shown).map((c) => c.id));
+    check("the stick is the town's (left 45%, gutter included) and there's no ACTION / READY / HEAL with nothing to do", s.decision.stick === "2d" && s.zone.x === 0 && !shown("c-action") && !shown("c-ready") && !shown("c-heal"), { stick: s.decision.stick, zone: s.zone });
+    check("first fights: a one-word caption under each combat button", s.controls.find((c) => c.id === "c-fire").caption === "FIRE" && s.controls.find((c) => c.id === "c-dodge").caption === "DODGE", s.controls.filter((c) => c.shown && c.caption).map((c) => `${c.id}:${c.caption}`));
+    await ph.shot("combat-room");
+    // ---- the stick, from the black gutter
+    await ph.ev(() => window.__krelMobile.settings.set({ autoFire: false }));
+    const p0 = await P();
+    await ph.touch("touchStart", [{ x: 30, y: 300, id: 1 }]);
+    for (let i = 1; i <= 8; i++) {
+      await ph.touch("touchMove", [{ x: 30 + i * 8, y: 300 - i * 3, id: 1 }]);
+      await sleep(40);
+    }
+    await sleep(500);
+    const st = await T();
+    await ph.touch("touchEnd", []);
+    const p1 = await P();
+    check("a drag that starts in the left gutter moves the player (P9)", st.mx > 0.5 && Math.hypot(p1.x - p0.x, p1.y - p0.y) > 40, { st, moved: [p1.x - p0.x, p1.y - p0.y] });
+    await sleep(300);
+    await quiet("the stick");
+    // ---- auto-fire kills a test enemy, no thumb on FIRE
+    await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true }));
+    const victim = await ph.ev(() => {
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const p = d.player;
+      const e = d.enemies.find((x) => !x.dead && !x.isBoss);
+      if (!e) return null;
+      for (const o of d.enemies) if (o !== e && !o.dead) o.setPosition(p.x - 900, p.y - 900);
+      e.hp = 3;
+      e.body.reset(p.x + 140, p.y - 30);
+      return e.uid;
+    });
+    let killed = false;
+    for (let i = 0; i < 40 && victim !== null; i++) {
+      await sleep(150);
+      killed = await ph.ev((uid) => {
+        const d = window.__krel.game.scene.getScene("Dungeon");
+        const e = d.enemies.find((x) => x.uid === uid);
+        if (e && !e.dead) e.body.reset(d.player.x + 140, d.player.y - 30);
+        return !e || e.dead;
+      }, victim);
+      if (killed) break;
+    }
+    check("auto-fire kills a test enemy in range without a thumb on FIRE (M1)", victim !== null && killed, { victim });
+    // ---- FIRE by hand (auto-fire off): hold fires, slide aims, the stream carries on 200 ms after lifting
+    await ph.ev(() => window.__krelMobile.settings.set({ autoFire: false }));
+    await sleep(300);
+    const fire = await ctlOf("c-fire");
+    const [fx, fy] = mid(fire);
+    await ph.touch("touchStart", [{ x: fx, y: fy, id: 2 }]);
+    await sleep(250);
+    const held = await T();
+    for (let i = 1; i <= 6; i++) {
+      await ph.touch("touchMove", [{ x: fx - i * 9, y: fy - i * 7, id: 2 }]);
+      await sleep(30);
+    }
+    await sleep(250);
+    const slid = await C();
+    await ph.shot("combat-fire-slide");
+    const want = Math.atan2(-42, -54);
+    check("holding FIRE fires (on touch-down)", held.attack, held);
+    check("sliding FIRE 24 px+ aims by hand, along the slide (M2)", slid.manual && slid.fireHeld && Math.abs(Math.atan2(Math.sin(slid.aim - want), Math.cos(slid.aim - want))) < 0.3, { aim: slid.aim, want, snapped: slid.snapped });
+    // (in the page: TOUCH.attack sampled every frame from the moment the thumb lifts)
+    await ph.ev(async () => {
+      const T = (await import("/src/game/ui/TouchControls.ts")).TOUCH;
+      window.__gs = [];
+      document.addEventListener(
+        "touchend",
+        () => {
+          const t0 = performance.now();
+          const tick = () => {
+            const t = performance.now() - t0;
+            window.__gs.push([Math.round(t), T.attack]);
+            if (t < 500) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        },
+        { once: true, capture: true },
+      );
+    });
+    await ph.touch("touchEnd", []);
+    await sleep(900);
+    const samples = await ph.ev(() => window.__gs);
+    const onAfter = samples.filter(([t, a]) => a && t > 0).map(([t]) => t);
+    const lastOn = onAfter.length ? Math.max(...onAfter) : 0;
+    const offLater = samples.some(([t, a]) => !a && t > 230);
+    check("auto-fire off: firing carries on about 200 ms after the thumb lifts, then stops (M1)", lastOn >= 120 && lastOn <= 260 && offLater, { lastOn, samples: samples.filter((_, i) => i % 3 === 0).slice(0, 12) });
+    await sleep(200);
+    await quiet("FIRE");
+    // ---- DODGE, on touch-down
+    const d0 = (await P()).dodgeUntil;
+    await press("c-dodge", 80, 3);
+    await sleep(250);
+    check("DODGE dodges", (await P()).dodgeUntil > d0, { before: d0, after: (await P()).dodgeUntil });
+    // ---- SPECIAL
+    await ph.ev(() => (window.__krel.G.s.krezz = 100));
+    await sleep(300);
+    const sp0 = (await P()).specialCd;
+    await press("c-special", 80, 4);
+    await sleep(300);
+    check("SPECIAL fires the lad's special (DASH for Flenky)", (await P()).specialCd > sp0 && (await ctlOf("c-special")).shown, { before: sp0, after: (await P()).specialCd });
+    // ---- SWAP: tap = next gun; hold = picker, slide onto a gun and let go
+    await ph.ev(() => {
+      const s = window.__krel.G.s;
+      s.guns = { pistol: 60, smg: 100 };
+      s.gun = "pistol";
+    });
+    await sleep(700);
+    check("SWAP is up once there's more than one weapon to choose from", (await ctlOf("c-swap")).shown);
+    const g0 = (await P()).gun;
+    await press("c-swap", 90, 5);
+    await sleep(700);
+    const g1 = (await P()).gun;
+    check("SWAP tap: the next gun", g1 !== g0, { g0, g1 });
+    const sw = await ctlOf("c-swap");
+    const [sx, sy] = mid(sw);
+    await ph.touch("touchStart", [{ x: sx, y: sy, id: 6 }]);
+    await sleep(700);
+    const pk = await ph.ev(() => ({ active: window.__krel.active(), d: window.__krelMobile.snapshot().decision, picking: window.__krel.game.scene.getScene("Dungeon").picking }));
+    check("SWAP hold (300 ms): the slow-motion weapon picker; still combat, CLOSE where FIRE was", pk.active.includes("WeaponPick") && pk.picking && pk.d.picker === true && (await ctlOf("c-close")).shown && !(await ctlOf("c-fire")).shown, pk);
+    await ph.shot("combat-picker");
+    const tiles = await ph.ev(() => {
+      const wp = window.__krel.game.scene.getScene("WeaponPick");
+      const cb = window.__krel.game.scale.canvasBounds;
+      const k = cb.width / 960;
+      return wp.tiles.map((t) => ({ x: cb.x + t.box.getBounds().centerX * k, y: cb.y + t.box.getBounds().centerY * k, id: t.w.id, empty: t.w.empty }));
+    });
+    const want2 = tiles.find((t) => !t.empty && t.id !== g1) ?? tiles[0];
+    for (let i = 1; i <= 10; i++) {
+      await ph.touch("touchMove", [{ x: sx + ((want2.x - sx) * i) / 10, y: sy + ((want2.y - sy) * i) / 10, id: 6 }]);
+      await sleep(40);
+    }
+    await sleep(150);
+    await ph.touch("touchEnd", []);
+    await sleep(800);
+    const g2 = await P();
+    check("slide onto a gun and let go: that gun, the picker closed, back to the fight", g2.gun === want2.id && !g2.picking && !(await ph.active()).includes("WeaponPick") && (await ph.mode()) === "combat:Dungeon", { want: want2.id, got: g2.gun });
+    // the weapon chip: tap = next, hold = picker, then CLOSE
+    const g3 = (await P()).gun;
+    await sleep(400);
+    await press("c-chip", 90, 7);
+    await sleep(700);
+    check("weapon chip tap: the next gun (M16)", (await P()).gun !== g3, { before: g3, after: (await P()).gun });
+    await press("c-chip", 650, 8);
+    await sleep(300);
+    const open2 = (await ph.active()).includes("WeaponPick");
+    await sleep(300);
+    await press("c-close", 90, 9);
+    await sleep(800);
+    check("weapon chip hold: the picker; CLOSE shuts it", open2 && !(await ph.active()).includes("WeaponPick") && !(await P()).picking, { open2 });
+    await sleep(300);
+    await quiet("SWAP, the chip and the picker");
+    // ---- READY pops in when WONK is full (and ignores a press in its first moments), and opens the mash overlay
+    await ph.ev(() => window.__krel.fullWonk());
+    await ph.until(() => window.__krelMobile.snapshot().controls.find((c) => c.id === "c-ready").shown, null, 5000, "READY").catch(() => 0);
+    const rd = await ctlOf("c-ready");
+    const [rx, ry] = mid(rd);
+    await ph.touch("touchStart", [{ x: rx, y: ry, id: 10 }]);
+    await ph.touch("touchEnd", []);
+    await sleep(250);
+    const early = await ph.ev(() => window.__krel.game.scene.getScene("Dungeon").player.wonk);
+    check("READY pops in when the WONK meter is full, says WONK!, and pulses (S1, S10)", rd.shown && rd.label === "WONK!" && (await ph.ev(() => document.querySelector('[data-ctl="c-ready"]').classList.contains("pulse"))), rd);
+    check("a press in READY's first moments does nothing (pop-ins ignore presses briefly, S11)", early >= 100, { wonk: early });
+    await ph.shot("combat-ready");
+    await sleep(300);
+    await press("c-ready", 80, 11);
+    await ph.until(() => window.__krelMobile.snapshot().decision.mash === true, null, 5000, "mash").catch(() => 0);
+    const m0 = (await C()).mashPresses;
+    for (let i = 0; i < 9; i++) {
+      await ph.touch("touchStart", [{ x: [20, 420, 830][i % 3], y: [60, 200, 340][i % 3], id: 30 + i }]);
+      await ph.touch("touchEnd", []);
+      await sleep(120);
+    }
+    const m1 = await C();
+    check("WONK!: the mash overlay takes a press from any finger anywhere, gutters included (M14)", m1.mash && m1.mashPresses - m0 === 9, { presses: m1.mashPresses - m0 });
+    await ph.shot("combat-mash");
+    await ph.until(() => window.__krelMobile.snapshot().decision.mash === false, null, 20000, "the mash to end").catch(() => 0);
+    await sleep(2500);
+    check("after the wonk: back to the fight controls", (await ph.mode()) === "combat:Dungeon" && (await ctlOf("c-fire")).shown);
+    // ---- HEAL pops in under 40% health
+    await ph.ev(() => {
+      const s = window.__krel.G.s;
+      s.hp = 10;
+      s.bottles = 2;
+    });
+    await ph.until(() => window.__krelMobile.snapshot().controls.find((c) => c.id === "c-heal").shown, null, 5000, "HEAL").catch(() => 0);
+    await sleep(300);
+    const hp0 = (await P()).hp;
+    await press("c-heal", 80, 12);
+    await sleep(400);
+    check("HEAL pops in under 40% health and drinks the juice (S3)", (await P()).hp > hp0 && (await P()).bottles === 1, { hp0, hp: (await P()).hp });
+    await ph.ev(() => (window.__krel.G.s.hp = 99999));
+    // ---- a touch in the gap between SWAP and FIRE (outside both drawings and their 10 px slop, landing on SWAP's
+    // touch area) goes to the control whose drawing is nearest: FIRE (M3)
+    s = await ph.snap();
+    const fr = s.controls.find((c) => c.id === "c-fire").face;
+    const swf = s.controls.find((c) => c.id === "c-swap").face;
+    const gx = swf.x + swf.w + 13;
+    const gy = swf.y + swf.h / 2 - 3;
+    await ph.touch("touchStart", [{ x: gx, y: gy, id: 13 }]);
+    await sleep(150);
+    const gapT = await T();
+    const gapFire = (await ctlOf("c-fire")).pressed;
+    const gapSwap = (await ctlOf("c-swap")).pressed;
+    await ph.touch("touchEnd", []);
+    check("a touch in the gap between SWAP and FIRE presses FIRE, the nearer drawing (within 20 px, M3)", gapFire && gapT.attack && !gapSwap, { at: [gx, gy], fire: fr, swap: swf });
+    await sleep(300);
+    // ---- three thumbs at once: stick + FIRE + DODGE
+    const dg = await ctlOf("c-dodge");
+    const [dx, dy] = mid(dg);
+    const du0 = (await P()).dodgeUntil;
+    await ph.touch("touchStart", [{ x: 150, y: 280, id: 14 }]);
+    await ph.touch("touchMove", [{ x: 200, y: 280, id: 14 }]);
+    await ph.touch("touchStart", [{ x: 200, y: 280, id: 14 }, { x: fx, y: fy, id: 15 }]);
+    await sleep(100);
+    await ph.touch("touchStart", [{ x: 200, y: 280, id: 14 }, { x: fx, y: fy, id: 15 }, { x: dx, y: dy, id: 16 }]);
+    await sleep(250);
+    const three = await T();
+    const du1 = (await P()).dodgeUntil;
+    await ph.touch("touchEnd", []);
+    check("stick, FIRE and DODGE at once: moving, firing and a dodge", three.mx > 0.5 && three.attack && du1 > du0, { three, du0, du1 });
+    await sleep(300);
+    await quiet("three thumbs");
+    // ---- pause mid-fight, from the button
+    await press("pause", 80, 17);
+    await sleep(900);
+    const pz = await ph.ev(() => ({ menu: window.__krel.active().includes("Menu"), paused: window.__krel.game.scene.isPaused("Dungeon"), mode: window.__krelMobile.snapshot().decision.mode }));
+    check("pause mid-fight: the pause menu over a paused fight; no fight buttons over it", pz.menu && pz.paused && pz.mode === "none", pz);
+    await ph.tapText("RESUME", { scene: "Menu", exact: true }).catch(() => 0);
+    await ph.until(() => !window.__krel.active().includes("Menu"), null, 8000, "resume").catch(() => 0);
+    await sleep(600);
+    // ---- hidden mid-fight with thumbs on the stick and FIRE; rotated mid-fight
+    await ph.touch("touchStart", [{ x: 150, y: 280, id: 18 }]);
+    await ph.touch("touchMove", [{ x: 210, y: 280, id: 18 }]);
+    await ph.touch("touchStart", [{ x: 210, y: 280, id: 18 }, { x: fx, y: fy, id: 19 }]);
+    await sleep(200);
+    await setVisibility(ph, "hidden");
+    await sleep(500);
+    const hid = await T();
+    check("hidden mid-fight with thumbs on the stick and FIRE: everything lets go", hid.mx === 0 && hid.my === 0 && !hid.attack, hid);
+    await ph.touch("touchEnd", []);
+    await setVisibility(ph, "visible");
+    await sleep(1000);
+    check("back to the page: the pause menu, not the fight", (await ph.active()).includes("Menu"));
+    await ph.tapText("RESUME", { scene: "Menu", exact: true }).catch(() => 0);
+    await sleep(800);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await sleep(1200);
+    await page.setViewportSize({ width: 844, height: 390 });
+    await sleep(1500);
+    check("turned upright and back mid-fight: the pause menu", (await ph.active()).includes("Menu"));
+    await ph.tapText("RESUME", { scene: "Menu", exact: true }).catch(() => 0);
+    await sleep(800);
+    await quiet("hidden, upright, pause");
+    // ---- the HUD: toasts clear of the weapon chip and pause (P10), the specials prompt names the touch button
+    await ph.ev(() => window.__krel.G.emit("toast", { title: "AMMO", text: "Somebody dropped a crate of it." }));
+    await sleep(500);
+    const hud = await ph.ev(() => {
+      const ui = window.__krel.game.scene.getScene("UI");
+      const cb = window.__krel.game.scale.canvasBounds;
+      const k = cb.width / 960;
+      const t = ui.toasts[ui.toasts.length - 1];
+      const chip = window.__krelMobile.snapshot().controls.find((c) => c.id === "c-chip").face;
+      return { toastRight: cb.x + (t.c.x + 300) * k, chipLeft: chip.x, gunT: !!(ui.gunT && ui.gunT.visible) };
+    });
+    check("HUD: the toast column ends left of the weapon chip; the old gun readout is gone (P10, M16)", hud.toastRight <= hud.chipLeft && !hud.gunT, hud);
+    check("fight: no page errors", errors.length === 0, errors.slice(0, 3));
+    await ph.ev(() => window.__krelMobile.settings.set({ autoFire: true }));
+    // ---- a boss, through DebugSkip's boss jump
+    check("a boss fight (Krandall) reached through DebugSkip: combat mode", await toFight(ph, "wildern", 3, 2), await ph.mode());
+    await sleep(1500);
+    const boss = await ph.ev(() => {
+      const ui = window.__krel.game.scene.getScene("UI");
+      const cb = window.__krel.game.scale.canvasBounds;
+      const k = cb.width / 960;
+      const d = window.__krel.game.scene.getScene("Dungeon");
+      const b = d.boss;
+      return { boss: !!b, hp: b ? b.hp : 0, bar: ui.boss ? Math.round(cb.y + ui.bossT.y * k) : null };
+    });
+    await sleep(4000);
+    const boss2 = await ph.ev(() => {
+      const b = window.__krel.game.scene.getScene("Dungeon").boss;
+      return { hp: b ? b.hp : 0 };
+    });
+    check("the boss bar is up top on a phone (not under the thumbs or the home strip)", boss.boss && boss.bar !== null && boss.bar < 60, boss);
+    check("auto-fire works on the boss", boss2.hp < boss.hp, { before: boss.hp, after: boss2.hp, auto: (await C()).autoFiring });
+    await ph.shot("combat-boss");
+    // ---- sizes, spacing and how much of the picture the controls cover, at three phone sizes
+    const measure = async (w, h, insets) => {
+      await page.setViewportSize({ width: w, height: h });
+      await ph.ev((i) => window.__krelMobile.setInsets(i), insets);
+      await sleep(1500);
+      return ph.ev(() => {
+        const s = window.__krelMobile.snapshot();
+        const cb = window.__krel.game.scale.canvasBounds;
+        const cl = s.controls.filter((c) => c.shown && /^c-|^pause$/.test(c.id));
+        const sizes = Object.fromEntries(cl.map((c) => [c.id, [Math.round(c.face.w), Math.round(c.face.h)]]));
+        const round = cl.filter((c) => Math.abs(c.face.w - c.face.h) < 1 && c.id !== "pause");
+        let gap = Infinity;
+        for (let i = 0; i < round.length; i++)
+          for (let j = i + 1; j < round.length; j++) {
+            const a = round[i].face;
+            const b = round[j].face;
+            gap = Math.min(gap, Math.hypot(a.x + a.w / 2 - b.x - b.w / 2, a.y + a.h / 2 - b.y - b.h / 2) - a.w / 2 - b.w / 2);
+          }
+        // cover: drawn area over the picture (a 2 px grid over the canvas)
+        let hit = 0;
+        let all = 0;
+        for (let y = cb.y; y < cb.y + cb.height; y += 2)
+          for (let x = cb.x; x < cb.x + cb.width; x += 2) {
+            all++;
+            if (cl.some((c) => (Math.abs(c.face.w - c.face.h) < 1 ? Math.hypot(x - c.face.x - c.face.w / 2, y - c.face.y - c.face.h / 2) <= c.face.w / 2 : x >= c.face.x && x < c.face.x + c.face.w && y >= c.face.y && y < c.face.y + c.face.h))) hit++;
+          }
+        return { sizes, minGap: Math.round(gap), cover: Math.round((hit / all) * 1000) / 10, minRound: Math.min(...round.map((c) => c.face.w)) };
+      });
+    };
+    const m844 = await measure(844, 390, { top: 0, right: 47, bottom: 21, left: 47 });
+    const m750 = await measure(750, 340, { top: 0, right: 0, bottom: 0, left: 0 });
+    const m740 = await measure(740, 360, { top: 0, right: 0, bottom: 0, left: 0 });
+    console.log("    sizes / gaps / cover:", JSON.stringify({ m844, m750, m740 }));
+    for (const [n, m] of [
+      ["844x390", m844],
+      ["750x340", m750],
+      ["740x360", m740],
+    ])
+      check(`${n}: round controls 52 px or more, 12 px or more apart; they cover under 12% of the picture`, m.minRound >= 52 && m.minGap >= 12 && m.cover < 12, m);
+    await page.setViewportSize({ width: 844, height: 390 });
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    await sleep(800);
+    check("boss: no page errors", errors.length === 0, errors.slice(0, 3));
   } finally {
     await ctx.close();
   }
@@ -1591,6 +2017,7 @@ async function desktop(browser) {
       ["optout", optout],
       ["town", town],
       ["dungeon", dungeon],
+      ["combat", combat],
       ["android", android],
       ["desktop", desktop],
     ]) {

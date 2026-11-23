@@ -37,9 +37,10 @@ export interface SceneState {
   side?: boolean;
   /**
    * Something running inside a walking scene: Kreddle's chapter 6 raid or chapter 3 rout (fights), or the Hub's
-   * shoving match on the bridge (E shoves a Kruncher; there is no prompt).
+   * shoving match on the bridge (E shoves a Kruncher; there is no prompt). In a fight (stage 2): "mash", a
+   * tap-anywhere mash overlay is up (the WONK YOUR THANG gauge, the roof's group wonk).
    */
-  sub?: "raid" | "rout" | "shove" | null;
+  sub?: "raid" | "rout" | "shove" | "mash" | null;
 }
 
 /** The stick a mode uses: "2d" walks / aims anywhere; "x" only left and right (side-scrolling rooms). */

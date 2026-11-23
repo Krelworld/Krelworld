@@ -426,7 +426,11 @@ export class MenuScene extends Phaser.Scene {
           row("Fullscreen", () => (this.scale.isFullscreen ? "ON" : "OFF"), fs, fs);
           // auto-aim: a toggle once you own Krezz-Assist (or on touch, where it's the aim assist); otherwise a pointer to the shop
           const flipAim = () => (set.autoAim = set.autoAim === false);
-          if (s?.upgrades.pk_autoaim) toggle("Auto-aim (Krezz-Assist)", () => set.autoAim !== false, flipAim);
+          // (phones: aiming is the phone controls' own "Aim assist" setting, one switch in one place; this row's
+          // switch would do nothing there)
+          if (isMobile()) {
+            /* no row */
+          } else if (s?.upgrades.pk_autoaim) toggle("Auto-aim (Krezz-Assist)", () => set.autoAim !== false, flipAim);
           else if (TOUCH.enabled) toggle("Touch aim assist", () => set.autoAim !== false, flipAim);
           else add(this.add.text(200, y, "Auto-aim: buy Krezz-Assist at the Kreddle Exchange", { fontFamily: FONT, fontSize: "14px", color: "#6b6f82" }).setOrigin(0, 0.5));
         }

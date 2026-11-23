@@ -24,17 +24,22 @@ import { TOUCH } from "../ui/TouchControls";
 import { synth } from "../audio/Synth";
 import {
   followBase,
+  GAP_REACH,
   ghostStick,
+  groupHit,
+  HIT_SLOP,
   inRect,
   layoutSlots,
   outsideZone,
   overlaps,
+  routeTouch,
   stickGeometry,
   stickVector,
   stickZone,
   type Insets,
   type Placed,
   type Rect,
+  type RouteCandidate,
   type SlotId,
   type StickGeometry,
   type Viewport,
@@ -122,7 +127,19 @@ export interface ControlSpec {
    *  the touchend, so fullscreen and other "user gesture" calls are allowed when not cancelled. */
   onUp?(c: TouchControl, info: { cancelled: boolean; ms: number }): void;
   /** The finger that pressed it moved (CSS px from where it landed): slide-to-aim, slide-to-dodge. */
-  onSlide?(c: TouchControl, dx: number, dy: number): void;
+  onSlide?(c: TouchControl, dx: number, dy: number, x: number, y: number): void;
+  /**
+   * Stage 2: controls in the same group share their touches (research M3, the per-side surface): a touch that lands
+   * in the gap between them goes to the nearest one within GAP_REACH px of its drawing, and where touch areas
+   * overlap the nearest centre wins. Each control's element then reaches GAP_REACH past its drawing.
+   */
+  group?: string;
+  /** The prime corner: the touch area also runs out to the screen's right edge and down to the home-indicator strip. */
+  toCorner?: boolean;
+  /** Placed somewhere that isn't a round slot (a chip): its own rectangle, worked out on every layout. */
+  place?(layer: TouchLayer): Placed | null;
+  /** A word under the face (first-time captions, research S10). */
+  caption?: string;
 }
 
 interface Owned {
@@ -136,12 +153,17 @@ export class TouchControl {
   readonly el: HTMLDivElement;
   readonly face: HTMLDivElement;
   readonly labelEl: HTMLSpanElement;
+  /** The caption under the face (empty: none). */
+  readonly capEl: HTMLDivElement;
   slot: SlotId;
   shown = false;
   /** A finger is pressing it now. */
   pressed = false;
   /** The drawing on the page (CSS px), after the last layout. */
   faceRect: Rect = { x: 0, y: 0, w: 0, h: 0 };
+  /** Where it was placed last (centre, size, touch area). */
+  placed: Placed | null = null;
+  private html = "";
   private armedAt = 0;
   /** Fingers that count. */
   private live = new Map<number, Owned>();
@@ -161,15 +183,35 @@ export class TouchControl {
     const face = document.createElement("div");
     face.className = "kt-face";
     const label = document.createElement("span");
-    if (spec.html) face.innerHTML = spec.html;
-    else face.appendChild(label);
+    if (spec.html) {
+      face.innerHTML = spec.html;
+      this.html = spec.html;
+    } else face.appendChild(label);
     if (spec.label) label.textContent = spec.label;
     el.appendChild(face);
+    const cap = document.createElement("div");
+    cap.className = "kt-bcap";
+    if (spec.caption) cap.textContent = spec.caption;
+    el.appendChild(cap);
     layer.root.appendChild(el);
     this.el = el;
     this.face = face;
     this.labelEl = label;
+    this.capEl = cap;
     this.bind();
+  }
+
+  /** Replace the face's drawing (an icon, a count); only touches the DOM when it changed. */
+  setHtml(html: string) {
+    if (html === this.html) return;
+    this.html = html;
+    this.face.innerHTML = html;
+  }
+
+  /** The caption under the face (null or "" hides it). */
+  setCaption(text: string | null) {
+    const t = text ?? "";
+    if (this.capEl.textContent !== t) this.capEl.textContent = t;
   }
 
   get label(): string {
@@ -208,24 +250,33 @@ export class TouchControl {
 
   /** Put it where its slot is now. */
   place() {
-    const p: Placed | undefined = this.layer.slots?.[this.slot];
+    const p: Placed | null | undefined = this.spec.place ? this.spec.place(this.layer) : this.layer.slots?.[this.slot];
     if (!p) return;
+    const fw = p.w ?? p.size;
+    const fh = p.h ?? p.size;
+    // (a group's controls reach GAP_REACH past the drawing; the prime corner runs out to the screen's corner)
+    const hit = this.spec.group || this.spec.toCorner ? groupHit(this.layer.viewport, p, this.spec.group ? GAP_REACH : HIT_SLOP, !!this.spec.toCorner) : p.hit;
+    this.placed = { ...p, hit };
     const b = this.el.style;
-    b.width = `${p.hit.w}px`;
-    b.height = `${p.hit.h}px`;
-    b.transform = `translate(${p.hit.x}px,${p.hit.y}px)`;
+    b.width = `${hit.w}px`;
+    b.height = `${hit.h}px`;
+    b.transform = `translate(${hit.x}px,${hit.y}px)`;
     const f = this.face.style;
-    f.width = f.height = `${p.size}px`;
-    f.left = `${p.cx - p.size / 2 - p.hit.x}px`;
-    f.top = `${p.cy - p.size / 2 - p.hit.y}px`;
-    this.faceRect = { x: p.cx - p.size / 2, y: p.cy - p.size / 2, w: p.size, h: p.size };
+    f.width = `${fw}px`;
+    f.height = `${fh}px`;
+    f.left = `${p.cx - fw / 2 - hit.x}px`;
+    f.top = `${p.cy - fh / 2 - hit.y}px`;
+    const c = this.capEl.style;
+    c.left = `${p.cx - hit.x}px`;
+    c.top = `${p.cy + fh / 2 + 2 - hit.y}px`;
+    this.faceRect = { x: p.cx - fw / 2, y: p.cy - fh / 2, w: fw, h: fh };
     this.fit();
   }
 
   /** Fit the word to the face: measured once per change, never under 10 px. */
   private fit() {
     if (this.spec.html || !this.labelEl.textContent) return;
-    const size = this.layer.slots?.[this.slot]?.size ?? 84;
+    const size = this.placed?.size ?? this.layer.slots?.[this.slot]?.size ?? 84;
     const room = size * 0.7;
     let fs = 20;
     this.face.style.fontSize = `${fs}px`;
@@ -244,26 +295,18 @@ export class TouchControl {
 
   private bind() {
     const el = this.el;
+    // (a touch belongs to whichever control it was routed to; its later events still arrive here, the element it
+    // landed on, so they are passed on by touch id)
+    const routed = new Map<number, TouchControl>();
     el.addEventListener(
       "touchstart",
       (e) => {
         if (e.cancelable) e.preventDefault();
         kickAudio();
         for (const t of Array.from(e.changedTouches)) {
-          if (this.live.has(t.identifier) || this.dead.has(t.identifier)) continue;
-          // just appeared, switched off already, or the layer is holding: owned, but does nothing
-          if (!this.shown || now() < this.armedAt || this.layer.held) {
-            this.dead.add(t.identifier);
-            continue;
-          }
-          this.live.set(t.identifier, { x0: t.clientX, y0: t.clientY, t0: now() });
-          if (this.live.size === 1) {
-            this.pressed = true;
-            this.pressedAt = now();
-            el.classList.add("on");
-            if (this.spec.haptic !== null) haptic(this.spec.haptic ?? "tap");
-            this.spec.onDown?.(this);
-          }
+          const owner = this.spec.group ? this.layer.routeTouch(this, t.clientX, t.clientY) : this;
+          routed.set(t.identifier, owner);
+          owner.touchStart(t);
         }
       },
       { passive: false },
@@ -272,25 +315,61 @@ export class TouchControl {
       "touchmove",
       (e) => {
         if (e.cancelable) e.preventDefault();
-        if (!this.spec.onSlide) return;
-        for (const t of Array.from(e.changedTouches)) {
-          const o = this.live.get(t.identifier);
-          if (o) this.spec.onSlide(this, t.clientX - o.x0, t.clientY - o.y0);
-        }
+        for (const t of Array.from(e.changedTouches)) (routed.get(t.identifier) ?? this).touchMove(t);
       },
       { passive: false },
     );
     const end = (e: TouchEvent, cancelled: boolean) => {
       if (e.cancelable) e.preventDefault();
       for (const t of Array.from(e.changedTouches)) {
-        if (this.dead.delete(t.identifier)) continue;
-        if (!this.live.delete(t.identifier)) continue;
-        if (this.live.size) continue;
-        this.up(cancelled);
+        const owner = routed.get(t.identifier) ?? this;
+        routed.delete(t.identifier);
+        owner.touchEnd(t, cancelled);
       }
     };
     el.addEventListener("touchend", (e) => end(e, false), { passive: false });
     el.addEventListener("touchcancel", (e) => end(e, true), { passive: false });
+  }
+
+  /** A finger lands on it (or was routed to it from a neighbour in its group). */
+  touchStart(t: { identifier: number; clientX: number; clientY: number }) {
+    if (this.live.has(t.identifier) || this.dead.has(t.identifier)) return;
+    // just appeared, switched off already, or the layer is holding: owned, but does nothing
+    if (!this.shown || now() < this.armedAt || this.layer.held) {
+      this.dead.add(t.identifier);
+      return;
+    }
+    this.live.set(t.identifier, { x0: t.clientX, y0: t.clientY, t0: now() });
+    if (this.live.size === 1) {
+      this.pressed = true;
+      this.pressedAt = now();
+      this.el.classList.add("on");
+      if (this.spec.haptic !== null) haptic(this.spec.haptic ?? "tap");
+      this.spec.onDown?.(this);
+    }
+  }
+
+  touchMove(t: { identifier: number; clientX: number; clientY: number }) {
+    if (!this.spec.onSlide) return;
+    const o = this.live.get(t.identifier);
+    if (o) this.spec.onSlide(this, t.clientX - o.x0, t.clientY - o.y0, t.clientX, t.clientY);
+  }
+
+  touchEnd(t: { identifier: number }, cancelled: boolean) {
+    if (this.dead.delete(t.identifier)) return;
+    if (!this.live.delete(t.identifier)) return;
+    if (this.live.size) return;
+    this.up(cancelled);
+  }
+
+  /** May a press land on it now (shown, armed, the layer not holding)? */
+  get armed(): boolean {
+    return this.shown && now() >= this.armedAt && !this.layer.held;
+  }
+
+  /** Ignore presses for a moment (its face just changed: research S1, never change a press under a thumb). */
+  disarmFor(ms: number) {
+    if (this.shown) this.armedAt = Math.max(this.armedAt, now() + ms);
   }
 
   private up(cancelled: boolean) {
@@ -314,7 +393,7 @@ export class TouchControl {
 
   /** For tests. */
   state() {
-    return { id: this.spec.id, shown: this.shown, pressed: this.pressed, live: this.live.size, dead: this.dead.size, slot: this.slot, see: this.seeThrough, label: this.label };
+    return { id: this.spec.id, shown: this.shown, pressed: this.pressed, live: this.live.size, dead: this.dead.size, slot: this.slot, see: this.seeThrough, label: this.label, face: { ...this.faceRect }, hit: this.placed ? { ...this.placed.hit } : null, caption: this.capEl.textContent ?? "" };
   }
 
   destroy() {
@@ -366,6 +445,11 @@ export class TouchLayer {
   onFullscreen: (() => void) | null = null;
   /** The shell is holding (page hidden, upright, the guide or the carry-on card up): no control acts. */
   held = false;
+  /**
+   * Stage 2: things on the page (CSS px) a control must not hide, set each frame by the mode's controllers (the
+   * player in a fight, the target): a control over one goes see-through, like over the walking player.
+   */
+  occluders: Rect[] = [];
 
   private probe: HTMLDivElement;
   private zone: HTMLDivElement;
@@ -461,6 +545,24 @@ export class TouchLayer {
   removeControl(id: string) {
     this.controls.get(id)?.destroy();
     this.controls.delete(id);
+  }
+
+  /**
+   * A touch landed on a group control's element at (x, y): which control of that group it belongs to (research M3:
+   * the nearest centre where touch areas overlap, the nearest drawing within GAP_REACH in a gap). Only shown
+   * controls take part; anything else stays with the control it landed on.
+   */
+  routeTouch(from: TouchControl, x: number, y: number): TouchControl {
+    const g = from.spec.group;
+    if (!g) return from;
+    const cands: RouteCandidate[] = [];
+    for (const c of this.controls.values()) {
+      if (c.spec.group !== g || !c.shown || !c.placed) continue;
+      const f = c.faceRect;
+      cands.push({ id: c.spec.id, cx: f.x + f.w / 2, cy: f.y + f.h / 2, w: f.w, h: f.h, hit: { x: f.x - HIT_SLOP, y: f.y - HIT_SLOP, w: f.w + 2 * HIT_SLOP, h: f.h + 2 * HIT_SLOP } });
+    }
+    const id = routeTouch(x, y, cands, GAP_REACH);
+    return (id && this.controls.get(id)) || from;
   }
 
   // ------------------------------------------------------------------ layout
@@ -726,7 +828,7 @@ export class TouchLayer {
   /** Does a tap here use the prompt's thing? */
   private tapActs(x: number, y: number): boolean {
     const d = this.decision;
-    if (d.mode !== "walk" || !d.action || this.held) return false;
+    if (!promptMode(d) || !d.action || this.held) return false;
     return inRect(this.bubbleRect, x, y) || inRect(this.target?.tap, x, y);
   }
 
@@ -823,7 +925,7 @@ export class TouchLayer {
       for (const t of Array.from(e.changedTouches)) {
         if (t.identifier !== bt.id) continue;
         a.touch = null;
-        if (!cancelled && !bt.moved && a.on && this.decision.mode === "walk" && this.decision.action && !this.held) {
+        if (!cancelled && !bt.moved && a.on && promptMode(this.decision) && this.decision.action && !this.held) {
           haptic("press");
           this.edge("interact");
         }
@@ -838,7 +940,7 @@ export class TouchLayer {
     let bubble: Rect | null = null;
     let target: { tap: Rect; core: Rect } | null = null;
     const d = this.decision;
-    if (d.mode === "walk" && d.action && !d.legacyPad) {
+    if (promptMode(d) && d.action && !d.legacyPad) {
       try {
         bubble = promptRect(this.game, d);
       } catch {
@@ -896,12 +998,13 @@ export class TouchLayer {
       }
     }
     const core = this.target?.core ?? null;
+    const extra = d.mode === "walk" ? [] : this.occluders;
     for (const c of this.controls.values()) {
       if (!c.shown || c.spec.fade === false) {
         c.setSeeThrough(false);
         continue;
       }
-      c.setSeeThrough(overlaps(c.faceRect, me) || overlaps(c.faceRect, core) || overlaps(c.faceRect, this.bubbleRect));
+      c.setSeeThrough(overlaps(c.faceRect, me) || overlaps(c.faceRect, core) || overlaps(c.faceRect, this.bubbleRect) || extra.some((r) => overlaps(c.faceRect, r)));
     }
   }
 
@@ -971,6 +1074,14 @@ export class TouchLayer {
       pendingTaps: this.pendingUps.length,
     };
   }
+}
+
+/**
+ * Modes where the prompt's bubble (and the thing it is about) can be tapped for ACTION: walking, and the top-down
+ * fights (stage 2: "Tap: Untie Mollor" over the player's head does what it says, like ACTION).
+ */
+function promptMode(d: Pick<ModeDecision, "mode">): boolean {
+  return d.mode === "walk" || d.mode === "combat";
 }
 
 /** The first touch on the layer must still unlock the sound (the game does it on its first pointerdown). */

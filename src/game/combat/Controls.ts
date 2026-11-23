@@ -3,6 +3,8 @@ import { TOUCH } from "../ui/TouchControls";
 import { keysFor } from "../systems/keybinds";
 import { btnDown, padHeld, PAD_START } from "../systems/padbinds";
 import { G } from "../G";
+import { isMobile } from "../mobile/flag";
+import { phoneHooks } from "../mobile/boot";
 
 /** Input abstraction: keyboard + mouse, with gamepad support layered on top. */
 export class Controls {
@@ -84,6 +86,11 @@ export class Controls {
 
   /** Aim angle from the player position (world coords). */
   aim(px: number, py: number): number {
+    if (isMobile()) {
+      // phones: the phone combat controls aim (auto-aim, FIRE's slide-to-aim); null leaves it to the code below
+      const a = phoneHooks()?.aim?.(this.scene, px, py);
+      if (a !== null && a !== undefined) return (this.pointerAngle = a);
+    }
     if (TOUCH.enabled && !this.scene.input.mousePointer?.isDown && this.scene.input.activePointer.wasTouch) {
       this.pointerAngle = (autoAimAllowed() ? this.autoAim : null) ?? this.lastMoveAngle;
       return this.pointerAngle;
@@ -105,6 +112,10 @@ export class Controls {
   }
 
   aimPoint(): { x: number; y: number } {
+    if (isMobile()) {
+      const p = phoneHooks()?.aimPoint?.(this.scene);
+      if (p) return p;
+    }
     const ptr = this.aimPtr();
     if (TOUCH.enabled && ptr.wasTouch && this.autoAimPoint && autoAimAllowed()) return this.autoAimPoint;
     return this.scene.cameras.main.getWorldPoint(ptr.x, ptr.y);

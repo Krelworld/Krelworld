@@ -39,6 +39,36 @@ export function openHomeScreenGuide(from: GuideFrom = "title") {
   entry?.openHomeScreenGuide(from);
 }
 
+/**
+ * Stage 2: what the phone chunk lends the game's combat and HUD code. The game's files only ever reach these behind
+ * `if (isMobile())`, and `phoneHooks()` is null on a laptop (and on a phone until the chunk is in), so a laptop never
+ * runs any of it. Every hook may answer null / undefined: "do what the game always did".
+ */
+export interface PhoneHooks {
+  /** The Dungeon, every frame, just before the player moves (aiming, auto-fire, phone assist). */
+  combatStep?(scene: Phaser.Scene, controls: unknown, dt: number): void;
+  /** Controls.aim(): the aim angle the phone controls want (null: the game's own). */
+  aim?(scene: Phaser.Scene, px: number, py: number): number | null;
+  /** Controls.aimPoint(): where the phone's aim is, in world coordinates (null: the game's own). */
+  aimPoint?(scene: Phaser.Scene): { x: number; y: number } | null;
+  /** The HUD (UIScene): where its top-right toast column must end (game px) so pause and the weapon chip stay clear. */
+  toastRight?(mode: "hub" | "dungeon"): number | null;
+  /** The HUD's "special ready" prompt: the word on the touch button to press instead of a key (null: none). */
+  readyWord?(which: "burst" | "fart"): string | null;
+}
+
+let hooks: PhoneHooks | null = null;
+
+/** index.ts (phones only): the phone chunk's hooks for the game's own files. */
+export function setPhoneHooks(h: PhoneHooks | null) {
+  hooks = h;
+}
+
+/** The phone chunk's hooks, or null (always null on a laptop: the game's files ask only behind isMobile()). */
+export function phoneHooks(): PhoneHooks | null {
+  return isMobile() ? hooks : null;
+}
+
 /** How many times to try fetching the phone chunk before giving up (a flaky connection on the first load). */
 const LOAD_TRIES = 3;
 

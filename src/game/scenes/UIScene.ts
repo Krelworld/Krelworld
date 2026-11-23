@@ -13,6 +13,7 @@ import { resentmentLabel } from "../systems/reactions";
 import { synth } from "../audio/Synth";
 import { TouchControls, isTouchDevice } from "../ui/TouchControls";
 import { isMobile } from "../mobile/flag";
+import { phoneHooks } from "../mobile/boot";
 import { ammoLabel, weaponIcon, weaponList } from "../ui/weapons";
 import { DRONGUS_STATUSES } from "../../content/dialogue/drongusStatuses";
 import { playerFace, sanmikActive } from "../systems/sanmik";
@@ -157,14 +158,73 @@ export class UIScene extends Phaser.Scene {
 
   private setupTouch() {
     if (!isTouchDevice(this.game)) return;
-    // phones: in town the phone touch layer (src/game/mobile) has the walking controls, drawn above every scene
-    if (isMobile() && this.mode !== "dungeon") {
+    // phones: the phone touch layer (src/game/mobile) has the controls, drawn above every scene: walking in town, and
+    // the top-down fights (stage 2). The side-scrolling rooms keep this pad until their phone controls land.
+    if (isMobile() && !(this.mode === "dungeon" && (this.scene.get("Dungeon") as unknown as { side?: boolean } | null)?.side === true)) {
       this.touch?.destroy();
       this.touch = null;
       return;
     }
     this.touch?.destroy();
     this.touch = new TouchControls(this, this.mode === "dungeon");
+  }
+
+  // ---- phones only (isMobile()): the phone HUD (src/game/mobile/combat.ts lays out the touch controls around it)
+
+  /** Phones: the phone layer runs this fight (a top-down room, no old canvas pad): its chips replace the HUD's key hints. */
+  private phoneFight(): boolean {
+    return isMobile() && this.mode === "dungeon" && !this.touch;
+  }
+
+  /** Phones: where the toast column ends (game px), clear of pause and the weapon chip. */
+  private phoneToastRight(): number {
+    return phoneHooks()?.toastRight?.(this.mode) ?? 950;
+  }
+
+  /** Phones: the toast column starts under the boss bar while there is one (it sits up top on a phone). */
+  private phoneToastTop(): number {
+    return this.boss && this.phoneFight() ? 50 : 8;
+  }
+
+  /**
+   * Phones, in a fight the phone layer runs: the top-left block reads at phone size, the drinks / fart / SanMik line is
+   * the layer's tappable chips (drawn just under the bars), the money moves up beside the name, and a slim WONK bar
+   * sits under KREZZ (the keycap tray that shows it on a laptop isn't drawn on touch).
+   */
+  private phoneHudBlock(chips: string[]) {
+    const s = G.s;
+    const wonk = this.phoneWonk();
+    this.g.fillStyle(0x000000, 0.65).fillRect(66, 54, 230, 5);
+    this.g.fillStyle(wonk >= 100 ? 0xfff3b0 : 0xffd23f, 1).fillRect(67, 55, 228 * Phaser.Math.Clamp(wonk / 100, 0, 1), 3);
+    const fairy = s.upgrades.fairies ? (G.rt.fairyUsed ? "🧚 used" : "🧚 ready") : "";
+    this.statT.setPosition(68, 110).setText([fairy, ...chips].filter(Boolean).join("\n"));
+    const nx = 68 + this.nameT.width + 12;
+    this.coinIco.setPosition(nx, 13).setVisible(true);
+    this.coinT.setPosition(nx + 20, 13).setText(`${s.coins}`).setVisible(true);
+  }
+
+  /** Phones: the WONK meter (the keycap tray that shows it on a laptop isn't drawn on touch). */
+  private phoneWonk(): number {
+    const dun = this.scene.get("Dungeon") as unknown as { player?: { wonk?: number } } | null;
+    return dun?.player?.wonk ?? 0;
+  }
+
+  /** Phones: KREZZ and WONK beside the bars, two short lines. */
+  private phoneMeters(): string {
+    return `KREZZ ${Math.floor(G.s.krezz)}\nWONK ${Math.floor(this.phoneWonk())}%`;
+  }
+
+  /** Phones: "TAP" and the word on the touch button that does it (the specials-ready prompt), else the touch wording. */
+  private phoneReadyKey(which: "burst" | "fart", fallback: string): string {
+    const w = phoneHooks()?.readyWord?.(which);
+    return w ? `TAP ${w}` : fallback;
+  }
+
+  /** Phones: the boss bar up top, between the HUD block and the weapon chip. */
+  private phoneBossBar(): { x: number; y: number; w: number; ny: number } {
+    const x = 372;
+    const right = Math.max(x + 220, this.phoneToastRight() - 6);
+    return { x, y: 28, w: right - x, ny: 15 };
   }
 
   private weaponCard: Phaser.GameObjects.Container | null = null;
@@ -178,7 +238,8 @@ export class UIScene extends Phaser.Scene {
     // in the run'n'gun rooms the action fills the screen: a small, see-through card on the half the player isn't in
     const dun = this.scene.get("Dungeon") as unknown as { side?: boolean; player?: { spr?: Phaser.GameObjects.Sprite }; cameras?: Phaser.Cameras.Scene2D.CameraManager } | null;
     const rng = !!(dun && this.scene.isActive("Dungeon") && dun.side);
-    let cy = 430;
+    // (phones: up top, under the HUD strip, so it never sits on the player or the thumbs)
+    let cy = this.phoneFight() ? 132 : 430;
     if (rng) {
       const spr = dun!.player?.spr;
       const cam = dun!.cameras?.main;
@@ -267,7 +328,7 @@ export class UIScene extends Phaser.Scene {
   private pushStatus(text: string, year?: string) {
     // long ones get a wider box (and the box always grows to fit every line)
     const w = text.length > 150 ? 380 : text.length > 70 ? 330 : 300;
-    const c = this.add.container(960 - w - 10, 0).setDepth(100);
+    const c = this.add.container(isMobile() ? this.phoneToastRight() - w : 960 - w - 10, 0).setDepth(100);
     const body = this.add.text(10, 40, text, { fontFamily: FONT, fontSize: "12px", color: "#050505", wordWrap: { width: w - 20, useAdvancedWrap: true } });
     const h = body.height + 66;
     const bg = this.add.rectangle(0, 0, w, h, 0xffffff, 0.97).setOrigin(0).setStrokeStyle(2, 0x1877f2);
@@ -279,7 +340,7 @@ export class UIScene extends Phaser.Scene {
     c.add([bg, band, brand, who, body, foot]);
     if (pk) c.add(this.add.image(22, 28, pk).setDisplaySize(18, 18));
     c.setData("h", h);
-    let y0 = 8;
+    let y0 = isMobile() ? this.phoneToastTop() : 8;
     for (const t of this.toasts) y0 += (t.c.getData("h") as number) + 6;
     c.y = y0;
     c.setAlpha(0);
@@ -295,7 +356,7 @@ export class UIScene extends Phaser.Scene {
 
   private pushToast(title: string, text: string, messenger: boolean, from?: string) {
     const w = 300;
-    const c = this.add.container(960 - w - 10, 0).setDepth(100);
+    const c = this.add.container(isMobile() ? this.phoneToastRight() - w : 960 - w - 10, 0).setDepth(100);
     const body = this.add.text(messenger ? 46 : 10, 24, text, { fontFamily: FONT, fontSize: "12px", color: messenger ? "#050505" : "#ffffff", wordWrap: { width: w - (messenger ? 56 : 20), useAdvancedWrap: true } });
     const h = Math.max(48, body.height + 32);
     const bg = this.add.rectangle(0, 0, w, h, messenger ? 0xffffff : UI.panel, 0.96).setOrigin(0).setStrokeStyle(2, messenger ? UI.messenger : UI.accent);
@@ -306,7 +367,7 @@ export class UIScene extends Phaser.Scene {
       if (pk) c.add(this.add.image(24, h / 2, pk).setDisplaySize(30, 30));
     }
     c.setData("h", h);
-    let y0 = 8;
+    let y0 = isMobile() ? this.phoneToastTop() : 8;
     for (const t of this.toasts) y0 += (t.c.getData("h") as number) + 6;
     c.y = y0;
     c.setAlpha(0);
@@ -418,7 +479,9 @@ export class UIScene extends Phaser.Scene {
     const confl = time < this.conflictUntil;
     const labels = confl ? ["WONK", "HP", "KREZZ"] : this.labels;
     const dungeon = this.mode === "dungeon";
-    const touch = !!this.touch && isTouchDevice(this.game);
+    // (phones: the phone layer's buttons and chips do this fight, so no key hints either)
+    const phone = this.phoneFight();
+    const touch = (!!this.touch && isTouchDevice(this.game)) || phone;
     const flash = Math.floor(time / 160) % 2 === 0;
     const pulse = 0.5 + 0.5 * Math.sin(time / 140);
     const bar = (x: number, y: number, w: number, h: number, frac: number, col: number) => {
@@ -475,20 +538,24 @@ export class UIScene extends Phaser.Scene {
       g.fillRect(67, 23, 228 * hpFrac, 16);
       g.lineStyle(low ? 2 : 1, low ? 0xff4d4d : 0xffffff, low ? 0.9 : 0.35);
       g.strokeRect(66, 22, 230, 18);
-      this.hpT.setText(`${confl ? "WONK" : "HP"} ${Math.ceil(s.hp)}/${mh}`).setPosition(72, 24).setFontSize(12).setVisible(true);
+      // (phones: bigger numbers; KREZZ and the WONK % beside the bars, see phoneHudBlock)
+      this.hpT.setText(`${confl ? "WONK" : "HP"} ${Math.ceil(s.hp)}/${mh}`).setPosition(72, phone ? 23 : 24).setFontSize(phone ? 15 : 12).setVisible(true);
       // Krezz: a slim bar underneath
       bar(66, 43, 230, 9, s.krezz / maxKrezz(s), UI.krezz);
-      this.kzT.setText(`KREZZ ${Math.floor(s.krezz)}`).setPosition(300, 41).setFontSize(10).setVisible(true);
+      this.kzT.setText(phone ? this.phoneMeters() : `KREZZ ${Math.floor(s.krezz)}`).setPosition(300, phone ? 37 : 41).setFontSize(phone ? 11 : 10).setVisible(true);
       const q = prettyKey(keysFor("bottle")[0] ?? "Q");
       const bk = prettyKey(keysFor("bongo")[0] ?? "B");
-      this.statT.setPosition(68, 56).setText(
-        [
-          `🍼 ×${s.bottles}/${maxBottles(s)}${touch ? "" : ` [${q}] heal`}   🍺 ×${s.bongos}${touch ? "" : ` [${bk}]`}${s.upgrades.fairies ? (G.rt.fairyUsed && this.mode === "dungeon" ? "   🧚 used" : "   🧚 ready") : ""}`,
-          ...chips,
-        ].join("\n"),
-      );
-      this.coinIco.setPosition(300, 63).setVisible(true);
-      this.coinT.setPosition(320, 63).setText(`${s.coins}`).setVisible(true);
+      if (phone) this.phoneHudBlock(chips);
+      else {
+        this.statT.setPosition(68, 56).setText(
+          [
+            `🍼 ×${s.bottles}/${maxBottles(s)}${touch ? "" : ` [${q}] heal`}   🍺 ×${s.bongos}${touch ? "" : ` [${bk}]`}${s.upgrades.fairies ? (G.rt.fairyUsed && this.mode === "dungeon" ? "   🧚 used" : "   🧚 ready") : ""}`,
+            ...chips,
+          ].join("\n"),
+        );
+        this.coinIco.setPosition(300, 63).setVisible(true);
+        this.coinT.setPosition(320, 63).setText(`${s.coins}`).setVisible(true);
+      }
       // the old top-left meter strip is replaced by the specials tray
       this.wonkT.setVisible(false);
       this.fartT.setVisible(false);
@@ -528,8 +595,9 @@ export class UIScene extends Phaser.Scene {
         } else this.hideKeycap(3);
       } else this.hideTray();
       // the moment a special becomes ready, a key prompt pops up over your head for a couple of seconds
-      if (full && !this.wasFull) this.showPop(touch ? "TAP WONK" : rk, "WONK READY", 0xffd23f, time);
-      if (lv === 4 && this.lastLv < 4) this.showPop(touch ? "TAP 💨" : gk, "IBS ATTACK READY", 0xd4ff3a, time);
+      // (phones: the word on the touch button that does it, instead of a key)
+      if (full && !this.wasFull) this.showPop(phone ? this.phoneReadyKey("burst", "TAP WONK") : touch ? "TAP WONK" : rk, "WONK READY", 0xffd23f, time);
+      if (lv === 4 && this.lastLv < 4) this.showPop(phone ? this.phoneReadyKey("fart", "TAP 💨") : touch ? "TAP 💨" : gk, "IBS ATTACK READY", 0xd4ff3a, time);
       this.wasFull = full;
       this.lastLv = lv;
       this.placePop(dun, time, pulse);
@@ -542,9 +610,11 @@ export class UIScene extends Phaser.Scene {
       this.gunT
         .setText(gun ? `🔫 ${gun.name}\n${out ? "OUT OF AMMO" : `${ammo} / ${gunMax(gun, s)}`}${touch ? "" : `   [${sk}] swap`}` : `💨 Fart Blaster  ∞${ownedGuns(s).length && !touch ? `\n[${sk}] swap gun` : ""}`)
         .setColor(out ? "#ff6b6b" : gun && ammo < gunMax(gun, s) * 0.2 ? "#facc15" : "#ffffff")
-        .setVisible(!this.boss || !touch);
+        .setVisible(!phone && (!this.boss || !touch));
     }
     if (!dungeon) this.gunT?.setVisible(false);
+    // (phones: the boss's name takes the room name's place up top)
+    if (isMobile()) this.roomT.setVisible(!(this.boss && phone));
     // objective
     if (this.mode === "hub") {
       // objectives pop up in the middle when they change, then get out of the way (they're always in the pause menu)
@@ -570,32 +640,35 @@ export class UIScene extends Phaser.Scene {
     // boss
     if (this.boss) {
       const b = this.boss;
+      // (phones: up top between the HUD and the weapon chip, clear of the thumbs and the home-indicator strip)
+      const bb = this.phoneFight() ? this.phoneBossBar() : { x: 180, y: 506, w: 600, ny: 494 };
+      if (this.phoneFight()) this.bossT.setPosition(bb.x + bb.w / 2, bb.ny);
       g.fillStyle(0x000000, 0.75);
-      g.fillRect(180, 506, 600, 16);
+      g.fillRect(bb.x, bb.y, bb.w, 16);
       const sh = b.shield;
       const vuln = sh?.state === "vulnerable";
       g.fillStyle(b.shielded ? 0x88aaff : vuln ? (!G.meta?.settings?.calmFlash && Math.floor(time / 160) % 2 ? 0xf59e0b : 0xffd23f) : 0xdc2626, 1);
-      g.fillRect(182, 508, 596 * Math.max(0, b.hp / b.max), 12);
+      g.fillRect(bb.x + 2, bb.y + 2, (bb.w - 4) * Math.max(0, b.hp / b.max), 12);
       // shield phases still to come: a tick on the bar at each
       for (const m of sh?.marks ?? []) {
-        g.fillStyle(0x6fd8ff, 1).fillRect(181 + 598 * m - 1, 504, 3, 20);
+        g.fillStyle(0x6fd8ff, 1).fillRect(bb.x + 1 + (bb.w - 2) * m - 1, bb.y - 2, 3, 20);
       }
       g.lineStyle(2, b.shielded ? 0x6fd8ff : 0xffd23f, 1);
-      g.strokeRect(180, 506, 600, 16);
+      g.strokeRect(bb.x, bb.y, bb.w, 16);
       const tag = sh?.state === "shielded" ? `  [SHIELDED ${sh.cracks}/${sh.need} — KILL THE MINIONS]` : vuln ? "  [VULNERABLE!]" : b.shielded ? "  [SHIELDED]" : "";
       this.bossT.setText(b.name + tag).setColor(sh?.state === "shielded" ? "#7dd3fc" : vuln ? "#ffd23f" : "#ffffff").setVisible(true);
       if (sh?.state === "shielded") {
         // frozen behind the shield: a glassy sheen over the bar, and a drawn shield badge by the name
-        g.fillStyle(0xffffff, 0.18).fillRect(182, 508, 596, 4);
-        const x = 480 - this.bossT.width / 2 - 14;
-        const y = 493;
+        g.fillStyle(0xffffff, 0.18).fillRect(bb.x + 2, bb.y + 2, bb.w - 4, 4);
+        const x = bb.x + bb.w / 2 - this.bossT.width / 2 - 14;
+        const y = bb.ny - 1;
         g.fillStyle(0x000000, 1).fillPoints([{ x: x - 9, y: y - 11 }, { x, y: y - 14 }, { x: x + 9, y: y - 11 }, { x: x + 8, y: y + 2 }, { x, y: y + 12 }, { x: x - 8, y: y + 2 }], true);
         g.fillStyle(0x2f7bff, 1).fillPoints([{ x: x - 7, y: y - 9 }, { x, y: y - 11 }, { x: x + 7, y: y - 9 }, { x: x + 6, y: y + 1 }, { x, y: y + 9 }, { x: x - 6, y: y + 1 }], true);
         g.fillStyle(0xe6fbff, 1).fillRect(x - 1, y - 8, 2, 15).fillRect(x - 5, y - 3, 10, 2);
       }
     } else this.bossT.setVisible(false);
     // toasts
-    let y = 8;
+    let y = isMobile() ? this.phoneToastTop() : 8;
     this.toasts = this.toasts.filter((t) => {
       if (time > t.until) {
         this.tweens.add({ targets: t.c, alpha: 0, duration: 200, onComplete: () => t.c.destroy() });

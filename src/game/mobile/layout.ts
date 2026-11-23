@@ -109,6 +109,9 @@ export interface Placed {
   cy: number;
   /** Drawn diameter. */
   size: number;
+  /** A drawing that is not round (a chip): its width and height (else `size` both ways). */
+  w?: number;
+  h?: number;
   /** The touchable rectangle. */
   hit: Rect;
 }
@@ -222,6 +225,77 @@ export function ghostStick(vp: Viewport, settings: Pick<PhoneSettings, "leftHand
   const y = Math.min(safe.y + safe.h - 79 * s, safe.y + safe.h - r - 4);
   if (settings.leftHanded) x = vp.w - x;
   return { x, y };
+}
+
+// ---------------------------------------------------------------- a cluster's shared touch surface (research M3)
+
+/** Inside a cluster, a touch in a gap goes to the nearest control within this many px of its drawing. */
+export const GAP_REACH = 20;
+
+/**
+ * A group control's touch area: its drawing plus `reach` on every side (kept on screen and out of the bottom strip).
+ * `corner`: the prime corner also runs out to the screen's right edge (left for left-handed play) and down to the
+ * home-indicator strip (research: hit areas may reach the physical edge outside the island band).
+ */
+export function groupHit(vp: Viewport, p: Pick<Placed, "cx" | "cy" | "size" | "w" | "h">, reach: number, corner = false): Rect {
+  const safe = safeRect(vp);
+  const fw = p.w ?? p.size;
+  const fh = p.h ?? p.size;
+  let x0 = Math.max(0, p.cx - fw / 2 - reach);
+  let x1 = Math.min(vp.w, p.cx + fw / 2 + reach);
+  const y0 = Math.max(0, p.cy - fh / 2 - reach);
+  let y1 = Math.min(safe.y + safe.h, p.cy + fh / 2 + reach);
+  if (corner) {
+    if (p.cx > vp.w / 2) x1 = vp.w;
+    else x0 = 0;
+    y1 = safe.y + safe.h;
+  }
+  return { x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) };
+}
+
+export interface RouteCandidate {
+  id: string;
+  /** Centre and half-size of the drawing (a circle when w = h). */
+  cx: number;
+  cy: number;
+  w: number;
+  h: number;
+  /** Its own touch area (drawing + the 10 px slop). */
+  hit: Rect;
+}
+
+/** How far a point is from a drawing's edge (0 inside it). Round drawings (w = h) are circles; chips rectangles. */
+export function edgeDistance(c: Pick<RouteCandidate, "cx" | "cy" | "w" | "h">, x: number, y: number): number {
+  if (Math.abs(c.w - c.h) < 0.5) return Math.max(0, Math.hypot(x - c.cx, y - c.cy) - c.w / 2);
+  const dx = Math.max(0, Math.abs(x - c.cx) - c.w / 2);
+  const dy = Math.max(0, Math.abs(y - c.cy) - c.h / 2);
+  return Math.hypot(dx, dy);
+}
+
+/**
+ * Which control of a cluster a touch at (x, y) belongs to (research M3): inside one or more touch areas (drawing +
+ * slop), the nearest centre; in a gap, the control whose drawing is nearest, if it is within `reach`; else null.
+ */
+export function routeTouch(x: number, y: number, cands: readonly RouteCandidate[], reach = GAP_REACH): string | null {
+  let best: string | null = null;
+  let bd = Infinity;
+  for (const c of cands) {
+    if (!inRect(c.hit, x, y)) continue;
+    const d = Math.hypot(x - c.cx, y - c.cy);
+    if (d < bd) {
+      bd = d;
+      best = c.id;
+    }
+  }
+  if (best) return best;
+  for (const c of cands) {
+    const d = edgeDistance(c, x, y);
+    if (d <= reach && d < bd) {
+      bd = d;
+      best = c.id;
+    }
+  }
+  return best;
 }
 
 /** Is a point inside a rectangle? */

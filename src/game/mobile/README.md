@@ -48,6 +48,10 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `shell.ts` | Page shell, rotate screen, holds (hidden / pagehide / portrait / guide / resume) and what waking needs (`wakeCare`), the carry-on card, Android fullscreen + landscape lock, back guard |
 | `rotate.ts` | The "turn your phone sideways" screen (DOM, so it also covers the first load), with an empty `extra` slot |
 | `css.ts` | All phone CSS, injected at runtime (index.html is never edited) |
+| `combat.ts` | Stage 2: the top-down fights (FIRE with auto-fire and slide-to-aim, DODGE, SWAP, SPECIAL, READY, HEAL, ACTION, the weapon chip, the drink chips, the mash overlay), the hooks it lends the game (`setPhoneHooks`), phone assist, the fight's touch wording |
+| `aim.ts` | Pure: target choice (nearest, stick-biased, sticky, objects as a fallback), snap, lead, auto-fire's "in range, on screen, no barrel by your feet" |
+| `combatLogic.ts` | Pure: READY's order, HEAL's rule, tap / hold (`HoldTracker`), SPECIAL's word and fill, the Dungeon's two mode rows |
+| `combatCss.ts` | The fight controls' CSS (its own `<style>`, phones only) |
 | `index.ts` | The phone chunk's `installMobile()`, `mobileLayer()`, `mobileShell()` and re-exports |
 
 ## Deciding phone mode
@@ -88,13 +92,28 @@ Hooks that exist now (stage 1):
 | `src/game/scenes/TitleScene.ts` `fullscreenButton()` | `if (isMobile()) { if (homeScreenEntryWanted()) button(... "📲 ADD TO HOME SCREEN" ... openHomeScreenGuide("title")); return; }` (imports from `mobile/flag` and `mobile/boot`) | The title's corner opens the Add to Home Screen guide on a phone, replacing FULLSCREEN and the one-line iPhone hint (so it never shows twice). Laptops: unchanged |
 | `src/game/scenes/MenuScene.ts` pause rows | `isMobile() && homeScreenEntryWanted() ? ["📲 ADD TO HOME SCREEN", () => openHomeScreenGuide("pause")] : [the FULLSCREEN row as it was]` (imports from `mobile/flag` and `mobile/boot`) | The guide from the pause menu, same row count (no layout change). Laptops: unchanged |
 | `src/main.ts` | `import { installMobile } from "./game/mobile/boot"` and `installMobile(game)` right after the game is created | The one entry point. On a phone it fetches the phone chunk at once (the rotate screen covers the load from then on). The invariants test ignores install calls named *mobile* |
-| `src/game/scenes/UIScene.ts` `setupTouch()` | `if (isMobile() && this.mode !== "dungeon") { destroy the old pad; return; }` | On phones the town / interior controls are this layer, drawn above every scene (blocker B1: the old pad was drawn under Home, the Club, Kreddle and the Venue). The old pad still runs combat until stage 2 |
+| `src/game/scenes/UIScene.ts` `setupTouch()` | `if (isMobile() && !(this.mode === "dungeon" && Dungeon.side)) { destroy the old pad; return; }` | On phones the controls are this layer, drawn above every scene: town and interiors (stage 1, blocker B1) and the top-down fights (stage 2). The side-scrolling rooms keep the old pad until stage 2 part 2 (drop the `side` condition then) |
+
+Hooks added in stage 2, part 1 (the top-down fights). Every one is `if (isMobile()) ...` (or `isMobile() ? a : b`), and
+the phone chunk's hooks come through `boot.ts`'s `phoneHooks()`, which is null on a laptop:
+
+| Where | What | Why |
+|---|---|---|
+| `src/game/combat/Controls.ts` `aim()` / `aimPoint()` | `if (isMobile()) { const a = phoneHooks()?.aim?.(scene, px, py); if (a != null) return a; }` (and the same for the aim point) | The phone's aim (auto-aim, FIRE's slide). A DOM control never sets `activePointer.wasTouch`, so the game's own touch branch couldn't be used. Null (a side room, no hook) leaves the game's code as it was |
+| `src/game/scenes/DungeonScene.ts` `update()` | `if (isMobile()) phoneHooks()?.combatStep?.(this, this.controls, dt);` right before `player.update` | Target, aim, auto-fire (`TOUCH.attack`) and phone assist are worked out inside the Dungeon's frame, so the player acts on them that same frame (no frame of lag on FIRE or auto-fire) |
+| `src/game/scenes/UIScene.ts` `update()` and the toast code | `phone = isMobile() && dungeon && !this.touch`: no key hints (as on touch), the gun readout hidden (the weapon chip shows it), the top-left block at phone size (HP 15 px, KREZZ + WONK % beside the bars, a slim WONK bar, money beside the name, the status line under the chips), the specials prompt says `TAP WONK!` / `TAP IBS!`, the boss bar up top between the HUD and the chip, the room name hidden under it; the toast column ends where `phoneHooks().toastRight()` says (left of pause, the fullscreen offer and the weapon chip; P10) and starts under the boss bar; the weapon card up top (`cy` 132) | DEFERRED P10, research M16 / S1. The laptop's expressions are the same numbers (`960 - w - 10`, `506`...) |
+| `src/game/scenes/MenuScene.ts` settings | `if (isMobile()) { /* no row */ } else if (pk_autoaim) ... else if (TOUCH.enabled) "Touch aim assist" ...` | DEFERRED R8 item 7: one switch in one place. On a phone aiming reads only the phone setting `aimAssist`; the game's row (and the Krezz-Assist row) would be a switch that does nothing there. Tablets keep it |
 
 Things the phone chunk does to the running game from outside (phones only, no scene file edited): the walking scenes'
 prompt Texts and a few UI Texts get touch wording (`wordText`); "toast" events are reworded before the UI scene draws
 them; the Hub's follower's `enabled()` is wrapped so "Shove Mikey" ranks below anything else in range
 (`rankFollowerLast`, observe.ts); the old pad's stick / ATTACK are zeroed when everything lets go
-(`releaseLegacyPad`).
+(`releaseLegacyPad`). Stage 2 (combat.ts): the Dungeon's private fields are read (enemies, breakables, pickups, shots,
+busy, the player's timers), its public `swapSlow()` / `openWeaponPicker()` are called, the weapon picker's `focus()` /
+`pick()` / `close()` are called for slide-to-pick and CLOSE, two Graphics (the target ring, the aim line) are added to
+the Dungeon, pickups are pulled and enemy bullets drawn bigger (phone assist), Kreddle's money counter is moved left of
+pause, and the Dungeon's prompt, the weapon picker's how-to line and the first dungeon's how-to-play rows get touch
+wording.
 
 ## Modes
 
@@ -108,7 +127,9 @@ topmost running scene per rule):
 | Minigame, Whack, Drive, BeepBeep | tap | – (stage 3) | yes |
 | Pub, Pit, PitLoan, PolsonHome | none | – | – |
 | Finale | brawl (legacy pad) | – | yes |
-| Dungeon | combat / side (legacy pad); none while busy | the canvas pad's II; the back gesture uses the Esc path | yes |
+| WeaponPick over a top-down Dungeon (stage 2, in front of everything) | combat, `picker: true` (the thumb that opened it slides onto a gun; CLOSE where FIRE was) | – | yes |
+| Dungeon, top-down room (stage 2) | combat: the phone stick (`"2d"`, gutter included), FIRE / DODGE / SWAP / SPECIAL / READY / HEAL / ACTION, the chips; `mash: true` while the WONK gauge (or the roof's group wonk) is up; none while busy (scripted moments, dying, changing rooms) | the layer's II (`edge`); none while busy (coming back shows "tap to carry on") | yes |
+| Dungeon, side-scrolling room | side (legacy pad) until stage 2 part 2 | the canvas pad's II | yes |
 | Home, Hub | walk (none while busy) | `edge`: the scene's own Esc path | – |
 | Club, Kreddle, Venue | walk (none while busy or a machine is open) | `menu`: the pause menu over the scene (on a laptop Esc walks you out; each has an exit to walk to) | – |
 | Kreddle with the raid / rout running | walk | `edge` (their own Esc → pause menu) | yes |
@@ -157,18 +178,81 @@ is re-placed on every layout (resize, Safari's bars, left-handed, S/M/L), and it
 prompt's target is under it (`fade: false` to opt out). When the layer lets go (hidden, upright, blur, mode change), a
 finger that was down does nothing more until it lifts, while a new finger works at once (tracked by touch id).
 
-Turn the old pad off for a mode with the same guarded line in `UIScene.setupTouch` (drop the `this.mode !== "dungeon"`
-condition). Feed the game through `TOUCH` (`mx/my`, `attack`, `edges`, `held`) as the old pad did. Note:
-`Controls.aim()`, `aimPoint()` and `attackHeld()` test `activePointer.wasTouch`, which a DOM control does not set: combat
-needs a guarded hook there (audit section 3). **Decide before wiring aim assist**: the game already has
-`G.meta.settings.autoAim` (its "Touch aim assist" row shows on phones, because `TOUCH.enabled` is on), and the phone
-settings have `aimAssist` (off / normal / strong). Recommended: on phones the combat hook reads `phoneSettings().aimAssist`
-only, and the phone settings page is the one place to change it (the game's row stays as it is for tablets).
+Turn the old pad off for a mode with the same guarded line in `UIScene.setupTouch` (stage 2 part 2: drop its
+`Dungeon.side` condition when the side rooms get their controls). Feed the game through `TOUCH` (`mx/my`, `attack`,
+`edges`, `held`) as the old pad did. `Controls.aim()` / `aimPoint()` already ask `phoneHooks().aim / aimPoint` on a
+phone (combat.ts answers for top-down rooms and null elsewhere, which leaves the game's own code); a side-room
+controller can answer in the same hook (extend `CombatControls.aim`, or chain `setPhoneHooks`). Aim assist is decided
+(R8 item 7): on phones aiming reads only `phoneSettings().aimAssist`; MenuScene hides its "Touch aim assist" /
+Krezz-Assist rows on phones (tablets keep them). Controls in a cluster share touches through `ControlSpec.group`
+(`routeTouch`); a corner control can reach the screen's corner with `toCorner`; a chip places itself with `place()`.
 
 To read more of a scene, add an adapter to `ADAPTERS` in `observe.ts` (`busy`, where its `prompt` Text lives, `side`,
 `sub`), and to `promptTarget` for tap-the-thing (Home, Hub and Kreddle have it). To act on the game use
 `pressInteract()`, `pressPause()`, `pressSanmik()` (the same `TOUCH.edges` the canvas pad sends), or
 `layer.injectTap(clientX, clientY)` to hand the game a real tap.
+
+## Fights: the top-down rooms and bosses (`combat.ts`, stage 2 part 1)
+
+The old twelve-button canvas pad is gone from phone fights in top-down rooms and boss rooms (tablets keep it; the
+`androidtab` fingerprint profile pins that). The left thumb has the town's floating stick (left 45%, the black gutter
+included, P9). The right thumb has research "layout v2" (offsets from the bottom-right safe corner, scaled by
+`clamp(h / 390)` x S/M/L, mirrored for left-handed play):
+
+| Slot | Control | When | What it does (laptop key) |
+|---|---|---|---|
+| prime (84) | **FIRE** (crosshair) | always | hold = fire (J / left mouse), on touch-down; slide 24 px+ = aim by hand along the slide, snapping onto an enemy within 15° (25° strong), with an aim line; with auto-fire off the stream carries on 200 ms after the thumb lifts. Its touch area runs to the screen's corner |
+| upLeft (60) | **DODGE** | always | dodge where the stick points (Space) |
+| left (60) | **SWAP** | when there is more than one weapon with ammo | tap = next gun (X), hold 300 ms = the slow-motion weapon picker: slide onto a gun and let go; let go elsewhere and it stays up for a tap, with CLOSE where FIRE was. A thumb that moves 12 px before 300 ms cancels |
+| up (60) | **SPECIAL** (the lad's word: DASH, LOAN, NEWS, OMEN, TURRET, KRUNCH, LURK, SLAM, NUKE; HEADBUTT in the troll fight) | always | the character special (F / right mouse); its Krezz cost is a fill, dim when it can't go |
+| ready (60) | **READY** (gold, pops in) | a meter ability is ready | WONK! (R) when the WONK meter is full, then GOLD (T, golden juice drunk), IBS! (G at level 4); while golden, CUME (C). Never relabelled under a thumb; ignores presses for 300 ms after a new word |
+| heal (56) | **HEAL** (pops in, with the count) | health under 40% and juice to drink | pussy juice (Q) |
+| combatAction (56) | **ACTION** (the verb) | a prompt is up | interact (E); tapping the prompt over your head works too |
+| top, 24 px left of pause (140x44) | **weapon chip** (icon, name, ammo) | always | tap = next gun, hold = the picker (same as SWAP; its touch area reaches the top edge) |
+| under the health bars (32 tall) | **🍼 juice**, **🍺 bongo**, **💨 fart** (its level), **SANMIK** (as Mikey) | juice always (dim at full health or none); the others when they can do something | drink (Q, ignored at full health), bongo (B), let one rip at any level (G), Mikey ⇄ SanMik (V) |
+| the whole screen | the **mash overlay** | the WONK YOUR THANG gauge or the roof's group wonk is up (`mash`) | every finger anywhere is a press (R / Space / click); the buttons hide meanwhile |
+
+The cluster shares its touches (research M3): every control's element reaches `GAP_REACH` (20) px past its drawing; a
+touch that lands on one goes to the control whose centre is nearest if it is inside several controls' drawing + 10 px,
+else to the control whose drawing is nearest within 20 px (`routeTouch`, layout.ts; `ControlSpec.group`). FIRE,
+DODGE, SPECIAL and READY act on touch-down. A control under a thumb stays (and stays live) until the thumb lifts, even if
+its mode has moved on; then it hides. Pop-ins (SWAP, READY, HEAL, ACTION) animate in and ignore presses for 160 ms.
+
+**Aiming** (`aim.ts`, research M2): every frame the target is the nearest enemy within 520 world px and on screen,
+scored `distance x (1 - bias x cos(angle to the stick))` (bias 0.35 normal, 0.5 strong, 0 off), sticky (a new one must
+score under 0.6x the current one, 0.45x strong). With no enemy about, holding FIRE aims at the nearest barrel or crate.
+A red ring sits at the target's feet (orange for an object). Strong aim leads moving targets. Aim assist off: FIRE
+shoots straight ahead (the last stick direction) and slides don't snap; auto-fire still aims at what it shoots.
+
+**Auto-fire** (research M1, on by default for the first device test): only at an enemy in the gun's own range (each
+gun's `range`, modded; the Fart Blaster's), on screen, and never through a live barrel within 115 px of you (it would
+blow up in your face). Never at barrels or crates, never a special, never in the mash overlay, the picker, a pause,
+a conversation or a scripted moment, never while golden (the golden attack is a lunging melee: auto-fire never moves
+you). When the gun runs dry the game's own auto-switch runs (and, the first times, SWAP pulses). In a room whose decree
+bans holding the trigger (NO_ATTACK_SPAM, 2.5 s), auto-fire lets go for 160 ms every 2 s, the way a laptop player taps.
+FIRE glows red while auto-fire is shooting and flashes with each shot.
+
+**Phone assist** (`phoneAssist`, research S9; numbers in `ASSIST`): pick-ups (coins, ammo, health, Krezz, bottles,
+bongos; never quest items) come to you from 140 world px instead of 90 and faster (0.5 px/ms, 2 px/ms inside 60); a
+dodge's safe window lasts 60 ms longer (touch and frame delay; about the audit's x1.25 timing lever); enemy bullets
+are drawn 1.25x bigger (their hit size is unchanged). It never slows the game.
+
+**First fights** (S10): each combat button has a one-word caption for the first 3 rooms fought on this phone; READY
+pulses the first 3 times it pops in, HEAL the first 2, SWAP the first 2 times a gun runs dry. Remembered under
+`storageKey("krelworld.phone.combatTaught")`. The layer's pressed ring, a flash on the button whose action just happened
+(FIRE's shots, a dodge, the special) and the stage 1 buzz (Android) are the feedback.
+
+**The HUD on a phone** (UIScene, `phoneFight()`): see the hooks table. Controls go see-through when the player or the
+target is under them (`layer.occluders`, set each frame). The toast column ends left of pause / the fullscreen offer /
+the weapon chip in town and in fights (P10), and Kreddle's money counter moves left of pause.
+
+Touch wording added for the fights (UI hints, never a character's line; `COMBAT_WORDING`): the weapon picker's how-to
+line, the first dungeon's how-to-play rows (which named the old pad's ATTACK, GUN, E, PJ, WONK, 💨, 🍺, ⚡T buttons and
+"Esc pauses..."), and a rule for Wildern's narrated `CONTROLS: WASD move ...` line that only applies where the dialogue
+code passes such narrator control lines through `hint()` (this file never routes dialogue).
+
+`window.__krelMobile.combat`: `snapshot()` (target, aim, manual / snapped, autoFiring, fireHeld, ready, heal, picker,
+mash, mashPresses, taught) and `resetTeaching()`.
 
 ## Input rules the layer keeps
 
@@ -249,9 +333,9 @@ silently.
 | `readability` | **false** | yes (see below) | the font floor and the tap snap |
 | `textSize` | `"normal"` | yes, with readability | `"large"`: floor 12.5 CSS px |
 | `batterySaver` | false | yes | 30 frames a second |
-| `autoFire` | true | stage 2 | combat fires by itself at an in-range enemy |
-| `aimAssist` | `"normal"` | stage 2 | `off` / `normal` (sticky auto-aim) / `strong` |
-| `phoneAssist` | true | stage 2 | the forgiving touches (timing x1.25, pickup radius, jump help) |
+| `autoFire` | true | yes (top-down fights) | combat fires by itself at an enemy in range, on screen, with no barrel by your feet in the line |
+| `aimAssist` | `"normal"` | yes | `off` (FIRE shoots straight ahead, slides don't snap) / `normal` (stick-biased, sticky, 15° snap) / `strong` (stickier, 25° snap, leads moving targets) |
+| `phoneAssist` | true | yes (top-down fights; part 2 adds the jump help) | pick-ups come from further and faster, a dodge's safe window +60 ms, enemy bullets drawn 1.25x |
 | `syncOffsetMs` | 0 | stage 3 | rhythm offset, -300 to 300 ms |
 | `playOverMyMusic` | false | stage 3 | iPhone audio session "ambient" (player's music keeps playing) instead of "playback" |
 
@@ -362,11 +446,11 @@ the corners. The device checklist (outside the repo) tells a player what to read
 ## Testing
 
 ```sh
-npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layout, settings, readability, wording, home screen + diag; the not-a-phone devices
+npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layout, settings, readability, wording, home screen + diag, combat; the not-a-phone devices
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,guide,optout,town,dungeon,android,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,guide,optout,town,dungeon,combat,android,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
 
 # the laptop must not change (both must end with DESKTOP FINGERPRINT: OK)

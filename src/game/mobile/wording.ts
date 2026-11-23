@@ -9,7 +9,8 @@
 // Applied in stage 1 (phones only, from outside the scenes, nothing in them edited):
 //   - the interact prompt bubble in Home, Hub, Club, Kreddle and the Venue (the scene's `prompt` Text): every
 //     setText on it goes through hint(); the untouched text stays readable as `__krelRaw` (ACTION's verb comes from it);
-//   - texts created in Polson Towers (the pick-up prompt), the Krezz Arms (the key captions on its buttons), Kreddle
+//   - texts created in Polson Towers (the pick-up prompt), the Krezz Arms (the key captions on its buttons and the
+//     brawl's "Tap / SPACE to swing"), Kreddle
 //     (the machine panels' "SPACE or SPIN" lines) and Home (the panels' "ESC or ✕ to close"), when they match that
 //     scene's UI patterns in UI_TEXTS.
 import type Phaser from "phaser";
@@ -117,8 +118,9 @@ export const PROMPT_SCENES = ["Home", "Hub", "Club", "Kreddle", "Venue"] as cons
 export const UI_TEXTS: Record<string, RegExp[]> = {
   // the clue pick-up prompt
   PolsonHome: [/^E: Pick up: /],
-  // the key captions on the conversation buttons and the Leave card ("Space / E / click", "Tab", "Esc", "Enter")
-  Pub: [/^(?:Space \/ E \/ click|Tab|Esc|Enter)$/],
+  // the key captions on the conversation buttons and the Leave card ("Space / E / click", "Tab", "Esc", "Enter"), and
+  // the brawl's "BRAWL! Tap / SPACE to swing"
+  Pub: [/^(?:Space \/ E \/ click|Tab|Esc|Enter)$/, /^BRAWL! Tap \/ SPACE to swing/],
   // the machine panels: "150 Krezzcoin a spin. SPACE or SPIN.", "... SPACE / DROP to drop the claw", "SPACE / tap to collect"
   Kreddle: [/\bSPACE (?:or|\/) [A-Za-z]/],
   // the panels' close hint

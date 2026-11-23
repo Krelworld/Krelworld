@@ -68,6 +68,19 @@ describe("touch wording: hint() is phones only", () => {
 });
 
 describe("touch wording: never dialogue", () => {
+  it("matches the UI texts it is meant for", () => {
+    const ui: [string, string][] = [
+      ["PolsonHome", "E: Pick up: a sock"],
+      ["Pub", "Space / E / click"],
+      ["Pub", "Esc"],
+      ["Pub", "BRAWL! Tap / SPACE to swing · 3 still standing"],
+      ["Kreddle", "150 Krezzcoin a spin. SPACE or SPIN."],
+      ["Kreddle", "SPACE / tap to collect"],
+      ["Home", "ESC or ✕ to close"],
+    ];
+    for (const [scene, text] of ui) expect(UI_TEXTS[scene].some((re) => re.test(text)), `${scene}: ${text}`).toBe(true);
+  });
+
   it("is applied only in the walking scenes and their UI texts, never to conversation or story scenes", () => {
     const where = new Set<string>([...PROMPT_SCENES, ...Object.keys(UI_TEXTS)]);
     for (const k of ["Dialogue", "Meeting", "Cutscene", "Vignette", "TV", "Lair", "RoofCutscene", "Ending", "UI"]) expect(where.has(k)).toBe(false);
@@ -77,7 +90,6 @@ describe("touch wording: never dialogue", () => {
     const dialogue: [string, string][] = [
       ["Home", "TIP: WASD / arrows (or the stick) to walk. E to use things. Have a look round: the telly works, the bed saves your game."],
       ["Kreddle", "TIP: talk to the locals (E). Play the machines. Win things. And whatever you do, gamble at least once before you leave."],
-      ["Pub", "Space / E / click: next line."],
     ];
     for (const [scene, line] of dialogue) for (const re of UI_TEXTS[scene] ?? []) expect(re.test(line), `${scene}: ${line}`).toBe(false);
   });

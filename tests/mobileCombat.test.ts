@@ -300,3 +300,21 @@ describe("phone combat: the Dungeon's rows in the mode table", () => {
     expect(run([{ key: "Dungeon" }, { key: "Menu" }]).mode).toBe("none");
   });
 });
+
+describe("phone combat: touch wording for the fights (UI hints only)", async () => {
+  const { touchWording, TOUCH_WORDING } = await import("../src/game/mobile/wording");
+  const { COMBAT_WORDING, COMBAT_WORDING_FIRST, TUTORIAL_TEXT } = await import("../src/game/mobile/combatWording");
+  const rules = [...COMBAT_WORDING_FIRST, ...TOUCH_WORDING, ...COMBAT_WORDING];
+  it("the first dungeon's how-to-play rows name the phone's buttons, not the old pad's", () => {
+    for (const t of ["ATTACK button (hold; aims at the nearest enemy)", "GUN button", "E button", "PJ button. The national drink.", "WONK button. Hitting things fills your WONK meter.", "Later on: ⚡T, then CUME."]) {
+      expect(TUTORIAL_TEXT.test(t), t).toBe(true);
+      const out = touchWording(t, rules);
+      expect(out, t).not.toMatch(/ATTACK button|GUN button|^E button|PJ button|WONK button|⚡T/);
+    }
+    expect(touchWording("Esc pauses at any time; CONTROLS in the pause menu lets you rebind every key.", rules)).toBe("II (top right) pauses at any time.");
+  });
+  it("the weapon picker's how-to line and the finale's inject hint speak touch", () => {
+    expect(touchWording("(the world's slowed right down) · Tap one · or ←/→ and SPACE · or 1–9 · or let go of SWAP on it · ESC to cancel", rules)).toBe("(the world's slowed right down) · Tap one, or slide onto one and let go · ✕ to close");
+    expect(touchWording("Inject each of the lads (walk up, press E). Don't get hit.", rules)).toBe("Inject each of the lads (walk up, tap ACTION). Don't get hit.");
+  });
+});

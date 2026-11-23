@@ -35,16 +35,20 @@
   function paint(room) {
     const W = ROOMS[room].w; sky(W);
     if (room === 'backyard') {
+      { const r = srand(80), c = E.ctx; for (let x = -20; x < W + 30; x += 24) { const top = 8 + r() * 34; rect(x + 9, top + 20, 5, 112 - top, '#4a3a2c'); c.fillStyle = ['#4f7a3e', '#5d8a45', '#3f6b3a', '#b98a2e', '#6f9448', '#a8642a'][Math.floor(r() * 6)]; for (let k = 0; k < 3; k++) { c.beginPath(); c.arc(Math.round(x + 12 + (k - 1) * 9 - E.camX), top + 14 + k * 16 + r() * 8, 20 + r() * 8, 0, 7); c.fill(); } } }      // the tall woods all round
       woods(W, 81, 132); grass(W, 82);
-      rect(0, 20, 150, 112, '#c9c2a4'); for (let y = 24; y < 132; y += 6) rect(0, y, 150, 1, '#b3ab8c'); rect(146, 20, 5, 112, '#f4f2ea'); rect(0, 124, 150, 8, '#9a988f');             // the shingled back of the house
+      E.ctx.fillStyle = '#8a6a4a'; E.ctx.fillRect(Math.round(-E.camX), 0, 158, 22); rect(0, 20, 150, 112, '#c9c2a4'); for (let y = 24; y < 132; y += 6) rect(0, y, 150, 1, '#b3ab8c'); rect(146, 20, 5, 112, '#f4f2ea'); rect(0, 124, 150, 8, '#9a988f');             // the shingled back of the house
       rect(60, 52, 74, 8, '#8a6a4a'); rect(56, 58, 82, 4, '#f4f2ea'); rect(66, 62, 4, 70, '#f4f2ea'); rect(124, 62, 4, 70, '#f4f2ea'); rect(60, 132, 76, 6, '#a9a59a');                 // little porch roof on two posts
       rect(18, 60, 26, 34, '#f4f2ea'); rect(21, 63, 20, 28, '#3d4a57');                                                                                                                  // a window
       for (const t of BY.trees) { const big = t.id === 'oak'; rect(t.x - t.trunk / 2, 0, t.trunk, 150, big ? '#6b4a32' : '#5c4030'); rect(t.x - t.trunk / 2, 0, 4, 150, 'rgba(255,255,255,.12)');
         const c = E.ctx; c.fillStyle = big ? '#c9762c' : '#3f6b3a'; for (const [dx, dy, rr] of big ? [[-50, 20, 44], [40, 10, 50], [0, -6, 46], [-80, 50, 26], [78, 46, 28]] : [[0, 6, 34], [-26, 34, 24], [26, 40, 24]]) { c.beginPath(); c.arc(Math.round(t.x + dx - E.camX), dy, rr, 0, 7); c.fill(); }
         rect(t.x - t.trunk / 2 - 8, 146, t.trunk + 16, 6, big ? '#5a3d28' : '#4a3324'); }
-      rect(190, 118, 90, 4, '#b98a52'); rect(194, 122, 4, 22, '#8a6238'); rect(272, 122, 4, 22, '#8a6238');                                                                               // where the workbench goes
+      rect(104, 112, 22, 20, '#3a3f45'); rect(106, 114, 18, 3, '#565c63');                                                                                                               // the air conditioner by the step
+      for (const [fx, fy, fw] of [[132, 150, 16], [154, 156, 14], [176, 151, 15], [198, 158, 13], [150, 166, 12]]) { rect(fx, fy, fw, 5, '#b9b6ad'); rect(fx, fy, fw, 1, '#d6d3ca'); }                // flagstones leading onto the lawn
+      for (const t of BY.trees) { for (let i = 0; i < 5; i++) { const y = 20 + i * 24, sd = i % 2 ? 1 : -1; rect(t.x + (sd > 0 ? t.trunk / 2 : -t.trunk / 2 - (t.id === 'oak' ? 30 : 12)), y, t.id === 'oak' ? 30 : 12, t.id === 'oak' ? 6 : 3, t.id === 'oak' ? '#6b4a32' : '#5c4030'); } }   // branches
     } else {
-      woods(W, 91, 118); grass(W, 92);
+      { const r = srand(90), c = E.ctx; for (let x = -20; x < W + 30; x += 24) { const top = 4 + r() * 26; rect(x + 9, top + 20, 5, 100 - top, '#3f3226'); c.fillStyle = ['#3f7a3a', '#4f8a45', '#356b34', '#5d9448', '#2f5f30'][Math.floor(r() * 5)]; for (let k = 0; k < 3; k++) { c.beginPath(); c.arc(Math.round(x + 12 + (k - 1) * 9 - E.camX), top + 14 + k * 16 + r() * 8, 20 + r() * 8, 0, 7); c.fill(); } } }
+      grass(W, 92);
       rect(0, 96, W, 6, '#4a3626'); for (let x = 2; x < W; x += 7) rect(x, 84, 4, 32, '#5a4230');                                                                                       // dark picket fence
       rect(300, 44, 150, 62, '#c9c2a4'); E.ctx.fillStyle = '#8a6a4a'; E.ctx.beginPath(); E.ctx.moveTo(292 - E.camX, 46); E.ctx.lineTo(375 - E.camX, 10); E.ctx.lineTo(458 - E.camX, 46); E.ctx.fill(); rect(352, 56, 16, 20, '#3d4a57'); rect(388, 56, 16, 20, '#3d4a57');   // the house beyond the fence
       rect(0, 116, W, SH - 116, '#a9adb3'); for (let y = 116; y < SH; y += 12) rect(0, y, W, 1, '#8f949b'); for (let y = 116; y < SH; y += 12) for (let x = ((y - 116) / 12 % 2) * 22; x < W; x += 44) rect(x, y, 1, 12, '#8f949b');      // stamped-stone deck

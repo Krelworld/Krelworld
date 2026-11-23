@@ -27,6 +27,7 @@ const GRAND = (() => {
     const t = e.animT, flip = e.dir < 0, id = e.id;
     if (e.state === 'toilet') return;
     if (!has(id)) { emoji(id === 'nunu' ? '👵' : '👴', e.x, e.y - 34, 40); return; }                    // until the art has loaded
+    if (e.moving && ['sit', 'hammer', 'wave'].includes(e.state)) { if (e.state === 'sit') e.y = Math.max(e.y, FLOOR - 8); e.state = 'idle'; }          // asked to come over: get up first
     const y = e.y + (e.offY || 0);
     if (id === 'nunu' && e.state === 'sit') { drawSprite(has('nunu_sit') ? 'nunu_sit' : 'nunu', e.x, y, { flip }); if (e.face) emoji(e.face, e.x + (flip ? -8 : 8), y - 70, 12); return; }
     if (e.state === 'eat' && frameCount(id + '_eat')) { drawSprite(frameKey(id + '_eat', t, 7), e.x, y, { flip }); if (chance(0.1)) emit('dust', e.x + e.dir * 10, y - 60, 1, { col: '#e8c27a', g: 200, vy: -10 }); return; }
@@ -93,7 +94,7 @@ const GRAND = (() => {
   }
   function tellDaddy() {
     if (G.busy) return; UI.closeActions(); G.busy = true; AI.hold(daddy, true); daddy.stop(); if (daddy.state === 'lie') daddy.state = 'idle'; daddy.dir = Math.sign(marina.x - daddy.x) || 1; marina.dir = -daddy.dir;
-    sayG('m_septic').then(() => { daddy.face = '😅'; return sayG(pick(['d_septic', 'd_septic2']), daddy); }).then(() => { daddy.face = null; G.septic = false; G.septicTold = true; G.busy = false; AI.hold(daddy, false); Audio2.voice('m_giggle', 'm'); });
+    sayG('m_septic').then(() => { daddy.face = '😅'; return sayG(pick(['d_septic', 'd_septic2']), daddy); }).then(() => { daddy.face = null; G.septic = false; G.septicTold = true; G.busy = false; try { did('septic'); } catch (x) { } AI.hold(daddy, false); Audio2.voice('m_giggle', 'm'); });
   }
 
   // ---------------------------------------------------------------- hello when she walks in
@@ -103,10 +104,10 @@ const GRAND = (() => {
     if (DOWN.includes(room) && !DOWN.includes(S.prev) && !AI.held.has(nunu) && DOWN.includes(nunu.room) && nunu.room !== room) { nunu.stop(); nunu.room = 'den'; nunu.x = room === 'den' ? clamp(marina.x + 120, 200, 420) : 330; nunu.y = FLOOR; nunu.state = 'idle'; nunu.dir = -1; nunu.wait = 6; }
     S.prev = room;
     _oer(room);
-    const e = [nunu, jeff].find(x => x.here && !AI.held.has(x)); if (!e || G.busy) return;
-    if (S.lastHi[e.id] && E.t - S.lastHi[e.id] < 45) return; S.lastHi[e.id] = E.t;
-    setTimeout(() => { if (!e.here || G.busy || inActivity()) return; e.dir = Math.sign(marina.x - e.x) || 1; if (e === jeff && e.state === 'hammer') e.state = 'wave'; if (e === jeff) e.wait = Math.max(e.wait || 0, 3);
-      say(e === nunu ? (G.septicTold ? (G.septicTold = false, 'nu_septic_thanks') : pick(['nu_hi1', 'nu_hi2', 'nu_hi3', 'nu_hi4'])) : pick(['j_hi1', 'j_hi2', 'j_hi3', 'j_hi4']), e).then(() => { if (e.here && !G.busy) say(e === nunu ? 'm_hi_nunu' : 'm_hi_jeff'); if (e.state === 'wave') e.state = 'idle'; }); }, 500);
+    // the game's own hello has just picked one of them: Grandpa looks up from his work, and Marina says hi back
+    const e = [nunu, jeff].find(x => x.here && G.lastGreet[x.id] != null && E.t - G.lastGreet[x.id] < 0.5); if (!e) return;
+    if (e === jeff) { if (jeff.state === 'hammer') jeff.state = 'wave'; jeff.wait = Math.max(jeff.wait || 0, 3.5); setTimeout(() => { if (jeff.state === 'wave') jeff.state = 'idle'; }, 2600); }
+    setTimeout(() => { if (!e.here || G.busy || inActivity()) return; if (e === nunu && G.septicTold) { G.septicTold = false; say('nu_septic_thanks', nunu); } else say(e === nunu ? 'm_hi_nunu' : 'm_hi_jeff'); }, 2600);
   };
 
   // ---------------------------------------------------------------- things to do with them

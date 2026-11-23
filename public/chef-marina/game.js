@@ -331,7 +331,7 @@ function setMusic() {
   else if (G.room === 'yard') m = WEATHER === 'snow' ? 'snow' : 'yard'; else if (G.room === 'kitchen') m = 'kitchen'; else if (G.room === 'bathroom') m = 'bath';
   Audio2.Music.set(m);
 }
-function family() { return [daddy, mommy, rory].filter(e => e.here && !['toilet'].includes(e.state)); }
+function family() { return [daddy, mommy, rory, nunu, jeff].filter(e => e.here && !['toilet'].includes(e.state)); }
 function nearestFamily() { const f = family().filter(e => e.state !== 'lie'); f.sort((a, b) => Math.abs(a.x - marina.x) - Math.abs(b.x - marina.x)); return f[0]; }
 function parentsHere() { return [daddy, mommy].filter(e => e.here && e.state !== 'toilet' && e.state !== 'lie'); }
 

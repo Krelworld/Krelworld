@@ -393,8 +393,9 @@ changeRoom = function (room, from, x) {
   const prev = G.room; _changeRoom(room, from, x);
   if (G.room === prev) return;
   const cv = E.cv, dx = from === 'left' ? 40 : from === 'right' ? -40 : 0;
-  cv.animate([{ transform: `translateX(${dx}%)`, opacity: 0.2 }, { transform: 'none', opacity: 1 }], { duration: 320, easing: 'cubic-bezier(.2,.8,.3,1)' });
-  UI.bigIcon(ROOMS[room].ico, 650);
+  const fd = window.Clarity && Clarity.is('G39') ? Clarity.floorDir(prev, G.room) : 0; /* G39 */
+  cv.animate([{ transform: fd ? `translateY(${fd > 0 ? '-30%' : '30%'})` : `translateX(${dx}%)`, opacity: 0.2 }, { transform: 'none', opacity: 1 }], { duration: 320, easing: 'cubic-bezier(.2,.8,.3,1)' }); /* G39 */
+  UI.bigIcon(fd ? (fd > 0 ? '⬆️' : '⬇️') + (Clarity.is('G5') && CSS.supports('translate', '1px') ? '\u2060' : '') + ROOMS[room].ico : ROOMS[room].ico, 650); /* G39: one line once G5 centres it */
 };
 
 // ------------------------------------------------------------------ isometric house map
@@ -410,7 +411,7 @@ function openIsoMap() {
   for (const [r, d] of Object.entries(rooms)) {
     if (!ROOMS[r] || !d.polygon) continue;
     const poly = document.createElementNS(svg.namespaceURI, 'polygon'); poly.setAttribute('points', d.polygon.map(q => q.join(',')).join(' '));
-    poly.classList.add('isoroom'); if (r === G.room) poly.classList.add('here');
+    poly.classList.add('isoroom'); if (r === G.room) poly.classList.add('here'); if (window.Clarity && Clarity.is('G37')) poly.dataset.r = r; /* G37 */
     poly.addEventListener('pointerup', e => { e.stopPropagation(); p.classList.add('hidden'); travelTo(r); });
     svg.append(poly);
     const c = d.door || centroid(d.polygon);
@@ -595,13 +596,13 @@ const _featTick2 = featTick;
 featTick = function (dt) {
   _featTick2(dt);
   hintT += dt;
-  if (hintT > 4 && E.t - lastInput > 10 && !G.busy && document.getElementById('panel').classList.contains('hidden') && !(window.Studio && Studio.active)) {
-    hintT = 0; const ps = PROPS[G.room].filter(p => !p.nohit && propVisible(p) && p.a !== 'door'); if (!ps.length) return;
+  if (hintT > (window.Clarity && Clarity.is('G23') && Clarity.G23 ? Clarity.G23.hintGap() : 4) && E.t - lastInput > 10 && !G.busy && document.getElementById('panel').classList.contains('hidden') && !(window.Studio && Studio.active)) { /* G23 */
+    hintT = 0; const ps = PROPS[G.room].filter(window.Clarity && Clarity.is('G23') && Clarity.G23 ? p => !p.nohit && propVisible(p) && p.a !== 'door' && Clarity.G23.see(p) : p => !p.nohit && propVisible(p) && p.a !== 'door'); if (!ps.length) return; if (window.Clarity && Clarity.is('G23') && Clarity.G23) Clarity.G23.n++; /* G23 */
     const p = pick(ps); G.bounce = { id: p.id, t0: E.t }; emit('sparkle', p.x, p.y - 24, 6);
   }
 };
 
 // ------------------------------------------------------------------ presenting food: "I made... <dish name>!" to anyone
-function announceDish(d) { UI.bubble(marina, '🍽️✨', 2600); return Audio2.load('assets/vo/m_i_made.mp3').then(b => Audio2.chain((b ? ['m_i_made'] : []).concat(d && d.say ? d.say : []), 'marina')); }
+function announceDish(d) { UI.bubble(marina, '🍽️✨', 2600); return Audio2.load('assets/vo/m_i_made.mp3').then(b => Audio2.chain((b ? ['m_i_made'] : []).concat(d && d.say ? d.say.slice(0, 1) : []), 'marina')); }   // giving it: just "I made… Magic Cake!", not every ingredient again
 const _serveMommy2 = serveMommy;
 serveMommy = function () { const d = G.holding && G.holding.dish; G.busy = true; mommy.dir = Math.sign(marina.x - mommy.x) || 1; announceDish(d).then(() => { G.busy = false; _serveMommy2(); }); };

@@ -46,7 +46,7 @@ const UI = (() => {
     Audio2.blip(9, 'triangle', 0.06, 0.1);
     acts = { anchor, nodes: [] };
     // lots of choices: one swipeable strip under the top bar, so nothing in the scene is covered
-    const stW = document.getElementById('stage').clientWidth, tray = list.length * 80 > stW - 8 ? el('div', { class: 'acttray' }) : null;
+    const stW = document.getElementById('stage').clientWidth, tray = (window.Clarity && Clarity.is('G7') && innerWidth > innerHeight ? Math.ceil(list.length / 2) * 80 > stW - 8 : list.length * 80 > stW - 8) ? el('div', { class: 'acttray' }) : null; /* G7 */
     if (tray) { acts.tray = tray; fx().append(tray); }
     list.forEach((a, i) => {
       const n = el('button', { class: 'act', on: tap(() => { if (typeof UI !== 'undefined' && UI.closeActions) UI.closeActions(); else closeActions(); Audio2.blip(14, 'square', 0.05, 0.1); a.fn(); }) }, a.img ? img(a.img) : a.ico);
@@ -70,6 +70,7 @@ const UI = (() => {
     const GAP = 80, per = Math.max(2, Math.min(n, n > 6 ? Math.ceil(n / 2) : n, Math.floor((st.width - 16) / GAP))), rows = Math.ceil(n / per), BW = per * GAP, BH = rows * GAP;
     const R = anchorRect(a), M = anchorRect(marina), cxA = (R[0] + R[2]) / 2, cyA = (R[1] + R[3]) / 2;
     const avoid = [[R, 3], [M, 2], [[0, 0, st.width, 62], 4], [[0, st.height - 74, 110, st.height], 2]];
+    if (window.Clarity && Clarity.is('G6')) { acts.hud = acts.hud || Clarity.hudRects(st, { fresh: true, except: ['give', 'call', 'book', 'dress'] }); for (const x of acts.hud) avoid.push(x[2] === 'mood' || x[2] === 'moodToggle' ? x : [x[0], 2.5]); } /* G6: other buttons weigh 2.5, under the tapped thing's 3 */
     for (const e of ENTS) if (e.here && e !== marina && e !== a && e.id !== 'miles') avoid.push([anchorRect(e), 0.6]);
     const cands = [[cxA - BW / 2, R[1] - BH - 6], [cxA - BW / 2, R[3] + 6], [R[2] + 8, cyA - BH / 2], [R[0] - BW - 8, cyA - BH / 2], [R[2] + 8, R[1] - BH / 2], [R[0] - BW - 8, R[1] - BH / 2], [cxA - BW / 2, st.height - BH - 6], [st.width - BW - 6, 66], [6, 66]];
     let best = null, bs = 1e18;
@@ -98,7 +99,7 @@ const UI = (() => {
   function unpulseMoods() { document.getElementById('moodbar').classList.remove('pulse'); }
   function markMood(m) { document.querySelectorAll('.mood').forEach(b => b.classList.toggle('cur', b.dataset.mood === m)); document.getElementById('moodToggle').textContent = { love: '🥰', happy: '😄', sad: '😢', angry: '😠', tantrum: '😭' }[m]; }
   function flash() { let f = document.querySelector('.flash'); if (!f) { f = el('div', { class: 'flash' }); document.body.append(f); } f.style.transition = 'none'; f.style.opacity = 0.8; requestAnimationFrame(() => { f.style.transition = 'opacity .35s'; f.style.opacity = 0; }); }
-  function bigIcon(ch, ms = 1200) { const n = el('div', { style: { position: 'absolute', left: '50%', top: '40%', transform: 'translate(-50%,-50%)', fontSize: '90px', pointerEvents: 'none', animation: 'pop .3s both', zIndex: 8, textShadow: '0 6px 0 rgba(0,0,0,.3)' } }, ch); fx().append(n); setTimeout(() => n.remove(), ms); }
+  function bigIcon(ch, ms = 1200) { const n = el('div', { style: { position: 'absolute', left: '50%', top: '40%', ...(window.Clarity && Clarity.is('G5') && CSS.supports('translate', '1px') ? { translate: '-50% -50%' } /* G5 */ : { transform: 'translate(-50%,-50%)' }), fontSize: '90px', pointerEvents: 'none', animation: 'pop .3s both', zIndex: 8, textShadow: '0 6px 0 rgba(0,0,0,.3)' } }, ch); fx().append(n); setTimeout(() => n.remove(), ms); }
 
   // ------------- fort tray
   function fortTray(show) {

@@ -55,7 +55,7 @@ function reactMess() {
     const p = pick(ps), id = p === daddy ? 'd' : 'mo'; lastReact = E.t; p.dir = Math.sign(marina.x - p.x) || 1;
     if (messHeat === 2) { say(id + '_mess1', p); return; }
     G.lastTidyAsk = E.t; p.walkTo && p.walkTo(clamp(marina.x + (p.x < marina.x ? -34 : 34), 20, ROOMS[G.room].w - 20));
-    say(id + '_mess2', p).then(() => { if (!G.busy && !G.tidy) UI.actions(marina, [A('🧹', () => startTidy()), A('🏃', () => startChase(p))]); });
+    say(id + '_mess2', p).then(() => { if (!G.busy && !G.tidy && !(window.Clarity && Clarity.is('G2') && inActivity())) UI.actions(marina, [A('🧹', () => startTidy()), A('🏃', () => startChase(p))]); }); /* G2 */
   }, 900);
 }
 
@@ -122,7 +122,9 @@ startScenario = function (room) {
   clearWish(); lastWish = E.t; messHeat = 0;
   const willWish = chance(0.3);
   _startScenarioR(room);
-  if (willWish) setTimeout(() => { if (!G.busy && !G.sceneOn) makeWish(); }, 4200);
+  // G28: a wish already showing -> no extra one; something else asking or she is busy -> look again every 1 s for up to 20 s
+  const tryWish = n => { if (G.busy || G.sceneOn) return; if (window.Clarity && Clarity.is('G28')) { if (wishEl) return; if (document.querySelector('#reqBtn,.alertb,.act') || miles.crying || inActivity() || Clarity.bodyBusy()) { if (n < 20) setTimeout(() => tryWish(n + 1), 1000); return; } } makeWish(); }; /* G28 */
+  if (willWish) setTimeout(() => { if (window.Clarity && Clarity.is('G28')) return tryWish(0); if (!G.busy && !G.sceneOn) makeWish(); }, 4200); /* G28 */
 };
 // later: when nothing has been touched for a while
 let wishIdle = 0;

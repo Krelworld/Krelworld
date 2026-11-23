@@ -298,7 +298,7 @@
   Floors.hooks.push((was, room) => { S.hidden = null; S.shark = null; if (marina.scale !== 1 && !G.busy) marina.scale = 1; });
   let visitT = 0;
   setInterval(() => {
-    if (typeof marina === 'undefined' || !isUp(G.room) || G.room === 'spa' || G.busy || G.sceneOn || !document.getElementById('panel').classList.contains('hidden')) { visitT = 0; return; }
+    if (typeof marina === 'undefined' || !isUp(G.room) || G.room === 'spa' || G.busy || G.sceneOn || !document.getElementById('panel').classList.contains('hidden') || (window.Clarity && Clarity.is('G2') && inActivity())) { visitT = 0; return; } /* G2 */
     if (++visitT < 12 || [daddy, mommy, rory].some(e => e.here && !e.hidden)) return; visitT = 0; if (!chance(0.5)) return;
     const e = pick([daddy, mommy].filter(x => x !== G.bathWho && !AI.held.has(x) && x.state !== 'toilet')); if (!e) return; const W = ROOMS[G.room].w, fromL = marina.x > W / 2;
     e.hidden = false; e.room = G.room; e.state = 'idle'; e.holdingMiles = false; e.x = fromL ? 8 : W - 8; e.y = FLOOR; e.walkTo(clamp(marina.x + (fromL ? -44 : 44), 20, W - 20), () => { e.dir = Math.sign(marina.x - e.x) || 1; try { onEnterRoomBy(e); } catch (x) { } });

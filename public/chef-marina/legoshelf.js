@@ -205,7 +205,7 @@
     addEventListener('resize', Gy.onResize); addEventListener('orientationchange', Gy.onResize);
     Gy.raf = requestAnimationFrame(frame);
     if (o.full) { Gy.wob = performance.now(); setTimeout(() => blip(-2, 'triangle', 0.16, 0.13), 60); setTimeout(() => blip(-7, 'triangle', 0.22, 0.13), 260); }
-    else { jingle([0, 7, 12], 0.06); if (items.length) fire('look'); }
+    else { jingle([0, 7, 12], 0.06); if (items.length) fire('look'); if (window.Clarity && Clarity.is('G34') && !Gy.pending) { const t0 = performance.now() + 400; items.forEach((e, n) => { Gy.anim[e.s] = { type: 'hop', t0: t0 + n * 140, dur: 340 }; }); } }      /* G34: on opening, each model does its small hop once, in a wave (no sound, nothing saved) */
     return true;
   }
   // the one waiting for a spot: the same picture as the builder's keep button (her model in a little shelf box, ⬆️), bobbing at the top until there is room
@@ -229,6 +229,7 @@
   function frame(now) {
     if (!Gy) return;
     if (!Gy.cv.isConnected || Gy.panel.classList.contains('hidden')) { const st = shut(); if (st.back) st.back.drop(); try { if (typeof setMusic === 'function') setMusic(); } catch (e) { } if (typeof st.o.onClose === 'function') st.o.onClose(); return; }      // something else took the panel
+    if (window.Clarity && Clarity.is('G33')) { const xb = Gy.top.firstElementChild, want = Gy.mode === 'shelf' ? '❌' : '◀️'; if (xb && xb.textContent !== want) xb.textContent = want; }      /* G33: the top-left button shows ◀️ while it only steps back (hero, move) and ❌ when it leaves */
     draw(now); Gy.raf = requestAnimationFrame(frame);
   }
   function draw(now) {

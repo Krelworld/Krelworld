@@ -58,13 +58,13 @@
     if (!on) return clearHints();
     const want = pic && !ROOMS[G.room].outside ? [{ id: 'wall', ico: '🖼️', pos: () => [clamp(marina.x, 30, ROOMS[G.room].w - 30), 74], go: () => { G.holding = null; Pics.hang(h.url); } }] : [];
     // carrying a picture or a plate of food: a glowing button over each grown-up to hand it to them
-    for (const e of [daddy, mommy, rory]) if (e.here && !e.hidden && e.state !== 'toilet') want.push({ id: e.id + (dish ? 'D' : ''), ico: dish ? '🍽️' : '🎁', pos: () => [e.x, e.y - (e === mommy ? 86 : 104)],
-      go: () => { if (!dish) return Pics.gift(h.url, e); if (e.state === 'lie') e.state = 'idle'; approach(e.x, () => (e === mommy ? serveMommy() : serve(e)), 26); } });
+    for (const e of (window.Clarity && Clarity.is('G17') ? Clarity.G17.people(dish) : [daddy, mommy, rory])) if (e.here && !e.hidden && e.state !== 'toilet') want.push({ id: e.id + (dish ? 'D' : ''), ico: dish ? '🍽️' : '🎁', pos: () => [e.x, window.Clarity && Clarity.is('G17') && (e === nunu || e === jeff) ? Clarity.G17.top(e) : e.y - (e === mommy ? 86 : 104)], /* G17 */
+      go: () => { if (!dish) return Pics.gift(h.url, e); if (e === jeff && window.Clarity && Clarity.is('G17')) return Clarity.G17.serveJeff(); /* G17 */ if (e.state === 'lie') e.state = 'idle'; approach(e.x, () => (e === mommy ? serveMommy() : serve(e)), 26); } });
     if (hints.map(x => x.id).join() !== want.map(x => x.id).join()) {
       clearHints();
       for (const w of want) { const n = mk('button', 'pichint ' + (w.id === 'wall' ? 'wall' : 'gift'), w.ico); n.setAttribute('aria-label', w.id === 'wall' ? 'hang it here' : 'give it'); press(n, () => { clearHints(); UI.closeActions(); w.go(); }); fxL.append(n); hints.push({ ...w, n }); }
     }
-    for (const x of hints) { x.pos = want.find(w => w.id === x.id).pos; const [sx, sy] = toScreen(...x.pos()); x.n.style.left = sx + 'px'; x.n.style.top = sy + 'px'; }
+    for (const x of hints) { x.pos = want.find(w => w.id === x.id).pos; const [sx, sy] = toScreen(...x.pos()); x.n.style.left = sx + 'px'; x.n.style.top = sy + 'px'; } if (window.Clarity && Clarity.is('G17')) Clarity.G17.place(hints); /* G17 */
   }
   Pics.carry = function (url) { G.holding = { type: 'pic', url, ico: '🖼️' }; if (['perch', 'sit'].includes(marina.state)) { marina.state = 'idle'; marina.offY = 0; } say(pick(['m_look', 'm_made'])); };
   const _dh = drawHolding;
@@ -160,7 +160,7 @@
   }
   const _dp = drawProp;
   drawProp = function (p) {
-    const usable = !p.nohit && p.a && propVisible(p), g = ease(p, usable && near(p, Math.max(30, (p.w || spriteSize(p.k)[0] * (p.scale || 1) || 40) * 0.5 + 12)));
+    const usable = !p.nohit && p.a && propVisible(p), nr = usable && near(p, Math.max(30, (p.w || spriteSize(p.k)[0] * (p.scale || 1) || 40) * 0.5 + 12)), g = ease(p, window.Clarity && Clarity.is('G18') && Clarity.G18 ? Clarity.G18.glow(p, nr) : nr); /* G18 */
     if (g > 0.02 && p.k.startsWith('p:')) {      // painted into the background: a soft pool of light instead of an outline
       const c = E.ctx, w = (p.w || 50) * 0.6, h = (p.h || 40) * 0.6, x = p.x - E.camX, y = p.y - (p.h || 40) * 0.5;
       const gr = c.createRadialGradient(x, y, 2, x, y, Math.max(w, h)); gr.addColorStop(0, 'rgba(255,240,170,' + (0.34 * g).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(255,240,170,0)');
@@ -171,7 +171,7 @@
   const _de = drawEnt;
   drawEnt = function (e) {
     if (e === marina || !e.here || e.hidden) return _de(e);
-    lit(ease(e, near(e, 42) && !marina.mount), () => _de(e));
+    const nr = near(e, 42) && !marina.mount; lit(ease(e, window.Clarity && Clarity.is('G18') && Clarity.G18 ? Clarity.G18.glow(e, nr) : nr), () => _de(e)); /* G18 */
   };
 })();
 

@@ -608,7 +608,7 @@
     const cl = H.cl, here = G.room === s.room, d = here ? Math.abs(marina.x - p.x) : 999;
     cl.rise += ((cl.riseTo || 0) - cl.rise) * Math.min(1, dt * 7);
     if (here && d < 30 && !H.busy) cl.riseTo = 0;            // she ducks when Marina is right beside her
-    if (E.t < cl.next || H.busy || panelUp()) return;
+    if (E.t < cl.next || H.busy || panelUp() || (window.Clarity && Clarity.is('G2') && inActivity())) return; /* G2 */
     cl.next = E.t + rnd(2.6, 4.8) - Math.min(1.4, H.wrong * 0.45);
     if (here) {
       const opts = (s.kind === 'rack' ? ['tail', 'mew'] : ['peek', 'peek', 'mew', 'tail', 'ear']).concat(s.wob ? ['wob', 'wob'] : [], s.kind === 'under' || s.kind === 'rack' ? ['eyes', 'eyes'] : []);
@@ -619,7 +619,7 @@
       else if (c === 'ear') cl.earT = E.t + 0.5;
       else if (c === 'wob') { cl.wobT = E.t + 0.6; Audio2.noise(0.12, 0.04, 600); }
       if (c === 'mew' || chance(0.3)) mew(p, s, d);
-    } else if (isDown(G.room) && chance(0.35)) { Audio2.sfx('minka_mew', { vol: 0.2 }); if (chance(0.6)) pawHint(s.room); }
+    } else if (isDown(G.room) && chance(0.35)) { Audio2.sfx('minka_mew', { vol: 0.2 }); if (chance(0.6) || (window.Clarity && Clarity.is('G29'))) pawHint(s.room); } /* G29: every far-room mew comes with its 🐾 direction */
   }
 
   // ================================================================ getting about: room to room, and up and down the stairs

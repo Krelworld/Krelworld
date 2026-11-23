@@ -283,7 +283,7 @@ function update(dt) {
   // camera
   const R = ROOMS[G.room];
   // the view may slide a little past the room's ends, so nothing in the room sits underneath the side buttons
-  const land = E.cv.width > E.cv.height, cs = E.cssScale || 1, padL = (R.left ? 62 : 6) / cs, padR = (land ? (R.right ? 62 : 6) + 76 : 78) / cs, free = E.viewW - padL - padR;
+  const land = E.cv.width > E.cv.height, cs = E.cssScale || 1, padL = (R.left ? 62 : 6) / cs, padR = (land ? (R.right ? 62 : 6) + (/* G19 */ window.Clarity && Clarity.is('G19') && Clarity.landscape() ? 0 : 76) : 78) / cs, free = E.viewW - padL - padR;
   const target = R.w <= free ? -(padL + (free - R.w) / 2) : clamp(marina.x - (padL + free / 2), -padL, R.w - E.viewW + padR);
   E.camX += (target - E.camX) * Math.min(1, dt * 6); if (Math.abs(target - E.camX) < 0.3) E.camX = target;
   if (G.fridgeOpen > 0) G.fridgeOpen -= dt;

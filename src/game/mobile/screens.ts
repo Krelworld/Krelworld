@@ -26,6 +26,7 @@ import { button } from "../ui/theme";
 import { buttonsIn, isGameButton, resizeButton, type GameButton } from "./canvasUi";
 import { gamePx, markReading, readability, type Readability } from "./readability";
 import { wordText } from "./wording";
+import { charTapStarts } from "./listLogic";
 
 type Bag = Record<string, any>;
 const W = 960;
@@ -545,6 +546,72 @@ function layoutCharDetail(cs: Phaser.Scene & Bag) {
   }
 }
 
+/**
+ * P16: on a phone a tap on a face picks them and shows their details; PLAY AS starts with them (or a second tap on the
+ * same face, as on the Difficulty and Banter screens, at least 300 ms after the first). Acts on release: a finger
+ * that slides off a face does nothing. (On a laptop, hovering previews and a click picks at once, as before.)
+ */
+
+function tapThenPlay(cs: Phaser.Scene & Bag) {
+  const cards = (cs.cards as Bag[]) ?? [];
+  cs.__mfTapped = null;
+  cs.__mfTappedAt = 0;
+  cards.forEach((card, i) => {
+    card.removeAllListeners("pointerover");
+    card.removeAllListeners("pointerdown");
+    let down = false;
+    card.on("pointerdown", () => (down = true));
+    card.on("pointerout", () => (down = false));
+    card.on("pointerup", () => {
+      if (!down) return;
+      down = false;
+      const now = cs.time.now as number;
+      if (charTapStarts(i, cs.sel, cs.__mfTapped, now - cs.__mfTappedAt)) return cs.confirm();
+      cs.select(i);
+      cs.__mfTapped = i;
+      cs.__mfTappedAt = now;
+      // PLAY AS gives a little nod: that's the next step
+      const play = buttonsIn((cs.detail?.list as unknown[]) ?? [])[0];
+      if (play) cs.tweens.add({ targets: play, scale: { from: 1, to: 1.06 }, yoyo: true, repeat: 1, duration: 140 });
+    });
+  });
+}
+
+// ------------------------------------------------------------------ the Chapter Select password (title)
+
+/**
+ * The password box sits in the top quarter on a phone, where the landscape keyboard can't cover it (it opens over the
+ * bottom half), and the text box is 44 px tall.
+ */
+function passwordUp(t: Phaser.Scene & Bag) {
+  const kids = t.children.list as Bag[];
+  const box = [...kids].reverse().find((o) => o.type === "Container" && o.depth === 1000 && (o.list as Bag[]).some((x) => x.type === "Text" && /CHAPTER SELECT/.test(x.text)));
+  if (!box || box.__mfUp) return;
+  box.__mfUp = true;
+  const dy = -128;
+  for (const o of box.list as Bag[]) if (!(o.type === "Rectangle" && o.width >= 900)) o.setY(o.y + dy);
+  const inp = Array.from(document.querySelectorAll<HTMLInputElement>('input[type="password"]')).pop();
+  if (!inp) return;
+  const place = () => {
+    const r = t.game.canvas.getBoundingClientRect();
+    const sx = r.width / 960;
+    const sy = r.height / 540;
+    const h = Math.max(44, 32 * sy);
+    Object.assign(inp.style, { left: `${r.left + 360 * sx}px`, top: `${r.top + (244 + dy) * sy - (h - 32 * sy) / 2}px`, width: `${240 * sx}px`, height: `${h}px` });
+  };
+  place();
+  // (after the scene's own resize handler, which puts it back where a laptop has it)
+  const again = () => setTimeout(place, 0);
+  window.addEventListener("resize", again);
+  const obs = new MutationObserver(() => {
+    if (!inp.isConnected) {
+      window.removeEventListener("resize", again);
+      obs.disconnect();
+    }
+  });
+  obs.observe(document.body, { childList: true, subtree: true });
+}
+
 // ------------------------------------------------------------------ Home's laptop (the group chat)
 
 /** The group chat on the laptop: the messages at reading size, newest at the bottom, as many as fit. */
@@ -628,13 +695,33 @@ function patchScenes() {
     layoutCharGrid(c as Phaser.Scene & Bag);
     // (create() drew the first details before the grid moved: again, now)
     layoutCharDetail(c as Phaser.Scene & Bag);
+    tapThenPlay(c as Phaser.Scene & Bag);
   });
+  wrap(TitleScene.prototype as unknown as Bag, "askPassword", (t) => passwordUp(t as Phaser.Scene & Bag));
 }
 
 /** Scenes that are only a create(): their bottom buttons, and the TV's subtitles. Called when a scene is created. */
 export function onSceneCreate(scene: Phaser.Scene) {
   const key = scene.sys.settings.key;
   if (key === "Difficulty" || key === "Banter") layoutCards(scene as Phaser.Scene & Bag);
+  // the Lair's "Esc: skip scene": on a phone a button that does what Esc does there (the scene's own finish(true))
+  if (key === "Lair") {
+    const sc = scene as Phaser.Scene & Bag;
+    const t = (scene.children.list as Bag[]).find((o) => o.type === "Text" && /^(?:Esc: skip scene|SKIP SCENE ▸▸)$/.test(o.text));
+    if (t && typeof sc.finish === "function") {
+      wordText(t as Phaser.GameObjects.Text);
+      t.setPadding(10, 8, 10, 8).setBackgroundColor("#000000aa").setY(6).setInteractive({ useHandCursor: true });
+      let down = false;
+      t.on("pointerdown", () => (down = true));
+      t.on("pointerup", () => {
+        if (!down) return;
+        down = false;
+        sc.finish(true);
+      });
+    }
+  }
+  // the archive's ◀ LEAVE: 44 px, out of the home-indicator strip
+  if (key === "Archive") for (const b of buttonsIn(scene.children.list)) if (/LEAVE/.test(b.label.text)) liftButton(b, 200);
   if (key === "TV") {
     markReading((scene as Bag).subs as Phaser.GameObjects.Text);
     // the key under each of the telly's buttons ("Space / click", "Tab", "D", "Esc"), and only those: the four

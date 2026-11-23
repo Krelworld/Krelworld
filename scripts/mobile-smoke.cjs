@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,guide,optout,town,dungeon,android,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,android,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -33,6 +33,17 @@
 //          objective clear of RESUME; the Phone settings page from the 📱 PHONE tab and the pause menu's row (two
 //          columns, 48 px rows, help lines, Phone layout, "a Bluetooth controller works"), every row working by tap,
 //          Bigger text off and on live, Back and DONE close it; character select at 750x340 with no overlaps.
+// lists    (stage 2, part 2) character select (a tap picks, PLAY AS starts; the preselected face never starts on a
+//          tap); the TV guide (every show, native scroll by a finger drag that presses nothing, 52 px rows, 44 px tabs
+//          and ▼, the selected show in view, a tab, a tap plays); the gun rack (pick, ▲ ▼, drag the ⋮⋮ handle,
+//          MAKE IT #1, ammo by the box with − / + buys exactly that many and saves the right money, Back closes); the
+//          jukebox; the Kreddle Exchange (a tap picks and never buys, BUY buys, ammo with −); QUESTS and the DIALOGUE
+//          LOG; the loaner rack (drag, pick, BORROW, PERKS, DONE); the archive; chapter select (a tap picks, START
+//          goes); 750x340: the rack fits above the home-indicator strip.
+// wording  (stage 2, part 2) walks the title, settings, character select (all nine), Difficulty, Banter, chapter
+//          select, Home and its panels, the pause menu and its pages, the save slots, the Exchange's tabs, the telly
+//          and its guide, the archive, and the Hub, Kreddle, the Club, the Venue, the Krezz Arms and the Krunch Pit,
+//          and fails on any visible text that names a key or the mouse outside dialogue.
 // guide    the Add to Home Screen guide per browser (user agent): iPhone Safari / Chrome / Edge / Firefox,
 //          Instagram, Messenger, Android Chrome (with and without the install prompt; INSTALL calls it), Edge,
 //          Samsung Internet, Firefox, an Android in-app browser; at 844x390, 740x360 and 750x340; never shown from
@@ -62,7 +73,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,guide,optout,town,dungeon,android,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,android,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -284,7 +295,11 @@ async function phone(browser) {
     await ph.tapText("NEW GAME");
     await ph.scene("CharSelect");
     await ph.page.waitForTimeout(1500);
+    // (P16, stage 2: a tap on a face picks and shows them; PLAY AS starts)
     await ph.tapGame(92, 140);
+    await ph.page.waitForTimeout(700);
+    check("character select: a tap on a face picks them and stays on character select", (await ph.active()).includes("CharSelect"));
+    await ph.tapText("PLAY AS", { scene: "CharSelect" });
     await ph.scene("Difficulty");
     await ph.page.waitForTimeout(1200);
     await ph.tapText("NEXT: BANTER");
@@ -1619,6 +1634,565 @@ async function settings2(browser) {
   }
 }
 
+// ------------------------------------------------------------------ lists, shops, character select (stage 2, part 2)
+
+/** The phone list showing now (name, rows, scroll), or null. */
+const listNow = (ph) => ph.ev(() => window.__krelMobile.lists.open());
+
+/** The box of a DOM element (CSS px), or null. */
+const boxOf = (ph, sel) =>
+  ph.ev((sel) => {
+    const e = document.querySelector(sel);
+    if (!e) return null;
+    const b = e.getBoundingClientRect();
+    return { x: b.x, y: b.y, w: b.width, h: b.height, cx: b.x + b.width / 2, cy: b.y + b.height / 2 };
+  }, sel);
+
+/** A real finger drag (CDP touch events) from (x, y) by (dx, dy) in `steps` moves. */
+async function drag(ph, x, y, dx, dy, steps = 8, holdMs = 0) {
+  await ph.touch("touchStart", [{ x, y, id: 7 }]);
+  if (holdMs) await sleep(holdMs);
+  for (let i = 1; i <= steps; i++) {
+    await ph.touch("touchMove", [{ x: x + (dx * i) / steps, y: y + (dy * i) / steps, id: 7 }]);
+    await sleep(16);
+  }
+  await ph.touch("touchEnd", []);
+  await sleep(250);
+}
+
+/** Scroll a list row into view (by the list's own scroll; the drag test is separate) and tap it by touch. */
+async function tapRow(ph, id, inner = "") {
+  const sel = `.pl.show [data-row="${id}"]${inner ? ` ${inner}` : ""}`;
+  await ph.ev((sel) => document.querySelector(sel)?.scrollIntoView({ block: "center" }), sel);
+  await sleep(200);
+  await ph.tapSel(sel);
+  await sleep(350);
+}
+
+/** Start a run with the town's first scenes done (and the given extra state), into `key`. */
+function runInto(ph, key, extra) {
+  return ph.ev(
+    ({ key, extra }) => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      Object.assign(k.G.s.flags, { ch1_intro: true, ch1_home: true, home_seen: true, flyover_seen: true, tv_klerble_welcome: true, prologue_done: true, met_emergency: true, founding_seen: true });
+      if (extra) new Function("s", "G", extra)(k.G.s, k.G);
+      const g = k.game;
+      // (overlays first; then the scene in front switches to `key`, as the game itself goes from scene to scene)
+      for (const o of ["Menu", "Slots", "PitLoan", "Dialogue", "WeaponPick"]) if (g.scene.isActive(o)) g.scene.stop(o);
+      const from = g.scene.getScenes(true).find((sc) => !["Menu", "Slots", "PitLoan", "Dialogue", "WeaponPick", "UI"].includes(sc.sys.settings.key));
+      if (from) from.scene.start(key);
+      else k.go(key);
+    },
+    { key, extra },
+  );
+}
+
+/** Start a scene over whatever runs (menus that the game launches over a scene). */
+const startScene = (ph, key, data) =>
+  ph.ev(({ key, data }) => {
+    const g = window.__krel.game;
+    for (const sc of g.scene.getScenes(true)) if (sc.sys.settings.key !== "UI" && sc.sys.settings.key !== key) g.scene.stop(sc.sys.settings.key);
+    g.scene.start(key, data || {});
+  }, { key, data });
+
+async function lists(browser) {
+  console.log("LISTS (native-scroll lists, shops, the gun rack, character select)");
+  let { ctx, page, ph, errors } = await phoneAtTitle(browser);
+  try {
+    // ---- character select (P16): a tap picks and shows; PLAY AS starts; the preselected face doesn't start on a tap
+    await ph.tapText("NEW GAME", { scene: "Title" });
+    await ph.scene("CharSelect");
+    await sleep(1500);
+    const face = (i) => ph.ev((i) => {
+      const cs = window.__krel.game.scene.getScene("CharSelect");
+      const c = cs.cards[i];
+      const k = window.__krel.game.scale.canvasBounds.width / 960;
+      const r = window.__krel.game.canvas.getBoundingClientRect();
+      return { x: r.x + (c.x + c.width / 2) * k, y: r.y + (c.y + c.height / 2) * k };
+    }, i);
+    let f = await face(0);
+    await ph.tapCss(f.x, f.y);
+    await sleep(700);
+    const s0 = await ph.ev(() => ({ on: window.__krel.active().includes("CharSelect"), sel: window.__krel.game.scene.getScene("CharSelect").sel }));
+    check("character select: a tap on the face that starts selected only picks it (no start)", s0.on && s0.sel === 0, s0);
+    f = await face(4);
+    await ph.tapCss(f.x, f.y);
+    await sleep(700);
+    const s1 = await ph.ev(() => ({ on: window.__krel.active().includes("CharSelect"), sel: window.__krel.game.scene.getScene("CharSelect").sel }));
+    check("character select: a tap on another face picks and shows them, still on character select", s1.on && s1.sel === 4, s1);
+    // (a drag across the faces picks nothing)
+    const f2 = await face(2);
+    await drag(ph, f2.x, f2.y, 0, 60, 6);
+    check("character select: a drag that leaves a face picks nothing", (await ph.ev(() => window.__krel.game.scene.getScene("CharSelect").sel)) === 4);
+    await ph.shot("lists-charselect");
+    const want = await ph.ev(async () => (await import("/src/data/characters.ts")).PLAYABLE_ORDER[4]);
+    await ph.tapText("PLAY AS", { scene: "CharSelect" });
+    await ph.scene("Difficulty");
+    const pl = await ph.ev(() => window.__krel.game.scene.getScene("Difficulty").player ?? window.__krel.game.scene.getScene("Difficulty").sys.settings.data?.player);
+    check("character select: PLAY AS starts with the picked one", pl === want, { pl, want });
+
+    // ---- the TV's on-demand guide (58 shows): native scroll, tabs, a tap plays
+    await runInto(ph, "Home", "");
+    await ph.scene("Home");
+    await sleep(1500);
+    await ph.ev(async () => {
+      const ch = await import("/src/content/television/channels.ts");
+      const s = window.__krel.G.s;
+      for (const e of ch.ALL_EPISODES) if (e.unlockFlag) s.flags[e.unlockFlag] = true;
+      s.tvWatched = ch.ALL_EPISODES.slice(0, 5).map((e) => e.id);
+    });
+    await startScene(ph, "TV", {});
+    await ph.scene("TV");
+    await sleep(1500);
+    await ph.ev(() => window.__krel.game.scene.getScene("TV").openDemand());
+    await sleep(900);
+    let L = await listNow(ph);
+    const style = await ph.ev(() => {
+      const l = document.querySelector(".pl.show .pl-list");
+      const cs = getComputedStyle(l);
+      const rows = [...document.querySelectorAll(".pl.show .pl-row[data-row]")].map((r) => r.getBoundingClientRect().height);
+      const tabs = [...document.querySelectorAll(".pl.show .pl-tab")].map((t) => t.getBoundingClientRect().height);
+      const pg = [...document.querySelectorAll(".pl.show [data-pg]")].map((t) => t.getBoundingClientRect().height);
+      return { oy: cs.overflowY, ta: cs.touchAction, ob: cs.overscrollBehaviorY, minRow: Math.min(...rows), minTab: Math.min(...tabs), pg, font: parseFloat(getComputedStyle(document.querySelector(".pl.show .pl-l")).fontSize) };
+    });
+    check("TV guide: a phone list with every show (native scroll, pan-y, contained)", L && L.name === "tv" && L.rows.length >= 40 && style.oy === "auto" && /pan-y/.test(style.ta) && style.ob === "contain", { n: L && L.rows.length, ...style });
+    check("TV guide: rows at least 52 CSS px, 16 px words, channel tabs and page buttons at least 44", style.minRow >= 51.5 && style.font >= 16 && style.minTab >= 43.5 && style.pg.every((h) => h >= 43.5), style);
+    const selVis = await ph.ev(() => {
+      const l = document.querySelector(".pl.show .pl-list");
+      const r = document.querySelector(".pl.show .pl-row.sel");
+      if (!r) return null;
+      const a = l.getBoundingClientRect();
+      const b = r.getBoundingClientRect();
+      return b.top >= a.top - 1 && b.bottom <= a.bottom + 1;
+    });
+    check("TV guide: it opens with the selected show (the first one not seen) in view", selVis === true, selVis);
+    await ph.shot("lists-tv");
+    const lb = await boxOf(ph, ".pl.show .pl-list");
+    const top0 = L.scrollTop;
+    await drag(ph, lb.cx - 60, lb.y + lb.h - 30, 0, -Math.min(200, lb.h - 60), 10);
+    L = await listNow(ph);
+    const mode1 = await ph.ev(() => window.__krel.game.scene.getScene("TV").mode);
+    check("TV guide: a finger drag scrolls it, and nothing under it is pressed (no show started)", L.scrollTop > top0 + 40 && mode1 === "episodes", { from: top0, to: L.scrollTop, mode: mode1 });
+    const before = L.scrollTop;
+    await ph.tapSel('.pl.show [data-pg="1"]');
+    await sleep(700);
+    L = await listNow(ph);
+    check("TV guide: ▼ pages down without a drag", L.scrollTop > before + 30, { before, after: L.scrollTop });
+    await ph.tapSel(".pl.show .pl-tab:nth-child(2)");
+    await sleep(700);
+    const tab = await ph.ev(() => window.__krel.game.scene.getScene("TV").guideTab);
+    L = await listNow(ph);
+    check("TV guide: a channel tab by tap shows that channel", tab !== "ALL" && L.rows.length > 0 && L.rows.length < 58, { tab, n: L.rows.length });
+    const pick = L.rows[Math.min(2, L.rows.length - 1)].id;
+    await tapRow(ph, pick);
+    await sleep(600);
+    const tv = await ph.ev(() => ({ mode: window.__krel.game.scene.getScene("TV").mode, ep: window.__krel.game.scene.getScene("TV").ep?.id }));
+    check("TV guide: a tap on a show plays it, and the list goes", tv.mode === "playing" && tv.ep === pick && !(await listNow(ph)), { ...tv, pick });
+
+    // ---- the gun rack: pick, ▲ ▼, drag the ⋮⋮ handle, MAKE IT #1, ammo by the box with − / +
+    await runInto(ph, "Home", "s.coins = 5000;");
+    await ph.scene("Home");
+    await sleep(2500);
+    const ids = await ph.ev(async () => {
+      const G = (await import("/src/game/combat/Guns.ts")).GUNS;
+      const s = window.__krel.G.s;
+      const ids = Object.keys(G).filter((id) => G[id].maxAmmo < 9999 && G[id].pickup > 0).slice(0, 7);
+      s.guns = {};
+      ids.forEach((id, i) => (s.guns[id] = i === 1 ? 0 : 3));
+      const h = window.__krel.game.scene.getScene("Home");
+      h.busy = false;
+      h.gunRackPanel();
+      return ids;
+    });
+    await sleep(800);
+    L = await listNow(ph);
+    const order = () => ph.ev(async () => (await import("/src/game/systems/armoury.ts")).orderedGuns(window.__krel.G.s));
+    check("gun rack: a phone list with every gun and the Fart Blaster", L && L.name === "rack" && L.rows.length === ids.length + 1, L && L.rows.map((r) => r.id));
+    await ph.shot("lists-rack");
+    let o = await order();
+    const third = o[2];
+    await tapRow(ph, third);
+    L = await listNow(ph);
+    check("gun rack: a tap picks a gun (it doesn't move)", L.rows.find((r) => r.id === third)?.selected && (await order())[2] === third);
+    await tapRow(ph, third, `[data-id="up-${third}"]`);
+    o = await order();
+    check("gun rack: ▲ moves it up one", o[1] === third, o);
+    await tapRow(ph, third, `[data-id="down-${third}"]`);
+    o = await order();
+    check("gun rack: ▼ moves it back down", o[2] === third, o);
+    // drag the first gun's handle down two rows
+    const first = o[0];
+    await ph.ev((id) => document.querySelector(`.pl.show [data-row="${id}"]`).scrollIntoView({ block: "start" }), first);
+    await sleep(200);
+    const grip = await boxOf(ph, `.pl.show [data-row="${first}"] .pl-grip`);
+    const rowH = (await boxOf(ph, `.pl.show [data-row="${first}"]`)).h;
+    await drag(ph, grip.cx, grip.cy, 0, rowH * 2 + 4, 10, 60);
+    o = await order();
+    check("gun rack: dragging ⋮⋮ moves a gun (two rows down)", o[2] === first, { o, first });
+    await tapRow(ph, first);
+    await ph.tapSel('.pl.show [data-id="rack-top"]');
+    await sleep(400);
+    o = await order();
+    check("gun rack: ★ MAKE IT #1 puts it first", o[0] === first, o);
+    // ammo: the empty gun, the most boxes the money buys by default, − twice, BUY: exactly that many boxes
+    const empty = ids[1];
+    await tapRow(ph, empty);
+    const q0 = await ph.ev(async (id) => {
+      const A = await import("/src/game/systems/armoury.ts");
+      const s = window.__krel.G.s;
+      const q = A.ammoQuote(s, id);
+      return { coins: s.coins, have: s.guns[id], unit: q.unit, boxes: q.boxes, label: document.querySelector(".pl.show .pl-qn")?.textContent || "" };
+    }, empty);
+    const can = Math.min(q0.boxes, Math.floor(q0.coins / q0.unit));
+    check("gun rack: ammo by the box, starting at what fills it (what the money runs to)", can > 2 && q0.label.startsWith(`${can} box`), q0);
+    await ph.tapSel('.pl.show [data-id="qty-"]');
+    await sleep(250);
+    await ph.tapSel('.pl.show [data-id="qty-"]');
+    await sleep(250);
+    await ph.tapSel('.pl.show [data-id="rack-buy"]');
+    await sleep(500);
+    const q1 = await ph.ev(async (id) => {
+      const s = window.__krel.G.s;
+      const G = (await import("/src/game/combat/Guns.ts")).GUNS;
+      return { coins: s.coins, have: s.guns[id], pickup: G[id].pickup, saved: window.__krel.G.saves.load("auto")?.coins };
+    }, empty);
+    check("gun rack: − − then BUY buys exactly two boxes fewer (coins and rounds), and saves the right money", q0.coins - q1.coins === (can - 2) * q0.unit && q1.have >= Math.min(q0.have + (can - 2) * q1.pickup, 1) && q1.saved === q1.coins, { q0, q1, can });
+    await ph.ev(() => window.history.back());
+    await sleep(600);
+    check("gun rack: Back closes it (as Esc does)", !(await listNow(ph)) && !(await ph.ev(() => window.__krel.game.scene.getScene("Home").__mfPanel?.root?.active)));
+
+    // ---- the jukebox (90 tunes, two columns)
+    await ph.ev(() => {
+      window.__krel.G.meta.heardMusic = ["home", "title", "hub", "news", "archive"];
+      window.__krel.game.scene.getScene("Home").jukeboxPanel();
+    });
+    await sleep(700);
+    L = await listNow(ph);
+    check("jukebox: a phone list of every tune", L && L.name === "jukebox" && L.rows.length >= 80, L && L.rows.length);
+    await tapRow(ph, "hub");
+    check("jukebox: a tap plays it", (await ph.ev(() => window.__krel.G && (window.__krel.game.scene.getScene("Home"), true))) && (await ph.ev(async () => (await import("/src/game/audio/Synth.ts")).synth.currentMusic())) === "hub");
+    await ph.ev(() => window.__krel.game.scene.getScene("Home").__mfPanel.close());
+    await sleep(300);
+
+    // ---- the Kreddle Exchange: a tap picks (never buys); BUY buys; ammo by the box
+    await ph.ev(async () => {
+      const G = (await import("/src/game/combat/Guns.ts")).GUNS;
+      const s = window.__krel.G.s;
+      s.coins = 3000;
+      const id = Object.keys(G).find((k) => G[k].maxAmmo < 9999 && G[k].pickup > 0 && G[k].maxAmmo >= G[k].pickup * 6);
+      s.guns = { [id]: 0 };
+      s.gun = id;
+      window.__krel.game.scene.start("Menu", { mode: "bank", caller: "Home" });
+    });
+    await ph.scene("Menu");
+    await sleep(1200);
+    L = await listNow(ph);
+    check("Kreddle Exchange: the shop is a phone list of tiles beside the picked item's detail and BUY", L && L.name === "shop" && L.rows.length >= 3 && !!(await boxOf(ph, ".pl.show .pl-buy")), L && L.rows.length);
+    const buyBox = await boxOf(ph, ".pl.show .pl-buy");
+    const vh = await ph.ev(() => window.innerHeight);
+    check("Kreddle Exchange: BUY is at least 44 CSS px and above the home-indicator strip", buyBox.h >= 44 && buyBox.y + buyBox.h <= vh - 21, { buyBox, vh });
+    await ph.shot("lists-exchange");
+    const c0 = await ph.ev(() => window.__krel.G.s.coins);
+    const second = L.rows[1].id;
+    await tapRow(ph, second);
+    await tapRow(ph, second);
+    const c1 = await ph.ev(() => ({ coins: window.__krel.G.s.coins, sel: window.__krel.game.scene.getScene("Menu").shop.index }));
+    check("Kreddle Exchange: tapping a tile (twice) picks it and buys nothing", c1.coins === c0 && c1.sel === 1, { c0, ...c1 });
+    await ph.tapSel(".pl.show .pl-buy");
+    await sleep(1200);
+    const c2 = await ph.ev(() => window.__krel.G.s.coins);
+    check("Kreddle Exchange: BUY buys it", c2 < c0, { c0, c2 });
+    await ph.ev(() => window.__krel.game.scene.getScene("Menu").setBankTab("armoury"));
+    await sleep(800);
+    L = await listNow(ph);
+    const ammoId = L.rows.find((r) => /^ammo_/.test(r.id))?.id;
+    await tapRow(ph, ammoId);
+    const a0 = await ph.ev(async (id) => {
+      const A = await import("/src/game/systems/armoury.ts");
+      const s = window.__krel.G.s;
+      const q = A.ammoQuote(s, id.slice(5));
+      return { coins: s.coins, unit: q.unit, boxes: q.boxes, label: document.querySelector(".pl.show .pl-qn")?.textContent || "" };
+    }, ammoId);
+    await ph.tapSel('.pl.show [data-id="qty-"]');
+    await sleep(250);
+    await ph.tapSel(".pl.show .pl-buy");
+    await sleep(1200);
+    const a1 = await ph.ev(() => window.__krel.G.s.coins);
+    const nA = Math.min(a0.boxes, Math.floor(a0.coins / a0.unit));
+    check("Kreddle Exchange: ammo with − / +: one box fewer than a fill, exactly", nA >= 2 && a0.label.startsWith(`${nA} box`) && a0.coins - a1 === (nA - 1) * a0.unit, { a0, a1, nA });
+    await ph.ev(() => window.__krel.game.scene.stop("Menu"));
+    await sleep(400);
+
+    // ---- the pause menu's QUESTS (tabs) and DIALOGUE LOG (newest at the bottom)
+    await ph.ev(async () => {
+      const Lg = await import("/src/game/ui/dialogueLog.ts");
+      for (let i = 0; i < 30; i++) Lg.logLine({ who: "FLENKY", text: `Smoke log line ${i}.`, color: 0xff9ad5 });
+      window.__krel.game.scene.start("Menu", { mode: "pause", caller: "Home" });
+    });
+    await ph.scene("Menu");
+    await sleep(800);
+    await ph.tapText("QUESTS", { scene: "Menu" });
+    await sleep(700);
+    L = await listNow(ph);
+    check("quests: a phone list", L && L.name === "quests" && L.rows.length > 2, L && L.rows.length);
+    await ph.tapSel(".pl.show .pl-tab:nth-child(2)");
+    await sleep(600);
+    check("quests: the SIDE QUESTS tab by tap", (await ph.ev(() => window.__krel.game.scene.getScene("Menu").questTab)) === 1);
+    await ph.tapText("BACK", { scene: "Menu" });
+    await sleep(600);
+    await ph.tapText("DIALOGUE LOG", { scene: "Menu" });
+    await sleep(700);
+    L = await listNow(ph);
+    check("dialogue log: a phone list opened at the newest line (the bottom)", L && L.name === "log" && L.scrollTop + L.clientHeight >= L.scrollHeight - 4, L && { top: L.scrollTop, h: L.clientHeight, all: L.scrollHeight });
+    await ph.ev(() => window.__krel.game.scene.stop("Menu"));
+    await sleep(300);
+
+    // ---- the loaner rack: pick, BORROW, the PERKS tab
+    await ph.ev(() => {
+      const k = window.__krel;
+      k.G.rt.pit = { snap: { guns: {}, upgrades: {} }, mode: "range" };
+      k.G.s.guns = {};
+      k.game.scene.start("PitLoan", { caller: "Home" });
+    });
+    await ph.scene("PitLoan");
+    await sleep(900);
+    L = await listNow(ph);
+    check("loaner rack: a phone list with every gun", L && L.name === "pitloan" && L.rows.length >= 10, L && L.rows.length);
+    const lb2 = await boxOf(ph, ".pl.show .pl-list");
+    await drag(ph, lb2.cx - 80, lb2.y + lb2.h - 20, 0, -150, 10);
+    L = await listNow(ph);
+    check("loaner rack: it scrolls by touch", L.scrollTop > 20, L.scrollTop);
+    const loanRow = L.rows[3];
+    await tapRow(ph, loanRow.id);
+    check("loaner rack: a tap picks it (borrows nothing)", (await ph.ev(() => Object.keys(window.__krel.G.s.guns || {}).length)) === 0 && (await listNow(ph)).rows[3].selected);
+    await tapRow(ph, loanRow.id, ".pl-acts .pl-b");
+    check("loaner rack: BORROW borrows it", (await ph.ev((id) => id.slice(4) in (window.__krel.G.s.guns || {}), loanRow.id)));
+    await ph.tapSel(".pl.show .pl-tab:nth-child(2)");
+    await sleep(600);
+    check("loaner rack: the PERKS tab by tap", (await ph.ev(() => window.__krel.game.scene.getScene("PitLoan").tab)) === "perk");
+    await ph.tapSel('.pl.show [data-id="loan-done"]');
+    await sleep(600);
+    check("loaner rack: DONE closes it", !(await ph.active()).includes("PitLoan"));
+    await ph.ev(() => (window.__krel.G.rt.pit = null));
+
+    // ---- the archive and chapter select
+    await ph.ev(async () => {
+      const A = await import("/src/content/archive/historicalScenes.ts");
+      window.__krel.G.s.archiveUnlocked = A.ARCHIVE.map((a) => a.id);
+    });
+    await startScene(ph, "Archive", {});
+    await ph.scene("Archive");
+    await sleep(1200);
+    L = await listNow(ph);
+    check("archive: a phone list of every record", L && L.name === "archive" && L.rows.length >= 20, L && L.rows.length);
+    await tapRow(ph, L.rows[15].id);
+    check("archive: a tap opens that record", (await ph.ev(() => window.__krel.game.scene.getScene("Archive").__mfSel)) === L.rows[15].id);
+    await startScene(ph, "ChapterSelect");
+    await ph.scene("ChapterSelect");
+    await sleep(1200);
+    L = await listNow(ph);
+    check("chapter select: a phone list (chapters, boss fights, side quests)", L && L.name === "chapters" && L.rows.length >= 10, L && L.rows.length);
+    await ph.shot("lists-chapters");
+    await tapRow(ph, "c1");
+    check("chapter select: a tap picks a chapter and shows START (it replaces your save: nothing starts yet)", (await ph.active()).includes("ChapterSelect") && !!(await boxOf(ph, '.pl.show [data-id="chapter-go"]')));
+    await tapRow(ph, "c1", '[data-id="chapter-go"]');
+    await ph.until(() => !window.__krel.active().includes("ChapterSelect"), null, 60000, "chapter 2 to start");
+    check("chapter select: START goes", !(await ph.active()).includes("ChapterSelect") && (await ph.ev(() => window.__krel.G.s.chapter)) === 2);
+    check("no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+  // the shortest screen (Safari with its bars, 750x340): the guide and the rack fit, rows still 52
+  ({ ctx, page, ph, errors } = await phoneAtTitle(browser, { ...IPHONE, viewport: { width: 750, height: 340 } }));
+  try {
+    await runInto(ph, "Home", "s.coins = 900;");
+    await ph.scene("Home");
+    await sleep(2000);
+    await ph.ev(async () => {
+      const G = (await import("/src/game/combat/Guns.ts")).GUNS;
+      const s = window.__krel.G.s;
+      s.guns = {};
+      Object.keys(G).filter((id) => G[id].maxAmmo < 9999).slice(0, 8).forEach((id) => (s.guns[id] = 2));
+      const h = window.__krel.game.scene.getScene("Home");
+      h.busy = false;
+      h.gunRackPanel();
+    });
+    await sleep(800);
+    const fit = await ph.ev(() => {
+      const c = document.querySelector(".pl.show").getBoundingClientRect();
+      const rows = [...document.querySelectorAll(".pl.show .pl-row[data-row]")].map((r) => r.getBoundingClientRect().height);
+      const btns = [...document.querySelectorAll(".pl.show .pl-b")].filter((b) => b.offsetParent).map((b) => b.getBoundingClientRect().height);
+      return { bottom: c.bottom, top: c.top, h: window.innerHeight, minRow: Math.min(...rows), minBtn: Math.min(...btns) };
+    });
+    check("750x340: the gun rack fits above the home-indicator strip, rows 52, buttons 44", fit.top >= 0 && fit.bottom <= fit.h - 21 + 0.5 && fit.minRow >= 51.5 && fit.minBtn >= 43.5, fit);
+    await ph.shot("lists-rack-750x340");
+    check("no page errors (750x340)", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
+// ------------------------------------------------------------------ the touch wording check (stage 2, part 2)
+
+/**
+ * Every visible text that names a key or the mouse, outside dialogue (a dialogue box's name, body and choices, the
+ * telly's show, speech bubbles in the world are skipped: those are never reworded), in the running scenes and in the
+ * phone's own DOM (lists, pills, pages).
+ */
+async function keyTexts(ph) {
+  return ph.ev(async () => {
+    const DB = (await import("/src/game/ui/DialogueBox.ts")).DialogueBox;
+    const KEY = /\bWASD\b|\bSPACE\b|\bSpace \/|\/ Space\b|\bESC\b|\bEsc\b|\bENTER\b|\bEnter \/|\/ Enter\b|\bEnter:|\bTAB\b|\(Tab\)|\bTab:|\bTab skip\b|\bSHIFT\b|\bShift\b|\b[Cc]lick\b|\b[Mm]ouse\b|Alt\+|\b[Pp]ress [A-Z0-9]\b|\((?:E|Q|F|C|V|X)\)|←\/→|↑\/↓|↑↓|\b1-5\b|1–5/;
+    const g = window.__krel.game;
+    const skip = new Set();
+    for (const sc of g.scene.getScenes(true)) {
+      for (const v of Object.values(sc)) {
+        if (v instanceof DB) for (const t of [v.nameText, v.titleText, v.bodyText, v.overlay]) if (t) skip.add(t);
+      }
+      // the telly's show (its stage and its subtitles) is the show, not UI
+      if (sc.sys.settings.key === "TV") {
+        if (sc.stage) skip.add(sc.stage);
+        if (sc.subs) skip.add(sc.subs);
+        if (sc.card) skip.add(sc.card);
+      }
+    }
+    const out = [];
+    for (const sc of g.scene.getScenes(true)) {
+      const walk = (o) => {
+        if (!o || o.visible === false || o.active === false || skip.has(o)) return;
+        if (o.type === "Container") return o.list.forEach(walk);
+        if (o.type !== "Text" || !o.text.trim() || (o.alpha ?? 1) < 0.05) return;
+        if (KEY.test(o.text)) out.push(`${sc.sys.settings.key}: ${o.text.slice(0, 90)}`);
+      };
+      sc.sys.displayList.list.forEach(walk);
+    }
+    for (const el of document.querySelectorAll(".pl.show, .kps.show, .kd.show, .kah.show")) {
+      const t = el.innerText || "";
+      for (const line of t.split("\n")) if (KEY.test(line)) out.push(`DOM ${el.className.split(" ")[0]}: ${line.slice(0, 90)}`);
+    }
+    return out;
+  });
+}
+
+async function wording(browser) {
+  console.log("WORDING (no key or mouse names in the menus and walking scenes, outside dialogue)");
+  const { ctx, page, ph, errors } = await phoneAtTitle(browser);
+  const seen = [];
+  const look = async (where) => {
+    await sleep(500);
+    const hits = await keyTexts(ph);
+    for (const h of hits) seen.push(`[${where}] ${h}`);
+    return hits;
+  };
+  try {
+    await look("title");
+    await ph.tapText("SETTINGS", { scene: "Title" });
+    await ph.scene("Menu");
+    await look("settings 1");
+    await ph.tapText("PLAY & DISPLAY", { scene: "Menu" });
+    await look("settings 2");
+    await ph.ev(() => window.__krel.game.scene.stop("Menu"));
+    await ph.tapText("NEW GAME", { scene: "Title" });
+    await ph.scene("CharSelect");
+    await sleep(1200);
+    for (let i = 0; i < 9; i++) {
+      await ph.ev((i) => window.__krel.game.scene.getScene("CharSelect").select(i), i);
+      await look(`charselect ${i}`);
+    }
+    await ph.tapText("PLAY AS", { scene: "CharSelect" });
+    await ph.scene("Difficulty");
+    await look("difficulty");
+    await ph.tapText("NEXT", { scene: "Difficulty" });
+    await ph.scene("Banter");
+    await look("banter");
+    await startScene(ph, "ChapterSelect");
+    await ph.scene("ChapterSelect");
+    await look("chapter select");
+    await ph.tapSel('.pl.show [data-row="bosses"]');
+    await look("chapter select bosses");
+    // Home and its panels
+    await runInto(ph, "Home", "s.coins = 900; s.flags.krel_krandall = true;");
+    await ph.scene("Home");
+    await sleep(2500);
+    await look("home");
+    for (const [panel, setup] of [
+      ["gunRackPanel", "s.guns = { pistol: 3 };"],
+      ["gunRackPanel", "s.guns = { pistol: 3, smg: 0, shotgun: 4 };"],
+      ["trophyPanel", ""],
+      ["consolePanel", ""],
+      ["jukeboxPanel", ""],
+      ["laptopPanel", ""],
+    ]) {
+      await ph.ev(({ panel, setup }) => {
+        const h = window.__krel.game.scene.getScene("Home");
+        new Function("s", setup)(window.__krel.G.s);
+        h.busy = false;
+        h[panel]();
+      }, { panel, setup });
+      await look(`home ${panel}`);
+      await ph.ev(() => window.__krel.game.scene.getScene("Home").__mfPanel?.close?.());
+      await sleep(300);
+    }
+    // the pause menu and its pages (over Home)
+    await ph.ev(() => window.__krelMobile.layer.pause());
+    await ph.scene("Menu");
+    await look("pause");
+    for (const [btn, where] of [["QUESTS", "quests"], ["DIALOGUE LOG", "log"], ["DIFFICULTY", "difficulty page"], ["BANTER", "banter page"]]) {
+      await ph.tapText(btn, { scene: "Menu" });
+      await look(where);
+      if (where === "quests")
+        for (const n of [2, 3]) {
+          await ph.tapSel(`.pl.show .pl-tab:nth-child(${n})`);
+          await look(`quests tab ${n}`);
+        }
+      await ph.ev(() => window.__krel.game.scene.getScene("Menu").render("pause"));
+      await sleep(300);
+    }
+    await ph.tapText("SAVE GAME", { scene: "Menu" });
+    await ph.scene("Slots");
+    await look("save slots");
+    await ph.ev(() => {
+      const g = window.__krel.game;
+      g.scene.stop("Slots");
+      g.scene.stop("Menu");
+      g.scene.resume("Home");
+    });
+    // the Exchange (every tab) and the telly's guide
+    await ph.ev(() => window.__krel.game.scene.start("Menu", { mode: "bank", caller: "Home" }));
+    await ph.scene("Menu");
+    for (const t of ["upgrades", "armoury", "mods", "perks", "lads"]) {
+      await ph.ev((t) => window.__krel.game.scene.getScene("Menu").setBankTab(t), t);
+      await look(`exchange ${t}`);
+    }
+    await ph.ev(() => window.__krel.game.scene.stop("Menu"));
+    await startScene(ph, "TV", {});
+    await ph.scene("TV");
+    await sleep(1500);
+    await look("tv playing");
+    await ph.ev(() => window.__krel.game.scene.getScene("TV").openDemand());
+    await look("tv guide");
+    await startScene(ph, "Archive", {});
+    await ph.scene("Archive");
+    await look("archive");
+    // the walking scenes
+    for (const key of ["Hub", "Kreddle", "Club", "Venue", "Pub", "Pit"]) {
+      await runInto(ph, key, "s.coins = 900;");
+      try {
+        await ph.scene(key, 90000);
+        await sleep(2500);
+        await look(key);
+      } catch (e) {
+        seen.push(`[${key}] (could not reach: ${String(e.message).slice(0, 60)})`);
+      }
+    }
+    check("no visible key or mouse names in the menus and walking scenes (outside dialogue)", seen.length === 0, seen.slice(0, 12));
+    check("no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 // ------------------------------------------------------------------ town (the Hub)
 
 async function town(browser) {
@@ -2001,6 +2575,8 @@ async function desktop(browser) {
       ["read", read],
       ["dialogue", dialogue],
       ["settings2", settings2],
+      ["lists", lists],
+      ["wording", wording],
       ["guide", guide],
       ["optout", optout],
       ["town", town],

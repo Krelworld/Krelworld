@@ -27,6 +27,8 @@ import { whenRunning } from "./shell";
 import { PhoneDialogue } from "./dialogue";
 import { PhoneSettingsPage } from "./settingsPage";
 import { onSceneCreate, PhoneScreens } from "./screens";
+import { PhoneLists, liveScene } from "./listScenes";
+import { PhoneShops } from "./shops";
 
 export { isMobile, setMobileForTests, mobileWhy, rememberPhoneMode } from "./flag";
 export { registerModeController, unregisterModeController, type ModeController, type ModeContext, type ControlSpec, TouchControl, TouchLayer } from "./touchLayer";
@@ -131,6 +133,24 @@ export function installMobile(game: Phaser.Game) {
     return true;
   });
   shell.addBackHandler(() => dialogue.onBack());
+  // stage 2 part 2: the long lists (M10) and the shops (S13) as phone lists
+  const lists = new PhoneLists(game, parent);
+  const shops = new PhoneShops(game, parent);
+  // Android Back on a Home panel or the loaner rack closes it (what Esc does there on a laptop)
+  shell.addBackHandler(() => {
+    const open = lists.openList();
+    if (!open) return false;
+    if (["rack", "jukebox", "trophies"].includes(open.name)) {
+      const h = liveScene(game, "Home");
+      h?.__mfPanel?.close?.();
+      return !!h;
+    }
+    if (open.name === "pitloan") {
+      liveScene(game, "PitLoan")?.close?.();
+      return true;
+    }
+    return false;
+  });
   installed = { shell, layer, readability: read, wording, guide, diag, dialogue, settingsPage };
   // (now, if the phone chunk arrived after the game had already booted)
   whenRunning(game, () => {
@@ -156,6 +176,8 @@ export function installMobile(game: Phaser.Game) {
     layer.frame();
     read.frame();
     dialogue.frame();
+    lists.frame();
+    shops.frame();
     // the first phone run: the Add to Home Screen guide once, over the title, before a game is started
     if (!guide.isOpen && !shell.rotate.visible && game.scene.isActive("Title") && !game.scene.isActive("Menu") && !game.scene.isActive("Slots")) {
       const t = performance.now();
@@ -175,6 +197,18 @@ export function installMobile(game: Phaser.Game) {
     diag,
     dialogue,
     settingsPage,
+    lists: {
+      host: lists,
+      shops,
+      /** The phone list showing now (its name, rows, and its scroller), or null. */
+      open: () => {
+        const l = lists.openList() ?? (shops.list.isOpen ? shops.list : null);
+        if (!l) return null;
+        const sp = l.current;
+        const sc = l.scroller;
+        return { name: l.name, title: sp?.title ?? "", rows: sp?.rows.map((r) => ({ id: r.id, label: r.label, selected: !!r.selected })) ?? [], scrollTop: sc?.scrollTop ?? 0, scrollHeight: sc?.scrollHeight ?? 0, clientHeight: sc?.clientHeight ?? 0, stats: { ...l.stats } };
+      },
+    },
     snapshot: () => layer.snapshot(),
     shellState: () => shell.snapshot(),
     // (the same module instances the game uses, for tests that add a rule or a controller)

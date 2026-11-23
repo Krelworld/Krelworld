@@ -1847,6 +1847,8 @@ async function android(browser) {
       // a press held well past the gate's 650 ms fade (R4)
       await ph.touch("touchStart", [{ x: 370, y: 270, id: 1 }]);
       await sleep(1300);
+      // (still held: on a busy machine the title can take a moment longer to build after the fade)
+      await ph.until(() => window.__krel.active().includes("Title"), null, 4000, "the title").catch(() => 0);
       const onTitle = (await ph.active()).includes("Title");
       await ph.touch("touchEnd", []);
       await sleep(800);

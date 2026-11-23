@@ -26,8 +26,10 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
             PhoneSettingsPage      the Phone settings page (settingsPage.ts)                       ┐ stage 2,
             PhoneScreens           the menus laid out for thumbs and the bigger text (screens.ts)  │ part 1
             PhoneDialogue          SKIP / LOG / AUTO, choices, reading size, Back (dialogue.ts)    ┘
+            PhoneLists             the long lists as native-scroll phone lists (listScenes.ts)    ┐ stage 2,
+            PhoneShops             every shop: tiles, detail, BUY, ammo by the box (shops.ts)      ┘ part 2
             game POST_STEP ──► shell.frame(); wording.frame(); rankFollowerLast(); layer.frame(); readability.frame();
-                               dialogue.frame(); first-run guide
+                               dialogue.frame(); lists.frame(); shops.frame(); first-run guide
                                    layer.frame():  readView(game)  ──►  resolveMode(view)  ──►  layer.apply(decision)
                                                    (observe.ts)         (modes.ts, pure)
 ```
@@ -42,6 +44,9 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `dialogue.ts` / `dialogueLogic.ts` | Conversations (stage 2): SKIP / LOG / AUTO (and II) pills, the reading size and pagination fed to the game's dialogue box, choices for thumbs, Android Back; the pure rules (AUTO timing, the choice guard, choice placement, Back) |
 | `screens.ts` | The menus laid out for a phone from outside (title, pause menu, settings, death / difficulty / banter pages, character select, Difficulty, Banter, save slots, the telly's subtitles and captions, Home's group chat) |
 | `settingsPage.ts` | The Phone settings page (DOM): every phone setting, Phone layout Auto / On / Off, "a Bluetooth controller works" |
+| `lists.ts` / `listLogic.ts` | The phone list (stage 2 part 2, research M10): a DOM card over the canvas with native momentum scroll, 52 px rows, 44 px tabs and ▲ ▼ page buttons, taps on release, the selected row in view, a drag handle to reorder, tiles and a detail column with BUY and − / + (shops); the pure rules (paging, scroll-into-view, drop slot, boxes of ammo, character select's second tap) |
+| `listScenes.ts` | Which game lists become phone lists and what a tap does there: the TV guide, the gun rack, the jukebox, the Kreltality trophies, the loaner rack, the archive, QUESTS, the DIALOGUE LOG, chapter select |
+| `shops.ts` | Every shop (ui/shop.ts's ShopGrid: the Kreddle Exchange, the Prize Counter, Home Furnishings) as a phone list of tiles and a detail with BUY (research S13) |
 | `cues.ts` | First-time cues: the idle stick and ACTION pulse until first used (remembered per phone) |
 | `domTap.ts` / `canvasUi.ts` | Helpers: taps on the phone's DOM pieces (acts on touchend, never during a scroll); resizing the game's canvas buttons with their tap areas |
 | `wording.ts` | Touch wording: `hint()` and the `TOUCH_WORDING` table ("E: Talk" → "Tap: Talk"); applied to the walking scenes' prompts. `NARRATOR_TIPS` / `narratorTip()`: the narrator's control tips (stage 2) |
@@ -116,6 +121,20 @@ game's own method first and only then lays out what it built; a laptop never loa
 | `SaveSlotsScene.prototype.render` | `screens.ts` | slot rows re-stacked for the bigger text, 🗑 and BACK 44 px |
 | `HomeScene.prototype.laptopPanel` | `screens.ts` | the group chat at reading size |
 | each scene's `create` event (Difficulty, Banter, TV) | `screens.ts` | the Difficulty / Banter cards; the telly's subtitles as reading text, its key captions in touch wording |
+
+Stage 2 part 2 added **no hook in any game file** either. It wraps, once, from the phone chunk:
+
+| Wrapped | By | Does (phones only) |
+|---|---|---|
+| `TVScene.prototype.drawGuide` | `listScenes.ts` | reads the channel codes and the TV log line off what the game drew, hides the canvas guide under the phone list |
+| `HomeScene.prototype` `panel`, `gunRackPanel`, `jukeboxPanel`, `trophyPanel` | `listScenes.ts` | remembers the open panel (title, close); hides the rack's / jukebox's / trophies' canvas rows under the phone list |
+| `PitLoanScene.prototype.render`, `ArchiveScene.prototype` `renderList` / `showEntry` | `listScenes.ts` | the loaner rack and the archive's record list under the phone list |
+| `MenuScene.prototype.render` (after screens.ts's wrapper) | `listScenes.ts` | QUESTS (the lines the page drew) and the DIALOGUE LOG as phone lists |
+| `DebugScene.prototype` `draw` / `drawBosses` (Chapter Select and the debug menu) | `listScenes.ts` | the page's buttons under the phone list (a tap picks, START goes) |
+| `ShopGrid.prototype` `setItems`, `refresh`, `celebrate`, `deny` | `shops.ts` | the cards and BUY bar under the phone list; the purchase feedback said by the list |
+| `CharSelectScene.prototype.create` (screens.ts's wrapper) | `screens.ts` | P16: a tap on a face picks it, PLAY AS starts (or a second tap on the same face) |
+| `TitleScene.prototype.askPassword` | `screens.ts` | the Chapter Select password box in the top quarter (above a landscape keyboard), the text box 44 px |
+| the Lair's and RoofCutscene's `create` event | `screens.ts` | "Esc: skip scene" becomes a SKIP SCENE ▸▸ button (the scene's own `finish(true)`, as Esc) |
 
 The pause menu is laid out from whatever buttons it has (two or three columns), so a row another stage adds (the
 combat controls' CONTROLS page) needs nothing here.
@@ -378,6 +397,47 @@ storage at startup); and "🎮 A Bluetooth controller works". RESET forgets ever
 Reached from SETTINGS' 📱 PHONE tab (the title's and the pause menu's) and the pause menu's 📱 PHONE SETTINGS row.
 `window.__krelMobile.settingsPage`: `open(from)`, `close()`, `isOpen`, `rows()`.
 
+## Lists and shops (`lists.ts`, `listScenes.ts`, `shops.ts`): stage 2 part 2
+
+Research M10: one native-scroll list for every list longer than the screen. On a phone, when the game draws one of
+these lists, a DOM card goes over that part of the canvas (opaque, real CSS px, clamped above the 21 px home-indicator
+strip) and the canvas rows it replaces are hidden and stop taking taps:
+
+| List | Shows when | Tap does | Also |
+|---|---|---|---|
+| TV on-demand guide | the guide is up, unless it fits (7 shows or fewer and one channel) | plays that show (`TVScene.play`) | channel tabs 44 px (sideways scroll), 📺 WHATEVER'S ON, NEW / 🎁 NEW / ✓ SEEN badges, the TV log line ("Seen 6 of 65 · ...") |
+| Gun rack | two or more guns | picks the gun (its stats, mods, ammo in the detail column) | reorder: drag the ⋮⋮ handle, or ⬆ ⬇ on the picked gun, or ★ MAKE IT #1 (research S11's non-drag way); ammo by the box with − / + (the game's "fill it as far as your money goes" is the starting count); 🩸 PERKS & GORE |
+| Jukebox | always (90 tunes) | plays it | two columns, STOP, SHUFFLE, NOW PLAYING |
+| Kreltality trophies | more than 7 | – | – |
+| Loaner rack (Krunch Pit) | always | picks it | BORROW / HAND BACK / BORROW MAX on each row, GUNS / PERKS tabs, DONE |
+| Historical Archive | more than 13 records | opens the record (the game's own page) | locked records dimmed |
+| QUESTS (pause menu) | the page has more than fits | – | STORY / SIDE QUESTS / FACTS & STATS tabs |
+| DIALOGUE LOG (pause menu) | more than 4 lines | – | opens at the newest line (the bottom) |
+| Chapter Select / debug menu | always | picks a chapter, side quest or boss; **START ▸** on it goes (it replaces your save) | ◀ BACK, PLAYING AS and DIFFICULTY in the header; BOSS FIGHTS opens its page |
+
+Every list: `overflow-y:auto; -webkit-overflow-scrolling:touch; touch-action:pan-y; overscroll-behavior:contain`;
+rows 52 CSS px with 16 px words; ▲ / ▼ page buttons (44 px) beside the list when it doesn't fit (85% of the view a
+press; a way that needs no drag); a tap acts on touchend and only if the finger moved under 12 px and lifted on the
+same thing (so a scroll never presses a row); no touch reaches the game (`keepTouches`); it opens on the selected row
+(or where you left it: the scroll position is remembered per list and tab) and keeps the selected row in view when the
+selection moves. Android Back closes a Home panel's list and the loaner rack (what Esc does there).
+
+**Shops** (research S13): every ShopGrid on a phone is a scrolling grid of tiles (every item, no pages) with the picked
+item's detail beside it (icon, name, words, level, ammo) and one **BUY** button (52 px, above the home-indicator strip).
+A tap on a tile only picks it: on a laptop a second click on a card buys, on a phone only BUY buys. Per-gun ammo is
+bought by the box with − / + (it starts at the game's fill-as-far-as-your-money-goes count). The exact count goes through
+the game's own purchase: for that purchase the purse holds n boxes' worth and the rest is put straight back (a save
+inside it waits until the money is all back). The shop's header, tabs, balances and ✕ stay the game's own (tap areas
+44 px through the readability tap snap). There is nothing to sell or discard in the game's shops; the pause menu's SAVE
+GAME and QUIT TO TITLE are 12 px apart (part 1); chapter select, which replaces your save, asks for a second tap
+(START).
+
+**Character select (P16)**: a tap on a face picks them and shows their details (PLAY AS gives a little nod); PLAY AS
+starts. A second tap on the face you tapped also starts (as on Difficulty and Banter), at least 300 ms after the first;
+the face that starts selected never starts on one tap; a finger that slides off a face does nothing.
+
+`window.__krelMobile.lists`: `open()` (the list showing: name, rows, scroll), `host` (`lists`, `rack`), `shops`.
+
 ## Walking comfort (stage 2)
 
 - The idle stick's ring never sits over the player (the gate's note: 750x340, Home's far left): `ghostClear()`
@@ -401,6 +461,25 @@ Rules added in round 1: `Esc for menu` → `II for the menu`; the Enter gate's `
 Rules added in stage 2: the dialogue footer `▼ E / Space · Tab skip` → `▼`; `REACT (1-5 or click)` → `REACT`; the
 Difficulty / Banter how-to line → `Tap one, then tap it again to go on / start`; the title's key line and the telly's
 key captions (`Space / click`, `Tab`, `D`, `Esc`) → nothing; the save slots' key hints → `Tap a slot to load it` / gone.
+
+Rules added in stage 2 part 2 (the sweep): "(E)" → "(tap)"; "and press E to" → "and tap to" (the playground);
+"(↑ / ↓)" → nothing (Kreddle's kards: its buttons say HIGHER / LOWER); "SKIP ▶▶  (Tab)" → "SKIP ▶▶" (Home's book);
+"←/→ (or tap ◀ ▶) sets the Heat:" → "Tap ◀ ▶ to set the Heat:" (the Krunch Pit); the ending's "(click, or press 1 · 2 ·
+3 · 4)" / "(click, or press 1 / 2)" → "(tap one)", "click to skip" → "tap to skip"; the story stills' "click / Tab: skip" →
+"tap: skip"; the flyovers' "SKIP ▸▸ (Space / Esc / tap)" → "SKIP ▸▸ (tap)"; "(Alt+Enter)" → nothing; the TV guide's key
+line → nothing; the loaner rack's "DONE (ESC)" → "DONE" and its key line → "Tap one, then tap it again to borrow or hand
+back"; the gun rack's "X swaps down the list" → "SWAP goes down the list" and its key line → nothing; "Esc: skip scene"
+→ "SKIP SCENE ▸▸" (a button: screens.ts); the Exchange's "pussy juice (Q)" → "(HEAL)" and its toast "X to swap weapons"
+→ "Tap SWAP to swap weapons"; character select's "Press V to become SANMIK whenever you like." → "Tap the SANMIK button
+to become SANMIK whenever you like."; chapter select's "(C)" / "(V)" / "(tap to change)" → nothing.
+
+Where: `UI_TEXTS` scenes now also **watch** every Text they make (`watchText`): a later `setText` that matches the
+scene's patterns is reworded, anything else is shown as set (signs and info lines that change as you play: the
+playground sign, the kards, the Pit's Heat line). In story and conversation scenes (TV, Lair, RoofCutscene, Ending, and
+the stills and flyovers wherever they play) only whole UI captions are reworded, matched exactly from start to end when
+the text is made: `STORY_UI_LINES` (never a text that changes later, never part of a line). The phone lists run their
+own words (shop names and descriptions, quest lines) through `touchWording`. The smoke test's `wording` section walks
+the menus and walking scenes and fails on any visible key or mouse name outside dialogue.
 
 **Narrator control tips** (hard rule 3's exception; `NARRATOR_TIPS`, applied by dialogue.ts to NARRATOR /
 stage-direction lines only, phones only): Home's `TIP: WASD / arrows (or the stick) to walk. E to use things.` →
@@ -466,11 +545,11 @@ the corners. The device checklist (outside the repo) tells a player what to read
 ## Testing
 
 ```sh
-npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layout, settings, readability, wording, home screen + diag, dialogue (pills, AUTO, choices, Back, page size, narrator tips, settings page, idle stick); the not-a-phone devices
+npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layout, settings, readability, wording, home screen + diag, dialogue (pills, AUTO, choices, Back, page size, narrator tips, settings page, idle stick), lists (paging, reorder, boxes of ammo, character select, the wording sweep); the not-a-phone devices
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,guide,optout,town,dungeon,android,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,android,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
 
 # the laptop must not change (both must end with DESKTOP FINGERPRINT: OK)

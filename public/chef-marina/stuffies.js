@@ -1,15 +1,20 @@
 // Chef Marina — Stuffies: Marina arranges her stuffed animals on her white bunk bed.
 // Self-contained; load after everything else.
-//   Stuffies.open({ onDone(result), onClose(result) })   full-screen activity inside #panel; result = { count, asleep, done }
-//   Stuffies.close()        same as the ❌: keeps the arrangement, does not call onDone
-//   Stuffies.saved()        what the room can draw small on the bunk-bed sprite, back to front:
-//                           [{ ch, level: 'rail'|'top'|'bottom'|'ladder'|'floor', u: 0..1, stack: 0,1,2…, asleep, flip, rung? }]
-//                           u = how far along the bed, left end 0 to right end 1 (for 'ladder': how far DOWN the ladder, top rung 0 to bottom rung 1)
+//   Stuffies.open({ onDone(result), onClose(result) })   full-screen activity inside #panel. result = { count, asleep, done }.
+//                           ✅ saves, closes and calls onDone then onClose; ❌ (or anything else that closes the panel) saves and calls only onClose.
+//   Stuffies.close()        same as the ❌
+//   Stuffies.saved()        the saved arrangement in a simple form the room can draw small on the bunk-bed sprite, listed back to front:
+//                           [{ ch, level: 'rail' | 'top' | 'bottom' | 'ladder' | 'floor', u: 0..1, stack: 0,1,2…, asleep, flip, rung? }]
+//                           rail = the tall rail at the back of the top bunk, top = on the top mattress behind the low front rail,
+//                           bottom = on the bottom mattress (u under about 0.2 is the pillow), floor = on the carpet in front of the bed.
+//                           u = how far along the bed, 0 its left end … 1 its right end (the ladder stands at about 0.75–0.95).
+//                           For 'ladder' u is how far DOWN the ladder: 0 top rung, 0.5 middle, 1 bottom rung (rung = 2, 1, 0).
+//                           stack = how many stuffies it is sitting on; flip = facing the other way.
 //   Stuffies.count()        how many stuffies are out of the basket
-//   Stuffies.surprise(name) one of the 🎲 patterns by name ('pyramid' | 'row' | 'ladder' | 'rainbow' | 'circle'), or a random one
+//   Stuffies.surprise(name) while open: one of the 🎲 patterns ('pyramid' | 'row' | 'ladder' | 'rainbow' | 'circle'), or a random one
 // One canvas holds the bedroom, the stuffies and the toy basket, so dragging is plain canvas touching (calm.js cancels
-// taps on buttons when the finger moves). The room is small pixel art scaled up; the stuffies are emoji drawn sharp on top.
-// Everything else is big picture buttons, because she cannot read.
+// taps on buttons when the finger moves). The room is small pixel art painted by code and scaled up; the stuffies are
+// emoji drawn sharp on top. Everything else is big picture buttons, because she cannot read.
 (function () {
   'use strict';
   const KEY = 'cm_stuffies', FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
@@ -142,7 +147,7 @@
     TOYS.forEach((t, i) => st.items.push({ id: i, ch: t[0], hue: t[1], sc: t[2], where: 'tray', sid: null, x: 0, d: 0, y: 0, lvl: 0, flip: false, w: NOM, h: NOM,
       py: 0, vy: 0, ox: 0, sq: 0, wig: 0, wt: 0, sl: 0, slAt: 0, str: 0, strAt: 0, hopAt: 0, big: 0, press: 0, turn: 0, fly: null, hx: 0, hy: 0, sway: 0, zAt: rnd(0.5, 2.5),
       pitch: [0, 2, 4, 7, 9][i % 5] + (i % 3) * 5 - Math.round((t[2] - 1) * 20) }));
-    layout(); restore(rec); sync(); bind();
+    layout(); restore(rec); sync(); bind(); st.tray.peek = Math.min(34, st.tray.max);            // the basket slides in a little: there is more along there
     st.onResize = () => { layout(); clearTimeout(st.rz); st.rz = setTimeout(() => { if (S === st) layout(); }, 320); };
     addEventListener('resize', st.onResize); addEventListener('orientationchange', st.onResize);
     st.onHide = () => { if (S === st && document.visibilityState !== 'visible') persist(); };
@@ -159,7 +164,8 @@
   }
   // ❌ keeps everything exactly as she left it; ✅ does the same and tells the room she is done
   function finish(done) {
-    const st = S; if (!st) return; persist(); const res = { count: count(), asleep: !!st.night, done: !!done };
+    const st = S; if (!st) return; for (const id in st.ptr) if (st.ptr[id].mode === 'drag') drop(st.ptr[id], true);       // one still in her hand goes back where it was
+    persist(); const res = { count: count(), asleep: !!st.night, done: !!done };
     teardown(); st.panel.classList.add('hidden'); music(null);
     if (done) { jingle([0, 4, 7, 12], 0.07); try { if (st.opts.onDone) st.opts.onDone(res); } catch (e) { try { console.error(e); } catch (e2) { } } }
     try { if (st.opts.onClose) st.opts.onClose(res); } catch (e) { }
@@ -176,7 +182,7 @@
     const st = S; if (!st) return;
     const land = st.panel.clientWidth > st.panel.clientHeight;
     st.top.classList.toggle('stf-land', land); st.body.classList.toggle('stf-land', land);
-    const r = st.stage.getBoundingClientRect(), cw = Math.max(160, r.width), ch = Math.max(160, r.height), dpr = clamp(window.devicePixelRatio || 1, 1, 3);
+    const r = st.stage.getBoundingClientRect(), cw = Math.max(160, r.width), ch = Math.max(160, r.height), dpr = clamp(Math.min(window.devicePixelRatio || 1, Math.sqrt(2.7e6 / (cw * ch))), 1, 3);
     if (cw === st.cw && ch === st.ch && dpr === st.dpr && land === st.land) return;
     st.cw = cw; st.ch = ch; st.dpr = dpr; st.land = land; st.cv.width = Math.round(cw * dpr); st.cv.height = Math.round(ch * dpr);
     const n = TOYS.length, slot = clamp((land ? ch : cw) / 6.8, 44, 66); let best = null;
@@ -188,7 +194,7 @@
     st.F = Object.assign({}, SDEF.floor, { x0: V.x0 + 2, x1: V.x1 - 2, y0: 8, y1: Math.max(11, V.y1 - 3) });
     st.surf = SIDS.map(id => id === 'floor' ? st.F : SDEF[id]);
     const spx = clamp(Math.round(NOM * 1.12 * s * dpr * 1.2), 40, 160); if (spx !== st.spx) { st.spx = spx; st.spr = {}; }
-    for (const it of st.items) if (!it.m) { const sp = sprite(it.ch); it.w = NOM * it.sc * sp.nw; it.h = NOM * it.sc * sp.nh; it.m = 1; }
+    for (const it of st.items) if (!it.m) { const m = metric(it.ch); it.w = NOM * it.sc * m.nw; it.h = NOM * it.sc * m.nh; it.m = 1; }
     buildArt();
   }
   const X = wx => S.scene.x + (wx - S.view.x0) * S.s, Y = wy => S.scene.y + (wy - S.view.y0) * S.s;
@@ -255,7 +261,7 @@
     for (const x of [0, 145]) { r(x, -118, 5, 22, '#f3f4f9'); r(x + 4, -118, 1, 22, '#d5d9e8'); r(x - 1, -120, 7, 2, '#ffffff'); r(x - 1, -118, 7, 1, '#d5d9e8'); }   // back posts and the tall rail by the wall
     for (let x = 24; x < 140; x += 20) { r(x, -110, 3, 13, '#eff0f6'); r(x + 2, -110, 1, 13, '#d5d9e8'); }
     r(5, -114, 140, 3, '#ffffff'); r(5, -111, 140, 1, '#c3c8dc'); r(5, -115, 140, 1, '#c3c8dc'); r(-1, -120, 1, 16, '#aab1cc'); r(150, -120, 1, 16, '#aab1cc'); r(-1, -121, 7, 1, '#aab1cc'); r(145, -121, 7, 1, '#aab1cc');
-    r(33, -101, 110, 5, '#d8c8f3'); r(33, -101, 110, 1, '#ebe1fb'); for (let x = 37; x < 142; x += 7) r(x, -99, 1, 1, '#f4eeff');                                    // top bunk: lilac blanket and a pillow peeking over
+    r(33, -101, 110, 5, '#fbe3ea'); r(33, -101, 110, 1, '#f3cdd8'); for (let x = 38; x < 142; x += 9) { r(x, -99, 1, 1, '#e97a9c'); r(x - 1, -99, 1, 1, '#f4a6bb'); r(x + 1, -99, 1, 1, '#f4a6bb'); }                 // top bunk: the same flowery sheet and a pillow peeking over
     r(9, -103, 22, 7, '#ffffff'); r(10, -104, 20, 1, '#ffffff'); r(9, -98, 22, 1, '#eadbe2'); r(13, -101, 1, 1, '#f4a6bb'); r(22, -100, 1, 1, '#f4a6bb');
     r(5, -32, 140, 10, '#fdf1f3'); r(5, -32, 140, 1, '#ecd9df'); r(5, -22, 140, 6, '#f6e3e8'); r(5, -17, 140, 1, '#dfc8cf');                                         // bottom bunk: flowery sheet
     for (let i = 0; i < 15; i++) { const x = 37 + i * 7 + (i % 2), y = -29 + (i * 5) % 6; r(x, y, 1, 1, '#e97a9c'); r(x - 1, y, 1, 1, '#f4a6bb'); r(x + 1, y, 1, 1, '#f4a6bb'); r(x, y - 1, 1, 1, '#f4a6bb'); r(x, y + 1, 1, 1, '#f4a6bb'); if (i % 3 === 0) r(x + 2, y + 1, 1, 1, '#b9dcb4'); }
@@ -322,16 +328,22 @@
   }
 
   // ------------------------------------------------------------------ emoji sprites: drawn once, trimmed to what is really there so every stuffy sits exactly on its surface
-  function sprite(ch) {
-    const st = S; let sp = st.spr[ch]; if (sp) return sp;
-    const px = st.spx, n = Math.ceil(px * 1.6), c = document.createElement('canvas'); c.width = c.height = n; const g = c.getContext('2d', { willReadFrequently: true });
+  function scan(ch, px) {
+    const n = Math.ceil(px * 1.6), c = document.createElement('canvas'); c.width = c.height = n; const g = c.getContext('2d', { willReadFrequently: true });
     g.font = px + 'px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch, n / 2, n / 2);
     let x0 = n, y0 = n, x1 = -1, y1 = -1;
     try { const d = g.getImageData(0, 0, n, n).data; for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (d[(y * n + x) * 4 + 3] > 50) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } } catch (e) { }
     if (x1 - x0 < px * 0.3 || y1 - y0 < px * 0.3) { x0 = y0 = Math.round((n - px) / 2); x1 = y1 = x0 + px - 1; }      // nothing measurable: take the plain square
-    const w = x1 - x0 + 1, h = y1 - y0 + 1, crop = () => { const o = document.createElement('canvas'); o.width = w; o.height = h; o.getContext('2d').drawImage(c, x0, y0, w, h, 0, 0, w, h); return o; };
-    const day = crop(), night = crop(), gn = night.getContext('2d'); gn.globalCompositeOperation = 'source-atop'; gn.fillStyle = 'rgba(34,46,112,.52)'; gn.fillRect(0, 0, w, h);
-    return st.spr[ch] = { day, night, nw: w / Math.max(w, h), nh: h / Math.max(w, h) };
+    return { c, x0, y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+  }
+  // how wide and tall each emoji really is (as a share of its bigger side), measured once at one size so stacking works out the same on every screen
+  const MET = {};
+  function metric(ch) { if (!MET[ch]) { const q = scan(ch, 96), m = Math.max(q.w, q.h); MET[ch] = { nw: Math.round(q.w / m * 100) / 100, nh: Math.round(q.h / m * 100) / 100 }; } return MET[ch]; }
+  function sprite(ch) {
+    const st = S; let sp = st.spr[ch]; if (sp) return sp;
+    const q = scan(ch, st.spx), crop = () => { const o = document.createElement('canvas'); o.width = q.w; o.height = q.h; o.getContext('2d').drawImage(q.c, q.x0, q.y0, q.w, q.h, 0, 0, q.w, q.h); return o; };
+    const day = crop(), night = crop(), gn = night.getContext('2d'); gn.globalCompositeOperation = 'source-atop'; gn.fillStyle = 'rgba(34,46,112,.52)'; gn.fillRect(0, 0, q.w, q.h);
+    return st.spr[ch] = { day, night };
   }
 
   // ------------------------------------------------------------------ where things are
@@ -426,18 +438,19 @@
     if (!it || it.where === 'held' || it.fly) { p.mode = 'none'; return; }
     const at = toyScreen(it); p.from = it.where; p.rec = it.where === 'bed' ? { sid: it.sid, x: it.x, d: it.d } : null;
     if (it.where === 'bed') liftOff(it);
-    it.where = 'held'; it.hx = at[0]; it.hy = at[1]; it.py = it.vy = it.ox = 0; it.wig = 0.5; it.wt = st.t; it.sway = 0; p.mode = 'drag';
+    it.where = 'held'; it.hx = at[0]; it.hy = at[1]; it.py = it.vy = it.ox = 0; it.press = 0; it.wig = 0.5; it.wt = st.t; it.sway = 0; p.mode = 'drag';
     once('pick', 60, () => blip(it.pitch + 7, 'triangle', 0.06, 0.13));
   }
   function drop(p, cancel) {
     const st = S, it = p.it, moved = Math.hypot(p.x - p.x0, p.y - p.y0) > 10; if (!it || it.where !== 'held') return;
-    const fx = clamp(p.x, 0, st.cw), fy = clamp(p.y - 2, 0, st.ch); it.hx = fx; it.hy = fy;
+    const fx = clamp(p.x, 0, st.cw - 1), fy = clamp(p.y - 2, 0, st.ch - 1); it.hx = fx; it.hy = fy;
     if (p.from === 'tray' && !moved && !cancel) { it.where = 'tray'; hopOut(it); return; }             // a slow tap in the basket
-    if (inTray(fx, p.y) || (cancel && p.from === 'tray')) { toTray(it); return; }
+    if (inTray(fx, fy) || (cancel && p.from === 'tray')) { toTray(it); return; }
     const wx = WX(fx), wy = WY(fy), F0 = cancel && p.rec ? st.surf[SIDS.indexOf(p.rec.sid)] : null;
     const q = F0 ? { F: F0, x: p.rec.x, d: p.rec.d } : resolveDrop(it, wx, wy);
     putOn(it, q); const at = wpos(it); it.py = wy - at[1]; it.ox = wx - at[0]; it.vy = it.py < 0 ? 30 : 0; it.slAt = st.t + 0.6; st.hintOff = true;
     if (it.lvl > 0) once('stk', 80, () => blip(it.pitch + 4 + it.lvl * 3, 'square', 0.05, 0.08));
+    st.chatWho = it; st.chatAt = Math.min(st.chatAt, st.t + 1.5);                          // a newcomer soon says hello to whoever is near
     persist();
   }
   function flipToy(it) { it.flip = !it.flip; it.turn = 1; it.sq = Math.max(it.sq, 0.3); once('flip', 60, () => { blip(it.pitch + 5, 'triangle', 0.05, 0.12); setTimeout(() => blip(it.pitch + 10, 'triangle', 0.06, 0.12), 70); }); persist(); }
@@ -600,7 +613,8 @@
       try { if (st.opts.onClose) st.opts.onClose(res); } catch (e) { } return;
     }
     const now = ms / 1000, dt = clamp(now - (st.last || now), 0, 0.05); st.last = now; st.t += dt;
-    try { update(dt); draw(); } catch (e) { if (!st.err) { st.err = 1; try { console.error(e); } catch (e2) { } } }
+    // when nothing is moving, half the frames are plenty
+    try { update(dt); if (st.live || (st.odd = !st.odd)) draw(); } catch (e) { if (!st.err) { st.err = 1; try { console.error(e); } catch (e2) { } } }
     st.raf = requestAnimationFrame(frame);
   }
   function update(dt) {
@@ -614,7 +628,7 @@
     T.peek *= Math.exp(-dt * 6);
     // stuffies being carried follow the finger and swing a little
     for (const id in st.ptr) { const p = st.ptr[id]; if (p.mode !== 'drag') continue; const it = p.it, k = Math.min(1, dt * 30), px = it.hx; it.hx += (p.x - it.hx) * k; it.hy += (p.y - 2 - it.hy) * k; it.sway += (clamp((it.hx - px) / Math.max(dt, 0.004) * 0.0011, -0.45, 0.45) - it.sway) * Math.min(1, dt * 10); }
-    let n = 0;
+    let n = 0, live = partying || scrolling || st.flash > 0 || st.nlPulse > 0 || Math.abs((st.night ? 1 : 0) - st.nk) > 0.001 || st.bubbles.length > 0 || Math.abs(T.v) > 4 || Math.abs(T.peek) > 0.3 || Object.keys(st.ptr).length > 0 || st.parts.some(p => p.k !== 'z');
     for (const it of st.items) {
       const f = it.fly;
       if (f) { f.t += dt; if (f.t >= f.dur) { it.fly = null; if (it.where === 'bed') { it.sq = 0.8; if (f.pop) { pop(); const p = toyScreen(it); spark(p[0], p[1] - it.h * st.s / 2, 5); } else thump(it); } else once('in', 50, () => blip(it.pitch, 'triangle', 0.05, 0.08)); } }
@@ -626,16 +640,20 @@
         if (partying && it.py === 0 && it.vy === 0 && t > it.hopAt) { it.vy = -rnd(60, 105); it.py = -0.01; it.hopAt = t + rnd(0.2, 0.55); if (Math.random() < 0.25) it.turn = 1, it.flip = !it.flip; if (Math.random() < 0.3) { const p = toyScreen(it); emo(pick(['🎵', '🎶', '✨']), p[0], p[1] - it.h * st.s, { size: 16 }); } }
         if (it.strAt && t > it.strAt) { it.strAt = 0; it.str = 0.6; }
         if (it.str > 0) { it.str -= dt; if (it.str <= 0) { it.str = 0; it.vy = -75; it.py = -0.01; const p = toyScreen(it); spark(p[0], p[1] - it.h * st.s, 3); } }
-        if (it.sl > 0.85 && t > it.zAt) { it.zAt = t + rnd(1.3, 2.4); const p = toyScreen(it); st.parts.push({ k: 'z', x: p[0] + it.w * st.s * 0.3, y: p[1] - it.h * st.s * 0.9, vx: rnd(6, 12), vy: -16, g: 0, life: 2.4, age: 0, size: rnd(13, 18) }); }
+        if (it.sl > 0.85 && t > it.zAt) { it.zAt = t + rnd(1.3, 2.4) * Math.max(1, st.n / 9); const p = toyScreen(it); st.parts.push({ k: 'z', x: p[0] + it.w * st.s * 0.3, y: p[1] - it.h * st.s * 0.9, vx: rnd(6, 12), vy: -16, g: 0, life: 2.4, age: 0, size: rnd(13, 18) }); }
       }
       const want = bed && st.night && t >= it.slAt ? 1 : 0; it.sl += clamp(want - it.sl, -dt * 4, dt * 2.2);
       it.sq *= Math.exp(-dt * 9); it.wig *= Math.exp(-dt * 4.5); it.big += (it.press - it.big) * Math.min(1, dt * 18); it.turn = Math.max(0, it.turn - dt / 0.24);
+      if (f || it.py !== 0 || it.vy !== 0 || it.ox !== 0 || it.sq > 0.02 || it.wig > 0.02 || it.turn > 0 || it.str > 0 || it.where === 'held' || Math.abs(want - it.sl) > 0.01 || Math.abs(it.press - it.big) > 0.02) live = true;
     }
+    st.live = live;
     // friends close to each other have a little chat now and then
     if (t > st.chatAt) {
       st.chatAt = t + rnd(3.5, 7);
-      const L = st.night || partying ? [] : placed().filter(it => !it.fly);
-      if (L.length > 1) { const a = pick(L), near = L.filter(o => o !== a && Math.hypot(wpos(o)[0] - wpos(a)[0], wpos(o)[1] - wpos(a)[1]) < 50); if (near.length) { const b = pick(near), c = pick(CHAT); bubble(a, c[0], 0); bubble(b, c[1], 0.95); } }
+      const all = st.night || partying ? [] : placed().filter(it => !it.fly), under = it => all.some(o => o !== it && o.sid === it.sid && o.lvl > it.lvl && Math.abs(o.d - it.d) < 0.5 && Math.abs(o.x - it.x) < 0.35 * (o.w + it.w));
+      const L = all.filter(it => !under(it));                                                // only the ones with nobody sitting on their head, so a bubble never hides a face
+      if (L.length > 1) { const a = L.includes(st.chatWho) ? st.chatWho : pick(L), near = L.filter(o => o !== a && Math.hypot(wpos(o)[0] - wpos(a)[0], wpos(o)[1] - wpos(a)[1]) < 50); if (near.length) { const b = pick(near), c = pick(CHAT); bubble(a, c[0], 0); bubble(b, c[1], 0.95); } }
+      st.chatWho = null;
     }
     for (const b of st.bubbles) if (!b.hi && t >= b.t0) { b.hi = true; if (b.it.where === 'bed') { b.it.wig = Math.max(b.it.wig, 0.45); b.it.wt = t; squeak(b.it, true); } }
     st.bubbles = st.bubbles.filter(b => t < b.t0 + b.dur && b.it.where === 'bed');
@@ -661,7 +679,7 @@
     if (nk > 0.01) { g.globalAlpha = nk; g.drawImage(sp.night, -dw / 2, -dh, dw, dh); g.globalAlpha = 1; }
     g.restore();
     if (bed && it.sl > 0.03) {                                                               // tucked in under a tiny blanket
-      const c = BLANKETS[it.id % BLANKETS.length], bw = dw * 1.06 + 5, bh = Math.max(5, dh * 0.43) * it.sl, r = Math.min(6, bh / 2), x0 = -bw / 2, y0 = -bh, q = bw / 6;
+      const c = BLANKETS[it.id % BLANKETS.length], bw = dw * 1.06 + 5, bh = Math.max(5, dh * (it.lvl ? 0.36 : 0.43)) * it.sl, r = Math.min(6, bh / 2), x0 = -bw / 2, y0 = -bh, q = bw / 6;
       g.save(); g.beginPath(); g.moveTo(x0 + 1, 1.5); g.lineTo(x0, y0 + r); g.quadraticCurveTo(x0, y0, x0 + r, y0 + 0.5);
       for (let i = 1; i <= 3; i++) g.quadraticCurveTo(x0 + (i * 2 - 1) * q, y0 - 2.2 + (i % 2) * 4.4, i < 3 ? x0 + i * 2 * q : x0 + bw - r, y0 + 0.5);    // a soft wavy edge
       g.quadraticCurveTo(x0 + bw, y0, x0 + bw, y0 + r); g.lineTo(x0 + bw - 1, 1.5); g.closePath(); g.clip();
@@ -715,8 +733,9 @@
     // where a carried stuffy will land
     for (const id in st.ptr) {
       const p = st.ptr[id]; if (p.mode !== 'drag') continue; const it = p.it;
-      if (inTray(p.x, p.y)) { g.strokeStyle = 'rgba(255,207,74,.95)'; g.lineWidth = 5; g.strokeRect(T.x + 4.5, T.y + 4.5, T.w - 9, T.h - 9); continue; }
-      const q = resolveDrop(it, WX(clamp(p.x, 0, st.cw)), WY(clamp(p.y - 2, 0, st.ch))), at = wposv(q.F.id, q.x, q.d, q.y, it.w);
+      const fx = clamp(p.x, 0, st.cw - 1), fy = clamp(p.y - 2, 0, st.ch - 1);
+      if (inTray(fx, fy)) { g.strokeStyle = 'rgba(255,207,74,.95)'; g.lineWidth = 5; g.strokeRect(T.x + 4.5, T.y + 4.5, T.w - 9, T.h - 9); continue; }
+      const q = resolveDrop(it, WX(fx), WY(fy)), at = wposv(q.F.id, q.x, q.d, q.y, it.w);
       g.fillStyle = 'rgba(255,221,102,.6)'; g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 2; g.beginPath(); g.ellipse(X(at[0]), Y(at[1]), it.w * s * 0.46, Math.max(3, s * 1.8), 0, 0, 7); g.fill(); g.stroke();
     }
     // stuffies in the air: flying to their place, or in her hand

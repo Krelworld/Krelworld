@@ -1,6 +1,6 @@
 import { canFullscreen, fullscreenLabel, toggleFullscreen } from "../systems/fullscreen";
 import { isMobile } from "../mobile/flag";
-import { homeScreenEntryWanted, openHomeScreenGuide } from "../mobile/homeScreen";
+import { homeScreenEntryWanted, openHomeScreenGuide } from "../mobile/boot";
 import { afterKreddle } from "../systems/moodMusic";
 import { dialogueLog } from "../ui/dialogueLog";
 import Phaser from "phaser";

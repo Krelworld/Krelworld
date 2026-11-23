@@ -44,6 +44,11 @@ export const TOUCH_WORDING: WordingRule[] = [
   { id: "esc-or-x", re: /\b(?:ESC|Esc) or ✕/g, to: "✕" },
   // "(Esc)" after a menu name: the pause button is the two bars
   { id: "esc-paren", re: /\((?:ESC|Esc)\)/g, to: "(II)" },
+  // the town's first toast: "Esc for menu (quests, upgrades, save)"
+  { id: "esc-for-menu", re: /\b(?:ESC|Esc) for (?:the )?menu\b/g, to: "II for the menu" },
+  // the Enter gate: "PRESS ANY KEY" / "OR CLICK / TAP"
+  { id: "any-key", re: /^PRESS ANY KEY$/, to: "TAP TO START" },
+  { id: "or-click-tap", re: /^OR CLICK \/ TAP$/, to: "" },
   // walking: "WASD to walk" / "WASD / arrows to walk"
   { id: "wasd-walk", re: /\bWASD(?:\s*\/\s*arrows)?(?:\s*\(or the stick\))? to walk\b/g, to: "Drag on the left to walk" },
   // key captions on their own (a button already says what it does): nothing at all
@@ -125,6 +130,8 @@ export const UI_TEXTS: Record<string, RegExp[]> = {
   Kreddle: [/\bSPACE (?:or|\/) [A-Za-z]/],
   // the panels' close hint
   Home: [/^ESC or ✕ to close$/],
+  // the Enter gate's "PRESS ANY KEY" / "OR CLICK / TAP"
+  Enter: [/^PRESS ANY KEY$/, /^OR CLICK \/ TAP$/],
 };
 
 /** Phones only: watches the scenes above and applies the wording. */
@@ -146,12 +153,24 @@ export class PromptWording {
       if (!sc) continue;
       this.hooked.add(key);
       const pats = UI_TEXTS[key];
-      // (Phaser.Scenes.Events.ADDED_TO_SCENE: every object added to the scene's display list)
-      sc.sys.events.on("addedtoscene", (go: Phaser.GameObjects.GameObject) => {
+      const look = (go: unknown) => {
         if (!isText(go)) return;
         const t = go.text;
         if (t && pats.some((p) => p.test(t))) wordText(go);
-      });
+      };
+      // (Phaser.Scenes.Events.ADDED_TO_SCENE: every object added to the scene's display list)
+      sc.sys.events.on("addedtoscene", look);
+      // (and what is already there: the phone chunk can arrive after a scene has been built, e.g. the Enter gate)
+      const walk = (o: unknown) => {
+        look(o);
+        const list = (o as { list?: unknown[]; type?: string })?.type === "Container" ? (o as { list: unknown[] }).list : null;
+        if (list) for (const c of list) walk(c);
+      };
+      try {
+        for (const o of sc.sys.displayList?.list ?? []) walk(o);
+      } catch {
+        /* not built yet */
+      }
     }
   }
 

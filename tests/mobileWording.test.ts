@@ -94,3 +94,20 @@ describe("touch wording: never dialogue", () => {
     for (const [scene, line] of dialogue) for (const re of UI_TEXTS[scene] ?? []) expect(re.test(line), `${scene}: ${line}`).toBe(false);
   });
 });
+
+describe("touch wording: the first how-to-play messages (round 1, P4)", () => {
+  it("the town's first toasts", () => {
+    expect(touchWording("WASD to walk. E to talk/interact. Follow the yellow arrow. Esc for menu (quests, upgrades, save).")).toBe(
+      "Drag on the left to walk. Tap to talk/interact. Follow the yellow arrow. II for the menu (quests, upgrades, save).",
+    );
+    expect(touchWording("Check the SIDE QUESTS tab in the pause menu (Esc) to see it.")).toBe("Check the SIDE QUESTS tab in the pause menu (II) to see it.");
+    expect(touchWording("Press E to shove a Kruncher. Or don't. It's chaos either way.")).toBe("Tap to shove a Kruncher. Or don't. It's chaos either way.");
+  });
+
+  it("the Enter gate says TAP TO START", () => {
+    expect(touchWording("PRESS ANY KEY")).toBe("TAP TO START");
+    expect(touchWording("OR CLICK / TAP")).toBe("");
+    // (only the gate's exact captions)
+    expect(touchWording("PRESS ANY KEY TO SKIP")).toBe("PRESS ANY KEY TO SKIP");
+  });
+});

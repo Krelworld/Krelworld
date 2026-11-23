@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
   changedKeys,
+  chosenFromStored,
+  chosenPhoneSettings,
+  setPhoneDefaultsForTests,
   DEFAULT_PHONE_SETTINGS,
   localPhoneSettingsStore,
   normalizePhoneSettings,
@@ -149,7 +152,8 @@ describe("phone settings: storage", () => {
     updatePhoneSettings({ leftHanded: true, buttonSize: "L", readability: true });
     expect(st.writes).toEqual([KEY]);
     const stored = JSON.parse(st.data.get(KEY)!);
-    expect(stored).toMatchObject({ v: 1, leftHanded: true, buttonSize: "L", readability: true });
+    // (only what the player chose: never the defaults)
+    expect(stored).toEqual({ v: 2, leftHanded: true, buttonSize: "L", readability: true });
     // next visit
     resetPhoneSettingsForTests();
     const heard: string[][] = [];
@@ -174,6 +178,45 @@ describe("phone settings: storage", () => {
     expect(() => updatePhoneSettings({ leftHanded: true })).not.toThrow();
     expect(phoneSettings().leftHanded).toBe(true);
     expect(() => usePhoneSettingsStore(localPhoneSettingsStore(null))).not.toThrow();
+  });
+
+  it("a later change of a default reaches everyone who never chose that setting, whatever else they changed (R5)", () => {
+    const st = memStorage();
+    usePhoneSettingsStore(localPhoneSettingsStore(st));
+    updatePhoneSettings({ buttonSize: "L" });
+    expect(JSON.parse(st.data.get(KEY)!)).toEqual({ v: 2, buttonSize: "L" });
+    // the next visit, after stage 2 has flipped readability (and auto-fire) to new defaults
+    resetPhoneSettingsForTests();
+    setPhoneDefaultsForTests({ readability: true, autoFire: false });
+    usePhoneSettingsStore(localPhoneSettingsStore(st));
+    expect(phoneSettings()).toMatchObject({ buttonSize: "L", readability: true, autoFire: false });
+    // a player who turned it off themselves keeps it off
+    updatePhoneSettings({ readability: false });
+    resetPhoneSettingsForTests();
+    setPhoneDefaultsForTests({ readability: true });
+    usePhoneSettingsStore(localPhoneSettingsStore(st));
+    expect(phoneSettings()).toMatchObject({ buttonSize: "L", readability: false });
+    expect(chosenPhoneSettings()).toEqual({ buttonSize: "L", readability: false });
+  });
+
+  it("a version 1 object (every field stored) counts only the values that differ from version 1's defaults (R5)", () => {
+    const v1 = { v: 1, ...DEFAULT_PHONE_SETTINGS, buttonSize: "L", haptics: false };
+    expect(chosenFromStored(v1)).toEqual({ buttonSize: "L", haptics: false });
+    const st = memStorage({ [KEY]: JSON.stringify(v1) });
+    setPhoneDefaultsForTests({ readability: true });
+    usePhoneSettingsStore(localPhoneSettingsStore(st));
+    expect(phoneSettings()).toMatchObject({ buttonSize: "L", haptics: false, readability: true });
+    // (and nothing is written just for loading it)
+    expect(st.writes).toEqual([]);
+  });
+
+  it("reset forgets every choice (stored as nothing chosen)", () => {
+    const st = memStorage();
+    usePhoneSettingsStore(localPhoneSettingsStore(st));
+    updatePhoneSettings({ buttonSize: "S", opacity: 0.5 });
+    resetPhoneSettings();
+    expect(JSON.parse(st.data.get(KEY)!)).toEqual({ v: 2 });
+    expect(phoneSettings()).toEqual(DEFAULT_PHONE_SETTINGS);
   });
 
   it("a store whose own methods throw is survived too", () => {

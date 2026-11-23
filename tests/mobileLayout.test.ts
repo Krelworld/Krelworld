@@ -14,6 +14,8 @@ import {
   SLOTS,
   stickGeometry,
   stickVector,
+  outsideZone,
+  overlaps,
   stickZone,
   type Viewport,
 } from "../src/game/mobile/layout";
@@ -183,3 +185,33 @@ describe("phone layout: the stick", () => {
 });
 
 // (the phone settings store is tested in mobileSettings.test.ts)
+
+describe("phone layout: the side-room stick and the tap areas (round 1)", () => {
+  it("an \"x\" stick reads only left and right, full speed at 35% of the travel (research M6)", () => {
+    const g = stickGeometry(390, "M", "x");
+    expect(g.axis).toBe("x");
+    expect(g.full).toBeCloseTo(g.travel * 0.35);
+    expect(stickVector(0, -200, g)).toEqual({ x: 0, y: 0, mag: 0 });
+    expect(stickVector(g.full, -50, g)).toEqual({ x: 1, y: 0, mag: 1 });
+    expect(stickVector(-g.full, 30, g).x).toBe(-1);
+    expect(stickVector(5, 0, g).mag).toBe(0);
+    // the walking stick is unchanged
+    expect(stickGeometry(390, "M").full).toBeCloseTo(stickGeometry(390, "M").travel * 0.6);
+  });
+
+  it("a tap area keeps only its part outside the stick zone (inside, the zone's own tap rule decides) (R1)", () => {
+    const zone = { x: 0, y: 78, w: 380, h: 291 };
+    // the prompt bubble wholly inside the zone: nothing outside it
+    expect(outsideZone({ x: 120, y: 200, w: 100, h: 30 }, zone)).toBe(null);
+    // straddling the zone's right edge: the strip beside it
+    expect(outsideZone({ x: 350, y: 200, w: 100, h: 30 }, zone)).toEqual({ x: 380, y: 200, w: 70, h: 30 });
+    // above the zone (the HUD strip): untouched
+    expect(outsideZone({ x: 100, y: 20, w: 100, h: 30 }, zone)).toEqual({ x: 100, y: 20, w: 100, h: 30 });
+    // reaching down into the zone from above: the part above it
+    expect(outsideZone({ x: 100, y: 40, w: 100, h: 60 }, zone)).toEqual({ x: 100, y: 40, w: 100, h: 38 });
+    // left-handed (the zone on the right): the strip to its left
+    expect(outsideZone({ x: 440, y: 200, w: 40, h: 30 }, { x: 464, y: 78, w: 380, h: 291 })).toEqual({ x: 440, y: 200, w: 24, h: 30 });
+    expect(overlaps({ x: 0, y: 0, w: 10, h: 10 }, { x: 10, y: 0, w: 5, h: 5 })).toBe(false);
+    expect(overlaps({ x: 0, y: 0, w: 10, h: 10 }, null)).toBe(false);
+  });
+});

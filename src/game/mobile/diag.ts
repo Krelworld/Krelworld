@@ -6,7 +6,8 @@
 // texture the game holds (a phone exposes no real memory reading), and how many; decoded sound, estimated the same
 // way from the sound buffers, and the audio context's state; the window and visualViewport sizes, devicePixelRatio;
 // the canvas box and its scale; the safe-area insets; the touch mode; whether phone mode is on and which tests made
-// it so; readability; the Home Screen state; and the last uncaught error. Tap it to move it to another corner.
+// it so; readability; the Home Screen state; and the last uncaught error. Touches pass through it to the game; its
+// MOVE tab moves it to the next corner.
 import type Phaser from "phaser";
 import { synth } from "../audio/Synth";
 import { storageKey } from "../variant";
@@ -66,6 +67,7 @@ export function soundEstimate(): { count: number; bytes: number; ctx: string } {
 
 export class DiagOverlay {
   readonly el: HTMLDivElement;
+  private text: HTMLDivElement;
   private pos = 0;
   private timer = 0;
   private slowTimer = 0;
@@ -83,19 +85,27 @@ export class DiagOverlay {
     const el = document.createElement("div");
     el.className = "kdiag";
     el.setAttribute("aria-hidden", "true");
-    // a tap moves it to the next corner; its touches never reach the game
+    // the read-out lets every touch through to the game (the controls under it keep working while you test); only its
+    // MOVE tab takes touches: a tap moves it to the next corner
+    this.text = document.createElement("div");
+    this.text.className = "kdiag-t";
+    el.appendChild(this.text);
+    const h = document.createElement("div");
+    h.className = "kdiag-h";
+    h.textContent = "MOVE";
+    el.appendChild(h);
     const stop = (e: Event) => e.stopPropagation();
-    el.addEventListener("touchstart", (e) => {
+    h.addEventListener("touchstart", (e) => {
       stop(e);
       if (e.cancelable) e.preventDefault();
     }, { passive: false });
-    el.addEventListener("touchend", (e) => {
+    h.addEventListener("touchend", (e) => {
       stop(e);
       if (e.cancelable) e.preventDefault();
       this.move();
     }, { passive: false });
-    for (const t of ["touchmove", "touchcancel", "mousedown", "mouseup"]) el.addEventListener(t, stop);
-    el.addEventListener("click", (e) => {
+    for (const t of ["touchmove", "touchcancel", "mousedown", "mouseup"]) h.addEventListener(t, stop);
+    h.addEventListener("click", (e) => {
       stop(e);
       this.move();
     });
@@ -160,7 +170,7 @@ export class DiagOverlay {
       `canvas ${cb ? `${Math.round(cb.width)}x${Math.round(cb.height)} at ${Math.round(cb.x)},${Math.round(cb.y)}` : "?"} · scale ${k.toFixed(3)}`,
       `safe area L${ins.left} R${ins.right} T${ins.top} B${ins.bottom}`,
       `touch mode ${d.mode}${d.scene ? `:${d.scene}` : ""}${d.legacyPad ? " (old pad)" : ""}${d.action ? ` · ACTION ${d.action}` : ""}`,
-      `phone mode ${w.mobile ? "ON" : "off"} by ${w.by}: coarse ${yes(w.coarse)} · no hover ${yes(w.noHover)} · touch ${w.touchPoints} · short side ${w.shortSide}${w.param ? ` · ?mobile=${w.param}` : ""}${w.stored ? ` · remembered ${w.stored}` : ""}`,
+      `phone mode ${w.mobile ? "ON" : "off"} by ${w.by}: coarse ${yes(w.coarse)} · no hover ${yes(w.noHover)} · touch ${w.touchPoints} · short side ${w.shortSide}${w.tabletUA ? " · tablet/computer UA" : ""}${w.param ? ` · ?mobile=${w.param}` : ""}${w.stored ? ` · remembered ${w.stored}` : ""}${w.note ? ` · ${w.note}` : ""}`,
       `${p.ios ? "iPhone" : p.android ? "Android" : "?"} ${p.browser}${p.inApp ? ` in ${p.inAppName}` : ""} · home screen app ${p.standalone ? "yes" : "no"} · install prompt ${hs.installPrompt ? "yes" : "no"}`,
       `readability ${rd?.on ? "ON" : "off"}${rd?.param !== null && rd?.param !== undefined ? ` (?mobileread=${rd.param ? 1 : 0})` : ""} · text ${st.textSize} · battery saver ${st.batterySaver ? "on" : "off"}`,
       ...(mem ? [`js heap ${mb(mem.usedJSHeapSize)}`] : []),
@@ -170,9 +180,9 @@ export class DiagOverlay {
 
   private update() {
     try {
-      this.el.textContent = this.lines().join("\n");
+      this.text.textContent = this.lines().join("\n");
     } catch (e) {
-      this.el.textContent = `diag: ${String(e).slice(0, 120)}`;
+      this.text.textContent = `diag: ${String(e).slice(0, 120)}`;
     }
   }
 

@@ -20,6 +20,7 @@
 import { isMobile } from "./flag";
 import { currentPlatform, type BrowserId, type PlatformInfo } from "./platform";
 import { storageKey } from "../variant";
+import type { GuideFrom } from "./boot";
 
 // ------------------------------------------------------------------ the drawings (24x24, white strokes)
 
@@ -134,6 +135,8 @@ export function guideContent(v: GuideVariant, c: GuideContext): GuideContent {
         steps: [{ icon: "share", title: "Tap **Share**", sub: "In the {top|bottom} bar. No bar? Tap the {top|bottom} edge of the screen. No Share? Tap ••• first." }, addHome, add, OPEN],
         note: iosNote,
         primary: "ok",
+        // (an app's Safari preview sheet looks like Safari but has no Add to Home Screen)
+        fallback: "No **Add to Home Screen** in the list? Tap the compass (or \"Open in Safari\") first.",
       };
     case "ios-chrome":
       return {
@@ -180,7 +183,7 @@ export function guideContent(v: GuideVariant, c: GuideContext): GuideContent {
         why: `${app}'s own browser can't add games to your Home Screen (and keeps its own saves). ${browser} can.`,
         steps: [
           { icon: c.ios ? "dotsH" : "dotsV", title: `Tap **${c.ios ? "•••" : "⋮"}**`, sub: "Usually top right (sometimes bottom right)." },
-          { icon: "openOut", title: `Tap **Open in ${browser}**`, sub: "Or \"Open in browser\" / \"Open in system browser\"." },
+          { icon: "openOut", title: `Tap **Open in ${browser}**`, sub: "Or \"Open in browser\" / \"Open in external browser\"." },
           { icon: c.ios ? "share" : "dotsV", title: "Then add it to your Home Screen", sub: "This guide shows you how, over there." },
         ],
         note: c.ios ? "Do it before you start: saves made in here stay in here." : null,
@@ -282,12 +285,22 @@ export function installPromptReady(): boolean {
 
 // ------------------------------------------------------------------ the guide (DOM)
 
-export type GuideFrom = "first" | "title" | "pause" | "rotate" | "test";
+export type { GuideFrom };
 
 export interface GuideOptions {
   hasSave: () => boolean;
-  /** Android: go full screen now (shown as a small extra button when it can). */
-  fullscreen?: { can: () => boolean; go: () => void };
+  /**
+   * Android fullscreen: `can` go full screen now (a small extra button), `go` (inside a tap), whether the game is
+   * `inside` it now, and `leave` it (the written steps need the browser's own menu, which fullscreen hides).
+   */
+  fullscreen?: { can: () => boolean; go: () => void; inside?: () => boolean; leave?: () => void };
+  /** The guide opened or closed (the shell sleeps the game under it). */
+  onOpenChange?: (open: boolean) => void;
+}
+
+/** A guide whose steps go through the browser's own menu (Android written steps, in-app "Open in Chrome"). */
+export function needsBrowserBar(c: Pick<GuideContent, "variant" | "primary">): boolean {
+  return c.primary !== "install" && (c.variant.startsWith("android-") || c.variant === "in-app");
 }
 
 let guide: HomeScreenGuide | null = null;
@@ -326,6 +339,8 @@ export class HomeScreenGuide {
   private from: GuideFrom = "title";
   private platform: PlatformInfo;
   private toast: HTMLDivElement;
+  /** It left fullscreen so the browser's menu shows: back into fullscreen when the player closes it with a tap. */
+  private leftFullscreen = false;
   /** What it showed last (tests). */
   last: GuideContent | null = null;
 
@@ -367,22 +382,42 @@ export class HomeScreenGuide {
   }
 
   open(from: GuideFrom = "title") {
+    const was = this.shown;
     this.from = from;
     this.shown = true;
     this.render();
     this.el.classList.add("show");
     writeSeen();
+    if (!was) safe(() => this.opts.onOpenChange?.(true), undefined);
   }
 
-  close() {
+  /** Close. `byTap`: inside the player's tap (fullscreen may be asked for again). */
+  close(byTap = false) {
     if (!this.shown) return;
     this.shown = false;
     this.el.classList.remove("show");
+    if (this.leftFullscreen) {
+      this.leftFullscreen = false;
+      if (byTap && this.opts.fullscreen?.can()) safe(() => this.opts.fullscreen?.go(), undefined);
+    }
+    safe(() => this.opts.onOpenChange?.(false), undefined);
   }
 
   /** The install prompt arrived or went: redraw if open. */
   refresh() {
     if (this.shown) this.render();
+  }
+
+  /**
+   * Android in fullscreen: steps that go through the browser's menu can't be followed (fullscreen hides it), so leave
+   * fullscreen while they show. Closing the guide with a tap goes back in.
+   */
+  private showBrowserBar(c: GuideContent) {
+    const fs = this.opts.fullscreen;
+    if (!fs?.inside || !fs.leave || !needsBrowserBar(c)) return;
+    if (!safe(() => fs.inside!(), false)) return;
+    this.leftFullscreen = true;
+    safe(() => fs.leave!(), undefined);
   }
 
   /** Show by itself once (the first phone run, on the title). */
@@ -404,6 +439,7 @@ export class HomeScreenGuide {
   private render() {
     const c = this.content();
     this.last = c;
+    this.showBrowserBar(c);
     const steps = c.steps
       .map((s, i) => `<li class="kah-step"><span class="kah-n">${i + 1}</span><span class="kah-ico">${iconHtml(s.icon)}</span><span class="kah-txt"><span class="kah-st">${md(s.title)}</span><span class="kah-ss">${md(s.sub)}</span></span></li>`)
       .join("");
@@ -416,7 +452,7 @@ export class HomeScreenGuide {
       `<ol class="kah-steps">${steps}</ol>` +
       (c.fallback ? `<div class="kah-fb">${md(c.fallback)}</div>` : "") +
       (c.note ? `<div class="kah-note">${md(c.note)}</div>` : "") +
-      `<div class="kah-btns"><button type="button" class="kah-b kah-later" data-act="close">${this.from === "first" ? "NOT NOW" : "CLOSE"}</button>${fs}<button type="button" class="kah-b kah-main" data-act="${c.primary}">${main}</button></div>`;
+      `<div class="kah-btns"><button type="button" class="kah-b kah-later" data-act="close">${this.from === "first" ? (c.variant === "in-app" ? "PLAY HERE ANYWAY" : "NOT NOW") : "CLOSE"}</button>${fs}<button type="button" class="kah-b kah-main" data-act="${c.primary}">${main}</button></div>`;
     this.el.setAttribute("aria-label", c.title);
     for (const b of Array.from(this.card.querySelectorAll<HTMLElement>("[data-act]"))) this.bindTap(b, () => this.act(b.dataset.act ?? ""));
   }
@@ -452,10 +488,11 @@ export class HomeScreenGuide {
   }
 
   private act(a: string) {
-    if (a === "close" || a === "ok") return this.close();
+    if (a === "close" || a === "ok") return this.close(true);
     if (a === "fs") {
+      this.leftFullscreen = false;
       this.opts.fullscreen?.go();
-      return this.close();
+      return this.close(true);
     }
     if (a === "copy") return void this.copyLink();
     if (a === "install") return void this.install();
@@ -471,7 +508,7 @@ export class HomeScreenGuide {
       if (r?.outcome === "accepted") {
         installed = true;
         this.say("Added! Open KRELWORLD from your Home Screen.");
-        window.setTimeout(() => this.close(), 2200);
+        window.setTimeout(() => this.close(false), 2200);
       } else this.render();
     } catch {
       deferred = null;

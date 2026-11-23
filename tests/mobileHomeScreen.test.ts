@@ -170,8 +170,12 @@ describe("?mobilediag", () => {
     const phone = { media: (q: string) => q === "(pointer: coarse)" || q === "(hover: none)", maxTouchPoints: 5, screen: { width: 844, height: 390 } };
     expect(explainMobile(phone)).toMatchObject({ mobile: true, by: "device", coarse: true, noHover: true, touchPoints: 5, shortSide: 390, device: true });
     const laptop = { media: (q: string) => q === "(pointer: fine)", maxTouchPoints: 0, screen: { width: 1440, height: 900 } };
-    expect(explainMobile({ ...laptop, search: "?mobile=1" })).toMatchObject({ mobile: true, by: "address", device: false, param: "on" });
-    expect(explainMobile({ ...laptop, stored: "1" })).toMatchObject({ mobile: true, by: "remembered" });
+    expect(explainMobile({ ...laptop, maxTouchPoints: 1, search: "?mobile=1" })).toMatchObject({ mobile: true, by: "address", device: false, param: "on" });
+    expect(explainMobile({ ...laptop, search: "?mobile=1" })).toMatchObject({ mobile: false, by: "device", param: "on", note: "?mobile=1 ignored: no touch screen" });
+    expect(explainMobile({ ...phone, stored: "0" })).toMatchObject({ mobile: false, by: "remembered" });
+    expect(explainMobile({ ...laptop, stored: "1" })).toMatchObject({ mobile: false, by: "device" });
     expect(explainMobile(laptop)).toMatchObject({ mobile: false, by: "device", coarse: false });
+    expect(explainMobile({ ...phone, screen: { width: 1024, height: 600 } })).toMatchObject({ mobile: false, device: false, shortSide: 600 });
+    expect(explainMobile({ ...phone, ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" })).toMatchObject({ mobile: false, tabletUA: true });
   });
 });

@@ -18,7 +18,7 @@ html.mobile input,html.mobile textarea{-webkit-user-select:text;user-select:text
 .kt-probe{position:absolute;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;
   padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 .kt-zone{position:absolute;left:0;top:0;width:100px;height:100px;transform-origin:0 0;pointer-events:none;touch-action:none}
-.kt.walk .kt-zone{pointer-events:auto}
+.kt.stick .kt-zone{pointer-events:auto}
 .kt-stick{position:absolute;left:0;top:0;pointer-events:none;opacity:0;transition:opacity .15s}
 .kt-stick.ghost{opacity:.55}
 .kt-stick.live{opacity:1;transition:none}
@@ -37,13 +37,26 @@ html.mobile input,html.mobile textarea{-webkit-user-select:text;user-select:text
   transition:transform .08s,box-shadow .08s;pointer-events:none}
 .kt-btn.on .kt-face{border-color:rgba(255,255,255,.7);background:rgba(10,6,20,.6);transform:scale(.93);
   box-shadow:0 0 0 2px rgba(0,0,0,.5),0 0 0 10px rgba(255,210,63,.32)}
+/* the player or what they're at is under it: see-through in place (research C9); pressed still shows */
+.kt-btn.see:not(.on) .kt-face{background:transparent;border-width:2px;border-color:rgba(255,255,255,.28);box-shadow:none;opacity:.7}
+.kt-btn.see.kt-action:not(.on) .kt-face{border-color:rgba(255,210,63,.4)}
 .kt-action .kt-face{border-color:rgba(255,210,63,calc(var(--kt-a) + .25))}
 .kt-action.pop .kt-face{animation:kt-pop .22s ease-out}
 .kt-sanmik .kt-face{border-color:rgba(176,196,255,calc(var(--kt-a) + .2));font-size:12px}
 @keyframes kt-pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
 .kt-bars{display:flex;gap:6px}.kt-bars i{display:block;width:6px;height:18px;background:#fff;border-radius:1px;box-shadow:0 0 0 1px rgba(0,0,0,.6)}
-.kt-bubble{position:absolute;left:0;top:0;width:100px;height:100px;transform-origin:0 0;pointer-events:none;touch-action:none}
-.kt.walk .kt-bubble.show{pointer-events:auto}
+/* tap areas (outside the stick zone): the prompt bubble, and the thing the prompt is about */
+.kt-tap{position:absolute;left:0;top:0;width:100px;height:100px;transform-origin:0 0;pointer-events:none;touch-action:none;display:none}
+.kt-tap.show{display:block;pointer-events:auto}
+
+/* ---- back to a fight with no pause menu: "tap to carry on" (the loop sleeps behind it) */
+.kres{position:fixed;left:0;top:0;width:100%;height:100%;z-index:30;display:none;align-items:center;justify-content:center;
+  background:rgba(6,3,12,.55);color:#fff;text-align:center;pointer-events:auto;touch-action:none;
+  font-family:"Krel Bold",system-ui,-apple-system,sans-serif}
+.kres.show{display:flex}
+.kres-in{padding:14px 26px;border-radius:14px;background:rgba(23,15,38,.9);border:2px solid #ffd23f}
+.kres-t{font-size:28px;color:#ffd23f;letter-spacing:2px}
+.kres-s{font-size:16px;margin-top:6px;color:#e9e3ff}
 
 /* ---- turn your phone sideways */
 .krot{position:fixed;left:0;top:0;width:100%;height:100%;z-index:40;display:none;align-items:center;justify-content:center;
@@ -117,13 +130,17 @@ html.mobile input,html.mobile textarea{-webkit-user-select:text;user-select:text
   background:rgba(255,210,63,.12);color:#ffd23f;font:700 16px "Krel Bold",system-ui,sans-serif;touch-action:manipulation}
 .kah-rot .kah-svg{width:24px;height:24px}
 
-/* ---- ?mobilediag (diag.ts) */
-.kdiag{position:fixed;left:max(4px,env(safe-area-inset-left,0px));top:4px;z-index:50;max-width:min(380px,62vw);background:rgba(0,0,0,.74);
-  color:#b8ffb0;font:10.5px/1.3 ui-monospace,Menlo,Consolas,monospace;padding:4px 7px;border-radius:6px;white-space:pre-wrap;
-  pointer-events:auto;touch-action:none;-webkit-user-select:text;user-select:text}
-.kdiag.pos1{top:auto;bottom:24px}
-.kdiag.pos2{left:auto;right:max(4px,env(safe-area-inset-right,0px));top:auto;bottom:24px}
-.kdiag.pos3{left:auto;right:max(4px,env(safe-area-inset-right,0px));top:64px}
+/* ---- ?mobilediag (diag.ts): touches go straight through it to the game, except on its little MOVE tab */
+.kdiag{position:fixed;right:max(4px,env(safe-area-inset-right,0px));top:64px;z-index:50;max-width:min(380px,62vw);background:rgba(0,0,0,.66);
+  color:#b8ffb0;font:10.5px/1.3 ui-monospace,Menlo,Consolas,monospace;padding:4px 7px 4px 7px;border-radius:6px;
+  pointer-events:none;touch-action:none}
+.kdiag-t{white-space:pre-wrap}
+.kdiag-h{position:absolute;right:0;bottom:-30px;min-width:64px;height:30px;line-height:30px;padding:0 10px;border-radius:0 0 6px 6px;
+  background:rgba(0,0,0,.8);color:#ffd23f;font:700 12px/30px system-ui,sans-serif;text-align:center;pointer-events:auto;touch-action:none}
+.kdiag.pos1{top:4px;right:auto;left:max(4px,env(safe-area-inset-left,0px))}
+.kdiag.pos2{top:auto;bottom:40px;right:auto;left:max(4px,env(safe-area-inset-left,0px))}
+.kdiag.pos2 .kdiag-h,.kdiag.pos3 .kdiag-h{bottom:auto;top:-30px;border-radius:6px 6px 0 0}
+.kdiag.pos3{top:auto;bottom:40px}
 .kdiag b{color:#ffd23f;font-weight:700}
 .kdiag .bad{color:#ff8a8a}
 `;

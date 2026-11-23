@@ -171,20 +171,31 @@ export interface StickGeometry {
   knob: number;
   /** How far the knob travels from the centre (the base's radius). */
   travel: number;
-  /** Radial dead zone (px). */
+  /** Dead zone (px): radial for "2d", horizontal for "x". */
   dead: number;
-  /** Full speed at this distance (60% of the travel). */
+  /** Full speed at this distance (60% of the travel for "2d", 35% for "x": research M6). */
   full: number;
+  /** "2d": any direction; "x": left and right only (side-scrolling rooms). */
+  axis: "2d" | "x";
 }
 
-export function stickGeometry(h: number, size: PhoneSettings["buttonSize"]): StickGeometry {
+export function stickGeometry(h: number, size: PhoneSettings["buttonSize"], axis: "2d" | "x" = "2d"): StickGeometry {
   const base = Math.round(Math.max(96, 112 * controlScale(h, size)));
   const travel = base / 2;
-  return { base, knob: Math.round(base * 0.45), travel, dead: 8, full: travel * 0.6 };
+  return { base, knob: Math.round(base * 0.45), travel, dead: 8, full: travel * (axis === "x" ? 0.35 : 0.6), axis };
 }
 
-/** The stick's output for a thumb this far from the base: radial dead zone, then speed ramps from zero to full. */
-export function stickVector(dx: number, dy: number, g: Pick<StickGeometry, "dead" | "full">): { x: number; y: number; mag: number } {
+/**
+ * The stick's output for a thumb this far from the base: dead zone, then speed ramps from zero to full. An "x" stick
+ * only reads left and right (y is always 0).
+ */
+export function stickVector(dx: number, dy: number, g: Pick<StickGeometry, "dead" | "full"> & { axis?: "2d" | "x" }): { x: number; y: number; mag: number } {
+  if (g.axis === "x") {
+    const ax = Math.abs(dx);
+    if (ax <= g.dead) return { x: 0, y: 0, mag: 0 };
+    const mag = Math.min(1, (ax - g.dead) / Math.max(1, g.full - g.dead));
+    return { x: Math.sign(dx) * mag, y: 0, mag };
+  }
   const len = Math.hypot(dx, dy);
   if (len <= g.dead || len === 0) return { x: 0, y: 0, mag: 0 };
   const mag = Math.min(1, (len - g.dead) / Math.max(1, g.full - g.dead));
@@ -214,6 +225,27 @@ export function ghostStick(vp: Viewport, settings: Pick<PhoneSettings, "leftHand
 }
 
 /** Is a point inside a rectangle? */
-export function inRect(r: Rect, x: number, y: number): boolean {
-  return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+export function inRect(r: Rect | null | undefined, x: number, y: number): boolean {
+  return !!r && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
+}
+
+/** Do two rectangles overlap (by more than a touch)? */
+export function overlaps(a: Rect | null | undefined, b: Rect | null | undefined): boolean {
+  return !!a && !!b && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+}
+
+/**
+ * The part of a tap area that lies outside the stick zone (inside the zone the zone's own tap rule handles it): the
+ * larger of the strip beside the zone and the strip above it. Null if nothing is left.
+ */
+export function outsideZone(r: Rect, zone: Rect): Rect | null {
+  if (!overlaps(r, zone)) return r.w > 0 && r.h > 0 ? r : null;
+  const zr = zone.x + zone.w;
+  // beside: to the right of a left-hand zone, or to the left of a right-hand one
+  const side: Rect | null =
+    zone.x <= 0 ? (r.x + r.w > zr ? { x: zr, y: r.y, w: r.x + r.w - zr, h: r.h } : null) : r.x < zone.x ? { x: r.x, y: r.y, w: zone.x - r.x, h: r.h } : null;
+  const above: Rect | null = r.y < zone.y ? { x: r.x, y: r.y, w: r.w, h: zone.y - r.y } : null;
+  const area = (q: Rect | null) => (q ? q.w * q.h : 0);
+  const best = area(side) >= area(above) ? side : above;
+  return best && best.w > 0 && best.h > 0 ? best : null;
 }

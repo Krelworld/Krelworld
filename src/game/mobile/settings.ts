@@ -64,29 +64,47 @@ export const DEFAULT_PHONE_SETTINGS: Readonly<PhoneSettings> = Object.freeze({
 
 export const PHONE_SETTING_KEYS = Object.keys(DEFAULT_PHONE_SETTINGS) as PhoneSettingKey[];
 
-const oneOf = <T extends string>(v: unknown, opts: readonly T[], d: T): T => (typeof v === "string" && (opts as readonly string[]).includes(v) ? (v as T) : d);
-const bool = (v: unknown, d: boolean) => (typeof v === "boolean" ? v : d);
-const num = (v: unknown, lo: number, hi: number, d: number) => (typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d);
+const oneOf = <T extends string>(v: unknown, opts: readonly T[]): T | undefined => (typeof v === "string" && (opts as readonly string[]).includes(v) ? (v as T) : undefined);
+const bool = (v: unknown) => (typeof v === "boolean" ? v : undefined);
+const num = (v: unknown, lo: number, hi: number) => (typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : undefined);
 
-/** Anything (a stored object, a half-filled one, an old version, junk) to valid settings. */
+/** One setting's value, cleaned (clamped into range), or undefined if it isn't a valid value for that setting. */
+export function cleanSetting<K extends PhoneSettingKey>(k: K, v: unknown): PhoneSettings[K] | undefined {
+  const out = ((): unknown => {
+    switch (k) {
+      case "buttonSize":
+        return oneOf(v, ["S", "M", "L"] as const);
+      case "opacity":
+        return num(v, 0.2, 0.8);
+      case "stick":
+        return oneOf(v, ["floating", "fixed"] as const);
+      case "aimAssist":
+        return oneOf(v, ["off", "normal", "strong"] as const);
+      case "textSize":
+        return oneOf(v, ["normal", "large"] as const);
+      case "syncOffsetMs": {
+        const n = num(v, -300, 300);
+        return n === undefined ? undefined : Math.round(n);
+      }
+      default:
+        return bool(v);
+    }
+  })();
+  return out as PhoneSettings[K] | undefined;
+}
+
+/** The defaults now (tests may stand in a later stage's defaults). */
+let defaults: Readonly<PhoneSettings> = DEFAULT_PHONE_SETTINGS;
+
+/** Anything (a stored object, a half-filled one, an old version, junk) to valid settings: the defaults where missing. */
 export function normalizePhoneSettings(raw: unknown): PhoneSettings {
   const r = (raw && typeof raw === "object" ? raw : {}) as Partial<Record<PhoneSettingKey, unknown>>;
-  const D = DEFAULT_PHONE_SETTINGS;
-  return {
-    leftHanded: bool(r.leftHanded, D.leftHanded),
-    buttonSize: oneOf(r.buttonSize, ["S", "M", "L"] as const, D.buttonSize),
-    opacity: num(r.opacity, 0.2, 0.8, D.opacity),
-    stick: oneOf(r.stick, ["floating", "fixed"] as const, D.stick),
-    autoFire: bool(r.autoFire, D.autoFire),
-    aimAssist: oneOf(r.aimAssist, ["off", "normal", "strong"] as const, D.aimAssist),
-    phoneAssist: bool(r.phoneAssist, D.phoneAssist),
-    batterySaver: bool(r.batterySaver, D.batterySaver),
-    readability: bool(r.readability, D.readability),
-    textSize: oneOf(r.textSize, ["normal", "large"] as const, D.textSize),
-    haptics: bool(r.haptics, D.haptics),
-    syncOffsetMs: Math.round(num(r.syncOffsetMs, -300, 300, D.syncOffsetMs)),
-    playOverMyMusic: bool(r.playOverMyMusic, D.playOverMyMusic),
-  };
+  const out = { ...defaults } as PhoneSettings;
+  for (const k of PHONE_SETTING_KEYS) {
+    const v = cleanSetting(k, r[k]);
+    if (v !== undefined) (out as Record<PhoneSettingKey, unknown>)[k] = v;
+  }
+  return out;
 }
 
 /** The keys whose values differ. */
@@ -96,10 +114,52 @@ export function changedKeys(a: PhoneSettings, b: PhoneSettings): PhoneSettingKey
 
 // ------------------------------------------------------------------ storage
 
+/**
+ * What is stored: ONLY the settings the player chose ({ v: 2, buttonSize: "L" }), never the defaults, so when a later
+ * stage changes a default (stage 2 turns readability on) everyone who never chose that setting gets the new one,
+ * whatever else they changed. Version 1 (part 2 of stage 1, never shipped) stored every field: reading one, only the
+ * values that differ from version 1's defaults count as chosen.
+ */
+export const PHONE_SETTINGS_VERSION = 2;
+
+/** The defaults version 1 was written with (a copy: DEFAULT_PHONE_SETTINGS may change later; this must not). */
+const V1_DEFAULTS: Readonly<PhoneSettings> = Object.freeze({
+  leftHanded: false,
+  buttonSize: "M",
+  opacity: 0.3,
+  stick: "floating",
+  autoFire: true,
+  aimAssist: "normal",
+  phoneAssist: true,
+  batterySaver: false,
+  readability: false,
+  textSize: "normal",
+  haptics: true,
+  syncOffsetMs: 0,
+  playOverMyMusic: false,
+});
+
+/** A stored object → the settings the player chose (cleaned; anything invalid or unknown is left out). */
+export function chosenFromStored(raw: unknown): Partial<PhoneSettings> {
+  if (!raw || typeof raw !== "object") return {};
+  const r = raw as Record<string, unknown>;
+  const out: Partial<Record<PhoneSettingKey, unknown>> = {};
+  for (const k of PHONE_SETTING_KEYS) {
+    if (!(k in r)) continue;
+    const v = cleanSetting(k, r[k]);
+    if (v === undefined) continue;
+    // (version 1 wrote every field: one still at version 1's default was never a choice)
+    if (r.v === 1 && v === V1_DEFAULTS[k]) continue;
+    out[k] = v;
+  }
+  return out as Partial<PhoneSettings>;
+}
+
 /** Where the settings live between visits. */
 export interface PhoneSettingsStore {
   load(): unknown;
-  save(s: PhoneSettings): void;
+  /** The settings the player chose (only those). */
+  save(chosen: Partial<PhoneSettings>): void;
 }
 
 /** The storage key (through storageKey: the ALT build keeps its own). */
@@ -121,9 +181,9 @@ export function localPhoneSettingsStore(storage: Pick<Storage, "getItem" | "setI
         return null;
       }
     },
-    save(s) {
+    save(chosen) {
       try {
-        storage?.setItem(key, JSON.stringify({ v: 1, ...s }));
+        storage?.setItem(key, JSON.stringify({ v: PHONE_SETTINGS_VERSION, ...chosen }));
       } catch {
         /* private mode or full: keep going with the new values in memory */
       }
@@ -143,12 +203,19 @@ function safeLocalStorage(): Storage | null {
 
 export type PhoneSettingsListener = (s: Readonly<PhoneSettings>, changed: PhoneSettingKey[]) => void;
 
+/** The settings the player chose (what is stored). */
+let chosen: Partial<PhoneSettings> = {};
 let current: PhoneSettings = { ...DEFAULT_PHONE_SETTINGS };
 let store: PhoneSettingsStore | null = null;
 const listeners = new Set<PhoneSettingsListener>();
 
 export function phoneSettings(): Readonly<PhoneSettings> {
   return current;
+}
+
+/** The settings the player chose themselves (the rest follow the defaults). */
+export function chosenPhoneSettings(): Readonly<Partial<PhoneSettings>> {
+  return { ...chosen };
 }
 
 function notify(changed: PhoneSettingKey[]) {
@@ -161,23 +228,42 @@ function notify(changed: PhoneSettingKey[]) {
   }
 }
 
-/** Change some settings: saved at once, and every listener hears about it (the touch layer re-lays itself out). */
-export function updatePhoneSettings(patch: Partial<PhoneSettings>) {
-  const next = normalizePhoneSettings({ ...current, ...patch });
-  const changed = changedKeys(current, next);
-  if (!changed.length) return;
-  current = next;
+function save() {
   try {
-    store?.save(current);
+    store?.save({ ...chosen });
   } catch {
     /* storage full or blocked: keep going with the new values */
   }
-  notify(changed);
 }
 
-/** Back to the defaults (saved, listeners told). */
+/** Change some settings (the player's choice): saved at once, and every listener hears about it. */
+export function updatePhoneSettings(patch: Partial<PhoneSettings>) {
+  const next: Partial<Record<PhoneSettingKey, unknown>> = { ...chosen };
+  let chose = false;
+  for (const k of Object.keys(patch ?? {}) as PhoneSettingKey[]) {
+    if (!PHONE_SETTING_KEYS.includes(k)) continue;
+    const v = cleanSetting(k, patch[k]);
+    if (v === undefined) continue;
+    if (next[k] !== v || !(k in chosen)) chose = true;
+    next[k] = v;
+  }
+  if (!chose) return;
+  chosen = next as Partial<PhoneSettings>;
+  const was = current;
+  current = normalizePhoneSettings(chosen);
+  save();
+  const changed = changedKeys(was, current);
+  if (changed.length) notify(changed);
+}
+
+/** Back to the defaults: nothing chosen any more (saved, listeners told). */
 export function resetPhoneSettings() {
-  updatePhoneSettings({ ...DEFAULT_PHONE_SETTINGS });
+  const was = current;
+  chosen = {};
+  current = normalizePhoneSettings(chosen);
+  save();
+  const changed = changedKeys(was, current);
+  if (changed.length) notify(changed);
 }
 
 /** Called whenever settings change, with the keys that changed. Returns an unsubscribe function. */
@@ -197,17 +283,26 @@ export function usePhoneSettingsStore(s: PhoneSettingsStore | null) {
     loaded = null;
   }
   if (!loaded) return;
-  const next = normalizePhoneSettings(loaded);
-  const changed = changedKeys(current, next);
-  current = next;
+  chosen = chosenFromStored(loaded);
+  const was = current;
+  current = normalizePhoneSettings(chosen);
+  const changed = changedKeys(was, current);
   if (changed.length) notify(changed);
 }
 
 /** Tests only. */
 export function resetPhoneSettingsForTests() {
+  defaults = DEFAULT_PHONE_SETTINGS;
+  chosen = {};
   current = { ...DEFAULT_PHONE_SETTINGS };
   store = null;
   listeners.clear();
+}
+
+/** Tests only: stand in different defaults (as a later stage might ship), as if the game had just loaded. */
+export function setPhoneDefaultsForTests(d: Partial<PhoneSettings>) {
+  defaults = Object.freeze({ ...DEFAULT_PHONE_SETTINGS, ...d });
+  current = normalizePhoneSettings(chosen);
 }
 
 // ------------------------------------------------------------------ the list a settings screen renders

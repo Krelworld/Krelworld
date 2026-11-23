@@ -48,7 +48,7 @@ import { installDebug } from "./game/debug";
 import { installCrashGuard } from "./game/crashGuard";
 import { SaveSlotsScene } from "./game/scenes/SaveSlotsScene";
 import { installSaveWhere } from "./game/saveWhere";
-import { installMobile } from "./game/mobile";
+import { installMobile } from "./game/mobile/boot";
 
 installPixelFonts();
 installCalmFlash();

@@ -5,11 +5,17 @@
 //    (except while the art is still loading, which carries on behind it so no time is lost);
 //  - the page hidden (app switch, lock, another tab) or unloading: everything lets go, the loop sleeps, the music and
 //    the sound context pause, and the game saves; all of it picks up again when the page comes back;
+//  - the Add to Home Screen guide open: the loop sleeps under it (nothing can hurt you while you read);
+//  - coming back to a fight (from any of the above): never straight into live action. Where the game has a pause
+//    route it opens the pause menu; where it has none (the finale, the minigames) the loop stays asleep behind a
+//    "tap to carry on" card. Town carries straight on;
 //  - Safari's bars collapsing (visualViewport) and rotations: the game re-measures;
 //  - Android: the Enter-gate tap asks for fullscreen and locks landscape, and a small control offers it again if the
-//    player leaves fullscreen (iPhone has no fullscreen: the Add to Home Screen guide, homeScreen.ts, is its route);
-//  - the back gesture: one guard entry in the history, so a stray back swipe pauses the game instead of leaving it
-//    (a second back while paused does leave).
+//    player leaves fullscreen (iPhone has no fullscreen: the Add to Home Screen guide, homeScreen.ts, is its route).
+//    Messages the game pins to <body> (the crash guard's notices) are moved into the fullscreen element so they show;
+//  - the back gesture: one guard entry in the history, so a stray back swipe pauses the game instead of leaving it,
+//    and does nothing where the game can't pause (the title, a conversation, a menu). A back while the pause menu is
+//    showing leaves.
 import type Phaser from "phaser";
 import { synth } from "../audio/Synth";
 import { G } from "../G";
@@ -17,8 +23,16 @@ import { MOBILE_CSS, MOBILE_STYLE_ID } from "./css";
 import { currentPlatform, type PlatformInfo } from "./platform";
 import { isPortrait, RotateOverlay } from "./rotate";
 import type { TouchLayer } from "./touchLayer";
+import type { ModeDecision } from "./modes";
 
-type Hold = "portrait" | "hidden";
+/** Why the loop is asleep. Several can hold at once; it wakes when the last one lets go. */
+export type Hold = "portrait" | "hidden" | "guide" | "resume";
+
+/** What coming back to the game needs (pure; unit-tested): nothing, the pause menu, or the tap-to-carry-on card. */
+export function wakeCare(d: Pick<ModeDecision, "live" | "pause" | "scene"> | null | undefined): "pause" | "card" | null {
+  if (!d || !d.live) return null;
+  return d.pause && d.scene ? "pause" : "card";
+}
 
 export class Shell {
   readonly platform: PlatformInfo;
@@ -30,9 +44,16 @@ export class Shell {
   private resizeTimer = 0;
   private fsEntered = false;
   private gateTapped = false;
+  /** Touches that started while the Enter gate was up (the gate acts on touch-down; fullscreen needs a touchend). */
+  private gateTouches = new Set<number>();
   private guardArmed = false;
   private lastSave = 0;
   private booted = false;
+  private card: HTMLDivElement;
+  /** The player tapped "carry on": this wake goes straight back to the game. */
+  private carryOn = false;
+  /** How the last wake was handled (tests). */
+  lastWake: "pause" | "card" | null = null;
 
   constructor(
     readonly game: Phaser.Game,
@@ -54,6 +75,7 @@ export class Shell {
       /* not booted yet: set again on ready */
     }
     this.rotate = new RotateOverlay(parent, this.platform);
+    this.card = this.makeCard();
     this.checkOrientation();
     this.listen();
   }
@@ -84,12 +106,16 @@ export class Shell {
     });
     // losing focus (a call, the notification shade): let go of every control
     window.addEventListener("blur", () => this.layer?.releaseAll());
-    window.addEventListener("focus", () => this.layer?.rearm());
+    window.addEventListener("focus", () => {
+      if (!this.holds.size) this.layer?.rearm();
+    });
+    // the Enter gate starts on touch-down: note which touches began there (capture: before anything else sees them)
+    document.addEventListener("touchstart", (e) => this.beforeTouch(e), { capture: true, passive: true });
     // every finished touch: the sound context must be running (iPhone only starts it from a touchend), and the guard
     // against a stray back swipe goes back up once the player is playing again
-    document.addEventListener("touchend", () => this.afterTouch(), { capture: true, passive: true });
+    document.addEventListener("touchend", (e) => this.afterTouch(e), { capture: true, passive: true });
     window.addEventListener("popstate", () => this.onBack());
-    this.game.events.once("ready", () => {
+    whenRunning(this.game, () => {
       try {
         this.game.scale.fullscreenTarget = this.parent;
       } catch {
@@ -107,6 +133,18 @@ export class Shell {
       if (this.fsEntered && this.canFullscreen()) this.layer?.setFullscreenOffer(true);
       this.scheduleResize();
     });
+    // the game pins a few messages to <body> (the crash guard's notices): in Android's fullscreen only #game shows, so
+    // they go in there
+    try {
+      new MutationObserver((list) => {
+        for (const m of list)
+          for (const n of Array.from(m.addedNodes)) {
+            if (n instanceof HTMLElement && n !== this.parent && n.parentNode === document.body && n.style.position === "fixed") this.parent.appendChild(n);
+          }
+      }).observe(document.body, { childList: true });
+    } catch {
+      /* no MutationObserver: notices stay on body */
+    }
   }
 
   /** Every game frame (phones only, from index.ts). */
@@ -160,21 +198,30 @@ export class Shell {
     return !this.booted;
   }
 
-  private setHold(h: Hold, on: boolean) {
+  /** Is this hold on? */
+  holding(h: Hold): boolean {
+    return this.holds.has(h);
+  }
+
+  /** Put a hold on or take it off (the guide uses "guide"; the shell itself the rest). */
+  setHold(h: Hold, on: boolean) {
     const had = this.holds.has(h);
     if (on === had) return;
     if (on) this.holds.add(h);
     else this.holds.delete(h);
+    if (!on && h === "resume") this.carryOn = true;
     if (on) {
       this.layer?.releaseAll();
       if (h === "hidden") this.save();
     }
+    this.card.classList.toggle("show", this.holds.has("resume") && !this.holds.has("hidden") && !this.holds.has("portrait"));
     this.applyHolds();
   }
 
   private applyHolds() {
+    if (this.layer) this.layer.held = this.holds.size > 0;
     // (portrait during the first load: the art keeps loading behind the screen; it sleeps once loading is done)
-    const sleep = this.holds.has("hidden") || (this.holds.has("portrait") && !this.booting());
+    const sleep = this.holds.has("hidden") || this.holds.has("guide") || this.holds.has("resume") || (this.holds.has("portrait") && !this.booting());
     if (sleep && !this.slept) {
       this.slept = true;
       try {
@@ -183,6 +230,15 @@ export class Shell {
         /* not started */
       }
     } else if (!sleep && this.slept) {
+      // back to the game: never straight into a live fight
+      const care = this.carryOn ? null : wakeCare(this.layer?.decision);
+      this.carryOn = false;
+      this.lastWake = care;
+      if (care === "card") {
+        // (no pause route here: stay asleep behind "tap to carry on")
+        this.setHold("resume", true);
+        return;
+      }
       this.slept = false;
       try {
         this.game.loop.wake();
@@ -190,11 +246,45 @@ export class Shell {
       } catch {
         /* ignore */
       }
+      // (the pause menu, the way the scene opens it; for the Esc path the scene reads it on its first frame)
+      if (care === "pause") this.layer?.pause();
     }
-    // (the sound holds with the loop: nothing has started playing while the art is still loading)
-    if (sleep) this.holdAudio();
+    // the sound holds while hidden or upright (not under the guide or the carry-on card: the music may play on);
+    // nothing has started playing while the art is still loading
+    const quiet = this.holds.has("hidden") || (this.holds.has("portrait") && !this.booting());
+    if (quiet) this.holdAudio();
     else if (this.heldAudio) this.releaseAudio();
     if (!this.holds.size) this.layer?.rearm();
+  }
+
+  /** The "tap to carry on" card (a fight with no pause menu: the finale, the minigames). */
+  private makeCard(): HTMLDivElement {
+    const el = document.createElement("div");
+    el.className = "kres";
+    el.setAttribute("role", "button");
+    el.innerHTML = `<div class="kres-in"><div class="kres-t">PAUSED</div><div class="kres-s">Tap to carry on</div></div>`;
+    let down = false;
+    el.addEventListener("touchstart", (e) => {
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+      down = true;
+    }, { passive: false });
+    el.addEventListener("touchmove", (e) => {
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+    }, { passive: false });
+    el.addEventListener("touchend", (e) => {
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+      if (!down) return;
+      down = false;
+      this.setHold("resume", false);
+    }, { passive: false });
+    el.addEventListener("touchcancel", () => (down = false));
+    // (a mouse, for ?mobile=1 on a computer)
+    el.addEventListener("click", () => this.setHold("resume", false));
+    this.parent.appendChild(el);
+    return el;
   }
 
   private holdAudio() {
@@ -232,24 +322,36 @@ export class Shell {
     // a moment after coming back (and the next touch tries again if it is still not running).
     window.setTimeout(() => {
       const c = synth.ctx;
-      if (!c || this.holds.size) return;
+      if (!c || this.heldAudio) return;
       c.suspend()
         .catch(() => undefined)
-        .then(() => (this.holds.size ? undefined : c.resume()))
+        .then(() => (this.heldAudio ? undefined : c.resume()))
         .catch(() => undefined);
     }, 150);
   }
 
-  private afterTouch() {
+  private beforeTouch(e: TouchEvent) {
+    if (this.gateTapped || !this.onEnterGate()) return;
+    for (const t of Array.from(e.changedTouches)) this.gateTouches.add(t.identifier);
+  }
+
+  private afterTouch(e: TouchEvent) {
     try {
       const c = synth.ctx;
       if (!c) synth.unlock();
-      else if (c.state !== "running" && !this.holds.size) void c.resume().catch(() => undefined);
+      else if (c.state !== "running" && !this.heldAudio) void c.resume().catch(() => undefined);
     } catch {
       /* no audio */
     }
     if (this.gateTapped && !this.guardArmed) this.armGuard();
-    if (!this.gateTapped && this.onEnterGate()) this.enterGateTapped();
+    if (!this.gateTapped) {
+      // (the gate acts on touch-down and fades out: a press held past the fade ends on the title, and still counts)
+      const fromGate = Array.from(e.changedTouches ?? []).some((t) => this.gateTouches.has(t.identifier));
+      if (fromGate || this.onEnterGate()) {
+        this.gateTouches.clear();
+        this.enterGateTapped();
+      }
+    }
   }
 
   private save() {
@@ -283,6 +385,24 @@ export class Shell {
       return this.canFullscreen() && !this.game.scale.isFullscreen;
     } catch {
       return false;
+    }
+  }
+
+  /** In the game's fullscreen now (Android). */
+  inFullscreen(): boolean {
+    try {
+      return !!this.game.scale.isFullscreen;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Leave fullscreen (the guide's written steps need the browser's own menu bar). */
+  leaveFullscreen() {
+    try {
+      if (this.game.scale.isFullscreen) this.game.scale.stopFullscreen();
+    } catch {
+      /* ignore */
     }
   }
 
@@ -323,10 +443,42 @@ export class Shell {
     }
   }
 
+  /** The pause menu (not the title's settings, not a shop) is showing. */
+  private pauseMenuShowing(): boolean {
+    try {
+      const m = this.game.scene.getScene("Menu") as unknown as { mode?: string } | null;
+      return this.game.scene.isActive("Menu") && m?.mode === "pause";
+    } catch {
+      return false;
+    }
+  }
+
   private onBack() {
     if (!this.guardArmed) return;
     this.guardArmed = false;
-    // a stray back swipe pauses (where the game can pause); the guard goes back up with the next touch
+    // a back while the pause menu is showing leaves the game (the guard is already gone: go back past it)
+    if (this.pauseMenuShowing()) {
+      try {
+        history.back();
+      } catch {
+        /* nowhere to go back to */
+      }
+      return;
+    }
+    // otherwise it pauses where the game can, and does nothing where it can't (the title, a conversation, a menu):
+    // the guard goes straight back up (and again with the next touch, if the browser skips an entry made outside a tap)
     this.layer?.pause();
+    this.armGuard();
   }
+
+  /** Tests: the shell's state. */
+  snapshot() {
+    return { holds: [...this.holds], slept: this.slept, card: this.card.classList.contains("show"), guard: this.guardArmed, gate: this.gateTapped, lastWake: this.lastWake };
+  }
+}
+
+/** Run once the game is running (now, if it already is: the phone code may arrive after the game has booted). */
+export function whenRunning(game: Phaser.Game, fn: () => void) {
+  if ((game as Phaser.Game & { isRunning?: boolean }).isRunning) fn();
+  else game.events.once("ready", fn);
 }

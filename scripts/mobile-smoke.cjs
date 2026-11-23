@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,guide,optout,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,guide,optout,town,dungeon,android,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -27,8 +27,18 @@
 //          Samsung Internet, Firefox, an Android in-app browser; at 844x390, 740x360 and 750x340; never shown from
 //          the home screen (navigator.standalone, display-mode); ?mobilediag (and only with it).
 // optout   the same phone with ?mobile=0: no layer, no "mobile" class, no phone CSS, no phone global.
+// town     the Hub on a phone: with Mikey following, a door's ACTION is ENTER (not SHOVE); SHOVE when he's all
+//          there is; the shoving match on the bridge shows SHOVE and it shoves; the first toasts speak touch.
+// dungeon  Wildern room 1 on the old pad: the page hidden mid-press lets go of the old stick and ATTACK; coming back
+//          (hidden → visible, upright → sideways, the guide from the rotate screen) opens the pause menu instead of
+//          dropping into the fight; a fight with no pause menu waits behind "tap to carry on".
+// android  Android Chrome 740x360: a press held past the Enter gate's fade still gets fullscreen and the back guard;
+//          the guide's written steps leave fullscreen (and closing it goes back in); the crash guard's notices show
+//          in fullscreen; an in-app browser shows "open it in Chrome first" during the load.
 // desktop  1280x720, mouse: phone mode off, no class, no layer, no CSS, no global, and at home the UI scene has no
-//          touch pad and TOUCH stays off (exactly as before).
+//          touch pad and TOUCH stays off (exactly as before). Also: a laptop with "1" left in storage by an old
+//          ?mobile=1 link, and a laptop opening ?mobile=1, are laptops; the phone code reads no storage and asks no
+//          media query on a laptop, and none of the phone chunk's modules is even fetched.
 // Exit code: 0 all passed, 1 something failed, 2 could not run.
 const { chromium } = require("playwright");
 const fs = require("fs");
@@ -41,7 +51,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,guide,optout,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,guide,optout,town,dungeon,android,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -224,6 +234,13 @@ async function phone(browser) {
 
     // the Enter gate and the front end, by taps
     await ph.page.waitForTimeout(1200);
+    const gateWords = await ph.ev(() => {
+      const t = [];
+      const walk = (o) => (o.type === "Container" ? o.list.forEach(walk) : o.type === "Text" && o.visible && o.text && t.push(o.text));
+      window.__krel.game.scene.getScene("Enter").children.list.forEach(walk);
+      return t;
+    });
+    check("the Enter gate says TAP TO START on a phone (no 'PRESS ANY KEY', no 'OR CLICK')", gateWords.includes("TAP TO START") && !gateWords.some((t) => /PRESS ANY KEY|CLICK/.test(t)), gateWords);
     await ph.tapCss(422, 300);
     await ph.scene("Title");
     // the Add to Home Screen guide: once, by itself, over the title, before a game is started
@@ -244,6 +261,14 @@ async function phone(browser) {
     check("✕ closes it", !(await ph.guide()).open);
     const rs = await ph.readState();
     check("readability is off by default and has touched nothing (no patch, no text resized)", !rs.on && rs.refreshes === 0 && !rs.patched && rs.marked === 0, rs);
+    // the back gesture where the game can't pause (the title): nothing happens, twice in a row, no touch between (R3)
+    const url0 = ph.page.url();
+    await ph.ev(() => history.back());
+    await sleep(600);
+    await ph.ev(() => history.back());
+    await sleep(900);
+    const afterBack = await ph.ev(() => ({ title: !!window.__krel && window.__krel.active().includes("Title"), guard: window.__krelMobile.shellState().guard }));
+    check("Back twice on the title (no touch between): the page stays, still the title, the guard back up", ph.page.url() === url0 && afterBack.title && afterBack.guard, { url: ph.page.url(), ...afterBack });
     await ph.page.waitForTimeout(800);
     await ph.tapText("NEW GAME");
     await ph.scene("CharSelect");
@@ -256,9 +281,16 @@ async function phone(browser) {
     await ph.page.waitForTimeout(1200);
     await ph.tapText("LET'S KREZ");
     await ph.scene("Home", 180000);
-    check("a new game started by taps reaches Home", true);
+    check("a new game started by taps reaches Home", (await ph.active()).includes("Home"));
     await ph.page.waitForTimeout(2500);
     check("during the welcome conversation the layer shows nothing", (await ph.mode()) === "none:Home", await ph.mode());
+    // Back twice during a conversation: nothing happens, the conversation is still there (R3)
+    await ph.ev(() => history.back());
+    await sleep(600);
+    await ph.ev(() => history.back());
+    await sleep(900);
+    const conv = await ph.ev(() => ({ home: window.__krel.active().includes("Home"), busy: window.__krel.game.scene.getScene("Home").busy, menu: window.__krel.active().includes("Menu") }));
+    check("Back twice in a conversation: the page stays, the conversation stays, no pause menu", ph.page.url() === url0 && conv.home && conv.busy && !conv.menu, conv);
     await ph.shot("phone-home-welcome");
     let taps = 0;
     for (; taps < 40 && (await ph.ev(() => window.__krel.game.scene.getScene("Home").busy)); taps++) {
@@ -388,9 +420,173 @@ async function phone(browser) {
     });
     check("the panel's close hint reads '✕ to close' (no ESC on a phone)", hintText.length === 1 && hintText[0] === "✕ to close", hintText);
     await ph.tapText("✕", { scene: "Home", exact: true });
-    await ph.until(() => window.__krelMobile.snapshot().decision.mode === "walk", null, 8000, "walk again");
-    check("closing the panel brings the walking controls back", true);
+    await ph.until(() => window.__krelMobile.snapshot().decision.mode === "walk", null, 8000, "walk again").catch(() => 0);
+    check("closing the panel brings the walking controls back", (await ph.mode()) === "walk:Home");
     check("no stray input left over", (await ph.touchState()).mx === 0 && (await ph.touchState()).my === 0);
+
+    // the prompt bubble inside the stick zone (the trophy shelf, left of the room): a drag from it walks, a quick tap
+    // on it uses the shelf (R1, P8); a tap on the shelf itself uses it too (P5)
+    const putMe = (x, y) => ph.ev(([x, y]) => {
+      const h = window.__krel.game.scene.getScene("Home");
+      h.me.x = x;
+      h.me.y = y;
+    }, [x, y]);
+    const homeBusy = () => ph.ev(() => window.__krel.game.scene.getScene("Home").busy === true);
+    /** Wait until Home's prompt is about this (and the layer has caught up with it). */
+    const waitPrompt = async (re) => {
+      await ph.until((src) => {
+        const p = window.__krel.game.scene.getScene("Home").prompt;
+        return p.visible && new RegExp(src).test(p.__krelRaw || p.text) && !!window.__krelMobile.snapshot().bubble;
+      }, re.source, 5000, `the prompt ${re}`).catch(() => 0);
+      await sleep(150);
+    };
+    const closePanel = async () => {
+      await ph.tapText("✕", { scene: "Home", exact: true }).catch(() => 0);
+      await ph.until(() => window.__krelMobile.snapshot().decision.mode === "walk", null, 8000, "walk again").catch(() => 0);
+    };
+    await putMe(292, 462);
+    await waitPrompt(/trophy/);
+    s = await ph.snap();
+    const br = s.bubbleRect;
+    const inZone = !!br && br.x + br.w <= s.zone.x + s.zone.w && br.y >= s.zone.y;
+    check("the trophy shelf's prompt bubble is inside the stick zone, and has no tap element of its own there", inZone && !s.tapAreas.bubble, { bubble: br, zone: s.zone, tapAreas: s.tapAreas });
+    a = await ph.me();
+    const bx = br.x + br.w / 2;
+    const by = br.y + br.h / 2;
+    await ph.touch("touchStart", [{ x: bx, y: by, id: 30 }]);
+    for (let i = 1; i <= 6; i++) {
+      await ph.touch("touchMove", [{ x: bx + i * 10, y: by, id: 30 }]);
+      await sleep(40);
+    }
+    await sleep(500);
+    await ph.touch("touchEnd", []);
+    await sleep(250);
+    b = await ph.me();
+    check("a drag that starts on the bubble walks (it is the stick), and uses nothing", b[0] - a[0] >= 25 && !(await homeBusy()), { from: a, to: b });
+    await putMe(292, 462);
+    await waitPrompt(/trophy/);
+    s = await ph.snap();
+    await ph.tapCss(s.bubbleRect.x + s.bubbleRect.w / 2, s.bubbleRect.y + s.bubbleRect.h / 2);
+    await ph.until(() => window.__krel.game.scene.getScene("Home").busy, null, 4000, "the trophy shelf").catch(() => 0);
+    check("a quick tap on the bubble (inside the zone) uses the shelf", await homeBusy());
+    await closePanel();
+    await putMe(292, 462);
+    await waitPrompt(/trophy/);
+    s = await ph.snap();
+    const core = s.target && s.target.core;
+    const tx = core ? core.x + core.w / 2 : 0;
+    const ty = core ? core.y + core.h / 2 : 0;
+    const onBubble = s.bubbleRect && tx >= s.bubbleRect.x && tx <= s.bubbleRect.x + s.bubbleRect.w && ty >= s.bubbleRect.y && ty <= s.bubbleRect.y + s.bubbleRect.h;
+    await ph.tapCss(tx, ty);
+    await ph.until(() => window.__krel.game.scene.getScene("Home").busy, null, 4000, "the trophy shelf").catch(() => 0);
+    check("a quick tap on the shelf itself (not the bubble) uses it (P5)", !!core && !onBubble && (await homeBusy()), { core, bubble: s.bubbleRect });
+    await closePanel();
+    // the games console, on the right (outside the zone): its own tap area; ACTION see-through over the player (P3)
+    await putMe(900, 532);
+    await waitPrompt(/console/);
+    s = await ph.snap();
+    const tr = s.target && s.target.tap;
+    const hit = s.slots.prime.hit;
+    let cx = tr ? Math.max(tr.x + 8, s.zone.x + s.zone.w + 8) : 0;
+    const cy = tr ? Math.min(tr.y + tr.h - 8, Math.max(tr.y + 8, hit.y - 12)) : 0;
+    if (tr && cx >= hit.x) cx = tr.x + 8;
+    check("the console (right half) has a tap area over it", s.tapAreas.target && !!tr, { target: tr, prime: hit });
+    await ph.tapCss(cx, cy);
+    await ph.until(() => window.__krel.game.scene.getScene("Home").busy, null, 4000, "the console").catch(() => 0);
+    check("a quick tap on the console uses it (P5)", await homeBusy(), { at: [cx, cy] });
+    await closePanel();
+    await putMe(900, 532);
+    await waitPrompt(/console/);
+    await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+    await ph.until(() => (window.__krelMobile.snapshot().controls.find((c) => c.id === "action") || {}).see, null, 4000, "see-through").catch(() => 0);
+    s = await ph.snap();
+    const actCtl = s.controls.find((c) => c.id === "action");
+    check("iPhone insets, the player in the corner under ACTION: ACTION goes see-through in place (P3)", s.buttons.action && actCtl.see && actCtl.slot === "prime", actCtl);
+    await ph.shot("phone-home-action-see-through");
+    await ph.ev(() => window.__krelMobile.setInsets(null));
+    // the real path: the browser's safe-area insets (CSS env()) read by the layer's probe, after a resize
+    const setSafe = async (l, r, bt) => {
+      await ph.cdp.send("Emulation.setSafeAreaInsetsOverride", { insets: { top: 0, left: l, bottom: bt, right: r } });
+      await ph.page.setViewportSize({ width: 843, height: 390 });
+      await ph.page.setViewportSize({ width: 844, height: 390 });
+      await sleep(700);
+    };
+    let envInsets = null;
+    try {
+      await setSafe(47, 47, 21);
+      envInsets = (await ph.snap()).viewport.insets;
+      await setSafe(0, 0, 0);
+    } catch (e) {
+      envInsets = { error: String(e.message || e).slice(0, 80) };
+    }
+    check("the browser's own safe-area insets (env()) reach the layer's layout", !!envInsets && envInsets.left === 47 && envInsets.right === 47 && envInsets.bottom === 21, envInsets);
+    await putMe(480, 470);
+    await sleep(300);
+    check("away from it, ACTION is solid again (and gone with no prompt)", !(await ph.snap()).controls.find((c) => c.id === "action").see);
+
+    // a control held while the window loses and gets back focus works again once that finger lifts (R10)
+    await ph.ev(() => {
+      window.__n = 0;
+      const c = window.__krelMobile.layer.addControl({ id: "smoke", slot: "upLeft", label: "T", onDown: () => window.__n++ });
+      c.show(true);
+    });
+    await sleep(350);
+    s = await ph.snap();
+    const up = s.slots.upLeft;
+    await ph.touch("touchStart", [{ x: up.cx, y: up.cy, id: 41 }]);
+    await sleep(120);
+    await ph.ev(() => {
+      window.dispatchEvent(new Event("blur"));
+      window.dispatchEvent(new Event("focus"));
+    });
+    await sleep(100);
+    await ph.touch("touchEnd", []);
+    await sleep(400);
+    await ph.tapCss(up.cx, up.cy);
+    await sleep(400);
+    await ph.tapCss(up.cx, up.cy);
+    await sleep(200);
+    const presses = await ph.ev(() => window.__n);
+    await ph.ev(() => window.__krelMobile.layer.removeControl("smoke"));
+    check("a control held through blur / focus: after that finger lifts, the next two taps both press it", presses === 3, { presses });
+
+    // stage 2's hooks: a rule's own field reaches the controllers (R7); controllers are laid out again (R8)
+    const ctl = await ph.ev(async () => {
+      // (through the game's own module instances, not by URL: the dev server may serve an edited file under a new one)
+      const tl = window.__krelMobile.api;
+      const modes = window.__krelMobile.api;
+      const log = (window.__ctl = { frame: 0, layout: 0, tick: [] });
+      window.__tick = 1;
+      tl.registerModeController({ id: "smoke", mode: "walk", frame: (c) => (log.frame++, log.tick[log.tick.length - 1] !== c.decision.tick && log.tick.push(c.decision.tick)), layout: () => log.layout++ });
+      modes.addSceneRule({ name: "smoke", match: (k) => k === "Home", decide: (st) => (st.busy ? null : { mode: "walk", pause: "edge", pauseButton: true, action: modes.verbFromPrompt(st.prompt), stick: "2d", tick: window.__tick }) });
+      await new Promise((r) => setTimeout(r, 400));
+      window.__tick = 2;
+      await new Promise((r) => setTimeout(r, 400));
+      const l0 = log.layout;
+      window.__krelMobile.settings.set({ leftHanded: true });
+      window.__krelMobile.settings.set({ leftHanded: false });
+      const out = { ticks: log.tick.slice(), frames: log.frame, layouts: log.layout - l0 };
+      tl.unregisterModeController("smoke");
+      modes.SCENE_RULES.splice(modes.SCENE_RULES.findIndex((r) => r.name === "smoke"), 1);
+      return out;
+    });
+    check("a stage 2 rule's own field reaches its controller when only that field changes (R7)", ctl.ticks.join() === "1,2" && ctl.frames > 5, ctl);
+    check("controllers are laid out again on a settings change (left-handed) (R8)", ctl.layouts >= 2, ctl);
+
+    // three fingers at once, then the phone cancels them all (a system gesture): nothing stays held
+    await ph.touch("touchStart", [{ x: 150, y: 300, id: 51 }]);
+    await ph.touch("touchMove", [{ x: 190, y: 300, id: 51 }]);
+    await ph.touch("touchStart", [{ x: 190, y: 300, id: 51 }, { x: 250, y: 330, id: 52 }]);
+    await ph.touch("touchStart", [{ x: 190, y: 300, id: 51 }, { x: 250, y: 330, id: 52 }, { x: 600, y: 200, id: 53 }]);
+    await sleep(200);
+    const three = await ph.touchState();
+    await ph.touch("touchCancel", []);
+    await sleep(200);
+    const after3 = await ph.touchState();
+    check("three fingers down, then all cancelled: the stick lets go, nothing held", three.mx > 0.5 && after3.mx === 0 && after3.my === 0 && !(await ph.snap()).stick, { three: three.mx, after: after3 });
+    // the idle stick fades away once the player has walked with it (P13)
+    await sleep(2900);
+    check("after walking with it, the idle stick fades away when not in use (no MOVE ring over the room)", !(await ph.snap()).ghost);
 
     // touchcancel lets go
     await ph.touch("touchStart", [{ x: 160, y: 300, id: 6 }]);
@@ -508,6 +704,13 @@ async function phone(browser) {
     b = await ph.me();
     check("and a new drag walks again", a[0] - b[0] >= 30, { from: a, to: b });
     check("no page errors", errors.length === 0, errors.slice(0, 3));
+    // a Back while the pause menu is showing leaves the game (the one way out by Back)
+    s = await ph.snap();
+    await ph.tapCss(s.slots.pause.cx, s.slots.pause.cy);
+    await ph.until(() => window.__krel.active().includes("Menu"), null, 8000, "the pause menu").catch(() => 0);
+    await ph.ev(() => history.back());
+    await sleep(2500);
+    check("Back while the pause menu shows leaves the game", ph.page.url() !== url0, ph.page.url());
   } finally {
     await ctx.close();
   }
@@ -528,20 +731,31 @@ async function upright(browser) {
     const early = await ph.ev(() => ({ shown: document.querySelector(".krot").classList.contains("show"), loading: !window.__krel || !window.__krel.active().includes("Enter") }));
     check("the rotate screen is up while the game is still loading", early.shown && early.loading, early);
     await ph.until(() => !!window.__krel && window.__krel.active().includes("Enter"), null, 240000, "loading to finish behind it");
-    check("the art keeps loading behind it (the Enter gate is reached while upright)", true);
+    check("the art keeps loading behind it (the Enter gate is reached while upright)", await ph.ev(() => window.__krel.active().includes("Enter") && document.querySelector(".krot").classList.contains("show")));
     await sleep(800);
     const l1 = await ph.loop();
     await sleep(800);
     const l2 = await ph.loop();
     check("once loaded, the loop sleeps while upright", !l2.running && l1.frame === l2.frame, { l1, l2 });
     await ph.shot("upright-boot");
+    // the guide from the turn-your-phone screen, then the phone turned sideways while reading it: the game stays
+    // asleep under the guide until it is closed (R2)
+    await ph.tapSel(".krot-extra .kah-rot");
+    await sleep(400);
     await page.setViewportSize({ width: 844, height: 390 });
     await sleep(1200);
-    const st = await ph.ev(() => ({ shown: document.querySelector(".krot").classList.contains("show"), running: window.__krel.game.loop.running }));
-    check("turned sideways: the screen goes and the game runs", !st.shown && st.running, st);
+    const g1 = await ph.loop();
+    await sleep(900);
+    const g2 = await ph.loop();
+    const gs = await ph.ev(() => ({ guide: window.__krelMobile.guide.isOpen, rot: document.querySelector(".krot").classList.contains("show"), holds: window.__krelMobile.shellState().holds }));
+    check("the guide opened upright, then the phone turned sideways: the game stays asleep under it", gs.guide && !gs.rot && !g2.running && g1.frame === g2.frame && gs.holds.includes("guide"), { ...gs, g1, g2 });
+    await ph.tapSel(".kah-later");
+    await sleep(800);
+    const st = await ph.ev(() => ({ shown: document.querySelector(".krot").classList.contains("show"), running: window.__krel.game.loop.running, guide: window.__krelMobile.guide.isOpen }));
+    check("closed: the game runs (sideways, no rotate screen)", !st.shown && st.running && !st.guide, st);
     await ph.tapCss(422, 300);
     await ph.scene("Title", 60000);
-    check("and the Enter gate takes the tap", true);
+    check("and the Enter gate takes the tap", (await ph.active()).includes("Title"));
     check("no page errors", errors.length === 0, errors.slice(0, 3));
   } finally {
     await ctx.close();
@@ -847,11 +1061,16 @@ async function guide(browser) {
       await ph.page.waitForTimeout(1000);
       await ph.tapCss(prof.viewport.width / 2, prof.viewport.height * 0.75);
       await ph.scene("Title");
+      // (the title is built while the tab is in the game's fullscreen, where display-mode: fullscreen matches too)
+      const fsAtTitle = await ph.ev(() => ({ fs: !!document.fullscreenElement, dmFull: matchMedia("(display-mode: fullscreen)").matches }));
       await ph.page.waitForTimeout(2500);
-      const st = await ph.ev(() => ({ open: window.__krelMobile.guide.isOpen, rot: document.querySelectorAll(".krot-extra .kah-rot").length, fs: !!document.fullscreenElement, dmFull: matchMedia("(display-mode: fullscreen)").matches }));
+      const st = await ph.ev(() => ({ open: window.__krelMobile.guide.isOpen, rot: document.querySelectorAll(".krot-extra .kah-rot").length, fs: !!document.fullscreenElement }));
       const corner = await ph.find("ADD TO HOME SCREEN", { scene: "Title" });
       if (home) check(`${name}: the guide never shows itself, and there is no Add to Home Screen button`, mm && !st.open && st.rot === 0 && !corner, { mm, ...st, corner: !!corner });
-      else check(`${name}: still offered (the guide shows itself, the title has the button)`, st.fs && st.open && st.rot === 1 && !!corner, { ...st, corner: !!corner });
+      else {
+        check(`${name}: still offered (the guide shows itself, the title has the button)`, fsAtTitle.fs && fsAtTitle.dmFull && st.open && st.rot === 1 && !!corner, { fsAtTitle, ...st, corner: !!corner });
+        check(`${name}: the guide's written steps leave fullscreen so Chrome's ⋮ menu can be reached (P6)`, !st.fs, st);
+      }
       check(`${name}: no page errors`, errors.length === 0, errors.slice(0, 3));
     } finally {
       await ctx.close();
@@ -871,9 +1090,11 @@ async function guide(browser) {
       await ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
       await sleep(400);
       check("?mobilediag: shows the safe-area insets the layer uses", /safe area L47 R47 T0 B21/.test(await ph.ev(() => document.querySelector(".kdiag").textContent)));
-      await ph.tapSel(".kdiag");
+      const pe = await ph.ev(() => ({ box: getComputedStyle(document.querySelector(".kdiag")).pointerEvents, tab: getComputedStyle(document.querySelector(".kdiag-h")).pointerEvents, right: document.querySelector(".kdiag").getBoundingClientRect().left > 422 }));
+      check("?mobilediag: it starts on the right below pause, lets touches through to the game, except its MOVE tab (P11)", pe.box === "none" && pe.tab === "auto" && pe.right, pe);
+      await ph.tapSel(".kdiag-h");
       await sleep(200);
-      check("?mobilediag: a tap moves it to another corner", await ph.ev(() => document.querySelector(".kdiag").classList.contains("pos1")));
+      check("?mobilediag: a tap on MOVE moves it to another corner", await ph.ev(() => document.querySelector(".kdiag").classList.contains("pos1")));
       await ph.shot("diag-844x390");
       check("?mobilediag: no page errors", errors.length === 0, errors.slice(0, 3));
     } finally {
@@ -888,12 +1109,13 @@ async function guide(browser) {
     const dev = new URL(URL0);
     dev.searchParams.set("mobile", "1");
     dev.searchParams.set("mobilediag", "1");
-    const pc = await quickPage(browser, DESKTOP, dev.toString());
+    // (a computer with the browser's device emulation: it has touch points)
+    const pc = await quickPage(browser, { ...DESKTOP, hasTouch: true }, dev.toString());
     try {
       const txt = await pc.ph.ev(() => (document.querySelector(".kdiag") ? document.querySelector(".kdiag").textContent : ""));
-      check("?mobile=1&mobilediag on a computer: the read-out says phone mode is on by the address", /phone mode ON by address/.test(txt), txt.split("\n").find((l) => l.startsWith("phone mode")));
-      // (the address choice is remembered: forget it again)
-      await pc.ph.ev(async () => localStorage.removeItem((await import("/src/game/variant.ts")).storageKey("krelworld.mobile")));
+      check("?mobile=1&mobilediag on a computer with device emulation: the read-out says phone mode is on by the address", /phone mode ON by address/.test(txt), txt.split("\n").find((l) => l.startsWith("phone mode")));
+      const stored = await pc.ph.ev(async () => localStorage.getItem((await import("/src/game/variant.ts")).storageKey("krelworld.mobile")));
+      check("?mobile=1 is not remembered (this page load only)", stored === null, stored);
     } finally {
       await pc.ctx.close();
     }
@@ -920,12 +1142,405 @@ async function optout(browser) {
   }
 }
 
+// ------------------------------------------------------------------ shared: past the gate, into a scene
+
+/** A phone page with the guide already seen (so it doesn't show itself), past the Enter gate, on the title. */
+async function phoneAtTitle(browser, profile = IPHONE, url = URL0) {
+  const ctx = await browser.newContext(profile);
+  await ctx.addInitScript(() => {
+    try {
+      localStorage.setItem("krelworld.phone.homeScreenGuide", "seen");
+      localStorage.setItem("alt:krelworld.phone.homeScreenGuide", "seen");
+    } catch (e) {}
+  });
+  const page = await ctx.newPage();
+  page.setDefaultTimeout(120000);
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e.message).slice(0, 200)));
+  const cdp = await ctx.newCDPSession(page);
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  const ph = new Phone(page, cdp);
+  await ph.until(() => !!window.__krel && window.__krel.active().includes("Enter"), null, 240000, "the Enter gate");
+  await page.waitForTimeout(1200);
+  const vp = profile.viewport;
+  await ph.tapCss(vp.width / 2, vp.height * 0.75);
+  await ph.scene("Title", 60000);
+  await page.waitForTimeout(1000);
+  return { ctx, page, ph, errors };
+}
+
+/** Into a walking scene with nothing in the way (no welcome conversation, no intro). */
+async function toWalk(ph, key) {
+  await ph.ev((key) => {
+    const k = window.__krel;
+    k.newRun("FLENKY");
+    Object.assign(k.G.s.flags, { ch1_intro: true, ch1_home: true, home_seen: true, flyover_seen: true, tv_klerble_welcome: true, prologue_done: true, met_emergency: true, founding_seen: true });
+    k.go(key);
+  }, key);
+  await ph.scene(key);
+  // (walking, and still walking a few seconds later: the town opens a conversation shortly after you arrive)
+  let calm = 0;
+  for (let i = 0; i < 90; i++) {
+    if ((await ph.mode().catch(() => "")).startsWith("walk")) {
+      if (++calm >= 6) return true;
+      await sleep(700);
+      continue;
+    }
+    calm = 0;
+    await ph.tapCss(620, 160);
+    await ph.ev(() => {
+      const g = window.__krel.game;
+      for (const k of ["Enter", "Title"]) if (g.scene.isActive(k)) g.scene.stop(k);
+      if (!g.scene.isActive("Dialogue") && !g.scene.isActive("Menu")) for (const k of ["Home", "Hub"]) if (g.scene.isPaused(k)) g.scene.resume(k);
+      for (const k of ["Home", "Hub"]) {
+        const sc = g.scene.getScene(k);
+        if (sc && g.scene.isActive(k) && sc.busy) sc.busy = false;
+      }
+    });
+    await sleep(500);
+  }
+  return false;
+}
+
+const setVisibility = (ph, v) =>
+  ph.ev((v) => {
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: () => v });
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => v === "hidden" });
+    document.dispatchEvent(new Event("visibilitychange"));
+  }, v);
+
+// ------------------------------------------------------------------ town (the Hub)
+
+async function town(browser) {
+  console.log("TOWN (the Hub on a phone)");
+  const { ctx, ph, errors } = await phoneAtTitle(browser);
+  try {
+    check("the Hub reaches walk mode", await toWalk(ph, "Hub"), await ph.mode());
+    await sleep(2500);
+    // the first how-to-play toasts are control hints: touch wording (P4)
+    const toast = await ph.ev(() => {
+      const d = { title: "KRELFORD", text: "WASD to walk. E to talk/interact. Follow the yellow arrow. Esc for menu (quests, upgrades, save)." };
+      window.__krel.G.emit("toast", d);
+      return d.text;
+    });
+    await sleep(400);
+    const drawn = await ph.ev(() => {
+      const t = [];
+      const walk = (o) => (o.type === "Container" ? o.list.forEach(walk) : o.type === "Text" && t.push(o.text));
+      window.__krel.game.scene.getScene("UI").children.list.forEach(walk);
+      return t.filter((x) => /walk/.test(x));
+    });
+    check("the town's first toast speaks touch: no WASD, no E, no Esc (drawn that way too)", toast === "Drag on the left to walk. Tap to talk/interact. Follow the yellow arrow. II for the menu (quests, upgrades, save)." && drawn.some((x) => /Drag on the left/.test(x)) && !drawn.some((x) => /WASD/.test(x)), { toast, drawn });
+    // Mikey following: at a door, ACTION is the door's word, not SHOVE (P2)
+    const p2 = await ph.ev(async () => {
+      const h = window.__krel.game.scene.getScene("Hub");
+      const m = h.npcs.find((n) => n.follower);
+      if (!m) return { follower: false };
+      const tp = (o, x, y) => (o.body && o.body.reset ? o.body.reset(x, y) : ((o.x = x), (o.y = y)));
+      const place = (x, y) => {
+        tp(h.av, x, y);
+        tp(m.spr, x + 4, y + 4);
+      };
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const read = () => ({ raw: h.prompt.__krelRaw ?? h.prompt.text, shown: h.prompt.visible, action: window.__krelMobile.snapshot().decision.action });
+      const out = { follower: true };
+      for (let i = 0; i < 8; i++) {
+        place(560, 952);
+        await wait(120);
+      }
+      out.door = read();
+      // somewhere with nothing else in range: Mikey is all there is
+      let spot = null;
+      for (let x = 300; x < 2600 && !spot; x += 37)
+        for (let y = 500; y < 1400 && !spot; y += 41) {
+          const near = h.interactables.some((it) => !(it.__npc && it.__npc.follower) && (!it.enabled || it.enabled()) && Math.hypot(it.x - x, it.y - y) < it.r + 40);
+          if (!near) spot = [x, y];
+        }
+      out.spot = spot;
+      if (spot) {
+        for (let i = 0; i < 8; i++) {
+          place(spot[0], spot[1]);
+          await wait(120);
+        }
+        out.alone = read();
+      }
+      return out;
+    });
+    check("Mikey following, at the Krezz Arms door: ACTION says ENTER, not SHOVE (P2)", p2.follower && p2.door.action === "ENTER" && /Enter/.test(p2.door.raw), p2);
+    check("with nothing else near, ACTION can still shove him", p2.follower && !!p2.alone && p2.alone.action === "SHOVE", p2.alone);
+    // the shoving match on the bridge: no prompt, ACTION says SHOVE, and it shoves (R6)
+    await ph.ev(() => {
+      const h = window.__krel.game.scene.getScene("Hub");
+      h.tryChatter = () => {};
+      const kr = h.add.sprite(h.av.x + 30, h.av.y, h.av.texture.key, 0);
+      h.brawl = { spot: { x: h.av.x, y: h.av.y }, ks: [kr], krew: [], running: true, shoves: 0, nextShove: 0, start() {} };
+      h.busy = false;
+    });
+    await ph.until(() => window.__krelMobile.snapshot().buttons.action, null, 5000, "ACTION in the brawl").catch(() => 0);
+    let s = await ph.snap();
+    check("the shoving match: ACTION shows SHOVE", s.buttons.action && s.actionLabel === "SHOVE", { action: s.buttons.action, label: s.actionLabel, d: s.decision.action });
+    await sleep(250);
+    await ph.tapCss(s.slots.prime.cx, s.slots.prime.cy);
+    await sleep(700);
+    const shoves = await ph.ev(() => window.__krel.game.scene.getScene("Hub").brawl.shoves);
+    check("and pressing it shoves", shoves > 0, { shoves });
+    await ph.ev(() => {
+      const h = window.__krel.game.scene.getScene("Hub");
+      h.brawl = null;
+    });
+    await ph.shot("town-hub");
+    check("town: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
+// ------------------------------------------------------------------ a fight (the dungeon, still on the old pad)
+
+async function dungeon(browser) {
+  console.log("DUNGEON (Wildern room 1, the old canvas pad)");
+  const { ctx, page, ph, errors } = await phoneAtTitle(browser);
+  try {
+    await ph.ev(() => {
+      const k = window.__krel;
+      k.newRun("FLENKY");
+      k.setChapter(1, { ch1_home: true, home_seen: true, flyover_seen: true, tut_dungeon: true });
+      k.go("Dungeon", { dungeon: "wildern", room: 0 });
+    });
+    await ph.scene("Dungeon");
+    // (in the fight, and still in it a few seconds later: a room can open a conversation shortly after it starts)
+    let calm = 0;
+    for (let i = 0; i < 80 && calm < 6; i++) {
+      const m = await ph.mode();
+      const act = await ph.active();
+      if (m.startsWith("combat") && !act.includes("Dialogue") && !act.includes("Tutorial")) {
+        calm++;
+        await sleep(600);
+        continue;
+      }
+      calm = 0;
+      await ph.tapCss(600, 160);
+      await sleep(700);
+    }
+    const inFight = await ph.mode();
+    check("in the fight: combat mode on the old pad", inFight === "combat:Dungeon" && (await ph.ev(() => !!window.__krel.game.scene.getScene("UI").touch)), inFight);
+    const paused = () => ph.ev(() => ({ menu: window.__krel.active().includes("Menu"), dungeon: window.__krel.game.scene.isPaused("Dungeon"), hp: window.__krel.G.s.hp, running: window.__krel.game.loop.running }));
+    const resume = async () => {
+      await ph.tapText("RESUME", { scene: "Menu", exact: true }).catch(() => 0);
+      await ph.until(() => !window.__krel.active().includes("Menu"), null, 8000, "resume").catch(() => 0);
+      await sleep(300);
+    };
+    // thumbs on the old stick and ATTACK when the page hides (no touchcancel): both let go (R9)
+    const [sx, sy] = await ph.g2c(150, 400);
+    const [ax, ay] = await ph.g2c(860, 440);
+    await ph.touch("touchStart", [{ x: sx, y: sy, id: 1 }]);
+    for (let i = 1; i <= 5; i++) {
+      await ph.touch("touchMove", [{ x: sx + i * 10, y: sy, id: 1 }]);
+      await sleep(30);
+    }
+    await ph.touch("touchStart", [{ x: sx + 50, y: sy, id: 1 }, { x: ax, y: ay, id: 2 }]);
+    await sleep(300);
+    const held = await ph.ev(async () => {
+      const T = (await import("/src/game/ui/TouchControls.ts")).TOUCH;
+      return { mx: T.mx, attack: T.attack };
+    });
+    await setVisibility(ph, "hidden");
+    await sleep(500);
+    const let1 = await ph.ev(async () => {
+      const T = (await import("/src/game/ui/TouchControls.ts")).TOUCH;
+      return { mx: T.mx, my: T.my, attack: T.attack, held: [...T.held] };
+    });
+    check("hidden mid-fight with thumbs on the old stick and ATTACK: both let go (R9)", held.mx > 0.5 && held.attack && let1.mx === 0 && let1.my === 0 && !let1.attack && let1.held.length === 0, { held, let1 });
+    const hp0 = await ph.ev(() => window.__krel.G.s.hp);
+    await setVisibility(ph, "visible");
+    await sleep(900);
+    let st = await paused();
+    await sleep(2000);
+    const st2 = await paused();
+    check("back to the page mid-fight: the pause menu, not the fight; no health lost (P1)", st.menu && st.dungeon && st2.hp === hp0, { st, hp0, hpLater: st2.hp });
+    await ph.shot("dungeon-back-paused");
+    await ph.touch("touchEnd", []);
+    await resume();
+    // upright and back
+    await page.setViewportSize({ width: 390, height: 844 });
+    await sleep(1200);
+    await page.setViewportSize({ width: 844, height: 390 });
+    await sleep(1400);
+    st = await paused();
+    check("turned upright and back mid-fight: the pause menu (P1)", st.menu && st.dungeon, st);
+    await resume();
+    // the guide from the turn-your-phone screen, then sideways while it is up: asleep until it closes, then paused (R2)
+    await page.setViewportSize({ width: 390, height: 844 });
+    await sleep(1200);
+    await ph.tapSel(".krot-extra .kah-rot");
+    await sleep(400);
+    await page.setViewportSize({ width: 844, height: 390 });
+    await sleep(1500);
+    const f1 = await ph.loop();
+    const hpG = await ph.ev(() => window.__krel.G.s.hp);
+    await sleep(1500);
+    const f2 = await ph.loop();
+    const g = await ph.ev(() => ({ guide: window.__krelMobile.guide.isOpen, hp: window.__krel.G.s.hp }));
+    check("the guide from the rotate screen, then sideways: the fight sleeps under it (R2)", g.guide && !f2.running && f1.frame === f2.frame && g.hp === hpG, { f1, f2, ...g });
+    await ph.tapSel(".kah-later");
+    await sleep(1000);
+    st = await paused();
+    check("closing the guide: the pause menu, not the fight", st.menu && st.dungeon && !(await ph.guide()).open, st);
+    await resume();
+    // a fight with no pause menu (the finale, the minigames): "tap to carry on", the loop asleep behind it
+    await ph.ev(() => {
+      const L = window.__krelMobile.layer;
+      L.apply({ ...L.decision, mode: "brawl", live: true, pause: null });
+      Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "hidden" });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    await sleep(400);
+    await setVisibility(ph, "visible");
+    await sleep(700);
+    const c1 = await ph.loop();
+    await sleep(800);
+    const c2 = await ph.loop();
+    const card = await ph.ev(() => ({ card: window.__krelMobile.shellState().card, shown: getComputedStyle(document.querySelector(".kres")).display !== "none" }));
+    check("no pause menu to open: \"tap to carry on\", the game asleep behind it", card.card && card.shown && !c2.running && c1.frame === c2.frame, { ...card, c1, c2 });
+    await ph.shot("dungeon-carry-on");
+    await ph.tapCss(422, 200);
+    await sleep(800);
+    const c3 = await ph.loop();
+    check("a tap carries on", c3.running && !(await ph.ev(() => window.__krelMobile.shellState().card)), c3);
+    check("dungeon: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
+// ------------------------------------------------------------------ Android: fullscreen, the gate, notices, in-app
+
+async function android(browser) {
+  console.log("ANDROID (Chrome 740x360)");
+  const AND = { ...ANDROID, userAgent: UA.androidChrome };
+  {
+    const ctx = await browser.newContext(AND);
+    // (the guide would show itself on the title and leave fullscreen for its steps: opened by hand below instead)
+    await ctx.addInitScript(() => {
+      localStorage.setItem("krelworld.phone.homeScreenGuide", "seen");
+      localStorage.setItem("alt:krelworld.phone.homeScreenGuide", "seen");
+    });
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(String(e.message).slice(0, 200)));
+    const ph = new Phone(page, await ctx.newCDPSession(page));
+    try {
+      await page.goto(URL0, { waitUntil: "domcontentloaded" });
+      await ph.until(() => !!window.__krel && window.__krel.active().includes("Enter"), null, 240000, "the Enter gate");
+      await page.waitForTimeout(1200);
+      const h0 = await ph.ev(() => history.length);
+      // a press held well past the gate's 650 ms fade (R4)
+      await ph.touch("touchStart", [{ x: 370, y: 270, id: 1 }]);
+      await sleep(1300);
+      const onTitle = (await ph.active()).includes("Title");
+      await ph.touch("touchEnd", []);
+      await sleep(800);
+      const r = await ph.ev(() => ({ fs: document.fullscreenElement ? document.fullscreenElement.id : null, hist: history.length, shell: window.__krelMobile.shellState() }));
+      check("a press held past the Enter gate's fade still gets fullscreen and the back guard (R4)", onTitle && r.fs === "game" && r.hist === h0 + 1 && r.shell.gate && r.shell.guard, { onTitle, h0, ...r });
+      // the crash guard's notices show in fullscreen (moved into #game) (R12)
+      await ph.ev(async () => (await import("/src/game/crashGuard.ts")).notice("smoke notice", 4000));
+      await sleep(200);
+      const where = await ph.ev(() => {
+        const n = [...document.querySelectorAll("div")].find((d) => d.textContent === "smoke notice");
+        return n ? (n.parentElement && n.parentElement.id) || n.parentElement.tagName : null;
+      });
+      check("a crash-guard notice in fullscreen is shown inside the fullscreen element (R12)", where === "game", where);
+      // the guide: no install prompt here, so written steps through the browser's ⋮ menu: it leaves fullscreen (P6)
+      await ph.ev(() => window.__krelMobile.guide.open("title"));
+      await sleep(600);
+      const g = await ph.ev(() => ({ open: window.__krelMobile.guide.isOpen, variant: window.__krelMobile.guide.last.variant, primary: window.__krelMobile.guide.last.primary, fs: !!document.fullscreenElement }));
+      check("the guide's written steps (Chrome's ⋮ menu): fullscreen is left so the menu can be reached (P6)", g.open && g.variant === "android-chrome" && g.primary === "ok" && !g.fs, g);
+      await ph.shot("android-guide-left-fullscreen");
+      await ph.tapSel(".kah-later");
+      await sleep(800);
+      const back = await ph.ev(() => ({ fs: document.fullscreenElement ? document.fullscreenElement.id : null, open: window.__krelMobile.guide.isOpen }));
+      check("closing it with a tap goes back into fullscreen", !back.open && back.fs === "game", back);
+      check("android: no page errors", errors.length === 0, errors.slice(0, 3));
+    } finally {
+      await ctx.close();
+    }
+  }
+  // an app's own browser (Messenger): "open it in Safari first" during the load, upright and sideways (P7)
+  {
+    const ctx = await browser.newContext({ ...IPHONE, viewport: { width: 390, height: 844 }, userAgent: UA.iosMessenger });
+    const page = await ctx.newPage();
+    const ph = new Phone(page, await ctx.newCDPSession(page));
+    try {
+      await page.goto(URL0, { waitUntil: "domcontentloaded" });
+      await ph.until(() => !!window.__krelMobile && window.__krelMobile.guide.isOpen, null, 120000, "the in-app card").catch(() => 0);
+      const r = await ph.ev(() => ({ open: !!window.__krelMobile && window.__krelMobile.guide.isOpen, variant: window.__krelMobile && window.__krelMobile.guide.last ? window.__krelMobile.guide.last.variant : null, loading: !window.__krel || !window.__krel.active().includes("Enter"), later: (document.querySelector(".kah-later") || {}).textContent }));
+      check("Messenger's browser: the 'open it in Safari first' card is up while the game is still loading (P7)", r.open && r.variant === "in-app" && r.loading, r);
+      check("and its dismiss button says PLAY HERE ANYWAY", r.later === "PLAY HERE ANYWAY", r.later);
+      await ph.shot("inapp-card-during-load");
+    } finally {
+      await ctx.close();
+    }
+  }
+}
+
 // ------------------------------------------------------------------ the laptop
+
+/** Records, from the page's first script on, what the phone code reads on a laptop (storage, media queries). */
+function laptopSpy() {
+  const log = (window.__phoneReads = { getItem: [], matchMedia: [] });
+  const fromPhone = () => /\/src\/game\/mobile\//.test(new Error().stack || "");
+  const gi = Storage.prototype.getItem;
+  Storage.prototype.getItem = function (k) {
+    if (fromPhone()) log.getItem.push(k);
+    return gi.call(this, k);
+  };
+  const mm = window.matchMedia.bind(window);
+  window.matchMedia = function (q) {
+    if (fromPhone()) log.matchMedia.push(q);
+    return mm(q);
+  };
+}
 
 async function desktop(browser) {
   console.log("DESKTOP (1280x720, mouse)");
-  const { ctx, ph, errors } = await openPage(browser, DESKTOP, URL0);
+  // the laptop the safety net doesn't cover: one that opened an old ?mobile=1 link (an earlier build stored "1"),
+  // and one opening ?mobile=1 now (L2)
+  for (const [name, init, search] of [
+    ["a laptop with \"1\" left in storage by an old ?mobile=1 link", () => localStorage.setItem("krelworld.mobile", "1"), ""],
+    ["a laptop opening ?mobile=1 (a shared test link)", null, "?mobile=1&mobilediag"],
+  ]) {
+    const ctx = await browser.newContext(DESKTOP);
+    if (init) await ctx.addInitScript(init);
+    const page = await ctx.newPage();
+    await page.goto(URL0 + search, { waitUntil: "domcontentloaded" });
+    const ph = new Phone(page, null);
+    try {
+      await ph.until(() => !!window.__krel && window.__krel.active().includes("Enter"), null, 240000, "the Enter gate");
+      const st = await ph.ev(() => ({ cls: document.documentElement.className, layer: !!document.querySelector(".kt"), api: "__krelMobile" in window, diag: !!document.querySelector(".kdiag") }));
+      check(`${name}: the laptop game (no phone class, layer, read-out or global)`, !/\bmobile\b/.test(st.cls) && !st.layer && !st.api && !st.diag, st);
+    } finally {
+      await ctx.close();
+    }
+  }
+  const ctx0 = await browser.newContext(DESKTOP);
+  await ctx0.addInitScript(laptopSpy);
+  const ctx = ctx0;
+  const page = await ctx.newPage();
+  page.setDefaultTimeout(120000);
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e.message).slice(0, 200)));
+  const fetched = [];
+  page.on("request", (r) => {
+    const m = /\/src\/game\/mobile\/([^?]+)/.exec(r.url());
+    if (m) fetched.push(m[1]);
+  });
+  await page.goto(URL0, { waitUntil: "domcontentloaded" });
+  const ph = new Phone(page, await ctx.newCDPSession(page));
+  await ph.until(() => !!window.__krel && window.__krel.active().includes("Enter"), null, 240000, "the Enter gate");
   try {
+    const reads = await ph.ev(() => window.__phoneReads);
+    check("desktop: the phone code reads no storage and asks no media query on a laptop (L3)", reads.getItem.length === 0 && reads.matchMedia.length === 0, reads);
+    check("desktop: only the phone flag and its tiny loader are fetched, never the phone chunk (L4)", fetched.every((f) => f === "flag.ts" || f === "boot.ts") && fetched.length > 0, fetched);
     const st = await ph.ev(async () => {
       const flag = await import("/src/game/mobile/flag.ts");
       const key = (await import("/src/game/variant.ts")).storageKey("krelworld.mobile");
@@ -951,6 +1566,7 @@ async function desktop(browser) {
     });
     check("desktop: the UI scene has no touch pad and TOUCH is off, as before", ui.pad === null && ui.enabled === false, ui);
     check("no page errors", errors.length === 0, errors.slice(0, 3));
+    check("desktop: still nothing fetched from the phone chunk after a game was started", fetched.every((f) => f === "flag.ts" || f === "boot.ts"), fetched);
   } finally {
     await ctx.close();
   }
@@ -973,6 +1589,9 @@ async function desktop(browser) {
       ["read", read],
       ["guide", guide],
       ["optout", optout],
+      ["town", town],
+      ["dungeon", dungeon],
+      ["android", android],
       ["desktop", desktop],
     ]) {
       if (!ONLY.includes(id)) continue;

@@ -8,16 +8,27 @@
 //    (by touch id) until it ends, wherever the thumb drifts; touchcancel releases without acting;
 //  - controls call preventDefault on touchstart (no zoom, no magnifier, no ghost mouse events, and Phaser's window
 //    listener ignores the touch, so the game never sees it twice);
-//  - a quick tap in the stick zone that never became a drag is handed to the game as a tap at that point;
-//  - mode changes, the page hiding, rotating and blur release everything at once (no stuck stick or button);
-//  - per-frame DOM writes are transforms only.
+//  - nothing inside the stick zone takes touches but the zone: a touch that starts there is the stick the moment it
+//    moves. A quick still tap there is the prompt's ACTION when it lands on the prompt bubble or on the thing the
+//    prompt is about, and otherwise is handed to the game as a tap at that point;
+//  - mode changes, the page hiding, rotating and blur release everything at once (no stuck stick or button); a finger
+//    that was down then does nothing more until it lifts (by touch id: a new finger on the same button works at once);
+//  - a control the player or the prompt's target is under goes see-through (research C9), in place;
+//  - per-frame DOM writes are transforms and class toggles only, and only when something changed.
+//
+// Stage 2+: `addControl()` makes a control with all of the above (ownership, arming, pressed ring, buzz, slide, layout
+// on every resize / Safari bar / left-handed / size change), and `registerModeController()` adds controls for a mode
+// (several per mode, by id).
 import type Phaser from "phaser";
 import { TOUCH } from "../ui/TouchControls";
 import { synth } from "../audio/Synth";
 import {
   followBase,
   ghostStick,
+  inRect,
   layoutSlots,
+  outsideZone,
+  overlaps,
   stickGeometry,
   stickVector,
   stickZone,
@@ -30,8 +41,8 @@ import {
 } from "./layout";
 import { onPhoneSettingsChange, phoneSettings } from "./settings";
 import { NONE, resolveMode, sameDecision, type LayerMode, type ModeDecision } from "./modes";
-import { dropEdges, pressInteract, pressPause, pressSanmik, promptRect, readView } from "./observe";
-import { haptic } from "./haptics";
+import { dropEdges, playerRect, pressInteract, pressPause, pressSanmik, promptRect, readView, releaseLegacyPad, targetRect } from "./observe";
+import { haptic, type HapticKind } from "./haptics";
 
 /** A touch that moves less than this is still a tap (Android uses 8 dp, iOS 10 pt). */
 export const TAP_SLOP = 10;
@@ -39,6 +50,8 @@ export const TAP_SLOP = 10;
 export const TAP_MS = 400;
 /** A control that has just appeared ignores presses this long (research S11). */
 export const ARM_MS = 160;
+/** After the player has walked with the stick, the idle stick fades away this long after it was let go. */
+export const GHOST_FADE_MS = 2500;
 
 /** What a mode controller gets: the layer, the game and the current decision. */
 export interface ModeContext {
@@ -48,36 +61,269 @@ export interface ModeContext {
 }
 
 /**
- * Stage 2+: the controls for one mode. The layer calls `enter` when the mode starts, `frame` every game frame while
- * it lasts, `release` when every input must let go (page hidden, rotated, blur), and `leave` when it ends.
- * Add elements under `layer.root`; read sizes from `layer.slots` / `layer.viewport`.
+ * Stage 2+: controls for one mode. The layer calls `enter` when the mode starts, `frame` every game frame while it
+ * lasts, `layout` whenever positions are worked out again (resize, Safari's bars, rotation, left-handed, size),
+ * `release` when every input must let go (page hidden, rotated, blur), `rearm` when they may work again, and `leave`
+ * when it ends. Controls made with `layer.addControl()` are re-placed by the layer itself; `layout` is for anything
+ * else. Several controllers may serve one mode (each its own id).
  */
 export interface ModeController {
-  id: LayerMode;
+  /** Unique; registering the same id again replaces that controller (with a warning). */
+  id: string;
+  /** The mode it serves (defaults to `id`, so `{ id: "combat" }` serves combat). */
+  mode?: LayerMode;
   enter?(ctx: ModeContext): void;
   frame?(ctx: ModeContext): void;
+  layout?(ctx: ModeContext): void;
   release?(ctx: ModeContext): void;
+  rearm?(ctx: ModeContext): void;
   leave?(ctx: ModeContext): void;
 }
 
-const controllers = new Map<LayerMode, ModeController>();
+const controllers = new Map<string, ModeController>();
 
-/** Register (or replace) the controls for a mode. */
+/** Register the controls for a mode (several per mode, by id; the same id again replaces it). */
 export function registerModeController(c: ModeController) {
+  if (controllers.has(c.id) && controllers.get(c.id) !== c) console.warn(`phone layer: controller "${c.id}" replaced`);
   controllers.set(c.id, c);
 }
 
-type ButtonName = "action" | "sanmik" | "pause" | "fullscreen";
-
-interface Btn {
-  el: HTMLDivElement;
-  face: HTMLDivElement;
-  label: HTMLSpanElement | null;
-  slot: SlotId;
-  shown: boolean;
-  armedAt: number;
-  touches: Set<number>;
+/** Remove a controller (tests, or a stage that hands a mode back). */
+export function unregisterModeController(id: string) {
+  controllers.delete(id);
 }
+
+function controllersFor(mode: LayerMode): ModeController[] {
+  const out: ModeController[] = [];
+  for (const c of controllers.values()) if ((c.mode ?? c.id) === mode) out.push(c);
+  return out;
+}
+
+// ------------------------------------------------------------------ controls
+
+/** How a control behaves. Everything but `id` and `slot` is optional. */
+export interface ControlSpec {
+  /** Unique on the layer. */
+  id: string;
+  /** Where it sits (layout.ts SLOTS); re-placed on every layout. */
+  slot: SlotId;
+  /** Extra class(es) on the element (for its look: `kt-btn <className>`). */
+  className?: string;
+  /** Text on the face (fitted to the face), or `html` for an icon. */
+  label?: string;
+  html?: string;
+  /** A buzz on press (Android, Vibration on). Default "tap"; null for none. */
+  haptic?: HapticKind | null;
+  /** Goes see-through while the player or the prompt's target is under it (research C9). Default true. */
+  fade?: boolean;
+  /** The first finger down on it (shown and armed). */
+  onDown?(c: TouchControl): void;
+  /** The last finger up. `cancelled`: touchcancel, or the layer let go (page hidden, blur, mode change). Runs inside
+   *  the touchend, so fullscreen and other "user gesture" calls are allowed when not cancelled. */
+  onUp?(c: TouchControl, info: { cancelled: boolean; ms: number }): void;
+  /** The finger that pressed it moved (CSS px from where it landed): slide-to-aim, slide-to-dodge. */
+  onSlide?(c: TouchControl, dx: number, dy: number): void;
+}
+
+interface Owned {
+  x0: number;
+  y0: number;
+  t0: number;
+}
+
+/** One on-screen control: an element whose box is its touch area, with the face drawn inside it. */
+export class TouchControl {
+  readonly el: HTMLDivElement;
+  readonly face: HTMLDivElement;
+  readonly labelEl: HTMLSpanElement;
+  slot: SlotId;
+  shown = false;
+  /** A finger is pressing it now. */
+  pressed = false;
+  /** The drawing on the page (CSS px), after the last layout. */
+  faceRect: Rect = { x: 0, y: 0, w: 0, h: 0 };
+  private armedAt = 0;
+  /** Fingers that count. */
+  private live = new Map<number, Owned>();
+  /** Fingers it owns that do nothing more (they were down when the layer let go, or landed before it was armed). */
+  private dead = new Set<number>();
+  private pressedAt = 0;
+  private seeThrough = false;
+
+  constructor(
+    readonly layer: TouchLayer,
+    readonly spec: ControlSpec,
+  ) {
+    this.slot = spec.slot;
+    const el = document.createElement("div");
+    el.className = `kt-btn ${spec.className ?? ""}`.trim();
+    el.dataset.ctl = spec.id;
+    const face = document.createElement("div");
+    face.className = "kt-face";
+    const label = document.createElement("span");
+    if (spec.html) face.innerHTML = spec.html;
+    else face.appendChild(label);
+    if (spec.label) label.textContent = spec.label;
+    el.appendChild(face);
+    layer.root.appendChild(el);
+    this.el = el;
+    this.face = face;
+    this.labelEl = label;
+    this.bind();
+  }
+
+  get label(): string {
+    return this.labelEl.textContent ?? "";
+  }
+
+  /** The word on the face (fitted to about 70% of the face's width). */
+  setLabel(text: string) {
+    if (this.labelEl.textContent === text) return;
+    this.labelEl.textContent = text;
+    this.fit();
+  }
+
+  /** Show or hide. Showing arms it after ARM_MS (a press that lands at once does nothing, research S11). */
+  show(on: boolean, pop = false) {
+    if (this.shown === on) return;
+    this.shown = on;
+    this.el.classList.toggle("show", on);
+    if (on) {
+      this.armedAt = now() + ARM_MS;
+      this.place();
+      if (pop) {
+        this.el.classList.remove("pop");
+        void this.el.offsetWidth;
+        this.el.classList.add("pop");
+      }
+    } else this.letGo();
+  }
+
+  /** Move to another slot (placed at once). */
+  setSlot(slot: SlotId) {
+    if (this.slot === slot) return;
+    this.slot = slot;
+    this.place();
+  }
+
+  /** Put it where its slot is now. */
+  place() {
+    const p: Placed | undefined = this.layer.slots?.[this.slot];
+    if (!p) return;
+    const b = this.el.style;
+    b.width = `${p.hit.w}px`;
+    b.height = `${p.hit.h}px`;
+    b.transform = `translate(${p.hit.x}px,${p.hit.y}px)`;
+    const f = this.face.style;
+    f.width = f.height = `${p.size}px`;
+    f.left = `${p.cx - p.size / 2 - p.hit.x}px`;
+    f.top = `${p.cy - p.size / 2 - p.hit.y}px`;
+    this.faceRect = { x: p.cx - p.size / 2, y: p.cy - p.size / 2, w: p.size, h: p.size };
+    this.fit();
+  }
+
+  /** Fit the word to the face: measured once per change, never under 10 px. */
+  private fit() {
+    if (this.spec.html || !this.labelEl.textContent) return;
+    const size = this.layer.slots?.[this.slot]?.size ?? 84;
+    const room = size * 0.7;
+    let fs = 20;
+    this.face.style.fontSize = `${fs}px`;
+    const w = this.labelEl.offsetWidth;
+    if (w > room && w > 0) fs = Math.max(10, Math.floor(fs * (room / w) * 10) / 10);
+    else if (!w) fs = Math.min(20, Math.max(10, room / (Math.max(4, this.label.length) * 0.8)));
+    this.face.style.fontSize = `${fs}px`;
+  }
+
+  /** See-through (the player or the target is under it). */
+  setSeeThrough(on: boolean) {
+    if (on === this.seeThrough) return;
+    this.seeThrough = on;
+    this.el.classList.toggle("see", on);
+  }
+
+  private bind() {
+    const el = this.el;
+    el.addEventListener(
+      "touchstart",
+      (e) => {
+        if (e.cancelable) e.preventDefault();
+        kickAudio();
+        for (const t of Array.from(e.changedTouches)) {
+          if (this.live.has(t.identifier) || this.dead.has(t.identifier)) continue;
+          // just appeared, switched off already, or the layer is holding: owned, but does nothing
+          if (!this.shown || now() < this.armedAt || this.layer.held) {
+            this.dead.add(t.identifier);
+            continue;
+          }
+          this.live.set(t.identifier, { x0: t.clientX, y0: t.clientY, t0: now() });
+          if (this.live.size === 1) {
+            this.pressed = true;
+            this.pressedAt = now();
+            el.classList.add("on");
+            if (this.spec.haptic !== null) haptic(this.spec.haptic ?? "tap");
+            this.spec.onDown?.(this);
+          }
+        }
+      },
+      { passive: false },
+    );
+    el.addEventListener(
+      "touchmove",
+      (e) => {
+        if (e.cancelable) e.preventDefault();
+        if (!this.spec.onSlide) return;
+        for (const t of Array.from(e.changedTouches)) {
+          const o = this.live.get(t.identifier);
+          if (o) this.spec.onSlide(this, t.clientX - o.x0, t.clientY - o.y0);
+        }
+      },
+      { passive: false },
+    );
+    const end = (e: TouchEvent, cancelled: boolean) => {
+      if (e.cancelable) e.preventDefault();
+      for (const t of Array.from(e.changedTouches)) {
+        if (this.dead.delete(t.identifier)) continue;
+        if (!this.live.delete(t.identifier)) continue;
+        if (this.live.size) continue;
+        this.up(cancelled);
+      }
+    };
+    el.addEventListener("touchend", (e) => end(e, false), { passive: false });
+    el.addEventListener("touchcancel", (e) => end(e, true), { passive: false });
+  }
+
+  private up(cancelled: boolean) {
+    if (!this.pressed) return;
+    this.pressed = false;
+    this.el.classList.remove("on");
+    this.spec.onUp?.(this, { cancelled, ms: now() - this.pressedAt });
+  }
+
+  /** Let go now: every finger on it does nothing more until it lifts (a new finger works at once). */
+  letGo() {
+    for (const id of this.live.keys()) this.dead.add(id);
+    this.live.clear();
+    this.up(true);
+  }
+
+  /** May be pressed again after a short pause (after the page comes back, or focus returns). */
+  rearm() {
+    if (this.shown) this.armedAt = Math.max(this.armedAt, now() + ARM_MS);
+  }
+
+  /** For tests. */
+  state() {
+    return { id: this.spec.id, shown: this.shown, pressed: this.pressed, live: this.live.size, dead: this.dead.size, slot: this.slot, see: this.seeThrough, label: this.label };
+  }
+
+  destroy() {
+    this.letGo();
+    this.el.remove();
+  }
+}
+
+// ------------------------------------------------------------------ the layer
 
 interface StickTouch {
   id: number;
@@ -106,6 +352,8 @@ type PhaserInput = {
 
 const now = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
 
+type BuiltIn = "action" | "sanmik" | "pause" | "fullscreen";
+
 export class TouchLayer {
   readonly root: HTMLDivElement;
   readonly game: Phaser.Game;
@@ -116,6 +364,8 @@ export class TouchLayer {
   decision: ModeDecision = { ...NONE };
   /** Called when the player taps the fullscreen offer (set by the shell). */
   onFullscreen: (() => void) | null = null;
+  /** The shell is holding (page hidden, upright, the guide or the carry-on card up): no control acts. */
+  held = false;
 
   private probe: HTMLDivElement;
   private zone: HTMLDivElement;
@@ -123,17 +373,22 @@ export class TouchLayer {
   private baseEl: HTMLDivElement;
   private knobEl: HTMLDivElement;
   private capEl: HTMLDivElement;
-  private bubble: HTMLDivElement;
-  private btns: Record<ButtonName, Btn>;
+  /** Tap areas outside the stick zone: the prompt bubble, and the thing the prompt is about. */
+  private taps: Record<"bubble" | "target", { el: HTMLDivElement; on: boolean; key: string; touch: { id: number; x0: number; y0: number; moved: boolean } | null }>;
+  /** The prompt bubble and the prompt's target on the page (whole, for the zone's tap rule), this frame. */
+  private bubbleRect: Rect | null = null;
+  private target: { tap: Rect; core: Rect } | null = null;
+  private controls = new Map<string, TouchControl>();
+  private builtIn: Record<BuiltIn, TouchControl>;
   private stick: StickTouch | null = null;
   private zoneTaps = new Map<number, { x0: number; y0: number; t0: number; moved: boolean }>();
-  private bubbleTouch: { id: number; x0: number; y0: number; moved: boolean } | null = null;
-  private bubbleOn = false;
   private pendingUps: { ev: FakeEvent; steps: number }[] = [];
   private fakeId = 900000;
   private fsOffer = false;
-  /** The player has walked with the stick this visit (the MOVE hint under the idle stick goes away). */
+  /** The player has walked with the stick this visit: the MOVE hint goes, and the idle stick fades when not in use. */
   private learnedMove = false;
+  private stickFreeAt = 0;
+  private ghostOn: boolean | null = null;
   private insetsOverride: Insets | null = null;
   /** Edges this layer set, and when (dropped if the mode moves on before a scene reads them). */
   private myEdges = new Map<string, number>();
@@ -152,20 +407,30 @@ export class TouchLayer {
     this.knobEl = this.div("kt-knob", this.stickEl);
     this.capEl = this.div("kt-cap", this.stickEl);
     this.capEl.textContent = "MOVE";
-    this.bubble = this.div("kt-bubble");
-    this.btns = {
-      action: this.button("kt-action", "prime", true),
-      sanmik: this.button("kt-sanmik", "walkExtra", true),
-      pause: this.button("kt-pause", "pause", false),
-      fullscreen: this.button("kt-fs", "fullscreen", false),
+    this.taps = {
+      bubble: { el: this.div("kt-tap kt-bubble"), on: false, key: "", touch: null },
+      target: { el: this.div("kt-tap kt-target"), on: false, key: "", touch: null },
     };
-    this.btns.sanmik.face.textContent = "SANMIK";
-    this.btns.pause.face.innerHTML = `<span class="kt-bars"><i></i><i></i></span>`;
-    this.btns.fullscreen.face.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="square"/></svg>`;
     parent.appendChild(root);
     this.bindZone();
-    this.bindBubble();
-    for (const n of Object.keys(this.btns) as ButtonName[]) this.bindButton(n);
+    this.bindTap("bubble");
+    this.bindTap("target");
+    this.builtIn = {
+      action: this.addControl({ id: "action", slot: "prime", className: "kt-action", haptic: "press", onDown: () => this.edge("interact") }),
+      sanmik: this.addControl({ id: "sanmik", slot: "walkExtra", className: "kt-sanmik", label: "SANMIK", onDown: () => this.edge("sanmik") }),
+      pause: this.addControl({ id: "pause", slot: "pause", className: "kt-pause", html: `<span class="kt-bars"><i></i><i></i></span>`, fade: false, onDown: () => this.pause() }),
+      fullscreen: this.addControl({
+        id: "fullscreen",
+        slot: "fullscreen",
+        className: "kt-fs",
+        fade: false,
+        html: `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="square"/></svg>`,
+        // (fullscreen has to be asked for in a touchend: the browser only allows it there)
+        onUp: (c, i) => {
+          if (!i.cancelled && c.shown) this.onFullscreen?.();
+        },
+      }),
+    };
     this.offSettings = onPhoneSettingsChange(() => this.layout());
     this.layout();
   }
@@ -179,15 +444,23 @@ export class TouchLayer {
     return d;
   }
 
-  private button(cls: string, slot: SlotId, withLabel: boolean): Btn {
-    const el = this.div(`kt-btn ${cls}`);
-    const face = this.div("kt-face", el);
-    let label: HTMLSpanElement | null = null;
-    if (withLabel) {
-      label = document.createElement("span");
-      face.appendChild(label);
-    }
-    return { el, face, label, slot, shown: false, armedAt: 0, touches: new Set() };
+  /** A control on the layer (stage 2+: FIRE, DODGE, JUMP, chips...). Hidden until `show(true)`. */
+  addControl(spec: ControlSpec): TouchControl {
+    this.controls.get(spec.id)?.destroy();
+    const c = new TouchControl(this, spec);
+    this.controls.set(spec.id, c);
+    if (this.slots) c.place();
+    return c;
+  }
+
+  /** A control by id (the built-in ones are "action", "sanmik", "pause", "fullscreen"). */
+  control(id: string): TouchControl | undefined {
+    return this.controls.get(id);
+  }
+
+  removeControl(id: string) {
+    this.controls.get(id)?.destroy();
+    this.controls.delete(id);
   }
 
   // ------------------------------------------------------------------ layout
@@ -217,7 +490,7 @@ export class TouchLayer {
     this.viewport = { w, h, insets: this.readInsets() };
     this.root.style.setProperty("--kt-a", String(st.opacity));
     this.slots = layoutSlots(this.viewport, st);
-    this.geo = stickGeometry(h, st.buttonSize);
+    this.geo = stickGeometry(h, st.buttonSize, this.decision.stick === "x" ? "x" : "2d");
     this.zoneRect = stickZone(this.viewport, st);
     const z = this.zoneRect;
     this.zone.style.transform = `translate(${z.x}px,${z.y}px) scale(${z.w / 100},${z.h / 100})`;
@@ -230,36 +503,18 @@ export class TouchLayer {
       el.style.marginLeft = el.style.marginTop = `${-d / 2}px`;
     }
     this.capEl.style.marginTop = `${-g.base / 2 - 22}px`;
-    for (const n of Object.keys(this.btns) as ButtonName[]) this.placeButton(n);
-    this.fitActionLabel();
+    this.builtIn?.fullscreen.setSlot(this.builtIn.pause.shown ? "fullscreen" : "pause");
+    for (const c of this.controls.values()) c.place();
     if (!this.stick) this.placeGhost();
-  }
-
-  private placeButton(n: ButtonName) {
-    const b = this.btns[n];
-    // (the fullscreen offer takes the corner when there is no pause button beside it)
-    if (n === "fullscreen") b.slot = this.btns.pause.shown ? "fullscreen" : "pause";
-    const p = this.slots[b.slot];
-    b.el.style.width = `${p.hit.w}px`;
-    b.el.style.height = `${p.hit.h}px`;
-    b.el.style.transform = `translate(${p.hit.x}px,${p.hit.y}px)`;
-    b.face.style.width = b.face.style.height = `${p.size}px`;
-    b.face.style.left = `${p.cx - p.size / 2 - p.hit.x}px`;
-    b.face.style.top = `${p.cy - p.size / 2 - p.hit.y}px`;
+    this.tapKeys();
+    const ctx = { layer: this, game: this.game, decision: this.decision };
+    for (const c of controllersFor(this.decision.mode)) c.layout?.(ctx);
   }
 
   private placeGhost() {
     const p = ghostStick(this.viewport, phoneSettings());
     this.stickEl.style.transform = `translate(${p.x}px,${p.y}px)`;
     this.knobEl.style.transform = "translate(0px,0px)";
-  }
-
-  private fitActionLabel() {
-    const b = this.btns.action;
-    const text = b.label?.textContent ?? "";
-    const size = this.slots.prime.size;
-    const fs = Math.min(20, Math.max(10, (size - 12) / (Math.max(4, text.length) * 0.68)));
-    b.face.style.fontSize = `${fs.toFixed(1)}px`;
   }
 
   // ------------------------------------------------------------------ modes
@@ -274,9 +529,11 @@ export class TouchLayer {
     }
     this.apply(d);
     this.flushUps(false);
-    this.updateBubble();
-    const c = controllers.get(this.decision.mode);
-    c?.frame?.({ layer: this, game: this.game, decision: this.decision });
+    this.updateTaps();
+    this.updateSeeThrough();
+    this.updateGhost();
+    const ctx = { layer: this, game: this.game, decision: this.decision };
+    for (const c of controllersFor(this.decision.mode)) c.frame?.(ctx);
   }
 
   /** Show a decision (the mode table's, or one forced by a test). */
@@ -284,58 +541,37 @@ export class TouchLayer {
     if (sameDecision(d, this.decision)) return;
     const prev = this.decision;
     this.decision = d;
-    const modeChanged = prev.mode !== d.mode || prev.scene !== d.scene || prev.legacyPad !== d.legacyPad;
+    const modeChanged = prev.mode !== d.mode || prev.scene !== d.scene || prev.legacyPad !== d.legacyPad || prev.stick !== d.stick;
     if (modeChanged) {
       const ctx = { layer: this, game: this.game, decision: prev };
-      controllers.get(prev.mode)?.leave?.(ctx);
+      for (const c of controllersFor(prev.mode)) c.leave?.(ctx);
       this.releaseStick();
       // edges the layer set for the old scene, never read: drop them so they can't fire somewhere else later
       const t = now();
       for (const [n, at] of this.myEdges) if (t - at < 1500) dropEdges(n);
       this.myEdges.clear();
-      this.root.className = `kt ${d.mode}${d.legacyPad ? " legacy" : ""}`;
-      controllers.get(d.mode)?.enter?.({ layer: this, game: this.game, decision: d });
+      this.root.className = `kt ${d.mode}${d.legacyPad ? " legacy" : ""}${d.stick && !d.legacyPad ? ` stick stick-${d.stick}` : ""}`;
+      if (prev.stick !== d.stick) this.geo = stickGeometry(this.viewport.h, phoneSettings().buttonSize, d.stick === "x" ? "x" : "2d");
+      for (const c of controllersFor(d.mode)) c.enter?.({ layer: this, game: this.game, decision: d });
     }
     const walk = d.mode === "walk" && !d.legacyPad;
-    const label = this.btns.action.label;
-    if (label && d.action && label.textContent !== d.action) {
-      label.textContent = d.action;
-      this.fitActionLabel();
-    }
-    this.show("action", walk && !!d.action);
-    this.show("sanmik", walk && d.sanmik);
-    const pauseWas = this.btns.pause.shown;
-    this.show("pause", !!d.pause && d.pauseButton && !d.legacyPad);
-    if (pauseWas !== this.btns.pause.shown) this.placeButton("fullscreen");
-    this.show("fullscreen", this.fsOffer && !d.legacyPad && (d.mode === "walk" || d.mode === "none" || d.mode === "tap"));
-    this.stickEl.classList.toggle("ghost", walk && !this.stick);
+    const act = this.builtIn.action;
+    if (d.action) act.setLabel(d.action);
+    act.show(walk && !!d.action, true);
+    this.builtIn.sanmik.show(walk && !!d.sanmik);
+    const pauseWas = this.builtIn.pause.shown;
+    this.builtIn.pause.show(!!d.pause && !!d.pauseButton && !d.legacyPad);
+    if (pauseWas !== this.builtIn.pause.shown) this.builtIn.fullscreen.setSlot(this.builtIn.pause.shown ? "fullscreen" : "pause");
+    this.builtIn.fullscreen.show(this.fsOffer && !d.legacyPad && (d.mode === "walk" || d.mode === "none" || d.mode === "tap"));
     this.capEl.style.display = this.learnedMove ? "none" : "";
-  }
-
-  private show(n: ButtonName, on: boolean) {
-    const b = this.btns[n];
-    if (b.shown === on) return;
-    b.shown = on;
-    b.el.classList.toggle("show", on);
-    if (on) {
-      b.armedAt = now() + ARM_MS;
-      if (n === "action") {
-        // a little pop the moment there's something to do
-        b.el.classList.remove("pop");
-        void b.el.offsetWidth;
-        b.el.classList.add("pop");
-      }
-    } else {
-      // (a thumb still on it keeps owning its touch until it lifts; it just does nothing more)
-      b.el.classList.remove("on");
-    }
+    this.updateGhost();
   }
 
   /** Android: offer to go back into fullscreen (after the player left it). */
   setFullscreenOffer(on: boolean) {
     this.fsOffer = on;
     const d = this.decision;
-    this.show("fullscreen", on && !d.legacyPad && (d.mode === "walk" || d.mode === "none" || d.mode === "tap"));
+    this.builtIn.fullscreen.show(on && !d.legacyPad && (d.mode === "walk" || d.mode === "none" || d.mode === "tap"));
   }
 
   // ------------------------------------------------------------------ the stick
@@ -348,7 +584,7 @@ export class TouchLayer {
         if (e.cancelable) e.preventDefault();
         kickAudio();
         for (const t of Array.from(e.changedTouches)) {
-          if (this.decision.mode !== "walk" || this.decision.legacyPad) {
+          if (!this.decision.stick || this.decision.legacyPad || this.held) {
             // (the zone is about to switch off): this touch does nothing
             this.zoneTaps.set(t.identifier, { x0: t.clientX, y0: t.clientY, t0: now(), moved: true });
             continue;
@@ -380,7 +616,7 @@ export class TouchLayer {
         else {
           const zt = this.zoneTaps.get(t.identifier);
           this.zoneTaps.delete(t.identifier);
-          if (zt && !cancelled && !zt.moved && now() - zt.t0 < TAP_MS) this.injectTap(zt.x0, zt.y0);
+          if (zt && !cancelled && !zt.moved && now() - zt.t0 < TAP_MS) this.zoneTap(zt.x0, zt.y0);
         }
       }
     };
@@ -395,8 +631,8 @@ export class TouchLayer {
     const fixed = phoneSettings().stick === "fixed";
     const b = fixed ? ghostStick(this.viewport, phoneSettings()) : { x, y };
     this.stick = { id: t.identifier, x0: x, y0: y, t0: now(), bx: b.x, by: b.y, moved: false, dead: false, fixed };
-    this.stickEl.classList.remove("ghost");
     this.stickEl.classList.add("live");
+    this.updateGhost();
     this.stickEl.style.transform = `translate(${b.x}px,${b.y}px)`;
     this.knobEl.style.transform = "translate(0px,0px)";
     if (fixed) this.moveStick(x, y);
@@ -422,7 +658,7 @@ export class TouchLayer {
       this.capEl.style.display = "none";
     }
     let kx = x - s.bx;
-    let ky = y - s.by;
+    let ky = g.axis === "x" ? 0 : y - s.by;
     const kd = Math.hypot(kx, ky);
     if (kd > g.travel) {
       kx *= g.travel / kd;
@@ -441,8 +677,10 @@ export class TouchLayer {
     }
     this.stickEl.classList.remove("live");
     this.placeGhost();
-    this.stickEl.classList.toggle("ghost", this.decision.mode === "walk" && !this.decision.legacyPad);
-    if (mayTap && !s.dead && !s.moved && now() - s.t0 < TAP_MS) this.injectTap(s.x0, s.y0);
+    // (only a real walk brings the resting stick back for a moment: a tap doesn't flash it up)
+    if (s.moved) this.stickFreeAt = now();
+    this.updateGhost();
+    if (mayTap && !s.dead && !s.moved && now() - s.t0 < TAP_MS) this.zoneTap(s.x0, s.y0);
   }
 
   /** The stick lets go now (its touch stays owned until it lifts, but does nothing more). */
@@ -457,7 +695,40 @@ export class TouchLayer {
     for (const zt of this.zoneTaps.values()) zt.moved = true;
   }
 
-  // ------------------------------------------------------------------ taps handed to the game
+  /**
+   * The idle stick: shown (with MOVE under it) until the player has walked with it; after that it fades away a moment
+   * after the thumb lifts (nothing on screen that does nothing, research / priorities). Only in a stick mode.
+   */
+  private updateGhost() {
+    const d = this.decision;
+    const stickMode = !!d.stick && !d.legacyPad;
+    const on = stickMode && !this.stick && (!this.learnedMove || now() - this.stickFreeAt < GHOST_FADE_MS);
+    if (on === this.ghostOn) return;
+    this.ghostOn = on;
+    this.stickEl.classList.toggle("ghost", on);
+  }
+
+  // ------------------------------------------------------------------ taps: the prompt's ACTION, or the game
+
+  /**
+   * A quick still tap in the stick zone. On the prompt bubble or the thing the prompt is about: ACTION. Anywhere else:
+   * handed to the game as a tap at that point (tapping a canvas button on the left half).
+   */
+  private zoneTap(x: number, y: number) {
+    if (this.tapActs(x, y)) {
+      haptic("press");
+      this.edge("interact");
+      return;
+    }
+    this.injectTap(x, y);
+  }
+
+  /** Does a tap here use the prompt's thing? */
+  private tapActs(x: number, y: number): boolean {
+    const d = this.decision;
+    if (d.mode !== "walk" || !d.action || this.held) return false;
+    return inRect(this.bubbleRect, x, y) || inRect(this.target?.tap, x, y);
+  }
 
   /**
    * A tap in the stick zone that never became a drag: the game gets it as a real touch at that point (tapping a
@@ -521,17 +792,17 @@ export class TouchLayer {
     this.pendingUps = keep;
   }
 
-  // ------------------------------------------------------------------ the prompt bubble
-
-  private bindBubble() {
-    const el = this.bubble;
+  /** The tap areas outside the zone (the bubble, the target): a quick still tap there is ACTION; a drag nothing. */
+  private bindTap(which: "bubble" | "target") {
+    const a = this.taps[which];
+    const el = a.el;
     el.addEventListener(
       "touchstart",
       (e) => {
         if (e.cancelable) e.preventDefault();
         kickAudio();
         const t = e.changedTouches[0];
-        if (t && !this.bubbleTouch) this.bubbleTouch = { id: t.identifier, x0: t.clientX, y0: t.clientY, moved: false };
+        if (t && !a.touch) a.touch = { id: t.identifier, x0: t.clientX, y0: t.clientY, moved: this.held };
       },
       { passive: false },
     );
@@ -539,7 +810,7 @@ export class TouchLayer {
       "touchmove",
       (e) => {
         if (e.cancelable) e.preventDefault();
-        const bt = this.bubbleTouch;
+        const bt = a.touch;
         if (!bt) return;
         for (const t of Array.from(e.changedTouches)) if (t.identifier === bt.id && Math.hypot(t.clientX - bt.x0, t.clientY - bt.y0) > TAP_SLOP) bt.moved = true;
       },
@@ -547,88 +818,94 @@ export class TouchLayer {
     );
     const end = (e: TouchEvent, cancelled: boolean) => {
       if (e.cancelable) e.preventDefault();
-      const bt = this.bubbleTouch;
+      const bt = a.touch;
       if (!bt) return;
       for (const t of Array.from(e.changedTouches)) {
         if (t.identifier !== bt.id) continue;
-        this.bubbleTouch = null;
-        if (!cancelled && !bt.moved && this.bubbleOn && this.decision.mode === "walk" && this.decision.action) this.edge("interact");
+        a.touch = null;
+        if (!cancelled && !bt.moved && a.on && this.decision.mode === "walk" && this.decision.action && !this.held) {
+          haptic("press");
+          this.edge("interact");
+        }
       }
     };
     el.addEventListener("touchend", (e) => end(e, false), { passive: false });
     el.addEventListener("touchcancel", (e) => end(e, true), { passive: false });
   }
 
-  /** Keep the invisible tap target on the scene's prompt bubble (transform only). */
-  private updateBubble() {
-    let r: Rect | null = null;
-    if (this.decision.mode === "walk" && this.decision.action) {
+  /** Keep the tap areas on the prompt bubble and on its target (transforms only, when they move). */
+  private updateTaps() {
+    let bubble: Rect | null = null;
+    let target: { tap: Rect; core: Rect } | null = null;
+    const d = this.decision;
+    if (d.mode === "walk" && d.action && !d.legacyPad) {
       try {
-        r = promptRect(this.game, this.decision);
+        bubble = promptRect(this.game, d);
       } catch {
-        r = null;
+        bubble = null;
+      }
+      try {
+        target = targetRect(this.game, d);
+      } catch {
+        target = null;
       }
     }
-    const on = !!r && r.w > 0 && r.h > 0;
-    if (on !== this.bubbleOn) {
-      this.bubbleOn = on;
-      this.bubble.classList.toggle("show", on);
+    const pad = 8;
+    this.bubbleRect = bubble && bubble.w > 0 && bubble.h > 0 ? { x: bubble.x - pad, y: bubble.y - pad, w: bubble.w + 2 * pad, h: bubble.h + 2 * pad } : null;
+    // (the target's tap area stays below the HUD strip, where the zone starts)
+    if (target) {
+      const top = this.zoneRect.y;
+      const t = target.tap;
+      const y0 = Math.max(t.y, top);
+      target = y0 < t.y + t.h ? { tap: { x: t.x, y: y0, w: t.w, h: t.y + t.h - y0 }, core: target.core } : null;
     }
-    if (on && r) {
-      const pad = 8;
-      this.bubble.style.transform = `translate(${(r.x - pad).toFixed(1)}px,${(r.y - pad).toFixed(1)}px) scale(${((r.w + 2 * pad) / 100).toFixed(3)},${((r.h + 2 * pad) / 100).toFixed(3)})`;
-    }
+    this.target = target;
+    this.tapKeys();
   }
 
-  // ------------------------------------------------------------------ buttons
-
-  private bindButton(n: ButtonName) {
-    const b = this.btns[n];
-    b.el.addEventListener(
-      "touchstart",
-      (e) => {
-        if (e.cancelable) e.preventDefault();
-        kickAudio();
-        for (const t of Array.from(e.changedTouches)) {
-          if (b.touches.has(t.identifier)) continue;
-          b.touches.add(t.identifier);
-          // just appeared, or switched off already: the touch is owned but does nothing
-          if (!b.shown || now() < b.armedAt) continue;
-          b.el.classList.add("on");
-          if (b.touches.size === 1) this.press(n);
-        }
-      },
-      { passive: false },
-    );
-    b.el.addEventListener(
-      "touchmove",
-      (e) => {
-        if (e.cancelable) e.preventDefault();
-      },
-      { passive: false },
-    );
-    const end = (e: TouchEvent, cancelled: boolean) => {
-      if (e.cancelable) e.preventDefault();
-      for (const t of Array.from(e.changedTouches)) {
-        if (!b.touches.delete(t.identifier)) continue;
-        if (b.touches.size) continue;
-        const wasOn = b.el.classList.contains("on");
-        b.el.classList.remove("on");
-        // fullscreen has to be asked for in a touchend (the browser only allows it there)
-        if (n === "fullscreen" && wasOn && !cancelled && b.shown) this.onFullscreen?.();
+  /** Place the two tap elements over the parts of the bubble / target that are outside the zone. */
+  private tapKeys() {
+    const set = (which: "bubble" | "target", r: Rect | null) => {
+      const a = this.taps[which];
+      const part = r ? outsideZone(r, this.zoneRect) : null;
+      const on = !!part;
+      if (on !== a.on) {
+        a.on = on;
+        a.el.classList.toggle("show", on);
+        if (!on) a.touch && (a.touch.moved = true);
       }
+      if (!part) return;
+      const key = `${part.x.toFixed(1)},${part.y.toFixed(1)},${part.w.toFixed(1)},${part.h.toFixed(1)}`;
+      if (key === a.key) return;
+      a.key = key;
+      a.el.style.transform = `translate(${part.x.toFixed(1)}px,${part.y.toFixed(1)}px) scale(${(part.w / 100).toFixed(3)},${(part.h / 100).toFixed(3)})`;
     };
-    b.el.addEventListener("touchend", (e) => end(e, false), { passive: false });
-    b.el.addEventListener("touchcancel", (e) => end(e, true), { passive: false });
+    set("bubble", this.bubbleRect);
+    set("target", this.target?.tap ?? null);
   }
 
-  private press(n: ButtonName) {
-    // (a little buzz where the phone can: Android, with the Vibration setting on)
-    haptic(n === "action" ? "press" : "tap");
-    if (n === "action") this.edge("interact");
-    else if (n === "sanmik") this.edge("sanmik");
-    else if (n === "pause") this.pause();
+  /** Controls the player, the prompt bubble or the prompt's target is under go see-through, in place (research C9). */
+  private updateSeeThrough() {
+    let me: Rect | null = null;
+    const d = this.decision;
+    if (d.mode === "walk") {
+      try {
+        me = playerRect(this.game, d);
+      } catch {
+        me = null;
+      }
+    }
+    const core = this.target?.core ?? null;
+    for (const c of this.controls.values()) {
+      if (!c.shown || c.spec.fade === false) {
+        c.setSeeThrough(false);
+        continue;
+      }
+      c.setSeeThrough(overlaps(c.faceRect, me) || overlaps(c.faceRect, core) || overlaps(c.faceRect, this.bubbleRect));
+    }
   }
+
+  // ------------------------------------------------------------------ edges
 
   private edge(name: "interact" | "sanmik" | "pause") {
     if (name === "interact") pressInteract();
@@ -636,7 +913,7 @@ export class TouchLayer {
     this.myEdges.set(name, now());
   }
 
-  /** Pause the way the current scene pauses (the button, and the phone's back gesture). */
+  /** Pause the way the current scene pauses (the button, the phone's back gesture, coming back to a fight). */
   pause(): boolean {
     const d = this.decision;
     const ok = pressPause(this.game, d);
@@ -649,38 +926,44 @@ export class TouchLayer {
   /** Everything lets go at once: the page is hiding, the phone turned, the window lost focus. */
   releaseAll() {
     this.releaseStick();
-    for (const b of Object.values(this.btns)) {
-      b.el.classList.remove("on");
-      // (touches stay owned until they end, but are disarmed)
-      b.armedAt = Infinity;
-    }
-    if (this.bubbleTouch) this.bubbleTouch.moved = true;
+    for (const c of this.controls.values()) c.letGo();
+    for (const a of Object.values(this.taps)) if (a.touch) a.touch.moved = true;
     this.flushUps(true);
-    controllers.get(this.decision.mode)?.release?.({ layer: this, game: this.game, decision: this.decision });
+    // (the old canvas pad in the dungeon, stage 1: its stick and ATTACK too, even if a conversation is over it now)
+    releaseLegacyPad(this.game);
+    const ctx = { layer: this, game: this.game, decision: this.decision };
+    for (const c of controllersFor(this.decision.mode)) c.release?.(ctx);
   }
 
-  /** After a release: controls work again for new touches. */
+  /** After a release: controls work again for new touches (after a short pause). */
   rearm() {
-    const t = now() + ARM_MS;
-    for (const b of Object.values(this.btns)) if (b.touches.size === 0) b.armedAt = t;
+    for (const c of this.controls.values()) c.rearm();
+    const ctx = { layer: this, game: this.game, decision: this.decision };
+    for (const c of controllersFor(this.decision.mode)) c.rearm?.(ctx);
   }
 
   destroy() {
     this.releaseAll();
     this.offSettings();
+    for (const c of this.controls.values()) c.destroy();
+    this.controls.clear();
     this.root.remove();
   }
 
   /** For tests: what the layer is showing. */
   snapshot() {
-    const vis = (n: ButtonName) => this.btns[n].shown;
+    const b = this.builtIn;
     return {
       decision: { ...this.decision },
       stick: this.stick ? { live: !this.stick.dead, x: this.stick.bx, y: this.stick.by } : null,
       ghost: this.stickEl.classList.contains("ghost"),
-      buttons: { action: vis("action"), sanmik: vis("sanmik"), pause: vis("pause"), fullscreen: vis("fullscreen") },
-      actionLabel: this.btns.action.label?.textContent ?? "",
-      bubble: this.bubbleOn,
+      buttons: { action: b.action.shown, sanmik: b.sanmik.shown, pause: b.pause.shown, fullscreen: b.fullscreen.shown },
+      controls: [...this.controls.values()].map((c) => c.state()),
+      actionLabel: b.action.label,
+      bubble: !!this.bubbleRect,
+      bubbleRect: this.bubbleRect,
+      target: this.target,
+      tapAreas: { bubble: this.taps.bubble.on, target: this.taps.target.on },
       zone: { ...this.zoneRect },
       slots: this.slots,
       viewport: this.viewport,

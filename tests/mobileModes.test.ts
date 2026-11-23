@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { addSceneRule, NONE, resolveMode, SCENE_RULES, verbFromPrompt, type GameView, type SceneState } from "../src/game/mobile/modes";
+import { addSceneRule, NONE, resolveMode, sameDecision, SCENE_RULES, verbFromPrompt, type GameView, type ModeDecision, type SceneState } from "../src/game/mobile/modes";
+import { wakeCare } from "../src/game/mobile/shell";
 
 const view = (scenes: (string | SceneState)[], extra: Partial<GameView> = {}): GameView => ({ scenes: scenes.map((s) => (typeof s === "string" ? { key: s } : s)), ...extra });
 
@@ -72,19 +73,95 @@ describe("phone layer modes: the scene table", () => {
   });
 });
 
+describe("phone layer modes: fights, the stick, coming back (round 1 fixes)", () => {
+  it("the Hub's shoving match on the bridge: ACTION says SHOVE with no prompt at all (R6)", () => {
+    expect(resolveMode(view(["UI", { key: "Hub", sub: "shove" }]))).toMatchObject({ mode: "walk", action: "SHOVE", sanmik: false, pause: "edge" });
+    // even when something else is in range (its prompt would have said INSPECT)
+    expect(resolveMode(view(["UI", { key: "Hub", sub: "shove", prompt: "E: Inspect the Great Tap (dry)" }])).action).toBe("SHOVE");
+  });
+
+  it("live action is marked (fights, the raid, minigames, the finale); town is not (P1)", () => {
+    expect(resolveMode(view(["Dungeon", "UI"])).live).toBe(true);
+    expect(resolveMode(view([{ key: "Dungeon", side: true }, "UI"])).live).toBe(true);
+    expect(resolveMode(view(["Finale"])).live).toBe(true);
+    expect(resolveMode(view(["Whack"])).live).toBe(true);
+    expect(resolveMode(view(["UI", { key: "Kreddle", sub: "raid" }])).live).toBe(true);
+    expect(resolveMode(view(["Hub", "UI"])).live).toBe(false);
+    expect(resolveMode(view(["UI", "Home"])).live).toBe(false);
+    expect(resolveMode(view([{ key: "Dungeon", busy: true }, "UI", "Dialogue"])).live).toBe(false);
+  });
+
+  it("coming back: the pause menu where there is one, the carry-on card where there isn't, nothing in town (P1)", () => {
+    expect(wakeCare(resolveMode(view(["Dungeon", "UI"])))).toBe("pause");
+    expect(wakeCare(resolveMode(view(["UI", { key: "Kreddle", sub: "rout" }])))).toBe("pause");
+    expect(wakeCare(resolveMode(view(["Finale"])))).toBe("card");
+    expect(wakeCare(resolveMode(view(["BeepBeep"])))).toBe("card");
+    expect(wakeCare(resolveMode(view(["Hub", "UI"])))).toBe(null);
+    expect(wakeCare(resolveMode(view(["Hub", "UI", "Menu"])))).toBe(null);
+    expect(wakeCare(null)).toBe(null);
+  });
+
+  it("the stick is the decision's: 2d in the walking scenes, none on the old pad or in menus", () => {
+    expect(resolveMode(view(["Hub", "UI"])).stick).toBe("2d");
+    expect(resolveMode(view(["Dungeon", "UI"])).stick).toBe(null);
+    expect(resolveMode(view(["Title"])).stick).toBe(null);
+  });
+
+  it("two decisions are the same only if every field is, including fields a stage 2 rule adds (R7)", () => {
+    const a = resolveMode(view(["Dungeon", "UI"]));
+    const b = { ...a, ready: "WONK" } as ModeDecision;
+    const c = { ...a, ready: null } as ModeDecision;
+    expect(sameDecision(a, { ...a })).toBe(true);
+    expect(sameDecision(b, a)).toBe(false);
+    expect(sameDecision(a, b)).toBe(false);
+    expect(sameDecision(b, c)).toBe(false);
+    expect(sameDecision(b, { ...b })).toBe(true);
+    // through a rule, as stage 2 would add one
+    const rules = [...SCENE_RULES];
+    try {
+      addSceneRule({ name: "test", match: (k) => k === "Dungeon", decide: (s) => ({ mode: "combat", legacyPad: false, ready: s.side ? null : "WONK" }) });
+      const d1 = resolveMode(view(["Dungeon", "UI"]));
+      const d2 = resolveMode(view([{ key: "Dungeon", side: true }, "UI"]));
+      expect(d1.ready).toBe("WONK");
+      expect(d2.ready).toBe(null);
+      // (the same in every listed field: only the rule's own field differs, and that is enough)
+      expect(sameDecision(d1, d2)).toBe(false);
+    } finally {
+      SCENE_RULES.splice(0, SCENE_RULES.length, ...rules);
+    }
+  });
+});
+
 describe("phone layer: ACTION's word", () => {
   it("takes the verb from the prompt", () => {
     expect(verbFromPrompt("E: Talk to Gronny")).toBe("TALK");
     expect(verbFromPrompt("E: Enter Town Hall")).toBe("ENTER");
     expect(verbFromPrompt("E: 🍬 Throw a sweetie over the fence (3 left)")).toBe("THROW");
-    expect(verbFromPrompt("E: Cross the bridge back to Krelworld")).toBe("CROSS");
+    expect(verbFromPrompt("E: Enter Krunch Gym")).toBe("ENTER");
     expect(verbFromPrompt("E / ATTACK: hit Alistair")).toBe("HIT");
     expect(verbFromPrompt("E: Tip Destiny (5 Krezzcoin)\n👀: Watch up close (10 Krezzcoin)")).toBe("TIP");
   });
 
   it("anything usable without a known verb says USE", () => {
-    expect(verbFromPrompt("E: KRAZY REELS (slots) · 150 Krezzcoin a spin")).toBe("USE");
     expect(verbFromPrompt("E: Jukebox (every tune you've heard)")).toBe("USE");
+    expect(verbFromPrompt("E: Crobley Corp HQ")).toBe("USE");
+  });
+
+  it("places, machines and long verbs get a short, right word (P14)", () => {
+    // both ways over the Kreddle bridge
+    expect(verbFromPrompt("E: Cross the bridge back to Krelworld")).toBe("GO");
+    expect(verbFromPrompt("E: The Kreddle Bridge")).toBe("GO");
+    expect(verbFromPrompt("E: Kreddle Bridge")).toBe("GO");
+    expect(verbFromPrompt("E: Polson Towers (pop round for a chat)")).toBe("VISIT");
+    expect(verbFromPrompt("E: THE KREDDLE EXCHANGE (🎟 3 Krokens · 💰 120 Krezzcoin)")).toBe("ENTER");
+    expect(verbFromPrompt("E: KRAZY REELS (slots) · 150 Krezzcoin a spin")).toBe("PLAY");
+    expect(verbFromPrompt("E: WHEEL OF KREDDLE · 300 Krezzcoin a spin")).toBe("SPIN");
+    expect(verbFromPrompt("E: Pussy Juice Vending (15 Krezzcoin: +1 bottle)")).toBe("BUY");
+    expect(verbFromPrompt("E: Rummage")).toBe("SEARCH");
+    expect(verbFromPrompt("E: Inspect the Great Tap (dry)")).toBe("LOOK");
+    expect(verbFromPrompt("E: Drink from the Great Tap")).toBe("DRINK");
+    // (a bridge mentioned later in a prompt is not the bridge)
+    expect(verbFromPrompt("E: Talk to Gronny (by the bridge)")).toBe("TALK");
   });
 
   it("no prompt, or one you can't act on: no ACTION at all", () => {

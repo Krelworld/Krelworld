@@ -9,7 +9,7 @@ import { continueRun, switchTo, fadeThen } from "../Flow";
 import { formatPlaytime, slotLabel } from "../systems/saveSlots";
 import { LADS } from "../../data/characters";
 import { isMobile } from "../mobile/flag";
-import { homeScreenEntryWanted, openHomeScreenGuide } from "../mobile/homeScreen";
+import { homeScreenEntryWanted, openHomeScreenGuide } from "../mobile/boot";
 
 const LEAK = ["[citation needed]", "Seen by 9", "Hello?", "KREZZ", "Drongi", "WONK", "pls", "Krebon is coming", "lore withdrawn", "THE KREZZING HOUR", "Krez-ousers", "purple", "Big Bertha", "12 Midday", "cheesegate"];
 

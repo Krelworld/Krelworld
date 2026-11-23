@@ -25,7 +25,12 @@ function liveText(o: unknown): Phaser.GameObjects.Text | null {
 /** Scene-specific reads. Each returns the busy flag and where its interact prompt lives. */
 const ADAPTERS: Record<string, (sc: Bag) => { busy: boolean; promptOwner: Bag; side?: boolean; sub?: SceneState["sub"] }> = {
   Home: (sc) => ({ busy: sc.busy === true, promptOwner: sc }),
-  Hub: (sc) => ({ busy: sc.busy === true || sc.cutscene === true || !!sc.riseCut || !!sc.curtain || sc.leaving === true || !sc.av, promptOwner: sc }),
+  Hub: (sc) => ({
+    busy: sc.busy === true || sc.cutscene === true || !!sc.riseCut || !!sc.curtain || sc.leaving === true || !sc.av,
+    promptOwner: sc,
+    // the shoving match on the bridge: only E (ACTION) shoves, and no prompt says so
+    sub: (sc.brawl as Bag | null | undefined)?.running === true ? "shove" : null,
+  }),
   Club: (sc) => ({ busy: sc.busy === true, promptOwner: sc }),
   Venue: (sc) => ({ busy: sc.busy === true, promptOwner: sc }),
   Kreddle: (sc) => {
@@ -95,6 +100,145 @@ export function promptRect(game: Phaser.Game, d: ModeDecision): Rect | null {
   const ky = cb.height / game.scale.height;
   if (!k || !ky) return null;
   return { x: cb.x + gx * k, y: cb.y + gy * ky, w: b.width * zoom * k, h: b.height * zoom * ky };
+}
+
+/** Something the player can use, in world coordinates, with how near they must be. */
+interface Usable {
+  x: number;
+  y: number;
+  r: number;
+  enabled?: () => boolean;
+  __npc?: { follower?: unknown; spr?: { x: number; y: number } };
+  /** (phones: a follower's "Shove" ranked last, see rankFollowerLast) */
+  __krelLast?: boolean;
+}
+
+/** The nearest usable thing in range of (px, py), the way the scene picks it (null if none). */
+function nearest(list: Usable[] | undefined, px: number, py: number, skip?: (u: Usable) => boolean): Usable | null {
+  let best: Usable | null = null;
+  let bd = Infinity;
+  for (const u of list ?? []) {
+    if (skip?.(u)) continue;
+    if (typeof u.enabled === "function" && !u.enabled()) continue;
+    const d = Math.hypot(u.x - px, u.y - py);
+    if (d < u.r && d < bd) {
+      bd = d;
+      best = u;
+    }
+  }
+  return best;
+}
+
+/** What the prompt is about, in the scene's world (Home's spots, the town's interactables, Kreddle's spots), or null. */
+function promptTarget(key: string, sc: Bag): { x: number; y: number; r: number } | null {
+  if (key === "Home") {
+    const me = sc.me as { x: number; y: number } | undefined;
+    return me ? nearest(sc.spots as Usable[], me.x, me.y) : null;
+  }
+  if (key === "Hub") {
+    const av = sc.av as { x: number; y: number } | undefined;
+    return av ? nearest(sc.interactables as Usable[], av.x, av.y) : null;
+  }
+  if (key === "Kreddle" && !sc.raid && !sc.rout) {
+    const me = sc.me as { x: number; y: number } | undefined;
+    return me ? nearest(sc.spots as Usable[], me.x, me.y) : null;
+  }
+  return null;
+}
+
+/** World → page (CSS px) through a scene's main camera, the way Phaser draws it (zoom about the camera's middle). */
+function toPage(game: Phaser.Game, sc: Phaser.Scene, x: number, y: number, sf = 1): { x: number; y: number; k: number } | null {
+  const cam = sc.cameras?.main;
+  if (!cam) return null;
+  const zoom = cam.zoom || 1;
+  const gx = (x - cam.scrollX * sf - cam.width / 2) * zoom + cam.x + cam.width / 2;
+  const gy = (y - cam.scrollY * sf - cam.height / 2) * zoom + cam.y + cam.height / 2;
+  const cb = game.scale.canvasBounds;
+  const k = cb.width / game.scale.width;
+  if (!k) return null;
+  return { x: cb.x + gx * k, y: cb.y + gy * k, k: k * zoom };
+}
+
+/**
+ * The thing the prompt is about, on the page (CSS px). `tap`: where tapping it uses it: around its spot, reaching
+ * further up than down (things stand on their spot: the TV, the console, a door, a person). `core`: the thing itself,
+ * roughly (controls over it go see-through). Null when the scene has no prompt target the layer can read.
+ */
+export function targetRect(game: Phaser.Game, d: ModeDecision): { tap: Rect; core: Rect } | null {
+  if (d.mode !== "walk" || !d.scene || !d.action || d.action === "SHOVE") return null;
+  const sc = game.scene.getScene(d.scene) as unknown as Bag | null;
+  if (!sc) return null;
+  const t = promptTarget(d.scene, sc);
+  if (!t) return null;
+  const p = toPage(game, sc as unknown as Phaser.Scene, t.x, t.y);
+  if (!p) return null;
+  const R = Math.min(90, Math.max(40, t.r)) * p.k;
+  return { tap: { x: p.x - R, y: p.y - 2.2 * R, w: 2 * R, h: 3.2 * R }, core: { x: p.x - R / 2, y: p.y - R, w: R, h: R * 1.2 } };
+}
+
+/** The player's figure on the page (CSS px), for keeping ACTION off it. Null when the scene has no player to read. */
+export function playerRect(game: Phaser.Game, d: Pick<ModeDecision, "scene" | "mode">): Rect | null {
+  if (d.mode !== "walk" || !d.scene) return null;
+  const sc = game.scene.getScene(d.scene) as unknown as Bag | null;
+  if (!sc) return null;
+  const owner = (d.scene === "Kreddle" ? ((sc.raid as Bag) ?? (sc.rout as Bag) ?? sc) : sc) as Bag;
+  const who = (owner.me ?? owner.av ?? sc.me ?? sc.av) as (Phaser.GameObjects.Components.GetBounds & { active?: boolean; visible?: boolean }) | undefined;
+  if (!who || typeof who.getBounds !== "function" || who.visible === false) return null;
+  const b = who.getBounds();
+  const a = toPage(game, sc as unknown as Phaser.Scene, b.x, b.y);
+  const z = toPage(game, sc as unknown as Phaser.Scene, b.right, b.bottom);
+  if (!a || !z) return null;
+  return { x: a.x, y: a.y, w: z.x - a.x, h: z.y - a.y };
+}
+
+/**
+ * Hub, phones: with Mikey (or Polson) following, "Shove Mikey" never outranks a door, a person or a thing in range
+ * (he catches up whenever you stop, and the phone has one ACTION button). It is still there when nothing else is.
+ * Wraps the follower's own `enabled` once; the scene's list and everything else in it are left as they are.
+ */
+export function rankFollowerLast(game: Phaser.Game) {
+  let sc: Bag | null = null;
+  try {
+    if (!game.scene.isActive("Hub")) return;
+    sc = game.scene.getScene("Hub") as unknown as Bag;
+  } catch {
+    return;
+  }
+  const list = sc?.interactables as Usable[] | undefined;
+  if (!Array.isArray(list)) return;
+  for (const it of list) {
+    if (it.__krelLast || !it.__npc?.follower) continue;
+    it.__krelLast = true;
+    const own = it.enabled;
+    const hub = sc as Bag;
+    it.enabled = () => {
+      if (typeof own === "function" && !own.call(it)) return false;
+      const av = hub.av as { x: number; y: number } | undefined;
+      if (!av) return true;
+      return !nearest(hub.interactables as Usable[], av.x, av.y, (u) => u === it || !!u.__krelLast);
+    };
+  }
+}
+
+/**
+ * The old canvas pad (the dungeon, stage 1) lets go: its stick, ATTACK and held buttons, as if every finger had
+ * lifted. For the page hiding, rotating or losing focus without a touchcancel.
+ */
+export function releaseLegacyPad(game: Phaser.Game) {
+  TOUCH.mx = 0;
+  TOUCH.my = 0;
+  TOUCH.attack = false;
+  TOUCH.held.clear();
+  try {
+    const pad = (game.scene.getScene("UI") as unknown as Bag | null)?.touch as Bag | null | undefined;
+    if (!pad) return;
+    pad.stickId = null;
+    const base = pad.base as { x: number; y: number } | undefined;
+    const knob = pad.knob as { setPosition?: (x: number, y: number) => void } | undefined;
+    if (base && knob?.setPosition) knob.setPosition(base.x, base.y);
+  } catch {
+    /* no pad */
+  }
 }
 
 /** ACTION: the same edge the canvas pad's E button sends (Controls.interact() reads it on the scene's next frame). */

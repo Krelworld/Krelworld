@@ -35,9 +35,15 @@ export interface SceneState {
   prompt?: string | null;
   /** Dungeon only: a side-scrolling room. */
   side?: boolean;
-  /** Kreddle only: the chapter 6 raid or the chapter 3 rout is running in it. */
-  sub?: "raid" | "rout" | null;
+  /**
+   * Something running inside a walking scene: Kreddle's chapter 6 raid or chapter 3 rout (fights), or the Hub's
+   * shoving match on the bridge (E shoves a Kruncher; there is no prompt).
+   */
+  sub?: "raid" | "rout" | "shove" | null;
 }
+
+/** The stick a mode uses: "2d" walks / aims anywhere; "x" only left and right (side-scrolling rooms). */
+export type StickKind = "2d" | "x";
 
 export interface GameView {
   /** The RUNNING scenes (not paused or asleep), in draw order. */
@@ -60,9 +66,18 @@ export interface ModeDecision {
   sanmik: boolean;
   /** The canvas pad does this mode (stage 1 combat / side / brawl): the layer must not take any touches. */
   legacyPad: boolean;
+  /**
+   * Live action: leaving the game running here can cost health or a run (fights, the raid, minigames). Coming back to
+   * the game after the page was hidden, the phone upright or the guide open never drops straight into it (shell.ts).
+   */
+  live: boolean;
+  /** The layer's floating stick, and which kind (null: none; the stick zone then takes no touches). */
+  stick: StickKind | null;
+  /** Stage 2+ rules may add their own fields (compared by sameDecision like the rest). */
+  [extra: string]: unknown;
 }
 
-export const NONE: Readonly<ModeDecision> = Object.freeze({ mode: "none", scene: null, pause: null, pauseButton: false, action: null, sanmik: false, legacyPad: false });
+export const NONE: Readonly<ModeDecision> = Object.freeze({ mode: "none", scene: null, pause: null, pauseButton: false, action: null, sanmik: false, legacyPad: false, live: false, stick: null });
 
 /** A row of the table: which scene keys it is about, and what it decides when one of them is running. */
 export interface SceneRule {
@@ -99,7 +114,7 @@ export const SCENE_RULES: SceneRule[] = [
     // full-screen minigames: the whole screen is theirs (stage 3 adds their pause and controls)
     name: "minigames",
     match: keys("Minigame", "Whack", "Drive", "BeepBeep"),
-    decide: () => ({ mode: "tap" }),
+    decide: () => ({ mode: "tap", live: true }),
   },
   {
     // card menus and boards you tap
@@ -110,13 +125,13 @@ export const SCENE_RULES: SceneRule[] = [
   {
     name: "finale brawl",
     match: keys("Finale"),
-    decide: () => ({ mode: "brawl", legacyPad: true }),
+    decide: () => ({ mode: "brawl", legacyPad: true, live: true }),
   },
   {
     // the dungeon: the canvas pad (with its own II) for now; the back gesture still pauses through the edge
     name: "dungeon",
     match: keys("Dungeon"),
-    decide: (s) => (s.busy ? { mode: "none", legacyPad: true, scene: s.key } : { mode: s.side ? "side" : "combat", legacyPad: true, pause: "edge", pauseButton: false }),
+    decide: (s) => (s.busy ? { mode: "none", legacyPad: true, scene: s.key } : { mode: s.side ? "side" : "combat", legacyPad: true, pause: "edge", pauseButton: false, live: true }),
   },
   {
     name: "walking",
@@ -125,7 +140,10 @@ export const SCENE_RULES: SceneRule[] = [
       if (s.busy) return { mode: "none" };
       // Kreddle's raid and rout have their own Esc → pause menu; plain Kreddle, the Club and the Venue walk you out
       const pause: PauseRoute = s.key === "Home" || s.key === "Hub" || s.sub ? "edge" : "menu";
-      return { mode: "walk", pause, pauseButton: true, action: verbFromPrompt(s.prompt), sanmik: !!view.sanmikToggle && SANMIK_SCENES.has(s.key) && !s.sub };
+      // (the shoving match on the bridge: E shoves, and nothing shows a prompt)
+      const action = s.sub === "shove" ? "SHOVE" : verbFromPrompt(s.prompt);
+      const fight = s.sub === "raid" || s.sub === "rout";
+      return { mode: "walk", pause, pauseButton: true, action, sanmik: !!view.sanmikToggle && SANMIK_SCENES.has(s.key) && !s.sub, live: fight, stick: "2d" };
     },
   },
 ];
@@ -151,9 +169,13 @@ export function resolveMode(view: GameView, rules: readonly SceneRule[] = SCENE_
   return { ...NONE };
 }
 
-/** Two decisions show the same thing. */
+/** Two decisions show the same thing: every field, including any a stage 2 rule added (shallow). */
 export function sameDecision(a: ModeDecision, b: ModeDecision): boolean {
-  return a.mode === b.mode && a.scene === b.scene && a.pause === b.pause && a.pauseButton === b.pauseButton && a.action === b.action && a.sanmik === b.sanmik && a.legacyPad === b.legacyPad;
+  if (a === b) return true;
+  const ka = Object.keys(a);
+  if (ka.length !== Object.keys(b).length) return false;
+  for (const k of ka) if (!Object.is(a[k], b[k]) || !(k in b)) return false;
+  return true;
 }
 
 // ---------------------------------------------------------------- ACTION's word
@@ -173,12 +195,28 @@ const VERBS = new Set(
 /** "E: Talk to Gronny" → "TALK". Only prompts that start with the interact key mean ACTION can do something. */
 const KEY_PREFIX = /^\s*(?:\[\s*E\s*\]|E)(?:\s*\/\s*[A-Z][A-Z ]*)?\s*:\s*/;
 
+/**
+ * Prompts whose first word isn't the right verb (places named by their name, machines, long verbs that crowd the
+ * button), checked before the first-word rule. Phones only: the scene's own prompt text is never changed.
+ */
+export const VERB_OVERRIDES: readonly [RegExp, string][] = [
+  [/^(?:Cross the bridge|(?:The )?Kreddle Bridge)\b/i, "GO"],
+  [/^Polson Towers\b/i, "VISIT"],
+  [/\bKREDDLE EXCHANGE\b/i, "ENTER"],
+  [/^(?:THE KLAW|KRAZY REELS|KREDDLE KARDS|WHACK-A-DRONGUS)\b/i, "PLAY"],
+  [/^WHEEL OF KREDDLE\b/i, "SPIN"],
+  [/\bVending\b/i, "BUY"],
+  [/^Rummage\b/i, "SEARCH"],
+  [/^(?:Inspect|Examine)\b/i, "LOOK"],
+];
+
 export function verbFromPrompt(text: string | null | undefined): string | null {
   if (!text) return null;
   const first = String(text).split("\n")[0];
   const m = KEY_PREFIX.exec(first);
   if (!m) return null;
   const rest = first.slice(m[0].length).replace(/^[^A-Za-z]+/, "");
+  for (const [re, verb] of VERB_OVERRIDES) if (re.test(rest)) return verb;
   const word = /^[A-Za-z][A-Za-z'-]*/.exec(rest)?.[0] ?? "";
   const lw = word.toLowerCase();
   return VERBS.has(lw) ? lw.toUpperCase() : "USE";

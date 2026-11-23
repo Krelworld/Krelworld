@@ -160,7 +160,7 @@
   }
   const _dp = drawProp;
   drawProp = function (p) {
-    const usable = !p.nohit && p.a && propVisible(p), g = ease(p, usable && near(p, Math.max(30, (p.w || spriteSize(p.k)[0] * (p.scale || 1) || 40) * 0.5 + 12)));
+    const usable = !p.nohit && p.a && propVisible(p), nr = usable && near(p, Math.max(30, (p.w || spriteSize(p.k)[0] * (p.scale || 1) || 40) * 0.5 + 12)), g = ease(p, window.Clarity && Clarity.is('G18') && Clarity.G18 ? Clarity.G18.glow(p, nr) : nr); /* G18 */
     if (g > 0.02 && p.k.startsWith('p:')) {      // painted into the background: a soft pool of light instead of an outline
       const c = E.ctx, w = (p.w || 50) * 0.6, h = (p.h || 40) * 0.6, x = p.x - E.camX, y = p.y - (p.h || 40) * 0.5;
       const gr = c.createRadialGradient(x, y, 2, x, y, Math.max(w, h)); gr.addColorStop(0, 'rgba(255,240,170,' + (0.34 * g).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(255,240,170,0)');
@@ -171,7 +171,7 @@
   const _de = drawEnt;
   drawEnt = function (e) {
     if (e === marina || !e.here || e.hidden) return _de(e);
-    lit(ease(e, near(e, 42) && !marina.mount), () => _de(e));
+    const nr = near(e, 42) && !marina.mount; lit(ease(e, window.Clarity && Clarity.is('G18') && Clarity.G18 ? Clarity.G18.glow(e, nr) : nr), () => _de(e)); /* G18 */
   };
 })();
 

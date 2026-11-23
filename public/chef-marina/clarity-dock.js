@@ -94,6 +94,13 @@
       'width:' + size + 'px;height:' + size + 'px;font-size:' + Math.round(size * 44 / 84) + 'px}';
     else t += '#wishBtn,#reqBtn{left:auto}';                                     // (b): today's right-corner spot (react.js:143, fun.js:210)
     t += '#wishBtn{animation:cm-g25-glow-w .7s ease-in-out infinite alternate}#reqBtn{animation:cm-g25-glow-r .7s ease-in-out infinite alternate}}';
+    // while a full screen is up (a #panel screen, the story, the sticker book), a prompt that is still showing sits exactly at
+    // today's spot, so the screen content under it is the same as today until the game clears it (0.5-2 s). Separate rules: a
+    // browser without :has() drops only these. The studio (z-index 40) covers the prompts anyway; the title never has one.
+    const up = sel => ['body:has(#panel:not(.hidden))', 'body:has(#storyBox)', 'body:has(#stkBox)'].map(u => sel.split(',').map(x => u + ' ' + x).join(',')).join(',');
+    t += up('#wishBtn,#reqBtn') + '{left:104px}' + up('#reqBtn b') + '{left:-10px}';             // today's (react.js:140, fun.js:206-207)
+    t += '@media ' + TALL + '{' + up('#wishBtn,#reqBtn') + '{left:auto;right:16px;top:calc(env(safe-area-inset-top) + var(--stageH) + 10px);bottom:auto;width:84px;height:84px;font-size:44px;' +
+      'animation:pulse .6s ease-in-out infinite alternate}}';                                    // react.js:143, fun.js:210
     return t;
   }
   function slot25() {
@@ -107,14 +114,24 @@
       const pr = document.createElement('div');
       pr.style.cssText = 'position:fixed;left:0;width:1px;height:1px;visibility:hidden;pointer-events:none;top:calc(env(safe-area-inset-top) + var(--stageH) + 88px)';
       st.append(pr); const top = pr.getBoundingClientRect().top; pr.remove();
-      let moodTop = Infinity; for (const m of document.querySelectorAll('#moodbar .mood')) if (m.offsetHeight) moodTop = Math.min(moodTop, home(m).y);
+      // the moods' resting top. While the game pulses them (#moodbar.pulse, a transform animation) their offsetParent becomes
+      // #moodbar, whose 4 px top border offsetTop leaves out: add each offsetParent's clientTop so both read the same
+      let moodTop = Infinity;
+      for (const m of document.querySelectorAll('#moodbar .mood')) if (m.offsetHeight) { let y = 0; for (let n = m; n; n = n.offsetParent) y += n.offsetTop + (n.offsetParent ? n.offsetParent.clientTop : 0); moodTop = Math.min(moodTop, y); }
       if (moodTop === Infinity) { sheet25.textContent = rules25('b', 84); S.mode = 'b'; return; }   // moods not built yet: today's spot, measure again later
       size = [84, 72, 64].find(s => top + s + 6 <= moodTop) || 0; mode = size ? 'a' : 'b'; size = size || 84;
     }
     S.key = key; S.mode = mode; S.size = size;
     sheet25.textContent = rules25(mode, size);
   }
-  const resize25 = () => { C.G25.key = ''; slot25(); };
+  // measure at once, then again once the new size has settled (during a rotation the moods and --stageH can lag a frame or
+  // more; a stale reading would otherwise be cached for the whole session)
+  let settle25 = [];
+  const resize25 = () => {
+    C.G25.key = ''; slot25();
+    for (const h of settle25) clearTimeout(h);
+    settle25 = [150, 500, 1200].map(ms => setTimeout(() => { C.G25.key = ''; slot25(); }, ms));
+  };
   addEventListener('resize', resize25); addEventListener('orientationchange', resize25);
   try { tallMQ.addEventListener('change', resize25); } catch (e) { }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', resize25); else resize25();
@@ -137,7 +154,7 @@
   // button is in its slot and tappable from its first frame; the ghost has no id and ignores taps.
   function ghost25(btn) {
     const S = C.G25;
-    if (S.mode !== 'a' || !tallMQ.matches || S.ghosts >= 3 || !btn.isConnected || !canTranslate || !document.body.animate || !C.playing()) return;
+    if (S.mode !== 'a' || !tallMQ.matches || S.ghosts >= 3 || !btn.isConnected || !canTranslate || !document.body.animate || !C.playing() || C.screenOpen()) return;
     if (getComputedStyle(btn).display === 'none') return;
     S.ghosts++;
     const to = home(btn);                                                        // the real button, in slot (a): top = safe-top + stageH + 88
@@ -208,7 +225,7 @@
   function guard27() {                                                           // every frame while a toast flies: never over a screen
     const S = C.G27; S.raf = 0; const e = S.flying;
     if (!e || C.on.G27 !== true) return;
-    if (C.screenOpen()) return hide27(e);
+    if (C.screenOpen()) { hide27(e); C.sample(); return; }                      // sample: the core records the edge, so 'screenClose' follows even for a very short screen
     S.raf = requestAnimationFrame(guard27);
   }
   function land27(e) {
@@ -222,18 +239,20 @@
     sp.className = 'cm-g27-spark'; sp.textContent = '✨'; sp.style.left = (hb.x + hb.w / 2 - hl.x) + 'px'; sp.style.top = (hb.y + hb.h / 2 - hl.y) + 'px';
     L.append(sp); setTimeout(() => sp.remove(), 850);
   }
-  function pump27() {                                                            // replay the next queued sticker over the room
-    const S = C.G27; if (S.flying || !S.queue.length || C.on.G27 !== true || C.screenOpen()) return;
+  // replay the next queued sticker over the room. Replays carry data-cm="g27": a .stk-toast with it is a replay, not a new award
+  function pump27() {
+    const S = C.G27; if (S.flying || !S.queue.length || C.on.G27 !== true) return;
+    if (C.screenOpen()) { C.sample(); return; }                                 // waits for 'screenClose' (or the backstop below)
     const st = $('stage'); if (!st) return;
     const glyph = S.queue.shift(), t = document.createElement('div');
-    t.className = 'stk-toast'; t.innerHTML = '<span></span>'; t.firstChild.textContent = glyph;
+    t.className = 'stk-toast'; t.dataset.cm = 'g27'; t.innerHTML = '<span></span>'; t.firstChild.textContent = glyph;
     seen27.add(t); st.append(t); fly27(t, glyph, true);
   }
   C.appear('.stk-toast', 'G27', t => {
     if (!t.isConnected || seen27.has(t)) return;
     seen27.add(t);
     const S = C.G27, sp = t.querySelector('span'), glyph = sp ? sp.textContent : t.textContent;
-    if (C.screenOpen() || S.flying || S.queue.length) { t.style.display = 'none'; S.queue.push(glyph); pump27(); return; }
+    if (C.screenOpen() || S.flying || S.queue.length) { t.style.display = 'none'; S.queue.push(glyph); if (C.screenOpen()) C.sample(); pump27(); return; }
     fly27(t, glyph, false);                                                      // in the room right now: fly it to 📒
   });
   C.listen('screenOpen', 'G27', () => { const e = C.G27.flying; if (e) hide27(e); });
@@ -241,10 +260,19 @@
   // treasures
   function try27(d) {
     const S = C.G27; if (d.done || C.on.G27 !== true) return;
-    if (C.screenOpen()) return;                                                  // waits for screenClose
+    if (C.screenOpen()) { d.wait = true; C.sample(); return; }                  // waits for screenClose (or the backstop below)
     d.done = true; clearTimeout(d.timer); const i = S.icons.indexOf(d); if (i >= 0) S.icons.splice(i, 1);
     const f = C.inner('UI.bigIcon'); if (f) f.apply(UI, d.args);
   }
+  // backstop: whatever waits for a screen to close is released once no screen has been up for 400 ms, even if the screen was
+  // too short for the core to see its edge
+  C.G27.scrAt = 0;
+  C.every(250, 'G27', t => {
+    const S = C.G27; if (C.screenOpen()) { S.scrAt = t; return; }
+    if (t - S.scrAt < 400) return;
+    for (const d of [...S.icons]) if (d.wait) try27(d);
+    if (!S.flying && S.queue.length) pump27();
+  });
   C.hook('UI.bigIcon', 'G27', { order: 10, before(c) {
     const ch = c.args[0]; if (typeof ch !== 'string' || !/✨$/.test(ch) || !document.querySelector('.act')) return;
     c.skip = true; const d = { args: Array.from(c.args), done: false }; C.G27.icons.push(d);

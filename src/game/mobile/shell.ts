@@ -32,6 +32,7 @@ export class Shell {
   private gateTapped = false;
   private guardArmed = false;
   private lastSave = 0;
+  private booted = false;
 
   constructor(
     readonly game: Phaser.Game,
@@ -146,14 +147,17 @@ export class Shell {
 
   // ------------------------------------------------------------------ sleeping and waking
 
+  /** The first load is still going (nothing but the Boot scene has run yet: it loads in its LOADING state). */
   private booting(): boolean {
+    if (this.booted) return false;
     const g = this.game as Phaser.Game & { isRunning?: boolean };
     if (!g.isRunning) return true;
     try {
-      return this.game.scene.isActive("Boot");
+      this.booted = this.game.scene.getScenes(true).some((s) => s.sys.settings.key !== "Boot");
     } catch {
       return true;
     }
+    return !this.booted;
   }
 
   private setHold(h: Hold, on: boolean) {

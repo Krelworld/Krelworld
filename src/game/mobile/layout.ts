@@ -6,7 +6,8 @@
 //  - sizes and offsets scale with the screen height, clamp(h / 390, 0.85, 1.15), times the S/M/L setting
 //    (0.85 / 1 / 1.2), and no control is ever drawn smaller than 52 px.
 //  - the touchable area is the drawing plus 10 px on every side (never into the bottom strip).
-//  - nothing is drawn within 60 px of a short edge between 30% and 70% of the height (the Dynamic Island, either side).
+//  - on screens with a notch or cutout (side insets), nothing is drawn within 60 px of a short edge between 30% and
+//    70% of the height (the Dynamic Island, either side).
 //  - left-handed mirrors the thumb controls (pause and the fullscreen offer stay top right, clear of the HUD's face).
 import type { PhoneSettings } from "./settings";
 
@@ -42,6 +43,13 @@ export const BOTTOM_CLEAR = 21;
 export const ISLAND_GAP = 60;
 /** ...between these fractions of the height. */
 export const ISLAND_BAND: readonly [number, number] = [0.3, 0.7];
+/** A drawing that only reaches this far into the band counts as clear of it. */
+export const ISLAND_GRAZE = 6;
+
+/** Does this screen have a notch / island / cutout on a short edge? (It reports side insets if so.) */
+export function islandSides(vp: Viewport): boolean {
+  return Math.max(vp.insets.left, vp.insets.right) > 0;
+}
 export const SIZE_K: Readonly<Record<PhoneSettings["buttonSize"], number>> = { S: 0.85, M: 1, L: 1.2 };
 /** The stick zone: this much of the window's width, from the thumb's side (gutter included). */
 export const STICK_ZONE_FRAC = 0.45;
@@ -116,9 +124,10 @@ export function placeControl(vp: Viewport, spec: SlotSpec, settings: Pick<PhoneS
   // whole drawing inside the safe area
   cx = clamp(cx, safe.x + r, safe.x + safe.w - r);
   cy = clamp(cy, safe.y + r, safe.y + safe.h - r);
-  // keep clear of the Dynamic Island band on both short edges
+  // keep clear of the Dynamic Island band on both short edges (only where the screen has a notch or cutout, which
+  // is what side insets mean; a control merely grazing the band's edge stays where it is)
   const [b0, b1] = ISLAND_BAND;
-  if (cy + r > vp.h * b0 && cy - r < vp.h * b1) {
+  if (islandSides(vp) && cy + r > vp.h * b0 + ISLAND_GRAZE && cy - r < vp.h * b1 - ISLAND_GRAZE) {
     if (vp.w - (cx + r) < ISLAND_GAP) cx = vp.w - ISLAND_GAP - r;
     if (cx - r < ISLAND_GAP) cx = ISLAND_GAP + r;
   }

@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,optout,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,optout,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -11,6 +11,8 @@
 //          ACTION together (two fingers); touchcancel lets go; pause opens and RESUME closes the pause menu; the back
 //          gesture pauses; portrait shows the rotate screen and the loop sleeps, landscape wakes it; the page hidden
 //          mid-press lets go, sleeps and saves, and comes back.
+// upright  the phone held upright from the start: the rotate screen covers the loading, the art loads behind it,
+//          then the loop sleeps; turned sideways the game runs and the Enter gate takes a tap.
 // optout   the same phone with ?mobile=0: no layer, no "mobile" class, no phone CSS, no phone global.
 // desktop  1280x720, mouse: phone mode off, no class, no layer, no CSS, no global, and at home the UI scene has no
 //          touch pad and TOUCH stays off (exactly as before).
@@ -26,7 +28,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,optout,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,optout,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -397,6 +399,41 @@ async function phone(browser) {
   }
 }
 
+// ------------------------------------------------------------------ starting upright
+
+async function upright(browser) {
+  console.log("UPRIGHT START (the phone held upright while the game loads)");
+  const ctx = await browser.newContext({ ...IPHONE, viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e.message).slice(0, 200)));
+  const ph = new Phone(page, await ctx.newCDPSession(page));
+  try {
+    await page.goto(URL0, { waitUntil: "domcontentloaded" });
+    await ph.until(() => !!document.querySelector(".krot"), null, 60000, "the rotate screen");
+    const early = await ph.ev(() => ({ shown: document.querySelector(".krot").classList.contains("show"), loading: !window.__krel || !window.__krel.active().includes("Enter") }));
+    check("the rotate screen is up while the game is still loading", early.shown && early.loading, early);
+    await ph.until(() => !!window.__krel && window.__krel.active().includes("Enter"), null, 240000, "loading to finish behind it");
+    check("the art keeps loading behind it (the Enter gate is reached while upright)", true);
+    await sleep(800);
+    const l1 = await ph.loop();
+    await sleep(800);
+    const l2 = await ph.loop();
+    check("once loaded, the loop sleeps while upright", !l2.running && l1.frame === l2.frame, { l1, l2 });
+    await ph.shot("upright-boot");
+    await page.setViewportSize({ width: 844, height: 390 });
+    await sleep(1200);
+    const st = await ph.ev(() => ({ shown: document.querySelector(".krot").classList.contains("show"), running: window.__krel.game.loop.running }));
+    check("turned sideways: the screen goes and the game runs", !st.shown && st.running, st);
+    await ph.tapCss(422, 300);
+    await ph.scene("Title", 60000);
+    check("and the Enter gate takes the tap", true);
+    check("no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 // ------------------------------------------------------------------ the escape hatch
 
 async function optout(browser) {
@@ -460,6 +497,7 @@ async function desktop(browser) {
   try {
     for (const [id, fn] of [
       ["phone", phone],
+      ["upright", upright],
       ["optout", optout],
       ["desktop", desktop],
     ]) {

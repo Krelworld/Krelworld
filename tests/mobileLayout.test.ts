@@ -6,6 +6,7 @@ import {
   ghostStick,
   HIT_SLOP,
   ISLAND_GAP,
+  ISLAND_GRAZE,
   layoutSlots,
   MIN_CONTROL,
   placeControl,
@@ -100,18 +101,26 @@ describe("phone layout: controls", () => {
     }
   });
 
-  it("nothing is drawn within 60 px of a short edge in the middle band (the Dynamic Island)", () => {
-    for (const vp of [IPHONE, SAFARI_BARS, ANDROID, BIG]) {
+  it("with a notch, nothing is drawn within 60 px of a short edge in the middle band (the Dynamic Island)", () => {
+    for (const vp of [IPHONE, IPHONE_FLIPPED, BIG]) {
       for (const lh of [false, true]) {
-        for (const p of Object.values(layoutSlots(vp, { leftHanded: lh, buttonSize: "M" }))) {
-          const r = p.size / 2;
-          if (p.cy + r > vp.h * 0.3 && p.cy - r < vp.h * 0.7) {
-            expect(p.cx - r).toBeGreaterThanOrEqual(ISLAND_GAP - 1e-9);
-            expect(vp.w - (p.cx + r)).toBeGreaterThanOrEqual(ISLAND_GAP - 1e-9);
+        for (const size of ["S", "M", "L"] as const) {
+          for (const p of Object.values(layoutSlots(vp, { leftHanded: lh, buttonSize: size }))) {
+            const r = p.size / 2;
+            if (p.cy + r > vp.h * 0.3 + ISLAND_GRAZE && p.cy - r < vp.h * 0.7 - ISLAND_GRAZE) {
+              expect(p.cx - r).toBeGreaterThanOrEqual(ISLAND_GAP - 1e-9);
+              expect(vp.w - (p.cx + r)).toBeGreaterThanOrEqual(ISLAND_GAP - 1e-9);
+            }
           }
         }
       }
     }
+  });
+
+  it("without a notch the band is not needed: ACTION keeps the corner on a short Safari screen", () => {
+    const p = placeControl(SAFARI_BARS, SLOTS.prime, M);
+    const s = controlScale(340, "M");
+    expect(p.cx).toBeCloseTo(750 - 52 * s);
   });
 
   it("left-handed mirrors the thumb controls but leaves pause top right", () => {

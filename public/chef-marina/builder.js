@@ -4,10 +4,16 @@
 // and taken down again when she wants the planks back. Tree houses are real little rooms up a ladder.
 // Everything is additive and lives in this one file; its pictures are assets/build/build.png + build.json.
 //
-//   Builder.open({ onSay })   the build menu (onSay(kind) is asked for Jeff's voice: hello, start, done, full, down, recolor)
+//   Builder.open({ onSay, edit })   the build menu (onSay(kind) is asked for Jeff's voice: hello, start, treehouse, done, full, down, recolor)
 //   Builder.close()           Builder.list() → [{ kind, spot, colour, style, addons }]      Builder.lumberLeft()      Builder.has(kind)
-//   Builder.onSay = fn        used when open() was not given one
-// Saved in localStorage 'cm_builds'. Spots: p1..p5 on the ground, oak / pine for a tree house, oak_b / pine_b for things that hang from a branch.
+//   Builder.onSay = fn        used when open() was not given one (family2.js sets it to GRAND.jeffSays)
+//   Builder.catalogue, Builder.spots, Builder.lumber      Builder.draw(spot): paint that thing again now (for a file drawing foliage over it)
+// Saved in localStorage 'cm_builds'. Spots (read from window.Backyard): p1..p5 on the ground, oak / pine for a tree house,
+// oak_b / pine_b for things that hang from a branch.
+// With the real Grandpa Jeff about (family2.js's `jeff`), he is held back from his own wandering (AI.hold) while the menu is open and
+// while he builds: he walks over, hammers (jeff_hammer frames), climbs his step ladder or the tree-house ladder, waves, and is let go.
+// outdoor.js's workbench (its 🔨 opens this menu) and plank pile are used as they are; the pile is redrawn to show the planks left.
+// A finished tree house is drawn after everything else in the scene, so the big trees' leaves never cover it.
 (function () {
   if (typeof ROOMS === 'undefined' || !ROOMS.backyard || !PROPS.backyard) return;
   const BY = window.Backyard || { W: 1040, door: 92, bench: 232, plots: [{ id: 'p1', x: 348 }, { id: 'p2', x: 458 }, { id: 'p3', x: 568 }, { id: 'p4', x: 678 }, { id: 'p5', x: 872 }],
@@ -164,15 +170,23 @@
   function thBack(c, b, cx, by, t, o) {                           // tree house: braces to the trunk, the rope ladder, the tube slide
     const side = o.side || 1, g = o.ground == null ? by + 80 : o.ground, lx = cx - side * 36, top = by - DECK + 1, sw = Math.sin(t * 1.4) * 1.2;
     for (const s of [-1, 1]) { line(c, cx + s * 36, by - 2, cx + s * 9, by + 20, '#4a3120', 4); line(c, cx + s * 36, by - 3, cx + s * 9, by + 19, '#8a6238', 1.4); }
-    if ((b.addons || []).includes('tube')) tube(c, b, cx, by, g);
+    if ((b.addons || []).includes('tube')) tube(c, b, cx, by, g, side);
     for (const dx of [-5, 5]) line(c, lx + dx + 0.5, top, lx + dx + 0.5 + sw, g + 1, '#d2b077', 1.5);
     for (let y = top + 5; y < g; y += 7) { const k = (y - top) / (g - top); px(c, lx - 6 + sw * k, y, 13, 2, '#6b4423'); px(c, lx - 6 + sw * k, y, 13, 1, '#a9773f'); }
   }
-  function tube(c, b, cx, by, g) {                                // a zig-zag tube slide down the trunk; st.tube 0..1 = where she is inside it
-    const n = Math.max(2, Math.round((g - by - 12) / 19)), at = b._ && b._.tube, dk = b.colour === 'rainbow' ? '#6a3fc0' : DARK[b.colour] || DARK.blue;
-    for (let i = 0; i < n; i++) { const big = at != null && Math.abs(at * n - i - 0.5) <= 0.5 ? 2 : 0;
-      c.save(); c.translate(cx, by + 12 + i * 19); c.rotate((i % 2 ? -1 : 1) * 0.3); px(c, -21, -6 - big, 42, 12 + big * 2, '#2a2230'); px(c, -20, -5 - big, 40, 10 + big * 2, paintAt(b.colour, i)); px(c, -20, -5 - big, 40, 3, 'rgba(255,255,255,.4)'); px(c, -20, 3 + big, 40, 2, dk); c.restore(); }
-    px(c, cx - 12, g - 12, 24, 13, '#2a2230'); px(c, cx - 11, g - 11, 22, 11, paintAt(b.colour, n)); px(c, cx - 11, g - 11, 22, 3, 'rgba(255,255,255,.4)'); px(c, cx - 7, g - 7, 14, 8, '#2a2230');
+  // the tube slide: it winds down in front of the trunk to a flared mouth on the grass; st.tube 0..1 = where she is inside it (a bump whooshing down)
+  const tubeAt = (cx, by, g, side, k) => [cx + side * 15 * Math.sin(k * Math.PI * 2.5), lerp(by + 9, g - 10, k)];
+  function tube(c, b, cx, by, g, side) {
+    side = side || 1; const at = b._ && b._.tube, dk = b.colour === 'rainbow' ? '#6a3fc0' : DARK[b.colour] || DARK.blue, n = Math.max(14, Math.round((g - by) / 1.5)), r = 6;
+    const dot = (x, y, rr, col) => { c.fillStyle = col; c.beginPath(); c.arc(x, y, rr, 0, 7); c.fill(); };
+    const bump = k => at != null ? Math.max(0, 1 - Math.abs(k - at) * 8) * 2.6 : 0, pts = [];
+    for (let i = 0; i <= n; i++) { const k = i / n, [x, y] = tubeAt(cx, by, g, side, k); pts.push([x, y, k, bump(k)]); }
+    for (const [x, y, k, bu] of pts) dot(x, y, r + 1.3 + bu, '#2a2230');                                                  // its dark outline
+    pts.forEach(([x, y, k, bu], i) => dot(x, y, r + bu, i % 8 === 4 ? dk : paintAt(b.colour, Math.floor(k * 6))));       // the tube, with a darker ring now and then
+    for (const [x, y, k, bu] of pts) { c.fillStyle = 'rgba(255,255,255,.38)'; c.fillRect(Math.round(x - 3 - bu * 0.5), Math.round(y - 2), 2, 2); }   // the shine down one side
+    const [mx, my] = pts[pts.length - 1];                                                                                  // the mouth she pops out of
+    c.fillStyle = '#2a2230'; c.beginPath(); c.ellipse(mx + side * 4, g - 6, 10, 7, 0, 0, 7); c.fill(); c.fillStyle = paintAt(b.colour, 5); c.beginPath(); c.ellipse(mx + side * 4, g - 6, 9, 6, 0, 0, 7); c.fill();
+    c.fillStyle = '#1b1420'; c.beginPath(); c.ellipse(mx + side * 5, g - 6, 6, 4, 0, 0, 7); c.fill(); px(c, mx + side * 4 - 6, g - 12, 6, 1, 'rgba(255,255,255,.45)');
   }
   function branch(c, cx, by, o) {                                 // the branch a tyre swing or bird house hangs from
     const side = o.side || 1, br = o.br == null ? by - 60 : o.br, x0 = cx - side * 30;
@@ -217,6 +231,7 @@
   window.featTick = function (dt) {
     if (_ft) _ft(dt);
     if (drawExitSigns !== hookLate.top) hookLate();                                              // another file added its own late drawing after us: stay the last one
+    if (S.held && !M && !G.busy) { S.orphan = (S.orphan || 0) + dt; if (S.orphan > 1.5) freeJeff(); } else S.orphan = 0;     // never keep Grandpa Jeff once nothing of ours is going on
     for (const w of tweens.slice()) { w.t += dt; try { w.step(Math.min(1, w.t / w.dur), w.t, dt); } catch (e) { warn('step', e); w.t = w.dur; } if (w.t >= w.dur) { tweens.splice(tweens.indexOf(w), 1); w.res(); } }
     if (S.cam != null && S.soft && (marina.moving || Math.abs(marina.x - S.softX) > 3 || G.room !== 'backyard')) S.cam = null;
     if (S.cam != null && G.room === 'backyard') { const cs = E.cssScale || 1, target = clamp(S.cam - E.viewW / 2, -62 / cs, ROOMS.backyard.w - E.viewW + 78 / cs); S.camX += (target - S.camX) * Math.min(1, dt * 5); E.camX = S.camX; }
@@ -245,7 +260,7 @@
     drawSprite(k, a.x, a.y, { flip: a.flip != null ? a.flip : e.dir < 0, scale: e.scale * (a.s || 1), rot: a.rot || 0, opt: mOpt(), sx: a.sx || 1, sy: a.sy || 1, alpha: a.a == null ? 1 : a.a });
   };
   const cheer = (ms = 1400) => { marina.state = 'cheer'; setTimeout(() => marina.state === 'cheer' && (marina.state = 'idle'), ms); };
-  const walkTo = (x, y) => new Promise(res => { let done = false; const fin = () => { if (!done) { done = true; res(); } }; if (Math.abs(marina.x - x) < 3) return fin(); marina.walkTo(x, fin, 118, y == null ? FLOOR : y); setTimeout(fin, 6000); });
+  const walkTo = (x, y, sp) => new Promise(res => { let done = false; const fin = () => { if (!done) { done = true; res(); } }; if (Math.abs(marina.x - x) < 3) return fin(); marina.walkTo(x, fin, sp || 118, y == null ? FLOOR : y); setTimeout(fin, 6000); });
   // what Jeff says: the caller's onSay(kind) if it gave one (kinds: hello, start, done, full, down, recolor); otherwise, if the real Jeff is about, his own lines
   const JSAY = { hello: ['j_build_hello1', 'j_build_hello2', 'j_build_hello3'], start: ['j_build_start1', 'j_build_start2', 'j_build_start3', 'j_build_start4'], done: ['j_build_done1', 'j_build_done2', 'j_build_done3', 'j_build_done4'], full: ['j_build_full1', 'j_build_full2'], down: ['j_build_down', 'j_build_down2'], recolor: ['j_recolor'] };
   function hook(kind) {
@@ -303,6 +318,7 @@
   function jeffDone(J) {                // back to the ground, a wave to her, and off he goes about his own business again
     S.jeff = null; const j = J && J.real; if (!j) return freeJeff();
     j.offY = 0; j.y = FLOOR - 3; j.dir = Math.sign(marina.x - j.x) || 1; if (j.state === 'hammer') j.state = 'idle'; freeJeff();
+    setTimeout(() => { if (j.state === 'wave' && !AI.held.has(j)) j.state = 'idle'; }, 2200);
   }
   // Grandpa Jeff likes to watch: now and then, if he is out here and free, he cheers at what she does on the things he built
   let cheerAt = -99;
@@ -319,7 +335,8 @@
   function syncProps() {
     const L = PROPS.backyard; for (let i = L.length - 1; i >= 0; i--) if (L[i].bl) L.splice(i, 1);
     for (const b of D.builds) { const sp = SPOTS[b.spot], c = CATBY[b.kind];
-      L.push({ id: 'bl_' + b.spot, bl: 1, k: 'p:built', x: sp.x, y: propY(b), w: c.w, h: c.h, a: 'built', b });
+      L.push({ id: 'bl_' + b.spot, bl: 1, k: 'p:built', x: sp.x, y: propY(b), w: c.w, h: c.h, a: 'built', b });                  // what she taps (and, on the ground, what is drawn)
+      if (sp.type !== 'ground') L.push({ id: 'bl_' + b.spot + '_draw', bl: 3, k: 'p:builtdraw', x: sp.x, y: BACK + 7.5, w: 1, h: 1, nohit: true, b });   // up in a tree it is drawn from here: just after the big trees, so their trunks and leaves never hide it
       if (c.id === 'treehouse') L.push({ id: 'bl_' + b.spot + '_lad', bl: 2, k: 'p:builtlad', x: sp.ladX, y: GY + 2, w: 18, h: GY - sp.y - 4, a: 'built', b }); }
   }
   const benchProp = { id: 'jbench', k: 'p:jbench', x: BY.bench + 4, y: BACK + 5, w: 136, h: 62, a: 'jbench' };
@@ -353,7 +370,8 @@
     if (p === benchProp) return drawBench(p);
     if (p.id === 'lumber' && p.k === 'o_lumber' && G.room === 'backyard') return drawLumber(p);
     if (!p.bl) return _dp(p);
-    if (p.bl === 1) drawBuilt(p);
+    if (p.bl === 1 && SPOTS[p.b.spot].type === 'ground') drawBuilt(p);
+    else if (p.bl === 3) { const m = mainProp(p.b); if (m) drawBuilt(m); }
   };
   // part: null = all of it; a finished tree house is drawn in two goes: its braces, ladder and tube with the other props ('back'),
   // and the house itself at the very end ('body', from late()) so the big trees' leaves never hide it
@@ -366,6 +384,8 @@
     c.save(); if (bo) { c.translate(cx, p.y); c.scale(1 + bo, 1 - bo); c.translate(-cx, -p.y); }
     drawThing(c, b, cx, p.y, E.t, Object.assign({ reveal: b._site ? b._site.k : 1, glow: p.glow, blur: E.scale * 4.5, ground: GY + 2, side: sp.side, br: sp.br, part }, sp.tree && sp.tree.id === 'pine' ? PINE : null));
     c.restore();
+    const lad = b._site && b._site.lad; if (lad) { const lx = Math.round(lad.x - E.camX), ty = Math.round(lad.y - 12);                      // Jeff's step ladder while he works up high
+      for (const dx of [-7, 6]) { px(c, lx + dx, ty, 2, GY + 3 - ty, '#4a3120'); px(c, lx + dx, ty, 1, GY + 3 - ty, '#8a6238'); } for (let y = ty + 4; y < GY; y += 7) { px(c, lx - 6, y, 12, 2, '#6b4423'); px(c, lx - 6, y, 12, 1, '#a9773f'); } }
     if (S.jeff && S.jeff.b === b && !S.jeff.real && part !== 'body') drawJeff(c, S.jeff.x - E.camX, S.jeff.y, S.jeff.pose, S.jeff.dir, E.t);
   };
   const _pa = propActions;
@@ -390,7 +410,7 @@
     focus(sp.x);
     const jx = sp.type === 'tree' ? sp.ladX - sp.side * 2 : sp.type === 'branch' ? sp.x - sp.side * 24 : sp.x + 46;
     const mx = clamp(sp.type === 'tree' ? sp.x + sp.side * 54 : sp.type === 'branch' ? sp.x + sp.side * 40 : sp.x - Math.min(74, E.viewW / 2 - 18), 14, R.w - 14);
-    const [, J] = await Promise.all([walkTo(mx, FLOOR + (tree ? 6 : 4)).then(() => { marina.dir = Math.sign(sp.x - marina.x) || 1; }), jeffComes(b, jx)]);
+    const [, J] = await Promise.all([walkTo(mx, FLOOR + (tree ? 6 : 4), clamp(Math.abs(mx - marina.x) / 2.2, 118, 210)).then(() => { marina.dir = Math.sign(sp.x - marina.x) || 1; }), jeffComes(b, jx)]);
     J.dir = Math.sign(sp.x - J.x) || 1; J.home = jx; return J;
   }
   function leave(J) { if (J) jeffDone(J); else freeJeff(); unfocus(); G.busy = false; }
@@ -406,7 +426,8 @@
     let J = null;
     try {
       J = await arrive(b); if (helper && J.real) await handHammer(J);
-      if (sp.type === 'tree') { J.y = sp.y + 34; emit('dust', J.x, FLOOR - 20, 6); }
+      const upY = Math.max(sp.y + 34, -(E.offY || 0) / E.scale + 90);                                         // up the ladder, his head still on the screen
+      if (sp.type === 'tree') { J.y = upY; emit('dust', J.x, FLOOR - 20, 6); }
       J.pose = 'hammer'; const dur = 3.5, top = () => p0 - c.h * b._site.k, from = Math.max(pileX(), sp.x - 160); let tb = 0, n = 0, sent = 0, ph = 0;
       await run(dur, (k, t, dt) => {
         b._site.k = clamp(ease(k) * 1.02, 0.03, 1); tb -= dt;
@@ -414,14 +435,17 @@
         if (sent < c.cost && t > sent * dur * 0.75 / c.cost) { sent++; plankFly(from, top() - 50, sp.x + rnd(-c.w * 0.3, c.w * 0.3), top(), 0.55, () => { Audio2.blip(-19, 'triangle', 0.07, 0.2); emit('dust', sp.x, top(), 2); }); }
         if (sp.type === 'ground') { const q = k < 0.3 ? 0 : k < 0.55 ? 1 : k < 0.85 ? 2 : 3;                               // a time-lapse Jeff: this side, that side, on top, done
           if (q !== ph) { ph = q; emit('dust', J.x, J.y - 20, 5); Audio2.whoosh(q % 2 === 1); }
-          if (q === 1) { J.x = sp.x - 30; J.y = FLOOR - 3; J.dir = 1; } else if (q === 2) { J.x = sp.x + 6; J.y = top() + 3; J.dir = -1; } else { J.x = J.home; J.y = FLOOR - 3; J.dir = -1; } }
+          if (q === 1) { J.x = sp.x - 30; J.y = FLOOR - 3; J.dir = 1; }
+          else if (q === 2) { const fy = Math.max(top() + 3, -(E.offY || 0) / E.scale + 90);           // up on top; on a tall thing, up a ladder so his head stays on the screen
+            if (fy > top() + 8) { b._site.lad = { x: sp.x + Math.round(c.w * 0.3), y: fy }; J.x = b._site.lad.x; } else { b._site.lad = null; J.x = sp.x + 6; } J.y = fy; J.dir = -1; }
+          else { b._site.lad = null; J.x = J.home; J.y = FLOOR - 3; J.dir = -1; } }
       });
       delete b._site; J.pose = 'wave'; if (sp.type === 'ground') { J.x = J.home; J.y = FLOOR - 3; }
       Audio2.jingle([0, 4, 7, 12, 16, 19, 24], 0.08, 'triangle'); Audio2.sfx('chip_cheer', { vol: 0.6 });
       for (let i = -1; i <= 1; i++) emit('confetti', sp.x + i * 28, p0 - c.h - 6, 16); emit('star', sp.x, p0 - c.h * 0.6, 10); UI.bigIcon('🎉', 900);
       marina.state = 'cheer'; say(pick(['m_wow', 'm_yay', 'm_cool'])); hook('done'); got('build');
       await nap(1.9); if (marina.state === 'cheer') marina.state = 'idle';
-      if (sp.type === 'tree') { J.pose = 'walk'; await run(0.5, k => { J.y = lerp(sp.y + 34, FLOOR - 3, k); }); }      // down the ladder again
+      if (sp.type === 'tree') { J.pose = 'walk'; await run(0.5, k => { J.y = lerp(upY, FLOOR - 3, k); }); }      // down the ladder again
     } catch (e) { warn('build', e); delete b._site; }
     finally { leave(J); }
   }
@@ -429,7 +453,7 @@
     if (G.busy || !D.builds.includes(b) || b._site) return; const sp = SPOTS[b.spot], c = CATBY[b.kind], p0 = propY(b);
     b._site = { k: 1 }; let J = null;
     try {
-      J = await arrive(b); if (sp.type === 'tree') J.y = sp.y + 34; J.pose = 'hammer'; hook('down'); let tb = 0, n = 0, sent = 0; const to = Math.max(pileX(), sp.x - 160);
+      J = await arrive(b); if (sp.type === 'tree') J.y = Math.max(sp.y + 34, -(E.offY || 0) / E.scale + 90); J.pose = 'hammer'; hook('down'); let tb = 0, n = 0, sent = 0; const to = Math.max(pileX(), sp.x - 160);
       await run(1.5, (k, t, dt) => { b._site.k = 1 - ease(k); const top = p0 - c.h * b._site.k; tb -= dt;
         if (tb <= 0) { tb = 0.13; n++; bang(n); emit('dust', sp.x + rnd(-c.w * 0.4, c.w * 0.4), top + 6, 2); }
         if (sent < c.cost && t > sent * 1.2 / c.cost) { sent++; plankFly(sp.x + rnd(-20, 20), top, to, top - 60, 0.6); } });
@@ -590,6 +614,7 @@
     try { await fn(p, b, arg); } catch (e) { warn('play', e); }
     S.pose = null; S.fx.length = 0; S.actors.length = 0; b._ = Object.assign({}, b.keep);
     marina.offY = 0; marina.y = FLOOR; marina.rot = 0; marina.scale = s0; marina.squash = 1; if (!['idle', 'cheer'].includes(marina.state)) { marina.state = 'idle'; marina.anim = null; }
+    if (S.held && !S.jeff && !M) freeJeff();                                           // (in case a game that borrowed Grandpa Jeff stopped half way)
     S.act = null; unfocus(); G.busy = false;
   }
   S.actors = [];                                                                       // little emoji characters in the scene: { ch, x, y, size, rot, a }
@@ -620,11 +645,17 @@
     S.pose = null; emit('dust', marina.x, FLOOR, 8); Audio2.sfx('thud', { vol: 0.5 }); if (flip) emit('star', marina.x, FLOOR - 50, 6); await yay(['m_yay', 'm_again'], 'slide', 'brave');
   }
   async function swingHigh(p, b, jump) {
-    const X = p.x - 18, PY = p.y - 72, L = 38, st = b._; await walkTo(X - 2); marina.dir = 1;
+    const X = p.x - 18, PY = p.y - 72, L = 38, st = b._, j = jump ? null : realJ(), jx = X - 38;
+    const push = j && j.here && !AI.held.has(j) && !S.held && Math.abs(j.x - X) < E.viewW * 0.9 ? j : null;            // Grandpa Jeff, if he is near, comes to push her
+    if (push) { holdJeff(push); push.walkTo(jx, () => { push.dir = 1; }, 130, FLOOR - 3); }
+    await walkTo(X - 2); marina.dir = 1;
     const pose = P({ key: 'marina_sit', s: ON, flip: false }); st.sw = [0, null]; seat(pose, X, PY, L, 0, 3); say('m_swing'); let last = 0;
-    const dur = jump ? 3.6 : 5.6;
-    await run(dur, (k, t) => { const A = jump ? Math.min(0.9, 0.2 + t * 0.26) : Math.sin(Math.min(1, k * 1.15) * Math.PI) * 0.95 + 0.06, a = -A * Math.sin(t * 3.5); st.sw[0] = a; seat(pose, X, PY, L, a, 3);
-      if (Math.sign(a) !== Math.sign(last) && A > 0.3) { Audio2.whoosh(a < 0); if (A > 0.7) emit('star', marina.x, pose.y - 60, 2); } last = a; });
+    if (push) setTimeout(() => { if (S.held === push) say('j_play_yes', push); }, 1400);
+    const dur = jump ? 3.6 : push ? 6.6 : 5.6;
+    await run(dur, (k, t) => { const A = jump ? Math.min(0.9, 0.2 + t * 0.26) : Math.sin(Math.min(1, k * 1.15) * Math.PI) * (push ? 1.15 : 0.95) + 0.06, a = -A * Math.sin(t * 3.5); st.sw[0] = a; seat(pose, X, PY, L, a, 3);
+      if (Math.sign(a) !== Math.sign(last) && A > 0.3) { Audio2.whoosh(a < 0); if (A > 0.7) emit('star', marina.x, pose.y - 60, 2); } last = a;
+      if (push && !push.moving && Math.abs(push.x - jx) < 6) { const back = a > A * 0.7 && A > 0.2; push.dir = 1; push.x = jx + (back ? 4 : 0); push.state = back ? 'wave' : 'idle'; } });      // a push each time she swings back to him
+    if (push) { push.state = 'idle'; push.x = jx; freeJeff(); }
     if (jump) {                         // let go at the front of the swing and fly
       const a0 = st.sw[0], sx = marina.x, sy = pose.y; pose.key = null; Audio2.whoosh(true); say('m_flip');
       run(1.6, (k, t) => { st.sw[0] = a0 * Math.cos(t * 3.5) * (1 - k); });
@@ -927,8 +958,9 @@
   async function tubeDown(b, pose) {    // whoosh down inside the tube and pop out at the bottom
     const sp = SPOTS[b.spot], st = b._ = b._ || {}; pose.hide = true; Audio2.whoosh(false); say('m_ride');
     await run(1.5, (k, t, dt) => { st.tube = k; if (every(t, dt, 9)) Audio2.blip(12 - Math.round(k * 12), 'triangle', 0.05, 0.12); });
-    st.tube = null; Object.assign(pose, { hide: false, key: 'marina_sit', x: sp.x, y: GY - 2, s: 0.7, rot: 0 }); marina.x = sp.x; Audio2.sfx('boing', { rate: 1.2, vol: 0.5 }); emit('star', sp.x, GY - 10, 5);
-    await poseTo(pose, sp.x - sp.side * 12, FLOOR + 6, 0.4, { arc: 14, s: 1 }); S.pose = null; emit('dust', marina.x, FLOOR, 8); await yay(['m_yay', 'm_again'], 'slide', 'brave');
+    const mx = tubeAt(sp.x, sp.y, GY + 2, sp.side, 1)[0] + sp.side * 5;
+    st.tube = null; Object.assign(pose, { hide: false, key: 'marina_sit', x: mx, y: GY - 2, s: 0.7, rot: 0, flip: sp.side < 0 }); marina.x = mx; Audio2.sfx('boing', { rate: 1.2, vol: 0.5 }); emit('star', mx, GY - 10, 5);
+    await poseTo(pose, mx + sp.side * 22, FLOOR + 6, 0.4, { arc: 14, s: 1 }); S.pose = null; emit('dust', marina.x, FLOOR, 8); await yay(['m_yay', 'm_again'], 'slide', 'brave');
   }
   async function tubeRide(p, b) {
     const sp = SPOTS[b.spot], top = sp.y - DECK + 2; await walkTo(sp.ladX); const pose = P({ key: 'walk', x: sp.ladX, flip: sp.side < 0 });
@@ -1131,8 +1163,8 @@
 .bd-opts{flex:none;display:flex;flex-direction:column;gap:8px;min-width:0}
 .bd-row{display:flex;gap:6px 8px;justify-content:center;align-items:center;flex-wrap:wrap;flex:none}
 .bd-cols{gap:2px;justify-content:space-between;flex-wrap:nowrap}
-.bd-sw{flex:0 1 60px;min-width:0;aspect-ratio:1;border-radius:50%;border:4px solid #fff;box-shadow:0 4px 0 rgba(0,0,0,.3);padding:0;touch-action:manipulation}
-.bd-sw.sel{box-shadow:0 0 0 4px #ffcf4a,0 6px 0 3px rgba(0,0,0,.3);transform:scale(.9)}
+.bd-sw{flex:0 0 60px;width:60px;height:60px;min-width:0;aspect-ratio:1;border-radius:50%;border:4px solid #fff;box-shadow:0 4px 0 rgba(0,0,0,.3);padding:0;touch-action:manipulation}
+.bd-sw.sel{box-shadow:0 0 0 4px #ffcf4a,0 6px 0 3px rgba(0,0,0,.3);border-width:6px}
 .bd-group{display:flex;gap:6px;padding:4px;border-radius:20px;background:rgba(255,255,255,.14)}
 .bd-opt{flex:none;width:60px;height:60px;border-radius:16px;background:#fff;box-shadow:0 4px 0 rgba(0,0,0,.3);padding:5px;font-size:30px;line-height:1;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
 .bd-opt.sel,.bd-opt.on{background:#ffcf4a;box-shadow:0 0 0 3px #fff,0 4px 0 3px rgba(0,0,0,.3)}
@@ -1157,7 +1189,7 @@
 .bd-scope{position:relative;flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center}
 .bd-scope canvas{height:min(100%,88vw);aspect-ratio:1;max-width:100%;border-radius:50%;border:12px solid #2a2230;box-shadow:0 0 0 5px #d8a23c,0 10px 0 rgba(0,0,0,.35);image-rendering:pixelated;box-sizing:border-box}
 .bd-scope i{position:absolute;left:50%;top:50%;margin:16vmin 0 0 -22px;font-size:44px;font-style:normal;animation:pulse .6s ease-in-out infinite alternate;pointer-events:none}.bd-scope.used i{display:none}
-@media (orientation:portrait){.bd-where{flex-direction:column;align-items:stretch}.bd-ok{align-self:center;width:132px;height:76px}}
+@media (orientation:portrait){.bd-cols{margin:0 -5px;gap:1px}.bd-where{flex-direction:column;align-items:stretch}.bd-ok{align-self:center;width:132px;height:76px}}
 @media (orientation:landscape){.bd-cust{flex-direction:row}.bd-prevbox{flex:0 0 32%}.bd-opts{flex:1 1 0;justify-content:center}.bd-cols{justify-content:center;gap:8px}.bd-grid{grid-template-columns:repeat(auto-fill,minmax(112px,1fr))}.bd-card{aspect-ratio:1/0.98}.bd-toys{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))}}`;
   document.head.append(st8);
 
@@ -1168,6 +1200,6 @@
   const _sync = syncProps; syncProps = function () { _sync(); syncFloor(); }; syncProps();
   const API = { open, close, list: () => D.builds.map(b => ({ kind: b.kind, spot: b.spot, colour: b.colour, style: b.style, addons: (b.addons || []).slice() })), lumberLeft, has: kind => D.builds.some(b => b.kind === kind), onSay: null,
     lumber: LUMBER, spots: SPOTS, catalogue: CAT.map(c => ({ id: c.id, cost: c.cost, spot: c.spot, ico: c.ico })),
-    draw: spot => { const p = PROPS.backyard.find(p => p.bl === 1 && p.b.spot === spot); if (p && G.room === 'backyard') drawBuilt(p); } };      // draw(spot): paint that thing again right now (for a file that draws tree foliage over it)
+    draw: spot => { const p = PROPS.backyard.find(p => p.bl === 1 && p.b.spot === spot); if (p && G.room === 'backyard') drawBuilt(p, p.th2 ? 'body' : null); } };      // draw(spot): paint that thing again right now (for a file that draws tree foliage over it)
   window.Builder = API;
 })();

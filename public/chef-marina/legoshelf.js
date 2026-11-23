@@ -1,5 +1,9 @@
 // Chef Marina — the Lego shelf in Nunu's living room: the creations she wants to keep, on show.
 // Load after bricks.js and basement.js. Nothing else is changed: the shelf adds itself to the den and wraps drawProp / propActions.
+// In the den: white cubbies (4 x 2) on the wall rail above the wicker chair and the armchair (x 197-295, y 53-97), between the picture ledge and the windows.
+// Tap it: 👀 the big shelf, 🎵 they dance in turn (nothing kept yet: 🧱 off to the Lego table). In the builder a keep button sends a COPY up (the plate stays);
+// in the big shelf: tap one = huge and turning, then 🧱/🔷 a copy down to the table to build on (asks first if the plate holds something not kept),
+// ↔️ another spot, 🗑️ off the shelf (two taps). Full (8) and she keeps another: the big shelf opens wobbling with the new one waiting until she takes one off.
 //   LegoShelf.list()            -> [{ kind, pieces, bp, t, slot }]  (slot 0..7, left to right, top row first)
 //   LegoShelf.keep(kind)        a copy of what is on that plate goes on the shelf: true = kept, false = the shelf is full, null = nothing new to keep
 //   LegoShelf.remove(i)         take the i-th one of list() off the shelf;  LegoShelf.move(i, slot)  put it in another spot (swaps if taken)
@@ -10,6 +14,7 @@
 // Saved in localStorage 'cm_brickshelf': [{ kind: 'lego' | 'tiles', pieces: [[piece, colour, x, y], ...], bp, t, s }]   (s = the spot)
 (function () {
   'use strict';
+  if (window.LegoShelf) return;                 // already loaded (a test may add the file twice)
   if (window.LegoShelf && window.LegoShelf.list) return;      // loaded twice: once is enough
   const KEY = 'cm_brickshelf', MAX = 8, COLS = 4;
   const B = () => window.Bricks || null;
@@ -144,7 +149,10 @@
 #panel>.ls-top.ls-land{position:absolute;left:calc(8px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));width:60px;flex-direction:column;gap:6px}
 #panel>.ls-top.ls-land .ttl{flex:0 0 auto}
 #panel>.ls-body.ls-land{margin:0 0 0 70px}
-.ls-pend{display:block;animation:ls-wait .9s ease-in-out infinite alternate;filter:drop-shadow(0 3px 0 rgba(0,0,0,.3))}
+.ls-pend{width:64px;height:60px;flex:0 0 auto;border-radius:18px;background:#ffe08a;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 rgba(0,0,0,.3);animation:ls-wait .9s ease-in-out infinite alternate;touch-action:manipulation}
+.ls-pend canvas{width:54px;height:auto;display:block;pointer-events:none}
+.ls-top.ls-land .ls-pend{width:60px}
+.ls-top.ls-land .ls-pend canvas{width:52px}
 @keyframes ls-wait{to{transform:translateY(-5px) rotate(5deg)}}
 .ls-hero{position:absolute;inset:0;z-index:3;border-radius:14px;background:radial-gradient(circle at 50% 42%,rgba(104,84,160,.97),rgba(30,22,50,.97) 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px;animation:ls-in .18s both}
 .ls-hero.ls-land{flex-direction:row}
@@ -179,8 +187,8 @@
   const tapBtn = (cls, txt, label, fn) => { const b = mk('button', cls, txt); b.type = 'button'; b.setAttribute('aria-label', label); b.addEventListener('pointerup', e => { e.stopPropagation(); if (Gy) fn(b); }); return b; };
   function open(o) {
     o = o || {}; const panel = document.getElementById('panel'), b = B(); if (!panel || !b || !b.drawPieces) return false;
-    if (Gy) shut();
-    let back = null; try { if (b.active && b.stash) back = b.stash(); } catch (e) { }      // opened from the builder: it waits underneath
+    let back = null; if (Gy) back = shut().back;      // opened again while open: a builder waiting underneath keeps waiting
+    try { if (!back && b.active && b.stash) back = b.stash(); } catch (e) { }      // opened from the builder: it waits underneath
     try { UI.closeActions(); } catch (e) { }
     try { clearWish(); } catch (e) { }
     css(); read(true); panel.innerHTML = ''; panel.classList.remove('hidden');
@@ -200,9 +208,12 @@
     else { jingle([0, 7, 12], 0.06); if (items.length) fire('look'); }
     return true;
   }
+  // the one waiting for a spot: the same picture as the builder's keep button (her model in a little shelf box, ⬆️), bobbing at the top until there is room
   function setPending(kind) {
-    const b = B(), dpr = dprNow(); Gy.pending = kind; Gy.ttl.innerHTML = '';
-    if (!kind) return; const c = b.picture(kind, b.pieces(kind), 50 * dpr, 50 * dpr); c.className = 'ls-pend'; c.style.width = Math.round(c.width / dpr) + 'px'; c.style.height = Math.round(c.height / dpr) + 'px'; Gy.ttl.append(c);
+    const b = B(); Gy.pending = kind; Gy.ttl.innerHTML = ''; if (!kind) return;
+    const card = mk('div', 'ls-pend'), cv = mk('canvas'); card.append(cv); try { icon(cv, { kind, pieces: b.pieces(kind), hold: true }); } catch (e) { }
+    card.addEventListener('pointerup', e => { e.stopPropagation(); if (!Gy || Gy.mode !== 'shelf') return; Gy.wob = performance.now(); Gy.wave = Gy.wob + 900; blip(-2, 'triangle', 0.14, 0.12); setTimeout(() => blip(-7, 'triangle', 0.2, 0.12), 200); });      // tapped: no room! again
+    Gy.ttl.append(card); Gy.wave = performance.now() + 1500;
   }
   function shut() {                                   // stop drawing and listening (the panel is dealt with by the caller)
     if (!Gy) return null; const st = Gy; cancelAnimationFrame(st.raf); clearTimeout(st.rzT); clearTimeout(st.pendT); removeEventListener('resize', st.onResize); removeEventListener('orientationchange', st.onResize); Gy = null; return st;
@@ -246,6 +257,7 @@
         else if (a.type === 'hop') y -= Math.abs(Math.sin(k * Math.PI * (a.n || 1))) * 14 * (1 - k * 0.5);
       } else if (a && k < 0 && a.type === 'in') continue;
       if (Gy.mode === 'move' && Gy.sel === i) { y -= 12 + Math.sin(now / 160) * 5; x += Math.sin(now / 110) * 2; }
+      if (Gy.pending && Gy.mode === 'shelf' && !wa && !a && now > Gy.wave) { const n = all.indexOf(e), k = (((now - Gy.wave) % 3000) - n * 140) / 340; if (k > 0 && k < 1) y -= Math.sin(k * Math.PI) * 9; }      // one is waiting: now and then they hop in a wave (pick one of us)
       try { b.drawPieces(g, e.kind, e.pieces, x, y, c.h * 0.8, { w: c.w * 0.86 }); } catch (err) { }
     }
     // bits flying about
@@ -319,5 +331,5 @@
   }
 
   const api = window.LegoShelf = { list, keep, remove, move, has, open, close: () => close(), icon, dance, state, onEvent: null, MAX, get count() { return read().length; }, get active() { return !!Gy; } };
-  install();
+  if (!install()) addEventListener('load', install, { once: true });      // loaded before the basement: try again once everything is there
 })();

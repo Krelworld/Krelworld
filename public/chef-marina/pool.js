@@ -330,7 +330,8 @@
     cannon: { s: 1, pose: 'm_tuck', vy: 232, vx: 50 }, pencil: { s: 0.36, pose: 'm_pencil', vy: 218, vx: 42, wide: 0.55 }, star: { s: 0.7, pose: 'm_star', vy: 236, vx: 50 },
     flip: { s: 0.8, pose: 'm_tuck', spin: 2, vy: 252, vx: 48 }, belly: { s: 0.9, pose: 'm_star', flat: 1, vy: 204, vx: 60 }, super: { s: 1.3, pose: 'm_leap', then: 'm_tuck', vy: 300, vx: 92, far: 1 },
     twirl: { s: 0.55, pose: 'm_pencil', twirl: 3, vy: 262, vx: 38, wide: 0.7 },          // spins round and round like a spinning top, a whirl of bubbles
-    hop: { s: 0.42, pose: 'm_leap', vy: 150, vx: 60 }, dive: { s: 0.3, pose: 'm_glide', nose: 1, vy: 196, vx: 78, wide: 0.5, glide: 1 },      // dive: head first, a neat little splash, a long glide rocket: { s: 1.5, pose: 'm_star', then: 'm_tuck', spin: 1, vy: 430, vx: 34 }, tip: { s: 0.5, pose: 'm_star', spin: 0.75, vy: 120, vx: 30 },
+    dive: { s: 0.3, pose: 'm_glide', nose: 1, vy: 196, vx: 78, wide: 0.5, glide: 1 },      // head first: a neat little splash, a long glide under water
+    hop: { s: 0.42, pose: 'm_leap', vy: 150, vx: 60 }, rocket: { s: 1.5, pose: 'm_star', then: 'm_tuck', spin: 1, vy: 430, vx: 34 }, tip: { s: 0.5, pose: 'm_star', spin: 0.75, vy: 120, vx: 30 },
   };
   const JUMPLIST = ['cannon', 'pencil', 'star', 'flip', 'belly', 'dive', 'twirl', 'super'];
   function newMarina() { return { x: 30, y: DECK - 28, vx: 0, vy: 0, dir: 1, st: 'deck', t: 0, at: 0, rot: 0, tx: null, ty: 0, wet: false, under: false, plan: null, idle: 0, strokeT: 0, bubT: 0, trick: 0, soak: 0, drip: 0, stepT: 0, top() { return this.y - (this.st === 'swim' && this.under ? 14 : 30); } }; }
@@ -456,7 +457,7 @@
     const tail = LOOK.x.tail, fins = finsOn(), fl = floorAt(M.x) - 9;
     // with flippers every kick is a push and a long glide: on average she goes about 1.6 times as fast
     M.surge = (M.surge || 0) * Math.exp(-dt * 3.2);
-    const sp = (tail ? 88 : fins ? 104 * (0.78 + 0.62 * M.surge) : 72) * (M.noodle ? 0.7 : 1);
+    const sp = (tail ? 88 : fins ? 104 * (0.62 + 0.95 * M.surge) : 72) * (M.noodle ? 0.7 : 1);
     const goal = M.plan && (M.plan.seat || M.plan.noodle || M.plan.gun || M.plan.fin); if (goal && M.tx != null) M.tx = clamp(goal.x + (M.plan.gun ? -10 * sgn(goal.x - M.x) : 0), X0 + 31, X1 - 31);
     if (M.tx != null) {
       const deep = M.ty > 8, ty = deep ? Math.min(M.ty, floorAt(M.tx) - 9) : sy + 4, dx = M.tx - M.x, dy = ty - M.y, d = Math.hypot(dx, dy);
@@ -630,7 +631,7 @@
     const M = S.M;
     if (A.judge && S.t >= A.judge.at) {               // the score for her jump: a row of stars held up high
       const n = A.judge.n; A.judge = null; A.act = { k: 'score', t: 0 }; A.dir = sgn(M.x - A.x); bub(A, STARS(n), 2.3, 'pl-score'); jingle([7, 12, 16].slice(0, n - 2), 0.08, 'triangle');
-      if (n >= 5) { if (chance(0.7)) line(A.c + '_ten'); else if (chance(0.5)) line(pick(A.c === 'd' ? ['d_amazing', 'd_brave', 'd_good_girl', 'd_proud'] : ['r_amazing', 'r_wow', 'r_brave', 'r_good', 'r_catch'])); }      // "Ten out of ten!"
+      if (n >= 5) { if (S.t - (S.tenAt || -99) > 25 && chance(0.8)) { S.tenAt = S.t; line(A.c + '_ten'); } else if (chance(0.35)) line(pick(A.c === 'd' ? ['d_amazing', 'd_brave', 'd_good_girl', 'd_proud'] : ['r_amazing', 'r_wow', 'r_brave', 'r_good', 'r_catch'])); }      // "Ten out of ten!"
       else if (n <= 3) { bub(M, '😂', 1.4); SND.oops(); }
     }
     if (A.soak > S.t && (!A.act || A.act.k === 'wander' || A.act.k === 'wave')) { A.act = { k: 'splutter', t: 0 }; if (chance(0.5)) bub(A, pick(['😝', '🤣', '😆']), 1.1); }
@@ -809,7 +810,7 @@
             const w = 2.4 * pw + 0.3, th0 = G.th; G.th += w * dt; const r = lerp(1, 0.36, clamp(G.t / 8.5, 0, 1)), tx = G.cx + Math.cos(G.th) * 84 * r, ty = 27 + Math.sin(G.th) * (19 * r + 3);
             M.x += (tx - M.x) * Math.min(1, dt * 6); M.y = Math.min(M.y + (ty - M.y) * Math.min(1, dt * 6), floorAt(M.x) - 13); M.dir = Math.sin(G.th) > 0 ? -1 : 1; M.rot = Math.cos(G.th) * 0.35 * M.dir; M.under = M.y - 12 > surf(M.x);
             if (chance(0.4)) (M.under ? bubble : foam)(M.x - M.dir * 20, M.under ? M.y : -M.dir * 30);
-            if (Math.floor(G.th / TAU) > Math.floor(th0 / TAU) && !line('m_wheee')) SND.whee();
+            if (Math.floor(G.th / TAU) > Math.floor(th0 / TAU)) { if (G.wh || !line('m_wheee')) SND.whee(); G.wh = 1; }      // "Wheee!" once, then just the swoosh each time round
           }
           if (G.t > 9.5) { go('calm'); if (M.st === 'held') { M.y = Math.min(M.y, surf(M.x) + 4); launch(M, 'tip', 1, M.dir); S.jumps--; } bub(A, '😵‍💫', 1.8); }
           break; }
@@ -855,6 +856,8 @@
 #app:has(.pl-body) #wishBtn,#app:has(.pl-body) #reqBtn{display:none}
 #panel>.pl-top.pl-land{position:absolute;left:calc(8px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));width:60px;flex-direction:column;gap:6px;z-index:6}
 #panel>.pl-top.pl-land .pl-sp{display:none}
+.pl-stage>.pl-fins{position:absolute;right:8px;top:8px;width:60px;height:60px;z-index:3}
+.pl-b.pl-fins.on{background:#ffcf4a}
 #panel>.pl-body.pl-land{flex-direction:row;margin:0 0 0 68px}
 .pl-land .pl-bar{grid-template-columns:repeat(2,62px);height:auto;width:130px;align-content:center}
 .pl-land .pl-pick{flex-direction:row;gap:16px}
@@ -982,6 +985,7 @@
   }
   function layout() {
     if (!S) return; const land = innerWidth > innerHeight; S.top.classList.toggle('pl-land', land); S.body.classList.toggle('pl-land', land);
+    if (land && S.finBtn.parentNode !== S.stage) S.stage.append(S.finBtn); else if (!land && S.finBtn.parentNode !== S.top) S.top.insertBefore(S.finBtn, S.top.querySelector('.pl-sp'));      // sideways the left edge has no room left (the game's own ❌ sits at its bottom)
     const r = S.stage.getBoundingClientRect(); if (r.width < 20 || r.height < 20) return; S.stageR = r;
     const sc = Math.max(r.height / (land ? 226 : 340), r.width / (land ? WW : 226)), w = clamp(Math.round(r.width / sc), 120, WW), h = Math.max(120, Math.round(r.height / sc));
     if (S.cv.width !== w || S.cv.height !== h) { S.cv.width = w; S.cv.height = h; } S.V = { w, h }; S.cam.x = null;
@@ -1022,21 +1026,23 @@
     const cv = S.cv, world = e => { const r = cv.getBoundingClientRect(); return [S.cam.x + (e.clientX - r.left) / r.width * S.V.w, S.cam.y + (e.clientY - r.top) / r.height * S.V.h]; };
     cv.addEventListener('pointerdown', e => {
       e.preventDefault(); if (!S || S.pick || !S.ready || S.cam.x == null || e.isPrimary === false || e.button > 0) return; try { cv.setPointerCapture(e.pointerId); } catch (err) { }
-      const w = world(e); S.ptr = { id: e.pointerId, x0: e.clientX, y0: e.clientY, drag: false, steer: tapWorld(w[0], w[1]) };
+      const w = world(e), r = tapWorld(w[0], w[1]); S.ptr = { id: e.pointerId, x0: e.clientX, y0: e.clientY, drag: false, steer: r === true, self: r === 'self' };
     });
     cv.addEventListener('pointermove', e => {
-      const P = S && S.ptr; if (!P || P.id !== e.pointerId || !P.steer) return; if (!P.drag && Math.hypot(e.clientX - P.x0, e.clientY - P.y0) < 10) return; P.drag = true;
+      const P = S && S.ptr; if (!P || P.id !== e.pointerId || !(P.steer || P.self)) return; if (!P.drag && Math.hypot(e.clientX - P.x0, e.clientY - P.y0) < 10) return; P.drag = true;
       const w = world(e), M = S.M, G = S.game;
+      if (P.self) { P.self = false; if (M.st === 'float') leaveSeat(M, false); P.steer = M.st === 'swim'; if (!P.steer) return; }      // a finger put on her and pulled: she swims after it
       if (G && G.id === 'ride' && G.ph === 'ride') G.tgt = { x: clamp(w[0], X0 + 40, X1 - 50), y: clamp(w[1], 0, 60) };
       else if (G && G.id === 'shoulders') { if (G.ph === 'on') G.tx = clamp(w[0], STAND0 + 8, STAND1 - 8); }
       else if (M.st === 'swim' && inPool(w[0])) { M.tx = clamp(w[0], X0 + 31, X1 - 31); M.ty = w[1] < 7 ? 0 : w[1]; M.plan = null; }
     });
     const up = e => { if (S && S.ptr && S.ptr.id === e.pointerId) S.ptr = null; };
-    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); cv.addEventListener('lostpointercapture', up);
+    cv.addEventListener('pointerup', e => { const P = S && S.ptr; if (P && P.id === e.pointerId && P.self && !P.drag) tapSelf(); up(e); }); cv.addEventListener('pointercancel', up); cv.addEventListener('lostpointercapture', up);
   }
   // a finger on the pool at world x, y. -> true if she is now swimming after the finger (so a drag keeps steering)
   function tapWorld(x, y) {
     const M = S.M, A = S.A, G = S.game; if (S.leaving) return false; S.taps++;
+    if (M.st === 'cheer' && M.t > 0.25 && !G) { setSt(M, 'swim'); M.idle = 0; }      // she was cheering after a jump: a finger means she is ready to go
     for (const t of S.toys) if (t.st === 'deck' && t.dive && Math.abs(x - t.x) < 6.5 && Math.abs(y - t.y) < 11) { throwIn(t); return false; }       // the treasure row: throw one in
     if (G && G.ph === 'gather' && G.id !== 'marco') return false;      // they are still getting together: wait for it
     if (G && G.ph !== 'gather') {                     // in a game the finger means what the game needs
@@ -1046,6 +1052,9 @@
       if (G.id === 'shoulders') { if (G.ph === 'on' && y > DECK - 60) { G.tx = clamp(x, STAND0 + 8, STAND1 - 8); return true; } return false; }
       if (G.id === 'rocket') return false;
       if (G.id === 'whirl') { if (inPool(x)) splash(x, 0.3, { dry: 1 }); return false; }
+      if (G.id === 'marco' && inPool(x) && y > -34) {     // Marco Polo is all about swimming: wherever the finger goes, she goes (toys or not)
+        if (M.st === 'float') leaveSeat(M, false); if (M.st !== 'swim') return false; S.ping = { x, y: Math.max(y, 0), t: S.t };
+        swimTo(M, x, y < 7 ? 0 : Math.min(y, floorAt(x) - 12)); return true; }
     }
     for (const t of S.toys) {                         // the little toys in the water (they sit in front of everything)
       if (t.big) continue;
@@ -1058,16 +1067,11 @@
         if (M.wet && (M.st === 'swim' || M.st === 'float') && !G) { swimTo(M, t.x - (t.k === 'blaster' ? 10 * sgn(t.x - M.x) : 0), 0, { [t.k === 'blaster' ? 'gun' : t.k]: t }); return false; }
       }
     }
-    if (Math.abs(x - M.x) < 16 && Math.abs(y - M.y) < 27) {       // herself
-      if (M.st === 'float') leaveSeat(M, true); else if (M.gun) squirt(); else if (M.st === 'swim') trick(M); else if (M.st === 'deck') { M.hopT = S.t; SND.plip(0.2); }
-      return false;
-    }
+    if (Math.abs(x - M.x) < 16 && Math.abs(y - M.y) < 27) return 'self';      // herself: a tap (on lifting the finger) is a trick, a drag pulls her along
     if (A && A.wet && A.st === 'idle' && Math.abs(x - A.x) < 18 && y > A.top() - 4 && y < A.top() + 54) { tapAdult(A); return false; }
-    for (const t of S.toys) if (t.big && t.st === 'float' && Math.abs(x - t.x) < t.w - 3 && y - t.y > -30 && y - t.y < 10) {       // the unicorn and the doughnut (behind people): climb on, or tip whoever is on it
-      if (t.rider === M) leaveSeat(M, true); else if (t.rider && t.rider === A) { if (A.act) A.act.tip = 1; } else if (M.wet && (M.st === 'swim' || M.st === 'float') && !G) swimTo(M, t.x, 0, { seat: t }); else if (onDeck(M) && M.st !== 'bounce') hopIn(M, t.x - 30);
-      return false;
-    }
-    for (const t of S.toys) if (t.st === 'deck' && !t.dive && Math.abs(x - t.x) < t.w + 3 && Math.abs(y - t.y) < 11) { throwIn(t); return false; }             // toys waiting on the far edge hop in
+    for (const t of S.toys) if (t.st === 'deck' && !t.dive && Math.abs(x - t.x) < t.w + 2 && Math.abs(y - t.y) < 9) { throwIn(t); return false; }             // toys waiting on the far edge hop in (drawn in front of the floats)
+    for (const t of S.toys) if (t.big && t.st === 'float' && onPic(t, x, y)) { floatTap(t); return false; }      // right on the unicorn or the doughnut
+    for (const t of S.toys) if (t.big && t.st === 'float' && Math.abs(x - t.x) < t.w - 3 && y - t.y > -30 && y - t.y < 10) { floatTap(t); return false; }       // near enough the unicorn or the doughnut
     if (S.cat.st === 0 && Math.abs(x - CAT.x) < 16 && y > CAT.y - 40 && y < CAT.y + 4) { S.cat.hop = S.t; try { Audio2.sfx(chance(0.5) ? 'meow1' : 'purr'); } catch (e) { } return false; }
     if (Math.hypot(x - S.fly.x, y - S.fly.y) < 10) { S.fly.scare = S.t + 2.5; SND.sparkle(); return false; }
     if (inPool(x) && y > -34 && !(x < TIP + 6 && y < BRD + 5)) {  // the water: swim there (or hop in)
@@ -1083,6 +1087,23 @@
     }
     return false;
   }
+
+  function floatTap(t) {                            // the unicorn and the doughnut (behind people): climb on, or tip whoever is on it
+    const M = S.M, A = S.A, G = S.game;
+    if (t.rider === M) leaveSeat(M, true); else if (t.rider && t.rider === A) { if (A.act) A.act.tip = 1; } else if (M.wet && (M.st === 'swim' || M.st === 'float') && !G) swimTo(M, t.x, 0, { seat: t }); else if (onDeck(M) && M.st !== 'bounce') hopIn(M, t.x - 30);
+  }
+  const MASK = {};
+  function onPic(t, x, y) {                         // is world point x, y on the drawn picture of toy t (give or take 2 px for a fingertip)?
+    const key = 'p_' + t.k, r = ART.f[key]; if (!r) return false; let m = MASK[key];
+    if (!m) { const c = document.createElement('canvas'); c.width = r[2]; c.height = r[3]; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(ART.img, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]); const d = g.getImageData(0, 0, r[2], r[3]).data; m = MASK[key] = new Uint8Array(r[2] * r[3]); for (let i = 0; i < m.length; i++) m[i] = d[i * 4 + 3] > 40 ? 1 : 0;
+      const W = r[2], H = r[3], out = new Uint8Array(W * H), st = []; for (let X = 0; X < W; X++) st.push(X, (H - 1) * W + X); for (let Y = 0; Y < H; Y++) st.push(Y * W, Y * W + W - 1);      // the hole of the doughnut counts too
+      while (st.length) { const i = st.pop(); if (out[i] || m[i]) continue; out[i] = 1; const X = i % W, Y = (i / W) | 0; if (X > 0) st.push(i - 1); if (X < W - 1) st.push(i + 1); if (Y > 0) st.push(i - W); if (Y < H - 1) st.push(i + W); }
+      for (let i = 0; i < m.length; i++) if (!out[i]) m[i] = 1; }
+    const co = Math.cos(-(t.rot || 0)), si = Math.sin(-(t.rot || 0)), dx = x - Math.round(t.x), dy = y - Math.round(t.y), lx = Math.round(dx * co - dy * si - r[4]), ly = Math.round(dx * si + dy * co - r[5]);
+    for (let j = -2; j <= 2; j++) for (let i = -2; i <= 2; i++) { const X = lx + i, Y = ly + j; if (X >= 0 && Y >= 0 && X < r[2] && Y < r[3] && m[Y * r[2] + X]) return true; }
+    return false;
+  }
+  function tapSelf() { const M = S.M; if (S.leaving) return; if (M.st === 'float') leaveSeat(M, true); else if (M.gun) squirt(); else if (M.st === 'swim') trick(M); else if (M.st === 'deck') { M.hopT = S.t; SND.plip(0.2); } }
 
   // ------------------------------------------------------------------ leaving
   function teardown() {
@@ -1246,7 +1267,7 @@
     }
     g.drawImage(S.back, 0, TOPY); drawCat(g);
     for (const w of S.wet) { const a = clamp(1 - (t - w.t) / 9, 0, 1) * (w.foot ? 0.5 : 0.3), c = 'rgba(52,62,88,' + a.toFixed(2) + ')'; px(g, w.x - (w.w >> 1), w.y, w.w, w.w > 2 ? 2 : 1, c); if (w.foot) px(g, w.x - 1, w.y - 1, 2, 1, c); }
-    for (const q of S.toys) if (q.st === 'deck') drawToy(g, q);
+    for (const q of S.toys) if (q.st === 'deck' && q.dive) drawToy(g, q);
     // light under the water: ripples on the walls and floor, slanting beams
     g.save(); g.clip(S.poolPath); g.globalCompositeOperation = 'lighter';
     for (let L = 0; L < 2; L++) { g.globalAlpha = L ? 0.2 : 0.26; const ox = ((L ? -t * 5 : t * 8) % 128 + 128) % 128, oy = ((L ? t * 3 : t * 2.2) % 64 + 64) % 64; for (let x = X0 - ox; x < X1; x += 128) for (let y = 4 - oy; y < DEEP; y += 64) g.drawImage(S.caus, x, y); }
@@ -1263,12 +1284,13 @@
     for (const q of S.toys) if (q.st === 'sunk' || q.st === 'sink' || (q.st === 'fly' && q.dive)) drawToy(g, q);
     // people and toys
     for (const q of S.toys) if (q.st === 'float' && q.big) drawToy(g, q);           // the big floats sit behind people, so nobody's face is hidden
+    for (const q of S.toys) if (q.st === 'deck' && !q.dive) drawToy(g, q);         // the toys waiting on the far edge stay in sight, even with a float bobbing past
     if (S.B) drawAdult(g, S.B); if (A) drawAdult(g, A);
-    if (G && G.id === 'ride' && G.shark && G.ph === 'ride') {     // the shark ride: a big grey fin on his back for her to hold
-      const fx = A.x + A.dir * 5, fy = A.y - 9; g.save(); g.translate(fx, fy); g.rotate(A.rot); g.scale(A.dir, 1);
-      g.fillStyle = '#3d4a5c'; finPath(g, [[-8, 1], [-3, -15], [4, -17], [2, -12], [7, 1]]); g.fillStyle = '#8a9bb2'; finPath(g, [[-6, 0], [-2, -13], [3, -15], [1, -11], [5, 0]]); g.fillStyle = '#d4dde8'; finPath(g, [[-2, -12], [2, -14.5], [1, -12]]); g.restore();
-    }
     drawMarina(g);
+    if (G && G.id === 'ride' && G.shark && G.ph === 'ride') {     // the shark ride: a big grey fin standing up from her back, so she is the shark
+      g.save(); g.translate(M.x - M.dir * 5, M.y - 6); g.rotate(M.rot); g.scale(-M.dir, 1.25);      // its tip swept back
+      g.fillStyle = '#2b3646'; finPath(g, [[-10, 2], [-4, -17], [5, -19], [2, -13], [9, 2]]); g.fillStyle = '#8a9bb2'; finPath(g, [[-8, 1], [-3, -15], [3, -17], [1, -12], [7, 1]]); g.fillStyle = '#d4dde8'; finPath(g, [[-3, -14], [2, -16.5], [1, -13]]); g.restore();
+    }
     for (const q of S.toys) if ((q.st === 'float' && !q.big) || (q.st === 'fly' && !q.dive)) drawToy(g, q);
     // the water over everything that is in it: a see-through tint, deeper = bluer, and the living line on top
     const xa = Math.max(X0, (cx - 2) & ~1), xb = Math.min(X1, cx + V.w + 2);

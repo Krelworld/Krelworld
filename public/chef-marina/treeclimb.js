@@ -7,6 +7,7 @@
 // finger moves, and the view is dragged). She cannot read, so there are no words or numbers anywhere: glowing spots, pictures, sound.
 (function () {
   'use strict';
+  if (window.TreeClimb) return;                 // already loaded (a test may add the file twice)
   const DIR = 'assets/tree/', TAU = Math.PI * 2;
   const clamp = (v, a, b) => v < a ? a : v > b ? b : v, lerp = (a, b, k) => a + (b - a) * k;
   const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[(Math.random() * a.length) | 0];

@@ -187,7 +187,7 @@
   const got = ev => { try { window.did && did(ev); } catch (e) { } };
   const near = (p, fn, gap) => approach(p.x, fn, gap == null ? 16 : gap);
   function bricks(kind, p) { if (!window.Bricks) return say('m_hmm'); near(p, () => { UI.closeActions(); const G2 = window.GRAND, withNunu = G2 && kind === 'lego' && nunu.here;
-    Bricks.open({ kind, onClose: () => { if (G2) G2.nunuAtBricks(false); },
+    Bricks.open({ kind, partner: withNunu ? G2.brickPartner : null, onClose: () => { if (G2) G2.nunuAtBricks(false); },
       onDone: r => { if (G2) G2.nunuAtBricks(false); if (r && r.count) { cheer(1800); emit('confetti', marina.x, marina.y - 60, 24); say(pick(['m_did_it', 'm_look', 'm_made'])).then(() => { if (withNunu && nunu.here) say(pick(['nu_lego_done', 'nu_lego_nice1', 'nu_proud']), nunu); }); got('lego'); if (window.reactTo && !withNunu) reactTo('artist', 1800); } } });
     if (withNunu) G2.nunuAtBricks(true); }, 30); }
   function petTux(p) { near(p, () => { marina.dir = Math.sign(p.x - marina.x) || 1; playAnim('marina_pet', { fps: 6, proc: 'hug', dur: 1.4 }); Audio2.sfx('purr'); emit('heart', p.x, p.y - 22, 5); S.tuxUp = E.t + 3; say('m_niko_love'); }, 24); }

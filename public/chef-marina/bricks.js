@@ -227,6 +227,10 @@
 .bk-off{display:none!important}
 .bk-body{flex:1 1 auto;min-height:0;min-width:0;display:flex;flex-direction:column;gap:${GAP}px;margin-top:6px}
 .bk-stage{position:relative;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
+.bk-partner{position:absolute;right:4px;top:4px;z-index:3;width:66px;height:66px;border-radius:50%;padding:0;overflow:hidden;border:4px solid #fff;background:#ffe9b8;box-shadow:0 4px 0 rgba(0,0,0,.3);font-size:34px;line-height:1;touch-action:manipulation;animation:bkpt 1.6s ease-in-out infinite}
+.bk-partner canvas{width:100%;height:100%;image-rendering:pixelated;display:block;pointer-events:none}
+.bk-partner:active{transform:scale(.92)}
+@keyframes bkpt{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .bk-cv{display:block;flex:0 0 auto;image-rendering:pixelated;touch-action:none;border-radius:10px;box-shadow:0 0 0 3px #fff,0 4px 0 3px rgba(0,0,0,.3)}
 .bk-cv.bk-shake{animation:bk-shake .26s}
 @keyframes bk-shake{20%{transform:translateX(-4px)}45%{transform:translateX(4px)}70%{transform:translateX(-3px)}90%{transform:translateX(2px)}}
@@ -300,6 +304,9 @@
     K.pcs.forEach(d => { const b = tap('bk-b bk-pc', '', 'piece ' + d.id, () => { S.piece = d.id; blip(7, 'square', 0.05, 0.1); sync(); }); b.dataset.id = d.id; b.append(mk('canvas')); gp.append(b); });
     S.gt = grp('bk-tools', 1, 1);
     S.bpB = tap('bk-b', '💡', 'ideas', () => toggleDrawer()); S.diceB = tap('bk-b', '🎲', 'surprise', dice); S.doneB = tap('', '✅', 'done', () => finish(true));
+    if (opts && opts.partner) {                        // someone building with her: their round face on the corner of the plate takes a turn when tapped
+      const pt = opts.partner, b = S.partB = tap('bk-partner', pt.ico || '🙋', 'partner turn', () => { const r = help(pt.n || 2); try { pt.onTurn && pt.onTurn(r); } catch (e) { } });
+      try { pt.paint && pt.paint(b); } catch (e) { } stage.append(b); }
     body.append(stage, side); panel.append(top, body);
     rebuild(); S.was = complete(); layout(); sync(); bind();
     S.onResize = () => { layout(); clearTimeout(S.rzT); const st = S; S.rzT = setTimeout(() => { if (S === st) layout(); }, 320); };
@@ -431,6 +438,14 @@
     jingle(S.bp ? [0, 7, 12] : [12, 7], 0.06); touch(); sync();
   }
   function stopAuto() { if (S && S.auto) { clearInterval(S.auto); S.auto = null; sync(); } }
+  function help(n) {                                  // a partner's turn: the next few pieces of the picture (thinking of a picture first when there is none)
+    if (!S || S.auto) return 0; const K = S.K; toggleDrawer(false);
+    if (!S.bp) { S.bp = K.bps[(Math.random() * K.bps.length) | 0]; S.was = complete(); jingle([0, 7, 12], 0.06); touch(); sync(); return -1; }      // -1: "how about one of these?"
+    if (complete()) return -2;                                                                                                                 // -2: it is finished
+    let k = 0; pushUndo();
+    for (const p of S.bp.pieces) { if (k >= (n || 2)) break; if (S.pieces.some(q => q.t === p.t && q.x === p.x && q.y === p.y)) continue; if (fits(K, S.occ, p.t, p.x, p.y)) { put(p.t, p.c, p.x, p.y); k++; } }
+    if (!k) S.undo.pop(); sync(); return k;                                                                                                    // 0: her pieces are in the way
+  }
   function dice(b) { sure(b, '🎲', S.hers && S.pieces.length > 0 && !S.auto, roll); }      // only asks when it would sweep away something she built herself
   function roll() {                                   // builds a surprise picture brick by brick
     stopAuto(); toggleDrawer(false); const K = S.K, st = S, opts = K.bps.filter(b => b !== S.bp), bp = opts[(Math.random() * opts.length) | 0]; if (!bp) return;
@@ -512,5 +527,5 @@
       grid: { cols: S.K.cols, rows: S.K.rows, cell: S.K.cell, mx: S.K.mx, top: S.K.top, LW: S.K.LW, LH: S.K.LH }, ghost: S.bp ? Array.from(S.bp.cells.keys()) : [], ideas: S.K.bps.map(b => ({ id: b.id, ico: b.ico, pieces: pack(b.pieces) })) };
   }
 
-  window.Bricks = { open, close: () => finish(false), has, count, drawModel, state, get active() { return !!S; } };
+  window.Bricks = { open, close: () => finish(false), has, count, drawModel, state, help, get active() { return !!S; } };
 })();

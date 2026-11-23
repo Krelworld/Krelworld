@@ -8,8 +8,8 @@ const GRAND = (() => {
   const KEYS = new Set([...NU.map(k => 'nu_' + k), ...JF.map(k => 'j_' + k)]);
   // lines the older code asks the "third grown-up" (Uncle Rory) for, said instead in their own words
   const ALT = {
-    nunu: { love: ['nu_love1', 'nu_love2', 'nu_love3', 'nu_love4'], cuddle: ['nu_hug', 'nu_kiss'], amazing: ['nu_wow', 'nu_proud', 'nu_pic'], proud: ['nu_proud'], comfort2: ['nu_comfort'], tantrum: ['nu_comfort'], fort_down: ['nu_comfort'], hi: ['nu_hi1'], hi2: ['nu_hi2'], hi_niece: ['nu_hi1', 'nu_hi4'], hi_niece2: ['nu_hi2'], hi_niece3: ['nu_hi3'], chase: ['nu_giggle'], thanks: ['nu_love4'], good: ['nu_proud'], strong: ['nu_wow'], brave: ['nu_proud'], style: ['nu_wow'], music: ['nu_dance'], tidy: ['nu_tidy'], mess: ['nu_clutter'], dance: ['nu_dance'], joke1: ['nu_joke_laugh'], joke_poo: ['nu_joke_groan'], better: ['nu_love4'] },
-    jeff: { cuddle: ['j_hug'], amazing: ['j_wow', 'j_pic'], proud: ['j_wow'], comfort2: ['j_comfort'], fort_down: ['j_comfort'], hi: ['j_hi1'], hi2: ['j_hi2'], hi_niece: ['j_hi1', 'j_hi4'], hi_niece2: ['j_hi2'], hi_niece3: ['j_hi3'], chase: ['j_giggle'], ok_ok: ['j_ok'], good: ['j_thanks'], brave: ['j_wow'], style: ['j_wow'], fort: ['j_wow'], joke1: ['j_joke_laugh'], joke_poo: ['j_joke_groan'], eat_yum: ['j_food_good'], meal: ['j_food_great'], better: ['j_thanks'] },
+    nunu: { love: ['nu_love1', 'nu_love2', 'nu_love3', 'nu_love4'], cuddle: ['nu_hug', 'nu_kiss'], amazing: ['nu_wow', 'nu_proud', 'nu_pic'], proud: ['nu_proud'], comfort2: ['nu_comfort'], tantrum: ['nu_comfort'], caughtkiss: ['nu_kiss', 'nu_love1'], kiss: ['nu_kiss'], grouphug: ['nu_hug'], play_yes2: ['nu_play_yes'], fort_down: ['nu_comfort'], hi: ['nu_hi1'], hi2: ['nu_hi2'], hi_niece: ['nu_hi1', 'nu_hi4'], hi_niece2: ['nu_hi2'], hi_niece3: ['nu_hi3'], chase: ['nu_giggle'], thanks: ['nu_love4'], good: ['nu_proud'], strong: ['nu_wow'], brave: ['nu_proud'], style: ['nu_wow'], music: ['nu_dance'], tidy: ['nu_tidy'], mess: ['nu_clutter'], dance: ['nu_dance'], joke1: ['nu_joke_laugh'], joke_poo: ['nu_joke_groan'], better: ['nu_love4'] },
+    jeff: { cuddle: ['j_hug'], caughtkiss: ['j_love'], kiss: ['j_love'], grouphug: ['j_hug'], play_yes2: ['j_play_yes'], thanks: ['j_thanks'], amazing: ['j_wow', 'j_pic'], proud: ['j_wow'], comfort2: ['j_comfort'], fort_down: ['j_comfort'], hi: ['j_hi1'], hi2: ['j_hi2'], hi_niece: ['j_hi1', 'j_hi4'], hi_niece2: ['j_hi2'], hi_niece3: ['j_hi3'], chase: ['j_giggle'], ok_ok: ['j_ok'], good: ['j_thanks'], brave: ['j_wow'], style: ['j_wow'], fort: ['j_wow'], joke1: ['j_joke_laugh'], joke_poo: ['j_joke_groan'], eat_yum: ['j_food_good'], meal: ['j_food_great'], better: ['j_thanks'] },
   };
   const own = (e, key) => { const m = key.match(/^(r|d|mo)_(.+)$/); if (!m) return key; const P = e === nunu ? 'nu_' : 'j_', alt = ALT[e.id][m[2]]; return alt ? pick(alt) : KEYS.has(P + m[2]) ? P + m[2] : null; };
   const _say = say;
@@ -150,15 +150,22 @@ const GRAND = (() => {
   function nunuAtBricks(on) {
     clearInterval(brickIv); if (!on) { AI.hold(nunu, false); return; }
     if (!nunu.here) return; AI.hold(nunu, true); stand(nunu); const p = (PROPS.den || []).find(q => q.id === 'ltable'); if (p) { nunu.x = clamp(p.x + 34, 20, ROOMS.den.w - 20); nunu.y = FLOOR; nunu.dir = -1; }
-    const talk = (k, mood) => { const pr = Audio2.voice(k, 'nu'); UI.face('nunu', mood || 'happy', pr); return pr; };
+    const talk = k => chatter(Audio2.voice(k, 'nu'));
     setTimeout(() => window.Bricks && Bricks.active && talk('nu_lego_start'), 500);
     let last = 0, n0 = -1, done0 = false, quiet = E.t;
     brickIv = setInterval(() => { if (!window.Bricks || !Bricks.active) { clearInterval(brickIv); AI.hold(nunu, false); return; }
       let st = null; try { st = Bricks.state(); } catch (e) { } if (!st) return; const n = Array.isArray(st.pieces) ? st.pieces.length : (st.pieces || st.count || 0);
       if (st.complete && !done0) { done0 = true; last = E.t; talk(pick(['nu_lego_nice1', 'nu_lego_nice2', 'nu_wow'])); }
       else if (!st.complete) { done0 = false; if (n0 >= 0 && n >= n0 + 6 && E.t - last > 14) { last = E.t; n0 = n; talk(pick(['nu_lego_nice2', 'nu_proud', 'nu_wow', 'nu_lego_nice1'])); } else if (n0 < 0) n0 = n; if (n !== n0 && n < n0) n0 = n; if (n > n0) quiet = E.t;
-        if (E.t - quiet > 22 && E.t - last > 22 && !st.ghost) { last = E.t; quiet = E.t; talk('nu_lego_idea', 'surprised'); } } }, 700);
+        if (E.t - quiet > 22 && E.t - last > 22 && !st.ghost) { last = E.t; quiet = E.t; talk('nu_lego_idea'); } } }, 700);
   }
+  // her face on the corner of the plate: tap it and Nunu takes a turn
+  const brickPartner = { ico: '👵', n: 2,
+    paint(b) { const r = typeof FACES !== 'undefined' && FACES.img && FACES.A && FACES.A.face_nunu_happy_rest; if (!r) return; const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(FACES.img, r[0], r[1], r[2], r[3], 0, 0, 64, 64); b.textContent = ''; b.append(c); },
+    onTurn(r) { const k = r === -1 ? 'nu_lego_idea' : r === -2 ? pick(['nu_lego_nice1', 'nu_lego_done']) : r === 0 ? 'nu_lego_oops' : chance(0.4) ? pick(['nu_lego_nice2', 'nu_wow', 'nu_play_yes', 'nu_giggle']) : null;
+      if (!k || E.t - (S.brickSay || 0) < 2.5) return; S.brickSay = E.t; chatter(Audio2.voice(k, 'nu', { cut: true })); } };
+  const chatter = pr => { const b = document.querySelector('.bk-partner'); if (b) { b.classList.add('bk-talk'); const off = () => b.classList.remove('bk-talk'); Promise.resolve(pr).then(off, off); setTimeout(off, 5000); } return pr; };
+  { const st = document.createElement('style'); st.textContent = '.bk-partner.bk-talk{animation:bkpt .22s ease-in-out infinite;border-color:#ffcf4a}'; document.head.append(st); }
   // Movie night: the two of them on the sofa
   function movieNight() {
     if (G.busy || !window.Movies) return say('m_hmm'); UI.closeActions(); const s = sofa(); G.busy = true; AI.hold(nunu, true); stand(nunu);
@@ -202,5 +209,6 @@ const GRAND = (() => {
     }
     return _rtt(e);
   };
-  return { S, smell, nunuAtBricks, movieNight, jeffSays, hug, juggle, highFive, KEYS };
+  return { S, smell, nunuAtBricks, brickPartner, movieNight, jeffSays, hug, juggle, highFive, KEYS };
 })();
+window.GRAND = GRAND;

@@ -48,6 +48,7 @@ import { installDebug } from "./game/debug";
 import { installCrashGuard } from "./game/crashGuard";
 import { SaveSlotsScene } from "./game/scenes/SaveSlotsScene";
 import { installSaveWhere } from "./game/saveWhere";
+import { installMobile } from "./game/mobile";
 
 installPixelFonts();
 installCalmFlash();
@@ -109,6 +110,8 @@ const game = new Phaser.Game({
     PolsonHomeScene,
   ],
 });
+// phones only (src/game/mobile): on anything else this returns at once and does nothing
+installMobile(game);
 installMouseLock(game);
 installFullscreenKeys(game);
 // playtime: every frame of a run counts (town, dungeons, meetings, home, TV, cutscenes, minigames), not the

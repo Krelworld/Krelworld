@@ -12,6 +12,7 @@ import { currentStep } from "../Flow";
 import { resentmentLabel } from "../systems/reactions";
 import { synth } from "../audio/Synth";
 import { TouchControls, isTouchDevice } from "../ui/TouchControls";
+import { isMobile } from "../mobile/flag";
 import { ammoLabel, weaponIcon, weaponList } from "../ui/weapons";
 import { DRONGUS_STATUSES } from "../../content/dialogue/drongusStatuses";
 import { playerFace, sanmikActive } from "../systems/sanmik";
@@ -156,6 +157,12 @@ export class UIScene extends Phaser.Scene {
 
   private setupTouch() {
     if (!isTouchDevice(this.game)) return;
+    // phones: in town the phone touch layer (src/game/mobile) has the walking controls, drawn above every scene
+    if (isMobile() && this.mode !== "dungeon") {
+      this.touch?.destroy();
+      this.touch = null;
+      return;
+    }
     this.touch?.destroy();
     this.touch = new TouchControls(this, this.mode === "dungeon");
   }

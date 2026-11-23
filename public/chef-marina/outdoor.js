@@ -19,22 +19,22 @@
 
   PROPS.backyard = [
     { id: 'bkdoor', k: 'p:bkdoor', x: BY.door, y: BACK, w: 30, h: 78, a: 'door', to: 'den', tx: 474 },
-    { id: 'feeder', k: 'o_birdfeeder', x: 164, y: BACK + 4, a: 'feeder' },
-    { id: 'lumber', k: 'o_lumber', x: 190, y: BACK + 3 },
-    { id: 'bench', k: 'o_workbench', x: BY.bench, y: BACK + 8, a: 'bench' },                       // Grandpa Jeff's workbench
-    { id: 'toolbox', k: 'o_toolbox', x: 300, y: FLOOR + 8, z: 1, a: 'toolbox' },
+    { id: 'feeder', k: 'yd_birdfeeder', x: 164, y: BACK + 4, a: 'feeder' },
+    { id: 'lumber', k: 'yd_lumber', x: 190, y: BACK + 3 },
+    { id: 'bench', k: 'yd_workbench', x: BY.bench, y: BACK + 8, a: 'bench' },                       // Grandpa Jeff's workbench
+    { id: 'toolbox', k: 'yd_toolbox', x: 300, y: FLOOR + 8, z: 1, a: 'toolbox' },
     { id: 'oak', k: 'p:bigtree', x: 772, y: BACK + 6, w: 44, h: 150, a: 'bigtree', tree: 'oak' },
-    { id: 'leafpile', k: 'o_leafpile', x: 716, y: FLOOR + 10, z: 1, a: 'leafpile' },
+    { id: 'leafpile', k: 'yd_leafpile', x: 716, y: FLOOR + 10, z: 1, a: 'leafpile' },
     { id: 'pine', k: 'p:bigtree', x: 978, y: BACK + 6, w: 36, h: 150, a: 'bigtree', tree: 'pine' },
   ];
   PROPS.pool = [
-    { id: 'towels', k: 'o_towelrack', x: 64, y: 120 },
-    { id: 'lounger1', k: 'o_lounger', x: 152, y: 120, a: 'lounger' },
-    { id: 'lounger2', k: 'o_lounger', x: 246, y: 120, a: 'lounger' },
-    { id: 'umbrella', k: 'o_umbrella', x: 344, y: 121, a: 'umbrella' },
-    { id: 'grill', k: 'o_grill', x: 438, y: 120, a: 'grill' },
+    { id: 'towels', k: 'yd_towelrack', x: 64, y: 120 },
+    { id: 'lounger1', k: 'yd_lounger', x: 152, y: 120, a: 'lounger' },
+    { id: 'lounger2', k: 'yd_lounger', x: 246, y: 120, a: 'lounger' },
+    { id: 'umbrella', k: 'yd_umbrella', x: 344, y: 121, a: 'umbrella' },
+    { id: 'grill', k: 'yd_grill', x: 438, y: 120, a: 'grill' },
     { id: 'water', k: 'p:pool', x: (PL.x0 + PL.x1) / 2, y: 147, w: PL.x1 - PL.x0, h: 24, a: 'pool' },
-    { id: 'floatbox', k: 'o_floatbox', x: 46, y: FLOOR + 10, z: 1, a: 'floatbox' },
+    { id: 'floatbox', k: 'yd_floatbox', x: 46, y: FLOOR + 10, z: 1, a: 'floatbox' },
   ];
   // the basement's Dutch door now really leads outside
   const dutch = (PROPS.den || []).find(p => p.id === 'dutch'); if (dutch) { dutch.a = 'door'; dutch.to = 'backyard'; dutch.tx = BY.door + 4; }

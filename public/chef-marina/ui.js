@@ -418,12 +418,12 @@ const UI = (() => {
       stage.append(n); Audio2.blip(7);
     };
     store.get('cutouts', []).forEach(u => tray.append(el('button', { class: 'tile', style: { width: '64px' }, on: tap(() => addPiece(u)) }, el('img', { src: u }))));
-    ['marina', 'daddy', 'mommy', 'rory', 'miles', 'niko', 'oak_tree', 'snowman', 'dish_cake', 'cat_tower', 'sectional', 'leaf_pile'].forEach(k => tray.append(el('button', { class: 'tile', style: { width: '64px' }, on: tap(() => addPiece(imgURL(k), true)) }, img(k))));
+    ['marina', 'daddy', 'mommy', 'rory', 'miles', 'niko', 'yd_bush', 'snowman', 'dish_cake', 'cat_tower', 'sectional', 'leaf_pile'].forEach(k => tray.append(el('button', { class: 'tile', style: { width: '64px' }, on: tap(() => addPiece(imgURL(k), true)) }, img(k))));
     const save = el('button', { class: 'pbtn', style: { background: '#7bd36b' }, on: tap(() => {
       const r = stage.getBoundingClientRect(), o = document.createElement('canvas'); o.width = 480; o.height = Math.round(480 * r.height / r.width); const x = o.getContext('2d'); x.imageSmoothingEnabled = false;
       x.drawImage(bgc, 0, 0, o.width, o.height); stage.querySelectorAll('.piece').forEach(p => { const pr = p.getBoundingClientRect(), k = o.width / r.width; x.drawImage(p, (pr.left - r.left) * k, (pr.top - r.top) * k, pr.width * k, pr.height * k); });
       saveArt(o.toDataURL('image/jpeg', 0.75)); say('m_did_it'); Audio2.jingle([0, 4, 7, 12, 16]); }) }, '💾');
-    area.append(bgRow, stage, el('div', { class: 'row', style: { flexWrap: 'nowrap', overflowX: 'auto', justifyContent: 'flex-start' } }, ...tray.children), el('div', { class: 'row' }, save));
+    area.append(bgRow, stage, el('div', { class: 'row', style: { flexWrap: 'nowrap', overflowX: 'auto', justifyContent: 'flex-start', flex: 'none', minHeight: '72px' } }, ...tray.children), el('div', { class: 'row', style: { flex: 'none' } }, save));
   }
   function galTab(area) {
     const g = store.get('gallery', []); const grid = el('div', { class: 'gallery' });
@@ -444,7 +444,7 @@ const UI = (() => {
     const row = el('div', { class: 'row' });
     [...opts].sort(() => Math.random() - 0.5).forEach(n => row.append(el('button', { class: 'letter', style: { width: '96px', height: '96px', fontSize: '52px' }, on: tap(e => {
       Audio2.speak(NUMW[n] || String(n));
-      if (n === ans) { e.currentTarget.style.background = '#7bd36b'; Audio2.jingle([0, 4, 7, 12, 16]); emit('confetti', marina.x, marina.y - 60, 30); setTimeout(() => say('m_did_it'), 400); setTimeout(() => { area.innerHTML = ''; mathTab(area); }, 2200); }
+      if (n === ans) { e.currentTarget.style.background = '#7bd36b'; Audio2.jingle([0, 4, 7, 12, 16]); emit('confetti', marina.x, marina.y - 60, 30); setTimeout(() => say('m_did_it'), 400); setTimeout(() => { if (craftTab !== 'math' || !area.isConnected) return; area.innerHTML = ''; mathTab(area); }, 2200); }
       else { e.currentTarget.style.background = '#ffb0a0'; e.currentTarget.animate([{ transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'none' }], 250); say('m_hmm'); }
     }) }, String(n))));
     area.append(q, nums, row, el('div', { class: 'row' }, el('button', { class: 'pbtn', on: tap(() => Audio2.speak(`${NUMW[a]} ${add ? 'plus' : 'take away'} ${NUMW[b]}`)) }, '🔊')));
@@ -462,7 +462,7 @@ const UI = (() => {
     letters.forEach(L => tiles.append(el('button', { class: 'letter', on: tap(e => {
       const b = e.currentTarget; Audio2.speak(L, { rate: 0.8 });
       if (L === w[i]) { slots.children[i].textContent = L.toUpperCase(); b.disabled = true; b.style.opacity = .25; b.classList.remove('hint'); i++; Audio2.blip(i * 2);
-        if (i === w.length) { setTimeout(() => { Audio2.speak(w.split('').join(', ') + '. ' + w + '!', { rate: 0.8 }); }, 400); Audio2.jingle([0, 4, 7, 12, 16]); emit('confetti', marina.x, marina.y - 60, 30); setTimeout(() => say('m_did_it'), 2600); setTimeout(() => { area.innerHTML = ''; spellTab(area); }, 4800); }
+        if (i === w.length) { setTimeout(() => { Audio2.speak(w.split('').join(', ') + '. ' + w + '!', { rate: 0.8 }); }, 400); Audio2.jingle([0, 4, 7, 12, 16]); emit('confetti', marina.x, marina.y - 60, 30); setTimeout(() => say('m_did_it'), 2600); setTimeout(() => { if (craftTab !== 'spell' || !area.isConnected) return; area.innerHTML = ''; spellTab(area); }, 4800); }
       } else { b.animate([{ transform: 'rotate(-12deg)' }, { transform: 'rotate(12deg)' }, { transform: 'none' }], 250); hint(); }
     }) }, L)));
     const big = el('div', { class: 'big-ico', style: { fontSize: '96px' } }, pic);

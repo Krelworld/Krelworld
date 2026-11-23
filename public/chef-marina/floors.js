@@ -84,7 +84,7 @@ const Floors = (() => {
 .fmaplab{font-size:24px;width:30px;text-align:center}
 .fmaproom{position:relative;width:min(16vw,104px);aspect-ratio:16/10;border-radius:12px;border:4px solid #fff6dc;background:#6b5a48 center 70%/cover;image-rendering:pixelated;box-shadow:0 4px 0 rgba(0,0,0,.35);padding:0}
 .fmaproom.here{border-color:#ffcf4a}.fmaproom b{position:absolute;left:-6px;top:-8px;width:30px;height:30px;border-radius:50%;background:#fff6dc;font-size:18px;display:flex;align-items:center;justify-content:center;font-weight:400}
-@media (orientation:landscape){#floorpill .fl{height:44px}.fmap{flex-direction:row;justify-content:center;gap:14px}.fmaproom{width:min(8.5vw,76px)}.fmaplab{width:22px;font-size:20px}}`;
+@media (orientation:landscape){#floorpill .fl{height:44px}.fmap{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px 14px;max-width:100%}.fmaprow{gap:6px}.fmaproom{width:min(7.4vw,64px)}.fmaplab{width:22px;font-size:20px}}`;
   document.head.append(st);
   return { list, of, at, add, go, hooks, MAIN, landing };
 })();

@@ -354,7 +354,7 @@
   // are used, is gone when they all are, and grows back when something is taken down
   const LUMB = {};
   function lumberPic(n) {
-    if (LUMB[n]) return LUMB[n]; const src = spriteCanvas('o_lumber'); if (!src || src.width !== 72 || src.height !== 40) return null;     // only for the picture this was made for
+    if (LUMB[n]) return LUMB[n]; const src = spriteCanvas('yd_lumber'); if (!src || src.width !== 72 || src.height !== 40) return null;     // only for the picture this was made for
     const c = document.createElement('canvas'), x = c.getContext('2d'); c.width = 72; c.height = 40;
     const stack = document.createElement('canvas'), sx = stack.getContext('2d'); stack.width = 72; stack.height = 40; sx.drawImage(src, 0, 0);
     sx.clearRect(0, 0, 72, 14); sx.clearRect(0, 14, 31, 3); sx.clearRect(0, 17, 16, 23);                       // the stack alone
@@ -369,7 +369,7 @@
   drawProp = function (p) {
     if (p.th) return thProp(p);
     if (p === benchProp) return drawBench(p);
-    if (p.id === 'lumber' && p.k === 'o_lumber' && G.room === 'backyard') return drawLumber(p);
+    if (p.id === 'lumber' && p.k === 'yd_lumber' && G.room === 'backyard') return drawLumber(p);
     if (!p.bl) return _dp(p);
     if (p.bl === 1 && SPOTS[p.b.spot].type === 'ground') drawBuilt(p);
     else if (p.bl === 3) { const m = mainProp(p.b); if (m) drawBuilt(m); }

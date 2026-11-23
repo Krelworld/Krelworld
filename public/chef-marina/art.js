@@ -237,3 +237,4 @@ const Studio = (() => {
   const orig = UI.openCrafts;
   UI.openCrafts = function (tab) { if (!tab || tab === 'draw') return Studio.open(); return orig(tab); };
 })();
+window.Studio = Studio;      // other files check window.Studio (a const is not a property of window)

@@ -1,0 +1,404 @@
+{
+ "state": "pause_banter",
+ "chain": "hub",
+ "build": "main",
+ "clock": [1810048,1773502210048],
+ "scenes": {
+  "live": ["Hub PAUSED visible","UI RUNNING active visible","Menu RUNNING active visible"],
+  "order": [
+   "Hub", "Boot", "Title", "CharSelect", "Difficulty", "Banter", "Cutscene", "Meeting", "DebugSkip",
+   "ChapterSelect", "Dungeon", "UI", "Dialogue", "TV", "Archive", "Pub", "KrazyFact", "Exile", "Vignette",
+   "Minigame", "Venue", "Pit", "PitLoan", "Club", "Kreddle", "Whack", "WeaponPick", "Enter", "Home", "Drive",
+   "BeepBeep", "Lair", "Finale", "RoofCutscene", "Menu", "Slots", "Tutorial", "Ending", "PolsonHome"
+  ]
+ },
+ "display": [
+  {
+   "key": "Hub",
+   "status": "PAUSED",
+   "count": {"top":569,"all":570,"hidden":8,"interactive":0},
+   "cam": {
+    "x": 0,
+    "y": 0,
+    "w": 960,
+    "h": 540,
+    "scrollX": 179,
+    "scrollY": 1217,
+    "zoom": [1,1],
+    "bg": "0,0,0,0",
+    "roundPixels": true,
+    "bounds": [0,-380,2560,2172],
+    "follow": {"lerp":[0.12,0.12],"offset":[-5.72,-17.07],"deadzone":null}
+   },
+   "input": {
+    "enabled": true,
+    "topOnly": true,
+    "listeners": {"pointermove":1},
+    "keyboard": {"enabled":true,"keys":[9,27,37,38,39,40,65,68,69,74,83,87],"listeners":{}}
+   },
+   "timers": 9,
+   "tweens": 154,
+   "physics": {"bodies":1,"statics":97,"gravity":[0,0],"fps":60,"timeScale":1,"paused":false,"bounds":[0,0,2560,1792]},
+   "objsHash": "561 top-level, #c0aadbef"
+  },
+  {
+   "key": "UI",
+   "status": "RUNNING",
+   "count": {"top":19,"all":26,"hidden":10,"interactive":3},
+   "cam": {"x":0,"y":0,"w":960,"h":540,"scrollX":0,"scrollY":0,"zoom":[1,1],"bg":"0,0,0,0","roundPixels":true},
+   "input": {
+    "enabled": true,
+    "topOnly": true,
+    "listeners": {"pointermove":1,"pointerup":1},
+    "keyboard": {"enabled":true,"keys":[],"listeners":{}}
+   },
+   "timers": 1,
+   "tweens": 0,
+   "physics": {"bodies":0,"statics":0,"gravity":[0,0],"fps":60,"timeScale":1,"paused":false,"bounds":[0,0,960,540]},
+   "objsHash": "9 top-level, #bea236c0"
+  },
+  {
+   "key": "Menu",
+   "status": "RUNNING",
+   "count": {"top":1,"all":19,"hidden":0,"interactive":5},
+   "cam": {"x":0,"y":0,"w":960,"h":540,"scrollX":0,"scrollY":0,"zoom":[1,1],"bg":"0,0,0,0","roundPixels":true},
+   "input": {"enabled":true,"topOnly":true,"listeners":{},"keyboard":{"enabled":true,"keys":[27],"listeners":{"keydown":1}}},
+   "timers": 0,
+   "tweens": 0,
+   "physics": {"bodies":0,"statics":0,"gravity":[0,0],"fps":60,"timeScale":1,"paused":false,"bounds":[0,0,960,540]},
+   "objs": [
+    {"t":"Container","x":0,"y":0,"w":0,"h":0,"n":10,"kids":[
+     {"t":"Rectangle","x":0,"y":0,"w":960,"h":540,"o":[0,0],"fill":"#000000 0.7","hit":{"shape":"rect","x":0,"y":0,"w":960,"h":540}},
+     {"t":"NineSlice","x":480,"y":270,"w":680,"h":460,"a":0.95,"tex":"ui_panel:__BASE"},
+     {"t":"Text","x":480,"y":70,"w":200,"h":26,"text":"BANTER LEVEL","font":"Krel Bold 23px","asked":"ui 28px bold","color":"#ffd23f","align":"center","shadow":"3,3 #000 0"},
+     {"t":"Text","x":480,"y":96,"w":594,"h":13,"o":[0.5,0],"text":"How much the lads chat in briefings and debriefings. It kicks in from the next scene. Change it again any time.","font":"Krel Regular 11px","asked":"ui 12px","color":"#cbd5e1","align":"center","wrap":600},
+     {"t":"Container","x":480,"y":160,"w":460,"h":40,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":460,"h":40,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":460,"h":40,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":249,"h":16,"text":"▶ MAX BANTER  ★ (recommended)  ✓","font":"Krel Regular 14px","asked":"ui 15px bold","color":"#ffffff","align":"center","wrap":448}
+     ]},
+     {"t":"Container","x":480,"y":212,"w":460,"h":40,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":460,"h":40,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":460,"h":40,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":118,"h":16,"text":"MODERATE BANTER","font":"Krel Regular 14px","asked":"ui 15px bold","color":"#ffffff","align":"center","wrap":448}
+     ]},
+     {"t":"Container","x":480,"y":264,"w":460,"h":40,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":460,"h":40,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":460,"h":40,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":76,"h":16,"text":"EXPOSITION","font":"Krel Regular 14px","asked":"ui 15px bold","color":"#ffffff","align":"center","wrap":448}
+     ]},
+     {"t":"Text","x":480,"y":330,"w":597,"h":14,"o":[0.5,0],"text":"Everything. Every in-joke, every reference, every tangent, every 'Breaking news...'. The full Krelworld.","font":"Krel Regular 12px","asked":"ui 13px bold","color":"#ff6fa8","align":"center","wrap":600},
+     {"t":"Text","x":480,"y":390,"w":427,"h":12,"o":[0.5,0],"text":"Only briefings and debriefings change. TV, the news and everything else are untouched.","font":"Krel Regular 10px","asked":"ui 11px","color":"#9aa0b4","align":"center","wrap":620},
+     {"t":"Container","x":480,"y":470,"w":170,"h":32,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":170,"h":32,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":170,"h":32,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":47,"h":15,"text":"◀ BACK","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#ffffff","align":"center","wrap":158}
+     ]}
+    ]}
+   ]
+  }
+ ],
+ "game": {
+  "width": 960,
+  "height": 540,
+  "zoom": 1,
+  "parent": "game",
+  "scaleMode": 3,
+  "autoCenter": 1,
+  "autoRound": false,
+  "expandParent": true,
+  "fullscreenTarget": null,
+  "renderType": 2,
+  "renderer": 2,
+  "pixelArt": true,
+  "roundPixels": true,
+  "antialias": false,
+  "antialiasGL": false,
+  "transparent": false,
+  "clearBeforeRender": true,
+  "preserveDrawingBuffer": false,
+  "premultipliedAlpha": true,
+  "powerPreference": "default",
+  "batchSize": 4096,
+  "maxLights": 10,
+  "mipmapFilter": "",
+  "backgroundColor": "rgba(11,7,16,1)",
+  "fps": null,
+  "loop": {"targetFps":60,"fpsLimit":0,"smoothStep":true,"delta":16,"running":true},
+  "input": {
+   "keyboard": true,
+   "keyboardCapture": [],
+   "mouse": true,
+   "mousePreventDefaultDown": true,
+   "mousePreventDefaultUp": true,
+   "mousePreventDefaultMove": true,
+   "mousePreventDefaultWheel": true,
+   "touch": true,
+   "touchCapture": true,
+   "activePointers": 1,
+   "smoothFactor": 0,
+   "windowEvents": true,
+   "gamepad": true,
+   "disableContextMenu": true,
+   "pointers": 5,
+   "touchManager": true,
+   "mouseManager": true,
+   "mouseLocked": false,
+   "defaultCursor": ""
+  },
+  "physics": {"default":"arcade","arcade":{"debug":false}},
+  "audio": {},
+  "device": {"desktop":false,"touch":true,"fullscreen":true,"webGL":true},
+  "scale": {
+   "size": [960,540],
+   "display": [1280,720],
+   "parent": [1280,720],
+   "displayScale": [0.75,0.75],
+   "orientation": "landscape-primary",
+   "fullscreen": false
+  },
+  "listeners": {
+   "game": {"blur":5,"destroy":7,"focus":2,"hidden":1,"poststep":2,"prerender":1,"prestep":2,"visible":2},
+   "scale": {"resize":41},
+   "input": {"gameout":3,"gameover":3,"process":3},
+   "textures": {}
+  },
+  "textures": 2588,
+  "anims": 48
+ },
+ "dom": {
+  "window": [1280,720],
+  "dpr": 1,
+  "htmlClass": "",
+  "bodyClass": "fonts-loaded",
+  "htmlAttrs": ["lang=en"],
+  "bodyAttrs": ["class=fonts-loaded"],
+  "head": [
+   "script", "meta", "meta[name=viewport]", "link[rel=manifest]", "link[rel=icon]", "link[rel=apple-touch-icon]",
+   "meta[name=theme-color]", "meta[name=mobile-web-app-capable]", "meta[name=apple-mobile-web-app-capable]",
+   "meta[name=apple-mobile-web-app-status-bar-style]", "meta[name=apple-mobile-web-app-title]", "title",
+   "style 421ch #212c1044", "link[rel=preload]", "link[rel=preload]"
+  ],
+  "viewportMeta": "width=device-width,initial-scale=1,viewport-fit=cover",
+  "body": [{"tag":"div","id":"game"},{"tag":"script"}],
+  "game": {
+   "rect": [0,0,1280,720],
+   "children": [
+    {"tag":"canvas","style":"image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px;"}
+   ]
+  },
+  "canvas": {
+   "rect": [0,0,1280,720],
+   "width": 960,
+   "height": 540,
+   "style": "image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px;",
+   "attrs": ["height","style","width"]
+  },
+  "css": {
+   "html": {
+    "display": "block",
+    "position": "static",
+    "overflow": "hidden",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgb(11, 7, 16)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "body": {
+    "display": "block",
+    "position": "static",
+    "overflow": "hidden",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgb(11, 7, 16)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "game": {
+    "display": "flex",
+    "position": "static",
+    "overflow": "visible",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "canvas": {
+    "display": "block",
+    "position": "static",
+    "overflow": "clip",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto",
+    "image-rendering": "pixelated",
+    "margin-left": "0px",
+    "margin-top": "0px"
+   }
+  },
+  "active": "body",
+  "fullscreen": false,
+  "pointerLock": null,
+  "on": {"window":["onblur","onfocus"],"document":[]},
+  "globals": ["Phaser","__krel"]
+ },
+ "listeners": {
+  "added": {
+   "ScreenOrientation": {"change":1},
+   "audio": {"ended":1},
+   "canvas": {
+    "contextmenu": 3,
+    "mousedown": 1,
+    "mousemove": 1,
+    "mouseout passive": 1,
+    "mouseover passive": 1,
+    "mouseup": 1,
+    "touchcancel active": 1,
+    "touchend active": 1,
+    "touchmove active": 1,
+    "touchstart active": 1,
+    "webglcontextlost": 2,
+    "webglcontextrestored": 1,
+    "wheel active": 1
+   },
+   "document": {
+    "MSFullscreenChange": 1,
+    "MSFullscreenError": 1,
+    "fullscreenchange": 1,
+    "fullscreenerror": 1,
+    "mozfullscreenchange": 1,
+    "mozfullscreenerror": 1,
+    "mozpointerlockchange capture": 1,
+    "pointerlockchange capture": 1,
+    "visibilitychange": 1,
+    "webkitfullscreenchange": 1,
+    "webkitfullscreenerror": 1,
+    "webkitpointerlockchange capture": 1
+   },
+   "window": {
+    "beforeunload": 1,
+    "error": 1,
+    "gamepadconnected": 7,
+    "gamepaddisconnected": 7,
+    "keydown": 2,
+    "keydown capture": 1,
+    "keyup": 1,
+    "mousedown passive": 1,
+    "mouseup passive": 1,
+    "pagehide": 1,
+    "resize": 1,
+    "touchcancel active": 1,
+    "touchend active": 1,
+    "touchstart active": 1,
+    "unhandledrejection": 1
+   }
+  },
+  "removed": {"canvas":{"webglcontextlost":2},"window":{"gamepadconnected":4,"gamepaddisconnected":4}}
+ },
+ "storage": {
+  "written": ["krel_alive","krel_crumb","krelworld.meta","krelworld.save","krelworld.slots.v1"],
+  "removed": [],
+  "now": {
+   "krel_alive": 1,
+   "krel_crumb": {"err":"","t":1773502210000,"where":"UI+Menu"},
+   "krelworld.meta": {
+    "archiveUnlocked": [],
+    "completedWith": [],
+    "heardMusic": ["title","hub"],
+    "ngPlusUnlocked": false,
+    "settings": {
+     "autoAim": true,
+     "crt": true,
+     "master": 0.8,
+     "music": 0.5,
+     "sfx": 0.8,
+     "shake": true,
+     "textSpeed": 1,
+     "voiceSpeed": 1.5,
+     "voiceSpeedV": 3,
+     "voiceVolume": 0.8,
+     "voices": true
+    },
+    "tvWatched": [],
+    "version": 4
+   },
+   "krelworld.save": {
+    "archiveUnlocked": [],
+    "banCount": 0,
+    "banRisk": 0,
+    "banter": "max",
+    "bongos": 1,
+    "bottles": 2,
+    "chapter": 1,
+    "coins": 0,
+    "difficulty": 3,
+    "discovered": [],
+    "drongusResentment": 10,
+    "flags": {"flyover_seen":true,"home_seen":true,"trails_v1":true,"tv_klerble_welcome":true},
+    "gunOrder": [],
+    "guns": {},
+    "hp": 90,
+    "intoxication": 0,
+    "kills": {},
+    "krezz": 40,
+    "ngPlus": 0,
+    "objective": "Go to Krelford Town Hall: the cabinet's Lore Appreciation Inquiry is about to start",
+    "phase": "hub",
+    "player": "FLENKY",
+    "playtimeMs": 0,
+    "quests": {},
+    "reactionsGiven": {"ANGRY":0,"LAUGH":0,"LIKE":0,"LOVE":0,"SEEN":0},
+    "relationships": {},
+    "revisions": [],
+    "savedAt": 1773502202064,
+    "tvWatched": [],
+    "upgrades": {},
+    "version": 4
+   },
+   "krelworld.slots.v1": 1
+  }
+ },
+ "audio": {"contexts":2,"elements":[" paused vol 0 rate 1","audio/hub.mp3 playing loop vol 0.4 rate 1"],"music":"hub"},
+ "media": {
+  "coarse": true,
+  "fine": false,
+  "hover": false,
+  "anyCoarse": true,
+  "maxTouchPoints": 10,
+  "ontouchstart": true,
+  "landscape": true,
+  "standalone": false
+ },
+ "run": {
+  "player": "FLENKY",
+  "chapter": 1,
+  "phase": "hub",
+  "hp": 90,
+  "coins": 0,
+  "krezz": 40,
+  "gun": null,
+  "difficulty": 3,
+  "banter": "max",
+  "playtimeMs": 3216
+ },
+ "errors": []
+}

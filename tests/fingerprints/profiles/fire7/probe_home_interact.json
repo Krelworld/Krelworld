@@ -1,0 +1,14 @@
+{
+ "state": "probe_home_interact",
+ "chain": "newgame",
+ "build": "main",
+ "probe": {
+  "input": "hold A until the telly's prompt shows, release, press E",
+  "framesWalked": 121,
+  "at": {"me":[215.04,500],"prompt":"E: Watch KrelTV","promptAt":[215.04,323]},
+  "scenesBefore": ["UI","Home"],
+  "scenesAfter": ["UI","Home (paused)","TV"],
+  "tv": {"episode":"klerble_welcome","mode":"playing"}
+ },
+ "errors": []
+}

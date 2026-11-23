@@ -1,0 +1,42 @@
+{
+ "browser": "chromium 153.0.8010.12",
+ "platform": "linux x64",
+ "window": "1280x720 @1x",
+ "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+ "seed": 1263682892,
+ "clock": [
+  "2026-03-14T15:00:00.000Z",
+  "2026-03-14T15:30:00.000Z"
+ ],
+ "fonts": {
+  "Trebuchet MS": 321.88,
+  "Courier New": 384.06,
+  "Georgia": 321.88,
+  "Impact": 321.88,
+  "Comic Sans MS": 321.88,
+  "Arial": 341.22,
+  "sans-serif": 356.98,
+  "monospace": 385.31,
+  "serif": 388.07
+ },
+ "emoji": 87.09,
+ "pointerFine": true,
+ "hover": true,
+ "maxTouchPoints": 0,
+ "profile": "touchlaptop",
+ "profileDevice": {
+  "hasTouch": true,
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "screen": {
+   "width": 1280,
+   "height": 720
+  },
+  "media": {
+   "pointer": "fine",
+   "hover": "hover",
+   "anyPointer": "coarse",
+   "anyHover": "hover"
+  },
+  "maxTouchPoints": 10
+ }
+}

@@ -67,6 +67,30 @@ node scripts/desktop-fingerprint.cjs $A --only boss,side,places,minigames,finale
 
 One browser at a time: do not run two of these (or this and another browser test) at once on the build machine.
 
+### The devices next to a phone (`--profile`)
+
+The phone detection (`src/game/mobile/flag.ts`) decides about exactly the devices a plain laptop run never is: a
+touchscreen laptop, an iPad, an Android tablet, a 7-inch Fire tablet. They must keep today's game too (the iPad and
+Android tablets keep the old canvas touch pad). `--profile <name>` plays the same chains as that device (its screen,
+touch points, user agent and pointer / hover answers; the window stays 1280x720 so the states line up) and checks them
+against `tests/fingerprints/profiles/<name>/`, recorded on the source from before any phone work (`9ccb2d13`):
+
+| Profile | Device | Chains recorded |
+|---|---|---|
+| `touchlaptop` | Windows touchscreen laptop (fine pointer that hovers, 10 touch points) | `front`, `newgame` |
+| `ipad` | iPad, desktop user agent, 820x1180 | `front`, `newgame` (home: the old pad) |
+| `androidtab` | Android tablet, 800x1280 | `front`, `newgame`, `hub` (home and town: the old pad) |
+| `fire7` | Amazon Fire 7, 600x1024 (Android's phone / tablet line is 600: this is a tablet) | `front`, `newgame` |
+
+```sh
+for p in touchlaptop ipad fire7; do node scripts/desktop-fingerprint.cjs --url http://localhost:5201/ --no-alt --profile $p --only front,newgame --check; done
+node scripts/desktop-fingerprint.cjs --url http://localhost:5201/ --no-alt --profile androidtab --only front,newgame,hub --check
+```
+
+About 6 minutes for all four. Run them after any change to the phone detection or to a guarded hook in a scene
+(`UIScene.setupTouch` above all). The tests in `tests/desktopNotPhone.test.ts` check the detection itself for these
+and a dozen more devices (Windows tablets and handhelds, Chromebooks, the Steam Deck, foldables, TVs).
+
 ## What a fingerprint holds
 
 Each state is reached the way a laptop player would reach it where that is practical (real key presses and mouse
@@ -179,7 +203,15 @@ byte-identical output.
   order otherwise, and Beep Beep picks its pedestrians from that list).
 - **Real time.** Frame rate, performance and per-frame cost are not measured. A hook that does work every frame on
   the laptop without changing the display list would only show as an extra listener, timer or tween count.
-- **Gamepads** and real touch-screen laptops are not driven. (A gamepad's default buttons are in the unit test.)
+- **Gamepads** are not driven (their default buttons are in the unit test). Touch-screen laptops and tablets are only
+  checked with `--profile` (above): the detection's inputs are emulated, touches are not driven.
+- **Storage and the address from before.** Every chain starts with empty storage at the bare address. A laptop with
+  a phone key left in storage, or opening `?mobile=1`, is checked by `scripts/mobile-smoke.cjs --only desktop` (with
+  what the phone code reads at startup: no storage, no media query, no phone chunk fetched), and by
+  `tests/desktopNotPhone.test.ts`.
+- **Production builds and download size.** The harness runs the dev server. The phone code is a separate chunk that
+  a laptop never fetches (`src/game/mobile/boot.ts`); `mobile-smoke --only desktop` checks that in dev, and the fix
+  report of round 1 has the production numbers.
 - **Scenes not in the list**: the Archive, Venue, Drive, Lair, Roof cutscene, Polson's home, Exile, the Krazy Fact
   screen, Whack-a-Drongus, the Kreddle machines, raid and rout, most minigames (only crocodile and Beep Beep are
   in), most vignettes and cutscenes, the death menu, the Kreltality prompt, the 3D ending and the flyover. A phone
@@ -196,4 +228,6 @@ byte-identical output.
 - `scripts/fingerprint/dump.cjs`: what is read out of the page for a state, and the file format.
 - `scripts/fingerprint/states.cjs`: the chains and states.
 - `tests/fingerprints/desktop/`: the baseline. `_env.json` is the machine it was recorded on.
+- `tests/fingerprints/profiles/<name>/`: the `--profile` baselines (same format; `_env.json` names the device).
+- `tests/desktopNotPhone.test.ts`: the phone detection says "not a phone" for every laptop, tablet and handheld listed.
 - `tests/desktopInvariants.test.ts`: the unit snapshots.

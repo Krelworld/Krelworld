@@ -15,9 +15,11 @@
 //   --out <dir>              check: also save the new version of every state that differed here (to look at, or to diff by hand)
 //   --shots <dir>            save a 1x screenshot of each recorded state (for people; never compared)
 //   --list                   print the chains and states, and exit
+//   --profile <name>         the same chains as a device the phone detection must leave alone: touchlaptop, ipad,
+//                            androidtab, fire7 (baseline tests/fingerprints/profiles/<name>; see the README there)
 const fs = require("fs");
 const path = require("path");
-const { Session, launch, VIEW, UA, SEED, CLOCK_START, CLOCK_PIN } = require("./fingerprint/core.cjs");
+const { Session, launch, VIEW, UA, SEED, CLOCK_START, CLOCK_PIN, PROFILES } = require("./fingerprint/core.cjs");
 const { pageDump, format } = require("./fingerprint/dump.cjs");
 const { CHAINS } = require("./fingerprint/states.cjs");
 
@@ -25,7 +27,7 @@ const ROOT = path.resolve(__dirname, "..");
 const DEFAULT_BASELINE = path.join(ROOT, "tests", "fingerprints", "desktop");
 
 function args(argv) {
-  const o = { url: "", altUrl: "", check: false, only: null, out: "", shots: "", list: false, noAlt: false, baseline: DEFAULT_BASELINE };
+  const o = { url: "", altUrl: "", check: false, only: null, out: "", shots: "", list: false, noAlt: false, baseline: "", profile: "" };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const next = () => {
@@ -41,15 +43,18 @@ function args(argv) {
     else if (a === "--shots") o.shots = path.resolve(next());
     else if (a === "--list") o.list = true;
     else if (a === "--no-alt") o.noAlt = true;
+    else if (a === "--profile") o.profile = next();
     else if (/^https?:\/\//.test(a) && !o.url) o.url = a;
     else usage(`unknown argument: ${a}`);
   }
+  if (o.profile && !PROFILES[o.profile]) usage(`--profile: one of ${Object.keys(PROFILES).join(", ")}`);
+  if (!o.baseline) o.baseline = o.profile ? path.join(ROOT, "tests", "fingerprints", "profiles", o.profile) : DEFAULT_BASELINE;
   return o;
 }
 
 function usage(msg) {
   if (msg) console.error("desktop-fingerprint: " + msg + "\n");
-  console.error("usage: node scripts/desktop-fingerprint.cjs --url <dev server> [--alt-url <ALT dev server> | --no-alt] [--check] [--only a,b] [--baseline dir] [--out dir] [--shots dir] [--list]");
+  console.error("usage: node scripts/desktop-fingerprint.cjs --url <dev server> [--alt-url <ALT dev server> | --no-alt] [--check] [--only a,b] [--profile name] [--baseline dir] [--out dir] [--shots dir] [--list]");
   process.exit(2);
 }
 
@@ -175,11 +180,12 @@ async function main() {
   try {
     env = await environment(browser);
     if (!env.pointerFine || !env.hover || env.maxTouchPoints) throw new Error("this browser does not look like a laptop (it needs a fine pointer, hover and no touch points)");
+    if (o.profile) env = { ...env, profile: o.profile, profileDevice: { ...PROFILES[o.profile].ctx, media: PROFILES[o.profile].media, maxTouchPoints: PROFILES[o.profile].tp } };
     for (const chain of chains) {
       const tc = Date.now();
       const need = chain.states.filter((s) => !wanted || wanted.has(s));
       const last = need[need.length - 1];
-      const S = new Session(browser, { url: chain.alt ? o.altUrl : o.url });
+      const S = new Session(browser, { url: chain.alt ? o.altUrl : o.url, profile: o.profile || undefined });
       const made = [];
       const notes = {};
       const record = async (id, body) => {

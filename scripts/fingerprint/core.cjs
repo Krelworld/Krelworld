@@ -21,6 +21,40 @@ const SEED = 0x4b52454c;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * --profile: the devices the phone detection decides about, which must keep today's game exactly (a touchscreen
+ * laptop, an iPad, an Android tablet, a 7-inch Fire tablet). Each is the laptop session with the device's screen,
+ * touch points, user agent and pointer / hover answers. The window stays 1280x720 so the states line up with the
+ * laptop's; only what the detection reads changes. Baselines: tests/fingerprints/profiles/<name>/ (recorded on the
+ * source from before the phone work).
+ */
+const WIN_UA = UA;
+const PROFILES = {
+  touchlaptop: { ctx: { hasTouch: true, userAgent: WIN_UA, screen: { width: 1280, height: 720 } }, media: { pointer: "fine", hover: "hover", anyPointer: "coarse", anyHover: "hover" }, tp: 10 },
+  ipad: { ctx: { hasTouch: true, userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15", screen: { width: 820, height: 1180 } }, media: { pointer: "coarse", hover: "none", anyPointer: "coarse", anyHover: "none" }, tp: 5 },
+  androidtab: { ctx: { hasTouch: true, userAgent: "Mozilla/5.0 (Linux; Android 13; SM-X200) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36", screen: { width: 800, height: 1280 } }, media: { pointer: "coarse", hover: "none", anyPointer: "coarse", anyHover: "none" }, tp: 10 },
+  fire7: { ctx: { hasTouch: true, userAgent: "Mozilla/5.0 (Linux; Android 9; KFMUWI) AppleWebKit/537.36 (KHTML, like Gecko) Silk/124.2.1 like Chrome/124.0.0.0 Safari/537.36", screen: { width: 600, height: 1024 } }, media: { pointer: "coarse", hover: "none", anyPointer: "coarse", anyHover: "none" }, tp: 10 },
+};
+
+/** Runs in the page first, for a --profile: the device's pointer / hover answers and touch points. */
+function profileInit(o) {
+  const real = window.matchMedia.bind(window);
+  const m = o.media;
+  window.matchMedia = function (q) {
+    const s = String(q).replace(/\s+/g, "").toLowerCase();
+    let x;
+    let a = null;
+    if ((x = /^\(any-pointer:(\w+)\)$/.exec(s))) a = m.anyPointer === x[1];
+    else if ((x = /^\(pointer:(\w+)\)$/.exec(s))) a = m.pointer === x[1];
+    else if ((x = /^\(any-hover:(\w+)\)$/.exec(s))) a = m.anyHover === x[1];
+    else if ((x = /^\(hover:(\w+)\)$/.exec(s))) a = m.hover === x[1];
+    const mq = real(q);
+    if (a === null) return mq;
+    return new Proxy(mq, { get: (t, k) => (k === "matches" ? a : typeof t[k] === "function" ? t[k].bind(t) : t[k]) });
+  };
+  Object.defineProperty(Navigator.prototype, "maxTouchPoints", { get: () => o.tp, configurable: true });
+}
+
 /** Runs in the page before any of its own scripts. `seed` is the Math.random seed. */
 function initScript(seed) {
   const fp = (window.__fp = { pend: 0, seed0: seed });
@@ -276,6 +310,8 @@ class Session {
   constructor(browser, o) {
     this.browser = browser;
     this.url = o.url;
+    this.profile = o.profile ? PROFILES[o.profile] : null;
+    if (o.profile && !this.profile) throw new Error(`no profile "${o.profile}" (${Object.keys(PROFILES).join(", ")})`);
     this.log = o.log || (() => {});
     this.inflight = new Set();
     this.errors = [];
@@ -284,7 +320,8 @@ class Session {
   }
 
   async open() {
-    this.ctx = await this.browser.newContext({ viewport: VIEW, deviceScaleFactor: 1, hasTouch: false, isMobile: false, userAgent: UA, locale: "en-GB", timezoneId: "UTC", colorScheme: "dark", reducedMotion: "no-preference" });
+    this.ctx = await this.browser.newContext({ viewport: VIEW, deviceScaleFactor: 1, hasTouch: false, isMobile: false, userAgent: UA, locale: "en-GB", timezoneId: "UTC", colorScheme: "dark", reducedMotion: "no-preference", ...(this.profile ? this.profile.ctx : {}) });
+    if (this.profile) await this.ctx.addInitScript(profileInit, { media: this.profile.media, tp: this.profile.tp });
     this.page = await this.ctx.newPage();
     const page = this.page;
     page.setDefaultTimeout(180000);
@@ -591,4 +628,4 @@ async function launch() {
   return chromium.launch({ args: ["--autoplay-policy=no-user-gesture-required", "--mute-audio", "--disable-background-timer-throttling", "--disable-renderer-backgrounding", "--disable-backgrounding-occluded-windows"] });
 }
 
-module.exports = { Session, launch, VIEW, UA, STEP, SEED, CLOCK_START, CLOCK_PIN, sleep };
+module.exports = { Session, launch, VIEW, UA, STEP, SEED, CLOCK_START, CLOCK_PIN, sleep, PROFILES };

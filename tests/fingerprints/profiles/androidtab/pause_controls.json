@@ -1,0 +1,560 @@
+{
+ "state": "pause_controls",
+ "chain": "hub",
+ "build": "main",
+ "clock": [1807648,1773502207648],
+ "scenes": {
+  "live": ["Hub PAUSED visible","UI RUNNING active visible","Menu RUNNING active visible"],
+  "order": [
+   "Hub", "Boot", "Title", "CharSelect", "Difficulty", "Banter", "Cutscene", "Meeting", "DebugSkip",
+   "ChapterSelect", "Dungeon", "UI", "Dialogue", "TV", "Archive", "Pub", "KrazyFact", "Exile", "Vignette",
+   "Minigame", "Venue", "Pit", "PitLoan", "Club", "Kreddle", "Whack", "WeaponPick", "Enter", "Home", "Drive",
+   "BeepBeep", "Lair", "Finale", "RoofCutscene", "Menu", "Slots", "Tutorial", "Ending", "PolsonHome"
+  ]
+ },
+ "display": [
+  {
+   "key": "Hub",
+   "status": "PAUSED",
+   "count": {"top":569,"all":570,"hidden":8,"interactive":0},
+   "cam": {
+    "x": 0,
+    "y": 0,
+    "w": 960,
+    "h": 540,
+    "scrollX": 179,
+    "scrollY": 1217,
+    "zoom": [1,1],
+    "bg": "0,0,0,0",
+    "roundPixels": true,
+    "bounds": [0,-380,2560,2172],
+    "follow": {"lerp":[0.12,0.12],"offset":[-5.72,-17.07],"deadzone":null}
+   },
+   "input": {
+    "enabled": true,
+    "topOnly": true,
+    "listeners": {"pointermove":1},
+    "keyboard": {"enabled":true,"keys":[9,27,37,38,39,40,65,68,69,74,83,87],"listeners":{}}
+   },
+   "timers": 9,
+   "tweens": 154,
+   "physics": {"bodies":1,"statics":97,"gravity":[0,0],"fps":60,"timeScale":1,"paused":false,"bounds":[0,0,2560,1792]},
+   "objsHash": "561 top-level, #c0aadbef"
+  },
+  {
+   "key": "UI",
+   "status": "RUNNING",
+   "count": {"top":19,"all":26,"hidden":10,"interactive":3},
+   "cam": {"x":0,"y":0,"w":960,"h":540,"scrollX":0,"scrollY":0,"zoom":[1,1],"bg":"0,0,0,0","roundPixels":true},
+   "input": {
+    "enabled": true,
+    "topOnly": true,
+    "listeners": {"pointermove":1,"pointerup":1},
+    "keyboard": {"enabled":true,"keys":[],"listeners":{}}
+   },
+   "timers": 1,
+   "tweens": 0,
+   "physics": {"bodies":0,"statics":0,"gravity":[0,0],"fps":60,"timeScale":1,"paused":false,"bounds":[0,0,960,540]},
+   "objsHash": "9 top-level, #bea236c0"
+  },
+  {
+   "key": "Menu",
+   "status": "RUNNING",
+   "count": {"top":1,"all":148,"hidden":0,"interactive":32},
+   "cam": {"x":0,"y":0,"w":960,"h":540,"scrollX":0,"scrollY":0,"zoom":[1,1],"bg":"0,0,0,0","roundPixels":true},
+   "input": {"enabled":true,"topOnly":true,"listeners":{},"keyboard":{"enabled":true,"keys":[27],"listeners":{"keydown":1}}},
+   "timers": 0,
+   "tweens": 0,
+   "physics": {"bodies":0,"statics":0,"gravity":[0,0],"fps":60,"timeScale":1,"paused":false,"bounds":[0,0,960,540]},
+   "objs": [
+    {"t":"Container","x":0,"y":0,"w":0,"h":0,"n":85,"kids":[
+     {"t":"Rectangle","x":0,"y":0,"w":960,"h":540,"o":[0,0],"fill":"#000000 0.7","hit":{"shape":"rect","x":0,"y":0,"w":960,"h":540}},
+     {"t":"NineSlice","x":480,"y":270,"w":680,"h":460,"a":0.95,"tex":"ui_panel:__BASE"},
+     {"t":"Text","x":480,"y":58,"w":128,"h":23,"text":"CONTROLS","font":"Krel Bold 20px","asked":"ui 24px bold","color":"#ffd23f","align":"center","shadow":"3,3 #000 0"},
+     {"t":"Text","x":480,"y":80,"w":565,"h":12,"text":"CHANGE, then press the new key or pad button. Mouse / right stick aims · Esc or START pauses · Tab skips dialogue.","font":"Krel Regular 10px","asked":"ui 11px","color":"#9aa0b4"},
+     {"t":"Text","x":375,"y":98,"w":45,"h":12,"o":[0,0.5],"text":"KEYBOARD","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ff9ad5"},
+     {"t":"Text","x":600,"y":98,"w":41,"h":12,"o":[0,0.5],"text":"GAMEPAD","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ff9ad5"},
+     {"t":"Text","x":170,"y":116,"w":81,"h":13,"o":[0,0.5],"text":"Move up / jump","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":116,"w":20,"h":13,"o":[0,0.5],"text":"W/↑","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":116,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":116,"w":49,"h":13,"o":[0,0.5],"text":"L-Stick ↑","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#9aa0b4"},
+     {"t":"Text","x":170,"y":138,"w":95,"h":13,"o":[0,0.5],"text":"Move down / drop","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":138,"w":18,"h":13,"o":[0,0.5],"text":"S/↓","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":138,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":138,"w":49,"h":13,"o":[0,0.5],"text":"L-Stick ↓","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#9aa0b4"},
+     {"t":"Text","x":170,"y":160,"w":50,"h":13,"o":[0,0.5],"text":"Move left","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":160,"w":24,"h":13,"o":[0,0.5],"text":"A/←","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":160,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":160,"w":55,"h":13,"o":[0,0.5],"text":"L-Stick ←","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#9aa0b4"},
+     {"t":"Text","x":170,"y":182,"w":57,"h":13,"o":[0,0.5],"text":"Move right","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":182,"w":24,"h":13,"o":[0,0.5],"text":"D/→","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":182,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":182,"w":55,"h":13,"o":[0,0.5],"text":"L-Stick →","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#9aa0b4"},
+     {"t":"Text","x":170,"y":204,"w":129,"h":13,"o":[0,0.5],"text":"Attack (also left mouse)","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":204,"w":7,"h":13,"o":[0,0.5],"text":"J","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":204,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":204,"w":33,"h":13,"o":[0,0.5],"text":"RT / A","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#67e8f9"},
+     {"t":"Container","x":755,"y":204,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":170,"y":226,"w":139,"h":13,"o":[0,0.5],"text":"Special (also right mouse)","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":226,"w":19,"h":13,"o":[0,0.5],"text":"F/K","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":226,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":226,"w":33,"h":13,"o":[0,0.5],"text":"LT / Y","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#67e8f9"},
+     {"t":"Container","x":755,"y":226,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":170,"y":248,"w":31,"h":13,"o":[0,0.5],"text":"Dodge","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":248,"w":63,"h":13,"o":[0,0.5],"text":"Space/Shift","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":248,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":248,"w":33,"h":13,"o":[0,0.5],"text":"B / RB","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#67e8f9"},
+     {"t":"Container","x":755,"y":248,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":170,"y":270,"w":80,"h":13,"o":[0,0.5],"text":"Interact / talk","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":270,"w":7,"h":13,"o":[0,0.5],"text":"E","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":270,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":270,"w":7,"h":13,"o":[0,0.5],"text":"X","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#67e8f9"},
+     {"t":"Container","x":755,"y":270,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":170,"y":292,"w":93,"h":13,"o":[0,0.5],"text":"Drink pussy juice","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":292,"w":7,"h":13,"o":[0,0.5],"text":"Q","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":292,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":292,"w":18,"h":13,"o":[0,0.5],"text":"D←","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#67e8f9"},
+     {"t":"Container","x":755,"y":292,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":170,"y":314,"w":64,"h":13,"o":[0,0.5],"text":"Fizzy bongo","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":314,"w":7,"h":13,"o":[0,0.5],"text":"B","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":314,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":314,"w":18,"h":13,"o":[0,0.5],"text":"D→","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#67e8f9"},
+     {"t":"Container","x":755,"y":314,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":170,"y":336,"w":132,"h":13,"o":[0,0.5],"text":"Wonk Your Thang (Krezz)","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":336,"w":19,"h":13,"o":[0,0.5],"text":"R/L","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":336,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":336,"w":13,"h":13,"o":[0,0.5],"text":"LB","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#67e8f9"},
+     {"t":"Container","x":755,"y":336,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":170,"y":358,"w":23,"h":13,"o":[0,0.5],"text":"Fart","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":358,"w":7,"h":13,"o":[0,0.5],"text":"G","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":358,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":358,"w":12,"h":13,"o":[0,0.5],"text":"D↓","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#67e8f9"},
+     {"t":"Container","x":755,"y":358,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":170,"y":380,"w":49,"h":13,"o":[0,0.5],"text":"Swap gun","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":380,"w":7,"h":13,"o":[0,0.5],"text":"X","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":380,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":380,"w":12,"h":13,"o":[0,0.5],"text":"D↑","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#67e8f9"},
+     {"t":"Container","x":755,"y":380,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":170,"y":402,"w":119,"h":13,"o":[0,0.5],"text":"Golden transformation","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":402,"w":7,"h":13,"o":[0,0.5],"text":"T","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":402,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":402,"w":13,"h":13,"o":[0,0.5],"text":"L3","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#67e8f9"},
+     {"t":"Container","x":755,"y":402,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":170,"y":424,"w":143,"h":13,"o":[0,0.5],"text":"Cumehameha (while golden)","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":424,"w":7,"h":13,"o":[0,0.5],"text":"C","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":424,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":424,"w":13,"h":13,"o":[0,0.5],"text":"R3","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#67e8f9"},
+     {"t":"Container","x":755,"y":424,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":170,"y":446,"w":142,"h":13,"o":[0,0.5],"text":"Mikey ⇄ SanMik (as Mikey)","font":"Krel Regular 11px","asked":"ui 12px","color":"#ffffff"},
+     {"t":"Text","x":375,"y":446,"w":7,"h":13,"o":[0,0.5],"text":"V","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#ffd23f"},
+     {"t":"Container","x":520,"y":446,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Text","x":600,"y":446,"w":25,"h":13,"o":[0,0.5],"text":"VIEW","font":"Krel Regular 11px","asked":"ui 12px bold","color":"#67e8f9"},
+     {"t":"Container","x":755,"y":446,"w":64,"h":20,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":64,"h":20,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":64,"h":20,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":34,"h":12,"text":"CHANGE","font":"Krel Regular 10px","asked":"ui 10px bold","color":"#ffffff","align":"center","wrap":52}
+     ]},
+     {"t":"Container","x":260,"y":490,"w":170,"h":30,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":170,"h":30,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":170,"h":30,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":71,"h":15,"text":"RESET KEYS","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#ffffff","align":"center","wrap":158}
+     ]},
+     {"t":"Container","x":450,"y":490,"w":170,"h":30,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":170,"h":30,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":170,"h":30,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":64,"h":15,"text":"RESET PAD","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#ffffff","align":"center","wrap":158}
+     ]},
+     {"t":"Container","x":660,"y":490,"w":170,"h":30,"n":2,"kids":[
+      {"t":"NineSlice","x":0,"y":0,"w":170,"h":30,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":170,"h":30,"cursor":"pointer"}},
+      {"t":"Text","x":0,"y":0,"w":47,"h":15,"text":"◀ BACK","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#ffffff","align":"center","wrap":158}
+     ]}
+    ]}
+   ]
+  }
+ ],
+ "game": {
+  "width": 960,
+  "height": 540,
+  "zoom": 1,
+  "parent": "game",
+  "scaleMode": 3,
+  "autoCenter": 1,
+  "autoRound": false,
+  "expandParent": true,
+  "fullscreenTarget": null,
+  "renderType": 2,
+  "renderer": 2,
+  "pixelArt": true,
+  "roundPixels": true,
+  "antialias": false,
+  "antialiasGL": false,
+  "transparent": false,
+  "clearBeforeRender": true,
+  "preserveDrawingBuffer": false,
+  "premultipliedAlpha": true,
+  "powerPreference": "default",
+  "batchSize": 4096,
+  "maxLights": 10,
+  "mipmapFilter": "",
+  "backgroundColor": "rgba(11,7,16,1)",
+  "fps": null,
+  "loop": {"targetFps":60,"fpsLimit":0,"smoothStep":true,"delta":16,"running":true},
+  "input": {
+   "keyboard": true,
+   "keyboardCapture": [],
+   "mouse": true,
+   "mousePreventDefaultDown": true,
+   "mousePreventDefaultUp": true,
+   "mousePreventDefaultMove": true,
+   "mousePreventDefaultWheel": true,
+   "touch": true,
+   "touchCapture": true,
+   "activePointers": 1,
+   "smoothFactor": 0,
+   "windowEvents": true,
+   "gamepad": true,
+   "disableContextMenu": true,
+   "pointers": 5,
+   "touchManager": true,
+   "mouseManager": true,
+   "mouseLocked": false,
+   "defaultCursor": ""
+  },
+  "physics": {"default":"arcade","arcade":{"debug":false}},
+  "audio": {},
+  "device": {"desktop":false,"touch":true,"fullscreen":true,"webGL":true},
+  "scale": {
+   "size": [960,540],
+   "display": [1280,720],
+   "parent": [1280,720],
+   "displayScale": [0.75,0.75],
+   "orientation": "landscape-primary",
+   "fullscreen": false
+  },
+  "listeners": {
+   "game": {"blur":5,"destroy":7,"focus":2,"hidden":1,"poststep":2,"prerender":1,"prestep":2,"visible":2},
+   "scale": {"resize":41},
+   "input": {"gameout":3,"gameover":3,"process":3},
+   "textures": {}
+  },
+  "textures": 2663,
+  "anims": 48
+ },
+ "dom": {
+  "window": [1280,720],
+  "dpr": 1,
+  "htmlClass": "",
+  "bodyClass": "fonts-loaded",
+  "htmlAttrs": ["lang=en"],
+  "bodyAttrs": ["class=fonts-loaded"],
+  "head": [
+   "script", "meta", "meta[name=viewport]", "link[rel=manifest]", "link[rel=icon]", "link[rel=apple-touch-icon]",
+   "meta[name=theme-color]", "meta[name=mobile-web-app-capable]", "meta[name=apple-mobile-web-app-capable]",
+   "meta[name=apple-mobile-web-app-status-bar-style]", "meta[name=apple-mobile-web-app-title]", "title",
+   "style 421ch #212c1044", "link[rel=preload]", "link[rel=preload]"
+  ],
+  "viewportMeta": "width=device-width,initial-scale=1,viewport-fit=cover",
+  "body": [{"tag":"div","id":"game"},{"tag":"script"}],
+  "game": {
+   "rect": [0,0,1280,720],
+   "children": [
+    {"tag":"canvas","style":"image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px;"}
+   ]
+  },
+  "canvas": {
+   "rect": [0,0,1280,720],
+   "width": 960,
+   "height": 540,
+   "style": "image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px;",
+   "attrs": ["height","style","width"]
+  },
+  "css": {
+   "html": {
+    "display": "block",
+    "position": "static",
+    "overflow": "hidden",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgb(11, 7, 16)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "body": {
+    "display": "block",
+    "position": "static",
+    "overflow": "hidden",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgb(11, 7, 16)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "game": {
+    "display": "flex",
+    "position": "static",
+    "overflow": "visible",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "canvas": {
+    "display": "block",
+    "position": "static",
+    "overflow": "clip",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto",
+    "image-rendering": "pixelated",
+    "margin-left": "0px",
+    "margin-top": "0px"
+   }
+  },
+  "active": "body",
+  "fullscreen": false,
+  "pointerLock": null,
+  "on": {"window":["onblur","onfocus"],"document":[]},
+  "globals": ["Phaser","__krel"]
+ },
+ "listeners": {
+  "added": {
+   "ScreenOrientation": {"change":1},
+   "audio": {"ended":1},
+   "canvas": {
+    "contextmenu": 3,
+    "mousedown": 1,
+    "mousemove": 1,
+    "mouseout passive": 1,
+    "mouseover passive": 1,
+    "mouseup": 1,
+    "touchcancel active": 1,
+    "touchend active": 1,
+    "touchmove active": 1,
+    "touchstart active": 1,
+    "webglcontextlost": 2,
+    "webglcontextrestored": 1,
+    "wheel active": 1
+   },
+   "document": {
+    "MSFullscreenChange": 1,
+    "MSFullscreenError": 1,
+    "fullscreenchange": 1,
+    "fullscreenerror": 1,
+    "mozfullscreenchange": 1,
+    "mozfullscreenerror": 1,
+    "mozpointerlockchange capture": 1,
+    "pointerlockchange capture": 1,
+    "visibilitychange": 1,
+    "webkitfullscreenchange": 1,
+    "webkitfullscreenerror": 1,
+    "webkitpointerlockchange capture": 1
+   },
+   "window": {
+    "beforeunload": 1,
+    "error": 1,
+    "gamepadconnected": 7,
+    "gamepaddisconnected": 7,
+    "keydown": 2,
+    "keydown capture": 1,
+    "keyup": 1,
+    "mousedown passive": 1,
+    "mouseup passive": 1,
+    "pagehide": 1,
+    "resize": 1,
+    "touchcancel active": 1,
+    "touchend active": 1,
+    "touchstart active": 1,
+    "unhandledrejection": 1
+   }
+  },
+  "removed": {"canvas":{"webglcontextlost":2},"window":{"gamepadconnected":4,"gamepaddisconnected":4}}
+ },
+ "storage": {
+  "written": ["krel_alive","krel_crumb","krelworld.meta","krelworld.save","krelworld.slots.v1"],
+  "removed": [],
+  "now": {
+   "krel_alive": 1,
+   "krel_crumb": {"err":"","t":1773502206000,"where":"UI+Menu"},
+   "krelworld.meta": {
+    "archiveUnlocked": [],
+    "completedWith": [],
+    "heardMusic": ["title","hub"],
+    "ngPlusUnlocked": false,
+    "settings": {
+     "autoAim": true,
+     "crt": true,
+     "master": 0.8,
+     "music": 0.5,
+     "sfx": 0.8,
+     "shake": true,
+     "textSpeed": 1,
+     "voiceSpeed": 1.5,
+     "voiceSpeedV": 3,
+     "voiceVolume": 0.8,
+     "voices": true
+    },
+    "tvWatched": [],
+    "version": 4
+   },
+   "krelworld.save": {
+    "archiveUnlocked": [],
+    "banCount": 0,
+    "banRisk": 0,
+    "banter": "max",
+    "bongos": 1,
+    "bottles": 2,
+    "chapter": 1,
+    "coins": 0,
+    "difficulty": 3,
+    "discovered": [],
+    "drongusResentment": 10,
+    "flags": {"flyover_seen":true,"home_seen":true,"trails_v1":true,"tv_klerble_welcome":true},
+    "gunOrder": [],
+    "guns": {},
+    "hp": 90,
+    "intoxication": 0,
+    "kills": {},
+    "krezz": 40,
+    "ngPlus": 0,
+    "objective": "Go to Krelford Town Hall: the cabinet's Lore Appreciation Inquiry is about to start",
+    "phase": "hub",
+    "player": "FLENKY",
+    "playtimeMs": 0,
+    "quests": {},
+    "reactionsGiven": {"ANGRY":0,"LAUGH":0,"LIKE":0,"LOVE":0,"SEEN":0},
+    "relationships": {},
+    "revisions": [],
+    "savedAt": 1773502202064,
+    "tvWatched": [],
+    "upgrades": {},
+    "version": 4
+   },
+   "krelworld.slots.v1": 1
+  }
+ },
+ "audio": {"contexts":2,"elements":[" paused vol 0 rate 1","audio/hub.mp3 playing loop vol 0.4 rate 1"],"music":"hub"},
+ "media": {
+  "coarse": true,
+  "fine": false,
+  "hover": false,
+  "anyCoarse": true,
+  "maxTouchPoints": 10,
+  "ontouchstart": true,
+  "landscape": true,
+  "standalone": false
+ },
+ "run": {
+  "player": "FLENKY",
+  "chapter": 1,
+  "phase": "hub",
+  "hp": 90,
+  "coins": 0,
+  "krezz": 40,
+  "gun": null,
+  "difficulty": 3,
+  "banter": "max",
+  "playtimeMs": 3216
+ },
+ "errors": []
+}

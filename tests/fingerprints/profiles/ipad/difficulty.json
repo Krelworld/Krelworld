@@ -1,0 +1,352 @@
+{
+ "state": "difficulty",
+ "chain": "newgame",
+ "build": "main",
+ "clock": [1803824,1773502203824],
+ "scenes": {
+  "live": ["Difficulty RUNNING active visible"],
+  "order": [
+   "Boot", "Title", "CharSelect", "Difficulty", "Banter", "Cutscene", "Meeting", "DebugSkip", "ChapterSelect",
+   "Hub", "Dungeon", "UI", "Dialogue", "TV", "Archive", "Pub", "KrazyFact", "Exile", "Vignette", "Minigame",
+   "Venue", "Pit", "PitLoan", "Club", "Kreddle", "Whack", "WeaponPick", "Enter", "Home", "Drive", "BeepBeep",
+   "Lair", "Finale", "RoofCutscene", "Menu", "Slots", "Tutorial", "Ending", "PolsonHome"
+  ]
+ },
+ "display": [
+  {
+   "key": "Difficulty",
+   "status": "RUNNING",
+   "count": {"top":37,"all":41,"hidden":5,"interactive":7},
+   "cam": {"x":0,"y":0,"w":960,"h":540,"scrollX":0,"scrollY":0,"zoom":[1,1],"bg":"0,0,0,0","roundPixels":true},
+   "input": {
+    "enabled": true,
+    "topOnly": true,
+    "listeners": {},
+    "keyboard": {
+     "enabled": true,
+     "keys": [],
+     "listeners": {
+      "keydown": 1,
+      "keydown-A": 1,
+      "keydown-D": 1,
+      "keydown-DOWN": 1,
+      "keydown-ENTER": 1,
+      "keydown-ESC": 1,
+      "keydown-LEFT": 1,
+      "keydown-RIGHT": 1,
+      "keydown-S": 1,
+      "keydown-SPACE": 1,
+      "keydown-UP": 1,
+      "keydown-W": 1
+     }
+    }
+   },
+   "timers": 0,
+   "tweens": 0,
+   "physics": {"bodies":0,"statics":0,"gravity":[0,0],"fps":60,"timeScale":1,"paused":false,"bounds":[0,0,960,540]},
+   "objs": [
+    {"t":"Image","x":480,"y":270,"w":960,"h":544,"s":[2,2],"d":-10,"sf":[0,0],"tex":"bg_charselect:__BASE"},
+    {"t":"Rectangle","x":480,"y":270,"w":960,"h":540,"d":-9,"sf":[0,0],"fill":"#0a0614 0.6"},
+    {"t":"Text","x":480,"y":30,"w":260,"h":24,"text":"CHOOSE DIFFICULTY","font":"Krel Bold 21px","asked":"ui 26px bold","color":"#ffd23f","align":"center","shadow":"3,3 #000 0"},
+    {"t":"Text","x":480,"y":50,"w":178,"h":14,"o":[0.5,0],"text":"FLENKY's run. Pick a difficulty.","font":"Krel Regular 12px","asked":"ui 13px","color":"#9aa0b4"},
+    {"t":"Rectangle","x":110,"y":76,"w":740,"h":58,"o":[0,0],"fill":"#1b1e33 0.94","line":"#86efac 0.55 2","hit":{"shape":"rect","x":0,"y":0,"w":740,"h":58,"cursor":"pointer"}},
+    {"t":"Text","x":140,"y":105,"w":26,"h":39,"text":"1","font":"Krel Bold 30px","asked":"impact 38px","color":"#86efac","stroke":"#000 5"},
+    {"t":"Text","x":172,"y":83,"w":86,"h":22,"o":[0,0],"text":"VERY EASY","font":"Krel Regular 17px","asked":"ui 19px bold","color":"#86efac","stroke":"#000 3"},
+    {"t":"Text","x":172,"y":109,"w":415,"h":13,"o":[0,0],"text":"For the story. Enemies hit softly and warn you early, and healing is plentiful.","font":"Krel Regular 11px","asked":"ui 12px","color":"#e5e7eb","wrap":660},
+    {"t":"Rectangle","x":110,"y":140,"w":740,"h":58,"o":[0,0],"fill":"#1b1e33 0.94","line":"#67e8f9 0.55 2","hit":{"shape":"rect","x":0,"y":0,"w":740,"h":58,"cursor":"pointer"}},
+    {"t":"Text","x":140,"y":169,"w":26,"h":39,"text":"2","font":"Krel Bold 30px","asked":"impact 38px","color":"#67e8f9","stroke":"#000 5"},
+    {"t":"Text","x":172,"y":147,"w":42,"h":22,"o":[0,0],"text":"EASY","font":"Krel Regular 17px","asked":"ui 19px bold","color":"#67e8f9","stroke":"#000 3"},
+    {"t":"Text","x":838,"y":149,"w":86,"h":12,"o":[1,0],"text":"ORIGINAL BALANCE","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#67e8f9"},
+    {"t":"Text","x":172,"y":173,"w":210,"h":13,"o":[0,0],"text":"The game as it was originally balanced.","font":"Krel Regular 11px","asked":"ui 12px","color":"#e5e7eb","wrap":660},
+    {"t":"Rectangle","x":110,"y":204,"w":740,"h":58,"o":[0,0],"fill":"#2d3360 0.94","line":"#ffd23f 1 4","hit":{"shape":"rect","x":0,"y":0,"w":740,"h":58,"cursor":"pointer"}},
+    {"t":"Text","x":140,"y":233,"w":26,"h":39,"text":"3","font":"Krel Bold 30px","asked":"impact 38px","color":"#ffd23f","stroke":"#000 5"},
+    {"t":"Text","x":172,"y":211,"w":63,"h":22,"o":[0,0],"text":"NORMAL","font":"Krel Regular 17px","asked":"ui 19px bold","color":"#ffd23f","stroke":"#000 3"},
+    {"t":"Text","x":838,"y":213,"w":79,"h":12,"o":[1,0],"text":"★ RECOMMENDED","font":"Krel Regular 10px","asked":"ui 11px bold","color":"#ffd23f"},
+    {"t":"Text","x":172,"y":237,"w":442,"h":13,"o":[0,0],"text":"Recommended. Enemies are a bit tougher and quicker, and healing is a bit scarcer.","font":"Krel Regular 11px","asked":"ui 12px","color":"#e5e7eb","wrap":660},
+    {"t":"Text","x":96,"y":233,"w":17,"h":20,"text":"▶","font":"Krel Regular 18px","asked":"ui 20px","color":"#ffd23f"},
+    {"t":"Rectangle","x":110,"y":268,"w":740,"h":58,"o":[0,0],"fill":"#1b1e33 0.94","line":"#fb923c 0.55 2","hit":{"shape":"rect","x":0,"y":0,"w":740,"h":58,"cursor":"pointer"}},
+    {"t":"Text","x":140,"y":297,"w":26,"h":39,"text":"4","font":"Krel Bold 30px","asked":"impact 38px","color":"#fb923c","stroke":"#000 5"},
+    {"t":"Text","x":172,"y":275,"w":42,"h":22,"o":[0,0],"text":"HARD","font":"Krel Regular 17px","asked":"ui 19px bold","color":"#fb923c","stroke":"#000 3"},
+    {"t":"Text","x":172,"y":301,"w":655,"h":26,"o":[0,0],"text":"More enemies, faster attacks, less healing and ammo. Pays more: 1.5x coin from kills, 1.4x quest and chapter rewards, +10 Krokens a chapter.","font":"Krel Regular 11px","asked":"ui 12px","color":"#e5e7eb","wrap":660},
+    {"t":"Rectangle","x":110,"y":332,"w":740,"h":58,"o":[0,0],"fill":"#1b1e33 0.94","line":"#ff4d6d 0.55 2","hit":{"shape":"rect","x":0,"y":0,"w":740,"h":58,"cursor":"pointer"}},
+    {"t":"Text","x":140,"y":361,"w":26,"h":39,"text":"5","font":"Krel Bold 30px","asked":"impact 38px","color":"#ff4d6d","stroke":"#000 5"},
+    {"t":"Text","x":172,"y":339,"w":86,"h":22,"o":[0,0],"text":"VERY HARD","font":"Krel Regular 17px","asked":"ui 19px bold","color":"#ff4d6d","stroke":"#000 3"},
+    {"t":"Text","x":172,"y":365,"w":657,"h":26,"o":[0,0],"text":"Short warnings, heavy hits, big waves, few drops. Pays the most: 1.9x coin from kills, 1.8x quest and chapter rewards, +25 Krokens a chapter.","font":"Krel Regular 11px","asked":"ui 12px","color":"#e5e7eb","wrap":660},
+    {"t":"Text","x":480,"y":400,"w":799,"h":24,"o":[0.5,0],"text":"3/5 vs the original balance:  Damage taken ×1.2  ·  Enemy aggression ×1.12  ·  Warnings ×0.92  ·  Mobs ×1.1  ·  Heal drops ×0.85  ·  Enemy HP ×1.08  ·  Timing windows ×0.92","font":"Krel Regular 10px","asked":"ui 11px","color":"#ffd23f","align":"center","wrap":820},
+    {"t":"Text","x":480,"y":436,"w":509,"h":20,"o":[0.5,0],"text":"You can change this any time from the pause menu (not inside a dungeon).","font":"Krel Regular 14px","asked":"ui 15px bold","color":"#ffd23f","stroke":"#000 4"},
+    {"t":"Text","x":480,"y":458,"w":298,"h":12,"o":[0.5,0],"text":"↑/↓ or 1 - 5 to pick · ENTER / A to go on · tap twice on touch","font":"Krel Regular 10px","asked":"ui 11px","color":"#8a8fa0"},
+    {"t":"Container","x":150,"y":510,"w":200,"h":34,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":200,"h":34,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":200,"h":34,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":90,"h":15,"text":"◀ CHARACTERS","font":"Krel Regular 13px","asked":"ui 14px bold","color":"#ffffff","align":"center","wrap":188}
+    ]},
+    {"t":"Container","x":790,"y":510,"w":240,"h":38,"n":2,"kids":[
+     {"t":"NineSlice","x":0,"y":0,"w":240,"h":38,"tex":"ui_button:__BASE","hit":{"shape":"rect","x":0,"y":0,"w":240,"h":38,"cursor":"pointer"}},
+     {"t":"Text","x":0,"y":0,"w":113,"h":18,"text":"NEXT: BANTER ▶","font":"Krel Regular 15px","asked":"ui 17px bold","color":"#ffffff","align":"center","wrap":228}
+    ]}
+   ]
+  }
+ ],
+ "game": {
+  "width": 960,
+  "height": 540,
+  "zoom": 1,
+  "parent": "game",
+  "scaleMode": 3,
+  "autoCenter": 1,
+  "autoRound": false,
+  "expandParent": true,
+  "fullscreenTarget": null,
+  "renderType": 2,
+  "renderer": 2,
+  "pixelArt": true,
+  "roundPixels": true,
+  "antialias": false,
+  "antialiasGL": false,
+  "transparent": false,
+  "clearBeforeRender": true,
+  "preserveDrawingBuffer": false,
+  "premultipliedAlpha": true,
+  "powerPreference": "default",
+  "batchSize": 4096,
+  "maxLights": 10,
+  "mipmapFilter": "",
+  "backgroundColor": "rgba(11,7,16,1)",
+  "fps": null,
+  "loop": {"targetFps":60,"fpsLimit":0,"smoothStep":true,"delta":16,"running":true},
+  "input": {
+   "keyboard": true,
+   "keyboardCapture": [],
+   "mouse": true,
+   "mousePreventDefaultDown": true,
+   "mousePreventDefaultUp": true,
+   "mousePreventDefaultMove": true,
+   "mousePreventDefaultWheel": true,
+   "touch": true,
+   "touchCapture": true,
+   "activePointers": 1,
+   "smoothFactor": 0,
+   "windowEvents": true,
+   "gamepad": true,
+   "disableContextMenu": true,
+   "pointers": 2,
+   "touchManager": true,
+   "mouseManager": true,
+   "mouseLocked": false,
+   "defaultCursor": ""
+  },
+  "physics": {"default":"arcade","arcade":{"debug":false}},
+  "audio": {},
+  "device": {"desktop":false,"touch":true,"fullscreen":true,"webGL":true},
+  "scale": {
+   "size": [960,540],
+   "display": [1280,720],
+   "parent": [1280,720],
+   "displayScale": [0.75,0.75],
+   "orientation": "landscape-primary",
+   "fullscreen": false
+  },
+  "listeners": {
+   "game": {"blur":3,"destroy":7,"focus":2,"hidden":1,"poststep":2,"prerender":1,"prestep":2,"visible":2},
+   "scale": {"resize":41},
+   "input": {"gameout":1,"gameover":1,"process":1},
+   "textures": {}
+  },
+  "textures": 2518,
+  "anims": 42
+ },
+ "dom": {
+  "window": [1280,720],
+  "dpr": 1,
+  "htmlClass": "",
+  "bodyClass": "fonts-loaded",
+  "htmlAttrs": ["lang=en"],
+  "bodyAttrs": ["class=fonts-loaded"],
+  "head": [
+   "script", "meta", "meta[name=viewport]", "link[rel=manifest]", "link[rel=icon]", "link[rel=apple-touch-icon]",
+   "meta[name=theme-color]", "meta[name=mobile-web-app-capable]", "meta[name=apple-mobile-web-app-capable]",
+   "meta[name=apple-mobile-web-app-status-bar-style]", "meta[name=apple-mobile-web-app-title]", "title",
+   "style 421ch #212c1044", "link[rel=preload]", "link[rel=preload]"
+  ],
+  "viewportMeta": "width=device-width,initial-scale=1,viewport-fit=cover",
+  "body": [{"tag":"div","id":"game"},{"tag":"script"}],
+  "game": {
+   "rect": [0,0,1280,720],
+   "children": [
+    {"tag":"canvas","style":"image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px;"}
+   ]
+  },
+  "canvas": {
+   "rect": [0,0,1280,720],
+   "width": 960,
+   "height": 540,
+   "style": "image-rendering: pixelated; width: 1280px; height: 720px; margin-left: 0px; margin-top: 0px;",
+   "attrs": ["height","style","width"]
+  },
+  "css": {
+   "html": {
+    "display": "block",
+    "position": "static",
+    "overflow": "hidden",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgb(11, 7, 16)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "body": {
+    "display": "block",
+    "position": "static",
+    "overflow": "hidden",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgb(11, 7, 16)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "game": {
+    "display": "flex",
+    "position": "static",
+    "overflow": "visible",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto"
+   },
+   "canvas": {
+    "display": "block",
+    "position": "static",
+    "overflow": "clip",
+    "margin": "0px",
+    "padding": "0px",
+    "width": "1280px",
+    "height": "720px",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "touch-action": "auto",
+    "user-select": "auto",
+    "-webkit-user-select": "auto",
+    "overscroll-behavior": "auto",
+    "cursor": "auto",
+    "image-rendering": "pixelated",
+    "margin-left": "0px",
+    "margin-top": "0px"
+   }
+  },
+  "active": "body",
+  "fullscreen": false,
+  "pointerLock": null,
+  "on": {"window":["onblur","onfocus"],"document":[]},
+  "globals": ["Phaser","__krel"]
+ },
+ "listeners": {
+  "added": {
+   "ScreenOrientation": {"change":1},
+   "audio": {"ended":1},
+   "canvas": {
+    "contextmenu": 2,
+    "mousedown": 1,
+    "mousemove": 1,
+    "mouseout passive": 1,
+    "mouseover passive": 1,
+    "mouseup": 1,
+    "touchcancel active": 1,
+    "touchend active": 1,
+    "touchmove active": 1,
+    "touchstart active": 1,
+    "webglcontextlost": 2,
+    "webglcontextrestored": 1,
+    "wheel active": 1
+   },
+   "document": {
+    "MSFullscreenChange": 1,
+    "MSFullscreenError": 1,
+    "fullscreenchange": 1,
+    "fullscreenerror": 1,
+    "mozfullscreenchange": 1,
+    "mozfullscreenerror": 1,
+    "mozpointerlockchange capture": 1,
+    "pointerlockchange capture": 1,
+    "visibilitychange": 1,
+    "webkitfullscreenchange": 1,
+    "webkitfullscreenerror": 1,
+    "webkitpointerlockchange capture": 1
+   },
+   "window": {
+    "beforeunload": 1,
+    "error": 1,
+    "gamepadconnected": 6,
+    "gamepaddisconnected": 6,
+    "keydown": 1,
+    "keydown capture": 1,
+    "keyup": 1,
+    "mousedown passive": 1,
+    "mouseup passive": 1,
+    "pagehide": 1,
+    "resize": 1,
+    "touchcancel active": 1,
+    "touchend active": 1,
+    "touchstart active": 1,
+    "unhandledrejection": 1
+   }
+  },
+  "removed": {"canvas":{"webglcontextlost":2},"window":{"gamepadconnected":5,"gamepaddisconnected":5}}
+ },
+ "storage": {
+  "written": ["krel_alive","krel_crumb","krelworld.meta","krelworld.slots.v1"],
+  "removed": [],
+  "now": {
+   "krel_alive": 1,
+   "krel_crumb": {"err":"","t":1773502202000,"where":"Title"},
+   "krelworld.meta": {
+    "archiveUnlocked": [],
+    "completedWith": [],
+    "heardMusic": ["title"],
+    "ngPlusUnlocked": false,
+    "settings": {
+     "autoAim": true,
+     "crt": true,
+     "master": 0.8,
+     "music": 0.5,
+     "sfx": 0.8,
+     "shake": true,
+     "textSpeed": 1,
+     "voiceSpeed": 1.5,
+     "voiceSpeedV": 3,
+     "voiceVolume": 0.8,
+     "voices": true
+    },
+    "tvWatched": [],
+    "version": 4
+   },
+   "krelworld.slots.v1": 1
+  }
+ },
+ "audio": {"contexts":2,"elements":["audio/krel_world.mp3 playing vol 0.4 rate 1"],"music":"title"},
+ "media": {
+  "coarse": true,
+  "fine": false,
+  "hover": false,
+  "anyCoarse": true,
+  "maxTouchPoints": 5,
+  "ontouchstart": true,
+  "landscape": true,
+  "standalone": false
+ },
+ "run": null,
+ "errors": []
+}

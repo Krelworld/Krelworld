@@ -132,7 +132,12 @@ export function guideContent(v: GuideVariant, c: GuideContext): GuideContent {
       return {
         ...base,
         why: WHY_IOS,
-        steps: [{ icon: "share", title: "Tap **Share**", sub: "In the {top|bottom} bar. No bar? Tap the {top|bottom} edge of the screen. No Share? Tap ••• first." }, addHome, add, OPEN],
+        steps: [
+          { icon: "share", title: "Tap **Share**", sub: "In the {top|bottom} bar. No bar? Tap the {top|bottom} edge of the screen. No Share? Tap the page button at the left of the address bar (or •••), then **Share**." },
+          { ...addHome, sub: "Scroll down the list. Not there? Tap **View More** first." },
+          add,
+          OPEN,
+        ],
         note: iosNote,
         primary: "ok",
         // (an app's Safari preview sheet looks like Safari but has no Add to Home Screen)

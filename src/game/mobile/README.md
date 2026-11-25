@@ -66,6 +66,9 @@ main.ts ── boot.ts installMobile(game) ──► isMobile()? no → return (
 | `combatLogic.ts` | Pure: READY's order, HEAL's rule, tap / hold (`HoldTracker`), SPECIAL's word and fill, the Dungeon's two mode rows |
 | `combatWording.ts` | Pure: the fights' touch wording rows (the weapon picker's how-to line, the first dungeon's how-to-play rows, the finale's inject hint) |
 | `combatCss.ts` | The fight controls' CSS (its own `<style>`, phones only) |
+| `tapUse.ts` | Stage 3, tap to use: a tap on a thing, a person or the floor in a walking scene walks there (the scene's own walking, a grid route round the town) and uses it; the ring, its tag and the floor marker |
+| `tapTargets.ts` | What can be tapped in each walking scene (Home, the Hub, Kreddle, the Club, the Venue): pictures, prompt words, where to stand, the floor, the colliders; `promptThing()` (P5) |
+| `tapLogic.ts` | Pure: which thing a tap means (`pickTarget`), the grid path-finder (`buildGrid`, `findPath`), steering along the route |
 | `index.ts` | The phone chunk's `installMobile()`, `mobileLayer()`, `mobileShell()` and re-exports |
 
 ## Deciding phone mode
@@ -259,9 +262,53 @@ Krezz-Assist rows on phones (tablets keep them). Controls in a cluster share tou
 (`routeTouch`); a corner control can reach the screen's corner with `toCorner`; a chip places itself with `place()`.
 
 To read more of a scene, add an adapter to `ADAPTERS` in `observe.ts` (`busy`, where its `prompt` Text lives, `side`,
-`sub`), and to `promptTarget` for tap-the-thing (Home, Hub and Kreddle have it). To act on the game use
+`sub`), and to `promptTarget` for the thing the prompt is about (Home, the Hub and Kreddle's spots read their lists;
+the Club, the Venue and Kreddle's people come from tap to use's `promptThing()`). A new walking scene gets tap to use
+by a reader in `tapTargets.ts`'s `TAP_SCENES`. To act on the game use
 `pressInteract()`, `pressPause()`, `pressSanmik()` (the same `TOUCH.edges` the canvas pad sends), or
 `layer.injectTap(clientX, clientY)` to hand the game a real tap.
+
+## Tap to use (`tapUse.ts`, `tapTargets.ts`, `tapLogic.ts`): stage 3
+
+The user: "touch things at home should allow you to interact with them". In every walking scene (Home, the Hub,
+Kreddle, the Club, the Venue; the Krezz Arms, the Krunch Pit, the Lair and Polson's are tap-through card screens
+already), a still tap (under 10 px, under 400 ms) anywhere on the picture:
+
+1. **A thing or a person** (the telly, the book, the gun rack, the console, the bed, a door or the whole building it
+   belongs to, a vending machine, a machine row in Kreddle, the bar, a local, a band member...): a yellow ring lights it
+   in the same touch handler, with the prompt's own words for it in a little tag ("Watch KrelTV"), and a light marker
+   shows where the player is heading. The player walks there by the scene's own walking: tap to use only writes the
+   stick's numbers (`TOUCH.mx / my`), so the speed, the drunk wobble, the slippery modifier and every collider are the
+   game's. When the scene's prompt names the thing, the same edge ACTION sends uses it (`pressInteract()`) and the ring
+   flashes white. Already in reach: used at once.
+2. **The floor**: walk there (it felt right in research and in testing; a still tap is a deliberate act, a stray thumb
+   that moves is the stick). Not from the HUD strip along the top, not onto yourself.
+3. **A canvas button of the game's own** under the tap (the Club's UP CLOSE): the game gets the tap, as before.
+
+Which thing (`pickTarget`): each thing can be tapped within its picture grown to at least 44 CSS px, plus 6 px. Inside
+a picture beats near one; among pictures the tap is inside, the smallest wins (the book lying on the bed); among near
+ones, the nearest. A follower at your side (Mikey) only counts when nothing else is there. The player figure is never a
+target (a thing behind the player is tapped through it). The controls win where they are drawn: with a prompt up, a tap
+on ACTION is ACTION even over the console in Home's corner.
+
+Pictures (`tapTargets.ts`): Home's spots by their words → the furniture's texture (`p_tv`, `p_bed`, `p_gunrack`...)
+or a box drawn from the backdrop (the window, the door out, the poster); the town's interactables → the person's
+sprite, or the spot's box joined to the collider it stands at (`standsOn`: a building, so tapping the building enters
+it, a vending machine, the Tap); Kreddle's machines → every image of their texture row; the Club's places → its zones
+(the stage is the dancer, the bar, the wonk-off table, the exit, the booth); people → their sprites.
+
+The route (`findPath`): the town only (the other rooms have no colliders, just a floor to clamp to): a 16 px grid over
+the physics world, each collider grown by the player's feet body; A* in 8 directions with no corner cutting, then
+pulled straight where the walker can see ahead. A goal inside a collider (a door's spot under its building) moves to
+the nearest free cell; with no route at all, the walk goes as near as it can and stops (the prompt shows what's there).
+About 1-5 ms on the town; never more than once per tap, plus a re-route when a person walks 24 px or the walker is
+stuck (no nearer by 3 px in 650 ms; twice, then it stops).
+
+Stops at once: the stick moving past 15% of its travel (the stick takes over), a second tap (re-targets), a
+conversation, a menu, a cutscene or a panel (the mode leaves "walk"), the page hiding, the thing going away, 15 s.
+
+`window.__krelMobile.tapUse`: `state()` (walking, target, tag, path, last: what happened, stats), `debugTargets()`
+(every tappable thing now, world coordinates), `tap(x, y)` (page CSS px). Smoke: `--only tapuse`.
 
 ## Fights: the top-down rooms and bosses (`combat.ts`, stage 2 part 1)
 
@@ -417,11 +464,11 @@ Android camera cutout (16-40), so SPECIAL is never pushed onto DODGE nor READY o
   bottom strip, in a mode with a `stick`. Nothing inside it takes touches but the zone (research M4): a touch that
   starts there is the stick the moment it moves. The stick appears where the thumb lands, follows it past the rim, 8 px
   dead zone, full speed at 60% of the travel (35% for an "x" stick).
-- A touch in the zone that ends within 400 ms having moved under 10 px is a tap: on the prompt bubble, or on the thing
-  the prompt is about (around its spot, reaching further up than down: the TV, the console, a door, a person), it is
-  ACTION; anywhere else it is handed to the game as a tap at that point (`injectTap`: down now, up two game frames
-  later). Outside the zone, the bubble and the target have their own tap areas (only the parts outside the zone, below
-  the HUD strip): a quick still tap there is ACTION, a drag nothing.
+- A touch in the zone that ends within 400 ms having moved under 10 px is a tap: on the prompt bubble it is ACTION;
+  in a walking scene tap to use takes it next (below); anywhere else it is handed to the game as a tap at that point
+  (`injectTap`: down now, up two game frames later). Outside the zone, the bubble has its own tap area (only the part
+  outside the zone, below the HUD strip): a quick still tap there is ACTION, a drag nothing. (Outside tap-to-use's
+  scenes the thing the prompt is about keeps its stage 1 tap area too.)
 - A control the player, the prompt bubble or the prompt's target is under goes see-through in place (research C9):
   no background, a faint ring, the word still readable; it still works and still shows its pressed state. Nothing moves
   (the thumb keeps its place).
@@ -795,8 +842,11 @@ npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layou
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,android,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,android,tapuse,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
+# (tapuse: at Home the telly, the book and the gun rack from the far side of the room, the stick stopping a walk, a
+#  second tap re-targeting, the floor, in reach = at once; a person and the Krezz Arms in the town; a Kreddle local;
+#  the Club's bar)
 # (polish: the fight screen measured at four phone sizes: no caption or word over anything, only usable controls shown,
 #  JUMP plain over the first pit, the room name clear of the HUD, the Leave card above the home-indicator strip)
 # (review1: FIRE held through a death leaves no held attack; a pad resting off-centre never takes over; the archive's
@@ -815,7 +865,7 @@ for p in touchlaptop ipad fire7; do node scripts/desktop-fingerprint.cjs --url h
 node scripts/desktop-fingerprint.cjs --url http://localhost:5202/ --no-alt --profile androidtab --only front,newgame,hub --check
 ```
 
-On a phone (or devtools device emulation) `window.__krelMobile` has `combat` (part 1; `combat.side` for the jump), `brawl`
+On a phone (or devtools device emulation) `window.__krelMobile` has `tapUse` (stage 3), `combat` (part 1; `combat.side` for the jump), `brawl`
 (`snapshot()`), `pad` (the controller handover), `picture` (the Controls picture: `show(tab)`, `snapshot()`), `dialogue`,
 `settingsPage`, `lists` (`open()`), `snapshot()`, `shellState()`, `view()`, `layer`,
 `shell`, `setInsets({top,right,bottom,left})` (emulators report no safe-area insets; `{0,47,21,47}` is an iPhone 14

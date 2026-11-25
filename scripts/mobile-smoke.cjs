@@ -92,7 +92,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,android,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,android,tapuse,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -4172,6 +4172,257 @@ async function desktop(browser) {
   }
 }
 
+// ------------------------------------------------------------------ tap to use (stage 3)
+
+/** The things tap-to-use can tap now, each with its picture's middle on the page (CSS px). */
+function tapTargets(ph) {
+  return ph.ev(() => {
+    const g = window.__krel.game;
+    const tu = window.__krelMobile.tapUse;
+    const key = window.__krelMobile.snapshot().decision.scene;
+    const sc = g.scene.getScene(key);
+    const cam = sc.cameras.main;
+    const cb = g.scale.canvasBounds;
+    const k = cb.width / 960;
+    const tp = (x, y) => ({ x: cb.x + ((x - cam.scrollX - cam.width / 2) * cam.zoom + cam.width / 2) * k, y: cb.y + ((y - cam.scrollY - cam.height / 2) * cam.zoom + cam.height / 2) * k });
+    const me = sc.me ?? sc.av;
+    const mePage = me ? tp(me.x, me.y) : null;
+    return tu.debugTargets().map((t) => ({ ...t, page: tp(t.core.x + t.core.w / 2, t.core.y + t.core.h / 2), goalPage: tp(t.goal.x, t.goal.y), far: me ? Math.hypot(t.goal.x - me.x, t.goal.y - me.y) : 0, mePage }));
+  });
+}
+
+const tapState = (ph) => ph.ev(() => window.__krelMobile.tapUse.state());
+
+/** Tap the thing whose tag matches, by touch at its picture's middle; returns what the walker did straight away. */
+async function tapThing(ph, re, pick) {
+  const all = await tapTargets(ph);
+  const t = pick ? pick(all) : all.find((x) => re.test(x.tag));
+  if (!t) throw new Error(`nothing to tap matches ${re} (${await ph.mode()}; ${(await ph.active()).join(",")}; ${JSON.stringify((await tapState(ph)).last)})`);
+  const vp = await ph.ev(() => ({ w: innerWidth, h: innerHeight }));
+  const x = Math.min(vp.w - 4, Math.max(4, t.page.x));
+  const y = Math.min(vp.h - 24, Math.max(4, t.page.y));
+  await ph.tapCss(x, y);
+  const now = await ph.ev(() => ({ st: window.__krelMobile.tapUse.state(), ring: document.querySelector(".ktu-ring").classList.contains("show") }));
+  return { t, now, at: [Math.round(x), Math.round(y)] };
+}
+
+/** Wait for the walker to finish; then what it did, and how long it took. */
+async function tapDone(ph, ms = 20000) {
+  const t0 = Date.now();
+  await ph.until(() => !window.__krelMobile.tapUse.state().walking, null, ms, "the walk to end").catch(() => 0);
+  return { ms: Date.now() - t0, st: await tapState(ph) };
+}
+
+const homeMe = (ph, x, y) =>
+  ph.ev(
+    ({ x, y }) => {
+      const h = window.__krel.game.scene.getScene("Home");
+      h.me.setPosition(x, y);
+    },
+    { x, y },
+  );
+
+async function tapuse(browser) {
+  console.log("TAP TO USE (iPhone 14, its insets: tap a thing anywhere to walk there and use it)");
+  let { ctx, ph, errors } = await phoneAtTitle(browser);
+  const setIn = () => ph.ev(() => window.__krelMobile.setInsets({ top: 0, right: 47, bottom: 21, left: 47 }));
+  try {
+    // ---- Home: the telly from the far side of the room (the walk, the ring in the same frame, then it's used)
+    check("Home reaches walk mode", await toWalk(ph, "Home"), await ph.mode());
+    await setIn();
+    await homeMe(ph, 880, 500);
+    await sleep(300);
+    const tv = await tapThing(ph, /KrelTV/);
+    check("tap the telly from the far side: it lights up with its name at once and the walk starts", tv.now.ring && tv.now.st.walking && tv.now.st.tag === "Watch KrelTV" && tv.now.st.target, { now: tv.now, at: tv.at });
+    await sleep(700);
+    const mid = await ph.me();
+    check("the player walks (no teleport): part of the way after 0.7 s", mid[0] < 860 && mid[0] > 300, mid);
+    await ph.shot("tapuse-home-walk");
+    let done = await tapDone(ph);
+    await ph.until(() => window.__krel.active().includes("TV"), null, 8000, "the telly").catch(() => 0);
+    check("...and on arrival the telly is used: KrelTV opens", (await ph.active()).includes("TV") && done.st.last.what === "use", { last: done.st.last, ms: done.ms });
+
+    // ---- the book, from the far left
+    check("back home", await toWalk(ph, "Home"));
+    await setIn();
+    await homeMe(ph, 60, 500);
+    await sleep(300);
+    const book = await tapThing(ph, /Dark Autism/);
+    check("tap the book from the far left: it is the book (not the bed it lies on)", book.now.st.tag === "Read 'Dark Autism - An Erotic Memoir'", book.now.st);
+    done = await tapDone(ph);
+    await ph.until(() => window.__krel.game.scene.getScene("Home").busy, null, 5000, "the book").catch(() => 0);
+    check("...walks there and reads it", done.st.last.what === "use" && (await ph.ev(() => window.__krel.game.scene.getScene("Home").busy)), done.st.last);
+
+    // ---- the gun rack, from the far left
+    check("back home again", await toWalk(ph, "Home"));
+    await setIn();
+    await homeMe(ph, 60, 500);
+    await sleep(300);
+    const rack = await tapThing(ph, /Gun rack/);
+    check("tap the gun rack (on the wall, right) from the far left: the walk starts", rack.now.st.walking && /Gun rack/.test(rack.now.st.tag || ""), rack.now.st);
+    done = await tapDone(ph);
+    await ph.until(() => !!window.__krelMobile.lists.open() || window.__krel.game.scene.getScene("Home").busy, null, 6000, "the rack").catch(() => 0);
+    const rackOpen = await ph.ev(() => ({ list: window.__krelMobile.lists.open()?.name ?? null, busy: window.__krel.game.scene.getScene("Home").busy }));
+    check("...walks there and opens the gun rack", done.st.last.what === "use" && (rackOpen.list === "rack" || rackOpen.busy), { last: done.st.last, rackOpen });
+
+    // ---- the stick cancels a walk at once; a second tap re-targets; the floor; in reach = at once
+    check("home once more", await toWalk(ph, "Home"));
+    await setIn();
+    await homeMe(ph, 60, 500);
+    await sleep(300);
+    await tapThing(ph, /games console/);
+    await sleep(500);
+    const before = await tapState(ph);
+    const sz = (await ph.snap()).zone;
+    const sx = sz.x + sz.w * 0.5;
+    const sy = sz.y + sz.h * 0.6;
+    await ph.touch("touchStart", [{ x: sx, y: sy, id: 9 }]);
+    for (let i = 1; i <= 3; i++) {
+      await ph.touch("touchMove", [{ x: sx - i * 12, y: sy, id: 9 }]);
+      await sleep(20);
+    }
+    const after = await tapState(ph);
+    await sleep(300);
+    const a1 = await ph.me();
+    await ph.touch("touchEnd", []);
+    await sleep(300);
+    check("moving the stick stops the walk at once (and the stick walks)", before.walking && !after.walking && after.last.what === "stick", { before: before.walking, after: after.last });
+    check("...nothing is used, no panel opens", !(await ph.ev(() => window.__krel.game.scene.getScene("Home").busy)));
+    // (from where nothing is in reach: with a prompt up, ACTION sits over the console in the corner and wins there)
+    await homeMe(ph, 700, 520);
+    await sleep(300);
+    await tapThing(ph, /^Sleep/);
+    await sleep(300);
+    const re1 = await tapThing(ph, /Jukebox/);
+    check("a second tap on another thing re-targets", re1.now.st.walking && /Jukebox/.test(re1.now.st.tag || ""), re1.now.st);
+    done = await tapDone(ph);
+    await ph.ev(() => {
+      const h = window.__krel.game.scene.getScene("Home");
+      if (h.__mfPanel && h.__mfPanel.close) h.__mfPanel.close();
+    });
+    check("...and uses the new one", done.st.last.what === "use" && /Jukebox/.test(done.st.last.tag || ""), done.st.last);
+    check("home for the floor", await toWalk(ph, "Home"));
+    await setIn();
+    await homeMe(ph, 700, 500);
+    await sleep(300);
+    // the floor in front of the radiator, between the sofa and the jukebox (no thing there)
+    const all = await tapTargets(ph);
+    const [fx, fy] = await ph.g2c(450, 525);
+    const onThing = all.some((t) => Math.abs(t.page.x - fx) < 20 && Math.abs(t.page.y - fy) < 20);
+    await ph.tapCss(fx, fy);
+    const fl = await tapState(ph);
+    done = await tapDone(ph);
+    const fme = await ph.me();
+    check("a tap on the floor walks there (a marker shows where)", !onThing && fl.walking && fl.dot && !fl.target && done.st.last.what === "arrived" && Math.abs(fme[0] - 450) < 12, { fl, last: done.st.last, me: fme });
+    // already in reach: used at once (the player standing in front of the telly doesn't steal the tap)
+    await homeMe(ph, 140, 480);
+    await sleep(300);
+    const t0 = Date.now();
+    const near = await tapThing(ph, /KrelTV/);
+    await ph.until(() => window.__krel.active().includes("TV"), null, 5000, "the telly").catch(() => 0);
+    check("already in reach (standing in front of it): used at once", !near.now.st.walking && near.now.st.last.what === "use" && (await ph.active()).includes("TV") && Date.now() - t0 < 3000, near.now.st.last);
+
+    // ---- the town: a person, then a door (round whatever is in the way)
+    check("the Hub reaches walk mode", await toWalk(ph, "Hub"), await ph.mode());
+    await setIn();
+    await sleep(800);
+    const npc = await tapThing(ph, null, (all) => {
+      const vp = { w: 844, h: 390 };
+      const on = all.filter((t) => /^npc:/.test(t.key) && !t.low && t.far > 140 && t.page.x > 120 && t.page.x < vp.w - 120 && t.page.y > 90 && t.page.y < vp.h - 40);
+      return on[0];
+    }).catch((e) => ({ err: String(e.message) }));
+    check("tap a person in the town: the walk starts", !npc.err && npc.now.st.walking, npc.err || npc.now.st);
+    done = await tapDone(ph);
+    await ph.until(() => window.__krel.active().includes("Dialogue") || window.__krel.game.scene.getScene("Hub").busy, null, 6000, "a chat").catch(() => 0);
+    check("...walks up and talks to them", done.st.last.what === "use" && /^Talk to/.test(done.st.last.tag || "") && (await ph.ev(() => window.__krel.active().includes("Dialogue") || window.__krel.game.scene.getScene("Hub").busy)), { last: done.st.last, ms: done.ms });
+    await ph.shot("tapuse-hub-talk");
+    check("the Hub again", await toWalk(ph, "Hub"));
+    await setIn();
+    // the Krezz Arms' door, from round the back (somewhere free 200-320 px off whose straight line to the door is
+    // blocked by the pub itself; the camera on the player)
+    const spot = await ph.ev(() => {
+      const h = window.__krel.game.scene.getScene("Hub");
+      const door = h.interactables.find((it) => /Krezz Arms/.test(it.label()));
+      const b = h.av.body;
+      const oy = b.center.y - h.av.y;
+      const free = (x, y) => !h.physics.overlapRect(x - b.width / 2 - 4, y + oy - b.height / 2 - 4, b.width + 8, b.height + 8, false, true).length;
+      const lineBlocked = (x, y) => {
+        for (let i = 1; i < 20; i++) if (!free(x + ((door.x - x) * i) / 20, y + ((door.y - y) * i) / 20)) return true;
+        return false;
+      };
+      let fallback = null;
+      for (const d of [220, 260, 300]) {
+        for (let a = 0; a < 24; a++) {
+          const ang = -Math.PI / 2 + (a / 24) * Math.PI * 2;
+          const x = door.x + Math.cos(ang) * d;
+          const y = door.y + Math.sin(ang) * d;
+          if (x < 60 || y < 60 || x > 2500 || y > 1700 || !free(x, y)) continue;
+          if (lineBlocked(x, y)) {
+            b.reset(x, y);
+            h.cameras.main.centerOn(x, y);
+            return { x: Math.round(x), y: Math.round(y), door: [door.x, door.y], behind: true };
+          }
+          fallback = fallback || { x, y };
+        }
+      }
+      if (!fallback) return null;
+      b.reset(fallback.x, fallback.y);
+      h.cameras.main.centerOn(fallback.x, fallback.y);
+      return { x: Math.round(fallback.x), y: Math.round(fallback.y), door: [door.x, door.y], behind: false };
+    });
+    await sleep(800);
+    const door = await tapThing(ph, /Enter The Krezz Arms/).catch((e) => ({ err: String(e.message) }));
+    const route = door.err ? null : door.now.st.path;
+    check("tap the Krezz Arms from round the back: the walk starts, on a route round the building (not through it)", !!spot && spot.behind && !door.err && door.now.st.walking && route.length >= 2, door.err || { spot, path: route });
+    done = await tapDone(ph, 25000);
+    await ph.until(() => !window.__krel.active().includes("Hub") || window.__krel.game.scene.getScene("Hub").leaving, null, 10000, "the pub").catch(() => 0);
+    check("...walks round to the door and goes in", done.st.last.what === "use" && (!(await ph.active()).includes("Hub") || (await ph.ev(() => window.__krel.game.scene.getScene("Hub").leaving))), { last: done.st.last, ms: done.ms, active: await ph.active() });
+
+    // ---- Kreddle: a local (P5 remainder: the people too)
+    check("Kreddle reaches walk mode", await toWalk(ph, "Kreddle"), await ph.mode());
+    await setIn();
+    await sleep(800);
+    // (the Pit Boss, who stands still by the bridge, from 320 px off: the check is about the walk, not a chase)
+    const boss = await ph.ev(() => {
+      const k = window.__krel.game.scene.getScene("Kreddle");
+      const i = k.npcs.findIndex((n) => n.kind === "pitboss");
+      if (i < 0) return null;
+      k.me.setPosition(k.npcs[i].spr.x + 320, 610);
+      return `npc:${i}`;
+    });
+    await sleep(1500);
+    const local = await tapThing(ph, null, (all) => all.find((t) => t.key === boss)).catch((e) => ({ err: String(e.message) }));
+    check("tap a Kreddle local: the walk starts", !local.err && (local.now.st.walking || local.now.st.last.what === "use"), local.err || local.now.st);
+    done = await tapDone(ph);
+    await ph.until(() => window.__krel.game.scene.getScene("Kreddle").busy || !!window.__krel.game.scene.getScene("Kreddle").panelRoot, null, 6000, "a chat").catch(() => 0);
+    const kb = await ph.ev(() => window.__krel.game.scene.getScene("Kreddle").busy || !!window.__krel.game.scene.getScene("Kreddle").panelRoot);
+    // (a local standing by a machine: the walk stops beside them, clear of the machine's reach, which wins in the scene)
+    check("...walks up and talks to them", done.st.last.what === "use" && /^Talk to/.test(done.st.last.tag || "") && kb, done.st.last);
+
+    // ---- the Club: the bar
+    check("the Club reaches walk mode", await toWalk(ph, "Club"), await ph.mode());
+    await setIn();
+    await ph.ev(() => {
+      const c = window.__krel.game.scene.getScene("Club");
+      c.me.setPosition(120, 500);
+      window.__krel.G.s.coins = 50;
+    });
+    await sleep(300);
+    const bar = await tapThing(ph, /Order a Pussy Juice/).catch((e) => ({ err: String(e.message) }));
+    check("tap the Club's bar from across the room: the walk starts", !bar.err && bar.now.st.walking, bar.err || bar.now.st);
+    done = await tapDone(ph);
+    await sleep(300);
+    const coins = await ph.ev(() => window.__krel.G.s.coins);
+    check("...walks to the bar and orders (10 Krezzcoin spent)", done.st.last.what === "use" && coins === 40, { last: done.st.last, coins });
+
+    const stats = (await tapState(ph)).stats;
+    check("routes are quick (the slowest under 30 ms)", stats.routeMs < 30, stats);
+    check("tapuse: no page errors", errors.length === 0, errors.slice(0, 3));
+  } finally {
+    await ctx.close();
+  }
+}
+
 (async () => {
   const t0 = Date.now();
   let browser;
@@ -4202,6 +4453,7 @@ async function desktop(browser) {
       ["review1", review1],
       ["polish", polish],
       ["android", android],
+      ["tapuse", tapuse],
       ["desktop", desktop],
     ]) {
       if (!ONLY.includes(id)) continue;

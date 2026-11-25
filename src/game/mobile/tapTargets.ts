@@ -205,8 +205,10 @@ function readHub(sc: Bag): WalkRead | null {
     if (b && b.enable !== false) blockers.push({ x: b.x, y: b.y, w: b.width, h: b.height });
   }
   const targets: WorldTarget[] = [];
+  const me = { x: av.x, y: av.y };
   list.forEach((it, i) => {
-    if (it.__throw || it.x < -1000) return;
+    if (it.__throw) return void throwTarget(it, me, targets);
+    if (it.x < -1000) return;
     try {
       if (typeof it.enabled === "function" && !it.enabled()) return;
       const label = `E: ${it.label()}`;
@@ -230,6 +232,27 @@ function readHub(sc: Bag): WalkRead | null {
     }
   });
   return { key: "Hub", free: !busy, me: { x: av.x, y: av.y }, off, area, blockers, half, prompt: rawPrompt(sc), targets };
+}
+
+/** The playground (HubScene's PLAYGROUND) and how near you must stand to throw over its fence (150; 40 is too near). */
+const PLAYGROUND: Rect = { x: 120, y: 480, w: 360, h: 190 };
+const THROW_FROM = 100;
+
+/**
+ * The side quest's "throw a sweetie over the fence": the scene's prompt for it follows the player around the
+ * playground. Tap the playground: walk to the fence (outside it, where the kids don't see you) and throw.
+ */
+function throwTarget(it: HubIt, me: Pt, out: WorldTarget[]) {
+  try {
+    if (typeof it.enabled === "function" && !it.enabled()) return;
+    const P = PLAYGROUND;
+    const ring = { x: P.x - THROW_FROM, y: P.y - THROW_FROM, w: P.w + 2 * THROW_FROM, h: P.h + 2 * THROW_FROM };
+    // (where you are if you're already near enough, else the nearest point of that ring)
+    const goal = clampTo(me, ring);
+    out.push({ src: it, key: "throw", is: (raw) => raw.startsWith("E: 🍬 Throw a sweetie"), tag: tagOf(`E: ${it.label()}`), core: { ...P }, goal });
+  } catch {
+    /* skip */
+  }
 }
 
 // ------------------------------------------------------------------ Kreddle
@@ -270,9 +293,34 @@ function readKreddle(sc: Bag): WalkRead | null {
     const pic = bounds(n.spr);
     if (!pic) return;
     const label = `E: Talk to ${n.name}`;
-    targets.push({ src: n, key: `npc:${i}`, is: (raw) => raw === label, tag: tagOf(label), core: pic, goal: clampTo({ x: n.spr.x, y: n.spr.y }, KREDDLE_AREA), moving: true });
+    // (a machine in reach always wins over a chat, as the scene has it: stand beside them, clear of every machine)
+    const goal = besideClear({ x: n.spr.x, y: n.spr.y }, { x: me.x, y: me.y }, spots, KREDDLE_AREA);
+    targets.push({ src: n, key: `npc:${i}`, is: (raw) => raw === label, tag: tagOf(label), core: pic, goal, moving: true });
   });
   return { key: "Kreddle", free: sc.busy !== true && !sc.panelRoot, me: { x: me.x, y: me.y }, off: { x: 0, y: 0 }, area: KREDDLE_AREA, blockers: [], half: { w: 0, h: 0 }, prompt: rawPrompt(sc), targets };
+}
+
+/**
+ * Where to stand to talk to someone (within `near` of them, the scene's 60) outside every spot's reach, nearest the
+ * player; their own place if nowhere is clear.
+ */
+export function besideClear(who: Pt, me: Pt, spots: readonly { x: number; y: number; r: number }[], area: Rect, near = 44): Pt {
+  const clear = (p: Pt) => spots.every((sp) => Math.hypot(sp.x - p.x, sp.y - p.y) >= sp.r + 2);
+  const at = clampTo(who, area);
+  if (clear(at)) return at;
+  let best: Pt | null = null;
+  let bd = Infinity;
+  for (let k = 0; k < 16; k++) {
+    const a = (k / 16) * Math.PI * 2;
+    const p = clampTo({ x: who.x + Math.cos(a) * near, y: who.y + Math.sin(a) * near }, area);
+    if (Math.hypot(p.x - who.x, p.y - who.y) > 58 || !clear(p)) continue;
+    const d = Math.hypot(p.x - me.x, p.y - me.y);
+    if (d < bd) {
+      bd = d;
+      best = p;
+    }
+  }
+  return best ?? at;
 }
 
 // ------------------------------------------------------------------ the Club (the Wonky Pole)

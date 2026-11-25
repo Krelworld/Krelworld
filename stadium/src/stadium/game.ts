@@ -182,8 +182,15 @@ export function stepGame(g: Game): void {
   const pcSpeed = pc ? pc.speed : 0;
   if (pc) {
     const wired = pc.effects.wired > s.tick, drunk = pc.effects.drunk > s.tick;
-    const run = Math.hypot(pc.moveX, pc.moveY) > 0.9;
-    pc.speed = (run ? 4.0 : 2.2) * (wired ? 1.2 : 1) * (drunk ? 0.92 : 1);
+    // A fat man can sprint, briefly. Running drains his breath; walking gets it back.
+    const f = st.flags;
+    f.stamina ??= 1;
+    const wantRun = Math.hypot(pc.moveX, pc.moveY) > 0.9;
+    const run = wantRun && f.stamina > 0.02 && !f.winded;
+    f.stamina = Math.max(0, Math.min(1, f.stamina + (run ? -0.13 : 0.07) / 60 * (wired ? 0.5 : 1)));
+    if (f.stamina <= 0.02 && !f.winded) { f.winded = 1; g.w.bus.emit({ type: "winded", t: s.tick, who: pc.id }); }
+    if (f.winded && f.stamina > 0.35) f.winded = 0;
+    pc.speed = (run ? 5.4 : 3.0) * (wired ? 1.15 : 1) * (drunk ? 0.92 : 1) * (f.winded ? 0.75 : 1);
   }
   stepWorld(w);
   if (pc) pc.speed = pcSpeed;

@@ -239,7 +239,7 @@ export function stepSecurity(w: World, g: Actor): void {
       if (!n.goal || (tick % 30 === 0)) goTo(g, tx, ty, run);
       if (n.goal) n.goal.run = run;
       if (d > 2.2 || !visible) follow(w, g);
-      else { const k = 1 / (d || 1); g.speed = run ? 4.4 : 1.8; g.moveX = (tx - g.x) * k; g.moveY = (ty - g.y) * k; }
+      else { const k = 1 / (d || 1); g.speed = run ? 5.6 : 2.2; g.moveX = (tx - g.x) * k; g.moveY = (ty - g.y) * k; }
       if (visible && Math.hypot(t.x - g.x, t.y - g.y) < 1.15 && !t.hiddenIn) return apprehend(w, g, t);
       if (!visible && Math.hypot(n.lastSeen!.x - g.x, n.lastSeen!.y - g.y) < 1.5) { setMode(w, g, "search"); say(w, g, "Where's he gone?"); }
       return;

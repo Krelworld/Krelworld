@@ -27,6 +27,8 @@ import { Projection } from "./projection";
 import { Audio, type Clip } from "./audio";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+/** Screen pixels per metre at zoom 1: matches 48px character art drawn at 1:1. */
+const PX_PER_METRE = 23;
 const SKIN = [0xf1c7a5, 0xd9a47e, 0xb07a52, 0x8a5a3b, 0x5e3b26, 0xe8b896];
 const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
 const fmtTime = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
@@ -115,6 +117,7 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "ejected" && e.who === this.s.stadium!.pc) this.hint(e.taken.length ? `Thrown out. They took your ${e.taken.join(", ")}.` : "Thrown out. They'll know your face now.");
       if (e.type === "escort_cut" && e.who === this.s.stadium!.pc) { const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 450); }
       if (e.type === "broke_free" && e.who === this.s.stadium!.pc) this.hint("You broke free. Run!");
+      if (e.type === "winded") this.hint("You're out of breath.");
       if (e.type === "bet_settled" && e.who === this.s.stadium!.pc) this.hint(e.won ? `Your bet came in: £${e.payout}.` : `You lost £${e.stake}.`);
     });
     const m = this.s.match!;
@@ -261,7 +264,16 @@ class StadiumScene extends Phaser.Scene {
   /** Exploring: about 40 metres across. Sitting: the whole width of the pitch, like the telly. */
   targetZoom() {
     const w = this.scale.width, h = this.scale.height;
-    return this.pc?.seated ? Math.min(w / (60 * this.P.S), h / (44 * this.P.S * this.P.K)) : Math.max(w, h) / (40 * this.P.S);
+    if (this.pc?.seated) return Math.min(w / (60 * this.P.S), h / (44 * this.P.S * this.P.K));
+    // A fixed number of screen pixels per metre, so a bigger screen simply shows more.
+    return (PX_PER_METRE * this.zoomLevel) / this.P.S;
+  }
+  zoomLevel = 1;
+  cycleZoom() {
+    const levels = [1, 1.5, 2];
+    this.zoomLevel = levels[(levels.indexOf(this.zoomLevel) + 1) % levels.length];
+    $("zoomBtn").textContent = `${this.zoomLevel}×`;
+    try { localStorage.setItem("kd-zoom", String(this.zoomLevel)); } catch { /* ignore */ }
   }
   setZoom() { this.cameras.main.setZoom(this.targetZoom()); }
 
@@ -693,6 +705,9 @@ class StadiumScene extends Phaser.Scene {
     $("hit").addEventListener("click", () => this.run((this as any).hitOpt ?? null));
     $("moreBtn").addEventListener("click", () => (this.sheetKind === "more" ? this.closeSheet() : this.openMore()));
     $("bagBtn").addEventListener("click", () => (this.sheetKind === "bag" ? this.closeSheet() : this.openBag()));
+    try { const z = +(localStorage.getItem("kd-zoom") ?? 1); if ([1, 1.5, 2].includes(z)) this.zoomLevel = z; } catch { /* ignore */ }
+    $("zoomBtn").textContent = `${this.zoomLevel}×`;
+    $("zoomBtn").addEventListener("click", () => this.cycleZoom());
     $("menuBtn").addEventListener("click", () => (this.sheetKind === "menu" ? (this.closeSheet(), this.setSpeed(1)) : this.openMenu()));
     for (const n of [1, 2, 4]) $("sp" + n).addEventListener("click", () => this.setSpeed(n));
     const onSheetClick = (ev: Event) => {
@@ -722,6 +737,7 @@ class StadiumScene extends Phaser.Scene {
       else if (k === "tab" || k === "i") { e.preventDefault(); this.sheetKind === "bag" ? this.closeSheet() : this.openBag(); }
       else if (k === "escape") { this.sheetKind ? (this.sheetKind === "menu" && this.setSpeed(1), this.closeSheet()) : this.openMenu(); }
       else if (k === "`") this.toggleDebug();
+      else if (k === "z") this.cycleZoom();
       else if (/^[1-9]$/.test(k) && this.sheetKind === "more") this.run(((this as any).moreOpts as Option[])[+k - 1]);
     });
     // Debug: three taps on the score.

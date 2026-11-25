@@ -32,6 +32,7 @@ import {
 } from "../src/game/mobile/combatLogic";
 import { edgeDistance, GAP_REACH, groupHit, HIT_SLOP, layoutSlots, routeTouch, safeRect, type RouteCandidate, type Viewport } from "../src/game/mobile/layout";
 import { DEFAULT_PHONE_SETTINGS } from "../src/game/mobile/settings";
+import { ellipsise, roomPart } from "../src/game/mobile/roomName";
 import { resolveMode, SCENE_RULES, type SceneRule } from "../src/game/mobile/modes";
 
 const E = (id: number, x: number, y: number, r = 12, extra: Partial<AimTarget> = {}): AimTarget => ({ id, x, y, r, kind: "enemy", ...extra });
@@ -449,5 +450,20 @@ describe("phone mash: every finger counts (F10)", () => {
     expect(q.pending).toBe(4);
     q.clear();
     expect(q.next(false)).toBe(false);
+  });
+});
+
+describe("phone fights: the room name up top (stage 2 polish, N2)", () => {
+  it("shortens to the room's own name, then ellipsises, never changing the words it keeps", () => {
+    const full = "THE SANMIKVERSE (CATFORD, ALLEGEDLY) · Job Centre Plus (Catford Branch)";
+    expect(roomPart(full)).toBe("Job Centre Plus (Catford Branch)");
+    expect(roomPart("Krel Tower")).toBe("Krel Tower");
+    const w = (t: string) => t.length * 10;
+    expect(ellipsise("Job Centre Plus", 400, w)).toBe("Job Centre Plus");
+    const cut = ellipsise("Job Centre Plus (Catford Branch)", 160, w);
+    expect(cut.endsWith("…")).toBe(true);
+    expect(w(cut)).toBeLessThanOrEqual(160);
+    expect("Job Centre Plus (Catford Branch)".startsWith(cut.slice(0, -1))).toBe(true);
+    expect(ellipsise("Job", 5, w)).toBe("");
   });
 });

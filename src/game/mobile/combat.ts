@@ -35,6 +35,7 @@ import { controlScale, MIN_CONTROL, safeRect, type Placed, type Rect } from "./l
 import { COMBAT_CSS, COMBAT_STYLE_ID } from "./combatCss";
 import { haptic } from "./haptics";
 import { SideMove } from "./side";
+import { fitRoomName } from "./roomName";
 import { JUMP_TUNE } from "./jump";
 import { NARRATOR_TIPS, STORY_UI_LINES, UI_TEXTS, addWording, wordText } from "./wording";
 import { COMBAT_NARRATOR_TIPS, COMBAT_WORDING, COMBAT_WORDING_FIRST, FIGHT_UI_LINES, TUTORIAL_TEXT } from "./combatWording";
@@ -1215,6 +1216,9 @@ export function installCombat(game: Phaser.Game, layer: TouchLayer): CombatContr
   for (const r of COMBAT_NARRATOR_TIPS) if (!NARRATOR_TIPS.includes(r)) NARRATOR_TIPS.push(r);
   // Kreddle's money counter sits under pause on a phone: it moves left of it (P10)
   registerModeController({ id: "phone-hud-walk", mode: "walk", frame: () => kreddleCounter(game, cc) });
+  // the room's name up top keeps clear of the name, coins and meters, whatever the mode (a room's opening
+  // conversation shows it too; N2)
+  game.events.on("poststep", () => fitRoomName(game, cc.toastRight("dungeon")));
   installed = cc;
   return cc;
 }

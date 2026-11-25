@@ -24,6 +24,7 @@ import { TOUCH } from "../ui/TouchControls";
 import { synth } from "../audio/Synth";
 import {
   followBase,
+  keepInZone,
   GAP_REACH,
   ghostStick,
   groupHit,
@@ -423,8 +424,10 @@ interface StickTouch {
   moved: boolean;
   /** The mode moved on while it was down: it does nothing more, and is no tap. */
   dead: boolean;
-  /** The "Stick: stays put" setting: the base sits at its resting place and does not follow the thumb. */
+  /** The "FIXED SPOT" setting: the base sits at its resting place. */
   fixed: boolean;
+  /** The base follows the thumb past the rim (setting "follows"). */
+  follows: boolean;
 }
 
 interface FakeEvent {
@@ -657,12 +660,12 @@ export class TouchLayer {
 
   /**
    * The idle stick's resting place: kept off the player (the gate's note: at 750x340 it covered the player at Home's
-   * far left). A floating stick's hint ring moves beside the player; a fixed stick stays put and goes see-through.
+   * far left). The hint ring of a stick that appears under the thumb moves beside the player; a fixed one stays put and goes see-through.
    */
   private placeGhost() {
     const p0 = ghostStick(this.viewport, phoneSettings());
     let p: { x: number; y: number } | null = p0;
-    if (this.ghostOn && this.decision.mode === "walk") {
+    if (this.ghostOn && (this.decision.mode === "walk" || this.decision.mode === "combat" || this.decision.mode === "side")) {
       let me: Rect | null = null;
       try {
         me = playerRect(this.game, this.decision);
@@ -797,10 +800,12 @@ export class TouchLayer {
   private startStick(t: Touch) {
     const x = t.clientX;
     const y = t.clientY;
-    // floating (the default): the stick appears under the thumb; fixed: it stays at its resting place
-    const fixed = phoneSettings().stick === "fixed";
-    const b = fixed ? ghostStick(this.viewport, phoneSettings()) : { x, y };
-    this.stick = { id: t.identifier, x0: x, y0: y, t0: now(), bx: b.x, by: b.y, moved: false, dead: false, fixed };
+    // "stays" (the default): the stick appears under the thumb and its base stays there for this touch; "follows": the
+    // same, but the base is dragged along past the rim; "fixed": it sits at its resting place
+    const mode = phoneSettings().stick;
+    const fixed = mode === "fixed";
+    const b = fixed ? ghostStick(this.viewport, phoneSettings()) : keepInZone({ x, y }, this.zoneRect);
+    this.stick = { id: t.identifier, x0: x, y0: y, t0: now(), bx: b.x, by: b.y, moved: false, dead: false, fixed, follows: mode === "follows" };
     this.stickEl.classList.add("live");
     this.updateGhost();
     this.stickEl.style.transform = `translate(${b.x}px,${b.y}px)`;
@@ -813,14 +818,16 @@ export class TouchLayer {
     if (!s || s.dead) return;
     if (!s.moved && Math.hypot(x - s.x0, y - s.y0) > TAP_SLOP) s.moved = true;
     const g = this.geo;
-    const nb = s.fixed ? { x: s.bx, y: s.by } : followBase({ x: s.bx, y: s.by }, { x, y }, g.travel);
+    // (only "follows" drags the base after the thumb, and never out of the stick zone; the others keep it where it is:
+    // a thumb past the rim is just full speed that way, the user's "slides all over the screen")
+    const nb = s.follows ? keepInZone(followBase({ x: s.bx, y: s.by }, { x, y }, g.travel), this.zoneRect) : { x: s.bx, y: s.by };
     if (nb.x !== s.bx || nb.y !== s.by) {
       s.bx = nb.x;
       s.by = nb.y;
       this.stickEl.style.transform = `translate(${s.bx}px,${s.by}px)`;
       this.ghostKey = "";
     }
-    // (fixed: the knob stops at the rim; the direction still counts from anywhere in the zone)
+    // (the knob stops at the rim; the direction still counts from anywhere on the screen)
     const v = stickVector(x - s.bx, y - s.by, g);
     TOUCH.mx = v.x;
     TOUCH.my = v.y;

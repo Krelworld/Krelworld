@@ -3,6 +3,7 @@ import {
   BOTTOM_CLEAR,
   controlScale,
   followBase,
+  keepInZone,
   ghostStick,
   HIT_SLOP,
   ISLAND_GAP,
@@ -205,6 +206,13 @@ describe("phone layout: the stick", () => {
     const b = followBase({ x: 100, y: 100 }, { x: 200, y: 100 }, 56);
     expect(b.x).toBeCloseTo(144);
     expect(b.y).toBe(100);
+  });
+
+  it("a stick's base is kept inside the stick zone (a following base dragged past its edge stops there)", () => {
+    const zone = { x: 0, y: 78, w: 380, h: 291 };
+    expect(keepInZone({ x: 120, y: 300 }, zone)).toEqual({ x: 120, y: 300 });
+    expect(keepInZone({ x: 520, y: 40 }, zone)).toEqual({ x: 380, y: 78 });
+    expect(keepInZone(followBase({ x: 360, y: 300 }, { x: 600, y: 300 }, 56), zone)).toEqual({ x: 380, y: 300 });
   });
 
   it("the idle hint stick sits bottom left on screen (mirrored for left-handed)", () => {

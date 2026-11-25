@@ -2,7 +2,7 @@
 import type { Id, Role } from "../core/types";
 
 export type Job =
-  | "fan" | "local" | "turnstile" | "doorguard" | "gateguard" | "pitchsteward" | "patrol" | "corridor" | "chief"
+  | "dog" | "fan" | "local" | "turnstile" | "doorguard" | "gateguard" | "pitchsteward" | "patrol" | "corridor" | "chief"
   | "police" | "barman" | "seller" | "cleaner" | "driver" | "worker" | "cook" | "player" | "official";
 
 export type Task =
@@ -137,6 +137,8 @@ export interface StadiumState {
   policeCalled: boolean;
   /** Item id of the locker where confiscated things go. */
   locker: Id;
+  /** The dog: tied up, on a lead, loose or caught. */
+  dog: { id: Id; state: "tied" | "led" | "loose" | "caught"; target: Id | null; owner: Id; bitten: number; nextBite: number } | null;
   /** Tip-offs the police are following up. */
   tipoffs: { target: Id; by: Id; officer: Id; at: number; stage: "going" | "waiting" | "done" }[];
   /** Clouds of smoke from flares. */

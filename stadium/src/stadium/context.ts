@@ -70,7 +70,7 @@ export function options(w: World, pc: Actor): Option[] {
 
   // People.
   const people = Object.values(s.actors)
-    .filter((a) => a.id !== pc.id && !a.hiddenIn && (a.npc || a.fb || a.off) && (!a.fb || a.fb.status !== "gone"))
+    .filter((a) => a.id !== pc.id && !a.hiddenIn && a.npc?.job !== "dog" && (a.npc || a.fb || a.off) && (!a.fb || a.fb.status !== "gone"))
     .map((a) => ({ a, d: Math.hypot(a.x - pc.x, a.y - pc.y) }))
     .filter((p) => p.d < 3.6)
     .sort((p, q) => p.d - q.d)
@@ -106,6 +106,15 @@ export function options(w: World, pc: Actor): Option[] {
     push("Disallow their goal", 62, { verb: "rule", ...base, arg: "disallow" });
     push("Blow for full time", 20, { verb: "rule", ...base, arg: "fulltime" });
     push("Stop play", 15, { verb: "rule", ...base, arg: "stop" });
+  }
+
+  // The dog.
+  const dg = s.stadium!.dog, dogA = dg ? s.actors[dg.id] : undefined;
+  if (dg && dogA) {
+    const dd = Math.hypot(dogA.x - pc.x, dogA.y - pc.y);
+    if (dg.state === "tied" && dd < 1.8) push("Untie the dog", 50, { verb: "untie", ...base });
+    if (dg.state === "led") push("Let the dog go", 35, { verb: "release", ...base });
+    if (dg.state === "loose" && dd < 1.5) push("Grab the dog's lead", 60, { verb: "leash", ...base });
   }
 
   // The team bus.

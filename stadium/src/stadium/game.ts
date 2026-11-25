@@ -9,6 +9,7 @@ import { newCampaign, type Campaign } from "./campaign";
 import { mayPass, newNpc, resetPathBudget, secs, spawnFan, spawnStaff, stepNpc } from "./npc";
 import { installBetting, installSettlement } from "./betting";
 import { installPolice, stepTipoffs } from "./police";
+import { createDog, installDog, stepDog } from "./dog";
 import { createBus, driveBus, installBus, stepBus, stepBusSanctions, stepLateTeam } from "./bus";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
@@ -32,7 +33,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); installDog(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -45,7 +46,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   const locker = spawnItem(s, "locker", { k: "ground", x: SPOTS.locker.x, y: SPOTS.locker.y });
   const st: StadiumState = {
     pc: "pc", arrivedAt: 0, gates: {}, vehicles: {}, banned: [], wanted: [], incidents: [], admitted: false, warnings: 0,
-    ending: null, flags: {}, doorPass: null, detainedUntil: 0, policeCalled: false, locker: locker.id, dosed: {}, smoke: [], tipoffs: [],
+    ending: null, flags: {}, doorPass: null, detainedUntil: 0, policeCalled: false, locker: locker.id, dosed: {}, smoke: [], tipoffs: [], dog: null,
   };
   s.stadium = st;
 
@@ -152,6 +153,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   // Supporters already in their seats; more arrive over the next few minutes.
   for (let i = 0; i < 24; i++) giveFanThings(w, spawnFan(w, i % 6 === 5, true));
 
+  createDog(w);
   installReactions(w);
   installSettlement(w);
   const g: Game = { w, checkpoints: [], opp: oppKey, venue: venueId, campaign };
@@ -243,6 +245,7 @@ export function stepGame(g: Game): void {
     for (const hit of lorryHits(w, v)) w.bus.emit({ type: "run_over", t: s.tick, who: hit.id });
   }
   stepBusSanctions(w);
+  stepDog(w);
   stepLateTeam(w);
   stepRules(w);
   stepTipoffs(w);

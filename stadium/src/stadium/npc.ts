@@ -253,6 +253,7 @@ export function stepNpc(w: World, a: Actor): void {
   const n = a.npc!, tick = w.state.tick;
   if (n.bubble && tick > n.bubble.until) n.bubble = null;
   if (n.job === "player" || n.job === "official") { teamWalk(w, a); return; }
+  if (n.job === "dog") return; // the dog has a mind of its own (see dog.ts)
   if (a.downUntil > tick || a.heldBy) { a.moveX = a.moveY = 0; return; }
   if (n.mode !== "routine") return; // security behaviour moves them
   if (!n.plan.length) routine(w, a);
@@ -322,6 +323,7 @@ export function mayPass(w: World, a: Actor, gate: string): boolean {
   if (a.npc) {
     const n = a.npc;
     if (n.job === "player" || n.job === "official") return true;
+    if (n.job === "dog") { const sd = w.state.stadium!.dog; return !!g && g.until > w.state.tick && (g.for === null || (sd?.state === "led" && g.for === w.state.stadium!.pc)); }
     if (TURNSTILES.includes(gate)) return n.hasTicket || ["steward", "police", "cleaner", "catering"].includes(n.role);
     return ["steward", "police", "catering", "cleaner", "medic"].includes(n.role);
   }

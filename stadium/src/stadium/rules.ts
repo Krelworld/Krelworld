@@ -387,6 +387,7 @@ export function installReactions(w: World): void {
     if (e.type === "run_over" && e.who === pc) bump("runOver");
     if (e.type === "accident") bump("accident");
     if (e.type === "smoke") bump("flares");
+    if (e.type === "dog_bite") { bump("dogBites"); if (e.footballer) bump("dogBitPlayers"); if (e.referee) bump("dogBitRef"); }
     if (e.type === "item_hit" && s.match && e.target === s.match.officials.referee) bump("refHit");
     if (e.type === "dose_kicks_in" && s.actors[e.id]?.off && e.effect === "laxative") bump("refLax");
     if (e.type === "action" && e.action.verb === "consume" && e.action.actor === st.pc) {
@@ -404,6 +405,7 @@ function turnstileCheck(w: World, act: Action): void {
   const g = turnstileNear(t) ?? turnstileNear(by);
   if (!g?.gate) return;
   if (it.def !== "ticket") return void say(w, t, "That's not a ticket, is it?");
+  if (st.dog?.state === "led") return void say(w, t, "No dogs. Not even that one. Especially not that one.");
   if (it.void) { n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.6); return void say(w, t, "This ticket's been cancelled. Hop it."); }
   if (it.used) return void say(w, t, "This one's already been scanned.");
   if (ap.faceHidden) return void say(w, t, ap.sinister ? "You're not coming in dressed like that." : "Mask off, please.");

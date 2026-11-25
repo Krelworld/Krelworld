@@ -500,3 +500,31 @@ test("drive the bus at people and their team are docked a goal; caught, and it r
   assert.ok(events.some((e) => e.type === "bus_sanction" && e.reversed), "and reverses it");
   assert.notDeepEqual(m.score, before);
 });
+
+// ---------- The dog ----------
+test("untie the dog, let it go, and it bites someone", () => {
+  const g = createGame("dog");
+  const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+  const dog = s.actors[st.dog!.id];
+  pc.x = dog.x + 1; pc.y = dog.y;
+  assert.equal(dispatch(g.w, { verb: "untie", actor: pc.id }).ok, true);
+  walk(g, -20, 58, 15);
+  assert.ok(Math.hypot(dog.x - pc.x, dog.y - pc.y) < 3, "the dog follows on its lead");
+  const events: string[] = [];
+  g.w.bus.on((e) => events.push(e.type));
+  assert.equal(dispatch(g.w, { verb: "release", actor: pc.id }).ok, true);
+  run(g, 20);
+  assert.ok(events.includes("dog_bite"), "it goes for somebody");
+});
+
+test("a dog on the pitch stops play", () => {
+  const g = createGame("pitchdog");
+  const s = g.w.state, st = s.stadium!, m = s.match!;
+  run(g, 400);
+  const dog = s.actors[st.dog!.id];
+  st.dog!.state = "loose";
+  const events: string[] = [];
+  g.w.bus.on((e) => events.push(e.type));
+  run(g, 10, () => { if (!events.includes("fb_halted") && m.phase === "live") { dog.x = m.ball.x + 3; dog.y = m.ball.y; } });
+  assert.ok(events.includes("fb_halted"));
+});

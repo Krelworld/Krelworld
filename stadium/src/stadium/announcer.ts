@@ -110,6 +110,18 @@ export class Announcer {
         if (a?.fb) this.out({ t: e.t, text: `${a.name} has been arrested for ${e.charge} by an officer who does not appear to be an officer.`, src: "commentary", big: true });
         break;
       }
+      case "dog_bite": {
+        const a = s.actors[e.who];
+        if (e.referee) this.out({ t: e.t, text: "The referee has been bitten by a dog. He has not given anything.", src: "commentary", big: true });
+        else if (a?.fb) this.once(`bite${a.id}`, `${a.name} has been bitten by a dog. Play continues, for now.`, "commentary", true);
+        break;
+      }
+      case "dog_loose":
+        if (VENUE.inside(e.x, e.y)) this.once(`dogin${Math.floor(e.t / 1800)}`, "Would the owner of a large brown dog please make themselves known to a steward.", "tannoy", false);
+        break;
+      case "dog_caught":
+        this.once(`dogc${Math.floor(e.t / 1800)}`, "The dog has been apprehended. It is not thought to have had a ticket.", "commentary", false);
+        break;
       case "bus_arrives":
         this.once("busin", `The ${s.match!.teams[1].name} team have arrived at the ground.`, "commentary", false);
         break;

@@ -198,6 +198,7 @@ const QF_SPOTS = {
   cabinDoor: { x: 75, y: 53.5 },
   policeVan: { x: 32, y: 54.5 },
   hotelLobby: { x: 83, y: -24 },
+  dogPost: { x: -50.5, y: 82.4 },
   busPark: { x: 83, y: -7 },
   busBay: { x: 46, y: -40.8 },
 };

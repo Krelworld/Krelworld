@@ -225,6 +225,8 @@ class StadiumScene extends Phaser.Scene {
         if (e.action.verb === "strike") { const by = s.actors[e.action.actor]; if (by) a.play("punch", 0.3 + near(by.x, by.y) * 0.7); }
         break;
       case "smoke": a.play("flare", 0.4 + near(e.x, e.y, 40) * 0.6); break;
+      case "dog_bite": a.play("bark", 0.4 + near(s.actors[e.who]?.x ?? 0, s.actors[e.who]?.y ?? 0, 30) * 0.6, { minGap: 0.6 }); a.play("punch", 0.5); break;
+      case "dog_loose": a.play("bark", 1, { minGap: 0.3 }); break;
       case "bus_hit": a.play("punch", 0.9); a.play("horn", 0.6, { minGap: 1 }); break;
       case "bus_wall": a.play("punch", 1, { rate: 0.6 }); break;
       case "bus_crash": a.play("punch", 1, { rate: 0.5 }); a.play("horn", 0.7, { rate: 0.8 }); break;
@@ -513,6 +515,7 @@ class StadiumScene extends Phaser.Scene {
       const a = s.actors[id];
       if (a.hiddenIn || (a.fb && a.fb.status === "gone")) continue;
       if (!onScreen(a.x, a.y)) continue;
+      if (a.npc?.job === "dog") { things.push({ d: a.y, draw: () => this.drawDog(a) }); continue; }
       const st2 = this.styleOf(a), moving = Math.hypot(a.vx, a.vy) > 0.4;
       things.push({ d: a.y, draw: () => drawFigure(g, P, a.x, a.y, a.facing, st2, tick + hash(a.id), moving) });
     }
@@ -577,6 +580,25 @@ class StadiumScene extends Phaser.Scene {
     const zt = this.targetZoom();
     if (Math.abs(cam.zoom - zt) > 0.001) cam.setZoom(cam.zoom + (zt - cam.zoom) * Math.min(1, k * 1.5));
     cam.centerOn(this.camX, this.camY);
+  }
+
+  /** A stocky brown dog, side-on, legs going when it runs. The lead, if somebody has it. */
+  drawDog(a: Actor) {
+    const P = this.P, g = this.g, S = P.S, tick = this.s.tick;
+    const x = P.sx(a.x, a.y), y = P.sy(a.x, a.y), run = Math.hypot(a.vx, a.vy) > 0.5;
+    const dir = Math.cos(a.facing) >= 0 ? 1 : -1, sw = run ? Math.sin(tick * 0.6) * S * 0.12 : 0;
+    const h = S * (P.standing ? 0.55 : 0.3);
+    g.fillStyle(0x000000, 0.28).fillEllipse(x, y, S * 1.1, S * 0.35);
+    g.fillStyle(0x4a2e1a, 1).fillRect(x - S * 0.4 + sw, y - h * 0.55, S * 0.1, h * 0.55).fillRect(x + S * 0.3 - sw, y - h * 0.55, S * 0.1, h * 0.55);
+    g.fillStyle(0x7a4a2a, 1).fillEllipse(x, y - h * 0.75, S * 0.95, h * 0.6);
+    g.fillStyle(0x7a4a2a, 1).fillCircle(x + dir * S * 0.48, y - h * 1.05, S * 0.22);
+    g.fillStyle(0x2a1a10, 1).fillCircle(x + dir * S * 0.66, y - h * 1.0, S * 0.07);
+    const dg = this.s.stadium!.dog, pc = this.pc;
+    if (dg && pc && (dg.state === "led" || dg.state === "tied")) {
+      const to = dg.state === "led" ? { x: P.sx(pc.x, pc.y), y: P.sy(pc.x, pc.y) - S * 0.7 } : { x: P.sx(SPOTS.dogPost.x, SPOTS.dogPost.y - 0.6), y: P.sy(SPOTS.dogPost.x, SPOTS.dogPost.y - 0.6, 0.8) };
+      g.lineStyle(1.5, 0xd7263d, 0.9).lineBetween(x + dir * S * 0.4, y - h, to.x, to.y);
+      if (dg.state === "tied") g.fillStyle(0x6a6a6a, 1).fillRect(to.x - 2, to.y - 2, 4, S * 0.9);
+    }
   }
 
   // ---------- HUD ----------

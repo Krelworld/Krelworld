@@ -1,0 +1,21 @@
+{
+  "name": "stadium",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
+    "build": "node build.mjs",
+    "stats": "tsx tools/match-stats.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.10",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "phaser": "^4.2.1"
+  }
+}

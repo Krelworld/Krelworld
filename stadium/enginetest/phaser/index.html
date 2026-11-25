@@ -1,0 +1,13 @@
+<title>Engine Test Phaser</title>
+<style>
+  :root { --bg: #202428; color-scheme: dark }
+  html, body { height: 100%; }
+  body { background: var(--bg); overflow: hidden; touch-action: none; }
+  #game { width: 100%; height: 100%; }
+  canvas { display: block; touch-action: none; }
+  #status { position: fixed; left: max(12px, env(safe-area-inset-left, 0px)); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); color: #fff; opacity: .8; pointer-events: none; font: 14px system-ui, sans-serif; }
+</style>
+<div id="game"></div>
+<div id="status">Loading Phaser (about 0.4 MB)…</div>
+<script>window.__t0 = performance.now();</script>
+<script src="game.js"></script>

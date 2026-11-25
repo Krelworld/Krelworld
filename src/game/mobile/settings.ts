@@ -19,6 +19,14 @@ export type ButtonSize = "S" | "M" | "L";
 export type StickMode = "stays" | "follows" | "fixed";
 export type AimAssist = "off" | "normal" | "strong";
 export type TextSize = "normal" | "large";
+/**
+ * How fights fire on a phone (the auto-fire audit, ga-02): "auto" shoots by itself at an enemy in range (the default);
+ * "light" shoots by itself at a slower pace (holding FIRE gives the gun's full pace); "still" shoots by itself only while
+ * you stand still (Archero: holding FIRE shoots on the move); "hold" never shoots by itself (hold FIRE: the game aims;
+ * slide to aim by hand). FIRE held always works the same in every style.
+ */
+export type FireStyle = "auto" | "light" | "still" | "hold";
+export const FIRE_STYLES: readonly FireStyle[] = ["auto", "light", "still", "hold"];
 
 export interface PhoneSettings {
   /** Mirror the thumb controls: stick on the right, buttons on the left. */
@@ -31,6 +39,8 @@ export interface PhoneSettings {
   stick: StickMode;
   /** Combat: fire by itself when auto-aim has an enemy in range (FIRE still works by hand). */
   autoFire: boolean;
+  /** Combat: the firing style when auto-fire is on (see FireStyle; `autoFire: false` is "hold" whatever this says). */
+  firing: FireStyle;
   /** Combat: off / normal (sticky auto-aim: keeps its target until it dies or leaves range) / strong. */
   aimAssist: AimAssist;
   /** Phone assist: the forgiving touches on top of the difficulty (wider timing, bigger pickup radius, jump help). */
@@ -57,6 +67,7 @@ export const DEFAULT_PHONE_SETTINGS: Readonly<PhoneSettings> = Object.freeze({
   opacity: 0.3,
   stick: "stays",
   autoFire: true,
+  firing: "auto",
   aimAssist: "normal",
   phoneAssist: true,
   batterySaver: false,
@@ -87,6 +98,8 @@ export function cleanSetting<K extends PhoneSettingKey>(k: K, v: unknown): Phone
         return v === "floating" ? "stays" : oneOf(v, ["stays", "follows", "fixed"] as const);
       case "aimAssist":
         return oneOf(v, ["off", "normal", "strong"] as const);
+      case "firing":
+        return oneOf(v, FIRE_STYLES);
       case "textSize":
         return oneOf(v, ["normal", "large"] as const);
       case "syncOffsetMs": {
@@ -136,6 +149,7 @@ const V1_DEFAULTS: Readonly<Record<PhoneSettingKey, unknown>> = Object.freeze({
   opacity: 0.3,
   stick: "floating",
   autoFire: true,
+  firing: "auto",
   aimAssist: "normal",
   phoneAssist: true,
   batterySaver: false,
@@ -327,6 +341,10 @@ interface SpecBase<K extends PhoneSettingKey> {
   group: SettingGroup;
   /** Does changing it do something yet? (Stage 2/3 flip this when they wire the feature; a screen may hide the rest.) */
   live: boolean;
+  /** The value the row shows, when it is worked out from more than its own key (Firing: `autoFire` off reads HOLD). */
+  read?: (s: Readonly<PhoneSettings>) => PhoneSettings[PhoneSettingKey];
+  /** Other settings a choice on this row also sets (Firing keeps `autoFire` in step). */
+  also?: (v: PhoneSettings[PhoneSettingKey]) => Partial<PhoneSettings>;
 }
 
 export type SettingSpec =
@@ -341,7 +359,17 @@ export const PHONE_SETTINGS: SettingSpec[] = [
   { key: "opacity", type: "slider", group: "controls", live: true, label: "Button visibility", help: "How see-through the buttons are.", min: 0.2, max: 0.8, step: 0.1, unit: "%" },
   { key: "stick", type: "choice", group: "controls", live: true, label: "Stick", help: "Stays where your thumb lands, follows your thumb, or one fixed spot.", options: [{ value: "stays", label: "STAYS" }, { value: "follows", label: "FOLLOWS" }, { value: "fixed", label: "FIXED" }] },
   { key: "haptics", type: "toggle", group: "controls", live: true, label: "Vibration", help: "A little buzz on presses (Android only)." },
-  { key: "autoFire", type: "toggle", group: "combat", live: true, label: "Auto-fire", help: "Shoots by itself when an enemy is in range." },
+  {
+    key: "firing",
+    type: "choice",
+    group: "combat",
+    live: true,
+    label: "Firing",
+    help: "AUTO shoots for you. LIGHT: slower. STILL: when you stop. HOLD: only while you hold FIRE.",
+    options: [{ value: "auto", label: "AUTO" }, { value: "light", label: "LIGHT" }, { value: "still", label: "STILL" }, { value: "hold", label: "HOLD" }],
+    read: (s) => fireStyle(s),
+    also: (v) => ({ autoFire: v !== "hold" }),
+  },
   { key: "aimAssist", type: "choice", group: "combat", live: true, label: "Aim assist", help: "How much the game aims for you.", options: [{ value: "off", label: "OFF" }, { value: "normal", label: "NORMAL" }, { value: "strong", label: "STRONG" }] },
   { key: "phoneAssist", type: "toggle", group: "combat", live: true, label: "Phone assist", help: "Picks things up for you; kinder dodges and jumps." },
   { key: "readability", type: "toggle", group: "display", live: true, label: "Bigger text", help: "Bigger words in menus and conversations." },
@@ -357,7 +385,12 @@ export type PhoneSettingEntry = SettingSpec & { get(): PhoneSettings[PhoneSettin
 export function phoneSettingsList(): PhoneSettingEntry[] {
   return PHONE_SETTINGS.map((spec) => ({
     ...spec,
-    get: () => current[spec.key],
-    set: (v: PhoneSettings[PhoneSettingKey]) => updatePhoneSettings({ [spec.key]: v } as Partial<PhoneSettings>),
+    get: () => (spec.read ? spec.read(current) : current[spec.key]),
+    set: (v: PhoneSettings[PhoneSettingKey]) => updatePhoneSettings({ [spec.key]: v, ...(spec.also?.(v) ?? {}) } as Partial<PhoneSettings>),
   }));
+}
+
+/** The firing style in force: `autoFire` off (the stage 2 toggle, still honoured) is HOLD whatever `firing` says. */
+export function fireStyle(s: Pick<PhoneSettings, "autoFire" | "firing"> = current): FireStyle {
+  return s.autoFire === false ? "hold" : s.firing;
 }

@@ -26,12 +26,12 @@ import { weaponList } from "../ui/weapons";
 import { isMikey, sanmikForced } from "../systems/sanmik";
 import { storageKey } from "../variant";
 import { setPhoneHooks } from "./boot";
-import { phoneSettings } from "./settings";
+import { fireStyle, phoneSettings, type FireStyle } from "./settings";
 import { SCENE_RULES, addSceneRule, currentInputSource } from "./modes";
 import { rightStick } from "./pad";
 import { registerModeController, type ModeContext, type TouchControl, type TouchLayer } from "./touchLayer";
 import { ACQUIRE, AIM_TUNE, MELEE_REACH, SLIDE_PX, aimPointFor, autoFireOk, pickTarget, snapAim, type AimTarget, type Pt } from "./aim";
-import { DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, MashQueue, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healShown, healWanted, readyAbility, spamGap, specialCost, specialWanted, specialWord, type ReadyId } from "./combatLogic";
+import { AutoPace, StillGate, DUNGEON_RULE, FIRE_GRACE_MS, HoldTracker, MashQueue, PICKER_RULE, READY, RELABEL_MS, TEACH_ROOMS, healShown, healWanted, readyAbility, spamGap, specialCost, specialWanted, specialWord, type ReadyId } from "./combatLogic";
 import { controlScale, MIN_CONTROL, safeRect, type Placed, type Rect } from "./layout";
 import { COMBAT_CSS, COMBAT_STYLE_ID } from "./combatCss";
 import { haptic } from "./haptics";
@@ -71,6 +71,7 @@ interface PlayerLike {
   noHealUntil: number;
   headbuttMode: boolean;
   attackAnimUntil: number;
+  attackCd: number;
   dodgeUntil: number;
   iframesUntil: number;
   dead: boolean;
@@ -172,6 +173,10 @@ export interface CombatSnapshot {
   manual: boolean;
   snapped: boolean;
   autoFiring: boolean;
+  /** Auto-fire shooting this frame (LIGHT's pace and STILL's standing still applied). */
+  autoShooting: boolean;
+  /** The firing style in force (Settings > Firing). */
+  firing: FireStyle;
   fireHeld: boolean;
   ready: ReadyId | null;
   heal: boolean;
@@ -198,6 +203,12 @@ export class CombatControls {
   private graceUntil = 0;
   private burstSince = 0;
   private autoFiring = false;
+  /** Auto-fire is shooting this frame (LIGHT's pace and STILL's standing still applied; `autoFiring` is the wish). */
+  private autoShooting = false;
+  /** Firing styles (Settings > Firing): LIGHT's pace, STILL's gate, and the last shot seen. */
+  private readonly pace = new AutoPace();
+  private readonly still = new StillGate();
+  private lastShotMark = 0;
   // swap / picker
   private swapHold = new HoldTracker();
   private swapBy: TouchControl | null = null;
@@ -363,8 +374,8 @@ export class CombatControls {
       return;
     }
     // auto-fire off: the stream carries on a moment, so hopping to DODGE and back doesn't break it (M1)
-    this.graceUntil = !cancelled && !phoneSettings().autoFire ? realNow() + FIRE_GRACE_MS : 0;
-    TOUCH.attack = this.graceUntil > realNow() || this.autoFiring;
+    this.graceUntil = !cancelled && fireStyle(phoneSettings()) !== "auto" ? realNow() + FIRE_GRACE_MS : 0;
+    TOUCH.attack = this.graceUntil > realNow() || this.autoShooting;
   }
 
   // ------------------------------------------------------------------ placement of the chips
@@ -558,6 +569,7 @@ export class CombatControls {
     ctl.autoAimPoint = null;
     if (!p || !p.spr?.active) return;
     const st = phoneSettings();
+    const style = fireStyle(st);
     this.tune = AIM_TUNE[st.aimAssist] ?? AIM_TUNE.normal;
     const me: Pt = { x: p.x, y: p.y };
     const sideView = dun.side === true;
@@ -621,7 +633,7 @@ export class CombatControls {
       this.aimAngle = sn.angle;
       this.aimPt = sn.snapped ? { x: sn.snapped.x, y: sn.snapped.y } : { x: me.x + Math.cos(sn.angle) * 180, y: me.y + Math.sin(sn.angle) * 180 };
     } else {
-      const autoAims = this.target && (st.aimAssist !== "off" || (st.autoFire && this.target.kind === "enemy"));
+      const autoAims = this.target && (st.aimAssist !== "off" || (style !== "hold" && this.target.kind === "enemy"));
       if (autoAims && this.target) {
         const pt = aimPointFor(me, this.target, speed, this.tune.lead);
         this.aimAngle = Math.atan2(pt.y - me.y, pt.x - me.x);
@@ -633,13 +645,24 @@ export class CombatControls {
     }
     // auto-fire: an enemy in range, on screen, no barrel by your feet in the way; never a special, never in an overlay
     const now = realNow();
-    let auto = st.autoFire && fighting && !golden && !dun.busy && !dun.picking && autoFireOk({ me, target: this.target, range, view: vr, barrels });
+    let auto = style !== "hold" && fighting && !golden && !dun.busy && !dun.picking && autoFireOk({ me, target: this.target, range, view: vr, barrels });
     // (a "don't hold the trigger" room: let go for a moment every two seconds, the way a laptop player taps)
     if (auto && dun.rule?.kind === "NO_ATTACK_SPAM") {
       if (!this.burstSince) this.burstSince = now;
       if (spamGap(now, this.burstSince)) auto = false;
     } else if (!auto) this.burstSince = 0;
     this.autoFiring = auto;
+    // firing styles: LIGHT shoots at a slower pace (shots from a held FIRE go at the gun's own); STILL only while you
+    // stand still (a dodge is moving)
+    const tn = dun.now();
+    if (p.attackAnimUntil !== this.lastShotMark) {
+      this.lastShotMark = p.attackAnimUntil;
+      if (!this.fireHeld && now >= this.graceUntil) this.pace.shot(tn, p.attackCd);
+    }
+    const stood = this.still.update(tn, Math.hypot(TOUCH.mx, TOUCH.my), tn < p.dodgeUntil);
+    if (style === "light" && !this.pace.ok(tn)) auto = false;
+    if (style === "still" && !stood) auto = false;
+    this.autoShooting = auto;
     TOUCH.attack = (fighting && (this.fireHeld || now < this.graceUntil)) || auto;
     if (st.phoneAssist) this.assist(dun, p, dt);
   }
@@ -727,6 +750,9 @@ export class CombatControls {
     for (const c of Object.values(this.c)) if (!c.pressed) c.show(false);
     this.mash.classList.remove("show");
     this.autoFiring = false;
+    this.autoShooting = false;
+    this.pace.reset();
+    this.still.reset();
     this.target = null;
     this.layer.occluders = [];
     // (FIRE belongs to the fight: outside it nothing reads it as held, even with the thumb still down)
@@ -745,6 +771,7 @@ export class CombatControls {
     this.manual = null;
     this.graceUntil = 0;
     this.autoFiring = false;
+    this.autoShooting = false;
     TOUCH.attack = false;
     TOUCH.held.delete("special");
     TOUCH.held.delete("swap");
@@ -1055,6 +1082,8 @@ export class CombatControls {
       manual: !!this.manual,
       snapped: !!this.manual?.snapped,
       autoFiring: this.autoFiring,
+      autoShooting: this.autoShooting,
+      firing: fireStyle(phoneSettings()),
       fireHeld: this.fireHeld,
       ready: this.readyId,
       heal: this.c.heal.shown,

@@ -56,6 +56,8 @@ describe("phone settings: defaults and cleaning", () => {
       // (thumb-feel round: the base stays where the thumb lands; it no longer follows it about)
       stick: "stays",
       autoFire: true,
+      // (the auto-fire audit: Settings > Firing; "auto" is the stage 2 behaviour)
+      firing: "auto",
       aimAssist: "normal",
       phoneAssist: true,
       batterySaver: false,
@@ -95,7 +97,8 @@ describe("phone settings: defaults and cleaning", () => {
   });
 
   it("every setting has exactly one row in the list a settings screen renders", () => {
-    expect(PHONE_SETTINGS.map((s) => s.key).sort()).toEqual([...PHONE_SETTING_KEYS].sort());
+    // (autoFire has no row of its own: the Firing row's HOLD is auto-fire off, and it keeps autoFire in step)
+    expect(PHONE_SETTINGS.map((s) => s.key).sort()).toEqual(PHONE_SETTING_KEYS.filter((k) => k !== "autoFire").sort());
     for (const s of PHONE_SETTINGS) {
       expect(s.label.length).toBeGreaterThan(2);
       expect(s.help.length).toBeGreaterThan(5);

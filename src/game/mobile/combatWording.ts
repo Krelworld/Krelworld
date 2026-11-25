@@ -1,6 +1,7 @@
 // PHONE MODE: touch wording for the fights (stage 2 part 1). Pure (no Phaser), so it is unit-tested. UI hints and
 // control instructions only, never a character's line; combat.ts adds these rows to wording.ts's table on a phone.
 import type { WordingRule } from "./wording";
+import type { FireStyle } from "./settings";
 
 /** The first dungeon's how-to-play texts that name a touch button (TutorialScene's touch column). */
 export const TUTORIAL_TEXT = /^(?:ATTACK button \(hold|DODGE button$|GUN button$|E button$|SPECIAL button\. |WONK button\. |💨 button\. |PJ button\. |🍺 button\. |Later on: ⚡T, then CUME\.$|Esc pauses at any time; CONTROLS)/;
@@ -111,4 +112,16 @@ export const COMBAT_NARRATOR_TIPS: WordingRule[] = [
   },
   { id: "golden-ready", re: /\bPress T in your next dungeon\./g, to: "Tap GOLD in your next dungeon." },
 ];
+
+
+/** FIRE's line in the Controls picture, as Settings > Firing has it (P10; the auto-fire audit). */
+export const FIRE_AUTO = "Shoots by itself at enemies in range. Hold to fire anyway, slide your thumb to aim";
+export const FIRE_MANUAL = "Hold to shoot: it aims for you. Slide your thumb to aim by hand";
+/** Settings > Firing: LIGHT and STILL (the auto-fire audit). */
+export const FIRE_LIGHT = "Shoots by itself, slowly. Hold to fire at full speed, slide your thumb to aim";
+export const FIRE_STILL = "Shoots by itself while you stand still. Hold to fire on the move, slide your thumb to aim";
+/** FIRE's line for the firing style in force. */
+export function fireLine(style: FireStyle): string {
+  return style === "hold" ? FIRE_MANUAL : style === "light" ? FIRE_LIGHT : style === "still" ? FIRE_STILL : FIRE_AUTO;
+}
 

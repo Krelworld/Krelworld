@@ -37,9 +37,10 @@ Take a screenshot of the box at the start, at home, and in town (Krelford).
 1. **Open the link in Safari** with `?mobilediag` on the end. Hold the phone **sideways**. Tap the screen to enter.
 2. **The "Add KRELWORLD to your Home Screen" box** should pop up by itself over the title screen. Screenshot it.
    Can you read it easily? Do the pictures of the buttons look like the ones on your phone?
-3. **Do what it says**: tap Share (at the top when the phone is sideways; tap the very top of the screen if you
-   can't see the bar; on the newest iPhones you may need to tap ••• first), then "Add to Home Screen", then "Add".
-   Tell us if any step was different on your phone.
+3. **Do what it says**: tap the page button at the left of the address bar (on newer iPhones it looks like a jigsaw
+   piece over two lines; tap the very top or bottom edge of the screen if you can't see the bar), then Share, then
+   View More (the last round button), then "Add to Home Screen" at the bottom, then "Add". On older iPhones there is a
+   Share button right in the bar instead. Tell us if any step was different on your phone.
 4. **Open KRELWORLD from your Home Screen** (the new icon). Check:
    - it fills the screen with no Safari bars;
    - the box does NOT pop up again;

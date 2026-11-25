@@ -61,7 +61,7 @@ export interface Npc {
 
 export interface Vehicle {
   id: Id;
-  kind: "lorry";
+  kind: "lorry" | "bus";
   x: number; y: number; facing: number;
   route: number[];
   ri: number;
@@ -75,6 +75,16 @@ export interface Vehicle {
   inspected: boolean;
   /** Ticks spent stopped for someone in the road. */
   blocked?: number;
+  // --- the team bus ---
+  /** Somebody has been at it with a knife or a hammer. */
+  tampered?: boolean;
+  crashed?: boolean;
+  /** Who is at the wheel, if it isn't the driver. */
+  drivenBy?: Id;
+  /** The team whose bus it is. */
+  team?: string;
+  /** Passengers' seat: footballers ride here. */
+  cab?: Id;
 }
 
 export interface Wanted {

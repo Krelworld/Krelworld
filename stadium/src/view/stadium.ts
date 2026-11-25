@@ -23,6 +23,7 @@ import { newsReport } from "../stadium/news";
 import { secs } from "../stadium/npc";
 import { SHOPS } from "../stadium/rules";
 import { LORRY_LEN, LORRY_WID } from "../stadium/vehicles";
+import { BUS_LEN, BUS_WID, holdOpen } from "../stadium/bus";
 import { drawFigure, headTop, type FigureStyle } from "./figures";
 import { drawBall, drawGoalFrame, drawPitch } from "./pitchArt";
 import { Projection } from "./projection";
@@ -224,6 +225,10 @@ class StadiumScene extends Phaser.Scene {
         if (e.action.verb === "strike") { const by = s.actors[e.action.actor]; if (by) a.play("punch", 0.3 + near(by.x, by.y) * 0.7); }
         break;
       case "smoke": a.play("flare", 0.4 + near(e.x, e.y, 40) * 0.6); break;
+      case "bus_hit": a.play("punch", 0.9); a.play("horn", 0.6, { minGap: 1 }); break;
+      case "bus_wall": a.play("punch", 1, { rate: 0.6 }); break;
+      case "bus_crash": a.play("punch", 1, { rate: 0.5 }); a.play("horn", 0.7, { rate: 0.8 }); break;
+      case "bus_sanction": a.play(e.reversed ? "boo" : "goal_roar", 0.8, { minGap: 2 }); break;
       case "say": {
         const by = s.actors[e.by];
         if (!by || e.by === pcId) break;
@@ -461,27 +466,45 @@ class StadiumScene extends Phaser.Scene {
       } });
     }
 
-    // The lorry.
+    // Vehicles: a box at any angle, with the faces towards the camera shaded.
+    const box = (x: number, y: number, len: number, wid: number, h: number, facing: number, side: number, top: number, alpha = 1) => {
+      const c = Math.cos(facing), sn = Math.sin(facing);
+      const corner = (a: number, b: number) => ({ x: x + c * a - sn * b, y: y + sn * a + c * b });
+      const pts = [corner(len / 2, wid / 2), corner(len / 2, -wid / 2), corner(-len / 2, -wid / 2), corner(-len / 2, wid / 2)];
+      const scr = (p: { x: number; y: number }, z: number) => ({ x: P.sx(p.x, p.y), y: P.sy(p.x, p.y, z) });
+      g.fillStyle(0x000000, 0.3 * alpha).fillPoints(pts.map((p) => scr({ x: p.x + 0.3, y: p.y + 0.3 }, 0)) as any, true);
+      if (P.standing) {
+        // Side faces back to front; the roof then covers the far ones.
+        const faces = [0, 1, 2, 3].map((i) => [pts[i], pts[(i + 1) % 4]]).sort((p, q) => (p[0].y + p[1].y) - (q[0].y + q[1].y));
+        for (const [a, b] of faces) g.fillStyle(side, alpha).fillPoints([scr(a, 0), scr(b, 0), scr(b, h), scr(a, h)] as any, true);
+      }
+      g.fillStyle(top, alpha).fillPoints(pts.map((p) => scr(p, P.standing ? h : 0)) as any, true);
+      g.lineStyle(1, 0x000000, 0.35 * alpha).strokePoints(pts.map((p) => scr(p, P.standing ? h : 0)) as any, true);
+    };
     for (const v of Object.values(st.vehicles)) {
-      if (!onScreen(v.x, v.y, 150)) continue;
-      const along = Math.abs(Math.cos(v.facing)) > 0.5;
-      const lx = along ? LORRY_LEN : LORRY_WID, ly = along ? LORRY_WID : LORRY_LEN;
-      const x0 = v.x - lx / 2, y0 = v.y - ly / 2;
-      const cabX = v.x + Math.cos(v.facing) * (LORRY_LEN / 2 - 0.9), cabY = v.y + Math.sin(v.facing) * (LORRY_LEN / 2 - 0.9);
-      const open = v.state === "loading" || v.state === "unloading";
-      things.push({ d: y0 + ly, draw: () => {
-        const [rx, ry, rw, rh] = P.rect(x0, y0, lx, ly);
-        const lift = 3 * P.KZ * P.S;
-        g.fillStyle(0x000000, 0.3).fillRect(rx + 4, ry + 4, rw, rh);
-        if (P.standing) {
-          g.fillStyle(0xb8862f, 1).fillRect(rx, ry + rh - lift, rw, lift);
-          g.fillStyle(0xd9a441, 1).fillRect(rx, ry - lift, rw, rh);
-          const [cx, cy, cw, ch] = P.rect(cabX - (along ? 0.9 : 1.3), cabY - (along ? 1.3 : 0.9), along ? 1.8 : 2.6, along ? 2.6 : 1.8);
-          g.fillStyle(0x2d5a8a, 1).fillRect(cx, cy - lift * 0.85, cw, ch + lift * 0.85 * 0.2);
-          if (open) { const rr = { x: v.x - Math.cos(v.facing) * (LORRY_LEN / 2), y: v.y - Math.sin(v.facing) * (LORRY_LEN / 2) }; g.fillStyle(0x1a1208, 1).fillRect(P.sx(rr.x, rr.y) - P.S * 0.9, P.sy(rr.x, rr.y) - lift * 0.9, P.S * 1.8, lift * 0.8); }
-        } else g.fillStyle(0xd9a441, 1).fillRect(rx, ry, rw, rh);
-        const lx2 = P.sx(v.x, v.y), ly2 = P.sy(v.x, v.y, 3);
-        g.fillStyle(0xffffff, 0.9).fillRect(lx2 - P.S * 1.6, ly2 - P.S * 0.1, P.S * 3.2, P.S * 0.55);
+      if (!onScreen(v.x, v.y, 220)) continue;
+      const isBus = v.kind === "bus";
+      const len = isBus ? BUS_LEN : LORRY_LEN, wid = isBus ? BUS_WID : LORRY_WID, h = isBus ? 3.2 : 3;
+      const team = isBus ? m.teams[1] : null;
+      const depth = v.y + Math.abs(Math.sin(v.facing)) * len / 2 + Math.abs(Math.cos(v.facing)) * wid / 2;
+      things.push({ d: depth, draw: () => {
+        if (isBus) {
+          box(v.x, v.y, len, wid, h, v.facing, v.crashed ? 0x444444 : team!.colour2, v.crashed ? 0x666666 : team!.colour);
+          // Windscreen at the front, and the name along the roof.
+          const fx = v.x + Math.cos(v.facing) * (len / 2 - 0.6), fy = v.y + Math.sin(v.facing) * (len / 2 - 0.6);
+          box(fx, fy, 0.8, wid * 0.9, h + 0.05, v.facing, 0x223344, 0x2f4a66);
+          const lx2 = P.sx(v.x, v.y), ly2 = P.sy(v.x, v.y, h);
+          g.fillStyle(0xffffff, 0.92).fillRect(lx2 - P.S * 2.2, ly2 - P.S * 0.25, P.S * 4.4, P.S * 0.55);
+        } else {
+          box(v.x, v.y, len, wid, h, v.facing, 0xb8862f, 0xd9a441);
+          const fx = v.x + Math.cos(v.facing) * (len / 2 - 0.9), fy = v.y + Math.sin(v.facing) * (len / 2 - 0.9);
+          box(fx, fy, 1.8, wid, h * 0.85, v.facing, 0x1d3f66, 0x2d5a8a);
+        }
+        const open = isBus ? holdOpen(v) : v.state === "loading" || v.state === "unloading";
+        if (open) {
+          const rr = { x: v.x - Math.cos(v.facing) * (len / 2), y: v.y - Math.sin(v.facing) * (len / 2) };
+          g.fillStyle(0x1a1208, 0.9).fillCircle(P.sx(rr.x, rr.y), P.sy(rr.x, rr.y, 0.8), P.S * 0.7);
+        }
       } });
     }
 
@@ -568,7 +591,8 @@ class StadiumScene extends Phaser.Scene {
     $("money").textContent = `£${pc.money}`;
     const area = areaAt(pc.x, pc.y);
     const bad = looksOutOfPlace(this.w, pc);
-    const where = pc.hiddenIn ? "Hiding in the back of the lorry" : pc.heldBy ? "Being frogmarched" : area.name + (bad ? " · you shouldn't be here" : "");
+    const busV = st.vehicles.bus;
+    const where = busV?.drivenBy === pc.id ? `Driving the ${m.teams[1].name} team bus` : pc.hiddenIn ? (pc.hiddenIn === busV?.cargo ? "Hiding in the bus's luggage hold" : `Hiding in the back of the ${VENUE.delivery.name}`) : pc.heldBy ? "Being frogmarched" : area.name + (bad ? " · you shouldn't be here" : "");
     const wEl = $("where");
     if (wEl.textContent !== where) wEl.textContent = where;
     wEl.classList.toggle("bad", bad && !pc.hiddenIn);

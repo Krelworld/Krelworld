@@ -446,3 +446,57 @@ test("the police uniform is in the van, and confiscated things can be taken back
   pc.x = SPOTS.locker.x - 1; pc.y = SPOTS.locker.y;
   assert.equal(dispatch(g.w, { verb: "takeout", actor: pc.id, item: knife.id }).ok, true);
 });
+
+// ---------- The team bus ----------
+test("the away team ride the bus from the hotel and arrive before kick-off", () => {
+  const g = createGame("busride");
+  const s = g.w.state, m = s.match!;
+  const events: string[] = [];
+  g.w.bus.on((e) => events.push(e.type));
+  run(g, 300);
+  assert.ok(events.includes("bus_departs") && events.includes("bus_arrives"));
+  assert.ok(!events.includes("kickoff_delayed"));
+  const away = m.teams[1].squad.slice(0, 11).map((id) => s.actors[id]);
+  assert.ok(away.every((a) => !a.hiddenIn && VENUE.inside(a.x, a.y)), "all eleven inside the ground");
+});
+
+test("a tampered bus crashes, players are hurt, and kick-off is delayed", () => {
+  const g = createGame("tamper");
+  const s = g.w.state, pc = pcOf(g), v = s.stadium!.vehicles.bus;
+  const knife = spawnItem(s, "knife", { k: "hand", a: pc.id });
+  pc.x = v.x; pc.y = v.y + 2.2;
+  assert.equal(dispatch(g.w, { verb: "tamper", actor: pc.id, item: knife.id }).ok, true);
+  const events: any[] = [];
+  g.w.bus.on((e) => events.push(e));
+  run(g, 260);
+  assert.ok(events.some((e) => e.type === "bus_crash"));
+  assert.ok(events.some((e) => e.type === "kickoff_delayed") || s.match!.phaseUntil > 60 * 330, "kick-off waits");
+});
+
+test("drive the bus at people and their team are docked a goal; caught, and it reverses", () => {
+  const g = createGame("busjack");
+  const s = g.w.state, pc = pcOf(g), v = s.stadium!.vehicles.bus, m = s.match!;
+  run(g, 200); // after it has arrived and the driver has gone for his tea
+  const door = { x: v.x + Math.cos(v.facing) * 3.9 + Math.sin(v.facing) * 2.2, y: v.y + Math.sin(v.facing) * 3.9 - Math.cos(v.facing) * 2.2 };
+  pc.x = door.x; pc.y = door.y;
+  run(g, 3);
+  assert.equal(dispatch(g.w, { verb: "drive", actor: pc.id }).ok, true);
+  // Put a cleaner in front of it and floor it.
+  const victim = find(g, (a) => a.npc?.job === "cleaner");
+  victim.x = v.x + Math.cos(v.facing) * 9; victim.y = v.y + Math.sin(v.facing) * 9;
+  victim.npc!.plan = [{ k: "wait", s: 30 }];
+  const events: any[] = [];
+  g.w.bus.on((e) => events.push(e));
+  run(g, 3, () => { pc.moveX = Math.cos(v.facing); pc.moveY = Math.sin(v.facing); });
+  pc.moveX = pc.moveY = 0;
+  assert.ok(events.some((e) => e.type === "bus_hit" && e.who === victim.id), "ran him down");
+  const blamed = s.stadium!.incidents.filter((i) => i.what.includes("bus")).map((i) => i.blamed);
+  assert.ok(blamed.includes("POR"), `blamed on ${blamed.join(",")}`);
+  run(g, 20);
+  assert.ok(events.some((e) => e.type === "bus_sanction" && !e.reversed), "the governing body acts");
+  const before = [...m.score];
+  for (const i of s.stadium!.incidents) if (i.what.includes("bus")) i.blamed = "ENG";
+  run(g, 1);
+  assert.ok(events.some((e) => e.type === "bus_sanction" && e.reversed), "and reverses it");
+  assert.notDeepEqual(m.score, before);
+});

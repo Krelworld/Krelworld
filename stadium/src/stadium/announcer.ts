@@ -41,6 +41,7 @@ export class Announcer {
         if (e.seen && e.severity >= 2 && e.blamed) this.out({ t: e.t, text: `Stewards are dealing with an incident involving a ${tn(e.blamed)} supporter.`, src: "tannoy", big: true });
         break;
       case "unmasked":
+        if (e.outer === "a bus") { this.out({ t: e.t, text: "Security now believe the driver of the team bus may have been an Englishman wearing an England shirt.", src: "commentary", big: true }); break; }
         this.out({ t: e.t, text: e.football
           ? `Security now believe the person responsible may have been an ${e.now === "ENG" ? "Englishman" : "individual"} wearing two football shirts.`
           : `Security now believe the person responsible was an ${e.now === "ENG" ? "England supporter" : "individual"} wearing ${String(e.outer).toLowerCase()} over his shirt.`, src: "commentary", big: true });
@@ -109,6 +110,23 @@ export class Announcer {
         if (a?.fb) this.out({ t: e.t, text: `${a.name} has been arrested for ${e.charge} by an officer who does not appear to be an officer.`, src: "commentary", big: true });
         break;
       }
+      case "bus_arrives":
+        this.once("busin", `The ${s.match!.teams[1].name} team have arrived at the ground.`, "commentary", false);
+        break;
+      case "bus_crash":
+        this.out({ t: e.t, text: `We're being informed that the ${s.match!.teams[1].name} team coach has been involved in an incident on its way to the ground.${e.hurt.length ? ` ${e.hurt.length === 1 ? e.hurt[0] + " is" : e.hurt.length + " players are"} not expected to play.` : ""}`, src: "commentary", big: true });
+        break;
+      case "kickoff_delayed":
+        this.out({ t: e.t, text: `Kick-off has been delayed. The ${s.match!.teams[1].name} team are still on their way.`, src: "tannoy", big: true });
+        break;
+      case "bus_stolen":
+        this.once("stolen", `Would the driver of the ${s.match!.teams[1].name} team bus please return to his vehicle.`, "tannoy", false);
+        break;
+      case "bus_sanction":
+        this.out({ t: e.t, text: e.reversed
+          ? "Security now believe the driver may have been an Englishman. The governing body has reversed its decision. England have forfeited a goal."
+          : `The stadium announcer has confirmed that ${s.match!.teams[1].name} have forfeited a goal, following an incident involving what officials believe to be the ${s.match!.teams[1].name} team bus.`, src: "tannoy", big: true });
+        break;
       case "camera_flag":
         this.once(`cam${Math.floor(e.t / 3600)}`, "Would a supervisor please attend turnstile two.", "tannoy", false);
         break;

@@ -5,9 +5,8 @@ import { defOf, hasProp } from "../core/items";
 import type { Action, Actor, Item } from "../core/types";
 import { possibleVerbs } from "../core/verbs";
 import type { World } from "../core/world";
-import { areaAt } from "./layout";
+import { areaAt, VENUE } from "./layout";
 import { climbPointNear, turnstileNear, SHOPS } from "./rules";
-import { cargoOpen } from "./vehicles";
 
 export interface Option {
   label: string;
@@ -29,6 +28,8 @@ export function options(w: World, pc: Actor): Option[] {
   const push = (label: string, priority: number, action: Action) => { if (ok(action)) out.push({ label, priority, action }); };
 
   if (pc.heldBy) return [{ label: "Struggle", priority: 100, action: { verb: "struggle", ...base } }];
+  const bus = s.stadium!.vehicles.bus;
+  if (bus?.drivenBy === pc.id) return [{ label: "Get out of the bus", priority: 100, action: { verb: "getout", ...base } }];
   if (pc.hiddenIn) return [{ label: "Climb out", priority: 100, action: { verb: "unhide", ...base } }];
   if (pc.seated) out.push({ label: "Stand up", priority: 90, action: { verb: "stand", ...base } });
 
@@ -46,9 +47,11 @@ export function options(w: World, pc: Actor): Option[] {
     if (d > 2.6) continue;
     const def = defOf(it);
     if (def.size !== "huge") push(`Pick up ${lc(def.name)}`, 70 - d, { verb: "take", ...base, item: it.id });
-    if (hasProp(it, "container") && it.def !== "locker") {
+    if (hasProp(it, "container") && it.def !== "locker" && it.def !== "police_box" && it.def !== "bus_cab") {
       const v = Object.values(s.stadium!.vehicles).find((vv) => vv.cargo === it.id);
-      if (!v || cargoOpen(v)) push("Hide in the back of the lorry", 72 - d, { verb: "hide", ...base, target: { k: "item", id: it.id } });
+      const label = it.def === "bus_hold" ? "Hide in the bus's luggage hold" : `Hide in the back of the ${VENUE.delivery.name}`;
+      push(label, 72 - d, { verb: "hide", ...base, target: { k: "item", id: it.id } });
+      void v;
     }
     // Containers with things inside: the police van, the confiscation locker.
     if (hasProp(it, "container") && d < 2.6) {
@@ -103,6 +106,12 @@ export function options(w: World, pc: Actor): Option[] {
     push("Disallow their goal", 62, { verb: "rule", ...base, arg: "disallow" });
     push("Blow for full time", 20, { verb: "rule", ...base, arg: "fulltime" });
     push("Stop play", 15, { verb: "rule", ...base, arg: "stop" });
+  }
+
+  // The team bus.
+  if (bus && !bus.crashed && !bus.drivenBy) {
+    push(`Get in the driver's seat of the ${s.match!.teams[1].name} bus`, 45, { verb: "drive", ...base });
+    if (pc.hand) push("Tamper with the bus", 20, { verb: "tamper", ...base, item: pc.hand });
   }
 
   // Places.

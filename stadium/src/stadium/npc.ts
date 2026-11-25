@@ -198,8 +198,27 @@ function routine(w: World, a: Actor): void {
 
 /** Footballers and officials before kick-off and at half-time: in and out of the dressing rooms. */
 function teamWalk(w: World, a: Actor): void {
-  const s = w.state, m = s.match!, n = a.npc!;
+  const s = w.state, m = s.match!, n = a.npc!, st = s.stadium!;
   if (m.cfg.venue !== true || (m.phase !== "pre" && m.phase !== "break")) { n.goal = null; n.path = []; return; }
+  // The away team come by bus: wait at the hotel, then board when it's time.
+  const bus = st.vehicles.bus;
+  if (a.fb?.team === 1 && m.phase === "pre" && bus && !st.flags.busArrived && !bus.crashed && !bus.drivenBy) {
+    if (a.hiddenIn === bus.cab) return;
+    if (st.flags.boarding) {
+      const door = { x: bus.x + Math.cos(bus.facing) * 3.9 + Math.sin(bus.facing) * 2.2, y: bus.y + Math.sin(bus.facing) * 3.9 - Math.cos(bus.facing) * 2.2 };
+      if (Math.hypot(a.x - door.x, a.y - door.y) < 1.6) { a.hiddenIn = bus.cab; return; }
+      if (!n.goal || Math.hypot(n.goal.x - door.x, n.goal.y - door.y) > 1) goTo(a, door.x, door.y);
+    } else {
+      const k = a.fb.number;
+      const tx = SPOTS.hotelLobby.x + ((k % 5) - 2) * 1.6, ty = SPOTS.hotelLobby.y + (Math.floor(k / 5) - 1) * 1.6;
+      if (Math.hypot(a.x - tx, a.y - ty) > 0.5 && (!n.goal || Math.hypot(n.goal.x - tx, n.goal.y - ty) > 0.5)) goTo(a, tx, ty);
+    }
+    const done = follow(w, a);
+    a.fb.tx = done ? a.x : n.path[n.pathI] ?? a.x; a.fb.ty = done ? a.y : n.path[n.pathI + 1] ?? a.y; a.fb.sprint = false;
+    a.moveX = a.moveY = 0;
+    return;
+  }
+  if (a.hiddenIn && a.fb) return;
   const left = (m.phaseUntil - s.tick) / 60;
   const out = left < (m.phase === "pre" ? 55 : 30) || (m.phase === "break" && m.period !== 1);
   let tx: number, ty: number;

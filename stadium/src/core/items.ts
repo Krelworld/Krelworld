@@ -19,6 +19,8 @@ export const ITEM_DEFS: Record<string, ItemDef> = Object.fromEntries(
     { id: "shirt_bra", name: "Brazil shirt", props: ["wearable"], size: "large", slot: "outer", team: "BRA", role: "fan", price: 45, colour: 0xf7d417, colour2: 0x1a7f3c },
     { id: "shirt_arg", name: "Argentina shirt", props: ["wearable"], size: "large", slot: "outer", team: "ARG", role: "fan", price: 45, colour: 0x7ec8f2, colour2: 0xffffff },
     { id: "police_uniform", name: "Police uniform", props: ["wearable"], size: "large", slot: "outer", role: "police", authority: 2, colour: 0x101830, colour2: 0xd9e021 },
+    { id: "bus_hold", name: "Luggage hold of the team bus", props: ["container"], size: "huge" },
+    { id: "bus_cab", name: "Team bus", props: ["container"], size: "huge" },
     { id: "police_box", name: "Kit box in the police van", props: ["container"], size: "huge", colour: 0x22305a },
     { id: "staff_pass", name: "Staff pass on a lanyard", props: ["credential"], size: "small", colour: 0x3a7bd5 },
     { id: "hivis", name: "Hi-vis vest", props: ["wearable"], size: "large", slot: "outer", role: "steward", authority: 1, colour: 0xd9e021, colour2: 0x9aa31a },

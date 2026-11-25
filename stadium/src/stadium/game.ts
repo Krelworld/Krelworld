@@ -9,6 +9,7 @@ import { newCampaign, type Campaign } from "./campaign";
 import { mayPass, newNpc, resetPathBudget, secs, spawnFan, spawnStaff, stepNpc } from "./npc";
 import { installBetting, installSettlement } from "./betting";
 import { installPolice, stepTipoffs } from "./police";
+import { createBus, driveBus, installBus, stepBus, stepBusSanctions, stepLateTeam } from "./bus";
 import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
@@ -31,7 +32,7 @@ export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
 export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
-  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); rulesInstalled = true; }
+  if (!rulesInstalled) { installRules(); installBetting(); installPolice(); installBus(); rulesInstalled = true; }
   setVenue(venueId);
   const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
@@ -49,9 +50,9 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   s.stadium = st;
 
   const m = createMatch(w, TEAMS.ENG, opp, { preSeconds: KICKOFF_AT, venue: true, halfSeconds: HALF_SECONDS, halfTimeSeconds: HALFTIME_SECONDS, knockout: true });
-  // Teams and officials start in their dressing rooms.
+  // England start in their dressing room; the opposition at their hotel, waiting for the bus.
   for (const t of [0, 1] as const) {
-    const room = t === 0 ? SPOTS.homeRoom : SPOTS.awayRoom;
+    const room = t === 0 ? SPOTS.homeRoom : SPOTS.hotelLobby;
     m.teams[t].squad.forEach((id, i) => {
       const a = s.actors[id];
       a.x = room.x + ((i % 5) - 2) * 1.6; a.y = room.y + (Math.floor(i / 5) - 1) * 1.6;
@@ -125,6 +126,7 @@ export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: 
   const cargo = spawnItem(s, "lorry_cargo", { k: "ground", x: lx, y: ly - 4 });
   const driver = spawnStaff(w, "driver", "catering", VENUE.id === "qf" ? "Lorry driver" : "Van driver", lx, ly);
   spawnStaff(w, "worker", "catering", VENUE.id === "qf" ? "Drayman" : "Caterer", lx - 2 * Math.sign(lx || 1), ly - 4).npc!.post = undefined;
+  createBus(w, oppKey);
   st.vehicles.lorry = { id: "lorry", kind: "lorry", x: lx, y: ly, facing: S, route: [lx, ly], ri: 0, speed: 0, state: "loading", until: 60 * 45, cargo: cargo.id, driver: driver.id, cycle: 0, inspected: false };
 
   // Things lying about, for whoever finds them.
@@ -203,13 +205,15 @@ export function stepGame(g: Game): void {
     giveFanThings(w, spawnFan(w, away, false));
   }
 
+  const pc = s.actors[st.pc];
+  const bus = st.vehicles.bus;
+  if (bus && pc && bus.drivenBy === pc.id) driveBus(w, bus, pc);
   for (const id in s.actors) {
     const a = s.actors[id];
     if (!a.npc) continue;
     if (isSecurity(a)) stepSecurity(w, a);
     stepNpc(w, a);
   }
-  const pc = s.actors[st.pc];
   if (pc && (pc.heldBy || pc.hiddenIn || pc.seated)) { pc.moveX = pc.moveY = 0; }
   const pcSpeed = pc ? pc.speed : 0;
   if (pc) {
@@ -233,9 +237,13 @@ export function stepGame(g: Game): void {
     collide(w, a);
   }
   for (const id in st.vehicles) {
-    stepVehicle(w, st.vehicles[id]);
-    for (const hit of lorryHits(w, st.vehicles[id])) w.bus.emit({ type: "run_over", t: s.tick, who: hit.id });
+    const v = st.vehicles[id];
+    if (v.kind === "bus") { stepBus(w, v); continue; }
+    stepVehicle(w, v);
+    for (const hit of lorryHits(w, v)) w.bus.emit({ type: "run_over", t: s.tick, who: hit.id });
   }
+  stepBusSanctions(w);
+  stepLateTeam(w);
   stepRules(w);
   stepTipoffs(w);
   stepDetention(w);

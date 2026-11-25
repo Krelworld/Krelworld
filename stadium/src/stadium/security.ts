@@ -276,6 +276,12 @@ function apprehend(w: World, g: Actor, t: Actor): void {
   n.escortTo = { x: dest.x, y: dest.y };
   n.escortAt = w.state.tick; n.grip = 0;
   goTo(g, dest.x, dest.y);
+  // Caught soon after climbing out of a bus that has been mowing people down: it was him.
+  if (st.flags.leftBusAt && w.state.tick - st.flags.leftBusAt < 60 * 120 && t.id === st.pc) {
+    let changed = false;
+    for (const inc of st.incidents) if (inc.by === t.id && inc.what.includes("bus") && inc.blamed !== appearance(w.state, t).team) { inc.blamed = appearance(w.state, t).team ?? "ENG"; changed = true; }
+    if (changed) w.bus.emit({ type: "unmasked", t: w.state.tick, who: t.id, was: w.state.stadium!.vehicles.bus?.team, now: "ENG", outer: "a bus", football: false });
+  }
   // Pull off an outer layer and see what is underneath, if it was a shirt that did the talking.
   if (n.intent !== "warn" && t.worn.outer && n.crime >= 1) revealShirt(w, g, t);
 }

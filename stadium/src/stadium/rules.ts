@@ -15,6 +15,7 @@ import { areaAt, SPOTS, TURNSTILES, VENUE, WALLS } from "./layout";
 import { say } from "./npc";
 import { alert, crime, isSecurity, struggle, witnessesOf } from "./security";
 import { cargoOpen } from "./vehicles";
+import { holdOpen } from "./bus";
 
 export const SHOPS: Record<string, { name: string; stock: Record<string, number> }> = {
   ticket: { name: "Ticket office", stock: { ticket: 60 } },
@@ -131,7 +132,7 @@ export function installRules(): void {
       const l = it.loc;
       if (l.k !== "ground" || !near(actor, l, 2.6)) return "too far";
       const v = Object.values(w.state.stadium!.vehicles).find((vv) => vv.cargo === it.id);
-      if (v && !cargoOpen(v)) return "the back is shut";
+      if (v && !(v.kind === "bus" ? holdOpen(v) : cargoOpen(v))) return "the back is shut";
       return null;
     },
     perform: (w, act, actor) => {

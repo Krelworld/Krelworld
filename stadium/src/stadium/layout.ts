@@ -77,6 +77,8 @@ const QF_AREAS: Area[] = [
   { id: "pub_cubicle", name: "Toilet cubicle", access: "public", floor: 0x8e9aa0, private: true, outside: true, ...r(-62, 62, -59, 65) },
   { id: "pub_yard", name: "Pub yard", access: "public", floor: C.yard, outside: true, ...r(-34, 64, -22, 80) },
   { id: "cabin", name: "Stewards' cabin", access: "staff", roles: ["steward", "police"], floor: C.cabin, outside: true, ...r(76, 50, 88, 58) },
+  { id: "hotel_court", name: "Hotel forecourt", access: "public", floor: 0x4a4f55, outside: true, ...r(72, -14, 92, -2) },
+  { id: "hotel", name: "Team hotel", access: "staff", roles: ["footballer", "catering", "steward", "police"], floor: 0x5a4a5e, outside: true, ...r(74, -40, 92, -14) },
   { id: "carpark", name: "Car park", access: "public", floor: 0x34373b, outside: true, ...r(26, 62, 60, 82) },
   { id: "charity", name: "Second Hand Rose (charity shop)", access: "public", floor: 0x4a3f38, outside: true, ...r(-18, 62, -4, 72) },
   { id: "surplus", name: "Army & Navy Surplus", access: "public", floor: 0x3d4434, outside: true, ...r(8, 62, 22, 72) },
@@ -141,6 +143,9 @@ const QF_WALLS: Wall[] = [
   wall(7.5, 61.5, 13, 62, 3, 0x4d5640, 0x6d7660), wall(17, 61.5, 22.5, 62, 3, 0x4d5640, 0x6d7660),
   wall(7.5, 62, 8, 72.5, 3, 0x4d5640, 0x6d7660), wall(22, 62, 22.5, 72.5, 3, 0x4d5640, 0x6d7660), wall(7.5, 72, 22.5, 72.5, 3, 0x4d5640, 0x6d7660),
   wall(10, 68.6, 20, 69.4, 1.1, 0x5a4a30, 0x7a6a50),
+  // The team hotel: doors onto the forecourt.
+  wall(74, -40.5, 92, -40, 6, 0x6a5a70, 0x8a7a90), wall(73.5, -40.5, 74, -14, 6, 0x6a5a70, 0x8a7a90),
+  wall(74, -14.5, 80, -14, 6, 0x6a5a70, 0x8a7a90), wall(84, -14.5, 92, -14, 6, 0x6a5a70, 0x8a7a90),
   // Bookmaker's, door at the bottom; counter across the back. And a betting kiosk on the concourse.
   wall(27.5, 61.5, 44.5, 62, 3.2, 0x4a3d60, 0x6a5d80), wall(27.5, 62, 28, 72.5, 3.2, 0x4a3d60, 0x6a5d80), wall(44, 62, 44.5, 72.5, 3.2, 0x4a3d60, 0x6a5d80),
   wall(27.5, 72, 34, 72.5, 3.2, 0x4a3d60, 0x6a5d80), wall(38, 72, 44.5, 72.5, 3.2, 0x4a3d60, 0x6a5d80),
@@ -173,7 +178,7 @@ const QF_SPOTS = {
   ticketSeller: { x: 21, y: 46.2 },
   merchSeller: { x: -21, y: 46.2 },
   doorPost: { x: 59.5, y: 48.6 },
-  gatePost: { x: 59.5, y: -39.2 },
+  gatePost: { x: 60, y: -36.6 },
   gateInspect: { x: 71.2, y: -44.8 },
   corridorPost: { x: 0, y: -43 },
   chiefDesk: { x: 34, y: -55 },
@@ -192,6 +197,9 @@ const QF_SPOTS = {
   kioskCounter: { x: 30, y: 40.8 },
   cabinDoor: { x: 75, y: 53.5 },
   policeVan: { x: 32, y: 54.5 },
+  hotelLobby: { x: 83, y: -24 },
+  busPark: { x: 83, y: -7 },
+  busBay: { x: 46, y: -40.8 },
 };
 
 /** Turnstile gate ids, west to east. */
@@ -217,6 +225,8 @@ export interface Venue {
   labels: [string, number, number, number?][];
   /** The delivery vehicle's run: there and back; the gate it stops at; doors the crew carry crates to. */
   delivery: { name: string; route: number[]; gateStop: P; loadDoor: P; unloadDoor: P; gateInspect: number };
+  /** The team bus: hotel forecourt to the loading bay. */
+  busRoute: number[];
   /** Walks for the people with rounds. */
   patrolLoop: P[]; policeSpots: P[]; cleanerSpots: P[]; corridorSpots: P[];
   /** Where you can climb a wall, if anywhere. */
@@ -253,7 +263,7 @@ const QF_LABELS: Venue["labels"] = [
   ["STAFF ENTRANCE", 59.5, 52.4], ["STEWARDS", 82, 54], ["SERVICE GATE", 66, -48], ["LOADING BAY", 50, -54],
   ["SECURITY", 34, -51], ["ENGLAND", -17, -50], ["AWAY", 17, -50], ["OFFICIALS", 0, -50.5], ["KITCHEN", -34, -50],
   ["SECOND HAND ROSE", -11, 64.5], ["ARMY & NAVY", 15, 64.5], ["BOOKMAKER", 36, 69.5], ["BETS", 30, 40.4],
-  ["BAR", -13, 40.6], ["GENTS", 10, 39.6], ["CAR PARK", 43, 72], ["TOILETS", -58, 67],
+  ["BAR", -13, 40.6], ["GENTS", 10, 39.6], ["CAR PARK", 43, 72], ["TOILETS", -58, 67], ["TEAM HOTEL", 83, -30, 12],
 ];
 
 export const VENUES: Record<Venue["id"], Venue> = {
@@ -261,6 +271,7 @@ export const VENUES: Record<Venue["id"], Venue> = {
     id: "qf", round: "quarter-final", opp: "POR", ground: "Wembley Park",
     areas: QF_AREAS, walls: QF_WALLS, spots: QF_SPOTS, labels: QF_LABELS,
     delivery: { name: "beer lorry", route: [-28, 74, -28, 88, 67, 88, 67, -43, 56, -43, 50, -44], gateStop: { x: 67, y: -43 }, loadDoor: { x: -34.8, y: 68 }, unloadDoor: { x: 46, y: -48.6 }, gateInspect: 0.25 },
+    busRoute: [83, -7, 67, -7, 67, -41, 56, -41, 46, -40.8],
     patrolLoop: [{ x: -45, y: 41 }, { x: 45, y: 41 }, { x: 53, y: 0 }, { x: 45, y: 41 }, { x: -45, y: 41 }, { x: -53, y: 0 }],
     policeSpots: [{ x: -30, y: 58 }, { x: 10, y: 55 }, { x: -46, y: 82 }, { x: 30, y: 57 }],
     cleanerSpots: [{ x: -30, y: 40 }, { x: 30, y: 40 }, { x: 10, y: 41 }, { x: 53, y: 20 }, { x: -53, y: -20 }],
@@ -290,6 +301,7 @@ function buildSemiFinal(): Venue {
   return {
     id: "sf", round: "semi-final", opp: "BRA", ground: "Estadio del Sol",
     areas, walls, spots, labels,
+    busRoute: mirrorRoute([83, -7, 67, -7, 67, -41, 56, -41, 46, -40.8]),
     delivery: { name: "catering van", route: mirrorRoute([-28, 74, -28, 88, 67, 88, 67, -43, 56, -43, 50, -44]), gateStop: { x: -67, y: -43 }, loadDoor: { x: 34.8, y: 68 }, unloadDoor: { x: -46, y: -48.6 }, gateInspect: 0.55 },
     patrolLoop: [{ x: 45, y: 41 }, { x: -45, y: 41 }, { x: -53, y: 0 }, { x: -45, y: 41 }, { x: 45, y: 41 }, { x: 53, y: 0 }],
     policeSpots: [{ x: 30, y: 58 }, { x: -10, y: 55 }, { x: 46, y: 82 }, { x: -30, y: 57 }, { x: 0, y: 49 }],

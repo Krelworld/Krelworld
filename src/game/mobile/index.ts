@@ -39,6 +39,7 @@ import { PhoneArt } from "./art";
 import { PhoneAudio } from "./audio";
 import { PhonePerf } from "./perf";
 import { askToKeepSaves, bootLoadHeld, holdBootLoad, storageState } from "./storage";
+import { installScenes } from "./scenes";
 
 export { isMobile, setMobileForTests, mobileWhy, rememberPhoneMode } from "./flag";
 export { registerModeController, unregisterModeController, type ModeController, type ModeContext, type ControlSpec, TouchControl, TouchLayer } from "./touchLayer";
@@ -146,6 +147,8 @@ export function installMobile(game: Phaser.Game) {
       return true;
     },
   });
+  // stage 3 wave 2: the special scenes (Night of Freedom's gun, Beep Beep's pedals, skip pills, the telly's subtitles)
+  const scenes = installScenes(game, layer, shell);
   layer.onFullscreen = () => shell.goFullscreen();
   let releaseLoad: (() => void) | null = null;
   const guide = new HomeScreenGuide(parent, {
@@ -279,6 +282,7 @@ export function installMobile(game: Phaser.Game) {
     diag,
     combat,
     tapUse,
+    scenes,
     brawl,
     pad,
     picture,

@@ -12,6 +12,8 @@ import { dir, gabor, say } from "../../content/dsl";
 import { damageMult } from "../systems/stats";
 import { TOUCH } from "../ui/TouchControls";
 import { Drawbridge } from "./drive/Drawbridge";
+import { isMobile } from "../mobile/flag";
+import { phoneHooks } from "../mobile/boot";
 
 type FoeKind = "cop" | "unmarked" | "swat" | "heli" | "spikes" | "tank" | "ramp";
 type Foe = {
@@ -1118,7 +1120,11 @@ export class DriveScene extends Phaser.Scene {
     const gy = this.truck.y + this.gun.y;
     let aimX = ptr.worldX;
     let aimY = ptr.worldY;
-    if (ptr.wasTouch) {
+    const phoneAim = isMobile() ? (phoneHooks()?.gunAim?.(this, ptr) ?? null) : null;
+    if (phoneAim) {
+      aimX = phoneAim.x;
+      aimY = phoneAim.y;
+    } else if (ptr.wasTouch) {
       const target = this.foes.filter((f) => !f.dead && f.kind !== "spikes" && f.kind !== "ramp").sort((a, b) => Math.abs(a.spr.x - gx) - Math.abs(b.spr.x - gx))[0];
       if (target) {
         aimX = target.spr.x;

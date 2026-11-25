@@ -131,6 +131,18 @@ Hooks added in stage 2, part 2 (side rooms, the brawl, finishers, a controller).
 | `src/game/combat/Controls.ts` `aim()` (inside the existing phone block) | a connected pad's right stick past 0.5 aims | A controller on the phone (S6) |
 | `src/game/scenes/MenuScene.ts` `openControls()` | first line: `if (isMobile() && phoneHooks()?.controlsPicture?.()) return;` (and `phoneHooks` added to the boot import) | The Controls picture. No row added or moved, so the other builder's PHONE SETTINGS row merges cleanly |
 
+Hooks added in stage 2, review fix round 1 (all `if (isMobile())` / `isMobile() ? a : b`; the laptop fingerprint is
+unchanged):
+
+| Where | What | Why |
+|---|---|---|
+| `src/game/scenes/DungeonScene.ts` `update()` | `if (!(isMobile() && this.side && !this.busy)) leadCamera(...)` | Phone side rooms: side.ts's look-ahead is the whole camera (frame-rate independent follow; F4) |
+| `src/game/scenes/side/SideLevel.ts` pit respawn | `p.spr.setPosition(isMobile() ? (phoneHooks()?.pitRespawn?.(this, p.x, this.lastSafeX, this.room.w, now) ?? this.lastSafeX) : this.lastSafeX, gy - 70)` | Phone assist: put back 120 px short of the edge, the held stick waits (P2) |
+| `src/game/combat/Kreltality.ts` `prompt()` | `if (closePhone) for (const o of [yesB, noB, bar]) o.setVisible(false).disableInteractive()` | One pair of targets on a phone (the phone's big two; the countdown is a ring on KRELTALITY; P7) |
+| `src/game/combat/HeroPassengers.ts` `krelAllPrompt()` | the same as Kreltality: labels without (K) / (ESC), `phoneHooks()?.finisher?.({ yes, no, ms: 8000, all })`, canvas pair hidden, `closePhone()` in `done()` (and imports) | Flight KR-069's finisher on a phone (R3) |
+| `src/game/combat/Wonk.ts` | title x `isMobile() ? 548 : 480` (and the flag import) | Clear of the HUD's KREZZ / WONK lines (P14) |
+| `src/game/scenes/PubScene.ts` `drawMenu` | `cardStep = isMobile() ? max(72, min(96, room / rows)) : 72`, card height to match (and the flag import) | Taller cards for the bigger text (P6; screens.ts restacks the words) |
+
 Things the phone chunk does to the running game from outside (phones only, no scene file edited): the walking scenes'
 prompt Texts and a few UI Texts get touch wording (`wordText`); "toast" events are reworded before the UI scene draws
 them; the Hub's follower's `enabled()` is wrapped so "Shove Mikey" ranks below anything else in range
@@ -282,7 +294,9 @@ only there when the game would let you swap (not while golden).
 
 **Aiming** (`aim.ts`, research M2): every frame the target is the nearest enemy within 520 world px and on screen,
 scored `distance x (1 - bias x cos(angle to the stick))` (bias 0.35 normal, 0.5 strong, 0 off), sticky (a new one must
-score under 0.6x the current one, 0.45x strong). With no enemy about, holding FIRE aims at the nearest barrel or crate.
+score under 0.6x the current one, 0.45x strong). Whenever some enemy is inside the gun's own range, only those count
+(`fireRange`): a sticky target the gun can't reach never holds the aim, or auto-fire, while another walks up inside it.
+With no enemy about, holding FIRE aims at the nearest barrel or crate.
 A red ring sits at the target's feet (orange for an object). Strong aim leads moving targets. Aim assist off: FIRE
 shoots straight ahead (the last stick direction) and slides don't snap; auto-fire still aims at what it shoots.
 
@@ -334,17 +348,20 @@ speed are the game's):
 | | Laptop (unchanged) | Phone (`JUMP_TUNE`) |
 |---|---|---|
 | Trigger | W / Up / stick up | JUMP on touch-down (a pad's up / stick up still works) |
-| Buffer | none | 150 ms (40 ms with phone assist off) |
-| Coyote | 110 ms | 140 ms (110 with phone assist off) |
+| Buffer | none | 150 ms (40 ms with phone assist off). A press made while no step runs (a dodge, a hit-stop over 100 ms) counts from the first step after it, as a held key does on a laptop |
+| Coyote | 110 ms | 140 ms (110 with phone assist off), judged at the moment of the press, not the frame that reads it |
+| Take-off on 120 / 144 Hz | (two full jumps, laptop as it was) | right after a take-off, while rising, "on the ground" (the 60 Hz physics not stepped yet) never gives the jumps back: one first jump and one air jump at any frame rate |
 | Height | always the full jump | released early = cut at the later of the release and 80 ms after take-off, to 300 px/s (air jump 260): tap about 76-78 px, hold about 140-145 px. Worked out from the height already climbed, so a slow frame doesn't give a taller hop |
 | Double jump | release the stick and push up again | a second press of JUMP (buffered like the first) |
 | Air control | 140 ms easing | 100 ms (140 with assist off) |
-| Drop through | stick down past 0.6 | stick held down past 0.7 (sideways under 0.35) for 150 ms, or stick down + JUMP on a platform (`DropRule`); the layer's `stickRaw` keeps the stick's y for this even though it drives x only |
+| Drop through | stick down past 0.6 | stick held down past 0.7 (sideways under 0.35) for 150 ms, or stick down past 0.5 and sideways under 0.35 + JUMP on a platform (`DropRule`); the layer's `stickRaw` keeps the stick's y for this even though it drives x only |
+| Pits | back at the last safe spot | phone assist: back at least 120 px short of the edge (`pitSafeX`); the stick doesn't walk you toward the pit again until the thumb comes back to the middle or JUMP is pressed (3 s at most); walking away works at once |
 | One-way landing | 14 px | 20 px (phone assist) |
 | Ledge pop / corner correction | none | feet within 8 px below a top, beside it and moving toward it, are put on it (platform tops 4 px wider); a head clipping a solid corner by up to 40% of the body is nudged past it (phone assist) |
 | Moving platforms | carried while standing | their speed kept 100 ms after stepping / jumping off |
 | Crushers / steam | art-sized | reach x0.88 (phone assist, `ASSIST.hazard`) |
-| Camera | lerp 0.12, 80 x 60 dead zone | dead zone 0 x 200, player at 35% / 65% of the width (follow offset -/+144), turning after 0.4 s the other way, eased; the view leads 60 px down while falling |
+| Camera | lerp 0.12, 80 x 60 dead zone | dead zone 0 x 200, player at 35% / 65% of the width (follow offset -/+144), turning after 0.4 s the other way, eased; the view leads 60 px down while falling. The follow is the game's 0.12 a frame made frame-rate independent (`camLerp`) plus the trail it leaves (`camLagPx`), so 35% / 65% holds at 30, 60 and 120 Hz; the laptop's small velocity lead is skipped in phone side rooms |
+| Hazards under the buttons | n/a | pits (and their names), moving platforms and crushers are occluders: JUMP / FIRE go see-through over them |
 
 `window.__krelMobile.combat.side.snapshot()`: held, jumps, the waiting press, coyote, the stick's raw direction, the
 look-ahead, and the last jumps (`log`: kind, take-off and apex, ms waited in the buffer, ms since the ground).
@@ -354,17 +371,23 @@ layer shows PUNCH (prime, 84), BLOCK (left, hold), VANISH (upLeft), KICK (up), K
 and the town's stick; they feed the brawl's own `pad.edges` / `pad.held`, so its hits, freezes and shakes are the game's.
 During the finishing rush the buttons hide and a full-screen overlay makes every finger a punch. Wording (UI only,
 `BRAWL_WORDING`): the boss card's `HOLD R TO BLAST KI` line, `MASH PUNCH!` → `TAP TAP TAP!`, the corner's
-`Esc: skip fight` hides. The brawl's own how-to legend (its first 9 seconds) moves up under the two health bars on a
+`Esc: skip fight` hides; instead the brawl has its own **II** (`b-pause`): the shell's carry-on card with a **SKIP FIGHT**
+button (`shell.pauseCard()`), which does what Esc does on a laptop (`Finale.finish(true)`). The rush's taps (and the
+WONK gauge's) are queued and handed over one a frame (`MashQueue`), so two thumbs in one frame are two presses. The brawl's own how-to legend (its first 9 seconds) moves up under the two health bars on a
 phone, so the bigger text never runs under PUNCH and BLOCK (`fitLegend`). **The Krezz Arms pub brawl** needs nothing: the Pub is mode none (every touch reaches the
 canvas, which swings on any tap) and its line already reads `BRAWL! Tap to swing`.
 
 **The Kreltality prompt** (`Kreltality.ts` `prompt()`, any fight): on a phone its buttons drop the key names and
-`phoneHooks().finisher()` adds a big pulsing ☠ KRELTALITY (1.25x the prime slot) under the right thumb and SPARE at the
-ACTION slot; the game's own buttons still work; the prompt's close removes them.
+`phoneHooks().finisher()` adds a big pulsing ☠ KRELTALITY (1.25x the prime slot) under the right thumb, its countdown
+as a ring round it, and SPARE at the ACTION slot; the game's own pair and bar hide (two targets for two choices). Both
+ignore touches for 400 ms after they appear (`FINISHER_ARM_MS`: a FIRE tap can't pick before the question is read) and
+are placed again on every layout (`layer.onLayout`); the prompt's close removes them. Flight KR-069's hero passengers'
+"ALL OF THEM" prompt (`HeroPassengers.krelAllPrompt`) uses the same (its 8 s countdown, ALL OF THEM on the button).
 
-**A controller** (`pad.ts`, research S6 / DEFERRED R11): polled each game step; the first button or stick push sets
-`input: "pad"` in the decision (`setInputSource`), the layer root gets `padin` and every control hides; the next
-touchstart anywhere brings them back. A pushed right stick aims (`Controls.aim`'s guarded block; combat.ts's aim hook
+**A controller** (`pad.ts`, research S6 / DEFERRED R11): polled each game step; a button going down or an axis moving more than 0.35 from where
+it rests (`padWoke` against `padRest`: a trigger resting at -1, a drifting stick or a button resting down never counts)
+sets `input: "pad"` in the decision (`setInputSource`), the layer root gets `padin` and every control hides; the next
+touchstart anywhere brings them back, and the pad as it is then becomes its rest. A pushed right stick aims (`Controls.aim`'s guarded block; combat.ts's aim hook
 steps aside). Note for the phone settings page: `PAD_NOTE` in controlsPicture.ts ("A Bluetooth controller works...").
 
 **The Controls picture** (`controlsPicture.ts`, research S10): `MenuScene.openControls()` asks
@@ -374,7 +397,12 @@ line each, in tabs WALKING / FIGHTS / SIDE ROOMS / BRAWL (it opens on the one fo
 to the menu.
 
 **Fullscreen offer in fights** (Android, after leaving fullscreen): shown in combat / side / brawl too (not over a mash
-or the picker), at the `fullscreenFight` slot under pause, clear of the weapon chip and READY.
+or the picker), at the `fullscreenFight` slot 12 px under pause at any screen height (`layoutSlots` puts it there),
+clear of the weapon chip; READY starts below it while it shows (`placeReady`).
+
+**The cutout band** (`layout.ts`): with side insets, a control between 30% and 70% of the height keeps
+`islandGap()` = min(60, inset + 13) from a short edge: 60 for the iPhone's Dynamic Island (inset 47), less for an
+Android camera cutout (16-40), so SPECIAL is never pushed onto DODGE nor READY onto HEAL there.
 
 ## Input rules the layer keeps
 
@@ -517,7 +545,9 @@ Tab skip, Esc pause and number keys are the box's own and nothing here runs.
   save slots, a broadcast, a Kreltality, the weapon picker, and while the Krezz Arms' own chat bar shows.
   - SKIP = the laptop's Tab (`box.skipAll()`): runs to the next choice, reaction, broadcast, Kreltality or the end of
     the script, every skipped line still applying its flags, sounds, callbacks and log entry; it never skips a
-    choice (hidden while choosing). Single tap: what was skipped is in the LOG.
+    choice (hidden while choosing). It asks first (research M8): a tap on SKIP shows **KEEP READING** / **SKIP SCENE ▸▸**
+    (48 px, 12 px apart) right above the pills; it goes away by itself after 5 s, on Back, or with a second tap on
+    SKIP. What was skipped is in the LOG.
   - LOG: the lines shown since this conversation started (`dialogueLog()` from that point), in a native-scroll list
     (`overflow-y:auto; touch-action:pan-y`), newest at the bottom; ✕, a tap outside or Back closes it.
   - AUTO (for this visit; the game's own "Auto-advance dialogue" setting also counts): a voiced page moves on 700 ms
@@ -709,6 +739,27 @@ error (the crash guard's breadcrumb, or one the page saw). It starts on the righ
 through to the game (you can play the device checklist with it up); only its MOVE tab takes touches, to move it round
 the corners. The device checklist (outside the repo) tells a player what to read off it.
 
+## Stage 2 review, fix round 1: smaller things a player sees
+
+- **Archive**: its phone record list carries **◀ LEAVE** (the list sat over the game's own), and Back leaves too.
+- **Chapter select / DebugSkip**: a second tap on the picked row keeps it picked; START goes on.
+- **Story TV bulletins** (`once`): their NEXT SHOW, which ends the bulletin, reads **SKIP** on a phone (screens.ts).
+  The telly plays itself (its beats run on a timer), so it needs no AUTO.
+- **Town flyover**: its skip hint becomes a 44 px pill in the top bar (`skipHintPill`, through `WORDING_HOOKS`), out
+  of the home-indicator strip; a tap anywhere still skips.
+- **Krezz Arms**: taller cards (PubScene's guarded hook), title on top and its line under it (`layoutPubCard`); the
+  telly's headline under its show name (`layoutPubTv`).
+- **Gun rack**: the how-to line is shorter on a phone (`rack-order`) and wraps left of the coin counter.
+- **Town toasts**: pause's place is always kept in the Hub (`toastRight`), even for a toast made while it was hidden.
+- **Fights**: READY's IBS caption is IBS and the 💨 chip steps aside while READY offers IBS; the weapon chip shows the
+  gun's whole name on two lines; the tutorial's SWAP row says it appears with a second gun; WONK YOUR THANG's title
+  sits clear of the HUD's KREZZ / WONK lines; the Cronster's hostage tags and the Citadel's exchange sign lose their
+  key (`FIGHT_UI_LINES`, checked when a Dungeon text is made, never every setText).
+- **Home-indicator strip**: a caption that would sit in it goes over its button; the conversation's ▼ is lifted out.
+- **Controls picture**: FIRE's line follows the auto-fire setting; "▼ more" while the legend scrolls; words in the
+  picture only where they fit at 11 px; ACTION's line promises only what works.
+- **Phone settings**: Vibration only where `navigator.vibrate` exists (never on an iPhone).
+
 ## Testing
 
 ```sh
@@ -716,8 +767,11 @@ npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layou
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,android,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,android,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
+# (review1: FIRE held through a death leaves no held attack; a pad resting off-centre never takes over; the archive's
+#  LEAVE; the finale brawl's II and SKIP FIGHT; a pit with the stick held toward it)
+# tests/mobileWordingScan.test.ts: no touch-wording rule may match any character line in the game
 # (together: the two stage 2 tracks at once: bigger text in a fight, a conversation in a fight (pills, no fight
 #  buttons), PHONE SETTINGS live in a fight, pause -> CONTROLS on FIGHTS, the Krezz Arms brawl by tap)
 

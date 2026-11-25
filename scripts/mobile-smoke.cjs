@@ -4082,7 +4082,7 @@ async function platform(browser) {
     check("platform: a rhythm song starts straight away, with no tap (pooled element unlocked by the first tap)", croc.paused === false && croc.t > 0.5, croc);
     await ph.ev(() => {
       const a = new Audio(window.__krel.synth.musicEl().src);
-      void a.play();
+      a.play().catch(() => {}); // (stopped by the phone straight away: its promise rejects)
       window.__stray = a;
     });
     await sleep(1200);

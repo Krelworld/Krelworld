@@ -4835,6 +4835,63 @@ async function twoThumbs(ph, n, until) {
   return n;
 }
 
+/**
+ * The game's own frame loop stopped; the test steps it, 60 frames to a game second, whatever the machine's load (the
+ * test machine runs other jobs: real-time play there runs at 7-20 fps and every tap lands late). Touches still go in
+ * through the real touch path; only the clock is the test's.
+ */
+const freeze = (ph) =>
+  ph.ev(() => {
+    const g = window.__krel.game;
+    const l = g.loop;
+    l.sleep();
+    window.__ft = l.lastTime;
+    // (frames stepped by the test are updated but not drawn: drawing is most of a frame's cost on this machine. The
+    // cameras are back on between steps, so touches find what they always find.)
+    if (!window.__fullCb) {
+      const full = (window.__fullCb = l.callback);
+      l.callback = (t, d) => {
+        const hidden = [];
+        for (const sc of g.scene.getScenes(true)) for (const c of sc.cameras ? sc.cameras.cameras : []) if (c.visible) (c.visible = false), hidden.push(c);
+        try {
+          full(t, d);
+        } finally {
+          for (const c of hidden) c.visible = true;
+        }
+      };
+    }
+  });
+const thaw = (ph) =>
+  ph.ev(() => {
+    const l = window.__krel.game.loop;
+    if (window.__fullCb) {
+      l.callback = window.__fullCb;
+      window.__fullCb = null;
+    }
+    if (!l.running) l.wake();
+  });
+const stepN = (ph, n) =>
+  ph.ev((n) => {
+    const l = window.__krel.game.loop;
+    for (let i = 0; i < n; i++) {
+      window.__ft += 1000 / 60;
+      l.step(window.__ft);
+    }
+  }, n);
+
+/** Two thumbs drumming at a human pace (`every` frames between pairs: 12 = ten taps a second), on a stepped clock. */
+async function drum(ph, n, every, until) {
+  for (let i = 0; i < n; i++) {
+    await ph.touch("touchStart", [{ x: 300, y: 230, id: 1 }]);
+    await ph.touch("touchStart", [{ x: 300, y: 230, id: 1 }, { x: 560, y: 230, id: 2 }]);
+    await ph.touch("touchEnd", [{ x: 560, y: 230, id: 2 }]);
+    await ph.touch("touchEnd", []);
+    await stepN(ph, every);
+    if (i % 3 === 2 && until && (await until())) return i + 1;
+  }
+  return n;
+}
+
 /** The page position of a game point in the Minigame scene. */
 const gpos = (ph, gx, gy) => ph.g2c(gx, gy);
 
@@ -4871,10 +4928,134 @@ async function games(browser) {
       const h1 = await hits();
       check("games: BULLY: two thumbs, the second landing while the first is down, both count (3 rounds = 6 hits)", h1 - h0 === 6, { h0, h1 });
       await shot("bully");
-      await twoThumbs(ph, 300, async () => (await mgNow(ph)).ended);
+      await freeze(ph);
+      await drum(ph, 200, 12, async () => (await mgNow(ph)).ended);
+      await thaw(ph);
       await ph.until(() => window.__krel.G.s.flags.mg_bully_won, null, 8000, "bully won").catch(() => {});
       check("games: BULLY won by tapping anywhere", (await mgNow(ph)).won, await mgNow(ph));
       await mgOut(ph);
+    }
+
+    if (want("burpees")) {
+      // ---- BURPEES: tap anywhere as the ring closes (the right move, as SPACE); ▼ / ▲ stay under the thumbs
+      await mgInto(ph, "burpees", "KREBLIS");
+      await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        const g = sc.children.list.find((o) => o.type === "Graphics" && o.depth === 110);
+        // (the test reads the closing ring's radius the way a player sees it: what the scene draws)
+        let lw = 0;
+        const ls = g.lineStyle.bind(g);
+        g.lineStyle = (w, c, a) => ((lw = w), ls(w, c, a));
+        window.__judged = [];
+        const hf = sc.hitFx.bind(sc);
+        const mf = sc.missFx.bind(sc);
+        sc.hitFx = (...a) => (window.__judged.push(Math.round(a[2] * 1000)), hf(...a));
+        sc.missFx = (...a) => (window.__judged.push("miss"), mf(...a));
+        const sc0 = g.strokeCircle.bind(g);
+        g.strokeCircle = (x, y, r) => {
+          if (lw === 7) window.__burpR = { r };
+          return sc0(x, y, r);
+        };
+      });
+      const burpHelp = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.type === "Text" && /^Ring closes/.test(o.text)).map((o) => o.text));
+      check("games: BURPEES' how-to line: tap (no keys)", burpHelp.length === 1 && /tap to drop/.test(burpHelp[0]) && !/Space|S W/.test(burpHelp[0]), burpHelp);
+      // (the ring closes from 46 + 120 px over two beats: its radius says how long until the beat; the round's beat is the
+      // game's EMOM table. The game is stepped frame by frame; a tap goes in on the frame the ring says the beat is due.)
+      await freeze(ph);
+      for (let i = 0; i < 4000; i++) {
+        const m = await ph.ev(() => {
+          const l = window.__krel.game.loop;
+          const sc = window.__krel.game.scene.getScene("Minigame");
+          for (let f = 0; f < 90; f++) {
+            window.__burpR = null;
+            window.__ft += 1000 / 60;
+            l.step(window.__ft);
+            if (sc.ended || !window.__krel.game.scene.isActive("Minigame")) return { end: true };
+            const R = window.__burpR;
+            if (!R) continue;
+            const roundT = sc.children.list.find((o) => o.type === "Text" && /^EMOM · ROUND \d/.test(o.text));
+            const ri = roundT ? Number(roundT.text.match(/ROUND (\d)/)[1]) - 1 : 0;
+            const beat = sc.constructor.EMOM[ri].beat * 1000;
+            if (((R.r - 46) / 120) * 2 * beat <= 9) return { tap: true };
+          }
+          return null;
+        });
+        if (m && m.end) break;
+        if (m && m.tap) {
+          await fingerTap(ph, 422, 230);
+          await stepN(ph, 2);
+        }
+      }
+      await thaw(ph);
+      await ph.until(() => window.__krel.G.s.flags.mg_burpees_won, null, 8000, "burpees won").catch(() => {});
+      check("games: BURPEES won by tapping on the ring (a tap anywhere is the right move)", (await mgNow(ph)).won, { now: await mgNow(ph), judged: (await ph.ev(() => window.__judged || [])).slice(0, 24), fps: await ph.ev(() => Math.round(window.__krel.game.loop.actualFps)) });
+      await mgOut(ph, 40000);
+    }
+
+    if (want("crocodile")) {
+      // ---- THE CROCODILE: tap the column (left LEFT, middle CHOMP, right RIGHT) as each move reaches the ring
+      // (on a stepped clock the song's own clock can't be used: the chart runs on the scene's clock instead, its fallback
+      // for a song that hasn't loaded; the judging is the game's)
+      await ph.ev(() => {
+        const sy = window.__krel.synth;
+        sy.musicEl = () => null;
+        sy.fileProgress = () => ({ t: 0, d: 0, ended: false });
+      });
+      await mgInto(ph, "crocodile", "MIKEY");
+      const pads = await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        return sc.children.list.filter((o) => o.type === "Rectangle" && o.width === 250 && o.input).map((o) => ({ x: o.x, bottom: o.y + o.height / 2, hit: { x: o.input.hitArea.x, y: o.input.hitArea.y, w: o.input.hitArea.width, h: o.input.hitArea.height } }));
+      });
+      const rect = await ph.rect();
+      const k = rect.w / 960;
+      check("games: CROCODILE's three pads sit above the home-indicator strip (bottom edge over 21 CSS px from the screen's bottom)", pads.length === 3 && pads.every((p) => rect.y + p.bottom * k <= 390 - 21), pads.map((p) => p.bottom));
+      check("games: CROCODILE: each pad's touch area is its whole column under the note lane", pads.length === 3 && pads.every((p) => p.hit.h >= 360 && p.hit.w >= 280), pads.map((p) => p.hit));
+      await ph.ev(() => {
+        const sc = window.__krel.game.scene.getScene("Minigame");
+        window.__judged = [];
+        const hf = sc.hitFx.bind(sc);
+        const mf = sc.missFx.bind(sc);
+        sc.hitFx = (...a) => (window.__judged.push(Math.round(a[2] * 1000)), hf(...a));
+        sc.missFx = (...a) => (window.__judged.push("miss"), mf(...a));
+      });
+      const croc = { L: [rect.x + 170 * k, rect.y + 380 * k], C: [rect.x + 480 * k, rect.y + 300 * k], R: [rect.x + 790 * k, rect.y + 250 * k] };
+      await shot("crocodile");
+      await freeze(ph);
+      for (let i = 0; i < 6000; i++) {
+        const m = await ph.ev(() => {
+          const l = window.__krel.game.loop;
+          const sc = window.__krel.game.scene.getScene("Minigame");
+          for (let f = 0; f < 120; f++) {
+            window.__ft += 1000 / 60;
+            l.step(window.__ft);
+            if (sc.ended || !window.__krel.game.scene.isActive("Minigame")) return { end: true };
+            for (const o of sc.children.list) {
+              if (o.type !== "Container" || o.depth !== 150 || !o.active || o.__tapped || o.x > 420 || o.x < 100) continue;
+              // (a gold rim: double time, twice as fast)
+              const fast = o.list[0].strokeColor === 0xffd23f;
+              if (((o.x - 150) / (330 * (fast ? 2 : 1))) * 1000 > 9) continue;
+              o.__tapped = true;
+              const t = o.list.find((c) => c.type === "Text");
+              return { k: t.text === "◀" ? "L" : t.text === "▶" ? "R" : "C" };
+            }
+          }
+          return null;
+        });
+        if (m && m.end) break;
+        if (m && m.k) await fingerTap(ph, croc[m.k][0], croc[m.k][1], 3);
+      }
+      await thaw(ph);
+      await ph.ev(() => {
+        const sy = window.__krel.synth;
+        delete sy.musicEl;
+        delete sy.fileProgress;
+      });
+      const cr = await mgNow(ph);
+      const crHits = Number((cr.hud.match(/🐊 (\d+)/) || [])[1] || 0);
+      const crMiss = Number((cr.hud.match(/MISSED (\d+)/) || [])[1] || 0);
+      await ph.until(() => window.__krel.G.s.flags.mg_crocodile_won, null, 15000, "croc done").catch(() => {});
+      check("games: CROCODILE danced to the end by tapping the columns, most moves in time", (await mgNow(ph)).won && crHits >= 0.9 * (crHits + crMiss), { crHits, crMiss, hud: cr.hud, judged: (await ph.ev(() => window.__judged || [])).slice(0, 30), fps: await ph.ev(() => Math.round(window.__krel.game.loop.actualFps)) });
+      await mgOut(ph, 40000);
     }
 
     if (want("deadlift")) {
@@ -4882,7 +5063,10 @@ async function games(browser) {
       await mgInto(ph, "deadlift", "FLENKY");
       const help = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.type === "Text" && /Mash/.test(o.text)).map((o) => o.text));
       check("games: DEADLIFT's how-to line says the screen, not SPACE", help.length === 1 && /Mash the screen/.test(help[0]) && !/SPACE/.test(help[0]), help);
-      await twoThumbs(ph, 400, async () => (await mgNow(ph)).ended);
+      // (ten taps a second, two thumbs: a phone player's pace; the lift's clock and slip are the laptop's)
+      await freeze(ph);
+      await drum(ph, 200, 12, async () => (await mgNow(ph)).ended);
+      await thaw(ph);
       await ph.until(() => window.__krel.G.s.flags.mg_deadlift_won, null, 8000, "deadlift won").catch(() => {});
       check("games: DEADLIFT won by mashing with two thumbs", (await mgNow(ph)).won, await mgNow(ph));
       await mgOut(ph);
@@ -4893,20 +5077,23 @@ async function games(browser) {
       await mgInto(ph, "girlfriends", "KREZWONK");
       const keyCaps = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.type === "Text" && /^\[[123]\]$/.test(o.text)).length);
       check("games: GIRLFRIENDS: no [1] [2] [3] key captions under the phones", keyCaps === 0, keyCaps);
+      // (stepped: half a second to answer, a quick player's reaction)
       let answered = 0;
+      await freeze(ph);
       for (let i = 0; i < 400 && !(await mgNow(ph)).ended; i++) {
+        await stepN(ph, 6);
         const ring = await ph.ev(() => {
           const sc = window.__krel.game.scene.getScene("Minigame");
           const c = sc.children.list.find((o) => o.type === "Container" && o.list.length > 4 && o.list[0].fillAlpha > 0.2);
           return c ? { x: c.x, y: c.y } : null;
         });
-        if (ring && !ring.done) {
-          const [x, y] = await gpos(ph, ring.x, ring.y + 40);
-          await fingerTap(ph, x, y);
-          answered++;
-          await sleep(380);
-        } else await sleep(60);
+        if (!ring) continue;
+        await stepN(ph, 24);
+        const [x, y] = await gpos(ph, ring.x, ring.y + 40);
+        await fingerTap(ph, x, y);
+        answered++;
       }
+      await thaw(ph);
       await ph.until(() => window.__krel.G.s.flags.mg_girlfriends_won, null, 8000, "girlfriends won").catch(() => {});
       check("games: GIRLFRIENDS won by tapping the ringing phone", (await mgNow(ph)).won, { answered, now: await mgNow(ph) });
       await mgOut(ph);
@@ -4917,33 +5104,29 @@ async function games(browser) {
       await mgInto(ph, "renovate", "SCROMBUS");
       const flipHelp = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.type === "Text" && /problems before they ROT/.test(o.text)).map((o) => o.text));
       check("games: FLIP IT's how-to line says tap (no arrows, WASD, SPACE)", flipHelp.length === 1 && /^Tap problems/.test(flipHelp[0]) && !/WASD|SPACE/.test(flipHelp[0]), flipHelp);
+      // (stepped: a tap every 9 frames, a quick player's pace, on the problem that has been up longest)
       let ringHits = 0;
       let tapsDone = 0;
-      for (let i = 0; i < 2000 && !(await mgNow(ph)).ended; i++) {
-        const ps = await ph.ev(() => {
+      await freeze(ph);
+      for (let i = 0; i < 1200 && !(await mgNow(ph)).ended; i++) {
+        await stepN(ph, 9);
+        const p = await ph.ev(() => {
           const sc = window.__krel.game.scene.getScene("Minigame");
           const r = sc.sys.game.canvas.getBoundingClientRect();
           const k = r.width / 960;
-          return sc.children.list
-            .filter((o) => o.input && o.input.enabled && o.depth === 10 && o.active && o.scaleX > 0.9 && !o.__tapped)
-            .map((o) => {
-              o.__tapped = true;
-              // (34 game px right of the centre: off the picture, inside the ring that is its tap area on a phone)
-              const off = Math.max(o.displayWidth / 2 + 3, 34);
-              return { x: r.x + (o.x + off) * k, y: r.y + o.y * k };
-            });
+          const o = sc.children.list.find((o) => o.input && o.input.enabled && o.depth === 10 && o.active && o.scaleX > 0.9);
+          if (!o) return null;
+          window.__flipP = o;
+          // (34 game px right of the centre: off the picture, inside the ring that is its tap area on a phone)
+          const off = Math.max(o.displayWidth / 2 + 3, 34);
+          return { x: r.x + (o.x + off) * k, y: r.y + o.y * k };
         });
-        if (!ps.length) {
-          await sleep(25);
-          continue;
-        }
-        const v0 = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.input && o.input.enabled && o.depth === 10 && o.active).length);
-        for (const p of ps) await fingerTap(ph, p.x, p.y, 9);
-        tapsDone += ps.length;
-        await sleep(20);
-        const v1 = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.input && o.input.enabled && o.depth === 10 && o.active).length);
-        ringHits += Math.max(0, v0 - v1);
+        if (!p) continue;
+        await fingerTap(ph, p.x, p.y, 9);
+        tapsDone++;
+        if (await ph.ev(() => !window.__flipP.active || !window.__flipP.scene)) ringHits++;
       }
+      await thaw(ph);
       await ph.until(() => window.__krel.G.s.flags.mg_renovate_won, null, 8000, "flip won").catch(() => {});
       const flip = await mgNow(ph);
       check("games: FLIP IT won by tapping the problems' rings (taps off the picture count)", flip.won && ringHits >= 5, { ringHits, tapsDone, flip });
@@ -4997,107 +5180,6 @@ async function games(browser) {
       await ph.until(() => window.__krel.G.s.flags.mg_cannon_won, null, 8000, "cannon won").catch(() => {});
       check("games: THE CANNON won by tapping (angle, then power)", (await mgNow(ph)).won, await mgNow(ph));
       await mgOut(ph);
-    }
-
-    if (want("burpees")) {
-      // ---- BURPEES: tap anywhere as the ring closes (the right move, as SPACE); ▼ / ▲ stay under the thumbs
-      await mgInto(ph, "burpees", "KREBLIS");
-      await ph.ev(() => {
-        const sc = window.__krel.game.scene.getScene("Minigame");
-        const g = sc.children.list.find((o) => o.type === "Graphics" && o.depth === 110);
-        // (the test reads the closing ring's radius the way a player sees it: what the scene draws)
-        let lw = 0;
-        const ls = g.lineStyle.bind(g);
-        g.lineStyle = (w, c, a) => ((lw = w), ls(w, c, a));
-        window.__judged = [];
-        const hf = sc.hitFx.bind(sc);
-        const mf = sc.missFx.bind(sc);
-        sc.hitFx = (...a) => (window.__judged.push(Math.round(a[2] * 1000)), hf(...a));
-        sc.missFx = (...a) => (window.__judged.push("miss"), mf(...a));
-        const sc0 = g.strokeCircle.bind(g);
-        g.strokeCircle = (x, y, r) => {
-          if (lw === 7) window.__burpR = { r, t: performance.now() };
-          return sc0(x, y, r);
-        };
-      });
-      const burpHelp = await ph.ev(() => window.__krel.game.scene.getScene("Minigame").children.list.filter((o) => o.type === "Text" && /^Ring closes/.test(o.text)).map((o) => o.text));
-      check("games: BURPEES' how-to line: tap (no keys)", burpHelp.length === 1 && /tap to drop/.test(burpHelp[0]) && !/Space|S W/.test(burpHelp[0]), burpHelp);
-      // (the ring closes from 46 + 120 px over two beats: its radius says how long until the beat; the round's beat is the
-      // game's EMOM table)
-      let lastDue = 0;
-      for (let i = 0; i < 20000 && !(await mgNow(ph)).ended; i++) {
-        const due = await ph.ev(() => {
-          const sc = window.__krel.game.scene.getScene("Minigame");
-          const R = window.__burpR;
-          if (!R || performance.now() - R.t > 200) return null;
-          const roundT = sc.children.list.find((o) => o.type === "Text" && /^EMOM · ROUND \d/.test(o.text));
-          const ri = roundT ? Number(roundT.text.match(/ROUND (\d)/)[1]) - 1 : 0;
-          const beat = sc.constructor.EMOM[ri].beat * 1000;
-          return Math.max(0, ((R.r - 46) / 120) * 2 * beat - (performance.now() - R.t));
-        });
-        if (due === null) {
-          await sleep(15);
-          continue;
-        }
-        if (due < 80 && Date.now() - lastDue > 200) {
-          lastDue = Date.now();
-          await fingerTap(ph, 422, 230);
-        } else await sleep(due > 120 ? 40 : 8);
-      }
-      await ph.until(() => window.__krel.G.s.flags.mg_burpees_won, null, 8000, "burpees won").catch(() => {});
-      check("games: BURPEES won by tapping on the ring", (await mgNow(ph)).won, { now: await mgNow(ph), judged: (await ph.ev(() => window.__judged || [])).slice(0, 24) });
-      await mgOut(ph, 40000);
-    }
-
-    if (want("crocodile")) {
-      // ---- THE CROCODILE: tap the column (left LEFT, middle CHOMP, right RIGHT) as each move reaches the ring
-      await mgInto(ph, "crocodile", "MIKEY");
-      const pads = await ph.ev(() => {
-        const sc = window.__krel.game.scene.getScene("Minigame");
-        return sc.children.list.filter((o) => o.type === "Rectangle" && o.width === 250 && o.input).map((o) => ({ x: o.x, bottom: o.y + o.height / 2, hit: { x: o.input.hitArea.x, y: o.input.hitArea.y, w: o.input.hitArea.width, h: o.input.hitArea.height } }));
-      });
-      const rect = await ph.rect();
-      const k = rect.w / 960;
-      check("games: CROCODILE's three pads sit above the home-indicator strip (bottom edge over 21 CSS px from the screen's bottom)", pads.length === 3 && pads.every((p) => rect.y + p.bottom * k <= 390 - 21), pads.map((p) => p.bottom));
-      check("games: CROCODILE: each pad's touch area is its whole column under the note lane", pads.length === 3 && pads.every((p) => p.hit.h >= 360 && p.hit.w >= 280), pads.map((p) => p.hit));
-      await ph.ev(() => {
-        const sc = window.__krel.game.scene.getScene("Minigame");
-        window.__judged = [];
-        const hf = sc.hitFx.bind(sc);
-        const mf = sc.missFx.bind(sc);
-        sc.hitFx = (...a) => (window.__judged.push(Math.round(a[2] * 1000)), hf(...a));
-        sc.missFx = (...a) => (window.__judged.push("miss"), mf(...a));
-      });
-      const croc = { L: [rect.x + 170 * k, rect.y + 380 * k], C: [rect.x + 480 * k, rect.y + 300 * k], R: [rect.x + 790 * k, rect.y + 250 * k] };
-      await shot("crocodile");
-      for (let i = 0; i < 40000; i++) {
-        const m = await ph.ev(() => {
-          const sc = window.__krel.game.scene.getScene("Minigame");
-          if (sc.ended) return { end: true };
-          let best = null;
-          for (const o of sc.children.list) {
-            if (o.type !== "Container" || o.depth !== 150 || !o.active || o.__tapped || o.x > 420 || o.x < 100) continue;
-            // (a gold rim: double time, twice as fast)
-            const fast = o.list[0].strokeColor === 0xffd23f;
-            const ms = ((o.x - 150) / (330 * (fast ? 2 : 1))) * 1000;
-            if (!best || ms < best.ms) best = { o, ms };
-          }
-          if (!best) return null;
-          if (best.ms > 110) return { wait: best.ms };
-          best.o.__tapped = true;
-          const t = best.o.list.find((c) => c.type === "Text");
-          return { k: t.text === "◀" ? "L" : t.text === "▶" ? "R" : "C" };
-        });
-        if (m && m.end) break;
-        if (m && m.k) await fingerTap(ph, croc[m.k][0], croc[m.k][1], 3);
-        else await sleep(m && m.wait > 120 ? 40 : 6);
-      }
-      const cr = await mgNow(ph);
-      const crHits = Number((cr.hud.match(/🐊 (\d+)/) || [])[1] || 0);
-      const crMiss = Number((cr.hud.match(/MISSED (\d+)/) || [])[1] || 0);
-      await ph.until(() => window.__krel.G.s.flags.mg_crocodile_won, null, 15000, "croc done").catch(() => {});
-      check("games: CROCODILE danced to the end by tapping the columns, most moves in time", (await mgNow(ph)).won && crHits > 2 * crMiss, { crHits, crMiss, hud: cr.hud, judged: (await ph.ev(() => window.__judged || [])).slice(0, 30) });
-      await mgOut(ph, 40000);
     }
 
     if (want("runescape")) {

@@ -165,6 +165,13 @@ html.mobile input,html.mobile textarea{-webkit-user-select:text;user-select:text
 .kd-auto.lit span{background:rgba(255,210,63,.88);color:#170f26;border-color:#ffd23f;text-shadow:none}
 .kd-skip.busy span{background:rgba(255,210,63,.5);border-color:#ffd23f;animation:kd-blink .5s ease-in-out infinite alternate}
 @keyframes kd-blink{from{opacity:1}to{opacity:.55}}
+/* SKIP asks first: two 48 px buttons, 12 px apart, right above the pills */
+.kd-sk{position:fixed;left:0;top:0;z-index:23;display:none;gap:12px;touch-action:none;font-family:"Krel Bold",system-ui,-apple-system,sans-serif;
+  -webkit-user-select:none;user-select:none}
+.kd-sk.show{display:flex}
+.kd-sk button{height:48px;min-width:120px;padding:0 14px;border-radius:12px;font:inherit;font-size:14px;letter-spacing:.5px;color:#fff;
+  background:rgba(14,10,26,.92);border:2px solid rgba(255,255,255,.5);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.kd-sk .kd-sk-go{background:rgba(127,29,29,.95);border-color:#fca5a5}
 .kdl{position:fixed;left:0;top:0;width:100%;height:100%;box-sizing:border-box;z-index:35;display:none;align-items:center;justify-content:center;
   background:rgba(6,3,14,.72);padding:max(8px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(8px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));
   touch-action:none;font-family:system-ui,-apple-system,sans-serif}

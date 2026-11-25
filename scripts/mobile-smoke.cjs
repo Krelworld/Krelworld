@@ -1416,6 +1416,17 @@ async function dialogue(browser) {
     await ph.until(() => window.__krelMobile.dialogue.snapshot().showing, null, 10000, "the conversation again");
     await sleep(300);
     await ph.tapSel(".kd-skip");
+    await sleep(200);
+    // SKIP asks first (P8): nothing skipped yet; KEEP READING takes it away; then SKIP SCENE
+    const ask = await dlg(ph);
+    const lineAsk = (await boxNow(ph)).full;
+    await ph.tapSel(".kd-sk-no");
+    await sleep(200);
+    const kept = await dlg(ph);
+    check("SKIP asks first (SKIP SCENE / KEEP READING, 48 px, 12 px apart); KEEP READING carries on where it was (P8)", ask.skipAsking && !ask.skipping && !kept.skipAsking && (await boxNow(ph)).full === lineAsk && (await ph.ev(() => { const a = document.querySelector(".kd-sk-go").getBoundingClientRect(); const b = document.querySelector(".kd-sk-no").getBoundingClientRect(); return a.height >= 48 && b.height >= 48 && Math.abs(a.left - b.right) >= 11.5; })), { ask, kept });
+    await ph.tapSel(".kd-skip");
+    await sleep(200);
+    await ph.tapSel(".kd-sk-go");
     await ph.until(() => window.__krelMobile.dialogue.snapshot().choosing, null, 8000, "the choice").catch(() => 0);
     s = await dlg(ph);
     check("SKIP runs to the choice (the skipped lines' effects applied) and stops there; SKIP is hidden while choosing", s.choosing && (await testFlags(ph)) === "t_dir,t_long" && !s.pills.skip && s.pills.log, { flags: await testFlags(ph), pills: s.pills });
@@ -1429,6 +1440,8 @@ async function dialogue(browser) {
     await ph.tapGame(o2.x, o2.y);
     await sleep(400);
     await ph.tapSel(".kd-skip");
+    await sleep(200);
+    await ph.tapSel(".kd-sk-go");
     await ph.until(() => window.__dlgDone, null, 8000, "SKIP to the end").catch(() => 0);
     check("SKIP after the choice runs to the end of the conversation, every line's effects applied", (await ph.ev(() => window.__dlgDone)) && (await testFlags(ph)) === "t_after,t_dir,t_last,t_long,t_two", await testFlags(ph));
     await ph.until(() => window.__krelMobile.snapshot().decision.mode === "walk", null, 10000, "walk mode").catch(() => 0);
@@ -3445,7 +3458,9 @@ async function together(browser) {
     check("the dungeon's narrated CONTROLS line names the phone's controls", st.said.some((t) => /drag on the left/.test(t)) && !st.said.some((t) => /WASD/.test(t)), st.said);
     for (let i = 0; i < 12 && !(await ph.ev(() => window.__talkDone)); i++) {
       await ph.tapSel(".kd-skip").catch(() => ph.tapCss(560, 150));
-      await sleep(700);
+      await sleep(250);
+      await ph.tapSel(".kd-sk.show .kd-sk-go").catch(() => 0);
+      await sleep(500);
     }
     const back = await ph.until(() => window.__krelMobile.snapshot().decision.mode === "combat", null, 15000, "combat").then(() => true, () => false);
     check("SKIP ends it: the pills go, the fight buttons come back", (await ph.ev(() => window.__talkDone)) && back && !(await ph.ev(() => window.__krelMobile.dialogue.snapshot().showing)));

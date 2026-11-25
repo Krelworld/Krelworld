@@ -8,6 +8,7 @@ import type { TVEpisode } from "../systems/tv";
 import { evalCond } from "../systems/conditions";
 import { DialogueBox } from "../ui/DialogueBox";
 import { FONT } from "../ui/theme";
+import { isMobile } from "../mobile/flag";
 import { fadeThen, switchTo } from "../Flow";
 import { synth } from "../audio/Synth";
 import { intoxLabel } from "../systems/stats";
@@ -240,7 +241,10 @@ export class PubScene extends Phaser.Scene {
     this.menu.add(this.add.rectangle(0, 0, 960, 540, 0x05030a, 0.5).setOrigin(0));
     // the board fits the longest column (a quiet night is a smaller board)
     const rows = Math.max(...GROUPS.map((grp) => items.filter((o) => o.group === grp.id).length));
-    const bh = Math.min(BOARD.h, Math.max(240, CARDS_TOP - BOARD.y + rows * CARD_STEP + 34));
+    // (phones: taller cards, as far as the board allows, so the bigger text's second line has room; src/game/mobile)
+    const cardStep = isMobile() ? Math.max(CARD_STEP, Math.min(96, Math.floor((BOARD.y + BOARD.h - 34 - CARDS_TOP) / Math.max(1, rows)))) : CARD_STEP;
+    const cardH = cardStep - (CARD_STEP - CARD_H);
+    const bh = Math.min(BOARD.h, Math.max(240, CARDS_TOP - BOARD.y + rows * cardStep + 34));
     if (this.textures.exists("ui_chalkboard")) {
       this.menu.add(this.add.nineslice(BOARD.x + BOARD.w / 2, BOARD.y + bh / 2, "ui_chalkboard", undefined, BOARD.w, bh, 60, 60, 60, 60));
     } else {
@@ -257,7 +261,7 @@ export class PubScene extends Phaser.Scene {
       this.menu.add([head, line]);
       items
         .filter((o) => o.group === grp.id)
-        .forEach((o, row) => this.card(o, x, CARDS_TOP + row * CARD_STEP, COL_W, CARD_H, grp.color, calm));
+        .forEach((o, row) => this.card(o, x, CARDS_TOP + row * cardStep, COL_W, cardH, grp.color, calm));
     });
     // Leave, set apart
     const leave = items.find((o) => o.id === "leave")!;
@@ -275,7 +279,7 @@ export class PubScene extends Phaser.Scene {
     const clue = clueAt(G.s, "PUB");
     const ctex = clue && clueTex(clue.trail, clue.i);
     if (clue && ctex && this.textures.exists(ctex) && items.some((o) => o.id === "clue"))
-      this.clueShiny = shinyPickup(this, COL_X[0] + 36, CARDS_TOP + CARD_H / 2, ctex, { scale: trailPropScale(this, ctex, 40), depth: 20, size: 0.5, ...shinyColours(clue.trail.tint) });
+      this.clueShiny = shinyPickup(this, COL_X[0] + 36, CARDS_TOP + cardH / 2, ctex, { scale: trailPropScale(this, ctex, 40), depth: 20, size: 0.5, ...shinyColours(clue.trail.tint) });
     // keep the lit card across redraws
     const i = this.cards.findIndex((c) => c.id === this.selId);
     this.focus(i >= 0 ? i : 0, false);

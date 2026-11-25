@@ -27,6 +27,7 @@ import {
   GAP_REACH,
   ghostStick,
   groupHit,
+  BOTTOM_CLEAR,
   HIT_SLOP,
   ghostClear,
   inRect,
@@ -57,6 +58,8 @@ export const TAP_SLOP = 10;
 export const TAP_MS = 400;
 /** A control that has just appeared ignores presses this long (research S11). */
 export const ARM_MS = 160;
+/** A control's caption line, CSS px tall (13 px words). */
+const CAPTION_H = 16;
 /** After the player has walked with the stick, the idle stick fades away this long after it was let go. */
 export const GHOST_FADE_MS = 2500;
 
@@ -270,7 +273,11 @@ export class TouchControl {
     f.top = `${p.cy - fh / 2 - hit.y}px`;
     const c = this.capEl.style;
     c.left = `${p.cx - hit.x}px`;
-    c.top = `${p.cy + fh / 2 + 2 - hit.y}px`;
+    // (a caption that would sit in the home-indicator strip goes over the button instead: P15)
+    const vp = this.layer.viewport;
+    const safeBottom = vp.h - Math.max(BOTTOM_CLEAR, vp.insets.bottom);
+    const under = p.cy + fh / 2 + 2 + CAPTION_H <= safeBottom;
+    c.top = `${(under ? p.cy + fh / 2 + 2 : p.cy - fh / 2 - 2 - CAPTION_H) - hit.y}px`;
     this.faceRect = { x: p.cx - fw / 2, y: p.cy - fh / 2, w: fw, h: fh };
     this.fit();
   }

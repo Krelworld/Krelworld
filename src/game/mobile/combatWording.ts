@@ -13,7 +13,8 @@ export const COMBAT_WORDING: WordingRule[] = [
   { id: "weapon-pick", re: /^\(the world's slowed right down\) · Tap one · .*$/, to: "(the world's slowed right down) · Tap one, or slide onto one and let go · ✕ to close" },
   { id: "tut-shoot", re: /^ATTACK button \(hold; aims at the nearest enemy\)$/, to: "FIRE (bottom right) shoots by itself at enemies in range. Hold it to fire anyway, slide it to aim" },
   { id: "tut-dodge", re: /^DODGE button$/, to: "DODGE button. Dodge right as you get hit for a PERFECT DODGE (slow-mo)" },
-  { id: "tut-swap", re: /^GUN button$/, to: "SWAP button, or tap your gun up top. Hold either to choose. Empty guns swap automatically" },
+  // (SWAP only shows once there's a second gun to swap to: P12)
+  { id: "tut-swap", re: /^GUN button$/, to: "SWAP (it appears once you have a second gun), or tap your gun up top. Hold either to choose. Empty guns swap automatically" },
   { id: "tut-use", re: /^E button$/, to: "ACTION pops up when there's something to use (or tap what it says over your head)" },
   { id: "tut-special", re: /^SPECIAL button\. /, to: "SPECIAL button (it says what yours is). " },
   { id: "tut-wonk", re: /^WONK button\. /, to: "WONK! pops up on the right when it's ready. " },

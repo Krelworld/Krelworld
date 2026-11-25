@@ -188,6 +188,21 @@ function prepare(b: Box) {
   // "▼ E / Space · Tab skip" → "▼"
   if (b.hint) wordText(b.hint);
   phoneMetrics(b.scene);
+  liftHint(b);
+}
+
+/** The page's safe bottom (CSS px: above the home-indicator strip), set by PhoneDialogue. */
+let safeBottomCss: (() => number) | null = null;
+
+/** The box's ▼ marker sits in the bottom 22 game px: on a phone it goes up out of the home-indicator strip (P15). */
+function liftHint(b: Box) {
+  const h = b.hint as Phaser.GameObjects.Text | undefined;
+  if (!h || !safeBottomCss) return;
+  const cb = b.scene.game.scale.canvasBounds;
+  const k = cb.width / 960 || 0.72;
+  const ry = ((b.root as Bag).y as number) ?? 0;
+  const maxY = (safeBottomCss() - cb.y) / k - ry - h.height * (1 - (h.originY ?? 0.5)) - 2;
+  if (h.y > maxY) h.setY(maxY);
 }
 
 /** After a line is drawn: with "Bigger text" on, the speaker's title goes on the name's row and the line under it. */
@@ -332,6 +347,11 @@ export class PhoneDialogue {
   private clock: (AutoClock & { key: string }) | null = null;
   private shown = "";
   private lastState = "";
+  private skEl!: HTMLDivElement;
+  /** The SKIP confirm is up (since, performance.now()), or 0. */
+  private skipAsk = 0;
+  /** How long the SKIP confirm waits before it goes away by itself. */
+  static readonly SKIP_ASK_MS = 5000;
   /** For tests: how many times each pill acted. */
   stats = { skips: 0, logs: 0, autos: 0, pauses: 0, autoAdvances: 0 };
 
@@ -342,6 +362,10 @@ export class PhoneDialogue {
     private blocked: () => boolean = () => false,
   ) {
     patchBoxes();
+    safeBottomCss = () => {
+      const vp = this.viewport();
+      return vp.h - Math.max(21, vp.insets.bottom);
+    };
     const el = document.createElement("div");
     el.className = "kd";
     el.innerHTML = (["auto", "log", "skip", "pause"] as PillId[])
@@ -356,6 +380,23 @@ export class PhoneDialogue {
     }
     parent.appendChild(el);
     this.el = el;
+    // SKIP asks first (research M8): a stray tap on the pill above the box would lose a whole scene's jokes (P8)
+    const sk = document.createElement("div");
+    sk.className = "kd-sk";
+    sk.innerHTML = `<button type="button" class="kd-sk-no">KEEP READING</button><button type="button" class="kd-sk-go">SKIP SCENE ▸▸</button>`;
+    keepTouches(sk);
+    parent.appendChild(sk);
+    this.skEl = sk;
+    bindTap(sk.querySelector(".kd-sk-no") as HTMLElement, () => this.closeSkip());
+    bindTap(sk.querySelector(".kd-sk-go") as HTMLElement, () => {
+      const b = this.current();
+      this.closeSkip();
+      if (!b || !this.showing(b) || b.choiceHandler) return;
+      haptic("tap");
+      this.stats.skips++;
+      b.skipAll();
+      this.lastState = "";
+    });
     // the log: a native-scroll list over the game (research M10)
     const log = document.createElement("div");
     log.className = "kdl";
@@ -423,8 +464,9 @@ export class PhoneDialogue {
     haptic("tap");
     if (id === "skip") {
       if (b.choiceHandler) return;
-      this.stats.skips++;
-      b.skipAll();
+      // (a second tap on SKIP while it asks: keep reading)
+      if (this.skipAsk) this.closeSkip();
+      else this.openSkip();
     } else if (id === "log") this.openLog();
     else if (id === "auto") {
       this.stats.autos++;
@@ -437,6 +479,35 @@ export class PhoneDialogue {
       this.clock = null;
     } else if (id === "pause") this.pauseConversation(b);
     this.lastState = "";
+  }
+
+  get skipAsking(): boolean {
+    return this.skipAsk > 0;
+  }
+
+  private openSkip() {
+    this.skipAsk = performance.now();
+    this.skEl.classList.add("show");
+    this.placeSkip();
+  }
+
+  closeSkip() {
+    if (!this.skipAsk) return;
+    this.skipAsk = 0;
+    this.skEl.classList.remove("show");
+  }
+
+  /** The confirm sits right above the pill row, its right end under the thumb that pressed SKIP. */
+  private placeSkip() {
+    if (!this.skipAsk) return;
+    const m = /translate\((-?[\d.]+)px,\s*(-?[\d.]+)px\)/.exec(this.el.style.transform);
+    const x = m ? +m[1] : 0;
+    const y = m ? +m[2] : 0;
+    const rowW = this.el.getBoundingClientRect().width || 200;
+    const w = this.skEl.getBoundingClientRect().width || 300;
+    const vp = this.viewport();
+    const left = Math.max(vp.insets.left + 8, Math.min(vp.w - vp.insets.right - w - 8, x + rowW - w));
+    this.skEl.style.transform = `translate(${Math.round(left)}px,${Math.round(Math.max(vp.insets.top + 4, y - 56))}px)`;
   }
 
   /** The laptop's Esc in a meeting, cutscene or vignette: the pause menu over it. */
@@ -482,6 +553,11 @@ export class PhoneDialogue {
 
   /** Android Back (shell.ts): what it does here. True when it did something. */
   onBack(): boolean {
+    // (Back while SKIP asks: keep reading)
+    if (this.skipAsk) {
+      this.closeSkip();
+      return true;
+    }
     const b = this.current();
     const showing = this.showing(b);
     const a = backAction({ logOpen: this.logOpen, settingsOpen: false, guideOpen: false, conversation: showing, pausable: !!b && PAUSABLE_SCENES.has(b.scene.scene.key) });
@@ -497,6 +573,8 @@ export class PhoneDialogue {
   frame() {
     const b = this.current();
     const on = this.showing(b);
+    // (the confirm goes when the conversation does, when a choice comes up, or after a while)
+    if (this.skipAsk && (!on || !b || b.choiceHandler || b.skipping || performance.now() - this.skipAsk > PhoneDialogue.SKIP_ASK_MS)) this.closeSkip();
     if (!on || !b) {
       if (this.shown) {
         this.el.classList.remove("show");
@@ -532,6 +610,7 @@ export class PhoneDialogue {
       this.el.style.transform = `translate(${at.x}px,${at.y}px)`;
       this.el.classList.add("show");
       this.shown = where;
+      this.placeSkip();
     }
     this.autoStep(b, autoOn && !choosing && !this.logOpen);
   }
@@ -575,6 +654,7 @@ export class PhoneDialogue {
       choosing: !!b?.choiceHandler,
       auto: this.auto,
       logOpen: this.logOpen,
+      skipAsking: this.skipAsking,
       pills,
       row: { x: r.x, y: r.y, w: r.width, h: r.height },
       stats: { ...this.stats },

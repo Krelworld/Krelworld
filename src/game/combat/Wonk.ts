@@ -11,6 +11,7 @@ import { playerKey, sanmikYee } from "../gfx/sanmikForm";
 import { CHARACTERS } from "../../data/characters";
 import type { Player } from "./Player";
 import { kd } from "../systems/kreddle";
+import { isMobile } from "../mobile/flag";
 
 /**
  * WONK YOUR THANG. Replaces the old Krezz Burst on the same button (R / WONK / LB) once the Wonk
@@ -90,7 +91,8 @@ export function startWonk(p: Player, now: number) {
   const bar = addCensorBar(sc, hero, { pad: 1 });
   ui.add(bar.obj);
   const sweat: Phaser.GameObjects.Text[] = [];
-  const title = sc.add.text(480, 52, "WONK YOUR THANG", { fontFamily: "Impact, sans-serif", fontSize: "46px", color: "#ff9ad5", stroke: "#2a0030", strokeThickness: 8 }).setOrigin(0.5).setScale(0.2);
+  // (phones: a little right of centre, clear of the HUD's KREZZ / WONK lines beside the bars; src/game/mobile)
+  const title = sc.add.text(isMobile() ? 548 : 480, 52, "WONK YOUR THANG", { fontFamily: "Impact, sans-serif", fontSize: "46px", color: "#ff9ad5", stroke: "#2a0030", strokeThickness: 8 }).setOrigin(0.5).setScale(0.2);
   ui.add(title);
   sc.tweens.add({ targets: title, scale: 1, duration: 300, ease: "Back.out" });
   const how = sc.add.text(480, 96, TOUCH.enabled ? "TAP to flap it up! Keep it in the KREZZ ZONE (bright middle = PERFECT)" : "TAP R / SPACE / CLICK / pad to flap it up! Keep it in the KREZZ ZONE (bright middle = PERFECT)", { fontFamily: "sans-serif", fontSize: "16px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5);

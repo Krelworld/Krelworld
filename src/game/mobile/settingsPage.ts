@@ -103,7 +103,9 @@ export class PhoneSettingsPage {
   }
 
   private render() {
-    const list = phoneSettingsList();
+    // (Vibration only where the browser can vibrate: never on an iPhone, where the row could do nothing; P16)
+    const canBuzz = typeof navigator !== "undefined" && typeof (navigator as Navigator & { vibrate?: unknown }).vibrate === "function";
+    const list = phoneSettingsList().filter((e) => e.key !== "haptics" || canBuzz);
     const now = layoutNow(this.layoutChoice, mobileWhy().by);
     let html = `<div class="kps-grid">`;
     for (const e of list) html += this.rowHtml(e);

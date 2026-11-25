@@ -96,6 +96,8 @@ export const TOUCH_WORDING: WordingRule[] = [
   { id: "loan-keys", re: /^←\/→ tabs · ↑\/↓ pick · ENTER borrow \/ hand back · tap twice on touch$/, to: "Tap one, then tap it again to borrow or hand back" },
   // the gun rack (one gun: the game's own panel): "...; X swaps down the list.", "↑↓ pick · SHIFT+↑↓ move · B buy ammo · ..."
   { id: "rack-swap", re: /; X swaps down the list\./g, to: "; SWAP goes down the list." },
+  // (and shorter, so it fits left of the coin counter at the phone's text size: P14)
+  { id: "rack-order", re: /^Drag to set your order \(or ▲▼\)\. #1 is what you start a dungeon holding;/, to: "Drag to order (or ▲▼). #1 is what you start with;" },
   { id: "rack-keys", re: /^↑↓ pick · SHIFT\+↑↓ move · B buy ammo(?: · )?/, to: "" },
   // the Lair: "Esc: skip scene" (the label is a button on a phone: screens.ts)
   { id: "lair-skip", re: /^Esc: skip scene$/, to: "SKIP SCENE ▸▸" },
@@ -278,6 +280,9 @@ export function watchText(t: Phaser.GameObjects.Text, pats: readonly RegExp[]) {
   if (cur && pats.some((p) => ((p.lastIndex = 0), p.test(cur)))) w.setText(cur);
 }
 
+/** Things other phone modules do to a worded text (set by index.ts; nothing on a laptop). */
+export const WORDING_HOOKS: { skipHint?: (t: Phaser.GameObjects.Text) => void } = {};
+
 /** Phones only: watches the scenes above and applies the wording. */
 export class PromptWording {
   private hooked = new Set<string>();
@@ -305,7 +310,11 @@ export class PromptWording {
       const look = (go: unknown) => {
         if (!isText(go)) return;
         const t = go.text;
-        if (t && [...pats, ...exact].some((p) => ((p.lastIndex = 0), p.test(t)))) wordText(go);
+        if (t && [...pats, ...exact].some((p) => ((p.lastIndex = 0), p.test(t)))) {
+          wordText(go);
+          // (the flyover's skip hint: a real button-sized pill on a phone, out of the home-indicator strip; P9)
+          if (/^SKIP\s+▸▸/.test(t)) WORDING_HOOKS.skipHint?.(go);
+        }
         else if (pats.length) watchText(go, pats);
       };
       // (Phaser.Scenes.Events.ADDED_TO_SCENE: every object added to the scene's display list)

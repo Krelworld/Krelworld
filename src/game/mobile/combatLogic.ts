@@ -32,7 +32,8 @@ export const READY: Readonly<Record<ReadyId, { word: string; edge: string; capti
   cume: { word: "CUME", edge: "cume", caption: "BEAM" },
   wonk: { word: "WONK!", edge: "burst", caption: "WONK" },
   golden: { word: "GOLD", edge: "transform", caption: "GOLDEN" },
-  ibs: { word: "IBS!", edge: "fart", caption: "FART" },
+  // (the caption says the button's own word: one name for one ability; P11)
+  ibs: { word: "IBS!", edge: "fart", caption: "IBS" },
 });
 
 /** HEAL pops in when health is under this fraction and there is pussy juice to drink (research S3). */

@@ -604,7 +604,8 @@ const chapters: Adapter = {
       color,
       selected: picked === id,
       onTap: () => {
-        sc.__mfPick = picked === id ? undefined : id;
+        // (a second tap on the picked row keeps it picked: START is the way on, nothing deselects: P13)
+        sc.__mfPick = id;
         synth.play("select");
         host.touch("chapters");
       },
@@ -665,6 +666,16 @@ function installWraps(host: PhoneLists) {
   });
   wrap(HomeScene.prototype as unknown as Bag, "gunRackPanel", (h, args) => {
     if (h.__mfPanel) h.__mfPanel.sel = args[0];
+    // the how-to line ends left of the coin counter (it ran under it at the phone's text size: P14)
+    {
+      const list = (h.__mfPanel?.root?.list as Bag[]) ?? [];
+      const line = list.find((o) => o.type === "Text" && /^Drag to (?:set your )?order/.test(o.text));
+      const coin = list.find((o) => o.type === "Text" && /Krezzcoin$/.test(o.text) && o.x > 480);
+      if (line && coin) {
+        const coinLeft = coin.x - (coin.displayWidth ?? coin.width ?? 0) * (coin.originX ?? 0);
+        line.setWordWrapWidth?.(Math.max(200, coinLeft - line.x - 12));
+      }
+    }
     host.rack.sel = (args[0] as string) ?? host.rack.sel;
     host.touch("rack");
     if (!gunRack.open(host.game)) return;

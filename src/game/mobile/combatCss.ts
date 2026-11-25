@@ -37,6 +37,10 @@ export const COMBAT_CSS = `
 .kt-chip .kt-ic img{max-width:30px;max-height:24px;image-rendering:pixelated;filter:drop-shadow(0 1px 1px #000)}
 .kt-chip .kt-tx{display:flex;flex-direction:column;min-width:0;gap:2px}
 .kt-chip .kt-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11.5px;opacity:.9}
+/* the weapon chip: the gun's whole name on up to two lines (it was cut to "Fart Blast..."; P16) */
+.kt-wchip .kt-nm{white-space:normal;font-size:11px;line-height:1.05;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.kt-wchip .kt-tx{gap:1px}
+.kt-wchip .kt-am{font-size:12px;line-height:1}
 .kt-chip .kt-am{font-size:13px;color:#ffe066}
 .kt-chip .kt-am.low{color:#facc15}.kt-chip .kt-am.out{color:#ff7b7b}
 .kt-wchip .kt-face{border-color:rgba(103,232,249,calc(var(--kt-a) + .25))}

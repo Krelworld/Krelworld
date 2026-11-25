@@ -729,7 +729,9 @@ export class CombatControls {
     for (const id of ["pause", "fullscreen", "c-chip"]) {
       const ctl = this.layer.control(id);
       if (!ctl || ctl.faceRect.w <= 0 || ctl.faceRect.y >= cb.y + 60) continue;
-      if (ctl.shown || (id === "c-chip" && fight) || (id === "pause" && this.layer.decision.mode !== "none")) left = Math.min(left, ctl.faceRect.x);
+      // (in town pause's place is always kept: a toast made while a cutscene had it hidden stays up after it comes
+      // back, and ran under it: P14)
+      if (ctl.shown || (id === "c-chip" && fight) || (id === "pause" && (this.layer.decision.mode !== "none" || _mode === "hub"))) left = Math.min(left, ctl.faceRect.x);
     }
     if (!Number.isFinite(left)) return null;
     return Math.min(950, Math.floor((left - 8 - cb.x) / k));
@@ -887,7 +889,8 @@ export class CombatControls {
     show("juice", fight);
     show("bongo", fight && s.bongos > 0);
     const lv = fartLevel();
-    show("fart", fight && lv >= 1);
+    // (at IBS READY says it, big, on the right: the 💨 chip steps aside so one ability has one button; P11)
+    show("fart", fight && lv >= 1 && this.readyId !== "ibs");
     // (Mikey ⇄ SanMik can't happen while golden: the game says no, so the chip isn't there)
     show("sanmik", fight && isMikey(s) && !sanmikForced(s) && !!dun && !!p && dun.now() >= p.superUntil);
     if (fight) this.drinkChips(lv);

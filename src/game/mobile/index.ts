@@ -13,7 +13,7 @@ import { TouchLayer } from "./touchLayer";
 import type { Insets } from "./layout";
 import { localPhoneSettingsStore, onPhoneSettingsChange, phoneSettings, phoneSettingsList, updatePhoneSettings, usePhoneSettingsStore } from "./settings";
 import { Readability } from "./readability";
-import { PromptWording } from "./wording";
+import { PromptWording, WORDING_HOOKS } from "./wording";
 import { setFrameCap } from "./battery";
 import { HomeScreenGuide, homeScreenPlumbing, listenForInstallPrompt, rotateEntry } from "./homeScreen";
 import { DiagOverlay, diagWanted } from "./diag";
@@ -31,7 +31,7 @@ import { ControlsPicture, tabFor } from "./controlsPicture";
 import { phoneHooks, setPhoneHooks } from "./boot";
 import { PhoneDialogue } from "./dialogue";
 import { PhoneSettingsPage } from "./settingsPage";
-import { onSceneCreate, PhoneScreens } from "./screens";
+import { onSceneCreate, PhoneScreens, skipHintPill } from "./screens";
 import { PhoneLists, liveScene } from "./listScenes";
 import { PhoneShops } from "./shops";
 
@@ -98,6 +98,7 @@ export function installMobile(game: Phaser.Game) {
   // stage 2: the top-down fights (FIRE, auto-fire and aim, DODGE, SWAP, SPECIAL, READY, HEAL, the chips, the phone HUD)
   const combat = installCombat(game, layer);
   // stage 2 part 2: the finale's brawl, the Kreltality prompt, a controller handed over (brawl.ts, pad.ts)
+  WORDING_HOOKS.skipHint = skipHintPill;
   const brawl = installBrawl(game, layer);
   brawl.pauseCard = (extra) => shell.pauseCard(extra);
   const picture = new ControlsPicture(layer);

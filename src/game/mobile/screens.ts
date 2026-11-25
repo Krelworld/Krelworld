@@ -20,6 +20,7 @@ import Phaser from "phaser";
 import { MenuScene } from "../scenes/MenuScene";
 import { TitleScene } from "../scenes/TitleScene";
 import { CharSelectScene } from "../scenes/CharSelectScene";
+import { PubScene } from "../scenes/PubScene";
 import { SaveSlotsScene } from "../scenes/SaveSlotsScene";
 import { HomeScene } from "../scenes/HomeScene";
 import { button } from "../ui/theme";
@@ -685,9 +686,38 @@ function wrap(proto: Bag, name: string, after: (self: Bag, args: unknown[]) => v
   };
 }
 
+/**
+ * The Krezz Arms' cards (P6): with the bigger text a card's second line wrapped onto three and ran over its own title.
+ * On a phone the cards are taller (PubScene's guarded hook) and here the title sits at the top and the line under
+ * it, wrapped to the card. The telly's headline goes under its show name instead of over it.
+ */
+function layoutPubCard(sc: Bag, args: unknown[]) {
+  const h = args[4] as number;
+  const w = args[3] as number;
+  const menu = sc.menu as Phaser.GameObjects.Container | undefined;
+  const c = menu?.list[menu.list.length - 1] as Phaser.GameObjects.Container | undefined;
+  if (!c || c.type !== "Container") return;
+  const texts = (c.list as Bag[]).filter((o) => o.type === "Text");
+  const [lab, sub] = texts;
+  if (!lab || !sub) return;
+  const maxW = w - lab.x - 10;
+  lab.setOrigin(0, 0).setY(6);
+  sub.setOrigin(0, 0).setLineSpacing(0).setWordWrapWidth(maxW, true);
+  sub.setY(Math.min(lab.y + lab.height + 1, Math.max(lab.y + lab.height - 2, h - 4 - sub.height)));
+}
+
+function layoutPubTv(sc: Bag) {
+  const show = sc.tvShow as Phaser.GameObjects.Text | undefined;
+  const sub = sc.tvSub as Phaser.GameObjects.Text | undefined;
+  if (!show || !sub) return;
+  sub.setOrigin(0.5, 0).setY(show.y + Math.max(16, show.height) + 2);
+}
+
 function patchScenes() {
   if (patched) return;
   patched = true;
+  wrap(PubScene.prototype as unknown as Bag, "card", (sc, args) => layoutPubCard(sc, args));
+  wrap(PubScene.prototype as unknown as Bag, "create", (sc) => layoutPubTv(sc));
   wrap(MenuScene.prototype as unknown as Bag, "render", (m) => layoutMenu(m as Menu));
   wrap(TitleScene.prototype as unknown as Bag, "create", (t) => layoutTitle(t as unknown as Phaser.Scene));
   wrap(CharSelectScene.prototype as unknown as Bag, "select", (c) => layoutCharDetail(c as Phaser.Scene & Bag));
@@ -703,6 +733,22 @@ function patchScenes() {
     tapThenPlay(c as Phaser.Scene & Bag);
   });
   wrap(TitleScene.prototype as unknown as Bag, "askPassword", (t) => passwordUp(t as Phaser.Scene & Bag));
+}
+
+/**
+ * The flyover's "SKIP ▸▸ (tap)" hint (11 px grey, in the home-indicator strip): on a phone a 16 CSS px pill on a dark
+ * box, 44 CSS px tall, in the top bar's right end (a tap anywhere skips, as it always did; P9).
+ */
+export function skipHintPill(t: Phaser.GameObjects.Text) {
+  const sc = t.scene;
+  if (!sc) return;
+  const cb = sc.game.scale.canvasBounds;
+  const k = cb.width / 960 || 0.72;
+  const fs = gamePx(k, 16);
+  const pad = Math.ceil((44 / k - fs * 1.25) / 2);
+  (t as Phaser.GameObjects.Text & { __mfSkipPill?: boolean }).__mfSkipPill = true;
+  t.setFontSize(fs).setColor("#ffffff").setBackgroundColor("#000000cc").setPadding(Math.round(pad * 1.4), pad, Math.round(pad * 1.4), pad);
+  t.setPosition(960 - 16, 31);
 }
 
 /** Scenes that are only a create(): their bottom buttons, and the TV's subtitles. Called when a scene is created. */
@@ -742,6 +788,8 @@ export function onSceneCreate(scene: Phaser.Scene) {
       const walk = (x: Bag) => {
         if (x.type === "Container") return (x.list as Bag[]).forEach(walk);
         if (x.type === "Text" && /^(?:Space \/ click|Tab|D|Esc)$/.test(x.text) && (x.parentContainer?.x ?? 0) + x.x > 780) wordText(x as Phaser.GameObjects.Text);
+        // (a story bulletin, played once: its NEXT SHOW ends the bulletin, so on a phone it says what it does; P4)
+        if (x.type === "Text" && x.text === "NEXT SHOW" && (scene as Bag).once && (x.parentContainer?.x ?? 0) > 780) (x as Phaser.GameObjects.Text).setText("SKIP");
       };
       walk(o);
     }

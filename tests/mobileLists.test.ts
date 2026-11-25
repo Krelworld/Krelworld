@@ -106,7 +106,7 @@ describe("the touch wording sweep (stage 2 part 2)", () => {
     ["↑↓ pick · ←→ channel · ENTER watch · ESC whatever's on", ""],
     ["DONE (ESC)", "DONE"],
     ["←/→ tabs · ↑/↓ pick · ENTER borrow / hand back · tap twice on touch", "Tap one, then tap it again to borrow or hand back"],
-    ["Drag to set your order (or ▲▼). #1 is what you start a dungeon holding; X swaps down the list.", "Drag to set your order (or ▲▼). #1 is what you start a dungeon holding; SWAP goes down the list."],
+    ["Drag to set your order (or ▲▼). #1 is what you start a dungeon holding; X swaps down the list.", "Drag to order (or ▲▼). #1 is what you start with; SWAP goes down the list."],
     ["↑↓ pick · SHIFT+↑↓ move · B buy ammo · no shops left: ammo's HALF PRICE", "no shops left: ammo's HALF PRICE"],
     ["↑↓ pick · SHIFT+↑↓ move · B buy ammo", ""],
     ["Esc: skip scene", "SKIP SCENE ▸▸"],

@@ -2,7 +2,7 @@
 // PHONE MODE smoke test (Playwright, real touch events). Needs a running dev server.
 //
 //   npx vite --port 5202 --strictPort &
-//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,android,desktop]
+//   node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,android,desktop]
 //
 // phone    iPhone 14 landscape (844x390, DPR 3, touch, mobile Safari UA). Boots by taps, starts a new game by taps,
 //          clears the welcome at home by taps, then checks: the idle stick and pause are up; a drag moves the player
@@ -66,6 +66,12 @@
 //          fit); a conversation in a fight shows SKIP / LOG / AUTO and no fight button, its narrated CONTROLS line in
 //          touch words; pause -> PHONE SETTINGS changes auto-fire and button size live in the fight; pause -> CONTROLS
 //          opens the picture on FIGHTS; the Krezz Arms brawl says Tap and taps anywhere swing.
+// polish   (stage 2 polish) at 844x390 with the iPhone insets and at 740x360: a fresh top-down room (chapter 1 kit),
+//          the same room mid-game (everything charged), a boss, a side room's start, the finale brawl and the Krezz
+//          Arms, each measured: no caption or button word over another caption, a button or the HUD, no button on
+//          another; the controls on screen counted (only what can be used now: no SPECIAL without its Krezz, no
+//          juice chip at full health, no READY / HEAL with nothing to do); JUMP plain to see over the first pit; a
+//          long room name clear of the name, coins and meters; the Leave card above the bottom 21 px.
 // android  Android Chrome 740x360: a press held past the Enter gate's fade still gets fullscreen and the back guard;
 //          the guide's written steps leave fullscreen (and closing it goes back in); the crash guard's notices show
 //          in fullscreen; an in-app browser shows "open it in Chrome first" during the load.
@@ -85,7 +91,7 @@ const arg = (k, d) => {
 };
 const URL0 = arg("--url", "http://localhost:5202/");
 const SHOTS = arg("--shots", "");
-const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,android,desktop") || "").split(",").filter(Boolean);
+const ONLY = (arg("--only", "phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,android,desktop") || "").split(",").filter(Boolean);
 const IOS_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
 const IPHONE = { viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: IOS_UA };
 const DESKTOP = { viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, hasTouch: false, isMobile: false };
@@ -2528,9 +2534,21 @@ async function combat(browser) {
     let s = await ph.snap();
     const shown = (id) => !!s.controls.find((c) => c.id === id && c.shown);
     const pad = await ph.ev(() => window.__krel.game.scene.getScene("UI").touch);
-    check("the old canvas pad is gone; FIRE, DODGE, SPECIAL, the weapon chip, the juice chip and pause are up", pad === null && ["c-fire", "c-dodge", "c-special", "c-chip", "c-juice", "pause"].every(shown), s.controls.filter((c) => c.shown).map((c) => c.id));
+    const cs0 = await C();
+    const hurt0 = await ph.ev(async () => {
+      const s = window.__krel.G.s;
+      return s.bottles > 0 && s.hp < (await import("/src/game/systems/stats.ts")).maxHp(s);
+    });
+    check("the old canvas pad is gone; FIRE, DODGE, the weapon chip and pause are up; SPECIAL only when it can go, the juice chip only when a drink would heal (stage 2 polish)", pad === null && ["c-fire", "c-dodge", "c-chip", "pause"].every(shown) && shown("c-special") === cs0.specialReady && shown("c-juice") === hurt0, { shown: s.controls.filter((c) => c.shown).map((c) => c.id), specialReady: cs0.specialReady, hurt0 });
     check("the stick is the town's (left 45%, gutter included) and there's no ACTION / READY / HEAL with nothing to do", s.decision.stick === "2d" && s.zone.x === 0 && !shown("c-action") && !shown("c-ready") && !shown("c-heal"), { stick: s.decision.stick, zone: s.zone });
-    check("first fights: a one-word caption under each combat button", s.controls.find((c) => c.id === "c-fire").caption === "FIRE" && s.controls.find((c) => c.id === "c-dodge").caption === "DODGE", s.controls.filter((c) => c.shown && c.caption).map((c) => `${c.id}:${c.caption}`));
+    const names = await ph.ev(() =>
+      [...document.querySelectorAll(".kt .kt-btn.show")].map((b) => {
+        const w = b.querySelector(".kt-in");
+        return { id: b.dataset.ctl, word: w && getComputedStyle(w).display !== "none" ? w.textContent : "", cap: (b.querySelector(".kt-bcap") || {}).textContent || "" };
+      }),
+    );
+    const nm = (id) => (names.find((n) => n.id === id) || {}).word;
+    check("first fights: each icon's name inside its button (FIRE, DODGE), and no caption outside any button (N1)", nm("c-fire") === "FIRE" && nm("c-dodge") === "DODGE" && names.every((n) => !n.cap), names);
     await ph.shot("combat-room");
     // ---- the stick, from the black gutter
     await ph.ev(() => window.__krelMobile.settings.set({ autoFire: false }));
@@ -2632,7 +2650,8 @@ async function combat(browser) {
     const sp0 = (await P()).specialCd;
     await press("c-special", 80, 4);
     await sleep(300);
-    check("SPECIAL fires the lad's special (NUKE for Mikey)", (await P()).specialCd > sp0 && (await ctlOf("c-special")).shown, { before: sp0, after: (await P()).specialCd });
+    const spAfter = await C();
+    check("SPECIAL fires the lad's special (NUKE for Mikey); afterwards it is up only if it could go again", (await P()).specialCd > sp0 && (await ctlOf("c-special")).shown === spAfter.specialReady, { before: sp0, after: (await P()).specialCd, ready: spAfter.specialReady });
     // ---- SWAP: tap = next gun; hold = picker, slide onto a gun and let go
     await ph.ev(() => {
       const s = window.__krel.G.s;
@@ -3029,7 +3048,8 @@ async function sideRooms(browser) {
     let s = await ph.snap();
     const shown = (id) => !!s.controls.find((c) => c.id === id && c.shown);
     const pad = await ph.ev(() => window.__krel.game.scene.getScene("UI").touch);
-    check("the old canvas pad is gone; JUMP, FIRE, DODGE, SPECIAL, the weapon chip and pause are up; no SWAP, no top-down FIRE", pad === null && ["c-jump", "c-sfire", "c-dodge", "c-special", "c-chip", "pause"].every(shown) && !shown("c-swap") && !shown("c-fire"), s.controls.filter((c) => c.shown).map((c) => c.id));
+    const sideSp = await ph.ev(() => window.__krelMobile.combat.snapshot().specialReady);
+    check("the old canvas pad is gone; JUMP, FIRE, DODGE, the weapon chip and pause are up, SPECIAL only when it can go; no SWAP, no top-down FIRE", pad === null && ["c-jump", "c-sfire", "c-dodge", "c-chip", "pause"].every(shown) && shown("c-special") === sideSp && !shown("c-swap") && !shown("c-fire"), { shown: s.controls.filter((c) => c.shown).map((c) => c.id), sideSp });
     const jc = s.controls.find((c) => c.id === "c-jump");
     const fc = s.controls.find((c) => c.id === "c-sfire");
     const [jx, jy] = mid(jc);
@@ -3721,6 +3741,264 @@ async function review1(browser) {
   }
 }
 
+// ------------------------------------------------------------------ polish (stage 2 polish: a calm fight screen)
+
+/**
+ * Everything the phone draws over a fight, measured in the page (CSS px): every shown control's face, any caption
+ * under it, the words inside the faces, the stick, and the HUD's canvas texts (name, coins, bars' numbers, the room
+ * name, the boss's name, the chips line).
+ */
+function measureScreen(ph) {
+  return ph.ev(() => {
+    const box = (r) => ({ x: Math.round(r.x * 10) / 10, y: Math.round(r.y * 10) / 10, w: Math.round(r.width * 10) / 10, h: Math.round(r.height * 10) / 10 });
+    const seen = (e) => {
+      if (!e) return null;
+      const cs = getComputedStyle(e);
+      const r = e.getBoundingClientRect();
+      if (cs.display === "none" || cs.visibility === "hidden" || r.width < 1 || r.height < 1) return null;
+      for (let p = e; p && p !== document.body; p = p.parentElement) if (+getComputedStyle(p).opacity < 0.05) return null;
+      return box(r);
+    };
+    const controls = [];
+    const caps = [];
+    const words = [];
+    for (const b of document.querySelectorAll(".kt .kt-btn.show")) {
+      const id = b.dataset.ctl;
+      const face = seen(b.querySelector(".kt-face"));
+      if (!face) continue;
+      controls.push({ id, face, see: b.classList.contains("see") });
+      const cap = b.querySelector(".kt-bcap");
+      const cr = cap && cap.textContent ? seen(cap) : null;
+      if (cr) caps.push({ id, text: cap.textContent, r: cr });
+      for (const w of b.querySelectorAll(".kt-in")) {
+        const wr = seen(w);
+        if (wr) words.push({ id, text: w.textContent, r: wr, face });
+      }
+    }
+    const st = document.querySelector(".kt-stick");
+    const stick = st && +getComputedStyle(st).opacity > 0.05;
+    // the HUD's canvas texts, in CSS px
+    const hud = [];
+    const cv = document.querySelector("canvas").getBoundingClientRect();
+    const k = cv.width / 960;
+    const ui = window.__krel.game.scene.getScene("UI");
+    if (ui && ui.sys.isActive())
+      for (const n of ["nameT", "coinT", "coinIco", "hpT", "kzT", "statT", "roomT", "bossT"]) {
+        const o = ui[n];
+        if (!o || !o.visible || !o.active || (o.type === "Text" && !o.text)) continue;
+        const b = o.getBounds();
+        if (b.width < 1) continue;
+        hud.push({ id: n, text: o.type === "Text" ? o.text.slice(0, 80) : "", r: { x: cv.x + b.x * k, y: cv.y + b.y * k, w: b.width * k, h: b.height * k } });
+      }
+    return { vp: { w: innerWidth, h: innerHeight }, controls, caps, words, stick, hud };
+  });
+}
+
+const overlap = (a, b, pad = 0) => a.x < b.x + b.w - pad && b.x < a.x + a.w - pad && a.y < b.y + b.h - pad && b.y < a.y + a.h - pad;
+const inside = (a, b, pad = 1) => a.x >= b.x - pad && a.y >= b.y - pad && a.x + a.w <= b.x + b.w + pad && a.y + a.h <= b.y + b.h + pad;
+
+/** No caption over another caption, a control, or the HUD; words inside their own faces; no two faces on each other. */
+function collisions(m) {
+  const out = [];
+  for (const c of m.caps) {
+    for (const o of m.controls) if (o.id !== c.id && overlap(c.r, o.face)) out.push(`caption ${c.id}:${c.text} on ${o.id}`);
+    for (const o of m.caps) if (o !== c && overlap(c.r, o.r)) out.push(`caption ${c.id} on caption ${o.id}`);
+    for (const h of m.hud) if (overlap(c.r, h.r)) out.push(`caption ${c.id} on HUD ${h.id}`);
+    if (c.r.y + c.r.h > m.vp.h || c.r.x < 0 || c.r.x + c.r.w > m.vp.w) out.push(`caption ${c.id} off screen`);
+  }
+  for (const w of m.words) {
+    if (!inside(w.r, w.face)) out.push(`word ${w.id}:${w.text} outside its button`);
+    for (const o of m.controls) if (o.id !== w.id && overlap(w.r, o.face)) out.push(`word ${w.id} on ${o.id}`);
+  }
+  for (let i = 0; i < m.controls.length; i++)
+    for (let j = i + 1; j < m.controls.length; j++) if (overlap(m.controls[i].face, m.controls[j].face, 1)) out.push(`${m.controls[i].id} on ${m.controls[j].id}`);
+  return out;
+}
+
+/** The room name must not run over the player's name, the coins, the meters or the chips (N2). */
+function roomNameClash(m) {
+  const rn = m.hud.find((h) => h.id === "roomT");
+  if (!rn) return [];
+  const out = [];
+  for (const h of m.hud) if (h.id !== "roomT" && ["nameT", "coinT", "coinIco", "kzT", "hpT"].includes(h.id) && overlap(rn.r, h.r, 0.5)) out.push(`room name on ${h.id}`);
+  for (const c of m.controls) if (overlap(rn.r, c.face, 0.5)) out.push(`room name on ${c.id}`);
+  return out;
+}
+
+async function polish(browser) {
+  console.log("POLISH (a calm fight screen: what shows when, captions that never collide, the room name, Leave, JUMP)");
+  const profiles = [
+    { tag: "iphone", profile: IPHONE, insets: { top: 0, right: 47, bottom: 21, left: 47 } },
+    { tag: "android", profile: { ...ANDROID, userAgent: UA.androidChrome }, insets: null },
+  ];
+  for (const pr of profiles) {
+    const { ctx, page, ph, errors } = await phoneAtTitle(browser, pr.profile);
+    const where = `${pr.tag} ${pr.profile.viewport.width}x${pr.profile.viewport.height}`;
+    const counts = {};
+    const look = async (name, opts = {}) => {
+      await sleep(opts.wait ?? 900);
+      const m = await measureScreen(ph);
+      const snap = await ph.ev(() => (window.__krelMobile.combat ? window.__krelMobile.combat.snapshot() : null)).catch(() => null);
+      const ids = m.controls.map((c) => c.id);
+      counts[name] = { n: ids.length + (m.stick ? 1 : 0), ids: [...ids, ...(m.stick ? ["stick"] : [])], caps: m.caps.map((c) => `${c.id}:${c.text}`), words: m.words.map((w) => `${w.id}:${w.text}`) };
+      const col = collisions(m);
+      check(`polish ${where} ${name}: no caption or word over another caption, a button or the HUD, no button on another`, col.length === 0, col.length ? col.slice(0, 8) : counts[name]);
+      await ph.shot(`${pr.tag}-${name}`);
+      return { m, snap, ids };
+    };
+    try {
+      if (pr.insets) await ph.ev((i) => window.__krelMobile.setInsets(i), pr.insets);
+      // ---- 1. a fresh top-down room with the chapter 1 kit (first fights: the words are being taught)
+      await ph.ev(() => window.__krelMobile.combat.resetTeaching());
+      // (room 2 of the first dungeon: room 1 opens with the how-to card the first time through)
+      const ok1 = await toFight(ph, "wildern", 1, 1, "FLENKY");
+      // (a new game's own kit: 40 Krezz, 2 juice, 1 bongo, no gun yet but the Fart Blaster; full health; the room's
+      // enemies held off for the look, so nothing hurts the player before it's measured)
+      const calmRoom = (kit) =>
+        ph.ev(async (kit) => {
+          const st = await import("/src/game/systems/stats.ts");
+          const k = window.__krel;
+          const s = k.G.s;
+          const d = k.game.scene.getScene("Dungeon");
+          for (const e of d.enemies) if (!e.dead && !e.isBoss) e.setPosition(-5000, -5000);
+          Object.assign(s, kit);
+          s.guns = {};
+          s.gun = null;
+          k.G.rt.fart = 0;
+          if (d.player) {
+            d.player.wonk = 0;
+            // (nothing lands on the player while it's looked at: a stray shot would bring the juice chip up)
+            d.player.iframesUntil = d.now() + 6000;
+          }
+          s.hp = st.maxHp(s);
+        }, kit);
+      await calmRoom({ krezz: 40, bottles: 2, bongos: 1 });
+      const fresh = await look("room-fresh");
+      const sp = fresh.snap && fresh.snap.specialReady;
+      check(`polish ${where}: a fresh room reached (chapter 1 kit)`, ok1, await ph.mode());
+      check(
+        `polish ${where} fresh room: only what a thumb can use now (no READY, HEAL, juice at full health, SPECIAL only when it can go)`,
+        !fresh.ids.includes("c-ready") && !fresh.ids.includes("c-heal") && !fresh.ids.includes("c-juice") && fresh.ids.includes("c-fire") && fresh.ids.includes("c-dodge") && fresh.ids.includes("pause") && fresh.ids.includes("c-special") === !!sp,
+        counts["room-fresh"],
+      );
+      // ---- 1b. the same room with nothing left to use (Krezz spent, no bongo): the calmest a fight gets
+      await calmRoom({ krezz: 0, bottles: 2, bongos: 0 });
+      const calm = await look("room-calm");
+      const hpNow = await ph.ev(async () => {
+        const s = window.__krel.G.s;
+        return [s.hp, (await import("/src/game/systems/stats.ts")).maxHp(s), s.bottles];
+      });
+      check(`polish ${where} calm room: just the stick, FIRE, DODGE, the gun and pause`, ["pause", "c-fire", "c-dodge", "c-chip"].every((id) => calm.ids.includes(id)) && calm.ids.length === 4, { ...counts["room-calm"], hpNow });
+      // ---- 2. mid-game: a second gun, Krezz full, WONK full, beans, bongos, hurt with juice to drink
+      await ph.ev(async () => {
+        const k = window.__krel;
+        const s = k.G.s;
+        const d = k.game.scene.getScene("Dungeon");
+        const st = await import("/src/game/systems/stats.ts");
+        s.krezz = st.maxKrezz(s);
+        s.bongos = 2;
+        s.bottles = Math.max(2, s.bottles);
+        s.hp = Math.round(st.maxHp(s) * 0.3);
+        k.G.rt.fart = 55;
+        if (d && d.player) d.player.wonk = 100;
+        s.guns = s.guns || {};
+        const g = await import("/src/game/combat/Guns.ts");
+        // (a second gun with ammo besides whatever the kit has, so SWAP has something to swap)
+        for (const id of Object.keys(g.GUNS).filter((id) => id !== "chem_flamer").slice(0, 2)) s.guns[id] = Math.max(5, s.guns[id] ?? 0);
+      });
+      await look("room-mid", { wait: 1500 });
+      // ---- 3. a boss (Krandall)
+      const ok3 = await toFight(ph, "wildern", 3, 2);
+      check(`polish ${where}: a boss fight reached`, ok3, await ph.mode());
+      const boss = await look("boss");
+      check(`polish ${where} boss: nothing for an ability that can't go (no READY with nothing ready, no SPECIAL without its Krezz)`, !boss.ids.includes("c-ready") === !(boss.snap && boss.snap.ready) && boss.ids.includes("c-special") === !!(boss.snap && boss.snap.specialReady), counts.boss);
+      // ---- 4. a side room's start (Catford High Street: the first pit sits under the cluster)
+      await ph.ev(() => window.__krelMobile.combat.resetTeaching());
+      const ok4 = await toFight(ph, "arena_sanmik", 1, 5, "FLENKY", "side:Dungeon");
+      check(`polish ${where}: a side room reached`, ok4, await ph.mode());
+      await ph.ev(() => {
+        const d = window.__krel.game.scene.getScene("Dungeon");
+        for (const e of d.enemies) if (!e.dead) e.setPosition(-5000, -5000);
+      });
+      const side = await look("side-start");
+      const jump = await ph.ev(() => {
+        const b = document.querySelector('.kt-btn[data-ctl="c-jump"]');
+        if (!b) return null;
+        const f = b.querySelector(".kt-face");
+        const cs = getComputedStyle(f);
+        const bc = cs.borderTopColor.match(/[\d.]+/g).map(Number);
+        const bg = cs.backgroundColor.match(/[\d.]+/g).map(Number);
+        const svg = f.querySelector("svg");
+        return { see: b.classList.contains("see"), opacity: +cs.opacity, border: bc.length > 3 ? bc[3] : 1, borderW: parseFloat(cs.borderTopWidth), bg: bg.length > 3 ? bg[3] : 1, icon: !!svg && svg.getBoundingClientRect().width > 10 };
+      });
+      check(`polish ${where} side start: JUMP is plain to see (a solid outline and its icon) even see-through over the pit, the pit still shows through`, jump && jump.icon && jump.opacity >= 0.9 && jump.border >= 0.6 && jump.borderW >= 2.5 && (!jump.see || jump.bg <= 0.1), jump);
+      // the room name (N2): run right into a room with a long name (the Job Centre), and also with the longest name made up
+      const rn = await ph.ev(() => {
+        const ui = window.__krel.game.scene.getScene("UI");
+        ui.roomT.setText("THE SANMIKVERSE (CATFORD, ALLEGEDLY) · Job Centre Plus (Catford Branch)");
+        return true;
+      });
+      await sleep(600);
+      const mr = await measureScreen(ph);
+      const clash = roomNameClash(mr);
+      check(`polish ${where} side room: a long room name never runs over the name, coins, meters or the chips (N2)`, rn && clash.length === 0, clash.length ? clash : mr.hud.find((h) => h.id === "roomT") || "hidden");
+      await ph.shot(`${pr.tag}-side-roomname`);
+      // ---- 5. the finale brawl
+      await ph.ev(() => {
+        const k = window.__krel;
+        k.newRun("FLENKY");
+        k.setChapter(7, { ch1_home: true, home_seen: true, flyover_seen: true });
+        k.go("Finale", { beat: "brawl" });
+      });
+      await ph.scene("Finale");
+      let on = false;
+      for (let i = 0; i < 90 && !on; i++) {
+        const b = await ph.ev(() => window.__krelMobile.brawl.snapshot()).catch(() => ({ active: false }));
+        on = b.active && (await ph.mode()).startsWith("brawl") && !(await ph.active()).includes("Dialogue");
+        if (!on) {
+          await ph.tapCss(420, 150);
+          await sleep(900);
+        }
+      }
+      check(`polish ${where}: the finale brawl reached`, on, await ph.mode());
+      await look("brawl");
+      // ---- 6. the Krezz Arms: its Leave card clear of the bottom 21 px (N4)
+      await runInto(ph, "Pub", "s.coins = 900;");
+      await ph.scene("Pub", 90000);
+      await sleep(2500);
+      const leave = await ph.ev(() => {
+        const p = window.__krel.game.scene.getScene("Pub");
+        const cv = document.querySelector("canvas").getBoundingClientRect();
+        const k = cv.width / 960;
+        let found = null;
+        const walk = (o, ox, oy) => {
+          if (found) return;
+          if (o.type === "Container") {
+            if (o.list.some((c) => c.type === "Text" && c.text === "Leave")) {
+              const hit = o.list.find((c) => c.input && c.input.enabled);
+              if (hit) {
+                const ha = hit.input.hitArea;
+                found = { top: cv.y + (oy + o.y + hit.y + ha.y) * k, bottom: cv.y + (oy + o.y + hit.y + ha.y + ha.height) * k, drawBottom: cv.y + (oy + o.y + hit.y + hit.height) * k };
+              }
+              return;
+            }
+            for (const c of o.list) walk(c, ox + o.x, oy + o.y);
+          }
+        };
+        for (const o of p.children.list) walk(o, 0, 0);
+        return found;
+      });
+      await ph.shot(`${pr.tag}-pub`);
+      const strip = pr.profile.viewport.height - 21;
+      check(`polish ${where} Krezz Arms: the Leave card (drawing and touch area) ends above the bottom 21 px (N4)`, leave && leave.bottom <= strip + 0.5 && leave.drawBottom <= strip + 0.5, { leave, strip });
+      console.log(`  counts ${where}: ${JSON.stringify(Object.fromEntries(Object.entries(counts).map(([k, v]) => [k, `${v.n}: ${v.ids.join(" ")}`])))}`);
+      check(`polish ${where}: no page errors`, errors.length === 0, errors.slice(0, 3));
+    } finally {
+      await ctx.close();
+    }
+  }
+}
+
 async function android(browser) {
   console.log("ANDROID (Chrome 740x360)");
   const AND = { ...ANDROID, userAgent: UA.androidChrome };
@@ -3908,6 +4186,7 @@ async function desktop(browser) {
       ["brawl", brawl],
       ["together", together],
       ["review1", review1],
+      ["polish", polish],
       ["android", android],
       ["desktop", desktop],
     ]) {

@@ -809,6 +809,8 @@ export class TouchLayer {
     this.stickEl.classList.add("live");
     this.updateGhost();
     this.stickEl.style.transform = `translate(${b.x}px,${b.y}px)`;
+    // (the element moved under the thumb: the resting place must be set again when it lifts)
+    this.ghostKey = "";
     this.knobEl.style.transform = "translate(0px,0px)";
     if (fixed) this.moveStick(x, y);
   }

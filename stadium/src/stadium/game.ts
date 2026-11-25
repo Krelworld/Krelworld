@@ -240,10 +240,10 @@ export function stepGame(g: Game): void {
     f.stamina ??= 1;
     const wantRun = Math.hypot(pc.moveX, pc.moveY) > 0.9;
     const run = wantRun && f.stamina > 0.02 && !f.winded;
-    f.stamina = Math.max(0, Math.min(1, f.stamina + (run ? -0.13 : 0.07) / 60 * (wired ? 0.5 : 1)));
+    f.stamina = Math.max(0, Math.min(1, f.stamina + (run ? -0.11 : 0.08) / 60 * (wired ? 0.5 : 1)));
     if (f.stamina <= 0.02 && !f.winded) { f.winded = 1; g.w.bus.emit({ type: "winded", t: s.tick, who: pc.id }); }
     if (f.winded && f.stamina > 0.35) f.winded = 0;
-    pc.speed = (run ? 5.4 : 3.0) * (wired ? 1.15 : 1) * (drunk ? 0.92 : 1) * (f.winded ? 0.75 : 1);
+    pc.speed = (run ? 6.4 : 4.4) * (wired ? 1.15 : 1) * (drunk ? 0.92 : 1) * (f.winded ? 0.75 : 1);
   }
   stepWorld(w);
   if (pc) pc.speed = pcSpeed;

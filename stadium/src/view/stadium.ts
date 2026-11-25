@@ -541,7 +541,8 @@ class StadiumScene extends Phaser.Scene {
     l = Math.hypot(x, y);
     const g = this.P.ground(x, y);
     const k2 = l > 1 ? 1 / l : 1;
-    const mag = run ? 1 : Math.min(l, 0.8);
+    // A light push is a full walk; past the edge of the stick is a run.
+    const mag = run ? 1 : Math.min(0.85, l * 1.6);
     pc.moveX = l > 0.12 ? (g.x / (l || 1)) * mag * (l > 1 ? 1 : 1) * k2 * (l > 1 ? l : 1) : 0;
     pc.moveY = l > 0.12 ? (g.y / (l || 1)) * mag * k2 * (l > 1 ? l : 1) : 0;
   }

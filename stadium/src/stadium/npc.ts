@@ -19,7 +19,7 @@ export function newNpc(job: Job, role: Role, extra: Partial<Npc> = {}): Npc {
 }
 
 const SPEED: Partial<Record<Job, number>> = { fan: 1.7, local: 1.4, police: 1.8, patrol: 1.6, cleaner: 1.3 };
-const RUN: Partial<Record<Job, number>> = { police: 5.9, pitchsteward: 5.8, patrol: 5.6, corridor: 5.6, turnstile: 5.3, doorguard: 5.3, gateguard: 5.2, chief: 5 };
+const RUN: Partial<Record<Job, number>> = { police: 6.3, pitchsteward: 6.2, patrol: 6, corridor: 6, turnstile: 5.7, doorguard: 5.7, gateguard: 5.6, chief: 5.3 };
 export const walkSpeed = (n: Npc) => SPEED[n.job] ?? 1.5;
 export const runSpeed = (n: Npc) => RUN[n.job] ?? 3.6;
 

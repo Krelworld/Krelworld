@@ -9,6 +9,7 @@ export const CLIPS = [
   "fire_alarm", "wall_crash", "tannoy_delay_late", "tannoy_delay_ref", "tannoy_delay_pitch", "tannoy_delay_safety", "tannoy_delay_again",
   "tannoy_alarm", "tannoy_breach", "tannoy_forfeit",
   "gunshot", "dog_maul", "scream", "tannoy_incident", "armed_police", "stw_knife",
+  "pit_growl", "pit_bark", "pit_gnash",
 ] as const;
 export type Clip = (typeof CLIPS)[number];
 
@@ -21,6 +22,37 @@ export class Audio {
   muted = false;
   private tannoyBusyUntil = 0;
   private lastPlayed = new Map<string, number>();
+
+  /** The bus engine: two detuned sawtooths and a square an octave down, through a low-pass,
+   *  pitched and opened up by speed (Krelworld's Beep Beep engine). */
+  private engine: { oscs: OscillatorNode[]; filt: BiquadFilterNode; gain: GainNode } | null = null;
+  engineOn(on: boolean, speed = 0): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    if (on && !this.engine) {
+      const gain = ctx.createGain(); gain.gain.value = 0.0001;
+      const filt = ctx.createBiquadFilter(); filt.type = "lowpass"; filt.frequency.value = 400; filt.Q.value = 6;
+      const oscs = [0, 7].map((det) => { const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = 38; o.detune.value = det; o.connect(filt); o.start(); return o; });
+      const sub = ctx.createOscillator(); sub.type = "square"; sub.frequency.value = 19; sub.connect(filt); sub.start(); oscs.push(sub);
+      filt.connect(gain).connect(this.master);
+      this.engine = { oscs, filt, gain };
+      gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.4);
+    }
+    const e = this.engine;
+    if (!e) return;
+    if (!on) {
+      this.engine = null;
+      e.gain.gain.cancelScheduledValues(ctx.currentTime);
+      e.gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.15);
+      e.oscs.forEach((o) => o.stop(ctx.currentTime + 0.6));
+      return;
+    }
+    const k = Math.min(1.3, Math.abs(speed) / 13);
+    const base = 32 + k * 70 + Math.sin(ctx.currentTime * 16) * 1.5;
+    e.oscs.forEach((o, i) => o.frequency.setTargetAtTime(i === 2 ? base / 2 : base, ctx.currentTime, 0.08));
+    e.filt.frequency.setTargetAtTime(300 + k * 1400, ctx.currentTime, 0.1);
+    e.gain.gain.setTargetAtTime(0.08 + k * 0.08, ctx.currentTime, 0.2);
+  }
 
   constructor(private base = "audio/") {
     try { this.muted = localStorage.getItem("kd-muted") === "1"; } catch { /* storage may be blocked */ }

@@ -807,3 +807,40 @@ test("at the semi-final, a steward's hands get you through the staff door", () =
   run(g, 2);
   assert.equal(st.doorPass, pc.id, "waved through");
 });
+
+// ---------- Beep beep ----------
+test("people in front of a speeding bus dive clear, unless you honk first", () => {
+  let dives = 0, frozenDives = 0;
+  for (const honkFirst of [false, true]) {
+    const g = createGame(honkFirst ? "honk" : "nohonk");
+    const s = g.w.state, pc = pcOf(g), st = s.stadium!;
+    run(g, 2);
+    const v = s.stadium!.vehicles.bus;
+    v.x = 52; v.y = 80; v.facing = -Math.PI / 2; v.speed = 9; v.state = "driving"; v.drivenBy = pc.id; pc.hiddenIn = v.cab;
+    const fans = Object.values(s.actors).filter((a) => a.npc?.job === "fan" && !a.seated).slice(0, 10);
+    fans.forEach((a, i) => { a.x = 52 + ((i % 2) - 0.5) * 0.8; a.y = 66 - Math.floor(i / 2) * 2; a.npc!.plan = [{ k: "wait", s: 60 }]; a.npc!.goal = null; });
+    if (honkFirst) assert.equal(dispatch(g.w, { verb: "horn", actor: pc.id }).ok, true);
+    const events: any[] = [];
+    g.w.bus.on((e) => events.push(e));
+    run(g, 1.5, () => { pc.drive = { steer: 0, throttle: 0.3 }; });
+    const n = events.filter((e) => e.type === "dive").length;
+    if (honkFirst) frozenDives = n; else dives = n;
+    if (honkFirst) assert.ok(fans.some((a) => (a.effects.frozen ?? 0) > 0));
+    void st;
+  }
+  assert.ok(dives > 0, "some dive clear");
+  assert.equal(frozenDives, 0, "frozen by the horn, nobody dives");
+});
+
+test("the pit bull lunges and snarls at people who come near it", () => {
+  const g = createGame("pitbull");
+  const s = g.w.state, st = s.stadium!;
+  const dog = s.actors[st.dog!.id];
+  const fan = find(g, (a) => a.npc?.job === "local");
+  const events: string[] = [];
+  g.w.bus.on((e) => { if (e.type === "dog_noise") events.push(e.kind); });
+  let furthest = 0;
+  run(g, 4, () => { fan.x = SPOTS.dogPost.x + 3; fan.y = SPOTS.dogPost.y; fan.npc!.plan = [{ k: "wait", s: 5 }]; furthest = Math.max(furthest, Math.hypot(dog.x - SPOTS.dogPost.x, dog.y - SPOTS.dogPost.y)); });
+  assert.ok(furthest > 1.5, `lunged ${furthest.toFixed(2)} m`);
+  assert.ok(events.length >= 2, `noises: ${events.join(",")}`);
+});

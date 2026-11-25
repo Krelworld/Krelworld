@@ -181,6 +181,61 @@ function crash(w: World, v: Vehicle, wall = false): void {
   if (by && st.flags.busTamperSeen) crime(w, by, "tampering with the team bus", 3);
 }
 
+// ---------- Beep Beep: the horn and the dive (after Krelworld's BeepBeepScene) ----------
+/** Everyone in front freezes like a rabbit in the headlights, so they can't dive out of the way. */
+export function honk(w: World, v: Vehicle, by: Actor): void {
+  const s = w.state, st = s.stadium!, f = fwd(v);
+  st.flags.hornReady = s.tick + 150;
+  for (const id in s.actors) {
+    const a = s.actors[id];
+    if (!a.npc || a.hiddenIn || a.dead || a.npc.job === "dog") continue;
+    const ax = a.x - v.x, ay = a.y - v.y, along = ax * f.x + ay * f.y, across = Math.abs(-ax * f.y + ay * f.x);
+    if (along < 0 || along > 30 || across > 7) continue;
+    a.effects.frozen = s.tick + 100;
+    if (st.dives?.[a.id]) delete st.dives[a.id];
+  }
+  w.bus.emit({ type: "horn", t: s.tick, by: by.id, x: v.x, y: v.y });
+}
+
+/** Seen coming, people decide once: dive for the gutter, or stand there (brave, or on their phone). */
+function dodgers(w: World, v: Vehicle): void {
+  const s = w.state, st = s.stadium!, tick = s.tick, f = fwd(v), r = s.rng.world;
+  st.dives ??= {};
+  for (const id in st.dives) {
+    const d = st.dives[id], a = s.actors[id];
+    if (!a || a.dead) { delete st.dives[id]; continue; }
+    const dx = d.x - a.x, dy = d.y - a.y, l = Math.hypot(dx, dy);
+    if (l < 0.15 || tick > d.until) {
+      // Lying in the gutter, feeling clever.
+      delete st.dives[id];
+      a.downUntil = Math.max(a.downUntil, tick + 100);
+      w.bus.emit({ type: "dodged", t: tick, who: id });
+      continue;
+    }
+    const step = Math.min(l, 4.2 * DT);
+    a.x += (dx / l) * step; a.y += (dy / l) * step; a.facing = Math.atan2(dy, dx);
+  }
+  if (v.speed < 3) return;
+  const reach = BUS_LEN / 2 + 4 + v.speed * 0.6;
+  for (const id in s.actors) {
+    const a = s.actors[id];
+    if (!a.npc || a.hiddenIn || a.dead || a.seated || a.fb || a.off || a.npc.job === "dog" || a.downUntil > tick || st.dives[id]) continue;
+    if ((a.effects.frozen ?? 0) > tick || (a.effects.dodgeCheck ?? 0) > tick) continue;
+    const ax = a.x - v.x, ay = a.y - v.y, along = ax * f.x + ay * f.y, across = -ax * f.y + ay * f.x;
+    if (along < BUS_LEN / 2 || along > reach || Math.abs(across) > BUS_WID / 2 + 0.8) continue;
+    a.effects.dodgeCheck = tick + 180;
+    const dodgy = a.npc.job === "fan" || a.npc.job === "local" ? 0.55 : 0.4;
+    if (!chance(r, dodgy)) continue;
+    let side = across >= 0 ? 1 : -1;
+    const tx = a.x + -f.y * side * (BUS_WID / 2 + 1.6 - Math.abs(across)), ty = a.y + f.x * side * (BUS_WID / 2 + 1.6 - Math.abs(across));
+    void side;
+    st.dives[id] = { x: tx, y: ty, until: tick + 45 };
+    a.npc.plan = [{ k: "wait", s: 3 }]; a.npc.goal = null;
+    say(w, a, "!", 0.8);
+    w.bus.emit({ type: "dive", t: tick, who: id });
+  }
+}
+
 /** Anyone in the way gets knocked down; at speed, badly. */
 function runOver(w: World, v: Vehicle, by: Actor | null): void {
   if (v.speed < 1.5) return;
@@ -195,7 +250,9 @@ function runOver(w: World, v: Vehicle, by: Actor | null): void {
     a.x += -f.y * Math.sign(across || 1) * 2; a.y += f.x * Math.sign(across || 1) * 2;
     if (a.fb && hard && a.fb.status === "playing") removePlayer(w, a.id, "injured");
     if (a.fb) a.fb.stunUntil = s.tick + 200;
-    w.bus.emit({ type: "bus_hit", t: s.tick, who: a.id, hard, by: by?.id });
+    const dodger = !!s.stadium!.dives?.[a.id];
+    if (dodger) delete s.stadium!.dives![a.id];
+    w.bus.emit({ type: "bus_hit", t: s.tick, who: a.id, hard, by: by?.id, dodger });
     if (by) busCrime(w, v, by, hard ? "running people over with a team bus" : "driving a bus at people", hard ? 3 : 2);
   }
 }
@@ -244,6 +301,7 @@ export function driveBus(w: World, v: Vehicle, pc: Actor): void {
     v.speed = -v.speed * 0.25;
   } else { v.x = nx; v.y = ny; }
   v.state = "driving";
+  dodgers(w, v);
   runOver(w, v, pc);
   // The gate guard waves a team bus through if the driver looks like he belongs to the team.
   if (Math.abs(v.x - SPOTS.serviceGate.x) < 12 && Math.abs(v.y - SPOTS.serviceGate.y) < 5 && !st.flags.gateRefused) {
@@ -340,12 +398,21 @@ export function installBus(): void {
       if (seen) crime(w, actor, "getting into the team bus", 1, undefined, false);
     },
   });
+  registerVerb("horn", {
+    check: (w, act, actor) => {
+      const v = w.state.stadium!.vehicles.bus;
+      if (v?.drivenBy !== actor.id) return "not driving";
+      return w.state.tick >= (w.state.stadium!.flags.hornReady ?? 0) ? null : "still honking";
+    },
+    perform: (w, act, actor) => honk(w, w.state.stadium!.vehicles.bus, actor),
+  });
   registerVerb("getout", {
     check: (w, act, actor) => (w.state.stadium!.vehicles.bus?.drivenBy === actor.id ? null : "not driving"),
     perform: (w, act, actor) => {
       const v = w.state.stadium!.vehicles.bus;
       v.drivenBy = undefined; v.speed = 0; v.state = "parked"; v.until = Number.MAX_SAFE_INTEGER;
       actor.hiddenIn = undefined;
+      w.state.stadium!.dives = {};
       letOff(w, v);
       const d = busDoor(v); actor.x = d.x; actor.y = d.y;
       w.state.stadium!.flags.leftBusAt = w.state.tick;

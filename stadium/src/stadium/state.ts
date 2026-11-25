@@ -154,6 +154,8 @@ export interface StadiumState {
   smoke: Smoke[];
   /** Holes in walls. */
   breaches: Breach[];
+  /** People diving out of the way of the bus: where to, and by when. */
+  dives?: Record<Id, { x: number; y: number; until: number }>;
   /** Who drank from which spiked supply at half-time. */
   dosed: Record<Id, { effect: string; at: number }>;
 }

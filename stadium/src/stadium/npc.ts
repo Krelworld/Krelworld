@@ -259,7 +259,7 @@ export function stepNpc(w: World, a: Actor): void {
   if (n.job === "armed") return; // armed officers are moved by knife.ts
   if (n.job === "player" || n.job === "official") { teamWalk(w, a); return; }
   if (n.job === "dog") return; // the dog has a mind of its own (see dog.ts)
-  if (a.downUntil > tick || a.heldBy) { a.moveX = a.moveY = 0; return; }
+  if (a.downUntil > tick || a.heldBy || (a.effects.frozen ?? 0) > tick) { a.moveX = a.moveY = 0; return; }
   if (n.mode !== "routine") return; // security behaviour moves them
   if (!n.plan.length) routine(w, a);
   runPlan(w, a);

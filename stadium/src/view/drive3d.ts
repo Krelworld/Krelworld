@@ -77,6 +77,13 @@ interface Fling { id: string; t0: number; vx: number; vy: number; spin: number }
 
 export type DriveView = "map" | "chase" | "cab";
 
+// From Krelworld's Beep Beep (scenes/BeepBeepScene.ts): the combo callouts and the shouting.
+const COMBO_CALL = ["", "", "DOUBLE BUMP!", "TRIPLE BUMP!", "BUMP BUMP BUMP BUMP!", "MULTI-BUMP!", "MONSTER BUMP!", "ULTRA BUMP!!", "THREE LIONS ON MY BUMPER!!!"];
+const MIK = ["RUN HIM OVER!", "GET THAT ONE!", "BEEP BEEP!", "GET OUT THE WAY!", "LIKE PLAYING GTA!", "BUMP BUMP BUMP!", "YEEEE!", "THAT ONE'S GOT A MEAL DEAL. GET HIM.", "PAVEMENT'S A ROAD IF YOU BELIEVE", "MIRROR, SIGNAL, MANSLAUGHTER", "IT'S COMING HOME!", "PORTUGAL NIL!"];
+const DODGE_MIK = ["HE DODGED! THE AUDACITY!", "SHE'S DONE A FORWARD ROLL!", "PARKOUR PRICK!", "HE THINKS HE'S IN THE MATRIX"];
+const DODGER_HIT = ["DIVE ALL YOU LIKE, SON!", "SHOULD'VE STAYED DOWN!", "YELLOW CARD FOR SIMULATION!"];
+const pick = <T,>(xs: T[]): T => xs[Math.floor(Math.random() * xs.length)];
+
 export class Drive3D {
   g: Phaser.GameObjects.Graphics;
   text: Phaser.GameObjects.Text;
@@ -115,7 +122,7 @@ export class Drive3D {
   }
 
   // ---------- Juice ----------
-  hit(s: WorldState, who: string, hard: boolean, busFacing: number, busSpeed: number): void {
+  hit(s: WorldState, who: string, hard: boolean, busFacing: number, busSpeed: number, dodger = false): void {
     const now = s.tick;
     this.trauma = Math.min(1, this.trauma + (hard ? 0.55 : 0.3));
     this.flash = hard ? 1 : 0.5; this.flashColour = 0xff2020;
@@ -124,23 +131,27 @@ export class Drive3D {
     // A few spots on the glass; a big one now and then. Never so many you can't see out.
     for (let i = 0; i < (hard ? 3 : 1); i++) this.splats.push({ x: 0.25 + Math.random() * 0.5, y: 0.12 + Math.random() * 0.3, r: 0.008 + Math.random() * (hard ? 0.022 : 0.012), t0: now });
     if (this.splats.length > 14) this.splats.splice(0, this.splats.length - 14);
-    this.streak = now - this.lastHit < 60 * 4 ? this.streak + 1 : 1;
+    // Beep Beep's combo: chain hits inside the window.
+    this.streak = now - this.lastHit < 60 * 2.6 ? this.streak + 1 : 1;
     this.lastHit = now;
-    const CALL: [number, string, string][] = [
-      [1, hard ? "ROADKILL!" : "CLIPPED HIM!", "#fde047"], [2, "BRACE!", "#fde047"], [3, "HAT-TRICK!", "#fb923c"],
-      [4, "FOUR-NIL!", "#f97316"], [5, "FIVE STAR PERFORMANCE", "#f43f5e"], [6, "THEY'RE DROPPING LIKE A DIVING WINGER", "#ff2bd6"],
-      [8, "TURN ON YOUR TELLY!", "#22d3ee"], [10, "DOUBLE FIGURES. THE TAXPAYER WEEPS", "#a3e635"],
-    ];
-    const c = [...CALL].reverse().find(([n]) => this.streak >= n);
-    if (c) this.callout = { text: this.streak > 1 && c[0] !== this.streak && this.streak > 10 ? `${this.streak} DOWN!` : c[1], until: now + 90, colour: c[2] };
+    const call = this.streak >= 2 ? COMBO_CALL[Math.min(this.streak, COMBO_CALL.length - 1)] : hard ? "BUMP!" : "CLIPPED HIM!";
+    this.callout = { text: dodger ? "GOT THE DODGER!" : call, until: now + 90, colour: this.streak >= 5 ? "#f43f5e" : this.streak >= 3 ? "#fb923c" : "#fde047" };
+    if (Math.random() < 0.55) this.shout(pick(dodger ? DODGER_HIT : MIK), now);
   }
+  /** Someone has seen you coming and gone for the gutter. */
+  dodge(s: WorldState): void { if (Math.random() < 0.35) this.shout(pick(DODGE_MIK), s.tick, "#ffffff"); }
+  /** What he shouts at the windscreen. */
+  shout(text: string, tick: number, colour = "#fde047"): void { this.yell = { text, until: tick + 100, colour }; }
+  private yell: { text: string; until: number; colour: string } | null = null;
+  private yellText: Phaser.GameObjects.Text | null = null;
+
   wall(s: WorldState, breach: boolean): void {
     this.trauma = 1; this.flash = 1; this.flashColour = breach ? 0xffffff : 0xffd0a0;
     if (breach) { this.cracked = 1; this.callout = { text: "THROUGH THE WALL!", until: s.tick + 120, colour: "#ffffff" }; }
   }
 
   // ---------- Drawing ----------
-  hide(): void { this.g.setVisible(false); this.text.setVisible(false); this.cracked = 0; this.splats = []; this.chaseYaw = null; }
+  hide(): void { this.g.setVisible(false); this.text.setVisible(false); this.yellText?.setVisible(false); this.cracked = 0; this.splats = []; this.chaseYaw = null; }
 
   /** The main camera zooms about the middle of the screen, scroll factor or not: undo that so we draw in screen pixels. */
   private zoom = 1; private zw = 0; private zh = 0;
@@ -176,6 +187,8 @@ export class Drive3D {
       this.cam.set(bus.x - Math.cos(want) * back, bus.y - Math.sin(want) * back, up, yawOf(want), 0.3, w, h);
     }
     this.cam.cx += jx; this.cam.cy += jy;
+    // The view opens out as the speed builds (Beep Beep's FOV kick).
+    this.cam.F *= 1 - Math.min(0.14, Math.abs(bus.speed) / 13 * 0.14);
     const cam = this.cam;
 
     // Sky and the ground beneath the horizon.
@@ -335,6 +348,22 @@ export class Drive3D {
       this.speedText(w / 2, 69, `${mph} mph`);
     }
 
+    // Speed streaks out from the middle of the screen, past about 20 mph.
+    const fast = Math.abs(bus.speed) - 9;
+    if (fast > 0) {
+      g.lineStyle(2, 0xffffff, Math.min(0.35, fast * 0.1));
+      for (let i = 0; i < 26; i++) {
+        const a = i * 2.39996 + (tick % 7) * 0.9, r0 = (0.25 + ((i * 37 + tick * 3) % 60) / 100) * w * 0.55;
+        const cx = w / 2, cy = cam.cy;
+        g.lineBetween(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0 * 0.6, cx + Math.cos(a) * (r0 + 40 + fast * 10), cy + Math.sin(a) * (r0 + 40 + fast * 10) * 0.6);
+      }
+    }
+    if (this.yell && this.yell.until > tick) {
+      if (!this.yellText) this.yellText = this.scene.add.text(0, 0, "", { fontFamily: "system-ui, sans-serif", fontSize: "18px", fontStyle: "900", color: "#fde047", stroke: "#000000", strokeThickness: 5, align: "center", wordWrap: { width: 520 } }).setOrigin(0.5).setScrollFactor(0).setDepth(31);
+      this.yellText.setVisible(true).setText(this.yell.text).setColor(this.yell.colour);
+      this.place(this.yellText, w / 2, view === "cab" ? h * 0.66 : h * 0.74);
+    } else this.yellText?.setVisible(false);
+
     // Flash and callouts.
     if (this.flash > 0) { g.fillStyle(this.flashColour, this.flash * 0.45).fillRect(0, 0, w, h); this.flash = Math.max(0, this.flash - 0.06); }
     if (this.callout && this.callout.until > tick) {
@@ -380,7 +409,12 @@ export class Drive3D {
     const head = cam.toCam({ x, y, z: z + H });
     const pf = cam.scr(feet), ph = cam.scr(head);
     const hpx = Math.max(2, pf.y - ph.y), wpx = hpx * (dog ? 1.2 : 0.3 * (st.girth ?? 1));
-    if (dog) { g.fillStyle(fogged(0x7a4a2a, dist), 1).fillEllipse(pf.x, pf.y - hpx * 0.5, wpx, hpx * 0.6); return; }
+    if (dog) {
+      g.fillStyle(fogged(0x6b4a32, dist), 1).fillEllipse(pf.x, pf.y - hpx * 0.55, wpx, hpx * 0.7);
+      g.fillStyle(fogged(0xe8ddd0, dist), 1).fillEllipse(pf.x, pf.y - hpx * 0.45, wpx * 0.35, hpx * 0.4);
+      g.fillStyle(fogged(0x6b4a32, dist), 1).fillCircle(pf.x, pf.y - hpx * 0.95, hpx * 0.32);
+      return;
+    }
     if (lying) {
       g.fillStyle(fogged(st.shirt, dist), 1).fillEllipse(pf.x, pf.y - hpx * 0.06, hpx * 0.9, hpx * 0.16);
       g.fillStyle(fogged(st.skin, dist), 1).fillCircle(pf.x + hpx * 0.45, pf.y - hpx * 0.08, hpx * 0.08);

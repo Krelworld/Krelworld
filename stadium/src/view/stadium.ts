@@ -58,6 +58,9 @@ class StadiumScene extends Phaser.Scene {
   joyId = -1; joyOx = 0; joyOy = 0; jx = 0; jy = 0;
   picked: string | null = null;
   flash: { x: number; y: number; until: number } | null = null;
+  dogNoiseAt = -999;
+  /** Beep Beep's hit-stop: the world holds still for a beat when something goes under the wheels. */
+  hitStopUntil = 0;
   d3!: Drive3D;
   driveView: DriveView = (() => { try { return (localStorage.getItem("kd-drive") as DriveView) || "chase"; } catch { return "chase" as DriveView; } })();
   opts: Option[] = [];
@@ -131,7 +134,7 @@ class StadiumScene extends Phaser.Scene {
       if (e.type === "escort_cut" && e.who === this.s.stadium!.pc) { const f = $("fade"); f.classList.add("on"); setTimeout(() => f.classList.remove("on"), 450); }
       if (e.type === "broke_free" && e.who === this.s.stadium!.pc) this.hint("You broke free. Run!");
       if (e.type === "winded") this.hint("You're out of breath.");
-      if (e.type === "bus_stolen" && e.by === this.s.stadium!.pc) this.hint(this.driveView === "map" ? "Steer with the stick. The view button (top right) switches to Chase or Cab." : "Up to go, down to brake, left and right to steer. The view button switches Chase, Cab and Map.");
+      if (e.type === "bus_stolen" && e.by === this.s.stadium!.pc) this.hint(this.driveView === "map" ? "Steer with the stick. The view button (top right) switches to Chase or Cab." : "Up to go, down to brake, left and right to steer. Beep (or H) freezes everyone in front so they can't dive clear. The view button switches Chase, Cab and Map.");
       if (e.type === "killed" && e.by === this.s.stadium!.pc) this.hint("He's dead. You're covered in his blood: change your top or everyone will see it.");
       if (e.type === "armed_called") this.hint("Someone's called the armed police. You've got about forty seconds.");
       if (e.type === "armed_challenge") this.hint("Drop the knife and stand still, or run for it.");
@@ -241,9 +244,10 @@ class StadiumScene extends Phaser.Scene {
         if (e.action.verb === "strike") { const by = s.actors[e.action.actor]; if (by) a.play("punch", 0.3 + near(by.x, by.y) * 0.7); }
         break;
       case "smoke": a.play("flare", 0.4 + near(e.x, e.y, 40) * 0.6); break;
-      case "dog_bite": { const v = s.actors[e.who]; const k = near(v?.x ?? 0, v?.y ?? 0, 30); if (e.maul) a.play("dog_maul", 0.3 + k * 0.7, { minGap: 1.2 }); else { a.play("bark", 0.4 + k * 0.6, { minGap: 0.6 }); a.play("punch", 0.5); } break; }
-      case "dog_loose": a.play("bark", 1, { minGap: 0.3 }); break;
-      case "bus_hit": { a.play("punch", 0.9); a.play("horn", 0.6, { minGap: 1 }); const v = s.stadium!.vehicles.bus; if (v) this.d3.hit(s, e.who, e.hard, v.facing, v.speed); break; }
+      case "dog_bite": { const v = s.actors[e.who]; const k = near(v?.x ?? 0, v?.y ?? 0, 30); if (e.maul) a.play("dog_maul", 0.3 + k * 0.7, { minGap: 1.2 }); else { a.play("pit_gnash", 0.4 + k * 0.6, { minGap: 0.6 }); a.play("punch", 0.5); } break; }
+      case "dog_loose": a.play("pit_bark", 1, { minGap: 0.3 }); break;
+      case "bus_hit": { a.play("punch", 0.9); a.play("horn", 0.6, { minGap: 1 }); const v = s.stadium!.vehicles.bus; if (v && v.drivenBy === pcId) { this.d3.hit(s, e.who, e.hard, v.facing, v.speed, !!e.dodger); this.hitStopUntil = performance.now() + (e.hard ? 120 : 70); } break; }
+      case "dive": if (s.stadium!.vehicles.bus?.drivenBy === pcId) this.d3.dodge(s); break;
       case "bus_wall": a.play("punch", 1, { rate: 0.6 }); this.d3.wall(s, false); break;
       case "breach": a.play("wall_crash", 0.5 + near(e.x, e.y, 80) * 0.5); this.d3.wall(s, true); break;
       case "fire_alarm": a.play("fire_alarm", 0.4 + near(e.x, e.y, 50) * 0.6); break;
@@ -252,7 +256,13 @@ class StadiumScene extends Phaser.Scene {
       case "body_found": a.play("scream", 0.3 + near(e.x, e.y, 40) * 0.7, { minGap: 2 }); break;
       case "armed_challenge": { const o = s.actors[e.by]; if (o) a.play("armed_police", 0.4 + near(o.x, o.y, 35) * 0.6, { minGap: 3 }); break; }
       case "disarmed": a.play("stw_knife", 1); break;
-      case "dog_sicced": a.play("bark", 1, { minGap: 0.3 }); break;
+      case "dog_sicced": a.play("pit_bark", 1, { minGap: 0.3 }); break;
+      case "dog_noise": {
+        this.dogNoiseAt = s.tick;
+        const v = near(e.x, e.y, 30);
+        if (v > 0) a.play(e.kind === "gnash" ? "pit_gnash" : e.kind === "bark" ? "pit_bark" : "pit_growl", 0.25 + v * 0.75, { minGap: 0.5 });
+        break;
+      }
       case "bus_crash": a.play("punch", 1, { rate: 0.5 }); a.play("horn", 0.7, { rate: 0.8 }); break;
       case "bus_sanction": a.play(e.reversed ? "boo" : "goal_roar", 0.8, { minGap: 2 }); break;
       case "say": {
@@ -374,13 +384,15 @@ class StadiumScene extends Phaser.Scene {
     if (!st.ending) {
       this.applyInput();
       const ann = (this as any).announcer as Announcer;
-      this.stepper.advance(dms / 1000, () => { stepGame(this.game2); ann.tick(); this.applyInput(); }, 24);
+      if (performance.now() >= this.hitStopUntil) this.stepper.advance(dms / 1000, () => { stepGame(this.game2); ann.tick(); this.applyInput(); }, 24);
     }
     if (st.ending && $("ending").hidden && !this.endingShown) { this.endingShown = true; this.showEnding(); }
     if (!st.ending) this.endingShown = false;
     this.draw(dms);
     const driving = st.vehicles.bus?.drivenBy === this.pc?.id;
     ($("viewBtn") as HTMLElement).hidden = !driving;
+    ($("hornBtn") as HTMLElement).hidden = !driving;
+    this.audio.engineOn(driving && !st.ending, st.vehicles.bus?.speed ?? 0);
     if (this.inCab()) this.d3.draw(this.s, this.driveView, this.scale.width, this.scale.height, (a) => this.styleOf(a), this.pc.drive?.steer ?? 0, this.cameras.main.zoom);
     else { this.d3.hide(); this.d3.hideSpeed(); }
     this.drawHud();
@@ -389,6 +401,11 @@ class StadiumScene extends Phaser.Scene {
 
   /** Behind the wheel, in one of the 3D views? */
   inCab(): boolean { return this.s.stadium!.vehicles.bus?.drivenBy === this.pc?.id && this.driveView !== "map"; }
+
+  honk() {
+    const r = dispatch(this.w, { verb: "horn", actor: this.pc.id });
+    if (r.ok) { this.audio.play("horn", 1, { minGap: 0.5 }); this.d3.shout("BEEP BEEP!", this.s.tick, "#fde047"); }
+  }
 
   cycleDriveView() {
     const order: DriveView[] = ["chase", "cab", "map"];
@@ -607,7 +624,8 @@ class StadiumScene extends Phaser.Scene {
       if (a.dead) things.push({ d: a.y - 0.4, draw: () => g.fillStyle(0x6a0a0a, 0.85).fillEllipse(P.sx(a.x, a.y), P.sy(a.x, a.y), P.S * 2.4, P.S * (P.standing ? 1.1 : 1.8)) });
       if (a.npc?.job === "dog") { things.push({ d: a.y, draw: () => this.drawDog(a) }); continue; }
       const st2 = this.styleOf(a), moving = Math.hypot(a.vx, a.vy) > 0.4;
-      things.push({ d: a.y, draw: () => drawFigure(g, P, a.x, a.y, a.facing, st2, tick + hash(a.id), moving) });
+      const shiver = (a.effects.frozen ?? 0) > tick ? Math.sin(tick * 1.7 + hash(a.id)) * 0.06 : 0;
+      things.push({ d: a.y, draw: () => drawFigure(g, P, a.x + shiver, a.y, a.facing, st2, tick + hash(a.id), moving) });
     }
     // Ball and goals.
     const b = m.ball;
@@ -681,19 +699,62 @@ class StadiumScene extends Phaser.Scene {
 
   /** A stocky brown dog, side-on, legs going when it runs. The lead, if somebody has it. */
   drawDog(a: Actor) {
-    const P = this.P, g = this.g, S = P.S, tick = this.s.tick;
-    const x = P.sx(a.x, a.y), y = P.sy(a.x, a.y), run = Math.hypot(a.vx, a.vy) > 0.5;
-    const dir = Math.cos(a.facing) >= 0 ? 1 : -1, sw = run ? Math.sin(tick * 0.6) * S * 0.12 : 0;
-    const h = S * (P.standing ? 0.55 : 0.3);
-    g.fillStyle(0x000000, 0.28).fillEllipse(x, y, S * 1.1, S * 0.35);
-    g.fillStyle(0x4a2e1a, 1).fillRect(x - S * 0.4 + sw, y - h * 0.55, S * 0.1, h * 0.55).fillRect(x + S * 0.3 - sw, y - h * 0.55, S * 0.1, h * 0.55);
-    g.fillStyle(0x7a4a2a, 1).fillEllipse(x, y - h * 0.75, S * 0.95, h * 0.6);
-    g.fillStyle(0x7a4a2a, 1).fillCircle(x + dir * S * 0.48, y - h * 1.05, S * 0.22);
-    g.fillStyle(0x2a1a10, 1).fillCircle(x + dir * S * 0.66, y - h * 1.0, S * 0.07);
-    const dg = this.s.stadium!.dog, pc = this.pc;
+    // Tyson: a pit bull. Low, wide, all chest and jaw; brindle with a white bib and a studded collar.
+    const P = this.P, g = this.g, S = P.S * 1.35, tick = this.s.tick, dg = this.s.stadium!.dog, pc = this.pc;
+    const x0 = P.sx(a.x, a.y), y = P.sy(a.x, a.y), speed = Math.hypot(a.vx, a.vy), run = speed > 0.5;
+    const dir = Math.cos(a.facing) >= 0 ? 1 : -1;
+    const angry = !!dg && (dg.state === "loose" || dg.state === "sicced" || speed > 5 || tick - this.dogNoiseAt < 50);
+    // Lurching: the whole body throws forward and back when it lunges.
+    const lurch = speed > 5 ? Math.sin(tick * 0.5) * S * 0.1 : 0;
+    const x = x0 + dir * lurch;
+    const sw = run ? Math.sin(tick * 0.7) * S * 0.1 : 0;
+    const h = S * (P.standing ? 0.5 : 0.28);
+    const BRINDLE = 0x6b4a32, DARK = 0x3a2618, BIB = 0xe8ddd0;
+    g.fillStyle(0x000000, 0.3).fillEllipse(x0, y, S * 1.25, S * 0.4);
+    // Short thick legs.
+    g.fillStyle(DARK, 1)
+      .fillRect(x - S * 0.42 + sw, y - h * 0.5, S * 0.14, h * 0.5).fillRect(x - S * 0.22 - sw, y - h * 0.5, S * 0.14, h * 0.5)
+      .fillRect(x + S * 0.18 + sw, y - h * 0.5, S * 0.16, h * 0.5).fillRect(x + S * 0.34 - sw, y - h * 0.5, S * 0.16, h * 0.5);
+    // Barrel body, deeper at the chest end; a whip of a tail.
+    g.fillStyle(BRINDLE, 1).fillEllipse(x, y - h * 0.72, S * 1.05, h * 0.62);
+    g.fillStyle(BRINDLE, 1).fillEllipse(x + dir * S * 0.25, y - h * 0.78, S * 0.6, h * 0.78);
+    g.fillStyle(DARK, 0.5).fillRect(x - S * 0.3, y - h * 0.95, S * 0.06, h * 0.4).fillRect(x - S * 0.1, y - h * 0.98, S * 0.06, h * 0.45);
+    g.fillStyle(BIB, 1).fillEllipse(x + dir * S * 0.38, y - h * 0.6, S * 0.22, h * 0.45);
+    g.lineStyle(S * 0.06, BRINDLE, 1).lineBetween(x - dir * S * 0.5, y - h * 0.85, x - dir * S * 0.66, y - h * (1.05 + (run ? Math.sin(tick * 0.9) * 0.15 : 0)));
+    // Studded collar.
+    const hx = x + dir * S * 0.58, hy = y - h * 1.12;
+    g.fillStyle(0x111111, 1).fillRect(hx - dir * S * 0.2 - S * 0.06, hy + S * 0.02, S * 0.12, S * 0.22);
+    g.fillStyle(0xc0c8d0, 1).fillCircle(hx - dir * S * 0.2, hy + S * 0.08, S * 0.025).fillCircle(hx - dir * S * 0.2, hy + S * 0.18, S * 0.025);
+    // The head: broad skull, wide cheeks, cropped ears.
+    g.fillStyle(BRINDLE, 1).fillEllipse(hx, hy, S * 0.46, S * 0.38);
+    g.fillStyle(DARK, 1).fillTriangle(hx - dir * S * 0.12, hy - S * 0.16, hx - dir * S * 0.02, hy - S * 0.3, hx + dir * S * 0.02, hy - S * 0.14);
+    g.fillStyle(BIB, 1).fillEllipse(hx + dir * S * 0.16, hy + S * 0.04, S * 0.2, S * 0.18);
+    // Jaws: snapping open and shut when it's worked up; teeth, gums, a string of drool.
+    const gape = angry ? Math.abs(Math.sin(tick * 0.55)) * S * 0.14 : S * 0.02;
+    const mx = hx + dir * S * 0.22, my = hy + S * 0.08;
+    g.fillStyle(0x8a1a2a, 1).fillRect(mx - S * 0.1, my - S * 0.02, S * 0.2, gape + S * 0.02);
+    if (angry) {
+      g.fillStyle(0xf4f1e4, 1);
+      for (let i = 0; i < 3; i++) {
+        const tx = mx - S * 0.08 + i * S * 0.07;
+        g.fillTriangle(tx, my - S * 0.02, tx + S * 0.03, my - S * 0.02, tx + S * 0.015, my + S * 0.03);
+        g.fillTriangle(tx, my + gape, tx + S * 0.03, my + gape, tx + S * 0.015, my + gape - S * 0.04);
+      }
+      g.lineStyle(1, 0xdfe8ee, 0.8).lineBetween(mx, my + gape, mx + dir * S * 0.02, my + gape + S * (0.12 + Math.abs(Math.sin(tick * 0.13)) * 0.1));
+    }
+    g.fillStyle(0x15100c, 1).fillCircle(hx + dir * S * 0.3, hy - S * 0.02, S * 0.05);
+    g.fillStyle(angry ? 0xff3020 : 0x1a1008, 1).fillCircle(hx + dir * S * 0.06, hy - S * 0.08, S * 0.035);
+    // Hackles up.
+    if (angry) {
+      g.lineStyle(1.2, DARK, 1);
+      for (let i = 0; i < 5; i++) { const bx = x - S * 0.2 + i * S * 0.12; g.lineBetween(bx, y - h * 1.02, bx - dir * S * 0.03, y - h * 1.18); }
+    }
     if (dg && pc && (dg.state === "led" || dg.state === "tied")) {
       const to = dg.state === "led" ? { x: P.sx(pc.x, pc.y), y: P.sy(pc.x, pc.y) - S * 0.7 } : { x: P.sx(SPOTS.dogPost.x, SPOTS.dogPost.y - 0.6), y: P.sy(SPOTS.dogPost.x, SPOTS.dogPost.y - 0.6, 0.8) };
-      g.lineStyle(1.5, 0xd7263d, 0.9).lineBetween(x + dir * S * 0.4, y - h, to.x, to.y);
+      // A lead pulled tight when it's lunging, slack when it isn't.
+      const taut = speed > 5;
+      const midx = (hx + to.x) / 2, midy = (hy + to.y) / 2 + (taut ? 0 : S * 0.25);
+      g.lineStyle(taut ? 2 : 1.5, 0xd7263d, 0.95).lineBetween(hx - dir * S * 0.2, hy + S * 0.1, midx, midy).lineBetween(midx, midy, to.x, to.y);
       if (dg.state === "tied") g.fillStyle(0x6a6a6a, 1).fillRect(to.x - 2, to.y - 2, 4, S * 0.9);
     }
   }
@@ -933,6 +994,7 @@ class StadiumScene extends Phaser.Scene {
     $("zoomBtn").addEventListener("click", () => this.cycleZoom());
     $("viewBtn").textContent = this.driveView === "chase" ? "Chase" : this.driveView === "cab" ? "Cab" : "Map";
     $("viewBtn").addEventListener("click", () => this.cycleDriveView());
+    $("hornBtn").addEventListener("click", () => this.honk());
     $("menuBtn").addEventListener("click", () => (this.sheetKind === "menu" ? (this.closeSheet(), this.setSpeed(1)) : this.openMenu()));
     for (const n of [1, 2, 4]) $("sp" + n).addEventListener("click", () => this.setSpeed(n));
     const onSheetClick = (ev: Event) => {
@@ -957,6 +1019,7 @@ class StadiumScene extends Phaser.Scene {
     window.addEventListener("keydown", (e) => {
       if (!this.started) { if (e.key === "Enter") { $("intro").hidden = true; this.started = true; void this.audio.unlock(); } return; }
       const k = e.key.toLowerCase();
+      if ((k === "h" || k === "e") && this.s.stadium!.vehicles.bus?.drivenBy === this.pc.id) { this.honk(); return; }
       if (k === "e" || k === " ") { e.preventDefault(); this.run(primary(this.opts)); }
       else if (k === "q") this.throwNow();
       else if (k === "f") this.run(this.opts.find((o) => o.action?.verb === "strike") ?? null);

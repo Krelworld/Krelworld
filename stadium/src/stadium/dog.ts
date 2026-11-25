@@ -1,4 +1,4 @@
-// A dog of uncertain temper, tied up outside the pub while its owner has a drink.
+// Tyson: a pit bull of no uncertain temper, tied up outside the pub while its owner has a drink.
 import { appearance } from "../core/identity";
 import { chance, pick, rndRange } from "../core/rng";
 import { DT, type Actor } from "../core/types";
@@ -15,7 +15,7 @@ export function createDog(w: World): void {
   const id = "dog";
   const p = SPOTS.dogPost;
   const dog: Actor = {
-    id, kind: "npc", name: "Tyson", faceId: id, x: p.x, y: p.y, vx: 0, vy: 0, facing: Math.PI / 2, radius: 0.35, speed: 2,
+    id, kind: "npc", name: "Tyson", faceId: id, x: p.x, y: p.y, vx: 0, vy: 0, facing: Math.PI / 2, radius: 0.4, speed: 2,
     moveX: 0, moveY: 0, hand: null, pockets: [], worn: {}, money: 0, downUntil: 0, effects: {},
     npc: newNpc("dog", "none", { lines: ["Grrrr.", "WOOF.", "*growls*"] }),
   };
@@ -23,7 +23,7 @@ export function createDog(w: World): void {
   // The owner is the biggest of the locals.
   const owner = Object.values(s.actors).find((a) => a.npc?.job === "local");
   st.dog = { id, state: "tied", target: null, owner: owner?.id ?? "", bitten: 0, nextBite: 0 };
-  if (owner?.npc) owner.npc.lines = ["Don't go near Tyson. He's not right since the vet.", "Tyson's outside. He doesn't like referees. Or anyone."];
+  if (owner?.npc) owner.npc.lines = ["Don't go near Tyson. He's not right since the vet.", "Tyson's outside. He doesn't like referees. Or anyone.", "He's a Staffy cross. Mostly cross.", "He's soft as anything, Tyson. Just don't look at him."];
 }
 
 const near = (a: { x: number; y: number }, b: { x: number; y: number }, r: number) => Math.hypot(a.x - b.x, a.y - b.y) <= r;
@@ -111,6 +111,27 @@ export function installDog(): void {
   });
 }
 
+/** The nearest person within reach of a lunge (not the man holding the lead). */
+function nearestVictim(w: World, dog: Actor, from: { x: number; y: number }, r: number): Actor | null {
+  const s = w.state, pcId = s.stadium!.pc, led = s.stadium!.dog?.state === "led";
+  let best: Actor | null = null, bd = r;
+  for (const id in s.actors) {
+    const a = s.actors[id];
+    if (a === dog || a.hiddenIn || a.dead || a.seated || (led && a.id === pcId)) continue;
+    const d = Math.hypot(a.x - from.x, a.y - from.y);
+    if (d < bd) { bd = d; best = a; }
+  }
+  return best;
+}
+
+/** Snarling, barking, gnashing: a sound for the view, now and then. */
+function noise(w: World, dog: Actor, kind: "growl" | "bark" | "gnash", every: number): void {
+  const st = w.state.stadium!, tick = w.state.tick;
+  if (tick < (st.flags.dogNoiseAt ?? 0)) return;
+  st.flags.dogNoiseAt = tick + every + (tick % 17);
+  w.bus.emit({ type: "dog_noise", t: tick, kind, x: dog.x, y: dog.y });
+}
+
 /** Who the dog goes for: the nearest thing that moves, footballers and referees first. */
 function pickTarget(w: World, dog: Actor): Actor | null {
   const s = w.state;
@@ -152,18 +173,44 @@ export function stepDog(w: World): void {
     dog.moveX = dog.moveY = 0;
   };
   switch (d.state) {
-    case "tied":
-      move(SPOTS.dogPost.x + Math.sin(tick * 0.02) * 0.6, SPOTS.dogPost.y, 1);
-      if (pc && near(pc, dog, 3) && tick % 200 === 0) say(w, dog, "Grrrr.", 1.5);
+    case "tied": {
+      // Straining at the end of its rope at anyone who comes close: lunge, choke, back, lunge.
+      const p = SPOTS.dogPost, t = nearestVictim(w, dog, p, 6);
+      if (t) {
+        const ang = Math.atan2(t.y - p.y, t.x - p.x), phase = (tick % 50) / 50;
+        const reach = phase < 0.35 ? 1.8 : 1.1;
+        move(p.x + Math.cos(ang) * reach, p.y + Math.sin(ang) * reach, phase < 0.35 ? 9 : 3, 0.05);
+        dog.facing = ang;
+        noise(w, dog, phase < 0.35 ? "gnash" : "bark", 55);
+      } else {
+        move(p.x + Math.sin(tick * 0.02) * 0.6, p.y, 1);
+        if (pc && near(pc, dog, 9)) noise(w, dog, "growl", 150);
+      }
       break;
-    case "led":
+    }
+    case "led": {
       if (!pc) break;
       if (pc.hiddenIn) { dog.x = pc.x; dog.y = pc.y; break; }
       // On a lead it stays on a lead: through gates, over turnstiles, wherever.
       if (!near(pc, dog, 3.5)) { dog.x = pc.x - Math.cos(pc.facing) * 1.2; dog.y = pc.y - Math.sin(pc.facing) * 1.2; }
-      move(pc.x - Math.cos(pc.facing) * 1.2, pc.y - Math.sin(pc.facing) * 1.2, Math.max(3, Math.hypot(pc.vx, pc.vy) * 1.1), 0.5);
+      // It pulls towards anyone near, lunging to the end of the lead; people give you room.
+      const t = nearestVictim(w, dog, pc, 4.5);
+      if (t) {
+        const ang = Math.atan2(t.y - pc.y, t.x - pc.x), phase = (tick % 45) / 45;
+        const reach = phase < 0.3 ? 2.4 : 1.5;
+        move(pc.x + Math.cos(ang) * reach, pc.y + Math.sin(ang) * reach, phase < 0.3 ? 9 : 4, 0.05);
+        dog.facing = ang;
+        noise(w, dog, phase < 0.3 ? "gnash" : chance(r, 0.5) ? "bark" : "growl", 70);
+        if (t.npc && !isSecurity(t) && !t.fb && !t.off && !t.seated && tick % 30 === 0) {
+          const dx = t.x - dog.x, dy = t.y - dog.y, l = Math.hypot(dx, dy) || 1;
+          t.npc.plan = [{ k: "go", x: t.x + (dx / l) * 5, y: t.y + (dy / l) * 5, run: true }];
+          if (chance(r, 0.3)) say(w, t, pick(r, ["Keep that thing away from me!", "Is that even legal?", "Jesus! Control your dog!"]), 1.5);
+        }
+      } else move(pc.x - Math.cos(pc.facing) * 1.2, pc.y - Math.sin(pc.facing) * 1.2, Math.max(3, Math.hypot(pc.vx, pc.vy) * 1.1), 0.5);
       break;
+    }
     case "sicced": {
+      noise(w, dog, chance(r, 0.6) ? "bark" : "gnash", 40);
       const t = d.target ? s.actors[d.target] : null;
       if (!t || t.hiddenIn || t.dead || (t.fb && t.fb.status === "gone")) { d.state = "returning"; d.target = null; break; }
       chase(t.x, t.y, 8, 0.5);
@@ -180,6 +227,7 @@ export function stepDog(w: World): void {
       if (!near(pc, dog, 45)) d.state = "loose";
       break;
     case "loose": {
+      noise(w, dog, chance(r, 0.5) ? "bark" : "growl", 80);
       // On the pitch it plays with the ball; anywhere else it goes for people.
       const onPitch = areaAt(dog.x, dog.y).pitch === true;
       const b = m.ball;

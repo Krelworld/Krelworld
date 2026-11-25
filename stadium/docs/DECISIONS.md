@@ -184,3 +184,35 @@ Assets live in `assets/art` and `assets/audio`; raw API responses in `assets/raw
   flash, streak callouts, flung bodies, blood and cracks on the windscreen.
 - Crowd: up to 240 walking supporters plus 70 already seated and 26 pub regulars. Most
   mill about the pub, approach and car park until a personal time, then surge in.
+
+## Pseudo-3D (standing note)
+
+The game mixes the tilted diorama with pseudo-3D moments, in the manner of Krelworld's
+Pseudo3D projector and its Beep Beep driving game. Built: the bus cab and chase views.
+Candidates, roughly in order of payoff:
+- An establishing flyover of each ground as the match day starts.
+- The dog's-eye charge when you set Tyson on someone.
+- A first-person pitch invasion: the run at the referee, Beep Beep style, stewards diving at you.
+- Goal replays on the big screen from behind the goal; penalties from the taker's eye.
+- CCTV control-room feeds as low-res pseudo-3D monitors.
+- Driving the beer lorry or catering van; the armed-response helicopter's spotlight shot.
+
+## Beep Beep in the bus
+
+Taken from Krelworld's BeepBeepScene: the horn (everyone ahead freezes, so they can't dive),
+pedestrians who decide once whether to dive for the gutter (55% fans, 40% others) or stand
+there, the "DOUBLE BUMP!" combo callouts and the shouting, the two-sawtooth engine, the
+hit-stop, the field of view opening out with speed, and speed streaks.
+
+## Tyson
+
+A pit bull: lunges to the end of his rope or lead at anyone within 4.5–6 m, snapping, with
+hackles up; people near you on the lead back off. Growls, savage barks and gnashing are
+separate sounds. Bigger on screen than a generic dog.
+
+## Krelworld art as a stopgap: not used
+
+Krelworld's pixel art is its own cast (characters from that world) at a different scale and
+palette; mixing it in would look like a crossover rather than a stopgap, and the figures here
+are drawn by code, so using sprites means building the sprite pipeline anyway. That pipeline
+is better spent on the 48px PixelLab art already chosen.

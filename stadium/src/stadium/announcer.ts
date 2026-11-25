@@ -126,7 +126,7 @@ export class Announcer {
         break;
       }
       case "dog_loose":
-        if (VENUE.inside(e.x, e.y)) this.once(`dogin${Math.floor(e.t / 1800)}`, "Would the owner of a large brown dog please make themselves known to a steward.", "tannoy", false);
+        if (VENUE.inside(e.x, e.y)) this.once(`dogin${Math.floor(e.t / 1800)}`, "Would the owner of a pit bull terrier please make themselves known to a steward. Urgently.", "tannoy", false);
         break;
       case "dog_caught":
         this.once(`dogc${Math.floor(e.t / 1800)}`, "The dog has been apprehended. It is not thought to have had a ticket.", "commentary", false);

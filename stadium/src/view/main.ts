@@ -12,21 +12,25 @@ import { clockLabel } from "../football/match";
 import { createMatch, TEAMS } from "../football/setup";
 import type { MatchState, TeamIdx } from "../football/types";
 import { dirOf, playing } from "../football/util";
+import { drawFigure, headTop, type FigureStyle } from "./figures";
+import { drawBall, drawGoalFrame, drawPitch } from "./pitchArt";
+import { Projection } from "./projection";
 
-const S = 16; // scene pixels per metre
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const hex = (c: number) => "#" + c.toString(16).padStart(6, "0");
+const SKIN = [0xf1c7a5, 0xd9a47e, 0xb07a52, 0x8a5a3b, 0x5e3b26];
+const luma = (c: number) => ((c >> 16) & 255) * 0.3 + ((c >> 8) & 255) * 0.59 + (c & 255) * 0.11;
 
 class MatchScene extends Phaser.Scene {
   world!: World;
   m!: MatchState;
+  P = new Projection();
   stepper = new Stepper();
   commentator?: Commentator;
   pitchG!: Phaser.GameObjects.Graphics;
   g!: Phaser.GameObjects.Graphics;
   labels = new Map<string, Phaser.GameObjects.Text>();
   nameTag!: Phaser.GameObjects.Text;
-  rot = false;
   wide = false;
   camX = 0; camY = 0;
   intruder: string | null = null;
@@ -43,10 +47,6 @@ class MatchScene extends Phaser.Scene {
     this.newMatch("POR");
     this.layout();
   }
-
-  /** World metres to scene pixels. On a tall screen the pitch is turned on its side. */
-  mx(x: number, y: number) { return this.rot ? y * S : x * S; }
-  my(x: number, y: number) { return this.rot ? -x * S : y * S; }
 
   newMatch(opp: string) {
     this.commentator?.stop();
@@ -66,139 +66,118 @@ class MatchScene extends Phaser.Scene {
     }
     $("seed").textContent = `Match reference ${this.seed}`;
     this.say({ t: 0, text: `${this.m.teams[0].name} against ${this.m.teams[1].name}. The teams are out.`, big: false });
-    this.renderTicker();
   }
 
   say(l: Line) {
     this.lines.push(l);
     if (this.lines.length > 2) this.lines.shift();
-    this.renderTicker();
-  }
-  renderTicker() {
     const el = $("ticker");
     el.textContent = "";
-    this.lines.forEach((l, i) => {
+    this.lines.forEach((ln, i) => {
       const d = document.createElement("div");
-      d.className = "line panel" + (i < this.lines.length - 1 ? " old" : "") + (l.big ? " big" : "");
-      d.textContent = l.text;
+      d.className = "line panel" + (i < this.lines.length - 1 ? " old" : "") + (ln.big ? " big" : "");
+      d.textContent = ln.text;
       el.appendChild(d);
     });
   }
 
   layout() {
     const w = this.scale.width, h = this.scale.height;
-    this.rot = h > w * 1.1;
-    this.drawPitch();
+    this.P.rot = h > w * 1.1;
+    drawPitch(this.pitchG, this.P);
     this.setZoom();
   }
   setZoom() {
-    const w = this.scale.width, h = this.scale.height;
-    const long = Math.max(w, h), short = Math.min(w, h);
-    const z = this.wide ? Math.min(long / ((PITCH.L + 8) * S), short / ((PITCH.W + 8) * S)) : Math.max(long / (46 * S), short / ((PITCH.W + 10) * S));
+    const P = this.P, w = this.scale.width, h = this.scale.height;
+    const spanU = (P.rot ? PITCH.W : PITCH.L) + 8, spanV = ((P.rot ? PITCH.L : PITCH.W) + 8) * P.K + 3;
+    const z = this.wide ? Math.min(w / (spanU * P.S), h / (spanV * P.S))
+      : Math.max(Math.max(w, h) / (46 * P.S), Math.min(w, h) / ((PITCH.W + 10) * P.S * (P.rot ? 1 : P.K)));
     this.cameras.main.setZoom(z);
-  }
-
-  drawPitch() {
-    const g = this.pitchG, r = this.rot;
-    g.clear();
-    const rect = (x: number, y: number, w: number, h: number) => (r ? [y * S, -(x + w) * S, h * S, w * S] : [x * S, y * S, w * S, h * S]) as [number, number, number, number];
-    g.fillStyle(0x16241d).fillRect(...rect(-HL - 30, -HW - 30, PITCH.L + 60, PITCH.W + 60));
-    g.fillStyle(0x24332b).fillRect(...rect(-HL - 6, -HW - 6, PITCH.L + 12, PITCH.W + 12));
-    // Mown stripes.
-    const stripes = 12, sw = PITCH.L / stripes;
-    for (let i = 0; i < stripes; i++) g.fillStyle(i % 2 ? 0x2f7d3b : 0x2a7436).fillRect(...rect(-HL + i * sw, -HW, sw, PITCH.W));
-    g.lineStyle(2, 0xf2f6f2, 0.9);
-    g.strokeRect(...rect(-HL, -HW, PITCH.L, PITCH.W));
-    g.lineBetween(this.mx(0, -HW), this.my(0, -HW), this.mx(0, HW), this.my(0, HW));
-    g.strokeCircle(0, 0, PITCH.circleR * S);
-    g.fillStyle(0xf2f6f2).fillCircle(0, 0, 3);
-    for (const sgn of [-1, 1]) {
-      const bx = sgn > 0 ? HL - PITCH.boxL : -HL, sx = sgn > 0 ? HL - PITCH.sixL : -HL;
-      g.strokeRect(...rect(bx, -PITCH.boxW / 2, PITCH.boxL, PITCH.boxW));
-      g.strokeRect(...rect(sx, -PITCH.sixW / 2, PITCH.sixL, PITCH.sixW));
-      g.fillCircle(this.mx(sgn * (HL - PITCH.penSpot), 0), this.my(sgn * (HL - PITCH.penSpot), 0), 3);
-      // Goal and net.
-      const gx = sgn > 0 ? HL : -HL - 1.6;
-      g.fillStyle(0xdfe7e1, 0.35).fillRect(...rect(gx, -PITCH.goalW / 2, 1.6, PITCH.goalW));
-      g.lineStyle(3, 0xffffff, 1).strokeRect(...rect(gx, -PITCH.goalW / 2, 1.6, PITCH.goalW));
-      g.lineStyle(2, 0xf2f6f2, 0.9).fillStyle(0xf2f6f2);
-    }
-    // Dugouts and the tunnel, so the touchline has some life.
-    g.fillStyle(0x3a4a42).fillRect(...rect(-13, -HW - 5.6, 9, 1.6)).fillRect(...rect(4, -HW - 5.6, 9, 1.6));
-    g.fillStyle(0x10160f).fillRect(...rect(-2, -HW - 10, 4, 3));
   }
 
   label(a: Actor): Phaser.GameObjects.Text {
     let t = this.labels.get(a.id);
     if (!t) {
-      const fb = a.fb;
-      const dark = fb ? this.luma(fb.role === "GK" ? 0x2fbf71 : this.m.teams[fb.team].colour) > 150 : false;
-      t = this.add.text(0, 0, fb ? String(fb.number) : "", { fontFamily: "system-ui, sans-serif", fontSize: "10px", fontStyle: "bold", color: dark ? "#10202a" : "#ffffff" })
+      t = this.add.text(0, 0, a.fb ? String(a.fb.number) : "", { fontFamily: "system-ui, sans-serif", fontSize: "10px", fontStyle: "bold", color: "#ffffff" })
         .setOrigin(0.5).setDepth(4).setResolution(2);
       this.labels.set(a.id, t);
     }
     return t;
   }
-  luma(c: number) { return ((c >> 16) & 255) * 0.3 + ((c >> 8) & 255) * 0.59 + (c & 255) * 0.11; }
+
+  style(a: Actor): FigureStyle {
+    const m = this.m, tick = this.world.state.tick, fb = a.fb;
+    const skin = SKIN[[...a.id].reduce((h, c) => h + c.charCodeAt(0), 0) % SKIN.length];
+    if (fb) {
+      const team = m.teams[fb.team];
+      const gk = fb.role === "GK";
+      return {
+        shirt: gk ? (fb.team === 0 ? 0x2fbf71 : 0xf08a24) : team.colour,
+        trim: gk ? 0x10202a : team.colour2,
+        shorts: fb.team === 0 ? 0x1b2a6b : team.colour2,
+        skin, ring: m.ball.owner === a.id ? 0xffffff : fb.star ? 0xf2c94c : null,
+        down: fb.stunUntil > tick + 20 || a.downUntil > tick,
+        height: fb.status === "bench" ? 1.6 : 1.8,
+      };
+    }
+    if (a.off) {
+      const ref = a.off.job === "referee";
+      return { shirt: ref ? 0x15171a : 0xd9e021, trim: ref ? 0xf2c94c : 0x15171a, shorts: 0x15171a, skin, down: a.downUntil > tick };
+    }
+    return { shirt: 0xffffff, trim: 0xe5484d, shorts: 0x2b3b55, skin: 0xf1c7a5, girth: 1.6, height: 1.75 };
+  }
 
   update(_t: number, dms: number) {
-    const w = this.world, s = w.state, m = this.m;
-    this.stepper.advance(dms / 1000, () => {
-      this.driveIntruder();
-      stepWorld(w);
-    }, 12);
+    const w = this.world, s = w.state, m = this.m, P = this.P;
+    this.stepper.advance(dms / 1000, () => { this.driveIntruder(); stepWorld(w); }, 12);
 
     const g = this.g, tick = s.tick, b = m.ball;
     g.clear();
-    const R = 0.62 * S;
+    // Everything that stands up is drawn back to front.
+    type Thing = { d: number; draw: () => void };
+    const things: Thing[] = [];
     let carrier: Actor | null = null;
     for (const id in s.actors) {
-      const a = s.actors[id];
-      const fb = a.fb;
-      const lab = this.label(a);
-      if (fb && fb.status === "gone") { lab.setVisible(false); continue; }
-      const x = this.mx(a.x, a.y), y = this.my(a.x, a.y);
-      const down = (fb ? fb.stunUntil > tick + 20 : false) || a.downUntil > tick;
-      g.fillStyle(0x000000, 0.25).fillEllipse(x + 2, y + 3, R * 2.1, R * 1.5);
-      let col = 0x1c1c1c, edge = 0xffffff;
-      if (fb) { const team = m.teams[fb.team]; col = fb.role === "GK" ? (fb.team === 0 ? 0x2fbf71 : 0xf08a24) : team.colour; edge = fb.role === "GK" ? 0x10202a : team.colour2; }
-      else if (a.off) { col = a.off.job === "referee" ? 0x15171a : 0xd9e021; edge = a.off.job === "referee" ? 0xf2c94c : 0x15171a; }
-      else { col = 0xffffff; edge = 0xe5484d; }
-      if (b.owner === a.id) g.lineStyle(2, 0xffffff, 0.9).strokeCircle(x, y, R + 4);
-      if (fb?.star) g.lineStyle(2.5, 0xf2c94c, 1).strokeCircle(x, y, R + 2);
-      const bench = fb?.status === "bench";
-      const rr = (bench ? 0.75 : !fb && !a.off ? 1.35 : 1) * R;
-      if (down) g.fillStyle(col, 0.9).fillEllipse(x, y, rr * 2.6, rr * 1.4).lineStyle(1.5, edge, 1).strokeEllipse(x, y, rr * 2.6, rr * 1.4);
-      else {
-        g.fillStyle(col, 1).fillCircle(x, y, rr).lineStyle(2, edge, 1).strokeCircle(x, y, rr);
-        // A dot for the head, pushed towards where he is facing.
-        const fx = Math.cos(a.facing), fy = Math.sin(a.facing);
-        g.fillStyle(edge, 1).fillCircle(x + (this.rot ? fy : fx) * rr * 0.75, y + (this.rot ? -fx : fy) * rr * 0.75, rr * 0.28);
-      }
-      lab.setVisible(!!fb && !bench && !down).setPosition(x, y);
+      const a = s.actors[id], fb = a.fb, lab = this.label(a);
+      lab.setVisible(false);
+      if (fb && fb.status === "gone") continue;
       if (b.owner === a.id) carrier = a;
+      const st = this.style(a);
+      const moving = Math.hypot(a.vx, a.vy) > 0.5;
+      things.push({ d: P.depth(a.x, a.y), draw: () => {
+        drawFigure(g, P, a.x, a.y, a.facing, st, tick, moving);
+        if (fb && fb.status === "playing" && !st.down) {
+          const light = luma(st.shirt) > 150;
+          lab.setVisible(true).setColor(light ? "#10202a" : "#ffffff")
+            .setPosition(P.sx(a.x, a.y), P.standing ? P.sy(a.x, a.y) - 1.8 * P.KZ * P.S * 0.62 : P.sy(a.x, a.y));
+          lab.setDepth(4 + P.depth(a.x, a.y) / 1000);
+        }
+      } });
     }
-
-    // Ball: shadow on the grass, ball lifted by its height.
-    const bx = this.mx(b.x, b.y), by = this.my(b.x, b.y);
-    g.fillStyle(0x000000, 0.35).fillEllipse(bx + b.z * 3, by + 2 + b.z * 3, 8, 5);
-    const br = (0.3 + b.z * 0.06) * S;
-    g.fillStyle(0xffffff, 1).fillCircle(bx, by - b.z * S * 0.55, br).lineStyle(1.5, 0x111111, 1).strokeCircle(bx, by - b.z * S * 0.55, br);
+    things.push({ d: P.depth(b.x, b.y) + 0.01, draw: () => drawBall(g, P, b.x, b.y, b.z) });
+    for (const sgn of [-1, 1]) {
+      // The near post decides whether players are in front of or behind the frame.
+      const d = P.rot ? P.depth(sgn * HL, 0) : PITCH.goalW / 2;
+      things.push({ d, draw: () => drawGoalFrame(g, P, sgn) });
+    }
+    things.sort((p, q) => p.d - q.d);
+    for (const t of things) t.draw();
 
     if (carrier) {
       this.nameTag.setVisible(true).setText((carrier.fb?.star ? "★ " : "") + carrier.name)
-        .setPosition(this.mx(carrier.x, carrier.y), this.my(carrier.x, carrier.y) - R - 6)
+        .setPosition(P.sx(carrier.x, carrier.y), headTop(P, carrier.x, carrier.y) - 4)
         .setColor(carrier.fb?.star ? "#f2c94c" : "#ffffff");
     } else this.nameTag.setVisible(false);
 
-    // Camera.
+    // Camera follows a point just ahead of the ball.
     const cam = this.cameras.main;
     const vw = cam.width / cam.zoom, vh = cam.height / cam.zoom;
-    let tx = this.mx(b.x + b.vx * 0.35, b.y + b.vy * 0.35), ty = this.my(b.x + b.vx * 0.35, b.y + b.vy * 0.35);
-    const ext = (half: number, view: number) => Math.max(0, (half + 5) * S - view / 2);
-    const ex = ext(this.rot ? HW : HL, vw), ey = ext(this.rot ? HL : HW, vh);
-    tx = clamp(tx, -ex, ex); ty = clamp(ty, -ey, ey);
-    if (this.wide) { tx = 0; ty = 0; }
+    const fx = b.x + b.vx * 0.35, fy = b.y + b.vy * 0.35;
+    let tx = P.sx(fx, fy), ty = P.sy(fx, fy, b.z * 0.3);
+    const ext = (half: number, view: number) => Math.max(0, half - view / 2);
+    const hu = ((P.rot ? HW : HL) + 5) * P.S, hv = ((P.rot ? HL : HW) + 5) * P.S * P.K;
+    tx = clamp(tx, -ext(hu, vw), ext(hu, vw)); ty = clamp(ty, -ext(hv, vh), ext(hv, vh));
+    if (this.wide) { tx = 0; ty = -P.S * 0.6; }
     const k = 1 - Math.pow(0.02, Math.min(dms, 100) / 1000);
     this.camX += (tx - this.camX) * k; this.camY += (ty - this.camY) * k;
     cam.centerOn(this.camX, this.camY);
@@ -210,16 +189,14 @@ class MatchScene extends Phaser.Scene {
   lastHud = "";
   drawHud() {
     const m = this.m;
-    const phys = m.physicalGoals[0] !== m.score[0] || m.physicalGoals[1] !== m.score[1];
     const label = m.phase === "finished" ? "FT" : m.phase === "break" ? (m.period === 1 ? "HT" : "…") : m.phase === "pre" ? "0:00" : clockLabel(m);
     const pens = m.shootout ? ` (${m.shootout.scored[0]}–${m.shootout.scored[1]})` : "";
-    const key = `${m.score[0]}|${m.score[1]}|${label}|${pens}|${phys}`;
+    const key = `${m.score[0]}|${m.score[1]}|${label}|${pens}`;
     if (key !== this.lastHud) {
       this.lastHud = key;
       $("g0").textContent = String(m.score[0]); $("g1").textContent = String(m.score[1]);
       $("clock").textContent = label + pens;
     }
-    // Radar.
     const c = $<HTMLCanvasElement>("radarc"), ctx = c.getContext("2d")!;
     const W = c.width, H = c.height, sx = W / (PITCH.L + 4), sy = H / (PITCH.W + 4);
     ctx.fillStyle = "#1f5c2c"; ctx.fillRect(0, 0, W, H);
@@ -229,15 +206,13 @@ class MatchScene extends Phaser.Scene {
     const s = this.world.state;
     for (const t of [0, 1] as TeamIdx[]) {
       for (const a of playing(s, m, t)) {
-        const px = (a.x + HL + 2) * sx, py = (a.y + HW + 2) * sy;
-        ctx.beginPath(); ctx.arc(px, py, a.fb!.star ? 5 : 4, 0, 6.3);
+        ctx.beginPath(); ctx.arc((a.x + HL + 2) * sx, (a.y + HW + 2) * sy, a.fb!.star ? 5 : 4, 0, 6.3);
         ctx.fillStyle = hex(m.teams[t].colour); ctx.fill();
         ctx.strokeStyle = a.fb!.star ? "#f2c94c" : hex(m.teams[t].colour2); ctx.lineWidth = a.fb!.star ? 2 : 1; ctx.stroke();
       }
     }
     ctx.beginPath(); ctx.arc((m.ball.x + HL + 2) * sx, (m.ball.y + HW + 2) * sy, 3.5, 0, 6.3);
     ctx.fillStyle = "#fff"; ctx.fill(); ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.stroke();
-
     if (!$("stats").hidden && (s.tick & 31) === 0) this.renderStats();
   }
 
@@ -260,6 +235,12 @@ class MatchScene extends Phaser.Scene {
     }
   }
 
+  toggleDebug() {
+    const el = $("meddle");
+    el.hidden = !el.hidden;
+    if (!el.hidden) { $("stats").hidden = true; $("b-stats").setAttribute("aria-pressed", "false"); }
+  }
+
   wireHud() {
     const speeds = [0, 1, 2, 4, 8];
     for (const sp of speeds) {
@@ -268,18 +249,30 @@ class MatchScene extends Phaser.Scene {
         for (const o of speeds) $("sp" + o).setAttribute("aria-pressed", String(o === sp));
       });
     }
-    const toggle = (btn: string, sheet: string, other: [string, string]) => $(btn).addEventListener("click", () => {
-      const el = $(sheet); el.hidden = !el.hidden;
-      $(btn).setAttribute("aria-pressed", String(!el.hidden));
-      $(other[1]).hidden = true; $(other[0]).setAttribute("aria-pressed", "false");
-      if (!el.hidden && sheet === "stats") this.renderStats();
+    $("b-stats").addEventListener("click", () => {
+      const el = $("stats"); el.hidden = !el.hidden;
+      $("b-stats").setAttribute("aria-pressed", String(!el.hidden));
+      if (!el.hidden) { $("meddle").hidden = true; this.renderStats(); }
     });
-    toggle("b-meddle", "meddle", ["b-stats", "stats"]);
-    toggle("b-stats", "stats", ["b-meddle", "meddle"]);
     $("b-cam").addEventListener("click", () => {
       this.wide = !this.wide; $("b-cam").setAttribute("aria-pressed", String(this.wide)); this.setZoom();
     });
-    $("new").addEventListener("click", () => { this.newMatch($<HTMLSelectElement>("opp").value); $("meddle").hidden = true; $("b-meddle").setAttribute("aria-pressed", "false"); });
+    $("b-view").addEventListener("click", () => {
+      this.P.mode = this.P.mode === "tilted" ? "flat" : "tilted";
+      const tilted = this.P.mode === "tilted";
+      $("b-view").textContent = tilted ? "Tilted view" : "Flat view";
+      $("b-view").setAttribute("aria-pressed", String(tilted));
+      this.layout();
+    });
+    // Hidden debug panel: the ` key, or three quick taps on the clock.
+    window.addEventListener("keydown", (e) => { if (e.key === "`") this.toggleDebug(); });
+    let taps: number[] = [];
+    $("score").addEventListener("pointerdown", () => {
+      const now = performance.now();
+      taps = taps.filter((t) => now - t < 700); taps.push(now);
+      if (taps.length >= 3) { taps = []; this.toggleDebug(); }
+    });
+    $("new").addEventListener("click", () => { this.newMatch($<HTMLSelectElement>("opp").value); $("meddle").hidden = true; });
 
     const act = (id: string, fn: () => string | null) => $(id).addEventListener("click", () => {
       if (this.m.phase === "finished") return;
@@ -289,15 +282,14 @@ class MatchScene extends Phaser.Scene {
     const starOf = (t: TeamIdx) => playing(this.world.state, this.m, t).find((a) => a.fb!.star);
     act("m-star", () => { const a = starOf(1); if (!a) return "They have no star left to arrest."; removePlayer(this.world, a.id, "arrested"); return null; });
     act("m-ourstar", () => { const a = starOf(0); if (!a) return "England have no star left to arrest."; removePlayer(this.world, a.id, "arrested"); return null; });
-    act("m-keeper", () => { const gk = playing(this.world.state, this.m, 1).find((a) => a.fb!.role === "GK"); if (gk) bribePlayer(this.world, gk.id); return "(Their goalkeeper has accepted an envelope.)"; });
-    act("m-wire", () => { for (const a of playing(this.world.state, this.m, 1)) if (a.fb!.role === "DEF") wirePlayer(this.world, a.id, 150); return "(Their back four have had something in their half-time oranges.)"; });
-    act("m-refbribe", () => { biasReferee(this.world, 0, 0.85); return "(The referee has developed a soft spot for England.)"; });
+    act("m-keeper", () => { const gk = playing(this.world.state, this.m, 1).find((a) => a.fb!.role === "GK"); if (gk) bribePlayer(this.world, gk.id); return "(Debug: their goalkeeper is bribed.)"; });
+    act("m-wire", () => { for (const a of playing(this.world.state, this.m, 1)) if (a.fb!.role === "DEF") wirePlayer(this.world, a.id, 150); return "(Debug: their defenders are wired.)"; });
+    act("m-refbribe", () => { biasReferee(this.world, 0, 0.85); return "(Debug: the referee favours England.)"; });
     act("m-distract", () => { distractReferee(this.world, 30); return null; });
     act("m-floor", () => { floorReferee(this.world, 20); return null; });
     act("m-invade", () => { this.sendIntruder(); return null; });
   }
 
-  // A stand-in for the player: a fat man who runs on, reaches the ball and shoots.
   sendIntruder() {
     const s = this.world.state;
     if (this.intruder && s.actors[this.intruder]) return;
@@ -314,7 +306,6 @@ class MatchScene extends Phaser.Scene {
     if (d < 1.2 && this.m.phase === "live") {
       const dir = dirOf(this.m, 0);
       if (intruderKick(this.world, a.id, dir * HL - b.x, -b.y, 15, 2)) {
-        // Job done; he is escorted away.
         delete s.actors[a.id];
         this.labels.get(a.id)?.destroy(); this.labels.delete(a.id);
         this.intruder = null;

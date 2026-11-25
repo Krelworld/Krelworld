@@ -905,7 +905,7 @@ npx vitest run tests/mobile tests/desktopNotPhone.test.ts   # flag, modes, layou
 
 npx vite --port 5202 --strictPort &                       # normal build
 VITE_KREL_ALT=1 npx vite --port 5212 --strictPort &       # ALT build
-node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,desktop]
+node scripts/mobile-smoke.cjs --url http://localhost:5202/ [--shots <dir>] [--only phone,upright,settings,read,dialogue,settings2,lists,wording,guide,optout,town,dungeon,combat,side,brawl,together,review1,polish,platform,android,tapuse,mix3,desktop]
 node scripts/mobile-smoke.cjs --url http://localhost:5212/
 # (tapuse: at Home the telly, the book and the gun rack from the far side of the room, the stick stopping a walk, a
 #  second tap re-targeting, the floor, in reach = at once; a person and the Krezz Arms in the town; a Kreddle local;
@@ -919,6 +919,9 @@ node scripts/mobile-smoke.cjs --url http://localhost:5212/
 #  over six scenes, pause in a minigame and the finale, the in-app download hold; tests/mobilePlatform.test.ts the rules)
 # (together: the two stage 2 tracks at once: bigger text in a fight, a conversation in a fight (pills, no fight
 #  buttons), PHONE SETTINGS live in a fight, pause -> CONTROLS on FIGHTS, the Krezz Arms brawl by tap)
+# (mix3: stage 3 wave 1's two tracks at once: the TV faces parked and fetched back around a tapped walk to the telly,
+#  every tappable thing keeping its real size, the page hidden mid-walk (the walk lets go, the sound resumes once),
+#  the II mid-walk, the stick stopping a routed walk in town with the off-screen skip on)
 
 # the laptop must not change (both must end with DESKTOP FINGERPRINT: OK)
 A="--url http://localhost:5202/ --alt-url http://localhost:5212/ --check"

@@ -1,0 +1,188 @@
+{
+ "barrier": {
+  "description": "grey steel police crowd control barrier, side on, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 80,
+  "h": 44,
+  "view": "low top-down"
+ },
+ "bollard": {
+  "description": "black cast iron street bollard, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 32,
+  "h": 40,
+  "view": "low top-down"
+ },
+ "bin": {
+  "description": "dark green council wheelie bin with lid, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 36,
+  "h": 52,
+  "view": "low top-down"
+ },
+ "lamppost": {
+  "description": "tall grey modern street lamp post, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 32,
+  "h": 128,
+  "view": "low top-down"
+ },
+ "bench": {
+  "description": "wooden pub picnic bench, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 92,
+  "h": 56,
+  "view": "low top-down"
+ },
+ "phonebox": {
+  "description": "red British telephone box, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 44,
+  "h": 96,
+  "view": "low top-down"
+ },
+ "portaloo": {
+  "description": "blue portable toilet cabin, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 48,
+  "h": 88,
+  "view": "low top-down"
+ },
+ "cone": {
+  "description": "orange traffic cone, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 32,
+  "h": 32,
+  "view": "low top-down"
+ },
+ "litter": {
+  "description": "scattered litter on the ground: crushed lager cans, crisp packet, chip paper, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 48,
+  "h": 32,
+  "view": "high top-down"
+ },
+ "puddle": {
+  "description": "shallow rain puddle on tarmac, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 64,
+  "h": 32,
+  "view": "high top-down"
+ },
+ "pallets": {
+  "description": "stack of wooden pallets with empty beer kegs, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 64,
+  "h": 60,
+  "view": "low top-down"
+ },
+ "crates": {
+  "description": "stack of plastic beer crates, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 48,
+  "h": 52,
+  "view": "low top-down"
+ },
+ "flowerbox": {
+  "description": "pub hanging flower basket on a bracket, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 32,
+  "h": 36,
+  "view": "side"
+ },
+ "burgervan": {
+  "description": "white burger van food truck with the serving hatch open, menu board, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 208,
+  "h": 120,
+  "view": "low top-down"
+ },
+ "policevan": {
+  "description": "British police riot van, white with blue and yellow battenberg markings, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 192,
+  "h": 108,
+  "view": "low top-down"
+ },
+ "programmes": {
+  "description": "match programme seller's little kiosk with stacks of programmes, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 84,
+  "h": 76,
+  "view": "low top-down"
+ },
+ "ticketbooth": {
+  "description": "small stadium ticket office booth, two serving windows with grilles, blue steel, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 320,
+  "h": 176,
+  "view": "low top-down"
+ },
+ "merchstall": {
+  "description": "match day merchandise stall with a striped awning, scarves and shirts hanging, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 320,
+  "h": 160,
+  "view": "low top-down"
+ },
+ "turnstile": {
+  "description": "football stadium turnstile booth with a green lit sign above the doorway, concrete and steel, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 192,
+  "h": 160,
+  "view": "low top-down"
+ },
+ "staffdoor": {
+  "description": "grey steel stadium staff entrance door with a card reader and a camera, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 116,
+  "h": 120,
+  "view": "low top-down"
+ },
+ "bigscreen": {
+  "description": "big outdoor fan zone screen on a steel frame showing football, speakers either side, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 400,
+  "h": 232,
+  "view": "low top-down"
+ },
+ "win_pub": {
+  "description": "pub sash window with a Sky Sports poster and an England flag, red brick surround, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 96,
+  "h": 72,
+  "view": "side"
+ },
+ "door_pub": {
+  "description": "dark green pub door with a brass handle, step, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 40,
+  "h": 76,
+  "view": "side"
+ },
+ "win_charity": {
+  "description": "charity shop window display with second hand coats, hats and a mannequin, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 96,
+  "h": 72,
+  "view": "side"
+ },
+ "win_surplus": {
+  "description": "army surplus shop window with camouflage jackets, balaclavas and boots, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 96,
+  "h": 72,
+  "view": "side"
+ },
+ "win_bookies": {
+  "description": "betting shop window covered in faded odds posters, dark glass, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 96,
+  "h": 72,
+  "view": "side"
+ },
+ "door_shop": {
+  "description": "glass shop door with an aluminium frame, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 40,
+  "h": 76,
+  "view": "side"
+ },
+ "shutter": {
+  "description": "rolled up steel roller shutter above a shop doorway, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 96,
+  "h": 32,
+  "view": "side"
+ },
+ "win_hotel": {
+  "description": "modern hotel ground floor glass frontage, reception visible inside, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 96,
+  "h": 76,
+  "view": "side"
+ },
+ "door_steel": {
+  "description": "grey steel fire door, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 40,
+  "h": 76,
+  "view": "side"
+ },
+ "win_cabin": {
+  "description": "portakabin window with a grille, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 48,
+  "h": 40,
+  "view": "side"
+ }
+}

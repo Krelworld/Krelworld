@@ -1,0 +1,104 @@
+{
+ "pubtable": {
+  "description": "round dark wooden pub table with two wooden stools and two pints of beer on it, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 64,
+  "h": 56,
+  "view": "low top-down"
+ },
+ "fruitmachine": {
+  "description": "pub fruit machine slot cabinet with coloured lights, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 40,
+  "h": 72,
+  "view": "low top-down"
+ },
+ "pooltable": {
+  "description": "green baize pool table with balls and two cues, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 100,
+  "h": 72,
+  "view": "low top-down"
+ },
+ "pubtv": {
+  "description": "large flat screen television on a black stand showing a football match, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 72,
+  "h": 64,
+  "view": "low top-down"
+ },
+ "pumps": {
+  "description": "row of four beer pump handles and a drip tray on a wooden pub bar top, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 96,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "stool": {
+  "description": "tall wooden pub bar stool, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 24,
+  "h": 36,
+  "view": "low top-down"
+ },
+ "clothesrail": {
+  "description": "chrome clothes rail with second hand coats and shirts on hangers, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 64,
+  "h": 64,
+  "view": "low top-down"
+ },
+ "shelves": {
+  "description": "metal shop shelving unit stacked with army surplus boots, helmets and folded jackets, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 64,
+  "h": 72,
+  "view": "low top-down"
+ },
+ "betscreens": {
+  "description": "bank of four betting shop television screens showing horse racing, on a black stand, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 96,
+  "h": 72,
+  "view": "low top-down"
+ },
+ "tree": {
+  "description": "young street tree with green leaves in a square metal tree grate, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 64,
+  "h": 128,
+  "view": "low top-down"
+ },
+ "statue": {
+  "description": "bronze statue of a footballer kicking a ball on a stone plinth, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 64,
+  "h": 128,
+  "view": "low top-down"
+ },
+ "binbags": {
+  "description": "pile of black plastic rubbish bags, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 48,
+  "h": 36,
+  "view": "low top-down"
+ },
+ "aboard": {
+  "description": "pavement A-board chalkboard sign, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 32,
+  "h": 40,
+  "view": "low top-down"
+ },
+ "desk": {
+  "description": "grey office desk with a computer monitor, papers and an office chair, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 72,
+  "h": 64,
+  "view": "low top-down"
+ },
+ "kitbench": {
+  "description": "wooden changing room bench with a folded football shirt and boots, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 96,
+  "h": 48,
+  "view": "low top-down"
+ },
+ "kitchen": {
+  "description": "stainless steel commercial kitchen counter with a hob, oven and pots, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 96,
+  "h": 72,
+  "view": "low top-down"
+ },
+ "lockers": {
+  "description": "row of grey metal changing room lockers, realistic, muted natural colours, overcast daylight, detailed pixel art, not cartoon",
+  "w": 96,
+  "h": 80,
+  "view": "low top-down"
+ }
+}

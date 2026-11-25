@@ -12,10 +12,14 @@ export class Projection {
   /** Turn the world a quarter (long side of the pitch runs up the screen). */
   rot = false;
 
+  /** The tilted view's depth squash and height lift. The stadium uses 1 and 1: a square floor
+   *  with upright faces, the one consistent three-quarter view of top-down pixel-art games. */
+  tiltK = 0.62;
+  tiltKZ = 0.82;
   /** How much depth is squashed. 1 = none. */
-  get K() { return this.mode === "tilted" ? 0.62 : 1; }
+  get K() { return this.mode === "tilted" ? this.tiltK : 1; }
   /** How far up the screen one metre of height goes, in ground metres. */
-  get KZ() { return this.mode === "tilted" ? 0.82 : 0.45; }
+  get KZ() { return this.mode === "tilted" ? this.tiltKZ : 0.45; }
   get standing() { return this.mode === "tilted"; }
 
   u(x: number, y: number) { return this.rot ? y : x; }

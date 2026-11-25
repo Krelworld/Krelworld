@@ -15,7 +15,7 @@ import { playing } from "../football/util";
 import { Announcer } from "../stadium/announcer";
 import { aimThrow, itemName, itemOptions, looksOutOfPlace, options, personName, primary, throwTarget, type Option } from "../stadium/context";
 import { createGame, loadCheckpoint, stepGame, type Game } from "../stadium/game";
-import { AREAS, areaAt, KICKOFF_AT, setBreaches, SOLID, SPOTS, VENUE } from "../stadium/layout";
+import { AREAS, areaAt, BOUNDS, KICKOFF_AT, setBreaches, SOLID, SPOTS, VENUE } from "../stadium/layout";
 import { afterMatch, describeDef, FIXTURES, loadoutProblem, newCampaign, notorietyText, type Campaign } from "../stadium/campaign";
 import { TEAMS } from "../football/setup";
 import { canBetHere, prices } from "../stadium/betting";
@@ -30,11 +30,20 @@ import { Projection } from "./projection";
 import { Audio, type Clip } from "./audio";
 import { Drive3D, type DriveView } from "./drive3d";
 import { CELL, dirIndex, FEET, HEAD, SpriteBank, type Base, type Recolour } from "./sprites";
-import { placements, WorldArt, type Placement } from "./world";
+import { buildings, placements, WorldArt, type Placement } from "./world";
+import { CAP, ensureFloor, ensureMaterials, facade, floodlight, matOf, banner, pixelText as pixelTextOn, PPM, roof, TILE_FILES, type BuildingSpec } from "./build";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
-/** Screen pixels per metre at zoom 1: matches 48px character art drawn at 1:1. */
-const PX_PER_METRE = 23;
+/** The canvas draws at the screen's real pixels (sharp text, and each art pixel a whole number of them). */
+const DPR = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+/** Zoom levels, as camera zooms: whole screen pixels per art pixel (32 art pixels to the metre). The first
+ *  shows about 22 screen points to the metre on a phone and 32 on anything bigger; then closer, then further. */
+function zoomSteps(): number[] {
+  const small = Math.min(window.innerWidth, window.innerHeight) < 520;
+  const z = Math.max(1, Math.round(((small ? 22 : 32) * DPR) / 32));
+  return [...new Set([z, z + 1, Math.max(1, z - 1)])];
+}
+const ZOOMS = [0, 1, 2];
 const SKIN = [0xf1c7a5, 0xd9a47e, 0xb07a52, 0x8a5a3b, 0x5e3b26, 0xe8b896];
 const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
 const fmtTime = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
@@ -109,7 +118,11 @@ class StadiumScene extends Phaser.Scene {
   /** Off = the old drawn figures (debug, or if the art failed to load). */
   useSprites = true;
 
-  preload() { SpriteBank.preload(this); WorldArt.preload(this); }
+  preload() {
+    SpriteBank.preload(this); WorldArt.preload(this);
+    for (const k of TILE_FILES) this.load.image(`tile-${k}`, `tiles/${k}.png`);
+    for (const k of ICONS) this.load.image(`ico-${k}`, `icons/${k}.png`);
+  }
   world!: WorldArt;
   worldSprites = new Map<string, Phaser.GameObjects.Image>();
   facade: Phaser.GameObjects.TileSprite | null = null;
@@ -120,6 +133,10 @@ class StadiumScene extends Phaser.Scene {
     (window as any).__fast = (secs: number) => { for (let i = 0; i < secs * 60 && !this.s.stadium!.ending; i++) stepGame(this.game2); };
     this.bank = new SpriteBank(this);
     this.world = new WorldArt(this);
+    // One density everywhere: 32 art pixels to the metre, a square floor and upright faces.
+    this.P.S = PPM; this.P.tiltK = 1; this.P.tiltKZ = 1;
+    ensureMaterials(this);
+    if (!this.textures.exists("floodlight")) this.textures.addCanvas("floodlight", floodlight());
     document.fonts?.ready.then(() => { this.drawStatic(); for (const b of this.bubbles) b.setFontFamily('"Barlow Condensed", "Arial Narrow", sans-serif'); });
     this.world.prepare();
     this.pitchG = this.add.graphics().setDepth(0.25);
@@ -133,15 +150,19 @@ class StadiumScene extends Phaser.Scene {
     this.d3 = new Drive3D(this);
     for (let i = 0; i < 10; i++) {
       this.bubbles.push(this.add.text(0, 0, "", {
-        fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif', fontSize: "14px", fontStyle: "600", color: "#10140f", backgroundColor: "#f4f1ea",
-        padding: { x: 5, y: 3 }, wordWrap: { width: 170 }, align: "center",
-      }).setOrigin(0.5, 1).setDepth(1e7 + 1).setResolution(2).setVisible(false));
+        fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif', fontSize: `${Math.round(15 * DPR)}px`, fontStyle: "600", color: "#10140f", backgroundColor: "#f4f1ea",
+        padding: { x: 6 * DPR, y: 3 * DPR }, wordWrap: { width: 180 * DPR }, align: "center",
+      }).setOrigin(0.5, 1).setDepth(1e7 + 1).setVisible(false));
     }
     this.newGame();
     this.keys = this.input.keyboard!.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT,SHIFT") as Record<string, Phaser.Input.Keyboard.Key>;
     this.scale.on("resize", () => this.setZoom());
     // The host frame can change size after load (phones especially): keep the canvas filling it.
-    const refit = () => { this.scale.refresh(); this.setZoom(); };
+    const refit = () => {
+      const el = $("game"), w = Math.max(1, Math.round(el.clientWidth * DPR)), h = Math.max(1, Math.round(el.clientHeight * DPR));
+      if (w !== this.scale.width || h !== this.scale.height) this.scale.resize(w, h);
+      this.scale.refresh(); this.setZoom();
+    };
     new ResizeObserver(refit).observe($("game"));
     window.visualViewport?.addEventListener("resize", refit);
     window.addEventListener("orientationchange", () => setTimeout(refit, 300));
@@ -358,24 +379,45 @@ class StadiumScene extends Phaser.Scene {
       if (a.id === "pitch") continue;
       g.fillStyle(a.floor, 1).fillRect(...P.rect(a.x, a.y, a.w, a.h));
     }
-    // PixelLab tiles over the flat floors where the ground is paving, tarmac, concrete or grass.
+    // PixelLab floor tiles at 1:1: paving, tarmac, concrete, grass, pub carpet, lino, quarry tiles.
     for (const t of this.groundTiles) t.destroy();
     this.groundTiles = [];
-    if (this.useSprites && this.textures.exists("tiles-street")) {
-      const st = this.textures.get("tiles-street"), pt = this.textures.get("tiles-pitch");
-      if (!st.has("pave")) { st.add("pave", 0, 0, 96, 32, 32); st.add("road", 0, 64, 32, 32, 32); pt.add("concrete", 0, 0, 96, 32, 32); pt.add("grass", 0, 64, 32, 32, 32); }
-      const PAVE = new Set(["plaza", "hotel_court", "pub_yard", "ticket_office", "merch"]), ROAD = new Set(["road", "eastroad", "carpark", "street"]);
-      const CONC = new Set(["concourse_s", "concourse_w", "concourse_e", "corner_sw", "corner_se", "corner_nw", "corner_ne", "loading", "staffway"]);
-      for (const a of AREAS) {
-        const which = PAVE.has(a.id) ? ["tiles-street", "pave"] : ROAD.has(a.id) ? ["tiles-street", "road"] : CONC.has(a.id) ? ["tiles-pitch", "concrete"] : a.id === "verge" ? ["tiles-pitch", "grass"] : null;
-        if (!which) continue;
-        const [rx, ry, rw, rh] = P.rect(a.x, a.y, a.w, a.h);
-        // Paving slabs and kerbstones at a believable size; tarmac and grass can be coarser.
-        const k = ((which[1] === "pave" || which[1] === "concrete" ? 0.9 : 1.5) * P.S) / 32;
-        const ts = this.add.tileSprite(rx, ry, rw, rh, which[0], which[1]).setOrigin(0).setDepth(0.2).setTileScale(k, k * (P.standing ? P.K : 1));
-        if (a.id === "street") ts.setAlpha(0.55);
-        this.groundTiles.push(ts);
+    const FLOOR_OF: Record<string, string> = {
+      street: "slabs", plaza: "slabs", road: "asphalt", eastroad: "asphalt", carpark: "tarmac", hotel_court: "slabs", ticket_office: "slabs", merch: "slabs",
+      pub_yard: "herringbone", verge: "grass", concourse_s: "concourse", concourse_w: "concourse", concourse_e: "concourse", corner_sw: "concourse", corner_se: "concourse",
+      corner_nw: "concourse", corner_ne: "concourse", loading: "gravel", staffway: "lino", players: "lino", tunnel: "lino", security: "office", ref_room: "lino",
+      dress_home: "rubber", dress_away: "rubber", kitchen: "quarry", bar_s: "boards", toilet_s: "whitetile", cubicle_s: "whitetile", pub: "pubcarpet", pub_toilet: "whitetile",
+      pub_cubicle: "whitetile", cabin: "office", hotel: "office", charity: "boards", surplus: "lino", bookies: "office",
+    };
+    if (VENUE.features.fanZone) { FLOOR_OF.pub = "grass"; FLOOR_OF.pub_toilet = "slabs"; FLOOR_OF.pub_cubicle = "slabs"; }
+    // Beyond the edge of the map: more pavement, and a palisade fence round it all.
+    if (this.useSprites && P.standing) {
+      const fk = ensureFloor(this, "asphalt");
+      const [bx, by, bw, bh] = P.rect(BOUNDS.x - 40, BOUNDS.y - 30, BOUNDS.w + 80, BOUNDS.h + 60);
+      if (fk) this.groundTiles.push(this.add.tileSprite(Math.round(bx), Math.round(by), Math.round(bw), Math.round(bh), fk).setOrigin(0).setDepth(0.1).setTilePosition(Math.round(bx), Math.round(by)).setTint(0xb0b0b0));
+      const fence = (x: number, y: number, w: number, dep: number) => {
+        const sx = Math.round(P.sx(x, 0)), sy = Math.round(P.sy(0, y)), fw = Math.round(w * P.S);
+        this.groundTiles.push(this.add.tileSprite(sx, sy - 58, fw, 58, "mat-palisade").setOrigin(0).setDepth(dep).setTilePosition(0, 0));
+      };
+      fence(BOUNDS.x, BOUNDS.y, BOUNDS.w, 0.5);
+      fence(BOUNDS.x, BOUNDS.y + BOUNDS.h + 0.3, BOUNDS.w, 9e6);
+      for (const x of [BOUNDS.x - 0.15, BOUNDS.x + BOUNDS.w]) {
+        const g2 = this.add.graphics().setDepth(0.5);
+        g2.fillStyle(0x25472e, 1).fillRect(Math.round(P.sx(x, 0)), Math.round(P.sy(0, BOUNDS.y)) - 58, 5, Math.round(BOUNDS.h * P.S) + 58);
+        this.groundTiles.push(g2 as unknown as Phaser.GameObjects.TileSprite);
       }
+    }
+    if (this.useSprites) for (const a of AREAS) {
+      const [rx, ry, rw, rh] = P.rect(a.x, a.y, a.w, a.h);
+      let key: string | null = null;
+      if (a.seats && P.standing) key = `mat-seats_${a.h > a.w ? "v" : "h"}${a.id === "stand_e" ? "_red" : ""}`;
+      else if (FLOOR_OF[a.id]) key = ensureFloor(this, FLOOR_OF[a.id]);
+      if (!key) continue;
+      const ts = this.add.tileSprite(Math.round(rx), Math.round(ry), Math.round(rw), Math.round(rh), key).setOrigin(0).setDepth(0.2);
+      // Line the pattern up with the world grid, so neighbouring areas of the same floor join seamlessly.
+      ts.setTilePosition(Math.round(rx), Math.round(ry));
+      if (a.seats) ts.setTilePosition(a.h > a.w ? Math.round(rx - P.sx(a.x + 0.6, 0)) : 0, a.h > a.w ? 0 : Math.round(ry - P.sy(0, a.y + 0.6) + 6));
+      this.groundTiles.push(ts);
     }
     // Road markings.
     const detail = this.detailG; detail.clear();
@@ -392,7 +434,7 @@ class StadiumScene extends Phaser.Scene {
     g.fillStyle(0xe8e4d4, 0.8);
     for (let x = 46; x <= 60; x += 2.6) { g.fillRect(...P.rect(Math.min(mx(x), mx(x + 0.15)), 73.5, 0.15, 4)); g.fillRect(...P.rect(Math.min(mx(x), mx(x + 0.15)), 78, 0.15, 4)); }
     // Seat rows.
-    for (const a of AREAS.filter((x) => x.seats)) {
+    for (const a of AREAS.filter((x) => x.seats && !this.useSprites)) {
       const vertical = a.h > a.w;
       g.fillStyle(0x2c323e, 1);
       if (vertical) for (let x = a.x + 0.4; x < a.x + a.w; x += 1.1) g.fillRect(...P.rect(x, a.y, 0.35, a.h));
@@ -404,7 +446,7 @@ class StadiumScene extends Phaser.Scene {
     this.labels = [];
     const label = (text: string, x: number, y: number, size = 11) => {
       this.labels.push(this.add.text(P.sx(x, y), P.sy(x, y), text.toUpperCase(), { fontFamily: '"Barlow Condensed", "Arial Narrow", sans-serif', fontSize: `${size + 2}px`, fontStyle: "800", color: "#ffffff", letterSpacing: 1.5 } as Phaser.Types.GameObjects.Text.TextStyle)
-        .setOrigin(0.5).setAlpha(0.55).setResolution(2).setDepth(1));
+        .setOrigin(0.5).setAlpha(0.55).setResolution(Math.ceil(DPR * 2)).setDepth(1));
     };
     const SIGNED = new Set(["STAFF ENTRANCE", "THE THREE LIONS", "TICKETS", "MERCHANDISE", "TURNSTILES", "STEWARDS", "SECOND HAND ROSE", "ARMY & NAVY", "BOOKMAKER", "TEAM HOTEL", "FAN ZONE", "BIG SCREEN"]);
     for (const [t, x, y, size] of VENUE.labels) if (!this.useSprites || !SIGNED.has(t)) label(t, x, y, size ?? 11);
@@ -438,7 +480,7 @@ class StadiumScene extends Phaser.Scene {
     for (const sh of [{}, { shirt: 0xc8102e, trim: 0xf4f4f4 }, { shirt: 0x1b2a6b, trim: 0xf4f4f4 }, { shirt: opp.colour, trim: opp.colour2 }, { shirt: opp.colour2, trim: opp.colour }] as Recolour[])
       for (const sk of SK) schemes.push({ ...sh, skin: sk });
     if (sprites && !this.textures.exists(`crowd-${opp.short}`)) this.bank.crowdAtlas(`crowd-${opp.short}`, schemes);
-    const scale = (1.62 * P.KZ * P.S) / (FEET - HEAD);
+    const scale = P.S === PPM ? 1 : (1.62 * P.KZ * P.S) / (FEET - HEAD);
     const blit = sprites ? this.add.container(0, 0).setDepth(0.4) : null;
     type Seat = { x: number; y: number; row: number; f: number; shirt: number };
     const seats: Seat[] = [];
@@ -458,7 +500,7 @@ class StadiumScene extends Phaser.Scene {
     seats.sort((p, q) => p.y - q.y);
     for (const st of seats) {
       const sx = P.sx(st.x, st.y), sy = P.sy(st.x, st.y);
-      if (blit) { blit.add(this.add.image(sx, sy, `crowd-${opp.short}`, st.row * 4 + st.f).setOrigin(0.5, 46 / 52).setScale(scale)); continue; }
+      if (blit) { blit.add(this.add.image(Math.round(sx), Math.round(sy), `crowd-${opp.short}`, st.row * 4 + st.f).setOrigin(0.5, 46 / 52).setScale(scale)); continue; }
       const shirt = [0xf4f4f4, 0xc8102e, 0x1b2a6b, opp.colour, opp.colour2][st.shirt];
       const h = (P.standing ? 0.9 * P.KZ : 0.3) * P.S;
       g.fillStyle(shirt, 1).fillRect(sx - P.S * 0.28, sy - h, P.S * 0.56, h);
@@ -472,16 +514,17 @@ class StadiumScene extends Phaser.Scene {
   targetZoom() {
     const w = this.scale.width, h = this.scale.height;
     if (this.pc?.seated) return Math.min(w / (60 * this.P.S), h / (44 * this.P.S * this.P.K));
-    // A fixed number of screen pixels per metre, so a bigger screen simply shows more.
-    return (PX_PER_METRE * this.zoomLevel) / this.P.S;
+    // Whole screen pixels per art pixel, so every pixel of the art is the same size; a bigger screen shows more.
+    const steps = zoomSteps();
+    return steps[Math.min(this.zoomLevel, steps.length - 1)];
   }
-  zoomLevel = 1;
+  zoomLevel = 0;
   cycleZoom() {
-    const levels = [1, 1.5, 2];
-    this.zoomLevel = levels[(levels.indexOf(this.zoomLevel) + 1) % levels.length];
-    $("zoomBtn").textContent = `${this.zoomLevel}×`;
-    try { localStorage.setItem("kd-zoom", String(this.zoomLevel)); } catch { /* ignore */ }
+    this.zoomLevel = (this.zoomLevel + 1) % zoomSteps().length;
+    $("zoomBtn").textContent = this.zoomLabel();
+    try { localStorage.setItem("kd-zoom2", String(this.zoomLevel)); } catch { /* ignore */ }
   }
+  zoomLabel(): string { const st = zoomSteps(), z = st[Math.min(this.zoomLevel, st.length - 1)] / st[0]; return z === 1 ? "1×" : z > 1 ? `${+z.toFixed(1)}×` : "½×"; }
   setZoom() { this.cameras.main.setZoom(this.targetZoom()); }
 
   // ---------- Frame ----------
@@ -500,7 +543,7 @@ class StadiumScene extends Phaser.Scene {
     ($("viewBtn") as HTMLElement).hidden = !driving;
     ($("hornBtn") as HTMLElement).hidden = !driving;
     this.audio.engineOn(driving && !st.ending, st.vehicles.bus?.speed ?? 0);
-    if (this.inCab()) this.d3.draw(this.s, this.driveView, this.scale.width, this.scale.height, (a) => this.styleOf(a), this.pc.drive?.steer ?? 0, this.cameras.main.zoom);
+    if (this.inCab()) this.d3.draw(this.s, this.driveView, this.scale.width / DPR, this.scale.height / DPR, (a) => this.styleOf(a), this.pc.drive?.steer ?? 0, this.cameras.main.zoom, DPR);
     else { this.d3.hide(); this.d3.hideSpeed(); }
     this.drawHud();
     if ((this.s.tick & 15) === 0) this.updateCrowd();
@@ -614,28 +657,62 @@ class StadiumScene extends Phaser.Scene {
     const cam = this.cameras.main;
     const view = cam.worldView;
     const onScreen = (x: number, y: number, pad = 60) => {
+      pad *= P.S / 16;
       const sx = P.sx(x, y), sy = P.sy(x, y);
       return sx > view.x - pad && sx < view.right + pad && sy > view.y - pad && sy < view.bottom + pad * 2;
     };
 
-    // Walls: fade the ones the player is standing behind. Holes knocked in them are gaps.
+    // Walls: a textured face towards the camera and a cap on top, cut down low (the Escapists way) so
+    // you can see over them; faded when you're behind one. Holes knocked in them are gaps.
     setBreaches(st.breaches);
-    // The pictures of the world: buildings (cut away when you're inside), props, the stadium's outside.
-    const world = sprites ? this.worldThings(things, onScreen, () => g) : { hides: (_w: unknown) => false };
+    // The world's pictures: buildings with fronts and roofs (cut away when you're inside), props, the ground's shell.
+    const world = sprites ? this.worldThings(things, onScreen) : { hides: (_w: unknown) => false, low: (_w: unknown) => null as BuildingSpec | null };
+    this.wallSeen = new Set();
     for (const wl of SOLID) {
-      if (!onScreen(wl.x + wl.w / 2, wl.y + wl.h / 2, 200)) continue;
+      if (!onScreen(wl.x + wl.w / 2, wl.y + wl.h / 2, 200 + Math.max(wl.w, wl.h) * P.S / 2)) continue;
       if (world.hides(wl) || (sprites && wl.prop)) continue;
       const open = wl.gate && st.gates[wl.gate] && st.gates[wl.gate].until > tick;
-      const behind = pc && pc.y < wl.y + wl.h && pc.y > wl.y - wl.h3 * 1.6 - 0.5 && pc.x > wl.x - 0.5 && pc.x < wl.x + wl.w + 0.5 && wl.h3 > 1.6;
-      const alpha = behind ? 0.35 : 1;
-      things.push({ d: wl.y + wl.h, draw: () => {
-        if (open) { g.fillStyle(0x88cc88, 0.35).fillRect(...P.rect(wl.x, wl.y, wl.w, wl.h)); return; }
-        const [rx, ry, rw, rh] = P.rect(wl.x, wl.y, wl.w, wl.h);
-        if (!P.standing) { g.fillStyle(wl.top, alpha).fillRect(rx, ry, rw, rh); return; }
-        const lift = wl.h3 * P.KZ * P.S;
-        g.fillStyle(wl.colour, alpha).fillRect(rx, ry + rh - lift, rw, lift);
-        g.fillStyle(wl.top, alpha).fillRect(rx, ry - lift, rw, rh);
+      if (open) { things.push({ d: wl.y + wl.h, draw: () => g.fillStyle(0x88cc88, 0.35).fillRect(...P.rect(wl.x, wl.y, wl.w, wl.h)) }); continue; }
+      if (!P.standing || !sprites) {
+        things.push({ d: wl.y + wl.h, draw: () => {
+          const [rx, ry, rw, rh] = P.rect(wl.x, wl.y, wl.w, wl.h);
+          if (!P.standing) { g.fillStyle(wl.top, 1).fillRect(rx, ry, rw, rh); return; }
+          const lift = Math.min(wl.h3, 1.6) * P.KZ * P.S;
+          g.fillStyle(wl.colour, 1).fillRect(rx, ry + rh - lift, rw, lift).fillStyle(wl.top, 1).fillRect(rx, ry - lift, rw, rh);
+        } });
+        continue;
+      }
+      const inside = world.low(wl);
+      const vh = inside ? 1.1 : wl.gate ? Math.min(wl.h3, 2) : wl.h3 <= 1.2 ? wl.h3 : Math.min(wl.h3, 1.6);
+      const mat = inside && wl.h3 > 1.2 ? inside.mat : matOf(wl.colour, wl.h3, wl.gate);
+      const lift = Math.round(vh * P.S), cap = CAP[mat] ?? wl.top;
+      const behind = (y1: number) => !!pc && !pc.hiddenIn && pc.x > wl.x - 0.6 && pc.x < wl.x + wl.w + 0.6 && pc.y < y1 && pc.y > y1 - vh - 1.2 && vh > 1.15;
+      // The face, a tiled texture standing on the wall's front edge.
+      const fx = Math.round(P.sx(wl.x, 0)), fy = Math.round(P.sy(0, wl.y + wl.h)), fw = Math.max(1, Math.round(wl.w * P.S));
+      const fa = behind(wl.y + wl.h) ? 0.35 : 1;
+      things.push({ d: wl.y + wl.h, draw: () => {}, spr: (dep) => {
+        const id = `${fx},${fy},${fw},${lift},${mat}`;
+        let ts = this.wallSprites.get(id);
+        if (!ts) {
+          ts = this.add.tileSprite(fx, fy - lift, fw, lift, `mat-${mat}`).setOrigin(0);
+          ts.setTilePosition(fx, (64 - (lift % 64)) % 64);
+          this.wallSprites.set(id, ts);
+        }
+        this.wallSeen.add(id);
+        ts.setVisible(true).setDepth(dep).setAlpha(fa);
       } });
+      // The cap: in one-metre slices along a wall running up the screen, so people beside it sort properly.
+      const n = wl.h > 1.3 ? Math.ceil(wl.h) : 1;
+      for (let i = 0; i < n; i++) {
+        const y0 = wl.y + (wl.h * i) / n, y1 = wl.y + (wl.h * (i + 1)) / n, a = behind(y1) ? 0.35 : 1;
+        things.push({ d: y1 + 1e-4, draw: () => {
+          const x = fx, y = Math.round(P.sy(0, y0)) - lift, h = Math.round(P.sy(0, y1)) - Math.round(P.sy(0, y0));
+          g.fillStyle(cap, a).fillRect(x, y, fw, h);
+          if (i === 0) g.fillStyle(0xffffff, 0.18 * a).fillRect(x, y, fw, 1);
+          g.fillStyle(0x000000, 0.28 * a).fillRect(x, y, 1, h).fillRect(x + fw - 1, y, 1, h);
+          if (i === n - 1) g.fillStyle(0x000000, 0.35 * a).fillRect(x, y + h - 1, fw, 1);
+        } });
+      }
     }
 
     // Rubble where a wall used to be.
@@ -674,6 +751,18 @@ class StadiumScene extends Phaser.Scene {
       const def = defOf(it), x = l.x, y = l.y, z = l.k === "air" ? l.z : 0;
       if (!onScreen(x, y)) continue;
       const near = pc && Math.hypot(pc.x - x, pc.y - y) < 2.6;
+      if (sprites && def.size !== "huge" && ICONS.has(it.def) && this.textures.exists(`ico-${it.def}`)) {
+        // Its picture, half size (a 48 px icon is 0.75 m across), lying where it fell or flying.
+        this.shadowG.fillStyle(0x000000, 0.3).fillEllipse(Math.round(P.sx(x, y)), Math.round(P.sy(x, y)), P.S * 0.6, P.S * 0.22);
+        things.push({ d: y, draw: () => {}, spr: (dep) => {
+          let im = this.worldSprites.get(`item-${id}`);
+          if (!im) { im = this.add.image(0, 0, `ico-${it.def}`); this.worldSprites.set(`item-${id}`, im); }
+          this.worldSeen.add(`item-${id}`);
+          im.setTexture(`ico-${it.def}`).setOrigin(0.5, 0.9).setScale(0.5).setPosition(Math.round(P.sx(x, y)), Math.round(P.sy(x, y, z))).setDepth(dep).setVisible(true).setAlpha(1).setAngle(l.k === "air" ? (tick * 12) % 360 : 0);
+        } });
+        if (near && l.k === "ground") things.push({ d: y + 1e-4, draw: () => g.lineStyle(3, 0xf2c94c, 0.5 + 0.4 * Math.sin(tick * 0.15)).strokeCircle(P.sx(x, y), P.sy(x, y) - P.S * 0.2, P.S * 0.55) });
+        continue;
+      }
       things.push({ d: y, draw: () => {
         const sx = P.sx(x, y), sy = P.sy(x, y, z);
         if (def.size === "huge") {
@@ -718,7 +807,7 @@ class StadiumScene extends Phaser.Scene {
           if (!im) { im = this.add.image(0, 0, key8, 0); this.worldSprites.set(`veh-${v.id}`, im); }
           this.worldSeen.add(`veh-${v.id}`);
           const size = (this.textures.get(key8).getSourceImage() as HTMLCanvasElement).height;
-          const scale = (len * P.S * 1.05) / (size * 0.88);
+          const scale = Math.max(1, Math.round((len * P.S * 1.05) / (size * 0.88)));
           im.setTexture(key8, dirIndex(v.facing)).setOrigin(0.5, 0.62).setScale(scale).setPosition(P.sx(v.x, v.y), P.sy(v.x, v.y)).setDepth(dep).setVisible(true);
           if (isBus) im.setTint(v.crashed ? 0x6a6a6a : team!.colour); else im.clearTint();
           im.setAngle(v.crashed ? 6 : 0);
@@ -764,7 +853,7 @@ class StadiumScene extends Phaser.Scene {
       // Shadow and ring on the ground, the sprite, then anything worn on the head.
       const sh = this.shadowG, Wd = 0.5 * (st2.girth ?? 1) * P.S, gx = P.sx(a.x, a.y), gy = P.sy(a.x, a.y);
       if (!a.seated) sh.fillStyle(0x000000, 0.28).fillEllipse(gx, gy, Wd * 2.2, Wd * 0.9 * (P.standing ? 1 : 2));
-      if (st2.ring) sh.lineStyle(2, st2.ring, 1).strokeEllipse(gx, gy, Wd * 2.9, Wd * (P.standing ? 1.25 : 2.9));
+      if (st2.ring) sh.lineStyle(3, st2.ring, 1).strokeEllipse(gx, gy, Wd * 2.9, Wd * (P.standing ? 1.25 : 2.9));
       seenSprites.add(a.id);
       things.push({ d: a.y, draw: () => {}, spr: (depth) => this.placeSprite(a, st2, shiver, moving, depth) });
       if (st2.hat || st2.face || (a.effects.bloody ?? 0) > tick || a.npc?.job === "police" || a.npc?.job === "armed")
@@ -787,12 +876,14 @@ class StadiumScene extends Phaser.Scene {
     };
     for (const t of things) {
       if (t.spr) { t.spr(order++); open = false; continue; }
-      if (!open) { g = nextLayer(); open = true; }
+      if (!open) { g = nextLayer(); this.lastLayer = g; open = true; }
       t.draw();
     }
     g = nextLayer();
     for (const [id, sp] of this.spritePool) if (!seenSprites.has(id)) sp.setVisible(false);
     for (const [id, sp] of this.worldSprites) if (!this.worldSeen.has(id)) sp.setVisible(false);
+    for (const [id, ts] of this.wallSprites) if (!this.wallSeen.has(id)) ts.setVisible(false);
+    for (const [id, ts] of this.shellSprites) if (!this.shellSeen.has(id)) ts.setVisible(false);
     for (const c of st.smoke) {
       if (c.until < tick) continue;
       const left = (c.until - tick) / (60 * 25);
@@ -820,37 +911,37 @@ class StadiumScene extends Phaser.Scene {
     } else { this.crowdG.y = 0; if (this.crowdBlit) this.crowdBlit.y = 0; }
 
     // Aim marker and the player's own marker.
-    const ui = this.ui;
+    const ui = this.ui, u = P.S / 16;
     ui.clear();
     if (pc && !pc.hiddenIn) {
       const tgt = pc.hand && hasProp(s.items[pc.hand], "throwable") || (pc.hand && defOf(s.items[pc.hand]).size === "small") ? throwTarget(this.w, pc, this.picked) : null;
       (this as any).throwAt = tgt;
       if (tgt) {
         const tx = P.sx(tgt.x, tgt.y), ty = P.sy(tgt.x, tgt.y) - (P.standing ? 0.9 * P.KZ * P.S : 0);
-        ui.lineStyle(2, 0xf2c94c, 0.9).strokeCircle(tx, ty, P.S * 0.9);
+        ui.lineStyle(2 * u, 0xf2c94c, 0.9).strokeCircle(tx, ty, P.S * 0.9);
         ui.lineBetween(tx - P.S * 1.2, ty, tx - P.S * 0.6, ty).lineBetween(tx + P.S * 0.6, ty, tx + P.S * 1.2, ty);
       }
-      const hx = P.sx(pc.x, pc.y), hy = headTop(P, pc.x, pc.y, 1.75) - 6;
-      ui.fillStyle(0xd7263d, 1).fillTriangle(hx - 5, hy - 8, hx + 5, hy - 8, hx, hy);
+      const hx = P.sx(pc.x, pc.y), hy = headTop(P, pc.x, pc.y, 1.75) - 4 * u;
+      ui.fillStyle(0xd7263d, 1).fillTriangle(hx - 5 * u, hy - 8 * u, hx + 5 * u, hy - 8 * u, hx, hy);
       // What the red button would act on.
       const at = this.primaryAt;
       if (at) {
         const pulse = 0.6 + 0.4 * Math.sin(tick * 0.18);
-        ui.lineStyle(2.5, 0xd7263d, pulse).strokeEllipse(P.sx(at.x, at.y), P.sy(at.x, at.y), P.S * 1.6, P.S * (P.standing ? 0.75 : 1.6));
+        ui.lineStyle(2.5 * u, 0xd7263d, pulse).strokeEllipse(P.sx(at.x, at.y), P.sy(at.x, at.y), P.S * 1.6, P.S * (P.standing ? 0.75 : 1.6));
       }
       // Gold coins over anyone selling something; red marks over anyone coming for you.
       for (const id in s.actors) {
         const a = s.actors[id], n = a.npc;
         if (!n || a.hiddenIn || a.dead || Math.hypot(a.x - pc.x, a.y - pc.y) > 22) continue;
-        const tx = P.sx(a.x, a.y), ty = headTop(P, a.x, a.y) - 8;
+        const tx = P.sx(a.x, a.y), ty = headTop(P, a.x, a.y) - 6 * u;
         if (n.shop || n.job === "barman") {
-          ui.fillStyle(0xf2c94c, 1).fillCircle(tx, ty - 4, 5);
-          ui.fillStyle(0x7a5a10, 1).fillRect(tx - 1, ty - 7, 2, 6);
+          ui.fillStyle(0xf2c94c, 1).fillCircle(tx, ty - 4 * u, 5 * u);
+          ui.fillStyle(0x7a5a10, 1).fillRect(tx - u, ty - 7 * u, 2 * u, 6 * u);
         } else if (n.target === pc.id && (n.mode === "approach" || n.mode === "chase" || n.mode === "escort")) {
-          ui.fillStyle(0xd7263d, 1).fillTriangle(tx - 6, ty, tx + 6, ty, tx, ty - 11);
-          ui.fillStyle(0xffffff, 1).fillRect(tx - 1, ty - 8, 2, 4).fillRect(tx - 1, ty - 3, 2, 2);
+          ui.fillStyle(0xd7263d, 1).fillTriangle(tx - 6 * u, ty, tx + 6 * u, ty, tx, ty - 11 * u);
+          ui.fillStyle(0xffffff, 1).fillRect(tx - u, ty - 8 * u, 2 * u, 4 * u).fillRect(tx - u, ty - 3 * u, 2 * u, 2 * u);
         } else if (n.target === pc.id && n.mode === "watch") {
-          ui.lineStyle(2, 0xf2c94c, 0.9).strokeCircle(tx, ty - 4, 4);
+          ui.lineStyle(2 * u, 0xf2c94c, 0.9).strokeCircle(tx, ty - 4 * u, 4 * u);
         }
       }
     }
@@ -881,56 +972,72 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- The world ----------
   worldSeen = new Set<string>();
+  wallSeen = new Set<string>();
+  wallSprites = new Map<string, Phaser.GameObjects.TileSprite>();
+  shellSprites = new Map<string, Phaser.GameObjects.TileSprite>();
 
-  /** Queue the world's pictures for this frame; returns which layout walls they cover. */
-  worldThings(things: { d: number; draw: () => void; spr?: (depth: number) => void }[], onScreen: (x: number, y: number, pad?: number) => boolean, layer: () => Phaser.GameObjects.Graphics) {
-    const P = this.P, s = this.s, pc = this.pc, st = s.stadium!, tick = s.tick;
+  /** Queue the world's pictures for this frame; says which layout walls they stand in for. */
+  worldThings(things: { d: number; draw: () => void; spr?: (depth: number) => void }[], onScreen: (x: number, y: number, pad?: number) => boolean) {
+    const P = this.P, pc = this.pc, S = P.S;
     this.worldSeen = new Set();
-    if (this.placed.venue !== VENUE.id) this.placed = { venue: VENUE.id, list: placements(VENUE) };
-    const inRect = (x: number, y: number, rc: { x0: number; y0: number; x1: number; y1: number }, pad = 0) => x > rc.x0 - pad && x < rc.x1 + pad && y > rc.y0 - pad && y < rc.y1 + pad;
-    const cut = new Set<string>();
-    for (const p of this.placed.list) {
-      if (p.inside && pc && !pc.hiddenIn && inRect(pc.x, pc.y, p.inside, 0.3)) cut.add(p.id);
-      const meta = this.world.base[p.key];
-      if (!meta || !onScreen(p.x, p.y, 400)) continue;
-      this.worldSeen.add(p.id);
-      // A shadow on the ground: the footprint for buildings, a soft blob for props.
-      {
-        const sh = this.shadowG;
-        if (p.inside && !cut.has(p.id)) {
-          const fp = p.inside;
-          sh.fillStyle(0x000000, 0.28).fillRect(...P.rect(fp.x0 + 0.5, fp.y1 - 0.2, fp.x1 - fp.x0, 1.4));
-        } else if (!p.inside && !(p.key === "turnstiles" && pc && (VENUE.inside(pc.x, pc.y) || pc.seated))) {
-          // Small things get a soft blob; long things (booths, the turnstile block) a strip along their base.
-          if (p.w > 4) sh.fillStyle(0x000000, 0.25).fillRect(...P.rect(p.x - p.w / 2 + 0.3, p.y - 0.4, p.w, 1.1));
-          else sh.fillStyle(0x000000, 0.3).fillEllipse(P.sx(p.x + 0.2, p.y), P.sy(p.x, p.y) - 1, p.w * P.S * 1.05, Math.max(4, p.w * P.S * 0.28));
-        }
+    this.shellSeen = new Set();
+    if (this.placed.venue !== VENUE.id) {
+      this.placed = { venue: VENUE.id, list: placements(VENUE) };
+      this.blds = buildings(VENUE);
+      for (const b of this.blds) {
+        const fk = `fac-${VENUE.id}-${b.id}`, rk = `roof-${VENUE.id}-${b.id}`;
+        if (!this.textures.exists(fk)) this.textures.addCanvas(fk, facade(b, (k) => this.world.img(k)));
+        if (!this.textures.exists(rk)) this.textures.addCanvas(rk, roof(b));
       }
-      things.push({ d: p.y, draw: () => {}, spr: (depth) => {
-        let im = this.worldSprites.get(p.id);
-        if (!im) { im = this.add.image(0, 0, `w-${p.key}`); this.worldSprites.set(p.id, im); }
-        const tex = this.textures.get(`w-${p.key}`).getSourceImage() as HTMLCanvasElement;
-        const scale = (p.w * P.S) / (meta.right - meta.left + 1);
-        let ox = (meta.left + meta.right + 1) / 2 / tex.width;
-        if (p.flip) ox = 1 - ox;
-        im.setOrigin(ox, meta.foot).setScale(scale).setFlipX(!!p.flip).setPosition(P.sx(p.x, p.y), P.sy(p.x, p.y)).setDepth(depth).setVisible(true);
-        // Cut away when you're inside; see-through when you're behind it or close to the turnstiles.
-        let alpha = 1;
-        if (cut.has(p.id)) alpha = 0;
-        else if (pc && !pc.hiddenIn) {
-          const hM = (tex.height * meta.foot * scale) / (P.KZ * P.S);
-          const half = p.w / 2 + 0.5;
-          if (pc.y < p.y && pc.y > p.y - hM * 1.25 && Math.abs(pc.x - p.x) < half) alpha = 0.4;
-          if (p.key === "turnstiles" && Math.abs(pc.x - p.x) < 12 && Math.abs(pc.y - p.y) < 6) alpha = Math.min(alpha, 0.45);
-          if (p.key === "turnstiles" && (VENUE.inside(pc.x, pc.y) || pc.seated)) alpha = 0;
-        }
-        im.setAlpha(alpha);
-      } });
     }
-    // The stadium from outside: a roofed ring of stands and a clad facade, see-through once you're in.
+    const inRect = (x: number, y: number, rc: { x0: number; y0: number; x1: number; y1: number }, pad = 0) => x > rc.x0 - pad && x < rc.x1 + pad && y > rc.y0 - pad && y < rc.y1 + pad;
+    const free = !!pc && !pc.hiddenIn;
+    const image = (id: string, key: string) => {
+      let im = this.worldSprites.get(id);
+      if (!im) { im = this.add.image(0, 0, key); this.worldSprites.set(id, im); }
+      if (im.texture.key !== key) im.setTexture(key);
+      this.worldSeen.add(id);
+      return im.setVisible(true).setAlpha(1).setFlipX(false).setCrop();
+    };
+
+    // Buildings: a front and a roof from outside; just low walls once you're in.
+    const cut = new Set<string>();
+    for (const b of this.blds) {
+      if (free && inRect(pc.x, pc.y, b.rect, 0.3)) { cut.add(b.id); continue; }
+      const { x0, y0, x1, y1 } = b.rect, H = b.height;
+      if (!onScreen((x0 + x1) / 2, (y0 + y1) / 2, 500 + (x1 - x0) * 8)) continue;
+      // See-through while you're round the back of it.
+      const hid = free && pc.x > x0 - 0.5 && pc.x < x1 + 0.5 && pc.y < y1 && pc.y > y0 - H - 1;
+      const a = hid ? 0.4 : 1;
+      // Its shadow falls to the bottom right: light from the top left, like every other thing here.
+      this.shadowG.fillStyle(0x000000, 0.26).fillRect(Math.round(P.sx(x1, 0)), Math.round(P.sy(0, y0 + 1)), Math.round(Math.min(2.2, H * 0.4) * S), Math.round((y1 - y0 - 0.5) * S));
+      this.shadowG.fillStyle(0x000000, 0.2).fillRect(Math.round(P.sx(x0, 0)), Math.round(P.sy(0, y1)), Math.round((x1 - x0) * S), 4);
+      things.push({ d: y1 - 1e-3, draw: () => {}, spr: (dep) => image(`roof-${b.id}`, `roof-${VENUE.id}-${b.id}`).setOrigin(0).setPosition(Math.round(P.sx(x0, 0)), Math.round(P.sy(0, y0) - H * S)).setDepth(dep).setAlpha(a) });
+      things.push({ d: y1, draw: () => {}, spr: (dep) => image(`fac-${b.id}`, `fac-${VENUE.id}-${b.id}`).setOrigin(0, 1).setPosition(Math.round(P.sx(x0, 0)), Math.round(P.sy(0, y1))).setDepth(dep).setAlpha(a) });
+    }
+
+    // Props and clutter, at 1:1.
+    for (const p of this.placed.list) {
+      if (!onScreen(p.x, p.y, 300)) continue;
+      if (p.key === "floodlight") continue;
+      const meta = this.world.base[p.key];
+      if (!meta) continue;
+      const key = `k-${p.key}`, tex = this.textures.get(key).getSourceImage() as HTMLCanvasElement;
+      const wM = (meta.right - meta.left + 1) / S, hM = meta.foot / S;
+      let ox = (meta.left + meta.right + 1) / 2 / tex.width;
+      if (p.flip) ox = 1 - ox;
+      const place = (im: Phaser.GameObjects.Image) => im.setOrigin(ox, meta.foot / tex.height).setFlipX(!!p.flip).setPosition(Math.round(P.sx(p.x, p.y)), Math.round(P.sy(p.x, p.y)));
+      if (p.flat) { place(image(p.id, key)).setDepth(0.35); continue; }
+      const sh = this.shadowG;
+      if (wM > 3) sh.fillStyle(0x000000, 0.24).fillRect(Math.round(P.sx(p.x - wM / 2 + 0.3, 0)), Math.round(P.sy(0, p.y - 0.5)), Math.round(wM * S), Math.round(0.7 * S));
+      else sh.fillStyle(0x000000, 0.28).fillEllipse(Math.round(P.sx(p.x + 0.15, 0)), Math.round(P.sy(0, p.y)) - 2, Math.round(wM * S * 1.1), Math.max(6, Math.round(wM * S * 0.35)));
+      const fade = free && hM > 1.4 && pc.y < p.y && pc.y > p.y - hM * 1.1 && Math.abs(pc.x - p.x) < wM / 2 + 0.4;
+      things.push({ d: p.y, draw: () => {}, spr: (dep) => place(image(p.id, key)).setDepth(dep).setAlpha(fade ? 0.4 : 1) });
+    }
+
+    // The ground from outside: a roofed ring of stands behind a clad facade, the turnstiles let into it.
     const ins = !!pc && (VENUE.inside(pc.x, pc.y) || !!pc.seated) && !pc.hiddenIn;
-    const roofA = ins ? 0 : 1;
-    const H = 9, ROOF = 0x59616b, RIDGE = 0x6c7580, EDGE = 0xe8eaec, FACE = 0x2a3038;
+    const H = 9;
     const gx0 = VENUE.id === "qf" ? -57 : -56.5, gx1 = VENUE.id === "qf" ? 56.5 : 57;
     const blocks = [
       { x0: gx0, y0: 28, x1: gx1, y1: 45, front: true },
@@ -938,63 +1045,79 @@ class StadiumScene extends Phaser.Scene {
       { x0: gx0, y0: -28, x1: -41, y1: 28, front: false },
       { x0: 41, y0: -28, x1: gx1, y1: 28, front: false },
     ];
-    for (const b of blocks) {
-      if (!onScreen((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2, 900)) continue;
-      things.push({ d: b.y1 - 0.05, draw: () => this.drawRoof(layer(), b) });
-    }
-    this.roofSpec = { blocks, H, ROOF, RIDGE, EDGE, FACE, alpha: roofA };
-    // The facade along the front of the south stand: the cladding picture repeated as plain images.
-    if (this.textures.exists("w-facade") && !ins) {
-      things.push({ d: 45.01, draw: () => {}, spr: (depth) => {
-        const meta = this.world.base.facade!;
-        const tex = this.textures.get("w-facade").getSourceImage() as HTMLCanvasElement;
-        const faceH = H * P.KZ * P.S, k = faceH / (tex.height * meta.foot), segW = tex.width * k;
-        const x0 = P.sx(gx0, 45), x1 = P.sx(gx1, 45), n = Math.ceil((x1 - x0) / segW);
-        for (let i = 0; i < n; i++) {
-          const id = `facade${i}`;
-          let im = this.worldSprites.get(id);
-          if (!im) { im = this.add.image(0, 0, "w-facade"); this.worldSprites.set(id, im); }
-          this.worldSeen.add(id);
-          const w = Math.min(segW, x1 - x0 - i * segW);
-          im.setOrigin(0, meta.foot).setScale(k).setPosition(x0 + i * segW, P.sy(0, 45)).setDepth(depth).setVisible(true).setAlpha(1);
-          im.setCrop(0, 0, w / k, tex.height);
-        }
+    this.shellBlocks = ins ? [] : blocks;
+    if (!ins) {
+      const tile = (id: string, key: string, x: number, y: number, w: number, h: number, dep: number, a = 1) => {
+        let ts = this.shellSprites.get(id);
+        if (!ts) { ts = this.add.tileSprite(x, y, w, h, key).setOrigin(0); ts.setTilePosition(x, (64 - (h % 64)) % 64); this.shellSprites.set(id, ts); }
+        this.shellSeen.add(id);
+        return ts.setVisible(true).setDepth(dep).setAlpha(a);
+      };
+      for (const [i, b] of blocks.entries()) {
+        if (!onScreen((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2, 1400)) continue;
+        const x = Math.round(P.sx(b.x0, 0)), w = Math.round((b.x1 - b.x0) * S), lift = H * S;
+        const top = Math.round(P.sy(0, b.y0)) - lift, bot = Math.round(P.sy(0, b.y1)) - lift;
+        const near = free && pc.x > b.x0 && pc.x < b.x1 && pc.y < b.y1 + 0.3 && pc.y > b.y1 - H - 1 && b.front;
+        things.push({ d: b.y1 - 0.06, draw: () => {}, spr: (dep) => {
+          tile(`roof${i}`, "mat-roofsteel", x, top, w, bot - top, dep);
+          tile(`face${i}`, b.front ? "mat-clad" : "mat-seats_h", x, bot, w, lift, dep + 0.1, near ? 0.45 : 1).setTint(b.front ? 0xffffff : 0x8a8f99);
+        } });
+        things.push({ d: b.y1 - 0.05, draw: () => {
+          const gr = this.lastLayer!;
+          // A club-blue fascia with a white stripe along the roof's front edge; a gutter shadow behind.
+          gr.fillStyle(0x1b2a6b, near ? 0.45 : 1).fillRect(x, bot, w, 40).fillStyle(0xf4f4f4, near ? 0.45 : 1).fillRect(x, bot + 34, w, 3);
+          gr.fillStyle(0x000000, 0.3).fillRect(x, top, w, 12).fillStyle(0x000000, 0.45).fillRect(x, bot + 40, w, 3);
+          gr.lineStyle(2, 0x2e343b, 1).strokeRect(x, top, w, bot - top);
+        } });
+      }
+      // The ground's name across the fascia, turnstiles in the facade.
+      const nameKey = `gname-${VENUE.id}`;
+      if (!this.textures.exists(nameKey)) {
+        const cv = document.createElement("canvas"); cv.width = 520; cv.height = 34;
+        const cx = cv.getContext("2d")!;
+        pixelTextOn(cx, VENUE.ground, 0, 0, 520, 30, "#f4f4f4", 3, "rgba(0,0,0,0.55)");
+        this.textures.addCanvas(nameKey, cv);
+      }
+      const faceTop = Math.round(P.sy(0, 45)) - H * S;
+      const nearF = free && Math.abs(pc.x) < 30 && pc.y < 45.3;
+      things.push({ d: 45.01, draw: () => {}, spr: (dep) => {
+        image("gname", nameKey).setOrigin(0.5, 0).setPosition(Math.round(P.sx(0, 0)), faceTop + 3).setDepth(dep).setAlpha(nearF ? 0.45 : 1);
+        const tx = this.world.base.turnstile;
+        if (!tx) return;
+        const xs = [-6, -1.45, 1.45, 6].map((x) => (VENUE.id === "sf" ? -x : x));
+        // Banners hung down the cladding: the fixture, and a St George cross either side.
+        const opp = this.s.match!.teams[1];
+        const bk = `banner-${VENUE.id}`;
+        if (!this.textures.exists(bk)) this.textures.addCanvas(bk, banner(`ENGLAND\nV\n${opp.name.toUpperCase()}`, 0xf4f4f4, 0x1b2a6b, opp.colour));
+        if (!this.textures.exists("banner-eng")) this.textures.addCanvas("banner-eng", banner("", 0xf4f4f4, 0xc8102e, 0xc8102e, true));
+        for (const [i, x] of [-30, -20, 20, 30].entries()) image(`ban${i}`, i === 1 || i === 2 ? bk : "banner-eng").setOrigin(0.5, 0).setPosition(Math.round(P.sx(x, 0)), faceTop + 48).setDepth(dep).setAlpha(nearF ? 0.45 : 1);
+        xs.forEach((x, i) => image(`tst${i}`, "k-turnstile").setOrigin(0.5, tx.foot / 160).setPosition(Math.round(P.sx(x, 0)), Math.round(P.sy(0, 45))).setDepth(dep + 0.01).setAlpha(nearF ? 0.45 : 1));
       } });
     }
-    void tick; void st;
+    // Floodlights: on the corners of the roof from outside, on their masts from in the ground.
+    for (const p of this.placed.list) {
+      if (p.key !== "floodlight" || !onScreen(p.x, p.y, 900)) continue;
+      const roofY = ins ? 0 : H * S;
+      things.push({ d: ins ? p.y : 45.02, draw: () => {}, spr: (dep) => image(p.id, "floodlight").setOrigin(0.5, 1).setPosition(Math.round(P.sx(p.x, 0)), Math.round(P.sy(0, p.y)) - roofY).setDepth(dep) });
+    }
     return {
       hides: (wl: { x: number; y: number; w: number; h: number }) => {
-        for (const p of this.placed.list) {
-          if (!p.inside || cut.has(p.id)) continue;
-          if (inRect(wl.x, wl.y, p.inside, 0.7) && inRect(wl.x + wl.w, wl.y + wl.h, p.inside, 0.7)) return true;
-        }
+        for (const b of this.blds) if (!cut.has(b.id) && inRect(wl.x, wl.y, b.rect, 0.7) && inRect(wl.x + wl.w, wl.y + wl.h, b.rect, 0.7)) return true;
+        if (!ins) for (const b of blocks) if (inRect(wl.x, wl.y, b, 0.6) && inRect(wl.x + wl.w, wl.y + wl.h, b, 0.6)) return true;
+        // The booths' pictures are their walls.
+        for (const p of this.placed.list) if ((p.key === "ticketbooth" || p.key === "merchstall") && inRect(wl.x, wl.y, { x0: p.x - 5.3, x1: p.x + 5.3, y0: p.y - 1.8, y1: p.y + 0.2 }) && inRect(wl.x + wl.w, wl.y + wl.h, { x0: p.x - 5.3, x1: p.x + 5.3, y0: p.y - 1.8, y1: p.y + 0.2 })) return true;
         return false;
+      },
+      low: (wl: { x: number; y: number; w: number; h: number }) => {
+        for (const b of this.blds) if (cut.has(b.id) && inRect(wl.x, wl.y, b.rect, 0.7) && inRect(wl.x + wl.w, wl.y + wl.h, b.rect, 0.7)) return b;
+        return null;
       },
     };
   }
-  roofSpec: { blocks: { x0: number; y0: number; x1: number; y1: number; front: boolean }[]; H: number; ROOF: number; RIDGE: number; EDGE: number; FACE: number; alpha: number } | null = null;
-
-  /** A roof slab over one block of stands, as a box: dark face towards the camera, corrugated top. */
-  drawRoof(g: Phaser.GameObjects.Graphics, b: { x0: number; y0: number; x1: number; y1: number; front: boolean }): void {
-    const P = this.P, r = this.roofSpec!;
-    if (r.alpha <= 0) return;
-    const lift = r.H * P.KZ * P.S;
-    const [rx, ry, rw, rh] = P.rect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0);
-    // The face towards the camera: cladding on the outside of the ground, shadowed seats facing the pitch.
-    g.fillStyle(b.front ? 0x8c939b : r.FACE, r.alpha).fillRect(rx, ry + rh - lift, rw, lift);
-    // The roof: pale corrugated steel, lighter and darker ribs.
-    g.fillStyle(0x8e98a3, r.alpha).fillRect(rx, ry - lift, rw, rh);
-    for (let x = b.x0 + 0.5, i = 0; x < b.x1; x += 0.9, i++) {
-      g.fillStyle(i % 2 ? 0xa7b0ba : 0x77818c, r.alpha);
-      g.fillRect(P.sx(x, b.y0), ry - lift, Math.max(1, 0.3 * P.S), rh);
-    }
-    // A club-blue fascia with a white stripe along the roof's front edge, and a gutter shadow behind.
-    const fasc = 1.3 * P.KZ * P.S;
-    g.fillStyle(0x1b2a6b, r.alpha).fillRect(rx, ry + rh - lift, rw, fasc);
-    g.fillStyle(0xf4f4f4, r.alpha).fillRect(rx, ry + rh - lift + fasc * 0.42, rw, Math.max(1, fasc * 0.16));
-    g.fillStyle(0x000000, r.alpha * 0.25).fillRect(rx, ry - lift, rw, Math.max(2, 0.6 * P.S));
-    g.lineStyle(1, 0x3a4048, r.alpha).strokeRect(rx, ry - lift, rw, rh);
-  }
+  blds: BuildingSpec[] = [];
+  shellSeen = new Set<string>();
+  shellBlocks: { x0: number; y0: number; x1: number; y1: number }[] = [];
+  lastLayer: Phaser.GameObjects.Graphics | null = null;
 
   // ---------- Sprites ----------
   /** Which base sheet, recoloured how, for this person as they look right now. */
@@ -1051,8 +1174,9 @@ class StadiumScene extends Phaser.Scene {
     let sp = this.spritePool.get(a.id);
     if (!sp) { sp = this.add.sprite(0, 0, `${key}-rot`, 0); this.spritePool.set(a.id, sp); }
     const di = dirIndex(a.facing);
-    const scale = (h * P.KZ * P.S) / (FEET - HEAD) * (P.standing ? 1 : 0.7);
-    const x = P.sx(a.x + shiver, a.y), y = P.sy(a.x, a.y);
+    // 1:1 in the standing view (the figures are drawn at about 32 px to the metre already).
+    const scale = P.standing && P.S === PPM ? 1 : (h * P.KZ * P.S) / (FEET - HEAD) * (P.standing ? 1 : 0.7);
+    const x = Math.round(P.sx(a.x + shiver, a.y)), y = Math.round(P.sy(a.x, a.y));
     sp.setVisible(true).setDepth(depth).setScale(scale).setAlpha(st2.alpha ?? 1);
     if (st2.down) {
       // Lying flat: the side-on frame, turned over.
@@ -1080,7 +1204,7 @@ class StadiumScene extends Phaser.Scene {
     const P = this.P, s = this.s, tick = s.tick;
     if (st2.down || !this.bank.ready()) return;
     const { h } = this.spriteFor(a);
-    const scale = (h * P.KZ * P.S) / (FEET - HEAD) * (P.standing ? 1 : 0.7);
+    const scale = P.standing && P.S === PPM ? 1 : (h * P.KZ * P.S) / (FEET - HEAD) * (P.standing ? 1 : 0.7);
     const x = P.sx(a.x, a.y), feet = P.sy(a.x, a.y) + (a.seated ? (FEET - 52) * scale * 0.8 : 0);
     const top = feet - (FEET - HEAD) * scale, hw = 7 * scale;
     const job = a.npc?.job;
@@ -1477,8 +1601,8 @@ class StadiumScene extends Phaser.Scene {
     $("bagBtn").addEventListener("click", () => (this.sheetKind === "bag" ? this.closeSheet() : this.openBag()));
     const touch = window.matchMedia?.("(pointer: coarse)").matches;
     if (touch) document.body.classList.add("touch");
-    try { const saved = localStorage.getItem("kd-zoom"); const z = saved ? +saved : touch ? 1.5 : 1; if ([1, 1.5, 2].includes(z)) this.zoomLevel = z; } catch { if (touch) this.zoomLevel = 1.5; }
-    $("zoomBtn").textContent = `${this.zoomLevel}×`;
+    try { const saved = localStorage.getItem("kd-zoom2"); const z = saved ? +saved : 0; if (ZOOMS.includes(z)) this.zoomLevel = z; } catch { /* ignore */ }
+    $("zoomBtn").textContent = this.zoomLabel();
     $("zoomBtn").addEventListener("click", () => this.cycleZoom());
     $("viewBtn").textContent = this.driveView === "chase" ? "Chase" : this.driveView === "cab" ? "Cab" : "Map";
     $("viewBtn").addEventListener("click", () => this.cycleDriveView());
@@ -1638,11 +1762,15 @@ class StadiumScene extends Phaser.Scene {
   }
 }
 
+// The canvas is the screen's real pixel size, shown at its CSS size: Phaser's NONE mode with zoom 1/DPR.
+const host = $("game");
 new Phaser.Game({
   type: Phaser.AUTO,
   parent: "game",
   backgroundColor: "#101412",
-  scale: { mode: Phaser.Scale.RESIZE, width: "100%", height: "100%" },
+  pixelArt: true,
+  roundPixels: true,
+  scale: { mode: Phaser.Scale.NONE, width: Math.max(1, host.clientWidth * DPR), height: Math.max(1, host.clientHeight * DPR), zoom: 1 / DPR },
   scene: StadiumScene,
 });
 

@@ -175,6 +175,32 @@ const QF_PROPS: Wall[] = [
   prop(-34, 50, 2.2, 0.9), prop(-30, 83.4, 1.2, 1.1, 2.5),
 ];
 
+/** Furniture and street dressing: a picture (by name) standing with its base on y, and, if `solid`,
+ *  a footprint you bump into. `room` says which building it belongs to. */
+export interface Furniture { key: string; x: number; y: number; w: number; d: number; solid: boolean; room?: string; h3?: number }
+const f = (key: string, x: number, y: number, w: number, d: number, solid: boolean, room?: string, h3 = 1): Furniture => ({ key, x, y, w, d, solid, room, h3 });
+export const QF_FURNITURE: Furniture[] = [
+  // The Three Lions: tables, the pool table, a fruit machine, the telly, pumps on the bar.
+  f("pubtable", -58, 73.5, 1.5, 0.8, true, "pub"), f("pubtable", -58, 78, 1.5, 0.8, true, "pub"), f("pubtable", -53.5, 78.6, 1.5, 0.8, true, "pub"),
+  f("pooltable", -51, 72.6, 2.6, 1.4, true, "pub"), f("fruitmachine", -36, 64.4, 1, 0.6, true, "pub", 2),
+  f("pubtv", -36.2, 75.2, 1.8, 0.5, false, "pub"), f("pumps", -47.5, 67.25, 2.2, 0.3, false, "pub"), f("pumps", -40.5, 67.25, 2.2, 0.3, false, "pub"),
+  // Second Hand Rose: rails along the walls. Army surplus: shelving. The bookie's: screens by the door.
+  f("clothesrail", -16.6, 66, 1.6, 0.4, true, "charity"), f("clothesrail", -5.4, 66, 1.6, 0.4, true, "charity"), f("clothesrail", -16.6, 71.6, 1.6, 0.4, true, "charity"),
+  f("shelves", 9.4, 64.4, 1.5, 0.6, true, "surplus"), f("shelves", 20.6, 64.4, 1.5, 0.6, true, "surplus"), f("shelves", 20.6, 71.6, 1.5, 0.6, true, "surplus"),
+  f("betscreens", 30.6, 70.9, 2, 0.5, true, "bookies", 2), f("betscreens", 41.4, 70.9, 2, 0.5, true, "bookies", 2),
+  // Behind the scenes: the kitchen, dressing rooms, the security office, the stewards' cabin, hotel reception.
+  f("kitchen", -37.5, -58.4, 2.8, 1.2, true, "kitchen", 2), f("kitchen", -31, -58.4, 2.8, 1.2, true, "kitchen", 2),
+  f("lockers", -21, -59.6, 2.6, 0.8, true, "dress_home", 2), f("lockers", -13, -59.6, 2.6, 0.8, true, "dress_home", 2), f("kitbench", -17, -51.2, 2.8, 0.6, false, "dress_home"),
+  f("lockers", 13, -59.6, 2.6, 0.8, true, "dress_away", 2), f("lockers", 21, -59.6, 2.6, 0.8, true, "dress_away", 2), f("kitbench", 17, -51.2, 2.8, 0.6, false, "dress_away"),
+  f("desk", 33, -56.4, 1.9, 0.6, false, "security"), f("desk", 83, 51.6, 1.9, 0.6, false, "cabin"), f("desk", 87.5, -27, 1.9, 0.6, true, "hotel"),
+  // The street: trees in grates along the approach, a statue, bin bags and pavement boards.
+  ...[-45.5, -32.5, -19.5, 19.5, 32.5, 45.5].map((x) => f("tree", x, 59.4, 0.5, 0.5, true, undefined, 3)),
+  f("statue", -44, 53.2, 1.3, 1.0, true, undefined, 3),
+  f("binbags", -23, 78.8, 1.3, 0.6, false), f("binbags", 6, 72.9, 1.3, 0.6, false), f("binbags", 50, -59.2, 1.3, 0.6, false),
+  f("aboard", -50.5, 81.6, 0.8, 0.4, false), f("aboard", -7.5, 73.4, 0.8, 0.4, false),
+];
+const furnitureWalls = (list: Furniture[]): Wall[] => list.filter((q) => q.solid).map((q) => ({ ...prop(q.x, q.y, q.w, q.d, q.h3 ?? 1) }));
+
 export const KICKOFF_AT = 330; // seconds after arrival
 
 const QF_SPOTS = {
@@ -269,6 +295,7 @@ export interface Venue {
   };
   /** Is a point inside the ground (past the turnstiles)? */
   inside(x: number, y: number): boolean;
+  furniture: Furniture[];
 }
 
 const mirrorRect = <T extends { x: number; w: number }>(r: T): T => ({ ...r, x: -(r.x + r.w) });
@@ -291,7 +318,7 @@ const QF_LABELS: Venue["labels"] = [
 export const VENUES: Record<Venue["id"], Venue> = {
   qf: {
     id: "qf", round: "quarter-final", opp: "POR", ground: "Wembley Park",
-    areas: QF_AREAS, walls: [...QF_WALLS, ...QF_PROPS], spots: QF_SPOTS, labels: QF_LABELS,
+    areas: QF_AREAS, walls: [...QF_WALLS, ...QF_PROPS, ...furnitureWalls(QF_FURNITURE)], spots: QF_SPOTS, labels: QF_LABELS, furniture: QF_FURNITURE,
     delivery: { name: "beer lorry", route: [-28, 74, -28, 88, 67, 88, 67, -43, 56, -43, 50, -44], gateStop: { x: 67, y: -43 }, loadDoor: { x: -34.8, y: 68 }, unloadDoor: { x: 46, y: -48.6 }, gateInspect: 0.25 },
     busRoute: [83, -7, 67, -7, 67, -41, 56, -41, 46, -40.8],
     patrolLoop: [{ x: -45, y: 41 }, { x: 45, y: 41 }, { x: 53, y: 0 }, { x: 45, y: 41 }, { x: -45, y: 41 }, { x: -53, y: 0 }],
@@ -309,7 +336,9 @@ function buildSemiFinal(): Venue {
   // The same kind of bowl, the other way round: the fan zone, the car park, the
   // stewards' cabin and the service road are all on the opposite side.
   let areas = QF_AREAS.map(mirrorRect);
-  let walls = [...QF_WALLS, ...QF_PROPS].map(mirrorRect);
+  // No pub furniture in the fan zone.
+  const furniture = QF_FURNITURE.filter((q) => q.room !== "pub").map((q) => ({ ...q, x: -q.x }));
+  let walls = [...QF_WALLS, ...QF_PROPS].map(mirrorRect).concat(furnitureWalls(furniture));
   const spots = mirrorSpots(QF_SPOTS);
   // The pub is an open-air fan zone: its walls come down, the bar stays.
   const pub = QF_AREAS.find((a) => a.id === "pub")!;
@@ -322,7 +351,7 @@ function buildSemiFinal(): Venue {
   labels.push(["BIG SCREEN", 48, 63.4, 11], ["LOOSE PANEL", climb.x, 46.4, 9]);
   return {
     id: "sf", round: "semi-final", opp: "BRA", ground: "Estadio del Sol",
-    areas, walls, spots, labels,
+    areas, walls, spots, labels, furniture,
     busRoute: mirrorRoute([83, -7, 67, -7, 67, -41, 56, -41, 46, -40.8]),
     delivery: { name: "catering van", route: mirrorRoute([-28, 74, -28, 88, 67, 88, 67, -43, 56, -43, 50, -44]), gateStop: { x: -67, y: -43 }, loadDoor: { x: 34.8, y: 68 }, unloadDoor: { x: -46, y: -48.6 }, gateInspect: 0.55 },
     patrolLoop: [{ x: 45, y: 41 }, { x: -45, y: 41 }, { x: -53, y: 0 }, { x: -45, y: 41 }, { x: 45, y: 41 }, { x: 53, y: 0 }],

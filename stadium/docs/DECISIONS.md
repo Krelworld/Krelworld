@@ -266,3 +266,37 @@ clock), caption straps for the tannoy and commentary, angled red action button, 
 capitals throughout (Barlow Condensed, with Barlow for running text), sharp-cornered navy
 panels, programme-style intro and full-time cards. In-world labels and speech bubbles use the
 same face.
+
+## One pixel, one camera (the look, rebuilt)
+
+Something wasn't working about the world, and research into games that do this well (The
+Escapists 1 and 2, Stardew Valley, Eastward; Slynyrd's pixel-art guides; MDN and the Phaser
+forum on crisp pixel art) points to two causes: the art came at several pixel densities
+(sprites, 12 px/m buildings, tiles) scaled by non-whole amounts, and three different camera
+angles (squashed floor, side-on pictures, top-down tiles). Those games use one grid, one
+three-quarter camera and whole-number scaling, with Escapists-style cutaway rooms.
+
+So now:
+- **32 art pixels to the metre for everything**, drawn 1:1. Characters (about 60 px tall) at
+  scale 1; PixelLab floor tiles (32 px = 1 m, laid at random from their variants so the repeat
+  is 8 m); street furniture, furniture and dressing generated at 32 px/m.
+- **One projection**: a square floor (no depth squash) with upright faces, one metre up the
+  screen per metre of height. Light from the top left; shadows fall to the bottom right.
+- **The canvas draws at the screen's real pixels** (device pixel ratio up to 3) and the camera
+  zooms in whole steps, so every art pixel is the same size and text in the canvas is sharp.
+  Phones start at about 22 points per metre to show more of the street; bigger screens at 32.
+- **Walls are textured faces with a cap**, cut down low (1.1-1.6 m) so you see over them, in
+  brick, London stock, blockwork, cladding, render, portakabin ribbing or timber.
+- **Buildings are drawn, not pictured**: a front (brick or render, sash windows, a pub's tiled
+  ground floor and gold-lettered fascia, painted shopfronts with goods in the windows, awnings,
+  hanging baskets, the doors in their real gaps) and a roof (slate with a ridge and chimneys,
+  felt with plant, ribbed steel). Walk in and the roof lifts off: the inside is a cutaway room
+  with furniture (pool table, fruit machine, telly, pumps; rails; shelving; screens; lockers,
+  kitchen, desks). Solid furniture is in the layout, so nobody walks through it.
+- **The ground from outside**: a corrugated roof ring, clad facade with the ground's name on the
+  fascia, fixture banners and St George crosses, turnstile doors; floodlights on the roof.
+- Items on the floor show as their icons. Trees, a statue, litter, puddles, bin bags, cones and
+  pallets make the street look used. A palisade fence and more pavement past the map's edge.
+
+Still to do: the coach and lorry are older art at a lower density (drawn at 3x); the cast is
+still one fat-fan body recoloured; inside the stadium wants tiers, dugouts and boards.

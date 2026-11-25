@@ -154,17 +154,18 @@ export class Drive3D {
   hide(): void { this.g.setVisible(false); this.text.setVisible(false); this.yellText?.setVisible(false); this.cracked = 0; this.splats = []; this.chaseYaw = null; }
 
   /** The main camera zooms about the middle of the screen, scroll factor or not: undo that so we draw in screen pixels. */
-  private zoom = 1; private zw = 0; private zh = 0;
+  private zoom = 1; private zw = 0; private zh = 0; private dpr = 1;
+  /** Lay out in CSS pixels; the canvas may have more real pixels than that (dpr). */
   private place(o: Phaser.GameObjects.Components.Transform, x = 0, y = 0): void {
-    const z = this.zoom, cx = this.zw / 2, cy = this.zh / 2;
-    o.setPosition(cx + (x - cx) / z, cy + (y - cy) / z);
-    o.setScale(1 / z);
+    const z = this.zoom, d = this.dpr, cx = (this.zw * d) / 2, cy = (this.zh * d) / 2;
+    o.setPosition(cx + (x * d - cx) / z, cy + (y * d - cy) / z);
+    o.setScale(d / z);
   }
 
-  draw(s: WorldState, view: DriveView, w: number, h: number, styleOf: (a: Actor) => FigureStyle, steer: number, zoom = 1): void {
+  draw(s: WorldState, view: DriveView, w: number, h: number, styleOf: (a: Actor) => FigureStyle, steer: number, zoom = 1, dpr = 1): void {
     const st = s.stadium!, bus = st.vehicles.bus, g = this.g, tick = s.tick;
     if (!bus) return this.hide();
-    this.zoom = zoom; this.zw = w; this.zh = h;
+    this.zoom = zoom; this.zw = w; this.zh = h; this.dpr = dpr;
     g.setVisible(true).clear();
     this.place(g);
     const f = bus.facing, c = Math.cos(f), sn = Math.sin(f);
@@ -370,7 +371,7 @@ export class Drive3D {
       const k = (this.callout.until - tick) / 90;
       this.text.setVisible(true).setText(this.callout.text).setColor(this.callout.colour).setAlpha(Math.min(1, k * 3));
       this.place(this.text, w / 2, h * 0.28);
-      this.text.setScale((1 + Math.max(0, k - 0.8) * 2) / this.zoom);
+      this.text.setScale(((1 + Math.max(0, k - 0.8) * 2) * this.dpr) / this.zoom);
     } else this.text.setVisible(false);
     if (this.speedLabel) this.speedLabel.setVisible(true);
   }

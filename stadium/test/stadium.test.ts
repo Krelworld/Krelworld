@@ -369,7 +369,8 @@ test("the loose panel by the car park gets you in without a ticket", () => {
   const c = VENUE.climbPoints[0];
   pc.x = c.x; pc.y = c.y + 1.5;
   assert.equal(dispatch(g.w, { verb: "vault", actor: pc.id }).ok, true);
-  run(g, 2);
+  // Through the panel (whether a steward then spots you is another matter).
+  run(g, 0.2);
   assert.ok(VENUE.inside(pc.x, pc.y));
 });
 
@@ -710,6 +711,8 @@ test("held by a steward, set the dog on him: he lets go, gets mauled, and the do
   const s = g.w.state, pc = pcOf(g), st = s.stadium!;
   run(g, 30);
   const stw = find(g, (a) => a.npc?.job === "patrol");
+  // Somewhere quiet, away from the other stewards (who would grab the dog).
+  stw.x = 53; stw.y = 10;
   pc.x = stw.x + 1; pc.y = stw.y;
   pc.heldBy = stw.id; stw.npc!.target = pc.id; stw.npc!.mode = "escort"; stw.npc!.intent = "eject";
   stw.npc!.escortTo = { x: SPOTS.ejectPoint.x, y: SPOTS.ejectPoint.y }; stw.npc!.escortAt = s.tick;

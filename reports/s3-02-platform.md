@@ -114,3 +114,39 @@ A player never sees any of this, which is the point: songs start when they shoul
 iPhone, the game should no longer be killed for memory mid-dungeon, coming back from a call shows a pause, and every
 minigame has a II. Still not good: pictures pop in a few hundred ms late the first time a TV show or a boss appears;
 fps on a real phone is unmeasured.
+
+## Full check (end of work, commit 18ba288c)
+
+- (a) Laptop fingerprint: `shell,front,newgame,hub,meeting,dungeon` 40/40 identical, `boss,side,places,minigames,finale,alt`
+  25/25 identical: DESKTOP FINGERPRINT: OK both halves.
+- (b) touchlaptop, ipad, fire7 (front,newgame) and androidtab (front,newgame,hub): all OK.
+- (c) `tests/desktopInvariants.test.ts` passes; it, `tests/fingerprints/` and index.html unedited.
+- (d) `npx tsc --noEmit` clean; `npx vitest run` 45 files, 560 tests pass.
+- (e) Phone smoke, main: 438/443; ALT: 437/443 (platform section 25/25 in both after the test fix). The other failures
+  were timing checks under a load average of 13 on 4 CPUs (another agent running) and differ run to run:
+  - main: auto-fire kill, HEAL drink, boss name vs KREZZ lines x2 → `--only combat,together` re-run on this branch:
+    67/67, and 67/67 on the baseline 37a710d4.
+  - ALT: R9 hidden mid-fight, bongo chip, SANMIK chip, READY GOLD, coyote, P2 pit → re-run `combat,side,review1`: only
+    SWAP tap, auto-fire on the boss (both different from the first run, i.e. flaky) and P2 failed. **P2 fails on the
+    baseline 37a710d4 ALT build too** (`--only review1`: falls 3): pre-existing, not from this branch (side.ts / the
+    feel branch's area).
+  - main platform: one page error, from the smoke's own stray-song `play()` promise; fixed in the test (18ba288c).
+
+## Lists the task asked for
+
+- Hooks outside `src/game/mobile/`: `src/game/scenes/finale/KrelfordFinale.ts` (two zoom ternaries + flag import).
+- Narrator tips swapped: none. Character lines mentioning a key: none touched. No dialogue changed.
+
+## Deviations from the research
+
+- M12 sound memory (decode effects on first use, mono) not done: ~120 MB decoded stays; first plays would fall back to the
+  synth beep. TV art is not loaded "when the TV opens" but on first draw (finer: only the show's own cast).
+- M9 "one reused element": three song elements (the game cross-fades two), two voice elements.
+- S14 service worker: not built (reasons above); S7 save export/import: not built.
+- Reload-loop guard / low-memory mode (M12): not built; the parked art should make it unnecessary, a real iPhone will tell.
+
+## Only a real iPhone can confirm
+
+Audible slider changes; first-tap unlock of pooled elements; route not silent; ringer switch with audioSession; resume
+after lock / call / Siri / app switch; real fps in the concept boss and Hub (`?mobilediag`: fps, drawn / skipped);
+no tab reload over ten minutes (memory); pop-in time of parked pictures on cellular; `storage.persist()` answer.

@@ -169,9 +169,13 @@ export class PhoneGames {
     const mode = (sc?.mode as string | undefined) ?? null;
     this.state.game = decision.scene === "Minigame" ? mode : (decision.scene as string | null);
     if (sc) this.fixMinigame(sc, mode);
-    this.cue(sc, mode);
     const wk = liveScene(this.game, "Whack");
-    if (wk) this.fixWhack(wk);
+    if (sc) this.cue(sc.startData, mode, !sc.ended && !sc.box?.active);
+    else if (wk) {
+      this.fixWhack(wk);
+      // (Whack-a-Drongus: its cue when a game starts, the attract screen's how-to line being under its buttons on a phone)
+      this.cue(wk, "whack", wk.mode === "play");
+    } else this.cue(null, null, false);
     if (mode !== "runescape" || decision.scene !== "Minigame") return this.hideAll();
     this.build();
     const api = (sc?.phoneRs as PhoneRs | undefined) ?? null;
@@ -188,15 +192,15 @@ export class PhoneGames {
   }
 
   /** The first time a minigame is played on this phone, once its intro conversation is over: its one line. */
-  private cue(sc: Bag | null, mode: string | null) {
+  private cue(token: unknown, mode: string | null, ready: boolean) {
     const t = typeof performance !== "undefined" ? performance.now() : Date.now();
-    if (this.cueEl && this.cueUntil && (t > this.cueUntil || !sc || sc.ended || this.cueFor !== sc.startData)) {
+    if (this.cueEl && this.cueUntil && (t > this.cueUntil || !token || this.cueFor !== token)) {
       this.cueEl.classList.remove("show");
       this.cueUntil = 0;
       this.state.cue = null;
     }
-    if (!sc || !mode || sc.ended || sc.box?.active || this.cueFor === sc.startData) return;
-    this.cueFor = sc.startData;
+    if (!token || !mode || !ready || this.cueFor === token) return;
+    this.cueFor = token;
     const words = cueFor(mode, cuesSeen());
     if (!words) return;
     cueShown(mode);
@@ -301,15 +305,24 @@ export class PhoneGames {
 
   /** Whack-a-Drongus: PLAY / BACK TO THE STRIP sit in the home-indicator strip: lifted (each button once). */
   private fixWhack(sc: Bag) {
-    for (const o of (sc.sys?.displayList?.list ?? []) as Bag[]) {
-      if (o.type !== "Container" || o.__mgLift || !o.bg || !o.label) continue;
-      const lift = liftOutOfStrip(o.y + (o.height ?? 36) / 2);
-      o.__mgLift = true;
-      if (lift) {
-        o.setY(o.y + lift);
-        this.note("whack-buttons");
+    // (the game's buttons: containers with a frame and a label, at the top level or one layer down, e.g. the attract screen's)
+    const walk = (list: Bag[], oy: number, depth: number) => {
+      for (const o of list) {
+        if (o.type !== "Container") continue;
+        if (o.bg && o.label) {
+          if (o.__mgLift) continue;
+          o.__mgLift = true;
+          const lift = liftOutOfStrip(oy + o.y + (o.height ?? 36) / 2);
+          if (lift) {
+            o.setY(o.y + lift);
+            this.note("whack-buttons");
+            // (the attract screen's "Tap the pipes to whack." sat where the buttons now are: the cue says it when a game starts)
+            for (const t of (o.parentContainer?.list ?? []) as Bag[]) if (t.type === "Text" && t.text === "Tap the pipes to whack.") t.setVisible(false);
+          }
+        } else if (depth < 2) walk(o.list ?? [], oy + (o.y ?? 0), depth + 1);
       }
-    }
+    };
+    walk((sc.sys?.displayList?.list ?? []) as Bag[], 0, 0);
   }
 
   /** The minigame scene was (re)built: a fresh record, and RuneScape's buttons go with the scene. */

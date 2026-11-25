@@ -218,6 +218,7 @@ export const GAME_CUES: Readonly<Record<string, string>> = {
   crocodile: "👆 TAP ◀ LEFT · ▲ CHOMP · RIGHT ▶ ON THE BEAT",
   cannon: "👆 TAP: ANGLE, THEN POWER",
   gig: "👆 HOLD TO MOVE · TAP TO PLAY",
+  whack: "👆 TAP THE PIPES TO WHACK",
 };
 
 export const GAME_CUE_KEY = "krelworld.phone.gameCues";

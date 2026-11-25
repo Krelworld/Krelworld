@@ -209,6 +209,11 @@ export class UIScene extends Phaser.Scene {
     return dun?.player?.wonk ?? 0;
   }
 
+  /** Phones: the top of the KREZZ / WONK lines: their bottom stays above the drink chips (y 61), whatever the text size. */
+  private phoneMetersY(): number {
+    return Math.max(4, Math.min(37, 59 - this.kzT.height));
+  }
+
   /** Phones: KREZZ and WONK beside the bars, two short lines. */
   private phoneMeters(): string {
     return `KREZZ ${Math.floor(G.s.krezz)}\nWONK ${Math.floor(this.phoneWonk())}%`;
@@ -222,7 +227,8 @@ export class UIScene extends Phaser.Scene {
 
   /** Phones: the boss bar up top, between the HUD block and the weapon chip. */
   private phoneBossBar(): { x: number; y: number; w: number; ny: number } {
-    const x = 372;
+    // (clear of the KREZZ / WONK lines, which grow with the phone's bigger text)
+    const x = Math.max(372, Math.ceil(this.kzT.x + this.kzT.width + 8));
     const right = Math.max(x + 220, this.phoneToastRight() - 6);
     return { x, y: 28, w: right - x, ny: 15 };
   }
@@ -542,7 +548,7 @@ export class UIScene extends Phaser.Scene {
       this.hpT.setText(`${confl ? "WONK" : "HP"} ${Math.ceil(s.hp)}/${mh}`).setPosition(72, phone ? 23 : 24).setFontSize(phone ? 15 : 12).setVisible(true);
       // Krezz: a slim bar underneath
       bar(66, 43, 230, 9, s.krezz / maxKrezz(s), UI.krezz);
-      this.kzT.setText(phone ? this.phoneMeters() : `KREZZ ${Math.floor(s.krezz)}`).setPosition(300, phone ? 37 : 41).setFontSize(phone ? 11 : 10).setVisible(true);
+      this.kzT.setText(phone ? this.phoneMeters() : `KREZZ ${Math.floor(s.krezz)}`).setPosition(300, phone ? this.phoneMetersY() : 41).setFontSize(phone ? 11 : 10).setVisible(true);
       const q = prettyKey(keysFor("bottle")[0] ?? "Q");
       const bk = prettyKey(keysFor("bongo")[0] ?? "B");
       if (phone) this.phoneHudBlock(chips);

@@ -3368,6 +3368,23 @@ const domSpill = (ph, sel) =>
     return out;
   }, sel);
 
+/** The fight HUD's KREZZ / WONK lines (CSS px) and the shown chips they could run into. */
+const metersVsChips = (ph) =>
+  ph.ev(() => {
+    const g = window.__krel.game;
+    const t = g.scene.getScene("UI").kzT;
+    const b = t.getBounds();
+    const cb = g.scale.canvasBounds;
+    const k = cb.width / 960;
+    const m = { x: cb.x + b.x * k, y: cb.y + b.y * k, w: b.width * k, h: b.height * k };
+    const hit = window.__krelMobile
+      .snapshot()
+      .controls.filter((c) => c.shown && c.face && /^c-(juice|bongo|fart|sanmik|chip)$/.test(c.id))
+      .filter((c) => !(c.face.x >= m.x + m.w || c.face.x + c.face.w <= m.x || c.face.y >= m.y + m.h || c.face.y + c.face.h <= m.y))
+      .map((c) => c.id);
+    return { m, hit };
+  });
+
 async function together(browser) {
   console.log("TOGETHER (the fights with the bigger text, the conversations, the Phone settings page and the Controls picture)");
   const { ctx, page, ph, errors } = await phoneAtTitle(browser);
@@ -3388,6 +3405,8 @@ async function together(browser) {
     await sleep(1500);
     const ready = await ctlOf("c-ready");
     ts = await hudTexts(ph, ["UI"]);
+    let mv = await metersVsChips(ph);
+    check("the KREZZ / WONK lines clear of the drink / SanMik chips (bigger text on)", mv.hit.length === 0, mv);
     check("specials ready: READY up with its word, HUD and buttons still fit", !!ready && ready.shown && !!ready.label && offGame(ts).length === 0 && (await domSpill(ph, ".kt *")).length === 0, { ready: ready && ready.label, off: offGame(ts) });
     await ph.ev(() => {
       window.__krel.G.rt.wonk = 0;
@@ -3467,7 +3486,13 @@ async function together(browser) {
     const fire1 = await ctlOf("c-fire");
     ts = await hudTexts(ph, ["UI"]);
     check("back in the fight: the bigger buttons at once, and HUD and buttons still fit", fire1.face.w > fire0.face.w + 2 && offGame(ts).length === 0 && (await domSpill(ph, ".kt *")).length === 0, { before: fire0.face.w, after: fire1.face.w });
-    await ph.ev(() => window.__krelMobile.settings.set({ buttonSize: "M", autoFire: true }));
+    await ph.ev(() => window.__krelMobile.settings.set({ buttonSize: "M", autoFire: true, textSize: "large" }));
+    await sleep(1200);
+    ts = await hudTexts(ph, ["UI"]);
+    mv = await metersVsChips(ph);
+    check("text size LARGE in a fight: every HUD text still on the screen, the buttons' words fit, KREZZ / WONK clear of the chips", offGame(ts).length === 0 && (await domSpill(ph, ".kt *")).length === 0 && mv.hit.length === 0, { off: offGame(ts), mv });
+    await ph.shot("together-large-text");
+    await ph.ev(() => window.__krelMobile.settings.set({ textSize: "normal" }));
     await sleep(300);
     // pause → CONTROLS: the picture, on the fight's tab, its words fit
     await ph.tapCss(...mid(await ctlOf("pause")));
@@ -3515,6 +3540,26 @@ async function together(browser) {
     });
     const left1 = /LAST ONE|gone/.test(hud2) ? 0 : Number((/(\d) still standing/.exec(hud2) || [0, 9])[1]);
     check("taps anywhere swing: the crowd goes down", left1 < left0, { hud, hud2 });
+    // a boss fight with the bigger text: the boss's name and bar clear of the KREZZ / WONK lines
+    check("a boss fight (Krandall) reached", await toFight(ph, "wildern", 3, 2), await ph.mode());
+    await sleep(1500);
+    for (const size of ["normal", "large"]) {
+      await ph.ev((size) => window.__krelMobile.settings.set({ textSize: size }), size);
+      await sleep(900);
+      const bb = await ph.ev(() => {
+        const ui = window.__krel.game.scene.getScene("UI");
+        const r = (o) => {
+          const b = o.getBounds();
+          return { x: Math.round(b.x), y: Math.round(b.y), r: Math.round(b.right), b: Math.round(b.bottom) };
+        };
+        return { boss: !!ui.boss, kz: r(ui.kzT), name: ui.bossT.visible ? r(ui.bossT) : null, bar: ui.phoneBossBar() };
+      });
+      const meet = (a, b) => !!a && !!b && a.x < b.r && b.x < a.r && a.y < b.b && b.y < a.b;
+      const bar = { x: bb.bar.x, y: bb.bar.y, r: bb.bar.x + bb.bar.w, b: bb.bar.y + 16 };
+      check(`boss fight, text size ${size}: the boss's name and bar clear of the KREZZ / WONK lines`, bb.boss && !meet(bb.kz, bar) && !meet(bb.kz, bb.name), bb);
+    }
+    await ph.ev(() => window.__krelMobile.settings.set({ textSize: "normal" }));
+    await ph.shot("together-boss");
     check("no page errors", errors.length === 0, errors.slice(0, 3));
   } finally {
     await ctx.close();

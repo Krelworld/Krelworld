@@ -6,7 +6,7 @@ import type { Action, Actor, Item } from "../core/types";
 import { possibleVerbs } from "../core/verbs";
 import type { World } from "../core/world";
 import { areaAt } from "./layout";
-import { turnstileNear, SHOPS } from "./rules";
+import { climbPointNear, turnstileNear, SHOPS } from "./rules";
 import { cargoOpen } from "./vehicles";
 
 export interface Option {
@@ -75,7 +75,7 @@ export function options(w: World, pc: Actor): Option[] {
     }
     if (n && n.job !== "player" && n.job !== "official") push(`Talk to ${name}`, (n.job === "fan" ? 12 : n.job === "local" ? 25 : 40) - d, { verb: "talk", ...base, target: { k: "actor", id: a.id } });
     if (pc.money > 0 && d < 2.2) out.push({ label: `Offer ${name} money`, priority: 5, sheet: { kind: "bribe", who: a.id } });
-    if (n && (n.job === "fan" || n.job === "local")) push(`Pickpocket ${name}`, 6, { verb: "pickpocket", ...base, target: { k: "actor", id: a.id } });
+    if (n && n.job !== "player" && n.job !== "official" && !n.shop) push(`Pickpocket ${name}`, 6, { verb: "pickpocket", ...base, target: { k: "actor", id: a.id } });
     if (hand && d < 1.7) push(`Give ${lc(itemName(hand))} to ${name}`, 3, { verb: "give", ...base, item: hand.id, target: { k: "actor", id: a.id } });
     const weapon = hand && hasProp(hand, "weapon");
     push(weapon ? `Stab ${name}` : `Punch ${name}`, -1, { verb: "strike", ...base, target: { k: "actor", id: a.id } });
@@ -94,6 +94,7 @@ export function options(w: World, pc: Actor): Option[] {
 
   // Places.
   if (turnstileNear(pc) && !pc.seated) out.push({ label: "Climb over the turnstile", priority: 4, action: { verb: "vault", ...base } });
+  if (climbPointNear(pc) && !pc.seated) out.push({ label: "Squeeze through the loose panel", priority: 50, action: { verb: "vault", ...base } });
   if (areaAt(pc.x, pc.y).seats && !pc.seated) push("Sit down and watch", 45, { verb: "sit", ...base });
 
   out.sort((p, q) => q.priority - p.priority);

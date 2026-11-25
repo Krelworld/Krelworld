@@ -4,7 +4,7 @@ import { chance, pick, rnd, rndRange } from "../core/rng";
 import { DT, type Actor, type Role } from "../core/types";
 import { spawnActor, type World } from "../core/world";
 import { HL } from "../football/config";
-import { AREAS, areaById, SPOTS, TURNSTILES } from "./layout";
+import { AREAS, areaById, SPOTS, TURNSTILES, VENUE } from "./layout";
 import { findPath } from "./nav";
 import type { Job, Npc, Task } from "./state";
 
@@ -154,8 +154,8 @@ function routine(w: World, a: Actor): void {
       return;
     }
     case "doorguard": {
-      // Stands at the staff door. Every few minutes he props it open and nips out for a smoke.
-      if (n.stage === 0) {
+      // Stands at the staff door. At some grounds he nips out for a smoke and props it open.
+      if (n.stage === 0 && VENUE.features.doorSmokes) {
         if (t > (s.stadium!.flags.nextSmoke ?? 110)) {
           n.stage = 1;
           s.stadium!.flags.nextSmoke = t + 170 + rnd(r) * 60;
@@ -169,23 +169,23 @@ function routine(w: World, a: Actor): void {
       return;
     }
     case "patrol": {
-      const loop = [{ x: -45, y: 41 }, { x: 45, y: 41 }, { x: 53, y: 0 }, { x: 45, y: 41 }, { x: -45, y: 41 }, { x: -53, y: 0 }];
+      const loop = VENUE.patrolLoop;
       const p = loop[n.stage % loop.length]; n.stage++;
       later({ k: "go", x: p.x, y: p.y }, { k: "wait", s: rndRange(r, 2, 8) });
       return;
     }
     case "police": {
-      const spots = [{ x: -30, y: 58 }, { x: 10, y: 55 }, { x: -46, y: 82 }, { x: 30, y: 57 }];
+      const spots = VENUE.policeSpots;
       later({ k: "go", ...spots[n.stage++ % spots.length] }, { k: "wait", s: rndRange(r, 6, 20) });
       return;
     }
     case "corridor": {
-      const spots = [SPOTS.corridorPost, { x: -17, y: -45 }, SPOTS.corridorPost, { x: 17, y: -45 }];
+      const spots = VENUE.corridorSpots;
       later({ k: "go", ...spots[n.stage++ % spots.length] }, { k: "wait", s: rndRange(r, 8, 20) });
       return;
     }
     case "cleaner": {
-      const spots = [{ x: -30, y: 40 }, { x: 30, y: 40 }, { x: 10, y: 41 }, { x: 53, y: 20 }, { x: -53, y: -20 }];
+      const spots = VENUE.cleanerSpots;
       later({ k: "go", ...spots[n.stage++ % spots.length] }, { k: "wait", s: rndRange(r, 6, 14) });
       return;
     }

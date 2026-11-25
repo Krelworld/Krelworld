@@ -4,13 +4,13 @@ import { moveItem } from "../core/items";
 import { chance } from "../core/rng";
 import { DT, type Actor } from "../core/types";
 import type { World } from "../core/world";
-import { SPOTS } from "./layout";
+import { SPOTS, VENUE } from "./layout";
 import { say } from "./npc";
 import { crime, isSecurity } from "./security";
 import type { Vehicle } from "./state";
 
 /** There: pub yard to loading bay. The way back is the same in reverse. */
-export const LORRY_ROUTE = [-28, 74, -28, 88, 67, 88, 67, -43, 56, -43, 50, -44];
+const route = () => VENUE.delivery.route;
 export const LORRY_LEN = 7, LORRY_WID = 2.6;
 
 const reverse = (r: number[]) => { const o: number[] = []; for (let i = r.length - 2; i >= 0; i -= 2) o.push(r[i], r[i + 1]); return o; };
@@ -20,7 +20,8 @@ export function stepVehicle(w: World, v: Vehicle): void {
   const driver = s.actors[v.driver];
   const worker = Object.values(s.actors).find((a) => a.npc?.job === "worker");
   const guard = Object.values(s.actors).find((a) => a.npc?.job === "gateguard");
-  const atPub = Math.hypot(v.x - LORRY_ROUTE[0], v.y - LORRY_ROUTE[1]) < 3;
+  const R = route(), D = VENUE.delivery;
+  const atPub = Math.hypot(v.x - R[0], v.y - R[1]) < 3;
 
   switch (v.state) {
     case "loading":
@@ -28,12 +29,12 @@ export function stepVehicle(w: World, v: Vehicle): void {
       // The back is open; the mate carries crates between the lorry and the door.
       if (worker && worker.npc && !worker.npc.plan.length && worker.npc.mode === "routine") {
         const rear = rearOf(v);
-        const door = v.state === "loading" ? { x: -34.8, y: 68 } : { x: 46, y: -48.6 };
+        const door = v.state === "loading" ? D.loadDoor : D.unloadDoor;
         worker.npc.plan.push({ k: "go", x: rear.x, y: rear.y }, { k: "wait", s: 2 }, { k: "go", ...door }, { k: "wait", s: 3 });
       }
       if (tick >= v.until) {
         v.state = "driving";
-        if (atPub) v.route = LORRY_ROUTE.slice(); else v.route = reverse(LORRY_ROUTE);
+        if (atPub) v.route = R.slice(); else v.route = reverse(R);
         v.ri = 2;
         v.inspected = false;
         if (worker?.npc) { worker.npc.plan = [{ k: "go", ...rearOf(v) }]; }
@@ -52,7 +53,7 @@ export function stepVehicle(w: World, v: Vehicle): void {
       const tx = v.route[v.ri], ty = v.route[v.ri + 1];
       const dx = tx - v.x, dy = ty - v.y, d = Math.hypot(dx, dy);
       // The service gate: stop, let the guard look, then the gate opens.
-      const atGate = Math.abs(v.x - 67) < 0.5 && Math.abs(v.y - (-43)) < 0.5 && v.route[v.route.length - 2] === 50;
+      const atGate = Math.abs(v.x - D.gateStop.x) < 0.5 && Math.abs(v.y - D.gateStop.y) < 0.5 && v.route[v.route.length - 2] === R[R.length - 2];
       if (atGate && !v.inspected) {
         v.state = "gate"; v.until = tick + 60 * 7; v.inspected = true; v.speed = 0;
         if (guard?.npc && guard.npc.mode === "routine") guard.npc.plan = [{ k: "go", ...SPOTS.gateInspect }, { k: "wait", s: 3 }, { k: "go", ...guard.npc.post! }];
@@ -98,13 +99,13 @@ export function stepVehicle(w: World, v: Vehicle): void {
       v.x += (dx / d) * st2; v.y += (dy / d) * st2;
       v.facing = Math.atan2(dy, dx);
       // Open the service gate as it passes, and leave it open a moment.
-      if (Math.abs(v.x - 62.5) < 9 && Math.abs(v.y + 43) < 3) st.gates.servicegate = { until: tick + 60 * 6, for: null };
+      if (Math.abs(v.x - SPOTS.serviceGate.x) < 9 && Math.abs(v.y - SPOTS.serviceGate.y) < 3) st.gates.servicegate = { until: tick + 60 * 6, for: null };
       break;
     }
     case "gate": {
       if (tick === v.until - 60 * 4 && guard) {
         // Has he looked in the back? More likely once trouble has started.
-        const p = 0.25 + Math.min(0.5, st.incidents.length * 0.1) + (v.cycle > 1 ? 0.15 : 0);
+        const p = D.gateInspect + Math.min(0.5, st.incidents.length * 0.1) + (v.cycle > 1 ? 0.15 : 0);
         const cargo = s.items[v.cargo];
         const hidden = Object.values(s.actors).filter((a) => a.hiddenIn === cargo.id && !a.npc);
         if (chance(r, p)) {

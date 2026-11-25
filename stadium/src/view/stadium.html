@@ -100,6 +100,10 @@
   .news h2 { margin: 10px 12px 4px; font-size: 18px; text-wrap: balance; }
   .news ul { margin: 0 0 12px; color: var(--ink); }
   .card .small { font-size: 12px; }
+  .prep { display: flex; flex-direction: column; gap: 6px; }
+  .prep label { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; min-height: 44px; }
+  .prep input { width: 20px; height: 20px; accent-color: var(--accent); }
+  #prepProblem { color: var(--warn); min-height: 1.2em; }
   kbd { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
 
   #debug { left: max(10px, env(safe-area-inset-left, 0px)); top: 64px; width: min(320px, calc(100% - 20px)); max-height: calc(100% - 140px); overflow-y: auto; padding: 10px; z-index: 5; display: flex; flex-direction: column; gap: 6px; }
@@ -154,8 +158,8 @@
 
   <div id="intro" class="overlay">
     <div class="card panel">
-      <h1>England are in the quarter-final.</h1>
-      <p>You are outside the ground with £150 and an England shirt. Kick-off is in five and a half minutes. Help England win, any way you like.</p>
+      <h1 id="introTitle">England are in the quarter-final.</h1>
+      <p id="introText">You are outside the ground with £150 and an England shirt. Kick-off is in five and a half minutes. Help England win, any way you like.</p>
       <ul>
         <li><b>Move:</b> drag on the left side of the screen, or <kbd>WASD</kbd>. Push further or hold <kbd>Shift</kbd> to run.</li>
         <li><b>Do things:</b> the red button does the most obvious thing nearby (<kbd>E</kbd>). <b>More…</b> lists everything else (<kbd>R</kbd>).</li>
@@ -168,6 +172,16 @@
       </ul>
       <p>Nobody will tell you how. Listen to people, watch what goes on, and try things.</p>
       <div class="row"><button id="start" class="primary">Start</button></div>
+    </div>
+  </div>
+
+  <div id="prep" class="overlay" hidden>
+    <div class="card panel">
+      <h1>Pack your bag</h1>
+      <p id="prepText"></p>
+      <div id="prepList" class="list prep"></div>
+      <p id="prepProblem" class="small"></p>
+      <div class="row"><button id="prepGo" class="primary">Travel to the semi-final</button></div>
     </div>
   </div>
 

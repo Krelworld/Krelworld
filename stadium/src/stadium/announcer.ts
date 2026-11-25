@@ -2,7 +2,7 @@
 // Deadpan throughout. Says less than it could.
 import type { GameEvent } from "../core/bus";
 import type { World } from "../core/world";
-import { KICKOFF_AT } from "./layout";
+import { KICKOFF_AT, VENUE } from "./layout";
 import { secs } from "./npc";
 
 export interface Announcement { t: number; text: string; src: "tannoy" | "commentary"; big: boolean; key?: string }
@@ -25,7 +25,8 @@ export class Announcer {
   tick(): void {
     const t = secs(this.w), m = this.w.state.match!;
     const opp = m.teams[1].name;
-    if (t > 3) this.once("welcome", `Good afternoon and welcome to today's quarter-final between England and ${opp}.`);
+    if (t > 3) this.once("welcome", `Good afternoon and welcome to today's ${VENUE.round} between England and ${opp}.`);
+    if (t > 40 && VENUE.features.faceCameras) this.once("cameras", "Supporters are reminded that facial recognition is in operation at all turnstiles.");
     if (t > 90) this.once("lorry", "Supporters are reminded that the service road is for deliveries only.");
     if (t > 150) this.once("pitch", "Supporters are reminded that entering the field of play is a criminal offence.");
     if (t > KICKOFF_AT - 120) this.once("2min", "Kick-off is in two minutes. Please make your way to your seats.");
@@ -97,6 +98,9 @@ export class Announcer {
       }
       case "two_refs":
         this.out({ t: e.t, text: "There appear to be two referees. Both now consider the other to have been dismissed.", src: "commentary", big: true });
+        break;
+      case "camera_flag":
+        this.once(`cam${Math.floor(e.t / 3600)}`, "Would a supervisor please attend turnstile two.", "tannoy", false);
         break;
       case "smoke":
         if (e.onPitch) this.out({ t: e.t, text: "A smoke flare has landed on the pitch. Visibility is described as poor.", src: "commentary", big: true });

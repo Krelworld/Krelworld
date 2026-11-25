@@ -57,9 +57,9 @@ test("identity: an outer shirt hides the one underneath until someone pulls it o
   const steward = spawnActor(w.state, "npc", "Steward", 1, 0);
   spawnItem(w.state, "shirt_eng", { k: "worn", a: fan.id, slot: "inner" });
   assert.equal(appearance(w.state, fan).team, "ENG");
-  const opp = spawnItem(w.state, "shirt_opp", { k: "hand", a: fan.id });
+  const opp = spawnItem(w.state, "shirt_por", { k: "hand", a: fan.id });
   dispatch(w, { verb: "wear", actor: fan.id, item: opp.id });
-  assert.equal(appearance(w.state, fan).team, "OPP");
+  assert.equal(appearance(w.state, fan).team, "POR");
   assert.equal(appearance(w.state, fan).faceId, fan.id, "the face never changes");
   dispatch(w, { verb: "remove", actor: steward.id, item: opp.id });
   assert.equal(appearance(w.state, fan).team, "ENG");

@@ -32,7 +32,7 @@ const C = {
 };
 
 /** Later areas sit on top of earlier ones; the last one that contains a point wins. */
-export const AREAS: Area[] = [
+const QF_AREAS: Area[] = [
   { id: "street", name: "Outside the ground", access: "public", floor: C.street, outside: true, ...r(-92, -62, 92, 96) },
   { id: "plaza", name: "Stadium approach", access: "public", floor: C.pavement, outside: true, ...r(-60, 45, 60, 60) },
   { id: "road", name: "Ring road", access: "public", floor: C.road, outside: true, ...r(-92, 84, 92, 92) },
@@ -88,7 +88,7 @@ const wall = (x0: number, y0: number, x1: number, y1: number, h3 = 3, colour = W
   ({ ...r(x0, y0, x1, y1), h3, colour, top, gate });
 
 /** Solid things. Gaps in these lists are doorways. */
-export const WALLS: Wall[] = [
+const QF_WALLS: Wall[] = [
   // Outer wall, south side, with turnstiles in the middle and a staff door at the east end.
   wall(-57, 44, -9, 45), wall(9, 44, 56, 45),
   wall(-9, 44, -7.5, 45), wall(-4.5, 44, -3, 45), wall(3, 44, 4.5, 45), wall(7.5, 44, 9, 45),
@@ -153,7 +153,7 @@ export const WALLS: Wall[] = [
 
 export const KICKOFF_AT = 330; // seconds after arrival
 
-export const SPOTS = {
+const QF_SPOTS = {
   arrival: { x: 6, y: 58 },
   homeRoom: { x: -17, y: -54 },
   awayRoom: { x: 17, y: -54 },
@@ -195,6 +195,121 @@ export const SPOTS = {
 
 /** Turnstile gate ids, west to east. */
 export const TURNSTILES = ["turnstile1", "turnstile2", "turnstile3"];
+
+// ---------------------------------------------------------------------------
+// Venues. Everything above is the quarter-final ground. The semi-final ground is
+// built from it, mirrored and changed, with its own routines and security.
+
+export type Spots = typeof QF_SPOTS;
+type P = { x: number; y: number };
+
+export interface Venue {
+  id: "qf" | "sf";
+  round: string;
+  /** Key into TEAMS for the opposition. */
+  opp: string;
+  ground: string;
+  areas: Area[];
+  walls: Wall[];
+  spots: Spots;
+  /** Words painted on the ground: text, x, y, size. */
+  labels: [string, number, number, number?][];
+  /** The delivery vehicle's run: there and back; the gate it stops at; doors the crew carry crates to. */
+  delivery: { name: string; route: number[]; gateStop: P; loadDoor: P; unloadDoor: P; gateInspect: number };
+  /** Walks for the people with rounds. */
+  patrolLoop: P[]; policeSpots: P[]; cleanerSpots: P[]; corridorSpots: P[];
+  /** Where you can climb a wall, if anywhere. */
+  climbPoints: P[];
+  features: {
+    /** Chance a pat-down finds something in a pocket. */
+    patDown: number;
+    /** Metal detectors find anything metal, every time. */
+    metalDetectors: boolean;
+    /** Cameras at the turnstiles recognise barred faces unless half covered. */
+    faceCameras: boolean;
+    /** The staff door guard nips out for a smoke and props the door open. */
+    doorSmokes: boolean;
+    /** The staff door needs a pass as well as the right clothes. */
+    staffPass: boolean;
+    /** The pub is an open-air fan zone with a big screen. */
+    fanZone: boolean;
+  };
+  /** Is a point inside the ground (past the turnstiles)? */
+  inside(x: number, y: number): boolean;
+}
+
+const mirrorRect = <T extends { x: number; w: number }>(r: T): T => ({ ...r, x: -(r.x + r.w) });
+const mirrorP = (p: P): P => ({ x: -p.x, y: p.y });
+const mirrorRoute = (r: number[]) => r.map((v, i) => (i % 2 === 0 ? -v : v));
+function mirrorSpots(sp: Spots): Spots {
+  const out: any = {};
+  for (const [k, v] of Object.entries(sp)) out[k] = Array.isArray(v) ? v.map(mirrorP) : mirrorP(v as P);
+  return out;
+}
+
+const QF_LABELS: Venue["labels"] = [
+  ["THE THREE LIONS", -48, 72, 13], ["TICKETS", 21, 50.6], ["MERCHANDISE", -21, 50.6], ["TURNSTILES", 0, 46.2],
+  ["STAFF ENTRANCE", 59.5, 52.4], ["STEWARDS", 82, 54], ["SERVICE GATE", 66, -48], ["LOADING BAY", 50, -54],
+  ["SECURITY", 34, -51], ["ENGLAND", -17, -50], ["AWAY", 17, -50], ["OFFICIALS", 0, -50.5], ["KITCHEN", -34, -50],
+  ["SECOND HAND ROSE", -11, 64.5], ["ARMY & NAVY", 15, 64.5], ["BOOKMAKER", 36, 69.5], ["BETS", 30, 40.4],
+  ["BAR", -13, 40.6], ["GENTS", 10, 39.6], ["CAR PARK", 43, 72], ["TOILETS", -58, 67],
+];
+
+export const VENUES: Record<Venue["id"], Venue> = {
+  qf: {
+    id: "qf", round: "quarter-final", opp: "POR", ground: "Wembley Park",
+    areas: QF_AREAS, walls: QF_WALLS, spots: QF_SPOTS, labels: QF_LABELS,
+    delivery: { name: "beer lorry", route: [-28, 74, -28, 88, 67, 88, 67, -43, 56, -43, 50, -44], gateStop: { x: 67, y: -43 }, loadDoor: { x: -34.8, y: 68 }, unloadDoor: { x: 46, y: -48.6 }, gateInspect: 0.25 },
+    patrolLoop: [{ x: -45, y: 41 }, { x: 45, y: 41 }, { x: 53, y: 0 }, { x: 45, y: 41 }, { x: -45, y: 41 }, { x: -53, y: 0 }],
+    policeSpots: [{ x: -30, y: 58 }, { x: 10, y: 55 }, { x: -46, y: 82 }, { x: 30, y: 57 }],
+    cleanerSpots: [{ x: -30, y: 40 }, { x: 30, y: 40 }, { x: 10, y: 41 }, { x: 53, y: 20 }, { x: -53, y: -20 }],
+    corridorSpots: [{ x: 0, y: -43 }, { x: -17, y: -45 }, { x: 0, y: -43 }, { x: 17, y: -45 }],
+    climbPoints: [],
+    features: { patDown: 0.5, metalDetectors: false, faceCameras: false, doorSmokes: true, staffPass: false, fanZone: false },
+    inside: (x, y) => y < 44 && y > -61 && x > -56 && x < 63,
+  },
+  sf: buildSemiFinal(),
+};
+
+function buildSemiFinal(): Venue {
+  // The same kind of bowl, the other way round: the fan zone, the car park, the
+  // stewards' cabin and the service road are all on the opposite side.
+  let areas = QF_AREAS.map(mirrorRect);
+  let walls = QF_WALLS.map(mirrorRect);
+  const spots = mirrorSpots(QF_SPOTS);
+  // The pub is an open-air fan zone: its walls come down, the bar stays.
+  const pub = QF_AREAS.find((a) => a.id === "pub")!;
+  const inPub = (w: Wall) => { const m = mirrorRect(pub); return w.x >= m.x - 0.6 && w.x + w.w <= m.x + m.w + 0.6 && w.y >= m.y - 0.6 && w.y + w.h <= m.y + m.h + 0.6 && w.h3 > 2; };
+  walls = walls.filter((w) => !inPub(w));
+  areas = areas.map((a) => (a.id === "pub" ? { ...a, name: "Fan Zone", floor: 0x3c5a3a } : a.id === "pub_toilet" ? { ...a, name: "Portable toilets" } : a));
+  // A loose panel in the outer wall by the car park.
+  const climb = { x: 44, y: 44.5 };
+  const labels: Venue["labels"] = QF_LABELS.map(([t, x, y, sz]) => [t === "THE THREE LIONS" ? "FAN ZONE" : t, -x, y, sz]);
+  labels.push(["BIG SCREEN", 48, 63.4, 11], ["LOOSE PANEL", climb.x, 46.4, 9]);
+  return {
+    id: "sf", round: "semi-final", opp: "BRA", ground: "Estadio del Sol",
+    areas, walls, spots, labels,
+    delivery: { name: "catering van", route: mirrorRoute([-28, 74, -28, 88, 67, 88, 67, -43, 56, -43, 50, -44]), gateStop: { x: -67, y: -43 }, loadDoor: { x: 34.8, y: 68 }, unloadDoor: { x: -46, y: -48.6 }, gateInspect: 0.55 },
+    patrolLoop: [{ x: 45, y: 41 }, { x: -45, y: 41 }, { x: -53, y: 0 }, { x: -45, y: 41 }, { x: 45, y: 41 }, { x: 53, y: 0 }],
+    policeSpots: [{ x: 30, y: 58 }, { x: -10, y: 55 }, { x: 46, y: 82 }, { x: -30, y: 57 }, { x: 0, y: 49 }],
+    cleanerSpots: [{ x: 30, y: 40 }, { x: -30, y: 40 }, { x: -10, y: 41 }, { x: -53, y: 20 }, { x: 53, y: -20 }],
+    corridorSpots: [{ x: 0, y: -43 }, { x: 17, y: -45 }, { x: 0, y: -43 }, { x: -17, y: -45 }],
+    climbPoints: [climb],
+    features: { patDown: 0.75, metalDetectors: true, faceCameras: true, doorSmokes: false, staffPass: true, fanZone: true },
+    inside: (x, y) => y < 44 && y > -61 && x < 56 && x > -63,
+  };
+}
+
+/** The current venue. These bindings change when the venue does. */
+export let VENUE: Venue = VENUES.qf;
+export let AREAS: Area[] = VENUE.areas;
+export let WALLS: Wall[] = VENUE.walls;
+export let SPOTS: Spots = VENUE.spots;
+
+export function setVenue(id: Venue["id"]): void {
+  VENUE = VENUES[id];
+  AREAS = VENUE.areas; WALLS = VENUE.walls; SPOTS = VENUE.spots;
+}
 
 export const areaAt = (x: number, y: number): Area => {
   for (let i = AREAS.length - 1; i >= 0; i--) {

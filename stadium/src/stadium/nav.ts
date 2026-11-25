@@ -1,13 +1,15 @@
 // Walkability grid and A* for people who are not the player.
-import { BOUNDS, WALLS } from "./layout";
+import { BOUNDS, VENUE, WALLS } from "./layout";
 
 const CELL = 1;
 export const GW = Math.ceil(BOUNDS.w / CELL), GH = Math.ceil(BOUNDS.h / CELL);
 let grid: Uint8Array | null = null;
+let gridFor = "";
 
 /** 1 = blocked. Gates count as open: the people using paths are allowed through, or they wait. */
 export function navGrid(): Uint8Array {
-  if (grid) return grid;
+  if (grid && gridFor === VENUE.id) return grid;
+  gridFor = VENUE.id;
   grid = new Uint8Array(GW * GH);
   const pad = 0.45;
   for (const w of WALLS) {

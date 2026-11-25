@@ -158,7 +158,7 @@ test("a pie thrown from the stand distracts the referee and is noticed", () => {
 test("an opposition shirt takes the blame until a steward pulls it off", () => {
   const g = createGame("falseflag");
   const s = g.w.state, pc = pcOf(g);
-  spawnItem(s, "shirt_opp", { k: "worn", a: pc.id, slot: "outer" });
+  spawnItem(s, "shirt_por", { k: "worn", a: pc.id, slot: "outer" });
   pc.x = 0; pc.y = 41;
   run(g, 1);
   const victim = find(g, (a) => a.npc?.job === "patrol");
@@ -294,4 +294,97 @@ test("a smoke flare on the pitch stops play and hides you", () => {
   steward.x = c.x; steward.y = c.y - 10; steward.facing = Math.PI / 2;
   pc.x = c.x; pc.y = c.y + 2;
   assert.equal(canSee(g.w, steward, pc, 30), false, "nobody sees through the smoke");
+});
+
+// ---------- The semi-final and carrying things over ----------
+import { afterMatch, loadoutProblem, newCampaign } from "../src/stadium/campaign";
+import { VENUE } from "../src/stadium/layout";
+
+function semi(seed: string, notoriety = 1, loadout: string[] = ["shirt_eng"]) {
+  const c = newCampaign();
+  c.fixture = 1; c.notoriety = notoriety; c.money = 200; c.stash = loadout.slice(); c.loadout = loadout.slice();
+  return createGame(seed, "sf", c);
+}
+
+test("the semi-final is a different ground with a different opponent", () => {
+  const g = semi("sf1", 0);
+  assert.equal(VENUE.id, "sf");
+  assert.equal(g.w.state.match!.teams[1].short, "BRA");
+  assert.ok(VENUE.features.faceCameras && VENUE.features.metalDetectors && VENUE.features.staffPass);
+  assert.equal(pcOf(g).money, 200);
+});
+
+test("the face cameras flag a barred face; sunglasses and a cap get past them", () => {
+  const g = semi("sf2", 1);
+  const s = g.w.state, pc = pcOf(g);
+  const ticket = spawnItem(s, "ticket", { k: "pocket", a: pc.id });
+  const steward = find(g, (a) => a.npc?.job === "turnstile" && Math.abs(a.x) < 1);
+  pc.x = 0; pc.y = 46.3;
+  const events: string[] = [];
+  g.w.bus.on((e) => events.push(e.type));
+  dispatch(g.w, { verb: "show", actor: pc.id, item: ticket.id, target: { k: "actor", id: steward.id } });
+  assert.ok(events.includes("camera_flag"));
+  assert.equal(s.items[ticket.id].used, undefined, "not let in");
+  spawnItem(s, "sunglasses", { k: "worn", a: pc.id, slot: "face" });
+  steward.npc!.sus = {};
+  let inside = false;
+  for (let i = 0; i < 12 && !inside; i++) {
+    dispatch(g.w, { verb: "show", actor: pc.id, item: ticket.id, target: { k: "actor", id: steward.id } });
+    inside = !!s.items[ticket.id].used;
+  }
+  assert.ok(inside, "half a face is enough to fool the camera");
+});
+
+test("metal detectors always find a knife", () => {
+  for (const seed of ["md1", "md2", "md3"]) {
+    const g = semi(seed, 0, ["shirt_eng", "knife"]);
+    const s = g.w.state, pc = pcOf(g);
+    assert.ok(pc.pockets.some((id) => s.items[id].def === "knife"), "brought the knife");
+    const ticket = spawnItem(s, "ticket", { k: "pocket", a: pc.id });
+    const steward = find(g, (a) => a.npc?.job === "turnstile" && Math.abs(a.x) < 1);
+    pc.x = 0; pc.y = 46.3;
+    dispatch(g.w, { verb: "show", actor: pc.id, item: ticket.id, target: { k: "actor", id: steward.id } });
+    assert.ok(!pc.pockets.some((id) => s.items[id].def === "knife"), "confiscated");
+  }
+});
+
+test("at the semi-final the staff door needs a pass as well as the vest", () => {
+  const g = semi("sf3", 0);
+  const s = g.w.state, pc = pcOf(g);
+  spawnItem(s, "hivis", { k: "worn", a: pc.id, slot: "outer" });
+  pc.x = SPOTS.staffDoor.x; pc.y = 54;
+  walk(g, SPOTS.staffDoor.x, 47, 8);
+  assert.ok(pc.y > 50, "no pass, no entry");
+  spawnItem(s, "staff_pass", { k: "pocket", a: pc.id });
+  pc.x = SPOTS.staffDoor.x; pc.y = 54;
+  run(g, 1);
+  walk(g, SPOTS.staffDoor.x, 47, 10);
+  assert.ok(pc.y < 50, "with a pass he is waved through");
+});
+
+test("the loose panel by the car park gets you in without a ticket", () => {
+  const g = semi("sf4", 0);
+  const pc = pcOf(g);
+  const c = VENUE.climbPoints[0];
+  pc.x = c.x; pc.y = c.y + 1.5;
+  assert.equal(dispatch(g.w, { verb: "vault", actor: pc.id }).ok, true);
+  run(g, 2);
+  assert.ok(VENUE.inside(pc.x, pc.y));
+});
+
+test("after a win, money, kept items and notoriety carry over", () => {
+  const g = createGame("carry");
+  const s = g.w.state, pc = pcOf(g);
+  pc.money = 77;
+  spawnItem(s, "sunglasses", { k: "worn", a: pc.id, slot: "face" });
+  spawnItem(s, "ticket", { k: "pocket", a: pc.id });
+  s.stadium!.flags.ejections = 1;
+  const next = afterMatch(g.campaign, g.w, "test");
+  assert.equal(next.fixture, 1);
+  assert.equal(next.money, 77);
+  assert.ok(next.stash.includes("sunglasses"));
+  assert.ok(!next.stash.includes("ticket"), "tickets don't carry over");
+  assert.equal(next.notoriety, 1);
+  assert.equal(loadoutProblem(["shirt_eng", "hammer", "knife", "flare", "staff_pass", "laxative"]), "That won't all fit in your pockets.");
+  assert.equal(loadoutProblem(["shirt_eng", "chef_whites", "hivis"]) !== null, true);
 });

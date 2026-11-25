@@ -4,10 +4,11 @@ import { pick, rndRange, seedRng } from "../core/rng";
 import type { Actor, WorldState } from "../core/types";
 import { createWorld, spawnActor, stepWorld, type World } from "../core/world";
 import { createMatch, TEAMS } from "../football/setup";
-import { BOUNDS, KICKOFF_AT, SPOTS, WALLS } from "./layout";
+import { BOUNDS, KICKOFF_AT, setVenue, SPOTS, VENUE, WALLS, type Venue } from "./layout";
+import { newCampaign, type Campaign } from "./campaign";
 import { mayPass, newNpc, resetPathBudget, secs, spawnFan, spawnStaff, stepNpc } from "./npc";
 import { installBetting, installSettlement } from "./betting";
-import { installReactions, installRules, stepRules } from "./rules";
+import { installReactions, installRules, SHOPS, stepRules } from "./rules";
 import { isSecurity, stepDetention, stepSecurity } from "./security";
 import type { StadiumState } from "./state";
 import { lorryHits, stepVehicle } from "./vehicles";
@@ -18,6 +19,9 @@ export interface Game {
   w: World;
   checkpoints: Checkpoint[];
   opp: string;
+  venue: Venue["id"];
+  /** The tournament so far, as it stood when this match day began. */
+  campaign: Campaign;
 }
 
 let rulesInstalled = false;
@@ -25,11 +29,14 @@ let rulesInstalled = false;
 export const HALF_SECONDS = 450;
 export const HALFTIME_SECONDS = 150;
 
-export function createGame(seed: string, oppKey = "POR"): Game {
+export function createGame(seed: string, venueId: Venue["id"] = "qf", campaign: Campaign = newCampaign()): Game {
   if (!rulesInstalled) { installRules(); installBetting(); rulesInstalled = true; }
+  setVenue(venueId);
+  const oppKey = VENUE.opp;
   const opp = TEAMS[oppKey];
-  // The opposition shirt on sale outside is this opponent's.
-  Object.assign(ITEM_DEFS.shirt_opp, { name: `${opp.name} shirt`, team: opp.short, colour: opp.colour, colour2: opp.colour2 });
+  const oppShirt = `shirt_${oppKey.toLowerCase()}`;
+  // The stall outside sells this opponent's shirt.
+  SHOPS.merch.stock = { [oppShirt]: 45, shirt_eng: 45, mask: 8 };
 
   const w = createWorld(seed);
   const s = w.state, r = s.rng.world;
@@ -54,10 +61,23 @@ export function createGame(seed: string, oppKey = "POR"): Game {
   const offIds = [m.officials.referee, ...m.officials.assistants, m.officials.fourth];
   offIds.forEach((id, i) => { const a = s.actors[id]; a.x = SPOTS.refRoom.x + (i - 1.5) * 1.6; a.y = SPOTS.refRoom.y; a.npc = newNpc("official", "referee"); });
 
-  // The player.
-  const pc = spawnActor(s, "protagonist", "Barry", SPOTS.arrival.x, SPOTS.arrival.y, { id: "pc", radius: 0.55, speed: 2.2, money: 150 });
+  // The player, with whatever he chose to bring.
+  const pc = spawnActor(s, "protagonist", "Barry", SPOTS.arrival.x, SPOTS.arrival.y, { id: "pc", radius: 0.55, speed: 2.2, money: campaign.money });
   pc.facing = -Math.PI / 2;
-  spawnItem(s, "shirt_eng", { k: "worn", a: pc.id, slot: "inner" });
+  const load = campaign.loadout.includes("shirt_eng") ? campaign.loadout : ["shirt_eng", ...campaign.loadout];
+  for (const d of load) {
+    const def = ITEM_DEFS[d];
+    if (!def) continue;
+    if (def.slot && !pc.worn[d === "shirt_eng" && def.slot === "inner" ? "inner" : def.slot]) spawnItem(s, d, { k: "worn", a: pc.id, slot: def.slot });
+    else if (def.size === "small" && pc.pockets.length < 3) spawnItem(s, d, { k: "pocket", a: pc.id });
+    else if (!pc.hand) spawnItem(s, d, { k: "hand", a: pc.id });
+    else if (def.size === "small") spawnItem(s, d, { k: "pocket", a: pc.id });
+  }
+  // Fame travels. A known face is barred before he arrives, and stewards have his description.
+  if (campaign.notoriety >= 1) {
+    st.banned.push(pc.faceId);
+    st.wanted.push({ face: pc.faceId, team: null, role: "fan", outer: null, look: "", severity: Math.min(1, 0.4 + campaign.notoriety * 0.2), until: 60 * 60 * 120, what: "being a known troublemaker" });
+  }
 
   // Staff.
   const staff = (job: Parameters<typeof spawnStaff>[1], role: Parameters<typeof spawnStaff>[2], name: string, at: { x: number; y: number }, facing: number, extra = {}) => {
@@ -73,12 +93,13 @@ export function createGame(seed: string, oppKey = "POR"): Game {
   staff("gateguard", "steward", "Steward Mick", SPOTS.gatePost, E);
   const pitchPosts = [[-24, 27.4, S], [0, 27.4, S], [24, 27.4, S], [-24, -27.4, N], [24, -27.4, N], [-40.6, -10, W], [-40.6, 10, W], [40.6, 0, E]] as const;
   pitchPosts.forEach(([x, y, f], i) => staff("pitchsteward", "steward", `Steward ${["Ken", "Lorraine", "Phil", "Jim", "Ray", "Sandra", "Tony", "Bob"][i]}`, { x, y }, f));
-  staff("patrol", "steward", "Steward Alan", { x: -30, y: 41 }, E);
-  staff("patrol", "steward", "Steward Denise", { x: 30, y: 41 }, W);
+  staff("patrol", "steward", "Steward Alan", VENUE.patrolLoop[0], E);
+  staff("patrol", "steward", "Steward Denise", VENUE.patrolLoop[3], W);
   staff("corridor", "steward", "Steward Brian", SPOTS.corridorPost, S);
   staff("chief", "steward", "Head of Security", SPOTS.chiefDesk, N);
-  staff("police", "police", "PC Hargreaves", { x: -20, y: 57 }, S);
-  staff("police", "police", "PC Okafor", { x: 30, y: 56 }, S);
+  staff("police", "police", "PC Hargreaves", VENUE.policeSpots[0], S);
+  staff("police", "police", "PC Okafor", VENUE.policeSpots[3], S);
+  if (campaign.notoriety >= 2) staff("police", "police", "PC Sharma", { x: SPOTS.turnstiles[1].x + 3, y: 47 }, S);
   staff("barman", "catering", "Landlord", SPOTS.pubBarman, S, { shop: "pub" });
   staff("barman", "catering", "Barmaid", SPOTS.barSman, N, { shop: "bar" });
   staff("seller", "none", "Ticket office", SPOTS.ticketSeller, S, { shop: "ticket" });
@@ -87,7 +108,7 @@ export function createGame(seed: string, oppKey = "POR"): Game {
   staff("seller", "none", "Sarge", SPOTS.surplus, S, { shop: "surplus", lines: ["Flares are for boats. Officially.", "Cash only. No questions."] });
   staff("seller", "none", "Lucky Lionel", SPOTS.bookie, S, { shop: "bookies", lines: ["England? Brave. I like it.", "Odds change when the score does, sunshine.", "No refunds on acts of God. Or acts of you."] });
   staff("seller", "none", "Kiosk", SPOTS.kiosk, N, { shop: "bookies", lines: ["Bets close fifteen seconds after a goal.", "Next goal's the one everyone wants."] });
-  staff("cleaner", "cleaner", "Cleaner", { x: -30, y: 40 }, E);
+  staff("cleaner", "cleaner", "Cleaner", VENUE.cleanerSpots[0], E);
   staff("cook", "catering", "Cook", SPOTS.kitchenSpot, S);
 
   // Locals: no ticket, plenty of opinions.
@@ -99,13 +120,19 @@ export function createGame(seed: string, oppKey = "POR"): Game {
   }
 
   // The beer lorry and its crew.
-  const cargo = spawnItem(s, "lorry_cargo", { k: "ground", x: -28, y: 70 });
-  const driver = spawnStaff(w, "driver", "catering", "Lorry driver", -28, 74);
-  spawnStaff(w, "worker", "catering", "Drayman", -30, 70).npc!.post = undefined;
-  st.vehicles.lorry = { id: "lorry", kind: "lorry", x: -28, y: 74, facing: S, route: [-28, 74], ri: 0, speed: 0, state: "loading", until: 60 * 45, cargo: cargo.id, driver: driver.id, cycle: 0, inspected: false };
+  const [lx, ly] = VENUE.delivery.route;
+  const cargo = spawnItem(s, "lorry_cargo", { k: "ground", x: lx, y: ly - 4 });
+  const driver = spawnStaff(w, "driver", "catering", VENUE.id === "qf" ? "Lorry driver" : "Van driver", lx, ly);
+  spawnStaff(w, "worker", "catering", VENUE.id === "qf" ? "Drayman" : "Caterer", lx - 2 * Math.sign(lx || 1), ly - 4).npc!.post = undefined;
+  st.vehicles.lorry = { id: "lorry", kind: "lorry", x: lx, y: ly, facing: S, route: [lx, ly], ri: 0, speed: 0, state: "loading", until: 60 * 45, cargo: cargo.id, driver: driver.id, cycle: 0, inspected: false };
 
   // Things lying about, for whoever finds them.
   spawnItem(s, "hivis", { k: "ground", x: SPOTS.cabinHook.x, y: SPOTS.cabinHook.y });
+  if (VENUE.features.staffPass) {
+    spawnItem(s, "staff_pass", { k: "ground", x: SPOTS.cabinHook.x - 1.2 * Math.sign(SPOTS.cabinHook.x), y: SPOTS.cabinHook.y + 1.5 });
+    // Every steward carries one, which makes them worth robbing.
+    for (const id in s.actors) { const a = s.actors[id]; if (a.npc && a.npc.role === "steward") spawnItem(s, "staff_pass", { k: "pocket", a: a.id }); }
+  }
   spawnItem(s, "laxative", { k: "ground", x: -56.5, y: 63.4 });
   spawnItem(s, "powder", { k: "ground", x: -60.6, y: 63.2 });
   spawnItem(s, "knife", { k: "ground", x: -38.5, y: -57 });
@@ -120,7 +147,7 @@ export function createGame(seed: string, oppKey = "POR"): Game {
 
   installReactions(w);
   installSettlement(w);
-  const g: Game = { w, checkpoints: [], opp: oppKey };
+  const g: Game = { w, checkpoints: [], opp: oppKey, venue: venueId, campaign };
   saveCheckpoint(g, "arrival", "Arrival outside the ground");
   return g;
 }
@@ -130,7 +157,7 @@ function giveFanThings(w: World, a: Actor): void {
   const t = spawnItem(s, "ticket", { k: "pocket", a: a.id });
   t.owner = a.id;
   if (a.seated) t.used = true;
-  const shirt = a.npc!.team === 1 ? "shirt_opp" : "shirt_eng";
+  const shirt = a.npc!.team === 1 ? `shirt_${VENUE.opp.toLowerCase()}` : "shirt_eng";
   spawnItem(s, shirt, { k: "worn", a: a.id, slot: a.npc!.team === 1 ? "outer" : "inner" });
 }
 
@@ -212,7 +239,7 @@ export function stepGame(g: Game): void {
 
 function checkpoints(g: Game): void {
   const s = g.w.state, st = s.stadium!, m = s.match!, pc = s.actors[st.pc];
-  if (!st.admitted && pc && pc.y < 44 && pc.y > -61 && pc.x > -56 && pc.x < 56 && !pc.hiddenIn) {
+  if (!st.admitted && pc && VENUE.inside(pc.x, pc.y) && !pc.hiddenIn) {
     st.admitted = true;
     saveCheckpoint(g, "admission", "Inside the ground");
   }
@@ -240,6 +267,7 @@ export function saveCheckpoint(g: Game, id: Checkpoint["id"], label: string): vo
 export function loadCheckpoint(g: Game, id: Checkpoint["id"]): void {
   const cp = g.checkpoints.find((c) => c.id === id);
   if (!cp) return;
+  setVenue(g.venue);
   g.w.state = structuredClone(cp.state);
   g.w.state.rng.match = seedRng(`${Date.now()}:${Math.random()}`);
   const order: Checkpoint["id"][] = ["arrival", "admission", "kickoff", "halftime"];

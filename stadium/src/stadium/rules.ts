@@ -11,14 +11,14 @@ import { bribePlayer, biasReferee, distractReferee, haltPlay, intruderKick, remo
 import { sendOff } from "../football/authority";
 import { endPeriod } from "../football/match";
 import { beginRestart } from "../football/restarts";
-import { areaAt, SPOTS, TURNSTILES, WALLS } from "./layout";
+import { areaAt, SPOTS, TURNSTILES, VENUE, WALLS } from "./layout";
 import { say } from "./npc";
 import { alert, crime, isSecurity, struggle, witnessesOf } from "./security";
 import { cargoOpen } from "./vehicles";
 
 export const SHOPS: Record<string, { name: string; stock: Record<string, number> }> = {
   ticket: { name: "Ticket office", stock: { ticket: 60 } },
-  merch: { name: "Merchandise stall", stock: { shirt_opp: 45, shirt_eng: 45, mask: 8 } },
+  merch: { name: "Merchandise stall", stock: { shirt_por: 45, shirt_eng: 45, mask: 8 } },
   pub: { name: "The Three Lions", stock: { pint: 5, pie: 4 } },
   bar: { name: "Concourse bar", stock: { pint: 7, pie: 5 } },
   bookies: { name: "Bookmaker", stock: {} },
@@ -91,6 +91,7 @@ export function installRules(): void {
     check: (w, act, actor) => {
       const t = targetActor(w, act);
       if (!t?.npc || !isStaffCrowd(t)) return "nobody to rob";
+      if (t.npc.mode !== "routine") return "he's watching you";
       if (!near(actor, t, 1.4)) return "too far";
       if (!t.pockets.length && !t.money) return "empty pockets";
       return null;
@@ -106,12 +107,12 @@ export function installRules(): void {
         crime(w, actor, "pickpocketing", 1, t);
         return;
       }
-      const tickets = t.pockets.filter((id) => s.items[id].def === "ticket");
+      const tickets = t.pockets.filter((id) => s.items[id].def === "ticket" || s.items[id].def === "staff_pass");
       if (tickets.length && (!t.money || chance(r, 0.6))) {
         const it = s.items[tickets[0]];
         if (canPocket(actor, it)) moveItem(s, it.id, { k: "pocket", a: actor.id }); else moveItem(s, it.id, { k: "hand", a: actor.id });
         if (t.npc) t.npc.hasTicket = false;
-        w.bus.emit({ type: "stole", t: s.tick, by: actor.id, from: t.id, what: "ticket" });
+        w.bus.emit({ type: "stole", t: s.tick, by: actor.id, from: t.id, what: it.def === "staff_pass" ? "staff pass" : "ticket" });
       } else {
         const cash = Math.max(5, Math.round(t.money * rndRange(r, 0.5, 1)));
         t.money = Math.max(0, t.money - cash); actor.money += cash;
@@ -178,13 +179,22 @@ export function installRules(): void {
   });
 
   registerVerb("vault", {
-    check: (w, act, actor) => (turnstileNear(actor) ? null : "nothing to climb"),
+    check: (w, act, actor) => (turnstileNear(actor) || climbPointNear(actor) ? null : "nothing to climb"),
     perform: (w, act, actor) => {
-      const g = turnstileNear(actor)!;
-      const inside = actor.y < g.y;
-      actor.y = inside ? g.y + g.h + 0.9 : g.y - 0.9;
-      actor.downUntil = w.state.tick + 40;
-      crime(w, actor, "jumping the turnstile", 1);
+      const g = turnstileNear(actor);
+      if (g) {
+        const inside = actor.y < g.y;
+        actor.y = inside ? g.y + g.h + 0.9 : g.y - 0.9;
+        actor.downUntil = w.state.tick + 40;
+        crime(w, actor, "jumping the turnstile", 1);
+        return;
+      }
+      // Squeeze through the loose panel: slow and undignified.
+      const c = climbPointNear(actor)!;
+      actor.y = actor.y > c.y ? c.y - 1.4 : c.y + 1.4;
+      actor.downUntil = w.state.tick + 90;
+      w.bus.emit({ type: "climbed", t: w.state.tick, who: actor.id });
+      if (crimeSeenQuietly(w, actor, false)) crime(w, actor, "climbing through the fence", 1, undefined, false);
     },
   });
 
@@ -270,6 +280,10 @@ export function installRules(): void {
 /** Would anybody nearby have noticed? The same eyes as a crime, without reporting it. */
 function crimeSeenQuietly(w: World, actor: Actor, everyone = true): boolean {
   return witnessesOf(w, actor.x, actor.y, [actor.id], everyone).length > 0;
+}
+
+export function climbPointNear(a: Actor) {
+  return VENUE.climbPoints.find((c) => Math.abs(a.x - c.x) < 1.8 && Math.abs(a.y - c.y) < 2);
 }
 
 export function turnstileNear(a: Actor) {
@@ -363,6 +377,7 @@ export function installReactions(w: World): void {
     const f = st.flags, pc = st.pc;
     const bump = (k: string) => { f[k] = (f[k] ?? 0) + 1; };
     if (e.type === "ejected" && e.who === pc) bump("ejections");
+    if (e.type === "detained" && e.who === pc) bump("detentions");
     if (e.type === "pitch_invasion") bump("pitchInvasions");
     if (e.type === "unmasked") { bump("unmasked"); if (!e.football) st.flags.unmaskedDisguise = 1; }
     if (e.type === "incident" && e.what === "stowaway") bump("stowaway");
@@ -389,12 +404,20 @@ function turnstileCheck(w: World, act: Action): void {
   if (it.void) { n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.6); return void say(w, t, "This ticket's been cancelled. Hop it."); }
   if (it.used) return void say(w, t, "This one's already been scanned.");
   if (ap.faceHidden) return void say(w, t, ap.sinister ? "You're not coming in dressed like that." : "Mask off, please.");
+  // The cameras: a barred face is flagged unless at least half of it is covered.
+  if (VENUE.features.faceCameras && st.banned.includes(by.faceId) && ap.faceCover < 0.5) {
+    n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.8);
+    w.bus.emit({ type: "camera_flag", t: s.tick, who: by.id });
+    return void say(w, t, "Camera's flagged you, sunshine. You're on the list.", 4);
+  }
   if (st.banned.includes(by.faceId) && chance(r, 1 - ap.faceCover)) { n.sus[by.id] = 0.7; return void say(w, t, "Hang on. You're the one we threw out. Go on, hop it."); }
   if (by.hand && s.items[by.hand].def === "pint") { moveItem(s, by.hand, { k: "gone" }); say(w, t, "No drinks inside. I'll have that."); }
   if (ap.alarming) { crime(w, by, "carrying a weapon at the gate", 2); return; }
-  // A quick pat-down misses half of what is in pockets.
-  const hidden = by.pockets.map((id) => s.items[id]).find((i) => hasProp(i, "weapon"));
-  if (hidden && chance(r, 0.5)) {
+  // A pat-down misses some of what is in pockets; a metal detector misses nothing metal.
+  const hidden = by.pockets.map((id) => s.items[id]).find((i) => hasProp(i, "weapon") || (hasProp(i, "smoke")));
+  const detected = hidden && (VENUE.features.metalDetectors && hasProp(hidden, "metal") ? true : chance(r, VENUE.features.patDown));
+  if (VENUE.features.metalDetectors && by.pockets.some((id) => hasProp(s.items[id], "metal") && !hasProp(s.items[id], "weapon"))) say(w, t, "Beep. Empty your pockets. ...Fine, go on.");
+  if (hidden && detected) {
     moveItem(s, hidden.id, { k: "in", c: st.locker });
     n.sus[by.id] = 1;
     say(w, t, "What's this, then? You're not coming in with that.", 4);
@@ -493,7 +516,10 @@ export function stepRules(w: World): void {
   if (dg && dg.npc!.mode === "routine" && near(dg, SPOTS.doorPost, 2) && near(pc, SPOTS.staffDoor, 3.2) && tick % 20 === 0) {
     const ap = appearance(s, pc);
     const wanted = (dg.npc!.sus[pc.id] ?? 0) > 0.4 || (st.banned.includes(pc.faceId) && ap.faceCover < 0.5) || ap.sinister;
-    if (["steward", "police", "catering", "cleaner"].includes(ap.role) && !wanted) {
+    const pass = [pc.hand, ...pc.pockets].some((id) => id && s.items[id].def === "staff_pass");
+    if (VENUE.features.staffPass && !pass && ["steward", "police", "catering", "cleaner"].includes(ap.role) && !wanted) {
+      if (!dg.npc!.bubble) say(w, dg, "Pass, please. ...No pass, no entry. Rules.");
+    } else if (["steward", "police", "catering", "cleaner"].includes(ap.role) && !wanted) {
       if (st.doorPass !== pc.id) { st.doorPass = pc.id; st.gates.staffdoor = { until: tick + 200, for: pc.id }; say(w, dg, ap.role === "catering" ? "Morning, chef." : ap.role === "cleaner" ? "In you go, love." : "All right, mate."); }
     } else if (!st.gates.staffdoor || st.gates.staffdoor.until < tick) {
       if (!dg.npc!.bubble) say(w, dg, wanted ? "Not you again." : "Staff only, mate.");

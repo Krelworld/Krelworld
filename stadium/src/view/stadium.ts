@@ -15,7 +15,9 @@ import { playing } from "../football/util";
 import { Announcer } from "../stadium/announcer";
 import { aimThrow, itemName, itemOptions, looksOutOfPlace, options, personName, primary, throwTarget, type Option } from "../stadium/context";
 import { createGame, loadCheckpoint, stepGame, type Game } from "../stadium/game";
-import { AREAS, areaAt, KICKOFF_AT, SPOTS, WALLS } from "../stadium/layout";
+import { AREAS, areaAt, KICKOFF_AT, SPOTS, VENUE, WALLS } from "../stadium/layout";
+import { afterMatch, describeDef, FIXTURES, loadoutProblem, newCampaign, notorietyText, type Campaign } from "../stadium/campaign";
+import { TEAMS } from "../football/setup";
 import { canBetHere, prices } from "../stadium/betting";
 import { newsReport } from "../stadium/news";
 import { secs } from "../stadium/npc";
@@ -93,14 +95,16 @@ class StadiumScene extends Phaser.Scene {
     this.setZoom();
   }
 
-  newGame() {
-    this.game2 = createGame(`day${Date.now() % 100000}`);
+  newGame(campaign: Campaign = newCampaign()) {
+    this.game2 = createGame(`day${Date.now() % 100000}`, FIXTURES[campaign.fixture] ?? "qf", campaign);
+    this.introFor(campaign);
     const w = this.w;
     new Commentator(w, w.bus, (l) => this.matchLine(l.text, l.big));
-    const TANNOY: Record<string, Clip> = { welcome: "tannoy_welcome", lorry: "tannoy_lorry", pitch: "tannoy_pitch", "2min": "tannoy_2min", teams: "tannoy_teams", cleaner: "tannoy_cleaner", flares: "tannoy_flares" };
+    const TANNOY: Record<string, Clip> = { welcome: VENUE.id === "qf" ? "tannoy_welcome" : "tannoy_welcome_sf", lorry: "tannoy_lorry", pitch: "tannoy_pitch", "2min": "tannoy_2min", teams: "tannoy_teams", cleaner: "tannoy_cleaner", flares: "tannoy_flares", cameras: "tannoy_cameras" };
     const ann = new Announcer(w, (a) => {
       this.say(a.text, a.src === "tannoy" ? "Tannoy" : "Commentary", a.big);
-      if (a.key && TANNOY[a.key]) this.audio.tannoy(TANNOY[a.key], this.hearsMatch() ? 0.9 : 0.5, this.hearsMatch() ? 0 : 0.6);
+      const clip = a.key ? (TANNOY[a.key] ?? (a.key.startsWith("cam") ? "tannoy_supervisor" : undefined)) : undefined;
+      if (clip && !(VENUE.id !== "qf" && a.key === "lorry")) this.audio.tannoy(clip, this.hearsMatch() ? 0.9 : 0.5, this.hearsMatch() ? 0 : 0.6);
     });
     (this as any).announcer = ann;
     w.bus.on((e) => this.sounds(e));
@@ -127,6 +131,51 @@ class StadiumScene extends Phaser.Scene {
     this.camX = this.P.sx(this.pc.x, this.pc.y); this.camY = this.P.sy(this.pc.x, this.pc.y);
     $("ending").hidden = true;
   }
+
+  // ---------- Between matches ----------
+  introFor(c: Campaign) {
+    const opp = TEAMS[VENUE.opp].name;
+    const kit = c.loadout.filter((d) => d !== "shirt_eng").map(describeDef);
+    $("introTitle").textContent = `England are in the ${VENUE.round}.`;
+    $("introText").textContent = c.fixture === 0
+      ? `You are outside ${VENUE.ground} with £${c.money} and an England shirt. ${opp} are the opposition. Kick-off is in five and a half minutes. Help England win, any way you like.`
+      : `${VENUE.ground}, against ${opp}. You have £${c.money}${kit.length ? ` and you've brought: ${kit.join(", ").toLowerCase()}` : ""}. ${notorietyText(c.notoriety)} This ground has metal detectors and face-recognition cameras at the turnstiles, and staff need a pass.`;
+    $("intro").hidden = false;
+    this.started = false;
+  }
+
+  /** England are through: the news, then pack a bag for the next match. */
+  continueTournament() {
+    const next = afterMatch(this.game2.campaign, this.w, newsReport(this.w).headline);
+    this.pendingCampaign = next;
+    $("ending").hidden = true;
+    const list = $("prepList");
+    list.textContent = "";
+    const chosen = new Set<number>();
+    next.stash.forEach((d, i) => {
+      if (d === "shirt_eng") return;
+      const lab = document.createElement("label");
+      const box = document.createElement("input"); box.type = "checkbox"; box.id = `prep${i}`;
+      box.checked = next.loadout.includes(d) && !chosen.has(i);
+      if (box.checked) chosen.add(i);
+      lab.htmlFor = box.id;
+      lab.appendChild(box); lab.appendChild(document.createTextNode(describeDef(d)));
+      list.appendChild(lab);
+    });
+    if (!list.children.length) list.textContent = "You came home with nothing but the shirt on your back.";
+    $("prepText").textContent = `England play ${TEAMS["BRA"].name} in the semi-final. You have £${next.money}. ${notorietyText(next.notoriety)} Choose what to bring. The England shirt comes anyway.`;
+    const check = () => {
+      const picked = ["shirt_eng", ...next.stash.filter((_, i) => ($(`prep${i}`) as HTMLInputElement | null)?.checked)];
+      const problem = loadoutProblem(picked);
+      $("prepProblem").textContent = problem ?? "";
+      ($("prepGo") as HTMLButtonElement).disabled = !!problem;
+      next.loadout = picked;
+    };
+    list.onchange = check;
+    check();
+    $("prep").hidden = false;
+  }
+  pendingCampaign: Campaign | null = null;
 
   // ---------- Sound ----------
   /** Inside the ground (or watching on the pub telly): the match is heard clearly. */
@@ -232,12 +281,20 @@ class StadiumScene extends Phaser.Scene {
       this.labels.push(this.add.text(P.sx(x, y), P.sy(x, y), text, { fontFamily: "system-ui, sans-serif", fontSize: `${size}px`, color: "#ffffff" })
         .setOrigin(0.5).setAlpha(0.55).setResolution(2).setDepth(1));
     };
-    label("THE THREE LIONS", -48, 72, 13); label("TICKETS", 21, 50.6); label("MERCHANDISE", -21, 50.6);
-    label("TURNSTILES", 0, 46.2); label("STAFF ENTRANCE", 59.5, 52.4); label("STEWARDS", 82, 54);
-    label("SERVICE GATE", 66, -48); label("LOADING BAY", 50, -54); label("SECURITY", 34, -51);
-    label("ENGLAND", -17, -50); label("AWAY", 17, -50); label("OFFICIALS", 0, -50.5); label("KITCHEN", -34, -50);
-    label("SECOND HAND ROSE", -11, 64.5); label("ARMY & NAVY", 15, 64.5); label("BOOKMAKER", 36, 69.5); label("BETS", 30, 40.4);
-    label("BAR", -13, 40.6); label("GENTS", 10, 39.6); label("CAR PARK", 43, 72); label("TOILETS", -58, 67);
+    for (const [t, x, y, size] of VENUE.labels) label(t, x, y, size ?? 11);
+    // A fan zone has a big screen; a known face has posters at the turnstiles.
+    if (VENUE.features.fanZone) {
+      const pub = AREAS.find((a) => a.id === "pub")!;
+      const sx = pub.x + pub.w / 2;
+      g.fillStyle(0x111418, 1).fillRect(...P.rect(sx - 6, pub.y + 0.2, 12, 1.2));
+      g.fillStyle(0x2f7d3b, 1).fillRect(...P.rect(sx - 5.6, pub.y + 0.35, 11.2, 0.9));
+    }
+    if (this.game2.campaign.notoriety >= 1) {
+      for (const t of SPOTS.turnstiles) {
+        g.fillStyle(0xf4f1ea, 1).fillRect(...P.rect(t.x - 2.6, 45.1, 1.2, 0.5));
+        label("WANTED", t.x - 2, 46.9, 8);
+      }
+    }
     this.drawCrowd();
   }
 
@@ -559,7 +616,7 @@ class StadiumScene extends Phaser.Scene {
   /** Match commentary is only heard where there is a telly, a radio or a crowd. */
   matchLine(text: string, big: boolean) {
     const pc = this.pc, area = pc ? areaAt(pc.x, pc.y) : null;
-    const inGround = pc && pc.y < 44 && pc.y > -61 && pc.x > -56 && pc.x < 63;
+    const inGround = pc && VENUE.inside(pc.x, pc.y);
     if (inGround || area?.id === "pub") this.say(text, area?.id === "pub" ? "Pub telly" : "Commentary", big);
     else if (/scores|own net|given/.test(text)) this.say("A roar from inside the ground.", "Outside", true);
   }
@@ -689,14 +746,26 @@ class StadiumScene extends Phaser.Scene {
     for (const t of items.slice(-8)) { const li = document.createElement("li"); li.textContent = t; list.appendChild(li); }
     const cps = $("endCps");
     cps.textContent = "";
-    for (const c of this.game2.checkpoints) { const b = document.createElement("button"); b.textContent = c.label; b.dataset.cp = c.id; cps.appendChild(b); }
-    const nb = document.createElement("button"); nb.textContent = "New match day"; nb.className = "primary"; nb.dataset.new = "1"; cps.appendChild(nb);
+    if (e.kind === "through" && this.game2.campaign.fixture < FIXTURES.length - 1) {
+      const go = document.createElement("button"); go.textContent = "Continue to the semi-final"; go.className = "primary"; go.dataset.next = "1"; cps.appendChild(go);
+    } else if (e.kind === "through") {
+      const p = document.createElement("p"); p.textContent = "England are in the final. The final hasn't been built yet."; cps.appendChild(p);
+    }
+    for (const c of this.game2.checkpoints) { const b = document.createElement("button"); b.textContent = `Back to: ${c.label}`; b.dataset.cp = c.id; cps.appendChild(b); }
+    const nb = document.createElement("button"); nb.textContent = "Restart the tournament"; nb.dataset.new = "1"; cps.appendChild(nb);
     $("ending").hidden = false;
   }
 
   // ---------- Wiring ----------
   wireHud() {
     $("start").addEventListener("click", () => { $("intro").hidden = true; this.started = true; void this.audio.unlock(); });
+    $("prepGo").addEventListener("click", () => {
+      if (!this.pendingCampaign) return;
+      $("prep").hidden = true;
+      this.newGame(this.pendingCampaign);
+      this.pendingCampaign = null;
+      this.setSpeed(1);
+    });
     // Phones may suspend audio; any tap brings it back.
     window.addEventListener("pointerdown", () => { if (this.started) void this.audio.unlock(); });
     $("act").addEventListener("click", () => this.run(primary(this.opts)));
@@ -721,7 +790,8 @@ class StadiumScene extends Phaser.Scene {
       if (d.bribe) { const r = dispatch(this.w, { verb: "bribe", actor: this.pc.id, target: { k: "actor", id: d.who! }, amount: +d.bribe }); if (!r.ok) this.hint(r.reason ?? ""); this.closeSheet(); return; }
       if (d.bag) { const o = ((this as any)[`bag_${d.bag}`] as Option[])[+d.i!]; if (o?.action) { const r = dispatch(this.w, o.action); if (!r.ok) this.hint(r.reason ?? ""); } this.openBag(); return; }
       if (d.cp) { loadCheckpoint(this.game2, d.cp as any); this.closeSheet(); $("ending").hidden = true; this.setSpeed(1); this.hint("Back to the checkpoint."); this.setZoom(); return; }
-      if (d.new) { this.newGame(); this.closeSheet(); this.setSpeed(1); return; }
+      if (d.new) { this.newGame(); this.closeSheet(); this.setSpeed(1); $("ending").hidden = true; return; }
+      if (d.next) { this.continueTournament(); return; }
       if (d.mute) { this.audio.toggleMute(); this.openMenu(); return; }
     };
     $("sheet").addEventListener("click", onSheetClick);
@@ -811,6 +881,7 @@ class StadiumScene extends Phaser.Scene {
     const tp = (x: number, y: number) => () => { const pc = this.pc; pc.x = x; pc.y = y; pc.hiddenIn = undefined; pc.heldBy = undefined; pc.seated = false; };
     const acts: [string, () => void][] = [
       ["Give £500", () => { this.pc.money += 500; }],
+      ["Jump to the semi-final", () => { const c = newCampaign(); c.fixture = 1; c.notoriety = 1; c.stash = ["shirt_eng", "sunglasses", "flat_cap", "knife"]; c.loadout = c.stash.slice(); this.newGame(c); $("debug").hidden = true; }],
       ["Give a ticket", () => { spawnItem(this.s, "ticket", { k: "pocket", a: this.pc.id }); }],
       ["Skip to kick-off", () => { const m = this.s.match!; if (m.phase === "pre") { const n = Math.max(0, m.phaseUntil - this.s.tick - 600); for (let i = 0; i < n; i++) stepGame(this.game2); } }],
       ["Skip 60 seconds", () => { for (let i = 0; i < 3600; i++) stepGame(this.game2); }],

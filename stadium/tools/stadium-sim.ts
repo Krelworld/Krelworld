@@ -2,7 +2,7 @@
 import { createGame, stepGame } from "../src/stadium/game";
 import { areaAt } from "../src/stadium/layout";
 
-const g = createGame(process.argv[2] ?? "sim");
+const g = createGame(process.argv[2] ?? "sim", (process.argv[3] as any) ?? "qf");
 const w = g.w, s = () => w.state;
 const counts: Record<string, number> = {};
 w.bus.on((e) => { counts[e.type] = (counts[e.type] ?? 0) + 1; if (["fb_goal", "fb_period_start", "ending", "say"].includes(e.type) && e.type !== "say") console.log(`${(e.t / 60).toFixed(0)}s`, e.type, e.kind ?? "", e.score ?? ""); });

@@ -1,5 +1,6 @@
 // The evening news, read with complete seriousness. Built only from what happened.
 import type { World } from "../core/world";
+import { VENUE } from "./layout";
 
 export interface Bulletin { headline: string; lines: string[] }
 
@@ -17,7 +18,7 @@ export function newsReport(w: World): Bulletin {
   // Headline.
   let headline: string;
   if (st.ending?.kind === "arrested") headline = "England supporter arrested at quarter-final";
-  else if (m.winner === 0) headline = f.refLax || f.impostorRulings || mine.some((i) => i.severity >= 2) ? `England through amid "unprecedented" scenes` : `England beat ${opp} to reach semi-final`;
+  else if (m.winner === 0) headline = f.refLax || f.impostorRulings || mine.some((i) => i.severity >= 2) ? `England through amid "unprecedented" scenes` : `England beat ${opp} to reach the ${VENUE.id === "qf" ? "semi-final" : "final"}`;
   else if (m.winner === 1) headline = `England knocked out by ${opp}`;
   else headline = `England's quarter-final ends in confusion`;
 

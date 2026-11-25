@@ -5,6 +5,7 @@ export const CLIPS = [
   "crowd_loop", "goal_roar", "groan", "boo", "whistle", "whistle_end", "kick", "splat", "punch", "chime", "horn", "flare",
   "tannoy_welcome", "tannoy_pitch", "tannoy_2min", "tannoy_teams", "tannoy_cleaner", "tannoy_flares", "tannoy_lorry",
   "stw_oi", "stw_out", "stw_pal", "stw_coming", "stw_wriggle", "stw_staff",
+  "tannoy_welcome_sf", "tannoy_cameras", "tannoy_supervisor",
 ] as const;
 export type Clip = (typeof CLIPS)[number];
 

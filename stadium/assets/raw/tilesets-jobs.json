@@ -1,0 +1,14 @@
+{
+ "pitch": {
+  "usage": null,
+  "background_job_id": "ed77a6e3-a0fa-4925-b5c2-bbb325305e77",
+  "tileset_id": "6d34d34e-46b5-477d-89a8-21eb62a2f276",
+  "status": "processing"
+ },
+ "street": {
+  "usage": null,
+  "background_job_id": "ccae19bd-54c4-404b-8817-781986acb6c8",
+  "tileset_id": "4a8670e7-3aa7-49f6-ada5-1c3bd032d258",
+  "status": "processing"
+ }
+}

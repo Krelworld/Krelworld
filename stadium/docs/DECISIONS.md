@@ -94,3 +94,25 @@ impersonation, the team bus, the dog, vertical routes, sound, real art.
 
 Running: `npm run build` then open `dist/stadium/local.html` through a local web
 server. `npx tsx tools/stadium-sim.ts` runs a whole match day with nobody playing.
+
+## Art and sound test
+
+PixelLab, v3 characters, low top-down view, black outline: the fan, a steward,
+an England player, a Portugal player and the referee, each with 8 directions and
+an 8-frame walk in all 8 directions. Two 32px top-down tilesets (grass/concrete
+and road/pavement). About 60 generations in total.
+
+Findings:
+- 64px characters are about 56px tall: at crisp 1x zoom a phone shows ~27 m of
+  stadium. The game currently shows ~40 m. 48px characters fit the current view
+  and stay readable. Leaning 48px for the game, 64px for close-ups.
+- The standard tilesets' transitions are rounded blobs, wrong for stadium edges;
+  a later pass needs straight-edged tiles (pro mode or hand-placed).
+- The pitch tileset came back with its two terrains swapped in the metadata.
+
+ElevenLabs: 12 sound effects and 13 voice lines (library voices "Daniel - Steady
+Broadcaster" for the tannoy and "Northern Terry" for stewards; cloned voices on
+the account were avoided). Wired in with Web Audio: a crowd bed that changes with
+where you are, match and hit sounds, tannoy lines with a chime, steward shouts.
+
+Assets live in `assets/art` and `assets/audio`; raw API responses in `assets/raw`.

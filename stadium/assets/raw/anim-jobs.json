@@ -1,0 +1,60 @@
+{
+ "fan": {
+  "background_job_ids": [
+   "bc7db949-5d1b-4d5b-b77d-657dcdefd264",
+   "89ae35f7-8c31-4ba1-83d6-6778a7a2031f",
+   "54681b43-3fe1-458a-87fe-0a199109bf2e",
+   "a48ff2ef-5cd3-4e15-9ab1-38572c775b16",
+   "57a1db2e-dfb2-461b-bc35-066a44a15f6a",
+   "4a733336-0cf6-407b-b924-74564ffd5046",
+   "c0936b8d-1e08-4fd7-8174-509dabd83e3b",
+   "e85392bd-f113-4aad-9472-9416658ddf45"
+  ],
+  "directions": [
+   "south",
+   "south-east",
+   "east",
+   "north-east",
+   "north",
+   "north-west",
+   "west",
+   "south-west"
+  ],
+  "animation_group_id": "58c55f5e-e739-453c-a056-f352ad5586d1",
+  "status": "processing",
+  "enhanced_prompt": null,
+  "enhance_usage": null,
+  "note": null
+ },
+ "steward": {
+  "background_job_ids": [
+   "e060a4d4-9f95-48f9-8a95-87b5054653d9",
+   "0e0ce7ca-a470-47fc-826e-a79c272533ac",
+   "6d4a48e6-e87b-4c5d-9e4d-cf684e7cc6e3",
+   "2c5bb617-0263-4ef1-800c-8663ecbe7068",
+   "ddd0a0d4-5b01-4e9f-b22a-67e70adbc7f4",
+   "fc52b1dd-f073-4e0a-9003-90a74b41dee2",
+   "ab9bf319-0201-4599-a7aa-dd029fd635d6",
+   "c40ec1ce-bb5f-42d8-bd0d-0f5cde5d3fe3"
+  ],
+  "directions": [
+   "south",
+   "south-east",
+   "east",
+   "north-east",
+   "north",
+   "north-west",
+   "west",
+   "south-west"
+  ],
+  "animation_group_id": "6b523687-b390-4269-93b6-390bdc017dc5",
+  "status": "processing",
+  "enhanced_prompt": null,
+  "enhance_usage": null,
+  "note": null
+ },
+ "england": {
+  "error": 429,
+  "body": "{\"detail\":\"Not enough concurrent job slots to animate all 8 directions. Available: 4, needed: 8. Wait for active jobs to complete and try again.\"}"
+ }
+}

@@ -1,0 +1,29 @@
+<title>Art Style Test</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  :root { --bg: #101412; --panel: rgba(12, 16, 15, 0.88); --ink: #f1f4f1; --dim: #a5b3ab; --line: #2c3a33; --accent: #d7263d; --gold: #f2c94c; color-scheme: dark; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body { background: var(--bg); color: var(--ink); overflow: hidden; touch-action: none; font: 14px/1.35 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-user-select: none; user-select: none; }
+  #game { position: absolute; inset: 0; }
+  #game canvas { display: block; touch-action: none; image-rendering: pixelated; }
+  .float { position: absolute; z-index: 2; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  button { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; min-width: 44px; min-height: 44px; padding: 0 12px; cursor: pointer; }
+  button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 700; }
+  button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  #bar { top: 8px; left: max(8px, env(safe-area-inset-left, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; pointer-events: none; }
+  #bar > * { pointer-events: auto; }
+  #info { padding: 6px 10px; font-size: 12px; color: var(--dim); max-width: 340px; }
+  #joy { position: absolute; z-index: 3; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); pointer-events: none; }
+  #knob { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,.35); }
+</style>
+<div id="game"></div>
+<div id="joy" hidden><div id="knob"></div></div>
+<div id="bar" class="float">
+  <button data-zoom="1">1×</button><button data-zoom="1.5">1.5×</button><button data-zoom="2" aria-pressed="true">2×</button><button data-zoom="3">3×</button>
+  <button id="shapes" aria-pressed="false">Old shapes</button>
+  <button id="snd">Sound test</button>
+  <div id="info" class="panel">Drag on the left (or WASD) to walk the fan about. Zoom buttons scale the pixel art by whole steps.</div>
+</div>
+<script src="game.js"></script>

@@ -26,4 +26,14 @@ writeFileSync(
   '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body style="margin:0">' +
     readFileSync("src/view/stadium.html", "utf8") + "</body></html>",
 );
+import { cpSync } from "node:fs";
+cpSync("assets/audio", "dist/stadium/audio", { recursive: true });
 console.log("built dist/stadium");
+
+mkdirSync("dist/arttest", { recursive: true });
+await build({ entryPoints: ["src/view/arttest.ts"], bundle: true, minify: true, format: "iife", outfile: "dist/arttest/game.js", logLevel: "error" });
+copyFileSync("src/view/arttest.html", "dist/arttest/index.html");
+writeFileSync("dist/arttest/local.html", '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body style="margin:0">' + readFileSync("src/view/arttest.html", "utf8") + "</body></html>");
+cpSync("assets/audio", "dist/arttest/audio", { recursive: true });
+cpSync("assets/art", "dist/arttest/art", { recursive: true });
+console.log("built dist/arttest");

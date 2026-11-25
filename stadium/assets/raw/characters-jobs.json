@@ -1,0 +1,58 @@
+{
+ "fan": {
+  "usage": null,
+  "background_job_id": "ab363ebd-9ffd-41bc-9440-c12f358d0fe5",
+  "character_id": "7f32ee95-ea31-4b15-8089-759c38a3b501",
+  "status": "processing",
+  "enhanced_prompt": null,
+  "enhance_usage": null
+ },
+ "steward": {
+  "usage": null,
+  "background_job_id": "feb565ad-021f-44d8-b31b-f54d8fffd5cf",
+  "character_id": "5810bd4c-5a7e-45f1-8c41-008b1c749e80",
+  "status": "processing",
+  "enhanced_prompt": null,
+  "enhance_usage": null
+ },
+ "england": {
+  "usage": null,
+  "background_job_id": "d26f7540-a68d-4ae5-92e9-1edb686cfb9d",
+  "character_id": "b9d10c81-dac6-4c1f-b529-61bcdf81eb86",
+  "status": "processing",
+  "enhanced_prompt": null,
+  "enhance_usage": null
+ },
+ "portugal": {
+  "usage": null,
+  "background_job_id": "79ecfdaf-7677-4a8f-9964-a74dcdcad6be",
+  "character_id": "39c559b4-ac8b-49a0-8c4c-bbaa985a9dfa",
+  "status": "processing",
+  "enhanced_prompt": null,
+  "enhance_usage": null
+ },
+ "referee": {
+  "usage": null,
+  "background_job_id": "6264b470-4234-4960-bd4f-05613ba83a81",
+  "character_id": "fb8d6d2c-d0d8-4369-8696-34d0fd8f98d5",
+  "status": "processing",
+  "enhanced_prompt": null,
+  "enhance_usage": null
+ },
+ "fan48": {
+  "usage": null,
+  "background_job_id": "5b642185-5f00-4db4-803b-3198905fc38d",
+  "character_id": "6fe16680-42bb-454f-bfa1-0bcfb728e733",
+  "status": "processing",
+  "enhanced_prompt": null,
+  "enhance_usage": null
+ },
+ "steward48": {
+  "usage": null,
+  "background_job_id": "200c8318-6ad6-4906-a2e2-445ca7c889f3",
+  "character_id": "721c7f22-c737-4aa0-a01f-8bd3da768ab7",
+  "status": "processing",
+  "enhanced_prompt": null,
+  "enhance_usage": null
+ }
+}

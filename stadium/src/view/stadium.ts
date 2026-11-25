@@ -24,6 +24,7 @@ import { LORRY_LEN, LORRY_WID } from "../stadium/vehicles";
 import { drawFigure, headTop, type FigureStyle } from "./figures";
 import { drawBall, drawGoalFrame, drawPitch } from "./pitchArt";
 import { Projection } from "./projection";
+import { Audio, type Clip } from "./audio";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const SKIN = [0xf1c7a5, 0xd9a47e, 0xb07a52, 0x8a5a3b, 0x5e3b26, 0xe8b896];
@@ -57,6 +58,7 @@ class StadiumScene extends Phaser.Scene {
   crowdJump = 0;
   speed = 1;
   endingShown = false;
+  audio = new Audio("audio/");
 
   get w() { return this.game2.w; }
   get s() { return this.game2.w.state; }
@@ -93,8 +95,13 @@ class StadiumScene extends Phaser.Scene {
     this.game2 = createGame(`day${Date.now() % 100000}`);
     const w = this.w;
     new Commentator(w, w.bus, (l) => this.matchLine(l.text, l.big));
-    const ann = new Announcer(w, (a) => this.say(a.text, a.src === "tannoy" ? "Tannoy" : "Commentary", a.big));
+    const TANNOY: Record<string, Clip> = { welcome: "tannoy_welcome", lorry: "tannoy_lorry", pitch: "tannoy_pitch", "2min": "tannoy_2min", teams: "tannoy_teams", cleaner: "tannoy_cleaner", flares: "tannoy_flares" };
+    const ann = new Announcer(w, (a) => {
+      this.say(a.text, a.src === "tannoy" ? "Tannoy" : "Commentary", a.big);
+      if (a.key && TANNOY[a.key]) this.audio.tannoy(TANNOY[a.key], this.hearsMatch() ? 0.9 : 0.5, this.hearsMatch() ? 0 : 0.6);
+    });
     (this as any).announcer = ann;
+    w.bus.on((e) => this.sounds(e));
     w.bus.on((e) => {
       if (e.type === "say" && e.by !== this.s.stadium!.pc) {
         // Only what is said close by, and only once.
@@ -116,6 +123,83 @@ class StadiumScene extends Phaser.Scene {
     this.drawStatic();
     this.camX = this.P.sx(this.pc.x, this.pc.y); this.camY = this.P.sy(this.pc.x, this.pc.y);
     $("ending").hidden = true;
+  }
+
+  // ---------- Sound ----------
+  /** Inside the ground (or watching on the pub telly): the match is heard clearly. */
+  hearsMatch(): boolean {
+    const pc = this.pc;
+    if (!pc) return false;
+    const ar = areaAt(pc.x, pc.y);
+    return !ar.outside || ar.id === "pub";
+  }
+  distTo(x: number, y: number): number { const pc = this.pc; return pc ? Math.hypot(pc.x - x, pc.y - y) : 99; }
+
+  sounds(e: { type: string; [k: string]: any }) {
+    const a = this.audio, s = this.s, pcId = s.stadium!.pc;
+    const inside = this.hearsMatch(), muffle = inside ? 0 : 0.85, vol = inside ? 1 : 0.35;
+    const near = (x: number, y: number, r = 25) => Math.max(0, 1 - this.distTo(x, y) / r);
+    switch (e.type) {
+      case "fb_goal":
+        if (e.team === 0) a.play("goal_roar", vol, { muffle, minGap: 2 });
+        else { a.play("groan", vol, { muffle, minGap: 2 }); a.play("goal_roar", vol * 0.25, { muffle: 0.5, minGap: 0.1 }); }
+        break;
+      case "fb_kickoff": case "fb_period_start": a.play("whistle", vol * 0.8, { muffle, minGap: 1 }); break;
+      case "fb_foul": case "fb_offside": case "fb_halted":
+        a.play("whistle", vol * 0.7, { muffle, minGap: 0.6 });
+        if (e.type === "fb_foul" && (e.phantom || ((e.card === "red" || e.card === "yellow") && e.team === 0))) a.play("boo", vol * 0.8, { muffle, minGap: 3 });
+        break;
+      case "fb_period_end": case "fb_match_end": a.play("whistle_end", vol, { muffle, minGap: 3 }); break;
+      case "fb_miss": case "fb_woodwork":
+        if (e.team === 0 || s.actors[e.by]?.fb?.team === 0) a.play("groan", vol * 0.6, { muffle, minGap: 4 });
+        break;
+      case "fb_save":
+        if (s.actors[e.shooter]?.fb?.team === 0) a.play("groan", vol * 0.5, { muffle, minGap: 4 });
+        break;
+      case "fb_shot": {
+        const by = s.actors[e.by];
+        if (by) { const v = near(by.x, by.y, 30); if (v > 0) a.play("kick", v * 0.8, { minGap: 0.3 }); }
+        break;
+      }
+      case "fb_intruder_kick": a.play("kick", 0.9); break;
+      case "item_hit": {
+        const v = near(e.x, e.y, 30);
+        if (v > 0) a.play(e.itemDef === "pie" || e.itemDef === "pint" ? "splat" : "punch", 0.4 + v * 0.6);
+        break;
+      }
+      case "action":
+        if (e.action.verb === "strike") { const by = s.actors[e.action.actor]; if (by) a.play("punch", 0.3 + near(by.x, by.y) * 0.7); }
+        break;
+      case "smoke": a.play("flare", 0.4 + near(e.x, e.y, 40) * 0.6); break;
+      case "say": {
+        const by = s.actors[e.by];
+        if (!by || e.by === pcId) break;
+        const v = near(by.x, by.y, 14);
+        if (v <= 0) break;
+        const VOICE: Record<string, Clip> = {
+          "Oi! You!": "stw_oi", "Right. Out you go.": "stw_out", "You can't be in here, pal. Come on.": "stw_pal",
+          "You're coming with me.": "stw_coming", "Stop wriggling!": "stw_wriggle", "Staff only, mate.": "stw_staff",
+        };
+        if (VOICE[e.text]) a.play(VOICE[e.text], 0.35 + v * 0.65, { minGap: 1.5 });
+        if (e.text === "Get out the road!") a.play("horn", 0.3 + v * 0.7, { minGap: 2 });
+        break;
+      }
+    }
+  }
+
+  /** The crowd bed follows you: loud in the stands, a rumble outside, a murmur in the pub. */
+  updateCrowd() {
+    const pc = this.pc;
+    if (!pc) return;
+    const ar = areaAt(pc.x, pc.y), m = this.s.match!;
+    let level: number, bright: number;
+    if (ar.seats || ar.pitch) { level = 1; bright = 1; }
+    else if (!ar.outside) { level = 0.6; bright = 0.3; }
+    else if (ar.id === "pub") { level = 0.25; bright = 0.05; }
+    else { level = pc.y < 62 ? 0.4 : 0.22; bright = pc.y < 62 ? 0.1 : 0.04; }
+    if (m.phase === "pre") level *= 0.75;
+    if (m.phase === "break" || m.phase === "finished") level *= 0.6;
+    this.audio.setCrowd(level, bright);
   }
 
   // ---------- Static drawing ----------
@@ -194,6 +278,7 @@ class StadiumScene extends Phaser.Scene {
     if (!st.ending) this.endingShown = false;
     this.draw(dms);
     this.drawHud();
+    if ((this.s.tick & 15) === 0) this.updateCrowd();
   }
 
   applyInput() {
@@ -573,7 +658,7 @@ class StadiumScene extends Phaser.Scene {
   openMenu() {
     const cps = this.game2.checkpoints;
     this.sheet("menu", `<h2>Paused</h2><p>Go back to a checkpoint. Everything since then is undone, and the match will not play out the same way.</p>
-      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button></div>`);
+      <div class="list">${cps.map((c) => `<button data-cp="${c.id}">${esc(c.label)}</button>`).join("")}<button data-new="1">Start a new match day</button><button data-mute="1">${this.audio.muted ? "Sound: off" : "Sound: on"}</button></div>`);
     this.setSpeed(0);
   }
 
@@ -599,7 +684,9 @@ class StadiumScene extends Phaser.Scene {
 
   // ---------- Wiring ----------
   wireHud() {
-    $("start").addEventListener("click", () => { $("intro").hidden = true; this.started = true; });
+    $("start").addEventListener("click", () => { $("intro").hidden = true; this.started = true; void this.audio.unlock(); });
+    // Phones may suspend audio; any tap brings it back.
+    window.addEventListener("pointerdown", () => { if (this.started) void this.audio.unlock(); });
     $("act").addEventListener("click", () => this.run(primary(this.opts)));
     $("throw").addEventListener("click", () => this.throwNow());
     $("betBtn").addEventListener("click", () => (this.sheetKind === "bet" ? this.closeSheet() : this.openBet()));
@@ -620,12 +707,13 @@ class StadiumScene extends Phaser.Scene {
       if (d.bag) { const o = ((this as any)[`bag_${d.bag}`] as Option[])[+d.i!]; if (o?.action) { const r = dispatch(this.w, o.action); if (!r.ok) this.hint(r.reason ?? ""); } this.openBag(); return; }
       if (d.cp) { loadCheckpoint(this.game2, d.cp as any); this.closeSheet(); $("ending").hidden = true; this.setSpeed(1); this.hint("Back to the checkpoint."); this.setZoom(); return; }
       if (d.new) { this.newGame(); this.closeSheet(); this.setSpeed(1); return; }
+      if (d.mute) { this.audio.toggleMute(); this.openMenu(); return; }
     };
     $("sheet").addEventListener("click", onSheetClick);
     $("ending").addEventListener("click", onSheetClick);
 
     window.addEventListener("keydown", (e) => {
-      if (!this.started) { if (e.key === "Enter") { $("intro").hidden = true; this.started = true; } return; }
+      if (!this.started) { if (e.key === "Enter") { $("intro").hidden = true; this.started = true; void this.audio.unlock(); } return; }
       const k = e.key.toLowerCase();
       if (k === "e" || k === " ") { e.preventDefault(); this.run(primary(this.opts)); }
       else if (k === "q") this.throwNow();

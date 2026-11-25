@@ -5,7 +5,7 @@ import type { World } from "../core/world";
 import { KICKOFF_AT } from "./layout";
 import { secs } from "./npc";
 
-export interface Announcement { t: number; text: string; src: "tannoy" | "commentary"; big: boolean }
+export interface Announcement { t: number; text: string; src: "tannoy" | "commentary"; big: boolean; key?: string }
 
 const TEAMNAME: Record<string, string> = { ENG: "England", POR: "Portugal", ARG: "Argentina", BRA: "Brazil" };
 
@@ -18,7 +18,7 @@ export class Announcer {
   private once(key: string, text: string, src: Announcement["src"] = "tannoy", big = false): void {
     if (this.said.has(key)) return;
     this.said.add(key);
-    this.out({ t: this.w.state.tick, text, src, big });
+    this.out({ t: this.w.state.tick, text, src, big, key });
   }
 
   /** Scheduled announcements. Call every tick. */
@@ -79,7 +79,7 @@ export class Announcer {
         if (e.who === pc) this.out({ t: e.t, text: "Would a first-aider please attend the service road.", src: "tannoy", big: false });
         break;
       case "accident":
-        this.out({ t: e.t, text: "Would a cleaner please attend the area immediately. Immediately.", src: "tannoy", big: false });
+        this.out({ t: e.t, text: "Would a cleaner please attend the area immediately. Immediately.", src: "tannoy", big: false, key: "cleaner" });
         break;
       case "fell_out":
         this.out({ t: e.t, text: "A man has fallen out of the back of a beer lorry.", src: "tannoy", big: false });
@@ -100,7 +100,7 @@ export class Announcer {
         break;
       case "smoke":
         if (e.onPitch) this.out({ t: e.t, text: "A smoke flare has landed on the pitch. Visibility is described as poor.", src: "commentary", big: true });
-        else this.out({ t: e.t, text: "Would supporters please refrain from setting off flares.", src: "tannoy", big: false });
+        else this.out({ t: e.t, text: "Would supporters please refrain from setting off flares.", src: "tannoy", big: false, key: "flares" });
         break;
       case "pitch_invasion":
         this.once(`inv${Math.floor(e.t / 1800)}`, "There appears to be a spectator on the pitch.", "commentary", true);

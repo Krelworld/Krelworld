@@ -18,7 +18,18 @@ export const ITEM_DEFS: Record<string, ItemDef> = Object.fromEntries(
     { id: "hivis", name: "Hi-vis vest", props: ["wearable"], size: "large", slot: "outer", role: "steward", authority: 1, colour: 0xd9e021, colour2: 0x9aa31a },
     { id: "ref_kit", name: "Referee's kit", props: ["wearable"], size: "large", slot: "outer", role: "referee", authority: 3, colour: 0x15171a, colour2: 0xf2c94c },
     { id: "police_hat", name: "Police helmet", props: ["wearable"], size: "large", slot: "head", role: "police", authority: 2, colour: 0x101830 },
-    { id: "mask", name: "Novelty mask", props: ["wearable"], size: "small", slot: "face", price: 8, colour: 0xf0a0c0 },
+    { id: "mask", name: "Novelty mask", props: ["wearable"], size: "small", slot: "face", price: 8, colour: 0xf0a0c0, faceCover: 1 },
+    // From the charity shop.
+    { id: "flat_cap", name: "Flat cap", props: ["wearable"], size: "small", slot: "head", price: 6, colour: 0x6b5a45, faceCover: 0.15 },
+    { id: "sunglasses", name: "Sunglasses", props: ["wearable"], size: "small", slot: "face", price: 5, colour: 0x111111, faceCover: 0.5 },
+    { id: "moustache", name: "Stick-on moustache", props: ["wearable"], size: "small", slot: "face", price: 3, colour: 0x3a2a1a, faceCover: 0.35 },
+    { id: "tracksuit", name: "Grey tracksuit top", props: ["wearable"], size: "large", slot: "outer", price: 12, colour: 0x8a8f96, colour2: 0x5a5f66 },
+    { id: "chef_whites", name: "Chef's whites", props: ["wearable"], size: "large", slot: "outer", role: "catering", authority: 1, price: 18, colour: 0xf3f1ea, colour2: 0xcfcac0 },
+    { id: "overalls", name: "Cleaner's overalls", props: ["wearable"], size: "large", slot: "outer", role: "cleaner", authority: 1, price: 15, colour: 0x5f7a8f, colour2: 0x3f5a6f },
+    // From the army surplus.
+    { id: "balaclava", name: "Balaclava", props: ["wearable", "sinister"], size: "small", slot: "face", price: 10, colour: 0x1a1a1a, faceCover: 1 },
+    { id: "hammer", name: "Claw hammer", props: ["weapon", "metal", "throwable"], size: "small", price: 14, colour: 0x8a6a40 },
+    { id: "flare", name: "Smoke flare", props: ["throwable", "smoke", "illicit"], size: "small", price: 20, colour: 0xff5a36 },
     // Fixtures: too big to carry, but they can be used, spiked or hidden in.
     { id: "lorry_cargo", name: "Back of the beer lorry", props: ["container"], size: "huge" },
     { id: "cooler_home", name: "England's water", props: ["spikable"], size: "huge", colour: 0x3a6fd8 },

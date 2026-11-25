@@ -40,7 +40,9 @@ export class Announcer {
         if (e.seen && e.severity >= 2 && e.blamed) this.out({ t: e.t, text: `Stewards are dealing with an incident involving a ${tn(e.blamed)} supporter.`, src: "tannoy", big: true });
         break;
       case "unmasked":
-        this.out({ t: e.t, text: `Security now believe the person responsible may have been an ${e.now === "ENG" ? "Englishman" : "individual"} wearing two football shirts.`, src: "commentary", big: true });
+        this.out({ t: e.t, text: e.football
+          ? `Security now believe the person responsible may have been an ${e.now === "ENG" ? "Englishman" : "individual"} wearing two football shirts.`
+          : `Security now believe the person responsible was an ${e.now === "ENG" ? "England supporter" : "individual"} wearing ${String(e.outer).toLowerCase()} over his shirt.`, src: "commentary", big: true });
         break;
       case "ejected":
         if (e.who === pc) this.out({ t: e.t, text: "A supporter has been escorted from the ground.", src: "commentary", big: false });
@@ -95,6 +97,10 @@ export class Announcer {
       }
       case "two_refs":
         this.out({ t: e.t, text: "There appear to be two referees. Both now consider the other to have been dismissed.", src: "commentary", big: true });
+        break;
+      case "smoke":
+        if (e.onPitch) this.out({ t: e.t, text: "A smoke flare has landed on the pitch. Visibility is described as poor.", src: "commentary", big: true });
+        else this.out({ t: e.t, text: "Would supporters please refrain from setting off flares.", src: "tannoy", big: false });
         break;
       case "pitch_invasion":
         this.once(`inv${Math.floor(e.t / 1800)}`, "There appears to be a spectator on the pitch.", "commentary", true);

@@ -78,6 +78,8 @@ export const AREAS: Area[] = [
   { id: "pub_yard", name: "Pub yard", access: "public", floor: C.yard, outside: true, ...r(-34, 64, -22, 80) },
   { id: "cabin", name: "Stewards' cabin", access: "staff", roles: ["steward", "police"], floor: C.cabin, outside: true, ...r(76, 50, 88, 58) },
   { id: "carpark", name: "Car park", access: "public", floor: 0x34373b, outside: true, ...r(26, 62, 60, 82) },
+  { id: "charity", name: "Second Hand Rose (charity shop)", access: "public", floor: 0x4a3f38, outside: true, ...r(-18, 62, -4, 72) },
+  { id: "surplus", name: "Army & Navy Surplus", access: "public", floor: 0x3d4434, outside: true, ...r(8, 62, 22, 72) },
   { id: "bookies", name: "Lucky Lionel's Bookmakers", access: "public", floor: 0x3d3350, outside: true, ...r(28, 62, 44, 72) },
 ];
 
@@ -132,6 +134,13 @@ export const WALLS: Wall[] = [
   wall(-50, 66, -38, 67.2, 1.1, 0x6b4a33, 0x8a6a50), // the bar
   // Ticket office booth and merch stall.
   wall(16, 47, 26, 48, 2.6, 0x4a5a70, 0x6a7a90), wall(-26, 47, -16, 48, 1.4, 0x3f5a73, 0x5f7a93),
+  // Charity shop and army surplus: doors on the side facing the ground, counters at the back.
+  wall(-18.5, 61.5, -13, 62, 3, 0x6a5a4a, 0x8a7a6a), wall(-9, 61.5, -3.5, 62, 3, 0x6a5a4a, 0x8a7a6a),
+  wall(-18.5, 62, -18, 72.5, 3, 0x6a5a4a, 0x8a7a6a), wall(-4, 62, -3.5, 72.5, 3, 0x6a5a4a, 0x8a7a6a), wall(-18.5, 72, -3.5, 72.5, 3, 0x6a5a4a, 0x8a7a6a),
+  wall(-16, 68.6, -6, 69.4, 1.1, 0x5a4a30, 0x7a6a50),
+  wall(7.5, 61.5, 13, 62, 3, 0x4d5640, 0x6d7660), wall(17, 61.5, 22.5, 62, 3, 0x4d5640, 0x6d7660),
+  wall(7.5, 62, 8, 72.5, 3, 0x4d5640, 0x6d7660), wall(22, 62, 22.5, 72.5, 3, 0x4d5640, 0x6d7660), wall(7.5, 72, 22.5, 72.5, 3, 0x4d5640, 0x6d7660),
+  wall(10, 68.6, 20, 69.4, 1.1, 0x5a4a30, 0x7a6a50),
   // Bookmaker's, door at the bottom; counter across the back. And a betting kiosk on the concourse.
   wall(27.5, 61.5, 44.5, 62, 3.2, 0x4a3d60, 0x6a5d80), wall(27.5, 62, 28, 72.5, 3.2, 0x4a3d60, 0x6a5d80), wall(44, 62, 44.5, 72.5, 3.2, 0x4a3d60, 0x6a5d80),
   wall(27.5, 72, 34, 72.5, 3.2, 0x4a3d60, 0x6a5d80), wall(38, 72, 44.5, 72.5, 3.2, 0x4a3d60, 0x6a5d80),
@@ -176,6 +185,8 @@ export const SPOTS = {
   merchCounter: { x: -21, y: 49 },
   cabinHook: { x: 86, y: 54 },
   bookie: { x: 36, y: 63.3 },
+  charity: { x: -11, y: 70.6 },
+  surplus: { x: 15, y: 70.6 },
   bookieCounter: { x: 36, y: 66.6 },
   kiosk: { x: 30, y: 43.2 },
   kioskCounter: { x: 30, y: 40.8 },

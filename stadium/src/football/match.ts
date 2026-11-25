@@ -210,7 +210,6 @@ export function stepMatch(w: World): void {
         // Stopped from outside: drop ball to whoever had it when play resumes.
         const team: TeamIdx = m.possession === -1 ? 0 : m.possession;
         beginRestart(w, m, "drop_ball", team, m.ball.x, m.ball.y, 3);
-        w.bus.emit({ type: "fb_halted", t: tick, reason: m.halted });
         m.stoppage += 1;
         break;
       }

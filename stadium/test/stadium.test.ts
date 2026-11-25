@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { appearance } from "../src/core/identity";
 import { spawnItem } from "../src/core/items";
 import type { Actor } from "../src/core/types";
 import { dispatch } from "../src/core/verbs";
@@ -244,13 +245,53 @@ test("bets settle on the official result and pay whoever holds the slip", () => 
   pc.x = 0; pc.y = 32; pc.seated = true;
   const before = pc.money;
   assert.equal(dispatch(g.w, { verb: "bet", actor: pc.id, arg: "winner:ENG", amount: 50 }).ok, true);
-  assert.equal(dispatch(g.w, { verb: "bet", actor: pc.id, arg: "winner:OPP", amount: 50 }).ok, true);
-  assert.equal(dispatch(g.w, { verb: "bet", actor: pc.id, arg: "winner:OPP", amount: 500 }).ok, false, "stake limit");
+  assert.equal(dispatch(g.w, { verb: "bet", actor: pc.id, arg: "winner:OPP", amount: 50 }).ok, false, "no betting on England going out");
+  assert.equal(dispatch(g.w, { verb: "bet", actor: pc.id, arg: "next:NONE", amount: 50 }).ok, true);
+  assert.equal(dispatch(g.w, { verb: "bet", actor: pc.id, arg: "next:ENG", amount: 500 }).ok, false, "stake limit");
   assert.equal(pc.money, before - 100);
   while (m.phase !== "finished" && s.tick < 60 * 60 * 45) stepGame(g);
   const slips = [pc.hand, ...pc.pockets].filter(Boolean).map((id) => s.items[id!]).filter((it) => it.bet);
   assert.equal(slips.length, 2);
   assert.ok(slips.every((it) => it.bet!.result), "both settled");
-  assert.equal(slips.filter((it) => it.bet!.result === "won").length, 1, "exactly one wins");
-  assert.ok(pc.money > before - 100, "the winning slip paid out");
+  const won = slips.filter((it) => it.bet!.result === "won");
+  const expected = won.reduce((t, it) => t + Math.round(it.bet!.stake * it.bet!.odds), 0);
+  assert.equal(pc.money, before - 100 + expected, "winning slips paid out, losing ones did not");
+});
+
+test("a disguise changes the description; a balaclava gets you looked at", () => {
+  const g = createGame("disguise");
+  const s = g.w.state, pc = pcOf(g);
+  pc.x = 0; pc.y = 41;
+  run(g, 1);
+  const victim = find(g, (a) => a.npc?.job === "patrol");
+  victim.x = pc.x + 1; victim.y = pc.y; victim.facing = Math.PI;
+  dispatch(g.w, { verb: "strike", actor: pc.id, target: { k: "actor", id: victim.id } });
+  const wd = s.stadium!.wanted.at(-1)!;
+  spawnItem(s, "flat_cap", { k: "worn", a: pc.id, slot: "head" });
+  spawnItem(s, "sunglasses", { k: "worn", a: pc.id, slot: "face" });
+  const ap = appearance(s, pc);
+  assert.notEqual(ap.look, wd.look, "the outfit no longer matches the description");
+  assert.ok(ap.faceCover >= 0.5 && !ap.faceHidden);
+  const bal = spawnItem(s, "balaclava", { k: "hand", a: pc.id });
+  dispatch(g.w, { verb: "wear", actor: pc.id, item: bal.id });
+  assert.ok(appearance(s, pc).sinister && appearance(s, pc).faceHidden);
+});
+
+test("a smoke flare on the pitch stops play and hides you", () => {
+  const g = createGame("flare");
+  const s = g.w.state, pc = pcOf(g), m = s.match!;
+  run(g, 400);
+  run(g, 30, () => {});
+  pc.x = 12; pc.y = 29; // away from the stewards along the front
+  const flare = spawnItem(s, "flare", { k: "hand", a: pc.id });
+  const events: string[] = [];
+  g.w.bus.on((e) => events.push(e.type));
+  run(g, 20, () => { if (m.phase === "live" && pc.hand === flare.id) dispatch(g.w, { verb: "throw", actor: pc.id, item: flare.id, dirX: 0, dirY: -1, dist: 12 }); });
+  assert.ok(events.includes("smoke"));
+  assert.ok(events.includes("fb_halted"));
+  const c = s.stadium!.smoke[0];
+  const steward = find(g, (a) => a.npc?.job === "patrol");
+  steward.x = c.x; steward.y = c.y - 10; steward.facing = Math.PI / 2;
+  pc.x = c.x; pc.y = c.y + 2;
+  assert.equal(canSee(g.w, steward, pc, 30), false, "nobody sees through the smoke");
 });

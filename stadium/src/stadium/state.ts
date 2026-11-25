@@ -82,10 +82,14 @@ export interface Wanted {
   team: string | null;
   role: Role;
   outer: string | null;
+  /** The whole outfit as an onlooker would describe it. */
+  look: string;
   severity: number;
   until: number;
   what: string;
 }
+
+export interface Smoke { x: number; y: number; r: number; until: number }
 
 export interface Incident {
   t: number;
@@ -123,6 +127,8 @@ export interface StadiumState {
   policeCalled: boolean;
   /** Item id of the locker where confiscated things go. */
   locker: Id;
+  /** Clouds of smoke from flares. */
+  smoke: Smoke[];
   /** Who drank from which spiked supply at half-time. */
   dosed: Record<Id, { effect: string; at: number }>;
 }

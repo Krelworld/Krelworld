@@ -149,6 +149,7 @@ class StadiumScene extends Phaser.Scene {
     label("TURNSTILES", 0, 46.2); label("STAFF ENTRANCE", 59.5, 52.4); label("STEWARDS", 82, 54);
     label("SERVICE GATE", 66, -48); label("LOADING BAY", 50, -54); label("SECURITY", 34, -51);
     label("ENGLAND", -17, -50); label("AWAY", 17, -50); label("OFFICIALS", 0, -50.5); label("KITCHEN", -34, -50);
+    label("SECOND HAND ROSE", -11, 64.5); label("ARMY & NAVY", 15, 64.5); label("BOOKMAKER", 36, 69.5); label("BETS", 30, 40.4);
     label("BAR", -13, 40.6); label("GENTS", 10, 39.6); label("CAR PARK", 43, 72); label("TOILETS", -58, 67);
     this.drawCrowd();
   }
@@ -241,10 +242,13 @@ class StadiumScene extends Phaser.Scene {
     if (job === "cleaner") { shirt = 0x6a7a8a; trim = 0x445566; }
     if (outer?.role === "referee") { shirt = outer.colour!; trim = outer.colour2!; }
     const vest = a.worn.outer && defOf(s.items[a.worn.outer]).id === "hivis" ? 0xd9e021 : null;
-    const hat = a.worn.head ? 0x101830 : a.worn.face ? 0xf0a0c0 : null;
+    const headDef = a.worn.head ? defOf(s.items[a.worn.head]) : undefined;
+    const faceDef = a.worn.face ? defOf(s.items[a.worn.face]) : undefined;
+    const hat = headDef ? headDef.colour ?? 0x101830 : null;
+    const face = faceDef ? { colour: faceDef.colour ?? 0xf0a0c0, kind: (faceDef.faceCover ?? 0) >= 1 ? "full" as const : faceDef.id === "moustache" ? "tache" as const : "glasses" as const } : null;
     const isPc = a.id === s.stadium!.pc;
     return {
-      shirt, trim, shorts: 0x2b3b55, skin, down, vest, hat,
+      shirt, trim, shorts: 0x2b3b55, skin, down, vest, hat, face,
       girth: isPc ? 1.75 : a.npc?.job === "fan" || a.npc?.job === "local" ? 1.1 + (Math.abs(hash(a.id)) % 5) * 0.08 : 1,
       height: a.seated ? 1.2 : isPc ? 1.75 : 1.8,
       ring: isPc ? 0xffffff : null,
@@ -341,6 +345,16 @@ class StadiumScene extends Phaser.Scene {
 
     things.sort((p, q) => p.d - q.d);
     for (const t of things) t.draw();
+    for (const c of st.smoke) {
+      if (c.until < tick) continue;
+      const left = (c.until - tick) / (60 * 25);
+      for (let i = 0; i < 9; i++) {
+        const a = i * 0.7 + tick * 0.004, rr = c.r * (0.45 + 0.35 * Math.sin(i * 1.7 + tick * 0.01));
+        const x = c.x + Math.cos(a) * rr * 0.7, y = c.y + Math.sin(a) * rr * 0.5;
+        g.fillStyle(i % 2 ? 0xd9d9d4 : 0xbfc0bb, 0.55 * Math.min(1, left * 3)).fillEllipse(P.sx(x, y), P.sy(x, y, 1.2), c.r * P.S * 0.9, c.r * P.S * 0.6 * (P.standing ? P.K : 1));
+      }
+      g.fillStyle(0xff5a36, 0.8).fillCircle(P.sx(c.x, c.y), P.sy(c.x, c.y), 3);
+    }
 
     // Crowd bounce after a goal.
     if (this.crowdJump) {
@@ -528,7 +542,7 @@ class StadiumScene extends Phaser.Scene {
     const book = prices(this.w), pc = this.pc, where = canBetHere(this.w, pc);
     const slips = [pc.hand, ...pc.pockets].filter((x): x is string => !!x).map((id) => this.s.items[id]).filter((it) => it.bet);
     const slipHtml = slips.length ? `<h2>Your slips</h2>${slips.map((it) => {
-      const b = it.bet!, label = b.market === "winner" ? (b.pick === "ENG" ? "England to go through" : "Them to go through") : b.pick === "NONE" ? "No more goals" : b.pick === "ENG" ? "England next goal" : "Them next goal";
+      const b = it.bet!, label = b.market === "winner" ? "England to go through" : b.market === "pen" ? "a penalty" : b.market === "red" ? "a red card" : b.pick === "NONE" ? "No more goals" : b.pick === "ENG" ? "England next goal" : "Them next goal";
       return `<div class="slip">£${b.stake} on ${esc(label)} at ${b.odds.toFixed(2)}${b.result ? ` · ${b.result === "won" ? `won £${Math.round(b.stake * b.odds)}` : "lost"}` : ""}</div>`;
     }).join("")}` : "";
     if (!book) { this.sheet("bet", `<h2>Betting</h2><p>Betting is suspended.</p>${slipHtml}`); return; }

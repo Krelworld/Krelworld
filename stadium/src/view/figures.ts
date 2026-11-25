@@ -16,6 +16,8 @@ export interface FigureStyle {
   alpha?: number;
   hat?: number | null;
   vest?: number | null;
+  /** Something over the face: a balaclava, a mask, glasses, a moustache. */
+  face?: { colour: number; kind: "full" | "glasses" | "tache" } | null;
 }
 
 /** Draw one person standing at ground point (x, y) facing `facing` radians. */
@@ -60,6 +62,12 @@ export function drawFigure(g: Phaser.GameObjects.Graphics, P: Projection, x: num
   // Head, turned slightly towards where he faces.
   const hx = gx + Math.cos(facing) * (P.rot ? 0 : Wd * 0.18) + (P.rot ? Math.sin(facing) * Wd * 0.18 : 0);
   g.fillStyle(st.skin, a).fillCircle(hx, top - headR * 0.9, headR);
+  if (st.face) {
+    const hy = top - headR * 0.9;
+    if (st.face.kind === "full") g.fillStyle(st.face.colour, a).fillCircle(hx, hy, headR * 1.02);
+    else if (st.face.kind === "glasses") g.fillStyle(st.face.colour, a).fillRect(hx - headR * 0.85, hy - headR * 0.35, headR * 1.7, headR * 0.45);
+    else g.fillStyle(st.face.colour, a).fillRect(hx - headR * 0.6, hy + headR * 0.25, headR * 1.2, headR * 0.3);
+  }
   if (st.hat) g.fillStyle(st.hat, a).fillRect(hx - headR * 1.05, top - headR * 2.2, headR * 2.1, headR * 0.9);
 }
 

@@ -11,7 +11,7 @@ export const DT = 1 / TICK_HZ;
 export type Prop =
   | "sharp" | "throwable" | "liquid" | "consumable" | "food" | "alcohol" | "spikable"
   | "substance" | "wearable" | "weapon" | "metal" | "illicit" | "credential" | "container"
-  | "valuable" | "noisy";
+  | "valuable" | "noisy" | "sinister" | "smoke";
 export type WearSlot = "head" | "face" | "outer" | "inner" | "body";
 export type Role =
   | "fan" | "steward" | "police" | "cleaner" | "catering" | "medic" | "broadcaster"
@@ -35,6 +35,8 @@ export interface ItemDef {
   /** Main colour when drawn or worn. */
   colour?: number;
   colour2?: number;
+  /** How much of the face it hides, 0..1. One means unrecognisable. */
+  faceCover?: number;
   /** Price in pounds where it is sold. */
   price?: number;
 }
@@ -63,7 +65,7 @@ export interface Item {
   /** A ticket that has already been through a turnstile. */
   used?: boolean;
   /** A betting slip's terms and, once settled, its result. */
-  bet?: { market: "winner" | "next"; pick: string; stake: number; odds: number; at: number; result?: "won" | "lost" };
+  bet?: { market: "winner" | "next" | "pen" | "red"; pick: string; stake: number; odds: number; at: number; result?: "won" | "lost" };
 }
 
 // ---------- Actors ----------

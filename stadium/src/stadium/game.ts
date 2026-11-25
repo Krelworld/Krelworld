@@ -36,7 +36,7 @@ export function createGame(seed: string, oppKey = "POR"): Game {
   const locker = spawnItem(s, "locker", { k: "ground", x: SPOTS.locker.x, y: SPOTS.locker.y });
   const st: StadiumState = {
     pc: "pc", arrivedAt: 0, gates: {}, vehicles: {}, banned: [], wanted: [], incidents: [], admitted: false, warnings: 0,
-    ending: null, flags: {}, doorPass: null, detainedUntil: 0, policeCalled: false, locker: locker.id, dosed: {},
+    ending: null, flags: {}, doorPass: null, detainedUntil: 0, policeCalled: false, locker: locker.id, dosed: {}, smoke: [],
   };
   s.stadium = st;
 
@@ -83,6 +83,8 @@ export function createGame(seed: string, oppKey = "POR"): Game {
   staff("barman", "catering", "Barmaid", SPOTS.barSman, N, { shop: "bar" });
   staff("seller", "none", "Ticket office", SPOTS.ticketSeller, S, { shop: "ticket" });
   staff("seller", "none", "Stallholder", SPOTS.merchSeller, S, { shop: "merch" });
+  staff("seller", "none", "Rose", SPOTS.charity, S, { shop: "charity", lines: ["All proceeds to the donkey sanctuary.", "Chef's whites came in this morning. Fits a big lad."] });
+  staff("seller", "none", "Sarge", SPOTS.surplus, S, { shop: "surplus", lines: ["Flares are for boats. Officially.", "Cash only. No questions."] });
   staff("seller", "none", "Lucky Lionel", SPOTS.bookie, S, { shop: "bookies", lines: ["England? Brave. I like it.", "Odds change when the score does, sunshine.", "No refunds on acts of God. Or acts of you."] });
   staff("seller", "none", "Kiosk", SPOTS.kiosk, N, { shop: "bookies", lines: ["Bets close fifteen seconds after a goal.", "Next goal's the one everyone wants."] });
   staff("cleaner", "cleaner", "Cleaner", { x: -30, y: 40 }, E);

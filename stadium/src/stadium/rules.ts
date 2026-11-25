@@ -22,6 +22,8 @@ export const SHOPS: Record<string, { name: string; stock: Record<string, number>
   pub: { name: "The Three Lions", stock: { pint: 5, pie: 4 } },
   bar: { name: "Concourse bar", stock: { pint: 7, pie: 5 } },
   bookies: { name: "Bookmaker", stock: {} },
+  charity: { name: "Second Hand Rose", stock: { flat_cap: 6, sunglasses: 5, moustache: 3, tracksuit: 12, chef_whites: 18, overalls: 15 } },
+  surplus: { name: "Army & Navy Surplus", stock: { balaclava: 10, hammer: 14, flare: 20 } },
 };
 
 const near = (a: Actor, b: { x: number; y: number }, r: number) => Math.hypot(a.x - b.x, a.y - b.y) <= r;
@@ -336,6 +338,14 @@ function bribe(w: World, by: Actor, t: Actor, amount: number): void {
 export function installReactions(w: World): void {
   w.bus.on((e) => {
     const s = w.state, st = s.stadium!;
+    if ((e.type === "item_landed" || e.type === "item_hit") && e.itemDef === "flare") {
+      st.smoke.push({ x: e.x, y: e.y, r: 7, until: s.tick + 60 * 25 });
+      moveItem(s, e.item, { k: "gone" });
+      w.bus.emit({ type: "smoke", t: s.tick, x: e.x, y: e.y, onPitch: areaAt(e.x, e.y).pitch === true });
+      const by = s.actors[e.by];
+      if (by) crime(w, by, "throwing a smoke flare", 2);
+      if (areaAt(e.x, e.y).pitch && s.match && (s.match.phase === "live" || s.match.phase === "restart")) { haltPlay(w, "smoke"); st.flags.smokeHalt = 1; }
+    }
     if (e.type === "item_hit") {
       const t = s.actors[e.target], by = s.actors[e.by], it = s.items[e.item];
       if (!t || !by) return;
@@ -354,10 +364,11 @@ export function installReactions(w: World): void {
     const bump = (k: string) => { f[k] = (f[k] ?? 0) + 1; };
     if (e.type === "ejected" && e.who === pc) bump("ejections");
     if (e.type === "pitch_invasion") bump("pitchInvasions");
-    if (e.type === "unmasked") bump("unmasked");
+    if (e.type === "unmasked") { bump("unmasked"); if (!e.football) st.flags.unmaskedDisguise = 1; }
     if (e.type === "incident" && e.what === "stowaway") bump("stowaway");
     if (e.type === "run_over" && e.who === pc) bump("runOver");
     if (e.type === "accident") bump("accident");
+    if (e.type === "smoke") bump("flares");
     if (e.type === "item_hit" && s.match && e.target === s.match.officials.referee) bump("refHit");
     if (e.type === "dose_kicks_in" && s.actors[e.id]?.off && e.effect === "laxative") bump("refLax");
     if (e.type === "action" && e.action.verb === "consume" && e.action.actor === st.pc) {
@@ -377,8 +388,8 @@ function turnstileCheck(w: World, act: Action): void {
   if (it.def !== "ticket") return void say(w, t, "That's not a ticket, is it?");
   if (it.void) { n.sus[by.id] = Math.max(n.sus[by.id] ?? 0, 0.6); return void say(w, t, "This ticket's been cancelled. Hop it."); }
   if (it.used) return void say(w, t, "This one's already been scanned.");
-  if (ap.faceHidden) return void say(w, t, "Mask off, please.");
-  if (st.banned.includes(by.faceId)) { n.sus[by.id] = 0.7; return void say(w, t, "Hang on. You're the one we threw out. Go on, hop it."); }
+  if (ap.faceHidden) return void say(w, t, ap.sinister ? "You're not coming in dressed like that." : "Mask off, please.");
+  if (st.banned.includes(by.faceId) && chance(r, 1 - ap.faceCover)) { n.sus[by.id] = 0.7; return void say(w, t, "Hang on. You're the one we threw out. Go on, hop it."); }
   if (by.hand && s.items[by.hand].def === "pint") { moveItem(s, by.hand, { k: "gone" }); say(w, t, "No drinks inside. I'll have that."); }
   if (ap.alarming) { crime(w, by, "carrying a weapon at the gate", 2); return; }
   // A quick pat-down misses half of what is in pockets.
@@ -415,6 +426,9 @@ export function stepRules(w: World): void {
       for (const id in s.actors) { const g = s.actors[id]; if (g.npc?.job === "pitchsteward") alert(w, g, pc, 2, 2); }
     }
   } else if (!lookalike) st.flags.refStare = 0;
+
+  st.smoke = st.smoke.filter((c) => c.until > tick);
+  if (st.flags.smokeHalt && !st.smoke.some((c) => areaAt(c.x, c.y).pitch)) { st.flags.smokeHalt = 0; if (m.halted === "smoke") resumePlay(w); }
 
   // Somebody on the pitch who should not be: the referee stops play if he notices.
   const area = areaAt(pc.x, pc.y);
@@ -478,9 +492,9 @@ export function stepRules(w: World): void {
   const dg = Object.values(s.actors).find((a) => a.npc?.job === "doorguard");
   if (dg && dg.npc!.mode === "routine" && near(dg, SPOTS.doorPost, 2) && near(pc, SPOTS.staffDoor, 3.2) && tick % 20 === 0) {
     const ap = appearance(s, pc);
-    const wanted = (dg.npc!.sus[pc.id] ?? 0) > 0.4 || (st.banned.includes(pc.faceId) && !ap.faceHidden);
-    if (["steward", "police"].includes(ap.role) && !wanted) {
-      if (st.doorPass !== pc.id) { st.doorPass = pc.id; st.gates.staffdoor = { until: tick + 200, for: pc.id }; say(w, dg, "All right, mate."); }
+    const wanted = (dg.npc!.sus[pc.id] ?? 0) > 0.4 || (st.banned.includes(pc.faceId) && ap.faceCover < 0.5) || ap.sinister;
+    if (["steward", "police", "catering", "cleaner"].includes(ap.role) && !wanted) {
+      if (st.doorPass !== pc.id) { st.doorPass = pc.id; st.gates.staffdoor = { until: tick + 200, for: pc.id }; say(w, dg, ap.role === "catering" ? "Morning, chef." : ap.role === "cleaner" ? "In you go, love." : "All right, mate."); }
     } else if (!st.gates.staffdoor || st.gates.staffdoor.until < tick) {
       if (!dg.npc!.bubble) say(w, dg, wanted ? "Not you again." : "Staff only, mate.");
     }

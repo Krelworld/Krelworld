@@ -7,7 +7,13 @@ export interface Appearance {
   role: Role;
   authority: number;
   faceId: Id;
+  /** How much of the face is covered, 0..1. */
+  faceCover: number;
   faceHidden: boolean;
+  /** Everything an onlooker would remember about the outfit. */
+  look: string;
+  /** Dressed like trouble (a balaclava). */
+  sinister: boolean;
   /** Openly carrying a weapon. */
   alarming: boolean;
 }
@@ -27,12 +33,24 @@ export function appearance(s: WorldState, a: Actor): Appearance {
   }
   if (a.fb && !shirt) role = "footballer";
   const held = item(a.hand);
+  let faceCover = 0, sinister = false;
+  const worn: string[] = [];
+  for (const slot of ["outer", "head", "face", "body"] as const) {
+    const it = item(a.worn[slot]);
+    if (!it) continue;
+    const d = defOf(it);
+    worn.push(d.id);
+    faceCover = Math.max(faceCover, d.faceCover ?? 0);
+    if (d.props.includes("sinister")) sinister = true;
+  }
+  if (!a.worn.outer && inner) worn.push(defOf(inner).id);
   return {
+    faceCover, sinister, look: worn.sort().join("+"),
     team: shirt ? defOf(shirt).team ?? null : null,
     role,
     authority,
     faceId: a.faceId,
-    faceHidden: !!a.worn.face,
+    faceHidden: faceCover >= 1,
     alarming: !!held && hasProp(held, "weapon"),
   };
 }

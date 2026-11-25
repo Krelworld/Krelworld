@@ -116,7 +116,7 @@ export class Commentator {
         else this.out(e, "The ball has hit somebody who should not be on the pitch.", true);
         break;
       case "fb_halted":
-        this.out(e, e.reason === "intruder" ? "The referee has stopped play. There is somebody on the pitch." : "Play has been stopped.", true);
+        this.out(e, e.reason === "intruder" ? "The referee has stopped play. There is somebody on the pitch." : e.reason === "smoke" ? "Play has been stopped. Nobody can see the ball." : e.reason === "impostor" ? "Play has been stopped. By a referee." : "Play has been stopped.", true);
         break;
       case "fb_resumed":
         this.out(e, "Play will restart with a dropped ball.");

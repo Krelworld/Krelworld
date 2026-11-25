@@ -10,7 +10,8 @@ import { say } from "./npc";
 
 export const MAX_STAKE = 100, MAX_OPEN = 4;
 
-export interface Price { market: "winner" | "next"; pick: string; label: string; odds: number }
+export type Market = "winner" | "next" | "pen" | "red";
+export interface Price { market: Market; pick: string; label: string; odds: number }
 
 const logistic = (x: number) => 1 / (1 + Math.exp(-x));
 const roundOdds = (p: number) => Math.min(26, Math.max(1.05, Math.round((0.9 / Math.max(0.02, p)) * 20) / 20));
@@ -28,13 +29,20 @@ export function prices(w: World): Price[] | null {
   const pEng = logistic(base + d * (1.1 + 3.5 * f) + men * 0.35);
   const pNone = m.period >= 3 ? 0.55 : Math.min(0.75, 0.08 + 0.55 * f * f);
   const share = Math.min(0.8, Math.max(0.2, 0.47 + men * 0.06));
-  return [
+  // Penalties and red cards get less likely as time runs out. The book does not offer
+  // England to go out: a patriot is not allowed to back that.
+  const left = Math.max(0.05, 1 - f);
+  const pPen = 0.3 * left, pRed = 0.22 * left;
+  const book: Price[] = [
     { market: "winner", pick: "ENG", label: "England to go through", odds: roundOdds(pEng) },
-    { market: "winner", pick: "OPP", label: `${opp} to go through`, odds: roundOdds(1 - pEng) },
     { market: "next", pick: "ENG", label: "England to score next", odds: roundOdds((1 - pNone) * share) },
     { market: "next", pick: "OPP", label: `${opp} to score next`, odds: roundOdds((1 - pNone) * (1 - share)) },
     { market: "next", pick: "NONE", label: "No more goals", odds: roundOdds(pNone) },
   ];
+  if (!st.flags.penGiven) book.push({ market: "pen", pick: "YES", label: "A penalty to be given", odds: roundOdds(pPen) });
+  if (!st.flags.redGiven) book.push({ market: "red", pick: "YES", label: "A player to be sent off", odds: roundOdds(pRed) });
+  void opp;
+  return book;
 }
 
 /** Can this person place a bet where they are? At a counter, or on the phone while watching. */
@@ -82,7 +90,7 @@ export function installBetting(): void {
 }
 
 /** Settle bets on what the officials have recognised. Winnings go to whoever holds the slip. */
-export function settle(w: World, market: "winner" | "next", winner: string): void {
+export function settle(w: World, market: Market, winner: string): void {
   const s = w.state;
   for (const id in s.items) {
     const it = s.items[id], b = it.bet;
@@ -101,6 +109,10 @@ export function installSettlement(w: World): void {
   w.bus.on((e) => {
     const s = w.state, st = s.stadium!;
     if (e.type === "fb_goal") { st.flags.lastGoalAt = s.tick; settle(w, "next", e.team === 0 ? "ENG" : "OPP"); }
-    if (e.type === "fb_match_end") { settle(w, "next", "NONE"); settle(w, "winner", e.winner === 0 ? "ENG" : "OPP"); }
+    if (e.type === "fb_match_end") { settle(w, "next", "NONE"); settle(w, "winner", e.winner === 0 ? "ENG" : "OPP"); settle(w, "pen", "NO"); settle(w, "red", "NO"); }
+    const pen = (e.type === "fb_foul" && e.penalty) || (e.type === "impostor_ruling" && e.kind === "penalty");
+    const red = (e.type === "fb_foul" && (e.card === "red" || e.card === "second_yellow")) || (e.type === "impostor_ruling" && e.kind === "sendoff");
+    if (pen) { st.flags.penGiven = 1; settle(w, "pen", "YES"); }
+    if (red) { st.flags.redGiven = 1; settle(w, "red", "YES"); }
   });
 }

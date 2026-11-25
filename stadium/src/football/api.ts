@@ -67,6 +67,7 @@ export function haltPlay(w: World, reason: string): void {
   const m = w.state.match;
   if (!m || m.halted || m.phase === "finished" || m.phase === "shootout") return;
   m.halted = reason;
+  w.bus.emit({ type: "fb_halted", t: w.state.tick, reason });
 }
 export function resumePlay(w: World): void {
   const m = w.state.match;

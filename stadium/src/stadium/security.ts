@@ -30,7 +30,19 @@ export function canSee(w: World, v: Actor, t: Actor, range = 14): boolean {
     const c = Math.cos(ang);
     if (c < 0.2) return false; // roughly 160 degrees of vision
   }
-  return lineOfSight(v.x, v.y, t.x, t.y);
+  if (!lineOfSight(v.x, v.y, t.x, t.y)) return false;
+  return !smokeBetween(w, v.x, v.y, t.x, t.y);
+}
+
+/** Does a smoke cloud lie between two points (or swallow either)? */
+export function smokeBetween(w: World, ax: number, ay: number, bx: number, by: number): boolean {
+  for (const c of w.state.stadium!.smoke) {
+    if (c.until < w.state.tick) continue;
+    const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1;
+    const t = Math.max(0, Math.min(1, ((c.x - ax) * dx + (c.y - ay) * dy) / l2));
+    if (Math.hypot(ax + dx * t - c.x, ay + dy * t - c.y) < c.r) return true;
+  }
+  return false;
 }
 
 /** The worst thing this person looks like they are doing just by being here. */
@@ -47,12 +59,16 @@ function wantedMatch(w: World, v: Actor, t: Actor): number {
   const st = w.state.stadium!, ap = appearance(w.state, t), d = Math.hypot(t.x - v.x, t.y - v.y);
   const outer = t.worn.outer ? w.state.items[t.worn.outer].def : null;
   let m = 0;
+  const seenFace = 1 - ap.faceCover;
   for (const wd of st.wanted) {
     if (wd.until < w.state.tick) continue;
-    if (wd.face === t.faceId && !ap.faceHidden && d < 5) m = Math.max(m, 0.9 * wd.severity);
-    if (wd.team === ap.team && wd.outer === outer && wd.role === ap.role) m = Math.max(m, 0.45 * wd.severity);
+    if (wd.face === t.faceId && d < 5) m = Math.max(m, 0.9 * wd.severity * seenFace);
+    // The same outfit is a strong match; the same shirt with a new hat or glasses, a weak one.
+    if (wd.look === ap.look) m = Math.max(m, 0.45 * wd.severity);
+    else if (wd.team === ap.team && wd.outer === outer && wd.role === ap.role) m = Math.max(m, 0.18 * wd.severity);
   }
-  if (st.banned.includes(t.faceId) && !ap.faceHidden && d < 4 && areaAt(t.x, t.y).access !== "public") m = Math.max(m, 0.8);
+  if (st.banned.includes(t.faceId) && d < 4 && areaAt(t.x, t.y).access !== "public") m = Math.max(m, 0.8 * seenFace);
+  if (ap.sinister) m = Math.max(m, 0.5);
   return m;
 }
 
@@ -87,7 +103,7 @@ export function crime(w: World, by: Actor, what: string, severity: number, victi
   w.bus.emit({ type: "incident", t: s.tick, what, by: by.id, blamed: ap.team, severity, seen: seen.length, victim: victim?.id });
   if (!seen.length) return 0;
   st.wanted.push({
-    face: by.faceId, team: ap.team, role: ap.role, outer: by.worn.outer ? s.items[by.worn.outer].def : null,
+    face: by.faceId, team: ap.team, role: ap.role, outer: by.worn.outer ? s.items[by.worn.outer].def : null, look: ap.look,
     severity: Math.min(1, 0.35 + severity * 0.25), until: s.tick + 60 * 300, what,
   });
   let shouted = false;
@@ -267,13 +283,13 @@ function apprehend(w: World, g: Actor, t: Actor): void {
 /** Security pull the outer shirt off. If the blame was going to the other lot, it comes back. */
 function revealShirt(w: World, g: Actor, t: Actor): void {
   const s = w.state, st = s.stadium!;
-  const outerId = t.worn.outer!, before = appearance(s, t).team;
+  const outerId = t.worn.outer!, before = appearance(s, t).team, outerName = defOf(s.items[outerId]).name;
   moveItem(s, outerId, { k: "in", c: st.locker });
   const after = appearance(s, t).team;
   if (before !== after) {
     say(w, g, after === "ENG" ? "Hang on. He's English!" : "Hang on a minute.");
     for (const inc of st.incidents) if (inc.by === t.id && inc.blamed === before) inc.blamed = after;
-    w.bus.emit({ type: "unmasked", t: s.tick, who: t.id, was: before, now: after });
+    w.bus.emit({ type: "unmasked", t: s.tick, who: t.id, was: before, now: after, outer: outerName, football: !!before });
   }
 }
 

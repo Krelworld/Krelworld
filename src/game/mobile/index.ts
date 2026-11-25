@@ -34,6 +34,7 @@ import { PhoneSettingsPage } from "./settingsPage";
 import { onSceneCreate, PhoneScreens, skipHintPill } from "./screens";
 import { PhoneLists, liveScene } from "./listScenes";
 import { PhoneShops } from "./shops";
+import { PhoneArt } from "./art";
 
 export { isMobile, setMobileForTests, mobileWhy, rememberPhoneMode } from "./flag";
 export { registerModeController, unregisterModeController, type ModeController, type ModeContext, type ControlSpec, TouchControl, TouchLayer } from "./touchLayer";
@@ -86,6 +87,8 @@ const GUIDE_DELAY_MS = 600;
 export function installMobile(game: Phaser.Game) {
   if (!isMobile() || installed || typeof document === "undefined") return;
   const parent = document.getElementById("game") ?? document.body;
+  // the texture budget first, before the art arrives (art.ts: the big one-scene pictures are parked until drawn)
+  const art = new PhoneArt(game);
   // the phone's own settings, from its own storage key (before anything lays itself out)
   usePhoneSettingsStore(localPhoneSettingsStore());
   // the browser's install prompt fires early: keep it for the guide's INSTALL button
@@ -228,6 +231,7 @@ export function installMobile(game: Phaser.Game) {
   });
   // for the phone smoke test and for poking at it on a real phone (phones only)
   (window as unknown as { __krelMobile?: unknown }).__krelMobile = {
+    art,
     layer,
     shell,
     readability: read,

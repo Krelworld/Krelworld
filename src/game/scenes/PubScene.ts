@@ -265,7 +265,8 @@ export class PubScene extends Phaser.Scene {
     });
     // Leave, set apart
     const leave = items.find((o) => o.id === "leave")!;
-    this.card(leave, LEAVE.x, LEAVE.y, LEAVE.w, LEAVE.h, 0xb9bdd0, calm);
+    // (phones: 30 px higher, so the card and its touch area end above the home-indicator strip; src/game/mobile)
+    this.card(leave, LEAVE.x, isMobile() ? LEAVE.y - 30 : LEAVE.y, LEAVE.w, LEAVE.h, 0xb9bdd0, calm);
     // status and the controls, along the bottom
     const statusBg = this.add.graphics();
     statusBg.fillStyle(0x000000, 0.6).fillRoundedRect(BOARD.x, 488, 380, 40, 8);

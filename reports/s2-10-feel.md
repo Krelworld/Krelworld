@@ -8,6 +8,8 @@ was touched in this round). Commits (each ends with the two footer lines):
 - 03c91610 Phone fights: specials and drinks are full-size buttons under the right thumb
 - 77e2dfe3 Phone side rooms: a quick tap clears the platforms; the camera no longer whips round
 - 35872aca Phone smoke and README: the thumb-feel round (stick, pocket, jumping, pause)
+- 0c3be3ca Phone stick: the idle ring goes back to its resting place after a touch (found by the full smoke: with the
+  base no longer moving, the ring's cached resting spot was never re-applied after a touch)
 
 The user's four points and what each became:
 
@@ -102,6 +104,9 @@ line mentioning a key was touched.
 
 ## Checks (dev servers from this worktree: normal 5222, ALT 5232; logs in `/tmp/claude-0/-home-user/56b408f2-7415-570b-9a1e-7a003490c94a/scratchpad/mobile/work/s2-feel/`)
 
+The laptop fingerprints (a, b) ran on 35872aca; the one commit after it (0c3be3ca) changes only `touchLayer.ts`, in the
+lazy phone chunk a laptop never fetches, and the smoke script. (c) and (d) ran on the final code.
+
 | Check | Result |
 |---|---|
 | (a) fingerprint `shell,front,newgame,hub,meeting,dungeon` (main + ALT) | 40 of 40 identical, **DESKTOP FINGERPRINT: OK** (`fp1.log`) |
@@ -110,8 +115,8 @@ line mentioning a key was touched.
 | (b) androidtab (`front,newgame,hub`) | **OK** |
 | (c) `tests/desktopInvariants.test.ts` | 19/19; `git diff 37a710d4` on it, `tests/fingerprints/`, `index.html`, `src/main.ts` is empty |
 | (d) `npx tsc --noEmit` / `npx vitest run` | clean / 44 files, 553 of 553 |
-| (e) `mobile-smoke.cjs` normal (5222) | SMOKE_NORMAL |
-| (e) `mobile-smoke.cjs` ALT (5232) | SMOKE_ALT |
+| (e) `mobile-smoke.cjs` normal (5222) | Every section passed on the final code, over three runs while the machine's load average was 10 to 14 on 4 CPUs (the other agent): run 2 (`smoke-normal2.log`) passed phone through dungeon, its combat / side had three timing flakes (SWAP tap, coyote 161 ms, camera not settled) and then the browser was closed under it from brawl on; run 3 `--only combat,side,brawl,together,review1,polish,android,desktop` (`smoke-normal3.log`): 170 of 171, every one of those three passing, review1 timed out loading a room; review1 alone: **7 of 7**. The first full run (on 35872aca, `smoke-normal.log`) was 423 of 426: the stick-ring bug fixed in 0c3be3ca, the camera-turn threshold, and review1 broken by the page reloading when I saved that fix mid-run |
+| (e) `mobile-smoke.cjs` ALT (5232) | Full run on the final code: **425 of 427** (`smoke-alt.log`). (1) "a quick tap jumps nearly as high as a hold" read tap 145 / full 203 (jumps measured mid-air under load); re-run `--only side,review1`: 122 / 140, passed. (2) **P2 (pit, stick held toward it)** fails on ALT every time under this load (4 to 5 falls): **pre-existing, not this round's**: with the whole of `src/game/mobile/` put back to 37a710d4 it fails identically on ALT (5 falls), and it passes on the normal build (1 fall). Traced: at about 12 frames a second the player, put back by the game's pit code at `groundY - 70`, drops through the floor and the game's pit check fires again 600 ms later; the polish round's ALT run (load about 3.6) passed it. Left for stage 3's performance work / stage 4 on a real phone |
 
 New or changed checks: unit tests for the stick setting (old value mapping, three choices), `keepInZone`, `healShown`,
 the jump numbers at 10 / 30 / 60 / 120 Hz, the one-way ledge pop, the camera's turn rate; smoke: the stick's base stays
